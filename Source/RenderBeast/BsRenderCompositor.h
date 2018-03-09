@@ -231,6 +231,9 @@ namespace ct
 
 		SPtr<RenderTexture> renderTarget;
 
+		/** Converts a flattened scene color buffer into an unflattened texture. */
+		void unflatten();
+
 		static StringID getNodeId() { return "SceneColor"; }
 		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
 	protected:
@@ -285,6 +288,9 @@ namespace ct
 
 		SPtr<RenderTexture> renderTarget;
 
+		/** Converts a flattened light accumulation buffer into an unflattened texture. */
+		void unflatten();
+
 		static StringID getNodeId() { return "LightAccumulation"; }
 		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
 	protected:
@@ -298,34 +304,16 @@ namespace ct
 	};
 
 	/** 
-	 * Performs tiled deferred lighting, outputing any lighting information in the light accumulation buffer. 
-	 * By default only non-shadowed lights are rendered, as shadowed ones are handled using standard deferred.
+	 * Handles lighting of surfaces illuminated directly, for both diffuse and specular components. Uses either tiled
+	 * deferred or standard deferred rendering approach. Lighting information is output in the light accumulation buffer.
 	 */
-	class RCNodeTiledDeferredLighting : public RenderCompositorNode
+	class RCNodeDeferredDirectLighting : public RenderCompositorNode
 	{
 	public:
 		// Outputs
 		RCNodeLightAccumulation* output;
 
-		static StringID getNodeId() { return "TiledDeferredLighting"; }
-		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
-	protected:
-		/** @copydoc RenderCompositorNode::render */
-		void render(const RenderCompositorNodeInputs& inputs) override;
-
-		/** @copydoc RenderCompositorNode::clear */
-		void clear() override;
-	};
-
-	/**
-	 * Performs standard deferred lighting, outputting any lighting information in the light accumulation buffer.
-	 * Normally only used for shadowed light rendering, unless tiled deferred is unavailable, in which case it renders
-	 * all lights.
-	 */
-	class RCNodeStandardDeferredLighting : public RenderCompositorNode
-	{
-	public:
-		static StringID getNodeId() { return "StandardDeferredLighting"; }
+		static StringID getNodeId() { return "DeferredDirectLighting"; }
 		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
 	protected:
 		/** @copydoc RenderCompositorNode::render */
@@ -338,33 +326,17 @@ namespace ct
 	};
 
 	/**
-	 * Render reflection probes and sky reflections using standard deferred lighting. Only used if tiled deferred IBL
-	 * is not supported.
+	 * Calculates specular lighting (specular reflections) using image based methods and deferred rendering. Uses either
+	 * tiled deferred or standard deferred depending on the active feature set. The resulting lighting data is combined
+	 * with direct lighting present in the light accumulation buffer and output to scene color texture/buffer.
 	 */
-	class RCNodeStandardDeferredIBL : public RenderCompositorNode
-	{
-	public:
-		static StringID getNodeId() { return "StandardDeferredIBL"; }
-		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
-	protected:
-		/** @copydoc RenderCompositorNode::render */
-		void render(const RenderCompositorNodeInputs& inputs) override;
-
-		/** @copydoc RenderCompositorNode::clear */
-		void clear() override;
-	};
-
-	/**
-	 * In case light accumulation was rendered into a buffer instead of a texture (if MSAA is used), this node will
-	 * unflatten the buffer and write its contents into the light accumulation texture.
-	 */
-	class RCNodeUnflattenLightAccum : public RenderCompositorNode
+	class RCNodeDeferredIndirectSpecularLighting : public RenderCompositorNode
 	{
 	public:
 		// Outputs
 		RCNodeLightAccumulation* output;
 
-		static StringID getNodeId() { return "UnflattenLightAccum"; }
+		static StringID getNodeId() { return "DeferredIndirectSpecularLighting"; }
 		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
 	protected:
 		/** @copydoc RenderCompositorNode::render */
@@ -374,13 +346,16 @@ namespace ct
 		void clear() override;
 	};
 
-	/** Evaluates indirect lighting from the light probe volume, if available, or the sky irradiance otherwise. */
-	class RCNodeIndirectLighting : public RenderCompositorNode
+	/** 
+	 * Evaluates indirect lighting from the light probe volume, if available, or the sky irradiance otherwise. 
+	 * Results are written to the light accumulation buffer.
+	 */
+	class RCNodeIndirectDiffuseLighting : public RenderCompositorNode
 	{
 	public:
 		// Outputs to the unflattened RCNodeLightAccumulation
 
-		static StringID getNodeId() { return "IndirectLighting"; }
+		static StringID getNodeId() { return "IndirectDiffuseLighting"; }
 		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
 	protected:
 		/** @copydoc RenderCompositorNode::render */
@@ -390,53 +365,16 @@ namespace ct
 		void clear() override;
 	};
 
-	/**
-	 * Performs tiled deferred image based lighting, combines it with direct lighting present in the light accumulation
-	 * buffer and outputs the results to the scene color texture or buffer.
+	/** 
+	 * Renders transparent objects using clustered forward rendering. Handles direct diffuse and specular, as well as
+	 * indirect specular. 
 	 */
-	class RCNodeTiledDeferredIBL : public RenderCompositorNode
-	{
-	public:
-		// Outputs
-		RCNodeLightAccumulation* output;
-
-		static StringID getNodeId() { return "TiledDeferredIBL"; }
-		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
-	protected:
-		/** @copydoc RenderCompositorNode::render */
-		void render(const RenderCompositorNodeInputs& inputs) override;
-
-		/** @copydoc RenderCompositorNode::clear */
-		void clear() override;
-	};
-
-	/** Renders transparent objects using clustered forward rendering. */
 	class RCNodeClusteredForward : public RenderCompositorNode
 	{
 	public:
 		RCNodeClusteredForward();
 
 		static StringID getNodeId() { return "ClusteredForward"; }
-		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
-	protected:
-		/** @copydoc RenderCompositorNode::render */
-		void render(const RenderCompositorNodeInputs& inputs) override;
-
-		/** @copydoc RenderCompositorNode::clear */
-		void clear() override;
-	};
-
-	/**
-	 * In case scene color was rendered into a buffer instead of a texture (if MSAA is used), this node will
-	 * unflatten the buffer and write its contents into the scene color texture.
-	 */
-	class RCNodeUnflattenSceneColor : public RenderCompositorNode
-	{
-	public:
-		// Outputs
-		RCNodeSceneColor* output;
-
-		static StringID getNodeId() { return "UnflattenSceneColor"; }
 		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
 	protected:
 		/** @copydoc RenderCompositorNode::render */
@@ -614,7 +552,7 @@ namespace ct
 	class RCNodeSSAO : public RenderCompositorNode
 	{
 	public:
-		SPtr<PooledRenderTexture> output;
+		SPtr<Texture> output;
 
 		static StringID getNodeId() { return "SSAO"; }
 		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
@@ -624,13 +562,15 @@ namespace ct
 
 		/** @copydoc RenderCompositorNode::clear */
 		void clear() override;
+
+		SPtr<PooledRenderTexture> mPooledOutput;
 	};
 
 	/** Renders screen space reflections. */
 	class RCNodeSSR : public RenderCompositorNode
 	{
 	public:
-		SPtr<PooledRenderTexture> output;
+		SPtr<Texture> output;
 
 		~RCNodeSSR();
 
@@ -646,6 +586,7 @@ namespace ct
 		/** Cleans up any outputs. */
 		void deallocOutputs();
 
+		SPtr<PooledRenderTexture> mPooledOutput;
 		SPtr<PooledRenderTexture> mPrevFrame;
 	};
 

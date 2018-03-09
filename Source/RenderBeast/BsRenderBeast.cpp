@@ -92,14 +92,11 @@ namespace bs { namespace ct
 		RenderCompositor::registerNodeType<RCNodeGBuffer>();
 		RenderCompositor::registerNodeType<RCNodeLightAccumulation>();
 		RenderCompositor::registerNodeType<RCNodeSceneColor>();
-		RenderCompositor::registerNodeType<RCNodeStandardDeferredLighting>();
-		RenderCompositor::registerNodeType<RCNodeStandardDeferredIBL>();
-		RenderCompositor::registerNodeType<RCNodeTiledDeferredLighting>();
-		RenderCompositor::registerNodeType<RCNodeTiledDeferredIBL>();
-		RenderCompositor::registerNodeType<RCNodeUnflattenLightAccum>();
+		RenderCompositor::registerNodeType<RCNodeDeferredDirectLighting>();
+		RenderCompositor::registerNodeType<RCNodeIndirectDiffuseLighting>();
+		RenderCompositor::registerNodeType<RCNodeDeferredIndirectSpecularLighting>();
 		RenderCompositor::registerNodeType<RCNodeFinalResolve>();
 		RenderCompositor::registerNodeType<RCNodeSkybox>();
-		RenderCompositor::registerNodeType<RCNodeUnflattenSceneColor>();
 		RenderCompositor::registerNodeType<RCNodePostProcess>();
 		RenderCompositor::registerNodeType<RCNodeTonemapping>();
 		RenderCompositor::registerNodeType<RCNodeGaussianDOF>();
@@ -108,7 +105,6 @@ namespace bs { namespace ct
 		RenderCompositor::registerNodeType<RCNodeHiZ>();
 		RenderCompositor::registerNodeType<RCNodeSSAO>();
 		RenderCompositor::registerNodeType<RCNodeClusteredForward>();
-		RenderCompositor::registerNodeType<RCNodeIndirectLighting>();
 		RenderCompositor::registerNodeType<RCNodeSSR>();
 		RenderCompositor::registerNodeType<RCNodeMSAACoverage>();
 	}
