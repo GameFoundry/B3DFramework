@@ -342,10 +342,12 @@ namespace bs { namespace ct
 				// Set stencil buffer options
 				setStencilCheckEnabled(stateProps.getStencilEnable());
 
-				setStencilBufferOperations(stateProps.getStencilFrontFailOp(), stateProps.getStencilFrontZFailOp(), stateProps.getStencilFrontPassOp(), true);
+				setStencilBufferOperations(stateProps.getStencilFrontFailOp(), stateProps.getStencilFrontZFailOp(), 
+					stateProps.getStencilFrontPassOp(), true);
 				setStencilBufferFunc(stateProps.getStencilFrontCompFunc(), stateProps.getStencilReadMask(), true);
 
-				setStencilBufferOperations(stateProps.getStencilBackFailOp(), stateProps.getStencilBackZFailOp(), stateProps.getStencilBackPassOp(), false);
+				setStencilBufferOperations(stateProps.getStencilBackFailOp(), stateProps.getStencilBackZFailOp(), 
+					stateProps.getStencilBackPassOp(), false);
 				setStencilBufferFunc(stateProps.getStencilBackCompFunc(), stateProps.getStencilReadMask(), false);
 
 				setStencilBufferWriteMask(stateProps.getStencilWriteMask());
@@ -2433,17 +2435,7 @@ namespace bs { namespace ct
 
 		GLRTTManager::startUp<GLRTTManager>();
 
-		UINT32 curTexUnitOffset = 0;
-		for (UINT32 i = 0; i < 6; i++)
-			curTexUnitOffset += caps->getNumTextureUnits((GpuProgramType)i);
-
-		UINT32 totalNumTexUnits = curTexUnitOffset;
-		UINT16 numCombinedTexUnits = caps->getNumCombinedTextureUnits();
-
-		if (totalNumTexUnits > numCombinedTexUnits)
-			BS_EXCEPT(InternalErrorException, "Number of combined texture units less than the number of individual units!?");
-
-		mNumTextureUnits = numCombinedTexUnits;
+		mNumTextureUnits = caps->getNumCombinedTextureUnits();
 		mTextureInfos = bs_newN<TextureInfo>(mNumTextureUnits);
 		for (UINT16 i = 0; i < mNumTextureUnits; i++)
 			mTextureInfos[i].type = GL_TEXTURE_2D;
@@ -2454,21 +2446,17 @@ namespace bs { namespace ct
 
 	void GLRenderAPI::switchContext(const SPtr<GLContext>& context, const RenderWindow& window)
 	{
-		// Unbind GPU programs and rebind to new context later, because
-		// scene manager treat render system as ONE 'context' ONLY, and it
-		// cached the GPU programs using state.
+		// Unbind pipeline and rebind to new context later	
 		setGraphicsPipeline(nullptr);
 
-		// It's ready for switching
 		if (mCurrentContext)
 			mCurrentContext->endCurrent();
 
 		mCurrentContext = context;
 		mCurrentContext->setCurrent(window);
 
-		// Must reset depth/colour write mask to according with user desired, otherwise,
-		// clearFrameBuffer would be wrong because the value we recorded may be
-		// different from the real state stored in GL context.
+		// Must reset depth/colour write mask to according with user desired, otherwise, clearFrameBuffer would be wrong 
+		// because the value we recorded may be different from the real state stored in GL context.
 		glDepthMask(mDepthWrite);
 		BS_CHECK_GL_ERROR();
 
@@ -2495,12 +2483,12 @@ namespace bs { namespace ct
 		driverVersion.build = 0;
 
 		caps.setDriverVersion(driverVersion);
-		const char* deviceName = (const char*)glGetString(GL_RENDERER);
-		const char* vendorName = (const char*)glGetString(GL_VENDOR);
-		caps.setDeviceName(deviceName);
 		caps.setRenderAPIName(getName());
 
-		// determine vendor
+		const char* deviceName = (const char*)glGetString(GL_RENDERER);
+		caps.setDeviceName(deviceName);
+
+		const char* vendorName = (const char*)glGetString(GL_VENDOR);
 		if (strstr(vendorName, "NVIDIA"))
 			caps.setVendor(GPU_NVIDIA);
 		else if (strstr(vendorName, "ATI"))

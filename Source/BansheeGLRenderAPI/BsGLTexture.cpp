@@ -171,20 +171,43 @@ namespace bs { namespace ct
 				break;
 			}
 #else
-			if((usage & TU_DEPTHSTENCIL) != 0 && mProperties.getTextureType() == TEX_TYPE_2D)
-			{
+			if((usage & TU_DEPTHSTENCIL) != 0)
+			{ 
 				GLenum depthStencilType = GLPixelUtil::getDepthStencilTypeFromPF(mInternalFormat);
 				GLenum depthStencilFormat = GLPixelUtil::getDepthStencilFormatFromPF(mInternalFormat);
 
-				if (numFaces <= 1)
+				if(texType == TEX_TYPE_2D)
 				{
-					glTexImage2D(GL_TEXTURE_2D, 0, mGLFormat, width, height, 0,
-						depthStencilFormat, depthStencilType, nullptr);
+					if (numFaces <= 1)
+					{
+						glTexImage2D(GL_TEXTURE_2D, 0, mGLFormat, width, height, 0,
+							depthStencilFormat, depthStencilType, nullptr);
+					}
+					else
+					{
+						glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, mGLFormat, width, height, numFaces, 0,
+							depthStencilFormat, depthStencilType, nullptr);
+					}
+				}
+				else if(texType == TEX_TYPE_CUBE_MAP)
+				{
+					if (numFaces <= 6)
+					{
+						for (UINT32 face = 0; face < 6; face++)
+						{
+							glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, 0, mGLFormat,
+								width, height, 0, depthStencilFormat, depthStencilType, nullptr);
+						}
+					}
+					else
+					{
+						glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, mGLFormat,
+							width, height, numFaces, 0, depthStencilFormat, depthStencilType, nullptr);
+					}
 				}
 				else
 				{
-					glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, mGLFormat, width, height, numFaces, 0,
-						depthStencilFormat, depthStencilType, nullptr);
+					LOGERR("Unsupported texture type for depth-stencil attachment usage.");
 				}
 			}
 			else

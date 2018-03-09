@@ -85,7 +85,7 @@ namespace bs
 	namespace ct
 	{
 	void TextureManager::onStartUp()
-    {
+	{
 		TEXTURE_DESC desc;
 		desc.type = TEX_TYPE_2D;
 		desc.width = 2;
