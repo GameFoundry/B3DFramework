@@ -1,9 +1,5 @@
 # Features
 
-All features listed here are the ones currently available (implemented). If you are interested in what's coming up in the near future check out the [roadmap](roadmap.md).
-  
----------------------------------------------------  
-  
 * __General__
 	* Modern C++14 code
 	* Clean layered design

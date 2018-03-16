@@ -1,32 +1,12 @@
 # Roadmap
 
-Remaining v1.0 features (in order):
- - macOS port (Early 2018)
- - v1.0 BETA release (Early 2018)
- 
----------------------------------------------------
+All tasks are organized as GitHub issues per milestone:
+ - [v1.0](https://github.com/GameFoundry/bsf/milestone/1)
+ - [v1.1](https://github.com/GameFoundry/bsf/milestone/2)
+ - [v1.2](https://github.com/GameFoundry/bsf/milestone/3)
+ - [v1.3](https://github.com/GameFoundry/bsf/milestone/4)
+ - [Longterm](https://github.com/GameFoundry/bsf/milestone/5)
 
-Post v1.0 features (in rough order): 
- - Sprites & 2D rendering
- - Effects/Particle system
- - Terrain system
- - High level networking (replication, RPCs, RakNet integration)
- - AI (pathfinding, navmesh, Recast/Detour integration)
- - 2D physics (Box2D or Chipmunk integration)
- - 2D animation (basic sprite animation, Spine and/or Spriter)
- - Mobile render API (likely Vulkan, possibly Metal for iOS)
- - Android/iOS/WP ports
- - Occlussion culling
- - Script bindings for Lua, Python, C#
+All issues marked with the [OFFICIAL] label are tasks created internally, and generally include major features that are to be introduced in that particular milestone. Other issues are user reported bugs and enhancements.
  
-And more to come after that:
- - Dynamic global illumination (+ other high fidelity graphical improvements)
- - VR support
- - Level of detail
- - XBONE/PS4 ports
- - BSP brushes for level prototyping
- - Offline lightmapper
- - WebGL port
- - And more to be decided later...
- 
-Implementation times for each of those roughly ranges from 1-4 months.
+If you feel like contributing toward a specific task first make sure it is not assigned to someone already, and then comment on the related issue.
