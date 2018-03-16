@@ -132,6 +132,6 @@ endif()
 ## Install
 install(
 	DIRECTORY ../Data
-	DESTINATION bin/Data
-	PATTERN "..Data/Raw" EXCLUDE
+	DESTINATION bin/
+	PATTERN "../Data/Raw" EXCLUDE
 )
