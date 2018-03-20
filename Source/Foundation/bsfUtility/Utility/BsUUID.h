@@ -18,33 +18,27 @@ namespace bs
 	struct BS_UTILITY_EXPORT UUID
 	{
 		/** Initializes an empty UUID. */
-		UUID()
-			: mData()
-		{ }
+		constexpr UUID() = default;
 
 		/** Initializes an UUID using Banshee's UUID representation. */
-		UUID(UINT32 data1, UINT32 data2, UINT32 data3, UINT32 data4)
-		{
-			mData[0] = data1;
-			mData[1] = data2;
-			mData[2] = data3;
-			mData[3] = data4;
-		}
+		constexpr UUID(UINT32 data1, UINT32 data2, UINT32 data3, UINT32 data4)
+		: mData{data1, data2, data3, data4}
+		{ }
 
 		/** Initializes an UUID using its string representation. */
 		explicit UUID(const String& uuid);
 
-		bool operator==(const UUID& rhs) const
+		constexpr bool operator==(const UUID& rhs) const
 		{
 			return mData[0] == rhs.mData[0] && mData[1] == rhs.mData[1] && mData[2] == rhs.mData[2] && mData[3] == rhs.mData[3];
 		}
 
-		bool operator!=(const UUID& rhs) const
+		constexpr bool operator!=(const UUID& rhs) const
 		{
 			return !(*this == rhs);
 		}
 
-		bool operator<(const UUID& rhs) const
+		constexpr bool operator<(const UUID& rhs) const
 		{
 			for(UINT32 i = 0; i < 4; i++)
 			{
@@ -61,7 +55,7 @@ namespace bs
 		}
 
 		/** Checks has the UUID been initialized to a valid value. */
-		bool empty() const
+		constexpr bool empty() const
 		{
 			return mData[0] == 0 && mData[1] == 0 && mData[2] == 0 && mData[3] == 0;
 		}
@@ -73,7 +67,7 @@ namespace bs
 	private:
 		friend struct std::hash<UUID>;
 
-		UINT32 mData[4];
+		UINT32 mData[4] = {0, 0, 0, 0};
 	};
 
 	BS_ALLOW_MEMCPY_SERIALIZATION(UUID)
