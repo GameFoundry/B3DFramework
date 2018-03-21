@@ -18,12 +18,7 @@ namespace bs
 	class BaseConnectionData
 	{
 	public:
-		BaseConnectionData()
-			:prev(nullptr), next(nullptr), isActive(true),
-			handleLinks(0)
-		{
-			
-		}
+		BaseConnectionData() = default;
 
 		virtual ~BaseConnectionData()
 		{
@@ -35,19 +30,16 @@ namespace bs
 			isActive = false;
 		}
 
-		BaseConnectionData* prev;
-		BaseConnectionData* next;
-		bool isActive;
-		UINT32 handleLinks;
+		BaseConnectionData* prev = nullptr;
+		BaseConnectionData* next = nullptr;
+		bool isActive = true;
+		UINT32 handleLinks = 0;
 	};
 
 	/** Internal data for an Event, storing all connections. */
 	struct EventInternalData
 	{
-		EventInternalData()
-			:mConnections(nullptr), mLastConnection(nullptr), mFreeConnections(nullptr), mNewConnections(nullptr), 
-			mIsCurrentlyTriggering(false)
-		{ }
+		EventInternalData() = default;
 
 		~EventInternalData()
 		{
@@ -171,13 +163,13 @@ namespace bs
 			mFreeConnections->~BaseConnectionData();
 		}
 
-		BaseConnectionData* mConnections;
-		BaseConnectionData* mLastConnection;
-		BaseConnectionData* mFreeConnections;
-		BaseConnectionData* mNewConnections;
+		BaseConnectionData* mConnections = nullptr;
+		BaseConnectionData* mLastConnection = nullptr;
+		BaseConnectionData* mFreeConnections = nullptr;
+		BaseConnectionData* mNewConnections = nullptr;
 
 		RecursiveMutex mMutex;
-		bool mIsCurrentlyTriggering;
+		bool mIsCurrentlyTriggering = false;
 	};
 
 	/** @} */
@@ -191,12 +183,10 @@ namespace bs
 	class HEvent
 	{
 	public:
-		HEvent()
-			:mConnection(nullptr)
-		{ }
+		HEvent() = default;
 
-		explicit HEvent(const SPtr<EventInternalData>& eventData, BaseConnectionData* connection)
-			:mConnection(connection), mEventData(eventData)
+		explicit HEvent(SPtr<EventInternalData> eventData, BaseConnectionData* connection)
+			:mConnection(connection), mEventData(std::move(eventData))
 		{
 			connection->handleLinks++;
 		}
@@ -251,7 +241,7 @@ namespace bs
 		}
 
 	private:
-		BaseConnectionData* mConnection;
+		BaseConnectionData* mConnection = nullptr;
 		SPtr<EventInternalData> mEventData;
 	};	
 

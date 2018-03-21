@@ -17,30 +17,12 @@
 
 namespace bs
 {
-
-#if BS_PLATFORM == BS_PLATFORM_LINUX
-	const char* DynLib::EXTENSION = "so";
-	const char* DynLib::PREFIX = "lib";
-#elif BS_PLATFORM == BS_PLATFORM_OSX
-	const char* DynLib::EXTENSION = "dylib";
-	const char* DynLib::PREFIX = "lib";
-#elif BS_PLATFORM == BS_PLATFORM_WIN32
-	const char* DynLib::EXTENSION = "dll";
-	const char* DynLib::PREFIX = nullptr;
-#else
-	#error Unhandled platform
-#endif
-
 	DynLib::DynLib(const String& name)
 	{
 		mName = name;
 		mHandle = nullptr;
 
 		load();
-	}
-
-	DynLib::~DynLib()
-	{
 	}
 
 	void DynLib::load()

@@ -20,8 +20,7 @@ namespace bs
 		class DataBase
 		{
 		public:
-			virtual ~DataBase()
-			{ }
+			virtual ~DataBase() = default;
 
 			virtual DataBase* clone() const = 0;
 		};
@@ -43,9 +42,7 @@ namespace bs
 		};
 
 	public:
-		Any() 
-			:mData(nullptr)
-		{ }
+		Any() = default;
 
 		template <typename ValueType>
 		Any(const ValueType& value) 
@@ -99,7 +96,7 @@ namespace bs
 		template <typename ValueType>
 		friend ValueType* any_cast_unsafe(Any*);
 
-		DataBase* mData;
+		DataBase* mData = nullptr;
 	};
 
 	/**

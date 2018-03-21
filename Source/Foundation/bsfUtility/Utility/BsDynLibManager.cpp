@@ -5,10 +5,6 @@
 
 namespace bs
 {
-	DynLibManager::DynLibManager()
-	{
-	}
-
 	DynLib* DynLibManager::load(const String& name)
 	{
 		// Add the extension (.dll, .so, ...) if necessary.

@@ -34,14 +34,30 @@ namespace bs
 	{
 	public:
 		/** Platform-specific file extension for a dynamic library (e.g. "dll"). */
-		static const char* EXTENSION;
+#if BS_PLATFORM == BS_PLATFORM_LINUX
+		static constexpr const char* EXTENSION = "so";
+#elif BS_PLATFORM == BS_PLATFORM_OSX
+		static constexpr const char* EXTENSION = "dylib";
+#elif BS_PLATFORM == BS_PLATFORM_WIN32
+		static constexpr const char* EXTENSION = "dll";
+#else
+	#error Unhandled platform
+#endif
 
 		/** Platform-specific name suffix for a dynamic library (e.g. "lib" on Unix) */
-		static const char* PREFIX;
+#if BS_PLATFORM == BS_PLATFORM_LINUX
+		static constexpr const char* PREFIX = "lib";
+#elif BS_PLATFORM == BS_PLATFORM_OSX
+		static constexpr const char* PREFIX = "lib";
+#elif BS_PLATFORM == BS_PLATFORM_WIN32
+		static constexpr const char* PREFIX = nullptr;
+#else
+	#error Unhandled platform
+#endif
 
 		/** Constructs the dynamic library object and loads the library with the specified name. */
 		DynLib(const String& name);
-		~DynLib();
+		~DynLib() = default;
 
 		/** Loads the library. Does nothing if library is already loaded. */
 		void load();

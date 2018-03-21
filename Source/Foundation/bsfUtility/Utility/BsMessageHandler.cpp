@@ -7,10 +7,6 @@ namespace bs
 	Map<String, UINT32> MessageId::UniqueMessageIds;
 	UINT32 MessageId::NextMessageId = 0;
 
-	MessageId::MessageId()
-		: mMsgIdentifier(0)
-	{ }
-
 	MessageId::MessageId(const String& name)
 	{
 		auto findIter = UniqueMessageIds.find(name);
@@ -24,10 +20,6 @@ namespace bs
 		}
 	}
 
-	HMessage::HMessage()
-		:mId(0)
-	{ }
-
 	HMessage::HMessage(UINT32 id)
 		:mId(id)
 	{ }
@@ -37,10 +29,6 @@ namespace bs
 		if (mId > 0)
 			MessageHandler::instance().unsubscribe(mId);
 	}
-
-	MessageHandler::MessageHandler()
-		:mNextCallbackId(1) // 0 is reserved
-	{ }
 
 	void MessageHandler::send(MessageId message)
 	{

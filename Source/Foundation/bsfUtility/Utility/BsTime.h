@@ -83,13 +83,13 @@ namespace bs
 		/** Multiply with time in microseconds to get a time in seconds. */
 		static const double MICROSEC_TO_SEC;
 	private:
-		float mFrameDelta; /**< Frame delta in seconds */
-		float mTimeSinceStart; /**< Time since start in seconds */
-		UINT64 mTimeSinceStartMs;
+		float mFrameDelta = 0.0f; /**< Frame delta in seconds */
+		float mTimeSinceStart = 0.0f; /**< Time since start in seconds */
+		UINT64 mTimeSinceStartMs = 0u;
 
-		UINT64 mAppStartTime; /**< Time the application started, in microseconds */
-		UINT64 mLastFrameTime; /**< Time since last runOneFrame call, In microseconds */
-		std::atomic<unsigned long> mCurrentFrame;
+		UINT64 mAppStartTime = 0u; /**< Time the application started, in microseconds */
+		UINT64 mLastFrameTime = 0u; /**< Time since last runOneFrame call, In microseconds */
+		std::atomic<unsigned long> mCurrentFrame{0UL};
 
 		Timer* mTimer;
 	};

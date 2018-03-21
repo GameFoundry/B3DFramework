@@ -20,7 +20,7 @@ namespace bs
     class BS_UTILITY_EXPORT DynLibManager : public Module<DynLibManager>
     {
     public:
-        DynLibManager();
+        DynLibManager() = default;
         virtual ~DynLibManager();
 
         /**

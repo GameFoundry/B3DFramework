@@ -120,14 +120,14 @@ namespace bs
 		}
 
 	protected:
-		Module() 
-		{ }
+		Module() = default;
 
-		virtual ~Module()
-		{ }
+		virtual ~Module() = default;
 
-		Module(const Module&) { }
-		Module& operator=(const Module&) { return *this; }
+		Module(Module&&) = default;
+		Module(const Module&) = default;
+		Module& operator=(Module&&) = default;
+		Module& operator=(const Module&) = default;
 
 		/**
 		 * Override if you want your module to be notified once it has been constructed and started.

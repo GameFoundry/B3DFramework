@@ -15,7 +15,7 @@ namespace bs
 	{
 	public:
 		DataStreamSource(const SPtr<DataStream>& stream)
-			: mStream(stream), mReadBuffer(nullptr), mReadBufferContentSize(0), mBufferOffset(0)
+			: mStream(stream)
 		{
 			mRemaining = mStream->size() - mStream->tell();
 
@@ -68,10 +68,10 @@ namespace bs
 		SPtr<DataStream> mStream;
 
 		// File streams only
-		char* mReadBuffer;
-		size_t mReadBufferContentSize;
+		char* mReadBuffer = nullptr;
+		size_t mReadBufferContentSize = 0;
 		size_t mRemaining;
-		size_t mBufferOffset;
+		size_t mBufferOffset = 0;
 	};
 
 	/** Sink (destination) accepting a data stream. Used for Snappy compression library. */
@@ -84,7 +84,7 @@ namespace bs
 		};
 
 	public:
-		DataStreamSink() { }
+		DataStreamSink() = default;
 		virtual ~DataStreamSink()
 		{
 			for (auto& entry : mBufferPieces)

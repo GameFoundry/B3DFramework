@@ -23,7 +23,7 @@ namespace bs
 	class BS_UTILITY_EXPORT MessageId
 	{
 	public:
-		MessageId();
+		MessageId() = default;
 		MessageId(const String& name);
 
 		bool operator== (const MessageId& rhs) const
@@ -36,14 +36,14 @@ namespace bs
 		static Map<String, UINT32> UniqueMessageIds;
 		static UINT32 NextMessageId;
 
-		UINT32 mMsgIdentifier;
+		UINT32 mMsgIdentifier = 0;
 	};
 
 	/** Handle to a subscription for a specific message in the global messaging system. */
 	class BS_UTILITY_EXPORT HMessage
 	{
 	public:
-		HMessage();
+		HMessage() = default;
 
 		/** Disconnects the message listener so it will no longer receive events from the messaging system. */
 		void disconnect();
@@ -53,7 +53,7 @@ namespace bs
 
 		HMessage(UINT32 id);
 
-		UINT32 mId;
+		UINT32 mId = 0;
 	};
 
 	/**

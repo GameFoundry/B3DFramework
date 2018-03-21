@@ -18,9 +18,7 @@ namespace bs
 	class OctreeElementId
 	{
 	public:
-		OctreeElementId()
-			:node(nullptr), elementIdx(0)
-		{ }
+		OctreeElementId() = default;
 
 		OctreeElementId(void* node, UINT32 elementIdx)
 			:node(node), elementIdx(elementIdx)
@@ -30,8 +28,8 @@ namespace bs
 		template<class, class>
 		friend class Octree;
 
-		void* node;
-		UINT32 elementIdx;
+		void* node = nullptr;
+		UINT32 elementIdx = 0u;
 	};
 
 	/** 
@@ -114,10 +112,8 @@ namespace bs
 			{ }
 
 			HChildNode(UINT32 index)
-				:index(index)
-			{
-				empty = false;
-			}
+				:index(index), empty(false)
+			{ }
 		};
 
 		/** Contains a range of child nodes in an octree node. */
@@ -168,11 +164,8 @@ namespace bs
 		public:
 			/** Constructs a new leaf node with the specified parent. */
 			Node(Node* parent)
-				:mParent(parent), mTotalNumElements(0), mIsLeaf(true)
-			{
-				for(auto& entry : mChildren)
-					entry = nullptr;
-			}
+				:mParent(parent)
+			{ }
 
 			/** Returns a child node with the specified index. May return null. */
 			Node* getChild(HChildNode child) const
@@ -210,10 +203,11 @@ namespace bs
 			NodeElements mElements;
 
 			Node* mParent;
-			Node* mChildren[8];
+			Node* mChildren[8] = {  nullptr, nullptr, nullptr, nullptr,
+									nullptr, nullptr, nullptr, nullptr };
 
-			UINT32 mTotalNumElements : 31;
-			UINT32 mIsLeaf : 1;
+			UINT32 mTotalNumElements : 31 = 0;
+			UINT32 mIsLeaf : 1 = true;
 		};
 
 		/** 
@@ -331,7 +325,7 @@ namespace bs
 			/** Calculates bounds for the provided child node. */
 			NodeBounds getChild(HChildNode child) const
 			{
-				static constexpr float map[] = { -1.0f, 1.0f };
+				static constexpr const float map[2] = { -1.0f, 1.0f };
 
 				return NodeBounds(
 					simd::AABox(
@@ -355,9 +349,7 @@ namespace bs
 		class HNode
 		{
 		public:
-			HNode()
-				:mNode(nullptr)
-			{ }
+			HNode() = default;
 
 			HNode(const Node* node, const NodeBounds& bounds)
 				:mNode(node), mBounds(bounds)
@@ -370,7 +362,7 @@ namespace bs
 			const NodeBounds& getBounds() const { return mBounds; }
 
 		private:
-			const Node* mNode;
+			const Node* mNode = nullptr;
 			NodeBounds mBounds;
 		};
 
@@ -440,9 +432,7 @@ namespace bs
 		class ElementIterator
 		{
 		public:
-			ElementIterator()
-				: mCurrentIdx(-1), mCurrentElemGroup(nullptr), mCurrentBoundGroup(nullptr)
-			{ }
+			ElementIterator() = default;
 
 			/** Constructs an iterator that iterates over the specified node's elements. */
 			ElementIterator(const Node* node)
@@ -493,10 +483,10 @@ namespace bs
 			const ElemType& getCurrentElem() const { return mCurrentElemGroup->v[mCurrentIdx]; }
 
 		private:
-			INT32 mCurrentIdx;
-			ElementGroup* mCurrentElemGroup;
-			ElementBoundGroup* mCurrentBoundGroup;
-			UINT32 mElemsInGroup;
+			INT32 mCurrentIdx = -1;
+			ElementGroup* mCurrentElemGroup = nullptr;
+			ElementBoundGroup* mCurrentBoundGroup = nullptr;
+			UINT32 mElemsInGroup = 0;
 		};
 
 		/** Iterators that iterates over all elements intersecting the specified AABox. */
@@ -571,8 +561,7 @@ namespace bs
 		 *							methods on the provided Options class.
 		 */
 		Octree(const Vector3& center, float extent, void* context = nullptr)
-			: mRoot(nullptr)
-			, mRootBounds(simd::AABox(center, extent))
+			: mRootBounds(simd::AABox(center, extent))
 			, mMinNodeExtent(extent * std::pow(0.5f * (1.0f + 1.0f / Options::LoosePadding), Options::MaxDepth))
 			, mContext(context)
 		{
@@ -818,7 +807,7 @@ namespace bs
 			elements.count = 0;
 		}
 
-		Node mRoot;
+		Node mRoot{nullptr};
 		NodeBounds mRootBounds;
 		float mMinNodeExtent;
 		void* mContext;

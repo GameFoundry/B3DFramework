@@ -25,7 +25,7 @@ namespace bs
 		};
 
 	public:
-		MessageHandler();
+		MessageHandler() = default;
 
 		/** Sends a message to all subscribed listeners. */
 		void send(MessageId message);
@@ -45,7 +45,7 @@ namespace bs
 		Map<UINT32, Vector<MessageHandlerData>> mMessageHandlers;
 		Map<UINT32, UINT32> mHandlerIdToMessageMap;
 
-		UINT32 mNextCallbackId;
+		UINT32 mNextCallbackId = 1;
 	};
 
 	/** @} */

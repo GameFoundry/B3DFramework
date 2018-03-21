@@ -8,8 +8,6 @@ namespace bs
 	const double Time::MICROSEC_TO_SEC = 1.0/1000000.0;
 
 	Time::Time()
-		:mFrameDelta(0.0f), mTimeSinceStart(0.0f), mTimeSinceStartMs(0), mAppStartTime(0), mLastFrameTime(0), 
-		mCurrentFrame(0UL)
 	{
 		mTimer = bs_new<Timer>();
 		mAppStartTime = mTimer->getStartMs();

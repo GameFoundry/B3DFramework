@@ -13,11 +13,9 @@ namespace bs
 	class Flags
 	{
 	public:
-		typedef Storage InternalType;
+		using InternalType = Storage;
 
-		Flags()
-			:mBits(0)
-		{ }
+		Flags() = default;
 					
 		Flags(Enum value)
 		{
@@ -219,7 +217,7 @@ namespace bs
 		}
 
 	private:
-		Storage mBits;
+		InternalType mBits{0};
 	};
 
 /** Defines global operators for a Flags<Enum, Storage> implementation. */

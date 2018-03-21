@@ -63,7 +63,8 @@ namespace bs
 	{
 	public:
 		/** Returns the most significant bit set in a value. */
-		static UINT32 mostSignificantBitSet(unsigned int value)
+		template<typename IntType>
+		static constexpr UINT32 mostSignificantBitSet(IntType value)
 		{
 			UINT32 result = 0;
 			while (value != 0) {
