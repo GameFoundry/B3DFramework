@@ -34,7 +34,7 @@ namespace bs
 		{
 		public:
 			MemBlock(UINT8* data, UINT32 size) 
-				:mData(data), mFreePtr(0), mSize(size), mNextBlock(nullptr)
+				:mData(data), mSize(size)
 			{ }
 
 			/** Allocates a piece of memory within the block. Caller must ensure the block has enough empty space. */
@@ -62,19 +62,15 @@ namespace bs
 				mFreePtr = 0;
 			}
 
-			UINT8* mData;
-			UINT32 mFreePtr;
-			UINT32 mSize;
-			MemBlock* mNextBlock;
+			UINT8* mData = nullptr;
+			UINT32 mFreePtr = 0;
+			UINT32 mSize = 0;
+			MemBlock* mNextBlock = nullptr;
 		};
 
 	public:
-		StaticAlloc()
-			: mFreePtr(0), mTotalAllocBytes(0)
-		{ }
-
-		~StaticAlloc()
-		{ }
+		StaticAlloc() = default;
+		~StaticAlloc() = default;
 
 		/**
 		 * Allocates a new piece of memory of the specified size.
@@ -211,10 +207,10 @@ namespace bs
 
 	private:
 		UINT8 mStaticData[BlockSize];
-		UINT32 mFreePtr;
+		UINT32 mFreePtr = 0;
 		DynamicAllocator mDynamicAlloc;
 
-		UINT32 mTotalAllocBytes;
+		UINT32 mTotalAllocBytes = 0;
 	};
 
 	/** Allocator for the standard library that internally uses a static allocator. */

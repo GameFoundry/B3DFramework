@@ -34,8 +34,9 @@ namespace bs
 		class MemBlock
 		{
 		public:
-			MemBlock(UINT32 size);
-			~MemBlock();
+			MemBlock(UINT32 size) :mSize(size) { }
+
+			~MemBlock() = default;
 
 			/** Allocates a piece of memory within the block. Caller must ensure the block has enough empty space. */
 			UINT8* alloc(UINT32 amount);
@@ -43,8 +44,8 @@ namespace bs
 			/** Releases all allocations within a block but doesn't actually free the memory. */
 			void clear();
 
-			UINT8* mData;
-			UINT32 mFreePtr;
+			UINT8* mData = nullptr;
+			UINT32 mFreePtr = 0;
 			UINT32 mSize;
 		};
 
@@ -176,9 +177,7 @@ namespace bs
 		typedef std::size_t size_type;
 		typedef std::ptrdiff_t difference_type;
 
-		StdFrameAlloc() noexcept 
-			:mFrameAlloc(nullptr)
-		{ }
+		StdFrameAlloc() noexcept = default;
 
 		StdFrameAlloc(FrameAlloc* alloc) noexcept
 			:mFrameAlloc(alloc)
@@ -214,14 +213,13 @@ namespace bs
 			mFrameAlloc->free((UINT8*)p);
 		}
 
-		FrameAlloc* mFrameAlloc;
+		FrameAlloc* mFrameAlloc = nullptr;
 
 		size_t max_size() const { return std::numeric_limits<size_type>::max() / sizeof(T); }
 		void construct(pointer p, const_reference t) { new (p) T(t); }
 		void destroy(pointer p) { p->~T(); }
 		template<class U, class... Args>
 		void construct(U* p, Args&&... args) { new(p) U(std::forward<Args>(args)...); }
-
 	};
 
 	/** Return that all specializations of this allocator are interchangeable. */

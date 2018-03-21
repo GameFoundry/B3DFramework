@@ -6,25 +6,6 @@
 
 namespace bs
 {
-	TextureAtlasLayout::TexAtlasNode::TexAtlasNode()
-		:x(0), y(0), width(0), height(0), children{ (UINT32)-1, (UINT32)-1 }, nodeFull(false)
-	{ }
-
-	TextureAtlasLayout::TexAtlasNode::TexAtlasNode(UINT32 x, UINT32 y, UINT32 width, UINT32 height)
-		: x(x), y(y), width(width), height(height), children{ (UINT32)-1, (UINT32)-1 }, nodeFull(false)
-	{ }
-
-	TextureAtlasLayout::TextureAtlasLayout()
-		: mInitialWidth(0), mInitialHeight(0), mWidth(0), mHeight(0), mMaxWidth(0), mMaxHeight(0), mPow2(false)
-	{ }
-
-	TextureAtlasLayout::TextureAtlasLayout(UINT32 width, UINT32 height, UINT32 maxWidth, UINT32 maxHeight, bool pow2)
-		: mInitialWidth(width), mInitialHeight(height), mWidth(width), mHeight(height), mMaxWidth(maxWidth)
-		, mMaxHeight(maxHeight), mPow2(pow2)
-	{
-		mNodes.push_back(TexAtlasNode(0, 0, maxWidth, maxHeight));
-	}
-
 	bool TextureAtlasLayout::addElement(UINT32 width, UINT32 height, UINT32& x, UINT32& y)
 	{
 		if(width == 0 || height == 0)

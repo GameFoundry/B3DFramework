@@ -35,13 +35,9 @@ namespace bs
 		class MemBlock
 		{
 		public:
-			MemBlock(UINT32 size)
-				:mData(nullptr), mFreePtr(0), mSize(size), 
-				mNextBlock(nullptr), mPrevBlock(nullptr)
-			{ }
+			MemBlock(UINT32 size) :mSize(size) { }
 
-			~MemBlock()
-			{ }
+			~MemBlock() = default;
 
 			/**
 			 * Returns the first free address and increments the free pointer. Caller needs to ensure the remaining block 
@@ -68,16 +64,15 @@ namespace bs
 				assert((&mData[mFreePtr]) == data && "Out of order stack deallocation detected. Deallocations need to happen in order opposite of allocations.");
 			}
 
-			UINT8* mData;
-			UINT32 mFreePtr;
-			UINT32 mSize;
-			MemBlock* mNextBlock;
-			MemBlock* mPrevBlock;
+			UINT8* mData = nullptr;
+			UINT32 mFreePtr = 0;
+			UINT32 mSize = 0;
+			MemBlock* mNextBlock = nullptr;
+			MemBlock* mPrevBlock = nullptr;
 		};
 
 	public:
 		MemStackInternal()
-			:mFreeBlock(nullptr)
 		{
 			mFreeBlock = allocBlock(BlockCapacity);
 		}
@@ -158,7 +153,7 @@ namespace bs
 		}
 
 	private:
-		MemBlock* mFreeBlock;
+		MemBlock* mFreeBlock = nullptr;
 
 		/** 
 		 * Allocates a new block of memory using a heap allocator. Block will never be smaller than BlockCapacity no matter 

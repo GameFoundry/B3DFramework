@@ -22,9 +22,7 @@ namespace bs
 	class GroupAlloc : INonCopyable
 	{
 	public:
-		GroupAlloc()
-			: mData(nullptr), mDataPtr(nullptr), mNumBytes(0)
-		{ }
+		GroupAlloc() = default;
 
 		GroupAlloc(GroupAlloc&& other) noexcept
 			: mData(other.mData), mDataPtr(other.mDataPtr), mNumBytes(other.mNumBytes)
@@ -178,9 +176,9 @@ namespace bs
 		}
 
 	private:
-		UINT8* mData;
-		UINT8* mDataPtr;
-		UINT32 mNumBytes;
+		UINT8* mData = nullptr;
+		UINT8* mDataPtr = nullptr;
+		UINT32 mNumBytes = 0;
 	};
 
 	/** @} */

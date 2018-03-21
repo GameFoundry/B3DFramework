@@ -34,14 +34,14 @@ namespace bs
 	public:
 		/** Creates an unnamed stream. */
 		DataStream(UINT16 accessMode = READ) 
-			:mSize(0), mAccess(accessMode) 
+			: mAccess(accessMode) 
 		{ }
 
 		/** Creates a named stream. */
 		DataStream(const String& name, UINT16 accessMode = READ) 
-			:mName(name), mSize(0), mAccess(accessMode) {}
+			:mName(name), mAccess(accessMode) {}
 
-		virtual ~DataStream() {}
+		virtual ~DataStream() = default;
 
 		const String& getName(void) { return mName; }
 		UINT16 getAccessMode() const { return mAccess; }
@@ -147,7 +147,7 @@ namespace bs
 		static const UINT32 StreamTempSize;
 
 		String mName;		
-		size_t mSize;
+		size_t mSize = 0;
 		UINT16 mAccess;
 	};
 

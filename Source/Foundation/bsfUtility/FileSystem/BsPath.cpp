@@ -9,10 +9,6 @@ namespace bs
 {
 	const Path Path::BLANK = Path();
 
-	Path::Path()
-		:mIsAbsolute(false)
-	{ }
-
 	Path::Path(const WString& pathStr, PathType type)
 	{
 		assign(pathStr, type);

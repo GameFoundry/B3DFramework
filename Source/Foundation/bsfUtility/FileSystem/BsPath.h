@@ -32,7 +32,7 @@ namespace bs
 		};
 
 	public:
-		Path();
+		Path() = default;
 
 		/**
 		 * Constructs a path by parsing the provided path string. Throws exception if provided path is not valid.
@@ -570,7 +570,7 @@ namespace bs
 		String mDevice;
 		String mFilename;
 		String mNode;
-		bool mIsAbsolute;
+		bool mIsAbsolute = false;
 	};
 
 	/** @cond SPECIALIZATIONS */

@@ -83,7 +83,6 @@ namespace bs
 
 	public:
 		PoolAlloc()
-			: mFreeBlock(nullptr), mTotalNumElems(0), mNumBlocks(0)
 		{
 			static_assert(ElemSize >= 4, "Pool allocator minimum allowed element size is 4 bytes.");
 			static_assert(ElemsPerBlock > 0, "Number of elements per block must be at least 1.");
@@ -219,9 +218,9 @@ namespace bs
 
 		static constexpr int ActualElemSize = ((ElemSize + Alignment - 1) / Alignment) * Alignment;
 
-		MemBlock* mFreeBlock;
-		UINT32 mTotalNumElems;
-		UINT32 mNumBlocks;
+		MemBlock* mFreeBlock = nullptr;
+		UINT32 mTotalNumElems = 0;
+		UINT32 mNumBlocks = 0;
 	};
 
 	/** @} */

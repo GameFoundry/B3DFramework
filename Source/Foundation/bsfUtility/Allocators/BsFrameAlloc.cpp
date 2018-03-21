@@ -6,13 +6,6 @@
 
 namespace bs
 {
-	FrameAlloc::MemBlock::MemBlock(UINT32 size)
-		:mData(nullptr), mFreePtr(0), mSize(size)
-	{ }
-
-	FrameAlloc::MemBlock::~MemBlock()
-	{ }
-
 	UINT8* FrameAlloc::MemBlock::alloc(UINT32 amount)
 	{
 		UINT8* freePtr = &mData[mFreePtr];

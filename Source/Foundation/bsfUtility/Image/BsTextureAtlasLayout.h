@@ -18,16 +18,21 @@ namespace bs
 		class TexAtlasNode
 		{
 		public:
-			TexAtlasNode();
-			TexAtlasNode(UINT32 x, UINT32 y, UINT32 width, UINT32 height);
+			constexpr TexAtlasNode() = default;
+			constexpr TexAtlasNode(UINT32 x, UINT32 y, UINT32 width, UINT32 height)
+				: x(x), y(y), width(width), height(height)
+			{ }
 
-			UINT32 x, y, width, height;
-			UINT32 children[2];
-			bool nodeFull;
+			UINT32 x = 0;
+			UINT32 y = 0;
+			UINT32 width = 0;
+			UINT32 height = 0;
+			UINT32 children[2] { std::numeric_limits<UINT32>::max(), std::numeric_limits<UINT32>::max() };
+			bool nodeFull = false;
 		};
 
 	public:
-		TextureAtlasLayout();
+		TextureAtlasLayout() = default;
 
 		/**
 		 * Constructs a new texture atlas layout with the provided parameters.
@@ -38,7 +43,12 @@ namespace bs
 		 * @param[in]	maxHeight		Maximum height the atlas texture is allowed to grow to, when elements don't fit.
 		 * @param[in]	pow2			When true the resulting atlas size will always be a power of two.
 		 */
-		TextureAtlasLayout(UINT32 width, UINT32 height, UINT32 maxWidth, UINT32 maxHeight, bool pow2 = false);
+		TextureAtlasLayout(UINT32 width, UINT32 height, UINT32 maxWidth, UINT32 maxHeight, bool pow2 = false)
+			: mInitialWidth(width), mInitialHeight(height), mWidth(width), mHeight(height), mMaxWidth(maxWidth)
+			, mMaxHeight(maxHeight), mPow2(pow2)
+		{
+			mNodes.push_back(TexAtlasNode(0, 0, maxWidth, maxHeight));
+		}
 
 		/**
 		 * Attempts to add a new element in the layout. Elements should be added to the atlas from largest to smallest,
@@ -80,13 +90,13 @@ namespace bs
 		 */
 		bool addToNode(UINT32 nodeIdx, UINT32 width, UINT32 height, UINT32& x, UINT32& y, bool allowGrowth);
 
-		UINT32 mInitialWidth;
-		UINT32 mInitialHeight;
-		UINT32 mWidth;
-		UINT32 mHeight;
-		UINT32 mMaxWidth;
-		UINT32 mMaxHeight;
-		bool mPow2;
+		UINT32 mInitialWidth = 0;
+		UINT32 mInitialHeight = 0;
+		UINT32 mWidth = 0;
+		UINT32 mHeight = 0;
+		UINT32 mMaxWidth = 0;
+		UINT32 mMaxHeight = 0;
+		bool mPow2 = false;
 
 		Vector<TexAtlasNode> mNodes;
 	};
