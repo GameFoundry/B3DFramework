@@ -117,12 +117,14 @@ if(BUILD_TESTS)
 	enable_testing()
 
 	add_executable(UtilityTest 
-		bsfUtility/Private/UnitTests/BsUtilityTest.cpp 
-		bsfUtility/Private/UnitTests/BsUtilityTestSuite.cpp
-		bsfUtility/Private/UnitTests/BsFileSystemTestSuite.cpp)
+		Foundation/bsfUtility/Private/UnitTests/BsUtilityTest.cpp 
+		Foundation/bsfUtility/Private/UnitTests/BsUtilityTestSuite.cpp
+		Foundation/bsfUtility/Private/UnitTests/BsFileSystemTestSuite.cpp)
 		
-	target_link_libraries(UtilityTest bsfUtility)
-	target_include_directories(UtilityTest PRIVATE "bsfUtility")
+	target_link_libraries(UtilityTest bsf)
+	target_include_directories(UtilityTest PRIVATE 
+		"Foundation/bsfUtility"
+		"Foundation/bsfUtility/ThirdParty")
 	
 	set_property(TARGET UtilityTest PROPERTY FOLDER Tests)
 

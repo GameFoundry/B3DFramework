@@ -164,7 +164,7 @@ namespace bs
 		public:
 			/** Constructs a new leaf node with the specified parent. */
 			Node(Node* parent)
-				:mParent(parent)
+				:mParent(parent), mTotalNumElements(0), mIsLeaf(true)
 			{ }
 
 			/** Returns a child node with the specified index. May return null. */
@@ -206,8 +206,8 @@ namespace bs
 			Node* mChildren[8] = {  nullptr, nullptr, nullptr, nullptr,
 									nullptr, nullptr, nullptr, nullptr };
 
-			UINT32 mTotalNumElements : 31 = 0;
-			UINT32 mIsLeaf : 1 = true;
+			UINT32 mTotalNumElements : 31;
+			UINT32 mIsLeaf : 1;
 		};
 
 		/** 
