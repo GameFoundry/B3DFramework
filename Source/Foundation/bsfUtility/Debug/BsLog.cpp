@@ -5,15 +5,6 @@
 
 namespace bs
 {
-	LogEntry::LogEntry(const String& msg, UINT32 channel)
-		:mMsg(msg), mChannel(channel)
-	{ }
-
-	Log::Log()
-		:mHash(0)
-	{
-	}
-
 	Log::~Log()
 	{
 		clear();

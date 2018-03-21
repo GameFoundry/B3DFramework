@@ -19,43 +19,37 @@ namespace bs
 	/**	Descriptor used for creating a platform specific native window. */
 	struct BS_UTILITY_EXPORT WINDOW_DESC
 	{
-		WINDOW_DESC()
-			: module(nullptr), monitor(nullptr), parent(nullptr), external(nullptr), creationParams(nullptr), width(0)
-			, height(0), fullscreen(false), hidden(false), left(-1), top(-1), title(""), showTitleBar(true)
-			, showBorder(true), allowResize(true), outerDimensions(false), enableDoubleClick(true)
-			, toolWindow(false), backgroundPixels(nullptr), backgroundWidth(0), backgroundHeight(0)
-			, alphaBlending(false), modal(false), wndProc(nullptr)
-		{ }
+		WINDOW_DESC() = default;
 
-		HINSTANCE module; /**< Instance to the local module. */
-		HMONITOR monitor; /**< Handle ot the monitor onto which to display the window. */
-		HWND parent; /**< Optional handle to the parent window if this window is to be a child of an existing window. */
-		HWND external; /**< Optional external window handle if the window was created externally. */
-		void* creationParams; /**< Parameter that will be passed through the WM_CREATE message. */
-		UINT32 width; /**< Width of the window in pixels. */
-		UINT32 height; /**< Height of the window in pixels. */
-		bool fullscreen; /**< Should the window be opened in fullscreen mode. */
-		bool hidden; /**< Should the window be hidden initially. */
-		INT32 left; /**< Window origin on X axis in pixels. -1 == screen center. Relative to provided monitor. */
-		INT32 top; /**< Window origin on Y axis in pixels. -1 == screen center. Relative to provided monitor. */
+		HINSTANCE module = nullptr; /**< Instance to the local module. */
+		HMONITOR monitor = nullptr; /**< Handle ot the monitor onto which to display the window. */
+		HWND parent = nullptr; /**< Optional handle to the parent window if this window is to be a child of an existing window. */
+		HWND external = nullptr; /**< Optional external window handle if the window was created externally. */
+		void* creationParams = nullptr; /**< Parameter that will be passed through the WM_CREATE message. */
+		UINT32 width = 0; /**< Width of the window in pixels. */
+		UINT32 height = 0; /**< Height of the window in pixels. */
+		bool fullscreen = false; /**< Should the window be opened in fullscreen mode. */
+		bool hidden = false; /**< Should the window be hidden initially. */
+		INT32 left = -1; /**< Window origin on X axis in pixels. -1 == screen center. Relative to provided monitor. */
+		INT32 top = -1; /**< Window origin on Y axis in pixels. -1 == screen center. Relative to provided monitor. */
 		String title; /**< Title of the window. */
-		bool showTitleBar; /**< Determines if the title-bar should be shown or not. */
-		bool showBorder; /**< Determines if the window border should be shown or not. */
-		bool allowResize; /**< Determines if the user can resize the window by dragging on the window edges. */
-		bool outerDimensions; /**< Do our dimensions include space for things like title-bar and border. */
-		bool enableDoubleClick; /**< Does window accept double-clicks. */
-		bool toolWindow; /**< Tool windows have a different look than normal windows and have no task bar entry. */
+		bool showTitleBar = true; /**< Determines if the title-bar should be shown or not. */
+		bool showBorder = true; /**< Determines if the window border should be shown or not. */
+		bool allowResize = true; /**< Determines if the user can resize the window by dragging on the window edges. */
+		bool outerDimensions = false; /**< Do our dimensions include space for things like title-bar and border. */
+		bool enableDoubleClick = true; /**< Does window accept double-clicks. */
+		bool toolWindow = false; /**< Tool windows have a different look than normal windows and have no task bar entry. */
 		/**
 		 * Optional background image to apply to the window. This must be a buffer of size 
 		 * backgroundWidth * backgroundHeight. 
 		 */
-		Color* backgroundPixels;
-		UINT32 backgroundWidth; /** Width of the background image. Only relevant if backgroundPixels is not null. */
-		UINT32 backgroundHeight; /** Width of the background image. Only relevant if backgroundPixels is not null. */
+		Color* backgroundPixels = nullptr;
+		UINT32 backgroundWidth = 0; /** Width of the background image. Only relevant if backgroundPixels is not null. */
+		UINT32 backgroundHeight = 0; /** Width of the background image. Only relevant if backgroundPixels is not null. */
 		/** If true the window will support transparency based on the alpha channel of the background image. */
-		bool alphaBlending; 
-		bool modal; /**< When a modal window is open all other windows will be locked until modal window is closed. */
-		WNDPROC wndProc; /**< Pointer to a function that handles windows message processing. */
+		bool alphaBlending = false; 
+		bool modal = false; /**< When a modal window is open all other windows will be locked until modal window is closed. */
+		WNDPROC wndProc = nullptr; /**< Pointer to a function that handles windows message processing. */
 	};
 
 	/**	Represents a Windows native window. */

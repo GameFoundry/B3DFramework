@@ -17,8 +17,7 @@ namespace bs
 	class BS_UTILITY_EXPORT SerializedInstanceRTTI : public RTTIType <SerializedInstance, IReflectable, SerializedInstanceRTTI>
 	{
 	public:
-		SerializedInstanceRTTI()
-		{ }
+		SerializedInstanceRTTI() = default;
 
 		const String& getRTTIName() override
 		{

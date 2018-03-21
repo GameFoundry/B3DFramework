@@ -27,7 +27,7 @@ namespace bs
 	class BS_UTILITY_EXPORT Debug
 	{
 	public:
-		Debug() {}
+		Debug() = default;
 
 		/** Adds a log entry in the "Debug" channel. */
 		void logDebug(const String& msg);

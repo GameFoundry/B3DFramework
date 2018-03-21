@@ -19,7 +19,7 @@ namespace bs
     {
     public:
 		Exception(const char* type, const String& description, const String& source)
-			:mLine(0), mTypeName(type), mDescription(description), mSource(source)
+			:mTypeName(type), mDescription(description), mSource(source)
 		{ }
 
 		Exception(const char* type, const String& description, const String& source, const char* file, long line)
@@ -31,7 +31,7 @@ namespace bs
 			mSource(rhs.mSource), mFile(rhs.mFile)
 		{ }
 
-		~Exception() throw() {}
+		~Exception() noexcept = default;
 
         void operator = (const Exception& rhs)
 		{
@@ -86,7 +86,7 @@ namespace bs
 		const char* what() const noexcept override { return getFullDescription().c_str(); }
 
 	protected:
-		long mLine;
+		long mLine = 0;
 		String mTypeName;
 		String mDescription;
 		String mSource;

@@ -14,8 +14,10 @@ namespace bs
 	class BS_UTILITY_EXPORT LogEntry
 	{
 	public:
-		LogEntry() { }
-		LogEntry(const String& msg, UINT32 channel);
+		LogEntry() = default;
+		LogEntry(String msg, UINT32 channel)
+			:mMsg(std::move(msg)), mChannel(channel)
+		{ }
 
 		/** Channel the message was recorded on. */
 		UINT32 getChannel() const { return mChannel; }
@@ -37,7 +39,7 @@ namespace bs
 	class BS_UTILITY_EXPORT Log
 	{
 	public:
-		Log();
+		Log() = default;
 		~Log();
 
 		/**
@@ -87,7 +89,7 @@ namespace bs
 
 		Vector<LogEntry> mEntries;
 		Queue<LogEntry> mUnreadEntries;
-		UINT64 mHash;
+		UINT64 mHash = 0;
 		mutable RecursiveMutex mMutex;
 	};
 
