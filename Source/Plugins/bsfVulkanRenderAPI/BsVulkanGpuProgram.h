@@ -38,6 +38,9 @@ namespace bs { namespace ct
 		 */
 		VulkanShaderModule* getShaderModule(UINT32 deviceIdx) const { return mModules[deviceIdx]; }
 
+		/** Returns the name of the program entry point function. */
+		const String& getEntryPoint() const { return mEntryPoint; }
+
 	protected:
 		friend class VulkanGLSLProgramFactory;
 
@@ -50,6 +53,9 @@ namespace bs { namespace ct
 		GpuDeviceFlags mDeviceMask;
 		VulkanShaderModule* mModules[BS_MAX_DEVICES];
 	};
+
+	/** Identifier of the compiler used for compiling Vulkan GPU programs. */
+	static constexpr const char* VULKAN_COMPILER_ID = "Vulkan";
 
 	/** @} */
 }}

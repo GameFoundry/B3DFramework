@@ -171,13 +171,20 @@ namespace bs
 	class BS_CORE_EXPORT ShaderRTTI : public RTTIType<Shader, Resource, ShaderRTTI>
 	{
 	private:
-		SPtr<Technique> getTechnique(Shader* obj, UINT32 idx) { return obj->mTechniques[idx]; }
-		void setTechnique(Shader* obj, UINT32 idx, SPtr<Technique> val) { obj->mTechniques[idx] = val; }
-		UINT32 getTechniqueArraySize(Shader* obj) { return (UINT32)obj->mTechniques.size(); }
-		void setTechniqueArraySize(Shader* obj, UINT32 size) { obj->mTechniques.resize(size); }
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_REFLPTR_ARRAY(mTechniques, 0)
+			BS_RTTI_MEMBER_PLAIN(mName, 1)
+			
+			BS_RTTI_MEMBER_PLAIN_NAMED(mQueueSortType, mDesc.queueSortType, 7)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mQueuePriority, mDesc.queuePriority, 8)
+			BS_RTTI_MEMBER_PLAIN_NAMED(mSeparablePasses, mDesc.separablePasses, 9)
 
-		String& getName(Shader* obj) { return obj->mName; }
-		void setName(Shader* obj, String& name) { obj->mName = name; }
+			BS_RTTI_MEMBER_PLAIN_NAMED(mDataDefaultValues, mDesc.dataDefaultValues, 10)
+			BS_RTTI_MEMBER_REFL_ARRAY_NAMED(mTextureDefaultValues, mDesc.textureDefaultValues, 11)
+			BS_RTTI_MEMBER_REFLPTR_ARRAY_NAMED(mSamplerDefaultValues, mDesc.samplerDefaultValues, 12)
+
+			BS_RTTI_MEMBER_PLAIN_NAMED(mFlags, mDesc.flags, 13)
+		BS_END_RTTI_MEMBERS
 
 		SHADER_DATA_PARAM_DESC& getDataParam(Shader* obj, UINT32 idx) 
 		{ 
@@ -239,38 +246,10 @@ namespace bs
 		UINT32 getParamBlocksArraySize(Shader* obj) { return (UINT32)obj->mDesc.paramBlocks.size(); }
 		void setParamBlocksArraySize(Shader* obj, UINT32 size) {  } // Do nothing
 
-		UINT32& getQueueSortType(Shader* obj) { return (UINT32&)obj->mDesc.queueSortType; }
-		void setQueueSortType(Shader* obj, UINT32& value) { obj->mDesc.queueSortType = (QueueSortType)value; }
-
-		INT32& getQueuePriority(Shader* obj) { return obj->mDesc.queuePriority; }
-		void setQueuePriority(Shader* obj, INT32& value) { obj->mDesc.queuePriority = value; }
-
-		bool& getAllowSeparablePasses(Shader* obj) { return obj->mDesc.separablePasses; }
-		void setAllowSeparablePasses(Shader* obj, bool& value) { obj->mDesc.separablePasses = value; }
-
-		UINT32& getFlags(Shader* obj) { return obj->mDesc.flags; }
-		void setFlags(Shader* obj, UINT32& value) { obj->mDesc.flags = value; }
-
-		Vector<UINT8>& getDataDefaultValues(Shader* obj) { return obj->mDesc.dataDefaultValues; }
-		void setDataDefaultValues(Shader* obj, Vector<UINT8>& value) { obj->mDesc.dataDefaultValues = value; }
-
-		HTexture& getDefaultTexture(Shader* obj, UINT32 idx) { return obj->mDesc.textureDefaultValues[idx]; }
-		void setDefaultTexture(Shader* obj, UINT32 idx, HTexture& val) { obj->mDesc.textureDefaultValues[idx] = val; }
-		UINT32 getDefaultTextureArraySize(Shader* obj) { return (UINT32)obj->mDesc.textureDefaultValues.size(); }
-		void setDefaultTextureArraySize(Shader* obj, UINT32 size) { obj->mDesc.textureDefaultValues.resize(size); }
-
-		SPtr<SamplerState> getDefaultSampler(Shader* obj, UINT32 idx) { return obj->mDesc.samplerDefaultValues[idx]; }
-		void setDefaultSampler(Shader* obj, UINT32 idx, SPtr<SamplerState> val) { obj->mDesc.samplerDefaultValues[idx] = val; }
-		UINT32 getDefaultSamplerArraySize(Shader* obj) { return (UINT32)obj->mDesc.samplerDefaultValues.size(); }
-		void setDefaultSamplerArraySize(Shader* obj, UINT32 size) { obj->mDesc.samplerDefaultValues.resize(size); }
-
 	public:
 		ShaderRTTI()
+			:mInitMembers(this)
 		{
-			addReflectablePtrArrayField("mTechniques", 0, &ShaderRTTI::getTechnique, &ShaderRTTI::getTechniqueArraySize, 
-				&ShaderRTTI::setTechnique, &ShaderRTTI::setTechniqueArraySize);
-			addPlainField("mName", 1, &ShaderRTTI::getName, &ShaderRTTI::setName);
-
 			addPlainArrayField("mDataParams", 2, &ShaderRTTI::getDataParam, &ShaderRTTI::getDataParamsArraySize, 
 				&ShaderRTTI::setDataParam, &ShaderRTTI::setDataParamsArraySize);
 			addPlainArrayField("mTextureParams", 3, &ShaderRTTI::getTextureParam, &ShaderRTTI::getTextureParamsArraySize,
@@ -281,18 +260,6 @@ namespace bs
 				&ShaderRTTI::setBufferParam, &ShaderRTTI::setBufferParamsArraySize);
 			addPlainArrayField("mParamBlocks", 6, &ShaderRTTI::getParamBlock, &ShaderRTTI::getParamBlocksArraySize, 
 				&ShaderRTTI::setParamBlock, &ShaderRTTI::setParamBlocksArraySize);
-
-			addPlainField("mQueueSortType", 7, &ShaderRTTI::getQueueSortType, &ShaderRTTI::setQueueSortType);
-			addPlainField("mQueuePriority", 8, &ShaderRTTI::getQueuePriority, &ShaderRTTI::setQueuePriority);
-			addPlainField("mSeparablePasses", 9, &ShaderRTTI::getAllowSeparablePasses, &ShaderRTTI::setAllowSeparablePasses);
-
-			addPlainField("mDataDefaultValues", 10, &ShaderRTTI::getDataDefaultValues, &ShaderRTTI::setDataDefaultValues);
-			addReflectableArrayField("mTextureDefaultValues", 11, &ShaderRTTI::getDefaultTexture, &ShaderRTTI::getDefaultTextureArraySize,
-				&ShaderRTTI::setDefaultTexture, &ShaderRTTI::setDefaultTextureArraySize);
-			addReflectablePtrArrayField("mSamplerDefaultValues", 12, &ShaderRTTI::getDefaultSampler, &ShaderRTTI::getDefaultSamplerArraySize,
-				&ShaderRTTI::setDefaultSampler, &ShaderRTTI::setDefaultSamplerArraySize);
-
-			addPlainField("mFlags", 13, &ShaderRTTI::getFlags, &ShaderRTTI::setFlags);
 		}
 
 		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override

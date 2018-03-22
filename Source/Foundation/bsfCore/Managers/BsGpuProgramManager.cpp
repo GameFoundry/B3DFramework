@@ -74,15 +74,12 @@ namespace bs
 			return ret;
 		}
 
-		GpuProgramCompileStatus compile(const GPU_PROGRAM_DESC& desc) override
+		SPtr<GpuProgramBytecode> compileBytecode(const GPU_PROGRAM_DESC& desc) override
 		{
-			GpuProgramCompileStatus ret;
-			ret.success = false;
-			ret.program.instructions.data = nullptr;
-			ret.program.instructions.size = 0;
-			ret.program.machineSpecific = false;
-			
-			return ret;
+			auto bytecode = bs_shared_ptr_new<GpuProgramBytecode>();
+			bytecode->compilerId = "Null";
+
+			return bytecode;
 		}
 	};
 
@@ -146,10 +143,10 @@ namespace bs
 		return ret;
 	}
 
-	GpuProgramCompileStatus GpuProgramManager::compile(const GPU_PROGRAM_DESC& desc)
+	SPtr<GpuProgramBytecode> GpuProgramManager::compileBytecode(const GPU_PROGRAM_DESC& desc)
 	{
 		GpuProgramFactory* factory = getFactory(desc.language);
-		return factory->compile(desc);
+		return factory->compileBytecode(desc);
 	}
 	}
 }

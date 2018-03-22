@@ -18,7 +18,7 @@ namespace bs { namespace ct
 		virtual ~D3D11GpuProgram();
 
 		/**	Returns compiled shader microcode. */
-		const DataBlob& getMicroCode() const { return mMicrocode; }
+		const DataBlob& getMicroCode() const { return mCachedBytecode->instructions; }
 
 		/**	Returns unique GPU program ID. */
 		UINT32 getProgramId() const { return mProgramId; }
@@ -36,7 +36,6 @@ namespace bs { namespace ct
 		static UINT32 GlobalProgramId;
 
 		UINT32 mProgramId;
-		DataBlob mMicrocode;
 	};
 
 	/**	Implementation of a DX11 vertex shader. */
@@ -164,6 +163,9 @@ namespace bs { namespace ct
 	protected:
 		ID3D11ComputeShader* mComputeShader;
 	};
+
+	/** Identifier of the compiler used for compiling DirectX 11 GPU programs. */
+	static constexpr const char* DIRECTX_COMPILER_ID = "DirectX11";
 
 	/** @} */
 }}

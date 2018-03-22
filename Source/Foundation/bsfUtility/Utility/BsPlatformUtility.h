@@ -50,7 +50,7 @@ namespace bs
 		/** Returns information about the underlying hardware. */
 		static SystemInfo getSystemInfo();
 
-		/** Creates a new universally unique identifier and returns it as a string. */
+		/** Creates a new universally unique identifier (UUID/GUID). */
 		static UUID generateUUID();
 
 		/** @name Internal
@@ -62,6 +62,7 @@ namespace bs
 		 * expeced to be called by the render API backend when initialized.
 		 */
 		static void _setGPUInfo(GPUInfo gpuInfo) { sGPUInfo = gpuInfo; }
+
 		/** @} */
 
 	private:

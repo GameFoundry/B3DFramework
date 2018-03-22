@@ -10,12 +10,12 @@
 
 namespace bs { namespace ct
 {
-	UINT32 GLSLGpuProgram::mVertexShaderCount = 0;
-	UINT32 GLSLGpuProgram::mFragmentShaderCount = 0;
-	UINT32 GLSLGpuProgram::mGeometryShaderCount = 0;
-	UINT32 GLSLGpuProgram::mDomainShaderCount = 0;
-	UINT32 GLSLGpuProgram::mHullShaderCount = 0;
-	UINT32 GLSLGpuProgram::mComputeShaderCount = 0;
+	UINT32 GLSLGpuProgram::sVertexShaderCount = 0;
+	UINT32 GLSLGpuProgram::sFragmentShaderCount = 0;
+	UINT32 GLSLGpuProgram::sGeometryShaderCount = 0;
+	UINT32 GLSLGpuProgram::sDomainShaderCount = 0;
+	UINT32 GLSLGpuProgram::sHullShaderCount = 0;
+	UINT32 GLSLGpuProgram::sComputeShaderCount = 0;
 
 	bool checkForGLSLError(const GLuint programObj, String& outErrorMsg)
 	{
@@ -86,41 +86,41 @@ namespace bs { namespace ct
 		if (!isSupported())
 		{
 			mIsCompiled = false;
-			mCompileError = "Specified GPU program type is not supported by the current render system.";
+			mCompileMessages = "Specified GPU program type is not supported by the current render system.";
 
 			GpuProgram::initialize();
 			return;
 		}
 
 		GLenum shaderType = 0x0000;
-		switch (mProperties.getType())
+		switch (mType)
 		{
 		case GPT_VERTEX_PROGRAM:
 			shaderType = GL_VERTEX_SHADER;
-			mProgramID = ++mVertexShaderCount;
+			mProgramID = ++sVertexShaderCount;
 			break;
 		case GPT_FRAGMENT_PROGRAM:
 			shaderType = GL_FRAGMENT_SHADER;
-			mProgramID = ++mFragmentShaderCount;
+			mProgramID = ++sFragmentShaderCount;
 			break;
 #if BS_OPENGL_4_1 || BS_OPENGLES_3_2
 		case GPT_GEOMETRY_PROGRAM:
 			shaderType = GL_GEOMETRY_SHADER;
-			mProgramID = ++mGeometryShaderCount;
+			mProgramID = ++sGeometryShaderCount;
 			break;
 		case GPT_HULL_PROGRAM:
 			shaderType = GL_TESS_CONTROL_SHADER;
-			mProgramID = ++mDomainShaderCount;
+			mProgramID = ++sDomainShaderCount;
 			break;
 		case GPT_DOMAIN_PROGRAM:
 			shaderType = GL_TESS_EVALUATION_SHADER;
-			mProgramID = ++mHullShaderCount;
+			mProgramID = ++sHullShaderCount;
 			break;
 #endif
 #if BS_OPENGL_4_3 || BS_OPENGLES_3_1
 		case GPT_COMPUTE_PROGRAM:
 			shaderType = GL_COMPUTE_SHADER;
-			mProgramID = ++mComputeShaderCount;
+			mProgramID = ++sComputeShaderCount;
 			break;
 #endif
 		default:
@@ -128,7 +128,7 @@ namespace bs { namespace ct
 		}
 
 		// Add preprocessor extras and main source
-		const String& source = mProperties.getSource();
+		const String& source = mSource;
 		if (!source.empty())
 		{
 			Vector<GLchar*> lines;
@@ -247,16 +247,16 @@ namespace bs { namespace ct
 			mGLHandle = glCreateShaderProgramv(shaderType, 1, (const GLchar**)&codeRaw);
 			BS_CHECK_GL_ERROR();
 
-			mCompileError = "";
-			mIsCompiled = !checkForGLSLError(mGLHandle, mCompileError);
+			mCompileMessages = "";
+			mIsCompiled = !checkForGLSLError(mGLHandle, mCompileMessages);
 		}
 
 		if (mIsCompiled)
 		{
 			GLSLParamParser paramParser;
-			paramParser.buildUniformDescriptions(mGLHandle, mProperties.getType(), *mParametersDesc);
+			paramParser.buildUniformDescriptions(mGLHandle, mType, *mParametersDesc);
 
-			if (mProperties.getType() == GPT_VERTEX_PROGRAM)
+			if (mType == GPT_VERTEX_PROGRAM)
 			{
 				Vector<VertexElement> elementList = paramParser.buildVertexDeclaration(mGLHandle);
 				mInputDeclaration = HardwareBufferManager::instance().createVertexDeclaration(elementList);
@@ -272,7 +272,7 @@ namespace bs { namespace ct
 		RenderAPI* rapi = RenderAPI::instancePtr();
 		const RenderAPICapabilities& caps = rapi->getCapabilities(0);
 
-		switch (mProperties.getType())
+		switch (mType)
 		{
 		case GPT_GEOMETRY_PROGRAM:
 #if BS_OPENGL_4_1 || BS_OPENGLES_3_2

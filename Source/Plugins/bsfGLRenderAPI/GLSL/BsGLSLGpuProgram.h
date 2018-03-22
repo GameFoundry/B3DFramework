@@ -38,13 +38,16 @@ namespace bs { namespace ct
 		UINT32 mProgramID;
 		GLuint mGLHandle;
 
-		static UINT32 mVertexShaderCount;
-		static UINT32 mFragmentShaderCount;
-		static UINT32 mGeometryShaderCount;
-		static UINT32 mHullShaderCount;
-		static UINT32 mDomainShaderCount;
-		static UINT32 mComputeShaderCount;
+		static UINT32 sVertexShaderCount;
+		static UINT32 sFragmentShaderCount;
+		static UINT32 sGeometryShaderCount;
+		static UINT32 sHullShaderCount;
+		static UINT32 sDomainShaderCount;
+		static UINT32 sComputeShaderCount;
 	};
+
+	/** Identifier of the compiler used for compiling OpenGL GPU programs. */
+	static constexpr const char* OPENGL_COMPILER_ID = "OpenGL";
 
 	/** @} */
 }}

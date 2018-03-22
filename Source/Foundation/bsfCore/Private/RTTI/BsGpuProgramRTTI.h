@@ -14,32 +14,94 @@ namespace bs
 	 *  @{
 	 */
 
+	class BS_CORE_EXPORT GpuProgramBytecodeRTTI : public RTTIType<GpuProgramBytecode, IReflectable, GpuProgramBytecodeRTTI>
+	{
+	private:
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(instructions, 0)
+			BS_RTTI_MEMBER_REFLPTR(paramDesc, 1)
+			BS_RTTI_MEMBER_PLAIN(vertexInput, 2)
+			BS_RTTI_MEMBER_PLAIN(messages, 3)
+		BS_END_RTTI_MEMBERS
+
+	public:
+		GpuProgramBytecodeRTTI()
+			:mInitMembers(this)
+		{ }
+
+		const String& getRTTIName() override
+		{
+			static String name = "GpuProgramBytecode";
+			return name;
+		}
+
+		UINT32 getRTTIId() override
+		{
+			return TID_GpuProgramBytecode;
+		}
+
+		SPtr<IReflectable> newRTTIObject() override
+		{
+			return bs_shared_ptr_new<GpuProgramBytecode>();
+		}
+	};
+
+	class BS_CORE_EXPORT GpuParamDescRTTI : public RTTIType<GpuParamDesc, IReflectable, GpuParamDescRTTI>
+	{
+	private:
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(paramBlocks, 0)
+			BS_RTTI_MEMBER_PLAIN(params, 1)
+			BS_RTTI_MEMBER_PLAIN(samplers, 2)
+			BS_RTTI_MEMBER_PLAIN(textures, 3)
+			BS_RTTI_MEMBER_PLAIN(loadStoreTextures, 4)
+			BS_RTTI_MEMBER_PLAIN(buffers, 5)
+		BS_END_RTTI_MEMBERS
+
+	public:
+		GpuParamDescRTTI()
+			:mInitMembers(this)
+		{ }
+
+		const String& getRTTIName() override
+		{
+			static String name = "GpuParamDesc";
+			return name;
+		}
+
+		UINT32 getRTTIId() override
+		{
+			return TID_GpuParamDesc;
+		}
+
+		SPtr<IReflectable> newRTTIObject() override
+		{
+			return bs_shared_ptr_new<GpuParamDesc>();
+		}
+	};
+
 	class BS_CORE_EXPORT GpuProgramRTTI : public RTTIType<GpuProgram, IReflectable, GpuProgramRTTI>
 	{
 	private:
-		GpuProgramType& getType(GpuProgram* obj) { return obj->mProperties.mType; }
-		void setType(GpuProgram* obj, GpuProgramType& val) { obj->mProperties.mType = val; }
-
-		bool& getNeedsAjdInfo(GpuProgram* obj) { return obj->mNeedsAdjacencyInfo; }
-		void setNeedsAjdInfo(GpuProgram* obj, bool& val) { obj->mNeedsAdjacencyInfo = val; }
-
-		String& getEntryPoint(GpuProgram* obj) { return obj->mProperties.mEntryPoint; }
-		void setEntryPoint(GpuProgram* obj, String& val) { obj->mProperties.mEntryPoint = val; }
-
-		String& getSource(GpuProgram* obj) { return obj->mProperties.mSource; }
-		void setSource(GpuProgram* obj, String& val) { obj->mProperties.mSource = val; }
-
-		String& getLanguage(GpuProgram* obj) { return obj->mLanguage; }
-		void setLanguage(GpuProgram* obj, String& val) { obj->mLanguage = val; }
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(mType, 2)
+			BS_RTTI_MEMBER_PLAIN(mNeedsAdjacencyInfo, 3)
+			BS_RTTI_MEMBER_PLAIN(mEntryPoint, 4)
+			BS_RTTI_MEMBER_PLAIN(mSource, 6)
+			BS_RTTI_MEMBER_PLAIN(mLanguage, 7)
+			BS_RTTI_MEMBER_REFLPTR(mCachedBytecode, 8)
+		BS_END_RTTI_MEMBERS
 
 	public:
 		GpuProgramRTTI()
+			:mInitMembers(this)
+		{ }
+
+		void onSerializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
-			addPlainField("mType", 2, &GpuProgramRTTI::getType, &GpuProgramRTTI::setType);
-			addPlainField("mNeedsAdjacencyInfo", 3, &GpuProgramRTTI::getNeedsAjdInfo, &GpuProgramRTTI::setNeedsAjdInfo);
-			addPlainField("mEntryPoint", 4, &GpuProgramRTTI::getEntryPoint, &GpuProgramRTTI::setEntryPoint);
-			addPlainField("mSource", 6, &GpuProgramRTTI::getSource, &GpuProgramRTTI::setSource);
-			addPlainField("mLanguage", 7, &GpuProgramRTTI::getLanguage, &GpuProgramRTTI::setLanguage);
+			// Need to ensure the core thread object is initialized
+			GpuProgram* gpuProgram = static_cast<GpuProgram*>(obj);
+			gpuProgram->blockUntilCoreInitialized();
 		}
 
 		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override

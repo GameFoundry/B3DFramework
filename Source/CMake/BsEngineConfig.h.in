@@ -4,7 +4,7 @@
 #define BS_PHYSICS_MODULE "@PHYSICS_MODULE_LIB@"
 
 /** Path to the framework root when files haven't been packaged yet (e.g. running from debugger). */
-static constexpr const char* RAW_APP_ROOT = "@PROJECT_SOURCE_DIR@/"; 
+static constexpr const char* RAW_APP_ROOT = "@BSF_SOURCE_DIR@/../"; 
 
 /** Path to the binaries when files haven't been packaged yet (e.g. running from debugger). */
 #if BS_CONFIG == BS_CONFIG_DEBUG

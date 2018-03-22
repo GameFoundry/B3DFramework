@@ -10,13 +10,25 @@
 
 namespace bs
 {
-	GpuProgramProperties::GpuProgramProperties(const String& source, const String& entryPoint, GpuProgramType gptype)
-		:mType(gptype), mEntryPoint(entryPoint), mSource(source)
-	{ }
-		
+	GpuProgramBytecode::~GpuProgramBytecode()
+	{
+		if(instructions.data)
+			bs_free(instructions.data);
+	}
+
+	RTTITypeBase* GpuProgramBytecode::getRTTIStatic()
+	{
+		return GpuProgramBytecodeRTTI::instance();
+	}
+
+	RTTITypeBase* GpuProgramBytecode::getRTTI() const
+	{
+		return GpuProgramBytecode::getRTTIStatic();
+	}
+
 	GpuProgram::GpuProgram(const GPU_PROGRAM_DESC& desc)
-		: mNeedsAdjacencyInfo(desc.requiresAdjacency), mLanguage(desc.language)
-		, mProperties(desc.source, desc.entryPoint, desc.type)
+		: mNeedsAdjacencyInfo(desc.requiresAdjacency), mLanguage(desc.language), mType(desc.type)
+		, mEntryPoint(desc.entryPoint), mSource(desc.source)
 	{
 
 	}
@@ -44,10 +56,10 @@ namespace bs
 	SPtr<ct::CoreObject> GpuProgram::createCore() const
 	{
 		GPU_PROGRAM_DESC desc;
-		desc.source = mProperties.getSource();
-		desc.entryPoint = mProperties.getEntryPoint();
+		desc.source = mSource;
+		desc.entryPoint = mEntryPoint;
 		desc.language = mLanguage;
-		desc.type = mProperties.getType();
+		desc.type = mType;
 		desc.requiresAdjacency = mNeedsAdjacencyInfo;
 
 		return ct::GpuProgramManager::instance().createInternal(desc);
@@ -74,11 +86,14 @@ namespace bs
 	namespace ct
 	{
 	GpuProgram::GpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
-		:mNeedsAdjacencyInfo(desc.requiresAdjacency), mIsCompiled(false), mProperties(desc.source, desc.entryPoint, 
-			desc.type)
+		: mNeedsAdjacencyInfo(desc.requiresAdjacency), mType(desc.type), mEntryPoint(desc.entryPoint), mSource(desc.source)
+		, mCachedBytecode(desc.bytecode)
 	{
 		mParametersDesc = bs_shared_ptr_new<GpuParamDesc>();
 	}
+
+	GpuProgram::~GpuProgram()
+	{ }
 
 	bool GpuProgram::isSupported() const
 	{
@@ -88,6 +103,11 @@ namespace bs
 	SPtr<GpuProgram> GpuProgram::create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 	{
 		return GpuProgramManager::instance().create(desc, deviceMask);
+	}
+
+	SPtr<GpuProgramBytecode> GpuProgram::compileBytecode(const GPU_PROGRAM_DESC& desc)
+	{
+		return GpuProgramManager::instance().compileBytecode(desc);
 	}
 	}
 }

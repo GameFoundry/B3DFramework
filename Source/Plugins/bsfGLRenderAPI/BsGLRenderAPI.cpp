@@ -383,7 +383,7 @@ namespace bs { namespace ct
 			if (pipelineState != nullptr)
 				program = pipelineState->getProgram();
 
-			if (program != nullptr && program->getProperties().getType() == GPT_COMPUTE_PROGRAM)
+			if (program != nullptr && program->getType() == GPT_COMPUTE_PROGRAM)
 				mCurrentComputeProgram = std::static_pointer_cast<GLSLGpuProgram>(program);
 			else
 				mCurrentComputeProgram = nullptr;

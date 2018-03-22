@@ -51,7 +51,7 @@ namespace bs
 		 */
 		static Path findPath(const Path& path);
 
-		/** Path to the root data directory. Relative to working directory, FRAMEWORK_DATA_ROOT, or RAW_APP_ROOT. */
+		/** Path to the root data directory. Relative to working directory, or RAW_APP_ROOT. */
 		static const Path FRAMEWORK_DATA_PATH;
 		
 #if BS_IS_BANSHEE3D

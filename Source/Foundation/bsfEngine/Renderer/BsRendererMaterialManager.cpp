@@ -12,8 +12,7 @@ namespace bs
 	{
 		BuiltinResources& br = BuiltinResources::instance();
 
-		// Note: Ideally I want to avoid loading all materials, and instead just load those that are used. This might be a
-		// problem on lower end systems that don't support all renderer features.
+		// Note: Ideally I want to avoid loading all materials, and instead just load those that are used. 
 		Vector<RendererMaterialData>& materials = getMaterials();
 		Vector<SPtr<ct::Shader>> shaders;
 		for (auto& material : materials)

@@ -21,7 +21,7 @@ namespace bs
 		ZYX
 	};
 
-	/** Enum used for object construction specifying the object should be zero initializes. */
+	/** Enum used for object construction specifying the object should be zero initialized. */
 	enum BS_ZERO { BsZero };
 
 	/** Enum used for matrix/quaternion constructor specifying it should be initialized with an identity value. */

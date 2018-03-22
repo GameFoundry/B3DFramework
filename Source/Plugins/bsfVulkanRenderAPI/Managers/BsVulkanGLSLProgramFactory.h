@@ -25,7 +25,7 @@ namespace bs { namespace ct
 		SPtr<GpuProgram> create(GpuProgramType type, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
 		/** @copydoc GpuProgramFactory::compile(const GPU_PROGRAM_DESC&) */
-		GpuProgramCompileStatus compile(const GPU_PROGRAM_DESC& desc) override;
+		SPtr<GpuProgramBytecode> compileBytecode(const GPU_PROGRAM_DESC& desc) override;
 	protected:
 		static const String LANGUAGE_NAME;
 	};

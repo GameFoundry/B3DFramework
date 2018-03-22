@@ -24,9 +24,6 @@ namespace bs { namespace ct
 
 	D3D11GpuProgram::~D3D11GpuProgram()
 	{
-		if(mMicrocode.data)
-			bs_free(mMicrocode.data);
-
 		mInputDeclaration = nullptr;
 
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuProgram);
@@ -37,37 +34,36 @@ namespace bs { namespace ct
 		if (!isSupported())
 		{
 			mIsCompiled = false;
-			mCompileError = "Specified program is not supported by the current render system.";
+			mCompileMessages = "Specified program is not supported by the current render system.";
 
 			GpuProgram::initialize();
 			return;
 		}
 
-		GPU_PROGRAM_DESC desc;
-		desc.type = mProperties.getType();
-		desc.entryPoint = mProperties.getEntryPoint();
-		desc.source = mProperties.getSource();
-		desc.language = "hlsl";
-
-		D3D11RenderAPI* rapi = static_cast<D3D11RenderAPI*>(RenderAPI::instancePtr());
-		GpuProgramCompileStatus compileStatus = GpuProgramManager::instance().compile(desc);
-
-		if(compileStatus.success)
+		if(!mCachedBytecode || mCachedBytecode->compilerId != DIRECTX_COMPILER_ID)
 		{
-			mMicrocode = compileStatus.program.instructions;
-			mParametersDesc = compileStatus.program.paramDesc;
+			GPU_PROGRAM_DESC desc;
+			desc.type = mType;
+			desc.entryPoint = mEntryPoint;
+			desc.source = mSource;
+			desc.language = "hlsl";
 
-			loadFromMicrocode(rapi->getPrimaryDevice(), mMicrocode);
-
-			if(desc.type == GPT_VERTEX_PROGRAM)
-				mInputDeclaration = HardwareBufferManager::instance().createVertexDeclaration(compileStatus.program.vertexInput);
-
-			mIsCompiled = true;
+			mCachedBytecode = compileBytecode(desc);
 		}
-		else
+
+		mCompileMessages = mCachedBytecode->messages;
+		mIsCompiled = mCachedBytecode->instructions.data != nullptr;
+
+		if(mIsCompiled)
 		{
-			mIsCompiled = false;
-			mCompileError = compileStatus.messages;
+			mParametersDesc = mCachedBytecode->paramDesc;
+
+			D3D11RenderAPI* rapi = static_cast<D3D11RenderAPI*>(RenderAPI::instancePtr());
+			loadFromMicrocode(rapi->getPrimaryDevice(), mCachedBytecode->instructions);
+
+			if(mType == GPT_VERTEX_PROGRAM)
+				mInputDeclaration = HardwareBufferManager::instance().createVertexDeclaration(mCachedBytecode->vertexInput);
+			
 		}
 
 		mProgramId = GlobalProgramId++;

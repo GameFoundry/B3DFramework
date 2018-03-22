@@ -655,7 +655,7 @@ namespace bs { namespace ct
 		return gpuProg;
 	}
 
-	GpuProgramCompileStatus VulkanGLSLProgramFactory::compile(const GPU_PROGRAM_DESC& desc)
+	SPtr<GpuProgramBytecode> VulkanGLSLProgramFactory::compileBytecode(const GPU_PROGRAM_DESC& desc)
 	{
 		TBuiltInResource resources = DefaultTBuiltInResource;
 		glslang::TProgram* program = bs_new<glslang::TProgram>();
@@ -696,14 +696,13 @@ namespace bs { namespace ct
 		shader->setStrings(&sourceBytes, 1);
 		shader->setEntryPoint("main");
 
-		GpuProgramCompileStatus status;
+		SPtr<GpuProgramBytecode> bytecode = bs_shared_ptr_new<GpuProgramBytecode>();
+		bytecode->compilerId = VULKAN_COMPILER_ID;
 
 		EShMessages messages = (EShMessages)((int)EShMsgSpvRules | (int)EShMsgVulkanRules);
 		if (!shader->parse(&resources, 450, false, messages))
 		{
-			status.success = false;
-			status.messages = "Compile error: " + String(shader->getInfoLog());
-
+			bytecode->messages = "Compile error: " + String(shader->getInfoLog());
 			goto cleanup;
 		}
 
@@ -711,9 +710,7 @@ namespace bs { namespace ct
 
 		if (!program->link(messages))
 		{
-			status.success = false;
-			status.messages = "Link error: " + String(program->getInfoLog());
-
+			bytecode->messages = "Link error: " + String(program->getInfoLog());
 			goto cleanup;
 		}
 
@@ -724,35 +721,26 @@ namespace bs { namespace ct
 		GlslangToSpv(*program->getIntermediate(glslType), spirv, &logger);
 
 		// Parse uniforms
-		status.program.paramDesc = bs_shared_ptr_new<GpuParamDesc>();
-		if(!parseUniforms(program, *status.program.paramDesc, status.messages))
-		{
-			status.success = false;
+		bytecode->paramDesc = bs_shared_ptr_new<GpuParamDesc>();
+		if(!parseUniforms(program, *bytecode->paramDesc, bytecode->messages))
 			goto cleanup;
-		}
 
 		// If vertex program, retrieve information about vertex inputs
 		if (desc.type == GPT_VERTEX_PROGRAM)
 		{
-			if (!parseVertexAttributes(program, status.program.vertexInput, status.messages))
-			{
-				status.success = false;
+			if (!parseVertexAttributes(program, bytecode->vertexInput, bytecode->messages))
 				goto cleanup;
-			}
 		}
 
-		status.success = true;
+		bytecode->instructions.size = (UINT32)spirv.size() * sizeof(UINT32);
+		bytecode->instructions.data = (UINT8*)bs_alloc(bytecode->instructions.size);
 
-		DataBlob& blob = status.program.instructions;
-		blob.size = (UINT32)spirv.size() * sizeof(UINT32);
-		blob.data = (UINT8*)bs_alloc(blob.size);
-
-		memcpy(blob.data, spirv.data(), blob.size);
+		memcpy(bytecode->instructions.data, spirv.data(), bytecode->instructions.size);
 
 cleanup:
 		bs_delete(program);
 		bs_delete(shader);
 
-		return status;
+		return bytecode;
 	}
 }}

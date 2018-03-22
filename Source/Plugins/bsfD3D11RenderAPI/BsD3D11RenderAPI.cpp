@@ -311,7 +311,7 @@ namespace bs { namespace ct
 			if (pipelineState != nullptr)
 				program = pipelineState->getProgram();
 
-			if (program != nullptr && program->getProperties().getType() == GPT_COMPUTE_PROGRAM)
+			if (program != nullptr && program->getType() == GPT_COMPUTE_PROGRAM)
 			{
 				D3D11GpuComputeProgram *d3d11ComputeProgram = static_cast<D3D11GpuComputeProgram*>(program.get());
 				mDevice->getImmediateContext()->CSSetShader(d3d11ComputeProgram->getComputeShader(), nullptr, 0);

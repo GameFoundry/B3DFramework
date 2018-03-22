@@ -121,7 +121,7 @@ namespace bs { namespace ct
 			stageCI.flags = 0;
 			stageCI.stage = stages[i].first;
 			stageCI.module = VK_NULL_HANDLE;
-			stageCI.pName = program->getProperties().getEntryPoint().c_str();
+			stageCI.pName = program->getEntryPoint().c_str();
 			stageCI.pSpecializationInfo = nullptr;
 
 			stageOutputIdx++;
@@ -528,7 +528,7 @@ namespace bs { namespace ct
 		stageCI.flags = 0;
 		stageCI.stage = VK_SHADER_STAGE_COMPUTE_BIT;
 		stageCI.module = VK_NULL_HANDLE;
-		stageCI.pName = vkProgram->getProperties().getEntryPoint().c_str();
+		stageCI.pName = vkProgram->getEntryPoint().c_str();
 		stageCI.pSpecializationInfo = nullptr;
 
 		VkComputePipelineCreateInfo pipelineCI;

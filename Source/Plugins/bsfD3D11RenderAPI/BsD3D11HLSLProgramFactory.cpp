@@ -113,7 +113,7 @@ namespace bs { namespace ct
 		return 0;
 	}
 
-	GpuProgramCompileStatus D3D11HLSLProgramFactory::compile(const GPU_PROGRAM_DESC& desc)
+	SPtr<GpuProgramBytecode> D3D11HLSLProgramFactory::compileBytecode(const GPU_PROGRAM_DESC& desc)
 	{
 		String hlslProfile;
 		switch(desc.type)
@@ -198,46 +198,33 @@ namespace bs { namespace ct
 			SAFE_RELEASE(messages);
 		}
 
-		GpuProgramCompileStatus status;
+		SPtr<GpuProgramBytecode> bytecode = bs_shared_ptr_new<GpuProgramBytecode>();
+		bytecode->compilerId = DIRECTX_COMPILER_ID;
+		bytecode->messages = compileMessage;
+
 		if (FAILED(hr))
 		{
-			status.success = false;
-			status.messages = "Cannot compile D3D11 high-level shader. Errors:\n" + compileMessage;
-
-			status.program.instructions.data = nullptr;
-			status.program.instructions.size = 0;
-			status.program.machineSpecific = false;
-
 			SAFE_RELEASE(microcode);
-			return status;
+			return bytecode;
 		}
-
-		status.success = true;
-		status.messages = compileMessage;
-
-		status.program.instructions.data = nullptr;
-		status.program.instructions.size = 0;
-		status.program.machineSpecific = false;
 
 		if (microcode != nullptr)
 		{
-			GpuProgramCompiled& prog = status.program;
+			bytecode->instructions.size = (UINT32)microcode->GetBufferSize();
+			bytecode->instructions.data = (UINT8*)bs_alloc(bytecode->instructions.size);
 
-			prog.instructions.size = (UINT32)microcode->GetBufferSize();
-			prog.instructions.data = (UINT8*)bs_alloc(prog.instructions.size);
-
-			memcpy(prog.instructions.data, microcode->GetBufferPointer(), prog.instructions.size);
+			memcpy(bytecode->instructions.data, microcode->GetBufferPointer(), bytecode->instructions.size);
 
 			D3D11HLSLParamParser parser;
-			prog.paramDesc = bs_shared_ptr_new<GpuParamDesc>();
+			bytecode->paramDesc = bs_shared_ptr_new<GpuParamDesc>();
 
 			if (desc.type == GPT_VERTEX_PROGRAM)
-				parser.parse(microcode, desc.type, *prog.paramDesc, &prog.vertexInput);
+				parser.parse(microcode, desc.type, *bytecode->paramDesc, &bytecode->vertexInput);
 			else
-				parser.parse(microcode, desc.type, *prog.paramDesc, nullptr);
+				parser.parse(microcode, desc.type, *bytecode->paramDesc, nullptr);
 		}
 		
 		SAFE_RELEASE(microcode);
-		return status;
+		return bytecode;
 	}
 }}

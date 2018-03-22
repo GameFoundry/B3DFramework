@@ -46,21 +46,27 @@ namespace bs { namespace ct
 		if (!isSupported())
 		{
 			mIsCompiled = false;
-			mCompileError = "Specified program is not supported by the current render system.";
+			mCompileMessages = "Specified program is not supported by the current render system.";
 
 			GpuProgram::initialize();
 			return;
 		}
 
-		GPU_PROGRAM_DESC desc;
-		desc.type = mProperties.getType();
-		desc.entryPoint = mProperties.getEntryPoint();
-		desc.language = "vksl";
-		desc.source = mProperties.getSource();
+		if(!mCachedBytecode || mCachedBytecode->compilerId != VULKAN_COMPILER_ID)
+		{
+			GPU_PROGRAM_DESC desc;
+			desc.type = mType;
+			desc.entryPoint = mEntryPoint;
+			desc.language = "vksl";
+			desc.source = mSource;
 
-		GpuProgramCompileStatus status = GpuProgramManager::instance().compile(desc);
-		
-		if(status.success)
+			mCachedBytecode = compileBytecode(desc);
+		}
+
+		mCompileMessages = mCachedBytecode->messages;
+		mIsCompiled = mCachedBytecode->instructions.data != nullptr;
+
+		if(mIsCompiled)
 		{
 			VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::instance());
 			VulkanDevice* devices[BS_MAX_DEVICES];
@@ -70,8 +76,8 @@ namespace bs { namespace ct
 			moduleCI.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 			moduleCI.pNext = nullptr;
 			moduleCI.flags = 0;
-			moduleCI.codeSize = status.program.instructions.size;
-			moduleCI.pCode = (uint32_t*)status.program.instructions.data;
+			moduleCI.codeSize = mCachedBytecode->instructions.size;
+			moduleCI.pCode = (uint32_t*)mCachedBytecode->instructions.data;
 
 			VulkanUtility::getDevices(rapi, mDeviceMask, devices);
 
@@ -90,17 +96,14 @@ namespace bs { namespace ct
 				}
 			}
 
-			bs_free(status.program.instructions.data);
+			mParametersDesc = mCachedBytecode->paramDesc;
 
-			mParametersDesc = status.program.paramDesc;
-
-			if (mProperties.getType() == GPT_VERTEX_PROGRAM)
+			if (mType == GPT_VERTEX_PROGRAM)
+			{
 				mInputDeclaration = HardwareBufferManager::instance().createVertexDeclaration(
-					status.program.vertexInput, mDeviceMask);
+					mCachedBytecode->vertexInput, mDeviceMask);
+			}
 		}
-
-		mIsCompiled = status.success;
-		mCompileError = status.messages;
 
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuProgram);
 

@@ -13,19 +13,6 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Information output when a GPU program is compiled. */
-	struct GpuProgramCompileStatus
-	{
-		/** True if the program was compiled succesfully, false otherwise. */
-		bool success;
-
-		/** Messages reported during compilation. This includes error messages if compilation failed. */
-		String messages;
-		
-		/** Compiled GPU program, if compilation was successful. */
-		GpuProgramCompiled program;
-	};
-
 	/**
 	 * Manager responsible for creating GPU programs. It will automatically try to find the appropriate handler for a 
 	 * specific GPU program language and create the program if possible.
@@ -60,8 +47,8 @@ namespace bs
 		/** @copydoc bs::GpuProgramManager::createEmpty */
 		virtual SPtr<GpuProgram> create(GpuProgramType type, GpuDeviceFlags deviceMask = GDF_DEFAULT) = 0;
 
-		/** @copydoc GpuProgramManager::compile */
-		virtual GpuProgramCompileStatus compile(const GPU_PROGRAM_DESC& desc) = 0;
+		/** @copydoc GpuProgram::compileBytecode */
+		virtual SPtr<GpuProgramBytecode> compileBytecode(const GPU_PROGRAM_DESC& desc) = 0;
 	};
 
 	/**
@@ -94,11 +81,8 @@ namespace bs
 		/** @copydoc GpuProgram::create */
 		SPtr<GpuProgram> create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
-		/** 
-		 * Compiles the provided GPU program and outputs the compiled instructions and meta-data. Note it is the 
-		 * responsibility of the caller to deallocate the instruction data blob. 
-		 */
-		GpuProgramCompileStatus compile(const GPU_PROGRAM_DESC& desc);
+		/** @copydoc GpuProgram::compileBytecode */
+		SPtr<GpuProgramBytecode> compileBytecode(const GPU_PROGRAM_DESC& desc);
 
 	protected:
 		friend class bs::GpuProgram;

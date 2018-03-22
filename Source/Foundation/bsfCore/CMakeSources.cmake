@@ -480,6 +480,7 @@ set(BS_CORE_SRC_RENDERAPI
 	"bsfCore/RenderAPI/BsGpuPipelineState.cpp"
 	"bsfCore/RenderAPI/BsGpuPipelineParamInfo.cpp"
 	"bsfCore/RenderAPI/BsVertexDataDesc.cpp"
+	"bsfCore/RenderAPI/BsGpuParamDesc.cpp"
 )
 
 set(BS_CORE_SRC_RENDERAPI_MANAGERS
