@@ -38,6 +38,7 @@
 			* Complete material definitions in a single file
 			* High level concepts like mixins and overloads
 		* Low level shader parsing and reflection for HLSL and GLSL
+		* Shader bytecode caching
 	* Low-level rendering API
 		* Fully featured, backend agnostic wrapper for Vulkan/DX/OpenGL
 		* Full support for all SM5 features, including:

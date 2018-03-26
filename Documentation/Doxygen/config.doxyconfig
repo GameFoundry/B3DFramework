@@ -793,9 +793,9 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = ../../Source/bsfUtility \
-                         ../../Source/bsfCore \
-                         ../../Source/bsfEngine \
+INPUT                  = ../../Source/Foundation/bsfUtility \
+                         ../../Source/Foundation/bsfCore \
+                         ../../Source/Foundation/bsfEngine \
                          ../../Source/Plugins/bsfD3D11RenderAPI \
                          ../../Source/Plugins/bsfGLRenderAPI \
                          ../../Source/Plugins/bsfFBXImporter \
@@ -872,7 +872,7 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                = ../../Source/bsfUtility/ThirdParty \
+EXCLUDE                = ../../Source/Foundation/bsfUtility/ThirdParty \
                          ../../Source/Plugins/bsfVulkanRenderAPI/ThirdParty
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or

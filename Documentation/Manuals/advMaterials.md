@@ -56,24 +56,24 @@ To summarize, the relationship between materials, shaders, techniques and passes
  - **Material** [contains one]-> **Shader** [contains one or multiple]-> **Technique** [contains one or multiple]-> **Pass**
  
 ## Creating a pass {#advMaterials_b_a}
-A **Pass** can be created by filling out a @ref bs::PASS_DESC "PASS_DESC" descriptor and passing it to @ref bs::Pass::create "Pass::create()" method. **PASS_DESC** is fairly simple and it expects a set of GPU programs and non-programmable states.
+A **Pass** can be created by filling out a @ref bs::PASS_DESC "PASS_DESC" descriptor and passing it to @ref bs::Pass::create "Pass::create()" method. **PASS_DESC** is fairly simple and it expects a set of GPU program and non-programmable state descriptors.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GpuProgram> vertexProg = ...;
-SPtr<GpuProgram> fragmentProg = ...;
+GPU_PROGRAM_DESC vertexProgDesc = ...;
+GPU_PROGRAM_DESC fragmentProgDesc = ...;
 
-SPtr<BlendState> blendState = ...;
+BLEND_STATE_DESC blendStateDesc = ...;
 
 // Create a pass with a vertex and fragment program, and a non-default blend state
 PASS_DESC desc;
-desc.vertexProgram = vertexProg;
-desc.fragmentProg = fragmentProg;
-desc.blendState = blendState;
+desc.vertexProgram = vertexProgDesc;
+desc.fragmentProg = fragmentProgDesc;
+desc.blendState = blendStateDesc;
 
 SPtr<Pass> pass = Pass::create(desc);
 ~~~~~~~~~~~~~
 
-GPU programs and non-programmable states are created as described in the low-level rendering API manual.
+The descriptors for GPU programs and non-programmable states are filled out as described in the low-level rendering API manual.
 
 ## Creating a technique {#advMaterials_b_b}
 Now that we know how to create a pass, we can use one or multiple passes to initialize a **Technique**. A technique is just a container for one or multiple passes.

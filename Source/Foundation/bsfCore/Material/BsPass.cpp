@@ -109,7 +109,9 @@ namespace bs
 			return; // Already compiled
 
 		createPipelineState();
+
 		markCoreDirty();
+		CoreObject::syncToCore();
 	}
 
 	CoreSyncData Pass::syncToCore(FrameAlloc* allocator)

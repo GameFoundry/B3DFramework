@@ -111,8 +111,7 @@ namespace bs
 
 		void setVertexProgramDesc(Pass* obj, SerializedGpuProgramData& val)
 		{
-			GpuProgramInfo& info = any_cast_ref<GpuProgramInfo>(obj->mRTTIData);
-			info.vertexProgramDesc = val;
+			obj->mData.vertexProgramDesc = val;
 		}
 
 		SerializedGpuProgramData& getFragmentProgramDesc(Pass* obj) 
@@ -123,8 +122,7 @@ namespace bs
 
 		void setFragmentProgramDesc(Pass* obj, SerializedGpuProgramData& val)
 		{
-			GpuProgramInfo& info = any_cast_ref<GpuProgramInfo>(obj->mRTTIData);
-			info.fragmentProgramDesc = val;
+			obj->mData.fragmentProgramDesc = val;
 		}
 
 		SerializedGpuProgramData& getGeometryProgramDesc(Pass* obj)
@@ -135,8 +133,7 @@ namespace bs
 
 		void setGeometryProgramDesc(Pass* obj, SerializedGpuProgramData& val)
 		{
-			GpuProgramInfo& info = any_cast_ref<GpuProgramInfo>(obj->mRTTIData);
-			info.geometryProgramDesc = val;
+			obj->mData.geometryProgramDesc = val;
 		}
 
 		SerializedGpuProgramData& getHullProgramDesc(Pass* obj)
@@ -147,8 +144,7 @@ namespace bs
 
 		void setHullProgramDesc(Pass* obj, SerializedGpuProgramData& val)
 		{
-			GpuProgramInfo& info = any_cast_ref<GpuProgramInfo>(obj->mRTTIData);
-			info.hullProgramDesc = val;
+			obj->mData.hullProgramDesc = val;
 		}
 
 		SerializedGpuProgramData& getDomainProgramDesc(Pass* obj)
@@ -159,8 +155,7 @@ namespace bs
 
 		void setDomainProgramDesc(Pass* obj, SerializedGpuProgramData& val)
 		{
-			GpuProgramInfo& info = any_cast_ref<GpuProgramInfo>(obj->mRTTIData);
-			info.domainProgramDesc = val;
+			obj->mData.domainProgramDesc = val;
 		}
 
 		SerializedGpuProgramData& getComputeProgramDesc(Pass* obj)
@@ -171,8 +166,7 @@ namespace bs
 
 		void setComputeProgramDesc(Pass* obj, SerializedGpuProgramData& val)
 		{
-			GpuProgramInfo& info = any_cast_ref<GpuProgramInfo>(obj->mRTTIData);
-			info.computeProgramDesc = val;
+			obj->mData.computeProgramDesc = val;
 		}
 	public:
 		PassRTTI()

@@ -14,7 +14,7 @@ Data/*
 !Data/Shaders
 Data/Raw/*
 !Data/Raw/Shaders
-Documentation/html
+Documentation/Generated
 /Build
 *.aps
 *.opendb
