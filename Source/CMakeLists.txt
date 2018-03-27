@@ -28,6 +28,8 @@ set(INCLUDE_ALL_IN_WORKFLOW OFF CACHE BOOL "If true, all libraries (even those n
 
 set(BUILD_TESTS OFF CACHE BOOL "If true, build targets for running unit tests will be included in the output.")
 
+set(BUILD_BSL OFF CACHE BOOL "If true, build lexer & parser for BSL. Requires flex & bison dependencies.")
+
 # Ensure dependencies are up to date
 ## Check prebuilt dependencies that are downloaded in a .zip
 check_and_update_binary_deps(bsf ${BSF_SOURCE_DIR}/../Dependencies/ ${BS_FRAMEWORK_PREBUILT_DEPENDENCIES_VERSION})

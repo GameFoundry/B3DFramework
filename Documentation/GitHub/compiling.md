@@ -70,7 +70,8 @@ The following dependencies will need to be installed manually. Which ones are re
     - Debian/Ubuntu: *apt-get install libx11-dev libxcursor-dev libxrandr-dev*
   - **LibUUID**
     - Debian/Ubuntu: *apt-get install uuid-dev*
-  - **Bison & Flex**
+  - **Bison & Flex** (Optional)
+    - Only needed if you plan on changing BSL syntax (BUILD_BSL option in CMake)
     - Debian/Ubuntu: *apt-get install bison flex*
   - (Or equivalent packages for your distribution)
 
