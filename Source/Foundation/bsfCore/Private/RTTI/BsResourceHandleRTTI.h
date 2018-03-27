@@ -56,7 +56,7 @@ namespace bs
 			SPtr<TResourceHandleBase<false>> obj = bs_shared_ptr<TResourceHandleBase<false>>
 				(new (bs_alloc<TResourceHandleBase<false>>()) TResourceHandleBase<false>());
 			obj->mData = bs_shared_ptr_new<ResourceHandleData>();
-			obj->mData->mRefCount++;
+			obj->mData->mRefCount.fetch_add(1, std::memory_order_relaxed);
 
 			return obj;
 		}

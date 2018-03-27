@@ -26,7 +26,6 @@
 #include "Managers/BsGpuProgramManager.h"
 #include "Managers/BsMeshManager.h"
 #include "Material/BsMaterialManager.h"
-#include "Text/BsFontManager.h"
 #include "Managers/BsRenderWindowManager.h"
 #include "Renderer/BsRenderer.h"
 #include "Utility/BsDeferredCallManager.h"
@@ -66,7 +65,6 @@ namespace bs
 		mPrimaryWindow = nullptr;
 
 		Importer::shutDown();
-		FontManager::shutDown();
 		MaterialManager::shutDown();
 		MeshManager::shutDown();
 		ProfilerGPU::shutDown();
@@ -166,7 +164,6 @@ namespace bs
 		ProfilerGPU::startUp();
 		MeshManager::startUp();
 		MaterialManager::startUp();
-		FontManager::startUp();
 		Importer::startUp();
 		AudioManager::startUp(mStartUpDesc.audio);
 		PhysicsManager::startUp(mStartUpDesc.physics, isEditor());

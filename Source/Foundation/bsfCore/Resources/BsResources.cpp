@@ -94,17 +94,43 @@ namespace bs
 	{
 		HResource outputResource;
 
-		bool alreadyLoading = false;
+		// Retrieve/create resource handle, and register with the system
 		bool loadInProgress = false;
+		bool loadFailed = false;
+		bool initiateLoad = false;
+		Vector<UUID> dependenciesToLoad;
 		{
-			// Check if resource is already being loaded on a worker thread
+			bool alreadyLoading = false;
+
+			// Check if the resource is being loaded on a worker thread
 			Lock inProgressLock(mInProgressResourcesMutex);
+			Lock loadedLock(mLoadedResourceMutex);
+
 			auto iterFind2 = mInProgressResources.find(uuid);
 			if (iterFind2 != mInProgressResources.end())
 			{
 				LoadedResourceData& resData = iterFind2->second->resData;
 				outputResource = resData.resource.lock();
 
+				// Increase ref. count
+				if (loadFlags.isSet(ResourceLoadFlag::KeepInternalRef))
+				{
+					resData.numInternalRefs++;
+					outputResource.addInternalRef();
+				}
+
+				loadInProgress = true;
+				alreadyLoading = true;
+			}
+
+			// Check if the resource is already loaded
+			auto iterFind = mLoadedResources.find(uuid);
+			if (iterFind != mLoadedResources.end())
+			{
+				LoadedResourceData& resData = iterFind->second;
+				outputResource = resData.resource.lock();
+
+				// Increase ref. count
 				if (loadFlags.isSet(ResourceLoadFlag::KeepInternalRef))
 				{
 					resData.numInternalRefs++;
@@ -112,207 +138,163 @@ namespace bs
 				}
 
 				alreadyLoading = true;
-				loadInProgress = true;
 			}
 
-			// Previously being loaded as async but now we want it synced, so we wait
-			if (loadInProgress && synchronous)
-				outputResource.blockUntilLoaded();
-
-			if (!alreadyLoading)
+			// Not loaded and not in progress, register a new handle or find a pre-registered one
+			if(!alreadyLoading)
 			{
-				Lock loadedLock(mLoadedResourceMutex);
-				auto iterFind = mLoadedResources.find(uuid);
-				if (iterFind != mLoadedResources.end()) // Resource is already loaded
+				auto iterFind = mHandles.find(uuid);
+				if (iterFind != mHandles.end())
+					outputResource = iterFind->second.lock();
+				else
 				{
-					LoadedResourceData& resData = iterFind->second;
-					outputResource = resData.resource.lock();
+					outputResource = HResource(uuid);
+					mHandles[uuid] = outputResource.getWeak();
+				}
+			}
+
+			// If we have nowhere to load from, warn and complete load if a file path was provided, otherwise pass through
+			// as we might just want to complete a previously queued load 
+			if (filePath.isEmpty())
+			{
+				if (!alreadyLoading)
+				{
+					LOGWRN_VERBOSE("Cannot load resource. Resource with UUID '" + UUID + "' doesn't exist.");
+					loadFailed = true;
+				}
+			}
+			else if (!FileSystem::isFile(filePath))
+			{
+				LOGWRN_VERBOSE("Cannot load resource. Specified file: " + filePath.toString() + " doesn't exist.");
+				loadFailed = true;
+			}
+
+			if(!loadFailed)
+			{
+				// Load dependency data if a file path is provided
+				SPtr<SavedResourceData> savedResourceData;
+				if (!filePath.isEmpty())
+				{
+					FileDecoder fs(filePath);
+					savedResourceData = std::static_pointer_cast<SavedResourceData>(fs.decode());
+				}
+
+				// Register an in-progress load unless there is an existing load operation, or the resource is already
+				// loaded
+				if(!alreadyLoading)
+				{
+					ResourceLoadData* loadData = bs_new<ResourceLoadData>(outputResource.getWeak(), 0);
+					mInProgressResources[uuid] = loadData;
+					loadData->resData = outputResource.getWeak();
 
 					if (loadFlags.isSet(ResourceLoadFlag::KeepInternalRef))
 					{
-						resData.numInternalRefs++;
+						loadData->resData.numInternalRefs++;
 						outputResource.addInternalRef();
 					}
 
-					alreadyLoading = true;
-				}
-			}
-		}
+					loadData->remainingDependencies = 1; // Self
 
-		// Not loaded and not in progress, start loading of new resource
-		// (or if already loaded or in progress, load any dependencies)
-		if (!alreadyLoading)
-		{
-			// Check if the handle already exists
-			Lock lock(mLoadedResourceMutex);
-			auto iterFind = mHandles.find(uuid);
-			if (iterFind != mHandles.end())
-				outputResource = iterFind->second.lock();
-			else
-			{
-				outputResource = HResource(uuid);
-				mHandles[uuid] = outputResource.getWeak();
-			}			
-		}
-
-		// We have nowhere to load from, warn and complete load if a file path was provided,
-		// otherwise pass through as we might just want to load from memory. 
-		if (filePath.isEmpty())
-		{
-			if (!alreadyLoading)
-			{
-				LOGWRN_VERBOSE("Cannot load resource. Resource with UUID '" + UUID + "' doesn't exist.");
-
-				// Complete the load as that the depedency counter is properly reduced, in case this 
-				// is a dependency of some other resource.
-				loadComplete(outputResource);
-				return outputResource;
-			}
-		}
-		else if (!FileSystem::isFile(filePath))
-		{
-			LOGWRN_VERBOSE("Cannot load resource. Specified file: " + filePath.toString() + " doesn't exist.");
-
-			// Complete the load as that the depedency counter is properly reduced, in case this 
-			// is a dependency of some other resource.
-			loadComplete(outputResource);
-			assert(!loadInProgress); // Resource already being loaded but we can't find its path now?
-
-			return outputResource;
-		}
-
-		// Load dependency data if a file path is provided
-		SPtr<SavedResourceData> savedResourceData;
-		if (!filePath.isEmpty())
-		{
-			FileDecoder fs(filePath);
-			savedResourceData = std::static_pointer_cast<SavedResourceData>(fs.decode());
-		}
-
-		// If already loading keep the old load operation active, otherwise create a new one
-		if (!alreadyLoading)
-		{
-			{
-				Lock lock(mInProgressResourcesMutex);
-
-				ResourceLoadData* loadData = bs_new<ResourceLoadData>(outputResource.getWeak(), 0);
-				mInProgressResources[uuid] = loadData;
-				loadData->resData = outputResource.getWeak();
-
-				if (loadFlags.isSet(ResourceLoadFlag::KeepInternalRef))
-				{
-					loadData->resData.numInternalRefs++;
-					outputResource.addInternalRef();
-				}
-
-				loadData->remainingDependencies = 1;
-				loadData->notifyImmediately = synchronous; // Make resource listener trigger before exit if loading synchronously
-
-				// Register dependencies and count them so we know when the resource is fully loaded
-				if (loadFlags.isSet(ResourceLoadFlag::LoadDependencies) && savedResourceData != nullptr)
-				{
-					for (auto& dependency : savedResourceData->getDependencies())
-					{
-						if (dependency != uuid)
-						{
-							mDependantLoads[dependency].push_back(loadData);
-							loadData->remainingDependencies++;
-						}
-					}
-				}
-			}
-
-			if (loadFlags.isSet(ResourceLoadFlag::LoadDependencies) && savedResourceData != nullptr)
-			{
-				const Vector<UUID>& dependencyUUIDs = savedResourceData->getDependencies();
-				UINT32 numDependencies = (UINT32)dependencyUUIDs.size();
-				Vector<HResource> dependencies(numDependencies);
-
-				ResourceLoadFlags depLoadFlags = ResourceLoadFlag::LoadDependencies;
-				if (loadFlags.isSet(ResourceLoadFlag::KeepSourceData))
-					depLoadFlags |= ResourceLoadFlag::KeepSourceData;
-
-				for (UINT32 i = 0; i < numDependencies; i++)
-					dependencies[i] = loadFromUUID(dependencyUUIDs[i], !synchronous, depLoadFlags);
-
-				// Keep dependencies alive until the parent is done loading
-				{
-					Lock lock(mInProgressResourcesMutex);
-
-					// At this point the resource is guaranteed to still be in-progress, so it's safe to update its dependency list
-					mInProgressResources[uuid]->dependencies = dependencies;
-				}
-			}
-		}
-		else if (loadFlags.isSet(ResourceLoadFlag::LoadDependencies) && savedResourceData != nullptr) // Queue dependencies in case they aren't already loaded
-		{
-			const Vector<UUID>& dependencies = savedResourceData->getDependencies();
-			if (!dependencies.empty())
-			{
-				{
-					Lock lock(mInProgressResourcesMutex);
-
-					ResourceLoadData* loadData = nullptr;
-
-					auto iterFind = mInProgressResources.find(uuid);
-					if (iterFind == mInProgressResources.end()) // Fully loaded
-					{
-						loadData = bs_new<ResourceLoadData>(outputResource.getWeak(), 0);
-						loadData->resData = outputResource.getWeak();
-						loadData->remainingDependencies = 0;
-						loadData->notifyImmediately = synchronous; // Make resource listener trigger before exit if loading synchronously
-
-						mInProgressResources[uuid] = loadData;
-					}
-					else
-					{
-						loadData = iterFind->second;
-					}
+					// Make resource listener trigger before exit if loading synchronously
+					loadData->notifyImmediately = synchronous; 
 
 					// Register dependencies and count them so we know when the resource is fully loaded
-					for (auto& dependency : dependencies)
+					if (loadFlags.isSet(ResourceLoadFlag::LoadDependencies) && savedResourceData != nullptr)
 					{
-						if (dependency != uuid)
+						for (auto& dependency : savedResourceData->getDependencies())
 						{
-							bool registerDependency = true;
-
-							auto iterFind2 = mDependantLoads.find(dependency);
-							if (iterFind2 != mDependantLoads.end())
-							{
-								Vector<ResourceLoadData*>& dependantData = iterFind2->second;
-								auto iterFind3 = std::find_if(dependantData.begin(), dependantData.end(),
-									[&](ResourceLoadData* x)
-								{
-									return x->resData.resource.getUUID() == outputResource.getUUID();
-								});
-
-								registerDependency = iterFind3 == dependantData.end();
-							}
-
-							if (registerDependency)
+							if (dependency != uuid)
 							{
 								mDependantLoads[dependency].push_back(loadData);
 								loadData->remainingDependencies++;
-								loadData->dependencies.push_back(_getResourceHandle(dependency));
+								dependenciesToLoad.push_back(dependency);
 							}
 						}
 					}
 				}
+				// The resource is already being loaded, or is loaded, but we might still need to load some dependencies
+				else
+				{
+					const Vector<UUID>& dependencies = savedResourceData->getDependencies();
+					if (!dependencies.empty())
+					{
+						ResourceLoadData* loadData = nullptr;
 
-				ResourceLoadFlags depLoadFlags = ResourceLoadFlag::LoadDependencies;
-				if (loadFlags.isSet(ResourceLoadFlag::KeepSourceData))
-					depLoadFlags |= ResourceLoadFlag::KeepSourceData;
+						// If load not in progress, register the resource for load
+						if (!loadInProgress)
+						{
+							loadData = bs_new<ResourceLoadData>(outputResource.getWeak(), 0);
+							loadData->resData = outputResource.getWeak();
 
-				for (auto& dependency : dependencies)
-					loadFromUUID(dependency, !synchronous, depLoadFlags);
+							loadData->remainingDependencies = 0;
+
+							// Make resource listener trigger before exit if loading synchronously
+							loadData->notifyImmediately = synchronous;
+						}
+						else
+							loadData = mInProgressResources[uuid];
+
+						// Find dependencies that aren't already queued for loading
+						for (auto& dependency : dependencies)
+						{
+							if (dependency != uuid)
+							{
+								bool registerDependency = true;
+
+								auto iterFind2 = mDependantLoads.find(dependency);
+								if (iterFind2 != mDependantLoads.end())
+								{
+									Vector<ResourceLoadData*>& dependantData = iterFind2->second;
+									auto iterFind3 = std::find_if(dependantData.begin(), dependantData.end(),
+										[&](ResourceLoadData* x)
+									{
+										return x->resData.resource.getUUID() == outputResource.getUUID();
+									});
+
+									registerDependency = iterFind3 == dependantData.end();
+								}
+
+								if (registerDependency)
+								{
+									mDependantLoads[dependency].push_back(loadData);
+									loadData->remainingDependencies++;
+									dependenciesToLoad.push_back(dependency);
+								}
+							}
+						}
+
+						if(!loadInProgress)
+						{
+							if(!dependenciesToLoad.empty())
+								mInProgressResources[uuid] = loadData;
+							else
+								bs_delete(loadData);
+						}
+					}
+				}
+
+				initiateLoad = !alreadyLoading && !filePath.isEmpty();
+				synchronous = synchronous & savedResourceData->allowAsyncLoading();
 			}
 		}
 
+		// Previously being loaded as async but now we want it synced, so we wait
+		if (loadInProgress && synchronous)
+			outputResource.blockUntilLoaded();
+
+		// Something went wrong, clean up and exit
+		if(loadFailed)
+		{
+			// Clean up in-progress state
+			loadComplete(outputResource);
+			return outputResource;
+		}
+
 		// Actually start the file read operation if not already loaded or in progress
-		if (!alreadyLoading && !filePath.isEmpty())
+		if (initiateLoad)
 		{
 			// Synchronous or the resource doesn't support async, read the file immediately
-			if (synchronous || !savedResourceData->allowAsyncLoading())
+			if (synchronous)
 			{
 				loadCallback(filePath, outputResource, loadFlags.isSet(ResourceLoadFlag::KeepSourceData));
 			}
@@ -327,22 +309,35 @@ namespace bs
 				TaskScheduler::instance().addTask(task);
 			}
 		}
-		else // File already loaded or in progress
+		else
 		{
-			// Complete the load unless its in progress in which case we wait for its worker thread to complete it.
-			// In case file is already loaded this will only decrement dependency count in case this resource is a dependency.
-			if (!loadInProgress)
-				loadComplete(outputResource);
-			else
+			if(!loadInProgress)
 			{
-				// In case loading finished in the meantime we cannot be sure at what point ::loadComplete was triggered,
-				// so trigger it manually so that the dependency count is properly decremented in case this resource
-				// is a dependency.
-				Lock lock(mLoadedResourceMutex);
-				auto iterFind = mLoadedResources.find(uuid);
-				if (iterFind != mLoadedResources.end())
-					loadComplete(outputResource);
+				// Already loaded, decrement dependency count
+				loadComplete(outputResource);
 			}
+		}
+
+		// Load dependencies
+		UINT32 numDependencies = (UINT32)dependenciesToLoad.size();
+		if(numDependencies > 0)
+		{
+			ResourceLoadFlags depLoadFlags = ResourceLoadFlag::LoadDependencies;
+			if (loadFlags.isSet(ResourceLoadFlag::KeepSourceData))
+				depLoadFlags |= ResourceLoadFlag::KeepSourceData;
+
+			Vector<HResource> dependencies(numDependencies);
+
+			// Keep dependencies alive until the parent is done loading
+			{
+				// Note the resource is still guaranteed to be in the in-progress map because it can't be removed until
+				// its dependency count is reduced to zero.
+				Lock inProgressLock(mInProgressResourcesMutex);
+				mInProgressResources[uuid]->dependencies = dependencies;
+			}
+
+			for (UINT32 i = 0; i < numDependencies; i++)
+				dependencies[i] = loadFromUUID(dependenciesToLoad[i], !synchronous, depLoadFlags);
 		}
 
 		return outputResource;
@@ -418,10 +413,12 @@ namespace bs
 		{
 			bool loadInProgress = false;
 
-			Lock inProgressLock(mInProgressResourcesMutex);
-			auto iterFind2 = mInProgressResources.find(uuid);
-			if (iterFind2 != mInProgressResources.end())
-				loadInProgress = true;
+			{
+				Lock inProgressLock(mInProgressResourcesMutex);
+				auto iterFind2 = mInProgressResources.find(uuid);
+				if (iterFind2 != mInProgressResources.end())
+					loadInProgress = true;
+			}
 
 			// Technically we should be able to just cancel a load in progress instead of blocking until it finishes.
 			// However that would mean the last reference could get lost on whatever thread did the loading, which
@@ -430,20 +427,25 @@ namespace bs
 			if (loadInProgress)
 				resource.blockUntilLoaded();
 
+			bool lostLastRef = false;
 			{
 				Lock loadedLock(mLoadedResourceMutex);
 				auto iterFind = mLoadedResources.find(uuid);
-				if (iterFind != mLoadedResources.end()) // Resource is already loaded
+				if (iterFind != mLoadedResources.end())
 				{
 					LoadedResourceData& resData = iterFind->second;
 
 					assert(resData.numInternalRefs > 0);
 					resData.numInternalRefs--;
 					resource.removeInternalRef();
-
-					return;
+					
+					std::uint32_t refCount = resource.getHandleData()->mRefCount.load(std::memory_order_relaxed);
+					lostLastRef = refCount == 0;
 				}
 			}
+
+			if(lostLastRef)
+				destroy(resource);
 		}
 	}
 
@@ -457,7 +459,10 @@ namespace bs
 			{
 				const LoadedResourceData& resData = iter->second;
 
-				if (resData.resource.mData->mRefCount == resData.numInternalRefs) // Only internal references exist, free it
+				std::uint32_t refCount = resData.resource.mData->mRefCount.load(std::memory_order_relaxed);
+				assert(refCount > 0); // No references but kept in mLoadedResources list?
+
+				if (refCount == resData.numInternalRefs) // Only internal references exist, free it
 					resourcesToUnload.push_back(resData.resource.lock());
 			}
 		}
@@ -490,6 +495,9 @@ namespace bs
 		if (resource.mData == nullptr)
 			return;
 
+		RecursiveLock lock(mDestroyMutex);
+
+		// If load in progress, first wait until it completes
 		const UUID& uuid = resource.getUUID();
 		if (!resource.isLoaded(false))
 		{
@@ -507,13 +515,15 @@ namespace bs
 				return; // Already unloaded
 		}
 
+		// At this point resource is guaranteed to be loaded and this state cannot change by some other thread because of
+		// the mDestroyMutex lock
+
 		// Notify external systems before we actually destroy it
 		onResourceDestroyed(uuid);
 		resource.mData->mPtr->destroy();
 
 		{
 			Lock lock(mLoadedResourceMutex);
-
 			auto iterFind = mLoadedResources.find(uuid);
 			if (iterFind != mLoadedResources.end())
 			{
@@ -532,7 +542,7 @@ namespace bs
 			}
 		}
 
-		resource.setHandleData(nullptr, uuid);
+		resource.clearHandleData();
 	}
 
 	void Resources::save(const HResource& resource, const Path& filePath, bool overwrite, bool compress)
@@ -735,14 +745,14 @@ namespace bs
 			{
 				return true;
 			}
+		}
 
+		{
+			Lock loadedLock(mLoadedResourceMutex);
+			auto iterFind = mLoadedResources.find(uuid);
+			if (iterFind != mLoadedResources.end())
 			{
-				Lock loadedLock(mLoadedResourceMutex);
-				auto iterFind = mLoadedResources.find(uuid);
-				if (iterFind != mLoadedResources.end())
-				{
-					return true;
-				}
+				return true;
 			}
 		}
 

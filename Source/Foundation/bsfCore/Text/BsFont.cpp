@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Text/BsFont.h"
 #include "Private/RTTI/BsFontRTTI.h"
-#include "Text/BsFontManager.h"
 #include "Resources/BsResources.h"
 
 namespace bs
@@ -118,7 +117,19 @@ namespace bs
 
 	SPtr<Font> Font::_createPtr(const Vector<SPtr<FontBitmap>>& fontData)
 	{
-		return FontManager::instance().create(fontData);
+		SPtr<Font> newFont = bs_core_ptr<Font>(new (bs_alloc<Font>()) Font());
+		newFont->_setThisPtr(newFont);
+		newFont->initialize(fontData);
+
+		return newFont;
+	}
+
+	SPtr<Font> Font::_createEmpty()
+	{
+		SPtr<Font> newFont = bs_core_ptr<Font>(new (bs_alloc<Font>()) Font());
+		newFont->_setThisPtr(newFont);
+
+		return newFont;
 	}
 
 	RTTITypeBase* Font::getRTTIStatic()

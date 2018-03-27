@@ -45,7 +45,7 @@ namespace bs
 	public:
 		friend class ShaderIncludeRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

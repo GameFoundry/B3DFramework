@@ -237,7 +237,6 @@ set(BS_CORE_SRC_UTILITY
 
 set(BS_CORE_INC_TEXT
 	"bsfCore/Text/BsTextData.h"
-	"bsfCore/Text/BsFontManager.h"
 	"bsfCore/Text/BsFontImportOptions.h"
 	"bsfCore/Text/BsFontDesc.h"
 	"bsfCore/Text/BsFont.h"
@@ -447,7 +446,6 @@ set(BS_CORE_INC_LOCALIZATION
 set(BS_CORE_SRC_TEXT
 	"bsfCore/Text/BsFont.cpp"
 	"bsfCore/Text/BsFontImportOptions.cpp"
-	"bsfCore/Text/BsFontManager.cpp"
 	"bsfCore/Text/BsTextData.cpp"
 )
 

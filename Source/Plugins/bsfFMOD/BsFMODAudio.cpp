@@ -54,7 +54,7 @@ namespace bs
 		advancedSettings.vol0virtualvol = 0.001f;
 
 		mFMOD->setAdvancedSettings(&advancedSettings);
-		mFMOD->init(512, FMOD_INIT_3D_RIGHTHANDED | FMOD_INIT_THREAD_UNSAFE | FMOD_INIT_VOL0_BECOMES_VIRTUAL, nullptr);
+		mFMOD->init(512, FMOD_INIT_3D_RIGHTHANDED | FMOD_INIT_VOL0_BECOMES_VIRTUAL, nullptr);
 		mFMOD->setStreamBufferSize(65536, FMOD_TIMEUNIT_RAWBYTES);
 		mFMOD->set3DRolloffCallback(&FMOD3DRolloff);
 

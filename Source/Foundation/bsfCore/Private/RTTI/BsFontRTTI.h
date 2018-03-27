@@ -5,7 +5,6 @@
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsRTTIType.h"
 #include "Text/BsFont.h"
-#include "Text/BsFontManager.h"
 #include "Image/BsTexture.h"
 
 namespace bs
@@ -109,7 +108,7 @@ namespace bs
 
 		SPtr<IReflectable> newRTTIObject() override
 		{
-			return FontManager::instance()._createEmpty();
+			return Font::_createEmpty();
 		}
 
 	protected:

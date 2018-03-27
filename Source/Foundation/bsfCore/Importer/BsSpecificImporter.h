@@ -20,6 +20,17 @@ namespace bs
 		SPtr<Resource> value; /**< Contents of the sub-resource. */
 	};
 
+	/** Modes signififying the level of asynchronous functionality provided by a SpecificImporter. */
+	enum class ImporterAsyncMode
+	{
+		/** No asynchronous import is supported. */
+		None,
+		/** Asynchronous import is supported but only on a single thread. */
+		Single,
+		/** Asynchronous import for multiple simultaneous threads is supported. */
+		Multi
+	};
+
 	/**
 	 * Abstract class that is to be specialized for converting a certain asset type into an engine usable resource
 	 * (for example a .png file into an engine usable texture).
@@ -42,6 +53,9 @@ namespace bs
 
 		/** Check if the provided magic number is supported by this importer. */
 		virtual bool isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const = 0; 
+
+		/** Returns the level of asynchronous import supported by this importer. */
+		virtual ImporterAsyncMode getAsyncMode() const { return ImporterAsyncMode::Multi; }
 
 		/**
 		 * Imports the given file. If file contains more than one resource only the primary resource is imported (for 

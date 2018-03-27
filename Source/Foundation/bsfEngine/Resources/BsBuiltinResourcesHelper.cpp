@@ -40,84 +40,63 @@ namespace bs
 		if(mode == AssetType::Sprite)
 			FileSystem::createDir(spriteOutputFolder);
 
-		auto importResource = [&](const String& fileName, const UUID& UUID)
+		struct QueuedImportOp
 		{
+			QueuedImportOp(const AsyncOp& op, const Path& outputPath, const nlohmann::json& jsonEntry)
+				:op(op), outputPath(outputPath), jsonEntry(jsonEntry)
+			{ }
+
+			AsyncOp op;
+			Path outputPath;
+			const nlohmann::json& jsonEntry;
+		};
+
+		List<QueuedImportOp> queuedOps;
+		auto importResource = [&](const nlohmann::json& entry)
+		{
+			std::string name = entry["Path"];
+			std::string uuidStr;
+
+			if (mode == AssetType::Normal)
+				uuidStr = entry["UUID"];
+			else if (mode == AssetType::Sprite)
+				uuidStr = entry["TextureUUID"];
+
+			String fileName = name.c_str();
+			UUID UUID(uuidStr.c_str());
+
 			Path filePath = inputFolder + fileName;
-			Vector<std::pair<Path, SPtr<ImportOptions>>> resourcesToSave;
 
+			Path relativePath = fileName;
+			Path relativeAssetPath = fileName;
+			relativeAssetPath.setFilename(relativeAssetPath.getWFilename() + L".asset");
+
+			SPtr<ImportOptions> importOptions = gImporter().createImportOptions(filePath);
+			if (importOptions != nullptr)
 			{
-				Path relativePath = fileName;
-				Path relativeAssetPath = fileName;
-				relativeAssetPath.setFilename(relativeAssetPath.getWFilename() + L".asset");
-
-				SPtr<ImportOptions> importOptions = gImporter().createImportOptions(filePath);
-				if (importOptions != nullptr)
+				if (rtti_is_of_type<TextureImportOptions>(importOptions))
 				{
-					if (rtti_is_of_type<TextureImportOptions>(importOptions))
-					{
-						SPtr<TextureImportOptions> texImportOptions = std::static_pointer_cast<TextureImportOptions>(importOptions);
-						texImportOptions->setGenerateMipmaps(false);
+					SPtr<TextureImportOptions> texImportOptions = 
+						std::static_pointer_cast<TextureImportOptions>(importOptions);
 
-						resourcesToSave.push_back(std::make_pair(relativeAssetPath, texImportOptions));
-					}
-					else if (rtti_is_of_type<ShaderImportOptions>(importOptions))
-					{
-						ShaderDefines defines = RendererMaterialManager::_getDefines(relativePath);
-
-						SPtr<ShaderImportOptions> shaderImportOptions;
-						if (!defines.getAll().empty())
-						{
-							shaderImportOptions =
-								std::static_pointer_cast<ShaderImportOptions>(gImporter().createImportOptions(filePath));
-
-							shaderImportOptions->getDefines() = defines.getAll();
-						}
-
-						resourcesToSave.push_back(std::make_pair(relativeAssetPath, shaderImportOptions));
-					}
-					else
-						resourcesToSave.push_back(std::make_pair(relativeAssetPath, nullptr));
+					texImportOptions->setGenerateMipmaps(false);
 				}
-				else
-					resourcesToSave.push_back(std::make_pair(relativeAssetPath, nullptr));
-			}
-
-			// Use the provided UUID if just one resource, otherwise we ignore the UUID. The current assumption is that
-			// such resources don't require persistent UUIDs. If that changes then this method needs to be updated.
-			Vector<HResource> savedResources(resourcesToSave.size());
-			if (resourcesToSave.size() == 1)
-			{
-				Path outputPath = outputFolder + resourcesToSave[0].first;
-
-				HResource resource = Importer::instance().import(filePath, resourcesToSave[0].second, UUID);
-				if (resource != nullptr)
+				else if (rtti_is_of_type<ShaderImportOptions>(importOptions))
 				{
-					Resources::instance().save(resource, outputPath, true, compress);
-					manifest->registerResource(resource.getUUID(), outputPath);
-				}
+					ShaderDefines defines = RendererMaterialManager::_getDefines(relativePath);
 
-				savedResources[0] = resource;
-			}
-			else
-			{
-				UINT32 idx = 0;
-				for (auto& entry : resourcesToSave)
-				{
-					Path outputPath = outputFolder + entry.first;;
+					SPtr<ShaderImportOptions> shaderImportOptions = 
+						std::static_pointer_cast<ShaderImportOptions>(importOptions);
 
-					HResource resource = Importer::instance().import(filePath, entry.second);
-					if (resource != nullptr)
-					{
-						Resources::instance().save(resource, outputPath, true, compress);
-						manifest->registerResource(resource.getUUID(), outputPath);
-					}
-
-					savedResources[idx] = resource;
-					idx++;
+					if (!defines.getAll().empty())
+						shaderImportOptions->getDefines() = defines.getAll();
 				}
 			}
 
-			return savedResources;
+			Path outputPath = outputFolder + relativeAssetPath;
+
+			AsyncOp op = gImporter().importAsync(filePath, importOptions, UUID);
+			queuedOps.emplace_back(op, outputPath, entry);
 		};
 
 		auto generateSprite = [&](const HTexture& texture, const String& fileName, const UUID& UUID)
@@ -134,6 +113,20 @@ namespace bs
 			manifest->registerResource(spriteTex.getUUID(), outputPath);
 		};
 
+		// Start async import for all resources
+		int idx = 0;
+		for(auto& entry : entries)
+		{
+			if(!importFlags[idx])
+			{
+				idx++;
+				continue;
+			}
+
+			importResource(entry);
+			idx++;
+		}
+
 		struct IconData
 		{
 			String name;
@@ -144,110 +137,108 @@ namespace bs
 		};
 
 		Vector<IconData> iconsToGenerate;
-
-		int idx = 0;
-		for(auto& entry : entries)
+		while(!queuedOps.empty())
 		{
-			if(!importFlags[idx])
+			for(auto iter = queuedOps.begin(); iter != queuedOps.end();)
 			{
-				idx++;
-				continue;
-			}
-
-			std::string name = entry["Path"];
-			std::string uuid;
-
-			bool isIcon = false;
-			if (mode == AssetType::Normal)
-			{
-				uuid = entry["UUID"];
-				isIcon = entry.find("UUID16") != entry.end();
-			}
-			else if (mode == AssetType::Sprite)
-			{
-				uuid = entry["TextureUUID"];
-				isIcon = entry.find("TextureUUID16") != entry.end();
-			}
-
-			Vector<HResource> outputResources = importResource(name.c_str(), UUID(uuid.c_str()));
-			bool foundDependencies = false;
-			for (auto& outputRes : outputResources)
-			{
-				if (outputRes == nullptr)
-					continue;
-
-				if (rtti_is_of_type<Shader>(outputRes.get()))
+				QueuedImportOp& importOp = *iter;
+				if(!importOp.op.hasCompleted())
 				{
-					HShader shader = static_resource_cast<Shader>(outputRes);
-					if (!verifyAndReportShader(shader))
-						return;
+					++iter;
+					continue;
+				}
 
-					if (!foundDependencies && dependencies != nullptr)
+				HResource outputRes = importOp.op.getReturnValue<HResource>();
+				if (outputRes != nullptr)
+				{
+					Resources::instance().save(outputRes, importOp.outputPath, true, compress);
+					manifest->registerResource(outputRes.getUUID(), importOp.outputPath);
+
+					const nlohmann::json& entry = importOp.jsonEntry;
+
+					std::string name = entry["Path"];
+
+					bool isIcon = false;
+					if (mode == AssetType::Normal)
+						isIcon = entry.find("UUID16") != entry.end();
+					else if (mode == AssetType::Sprite)
+						isIcon = entry.find("TextureUUID16") != entry.end();
+
+					if (rtti_is_of_type<Shader>(outputRes.get()))
 					{
-						SPtr<ShaderMetaData> shaderMetaData = std::static_pointer_cast<ShaderMetaData>(shader->getMetaData());
-
-						nlohmann::json dependencyEntries;
-						if (shaderMetaData != nullptr && shaderMetaData->includes.size() > 0)
+						HShader shader = static_resource_cast<Shader>(outputRes);
+						if (!verifyAndReportShader(shader))
 						{
-							for (auto& include : shaderMetaData->includes)
-							{
-								Path includePath = include.c_str();
-								if (include.substr(0, 8) == "$ENGINE$" || include.substr(0, 8) == "$EDITOR$")
-								{
-									if (include.size() > 8)
-										includePath = include.substr(9, include.size() - 9);
-								}
-
-								nlohmann::json newDependencyEntry =
-								{
-									{ "Path", includePath.toString().c_str() }
-								};
-
-								dependencyEntries.push_back(newDependencyEntry);
-							}
+							iter = queuedOps.erase(iter);
+							continue;
 						}
 
-						(*dependencies)[name] = dependencyEntries;
-						foundDependencies = true;
+						if (dependencies != nullptr)
+						{
+							SPtr<ShaderMetaData> shaderMetaData = std::static_pointer_cast<ShaderMetaData>(shader->getMetaData());
+
+							nlohmann::json dependencyEntries;
+							if (shaderMetaData != nullptr && shaderMetaData->includes.size() > 0)
+							{
+								for (auto& include : shaderMetaData->includes)
+								{
+									Path includePath = include.c_str();
+									if (include.substr(0, 8) == "$ENGINE$" || include.substr(0, 8) == "$EDITOR$")
+									{
+										if (include.size() > 8)
+											includePath = include.substr(9, include.size() - 9);
+									}
+
+									nlohmann::json newDependencyEntry =
+									{
+										{ "Path", includePath.toString().c_str() }
+									};
+
+									dependencyEntries.push_back(newDependencyEntry);
+								}
+							}
+
+							(*dependencies)[name] = dependencyEntries;
+						}
 					}
-				}
 
-				if (mode == AssetType::Sprite)
-				{
-					std::string spriteUUID = entry["SpriteUUID"];
-
-					HTexture tex = static_resource_cast<Texture>(outputRes);
-					generateSprite(tex, name.c_str(), UUID(spriteUUID.c_str()));
-				}
-
-				if (isIcon)
-				{
-					IconData iconData;
-					iconData.source = static_resource_cast<Texture>(outputRes);
-					iconData.name = name.c_str();
-
-					if (mode == AssetType::Normal)
+					if (mode == AssetType::Sprite)
 					{
-						iconData.TextureUUIDs[0] = entry["UUID48"];
-						iconData.TextureUUIDs[1] = entry["UUID32"];
-						iconData.TextureUUIDs[2] = entry["UUID16"];
+						std::string spriteUUID = entry["SpriteUUID"];
+
+						HTexture tex = static_resource_cast<Texture>(outputRes);
+						generateSprite(tex, name.c_str(), UUID(spriteUUID.c_str()));
 					}
-					else if (mode == AssetType::Sprite)
+
+					if (isIcon)
 					{
-						iconData.TextureUUIDs[0] = entry["TextureUUID48"];
-						iconData.TextureUUIDs[1] = entry["TextureUUID32"];
-						iconData.TextureUUIDs[2] = entry["TextureUUID16"];
+						IconData iconData;
+						iconData.source = static_resource_cast<Texture>(outputRes);
+						iconData.name = name.c_str();
 
-						iconData.SpriteUUIDs[0] = entry["SpriteUUID48"];
-						iconData.SpriteUUIDs[1] = entry["SpriteUUID32"];
-						iconData.SpriteUUIDs[2] = entry["SpriteUUID16"];
+						if (mode == AssetType::Normal)
+						{
+							iconData.TextureUUIDs[0] = entry["UUID48"];
+							iconData.TextureUUIDs[1] = entry["UUID32"];
+							iconData.TextureUUIDs[2] = entry["UUID16"];
+						}
+						else if (mode == AssetType::Sprite)
+						{
+							iconData.TextureUUIDs[0] = entry["TextureUUID48"];
+							iconData.TextureUUIDs[1] = entry["TextureUUID32"];
+							iconData.TextureUUIDs[2] = entry["TextureUUID16"];
+
+							iconData.SpriteUUIDs[0] = entry["SpriteUUID48"];
+							iconData.SpriteUUIDs[1] = entry["SpriteUUID32"];
+							iconData.SpriteUUIDs[2] = entry["SpriteUUID16"];
+						}
+
+						iconsToGenerate.push_back(iconData);
 					}
-
-					iconsToGenerate.push_back(iconData);
 				}
+
+				iter = queuedOps.erase(iter);
 			}
-
-			idx++;
 		}
 
 		for(UINT32 i = 0; i < (UINT32)iconsToGenerate.size(); i++)

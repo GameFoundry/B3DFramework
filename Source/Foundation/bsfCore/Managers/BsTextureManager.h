@@ -13,18 +13,18 @@ namespace bs
 	 *  @{
 	 */
 
-    /**
-     * Defines interface for creation of textures. Render systems provide their own implementations.
+	/**
+	 * Defines interface for creation of textures. Render systems provide their own implementations.
 	 *
 	 * @note	Sim thread only.
-     */
-    class BS_CORE_EXPORT TextureManager : public Module<TextureManager>
-    {
-    public:
+	 */
+	class BS_CORE_EXPORT TextureManager : public Module<TextureManager>
+	{
+	public:
 		virtual ~TextureManager() { }
 
 		/** @copydoc Texture::create(const TEXTURE_DESC&) */
-        SPtr<Texture> createTexture(const TEXTURE_DESC& desc);
+		SPtr<Texture> createTexture(const TEXTURE_DESC& desc);
 			
 		/**
 		 * Creates a new 2D or 3D texture initialized using the provided pixel data. Texture will not have any mipmaps.
@@ -77,18 +77,18 @@ namespace bs
 		virtual SPtr<RenderTexture> createRenderTextureImpl(const RENDER_TEXTURE_DESC& desc) = 0;
 
 		mutable HTexture mDummyTexture;
-    };
+	};
 
 	namespace ct
 	{
 	/**
-     * Defines interface for creation of textures. Render systems provide their own implementations.
+	 * Defines interface for creation of textures. Render systems provide their own implementations.
 	 *
 	 * @note	Core thread only.
-     */
-    class BS_CORE_EXPORT TextureManager : public Module<TextureManager>
-    {
-    public:
+	 */
+	class BS_CORE_EXPORT TextureManager : public Module<TextureManager>
+	{
+	public:
 		virtual ~TextureManager() { }
 
 		/** @copydoc Module::onStartUp */
@@ -124,7 +124,7 @@ namespace bs
 		/** @copydoc createRenderTexture */
 		virtual SPtr<RenderTexture> createRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, 
 			UINT32 deviceIdx = 0) = 0;
-    };
+	};
 		}
 
 	/** @} */

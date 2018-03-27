@@ -85,6 +85,7 @@ namespace bs
 		task->mTaskId = mNextTaskId++;
 		task->mState.store(0); // Reset state in case the task is getting re-queued
 
+		mCheckTasks = true;
 		mTaskQueue.insert(std::move(task));
 
 		// Wake main scheduler thread
@@ -115,22 +116,34 @@ namespace bs
 		{
 			Lock lock(mReadyMutex);
 
-			while((mTaskQueue.size() == 0 || (UINT32)mActiveTasks.size() >= mMaxActiveTasks) && !mShutdown)
+			while((!mCheckTasks || (UINT32)mActiveTasks.size() >= mMaxActiveTasks) && !mShutdown)
 				mTaskReadyCond.wait(lock);
+
+			mCheckTasks = false;
 
 			if(mShutdown)
 				break;
 
-			for(UINT32 i = 0; (i < mTaskQueue.size()) && ((UINT32)mActiveTasks.size() < mMaxActiveTasks); i++)
+			for(auto iter = mTaskQueue.begin(); iter != mTaskQueue.end();)
 			{
-				SPtr<Task> curTask = *mTaskQueue.begin();
-				mTaskQueue.erase(mTaskQueue.begin());
+				if ((UINT32)mActiveTasks.size() >= mMaxActiveTasks)
+					break;	
+
+				SPtr<Task> curTask = *iter;
 
 				if(curTask->isCanceled())
+				{
+					iter = mTaskQueue.erase(iter);
 					continue;
+				}
 
 				if(curTask->mTaskDependency != nullptr && !curTask->mTaskDependency->isComplete())
+				{
+					++iter;
 					continue;
+				}
+
+				iter = mTaskQueue.erase(iter);
 
 				curTask->mState.store(1);
 				mActiveTasks.push_back(curTask);
@@ -159,8 +172,13 @@ namespace bs
 			mTaskCompleteCond.notify_all();
 		}
 
-		// Possibly this task was someones dependency, so wake the main scheduler thread
-		mTaskReadyCond.notify_one();
+		// Wake the main scheduler thread in case there are other tasks waiting or this task was someone's dependency
+		{
+			Lock lock(mReadyMutex);
+
+			mCheckTasks = true;
+			mTaskReadyCond.notify_one();
+		}
 	}
 
 	void TaskScheduler::waitUntilComplete(const Task* task)

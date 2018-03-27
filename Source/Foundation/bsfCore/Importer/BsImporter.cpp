@@ -11,6 +11,8 @@
 #include "Error/BsException.h"
 #include "Utility/BsUUID.h"
 #include "Resources/BsResources.h"
+#include "Threading/BsThreadPool.h"
+#include "Threading/BsTaskScheduler.h"
 
 namespace bs
 {
@@ -54,29 +56,7 @@ namespace bs
 
 	HResource Importer::import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions, const UUID& UUID)
 	{
-		if(!FileSystem::isFile(inputFilePath))
-		{
-			LOGWRN("Trying to import asset that doesn't exists. Asset path: " + inputFilePath.toString());
-			return HResource();
-		}
-
-		SpecificImporter* importer = getImporterForFile(inputFilePath);
-		if(importer == nullptr)
-			return HResource();
-
-		if(importOptions == nullptr)
-			importOptions = importer->getDefaultImportOptions();
-		else
-		{
-			SPtr<const ImportOptions> defaultImportOptions = importer->getDefaultImportOptions();
-			if(importOptions->getTypeId() != defaultImportOptions->getTypeId())
-			{
-				BS_EXCEPT(InvalidParametersException, "Provided import options is not of valid type. " \
-					"Expected: " + defaultImportOptions->getTypeName() + ". Got: " + importOptions->getTypeName() + ".");
-			}
-		}
-
-		SPtr<Resource> importedResource = importer->import(inputFilePath, importOptions);
+		SPtr<Resource> importedResource = _import(inputFilePath, importOptions);
 
 		if(UUID.empty())
 			return gResources()._createResourceHandle(importedResource);
@@ -84,32 +64,100 @@ namespace bs
 		return gResources()._createResourceHandle(importedResource, UUID);
 	}
 
+	AsyncOp Importer::importAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions, const UUID& UUID,
+		bool handle)
+	{
+		AsyncOp output;
+
+		SpecificImporter* importer = prepareForImport(inputFilePath, importOptions);
+		if(!importer)
+		{
+			output._completeOperation(HResource());
+			return output;
+		}
+
+		// Fall back on sync if not supported
+		ImporterAsyncMode asyncMode = importer->getAsyncMode();
+		if(asyncMode == ImporterAsyncMode::None)
+		{
+			HResource resource = import(inputFilePath, importOptions, UUID);
+			output._completeOperation(resource);
+
+			return output;
+		}
+
+		queueForImport(importer, inputFilePath, importOptions, false, UUID, handle, output);
+		return output;
+	}
+
 	Vector<SubResource> Importer::importAll(const Path& inputFilePath, SPtr<const ImportOptions> importOptions)
 	{
 		Vector<SubResource> output;
 
-		Vector<SubResourceRaw> importedResource = _importAllRaw(inputFilePath, importOptions);
+		Vector<SubResourceRaw> importedResource = _importAll(inputFilePath, importOptions);
 		for(auto& entry : importedResource)
 		{
 			HResource handle = gResources()._createResourceHandle(entry.value);
-
 			output.push_back({ entry.name, handle });
 		}
 
 		return output;
 	}
 
-	Vector<SubResourceRaw> Importer::_importAllRaw(const Path& inputFilePath, SPtr<const ImportOptions> importOptions)
+	AsyncOp Importer::importAllAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions, bool handle)
 	{
-		if (!FileSystem::isFile(inputFilePath))
+		AsyncOp output;
+
+		SpecificImporter* importer = prepareForImport(inputFilePath, importOptions);
+		if(!importer)
 		{
-			LOGWRN("Trying to import asset that doesn't exists. Asset path: " + inputFilePath.toString());
-			return Vector<SubResourceRaw>();
+			output._completeOperation(Vector<SubResource>());
+			return output;
 		}
 
-		SpecificImporter* importer = getImporterForFile(inputFilePath);
-		if (importer == nullptr)
+		// Fall back on sync if not supported
+		ImporterAsyncMode asyncMode = importer->getAsyncMode();
+		if(asyncMode == ImporterAsyncMode::None)
+		{
+			Vector<SubResource> resources = importAll(inputFilePath, importOptions);
+			output._completeOperation(resources);
+
+			return output;
+		}
+
+		queueForImport(importer, inputFilePath, importOptions, true, UUID::EMPTY, handle, output);
+		return output;
+	}
+
+	SPtr<Resource> Importer::_import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions) const
+	{
+		SpecificImporter* importer = prepareForImport(inputFilePath, importOptions);
+		if(importer == nullptr)
+			return nullptr;
+
+		return importer->import(inputFilePath, importOptions);
+	}
+	
+	Vector<SubResourceRaw> Importer::_importAll(const Path& inputFilePath, SPtr<const ImportOptions> importOptions) const
+	{
+		SpecificImporter* importer = prepareForImport(inputFilePath, importOptions);
+		if(!importer)
 			return Vector<SubResourceRaw>();
+
+		return importer->importAll(inputFilePath, importOptions);
+	}
+
+	SpecificImporter* Importer::prepareForImport(const Path& filePath, SPtr<const ImportOptions>& importOptions) const
+	{
+		if (!FileSystem::isFile(filePath))
+		{
+			LOGWRN("Trying to import asset that doesn't exists. Asset path: " + filePath.toString());
+			return nullptr;
+		}
+
+		SpecificImporter* importer = getImporterForFile(filePath);
+		if (importer == nullptr)
+			return nullptr;
 
 		if (importOptions == nullptr)
 			importOptions = importer->getDefaultImportOptions();
@@ -123,35 +171,89 @@ namespace bs
 			}
 		}
 
-		return importer->importAll(inputFilePath, importOptions);
+		return importer;
 	}
 
-	void Importer::reimport(HResource& existingResource, const Path& inputFilePath, SPtr<const ImportOptions> importOptions)
+	void Importer::queueForImport(SpecificImporter* importer, const Path& inputFilePath, 
+		SPtr<const ImportOptions> importOptions, bool importAll, const UUID& uuid, bool handle, AsyncOp& op)
 	{
-		if(!FileSystem::isFile(inputFilePath))
+		ImporterAsyncMode asyncMode = importer->getAsyncMode();
+
+		// If the importer only supports single thread import, the tasks need to be chained using dependencies so they get
+		// executed in sequence
+		UINT64 taskId = 0;
+		SPtr<Task> dependency;
+		if(asyncMode == ImporterAsyncMode::Single)
 		{
-			LOGWRN("Trying to import asset that doesn't exists. Asset path: " + inputFilePath.toString());
-			return;
+			mLastTaskMutex.lock();
+			taskId = mTaskId++;
+
+			auto iterFind = mLastQueuedTask.find(importer);
+			if(iterFind != mLastQueuedTask.end())
+				dependency = iterFind->second.task;
 		}
 
-		SpecificImporter* importer = getImporterForFile(inputFilePath);
-		if(importer == nullptr)
-			return;
-
-		if(importOptions == nullptr)
-			importOptions = importer->getDefaultImportOptions();
-		else
-		{
-			SPtr<const ImportOptions> defaultImportOptions = importer->getDefaultImportOptions();
-			if(importOptions->getTypeId() != defaultImportOptions->getTypeId())
+		QueuedOperation queuedOp(importer, inputFilePath, importOptions, importAll, uuid, handle, op);
+		SPtr<Task> task = Task::create("ImportWorker", 
+		[this, taskId, queuedOp] 
+		{ 
+			AsyncOp op = queuedOp.op;
+			if (queuedOp.importAll)
 			{
-				BS_EXCEPT(InvalidParametersException, "Provided import options is not of valid type. " \
-					"Expected: " + defaultImportOptions->getTypeName() + ". Got: " + importOptions->getTypeName() + ".");
+				Vector<SubResourceRaw> rawSubresources = queuedOp.importer->importAll(queuedOp.filePath,
+					queuedOp.importOptions);
+
+				if(queuedOp.handle)
+				{
+					Vector<SubResource> subresources;
+					for (auto& entry : rawSubresources)
+					{
+						HResource handle = gResources()._createResourceHandle(entry.value);
+						subresources.push_back({ entry.name, handle });
+					}
+
+					op._completeOperation(subresources);
+				}
+				else
+					op._completeOperation(rawSubresources);
 			}
+			else
+			{
+				SPtr<Resource> resourcePtr = queuedOp.importer->import(queuedOp.filePath, queuedOp.importOptions);
+
+				if(queuedOp.handle)
+				{
+					HResource resource;
+					if (queuedOp.uuid.empty())
+						resource = gResources()._createResourceHandle(resourcePtr);
+					else
+						resource = gResources()._createResourceHandle(resourcePtr, queuedOp.uuid);
+
+					op._completeOperation(resource);
+				}
+				else
+					op._completeOperation(resourcePtr);
+			}
+
+			// Clear itself from the task list so we don't unnecessarily keep a reference. But first make sure we are the
+			// last task by comparing the ids.
+			Lock lock(mLastTaskMutex);
+			auto iterFind = mLastQueuedTask.find(queuedOp.importer);
+			if(iterFind != mLastQueuedTask.end())
+			{
+				if(iterFind->second.id == taskId)
+					mLastQueuedTask.erase(iterFind);
+			}
+
+		}, TaskPriority::Normal, dependency);
+
+		if(asyncMode == ImporterAsyncMode::Single)
+		{
+			mLastQueuedTask[importer] = QueuedTask(task, taskId);
+			mLastTaskMutex.unlock();
 		}
 
-		SPtr<Resource> importedResource = importer->import(inputFilePath, importOptions);
-		gResources().update(existingResource, importedResource);
+		TaskScheduler::instance().addTask(task);
 	}
 
 	SPtr<ImportOptions> Importer::createImportOptions(const Path& inputFilePath)

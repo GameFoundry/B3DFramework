@@ -5,6 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "Utility/BsModule.h"
 #include "Importer/BsSpecificImporter.h"
+#include "Threading/BsAsyncOp.h"
 
 namespace bs
 {
@@ -54,6 +55,14 @@ namespace bs
 			return static_resource_cast<T>(import(inputFilePath, importOptions, UUID));
 		}
 
+		/** 
+		 * Same as import(), except it imports a resource without blocking the main thread. The resulting resource will be
+		 * placed in the returned AsyncOp object when the import ends. If @p handle is true, the returned object will be
+		 * a resource handle, otherwise it will be a SPtr to the resource.
+		 */
+		AsyncOp importAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, 
+			const UUID& UUID = UUID::EMPTY, bool handle = true);
+
 		/**
 		 * Imports a resource at the specified location, and returns the loaded data. This method returns all imported
 		 * resources, which is relevant for files that can contain multiple resources (for example an FBX which may contain
@@ -69,17 +78,13 @@ namespace bs
 		 */
 		Vector<SubResource> importAll(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr);
 
-		/**
-		 * Imports a resource and replaces the contents of the provided existing resource with new imported data.
-		 *
-		 * @param[in]	existingResource	Resource whose contents to replace.
-		 * @param[in]	inputFilePath		Pathname of the input file.
-		 * @param[in]	importOptions		(optional) Options for controlling the import. Caller must ensure import options 
-		 *									actually match the type of the importer used for the file type. 
-		 *
-		 * @see		createImportOptions
+		/** 
+		 * Same as importAll(), except it imports a resource without blocking the main thread. The returned AsyncOp will
+		 * contain a Vector<SubResource> containing the imported resources, after the import ends. If @p handle is true, 
+		 * the returned object will be a resource handle, otherwise it will be a SPtr to the resource.
 		 */
-		void reimport(HResource& existingResource, const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr);
+		AsyncOp importAllAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, 
+			bool handle = true);
 
 		/**
 		 * Automatically detects the importer needed for the provided file and returns valid type of import options for 
@@ -134,18 +139,76 @@ namespace bs
 		 */
 		void _registerAssetImporter(SpecificImporter* importer);
 
+		/** Alternative to import() which doesn't create a resource handle, but instead returns a raw resource pointer. */
+		SPtr<Resource> _import(const Path& inputFilePath, 
+			SPtr<const ImportOptions> importOptions = nullptr) const;
+
 		/** Alternative to importAll() which doesn't create resource handles, but instead returns raw resource pointers. */
-		Vector<SubResourceRaw> _importAllRaw(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr);
+		Vector<SubResourceRaw> _importAll(const Path& inputFilePath, 
+			SPtr<const ImportOptions> importOptions = nullptr) const;
 
 		/** @} */
 	private:
+		/** Information about a single queued import operation. */
+		struct QueuedOperation
+		{
+			QueuedOperation() = default;
+
+			QueuedOperation(SpecificImporter* importer, const Path& filePath, SPtr<const ImportOptions> importOptions, 
+				bool importAll, const UUID& uuid, bool handle, const AsyncOp& op)
+				: importer(importer), filePath(filePath), importOptions(importOptions), importAll(importAll), uuid(uuid)
+				, handle(handle), op(op)
+			{ }
+
+			SpecificImporter* importer;
+			Path filePath;
+			SPtr<const ImportOptions> importOptions;
+			bool importAll;
+			UUID uuid;
+			bool handle;
+
+			AsyncOp op;
+		};
+
 		/** 
 		 * Searches available importers and attempts to find one that can import the file of the provided type. Returns null
 		 * if one cannot be found.
 		 */
 		SpecificImporter* getImporterForFile(const Path& inputFilePath) const;
 
+		/** 
+		 * Queues resource for import on a secondary thread. The system will execute the import as soon as possible
+		 * and write the resulting resource to the provided @p op object. 
+		 */
+		void queueForImport(SpecificImporter* importer, const Path& inputFilePath, SPtr<const ImportOptions> importOptions, 
+			bool importAll, const UUID& uuid, bool handle, AsyncOp& op);
+
+		/**
+		 * Prepares for import of a file at the specified path. Returns the type of importer the file can be imported with,
+		 * or null if the file isn't valid or is of unsupported type. Also creates the default set of import options unless
+		 * already provided.
+		 */
+		SpecificImporter* prepareForImport(const Path& filePath, SPtr<const ImportOptions>& importOptions) const;
+
 		Vector<SpecificImporter*> mAssetImporters;
+
+		Mutex mLastTaskMutex;
+		UINT64 mTaskId = 0;
+
+		/** Information about a task queued for a specific import operation. */
+		struct QueuedTask
+		{
+			QueuedTask() = default;
+
+			QueuedTask(SPtr<Task> task, UINT64 id)
+				:task(std::move(task)), id(id)
+			{ }
+
+			SPtr<Task> task;
+			UINT64 id;
+		};
+
+		UnorderedMap<SpecificImporter*, QueuedTask> mLastQueuedTask;
 	};
 
 	/** Provides easier access to Importer. */

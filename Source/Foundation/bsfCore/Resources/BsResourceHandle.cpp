@@ -96,14 +96,22 @@ namespace bs
 		}
 	}
 
+	void ResourceHandleBase::clearHandleData()
+	{
+		mData->mPtr = nullptr;
+
+		Lock(mResourceCreatedMutex);
+		mData->mIsCreated = false;
+	}
+
 	void ResourceHandleBase::addInternalRef()
 	{
-		mData->mRefCount++;
+		mData->mRefCount.fetch_add(1, std::memory_order_relaxed);
 	}
 
 	void ResourceHandleBase::removeInternalRef()
 	{
-		mData->mRefCount--;
+		mData->mRefCount.fetch_sub(1, std::memory_order_relaxed);
 	}
 
 	void ResourceHandleBase::throwIfNotLoaded() const

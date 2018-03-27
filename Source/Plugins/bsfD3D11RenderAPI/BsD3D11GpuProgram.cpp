@@ -50,10 +50,6 @@ namespace bs { namespace ct
 
 			mBytecode = compileBytecode(desc);
 		}
-		else
-		{
-			int a =5;
-		}
 
 		mCompileMessages = mBytecode->messages;
 		mIsCompiled = mBytecode->instructions.data != nullptr;

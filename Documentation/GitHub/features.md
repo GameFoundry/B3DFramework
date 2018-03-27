@@ -63,6 +63,8 @@
 		* OGG, FLAC, WAV, MP3 sounds
 		* HLSL, GLSL shaders
 	* Asynchronous resource loading
+	* Asynchronous resource import
+	* Resource compression
 	* Extensible importer system
 * __GUI system__
 	* All common GUI controls

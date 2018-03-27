@@ -32,7 +32,7 @@ namespace bs
 			SPtr<MeshData> meshData = obj->allocBuffer();
 
 			obj->readData(meshData);
-			gCoreThread().submit(true);
+			gCoreThread().submitAll(true);
 
 			return meshData;
 		}

@@ -329,6 +329,7 @@ namespace bs
 
 		Mutex mInProgressResourcesMutex;
 		Mutex mLoadedResourceMutex;
+		RecursiveMutex mDestroyMutex;
 
 		UnorderedMap<UUID, WeakResourceHandle<Resource>> mHandles;
 		UnorderedMap<UUID, LoadedResourceData> mLoadedResources;

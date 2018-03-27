@@ -129,6 +129,7 @@ namespace bs
 		UINT32 mMaxActiveTasks = 0;
 		UINT32 mNextTaskId = 0;
 		bool mShutdown = false;
+		bool mCheckTasks = false;
 
 		Mutex mReadyMutex;
 		Mutex mCompleteMutex;
