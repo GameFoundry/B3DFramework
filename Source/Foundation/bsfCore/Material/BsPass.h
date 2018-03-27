@@ -91,6 +91,9 @@ namespace bs
 		/** Gets the stencil reference value that is used when performing operations using the stencil buffer. */
 		UINT32 getStencilRefValue() const { return mData.stencilRefValue; }
 
+		/** Returns the GPU program descriptor for the specified GPU program type. */
+		const GPU_PROGRAM_DESC& getProgramDesc(bs::GpuProgramType type) const;
+
 		/** 
 		 * Returns the graphics pipeline state describing this pass, or null if its a compute pass.
 		 * Only valid after compile() has been called.

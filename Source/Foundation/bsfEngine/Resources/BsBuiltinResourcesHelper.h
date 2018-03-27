@@ -40,10 +40,11 @@ namespace bs
 		 * @param[in]	manifest		Manifest in which to register the imported resources in.
 		 * @param[in]	mode			Mode that controls how are files imported.
 		 * @param[in]	dependencies	Optional map that be updated with any dependencies the imported assets depend on.
+		 * @param[in]	compress		True if the imported asset should be compressed when saved to the disk.
 		 */
 		static void importAssets(const nlohmann::json& entries, const Vector<bool>& importFlags, const Path& inputFolder, 
 			const Path& outputFolder, const SPtr<ResourceManifest>& manifest, AssetType mode = AssetType::Normal,
-			nlohmann::json* dependencies = nullptr);
+			nlohmann::json* dependencies = nullptr, bool compress = false);
 
 		/**
 		 * Imports a font from the specified file. Imported font assets are saved in the output folder. All saved resources
@@ -106,6 +107,9 @@ namespace bs
 
 		/** Checks if the shader compiled properly and reports the problem if it hasn't. Returns true if shader is valid. */
 		static bool verifyAndReportShader(const HShader& shader);
+
+		/** Loads the shader at the specified path, updates its bytecode if required, and re-saves the shader file. */
+		static void updateShaderBytecode(const Path& path);
 	};
 
 	/** @} */

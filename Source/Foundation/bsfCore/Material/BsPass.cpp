@@ -47,6 +47,27 @@ namespace bs
 	}
 
 	template<bool Core>
+	const GPU_PROGRAM_DESC& TPass<Core>::getProgramDesc(bs::GpuProgramType type) const
+	{
+		switch(type)
+		{
+		default:
+		case GPT_VERTEX_PROGRAM:
+			return mData.vertexProgramDesc;
+		case GPT_FRAGMENT_PROGRAM:
+			return mData.fragmentProgramDesc;
+		case GPT_GEOMETRY_PROGRAM:
+			return mData.geometryProgramDesc;
+		case GPT_HULL_PROGRAM:
+			return mData.hullProgramDesc;
+		case GPT_DOMAIN_PROGRAM:
+			return mData.domainProgramDesc;
+		case GPT_COMPUTE_PROGRAM:
+			return mData.computeProgramDesc;
+		}
+	}
+
+	template<bool Core>
 	void TPass<Core>::createPipelineState() 
 	{
 		if (isCompute())

@@ -52,7 +52,7 @@ namespace bs { namespace ct
 			return;
 		}
 
-		if(!mCachedBytecode || mCachedBytecode->compilerId != VULKAN_COMPILER_ID)
+		if(!mBytecode || mBytecode->compilerId != VULKAN_COMPILER_ID)
 		{
 			GPU_PROGRAM_DESC desc;
 			desc.type = mType;
@@ -60,11 +60,11 @@ namespace bs { namespace ct
 			desc.language = "vksl";
 			desc.source = mSource;
 
-			mCachedBytecode = compileBytecode(desc);
+			mBytecode = compileBytecode(desc);
 		}
 
-		mCompileMessages = mCachedBytecode->messages;
-		mIsCompiled = mCachedBytecode->instructions.data != nullptr;
+		mCompileMessages = mBytecode->messages;
+		mIsCompiled = mBytecode->instructions.data != nullptr;
 
 		if(mIsCompiled)
 		{
@@ -76,8 +76,8 @@ namespace bs { namespace ct
 			moduleCI.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 			moduleCI.pNext = nullptr;
 			moduleCI.flags = 0;
-			moduleCI.codeSize = mCachedBytecode->instructions.size;
-			moduleCI.pCode = (uint32_t*)mCachedBytecode->instructions.data;
+			moduleCI.codeSize = mBytecode->instructions.size;
+			moduleCI.pCode = (uint32_t*)mBytecode->instructions.data;
 
 			VulkanUtility::getDevices(rapi, mDeviceMask, devices);
 
@@ -96,12 +96,12 @@ namespace bs { namespace ct
 				}
 			}
 
-			mParametersDesc = mCachedBytecode->paramDesc;
+			mParametersDesc = mBytecode->paramDesc;
 
 			if (mType == GPT_VERTEX_PROGRAM)
 			{
 				mInputDeclaration = HardwareBufferManager::instance().createVertexDeclaration(
-					mCachedBytecode->vertexInput, mDeviceMask);
+					mBytecode->vertexInput, mDeviceMask);
 			}
 		}
 

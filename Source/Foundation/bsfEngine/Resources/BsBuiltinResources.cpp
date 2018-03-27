@@ -284,6 +284,26 @@ namespace bs
 
 			gResources().registerResourceManifest(mResourceManifest);
 		}
+
+		// Update shader bytecode for the current render backend, if needed
+		{
+			Path dataListsFilePath = mBuiltinRawDataFolder + DataListFile;
+			SPtr<DataStream> dataListStream = FileSystem::openFile(dataListsFilePath);
+			json dataListJSON = json::parse(dataListStream->getAsString().c_str());
+
+			json shadersJSON = dataListJSON["Shaders"];
+			for (auto& entry : shadersJSON)
+			{
+				std::string uuidStr = entry["UUID"];
+				UUID uuid(uuidStr.c_str());
+
+				Path filePath;
+				if (!mResourceManifest->uuidToFilePath(uuid, filePath))
+					continue;
+
+				BuiltinResourcesHelper::updateShaderBytecode(filePath);
+			}
+		}
 		
 		// Load basic resources
 		mShaderSpriteText = getShader(ShaderSpriteTextFile);
@@ -543,7 +563,10 @@ namespace bs
 				rawShaderIncludeFolder,
 				shaderIncludeFolder,
 				mResourceManifest,
-				BuiltinResourcesHelper::AssetType::Normal);
+				BuiltinResourcesHelper::AssetType::Normal,
+				nullptr,
+				true);
+
 
 			BuiltinResourcesHelper::importAssets(
 				shadersJSON,
@@ -552,7 +575,8 @@ namespace bs
 				mEngineShaderFolder,
 				mResourceManifest,
 				BuiltinResourcesHelper::AssetType::Normal,
-				&shaderDependenciesJSON);
+				&shaderDependenciesJSON,
+				true);
 		}
 
 		// Import GUI sprites

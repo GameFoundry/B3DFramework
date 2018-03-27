@@ -27,7 +27,7 @@ namespace bs
 {
 	void BuiltinResourcesHelper::importAssets(const nlohmann::json& entries, const Vector<bool>& importFlags, 
 		const Path& inputFolder, const Path& outputFolder, const SPtr<ResourceManifest>& manifest, AssetType mode,
-		nlohmann::json* dependencies)
+		nlohmann::json* dependencies, bool compress)
 	{
 		if (!FileSystem::exists(inputFolder))
 			return;
@@ -92,7 +92,7 @@ namespace bs
 				HResource resource = Importer::instance().import(filePath, resourcesToSave[0].second, UUID);
 				if (resource != nullptr)
 				{
-					Resources::instance().save(resource, outputPath, true);
+					Resources::instance().save(resource, outputPath, true, compress);
 					manifest->registerResource(resource.getUUID(), outputPath);
 				}
 
@@ -108,7 +108,7 @@ namespace bs
 					HResource resource = Importer::instance().import(filePath, entry.second);
 					if (resource != nullptr)
 					{
-						Resources::instance().save(resource, outputPath, true);
+						Resources::instance().save(resource, outputPath, true, compress);
 						manifest->registerResource(resource.getUUID(), outputPath);
 					}
 
@@ -130,7 +130,7 @@ namespace bs
 			SPtr<SpriteTexture> spriteTexPtr = SpriteTexture::_createPtr(texture);
 			HResource spriteTex = gResources()._createResourceHandle(spriteTexPtr, UUID);
 
-			Resources::instance().save(spriteTex, outputPath, true);
+			Resources::instance().save(spriteTex, outputPath, true, compress);
 			manifest->registerResource(spriteTex.getUUID(), outputPath);
 		};
 
@@ -265,7 +265,7 @@ namespace bs
 			SPtr<Texture> texturePtr = Texture::_createPtr(pixelData);
 			HResource texture = gResources()._createResourceHandle(texturePtr, UUID(uuid.c_str()));
 
-			Resources::instance().save(texture, path, true);
+			Resources::instance().save(texture, path, true, compress);
 			manifest->registerResource(texture.getUUID(), path);
 
 			return static_resource_cast<Texture>(texture);
@@ -654,5 +654,50 @@ namespace bs
 		}
 
 		return true;
+	}
+
+	void BuiltinResourcesHelper::updateShaderBytecode(const Path& path)
+	{
+		HShader shader = gResources().load<Shader>(path);
+		if (!shader)
+			return;
+
+		Vector<SPtr<Technique>> techniques = shader->getCompatibleTechniques();
+		bool hasBytecode = true;
+		for (auto& technique : techniques)
+		{
+			UINT32 numPasses = technique->getNumPasses();
+			for (UINT32 i = 0; i < numPasses; i++)
+			{
+				SPtr<Pass> pass = technique->getPass(i);
+
+				for (UINT32 j = 0; j < GPT_COUNT; j++)
+				{
+					const GPU_PROGRAM_DESC& desc = pass->getProgramDesc((GpuProgramType)j);
+					if (desc.source.empty())
+						continue;
+
+					if (!desc.bytecode)
+					{
+						hasBytecode = false;
+						break;
+					}
+				}
+
+				if (!hasBytecode)
+					break;
+			}
+
+			if (!hasBytecode)
+				break;
+		}
+
+		if (hasBytecode)
+			return;
+
+		for (auto& technique : techniques)
+			technique->compile();
+
+		gResources().save(shader, path, true, true);
 	}
 }
