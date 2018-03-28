@@ -33,8 +33,10 @@ install(
 	ARCHIVE DESTINATION lib
 )
 
-install(
-	FILES $<TARGET_PDB_FILE:bsfPhysX> 
-	DESTINATION bin 
-	OPTIONAL
-)
+if(WIN32)
+	install(
+		FILES $<TARGET_PDB_FILE:bsfPhysX> 
+		DESTINATION bin 
+		OPTIONAL
+	)
+endif()

@@ -46,9 +46,11 @@ if(RENDER_API_MODULE MATCHES "OpenGL")
 		ARCHIVE DESTINATION lib
 	)
 	
-	install(
-		FILES $<TARGET_PDB_FILE:bsfGLRenderAPI> 
-		DESTINATION bin 
-		OPTIONAL
-	)	
+	if(WIN32)
+		install(
+			FILES $<TARGET_PDB_FILE:bsfGLRenderAPI> 
+			DESTINATION bin 
+			OPTIONAL
+		)
+	endif()
 endif()

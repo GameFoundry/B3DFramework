@@ -36,9 +36,11 @@ if(RENDER_API_MODULE MATCHES "Vulkan")
 		ARCHIVE DESTINATION lib
 	)
 	
-	install(
-		FILES $<TARGET_PDB_FILE:bsfVulkanRenderAPI> 
-		DESTINATION bin 
-		OPTIONAL
-	)	
+	if(WIN32)
+		install(
+			FILES $<TARGET_PDB_FILE:bsfVulkanRenderAPI> 
+			DESTINATION bin 
+			OPTIONAL
+		)
+	endif()
 endif()

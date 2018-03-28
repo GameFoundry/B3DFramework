@@ -35,9 +35,11 @@ if(RENDER_API_MODULE MATCHES "DirectX 11")
 		ARCHIVE DESTINATION lib
 	)
 	
-	install(
-		FILES $<TARGET_PDB_FILE:bsfD3D11RenderAPI> 
-		DESTINATION bin 
-		OPTIONAL
-	)
+	if(WIN32)
+		install(
+			FILES $<TARGET_PDB_FILE:bsfD3D11RenderAPI> 
+			DESTINATION bin 
+			OPTIONAL
+		)
+	endif()
 endif()

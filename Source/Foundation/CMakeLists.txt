@@ -104,11 +104,13 @@ install(
 	PATTERN "Private" EXCLUDE
 )
 
-install(
-	FILES $<TARGET_PDB_FILE:bsf> 
-	DESTINATION bin 
-	OPTIONAL
-)
+if(WIN32)
+	install(
+		FILES $<TARGET_PDB_FILE:bsf> 
+		DESTINATION bin 
+		OPTIONAL
+	)
+endif()
 
 install(
 	TARGETS bsf

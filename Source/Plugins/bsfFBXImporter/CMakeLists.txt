@@ -31,8 +31,10 @@ install(
 	ARCHIVE DESTINATION lib
 )
 
-install(
-	FILES $<TARGET_PDB_FILE:bsfFBXImporter> 
-	DESTINATION bin 
-	OPTIONAL
-)
+if(WIN32)
+	install(
+		FILES $<TARGET_PDB_FILE:bsfFBXImporter> 
+		DESTINATION bin 
+		OPTIONAL
+	)
+endif()

@@ -38,9 +38,11 @@ if(AUDIO_MODULE MATCHES "FMOD")
 		ARCHIVE DESTINATION lib
 	)
 
-	install(
-		FILES $<TARGET_PDB_FILE:bsfFMOD> 
-		DESTINATION bin 
-		OPTIONAL
-	)
+	if(WIN32)
+		install(
+			FILES $<TARGET_PDB_FILE:bsfFMOD> 
+			DESTINATION bin 
+			OPTIONAL
+		)
+	endif()
 endif()

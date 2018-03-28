@@ -25,8 +25,10 @@ install(
 	ARCHIVE DESTINATION lib
 )
 
-install(
-	FILES $<TARGET_PDB_FILE:bsfRenderBeast> 
-	DESTINATION bin 
-	OPTIONAL
-)
+if(WIN32)
+	install(
+		FILES $<TARGET_PDB_FILE:bsfRenderBeast> 
+		DESTINATION bin 
+		OPTIONAL
+	)
+endif()
