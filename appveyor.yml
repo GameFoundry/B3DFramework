@@ -21,14 +21,15 @@ build_script:
   - cmd: cmake --build ./ --config OptimizedDebug --target INSTALL
 
 after_build:
- - cmd: 7z a bsfBinaries.zip ../CI/* -xr!*pdb
- - cmd: 7z a bsfSymbols.zip ../CI/*pdb -r
+ - cmd: cd ..
+ - cmd: 7z a bsf_Win64_$(APPVEYOR_BUILD_NUMBER).zip ./CI/* -xr!*pdb
+ - cmd: 7z a bsf_Win64_Symbols_$(APPVEYOR_BUILD_NUMBER).zip ./CI/*pdb -r
 
 artifacts:
-  - path: bsfBinaries.zip
+  - path: bsf_Win64_$(APPVEYOR_BUILD_NUMBER).zip
     name: bsf_Win64_$(APPVEYOR_BUILD_NUMBER)
     type: zip
-  - path: bsfSymbols.zip
+  - path: bsf_Win64_Symbols_$(APPVEYOR_BUILD_NUMBER).zip
     name: bsf_Win64_Symbols_$(APPVEYOR_BUILD_NUMBER)
     type: zip
 
