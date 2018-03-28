@@ -14,6 +14,7 @@ matrix:
             - gcc-7
             - g++-7
             - binutils-2.26
+            - tree
           update-alternatives:
             - install /usr/bin/gcc gcc /usr/bin/gcc-7 50
             - install /usr/bin/g++ g++ /usr/bin/g++-7 50
@@ -42,7 +43,10 @@ script:
   - INSTALL_DIR="${TRAVIS_BUILD_DIR}/Install"
   - mkdir ${INSTALL_DIR}
   - mkdir Build && cd Build
+  - pwd
   - cmake .. -DCMAKE_INSTALL_PREFIX:STRING=${INSTALL_DIR}
+  - pwd
+  - tree -d ..
   - make -j
   - make install
   
