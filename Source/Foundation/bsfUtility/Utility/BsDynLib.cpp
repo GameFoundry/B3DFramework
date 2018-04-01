@@ -17,11 +17,9 @@
 
 namespace bs
 {
-	DynLib::DynLib(const String& name)
+	DynLib::DynLib(String name)
+		:mName(std::move(name))
 	{
-		mName = name;
-		mHandle = nullptr;
-
 		load();
 	}
 
@@ -76,14 +74,15 @@ namespace bs
 			0,
 			NULL
 		);
-		String ret = (char*)lpMsgBuf;
+
+		String ret((char*)lpMsgBuf);
 		// Free the buffer.
 		LocalFree(lpMsgBuf);
 		return ret;
 #elif BS_PLATFORM == BS_PLATFORM_LINUX || BS_PLATFORM == BS_PLATFORM_OSX
 		return String(dlerror());
 #else
-		return String("");
+		return String();
 #endif
 	}
 }
