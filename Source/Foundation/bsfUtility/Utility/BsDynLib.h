@@ -72,7 +72,7 @@ namespace bs
 		 * Returns the address of the given symbol from the loaded library.
 		 *
 		 * @param[in] strName	The name of the symbol to search for.
-		 * @return		If the function succeeds, the returned value is a handle to the symbol. Otherwise null.
+		 * @return				If the function succeeds, the returned value is a handle to the symbol. Otherwise null.
 		 */
 		void* getSymbol(const String& strName) const;
 

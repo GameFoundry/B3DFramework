@@ -76,6 +76,7 @@ namespace bs
 		);
 
 		String ret((char*)lpMsgBuf);
+
 		// Free the buffer.
 		LocalFree(lpMsgBuf);
 		return ret;

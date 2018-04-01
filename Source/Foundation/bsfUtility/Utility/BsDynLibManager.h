@@ -34,7 +34,7 @@ namespace bs
 		void unload(DynLib* lib);
 
 	protected:
-		Map<const String, DynLib*> mLoadedLibraries;
+		Set<NPtr<DynLib>, std::less<>> mLoadedLibraries;
 	};
 
 	/** Easy way of accessing DynLibManager. */
