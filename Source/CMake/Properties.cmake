@@ -1,6 +1,6 @@
 # Configuration types
 if(CMAKE_CONFIGURATION_TYPES) # Multiconfig generator?
-	set(CMAKE_CONFIGURATION_TYPES "Debug;OptimizedDebug;Release;" CACHE INTERNAL "") 
+	set(CMAKE_CONFIGURATION_TYPES "Debug;OptimizedDebug;Release;" CACHE INTERNAL "")
 else()
 	if(NOT CMAKE_BUILD_TYPE)
 		message("Defaulting to release build.")
@@ -34,46 +34,46 @@ if(MSVC)
 	set(BS_LINKER_FLAGS_DEBUG "${BS_LINKER_FLAGS_COMMON} /DEBUG")
 	set(BS_LINKER_FLAGS_OPTIMIZEDDEBUG "${BS_LINKER_FLAGS_COMMON} /LTCG:incremental /INCREMENTAL:NO /OPT:REF /DEBUG")
 	set(BS_LINKER_FLAGS_RELEASE "${BS_LINKER_FLAGS_COMMON} /LTCG /INCREMENTAL:NO /OPT:REF")
-	
+
 	if(BS_64BIT)
 		set(BS_LINKER_FLAGS_OPTIMIZEDDEBUG "${BS_LINKER_FLAGS_OPTIMIZEDDEBUG} /OPT:ICF")
 		set(BS_LINKER_FLAGS_RELEASE "${BS_LINKER_FLAGS_RELEASE} /OPT:ICF")
 	endif()
-	
+
 	set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "/DLL ${BS_LINKER_FLAGS_DEBUG}")
 	set(CMAKE_MODULE_LINKER_FLAGS_DEBUG "/DLL ${BS_LINKER_FLAGS_DEBUG}")
 	set(CMAKE_EXE_LINKER_FLAGS_DEBUG ${BS_LINKER_FLAGS_DEBUG})
-	
+
 	set(CMAKE_SHARED_LINKER_FLAGS_OPTIMIZEDDEBUG "/DLL ${BS_LINKER_FLAGS_OPTIMIZEDDEBUG}")
 	set(CMAKE_MODULE_LINKER_FLAGS_OPTIMIZEDDEBUG "/DLL ${BS_LINKER_FLAGS_OPTIMIZEDDEBUG}")
 	set(CMAKE_EXE_LINKER_FLAGS_OPTIMIZEDDEBUG ${BS_LINKER_FLAGS_OPTIMIZEDDEBUG})
-	
+
 	set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "/DLL ${BS_LINKER_FLAGS_RELEASE}")
 	set(CMAKE_MODULE_LINKER_FLAGS_RELEASE "/DLL ${BS_LINKER_FLAGS_RELEASE}")
 	set(CMAKE_EXE_LINKER_FLAGS_RELEASE ${BS_LINKER_FLAGS_RELEASE})
-	
+
 	# Compiler
 	set(BS_COMPILER_FLAGS_COMMON "/GS- /W3 /GR- /WX- /MP /nologo /bigobj /wd\"4577\" /wd\"4530\"")
 	set(CMAKE_CXX_FLAGS "/DWIN32 /D_WINDOWS")
-	
+
 	set(CMAKE_CXX_FLAGS_DEBUG "${BS_COMPILER_FLAGS_COMMON} /Od /RTC1 /MDd -DDEBUG")
-	
+
 	if(BS_64BIT) # Debug edit and continue for 64-bit
 		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /ZI")
 	else() # Normal debug for 32-bit
 		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zi")
 	endif()
-	
+
 	set(CMAKE_CXX_FLAGS_OPTIMIZEDDEBUG "${BS_COMPILER_FLAGS_COMMON} /GL /Gy /Zi /O2 /Oi /MD -DDEBUG")
 	set(CMAKE_CXX_FLAGS_RELEASE "${BS_COMPILER_FLAGS_COMMON} /GL /Gy /O2 /Oi /MD -DNDEBUG")
-	
+
 	# Global defines
 	#add_definitions(-D_HAS_EXCEPTIONS=0)
-	
+
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
 	# Note: Optionally add -ffunction-sections, -fdata-sections, but with linker option --gc-sections
 	# TODO: Use link-time optimization -flto. Might require non-default linker.
-	set(BS_COMPILER_FLAGS_COMMON "-Wall -fPIC -fno-exceptions -fno-strict-aliasing -fno-rtti -fno-ms-compatibility")
+	set(BS_COMPILER_FLAGS_COMMON "-Wall -Wextra -Wno-unused-parameter -fPIC -fno-exceptions -fno-strict-aliasing -fno-rtti -fno-ms-compatibility")
 
 	if(LINUX)
 		set(BS_COMPILER_FLAGS_COMMON "${BS_COMPILER_FLAGS_COMMON} -Wl,-rpath=$ORIGIN")
@@ -96,7 +96,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "A
 
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	# TODO: Use link-time optimization -flto. Might require non-default linker.
-	set(BS_COMPILER_FLAGS_COMMON "-Wall -fPIC -fno-exceptions -fno-strict-aliasing -fno-rtti")
+	set(BS_COMPILER_FLAGS_COMMON "-Wall -Wextra -Wno-unused-parameter -fPIC -fno-exceptions -fno-strict-aliasing -fno-rtti")
 
 	if(LINUX)
 		set(BS_COMPILER_FLAGS_COMMON "${BS_COMPILER_FLAGS_COMMON} -Wl,-rpath=$ORIGIN")

@@ -2178,18 +2178,18 @@ bool tetgenio::load_vtk(char* filebasename)
         for(i = 0; i < nverts; i++) {
           coord = &pointlist[i * 3];
           if(!strcmp(fmt, "double")) {
-            fread((char*)(&(coord[0])), sizeof(double), 1, fp);
-            fread((char*)(&(coord[1])), sizeof(double), 1, fp);
-            fread((char*)(&(coord[2])), sizeof(double), 1, fp);
+            if(fread((char*)(&(coord[0])), sizeof(double), 1, fp)){};
+            if(fread((char*)(&(coord[1])), sizeof(double), 1, fp)){};
+            if(fread((char*)(&(coord[2])), sizeof(double), 1, fp)){};
             if(ImALittleEndian){
               swapBytes((unsigned char *) &(coord[0]), sizeof(coord[0]));
               swapBytes((unsigned char *) &(coord[1]), sizeof(coord[1]));
               swapBytes((unsigned char *) &(coord[2]), sizeof(coord[2]));
             }
           } else if(!strcmp(fmt, "float")) {
-            fread((char*)(&_x), sizeof(float), 1, fp);
-            fread((char*)(&_y), sizeof(float), 1, fp);
-            fread((char*)(&_z), sizeof(float), 1, fp);
+            if(fread((char*)(&_x), sizeof(float), 1, fp)){};
+            if(fread((char*)(&_y), sizeof(float), 1, fp)){};
+            if(fread((char*)(&_z), sizeof(float), 1, fp)){};
             if(ImALittleEndian){
               swapBytes((unsigned char *) &_x, sizeof(_x));
               swapBytes((unsigned char *) &_y, sizeof(_y));
@@ -2238,7 +2238,7 @@ bool tetgenio::load_vtk(char* filebasename)
 
       if(!strcmp(mode, "BINARY")) {
         for(i = 0; i < nfaces; i++){
-          fread((char*)(&nn), sizeof(int), 1, fp);
+          if(fread((char*)(&nn), sizeof(int), 1, fp)){};
           if(ImALittleEndian){
             swapBytes((unsigned char *) &nn, sizeof(nn));
           }
@@ -2250,9 +2250,9 @@ bool tetgenio::load_vtk(char* filebasename)
           }
 
           if(nn == 3){
-            fread((char*)(&id1), sizeof(int), 1, fp);
-            fread((char*)(&id2), sizeof(int), 1, fp);
-            fread((char*)(&id3), sizeof(int), 1, fp);
+            if(fread((char*)(&id1), sizeof(int), 1, fp)){};
+            if(fread((char*)(&id2), sizeof(int), 1, fp)){};
+            if(fread((char*)(&id3), sizeof(int), 1, fp)){};
             if(ImALittleEndian){
               swapBytes((unsigned char *) &id1, sizeof(id1));
               swapBytes((unsigned char *) &id2, sizeof(id2));
@@ -19048,6 +19048,7 @@ int tetgenmesh::add_steinerpt_in_segment(face* misseg, int searchlevel)
   REAL len, smlen = 0, split = 0, split_q = 0;
   int success;
   int i;
+  (void)success;
 
   startpt = sorg(*misseg);
   endpt = sdest(*misseg);

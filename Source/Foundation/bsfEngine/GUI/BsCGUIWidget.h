@@ -95,7 +95,8 @@ namespace bs
 		virtual void ownerWindowFocusChanged() { }
 
 	private:
-		CGUIWidget(const CGUIWidget& other) { }
+		CGUIWidget(CGUIWidget&&) = delete;
+		CGUIWidget(const CGUIWidget&) = delete;
 
 		SPtr<GUIWidget> mInternal;
 		HEvent mOwnerTargetResizedConn;

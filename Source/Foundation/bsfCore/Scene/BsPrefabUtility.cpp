@@ -427,6 +427,7 @@ namespace bs
 				if (component->getLinkId() == (UINT32)-1)
 				{
 					bool foundInstanceData = false;
+					(void)foundInstanceData;
 					for (; componentProxyIdx < numComponentProxies; componentProxyIdx++)
 					{
 						if (current.proxy->components[componentProxyIdx].linkId != (UINT32)-1)
@@ -453,6 +454,7 @@ namespace bs
 				if (child->getLinkId() == (UINT32)-1)
 				{
 					bool foundInstanceData = false;
+					(void)foundInstanceData;
 					for (; childProxyIdx < numChildProxies; childProxyIdx++)
 					{
 						if (current.proxy->children[childProxyIdx].linkId != (UINT32)-1)
