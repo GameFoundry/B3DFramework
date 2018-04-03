@@ -21,16 +21,18 @@ build_script:
   - cmd: cmake --build ./ --config OptimizedDebug --target INSTALL
 
 after_build:
- - cmd: cd ..
- - cmd: 7z a bsf_Win64_%APPVEYOR_BUILD_NUMBER%.zip ./CI/* -xr!*pdb
- - cmd: 7z a bsf_Win64_Symbols_%APPVEYOR_BUILD_NUMBER%.zip ./CI/*pdb -r
+ - ps: cd ..
+ - ps: $buildName = "$(Get-Date -format dd.MM.yyyy)"
+ - ps: Set-AppveyorBuildVariable "BSF_BUILD_NAME" "$buildName"
+ - cmd: 7z a bsf_%BSF_BUILD_NAME%_win64.zip ./CI/* -xr!*pdb
+ - cmd: 7z a bsf_%BSF_BUILD_NAME%_win64_symbols.zip ./CI/*pdb -r
 
 artifacts:
-  - path: bsf_Win64_$(APPVEYOR_BUILD_NUMBER).zip
-    name: bsf_Win64_$(APPVEYOR_BUILD_NUMBER)
+  - path: bsf_%BSF_BUILD_NAME%_win64.zip
+    name: bsf_%BSF_BUILD_NAME%_win64
     type: zip
-  - path: bsf_Win64_Symbols_$(APPVEYOR_BUILD_NUMBER).zip
-    name: bsf_Win64_Symbols_$(APPVEYOR_BUILD_NUMBER)
+  - path: bsf_%BSF_BUILD_NAME%_win64_symbols.zip
+    name: bsf_%BSF_BUILD_NAME%_win64_symbols
     type: zip
 
 deploy:
@@ -44,3 +46,5 @@ deploy:
     active_mode: false
     beta: true
     debug: true
+    on:
+      APPVEYOR_SCHEDULED_BUILD: true

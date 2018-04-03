@@ -14,23 +14,30 @@ matrix:
             - gcc-7
             - g++-7
             - binutils-2.26
-            - tree
+            - libgl1-mesa-dev
+            - libglu1-mesa-dev
+            - mesa-common-dev
+            - libx11-dev
+            - libxcursor-dev
+            - libxrandr-dev
+            - libxi-dev
+            - uuid-dev
           update-alternatives:
             - install /usr/bin/gcc gcc /usr/bin/gcc-7 50
             - install /usr/bin/g++ g++ /usr/bin/g++-7 50
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-
+		
 before_install:
   - eval "${MATRIX_EVAL}"
-  
+		
 install:
-  - DEPS_DIR="${TRAVIS_BUILD_DIR}/Dependencies"
+  - DEPS_DIR="${TRAVIS_BUILD_DIR}/Deps"
   - mkdir ${DEPS_DIR} && cd ${DEPS_DIR}
   
   # Download CMake
   - |
-    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       CMAKE_URL="https://cmake.org/files/v3.9/cmake-3.9.6-Linux-x86_64.tar.gz"
       mkdir cmake
       travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
@@ -43,17 +50,17 @@ script:
   - INSTALL_DIR="${TRAVIS_BUILD_DIR}/Install"
   - mkdir ${INSTALL_DIR}
   - mkdir Build && cd Build
-  - pwd
   - cmake .. -DCMAKE_INSTALL_PREFIX:STRING=${INSTALL_DIR}
-  - pwd
-  - tree -d ..
   - make -j
   - make install
   
 after_success:
   - cd ..
-  - today=`date +%Y-%m-%d.%H:%M:%S`
-  - filename=bsf_${TRAVIS_OS_NAME}_${today}.zip
+  - today=`date +%d.%m.%Y`
+  - filename=bsf_${today}_${TRAVIS_OS_NAME}.zip
   - cd ${INSTALL_DIR}
-  - zip -rq ${filename} ./*
-  - curl --ftp-create-dirs -T ${filename} -u ${FTP_USER}:${FTP_PASSWORD} ${FTP_DESTINATION}
+  - |
+    if [[ "$TRAVIS_EVENT_TYPE" == "cron" ]]; then
+      zip -rq ${filename} ./*
+      curl -v --ftp-create-dirs -T ${filename} -u ${FTP_USER}:${FTP_PASSWORD} ${FTP_DESTINATION}
+    fi

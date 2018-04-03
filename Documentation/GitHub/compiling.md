@@ -67,7 +67,7 @@ The following dependencies will need to be installed manually. Which ones are re
     - Required by default, but optional if you have choosen a different RenderAPI in *CMake* options
     - Debian/Ubuntu: *apt-get install libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev*
   - **X11**
-    - Debian/Ubuntu: *apt-get install libx11-dev libxcursor-dev libxrandr-dev*
+    - Debian/Ubuntu: *apt-get install libx11-dev libxcursor-dev libxrandr-dev libxi-dev*
   - **LibUUID**
     - Debian/Ubuntu: *apt-get install uuid-dev*
   - **Bison & Flex** (Optional)

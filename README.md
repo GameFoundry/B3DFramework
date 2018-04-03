@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/GameFoundry/bsf.svg?branch=master)](https://travis-ci.org/GameFoundry/bsf) [![Build status](https://ci.appveyor.com/api/projects/status/lafi3jj8bqowh25d?svg=true)](https://ci.appveyor.com/project/BearishSun/bsf)
+
 # What is bs::framework?
 A modern library that aims to provide a unified foundation for the development of real-time graphical applications, whether games, engines or tools. 
 
