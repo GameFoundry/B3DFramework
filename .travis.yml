@@ -11,9 +11,6 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - gcc-7
-            - g++-7
-            - binutils-2.26
             - libgl1-mesa-dev
             - libglu1-mesa-dev
             - mesa-common-dev
@@ -22,35 +19,55 @@ matrix:
             - libxrandr-dev
             - libxi-dev
             - uuid-dev
-          update-alternatives:
-            - install /usr/bin/gcc gcc /usr/bin/gcc-7 50
-            - install /usr/bin/g++ g++ /usr/bin/g++-7 50
-      env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-
-before_install:
-  - eval "${MATRIX_EVAL}"
-
+  
 install:
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/Deps"
-  - mkdir ${DEPS_DIR} && cd ${DEPS_DIR}
+  - mkdir ${DEPS_DIR}
   
   # Download CMake
   - |
     if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       CMAKE_URL="https://cmake.org/files/v3.9/cmake-3.9.6-Linux-x86_64.tar.gz"
+      cd ${DEPS_DIR}
       mkdir cmake
       travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
       export PATH=${DEPS_DIR}/cmake/bin:${PATH}
     fi
 
-  - cd ..
+  # Download GCC 7.1
+  - |
+    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      GCC_URL="http://data.banshee3d.com/gcc-7.1-trusty.zip"
+      cd ${DEPS_DIR}
+      mkdir gcc
+      cd gcc
+      wget --no-check-certificate --quiet - ${GCC_URL}
+      unzip -q gcc-7.1-trusty.zip
+      export PATH=${DEPS_DIR}/gcc/bin:$PATH
+      export LD_LIBRARY_PATH=${DEPS_DIR}/gcc/lib:$LD_LIBRARY_PATH
+      export LD_LIBRARY_PATH=${DEPS_DIR}/gcc/lib64:$LD_LIBRARY_PATH
+    fi		
+
+  # Download binutils 2.28
+  - |
+    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      BINUTILS_URL="http://data.banshee3d.com/binutils-2.28-trusty.zip"
+      cd ${DEPS_DIR}
+      mkdir binutils
+      cd binutils
+      wget --no-check-certificate --quiet - ${BINUTILS_URL}
+      unzip -q binutils-2.28-trusty.zip
+      export PATH=${DEPS_DIR}/binutils/bin:${PATH}
+      export LD_LIBRARY_PATH=${DEPS_DIR}/binutils/lib:$LD_LIBRARY_PATH
+    fi	
+
+  - cd ${TRAVIS_BUILD_DIR}
 
 script:
   - INSTALL_DIR="${TRAVIS_BUILD_DIR}/Install"
   - mkdir ${INSTALL_DIR}
   - mkdir Build && cd Build
-  - cmake .. -DCMAKE_INSTALL_PREFIX:STRING=${INSTALL_DIR}
+  - CC=gcc CXX=g++ cmake -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ -DCMAKE_INSTALL_PREFIX:STRING=${INSTALL_DIR} .. 
   - make
   - make install
   
