@@ -14,14 +14,10 @@ namespace bs
 	/**	Data that is shared between all resource handles. */
 	struct BS_CORE_EXPORT ResourceHandleData
 	{
-		ResourceHandleData()
-			:mIsCreated(false), mRefCount{0}
-		{ }
-
 		SPtr<Resource> mPtr;
 		UUID mUUID;
-		bool mIsCreated;	
-		std::atomic_uint32_t mRefCount;
+		bool mIsCreated = false;
+		std::atomic<std::uint32_t> mRefCount{0};
 	};
 
 	/**
