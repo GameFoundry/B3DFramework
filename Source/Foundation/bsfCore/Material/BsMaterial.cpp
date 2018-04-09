@@ -611,7 +611,7 @@ namespace bs
 		UINT32 bufferSize = 0;
 
 		MemorySerializer serializer;
-		UINT8* buffer = serializer.encode(this, bufferSize, (void*(*)(UINT32))&bs_alloc);
+		UINT8* buffer = serializer.encode(this, bufferSize, (void*(*)(size_t))&bs_alloc);
 
 		SPtr<Material> cloneObj = std::static_pointer_cast<Material>(serializer.decode(buffer, bufferSize));
 		bs_free(buffer);

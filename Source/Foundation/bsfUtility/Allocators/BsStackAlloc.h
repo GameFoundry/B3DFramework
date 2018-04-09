@@ -4,7 +4,10 @@
 
 #include <stack>
 #include <assert.h>
+
+#include "Prerequisites/BsTypes.h"
 #include "Prerequisites/BsStdHeaders.h"
+
 #include "Threading/BsThreadDefines.h"
 
 namespace bs

@@ -45,7 +45,7 @@ namespace bs
 	{
 		SPtr<SceneObject> sceneObjectPtr = SPtr<SceneObject>(new (bs_alloc<SceneObject>()) SceneObject(name, flags),
 			&bs_delete<SceneObject>, StdAlloc<SceneObject>());
-		
+
 		HSceneObject sceneObject = GameObjectManager::instance().registerObject(sceneObjectPtr);
 		sceneObject->mThisHandle = sceneObject;
 
@@ -735,7 +735,7 @@ namespace bs
 		UINT32 bufferSize = 0;
 
 		MemorySerializer serializer;
-		UINT8* buffer = serializer.encode(this, bufferSize, (void*(*)(UINT32))&bs_alloc);
+		UINT8* buffer = serializer.encode(this, bufferSize, (void*(*)(size_t))&bs_alloc);
 
 		GameObjectManager::instance().setDeserializationMode(GODM_UseNewIds | GODM_RestoreExternal);
 		SPtr<SceneObject> cloneObj = std::static_pointer_cast<SceneObject>(serializer.decode(buffer, bufferSize));

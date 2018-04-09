@@ -4,11 +4,9 @@
 #undef min
 #undef max
 
-#include "Prerequisites/BsTypes.h"
-
-#include <atomic>
-#include <limits>
 #include <new>
+#include <limits>
+#include <cstdint>
 #include <utility>
 
 #if BS_PLATFORM == BS_PLATFORM_LINUX
@@ -84,7 +82,7 @@ namespace bs
 		if (data == nullptr)
 			return nullptr;
 
-		UINT8* alignedData = ((UINT8*)data) + sizeof(void*);
+		char* alignedData = ((char*)data) + sizeof(void*);
 		alignedData += (alignment - ((uintptr_t)alignedData) & (alignment - 1)) & (alignment - 1);
 
 		((void**)alignedData)[-1] = data;
@@ -93,6 +91,7 @@ namespace bs
 
 	inline void platformAlignedFree(void* ptr)
 	{
+		// TODO: Document how this works.
 		::free(((void**)ptr)[-1]);
 	}
 #endif
@@ -104,12 +103,12 @@ namespace bs
 	class MemoryCounter
 	{
 	public:
-		static BS_UTILITY_EXPORT UINT64 getNumAllocs()
+		static BS_UTILITY_EXPORT uint64_t getNumAllocs()
 		{
 			return Allocs;
 		}
 
-		static BS_UTILITY_EXPORT UINT64 getNumFrees()
+		static BS_UTILITY_EXPORT uint64_t getNumFrees()
 		{
 			return Frees;
 		}
@@ -118,11 +117,11 @@ namespace bs
 		friend class MemoryAllocatorBase;
 
 		// Threadlocal data can't be exported, so some magic to make it accessible from MemoryAllocator
-		static BS_UTILITY_EXPORT void incAllocCount() { Allocs++; }
-		static BS_UTILITY_EXPORT void incFreeCount() { Frees++; }
+		static BS_UTILITY_EXPORT void incAllocCount() { ++Allocs; }
+		static BS_UTILITY_EXPORT void incFreeCount() { ++Frees; }
 
-		static BS_THREADLOCAL UINT64 Allocs;
-		static BS_THREADLOCAL UINT64 Frees;
+		static BS_THREADLOCAL uint64_t Allocs;
+		static BS_THREADLOCAL uint64_t Frees;
 	};
 
 	/** Base class all memory allocators need to inherit. Provides allocation and free counting. */
@@ -223,7 +222,7 @@ namespace bs
 
 	/** Allocates the specified number of bytes. */
 	template<class Alloc>
-	inline void* bs_alloc(UINT32 count)
+	inline void* bs_alloc(size_t count)
 	{
 		return MemoryAllocator<Alloc>::allocate(count);
 	}
@@ -237,12 +236,12 @@ namespace bs
 
 	/** Creates and constructs an array of @p count elements. */
 	template<class T, class Alloc>
-	inline T* bs_newN(UINT32 count)
+	inline T* bs_newN(size_t count)
 	{
 		T* ptr = (T*)MemoryAllocator<Alloc>::allocate(sizeof(T) * count);
 
-		for(unsigned int i = 0; i < count; i++)
-			new ((void*)&ptr[i]) T;
+		for(size_t i = 0; i < count; ++i)
+			new (&ptr[i]) T;
 
 		return ptr;
 	}
@@ -251,7 +250,7 @@ namespace bs
 	template<class Type, class Alloc, class... Args>
 	Type* bs_new(Args &&...args)
 	{
-		return new (bs_alloc<Alloc>(sizeof(Type))) Type(std::forward<Args>(args)...);
+		return new (bs_alloc<Type, Alloc>()) Type(std::forward<Args>(args)...);
 	}
 
 	/** Frees all the bytes allocated at the specified location. */
@@ -272,9 +271,9 @@ namespace bs
 
 	/** Destructs and frees the specified array of objects. */
 	template<class T, class Alloc = GenAlloc>
-	inline void bs_deleteN(T* ptr, UINT32 count)
+	inline void bs_deleteN(T* ptr, size_t count)
 	{
-		for(unsigned int i = 0; i < count; i++)
+		for(size_t i = 0; i < count; ++i)
 			ptr[i].~T();
 
 		MemoryAllocator<Alloc>::free(ptr);
@@ -285,7 +284,7 @@ namespace bs
 	/*****************************************************************************/
 
 	/** Allocates the specified number of bytes. */
-	inline void* bs_alloc(UINT32 count)
+	inline void* bs_alloc(size_t count)
 	{
 		return MemoryAllocator<GenAlloc>::allocate(count);
 	}
@@ -301,33 +300,33 @@ namespace bs
 	 * Allocates the specified number of bytes aligned to the provided boundary. Boundary is in bytes and must be a power
 	 * of two.
 	 */
-	inline void* bs_alloc_aligned(UINT32 count, UINT32 align)
+	inline void* bs_alloc_aligned(size_t count, size_t align)
 	{
 		return MemoryAllocator<GenAlloc>::allocateAligned(count, align);
 	}
 
 
 	/** Allocates the specified number of bytes aligned to a 16 bytes boundary. */
-	inline void* bs_alloc_aligned16(UINT32 count)
+	inline void* bs_alloc_aligned16(size_t count)
 	{
 		return MemoryAllocator<GenAlloc>::allocateAligned16(count);
 	}
 
 	/** Allocates enough bytes to hold an array of @p count elements the specified type, but doesn't construct them. */
 	template<class T>
-	inline T* bs_allocN(UINT32 count)
+	inline T* bs_allocN(size_t count)
 	{
 		return (T*)MemoryAllocator<GenAlloc>::allocate(count * sizeof(T));
 	}
 
 	/** Creates and constructs an array of @p count elements. */
 	template<class T>
-	inline T* bs_newN(UINT32 count)
+	inline T* bs_newN(size_t count)
 	{
 		T* ptr = (T*)MemoryAllocator<GenAlloc>::allocate(count * sizeof(T));
 
-		for(unsigned int i = 0; i < count; i++)
-			new ((void*)&ptr[i]) T;
+		for(size_t i = 0; i < count; ++i)
+			new (&ptr[i]) T;
 
 		return ptr;
 	}
@@ -336,7 +335,7 @@ namespace bs
 	template<class Type, class... Args>
 	Type* bs_new(Args &&...args)
 	{
-		return new (bs_alloc<GenAlloc>(sizeof(Type))) Type(std::forward<Args>(args)...);
+		return new (bs_alloc<Type, GenAlloc>()) Type(std::forward<Args>(args)...);
 	}
 
 	/** Frees all the bytes allocated at the specified location. */
@@ -411,7 +410,7 @@ namespace bs
 			if (num > static_cast<size_t>(-1) / sizeof(T))
 				return nullptr; // Error
 
-			void* const pv = bs_alloc<Alloc>((UINT32)(num * sizeof(T)));
+			void* const pv = bs_alloc<Alloc>(num * sizeof(T));
 			if (!pv)
 				return nullptr; // Error
 
@@ -421,7 +420,7 @@ namespace bs
 		/** Deallocate storage p of deleted elements. */
 		static void deallocate(pointer p, size_type)
 		{
-			bs_free<Alloc>((void*)p);
+			bs_free<Alloc>(p);
 		}
 
 		static constexpr size_t max_size() { return std::numeric_limits<size_type>::max() / sizeof(T); }
