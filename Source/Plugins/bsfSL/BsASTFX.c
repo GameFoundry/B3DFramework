@@ -12,7 +12,8 @@ OptionInfo OPTION_LOOKUP[] =
 	{ OT_Priority, ODT_Int },
 	{ OT_Sort, ODT_Int },
 	{ OT_Transparent, ODT_Bool },
-	{ OT_Technique, ODT_Complex }, 
+	{ OT_Shader, ODT_Complex }, 
+	{ OT_SubShader, ODT_Complex }, 
 	{ OT_Mixin, ODT_String },
 	{ OT_Raster, ODT_Complex },
 	{ OT_Depth, ODT_Complex },
@@ -378,7 +379,7 @@ ParseState* parseStateCreate()
 {
 	ParseState* parseState = (ParseState*)malloc(sizeof(ParseState));
 	parseState->memContext = mmalloc_new_context();
-	parseState->rootNode = nodeCreate(parseState->memContext, NT_Shader);
+	parseState->rootNode = nodeCreate(parseState->memContext, NT_Root);
 	parseState->topNode = 0;
 	parseState->nodeStack = 0;
 	parseState->includeStack = 0;

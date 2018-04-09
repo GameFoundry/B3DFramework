@@ -1,7 +1,7 @@
 #include "$ENGINE$\PPBase.bslinc"
 #include "$ENGINE$\PPGaussianDOFCommon.bslinc"
 
-technique PPGaussianDOFSeparate
+shader PPGaussianDOFSeparate
 {
 	mixin PPBase;
 	mixin PPGaussianDOFCommon;

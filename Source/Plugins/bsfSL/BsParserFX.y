@@ -82,7 +82,7 @@ typedef struct YYLTYPE {
 %token <intValue>	TOKEN_COLORMASK
 
 	/* Shader keywords */
-%token TOKEN_OPTIONS TOKEN_TECHNIQUE TOKEN_MIXIN
+%token TOKEN_OPTIONS TOKEN_SHADER TOKEN_SUBSHADER TOKEN_MIXIN
 
 	/* Options keywords */
 %token TOKEN_SEPARABLE TOKEN_SORT TOKEN_PRIORITY TOKEN_TRANSPARENT
@@ -111,19 +111,23 @@ typedef struct YYLTYPE {
 %token TOKEN_ALPHATOCOVERAGE TOKEN_INDEPENDANTBLEND TOKEN_TARGET TOKEN_INDEX
 %token TOKEN_COLOR TOKEN_ALPHA TOKEN_SOURCE TOKEN_DEST TOKEN_OP
 
-%type <nodePtr>		shader;
-%type <nodeOption>	shader_statement;
+%type <nodePtr>		root;
+%type <nodeOption>	root_statement;
 
 %type <nodePtr>		options;
 %type <nodePtr>		options_header;
 %type <nodeOption>	options_option;
 
-%type <nodePtr>		technique;
-%type <nodePtr>		technique_header;
-%type <nodeOption>	technique_statement;
-%type <nodeOption>	technique_option;
+%type <nodePtr>		shader;
+%type <nodePtr>		shader_header;
+%type <nodeOption>	shader_statement;
+%type <nodeOption>	shader_option;
 %type <nodePtr>		tags;
 %type <nodePtr>		tags_header;
+
+%type <nodePtr>		subshader;
+%type <nodePtr>		subshader_header;
+%type <nodeOption>	subshader_statement;
 
 %type <nodePtr>		pass;
 %type <nodePtr>		pass_header;
@@ -169,16 +173,17 @@ typedef struct YYLTYPE {
 
 %%
 
-	/* Shader */
+	/* Root */
 
-shader
+root
 	: /* empty */				{ }
-	| shader_statement shader	{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	| root_statement root	{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
 	;
 
-shader_statement
+root_statement
 	: options			{ $$.type = OT_Options; $$.value.nodePtr = $1; }
-	| technique			{ $$.type = OT_Technique; $$.value.nodePtr = $1; }
+	| shader			{ $$.type = OT_Shader; $$.value.nodePtr = $1; }
+	| subshader			{ $$.type = OT_SubShader; $$.value.nodePtr = $1; }
 	;
 
 	/* Options */
@@ -206,16 +211,16 @@ options_option
 	| TOKEN_TRANSPARENT '=' TOKEN_BOOLEAN ';'		{ $$.type = OT_Transparent; $$.value.intValue = $3; }
 	;
 
-	/* Technique */
+	/* Shader */
 
-technique
-	: technique_header '{' technique_body '}' ';' { nodePop(parse_state); $$ = $1; }
+shader
+	: shader_header '{' shader_body '}' ';' { nodePop(parse_state); $$ = $1; }
 	;
 
-technique_header
-	: TOKEN_TECHNIQUE TOKEN_IDENTIFIER
+shader_header
+	: TOKEN_SHADER TOKEN_IDENTIFIER
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_Technique); 
+			$$ = nodeCreate(parse_state->memContext, NT_Shader); 
 			nodePush(parse_state, $$);
 			
 			NodeOption entry; entry.type = OT_Identifier; entry.value.strValue = $2;
@@ -231,26 +236,26 @@ technique_header
 		}
 	;
 
-technique_body
+shader_body
 	: /* empty */
-	| technique_statement technique_body		{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	| shader_statement shader_body		{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
 	;
 
-technique_statement
-	: technique_option
+shader_statement
+	: shader_option
 	| pass				{ $$.type = OT_Pass; $$.value.nodePtr = $1; }
 	| pass_option
 	| code				{ $$.type = OT_Code; $$.value.nodePtr = $1; }
 	;
 
-technique_option
+shader_option
 	: TOKEN_FEATURESET '=' TOKEN_IDENTIFIER ';'	{ $$.type = OT_FeatureSet; $$.value.strValue = $3; }
 	| TOKEN_MIXIN TOKEN_IDENTIFIER ';'			{ $$.type = OT_Mixin; $$.value.strValue = $2; }
 	| tags										{ $$.type = OT_Tags; $$.value.nodePtr = $1; }
 	| variations								{ $$.type = OT_Variations; $$.value.nodePtr = $1; }
 	;
 	
-	/* Technique tags */
+	/* Shader tags */
 tags
 	: tags_header '{' tags_body '}' ';'	{ nodePop(parse_state); $$ = $1; }
 	;
@@ -275,6 +280,32 @@ tags_body
 			NodeOption entry; entry.type = OT_TagValue; entry.value.strValue = $1;
 			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry); 
 		}	
+	;
+	
+	/* Subshader */
+
+subshader
+	: subshader_header '{' subshader_body '}' ';' { nodePop(parse_state); $$ = $1; }
+	;
+
+subshader_header
+	: TOKEN_SUBSHADER TOKEN_IDENTIFIER
+		{ 
+			$$ = nodeCreate(parse_state->memContext, NT_SubShader); 
+			nodePush(parse_state, $$);
+			
+			NodeOption entry; entry.type = OT_Identifier; entry.value.strValue = $2;
+			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry); 
+		}
+	;
+
+subshader_body
+	: /* empty */
+	| subshader_statement subshader_body		{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	;
+
+subshader_statement
+	: shader			{ $$.type = OT_Shader; $$.value.nodePtr = $1; }
 	;
 
 	/* Pass */

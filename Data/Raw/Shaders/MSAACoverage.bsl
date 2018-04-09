@@ -2,7 +2,7 @@
 #include "$ENGINE$\GBufferInput.bslinc"
 #include "$ENGINE$\PerCameraData.bslinc"
 
-technique MSAACoverage
+shader MSAACoverage
 {
 	mixin PPBase;
 	mixin GBufferInput;

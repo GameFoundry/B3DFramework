@@ -1,6 +1,6 @@
 #include "$ENGINE$\PPBase.bslinc"
 
-technique MSAACoverageStencil
+shader MSAACoverageStencil
 {
 	mixin PPBase;
 

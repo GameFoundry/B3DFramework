@@ -6,7 +6,7 @@
 
 #include "$ENGINE$\DeferredLightCommon.bslinc"
 
-technique DeferredDirectionalLight
+shader DeferredDirectionalLight
 {
 	mixin DeferredLightCommon;
 

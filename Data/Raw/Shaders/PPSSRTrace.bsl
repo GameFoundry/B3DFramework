@@ -7,7 +7,7 @@
 #define HI_Z 1
 #include "$ENGINE$\RayMarch.bslinc"
 
-technique PPSSRTrace
+shader PPSSRTrace
 {
 	mixin PPBase;
 	mixin PerCameraData;

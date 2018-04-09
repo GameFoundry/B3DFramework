@@ -13,10 +13,14 @@
 #include "Material/BsShaderInclude.h"
 #include "Math/BsMatrix4.h"
 #include "Resources/BsBuiltinResources.h"
+#include "Material/BsShaderVariation.h"
+#include "Renderer/BsRenderer.h"
+#include "Renderer/BsRendererManager.h"
+#include "FileSystem/BsFileSystem.h"
+#include "FileSystem/BsDataStream.h"
 
 #define XSC_ENABLE_LANGUAGE_EXT 1
 #include "Xsc/Xsc.h"
-#include "Material/BsShaderVariation.h"
 
 extern "C" {
 #include "BsMMAlloc.h"
@@ -697,312 +701,15 @@ namespace bs
 	BSLFXCompileResult BSLFXCompiler::compile(const String& name, const String& source, 
 		const UnorderedMap<String, String>& defines)
 	{
-		String parsedSource = source;
+		// Parse global shader options & shader meta-data
+		SHADER_DESC shaderDesc;
+		Vector<String> includes;
+		
+		BSLFXCompileResult output = compileShader(source, defines, SubShaderData(), shaderDesc, includes);
 
-		// Run the lexer/parser and generate the AST
-		ParseState* parseState = parseStateCreate();
-		BSLFXCompileResult output = parseFX(parseState, parsedSource.c_str(), defines);
-
-		if(!output.errorMessage.empty())
-			parseStateDelete(parseState);
-		else
-		{
-			// Only enable for debug purposes
-			//SLFXDebugPrint(parseState->rootNode, "");
-
-			if (parseState->rootNode == nullptr || parseState->rootNode->type != NT_Shader)
-			{
-				parseStateDelete(parseState);
-
-				output.errorMessage = "Root not is null or not a shader.";
-				return output;
-			}
-
-			// Parse global shader options & technique meta-data
-			SHADER_DESC shaderDesc;
-			Vector<pair<ASTFXNode*, TechniqueMetaData>> techniqueMetaData;
-
-			//// Go in reverse because options are added in reverse order during parsing
-			for (int i = parseState->rootNode->options->count - 1; i >= 0; i--)
-			{
-				NodeOption* option = &parseState->rootNode->options->entries[i];
-
-				switch (option->type)
-				{
-				case OT_Options:
-					parseOptions(option->value.nodePtr, shaderDesc);
-					break;
-				case OT_Technique:
-				{
-					// We initially parse only meta-data, so we can handle out-of-order technique definitions
-					TechniqueMetaData metaData = parseTechniqueMetaData(option->value.nodePtr);
-					techniqueMetaData.push_back(std::make_pair(option->value.nodePtr, metaData));
-
-					break;
-				}
-				default:
-					break;
-				}
-			}
-
-			// Inherit variations from mixins
-			bool* techniqueWasParsed = bs_stack_alloc<bool>((UINT32)techniqueMetaData.size());
-
-			std::function<bool(const TechniqueMetaData&, TechniqueMetaData&)> parseInherited = 
-				[&](const TechniqueMetaData& metaData, TechniqueMetaData& combinedMetaData)
-			{
-				for (auto riter = metaData.includes.rbegin(); riter != metaData.includes.rend(); ++riter)
-				{
-					const String& includes = *riter;
-
-					UINT32 baseIdx = -1;
-					for (UINT32 i = 0; i < (UINT32)techniqueMetaData.size(); i++)
-					{
-						auto& entry = techniqueMetaData[i];
-						if (!entry.second.isMixin)
-							continue;
-
-						if (entry.second.name == includes)
-						{
-							bool matches = entry.second.language == metaData.language || entry.second.language == "Any";
-
-							// We want the last matching technique, in order to allow techniques to override each other
-							if (matches)
-								baseIdx = i;
-						}
-					}
-
-					if (baseIdx != (UINT32)-1)
-					{
-						auto& entry = techniqueMetaData[baseIdx];
-
-						// Was already parsed previously, don't parse it multiple times (happens when multiple techniques 
-						// include the same mixin)
-						if (techniqueWasParsed[baseIdx])
-							continue;
-
-						if (!parseInherited(entry.second, combinedMetaData))
-							return false;
-
-						for(auto& variation : entry.second.variations)
-							combinedMetaData.variations.push_back(variation);
-
-						techniqueWasParsed[baseIdx] = true;
-					}
-					else
-					{
-						output.errorMessage = "Mixin \"" + includes + "\" cannot be found.";
-						return false;
-					}
-				}
-
-				return true;
-			};
-
-			for (auto& entry : techniqueMetaData)
-			{
-				TechniqueMetaData& metaData = entry.second;
-				if (metaData.isMixin)
-					continue;
-
-				bs_zero_out(techniqueWasParsed, techniqueMetaData.size());
-				TechniqueMetaData combinedMetaData = metaData;
-				if (!parseInherited(metaData, combinedMetaData))
-				{
-					parseStateDelete(parseState);
-					bs_stack_free(techniqueWasParsed);
-					return output;
-				}
-
-				entry.second = combinedMetaData;
-			}
-
-			bs_stack_free(techniqueWasParsed);
-			parseStateDelete(parseState);
-
-			// Build a list of different variations and re-parse the source using the relevant defines
-			Vector<SPtr<Technique>> techniques;
-			UnorderedSet<String> includes;
-			for (auto& entry : techniqueMetaData)
-			{
-				TechniqueMetaData& metaData = entry.second;
-				if (metaData.isMixin)
-					continue;
-
-				// Generate a list of variations
-				Vector<ShaderVariation> variations;
-
-				if (metaData.variations.empty())
-					variations.push_back(ShaderVariation());
-				else
-				{
-					Vector<const VariationData*> todo;
-					for (UINT32 i = 0; i < (UINT32)metaData.variations.size(); i++)
-						todo.push_back(&metaData.variations[i]);
-
-					while (!todo.empty())
-					{
-						const VariationData* current = todo.back();
-						todo.erase(todo.end() - 1);
-
-						// Variation parameter that's either defined or isn't
-						if (current->values.empty())
-						{
-							// This is the first variation parameter, register new variations
-							if (variations.empty())
-							{
-								ShaderVariation a;
-								ShaderVariation b;
-
-								b.addParam(ShaderVariation::Param(current->identifier, 1));
-
-								variations.push_back(a);
-								variations.push_back(b);
-							}
-							else // Duplicate existing variations, and add the parameter
-							{
-								UINT32 numVariations = (UINT32)variations.size();
-								for (UINT32 i = 0; i < numVariations; i++)
-								{
-									// Make a copy
-									variations.push_back(variations[i]);
-
-									// Add the parameter to existing variation
-									variations[i].addParam(ShaderVariation::Param(current->identifier, 1));
-								}
-							}
-						}
-						else // Variation parameter with multiple values
-						{
-							// This is the first variation parameter, register new variations
-							if (variations.empty())
-							{
-								for (UINT32 i = 0; i < (UINT32)current->values.size(); i++)
-								{
-									ShaderVariation variation;
-									variation.addParam(ShaderVariation::Param(current->identifier, current->values[i]));
-
-									variations.push_back(variation);
-								}
-							}
-							else // Duplicate existing variations, and add the parameter
-							{
-								UINT32 numVariations = (UINT32)variations.size();
-								for (UINT32 i = 0; i < numVariations; i++)
-								{
-									for (UINT32 j = 1; j < (UINT32)current->values.size(); j++)
-									{
-										ShaderVariation copy = variations[i];
-										copy.addParam(ShaderVariation::Param(current->identifier, current->values[j]));
-
-										variations.push_back(copy);
-									}
-
-									variations[i].addParam(ShaderVariation::Param(current->identifier, current->values[0]));
-								}
-							}
-						}
-					}
-				}
-
-				// For every variation, re-parse the file with relevant defines
-				for(auto& variation : variations)
-				{
-					UnorderedMap<String, String> globalDefines = defines;
-					UnorderedMap<String, String> variationDefines = variation.getDefines().getAll();
-
-					for(auto& define : variationDefines)
-						globalDefines[define.first] = define.second;
-
-					ParseState* variationParseState = parseStateCreate();
-					output = parseFX(variationParseState, parsedSource.c_str(), globalDefines);
-
-					if (!output.errorMessage.empty())
-						parseStateDelete(variationParseState);
-					else
-					{
-						Vector<String> codeBlocks;
-						CodeString* codeString = variationParseState->codeStrings;
-						while (codeString != nullptr)
-						{
-							while ((INT32)codeBlocks.size() <= codeString->index)
-								codeBlocks.push_back(String());
-
-							codeBlocks[codeString->index] = String(codeString->code, codeString->size);
-							codeString = codeString->next;
-						}
-
-						output = parseTechnique(variationParseState, entry.second.name, codeBlocks, variation, techniques, 
-							includes, shaderDesc);
-
-						if(!output.errorMessage.empty())
-							return output;
-					}
-				}
-			}
-
-			// Generate a shader from the parsed techniques
-			Vector<String> includeArray;
-			for (auto& entry : includes)
-				includeArray.push_back(entry);
-
-			output.shader = Shader::_createPtr(name, shaderDesc, techniques);
-			output.shader->setIncludeFiles(includeArray);
-
-			// Verify GPU programs compile correctly
-			StringStream gpuProgError;
-			bool hasError = false;
-			if (output.shader != nullptr)
-			{
-				Vector<SPtr<Technique>> techniques = output.shader->getCompatibleTechniques();
-
-				for (auto& technique : techniques)
-				{
-					UINT32 numPasses = technique->getNumPasses();
-					technique->compile();
-
-					for (UINT32 i = 0; i < numPasses; i++)
-					{
-						SPtr<Pass> pass = technique->getPass(i);
-
-						auto checkCompileStatus = [&](const String& prefix, const SPtr<GpuProgram>& prog)
-						{
-							if (prog != nullptr)
-							{
-								prog->blockUntilCoreInitialized();
-
-								if (!prog->isCompiled())
-								{
-									hasError = true;
-									gpuProgError << prefix << ": " << prog->getCompileErrorMessage() << std::endl;
-								}
-							}
-						};
-
-						const SPtr<GraphicsPipelineState>& graphicsPipeline = pass->getGraphicsPipelineState();
-						if(graphicsPipeline)
-						{
-							checkCompileStatus("Vertex program", graphicsPipeline->getVertexProgram());
-							checkCompileStatus("Fragment program", graphicsPipeline->getFragmentProgram());
-							checkCompileStatus("Geometry program", graphicsPipeline->getGeometryProgram());
-							checkCompileStatus("Hull program", graphicsPipeline->getHullProgram());
-							checkCompileStatus("Domain program", graphicsPipeline->getDomainProgram());
-						}
-
-						const SPtr<ComputePipelineState>& computePipeline = pass->getComputePipelineState();
-						if(computePipeline)
-							checkCompileStatus("Compute program", computePipeline->getProgram());
-					}
-				}
-			}
-
-			if (hasError)
-			{
-				output.errorMessage = "Failed compiling GPU program(s): " + gpuProgError.str();
-				output.errorLine = 0;
-				output.errorColumn = 0;
-			}
-		}
+		// Generate a shader from the parsed information
+		output.shader = Shader::_createPtr(name, shaderDesc);
+		output.shader->setIncludeFiles(includes);
 
 		return output;
 	}
@@ -1062,16 +769,16 @@ namespace bs
 		return output;
 	}
 
-	BSLFXCompiler::TechniqueMetaData BSLFXCompiler::parseTechniqueMetaData(ASTFXNode* technique)
+	BSLFXCompiler::ShaderMetaData BSLFXCompiler::parseShaderMetaData(ASTFXNode* shader)
 	{
-		TechniqueMetaData metaData;
+		ShaderMetaData metaData;
 
 		metaData.language = "hlsl";
-		metaData.isMixin = technique->type == NT_Mixin;
+		metaData.isMixin = shader->type == NT_Mixin;
 
-		for (int i = 0; i < technique->options->count; i++)
+		for (int i = 0; i < shader->options->count; i++)
 		{
-			NodeOption* option = &technique->options->entries[i];
+			NodeOption* option = &shader->options->entries[i];
 
 			switch (option->type)
 			{
@@ -1113,7 +820,57 @@ namespace bs
 		return metaData;
 	}
 
-	void BSLFXCompiler::parseVariations(TechniqueMetaData& metaData, ASTFXNode* variations)
+	BSLFXCompileResult BSLFXCompiler::parseMetaDataAndOptions(ASTFXNode* rootNode,
+		Vector<std::pair<ASTFXNode*, ShaderMetaData>>& shaderMetaData, 
+		Vector<SubShaderData>& subShaderData, SHADER_DESC& shaderDesc)
+	{
+		BSLFXCompileResult output;
+
+		// Only enable for debug purposes
+		//SLFXDebugPrint(parseState->rootNode, "");
+
+		if (rootNode == nullptr || rootNode->type != NT_Root)
+		{
+			output.errorMessage = "Root is null or not a shader.";
+			return output;
+		}
+
+		// Parse global shader options & shader meta-data
+		//// Go in reverse because options are added in reverse order during parsing
+		for (int i = rootNode->options->count - 1; i >= 0; i--)
+		{
+			NodeOption* option = &rootNode->options->entries[i];
+
+			switch (option->type)
+			{
+			case OT_Options:
+				parseOptions(option->value.nodePtr, shaderDesc);
+				break;
+			case OT_Shader:
+			{
+				// We initially parse only meta-data, so we can handle out-of-order mixin/shader definitions
+				ShaderMetaData metaData = parseShaderMetaData(option->value.nodePtr);
+				shaderMetaData.push_back(std::make_pair(option->value.nodePtr, metaData));
+
+				break;
+			}
+			case OT_SubShader:
+			{
+				SubShaderData data = parseSubShader(option->value.nodePtr);
+				subShaderData.push_back(data);
+
+				break;
+			}
+			default:
+				break;
+			}
+		}
+
+		return output;
+	}
+
+
+	void BSLFXCompiler::parseVariations(ShaderMetaData& metaData, ASTFXNode* variations)
 	{
 		assert(variations->type == NT_Variation);
 
@@ -1664,25 +1421,25 @@ namespace bs
 		}
 	}
 
-	void BSLFXCompiler::parseTechnique(ASTFXNode* techniqueNode, const Vector<String>& codeBlocks, TechniqueData& techniqueData)
+	void BSLFXCompiler::parseShader(ASTFXNode* shaderNode, const Vector<String>& codeBlocks, ShaderData& shaderData)
 	{
-		if (techniqueNode == nullptr || (techniqueNode->type != NT_Technique && techniqueNode->type != NT_Mixin))
+		if (shaderNode == nullptr || (shaderNode->type != NT_Shader && shaderNode->type != NT_Mixin))
 			return;
 
 		// There must always be at least one pass
-		if(techniqueData.passes.empty())
+		if(shaderData.passes.empty())
 		{
-			techniqueData.passes.push_back(PassData());
-			techniqueData.passes.back().seqIdx = 0;
+			shaderData.passes.push_back(PassData());
+			shaderData.passes.back().seqIdx = 0;
 		}
 
 		PassData combinedCommonPassData;
 
 		UINT32 nextPassIdx = 0;
 		// Go in reverse because options are added in reverse order during parsing
-		for (int i = techniqueNode->options->count - 1; i >= 0; i--)
+		for (int i = shaderNode->options->count - 1; i >= 0; i--)
 		{
-			NodeOption* option = &techniqueNode->options->entries[i];
+			NodeOption* option = &shaderNode->options->entries[i];
 
 			switch (option->type)
 			{
@@ -1690,7 +1447,7 @@ namespace bs
 			{
 				UINT32 passIdx = nextPassIdx;
 				PassData* passData = nullptr;
-				for (auto& entry : techniqueData.passes)
+				for (auto& entry : shaderData.passes)
 				{
 					if (entry.seqIdx == passIdx)
 						passData = &entry;
@@ -1698,8 +1455,8 @@ namespace bs
 
 				if (passData == nullptr)
 				{
-					techniqueData.passes.push_back(PassData());
-					passData = &techniqueData.passes.back();
+					shaderData.passes.push_back(PassData());
+					passData = &shaderData.passes.back();
 
 					passData->seqIdx = passIdx;
 				}
@@ -1716,14 +1473,14 @@ namespace bs
 				PassData commonPassData;
 				parseCodeBlock(option->value.nodePtr, codeBlocks, commonPassData);
 
-				for (auto& passData : techniqueData.passes)
+				for (auto& passData : shaderData.passes)
 					passData.code += commonPassData.code;
 
 				combinedCommonPassData.code += commonPassData.code;
 			}
 				break;
 			case OT_FeatureSet:
-				techniqueData.metaData.featureSet = option->value.strValue;
+				shaderData.metaData.featureSet = option->value.strValue;
 				break;
 			default:
 				break;
@@ -1731,32 +1488,61 @@ namespace bs
 		}
 
 		// Parse common pass states
-		for (int i = 0; i < techniqueNode->options->count; i++)
+		for (int i = 0; i < shaderNode->options->count; i++)
 		{
-			NodeOption* option = &techniqueNode->options->entries[i];
+			NodeOption* option = &shaderNode->options->entries[i];
 
 			switch (option->type)
 			{
 			case OT_Blend:
-				for (auto& passData : techniqueData.passes)
+				for (auto& passData : shaderData.passes)
 					passData.blendIsDefault &= !parseBlendState(passData, option->value.nodePtr);
 				break;
 			case OT_Raster:
-				for (auto& passData : techniqueData.passes)
+				for (auto& passData : shaderData.passes)
 					passData.rasterizerIsDefault &= !parseRasterizerState(passData, option->value.nodePtr);
 				break;
 			case OT_Depth:
-				for (auto& passData : techniqueData.passes)
+				for (auto& passData : shaderData.passes)
 					passData.depthStencilIsDefault &= !parseDepthState(passData, option->value.nodePtr);
 				break;
 			case OT_Stencil:
-				for (auto& passData : techniqueData.passes)
+				for (auto& passData : shaderData.passes)
 					passData.depthStencilIsDefault &= !parseStencilState(passData, option->value.nodePtr);
 				break;
 			default:
 				break;
 			}
 		}
+	}
+
+	BSLFXCompiler::SubShaderData BSLFXCompiler::parseSubShader(ASTFXNode* subShader)
+	{
+		SubShaderData subShaderData;
+
+		//// Go in reverse because options are added in reverse order during parsing
+		for (int i = subShader->options->count - 1; i >= 0; i--)
+		{
+			NodeOption* option = &subShader->options->entries[i];
+
+			switch (option->type)
+			{
+			case OT_Identifier:
+				subShaderData.name = option->value.strValue;
+				break;
+			case OT_Shader:
+			{
+				ShaderMetaData metaData = parseShaderMetaData(option->value.nodePtr);
+				subShaderData.mixins.push_back(std::make_pair(option->value.nodePtr, metaData));
+
+				break;
+			}
+			default:
+				break;
+			}
+		}
+
+		return subShaderData;
 	}
 
 	void BSLFXCompiler::parseOptions(ASTFXNode* optionsNode, SHADER_DESC& shaderDesc)
@@ -1788,21 +1574,367 @@ namespace bs
 		}
 	}
 
-	BSLFXCompileResult BSLFXCompiler::parseTechnique(ParseState* parseState, const String& name, 
-		const Vector<String>& codeBlocks, const ShaderVariation& variation, Vector<SPtr<Technique>>& techniques, 
-		UnorderedSet<String>& includes, SHADER_DESC& shaderDesc)
+	BSLFXCompileResult BSLFXCompiler::populateVariations(Vector<std::pair<ASTFXNode*, ShaderMetaData>>& shaderMetaData)
 	{
 		BSLFXCompileResult output;
 
-		if (parseState->rootNode == nullptr || parseState->rootNode->type != NT_Shader)
+		// Inherit variations from mixins
+		bool* mixinWasParsed = bs_stack_alloc<bool>((UINT32)shaderMetaData.size());
+
+		std::function<bool(const ShaderMetaData&, ShaderMetaData&)> parseInherited =
+			[&](const ShaderMetaData& metaData, ShaderMetaData& combinedMetaData)
+		{
+			for (auto riter = metaData.includes.rbegin(); riter != metaData.includes.rend(); ++riter)
+			{
+				const String& include = *riter;
+
+				UINT32 baseIdx = -1;
+				for (UINT32 i = 0; i < (UINT32)shaderMetaData.size(); i++)
+				{
+					auto& entry = shaderMetaData[i];
+					if (!entry.second.isMixin)
+						continue;
+
+					if (entry.second.name == include)
+					{
+						bool matches = entry.second.language == metaData.language || entry.second.language == "Any";
+
+						// We want the last matching mixin, in order to allow mixins to override each other
+						if (matches)
+							baseIdx = i;
+					}
+				}
+
+				if (baseIdx != (UINT32)-1)
+				{
+					auto& entry = shaderMetaData[baseIdx];
+
+					// Was already parsed previously, don't parse it multiple times (happens when multiple mixins 
+					// include the same mixin)
+					if (mixinWasParsed[baseIdx])
+						continue;
+
+					if (!parseInherited(entry.second, combinedMetaData))
+						return false;
+
+					for (auto& variation : entry.second.variations)
+						combinedMetaData.variations.push_back(variation);
+
+					mixinWasParsed[baseIdx] = true;
+				}
+				else
+				{
+					output.errorMessage = "Mixin \"" + include + "\" cannot be found.";
+					return false;
+				}
+			}
+
+			return true;
+		};
+
+		for (auto& entry : shaderMetaData)
+		{
+			const ShaderMetaData& metaData = entry.second;
+			if (metaData.isMixin)
+				continue;
+
+			bs_zero_out(mixinWasParsed, shaderMetaData.size());
+			ShaderMetaData combinedMetaData = metaData;
+			if (!parseInherited(metaData, combinedMetaData))
+			{
+				bs_stack_free(mixinWasParsed);
+				return output;
+			}
+
+			entry.second = combinedMetaData;
+		}
+
+		bs_stack_free(mixinWasParsed);
+
+		return output;
+	}
+
+	BSLFXCompileResult BSLFXCompiler::compileTechniques(
+		const Vector<std::pair<ASTFXNode*, ShaderMetaData>>& shaderMetaData, const String& source, 
+		const UnorderedMap<String, String>& defines, SHADER_DESC& shaderDesc, Vector<String>& includes)
+	{
+		BSLFXCompileResult output;
+
+		// Build a list of different variations and re-parse the source using the relevant defines
+		UnorderedSet<String> includeSet;
+		for (auto& entry : shaderMetaData)
+		{
+			const ShaderMetaData& metaData = entry.second;
+			if (metaData.isMixin)
+				continue;
+
+			// Generate a list of variations
+			Vector<ShaderVariation> variations;
+
+			if (metaData.variations.empty())
+				variations.push_back(ShaderVariation());
+			else
+			{
+				Vector<const VariationData*> todo;
+				for (UINT32 i = 0; i < (UINT32)metaData.variations.size(); i++)
+					todo.push_back(&metaData.variations[i]);
+
+				while (!todo.empty())
+				{
+					const VariationData* current = todo.back();
+					todo.erase(todo.end() - 1);
+
+					// Variation parameter that's either defined or isn't
+					if (current->values.empty())
+					{
+						// This is the first variation parameter, register new variations
+						if (variations.empty())
+						{
+							ShaderVariation a;
+							ShaderVariation b;
+
+							b.addParam(ShaderVariation::Param(current->identifier, 1));
+
+							variations.push_back(a);
+							variations.push_back(b);
+						}
+						else // Duplicate existing variations, and add the parameter
+						{
+							UINT32 numVariations = (UINT32)variations.size();
+							for (UINT32 i = 0; i < numVariations; i++)
+							{
+								// Make a copy
+								variations.push_back(variations[i]);
+
+								// Add the parameter to existing variation
+								variations[i].addParam(ShaderVariation::Param(current->identifier, 1));
+							}
+						}
+					}
+					else // Variation parameter with multiple values
+					{
+						// This is the first variation parameter, register new variations
+						if (variations.empty())
+						{
+							for (UINT32 i = 0; i < (UINT32)current->values.size(); i++)
+							{
+								ShaderVariation variation;
+								variation.addParam(ShaderVariation::Param(current->identifier, current->values[i]));
+
+								variations.push_back(variation);
+							}
+						}
+						else // Duplicate existing variations, and add the parameter
+						{
+							UINT32 numVariations = (UINT32)variations.size();
+							for (UINT32 i = 0; i < numVariations; i++)
+							{
+								for (UINT32 j = 1; j < (UINT32)current->values.size(); j++)
+								{
+									ShaderVariation copy = variations[i];
+									copy.addParam(ShaderVariation::Param(current->identifier, current->values[j]));
+
+									variations.push_back(copy);
+								}
+
+								variations[i].addParam(ShaderVariation::Param(current->identifier, current->values[0]));
+							}
+						}
+					}
+				}
+			}
+
+			// For every variation, re-parse the file with relevant defines
+			for (auto& variation : variations)
+			{
+				UnorderedMap<String, String> globalDefines = defines;
+				UnorderedMap<String, String> variationDefines = variation.getDefines().getAll();
+
+				for (auto& define : variationDefines)
+					globalDefines[define.first] = define.second;
+
+				ParseState* variationParseState = parseStateCreate();
+				output = parseFX(variationParseState, source.c_str(), globalDefines);
+
+				if (!output.errorMessage.empty())
+					parseStateDelete(variationParseState);
+				else
+				{
+					Vector<String> codeBlocks;
+					CodeString* codeString = variationParseState->codeStrings;
+					while (codeString != nullptr)
+					{
+						while ((INT32)codeBlocks.size() <= codeString->index)
+							codeBlocks.push_back(String());
+
+						codeBlocks[codeString->index] = String(codeString->code, codeString->size);
+						codeString = codeString->next;
+					}
+
+					output = compileTechniques(variationParseState, entry.second.name, codeBlocks, variation, includeSet, 
+						shaderDesc);
+
+					if (!output.errorMessage.empty())
+						return output;
+				}
+			}
+		}
+
+		// Generate a shader from the parsed techniques
+		for (auto& entry : includeSet)
+			includes.push_back(entry);
+
+		// Verify techniques compile correctly
+		bool hasError = false;
+		StringStream gpuProgError;
+		for (auto& technique : shaderDesc.techniques)
+		{
+			if(!technique->isSupported())
+				continue;
+
+			UINT32 numPasses = technique->getNumPasses();
+			technique->compile();
+
+			for (UINT32 i = 0; i < numPasses; i++)
+			{
+				SPtr<Pass> pass = technique->getPass(i);
+
+				auto checkCompileStatus = [&](const String& prefix, const SPtr<GpuProgram>& prog)
+				{
+					if (prog != nullptr)
+					{
+						prog->blockUntilCoreInitialized();
+
+						if (!prog->isCompiled())
+						{
+							hasError = true;
+							gpuProgError << prefix << ": " << prog->getCompileErrorMessage() << std::endl;
+						}
+					}
+				};
+
+				const SPtr<GraphicsPipelineState>& graphicsPipeline = pass->getGraphicsPipelineState();
+				if (graphicsPipeline)
+				{
+					checkCompileStatus("Vertex program", graphicsPipeline->getVertexProgram());
+					checkCompileStatus("Fragment program", graphicsPipeline->getFragmentProgram());
+					checkCompileStatus("Geometry program", graphicsPipeline->getGeometryProgram());
+					checkCompileStatus("Hull program", graphicsPipeline->getHullProgram());
+					checkCompileStatus("Domain program", graphicsPipeline->getDomainProgram());
+				}
+
+				const SPtr<ComputePipelineState>& computePipeline = pass->getComputePipelineState();
+				if (computePipeline)
+					checkCompileStatus("Compute program", computePipeline->getProgram());
+			}
+		}
+
+		if (hasError)
+		{
+			output.errorMessage = "Failed compiling GPU program(s): " + gpuProgError.str();
+			output.errorLine = 0;
+			output.errorColumn = 0;
+		}
+
+		return output;
+	}
+
+	BSLFXCompileResult BSLFXCompiler::compileShader(String source, const UnorderedMap<String, String>& defines, 
+		const SubShaderData& parentSubShader, SHADER_DESC& shaderDesc, Vector<String>& includes)
+	{
+		// Run the lexer/parser and generate the AST
+		ParseState* parseState = parseStateCreate();
+		BSLFXCompileResult output = parseFX(parseState, source.c_str(), defines);
+
+		if (!output.errorMessage.empty())
 		{
 			parseStateDelete(parseState);
-
-			output.errorMessage = "Root not is null or not a shader.";
 			return output;
 		}
 
-		Vector<pair<ASTFXNode*, TechniqueData>> techniqueData;
+		// Parse global shader options & shader meta-data
+		Vector<pair<ASTFXNode*, ShaderMetaData>> shaderMetaData;
+		Vector<SubShaderData> subShaderData;
+
+		output = parseMetaDataAndOptions(parseState->rootNode, shaderMetaData, subShaderData, shaderDesc);
+
+		if (!output.errorMessage.empty())
+		{
+			parseStateDelete(parseState);
+			return output;
+		}
+		// Append sub-shader overriden mixins
+		for (auto& mixin : parentSubShader.mixins)
+		{
+			ShaderMetaData metaData = parseShaderMetaData(mixin.first);
+			if (!metaData.isMixin)
+				continue;
+
+			shaderMetaData.push_back(std::make_pair(mixin.first, metaData));
+		}
+
+		output = populateVariations(shaderMetaData);
+		parseStateDelete(parseState);
+
+		if (!output.errorMessage.empty())
+			return output;
+
+		output = compileTechniques(shaderMetaData, source, defines, shaderDesc, includes);
+
+		if (!output.errorMessage.empty())
+			return output;
+
+		// Parse sub-shaders
+		SPtr<ct::Renderer> renderer = RendererManager::instance().getActive();
+		for (auto& entry : subShaderData)
+		{
+			ct::ShaderExtensionPointInfo extPointInfo = renderer->getShaderExtensionPointInfo(entry.name);
+
+			for (auto& extPointShader : extPointInfo.shaders)
+			{
+				String subShaderSource;
+				const UnorderedMap<String, String> subShaderDefines = extPointShader.defines.getAll();
+				{
+					Lock fileLock = FileScheduler::getLock(extPointShader.path);
+
+					SPtr<DataStream> stream = FileSystem::openFile(extPointShader.path);
+					subShaderSource = stream->getAsString();
+				}
+
+				SHADER_DESC subShaderDesc;
+				Vector<String> subShaderIncludes;
+				BSLFXCompileResult subShaderOutput = compileShader(subShaderSource, subShaderDefines, entry,
+					subShaderDesc, subShaderIncludes);
+
+				if (!subShaderOutput.errorMessage.empty())
+					return subShaderOutput;
+
+				SubShader subShader;
+				subShader.name = extPointShader.name;
+				subShader.techniques = subShaderDesc.techniques;
+
+				shaderDesc.subShaders.push_back(subShader);
+			}
+		}
+
+		return output;
+	}
+
+	BSLFXCompileResult BSLFXCompiler::compileTechniques(ParseState* parseState, const String& name, 
+		const Vector<String>& codeBlocks, const ShaderVariation& variation, UnorderedSet<String>& includes, 
+		SHADER_DESC& shaderDesc)
+	{
+		BSLFXCompileResult output;
+
+		if (parseState->rootNode == nullptr || parseState->rootNode->type != NT_Root)
+		{
+			parseStateDelete(parseState);
+
+			output.errorMessage = "Root is null or not a shader.";
+			return output;
+		}
+
+		Vector<pair<ASTFXNode*, ShaderData>> shaderData;
 
 		// Go in reverse because options are added in reverse order during parsing
 		for (int i = parseState->rootNode->options->count - 1; i >= 0; i--)
@@ -1811,17 +1943,17 @@ namespace bs
 
 			switch (option->type)
 			{
-			case OT_Technique:
+			case OT_Shader:
 			{
 				// We initially parse only meta-data, so we can handle out-of-order technique definitions
-				TechniqueMetaData metaData = parseTechniqueMetaData(option->value.nodePtr);
+				ShaderMetaData metaData = parseShaderMetaData(option->value.nodePtr);
 
 				// Skip all techniques except the one we're parsing
 				if(metaData.name != name && !metaData.isMixin)
 					continue;
 
-				techniqueData.push_back(std::make_pair(option->value.nodePtr, TechniqueData()));
-				TechniqueData& data = techniqueData.back().second;
+				shaderData.push_back(std::make_pair(option->value.nodePtr, ShaderData()));
+				ShaderData& data = shaderData.back().second;
 				data.metaData = metaData;
 
 				break;
@@ -1831,18 +1963,18 @@ namespace bs
 			}
 		}
 
-		bool* techniqueWasParsed = bs_stack_alloc<bool>((UINT32)techniqueData.size());
-		std::function<bool(const TechniqueMetaData&, TechniqueData&)> parseInherited = 
-			[&](const TechniqueMetaData& metaData, TechniqueData& outTechnique)
+		bool* mixinWasParsed = bs_stack_alloc<bool>((UINT32)shaderData.size());
+		std::function<bool(const ShaderMetaData&, ShaderData&)> parseInherited = 
+			[&](const ShaderMetaData& metaData, ShaderData& outShader)
 		{
 			for (auto riter = metaData.includes.rbegin(); riter != metaData.includes.rend(); ++riter)
 			{
 				const String& includes = *riter;
 
 				UINT32 baseIdx = -1;
-				for(UINT32 i = 0; i < (UINT32)techniqueData.size(); i++)
+				for(UINT32 i = 0; i < (UINT32)shaderData.size(); i++)
 				{
-					auto& entry = techniqueData[i];
+					auto& entry = shaderData[i];
 					if (!entry.second.metaData.isMixin)
 						continue;
 
@@ -1852,7 +1984,7 @@ namespace bs
 							(entry.second.metaData.language == metaData.language || 
 							entry.second.metaData.language == "Any");
 
-						// We want the last matching technique, in order to allow techniques to override each other
+						// We want the last matching mixin, in order to allow mixins to override each other
 						if (matches)
 							baseIdx = i;
 					}
@@ -1860,18 +1992,18 @@ namespace bs
 
 				if (baseIdx != (UINT32)-1)
 				{
-					auto& entry = techniqueData[baseIdx];
+					auto& entry = shaderData[baseIdx];
 
-					// Was already parsed previously, don't parse it multiple times (happens when multiple techniques 
+					// Was already parsed previously, don't parse it multiple times (happens when multiple mixins 
 					// include the same mixin)
-					if (techniqueWasParsed[baseIdx])
+					if (mixinWasParsed[baseIdx])
 						continue;
 
-					if (!parseInherited(entry.second.metaData, outTechnique))
+					if (!parseInherited(entry.second.metaData, outShader))
 						return false;
 
-					parseTechnique(entry.first, codeBlocks, outTechnique);
-					techniqueWasParsed[baseIdx] = true;
+					parseShader(entry.first, codeBlocks, outShader);
+					mixinWasParsed[baseIdx] = true;
 					
 				}
 				else
@@ -1884,25 +2016,25 @@ namespace bs
 			return true;
 		};
 
-		// Actually parse techniques
-		for (auto& entry : techniqueData)
+		// Actually parse shaders
+		for (auto& entry : shaderData)
 		{
-			const TechniqueMetaData& metaData = entry.second.metaData;
+			const ShaderMetaData& metaData = entry.second.metaData;
 			if (metaData.isMixin)
 				continue;
 
-			bs_zero_out(techniqueWasParsed, techniqueData.size());
+			bs_zero_out(mixinWasParsed, shaderData.size());
 			if (!parseInherited(metaData, entry.second))
 			{
 				parseStateDelete(parseState);
-				bs_stack_free(techniqueWasParsed);
+				bs_stack_free(mixinWasParsed);
 				return output;
 			}
 
-			parseTechnique(entry.first, codeBlocks, entry.second);
+			parseShader(entry.first, codeBlocks, entry.second);
 		}
 
-		bs_stack_free(techniqueWasParsed);
+		bs_stack_free(mixinWasParsed);
 
 		IncludeLink* includeLink = parseState->includes;
 		while(includeLink != nullptr)
@@ -1919,16 +2051,16 @@ namespace bs
 		parseStateDelete(parseState);
 
 		// Parse extended HLSL code and generate per-program code, also convert to GLSL/VKSL
-		UINT32 end = (UINT32)techniqueData.size();
+		UINT32 end = (UINT32)shaderData.size();
 		for(UINT32 i = 0; i < end; i++)
 		{
-			const TechniqueMetaData& metaData = techniqueData[i].second.metaData;
+			const ShaderMetaData& metaData = shaderData[i].second.metaData;
 			if (metaData.isMixin)
 				continue;
 
-			TechniqueData& hlslTechnique = techniqueData[i].second;
+			ShaderData& hlslTechnique = shaderData[i].second;
 
-			TechniqueData glslTechnique = techniqueData[i].second;
+			ShaderData glslTechnique = shaderData[i].second;
 
 			// When working with OpenGL, lower-end feature sets are supported. For other backends, high-end is always assumed.
 			CrossCompileOutput glslVersion = CrossCompileOutput::GLSL41;
@@ -1940,7 +2072,7 @@ namespace bs
 			else
 				glslTechnique.metaData.language = "glsl4_1";
 
-			TechniqueData vkslTechnique = techniqueData[i].second;
+			ShaderData vkslTechnique = shaderData[i].second;
 			vkslTechnique.metaData.language = "vksl";
 
 			UINT32 numPasses = (UINT32)hlslTechnique.passes.size();
@@ -2021,13 +2153,13 @@ namespace bs
 				}
 			}
 
-			techniqueData.push_back(std::make_pair(nullptr, glslTechnique));
-			techniqueData.push_back(std::make_pair(nullptr, vkslTechnique));
+			shaderData.push_back(std::make_pair(nullptr, glslTechnique));
+			shaderData.push_back(std::make_pair(nullptr, vkslTechnique));
 		}
 
-		for(auto& entry : techniqueData)
+		for(auto& entry : shaderData)
 		{
-			const TechniqueMetaData& metaData = entry.second.metaData;
+			const ShaderMetaData& metaData = entry.second.metaData;
 			if (metaData.isMixin)
 				continue;
 
@@ -2102,7 +2234,7 @@ namespace bs
 			if (orderedPasses.size() > 0)
 			{
 				SPtr<Technique> technique = Technique::create(metaData.language, metaData.tags, variation, orderedPasses);
-				techniques.push_back(technique);
+				shaderDesc.techniques.push_back(technique);
 			}
 		}
 

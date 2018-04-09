@@ -1,7 +1,7 @@
 #include "$ENGINE$\PPBase.bslinc"
 #include "$ENGINE$\ReflectionCubemapCommon.bslinc"
 
-technique ReflectionCubeDownsample
+shader ReflectionCubeDownsample
 {
 	mixin PPBase;
 	mixin ReflectionCubemapCommon;

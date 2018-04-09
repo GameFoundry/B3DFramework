@@ -1,4 +1,4 @@
-technique Blit
+shader Blit
 {
 	variations
 	{

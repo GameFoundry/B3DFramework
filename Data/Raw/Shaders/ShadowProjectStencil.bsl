@@ -1,6 +1,6 @@
 #include "$ENGINE$/ShadowProjectionCommon.bslinc"
 
-technique ShadowProjectStencil
+shader ShadowProjectStencil
 {
 	mixin ShadowProjectionCommon;
 

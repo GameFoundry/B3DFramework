@@ -10,7 +10,7 @@
 #include "$ENGINE$\GBufferInput.bslinc"
 #include "$ENGINE$\PerCameraData.bslinc"
 
-technique IrradianceEvaluate
+shader IrradianceEvaluate
 {
 	mixin PPBase;
 	mixin SHCommon;

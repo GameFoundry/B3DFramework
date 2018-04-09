@@ -1,6 +1,6 @@
 #include "$ENGINE$\PerCameraData.bslinc"
 
-technique Skybox
+shader Skybox
 {
 	mixin PerCameraData;
 

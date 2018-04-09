@@ -9,7 +9,7 @@
 #include "$ENGINE$\PerCameraData.bslinc"
 #include "$ENGINE$\ImageBasedLighting.bslinc"
 
-technique DeferredIBLSetup
+shader DeferredIBLSetup
 {
 	mixin PPBase;
 	mixin GBufferInput;

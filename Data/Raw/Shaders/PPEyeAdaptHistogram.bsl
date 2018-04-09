@@ -1,6 +1,6 @@
 #define NUM_BUCKETS (THREADGROUP_SIZE_X * THREADGROUP_SIZE_Y)
 
-technique PPEyeAdaptHistogram
+shader PPEyeAdaptHistogram
 {
 	featureset = HighEnd;
 

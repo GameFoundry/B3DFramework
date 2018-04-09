@@ -1,7 +1,7 @@
 #include "$ENGINE$\PPBase.bslinc"
 #include "$ENGINE$\PerCameraData.bslinc"
 
-technique PPSSAODownsample
+shader PPSSAODownsample
 {
 	mixin PPBase;
 	mixin PerCameraData;

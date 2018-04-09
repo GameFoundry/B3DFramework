@@ -10,6 +10,22 @@
 
 namespace bs
 {
+	/** @addtogroup Implementation
+	 *  @{
+	 */
+
+	/** Templated version of SubShader that can be used for both core and sim threads. */
+	template<bool Core>
+	struct TSubShader
+	{
+		typedef typename TTechniqueType<Core>::Type TechniqueType;
+		
+		String name;
+		Vector<SPtr<TechniqueType>> techniques;
+	};
+
+	/** @} */
+
 	/** @addtogroup Material
 	 *  @{
 	 */
@@ -53,6 +69,24 @@ namespace bs
 		GpuParamBlockUsage usage;
 	};
 
+	/** 
+	 * Sub-shader represents a set of techniques not used by the main shader, but rather a specialized set of techniques
+	 * used by the renderer for a specific purpose. The renderer identifies these techniques by a unique name, and utilizes
+	 * them when present, or uses the default built-in techniques otherwise. Note that sub-shader techniques need to follow
+	 * a specific interface that can be utilized by the renderer, usually similar/identical to the default built-in
+	 * technique. 
+	 */
+	struct BS_CORE_EXPORT SubShader : TSubShader<false>, IReflectable
+	{
+		/************************************************************************/
+		/* 								SERIALIZATION                      		*/
+		/************************************************************************/
+	public:
+		friend class SubShaderRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
+	};
+
 	/** @} */
 
 	/** @addtogroup Implementation
@@ -63,12 +97,18 @@ namespace bs
 	template<> struct TSamplerStateType < false > { typedef SPtr<SamplerState> Type; };
 	template<> struct TSamplerStateType < true > { typedef SPtr<ct::SamplerState> Type; };
 
+	template<bool Core> struct TSubShaderType {};
+	template<> struct TSubShaderType < false > { typedef SubShader Type; };
+	template<> struct TSubShaderType < true > { typedef TSubShader<true> Type; };
+
 	/** Structure used for initializing a shader. */
 	template<bool Core>
 	struct BS_CORE_EXPORT TSHADER_DESC
 	{
 		typedef typename TTextureType<Core>::Type TextureType;
 		typedef typename TSamplerStateType<Core>::Type SamplerStateType;
+		typedef typename TTechniqueType<Core>::Type TechniqueType;
+		typedef typename TSubShaderType<Core>::Type SubShaderType;
 
 		TSHADER_DESC();
 
@@ -200,6 +240,12 @@ namespace bs
 		/** Flags that let the renderer know how should it interpret the shader. */
 		UINT32 flags;
 
+		/** Techniques to initialize the shader with. */
+		Vector<SPtr<TechniqueType>> techniques;
+
+		/** Optional set of sub-shaders to initialize the shader with. */
+		Vector<SubShaderType> subShaders;
+
 		Map<String, SHADER_DATA_PARAM_DESC> dataParams;
 		Map<String, SHADER_OBJECT_PARAM_DESC> textureParams;
 		Map<String, SHADER_OBJECT_PARAM_DESC> bufferParams;
@@ -227,13 +273,14 @@ namespace bs
 		typedef typename TTechniqueType<Core>::Type TechniqueType;
 		typedef typename TSHADER_DESC<Core>::TextureType TextureType;
 		typedef typename TSHADER_DESC<Core>::SamplerStateType SamplerStateType;
+		typedef typename TSubShaderType<Core>::Type SubShaderType;
 
 		TShader() { }
-		TShader(const String& name, const TSHADER_DESC<Core>& desc, const Vector<SPtr<TechniqueType>>& techniques, UINT32 id);
+		TShader(const String& name, const TSHADER_DESC<Core>& desc, UINT32 id);
 		virtual ~TShader();
 	
 		/** Returns the total number of techniques in this shader. */
-		UINT32 getNumTechniques() const { return (UINT32)mTechniques.size(); }
+		UINT32 getNumTechniques() const { return (UINT32)mDesc.techniques.size(); }
 
 		/** Returns the list of all supported techniques based on current render API and renderer. */
 		Vector<SPtr<TechniqueType>> getCompatibleTechniques() const;
@@ -245,7 +292,10 @@ namespace bs
 		Vector<SPtr<TechniqueType>> getCompatibleTechniques(const ShaderVariation& variation) const;
 
 		/** Returns a list of all techniques in this shader. */
-		const Vector<SPtr<TechniqueType>>& getTechniques() const { return mTechniques; }
+		const Vector<SPtr<TechniqueType>>& getTechniques() const { return mDesc.techniques; }
+
+		/** Returns a list of all sub-shaders in this shader. */
+		const Vector<SubShaderType>& getSubShaders() const { return mDesc.subShaders; }
 
 		/**
 		 * Returns currently active queue sort type.
@@ -354,7 +404,6 @@ namespace bs
 	protected:
 		String mName;
 		TSHADER_DESC<Core> mDesc;
-		Vector<SPtr<TechniqueType>> mTechniques;
 		UINT32 mId;
 	};
 
@@ -367,6 +416,9 @@ namespace bs
 	 */
 
 	typedef TSHADER_DESC<true> SHADER_DESC;
+
+	/** Core thread version of bs::SubShader. */
+	typedef TSubShader<true> SubShader;
 
 	/** @} */
 	}
@@ -427,7 +479,7 @@ namespace bs
 		static UINT32 getDataParamSize(GpuParamDataType type);
 
 		/**	Creates a new shader resource using the provided descriptor and techniques. */
-		static HShader create(const String& name, const SHADER_DESC& desc, const Vector<SPtr<Technique>>& techniques);
+		static HShader create(const String& name, const SHADER_DESC& desc);
 
 		/**	Returns a shader object but doesn't initialize it. */
 		static SPtr<Shader> createEmpty();
@@ -442,12 +494,12 @@ namespace bs
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
-		static SPtr<Shader> _createPtr(const String& name, const SHADER_DESC& desc, const Vector<SPtr<Technique>>& techniques);
+		static SPtr<Shader> _createPtr(const String& name, const SHADER_DESC& desc);
 
 		/** @} */
 
 	private:
-		Shader(const String& name, const SHADER_DESC& desc, const Vector<SPtr<Technique>>& techniques, UINT32 id);
+		Shader(const String& name, const SHADER_DESC& desc, UINT32 id);
 
 		/** @copydoc CoreObject::getCoreDependencies */
 		void getCoreDependencies(Vector<CoreObject*>& dependencies) override;
@@ -503,12 +555,12 @@ namespace bs
 	{
 	public:
 		/** @copydoc bs::Shader::create */
-		static SPtr<Shader> create(const String& name, const SHADER_DESC& desc, const Vector<SPtr<Technique>>& techniques);
+		static SPtr<Shader> create(const String& name, const SHADER_DESC& desc);
 
 	protected:
 		friend class bs::Shader;
 
-		Shader(const String& name, const SHADER_DESC& desc, const Vector<SPtr<Technique>>& techniques, UINT32 id);
+		Shader(const String& name, const SHADER_DESC& desc, UINT32 id);
 
 		static std::atomic<UINT32> mNextShaderId;
 	};

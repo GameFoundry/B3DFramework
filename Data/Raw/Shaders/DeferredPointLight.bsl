@@ -6,7 +6,7 @@
 
 #include "$ENGINE$\DeferredLightCommon.bslinc"
 
-technique DeferredPointLight
+shader DeferredPointLight
 {
 	mixin DeferredLightCommon;
 

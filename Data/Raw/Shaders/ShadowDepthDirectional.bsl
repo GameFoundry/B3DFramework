@@ -1,7 +1,7 @@
 #define CLAMP_TO_NEAR_PLANE 1
 #include "$ENGINE$\ShadowDepthBase.bslinc"
 
-technique ShadowDepth
+shader ShadowDepth
 { 
 	mixin ShadowDepthBase;
 };

@@ -1,7 +1,7 @@
 #include "$ENGINE$/GBufferInput.bslinc"
 #include "$ENGINE$/ShadowProjectionCommon.bslinc"
 
-technique ShadowProjectOmni
+shader ShadowProjectOmni
 {
 	mixin GBufferInput;
 	mixin ShadowProjectionCommon;

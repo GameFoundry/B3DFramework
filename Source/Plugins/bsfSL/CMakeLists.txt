@@ -14,7 +14,7 @@ if(BUILD_BSL)
 			WORKING_DIRECTORY ${BSF_SOURCE_DIR}/Plugins/bsfSL
 			RESULT_VARIABLE rv
 	)
-
+	
 	file(RENAME "${BSF_SOURCE_DIR}/Plugins/bsfSL/BsLexerFX.h" "${BSF_SOURCE_DIR}/Plugins/bsfSL/BsLexerFX.h")
 	file(RENAME "${BSF_SOURCE_DIR}/Plugins/bsfSL/BsLexerFX.c" "${BSF_SOURCE_DIR}/Plugins/bsfSL/BsLexerFX.c")
 	file(RENAME "${BSF_SOURCE_DIR}/Plugins/bsfSL/BsParserFX.h" "${BSF_SOURCE_DIR}/Plugins/bsfSL/BsParserFX.h")

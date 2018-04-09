@@ -10,12 +10,12 @@ namespace bs
 		return lhs->getName() < rhs->getName();
 	}
 
-	static bool operator<(const NPtr<DynLib>& lhs, const String & rhs)
+	static bool operator<(const NPtr<DynLib>& lhs, const String& rhs)
 	{
 		return lhs->getName() < rhs;
 	}
 
-	static bool operator<(const String & lhs, const NPtr<DynLib>& rhs)
+	static bool operator<(const String& lhs, const NPtr<DynLib>& rhs)
 	{
 		return lhs < rhs->getName();
 	}
@@ -23,9 +23,9 @@ namespace bs
 	DynLib* DynLibManager::load(String filename)
 	{
 		// Add the extension (.dll, .so, ...) if necessary.
-		// TODO: The string comparison here could be slightly more efficent
-		// Using a templatized string_concat function for the lower_bound call
-		// and/or a custom comparitor that does comparison by parts.
+
+		// Note: The string comparison here could be slightly more efficent. Using a templatized string_concat function for
+		// the lower_bound call and/or a custom comparitor that does comparison by parts.
 		const String::size_type length = filename.length();
 		const String extension = String(".") + DynLib::EXTENSION;
 		const String::size_type extLength = extension.length();

@@ -1,4 +1,4 @@
-technique SpriteLine
+shader SpriteLine
 {
 	blend
 	{

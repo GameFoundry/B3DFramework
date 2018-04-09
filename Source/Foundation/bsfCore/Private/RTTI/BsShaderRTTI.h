@@ -168,11 +168,41 @@ namespace bs
 		}	
 	}; 
 
+	class BS_CORE_EXPORT SubShaderRTTI : public RTTIType<SubShader, IReflectable, SubShaderRTTI>
+	{
+	private:
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(name, 0)
+			BS_RTTI_MEMBER_REFLPTR_ARRAY(techniques, 1)
+		BS_END_RTTI_MEMBERS
+		
+	public:
+		SubShaderRTTI()
+			:mInitMembers(this)
+		{ }
+
+		const String& getRTTIName() override
+		{
+			static String name = "SubShader";
+			return name;
+		}
+
+		UINT32 getRTTIId() override
+		{
+			return TID_SubShader;
+		}
+
+		SPtr<IReflectable> newRTTIObject() override
+		{
+			return bs_shared_ptr_new<SubShader>();
+		}
+	};
+
 	class BS_CORE_EXPORT ShaderRTTI : public RTTIType<Shader, Resource, ShaderRTTI>
 	{
 	private:
 		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_REFLPTR_ARRAY(mTechniques, 0)
+			BS_RTTI_MEMBER_REFLPTR_ARRAY_NAMED(mTechniques, mDesc.techniques, 0)
 			BS_RTTI_MEMBER_PLAIN(mName, 1)
 			
 			BS_RTTI_MEMBER_PLAIN_NAMED(mQueueSortType, mDesc.queueSortType, 7)
@@ -184,6 +214,7 @@ namespace bs
 			BS_RTTI_MEMBER_REFLPTR_ARRAY_NAMED(mSamplerDefaultValues, mDesc.samplerDefaultValues, 12)
 
 			BS_RTTI_MEMBER_PLAIN_NAMED(mFlags, mDesc.flags, 13)
+			BS_RTTI_MEMBER_REFL_ARRAY_NAMED(mSubShaders, mDesc.subShaders, 14)
 		BS_END_RTTI_MEMBERS
 
 		SHADER_DATA_PARAM_DESC& getDataParam(Shader* obj, UINT32 idx) 

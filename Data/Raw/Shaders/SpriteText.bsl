@@ -1,4 +1,4 @@
-technique SpriteText
+shader SpriteText
 {
 	blend
 	{

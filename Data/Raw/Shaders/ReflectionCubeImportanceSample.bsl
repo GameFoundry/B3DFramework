@@ -2,7 +2,7 @@
 #include "$ENGINE$\ReflectionCubemapCommon.bslinc"
 #include "$ENGINE$\ImportanceSampling.bslinc"
 
-technique ReflectionCubeImportanceSample
+shader ReflectionCubeImportanceSample
 {
 	mixin PPBase;
 	mixin ReflectionCubemapCommon;

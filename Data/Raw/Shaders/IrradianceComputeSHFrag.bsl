@@ -3,7 +3,7 @@
 #include "$ENGINE$\SHCommon.bslinc"
 #include "$ENGINE$\PPBase.bslinc"
 
-technique IrradianceComputeSHFrag
+shader IrradianceComputeSHFrag
 {
 	mixin PPBase;
 	mixin ReflectionCubemapCommon;

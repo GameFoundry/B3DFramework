@@ -1,4 +1,4 @@
-technique Clear
+shader Clear
 {
 	depth
 	{

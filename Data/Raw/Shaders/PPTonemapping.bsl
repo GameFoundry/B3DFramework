@@ -1,6 +1,6 @@
 #include "$ENGINE$\PPTonemapCommon.bslinc"
 
-technique PPTonemapping
+shader PPTonemapping
 {
 	mixin PPTonemapCommon;
 

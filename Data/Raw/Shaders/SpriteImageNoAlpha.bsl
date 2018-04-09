@@ -1,6 +1,6 @@
 #include "$ENGINE$\SpriteImage.bslinc"
 
-technique SpriteImageNoAlpha
+shader SpriteImageNoAlpha
 { 
 	mixin SpriteImage;
 };

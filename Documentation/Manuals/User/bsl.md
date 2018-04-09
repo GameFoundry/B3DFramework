@@ -8,7 +8,7 @@ All shaders in Banshee are written in BSL (Banshee Shading Language). The core o
 
 A simple BSL program that renders a mesh all in white looks like this:
 ~~~~~~~~~~~~~~
-technique MyShader
+shader MyShader
 {
 	code
 	{
@@ -43,7 +43,7 @@ technique MyShader
 };
 ~~~~~~~~~~~~~~
 
-As you can see, aside from the **technique** and **code** blocks, the shader code looks identical to HLSL. Each BSL shader must contain at least one **technique**. Inside the technique you can use a variety of options, but the minimum required is the **code** block, which allows you to specify programmable shader code. Using just this syntax you get the full power of HLSL, as if you were using it directly.
+As you can see, aside from the **shader** and **code** blocks, the shader code looks identical to HLSL. Each BSL shader must contain at least one **shader**. Inside the shader you can use a variety of options, but the minimum required is the **code** block, which allows you to specify programmable shader code. Using just this syntax you get the full power of HLSL, as if you were using it directly.
 
 There are a few restrictions compared to normal HLSL that you must be aware of:
  - All primitive (non-object) shader constants (uniforms in GLSL lingo) must be part of a **cbuffer**. Primitive types are any types that are not textures, buffers or samplers.
@@ -58,7 +58,7 @@ There are a few restrictions compared to normal HLSL that you must be aware of:
 Let's now move onto more advanced functionality specific to BSL.
 
 # Non-programmable states
-Aside from the **code** block, a **technique** can also specify four blocks that allow it to control non-programmable parts of the pipeline:
+Aside from the **code** block, a **shader** can also specify four blocks that allow it to control non-programmable parts of the pipeline:
  - **raster** - Allows you to set options related to rasterization, like rasterization mode (fill/wireframe), cull mode, etc.
  - **depth** - Allows you to set options related to depth buffer and depth comparison, like enabling/disabling depth reads or writes, or changing the depth comparison function
  - **stencil** - Allows you to set options related to the stencil buffer and stencil test, like enabling stencil test and setting the test operations
@@ -66,7 +66,7 @@ Aside from the **code** block, a **technique** can also specify four blocks that
 
 An example shader using a variety of these blocks is shown:
 ~~~~~~~~~~~~~~
-technique MyShader
+shader MyShader
 {
 	// No depth reads of writes
 	depth
@@ -149,7 +149,7 @@ compare				| never, always, lt, lte, eq, neq, gte, gt (See @ref bs::CompareFunct
 
 An example of a stencil block:
 ~~~~~~~~~~~~~~
-technique MyShader
+shader MyShader
 {
 	// Only render if stencil test passes
 	stencil
@@ -167,7 +167,7 @@ technique MyShader
 
 **StencilOp** block can also be declared succintly on a single line. Same code as above, written differently:
 ~~~~~~~~~~~~~~
-technique MyShader
+shader MyShader
 {
 	// Only render if stencil test passes
 	stencil
@@ -203,7 +203,7 @@ op    	  	     | add, sub, rsub, min, max (See @ref bs::BlendOperation "BlendOpe
 
 An example of a **blend** block:
 ~~~~~~~~~~~~~~
-technique MyShader
+shader MyShader
 {
 	blend
 	{
@@ -223,7 +223,7 @@ technique MyShader
 
 **BlendOp** block can also be defined succintly on a single line. Same code as above, written differently:
 ~~~~~~~~~~~~~~
-technique MyShader
+shader MyShader
 {
 	blend
 	{
@@ -238,7 +238,7 @@ technique MyShader
 ~~~~~~~~~~~~~~
 
 # Mixins
-When writing complex shaders is it is often useful to break them up into components. This is where the concept of a **mixin** comes in. Any shader code or programmable states defined in a **mixin** can be included in any **technique**. Syntax within a **mixin** block is identical to syntax in a **technique** block, meaning you can define code and non-programmable state blocks as shown above.
+When writing complex shaders is it is often useful to break them up into components. This is where the concept of a **mixin** comes in. Any shader code or programmable states defined in a **mixin** can be included in any **shader**. Syntax within a **mixin** block is identical to syntax in a **shader** block, meaning you can define code and non-programmable state blocks as shown above.
 
 ~~~~~~~~~~~~~~
 // Provides common functionality that might be useful for many different shaders
@@ -267,9 +267,9 @@ mixin MyMixin
 };
 ~~~~~~~~~~~~~~
 
-When a technique wishes to use a mixin, simply add it to the technique using the same **mixin** keyword, followed by its name.
+When a shader wishes to use a mixin, simply add it to the shader using the same **mixin** keyword, followed by its name.
 ~~~~~~~~~~~~~~
-technique MyShader
+shader MyShader
 {
 	mixin MyMixin;
 
@@ -281,7 +281,7 @@ technique MyShader
 		{
 			uint2 pixelPos = ...;
 			
-			// Technique can now call methods from the mixin
+			// We can now call methods from the mixin
 			SurfaceData surfaceData = getGBufferData(pixelPos);
 		
 			return surfaceData.albedo; 
@@ -290,7 +290,7 @@ technique MyShader
 };
 ~~~~~~~~~~~~~~
 
-Included mixins will append their shader code and states to the technique they are included in. If mixin and technique define the same states, the value of the states present on the technique will be used. If multiple included mixins use the same state then the state from the last included mixin will be used. Shader code is included in the order in which mixins are defined, followed by shader code from the technique itself.
+Included mixins will append their shader code and states to the shader they are included in. If mixin and shader define the same states, the value of the states present on the shader will be used. If multiple included mixins use the same state then the state from the last included mixin will be used. Shader code is included in the order in which mixins are defined, followed by shader code from the shader itself.
 
 Often you will want to define mixins in separate files. BSL files are normally stored with the ".bsl" extension, but when writing include files you should use the ".bslinc" extension instead, in order to prevent the system trying to compile the shader code on its own.
 
@@ -300,7 +300,7 @@ In order to include other files in BSL, use the \#include command. The paths are
 // Include the code for accessing Banshee's GBuffer
 #include "$ENGINE$/GBufferInput.bslinc"
 
-technique MyShader
+shader MyShader
 {
 	mixin GBufferInput;
 
@@ -309,7 +309,7 @@ technique MyShader
 ~~~~~~~~~~~~~~
 
 ## Mixin overrides
-Mixins can override each other if another mixin is defined with the same name. The last defined mixin is considered the override and will be used in the technique. Techniques can also reference mixins that haven't been declared yet. 
+Mixins can override each other if another mixin is defined with the same name. The last defined mixin is considered the override and will be used in the shader. Shaders can also reference mixins that haven't been declared yet. 
 
 ~~~~~~~~~~~~~~
 // This mixin overrides the MyMixin behaviour we defined above
@@ -336,10 +336,10 @@ mixin MyMixin
 ~~~~~~~~~~~~~~
 
 # Passes
-Passes can be used when a technique needs to perform multiple complex operations in a sequence. Each pass can be thought of as its own fully functional shader. By default techniques have one pass, which doesn't have to be explicitly defined, as was the case in all examples above. To explicitly define a pass, use the **pass** block and define the relevant code/state blocks within it, same as it was shown for techniques above. Passes will be executed sequentially one after another in the order they are defined. 
+Passes can be used when a shader needs to perform multiple complex operations in a sequence. Each pass can be thought of as its own fully functional shader. By default shaders have one pass, which doesn't have to be explicitly defined, as was the case in all examples above. To explicitly define a pass, use the **pass** block and define the relevant code/state blocks within it, same as it was shown for shaders above. Passes will be executed sequentially one after another in the order they are defined. 
 
 ~~~~~~~~~~~~~~
-technique MyShader
+shader MyShader
 {
 	// First pass
 	pass
@@ -382,7 +382,7 @@ All constants (uniforms) of primitive types can be assigned default values. Thes
  - For vectors/matrices: "type name = { v0, v1, ... };", where the number of values is the total number of elements in a vector/matrix
  
 ~~~~~~~~~~~~~~
-technique MyShader
+shader MyShader
 {
 	code
 	{
@@ -405,7 +405,7 @@ Textures can also be assigned default values, limited to a specific subset. Vali
  - normal - Texture representing a normal map with normals facing in the Y (up) direction
  
 ~~~~~~~~~~~~~~
-technique MyShader
+shader MyShader
 {
 	code
 	{
@@ -420,7 +420,7 @@ technique MyShader
 Finally, sampler states may also be assigned default values. The values are specified in a block immediately following the sampler state definition.
 
 ~~~~~~~~~~~~~~
-technique MyShader
+shader MyShader
 {
 	code
 	{
@@ -494,7 +494,7 @@ Filter valid values:
 BSL provides a couple of extension attributes that can be applied to constants (uniforms) or constant (uniform) blocks. Attributes are specified using the standard HSLS [] attribute syntax.
 
 ~~~~~~~~~~~~~~
-technique MyShader
+shader MyShader
 {
 	code
 	{
@@ -566,7 +566,7 @@ Where:
 
 Example of attributes in action:
 ~~~~~~~~~~~~~~
-technique MyShader
+shader MyShader
 {
 	code
 	{
@@ -591,7 +591,7 @@ technique MyShader
 ~~~~~~~~~~~~~~
 
 # Global options
-BSL supports a few global options that control all techniques and mixins in a shader file. These options are specified in a **options** block, which must be defined at the top most level along with **technique** or **mixin** blocks.
+BSL supports a few global options that control all shaders and mixins in a shader file. These options are specified in a **options** block, which must be defined at the top most level along with **shader** or **mixin** blocks.
 
 ~~~~~~~~~~~~~~
 options
@@ -602,16 +602,60 @@ options
 	priority = 100;
 };
 
-technique MyShader
+shader MyShader
 {
-	// Technique definition
+	// Shader definition
 };
 ~~~~~~~~~~~~~~
 
 Valid options are:
 Name                 | Valid values				   | Default value			| Description
 ---------------------|---------------------------- |------------------------|------------
-separable			 | true, false				   | false					| When true, tells the renderer that passes within the shader don't need to be renderered one straight after another. This allows the system to perform rendering more optimally, but can be unfeasible for most materials which will depend on exact rendering order. Only relevant if a technique has multiple passes.
+separable			 | true, false				   | false					| When true, tells the renderer that passes within the shader don't need to be renderered one straight after another. This allows the system to perform rendering more optimally, but can be unfeasible for most materials which will depend on exact rendering order. Only relevant if a shader has multiple passes.
 sort				 | none, backtofront, fronttoback | fronttoback			| Determines how does the renderer sort objects with this material before rendering. Most objects should be sorted front to back in order to avoid overdraw. Transparent (see below) objects will always be sorted back to front and this option is ignored. When no sorting is active the system will try to group objects based on the material alone, reducing material switching and potentially reducing CPU overhead, at the cost of overdraw.
 transparent			 | true, false				   | false					| Notifies the renderer that this object is see-through. This will force the renderer to the use back to front sorting mode, and likely employ a different rendering method. Attempting to render transparent geometry without this option set to true will likely result in graphical artifacts.
 priority			 | integer					   | 0						| Allows you to force objects with this shader to render before others. Objects with higher priority will be rendered before those with lower priority. If sorting is enabled, objects will be sorted within their priority groups (i.e. priority takes precedence over sort mode).
+
+# Sub-shaders
+Each BSL file can contain an optional set of sub-shaders, alongside the main shader. Sub-shaders are recognized by the renderer and are meant to allow the user to override functionality of default shaders used by the renderer. They are specified using the **subshader** keyword, followed by an unique identifier. Sub-shaders are only allowed to contain **mixin** blocks, within which the same rules as for normal mixins apply.
+
+~~~~~~~~~~~~~~
+shader MainShader
+{
+	// Shader definition
+};
+
+subshader SomeSubShader
+{
+	mixin SomeMixin
+	{
+		// Mixin definition
+	};
+};
+~~~~~~~~~~~~~~
+
+The mixins you specify in a sub-shader will be used to override some existing mixin, allowing you to change specific rendering functionality. 
+
+Imagine for example that you wanted to implement a custom lighting model while using deferred rendering. Deferred rendering doesn't perform lighting when rendering the object, instead it does lighting in a single pass for all objects at once. The renderer will closely interact with that lighting shader, and if you wanted to change it you would need to rewrite it using the exact rules as the renderer expects. Worse yet, the renderer might support different forms of deferred rendering (e.g. standard vs. tiled), meaning you would need to write multiple shaders to fully support it. You would also need to keep your shader(s) updated whenever the renderer's internal change. For a normal user this is very difficult and requires detailed knowledge of how the renderer works.
+
+bsf's renderer instead provides a set of "extension points". Extension points match to a specific part of the renderer pipeline that can be overriden. For example an extension point named "DeferredDirectLighting" would let you override the BRDF and direct lighting calculations during deferred rendering. Sub-shaders are how you "link" with those extension points. The name of the sub-shader corresponds to the extension point name, and the mixins in the sub-shader override specific functionality of that extension point. For example you might override the "StandardBRDF" mixin to change the BRDF model for the standard material, or "SpotLightLuminance" to change how is luminance for spot lights calculated.
+
+This way you only override small parts of the renderer shader code, without having to rewrite all the complex shader code, while all the  implementation details are transparently handled by the renderer itself.
+
+~~~~~~~~~~~~~~
+// Sub-shader overriding direct lighting used for deferred rendering
+subshader DeferredDirectLighting // Name of the subshader specifies exactly what part of the rendering pipeline to override
+{
+	// Exact name of the mixin to override. Each subshader extension point can provide one or multiple mixins that can be overriden
+	mixin StandardBRDF
+	{
+		// Override the PBR BRDF with a simple Lambert BRDF
+		float3 getStandardBRDFShading(float3 V, float3 L, float specLobeEnergy, SurfaceData surfaceData)
+		{
+			return surfaceData.albedo.rgb / 3.14f;
+		}
+	};
+};
+~~~~~~~~~~~~~~
+
+In a later manual we will provide a list of all extension points that the default renderer provides, as well as the mixins that can be overriden, and their required method signatures.

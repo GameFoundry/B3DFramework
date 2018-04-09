@@ -1,6 +1,6 @@
 #include "$ENGINE$\BasePass.bslinc"
 
-technique Surface
+shader Surface
 {
 	mixin BasePass;
 

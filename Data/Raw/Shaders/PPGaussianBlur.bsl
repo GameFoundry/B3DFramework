@@ -1,6 +1,6 @@
 #include "$ENGINE$\PPBase.bslinc"
 
-technique PPGaussianBlur
+shader PPGaussianBlur
 {
 	mixin PPBase;
 

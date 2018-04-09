@@ -47,7 +47,8 @@ false			{ yylval->intValue = 0; return TOKEN_BOOLEAN; }
 
 	/* Shader keywords */
 options			{ return TOKEN_OPTIONS; }
-technique		{ return TOKEN_TECHNIQUE; }
+shader			{ return TOKEN_SHADER; }
+subshader		{ return TOKEN_SUBSHADER; }
 mixin			{ return TOKEN_MIXIN; }
 
 	/* Options keywords */
@@ -56,7 +57,7 @@ sort			{ return TOKEN_SORT; }
 priority		{ return TOKEN_PRIORITY; }
 transparent		{ return TOKEN_TRANSPARENT; }
 
-	/* Technique keywords */
+	/* Shader keywords */
 featureset		{ return TOKEN_FEATURESET; }
 tags			{ return TOKEN_TAGS; }
 pass			{ return TOKEN_PASS; }

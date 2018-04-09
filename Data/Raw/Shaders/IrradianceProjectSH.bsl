@@ -3,7 +3,7 @@
 #define SH_ORDER 5
 #include "$ENGINE$\SHCommon.bslinc"
 
-technique IrradianceProjectSH
+shader IrradianceProjectSH
 {
 	mixin PPBase;
 	mixin ReflectionCubemapCommon;

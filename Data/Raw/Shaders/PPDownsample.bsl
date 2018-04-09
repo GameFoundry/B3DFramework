@@ -1,6 +1,6 @@
 #include "$ENGINE$\PPBase.bslinc"
 
-technique PPDownsample
+shader PPDownsample
 {
 	mixin PPBase;
 

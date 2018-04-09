@@ -5,7 +5,7 @@
 #include "$ENGINE$\ReflectionCubemapCommon.bslinc"
 #include "$ENGINE$\ImageBasedLighting.bslinc"
 
-technique TiledDeferredLighting
+shader TiledDeferredLighting
 {
 	mixin GBufferInput;
 	mixin PerCameraData;

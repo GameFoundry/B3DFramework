@@ -1,6 +1,6 @@
 #include "$ENGINE$\PPBase.bslinc"
 
-technique PPFXAA
+shader PPFXAA
 {
 	mixin PPBase;
 

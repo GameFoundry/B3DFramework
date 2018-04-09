@@ -2,7 +2,7 @@
 #include "$ENGINE$\PPWhiteBalance.bslinc"
 #include "$ENGINE$\PPBase.bslinc"
 
-technique PPCreateTonemapLUT
+shader PPCreateTonemapLUT
 {
 	mixin PPTonemapCommon;
 	mixin PPWhiteBalance;

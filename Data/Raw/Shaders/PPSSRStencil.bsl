@@ -2,7 +2,7 @@
 #include "$ENGINE$\GBufferInput.bslinc"
 #include "$ENGINE$\PerCameraData.bslinc"
 
-technique PPSSRStencil
+shader PPSSRStencil
 {
 	mixin PPBase;
 	mixin PerCameraData;

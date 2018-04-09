@@ -591,6 +591,7 @@ namespace bs
 		TID_RasterizerStateDesc = 1151,
 		TID_DepthStencilStateDesc = 1152,
 		TID_SerializedGpuProgramData = 1153,
+		TID_SubShader = 1154,
 
 		// Moved from Engine layer
 		TID_CCamera = 30000,

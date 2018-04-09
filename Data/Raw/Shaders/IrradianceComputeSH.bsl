@@ -1,7 +1,7 @@
 #include "$ENGINE$\ReflectionCubemapCommon.bslinc"
 #include "$ENGINE$\SHCommon.bslinc"
 
-technique IrradianceComputeSH
+shader IrradianceComputeSH
 {
 	mixin ReflectionCubemapCommon;
 	mixin SHCommon;

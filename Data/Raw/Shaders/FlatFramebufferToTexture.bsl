@@ -1,4 +1,4 @@
-technique FlatFBToTexture
+shader FlatFBToTexture
 {
 	depth
 	{

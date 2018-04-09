@@ -8,9 +8,10 @@
 
 enum tagNodeType
 {
-	NT_Shader,
+	NT_Root,
 	NT_Options,
-	NT_Technique,
+	NT_Shader,
+	NT_SubShader,
 	NT_Mixin,
 	NT_Pass,
 	NT_Blend,
@@ -34,7 +35,8 @@ enum tagOptionType
 	OT_Priority,
 	OT_Sort,
 	OT_Transparent,
-	OT_Technique,
+	OT_Shader,
+	OT_SubShader,
 	OT_Mixin,
 	OT_Raster,
 	OT_Depth,

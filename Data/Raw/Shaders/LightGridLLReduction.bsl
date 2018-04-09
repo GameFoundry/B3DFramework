@@ -1,7 +1,7 @@
 #include "$ENGINE$\PerCameraData.bslinc"
 #include "$ENGINE$\LightGridCommon.bslinc"
 
-technique LightGridLLReduction
+shader LightGridLLReduction
 {
 	mixin PerCameraData;
 	mixin LightGridCommon; 

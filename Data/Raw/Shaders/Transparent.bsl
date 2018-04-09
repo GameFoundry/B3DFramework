@@ -6,7 +6,7 @@ options
 	transparent = true;
 };
 
-technique Surface
+shader Surface
 {
 	mixin BasePass;
 	mixin ForwardLighting;

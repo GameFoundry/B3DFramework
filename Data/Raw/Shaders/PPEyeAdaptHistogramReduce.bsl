@@ -1,6 +1,6 @@
 #include "$ENGINE$\PPBase.bslinc"
 
-technique PPEyeAdaptHistogramReduce
+shader PPEyeAdaptHistogramReduce
 {
 	mixin PPBase;
 

@@ -1,7 +1,7 @@
 #include "$ENGINE$\PPBase.bslinc"
 #include "$ENGINE$\PPEyeAdaptationCommon.bslinc"
 
-technique PPEyeAdaptation
+shader PPEyeAdaptation
 {
 	mixin PPBase;
 	mixin PPEyeAdaptationParams;

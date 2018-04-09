@@ -1,7 +1,7 @@
 #include "$ENGINE$\ReflectionCubemapCommon.bslinc"
 #include "$ENGINE$\PPBase.bslinc"
 
-technique IrradianceAccumulateSH
+shader IrradianceAccumulateSH
 {
 	mixin PPBase;
 	mixin ReflectionCubemapCommon;

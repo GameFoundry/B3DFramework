@@ -55,6 +55,8 @@ Each shader definition contains two things:
 To summarize, the relationship between materials, shaders, techniques and passes is:
  - **Material** [contains one]-> **Shader** [contains one or multiple]-> **Technique** [contains one or multiple]-> **Pass**
  
+Optionally, the shader definition can also contain a set of @ref bs::SubShader "SubShader"s. As explained previously sub-shaders are a set of techniques that are used to override specific renderer behaviour. 
+ 
 ## Creating a pass {#advMaterials_b_a}
 A **Pass** can be created by filling out a @ref bs::PASS_DESC "PASS_DESC" descriptor and passing it to @ref bs::Pass::create "Pass::create()" method. **PASS_DESC** is fairly simple and it expects a set of GPU program and non-programmable state descriptors.
 
@@ -91,9 +93,9 @@ SPtr<Technique> technique = Technique::create("HLSL", { pass });
 ~~~~~~~~~~~~~
   
 ## Creating a shader {#materials_b_c}
-Now that we have a technique we can create the shader by calling @ref bs::Shader::create "Shader::create()", which expects a list of techniques, name of the shader and a @ref bs::TSHADER_DESC<T> "SHADER_DESC" structure as input.
+Now that we have a technique we can create the shader by calling @ref bs::Shader::create "Shader::create()", which expects the name of the shader and a @ref bs::TSHADER_DESC<T> "SHADER_DESC" structure as input.
 	
-@ref bs::TSHADER_DESC<T> "SHADER_DESC" allows you to specify a set of optional parameters to control how the shader rendering works:
+@ref bs::TSHADER_DESC<T> "SHADER_DESC" contains a list of techniques to initialize the shader with, as well as a set of optional parameters to control how the shader rendering works:
   - @ref bs::TSHADER_DESC<T>::queueSortType "SHADER_DESC::queueSortType" - Controls how should objects rendered with this shader be sorted. Either front to back, back to front, or without sorting. This property can be used for the active renderer to properly render objects, as certain effects (like transparency) require their objects to be rendered in a specific order.
   - @ref bs::TSHADER_DESC<T>::queuePriority "SHADER_DESC::queuePriority" - Controls at what point should objects rendered with this shader be rendered relative to other objects. Objects with higher priority will be rendered before ones with lower priority, and sorting due to **SHADER_DESC::queueSortType** will never sort outside of priority groups. This can allow you to render a certain type of objects before all others (e.g. all opaque objects should be rendered before transparent ones).
   - @ref bs::TSHADER_DESC<T>::separablePasses "SHADER_DESC::separablePasses" - An optimization hint to the renderer that can improve performance when turned on. Only relevant if the shader has techniques with multiple passes. When true the renderer will not necessarily execute passes right after another, but might render other objects in-between passes. This can reduce state switching as multiple objects can be rendered with a single pass, but is only relevant for algorithms that can handle such a process (most can't).
@@ -105,8 +107,9 @@ SHADER_DESC desc;
 desc.queueSortType = QueueSortType::None;
 desc.queuePriority = 0;
 desc.separablePasses = false;
+desc.techniques = { technique };
 
-SPtr<Shader> shader = Shader::create("MyShader", desc, { technique });
+SPtr<Shader> shader = Shader::create("MyShader", desc);
 ~~~~~~~~~~~~~ 
   
 ## Shader parameters {#materials_b_d}
@@ -131,6 +134,7 @@ SHADER_DESC desc;
 desc.queueSortType = QueueSortType::None;
 desc.queuePriority = 0;
 desc.separablePasses = false;
+desc.techniques = { technique };
 
 // Add a 4x4 transform matrix data parameter
 desc.addParameter("WorldTfrm", "WorldTfrm", GPDT_MATRIX_4X4);
@@ -138,7 +142,7 @@ desc.addParameter("WorldTfrm", "WorldTfrm", GPDT_MATRIX_4X4);
 // Add a texture parameter
 desc.addParameter("AlbedoTex", "AlbedoTex", GPOT_TEXTURE2D);
 
-SPtr<Shader> shader = Shader::create("MyShader", desc, { technique });
+SPtr<Shader> shader = Shader::create("MyShader", desc);
 ~~~~~~~~~~~~~
 
 ### Advanced parameters {#materials_b_d_a}
@@ -156,6 +160,7 @@ SHADER_DESC desc;
 desc.queueSortType = QueueSortType::None;
 desc.queuePriority = 0;
 desc.separablePasses = false;
+desc.techniques = { technique };
 
 // Add a 4x4 transform matrix data parameter with a "W" semantic and identity matrix as default
 desc.addParameter("WorldTfrm", "WorldTfrm", GPDT_MATRIX_4X4, "W", 1, 0, &Matrix4::Identity);
@@ -163,7 +168,7 @@ desc.addParameter("WorldTfrm", "WorldTfrm", GPDT_MATRIX_4X4, "W", 1, 0, &Matrix4
 // Add a texture parameter with an "Albedo" semantic and a white texture as default
 desc.addParameter("AlbedoTex", "AlbedoTex", GPOT_TEXTURE2D, Texture::White, "Albedo");
 
-HShader shader = Shader::create("MyShader", desc, { technique });
+HShader shader = Shader::create("MyShader", desc);
 ~~~~~~~~~~~~~  
   
 # Manually rendering using the material {#materials_c}

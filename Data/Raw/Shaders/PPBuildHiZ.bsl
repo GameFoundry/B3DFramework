@@ -1,6 +1,6 @@
 #include "$ENGINE$\PPBase.bslinc"
 
-technique PPBuildHiZ
+shader PPBuildHiZ
 {
 	mixin PPBase;
 	

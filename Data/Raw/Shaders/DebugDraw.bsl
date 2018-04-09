@@ -1,4 +1,4 @@
-technique DebugDraw
+shader DebugDraw
 {
 	variations
 	{

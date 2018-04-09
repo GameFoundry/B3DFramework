@@ -9,7 +9,7 @@
 #define MSAA_COLOR 0
 #include "$ENGINE$\TemporalResolve.bslinc"
 
-technique PPSSRResolve
+shader PPSSRResolve
 {
 	mixin PPBase;
 	mixin PerCameraData;

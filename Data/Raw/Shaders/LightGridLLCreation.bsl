@@ -4,7 +4,7 @@
 #include "$ENGINE$\ImageBasedLighting.bslinc"
 #include "$ENGINE$\LightGridCommon.bslinc"
 
-technique LightGridLLCreation
+shader LightGridLLCreation
 {
 	mixin PerCameraData;
 	mixin LightingCommon;

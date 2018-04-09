@@ -1,7 +1,7 @@
 #include "$ENGINE$\PPBase.bslinc"
 #include "$ENGINE$\PerCameraData.bslinc"
 
-technique PPEncodeDepth
+shader PPEncodeDepth
 {
 	mixin PPBase;
 	mixin PerCameraData;

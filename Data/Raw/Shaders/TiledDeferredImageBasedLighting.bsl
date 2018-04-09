@@ -5,7 +5,7 @@
 #include "$ENGINE$\LightingCommon.bslinc"
 #include "$ENGINE$\ImageBasedLighting.bslinc"
 
-technique TiledDeferredImageBasedLighting
+shader TiledDeferredImageBasedLighting
 {
 	mixin GBufferInput;
 	mixin PerCameraData;
