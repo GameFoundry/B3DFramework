@@ -24,8 +24,8 @@ namespace bs
 	{
 		// Add the extension (.dll, .so, ...) if necessary.
 
-		// Note: The string comparison here could be slightly more efficent. Using a templatized string_concat function for
-		// the lower_bound call and/or a custom comparitor that does comparison by parts.
+		// Note: The string comparison here could be slightly more efficent by using a templatized string_concat function 
+		// for the lower_bound call and/or a custom comparitor that does comparison by parts.
 		const String::size_type length = filename.length();
 		const String extension = String(".") + DynLib::EXTENSION;
 		const String::size_type extLength = extension.length();
@@ -62,7 +62,7 @@ namespace bs
 
 	DynLibManager::~DynLibManager()
 	{
-		// Unload & delete resources in turn
+		// Unload & delete each resource in turn
 		for(auto& entry : mLoadedLibraries)
 		{
 			entry->unload();

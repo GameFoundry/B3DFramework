@@ -12,8 +12,8 @@ namespace bs
 	 */
 
 	/**
-	 * This manager keeps a track of all the open dynamic-loading libraries, opens them and returns references to
-	 * already-open libraries.
+	 * This manager keeps track of all the open dynamic-loading libraries, it manages opening them opens them and can be 
+	 * used to lookup already already-open libraries.
 	 *
 	 * @note	Not thread safe.
 	 */

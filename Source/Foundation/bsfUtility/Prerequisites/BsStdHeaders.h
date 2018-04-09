@@ -226,7 +226,8 @@ namespace bs
 
 	/**
 	 * "Smart" pointer that is not smart. Does nothing but hold a pointer value. No memory management is performed at all.
-	 * This class exists to make storing pointers in containers easier to manage, such with non-member comparison operators.
+	 * This class exists to make storing pointers in containers easier to manage, such as with non-member comparison 
+	 * operators.
 	 */
 	template <typename T>
 	using NPtr = NativePtr<T>;
