@@ -195,9 +195,9 @@ namespace bs
 	}
 
 	/**
-	* Create a new unique pointer from a previously constructed object.
-	* Pointer specific data will be allocated using the provided allocator category.
-	*/
+	 * Create a new unique pointer from a previously constructed object.
+	 * Pointer specific data will be allocated using the provided allocator category.
+	 */
 	template<typename Type, typename Alloc = GenAlloc, typename Deleter = decltype(&bs_delete<Type, Alloc>)>
 	UPtr<Type, Alloc, Deleter> bs_unique_ptr(Type* data, Deleter del = &bs_delete<Type, Alloc>)
 	{
@@ -212,6 +212,25 @@ namespace bs
 
 		return bs_unique_ptr<Type, Alloc, Deleter>(rawPtr);
 	}
+
+	template<typename T>
+	struct NativePtr
+	{
+		constexpr NativePtr(T* p) : m_p(p) {}
+		constexpr T& operator*(void) const { return *m_p; }
+		constexpr T* operator->(void) const { return m_p; }
+		constexpr T* get(void) const { return m_p; }
+	private:
+		T* m_p = nullptr;
+	};
+
+	/**
+	 * "Smart" pointer that is not smart. Does nothing but hold a pointer value. No memory management is performed at all.
+	 * This class exists to make storing pointers in containers easier to manage, such with non-member comparison operators.
+	 */
+	template <typename T>
+	using NPtr = NativePtr<T>;
+
 
 	/** @} */
 }
