@@ -46,5 +46,12 @@ namespace bs
 		std::memset(arr, 0, sizeof(T) * count);
 	}
 
+	/** Returns the size of the provided static array. */
+	template <class T, std::size_t N>
+	constexpr size_t bs_size(const T (&array)[N])
+	{
+	    return N;
+	}
+
 	/** @} */
 }

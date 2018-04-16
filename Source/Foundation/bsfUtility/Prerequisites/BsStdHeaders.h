@@ -35,6 +35,7 @@
 #include <algorithm>
 #include <functional>
 #include <limits>
+#include <iterator>
 
 // C++ Stream stuff
 #include <fstream>

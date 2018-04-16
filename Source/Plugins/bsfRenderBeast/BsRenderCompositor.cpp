@@ -1231,7 +1231,7 @@ namespace bs { namespace ct
 			inputs.view.getTransparentQueue().get()
 		};
 
-		for(UINT32 i = 0; i < std::size(queues); i++)
+		for(UINT32 i = 0; i < bs_size(queues); i++)
 		{
 			const Vector<RenderQueueElement>& elements = queues[i]->getSortedElements();
 			for (auto iter = elements.begin(); iter != elements.end(); ++iter)

@@ -198,14 +198,14 @@ namespace bs
 
 		Path ResourceManifestPath;
 
-		static constexpr char* SHADER_FOLDER = "Shaders/";
-		static constexpr char* CURSOR_FOLDER = "Cursors/";
-		static constexpr char* ICON_FOLDER = "Icons/";
-		static constexpr char* SKIN_FOLDER = "Skin/"; 
-		static constexpr char* SHADER_INCLUDE_FOLDER = "Shaders/Includes/";
-		static constexpr char* MESH_FOLDER = "Meshes/";
-		static constexpr char* TEXTURE_FOLDER = "Textures/";
-		static constexpr char* SPRITE_FOLDER = "Sprites/";
+		static constexpr const char* SHADER_FOLDER = "Shaders/";
+		static constexpr const char* CURSOR_FOLDER = "Cursors/";
+		static constexpr const char* ICON_FOLDER = "Icons/";
+		static constexpr const char* SKIN_FOLDER = "Skin/"; 
+		static constexpr const char* SHADER_INCLUDE_FOLDER = "Shaders/Includes/";
+		static constexpr const char* MESH_FOLDER = "Meshes/";
+		static constexpr const char* TEXTURE_FOLDER = "Textures/";
+		static constexpr const char* SPRITE_FOLDER = "Sprites/";
 
 		static const char* DataListFile;
 
