@@ -330,6 +330,8 @@ namespace bs
 
 				Resources::instance().save(tex, texPageOutputPath, true);
 				manifest->registerResource(tex.getUUID(), texPageOutputPath);
+
+				pageIdx++;
 			}
 		}
 	}

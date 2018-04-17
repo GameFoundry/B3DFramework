@@ -90,13 +90,13 @@ namespace bs
 		Type _getType() const override { return GUIElementBase::Type::FlexibleSpace; }
 
 		/** @copydoc GUIElementBase::_getOptimalSize */
-		virtual Vector2I _getOptimalSize() const override { return Vector2I(0, 0); }
+		Vector2I _getOptimalSize() const override { return Vector2I(0, 0); }
 
 		/** @copydoc GUIElementBase::_calculateLayoutSizeRange */
-		virtual LayoutSizeRange _calculateLayoutSizeRange() const override;
+		LayoutSizeRange _calculateLayoutSizeRange() const override;
 
 		/** @copydoc GUIElementBase::_getPadding */
-		virtual const RectOffset& _getPadding() const override
+		const RectOffset& _getPadding() const override
 		{
 			static RectOffset padding;
 

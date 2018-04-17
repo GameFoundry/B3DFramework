@@ -271,7 +271,7 @@ function(check_and_update_binary_deps DEP_PREFIX DEP_FOLDER DEP_VERSION)
 	endif()
 endfunction()
 
-function(update_builtin_assets ASSET_PREFIX ASSET_FOLDER ASSET_VERSION)
+function(update_builtin_assets ASSET_PREFIX ASSET_FOLDER ASSET_VERSION CLEAR_MANIFEST)
 	# Clean and create a temporary folder
 	execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_SOURCE_DIR}/Temp)	
 	execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_SOURCE_DIR}/Temp)	
@@ -299,22 +299,24 @@ function(update_builtin_assets ASSET_PREFIX ASSET_FOLDER ASSET_VERSION)
 	execute_process(COMMAND ${CMAKE_COMMAND} -E touch ${ASSET_FOLDER}/Timestamp.asset )
 	
 	# Make sure resource manifests get rebuilt
-	execute_process(COMMAND ${CMAKE_COMMAND} -E remove ${ASSET_FOLDER}/ResourceManifest.asset)
+	if(CLEAR_MANIFEST)
+		execute_process(COMMAND ${CMAKE_COMMAND} -E remove ${ASSET_FOLDER}/ResourceManifest.asset)
+	endif()
 	
 	# Clean up
 	execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_SOURCE_DIR}/Temp)	
 endfunction()
 
-function(check_and_update_builtin_assets ASSET_PREFIX ASSET_FOLDER ASSET_VERSION)
+function(check_and_update_builtin_assets ASSET_PREFIX ASSET_FOLDER ASSET_VERSION CLEAR_MANIFEST)
 	set(BUILTIN_ASSETS_VERSION_FILE ${ASSET_FOLDER}/.version)
 	if(NOT EXISTS ${BUILTIN_ASSETS_VERSION_FILE})
 		message(STATUS "Builtin assets for '${ASSET_PREFIX}' are missing. Downloading package...")
-		update_builtin_assets(${ASSET_PREFIX} ${ASSET_FOLDER} ${ASSET_VERSION})	
+		update_builtin_assets(${ASSET_PREFIX} ${ASSET_FOLDER} ${ASSET_VERSION} ${CLEAR_MANIFEST})	
 	else()
 		file (STRINGS ${BUILTIN_ASSETS_VERSION_FILE} CURRENT_BUILTIN_ASSET_VERSION)
 		if(${ASSET_VERSION} GREATER ${CURRENT_BUILTIN_ASSET_VERSION})
 			message(STATUS "Your builtin asset package for '${ASSET_PREFIX}' is out of date. Downloading latest package...")
-			update_builtin_assets(${ASSET_PREFIX} ${ASSET_FOLDER} ${ASSET_VERSION})	
+			update_builtin_assets(${ASSET_PREFIX} ${ASSET_FOLDER} ${ASSET_VERSION} ${CLEAR_MANIFEST})	
 		endif()
 	endif()
 endfunction()

@@ -53,7 +53,7 @@ if(WIN32)
 endif()
 
 ## Check data dependencies
-check_and_update_builtin_assets(bsf ${BSF_SOURCE_DIR}/../Data ${BS_FRAMEWORK_BUILTIN_ASSETS_VERSION})
+check_and_update_builtin_assets(bsf ${BSF_SOURCE_DIR}/../Data ${BS_FRAMEWORK_BUILTIN_ASSETS_VERSION} YES)
 
 # Config file
 ## Note: Must happen before script binding generation
