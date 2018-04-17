@@ -7,12 +7,12 @@
 
 namespace bs
 {
-	bool PlainTextImporter::isExtensionSupported(const WString& ext) const
+	bool PlainTextImporter::isExtensionSupported(const String& ext) const
 	{
-		WString lowerCaseExt = ext;
+		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
 
-		return lowerCaseExt == L"txt" || lowerCaseExt == L"xml" || lowerCaseExt == L"json";
+		return lowerCaseExt == u8"txt" || lowerCaseExt == u8"xml" || lowerCaseExt == u8"json";
 	}
 
 	bool PlainTextImporter::isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
@@ -32,7 +32,7 @@ namespace bs
 
 		SPtr<PlainText> plainText = PlainText::_createPtr(textData);
 
-		WString fileName = filePath.getWFilename(false);
+		String fileName = filePath.getFilename(false);
 		plainText->setName(fileName);
 
 		return plainText;

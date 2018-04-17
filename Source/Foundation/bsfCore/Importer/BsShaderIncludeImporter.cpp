@@ -7,23 +7,12 @@
 
 namespace bs
 {
-	ShaderIncludeImporter::ShaderIncludeImporter()
-		:SpecificImporter()
+	bool ShaderIncludeImporter::isExtensionSupported(const String& ext) const
 	{
-
-	}
-
-	ShaderIncludeImporter::~ShaderIncludeImporter()
-	{
-
-	}
-
-	bool ShaderIncludeImporter::isExtensionSupported(const WString& ext) const
-	{
-		WString lowerCaseExt = ext;
+		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
 
-		return lowerCaseExt == L"bslinc";
+		return lowerCaseExt == u8"bslinc";
 	}
 
 	bool ShaderIncludeImporter::isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
@@ -43,7 +32,7 @@ namespace bs
 
 		SPtr<ShaderInclude> gpuInclude = ShaderInclude::_createPtr(includeString);
 
-		WString fileName = filePath.getWFilename(false);
+		const String fileName = filePath.getFilename(false);
 		gpuInclude->setName(fileName);
 
 		return gpuInclude;

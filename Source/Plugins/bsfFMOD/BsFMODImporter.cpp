@@ -23,14 +23,14 @@ namespace bs
 
 	}
 
-	bool FMODImporter::isExtensionSupported(const WString& ext) const
+	bool FMODImporter::isExtensionSupported(const String& ext) const
 	{
-		WString lowerCaseExt = ext;
+		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
 
-		return lowerCaseExt == L"wav" || lowerCaseExt == L"flac" || lowerCaseExt == L"ogg" || lowerCaseExt == L"mp3" ||
-			lowerCaseExt == L"wma" || lowerCaseExt == L"asf" || lowerCaseExt == L"wmv" || lowerCaseExt == L"midi" || 
-			lowerCaseExt == L"fsb" || lowerCaseExt == L"aif" || lowerCaseExt == L"aiff";
+		return lowerCaseExt == u8"wav" || lowerCaseExt == u8"flac" || lowerCaseExt == u8"ogg" || lowerCaseExt == u8"mp3" ||
+			lowerCaseExt == u8"wma" || lowerCaseExt == u8"asf" || lowerCaseExt == u8"wmv" || lowerCaseExt == u8"midi" || 
+			lowerCaseExt == u8"fsb" || lowerCaseExt == u8"aif" || lowerCaseExt == u8"aiff";
 	}
 
 	bool FMODImporter::isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
@@ -46,9 +46,6 @@ namespace bs
 
 	SPtr<Resource> FMODImporter::import(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
-		WString extension = filePath.getWExtension();
-		StringUtil::toLowerCase(extension);
-
 		AudioDataInfo info;
 
 		FMOD::Sound* sound;
@@ -179,7 +176,7 @@ namespace bs
 
 		SPtr<AudioClip> clip = AudioClip::_createPtr(sampleStream, bufferSize, info.numSamples, clipDesc);
 
-		WString fileName = filePath.getWFilename(false);
+		const String fileName = filePath.getFilename(false);
 		clip->setName(fileName);
 
 		return clip;

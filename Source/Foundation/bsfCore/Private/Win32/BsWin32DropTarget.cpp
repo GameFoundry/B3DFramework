@@ -3,6 +3,7 @@
 #include "Private/Win32/BsWin32DropTarget.h"
 #include "Private/Win32/BsWin32Platform.h"
 #include "Platform/BsDropTarget.h"
+#include "String/BsUnicode.h"
 
 namespace bs
 {
@@ -283,7 +284,7 @@ namespace bs
 
 				DragQueryFileW(hDrop, i, buffer, numChars);
 
-				(*files)[i] = WString(buffer);
+				(*files)[i] = UTF8::fromWide(WString(buffer));
 
 				bs_free(buffer);
 			}

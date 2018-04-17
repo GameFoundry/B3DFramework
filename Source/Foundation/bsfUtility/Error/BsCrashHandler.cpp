@@ -8,7 +8,7 @@
 namespace bs
 {
 	const String CrashHandler::sCrashReportFolder = "CrashReports";
-	const String CrashHandler::sCrashLogName = "log.html";
+	const String CrashHandler::sCrashLogName = u8"log.html";
 	const String CrashHandler::sFatalErrorMsg =
 		"A fatal error occurred and the program has to terminate!";
 
@@ -56,6 +56,6 @@ namespace bs
 
 	void CrashHandler::saveCrashLog() const
 	{
-		gDebug().saveLog(getCrashFolder() + toWString(sCrashLogName));
+		gDebug().saveLog(getCrashFolder() + sCrashLogName);
 	}
 }

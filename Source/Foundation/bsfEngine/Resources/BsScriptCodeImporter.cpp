@@ -8,23 +8,12 @@
 
 namespace bs
 {
-	ScriptCodeImporter::ScriptCodeImporter()
-		:SpecificImporter()
+	bool ScriptCodeImporter::isExtensionSupported(const String& ext) const
 	{
-
-	}
-
-	ScriptCodeImporter::~ScriptCodeImporter()
-	{
-
-	}
-
-	bool ScriptCodeImporter::isExtensionSupported(const WString& ext) const
-	{
-		WString lowerCaseExt = ext;
+		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
 
-		return lowerCaseExt == L"cs";
+		return lowerCaseExt == u8"cs";
 	}
 
 	bool ScriptCodeImporter::isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
@@ -51,7 +40,7 @@ namespace bs
 			
 		SPtr<ScriptCode> scriptCode = ScriptCode::_createPtr(textData, editorScript);
 
-		WString fileName = filePath.getWFilename(false);
+		const String fileName = filePath.getFilename(false);
 		scriptCode->setName(fileName);
 
 		return scriptCode;

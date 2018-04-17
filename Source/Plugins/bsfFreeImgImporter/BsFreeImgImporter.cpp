@@ -36,39 +36,36 @@ namespace bs
 	}
 
 	FreeImgImporter::FreeImgImporter()
-		:SpecificImporter() 
 	{
 		FreeImage_Initialise(false);
 
 		// Register codecs
-		WStringStream strExt;
+		StringStream strExt;
 		strExt << "Supported formats: ";
 		bool first = true;
 		for (int i = 0; i < FreeImage_GetFIFCount(); ++i)
 		{
-
 			// Skip DDS codec since FreeImage does not have the option 
 			// to keep DXT data compressed, we'll use our own codec
 			if ((FREE_IMAGE_FORMAT)i == FIF_DDS)
 				continue;
 
-			WString exts = toWString(String(FreeImage_GetFIFExtensionList((FREE_IMAGE_FORMAT)i)));
+			String exts = String(FreeImage_GetFIFExtensionList((FREE_IMAGE_FORMAT)i));
 			if (!first)
-			{
 				strExt << ",";
-			}
+
 			first = false;
 			strExt << exts;
 
 			// Pull off individual formats (separated by comma by FI)
-			Vector<WString> extsVector = StringUtil::split(exts, L",");
+			Vector<String> extsVector = StringUtil::split(exts, u8",");
 			for (auto v = extsVector.begin(); v != extsVector.end(); ++v)
 			{
 				auto findIter = std::find(mExtensions.begin(), mExtensions.end(), *v);
 
 				if(findIter == mExtensions.end())
 				{
-					WString ext = *v;
+					String ext = *v;
 					StringUtil::toLowerCase(ext);
 
 					mExtensionToFID.insert(std::make_pair(ext, i));
@@ -86,9 +83,9 @@ namespace bs
 		FreeImage_DeInitialise();
 	}
 
-	bool FreeImgImporter::isExtensionSupported(const WString& ext) const
+	bool FreeImgImporter::isExtensionSupported(const String& ext) const
 	{
-		WString lowerCaseExt = ext;
+		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
 
 		return find(mExtensions.begin(), mExtensions.end(), lowerCaseExt) != mExtensions.end();
@@ -96,12 +93,12 @@ namespace bs
 
 	bool FreeImgImporter::isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
 	{
-		WString ext = magicNumToExtension(magicNumPtr, numBytes);
+		String ext = magicNumToExtension(magicNumPtr, numBytes);
 
 		return isExtensionSupported(ext);
 	}
 
-	WString FreeImgImporter::magicNumToExtension(const UINT8* magic, UINT32 maxBytes) const
+	String FreeImgImporter::magicNumToExtension(const UINT8* magic, UINT32 maxBytes) const
 	{
 		// Set error handler
 		FreeImage_SetOutputMessage(FreeImageLoadErrorHandler);
@@ -114,13 +111,13 @@ namespace bs
 
 		if (fif != FIF_UNKNOWN)
 		{
-			WString ext = toWString(String(FreeImage_GetFormatFromFIF(fif)));
+			String ext = String(FreeImage_GetFormatFromFIF(fif));
 			StringUtil::toLowerCase(ext);
 			return ext;
 		}
 		else
 		{
-			return StringUtil::WBLANK;
+			return StringUtil::BLANK;
 		}
 	}
 
@@ -214,7 +211,7 @@ namespace bs
 			}
 		}
 
-		WString fileName = filePath.getWFilename(false);
+		const String fileName = filePath.getFilename(false);
 		newTexture->setName(fileName);
 
 		return newTexture;
@@ -238,11 +235,11 @@ namespace bs
 			fileData->read(magicBuf, magicLen);
 			fileData->seek(0);
 
-			WString fileExtension = magicNumToExtension(magicBuf, magicLen);
+			String fileExtension = magicNumToExtension(magicBuf, magicLen);
 			auto findFormat = mExtensionToFID.find(fileExtension);
 			if (findFormat == mExtensionToFID.end())
 			{
-				BS_EXCEPT(InvalidParametersException, "Type of the file provided is not supported by this importer. File type: " + toString(fileExtension));
+				BS_EXCEPT(InvalidParametersException, "Type of the file provided is not supported by this importer. File type: " + fileExtension);
 			}
 
 			imageFormat = (FREE_IMAGE_FORMAT)findFormat->second;

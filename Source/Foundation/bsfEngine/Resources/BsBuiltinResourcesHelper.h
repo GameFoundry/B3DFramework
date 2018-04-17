@@ -50,7 +50,7 @@ namespace bs
 		 * Imports a font from the specified file. Imported font assets are saved in the output folder. All saved resources
 		 * are registered in the provided resource manifest.
 		 */
-		static void importFont(const Path& inputFile, const WString& outputName, const Path& outputFolder, 
+		static void importFont(const Path& inputFile, const String& outputName, const Path& outputFolder, 
 			const Vector<UINT32>& fontSizes, bool antialiasing, const UUID& UUID, const SPtr<ResourceManifest>& manifest);
 
 		/** 

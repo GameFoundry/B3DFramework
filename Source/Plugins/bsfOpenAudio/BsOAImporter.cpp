@@ -23,12 +23,12 @@ namespace bs
 
 	}
 
-	bool OAImporter::isExtensionSupported(const WString& ext) const
+	bool OAImporter::isExtensionSupported(const String& ext) const
 	{
-		WString lowerCaseExt = ext;
+		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
 
-		return lowerCaseExt == L"wav" || lowerCaseExt == L"flac" || lowerCaseExt == L"ogg";
+		return lowerCaseExt == u8"wav" || lowerCaseExt == u8"flac" || lowerCaseExt == u8"ogg";
 	}
 
 	bool OAImporter::isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
@@ -52,15 +52,15 @@ namespace bs
 			Lock fileLock = FileScheduler::getLock(filePath);
 			SPtr<DataStream> stream = FileSystem::openFile(filePath);
 
-			WString extension = filePath.getWExtension();
+			String extension = filePath.getExtension();
 			StringUtil::toLowerCase(extension);
 
 			UPtr<AudioDecoder> reader(nullptr, nullptr);
-			if (extension == L".wav")
+			if (extension == u8".wav")
 				reader = bs_unique_ptr<AudioDecoder>(bs_new<WaveDecoder>());
-			else if (extension == L".flac")
+			else if (extension == u8".flac")
 				reader = bs_unique_ptr<AudioDecoder>(bs_new<FLACDecoder>());
-			else if (extension == L".ogg")
+			else if (extension == u8".ogg")
 				reader = bs_unique_ptr<AudioDecoder>(bs_new<OggVorbisDecoder>());
 
 			if (reader == nullptr)
@@ -140,7 +140,7 @@ namespace bs
 
 		SPtr<AudioClip> clip = AudioClip::_createPtr(sampleStream, bufferSize, info.numSamples, clipDesc);
 
-		WString fileName = filePath.getWFilename(false);
+		const String fileName = filePath.getFilename(false);
 		clip->setName(fileName);
 
 		return clip;

@@ -20,18 +20,13 @@ namespace bs
 	FontImporter::FontImporter()
 		:SpecificImporter() 
 	{
-		mExtensions.push_back(L"ttf");
-		mExtensions.push_back(L"otf");
+		mExtensions.push_back(u8"ttf");
+		mExtensions.push_back(u8"otf");
 	}
 
-	FontImporter::~FontImporter() 
+	bool FontImporter::isExtensionSupported(const String& ext) const
 	{
-
-	}
-
-	bool FontImporter::isExtensionSupported(const WString& ext) const
-	{
-		WString lowerCaseExt = ext;
+		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
 
 		return find(mExtensions.begin(), mExtensions.end(), lowerCaseExt) != mExtensions.end();
@@ -39,7 +34,7 @@ namespace bs
 
 	bool FontImporter::isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
 	{
-		// TODO
+		// Not used
 		return false;
 	}
 
@@ -347,7 +342,7 @@ namespace bs
 					newTex->writeData(pixelData);
 				}
 
-				newTex->setName(L"FontPage" + toWString((UINT32)fontData->texturePages.size()));
+				newTex->setName(u8"FontPage" + toString((UINT32)fontData->texturePages.size()));
 
 				fontData->texturePages.push_back(newTex);
 				pageIdx++;
@@ -372,7 +367,7 @@ namespace bs
 
 		FT_Done_FreeType(library);
 
-		WString fileName = filePath.getWFilename(false);
+		const String fileName = filePath.getFilename(false);
 		newFont->setName(fileName);
 
 		return newFont;

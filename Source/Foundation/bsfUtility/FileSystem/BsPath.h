@@ -37,36 +37,19 @@ namespace bs
 		/**
 		 * Constructs a path by parsing the provided path string. Throws exception if provided path is not valid.
 		 *
-		 * @param[in]	pathStr	String containing the path.
-		 * @param[in]	type	If set to default path will be parsed according to the rules of the platform the application
-		 *						is being compiled to. Otherwise it will be parsed according to provided type.
-		 */
-		Path(const WString& pathStr, PathType type = PathType::Default);
-
-		/**
-		 * Constructs a path by parsing the provided path string. Throws exception if provided path is not valid.
-		 *
-		 * @param[in]	pathStr	String containing the path.
+		 * @param[in]	pathStr	String containing the path. Ideally this should be an UTF-8 encoded string in order to
+		 *						support non-ANSI characters in the path.
 		 * @param[in]	type	If set to default path will be parsed according to the rules of the platform the application
 		 *						is being compiled to. Otherwise it will be parsed according to provided type.
 		 */
 		Path(const String& pathStr, PathType type = PathType::Default);
 
 		/**
-		 * Constructs a path by parsing the provided path null terminated string. Throws exception if provided path is not 
-		 * valid.
-		 *
-		 * @param[in]	pathStr	Null-terminated string containing the path.
-		 * @param[in]	type	If set to default path will be parsed according to the rules of the platform the application
-		 *						is being compiled to. Otherwise it will be parsed according to provided type.
-		 */
-		Path(const wchar_t* pathStr, PathType type = PathType::Default);
-
-		/**
 		 * Constructs a path by parsing the provided path null terminated string. Throws exception if provided path is 
 		 * not valid.
 		 *
-		 * @param[in]	pathStr	Null-terminated string containing the path.
+		 * @param[in]	pathStr	Null-terminated string containing the path. Ideally this should be an UTF-8 encoded string
+		 *						in order to support non-ANSI characters in the path.
 		 * @param[in]	type	If set to default path will be parsed according to the rules of the platform the application
 		 *						is being compiled to. Otherwise it will be parsed according to provided type.
 		 */
@@ -77,19 +60,7 @@ namespace bs
 		 * Assigns a path by parsing the provided path string. Path will be parsed according to the rules of the platform 
 		 * the application is being compiled to.
 		 */
-		Path& operator= (const WString& pathStr);
-
-		/**
-		 * Assigns a path by parsing the provided path string. Path will be parsed according to the rules of the platform 
-		 * the application is being compiled to.
-		 */
 		Path& operator= (const String& pathStr);
-
-		/**
-		 * Assigns a path by parsing the provided path null terminated string. Path will be parsed according to the rules 
-		 * of the platform the application is being compiled to.
-		 */
-		Path& operator= (const wchar_t* pathStr);
 
 		/**
 		 * Assigns a path by parsing the provided path null terminated string. Path will be parsed according to the rules 
@@ -124,30 +95,10 @@ namespace bs
 		 * Constructs a path by parsing the provided path string. Throws exception if provided path is not valid.
 		 *
 		 * @param[in]	pathStr	String containing the path.
-		 * @param[in]	type	If set to default path will be parsed according to the rules of the platform the application
-		 *						is being compiled to. Otherwise it will be parsed according to provided type.
-		 */
-		void assign(const WString& pathStr, PathType type = PathType::Default);
-
-		/**
-		 * Constructs a path by parsing the provided path string. Throws exception if provided path is not valid.
-		 *
-		 * @param[in]	pathStr	String containing the path.
 		 * @param[in]	type	If set to default path will be parsed according to the rules of the platform the application 
 		 *						is being compiled to. Otherwise it will be parsed according to provided type.
 		 */
 		void assign(const String& pathStr, PathType type = PathType::Default);
-
-		/**
-		 * Constructs a path by parsing the provided path null terminated string. Throws exception if provided path is not 
-		 * valid.
-		 *
-		 * @param[in]	pathStr		Null-terminated string containing the path.
-		 * @param[in]	type		If set to default path will be parsed according to the rules of the platform the
-		 *							application is being compiled to. Otherwise it will be parsed according to provided
-		 *							type.
-		 */
-		void assign(const wchar_t* pathStr, PathType type = PathType::Default);
 
 		/**
 		 * Constructs a path by parsing the provided path null terminated string. Throws exception if provided path is not 
@@ -165,15 +116,6 @@ namespace bs
 		 *
 		 * @param[in] type	If set to default path will be parsed according to the rules of the platform the application is 
 		 *					being compiled to. Otherwise it will be parsed according to provided type.
-		 * @return			String representing the path using the wide string encoding.
-		 */
-		WString toWString(PathType type = PathType::Default) const;
-
-		/**
-		 * Converts the path in a string according to platform path rules.
-		 *
-		 * @param[in] type	If set to default path will be parsed according to the rules of the platform the application is 
-		 *					being compiled to. Otherwise it will be parsed according to provided type.
 		 * @return			String representing the path using the UTF8 string encoding.
 		 */
 		String toString(PathType type = PathType::Default) const;
@@ -184,7 +126,7 @@ namespace bs
 		 * This method is equivalent to toWString() on Windows, and to toString() elsewhere.
 		 */
 #if BS_PLATFORM == BS_PLATFORM_WIN32
-		WString toPlatformString() const { return toWString(); }
+		WString toPlatformString() const;
 #else
 		String toPlatformString() const { return toString(); }
 #endif
@@ -260,29 +202,13 @@ namespace bs
 		bool equals(const Path& other) const;
 
 		/** Change or set the filename in the path. */
-		void setFilename(const WString& filename);
-
-		/** Change or set the filename in the path. */
 		void setFilename(const String& filename) { mFilename = filename; }
 
 		/**
 		 * Change or set the base name in the path. Base name changes the filename by changing its base to the provided 
 		 * value but keeping extension intact.
 		 */
-		void setBasename(const WString& basename);
-
-		/**
-		 * Change or set the base name in the path. Base name changes the filename by changing its base to the provided 
-		 * value but keeping extension intact.
-		 */
 		void setBasename(const String& basename);
-
-		/**
-		 * Change or set the extension of the filename in the path.
-		 *
-		 * @param[in]	extension	Extension with a leading ".".
-		 */
-		void setExtension(const WString& extension);
 
 		/**
 		 * Change or set the extension of the filename in the path.
@@ -296,17 +222,7 @@ namespace bs
 		 *
 		 * @param[in]	extension	If true, returned filename will contain an extension.
 		 */
-		WString getWFilename(bool extension = true) const;
-
-		/**
-		 * Returns a filename in the path.
-		 *
-		 * @param[in]	extension	If true, returned filename will contain an extension.
-		 */
 		String getFilename(bool extension = true) const;
-
-		/** Returns file extension with the leading ".". */
-		WString getWExtension() const;
 
 		/** Returns file extension with the leading ".". */
 		String getExtension() const;
@@ -315,28 +231,13 @@ namespace bs
 		UINT32 getNumDirectories() const { return (UINT32)mDirectories.size(); }
 
 		/** Gets a directory name with the specified index from the path. */
-		WString getWDirectory(UINT32 idx) const;
-
-		/** Gets a directory name with the specified index from the path. */
 		const String& getDirectory(UINT32 idx) const;
-
-		/** Returns path device (for example drive, volume, etc.) if one exists in the path. */
-		WString getWDevice() const;
 
 		/** Returns path device (for example drive, volume, etc.) if one exists in the path. */
 		const String& getDevice() const { return mDevice; }
 
 		/** Returns path node (for example network name) if one exists in the path. */
-		WString getWNode() const;
-
-		/** Returns path node (for example network name) if one exists in the path. */
 		const String& getNode() const { return mNode; }
-
-		/**
-		 * Gets last element in the path, filename if it exists, otherwise the last directory. If no directories exist 
-		 * returns device or node.
-		 */
-		WString getWTail() const;
 
 		/**
 		 * Gets last element in the path, filename if it exists, otherwise the last directory. If no directories exist 
@@ -365,22 +266,8 @@ namespace bs
 		/** Strips invalid characters from the provided string and replaces them with empty spaces. */
 		static void stripInvalid(String& path);
 
-		/** Strips invalid characters from the provided string and replaces them with empty spaces. */
-		static void stripInvalid(WString& path);
-
 		static const Path BLANK;
 	private:
-		/**
-		 * Constructs a path by parsing the provided raw string data. Throws exception if provided path is not valid.
-		 *
-		 * @param[in]	pathStr		String containing the path.
-		 * @param[in]	numChars	Number of character in the provided path string.
-		 * @param[in]	type		If set to default path will be parsed according to the rules of the platform the 
-		 *							application is being compiled to. Otherwise it will be parsed according to provided 
-		 *							type.
-		 */
-		void assign(const wchar_t* pathStr, UINT32 numChars, PathType type = PathType::Default);
-
 		/**
 		 * Constructs a path by parsing the provided raw string data. Throws exception if provided path is not valid.
 		 *
@@ -438,7 +325,7 @@ namespace bs
 							throwInvalidPathException(BasicString<T>(pathStr, numChars));
 
 						mIsAbsolute = true;
-						setDevice(bs::toWString(drive));
+						setDevice(String(1, drive));
 
 						idx++;
 
@@ -492,7 +379,7 @@ namespace bs
 					idx++;
 					if (idx >= numChars || pathStr[idx] == '/')
 					{
-						pushDirectory(bs::toWString('~'));
+						pushDirectory(String("~"));
 						mIsAbsolute = true;
 					}
 					else
@@ -539,10 +426,7 @@ namespace bs
 			}
 		}
 
-		void setNode(const WString& node);
 		void setNode(const String& node) { mNode = node; }
-
-		void setDevice(const WString& device);
 		void setDevice(const String& device) { mDevice = device; }
 
 		/** Build a Windows path string from internal path data. */
@@ -552,13 +436,7 @@ namespace bs
 		String buildUnix() const;
 
 		/** Add new directory to the end of the path. */
-		void pushDirectory(const WString& dir);
-
-		/** Add new directory to the end of the path. */
 		void pushDirectory(const String& dir);
-
-		/** Helper method that throws invalid path exception. */
-		void throwInvalidPathException(const WString& path) const;
 
 		/** Helper method that throws invalid path exception. */
 		void throwInvalidPathException(const String& path) const;

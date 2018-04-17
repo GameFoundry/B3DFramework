@@ -114,7 +114,7 @@ namespace bs
 		 *
 		 * @param[in]	extension	The extension without the leading dot.
 		 */
-		bool supportsFileType(const WString& extension) const;
+		bool supportsFileType(const String& extension) const;
 
 		/**
 		 * Checks if we can import a file with the specified magic number.

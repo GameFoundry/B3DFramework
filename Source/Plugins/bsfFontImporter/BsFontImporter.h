@@ -17,10 +17,10 @@ namespace bs
 	{
 	public:
 		FontImporter();
-		virtual ~FontImporter();
+		virtual ~FontImporter() = default;
 
 		/** @copydoc SpecificImporter::isExtensionSupported */
-		bool isExtensionSupported(const WString& ext) const override;
+		bool isExtensionSupported(const String& ext) const override;
 
 		/** @copydoc SpecificImporter::isMagicNumberSupported */
 		bool isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const override;
@@ -31,7 +31,7 @@ namespace bs
 		/** @copydoc SpecificImporter::createImportOptions */
 		SPtr<ImportOptions> createImportOptions() const override;
 	private:
-		Vector<WString> mExtensions;
+		Vector<String> mExtensions;
 
 		const static int MAXIMUM_TEXTURE_SIZE = 2048;
 	};

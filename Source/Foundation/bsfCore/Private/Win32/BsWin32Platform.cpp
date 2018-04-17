@@ -11,6 +11,7 @@
 #include "Private/Win32/BsWin32PlatformUtility.h"
 #include "TimeAPI.h"
 #include <shellapi.h>
+#include "String/BsUnicode.h"
 
 namespace bs
 {
@@ -396,7 +397,9 @@ namespace bs
 
 	void Platform::openFolder(const Path& path)
 	{
-		ShellExecuteW(nullptr, L"open", path.toWString().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+		WString pathString = UTF8::toWide(path.toString());
+
+		ShellExecuteW(nullptr, L"open", pathString.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 	}
 
 	void Platform::_messagePump()

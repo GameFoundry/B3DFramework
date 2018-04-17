@@ -20,10 +20,10 @@ namespace bs
 		virtual ~Resource() {};
 
 		/**	Returns the name of the resource. */
-		const WString& getName() const;
+		const String& getName() const;
 
 		/**	Sets the name of the resource.  */
-		void setName(const WString& name);
+		void setName(const String& name);
 
 		/**	Retrieves meta-data containing various information describing a resource. */
 		SPtr<ResourceMetaData> getMetaData() const { return mMetaData; }

@@ -16,7 +16,7 @@ namespace bs
 	class BS_CORE_EXPORT ResourceMetaData : public IReflectable
 	{
 	public:
-		WString displayName;
+		String displayName;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

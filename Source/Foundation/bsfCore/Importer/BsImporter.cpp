@@ -32,7 +32,7 @@ namespace bs
 		mAssetImporters.clear();
 	}
 
-	bool Importer::supportsFileType(const WString& extension) const
+	bool Importer::supportsFileType(const String& extension) const
 	{
 		for(auto iter = mAssetImporters.begin(); iter != mAssetImporters.end(); ++iter)
 		{
@@ -308,7 +308,7 @@ namespace bs
 
 	SpecificImporter* Importer::getImporterForFile(const Path& inputFilePath) const
 	{
-		WString ext = inputFilePath.getWExtension();
+		String ext = inputFilePath.getExtension();
 		if (ext.empty())
 			return nullptr;
 

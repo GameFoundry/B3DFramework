@@ -1901,7 +1901,7 @@ namespace bs
 			{
 				Path path = gBuiltinResources().getRawShaderFolder();
 				path.append(extPointShader.path);
-				path.setExtension(path.getWExtension());
+				path.setExtension(path.getExtension());
 
 				StringStream subShaderSource;
 				const UnorderedMap<String, String> subShaderDefines = extPointShader.defines.getAll();

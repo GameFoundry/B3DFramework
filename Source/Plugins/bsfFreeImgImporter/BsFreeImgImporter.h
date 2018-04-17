@@ -22,7 +22,7 @@ namespace bs
 		virtual ~FreeImgImporter();
 
 		/** @copydoc SpecificImporter::isExtensionSupported */
-		bool isExtensionSupported(const WString& ext) const override;
+		bool isExtensionSupported(const String& ext) const override;
 
 		/** @copydoc SpecificImporter::isMagicNumberSupported */
 		bool isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const override;
@@ -34,7 +34,7 @@ namespace bs
 		SPtr<ImportOptions> createImportOptions() const override;
 	private:
 		/**	Converts a magic number into an extension name. */
-		WString magicNumToExtension(const UINT8* magic, UINT32 maxBytes) const;
+		String magicNumToExtension(const UINT8* magic, UINT32 maxBytes) const;
 
 		/**	Imports an image from the provided data stream. */
 		SPtr<PixelData> importRawImage(const Path& fileData);
@@ -51,8 +51,8 @@ namespace bs
 		bool generateCubemap(const SPtr<PixelData>& source, CubemapSourceType sourceType, 
 			std::array<SPtr<PixelData>, 6>& output);
 
-		Vector<WString> mExtensions;
-		UnorderedMap<WString, int> mExtensionToFID;
+		Vector<String> mExtensions;
+		UnorderedMap<String, int> mExtensionToFID;
 	};
 
 	/** @} */

@@ -23,10 +23,10 @@ namespace bs
 	{
 	public:
 		FBXImporter();
-		virtual ~FBXImporter();
+		virtual ~FBXImporter() = default;
 
 		/** @copydoc SpecificImporter::isExtensionSupported */
-		bool isExtensionSupported(const WString& ext) const override;
+		bool isExtensionSupported(const String& ext) const override;
 
 		/** @copydoc SpecificImporter::isMagicNumberSupported */
 		bool isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const override;
@@ -154,7 +154,7 @@ namespace bs
 		FBXImportNode* createImportNode(FBXImportScene& scene, FbxNode* fbxNode, FBXImportNode* parent);
 
 	private:
-		Vector<WString> mExtensions;
+		Vector<String> mExtensions;
 		FbxManager* mFBXManager;
 	};
 

@@ -19,12 +19,12 @@ namespace bs
 
 	}
 
-	bool SLImporter::isExtensionSupported(const WString& ext) const
+	bool SLImporter::isExtensionSupported(const String& ext) const
 	{
-		WString lowerCaseExt = ext;
+		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
 
-		return lowerCaseExt == L"bsl";
+		return lowerCaseExt == u8"bsl";
 	}
 
 	bool SLImporter::isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
@@ -43,8 +43,8 @@ namespace bs
 		}
 
 		SPtr<const ShaderImportOptions> io = std::static_pointer_cast<const ShaderImportOptions>(importOptions);
-		WString shaderName = filePath.getWFilename(false);
-		BSLFXCompileResult result = BSLFXCompiler::compile(toString(shaderName), source, io->getDefines());
+		String shaderName = filePath.getFilename(false);
+		BSLFXCompileResult result = BSLFXCompiler::compile(shaderName, source, io->getDefines());
 
 		if (result.shader != nullptr)
 			result.shader->setName(shaderName);

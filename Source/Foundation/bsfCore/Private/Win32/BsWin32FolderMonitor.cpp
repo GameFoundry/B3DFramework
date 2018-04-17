@@ -5,6 +5,7 @@
 #include "Error/BsException.h"
 
 #include <windows.h>
+#include "String/BsUnicode.h"
 
 namespace bs
 {
@@ -185,7 +186,9 @@ namespace bs
 	WString FolderMonitor::FileNotifyInfo::getFileNameWithPath(const Path& rootPath) const
 	{
 		Path fullPath = rootPath;
-		return fullPath.append(getFileName()).toWString();
+		fullPath.append(UTF8::fromWide(getFileName()));
+				
+		return UTF8::toWide(fullPath.toString());
 	}
 
 	enum class FileActionType
@@ -200,17 +203,18 @@ namespace bs
 	{
 		static FileAction* createAdded(const WString& fileName)
 		{
-			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(WString::value_type)));
+			String utf8filename = UTF8::fromWide(fileName);
+			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (utf8filename.size() + 1) * sizeof(String::value_type)));
 
 			FileAction* action = (FileAction*)bytes;
 			bytes += sizeof(FileAction);
 
 			action->oldName = nullptr;
-			action->newName = (WString::value_type*)bytes;
+			action->newName = (String::value_type*)bytes;
 			action->type = FileActionType::Added;
 
-			memcpy(action->newName, fileName.data(), fileName.size() * sizeof(WString::value_type));
-			action->newName[fileName.size()] = L'\0';
+			memcpy(action->newName, utf8filename.data(), utf8filename.size() * sizeof(String::value_type));
+			action->newName[utf8filename.size()] = L'\0';
 			action->lastSize = 0;
 			action->checkForWriteStarted = false;
 
@@ -219,17 +223,18 @@ namespace bs
 
 		static FileAction* createRemoved(const WString& fileName)
 		{
-			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(WString::value_type)));
+			String utf8filename = UTF8::fromWide(fileName);
+			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (utf8filename.size() + 1) * sizeof(String::value_type)));
 
 			FileAction* action = (FileAction*)bytes;
 			bytes += sizeof(FileAction);
 
 			action->oldName = nullptr;
-			action->newName = (WString::value_type*)bytes;
+			action->newName = (String::value_type*)bytes;
 			action->type = FileActionType::Removed;
 
-			memcpy(action->newName, fileName.data(), fileName.size() * sizeof(WString::value_type));
-			action->newName[fileName.size()] = L'\0';
+			memcpy(action->newName, utf8filename.data(), utf8filename.size() * sizeof(String::value_type));
+			action->newName[utf8filename.size()] = L'\0';
 			action->lastSize = 0;
 			action->checkForWriteStarted = false;
 
@@ -238,42 +243,46 @@ namespace bs
 
 		static FileAction* createModified(const WString& fileName)
 		{
-			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(WString::value_type)));
+			String utf8filename = UTF8::fromWide(fileName);
+			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (utf8filename.size() + 1) * sizeof(String::value_type)));
 
 			FileAction* action = (FileAction*)bytes;
 			bytes += sizeof(FileAction);
 
 			action->oldName = nullptr;
-			action->newName = (WString::value_type*)bytes;
+			action->newName = (String::value_type*)bytes;
 			action->type = FileActionType::Modified;
 
-			memcpy(action->newName, fileName.data(), fileName.size() * sizeof(WString::value_type));
-			action->newName[fileName.size()] = L'\0';
+			memcpy(action->newName, utf8filename.data(), utf8filename.size() * sizeof(String::value_type));
+			action->newName[utf8filename.size()] = L'\0';
 			action->lastSize = 0;
 			action->checkForWriteStarted = false;
 
 			return action;
 		}
 
-		static FileAction* createRenamed(const WString& oldFilename, const WString& newfileName)
+		static FileAction* createRenamed(const WString& oldFilename, const WString& newFileName)
 		{
+			String utf8Oldfilename = UTF8::fromWide(oldFilename);
+			String utf8Newfilename = UTF8::fromWide(newFileName);
+
 			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + 
-				(oldFilename.size() + newfileName.size() + 2) * sizeof(WString::value_type)));
+				(utf8Oldfilename.size() + utf8Newfilename.size() + 2) * sizeof(String::value_type)));
 
 			FileAction* action = (FileAction*)bytes;
 			bytes += sizeof(FileAction);
 
-			action->oldName = (WString::value_type*)bytes;
-			bytes += (oldFilename.size() + 1) * sizeof(WString::value_type);
+			action->oldName = (String::value_type*)bytes;
+			bytes += (utf8Oldfilename.size() + 1) * sizeof(String::value_type);
 
-			action->newName = (WString::value_type*)bytes;
+			action->newName = (String::value_type*)bytes;
 			action->type = FileActionType::Modified;
 
-			memcpy(action->oldName, oldFilename.data(), oldFilename.size() * sizeof(WString::value_type));
-			action->oldName[oldFilename.size()] = L'\0';
+			memcpy(action->oldName, utf8Oldfilename.data(), utf8Oldfilename.size() * sizeof(String::value_type));
+			action->oldName[utf8Oldfilename.size()] = L'\0';
 
-			memcpy(action->newName, newfileName.data(), newfileName.size() * sizeof(WString::value_type));
-			action->newName[newfileName.size()] = L'\0';
+			memcpy(action->newName, utf8Newfilename.data(), utf8Newfilename.size() * sizeof(String::value_type));
+			action->newName[utf8Newfilename.size()] = L'\0';
 			action->lastSize = 0;
 			action->checkForWriteStarted = false;
 
@@ -285,8 +294,8 @@ namespace bs
 			bs_free(action);
 		}
 
-		WString::value_type* oldName;
-		WString::value_type* newName;
+		String::value_type* oldName;
+		String::value_type* newName;
 		FileActionType type;
 
 		UINT64 lastSize;
@@ -336,7 +345,7 @@ namespace bs
 			return;
 		}
 
-		WString extendedFolderPath = L"\\\\?\\" + folderPath.toWString(Path::PathType::Windows);
+		WString extendedFolderPath = L"\\\\?\\" + UTF8::toWide(folderPath.toString(Path::PathType::Windows));
 		HANDLE dirHandle = CreateFileW(extendedFolderPath.c_str(), FILE_LIST_DIRECTORY,
 			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, OPEN_EXISTING,
 			FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, nullptr);

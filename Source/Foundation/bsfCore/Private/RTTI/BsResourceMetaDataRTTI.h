@@ -16,15 +16,11 @@ namespace bs
 	class BS_CORE_EXPORT ResourceMetaDataRTTI : public RTTIType<ResourceMetaData, IReflectable, ResourceMetaDataRTTI>
 	{
 	private:
-		WString& getDisplayName(ResourceMetaData* obj) { return obj->displayName; }
-		void setDisplayName(ResourceMetaData* obj, WString& name) { obj->displayName = name; }
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(displayName, 1)
+		BS_END_RTTI_MEMBERS
 
 	public:
-		ResourceMetaDataRTTI()
-		{
-			addPlainField("displayName", 0, &ResourceMetaDataRTTI::getDisplayName, &ResourceMetaDataRTTI::setDisplayName);
-		}
-
 		const String& getRTTIName() override
 		{
 			static String name = "ResourceMetaData";

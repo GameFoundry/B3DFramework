@@ -9,19 +9,9 @@ namespace bs
 {
 	const Path Path::BLANK = Path();
 
-	Path::Path(const WString& pathStr, PathType type)
-	{
-		assign(pathStr, type);
-	}
-
 	Path::Path(const String& pathStr, PathType type)
 	{
 		assign(pathStr, type);
-	}
-
-	Path::Path(const wchar_t* pathStr, PathType type)
-	{
-		assign(pathStr);
 	}
 
 	Path::Path(const char* pathStr, PathType type)
@@ -40,19 +30,7 @@ namespace bs
 		return *this;
 	}
 
-	Path& Path::operator= (const WString& pathStr)
-	{
-		assign(pathStr);
-		return *this;
-	}
-
 	Path& Path::operator= (const String& pathStr)
-	{
-		assign(pathStr);
-		return *this;
-	}
-
-	Path& Path::operator= (const wchar_t* pathStr)
 	{
 		assign(pathStr);
 		return *this;
@@ -82,46 +60,14 @@ namespace bs
 		mIsAbsolute = path.mIsAbsolute;
 	}
 
-	void Path::assign(const WString& pathStr, PathType type)
-	{
-		assign(pathStr.data(), (UINT32)pathStr.length(), type);
-	}
-
 	void Path::assign(const String& pathStr, PathType type)
 	{
 		assign(pathStr.data(), (UINT32)pathStr.length(), type);
 	}
 
-	void Path::assign(const wchar_t* pathStr, PathType type)
-	{
-		assign(pathStr, (UINT32)wcslen(pathStr), type);
-	}
-
 	void Path::assign(const char* pathStr, PathType type)
 	{
 		assign(pathStr, (UINT32)strlen(pathStr), type);
-	}
-
-	void Path::assign(const wchar_t* pathStr, UINT32 numChars, PathType type)
-	{
-		switch (type)
-		{
-		case PathType::Windows:
-			parseWindows(pathStr, numChars);
-			break;
-		case PathType::Unix:
-			parseUnix(pathStr, numChars);
-			break;
-		default:
-#if BS_PLATFORM == BS_PLATFORM_WIN32
-			parseWindows(pathStr, numChars);
-#elif BS_PLATFORM == BS_PLATFORM_OSX || BS_PLATFORM == BS_PLATFORM_LINUX
-			parseUnix(pathStr, numChars);
-#else
-			static_assert(false, "Unsupported platform for path.");
-#endif
-			break;
-		}
 	}
 
 	void Path::assign(const char* pathStr, UINT32 numChars, PathType type)
@@ -146,25 +92,12 @@ namespace bs
 		}
 	}
 
-	WString Path::toWString(PathType type) const
-	{
-		switch (type)
-		{
-		case PathType::Windows:
-			return UTF8::toWide(buildWindows());
-		case PathType::Unix:
-			return UTF8::toWide(buildUnix());
-		default:
 #if BS_PLATFORM == BS_PLATFORM_WIN32
-			return UTF8::toWide(buildWindows());
-#elif BS_PLATFORM == BS_PLATFORM_OSX || BS_PLATFORM == BS_PLATFORM_LINUX
-			return UTF8::toWide(buildUnix());
-#else
-			static_assert(false, "Unsupported platform for path.");
-#endif
-			break;
-		}
+	WString Path::toPlatformString() const
+	{
+		return UTF8::toWide(toString());
 	}
+#endif
 
 	String Path::toString(PathType type) const
 	{
@@ -406,24 +339,9 @@ namespace bs
 		return *this;
 	}
 
-	void Path::setFilename(const WString& filename)
-	{
-		mFilename = UTF8::fromWide(filename);
-	}
-
-	void Path::setBasename(const WString& basename)
-	{
-		mFilename = UTF8::fromWide(basename) + getExtension();
-	}
-
 	void Path::setBasename(const String& basename)
 	{
 		mFilename = basename + getExtension();
-	}
-
-	void Path::setExtension(const WString& extension)
-	{
-		setExtension(UTF8::fromWide(extension));
 	}
 
 	void Path::setExtension(const String& extension)
@@ -433,11 +351,6 @@ namespace bs
 		stream << extension;
 
 		mFilename = stream.str();
-	}
-
-	WString Path::getWFilename(bool extension) const
-	{
-		return UTF8::toWide(getFilename(extension));
 	}
 
 	String Path::getFilename(bool extension) const
@@ -454,11 +367,6 @@ namespace bs
 		}
 	}
 
-	WString Path::getWExtension() const
-	{
-		return UTF8::toWide(getExtension());
-	}
-
 	String Path::getExtension() const
 	{
 		WString::size_type pos = mFilename.rfind(L'.');
@@ -466,11 +374,6 @@ namespace bs
 			return mFilename.substr(pos);
 		else
 			return String();
-	}
-
-	WString Path::getWDirectory(UINT32 idx) const
-	{
-		return UTF8::toWide(getDirectory(idx));
 	}
 
 	const String& Path::getDirectory(UINT32 idx) const
@@ -484,16 +387,6 @@ namespace bs
 		return mDirectories[idx];
 	}
 
-	WString Path::getWDevice() const
-	{
-		return UTF8::toWide(mDevice);
-	}
-
-	WString Path::getWNode() const
-	{
-		return UTF8::toWide(mNode);
-	}
-
 	const String& Path::getTail() const
 	{
 		if (isFile())
@@ -502,11 +395,6 @@ namespace bs
 			return mDirectories.back();
 		else
 			return StringUtil::BLANK;
-	}
-
-	WString Path::getWTail() const
-	{
-		return UTF8::toWide(getTail());
 	}
 
 	void Path::clear()
@@ -518,24 +406,9 @@ namespace bs
 		mIsAbsolute = false;
 	}
 
-	void Path::throwInvalidPathException(const WString& path) const
-	{
-		BS_EXCEPT(InvalidParametersException, "Incorrectly formatted path provided: " + bs::toString(path));
-	}
-
 	void Path::throwInvalidPathException(const String& path) const
 	{
 		BS_EXCEPT(InvalidParametersException, "Incorrectly formatted path provided: " + path);
-	}
-
-	void Path::setNode(const WString& node)
-	{
-		mNode = UTF8::fromWide(node);
-	}
-
-	void Path::setDevice(const WString& device)
-	{
-		mDevice = UTF8::fromWide(device);
 	}
 
 	String Path::buildWindows() const
@@ -639,22 +512,6 @@ namespace bs
 			if(illegalChars.find(entry) != String::npos)
 				entry = ' ';
 		}
-	}
-
-	void Path::stripInvalid(WString& path)
-	{
-		WString illegalChars = L"\\/:?\"<>|";
-
-		for(auto& entry : path)
-		{
-			if(illegalChars.find(entry) != WString::npos)
-				entry = ' ';
-		}
-	}
-
-	void Path::pushDirectory(const WString& dir)
-	{
-		pushDirectory(UTF8::fromWide(dir));
 	}
 
 	void Path::pushDirectory(const String& dir)

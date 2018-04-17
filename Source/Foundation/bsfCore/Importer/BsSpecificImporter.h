@@ -49,7 +49,7 @@ namespace bs
 		 *
 		 * @note	Provided extension should be without the leading dot.
 		 */
-		virtual bool isExtensionSupported(const WString& ext) const = 0;
+		virtual bool isExtensionSupported(const String& ext) const = 0;
 
 		/** Check if the provided magic number is supported by this importer. */
 		virtual bool isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const = 0; 

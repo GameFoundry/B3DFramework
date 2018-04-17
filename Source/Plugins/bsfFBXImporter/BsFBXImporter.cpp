@@ -87,21 +87,16 @@ namespace bs
 	}
 
 	FBXImporter::FBXImporter()
-		:SpecificImporter(), mFBXManager(nullptr)
+		: mFBXManager(nullptr)
 	{
-		mExtensions.push_back(L"fbx");
-		mExtensions.push_back(L"obj");
-		mExtensions.push_back(L"dae");
+		mExtensions.push_back(u8"fbx");
+		mExtensions.push_back(u8"obj");
+		mExtensions.push_back(u8"dae");
 	}
 
-	FBXImporter::~FBXImporter() 
+	bool FBXImporter::isExtensionSupported(const String& ext) const
 	{
-
-	}
-
-	bool FBXImporter::isExtensionSupported(const WString& ext) const
-	{
-		WString lowerCaseExt = ext;
+		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
 
 		return find(mExtensions.begin(), mExtensions.end(), lowerCaseExt) != mExtensions.end();
@@ -133,7 +128,7 @@ namespace bs
 
 		SPtr<Mesh> mesh = Mesh::_createPtr(rendererMeshData->getData(), desc);
 
-		WString fileName = filePath.getWFilename(false);
+		const String fileName = filePath.getFilename(false);
 		mesh->setName(fileName);
 
 		return mesh;
@@ -155,7 +150,7 @@ namespace bs
 
 		SPtr<Mesh> mesh = Mesh::_createPtr(rendererMeshData->getData(), desc);
 
-		WString fileName = filePath.getWFilename(false);
+		const String fileName = filePath.getFilename(false);
 		mesh->setName(fileName);
 
 		Vector<SubResourceRaw> output;

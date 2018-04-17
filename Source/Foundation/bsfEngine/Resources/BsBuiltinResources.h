@@ -131,8 +131,7 @@ namespace bs
 		/**	Returns absolute path to the builtin icons folder. */
 		static Path getIconFolder();
 
-		static const WString IconTextureName;
-
+		static const String IconTextureName;
 		static const String MultiLineLabelStyle;
 
 	private:
@@ -154,10 +153,10 @@ namespace bs
 		void generateTextures();
 
 		/**	Loads a GUI skin texture with the specified filename. */
-		HSpriteTexture getSkinTexture(const WString& name);
+		HSpriteTexture getSkinTexture(const String& name);
 
 		/**	Loads a cursor texture with the specified filename. */
-		HTexture getCursorTexture(const WString& name);
+		HTexture getCursorTexture(const String& name);
 
 		HGUISkin mEmptySkin;
 		HGUISkin mSkin;
@@ -209,108 +208,108 @@ namespace bs
 
 		static const char* DataListFile;
 
-		static const WString DefaultFontFilename;
+		static const String DefaultFontFilename;
 		static const UINT32 DefaultFontSize;
 
 		static const Color TextNormalColor;
 		static const Color TextActiveColor;
 
-		static const WString GUISkinFile;
-		static const WString WhiteTex;
+		static const String GUISkinFile;
+		static const String WhiteTex;
 
-		static const WString ButtonNormalTex;
-		static const WString ButtonHoverTex;
-		static const WString ButtonActiveTex;
+		static const String ButtonNormalTex;
+		static const String ButtonHoverTex;
+		static const String ButtonActiveTex;
 
-		static const WString ToggleNormalTex;
-		static const WString ToggleHoverTex;
-		static const WString ToggleNormalOnTex;
-		static const WString ToggleHoverOnTex;
+		static const String ToggleNormalTex;
+		static const String ToggleHoverTex;
+		static const String ToggleNormalOnTex;
+		static const String ToggleHoverOnTex;
 
-		static const WString InputBoxNormalTex;
-		static const WString InputBoxHoverTex;
-		static const WString InputBoxFocusedTex;
+		static const String InputBoxNormalTex;
+		static const String InputBoxHoverTex;
+		static const String InputBoxFocusedTex;
 
-		static const WString ScrollBarUpNormalTex;
-		static const WString ScrollBarUpHoverTex;
-		static const WString ScrollBarUpActiveTex;
+		static const String ScrollBarUpNormalTex;
+		static const String ScrollBarUpHoverTex;
+		static const String ScrollBarUpActiveTex;
 
-		static const WString ScrollBarDownNormalTex;
-		static const WString ScrollBarDownHoverTex;
-		static const WString ScrollBarDownActiveTex;
+		static const String ScrollBarDownNormalTex;
+		static const String ScrollBarDownHoverTex;
+		static const String ScrollBarDownActiveTex;
 
-		static const WString ScrollBarLeftNormalTex;
-		static const WString ScrollBarLeftHoverTex;
-		static const WString ScrollBarLeftActiveTex;
+		static const String ScrollBarLeftNormalTex;
+		static const String ScrollBarLeftHoverTex;
+		static const String ScrollBarLeftActiveTex;
 
-		static const WString ScrollBarRightNormalTex;
-		static const WString ScrollBarRightHoverTex;
-		static const WString ScrollBarRightActiveTex;
+		static const String ScrollBarRightNormalTex;
+		static const String ScrollBarRightHoverTex;
+		static const String ScrollBarRightActiveTex;
 
-		static const WString ScrollBarHandleHorzNormalTex;
-		static const WString ScrollBarHandleHorzHoverTex;
-		static const WString ScrollBarHandleHorzActiveTex;
+		static const String ScrollBarHandleHorzNormalTex;
+		static const String ScrollBarHandleHorzHoverTex;
+		static const String ScrollBarHandleHorzActiveTex;
 
-		static const WString ScrollBarHandleVertNormalTex;
-		static const WString ScrollBarHandleVertHoverTex;
-		static const WString ScrollBarHandleVertActiveTex;
+		static const String ScrollBarHandleVertNormalTex;
+		static const String ScrollBarHandleVertHoverTex;
+		static const String ScrollBarHandleVertActiveTex;
 
-		static const WString ScrollBarResizeableHandleHorzNormalTex;
-		static const WString ScrollBarResizeableHandleHorzHoverTex;
-		static const WString ScrollBarResizeableHandleHorzActiveTex;
+		static const String ScrollBarResizeableHandleHorzNormalTex;
+		static const String ScrollBarResizeableHandleHorzHoverTex;
+		static const String ScrollBarResizeableHandleHorzActiveTex;
 
-		static const WString ScrollBarResizeableHandleVertNormalTex;
-		static const WString ScrollBarResizeableHandleVertHoverTex;
-		static const WString ScrollBarResizeableHandleVertActiveTex;
+		static const String ScrollBarResizeableHandleVertNormalTex;
+		static const String ScrollBarResizeableHandleVertHoverTex;
+		static const String ScrollBarResizeableHandleVertActiveTex;
 
-		static const WString ScrollBarHBgTex;
-		static const WString ScrollBarVBgTex;
+		static const String ScrollBarHBgTex;
+		static const String ScrollBarVBgTex;
 
-		static const WString SliderHBackgroundTex;
-		static const WString SliderHFillTex;
-		static const WString SliderVBackgroundTex;
-		static const WString SliderVFillTex;
-		static const WString SliderHandleNormalTex;
-		static const WString SliderHandleHoverTex;
-		static const WString SliderHandleActiveTex;
+		static const String SliderHBackgroundTex;
+		static const String SliderHFillTex;
+		static const String SliderVBackgroundTex;
+		static const String SliderVFillTex;
+		static const String SliderHandleNormalTex;
+		static const String SliderHandleHoverTex;
+		static const String SliderHandleActiveTex;
 
-		static const WString DropDownBtnNormalTex;
-		static const WString DropDownBtnHoverTex;
-		static const WString DropDownBtnActiveTex;
+		static const String DropDownBtnNormalTex;
+		static const String DropDownBtnHoverTex;
+		static const String DropDownBtnActiveTex;
 
-		static const WString DropDownBoxBgTex;
-		static const WString DropDownBoxSideBgTex;
-		static const WString DropDownBoxHandleTex;
+		static const String DropDownBoxBgTex;
+		static const String DropDownBoxSideBgTex;
+		static const String DropDownBoxHandleTex;
 
-		static const WString DropDownBoxEntryNormalTex;
-		static const WString DropDownBoxEntryHoverTex;
+		static const String DropDownBoxEntryNormalTex;
+		static const String DropDownBoxEntryHoverTex;
 
-		static const WString DropDownBoxBtnUpNormalTex;
-		static const WString DropDownBoxBtnUpHoverTex;
+		static const String DropDownBoxBtnUpNormalTex;
+		static const String DropDownBoxBtnUpHoverTex;
 
-		static const WString DropDownBoxBtnDownNormalTex;
-		static const WString DropDownBoxBtnDownHoverTex;
+		static const String DropDownBoxBtnDownNormalTex;
+		static const String DropDownBoxBtnDownHoverTex;
 
-		static const WString DropDownBoxEntryExpNormalTex;
-		static const WString DropDownBoxEntryExpHoverTex;
+		static const String DropDownBoxEntryExpNormalTex;
+		static const String DropDownBoxEntryExpHoverTex;
 
-		static const WString DropDownBoxEntryToggleNormalTex;
-		static const WString DropDownBoxEntryToggleHoverTex;
-		static const WString DropDownBoxEntryToggleNormalOnTex;
-		static const WString DropDownBoxEntryToggleHoverOnTex;
+		static const String DropDownBoxEntryToggleNormalTex;
+		static const String DropDownBoxEntryToggleHoverTex;
+		static const String DropDownBoxEntryToggleNormalOnTex;
+		static const String DropDownBoxEntryToggleHoverOnTex;
 
-		static const WString DropDownSeparatorTex;
+		static const String DropDownSeparatorTex;
 
-		static const WString CursorArrowTex;
-		static const WString CursorArrowDragTex;
-		static const WString CursorArrowLeftRightTex;
-		static const WString CursorIBeamTex;
-		static const WString CursorDenyTex;
-		static const WString CursorWaitTex;
-		static const WString CursorSizeNESWTex;
-		static const WString CursorSizeNSTex;
-		static const WString CursorSizeNWSETex;
-		static const WString CursorSizeWETex;
+		static const String CursorArrowTex;
+		static const String CursorArrowDragTex;
+		static const String CursorArrowLeftRightTex;
+		static const String CursorIBeamTex;
+		static const String CursorDenyTex;
+		static const String CursorWaitTex;
+		static const String CursorSizeNESWTex;
+		static const String CursorSizeNSTex;
+		static const String CursorSizeNWSETex;
+		static const String CursorSizeWETex;
 
 		static const Vector2I CursorArrowHotspot;
 		static const Vector2I CursorArrowDragHotspot;
@@ -323,22 +322,22 @@ namespace bs
 		static const Vector2I CursorSizeNWSEHotspot;
 		static const Vector2I CursorSizeWEHotspot;
 
-		static const WString ShaderSpriteTextFile;
-		static const WString ShaderSpriteImageAlphaFile;
-		static const WString ShaderSpriteImageNoAlphaFile;
-		static const WString ShaderSpriteLineFile;
-		static const WString ShaderDiffuseFile;
-		static const WString ShaderTransparentFile;
+		static const String ShaderSpriteTextFile;
+		static const String ShaderSpriteImageAlphaFile;
+		static const String ShaderSpriteImageNoAlphaFile;
+		static const String ShaderSpriteLineFile;
+		static const String ShaderDiffuseFile;
+		static const String ShaderTransparentFile;
 
-		static const WString MeshSphereFile;
-		static const WString MeshBoxFile;
-		static const WString MeshConeFile;
-		static const WString MeshQuadFile;
-		static const WString MeshDiscFile;
+		static const String MeshSphereFile;
+		static const String MeshBoxFile;
+		static const String MeshConeFile;
+		static const String MeshQuadFile;
+		static const String MeshDiscFile;
 
-		static const WString TextureWhiteFile;
-		static const WString TextureBlackFile;
-		static const WString TextureNormalFile;
+		static const String TextureWhiteFile;
+		static const String TextureBlackFile;
+		static const String TextureNormalFile;
 	};
 
 	/**	Provides easy access to BuiltinResources. */

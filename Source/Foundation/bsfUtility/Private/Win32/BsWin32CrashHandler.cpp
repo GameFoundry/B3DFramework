@@ -10,6 +10,7 @@
 // Disable warning in VS2015 that's not under my control
 #pragma warning(disable : 4091)
 #include "DbgHelp.h"
+#include "String/BsUnicode.h"
 #pragma warning(default : 4091)
 
 static const char* sMiniDumpName = "minidump.dmp";
@@ -412,8 +413,9 @@ namespace bs
 	{
 		MiniDumpParams* params = (MiniDumpParams*)data;
 
-		HANDLE hFile = CreateFileW(params->filePath.toWString().c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
-			FILE_ATTRIBUTE_NORMAL, nullptr);
+		WString pathString = UTF8::toWide(params->filePath.toString());
+		HANDLE hFile = CreateFileW(pathString.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 
+			nullptr);
 
 		if (hFile != INVALID_HANDLE_VALUE)
 		{
@@ -452,7 +454,7 @@ namespace bs
 	{
 		WString simpleErrorMessage = msg
 			+ L"\n\nFor more information check the crash report located at:\n "
-			+ folder.toWString();
+			+ UTF8::toWide(folder.toString());
 		MessageBoxW(nullptr, simpleErrorMessage.c_str(), L"Banshee fatal error!", MB_OK);
 
 	}

@@ -69,7 +69,7 @@ namespace bs
 
 			Path relativePath = fileName;
 			Path relativeAssetPath = fileName;
-			relativeAssetPath.setFilename(relativeAssetPath.getWFilename() + L".asset");
+			relativeAssetPath.setFilename(relativeAssetPath.getFilename() + u8".asset");
 
 			SPtr<ImportOptions> importOptions = gImporter().createImportOptions(filePath);
 			if (importOptions != nullptr)
@@ -292,7 +292,7 @@ namespace bs
 		}
 	}
 
-	void BuiltinResourcesHelper::importFont(const Path& inputFile, const WString& outputName, const Path& outputFolder,
+	void BuiltinResourcesHelper::importFont(const Path& inputFile, const String& outputName, const Path& outputFolder,
 		const Vector<UINT32>& fontSizes, bool antialiasing, const UUID& UUID, const SPtr<ResourceManifest>& manifest)
 	{
 		SPtr<ImportOptions> fontImportOptions = Importer::instance().createImportOptions(inputFile);
@@ -308,9 +308,9 @@ namespace bs
 
 		HFont font = Importer::instance().import<Font>(inputFile, fontImportOptions, UUID);
 
-		WString fontName = outputName;
+		String fontName = outputName;
 		Path outputPath = outputFolder + fontName;
-		outputPath.setFilename(outputPath.getWFilename() + L".asset");
+		outputPath.setFilename(outputPath.getFilename() + u8".asset");
 
 		Resources::instance().save(font, outputPath, true);
 		manifest->registerResource(font.getUUID(), outputPath);
@@ -325,8 +325,8 @@ namespace bs
 			UINT32 pageIdx = 0;
 			for (auto tex : fontData->texturePages)
 			{
-				texPageOutputPath.setFilename(fontName + L"_" + toWString(size) + L"_texpage_" +
-					toWString(pageIdx) + L".asset");
+				texPageOutputPath.setFilename(fontName + u8"_" + toString(size) + u8"_texpage_" +
+					toString(pageIdx) + u8".asset");
 
 				Resources::instance().save(tex, texPageOutputPath, true);
 				manifest->registerResource(tex.getUUID(), texPageOutputPath);
@@ -480,7 +480,7 @@ namespace bs
 			}
 
 			Path path = folder + name.c_str();
-			path.setFilename(path.getWFilename() + L".asset");
+			path.setFilename(path.getFilename() + u8".asset");
 
 			manifest->registerResource(UUID(uuid.c_str()), path);
 			
@@ -513,13 +513,13 @@ namespace bs
 
 				Path texPath = folder + name.c_str();
 
-				texPath.setFilename(texPath.getWFilename() + L"48.asset");
+				texPath.setFilename(texPath.getFilename() + u8"48.asset");
 				manifest->registerResource(UUID(texUUIDs[0].c_str()), texPath);
 
-				texPath.setFilename(texPath.getWFilename() + L"32.asset");
+				texPath.setFilename(texPath.getFilename() + u8"32.asset");
 				manifest->registerResource(UUID(texUUIDs[1].c_str()), texPath);
 
-				texPath.setFilename(texPath.getWFilename() + L"16.asset");
+				texPath.setFilename(texPath.getFilename() + u8"16.asset");
 				manifest->registerResource(UUID(texUUIDs[2].c_str()), texPath);
 
 				if(type == AssetType::Sprite)
@@ -632,7 +632,7 @@ namespace bs
 					program->blockUntilCoreInitialized();
 					if(!program->isCompiled())
 					{
-						String errMsg = "Error occured while compiling a shader \"" + toString(shader->getName()) 
+						String errMsg = "Error occured while compiling a shader \"" + shader->getName() 
 							+ "\". Error message: " + program->getCompileErrorMessage();
 
 #if BS_DEBUG_MODE
