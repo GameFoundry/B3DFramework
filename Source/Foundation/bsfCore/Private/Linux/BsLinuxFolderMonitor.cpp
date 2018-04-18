@@ -111,18 +111,18 @@ namespace bs
 
 	struct FileAction
 	{
-		static FileAction* createAdded(const WString& fileName)
+		static FileAction* createAdded(const String& fileName)
 		{
-			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(WString::value_type)));
+			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(String::value_type)));
 
 			FileAction* action = (FileAction*)bytes;
 			bytes += sizeof(FileAction);
 
 			action->oldName = nullptr;
-			action->newName = (WString::value_type*)bytes;
+			action->newName = (String::value_type*)bytes;
 			action->type = FileActionType::Added;
 
-			memcpy(action->newName, fileName.data(), fileName.size() * sizeof(WString::value_type));
+			memcpy(action->newName, fileName.data(), fileName.size() * sizeof(String::value_type));
 			action->newName[fileName.size()] = L'\0';
 			action->lastSize = 0;
 			action->checkForWriteStarted = false;
@@ -130,18 +130,18 @@ namespace bs
 			return action;
 		}
 
-		static FileAction* createRemoved(const WString& fileName)
+		static FileAction* createRemoved(const String& fileName)
 		{
-			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(WString::value_type)));
+			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(String::value_type)));
 
 			FileAction* action = (FileAction*)bytes;
 			bytes += sizeof(FileAction);
 
 			action->oldName = nullptr;
-			action->newName = (WString::value_type*)bytes;
+			action->newName = (String::value_type*)bytes;
 			action->type = FileActionType::Removed;
 
-			memcpy(action->newName, fileName.data(), fileName.size() * sizeof(WString::value_type));
+			memcpy(action->newName, fileName.data(), fileName.size() * sizeof(String::value_type));
 			action->newName[fileName.size()] = L'\0';
 			action->lastSize = 0;
 			action->checkForWriteStarted = false;
@@ -149,18 +149,18 @@ namespace bs
 			return action;
 		}
 
-		static FileAction* createModified(const WString& fileName)
+		static FileAction* createModified(const String& fileName)
 		{
-			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(WString::value_type)));
+			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(String::value_type)));
 
 			FileAction* action = (FileAction*)bytes;
 			bytes += sizeof(FileAction);
 
 			action->oldName = nullptr;
-			action->newName = (WString::value_type*)bytes;
+			action->newName = (String::value_type*)bytes;
 			action->type = FileActionType::Modified;
 
-			memcpy(action->newName, fileName.data(), fileName.size() * sizeof(WString::value_type));
+			memcpy(action->newName, fileName.data(), fileName.size() * sizeof(String::value_type));
 			action->newName[fileName.size()] = L'\0';
 			action->lastSize = 0;
 			action->checkForWriteStarted = false;
@@ -168,24 +168,24 @@ namespace bs
 			return action;
 		}
 
-		static FileAction* createRenamed(const WString& oldFilename, const WString& newfileName)
+		static FileAction* createRenamed(const String& oldFilename, const String& newfileName)
 		{
 			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + 
-				(oldFilename.size() + newfileName.size() + 2) * sizeof(WString::value_type)));
+				(oldFilename.size() + newfileName.size() + 2) * sizeof(String::value_type)));
 
 			FileAction* action = (FileAction*)bytes;
 			bytes += sizeof(FileAction);
 
-			action->oldName = (WString::value_type*)bytes;
-			bytes += (oldFilename.size() + 1) * sizeof(WString::value_type);
+			action->oldName = (String::value_type*)bytes;
+			bytes += (oldFilename.size() + 1) * sizeof(String::value_type);
 
-			action->newName = (WString::value_type*)bytes;
+			action->newName = (String::value_type*)bytes;
 			action->type = FileActionType::Modified;
 
-			memcpy(action->oldName, oldFilename.data(), oldFilename.size() * sizeof(WString::value_type));
+			memcpy(action->oldName, oldFilename.data(), oldFilename.size() * sizeof(String::value_type));
 			action->oldName[oldFilename.size()] = L'\0';
 
-			memcpy(action->newName, newfileName.data(), newfileName.size() * sizeof(WString::value_type));
+			memcpy(action->newName, newfileName.data(), newfileName.size() * sizeof(String::value_type));
 			action->newName[newfileName.size()] = L'\0';
 			action->lastSize = 0;
 			action->checkForWriteStarted = false;
@@ -198,8 +198,8 @@ namespace bs
 			bs_free(action);
 		}
 
-		WString::value_type* oldName;
-		WString::value_type* newName;
+		String::value_type* oldName;
+		String::value_type* newName;
 		FileActionType type;
 
 		UINT64 lastSize;
@@ -437,12 +437,12 @@ namespace bs
 							if (isDirectory)
 							{
 								if (monitor->filter.isSet(FolderChangeBit::DirName))
-									m->fileActions.push_back(FileAction::createAdded(path.toWString()));
+									m->fileActions.push_back(FileAction::createAdded(path.toString()));
 							}
 							else
 							{
 								if (monitor->filter.isSet(FolderChangeBit::FileName))
-									m->fileActions.push_back(FileAction::createAdded(path.toWString()));
+									m->fileActions.push_back(FileAction::createAdded(path.toString()));
 							}
 						}
 
@@ -452,19 +452,19 @@ namespace bs
 							if(isDirectory)
 							{
 								if(monitor->filter.isSet(FolderChangeBit::DirName))
-									m->fileActions.push_back(FileAction::createRemoved(path.toWString()));
+									m->fileActions.push_back(FileAction::createRemoved(path.toString()));
 							}
 							else
 							{
 								if(monitor->filter.isSet(FolderChangeBit::FileName))
-									m->fileActions.push_back(FileAction::createRemoved(path.toWString()));
+									m->fileActions.push_back(FileAction::createRemoved(path.toString()));
 							}
 						}
 
 						// File was modified
 						if(((event->mask & IN_CLOSE_WRITE) != 0) && monitor->filter.isSet(FolderChangeBit::FileWrite))
 						{
-							m->fileActions.push_back(FileAction::createModified(path.toWString()));
+							m->fileActions.push_back(FileAction::createModified(path.toString()));
 						}
 
 						// Note: Not reporting renames, instead a remove + add event is created. To support renames I'd need

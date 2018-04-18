@@ -10,7 +10,7 @@ namespace bs
 		return a->mPriority > b->mPriority || (a->mPriority == b->mPriority && a->mSeqIdx < b->mSeqIdx);
 	}
 
-	GUIMenuItem::GUIMenuItem(GUIMenuItem* parent, const WString& name, std::function<void()> callback, 
+	GUIMenuItem::GUIMenuItem(GUIMenuItem* parent, const String& name, std::function<void()> callback, 
 		INT32 priority, UINT32 seqIdx, const ShortcutKey& key)
 		:mParent(parent), mIsSeparator(false), mName(name), mCallback(callback), mPriority(priority),
 		mShortcut(key), mSeqIdx(seqIdx)
@@ -30,7 +30,7 @@ namespace bs
 			bs_delete(child);
 	}
 
-	const GUIMenuItem* GUIMenuItem::findChild(const WString& name) const
+	const GUIMenuItem* GUIMenuItem::findChild(const String& name) const
 	{
 		auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&] (GUIMenuItem* x) { return x->getName() == name; });
 
@@ -40,7 +40,7 @@ namespace bs
 		return nullptr;
 	}
 
-	GUIMenuItem* GUIMenuItem::findChild(const WString& name)
+	GUIMenuItem* GUIMenuItem::findChild(const String& name)
 	{
 		auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&] (GUIMenuItem* x) { return x->getName() == name; });
 
@@ -50,7 +50,7 @@ namespace bs
 		return nullptr;
 	}
 
-	void GUIMenuItem::removeChild(const WString& name)
+	void GUIMenuItem::removeChild(const String& name)
 	{
 		auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&] (GUIMenuItem* x) { return x->getName() == name; });
 
@@ -73,7 +73,7 @@ namespace bs
 	}
 
 	GUIMenu::GUIMenu()
-		:mRootElement(nullptr, L"", nullptr, 0, 0, ShortcutKey::NONE), mNextIdx(0)
+		:mRootElement(nullptr, "", nullptr, 0, 0, ShortcutKey::NONE), mNextIdx(0)
 	{
 
 	}
@@ -83,28 +83,28 @@ namespace bs
 
 	}
 
-	GUIMenuItem* GUIMenu::addMenuItem(const WString& path, std::function<void()> callback, INT32 priority, const ShortcutKey& key)
+	GUIMenuItem* GUIMenu::addMenuItem(const String& path, std::function<void()> callback, INT32 priority, const ShortcutKey& key)
 	{
 		return addMenuItemInternal(path, callback, false, priority, key);
 	}
 
-	GUIMenuItem* GUIMenu::addSeparator(const WString& path, INT32 priority)
+	GUIMenuItem* GUIMenu::addSeparator(const String& path, INT32 priority)
 	{
 		return addMenuItemInternal(path, nullptr, true, priority, ShortcutKey::NONE);
 	}
 
-	GUIMenuItem* GUIMenu::addMenuItemInternal(const WString& path, std::function<void()> callback, bool isSeparator, 
+	GUIMenuItem* GUIMenu::addMenuItemInternal(const String& path, std::function<void()> callback, bool isSeparator, 
 		INT32 priority, const ShortcutKey& key)
 	{
-		Vector<WString> pathElements = StringUtil::split(path, L"/");
+		Vector<String> pathElements = StringUtil::split(path, "/");
 
 		GUIMenuItem* curSubMenu = &mRootElement;
 		for(UINT32 i = 0; i < (UINT32)pathElements.size(); i++)
 		{
-			if(pathElements[i] == L"")
+			if(pathElements[i] == "")
 				continue;
 
-			const WString& pathElem = *(pathElements.begin() + i);
+			const String& pathElem = *(pathElements.begin() + i);
 			GUIMenuItem* existingItem = curSubMenu->findChild(pathElem);
 
 			if(existingItem == nullptr)
@@ -136,14 +136,14 @@ namespace bs
 		return curSubMenu;
 	}
 
-	GUIMenuItem* GUIMenu::getMenuItem(const WString& path)
+	GUIMenuItem* GUIMenu::getMenuItem(const String& path)
 	{
-		Vector<WString> pathElements = StringUtil::split(path, L"/");
+		Vector<String> pathElements = StringUtil::split(path, "/");
 
 		GUIMenuItem* curSubMenu = &mRootElement;
 		for(UINT32 i = 0; i < (UINT32)pathElements.size(); i++)
 		{
-			const WString& pathElem = *(pathElements.begin() + i);
+			const String& pathElem = *(pathElements.begin() + i);
 			GUIMenuItem* existingItem = curSubMenu->findChild(pathElem);
 
 			if(existingItem == nullptr || existingItem->isSeparator())
@@ -168,7 +168,7 @@ namespace bs
 		return getDropDownDataInternal(mRootElement);
 	}
 
-	void GUIMenu::setLocalizedName(const WString& menuItemLabel, const HString& localizedName)
+	void GUIMenu::setLocalizedName(const String& menuItemLabel, const HString& localizedName)
 	{
 		mLocalizedEntryNames[menuItemLabel] = localizedName;
 	}
@@ -187,11 +187,13 @@ namespace bs
 			{
 				if(menuItem->getNumChildren() == 0)
 				{
-					dropDownData.entries.push_back(GUIDropDownDataEntry::button(menuItem->getName(), menuItem->getCallback(), menuItem->getShortcut().getName()));
+					dropDownData.entries.push_back(GUIDropDownDataEntry::button(menuItem->getName(), 
+						menuItem->getCallback(), menuItem->getShortcut().getName()));
 				}
 				else
 				{
-					dropDownData.entries.push_back(GUIDropDownDataEntry::subMenu(menuItem->getName(), getDropDownDataInternal(*menuItem)));
+					dropDownData.entries.push_back(GUIDropDownDataEntry::subMenu(menuItem->getName(), 
+						getDropDownDataInternal(*menuItem)));
 				}
 			}
 		}

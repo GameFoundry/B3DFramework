@@ -11,9 +11,13 @@ Builds
 Data/.version
 Data/*
 !Data/ShaderDependencies.json
-!Data/Shaders
+!Data/Shaders/
+!Data/Shaders/Includes/
+!Data/Raw/
 Data/Raw/*
-!Data/Raw/Shaders
+!Data/Raw/DataList.json
+!Data/Raw/Shaders/
+!Data/Raw/Shaders/Includes/
 Documentation/Generated
 /Build
 *.aps

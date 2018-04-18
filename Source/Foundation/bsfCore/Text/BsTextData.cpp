@@ -350,7 +350,8 @@ namespace bs
 		}
 	}
 
-	TextDataBase::TextDataBase(const WString& text, const HFont& font, UINT32 fontSize, UINT32 width, UINT32 height, bool wordWrap, bool wordBreak)
+	TextDataBase::TextDataBase(const U32String& text, const HFont& font, UINT32 fontSize, UINT32 width, UINT32 height, 
+		bool wordWrap, bool wordBreak)
 		: mChars(nullptr), mNumChars(0), mWords(nullptr), mNumWords(0), mLines(nullptr), mNumLines(0), mPageInfos(nullptr)
 		, mNumPageInfos(0), mFont(font), mFontData(nullptr)
 	{
@@ -508,7 +509,7 @@ namespace bs
 		mNumPageInfos = MemBuffer->NextFreePageInfo;
 	}
 
-	void TextDataBase::generatePersistentData(const WString& text, UINT8* buffer, UINT32& size, bool freeTemporary)
+	void TextDataBase::generatePersistentData(const U32String& text, UINT8* buffer, UINT32& size, bool freeTemporary)
 	{
 		UINT32 charArraySize = mNumChars * sizeof(const CharDesc*);
 		UINT32 wordArraySize = mNumWords * sizeof(TextWord);

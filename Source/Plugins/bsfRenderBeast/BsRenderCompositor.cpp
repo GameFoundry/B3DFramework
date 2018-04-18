@@ -859,8 +859,6 @@ namespace bs { namespace ct
 
 	void RCNodeDeferredIndirectSpecularLighting::render(const RenderCompositorNodeInputs& inputs)
 	{
-		const RenderSettings& rs = inputs.view.getRenderSettings();
-
 		RCNodeSceneColor* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[0]);
 		RCNodeGBuffer* gbufferNode = static_cast<RCNodeGBuffer*>(inputs.inputNodes[1]);
 		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[2]);

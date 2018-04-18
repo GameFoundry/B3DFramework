@@ -345,7 +345,7 @@ namespace bs
 		return false;
 	}
 
-	WString GUIButtonBase::_getTooltip() const
+	String GUIButtonBase::_getTooltip() const
 	{
 		return mContent.getTooltip();
 	}

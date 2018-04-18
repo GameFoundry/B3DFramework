@@ -7,6 +7,7 @@
 #include <iphlpapi.h>
 #include <VersionHelpers.h>
 #include <intrin.h>
+#include "String/BsUnicode.h"
 
 namespace bs
 {
@@ -136,6 +137,43 @@ namespace bs
 		UINT32 data4 = uuid.Data4[2] | (uuid.Data4[3] << 8) | (uuid.Data4[4] << 16) | (uuid.Data4[5] << 24);
 
 		return UUID(data1, data2, data3, data4);
+	}
+
+	String PlatformUtility::convertCaseUTF8(const String& input, bool toUpper)
+	{
+		if(input.empty())
+			return "";
+
+		WString wideString = UTF8::toWide(input);
+
+		DWORD flags = LCMAP_LINGUISTIC_CASING;
+		flags |= toUpper ? LCMAP_UPPERCASE : LCMAP_LOWERCASE;
+
+		UINT32 requiredNumChars = LCMapStringEx(
+			LOCALE_NAME_USER_DEFAULT,
+			flags,
+			wideString.data(),
+			(int)wideString.length(),
+			nullptr,
+			0,
+			nullptr,
+			nullptr,
+			0);
+
+		WString outputWideString(requiredNumChars, ' ');
+
+		LCMapStringEx(
+			LOCALE_NAME_USER_DEFAULT,
+			flags,
+			wideString.data(),
+			(int)wideString.length(),
+			&outputWideString[0],
+			(int)outputWideString.length(),
+			nullptr,
+			nullptr,
+			0);
+
+		return UTF8::fromWide(outputWideString);
 	}
 
 	HBITMAP Win32PlatformUtility::createBitmap(const Color* pixels, UINT32 width, UINT32 height, bool premultiplyAlpha)

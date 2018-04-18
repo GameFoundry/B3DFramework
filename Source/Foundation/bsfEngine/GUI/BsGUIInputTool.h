@@ -137,6 +137,7 @@ namespace bs
 		UINT32 mNumQuads;
 
 		TEXT_SPRITE_DESC mTextDesc;
+		UINT32 mNumChars = 0;
 
 		Vector<GUIInputLineDesc> mLineDescs;
 	};

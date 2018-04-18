@@ -149,7 +149,7 @@ namespace bs
 				visElem.button->onClick.connect(std::bind(onClick, i, curVisIdx));
 				_registerChildElement(visElem.button);
 
-				const WString& shortcutTag = element.getShortcutTag();
+				const String& shortcutTag = element.getShortcutTag();
 				if (!shortcutTag.empty())
 				{
 					visElem.shortcutLabel = GUILabel::create(HString(shortcutTag), "RightAlignedLabel");
@@ -183,7 +183,7 @@ namespace bs
 
 	HString GUIDropDownContent::getElementLocalizedName(UINT32 idx) const
 	{
-		const WString& label = mDropDownData.entries[idx].getLabel();
+		const String& label = mDropDownData.entries[idx].getLabel();
 
 		auto findLocalizedName = mDropDownData.localizedNames.find(label);
 		if (findLocalizedName != mDropDownData.localizedNames.end())

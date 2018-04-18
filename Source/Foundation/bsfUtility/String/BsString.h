@@ -22,28 +22,28 @@ namespace bs
 	using BasicStringStream = std::basic_stringstream < T, std::char_traits<T>, StdAlloc<T> > ;
 
 	/** Wide string used primarily for handling Unicode text (UTF-32 on Linux, UTF-16 on Windows, generally). */
-	typedef BasicString<wchar_t> WString;
+	using WString = BasicString<wchar_t>;
 
 	/** Narrow string used for handling narrow encoded text (either locale specific ANSI or UTF-8). */
-	typedef BasicString<char> String;
+	using String = BasicString<char>;
 
 	/** Wide string used UTF-16 encoded strings. */
-	typedef BasicString<char16_t> U16String;
+	using U16String = BasicString<char16_t>;
 
 	/** Wide string used UTF-32 encoded strings. */
-	typedef BasicString<char32_t> U32String;
+	using U32String = BasicString<char32_t>;
 
 	/** Wide string stream used for primarily for constructing wide strings. */
-	typedef BasicStringStream<wchar_t> WStringStream;
+	using WStringStream =  BasicStringStream<wchar_t>;
 
 	/** Wide string stream used for primarily for constructing narrow strings. */
-	typedef BasicStringStream<char> StringStream;
+	using StringStream = BasicStringStream<char>;
 
 	/** Wide string stream used for primarily for constructing UTF-16 strings. */
-	typedef BasicStringStream<char16_t> U16StringStream;
+	using U16StringStream = BasicStringStream<char16_t>;
 
 	/** Wide string stream used for primarily for constructing UTF-32 strings. */
-	typedef BasicStringStream<char32_t> U32StringStream;
+	using U32StringStream = BasicStringStream<char32_t>;
 
 	/** Equivalent to String, except it avoids any dynamic allocations until the number of elements exceeds @p Count. */
 	template <int Count> 
@@ -103,21 +103,23 @@ namespace bs
 		 *								If this parameters is > 0, the splitting process will stop after this many splits, 
 		 *								left to right.
 		 */
-		static Vector<String> tokenise(const String& str, const String& delims = "\t\n ", const String& doubleDelims = "\"", unsigned int maxSplits = 0);
+		static Vector<String> tokenise(const String& str, const String& delims = "\t\n ", 
+			const String& doubleDelims = "\"", unsigned int maxSplits = 0);
 
 		/** @copydoc StringUtil::tokenise(const String&, const String&, const String&, unsigned int) */
-		static Vector<WString> tokenise(const WString& str, const WString& delims = L"\t\n ", const WString& doubleDelims = L"\"", unsigned int maxSplits = 0);
+		static Vector<WString> tokenise(const WString& str, const WString& delims = L"\t\n ", 
+			const WString& doubleDelims = L"\"", unsigned int maxSplits = 0);
 
-		/** Converts all the characters in the string to lower case. */
+		/** Converts all the characters in the string to lower case. Does not handle UTF8 encoded strings. */
 		static void toLowerCase(String& str);
 
-		/** Converts all the characters in the string to lower case. */
+		/** Converts all the characters in the string to lower case. Does not handle UTF8 encoded strings. */
 		static void toLowerCase(WString& str);
 
-		/** Converts all the characters in the string to upper case. */
+		/** Converts all the characters in the string to upper case. Does not handle UTF8 encoded strings. */
 		static void toUpperCase(String& str);
 
-		/**	Converts all the characters in the string to upper case. */
+		/**	Converts all the characters in the string to upper case. Does not handle UTF8 encoded strings. */
 		static void toUpperCase(WString& str);
 
 		/**
@@ -180,6 +182,7 @@ namespace bs
 		 * @param[in]	lhs				Left string to compare.
 		 * @param[in]	rhs				Right string to compare.
 		 * @param[in]	caseSensitive	If true the comparison will consider uppercase and lowercase characters different.
+		 *								Note that case conversion does not handle UTF8 strings.
 		 */
 		template <class T>
 		static int compare(const BasicString<T>& lhs, const BasicString<T>& rhs, bool caseSensitive = true)

@@ -139,7 +139,7 @@ namespace bs
 		mono_thread_set_main(mono_thread_current());
 
 		// Load corlib
-		mCorlibAssembly = new (bs_alloc<MonoAssembly>()) MonoAssembly(L"corlib", "corlib");
+		mCorlibAssembly = new (bs_alloc<MonoAssembly>()) MonoAssembly("corlib", "corlib");
 		mCorlibAssembly->loadFromImage(mono_get_corlib());
 
 		mAssemblies["corlib"] = mCorlibAssembly;
@@ -167,7 +167,7 @@ namespace bs
 		getScriptMetaData().clear();
 	}
 
-	MonoAssembly& MonoManager::loadAssembly(const WString& path, const String& name)
+	MonoAssembly& MonoManager::loadAssembly(const String& path, const String& name)
 	{
 		MonoAssembly* assembly = nullptr;
 

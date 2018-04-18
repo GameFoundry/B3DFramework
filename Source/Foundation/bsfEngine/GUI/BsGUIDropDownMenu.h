@@ -18,7 +18,7 @@ namespace bs
 	{
 		Vector<GUIDropDownDataEntry> entries;
 		Vector<bool> states;
-		UnorderedMap<WString, HString> localizedNames;
+		UnorderedMap<String, HString> localizedNames;
 	};
 
 	/**	A set of parameters used for initializing a drop down box. */
@@ -47,11 +47,11 @@ namespace bs
 		static GUIDropDownDataEntry separator();
 
 		/** Creates a new button entry with the specified callback that is triggered when button is selected. */
-		static GUIDropDownDataEntry button(const WString& label, std::function<void()> callback, 
-			const WString& shortcutTag = StringUtil::WBLANK);
+		static GUIDropDownDataEntry button(const String& label, std::function<void()> callback, 
+			const String& shortcutTag = StringUtil::BLANK);
 
 		/** Creates a new sub-menu entry that will open the provided drop down data sub-menu when activated. */
-		static GUIDropDownDataEntry subMenu(const WString& label, const GUIDropDownData& data);
+		static GUIDropDownDataEntry subMenu(const String& label, const GUIDropDownData& data);
 
 		/**	Check is the entry a separator. */
 		bool isSeparator() const { return mType == Type::Separator; }
@@ -60,10 +60,10 @@ namespace bs
 		bool isSubMenu() const { return mType == Type::SubMenu; }
 
 		/**	Returns display label of the entry (if an entry is a button or a sub-menu). */
-		const WString& getLabel() const { return mLabel; }
+		const String& getLabel() const { return mLabel; }
 
 		/**	Returns the shortcut key combination string that is to be displayed along the entry label. */
-		const WString& getShortcutTag() const { return mShortcutTag; }
+		const String& getShortcutTag() const { return mShortcutTag; }
 
 		/**	Returns a button callback if the entry (if an entry is a button). */
 		std::function<void()> getCallback() const { return mCallback; }
@@ -75,8 +75,8 @@ namespace bs
 
 		std::function<void()> mCallback;
 		GUIDropDownData mChildData;
-		WString mLabel;
-		WString mShortcutTag;
+		String mLabel;
+		String mShortcutTag;
 		Type mType; 
 	};
 

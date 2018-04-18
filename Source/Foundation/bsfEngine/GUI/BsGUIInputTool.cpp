@@ -5,6 +5,7 @@
 #include "Math/BsMath.h"
 #include "Math/BsVector2.h"
 #include "Text/BsFont.h"
+#include "String/BsUnicode.h"
 
 namespace bs
 {
@@ -19,12 +20,14 @@ namespace bs
 	{
 		mElement = element;
 		mTextDesc = textDesc;
+		mNumChars = UTF8::count(mTextDesc.text);
 
 		mLineDescs.clear();
 
 		bs_frame_mark();
 		{
-			TextData<FrameAlloc> textData(mTextDesc.text, mTextDesc.font, mTextDesc.fontSize,
+			const U32String utf32text = UTF8::toUTF32(mTextDesc.text);
+			TextData<FrameAlloc> textData(utf32text, mTextDesc.font, mTextDesc.fontSize,
 				mTextDesc.width, mTextDesc.height, mTextDesc.wordWrap, mTextDesc.wordBreak);
 
 			UINT32 numLines = textData.getNumLines();
@@ -202,7 +205,7 @@ namespace bs
 
 	UINT32 GUIInputTool::getCharIdxAtInputIdx(UINT32 inputIdx) const
 	{
-		if(mTextDesc.text.size() == 0)
+		if(mNumChars == 0)
 			return 0;
 
 		UINT32 numLines = getNumLines();
@@ -237,7 +240,7 @@ namespace bs
 
 	bool GUIInputTool::isNewline(UINT32 inputIdx) const
 	{
-		if(mTextDesc.text.size() == 0)
+		if(mNumChars == 0)
 			return true;
 
 		UINT32 numLines = getNumLines();
@@ -258,10 +261,9 @@ namespace bs
 
 	bool GUIInputTool::isNewlineChar(UINT32 charIdx) const
 	{
-		if(mTextDesc.text[charIdx] == '\n')
-			return true;
+		UINT32 byteIdx = UTF8::charToByteIndex(mTextDesc.text, charIdx);
 
-		return false;
+		return mTextDesc.text[byteIdx] == '\n';
 	}
 
 	bool GUIInputTool::isDescValid() const
@@ -269,8 +271,8 @@ namespace bs
 		// We we have some text but line descs are empty we may assume
 		// something went wrong when creating the line descs, therefore it is
 		// not valid and no text is displayed.
-		if(mTextDesc.text.size() > 0)
-			return mLineDescs.size() > 0;
+		if(mNumChars > 0)
+			return !mLineDescs.empty();
 
 		return true;
 	}

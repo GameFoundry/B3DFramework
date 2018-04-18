@@ -88,7 +88,7 @@ namespace bs
 		UINT32 _getRenderElementDepth(UINT32 renderElementIdx) const override;
 
 		/** @copydoc GUIElement::_getTooltip */
-		WString _getTooltip() const override;
+		String _getTooltip() const override;
 
 		/** Creates or destroys the content image sprite depending if there is a content image for the active state. */
 		void refreshContentSprite();

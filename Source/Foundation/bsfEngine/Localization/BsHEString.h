@@ -22,7 +22,7 @@ namespace bs
 		 *
 		 * @param[in]	identifier		String you can use for later referencing the localized string.
 		 */
-		HEString(const WString& identifier);
+		HEString(const String& identifier);
 
 		/**
 		 * Creates a new localized string with the specified identifier in the engine string table and sets the default
@@ -33,7 +33,7 @@ namespace bs
 		 * @param[in]	defaultString	Default string to assign to the specified identifier. Language to which it
 		 *								will be assigned depends on the StringTable::DEFAULT_LANGUAGE value.
 		 */
-		HEString(const WString& identifier, const WString& defaultString);
+		HEString(const String& identifier, const String& defaultString);
 
 		/**	Creates a new empty localized string in the engine string table. */
 		HEString();

@@ -313,11 +313,6 @@ namespace bs
 		return "";
 	}
 
-	WString toWString(const VertexElementSemantic& val)
-	{
-		return toWString(toString(val));
-	}
-
 	namespace ct
 	{
 	UINT32 VertexDeclaration::NextFreeId = 0;

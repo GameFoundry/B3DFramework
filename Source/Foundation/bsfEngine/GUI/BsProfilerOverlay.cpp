@@ -64,15 +64,15 @@ namespace bs
 				ProfilerOverlayInternal::BasicRow& newRow = rows.back();
 
 				newRow.disabled = false;
-				newRow.name = HEString(L"{0}");
-				newRow.pctOfParent = HEString(L"{0} %");
-				newRow.numCalls = HEString(L"{0}");
-				newRow.numAllocs = HEString(L"{0}");
-				newRow.numFrees = HEString(L"{0}");
-				newRow.avgTime = HEString(L"{0}");
-				newRow.totalTime = HEString(L"{0}");
-				newRow.avgTimeSelf = HEString(L"{0}");
-				newRow.totalTimeSelf = HEString(L"{0}");
+				newRow.name = HEString(u8"{0}");
+				newRow.pctOfParent = HEString(u8"{0} %");
+				newRow.numCalls = HEString(u8"{0}");
+				newRow.numAllocs = HEString(u8"{0}");
+				newRow.numFrees = HEString(u8"{0}");
+				newRow.avgTime = HEString(u8"{0}");
+				newRow.totalTime = HEString(u8"{0}");
+				newRow.avgTimeSelf = HEString(u8"{0}");
+				newRow.totalTimeSelf = HEString(u8"{0}");
 
 				newRow.labelLayout = labelLayout.insertNewElement<GUILayoutX>(labelLayout.getNumChildren() - 1); // Insert before flexible space
 				newRow.contentLayout = contentLayout.insertNewElement<GUILayoutX>(contentLayout.getNumChildren() - 1); // Insert before flexible space
@@ -93,15 +93,15 @@ namespace bs
 			ProfilerOverlayInternal::BasicRow& row = rows[curIdx];
 
 			row.labelSpace->setSize(depth * 20);
-			row.name.setParameter(0, toWString(name));
-			row.pctOfParent.setParameter(0, toWString(pctOfParent * 100.0f, 2, 0, ' ', std::ios::fixed));
-			row.numCalls.setParameter(0, toWString(numCalls));
-			row.numAllocs.setParameter(0, toWString(numAllocs));
-			row.numFrees.setParameter(0, toWString(numFrees));
-			row.avgTime.setParameter(0, toWString(avgTime, 2, 0, ' ', std::ios::fixed));
-			row.totalTime.setParameter(0, toWString(totalTime, 2, 0, ' ', std::ios::fixed));
-			row.avgTimeSelf.setParameter(0, toWString(avgSelfTime, 2, 0, ' ', std::ios::fixed));
-			row.totalTimeSelf.setParameter(0, toWString(totalSelfTime, 2, 0, ' ', std::ios::fixed));
+			row.name.setParameter(0, name);
+			row.pctOfParent.setParameter(0, toString(pctOfParent * 100.0f, 2, 0, ' ', std::ios::fixed));
+			row.numCalls.setParameter(0, toString(numCalls));
+			row.numAllocs.setParameter(0, toString(numAllocs));
+			row.numFrees.setParameter(0, toString(numFrees));
+			row.avgTime.setParameter(0, toString(avgTime, 2, 0, ' ', std::ios::fixed));
+			row.totalTime.setParameter(0, toString(totalTime, 2, 0, ' ', std::ios::fixed));
+			row.avgTimeSelf.setParameter(0, toString(avgSelfTime, 2, 0, ' ', std::ios::fixed));
+			row.totalTimeSelf.setParameter(0, toString(totalSelfTime, 2, 0, ' ', std::ios::fixed));
 
 			row.guiName->setContent(row.name);
 			row.guiPctOfParent->setContent(row.pctOfParent);
@@ -165,15 +165,15 @@ namespace bs
 				ProfilerOverlayInternal::PreciseRow& newRow = rows.back();
 
 				newRow.disabled = false;
-				newRow.name = HEString(L"{0}");
-				newRow.pctOfParent = HEString(L"{0}");
-				newRow.numCalls = HEString(L"{0}");
-				newRow.numAllocs = HEString(L"{0}");
-				newRow.numFrees = HEString(L"{0}");
-				newRow.avgCycles = HEString(L"{0}");
-				newRow.totalCycles = HEString(L"{0}");
-				newRow.avgCyclesSelf = HEString(L"{0}");
-				newRow.totalCyclesSelf = HEString(L"{0}");
+				newRow.name = HEString(u8"{0}");
+				newRow.pctOfParent = HEString(u8"{0}");
+				newRow.numCalls = HEString(u8"{0}");
+				newRow.numAllocs = HEString(u8"{0}");
+				newRow.numFrees = HEString(u8"{0}");
+				newRow.avgCycles = HEString(u8"{0}");
+				newRow.totalCycles = HEString(u8"{0}");
+				newRow.avgCyclesSelf = HEString(u8"{0}");
+				newRow.totalCyclesSelf = HEString(u8"{0}");
 
 				newRow.labelLayout = labelLayout.insertNewElement<GUILayoutX>(labelLayout.getNumChildren() - 1); // Insert before flexible space
 				newRow.contentLayout = contentLayout.insertNewElement<GUILayoutX>(contentLayout.getNumChildren() - 1); // Insert before flexible space
@@ -194,15 +194,15 @@ namespace bs
 			ProfilerOverlayInternal::PreciseRow& row = rows[curIdx];
 
 			row.labelSpace->setSize(depth * 20);
-			row.name.setParameter(0, toWString(name));
-			row.pctOfParent.setParameter(0, toWString(pctOfParent * 100.0f, 2, 0, ' ', std::ios::fixed));
-			row.numCalls.setParameter(0, toWString(numCalls));
-			row.numAllocs.setParameter(0, toWString(numAllocs));
-			row.numFrees.setParameter(0, toWString(numFrees));
-			row.avgCycles.setParameter(0, toWString(avgCycles));
-			row.totalCycles.setParameter(0, toWString(totalCycles));
-			row.avgCyclesSelf.setParameter(0, toWString(avgSelfCycles));
-			row.totalCyclesSelf.setParameter(0, toWString(totalSelfCycles));
+			row.name.setParameter(0, name);
+			row.pctOfParent.setParameter(0, toString(pctOfParent * 100.0f, 2, 0, ' ', std::ios::fixed));
+			row.numCalls.setParameter(0, toString(numCalls));
+			row.numAllocs.setParameter(0, toString(numAllocs));
+			row.numFrees.setParameter(0, toString(numFrees));
+			row.avgCycles.setParameter(0, toString(avgCycles));
+			row.totalCycles.setParameter(0, toString(totalCycles));
+			row.avgCyclesSelf.setParameter(0, toString(avgSelfCycles));
+			row.totalCyclesSelf.setParameter(0, toString(totalSelfCycles));
 
 			row.guiName->setContent(row.name);
 			row.guiPctOfParent->setContent(row.pctOfParent);
@@ -263,8 +263,8 @@ namespace bs
 				ProfilerOverlayInternal::GPUSampleRow& newRow = rows.back();
 
 				newRow.disabled = false;
-				newRow.name = HEString(L"{1}");
-				newRow.time = HEString(L"{0}");
+				newRow.name = HEString(u8"{1}");
+				newRow.time = HEString(u8"{0}");
 
 				newRow.layout = layout.insertNewElement<GUILayoutX>(layout.getNumChildren());
 
@@ -273,8 +273,8 @@ namespace bs
 			}
 
 			ProfilerOverlayInternal::GPUSampleRow& row = rows[curIdx];
-			row.name.setParameter(0, toWString(name));
-			row.time.setParameter(0, toWString(timeMs));
+			row.name.setParameter(0, name);
+			row.time.setParameter(0, toString(timeMs));
 
 			row.guiName->setContent(row.name);
 			row.guiTime->setContent(row.time);
@@ -377,25 +377,25 @@ namespace bs
 		mPreciseLayoutContents = mWidget->getPanel()->addNewElement<GUILayoutY>();
 
 		// Set up CPU sample title bars
-		mTitleBasicName = GUILabel::create(HEString(L"Name"), GUIOptions(GUIOption::fixedWidth(200)));
-		mTitleBasicPctOfParent = GUILabel::create(HEString(L"% parent"), GUIOptions(GUIOption::fixedWidth(50)));
-		mTitleBasicNumCalls = GUILabel::create(HEString(L"# calls"), GUIOptions(GUIOption::fixedWidth(50)));
-		mTitleBasicNumAllocs = GUILabel::create(HEString(L"# allocs"), GUIOptions(GUIOption::fixedWidth(50)));
-		mTitleBasicNumFrees = GUILabel::create(HEString(L"# frees"), GUIOptions(GUIOption::fixedWidth(50)));
-		mTitleBasicAvgTime = GUILabel::create(HEString(L"Avg. time"), GUIOptions(GUIOption::fixedWidth(60)));
-		mTitleBasicTotalTime = GUILabel::create(HEString(L"Total time"), GUIOptions(GUIOption::fixedWidth(60)));
-		mTitleBasicAvgTitleSelf = GUILabel::create(HEString(L"Avg. self time"), GUIOptions(GUIOption::fixedWidth(100)));
-		mTitleBasicTotalTimeSelf = GUILabel::create(HEString(L"Total self time"), GUIOptions(GUIOption::fixedWidth(100)));
+		mTitleBasicName = GUILabel::create(HEString(u8"Name"), GUIOptions(GUIOption::fixedWidth(200)));
+		mTitleBasicPctOfParent = GUILabel::create(HEString(u8"% parent"), GUIOptions(GUIOption::fixedWidth(50)));
+		mTitleBasicNumCalls = GUILabel::create(HEString(u8"# calls"), GUIOptions(GUIOption::fixedWidth(50)));
+		mTitleBasicNumAllocs = GUILabel::create(HEString(u8"# allocs"), GUIOptions(GUIOption::fixedWidth(50)));
+		mTitleBasicNumFrees = GUILabel::create(HEString(u8"# frees"), GUIOptions(GUIOption::fixedWidth(50)));
+		mTitleBasicAvgTime = GUILabel::create(HEString(u8"Avg. time"), GUIOptions(GUIOption::fixedWidth(60)));
+		mTitleBasicTotalTime = GUILabel::create(HEString(u8"Total time"), GUIOptions(GUIOption::fixedWidth(60)));
+		mTitleBasicAvgTitleSelf = GUILabel::create(HEString(u8"Avg. self time"), GUIOptions(GUIOption::fixedWidth(100)));
+		mTitleBasicTotalTimeSelf = GUILabel::create(HEString(u8"Total self time"), GUIOptions(GUIOption::fixedWidth(100)));
 
-		mTitlePreciseName = GUILabel::create(HEString(L"Name"), GUIOptions(GUIOption::fixedWidth(200)));
-		mTitlePrecisePctOfParent = GUILabel::create(HEString(L"% parent"), GUIOptions(GUIOption::fixedWidth(50)));
-		mTitlePreciseNumCalls = GUILabel::create(HEString(L"# calls"), GUIOptions(GUIOption::fixedWidth(50)));
-		mTitlePreciseNumAllocs = GUILabel::create(HEString(L"# allocs"), GUIOptions(GUIOption::fixedWidth(50)));
-		mTitlePreciseNumFrees = GUILabel::create(HEString(L"# frees"), GUIOptions(GUIOption::fixedWidth(50)));
-		mTitlePreciseAvgCycles = GUILabel::create(HEString(L"Avg. cycles"), GUIOptions(GUIOption::fixedWidth(60)));
-		mTitlePreciseTotalCycles = GUILabel::create(HEString(L"Total cycles"), GUIOptions(GUIOption::fixedWidth(60)));
-		mTitlePreciseAvgCyclesSelf = GUILabel::create(HEString(L"Avg. self cycles"), GUIOptions(GUIOption::fixedWidth(100)));
-		mTitlePreciseTotalCyclesSelf = GUILabel::create(HEString(L"Total self cycles"), GUIOptions(GUIOption::fixedWidth(100)));
+		mTitlePreciseName = GUILabel::create(HEString(u8"Name"), GUIOptions(GUIOption::fixedWidth(200)));
+		mTitlePrecisePctOfParent = GUILabel::create(HEString(u8"% parent"), GUIOptions(GUIOption::fixedWidth(50)));
+		mTitlePreciseNumCalls = GUILabel::create(HEString(u8"# calls"), GUIOptions(GUIOption::fixedWidth(50)));
+		mTitlePreciseNumAllocs = GUILabel::create(HEString(u8"# allocs"), GUIOptions(GUIOption::fixedWidth(50)));
+		mTitlePreciseNumFrees = GUILabel::create(HEString(u8"# frees"), GUIOptions(GUIOption::fixedWidth(50)));
+		mTitlePreciseAvgCycles = GUILabel::create(HEString(u8"Avg. cycles"), GUIOptions(GUIOption::fixedWidth(60)));
+		mTitlePreciseTotalCycles = GUILabel::create(HEString(u8"Total cycles"), GUIOptions(GUIOption::fixedWidth(60)));
+		mTitlePreciseAvgCyclesSelf = GUILabel::create(HEString(u8"Avg. self cycles"), GUIOptions(GUIOption::fixedWidth(100)));
+		mTitlePreciseTotalCyclesSelf = GUILabel::create(HEString(u8"Total self cycles"), GUIOptions(GUIOption::fixedWidth(100)));
 
 		GUILayout* basicTitleLabelLayout = mBasicLayoutLabels->addNewElement<GUILayoutX>();
 		GUILayout* preciseTitleLabelLayout = mPreciseLayoutLabels->addNewElement<GUILayoutX>();
@@ -443,35 +443,35 @@ namespace bs
 		mGPULayoutSampleContents = mGPULayoutSamples->addNewElement<GUILayoutY>();
 		mGPULayoutSamples->addNewElement<GUIFlexibleSpace>();
 
-		HString gpuSamplesStr(L"__ProfOvGPUSamples", L"Samples");
+		HString gpuSamplesStr(u8"__ProfOvGPUSamples", u8"Samples");
 		gpuSampleTitle->addElement(GUILabel::create(gpuSamplesStr));
 		gpuSampleTitle->addNewElement<GUIFixedSpace>(20);
 
 		GUILayout* gpuSampleTitleRow = gpuSampleTitle->addNewElement<GUILayoutX>();
 
-		HString gpuSamplesNameStr(L"__ProfOvGPUSampName", L"Name");
-		HString gpuSamplesTimeStr(L"__ProfOvGPUSampTime", L"Time");
+		HString gpuSamplesNameStr(u8"__ProfOvGPUSampName", u8"Name");
+		HString gpuSamplesTimeStr(u8"__ProfOvGPUSampTime", u8"Time");
 		gpuSampleTitleRow->addElement(GUILabel::create(gpuSamplesNameStr, GUIOptions(GUIOption::fixedWidth(100))));
 		gpuSampleTitleRow->addElement(GUILabel::create(gpuSamplesTimeStr, GUIOptions(GUIOption::fixedWidth(100))));
 
-		mGPUFrameNumStr = HEString(L"__ProfOvFrame", L"Frame #{0}");
-		mGPUTimeStr = HEString(L"__ProfOvTime", L"Time: {0}ms");
-		mGPUDrawCallsStr = HEString(L"__ProfOvDrawCalls", L"Draw calls: {0}");
-		mGPURenTargetChangesStr = HEString(L"__ProfOvRTChanges", L"Render target changes: {0}");
-		mGPUPresentsStr = HEString(L"__ProfOvPresents", L"Presents: {0}");
-		mGPUClearsStr = HEString(L"__ProfOvClears", L"Clears: {0}");
-		mGPUVerticesStr = HEString(L"__ProfOvVertices", L"Num. vertices: {0}");
-		mGPUPrimitivesStr = HEString(L"__ProfOvPrimitives", L"Num. primitives: {0}");
-		mGPUSamplesStr = HEString(L"__ProfOvSamples", L"Samples drawn: {0}");
-		mGPUPipelineStateChangesStr = HEString(L"__ProfOvPSChanges", L"Pipeline state changes: {0}");
+		mGPUFrameNumStr = HEString(u8"__ProfOvFrame", u8"Frame #{0}");
+		mGPUTimeStr = HEString(u8"__ProfOvTime", u8"Time: {0}ms");
+		mGPUDrawCallsStr = HEString(u8"__ProfOvDrawCalls", u8"Draw calls: {0}");
+		mGPURenTargetChangesStr = HEString(u8"__ProfOvRTChanges", u8"Render target changes: {0}");
+		mGPUPresentsStr = HEString(u8"__ProfOvPresents", u8"Presents: {0}");
+		mGPUClearsStr = HEString(u8"__ProfOvClears", u8"Clears: {0}");
+		mGPUVerticesStr = HEString(u8"__ProfOvVertices", u8"Num. vertices: {0}");
+		mGPUPrimitivesStr = HEString(u8"__ProfOvPrimitives", u8"Num. primitives: {0}");
+		mGPUSamplesStr = HEString(u8"__ProfOvSamples", u8"Samples drawn: {0}");
+		mGPUPipelineStateChangesStr = HEString(u8"__ProfOvPSChanges", u8"Pipeline state changes: {0}");
 
-		mGPUObjectsCreatedStr = HEString(L"__ProfOvObjsCreated", L"Objects created: {0}");
-		mGPUObjectsDestroyedStr = HEString(L"__ProfOvObjsDestroyed", L"Objects destroyed: {0}");
-		mGPUResourceWritesStr = HEString(L"__ProfOvResWrites", L"Resource writes: {0}");
-		mGPUResourceReadsStr = HEString(L"__ProfOvResReads", L"Resource reads: {0}");
-		mGPUParamBindsStr = HEString(L"__ProfOvGpuParamBinds", L"GPU parameter binds: {0}");
-		mGPUVertexBufferBindsStr = HEString(L"__ProfOvVBBinds", L"VB binds: {0}");
-		mGPUIndexBufferBindsStr = HEString(L"__ProfOvIBBinds", L"IB binds: {0}");
+		mGPUObjectsCreatedStr = HEString(u8"__ProfOvObjsCreated", u8"Objects created: {0}");
+		mGPUObjectsDestroyedStr = HEString(u8"__ProfOvObjsDestroyed", u8"Objects destroyed: {0}");
+		mGPUResourceWritesStr = HEString(u8"__ProfOvResWrites", u8"Resource writes: {0}");
+		mGPUResourceReadsStr = HEString(u8"__ProfOvResReads", u8"Resource reads: {0}");
+		mGPUParamBindsStr = HEString(u8"__ProfOvGpuParamBinds", u8"GPU parameter binds: {0}");
+		mGPUVertexBufferBindsStr = HEString(u8"__ProfOvVBBinds", u8"VB binds: {0}");
+		mGPUIndexBufferBindsStr = HEString(u8"__ProfOvIBBinds", u8"IB binds: {0}");
 
 		mGPUFrameNumLbl = GUILabel::create(mGPUFrameNumStr, GUIOptions(GUIOption::fixedWidth(200)));
 		mGPUTimeLbl = GUILabel::create(mGPUTimeStr, GUIOptions(GUIOption::fixedWidth(200)));
@@ -726,24 +726,24 @@ namespace bs
 
 	void ProfilerOverlayInternal::updateGPUSampleContents(const GPUProfilerReport& gpuReport)
 	{
-		mGPUFrameNumStr.setParameter(0, toWString((UINT64)gTime().getFrameIdx()));
-		mGPUTimeStr.setParameter(0, toWString(gpuReport.frameSample.timeMs));
-		mGPUDrawCallsStr.setParameter(0, toWString(gpuReport.frameSample.numDrawCalls));
-		mGPURenTargetChangesStr.setParameter(0, toWString(gpuReport.frameSample.numRenderTargetChanges));
-		mGPUPresentsStr.setParameter(0, toWString(gpuReport.frameSample.numPresents));
-		mGPUClearsStr.setParameter(0, toWString(gpuReport.frameSample.numClears));
-		mGPUVerticesStr.setParameter(0, toWString(gpuReport.frameSample.numVertices));
-		mGPUPrimitivesStr.setParameter(0, toWString(gpuReport.frameSample.numPrimitives));
-		mGPUSamplesStr.setParameter(0, toWString(gpuReport.frameSample.numDrawnSamples));
-		mGPUPipelineStateChangesStr.setParameter(0, toWString(gpuReport.frameSample.numPipelineStateChanges));
+		mGPUFrameNumStr.setParameter(0, toString((UINT64)gTime().getFrameIdx()));
+		mGPUTimeStr.setParameter(0, toString(gpuReport.frameSample.timeMs));
+		mGPUDrawCallsStr.setParameter(0, toString(gpuReport.frameSample.numDrawCalls));
+		mGPURenTargetChangesStr.setParameter(0, toString(gpuReport.frameSample.numRenderTargetChanges));
+		mGPUPresentsStr.setParameter(0, toString(gpuReport.frameSample.numPresents));
+		mGPUClearsStr.setParameter(0, toString(gpuReport.frameSample.numClears));
+		mGPUVerticesStr.setParameter(0, toString(gpuReport.frameSample.numVertices));
+		mGPUPrimitivesStr.setParameter(0, toString(gpuReport.frameSample.numPrimitives));
+		mGPUSamplesStr.setParameter(0, toString(gpuReport.frameSample.numDrawnSamples));
+		mGPUPipelineStateChangesStr.setParameter(0, toString(gpuReport.frameSample.numPipelineStateChanges));
 
-		mGPUObjectsCreatedStr.setParameter(0, toWString(gpuReport.frameSample.numObjectsCreated));
-		mGPUObjectsDestroyedStr.setParameter(0, toWString(gpuReport.frameSample.numObjectsDestroyed));
-		mGPUResourceWritesStr.setParameter(0, toWString(gpuReport.frameSample.numResourceWrites));
-		mGPUResourceReadsStr.setParameter(0, toWString(gpuReport.frameSample.numResourceReads));
-		mGPUParamBindsStr.setParameter(0, toWString(gpuReport.frameSample.numGpuParamBinds));
-		mGPUVertexBufferBindsStr.setParameter(0, toWString(gpuReport.frameSample.numVertexBufferBinds));
-		mGPUIndexBufferBindsStr.setParameter(0, toWString(gpuReport.frameSample.numIndexBufferBinds));
+		mGPUObjectsCreatedStr.setParameter(0, toString(gpuReport.frameSample.numObjectsCreated));
+		mGPUObjectsDestroyedStr.setParameter(0, toString(gpuReport.frameSample.numObjectsDestroyed));
+		mGPUResourceWritesStr.setParameter(0, toString(gpuReport.frameSample.numResourceWrites));
+		mGPUResourceReadsStr.setParameter(0, toString(gpuReport.frameSample.numResourceReads));
+		mGPUParamBindsStr.setParameter(0, toString(gpuReport.frameSample.numGpuParamBinds));
+		mGPUVertexBufferBindsStr.setParameter(0, toString(gpuReport.frameSample.numVertexBufferBinds));
+		mGPUIndexBufferBindsStr.setParameter(0, toString(gpuReport.frameSample.numIndexBufferBinds));
 
 		mGPUFrameNumLbl->setContent(mGPUFrameNumStr);
 		mGPUTimeLbl->setContent(mGPUTimeStr);

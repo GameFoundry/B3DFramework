@@ -242,7 +242,7 @@ namespace bs
 		 *
 		 * @note	Thread safe.
 		 */
-		static void copyToClipboard(const WString& string);
+		static void copyToClipboard(const String& string);
 
 		/**
 		 * Reads a string from the clipboard and returns it. If there is no string in the clipboard it returns an empty
@@ -253,7 +253,7 @@ namespace bs
 		 * @note
 		 * Thread safe.
 		 */
-		static WString copyFromClipboard();
+		static String copyFromClipboard();
 
 		/**
 		 * Converts a keyboard key-code to a Unicode character.
@@ -262,7 +262,7 @@ namespace bs
 		 * Normally this will output a single character, but it can happen it outputs multiple in case a accent/diacritic
 		 * character could not be combined with the virtual key into a single character.
 		 */
-		static WString keyCodeToUnicode(UINT32 keyCode);
+		static String keyCodeToUnicode(UINT32 keyCode);
 
 		/**
 		 * Message pump. Processes OS messages and returns when it's free.

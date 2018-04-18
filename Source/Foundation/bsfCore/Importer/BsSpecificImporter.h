@@ -16,7 +16,7 @@ namespace bs
 	 */
 	struct SubResourceRaw
 	{
-		WString name; /**< Unique name of the sub-resource. */
+		String name; /**< Unique name of the sub-resource. */
 		SPtr<Resource> value; /**< Contents of the sub-resource. */
 	};
 

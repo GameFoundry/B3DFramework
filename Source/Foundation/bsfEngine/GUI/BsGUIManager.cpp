@@ -229,7 +229,7 @@ namespace bs
 			{
 				for(auto& entry : mElementsUnderPointer)
 				{
-					const WString& tooltipText = entry.element->_getTooltip();
+					const String& tooltipText = entry.element->_getTooltip();
 					GUIWidget* parentWidget = entry.element->_getParentWidget();
 
 					if (!tooltipText.empty() && parentWidget != nullptr)

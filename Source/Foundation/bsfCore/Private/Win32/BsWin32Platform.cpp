@@ -330,13 +330,15 @@ namespace bs
 		}
 	}
 
-	void Platform::copyToClipboard(const WString& string)
+	void Platform::copyToClipboard(const String& string)
 	{
-		HANDLE hData = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, (string.size() + 1) * sizeof(WString::value_type));
+		WString wideString = UTF8::toWide(string);
+
+		HANDLE hData = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, (wideString.size() + 1) * sizeof(WString::value_type));
 		WString::value_type* buffer = (WString::value_type*)GlobalLock(hData);
 
-		string.copy(buffer, string.size());
-		buffer[string.size()] = '\0';
+		wideString.copy(buffer, wideString.size());
+		buffer[wideString.size()] = '\0';
 
 		GlobalUnlock(hData);
 
@@ -352,7 +354,7 @@ namespace bs
 		}
 	}
 
-	WString Platform::copyFromClipboard()
+	String Platform::copyFromClipboard()
 	{
 		if (OpenClipboard(NULL))
 		{
@@ -361,23 +363,23 @@ namespace bs
 			if (hData != NULL)
 			{
 				WString::value_type* buffer = (WString::value_type*)GlobalLock(hData);
-				WString string(buffer);
+				WString wideString(buffer);
 				GlobalUnlock(hData);
 
 				CloseClipboard();
-				return string;
+				return UTF8::fromWide(wideString);
 			}
 			else
 			{
 				CloseClipboard();
-				return L"";
+				return u8"";
 			}
 		}
 
-		return L"";
+		return u8"";
 	}
 
-	WString Platform::keyCodeToUnicode(UINT32 keyCode)
+	String Platform::keyCodeToUnicode(UINT32 keyCode)
 	{
 		static HKL keyboardLayout = GetKeyboardLayout(0);
 		static UINT8 keyboarState[256];
@@ -390,9 +392,9 @@ namespace bs
 		wchar_t output[2];
 		int count = ToUnicodeEx(virtualKey, keyCode, keyboarState, output, 2, 0, keyboardLayout);
 		if (count > 0)
-			return WString(output, count);
+			return UTF8::fromWide(WString(output, count));
 
-		return StringUtil::WBLANK;
+		return StringUtil::BLANK;
 	}
 
 	void Platform::openFolder(const Path& path)

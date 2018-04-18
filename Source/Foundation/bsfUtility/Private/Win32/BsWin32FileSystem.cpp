@@ -83,7 +83,7 @@ namespace bs
 			if (n > 0 && n <= len)
 			{
 				WString result(buffer);
-				if (result[result.size() - 1] != '\\')
+				if (result[result.size() - 1] != L'\\')
 					result.append(L"\\");
 
 				bs_free(buffer);
@@ -107,7 +107,7 @@ namespace bs
 			if (n > 0 && n <= len)
 			{
 				WString result(buffer);
-				if (result[result.size() - 1] != '\\')
+				if (result[result.size() - 1] != L'\\')
 					result.append(L"\\");
 
 				bs_free(buffer);

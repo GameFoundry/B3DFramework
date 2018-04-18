@@ -179,7 +179,7 @@ namespace bs
 		_markContentAsDirty();
 	}
 
-	void GUICanvas::drawText(const WString& text, const Vector2I& position, const HFont& font, UINT32 size, 
+	void GUICanvas::drawText(const String& text, const Vector2I& position, const HFont& font, UINT32 size, 
 		const Color& color, UINT8 depth)
 	{
 		mElements.push_back(CanvasElement());

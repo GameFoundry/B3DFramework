@@ -31,7 +31,7 @@ namespace bs
 		bool isValid() const { return button != BC_UNASSIGNED; }
 
 		/**	Returns a readable name of the shortcut key (for example "Shift + F"). */
-		WString getName() const;
+		String getName() const;
 
 		ButtonModifier modifier;
 		ButtonCode button;

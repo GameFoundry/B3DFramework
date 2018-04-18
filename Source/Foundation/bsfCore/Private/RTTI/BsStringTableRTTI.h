@@ -24,8 +24,8 @@ namespace bs
 		UINT32 getNumLanguages(StringTable* obj) { return (UINT32)Language::Count; }
 		void setNumLanguages(StringTable* obj, UINT32 val) { /* Do nothing */ }
 
-		UnorderedSet<WString>& getIdentifiers(StringTable* obj) { return obj->mIdentifiers; }
-		void setIdentifiers(StringTable* obj, UnorderedSet<WString>& val) { obj->mIdentifiers = val; }
+		UnorderedSet<String>& getIdentifiers(StringTable* obj) { return obj->mIdentifiers; }
+		void setIdentifiers(StringTable* obj, UnorderedSet<String>& val) { obj->mIdentifiers = val; }
 
 	public:
 		StringTableRTTI()
@@ -100,7 +100,7 @@ namespace bs
 			data.strings.clear();
 			for (UINT32 i = 0; i < numElements; i++)
 			{
-				WString identifier;
+				String identifier;
 				memory = rttiReadElem(identifier, memory);
 
 				SPtr<LocalizedStringData> entryData = bs_shared_ptr_new<LocalizedStringData>();

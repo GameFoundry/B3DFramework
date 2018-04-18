@@ -11,7 +11,7 @@ namespace bs
 		hide();
 	}
 
-	void GUITooltipManager::show(const GUIWidget& widget, const Vector2I& position, const WString& text)
+	void GUITooltipManager::show(const GUIWidget& widget, const Vector2I& position, const String& text)
 	{
 		hide();
 

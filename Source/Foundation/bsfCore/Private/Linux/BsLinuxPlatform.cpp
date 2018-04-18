@@ -77,7 +77,7 @@ namespace bs
 		Vector<ButtonCode> keyCodeMap; /**< Maps system-specific X11 KeyCode to Banshee ButtonCode. */
 
 		// Clipboard
-		WString clipboardData;
+		String clipboardData;
 
 		// Cursor
 		::Cursor currentCursor = None;
@@ -445,7 +445,7 @@ namespace bs
 		usleep(duration * 1000);
 	}
 
-	void Platform::copyToClipboard(const WString& string)
+	void Platform::copyToClipboard(const String& string)
 	{
 		Lock lock(mData->lock);
 		mData->clipboardData = string;
@@ -454,14 +454,14 @@ namespace bs
 		XSetSelectionOwner(mData->xDisplay, clipboardAtom, mData->mainXWindow, CurrentTime);
 	}
 
-	WString Platform::copyFromClipboard()
+	String Platform::copyFromClipboard()
 	{
 		Lock lock(mData->lock);
 		Atom clipboardAtom = XInternAtom(mData->xDisplay, "CLIPBOARD", 0);
 		::Window selOwner = XGetSelectionOwner(mData->xDisplay, clipboardAtom);
 
 		if(selOwner == None)
-			return L"";
+			return "";
 
 		if(selOwner == mData->mainXWindow)
 			return mData->clipboardData;
@@ -497,12 +497,12 @@ namespace bs
 					&unused, &data);
 
 			if(result == Success)
-				return UTF8::toWide(String((const char*)data));
+				return String((const char*)data);
 
 			XFree(data);
 		}
 
-		return L"";
+		return "";
 	}
 
 	/** Maps X11 mouse button codes to Banshee button codes. */
@@ -673,7 +673,7 @@ namespace bs
 		return nullptr;
 	}
 
-	WString Platform::keyCodeToUnicode(UINT32 buttonCode)
+	String Platform::keyCodeToUnicode(UINT32 buttonCode)
 	{
 		Lock lock(mData->lock);
 
@@ -681,14 +681,14 @@ namespace bs
 		if(keyName == nullptr)
 		{
 			// Not a printable key
-			return L"";
+			return "";
 		}
 
 		auto iterFind = mData->keyNameMap.find(String(keyName));
 		if(iterFind == mData->keyNameMap.end())
 		{
 			// Cannot find mapping, although this shouldn't really happen
-			return L"";
+			return "";
 		}
 
 		XKeyPressedEvent event;
@@ -708,10 +708,10 @@ namespace bs
 		{
 			buffer[length] = '\0';
 
-			return UTF8::toWide(String(buffer));
+			return String(buffer);
 		}
 
-		return L"";
+		return "";
 	}
 
 	void Platform::openFolder(const Path& path)
@@ -1155,7 +1155,7 @@ namespace bs
 				XEvent response;
 				if(selReq.target == XA_STRING || selReq.target == compoundTextAtom || selReq.target == utf8StringAtom)
 				{
-					String utf8data = UTF8::fromWide(mData->clipboardData);
+					String utf8data = mData->clipboardData;
 
 					const UINT8* data = (const UINT8*)utf8data.c_str();
 					INT32 dataLength = (INT32)utf8data.length();

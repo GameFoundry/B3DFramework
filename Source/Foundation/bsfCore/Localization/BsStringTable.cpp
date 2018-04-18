@@ -21,7 +21,7 @@ namespace bs
 			bs_deleteN(parameterOffsets, numParameters);
 	}
 
-	void LocalizedStringData::concatenateString(WString& outputString, WString* parameters, UINT32 numParameterValues) const
+	void LocalizedStringData::concatenateString(String& outputString, String* parameters, UINT32 numParameterValues) const
 	{
 		// A safeguard in case translated strings have different number of parameters
 		UINT32 actualNumParameters = std::min(numParameterValues, numParameters);
@@ -40,34 +40,34 @@ namespace bs
 			totalNumChars += (UINT32)string.size() - prevIdx;
 
 			outputString.resize(totalNumChars);
-			wchar_t* strData = &outputString[0]; // String contiguity required by C++11, but this should work elsewhere as well
+			char* strData = &outputString[0]; // String contiguity required by C++11, but this should work elsewhere as well
 
 			prevIdx = 0;
 			for(UINT32 i = 0; i < actualNumParameters; i++)
 			{
 				UINT32 strSize = parameterOffsets[i].location - prevIdx;
-				memcpy(strData, &string[prevIdx], strSize * sizeof(wchar_t));
+				memcpy(strData, &string[prevIdx], strSize * sizeof(char));
 				strData += strSize;
 
-				WString& param = parameters[parameterOffsets[i].paramIdx];
-				memcpy(strData, &param[0], param.size() * sizeof(wchar_t));
+				String& param = parameters[parameterOffsets[i].paramIdx];
+				memcpy(strData, &param[0], param.size() * sizeof(char));
 				strData += param.size();
 
 				prevIdx = parameterOffsets[i].location;
 			}
 
-			memcpy(strData, &string[prevIdx], (string.size() - prevIdx) * sizeof(wchar_t));
+			memcpy(strData, &string[prevIdx], (string.size() - prevIdx) * sizeof(char));
 		}
 		else
 		{
 			outputString.resize(string.size());
-			wchar_t* strData = &outputString[0]; // String contiguity required by C++11, but this should work elsewhere as well
+			char* strData = &outputString[0]; // String contiguity required by C++11, but this should work elsewhere as well
 
-			memcpy(strData, &string[0], string.size() * sizeof(wchar_t));
+			memcpy(strData, &string[0], string.size() * sizeof(char));
 		}
 	}
 
-	void LocalizedStringData::updateString(const WString& _string)
+	void LocalizedStringData::updateString(const String& _string)
 	{
 		if(parameterOffsets != nullptr)
 			bs_deleteN(parameterOffsets, numParameters);
@@ -75,8 +75,8 @@ namespace bs
 		Vector<ParamOffset> paramOffsets;
 
 		INT32 lastBracket = -1;
-		WStringStream bracketChars;
-		WStringStream cleanString;
+		StringStream bracketChars;
+		StringStream cleanString;
 		bool escaped = false;
 		UINT32 numRemovedChars = 0;
 		for(UINT32 i = 0; i < (UINT32)_string.size(); i++)
@@ -120,7 +120,7 @@ namespace bs
 
 					lastBracket = -1;
 
-					bracketChars.str(L"");
+					bracketChars.str(u8"");
 					bracketChars.clear();
 				}
 			}
@@ -187,21 +187,21 @@ namespace bs
 		mActiveLanguage = language;
 	}
 
-	bool StringTable::contains(const WString& identifier)
+	bool StringTable::contains(const String& identifier)
 	{
 		return mIdentifiers.find(identifier) == mIdentifiers.end();
 	}
 
-	Vector<WString> StringTable::getIdentifiers() const
+	Vector<String> StringTable::getIdentifiers() const
 	{
-		Vector<WString> output;
+		Vector<String> output;
 		for (auto& entry : mIdentifiers)
 			output.push_back(entry);
 
 		return output;
 	}
 
-	void StringTable::setString(const WString& identifier, Language language, const WString& value)
+	void StringTable::setString(const String& identifier, Language language, const String& value)
 	{
 		LanguageData* curLanguage = &(mAllLanguages[(UINT32)language]);
 
@@ -222,7 +222,7 @@ namespace bs
 		stringData->updateString(value);
 	}
 
-	WString StringTable::getString(const WString& identifier, Language language)
+	String StringTable::getString(const String& identifier, Language language)
 	{
 		LanguageData* curLanguage = &(mAllLanguages[(UINT32)language]);
 
@@ -233,7 +233,7 @@ namespace bs
 		return identifier;
 	}
 
-	void StringTable::removeString(const WString& identifier)
+	void StringTable::removeString(const String& identifier)
 	{
 		for(UINT32 i = 0; i < (UINT32)Language::Count; i++)
 		{
@@ -243,12 +243,12 @@ namespace bs
 		mIdentifiers.erase(identifier);
 	}
 
-	SPtr<LocalizedStringData> StringTable::getStringData(const WString& identifier, bool insertIfNonExisting)
+	SPtr<LocalizedStringData> StringTable::getStringData(const String& identifier, bool insertIfNonExisting)
 	{
 		return getStringData(identifier, mActiveLanguage, insertIfNonExisting);
 	}
 
-	SPtr<LocalizedStringData> StringTable::getStringData(const WString& identifier, Language language, bool insertIfNonExisting)
+	SPtr<LocalizedStringData> StringTable::getStringData(const String& identifier, Language language, bool insertIfNonExisting)
 	{
 		LanguageData* curLanguage = &(mAllLanguages[(UINT32)language]);
 

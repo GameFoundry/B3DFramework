@@ -26,7 +26,7 @@ namespace bs
 		 * @param[in]	identifier		String you can use for later referencing the localized string.
 		 * @param[in]	stringTableId	Unique identifier of the string table to retrieve the string from.
 		 */
-		explicit HString(const WString& identifier, UINT32 stringTableId = 0);
+		explicit HString(const String& identifier, UINT32 stringTableId = 0);
 
 		/**
 		 * Creates a new localized string with the specified identifier and sets the default language version of the 
@@ -37,7 +37,7 @@ namespace bs
 		 *								assigned depends on the StringTable::DEFAULT_LANGUAGE value.
 		 * @param[in]	stringTableId	Unique identifier of the string table to retrieve the string from.
 		 */
-		explicit HString(const WString& identifier, const WString& defaultString, UINT32 stringTableId = 0);
+		explicit HString(const String& identifier, const String& defaultString, UINT32 stringTableId = 0);
 
 		/**
 		 * Creates a new empty localized string.
@@ -50,8 +50,8 @@ namespace bs
 
 		HString& operator=(const HString& rhs);
 
-		operator const WString& () const;
-		const WString& getValue() const;
+		operator const String& () const;
+		const String& getValue() const;
 
 		/**
 		 * Sets a value of a string parameter. Parameters are specified as bracketed values within the string itself 
@@ -59,17 +59,17 @@ namespace bs
 		 *
 		 * @note	This is useful for strings that have dynamically changing values, like numbers, embedded in them.
 		 */
-		void setParameter(UINT32 idx, const WString& value);
+		void setParameter(UINT32 idx, const String& value);
 		
 		/** Returns an empty string. */
 		static const HString& dummy();
 	private:
 		SPtr<LocalizedStringData> mStringData;
-		WString* mParameters;
+		String* mParameters;
 
 		mutable bool mIsDirty;
-		mutable WString mCachedString;
-		mutable WString* mStringPtr;
+		mutable String mCachedString;
+		mutable String* mStringPtr;
 	};
 
 	/** @} */

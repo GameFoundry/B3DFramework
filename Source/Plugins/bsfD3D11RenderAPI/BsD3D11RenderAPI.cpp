@@ -1359,7 +1359,8 @@ namespace bs { namespace ct
 		RenderAPIFeatures featureFlags =
 			RenderAPIFeatureFlag::TextureViews |
 			RenderAPIFeatureFlag::Compute | 
-			RenderAPIFeatureFlag::LoadStore;
+			RenderAPIFeatureFlag::LoadStore |
+			RenderAPIFeatureFlag::ByteCodeCaching;
 
 		static RenderAPIInfo info(0.0f, 0.0f, 0.0f, 1.0f, VET_COLOR_ABGR, featureFlags);
 

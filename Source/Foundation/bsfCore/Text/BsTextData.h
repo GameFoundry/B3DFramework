@@ -217,7 +217,7 @@ namespace bs
 		 *
 		 * After this object is constructed you may call various getter methods to get needed information.
 		 */
-		BS_CORE_EXPORT TextDataBase(const WString& text, const HFont& font, UINT32 fontSize,
+		BS_CORE_EXPORT TextDataBase(const U32String& text, const HFont& font, UINT32 fontSize,
 			UINT32 width = 0, UINT32 height = 0, bool wordWrap = false, bool wordBreak = true);
 		BS_CORE_EXPORT virtual ~TextDataBase() { }
 
@@ -258,7 +258,8 @@ namespace bs
 		 *
 		 * @note	Must be called after text data has been constructed and is in the temporary buffers.
 		 */
-		BS_CORE_EXPORT void generatePersistentData(const WString& text, UINT8* buffer, UINT32& size, bool freeTemporary = true);
+		BS_CORE_EXPORT void generatePersistentData(const U32String& text, UINT8* buffer, UINT32& size, 
+			bool freeTemporary = true);
 	private:
 		friend class TextLine;
 
@@ -350,7 +351,7 @@ namespace bs
 	{
 	public:
 		/** @copydoc TextDataBase::TextDataBase */
-		TextData(const WString& text, const HFont& font, UINT32 fontSize,
+		TextData(const U32String& text, const HFont& font, UINT32 fontSize,
 			UINT32 width = 0, UINT32 height = 0, bool wordWrap = false, bool wordBreak = true)
 			:TextDataBase(text, font, fontSize, width, height, wordWrap, wordBreak), mData(nullptr)
 		{

@@ -202,7 +202,9 @@ namespace bs
 		/** If set, the render API supports compute shaders. */
 		Compute					= 1 << 7,
 		/** If set, the render API supports load-store textures or buffers (AKA unordered access (UAV). */
-		LoadStore				= 1 << 8
+		LoadStore				= 1 << 8,
+		/** If set, GpuPrograms can cache shader bytecode for faster future compilation. */
+		ByteCodeCaching			= 1 << 9,
 	};
 
 	typedef Flags<RenderAPIFeatureFlag> RenderAPIFeatures;

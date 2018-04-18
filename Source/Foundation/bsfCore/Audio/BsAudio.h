@@ -15,7 +15,7 @@ namespace bs
 	/** Identifier for a device that can be used for playing audio. */
 	struct BS_SCRIPT_EXPORT(m:Audio,pl:true) AudioDevice
 	{
-		WString name;
+		String name;
 	};
 
 	/** Provides global functionality relating to sounds and music. */

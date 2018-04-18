@@ -39,7 +39,7 @@ namespace bs
 		UINT32 height; /**< Height of the bounds to render the text within, in pixels. */
 		SpriteAnchor anchor; /**< Determines how to anchor the text within the bounds. */
 
-		WString text; /**< Text to generate geometry for. */
+		String text; /**< UTF-8 encoded text to generate geometry for. */
 		HFont font; /**< Font containing the data about character glyphs. */
 		UINT32 fontSize; /**< Size of the font to use when displaying the text. */
 		Color color; /**< Color tint of the text. */

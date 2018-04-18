@@ -34,7 +34,7 @@ namespace bs
 		return data;
 	}
 
-	GUIDropDownDataEntry GUIDropDownDataEntry::button(const WString& label, std::function<void()> callback, const WString& shortcutTag)
+	GUIDropDownDataEntry GUIDropDownDataEntry::button(const String& label, std::function<void()> callback, const String& shortcutTag)
 	{
 		GUIDropDownDataEntry data;
 		data.mLabel = label;
@@ -45,7 +45,7 @@ namespace bs
 		return data;
 	}
 
-	GUIDropDownDataEntry GUIDropDownDataEntry::subMenu(const WString& label, const GUIDropDownData& data)
+	GUIDropDownDataEntry GUIDropDownDataEntry::subMenu(const String& label, const GUIDropDownData& data)
 	{
 		GUIDropDownDataEntry dataEntry;
 		dataEntry.mLabel = label;
@@ -355,10 +355,10 @@ namespace bs
 			{
 				mSidebarPanel = mOwner->getPanel()->addNewElement<GUIPanel>();
 
-				mScrollUpBtn = GUIButton::create(HString(L""), mOwner->mScrollUpStyle);
+				mScrollUpBtn = GUIButton::create(HString(""), mOwner->mScrollUpStyle);
 				mScrollUpBtn->onClick.connect(std::bind(&DropDownSubMenu::scrollUp, this));
 
-				mScrollDownBtn = GUIButton::create(HString(L""), mOwner->mScrollDownStyle);
+				mScrollDownBtn = GUIButton::create(HString(""), mOwner->mScrollDownStyle);
 				mScrollDownBtn->onClick.connect(std::bind(&DropDownSubMenu::scrollDown, this));
 
 				mHandle = GUITexture::create(mOwner->mHandleStyle);

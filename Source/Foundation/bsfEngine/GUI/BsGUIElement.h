@@ -238,7 +238,7 @@ namespace bs
 		virtual SPtr<GUIContextMenu> _getContextMenu() const;
 
 		/**	Returns text to display when hovering over the element. Returns empty string if no tooltip. */
-		virtual WString _getTooltip() const { return StringUtil::WBLANK; }
+		virtual String _getTooltip() const { return StringUtil::BLANK; }
 
 		/**	Returns a clip rectangle relative to the element, used for offsetting the input text. */
 		virtual Vector2I _getTextInputOffset() const { return Vector2I(); }

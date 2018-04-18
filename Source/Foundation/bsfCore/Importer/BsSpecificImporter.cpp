@@ -12,7 +12,7 @@ namespace bs
 		if (resource == nullptr)
 			return Vector<SubResourceRaw>();
 
-		return { { L"primary", resource } };;
+		return { { u8"primary", resource } };;
 	}
 
 	SPtr<ImportOptions> SpecificImporter::createImportOptions() const

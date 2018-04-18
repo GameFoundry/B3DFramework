@@ -47,7 +47,7 @@ namespace bs
 		 * @param[in]	style			Style to use for determining size constraints.
 		 * @param[in]	dimensions		Dimension constraints of a GUI element.
 		 */
-		static Vector2I calcOptimalContentsSize(const WString& text, const GUIElementStyle& style, 
+		static Vector2I calcOptimalContentsSize(const String& text, const GUIElementStyle& style, 
 			const GUIDimensions& dimensions);
 
 		/**
@@ -59,7 +59,7 @@ namespace bs
 		 * @param[in]	fontSize		Size of individual characters in the font, in points.
 		 * @return						Width/height required to display the text, in pixels.
 		 */
-		static Vector2I calcTextSize(const WString& text, const HFont& font, UINT32 fontSize);
+		static Vector2I calcTextSize(const String& text, const HFont& font, UINT32 fontSize);
 	};
 
 	/** @} */

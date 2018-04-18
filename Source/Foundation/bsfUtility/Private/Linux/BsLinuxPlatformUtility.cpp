@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <uuid/uuid.h>
 #include <sys/utsname.h>
+#include <unicode/unistr.h>
 
 namespace bs
 {
@@ -119,6 +120,21 @@ namespace bs
 
 		// Get GPU info
 		output.gpuInfo = sGPUInfo;
+
+		return output;
+	}
+
+	String PlatformUtility::convertCaseUTF8(const String& input, bool toUpper)
+	{
+		UnicodeString uniStr = UnicodeString::fromUTF8(StringPiece(&input[0], input.size()));
+
+		if(toUpper)
+			uniStr.toUpper();
+		else
+			uniStr.toLower();
+
+		String output;
+		uniStr.toUTF8String(output);
 
 		return output;
 	}

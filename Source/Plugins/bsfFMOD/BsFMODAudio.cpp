@@ -68,7 +68,7 @@ namespace bs
 		for(INT32 i = 0; i < numDevices; i++)
 		{
 			mFMOD->getDriverInfo(i, nameBuffer, sizeof(nameBuffer), nullptr, nullptr, nullptr, nullptr);
-			mAllDevices[i].name = toWString(nameBuffer);
+			mAllDevices[i].name = String(nameBuffer);
 		}
 
 		INT32 defaultDevice = 0;

@@ -26,8 +26,6 @@ namespace bs
 
 		/** @copydoc SpecificImporter::createImportOptions */
 		SPtr<ImportOptions> createImportOptions() const override;
-
-		static const WString DEFAULT_EXTENSION;
 	};
 
 	/** @} */

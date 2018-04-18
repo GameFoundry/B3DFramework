@@ -10,6 +10,7 @@ find_package(nvtt REQUIRED)
 if(LINUX)
 	find_package(X11 REQUIRED)
 	find_package(LibUUID REQUIRED)
+	find_package(ICU REQUIRED COMPONENTS data uc)
 
 	if(NOT X11_Xcursor_FOUND)
 		message(FATAL_ERROR "Could not find XCursor library.")
@@ -59,6 +60,7 @@ if(LINUX)
 	## External lib: X11, LibUUID
 	target_link_libraries(bsf PUBLIC ${X11_LIBRARIES} ${X11_Xcursor_LIB} ${X11_Xrandr_LIB} ${X11_Xi_LIB})
 	target_link_libraries(bsf PRIVATE ${LibUUID_LIBRARIES})
+	target_link_libraries(bsf PRIVATE ${ICU_LIBRARIES})
 endif()
 
 if(APPLE)

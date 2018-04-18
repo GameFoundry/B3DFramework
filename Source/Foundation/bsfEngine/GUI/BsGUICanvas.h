@@ -121,7 +121,7 @@ namespace bs
 		 *							others. Additionally elements of the same type (triangle or line) will be drawn in order
 		 *							they are submitted if they share the same depth.
 		 */
-		void drawText(const WString& text, const Vector2I& position, const HFont& font, UINT32 size = 10, 
+		void drawText(const String& text, const Vector2I& position, const HFont& font, UINT32 size = 10, 
 			const Color& color = Color::White, UINT8 depth = 128);
 
 		/** Clears the canvas, removing any previously drawn elements. */
@@ -183,7 +183,7 @@ namespace bs
 		/** Information required for drawing a text canvas element. */
 		struct TextElementData
 		{
-			WString string;
+			String string;
 			HFont font;
 			Vector2I position;
 		};

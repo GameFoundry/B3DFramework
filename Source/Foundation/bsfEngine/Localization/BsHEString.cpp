@@ -7,13 +7,13 @@ namespace bs
 {
 	const UINT32 HEString::ENGINE_STRING_TABLE_ID = 30000; // Arbitrary
 
-	HEString::HEString(const WString& identifier)
+	HEString::HEString(const String& identifier)
 		:mInternal(identifier, ENGINE_STRING_TABLE_ID)
 	{
 		
 	}
 
-	HEString::HEString(const WString& identifier, const WString& defaultString)
+	HEString::HEString(const String& identifier, const String& defaultString)
 		: mInternal(identifier, defaultString, ENGINE_STRING_TABLE_ID)
 	{
 		

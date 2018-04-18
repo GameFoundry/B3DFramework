@@ -24,7 +24,7 @@ namespace bs
 		 * @param[in]	position	Position of the tooltip, relative to the parent GUI widget.
 		 * @param[in]	text		Text to display on the tooltip.
 		 */
-		void show(const GUIWidget& widget, const Vector2I& position, const WString& text);
+		void show(const GUIWidget& widget, const Vector2I& position, const String& text);
 
 		/**	Hides the currently shown tooltip. */
 		void hide();

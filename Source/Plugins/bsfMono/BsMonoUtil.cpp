@@ -3,6 +3,7 @@
 #include "BsMonoUtil.h"
 #include "Debug/BsDebug.h"
 #include <mono/jit/jit.h>
+#include "String/BsUnicode.h"
 
 namespace bs
 {
@@ -23,17 +24,9 @@ namespace bs
 
 	String MonoUtil::monoToString(MonoString* str)
 	{
-		if (str == nullptr)
-			return StringUtil::BLANK;
+		WString wideString = monoToWString(str);
 
-		int len = mono_string_length(str);
-		mono_unichar2* monoChars = mono_string_chars(str);
-
-		String ret(len, '0');
-		for (int i = 0; i < len; i++)
-			ret[i] = (char)monoChars[i];
-
-		return ret;
+		return UTF8::fromWide(wideString);
 	}
 
 	MonoString* MonoUtil::wstringToMono(const WString& str)
@@ -46,7 +39,7 @@ namespace bs
 
 	MonoString* MonoUtil::stringToMono(const String& str)
 	{
-		return wstringToMono(toWString(str));
+		return wstringToMono(UTF8::toWide(str));
 	}
 
 	void MonoUtil::getClassName(MonoObject* obj, String& ns, String& typeName)
@@ -335,7 +328,7 @@ namespace bs
 			MonoString* exceptionStackTrace = (MonoString*)mono_runtime_invoke(exceptionStackGetter, exception, nullptr, nullptr);
 
 			// Note: If you modify this format make sure to also modify Debug.ParseExceptionMessage in managed code.
-			String msg = "Managed exception: " + toString(monoToWString(exceptionMsg)) + "\n" + toString(monoToWString(exceptionStackTrace));
+			String msg = "Managed exception: " + monoToString(exceptionMsg) + "\n" + monoToString(exceptionStackTrace);
 
 			LOGERR(msg);
 		}

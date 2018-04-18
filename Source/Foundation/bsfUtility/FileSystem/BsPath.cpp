@@ -359,8 +359,8 @@ namespace bs
 			return mFilename;
 		else
 		{
-			WString::size_type pos = mFilename.rfind(L'.');
-			if (pos != WString::npos)
+			String::size_type pos = mFilename.rfind('.');
+			if (pos != String::npos)
 				return mFilename.substr(0, pos);
 			else
 				return mFilename;
@@ -369,8 +369,8 @@ namespace bs
 
 	String Path::getExtension() const
 	{
-		WString::size_type pos = mFilename.rfind(L'.');
-		if (pos != WString::npos)
+		String::size_type pos = mFilename.rfind('.');
+		if (pos != String::npos)
 			return mFilename.substr(pos);
 		else
 			return String();
@@ -484,17 +484,11 @@ namespace bs
 
 	bool Path::comparePathElem(const String& left, const String& right)
 	{
-		if (left.size() != right.size())
-			return false;
-
-		// TODO: Case sensitive/insensitive file path actually depends on used file-system but I'm not gonna check that
-		for (UINT32 i = 0; i < (UINT32)left.size(); i++)
-		{
-			if (tolower(left[i]) != tolower(right[i]))
-				return false;
-		}
-
-		return true;
+		// Note: Might be more efficient to perform toLower character by character, and return as soon as comparison
+		// fails. Instead of this way where we're allocating two temporary strings with dynamic memory. Although that
+		// approach is problematic as well because UTF8 case conversion requires external library calls which might not
+		// support single character conversion, so it might end up being less efficient.
+		return UTF8::toLower(left) == UTF8::toLower(right);
 	}
 
 	Path Path::combine(const Path& left, const Path& right)

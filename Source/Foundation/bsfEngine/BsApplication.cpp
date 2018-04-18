@@ -171,7 +171,7 @@ namespace bs
 	Path Application::getEngineAssemblyPath() const
 	{
 		Path assemblyPath = getBuiltinAssemblyFolder();
-		assemblyPath.append(toWString(String(ENGINE_ASSEMBLY)) + L".dll");
+		assemblyPath.append(String(ENGINE_ASSEMBLY) + ".dll");
 
 		return assemblyPath;
 	}
@@ -179,7 +179,7 @@ namespace bs
 	Path Application::getGameAssemblyPath() const
 	{
 		Path assemblyPath = getScriptAssemblyFolder();
-		assemblyPath.append(toWString(String(SCRIPT_GAME_ASSEMBLY)) + L".dll");
+		assemblyPath.append(String(SCRIPT_GAME_ASSEMBLY) + ".dll");
 
 		return assemblyPath;
 	}

@@ -156,7 +156,7 @@ namespace bs
 		Vector<SubResourceRaw> output;
 		if(mesh != nullptr)
 		{
-			output.push_back({ L"primary", mesh });
+			output.push_back({ u8"primary", mesh });
 
 			CollisionMeshType collisionMeshType = meshImportOptions->getCollisionMeshType();
 			if(collisionMeshType != CollisionMeshType::None)
@@ -168,7 +168,7 @@ namespace bs
 
 					SPtr<PhysicsMesh> physicsMesh = PhysicsMesh::_createPtr(rendererMeshData->getData(), type);
 
-					output.push_back({ L"collision", physicsMesh });
+					output.push_back({ u8"collision", physicsMesh });
 				}
 				else
 				{
@@ -191,7 +191,7 @@ namespace bs
 					}
 				}
 
-				output.push_back({ toWString(entry.name), clip });
+				output.push_back({ entry.name, clip });
 			}
 		}
 

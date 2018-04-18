@@ -651,7 +651,7 @@ namespace bs
 
 	void BuiltinResourcesHelper::updateShaderBytecode(const Path& path)
 	{
-		HShader shader = gResources().load<Shader>(path);
+		HShader shader = gResources().load<Shader>(path, ResourceLoadFlag::KeepSourceData);
 		if (!shader)
 			return;
 

@@ -5,6 +5,7 @@
 #include "GUI/BsGUIElementStyle.h"
 #include "GUI/BsGUIDimensions.h"
 #include "Image/BsTexture.h"
+#include "String/BsUnicode.h"
 
 namespace bs
 {
@@ -20,7 +21,7 @@ namespace bs
 	Vector2I GUIHelper::calcOptimalContentsSize(const GUIContent& content, const GUIElementStyle& style, 
 		const GUIDimensions& dimensions, GUIElementState state)
 	{
-		Vector2I contentBounds = calcOptimalContentsSize((const WString&)content.getText(), style, dimensions);
+		Vector2I contentBounds = calcOptimalContentsSize((const String&)content.getText(), style, dimensions);
 
 		HSpriteTexture image = content.getImage(state);
 		if (image.isLoaded())
@@ -32,7 +33,7 @@ namespace bs
 		return contentBounds;
 	}
 
-	Vector2I GUIHelper::calcOptimalContentsSize(const WString& text, const GUIElementStyle& style, const 
+	Vector2I GUIHelper::calcOptimalContentsSize(const String& text, const GUIElementStyle& style, const 
 		GUIDimensions& dimensions)
 	{
 		UINT32 wordWrapWidth = 0;
@@ -47,7 +48,8 @@ namespace bs
 		{
 			bs_frame_mark();
 
-			TextData<FrameAlloc> textData(text, style.font, style.fontSize, wordWrapWidth, 0, style.wordWrap);
+			const U32String utf32text = UTF8::toUTF32(text);
+			TextData<FrameAlloc> textData(utf32text, style.font, style.fontSize, wordWrapWidth, 0, style.wordWrap);
 
 			contentWidth += textData.getWidth();
 			contentHeight += textData.getNumLines() * textData.getLineHeight(); 
@@ -58,14 +60,15 @@ namespace bs
 		return Vector2I(contentWidth, contentHeight);
 	}
 
-	Vector2I GUIHelper::calcTextSize(const WString& text, const HFont& font, UINT32 fontSize)
+	Vector2I GUIHelper::calcTextSize(const String& text, const HFont& font, UINT32 fontSize)
 	{
 		Vector2I size;
 		if (font != nullptr)
 		{
 			bs_frame_mark();
 
-			TextData<FrameAlloc> textData(text, font, fontSize, 0, 0, false);
+			const U32String utf32text = UTF8::toUTF32(text);
+			TextData<FrameAlloc> textData(utf32text, font, fontSize, 0, 0, false);
 
 			size.x = textData.getWidth();
 			size.y = textData.getNumLines() * textData.getLineHeight();

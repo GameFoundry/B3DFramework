@@ -9,6 +9,7 @@
 #include "Text/BsTextData.h"
 #include "Math/BsVector2.h"
 #include "Math/BsQuaternion.h"
+#include "String/BsUnicode.h"
 
 namespace bs
 {
@@ -270,7 +271,7 @@ namespace bs
 		rectData.center = mTransform.multiplyAffine(area.getCenter());
 	}
 
-	void DrawHelper::text(const Vector3& position, const WString& text, const HFont& font, UINT32 size)
+	void DrawHelper::text(const Vector3& position, const String& text, const HFont& font, UINT32 size)
 	{
 		if (!font.isLoaded() || text.empty())
 			return;
@@ -694,7 +695,8 @@ namespace bs
 				continue;
 			}
 
-			SPtr<TextData<>> textData = bs_shared_ptr_new<TextData<>>(shapeData.text, shapeData.font, shapeData.size);
+			U32String utf32text = UTF8::toUTF32(shapeData.text);
+			SPtr<TextData<>> textData = bs_shared_ptr_new<TextData<>>(utf32text, shapeData.font, shapeData.size);
 
 			UINT32 numPages = textData->getNumPages();
 			for (UINT32 j = 0; j < numPages; j++)

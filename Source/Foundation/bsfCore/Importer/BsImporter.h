@@ -19,7 +19,7 @@ namespace bs
 	 */
 	struct SubResource
 	{
-		WString name; /**< Unique name of the sub-resource. */
+		String name; /**< Unique name of the sub-resource. */
 		HResource value; /**< Contents of the sub-resource. */
 	};
 

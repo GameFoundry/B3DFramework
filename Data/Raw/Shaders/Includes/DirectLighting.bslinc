@@ -1,0 +1,387 @@
+#include "$ENGINE$\SurfaceData.bslinc"
+
+mixin LightData
+{
+	code
+	{
+		// Note: Size must be multiple of largest element, because of std430 rules
+		struct LightData
+		{
+			float3 position;
+			float attRadius;
+			float3 direction;
+			float luminance;
+			float3 spotAngles;
+			float attRadiusSqrdInv;
+			float3 color;
+			float srcRadius;
+			float3 shiftedLightPosition;
+			float padding;
+		};
+	};
+};
+
+mixin DirectLightingCommon
+{
+	mixin LightData;
+	mixin SurfaceData;
+	
+	code
+	{
+		#define PI 3.1415926
+		#define HALF_PI 1.5707963
+		
+		float3 calcMicrofacetFresnelShlick(float3 F0, float LoH)
+		{
+			return F0 + (1.0f - F0) * pow(1.0f - LoH, 5.0f);
+		}
+
+		float calcMicrofacetShadowingSmithGGX(float roughness4, float NoV, float NoL)
+		{
+			// Note: It's probably better to use the joint shadowing + masking version of this function
+
+			// Note: Original GGX G1 multiplied by NoV & NoL (respectively), so that the microfacet function divisor gets canceled out
+			// Original formula being (ignoring the factor for masking negative directions):
+			//   G1(v) = 2 / (1 + sqrt(1 + roughness^4 * tan^2(v)))
+			//
+			// Using trig identities: tan = sin/cos & sin^2 + cos^2 = 1
+			//   G1(v) = 2 / (1 + sqrt(1 + roughness^4 * (1 - cos^2(v))/cos^2(v)))
+			//
+			// Multiply by cos(v) so that we cancel out the (NoL * NoV) factor in the microfacet formula divisor
+			//   G1(v) = 2 * cos(v) / (cos^2(v) + sqrt(cos^2 + roughness^4 - roughness^4 * cos^2(v)))
+			// 
+			// Actually do the cancellation:
+			//    G1(v) = 2 / (cos^2(v) + sqrt(cos^2 + roughness^4 - roughness^4 * cos^2(v)))
+			//
+			// Also cancel out the 2 and the 4:
+			//    G1(v) = 1 / (cos^2(v) + sqrt(cos^2 + roughness^4 - roughness^4 * cos^2(v)))
+			//
+			// Final equation being:
+			//    G(v, l) = G1(v) * G1(l)
+			//
+			// Where cos(v) is NoV or NoL
+			
+			float g1V = NoV + sqrt(NoV * (NoV - NoV * roughness4) + roughness4);
+			float g1L = NoL + sqrt(NoL * (NoL - NoL * roughness4) + roughness4);
+			return rcp(g1V * g1L);
+		}
+
+		float calcMicrofacetDistGGX(float roughness4, float NoH)
+		{
+			float d = (NoH * roughness4 - NoH) * NoH + 1.0f;
+			return roughness4 / (PI * d * d);
+		}
+
+		float3 calcDiffuseLambert(float3 color)
+		{
+			return color * (1.0f / PI);
+		}
+
+		float getSpotAttenuation(float3 toLight, LightData lightData)
+		{
+			float output = saturate((dot(toLight, -lightData.direction) - lightData.spotAngles.y) * lightData.spotAngles.z);
+			return output * output;
+		}
+
+		// Window function to ensure the light contribution fades out to 0 at attenuation radius
+		float getRadialAttenuation(float distance2, LightData lightData)
+		{
+			float radialAttenuation = distance2 * lightData.attRadiusSqrdInv;
+			radialAttenuation *= radialAttenuation;
+			radialAttenuation = saturate(1.0f - radialAttenuation);
+			radialAttenuation *= radialAttenuation;
+			
+			return radialAttenuation;
+		}			
+					
+		// Calculates illuminance from a non-area point light
+		float illuminancePointLight(float distance2, float NoL, LightData lightData)
+		{
+			return (lightData.luminance * NoL) / max(distance2, 0.01f*0.01f);
+		}
+
+		// Calculates illuminance scale for a sphere or a disc area light, while also handling the case when
+		// parts of the area light are below the horizon.
+		// Input NoL must be unclamped.
+		// Sphere solid angle = arcsin(r / d)
+		// Right disc solid angle = atan(r / d)
+		//   - To compensate for oriented discs, multiply by dot(diskNormal, -L)
+		float illuminanceScaleSphereDiskAreaLight(float unclampedNoL, float sinSolidAngleSqrd)
+		{
+			// Handles parts of the area light below the surface horizon
+			// See https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf for reference
+			float sinSolidAngle = sqrt(sinSolidAngleSqrd);
+			
+			// TODO - Below horizon handling disabled as it currently outputs incorrect values, need to find a better approximation or just use the reference implementation
+			//if(unclampedNoL < sinSolidAngle)
+			//{
+			//	// Hermite spline approximation (see reference for exact formula)
+			//	unclampedNoL = max(unclampedNoL, -sinSolidAngle);
+			//	return ((sinSolidAngle + unclampedNoL) * (sinSolidAngle + unclampedNoL)) / (4 * sinSolidAngle);
+			//}
+			//else
+				return PI * sinSolidAngleSqrd * saturate(unclampedNoL);
+		}
+
+		// Calculates illuminance from a sphere area light.
+		float illuminanceSphereAreaLight(float unclampedNoL, float distToLight2, LightData lightData)
+		{
+			float radius2 = lightData.srcRadius * lightData.srcRadius;
+			
+			// Squared sine of the sphere solid angle
+			float sinSolidAngle2 = radius2 / distToLight2;
+
+			// Prevent divide by zero
+			sinSolidAngle2 = min(sinSolidAngle2, 0.9999f);
+			
+			return lightData.luminance * illuminanceScaleSphereDiskAreaLight(unclampedNoL, sinSolidAngle2);	
+		}
+
+		// Calculates illuminance from a disc area light.
+		float illuminanceDiscAreaLight(float unclampedNoL, float distToLight2, float3 L, LightData lightData)
+		{
+			// Solid angle for right disk = atan (r / d)
+			//  atan (r / d) = asin((r / d)/sqrt((r / d)^2+1))
+			//  sinAngle = (r / d)/sqrt((r / d)^2 + 1)
+			//  sinAngle^2 = (r / d)^2 / (r / d)^2 + 1
+			//             = r^2 / (d^2 + r^2)
+
+			float radius2 = lightData.srcRadius * lightData.srcRadius;
+			
+			// max() to prevent light penetrating object
+			float sinSolidAngle2 = saturate(radius2 / (radius2 + max(radius2, distToLight2)));
+			
+			// Multiply by extra term to somewhat handle the case of the oriented disc (formula above only works
+			// for right discs).
+			return lightData.luminance * illuminanceScaleSphereDiskAreaLight(unclampedNoL, sinSolidAngle2 * saturate(dot(lightData.direction, -L)));	
+		}
+
+		// With microfacet BRDF the BRDF lobe is not centered around the reflected (mirror) direction.
+		// Because of NoL and shadow-masking terms the lobe gets shifted toward the normal as roughness
+		// increases. This is called the "off-specular peak". We approximate it using this function.
+		float3 getSpecularDominantDir(float3 N, float3 R, float roughness)
+		{
+			// Note: Try this formula as well:
+			//  float smoothness = 1 - roughness;
+			//  return lerp(N, R, smoothness * (sqrt(smoothness) + roughness));
+
+			float r2 = roughness * roughness;
+			return normalize(lerp(N, R, (1 - r2) * (sqrt(1 - r2) + r2)));
+		}		
+	};
+};
+
+mixin StandardBRDF
+{
+	code
+	{
+		float3 evaluateStandardBRDF(float3 V, float3 L, float specLobeEnergy, SurfaceData surfaceData)
+		{
+			float3 N = surfaceData.worldNormal.xyz;
+
+			float3 H = normalize(V + L);
+			float LoH = saturate(dot(L, H));
+			float NoH = saturate(dot(N, H));
+			float NoV = saturate(dot(N, V));
+			float NoL = saturate(dot(N, L));
+			
+			float3 diffuseColor = lerp(surfaceData.albedo.rgb, float3(0.0f, 0.0f, 0.0f), surfaceData.metalness);
+			
+			// Note: Using a fixed F0 value of 0.04 (plastic) for dielectrics, and using albedo as specular for conductors.
+			// For more customizability allow the user to provide separate albedo/specular colors for both types.
+			float3 specularColor = lerp(float3(0.04f, 0.04f, 0.04f), surfaceData.albedo.rgb, surfaceData.metalness);
+			
+			float3 diffuse = calcDiffuseLambert(diffuseColor);
+			
+			float roughness = max(surfaceData.roughness, 0.04f); // Prevent NaNs
+			float roughness2 = roughness * roughness;
+			float roughness4 = roughness2 * roughness2;
+			
+			float3 specular = calcMicrofacetFresnelShlick(specularColor, LoH) * 
+				calcMicrofacetDistGGX(roughness4, NoH) *
+				calcMicrofacetShadowingSmithGGX(roughness4, NoV, NoL);
+			
+			// Note: Need to add energy conservation between diffuse and specular terms?
+			return diffuse + specular * specLobeEnergy;
+		}
+	};
+};
+
+mixin LuminanceSpot
+{
+	code
+	{
+		float3 getLuminanceSpot(LightData lightData, float3 worldPos, float3 V, float3 R, float roughness2, SurfaceData surfaceData)
+		{
+			float3 N = surfaceData.worldNormal.xyz;
+			float3 toLight = lightData.position - worldPos;
+			float distToLightSqrd = dot(toLight, toLight);
+			float invDistToLight = rsqrt(distToLightSqrd);
+			
+			float3 L = toLight * invDistToLight;
+			float NoL = dot(N, L);
+			
+			float specEnergy = 1.0f;
+			float illuminance = 0.0f;
+			float spotAttenuation = 1.0f;
+			
+			// Disc area light. Calculate its contribution analytically by
+			// finding the most important (least error) point on the area light and
+			// use it as a form of importance sampling.
+			if(lightData.srcRadius > 0)
+			{
+				// Calculate illuminance depending on source size, distance and angle
+				illuminance = illuminanceDiscAreaLight(NoL, distToLightSqrd, L, lightData);	
+			
+				// Energy conservation: Similar case as with radial lights
+				float rightDiscAngle = saturate(lightData.srcRadius * invDistToLight);
+				
+				// Account for disc orientation somewhat
+				float discAngle = rightDiscAngle * saturate(dot(lightData.direction, -L));
+				
+				specEnergy = roughness2 / saturate(roughness2 + 0.5f * discAngle);
+				specEnergy *= specEnergy;							
+			
+				// Find closest point on disc to ray
+				float3 discNormal = -lightData.direction;
+				float distAlongLightDir = max(dot(R, discNormal), 1e-6f);
+				float t = dot(toLight, discNormal) / distAlongLightDir;
+				float3 closestPointOnPlane = R * t; // Relative to shaded world point
+				
+				float3 centerToRay = closestPointOnPlane - toLight;
+				float invDistToRay = rsqrt(dot(centerToRay, centerToRay));
+				float3 closestPointOnDisc = toLight + centerToRay * saturate(lightData.srcRadius * invDistToRay);
+
+				toLight = closestPointOnDisc;
+				L = normalize(toLight);
+				
+				// Expand spot attenuation by disc radius (not physically based)
+				float3 toSpotEdge = normalize(lightData.shiftedLightPosition - worldPos);
+				spotAttenuation = getSpotAttenuation(toSpotEdge, lightData);
+				
+				// TODO - Spot attenuation fades out the specular highlight in a noticeable way
+			}
+			else
+			{
+				NoL = saturate(NoL);
+				illuminance = illuminancePointLight(distToLightSqrd, NoL, lightData);
+				
+				spotAttenuation = getSpotAttenuation(L, lightData);
+			}
+			
+			float radialAttenuation = getRadialAttenuation(distToLightSqrd, lightData);
+			float attenuation = spotAttenuation * radialAttenuation;
+			float3 surfaceShading = evaluateStandardBRDF(V, L, specEnergy, surfaceData);
+				
+			return lightData.color * illuminance * attenuation * surfaceShading;
+		}
+	};
+};
+
+mixin LuminanceRadial
+{
+	code
+	{
+		float3 getLuminanceRadial(LightData lightData, float3 worldPos, float3 V, float3 R, float roughness2, SurfaceData surfaceData)
+		{
+			float3 N = surfaceData.worldNormal.xyz;
+			float3 toLight = lightData.position - worldPos;
+			float distToLightSqrd = dot(toLight, toLight);
+			float invDistToLight = rsqrt(distToLightSqrd);
+			
+			float3 L = toLight * invDistToLight;
+			float NoL = dot(N, L);
+			
+			float specEnergy = 1.0f;
+			float illuminance = 0.0f;
+
+			// Sphere area light. Calculate its contribution analytically by
+			// finding the most important (least error) point on the area light and
+			// use it as a form of importance sampling.
+			if(lightData.srcRadius > 0)
+			{
+				// Calculate illuminance depending on source size, distance and angle
+				illuminance = illuminanceSphereAreaLight(NoL, distToLightSqrd, lightData);	
+
+				// Energy conservation:
+				//    We are widening the specular distribution by the sphere's subtended angle, 
+				//    so we need to handle the increase in energy. It is not enough just to account
+				//    for the sphere solid angle, since the energy difference is highly dependent on
+				//    specular distribution. By accounting for this energy difference we ensure glossy
+				//    reflections have sharp edges, instead of being too blurry.
+				//    See http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf for reference
+				float sphereAngle = saturate(lightData.srcRadius * invDistToLight);
+				
+				specEnergy = roughness2 / saturate(roughness2 + 0.5f * sphereAngle);
+				specEnergy *= specEnergy;							
+			
+				// Find closest point on sphere to ray
+				float3 closestPointOnRay = dot(toLight, R) * R;
+				float3 centerToRay = closestPointOnRay - toLight;
+				float invDistToRay = rsqrt(dot(centerToRay, centerToRay));
+				float3 closestPointOnSphere = toLight + centerToRay * saturate(lightData.srcRadius * invDistToRay);
+				
+				toLight = closestPointOnSphere;
+				L = normalize(toLight);
+			}
+			else
+			{
+				NoL = saturate(NoL);
+				illuminance = illuminancePointLight(distToLightSqrd, NoL, lightData);
+			}
+			
+			float attenuation = getRadialAttenuation(distToLightSqrd, lightData);
+			float3 surfaceShading = evaluateStandardBRDF(V, L, specEnergy, surfaceData);
+				
+			return lightData.color * illuminance * attenuation * surfaceShading;
+		}
+	};
+};
+
+mixin LuminanceDirectional
+{
+	code
+	{
+		float3 getLuminanceDirectional(LightData lightData, float3 worldPos, float3 V, float3 R, SurfaceData surfaceData)
+		{
+			float3 N = surfaceData.worldNormal.xyz;
+			float3 L = -lightData.direction;
+			float NoL = saturate(dot(N, L));
+			float specEnergy = 1.0f;
+			
+			// Distant disk area light. Calculate its contribution analytically by
+			// finding the most important (least error) point on the area light and
+			// use it as a form of importance sampling.
+			if(lightData.srcRadius > 0)
+			{
+				float diskRadius = sin(lightData.srcRadius);
+				float distanceToDisk = cos(lightData.srcRadius);
+				
+				// Closest point to disk (approximation for distant disks)
+				float DoR = dot(L, R);
+				float3 S = normalize(R - DoR * L);
+				L = DoR < distanceToDisk ? normalize(distanceToDisk * L + S * diskRadius) : R;
+			}
+			
+			float3 surfaceShading = evaluateStandardBRDF(V, L, specEnergy, surfaceData);
+			float illuminance = lightData.luminance * NoL;
+			return lightData.color * illuminance * surfaceShading;
+		}
+	};
+};
+
+mixin DirectLighting
+{
+	mixin DirectLightingCommon;
+	mixin StandardBRDF;
+	mixin LuminanceDirectional;
+	mixin LuminanceRadial;
+	mixin LuminanceSpot;
+};
+
+// Hackish way of "instantiating" two versions of a mixin (to be removed when template/specialization support is added)
+#include "$ENGINE$\DirectLightAccumulator.bslinc"
+
+#define USE_UNIFORM_BUFFER
+#include "$ENGINE$\DirectLightAccumulator.bslinc"
+#undef USE_UNIFORM_BUFFER

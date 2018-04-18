@@ -189,7 +189,7 @@ namespace bs
 
 	void GUIInputCaret::moveCaretToChar(UINT32 charIdx, CaretPos caretPos)
 	{
-		if(charIdx >= (UINT32)mTextDesc.text.size())
+		if(charIdx >= mNumChars)
 		{
 			mCaretPos = 0;
 			return;
@@ -233,7 +233,7 @@ namespace bs
 
 	Vector2I GUIInputCaret::getCaretPosition(const Vector2I& offset) const
 	{
-		if(mTextDesc.text.size() > 0 && isDescValid())
+		if(mNumChars > 0 && isDescValid())
 		{
 			UINT32 curPos = 0;
 			UINT32 numLines = getNumLines();
@@ -255,7 +255,7 @@ namespace bs
 			if(charIdx > 0)
 				charIdx -= 1;			
 
-			charIdx = std::min((UINT32)(mTextDesc.text.size() - 1), charIdx);
+			charIdx = std::min((UINT32)(mNumChars - 1), charIdx);
 
 			Rect2I charRect = getCharRect(charIdx);
 			UINT32 lineIdx = getLineForChar(charIdx);
@@ -273,7 +273,7 @@ namespace bs
 		if(charIdx > 0)
 			charIdx -= 1;	
 
-		if(charIdx < (UINT32)mTextDesc.text.size() && isDescValid())
+		if(charIdx < mNumChars && isDescValid())
 		{
 			UINT32 lineIdx = getLineForChar(charIdx);
 			return getLineDesc(lineIdx).getLineHeight();
@@ -300,7 +300,7 @@ namespace bs
 
 	UINT32 GUIInputCaret::getMaxCaretPos() const
 	{
-		if(mTextDesc.text.size() == 0)
+		if(mNumChars == 0)
 			return 0;
 
 		UINT32 numLines = getNumLines();

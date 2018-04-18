@@ -67,19 +67,19 @@ namespace bs
 		static GUIInputBox* create(const GUIOptions& options, const String& styleName = StringUtil::BLANK);
 
 		/**	Returns the text currently entered in the input box. */
-		const WString& getText() const { return mText; }
+		const String& getText() const { return mText; }
 
 		/**	Sets the text inside the input box. This will replace any current text. */
-		void setText(const WString& text);
+		void setText(const String& text);
 
 		/**
 		 * Sets an optional filter that can control what is allowed to be entered into the input box. Filter should return
 		 * true if the provided string is valid and false otherwise. Set the filter to null to deactivate filtering.
 		 */
-		void setFilter(std::function<bool(const WString&)> filter) { mFilter = filter; }
+		void setFilter(std::function<bool(const String&)> filter) { mFilter = filter; }
 
 		/**	Triggered whenever input text has changed. */
-		Event<void(const WString&)> onValueChanged;
+		Event<void(const String&)> onValueChanged;
 
 		/**	Triggered when the user hits the Enter key with the input box in focus. */
 		Event<void()> onConfirm;
@@ -174,7 +174,7 @@ namespace bs
 		Rect2I renderElemToClipRect(UINT32 renderElemIdx) const;
 
 		/** Inserts a new string into the current text at the specified index. */
-		void insertString(UINT32 charIdx, const WString& string);
+		void insertString(UINT32 charIdx, const String& string);
 
 		/**	Inserts a new character into the current text at the specified index. */
 		void insertChar(UINT32 charIdx, UINT32 charCode);
@@ -191,7 +191,7 @@ namespace bs
 		void deleteSelectedText(bool internal = false);
 
 		/**	Returns currently selected text. */
-		WString getSelectedText();
+		String getSelectedText();
 
 		/**	Shows the input caret. You must position the caret manually after showing it. */
 		void showCaret();
@@ -256,8 +256,9 @@ namespace bs
 		State mState;
 
 		IMAGE_SPRITE_DESC mImageDesc;
-		WString mText;
-		std::function<bool(const WString&)> mFilter;
+		String mText;
+		UINT32 mNumChars = 0;
+		std::function<bool(const String&)> mFilter;
 
 		bool mCaretShown;
 		bool mSelectionShown;

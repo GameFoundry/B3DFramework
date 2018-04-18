@@ -53,6 +53,15 @@ namespace bs
 		/** Creates a new universally unique identifier (UUID/GUID). */
 		static UUID generateUUID();
 
+		/** 
+		 * Converts a UTF8 encoded string into uppercase or lowercase. 
+		 * 
+		 * @param[in]	input	String to convert.
+		 * @param[in]	toUpper	If true, converts the character to uppercase. Otherwise convert to lowercase.
+		 * @return				Converted string.
+		 */
+		static String convertCaseUTF8(const String& input, bool toUpper);
+
 		/** @name Internal
 		 *  @{
 		 */

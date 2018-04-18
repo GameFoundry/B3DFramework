@@ -1,0 +1,11 @@
+mixin PerFrameData
+{
+	code
+	{
+		[internal]
+		cbuffer PerFrame
+		{
+			float gTime;
+		}
+	};
+};

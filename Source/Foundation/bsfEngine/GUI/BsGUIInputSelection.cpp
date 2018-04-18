@@ -252,7 +252,7 @@ namespace bs
 	void GUIInputSelection::selectAll()
 	{
 		mSelectionStart = 0;
-		mSelectionEnd = (UINT32)mTextDesc.text.size();
+		mSelectionEnd = mNumChars;
 	}
 
 	bool GUIInputSelection::isSelectionEmpty() const

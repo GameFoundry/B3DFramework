@@ -25,7 +25,8 @@ namespace bs
 		return "TooltipFrame";
 	}
 
-	GUITooltip::GUITooltip(const HSceneObject& parent, const GUIWidget& overlaidWidget, const Vector2I& position, const WString& text)
+	GUITooltip::GUITooltip(const HSceneObject& parent, const GUIWidget& overlaidWidget, const Vector2I& position, 
+		const String& text)
 		:CGUIWidget(parent, overlaidWidget.getCamera())
 	{
 		setDepth(0); // Needs to be in front of everything

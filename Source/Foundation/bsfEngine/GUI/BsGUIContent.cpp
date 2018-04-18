@@ -12,7 +12,7 @@ namespace bs
 	{ }
 
 	GUIContent::GUIContent()
-		:mText(L"")
+		:mText("")
 	{ }
 
 	GUIContent::GUIContent(const HString& text)

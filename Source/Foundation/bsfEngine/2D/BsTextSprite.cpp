@@ -4,6 +4,7 @@
 #include "Text/BsTextData.h"
 #include "Math/BsVector2.h"
 #include "2D/BsSpriteManager.h"
+#include "String/BsUnicode.h"
 
 namespace bs
 {
@@ -21,7 +22,9 @@ namespace bs
 	{
 		bs_frame_mark();
 		{
-			TextData<FrameAlloc> textData(desc.text, desc.font, desc.fontSize, desc.width, desc.height, desc.wordWrap, desc.wordBreak);
+			const U32String utf32text = UTF8::toUTF32(desc.text);
+			TextData<FrameAlloc> textData(utf32text, desc.font, desc.fontSize, desc.width, desc.height, desc.wordWrap, 
+				desc.wordBreak);
 
 			UINT32 numPages = textData.getNumPages();
 

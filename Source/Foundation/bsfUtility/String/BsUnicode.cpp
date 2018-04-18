@@ -40,12 +40,12 @@ namespace bs
 		output = 0;
 		switch(numBytes)
 		{
-		case 6: output += (UINT8)(*begin); ++begin; output <<= 6;
-		case 5: output += (UINT8)(*begin); ++begin; output <<= 6;
-		case 4: output += (UINT8)(*begin); ++begin; output <<= 6;
-		case 3: output += (UINT8)(*begin); ++begin; output <<= 6;
-		case 2: output += (UINT8)(*begin); ++begin; output <<= 6;
-		case 1: output += (UINT8)(*begin); ++begin;
+		case 6: output += (UINT8)(*begin); ++begin; output <<= 6; BS_FALLTHROUGH;
+		case 5: output += (UINT8)(*begin); ++begin; output <<= 6; BS_FALLTHROUGH;
+		case 4: output += (UINT8)(*begin); ++begin; output <<= 6; BS_FALLTHROUGH;
+		case 3: output += (UINT8)(*begin); ++begin; output <<= 6; BS_FALLTHROUGH;
+		case 2: output += (UINT8)(*begin); ++begin; output <<= 6; BS_FALLTHROUGH;
+		case 1: output += (UINT8)(*begin); ++begin; BS_FALLTHROUGH;
 		default: break;
 		}
 
@@ -98,10 +98,10 @@ namespace bs
 		char bytes[4];
 		switch (numBytes)
 		{
-			case 4: bytes[3] = (char)((input | 0x80) & 0xBF); input >>= 6;
-			case 3: bytes[2] = (char)((input | 0x80) & 0xBF); input >>= 6;
-			case 2: bytes[1] = (char)((input | 0x80) & 0xBF); input >>= 6;
-			case 1: bytes[0] = (char)(input | headers[numBytes]);
+			case 4: bytes[3] = (char)((input | 0x80) & 0xBF); input >>= 6; BS_FALLTHROUGH;
+			case 3: bytes[2] = (char)((input | 0x80) & 0xBF); input >>= 6; BS_FALLTHROUGH;
+			case 2: bytes[1] = (char)((input | 0x80) & 0xBF); input >>= 6; BS_FALLTHROUGH;
+			case 1: bytes[0] = (char)(input | headers[numBytes]); BS_FALLTHROUGH;
 			default: break;
 		}
 
@@ -390,5 +390,66 @@ namespace bs
 		}
 
 		return output;
+	}
+
+	UINT32 UTF8::count(const String& input)
+	{
+		UINT32 length = 0;
+		for (char i : input)
+		{
+			// Include only characters that don't start with bits 10
+			length += (i & 0xc0) != 0x80;
+		}
+
+		return length;
+	}
+
+	UINT32 UTF8::charToByteIndex(const String& input, UINT32 charIdx)
+	{
+		UINT32 curChar = 0;
+		UINT32 curByte = 0;
+		for (char i : input)
+		{
+			// Include only characters that don't start with bits 10
+			if((i & 0xc0) != 0x80)
+			{
+				if(curChar == charIdx)
+					return curByte;
+
+				curChar++;
+			}
+
+			curByte++;
+		}
+
+		return (UINT32)-1;
+	}
+
+	UINT32 UTF8::charByteCount(const String& input, UINT32 charIdx)
+	{
+		UINT32 byteIdx = charToByteIndex(input, charIdx);
+		if(byteIdx == (UINT32)-1)
+			return 0;
+
+		UINT32 count = 1;
+		for(auto i = (size_t)byteIdx + 1; i < input.size(); i++)
+		{
+			if((i & 0xc0) != 0x80)
+				break;
+
+			count++;
+		}
+
+		return count;
+	}
+
+	String UTF8::toLower(const String& input)
+	{
+		return PlatformUtility::convertCaseUTF8(input, false);
+	}
+
+	String UTF8::toUpper(const String& input)
+	{
+		return PlatformUtility::convertCaseUTF8(input, true);
 	}
 }

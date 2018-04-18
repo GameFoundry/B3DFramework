@@ -7,29 +7,30 @@
 #include "GUI/BsGUIInputBox.h"
 #include "GUI/BsGUIToggle.h"
 #include "GUI/BsGUIDropDownContent.h"
+#include "GUI/BsGUITooltip.h"
+#include "GUI/BsGUISlider.h"
+#include "GUI/BsGUIScrollBar.h"
 #include "2D/BsTextSprite.h"
 #include "2D/BsSpriteTexture.h"
 #include "Text/BsFont.h"
 #include "Image/BsTexture.h"
 #include "Importer/BsImporter.h"
+#include "Importer/BsTextureImportOptions.h"
 #include "Resources/BsResources.h"
+#include "Resources/BsBuiltinResourcesHelper.h"
+#include "Resources/BsResourceManifest.h"
 #include "Material/BsShader.h"
 #include "Material/BsMaterial.h"
 #include "Reflection/BsRTTIType.h"
 #include "FileSystem/BsFileSystem.h"
-#include "CoreThread/BsCoreThread.h"
 #include "FileSystem/BsDataStream.h"
-#include "Resources/BsResourceManifest.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "CoreThread/BsCoreThread.h"
 #include "Utility/BsShapeMeshes3D.h"
 #include "Mesh/BsMesh.h"
-#include "GUI/BsGUITooltip.h"
 #include "Serialization/BsFileSerializer.h"
-#include "Importer/BsTextureImportOptions.h"
-#include "Resources/BsBuiltinResourcesHelper.h"
 #include "Renderer/BsRendererMeshData.h"
-#include "GUI/BsGUISlider.h"
-#include "GUI/BsGUIScrollBar.h"
+#include "RenderAPI/BsRenderAPI.h"
+#include "RenderAPI/BsVertexDataDesc.h"
 
 using json = nlohmann::json;
 
@@ -278,6 +279,10 @@ namespace bs
 		}
 
 		// Update shader bytecode for the current render backend, if needed
+		const RenderAPIInfo& apiInfo = ct::RenderAPI::instance().getAPIInfo();
+		bool supportsBytecodeCaching = apiInfo.isFlagSet(RenderAPIFeatureFlag::ByteCodeCaching);
+
+		if(supportsBytecodeCaching)
 		{
 			Path dataListsFilePath = mBuiltinRawDataFolder + DataListFile;
 			SPtr<DataStream> dataListStream = FileSystem::openFile(dataListsFilePath);
