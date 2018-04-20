@@ -171,7 +171,7 @@ namespace bs
 			if (!mIsStreaming)
 			{
 				startStreaming();
-				stream(); // Stream first block on this thread to ensure something can play right away
+				streamUnlocked(); // Stream first block on this thread to ensure something can play right away
 			}
 		}
 		
@@ -471,6 +471,11 @@ namespace bs
 	{
 		Lock lock(mMutex);
 
+		streamUnlocked();
+	}
+
+	void OAAudioSource::streamUnlocked()
+	{
 		AudioDataInfo info;
 		info.bitDepth = mAudioClip->getBitDepth();
 		info.numChannels = mAudioClip->getNumChannels();

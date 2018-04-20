@@ -75,6 +75,9 @@ namespace bs
 		/** Streams new data into the source audio buffer, if needed. */
 		void stream();
 
+		/** Same as stream(), but without a mutex lock (up to the caller to lock it). */
+		void streamUnlocked();
+
 		/** Starts data streaming from the currently attached audio clip. */
 		void startStreaming();
 
