@@ -119,7 +119,7 @@ namespace bs
 	}
 
 	RenderSettings::RenderSettings()
-		: enableAutoExposure(true), enableTonemapping(true), enableFXAA(true), exposureScale(0.0f), gamma(2.2f)
+		: enableAutoExposure(true), enableTonemapping(true), enableFXAA(true), exposureScale(1.25f), gamma(2.2f)
 		, enableHDR(true), enableLighting(true), enableShadows(true), enableIndirectLighting(false), overlayOnly(false)
 	{ }
 
