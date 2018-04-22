@@ -15,13 +15,9 @@ namespace bs
 		md5.decdigest(digest, sizeof(digest));
 
 		String buf;
-		buf.reserve(33);
+		buf.resize(32);
 		for (int i = 0; i < 16; i++)
-		{
-			//C++ 17 will allow for direct use of .data()
 			snprintf(&(buf[0]) + i * 2, 3, "%02x", digest[i]);
-		}
-		buf[32] = L'\0';
 
 		return buf;
 	}
@@ -36,13 +32,9 @@ namespace bs
 		md5.decdigest(digest, sizeof(digest));
 
 		String buf;
-		buf.reserve(33);
+		buf.resize(32);
 		for (int i = 0; i < 16; i++)
-		{
-			//C++ 17 will allow for direct use of .data()
 			snprintf(&(buf[0]) + i * 2, 3, "%02x", digest[i]);
-		}
-		buf[32] = '\0';
 
 		return buf;
 	}
