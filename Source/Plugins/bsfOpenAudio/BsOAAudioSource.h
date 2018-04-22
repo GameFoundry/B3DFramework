@@ -61,7 +61,7 @@ namespace bs
 		void stop() override;
 
 		/** @copydoc AudioSource::getState */
-		AudioSourceState getState() const override { return mState; }
+		AudioSourceState getState() const override;
 
 	private:
 		friend class OAAudio;
@@ -111,7 +111,6 @@ namespace bs
 		Vector<UINT32> mSourceIDs;
 		float mSavedTime;
 		AudioSourceState mSavedState;
-		AudioSourceState mState;
 		bool mGloballyPaused;
 
 		static const UINT32 StreamBufferCount = 3; // Maximum 32
