@@ -435,7 +435,10 @@ namespace bs
 						if (entry.defaultValue == -1)
 							desc.addParameter(ident, ident, objType);
 						else
-							desc.addParameter(ident, ident, objType, getBuiltinTexture(entry.defaultValue));
+						{
+							const Xsc::Reflection::DefaultValue& defVal = reflData.defaultValues[entry.defaultValue];
+							desc.addParameter(ident, ident, objType, getBuiltinTexture(defVal.integer));
+						}
 					}
 					else
 					{
@@ -2104,8 +2107,16 @@ namespace bs
 				PassData& vkslPassData = vkslTechnique.passes[j];
 
 				// Clean non-standard HLSL 
-				static const std::regex regex("\\[\\s*layout\\s*\\(.*\\)\\s*\\]|\\[\\s*internal\\s*\\]|\\[\\s*color\\s*\\]|\\[\\s*alias\\s*\\(.*\\)\\s*\\]");
-				hlslPassData.code = regex_replace(hlslPassData.code, regex, "");
+				// Note: Ideally we add a full HLSL output module to XShaderCompiler, instead of using simple regex. This
+				// way the syntax could be enhanced with more complex features, while still being able to output pure
+				// HLSL.
+				static const std::regex attrRegex(
+					R"(\[\s*layout\s*\(.*\)\s*\]|\[\s*internal\s*\]|\[\s*color\s*\]|\[\s*alias\s*\(.*\)\s*\])");
+				hlslPassData.code = regex_replace(hlslPassData.code, attrRegex, "");
+
+				static const std::regex initializerRegex(
+					R"(Texture2D\s*(\S*)\s*=.*;)");
+				hlslPassData.code = regex_replace(hlslPassData.code, initializerRegex, "Texture2D $1;");
 
 				// Find valid entry points and parameters
 				// Note: XShaderCompiler needs to do a full pass when doing reflection, and for each individual program

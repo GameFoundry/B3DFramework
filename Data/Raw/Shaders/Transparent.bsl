@@ -32,10 +32,10 @@ shader Surface
 		SamplerState gRoughnessSamp;
 		SamplerState gMetalnessSamp;
 		
-		Texture2D gAlbedoTex;
-		Texture2D gNormalTex;
-		Texture2D gRoughnessTex;
-		Texture2D gMetalnessTex;
+		Texture2D gAlbedoTex = white;
+		Texture2D gNormalTex = normal;
+		Texture2D gRoughnessTex = white;
+		Texture2D gMetalnessTex = black;
 		
 		cbuffer MaterialParams
 		{
