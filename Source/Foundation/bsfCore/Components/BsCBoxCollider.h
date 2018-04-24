@@ -20,7 +20,7 @@ namespace bs
 	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Physics,n:BoxCollider) CBoxCollider : public CCollider
 	{
 	public:
-		CBoxCollider(const HSceneObject& parent, const Vector3& extents = Vector3::ONE);
+		CBoxCollider(const HSceneObject& parent, const Vector3& extents = Vector3(0.5f, 0.5f, 0.5f));
 
 		/** @copydoc BoxCollider::setExtents */
 		BS_SCRIPT_EXPORT(n:Extents,pr:setter)
@@ -57,7 +57,7 @@ namespace bs
 		SPtr<Collider> createInternal() override;
 
 	protected:
-		Vector3 mExtents = Vector3::ONE;
+		Vector3 mExtents = Vector3(0.5f, 0.5f, 0.5f);
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
