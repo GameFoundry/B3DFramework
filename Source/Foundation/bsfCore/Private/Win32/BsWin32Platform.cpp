@@ -597,10 +597,10 @@ namespace bs
 			{
 				const RenderWindowProperties& props = newWindow->getProperties();
 				if (!props.isHidden)
-					ShowWindow(hWnd, SW_SHOWNOACTIVATE);
+					ShowWindow(hWnd, SW_SHOWNORMAL);
 			}
 			else
-				ShowWindow(hWnd, SW_SHOWNOACTIVATE);
+				ShowWindow(hWnd, SW_SHOWNORMAL);
 
 			return 0;
 		}
