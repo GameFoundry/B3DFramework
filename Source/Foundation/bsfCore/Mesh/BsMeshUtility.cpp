@@ -802,12 +802,6 @@ namespace bs
 			{
 				float r = 1.0f / denom;
 
-				faceTangents[i] = Vector3(
-					st2.y * q0.x - st1.y * q1.x,
-					st2.y * q0.y - st1.y * q1.y,
-					st2.y * q0.z - st1.y * q1.z
-				) * r;
-
 				faceTangents[i] = (st2.y * q0 - st1.y * q1) * r;
 				faceBitangents[i] = (st1.x * q1 - st2.x * q0) * r;
 
