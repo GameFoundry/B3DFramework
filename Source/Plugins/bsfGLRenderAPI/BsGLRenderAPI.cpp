@@ -418,7 +418,6 @@ namespace bs { namespace ct
 
 			bs_frame_mark();
 			{
-				UINT32 textureUnitCount = 0;
 				FrameVector<UINT32> textureUnits(12);
 				auto getTexUnit = [&](UINT32 binding)
 				{
@@ -428,71 +427,39 @@ namespace bs { namespace ct
 							return i;
 					}
 
-					UINT32 unit = textureUnitCount++;
+					UINT32 unit = (UINT32)textureUnits.size();
 					textureUnits.push_back(binding);
 
 					return unit;
 				};
 
-				FrameVector<UINT32> imageUnits(6);
 #if BS_OPENGL_4_2 || BS_OPENGLES_3_1
 				UINT32 imageUnitCount = 0;
 				auto getImageUnit = [&](UINT32 binding)
 				{
-					for (UINT32 i = 0; i < (UINT32)imageUnits.size(); i++)
-					{
-						if (imageUnits[i] == binding)
-							return i;
-					}
-
-					UINT32 unit = imageUnitCount++;
-					imageUnits.push_back(binding);
-
-					return unit;
+					return imageUnitCount++;
 				};
 #endif
 
 				UINT32 uniformUnitCount = 0;
-				FrameVector<UINT32> uniformUnits(6);
 				auto getUniformUnit = [&](UINT32 binding)
 				{
-					for (UINT32 i = 0; i < (UINT32)uniformUnits.size(); i++)
-					{
-						if (uniformUnits[i] == binding)
-							return i;
-					}
-
-					UINT32 unit = uniformUnitCount++;
-					uniformUnits.push_back(binding);
-
-					return unit;
+					return uniformUnitCount++;
 				};
 
-				FrameVector<UINT32> sharedStorageUnits(6);
 #if BS_OPENGL_4_3 || BS_OPENGLES_3_1
 				UINT32 sharedStorageUnitCount = 0;
 				auto getSharedStorageUnit = [&](UINT32 binding)
 				{
-					for (UINT32 i = 0; i < (UINT32)sharedStorageUnits.size(); i++)
-					{
-						if (sharedStorageUnits[i] == binding)
-							return i;
-					}
-
-					UINT32 unit = sharedStorageUnitCount++;
-					sharedStorageUnits.push_back(binding);
-
-					return unit;
+					return sharedStorageUnitCount++;
 				};
 #endif
 
 				const UINT32 numStages = 6;
 				for(UINT32 i = 0; i < numStages; i++)
 				{
-					textureUnits.clear();
-					imageUnits.clear();
-					uniformUnits.clear();
-					sharedStorageUnits.clear();
+					for(auto& entry : textureUnits)
+						entry = (UINT32)-1;
 
 					GpuProgramType type = (GpuProgramType)i;
 
