@@ -18,7 +18,7 @@ find_imported_includes(vorbis vorbis/vorbisenc.h)
 find_imported_library_shared(vorbis ${vorbis_LIB_PREFIX}vorbis)
 find_imported_library_shared(vorbis ${vorbis_LIB_PREFIX}vorbisfile)
 
-if(APPLE)
+if(UNIX)
 	find_imported_library_shared(vorbis ${vorbis_LIB_PREFIX}vorbisenc)
 endif()
 
