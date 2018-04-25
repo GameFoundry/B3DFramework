@@ -242,16 +242,15 @@ namespace bs
 	{
 		mPlatformData = bs_new<InputPrivateData>();
 
-		// Scan for valid input devices
+		// Scan for valid gamepad devices
 		for(int i = 0; i < 64; ++i )
 		{
 			String eventPath = "/dev/input/event" + toString(i);
 			int file = open(eventPath.c_str(), O_RDONLY |O_NONBLOCK);
 			if(file == -1)
 			{
-				if(errno == EACCES)
-					LOGERR("Cannot open input device " + eventPath + ". Make sure your user has valid permissions.");
-
+				// Note: We're ignoring failures due to permissions. The assumption is that gamepads won't have special
+				// permissions. If this assumption proves wrong, then using udev might be required to read gamepad input.
 				continue;
 			}
 
