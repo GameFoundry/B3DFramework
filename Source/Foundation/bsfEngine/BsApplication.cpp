@@ -113,7 +113,7 @@ namespace bs
 	void Application::loadScriptSystem()
 	{
 #if BS_IS_BANSHEE3D
-		loadPlugin("BansheeMono", &mMonoPlugin);
+		loadPlugin("bsfMono", &mMonoPlugin);
 		loadPlugin("SBansheeEngine", &mSBansheeEnginePlugin); 
 
 		ScriptManager::instance().initialize();
