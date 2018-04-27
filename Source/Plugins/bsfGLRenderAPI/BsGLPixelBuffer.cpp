@@ -417,6 +417,9 @@ namespace bs { namespace ct
 
 	void GLTextureBuffer::bindToFramebuffer(GLenum attachment, UINT32 zoffset, bool allLayers)
 	{
+		if(mTarget == GL_TEXTURE_1D || mTarget == GL_TEXTURE_2D)
+			allLayers = true;
+
 		if(allLayers)
 		{
 			switch (mTarget)
