@@ -14,7 +14,6 @@ Use the guide below to get bs::framework up and running as quickly as possible. 
   - `cd Build`
   - `cmake -G "$generator$" ../`
     - Where *$generator$* should be replaced with any of the supported generators. Some common ones:
-	  - `Visual Studio 14 2015 Win64` - Visual Studio 2015 (64-bit build)
 	  - `Visual Studio 15 2017 Win64` - Visual Studio 2017 (64-bit build)
 	  - `Unix Makefiles`
 	  - `Ninja`
@@ -39,7 +38,6 @@ You can choose to use a different *CMake* generator than those specified above, 
     - Windows, Linux
     - (macOS coming soon)
   - Supported compilers:
-    - MSVC++ 14.0 (Visual Studio 2015)
 	- MSVC++ 15.0 (Visual Studio 2017)
     - GCC 7.0 (or newer)
     - Clang 5.0 (or newer)
