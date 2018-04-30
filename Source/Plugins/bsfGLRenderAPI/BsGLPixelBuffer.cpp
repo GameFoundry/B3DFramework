@@ -166,17 +166,8 @@ namespace bs { namespace ct
 		mBuffer = PixelData(mWidth, mHeight, mDepth, mFormat);
 	}
 
-	GLTextureBuffer::~GLTextureBuffer()
-	{ }
-
 	void GLTextureBuffer::upload(const PixelData& data, const PixelVolume& dest)
 	{
-		if ((mUsage & TU_RENDERTARGET) != 0)
-		{
-			LOGERR("Writing to render texture from CPU not supported.");
-			return;
-		}
-
 		if ((mUsage & TU_DEPTHSTENCIL) != 0)
 		{
 			LOGERR("Writing to depth stencil texture from CPU not supported.");

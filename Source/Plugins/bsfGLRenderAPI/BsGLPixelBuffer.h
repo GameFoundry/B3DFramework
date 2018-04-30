@@ -155,7 +155,7 @@ namespace bs { namespace ct
 		 */
 		GLTextureBuffer(GLenum target, GLuint id, GLint face, 
 			GLint level, GpuBufferUsage usage, PixelFormat format, UINT32 multisampleCount);
-		~GLTextureBuffer();
+		~GLTextureBuffer() = default;
 		
 		/** @copydoc GLPixelBuffer::bindToFramebuffer */
 		void bindToFramebuffer(GLenum attachment, UINT32 zoffset, bool allLayers) override;
