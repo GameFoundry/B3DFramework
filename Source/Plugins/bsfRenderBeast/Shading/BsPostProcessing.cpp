@@ -958,13 +958,15 @@ namespace bs { namespace ct
 
 	BuildHiZMat::BuildHiZMat()
 	{
+		mNoTextureViews = mVariation.getBool("NO_TEXTURE_VIEWS");
+
 		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthTex", mInputTexture);
 
 		// If no texture view support, we must manually pick a valid mip level in the shader
-		const RenderAPIInfo& rapiInfo = RenderAPI::instance().getAPIInfo();
-		if(!rapiInfo.isFlagSet(RenderAPIFeatureFlag::TextureViews))
+		if(mNoTextureViews)
 		{
 			mParamBuffer = gBuildHiZParamDef.createBuffer();
+			mParams->setParamBlockBuffer(GPT_FRAGMENT_PROGRAM, "Input", mParamBuffer);
 
 			SAMPLER_STATE_DESC inputSampDesc;
 			inputSampDesc.minFilter = FO_POINT;
@@ -972,8 +974,7 @@ namespace bs { namespace ct
 			inputSampDesc.mipFilter = FO_POINT;
 
 			SPtr<SamplerState> inputSampState = SamplerState::create(inputSampDesc);
-			if(mParams->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthSamp"))
-				mParams->setSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthSamp", inputSampState);
+			setSamplerState(mParams, GPT_FRAGMENT_PROGRAM, "gDepthSamp", "gDepthTex", inputSampState);
 		}
 	}
 
@@ -983,10 +984,7 @@ namespace bs { namespace ct
 		RenderAPI& rapi = RenderAPI::instance();
 
 		// If no texture view support, we must manually pick a valid mip level in the shader
-		const RenderAPIInfo& rapiInfo = RenderAPI::instance().getAPIInfo();
-		if(rapiInfo.isFlagSet(RenderAPIFeatureFlag::TextureViews))
-			mInputTexture.set(source, TextureSurface(srcMip));
-		else
+		if(mNoTextureViews)
 		{
 			mInputTexture.set(source);
 
@@ -999,6 +997,8 @@ namespace bs { namespace ct
 			gBuildHiZParamDef.gHalfPixelOffset.set(mParamBuffer, halfPixelOffset);
 			gBuildHiZParamDef.gMipLevel.set(mParamBuffer, srcMip);
 		}
+		else
+			mInputTexture.set(source, TextureSurface(srcMip));
 
 		rapi.setRenderTarget(output);
 		rapi.setViewport(dstRect);
@@ -1007,6 +1007,14 @@ namespace bs { namespace ct
 		gRendererUtility().drawScreenQuad(srcRect);
 
 		rapi.setViewport(Rect2(0, 0, 1, 1));
+	}
+
+	BuildHiZMat* BuildHiZMat::getVariation(bool noTextureViews)
+	{
+		if (noTextureViews)
+			return get(getVariation<true>());
+		
+		return get(getVariation<false>());
 	}
 
 	FXAAParamDef gFXAAParamDef;

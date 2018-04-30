@@ -1845,6 +1845,11 @@ namespace bs { namespace ct
 		srcRect.width += (viewProps.viewRect.width % 2) * (1.0f / viewProps.viewRect.width);
 		srcRect.height += (viewProps.viewRect.height % 2) * (1.0f / viewProps.viewRect.height);
 
+		const RenderAPIInfo& rapiInfo = RenderAPI::instance().getAPIInfo();
+		bool noTextureViews = !rapiInfo.isFlagSet(RenderAPIFeatureFlag::TextureViews);
+
+		BuildHiZMat* material = BuildHiZMat::getVariation(noTextureViews);
+
 		// Generate first mip
 		RENDER_TEXTURE_DESC rtDesc;
 		rtDesc.colorSurfaces[0].texture = output->texture;
@@ -1861,7 +1866,6 @@ namespace bs { namespace ct
 				Math::ceilToInt(viewProps.viewRect.width / 2.0f) / (float)size,
 				Math::ceilToInt(viewProps.viewRect.height / 2.0f) / (float)size);
 
-			BuildHiZMat* material = BuildHiZMat::get();
 			material->execute(resolvedSceneDepth->output->texture, 0, srcRect, destRect, rt);
 		}
 		else // First level is just a copy of the depth buffer
@@ -1888,10 +1892,8 @@ namespace bs { namespace ct
 		for(UINT32 i = 1; i <= numMips; i++)
 		{
 			rtDesc.colorSurfaces[0].mipLevel = i;
-
 			rt = RenderTexture::create(rtDesc);
 
-			BuildHiZMat* material = BuildHiZMat::get();
 			material->execute(output->texture, i - 1, destRect, destRect, rt);
 		}
 	}

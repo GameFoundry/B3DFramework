@@ -4,18 +4,13 @@ shader PPBuildHiZ
 {
 	mixin PPBase;
 	
+	variations
+	{
+		NO_TEXTURE_VIEWS = { true, false };
+	};
+	
 	code
 	{	
-		#define NO_TEXTURE_VIEWS 0
-			
-		#ifdef OPENGL 
-		#ifdef __VERSION__
-			#if __VERSION__ < 430
-				#define NO_TEXTURE_VIEWS 1
-			#endif
-		#endif
-		#endif
-	
 		SamplerState gDepthSamp;
 		Texture2D gDepthTex;
 		
@@ -33,10 +28,13 @@ shader PPBuildHiZ
 		{
 #if NO_TEXTURE_VIEWS 	
 			float4 depth;
-			depth.x = gDepthTex.Sample(gDepthSamp, input.uv0, int2(1, 1));
-			depth.y = gDepthTex.Sample(gDepthSamp, input.uv0, int2(-1, 1));
-			depth.z = gDepthTex.Sample(gDepthSamp, input.uv0, int2(1, -1));
-			depth.w = gDepthTex.Sample(gDepthSamp, input.uv0, int2(-1, -1));
+			
+			float2 uv = input.uv0 - gHalfPixelOffset;
+			
+			depth.x = gDepthTex.SampleLevel(gDepthSamp, uv, gMipLevel, int2(0, 0));
+			depth.y = gDepthTex.SampleLevel(gDepthSamp, uv, gMipLevel, int2(1, 0));
+			depth.z = gDepthTex.SampleLevel(gDepthSamp, uv, gMipLevel, int2(1, 1));
+			depth.w = gDepthTex.SampleLevel(gDepthSamp, uv, gMipLevel, int2(0, 1));
 #else
 			float4 depth = gDepthTex.Gather(gDepthSamp, input.uv0);
 #endif

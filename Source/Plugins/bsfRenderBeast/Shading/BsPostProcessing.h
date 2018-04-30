@@ -532,6 +532,17 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("PPBuildHiZ.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<bool noTextureViews>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation(
+			Vector<ShaderVariation::Param>{
+				ShaderVariation::Param("NO_TEXTURE_VIEWS", noTextureViews),
+			});
+
+			return variation;
+		}
 	public:
 		BuildHiZMat();
 
@@ -547,9 +558,18 @@ namespace bs { namespace ct
 		 */
 		void execute(const SPtr<Texture>& source, UINT32 srcMip, const Rect2& srcRect, const Rect2& dstRect,
 			const SPtr<RenderTexture>& output);
+
+		/** 
+		 * Returns the material variation matching the provided parameters.
+		 *
+		 * @param	noTextureViews		Specify as true if the current render backend doesn't support texture views, in
+		 *								which case the implementation falls back on using a simpler version of the shader.
+		 */
+		static BuildHiZMat* getVariation(bool noTextureViews);
 	private:
 		GpuParamTexture mInputTexture;
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
+		bool mNoTextureViews = false;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(FXAAParamDef)
