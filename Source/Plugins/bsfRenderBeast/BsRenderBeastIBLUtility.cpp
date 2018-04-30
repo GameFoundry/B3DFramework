@@ -245,7 +245,7 @@ namespace bs { namespace ct
 		// Assuming it's a cubemap
 		UINT32 size = std::max(1U, (UINT32)(props.getWidth() * 0.5f));
 
-		return POOLED_RENDER_TEXTURE_DESC::createCube(PF_RGBA16F, size, size, TU_RENDERTARGET);
+		return POOLED_RENDER_TEXTURE_DESC::createCube(PF_RGBA32F, size, size, TU_RENDERTARGET);
 	}
 
 	IrradianceAccumulateCubeSHMat::IrradianceAccumulateCubeSHMat()
