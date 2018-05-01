@@ -5,11 +5,6 @@
 
 namespace bs
 {
-	AutoExposureSettings::AutoExposureSettings()
-		: histogramLog2Min(-8.0f), histogramLog2Max(4.0f), histogramPctLow(0.8f), histogramPctHigh(0.985f)
-		, minEyeAdaptation(0.003f), maxEyeAdaptation(2.0f), eyeAdaptationSpeedUp(3.0f), eyeAdaptationSpeedDown(3.0f)
-	{ }
-
 	RTTITypeBase* AutoExposureSettings::getRTTIStatic()
 	{
 		return AutoExposureSettingsRTTI::instance();
@@ -19,12 +14,6 @@ namespace bs
 	{
 		return AutoExposureSettings::getRTTIStatic();
 	}
-
-	TonemappingSettings::TonemappingSettings()
-		: filmicCurveShoulderStrength(0.15f), filmicCurveLinearStrength(0.5f), filmicCurveLinearAngle(0.1f)
-		, filmicCurveToeStrength(0.2f), filmicCurveToeNumerator(0.02f), filmicCurveToeDenominator(0.3f)
-		, filmicCurveLinearWhitePoint(11.2f)
-	{ }
 
 	RTTITypeBase* TonemappingSettings::getRTTIStatic()
 	{
@@ -36,10 +25,6 @@ namespace bs
 		return TonemappingSettings::getRTTIStatic();
 	}
 
-	WhiteBalanceSettings::WhiteBalanceSettings()
-		: temperature(6500.0f), tint(0.0f)
-	{ }
-
 	RTTITypeBase* WhiteBalanceSettings::getRTTIStatic()
 	{
 		return WhiteBalanceSettingsRTTI::instance();
@@ -49,10 +34,6 @@ namespace bs
 	{
 		return WhiteBalanceSettings::getRTTIStatic();
 	}
-
-	ColorGradingSettings::ColorGradingSettings()
-		: saturation(Vector3::ONE), contrast(Vector3::ONE), gain(Vector3::ONE), offset(Vector3::ZERO)
-	{ }
 
 	RTTITypeBase* ColorGradingSettings::getRTTIStatic()
 	{
@@ -64,11 +45,6 @@ namespace bs
 		return ColorGradingSettings::getRTTIStatic();
 	}
 
-	AmbientOcclusionSettings::AmbientOcclusionSettings()
-		: enabled(true), radius(1.5f), bias(1.0f), fadeDistance(500.0f), fadeRange(50.0f), intensity(1.0f), power(4.0f)
-		, quality(3)
-	{ }
-
 	RTTITypeBase* AmbientOcclusionSettings::getRTTIStatic()
 	{
 		return AmbientOcclusionSettingsRTTI::instance();
@@ -79,11 +55,6 @@ namespace bs
 		return AmbientOcclusionSettings::getRTTIStatic();
 	}
 
-	DepthOfFieldSettings::DepthOfFieldSettings()
-		: enabled(false), focalDistance(0.75f), focalRange(0.75f), nearTransitionRange(0.25f), farTransitionRange(0.25f)
-		, nearBlurAmount(0.15f), farBlurAmount(0.15f)
-	{ }
-
 	RTTITypeBase* DepthOfFieldSettings::getRTTIStatic()
 	{
 		return DepthOfFieldSettingsRTTI::instance();
@@ -93,10 +64,6 @@ namespace bs
 	{
 		return DepthOfFieldSettings::getRTTIStatic();
 	}
-
-	ScreenSpaceReflectionsSettings::ScreenSpaceReflectionsSettings()
-		: enabled(true), quality(2), intensity(1.0f), maxRoughness(0.8f)
-	{ }
 
 	RTTITypeBase* ScreenSpaceReflectionsSettings::getRTTIStatic()
 	{
@@ -117,11 +84,6 @@ namespace bs
 	{
 		return ShadowSettings::getRTTIStatic();
 	}
-
-	RenderSettings::RenderSettings()
-		: enableAutoExposure(true), enableTonemapping(true), enableFXAA(true), exposureScale(1.25f), gamma(2.2f)
-		, enableHDR(true), enableLighting(true), enableShadows(true), enableIndirectLighting(true), overlayOnly(false)
-	{ }
 
 	RTTITypeBase* RenderSettings::getRTTIStatic()
 	{

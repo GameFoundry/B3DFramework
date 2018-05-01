@@ -219,7 +219,7 @@ namespace bs
 		 */
 		BS_CORE_EXPORT TextDataBase(const U32String& text, const HFont& font, UINT32 fontSize,
 			UINT32 width = 0, UINT32 height = 0, bool wordWrap = false, bool wordBreak = true);
-		BS_CORE_EXPORT virtual ~TextDataBase() { }
+		BS_CORE_EXPORT virtual ~TextDataBase() = default;
 
 		/**	Returns the number of lines that were generated. */
 		BS_CORE_EXPORT UINT32 getNumLines() const { return mNumLines; }

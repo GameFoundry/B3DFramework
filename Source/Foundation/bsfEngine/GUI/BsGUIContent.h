@@ -46,7 +46,7 @@ namespace bs
 	{
 	public:
 		/**	Constructs an empty content. */
-		GUIContent();
+		GUIContent() = default;
 
 		/**	Constructs content with just a string. */
 		GUIContent(const HString& text);

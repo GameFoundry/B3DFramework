@@ -11,10 +11,6 @@ namespace bs
 		normalOn(image), hoverOn(image), activeOn(image), focusedOn(image)
 	{ }
 
-	GUIContent::GUIContent()
-		:mText("")
-	{ }
-
 	GUIContent::GUIContent(const HString& text)
 		:mText(text)
 	{ }
