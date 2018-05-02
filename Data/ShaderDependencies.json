@@ -543,6 +543,17 @@
             "Path": "VertexInput.bslinc"
         }
     ],
+    "ShadowDepthNormalNoPS.bsl": [
+        {
+            "Path": "PerObjectData.bslinc"
+        },
+        {
+            "Path": "VertexInput.bslinc"
+        },
+        {
+            "Path": "ShadowDepthBase.bslinc"
+        }
+    ],
     "ShadowProject.bsl": [
         {
             "Path": "ShadowProjectionCommon.bslinc"

@@ -32,7 +32,7 @@ namespace bs { namespace ct
 
 	extern ShadowParamsDef gShadowParamsDef;
 	
-	/** Material used for rendering a single face of a shadow map. */
+	/** Material used for rendering a single face of a shadow map, while applying bias in the pixel shader. */
 	class ShadowDepthNormalMat : public RendererMaterial<ShadowDepthNormalMat>
 	{
 		RMAT_DEF("ShadowDepthNormal.bsl");
@@ -66,6 +66,42 @@ namespace bs { namespace ct
 		 * @param[in]	morph		True if the shadow caster supports morph shape animation.
 		 */
 		static ShadowDepthNormalMat* getVariation(bool skinned, bool morph);
+	};
+
+	/** Material used for rendering a single face of a shadow map, without running the pixel shader. */
+	class ShadowDepthNormalNoPSMat : public RendererMaterial<ShadowDepthNormalNoPSMat>
+	{
+		RMAT_DEF("ShadowDepthNormalNoPS.bsl");
+
+		/** Helper method used for initializing variations of this material. */
+		template<bool skinned, bool morph>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation(
+					Vector<ShaderVariation::Param>{
+							ShaderVariation::Param("SKINNED", skinned),
+							ShaderVariation::Param("MORPH", morph)
+					});
+
+			return variation;
+		}
+
+	public:
+		ShadowDepthNormalNoPSMat();
+
+		/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
+		void bind(const SPtr<GpuParamBlockBuffer>& shadowParams);
+
+		/** Sets a new buffer that determines per-object properties. */
+		void setPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams);
+
+		/**
+		 * Returns the material variation matching the provided parameters.
+		 *
+		 * @param[in]	skinned		True if the shadow caster supports bone animation.
+		 * @param[in]	morph		True if the shadow caster supports morph shape animation.
+		 */
+		static ShadowDepthNormalNoPSMat* getVariation(bool skinned, bool morph);
 	};
 
 	/** Material used for rendering a single face of a shadow map, for a directional light. */

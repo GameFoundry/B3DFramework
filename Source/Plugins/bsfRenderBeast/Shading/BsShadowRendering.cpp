@@ -52,6 +52,42 @@ namespace bs { namespace ct
 		}
 	}
 
+	ShadowDepthNormalNoPSMat::ShadowDepthNormalNoPSMat()
+	{ }
+
+	void ShadowDepthNormalNoPSMat::bind(const SPtr<GpuParamBlockBuffer>& shadowParams)
+	{
+		mParams->setParamBlockBuffer("ShadowParams", shadowParams);
+
+		RenderAPI::instance().setGraphicsPipeline(mGfxPipeline);
+		RenderAPI::instance().setStencilRef(mStencilRef);
+	}
+
+	void ShadowDepthNormalNoPSMat::setPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams)
+	{
+		mParams->setParamBlockBuffer("PerObject", perObjectParams);
+
+		RenderAPI::instance().setGpuParams(mParams);
+	}
+
+	ShadowDepthNormalNoPSMat* ShadowDepthNormalNoPSMat::getVariation(bool skinned, bool morph)
+	{
+		if(skinned)
+		{
+			if(morph)
+				return get(getVariation<true, true>());
+
+			return get(getVariation<true, false>());
+		}
+		else
+		{
+			if(morph)
+				return get(getVariation<false, true>());
+
+			return get(getVariation<false, false>());
+		}
+	}
+
 	ShadowDepthDirectionalMat::ShadowDepthDirectionalMat()
 	{ }
 
@@ -503,7 +539,7 @@ namespace bs { namespace ct
 		}
 	};
 
-	/** Specialization used for ShadowRenderQueue when rendering cube (omnidirectional) shadow maps. */
+	/** Specialization used for ShadowRenderQueue when rendering cube (omnidirectional) shadow maps (all faces at once). */
 	struct ShadowRenderQueueCubeOptions
 	{
 		ShadowRenderQueueCubeOptions(
@@ -550,6 +586,43 @@ namespace bs { namespace ct
 		const SPtr<GpuParamBlockBuffer>& shadowCubeMasksBuffer;
 
 		mutable ShadowDepthCubeMat* material = nullptr;
+	};
+
+	/** Specialization used for ShadowRenderQueue when rendering cube (omnidirectional) shadow maps (one face at a time). */
+	struct ShadowRenderQueueCubeSingleOptions
+	{
+		ShadowRenderQueueCubeSingleOptions(
+				const ConvexVolume& boundingVolume,
+				const SPtr<GpuParamBlockBuffer>& shadowParamsBuffer)
+				: boundingVolume(boundingVolume), shadowParamsBuffer(shadowParamsBuffer)
+		{ }
+
+		bool intersects(const Sphere& bounds) const
+		{
+			return boundingVolume.intersects(bounds);
+		}
+
+		void prepare(ShadowRenderQueue::Command& command, const Sphere& bounds) const
+		{
+		}
+
+		void bindMaterial(const ShaderVariation& variation) const
+		{
+			material = ShadowDepthNormalNoPSMat::get(variation);
+			material->bind(shadowParamsBuffer);
+		}
+
+		void bindRenderable(ShadowRenderQueue::Command& command) const
+		{
+			RendererObject* renderable = command.renderable;
+
+			material->setPerObjectBuffer(renderable->perObjectParamBuffer);
+		}
+
+		const ConvexVolume& boundingVolume;
+		const SPtr<GpuParamBlockBuffer>& shadowParamsBuffer;
+
+		mutable ShadowDepthNormalNoPSMat* material = nullptr;
 	};
 
 	/** Specialization used for ShadowRenderQueue when rendering spot light shadow maps. */
@@ -1377,8 +1450,6 @@ namespace bs { namespace ct
 		Light* light = rendererLight.internal;
 
 		SPtr<GpuParamBlockBuffer> shadowParamsBuffer = gShadowParamsDef.createBuffer();
-		SPtr<GpuParamBlockBuffer> shadowCubeMatricesBuffer = gShadowCubeMatricesDef.createBuffer();
-		SPtr<GpuParamBlockBuffer> shadowCubeMasksBuffer = gShadowCubeMasksDef.createBuffer();
 
 		ShadowInfo mapInfo;
 		mapInfo.lightIdx = options.lightIdx;
@@ -1442,6 +1513,16 @@ namespace bs { namespace ct
 			adjustedProj[1][1] = -proj[1][1];
 		}
 
+		bool renderAllFacesAtOnce = rapiInfo.isFlagSet(RenderAPIFeatureFlag::RenderTargetLayers);
+
+		SPtr<GpuParamBlockBuffer> shadowCubeMatricesBuffer;
+		SPtr<GpuParamBlockBuffer> shadowCubeMasksBuffer;
+		if(renderAllFacesAtOnce)
+		{
+			shadowCubeMatricesBuffer = gShadowCubeMatricesDef.createBuffer();
+			shadowCubeMasksBuffer = gShadowCubeMasksDef.createBuffer();
+		}
+
 		gShadowParamsDef.gDepthBias.set(shadowParamsBuffer, mapInfo.depthBias);
 		gShadowParamsDef.gInvDepthRange.set(shadowParamsBuffer, 1.0f / mapInfo.depthRange);
 		gShadowParamsDef.gMatViewProj.set(shadowParamsBuffer, Matrix4::IDENTITY);
@@ -1489,7 +1570,6 @@ namespace bs { namespace ct
 			mapInfo.shadowVPTransforms[i] = proj * view;
 
 			Matrix4 shadowViewProj = adjustedProj * view;
-			gShadowCubeMatricesDef.gFaceVPMatrices.set(shadowCubeMatricesBuffer, shadowViewProj, i);
 
 			// Calculate world frustum for culling
 			const Vector<Plane>& frustumPlanes = localFrustum.getPlanes();
@@ -1504,25 +1584,58 @@ namespace bs { namespace ct
 				j++;
 			}
 
-			frustums[i] = ConvexVolume(worldPlanes);
+			ConvexVolume frustum(worldPlanes);
 
-			// Register far plane of all frustums
-			boundingPlanes.push_back(worldPlanes.back());
+			if(renderAllFacesAtOnce)
+			{
+				frustums[i] = frustum;
+
+				// Register far plane of all frustums
+				boundingPlanes.push_back(worldPlanes.back());
+				gShadowCubeMatricesDef.gFaceVPMatrices.set(shadowCubeMatricesBuffer, shadowViewProj, i);
+			}
+			else
+			{
+				gShadowParamsDef.gMatViewProj.set(shadowParamsBuffer, shadowViewProj);
+
+				RENDER_TEXTURE_DESC rtDesc;
+				rtDesc.depthStencilSurface.texture = cubemap.getTexture();
+				rtDesc.depthStencilSurface.face = i;
+				rtDesc.depthStencilSurface.numFaces = 1;
+
+				SPtr<RenderTarget> faceRt = RenderTexture::create(rtDesc);
+
+				rapi.setRenderTarget(faceRt);
+				rapi.clearRenderTarget(FBT_DEPTH);
+
+				// Render all renderables into the shadow map
+				ConvexVolume boundingVolume(boundingPlanes);
+				ShadowRenderQueueCubeSingleOptions cubeOptions(
+						frustum,
+						shadowParamsBuffer
+				);
+
+				ShadowRenderQueue::execute(scene, frameInfo, cubeOptions);
+			}
 		}
 
-		rapi.setRenderTarget(cubemap.getTarget());
-		rapi.clearRenderTarget(FBT_DEPTH);
+		if(renderAllFacesAtOnce)
+		{
+			rapi.setRenderTarget(cubemap.getTarget());
+			rapi.clearRenderTarget(FBT_DEPTH);
 
-		// Render all renderables into the shadow map
-		ConvexVolume boundingVolume(boundingPlanes);
-		ShadowRenderQueueCubeOptions cubeOptions(
-			frustums,
-			boundingVolume,
-			shadowParamsBuffer,
-			shadowCubeMatricesBuffer,
-			shadowCubeMasksBuffer);
+			// Render all renderables into the shadow map
+			ConvexVolume boundingVolume(boundingPlanes);
+			ShadowRenderQueueCubeOptions cubeOptions(
+					frustums,
+					boundingVolume,
+					shadowParamsBuffer,
+					shadowCubeMatricesBuffer,
+					shadowCubeMasksBuffer
+			);
 
-		ShadowRenderQueue::execute(scene, frameInfo, cubeOptions);
+			ShadowRenderQueue::execute(scene, frameInfo, cubeOptions);
+		}
 
 		LightShadows& lightShadows = mRadialLightShadows[options.lightIdx];
 

@@ -205,6 +205,10 @@ namespace bs
 		LoadStore				= 1 << 8,
 		/** If set, GpuPrograms can cache shader bytecode for faster future compilation. */
 		ByteCodeCaching			= 1 << 9,
+		/**
+		 * If set, the render API support rendering to multiple layers of a render texture at once (via a geometry shader).
+		 */
+		RenderTargetLayers		= 1 << 10,
 	};
 
 	typedef Flags<RenderAPIFeatureFlag> RenderAPIFeatures;

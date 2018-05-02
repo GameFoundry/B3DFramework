@@ -2702,6 +2702,10 @@ namespace bs { namespace ct
 		featureFlags |= RenderAPIFeatureFlag::LoadStore;
 #endif
 
+#if BS_PLATFORM != BS_PLATFORM_OSX
+		featureFlags |= RenderAPIFeatureFlag::RenderTargetLayers;
+#endif
+
 		static RenderAPIInfo info(0.0f, 0.0f, -1.0f, 1.0f, VET_COLOR_ABGR, featureFlags);
 								  
 		return info;

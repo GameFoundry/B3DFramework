@@ -421,6 +421,10 @@
         {
             "Path": "DeferredIBLSky.bsl",
             "UUID": "e3c4e19e-4d65-dd20-bca1-4d65a0b9980b"
+        },
+        {
+            "Path": "ShadowDepthNormalNoPS.bsl",
+            "UUID": "5335edda-c14c-0158-d73e-f880d58d0596"
         }
     ],
     "Skin": [
