@@ -21,6 +21,7 @@ public:
 Each component implementation can override any of the three primary methods for introducing gameplay logic:
  - @ref bs::Component::onInitialized "Component::onInitialized" - Called once when the component is first instantiated. You should use this instead of the constructor for initialization.
  - @ref bs::Component::update "Component::update" - Called every frame while the game is running and the component is enabled.
+ - @ref bs::Component::fixedUpdate "Component::fixedUpdate" - Similar to `update()` except it gets called at a fixed time interval (e.g. 60 times per second, instead of every frame). Normally you want to use this method for physics-related functionality, which requires fixed time increments in order to ensure stability of calculations.
  - @ref bs::Component::onDestroyed "Component::onDestroyed" - Called just before the component is destroyed. Use this instead of the destructor for cleanup.
 		
 Here is a simple implementation of a component using a few of these methods to implement basic camera movement.

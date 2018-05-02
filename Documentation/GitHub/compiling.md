@@ -42,6 +42,7 @@ You can choose to use a different *CMake* generator than those specified above, 
     - MSVC++ 15.0 (Visual Studio 2017)
     - GCC 7.0 (or newer)
     - Clang 5.0 (or newer)
+	- Apple LLVM 9.0.0 (XCode 9)
 	
 ### <a name="dependencies"></a>Third party dependencies
 bs::framework relies on a variety of third party dependencies. A set of pre-compiled dependencies are provided for every supported platform/compiler and these will be fetched automatically by the build process. If required, the dependencies can also be compiled manually by following [this guide](dependencies.md). This can be required if the pre-compiled dependencies don't work with your platform (e.g. unsupported Linux distro) or if you wish to update to a newer dependency version.
@@ -91,7 +92,7 @@ The following dependencies will need to be installed manually. Which ones are re
     - Only needed if you plan on changing BSL syntax (BUILD_BSL option in CMake)
     - `brew install bison`
     - Make sure old version of Bison that comes with Xcode is overriden:
-      - Add this to $HOME/.bash_profile: `export PATH=“/usr/local/opt/bison/bin:$PATH”`
+      - Add this to $HOME/.bash_profile: `export PATH="/usr/local/opt/bison/bin:$PATH"`
       - `mv /usr/bin/bison /usr/bin/bison-2.3`
 
 **All OS**

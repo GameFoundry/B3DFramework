@@ -127,7 +127,7 @@ Additionally, if the dependency structure still isn't clear, download one of the
 - **macOS**
   - `brew install bison`
   - Make sure old version of Bison that comes with Xcode is overriden:
-    - Add this to $HOME/.bash_profile: `export PATH=“/usr/local/opt/bison/bin:$PATH”`
+    - Add this to $HOME/.bash_profile: `export PATH="/usr/local/opt/bison/bin:$PATH"`
     - `mv /usr/bin/bison /usr/bin/bison-2.3`
 - Required by bsfSL
 - Executable (tool)
