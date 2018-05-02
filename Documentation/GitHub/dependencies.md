@@ -61,8 +61,10 @@ Additionally, if the dependency structure still isn't clear, download one of the
 - Compile as a static library
    
 **freeimg**
-- FreeImage 3.13.1
+- FreeImage 3.17
 - http://freeimage.sourceforge.net
+- **macOS only**
+  - Make sure to to build with `./configure —-without-zlib`
 - Required by bsfFreeImgImporter
 - Compile as a static library
       
@@ -78,7 +80,7 @@ Additionally, if the dependency structure still isn't clear, download one of the
 - Required by bsfOpenAudio
 - **Linux only**
   - Make sure to get audio backend libraries before compiling: PulseAudio, OSS, ALSA and JACK
-  - On Debian/Ubuntu run: *apt-get install libpulse libasound2-dev libjack-dev* 
+  - On Debian/Ubuntu run: `apt-get install libpulse libasound2-dev libjack-dev`
 - Compile as a dynamic library
    
 **libogg**
@@ -120,8 +122,13 @@ Additionally, if the dependency structure still isn't clear, download one of the
 - **Windows**
   - http://sourceforge.net/projects/winflexbison/files/
 - **Linux**
-  - Debian/Ubuntu: *apt-get install bison*
+  - Debian/Ubuntu: `apt-get install bison`
   - Or equivalent package for your distribution
+- **macOS**
+  - `brew install bison`
+  - Make sure old version of Bison that comes with Xcode is overriden:
+    - Add this to $HOME/.bash_profile: `export PATH=“/usr/local/opt/bison/bin:$PATH”`
+    - `mv /usr/bin/bison /usr/bin/bison-2.3`
 - Required by bsfSL
 - Executable (tool)
  
@@ -131,7 +138,9 @@ Additionally, if the dependency structure still isn't clear, download one of the
 - **Windows**
   - http://sourceforge.net/projects/winflexbison/files/
 - **Linux**
-  - Debian/Ubuntu: *apt-get install flex*
+  - Debian/Ubuntu: `apt-get install flex`
   - Or equivalent package for your distribution
+- **macOS**
+  - `brew install flex`
 - Required by bsfSL
 - Executable (tool)

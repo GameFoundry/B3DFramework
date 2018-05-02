@@ -5,7 +5,7 @@
 	* Clean layered design
 	* Modular & plugin based
 	* Fully documented
-	* Platforms: Windows, Linux
+	* Platforms: Windows, Linux, macOS
 * __Renderer__
 	* Vulkan, DX11 and OpenGL 4.5 render backends
 	* Multi-threaded rendering

@@ -35,10 +35,11 @@ Modify *CMAKE_BUILD_TYPE* to pick what kind of a build you want. Note that this 
  
 You can choose to use a different *CMake* generator than those specified above, as long as the platform/compiler is supported:  
   - Supported platforms:
-    - Windows, Linux
-    - (macOS coming soon)
+    - Windows 7, 8, 10
+    - Linux
+    - macOS 10.11 or newer
   - Supported compilers:
-	- MSVC++ 15.0 (Visual Studio 2017)
+    - MSVC++ 15.0 (Visual Studio 2017)
     - GCC 7.0 (or newer)
     - Clang 5.0 (or newer)
 	
@@ -63,17 +64,35 @@ The following dependencies will need to be installed manually. Which ones are re
 **Linux**
   - **OpenGL**
     - Required by default, but optional if you have chosen a different RenderAPI in *CMake* options
-    - Debian/Ubuntu: *apt-get install libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev*
+    - Debian/Ubuntu: `apt-get install libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev`
   - **X11**
-    - Debian/Ubuntu: *apt-get install libx11-dev libxcursor-dev libxrandr-dev libxi-dev*
+    - Debian/Ubuntu: `apt-get install libx11-dev libxcursor-dev libxrandr-dev libxi-dev`
   - **LibUUID**
-    - Debian/Ubuntu: *apt-get install uuid-dev*
+    - Debian/Ubuntu: `apt-get install uuid-dev`
   - **LibICU**
-    - Debian/Ubuntu: *apt-get install libicu-dev*
+    - Debian/Ubuntu: `apt-get install libicu-dev`
   - **Bison & Flex** (Optional)
     - Only needed if you plan on changing BSL syntax (BUILD_BSL option in CMake)
-    - Debian/Ubuntu: *apt-get install bison flex*
+    - Debian/Ubuntu: `apt-get install bison flex`
   - (Or equivalent packages for your distribution)
+
+**macOS**
+  - **Homebrew**
+    - `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
+  - **Xcode 9**
+    - Grab from App Store
+    - After install make sure to run: `xcode-select -install`
+  - **LibUUID**
+    - `brew install ossp-uuid`
+  - **Flex** (Optional)
+    - Only needed if you plan on changing BSL syntax (BUILD_BSL option in CMake)
+    - `brew install flex`
+  - **Bison** (Optional)
+    - Only needed if you plan on changing BSL syntax (BUILD_BSL option in CMake)
+    - `brew install bison`
+    - Make sure old version of Bison that comes with Xcode is overriden:
+      - Add this to $HOME/.bash_profile: `export PATH=“/usr/local/opt/bison/bin:$PATH”`
+      - `mv /usr/bin/bison /usr/bin/bison-2.3`
 
 **All OS**
   - **Vulkan SDK 1.0.65.1** (Optional) 
