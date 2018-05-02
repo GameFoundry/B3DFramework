@@ -19,11 +19,22 @@ matrix:
             - libxrandr-dev
             - libxi-dev
             - uuid-dev
+    - os: osx
+      compiler:
+        - clang
+      osx_image: xcode9
   
 install:
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/Deps"
   - mkdir ${DEPS_DIR}
-  
+
+  # Download libUUID
+  - |
+    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew update
+      brew install ossp-uuid
+    fi
+
   # Download CMake
   - |
     if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
@@ -67,7 +78,12 @@ script:
   - INSTALL_DIR="${TRAVIS_BUILD_DIR}/Install"
   - mkdir ${INSTALL_DIR}
   - mkdir Build && cd Build
-  - CC=gcc CXX=g++ cmake -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ -DCMAKE_INSTALL_PREFIX:STRING=${INSTALL_DIR} .. 
+  - |
+    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      CC=gcc CXX=g++ cmake -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ -DCMAKE_INSTALL_PREFIX:STRING=${INSTALL_DIR} .. 
+    else
+      cmake -DCMAKE_INSTALL_PREFIX:STRING=${INSTALL_DIR} ..
+    fi
   - make
   - make install
   
