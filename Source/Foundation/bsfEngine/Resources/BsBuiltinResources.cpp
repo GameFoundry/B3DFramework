@@ -286,19 +286,22 @@ namespace bs
 		{
 			Path dataListsFilePath = mBuiltinRawDataFolder + DataListFile;
 			SPtr<DataStream> dataListStream = FileSystem::openFile(dataListsFilePath);
-			json dataListJSON = json::parse(dataListStream->getAsString().c_str());
-
-			json shadersJSON = dataListJSON["Shaders"];
-			for (auto& entry : shadersJSON)
+			if(dataListStream)
 			{
-				std::string uuidStr = entry["UUID"];
-				UUID uuid(uuidStr.c_str());
+				json dataListJSON = json::parse(dataListStream->getAsString().c_str());
 
-				Path filePath;
-				if (!mResourceManifest->uuidToFilePath(uuid, filePath))
-					continue;
+				json shadersJSON = dataListJSON["Shaders"];
+				for (auto& entry : shadersJSON)
+				{
+					std::string uuidStr = entry["UUID"];
+					UUID uuid(uuidStr.c_str());
 
-				BuiltinResourcesHelper::updateShaderBytecode(filePath);
+					Path filePath;
+					if (!mResourceManifest->uuidToFilePath(uuid, filePath))
+						continue;
+
+					BuiltinResourcesHelper::updateShaderBytecode(filePath);
+				}
 			}
 		}
 		
