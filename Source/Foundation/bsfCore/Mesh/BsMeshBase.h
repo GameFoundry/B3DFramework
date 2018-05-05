@@ -18,9 +18,12 @@ namespace bs
 	 * on modifying the mesh often, otherwise specify dynamic.
 	 */
 	enum BS_SCRIPT_EXPORT(m:Rendering) MeshUsage
-	{
-		MU_STATIC		BS_SCRIPT_EXPORT(n:Static), /**< Specify for a mesh that is not often updated from the CPU. */
-		MU_DYNAMIC		BS_SCRIPT_EXPORT(n:Dynamic), /**< Specify for a mesh that is often updated from the CPU. */
+	{ 
+		/** Specify for a mesh that is not often updated from the CPU. */
+		MU_STATIC		BS_SCRIPT_EXPORT(n:Static) = 1 << 0,
+
+		/** Specify for a mesh that is often updated from the CPU. */
+		MU_DYNAMIC		BS_SCRIPT_EXPORT(n:Dynamic) = 1 << 1,
 		/** 
 		 * All mesh data will also be cached in CPU memory, making it available for fast read access from the CPU. Can be 
 		 * combined with other usage flags. 
