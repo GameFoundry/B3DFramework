@@ -132,11 +132,11 @@ namespace bs
 		{
 			for (UINT32 j = 0; j < 3; j++)
 			{
-				if (smoothing[idx + i] != 0)
+				if (smoothing[idx + j] != 0)
 				{
-					int current = indices[idx + i];
+					int current = indices[idx + j];
 
-					normals[idx + i] = smoothNormals[current].getNormal(smoothing[idx + i]);
+					normals[idx + j] = smoothNormals[current].getNormal(smoothing[idx + j]);
 				}
 			}
 
