@@ -1954,7 +1954,7 @@ namespace bs { namespace ct
 		// whose contents are then blended with the higher level.
 		UINT32 quality = settings.quality;
 		UINT32 numDownsampleLevels = 0;
-		if (quality > 1)
+		if (quality == 2)
 			numDownsampleLevels = 1;
 		else if (quality > 2)
 			numDownsampleLevels = 2;
