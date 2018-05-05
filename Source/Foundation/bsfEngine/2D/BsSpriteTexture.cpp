@@ -38,7 +38,7 @@ namespace bs
 
 	bool SpriteTexture::checkIsLoaded(const HSpriteTexture& tex)
 	{
-		return tex != nullptr && tex.isLoaded() && tex->getTexture() != nullptr && tex.isLoaded();
+		return tex != nullptr && tex.isLoaded() && tex->getTexture() != nullptr && tex->getTexture().isLoaded();
 	}
 
 	UINT32 SpriteTexture::getWidth() const
