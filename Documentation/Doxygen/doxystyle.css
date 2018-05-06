@@ -1,6 +1,6 @@
 /* Global */
 body, table, div, p, dl {
-	font: 16px/26px Segoe UI,Roboto,sans-serif;
+	font: 16px/26px Cabin,Roboto,sans-serif;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -12,6 +12,7 @@ h1 {
 	margin-bottom: 0.07em;
 	padding: 15px 0px 5px 0px;
 	border-bottom: 2px solid rgba(89, 160, 195, 0.86);
+	font-size: 2rem !important;
 }
 
 h2 {
@@ -45,7 +46,12 @@ a:visited {
 div.contents {
 	margin: auto;
 	width: 800px;
-	padding-bottom: 170px;
+	padding-bottom: 160px;
+}
+
+.ui.inverted.menu .item {
+	font-size: 14px;
+	font-family: Lato,sans-serif;
 }
 
 div.line {
@@ -76,7 +82,7 @@ div.fragment {
 	color: rgba(255, 255, 255, 1.0);
 	background: transparent;
 	text-shadow: none;
-	font-weight: normal;
+	font-weight: bold;
 	font-family: Lato,sans-serif;
 }
 
@@ -84,6 +90,7 @@ div.fragment {
     background-image: none;
 	color: rgba(255, 255, 255, 1.0);
 	text-shadow: none;
+	font-family: Lato,sans-serif;
 }
 
 .sm-dox li.current a {
@@ -306,7 +313,7 @@ table.markdownTable tbody tr:nth-child(2n) {
 	min-height: 100%;
 }
 
-.footer {
+.myFooter {
 	position: absolute;
 	left: 0;
 	bottom: 0;
@@ -331,7 +338,7 @@ blockquote {
 
 #menuSegment {
     padding: 0;
-    border-bottom: 5px solid #ffb028;
+    border-bottom: 2px solid #f9500d;
 }
 
 #footerSegment {
@@ -339,12 +346,13 @@ blockquote {
 }
 
 #logoItem {
-    padding-bottom: 0px;
+    padding-bottom: 3px;
     padding-top: 3px;
 }
 
 #logo {
-    width: 55px;
+    min-height: 54px;
+    min-width: 270px;
 }
 
 #projectname

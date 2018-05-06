@@ -21,10 +21,6 @@
  *  Entry point into the application.
  */
 
-/** @defgroup Components Components
-  *	Built-in components.
-  */
-
 /** @defgroup GUI GUI
   *	Graphical user interface, including elements, styles, events and GUI manager.
   */

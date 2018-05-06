@@ -1213,7 +1213,10 @@ HTML_EXTRA_STYLESHEET  = doxystyle.css
 # files will be copied as-is; there are no commands or markers available.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_EXTRA_FILES       = SmallLogoRound.png
+HTML_EXTRA_FILES       = logoHeader.png \
+                         logo.png \
+                         become_a_patron_button.png \
+                         paypalDonate.png
 
 # The HTML_COLORSTYLE_HUE tag controls the color of the HTML output. Doxygen
 # will adjust the colors in the style sheet and background images according to

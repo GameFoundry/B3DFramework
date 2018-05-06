@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	/** @addtogroup Components
+	/** @addtogroup Components-Core
 	 *  @{
 	 */
 

@@ -137,6 +137,6 @@ public:
 
 **IResourceListener::notifyResourceLoaded()** triggers when a resource is loaded in response to a @ref bs::Resources::load "Resources::load()" or @ref bs::Resources::loadAsync "Resources::loadAsync()" call.
 
-**IResourceListener::notifyResourceChanged()** triggers whenever user calls @ref bs::Importer::reimport "Importer::reimport()". You may also trigger it manually by calling @ref bs::Resources::update() "Resources::update()". This method will update the contents of a resource handle with new resource data, and trigger any listeners.
+**IResourceListener::notifyResourceChanged()** triggers whenever user calls @ref bs::Resources::update "Resources::update()". This method will update the contents of a resource handle with new resource data, and trigger any listeners.
 
 **Resources** module also provides @ref bs::Resources::onResourceLoaded "Resources::onResourceLoaded", @ref bs::Resources::onResourceDestroyed "Resources::onResourceDestroyed" and @ref bs::Resources::onResourceModified "Resources::onResourceModified" events which may be used for a similar purpose, but **IResourceListener** is more efficient since it only tracks specific resources, while these events trigger for every resource.

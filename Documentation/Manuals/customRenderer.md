@@ -37,7 +37,6 @@ Whenever such objects are created, destroyed or some property on them is updated
  - @ref bs::ct::Renderer::notifyReflectionProbeUpdated "ct::Renderer::notifyReflectionProbeUpdated()" - Called when **ReflectionProbe** position, rotation or scale changes.
  - @ref bs::ct::Renderer::notifyReflectionProbeRemoved "ct::Renderer::notifyReflectionProbeRemoved()" - Called when a **ReflectionProbe** is destroyed.
  - @ref bs::ct::Renderer::notifySkyboxAdded "ct::Renderer::notifySkyboxAdded()" - Called when a new **Skybox** is created (e.g. when a **CSkybox** component is added to the scene).
- - @ref bs::ct::Renderer::notifySkyboxTextureChanged "ct::Renderer::notifySkyboxTextureChanged()" - Called when the texture applied to **Skybox** changes.
  - @ref bs::ct::Renderer::notifySkyboxRemoved "ct::Renderer::notifySkyboxRemoved()" - Called when a **Skybox** is destroyed. 
  - @ref bs::ct::Renderer::notifyLightProbeVolumeAdded "ct::Renderer::notifyLightProbeVolumeAdded()" - Called when a new **LightProbeVolume** is created (e.g. when a **CLightProbeVolume** component is added to the scene).
  - @ref bs::ct::Renderer::notifyLightProbeVolumeUpdated "ct::Renderer::notifyLightProbeVolumeUpdated()" - Called when probes are added or modified in a **LightProbeVolume**. 
@@ -259,7 +258,7 @@ DownsampleMat* renderMat = DownsampleMat::get(variation):
 renderMat->execute(inputTex);
 ~~~~~~~~~~~~~
 
-Normally you will want to handle creation of various @ref bs::ct::ShaderVariations "ShaderVariations" structures through a templated method, like so:
+Normally you will want to handle creation of various @ref bs::ShaderVariations "ShaderVariations" structures through a templated method, like so:
 
 ~~~~~~~~~~~~~{.cpp}
 class DownsampleMat : public RendererMaterial<DownsampleMat>

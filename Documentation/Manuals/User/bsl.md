@@ -621,7 +621,7 @@ priority			 | integer					   | 0						| Allows you to force objects with this sh
 # Variations
 Sometimes you need a few versions of the same shader, that are mostly similar but have some minor differences between them. For example, when rendering objects you might need to support a vertex shader for static meshes, as well as those using skinned and/or morph animation. 
 
-This is where the **variation** block comes into play. It allows you to specify a set of permutations for which the shader will be compiled. During shader import every permutation of that shader will be parsed, enabling pre-processor #define blocks depending on the current permutation. The #defines take on the name of their variation, and one of the user provided values.
+This is where the **variation** block comes into play. It allows you to specify a set of permutations for which the shader will be compiled. During shader import every permutation of that shader will be parsed, enabling pre-processor \#define blocks depending on the current permutation. The \#defines take on the name of their variation, and one of the user provided values.
 
 ~~~~~~~~~~~~~~
 // An example shader supporting different mesh animation modes
