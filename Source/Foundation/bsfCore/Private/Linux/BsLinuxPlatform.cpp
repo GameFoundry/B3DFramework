@@ -1333,11 +1333,12 @@ namespace bs
 			mData->keyNameMap[String(name)] = keyCode;
 		}
 
+		// Initialize "X11 keycode" -> "Banshee ButtonCode" map, based on the keyNameMap and keyCodeToKeyName()
+		mData->keyCodeMap.resize(desc->max_key_code + 1, BC_UNASSIGNED);
+
 		XkbFreeNames(desc, XkbKeyNamesMask, True);
 		XkbFreeKeyboard(desc, 0, True);
 
-		// Initialize "X11 keycode" -> "Banshee ButtonCode" map, based on the keyNameMap and keyCodeToKeyName()
-		mData->keyCodeMap.resize(desc->max_key_code + 1, BC_UNASSIGNED);
 		for (UINT32 buttonCodeNum = BC_UNASSIGNED; buttonCodeNum <= BC_NumKeys; buttonCodeNum++)
 		{
 			ButtonCode buttonCode = (ButtonCode) buttonCodeNum;
