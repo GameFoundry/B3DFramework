@@ -126,6 +126,7 @@ namespace bs
 
 	String PlatformUtility::convertCaseUTF8(const String& input, bool toUpper)
 	{
+		U_NAMESPACE_USE;
 		UnicodeString uniStr = UnicodeString::fromUTF8(StringPiece(&input[0], input.size()));
 
 		if(toUpper)
