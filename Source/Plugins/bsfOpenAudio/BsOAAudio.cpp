@@ -12,10 +12,9 @@
 namespace bs
 {
 	OAAudio::OAAudio()
-		:mVolume(1.0f), mIsPaused(false), mDevice(nullptr)
 	{
 		bool enumeratedDevices;
-		if(alcIsExtensionPresent(nullptr, "ALC_ENUMERATE_ALL_EXT")!=ALC_FALSE)
+		if(alcIsExtensionPresent(nullptr, "ALC_ENUMERATE_ALL_EXT") != ALC_FALSE)
 		{
 			const ALCchar* defaultDevice = alcGetString(nullptr, ALC_DEFAULT_ALL_DEVICES_SPECIFIER);
 			mDefaultDevice.name = String(defaultDevice);
@@ -27,7 +26,7 @@ namespace bs
 			{
 				if(*devices == 0)
 				{
-					if (deviceName.size() == 0)
+					if (deviceName.empty())
 						break;
 
 					// Clean up the name to get the actual hardware name

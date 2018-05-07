@@ -132,10 +132,10 @@ namespace bs
 		/** Stops data streaming for the provided source. */
 		void stopStreaming(OAAudioSource* source);
 
-		float mVolume;
-		bool mIsPaused;
+		float mVolume = 1.0f;
+		bool mIsPaused = false;
 
-		ALCdevice* mDevice;
+		ALCdevice* mDevice = nullptr;
 		Vector<AudioDevice> mAllDevices;
 		AudioDevice mDefaultDevice;
 		AudioDevice mActiveDevice;

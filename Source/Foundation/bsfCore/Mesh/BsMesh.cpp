@@ -26,7 +26,7 @@ namespace bs
 	Mesh::Mesh(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc)
 		:MeshBase(initialMeshData->getNumVertices(), initialMeshData->getNumIndices(), desc.subMeshes),
 		mCPUData(initialMeshData), mVertexDesc(initialMeshData->getVertexDesc()),
-		mUsage(desc.usage), mIndexType(initialMeshData->getIndexType()), mSkeleton(desc.skeleton), 
+		mUsage(desc.usage), mIndexType(initialMeshData->getIndexType()), mSkeleton(desc.skeleton),
 		mMorphShapes(desc.morphShapes)
 	{
 
@@ -40,7 +40,7 @@ namespace bs
 
 	Mesh::~Mesh()
 	{
-		
+
 	}
 
 	AsyncOp Mesh::writeData(const SPtr<MeshData>& data, bool discardEntireBuffer)
@@ -85,7 +85,7 @@ namespace bs
 
 	SPtr<MeshData> Mesh::allocBuffer() const
 	{
-		SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(mProperties.mNumVertices, mProperties.mNumIndices, 
+		SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(mProperties.mNumVertices, mProperties.mNumIndices,
 			mVertexDesc, mIndexType);
 
 		return meshData;
@@ -181,7 +181,7 @@ namespace bs
 			LOGERR("Provided buffer is not of valid dimensions or format in order to read from this mesh.");
 			return;
 		}
-		
+
 		if (mCPUData->getSize() != dest.getSize())
 			BS_EXCEPT(InternalErrorException, "Buffer sizes don't match.");
 
@@ -219,7 +219,7 @@ namespace bs
 	/* 								STATICS		                     		*/
 	/************************************************************************/
 
-	HMesh Mesh::create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, 
+	HMesh Mesh::create(UINT32 numVertices, UINT32 numIndices, const SPtr<VertexDataDesc>& vertexDesc,
 		int usage, DrawOperationType drawOp, IndexType indexType)
 	{
 		MESH_DESC desc;
@@ -297,7 +297,7 @@ namespace bs
 		: MeshBase(desc.numVertices, desc.numIndices, desc.subMeshes), mVertexData(nullptr), mIndexBuffer(nullptr)
 		, mVertexDesc(desc.vertexDesc), mUsage(desc.usage), mIndexType(desc.indexType), mDeviceMask(deviceMask)
 		, mTempInitialMeshData(initialMeshData), mSkeleton(desc.skeleton), mMorphShapes(desc.morphShapes)
-		
+
 	{ }
 
 	Mesh::~Mesh()
@@ -324,8 +324,7 @@ namespace bs
 
 		mIndexBuffer = IndexBuffer::create(ibDesc, mDeviceMask);
 
-		mVertexData = SPtr<VertexData>(bs_new<VertexData>());
-
+		mVertexData = bs_shared_ptr_new<VertexData>();
 		mVertexData->vertexCount = mProperties.mNumVertices;
 		mVertexData->vertexDeclaration = VertexDeclaration::create(mVertexDesc, mDeviceMask);
 
@@ -434,7 +433,7 @@ namespace bs
 			{
 				LOGERR("Provided vertex size for stream " + toString(i) + " doesn't match meshes vertex size. Needed: " +
 					toString(myVertSize) + ". Got: " + toString(otherVertSize));
-				
+
 				continue;
 			}
 
@@ -477,7 +476,7 @@ namespace bs
 			}
 			else
 			{
-				vertexBuffer->writeData(0, bufferSize, srcVertBufferData, discardEntireBuffer ? BWT_DISCARD : BWT_NORMAL, 
+				vertexBuffer->writeData(0, bufferSize, srcVertBufferData, discardEntireBuffer ? BWT_DISCARD : BWT_NORMAL,
 					queueIdx);
 			}
 		}
@@ -577,7 +576,7 @@ namespace bs
 	void Mesh::updateBounds(const MeshData& meshData)
 	{
 		mProperties.mBounds = meshData.calculateBounds();
-		
+
 		// TODO - Sync this to sim-thread possibly?
 	}
 
@@ -617,7 +616,7 @@ namespace bs
 		descCopy.vertexDesc = initialMeshData->getVertexDesc();
 		descCopy.indexType = initialMeshData->getIndexType();
 
-		SPtr<Mesh> mesh = 
+		SPtr<Mesh> mesh =
 			bs_shared_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(initialMeshData, descCopy, deviceMask));
 
 		mesh->_setThisPtr(mesh);
@@ -626,7 +625,7 @@ namespace bs
 		return mesh;
 	}
 
-	SPtr<Mesh> Mesh::create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp, 
+	SPtr<Mesh> Mesh::create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp,
 		GpuDeviceFlags deviceMask)
 	{
 		MESH_DESC desc;
@@ -637,7 +636,7 @@ namespace bs
 		desc.subMeshes.push_back(SubMesh(0, initialMeshData->getNumIndices(), drawOp));
 		desc.usage = usage;
 
-		SPtr<Mesh> mesh = 
+		SPtr<Mesh> mesh =
 			bs_shared_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(initialMeshData, desc, deviceMask));
 
 		mesh->_setThisPtr(mesh);
