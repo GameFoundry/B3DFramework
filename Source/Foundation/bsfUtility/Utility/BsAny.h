@@ -33,9 +33,9 @@ namespace bs
 				:value(value)
 			{ }
 
-			virtual DataBase* clone() const override
+			DataBase* clone() const override
 			{
-				return new Data(value);
+				return bs_new<Data>(Data(value));
 			}
 
 			ValueType value;
