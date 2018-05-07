@@ -23,7 +23,7 @@ namespace bs { namespace ct
 			vertexDesc->addVertElem(VET_FLOAT3, VES_POSITION);
 			vertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD);
 
-			mFullScreenQuadMesh = Mesh::create(4, 6, vertexDesc);
+			mFullScreenQuadMesh = Mesh::create(4, 6, vertexDesc, MU_DYNAMIC);
 		}
 
 		{
