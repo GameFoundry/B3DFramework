@@ -17,13 +17,13 @@ namespace bs
 		mData = nullptr;
 	}
 
-	ResourceHandleBase::~ResourceHandleBase() 
-	{ 
+	ResourceHandleBase::~ResourceHandleBase()
+	{
 
 	}
 
-	bool ResourceHandleBase::isLoaded(bool checkDependencies) const 
-	{ 
+	bool ResourceHandleBase::isLoaded(bool checkDependencies) const
+	{
 		bool isLoaded = (mData != nullptr && mData->mIsCreated && mData->mPtr != nullptr);
 
 		if (checkDependencies && isLoaded)
@@ -84,14 +84,14 @@ namespace bs
 		if(mData->mPtr)
 		{
 			mData->mUUID = uuid;
-		
+
 			if(!mData->mIsCreated)
 			{
 				Lock lock(mResourceCreatedMutex);
 				{
-					mData->mIsCreated = true; 
+					mData->mIsCreated = true;
 				}
-				
+
 				mResourceCreatedCondition.notify_all();
 			}
 		}
@@ -101,7 +101,7 @@ namespace bs
 	{
 		mData->mPtr = nullptr;
 
-		Lock(mResourceCreatedMutex);
+		Lock lock(mResourceCreatedMutex);
 		mData->mIsCreated = false;
 	}
 

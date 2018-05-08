@@ -3,7 +3,7 @@
 #include "Managers/BsGpuProgramManager.h"
 #include "RenderAPI/BsRenderAPI.h"
 
-namespace bs 
+namespace bs
 {
 	SPtr<GpuProgram> GpuProgramManager::create(const GPU_PROGRAM_DESC& desc)
 	{
@@ -96,14 +96,14 @@ namespace bs
 
 	void GpuProgramManager::addFactory(const String& language, GpuProgramFactory* factory)
 	{
-		Lock(mMutex);
+		Lock lock(mMutex);
 
 		mFactories[language] = factory;
 	}
 
 	void GpuProgramManager::removeFactory(const String& language)
 	{
-		Lock(mMutex);
+		Lock lock(mMutex);
 
 		auto iter = mFactories.find(language);
 		if (iter != mFactories.end())
@@ -121,7 +121,7 @@ namespace bs
 
 	bool GpuProgramManager::isLanguageSupported(const String& lang)
 	{
-		Lock(mMutex);
+		Lock lock(mMutex);
 
 		auto iter = mFactories.find(lang);
 		return iter != mFactories.end();
