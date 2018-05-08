@@ -20,7 +20,7 @@ namespace bs
 	public:
 		Vector4() = default;
 
-		constexpr Vector4(BS_ZERO) 
+		constexpr Vector4(BS_ZERO)
 			:x(0.0f), y(0.0f), z(0.0f), w(0.0f)
 		{ }
 
@@ -40,7 +40,7 @@ namespace bs
 			std::swap(z, other.z);
 			std::swap(w, other.w);
 		}
-	
+
 		float operator[] (UINT32 i) const
 		{
 			assert (i < 4);
@@ -65,16 +65,6 @@ namespace bs
 		const float* ptr() const
 		{
 			return &x;
-		}
-
-		Vector4& operator= (const Vector4& rhs)
-		{
-			x = rhs.x;
-			y = rhs.y;
-			z = rhs.z;
-			w = rhs.w;
-
-			return *this;
 		}
 
 		Vector4& operator= (float rhs)

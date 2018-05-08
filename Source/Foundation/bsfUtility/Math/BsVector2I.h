@@ -36,7 +36,7 @@ namespace bs
 		/** Returns the manhattan distance between this and another point. */
 		UINT32 manhattanDist(const Vector2I& other) const
 		{
-			return (UINT32)fabs(float(other.x - x)) + (UINT32)fabs(float(other.y - y));
+			return (UINT32)std::abs(other.x - x) + (UINT32)std::abs(other.y - y);
 		}
 
 		INT32 operator[] (size_t i) const
@@ -51,14 +51,6 @@ namespace bs
 			assert(i < 2);
 
 			return *(&x+i);
-		}
-
-		Vector2I& operator= (const Vector2I& rhs)
-		{
-			x = rhs.x;
-			y = rhs.y;
-
-			return *this;
 		}
 
 		Vector2I& operator= (int val)
@@ -197,4 +189,5 @@ namespace bs
 	};
 
 	/** @} */
+	BS_ALLOW_MEMCPY_SERIALIZATION(Vector2I)
 }

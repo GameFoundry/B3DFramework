@@ -20,7 +20,7 @@ namespace bs
 	public:
 		Vector2() = default;
 
-		constexpr Vector2(BS_ZERO) 
+		constexpr Vector2(BS_ZERO)
 			:x(0.0f), y(0.0f)
 		{ }
 
@@ -48,7 +48,7 @@ namespace bs
 
 			return *(&x+i);
 		}
-		
+
 		/** Pointer accessor for direct copying. */
 		float* ptr()
 		{
@@ -59,14 +59,6 @@ namespace bs
 		const float* ptr() const
 		{
 			return &x;
-		}
-
-		Vector2& operator= (const Vector2& rhs)
-		{
-			x = rhs.x;
-			y = rhs.y;
-
-			return *this;
 		}
 
 		Vector2& operator= (float rhs)
@@ -265,7 +257,7 @@ namespace bs
 			float len = Math::sqrt(x * x + y * y);
 
 			// Will also work for zero-sized vectors, but will change nothing
-			if (len > 1e-08)
+			if (len > 1e-08f)
 			{
 				float invLen = 1.0f / len;
 				x *= invLen;
@@ -282,7 +274,7 @@ namespace bs
 		}
 
 		/**
-		 * Calculates the 2 dimensional cross-product of 2 vectors, which results in a single floating point value which 
+		 * Calculates the 2 dimensional cross-product of 2 vectors, which results in a single floating point value which
 		 * is 2 times the area of the triangle.
 		 */
 		float cross(const Vector2& other) const
@@ -308,7 +300,7 @@ namespace bs
 		bool isZeroLength() const
 		{
 			float sqlen = (x * x) + (y * y);
-			return (sqlen < (1e-06 * 1e-06));
+			return (sqlen < (1e-06f * 1e-06f));
 		}
 
 		/** Calculates a reflection vector to the plane with the given normal. */
@@ -322,7 +314,7 @@ namespace bs
 		{
 			u.normalize();
 
-			float dot = u.dot(v); 
+			float dot = u.dot(v);
 			v -= u*dot;
 			v.normalize();
 		}
@@ -334,7 +326,7 @@ namespace bs
 
 			// Will also work for zero-sized vectors, but will change nothing
 			Vector2 normalizedVec = val;
-			if (len > 1e-08)
+			if (len > 1e-08f)
 			{
 				float invLen = 1.0f / len;
 				normalizedVec.x *= invLen;

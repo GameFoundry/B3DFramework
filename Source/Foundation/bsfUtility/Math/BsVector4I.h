@@ -52,16 +52,6 @@ namespace bs
 			}
 		}
 
-		Vector4I& operator= (const Vector4I& rhs)
-		{
-			x = rhs.x;
-			y = rhs.y;
-			z = rhs.z;
-			w = rhs.w;
-
-			return *this;
-		}
-
 		bool operator== (const Vector4I& rhs) const
 		{
 			return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w;

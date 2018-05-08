@@ -66,15 +66,6 @@ namespace bs
 			return &x;
 		}
 
-		Vector3& operator= (const Vector3& rhs)
-		{
-			x = rhs.x;
-			y = rhs.y;
-			z = rhs.z;
-
-			return *this;
-		}
-
 		Vector3& operator= (float rhs)
 		{
 			x = rhs;
@@ -96,35 +87,35 @@ namespace bs
 
 		Vector3 operator+ (const Vector3& rhs) const
 		{
-			return Vector3(x + rhs.x, y + rhs.y, z + rhs.z);
+			return {x + rhs.x, y + rhs.y, z + rhs.z};
 		}
 
 		Vector3 operator- (const Vector3& rhs) const
 		{
-			return Vector3(x - rhs.x, y - rhs.y, z - rhs.z);
+			return {x - rhs.x, y - rhs.y, z - rhs.z};
 		}
 
 		Vector3 operator* (float rhs) const
 		{
-			return Vector3(x * rhs, y * rhs, z * rhs);
+			return {x * rhs, y * rhs, z * rhs};
 		}
 
 		Vector3 operator* (const Vector3& rhs) const
 		{
-			return Vector3(x * rhs.x, y * rhs.y, z * rhs.z);
+			return {x * rhs.x, y * rhs.y, z * rhs.z};
 		}
 
 		Vector3 operator/ (float val) const
 		{
-			assert(val != 0.0);
+			assert(val != 0.0f);
 
 			float fInv = 1.0f / val;
-			return Vector3(x * fInv, y * fInv, z * fInv);
+			return {x * fInv, y * fInv, z * fInv};
 		}
 
 		Vector3 operator/ (const Vector3& rhs) const
 		{
-			return Vector3(x / rhs.x, y / rhs.y, z / rhs.z);
+			return {x / rhs.x, y / rhs.y, z / rhs.z};
 		}
 
 		const Vector3& operator+ () const
@@ -134,37 +125,37 @@ namespace bs
 
 		Vector3 operator- () const
 		{
-			return Vector3(-x, -y, -z);
+			return {-x, -y, -z};
 		}
 
 		friend Vector3 operator* (float lhs, const Vector3& rhs)
 		{
-			return Vector3(lhs * rhs.x, lhs * rhs.y, lhs * rhs.z);
+			return {lhs * rhs.x, lhs * rhs.y, lhs * rhs.z};
 		}
 
 		friend Vector3 operator/ (float lhs, const Vector3& rhs)
 		{
-			return Vector3(lhs / rhs.x, lhs / rhs.y, lhs / rhs.z);
+			return {lhs / rhs.x, lhs / rhs.y, lhs / rhs.z};
 		}
 
 		friend Vector3 operator+ (const Vector3& lhs, float rhs)
 		{
-			return Vector3(lhs.x + rhs, lhs.y + rhs, lhs.z + rhs);
+			return {lhs.x + rhs, lhs.y + rhs, lhs.z + rhs};
 		}
 
 		friend Vector3 operator+ (float lhs, const Vector3& rhs)
 		{
-			return Vector3(lhs + rhs.x, lhs + rhs.y, lhs + rhs.z);
+			return {lhs + rhs.x, lhs + rhs.y, lhs + rhs.z};
 		}
 
 		friend Vector3 operator- (const Vector3& lhs, float rhs)
 		{
-			return Vector3(lhs.x - rhs, lhs.y - rhs, lhs.z - rhs);
+			return {lhs.x - rhs, lhs.y - rhs, lhs.z - rhs};
 		}
 
 		friend Vector3 operator- (float lhs, const Vector3& rhs)
 		{
-			return Vector3(lhs - rhs.x, lhs - rhs.y, lhs - rhs.z);
+			return {lhs - rhs.x, lhs - rhs.y, lhs - rhs.z};
 		}
 
 		Vector3& operator+= (const Vector3& rhs)
@@ -279,7 +270,7 @@ namespace bs
 			float len = length();
 
 			// Will also work for zero-sized vectors, but will change nothing
-			if (len > 1e-08)
+			if (len > 1e-08f)
 			{
 				float invLen = 1.0f / len;
 				x *= invLen;
@@ -293,10 +284,10 @@ namespace bs
 		/** Calculates the cross-product of 2 vectors, that is, the vector that lies perpendicular to them both. */
 		Vector3 cross(const Vector3& other) const
 		{
-			return Vector3(
+			return {
 				y * other.z - z * other.y,
 				z * other.x - x * other.z,
-				x * other.y - y * other.x);
+				x * other.y - y * other.x };
 		}
 
 		/** Sets this vector's components to the minimum of its own and the ones of the passed in vector. */
@@ -336,7 +327,7 @@ namespace bs
 		bool isZeroLength() const
 		{
 			float sqlen = (x * x) + (y * y) + (z * z);
-			return (sqlen < (1e-06 * 1e-06));
+			return (sqlen < (1e-06f * 1e-06f));
 		}
 
 		/** Calculates a reflection vector to the plane with the given normal. */
@@ -348,7 +339,7 @@ namespace bs
 		/** Calculates two vectors orthonormal to the current vector, and normalizes the current vector if not already. */
 		void orthogonalComplement(Vector3& a, Vector3& b)
 		{
-			if (fabs(x) > fabs(y))
+			if (std::abs(x) > std::abs(y))
 				a = Vector3(-z, 0, x);
 			else
 				a = Vector3(0, z, -y);

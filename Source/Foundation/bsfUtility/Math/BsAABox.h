@@ -6,7 +6,7 @@
 #include "Math/BsVector3.h"
 #include "Math/BsMatrix4.h"
 
-namespace bs 
+namespace bs
 {
 	/** @addtogroup Math
 	 *  @{
@@ -27,7 +27,7 @@ namespace bs
 		|/    |/
 		6-----7
 		*/
-		enum Corner 
+		enum Corner
 		{
 			FAR_LEFT_BOTTOM = 0,
 			FAR_LEFT_TOP = 1,
@@ -40,13 +40,11 @@ namespace bs
 		};
 
 		AABox();
-		AABox(const AABox& copy);
+		AABox(const AABox& copy) = default;
 		AABox(const Vector3& min, const Vector3& max);
 
-		AABox& operator=(const AABox& rhs);
-
 		~AABox() = default;
-		
+
 		/** Gets the corner of the box with minimum values (opposite to maximum corner). */
 		const Vector3& getMin() const { return mMinimum; }
 
@@ -77,8 +75,8 @@ namespace bs
 		/**
 		 * Transforms the bounding box by the given matrix.
 		 *
-		 * @note	
-		 * As the resulting box will no longer be axis aligned, an axis align box 
+		 * @note
+		 * As the resulting box will no longer be axis aligned, an axis align box
 		 * is instead created by encompassing the transformed oriented bounding box.
 		 * Retrieving the value as an actual OBB would provide a tighter fit.
 		 */
@@ -87,12 +85,12 @@ namespace bs
 		/**
 		 * Transforms the bounding box by the given matrix.
 		 *
-		 * @note	
-		 * As the resulting box will no longer be axis aligned, an axis align box 
+		 * @note
+		 * As the resulting box will no longer be axis aligned, an axis align box
 		 * is instead created by encompassing the transformed oriented bounding box.
 		 * Retrieving the value as an actual OBB would provide a tighter fit.
 		 *
-		 * @note			
+		 * @note
 		 * Provided matrix must be affine.
 		 */
 		void transformAffine(const Matrix4& matrix);
@@ -139,9 +137,9 @@ namespace bs
 		static const AABox BOX_EMPTY;
 		static const AABox UNIT_BOX;
 
-		/** 
-		 * Indices that can be used for rendering a box constructed from 8 corner vertices, using AABox::Corner for 
-		 * mapping. 
+		/**
+		 * Indices that can be used for rendering a box constructed from 8 corner vertices, using AABox::Corner for
+		 * mapping.
 		 */
 		static const UINT32 CUBE_INDICES[36];
 

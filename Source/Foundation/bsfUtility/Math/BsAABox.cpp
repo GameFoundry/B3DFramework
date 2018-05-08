@@ -38,28 +38,16 @@ namespace bs
 		NEAR_LEFT_BOTTOM, FAR_RIGHT_BOTTOM, FAR_LEFT_BOTTOM
 	};
 
-	AABox::AABox() 
+	AABox::AABox()
 	{
-		// Default to a null box 
+		// Default to a null box
 		setMin(Vector3(-0.5f, -0.5f, -0.5f));
 		setMax(Vector3(0.5f, 0.5f, 0.5f));
-	}
-
-	AABox::AABox(const AABox& copy)
-	{
-		setExtents(copy.mMinimum, copy.mMaximum);
 	}
 
 	AABox::AABox(const Vector3& min, const Vector3& max)
 	{
 		setExtents(min, max);
-	}
-
-	AABox& AABox::operator=(const AABox& rhs)
-	{
-		setExtents(rhs.mMinimum, rhs.mMaximum);
-
-		return *this;
 	}
 
 	void AABox::setExtents(const Vector3& min, const Vector3& max)
@@ -132,7 +120,7 @@ namespace bs
 		// For each one, we transform it using the matrix
 		// Which gives the resulting point and merge the resulting point.
 
-		// First corner 
+		// First corner
 		// min min min
 		currentCorner = oldMin;
 		merge(matrix.multiplyAffine(currentCorner));
@@ -163,7 +151,7 @@ namespace bs
 
 		// max min min
 		currentCorner.z = oldMin.z;
-		merge(matrix.multiplyAffine(currentCorner)); 
+		merge(matrix.multiplyAffine(currentCorner));
 	}
 
 	void AABox::transformAffine(const Matrix4& m)
@@ -188,7 +176,7 @@ namespace bs
 					max[i] += e;
 				}
 			}
-			
+
 		}
 
 		setExtents(min, max);
@@ -230,12 +218,12 @@ namespace bs
 			if (center[i] < min[i])
 			{
 				s = center[i] - min[i];
-				d += s * s; 
+				d += s * s;
 			}
 			else if(center[i] > max[i])
 			{
 				s = center[i] - max[i];
-				d += s * s; 
+				d += s * s;
 			}
 		}
 		return d <= radius * radius;
@@ -369,7 +357,7 @@ namespace bs
 
 		return std::pair<bool, float>(hit, lowt);
 
-	} 
+	}
 
 	bool AABox::intersects(const Ray& ray, float& d1, float& d2) const
 	{

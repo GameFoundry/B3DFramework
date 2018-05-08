@@ -49,15 +49,6 @@ namespace bs
 			}
 		}
 
-		Vector3I& operator= (const Vector3I& rhs)
-		{
-			x = rhs.x;
-			y = rhs.y;
-			z = rhs.z;
-
-			return *this;
-		}
-
 		bool operator== (const Vector3I& rhs) const
 		{
 			return x == rhs.x && y == rhs.y && z == rhs.z;
