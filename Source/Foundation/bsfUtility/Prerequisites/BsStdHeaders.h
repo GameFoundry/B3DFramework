@@ -223,13 +223,18 @@ namespace bs
 		constexpr T& operator*() const { return *mPtr; }
 		constexpr T* operator->() const { return mPtr; }
 		constexpr T* get() const { return mPtr; }
+		constexpr bool operator<(const NativePtr& rhs) const noexcept {
+			constexpr std::less<> cmp = {};
+			return cmp(mPtr, rhs.mPtr);
+		}
+
 	private:
 		T* mPtr = nullptr;
 	};
 
 	/**
 	 * "Smart" pointer that is not smart. Does nothing but hold a pointer value. No memory management is performed at all.
-	 * This class exists to make storing pointers in containers easier to manage, such as with non-member comparison 
+	 * This class exists to make storing pointers in containers easier to manage, such as with non-member comparison
 	 * operators.
 	 */
 	template <typename T>
