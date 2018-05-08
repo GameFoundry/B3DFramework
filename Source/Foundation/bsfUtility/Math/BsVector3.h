@@ -87,35 +87,35 @@ namespace bs
 
 		Vector3 operator+ (const Vector3& rhs) const
 		{
-			return {x + rhs.x, y + rhs.y, z + rhs.z};
+			return Vector3(x + rhs.x, y + rhs.y, z + rhs.z);
 		}
 
 		Vector3 operator- (const Vector3& rhs) const
 		{
-			return {x - rhs.x, y - rhs.y, z - rhs.z};
+			return Vector3(x - rhs.x, y - rhs.y, z - rhs.z);
 		}
 
 		Vector3 operator* (float rhs) const
 		{
-			return {x * rhs, y * rhs, z * rhs};
+			return Vector3(x * rhs, y * rhs, z * rhs);
 		}
 
 		Vector3 operator* (const Vector3& rhs) const
 		{
-			return {x * rhs.x, y * rhs.y, z * rhs.z};
+			return Vector3(x * rhs.x, y * rhs.y, z * rhs.z);
 		}
 
 		Vector3 operator/ (float val) const
 		{
-			assert(val != 0.0f);
+			assert(val != 0.0);
 
 			float fInv = 1.0f / val;
-			return {x * fInv, y * fInv, z * fInv};
+			return Vector3(x * fInv, y * fInv, z * fInv);
 		}
 
 		Vector3 operator/ (const Vector3& rhs) const
 		{
-			return {x / rhs.x, y / rhs.y, z / rhs.z};
+			return Vector3(x / rhs.x, y / rhs.y, z / rhs.z);
 		}
 
 		const Vector3& operator+ () const
@@ -125,37 +125,37 @@ namespace bs
 
 		Vector3 operator- () const
 		{
-			return {-x, -y, -z};
+			return Vector3(-x, -y, -z);
 		}
 
 		friend Vector3 operator* (float lhs, const Vector3& rhs)
 		{
-			return {lhs * rhs.x, lhs * rhs.y, lhs * rhs.z};
+			return Vector3(lhs * rhs.x, lhs * rhs.y, lhs * rhs.z);
 		}
 
 		friend Vector3 operator/ (float lhs, const Vector3& rhs)
 		{
-			return {lhs / rhs.x, lhs / rhs.y, lhs / rhs.z};
+			return Vector3(lhs / rhs.x, lhs / rhs.y, lhs / rhs.z);
 		}
 
 		friend Vector3 operator+ (const Vector3& lhs, float rhs)
 		{
-			return {lhs.x + rhs, lhs.y + rhs, lhs.z + rhs};
+			return Vector3(lhs.x + rhs, lhs.y + rhs, lhs.z + rhs);
 		}
 
 		friend Vector3 operator+ (float lhs, const Vector3& rhs)
 		{
-			return {lhs + rhs.x, lhs + rhs.y, lhs + rhs.z};
+			return Vector3(lhs + rhs.x, lhs + rhs.y, lhs + rhs.z);
 		}
 
 		friend Vector3 operator- (const Vector3& lhs, float rhs)
 		{
-			return {lhs.x - rhs, lhs.y - rhs, lhs.z - rhs};
+			return Vector3(lhs.x - rhs, lhs.y - rhs, lhs.z - rhs);
 		}
 
 		friend Vector3 operator- (float lhs, const Vector3& rhs)
 		{
-			return {lhs - rhs.x, lhs - rhs.y, lhs - rhs.z};
+			return Vector3(lhs - rhs.x, lhs - rhs.y, lhs - rhs.z);
 		}
 
 		Vector3& operator+= (const Vector3& rhs)
@@ -284,10 +284,10 @@ namespace bs
 		/** Calculates the cross-product of 2 vectors, that is, the vector that lies perpendicular to them both. */
 		Vector3 cross(const Vector3& other) const
 		{
-			return {
+			return Vector3(
 				y * other.z - z * other.y,
 				z * other.x - x * other.z,
-				x * other.y - y * other.x };
+				x * other.y - y * other.x);
 		}
 
 		/** Sets this vector's components to the minimum of its own and the ones of the passed in vector. */

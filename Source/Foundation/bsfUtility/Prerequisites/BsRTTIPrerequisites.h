@@ -162,16 +162,17 @@ namespace bs
 	 *
 	 * @see		RTTIPlainType<T>
 	 */
-#define BS_ALLOW_MEMCPY_SERIALIZATION(type)					\
-	static_assert (std::is_trivially_copyable<type>()==true,#type "is not trivially copyable");\
-	template<> struct RTTIPlainType<type>					\
-	{	enum { id=0 }; enum { hasDynamicSize = 0 };			\
-		static void toMemory(const type& data, char* memory)		\
-		{ memcpy(memory, &data, sizeof(type)); }			\
-		static UINT32 fromMemory(type& data, char* memory)		\
+#define BS_ALLOW_MEMCPY_SERIALIZATION(type)								\
+	static_assert (std::is_trivially_copyable<type>()==true,			\
+						#type " is not trivially copyable");			\
+	template<> struct RTTIPlainType<type>								\
+	{	enum { id=0 }; enum { hasDynamicSize = 0 };						\
+		static void toMemory(const type& data, char* memory)			\
+		{ memcpy(memory, &data, sizeof(type)); }						\
+		static UINT32 fromMemory(type& data, char* memory)				\
 		{ memcpy(&data, memory, sizeof(type)); return sizeof(type); }	\
-		static UINT32 getDynamicSize(const type& data)			\
-		{ return sizeof(type); }					\
+		static UINT32 getDynamicSize(const type& data)					\
+		{ return sizeof(type); }										\
 	};
 
 	/** @cond SPECIALIZATIONS */
