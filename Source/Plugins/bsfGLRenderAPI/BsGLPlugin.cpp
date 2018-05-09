@@ -7,6 +7,6 @@ namespace bs
 {
 	extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
 	{
-		return ct::SystemName;
+		return ct::GLRenderAPIFactory::SystemName;
 	}
 }

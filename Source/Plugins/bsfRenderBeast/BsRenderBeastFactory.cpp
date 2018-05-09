@@ -6,7 +6,7 @@
 
 namespace bs
 {
-	const char* SystemName = "bsfRenderBeast";
+	constexpr const char* RenderBeastFactory::SystemName;
 
 	SPtr<ct::Renderer> RenderBeastFactory::create()
 	{

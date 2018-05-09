@@ -10,16 +10,15 @@ namespace bs
 	/** @addtogroup RenderBeast
 	 *  @{
 	 */
-
-	extern const char* SystemName;
-
 	/**
-	 * Renderer factory implementation that creates and initializes the default Banshee renderer. Used by the 
+	 * Renderer factory implementation that creates and initializes the default Banshee renderer. Used by the
 	 * RendererManager.
 	 */
 	class RenderBeastFactory : public RendererFactory
 	{
 	public:
+		static constexpr const char* SystemName = "bsfRenderBeast";
+
 		/** @copydoc RendererFactory::create */
 		SPtr<ct::Renderer> create() override;
 

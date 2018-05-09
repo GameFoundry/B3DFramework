@@ -5,7 +5,7 @@
 
 namespace bs { namespace ct
 {
-	const char* SystemName = "BansheeVulkanRenderAPI";
+	constexpr const char* VulkanRenderAPIFactory::SystemName;
 
 	void VulkanRenderAPIFactory::create()
 	{

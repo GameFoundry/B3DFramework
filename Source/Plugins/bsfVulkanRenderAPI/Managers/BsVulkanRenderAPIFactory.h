@@ -12,12 +12,12 @@ namespace bs { namespace ct
 	 *  @{
 	 */
 
-	extern const char* SystemName;
-
 	/**	Handles creation of the Vulkan render system. */
 	class VulkanRenderAPIFactory : public RenderAPIFactory
 	{
 	public:
+		static constexpr const char* SystemName = "bsfVulkanRenderAPI";
+
 		/** @copydoc RenderAPIFactory::create */
 		void create() override;
 

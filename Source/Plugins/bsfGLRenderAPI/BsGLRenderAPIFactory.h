@@ -12,13 +12,12 @@ namespace bs { namespace ct
 	/** @addtogroup GL
 	 *  @{
 	 */
-
-	static const char* SystemName = "BansheeGLRenderSystem";
-
 	/** Handles creation of the OpenGL render system. */
 	class GLRenderAPIFactory : public RenderAPIFactory
 	{
 	public:
+		static constexpr const char* SystemName = "bsfGLRenderAPI";
+
 		/** @copydoc RenderAPIFactory::create */
 		void create() override;
 
@@ -30,8 +29,8 @@ namespace bs { namespace ct
 		class InitOnStart
 		{
 		public:
-			InitOnStart() 
-			{ 
+			InitOnStart()
+			{
 				static SPtr<RenderAPIFactory> newFactory;
 				if(newFactory == nullptr)
 				{
