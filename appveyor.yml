@@ -1,6 +1,6 @@
 image: Visual Studio 2017
 platform: x64
-configuration: OptimizedDebug
+configuration: Release
 clone_folder: C:\Projects\bsf
 
 environment:
@@ -17,8 +17,8 @@ build_script:
   - cmd: mkdir Build
   - cmd: cd Build
   - cmd: cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_INSTALL_PREFIX:STRING=%INSTALL_DIR% ..
-  - cmd: cmake --build ./ --config OptimizedDebug
-  - cmd: cmake --build ./ --config OptimizedDebug --target INSTALL
+  - cmd: cmake --build ./ --config Release
+  - cmd: cmake --build ./ --config Release --target INSTALL
 
 after_build:
  - ps: cd ..
