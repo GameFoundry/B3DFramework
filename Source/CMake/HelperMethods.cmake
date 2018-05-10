@@ -375,16 +375,9 @@ function(install_bsf_target targetName)
 			OPTIONAL
 		)
 	else()
-		if(LINUX)
-			install(
-				FILES ${symbolsFile} 
-				DESTINATION lib
-				OPTIONAL)
-		else()
-			install(
-				FILES ${symbolsFile} 
-				DESTINATION bin
-				OPTIONAL)
-		endif()
+		install(
+			FILES ${symbolsFile} 
+			DESTINATION lib
+			OPTIONAL)
 	endif()
 endfunction()
