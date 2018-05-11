@@ -15,11 +15,11 @@ namespace bs
 	 */
 
 	template<> struct RTTIPlainType<SHADER_DATA_PARAM_DESC>
-	{	
+	{
 		enum { id = TID_SHADER_DATA_PARAM_DESC }; enum { hasDynamicSize = 1 };
 
 		static void toMemory(const SHADER_DATA_PARAM_DESC& data, char* memory)
-		{ 
+		{
 			UINT32 size = getDynamicSize(data);
 
 			UINT32 curSize = sizeof(UINT32);
@@ -32,13 +32,13 @@ namespace bs
 			memory = rttiWriteElem(data.name, memory);
 			memory = rttiWriteElem(data.gpuVariableName, memory);
 			memory = rttiWriteElem(data.elementSize, memory);
-			memory = rttiWriteElem(data.defaultValueIdx, memory);
+			rttiWriteElem(data.defaultValueIdx, memory);
 		}
 
 		static UINT32 fromMemory(SHADER_DATA_PARAM_DESC& data, char* memory)
-		{ 
+		{
 			UINT32 size;
-			memcpy(&size, memory, sizeof(UINT32)); 
+			memcpy(&size, memory, sizeof(UINT32));
 			memory += sizeof(UINT32);
 
 			memory = rttiReadElem(data.arraySize, memory);
@@ -47,15 +47,15 @@ namespace bs
 			memory = rttiReadElem(data.name, memory);
 			memory = rttiReadElem(data.gpuVariableName, memory);
 			memory = rttiReadElem(data.elementSize, memory);
-			memory = rttiReadElem(data.defaultValueIdx, memory);
+			rttiReadElem(data.defaultValueIdx, memory);
 
 			return size;
 		}
 
-		static UINT32 getDynamicSize(const SHADER_DATA_PARAM_DESC& data)	
-		{ 
+		static UINT32 getDynamicSize(const SHADER_DATA_PARAM_DESC& data)
+		{
 			UINT64 dataSize = rttiGetElemSize(data.arraySize) + rttiGetElemSize(data.rendererSemantic) + rttiGetElemSize(data.type) +
-				rttiGetElemSize(data.name) + rttiGetElemSize(data.gpuVariableName) + rttiGetElemSize(data.elementSize) + 
+				rttiGetElemSize(data.name) + rttiGetElemSize(data.gpuVariableName) + rttiGetElemSize(data.elementSize) +
 				rttiGetElemSize(data.defaultValueIdx) + sizeof(UINT32);
 
 #if BS_DEBUG_MODE
@@ -66,15 +66,15 @@ namespace bs
 #endif
 
 			return (UINT32)dataSize;
-		}	
-	}; 
+		}
+	};
 
 	template<> struct RTTIPlainType<SHADER_OBJECT_PARAM_DESC>
-	{	
+	{
 		enum { id = TID_SHADER_OBJECT_PARAM_DESC }; enum { hasDynamicSize = 1 };
 
 		static void toMemory(const SHADER_OBJECT_PARAM_DESC& data, char* memory)
-		{ 
+		{
 			UINT32 size = getDynamicSize(data);
 
 			UINT32 curSize = sizeof(UINT32);
@@ -85,28 +85,28 @@ namespace bs
 			memory = rttiWriteElem(data.type, memory);
 			memory = rttiWriteElem(data.name, memory);
 			memory = rttiWriteElem(data.gpuVariableNames, memory);
-			memory = rttiWriteElem(data.defaultValueIdx, memory);
+			rttiWriteElem(data.defaultValueIdx, memory);
 		}
 
 		static UINT32 fromMemory(SHADER_OBJECT_PARAM_DESC& data, char* memory)
-		{ 
+		{
 			UINT32 size;
-			memcpy(&size, memory, sizeof(UINT32)); 
+			memcpy(&size, memory, sizeof(UINT32));
 			memory += sizeof(UINT32);
 
 			memory = rttiReadElem(data.rendererSemantic, memory);
 			memory = rttiReadElem(data.type, memory);
 			memory = rttiReadElem(data.name, memory);
 			memory = rttiReadElem(data.gpuVariableNames, memory);
-			memory = rttiReadElem(data.defaultValueIdx, memory);
+			rttiReadElem(data.defaultValueIdx, memory);
 
 			return size;
 		}
 
-		static UINT32 getDynamicSize(const SHADER_OBJECT_PARAM_DESC& data)	
-		{ 
+		static UINT32 getDynamicSize(const SHADER_OBJECT_PARAM_DESC& data)
+		{
 			UINT64 dataSize = rttiGetElemSize(data.rendererSemantic) + rttiGetElemSize(data.type) +
-				rttiGetElemSize(data.name) + rttiGetElemSize(data.gpuVariableNames) + 
+				rttiGetElemSize(data.name) + rttiGetElemSize(data.gpuVariableNames) +
 				rttiGetElemSize(data.defaultValueIdx) + sizeof(UINT32);
 
 #if BS_DEBUG_MODE
@@ -117,15 +117,15 @@ namespace bs
 #endif
 
 			return (UINT32)dataSize;
-		}	
-	}; 
+		}
+	};
 
 	template<> struct RTTIPlainType<SHADER_PARAM_BLOCK_DESC>
-	{	
+	{
 		enum { id = TID_SHADER_PARAM_BLOCK_DESC }; enum { hasDynamicSize = 1 };
 
 		static void toMemory(const SHADER_PARAM_BLOCK_DESC& data, char* memory)
-		{ 
+		{
 			UINT32 size = getDynamicSize(data);
 
 			UINT32 curSize = sizeof(UINT32);
@@ -135,26 +135,26 @@ namespace bs
 			memory = rttiWriteElem(data.shared, memory);
 			memory = rttiWriteElem(data.usage, memory);
 			memory = rttiWriteElem(data.name, memory);
-			memory = rttiWriteElem(data.rendererSemantic, memory);
+			rttiWriteElem(data.rendererSemantic, memory);
 		}
 
 		static UINT32 fromMemory(SHADER_PARAM_BLOCK_DESC& data, char* memory)
-		{ 
+		{
 			UINT32 size;
-			memcpy(&size, memory, sizeof(UINT32)); 
+			memcpy(&size, memory, sizeof(UINT32));
 			memory += sizeof(UINT32);
 
 			memory = rttiReadElem(data.shared, memory);
 			memory = rttiReadElem(data.usage, memory);
 			memory = rttiReadElem(data.name, memory);
-			memory = rttiReadElem(data.rendererSemantic, memory);
+			rttiReadElem(data.rendererSemantic, memory);
 
 			return size;
 		}
 
-		static UINT32 getDynamicSize(const SHADER_PARAM_BLOCK_DESC& data)	
-		{ 
-			UINT64 dataSize = rttiGetElemSize(data.shared) + rttiGetElemSize(data.usage) + 
+		static UINT32 getDynamicSize(const SHADER_PARAM_BLOCK_DESC& data)
+		{
+			UINT64 dataSize = rttiGetElemSize(data.shared) + rttiGetElemSize(data.usage) +
 				rttiGetElemSize(data.name) + rttiGetElemSize(data.rendererSemantic) + sizeof(UINT32);
 
 #if BS_DEBUG_MODE
@@ -165,8 +165,8 @@ namespace bs
 #endif
 
 			return (UINT32)dataSize;
-		}	
-	}; 
+		}
+	};
 
 	class BS_CORE_EXPORT SubShaderRTTI : public RTTIType<SubShader, IReflectable, SubShaderRTTI>
 	{
@@ -175,7 +175,7 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(name, 0)
 			BS_RTTI_MEMBER_REFLPTR(shader, 1)
 		BS_END_RTTI_MEMBERS
-		
+
 	public:
 		const String& getRTTIName() override
 		{
@@ -200,7 +200,7 @@ namespace bs
 		BS_BEGIN_RTTI_MEMBERS
 			BS_RTTI_MEMBER_REFLPTR_ARRAY_NAMED(mTechniques, mDesc.techniques, 0)
 			BS_RTTI_MEMBER_PLAIN(mName, 1)
-			
+
 			BS_RTTI_MEMBER_PLAIN_NAMED(mQueueSortType, mDesc.queueSortType, 7)
 			BS_RTTI_MEMBER_PLAIN_NAMED(mQueuePriority, mDesc.queuePriority, 8)
 			BS_RTTI_MEMBER_PLAIN_NAMED(mSeparablePasses, mDesc.separablePasses, 9)
@@ -213,24 +213,24 @@ namespace bs
 			BS_RTTI_MEMBER_REFL_ARRAY_NAMED(mSubShaders, mDesc.subShaders, 14)
 		BS_END_RTTI_MEMBERS
 
-		SHADER_DATA_PARAM_DESC& getDataParam(Shader* obj, UINT32 idx) 
-		{ 
+		SHADER_DATA_PARAM_DESC& getDataParam(Shader* obj, UINT32 idx)
+		{
 			auto iter = obj->mDesc.dataParams.begin();
 			for(UINT32 i = 0; i < idx; i++) ++iter;
 
-			return iter->second; 
+			return iter->second;
 		}
 
 		void setDataParam(Shader* obj, UINT32 idx, SHADER_DATA_PARAM_DESC& val) { obj->mDesc.dataParams[val.name] = val; }
 		UINT32 getDataParamsArraySize(Shader* obj) { return (UINT32)obj->mDesc.dataParams.size(); }
 		void setDataParamsArraySize(Shader* obj, UINT32 size) {  } // Do nothing
 
-		SHADER_OBJECT_PARAM_DESC& getTextureParam(Shader* obj, UINT32 idx) 
-		{ 
+		SHADER_OBJECT_PARAM_DESC& getTextureParam(Shader* obj, UINT32 idx)
+		{
 			auto iter = obj->mDesc.textureParams.begin();
 			for(UINT32 i = 0; i < idx; i++) ++iter;
 
-			return iter->second; 
+			return iter->second;
 		}
 
 		void setTextureParam(Shader* obj, UINT32 idx, SHADER_OBJECT_PARAM_DESC& val) { obj->mDesc.textureParams[val.name] = val; }
@@ -276,7 +276,7 @@ namespace bs
 	public:
 		ShaderRTTI()
 		{
-			addPlainArrayField("mDataParams", 2, &ShaderRTTI::getDataParam, &ShaderRTTI::getDataParamsArraySize, 
+			addPlainArrayField("mDataParams", 2, &ShaderRTTI::getDataParam, &ShaderRTTI::getDataParamsArraySize,
 				&ShaderRTTI::setDataParam, &ShaderRTTI::setDataParamsArraySize);
 			addPlainArrayField("mTextureParams", 3, &ShaderRTTI::getTextureParam, &ShaderRTTI::getTextureParamsArraySize,
 				&ShaderRTTI::setTextureParam, &ShaderRTTI::setTextureParamsArraySize);
@@ -284,7 +284,7 @@ namespace bs
 				&ShaderRTTI::setSamplerParam, &ShaderRTTI::setSamplerParamsArraySize);
 			addPlainArrayField("mBufferParams", 5, &ShaderRTTI::getBufferParam, &ShaderRTTI::getBufferParamsArraySize,
 				&ShaderRTTI::setBufferParam, &ShaderRTTI::setBufferParamsArraySize);
-			addPlainArrayField("mParamBlocks", 6, &ShaderRTTI::getParamBlock, &ShaderRTTI::getParamBlocksArraySize, 
+			addPlainArrayField("mParamBlocks", 6, &ShaderRTTI::getParamBlock, &ShaderRTTI::getParamBlocksArraySize,
 				&ShaderRTTI::setParamBlock, &ShaderRTTI::setParamBlocksArraySize);
 		}
 

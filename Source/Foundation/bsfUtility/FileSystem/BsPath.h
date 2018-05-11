@@ -13,12 +13,12 @@ namespace bs
 	 */
 
 	/**
-	 * Class for storing and manipulating file paths. Paths may be parsed from and to raw strings according to various 
+	 * Class for storing and manipulating file paths. Paths may be parsed from and to raw strings according to various
 	 * platform specific path types.
 	 *
-	 * @note	
+	 * @note
 	 * In order to allow the system to easily distinguish between file and directory paths, try to ensure that all directory
-	 * paths end with a separator (\ or / depending on platform). System won't fail if you don't but it will be easier to 
+	 * paths end with a separator (\ or / depending on platform). System won't fail if you don't but it will be easier to
 	 * misuse.
 	 */
 	class BS_UTILITY_EXPORT Path
@@ -45,7 +45,7 @@ namespace bs
 		Path(const String& pathStr, PathType type = PathType::Default);
 
 		/**
-		 * Constructs a path by parsing the provided path null terminated string. Throws exception if provided path is 
+		 * Constructs a path by parsing the provided path null terminated string. Throws exception if provided path is
 		 * not valid.
 		 *
 		 * @param[in]	pathStr	Null-terminated string containing the path. Ideally this should be an UTF-8 encoded string
@@ -57,13 +57,13 @@ namespace bs
 		Path(const Path& other);
 
 		/**
-		 * Assigns a path by parsing the provided path string. Path will be parsed according to the rules of the platform 
+		 * Assigns a path by parsing the provided path string. Path will be parsed according to the rules of the platform
 		 * the application is being compiled to.
 		 */
 		Path& operator= (const String& pathStr);
 
 		/**
-		 * Assigns a path by parsing the provided path null terminated string. Path will be parsed according to the rules 
+		 * Assigns a path by parsing the provided path null terminated string. Path will be parsed according to the rules
 		 * of the platform the application is being compiled to.
 		 */
 		Path& operator= (const char* pathStr);
@@ -71,13 +71,13 @@ namespace bs
 		Path& operator= (const Path& path);
 
 		/**
-		 * Compares two paths and returns true if they match. Comparison is case insensitive and paths will be compared 
+		 * Compares two paths and returns true if they match. Comparison is case insensitive and paths will be compared
 		 * as-is, without canonization.
 		 */
 		bool operator== (const Path& path) const { return equals(path); }
 
 		/**
-		 * Compares two paths and returns true if they don't match. Comparison is case insensitive and paths will be 
+		 * Compares two paths and returns true if they don't match. Comparison is case insensitive and paths will be
 		 * compared as-is, without canonization.
 		 */
 		bool operator!= (const Path& path) const { return !equals(path); }
@@ -95,13 +95,13 @@ namespace bs
 		 * Constructs a path by parsing the provided path string. Throws exception if provided path is not valid.
 		 *
 		 * @param[in]	pathStr	String containing the path.
-		 * @param[in]	type	If set to default path will be parsed according to the rules of the platform the application 
+		 * @param[in]	type	If set to default path will be parsed according to the rules of the platform the application
 		 *						is being compiled to. Otherwise it will be parsed according to provided type.
 		 */
 		void assign(const String& pathStr, PathType type = PathType::Default);
 
 		/**
-		 * Constructs a path by parsing the provided path null terminated string. Throws exception if provided path is not 
+		 * Constructs a path by parsing the provided path null terminated string. Throws exception if provided path is not
 		 * valid.
 		 *
 		 * @param[in]	pathStr		Null-terminated string containing the path.
@@ -114,7 +114,7 @@ namespace bs
 		/**
 		 * Converts the path in a string according to platform path rules.
 		 *
-		 * @param[in] type	If set to default path will be parsed according to the rules of the platform the application is 
+		 * @param[in] type	If set to default path will be parsed according to the rules of the platform the application is
 		 *					being compiled to. Otherwise it will be parsed according to provided type.
 		 * @return			String representing the path using the UTF8 string encoding.
 		 */
@@ -142,46 +142,46 @@ namespace bs
 
 		/**
 		 * Returns parent path. If current path points to a file the parent path will be the folder where the file is located.
-		 * Or if it contains a directory the parent will be the parent directory. If no parent exists, same path will be 
+		 * Or if it contains a directory the parent will be the parent directory. If no parent exists, same path will be
 		 * returned.
 		 */
 		Path getParent() const;
 
 		/**
-		 * Returns an absolute path by appending the current path to the provided base. If path was already absolute no 
-		 * changes are made and copy of current path is returned. If base is not absolute, then the returned path will be 
+		 * Returns an absolute path by appending the current path to the provided base. If path was already absolute no
+		 * changes are made and copy of current path is returned. If base is not absolute, then the returned path will be
 		 * made relative to base, but will not be absolute.
 		 */
 		Path getAbsolute(const Path& base) const;
 
 		/**
-		 * Returns a relative path by making the current path relative to the provided base. Base must be a part of the 
+		 * Returns a relative path by making the current path relative to the provided base. Base must be a part of the
 		 * current path. If base is not a part of the path no changes are made and a copy of the current path is returned.
 		 */
 		Path getRelative(const Path& base) const;
 
 		/**
-		 * Returns the path as a path to directory. If path was pointing to a file, the filename is removed, otherwise no 
+		 * Returns the path as a path to directory. If path was pointing to a file, the filename is removed, otherwise no
 		 * changes are made and exact copy is returned.
 		 */
 		Path getDirectory() const;
 
 		/**
-		 * Makes the path the parent of the current path. If current path points to a file the parent path will be the 
-		 * folder where the file is located. Or if it contains a directory the parent will be the parent directory. If no 
+		 * Makes the path the parent of the current path. If current path points to a file the parent path will be the
+		 * folder where the file is located. Or if it contains a directory the parent will be the parent directory. If no
 		 * parent exists, same path will be returned.
 		 */
 		Path& makeParent();
 
 		/**
-		 * Makes the current path absolute by appending it to base. If path was already absolute no changes are made and 
+		 * Makes the current path absolute by appending it to base. If path was already absolute no changes are made and
 		 * copy of current path is returned. If base is not absolute, then the returned path will be made relative to base,
 		 * but will not be absolute.
 		 */
 		Path& makeAbsolute(const Path& base);
 
 		/**
-		 * Makes the current path relative to the provided base. Base must be a part of the current path. If base is not 
+		 * Makes the current path relative to the provided base. Base must be a part of the current path. If base is not
 		 * a part of the path no changes are made and a copy of the current path is returned.
 		 */
 		Path& makeRelative(const Path& base);
@@ -190,13 +190,13 @@ namespace bs
 		Path& append(const Path& path);
 
 		/**
-		 * Checks if the current path contains the provided path. Comparison is case insensitive and paths will be compared 
+		 * Checks if the current path contains the provided path. Comparison is case insensitive and paths will be compared
 		 * as-is, without canonization.
 		 */
 		bool includes(const Path& child) const;
 
 		/**
-		 * Compares two paths and returns true if they match. Comparison is case insensitive and paths will be compared 
+		 * Compares two paths and returns true if they match. Comparison is case insensitive and paths will be compared
 		 * as-is, without canonization.
 		 */
 		bool equals(const Path& other) const;
@@ -205,7 +205,7 @@ namespace bs
 		void setFilename(const String& filename) { mFilename = filename; }
 
 		/**
-		 * Change or set the base name in the path. Base name changes the filename by changing its base to the provided 
+		 * Change or set the base name in the path. Base name changes the filename by changing its base to the provided
 		 * value but keeping extension intact.
 		 */
 		void setBasename(const String& basename);
@@ -240,7 +240,7 @@ namespace bs
 		const String& getNode() const { return mNode; }
 
 		/**
-		 * Gets last element in the path, filename if it exists, otherwise the last directory. If no directories exist 
+		 * Gets last element in the path, filename if it exists, otherwise the last directory. If no directories exist
 		 * returns device or node.
 		 */
 		const String& getTail() const;
@@ -472,7 +472,7 @@ namespace bs
 			memory = rttiWriteElem(data.mNode, memory);
 			memory = rttiWriteElem(data.mFilename, memory);
 			memory = rttiWriteElem(data.mIsAbsolute, memory);
-			memory = rttiWriteElem(data.mDirectories, memory);
+			rttiWriteElem(data.mDirectories, memory);
 		}
 
 		static UINT32 fromMemory(Path& data, char* memory)
@@ -485,7 +485,7 @@ namespace bs
 			memory = rttiReadElem(data.mNode, memory);
 			memory = rttiReadElem(data.mFilename, memory);
 			memory = rttiReadElem(data.mIsAbsolute, memory);
-			memory = rttiReadElem(data.mDirectories, memory);
+			rttiReadElem(data.mDirectories, memory);
 
 			return size;
 		}

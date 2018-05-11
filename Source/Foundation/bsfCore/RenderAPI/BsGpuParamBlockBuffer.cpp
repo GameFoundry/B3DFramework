@@ -9,9 +9,10 @@ namespace bs
 		:mUsage(usage), mSize(size), mCachedData(nullptr)
 	{
 		if (mSize > 0)
+		{
 			mCachedData = (UINT8*)bs_alloc(mSize);
-
-		memset(mCachedData, 0, mSize);
+			memset(mCachedData, 0, mSize);
+		}
 	}
 
 	GpuParamBlockBuffer::~GpuParamBlockBuffer()
@@ -93,9 +94,10 @@ namespace bs
 		:mUsage(usage), mSize(size), mCachedData(nullptr), mGPUBufferDirty(false)
 	{
 		if (mSize > 0)
+		{
 			mCachedData = (UINT8*)bs_alloc(mSize);
-
-		memset(mCachedData, 0, mSize);
+			memset(mCachedData, 0, mSize);
+		}
 	}
 
 	GpuParamBlockBuffer::~GpuParamBlockBuffer()
@@ -164,7 +166,7 @@ namespace bs
 		write(0, data.getBuffer(), data.getBufferSize());
 	}
 
-	SPtr<GpuParamBlockBuffer> GpuParamBlockBuffer::create(UINT32 size, GpuParamBlockUsage usage, 
+	SPtr<GpuParamBlockBuffer> GpuParamBlockBuffer::create(UINT32 size, GpuParamBlockUsage usage,
 		GpuDeviceFlags deviceMask)
 	{
 		return HardwareBufferManager::instance().createGpuParamBlockBuffer(size, usage, deviceMask);

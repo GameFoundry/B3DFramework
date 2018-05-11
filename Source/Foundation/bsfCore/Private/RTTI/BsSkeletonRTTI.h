@@ -22,7 +22,7 @@ namespace bs
 		void setNumBindPoses(Skeleton* obj, UINT32 size)
 		{
 			obj->mNumBones = size;
-			
+
 			assert(obj->mInvBindPoses == nullptr);
 			obj->mInvBindPoses = bs_newN<Matrix4>(size);
 		}
@@ -44,7 +44,7 @@ namespace bs
 		void setNumBoneTransforms(Skeleton* obj, UINT32 size)
 		{
 			obj->mNumBones = size;
-			
+
 			assert(obj->mBoneTransforms == nullptr);
 			obj->mBoneTransforms = bs_newN<Transform>(size);
 		}
@@ -102,7 +102,7 @@ namespace bs
 			memory = rttiReadElem(size, memory);
 
 			memory = rttiReadElem(data.name, memory);
-			memory = rttiReadElem(data.parent, memory);
+			rttiReadElem(data.parent, memory);
 
 			return size;
 		}

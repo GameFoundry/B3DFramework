@@ -41,7 +41,7 @@ namespace bs
 
 			memory = rttiWriteElem(version, memory);
 			memory = rttiWriteElem(data.positions, memory);
-			memory = rttiWriteElem(data.coefficients, memory);
+			rttiWriteElem(data.coefficients, memory);
 		}
 
 		static UINT32 fromMemory(SavedLightProbeInfo& data, char* memory)

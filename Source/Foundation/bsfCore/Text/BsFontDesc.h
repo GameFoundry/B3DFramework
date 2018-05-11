@@ -39,11 +39,11 @@ namespace bs
 
 	// Make CHAR_DESC serializable
 	template<> struct RTTIPlainType<CharDesc>
-	{	
+	{
 		enum { id = TID_CHAR_DESC }; enum { hasDynamicSize = 1 };
 
 		static void toMemory(const CharDesc& data, char* memory)
-		{ 
+		{
 			UINT32 size = getDynamicSize(data);
 
 			memcpy(memory, &size, sizeof(UINT32));
@@ -61,13 +61,13 @@ namespace bs
 			memory = rttiWriteElem(data.yOffset, memory);
 			memory = rttiWriteElem(data.xAdvance, memory);
 			memory = rttiWriteElem(data.yAdvance, memory);
-			memory = rttiWriteElem(data.kerningPairs, memory);
+			rttiWriteElem(data.kerningPairs, memory);
 		}
 
 		static UINT32 fromMemory(CharDesc& data, char* memory)
-		{ 
+		{
 			UINT32 size;
-			memcpy(&size, memory, sizeof(UINT32)); 
+			memcpy(&size, memory, sizeof(UINT32));
 			memory += sizeof(UINT32);
 
 			memory = rttiReadElem(data.charId, memory);
@@ -82,13 +82,13 @@ namespace bs
 			memory = rttiReadElem(data.yOffset, memory);
 			memory = rttiReadElem(data.xAdvance, memory);
 			memory = rttiReadElem(data.yAdvance, memory);
-			memory = rttiReadElem(data.kerningPairs, memory);
+			rttiReadElem(data.kerningPairs, memory);
 
 			return size;
 		}
 
-		static UINT32 getDynamicSize(const CharDesc& data)	
-		{ 
+		static UINT32 getDynamicSize(const CharDesc& data)
+		{
 			UINT64 dataSize = sizeof(data.charId)
 				+ sizeof(data.page)
 				+ sizeof(data.uvX)
@@ -106,8 +106,8 @@ namespace bs
 			dataSize += sizeof(UINT32);
 
 			return (UINT32)dataSize;
-		}	
-	}; 
+		}
+	};
 
 	/** @endcond */
 	/** @} */

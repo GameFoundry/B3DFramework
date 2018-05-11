@@ -29,7 +29,7 @@ namespace bs
 			UINT8 version = 0;
 			memory = rttiWriteElem(version, memory, size);
 			memory = rttiWriteElem(data.time, memory, size);
-			memory = rttiWriteElem(data.name, memory, size);
+			rttiWriteElem(data.name, memory, size);
 
 			memcpy(memoryStart, &size, sizeof(UINT32));
 		}
@@ -45,7 +45,7 @@ namespace bs
 			assert(version == 0);
 
 			memory = rttiReadElem(data.time, memory);
-			memory = rttiReadElem(data.name, memory);
+			rttiReadElem(data.name, memory);
 
 			return size;
 		}
