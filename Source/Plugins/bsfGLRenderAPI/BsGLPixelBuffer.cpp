@@ -491,7 +491,7 @@ namespace bs { namespace ct
 #endif
 		{
 #if BS_OPENGL_4_3 || BS_OPENGLES_3_2
-			if (mTarget != GL_TEXTURE_2D || mTarget != GL_TEXTURE_2D_MULTISAMPLE)
+			if ( !(mTarget == GL_TEXTURE_2D || mTarget == GL_TEXTURE_2D_MULTISAMPLE) )
 				BS_EXCEPT(InvalidParametersException, "Non-2D multisampled texture not supported.");
 #endif
 
