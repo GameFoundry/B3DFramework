@@ -5,16 +5,27 @@
 
 namespace bs
 {
-	static bool operator<(const NPtr<DynLib>& lhs, const String& rhs)
+
+namespace
+{
+	static void dynlib_delete(DynLib* lib)
+	{
+		lib->unload();
+		bs_delete(lib);
+	}
+} // namespace ()
+
+	static bool operator<(const UPtr<DynLib>& lhs, const String& rhs)
 	{
 		return lhs->getName() < rhs;
 	}
 
-	static bool operator<(const String& lhs, const NPtr<DynLib>& rhs)
+	static bool operator<(const String& lhs, const UPtr<DynLib>& rhs)
 	{
 		return lhs < rhs->getName();
 	}
-	static bool operator<(const NPtr<DynLib>& lhs, const NPtr<DynLib>& rhs)
+
+	static bool operator<(const UPtr<DynLib>& lhs, const UPtr<DynLib>& rhs)
 	{
 		return lhs->getName() < rhs->getName();
 	}
@@ -28,21 +39,21 @@ namespace bs
 		const String::size_type length = filename.length();
 		const String extension = String(".") + DynLib::EXTENSION;
 		const String::size_type extLength = extension.length();
-		if (length <= extLength || filename.substr(length - extLength) != extension)
+		if(length <= extLength || filename.substr(length - extLength) != extension)
 			filename.append(extension);
 
 		if(DynLib::PREFIX != nullptr)
 			filename.insert(0, DynLib::PREFIX);
 
 		const auto& iterFind = mLoadedLibraries.lower_bound(filename);
-		if (iterFind != mLoadedLibraries.end() && (*iterFind)->getName() == filename)
+		if(iterFind != mLoadedLibraries.end() && (*iterFind)->getName() == filename)
 		{
 			return iterFind->get();
 		}
 		else
 		{
 			DynLib* newLib = bs_new<DynLib>(std::move(filename));
-			mLoadedLibraries.emplace_hint(iterFind, newLib);
+			mLoadedLibraries.emplace_hint(iterFind, newLib, &dynlib_delete);
 			return newLib;
 		}
 	}
@@ -50,26 +61,16 @@ namespace bs
 	void DynLibManager::unload(DynLib* lib)
 	{
 		const auto& iterFind = mLoadedLibraries.find(lib->getName());
-		if (iterFind != mLoadedLibraries.end())
+		if(iterFind != mLoadedLibraries.end())
 		{
 			mLoadedLibraries.erase(iterFind);
 		}
-
-		lib->unload();
-		bs_delete(lib);
-	}
-
-	DynLibManager::~DynLibManager()
-	{
-		// Unload & delete each resource in turn
-		for(auto& entry : mLoadedLibraries)
+		else
 		{
-			entry->unload();
-			bs_delete(entry.get());
+			// Somehow a DynLib not owned by the manager...?
+			// Well, we should clean it up anyway...
+			dynlib_delete(lib);
 		}
-
-		// Empty the list
-		mLoadedLibraries.clear();
 	}
 
 	DynLibManager& gDynLibManager()

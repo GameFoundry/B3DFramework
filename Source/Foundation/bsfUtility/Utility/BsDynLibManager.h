@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	/**
-	 * This manager keeps track of all the open dynamic-loading libraries, it manages opening them opens them and can be 
+	 * This manager keeps track of all the open dynamic-loading libraries, it manages opening them opens them and can be
 	 * used to lookup already already-open libraries.
 	 *
 	 * @note	Not thread safe.
@@ -20,9 +20,6 @@ namespace bs
 	class BS_UTILITY_EXPORT DynLibManager : public Module<DynLibManager>
 	{
 	public:
-		DynLibManager() = default;
-		virtual ~DynLibManager();
-
 		/**
 		 * Loads the given file as a dynamic library.
 		 *
@@ -34,7 +31,7 @@ namespace bs
 		void unload(DynLib* lib);
 
 	protected:
-		Set<NPtr<DynLib>, std::less<>> mLoadedLibraries;
+		Set<UPtr<DynLib>, std::less<>> mLoadedLibraries;
 	};
 
 	/** Easy way of accessing DynLibManager. */
