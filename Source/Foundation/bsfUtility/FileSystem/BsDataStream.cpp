@@ -91,11 +91,6 @@ namespace bs
 
 	String DataStream::getAsString()
 	{
-		// Read the entire buffer - ideally in one read, but if the size of
-		// the buffer is unknown, do multiple fixed size reads.
-		size_t bufSize = (mSize > 0 ? mSize : 4096);
-		std::array<std::stringstream::char_type,4096> tempBuffer;
-
 		// Ensure read from begin of stream
 		seek(0);
 
@@ -134,12 +129,19 @@ namespace bs
 
 		seek(dataOffset);
 
+		// Read the entire buffer - ideally in one read, but if the size of the buffer is unknown, do multiple fixed size
+		// reads.
+		size_t bufSize = (mSize > 0 ? mSize : 4096);
+		auto tempBuffer = bs_stack_alloc<std::stringstream::char_type>((UINT32)mSize);
+
 		std::stringstream result;
 		while (!eof())
 		{
-			size_t numReadBytes = read(tempBuffer.data(), bufSize);
-			result.write(tempBuffer.data(), numReadBytes);
+			size_t numReadBytes = read(tempBuffer, bufSize);
+			result.write(tempBuffer, numReadBytes);
 		}
+
+		bs_stack_free(tempBuffer);
 
 		std::string string = result.str();
 
