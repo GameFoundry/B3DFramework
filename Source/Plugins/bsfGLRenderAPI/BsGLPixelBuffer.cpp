@@ -8,6 +8,7 @@
 #include "Utility/BsBitwise.h"
 #include "BsGLRenderTexture.h"
 #include "Profiling/BsRenderStats.h"
+#include "Math/BsMath.h"
 
 namespace bs { namespace ct
 {
@@ -173,7 +174,15 @@ namespace bs { namespace ct
 
 		if(PixelUtil::isCompressed(data.getFormat()))
 		{
-			if (data.getFormat() != mFormat || !data.isConsecutive())
+			// Block-compressed data cannot be smaller than 4x4, and must be a multiple of 4
+			const UINT32 actualWidth = Math::divideAndRoundUp(std::max(mWidth, 4U), 4U) * 4U;
+			const UINT32 actualHeight = Math::divideAndRoundUp(std::max(mHeight, 4U), 4U) * 4U;
+
+			const UINT32 expectedRowPitch = actualWidth;
+			const UINT32 expectedSlicePitch = actualWidth * actualHeight;
+
+			const bool isConsecutive = data.getRowPitch() == expectedRowPitch && data.getSlicePitch() == expectedSlicePitch;
+			if (data.getFormat() != mFormat || !isConsecutive)
 			{
 				LOGERR("Compressed images must be consecutive, in the source format");
 				return;
@@ -300,7 +309,15 @@ namespace bs { namespace ct
 
 		if(PixelUtil::isCompressed(data.getFormat()))
 		{
-			if (data.getFormat() != mFormat || !data.isConsecutive())
+			// Block-compressed data cannot be smaller than 4x4, and must be a multiple of 4
+			const UINT32 actualWidth = Math::divideAndRoundUp(std::max(mWidth, 4U), 4U) * 4U;
+			const UINT32 actualHeight = Math::divideAndRoundUp(std::max(mHeight, 4U), 4U) * 4U;
+
+			const UINT32 expectedRowPitch = actualWidth;
+			const UINT32 expectedSlicePitch = actualWidth * actualHeight;
+
+			const bool isConsecutive = data.getRowPitch() == expectedRowPitch && data.getSlicePitch() == expectedSlicePitch;
+			if (data.getFormat() != mFormat || !isConsecutive)
 			{
 				LOGERR("Compressed images must be consecutive, in the source format");
 				return;
