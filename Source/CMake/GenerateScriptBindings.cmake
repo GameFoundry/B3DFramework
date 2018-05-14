@@ -78,6 +78,7 @@ if(BansheeSBGen_FOUND)
 			-std=c++14
 			-DBS_STATIC_LIB
 			-DBS_SBGEN
+			-D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH
 			-w)
 
 		if(APPLE)
