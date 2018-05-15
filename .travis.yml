@@ -92,9 +92,9 @@ after_success:
   - today=`date +%d.%m.%Y`
   - |
     if [ -n "$TRAVIS_TAG" ]; then
-      buildName = ${TRAVIS_TAG}
+      buildName=${TRAVIS_TAG}
     else
-      buildName = ${today}
+      buildName=${today}
     fi
   - filename=bsf_${buildName}_${TRAVIS_OS_NAME}.tar.gz
   - symbolsFilename=bsf_${buildName}_${TRAVIS_OS_NAME}_symbols.tar.gz
