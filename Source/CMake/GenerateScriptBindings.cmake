@@ -40,6 +40,8 @@ set(BS_GENERATED_CS_ENGINE_OUTPUT_DIR ${PROJECT_SOURCE_DIR}/Source/Scripting/MBa
 set(BS_GENERATED_CS_EDITOR_OUTPUT_DIR ${PROJECT_SOURCE_DIR}/Source/Scripting/MBansheeEditor/Generated)
 
 if(GENERATE_SCRIPT_BINDINGS)
+	find_package(BansheeSBGen)
+
 	addForGeneration(Source/bsf/Source/Foundation/bsfUtility Source/bsf/Source/Foundation/ UTILITY)
 	addForGeneration(Source/bsf/Source/Foundation/bsfCore Source/bsf/Source/Foundation/ CORE)
 	addForGeneration(Source/bsf/Source/Foundation/bsfEngine Source/bsf/Source/Foundation/ ENGINE)
@@ -66,7 +68,6 @@ if(GENERATE_SCRIPT_BINDINGS)
 	file(WRITE ${PROJECT_BINARY_DIR}/toParse.cpp ${BS_GLOBAL_FILE_CONTENTS})
 endif()
 
-find_package(BansheeSBGen)
 if(BansheeSBGen_FOUND)
 	if(GENERATE_SCRIPT_BINDINGS)
 		set(BS_GSB_COMMAND ${BansheeSBGen_EXECUTABLE_PATH}
@@ -102,10 +103,10 @@ if(BansheeSBGen_FOUND)
 			message(STATUS "...scripting binding generation OK.")
 		endif()
 	endif()
-		
-	file(GLOB BS_GENERATED_ENGINE_H_FILES ${BS_GENERATED_CPP_OUTPUT_DIR}/SBansheeEngine/Generated/*.h)
-	file(GLOB BS_GENERATED_ENGINE_CPP_FILES ${BS_GENERATED_CPP_OUTPUT_DIR}/SBansheeEngine/Generated/*.cpp)
-
-	file(GLOB BS_GENERATED_EDITOR_H_FILES ${BS_GENERATED_CPP_OUTPUT_DIR}/SBansheeEditor/Generated/*.h)
-	file(GLOB BS_GENERATED_EDITOR_CPP_FILES ${BS_GENERATED_CPP_OUTPUT_DIR}/SBansheeEditor/Generated/*.h)
 endif()
+
+file(GLOB BS_GENERATED_ENGINE_H_FILES ${BS_GENERATED_CPP_OUTPUT_DIR}/SBansheeEngine/Generated/*.h)
+file(GLOB BS_GENERATED_ENGINE_CPP_FILES ${BS_GENERATED_CPP_OUTPUT_DIR}/SBansheeEngine/Generated/*.cpp)
+
+file(GLOB BS_GENERATED_EDITOR_H_FILES ${BS_GENERATED_CPP_OUTPUT_DIR}/SBansheeEditor/Generated/*.h)
+file(GLOB BS_GENERATED_EDITOR_CPP_FILES ${BS_GENERATED_CPP_OUTPUT_DIR}/SBansheeEditor/Generated/*.h)
