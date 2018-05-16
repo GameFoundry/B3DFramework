@@ -101,7 +101,7 @@ after_success:
   - cd ${INSTALL_DIR}
   - cd ..
   - |
-    if [[ "$TRAVIS_EVENT_TYPE" == "cron" ]]; then
+    if [[ "$TRAVIS_EVENT_TYPE" == "cron" ]] || [[ -n "$TRAVIS_TAG" ]]; then
       find ./Install -not -name "*.dbg" -not -name ".dwarf" -not -type d | cut -sd / -f 3- | tar -C ./Install -czvf ${filename} -T -
       find ./Install -name "*.dbg" -or -name "*.dwarf" -not -type d | cut -sd / -f 3- | tar -C ./Install -czvf ${symbolsFilename} -T -
 
