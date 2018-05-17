@@ -32,7 +32,7 @@ CMake is a build system that allows you define a project that can then be used f
 Note that CMake is fairly complex and we don't go into details about all of its syntax. There are many tutorials that do that. However our project will be pretty simple and should be easy to understand even to a newcomer to CMake.
 
 ## Preparation {#build_a_b}
-First create a new directory where you would like your project to live. Copy the `Source/CMake/Modules/Findbsf.cmake` from `bsf` folder to the root of your project folder. This file will be used for helping us find `bsf` libraries and includes.
+First create a new directory where you would like your project to live. Grab the `Findbsf.cmake` file from [here](https://github.com/GameFoundry/bsf/raw/master/Source/CMake/Modules/Findbsf.cmake) and place it in the root of your project folder. This file will be used for helping us find `bsf` libraries and includes.
 
 ## CMake project {#build_a_c}
 In your project folder create `CMakeLists.txt`, and fill it out like so:
