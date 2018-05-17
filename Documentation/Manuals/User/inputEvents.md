@@ -1,11 +1,12 @@
 Input events						{#inputEvents}
 ===============
+[TOC]
 
 Events represent another way of handling user input. They are an alternative to input polling, and it's up to the developer to choose which way of handling input he prefers. These approaches aren't identical though, and events can provide more information than polling. Same as polling, events are also handled by the **Input** class.
 
 This approach uses the event system, on which you can read more on [here](@ref events).
 
-# Button presses
+# Button presses {#inputEvents_a}
 You can subscribe to the following events that report when the user interacted with a button:
  - @ref bs::Input::onButtonDown "Input::onButtonDown" - Triggered whenever a button has been pressed.
  - @ref bs::Input::onButtonUp "Input::onButtonUp" - Triggered whenever a button has been released.
@@ -27,7 +28,7 @@ auto handleButtonDown = [&](const ButtonEvent& event)
 gInput().onButtonDown.connect(handleButtonDown);
 ~~~~~~~~~~~~~
 
-# Mouse/touch input
+# Mouse/touch input{#inputEvents_b}
 Use @ref bs::Input::onPointerMoved "Input::onPointerMoved" to track whenever the user moves the mouse or his finger on a touch device. The event supplies the @ref bs::PointerEvent "PointerEvent" structure, containing information like screen position of the event, delta from the last frame, state of all the mouse buttons, scroll wheel movement and more.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -70,7 +71,7 @@ auto handleDoubleClick = [&](const PointerEvent& event)
 gInput().onPointerDoubleClick.connect(handleDoubleClick);
 ~~~~~~~~~~~~~
 
-# Text input
+# Text input{#inputEvents_c}
 If user is typing text (using a physical or a touch keyboard) you may subscribe to @ref bs::Input::onCharInput "Input::onCharInput" to receive individual characters as the user inputs them. 
 
 ~~~~~~~~~~~~~{.cpp}

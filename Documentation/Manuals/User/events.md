@@ -1,11 +1,12 @@
 Events						{#events}
 ===============
+[TOC]
 
 Events allow objects to expose events that may trigger during execution. External objects interested in those events can then register callbacks with those events and be notified when they happen. They are useful because they allow two objects to communicate without necessarily knowing about each other's types, which can reduce class coupling and improve design.
 
 They're represented with the @ref bs::TEvent<RetType, Args> "Event" class.
 
-# Creating events
+# Creating events {#events_a}
 When creating an event, all you need to do is specify a format of the callback it sends out, for example:
 ~~~~~~~~~~~~~{.cpp}
 class MyPlayerController
@@ -18,7 +19,7 @@ public:
 
 The format of the callback method signature is the same format as followed by C++ *std::function*: *returnType(param1Type, param2Type, ...)*. 
 
-# Triggering events
+# Triggering events {#events_b}
 
 When an object is ready to trigger an event simply call it like a function:
 ~~~~~~~~~~~~~{.cpp}
@@ -43,7 +44,7 @@ public:
 };
 ~~~~~~~~~~~~~
 
-# Subscribing to events
+# Subscribing to events {#events_c}
 
 An external object can register itself with an event by calling @ref bs::TEvent<RetType, Args> "Event::connect()". 
 ~~~~~~~~~~~~~{.cpp}
@@ -77,7 +78,7 @@ HEvent eventHandle = playerController.onPlayerJumped.connect(&playerJumpedCallba
 eventHandle.disconnect();
 ~~~~~~~~~~~~~
 
-## Class methods as event callbacks
+## Class methods as event callbacks {#events_c_a}
 In the example above we used lambda functions as event callbacks, and it would have also worked for global functions, but if you wish to use class methods as event callbacks, some additional logic is required. 
 
 The main difference between lambda/global functions and class methods is that class methods have an implicit parameter, the *this* pointer. This is not something you see when you define a function, but it is always there "under the hood".

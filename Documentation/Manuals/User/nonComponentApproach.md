@@ -1,9 +1,10 @@
 Non-component approach				{#nonComponentApproach}
 ===============
+[TOC]
 
 bs::f provides an alternate API to its scene-object/component model. It provides a more traditional way of dealing with gameplay logic at the cost of more complexity, but with potentially more freedom. Note that this is a fully optional approach and just another way of doing what we have described so far.
 
-# Scene actors
+# Scene actors {#nonComponentApproach_a}
 Each **Component** class has a corresponding @ref bs::SceneActor "SceneActor", which shares the same name as the component without the "C" prefix (e.g. @ref bs::Renderable "Renderable" scene actor vs. **CRenderable** component)). 
 
 > Note that throughout this manual we have often referred to components without using the "C" prefix, but in this manual we are referring to the scene actor.
@@ -26,7 +27,7 @@ renderable->setMesh(mesh);
 renderable->setMaterial(material);
 ~~~~~~~~~~~~~
 
-## Transform
+## Transform {#nonComponentApproach_a_a}
 Each scene actor has a **Transform** object you can use to position and orient it in the scene. The transform can be accessed through @ref bs::SceneActor::getTransform() "SceneActor::getTransform()" and @ref bs::SceneActor::setTransform() "SceneActor::setTransform()". It can be manipulated the same as you would a **Transform** on a **SceneObject**. 
 
 ~~~~~~~~~~~~~{.cpp}
@@ -35,7 +36,7 @@ tfrm.setPosition(Vector3(0.0f, 50.0f, 0.0f));
 renderable->setTransform(tfrm);
 ~~~~~~~~~~~~~
 
-# Running custom logic
+# Running custom logic {#nonComponentApproach_b}
 When you use scene objects and components to set up your scene, you do so before calling the main loop. During the main loop the system will call various callbacks in which you can implement your game logic. But without components we need a different way of executing gameplay logic.
 
 To do this we need to change how we start the application. You will need to create your own version of the **Application** class by deriving from it. Once derived you can override any of the following methods:

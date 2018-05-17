@@ -1,5 +1,6 @@
 Playing audio 						{#playingAudio}
 ===============
+[TOC]
 
 To play an audio clip create an @ref bs::CAudioSource "AudioSource" component.
 
@@ -44,7 +45,7 @@ audioSourceSO->setActive(true);
 
 This is all you need to do in order to play basic audio clips. But lets investigate a few more options that let you control the audio in more detail.
 
-# Volume
+# Volume {#playingAudio_a}
 Volume of the audio source can be controlled through @ref bs::CAudioSource::setVolume "CAudioSource::setVolume()". The provided value ranges from 0 to 1.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -52,7 +53,7 @@ Volume of the audio source can be controlled through @ref bs::CAudioSource::setV
 audioSource->setVolume(0.5f);
 ~~~~~~~~~~~~~
 
-# Pitch
+# Pitch {#playingAudio_b}
 Pitch can be controlled through @ref bs::CAudioSource::setPitch "CAudioSource::setPitch()" by providing a pitch multiplier. Values larger than 1 yield a higher pitch, while values smaller than 1 yield a lower pitch.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -63,7 +64,7 @@ audioSource->setPitch(2.0f);
 audioSource->setPitch(0.5f);
 ~~~~~~~~~~~~~
 
-# Seeking
+# Seeking {#playingAudio_c}
 You can seek to a specific position within the currently assigned audio clip by calling @ref bs::CAudioSource::setTime "CAudioSource::setTime()". It accepts a time in seconds. If clip is currently playing, the playback will skip to the provided time. If clip is currently paused, the clip will resume from the provided time the next time **CAudioSource::play()** is called.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -71,7 +72,7 @@ You can seek to a specific position within the currently assigned audio clip by 
 audioSource->setTime(30.0f);
 ~~~~~~~~~~~~~
 
-# Loop
+# Loop {#playingAudio_d}
 By default when the playback reaches the end of the current audio clip, the playback will end. You can ensure the playback loops instead by calling @ref bs::CAudioSource::setIsLooping "CAudioSource::setIsLooping()".
 
 ~~~~~~~~~~~~~{.cpp}
@@ -79,12 +80,12 @@ By default when the playback reaches the end of the current audio clip, the play
 audioSource->setIsLooping(true);
 ~~~~~~~~~~~~~
 
-# 3D sounds
+# 3D sounds {#playingAudio_e}
 If an **AudioClip** has been marked as 3D sound (as described in the previous chapter), then sound playback will be influenced by the position and/or velocity of the scene object the **AudioSource** component is attached to. This means such sounds will sound differently depending on their distance from the listener (among other properties). This ensures the sounds feel realistic as the player walks around the level (i.e. sounding quieter when far away, or using surround to project the sound behind the player).
 
 3D sounds only work if there is a listener defined in the scene. 
 
-## Listener
+## Listener {#playingAudio_e_a}
 Listener provides a reference point used for 3D sound effects. It is represented with a @ref bs::CAudioListener "AudioListener" component. It requires no additional properties aside from being present in the scene.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -94,7 +95,7 @@ audioListenerSO->addComponent<CAudioListener>();
 
 Normally you want to attach this component to a scene object representing your player, or the player's camera.
 
-## Attenuation
+## Attenuation {#playingAudio_e_b}
 Attenuation determines how quickly does audio volume drop off as the listener moves further from the audio source. Change it through @ref bs::CAudioSource::setAttenuation "CAudioSource::setAttenuation()". Higher values means the sound attenuates more quickly with distance.
 
 You can further control attenuation by setting @ref bs::CAudioSource::setMinDistance "CAudioSource::setMinDistance()". If the listener is closer to the source than minimum distance, then the audio will play at full volume. This ensures that the effect of attenuation can be avoided when the listener is close to the source.
@@ -107,7 +108,7 @@ audioSource->setAttenuation(1.0f);
 setAttenuation->setMinDistance(2.0f);
 ~~~~~~~~~~~~~
 
-# Global controls
+# Global controls {#playingAudio_f}
 Audio options can also be controlled globally though the @ref bs::Audio "Audio" system, accessible though @ref bs::gAudio "gAudio()". 
 
 You can change the audio volume globally by calling @ref bs::Audio::setVolume "Audio::setVolume()".
@@ -122,14 +123,14 @@ You can also pause/unpause all sounds globally by calling @ref bs::Audio::setPau
 gAudio().setPaused(true);
 ~~~~~~~~~~~~~
 
-# Direct clip playback
+# Direct clip playback {#playingAudio_g}
 Sometimes you do not need all the features offered by **AudioSource** component, and just want to play a sound with no extra options. In that case you can call @ref bs::Audio::play "Audio::play()" and provide it with an **AudioClip** to play. The clip will play at the provided volume & position. It will stop once it ends (no looping), and you won't have any control over its playback once it starts. This is useful for short one-shot effects.
 
 ~~~~~~~~~~~~~{.cpp}
 gAudio().play(clip);
 ~~~~~~~~~~~~~
 
-# Device enumeration & switching
+# Device enumeration & switching {#playingAudio_h}
 If user has multiple audio devices, you can use the **Audio** system to enumerate through them and switch which device you wish to output to.
 
 To retrieve a list of all devices call @ref bs::Audio::getAllDevices "Audio::getAllDevices()". This will return a set of @ref bs::AudioDevice "AudioDevice" objects, which contain unique names for all the output devices.

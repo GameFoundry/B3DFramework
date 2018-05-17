@@ -1,9 +1,10 @@
 Saving a scene						{#savingScene}
 ===============
+[TOC]
 
 Once you have populated your scene with scene objects and components you will want to save it so you can easily load it later. The entire scene, as well as parts of the scene can be saved by creating a @ref bs::Prefab "Prefab".
 
-# Creating prefabs
+# Creating prefabs {#savingScene_a}
 
 A prefab can be created by calling @ref bs::Prefab::create "Prefab::create()" method and providing the relevant **SceneObject**. You can retrieve the root **SceneObject** of the current scene by calling @ref bs::SceneManager::getRootNode() "SceneManager::getRootNode()", accessible through @ref bs::gSceneManager() "gSceneManager()". The second parameter of **Prefab::create()** controls whether the prefab represents an entire scene, or just a subset of scene objects.
 
@@ -19,7 +20,7 @@ HPrefab partialPrefab = Prefab::create(subObject, false);
 HPrefab scenePrefab = Prefab::create(sceneRoot, true);
 ~~~~~~~~~~~~~
 
-# Saving & loading prefabs
+# Saving & loading prefabs {#savingScene_b}
 
 Once a prefab has been created it can be saved and loaded as any other **Resource**.
 
@@ -33,7 +34,7 @@ HPrefab loadedPartialPrefab = gResources().load<Prefab>("partialPrefab.asset");
 HPrefab loadedScenePrefab = gResources().load<Prefab>("scenePrefab.asset");
 ~~~~~~~~~~~~~
 
-# Instantiating prefabs
+# Instantiating prefabs {#savingScene_c}
 
 After loading the prefab must be instantiated, creating a representation of the **SceneObject** hierarchy it contains. This is done by calling @ref bs::Prefab::instantiate() "Prefab::instantiate()" which returns a **SceneObject**. By default this scene object will be parented to the current scene root, but can then be manipulated as any other scene object. You can replace the current scene with a new **SceneObject** root by calling @ref bs::SceneManager::setRootNode() "SceneManager::setRootNode()".
 
@@ -54,7 +55,7 @@ subObject1->setPosition(Vector3(10.0f, 0.0f, 0.0f));
 subObject1->setPosition(Vector3(50.0f, 0.0f, 0.0f));
 ~~~~~~~~~~~~~
 
-# Resource manifest
+# Resource manifest {#savingScene_d}
 
 If your scene contains components that reference resources (e.g. a **Renderable** referencing a mesh or a material) you will also need to save a resource manifest along your scene. This is an important step as every scene will almost certainly reference some resources. The resource manifest allows the system to automatically find the referenced resources when loading the scene, even after application has been shutdown and started again. Without the manifest your scene will lose all references to any resources after attempting to load it in a new application session.
 

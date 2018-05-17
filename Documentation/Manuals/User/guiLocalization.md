@@ -1,11 +1,12 @@
 Localization 						{#guiLocalization}
 ===============
+[TOC]
 
 So far we haven't mentioned why all GUI elements use the @ref bs::HString "HString" type for holding string information, instead of the raw **String** or **WString** types.
 
 **HString** is a localizable string, meaning the actual value of the string can be changed by changing the active language. This ensures you can easily create translations for GUI elements.
 
-# Localizing strings
+# Localizing strings {#guiLocalization_a}
 When creating a **HString** it takes an identifier as input, which must be unique.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -40,7 +41,7 @@ After the string table is set you can call @ref bs::StringTableManager::setActiv
 gStringTableManager().setActiveLanguage(Language::German);
 ~~~~~~~~~~~~~
 
-# Default localization
+# Default localization {#guiLocalization_b}
 If you skip the step of creating the string table and assigning it to **StringTableManager**, the **HString** will use its identifier as the display string. In cases where you don't need localization you can just use actual display strings in the identifier field (as we have been doing so far).
 
 ~~~~~~~~~~~~~{.cpp}
@@ -49,7 +50,7 @@ HString myLocalizedString("Hello!");
 
 > You can still localize this string. It will use "Hello!" as its value for the default language (English), which is also its identifier and can be used for assigning other values for it in a string table.
 
-# Parameters
+# Parameters {#guiLocalization_c}
 Localized strings can use parameters as placeholders to insert other data. This is useful when a localized string needs to contain information like numbers or other non-localized information. Use identifiers like "{0}", "{1}", etc. to specify parameters.
 
 ~~~~~~~~~~~~~{.cpp}

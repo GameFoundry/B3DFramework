@@ -18,7 +18,7 @@ RenderAPI& rapi = RenderAPI::instance();
 rapi.setDrawOperation(DOT_TRIANGLE_LIST);
 ~~~~~~~~~~~~~
 
-# Indexed drawing
+# Indexed drawing {#drawing_a}
 Finally you can now draw the object by calling @ref bs::ct::RenderAPI::drawIndexed() "ct::RenderAPI::drawIndexed()". It requires the following parameters:
  - @p startIndex - Offset into the bound index buffer to start drawing from. In most cases this will be zero.
  - @p indexCount - Number of indices to draw. Specify total number of indices in the index buffer to draw them all (most common case).
@@ -36,7 +36,7 @@ RenderAPI& rapi = RenderAPI::instance();
 rapi.drawIndexed(0, numIndices, 0, numVertices);
 ~~~~~~~~~~~~~
 
-# Non-indexed drawing
+# Non-indexed drawing {#drawing_b}
 If drawing without an index buffer you can call @ref bs::ct::RenderAPI::draw() "ct::RenderAPI::draw()" instead. It requires only the @p vertexOffset and @p vertexCount parameters, with same meaning as above (except @p vertexCount in this case does affect the rendering).
 
 ~~~~~~~~~~~~~{.cpp}
@@ -47,7 +47,7 @@ RenderAPI& rapi = RenderAPI::instance();
 rapi.draw(0, numVertices);
 ~~~~~~~~~~~~~
 
-# Instanced drawing
+# Instanced drawing {#drawing_c}
 Both **ct::RenderAPI::draw()** and **ct::RenderAPI::drawIndexed()** support drawing multiple instances of the same object using the @p instanceCount parameter. This can be used as an alternative for issuing multiple **draw** calls, as they may have a significant CPU overhead. Using instanced drawing you can draw the same geometry multiple times with almost no additional CPU overhead.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -92,7 +92,7 @@ rapi.setVertexBuffers(0, { perVertexVB, perInstanceVB });
 // Draw ...
 ~~~~~~~~~~~~~
 
-# Drawing helper
+# Drawing helper {#drawing_d}
 As a way of making drawing easier you can also use @ref bs::ct::RendererUtility::draw "ct::RendererUtility::draw()" helper method, accessible globally through @ref bs::ct::gRendererUtility() "ct::gRendererUtility()". This method accepts a **ct::Mesh** as input and will automatically:
  - Bind vertex & index buffer
  - Bind vertex declaration

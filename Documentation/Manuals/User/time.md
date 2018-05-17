@@ -1,9 +1,10 @@
 Measuring time								{#time}
 ===============
+[TOC]
 
 Being able to tell the current time, as well as being able to tell elapsed time since the last frame is important for any real-time application. Use the @ref bs::Time "Time" class, accessible through @ref bs::gTime "gTime()" to retrieve global information about the time in bs::f.
 
-# Current time
+# Current time {#time_a}
 
 Use @ref bs::Time::getTime() "Time::getTime()" to get the current time (since application start) in seconds.
 
@@ -32,7 +33,7 @@ gDebug().logDebug("Operation took " + toString(secondsElapsed) + " seconds.");
 
 You should use **Time::getTime()** for most gameplay purposes, while **Time::getTimePrecise()** can be used for profiling and other similar situations.
 
-# Elapsed time
+# Elapsed time {#time_b}
 Often it is useful to know know how much has passed since the last frame. Use @ref bs::Time::getFrameDelta() "Time::getFrameDelta()" to get the elapsed time from the previous frame.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -40,7 +41,7 @@ float elapsedTime = gTime().getFrameDelta();
 gDebug().logDebug("Last frame was " + toString(elapsedTime) + " seconds ago.");
 ~~~~~~~~~~~~~
 
-# Frame index
+# Frame index {#time_c}
 Sometimes, often for debugging purposes, it is useful to know the index of the current frame. Use @ref bs::Time::getFrameIdx() "Time::getFrameIdx()". Each frame the index gets incremented by one.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -48,7 +49,7 @@ UINT64 frameIdx = gTime().getFrameIdx();
 gDebug().logDebug("This is frame #" + toString(frameIdx));
 ~~~~~~~~~~~~~
 
-# Intervals
+# Intervals {#time_d}
 Sometimes it is useful to measure a time interval, like we did with **Time::getTimePrecise()** with the example above. You can also use the @ref bs::Timer "Timer" class for the same purpose, but with a slightly simpler interface.
 
 ~~~~~~~~~~~~~{.cpp}

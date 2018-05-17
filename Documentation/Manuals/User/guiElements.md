@@ -1,9 +1,10 @@
 GUI elements									{#guiElements}
 ===============
+[TOC]
 
 A GUI element is a basic primitive that GUI is constructed out of. They can be text, buttons, input boxes, images, scroll areas and more. We'll explain what the individual GUI element types are later, but initially we'll focus on functionality common to all GUI elements.
 
-# Displaying a GUI element
+# Displaying a GUI element {#guiElements_a}
 In order to display a GUI element we must first create it. All GUI elements are created using a static *create* method.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -29,7 +30,7 @@ At this point our GUI element will be displayed.
 
 ![Simple GUI](guiBasic.png) 
 
-# Destroying GUI elements
+# Destroying GUI elements {#guiElements_b}
 You do not need to manually destroy a GUI element that is registered with a layout (e.g. a **GUIPanel**). Such elements will be destroyed automatically when their parent layout is destroyed. If their parent layout is connected to **GUIWidget** root panel, then all layouts and elements will be destroyed with the widget.
 
 In case you need to manually destroy a GUI element you can call @ref bs::GUIElement::destroy "GUIElement::destroy()". 
@@ -40,10 +41,10 @@ GUIElement::destroy(label);
 
 Such element will also automatically be removed from the parent layout (if any).
 
-# Customizing GUI elements
+# Customizing GUI elements {#guiElements_c}
 All GUI elements share a common set of methods you can use to customize their position, size, color and other properties.
 
-## Changing position
+## Changing position {#guiElements_c_a}
 You can change the position of a GUI element by calling @ref bs::GUIElement::setPosition "GUIElement::setPosition()". The position is in pixels, relative to the top left corner of the render target.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -51,7 +52,7 @@ You can change the position of a GUI element by calling @ref bs::GUIElement::set
 label->setPosition(50, 50);
 ~~~~~~~~~~~~~
 
-## Changing size
+## Changing size {#guiElements_c_b}
 Element size can be changed by calling @ref bs::GUIElement::setSize "GUIElement::setSize()".
 
 ~~~~~~~~~~~~~{.cpp}
@@ -66,7 +67,7 @@ You can also set both position and size at the same time by calling @ref bs::GUI
 label->setBounds(Rect2I(50, 50, 100, 30));
 ~~~~~~~~~~~~~
 
-## Changing color
+## Changing color {#guiElements_c_c}
 You can change the tint of the GUI element with @ref bs::GUIElement::setTint "GUIElement::setTint()". By default an all-white tint is used for all elements. 
 
 ~~~~~~~~~~~~~{.cpp}
@@ -74,7 +75,7 @@ You can change the tint of the GUI element with @ref bs::GUIElement::setTint "GU
 label->setTint(Color::Green);
 ~~~~~~~~~~~~~
 
-## Hiding
+## Hiding {#guiElements_c_d}
 You can temporarily hide an element with @ref bs::GUIElement::setVisible "GUIElement::setVisible()". As the name implies hidden element will not be displayed, and cannot be interacted with.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -85,10 +86,10 @@ label->setVisible(false);
 label->setVisible(true);
 ~~~~~~~~~~~~~
 
-# GUI element types
+# GUI element types {#guiElements_d}
 bs::f provides a large library of existing GUI element types. We'll focus on explaining the most important ones, but you can find an exhaustive list in @ref GUI.
 
-## Label
+## Label {#guiElements_d_a}
 A label is the most basic of GUI elements, that allows no user interaction and just displays a textual string. It is created with @ref bs::GUILabel::create "GUILabel::create()", which accepts a string as input.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -106,7 +107,7 @@ label->setContent(HString("New text!"));
 
 ![Label](guiLabel.png) 
 
-## Texture
+## Texture {#guiElements_d_b}
 A texture is another basic GUI element that allows no interaction. All it does is display a **SpriteTexture** on the screen.
 
 To create a GUI texture element, call @ref bs::GUITexture::create "GUITexture::create()" which accepts three parameters: 
@@ -131,7 +132,7 @@ mainPanel->addElement(guiTexture);
  
 ![Texture](guiTexture.png) 
  
-## Button
+## Button {#guiElements_d_c}
 A button GUI element displays a textual string or an image and reports events about user interaction with the button.
 
 GUI elements that can have either text or image contents (or both) accept a @ref bs::GUIContent "GUIContent" structure in their *create* and *setContent* functions. It is just a container and constructed simply:
@@ -174,7 +175,7 @@ imageButton->onClick.connect(buttonClicked);
 
 ![GUI buttons](guiButton.png) 
 
-## Toggle
+## Toggle {#guiElements_d_d}
 Toggle buttons are very similar to normal buttons, with the main difference being that they remain in a toggled state after they have been pressed. Multiple toggle buttons can also be grouped so that only one of them can be toggled at a time. Other than that they share the same interface as **GUIButton**, so we'll focus only on the additional functionality.
 
 To create an individual toggle button call @ref bs::GUIToggle::create "GUIToggle::create()".
@@ -218,7 +219,7 @@ toggle->onClick.connect(elementToggled);
 
 ![GUI toggle](guiToggle.png) 
 
-## Input box
+## Input box {#guiElements_d_e}
 Input boxes allow user to type into them using the keyboard. They can be single-line (default) or multi-line. To create them call @ref bs::GUIInputBox::create "GUIInputBox::create()" where the first parameter specifies whether the input box is single- or multi-line.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -267,7 +268,7 @@ singleLineInput->setFilter(intFilter);
 
 ![Input boxes](guiInputBox.png) 
 
-## List box
+## List box {#guiElements_d_f}
 List boxes allow you to provide multiple elements the user can pick between. They can allow selection of just a single element (default), or allow multi-selection. List boxes are created by calling @ref bs::GUIListBox::create "GUIListBox::create()" where the first argument represents a list of entries to display on the list, while the second argument specifies whether the list should allow multi-selection or not.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -324,7 +325,7 @@ listBox->onSelectionToggled.connect(selectionToggled);
 
 ![List boxes](guiListBox.png) 
 
-## Slider
+## Slider {#guiElements_d_g}
 Sliders allow the user to select a numeric value by dragging a slider. Sliders can be vertical or horizontal, represented by @ref bs::GUISliderVert "GUISliderVert" and @ref bs::GUISliderHorz "GUISliderHorz" classes, respectively. They both share the same interface.
 
 To create a slider call either @ref bs::GUISliderVert::create "GUISliderVert::create()" or @ref bs::GUISliderHorz::create() "GUISliderHorz::create()".
@@ -381,7 +382,7 @@ Note the step is specified in [0, 1] range.
 
 ![Vertical and a horizontal slider](guiSlider.png)
 
-## Scroll area
+## Scroll area {#guiElements_d_h}
 Scroll areas serve as containers for other GUI elements. They can contain more elements that would normally be able to fit in the visible area by providing scrollbars when necessary. Create a scroll area by calling @ref bs::GUIScrollArea::create "GUIScrollArea::create()". 
 
 ~~~~~~~~~~~~~{.cpp}

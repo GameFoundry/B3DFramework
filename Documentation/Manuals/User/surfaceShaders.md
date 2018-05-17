@@ -1,5 +1,6 @@
 Surface & lighting shaders					{#surfaceShaders}
 ===============
+[TOC]
 
 So far we have shown how to create BSL shaders from scratch. This is useful when using the low-level rendering API and you have full control over rendering. But if you wish to create shaders to customize the behaviour of the default renderer (i.e. for use in **Renderable**) you must make sure those shaders comply to a set of rules that are expected by the renderer. Luckily bsf doesn't expect you to handle all those details by yourself, and instead allows you to easily override relevant parts of those shaders, keeping all the complex details hidden from the normal user.
 
@@ -12,7 +13,7 @@ bsf internally uses two separate render pipelines: forward and deferred. The way
 
 Vertex shaders are handled the same regardless of the pipeline, so we will cover them first before continuing with pipeline specific shaders.
 
-# Vertex
+# Vertex {#surfaceShaders_a}
 Vertex shaders allow you to transform object geometry before an object is rasterized. Its entry point must have the following signature:
  - `VStoFS vsmain(VertexInput input)`
  
@@ -105,14 +106,14 @@ shader VertexTransform
 
 Once the shader is created, it can be used for creating a **Material**, which can then be assigned to a **Renderable** as normal.
 
-# Deferred pipeline
+# Deferred pipeline {#surfaceShaders_b}
 This is the pipeline used by the *Standard* material, and is generally the preferable pipeline to use as it is usually faster, and supports a wider variety of features than the forward pipeline. 
 
 Deferred pipeline splits the rendering process and the lighting process. When an object is rendered, all the relevant data is output to  a set of intermediate textures called the GBuffer. These textures contain all the information required for lighting, like the albedo color or the normal vectors. Lighting is then performed after all the objects have been rendered to the GBuffer. 
 
 Due to the way its rendering works, this pipeline is incompatible with transparent materials and can only be used for rendering opaque objects.
 
-## Surface
+## Surface {#surfaceShaders_b_a}
 This shader is responsible for writing the surface data into the GBuffer. Its entry point must have the following signature:
  - `void fsmain(in VStoFS input, out float4 OutGBufferA : SV_Target0, out float4 OutGBufferB : SV_Target1, out float2 OutGBufferC : SV_Target2)`
  
@@ -198,14 +199,14 @@ shader Surface
 
 Once the shader is created, it can be used for creating a **Material**, which can then be assigned to a **Renderable** as normal.
 
-## Lighting
+## Lighting {#surfaceShaders_b_b}
 This type of shader allows you to override how the renderer evaluates lighting. It involves creating a set of mixins that override the existing lighting functionality. For this purpose we use the concept of subshaders, which we explained earlier in the BSL manual.
 
 In order to override lighting you must implement the **DeferredDirectLighting** sub-shader, and then override one or multiple of the following mixins:
  - **StandardBRDF** (from `DirectLighting.bslinc`) - This mixin allows you to change how is incoming light reflected off a point using the bidirectional reflectance distribution function (BRDF). In most cases when modifying the lighting model, this is the only mixin you will want to override.
  - **LuminanceRadial**, **LuminanceSpot**, **LuminanceDirectional** (from `DirectLighting.bslinc`) - This set of mixins allows you to evaluate how is lighting evaluated for radial, spot and directional lights, respectively. This is even more general than overriding the **StandardBRDF** mixin, as it allows you to control how is the lighting information evaluated before being passed along to the BRDF.
  
-### Overriding the BRDF
+### Overriding the BRDF {#surfaceShaders_b_b_a}
 **StandardBRDF** mixin contains a single method you must implement:
  - `float3 evaluateStandardBRDF(float3 V, float3 L, float specLobeEnergy, SurfaceData surfaceData)`
 
@@ -233,7 +234,7 @@ subshader DeferredDirectLighting
 };
 ~~~~~~~~~~~~~
  
-### Overriding luminance calculations
+### Overriding luminance calculations {#surfaceShaders_b_b_b}
 **LuminanceRadial** mixin requires you to implement a single method with a following signature:
  - `float3 getLuminanceRadial(LightData lightData, float3 worldPos, float3 V, float3 R, float roughness2, SurfaceData surfaceData)`
  
@@ -329,7 +330,7 @@ SPtr<Shader> customShader = ...; // Import the shader we created above
 gRenderer().setGlobalShaderOverride(customShader);
 ~~~~~~~~~~~~~ 
  
-# Forward
+# Forward {#surfaceShaders_c}
 When it comes to the forward pipeline, vertex, surface and lighting aspects are all handled in the same shader. Its entry point must have the following signature:
  - `float4 fsmain(in VStoFS input) : SV_Target0`
  

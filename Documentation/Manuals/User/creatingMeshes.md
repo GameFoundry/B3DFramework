@@ -1,9 +1,10 @@
 Advanced meshes				{#creatingMeshes}
 ===============
+[TOC]
 
 In this chapter we'll learn how to create meshes manually and populate them with data. 
 
-# Creating a mesh
+# Creating a mesh {#creatingMeshes_a}
 To create a mesh call @ref bs::Mesh::create "Mesh::create()" or one if its overloads. You'll need to populate the @ref bs::MESH_DESC "MESH_DESC" structure and pass it as a parameter. At minimum the structure requires you to provide:
  - @ref bs::MESH_DESC::numVertices "MESH_DESC::numVertices" - Number of vertices in the mesh
  - @ref bs::MESH_DESC::numIndices "MESH_DESC::numIndices" - Number of indices in the mesh
@@ -31,7 +32,7 @@ meshDesc.vertexDesc = vertexDesc;
 HMesh mesh = Mesh::create(meshDesc);
 ~~~~~~~~~~~~~
 
-## Vertex description
+## Vertex description {#creatingMeshes_a_a}
 To create a new vertex description object you call @ref bs::VertexDataDesc::create "VertexDataDesc::create()". After creation you need to specify a list of vertex elements by calling @ref bs::VertexDataDesc::addVertElem "VertexDataDesc::addVertElem()". Each vertex element is identified by:
  - Type - Determines the size and format of that specific property (e.g. a 3D float for a position property). All supported types are provided in the @ref bs::VertexElementType "VertexElementType" enum.
  - Semantic - Determines to which vertex GPU program input field will this property be mapped to. All supported semantic types are provided in the @ref bs::VertexElementSemantic "VertexElementSemantic" enum. Multiple types can be mapped to the same semantic by using the `semanticIdx` parameter.
@@ -50,7 +51,7 @@ You may also specify these optional properties, primarily useful for low-level r
 
 Once the **VertexDataDesc** structure has been filled, you can use it for initializing a **Mesh** as shown above.
 
-# Writing mesh data
+# Writing mesh data {#creatingMeshes_b}
 After mesh has been created you need to write some vertex and index data to it by calling @ref bs::Mesh::writeData "Mesh::writeData()". This method accepts a @ref bs::MeshData "MeshData" object.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -60,7 +61,7 @@ SPtr<MeshData> meshData = ...; // Explained below
 mesh->writeData(meshData);
 ~~~~~~~~~~~~~ 
 
-## Creating mesh data
+## Creating mesh data {#creatingMeshes_b_a}
 You can create @ref bs::MeshData "MeshData" by calling @ref bs::MeshData::create(UINT32, UINT32, const SPtr<VertexDataDesc>&, IndexType) "MeshData::create()" and providing it with vertex description, index type and number of vertices and indices. You must ensure that the formats and sizes match the mesh this will be used on.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -74,7 +75,7 @@ You can also create **MeshData** using an existing mesh by calling @ref bs::Mesh
 SPtr<MeshData> vertexDesc = mesh->allocBuffer();
 ~~~~~~~~~~~~~ 
 
-## Populating mesh data
+## Populating mesh data {#creatingMeshes_b_b}
 Once **MeshData** has been created you need to populate it with vertices and indices. This can be done in a few ways.
 
 The most basic way is setting the data by using @ref bs::MeshData::setVertexData "MeshData::setVertexData()" which set vertex data for a single vertex element all at once.
@@ -132,10 +133,10 @@ indices[4] = 1;
 indices[5] = 3;
 ~~~~~~~~~~~~~
 
-## Discard on write
+## Discard on write {#creatingMeshes_b_c}
 When you are sure you will overwrite all the contents of a mesh, make sure to set the last parameter of **Mesh::writeData()** to true. This ensures the system can more optimally execute the transfer, without requiring the GPU to finish its current action (which can be considerably slow if it is currently using that particular mesh).
  
-# Reading cached CPU data
+# Reading cached CPU data {#creatingMeshes_c}
 Reading cached CPU data allows you to read-back any data you have written to the mesh when calling **Mesh::writeData()**. It is particularily useful when importing meshes from external files and wish to access their vertex/index data. Note that mesh must be created with the **MeshUsage::MU_CPUCACHED** usage flag in order for CPU cached data to be available. When importing meshes this flag will automatically be set if the relevant property is enabled in **MeshImportOptions**.
 
 Cached CPU data can be read by calling @ref bs::Mesh::readCachedData "Mesh::readCachedData()". It accepts a **MeshData** parameter to which to output the index and vertex data.

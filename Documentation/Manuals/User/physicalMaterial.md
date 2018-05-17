@@ -1,5 +1,6 @@
 Physics material						{#physicsMaterial}
 ===============
+[TOC]
 
 Physics material is a type of object that can be applied to a **Collider** to control the physical properties of its surface. In particular it can be used to control friction coefficients that determine how much damping is there when two objects are touching and moving laterally. As well as a restitution coefficient that determines how ellastic are collisions between two objects.
 
@@ -19,14 +20,14 @@ HBoxCollider collider = colliderSO->addComponent<CBoxCollider>();
 collider->setMaterial(material);
 ~~~~~~~~~~~~~
 
-# Friction coefficients
+# Friction coefficients {#physicsMaterial_a}
 Friction coefficients determine how much damping to the object's movement will occurr when objects are moving laterally to each other. Each object involved in friction can have its own physics material, and friction coefficients from them all will be accounted for.
 
 There are two types of friction coefficients:
  - Static
  - Dynamic
  
-## Static friction
+## Static friction {#physicsMaterial_a_a}
 Static friction coefficient determines how hard is to get an object moving from a stand-still, if it is touching another object. Use @ref bs::PhysicsMaterial::setStaticFriction "PhysicsMaterial::setStaticFriction()" to set the coefficient.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -37,7 +38,7 @@ material->setStaticFriction(0);
 material->setStaticFriction(1);
 ~~~~~~~~~~~~~
 
-## Dynamic friction
+## Dynamic friction {#physicsMaterial_a_b}
 Dynamic friction coefficient determines how much will a moving object be slowed down, when it is touching another object. Use @ref bs::PhysicsMaterial::setDynamicFriction "PhysicsMaterial::setDynamicFriction()" to set the coefficient.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -48,7 +49,7 @@ material->setDynamicFriction(0);
 material->setDynamicFriction(1);
 ~~~~~~~~~~~~~
 
-# Restitution
+# Restitution {#physicsMaterial_b}
 Resitution coefficient controls the elasticity of collisions between two objects (i.e. how "bouncy" they are). Coefficient of 0 means the collisions are non-elastic, and coefficient of 1 means the collisions are fully elastic. Use @ref bs::PhysicsMaterial::setRestitutionCoefficient "PhysicsMaterial::setRestitutionCoefficient()" to set the coefficient.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -59,7 +60,7 @@ material->setRestitutionCoefficient(0.2f);
 material->setRestitutionCoefficient(0.8f);
 ~~~~~~~~~~~~~
 
-# Offsets
+# Offsets {#physicsMaterial_c}
 Offsets are not part of the **PhysicsMaterial** interface, but are rather set directly on a **Collider**. Since they also refer to properties of the collider's surface, they're included in this manual.
 
 Offsets can be used to control the precision of the physics simulation when two objects are interacting. There are two types of offsets:
@@ -68,7 +69,7 @@ Offsets can be used to control the precision of the physics simulation when two 
  
 You generally only need to tweak offsets if you notice inter-penetration or gaps during collisions and while objects are touching.
  
-## Contact offset
+## Contact offset {#physicsMaterial_c_a}
 Contact offset determines a "buffer" that is formed around the surface of a collider. Collider will start colliding with other objects when their surfaces (modified by contact offset) start touching.
 
 Generally you want to keep this at a low value, but not too low. When set to a high value the collisions may appear unrealistic as objects moving toward each other will start colliding before their actual collision bounds start touching.
@@ -84,7 +85,7 @@ Use @ref bs::CCollider::setContactOffset "CCollider::setContactOffset()" to chan
 collider->setContactOffset(0.01f);
 ~~~~~~~~~~~~~
  
-## Rest offset
+## Rest offset {#physicsMaterial_c_b}
 Rest offset is similar to contact offset, as it also defines a "buffer" formed around the surface. But it is only used when physical objects are statically touching each other (e.g. a stack of boxes). It can be used to tweak the collision bounds to make the objects appear perfectly touching. If your collision bounds perfectly match the visual representation of the object, no rest offset adjustment is necessary. The value can be negative to reduce the collision bounds.
 
 ~~~~~~~~~~~~~{.cpp}

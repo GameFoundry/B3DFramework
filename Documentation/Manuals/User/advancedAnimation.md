@@ -1,9 +1,10 @@
 Advanced animation				{#advancedAnimation}
 ===============
+[TOC]
 
 So far we have shown how you can use the **Animation** component to play a single animation clip at once. When it comes to skeletal animation the system is capable of a few more advanced features that allow you to play and blend multiple animation clips at once, as well as other advanced functionality.
 
-# Cross fade
+# Cross fade {#advancedAnimation_a}
 Often your animation system might need to transition from playing one animation clip to another (e.g. moving from a walk to a run animation). In that case you can use @ref bs::CAnimation::crossFade "CAnimation::crossFade()" instead of **CAnimation::play()**. Cross fade will slowly fade in the new animation clip while fading out the previously playing one, over the specified time period.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -16,7 +17,7 @@ animation->play(animationClip);
 animation->crossFade(animationClip2, 1.0f);
 ~~~~~~~~~~~~~
 
-# Sampling
+# Sampling {#advancedAnimation_b}
 Sometimes it is useful to sample just a single frame from an animation clip (e.g. "freezing" an enemy in place). For such purpose you can use @ref bs::CAnimation::sample "CAnimation::sample()". Just provide the animation clip and the time to sample at.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -24,10 +25,10 @@ Sometimes it is useful to sample just a single frame from an animation clip (e.g
 animation->sample(animationClip, 2.0f);
 ~~~~~~~~~~~~~
 
-# Blending
+# Blending {#advancedAnimation_c}
 Blending comes in multiple various forms, and all of them allow you to somehow play multiple animation clips at once.
 
-## 1D blending
+## 1D blending {#advancedAnimation_c_a}
 In this form of blending multiple animation clips are placed linearly one after another. The user can then use a weight value in order to interpolate between the animations. The two animations closest to the weight value are choosen and blended together. 
 
 For example if you had different versions of walk/run animations that alternate depending on how fast the character is moving, you could set them up as a 1D blend, and then use the characters speed as the weight, ensuring the system plays the right animation depending on the speed.
@@ -54,7 +55,7 @@ blendInfo.numClips = 3;
 animation->blend1D(blendInfo, 0.75f);
 ~~~~~~~~~~~~~
 
-## 2D blending
+## 2D blending {#advancedAnimation_c_b}
 2D blending works similarly as 1D blending, except it uses a two-dimensional value for the weight. It also interpolates between four animation clips at once instead of two. It is limited to four clips, and a [0, 1] range. Therefore the clips can be imagined as being on corners of a square.
 
 For example you can use this blend type to interpolate between character aiming animations in a third person game. You would adjust the 2D weight based on the vertical and horizontal directions the character is aiming and the system would interpolate between look up/down/left/right animations to animate the character in the direction the user is aiming.
@@ -73,7 +74,7 @@ blendInfo.botRightClip = lookRightClip;
 animation->blend2D(blendInfo, Vector2(0.0f, 0.5f));
 ~~~~~~~~~~~~~
 
-## Additive blending
+## Additive blending {#advancedAnimation_c_c}
 Additive blending serves a different purpose than from what we have seen so far. It is used to play a special type of animations called additive animations. Such animation clips need to be imported with the special additive property, as discussed earlier.
 
 Such animation clips can then be played on top of another primary animation. For example imagine that your character has three primary animations: standing, walking and running. Now imagine you wanted to add a weapon reload animation in the game. Instead of creating three new separate animations, you can instead create an additive animation, which can then be played on top of any of the existing three primary animations.
@@ -94,7 +95,7 @@ animation->crossFade(reloadClip, 1.0f, 1.0f);
 
 To stop an additive animation you can call @ref bs::CAnimation::stop() "CAnimation::stop()". It accepts a layer index as a parameter and determines which clip to stop. Calling **CAnimation::stopAll()** will stop all clips, additive or otherwise.
 
-# Animation states
+# Animation states {#advancedAnimation_d}
 **CAnimation** component allows you to retrieve and set animation states. Animation states tell you the current state of an animation clip queued for playing in some way, including whether it is currently playing, current play time, wrap mode and more.
 
 Call @ref bs::CAnimation::getState "CAnimation::getState()" with an animation clip as the parameter to retrieve information about that clip. The method outputs an @ref bs::AnimationClipState "AnimationClipState" that can be used to query various information about the clip.

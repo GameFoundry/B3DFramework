@@ -1,5 +1,6 @@
 Persisting data				{#serializingObjects}
 ===============
+[TOC]
 
 Often components will have data you will want to persist across application sessions (for example **Renderable** component needs to remember which **Mesh** and **Material** it references). This persistent data will be automatically saved when a scene is saved, and loaded along with the scene. This process is called data serialization.
 
@@ -42,7 +43,7 @@ class MyClass : public IReflectable
 };
 ~~~~~~~~~~~~~
 
-# Creating the RTTI object
+# Creating the RTTI object {#serializingObjects_a}
 All RTTI objects must implement the @ref bs::RTTIType<Type, BaseType, MyRTTIType> "RTTIType<Type, BaseType, MyRTTIType>" interface. The interface accepts three template parameters:
  - *Type* - Class of the object we're creating RTTI for (e.g. *MyClass* or *MyComponent* from example above)
  - *BaseType* - Base type of the object we're creating RTTI for (e.g. *IReflectable* or *Component* from example above)
@@ -118,7 +119,7 @@ public:
 
 This is the minimal amount of work you need to do in order to implement RTTI. The RTTI types above now describe the class type, but not any of its members. In order to actually have class data serialized, you also need to define member fields.
 
-# Member fields
+# Member fields {#serializingObjects_b}
 Member fields give the RTTI type a way to access (retrieve and assign) data from various members in the class the RTTI type describes. Let's imagine our *MyComponent* class had a few data members:
 ~~~~~~~~~~~~~{.cpp}
 class MyComponent : public Component
@@ -195,7 +196,7 @@ public:
 
 Each field must have an ID unique within the RTTI type. If you remove members from the RTTI type, you should not re-use their IDs for other members. Additionally, if the type of a specific field changes, you should assign it a new ID. The IDs allow the system to map previously serialized data to the current structure of the object.
 
-## Arrays
+## Arrays {#serializingObjects_b_a}
 Array field types are also supported:
  - @ref bs::BS_RTTI_MEMBER_PLAIN_ARRAY "BS_RTTI_MEMBER_PLAIN_ARRAY"
  - @ref bs::BS_RTTI_MEMBER_REFL_ARRAY "BS_RTTI_MEMBER_REFL_ARRAY"
@@ -229,7 +230,7 @@ public:
 };
 ~~~~~~~~~~~~~
 
-# Using RTTI
+# Using RTTI {#serializingObjects_c}
 Once the RTTI has been created, in most cases it will be used automatically. In the case of components it will be used when saving/loading a scene, and in the case of resources it will be used when saving/loading a resource. But for any other class you will want to know how to utilize it manually.
 
 To manually serialize an object you can use the @ref bs::FileEncoder "FileEncoder" class. Create the file encoder with a path to the output file, followed by a call to @ref bs::FileEncoder::encode "FileEncoder::encode()" with the object to encode as the parameter. The system will encode the provided object, as well as any other referenced **IReflectable** objects. 

@@ -1,7 +1,8 @@
 File system									{#fileSystem}
 ===============
+[TOC]
 
-# Paths
+# Paths {#fileSystem_a}
 Instead of using strings for representing paths, bs::f uses the @ref bs::Path "Path" class. Aside from containing the path it provides a variety of other useful information and allows for path manipulation. It is recommended to always store paths using **Path** instead of strings.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -49,7 +50,7 @@ SPtr<DataStream> fileStream = FileSystem::createAndOpenFile("C:/Path/To/File.txt
 // Write to data stream (see below)
 ~~~~~~~~~~~~~
 
-# Data streams
+# Data streams {#fileSystem_b}
 If you create or open a file you will receive a @ref bs::DataStream "DataStream" object. Data streams allow you to easily write to, or read from open files. 
 
 ~~~~~~~~~~~~~{.cpp}

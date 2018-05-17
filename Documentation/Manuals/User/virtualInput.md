@@ -1,5 +1,6 @@
 Virtual input						{#virtualInput}
 ===============
+[TOC]
 
 Virtual input is a high-level input system, built on top of existing **Input** functionality shown earlier. The main difference between the two systems is that virtual input abstracts the concept of buttons and axes into virtual objects, instead of referencing them directly.
 
@@ -23,15 +24,15 @@ if(gVirtualInput().isButtonDown(forwardKey))
 	gDebug().logDebug("Moving forward...");
 ~~~~~~~~~~~~~
 
-# Input configuration
+# Input configuration {#virtualInput_a}
 Before we can use the virtual input system, we must first create a set of virtual buttons and axes, name them, and map them to actual hardware keys. To do this we require an @ref bs::InputConfiguration "InputConfiguration" object, which can be retrieved from **VirtualInput** by calling @ref bs::VirtualInput::getConfiguration() "VirtualInput::getConfiguration()".
 
 ~~~~~~~~~~~~~{.cpp}
 SPtr<InputConfiguration> inputConfig = gVirtualInput().getConfiguration();
 ~~~~~~~~~~~~~
 
-# Virtual buttons
-## Registration
+# Virtual buttons {#virtualInput_b}
+## Registration {#virtualInput_b_a}
 Virtual buttons can be registered by giving them a unique name, and a hardware button code they map to. Any time a particular hardware button is pressed, the virtual button will be reported as pressed as well. New buttons are registered with @ref bs::InputConfiguration::registerButton() "InputConfiguration::registerButton()".
 
 ~~~~~~~~~~~~~{.cpp}
@@ -48,7 +49,7 @@ inputConfig->unregisterButton("Forward");
 
 These mappings can be registered/unregistered during runtime, meaning you should use this functionality to provide input remapping for your users.
 
-## Usage
+## Usage {#virtualInput_b_b}
 Once your virtual button has been registered you can use it by creating a @ref bs::VirtualButton "VirtualButton" object. This object expects the button name you provided when registering the button.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -90,8 +91,8 @@ if(gVirtualInput().isButtonHeld(forwardKey))
 	position.z += 5.0f;
 ~~~~~~~~~~~~~
 
-# Virtual axes
-## Registration
+# Virtual axes {#virtualInput_c}
+## Registration {#virtualInput_c_a}
 Virtual axes allow you to map hardware axes (e.g. gamepad analog stick or mouse movement) to virtual axes. They are registered similarily to buttons, though **InputConfiguration** by calling @ref bs::InputConfiguration::registerAxis "InputConfiguration::registerAxis()". 
 
 You are required to give it a unique name, and fill out @ref bs::VIRTUAL_AXIS_DESC "VIRTUAL_AXIS_DESC" structure that describes the axis. The structure allows you to choose which hardware axes to reference, as well as set other properties like sensitivity, inversion or dead zones.
@@ -112,7 +113,7 @@ Existing virtual axes can be unmapped by calling @ref bs::InputConfiguration::un
 inputConfig->unregisterAxis("LookLeftRight");
 ~~~~~~~~~~~~~
 
-## Usage
+## Usage {#virtualInput_c_b}
 Once you wish to use the virtual axis you construct a @ref bs::VirtualAxis "VirtualAxis" object by providing it with the name of the axis.
 ~~~~~~~~~~~~~{.cpp}
 VirtualAxis lookLeftRightAxis("LookLeftRight");

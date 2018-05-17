@@ -1,11 +1,12 @@
 Materials 						{#simpleMaterial}
 ===============
+[TOC]
 
 Materials are resources that control how are meshes rendered. They are represented using the @ref bs::Material "Material" class. Each material must have one @ref bs::Shader "Shader" object, and zero or more parameters.
 
 A shader is a set of GPU programs and render states that tell the GPU how is a mesh meant to be rendered. Generally these GPU programs have parameters that can control what they output (for example, which texture to use). A material allows you to set those parameters. You can think of shaders as templates, and materials as instances of shaders - similar as you would think of a *class* vs. *object* relationship in a programming language.
 
-# Retrieving a shader
+# Retrieving a shader {#simpleMaterial_a}
 Before we can create a material we first need to pick a shader to use as a basis. bs::f allows you to create fully custom shaders, but this is an advanced topic and is left for a later chapter. For the majority of purposes when rendering 3D geometry you can use either of the following two shaders:
  - Standard - Physically based shader for opaque 3D geometry
  - Transparent - Physically based shader for transparent 3D geometry
@@ -25,7 +26,7 @@ Both of these shaders provide physically based shading and expect four different
 
 At minimum you need to provide the albedo texture, while others can be left as default (or be assigned pure white, or pure black textures) if not required. 
  
-# Material creation
+# Material creation {#simpleMaterial_b}
 To create a material use the @ref bs::Material::create "Material::create()" method, which expects a **Shader** as a parameter.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -33,7 +34,7 @@ To create a material use the @ref bs::Material::create "Material::create()" meth
 HMaterial material = Material::create(shader);
 ~~~~~~~~~~~~~
 
-# Setting parameters
+# Setting parameters {#simpleMaterial_c}
 As we mentioned, the main purpose of a material is to provide a way to set various parameters exposed by the shader. In the example below we show how to set the albedo texture parameter.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -55,7 +56,7 @@ material->setVec3("position", Vector3(0, 15.0f, 10.0f));
 material->setMat4("someTransform", Matrix4::IDENTITY);
 ~~~~~~~~~~~~~
 
-## Sampler states
+## Sampler states {#simpleMaterial_c_a}
 Sampler states are a special type of parameters that can be set by calling @ref bs::Material::setSamplerState "Material::setSamplerState()". These states are used to control how is a texture read in a shader. For example they control what type of filtering to use, how to handle out of range texture coordinates and similar. In most cases you don't need to set sampler states as the default one should be adequate. 
 
 Sampler states are created by calling @ref bs::SamplerState::create "SamplerState::create()", while previously filling out the @ref bs::SAMPLER_STATE_DESC "SAMPLER_STATE_DESC" structure.

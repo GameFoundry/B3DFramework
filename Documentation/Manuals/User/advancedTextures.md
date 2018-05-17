@@ -1,9 +1,10 @@
 Advanced textures				{#advancedTextures}
 ===============
+[TOC]
 
 In this manual we'll learn how to create textures manually, modify their contents and even read-back texture data that was written on the GPU.
 
-# Creating textures
+# Creating textures {#advancedTextures_a}
 To create a texture call @ref bs::Texture::create "Texture::create()". You'll need to populate the @ref bs::TEXTURE_DESC "TEXTURE_DESC" structure and pass it as a parameter. The structure requires you to populate these properties at minimum:
  - @ref bs::TEXTURE_DESC::type "TEXTURE_DESC::type" - Allows you to choose between 1D/2D/3D or cube-map textures using the @ref bs::TextureType "TextureType" enum
  - @ref bs::TEXTURE_DESC::format "TEXTURE_DESC::format" - Allows you to choose a format for each individual pixel in the texture, using the @ref bs::PixelFormat "PixelFormat" enum
@@ -48,7 +49,7 @@ HTexture texture = Texture::create(desc);
 
 > Low level rendering API is explained as a part of the developer manuals.
 
-# Writing data
+# Writing data {#advancedTextures_b}
 Once a texture has been created you might want to write some data to it. This is accomplished by calling @ref bs::Texture::writeData "Texture::writeData()". The method accepts a @ref bs::PixelData "PixelData" object, as well as a mip-map level and a face to write to.
 
 **PixelData** object is just a container for all the pixels of a single mip-level & face of a texture. It is created by calling @ref bs::PixelData::create "PixelData::create()" and providing dimensions as well as the pixel format.
@@ -76,7 +77,7 @@ Finally you can write the data the the texture.
 texture->writeData(pixelData);
 ~~~~~~~~~~~~~
 
-## Writing to sub-resources
+## Writing to sub-resources {#advancedTextures_b_a}
 If a texture contains mip levels, or more than one face then we say it has multiple sub-resources. Each such sub-resource must be written to with a separate call to **Texture::writeData()**.
 
 A texture has multiple mip-levels if its **TEXTURE_DESC::numMips** property is larger than zero. 
@@ -129,10 +130,10 @@ SPtr<PixelData> pixelData = texProps.allocBuffer(0, 2);
 // ... populate the buffer and write
 ~~~~~~~~~~~~~
 
-## Discard on write
+## Discard on write {#advancedTextures_b_b}
 When you are sure you will overwrite all the contents of a texture, make sure to set the last parameter of **Texture::writeData()** to true. This ensures the system can more optimally execute the transfer, without requiring the GPU to finish its current action (which can be considerably slow if it is currently using that particular texture).
 
-## Generating mip-maps
+## Generating mip-maps {#advancedTextures_b_c}
 Mip-maps are generally created automatically from a source texture, rather than by manually setting their pixels. Therefore bs::f provides @ref bs::PixelUtil::genMipmaps "PixelUtil::genMipmaps()" method that accepts a **PixelData** object containing pixels to generate mip levels from. A maximum number of mip-maps levels is then generated and output. You can optionally customize mip-map generation by providing a @ref bs::MipMapGenOptions "MipMapGenOptions" object.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -142,7 +143,7 @@ Vector<SPtr<PixelData>> mipMapPixelData = PixelUtil::genMipmaps(*pixelData, MipM
 // Write mipmap data to texture...
 ~~~~~~~~~~~~~
 
-## Writing compressed data
+## Writing compressed data {#advancedTextures_b_d}
 If a **PixelFormat** chosen for your texture uses one of the compressed pixel formats, you will need to compress the data before writing it to the texture. For this purpose you can use the @ref bs::PixelUtil::compress "PixelUtil::compress()" method. The method accepts a source **PixelData** and a destination **PixelData**, as well as a @ref bs::CompressionOptions "CompressionOptions" object that contains the pixel format to compress to, among other options.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -160,7 +161,7 @@ PixelUtil::compress(srcPixelData, dstPixelData, options);
 // Write data to texture...
 ~~~~~~~~~~~~~
 
-## Creating textures with data
+## Creating textures with data {#advancedTextures_b_e}
 If you're creating a texture you wish to immediately populate with data, you can use the overload for @ref bs::Texture::create(const SPtr<PixelData>&, int, bool) "Texture::create()" that accepts a **PixelData** object directly, allowing you to skip the call to **Texture::writeData()**.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -170,13 +171,13 @@ SPtr<PixelData> pixelData = PixelData::create(128, 128, 1, PF_R8G8B8A8);
 HTexture texture = Texture::create(pixelData);
 ~~~~~~~~~~~~~
 
-# Reading texture data
+# Reading texture data {#advancedTextures_c}
 
 Reading data from a texture is done similarly to writing, using **PixelData** object as well. There are two ways to read texture data:
  - Reading cached CPU data
  - Reading GPU data
 
-## Reading cached CPU data
+## Reading cached CPU data {#advancedTextures_c_a}
 Reading cached CPU data allows you to read-back any data you have written to the texture by calling **Texture::writeData()**. It is particularily useful when importing textures from external files and wish to access their pixels. Note that texture must be created with the **TextureUsage::TU_CPUCACHED** usage flag in order for CPU cached data to be available. When importing textures this flag will automatically be set if the relevant property is enabled in **TextureImportOptions**.
 
 Cached CPU data can be read by calling @ref bs::Texture::readCachedData "Texture::readCachedData()". It accepts a **PixelData** parameter to which to output the pixel colors, as well as indices to the face & mip-level to read.
@@ -195,7 +196,7 @@ Color color = pixelData->getColorAt(50, 50);
 
 Note that cached data reads will not contain any data written by the GPU (e.g. in case the texture is used as a render target or written to by GPU in some other way).
 
-## Reading GPU data
+## Reading GPU data {#advancedTextures_c_b}
 In case cached CPU reads are not enough, you can perform GPU reads, which always read the most recent data which includes both the data written by the CPU and the GPU. Unlike CPU caching this also does not require additional memory to be used to store texture data. Note that texture must be created with the **TextureUsage::TU_CPUREADABLE** usage flag in order for such reads to be available.
 
 To perform GPU reads call @ref bs::Texture::readData "Texture::readData()" which has the same interface as **Texture::readCachedData()**.
@@ -209,5 +210,5 @@ Note that performing GPU reads will almost certainly cause a GPU pipeline stall,
 
 Also note that this operation is asynchronous. This means the function will return immediately, but the actual contents of the provided **PixelData** object will not be populated until the async operation finishes. Read the [mini-manual](@ref asyncMethod) for async operations for more information.
 
-# Other
+# Other {#advancedTextures_d}
 Take a look at @ref bs::PixelUtil "PixelUtil" class for a variety of helper methods for manipulating pixel data and colors.

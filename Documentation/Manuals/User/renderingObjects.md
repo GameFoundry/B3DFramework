@@ -1,9 +1,10 @@
 Renderable object						{#renderingObjects}
 ===============
+[TOC]
 
 As the name implies, the renderable object allows you to display an object in the scene. It is represeted by the @ref bs::CRenderable "Renderable" component. The component requires you to assign a **Mesh** to render, as well as a **Material** to render the mesh with. Both of these are resources, and we'll explain them in the following chapters.
 
-# Creating a renderable
+# Creating a renderable {#renderingObjects_a}
 **Renderable** is created as any component, and requires no additional parameters.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -11,7 +12,7 @@ HSceneObject renderableSO = SceneObject::create("3D object");
 HRenderable renderable = renderableSO->addComponent<CRenderable>();
 ~~~~~~~~~~~~~
 
-# Setting it up
+# Setting it up {#renderingObjects_b}
 Once created you must assign it a **Mesh** to render, and a **Material** to render it with. Use @ref bs::CRenderable::setMesh "CRenderable::setMesh()" and @ref bs::CRenderable::setMaterial "CRenderable::setMaterial()".
 
 ~~~~~~~~~~~~~{.cpp}
@@ -42,7 +43,7 @@ renderableSO->setPosition(Vector3(0.0f, 15.0f, 30.0f));
 
 After the renderable has been set up, it will now be displayed in your camera view (if the camera is facing the direction of the renderable object).
 
-# Multiple materials
+# Multiple materials {#renderingObjects_c}
 In the example above we use a single material for a single mesh, but it can sometimes be useful to use different materials for different parts of the mesh.
 
 It is up to the artist (creator of the mesh) to specify the regions of the mesh that will use separate materials. Upon mesh import those regions will be recognized as sub-meshes.

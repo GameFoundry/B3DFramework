@@ -1,5 +1,6 @@
 Joints 						{#joints}
 ===============
+[TOC]
 
 Joints allow you to constrain movement of two rigidbodies in some way. A typical example would be a door hinge. 
 
@@ -13,7 +14,7 @@ bs::f supports six different joint types:
  
 All joints are components derived from @ref bs::CJoint "Joint". Before we talk about individual joint types, lets cover the functionality shared by all joints.
 
-# Basics
+# Basics {#joints_a}
 All joints require two bodies to influence. You can also choose to specify *null* for one of the bodies, in which case the other body is assumed to move relative to an immovable reference frame. Note that at least one body attached to a joint must be movable.
 
 To assign bodies to a joint call @ref bs::CJoint::setBody "CJoint::setBody()". The method accepts a @ref bs::JointBody "JointBody" parameter specifiying which of the two bodies two assign the value to, and a **Rigidbody** component representing the body (or null).
@@ -39,9 +40,9 @@ joint->setBody(JointBody::Target, rigidbody);
 // This joint will now ensure the origins and orientations of the rigidbody and joint remain constant. In this particular case since we attached the body to an immovable reference frame using a fixed joint, we have made the body immovable.
 ~~~~~~~~~~~~~
 
-# Joint types
+# Joint types {#joints_b}
 
-## Fixed joint
+## Fixed joint {#joints_b_a}
 Fixed joints are the simplest joint types. As the name implies they fix the origins and orientations of two bodies together. For example imagine two wheels welded together with a metal bar - when one rotates so must the other, and when one moves so must the other.
 
 @ref TODO_IMAGE
@@ -53,7 +54,7 @@ HSceneObject jointSO = SceneObject::create("Joint");
 HFixedJoint joint = jointSO->addComponent<CFixedJoint>();
 ~~~~~~~~~~~~~
 
-## Distance joint
+## Distance joint {#joints_b_b}
 Distance joint simply keeps two bodies together at the specified distance range. You can specify a minimum and a maximum distance, as well as a spring property that makes the objects spring back or forth as they reach the range limits. For example you might use this joint type to model a rope.
 
 @ref TODO_IMAGE
@@ -65,7 +66,7 @@ HSceneObject jointSO = SceneObject::create("Joint");
 HDistanceJoint joint = jointSO->addComponent<CDistanceJoint>();
 ~~~~~~~~~~~~~
 
-### Limits
+### Limits {#joints_b_b_a}
 To specify the distance range call @ref bs::CDistanceJoint::setMinDistance "CDistanceJoint::setMinDistance()" and @ref bs::CDistanceJoint::setMaxDistance "CDistanceJoint::setMaxDistance()".
 
 You must also explicitly enable the distance limits by calling @ref bs::CDistanceJoint::setFlag "CDistanceJoint::setFlag()" with @ref bs::DistanceJointFlag::MinDistance "DistanceJointFlag::MinDistance" and @ref bs::DistanceJointFlag::MaxDistance "DistanceJointFlag::MaxDistance" flags. This allows you to only enable one or another, in case no restrictions are needed in one extreme.
@@ -80,7 +81,7 @@ joint->setFlag(DistanceJointFlag::MinDistance, true);
 joint->setFlag(DistanceJointFlag::MaxDistance, true);
 ~~~~~~~~~~~~~
 
-### Spring
+### Spring {#joints_b_b_b}
 By default when the objects reach the specified limits they will come to a dead stop. Generally it's more realistic to have them be pushed back towards valid range slowly, in which case you can apply a spring parameter by calling @ref bs::CDistanceJoint::setSpring "CDistanceJoint::setSpring()".
 
 It accepts an object of type @ref bs::Spring "Spring" which has two properties:
@@ -96,15 +97,15 @@ joint->setSpring(spring);
 joint->setFlag(DistanceJointFlag::Spring, true);
 ~~~~~~~~~~~~~
 
-### Tolerance
+### Tolerance {#joints_b_b_c}
 To ensure springs have enough time to activate, so they can begin pushing back the object before it actually breaches the valid range, you can specify an additional tolerance parameter. This parameter adds a "buffer" on the inner edges of the valid range, at which the spring will activate.
 
 Use @ref bs::CDistanceJoint::setTolerance "CDistanceJoint::setTolerance()" to set the tolerance. This property is only relevant if using the spring.
 
-### Current value
+### Current value {#joints_b_b_d}
 Sometimes it is useful to find out how much is the joint currently "stretched". Call @ref bs::CDistanceJoint::getDistance "CDistanceJoint::getDistance()" to get the current distance between its two bodies.
 
-## Spherical joint
+## Spherical joint {#joints_b_c}
 Spherical joint allows for a full range of rotations, while keeping the origins of the two bodies together. This allows you to create a ball-and-socket functionality, for example.
 
 @ref TODO_IMAGE
@@ -116,7 +117,7 @@ HSceneObject jointSO = SceneObject::create("Joint");
 HSphericalJoint joint = jointSO->addComponent<CSphericalJoint>();
 ~~~~~~~~~~~~~
 
-### Limits
+### Limits {#joints_b_c_a}
 You can limit the rotation along Y and Z axes by specifying the limit angles in @ref bs::LimitConeRange "LimitConeRange". As the name implies the angles represent the cone in which rotation is valid.
 
 You apply the limits by calling @ref bs::CSphericalJoint::setLimit "CSphericalJoint::setLimit()", and enabling the limit by calling @ref bs::CSphericalJoint::setFlag "CSphericalJoint::setFlag()" with @ref bs::SphericalJointFlag::Limit "SphericalJointFlag::Limit".
@@ -133,7 +134,7 @@ joint->setFlag(SphericalJointFlag::Limit, true);
 
 Rotation around the X axis cannot be limited using this joint type and is always free.
 
-### Spring
+### Spring {#joints_b_c_b}
 **LimitConeRange** also contains a @ref bs::LimitConeRange::restitution "LimitConeRange::restitution" parameter, which has the same meaning as in **PhysicsMaterial**. If restitution is zero the body will just stop when it reaches the limit. If it is non-zero the object will bounce instead.
 
 You can also specify as **Spring** parameter as @ref bs::LimitConeRange::spring "LimitConeRange::spring", which controls how is the body pulled back after the limit has been breached. Its values have the same meaning as we described earlier.
@@ -157,7 +158,7 @@ joint->setFlag(SphericalJointFlag::Limit, true);
 
 Note that all the joint types that are about to follow have these four properties in their *Limit* structures, so we won't talk about them any further.
 
-## Slider joint
+## Slider joint {#joints_b_d}
 As the name implies slider joint constrains the body movement to slide along a single axis (X axis in particular). No movement along other axes, or rotation is allowed. For example this could be used for modeling some kind of a piston moving up and down.
 
 @ref TODO_IMAGE
@@ -169,7 +170,7 @@ HSceneObject jointSO = SceneObject::create("Joint");
 HSliderJoint joint = jointSO->addComponent<CSliderJoint>();
 ~~~~~~~~~~~~~
 
-### Limits
+### Limits {#joints_b_d_a}
 @ref bs::LimitLinearRange "LimitLinearRange" can be used to specify minimum and maximum allowed distance between the two bodies (similar to the distance joint).
 
 You apply the limit by calling @ref bs::CSliderJoint::setLimit "CSliderJoint::setLimit()", and enable the limit by calling @ref bs::CSliderJoint::setFlag "CSliderJoint::setFlag()" with @ref bs::SliderJointFlag::Limit "SliderJointFlag::Limit".
@@ -184,10 +185,10 @@ joint->setLimit(limit);
 joint->setFlag(SliderJointFlag::Limit, true);
 ~~~~~~~~~~~~~
 
-### Current value
+### Current value {#joints_b_d_b}
 You can find out the current position of the slider by calling @ref bs::CSliderJoint::getPosition "CSliderJoint::getPosition()", and the current speed of the slider by calling @ref bs::CSliderJoint::getSpeed "CSliderJoint::getSpeed()".
 
-## Hinge joint
+## Hinge joint {#joints_b_e}
 Hinge joint contrains rotation around a single axis (X axis specifically). Rotation around other axes, or translation is not allowed. This can be used for modeling door hinges or similar behaviour.
 
 @ref TODO_IMAGE
@@ -199,7 +200,7 @@ HSceneObject jointSO = SceneObject::create("Joint");
 HHingeJoint joint = jointSO->addComponent<CHingeJoint>();
 ~~~~~~~~~~~~~
 
-### Limits
+### Limits {#joints_b_e_a}
 @ref bs::LimitAngularRange "LimitAngularRange" can be used to specify minimum and maximum allowed angle between the two bodies.
 
 You apply the limit by calling @ref bs::CHingeJoint::setLimit "CHingeJoint::setLimit()", and enable the limit by calling @ref bs::CHingeJoint::setFlag "CHingeJoint::setFlag()" with @ref bs::HingeJointFlag::Limit "HingeJointFlag::Limit".
@@ -214,7 +215,7 @@ joint->setLimit(limit);
 joint->setFlag(HingeJointFlag::Limit, true);
 ~~~~~~~~~~~~~
 
-### Drive
+### Drive {#joints_b_e_b}
 Drive is a special object of type @ref bs::HingeJoint::Drive "HingeJoint::Drive" that can be assigned to a hinge joint, to make the joint move without external forces. For example if you wanted to make a propeller, you could set up a drive on the hinge joint so it keeps on spinning.
 
 Drive can be assigned through @ref bs::CHingeJoint::setDrive "CHingeJoint::setDrive()", and must be explicitly enabled by calling **CHingeJoint::setFlag()** with @ref bs::HingeJointFlag::Drive "HingeJointFlag::Drive".
@@ -225,10 +226,10 @@ Drive can be assigned through @ref bs::CHingeJoint::setDrive "CHingeJoint::setDr
  - @ref bs::HingeJointDrive::freeSpin "HingeJointDrive::freeSpin" - If the joint ends up moving faster than the drive (due to an external force), the drive will try to break in order to bring it down to drive's speed. If you don't want that to happen enable free spin.
  - @ref bs::HingeJointDrive::gearRatio "HingeJointDrive::gearRatio" - Scales the velocity of the target body by this value.
 
-### Current value
+### Current value {#joints_b_e_c}
 You can find out the current angle of the hinge by calling @ref bs::CHingeJoint::getAngle "CHingeJoint::getAngle()", and the current angular speed of the joint by calling @ref bs::CHingeJoint::getSpeed "CHingeJoint::getSpeed()".
 
-## D6 joint
+## D6 joint {#joints_b_f}
 D6 is the most complex, and the most customizable type of joint. It can be used to create all joint types we have talked about so far, and to configure new custom joint types.
 
 It is represented using the @ref bs::D6Joint "D6Joint" component.
@@ -238,7 +239,7 @@ HSceneObject jointSO = SceneObject::create("Joint");
 HD6Joint joint = jointSO->addComponent<CD6Joint>();
 ~~~~~~~~~~~~~
 
-### Degrees of freedom
+### Degrees of freedom {#joints_b_f_a}
 The joint has six degrees of freedom as represented by the @ref bs::D6JointAxis "D6JointAxis" enum:
  - X - Movement on the X axis
  - Y - Movement on the Y axis
@@ -270,10 +271,10 @@ joint->setMotion(D6JointAxis::SwingY, D6JointMotion::Locked);
 joint->setMotion(D6JointAxis::SwingZ, D6JointMotion::Locked);
 ~~~~~~~~~~~~~
 	
-### Limits
+### Limits {#joints_b_f_b}
 Each degree of freedom can also have a set of limits that constrain it further. 
 
-#### Linear limits
+#### Linear limits {#joints_b_f_b_a}
 For translational degrees of freedom you use the @ref bs::LimitLinear "LimitLinear" object. It contains an extent representing the maximum allowed distance (zero being the minimum). This is similar to distance and slider joints, except the minimum distance is always assumed to be zero. One limit is applied to all translational degrees of freedom.
 
 Call @ref bs::CD6Joint::setLimitLinear "CD6Joint::setLimitLinear()" to apply the limit.
@@ -290,7 +291,7 @@ joint->setLimitLinear(limit);
 joint->setMotion(D6Joint::Axis::X, D6Joint::Motion::Limited);
 ~~~~~~~~~~~~~
 
-#### Twist limits
+#### Twist limits {#joints_b_f_b_b}
 Use **LimitAngularRange** to define a limit for the twist degree of freedom. Call @ref bs::CD6Joint::setLimitTwist "CD6Joint::setLimitTwist()" to apply the limit.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -303,7 +304,7 @@ joint->setLimitTwist(limit);
 joint->setMotion(D6Joint::Axis::Twist, D6Joint::Motion::Limited);
 ~~~~~~~~~~~~~
 
-#### Swing limits
+#### Swing limits {#joints_b_f_b_c}
 Use **LimitConeRange** to define a limit for the two swing degrees of freedom. Call @ref bs::CD6Joint::setLimitSwing "CD6Joint::setLimitSwing()" to apply the limit.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -317,7 +318,7 @@ joint->setMotion(D6Joint::Axis::SwingY, D6Joint::Motion::Limited);
 joint->setMotion(D6Joint::Axis::SwingZ, D6Joint::Motion::Limited);
 ~~~~~~~~~~~~~
 
-### Drives
+### Drives {#joints_b_f_c}
 Each degree of freedom can optionally be assigned a drive, which applies either linear or angular force (depending on the degree of freedom).
 
 You enable the drive for a specific degree of freedom by calling @ref bs::CD6Joint::setDrive "CD6Joint::setDrive()", and providing a parameter of type @ref bs::D6JointDrive "D6JointDrive" and the type of drive @ref bs::D6JointDriveType "D6JointDriveType".
@@ -348,10 +349,10 @@ joint->setDriveTransform(Vector3(0, 0, 50), Quaternion::IDENTITY);
 joint->setDriveVelocity(Vector3(0, 0, 1), Vector3(0, 0, 0));
 ~~~~~~~~~~~~~
 
-### Current value
+### Current value {#joints_b_f_d}
 You can find out the current angles of all the rotational degrees by calling @ref bs::CD6Joint::getTwist "CD6Joint::getTwist()", @ref bs::CD6Joint::getSwingY "CD6Joint::getSwingY()" or @ref bs::CD6Joint::getSwingZ "CD6Joint::getSwingZ()".
 
-# Joint breaking
+# Joint breaking {#joints_c}
 All joint types can be configured to break after a specific amount of force or torque is applied to them. Once a joint is broken it will no longer constrain the attached bodies.
 
 To set the break force and torque call @ref bs::CJoint::setBreakForce "CJoint::setBreakForce()" and @ref bs::CJoint::setBreakTorque "CJoint::setBreakTorque()".
@@ -370,7 +371,7 @@ auto notify = []()
 joint->onJointBreak.connect(notify);
 ~~~~~~~~~~~~~
 
-# Joint collisions
+# Joint collisions  {#joints_d}
 By default two bodies attached to the joint will collide with each other. You can disable this by calling @ref bs::CJoint::setEnableCollision "CJoint::setEnableCollision()".
 
 ~~~~~~~~~~~~~{.cpp}

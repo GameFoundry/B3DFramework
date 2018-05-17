@@ -1,5 +1,6 @@
 Cameras 						{#cameras}
 ===============
+[TOC]
 
 Cameras represent the user's view into the scene, and any graphical application will require at least one camera for the user to be able to see anything. 
 
@@ -33,10 +34,10 @@ Once set up, any rendered objects in the camera's view will be displayed on the 
 
 You can also customize a variety of parameters that control how will the camera render the objects.
 
-# Projection type
+# Projection type {#cameras_a}
 All cameras can be in two projection modes: *Perspective* and *Ortographic*. They can be changed by calling @ref bs::CCamera::setProjectionType "CCamera::setProjectionType()".
 
-## Perspective cameras
+## Perspective cameras {#cameras_a_a}
 This mode simulates human vision, where objects farther away appear smaller. This is what you will need for most 3D applications.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -45,7 +46,7 @@ camera->setProjectionType(PT_PERSPECTIVE);
 
 ![Model drawn using the perspective camera](PerspectiveCamera.png)  
 
-## Ortographic
+## Ortographic {#cameras_a_b}
 Renders the image without perspective distortion, ensuring objects remain the same size regardless of the distance from camera, essentially "flattening" the image. Useful for 2D applications.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -54,7 +55,7 @@ camera->setProjectionType(PT_ORTHOGRAPHIC);
 
 ![Model drawn using the ortographic camera](OrtographicCamera.png)  
 
-# Field of view
+# Field of view {#cameras_b}
 This is a parameter only relevant for perspective cameras. It controls the horizontal angle of vision - increasing it means the camera essentially has a wider lens. Modify it by calling @ref bs::CCamera::setHorzFOV "CCamera::setHorzFOV()".
 
 Example of setting the FOV to 90 degrees:
@@ -64,7 +65,7 @@ camera->setHorzFOV(Degree(90));
 
 Vertical FOV is automatically determined from the aspect ratio.
 
-# Aspect ratio
+# Aspect ratio {#cameras_c}
 Aspect ratio allows you to control the ratio of the camera's width and height. It can be set by calling @ref bs::CCamera::setAspectRatio "CCamera::setAspectRatio()". 
 
 Normally you want to set it to the ratio of the render target's width and height, as shown below.
@@ -79,7 +80,7 @@ camera->setAspectRatio(aspectRatio);
 
 But you are also allowed to freely adjust it for different effects.
 
-# Ortographic size
+# Ortographic size {#cameras_d}
 This parameter has a similar purpose as field of view, but is used for ortographic cameras instead. It controls the width and height (in world space) of the area covered by the camera. It is set by calling @ref bs::CCamera::setOrthoWindow "CCamera::setOrthoWindow()".
 
 Set up ortographic view that shows 500x500 units of space, along the current orientation axis.
@@ -96,7 +97,7 @@ auto& windowProps = newWindow->getProperties();
 camera->setOrthoWindow(windowProps.getWidth(), windowProps.getHeight());
 ~~~~~~~~~~~~~
 
-# Multi-sample anti-aliasing
+# Multi-sample anti-aliasing {#cameras_e}
 To achieve higher rendering quality you may enable MSAA per camera. This will ensure that each rendered pixel receives multiple samples which are then averaged to produce the final pixel color. This process reduced aliasing on pixels that have discontinuities, like pixels that are on a boundary between two surfaces. This reduces what are often called "jaggies". 
 
 MSAA can be enabled by providing a values of 1, 2, 4 or 8 to @ref bs::CCamera::setMSAACount() "CCamera::setMSAACount()". The value determines number of samples per pixel, where 1 means no MSAA. MSAA can be quite performance heavy, and larger MSAA values require proportionally more performance. 

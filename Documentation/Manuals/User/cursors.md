@@ -1,9 +1,10 @@
 Cursors					{#cursors}
 ===============
+[TOC]
 
 If developing an application that accepts mouse input, you can control the behaviour of the cursor through the @ref bs::Cursor "Cursor" class, accessible globally through @ref bs::gCursor "gCursor()". It allows you to manipulate cursor position, look and clipping behaviour.
 
-# Position
+# Position {#cursors_a}
 You can retrieve the current position of the cursor by calling @ref bs::Cursor::getScreenPosition "Cursor::getScreenPosition()". Note that this same information is reported by the input system, and is generally preferred to use those values instead.
 
 You can also change the cursor position directly by calling @ref bs::Cursor::setScreenPosition "Cursor::setScreenPosition()". Values for both methods will be in pixels relative to the user's screen (or screens).
@@ -13,7 +14,7 @@ You can also change the cursor position directly by calling @ref bs::Cursor::set
 gCursor().setScreenPosition(Vector2I(0, 0));
 ~~~~~~~~~~~~~
 
-# Visibility
+# Visibility {#cursors_b}
 Cursor can be hidden by calling @ref bs::Cursor::hide "Cursor::hide()", and shown again by calling @ref bs::Cursor::show "Cursor::show()".
 
 ~~~~~~~~~~~~~{.cpp}
@@ -24,7 +25,7 @@ else
 	gCursor().show();	
 ~~~~~~~~~~~~~
 
-# Icon
+# Icon {#cursors_c}
 You can change the cursor's icon by calling @ref bs::Cursor::setCursor(CursorType) "Cursor::setCursor()" and specifying one of the builtin cursor types, as @ref bs::CursorType "CursorType" enum.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -49,7 +50,7 @@ gCursor().setCursor("MyCustomCursor");
 
 You can also change icons of the built-in cursor types by calling @ref bs::Cursor::setCursorIcon(CursorType, const PixelData&, const Vector2I&) "Cursor::setCursorIcon()" overload that accepts a **CursorType** as its first parameter.
 
-# Clipping
+# Clipping {#cursors_d}
 Sometimes it is useful to limit the cursor to a specific area of the screen (e.g. if playing in windowed mode its useful to limit the cursor to the window). For this purpose you can use either of these methods:
  - @ref bs::Cursor::clipToWindow "Cursor::clipToWindow()" - Accepts a **RenderWindow** as a parameter, and will limit cursor movement within that window.
  - @ref bs::Cursor::clipToRect "Cursor::clipToRect()" - Accepts an area relative to the user's screen, to which to limit the movement to.

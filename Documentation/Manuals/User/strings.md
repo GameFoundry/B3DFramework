@@ -1,5 +1,7 @@
 Strings 						{#strings}
 ===============
+[TOC]
+
 Strings are represented with @ref bs::String "String" and @ref bs::WString "WString" types. These are wrappers for the standard C++ strings and have the same interface and behaviour.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -7,7 +9,7 @@ String narrow = "NarrowString";
 WString wide = L"WideString";
 ~~~~~~~~~~~~~
 
-# String encoding
+# String encoding {#strings_a}
 When using the standard string operator "" note that your string will use platform-specific string encoding. On Windows this will be a single byte non-Unicode locale specific encoding limited to 255 characters, while on macOS and Linux this will be a multi-byte UTF8 encoding. Therefore on Windows you cannot use this operator to encode full range on Unicode values.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -29,7 +31,7 @@ WString validWide = L"Š¶¤ÞÐ";
 String validNarrow = u8"Š¶¤ÞÐ";
 ~~~~~~~~~~~~~
 
-# Converting between encodings
+# Converting between encodings {#strings_b}
 bs::f provides a variety of methods to convert between most common string encodings. This functionality is provided in the @ref bs::UTF8 "UTF8" class. For example use @ref bs::UTF8::fromANSI "UTF8::fromANSI()" to convert from locale-specific encoding to UTF8, and @ref bs::UTF8::toANSI "UTF8::toANSI()" for other way around. Conversions for UTF-16 and UTF-32 are also provided.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -45,7 +47,7 @@ String strUTF8 = UTF8::fromANSI(strANSI);
 strANSI = UTF8::toANSI(strUTF8);
 ~~~~~~~~~~~~~
 
-# Converting data types
+# Converting data types {#strings_c}
 You can convert most primitive data types to strings by using the @ref bs::toString "toString" or @ref bs::toWString "toWString" functions.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -68,7 +70,7 @@ int v2 = parseINT32(str2, 0);
 
 If the system cannot properly parse the string, it will instead assign the default value provided.
 
-# Manipulating strings
+# Manipulating strings {#strings_d}
 Various forms of string manipulations can be performed via @ref bs::StringUtil "StringUtil", including but not limited to: making a string upper or lower case, replacing string elements, matching string elements, splitting strings based on delimiters and more.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -81,7 +83,7 @@ Vector<String> entries = StringUtil::split(string, ",");
 string = StringUtil::replaceAll(string, "banana", "643");
 ~~~~~~~~~~~~~
 
-# Formatting strings
+# Formatting strings {#strings_e}
 Often you need to construct larger strings from other strings. Use @ref bs::StringUtil::format "StringUtil::format()" to construct such strings by providing a template string, which contains special identifiers for inserting other strings. The identifiers are represented like "{0}, {1}" in the source string, where the number represents the position of the parameter that will be used for replacing the identifier.
 
 ~~~~~~~~~~~~~{.cpp}

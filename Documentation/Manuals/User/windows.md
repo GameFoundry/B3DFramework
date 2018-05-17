@@ -1,11 +1,12 @@
 Windows					{#windows}
 ===============
+[TOC]
 
 A window represents the final destination where the application's rendered output gets displayed to the user. It has a title, size and a position. Window can cover the entirety of the user's screen (fullscreen mode) or just part of it (windowed mode). In bs::f a window is represented using the @ref bs::RenderWindow "RenderWindow" class. We have already shown how the application creates a primary window when it is first started up, and in this chapter we'll show how to create more windows manually as well as manipulate them.
 
 ![Render window](RenderWindow.png)  
 
-# Creating windows
+# Creating windows {#windows_a}
 You can also create your own windows by filling out the @ref bs::RENDER_WINDOW_DESC "RENDER_WINDOW_DESC" structure and calling @ref bs::RenderWindow::create "RenderWindow::create()".
 
 ~~~~~~~~~~~~~{.cpp}
@@ -18,7 +19,7 @@ desc.title = "Helper window".
 SPtr<RenderWindow> newWindow = RenderWindow::create(desc);
 ~~~~~~~~~~~~~
 
-# Destroying windows
+# Destroying windows {#windows_b}
 You can destroy a window by calling @ref bs::RenderWindow::destroy "RenderWindow::destroy()". 
 
 ~~~~~~~~~~~~~{.cpp}
@@ -27,7 +28,7 @@ newWindow->destroy();
 
 > Do not destroy the primary window, as it will result in undefined behaviour.
 
-# Manipulating windows
+# Manipulating windows {#windows_c}
 Window size can be changed by calling @ref bs::RenderWindow::resize "RenderWindow::resize()".
 
 ~~~~~~~~~~~~~{.cpp}
@@ -52,7 +53,7 @@ And if you wish to switch from fullscreen to windowed call @ref bs::RenderWindow
 newWindow->setWindowed(1280, 720);
 ~~~~~~~~~~~~~
 
-# Window properties
+# Window properties {#windows_d}
 You can access current properties of the window, like its size and position, by calling @ref bs::RenderWindow::getProperties "RenderWindow::getProperties()", which returns a @ref bs::RenderWindowProperties "RenderWindowProperties" object. For example let's print out current window's size:
 
 ~~~~~~~~~~~~~{.cpp}
@@ -61,7 +62,7 @@ auto& props = newWindow->getProperties();
 gDebug().logDebug(toString(props.getWidth()) + " x " + toString(props.getHeight()));
 ~~~~~~~~~~~~~
 
-# Window events
+# Window events {#windows_e}
 Sometimes you might want to be notified if the user resizes the window externally, in which case use the @ref bs::RenderWindow::onResized "RenderWindow::onResized" event.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -73,7 +74,7 @@ void notifyResized()
 newWindow->onResized.connect(&notifyResized);
 ~~~~~~~~~~~~~
 
-# Video modes
+# Video modes {#windows_f}
 During window creation and calls to **RenderWindow::setFullscreen()** we have seen the use of the @ref bs::VideoMode "VideoMode" class. This class allows you to specify the resolution of the window, along with an optional refresh rate and output monitor (in case of multi-monitor setups, to choose on which monitor to show the window). 
 
 You can create your own **VideoMode** with custom parameters (as we did so far), or you can query for all video modes supported by the user's GPU by calling @ref bs::RenderAPI::getVideoModeInfo() "RenderAPI::getVideoModeInfo()". This will return a @ref bs::VideoModeInfo "VideoModeInfo" object that contains information about all available monitors, their supported resolutions and refresh rates.

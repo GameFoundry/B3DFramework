@@ -1,11 +1,12 @@
 Math					{#mathUtilities}
 ===============
+[TOC]
 
 General purpose math functionality in bs::f is provided through the @ref bs::Math "Math" class. It provides a variety of familiar methods, such as @ref bs::Math::floor "Math::floor()", @ref bs::Math::clamp "Math::clamp()", @ref bs::Math::cos "Math::cos()" and many others. Check the API reference for a full list.
 
 All other math functionality is provided through specific types, as listed below.
 
-# Vectors
+# Vectors {#mathUtilities_a}
 Vectors are represented by @ref bs::Vector2 "Vector2", @ref bs::Vector3 "Vector3" and @ref bs::Vector4 "Vector4" classes. All classes come with a full range of operators so manipulating vectors is easy.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -32,14 +33,14 @@ float dotProduct = a.dot(b);
 float length = a.length();
 ~~~~~~~~~~~~~
 
-## Integer vectors
+## Integer vectors {#mathUtilities_a_a}
 Integer 2D vector type is also provided as @ref bs::Vector2I "Vector2I". It also supports a full range of operators and comes with a few helper methods. Higher level integer vector types can also be created in the form of @ref bs::Vector3I "Vector3I" and @ref bs::Vector4I "Vector4I".
 
 ~~~~~~~~~~~~~{.cpp}
 Vector2I intVec(0, 10);
 ~~~~~~~~~~~~~
 
-# Angles
+# Angles {#mathUtilities_b}
 Angles are represented using either @ref bs::Degree "Degree" or @ref bs::Radian "Radian" classes. They accept a raw floating point value, which they expect to be in degrees or radians, respectively. Once created the system automatically converts between the two.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -56,7 +57,7 @@ void printAngle(Degree angle)
 printAngle(myAngle2);
 ~~~~~~~~~~~~~
 
-# Quaternions
+# Quaternions {#mathUtilities_c}
 @ref bs::Quaternion "Quaternion"%s are the primary way of representing rotations in bs::f. They can be created using Euler angles, axis/angle combination, or from a rotation matrix (talked about later). 
 
 ~~~~~~~~~~~~~{.cpp}
@@ -117,7 +118,7 @@ Matrix3 rotationMat;
 quat.toRotationMatrix(rotationMat);
 ~~~~~~~~~~~~~
 
-## Other useful methods
+## Other useful methods {#mathUtilities_c_a}
 
 Often you want to rotate towards a certain direction, for example making a camera look towards something. You can create such rotation by calling @ref bs::Quaternion::lookRotation "Quaternion::lookRotation()".
 
@@ -154,11 +155,11 @@ You can find out the rotation axes of a quaternion by calling @ref bs::Quaternio
 Vector3 dir = quat.zAxis();
 ~~~~~~~~~~~~~
 
-# Matrices
+# Matrices {#mathUtilities_d}
 
 Matrices can be split into two major types: @ref bs::Matrix3 "Matrix3" representing a 3x3 matrix and @ref bs::Matrix4 "Matrix4" representing a 4x4 matrix. 3x3 matrices are used primarily for representing rotations, and are used similarly to quaternions. 4x4 matrices are used to represent a complete set of transformations like scale, translation and rotation, and are the most commonly used matrix type. We also provide a generic @ref bs::MatrixNxM<N, M> "MatrixNxM<N, M>" template for other matrix sizes, but they come with much simpler functionality.
 
-## Matrix3
+## Matrix3 {#mathUtilities_d_a}
 **Matrix3** can be initialized using Euler angles, axis/angle combination, or from a quaternion. It can also accept a scale factor as well as rotation.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -231,7 +232,7 @@ Quaternion quat;
 mat.toQuaternion(quat);
 ~~~~~~~~~~~~~ 
  
-## Matrix4
+## Matrix4 {#mathUtilities_d_b}
 
 **Matrix4** can be initialized using any of the following static methods:
  - @ref bs::Matrix4::rotation "Matrix4::rotation()" - Creates a matrix containing only rotation, from a quaternion.
@@ -302,7 +303,7 @@ Vector3 scale;
 mat.decomposition(translation, rotation, scale);
 ~~~~~~~~~~~~~
 
-# Rays
+# Rays {#mathUtilities_e}
 @ref bs::Ray "Ray"s are represented using an origin point, and a direction. They are often used in physics for intersection tests.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -329,11 +330,11 @@ They also provide a series of *intersects* methods that allow them to test for i
  - @ref bs::Ray::intersects(const Plane&) const "Ray::intersects(const Plane&)" - Plane intersection
  - @ref bs::Ray::intersects(const Vector3&, const Vector3&, const Vector3&, const Vector3&, bool, bool) const "Ray::intersects(const Vector3&, const Vector3&, const Vector3&)" - Triangle intersection
  
-# Rectangles
+# Rectangles {#mathUtilities_f}
 
 @ref bs::Rect2 "Rect2" and @ref bs::Rect2I "Rect2I" structures can be used for storing rectangles using floating point or integer values, respectively. Check their API reference for the methods they support, but in most scenarios you will be using them for storage and method parameters.
 
-# Shapes
+# Shapes {#mathUtilities_g}
 
 bs::f supports a variety of other 3D shapes:
  - @ref bs::AABox "AABox"

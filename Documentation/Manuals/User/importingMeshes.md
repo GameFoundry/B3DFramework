@@ -1,11 +1,12 @@
 Meshes 						{#importingMeshes}
 ===============
+[TOC]
 
 Meshes are used for defining surfaces of 2D and 3D objects, and are the primary building blocks of the scene. In bs::f meshes are represented with the @ref bs::Mesh "Mesh" class. A mesh is a resource, meaning it can be imported, saved and loaded as any other resource.
 
 ![Wireframe mesh](DragonWireframe.png) 
 
-# Importing a mesh
+# Importing a mesh {#importingMeshes_a}
 Meshes can be imported from various third party formats, using the importer.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -18,10 +19,10 @@ Supported formats are:
  - DAE
  - OBJ
  
-# Creating a mesh
+# Creating a mesh {#importingMeshes_b}
 Meshes can also be created manually, which we cover later in the [creating meshes](@ref creatingMeshes) manual.
  
-# Mesh properties
+# Mesh properties {#importingMeshes_c}
 Once a mesh has been imported, you can retrieve its properties like vertex & index counts, as well as its bounds by calling @ref bs::Mesh::getProperties "Mesh::getProperties()", which returns a @ref bs::MeshProperties "MeshProperties" object.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -35,7 +36,7 @@ gDebug().logDebug("Radius: " + toString(props.getBounds().getSphere().getRadius(
 
 > The debug logging functionality is explained in the [logging](@ref logging) manual.
 
-# Customizing import
+# Customizing import {#importingMeshes_d}
 Mesh import can be customized by providing a @ref bs::MeshImportOptions "MeshImportOptions" object to the importer.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -47,7 +48,7 @@ HMesh mesh = gImporter().import<Mesh>("dragon.fbx", importOptions);
 
 Lets see some of the options you can use for customizing import.
 
-## Scale
+## Scale {#importingMeshes_d_a}
 @ref bs::MeshImportOptions::setImportScale "MeshImportOptions::setImportScale()" allows you to apply a uniform scale value to the mesh upon import. Although you can scale the size of a rendered mesh by adjusting the **SceneObject** transform when its placed in the scene, sometimes it is more useful to be able to do it once at import instead of every time you place it.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -55,7 +56,7 @@ Lets see some of the options you can use for customizing import.
 importOptions->setImportScale(0.1f);
 ~~~~~~~~~~~~~
 
-## Normals
+## Normals {#importingMeshes_d_b}
 @ref bs::MeshImportOptions::setImportNormals "MeshImportOptions::setImportNormals()" controls whether normal vectors are imported from the mesh file. 
 
 Normal vectors are used in lighting and are required for any meshes placed in the 3D scene (unless rendering them manually using some custom method). They allow the mesh to appear smooth even though its surface is made out of triangles.
@@ -67,7 +68,7 @@ Most 3D authoring tools generate normals for their meshes, but if normals are no
 importOptions->setImportNormals(true);
 ~~~~~~~~~~~~~
 
-## Tangent
+## Tangent {#importingMeshes_d_c}
 @ref bs::MeshImportOptions::setImportTangents "MeshImportOptions::setImportTangents()" controls whether tangent vectors are imported from the mesh file. 
 
 Tangent vectors (along with normal vectors) are required if your rendering shader uses normal maps. Similar to normals, if tangents are not present in the mesh file, bs::f will attempt to generate them automatically.
@@ -77,7 +78,7 @@ Tangent vectors (along with normal vectors) are required if your rendering shade
 importOptions->setImportTangents(true);
 ~~~~~~~~~~~~~
 
-## Caching
+## Caching {#importingMeshes_d_d}
 Sometimes you need to import a mesh you don't want to only use for rendering, but rather for manually reading its contents. When that's the case you can enable the @ref bs::MeshImportOptions::setCPUCached "MeshImportOptions::setCPUCached()" option.
 
 This will allow you to call @ref bs::Mesh::readCachedData "Mesh::readCachedData()" and to manually read individual vertices and indices of the mesh.

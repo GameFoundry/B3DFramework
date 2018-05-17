@@ -1,5 +1,6 @@
 Colliders 						{#colliders}
 ===============
+[TOC]
 
 Colliders are a type of component that describe a physical surface. Other physical objects can't move through them, and as their name implies they will instead collide with them in a physically realistic way. Colliders are represented as components, and can be added/removed in the scene as any other component. 
 
@@ -16,7 +17,7 @@ There are five collider types, that differ in the way how is their surface descr
  - Capsule - The surface is a capsule with a radius and a height
  - Mesh - The surface is represented by custom geometry using a triangle mesh
   
-# Plane collider
+# Plane collider {#colliders_a}
 Represented by @ref bs::CPlaneCollider "PlaneCollider" component. Use @ref bs::CPlaneCollider::setNormal "CPlaneCollider::setNormal()" to provide the direction in which the plane is oriented in, and @ref bs::CPlaneCollider::setDistance "CPlaneCollider::setDistance()" to provide an offset along that direction. Using these two properties you can position and orient a plane anywhere in the scene.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -32,7 +33,7 @@ collider->setDistance(-10.0f);
 
 ![Plane collider](PlaneCollider.png)  
 
-# Box collider
+# Box collider {#colliders_b}
 Represented by @ref bs::CBoxCollider "BoxCollider" component. Use @ref bs::CBoxCollider::setExtents "CBoxCollider::setExtents()" to provide the extents (half size) of the box. Use @ref bs::CBoxCollider::setCenter "CBoxCollider::setCenter()" to offset the box relative to the scene object.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -46,7 +47,7 @@ collider->setCenter(Vector3(0.0f, 0.0f, 0.0f));
 
 ![Box collider](BoxCollider.png)  
 
-# Sphere collider
+# Sphere collider {#colliders_c}
 Represented by @ref bs::CSphereCollider "SphereCollider" component. Use @ref bs::CSphereCollider::setRadius "CSphereCollider::setRadius()" to provide the radius of the sphere.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -59,7 +60,7 @@ collider->setRadius(1.0f);
 
 ![Sphere collider](SphereCollider.png)  
 
-# Capsule collider
+# Capsule collider {#colliders_d}
 Represented by @ref bs::CCapsuleCollider "CapsuleCollider" component. Capsule is defined using a height, and a radius which represents a distance from every point on the line at the capsule center (the line being the length as defined by "height"). Use @ref bs::CCapsuleCollider::setHalfHeight "CCapsuleCollider::setHalfHeight()" to set the half-height, and @ref bs::CCapsuleCollider::setRadius "CCapsuleCollider::setRadius()" to set the radius.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -73,7 +74,7 @@ collider->setRadius(0.5f);
 
 ![Capsule collider](CapsuleCollider.png)  
 
-# Mesh collider
+# Mesh collider {#colliders_e}
 Mesh colliders represent the most complex collider types. They're repesented with the @ref bs::CMeshCollider "MeshCollider" component and they require a **PhysicsMesh** resource to operate. The physics mesh allows you to represent complex surfaces using triangles (similar to how a mesh used for rendering works) when basic shapes like boxes and spheres don't cut it.
 
 We'll show how to import physics meshes in the next chapter.

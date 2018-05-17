@@ -1,11 +1,12 @@
 Physics meshes						{#physicsMesh}
 ===============
+[TOC]
 
 Physics meshes are represented using the @ref bs::PhysicsMesh "PhysicsMesh" class. They are resources, meaning they can be imported, saved and loaded as any other resource.
 
 ![Physics mesh](MeshCollider.png)  
 
-# Import
+# Import {#physicsMesh_a}
 The import process is slightly different from other resources because physics meshes are imported from the same file types as normal meshes. We must first create **MeshImportOptions** object, and specify that we wish to import a physics mesh along with a normal mesh by calling @ref bs::MeshImportOptions::setCollisionMeshType "MeshImportOptions::setCollisionMeshType()".
 
 ~~~~~~~~~~~~~{.cpp}
@@ -25,10 +26,10 @@ HPhysicsMesh physicsMesh = static_resource_cast<PhysicsMesh>(resources[1].value)
 
 > In case there are multiple resources and you're not sure which one is the physics mesh you can check the **name** field on the **SubResource** object. Physics meshes are always named "collision".
 
-# Performance
+# Performance {#physicsMesh_b}
 Note that performing physics tests is expensive and you should always strive to minimize the amount of triangles in a physics mesh. Using a render mesh for physics is almost never a good idea. Instead strive to have a few dozen triangles in your physics mesh, with a few hundred for the most complex geometry. Whenever possible use the basic collider shapes like box/sphere instead of physics meshes.
 
-# Physics mesh types
+# Physics mesh types {#physicsMesh_c}
 During import when calling **MeshImportOptions::setCollisionMeshType()** we provided a @ref bs::CollisionMeshType "CollisionMeshType" enum to specify we want a mesh imported. It has two possible values:
  - **CollisionMeshType::Normal**
  - **CollisionMeshType::Convex**

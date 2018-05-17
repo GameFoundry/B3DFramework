@@ -1,5 +1,6 @@
 Triggers						{#triggers}
 ===============
+[TOC]
 
 Aside from participating in collisions with other physical objects, colliders can also report such collisions to the programmer, allowing the programmer to add functionality that triggers when a specific action occurs. The collider can report when:
  - Collision began
@@ -38,7 +39,7 @@ collider->setCollisionReportMode(CollisionReportMode::Report);
 collider->onCollisionBegin.connect(collisionStarted);
 ~~~~~~~~~~~~~
 
-# Pure triggers
+# Pure triggers {#triggers_a}
 In some cases you might only be interested in trigger events reported by a collider, without requiring the collider to be an actual physical object. This way you can set up "invisible" triggers within game levels that start executing code when player enters their bounds or interacts with them in some other way. Physical objects will go through such colliders as if they are not there - but the events will be reported just the same.
 
 To do this call @ref bs::CCollider::setIsTrigger() "CCollider::setIsTrigger()".

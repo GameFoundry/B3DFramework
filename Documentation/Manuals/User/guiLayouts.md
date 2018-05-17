@@ -1,5 +1,6 @@
 GUI layouts									{#guiLayouts}
 ===============
+[TOC]
 
 In previous chapter we talked about how **GUIPanel** is a special type of a GUI element called a "layout". Layouts serve as containers for GUI elements (including other layouts), and they may also control how are elements within them positioned and sized.
 
@@ -10,7 +11,7 @@ There are three types of layouts:
 
 You will find that vertical and horizontal layouts come in handy when you need to design GUI that needs to scale across various screen sizes/resolutions. By adding your GUI elements to such layouts instead of manually positioning them, ensures the GUI system can always keep them at optimal position and size, regardless of the available screen area.
 
-# Adding/removing elements
+# Adding/removing elements {#guiLayouts_a}
 In the previous chapter we have already seen how to add a GUI element to a layout (a panel, more specifically). Here is the entire interface for dealing with element addition/removal, shared by all layout types:
  - @ref bs::GUILayout::addNewElement<Type, Args...> "GUILayout::addNewElement<T>()" - Creates a new element of type *T* and adds it to the end of the layout's element list.
  - @ref bs::GUILayout::insertNewElement<Type, Args...> "GUILayout::insertNewElement<T>()" - Creates a new element of type *T* and inserts it at a specific position in the layout's element list.
@@ -53,7 +54,7 @@ layout->addElement(button);
 
 The matter which style you use is personal preference.
 
-# Horizontal layout
+# Horizontal layout {#guiLayouts_b}
 Horizontal layouts are represented with the **GUILayoutX** class. Any objects added to such a layout will be positioned automatically, left to right next to other elements in the layout. When a GUI element is in such a layout, you will not be able to manually set the element's position.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -72,7 +73,7 @@ for(int i = 0; i < 5; i++)
 
 ![Horizontal layout](layoutHorizontal.png) 
 
-# Vertical layout
+# Vertical layout {#guiLayouts_c}
 Vertical layouts are represented with the **GUILayoutY** class. Similarly to horizontal layouts, vertical layouts also perform automatic positioning but top to bottom instead of left to right.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -91,10 +92,10 @@ for(int i = 0; i < 5; i++)
 
 ![Vertical layout](layoutVertical.png) 
 
-# Customizing automatic layouts
+# Customizing automatic layouts {#guiLayouts_d}
 Even though vertical & horizontal layouts are automatic, bs::f provides a variety of mechanisms that allow you to customize the position and size of GUI elements in such layouts.
 
-## Flexible size
+## Flexible size {#guiLayouts_d_a}
 Each GUI element can have a flexible size that determines its minimum & maximum allowed width/height. This is in contrast to the fixed size we were setting in the previous examples.
 
 When a flexible size is set a GUI layout is allowed to resize the element to best fit the layout area, within the provided size range. Flexible size can be set by calling @ref bs::GUIElement::setFlexibleWidth "GUIElement::setFlexibleWidth()" and @ref bs::GUIElement::setFlexibleHeight "GUIElement::setFlexibleHeight()".
@@ -121,7 +122,7 @@ By default different GUI element types might have either a fixed or a flexible s
 
 ![Layout with flexibly sized elements](layoutFlexible.png) 
 
-## Spaces
+## Spaces {#guiLayouts_d_b}
 When a GUI element is a part of a vertical or a horizontal layout, you can no longer control its position manually. This means that calling **GUIElement::setPosition()** will have no effect.
 
 You can however control positioning by some extent by inserting spaces between layout elements. There are two types of spaces: fixed and flexible.
@@ -169,7 +170,7 @@ for(int i = 0; i < 5; i++)
 
 ![Layout with flexible spacing](layoutFlexibleSpace.png) 
 
-## Position and size
+## Position and size {#guiLayouts_d_c}
 Layouts can be positioned and resized like any other GUI element. All elements inside a layout will be relative to the layout's position, and elements that don't fit within the size of the layout will be clipped. Size of the layout also controls how are flexible sizes determined (either element's or space's).
 
 ~~~~~~~~~~~~~{.cpp}
@@ -195,7 +196,7 @@ for(int i = 0; i < 5; i++)
 
 ![Layout with a custom position and size](layoutPosition.png) 
 
-# Compound layouts
+# Compound layouts {#guiLayouts_e}
 Layouts themselves are treated as GUI elements. This means you can add layouts as children to other layouts, allowing you to create complex looking graphical interfaces. For example lets create a table of four rows and five columns of buttons:
 
 ~~~~~~~~~~~~~{.cpp}
@@ -219,7 +220,7 @@ for (int i = 0; i < 5; i++)
 
 ![Compound layout](layoutTable.png) 
 
-# Panels
+# Panels {#guiLayouts_f}
 **GUIPanel** is a special type of layout that doesn't perform any automatic positioning. Instead, as we've already seen, it allows you to position and size the elements directly, when you need exact precision over their placement. Elements like spaces or flexible sizes have no effect on GUI elements part of a GUI panel.
 
 Aside from allowing you to control exact placement of elements, they can also be used for overlaying GUI elements on top of each other. When created each GUI panel accepts a depth parameter which controls where is it positioned relative to other panels. Higher depth means the panel will be rendered below those with lower depth.

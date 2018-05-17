@@ -1,5 +1,6 @@
 Playing animation				{#animation}
 ===============
+[TOC]
 
 Animation playback is handled through the @ref bs::CAnimation "Animation" component. This component must be attached to the same **SceneObject** as the **Renderable** of the object we wish to animate.
 
@@ -11,7 +12,7 @@ animRenderableSO->addComponent<CRenderable>();
 animation = animRenderableSO->addComponent<CAnimation>();
 ~~~~~~~~~~~~~
 
-# Playback
+# Playback {#animation_a}
 To start animation playback simply call @ref bs::CAnimation::play "CAnimation::play()", with the **AnimationClip** you wish to play as the parameter.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -45,7 +46,7 @@ Finally, you can decide what happens when the animation clip reaches the end. By
 animation->setWrapMode(AnimWrapMode::Loop);
 ~~~~~~~~~~~~~
 
-## Play on wake
+## Play on wake {#animation_a_a}
 Aside from starting playback manually, you can also tell the animation component to start playing animation as soon as its component is instantiated. This can be useful for animations permanently part of the game level, so they can start playback as soon as the level is loaded.
 
 To do this call @ref bs::CAnimation::setDefaultClip "CAnimation::setDefaultClip()". The system will then keep a permanent reference to the animation clip, and automatically play it whenever the component is instantiated.
@@ -54,7 +55,7 @@ To do this call @ref bs::CAnimation::setDefaultClip "CAnimation::setDefaultClip(
 animation->setDefaultClip(animationClip);
 ~~~~~~~~~~~~~
 
-# Morph shapes
+# Morph shapes {#animation_b}
 Both skeletal and morph shape animation playback is handled as we described above. However with morph shapes there is an additional option to consider, concering morph channels. Morph shape animation consists out of one or multiple *morph channels*, each channel can have one or multiple *morph shapes*. A single shape is simply a mesh in a certain pose (i.e. shape).
 
 For example, a morph animation of a raindrop splashing on the ground would have a single channel, and multiple shapes, each shape representing one shape of the raindrop as it splashes. For such animations no additional tweaking is necessary, as the interpolation between the different shapes is done by the animation clip.
@@ -84,7 +85,7 @@ for(UINT32 i = 0; i < numChannels; i++)
 }
 ~~~~~~~~~~~~~
 
-# Mesh culling
+# Mesh culling {#animation_c}
 Normally, when objects are about to be rendered, the system tries to detect if an object is in view of the camera or not. This ensures that the GPU doesn't waste time on objects that are certain not to be visible. For the purposes of culling the system uses an approximation of the mesh to be rendered, in the form of its bounding box. This is efficient because that bounding box can be pre-calculated, stored and then easily checked for visibility.
 
 But with animation the object is constantly transforming, and it is not efficient to re-calculate the bounding box with each new frame of the animation. The system then instead uses the same bounding box it would have used if the object is static. This means that if the animated object's mesh ever leaves the bounds of that box, the system could decide to cull the object, even though some part of it is still visible. This can result in noticeable graphical artifacts, but bs::f provides a way to fix the issue by providing your own bounds.

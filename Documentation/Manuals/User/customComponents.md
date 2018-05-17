@@ -1,9 +1,10 @@
 Creating components						{#customComponents}
 ===============
+[TOC]
 
 So far we have talked about using built-in components like @ref bs::CCamera "Camera" and @ref bs::CRenderable "Renderable", but another major way you'll be using components is to create your own. Components serve as the main place to put your gameplay logic in, and this is where you'll be adding a majority of your custom code when creating a game.
 
-# Creation
+# Creation {#customComponents_a}
 To create your own component simply implement the @ref bs::Component "Component" interface by deriving from it. Component's constructor must always accept a handle to a **SceneObject**, which represents the scene object the component is part of.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -17,7 +18,7 @@ public:
 };
 ~~~~~~~~~~~~~
 
-# Logic
+# Logic {#customComponents_b}
 Each component implementation can override any of the three primary methods for introducing gameplay logic:
  - @ref bs::Component::onInitialized "Component::onInitialized" - Called once when the component is first instantiated. You should use this instead of the constructor for initialization.
  - @ref bs::Component::update "Component::update" - Called every frame while the game is running and the component is enabled.
@@ -87,14 +88,14 @@ private:
 		
 > **gTime()** method provides access to a variety of timing related functionality, and is explained later in the [timing manual](@ref time).
 		
-# Component handle
+# Component handle {#customComponents_c}
 You will also likely want to declare a handle you can use to easily access the component, same as **HCamera** or **HRenderable**. This is done by simply creating a *typedef* on the @ref bs::GameObjectHandle<T> "GameObjectHandle<T>" object.
 
 ~~~~~~~~~~~~~{.cpp}
 typedef GameObjectHandle<CCameraFlyer> HCameraFlyer;
 ~~~~~~~~~~~~~	
 		
-# Using the component
+# Using the component {#customComponents_d}
 We now have everything ready to use the component. You can create the component as any other by adding it to the scene object.
 
 ~~~~~~~~~~~~~{.cpp}
@@ -108,10 +109,10 @@ HCamera camera = cameraSO->addComponent<CCamera>(primaryWindow);
 HCameraFlyer = cameraSO->addComponent<CCameraFlyer>();
 ~~~~~~~~~~~~~
 
-# Data
+# Data {#customComponents_e}
 Often a component will contain some data which you want to persist after the scene is saved, which requires you to implement a special interface on your custom component class. We'll talk more about this in the next chapter.
 
-# Activating/deactivating a scene object
+# Activating/deactivating a scene object {#customComponents_f}
 Any scene object can be temporarily de-activated and reactivated by calling @ref bs::SceneObject::setActive "SceneObject::setActive()". When a scene object is deactivated its components will not have **Component::update()** called.
 
 Your component can also be notified at the exact moment when activation/deactivation happens. This way you can perform additional functionality if needed. Override @ref bs::Component::onEnabled "Component::onEnabled" and @ref bs::Component::onDisabled "Component::onDisabled" to get notified every time a component is activated and deactivated, respectively.
@@ -136,7 +137,7 @@ class CCameraFlyer : public Component
 };
 ~~~~~~~~~~~~~
 		
-# Getting notified on scene object change
+# Getting notified on scene object change {#customComponents_g}
 Sometimes you want to get notified when the scene object the component is attached to moves or changes parents. You can do this by overriding the @ref bs::Component::onTransformChanged "Component::onTransformChanged()" method.
 
 ~~~~~~~~~~~~~{.cpp}
