@@ -16,21 +16,16 @@ using namespace std::placeholders;
 
 namespace bs
 {
-	const String GUIDropDownContent::ENTRY_TOGGLE_STYLE_TYPE = "DropDownEntryToggleBtn";
-	const String GUIDropDownContent::ENTRY_STYLE_TYPE = "DropDownEntryBtn";
-	const String GUIDropDownContent::ENTRY_EXP_STYLE_TYPE = "DropDownEntryExpBtn";
-	const String GUIDropDownContent::SEPARATOR_STYLE_TYPE = "DropDownSeparator";
+	constexpr const char* GUIDropDownContent::ENTRY_TOGGLE_STYLE_TYPE;
+	constexpr const char* GUIDropDownContent::ENTRY_STYLE_TYPE;
+	constexpr const char* GUIDropDownContent::ENTRY_EXP_STYLE_TYPE;
+	constexpr const char* GUIDropDownContent::SEPARATOR_STYLE_TYPE;
 
 	GUIDropDownContent::GUIDropDownContent(GUIDropDownMenu::DropDownSubMenu* parent, const GUIDropDownData& dropDownData, 
 		const String& style, const GUIDimensions& dimensions)
 		: GUIElementContainer(dimensions, style), mDropDownData(dropDownData), mStates(dropDownData.states)
 		, mSelectedIdx(UINT_MAX), mRangeStart(0), mRangeEnd(0), mParent(parent), mKeyboardFocus(true)
 		, mIsToggle(parent->getType() == GUIDropDownType::MultiListBox)
-	{
-
-	}
-
-	GUIDropDownContent::~GUIDropDownContent()
 	{
 
 	}

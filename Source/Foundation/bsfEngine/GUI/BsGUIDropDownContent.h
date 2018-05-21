@@ -67,14 +67,13 @@ namespace bs
 		 */
 		void setKeyboardFocus(bool focus);
 
-		static const String ENTRY_TOGGLE_STYLE_TYPE;
-		static const String ENTRY_STYLE_TYPE;
-		static const String ENTRY_EXP_STYLE_TYPE;
-		static const String SEPARATOR_STYLE_TYPE;
+		static constexpr const char* ENTRY_TOGGLE_STYLE_TYPE = "DropDownEntryToggleBtn";
+		static constexpr const char* ENTRY_STYLE_TYPE = "DropDownEntryBtn";
+		static constexpr const char* ENTRY_EXP_STYLE_TYPE = "DropDownEntryExpBtn";
+		static constexpr const char* SEPARATOR_STYLE_TYPE = "DropDownSeparator";
 	protected:
 		GUIDropDownContent(GUIDropDownMenu::DropDownSubMenu* parent, const GUIDropDownData& dropDownData, 
 			const String& style, const GUIDimensions& dimensions);
-		~GUIDropDownContent() override;
 
 		/**	Get localized name of a menu item element with the specified index. */
 		HString getElementLocalizedName(UINT32 idx) const;

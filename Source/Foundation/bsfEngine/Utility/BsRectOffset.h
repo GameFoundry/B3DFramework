@@ -21,6 +21,16 @@ namespace bs
 			:left(left), right(right), top(top), bottom(bottom)
 		{ }
 
+		bool operator==(const RectOffset& rhs) const
+		{
+			return left == rhs.left && right == rhs.right && top == rhs.top && bottom == rhs.bottom;
+		}
+
+		bool operator!=(const RectOffset& rhs) const
+		{
+			return !operator==(rhs);
+		}
+
 		INT32 left, right, top, bottom;
 	};
 

@@ -8,6 +8,8 @@
 #include "Math/BsVector2I.h"
 #include "BsApplication.h"
 
+#include "json.hpp"
+
 namespace bs
 {
 	/** @addtogroup Resources-Engine
@@ -114,7 +116,7 @@ namespace bs
 		 * 
 		 * @param[in]	path	Path relative to the default shader folder with no file extension.
 		 */
-		HShader getShader(const Path& path);
+		HShader getShader(const Path& path) const;
 
 		/** Returns the default font used by the engine. */
 		HFont getDefaultFont() const { return mFont; }
@@ -131,8 +133,8 @@ namespace bs
 		/**	Returns absolute path to the builtin icons folder. */
 		static Path getIconFolder();
 
-		static const String IconTextureName;
-		static const String MultiLineLabelStyle;
+		static constexpr const char* IconTextureName = "bsfIcon.png";
+		static constexpr const char* MultiLineLabelStyle = "MultiLineLabel";
 
 	private:
 		/**
@@ -153,10 +155,10 @@ namespace bs
 		void generateTextures();
 
 		/**	Loads a GUI skin texture with the specified filename. */
-		HSpriteTexture getSkinTexture(const String& name);
+		HSpriteTexture getSkinTexture(const String& name) const;
 
 		/**	Loads a cursor texture with the specified filename. */
-		HTexture getCursorTexture(const String& name);
+		HTexture getCursorTexture(const String& name) const;
 
 		HGUISkin mEmptySkin;
 		HGUISkin mSkin;
@@ -206,99 +208,14 @@ namespace bs
 		static constexpr const char* TEXTURE_FOLDER = "Textures/";
 		static constexpr const char* SPRITE_FOLDER = "Sprites/";
 
-		static const char* DataListFile;
+		static constexpr const char* DATA_LIST_JSON = "DataList.json";
+		static constexpr const char* GUI_SKIN_JSON = "GUISkin.json";
 
 		static const String DefaultFontFilename;
 		static const UINT32 DefaultFontSize;
 
-		static const Color TextNormalColor;
-		static const Color TextActiveColor;
-
 		static const String GUISkinFile;
 		static const String WhiteTex;
-
-		static const String ButtonNormalTex;
-		static const String ButtonHoverTex;
-		static const String ButtonActiveTex;
-
-		static const String ToggleNormalTex;
-		static const String ToggleHoverTex;
-		static const String ToggleNormalOnTex;
-		static const String ToggleHoverOnTex;
-
-		static const String InputBoxNormalTex;
-		static const String InputBoxHoverTex;
-		static const String InputBoxFocusedTex;
-
-		static const String ScrollBarUpNormalTex;
-		static const String ScrollBarUpHoverTex;
-		static const String ScrollBarUpActiveTex;
-
-		static const String ScrollBarDownNormalTex;
-		static const String ScrollBarDownHoverTex;
-		static const String ScrollBarDownActiveTex;
-
-		static const String ScrollBarLeftNormalTex;
-		static const String ScrollBarLeftHoverTex;
-		static const String ScrollBarLeftActiveTex;
-
-		static const String ScrollBarRightNormalTex;
-		static const String ScrollBarRightHoverTex;
-		static const String ScrollBarRightActiveTex;
-
-		static const String ScrollBarHandleHorzNormalTex;
-		static const String ScrollBarHandleHorzHoverTex;
-		static const String ScrollBarHandleHorzActiveTex;
-
-		static const String ScrollBarHandleVertNormalTex;
-		static const String ScrollBarHandleVertHoverTex;
-		static const String ScrollBarHandleVertActiveTex;
-
-		static const String ScrollBarResizeableHandleHorzNormalTex;
-		static const String ScrollBarResizeableHandleHorzHoverTex;
-		static const String ScrollBarResizeableHandleHorzActiveTex;
-
-		static const String ScrollBarResizeableHandleVertNormalTex;
-		static const String ScrollBarResizeableHandleVertHoverTex;
-		static const String ScrollBarResizeableHandleVertActiveTex;
-
-		static const String ScrollBarHBgTex;
-		static const String ScrollBarVBgTex;
-
-		static const String SliderHBackgroundTex;
-		static const String SliderHFillTex;
-		static const String SliderVBackgroundTex;
-		static const String SliderVFillTex;
-		static const String SliderHandleNormalTex;
-		static const String SliderHandleHoverTex;
-		static const String SliderHandleActiveTex;
-
-		static const String DropDownBtnNormalTex;
-		static const String DropDownBtnHoverTex;
-		static const String DropDownBtnActiveTex;
-
-		static const String DropDownBoxBgTex;
-		static const String DropDownBoxSideBgTex;
-		static const String DropDownBoxHandleTex;
-
-		static const String DropDownBoxEntryNormalTex;
-		static const String DropDownBoxEntryHoverTex;
-
-		static const String DropDownBoxBtnUpNormalTex;
-		static const String DropDownBoxBtnUpHoverTex;
-
-		static const String DropDownBoxBtnDownNormalTex;
-		static const String DropDownBoxBtnDownHoverTex;
-
-		static const String DropDownBoxEntryExpNormalTex;
-		static const String DropDownBoxEntryExpHoverTex;
-
-		static const String DropDownBoxEntryToggleNormalTex;
-		static const String DropDownBoxEntryToggleHoverTex;
-		static const String DropDownBoxEntryToggleNormalOnTex;
-		static const String DropDownBoxEntryToggleHoverOnTex;
-
-		static const String DropDownSeparatorTex;
 
 		static const String CursorArrowTex;
 		static const String CursorArrowDragTex;

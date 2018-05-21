@@ -34,20 +34,12 @@ namespace bs
 			Color textColor;
 		};
 
-		GUIElementStyle()
-			: fontSize(8), textHorzAlign(THA_Left), textVertAlign(TVA_Top), imagePosition(GUIImagePosition::Left)
-			, wordWrap(false), width(0), height(0), minWidth(0), maxWidth(0), minHeight(0), maxHeight(0)
-			, fixedWidth(false), fixedHeight(false)
-		{
-
-		}
-
 		HFont font; /**< Font to use for all text within the GUI element. */
-		UINT32 fontSize; /**< Font size to use for all text within the GUI element. */
-		TextHorzAlign textHorzAlign; /**< Horizontal alignment of text within the GUI element. */
-		TextVertAlign textVertAlign; /**< Vertical alignment of text within the GUI element. */
-		GUIImagePosition imagePosition; /**< Position of content image relative to text. */
-		bool wordWrap; /**< Should the text word wrap if it doesn't fit. */
+		UINT32 fontSize = 8; /**< Font size to use for all text within the GUI element. */
+		TextHorzAlign textHorzAlign = THA_Left; /**< Horizontal alignment of text within the GUI element. */
+		TextVertAlign textVertAlign = TVA_Top; /**< Vertical alignment of text within the GUI element. */
+		GUIImagePosition imagePosition = GUIImagePosition::Left; /**< Position of content image relative to text. */
+		bool wordWrap = false; /**< Should the text word wrap if it doesn't fit. */
 
 		GUIElementStateStyle normal; /**< Style used when element is in normal state and off. */
 		GUIElementStateStyle hover; /**< Style used when element is in hover state and off. */
@@ -65,14 +57,14 @@ namespace bs
 		RectOffset contentOffset; /**< Additional offset to the content, that doesn't effect the bounds. Applied on top of the margins offsets. */
 		RectOffset padding; /**< Determines extra distance between this and other elements in a layout. */
 
-		UINT32 width; /**< Wanted width of the GUI element in pixels. Only used if fixedWidth is enabled. */
-		UINT32 height; /**< Wanted height of the GUI element in pixels. Only used if fixedHeight is enabled. */
-		UINT32 minWidth; /**< Minimum width allowed for the GUI element. Used by the layout only when exact width is not specified. */
-		UINT32 maxWidth; /**< Maximum width allowed for the GUI element. Used by the layout only when exact width is not specified. */
-		UINT32 minHeight; /**< Minimum height allowed for the GUI element. Used by the layout only when exact height is not specified. */
-		UINT32 maxHeight; /**< Maximum height allowed for the GUI element. Used by the layout only when exact height is not specified. */
-		bool fixedWidth; /**< Determines should the layout resize the element depending on available size. If true no resizing will be done. */
-		bool fixedHeight; /**< Determines should the layout resize the element depending on available size. If true no resizing will be done. */
+		UINT32 width = 0; /**< Wanted width of the GUI element in pixels. Only used if fixedWidth is enabled. */
+		UINT32 height = 0; /**< Wanted height of the GUI element in pixels. Only used if fixedHeight is enabled. */
+		UINT32 minWidth = 0; /**< Minimum width allowed for the GUI element. Used by the layout only when exact width is not specified. */
+		UINT32 maxWidth = 0; /**< Maximum width allowed for the GUI element. Used by the layout only when exact width is not specified. */
+		UINT32 minHeight = 0; /**< Minimum height allowed for the GUI element. Used by the layout only when exact height is not specified. */
+		UINT32 maxHeight = 0; /**< Maximum height allowed for the GUI element. Used by the layout only when exact height is not specified. */
+		bool fixedWidth = false; /**< Determines should the layout resize the element depending on available size. If true no resizing will be done. */
+		bool fixedHeight = false; /**< Determines should the layout resize the element depending on available size. If true no resizing will be done. */
 
 		Map<String, String> subStyles; /**< Sub-styles used by certain more complex elements. */
 

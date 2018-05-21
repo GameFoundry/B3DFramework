@@ -693,4 +693,141 @@ namespace bs
 
 		gResources().save(shader, path, true, true);
 	}
+
+	GUIElementStyle BuiltinResourcesHelper::loadGUIStyleFromJSON(const nlohmann::json& entry, 
+		const GUIElementStyleLoader& loader)
+	{
+		GUIElementStyle style;
+
+		if(entry.count("font") > 0)
+		{
+			std::string font = entry["font"];
+			style.font = loader.loadFont(font.c_str());
+		}
+
+		if(entry.count("fontSize") > 0)
+			style.fontSize = entry["fontSize"];
+
+		if(entry.count("textHorzAlign") > 0)
+			style.textHorzAlign = entry["textHorzAlign"];
+
+		if(entry.count("textVertAlign") > 0)
+			style.textVertAlign = entry["textVertAlign"];
+
+		if(entry.count("imagePosition") > 0)
+			style.imagePosition = entry["imagePosition"];
+
+		if(entry.count("wordWrap") > 0)
+			style.wordWrap = entry["wordWrap"];
+
+		const auto loadState = [&loader, &entry](const char* name, GUIElementStyle::GUIElementStateStyle& state)
+		{
+			if (entry.count(name) == 0)
+				return;
+
+			nlohmann::json subEntry = entry[name];
+
+			if(subEntry.count("texture") > 0)
+			{
+				std::string texture = subEntry["texture"];
+				state.texture = loader.loadTexture(texture.c_str());
+			}
+
+			if(subEntry.count("textColor") > 0)
+			{
+				nlohmann::json colorEntry = subEntry["textColor"];
+
+				state.textColor.r = colorEntry["r"];
+				state.textColor.g = colorEntry["g"];
+				state.textColor.b = colorEntry["b"];
+				state.textColor.a = colorEntry["a"];
+			}
+		};
+
+		loadState("normal", style.normal);
+		loadState("hover", style.hover);
+		loadState("active", style.active);
+		loadState("focused", style.focused);
+
+		loadState("normalOn", style.normalOn);
+		loadState("hoverOn", style.hoverOn);
+		loadState("activeOn", style.activeOn);
+		loadState("focusedOn", style.focusedOn);
+
+		const auto loadRectOffset = [entry](const char* name, RectOffset& state)
+		{
+			if (entry.count(name) == 0)
+				return;
+
+			nlohmann::json subEntry = entry[name];
+			state.left = subEntry["left"];
+			state.right = subEntry["right"];
+			state.top = subEntry["top"];
+			state.bottom = subEntry["bottom"];
+		};
+
+		loadRectOffset("border", style.border);
+		loadRectOffset("margins", style.margins);
+		loadRectOffset("contentOffset", style.contentOffset);
+		loadRectOffset("padding", style.padding);
+
+		if(entry.count("width") > 0)
+			style.width = entry["width"];
+
+		if(entry.count("height") > 0)
+			style.height = entry["height"];
+
+		if(entry.count("minWidth") > 0)
+			style.minWidth = entry["minWidth"];
+
+		if(entry.count("maxWidth") > 0)
+			style.maxWidth = entry["maxWidth"];
+
+		if(entry.count("minHeight") > 0)
+			style.minHeight = entry["minHeight"];
+		
+		if(entry.count("maxHeight") > 0)
+			style.maxHeight = entry["maxHeight"];
+
+		if(entry.count("fixedWidth") > 0)
+			style.fixedWidth = entry["fixedWidth"];
+
+		if(entry.count("fixedHeight") > 0)
+			style.fixedHeight = entry["fixedHeight"];
+
+		if(entry.count("subStyles") > 0)
+		{
+			nlohmann::json subStyles = entry["subStyles"];
+			for (auto& subStyle : subStyles)
+			{
+				std::string name = subStyle["name"];
+				std::string styleName = subStyle["style"];
+
+				style.subStyles.insert(std::make_pair(name.c_str(), styleName.c_str()));
+			}
+		}
+
+		return style;
+	}
+
+	BuiltinResourceGUIElementStyleLoader::BuiltinResourceGUIElementStyleLoader(const Path& fontPath, const Path& texturePath)
+		:mFontPath(fontPath), mTexturePath(texturePath)
+	{ }
+
+
+	HSpriteTexture BuiltinResourceGUIElementStyleLoader::loadTexture(const String& name) const
+	{
+		Path texturePath = mTexturePath;
+		texturePath.append(u8"sprite_" + name + u8".asset");
+
+		return gResources().load<SpriteTexture>(texturePath);
+	}
+
+	HFont BuiltinResourceGUIElementStyleLoader::loadFont(const String& name) const
+	{
+		Path fontPath = mFontPath;
+		fontPath.append(name + u8".asset");
+
+		return gResources().load<Font>(fontPath);
+	}
 }

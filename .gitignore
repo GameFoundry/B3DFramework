@@ -16,6 +16,7 @@ Data/*
 !Data/Raw/
 Data/Raw/*
 !Data/Raw/DataList.json
+!Data/Raw/GUISkin.json
 !Data/Raw/Shaders/
 !Data/Raw/Shaders/Includes/
 Documentation/Generated

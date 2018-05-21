@@ -36,106 +36,19 @@ using json = nlohmann::json;
 
 namespace bs
 {
+	constexpr const char* BuiltinResources::IconTextureName;
+	constexpr const char* BuiltinResources::MultiLineLabelStyle;
+
 	const String BuiltinResources::DefaultFontFilename = u8"arial.ttf";
 	const UINT32 BuiltinResources::DefaultFontSize = 8;
 
-	const Color BuiltinResources::TextNormalColor = Color(0.7f, 0.7f, 0.7f);
-	const Color BuiltinResources::TextActiveColor = Color(0.0f, 0.0f, 0.0f);
-
-	const String BuiltinResources::MultiLineLabelStyle = "MultiLineLabel";
-
 	const String BuiltinResources::GUISkinFile = u8"GUISkin";
-
-	const char* BuiltinResources::DataListFile = "DataList.json";
 
 	/************************************************************************/
 	/* 								GUI TEXTURES                      		*/
 	/************************************************************************/
 
 	const String BuiltinResources::WhiteTex = u8"White.psd";
-
-	const String BuiltinResources::ButtonNormalTex = u8"ButtonNormal.png";
-	const String BuiltinResources::ButtonHoverTex = u8"ButtonHover.png";
-	const String BuiltinResources::ButtonActiveTex = u8"ButtonActive.png";
-
-	const String BuiltinResources::ToggleNormalTex = u8"ToggleNormal.png";
-	const String BuiltinResources::ToggleHoverTex = u8"ToggleHover.png";
-	const String BuiltinResources::ToggleNormalOnTex = u8"ToggleNormalOn.png";
-	const String BuiltinResources::ToggleHoverOnTex = u8"ToggleHoverOn.png";
-
-	const String BuiltinResources::InputBoxNormalTex = u8"InputBoxNormal.png";
-	const String BuiltinResources::InputBoxHoverTex = u8"InputBoxHover.png";
-	const String BuiltinResources::InputBoxFocusedTex = u8"InputBoxActive.png";
-
-	const String BuiltinResources::ScrollBarUpNormalTex = u8"ScrollArrowUpNormal.png";
-	const String BuiltinResources::ScrollBarUpHoverTex = u8"ScrollArrowUpHover.png";
-	const String BuiltinResources::ScrollBarUpActiveTex = u8"ScrollArrowUpActive.png";
-
-	const String BuiltinResources::ScrollBarDownNormalTex = u8"ScrollArrowDownNormal.png";
-	const String BuiltinResources::ScrollBarDownHoverTex = u8"ScrollArrowDownHover.png";
-	const String BuiltinResources::ScrollBarDownActiveTex = u8"ScrollArrowDownActive.png";
-
-	const String BuiltinResources::ScrollBarLeftNormalTex = u8"ScrollArrowLeftNormal.png";
-	const String BuiltinResources::ScrollBarLeftHoverTex = u8"ScrollArrowLeftHover.png";
-	const String BuiltinResources::ScrollBarLeftActiveTex = u8"ScrollArrowLeftActive.png";
-
-	const String BuiltinResources::ScrollBarRightNormalTex = u8"ScrollArrowRightNormal.png";
-	const String BuiltinResources::ScrollBarRightHoverTex = u8"ScrollArrowRightHover.png";
-	const String BuiltinResources::ScrollBarRightActiveTex = u8"ScrollArrowRightActive.png";
-
-	const String BuiltinResources::ScrollBarHandleHorzNormalTex = u8"ScrollBarHHandleNormal.png";
-	const String BuiltinResources::ScrollBarHandleHorzHoverTex = u8"ScrollBarHHandleHover.png";
-	const String BuiltinResources::ScrollBarHandleHorzActiveTex = u8"ScrollBarHHandleActive.png";
-
-	const String BuiltinResources::ScrollBarHandleVertNormalTex = u8"ScrollBarVHandleNormal.png";
-	const String BuiltinResources::ScrollBarHandleVertHoverTex = u8"ScrollBarVHandleHover.png";
-	const String BuiltinResources::ScrollBarHandleVertActiveTex = u8"ScrollBarVHandleActive.png";
-
-	const String BuiltinResources::ScrollBarResizeableHandleHorzNormalTex = u8"ScrollBarHHandleResizeableNormal.png";
-	const String BuiltinResources::ScrollBarResizeableHandleHorzHoverTex = u8"ScrollBarHHandleResizeableHover.png";
-	const String BuiltinResources::ScrollBarResizeableHandleHorzActiveTex = u8"ScrollBarHHandleResizeableActive.png";
-
-	const String BuiltinResources::ScrollBarResizeableHandleVertNormalTex = u8"ScrollBarVHandleResizeableNormal.png";
-	const String BuiltinResources::ScrollBarResizeableHandleVertHoverTex = u8"ScrollBarVHandleResizeableHover.png";
-	const String BuiltinResources::ScrollBarResizeableHandleVertActiveTex = u8"ScrollBarVHandleResizeableActive.png";
-
-	const String BuiltinResources::ScrollBarHBgTex = u8"ScrollBarHBackground.png";
-	const String BuiltinResources::ScrollBarVBgTex = u8"ScrollBarVBackground.png";
-
-	const String BuiltinResources::SliderHBackgroundTex = u8"SliderHBackground.png";
-	const String BuiltinResources::SliderHFillTex = u8"SliderHFill.png";
-	const String BuiltinResources::SliderVBackgroundTex = u8"SliderVBackground.png";
-	const String BuiltinResources::SliderVFillTex = u8"SliderVFill.png";
-	const String BuiltinResources::SliderHandleNormalTex = u8"SliderHandleNormal.png";
-	const String BuiltinResources::SliderHandleHoverTex = u8"SliderHandleHover.png";
-	const String BuiltinResources::SliderHandleActiveTex = u8"SliderHandleActive.png";
-
-	const String BuiltinResources::DropDownBtnNormalTex = u8"DropDownButtonNormal.png";
-	const String BuiltinResources::DropDownBtnHoverTex = u8"DropDownButtonHover.png";
-	const String BuiltinResources::DropDownBtnActiveTex = u8"DropDownButtonActive.png";
-
-	const String BuiltinResources::DropDownBoxBgTex = u8"DropDownBoxBg.png";
-	const String BuiltinResources::DropDownBoxSideBgTex = u8"DropDownBoxSideBg.png";
-	const String BuiltinResources::DropDownBoxHandleTex = u8"DropDownBoxScrollHandle.png";
-
-	const String BuiltinResources::DropDownBoxEntryNormalTex = u8"DropDownBoxEntryNormal.png";
-	const String BuiltinResources::DropDownBoxEntryHoverTex = u8"DropDownBoxEntryHover.png";
-
-	const String BuiltinResources::DropDownBoxBtnUpNormalTex = u8"DropDownBoxArrowUpNormal.png";
-	const String BuiltinResources::DropDownBoxBtnUpHoverTex = u8"DropDownBoxArrowUpHover.png";
-
-	const String BuiltinResources::DropDownBoxBtnDownNormalTex = u8"DropDownBoxArrowDownNormal.png";
-	const String BuiltinResources::DropDownBoxBtnDownHoverTex = u8"DropDownBoxArrowDownHover.png";
-
-	const String BuiltinResources::DropDownBoxEntryExpNormalTex = u8"DropDownBoxExpandBtnNormal.png";
-	const String BuiltinResources::DropDownBoxEntryExpHoverTex = u8"DropDownBoxExpandBtnHover.png";
-
-	const String BuiltinResources::DropDownBoxEntryToggleNormalTex = u8"DropDownBoxEntryToggleNormal.png";
-	const String BuiltinResources::DropDownBoxEntryToggleHoverTex = u8"DropDownBoxEntryToggleHover.png";
-	const String BuiltinResources::DropDownBoxEntryToggleNormalOnTex = u8"DropDownBoxEntryToggleNormalOn.png";
-	const String BuiltinResources::DropDownBoxEntryToggleHoverOnTex = u8"DropDownBoxEntryToggleHoverOn.png";
-
-	const String BuiltinResources::DropDownSeparatorTex = u8"DropDownBoxSeparator.png";
 
 	/************************************************************************/
 	/* 							CURSOR TEXTURES                      		*/
@@ -162,12 +75,6 @@ namespace bs
 	const Vector2I BuiltinResources::CursorSizeNSHotspot = Vector2I(16, 15);
 	const Vector2I BuiltinResources::CursorSizeNWSEHotspot = Vector2I(16, 15);
 	const Vector2I BuiltinResources::CursorSizeWEHotspot = Vector2I(16, 15);
-
-	/************************************************************************/
-	/* 							ICON TEXTURES					    		*/
-	/************************************************************************/
-
-	const String BuiltinResources::IconTextureName = u8"bsfIcon.png";
 
 	/************************************************************************/
 	/* 									SHADERS                      		*/
@@ -278,33 +185,36 @@ namespace bs
 			gResources().registerResourceManifest(mResourceManifest);
 		}
 
-		// Update shader bytecode for the current render backend, if needed
-		const RenderAPIInfo& apiInfo = ct::RenderAPI::instance().getAPIInfo();
-		bool supportsBytecodeCaching = apiInfo.isFlagSet(RenderAPIFeatureFlag::ByteCodeCaching);
-
-		if(supportsBytecodeCaching)
+		if (FileSystem::exists(mBuiltinRawDataFolder))
 		{
-			Path dataListsFilePath = mBuiltinRawDataFolder + DataListFile;
-			SPtr<DataStream> dataListStream = FileSystem::openFile(dataListsFilePath);
-			if(dataListStream)
+			// Update shader bytecode for the current render backend, if needed
+			const RenderAPIInfo& apiInfo = ct::RenderAPI::instance().getAPIInfo();
+			bool supportsBytecodeCaching = apiInfo.isFlagSet(RenderAPIFeatureFlag::ByteCodeCaching);
+
+			if (supportsBytecodeCaching)
 			{
-				json dataListJSON = json::parse(dataListStream->getAsString().c_str());
-
-				json shadersJSON = dataListJSON["Shaders"];
-				for (auto& entry : shadersJSON)
+				Path dataListsFilePath = mBuiltinRawDataFolder + DATA_LIST_JSON;
+				SPtr<DataStream> dataListStream = FileSystem::openFile(dataListsFilePath);
+				if (dataListStream)
 				{
-					std::string uuidStr = entry["UUID"];
-					UUID uuid(uuidStr.c_str());
+					json dataListJSON = json::parse(dataListStream->getAsString().c_str());
 
-					Path filePath;
-					if (!mResourceManifest->uuidToFilePath(uuid, filePath))
-						continue;
+					json shadersJSON = dataListJSON["Shaders"];
+					for (auto& entry : shadersJSON)
+					{
+						std::string uuidStr = entry["UUID"];
+						UUID uuid(uuidStr.c_str());
 
-					BuiltinResourcesHelper::updateShaderBytecode(filePath);
+						Path filePath;
+						if (!mResourceManifest->uuidToFilePath(uuid, filePath))
+							continue;
+
+						BuiltinResourcesHelper::updateShaderBytecode(filePath);
+					}
 				}
 			}
 		}
-		
+
 		// Load basic resources
 		mShaderSpriteText = getShader(ShaderSpriteTextFile);
 		mShaderSpriteImage = getShader(ShaderSpriteImageAlphaFile);
@@ -379,7 +289,7 @@ namespace bs
 		/************************************************************************/
 
 		Path iconPath = mBuiltinDataFolder + ICON_FOLDER;
-		iconPath.append(IconTextureName + u8".asset");
+		iconPath.append(String(IconTextureName) + u8".asset");
 
 		HTexture iconTex = gResources().load<Texture>(iconPath);
 
@@ -394,7 +304,7 @@ namespace bs
 		// Hidden dependency: Textures need to be generated before shaders as they may use the default textures
 		generateTextures();
 
-		Path dataListsFilePath = mBuiltinRawDataFolder + DataListFile;
+		Path dataListsFilePath = mBuiltinRawDataFolder + DATA_LIST_JSON;
 		SPtr<DataStream> dataListStream = FileSystem::openFile(dataListsFilePath);
 		json dataListJSON = json::parse(dataListStream->getAsString().c_str());
 
@@ -640,592 +550,21 @@ namespace bs
 
 	SPtr<GUISkin> BuiltinResources::generateGUISkin()
 	{
-		Path fontPath = mBuiltinDataFolder;
-		fontPath.append(DefaultFontFilename + u8".asset");
+		BuiltinResourceGUIElementStyleLoader loader(mBuiltinDataFolder, mEngineSkinSpritesFolder);
 
-		HFont font = gResources().load<Font>(fontPath);
+		Path guiSkinPath = mBuiltinRawDataFolder + GUI_SKIN_JSON;
+		SPtr<DataStream> guiSkinStream = FileSystem::openFile(guiSkinPath);
+		json guiSkinJSON = json::parse(guiSkinStream->getAsString().c_str());
+
 		SPtr<GUISkin> skin = GUISkin::_createPtr();
 
-		// Label
-		GUIElementStyle labelStyle;
-		labelStyle.font = font;
-		labelStyle.fontSize = DefaultFontSize;
-		labelStyle.normal.textColor = TextNormalColor;
-		labelStyle.fixedWidth = false;
-		labelStyle.fixedHeight = true;
-		labelStyle.height = 14;
-		labelStyle.minWidth = 10;
-
-		skin->setStyle(GUILabel::getGUITypeName(), labelStyle);
-
-		// Button
-		GUIElementStyle buttonStyle;
-		buttonStyle.normal.texture = getSkinTexture(ButtonNormalTex);
-		buttonStyle.hover.texture = getSkinTexture(ButtonHoverTex);
-		buttonStyle.active.texture = getSkinTexture(ButtonActiveTex);
-		buttonStyle.normalOn.texture = getSkinTexture(ButtonActiveTex);
-		buttonStyle.hoverOn.texture = getSkinTexture(ButtonActiveTex);
-		buttonStyle.activeOn.texture = getSkinTexture(ButtonActiveTex);
-		buttonStyle.normal.textColor = TextNormalColor;
-		buttonStyle.hover.textColor = TextNormalColor;
-		buttonStyle.active.textColor = TextActiveColor;
-		buttonStyle.normalOn.textColor = TextActiveColor;
-		buttonStyle.hoverOn.textColor = TextActiveColor;
-		buttonStyle.activeOn.textColor = TextActiveColor;
-		buttonStyle.border.left = 2;
-		buttonStyle.border.right = 2;
-		buttonStyle.border.top = 2;
-		buttonStyle.border.bottom = 4;
-		buttonStyle.contentOffset.top = 2;
-		buttonStyle.contentOffset.left = 3;
-		buttonStyle.contentOffset.right = 3;
-		buttonStyle.margins.bottom = 2;
-		buttonStyle.fixedHeight = true;
-		buttonStyle.height = 21;
-		buttonStyle.minWidth = 20;
-		buttonStyle.font = font;
-		buttonStyle.fontSize = DefaultFontSize;
-		buttonStyle.textHorzAlign = THA_Center;
-		buttonStyle.textVertAlign = TVA_Center;
-
-		skin->setStyle(GUIButton::getGUITypeName(), buttonStyle);
-
-		// Toggle
-		GUIElementStyle toggleStyle;
-		toggleStyle.normal.texture = getSkinTexture(ToggleNormalTex);
-		toggleStyle.hover.texture = getSkinTexture(ToggleHoverTex);
-		toggleStyle.active.texture = toggleStyle.hover.texture;
-		toggleStyle.normalOn.texture = getSkinTexture(ToggleNormalOnTex);
-		toggleStyle.hoverOn.texture = getSkinTexture(ToggleHoverOnTex);
-		toggleStyle.activeOn.texture = toggleStyle.hoverOn.texture;
-		toggleStyle.fixedHeight = true;
-		toggleStyle.fixedWidth = true;
-		toggleStyle.margins.bottom = 2;
-		toggleStyle.height = 15;
-		toggleStyle.width = 13;
-
-		skin->setStyle(GUIToggle::getGUITypeName(), toggleStyle);
-
-		// Input box
-		GUIElementStyle inputBoxStyle;
-		inputBoxStyle.normal.texture = getSkinTexture(InputBoxNormalTex);
-		inputBoxStyle.hover.texture = getSkinTexture(InputBoxHoverTex);
-		inputBoxStyle.focused.texture = getSkinTexture(InputBoxFocusedTex);
-		inputBoxStyle.active.texture = inputBoxStyle.normal.texture;
-		inputBoxStyle.normal.textColor = TextNormalColor;
-		inputBoxStyle.hover.textColor = TextNormalColor;
-		inputBoxStyle.focused.textColor = TextNormalColor;
-		inputBoxStyle.active.textColor = TextNormalColor;
-		inputBoxStyle.border.left = 1;
-		inputBoxStyle.border.right = 3;
-		inputBoxStyle.border.top = 4;
-		inputBoxStyle.border.bottom = 1;
-		inputBoxStyle.contentOffset.left = 4;
-		inputBoxStyle.contentOffset.right = 4;
-		inputBoxStyle.contentOffset.top = 4;
-		inputBoxStyle.contentOffset.bottom = 4;
-		inputBoxStyle.fixedHeight = true;
-		inputBoxStyle.height = 19;
-		inputBoxStyle.minWidth = 10;
-		inputBoxStyle.font = font;
-		inputBoxStyle.fontSize = DefaultFontSize;
-		inputBoxStyle.textHorzAlign = THA_Left;
-		inputBoxStyle.textVertAlign = TVA_Top;
-
-		skin->setStyle(GUIInputBox::getGUITypeName(), inputBoxStyle);
-
-		/************************************************************************/
-		/* 								SCROLL BAR                      		*/
-		/************************************************************************/
-
-		// Up button
-		GUIElementStyle scrollUpBtnStyle;
-		scrollUpBtnStyle.normal.texture = getSkinTexture(ScrollBarUpNormalTex);
-		scrollUpBtnStyle.hover.texture = getSkinTexture(ScrollBarUpHoverTex);
-		scrollUpBtnStyle.active.texture = getSkinTexture(ScrollBarUpActiveTex);
-		scrollUpBtnStyle.fixedHeight = true;
-		scrollUpBtnStyle.fixedWidth = true;
-		scrollUpBtnStyle.height = 11;
-		scrollUpBtnStyle.width = 13;
-
-		skin->setStyle("ScrollUpBtn", scrollUpBtnStyle);
-
-		// Down button
-		GUIElementStyle scrollDownBtnStyle;
-		scrollDownBtnStyle.normal.texture = getSkinTexture(ScrollBarDownNormalTex);
-		scrollDownBtnStyle.hover.texture = getSkinTexture(ScrollBarDownHoverTex);
-		scrollDownBtnStyle.active.texture = getSkinTexture(ScrollBarDownActiveTex);
-		scrollDownBtnStyle.fixedHeight = true;
-		scrollDownBtnStyle.fixedWidth = true;
-		scrollDownBtnStyle.height = 11;
-		scrollDownBtnStyle.width = 13;
-
-		skin->setStyle("ScrollDownBtn", scrollDownBtnStyle);
-
-		// Left button
-		GUIElementStyle scrollLeftBtnStyle;
-		scrollLeftBtnStyle.normal.texture = getSkinTexture(ScrollBarLeftNormalTex);
-		scrollLeftBtnStyle.hover.texture = getSkinTexture(ScrollBarLeftHoverTex);
-		scrollLeftBtnStyle.active.texture = getSkinTexture(ScrollBarLeftActiveTex);
-		scrollLeftBtnStyle.fixedHeight = true;
-		scrollLeftBtnStyle.fixedWidth = true;
-		scrollLeftBtnStyle.height = 13;
-		scrollLeftBtnStyle.width = 11;
-
-		skin->setStyle("ScrollLeftBtn", scrollLeftBtnStyle);
-
-		// Right button
-		GUIElementStyle scrollRightBtnStyle;
-		scrollRightBtnStyle.normal.texture = getSkinTexture(ScrollBarRightNormalTex);
-		scrollRightBtnStyle.hover.texture = getSkinTexture(ScrollBarRightHoverTex);
-		scrollRightBtnStyle.active.texture = getSkinTexture(ScrollBarRightActiveTex);
-		scrollRightBtnStyle.fixedHeight = true;
-		scrollRightBtnStyle.fixedWidth = true;
-		scrollRightBtnStyle.height = 13;
-		scrollRightBtnStyle.width = 11;
-
-		skin->setStyle("ScrollRightBtn", scrollRightBtnStyle);
-
-		// Horizontal handle
-		GUIElementStyle scrollBarHorzBtnStyle;
-		scrollBarHorzBtnStyle.normal.texture = getSkinTexture(ScrollBarHandleHorzNormalTex);
-		scrollBarHorzBtnStyle.hover.texture = getSkinTexture(ScrollBarHandleHorzHoverTex);
-		scrollBarHorzBtnStyle.active.texture = getSkinTexture(ScrollBarHandleHorzActiveTex);
-		scrollBarHorzBtnStyle.fixedHeight = true;
-		scrollBarHorzBtnStyle.fixedWidth = false;
-		scrollBarHorzBtnStyle.width = 10;
-		scrollBarHorzBtnStyle.height = 13;
-		scrollBarHorzBtnStyle.border.left = 4;
-		scrollBarHorzBtnStyle.border.right = 4;
-
-		skin->setStyle("ScrollBarHorzBtn", scrollBarHorzBtnStyle);
-
-		// Vertical handle
-		GUIElementStyle scrollBarVertBtnStyle;
-		scrollBarVertBtnStyle.normal.texture = getSkinTexture(ScrollBarHandleVertNormalTex);
-		scrollBarVertBtnStyle.hover.texture = getSkinTexture(ScrollBarHandleVertHoverTex);
-		scrollBarVertBtnStyle.active.texture = getSkinTexture(ScrollBarHandleVertActiveTex);
-		scrollBarVertBtnStyle.fixedHeight = false;
-		scrollBarVertBtnStyle.fixedWidth = true;
-		scrollBarVertBtnStyle.width = 13;
-		scrollBarVertBtnStyle.height = 10;
-		scrollBarVertBtnStyle.border.top = 4;
-		scrollBarVertBtnStyle.border.bottom = 4;
-
-		skin->setStyle("ScrollBarVertBtn", scrollBarVertBtnStyle);
-
-		// Vertical scroll bar
-		GUIElementStyle vertScrollBarStyle;
-		vertScrollBarStyle.normal.texture = getSkinTexture(ScrollBarVBgTex);
-		vertScrollBarStyle.hover.texture = vertScrollBarStyle.normal.texture;
-		vertScrollBarStyle.active.texture = vertScrollBarStyle.normal.texture;
-		vertScrollBarStyle.fixedHeight = false;
-		vertScrollBarStyle.fixedWidth = true;
-		vertScrollBarStyle.minHeight = 8;
-		vertScrollBarStyle.width = 16;
-
-		vertScrollBarStyle.subStyles[GUIScrollBar::getVScrollHandleType()] = "ScrollBarVertBtn";
-		vertScrollBarStyle.subStyles[GUIScrollBar::getHScrollHandleType()] = "ScrollBarHorzBtn";
-
-		skin->setStyle("ScrollBarVert", vertScrollBarStyle);
-
-		// Horizontal scroll bar
-		GUIElementStyle horzScrollBarStyle;
-		horzScrollBarStyle.normal.texture = getSkinTexture(ScrollBarHBgTex);
-		horzScrollBarStyle.hover.texture = horzScrollBarStyle.normal.texture;
-		horzScrollBarStyle.active.texture = horzScrollBarStyle.normal.texture;
-		horzScrollBarStyle.fixedHeight = true;
-		horzScrollBarStyle.fixedWidth = false;
-		horzScrollBarStyle.minWidth = 8;
-		horzScrollBarStyle.height = 16;
-
-		horzScrollBarStyle.subStyles[GUIScrollBar::getVScrollHandleType()] = "ScrollBarVertBtn";
-		horzScrollBarStyle.subStyles[GUIScrollBar::getHScrollHandleType()] = "ScrollBarHorzBtn";
-
-		skin->setStyle("ScrollBarHorz", horzScrollBarStyle);
-
-		// Horizontal resizeable handle
-		GUIElementStyle scrollBarHorzResizeableBtnStyle;
-		scrollBarHorzResizeableBtnStyle.normal.texture = getSkinTexture(ScrollBarResizeableHandleHorzNormalTex);
-		scrollBarHorzResizeableBtnStyle.hover.texture = getSkinTexture(ScrollBarResizeableHandleHorzHoverTex);
-		scrollBarHorzResizeableBtnStyle.active.texture = getSkinTexture(ScrollBarResizeableHandleHorzActiveTex);
-		scrollBarHorzResizeableBtnStyle.fixedHeight = true;
-		scrollBarHorzResizeableBtnStyle.fixedWidth = false;
-		scrollBarHorzResizeableBtnStyle.minWidth = 15;
-		scrollBarHorzResizeableBtnStyle.height = 13;
-		scrollBarHorzResizeableBtnStyle.border.left = 7;
-		scrollBarHorzResizeableBtnStyle.border.right = 7;
-
-		skin->setStyle("ScrollBarResizeableHorzBtn", scrollBarHorzResizeableBtnStyle);
-
-		// Vertical resizeable handle
-		GUIElementStyle scrollBarVertResizeableBtnStyle;
-		scrollBarVertResizeableBtnStyle.normal.texture = getSkinTexture(ScrollBarResizeableHandleVertNormalTex);
-		scrollBarVertResizeableBtnStyle.hover.texture = getSkinTexture(ScrollBarResizeableHandleVertHoverTex);
-		scrollBarVertResizeableBtnStyle.active.texture = getSkinTexture(ScrollBarResizeableHandleVertActiveTex);
-		scrollBarVertResizeableBtnStyle.fixedHeight = false;
-		scrollBarVertResizeableBtnStyle.fixedWidth = true;
-		scrollBarVertResizeableBtnStyle.width = 13;
-		scrollBarVertResizeableBtnStyle.minHeight = 15;
-		scrollBarVertResizeableBtnStyle.border.top = 7;
-		scrollBarVertResizeableBtnStyle.border.bottom = 7;
-
-		skin->setStyle("ScrollBarResizeableVertBtn", scrollBarVertResizeableBtnStyle);
-
-		// Vertical resizeable scroll bar
-		GUIElementStyle vertResizeableScrollBarStyle;
-		vertResizeableScrollBarStyle.normal.texture = getSkinTexture(ScrollBarVBgTex);
-		vertResizeableScrollBarStyle.hover.texture = vertResizeableScrollBarStyle.normal.texture;
-		vertResizeableScrollBarStyle.active.texture = vertResizeableScrollBarStyle.normal.texture;
-		vertResizeableScrollBarStyle.fixedHeight = false;
-		vertResizeableScrollBarStyle.fixedWidth = true;
-		vertResizeableScrollBarStyle.minHeight = 15;
-		vertResizeableScrollBarStyle.width = 16;
-
-		vertResizeableScrollBarStyle.subStyles[GUIScrollBar::getVScrollHandleType()] = "ScrollBarResizeableVertBtn";
-		vertResizeableScrollBarStyle.subStyles[GUIScrollBar::getHScrollHandleType()] = "ScrollBarResizeableHorzBtn";
-
-		skin->setStyle("ResizeableScrollBarVert", vertResizeableScrollBarStyle);
-
-		// Horizontal resizeable scroll bar
-		GUIElementStyle horzResizeableScrollBarStyle;
-		horzResizeableScrollBarStyle.normal.texture = getSkinTexture(ScrollBarHBgTex);
-		horzResizeableScrollBarStyle.hover.texture = horzResizeableScrollBarStyle.normal.texture;
-		horzResizeableScrollBarStyle.active.texture = horzResizeableScrollBarStyle.normal.texture;
-		horzResizeableScrollBarStyle.fixedHeight = true;
-		horzResizeableScrollBarStyle.fixedWidth = false;
-		horzResizeableScrollBarStyle.minWidth = 15;
-		horzResizeableScrollBarStyle.height = 16;
-
-		horzResizeableScrollBarStyle.subStyles[GUIScrollBar::getVScrollHandleType()] = "ScrollBarResizeableVertBtn";
-		horzResizeableScrollBarStyle.subStyles[GUIScrollBar::getHScrollHandleType()] = "ScrollBarResizeableHorzBtn";
-
-		skin->setStyle("ResizeableScrollBarHorz", horzResizeableScrollBarStyle);
-
-		/************************************************************************/
-		/* 								DROP DOWN BOX                      		*/
-		/************************************************************************/
-
-		// ListBox button
-		GUIElementStyle dropDownListStyle;
-		dropDownListStyle.normal.texture = getSkinTexture(DropDownBtnNormalTex);
-		dropDownListStyle.hover.texture = getSkinTexture(DropDownBtnHoverTex);
-		dropDownListStyle.active.texture = getSkinTexture(DropDownBtnActiveTex);
-		dropDownListStyle.normalOn.texture = dropDownListStyle.active.texture;
-		dropDownListStyle.hoverOn.texture = dropDownListStyle.active.texture;
-		dropDownListStyle.activeOn.texture = dropDownListStyle.active.texture;
-		dropDownListStyle.normal.textColor = TextNormalColor;
-		dropDownListStyle.hover.textColor = TextNormalColor;
-		dropDownListStyle.active.textColor = TextNormalColor;
-		dropDownListStyle.normalOn.textColor = TextNormalColor;
-		dropDownListStyle.hoverOn.textColor = TextNormalColor;
-		dropDownListStyle.activeOn.textColor = TextNormalColor;
-		dropDownListStyle.fixedHeight = true;
-		dropDownListStyle.fixedWidth = false;
-		dropDownListStyle.height = 21;
-		dropDownListStyle.minWidth = 20;
-		dropDownListStyle.contentOffset.left = 3;
-		dropDownListStyle.contentOffset.right = 18;
-		dropDownListStyle.contentOffset.top = 2;
-		dropDownListStyle.contentOffset.bottom = 2;
-		dropDownListStyle.border.left = 2;
-		dropDownListStyle.border.right = 16;
-		dropDownListStyle.border.top = 2;
-		dropDownListStyle.border.bottom = 4;
-		dropDownListStyle.margins.bottom = 2;
-		dropDownListStyle.font = font;
-		dropDownListStyle.fontSize = DefaultFontSize;
-		dropDownListStyle.textHorzAlign = THA_Left;
-		dropDownListStyle.textVertAlign = TVA_Center;
-
-		skin->setStyle("ListBox", dropDownListStyle);
-
-		// DropDown scroll up button
-		GUIElementStyle dropDownScrollUpBtnStyle;
-		dropDownScrollUpBtnStyle.normal.texture = getSkinTexture(DropDownBoxBtnUpNormalTex);
-		dropDownScrollUpBtnStyle.hover.texture = getSkinTexture(DropDownBoxBtnUpHoverTex);
-		dropDownScrollUpBtnStyle.active.texture = dropDownScrollUpBtnStyle.hover.texture;
-		dropDownScrollUpBtnStyle.fixedHeight = true;
-		dropDownScrollUpBtnStyle.fixedWidth = true;
-		dropDownScrollUpBtnStyle.width = 8;
-		dropDownScrollUpBtnStyle.height = 12;
-
-		skin->setStyle("ListBoxScrollUpBtn", dropDownScrollUpBtnStyle);
-		skin->setStyle("MenuBarScrollUpBtn", dropDownScrollUpBtnStyle);
-		skin->setStyle("ContextMenuScrollUpBtn", dropDownScrollUpBtnStyle);
-
-		// DropDown scroll down button
-		GUIElementStyle dropDownScrollDownBtnStyle;
-		dropDownScrollDownBtnStyle.normal.texture = getSkinTexture(DropDownBoxBtnDownNormalTex);
-		dropDownScrollDownBtnStyle.hover.texture = getSkinTexture(DropDownBoxBtnDownHoverTex);
-		dropDownScrollDownBtnStyle.active.texture = dropDownScrollDownBtnStyle.hover.texture;
-		dropDownScrollDownBtnStyle.fixedHeight = true;
-		dropDownScrollDownBtnStyle.fixedWidth = true;
-		dropDownScrollDownBtnStyle.width = 8;
-		dropDownScrollDownBtnStyle.height = 12;
-
-		skin->setStyle("ListBoxScrollDownBtn", dropDownScrollDownBtnStyle);
-		skin->setStyle("MenuBarScrollDownBtn", dropDownScrollDownBtnStyle);
-		skin->setStyle("ContextMenuScrollDownBtn", dropDownScrollDownBtnStyle);
-
-		// DropDown handle
-		GUIElementStyle dropDownScrollHandleStyle;
-		dropDownScrollHandleStyle.normal.texture = getSkinTexture(DropDownBoxHandleTex);
-		dropDownScrollHandleStyle.fixedHeight = false;
-		dropDownScrollHandleStyle.fixedWidth = true;
-		dropDownScrollHandleStyle.height = 8;
-		dropDownScrollHandleStyle.width = 8;
-
-		skin->setStyle("ListBoxHandle", dropDownScrollHandleStyle);
-		skin->setStyle("MenuBarHandle", dropDownScrollHandleStyle);
-		skin->setStyle("ContextMenuHandle", dropDownScrollHandleStyle);
-
-		// DropDown sidebar background
-		GUIElementStyle dropDownSidebarBg;
-		dropDownSidebarBg.normal.texture = getSkinTexture(DropDownBoxSideBgTex);
-		dropDownSidebarBg.fixedHeight = false;
-		dropDownSidebarBg.fixedWidth = true;
-		dropDownSidebarBg.height = 8;
-		dropDownSidebarBg.width = 9;
-		dropDownSidebarBg.border.left = 1;
-		dropDownSidebarBg.border.top = 1;
-		dropDownSidebarBg.border.bottom = 1;
-
-		skin->setStyle("ListBoxSidebarBg", dropDownSidebarBg);
-		skin->setStyle("MenuBarSidebarBg", dropDownSidebarBg);
-		skin->setStyle("ContextMenuSidebarBg", dropDownSidebarBg);
-
-		// DropDown entry button
-		GUIElementStyle dropDownEntryBtnStyle;
-		dropDownEntryBtnStyle.normal.texture = getSkinTexture(DropDownBoxEntryNormalTex);
-		dropDownEntryBtnStyle.hover.texture = getSkinTexture(DropDownBoxEntryHoverTex);
-		dropDownEntryBtnStyle.active.texture = dropDownEntryBtnStyle.hover.texture;
-		dropDownEntryBtnStyle.normalOn.texture = dropDownEntryBtnStyle.hover.texture;
-		dropDownEntryBtnStyle.hoverOn.texture = dropDownEntryBtnStyle.hover.texture;
-		dropDownEntryBtnStyle.activeOn.texture = dropDownEntryBtnStyle.hover.texture;
-		dropDownEntryBtnStyle.normal.textColor = TextNormalColor;
-		dropDownEntryBtnStyle.hover.textColor = TextNormalColor;
-		dropDownEntryBtnStyle.active.textColor = TextNormalColor;
-		dropDownEntryBtnStyle.normalOn.textColor = TextNormalColor;
-		dropDownEntryBtnStyle.hoverOn.textColor = TextNormalColor;
-		dropDownEntryBtnStyle.activeOn.textColor = TextNormalColor;
-		dropDownEntryBtnStyle.fixedHeight = true;
-		dropDownEntryBtnStyle.fixedWidth = false;
-		dropDownEntryBtnStyle.height = 16;
-		dropDownEntryBtnStyle.width = 30;
-		dropDownEntryBtnStyle.font = font;
-		dropDownEntryBtnStyle.fontSize = DefaultFontSize;
-		dropDownEntryBtnStyle.textHorzAlign = THA_Left;
-		dropDownEntryBtnStyle.textVertAlign = TVA_Center;
-
-		skin->setStyle(GUIDropDownContent::ENTRY_STYLE_TYPE, dropDownEntryBtnStyle);
-
-		// DropDown toggle entry button
-		GUIElementStyle dropDownToggleEntryBtnStyle;
-		dropDownToggleEntryBtnStyle.normal.texture = getSkinTexture(DropDownBoxEntryToggleNormalTex);
-		dropDownToggleEntryBtnStyle.hover.texture = getSkinTexture(DropDownBoxEntryToggleHoverTex);
-		dropDownToggleEntryBtnStyle.active.texture = dropDownToggleEntryBtnStyle.hover.texture;
-		dropDownToggleEntryBtnStyle.normalOn.texture = getSkinTexture(DropDownBoxEntryToggleNormalOnTex);
-		dropDownToggleEntryBtnStyle.hoverOn.texture = getSkinTexture(DropDownBoxEntryToggleHoverOnTex);
-		dropDownToggleEntryBtnStyle.activeOn.texture = dropDownToggleEntryBtnStyle.hoverOn.texture;
-		dropDownToggleEntryBtnStyle.normal.textColor = TextNormalColor;
-		dropDownToggleEntryBtnStyle.hover.textColor = TextNormalColor;
-		dropDownToggleEntryBtnStyle.active.textColor = TextNormalColor;
-		dropDownToggleEntryBtnStyle.normalOn.textColor = TextNormalColor;
-		dropDownToggleEntryBtnStyle.hoverOn.textColor = TextNormalColor;
-		dropDownToggleEntryBtnStyle.activeOn.textColor = TextNormalColor;
-		dropDownToggleEntryBtnStyle.fixedHeight = true;
-		dropDownToggleEntryBtnStyle.fixedWidth = false;
-		dropDownToggleEntryBtnStyle.height = 18;
-		dropDownToggleEntryBtnStyle.width = 30;
-		dropDownToggleEntryBtnStyle.border.left = 17;
-		dropDownToggleEntryBtnStyle.contentOffset.left = 17;
-		dropDownToggleEntryBtnStyle.font = font;
-		dropDownToggleEntryBtnStyle.fontSize = DefaultFontSize;
-		dropDownToggleEntryBtnStyle.textHorzAlign = THA_Left;
-		dropDownToggleEntryBtnStyle.textVertAlign = TVA_Center;
-
-		skin->setStyle(GUIDropDownContent::ENTRY_TOGGLE_STYLE_TYPE, dropDownToggleEntryBtnStyle);
-
-		// DropDown entry button with expand
-		GUIElementStyle dropDownEntryExpBtnStyle;
-		dropDownEntryExpBtnStyle.normal.texture = getSkinTexture(DropDownBoxEntryExpNormalTex);
-		dropDownEntryExpBtnStyle.hover.texture = getSkinTexture(DropDownBoxEntryExpHoverTex);
-		dropDownEntryExpBtnStyle.active.texture = dropDownEntryExpBtnStyle.hover.texture;
-		dropDownEntryExpBtnStyle.normalOn.texture = dropDownEntryExpBtnStyle.hover.texture;
-		dropDownEntryExpBtnStyle.hoverOn.texture = dropDownEntryExpBtnStyle.hover.texture;
-		dropDownEntryExpBtnStyle.activeOn.texture = dropDownEntryExpBtnStyle.hover.texture;
-		dropDownEntryExpBtnStyle.normal.textColor = TextNormalColor;
-		dropDownEntryExpBtnStyle.hover.textColor = TextNormalColor;
-		dropDownEntryExpBtnStyle.active.textColor = TextNormalColor;
-		dropDownEntryExpBtnStyle.normalOn.textColor = TextNormalColor;
-		dropDownEntryExpBtnStyle.hoverOn.textColor = TextNormalColor;
-		dropDownEntryExpBtnStyle.activeOn.textColor = TextNormalColor;
-		dropDownEntryExpBtnStyle.fixedHeight = true;
-		dropDownEntryExpBtnStyle.fixedWidth = false;
-		dropDownEntryExpBtnStyle.height = 16;
-		dropDownEntryExpBtnStyle.width = 30;
-		dropDownEntryExpBtnStyle.border.right = 13;
-		dropDownEntryExpBtnStyle.font = font;
-		dropDownEntryExpBtnStyle.fontSize = DefaultFontSize;
-		dropDownEntryExpBtnStyle.textHorzAlign = THA_Left;
-		dropDownEntryExpBtnStyle.textVertAlign = TVA_Center;
-
-		skin->setStyle(GUIDropDownContent::ENTRY_EXP_STYLE_TYPE, dropDownEntryExpBtnStyle);
-
-		// Drop down separator
-		GUIElementStyle dropDownSeparatorStyle;
-		dropDownSeparatorStyle.normal.texture = getSkinTexture(DropDownSeparatorTex);
-		dropDownSeparatorStyle.fixedHeight = true;
-		dropDownSeparatorStyle.fixedWidth = false;
-		dropDownSeparatorStyle.height = 3;
-		dropDownSeparatorStyle.width = 30;
-
-		skin->setStyle(GUIDropDownContent::SEPARATOR_STYLE_TYPE, dropDownSeparatorStyle);
-
-		// Drop down content
-		GUIElementStyle dropDownContentStyle;
-		dropDownContentStyle.minWidth = 50;
-		dropDownContentStyle.minHeight = 20;
-		dropDownContentStyle.subStyles[GUIDropDownContent::ENTRY_TOGGLE_STYLE_TYPE] = GUIDropDownContent::ENTRY_TOGGLE_STYLE_TYPE;
-		dropDownContentStyle.subStyles[GUIDropDownContent::ENTRY_STYLE_TYPE] = GUIDropDownContent::ENTRY_STYLE_TYPE;
-		dropDownContentStyle.subStyles[GUIDropDownContent::ENTRY_EXP_STYLE_TYPE] = GUIDropDownContent::ENTRY_EXP_STYLE_TYPE;
-		dropDownContentStyle.subStyles[GUIDropDownContent::SEPARATOR_STYLE_TYPE] = GUIDropDownContent::SEPARATOR_STYLE_TYPE;
-
-		skin->setStyle("ListBoxContent", dropDownContentStyle);
-		skin->setStyle("MenuBarContent", dropDownContentStyle);
-		skin->setStyle("ContextMenuContent", dropDownContentStyle);
-
-		// DropDown box frame
-		GUIElementStyle dropDownBoxStyle;
-		dropDownBoxStyle.normal.texture = getSkinTexture(DropDownBoxBgTex);
-		dropDownBoxStyle.hover.texture = dropDownBoxStyle.normal.texture;
-		dropDownBoxStyle.active.texture = dropDownBoxStyle.hover.texture;
-		dropDownBoxStyle.fixedHeight = false;
-		dropDownBoxStyle.fixedWidth = false;
-		dropDownBoxStyle.border.left = 2;
-		dropDownBoxStyle.border.right = 2;
-		dropDownBoxStyle.border.top = 2;
-		dropDownBoxStyle.border.bottom = 4;
-		dropDownBoxStyle.margins.left = 6;
-		dropDownBoxStyle.margins.right = 6;
-		dropDownBoxStyle.margins.top = 4;
-		dropDownBoxStyle.margins.bottom = 6;
-
-		skin->setStyle("ListBoxFrame", dropDownBoxStyle);
-		skin->setStyle("MenuBarFrame", dropDownBoxStyle);
-		skin->setStyle("ContextMenuFrame", dropDownBoxStyle);
-
-		/************************************************************************/
-		/* 								TOOLTIP                      			*/
-		/************************************************************************/
-
-		GUIElementStyle tooltipFrameStyle;
-		tooltipFrameStyle.normal.texture = getSkinTexture(DropDownBoxBgTex);
-		tooltipFrameStyle.hover.texture = tooltipFrameStyle.normal.texture;
-		tooltipFrameStyle.active.texture = tooltipFrameStyle.hover.texture;
-		tooltipFrameStyle.fixedHeight = false;
-		tooltipFrameStyle.fixedWidth = false;
-		tooltipFrameStyle.border.left = 2;
-		tooltipFrameStyle.border.right = 2;
-		tooltipFrameStyle.border.top = 2;
-		tooltipFrameStyle.border.bottom = 4;
-		tooltipFrameStyle.margins.left = 6;
-		tooltipFrameStyle.margins.right = 6;
-		tooltipFrameStyle.margins.top = 4;
-		tooltipFrameStyle.margins.bottom = 6;
-
-		skin->setStyle(GUITooltip::getFrameStyleName(), tooltipFrameStyle);
-
-		/************************************************************************/
-		/* 								SLIDER                      			*/
-		/************************************************************************/
-
-		GUIElementStyle sliderHandleStyle;
-		sliderHandleStyle.fixedHeight = true;
-		sliderHandleStyle.fixedWidth = true;
-		sliderHandleStyle.width = 12;
-		sliderHandleStyle.height = 13;
-		sliderHandleStyle.normal.texture = getSkinTexture(SliderHandleNormalTex);
-		sliderHandleStyle.hover.texture = getSkinTexture(SliderHandleHoverTex);
-		sliderHandleStyle.active.texture = getSkinTexture(SliderHandleActiveTex);
-
-		skin->setStyle(GUISlider::getHandleStyleType(), sliderHandleStyle);
-
-		GUIElementStyle sliderHorizontalBgStyle;
-		sliderHorizontalBgStyle.fixedHeight = true;
-		sliderHorizontalBgStyle.height = 10;
-		sliderHorizontalBgStyle.normal.texture = getSkinTexture(SliderHBackgroundTex);
-		sliderHorizontalBgStyle.border.left = 4;
-		sliderHorizontalBgStyle.border.right = 4;
-
-		skin->setStyle("SliderHorzBg", sliderHorizontalBgStyle);
-
-		GUIElementStyle sliderHorizontalFillStyle;
-		sliderHorizontalFillStyle.fixedHeight = true;
-		sliderHorizontalFillStyle.height = 10;
-		sliderHorizontalFillStyle.normal.texture = getSkinTexture(SliderHFillTex);
-		sliderHorizontalFillStyle.border.left = 6;
-		sliderHorizontalFillStyle.border.right = 4;
-
-		skin->setStyle("SliderHorzFill", sliderHorizontalFillStyle);
-
-		GUIElementStyle sliderHorizontalStyle;
-		sliderHorizontalStyle.fixedHeight = true;
-		sliderHorizontalStyle.height = 13;
-		sliderHorizontalStyle.width = 150;
-		sliderHorizontalStyle.minWidth = 10;
-		sliderHorizontalStyle.subStyles[GUISlider::getHandleStyleType()] = GUISlider::getHandleStyleType();
-		sliderHorizontalStyle.subStyles[GUISlider::getBackgroundStyleType()] = "SliderHorzBg";
-		sliderHorizontalStyle.subStyles[GUISlider::getFillStyleType()] = "SliderHorzFill";
-
-		skin->setStyle(GUISliderHorz::getGUITypeName(), sliderHorizontalStyle);
-
-		GUIElementStyle sliderVerticalBgStyle;
-		sliderVerticalBgStyle.fixedWidth = true;
-		sliderVerticalBgStyle.width = 10;
-		sliderVerticalBgStyle.normal.texture = getSkinTexture(SliderVBackgroundTex);
-		sliderVerticalBgStyle.border.top = 4;
-		sliderVerticalBgStyle.border.bottom = 4;
-
-		skin->setStyle("SliderVertBg", sliderVerticalBgStyle);
-
-		GUIElementStyle sliderVerticalFillStyle;
-		sliderVerticalFillStyle.fixedWidth = true;
-		sliderVerticalFillStyle.width = 10;
-		sliderVerticalFillStyle.normal.texture = getSkinTexture(SliderVFillTex);
-		sliderVerticalFillStyle.border.top = 6;
-		sliderVerticalFillStyle.border.bottom = 4;
-
-		skin->setStyle("SliderVertFill", sliderVerticalFillStyle);
-
-		GUIElementStyle sliderVerticalStyle;
-		sliderVerticalStyle.fixedWidth = true;
-		sliderVerticalStyle.width = 13;
-		sliderVerticalStyle.height = 150;
-		sliderVerticalStyle.minHeight = 10;
-		sliderVerticalStyle.subStyles[GUISlider::getHandleStyleType()] = GUISlider::getHandleStyleType();
-		sliderVerticalStyle.subStyles[GUISlider::getBackgroundStyleType()] = "SliderVertBg";
-		sliderVerticalStyle.subStyles[GUISlider::getFillStyleType()] = "SliderVertFill";
-
-		skin->setStyle(GUISliderVert::getGUITypeName(), sliderVerticalStyle);
-
-		/************************************************************************/
-		/* 									OTHER                      			*/
-		/************************************************************************/
-
-		// Right-aligned label
-		GUIElementStyle rightAlignedLabelStyle;
-		rightAlignedLabelStyle.font = font;
-		rightAlignedLabelStyle.fontSize = DefaultFontSize;
-		rightAlignedLabelStyle.fixedWidth = false;
-		rightAlignedLabelStyle.fixedHeight = true;
-		rightAlignedLabelStyle.height = 11;
-		rightAlignedLabelStyle.minWidth = 10;
-		rightAlignedLabelStyle.textHorzAlign = THA_Right;
-		rightAlignedLabelStyle.normal.textColor = TextNormalColor;
-
-		skin->setStyle("RightAlignedLabel", rightAlignedLabelStyle);
+		for(auto& entry : guiSkinJSON)
+		{
+			std::string name = entry["name"];
+
+			GUIElementStyle style = BuiltinResourcesHelper::loadGUIStyleFromJSON(entry, loader);
+			skin->setStyle(name.c_str(), style);
+		}
 
 		return skin;
 	}
@@ -1361,7 +700,7 @@ namespace bs
 		saveMesh(discPath, discMesh, "6f496313-344a-495c-83e8-152e3053c52d");
 	}
 
-	HSpriteTexture BuiltinResources::getSkinTexture(const String& name)
+	HSpriteTexture BuiltinResources::getSkinTexture(const String& name) const
 	{
 		Path texturePath = mEngineSkinSpritesFolder;
 		texturePath.append(u8"sprite_" + name + u8".asset");
@@ -1369,7 +708,7 @@ namespace bs
 		return gResources().load<SpriteTexture>(texturePath);
 	}
 
-	HShader BuiltinResources::getShader(const Path& path)
+	HShader BuiltinResources::getShader(const Path& path) const
 	{
 		Path programPath = mEngineShaderFolder;
 		programPath.append(path);
@@ -1378,7 +717,7 @@ namespace bs
 		return gResources().load<Shader>(programPath);
 	}
 
-	HTexture BuiltinResources::getCursorTexture(const String& name)
+	HTexture BuiltinResources::getCursorTexture(const String& name) const
 	{
 		Path cursorPath = mEngineCursorFolder;
 		cursorPath.append(name + u8".asset");
