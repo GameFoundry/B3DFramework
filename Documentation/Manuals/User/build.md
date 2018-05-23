@@ -107,7 +107,7 @@ Your build files will be output to the `build` folder.
  
 ## Copy files {#build_a_g}
 Before you can run the application you must first copy the data files and dynamic libraries so that your application can find them when it starts. 
- - Copy the `bin/Data` folder to the location where is your executable located
+ - Copy the `bin/Data` folder to the location where is your executable is located
  - If on Windows you should also copy any .dll files in the `bin` folder to where your executable is located. Note that precompiled binaries package comes with separate set of dynamic libraries for Debug and Release builds in `bin/Debug` and `bin/Release` folders. You should copy them to the appropriate folder depending on the configuration you are building with. 
  
 For example in Visual Studio the executable will be placed at `x64/Release/` within your project root, for a 64-bit Release configuration. This is where you should place the dynamic libraries and the data files.

@@ -8,18 +8,29 @@ They have parameters like position and orientation which define what part of the
 
 Finally, everything that the camera sees is output to what we call a render target. Render targets can be windows, like the one that was created when the application was started, or an off-screen surface, as we'll explain later.
 
-Cameras are represented by the @ref bs::CCamera "Camera" component, and they can be created as any other component. At minimum their constructor requires a render target onto which they will output their contents.
+Cameras are represented by the @ref bs::CCamera "Camera" component, and they can be created as any other component. 
 
-Lets create a camera that renders to the primary render window. The primary application window can be retrieved through @ref bs::Application::getPrimaryWindow "Application::getPrimaryWindow()".
+~~~~~~~~~~~~~{.cpp}
+HSceneObject cameraSO = SceneObject::create("Camera");
+HCamera camera = cameraSO->addComponent<CCamera>();
+~~~~~~~~~~~~~
+
+Before the camera can render anything, you need to assign the render target to which the camera will output its contents to. Lets create a camera that renders to the primary render window. The primary application window can be retrieved through @ref bs::Application::getPrimaryWindow "Application::getPrimaryWindow()".
+
+To assign the window, retrieve the @ref bs::Viewport "Viewport" object from the camera, and set its target using the @ref bs::Viewport::setTarget "Viewport::setTarget()" method.
 
 ~~~~~~~~~~~~~{.cpp}
 SPtr<RenderWindow> primaryWindow = gApplication().getPrimaryWindow();
-
-HSceneObject cameraSO = SceneObject::create("Camera");
-HCamera camera = cameraSO->addComponent<CCamera>(primaryWindow);
+camera->getViewport()->setTarget(primaryWindow);
 ~~~~~~~~~~~~~
 
 > **Application** is a singleton and its instance can be accessed through @ref bs::Application::instance() "Application::instance()", or the helper method @ref bs::gApplication() "gApplication()". All other singletons in the framework follow the same design.
+
+Or alternatively, you can just mark the camera as 'main', which will render to the default render target (in this case, the primary window).
+
+~~~~~~~~~~~~~{.cpp}
+camera->setMain(true);
+~~~~~~~~~~~~~
 
 Once the camera has been created we can move and orient it using the **SceneObject** transform, as explained earlier. For example:
 ~~~~~~~~~~~~~{.cpp}
@@ -72,7 +83,7 @@ Normally you want to set it to the ratio of the render target's width and height
 
 ~~~~~~~~~~~~~{.cpp}
 SPtr<RenderWindow> primaryWindow = gApplication().getPrimaryWindow();
-auto& windowProps = newWindow->getProperties();
+auto& windowProps = primaryWindow->getProperties();
 
 float aspectRatio = windowProps.getWidth() / (float)windowProps.getHeight();
 camera->setAspectRatio(aspectRatio);
@@ -92,7 +103,7 @@ For example, if you are making a 2D game, your world units are most likely pixel
 
 ~~~~~~~~~~~~~{.cpp}
 SPtr<RenderWindow> primaryWindow = gApplication().getPrimaryWindow();
-auto& windowProps = newWindow->getProperties();
+auto& windowProps = primaryWindow->getProperties();
 
 camera->setOrthoWindow(windowProps.getWidth(), windowProps.getHeight());
 ~~~~~~~~~~~~~

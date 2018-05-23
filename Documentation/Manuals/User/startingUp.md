@@ -43,9 +43,9 @@ We will go into much more detail about components in the next manual, but a quic
 
 ~~~~~~~~~~~~~{.cpp}
 // Add a scene object containing a camera component
-SPtr<RenderWindow> window = gApplication().getPrimaryWindow();
 HSceneObject sceneCameraSO = SceneObject::create("SceneCamera");
-HCamera sceneCamera = sceneCameraSO->addComponent<CCamera>(window);
+HCamera sceneCamera = sceneCameraSO->addComponent<CCamera>();
+sceneCamera->setMain(true);
 
 sceneCameraSO->setPosition(Vector3(40.0f, 30.0f, 230.0f));
 sceneCameraSO->lookAt(Vector3(0, 0, 0));
@@ -69,22 +69,24 @@ Here's a complete code of what we have so far. The code doesn't do much - it ope
 
 ~~~~~~~~~~~~~{.cpp}
 #include "BsApplication.h"
+#include "Scene/BsSceneObject.h"
+#include "Components/BsCCamera.h"
 
 using namespace bs;
-
 int main()
 {
-	Application::startUp(VideoMode(1280, 720),"My app", false);
-
-	SPtr<RenderWindow> window = gApplication().getPrimaryWindow();
+	Application::startUp(VideoMode(1280, 720), "My app", false);
+	
 	HSceneObject sceneCameraSO = SceneObject::create("SceneCamera");
-	HCamera sceneCamera = sceneCameraSO->addComponent<CCamera>(window);
+	HCamera sceneCamera = sceneCameraSO->addComponent<CCamera>();
+	sceneCamera->setMain(true);
 
 	sceneCameraSO->setPosition(Vector3(40.0f, 30.0f, 230.0f));
 	sceneCameraSO->lookAt(Vector3(0, 0, 0));
 	
-	Application::runMainLoop();
+	Application::instance().runMainLoop();
 	Application::shutDown();
+	
 	return 0;
 }
 ~~~~~~~~~~~~~
