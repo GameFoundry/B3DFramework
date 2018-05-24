@@ -8,10 +8,10 @@ Huge thanks to all the patrons, contributors and donators!
  - @jonesmz - Various refactors and code modernization. 
 
 # Tier 3 Patrons
--
+- Christian Clavet [Founder]
 
 # Tier 2 Patrons
--
+- Andreas Schüle [Founder]
 
 # Tier 1 Patrons
 - Danijel Ribić [Founder]
