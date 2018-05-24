@@ -262,15 +262,14 @@ set(BS_UTILITY_SRC_WIN32
 
 set(BS_UTILITY_SRC_UNIX
 	"bsfUtility/Private/Unix/BsUnixFileSystem.cpp"
+	"bsfUtility/Private/Unix/BsUnixCrashHandler.cpp"
 )
 
 set(BS_UTILITY_SRC_LINUX
-	"bsfUtility/Private/Linux/BsLinuxCrashHandler.cpp"
 	"bsfUtility/Private/Linux/BsLinuxPlatformUtility.cpp"
 )
 
 set(BS_UTILITY_SRC_MACOS
-	"bsfUtility/Private/MacOS/BsMacOSCrashHandler.cpp"
 	"bsfUtility/Private/MacOS/BsMacOSPlatformUtility.cpp"
 )
 

@@ -9,7 +9,52 @@
 
 namespace bs
 {
-	CrashHandler::CrashHandler() {}
+	INT32 SIGNALS[] = { SIGFPE, SIGILL, SIGSEGV, SIGTERM };
+	struct sigaction gSavedSignals[4];
+
+	void signalHandler(int signal, siginfo_t* info, void* context)
+	{
+		// Restore old signal handlers
+		INT32 i = 0;
+		for(auto& entry : SIGNALS)
+		{
+			sigaction(entry, &gSavedSignals[i], nullptr);
+			i++;
+		}
+
+		const char* signalNameSz = strsignal(signal);
+
+		String signalName;
+		if(signalNameSz)
+			signalName = signalNameSz;
+		else
+			signalName = "Unknown signal #" + toString(signal);
+
+		// Note: Not safe to grab a stack-trace here (nor do memory allocations), but we might as well try since we're
+		// crashing anyway
+		CrashHandler::instance().reportCrash(signalName, "Received fatal signal", "", "");
+
+		kill(getpid(), signal);
+		exit(signal);
+	}
+
+	CrashHandler::CrashHandler()
+	{
+		struct sigaction action;
+		sigemptyset(&action.sa_mask);
+		action.sa_sigaction = &signalHandler;
+		action.sa_flags = SA_SIGINFO;
+
+		INT32 i = 0;
+		for(auto& entry : SIGNALS)
+		{
+			memset(&gSavedSignals[i], 0, sizeof(struct sigaction));
+			sigaction(entry, &action, &gSavedSignals[i]);
+
+			i++;
+		}
+	}
+
 	CrashHandler::~CrashHandler() {}
 
 	String CrashHandler::getCrashTimestamp()
@@ -36,6 +81,7 @@ namespace bs
 
 		for (int i = 0; i < traceSize && messages != nullptr; ++i)
 		{
+#if BS_PLATFORM == BS_PLATFORM_OSX
 			stackTrace << std::to_string(i) << ") " << messages[i];
 
 			// Try parsing a human readable name
@@ -69,6 +115,49 @@ namespace bs
 					}
 				}
 			}
+			else
+				stackTrace << String(messages[i]);
+#elif BS_PLATFORM == BS_PLATFORM_LINUX
+			// Try to find the characters surrounding the mangled name: '(' and '+'
+			char* mangedName = nullptr;
+			char* offsetBegin = nullptr;
+			char* offsetEnd = nullptr;
+			for (char *p = messages[i]; *p; ++p)
+			{
+				if (*p == '(')
+					mangedName = p;
+				else if (*p == '+')
+					offsetBegin = p;
+				else if (*p == ')')
+				{
+					offsetEnd = p;
+					break;
+				}
+			}
+
+			bool lineContainsMangledSymbol = mangedName != nullptr && offsetBegin != nullptr && offsetEnd != nullptr &&
+				mangedName < offsetBegin;
+
+			stackTrace << toString(i) << ") ";
+
+			if (lineContainsMangledSymbol)
+			{
+				*mangedName++ = '\0';
+				*offsetBegin++ = '\0';
+				*offsetEnd++ = '\0';
+
+				int status;
+				char *real_name = abi::__cxa_demangle(mangedName, 0, 0, &status);
+				char *output_name = status == 0 /* Demangling successful */? real_name : mangedName;
+				stackTrace << String(messages[i])
+						   << ": " << output_name
+						   << "+" << offsetBegin << offsetEnd;
+
+				free(real_name);
+			}
+			else
+				stackTrace << String(messages[i]);
+#endif
 
 			if (i < traceSize - 1)
 				stackTrace << "\n";
