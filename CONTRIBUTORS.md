@@ -7,6 +7,9 @@ Huge thanks to all the patrons, contributors and donators!
  - @nemerle - Various bugfixes and code improvements.
  - @jonesmz - Various refactors and code modernization. 
 
+# Tier X Patrons
+- John Lagerquist [Founder]
+ 
 # Tier 3 Patrons
 - Christian Clavet [Founder]
 
