@@ -87,6 +87,8 @@ namespace bs::ct
 			for(int i = 0; i < count; i++)
 			{
 				auto modeRef = (CGDisplayModeRef) CFArrayGetValueAtIndex(modes, i);
+				CGDisplayModeRetain(modeRef);
+
 				VideoMode* videoMode = new (bs_alloc<MacOSVideoMode>()) MacOSVideoMode(modeRef, linkRef, outputIdx);
 
 				mVideoModes.push_back(videoMode);
@@ -103,8 +105,6 @@ namespace bs::ct
 	MacOSVideoMode::MacOSVideoMode(CGDisplayModeRef mode, CVDisplayLinkRef linkRef, UINT32 outputIdx)
 			:VideoMode(0, 0, 0.0f, outputIdx), mModeRef(mode)
 	{
-		CGDisplayModeRetain(mModeRef);
-
 		mWidth = (UINT32)CGDisplayModeGetPixelWidth(mModeRef);
 		mHeight = (UINT32)CGDisplayModeGetPixelHeight(mModeRef);
 
