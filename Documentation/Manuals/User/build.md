@@ -43,6 +43,13 @@ cmake_minimum_required (VERSION 3.9.0)
 # Name of your project
 project (myProject)
 
+# Add necessary compiler flags
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR 
+   CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" OR
+   CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+	add_compile_options(-fno-rtti)
+endif()
+
 # Make sure to use the C++14 standard
 set(CMAKE_CXX_STANDARD 14)
 
