@@ -55,8 +55,8 @@ namespace bs
 
 	/** 
 	 * Erases the provided element from the container, but first swaps the element so its located at the end of the
-	 * container, making the erase operation cheaper at the cost of an extra copy. Return true if a swap occurred, or
-	 * false if the element was already at the end of the container.
+	 * container, making the erase operation cheaper at the cost of an extra move operation. Doesn't preserve ordering
+	 * within the element. Return true if a swap occurred, or false if the element was already at the end of the container.
 	 */
 	template <class T, class A = StdAlloc<T>>
 	bool bs_swap_and_erase(Vector<T, A>& container, const typename Vector<T, A>::iterator iter)

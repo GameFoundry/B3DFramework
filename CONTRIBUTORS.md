@@ -22,3 +22,5 @@ Huge thanks to all the patrons, contributors and donators!
 
 # One-time donators
 - Žan Strahija [Founder]
+- Michael Jones [Founder]
+- Patrick Meyer [Founder]

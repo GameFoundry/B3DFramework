@@ -119,15 +119,16 @@ namespace bs
 	using Vector = std::vector<T, A>;
 
 	/** 
-	 * Container that supports constant time insertion and removal, but without fast random access to elements. 
-	 * Internally implemented as a doubly linked list. Use ForwardList if you do not need reverse iteration.
+	 * Container that supports constant time insertion and removal for elements with known locations, but without fast
+	 * random access to elements. Internally implemented as a doubly linked list. Use ForwardList if you do not need 
+	 * reverse iteration.
 	 */
 	template <typename T, typename A = StdAlloc<T>>
 	using List = std::list<T, A>;
 
 	/** 
-	 * Container that supports constant time insertion and removal, but without fast random access to elements. 
-	 * Internally implemented as a singly linked list that doesn't support reverse iteration.
+	 * Container that supports constant time insertion and removal for elements with known locations, but without fast
+	 * random access to elements. Internally implemented as a singly linked list that doesn't support reverse iteration.
 	 */
 	template <typename T, typename A = StdAlloc<T>>
 	using ForwardList = std::forward_list<T, A>;
