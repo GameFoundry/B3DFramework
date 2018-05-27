@@ -114,7 +114,7 @@ namespace bs
 		 * @param[in]	streamIdx   	(optional) Zero-based index of the stream. Each stream will internally be 
 		 *								represented as a single vertex buffer.
 		 */
-		void setVertexData(VertexElementSemantic semantic, UINT8* data, UINT32 size, UINT32 semanticIdx = 0, UINT32 streamIdx = 0);
+		void setVertexData(VertexElementSemantic semantic, void* data, UINT32 size, UINT32 semanticIdx = 0, UINT32 streamIdx = 0);
 
 		/**
 		 * Copies data from the internal buffer to the pre-allocated buffer for the specified semantic.
@@ -128,7 +128,7 @@ namespace bs
 		 * @param[in]	streamIdx   	(optional) Zero-based index of the stream. Each stream will internally be 
 		 *								represented as a single vertex buffer.
 		 */
-		void getVertexData(VertexElementSemantic semantic, UINT8* data, UINT32 size, UINT32 semanticIdx = 0, UINT32 streamIdx = 0);
+		void getVertexData(VertexElementSemantic semantic, void* data, UINT32 size, UINT32 semanticIdx = 0, UINT32 streamIdx = 0);
 
 		/**
 		 * Returns an iterator you can use for easily retrieving or setting Vector2 vertex elements. This is the preferred

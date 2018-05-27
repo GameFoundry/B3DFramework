@@ -34,7 +34,7 @@ namespace bs
 		UINT32 numElements = mMeshData->getNumVertices();
 		assert(numElements * sizeof(Vector3) == size);
 
-		mMeshData->getVertexData(VES_POSITION, (UINT8*)buffer, size);
+		mMeshData->getVertexData(VES_POSITION, buffer, size);
 	}
 
 	void RendererMeshData::setPositions(Vector3* buffer, UINT32 size)
@@ -45,7 +45,7 @@ namespace bs
 		UINT32 numElements = mMeshData->getNumVertices();
 		assert(numElements * sizeof(Vector3) == size);
 
-		mMeshData->setVertexData(VES_POSITION, (UINT8*)buffer, size);
+		mMeshData->setVertexData(VES_POSITION, buffer, size);
 	}
 
 	void RendererMeshData::getNormals(Vector3* buffer, UINT32 size)
@@ -154,7 +154,7 @@ namespace bs
 		UINT32 numElements = mMeshData->getNumVertices();
 		assert(numElements * sizeof(UINT32) == size);
 
-		mMeshData->setVertexData(VES_COLOR, (UINT8*)buffer, size);
+		mMeshData->setVertexData(VES_COLOR, buffer, size);
 	}
 
 	void RendererMeshData::getUV0(Vector2* buffer, UINT32 size)
@@ -165,7 +165,7 @@ namespace bs
 		UINT32 numElements = mMeshData->getNumVertices();
 		assert(numElements * sizeof(Vector2) == size);
 
-		mMeshData->getVertexData(VES_TEXCOORD, (UINT8*)buffer, size, 0);
+		mMeshData->getVertexData(VES_TEXCOORD, buffer, size, 0);
 	}
 
 	void RendererMeshData::setUV0(Vector2* buffer, UINT32 size)
@@ -176,7 +176,7 @@ namespace bs
 		UINT32 numElements = mMeshData->getNumVertices();
 		assert(numElements * sizeof(Vector2) == size);
 
-		mMeshData->setVertexData(VES_TEXCOORD, (UINT8*)buffer, size, 0);
+		mMeshData->setVertexData(VES_TEXCOORD, buffer, size, 0);
 	}
 
 	void RendererMeshData::getUV1(Vector2* buffer, UINT32 size)
@@ -187,7 +187,7 @@ namespace bs
 		UINT32 numElements = mMeshData->getNumVertices();
 		assert(numElements * sizeof(Vector2) == size);
 
-		mMeshData->getVertexData(VES_TEXCOORD, (UINT8*)buffer, size, 1);
+		mMeshData->getVertexData(VES_TEXCOORD, buffer, size, 1);
 	}
 
 	void RendererMeshData::setUV1(Vector2* buffer, UINT32 size)
@@ -198,7 +198,7 @@ namespace bs
 		UINT32 numElements = mMeshData->getNumVertices();
 		assert(numElements * sizeof(Vector2) == size);
 
-		mMeshData->setVertexData(VES_TEXCOORD, (UINT8*)buffer, size, 1);
+		mMeshData->setVertexData(VES_TEXCOORD, buffer, size, 1);
 	}
 
 	void RendererMeshData::getBoneWeights(BoneWeight* buffer, UINT32 size)

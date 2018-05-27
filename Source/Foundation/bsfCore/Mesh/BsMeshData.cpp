@@ -183,7 +183,7 @@ namespace bs
 		return combinedMeshData;
 	}
 
-	void MeshData::setVertexData(VertexElementSemantic semantic, UINT8* data, UINT32 size, UINT32 semanticIdx, UINT32 streamIdx)
+	void MeshData::setVertexData(VertexElementSemantic semantic, void* data, UINT32 size, UINT32 semanticIdx, UINT32 streamIdx)
 	{
 		assert(data != nullptr);
 
@@ -208,7 +208,7 @@ namespace bs
 		UINT32 vertexStride = mVertexData->getVertexStride(streamIdx);
 
 		UINT8* dst = getData() + indexBufferOffset + elementOffset;
-		UINT8* src = data;
+		UINT8* src = (UINT8*)data;
 		for(UINT32 i = 0; i < mNumVertices; i++)
 		{
 			memcpy(dst, src, elementSize);
@@ -217,7 +217,7 @@ namespace bs
 		}
 	}
 
-	void MeshData::getVertexData(VertexElementSemantic semantic, UINT8* data, UINT32 size, UINT32 semanticIdx, UINT32 streamIdx)
+	void MeshData::getVertexData(VertexElementSemantic semantic, void* data, UINT32 size, UINT32 semanticIdx, UINT32 streamIdx)
 	{
 		assert(data != nullptr);
 
@@ -242,7 +242,7 @@ namespace bs
 		UINT32 vertexStride = mVertexData->getVertexStride(streamIdx);
 
 		UINT8* src = getData() + indexBufferOffset + elementOffset;
-		UINT8* dst = data;
+		UINT8* dst = (UINT8*)data;
 		for (UINT32 i = 0; i < mNumVertices; i++)
 		{
 			memcpy(dst, src, elementSize);
