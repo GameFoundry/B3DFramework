@@ -66,7 +66,7 @@ You can create @ref bs::MeshData "MeshData" by calling @ref bs::MeshData::create
 
 ~~~~~~~~~~~~~{.cpp}
 // Create mesh data able to contain 8 vertices of the format specified by vertexDesc, and 36 indices
-SPtr<MeshData> vertexDesc = MeshData::create(8, 36, vertexDesc);
+SPtr<MeshData> meshData = MeshData::create(8, 36, vertexDesc);
 ~~~~~~~~~~~~~ 
 
 You can also create **MeshData** using an existing mesh by calling @ref bs::Mesh::allocBuffer "Mesh::allocBuffer()". This will create an object of adequate size and vertex description for use on that mesh.
@@ -84,10 +84,10 @@ The most basic way is setting the data by using @ref bs::MeshData::setVertexData
 // Fill out the data for the 0th VES_POSITION element
 Vector3 myVertexPositions[8];
 for(UINT32 i = 0; i < 8; i++)
-	myVertexPositions = Vector3(i, i, 0); // Arbitrary
+	myVertexPositions[i] = Vector3(i, i, 0); // Arbitrary
 
 // Write the vertices
-meshData->setVertexData(VES_POSITION, myVertexPositions, sizeof(myVertexPositions));
+meshData->setVertexData(VES_POSITION, (UINT8*)myVertexPositions, sizeof(myVertexPositions));
 ~~~~~~~~~~~~~
 
 You can also use @ref bs::MeshData::getElementData "MeshData::getElementData()" which will return a pointer to the starting point of the vertex data for a specific element. You can then iterate over the pointer to read/write values. Make sure to use @ref bs::VertexDataDesc::getVertexStride "VertexDataDesc::getVertexStride()" to know how many bytes to advance between elements. This ensures you don't need to create an intermediate buffer like we did above.
