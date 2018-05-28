@@ -5,13 +5,75 @@
 #include "BsCorePrerequisites.h"
 #include "Allocators/BsGroupAlloc.h"
 #include "Image/BsColor.h"
+#include "Image/BsColorGradient.h"
 #include "Math/BsVector3.h"
+#include "Animation/BsAnimationCurve.h"
 
 namespace bs 
 {
 	/** @addtogroup Particles-Internal 
 	 *  @{
 	 */
+
+	enum ParticlePropertyType
+	{
+		PPT_Constant,
+		PPT_RandomRange,
+		PPT_Curve,
+		PPT_RandomCurveRange
+	};
+
+	struct ParticleColorRange
+	{
+		ParticleColorRange(const Color& color)
+			: mType(PPT_Constant), mMinColor(color.getAsRGBA())
+		{ }
+
+		ParticleColorRange(const Color& minColor, const Color& maxColor)
+			: mType(PPT_RandomRange), mMinColor(minColor.getAsRGBA()), mMaxColor(maxColor.getAsRGBA())
+		{ }
+
+		ParticleColorRange(const ColorGradient& gradient)
+			: mType(PPT_Curve), mMinGradient(gradient)
+		{ }
+
+		ParticleColorRange(const ColorGradient& minGradient, const ColorGradient& maxGradient)
+			: mType(PPT_RandomCurveRange), mMinGradient(minGradient), mMaxGradient(maxGradient)
+		{ }
+
+	private:
+		ParticlePropertyType mType;
+		RGBA mMinColor;
+		RGBA mMaxColor;
+		ColorGradient mMinGradient;
+		ColorGradient mMaxGradient;
+	};
+
+	struct ParticleFloatRange
+	{
+		ParticleFloatRange(float value)
+			: mType(PPT_Constant), mMinValue(value)
+		{ }
+
+		ParticleFloatRange(float minValue, float maxValue)
+			: mType(PPT_RandomRange), mMinValue(minValue), mMaxValue(maxValue)
+		{ }
+
+		ParticleFloatRange(const TAnimationCurve<float>& curve)
+			: mType(PPT_Curve), mMinCurve(curve)
+		{ }
+
+		ParticleFloatRange(const TAnimationCurve<float>& minCurve, const TAnimationCurve<float>& maxCurve)
+			: mType(PPT_RandomCurveRange), mMinCurve(minCurve), mMaxCurve(maxCurve)
+		{ }
+
+	private:
+		ParticlePropertyType mType;
+		float mMinValue;
+		float mMaxValue;
+		TAnimationCurve<float> mMinCurve;
+		TAnimationCurve<float> mMaxCurve;
+	};
 
 	// TODO - Doc
 	class ParticleSet : public INonCopyable

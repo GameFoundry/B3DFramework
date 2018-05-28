@@ -24,6 +24,7 @@ set(BS_UTILITY_INC_PREREQUISITES
 set(BS_UTILITY_INC_IMAGE
 	"bsfUtility/Image/BsColor.h"
 	"bsfUtility/Image/BsTextureAtlasLayout.h"
+	"bsfUtility/Image/BsColorGradient.h"
 )
 
 set(BS_UTILITY_INC_STRING
@@ -36,6 +37,7 @@ set(BS_UTILITY_INC_STRING
 set(BS_UTILITY_SRC_IMAGE
 	"bsfUtility/Image/BsColor.cpp"
 	"bsfUtility/Image/BsTextureAtlasLayout.cpp"
+	"bsfUtility/Image/BsColorGradient.cpp"
 )
 
 set(BS_UTILITY_SRC_UTILITY
