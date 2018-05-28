@@ -69,6 +69,10 @@
   *	Core resource types and resource management functionality (loading, saving, etc.).
   */
 
+/** @defgroup Particles Particles
+  *	Emission, updated and rendering of particles in the particle system.
+  */
+
 /** @cond RTTI */
 /** @defgroup RTTI-Impl-Core RTTI types
  *  RTTI implementations for classes within the core layer.
@@ -125,6 +129,10 @@
 
 /** @defgroup Material-Internal Material
  *	Materials, shaders and related functionality.
+ */
+
+/** @defgroup Particles-Internal Particles
+ *	Emission, updated and rendering of particles in the particle system.
  */
 
 /** @defgroup Physics-Internal Physics

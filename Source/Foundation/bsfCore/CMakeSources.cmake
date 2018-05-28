@@ -579,6 +579,14 @@ set(BS_CORE_SRC_ANIMATION
 	"bsfCore/Animation/BsMorphShapes.cpp"
 )
 
+set(BS_CORE_INC_PARTICLES
+	"bsfCore/Particles/BsParticleSystem.h"
+)
+
+set(BS_CORE_SRC_PARTICLES
+	"bsfCore/Particles/BsParticleSystem.cpp"
+)
+
 set(BS_CORE_INC_PLATFORM
 	"bsfCore/Platform/BsPlatform.h"
 	"bsfCore/Platform/BsFolderMonitor.h"
@@ -677,6 +685,7 @@ source_group("Audio" FILES ${BS_CORE_INC_AUDIO} ${BS_CORE_SRC_AUDIO})
 source_group("Animation" FILES ${BS_CORE_INC_ANIMATION} ${BS_CORE_SRC_ANIMATION})
 source_group("Image" FILES ${BS_CORE_INC_IMAGE} ${BS_CORE_SRC_IMAGE})
 source_group("Mesh" FILES ${BS_CORE_INC_MESH} ${BS_CORE_SRC_MESH})
+source_group("Particles" FILES ${BS_CORE_INC_PARTICLES} ${BS_CORE_SRC_PARTICLES})
 source_group("" FILES ${BS_CORE_INC_NOFILTER} ${BS_CORE_SRC_NOFILTER})
 
 if(APPLE)
@@ -728,4 +737,6 @@ set(BS_CORE_SRC
 	${BS_CORE_SRC_IMAGE}
 	${BS_CORE_INC_MESH}
 	${BS_CORE_SRC_MESH}
+	${BS_CORE_INC_PARTICLES}
+	${BS_CORE_SRC_PARTICLES}
 )
