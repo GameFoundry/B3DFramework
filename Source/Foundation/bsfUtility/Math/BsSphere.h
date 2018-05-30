@@ -11,28 +11,28 @@ namespace bs
 	 *  @{
 	 */
 
-    /** A sphere represented by a center point and a radius. */
-    class BS_UTILITY_EXPORT Sphere
-    {
-    public:
-        /** Default constructor. Creates a unit sphere around the origin. */
-        Sphere() = default;
+	/** A sphere represented by a center point and a radius. */
+	class BS_UTILITY_EXPORT Sphere
+	{
+	public:
+		/** Default constructor. Creates a unit sphere around the origin. */
+		Sphere() = default;
 
-        Sphere(const Vector3& center, float radius)
-            :mRadius(radius), mCenter(center) 
+		Sphere(const Vector3& center, float radius)
+			:mRadius(radius), mCenter(center) 
 		{ }
 
-        /** Returns the radius of the sphere. */
-        float getRadius() const { return mRadius; }
+		/** Returns the radius of the sphere. */
+		float getRadius() const { return mRadius; }
 
-        /** Sets the radius of the sphere. */
-        void setRadius(float radius) { mRadius = radius; }
+		/** Sets the radius of the sphere. */
+		void setRadius(float radius) { mRadius = radius; }
 
-        /** Returns the center point of the sphere. */
-        const Vector3& getCenter() const { return mCenter; }
+		/** Returns the center point of the sphere. */
+		const Vector3& getCenter() const { return mCenter; }
 
-        /** Sets the center point of the sphere. */
-        void setCenter(const Vector3& center) { mCenter = center; }
+		/** Sets the center point of the sphere. */
+		void setCenter(const Vector3& center) { mCenter = center; }
 
 		/** Merges the two spheres, creating a new sphere that encapsulates them both. */
 		void merge(const Sphere& rhs);
@@ -67,7 +67,7 @@ namespace bs
 	private:
 		float mRadius = 1.0f;
 		Vector3 mCenter{Vector3::ZERO};
-    };
+	};
 
 	/** @} */
 

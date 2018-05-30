@@ -1686,7 +1686,7 @@ namespace bs { namespace ct
 				maxMapSize = std::max(maxMapSize, optimalMapSize);
 
 				// Determine if the shadow should fade out
-				float fadePercent = Math::lerp01(optimalMapSize, (float)MIN_SHADOW_MAP_SIZE, (float)SHADOW_MAP_FADE_SIZE);
+				float fadePercent = Math::invLerp(optimalMapSize, (float)MIN_SHADOW_MAP_SIZE, (float)SHADOW_MAP_FADE_SIZE);
 				fadePercents.push_back(fadePercent);
 				maxFadePercent = std::max(maxFadePercent, fadePercent);
 			}

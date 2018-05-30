@@ -458,11 +458,20 @@ namespace bs
 		static float fastATan1(float val);
 
 		/**
-		 * Interpolates between min and max. Returned value is in [0, 1] range where min = 0, max = 1 and 0.5 is 
-		 * the average of min and max.
+		 * Linearly interpolates between the two values using @p t. t should be in [0, 1] range, where t = 0 corresponds
+		 * to @p min value, while t = 1 corresponds to @p max value.
 		 */
 		template <typename T>
-		static float lerp01(T val, T min, T max)
+		static T lerp(float t, T min, T max)
+		{
+			return (1.0f - t) * min + t * max;
+		}
+		/**
+		 * Determines the position of a value between two other values. Returns 0 if @p value is less or equal than
+		 * @p min, 1 if @p value is equal or greater than @p max, and value in range (0, 1) otherwise.
+		 */
+		template <typename T>
+		static float invLerp(T val, T min, T max)
 		{
 			return clamp01((val - min) / std::max(max - min, 0.0001F));
 		}

@@ -219,6 +219,7 @@ set(BS_UTILITY_INC_MATH
 	"bsfUtility/Math/BsMatrixNxM.h"
 	"bsfUtility/Math/BsLine2.h"
 	"bsfUtility/Math/BsSIMD.h"
+	"bsfUtility/Math/BsRandom.h"
 )
 
 set(BS_UTILITY_SRC_ERROR
