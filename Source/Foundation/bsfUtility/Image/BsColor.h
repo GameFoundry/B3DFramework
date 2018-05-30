@@ -287,12 +287,12 @@ namespace bs
 			//// Red-blue first
 			const UINT32 rbFrom = from & RB_MASK;
 			const UINT32 rbTo = to & RB_MASK;
-			const UINT32 rb = rbFrom + (((rbTo - rbFrom) * t) >> 8) & RB_MASK;
+			const UINT32 rb = (rbFrom + (((rbTo - rbFrom) * t) >> 8)) & RB_MASK;
 
 			//// Then green-alpha
 			const UINT32 gaFrom = from & GA_MASK;
 			const UINT32 gaTo = to & GA_MASK;
-			const UINT32 ga = gaFrom + ((((gaTo >> 8) - (gaFrom >> 8)) * t) >> 8) & GA_MASK;
+			const UINT32 ga = (gaFrom + ((((gaTo >> 8) - (gaFrom >> 8)) * t) >> 8)) & GA_MASK;
 
 			return rb | ga;
 		}

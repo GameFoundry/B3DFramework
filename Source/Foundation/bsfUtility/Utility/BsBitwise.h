@@ -249,7 +249,7 @@ namespace bs
 			assert((t & 0xFF) == t);
 			assert(from <= to);
 
-			return from + (((to - from) * t) >> 8) & 0xFF;
+			return (from + (((to - from) * t) >> 8)) & 0xFF;
 		}
 
 		/** 
@@ -264,7 +264,7 @@ namespace bs
 			assert((t & 0xFFFF) == t);
 			assert(from <= to);
 
-			return from + (((to - from) * t) >> 16) & 0xFFFF;
+			return (from + (((to - from) * t) >> 16)) & 0xFFFF;
 		}
 
 		/**

@@ -161,14 +161,16 @@ namespace bs
 	/** Contains particle emitter state that varies from frame to frame. */
 	struct ParticleEmitterState
 	{
+		/** Emitter state relevant for skinned mesh emitter shape. */
+		struct SkinnedMesh
+		{
+			Matrix4* bones;
+			UINT32 numBones;
+		};
+
 		union
 		{
-			/** Emitter state relevant for skinned mesh emitter shape. */
-			struct SkinnedMesh
-			{
-				Matrix4* bones;
-				UINT32 numBones;
-			} skinnedMesh;
+			SkinnedMesh skinnedMesh;
 		};
 	};
 
