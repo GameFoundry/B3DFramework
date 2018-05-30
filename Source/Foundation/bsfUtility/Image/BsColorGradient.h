@@ -22,7 +22,7 @@ namespace bs
 	{
 		static constexpr UINT32 MAX_KEYS = 8;
 	public:
-		RGBA evaluate(float t);
+		RGBA evaluate(float t) const;
 
 		// TODO - Must be sorted, time must be normalized
 		void setKeys(const Vector<ColorGradientKey>& keys, float duration = 1.0f);

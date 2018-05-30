@@ -913,11 +913,7 @@ namespace bs
 		UINT8* ptr = source;
 		for (UINT32 i = 0; i < count; i++)
 		{
-			PackedNormal& packed = *(PackedNormal*)ptr;
-
-			destination[i].x = (packed.x * 2.0f - 1.0f);
-			destination[i].y = (packed.y * 2.0f - 1.0f);
-			destination[i].z = (packed.z * 2.0f - 1.0f);
+			destination[i] = unpackNormal(ptr);
 
 			ptr += stride;
 		}

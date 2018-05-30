@@ -6,7 +6,7 @@
 
 namespace bs
 {
-	RGBA ColorGradient::evaluate(float t)
+	RGBA ColorGradient::evaluate(float t) const
 	{
 		if(mNumKeys == 0)
 			return 0;

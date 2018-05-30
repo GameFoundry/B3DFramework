@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
+#include "Math/BsVector3.h"
 
 namespace bs
 {
@@ -177,6 +178,19 @@ namespace bs
 		 * @param[in]	stride			Distance between two entries in the @p source buffer, in bytes.
 		 */
 		static void unpackNormals(UINT8* source, Vector4* destination, UINT32 count, UINT32 stride);
+
+		/** Decodes a normal from 4D 8-bit packed format into a 32-bit float format. */
+		static Vector3 unpackNormal(const UINT8* source)
+		{
+			const PackedNormal& packed = *(PackedNormal*)source;
+			Vector3 output;
+
+			output.x = (packed.x * 2.0f - 1.0f);
+			output.y = (packed.y * 2.0f - 1.0f);
+			output.z = (packed.z * 2.0f - 1.0f);
+
+			return output;
+		}
 	};
 
 	/** @} */
