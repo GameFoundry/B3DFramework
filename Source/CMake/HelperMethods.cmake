@@ -407,3 +407,89 @@ function(copyBsfBinaries target srcDir)
 		endforeach()
 	endif()
 endfunction()
+
+#######################################################################################
+##################### Precompiled header (Cotire) related #############################
+#######################################################################################
+
+function(find_clang_invalid_libc_pch_headers banned_files)
+	if (NOT UNIX)
+		return()
+	endif()
+
+	if (CMAKE_C_COMPILER_ID MATCHES "Clang")
+		execute_process(COMMAND ${CMAKE_C_COMPILER} -E -x c - -v
+						INPUT_FILE /dev/null
+						OUTPUT_FILE /dev/null
+			            ERROR_VARIABLE clang_c_raw_verbose)
+
+		string(REGEX MATCHALL "\n /[^\n]*" clang_c_search_dirs "${clang_c_raw_verbose}")
+		string(REPLACE "\n " "" clang_c_search_dirs "${clang_c_search_dirs}")
+
+		find_file(inttypes_c_location "inttypes.h" PATHS ${clang_c_search_dirs} PATH_SUFFIXES include NO_DEFAULT_PATH)
+	endif()
+
+	if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+		execute_process(COMMAND ${CMAKE_CXX_COMPILER} -E -x c++ - -v
+						INPUT_FILE /dev/null
+						OUTPUT_FILE /dev/null
+			            ERROR_VARIABLE clang_cxx_raw_verbose)
+
+		string(REGEX MATCHALL "\n /[^\n]*" clang_cxx_search_dirs "${clang_cxx_raw_verbose}")
+		string(REPLACE "\n " "" clang_cxx_search_dirs "${clang_cxx_search_dirs}")
+
+		find_file(inttypes_cxx_location "inttypes.h" PATHS ${clang_cxx_search_dirs} PATH_SUFFIXES include NO_DEFAULT_PATH)
+	endif()
+	set(${banned_files} ${inttypes_c_location} ${inttypes_cxx_location} PARENT_SCOPE)
+endfunction()
+
+function(find_windows_system_headers paths files_to_find)
+	if (NOT MSVC)
+		return()
+	endif()
+
+	set(file_string "int main(){}\n")
+
+	foreach (file ${files_to_find})
+		set(file_string "${file_string}\n#include<${file}>")
+	endforeach()
+
+	file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/default_headers.h.cxx"
+	           ${file_string})
+
+	if (COTIRE_DEBUG)
+		message(STATUS "Compiling the following file to find ${files_to_find}: " ${file_string})
+	endif()
+
+	try_compile(try_compile_result "${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/default_headers.h.cxx"
+            COMPILE_DEFINITIONS /showIncludes
+            OUTPUT_VARIABLE try_compile_output
+            )
+
+	if (COTIRE_DEBUG)
+		message(STATUS "${try_compile_output}")
+	endif()
+
+	string(REGEX MATCHALL "Note: including file:\\w*([^\n]*)" include_list "${try_compile_output}")
+
+	set(to_return "")
+
+	foreach(entry ${include_list})
+		string(REGEX REPLACE "Note: including file:\\w*([^\n]*)" "\\1" entry_path "${entry}")
+		foreach (file ${files_to_find})
+			if (${entry_path} MATCHES "${file}")
+				string(STRIP ${entry_path} entry_path_stripped)
+				file(TO_CMAKE_PATH "${entry_path_stripped}" entry_path_stripped_slashes)
+				set(to_return ${to_return} ${entry_path_stripped_slashes})
+			endif()
+		endforeach()
+	endforeach()
+
+	set(${paths} ${to_return} PARENT_SCOPE)
+endfunction()
+
+macro(conditional_cotire)
+	if(COMMAND cotire)
+		cotire(${ARGN})
+	endif()
+endmacro()

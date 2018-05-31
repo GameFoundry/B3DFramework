@@ -12,7 +12,7 @@
 
 namespace bs { namespace ct
 {
-	static const UINT32 BUFFER_INCREMENT = 16 * sizeof(LightData);
+	static const UINT32 LIGHT_DATA_BUFFER_INCREMENT = 16 * sizeof(LightData);
 
 	RendererLight::RendererLight(Light* light)
 		:internal(light)
@@ -236,7 +236,7 @@ namespace bs { namespace ct
 			if (size > curBufferSize || curBufferSize == 0)
 			{
 				// Allocate at least one block even if no lights, to avoid issues with null buffers
-				UINT32 bufferSize = std::max(1, Math::ceilToInt(size / (float) BUFFER_INCREMENT)) * BUFFER_INCREMENT;
+				UINT32 bufferSize = std::max(1, Math::ceilToInt(size / (float) LIGHT_DATA_BUFFER_INCREMENT)) * LIGHT_DATA_BUFFER_INCREMENT;
 
 				GPU_BUFFER_DESC bufferDesc;
 				bufferDesc.type = GBT_STRUCTURED;

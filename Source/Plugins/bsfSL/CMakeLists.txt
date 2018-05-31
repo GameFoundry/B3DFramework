@@ -59,5 +59,11 @@ target_link_libraries(bsfSL PRIVATE bsf)
 # IDE specific
 set_property(TARGET bsfSL PROPERTY FOLDER Plugins)
 
+find_clang_invalid_libc_pch_headers(inttypes_loc)
+
 # Install
 install_bsf_target(bsfSL)
+set_directory_properties(PROPERTIES
+    COTIRE_PREFIX_HEADER_IGNORE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../;${inttypes_loc}")
+
+conditional_cotire(bsfSL)

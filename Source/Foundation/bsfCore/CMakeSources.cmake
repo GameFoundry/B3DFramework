@@ -624,13 +624,18 @@ set(BS_CORE_INC_PLATFORM_LINUX
 set(BS_CORE_SRC_PLATFORM_LINUX
 	"bsfCore/Private/Linux/BsLinuxPlatform.cpp"
 	"bsfCore/Private/Linux/BsLinuxWindow.cpp"
-	"bsfCore/Private/Linux/BsLinuxDropTarget.cpp"
-	"bsfCore/Private/Linux/BsLinuxFolderMonitor.cpp"
-	"bsfCore/Private/Linux/BsLinuxInput.cpp"
-	"bsfCore/Private/Linux/BsLinuxGamepad.cpp"
 	"bsfCore/Private/Linux/BsLinuxMouse.cpp"
 	"bsfCore/Private/Linux/BsLinuxKeyboard.cpp"
+	"bsfCore/Private/Linux/BsLinuxDropTarget.cpp"
+	"bsfCore/Private/Linux/BsLinuxInput.cpp"
+	"bsfCore/Private/Linux/BsLinuxGamepad.cpp"
+	"bsfCore/Private/Linux/BsLinuxFolderMonitor.cpp"
 )
+
+foreach(source ${BS_CORE_SRC_PLATFORM_LINUX} ${BS_CORE_SRC_PLATFORM_WIN32})
+	set_source_files_properties ("${source}" PROPERTIES
+			COTIRE_EXCLUDED "True")
+endforeach()
 
 set(BS_CORE_INC_PLATFORM_MACOS
 	"bsfCore/Private/MacOS/BsMacOSInput.h"

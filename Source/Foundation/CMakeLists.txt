@@ -107,3 +107,19 @@ install(
 )
 
 install_bsf_target(bsf)
+
+
+# Precompiled headers (Cotire)
+if(MSVC)
+	find_windows_system_headers(windows_headers "Windows.h")
+	get_filename_component(windows_system_header_dir "${windows_headers}" DIRECTORY)
+	set(ignore_paths "${CMAKE_CURRENT_SOURCE_DIR};" "${windows_system_header_dir}/..")
+else()
+	find_clang_invalid_libc_pch_headers(clang_bad_headers)
+	set(ignore_paths "${CMAKE_CURRENT_SOURCE_DIR};${X11_INCLUDE_DIR}/X11;${clang_bad_headers}")
+endif()
+
+set_directory_properties(PROPERTIES
+	COTIRE_PREFIX_HEADER_IGNORE_PATH "${ignore_paths}")
+
+conditional_cotire(bsf)

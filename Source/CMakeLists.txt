@@ -33,6 +33,13 @@ set(BUILD_TESTS OFF CACHE BOOL "If true, build targets for running unit tests wi
 
 set(BUILD_BSL OFF CACHE BOOL "If true, build lexer & parser for BSL. Requires flex & bison dependencies.")
 
+set(ENABLE_COTIRE false CACHE BOOL "Enable cotire's precompiled headers and unity build support (experimental).")
+
+# Add cotire if enabled
+if(ENABLE_COTIRE)
+	include(${BSF_SOURCE_DIR}/CMake/cotire.cmake)
+endif()
+
 # Ensure dependencies are up to date
 ## Check prebuilt dependencies that are downloaded in a .zip
 check_and_update_binary_deps(bsf ${BSF_SOURCE_DIR}/../Dependencies/ ${BS_FRAMEWORK_PREBUILT_DEPENDENCIES_VERSION})
@@ -81,6 +88,10 @@ set(PHYSICS_MODULE_LIB bsfPhysX)
 ## Generate config files)
 configure_file("${BSF_SOURCE_DIR}/CMake/BsEngineConfig.h.in" "${BSF_SOURCE_DIR}/Foundation/bsfEngine/BsEngineConfig.h")
 configure_file("${BSF_SOURCE_DIR}/CMake/BsFrameworkConfig.h.in" "${BSF_SOURCE_DIR}/Foundation/bsfUtility/BsFrameworkConfig.h")
+
+# Set files disallowed in precompiled headers
+set_directory_properties(PROPERTIES
+    COTIRE_PREFIX_HEADER_IGNORE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Sub-directories
 ## Foundation

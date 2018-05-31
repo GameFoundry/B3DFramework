@@ -31,3 +31,5 @@ set_property(TARGET bsfVulkanRenderAPI PROPERTY FOLDER Plugins)
 if(RENDER_API_MODULE MATCHES "Vulkan")
 	install_bsf_target(bsfVulkanRenderAPI)
 endif()
+
+conditional_cotire(bsfVulkanRenderAPI)

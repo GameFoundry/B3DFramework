@@ -35,6 +35,11 @@
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifdef _MSC_VER
+#   pragma warning(push)
+#   pragma warning(disable: 4996)
+#endif
+
 bool tetgenio::load_node_call(FILE* infile, int markers, int uvflag, 
                               char* infilename)
 {
@@ -31244,3 +31249,6 @@ void tetrahedralize(char *switches, tetgenio *in, tetgenio *out,
 ////                                                                       ////
 //// main_cxx /////////////////////////////////////////////////////////////////
 
+#ifdef _MSC_VER
+#   pragma warning(pop)
+#endif

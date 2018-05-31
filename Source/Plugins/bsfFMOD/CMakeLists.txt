@@ -33,3 +33,5 @@ set_property(TARGET bsfFMOD PROPERTY FOLDER Plugins)
 if(AUDIO_MODULE MATCHES "FMOD")
 	install_bsf_target(bsfFMOD)
 endif()
+
+conditional_cotire(bsfFMOD)

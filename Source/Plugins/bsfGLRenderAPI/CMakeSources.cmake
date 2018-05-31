@@ -102,6 +102,9 @@ set(BS_GLRENDERAPI_SRC_LINUX
 	"glew.cpp"
 )
 
+set_source_files_properties ("Linux/BsLinuxContext.cpp" PROPERTIES
+		COTIRE_EXCLUDED "True")
+
 set(BS_GLRENDERAPI_INC_MACOS
 	"MacOS/BsMacOSContext.h"
 	"MacOS/BsMacOSGLSupport.h"

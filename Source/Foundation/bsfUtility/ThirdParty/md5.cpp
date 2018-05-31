@@ -331,6 +331,11 @@ MD5& MD5::finalize()
 
 //////////////////////////////
 
+#ifdef _MSC_VER
+#   pragma warning(push)
+#   pragma warning(disable: 4996)
+#endif
+
 // return hex representation of digest as string
 std::string MD5::hexdigest() const
 {
@@ -344,6 +349,10 @@ std::string MD5::hexdigest() const
 
 	return std::string(buf);
 }
+
+#ifdef _MSC_VER
+#   pragma warning(pop)
+#endif
 
 // return a copy of the digest in the provided buffer
 void MD5::decdigest(unsigned char* buf, size_type length)

@@ -1,3 +1,5 @@
+include(CheckCXXCompilerFlag)
+
 # Configuration types
 if(CMAKE_CONFIGURATION_TYPES) # Multiconfig generator?
 	set(CMAKE_CONFIGURATION_TYPES "Debug;OptimizedDebug;Release;" CACHE INTERNAL "")
@@ -106,6 +108,14 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-no-pie")
 else()
 # TODO_OTHER_COMPILERS_GO_HERE
+endif()
+
+# Enable colored output
+if (CMAKE_GENERATOR STREQUAL "Ninja")
+	check_cxx_compiler_flag("-fdiagnostics-color=always" F_DIAGNOSTIC_COLOR_ALWAYS)
+	if (F_DIAGNOSTIC_COLOR_ALWAYS)
+		add_compile_options("-fdiagnostics-color=always")
+	endif()
 endif()
 
 set(CMAKE_XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC "YES")

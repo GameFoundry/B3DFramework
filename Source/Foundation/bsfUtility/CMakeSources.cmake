@@ -254,6 +254,7 @@ set(BS_UTILITY_INC_REFLECTION
 set(BS_UTILITY_INC_WIN32
 	"bsfUtility/Private/Win32/BsWin32PlatformUtility.h"
 	"bsfUtility/Private/Win32/BsWin32Window.h"
+	"bsfUtility/Private/Win32/BsWindows.h"
 )
 
 set(BS_UTILITY_SRC_WIN32

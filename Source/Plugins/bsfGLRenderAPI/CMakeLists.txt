@@ -4,6 +4,7 @@ include(CMakeSources.cmake)
 # Find packages
 if(LINUX)
 	find_package(OpenGL REQUIRED)
+	find_package(X11)
 endif()
 	
 # Target
@@ -41,3 +42,9 @@ set_property(TARGET bsfGLRenderAPI PROPERTY FOLDER Plugins)
 if(RENDER_API_MODULE MATCHES "OpenGL")
 	install_bsf_target(bsfGLRenderAPI)
 endif()
+
+# Precompiled headers (Cotire)
+set_directory_properties(PROPERTIES
+    COTIRE_PREFIX_HEADER_IGNORE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../;${X11_INCLUDE_DIR}/X11;${OPENGL_INCLUDE_DIR}/GL")
+
+conditional_cotire(bsfGLRenderAPI)

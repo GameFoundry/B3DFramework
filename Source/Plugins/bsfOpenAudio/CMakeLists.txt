@@ -42,3 +42,5 @@ set_property(TARGET bsfOpenAudio PROPERTY FOLDER Plugins)
 if(AUDIO_MODULE MATCHES "OpenAudio")
 	install_bsf_target(bsfOpenAudio)
 endif()
+
+conditional_cotire(bsfOpenAudio)

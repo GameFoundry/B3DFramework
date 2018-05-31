@@ -10,7 +10,7 @@
 #endif
 
 #if BS_COMPILER == BS_COMPILER_GNUC || BS_COMPILER == BS_COMPILER_CLANG
-	#include "cpuid.h"
+	#include "BsCpuid.h"
 #endif
 
 #if BS_COMPILER == BS_COMPILER_CLANG
