@@ -24,6 +24,7 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(vertexInput, 2)
 			BS_RTTI_MEMBER_PLAIN(messages, 3)
 			BS_RTTI_MEMBER_PLAIN(compilerId, 4)
+			BS_RTTI_MEMBER_PLAIN(compilerVersion, 5)
 		BS_END_RTTI_MEMBERS
 
 	public:

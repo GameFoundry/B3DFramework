@@ -52,7 +52,8 @@ namespace bs { namespace ct
 			return;
 		}
 
-		if(!mBytecode || mBytecode->compilerId != VULKAN_COMPILER_ID)
+		if(!mBytecode || mBytecode->compilerId != VULKAN_COMPILER_ID || 
+			mBytecode->compilerVersion != VULKAN_COMPILER_VERSION)
 		{
 			GPU_PROGRAM_DESC desc;
 			desc.type = mType;

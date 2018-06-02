@@ -57,5 +57,11 @@ namespace bs { namespace ct
 	/** Identifier of the compiler used for compiling Vulkan GPU programs. */
 	static constexpr const char* VULKAN_COMPILER_ID = "Vulkan";
 
+	/** 
+	 * Version of the compiler used for compiling Vulkan GPU programs. Tick this whenever the compiler updates in order
+	 * to force bytecode to rebuild. 
+	 */
+	static constexpr UINT32 VULKAN_COMPILER_VERSION = 1;
+
 	/** @} */
 }}

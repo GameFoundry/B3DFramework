@@ -698,6 +698,7 @@ namespace bs { namespace ct
 
 		SPtr<GpuProgramBytecode> bytecode = bs_shared_ptr_new<GpuProgramBytecode>();
 		bytecode->compilerId = VULKAN_COMPILER_ID;
+		bytecode->compilerVersion = VULKAN_COMPILER_VERSION;
 
 		EShMessages messages = (EShMessages)((int)EShMsgSpvRules | (int)EShMsgVulkanRules);
 		if (!shader->parse(&resources, 450, false, messages))

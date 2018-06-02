@@ -130,6 +130,9 @@ namespace bs
 		/** Identifier of the compiler that compiled the bytecode. */
 		String compilerId;
 
+		/** Version of the compiler that compiled the bytecode. */
+		UINT32 compilerVersion = 0;
+
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
 		/************************************************************************/
