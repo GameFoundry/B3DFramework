@@ -47,9 +47,6 @@ namespace bs
 				obj->mProperties.mDesc.usage = val;
 		}
 
-#define BS_ADD_PLAINFIELD(name, id, parentType) \
-	addPlainField(#name, id##, &##parentType##::get##name, &##parentType##::Set##name);
-
 		SPtr<PixelData> getPixelData(Texture* obj, UINT32 idx)
 		{
 			UINT32 face = (size_t)Math::floor(idx / (float)(obj->mProperties.getNumMipmaps() + 1));
