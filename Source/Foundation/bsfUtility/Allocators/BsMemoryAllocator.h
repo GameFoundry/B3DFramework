@@ -425,15 +425,9 @@ namespace bs
 
 		static constexpr size_t max_size() { return std::numeric_limits<size_type>::max() / sizeof(T); }
 		static constexpr void destroy(pointer p) { p->~T(); }
-		/* This version of construct() (with a varying number of parameters)
-		 * seems necessary in order to use some STL data structures from
-		 * libstdc++-4.8, but compilation fails on OS X, hence the #if. */
-#if BS_PLATFORM == BS_PLATFORM_LINUX || BS_PLATFORM == BS_PLATFORM_WIN32
+
 		template<class... Args>
 		static void construct(pointer p, Args&&... args) { new(p) T(std::forward<Args>(args)...); }
-#else
-		static void construct(pointer p, const_reference t) { new (p) T(t); }
-#endif
 	};
 
 	/** @} */

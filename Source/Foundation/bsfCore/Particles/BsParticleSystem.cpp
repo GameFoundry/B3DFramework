@@ -1640,6 +1640,8 @@ namespace bs
 				output->positionAndRotation->writeData(renderData.positionAndRotation, 0, 0, true);
 				output->color->writeData(renderData.color, 0, 0, true);
 				output->size->writeData(renderData.size, 0, 0, true);
+
+				return output;
 			}
 
 			void free(ParticleTextures* textures)
