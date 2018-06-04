@@ -32,8 +32,8 @@ namespace bs
 	class BS_CORE_EXPORT SceneActor
 	{
 	public:
-		SceneActor();
-		virtual ~SceneActor();
+		SceneActor() = default;
+		virtual ~SceneActor() = default;
 
 		/** Determines the position, rotation and scale of the actor. */
 		virtual void setTransform(const Transform& transform);
@@ -104,9 +104,9 @@ namespace bs
 		friend class SceneManager;
 
 		Transform mTransform;
-		ObjectMobility mMobility;
-		bool mActive;
-		UINT32 mHash;
+		ObjectMobility mMobility = ObjectMobility::Movable;
+		bool mActive = true;
+		UINT32 mHash = 0;
 	};
 
 	/** @} */

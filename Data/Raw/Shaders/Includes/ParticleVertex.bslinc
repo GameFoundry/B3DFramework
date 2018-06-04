@@ -1,0 +1,89 @@
+#include "$ENGINE$\PerCameraData.bslinc"
+
+mixin ParticleVertex
+{
+	mixin PerCameraData;
+
+	variations
+	{
+		ORIENT = { 0, 1, 2 }; // 0 - Camera plane, 1 - Camera position, 2 - Axis
+		LOCK_Y = { false, true }
+	};
+
+	code
+	{
+		struct VertexInput
+		{
+			float2 position : POSITION;
+			float2 uv0 : TEXCOORD0;
+			uint instanceId	: SV_InstanceID;		
+		};
+	
+		struct VStoFS
+		{
+			float4 position : SV_Position;
+			float2 uv0 : TEXCOORD0;
+			float4 color : COLOR0;
+		};
+		
+		Texture2D gPositionAndRotTex;
+		Texture2D gColorTex;
+		Texture2D gSizeTex;
+
+		[internal]
+		cbuffer Params
+		{
+			float4x4 gWorldTfrm;
+			uint gTexSize;
+			float3 gAxisUp;
+			float3 gAxisRight;
+		}		
+
+		VStoFS vsmain(VertexInput input)
+		{
+			uint2 pixelPos;
+			pixelPos.y = input.instanceId / gTexSize;
+			pixelPos.x = input.instanceId - y * gTexSize;
+		
+			float4 posAndRot = gPositionAndRotTex.Load(pixelPos);
+			float4 worldPosition = mul(gWorldTfrm, float4(posAndRot.xyz, 1.0f));
+			
+			float2 size = gSizeTex.Load(pixelPos).xy;
+			float2 axisRight, axisUp;
+			#if ORIENT == 2 // Axis
+				axisRight = gAxisRight;
+				axisUp = gAxisUp;
+			#elif ORIENT == 1 // Towards camera origin
+				float3 diff = gViewOrigin - worldPosition.xyz;
+				
+				float3 cameraUp = float3(gMatView[0][1], gMatView[1][1], gMatView[2][1]);
+				axisRight = normalize(cross(diff, cameraUp));
+				
+				#if LOCK_Y
+					axisUp = float3(0, 1, 0);		
+				#else
+					axisUp = normalize(cross(axisRight, diff));
+				#endif
+			#else // Towards camera plane
+				axisRight = float3(gMatView[0][0], gMatView[1][0], gMatView[2][0]);
+				
+				#if LOCK_Y
+					axisUp = float3(0, 1, 0);				
+				#else
+					axisUp = float3(gMatView[0][1], gMatView[1][1], gMatView[2][1]);
+				#endif
+			#endif
+
+			worldPosition += axisRight * input.position.x * size.x + axisUp * input.position.y  * size.y;	
+			
+			VStoFS output;
+			output.color = gColorTex.Load(pixelPos);
+			output.uv0 = input.uv0;
+			output.position = mul(gMatViewProj, worldPosition);
+		
+			// TODO - Ignoring rotation and UV
+		
+			return output;
+		}
+	};
+};

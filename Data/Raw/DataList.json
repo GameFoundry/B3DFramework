@@ -167,6 +167,10 @@
         {
             "Path": "PerFrameData.bslinc",
             "UUID": "64225149-43b6-698e-809e-43b647d8d09d"
+        },
+        {
+            "Path": "ParticleVertex.bslinc",
+            "UUID": "c830bfdf-4e45-56a3-46b2-4e4598d3b312"
         }
     ],
     "Shaders": [

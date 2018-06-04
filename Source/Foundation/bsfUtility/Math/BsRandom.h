@@ -26,7 +26,7 @@ namespace bs
 		void setSeed(uint32_t seed)
 		{
 			mSeed[0] = seed;
-			mSeed[1] = seed * 434521248 + 1;
+			mSeed[1] = seed * 434521248 + 1; // Arbitrary random numbers
 			mSeed[2] = seed * 854624531 + 1;
 			mSeed[3] = seed * 694295795 + 1;
 		}
@@ -55,7 +55,6 @@ namespace bs
 
 			mSeed[0] = t;
 			return t;
-
 		}
 
 		/** Returns a random value in range [min, max]. */

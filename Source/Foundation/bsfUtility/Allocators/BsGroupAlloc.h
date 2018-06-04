@@ -85,7 +85,9 @@ namespace bs
 
 		/** 
 		 * Reserves the specified amount of bytes to allocate. Multiple calls to reserve() are cumulative. After all needed
-		 * memory is reserved, call init(), followed by actual allocation via construct() or alloc() methods.
+		 * memory is reserved, call init(), followed by actual allocation via construct() or alloc() methods. If you need
+		 * to change the size of your allocation, free your memory by using free(), followed by a call to clear(). Then
+		 * reserve(), init() and alloc() again.
 		 */
 		template<class T>
 		GroupAlloc& reserve(UINT32 count = 1)
@@ -126,6 +128,18 @@ namespace bs
 		void free(void* data)
 		{
 			// Do nothing
+		}
+
+		/** Frees any internally allocated buffers. All elements must be previously freed by calling free(). */
+		void clear()
+		{
+			// Note: A debug check if user actually freed the memory could be helpful
+			if (mData)
+				bs_free(mData);
+
+			mNumBytes = 0;
+			mData = nullptr;
+			mDataPtr = nullptr;
 		}
 
 		/**

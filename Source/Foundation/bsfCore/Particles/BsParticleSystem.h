@@ -10,10 +10,18 @@
 #include "Animation/BsAnimationCurve.h"
 #include "Utility/BsBitwise.h"
 #include "Math/BsRandom.h"
+#include "Scene/BsSceneActor.h"
+#include "CoreThread/BsCoreObject.h"
+#include "Utility/BsModule.h"
+#include "Math/BsConvexVolume.h"
+#include "CoreThread/BsCoreThread.h"
+#include "Image/BsPixelData.h"
 
 namespace bs 
 {
-	/** @addtogroup Particles-Internal 
+	class SkeletonMask;
+
+	/** @addtogroup Particles-Internal
 	 *  @{
 	 */
 
@@ -29,6 +37,12 @@ namespace bs
 		/** The distribution is a random value in a specified time-varying range. */
 		PDT_RandomCurveRange
 	};
+
+	/* @} */
+
+	/** @addtogroup Particles
+	 *  @{
+	 */
 
 	/** Specifies a color as a distribution, which can include a constant color, random color range or a color gradient. */
 	struct ColorDistribution
@@ -156,6 +170,12 @@ namespace bs
 		TAnimationCurve<float> mMaxCurve;
 	};
 
+	/** @} */
+
+	/** @addtogroup Particles-Internal 
+	 *  @{
+	 */
+
 	class ParticleSet;
 
 	/** Contains particle emitter state that varies from frame to frame. */
@@ -174,12 +194,20 @@ namespace bs
 		};
 	};
 
+	/** @} */
+
+	/** @addtogroup Particles
+	 *  @{
+	 */
+
 	/** 
 	 * Base class from all emitter shapes. Emitter shapes determine the position and direction of newly created particles.
 	 */
 	class BS_CORE_EXPORT ParticleEmitterShape
 	{
 	public:
+		virtual ~ParticleEmitterShape() = default;
+
 		/** 
 		 * Spawns a new set of particles using the current shape's distribution. 
 		 *
@@ -188,13 +216,14 @@ namespace bs
 		 * @param[in]	count		Number of particles to spawn.
 		 * @param[in]	state		Optional state that can contain various per-frame information required for spawning
 		 *							the particles.
+		 * @return					Index at which the first of the particles was inserted, with other particles following
+		 *							sequentially.
 		 */
-		virtual void spawn(const Random& random, ParticleSet& particles, UINT32 count, 
+		virtual UINT32 spawn(const Random& random, ParticleSet& particles, UINT32 count, 
 			const ParticleEmitterState& state) const = 0;
 
 	protected:
 		ParticleEmitterShape() = default;
-		virtual ~ParticleEmitterShape() = default;
 	};
 
 
@@ -275,14 +304,14 @@ namespace bs
 		ParticleEmitterSphereShape(const PARTICLE_SPHERE_SHAPE_DESC& desc);
 
 		/** @copydoc ParticleEmitterShape::spawn */
-		void spawn(const Random& random, ParticleSet& particles, UINT32 count, 
+		UINT32 spawn(const Random& random, ParticleSet& particles, UINT32 count, 
 			const ParticleEmitterState& state) const override;
 
 		/** Spawns a single particle, generating its position and normal. */
 		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
 
 		/** Creates a new particle emitter sphere shape. */
-		static UPtr<ParticleEmitterSphereShape> create(const PARTICLE_SPHERE_SHAPE_DESC& desc);
+		static UPtr<ParticleEmitterShape> create(const PARTICLE_SPHERE_SHAPE_DESC& desc);
 	protected:
 		PARTICLE_SPHERE_SHAPE_DESC mInfo;
 	};
@@ -312,14 +341,14 @@ namespace bs
 		ParticleEmitterHemisphereShape(const PARTICLE_HEMISPHERE_SHAPE_DESC& desc);
 
 		/** @copydoc ParticleEmitterShape::spawn */
-		void spawn(const Random& random, ParticleSet& particles, UINT32 count, 
+		UINT32 spawn(const Random& random, ParticleSet& particles, UINT32 count, 
 			const ParticleEmitterState& state) const override;
 
 		/** Spawns a single particle, generating its position and normal. */
 		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
 
 		/** Creates a new particle emitter sphere shape. */
-		static UPtr<ParticleEmitterHemisphereShape> create(const PARTICLE_HEMISPHERE_SHAPE_DESC& desc);
+		static UPtr<ParticleEmitterShape> create(const PARTICLE_HEMISPHERE_SHAPE_DESC& desc);
 
 	protected:
 		PARTICLE_HEMISPHERE_SHAPE_DESC mInfo;
@@ -357,7 +386,7 @@ namespace bs
 		virtual ~ParticleEmitterBoxShape() = default;
 
 		/** Creates a new particle emitter box shape. */
-		static UPtr<ParticleEmitterBoxShape> create(const PARTICLE_BOX_SHAPE_DESC& desc);
+		static UPtr<ParticleEmitterShape> create(const PARTICLE_BOX_SHAPE_DESC& desc);
 
 	protected:
 		PARTICLE_BOX_SHAPE_DESC mInfo;
@@ -377,14 +406,14 @@ namespace bs
 		ParticleEmitterLineShape(const PARTICLE_LINE_SHAPE_DESC& desc);
 
 		/** @copydoc ParticleEmitterShape::spawn */
-		void spawn(const Random& random, ParticleSet& particles, UINT32 count, 
+		UINT32 spawn(const Random& random, ParticleSet& particles, UINT32 count, 
 			const ParticleEmitterState& state) const override;
 
 		/** Spawns a single particle, generating its position and normal. */
 		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
 
 		/** Creates a new particle emitter edge shape. */
-		static UPtr<ParticleEmitterLineShape> create(const PARTICLE_LINE_SHAPE_DESC& desc);
+		static UPtr<ParticleEmitterShape> create(const PARTICLE_LINE_SHAPE_DESC& desc);
 
 	protected:
 		PARTICLE_LINE_SHAPE_DESC mInfo;
@@ -419,7 +448,7 @@ namespace bs
 		virtual ~ParticleEmitterCircleShape() = default;
 
 		/** Creates a new particle emitter circle shape. */
-		static UPtr<ParticleEmitterCircleShape> create(const PARTICLE_CIRCLE_SHAPE_DESC& desc);
+		static UPtr<ParticleEmitterShape> create(const PARTICLE_CIRCLE_SHAPE_DESC& desc);
 
 	protected:
 		PARTICLE_CIRCLE_SHAPE_DESC mInfo;
@@ -439,14 +468,14 @@ namespace bs
 		ParticleEmitterRectShape(const PARTICLE_RECT_SHAPE_DESC& desc);
 
 		/** @copydoc ParticleEmitterShape::spawn */
-		void spawn(const Random& random, ParticleSet& particles, UINT32 count, 
+		UINT32 spawn(const Random& random, ParticleSet& particles, UINT32 count, 
 			const ParticleEmitterState& state) const override;
 
 		/** Spawns a single particle, generating its position and normal. */
 		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
 
 		/** Creates a new particle emitter rectangle shape. */
-		static UPtr<ParticleEmitterRectShape> create(const PARTICLE_RECT_SHAPE_DESC& desc);
+		static UPtr<ParticleEmitterShape> create(const PARTICLE_RECT_SHAPE_DESC& desc);
 
 	protected:
 		PARTICLE_RECT_SHAPE_DESC mInfo;
@@ -493,7 +522,7 @@ namespace bs
 		virtual ~ParticleEmitterStaticMeshShape() = default;
 
 		/** Creates a new particle emitter static mesh shape. */
-		static UPtr<ParticleEmitterStaticMeshShape> create(const PARTICLE_MESH_SHAPE_DESC& desc);
+		static UPtr<ParticleEmitterShape> create(const PARTICLE_MESH_SHAPE_DESC& desc);
 
 	protected:
 		PARTICLE_MESH_SHAPE_DESC mInfo;
@@ -515,7 +544,7 @@ namespace bs
 		virtual ~ParticleEmitterSkinnedMeshShape() = default;
 
 		/** Creates a new particle emitter skinned mesh shape. */
-		static UPtr<ParticleEmitterSkinnedMeshShape> create(const PARTICLE_MESH_SHAPE_DESC& desc);
+		static UPtr<ParticleEmitterShape> create(const PARTICLE_MESH_SHAPE_DESC& desc);
 	protected:
 		/** Evaluates a blend matrix for a vertex at the specified index. */
 		Matrix4 getBlendMatrix(const ParticleEmitterState& state, UINT32 vertexIdx) const;
@@ -530,14 +559,32 @@ namespace bs
 		bool m32BitNormals;
 	};
 
-	// TODO - Doc
-	class BS_CORE_EXPORT ParticleEmitter
-	{
-	public:
-		void setShape(ParticleEmitterShape* shape) { mShape = shape; }
+	/** @} */
 
-	private:
-		ParticleEmitterShape* mShape = nullptr;
+	/** @addtogroup Particles-Internal
+	 *  @{
+	 */
+
+	class ParticleSystem;
+
+	// TODO - Doc
+	class BS_CORE_EXPORT ParticleModule
+	{
+	protected:
+		ParticleModule() = default;
+		virtual ~ParticleModule() = default;
+
+		void setParent(ParticleSystem* parent) { mParent = parent; }
+
+		ParticleSystem* mParent = nullptr;
+	};
+
+	// TODO - Doc
+	struct ParticleRenderData
+	{
+		PixelData positionAndRotation;
+		PixelData color;
+		PixelData size;
 	};
 
 	/** @} */
@@ -547,10 +594,155 @@ namespace bs
 	 */
 
 	// TODO - Doc
-	class BS_CORE_EXPORT ParticleSystem : public INonCopyable
+	class BS_CORE_EXPORT ParticleEmitter : public ParticleModule
 	{
 	public:
-		UINT32 addEmitter(ParticleEmitter* emitter);
+		void setShape(UPtr<ParticleEmitterShape> shape) { mShape = std::move(shape); }
+		ParticleEmitterShape* getShape() const { return mShape.get(); }
+
+		void spawn(Random& random, const ParticleEmitterState& state, ParticleSet& set) const;
+
+	private:
+		UPtr<ParticleEmitterShape> mShape;
+	};
+
+	// TODO - Doc
+	class BS_CORE_EXPORT ParticleEvolver : public ParticleModule
+	{
+	public:
+		virtual void evolve(Random& random, ParticleSet& set) const = 0;
+	};
+
+	// TODO - Doc
+	class BS_CORE_EXPORT ParticleSystem final : public IReflectable, public CoreObject, public SceneActor, public INonCopyable
+	{
+	public:
+		~ParticleSystem();
+
+		void addEmitter(UPtr<ParticleEmitter> emitter)
+		{
+			mEmitters.push_back(std::move(emitter));
+		}
+
+		void addEvolver(UPtr<ParticleEvolver> evolver)
+		{
+			mEvolvers.push_back(std::move(evolver));
+		}
+
+		UINT32 getNumEmitters() const { return (UINT32)mEmitters.size(); }
+		UINT32 getNumEvolvers() const { return (UINT32)mEvolvers.size(); }
+
+		ParticleEmitter* getEmitter(UINT32 idx)
+		{
+			if(idx >= (UINT32)mEmitters.size())
+				return nullptr;
+
+			return mEmitters[idx].get();
+		}
+
+		ParticleEvolver* getEvolver(UINT32 idx)
+		{
+			if(idx >= (UINT32)mEvolvers.size())
+				return nullptr;
+
+			return mEvolvers[idx].get();
+		}
+
+		void removeEmitter(ParticleEmitter* emitter)
+		{
+			const auto iterFind = std::find_if(mEmitters.begin(), mEmitters.end(), 
+				[emitter](const UPtr<ParticleEmitter>& curEmitter)
+			{
+				return curEmitter.get() == emitter;
+				
+			});
+
+			if(iterFind != mEmitters.end())
+				mEmitters.erase(iterFind);
+		}
+
+		void removeEvolver(ParticleEvolver* evolver)
+		{
+			const auto iterFind = std::find_if(mEvolvers.begin(), mEvolvers.end(), 
+				[evolver](const UPtr<ParticleEvolver>& curEvolver)
+			{
+				return curEvolver.get() == evolver;
+				
+			});
+
+			if(iterFind != mEvolvers.end())
+				mEvolvers.erase(iterFind);
+		}
+
+		void simulate(float timeDelta, ParticleRenderData& output); // TODO - Mark as internal
+
+		/** Creates a new empty ParticleSystem object. */
+		static SPtr<ParticleSystem> create();
+	private:
+		friend class ParticleSystemManager;
+
+		friend class ParticleSystemRTTI;
+
+		ParticleSystem();
+
+		/**	Creates a new ParticleSystem instance without initializing it. */
+		static SPtr<ParticleSystem> createEmpty();
+
+		UINT32 mId = 0;
+
+		Vector<UPtr<ParticleEmitter>> mEmitters;
+		Vector<UPtr<ParticleEvolver>> mEvolvers;
+
+		Random mRandom;
+		UPtr<ParticleSet> mParticleSet;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class ParticleSystemRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
+	};
+
+	struct ParticleRenderDataGroup
+	{
+		UnorderedMap<UINT32, ParticleRenderData*> data;
+	};
+
+	// TODO - Doc
+	class BS_CORE_EXPORT ParticleSystemManager final : public Module<ParticleSystemManager>
+	{
+		struct Pimpl;
+	public:
+		ParticleSystemManager();
+
+		ParticleRenderDataGroup* simulate();
+
+	private:
+		friend class ParticleSystem;
+
+		UINT32 registerParticleSystem(ParticleSystem* system);
+		void unregisterParticleSystem(ParticleSystem* system);
+
+		UPtr<Pimpl> mPimpl;
+
+		UINT32 mNextId = 1;
+		UnorderedSet<ParticleSystem*> mSystems;
+
+		bool mPaused = false;
+
+		// Worker threads
+		ParticleRenderDataGroup mRenderData[CoreThread::NUM_SYNC_BUFFERS];
+
+		UINT32 mReadBufferIdx = 1;
+		UINT32 mWriteBufferIdx = 0;
+		
+		Signal mWorkerDoneSignal;
+		Mutex mMutex;
+
+		UINT32 mNumActiveWorkers = 0;
+		bool mSwapBuffers = false;
 	};
 
 	/** @} */

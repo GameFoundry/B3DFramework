@@ -5,17 +5,6 @@
 
 namespace bs
 {
-	SceneActor::SceneActor()
-		:mMobility(ObjectMobility::Movable), mActive(true), mHash(0)
-	{
-		
-	}
-
-	SceneActor::~SceneActor()
-	{
-		
-	}
-
 	void SceneActor::setTransform(const Transform& transform)
 	{
 		if (mMobility != ObjectMobility::Movable)

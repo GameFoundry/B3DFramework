@@ -280,8 +280,8 @@ namespace bs
 		 */
 		static constexpr RGBA lerp(UINT8 t, RGBA from, RGBA to)
 		{
-			constexpr UINT32 RB_MASK = 0x00FF00FF;
-			constexpr UINT32 GA_MASK = 0xFF00FF00;
+			constexpr static UINT32 RB_MASK = 0x00FF00FF;
+			constexpr static UINT32 GA_MASK = 0xFF00FF00;
 
 			// Lerp two channels at a time (this leaves 8 extra bits for each channel for results)
 			//// Red-blue first
