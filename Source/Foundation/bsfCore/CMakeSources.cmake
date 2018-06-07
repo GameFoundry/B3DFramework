@@ -376,6 +376,7 @@ set(BS_CORE_INC_RTTI
 	"bsfCore/Private/RTTI/BsAudioSourceRTTI.h"
 	"bsfCore/Private/RTTI/BsShaderVariationRTTI.h"
 	"bsfCore/Private/RTTI/BsParticleSystemRTTI.h"
+	"bsfCore/Private/RTTI/BsParticleDistributionRTTI.h"
 )
 
 set(BS_CORE_SRC_RENDERER

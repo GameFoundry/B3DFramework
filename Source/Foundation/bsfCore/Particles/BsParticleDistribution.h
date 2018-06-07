@@ -38,7 +38,7 @@ namespace bs
 	struct ColorDistribution
 	{
 		/** Creates a new distribution that returns a constant color. */
-		ColorDistribution(const Color& color)
+		ColorDistribution(const Color& color = Color::Black)
 			: mType(PDT_Constant), mMinColor(color.getAsRGBA())
 		{ }
 
@@ -91,6 +91,8 @@ namespace bs
 		}
 
 	private:
+		friend struct RTTIPlainType<ColorDistribution>;
+
 		PropertyDistributionType mType;
 		RGBA mMinColor;
 		RGBA mMaxColor;
@@ -98,26 +100,27 @@ namespace bs
 		ColorGradient mMaxGradient;
 	};
 
-	/**  Specifies a floating point value as a distribution, which can include a constant value, random range or a curve. */
-	struct FloatDistribution
+	/** Specifies a value as a distribution, which can include a constant value, random range or a curve. */
+	template<class T>
+	struct TDistribution
 	{
 		/** Creates a new distribution that returns a constant value. */
-		FloatDistribution(float value)
+		TDistribution(T value = T())
 			: mType(PDT_Constant), mMinValue(value)
 		{ }
 
 		/** Creates a new distribution that returns a random value in the specified range. */
-		FloatDistribution(float minValue, float maxValue)
+		TDistribution(T minValue, T maxValue)
 			: mType(PDT_RandomRange), mMinValue(minValue), mMaxValue(maxValue)
 		{ }
 
 		/** Creates a new distribution that evaluates a curve. */
-		FloatDistribution(const TAnimationCurve<float>& curve)
+		TDistribution(const TAnimationCurve<T>& curve)
 			: mType(PDT_Curve), mMinCurve(curve)
 		{ }
 
 		/** Creates a new distribution that returns a random value in a range determined by two curves. */
-		FloatDistribution(const TAnimationCurve<float>& minCurve, const TAnimationCurve<float>& maxCurve)
+		TDistribution(const TAnimationCurve<T>& minCurve, const TAnimationCurve<T>& maxCurve)
 			: mType(PDT_RandomCurveRange), mMinCurve(minCurve), mMaxCurve(maxCurve)
 		{ }
 
@@ -132,7 +135,7 @@ namespace bs
 		 * @return				Evaluated value.
 		 *
 		 */
-		float evaluate(float t, float factor) const
+		T evaluate(T t, float factor) const
 		{
 			switch(mType)
 			{
@@ -153,12 +156,17 @@ namespace bs
 			}
 		}
 	private:
+		friend struct RTTIPlainType<TDistribution<T>>;
+
 		PropertyDistributionType mType;
-		float mMinValue;
-		float mMaxValue;
-		TAnimationCurve<float> mMinCurve;
-		TAnimationCurve<float> mMaxCurve;
+		T mMinValue;
+		T mMaxValue;
+		TAnimationCurve<T> mMinCurve;
+		TAnimationCurve<T> mMaxCurve;
 	};
+
+	using FloatDistribution = TDistribution<float>;
+	using Vector3Distribution = TDistribution<Vector3>;
 
 	/** @} */
 }

@@ -120,6 +120,7 @@ set(BS_UTILITY_SRC_DEBUG
 set(BS_UTILITY_INC_RTTI
 	"bsfUtility/Private/RTTI/BsSerializedObjectRTTI.h"
 	"bsfUtility/Private/RTTI/BsIReflectableRTTI.h"
+	"bsfUtility/Private/RTTI/BsColorGradientRTTI.h"
 )
 
 set(BS_UTILITY_INC_ALLOCATORS

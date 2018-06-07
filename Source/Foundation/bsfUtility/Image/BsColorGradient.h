@@ -36,6 +36,8 @@ namespace bs
 		void setConstant(const Color& color);
 
 	private:
+		friend struct RTTIPlainType<ColorGradient>;
+
 		RGBA mColors[MAX_KEYS];
 		uint16_t mTimes[MAX_KEYS];
 		uint32_t mNumKeys = 0;

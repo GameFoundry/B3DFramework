@@ -603,6 +603,8 @@ namespace bs
 		TID_SerializedGpuProgramData = 1153,
 		TID_SubShader = 1154,
 		TID_ParticleSystem = 1155,
+		TID_ColorDistribution = 1156,
+		TID_TDistribution = 1157,
 
 		// Moved from Engine layer
 		TID_CCamera = 30000,

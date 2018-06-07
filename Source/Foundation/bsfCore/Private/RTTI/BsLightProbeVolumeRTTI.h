@@ -56,8 +56,8 @@ namespace bs
 			switch(version)
 			{
 			case 0:
-				rttiReadElem(data.positions, memory);
-				rttiReadElem(data.coefficients, memory);
+				memory = rttiReadElem(data.positions, memory);
+				memory = rttiReadElem(data.coefficients, memory);
 				break;
 			default:
 				LOGERR("Unknown version of SavedLightProbeInfo data. Unable to deserialize.");
