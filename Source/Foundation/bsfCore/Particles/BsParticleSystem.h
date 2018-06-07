@@ -10,6 +10,8 @@
 #include "CoreThread/BsCoreObject.h"
 #include "Image/BsPixelData.h"
 #include "Math/BsAABox.h"
+#include "Particles/BsParticleEmitter.h"
+#include "Particles/BsParticleEvolver.h"
 
 namespace bs 
 {
