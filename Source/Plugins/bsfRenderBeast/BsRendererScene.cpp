@@ -6,7 +6,7 @@
 #include "Renderer/BsSkybox.h"
 #include "Renderer/BsReflectionProbe.h"
 #include "Renderer/BsRenderer.h"
-#include "Particles/BsParticleSystem.h"
+#include "Particles/BsParticleManager.h"
 #include "Mesh/BsMesh.h"
 #include "Material/BsPass.h"
 #include "Material/BsGpuParamsSet.h"

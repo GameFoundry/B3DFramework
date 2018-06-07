@@ -1248,7 +1248,7 @@ namespace bs { namespace ct
 
 			bool isWrite = mMappedLockOptions != GBL_READ_ONLY;
 
-			// We the caller wrote anything to the staging buffer, we need to upload it back to the main buffer
+			// If the caller wrote anything to the staging buffer, we need to upload it back to the main buffer
 			if (isWrite)
 			{
 				VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::instance());

@@ -8,11 +8,11 @@
 #include "BsRendererParticles.h"
 #include "Shading/BsLightProbes.h"
 #include "Utility/BsSamplerOverrides.h"
-#include "Particles/BsParticleSystem.h"
 
 namespace bs 
 { 
 	struct EvaluatedAnimationData;
+	struct ParticleRenderDataGroup;
 
 	namespace ct
 	{

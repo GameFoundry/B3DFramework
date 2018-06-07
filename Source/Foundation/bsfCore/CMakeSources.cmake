@@ -582,10 +582,19 @@ set(BS_CORE_SRC_ANIMATION
 
 set(BS_CORE_INC_PARTICLES
 	"bsfCore/Particles/BsParticleSystem.h"
+	"bsfCore/Particles/BsParticleEmitter.h"
+	"bsfCore/Particles/BsParticleEvolver.h"
+	"bsfCore/Particles/BsParticleManager.h"
+	"bsfCore/Particles/BsParticleDistribution.h"
+	"bsfCore/Particles/BsParticleModule.h"
+	"bsfCore/Private/Particles/BsParticleSet.h"
 )
 
 set(BS_CORE_SRC_PARTICLES
 	"bsfCore/Particles/BsParticleSystem.cpp"
+	"bsfCore/Particles/BsParticleEmitter.cpp"
+	"bsfCore/Particles/BsParticleEvolver.cpp"
+	"bsfCore/Particles/BsParticleManager.cpp"
 )
 
 set(BS_CORE_INC_PLATFORM

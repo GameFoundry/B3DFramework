@@ -14,10 +14,13 @@ namespace bs
 		if(mNumKeys == 1)
 			return mColors[0];
 
+		if(mDuration > 0.0f)
+			t = t / mDuration;
+
 		uint32_t time = Bitwise::unormToUint<16>(t);
 		time = Math::clamp(time, (uint32_t)mTimes[0], (uint32_t)mTimes[mNumKeys - 1]);
 
-		// TODO - Add a version of evaluate that supports caching?
+		// Note: Add a version of evaluate that supports caching?
 		for(UINT32 i = 1; i < mNumKeys; i++)
 		{
 			const uint32_t curKeyTime = mTimes[i];
@@ -32,13 +35,32 @@ namespace bs
 		return mColors[mNumKeys - 1];
 	}
 
-	void ColorGradient::setKeys(const Vector<ColorGradientKey>& keys, float duration)
+	void ColorGradient::setKeys(const Vector<ColorGradientKey>& keys)
 	{
+#if BS_DEBUG_MODE
+		// Ensure keys are sorted
+		if(!keys.empty())
+		{
+			float time = keys[0].time;
+			for (UINT32 i = 1; i < (UINT32)keys.size(); i++)
+			{
+				assert(keys[i].time >= time);
+				time = keys[i].time;
+			}
+		}
+#endif
+
 		if(keys.size() > MAX_KEYS)
 		{
 			LOGWRN("Number of keys in ColorGradient exceeds the support number (" + 
 				toString(MAX_KEYS) + "). Keys will be ignored.");
 		}
+
+		if(!keys.empty())
+			mDuration = keys.back().time;
+		else
+			mDuration = 0.0f;
+
 
 		mNumKeys = 0;
 		for(auto& key : keys)
@@ -47,12 +69,10 @@ namespace bs
 				break;
 
 			mColors[mNumKeys] = key.color.getAsRGBA();
-			mTimes[mNumKeys] = Bitwise::unormToUint<16>(key.time / duration);
+			mTimes[mNumKeys] = Bitwise::unormToUint<16>(key.time / mDuration);
 
 			mNumKeys++;
 		}
-
-		mDuration = duration;
 	}
 
 	void ColorGradient::setConstant(const Color& color)

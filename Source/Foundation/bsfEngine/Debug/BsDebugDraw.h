@@ -139,7 +139,7 @@ namespace bs
 		void drawFrustum(const Vector3& position, float aspect, Degree FOV, float near, float far);
 
 		/**
-		 * Clears any objects that are currently drawing. ALl objects must be re-queued.
+		 * Clears any objects that are currently drawing. All objects must be re-queued.
 		 */
 		void clear();
 

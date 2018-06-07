@@ -42,7 +42,7 @@ namespace bs
 		/**
 		 * Creates a new animation curve.
 		 * 
-		 * @param[in]	keyframes	Keyframes to initialize the curve with
+		 * @param[in]	keyframes	Keyframes to initialize the curve with. They must be sorted by time.
 		 */
 		BS_SCRIPT_EXPORT()
 		TAnimationCurve(const Vector<KeyFrame>& keyframes);

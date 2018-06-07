@@ -1,6 +1,7 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsRendererParticles.h"
+#include "Particles/BsParticleManager.h"
 #include "RenderAPI/BsVertexBuffer.h"
 #include "RenderAPI/BsVertexDataDesc.h"
 #include "Mesh/BsMeshData.h"
@@ -68,6 +69,8 @@ namespace bs { namespace ct
 		}
 
 		// Populate texture contents
+		// Note: Perhaps instead of using write-discard here, we should track which frame has finished rendering and then
+		// just use no-overwrite? write-discard will very likely allocate memory under the hood.
 		output->positionAndRotation->writeData(renderData.positionAndRotation, 0, 0, true);
 		output->color->writeData(renderData.color, 0, 0, true);
 		output->size->writeData(renderData.size, 0, 0, true);
@@ -85,7 +88,6 @@ namespace bs { namespace ct
 	{
 		ParticleTextures* output = mAlloc.construct<ParticleTextures>();
 
-		// TODO - Avoid duplicating texture formats here and during PixelData construction
 		TEXTURE_DESC texDesc;
 		texDesc.type = TEX_TYPE_2D;
 		texDesc.width = size;

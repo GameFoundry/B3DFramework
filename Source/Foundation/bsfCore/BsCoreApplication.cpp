@@ -6,11 +6,8 @@
 #include "Managers/BsRenderAPIManager.h"
 
 #include "Platform/BsPlatform.h"
-#include "Managers/BsHardwareBufferManager.h"
 #include "RenderAPI/BsRenderWindow.h"
-#include "RenderAPI/BsViewport.h"
 #include "Math/BsVector2.h"
-#include "RenderAPI/BsGpuProgram.h"
 #include "CoreThread/BsCoreObjectManager.h"
 #include "Scene/BsGameObjectManager.h"
 #include "Utility/BsDynLib.h"
@@ -18,7 +15,6 @@
 #include "Scene/BsSceneManager.h"
 #include "Importer/BsImporter.h"
 #include "Resources/BsResources.h"
-#include "Mesh/BsMesh.h"
 #include "Scene/BsSceneObject.h"
 #include "Utility/BsTime.h"
 #include "Input/BsInput.h"
@@ -48,7 +44,7 @@
 #include "Audio/BsAudio.h"
 #include "Animation/BsAnimationManager.h"
 #include "Renderer/BsParamBlocks.h"
-#include "Particles/BsParticleSystem.h"
+#include "Particles/BsParticlemanager.h"
 
 namespace bs
 {
@@ -86,7 +82,7 @@ namespace bs
 		AudioManager::shutDown();
 		ResourceListenerManager::shutDown();
 		RenderStateManager::shutDown();
-		ParticlesManager::shutDown();
+		ParticleManager::shutDown();
 		AnimationManager::shutDown();
 
 		// This must be done after all resources are released since it will unload the physics plugin, and some resources
@@ -175,7 +171,7 @@ namespace bs
 		AudioManager::startUp(mStartUpDesc.audio);
 		PhysicsManager::startUp(mStartUpDesc.physics, isEditor());
 		AnimationManager::startUp();
-		ParticlesManager::startUp();
+		ParticleManager::startUp();
 
 		for (auto& importerName : mStartUpDesc.importers)
 			loadPlugin(importerName);
@@ -282,7 +278,7 @@ namespace bs
 			// Evaluate animation after scene and plugin updates because the renderer will just now be displaying the
 			// animation we sent on the previous frame, and we want the scene information to match to what is displayed.
 			perFrameData.animation = AnimationManager::instance().update();
-			perFrameData.particles = ParticlesManager::instance().update();
+			perFrameData.particles = ParticleManager::instance().update();
 
 			// Send out resource events in case any were loaded/destroyed/modified
 			ResourceListenerManager::instance().update();

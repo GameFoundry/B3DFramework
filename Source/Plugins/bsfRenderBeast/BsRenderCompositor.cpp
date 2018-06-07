@@ -21,6 +21,7 @@
 #include "BsRenderBeastOptions.h"
 #include "BsRendererScene.h"
 #include "BsRenderBeast.h"
+#include "Particles/BsParticleManager.h"
 #include "Particles/BsParticleSystem.h"
 
 namespace bs { namespace ct

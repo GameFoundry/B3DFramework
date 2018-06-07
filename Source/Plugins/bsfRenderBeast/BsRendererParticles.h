@@ -11,6 +11,8 @@
 #include "Allocators/BsPoolAlloc.h"
 #include "Renderer/BsRendererMaterial.h"
 
+namespace bs { struct ParticleRenderData; }
+
 namespace bs { namespace ct
 {
 	/** @addtogroup RenderBeast
@@ -89,9 +91,10 @@ namespace bs { namespace ct
 	/** Default material used for rendering particles, when no other is available. */
 	class DefaultParticlesMat : public RendererMaterial<DefaultParticlesMat> { RMAT_DEF("ParticlesUnlit.bsl"); };
 
-	// TODO - Doc
+	/** Keeps a pool of textures used for the purposes of the particle system. */
 	class ParticleTexturePool final
 	{
+		/** A set of created textures, per size. */
 		struct BuffersPerSize
 		{
 			Vector<ParticleTextures*> buffers;
@@ -101,15 +104,23 @@ namespace bs { namespace ct
 	public:
 		~ParticleTexturePool();
 
+		/** 
+		 * Returns a set of textures containing the pixel data from the provided @p renderData. Returned textures
+		 * will remain in-use until the next call to clear().
+		 */
 		const ParticleTextures* alloc(const ParticleRenderData& renderData);
+
+		/** Frees all allocates textures and makes them available for re-use. */
 		void clear();
 
 	private:
-		ParticleTextures * createNewTextures(UINT32 size);
+		/** Creates a new set of textures with @p size width and height. */
+		ParticleTextures* createNewTextures(UINT32 size);
 
 		UnorderedMap<UINT32, BuffersPerSize> mBufferList;
 		PoolAlloc<sizeof(ParticleTextures), 32> mAlloc;
 	};
+
 	/** Handles internal logic for rendering of particle systems. */
 	class ParticleRenderer final : public Module<ParticleRenderer>
 	{
