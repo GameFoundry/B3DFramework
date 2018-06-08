@@ -41,27 +41,39 @@ namespace bs
 		static const UnorderedMap<String, UINT64> dummyParams;
 
 		RTTITypeBase* rtti = obj.getRTTI();
-		rtti->onSerializationStarted(&obj, dummyParams);
+		do {
+			rtti->onSerializationStarted(&obj, dummyParams);
 
-		UINT32 numFields = rtti->getNumFields();
-		for (UINT32 i = 0; i < numFields; i++)
-		{
-			RTTIField* field = rtti->getField(i);
-			if ((field->getFlags() & RTTI_Flag_SkipInReferenceSearch) != 0)
-				continue;
-
-			if (field->isReflectableType())
+			UINT32 numFields = rtti->getNumFields();
+			for (UINT32 i = 0; i < numFields; i++)
 			{
-				RTTIReflectableFieldBase* reflectableField = static_cast<RTTIReflectableFieldBase*>(field);
+				RTTIField* field = rtti->getField(i);
+				if ((field->getFlags() & RTTI_Flag_SkipInReferenceSearch) != 0)
+					continue;
 
-				if (reflectableField->getType()->getRTTIId() == TID_ResourceHandle)
+				if (field->isReflectableType())
 				{
-					if (reflectableField->isArray())
+					RTTIReflectableFieldBase* reflectableField = static_cast<RTTIReflectableFieldBase*>(field);
+
+					if (reflectableField->getType()->getRTTIId() == TID_ResourceHandle)
 					{
-						UINT32 numElements = reflectableField->getArraySize(&obj);
-						for (UINT32 j = 0; j < numElements; j++)
+						if (reflectableField->isArray())
 						{
-							HResource resource = (HResource&)reflectableField->getArrayValue(&obj, j);
+							UINT32 numElements = reflectableField->getArraySize(&obj);
+							for (UINT32 j = 0; j < numElements; j++)
+							{
+								HResource resource = (HResource&)reflectableField->getArrayValue(&obj, j);
+								if (!resource.getUUID().empty())
+								{
+									ResourceDependency& dependency = dependencies[resource.getUUID()];
+									dependency.resource = resource;
+									dependency.numReferences++;
+								}
+							}
+						}
+						else
+						{
+							HResource resource = (HResource&)reflectableField->getValue(&obj);
 							if (!resource.getUUID().empty())
 							{
 								ResourceDependency& dependency = dependencies[resource.getUUID()];
@@ -70,71 +82,63 @@ namespace bs
 							}
 						}
 					}
-					else
+					else if (recursive)
 					{
-						HResource resource = (HResource&)reflectableField->getValue(&obj);
-						if (!resource.getUUID().empty())
+						// Optimization, no need to retrieve its value and go deeper if it has no 
+						// reflectable children that may hold the reference.
+						if (hasReflectableChildren(reflectableField->getType()))
 						{
-							ResourceDependency& dependency = dependencies[resource.getUUID()];
-							dependency.resource = resource;
-							dependency.numReferences++;
+							if (reflectableField->isArray())
+							{
+								UINT32 numElements = reflectableField->getArraySize(&obj);
+								for (UINT32 j = 0; j < numElements; j++)
+								{
+									IReflectable& childObj = reflectableField->getArrayValue(&obj, j);
+									findResourceDependenciesInternal(childObj, true, dependencies);
+								}
+							}
+							else
+							{
+								IReflectable& childObj = reflectableField->getValue(&obj);
+								findResourceDependenciesInternal(childObj, true, dependencies);
+							}
 						}
 					}
 				}
-				else if (recursive)
+				else if (field->isReflectablePtrType() && recursive)
 				{
+					RTTIReflectablePtrFieldBase* reflectablePtrField = static_cast<RTTIReflectablePtrFieldBase*>(field);
+
 					// Optimization, no need to retrieve its value and go deeper if it has no 
 					// reflectable children that may hold the reference.
-					if (hasReflectableChildren(reflectableField->getType())) 
+					if (hasReflectableChildren(reflectablePtrField->getType()))
 					{
-						if (reflectableField->isArray())
+						if (reflectablePtrField->isArray())
 						{
-							UINT32 numElements = reflectableField->getArraySize(&obj);
+							UINT32 numElements = reflectablePtrField->getArraySize(&obj);
 							for (UINT32 j = 0; j < numElements; j++)
 							{
-								IReflectable& childObj = reflectableField->getArrayValue(&obj, j);
-								findResourceDependenciesInternal(childObj, true, dependencies);
+								SPtr<IReflectable> childObj = reflectablePtrField->getArrayValue(&obj, j);
+
+								if (childObj != nullptr)
+									findResourceDependenciesInternal(*childObj, true, dependencies);
 							}
 						}
 						else
 						{
-							IReflectable& childObj = reflectableField->getValue(&obj);
-							findResourceDependenciesInternal(childObj, true, dependencies);
-						}
-					}
-				}
-			}
-			else if (field->isReflectablePtrType() && recursive)
-			{
-				RTTIReflectablePtrFieldBase* reflectablePtrField = static_cast<RTTIReflectablePtrFieldBase*>(field);
-
-				// Optimization, no need to retrieve its value and go deeper if it has no 
-				// reflectable children that may hold the reference.
-				if (hasReflectableChildren(reflectablePtrField->getType()))
-				{
-					if (reflectablePtrField->isArray())
-					{
-						UINT32 numElements = reflectablePtrField->getArraySize(&obj);
-						for (UINT32 j = 0; j < numElements; j++)
-						{
-							SPtr<IReflectable> childObj = reflectablePtrField->getArrayValue(&obj, j);
+							SPtr<IReflectable> childObj = reflectablePtrField->getValue(&obj);
 
 							if (childObj != nullptr)
 								findResourceDependenciesInternal(*childObj, true, dependencies);
 						}
 					}
-					else
-					{
-						SPtr<IReflectable> childObj = reflectablePtrField->getValue(&obj);
-
-						if (childObj != nullptr)
-							findResourceDependenciesInternal(*childObj, true, dependencies);
-					}
 				}
 			}
-		}
 
-		rtti->onSerializationEnded(&obj, dummyParams);
+			rtti->onSerializationEnded(&obj, dummyParams);
+
+			rtti = rtti->getBaseClass();
+		} while(rtti != nullptr);
 	}
 
 	Vector<HComponent> Utility::findComponents(const HSceneObject& object, UINT32 typeId)
