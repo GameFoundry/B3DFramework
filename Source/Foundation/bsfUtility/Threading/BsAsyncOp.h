@@ -119,9 +119,24 @@ namespace bs
 
 		/** @} */
 	private:
+		friend bool operator==(const AsyncOp&, std::nullptr_t);
+		friend bool operator!=(const AsyncOp&, std::nullptr_t);
+
 		SPtr<AsyncOpData> mData;
 		SPtr<AsyncOpSyncData> mSyncData;
 	};
+
+	/**	Checks if an AsyncOp is null. */
+	inline bool operator==(const AsyncOp& lhs, std::nullptr_t rhs)
+	{	
+		return lhs.mData == nullptr;
+	}
+
+	/**	Checks if an AsyncOp is not null. */
+	inline bool operator!=(const AsyncOp& lhs, std::nullptr_t rhs)
+	{	
+		return lhs.mData != nullptr;
+	}
 
 	/** @} */
 }
