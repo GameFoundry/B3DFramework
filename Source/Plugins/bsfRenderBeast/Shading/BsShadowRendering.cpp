@@ -1945,7 +1945,7 @@ namespace bs { namespace ct
 
 	float ShadowRendering::getDepthBias(const Light& light, float radius, float depthRange, UINT32 mapSize)
 	{
-		const static float RADIAL_LIGHT_BIAS = 0.0005f;
+		const static float RADIAL_LIGHT_BIAS = 0.005f;
 		const static float SPOT_DEPTH_BIAS = 0.01f;
 		const static float DIR_DEPTH_BIAS = 0.001f; // In clip space units
 		const static float DEFAULT_RESOLUTION = 512.0f;
