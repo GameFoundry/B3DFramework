@@ -73,7 +73,7 @@ HTexture colorTexture = renderTexture->getColorTexture(0);
 
 // Bind the result as input to a material to render with
 HMaterial someMaterial = ...;
-someMaterial->setTexture("gInputTex", texture);
+someMaterial->setTexture("gInputTex", colorTexture);
 ~~~~~~~~~~~~~
 
 Please note that a render texture must not be bound for rendering at the same time you are trying to read from it (either from shader of from the CPU). This will result in undefined behaviour.
