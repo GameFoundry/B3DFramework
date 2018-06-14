@@ -60,7 +60,7 @@ namespace bs
 		void start(std::function<void()> workerMethod, UINT32 id);
 
 		/**
-		 * Attempts to join the currently running thread and destroys it. Caller must ensure that any worker method 
+		 * Attempts to join the currently running thread and destroys it. Caller must ensure that any worker method
 		 * currently running properly returns, otherwise this will block indefinitely.
 		 */
 		void destroy();
@@ -142,7 +142,7 @@ namespace bs
 	 */
 
 	/**
-	 * Class that maintains a pool of threads we can easily retrieve and use for any task. This saves on the cost of 
+	 * Class that maintains a pool of threads we can easily retrieve and use for any task. This saves on the cost of
 	 * creating and destroying threads.
 	 */
 	class BS_UTILITY_EXPORT ThreadPool : public Module<ThreadPool>
@@ -152,7 +152,7 @@ namespace bs
 		 * Constructs a new thread pool
 		 *
 		 * @param[in]	threadCapacity	Default thread capacity, the pool will always try to keep this many threads available.
-		 * @param[in]	maxCapacity   	(optional) Maximum number of threads the pool can create. If we go over this limit an 
+		 * @param[in]	maxCapacity   	(optional) Maximum number of threads the pool can create. If we go over this limit an
 		 *								exception will be thrown.
 		 * @param[in]	idleTimeout   	(optional) How many seconds do threads need to be idle before we remove them from the pool.
 		 */
@@ -169,7 +169,7 @@ namespace bs
 		HThread run(const String& name, std::function<void()> workerMethod);
 
 		/**
-		 * Stops all threads and destroys them. Caller must ensure each threads worker method returns otherwise this will 
+		 * Stops all threads and destroys them. Caller must ensure each threads worker method returns otherwise this will
 		 * never return.
 		 */
 		void stopAll();
@@ -209,6 +209,7 @@ namespace bs
 		UINT32 mDefaultCapacity;
 		UINT32 mMaxCapacity;
 		UINT32 mIdleTimeout;
+		/** unused check counter */
 		UINT32 mAge = 0;
 
 		std::atomic_uint mUniqueId;

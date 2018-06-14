@@ -16,6 +16,9 @@
 
 namespace bs
 {
+	/** The thread pool will check for unused threads every UNUSED_CHECK_PERIOD getThread() calls*/
+	static constexpr int UNUSED_CHECK_PERIOD = 32;
+
 	HThread::HThread(ThreadPool* pool, UINT32 threadId)
 		:mThreadId(threadId), mPool(pool)
 	{ }
@@ -274,10 +277,9 @@ namespace bs
 			age = ++mAge;
 		}
 
-		if(age == 32)
+		if(age == UNUSED_CHECK_PERIOD)
 			clearUnused();
 
-		PooledThread* newThread = nullptr;
 		Lock lock(mMutex);
 
 		for(auto& thread : mThreads)
@@ -289,14 +291,11 @@ namespace bs
 			}
 		}
 
-		if(newThread == nullptr)
-		{
-			if(mThreads.size() >= mMaxCapacity)
-				BS_EXCEPT(InvalidStateException, "Unable to create a new thread in the pool because maximum capacity has been reached.");
+		if(mThreads.size() >= mMaxCapacity)
+			BS_EXCEPT(InvalidStateException, "Unable to create a new thread in the pool because maximum capacity has been reached.");
 
-			newThread = createThread(name);
-			mThreads.push_back(newThread);
-		}
+		PooledThread* newThread = createThread(name);
+		mThreads.push_back(newThread);
 
 		return newThread;
 	}
