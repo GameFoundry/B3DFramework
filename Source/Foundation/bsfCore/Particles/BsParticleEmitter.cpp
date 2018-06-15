@@ -126,9 +126,7 @@ namespace bs
 	class TParticleEmitterConeShape<false, false> : public ParticleEmitterConeShape
 	{
 	public:
-		TParticleEmitterConeShape(const PARTICLE_CONE_SHAPE_DESC& desc)
-			:ParticleEmitterConeShape(desc)
-		{ }
+		using ParticleEmitterConeShape::ParticleEmitterConeShape;
 
 		/** @copydoc ParticleEmitterShape::spawn */
 		UINT32 spawn(const Random& random, ParticleSet& particles, UINT32 count, 
@@ -161,9 +159,7 @@ namespace bs
 	class TParticleEmitterConeShape<true, false> : public ParticleEmitterConeShape
 	{
 	public:
-		TParticleEmitterConeShape(const PARTICLE_CONE_SHAPE_DESC& desc)
-			:ParticleEmitterConeShape(desc)
-		{ }
+		using ParticleEmitterConeShape::ParticleEmitterConeShape;
 
 		/** @copydoc ParticleEmitterShape::spawn */
 		UINT32 spawn(const Random& random, ParticleSet& particles, UINT32 count, 
@@ -197,9 +193,7 @@ namespace bs
 	class TParticleEmitterConeShape<false, true> : public ParticleEmitterConeShape
 	{
 	public:
-		TParticleEmitterConeShape(const PARTICLE_CONE_SHAPE_DESC& desc)
-			:ParticleEmitterConeShape(desc)
-		{ }
+		using ParticleEmitterConeShape::ParticleEmitterConeShape;
 
 		/** @copydoc ParticleEmitterShape::spawn */
 		UINT32 spawn(const Random& random, ParticleSet& particles, UINT32 count, 
@@ -232,9 +226,7 @@ namespace bs
 	class TParticleEmitterConeShape<true, true> : public ParticleEmitterConeShape
 	{
 	public:
-		TParticleEmitterConeShape(const PARTICLE_CONE_SHAPE_DESC& desc)
-			:ParticleEmitterConeShape(desc)
-		{ }
+		using ParticleEmitterConeShape::ParticleEmitterConeShape;
 
 		/** @copydoc ParticleEmitterShape::spawn */
 		UINT32 spawn(const Random& random, ParticleSet& particles, UINT32 count, 
@@ -359,9 +351,7 @@ namespace bs
 	class TParticleEmitterBoxShape<(int)ParticleEmitterBoxType::Volume> : public ParticleEmitterBoxShape
 	{
 	public:
-		TParticleEmitterBoxShape(const PARTICLE_BOX_SHAPE_DESC& desc)
-			:ParticleEmitterBoxShape(desc)
-		{ }
+		using ParticleEmitterBoxShape::ParticleEmitterBoxShape;
 
 		/** @copydoc ParticleEmitterShape::spawn */
 		UINT32 spawn(const Random& random, ParticleSet& particles, UINT32 count, 
@@ -610,9 +600,7 @@ namespace bs
 	class TParticleEmitterCircleShape<false> : public ParticleEmitterCircleShape
 	{
 	public:
-		TParticleEmitterCircleShape(const PARTICLE_CIRCLE_SHAPE_DESC& desc)
-			:ParticleEmitterCircleShape(desc)
-		{ }
+		using ParticleEmitterCircleShape::ParticleEmitterCircleShape;
 
 		UINT32 spawn(const Random& random, ParticleSet& particles, UINT32 count, 
 			const ParticleEmitterState& state) const override
@@ -640,9 +628,7 @@ namespace bs
 	class TParticleEmitterCircleShape<true> : public ParticleEmitterCircleShape
 	{
 	public:
-		TParticleEmitterCircleShape(const PARTICLE_CIRCLE_SHAPE_DESC& desc)
-			:ParticleEmitterCircleShape(desc)
-		{ }
+		using ParticleEmitterCircleShape::ParticleEmitterCircleShape;
 
 		UINT32 spawn(const Random& random, ParticleSet& particles, UINT32 count, 
 			const ParticleEmitterState& state) const override
@@ -720,9 +706,7 @@ namespace bs
 	class TParticleEmitterStaticMeshShape<(int)ParticleEmitterMeshType::Vertex> : public ParticleEmitterStaticMeshShape
 	{
 	public:
-		TParticleEmitterStaticMeshShape(const PARTICLE_MESH_SHAPE_DESC& desc)
-			:ParticleEmitterStaticMeshShape(desc)
-		{ }
+		using ParticleEmitterStaticMeshShape::ParticleEmitterStaticMeshShape;
 
 		UINT32 spawn(const Random& random, ParticleSet& particles, UINT32 count, 
 			const ParticleEmitterState& state) const override
@@ -947,9 +931,7 @@ namespace bs
 	class TParticleEmitterSkinnedMeshShape<(int)ParticleEmitterMeshType::Vertex> : public ParticleEmitterSkinnedMeshShape 
 	{
 	public:
-		TParticleEmitterSkinnedMeshShape(const PARTICLE_MESH_SHAPE_DESC& desc)
-			:ParticleEmitterSkinnedMeshShape(desc)
-		{ }
+		using ParticleEmitterSkinnedMeshShape::ParticleEmitterSkinnedMeshShape;
 
 		UINT32 spawn(const Random& random, ParticleSet& particles, UINT32 count, 
 			const ParticleEmitterState& state) const override

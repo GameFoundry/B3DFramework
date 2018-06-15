@@ -37,6 +37,7 @@ mixin ParticleVertex
 			uint gTexSize;
 			float3 gAxisUp;
 			float3 gAxisRight;
+			float4 gSubImageSize;
 		}		
 
 		VStoFS vsmain(VertexInput input)
@@ -57,7 +58,7 @@ mixin ParticleVertex
 			#elif ORIENT == 1 // Towards camera origin
 				float3 diff = gViewOrigin - worldPosition.xyz;
 				
-				float3 cameraUp = float3(gMatView[0][1], gMatView[1][1], gMatView[2][1]);
+				float3 cameraUp = float3(gMatView[1][0], gMatView[1][1], gMatView[1][2]);
 				axisRight = normalize(cross(diff, cameraUp));
 				
 				#if LOCK_Y
@@ -66,23 +67,27 @@ mixin ParticleVertex
 					axisUp = normalize(cross(axisRight, diff));
 				#endif
 			#else // Towards camera plane
-				axisRight = float3(gMatView[0][0], gMatView[1][0], gMatView[2][0]);
+				axisRight = float3(gMatView[0][0], gMatView[0][1], gMatView[0][2]);
 				
 				#if LOCK_Y
 					axisUp = float3(0, 1, 0);				
 				#else
-					axisUp = float3(gMatView[0][1], gMatView[1][1], gMatView[2][1]);
+					axisUp = float3(gMatView[1][0], gMatView[1][1], gMatView[1][2]);
 				#endif
 			#endif
 
-			worldPosition.xyz += axisRight * input.position.x * size.x + axisUp * input.position.y  * size.y;	
+			float rotSin, rotCos;
+			sincos(posAndRot.w, rotSin, rotCos);
+			
+			float3 rotAxisRight = rotSin * axisUp + rotCos * axisRight;
+			float3 rotAxisUp = rotCos * axisUp - rotSin * axisRight;
+			
+			worldPosition.xyz += rotAxisRight * input.position.x * size.x + rotAxisUp * input.position.y  * size.y;	
 			
 			VStoFS output;
 			output.color = gColorTex.Load(pixelPos);
 			output.uv0 = input.uv0;
 			output.position = mul(gMatViewProj, worldPosition);
-		
-			// TODO - Ignoring rotation and UV
 		
 			return output;
 		}

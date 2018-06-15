@@ -171,6 +171,10 @@
         {
             "Path": "ParticleVertex.bslinc",
             "UUID": "c830bfdf-4e45-56a3-46b2-4e4598d3b312"
+        },
+        {
+            "Path": "RadixSortCommon.bslinc",
+            "UUID": "944603e9-4407-32cb-69a8-44078adaeceb"
         }
     ],
     "Shaders": [
@@ -433,6 +437,18 @@
         {
             "Path": "ParticlesUnlit.bsl",
             "UUID": "cf6ba550-40b3-6e4e-55ab-40b3abd077f1"
+        },
+        {
+            "Path": "RadixSortCount.bsl",
+            "UUID": "63499594-43a3-71da-64bf-43a3a5efe7ac"
+        },
+        {
+            "Path": "RadixSortPrefixScan.bsl",
+            "UUID": "6c0c0b72-4e01-6863-fa8d-4e01a4df8046"
+        },
+        {
+            "Path": "RadixSortReorder.bsl",
+            "UUID": "0dd1ac91-402a-9e2e-2ba1-402a77f5efda"
         }
     ],
     "Skin": [

@@ -1,0 +1,21 @@
+mixin RadixSortCommon
+{
+	featureset = HighEnd;
+
+	code
+	{
+		#define TILE_SIZE NUM_THREADS * KEYS_PER_LOOP
+	
+		#define NUM_DIGITS (1 << RADIX_NUM_BITS)
+		#define KEY_MASK (NUM_DIGITS - 1)
+		
+		cbuffer Params
+		{
+			uint gBitOffset;
+			uint gTilesPerGroup;
+			uint gNumGroups;
+			uint gNumExtraTiles;
+			uint gNumExtraKeys;
+		};		
+	};
+};

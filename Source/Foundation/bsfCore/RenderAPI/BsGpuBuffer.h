@@ -16,19 +16,19 @@ namespace bs
 	struct GPU_BUFFER_DESC
 	{
 		/** Number of elements in the buffer. */
-		UINT32 elementCount; 
+		UINT32 elementCount = 0;
 
 		/** 
 		 * Size of each individual element in the buffer, in bytes. Only needed if using non-standard buffer. If using
 		 * standard buffers element size is calculated from format and this must be zero.
 		 */
-		UINT32 elementSize;
+		UINT32 elementSize = 0;
 
 		/** Type of the buffer. Determines how is buffer seen by the GPU program and in what ways can it be used. */
-		GpuBufferType type;
+		GpuBufferType type = GBT_STANDARD;
 
 		/** Format if the data in the buffer. Only relevant for standard buffers, must be BF_UNKNOWN otherwise. */
-		GpuBufferFormat format;
+		GpuBufferFormat format = BF_32X4F;
 
 		/** Usage that tells the hardware how will be buffer be used. */
 		GpuBufferUsage usage = GBU_STATIC;

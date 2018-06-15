@@ -315,7 +315,7 @@ namespace bs
 			UINT32 getId() const { return mId; }
 
 			/** @copydoc bs::ParticleSystem::setMaterial */
-			void setMaterial(const SPtr<Material>& material) { mMaterial = material; }
+			void setMaterial(SPtr<Material> material) { mMaterial = std::move(material); }
 
 			/** @copydoc setMaterial() */
 			const SPtr<Material>& getMaterial() const { return mMaterial; }

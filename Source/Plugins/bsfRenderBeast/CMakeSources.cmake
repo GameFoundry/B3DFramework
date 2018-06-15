@@ -47,11 +47,13 @@ set(BS_RENDERBEAST_SRC_SHADING
 
 set(BS_RENDERBEAST_INC_UTILITY
 	"Utility/BsGpuResourcePool.h"
+	"Utility/BsGpuSort.h"
 	"Utility/BsSamplerOverrides.h"
 	"Utility/BsRendererTextures.h"
 )
 
 set(BS_RENDERBEAST_SRC_UTILITY
+	"Utility/BsGpuSort.cpp"
 	"Utility/BsGpuResourcePool.cpp"
 	"Utility/BsSamplerOverrides.cpp"
 	"Utility/BsRendererTextures.cpp"

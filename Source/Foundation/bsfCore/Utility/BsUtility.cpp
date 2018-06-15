@@ -44,7 +44,7 @@ namespace bs
 		do {
 			rtti->onSerializationStarted(&obj, dummyParams);
 
-			UINT32 numFields = rtti->getNumFields();
+			const UINT32 numFields = rtti->getNumFields();
 			for (UINT32 i = 0; i < numFields; i++)
 			{
 				RTTIField* field = rtti->getField(i);
@@ -53,13 +53,13 @@ namespace bs
 
 				if (field->isReflectableType())
 				{
-					RTTIReflectableFieldBase* reflectableField = static_cast<RTTIReflectableFieldBase*>(field);
+					auto reflectableField = static_cast<RTTIReflectableFieldBase*>(field);
 
 					if (reflectableField->getType()->getRTTIId() == TID_ResourceHandle)
 					{
 						if (reflectableField->isArray())
 						{
-							UINT32 numElements = reflectableField->getArraySize(&obj);
+							const UINT32 numElements = reflectableField->getArraySize(&obj);
 							for (UINT32 j = 0; j < numElements; j++)
 							{
 								HResource resource = (HResource&)reflectableField->getArrayValue(&obj, j);
@@ -90,7 +90,7 @@ namespace bs
 						{
 							if (reflectableField->isArray())
 							{
-								UINT32 numElements = reflectableField->getArraySize(&obj);
+								const UINT32 numElements = reflectableField->getArraySize(&obj);
 								for (UINT32 j = 0; j < numElements; j++)
 								{
 									IReflectable& childObj = reflectableField->getArrayValue(&obj, j);
@@ -107,7 +107,7 @@ namespace bs
 				}
 				else if (field->isReflectablePtrType() && recursive)
 				{
-					RTTIReflectablePtrFieldBase* reflectablePtrField = static_cast<RTTIReflectablePtrFieldBase*>(field);
+					auto reflectablePtrField = static_cast<RTTIReflectablePtrFieldBase*>(field);
 
 					// Optimization, no need to retrieve its value and go deeper if it has no 
 					// reflectable children that may hold the reference.
@@ -115,10 +115,10 @@ namespace bs
 					{
 						if (reflectablePtrField->isArray())
 						{
-							UINT32 numElements = reflectablePtrField->getArraySize(&obj);
+							const UINT32 numElements = reflectablePtrField->getArraySize(&obj);
 							for (UINT32 j = 0; j < numElements; j++)
 							{
-								SPtr<IReflectable> childObj = reflectablePtrField->getArrayValue(&obj, j);
+								const SPtr<IReflectable>& childObj = reflectablePtrField->getArrayValue(&obj, j);
 
 								if (childObj != nullptr)
 									findResourceDependenciesInternal(*childObj, true, dependencies);
@@ -126,7 +126,7 @@ namespace bs
 						}
 						else
 						{
-							SPtr<IReflectable> childObj = reflectablePtrField->getValue(&obj);
+							const SPtr<IReflectable>& childObj = reflectablePtrField->getValue(&obj);
 
 							if (childObj != nullptr)
 								findResourceDependenciesInternal(*childObj, true, dependencies);
