@@ -21,6 +21,7 @@ Huge thanks to all the patrons, contributors and donators!
 # Tier 1 Patrons
 - Danijel Ribić [Founder]
 - Serar Tok [Founder]
+- Akaoray [Founder]
 
 # One-time donators
 - Žan Strahija [Founder]
