@@ -1182,7 +1182,7 @@ namespace bs
 						quadOffset += writtenQuads;
 					}
 
-					Vector3 worldSpacePos = text2DData.transform.getTranslation();
+					Vector3 worldSpacePos = text2DData.transform.multiplyAffine(text2DData.position);
 					Vector2I screenPos = camera->worldToScreenPoint(worldSpacePos);
 					screenPos.x -= renderData.textData->getWidth() / 2;
 					screenPos.y -= renderData.textData->getHeight() / 2;
