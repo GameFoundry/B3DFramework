@@ -75,7 +75,7 @@ namespace bs
 		using Base = TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, Core>;
 
 	public:
-		using Base::TMaterialDataCommon;
+		using TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, Core>::TMaterialDataCommon;
 
 		/** @copydoc TGpuDataParam::set */
 		void set(const T& value, UINT32 arrayIdx = 0) const;
@@ -91,7 +91,7 @@ namespace bs
 		using Base = TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, Core>;
 
 	public:
-		using Base::TMaterialDataCommon;
+		using TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, Core>::TMaterialDataCommon;
 
 		/** @copydoc TGpuDataParam::set */
 		void set(const TAnimationCurve<T>& value, UINT32 arrayIdx = 0) const;
@@ -107,7 +107,7 @@ namespace bs
 		using Base = TMaterialDataCommon<GPDT_COLOR, Core>;
 
 	public:
-		using Base::TMaterialDataCommon;
+		using TMaterialDataCommon<GPDT_COLOR, Core>::TMaterialDataCommon;
 
 		/** @copydoc TGpuDataParam::set */
 		void set(const ColorGradient& value, UINT32 arrayIdx = 0) const;
@@ -123,7 +123,7 @@ namespace bs
 		using Base = TMaterialDataCommon<GPDT_STRUCT, Core>;
 
 	public:
-		using Base::TMaterialDataCommon;
+		using TMaterialDataCommon<GPDT_STRUCT, Core>::TMaterialDataCommon;
 
 		/** @copydoc TGpuParamStruct::set */
 		void set(const void* value, UINT32 sizeBytes, UINT32 arrayIdx = 0) const;

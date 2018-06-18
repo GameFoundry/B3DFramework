@@ -453,44 +453,35 @@ namespace bs
 		return samplerState;
 	}
 
-	template class TMaterialDataParam<float, false>;
-	template class TMaterialDataParam<int, false>;
-	template class TMaterialDataParam<Color, false>;
-	template class TMaterialDataParam<Vector2, false>;
-	template class TMaterialDataParam<Vector3, false>;
-	template class TMaterialDataParam<Vector4, false>;
-	template class TMaterialDataParam<Vector2I, false>;
-	template class TMaterialDataParam<Vector3I, false>;
-	template class TMaterialDataParam<Vector4I, false>;
-	template class TMaterialDataParam<Matrix2, false>;
-	template class TMaterialDataParam<Matrix2x3, false>;
-	template class TMaterialDataParam<Matrix2x4, false>;
-	template class TMaterialDataParam<Matrix3, false>;
-	template class TMaterialDataParam<Matrix3x2, false>;
-	template class TMaterialDataParam<Matrix3x4, false>;
-	template class TMaterialDataParam<Matrix4, false>;
-	template class TMaterialDataParam<Matrix4x2, false>;
-	template class TMaterialDataParam<Matrix4x3, false>;
+#define MATERIAL_DATA_PARAM_INSTATIATE(type)										\
+	template class TMaterialDataCommon<TGpuDataParamInfo<type>::TypeId, false>;		\
+	template class TMaterialDataCommon<TGpuDataParamInfo<type>::TypeId, true>;		\
+	template class TMaterialDataParam<type, false>;									\
+	template class TMaterialDataParam<type, true>;
 
-	template class TMaterialDataParam<float, true>;
-	template class TMaterialDataParam<int, true>;
-	template class TMaterialDataParam<Color, true>;
-	template class TMaterialDataParam<Vector2, true>;
-	template class TMaterialDataParam<Vector3, true>;
-	template class TMaterialDataParam<Vector4, true>;
-	template class TMaterialDataParam<Vector2I, true>;
-	template class TMaterialDataParam<Vector3I, true>;
-	template class TMaterialDataParam<Vector4I, true>;
-	template class TMaterialDataParam<Matrix2, true>;
-	template class TMaterialDataParam<Matrix2x3, true>;
-	template class TMaterialDataParam<Matrix2x4, true>;
-	template class TMaterialDataParam<Matrix3, true>;
-	template class TMaterialDataParam<Matrix3x2, true>;
-	template class TMaterialDataParam<Matrix3x4, true>;
-	template class TMaterialDataParam<Matrix4, true>;
-	template class TMaterialDataParam<Matrix4x2, true>;
-	template class TMaterialDataParam<Matrix4x3, true>;
+	MATERIAL_DATA_PARAM_INSTATIATE(float)
+	MATERIAL_DATA_PARAM_INSTATIATE(int)
+	MATERIAL_DATA_PARAM_INSTATIATE(Color)
+	MATERIAL_DATA_PARAM_INSTATIATE(Vector2)
+	MATERIAL_DATA_PARAM_INSTATIATE(Vector3)
+	MATERIAL_DATA_PARAM_INSTATIATE(Vector4)
+	MATERIAL_DATA_PARAM_INSTATIATE(Vector2I)
+	MATERIAL_DATA_PARAM_INSTATIATE(Vector3I)
+	MATERIAL_DATA_PARAM_INSTATIATE(Vector4I)
+	MATERIAL_DATA_PARAM_INSTATIATE(Matrix2)
+	MATERIAL_DATA_PARAM_INSTATIATE(Matrix2x3)
+	MATERIAL_DATA_PARAM_INSTATIATE(Matrix2x4)
+	MATERIAL_DATA_PARAM_INSTATIATE(Matrix3)
+	MATERIAL_DATA_PARAM_INSTATIATE(Matrix3x2)
+	MATERIAL_DATA_PARAM_INSTATIATE(Matrix3x4)
+	MATERIAL_DATA_PARAM_INSTATIATE(Matrix4)
+	MATERIAL_DATA_PARAM_INSTATIATE(Matrix4x2)
+	MATERIAL_DATA_PARAM_INSTATIATE(Matrix4x3)
 
+#undef MATERIAL_DATA_PARAM_INSTATIATE
+
+	template class TMaterialDataCommon<GPDT_STRUCT, false>;
+	template class TMaterialDataCommon<GPDT_STRUCT, true>;
 	template class TMaterialParamStruct<false>;
 	template class TMaterialParamStruct<true>;
 
