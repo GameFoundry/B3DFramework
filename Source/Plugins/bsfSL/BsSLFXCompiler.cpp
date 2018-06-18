@@ -433,11 +433,12 @@ namespace bs
 							continue;
 
 						if (entry.defaultValue == -1)
-							desc.addParameter(ident, ident, objType);
+							desc.addParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, objType));
 						else
 						{
 							const Xsc::Reflection::DefaultValue& defVal = reflData.defaultValues[entry.defaultValue];
-							desc.addParameter(ident, ident, objType, getBuiltinTexture(defVal.integer));
+							desc.addParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, objType),
+								getBuiltinTexture(defVal.integer));
 						}
 					}
 					else
@@ -448,7 +449,7 @@ namespace bs
 							continue;
 
 						objType = ReflTypeToBufferType((Xsc::Reflection::BufferType)entry.baseType);
-						desc.addParameter(ident, ident, objType);
+						desc.addParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, objType));
 					}
 				}
 				break;
@@ -467,22 +468,22 @@ namespace bs
 					if(findIter->second.isNonDefault)
 					{
 						SPtr<SamplerState> defaultVal = parseSamplerState(findIter->second);
-						desc.addParameter(ident, ident, GPOT_SAMPLER2D, defaultVal);
+						desc.addParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, GPOT_SAMPLER2D), defaultVal);
 
 						if (!alias.empty())
-							desc.addParameter(ident, alias, GPOT_SAMPLER2D, defaultVal);
+							desc.addParameter(SHADER_OBJECT_PARAM_DESC(ident, alias, GPOT_SAMPLER2D), defaultVal);
 					}
 					else
 					{
-						desc.addParameter(ident, ident, GPOT_SAMPLER2D);
+						desc.addParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, GPOT_SAMPLER2D));
 
 						if (!alias.empty())
-							desc.addParameter(ident, alias, GPOT_SAMPLER2D);
+							desc.addParameter(SHADER_OBJECT_PARAM_DESC(ident, alias, GPOT_SAMPLER2D));
 					}
 				}
 				else
 				{
-					desc.addParameter(ident, ident, GPOT_SAMPLER2D);
+					desc.addParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, GPOT_SAMPLER2D));
 				}
 				break;
 			}
@@ -512,12 +513,13 @@ namespace bs
 					}
 
 					if (entry.defaultValue == -1)
-						desc.addParameter(ident, ident, type);
+						desc.addParameter(SHADER_DATA_PARAM_DESC(ident, ident, type));
 					else
 					{
 						const Xsc::Reflection::DefaultValue& defVal = reflData.defaultValues[entry.defaultValue];
 
-						desc.addParameter(ident, ident, type, StringID::NONE, 1, 0, (UINT8*)defVal.matrix);
+						desc.addParameter(SHADER_DATA_PARAM_DESC(ident, ident, type, StringID::NONE, 1, 0), 
+							(UINT8*)defVal.matrix);
 					}
 				}
 			}

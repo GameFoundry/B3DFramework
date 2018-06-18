@@ -3,7 +3,7 @@
 #include "GUI/BsGUIRenderTexture.h"
 #include "GUI/BsGUIManager.h"
 #include "RenderAPI/BsRenderTexture.h"
-#include "2D/BsSpriteTexture.h"
+#include "Image/BsSpriteTexture.h"
 
 namespace bs
 {

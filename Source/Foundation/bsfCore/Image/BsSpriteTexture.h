@@ -2,13 +2,13 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
+#include "BsCorePrerequisites.h"
 #include "Resources/BsResource.h"
 #include "Math/BsVector2.h"
 
 namespace bs
 {
-	/** @addtogroup 2D
+	/** @addtogroup Resources
 	 *  @{
 	 */
 
@@ -16,7 +16,7 @@ namespace bs
 	 * Texture interface that encapsulates underlying texture which allows us to create a sprite texture atlas (for example 
 	 * multiple SpriteTexture%s referencing different parts of a single Texture).
 	 */
-	class BS_EXPORT BS_SCRIPT_EXPORT(m:Rendering) SpriteTexture : public Resource
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) SpriteTexture : public Resource
 	{
 	public:
 		/**	Determines the internal texture that the sprite texture references. */
@@ -111,4 +111,24 @@ namespace bs
 	};
 
 	/** @} */
+
+
+	namespace ct
+	{
+		/** @addtogroup Resources
+		 *  @{
+		 */
+
+		 /**
+		  * Core thread version of a bs::SpriteTexture.
+		  *
+		  * @note	Core thread.
+		  */
+		class BS_CORE_EXPORT SpriteTexture : public CoreObject
+		{
+			// TODO - Not implemented
+		};
+
+		/** @} */
+	}
 }

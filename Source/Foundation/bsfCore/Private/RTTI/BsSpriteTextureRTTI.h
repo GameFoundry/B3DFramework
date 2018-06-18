@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
+#include "BsCorePrerequisites.h"
 #include "Reflection/BsRTTIType.h"
-#include "2D/BsSpriteTexture.h"
+#include "Image/BsSpriteTexture.h"
 
 namespace bs
 {
@@ -13,7 +13,7 @@ namespace bs
 	 *  @{
 	 */
 
-	class BS_EXPORT SpriteTextureRTTI : public RTTIType<SpriteTexture, Resource, SpriteTextureRTTI>
+	class BS_CORE_EXPORT SpriteTextureRTTI : public RTTIType<SpriteTexture, Resource, SpriteTextureRTTI>
 	{
 	private:
 		BS_BEGIN_RTTI_MEMBERS

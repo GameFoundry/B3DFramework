@@ -3,7 +3,7 @@
 #include "GUI/BsGUILabel.h"
 #include "GUI/BsGUIElementStyle.h"
 #include "2D/BsTextSprite.h"
-#include "2D/BsSpriteTexture.h"
+#include "Image/BsSpriteTexture.h"
 #include "GUI/BsGUIDimensions.h"
 #include "GUI/BsGUIHelper.h"
 

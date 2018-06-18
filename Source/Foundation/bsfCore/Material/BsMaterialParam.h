@@ -4,9 +4,14 @@
 
 #include "BsCorePrerequisites.h"
 #include "RenderAPI/BsGpuParam.h"
+#include "RenderAPI/BsGpuParams.h"
 
 namespace bs
 {
+	template <class T>
+	class TAnimationCurve;
+	class ColorGradient;
+
 	/** @addtogroup Implementation
 	 *  @{
 	 */
@@ -18,6 +23,35 @@ namespace bs
 	template<bool Core> struct TMaterialParamsType { };
 	template<> struct TMaterialParamsType<false> { typedef MaterialParams Type; };
 	template<> struct TMaterialParamsType<true> { typedef ct::MaterialParams Type; };
+
+	template<bool Core> struct TSpriteTextureType {};
+	template<> struct TSpriteTextureType < false > { typedef HSpriteTexture Type; };
+	template<> struct TSpriteTextureType < true > { typedef SPtr<ct::SpriteTexture> Type; };
+
+	
+	/** Common functionality for all material data params. */
+	template<int DATA_TYPE, bool Core>
+	class BS_CORE_EXPORT TMaterialDataCommon
+	{
+	protected:
+		typedef typename TMaterialType<Core>::Type MaterialPtrType;
+		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
+
+	public:
+		TMaterialDataCommon() = default;
+		TMaterialDataCommon(const String& name, const MaterialPtrType& material);
+
+		/** Checks if param is initialized. */
+		bool operator==(const std::nullptr_t& nullval) const
+		{
+			return mMaterial == nullptr;
+		}
+
+	protected:
+		UINT32 mParamIndex;
+		UINT32 mArraySize;
+		MaterialPtrType mMaterial;
+	};
 
 	/**
 	 * A handle that allows you to set a Material parameter. Internally keeps a reference to the material parameters so that
@@ -36,43 +70,60 @@ namespace bs
 	 * @see		Material
 	 */
 	template<class T, bool Core>
-	class BS_CORE_EXPORT TMaterialDataParam
+	class BS_CORE_EXPORT TMaterialDataParam : public TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, Core>
 	{
-		typedef typename TMaterialType<Core>::Type MaterialPtrType;
-		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
+		using Base = TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, Core>;
 
 	public:
-		TMaterialDataParam(const String& name, const MaterialPtrType& material);
-		TMaterialDataParam() { }
+		using Base::TMaterialDataCommon;
 
 		/** @copydoc TGpuDataParam::set */
 		void set(const T& value, UINT32 arrayIdx = 0) const;
 
 		/** @copydoc TGpuDataParam::get */
 		T get(UINT32 arrayIdx = 0) const;
+	};
 
-		/** Checks if param is initialized. */
-		bool operator==(const std::nullptr_t& nullval) const
-		{
-			return mMaterial == nullptr;
-		}
+	/** @copydoc TMaterialDataParam */
+	template<class T, bool Core>
+	class BS_CORE_EXPORT TMaterialCurveParam : public TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, Core>
+	{
+		using Base = TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, Core>;
 
-	protected:
-		UINT32 mParamIndex;
-		UINT32 mArraySize;
-		MaterialPtrType mMaterial;
+	public:
+		using Base::TMaterialDataCommon;
+
+		/** @copydoc TGpuDataParam::set */
+		void set(const TAnimationCurve<T>& value, UINT32 arrayIdx = 0) const;
+
+		/** @copydoc TGpuDataParam::get */
+		const TAnimationCurve<T>& get(UINT32 arrayIdx = 0) const;
 	};
 	
 	/** @copydoc TMaterialDataParam */
 	template<bool Core>
-	class BS_CORE_EXPORT TMaterialParamStruct
+	class BS_CORE_EXPORT TMaterialColorGradientParam : public TMaterialDataCommon<GPDT_COLOR, Core>
 	{
-		typedef typename TMaterialType<Core>::Type MaterialPtrType;
-		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
+		using Base = TMaterialDataCommon<GPDT_COLOR, Core>;
 
 	public:
-		TMaterialParamStruct(const String& name, const MaterialPtrType& material);
-		TMaterialParamStruct() { }
+		using Base::TMaterialDataCommon;
+
+		/** @copydoc TGpuDataParam::set */
+		void set(const ColorGradient& value, UINT32 arrayIdx = 0) const;
+
+		/** @copydoc TGpuDataParam::get */
+		const ColorGradient& get(UINT32 arrayIdx = 0) const;
+	};
+
+	/** @copydoc TMaterialDataParam */
+	template<bool Core>
+	class BS_CORE_EXPORT TMaterialParamStruct : public TMaterialDataCommon<GPDT_STRUCT, Core>
+	{
+		using Base = TMaterialDataCommon<GPDT_STRUCT, Core>;
+
+	public:
+		using Base::TMaterialDataCommon;
 
 		/** @copydoc TGpuParamStruct::set */
 		void set(const void* value, UINT32 sizeBytes, UINT32 arrayIdx = 0) const;
@@ -82,17 +133,6 @@ namespace bs
 
 		/** @copydoc TGpuParamStruct::getElementSize */
 		UINT32 getElementSize() const;
-
-		/** Checks if param is initialized. */
-		bool operator==(const std::nullptr_t& nullval) const
-		{
-			return mMaterial == nullptr;
-		}
-
-	protected:
-		UINT32 mParamIndex;
-		UINT32 mArraySize;
-		MaterialPtrType mMaterial;
 	};
 
 	/** @copydoc TMaterialDataParam */
@@ -112,6 +152,36 @@ namespace bs
 
 		/** @copydoc GpuParamTexture::get */
 		TextureType get() const;
+
+		/** Checks if param is initialized. */
+		bool operator==(const std::nullptr_t& nullval) const
+		{
+			return mMaterial == nullptr;
+		}
+
+	protected:
+		UINT32 mParamIndex;
+		MaterialPtrType mMaterial;
+	};
+
+	/** @copydoc TMaterialDataParam */
+	template<bool Core>
+	class BS_CORE_EXPORT TMaterialParamSpriteTexture
+	{
+		typedef typename TMaterialType<Core>::Type MaterialPtrType;
+		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
+		typedef typename TSpriteTextureType<Core>::Type SpriteTextureType;
+		typedef typename TGpuParamTextureType<Core>::Type TextureType;
+
+	public:
+		TMaterialParamSpriteTexture(const String& name, const MaterialPtrType& material);
+		TMaterialParamSpriteTexture() { }
+
+		/** @copydoc GpuParamTexture::set */
+		void set(const SpriteTextureType& texture)const;
+
+		/** @copydoc GpuParamTexture::get */
+		SpriteTextureType get() const;
 
 		/** Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const

@@ -22,12 +22,17 @@ shader Surface
 	{
 		write = false;
 	};
-
+	
 	code
 	{
+		[alias(gTexture)]
+		SamplerState gSampler;	
+
+		Texture2D gTexture = white;
+	
 		float4 fsmain(in VStoFS input) : SV_Target0
 		{
-			return float4(1.0f, 1.0f, 0.0f, 1.0f);
+			return gTexture.Sample(gSampler, input.uv0);
 		}	
 	};
 };

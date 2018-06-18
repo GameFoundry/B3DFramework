@@ -31,109 +31,93 @@ namespace bs
 	}
 
 	template<bool Core>
-	void TSHADER_DESC<Core>::addParameter(const String& name, const String& gpuVariableName, GpuParamDataType type,
-		StringID rendererSemantic, UINT32 arraySize, UINT32 elementSize, UINT8* defaultValue)
+	void TSHADER_DESC<Core>::addParameter(SHADER_DATA_PARAM_DESC paramDesc, UINT8* defaultValue)
 	{
-		if(type == GPDT_STRUCT && elementSize <= 0)
-			BS_EXCEPT(InvalidParametersException, "You need to provide a non-zero element size for a struct parameter.")
-
-		SHADER_DATA_PARAM_DESC desc;
-		desc.name = name;
-		desc.gpuVariableName = gpuVariableName;
-		desc.type = type;
-		desc.arraySize = arraySize;
-		desc.rendererSemantic = rendererSemantic;
-		desc.elementSize = elementSize;
+		if(paramDesc.type == GPDT_STRUCT && paramDesc.elementSize <= 0)
+		{
+			LOGERR("You need to provide a non-zero element size for a struct parameter.");
+			return;
+		}
 
 		if (defaultValue != nullptr)
 		{
-			desc.defaultValueIdx = (UINT32)dataDefaultValues.size();
-			UINT32 defaultValueSize = Shader::getDataParamSize(type);
+			paramDesc.defaultValueIdx = (UINT32)dataDefaultValues.size();
+			UINT32 defaultValueSize = Shader::getDataParamSize(paramDesc.type);
 
-			dataDefaultValues.resize(desc.defaultValueIdx + defaultValueSize);
-			memcpy(&dataDefaultValues[desc.defaultValueIdx], defaultValue, defaultValueSize);
+			dataDefaultValues.resize(paramDesc.defaultValueIdx + defaultValueSize);
+			memcpy(&dataDefaultValues[paramDesc.defaultValueIdx], defaultValue, defaultValueSize);
 		}
 		else
-			desc.defaultValueIdx = (UINT32)-1;
+			paramDesc.defaultValueIdx = (UINT32)-1;
 
-		dataParams[name] = desc;
+		dataParams[paramDesc.name] = paramDesc;
 	}
 
 	template<bool Core>
-	void TSHADER_DESC<Core>::addParameter(const String& name, const String& gpuVariableName, GpuParamObjectType type, 
-		StringID rendererSemantic)
+	void TSHADER_DESC<Core>::addParameter(SHADER_OBJECT_PARAM_DESC paramDesc)
 	{
 		UINT32 defaultValueIdx = (UINT32)-1;
 
-		addParameterInternal(name, gpuVariableName, type, rendererSemantic, defaultValueIdx);
+		addParameterInternal(std::move(paramDesc), defaultValueIdx);
 	}
 
 	template<bool Core>
-	void TSHADER_DESC<Core>::addParameter(const String& name, const String& gpuVariableName, GpuParamObjectType type, 
-		const SamplerStateType& defaultValue, StringID rendererSemantic)
+	void TSHADER_DESC<Core>::addParameter(SHADER_OBJECT_PARAM_DESC paramDesc, const SamplerStateType& defaultValue)
 	{
 		UINT32 defaultValueIdx = (UINT32)-1;
-		if (Shader::isSampler(type) && defaultValue != nullptr)
+		if (Shader::isSampler(paramDesc.type) && defaultValue != nullptr)
 		{
 			defaultValueIdx = (UINT32)samplerDefaultValues.size();
 			samplerDefaultValues.push_back(defaultValue);
 		}
 
-		addParameterInternal(name, gpuVariableName, type, rendererSemantic, defaultValueIdx);
+		addParameterInternal(std::move(paramDesc), defaultValueIdx);
 	}
 
 	template<bool Core>
-	void TSHADER_DESC<Core>::addParameter(const String& name, const String& gpuVariableName, GpuParamObjectType type, 
-		const TextureType& defaultValue, StringID rendererSemantic)
+	void TSHADER_DESC<Core>::addParameter(SHADER_OBJECT_PARAM_DESC paramDesc, const TextureType& defaultValue)
 	{
 		UINT32 defaultValueIdx = (UINT32)-1;
-		if (Shader::isTexture(type) && defaultValue != nullptr)
+		if (Shader::isTexture(paramDesc.type) && defaultValue != nullptr)
 		{
 			defaultValueIdx = (UINT32)textureDefaultValues.size();
 			textureDefaultValues.push_back(defaultValue);
 		}
 
-		addParameterInternal(name, gpuVariableName, type, rendererSemantic, defaultValueIdx);
+		addParameterInternal(std::move(paramDesc), defaultValueIdx);
 	}
 
 	template<bool Core>
-	void TSHADER_DESC<Core>::addParameterInternal(const String& name, const String& gpuVariableName, 
-		GpuParamObjectType type, StringID rendererSemantic, UINT32 defaultValueIdx)
+	void TSHADER_DESC<Core>::addParameterInternal(SHADER_OBJECT_PARAM_DESC paramDesc, UINT32 defaultValueIdx)
 	{
 		Map<String, SHADER_OBJECT_PARAM_DESC>* DEST_LOOKUP[] = { &textureParams, &bufferParams, &samplerParams };
 		UINT32 destIdx = 0;
-		if (Shader::isBuffer(type))
+		if (Shader::isBuffer(paramDesc.type))
 			destIdx = 1;
-		else if (Shader::isSampler(type))
+		else if (Shader::isSampler(paramDesc.type))
 			destIdx = 2;
 
 		Map<String, SHADER_OBJECT_PARAM_DESC>& paramsMap = *DEST_LOOKUP[destIdx];
 
-		auto iterFind = paramsMap.find(name);
+		auto iterFind = paramsMap.find(paramDesc.name);
 		if (iterFind == paramsMap.end())
 		{
-			SHADER_OBJECT_PARAM_DESC desc;
-			desc.name = name;
-			desc.type = type;
-			desc.rendererSemantic = rendererSemantic;
-			desc.gpuVariableNames.push_back(gpuVariableName);
-			desc.defaultValueIdx = defaultValueIdx;
-
-			paramsMap[name] = desc;
+			paramDesc.defaultValueIdx = defaultValueIdx;
+			paramsMap[paramDesc.name] = paramDesc;
 		}
 		else
 		{
 			SHADER_OBJECT_PARAM_DESC& desc = iterFind->second;
 
 			// If same name but different properties, we ignore this param
-			if (desc.type != type || desc.rendererSemantic != rendererSemantic)
+			if (desc.type != paramDesc.type || desc.rendererSemantic != paramDesc.rendererSemantic)
 				return;
 
 			Vector<String>& gpuVariableNames = desc.gpuVariableNames;
 			bool found = false;
 			for (UINT32 i = 0; i < (UINT32)gpuVariableNames.size(); i++)
 			{
-				if (gpuVariableNames[i] == gpuVariableName)
+				if (gpuVariableNames[i] == paramDesc.gpuVariableName)
 				{
 					found = true;
 					break;
@@ -141,8 +125,73 @@ namespace bs
 			}
 
 			if (!found)
-				gpuVariableNames.push_back(gpuVariableName);
+				gpuVariableNames.push_back(paramDesc.gpuVariableName);
 		}
+	}
+
+	template<bool Core>
+	void TSHADER_DESC<Core>::setParameterAttribute(const String& name, SHADER_PARAM_ATTRIBUTE attrib)
+	{
+		SHADER_DATA_PARAM_DESC* paramDescData = nullptr;
+
+		const auto findIterData = dataParams.find(name);
+		if (findIterData != dataParams.end())
+			paramDescData = &findIterData->second;
+
+		SHADER_OBJECT_PARAM_DESC* paramDescObj = nullptr;
+		if(!paramDescData)
+		{
+			const auto findIterTexture = textureParams.find(name);
+			if (findIterTexture != textureParams.end())
+				paramDescObj = &findIterTexture->second;
+
+			if (!paramDescObj)
+			{
+				const auto findIterSampler = samplerParams.find(name);
+				if (findIterSampler != samplerParams.end())
+					paramDescObj = &findIterSampler->second;
+			}
+
+			if (!paramDescObj)
+			{
+				const auto findIterBuffer = bufferParams.find(name);
+				if (findIterBuffer != bufferParams.end())
+					paramDescObj = &findIterBuffer->second;
+			}
+		}
+
+		SHADER_PARAM_COMMON* paramDesc = paramDescData;
+		if(!paramDesc)
+			paramDesc = paramDescObj;
+
+		if(!paramDesc)
+		{
+			LOGWRN("Attempting to apply a shader parameter attribute to a non-existing parameter.");
+			return;
+		}
+
+		if(attrib.type == ShaderParamAttributeType::SpriteUV)
+		{
+			if(paramDescObj)
+			{
+				LOGWRN("Attempting to apply SpriteUV attribute to an object parameter is not supported.");
+				return;
+			}
+
+			if(paramDescData->type != GPDT_FLOAT4)
+			{
+				LOGWRN("SpriteUV attribute can only be applied to 4D vectors.");
+				return;
+			}
+		}
+
+		const auto attribIdx = (UINT32)paramAttributes.size();
+
+		if(paramDesc->attribIdx != (UINT32)-1)
+			attrib.nextParamIdx = paramDesc->attribIdx;
+
+		paramDesc->attribIdx = attribIdx;
+		paramAttributes.emplace_back(attrib);
 	}
 
 	template<bool Core>

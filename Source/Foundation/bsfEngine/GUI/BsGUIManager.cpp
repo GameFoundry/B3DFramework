@@ -3,7 +3,7 @@
 #include "GUI/BsGUIManager.h"
 #include "GUI/BsGUIWidget.h"
 #include "GUI/BsGUIElement.h"
-#include "2D/BsSpriteTexture.h"
+#include "Image/BsSpriteTexture.h"
 #include "Utility/BsTime.h"
 #include "Scene/BsSceneObject.h"
 #include "Material/BsMaterial.h"

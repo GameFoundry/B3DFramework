@@ -1,6 +1,6 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "2D/BsSpriteTexture.h"
+#include "Image/BsSpriteTexture.h"
 #include "Private/RTTI/BsSpriteTextureRTTI.h"
 #include "Image/BsTexture.h"
 #include "Resources/BsResources.h"

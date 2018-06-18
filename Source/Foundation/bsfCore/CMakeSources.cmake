@@ -227,6 +227,7 @@ set(BS_CORE_INC_IMAGE
 	"bsfCore/Image/BsPixelData.h"
 	"bsfCore/Image/BsPixelUtil.h"
 	"bsfCore/Image/BsPixelVolume.h"
+	"bsfCore/Image/BsSpriteTexture.h"
 )
 
 set(BS_CORE_SRC_UTILITY
@@ -377,6 +378,7 @@ set(BS_CORE_INC_RTTI
 	"bsfCore/Private/RTTI/BsShaderVariationRTTI.h"
 	"bsfCore/Private/RTTI/BsParticleSystemRTTI.h"
 	"bsfCore/Private/RTTI/BsParticleDistributionRTTI.h"
+	"bsfCore/Private/RTTI/BsSpriteTextureRTTI.h"
 )
 
 set(BS_CORE_SRC_RENDERER
@@ -419,6 +421,7 @@ set(BS_CORE_SRC_IMAGE
 	"bsfCore/Image/BsPixelData.cpp"
 	"bsfCore/Image/BsTexture.cpp"
 	"bsfCore/Image/BsPixelUtil.cpp"
+	"bsfCore/Image/BsSpriteTexture.cpp"
 )
 
 set(BS_CORE_SRC_MATERIAL

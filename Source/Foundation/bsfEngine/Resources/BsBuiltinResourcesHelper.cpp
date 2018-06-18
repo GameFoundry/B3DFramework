@@ -9,7 +9,7 @@
 #include "Renderer/BsRendererMaterialManager.h"
 #include "Renderer/BsRendererMaterial.h"
 #include "Text/BsFontImportOptions.h"
-#include "2D/BsSpriteTexture.h"
+#include "Image/BsSpriteTexture.h"
 #include "Image/BsTexture.h"
 #include "Reflection/BsRTTIType.h"
 #include "FileSystem/BsDataStream.h"

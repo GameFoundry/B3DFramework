@@ -356,6 +356,9 @@ namespace bs
 	class CLightProbeVolume;
 	class Transform;
 	class SceneActor;
+	class CoreObjectManager;
+	struct CollisionData;
+	class ParticleSystem;
 	// Asset import
 	class SpecificImporter;
 	class Importer;
@@ -375,9 +378,7 @@ namespace bs
 	class PhysicsMaterial;
 	class PhysicsMesh;
 	class AudioClip;
-	class CoreObjectManager;
-	struct CollisionData;
-	class ParticleSystem;
+	class SpriteTexture;
 	// Scene
 	class SceneObject;
 	class Component;
@@ -460,6 +461,7 @@ namespace bs
 		class ReflectionProbe;
 		class Skybox;
 		class ParticleSystem;
+		class SpriteTexture;
 	}
 }
 
@@ -605,11 +607,13 @@ namespace bs
 		TID_ParticleSystem = 1155,
 		TID_ColorDistribution = 1156,
 		TID_TDistribution = 1157,
+		TID_SHADER_PARAM_ATTRIBUTE = 1158,
 
 		// Moved from Engine layer
 		TID_CCamera = 30000,
 		TID_Camera = 30003,
 		TID_CRenderable = 30001,
+		TID_SpriteTexture = 30002,
 		TID_Renderable = 30004,
 		TID_Light = 30011,
 		TID_CLight = 30012,
@@ -620,7 +624,7 @@ namespace bs
 		TID_DepthOfFieldSettings = 30020,
 		TID_AmbientOcclusionSettings = 30021,
 		TID_ScreenSpaceReflectionsSettings = 30022,
-		TID_ShadowSettings = 30023
+		TID_ShadowSettings = 30023,
 	};
 }
 
@@ -649,6 +653,7 @@ namespace bs
 	typedef ResourceHandle<PhysicsMesh> HPhysicsMesh;
 	typedef ResourceHandle<AudioClip> HAudioClip;
 	typedef ResourceHandle<AnimationClip> HAnimationClip;
+	typedef ResourceHandle<SpriteTexture> HSpriteTexture;
 
 	/** @} */
 }

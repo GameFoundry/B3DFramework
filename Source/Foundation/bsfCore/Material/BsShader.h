@@ -36,6 +36,36 @@ namespace bs
 		ShaderType shader;
 	};
 
+	/** Shared memebers between SHADER_DATA_PARAM_DESC and SHADER_OBJECT_PARAM_DESC */
+	struct SHADER_PARAM_COMMON
+	{
+		SHADER_PARAM_COMMON() = default;
+		SHADER_PARAM_COMMON(String name, String gpuVariableName, StringID rendererSemantic = StringID::NONE)
+			: name(std::move(name)), gpuVariableName(gpuVariableName), rendererSemantic(rendererSemantic)
+		{ }
+
+		/** The name of the parameter. Name must be unique between all data and object parameters in a shader. */
+		String name;
+
+		/** Name of the GPU variable in the GpuProgram that the parameter corresponds with. */
+		String gpuVariableName;
+
+		/** 
+		 * Optional semantic that allows you to specify the use of this parameter in the renderer. The actual value of the
+		 * semantic depends on the current Renderer and its supported list of semantics. Elements with renderer semantics 
+		 * should not be updated by the user, and will be updated by the renderer. These semantics will also be used to 
+		 * determine if a shader is compatible with a specific renderer or not. Value of 0 signifies the parameter is not
+		 * used by the renderer.
+		 */
+		StringID rendererSemantic;
+
+		/** Index of the default value inside the Shader. Should not be set externally by the user. */
+		UINT32 defaultValueIdx = (UINT32)-1;
+
+		/** Index to a set of optional attributes attached to the parameter. Should not be set externally by the user. */
+		UINT32 attribIdx = (UINT32)-1;
+	};
+
 	/** @} */
 
 	/** @addtogroup Material
@@ -47,15 +77,26 @@ namespace bs
 	 *
 	 * @see	Shader::addParameter().
 	 */
-	struct SHADER_DATA_PARAM_DESC
+	struct SHADER_DATA_PARAM_DESC : SHADER_PARAM_COMMON
 	{
-		String name;
-		String gpuVariableName;
-		GpuParamDataType type;
-		StringID rendererSemantic;
-		UINT32 arraySize;
-		UINT32 elementSize;
-		UINT32 defaultValueIdx;
+		SHADER_DATA_PARAM_DESC() = default;
+		SHADER_DATA_PARAM_DESC(String name, String gpuVariableName, GpuParamDataType type, 
+			StringID rendererSemantic = StringID::NONE, UINT32 arraySize = 1, UINT32 elementSize = 0)
+			:SHADER_PARAM_COMMON(std::move(name), std::move(gpuVariableName), rendererSemantic)
+			, type(type), arraySize(arraySize), elementSize(elementSize)
+		{ }
+
+		/** The type of the parameter, must be the same as the type in GpuProgram. */
+		GpuParamDataType type = GPDT_FLOAT1;
+
+		/** If the parameter is an array, the number of elements in the array. Size of 1 means its not an array. */
+		UINT32 arraySize = 1;
+
+		/** 
+		 * Size of an individual element in the array, in bytes. You only need to set this if you are setting variable
+		 * length parameters, like structs. Otherwise the size is determined from the type. 
+		 */
+		UINT32 elementSize = 0;
 	};
 
 	/**
@@ -63,13 +104,21 @@ namespace bs
 	 *
 	 * @see	Shader::addParameter().
 	 */
-	struct SHADER_OBJECT_PARAM_DESC
+	struct SHADER_OBJECT_PARAM_DESC : SHADER_PARAM_COMMON
 	{
-		String name;
+		SHADER_OBJECT_PARAM_DESC() = default;
+		SHADER_OBJECT_PARAM_DESC(String name, String gpuVariableName, GpuParamObjectType type, 
+			StringID rendererSemantic = StringID::NONE)
+			:SHADER_PARAM_COMMON(std::move(name), gpuVariableName, rendererSemantic), type(type)
+		{
+			gpuVariableNames.emplace_back(gpuVariableName);
+		}
+
+		/** The type of the parameter, must be the same as the type in GpuProgram. */
+		GpuParamObjectType type = GPOT_TEXTURE2D;
+
+		/** Names of all GPU variables this shader parameter maps to. */
 		Vector<String> gpuVariableNames;
-		StringID rendererSemantic;
-		GpuParamObjectType type;
-		UINT32 defaultValueIdx;
 	};
 
 	/** Describes a shader parameter block. */
@@ -79,6 +128,30 @@ namespace bs
 		bool shared;
 		StringID rendererSemantic;
 		GpuParamBlockUsage usage;
+	};
+
+	/** Available attribute types that can be assigned to Shader parameters. */
+	enum class ShaderParamAttributeType
+	{
+		/** 
+		 * Selects a 4D vector to use for storing UV offset and size when rendering a subset of a larger texture (e.g.
+		 * when attaching a SpriteTexture to the material parameter). The attribute value is a string naming the texture
+		 * parameter that contains the texture whose subset the UV represents.
+		 */
+		SpriteUV
+	};
+
+	/** Optional attribute that can be applied to a shader parameter. */
+	struct SHADER_PARAM_ATTRIBUTE
+	{
+		/** Type of the attribute. */
+		ShaderParamAttributeType type;
+
+		/** Value of the parameter encoded as a string. */
+		String value;
+
+		/** Index of the next attribute in the linked list for this parameter. Should not be set externally by the user. */
+		UINT32 nextParamIdx = (UINT32)-1;
 	};
 
 	/** 
@@ -128,19 +201,7 @@ namespace bs
 		 * Registers a new data (int, Vector2, etc.) parameter you that you may then use via Material by providing the 
 		 * parameter name. All parameters internally map to variables defined in GPU programs.
 		 *
-		 * @param[in]	name		   		The name of the parameter. Name must be unique between all data and object parameters.
-		 * @param[in]	gpuVariableName		Name of the GPU variable in the GpuProgram that the parameter corresponds with.
-		 * @param[in]	type		   		The type of the parameter, must be the same as the type in GpuProgram.
-		 * @param[in]	rendererSemantic	(optional) Semantic that allows you to specify the use of this parameter in the 
-		 *									renderer. The actual value of the semantic depends on the current Renderer and
-		 *									its supported list of semantics. Elements with renderer semantics should not be
-		 *									updated by the user, and will be updated by the renderer. These semantics will 
-		 *									also be used to determine if a shader is compatible with a specific renderer 
-		 *									or not. Value of 0 signifies the parameter is not used by the renderer.
-		 * @param[in]	arraySize	   		(optional) If the parameter is an array, the number of elements in the array. 
-		 *									Size of 1 means its not an array.
-		 * @param[in]	elementSize	   		(optional) Size of an individual element in the array, in bytes. You only need 
-		 *									to set this if you are setting variable length parameters, like structs.
+		 * @param[in]	paramDesc			Structure describing the parameter to add. 
 		 * @param[in]	defaultValue		(optional) Pointer to the buffer containing the default value for this parameter
 		 *									(initial value that will be set when a material is initialized with this shader). 
 		 *									The provided buffer must be of the correct size (depending on the element type 
@@ -148,8 +209,7 @@ namespace bs
 		 *
 		 * @note	If multiple parameters are given with the same name but different types behavior is undefined.
 		 */
-		void addParameter(const String& name, const String& gpuVariableName, GpuParamDataType type, StringID rendererSemantic = StringID::NONE,
-			UINT32 arraySize = 1, UINT32 elementSize = 0, UINT8* defaultValue = nullptr);
+		void addParameter(SHADER_DATA_PARAM_DESC paramDesc, UINT8* defaultValue = nullptr);
 
 		/**
 		 * Registers a new object (texture, sampler state, etc.) parameter you that you may then use via Material by 
@@ -157,15 +217,7 @@ namespace bs
 		 * variables may be mapped to a single parameter in which case the first variable actually found in the program will
 		 * be used while others will be ignored.
 		 *
-		 * @param[in]	name				The name of the parameter. Name must be unique between all data and object parameters.
-		 * @param[in]	gpuVariableName		Name of the GPU variable in the GpuProgram that the parameter corresponds with.
-		 * @param[in]	type		   		The type of the parameter, must be the same as the type in GpuProgram.
-		 * @param[in]	rendererSemantic	(optional) Semantic that allows you to specify the use of this parameter in the 
-		 *									renderer. The actual value of the semantic depends on the current Renderer and 
-		 *									its supported list of semantics. Elements with renderer semantics should not be 
-		 *									updated by the user, and will be updated by the renderer. These semantics will 
-		 *									also be used to determine if a shader is compatible with a specific renderer or 
-		 *									not. Value of 0 signifies the parameter is not used by the renderer.
+		 * @param[in]	paramDesc			Structure describing the parameter to add. 
 		 *
 		 * @note	
 		 * If multiple parameters are given with the same name but different types behavior is undefined. You are allowed 
@@ -174,29 +226,35 @@ namespace bs
 		 * parameter is useful when you are defining a shader that supports techniques across different render systems 
 		 * where GPU variable names for the same parameters might differ.
 		 */
-		void addParameter(const String& name, const String& gpuVariableName, GpuParamObjectType type, StringID rendererSemantic = StringID::NONE);
+		void addParameter(SHADER_OBJECT_PARAM_DESC paramDesc);
 
 		/**
-		 * @see	SHADER_DESC::addParameter(const String&, const String&, GpuParamObjectType, StringID)
+		 * @see	SHADER_DESC::addParameter(SHADER_OBJECT_PARAM_DESC)
 		 *
 		 * @note	
 		 * Specialized version of addParameter that accepts a default sampler value that will be used for initializing the 
 		 * object parameter upon Material creation. Default sampler value is only valid if the object type is one of the 
 		 * sampler types.
 		 */
-		void addParameter(const String& name, const String& gpuVariableName, GpuParamObjectType type, 
-			const SamplerStateType& defaultValue, StringID rendererSemantic = StringID::NONE);
+		void addParameter(SHADER_OBJECT_PARAM_DESC paramDesc, const SamplerStateType& defaultValue);
 
 		/**
-		 * @see	SHADER_DESC::addParameter(const String&, const String&, GpuParamObjectType, StringID)
+		 * @see	SHADER_DESC::addParameter(SHADER_OBJECT_PARAM_DESC)
 		 *
 		 * @note	
 		 * Specialized version of addParameter that accepts a default texture value that will be used for initializing the 
 		 * object parameter upon Material creation. Default texture value is only valid if the object type is one of the 
 		 * texture types.
 		 */
-		void addParameter(const String& name, const String& gpuVariableName, GpuParamObjectType type, 
-			const TextureType& defaultValue, StringID rendererSemantic = StringID::NONE);
+		void addParameter(SHADER_OBJECT_PARAM_DESC paramDesc, const TextureType& defaultValue);
+
+		/** 
+		 * Applies an attribute to the parameter with the specified name. 
+		 *
+		 * @param[in]	name	Name of an object or data parameter to apply the attribute to.
+		 * @param[in]	attrib	Structure describing the attribute to apply.
+		 */
+		void setParameterAttribute(const String& name, SHADER_PARAM_ATTRIBUTE attrib);
 
 		/**
 		 * Changes parameters of a parameter block with the specified name.
@@ -217,7 +275,8 @@ namespace bs
 		 *									will be deemed incompatible and won't be used. Value of 0 signifies the parameter
 		 *									block is not used by the renderer.
 		 */
-		void setParamBlockAttribs(const String& name, bool shared, GpuParamBlockUsage usage, StringID rendererSemantic = StringID::NONE);
+		void setParamBlockAttribs(const String& name, bool shared, GpuParamBlockUsage usage, 
+			StringID rendererSemantic = StringID::NONE);
 
 		/**
 		 * Sorting type to use when performing sort in the render queue. Default value is sort front to back which causes
@@ -267,14 +326,15 @@ namespace bs
 		Vector<UINT8> dataDefaultValues;
 		Vector<SamplerStateType> samplerDefaultValues;
 		Vector<TextureType> textureDefaultValues;
+		Vector<SHADER_PARAM_ATTRIBUTE> paramAttributes;
 
 	private:
 		/**
-		 * @copydoc	addParameter(const String&, const String&, GpuParamObjectType, StringID)
+		 * @copydoc	addParameter(SHADER_OBJECT_PARAM_DESC)
 		 *
 		 * @note	Common method shared by different addParameter overloads.
 		 */
-		void addParameterInternal(const String& name, const String& gpuVariableName, GpuParamObjectType type, StringID rendererSemantic, UINT32 defaultValueIdx);
+		void addParameterInternal(SHADER_OBJECT_PARAM_DESC paramDesc, UINT32 defaultValueIdx);
 	};
 
 	/**	Templated version of Shader used for implementing both sim and core thread variants. */

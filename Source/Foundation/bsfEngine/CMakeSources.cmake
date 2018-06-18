@@ -96,7 +96,6 @@ set(BS_ENGINE_SRC_RTTI
 set(BS_ENGINE_SRC_2D
 	"bsfEngine/2D/BsImageSprite.cpp"
 	"bsfEngine/2D/BsSprite.cpp"
-	"bsfEngine/2D/BsSpriteTexture.cpp"
 	"bsfEngine/2D/BsTextSprite.cpp"
 	"bsfEngine/2D/BsSpriteMaterial.cpp"
 	"bsfEngine/2D/BsSpriteMaterials.cpp"
@@ -122,7 +121,6 @@ set(BS_ENGINE_SRC_LOCALIZATION
 set(BS_ENGINE_INC_2D
 	"bsfEngine/2D/BsImageSprite.h"
 	"bsfEngine/2D/BsSprite.h"
-	"bsfEngine/2D/BsSpriteTexture.h"
 	"bsfEngine/2D/BsTextSprite.h"
 	"bsfEngine/2D/BsSpriteMaterial.h"
 	"bsfEngine/2D/BsSpriteMaterials.h"
@@ -130,7 +128,6 @@ set(BS_ENGINE_INC_2D
 )
 
 set(BS_ENGINE_INC_RTTI
-	"bsfEngine/Private/RTTI/BsSpriteTextureRTTI.h"
 	"bsfEngine/Private/RTTI/BsPlainTextRTTI.h"
 	"bsfEngine/Private/RTTI/BsScriptCodeRTTI.h"
 	"bsfEngine/Private/RTTI/BsScriptCodeImportOptionsRTTI.h"

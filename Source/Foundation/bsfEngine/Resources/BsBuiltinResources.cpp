@@ -11,7 +11,7 @@
 #include "GUI/BsGUISlider.h"
 #include "GUI/BsGUIScrollBar.h"
 #include "2D/BsTextSprite.h"
-#include "2D/BsSpriteTexture.h"
+#include "Image/BsSpriteTexture.h"
 #include "Text/BsFont.h"
 #include "Image/BsTexture.h"
 #include "Importer/BsImporter.h"
@@ -86,6 +86,7 @@ namespace bs
 	const String BuiltinResources::ShaderSpriteLineFile = u8"SpriteLine.bsl";
 	const String BuiltinResources::ShaderDiffuseFile = u8"Diffuse.bsl";
 	const String BuiltinResources::ShaderTransparentFile = u8"Transparent.bsl";
+	const String BuiltinResources::ShaderParticlesUnlitFile = u8"ParticlesUnlit.bsl";
 
 	/************************************************************************/
 	/* 								MESHES							  		*/
@@ -223,6 +224,7 @@ namespace bs
 		mShaderSpriteLine = getShader(ShaderSpriteLineFile);
 		mShaderDiffuse = getShader(ShaderDiffuseFile);
 		mShaderTransparent = getShader(ShaderTransparentFile);
+		mShaderParticlesUnlit = getShader(ShaderParticlesUnlitFile);
 
 		SPtr<PixelData> dummyPixelData = PixelData::create(2, 2, 1, PF_RGBA8);
 
@@ -854,6 +856,8 @@ namespace bs
 			return mShaderDiffuse;
 		case BuiltinShader::Transparent:
 			return mShaderTransparent;
+		case BuiltinShader::ParticlesUnlit:
+			return mShaderParticlesUnlit;
 		default:
 			break;
 		}

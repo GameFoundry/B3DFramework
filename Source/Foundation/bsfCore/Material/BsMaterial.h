@@ -16,6 +16,10 @@
 
 namespace bs
 {
+	template<class T>
+	class TAnimationCurve;
+	class ColorGradient;
+
 	/** @addtogroup Implementation
 	 *  @{
 	 */
@@ -128,6 +132,7 @@ namespace bs
 	{
 	public:
 		typedef typename TGpuParamTextureType<Core>::Type TextureType;
+		typedef typename TSpriteTextureType<Core>::Type SpriteTextureType;
 		typedef typename TGpuBufferType<Core>::Type BufferType;
 		typedef typename TGpuParamSamplerStateType<Core>::Type SamplerStateType;
 		typedef typename TGpuProgramType<Core>::Type GpuProgramType;
@@ -191,21 +196,41 @@ namespace bs
 		 */
 		void updateParamsSet(const SPtr<GpuParamsSetType>& paramsSet, bool updateAll = false);
 
-		/**   
-		 * Assigns a float value to the shader parameter with the specified name. 
+		/**
+		 * Assigns a float value to the shader parameter with the specified name.
 		 *
 		 * Optionally if the parameter is an array you may provide an array index to assign the value to.
 		 */
-		BS_SCRIPT_EXPORT(n:SetFloat)
+		BS_SCRIPT_EXPORT()
 		void setFloat(const String& name, float value, UINT32 arrayIdx = 0)	{ return getParamFloat(name).set(value, arrayIdx); }
 
-		/**   
+		/*
+		 * Assigns a curve to the the float shader parameter with the specified name. The system will automatically
+		 * evaluate the curve with the passage of time and apply the evaluated value to the parameter.
+		 *
+		 * Optionally if the parameter is an array you may provide an array index to assign the value to.
+		 */
+		BS_SCRIPT_EXPORT()
+		void setFloatCurve(const String& name, const TAnimationCurve<float>& value, UINT32 arrayIdx = 0)	
+		{ return getParamFloatCurve(name).set(value, arrayIdx); }
+
+		/**
 		 * Assigns a color to the shader parameter with the specified name. 
 		 *
 		 * Optionally if the parameter is an array you may provide an array index to assign the value to.
 		 */
-		BS_SCRIPT_EXPORT(n:SetColor)
+		BS_SCRIPT_EXPORT()
 		void setColor(const String& name, const Color& value, UINT32 arrayIdx = 0) { return getParamColor(name).set(value, arrayIdx); }
+
+		/**
+		 * Assigns a color gradient to the shader parameter with the specified name. The system will automatically
+		 * evaluate the gradient with the passage of time and apply the evaluated value to the parameter.
+		 * 
+		 * Optionally if the parameter is an array you may provide an array index to assign the value to.
+		 */
+		BS_SCRIPT_EXPORT()
+		void setColorGradient(const String& name, const ColorGradient& value, UINT32 arrayIdx = 0) 
+		{ return getParamColorGradient(name).set(value, arrayIdx); }
 
 		/**   
 		 * Assigns a 2D vector to the shader parameter with the specified name. 
@@ -262,6 +287,21 @@ namespace bs
 			return getParamTexture(name).set(value, surface);
 		}
 
+		/** 
+		 * Assigns a sprite texture to the shader parameter with the specified name. If the sprite texture contains
+		 * animation it will be automatically evaluated every frame. 
+		 * 
+		 * @note 
+		 * In order for the sprite sub-image to be properly applied the shader needs to have a 4D vector parameter marked 
+		 * with the SpriteUV attribute referencing this parameter. This vector will then receive the necessary UV offset
+		 * and size which should be utilized by the shader code to render a subset of the texture as defined in the sprite
+		 * texture.
+		 */
+		void setSpriteTexture(const String& name, const SpriteTextureType& value)
+		{
+			return getParamSpriteTexture(name).set(value);
+		}
+
 		/** Assigns a texture to be used for random load/store operations to the shader parameter with the specified name. */
 		void setLoadStoreTexture(const String& name, const TextureType& value, const TextureSurface& surface)
 		{ 
@@ -275,20 +315,46 @@ namespace bs
 		void setSamplerState(const String& name, const SamplerStateType& value) { return getParamSamplerState(name).set(value); }
 
 		/**
-		 * Returns a float value assigned with the parameter with the specified name.
+		 * Returns a float value assigned with the parameter with the specified name. If a curve is assigned to this
+		 * parameter, returns the curve value evaluated at time 0. Use getBoundParamType() to determine
+		 * the type of the parameter.
 		 *
 		 * Optionally if the parameter is an array you may provide an array index you which to retrieve.
 		 */
-		BS_SCRIPT_EXPORT(n:GetFloat)
+		BS_SCRIPT_EXPORT()
 		float getFloat(const String& name, UINT32 arrayIdx = 0) const { return getParamFloat(name).get(arrayIdx); }
 
 		/**
-		 * Returns a color assigned with the parameter with the specified name.
+		 * Returns a curve value assigned to the parameter with the specified name. If the parameter has a constant
+		 * value bound instead of a curve then this method returns an empty curve. Use getBoundParamType() to determine
+		 * the type of the parameter.
 		 *
 		 * Optionally if the parameter is an array you may provide an array index you which to retrieve.
 		 */
-		BS_SCRIPT_EXPORT(n:GetColor)
+		BS_SCRIPT_EXPORT()
+		const TAnimationCurve<float>& getFloatCurve(const String& name, UINT32 arrayIdx = 0) const 
+		{ return getParamFloatCurve(name).get(arrayIdx); }
+
+		/**
+		 * Returns a color assigned with the parameter with the specified name. If a color gradient is assigned to this
+		 * parameter, returns the gradient color evaluated at time 0. Use getBoundParamType() to determine
+		 * the type of the parameter.
+		 *
+		 * Optionally if the parameter is an array you may provide an array index you which to retrieve.
+		 */
+		BS_SCRIPT_EXPORT()
 		Color getColor(const String& name, UINT32 arrayIdx = 0) const { return getParamColor(name).get(arrayIdx); }
+
+		/**
+		 * Returns a color gradient assigned with the parameter with the specified name. If the parameter has a constant
+		 * value bound instead of a gradient then this method returns an empty gradient. Use getBoundParamType() to
+		 * determine the type of the parameter.
+		 *
+		 * Optionally if the parameter is an array you may provide an array index you which to retrieve.
+		 */
+		BS_SCRIPT_EXPORT()
+		const ColorGradient& getColorGradient(const String& name, UINT32 arrayIdx = 0) const 
+		{ return getParamColorGradient(name).get(arrayIdx); }
 
 		/**
 		 * Returns a 2D vector assigned with the parameter with the specified name.
@@ -333,6 +399,13 @@ namespace bs
 		/** Returns a texture assigned with the parameter with the specified name. */
 		TextureType getTexture(const String& name) const { return getParamTexture(name).get(); }
 
+		/** 
+		 * Returns a sprite texture assigned to the parameter with the specified name. If the parameter has a regular
+		 * texture attached instead of a sprite texture, null will be returned. Use getBoundParamType() to determine
+		 * the type of the parameter.
+		 */
+		SpriteTextureType getSpriteTexture(const String& name) const { return getParamSpriteTexture(name).get(); }
+
 		/** Returns a sampler state assigned with the parameter with the specified name. */
 		SamplerStateType getSamplerState(const String& name) const	{ return getParamSamplerState(name).get(); }
 
@@ -352,11 +425,12 @@ namespace bs
 		}
 
 		/**
-		 * Returns a float GPU parameter. This parameter may be used for more efficiently getting/setting GPU parameter 
-		 * values than calling Material::get* / Material::set* methods. 
+		 * Returns a handle that allows you to assign a constant value to a floating point parameter. This handle 
+		 * may be used for more efficiently getting/setting GPU parameter values than calling 
+		 * Material::get* / Material::set* methods. 
 		 *
 		 * @note	
-		 * Expected behavior is that you would retrieve this parameter when initially constructing the material, and then 
+		 * Expected behavior is that you would retrieve this handle when initially constructing the material, and then 
 		 * use it throughout material lifetime to assign and retrieve parameter values.
 		 * @note			
 		 * If material shader changes this handle will be invalidated.
@@ -370,11 +444,25 @@ namespace bs
 		}
 
 		/**
-		 * Returns a color GPU parameter. This parameter may be used for more efficiently getting/setting GPU parameter 
-		 * values than calling Material::get* / Material::set* methods. 
+		 * Returns a handle that allows you to assign a time-varying curve to a floating point parameter. This 
+		 * handle may be used for more efficiently getting/setting GPU parameter values than calling 
+		 * Material::get* / Material::set* methods. 
 		 *
 		 * @note	
-		 * Expected behavior is that you would retrieve this parameter when initially constructing the material, 
+		 * Expected behavior is that you would retrieve this handle when initially constructing the material, and then 
+		 * use it throughout material lifetime to assign and retrieve parameter values.
+		 * @note			
+		 * If material shader changes this handle will be invalidated.
+		 */
+		TMaterialCurveParam<float, Core> getParamFloatCurve(const String& name) const;
+
+		/**
+		 * Returns a handle that allows you to assign a constant value to a color parameter. This handle may be 
+		 * used for more efficiently getting/setting GPU parameter values than calling Material::get* / Material::set* 
+		 * methods. 
+		 *
+		 * @note	
+		 * Expected behavior is that you would retrieve this handle when initially constructing the material, 
 		 * and then use it throughout material lifetime to assign and retrieve parameter values.
 		 * @note
 		 * If material shader changes this handle will be invalidated.
@@ -388,11 +476,25 @@ namespace bs
 		}
 
 		/**
-		 * Returns a 2D vector GPU parameter. This parameter may be used for more efficiently getting/setting GPU parameter 
-		 * values than calling Material::get* / Material::set* methods. 
+		 * Returns a handle that allows you to assign a time-varying gradient to a color parameter. This handle 
+		 * may be used for more efficiently getting/setting GPU parameter values than calling 
+		 * Material::get* / Material::set* methods. 
 		 *
 		 * @note	
-		 * Expected behavior is that you would retrieve this parameter when initially constructing the material, and then 
+		 * Expected behavior is that you would retrieve this handle when initially constructing the material, 
+		 * and then use it throughout material lifetime to assign and retrieve parameter values.
+		 * @note
+		 * If material shader changes this handle will be invalidated.
+		 */
+		TMaterialColorGradientParam<Core> getParamColorGradient(const String& name) const;
+
+		/**
+		 * Returns a handle that allows you to assign a constant value to a 2D vector parameter. This handle may be
+		 * used for more efficiently getting/setting GPU parameter values than calling Material::get* / Material::set* 
+		 * methods. 
+		 *
+		 * @note	
+		 * Expected behavior is that you would retrieve this handle when initially constructing the material, and then 
 		 * use it throughout material lifetime to assign and retrieve parameter values.
 		 * @note	
 		 * If material shader changes this handle will be invalidated.
@@ -406,13 +508,14 @@ namespace bs
 		}
 
 		/**
-		 * Returns a 3D vector GPU parameter. This parameter may be used for more efficiently getting/setting GPU parameter
-		 * values than calling Material::get* / Material::set* methods. 
+		 * Returns a handle that allows you to assign a constant value to a 3D vector parameter. This handle may be
+		 * used for more efficiently getting/setting GPU parameter values than calling Material::get* / Material::set* 
+		 * methods. 
 		 *
 		 * @note	
-		 * Expected behavior is that you would retrieve this parameter when initially constructing the material, and then
+		 * Expected behavior is that you would retrieve this handle when initially constructing the material, and then 
 		 * use it throughout material lifetime to assign and retrieve parameter values.
-		 * @note			
+		 * @note	
 		 * If material shader changes this handle will be invalidated.
 		 */
 		TMaterialDataParam<Vector3, Core> getParamVec3(const String& name) const
@@ -424,11 +527,12 @@ namespace bs
 		}
 
 		/**
-		 * Returns a 4D vector GPU parameter. This parameter may be used for more efficiently getting/setting GPU parameter
-		 * values than calling Material::get* / Material::set* methods. 
+		 * Returns a handle that allows you to assign a constant value to a 4D vector parameter. This handle may be
+		 * used for more efficiently getting/setting GPU parameter values than calling Material::get* / Material::set* 
+		 * methods. 
 		 *
 		 * @note	
-		 * Expected behavior is that you would retrieve this parameter when initially constructing the material, and then 
+		 * Expected behavior is that you would retrieve this handle when initially constructing the material, and then 
 		 * use it throughout material lifetime to assign and retrieve parameter values.
 		 * @note	
 		 * If material shader changes this handle will be invalidated.
@@ -442,11 +546,12 @@ namespace bs
 		}
 
 		/**
-		 * Returns a 3x3 matrix GPU parameter. This parameter may be used for more efficiently getting/setting GPU 
-		 * parameter values than calling Material::get* / Material::set* methods. 
+		 * Returns a handle that allows you to assign a constant value to a 3x3 matrix parameter. This handle may be
+		 * used for more efficiently getting/setting GPU parameter values than calling Material::get* / Material::set* 
+		 * methods. 
 		 *
 		 * @note	
-		 * Expected behavior is that you would retrieve this parameter when initially constructing the material, and then 
+		 * Expected behavior is that you would retrieve this handle when initially constructing the material, and then 
 		 * use it throughout material lifetime to assign and retrieve parameter values.
 		 * @note	
 		 * If material shader changes this handle will be invalidated.
@@ -460,11 +565,12 @@ namespace bs
 		}
 
 		/**
-		 * Returns a 4x4 matrix GPU parameter. This parameter may be used for more efficiently getting/setting GPU parameter
-		 * values than calling Material::get* / Material::set* methods. 
+		 * Returns a handle that allows you to assign a constant value to a 4x4 matrix parameter. This handle may be
+		 * used for more efficiently getting/setting GPU parameter values than calling Material::get* / Material::set* 
+		 * methods. 
 		 *
 		 * @note	
-		 * Expected behavior is that you would retrieve this parameter when initially constructing the material, and then 
+		 * Expected behavior is that you would retrieve this handle when initially constructing the material, and then 
 		 * use it throughout material lifetime to assign and retrieve parameter values.
 		 * @note	
 		 * If material shader changes this handle will be invalidated.
@@ -478,11 +584,11 @@ namespace bs
 		}
 
 		/**
-		 * Returns a structure GPU parameter. This parameter may be used for more efficiently getting/setting GPU parameter
-		 * values than calling Material::get* / Material::set* methods. 
+		 * Returns a handle that allows you to assign a structure GPU parameter. This handle may be used for more 
+		 * efficiently getting/setting GPU parameter values than calling Material::get* / Material::set* methods. 
 		 *
 		 * @note	
-		 * Expected behavior is that you would retrieve this parameter when initially constructing the material, and then 
+		 * Expected behavior is that you would retrieve this handle when initially constructing the material, and then 
 		 * use it throughout material lifetime to assign and retrieve parameter values.
 		 * @note			
 		 * If material shader changes this handle will be invalidated.
@@ -490,23 +596,35 @@ namespace bs
 		TMaterialParamStruct<Core> getParamStruct(const String& name) const;
 
 		/**
-		 * Returns a texture GPU parameter. This parameter may be used for more efficiently getting/setting GPU parameter 
-		 * values than calling Material::get* / Material::set* methods. 
+		 * Returns a handle that allows you to assign a texture GPU parameter. This handle may be used for more 
+		 * efficiently getting/setting GPU parameter values than calling Material::get* / Material::set* methods. 
 		 *
 		 * @note	
-		 * Expected behavior is that you would retrieve this parameter when initially constructing the material, and then 
+		 * Expected behavior is that you would retrieve this handle when initially constructing the material, and then 
 		 * use it throughout material lifetime to assign and retrieve parameter values.
-		 * @note
+		 * @note			
 		 * If material shader changes this handle will be invalidated.
 		 */
 		TMaterialParamTexture<Core> getParamTexture(const String& name) const;
 
 		/**
-		 * Returns a GPU parameter for binding a load/store texture. This parameter may be used for more efficiently 
-		 * getting/setting GPU parameter values than calling Material::get* / Material::set* methods. 
+		 * Returns a handle that allows you to assign a sprite texture GPU parameter. This handle may be used for more 
+		 * efficiently getting/setting GPU parameter values than calling Material::get* / Material::set* methods. 
 		 *
 		 * @note	
-		 * Expected behavior is that you would retrieve this parameter when initially constructing the material, and then 
+		 * Expected behavior is that you would retrieve this handle when initially constructing the material, and then 
+		 * use it throughout material lifetime to assign and retrieve parameter values.
+		 * @note			
+		 * If material shader changes this handle will be invalidated.
+		 */
+		TMaterialParamSpriteTexture<Core> getParamSpriteTexture(const String& name) const;
+
+		/**
+		 * Returns a handle that allows you to assign a load-store texture GPU parameter. This handle may be used for more 
+		 * efficiently getting/setting GPU parameter values than calling Material::get* / Material::set* methods. 
+		 *
+		 * @note	
+		 * Expected behavior is that you would retrieve this handle when initially constructing the material, and then 
 		 * use it throughout material lifetime to assign and retrieve parameter values.
 		 * @note			
 		 * If material shader changes this handle will be invalidated.
@@ -514,23 +632,23 @@ namespace bs
 		TMaterialParamLoadStoreTexture<Core> getParamLoadStoreTexture(const String& name) const;
 
 		/**
-		 * Returns a buffer GPU parameter. This parameter may be used for more efficiently getting/setting GPU parameter 
-		 * values than calling Material::get* / Material::set* methods. 
+		 * Returns a handle that allows you to assign a buffer GPU parameter. This handle may be used for more 
+		 * efficiently getting/setting GPU parameter values than calling Material::get* / Material::set* methods. 
 		 *
 		 * @note	
-		 * Expected behavior is that you would retrieve this parameter when initially constructing the material, and then 
+		 * Expected behavior is that you would retrieve this handle when initially constructing the material, and then 
 		 * use it throughout material lifetime to assign and retrieve parameter values.
-		 * @note
+		 * @note			
 		 * If material shader changes this handle will be invalidated.
 		 */
 		TMaterialParamBuffer<Core> getParamBuffer(const String& name) const;
 
 		/**
-		 * Returns a sampler state GPU parameter. This parameter may be used for more efficiently getting/setting GPU 
-		 * parameter values than calling Material::get* / Material::set* methods. 
+		 * Returns a handle that allows you to assign a sampler state GPU parameter. This handle may be used for more 
+		 * efficiently getting/setting GPU parameter values than calling Material::get* / Material::set* methods. 
 		 *
 		 * @note	
-		 * Expected behavior is that you would retrieve this parameter when initially constructing the material, and then 
+		 * Expected behavior is that you would retrieve this handle when initially constructing the material, and then 
 		 * use it throughout material lifetime to assign and retrieve parameter values.
 		 * @note			
 		 * If material shader changes this handle will be invalidated.

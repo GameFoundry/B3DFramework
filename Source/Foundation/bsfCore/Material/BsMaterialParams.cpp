@@ -6,6 +6,7 @@
 #include "Image/BsTexture.h"
 #include "RenderAPI/BsGpuBuffer.h"
 #include "RenderAPI/BsSamplerState.h"
+#include "Image/BsColorGradient.h"
 
 namespace bs
 {
@@ -119,6 +120,41 @@ namespace bs
 		mAlloc.free(mDataParamsBuffer);
 		
 		mAlloc.clear();
+	}
+
+	const ColorGradient& MaterialParamsBase::getColorGradientParam(const String& name, UINT32 arrayIdx) const
+	{
+		static ColorGradient EMPTY_GRADIENT;
+
+		const ParamData* param = nullptr;
+		auto result = getParamData(name, ParamType::Data, GPDT_COLOR, arrayIdx, &param);
+		if (result != GetParamResult::Success)
+			return EMPTY_GRADIENT;
+
+		return getColorGradientParam(*param, arrayIdx);
+	}
+
+	void MaterialParamsBase::setColorGradientParam(const String& name, UINT32 arrayIdx, const ColorGradient& input) const
+	{
+		const ParamData* param = nullptr;
+		auto result = getParamData(name, ParamType::Data, GPDT_COLOR, arrayIdx, &param);
+		if (result != GetParamResult::Success)
+			return;
+
+		setColorGradientParam(*param, arrayIdx, input);
+	}
+
+	const ColorGradient& MaterialParamsBase::getColorGradientParam(const ParamData& param, UINT32 arrayIdx) const
+	{
+		static ColorGradient EMPTY_GRADIENT;
+
+		// TODO - Not implemented
+		return EMPTY_GRADIENT;
+	}
+
+	void MaterialParamsBase::setColorGradientParam(const ParamData& param, UINT32 arrayIdx, const ColorGradient& input) const
+	{
+		// TODO - Not implemented
 	}
 
 	UINT32 MaterialParamsBase::getParamIndex(const String& name) const
@@ -345,6 +381,34 @@ namespace bs
 	}
 
 	template<bool Core>
+	void TMaterialParams<Core>::getSpriteTexture(const String& name, SpriteTextureType& value) const
+	{
+		const ParamData* param = nullptr;
+		GetParamResult result = getParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
+		if (result != GetParamResult::Success)
+		{
+			reportGetParamError(result, name, 0);
+			return;
+		}
+
+		getSpriteTexture(*param, value);
+	}
+
+	template<bool Core>
+	void TMaterialParams<Core>::setSpriteTexture(const String& name, const SpriteTextureType& value)
+	{
+		const ParamData* param = nullptr;
+		GetParamResult result = getParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
+		if (result != GetParamResult::Success)
+		{
+			reportGetParamError(result, name, 0);
+			return;
+		}
+
+		setSpriteTexture(*param, value);
+	}
+
+	template<bool Core>
 	void TMaterialParams<Core>::getLoadStoreTexture(const String& name, TextureType& value, TextureSurface& surface) const
 	{
 		const ParamData* param = nullptr;
@@ -481,6 +545,18 @@ namespace bs
 		textureParam.surface = surface;
 
 		param.version = ++mParamVersion;
+	}
+
+	template<bool Core>
+	void TMaterialParams<Core>::getSpriteTexture(const ParamData& param, SpriteTextureType& value) const
+	{
+		// TODO - Not implemented
+	}
+	
+	template<bool Core>
+	void TMaterialParams<Core>::setSpriteTexture(const ParamData& param, const SpriteTextureType& value)
+	{
+		// TODO - Not implemented
 	}
 
 	template<bool Core>

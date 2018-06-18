@@ -157,11 +157,35 @@ namespace bs
 	}
 
 	template<bool Core>
+	TMaterialColorGradientParam<Core> TMaterial<Core>::getParamColorGradient(const String& name) const
+	{
+		throwIfNotInitialized();
+
+		return TMaterialColorGradientParam<Core>(name, getMaterialPtr(this));
+	}
+
+	template <bool Core>
+	TMaterialCurveParam<float, Core> TMaterial<Core>::getParamFloatCurve(const String& name) const
+	{
+		throwIfNotInitialized();
+
+		return TMaterialCurveParam<float, Core>(name, getMaterialPtr(this));
+	}
+
+	template<bool Core>
 	TMaterialParamTexture<Core> TMaterial<Core>::getParamTexture(const String& name) const
 	{
 		throwIfNotInitialized();
 
 		return TMaterialParamTexture<Core>(name, getMaterialPtr(this));
+	}
+
+	template<bool Core>
+	TMaterialParamSpriteTexture<Core> TMaterial<Core>::getParamSpriteTexture(const String& name) const
+	{
+		throwIfNotInitialized();
+
+		return TMaterialParamSpriteTexture<Core>(name, getMaterialPtr(this));
 	}
 
 	template<bool Core>

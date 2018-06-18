@@ -3,7 +3,7 @@
 #include "GUI/BsGUISliderHandle.h"
 #include "2D/BsImageSprite.h"
 #include "GUI/BsGUISkin.h"
-#include "2D/BsSpriteTexture.h"
+#include "Image/BsSpriteTexture.h"
 #include "GUI/BsGUIDimensions.h"
 #include "GUI/BsGUIMouseEvent.h"
 
