@@ -45,3 +45,81 @@ using Lock = std::unique_lock<Mutex>;
 using RecursiveLock = std::unique_lock<RecursiveMutex>;
 
 /** @} */
+
+namespace bs
+{
+	/**
+	 * Policy that allows the calls its used in to pick between no locking and mutex locking through a template parameter.
+	 */
+	template<bool LOCK>
+	class LockingPolicy
+	{ };
+
+	/** Scoped lock that provides RAII-style locking and accepts both a normal mutex and a locking policy as input. */
+	template<bool LOCK>
+	class ScopedLock
+	{ };
+
+	/** Specialization of LockingPolicy that performs no locking. */
+	template<>
+	class LockingPolicy<false> final
+	{
+	public:
+		LockingPolicy() = default;
+
+		void lock() { };
+		void unlock() { }
+	};
+
+	/** Specialization of LockingPolicy that uses a mutex for locking. */
+	template<>
+	class LockingPolicy<true> final
+	{
+	public:
+		LockingPolicy()
+			:mLock(mMutex, std::defer_lock)
+		{ }
+
+		void lock()
+		{
+			mLock.lock();
+		};
+
+		void unlock()
+		{
+			mLock.unlock();
+		}
+
+	private:
+		friend class ScopedLock<true>;
+
+		Mutex mMutex;
+		Lock mLock;
+	};
+
+	/** Scoped lock that performs no locking internally. Can only be used with a LockingPolicy. */
+	template<>
+	class ScopedLock<false>
+	{
+	public:
+		ScopedLock(LockingPolicy<false>& policy)
+		{ }
+	};
+
+	/** Scoped lock that automatically locks when created and unlocks when it goes out of scope. */
+	template<>
+	class ScopedLock<true>
+	{
+	public:
+		ScopedLock(LockingPolicy<true>& policy)
+			:mLockGuard(policy.mMutex)
+		{ }
+
+		ScopedLock(Mutex& mutex)
+			:mLockGuard(mutex)
+		{ }
+
+	private:
+		std::lock_guard<Mutex> mLockGuard;
+	};
+}

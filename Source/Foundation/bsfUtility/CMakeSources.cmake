@@ -1,5 +1,5 @@
 set(BS_UTILITY_INC_THREADING
-	"bsfUtility/Threading/BsThreadDefines.h"
+	"bsfUtility/Threading/BsThreading.h"
 	"bsfUtility/Threading/BsAsyncOp.h"
 	"bsfUtility/Threading/BsSpinLock.h"
 	"bsfUtility/Threading/BsThreadPool.h"

@@ -7,10 +7,6 @@
 
 namespace bs
 {
-	/** @addtogroup Internal-Utility
-	 *  @{
-	 */
-
 	/** @addtogroup Memory-Internal
 	 *  @{
 	 */
@@ -25,8 +21,9 @@ namespace bs
 	 * @tparam	Alignment		Memory alignment of each allocated element. Note that alignments that are larger than
 	 *							element size, or aren't a multiplier of element size will introduce additionally padding
 	 *							for each element, and therefore require more internal memory.
+	 * @tparam	Lock			If true the pool allocator will be made thread safe (at the most of performance).
 	 */
-	template <int ElemSize, int ElemsPerBlock = 512, int Alignment = 4>
+	template <int ElemSize, int ElemsPerBlock = 512, int Alignment = 4, bool Lock = false>
 	class PoolAlloc
 	{
 	private:
@@ -91,6 +88,8 @@ namespace bs
 
 		~PoolAlloc()
 		{
+			ScopedLock<Lock> lock(mLockPolicy);
+
 			MemBlock* curBlock = mFreeBlock;
 			while (curBlock != nullptr)
 			{
@@ -104,16 +103,22 @@ namespace bs
 		/** Allocates enough memory for a single element in the pool. */
 		UINT8* alloc()
 		{
+			ScopedLock<Lock> lock(mLockPolicy);
+
 			if(mFreeBlock == nullptr || mFreeBlock->freeElems == 0)
 				allocBlock();
 
 			mTotalNumElems++;
-			return mFreeBlock->alloc();
+			UINT8* output = mFreeBlock->alloc();
+
+			return output;
 		}
 
 		/** Deallocates an element from the pool. */
 		void free(void* data)
 		{
+			ScopedLock<Lock> lock(mLockPolicy);
+
 			MemBlock* curBlock = mFreeBlock;
 			while(curBlock)
 			{
@@ -218,11 +223,75 @@ namespace bs
 
 		static constexpr int ActualElemSize = ((ElemSize + Alignment - 1) / Alignment) * Alignment;
 
+		LockingPolicy<Lock> mLockPolicy;
 		MemBlock* mFreeBlock = nullptr;
 		UINT32 mTotalNumElems = 0;
 		UINT32 mNumBlocks = 0;
 	};
 
-	/** @} */
+	/** 
+	 * Helper class used by GlobalPoolAlloc that allocates a static pool allocator. GlobalPoolAlloc cannot do it
+	 * directly since it gets specialized which means the static members would need to be defined in the implementation
+	 * file, which complicates its usage.
+	 */
+	template <class T, int ElemsPerBlock = 512, int Alignment = 4, bool Lock = true>
+	class StaticPoolAlloc
+	{
+	public:
+		static PoolAlloc<sizeof(T), ElemsPerBlock, Alignment, Lock> m;
+	};
+
+	template <class T, int ElemsPerBlock, int Alignment, bool Lock>
+	PoolAlloc<sizeof(T), ElemsPerBlock, Alignment, Lock> StaticPoolAlloc<T, ElemsPerBlock, Alignment, Lock>::m;
+
+	/** Specializable template that allows users to implement globally accessible pool allocators for custom types. */
+	template<class T>
+	class GlobalPoolAlloc : std::false_type
+	{
+		template <typename T2>
+		struct AlwaysFalse : std::false_type { };
+
+		static_assert(AlwaysFalse<T>::value, "No global pool allocator exists for the type.");
+	};
+
+	/** 
+	 * Implements a global pool for the specified type. The pool will initially have enough room for ElemsPerBlock and
+	 * will grow by that amount when exceeded. Global pools are thread safe by default.
+	 */
+#define IMPLEMENT_GLOBAL_POOL(Type, ElemsPerBlock)									\
+	template<> class GlobalPoolAlloc<Type> : public StaticPoolAlloc<Type> { };
+
+	/** Allocates a new object of type T using the global pool allocator, without constructing it. */
+	template<class T>
+	T* bs_pool_alloc()
+	{
+		return (T*)GlobalPoolAlloc<T>::m.alloc();
+	}
+
+	/** Allocates and constructs a new object of type T using the global pool allocator. */
+	template<class T, class... Args>
+	T* bs_pool_new(Args &&...args)
+	{
+		T* data = bs_pool_alloc<T>();
+		new ((void*)data) T(std::forward<Args>(args)...);
+
+		return data;
+	}
+
+	/** Frees the provided object using its global pool allocator, without destructing it. */
+	template<class T>
+	void bs_pool_free(T* ptr)
+	{
+		GlobalPoolAlloc<T>::m.free(ptr);
+	}
+
+	/** Frees and destructs the provided object using its global pool allocator. */
+	template<class T>
+	void bs_pool_delete(T* ptr)
+	{
+		ptr->~T();
+		bs_pool_free(ptr);
+	}
+
 	/** @} */
 }

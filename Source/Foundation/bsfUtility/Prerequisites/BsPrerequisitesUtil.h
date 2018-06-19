@@ -261,8 +261,8 @@
 
 #include "Allocators/BsMemoryAllocator.h"
 
-// Useful threading defines
-#include "Threading/BsThreadDefines.h"
+// Common threading functionality
+#include "Threading/BsThreading.h"
 
 // Commonly used standard headers
 #include "Prerequisites/BsStdHeaders.h"

@@ -8,7 +8,7 @@
 #include "Prerequisites/BsPlatformDefines.h"
 #include "Prerequisites/BsTypes.h"
 #include "Prerequisites/BsStdHeaders.h"
-#include "Threading/BsThreadDefines.h"
+#include "Threading/BsThreading.h"
 
 namespace bs
 {
