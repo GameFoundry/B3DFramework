@@ -24,9 +24,21 @@ namespace bs
 		float time; /**< Position of the key along the animation spline. */
 	};
 
+	/** Keyframe specialization for integers (no tangents). */
+	template <>
+	struct TKeyframe<INT32>
+	{
+		INT32 value; /**< Value of the key. */
+		float time; /**< Position of the key along the animation spline. */
+	};
+
 	template struct BS_SCRIPT_EXPORT(m:Animation,n:KeyFrame,pl:true) TKeyframe<float>;
 	template struct BS_SCRIPT_EXPORT(m:Animation,n:KeyFrameVec3,pl:true) TKeyframe<Vector3>;
 	template struct BS_SCRIPT_EXPORT(m:Animation,n:KeyFrameQuat,pl:true) TKeyframe<Quaternion>;
+
+#ifdef BS_SBGEN
+	template struct BS_SCRIPT_EXPORT(m:Animation,n:KeyFrameInt,pl:true) TKeyframe<INT32>;
+#endif
 
 	/**
 	 * Animation spline represented by a set of keyframes, each representing an endpoint of a cubic hermite curve. The
@@ -155,16 +167,6 @@ namespace bs
 		 */
 		KeyFrame evaluateKey(const KeyFrame& lhs, const KeyFrame& rhs, float time) const;
 
-		/** 
-		 * Evaluates a value at the cached curve. Caller must ensure the request time falls within the cached curve range.
-		 *
-		 * @param[in]	time			Time to evaluate the curve at.	
-		 * @param[in]	animInstance	Animation instance data holding the time to evaluate the curve at, and any cached
-		 *								data from previous requests.
-		 * @return						Interpolated value from the curve at provided time.
-		 */
-		T evaluateCache(float time, const TCurveCache<T>& animInstance) const;
-
 		static const UINT32 CACHE_LOOKAHEAD;
 
 		Vector<KeyFrame> mKeyframes;
@@ -177,6 +179,7 @@ namespace bs
 	template class BS_SCRIPT_EXPORT(m:Animation,n:AnimationCurve) TAnimationCurve<float>;
 	template class BS_SCRIPT_EXPORT(m:Animation,n:Vector3Curve) TAnimationCurve<Vector3>;
 	template class BS_SCRIPT_EXPORT(m:Animation,n:QuaternionCurve) TAnimationCurve<Quaternion>;
+	template class BS_SCRIPT_EXPORT(m:Animation,n:IntegerCurve) TAnimationCurve<INT32>;
 #endif
 
 	/** Flags that describe an animation curve. */
@@ -238,6 +241,7 @@ namespace bs
 	template class BS_SCRIPT_EXPORT(m:Animation,n:NamedFloatCurve,pl:true) TNamedAnimationCurve<float>;
 	template class BS_SCRIPT_EXPORT(m:Animation,n:NamedVector3Curve,pl:true) TNamedAnimationCurve<Vector3>;
 	template class BS_SCRIPT_EXPORT(m:Animation,n:NamedQuaternionCurve,pl:true) TNamedAnimationCurve<Quaternion>;
+	template class BS_SCRIPT_EXPORT(m:Animation,n:NamedIntegerCurve,pl:true) TNamedAnimationCurve<INT32>;
 #endif
 
 	/** @} */
