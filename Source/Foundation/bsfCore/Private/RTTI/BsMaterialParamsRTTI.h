@@ -92,6 +92,7 @@ namespace bs
 		struct MaterialParam
 		{
 			String name;
+			UINT32 index;
 			MaterialParams::ParamData data;
 		};
 
@@ -103,9 +104,11 @@ namespace bs
 
 		void setParamData(MaterialParams* obj, UINT32 idx, MaterialParam& param)
 		{
-			UINT32 paramIdx = (UINT32)obj->mParams.size();
-			obj->mParams.push_back(param.data);
+			UINT32 paramIdx = param.index;
+			if(paramIdx == (UINT32)-1)
+				paramIdx = (UINT32)obj->mParams.size();
 
+			obj->mParams[paramIdx] = param.data;
 			obj->mParamLookup[param.name] = paramIdx;
 		}
 
@@ -117,7 +120,7 @@ namespace bs
 
 		void setParamDataArraySize(MaterialParams* obj, UINT32 size)
 		{
-			// Do nothing
+			obj->mParams.resize(size);
 		}
 
 		SPtr<DataStream> getDataBuffer(MaterialParams* obj, UINT32& size)
@@ -221,7 +224,7 @@ namespace bs
 			for (auto& entry : paramsObj->mParamLookup)
 			{
 				UINT32 paramIdx = entry.second;
-				matParams.push_back({ entry.first, paramsObj->mParams[paramIdx] });
+				matParams.push_back({ entry.first, paramIdx, paramsObj->mParams[paramIdx] });
 			}
 
 			paramsObj->mRTTIData = matParams;
@@ -344,12 +347,16 @@ namespace bs
 				curveType = 1;
 			else if(data.colorGradient)
 				curveType = 2;
+			else if(data.spriteTextureIdx != (UINT32)-1)
+				curveType = 3;
 
 			memory = rttiWriteElem(curveType, memory);
 			if(data.floatCurve)
 				memory = rttiWriteElem(*data.floatCurve, memory);
 			else if(data.colorGradient)
 				memory = rttiWriteElem(*data.colorGradient, memory);
+			else if(data.spriteTextureIdx != (UINT32)-1)
+				memory = rttiWriteElem(data.spriteTextureIdx, memory);
 		}
 
 		static UINT32 fromMemory(MaterialParamsBase::DataParamInfo& data, char* memory)
@@ -379,6 +386,9 @@ namespace bs
 					data.colorGradient = bs_pool_new<ColorGradient>();
 					memory = rttiReadElem(*data.colorGradient, memory);
 					break;
+				case 3:
+					memory = rttiReadElem(data.spriteTextureIdx, memory);
+					break;
 				default:
 					break;
 				}
@@ -394,12 +404,14 @@ namespace bs
 
 		static UINT32 getDynamicSize(const MaterialParamsBase::DataParamInfo& data)
 		{
-			UINT32 size = sizeof(UINT32) * 3 + rttiGetElemSize(data.offset);
+			UINT32 size = sizeof(UINT32) * 3 + rttiGetElemSize(data.offset) + rttiGetElemSize(data.spriteTextureIdx);
 
 			if(data.floatCurve)
 				size += rttiGetElemSize(*data.floatCurve);
 			else if(data.colorGradient)
 				size += rttiGetElemSize(*data.colorGradient);
+			else if(data.spriteTextureIdx != (UINT32)-1)
+				size += rttiGetElemSize(data.spriteTextureIdx);
 
 			return size;
 		}
@@ -411,27 +423,54 @@ namespace bs
 
 		static void toMemory(const MaterialParamsRTTI::MaterialParam& data, char* memory)
 		{ 
-			UINT32 size = getDynamicSize(data);
+			static constexpr UINT32 VERSION = 1;
+
+			const UINT32 size = getDynamicSize(data);
 
 			memory = rttiWriteElem(size, memory);
 			memory = rttiWriteElem(data.name, memory);
 			memory = rttiWriteElem(data.data, memory);
+
+			// Version 1 data
+			memory = rttiWriteElem(VERSION, memory);
+			memory = rttiWriteElem(data.index, memory);
 		}
 
 		static UINT32 fromMemory(MaterialParamsRTTI::MaterialParam& data, char* memory)
 		{ 
 			UINT32 size = 0;
+			UINT32 sizeRead = 0;
 			
-			memory = rttiReadElem(size, memory);
-			memory = rttiReadElem(data.name, memory);
-			memory = rttiReadElem(data.data, memory);
+			memory = rttiReadElem(size, memory, sizeRead);
+			memory = rttiReadElem(data.name, memory, sizeRead);
+			memory = rttiReadElem(data.data, memory, sizeRead);
+
+			// More fields means a newer version of the data format
+			if(size > sizeRead)
+			{
+				UINT32 version = 0;
+				memory = rttiReadElem(version, memory);
+
+				switch (version)
+				{
+				case 1:
+					memory = rttiReadElem(data.index, memory);
+					break;
+				default:
+					LOGERR("Unknown version. Unable to deserialize.");
+					break;
+				}
+			}
+			else
+				data.index = (UINT32)-1; // Lets the other code know that index needs to be generated
 
 			return size;
 		}
 
 		static UINT32 getDynamicSize(const MaterialParamsRTTI::MaterialParam& data)
 		{ 
-			UINT64 dataSize = rttiGetElemSize(data.name) + rttiGetElemSize(data.data) + sizeof(UINT32);
+			const UINT64 dataSize = rttiGetElemSize(data.name) + rttiGetElemSize(data.data) + rttiGetElemSize(data.index) + 
+				sizeof(UINT32) * 2;
 
 #if BS_DEBUG_MODE
 			if(dataSize > std::numeric_limits<UINT32>::max())

@@ -47,6 +47,11 @@ namespace bs
 		BS_SCRIPT_EXPORT()
 		void setConstant(const Color& color);
 
+		/** 
+		 * Returns the duration over which the gradient values are interpolated over. Corresponds to the time value of the
+		 * final keyframe.
+		 */
+		float getDuration() const { return mDuration; }
 	private:
 		friend struct RTTIPlainType<ColorGradient>;
 

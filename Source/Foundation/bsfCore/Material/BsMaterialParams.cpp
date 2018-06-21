@@ -17,7 +17,8 @@ namespace bs
 		const Map<String, SHADER_DATA_PARAM_DESC>& dataParams,
 		const Map<String, SHADER_OBJECT_PARAM_DESC>& textureParams,
 		const Map<String, SHADER_OBJECT_PARAM_DESC>& bufferParams,
-		const Map<String, SHADER_OBJECT_PARAM_DESC>& samplerParams)
+		const Map<String, SHADER_OBJECT_PARAM_DESC>& samplerParams
+	)
 	{
 		mDataSize = 0;
 
@@ -43,9 +44,6 @@ namespace bs
 
 		UINT32 dataParamIdx = 0;
 		UINT32 dataBufferIdx = 0;
-		UINT32 textureIdx = 0;
-		UINT32 bufferIdx = 0;
-		UINT32 samplerIdx = 0;
 
 		for (auto& entry : dataParams)
 		{
@@ -70,12 +68,14 @@ namespace bs
 			for(UINT32 i = 0; i < arraySize; i++)
 			{
 				mDataParams[dataParamIdx].offset = dataBufferIdx;
+				mDataParams[dataParamIdx].spriteTextureIdx = (UINT32)-1;
 
 				dataBufferIdx += paramSize;
 				dataParamIdx++;
 			}
 		}
 
+		UINT32 textureIdx = 0;
 		for (auto& entry : textureParams)
 		{
 			UINT32 paramIdx = (UINT32)mParams.size();
@@ -93,6 +93,7 @@ namespace bs
 			textureIdx++;
 		}
 
+		UINT32 bufferIdx = 0;
 		for (auto& entry : bufferParams)
 		{
 			UINT32 paramIdx = (UINT32)mParams.size();
@@ -110,6 +111,7 @@ namespace bs
 			bufferIdx++;
 		}
 
+		UINT32 samplerIdx = 0;
 		for (auto& entry : samplerParams)
 		{
 			UINT32 paramIdx = (UINT32)mParams.size();
@@ -289,12 +291,9 @@ namespace bs
 			shader->getDataParams(),
 			shader->getTextureParams(),
 			shader->getBufferParams(),
-			shader->getSamplerParams())
+			shader->getSamplerParams()
+		)
 	{
-		auto& dataParams = shader->getDataParams();
-		auto& textureParams = shader->getTextureParams();
-		auto& samplerParams = shader->getSamplerParams();
-
 		mStructParams = mAlloc.construct<ParamStructDataType>(mNumStructParams);
 		mTextureParams = mAlloc.construct<ParamTextureDataType>(mNumTextureParams);
 		mBufferParams = mAlloc.construct<ParamBufferDataType>(mNumBufferParams);
@@ -302,10 +301,33 @@ namespace bs
 		mDefaultTextureParams = mAlloc.construct<TextureType>(mNumTextureParams);
 		mDefaultSamplerStateParams = mAlloc.construct<SamplerType>(mNumSamplerParams);
 
-		UINT32 structIdx = 0;
+		auto& textureParams = shader->getTextureParams();
 		UINT32 textureIdx = 0;
-		UINT32 samplerIdx = 0;
+		for (auto& entry : textureParams)
+		{
+			ParamTextureDataType& param = mTextureParams[textureIdx];
+			param.isLoadStore = false;
 
+			if (entry.second.defaultValueIdx != (UINT32)-1)
+				mDefaultTextureParams[textureIdx] = shader->getDefaultTexture(entry.second.defaultValueIdx);
+
+			textureIdx++;
+		}
+
+		auto& samplerParams = shader->getSamplerParams();
+		UINT32 samplerIdx = 0;
+		for (auto& entry : samplerParams)
+		{
+			if (entry.second.defaultValueIdx != (UINT32)-1)
+				mDefaultSamplerStateParams[samplerIdx] = shader->getDefaultSampler(entry.second.defaultValueIdx);
+
+			samplerIdx++;
+		}
+
+		// Note: Make sure to process data parameters after textures, in order to handle SpriteUV data parameters
+		auto& dataParams = shader->getDataParams();
+		auto& paramAttributes = shader->getParamAttributes();
+		UINT32 structIdx = 0;
 		for (auto& entry : dataParams)
 		{
 			if(entry.second.type == GPDT_STRUCT)
@@ -320,25 +342,30 @@ namespace bs
 					structIdx++;
 				}
 			}
-		}
+			else
+			{
+				// Check for SpriteUV attribute
+				UINT32 attribIdx = entry.second.attribIdx;
+				while (attribIdx != (UINT32)-1)
+				{
+					const SHADER_PARAM_ATTRIBUTE& attrib = paramAttributes[attribIdx];
+					if (attrib.type == ShaderParamAttributeType::SpriteUV)
+					{
+						// Find referenced texture
+						const auto findIterTex = mParamLookup.find(attrib.value);
+						const auto findIterParam = mParamLookup.find(entry.first);
+						if (findIterTex != mParamLookup.end() && findIterParam != mParamLookup.end())
+						{
+							ParamData& paramData = mParams[findIterTex->second];
 
-		for (auto& entry : textureParams)
-		{
-			ParamTextureDataType& param = mTextureParams[textureIdx];
-			param.isLoadStore = false;
+							DataParamInfo& dataParamInfo = mDataParams[paramData.index];
+							dataParamInfo.spriteTextureIdx = findIterTex->second;
+						}
+					}
 
-			if (entry.second.defaultValueIdx != (UINT32)-1)
-				mDefaultTextureParams[textureIdx] = shader->getDefaultTexture(entry.second.defaultValueIdx);
-
-			textureIdx++;
-		}
-
-		for (auto& entry : samplerParams)
-		{
-			if (entry.second.defaultValueIdx != (UINT32)-1)
-				mDefaultSamplerStateParams[samplerIdx] = shader->getDefaultSampler(entry.second.defaultValueIdx);
-
-			samplerIdx++;
+					attribIdx = attrib.nextParamIdx;
+				}
+			}
 		}
 	}
 
@@ -571,7 +598,12 @@ namespace bs
 	void TMaterialParams<Core>::getTexture(const ParamData& param, TextureType& value, TextureSurface& surface) const
 	{
 		ParamTextureDataType& textureParam = mTextureParams[param.index];
-		value = textureParam.texture;
+
+		if(textureParam.texture)
+			value = textureParam.texture;
+		else if(textureParam.spriteTexture)
+			value = textureParam.spriteTexture->getTexture();
+
 		surface = textureParam.surface;
 	}
 	
@@ -641,6 +673,20 @@ namespace bs
 	}
 
 	template<bool Core>
+	void TMaterialParams<Core>::getSamplerState(const ParamData& param, SamplerType& value) const
+	{
+		value = mSamplerStateParams[param.index].value;
+	}
+
+	template<bool Core>
+	void TMaterialParams<Core>::setSamplerState(const ParamData& param, const SamplerType& value)
+	{
+		mSamplerStateParams[param.index].value = value;
+
+		param.version = ++mParamVersion;
+	}
+
+	template<bool Core>
 	MateralParamTextureType TMaterialParams<Core>::getTextureType(const ParamData& param) const
 	{
 		if(mTextureParams[param.index].isLoadStore)
@@ -655,21 +701,25 @@ namespace bs
 	template<bool Core>
 	bool TMaterialParams<Core>::isAnimated(const ParamData& param, UINT32 arrayIdx) const
 	{
-		return mDataParams[param.index + arrayIdx].floatCurve || mDataParams[param.index + arrayIdx].colorGradient;
+		const DataParamInfo& paramInfo = mDataParams[param.index + arrayIdx];
+
+		return paramInfo.floatCurve || paramInfo.colorGradient || paramInfo.spriteTextureIdx != (UINT32)-1;
 	}
 
 	template<bool Core>
-	void TMaterialParams<Core>::getSamplerState(const ParamData& param, SamplerType& value) const
+	typename TMaterialParams<Core>::SpriteTextureType TMaterialParams<Core>::getOwningSpriteTexture(const ParamData& param) const
 	{
-		value = mSamplerStateParams[param.index].value;
-	}
+		SpriteTextureType output;
 
-	template<bool Core>
-	void TMaterialParams<Core>::setSamplerState(const ParamData& param, const SamplerType& value)
-	{
-		mSamplerStateParams[param.index].value = value;
+		const DataParamInfo& paramInfo = mDataParams[param.index];
+		if (paramInfo.spriteTextureIdx == (UINT32)-1)
+			return output;
 
-		param.version = ++mParamVersion;
+		const ParamData* spriteTexParamData = getParamData(paramInfo.spriteTextureIdx);
+		if(spriteTexParamData)
+			getSpriteTexture(*spriteTexParamData, output);
+
+		return output;
 	}
 
 	template<bool Core>

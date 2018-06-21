@@ -145,7 +145,7 @@ namespace bs
 	struct SHADER_PARAM_ATTRIBUTE
 	{
 		/** Type of the attribute. */
-		ShaderParamAttributeType type;
+		ShaderParamAttributeType type = (ShaderParamAttributeType)0;
 
 		/** Value of the parameter encoded as a string. */
 		String value;
@@ -451,6 +451,9 @@ namespace bs
 
 		/** Returns a map of all parameter blocks. */
 		const Map<String, SHADER_PARAM_BLOCK_DESC>& getParamBlocks() const { return mDesc.paramBlocks; }
+
+		/** Returns a list of all parameter attributes, as referenced by individual parameters. */
+		const Vector<SHADER_PARAM_ATTRIBUTE>& getParamAttributes() const { return mDesc.paramAttributes; }
 
 		/**
 		 * Returns a default texture for a parameter that has the specified default value index (retrieved from the 

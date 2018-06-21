@@ -191,11 +191,12 @@ namespace bs
 		 * Copies internal material parameter data to the provided params set.
 		 *
 		 * @param[in]	paramsSet		Parameter set to update.
+		 * @param[in]	t				Time to evaluate animated parameters at (if any are present).
 		 * @param[in]	updateAll		Normally the system will track dirty parameters since the last call to this method
 		 *								(on a per-set basis), and only update the dirty ones. Set this to true if you want
 		 *								to force all parameters to update, regardless of their dirty state.
 		 */
-		void updateParamsSet(const SPtr<GpuParamsSetType>& paramsSet, bool updateAll = false);
+		void updateParamsSet(const SPtr<GpuParamsSetType>& paramsSet, float t = 0.0f, bool updateAll = false);
 
 		/**
 		 * Assigns a float value to the shader parameter with the specified name.

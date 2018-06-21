@@ -21,6 +21,7 @@ namespace bs
 
 	struct SHADER_DATA_PARAM_DESC;
 	struct SHADER_OBJECT_PARAM_DESC;
+	struct SHADER_PARAM_ATTRIBUTE;
 
 	/** Types of textures that can be assigned to a material texture parameter. */
 	enum class MateralParamTextureType
@@ -67,11 +68,9 @@ namespace bs
 		{
 			UINT32 offset;
 
-			union
-			{
-				TAnimationCurve<float>* floatCurve;
-				ColorGradient* colorGradient;
-			};
+			TAnimationCurve<float>* floatCurve;
+			ColorGradient* colorGradient;
+			UINT32 spriteTextureIdx;
 		};
 
 		/** 
@@ -81,7 +80,8 @@ namespace bs
 			const Map<String, SHADER_DATA_PARAM_DESC>& dataParams, 
 			const Map<String, SHADER_OBJECT_PARAM_DESC>& textureParams,
 			const Map<String, SHADER_OBJECT_PARAM_DESC>& bufferParams,
-			const Map<String, SHADER_OBJECT_PARAM_DESC>& samplerParams);
+			const Map<String, SHADER_OBJECT_PARAM_DESC>& samplerParams
+		);
 
 		/** Constructor for serialization use only. */
 		MaterialParamsBase() = default;
@@ -747,6 +747,12 @@ namespace bs
 
 		 */
 		bool isAnimated(const ParamData& param, UINT32 arrayIdx) const;
+
+		/** 
+		 * Returns a sprite texture that is used for populating the specified data parameter. This is only relevant
+		 * for data parameters marked with the ShaderParamAttributeType::SpriteUV attribute.
+		 */
+		SpriteTextureType getOwningSpriteTexture(const ParamData& param) const;
 
 		/**
 		 * Equivalent to getSamplerState(const String&, SPtr<SamplerState>&) except it uses the internal parameter reference

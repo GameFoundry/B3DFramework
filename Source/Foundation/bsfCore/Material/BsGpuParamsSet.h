@@ -163,11 +163,12 @@ namespace bs
 		 *
 		 * @param[in]	params			Object containing the parameter data to update from. Layout of the object must match
 		 *								the object used for creating this object (be created for the same shader).
+		 * @param[in]	t				Time to evaluate animated parameters at (if any).
 		 * @param[in]	updateAll		Normally the system will track dirty parameters since the last call to this method,
 		 *								and only update the dirty ones. Set this to true if you want to force all parameters
 		 *								to update, regardless of their dirty state.
 		 */
-		void update(const SPtr<MaterialParamsType>& params, bool updateAll = false);
+		void update(const SPtr<MaterialParamsType>& params, float t = 0.0f, bool updateAll = false);
 
 		static const UINT32 NUM_STAGES;
 	private:

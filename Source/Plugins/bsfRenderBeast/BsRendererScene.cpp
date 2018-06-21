@@ -357,7 +357,7 @@ namespace bs {	namespace ct
 
 				// Generate or assigned renderer specific data for the material
 				renElement.params = renElement.material->createParamsSet(techniqueIdx);
-				renElement.material->updateParamsSet(renElement.params, true);
+				renElement.material->updateParamsSet(renElement.params, 0.0f, true);
 
 				// Generate or assign sampler state overrides
 				SamplerOverrideKey samplerKey(renElement.material, techniqueIdx);
@@ -674,7 +674,7 @@ namespace bs {	namespace ct
 
 		// Generate or assigned renderer specific data for the material
 		renElement.params = renElement.material->createParamsSet(techniqueIdx);
-		renElement.material->updateParamsSet(renElement.params, true);
+		renElement.material->updateParamsSet(renElement.params, 0.0f, true);
 
 		SPtr<GpuParams> gpuParams = renElement.params->getGpuParams();
 

@@ -55,9 +55,9 @@ namespace bs
 	}
 
 	template<bool Core>
-	void TMaterial<Core>::updateParamsSet(const SPtr<GpuParamsSetType>& paramsSet, bool updateAll)
+	void TMaterial<Core>::updateParamsSet(const SPtr<GpuParamsSetType>& paramsSet, float t, bool updateAll)
 	{
-		paramsSet->update(mParams, updateAll);
+		paramsSet->update(mParams, t, updateAll);
 	}
 	
 	template<bool Core>
