@@ -84,7 +84,7 @@ namespace bs
 		static void setViewport(const Rect2& area);
 
 		/** 
-		 * @see ct::RenderAPI::setViewport() 
+		 * @see ct::RenderAPI::setStencilRef()
 		 * 
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
