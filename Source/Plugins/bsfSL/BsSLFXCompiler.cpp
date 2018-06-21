@@ -521,6 +521,16 @@ namespace bs
 						desc.addParameter(SHADER_DATA_PARAM_DESC(ident, ident, type, StringID::NONE, 1, 0), 
 							(UINT8*)defVal.matrix);
 					}
+
+					if(!entry.spriteUVRef.empty() && (type == GPDT_FLOAT4))
+					{
+						SHADER_PARAM_ATTRIBUTE attribute;
+						attribute.value = String(entry.spriteUVRef.data(), entry.spriteUVRef.size());
+						attribute.nextParamIdx = (UINT32)-1;
+						attribute.type = ShaderParamAttributeType::SpriteUV;
+
+						desc.setParameterAttribute(ident, attribute);
+					}
 				}
 			}
 				break;
