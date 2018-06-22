@@ -920,7 +920,7 @@ namespace bs
 		if (mParams == nullptr && mShader != nullptr)
 			mParams = bs_shared_ptr_new<MaterialParams>(mShader);
 
-		if(mParams != nullptr)
+		if(mParams != nullptr && paramsSize > 0)
 			mParams->setSyncData((UINT8*)dataPtr, paramsSize);
 
 		dataPtr += paramsSize;
