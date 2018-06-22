@@ -1165,7 +1165,7 @@ namespace bs
 					TextRenderData& renderData = textRenderData[shapeData.textIdx];
 					UINT32 numQuads = renderData.textData->getNumQuadsForPage(renderData.page);
 
-					UINT32* indices = meshData[typeIdx]->getIndices32();
+					UINT32* indices = meshData[typeIdx]->getIndices32() + indexOffset[typeIdx];
 
 					// Note: Need temporary buffers because TextLine doesn't support arbitrary vertex stride. Eventually
 					// that should be supported (should be almost trivial to implement)
@@ -1181,6 +1181,9 @@ namespace bs
 
 						quadOffset += writtenQuads;
 					}
+
+					for(UINT32 j = 0; j < shapeData.numIndices; j++)
+						indices[j] += vertexOffset[typeIdx];
 
 					Vector3 worldSpacePos = text2DData.transform.multiplyAffine(text2DData.position);
 					Vector2I screenPos = camera->worldToScreenPoint(worldSpacePos);
