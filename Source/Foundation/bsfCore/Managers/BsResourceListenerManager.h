@@ -23,15 +23,25 @@ namespace bs
 		ResourceListenerManager();
 		~ResourceListenerManager();
 
-		/**	Register a new listener to notify for events. */
+		/**	
+		 * Register a new listener to notify for events. 
+		 *
+		 * @note	Thread safe
+		 */
 		void registerListener(IResourceListener* listener);
 
-		/**	Unregister a listener so it will no longer receive notifications. */
+		/**	
+		 * Unregister a listener so it will no longer receive notifications. 
+		 * 
+		 * @note	Thread safe
+		 */
 		void unregisterListener(IResourceListener* listener);
 
 		/**
 		 * Marks the listener as dirty which forces the manager to updates its internal list of resources for the 
 		 * listener.
+		 * 
+		 * @note	Thread safe
 		 */
 		void markListenerDirty(IResourceListener* listener);
 
@@ -45,6 +55,9 @@ namespace bs
 		void notifyListeners(const UUID& resourceUUID);
 
 	private:
+		/** Refreshes the listener mapping for any listeners marked as dirty. */
+		void updateListeners();
+
 		/**	Triggered by the resources system when a resource has finished loading. */
 		void onResourceLoaded(const HResource& resource);
 
@@ -74,6 +87,7 @@ namespace bs
 		Map<UUID, HResource> mModifiedResources;
 
 		Vector<HResource> mTempResourceBuffer;
+		Vector<IResourceListener*> mTempListenerBuffer;
 
 		RecursiveMutex mMutex;
 

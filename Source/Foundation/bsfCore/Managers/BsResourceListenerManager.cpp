@@ -3,6 +3,7 @@
 #include "Managers/BsResourceListenerManager.h"
 #include "Resources/BsResources.h"
 #include "Resources/BsIResourceListener.h"
+#include "CoreThread/BsCoreThread.h"
 
 using namespace std::placeholders;
 
@@ -16,7 +17,7 @@ namespace bs
 
 	ResourceListenerManager::~ResourceListenerManager()
 	{
-		assert(mResourceToListenerMap.size() == 0 && "Not all resource listeners had their resources unregistered properly.");
+		assert(mResourceToListenerMap.empty() && "Not all resource listeners had their resources unregistered properly.");
 
 		mResourceLoadedConn.disconnect();
 		mResourceModifiedConn.disconnect();
@@ -39,25 +40,23 @@ namespace bs
 		}
 #endif
 		
-		mDirtyListeners.erase(listener);
+		{
+			RecursiveLock lock(mMutex);
+			mDirtyListeners.erase(listener);
+		}
 
 		clearDependencies(listener);
 	}
 
 	void ResourceListenerManager::markListenerDirty(IResourceListener* listener)
 	{
+		RecursiveLock lock(mMutex);
 		mDirtyListeners.insert(listener);
 	}
 
 	void ResourceListenerManager::update()
 	{
-		for (auto& listener : mDirtyListeners)
-		{
-			clearDependencies(listener);
-			addDependencies(listener);
-		}
-
-		mDirtyListeners.clear();
+		updateListeners();
 
 		{
 			RecursiveLock lock(mMutex);
@@ -73,25 +72,60 @@ namespace bs
 		}
 	}
 
+	void ResourceListenerManager::updateListeners()
+	{
+		{
+			RecursiveLock lock(mMutex);
+
+			for (auto& listener : mDirtyListeners)
+				mTempListenerBuffer.push_back(listener);
+
+			mDirtyListeners.clear();
+		}
+
+		for (auto& listener : mTempListenerBuffer)
+		{
+			clearDependencies(listener);
+			addDependencies(listener);
+		}
+
+		mTempListenerBuffer.clear();
+
+	}
+
 	void ResourceListenerManager::notifyListeners(const UUID& resourceUUID)
 	{
-		RecursiveLock lock(mMutex);
+		updateListeners();
 
-		auto iterFindLoaded = mLoadedResources.find(resourceUUID);
-		if (iterFindLoaded != mLoadedResources.end())
+		HResource loadedResource;
 		{
-			sendResourceLoaded(iterFindLoaded->second);
+			RecursiveLock lock(mMutex);
 
-			mLoadedResources.erase(iterFindLoaded);
+			const auto iterFind = mLoadedResources.find(resourceUUID);
+			if (iterFind != mLoadedResources.end())
+			{
+				loadedResource = std::move(iterFind->second);
+				mLoadedResources.erase(iterFind);
+			}
 		}
 
-		auto iterFindModified = mModifiedResources.find(resourceUUID);
-		if (iterFindModified != mModifiedResources.end())
-		{
-			sendResourceModified(iterFindModified->second);
+		if(loadedResource)
+			sendResourceLoaded(loadedResource);
 
-			mModifiedResources.erase(iterFindModified);
+		HResource modifiedResource;
+		{
+			RecursiveLock lock(mMutex);
+
+			const auto iterFind = mModifiedResources.find(resourceUUID);
+			if (iterFind != mModifiedResources.end())
+			{
+				modifiedResource = std::move(iterFind->second);
+				mModifiedResources.erase(iterFind);
+			}
 		}
+
+		if(modifiedResource)
+			sendResourceModified(modifiedResource);
 	}
 
 	void ResourceListenerManager::onResourceLoaded(const HResource& resource)

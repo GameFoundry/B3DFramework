@@ -295,6 +295,31 @@ namespace bs
 			return outputResource;
 		}
 
+		// Load dependencies (before the main resource)
+		const auto numDependencies = (UINT32)dependenciesToLoad.size();
+		if(numDependencies > 0)
+		{
+			ResourceLoadFlags depLoadFlags = ResourceLoadFlag::LoadDependencies;
+			if (loadFlags.isSet(ResourceLoadFlag::KeepSourceData))
+				depLoadFlags |= ResourceLoadFlag::KeepSourceData;
+
+			Vector<HResource> dependencies(numDependencies);
+			for (UINT32 i = 0; i < numDependencies; i++)
+				dependencies[i] = loadFromUUID(dependenciesToLoad[i], !synchronous, depLoadFlags);
+
+			// Keep dependencies alive until the parent is done loading
+			{
+				Lock inProgressLock(mInProgressResourcesMutex);
+
+				// If we're doing a dependency-only load (main resource itself was previously loaded), then the in-progress
+				// operation could have already finished when the last dependency was loaded (this will always be true for
+				// synchronous loads), and no need to register dependencies.
+				const auto iterFind = mInProgressResources.find(uuid);
+				if(iterFind != mInProgressResources.end())
+					iterFind->second->dependencies = dependencies;
+			}
+		}
+
 		// Actually start the file read operation if not already loaded or in progress
 		if (initiateLoad)
 		{
@@ -321,28 +346,6 @@ namespace bs
 				// Already loaded, decrement dependency count
 				loadComplete(outputResource);
 			}
-		}
-
-		// Load dependencies
-		UINT32 numDependencies = (UINT32)dependenciesToLoad.size();
-		if(numDependencies > 0)
-		{
-			ResourceLoadFlags depLoadFlags = ResourceLoadFlag::LoadDependencies;
-			if (loadFlags.isSet(ResourceLoadFlag::KeepSourceData))
-				depLoadFlags |= ResourceLoadFlag::KeepSourceData;
-
-			Vector<HResource> dependencies(numDependencies);
-
-			// Keep dependencies alive until the parent is done loading
-			{
-				// Note the resource is still guaranteed to be in the in-progress map because it can't be removed until
-				// its dependency count is reduced to zero.
-				Lock inProgressLock(mInProgressResourcesMutex);
-				mInProgressResources[uuid]->dependencies = dependencies;
-			}
-
-			for (UINT32 i = 0; i < numDependencies; i++)
-				dependencies[i] = loadFromUUID(dependenciesToLoad[i], !synchronous, depLoadFlags);
 		}
 
 		return outputResource;
@@ -704,6 +707,8 @@ namespace bs
 		}
 
 		onResourceModified(handle);
+
+		// This method is not thread safe due to this call (callable from main thread only)
 		ResourceListenerManager::instance().notifyListeners(uuid);
 	}
 
