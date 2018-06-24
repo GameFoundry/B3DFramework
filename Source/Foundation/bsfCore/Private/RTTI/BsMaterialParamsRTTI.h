@@ -233,6 +233,49 @@ namespace bs
 			paramsObj->mRTTIData = nullptr;
 		}
 
+		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
+		{
+			MaterialParams* paramsObj = static_cast<MaterialParams*>(obj);
+
+			// This field was added in later versions of the file format, so generate valid data for it if loading from
+			// and older serialized version
+			if(!paramsObj->mDataParams)
+			{
+				paramsObj->mNumDataParams = 0;
+				for(auto& entry : paramsObj->mParams)
+				{
+					if(entry.type != MaterialParams::ParamType::Data)
+						continue;
+
+					paramsObj->mNumDataParams++;
+				}
+
+				paramsObj->mDataParams = (MaterialParams::DataParamInfo*)paramsObj->mAlloc.alloc(
+					paramsObj->mNumDataParams * sizeof(MaterialParams::DataParamInfo));
+				memset(paramsObj->mDataParams, 0, paramsObj->mNumDataParams * sizeof(MaterialParams::DataParamInfo));
+
+				UINT32 paramIdx = 0;
+				UINT32 dataBufferIdx = 0;
+				for(auto& entry : paramsObj->mParams)
+				{
+					if(entry.type != MaterialParams::ParamType::Data)
+						continue;
+
+					const GpuParamDataTypeInfo& typeInfo = GpuParams::PARAM_SIZES.lookup[(int)entry.dataType];
+					const UINT32 paramSize = typeInfo.numColumns * typeInfo.numRows * typeInfo.baseTypeSize;
+					for (UINT32 i = 0; i < entry.arraySize; i++)
+					{
+						paramsObj->mDataParams[paramIdx + i].offset = dataBufferIdx;
+
+						dataBufferIdx += paramSize;
+					}
+
+					entry.index = paramIdx;
+					paramIdx += entry.arraySize;
+				}
+			}
+		}
+
 		const String& getRTTIName() override
 		{
 			static String name = "MaterialParams";
