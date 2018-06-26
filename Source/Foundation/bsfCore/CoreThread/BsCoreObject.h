@@ -236,6 +236,18 @@ namespace bs
 		 */
 		virtual void getCoreDependencies(Vector<CoreObject*>& dependencies) { }
 
+		/**
+		 * Gets called on an object when one of the dependencies (as returned from getCoreDependencies()) is marked as
+		 * dirty. It gives the dependant object a chance to determine should it mark itself as dirty due to the dependency
+		 * change. Dirty flags of the dependency object can be examined for more information on what part of the dependency
+		 * was modified.
+		 */
+		virtual void onDependencyDirty(CoreObject* dependency, UINT32 dirtyFlags)
+		{
+			// By default any changes on a dependency mark the parent dirty as well
+			mCoreDirtyFlags |= 0x80000000;
+		}
+
 	protected:
 		SPtr<ct::CoreObject> mCoreSpecific;
 	};

@@ -199,6 +199,9 @@ namespace bs
 		/** @copydoc CoreObject::getCoreDependencies */
 		void getCoreDependencies(Vector<CoreObject*>& dependencies) override;
 
+		/** @copydoc CoreObject::onDependencyDirty */
+		void onDependencyDirty(CoreObject* dependency, UINT32 dirtyFlags) override;
+
 		/** @copydoc IResourceListener::getListenerResources */
 		void getListenerResources(Vector<HResource>& resources) override;
 

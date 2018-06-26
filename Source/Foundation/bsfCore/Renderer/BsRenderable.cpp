@@ -294,54 +294,62 @@ namespace bs
 
 	CoreSyncData Renderable::syncToCore(FrameAlloc* allocator)
 	{
-		UINT32 numMaterials = (UINT32)mMaterials.size();
+		const UINT32 dirtyFlags = getCoreDirtyFlags();
+		UINT32 size = rttiGetElemSize(dirtyFlags) + getActorSyncDataSize((ActorDirtyFlags)dirtyFlags);
 
-		UINT64 animationId;
-		if (mAnimation != nullptr)
-			animationId = mAnimation->_getId();
-		else
-			animationId = (UINT64)-1;
+		// The most common case if only the transform changed, so we sync only transform related options
+		UINT32 numMaterials = 0;
+		UINT64 animationId = 0;
+		if(dirtyFlags != (UINT32)ActorDirtyFlag::Transform)
+		{
+			numMaterials = (UINT32)mMaterials.size();
 
-		UINT32 size =
-			getActorSyncDataSize() +
-			rttiGetElemSize(mLayer) + 
-			rttiGetElemSize(mOverrideBounds) + 
-			rttiGetElemSize(mUseOverrideBounds) +
-			rttiGetElemSize(numMaterials) + 
-			rttiGetElemSize(mTfrmMatrix) +
-			rttiGetElemSize(mTfrmMatrixNoScale) +
-			rttiGetElemSize(animationId) +
-			rttiGetElemSize(mAnimType) + 
-			rttiGetElemSize(getCoreDirtyFlags()) +
-			sizeof(SPtr<ct::Mesh>) +
-			numMaterials * sizeof(SPtr<ct::Material>);
+			if (mAnimation != nullptr)
+				animationId = mAnimation->_getId();
+			else
+				animationId = (UINT64)-1;
+
+			size +=
+				rttiGetElemSize(mLayer) +
+				rttiGetElemSize(mOverrideBounds) +
+				rttiGetElemSize(mUseOverrideBounds) +
+				rttiGetElemSize(numMaterials) +
+				rttiGetElemSize(animationId) +
+				rttiGetElemSize(mAnimType) +
+				sizeof(SPtr<ct::Mesh>) +
+				numMaterials * sizeof(SPtr<ct::Material>);
+		}
+
 
 		UINT8* data = allocator->alloc(size);
 		char* dataPtr = (char*)data;
-		dataPtr = syncActorTo(dataPtr);
-		dataPtr = rttiWriteElem(mLayer, dataPtr);
-		dataPtr = rttiWriteElem(mOverrideBounds, dataPtr);
-		dataPtr = rttiWriteElem(mUseOverrideBounds, dataPtr);
-		dataPtr = rttiWriteElem(numMaterials, dataPtr);
-		dataPtr = rttiWriteElem(mTfrmMatrix, dataPtr);
-		dataPtr = rttiWriteElem(mTfrmMatrixNoScale, dataPtr);
-		dataPtr = rttiWriteElem(animationId, dataPtr);
-		dataPtr = rttiWriteElem(mAnimType, dataPtr);
-		dataPtr = rttiWriteElem(getCoreDirtyFlags(), dataPtr);
 
-		SPtr<ct::Mesh>* mesh = new (dataPtr) SPtr<ct::Mesh>();
-		if (mMesh.isLoaded())
-			*mesh = mMesh->getCore();
+		dataPtr = rttiWriteElem(dirtyFlags, dataPtr);
+		dataPtr = syncActorTo(dataPtr, (ActorDirtyFlags)dirtyFlags);
 
-		dataPtr += sizeof(SPtr<ct::Mesh>);
-
-		for (UINT32 i = 0; i < numMaterials; i++)
+		if(dirtyFlags != (UINT32)ActorDirtyFlag::Transform)
 		{
-			SPtr<ct::Material>* material = new (dataPtr)SPtr<ct::Material>();
-			if (mMaterials[i].isLoaded())
-				*material = mMaterials[i]->getCore();
+			dataPtr = rttiWriteElem(mLayer, dataPtr);
+			dataPtr = rttiWriteElem(mOverrideBounds, dataPtr);
+			dataPtr = rttiWriteElem(mUseOverrideBounds, dataPtr);
+			dataPtr = rttiWriteElem(numMaterials, dataPtr);
+			dataPtr = rttiWriteElem(animationId, dataPtr);
+			dataPtr = rttiWriteElem(mAnimType, dataPtr);
 
-			dataPtr += sizeof(SPtr<ct::Material>);
+			SPtr<ct::Mesh>* mesh = new (dataPtr) SPtr<ct::Mesh>();
+			if (mMesh.isLoaded())
+				*mesh = mMesh->getCore();
+
+			dataPtr += sizeof(SPtr<ct::Mesh>);
+
+			for (UINT32 i = 0; i < numMaterials; i++)
+			{
+				SPtr<ct::Material>* material = new (dataPtr)SPtr<ct::Material>();
+				if (mMaterials[i].isLoaded())
+					*material = mMaterials[i]->getCore();
+
+				dataPtr += sizeof(SPtr<ct::Material>);
+			}
 		}
 
 		return CoreSyncData(data, size);
@@ -357,6 +365,21 @@ namespace bs
 			if (material.isLoaded())
 				dependencies.push_back(material.get());
 		}
+	}
+
+	void Renderable::onDependencyDirty(CoreObject* dependency, UINT32 dirtyFlags)
+	{
+		if(mMesh.isLoaded(false) && mMesh.get() == dependency)
+		{
+			CoreObject::onDependencyDirty(dependency, dirtyFlags);
+			return;
+		}
+
+		// If only material parameters changed, no need to re-sync this object
+		auto material = static_cast<Material*>(dependency);
+
+		if(((UINT32)MaterialDirtyFlags::Shader & dirtyFlags) != 0)
+			CoreObject::onDependencyDirty(dependency, dirtyFlags);
 	}
 
 	void Renderable::getListenerResources(Vector<HResource>& resources)
@@ -589,28 +612,33 @@ namespace bs
 		UINT32 dirtyFlags = 0;
 		bool oldIsActive = mActive;
 
-		dataPtr = syncActorFrom(dataPtr);
-		dataPtr = rttiReadElem(mLayer, dataPtr);
-		dataPtr = rttiReadElem(mOverrideBounds, dataPtr);
-		dataPtr = rttiReadElem(mUseOverrideBounds, dataPtr);
-		dataPtr = rttiReadElem(numMaterials, dataPtr);
-		dataPtr = rttiReadElem(mTfrmMatrix, dataPtr);
-		dataPtr = rttiReadElem(mTfrmMatrixNoScale, dataPtr);
-		dataPtr = rttiReadElem(mAnimationId, dataPtr);
-		dataPtr = rttiReadElem(mAnimType, dataPtr);
 		dataPtr = rttiReadElem(dirtyFlags, dataPtr);
+		dataPtr = syncActorFrom(dataPtr, (ActorDirtyFlags)dirtyFlags);
 
-		SPtr<Mesh>* mesh = (SPtr<Mesh>*)dataPtr;
-		mMesh = *mesh;
-		mesh->~SPtr<Mesh>();
-		dataPtr += sizeof(SPtr<Mesh>);
+		mTfrmMatrix = mTransform.getMatrix();
+		mTfrmMatrixNoScale = Matrix4::TRS(mTransform.getPosition(), mTransform.getRotation(), Vector3::ONE);
 
-		for (UINT32 i = 0; i < numMaterials; i++)
+		if(dirtyFlags != (UINT32)ActorDirtyFlag::Transform)
 		{
-			SPtr<Material>* material = (SPtr<Material>*)dataPtr;
-			mMaterials.push_back(*material);
-			material->~SPtr<Material>();
-			dataPtr += sizeof(SPtr<Material>);
+			dataPtr = rttiReadElem(mLayer, dataPtr);
+			dataPtr = rttiReadElem(mOverrideBounds, dataPtr);
+			dataPtr = rttiReadElem(mUseOverrideBounds, dataPtr);
+			dataPtr = rttiReadElem(numMaterials, dataPtr);
+			dataPtr = rttiReadElem(mAnimationId, dataPtr);
+			dataPtr = rttiReadElem(mAnimType, dataPtr);
+
+			SPtr<Mesh>* mesh = (SPtr<Mesh>*)dataPtr;
+			mMesh = *mesh;
+			mesh->~SPtr<Mesh>();
+			dataPtr += sizeof(SPtr<Mesh>);
+
+			for (UINT32 i = 0; i < numMaterials; i++)
+			{
+				SPtr<Material>* material = (SPtr<Material>*)dataPtr;
+				mMaterials.push_back(*material);
+				material->~SPtr<Material>();
+				dataPtr += sizeof(SPtr<Material>);
+			}
 		}
 
 		UINT32 updateEverythingFlag = (UINT32)ActorDirtyFlag::Everything 

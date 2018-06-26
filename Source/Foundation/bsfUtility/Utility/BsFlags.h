@@ -38,6 +38,18 @@ namespace bs
 			return (mBits & static_cast<Storage>(value)) == static_cast<Storage>(value);
 		}
 
+		/** Checks whether any of the provided bits are set */
+		bool isSetAny(Enum value) const
+		{
+			return (mBits & static_cast<Storage>(value)) != 0;
+		}
+
+		/** Checks whether any of the provided bits are set */
+		bool isSetAny(const Flags<Enum, Storage>& value) const
+		{
+			return (mBits & value.mBits) != 0;
+		}
+
 		/** Activates all of the provided bits. */
 		Flags<Enum, Storage>& set(Enum value)
 		{

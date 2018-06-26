@@ -32,7 +32,7 @@ namespace bs
 		bool isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const override;
 
 		/** @copydoc SpecificImporter::getAsyncMode */
-		virtual ImporterAsyncMode getAsyncMode() const { return ImporterAsyncMode::Single; }
+		ImporterAsyncMode getAsyncMode() const override { return ImporterAsyncMode::Single; }
 
 		/** @copydoc SpecificImporter::import */
 		SPtr<Resource> import(const Path& filePath, SPtr<const ImportOptions> importOptions) override;

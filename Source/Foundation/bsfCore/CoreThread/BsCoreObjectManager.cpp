@@ -314,12 +314,14 @@ namespace bs
 					const Vector<CoreObject*>& dependants = iterFind->second;
 					for (auto& dependant : dependants)
 					{
-						if (!dependant->isCoreDirty())
-							dirtyDependants.insert(dependant);
+						const bool wasDirty = dependant->isCoreDirty();
 
-						// Note: This tells the object it was marked dirty due to a dependency, but it doesn't tell it
-						// due to which one. Eventually it might be nice to have that information as well.
-						dependant->mCoreDirtyFlags |= 0x80000000;
+						// Let the dependant objects know their dependency changed
+						CoreObject* dependency = objectData.second.object;
+						dependant->onDependencyDirty(dependency, dependency->getCoreDirtyFlags());
+
+						if (!wasDirty && dependant->isCoreDirty())
+							dirtyDependants.insert(dependant);
 					}
 				}
 			}
