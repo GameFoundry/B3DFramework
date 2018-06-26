@@ -21,6 +21,9 @@ To retrieve the handles call any of the following methods, depending on material
  - @ref bs::ct::Material::getParamColor "ct::Material::getParamColor()" - Outputs a @ref bs::TMaterialDataParam<T, Core> "MaterialParamColor" handle that can be used for reading & writing the parameter value.
  - @ref bs::ct::Material::getParamMat3 "ct::Material::getParamMat3()" - Outputs a @ref bs::TMaterialDataParam<T, Core> "MaterialParamMat3" handle that can be used for reading & writing the parameter value.
  - @ref bs::ct::Material::getParamMat4 "ct::Material::getParamMat4()" - Outputs a @ref bs::TMaterialDataParam<T, Core> "MaterialParamMat4" handle that can be used for reading & writing the parameter value.
+ - @ref bs::ct::Material::getParamFloatCurve "ct::Material::getParamFloatCurve()" - Outputs a @ref bs::TMaterialCurveParam<float, Core> "MaterialParamFloatCurve" handle that can be used for assigning an animation curve to a *float* parameter. This can be used as an alternative to **ct::Material::getParamFloat()** in that the value will now be animated over the range of the curve, instead of being just a static value.
+ - @ref bs::ct::Material::getParamColorGradient "ct::Material::getParamColorGradient()" - Outputs a @ref bs::TMaterialColorGradientParam<Core> "MaterialParamColorGradient" handle that can be used for assigning a color gradient to a *Color* parameter. This can be used as an alternative to **ct::Material::getParamColor()** in that the value will now be animated over the range of the gradient, instead of being just a static value.
+ - @ref bs::ct::Material::getParamSpriteTexture "ct::Material::getParamSpriteTexture()" - Outputs a @ref bs::TMaterialParamSpriteTexture<Core> "MaterialParamSpriteTexture" handle that can be used for assigning a sprite texture to a *texture* parameter. This can be used as an alternative to **ct::Material::getParamTexture()** in that the sprite texture can be animated while a normal texture is always static.
  
 Handles provide **set()** and **get()** methods that can be used for writing and reading the parameter values. 
  
@@ -40,9 +43,10 @@ myVectorParam.set(viewProjMat);
 myTextureParam.set(someTexture);
 ~~~~~~~~~~~~~ 
  
-Material handles are very similar as **GpuParams** handles we talked about earlier. There are two major differences:
+Material handles are very similar as **GpuParams** handles we talked about earlier. There are three major differences:
  - **GpuParams** handles will only set the parameter value for a specific **GpuProgram**, while material handles will set the values for all **GpuProgram**%s that map to that handle.
  - **GpuProgram** parameters are retrieved directly from program source code, while **Material** parameters need to be explicitly defined in the **Shader** (shown below). **Material** parameters always map to one or multiple **GpuProgram** parameters. 
+ - **GpuProgram** parameters do not support animated parameter types.
 
 # Creating a shader manually {#advMaterials_b}
 So far when we wanted to create a shader we would create a BSL file which would then be imported, creating a @ref bs::Shader "Shader". But you can also create shaders manually by explicitly providing HLSL/GLSL code for **GpuProgram**%s and non-programmable states. Most of the things outlined in this section are performed by BSL compiler internally when a **Shader** is imported.
@@ -118,8 +122,8 @@ Shader parameters allow you to change values of parameters in GPU programs throu
 To create the parameter interface you must populate the **SHADER_DESC** structure by calling one of the @ref bs::TSHADER_DESC<T>::addParameter "SHADER_DESC::addParameter()" overloads.
 
 Parameters come in two variants:
- - Data - These are primitive types like float, int or bool. This includes their vector and array variants. Check @ref bs::GpuParamDataType "GpuParamDataType" for a list of all data parameter types.
- - Object - These are object types like texture, buffer or sampler state. Check @ref bs::GpuParamObjectType "GpuParamObjectType" for a list of all object parameter types.
+ - Data - These are primitive types like float, int or bool. This includes their vector and array variants. Check @ref bs::GpuParamDataType "GpuParamDataType" for a list of all data parameter types. In **SHADER_DESC** they are represented with the @ref bs::SHADER_DATA_PARAM_DESC "SHADER_DATA_PARAM_DESC" type.
+ - Object - These are object types like texture, buffer or sampler state. Check @ref bs::GpuParamObjectType "GpuParamObjectType" for a list of all object parameter types. In **SHADER_DESC** they are represented with the @ref bs::SHADER_OBJECT_PARAM_DESC "SHADER_OBJECT_PARAM_DESC" type.
 
 For each parameter you must specify:
  - Its name. This will be the name accessible through **Material**. It can be anything you like, as long as it is unique.
@@ -137,16 +141,16 @@ desc.separablePasses = false;
 desc.techniques = { technique };
 
 // Add a 4x4 transform matrix data parameter
-desc.addParameter("WorldTfrm", "WorldTfrm", GPDT_MATRIX_4X4);
+desc.addParameter(SHADER_DATA_PARAM_DESC("WorldTfrm", "WorldTfrm", GPDT_MATRIX_4X4));
 
 // Add a texture parameter
-desc.addParameter("AlbedoTex", "AlbedoTex", GPOT_TEXTURE2D);
+desc.addParameter(SHADER_OBJECT_PARAM_DESC("AlbedoTex", "AlbedoTex", GPOT_TEXTURE2D));
 
 SPtr<Shader> shader = Shader::create("MyShader", desc);
 ~~~~~~~~~~~~~
 
 ### Advanced parameters {#materials_b_d_a}
-**SHADER_DESC::addParameter** also supports two additional arguments we didn't touch on in the previous section: renderer semantic and default value.
+When adding parameters you can also specify two additional properties we didn't touch on in the previous section: renderer semantic and default value.
 
 Renderer semantic allows you to give the parameter a unique tag that can be recognized by the active renderer. The renderer can then use these semantics to automatically assign values to them while rendering. For example the "WVP" semantic might notify the renderer to populate this parameter with the world-view-projection matrix. This way the user is not responsible for setting such parameters manually. The actual semantics supported depend on the active renderer. If provided and renderer doesn't support a semantic, it will be ignored. We'll talk more on how to access semantics in the renderer manual.
 
@@ -163,10 +167,10 @@ desc.separablePasses = false;
 desc.techniques = { technique };
 
 // Add a 4x4 transform matrix data parameter with a "W" semantic and identity matrix as default
-desc.addParameter("WorldTfrm", "WorldTfrm", GPDT_MATRIX_4X4, "W", 1, 0, &Matrix4::Identity);
+desc.addParameter(SHADER_DATA_PARAM_DESC("WorldTfrm", "WorldTfrm", GPDT_MATRIX_4X4, "W"), &Matrix4::Identity);
 
 // Add a texture parameter with an "Albedo" semantic and a white texture as default
-desc.addParameter("AlbedoTex", "AlbedoTex", GPOT_TEXTURE2D, Texture::White, "Albedo");
+desc.addParameter(SHADER_OBJECT_PARAM_DESC("AlbedoTex", "AlbedoTex", GPOT_TEXTURE2D, "Albedo"), Texture::White);
 
 HShader shader = Shader::create("MyShader", desc);
 ~~~~~~~~~~~~~  
@@ -221,6 +225,13 @@ SPtr<GpuParamsSet> paramsSet = material->createParamsSet(techniqueIdx);
 
 // Transfer the updated data
 paramsSet->update(material);
+~~~~~~~~~~~~~
+
+In case your material contains any animated properties like animation curves, color gradients or color textures, you can also provide a `time` parameter to **GpuParamsSet::update()**, which determines the point at which to sample animated properties.
+
+~~~~~~~~~~~~~{.cpp}
+// Sample animated properties at 0.5 seconds into the animation
+paramsSet->update(material, 0.5f);
 ~~~~~~~~~~~~~
 
 Once both the material's pipeline state and parameters are bound, you can then proceed to render as normally, as described in the low-level rendering manual.

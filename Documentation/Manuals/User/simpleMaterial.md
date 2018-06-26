@@ -56,6 +56,64 @@ material->setVec3("position", Vector3(0, 15.0f, 10.0f));
 material->setMat4("someTransform", Matrix4::IDENTITY);
 ~~~~~~~~~~~~~
 
+## Animated parameters {#simpleMaterial_d}
+Certain material parameters can be animated, meaning they will change as time passes. The types of animable parameters are:
+ - **float** - Instead of calling **Material::setFloat()** call @ref bs::Material::setFloatCurve "Material::setFloatCurve()" and pass a @ref bs::TAnimationCurve<float> "bs::TAnimationCurve<float>" object as the parameter. Animation curve consists of a set of key-frames that get interpolated between depending on the time the curve gets sampled at. 
+ - **Color** - Instead of calling **Material::setColor()** call @ref bs::Material::setColorGradient "Material::setColorGradient()" and pass a @ref bs::ColorGradient "ColorGradient" object as the parameter. Similarly to animation curves the **ColorGradient** contains a set of key-frames, each containing a color, which then get interpolated between depending on the time that's used to evaluate them.
+ - **Texture** - Instead of calling **Material::setTexture()** call @ref bs::Material::setSpriteTexture "Material::setSpriteTexture()", which accepts a **SpriteTexture** object. Sprite textures allow you to provide texture animation and as time passes different frames of texture animation will be presented to the user. Sprite textures are explained in more detail later on.
+ 
+An example using all three types of animated parameters: 
+ 
+~~~~~~~~~~~~~{.cpp}
+// Create an animation curve with three keys:
+// [0] - Value 1 at time 0.0s
+// [1] - Value 2 at time 0.5s
+// [2] - Value 1 at time 1.0s
+// The curve starts at value of 1, goes to 2 and then back to 1, in the duration of one second.
+// (Middle two values of each keyframe represent tangents that allow finer control
+// of the curve, be you can leave them at zero)
+Vector<TKeyframe<float>> keyframes = 
+{
+	{ 1.0f, 0.0f, 0.0f, 0.0f },
+	{ 2.0f, 0.0f, 0.0f, 0.5f },
+	{ 1.0f, 0.0f, 0.0f, 1.0f }
+};
+
+TAnimationCurve<float> curve(keyframes);
+material->setFloatCurve("gScale", curve);
+
+// Create a color gradient with three keys
+// [0] - Red color at time 0.0s
+// [1] - Blue color at time 2.5s
+// [2] - Red color at time 5.0s
+// The gradient starts with red color, interpolates towards blue and then back to red,
+// in the duration of five seconds.
+ColorGradient gradient;
+gradient.setKeys(
+	{
+		ColorGradientKey(Color::Red, 0.0f),
+		ColorGradientKey(Color::Blue, 2.5f),
+		ColorGradientKey(Color::Red, 5.0f)
+	});
+
+material->setColorGradient("gTint", Color::White);
+
+// Create a sprite texture with sprite sheet animation (explained later)
+HTexture texture = ...; // Import texture as normal
+HSpriteTexture spriteTexture = SpriteTexture::create(texture);
+
+SpriteSheetGridAnimation anim;
+anim.numRows = 3;
+anim.numColumns = 3;
+anim.count = 8;
+anim.fps = 8;
+
+spriteTexture->setAnimation(anim);
+spriteTexture->setAnimationPlayback(SpriteAnimationPlayback::Loop);
+
+material->setSpriteTexture("gAlbedoTex", spriteTexture);
+~~~~~~~~~~~~~
+ 
 ## Sampler states {#simpleMaterial_c_a}
 Sampler states are a special type of parameters that can be set by calling @ref bs::Material::setSamplerState "Material::setSamplerState()". These states are used to control how is a texture read in a shader. For example they control what type of filtering to use, how to handle out of range texture coordinates and similar. In most cases you don't need to set sampler states as the default one should be adequate. 
 

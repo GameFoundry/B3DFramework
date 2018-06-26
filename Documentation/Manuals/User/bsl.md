@@ -507,15 +507,113 @@ shader MyShader
 };
 ~~~~~~~~~~~~~~
 
-Supported attribute types are:
-Name                 | Parameters			   | Usable on              | Description
----------------------|------------------------ |------------------------|------------
-internal    	  	 | none					   | constants and cbuffers | Forces the constant (or all the constants in a buffer if applied to cbuffer) to be hidden from the materials public interface (editor UI or **Material** API). This is useful for constants that are set by the engine itself and shouldn't be touched by normal users. Additionaly internal cbuffers must be explicitly created and assigned by the low level rendering API, as they will not be created automatically.
-color				 | none					   | float3 or float4 constants	| Marks the floating point vector as a color. This ensures the constant is displayed as a color in the editor UI (with access to a color picker), and is represented by the **Color** structure in **Material** API.
-layout				 | See table below		   | RW texture or buffer constant | Used primarily as compatibility with OpenGL and Vulkan code, which require read-write objects (e.g. **RWTexture**) to have an explicit layout provided in shader. This is only required when READING from a read-write object AND when you will be using either OpenGL or Vulkan render backend.
-alias				 | Texture name			   | SamplerState			| Allows you to provide an alternative name to a SamplerState. This is important when using render backends like OpenGL, which may not support separate sampler states. In these cases the sampler state will be 'merged' with the texture it is used on. This means all internal systems will report the name of this sampler to be the same as the name of the texture, rather than the given name. In this case you will want to explictly add an `alias(TextureName)` attribute so the system knows this sampler state might have an alternative name.
+Following is a complete list of supported attributes with their use cases.
 
-**layout** valid values:
+## internal {#bsl_f_a}
+Marks a constant or a constant buffer (cbuffer) so it is hidden from the material's public interface (editor UI or **Material** API). This is useful for constants that are set by the engine itself and shouldn't be touched by normal users. Additionaly internal cbuffers must be explicitly created and assigned by the low level rendering API, as they will not be created automatically.
+
+In the example below only *position* and *tint* parameters will be accessible through the material.
+~~~~~~~~~~~~~~
+shader MyShader
+{
+	code
+	{
+		// Hide from public interface
+		[internal]
+		Texture2D someMap;
+		
+		cbuffer SomeBuffer
+		{
+			float3 position;
+			float3 tint;
+			
+			// Hide from public interface
+			[internal]
+			float4x4 viewProjMat;
+		};		
+	};
+};
+~~~~~~~~~~~~~~
+
+## color {#bsl_f_b}
+Marks the floating point vector constant as a color. This ensures the constant is displayed as a color in the editor UI (with access to a color picker), and is represented by the **Color** structure in **Material** API. Only usable on *float3* or *float4* types.
+
+~~~~~~~~~~~~~~
+shader MyShader
+{
+	code
+	{
+		cbuffer SomeBuffer
+		{
+			float3 position;
+			
+			// Interpret as color, instead of a 3D vector
+			[color]
+			float3 tint;
+		};		
+	};
+};
+~~~~~~~~~~~~~~
+
+## spriteuv {#bsl_f_c}
+Marks a *float4* constant to be used for sprite texture animation. If a **Material** is assigned a **SpriteTexture** with animation enabled this parameter will receive the UV offset (in .xy components) and size (in .zw components) required for animating the texture. The attribute expects a texture name as a parameter, which corresponds to the texture to animate.
+
+~~~~~~~~~~~~~~
+shader MyShader
+{
+	code
+	{
+		// Texture that supports animation
+		Texture2D gAlbedoTex;
+		SamplerState gAlbedoSamp;
+		
+		cbuffer SomeBuffer
+		{
+			// Field to receive animated UV
+			[spriteuv(gAlbedoTex)]
+			float4 gSpriteUV;
+		};
+		
+		float4 fsmain(float2 uv : TEXCOORD) : SV_Target0
+		{
+			// Transform the mesh UV using the offset/size to sample 
+			// from the current sub-section of the texture
+			float2 spriteUV = uv * gSpriteUV.zw + gSpriteUV.xy;
+		
+			return gAlbedoTex.Sample(gAlbedoSamp, spriteUV);
+		}	
+	};
+};
+~~~~~~~~~~~~~~
+
+## alias {#bsl_f_d}
+Allows you to provide an alternative name to a SamplerState. This is important when using render backends like OpenGL, which may not support separate sampler states. In these cases the sampler state will be 'merged' with the texture it is used on. This means all internal systems will report the name of this sampler to be the same as the name of the texture, rather than the given name. In this case you will want to explictly add an `alias(TextureName)` attribute so the system knows this sampler state might have an alternative name.
+
+This does come with a restriction that a sampler state can only be used with a single texture.
+
+~~~~~~~~~~~~~~
+shader MyShader
+{
+	code
+	{
+		// Sampler used with the 'gAlbedoTex'
+		[alias(gAlbedoTex)]
+		SamplerState gAlbedoSamp;
+		
+		// Sampler used with the 'gNormalTex'
+		[alias(gNormalTex)]
+		SamplerState gNormalSamp;
+		
+		Texture2D gAlbedoTex;
+		Texture2D gNormalTex;
+	};
+};
+~~~~~~~~~~~~~~
+
+## layout {#bsl_f_e}
+Used primarily as compatibility with OpenGL and Vulkan code, which require read-write objects (e.g. **RWTexture**) to have an explicit layout provided in shader. This is only required when READING from a read-write object AND when you will be using either OpenGL or Vulkan render backend.
+
+This attribute expects a parameter that lets the system know the format of the data in the buffer. Valid values are:
 - rgba32f
 - rgba16f
 - rg32f
@@ -565,25 +663,11 @@ Where:
  - "ui" - unsigned integer
  - no suffix - normalized real in [0, 1] range (internally backed by an unsigned integer)
 
-Example of attributes in action:
 ~~~~~~~~~~~~~~
 shader MyShader
 {
 	code
 	{
-		// Hide from public interface
-		[internal]
-		Texture2D someMap;
-		
-		cbuffer SomeBuffer
-		{
-			float3 position;
-			
-			// Interpret as color, instead of a 3D vector
-			[color]
-			float3 tint;
-		};		
-		
 		// Texture contains 4-channel 16-bit floating point data, and we plan on reading from it
 		[layout(rgba16f))]
 		RWTexture2D someMap2;

@@ -306,6 +306,10 @@ namespace bs
 	typedef TMaterialParamBuffer<false> MaterialParamBuffer;
 	typedef TMaterialParamSampState<false> MaterialParamSampState;
 
+	typedef TMaterialCurveParam<float, false> MaterialParamFloatCurve;
+	typedef TMaterialColorGradientParam<false> MaterialParamColorGradient;
+	typedef TMaterialParamSpriteTexture<false> MaterialParamSpriteTexture;
+
 	namespace ct
 	{
 		typedef TMaterialDataParam<float, true> MaterialParamFloat;
@@ -325,6 +329,10 @@ namespace bs
 		typedef TMaterialParamLoadStoreTexture<true> MaterialParamLoadStoreTexture;
 		typedef TMaterialParamBuffer<true> MaterialParamBuffer;
 		typedef TMaterialParamSampState<true> MaterialParamSampState;
+
+		typedef TMaterialCurveParam<float, true> MaterialParamFloatCurve;
+		typedef TMaterialColorGradientParam<true> MaterialParamColorGradient;
+		typedef TMaterialParamSpriteTexture<true> MaterialParamSpriteTexture;
 	}
 
 	/** @} */

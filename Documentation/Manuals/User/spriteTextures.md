@@ -3,7 +3,9 @@ Sprite textures									{#spriteTextures}
 
 Before we get started with GUI, let's first introduce the concept of sprite textures. They are very similar to normal textures, with the main difference being that they reference a specific sub-area on a **Texture**. This means multiple sprite textures can reference different parts of a single texture.
 
-They are used primarily by 2D elements, like GUI or sprites. Their primary purpose is to improve performance by ensuring 2D elements can be batched together when rendering, since all batched elements need to use the same underlying texture (also known as a texture atlas).
+This can be used by internal systems to improve rendering performance as rendered objects sharing the same texture can be 'batched' together, reducing rendering overhead. Additionally it can also be used for performing sprite animation, as we will show later.
+
+Sprite textures are used extensively by the GUI system, but are also usable in other systems (e.g. on a **Material** or a **ParticleSystem**).
 
 They are represented with the @ref bs::SpriteTexture "SpriteTexture" class and are a **Resource**, same as normal textures. 
 
@@ -37,3 +39,32 @@ You can also always retrieve the underlying texture by calling @ref bs::SpriteTe
 ~~~~~~~~~~~~~{.cpp}
 HTexture texture = spriteTexPartial->getTexture();
 ~~~~~~~~~~~~~
+
+# Animation {#spriteTextures_a}
+Sprite textures also support sprite sheet grid based animation. To initialize the animation you need to populate the @ref bs::SpriteSheetGridAnimation "SpriteSheetGridAnimation" structure and pass it along to @ref bs::SpriteTexture::setAnimation "SpriteTexture::setAnimation()".
+
+**SpriteSheetGridAnimation** specifies how are animation frames positioned. All frames are expected to be arranged in a grid where each sprite has the same width/height. You will need to provide the number of grid rows and columns, as well as total number of frames and animation speed in the form of frames per second.
+
+And example sprite sheet with 3x3 grid and a total of 8 frames would look like so:
+![Example sprite sheet](SpriteSheet.png)
+
+And its corresponding **SpriteSheetGridAnimation**:
+
+~~~~~~~~~~~~~{.cpp}
+SpriteSheetGridAnimation anim;
+anim.numColumns = 3;
+anim.numRows = 3;
+anim.count = 8;
+anim.fps = 8; // 1 second for one animation loop
+
+HSpriteTexture spriteTexture = ...;
+spriteTexture->setAnimation(anim);
+~~~~~~~~~~~~~
+
+Finally you need to enable animation playback by passing one of the @ref bs::SpriteAnimationPlayback "SpriteAnimationPlayback" values to @ref bs::SpriteTexture::setAnimationPlayback "SpriteTexture::setAnimationPlayback()".
+
+~~~~~~~~~~~~~{.cpp}
+spriteTexture->setAnimationPlayback(SpriteAnimationPlayback::Loop);
+~~~~~~~~~~~~~
+
+Sprite textures can then be passed along to various engine systems and animation will be played automatically if animation playback is supported by that system.
