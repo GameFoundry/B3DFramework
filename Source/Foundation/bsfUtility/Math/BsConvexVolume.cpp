@@ -5,6 +5,7 @@
 #include "Math/BsSphere.h"
 #include "Math/BsPlane.h"
 #include "Math/BsMath.h"
+#include "Error/BsException.h"
 
 namespace bs
 {
@@ -62,6 +63,17 @@ namespace bs
 			mPlanes.push_back(plane);
 		}
 
+		// Far
+		{
+			Plane plane;
+			plane.normal.x = proj[3][0] - proj[2][0];
+			plane.normal.y = proj[3][1] - proj[2][1];
+			plane.normal.z = proj[3][2] - proj[2][2];
+			plane.d = proj[3][3] - proj[2][3];
+
+			mPlanes.push_back(plane);
+		}
+
 		// Near
 		if(useNearPlane)
 		{
@@ -70,17 +82,6 @@ namespace bs
 			plane.normal.y = proj[3][1] + proj[2][1];
 			plane.normal.z = proj[3][2] + proj[2][2];
 			plane.d = proj[3][3] + proj[2][3];
-
-			mPlanes.push_back(plane);
-		}
-
-		// Far
-		{
-			Plane plane;
-			plane.normal.x = proj[3][0] - proj[2][0];
-			plane.normal.y = proj[3][1] - proj[2][1];
-			plane.normal.z = proj[3][2] - proj[2][2];
-			plane.d = proj[3][3] - proj[2][3];
 
 			mPlanes.push_back(plane);
 		}
@@ -138,5 +139,15 @@ namespace bs
 		}
 
 		return true;
+	}
+
+	const Plane& ConvexVolume::getPlane(FrustumPlane whichPlane) const
+	{
+		if(whichPlane >= mPlanes.size())
+		{
+			BS_EXCEPT(InvalidParametersException, "Requested plane does not exist in this volume.");
+		}
+
+		return mPlanes[whichPlane];
 	}
 }
