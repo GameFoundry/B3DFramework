@@ -717,6 +717,7 @@ namespace bs {	namespace ct
 		gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gPositionAndRotTex", renElement.positionAndRotTexture);
 		gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gColorTex", renElement.colorTexture);
 		gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gSizeAndFrameIdxTex", renElement.sizeAndFrameIdxTexture);
+		gpuParams->getBufferParam(GPT_VERTEX_PROGRAM, "gIndices", renElement.indicesBuffer);
 
 		gpuParams->getParamInfo()->getBindings(
 			GpuPipelineParamInfoBase::ParamType::ParamBlock,

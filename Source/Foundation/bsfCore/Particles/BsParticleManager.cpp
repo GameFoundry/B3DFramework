@@ -9,6 +9,60 @@
 
 namespace bs
 {
+	void ParticleRenderData::updateSortIndices(const Vector3& referencePoint)
+	{
+		struct ParticleSortData
+		{
+			ParticleSortData(float key, UINT32 idx)
+				:key(key), idx(idx)
+			{ }
+
+			float key;
+			UINT32 idx;
+		};
+
+		const UINT32 size = positionAndRotation.getWidth();
+		UINT8* positionPtr = positionAndRotation.getData();
+
+		bs_frame_mark();
+		{
+			FrameVector<ParticleSortData> sortData;
+			sortData.reserve(numParticles);
+
+			UINT32 x = 0;
+			for (UINT32 i = 0; i < numParticles; i++)
+			{
+				Vector4& posAndRot = *(Vector4*)positionPtr;
+				Vector3 position(posAndRot);
+
+				float distance = referencePoint.squaredDistance(position);
+				sortData.emplace_back(distance, i);
+
+				positionPtr += sizeof(Vector4);
+				x++;
+
+				if (x >= size)
+				{
+					x = 0;
+					positionPtr += positionAndRotation.getRowSkip();
+				}
+			}
+
+			std::sort(sortData.begin(), sortData.end(),
+				[](const ParticleSortData& lhs, const ParticleSortData& rhs)
+			{
+				return rhs.key < lhs.key;
+			});
+
+			indices.clear();
+			indices.reserve(numParticles);
+
+			for (UINT32 i = 0; i < numParticles; i++)
+				indices.push_back(sortData[i].idx);
+		}
+		bs_frame_clear();
+	}
+
 	/** 
 	 * Maintains a pool of buffers that are used for storing particle system rendering data. Buffers are always created
 	 * in 2D square layout as they are ultimately used for initializing textures.
@@ -243,9 +297,30 @@ namespace bs
 				system->_simulate(timeDelta);
 
 				// Generate output data
+				const UINT32 numParticles = system->mParticleSet->getParticleCount();
+
 				ParticleRenderData* renderData = renderDataPool.alloc(*system->mParticleSet);
-				renderData->numParticles = system->mParticleSet->getParticleCount();
+				renderData->numParticles = numParticles;
 				renderData->bounds = system->_calculateBounds();
+
+				// If using a camera-independant sorting mode, sort the particles right away
+				switch(system->mSortMode)
+				{
+				default:
+				case ParticleSortMode::None: // No sort, just point the indices back to themselves
+					renderData->indices.clear();
+					renderData->indices.reserve(numParticles);
+					for(UINT32 i = 0; i < numParticles; i++)
+						renderData->indices.push_back(i);
+					break;
+				case ParticleSortMode::OldToYoung:
+				case ParticleSortMode::YoungToOld:
+					renderData->indices.clear();
+					renderData->indices.resize(numParticles);
+					sortParticles(*system->mParticleSet, system->mSortMode, Vector3::ZERO, renderData->indices.data());
+					break;
+				case ParticleSortMode::Distance: break;
+				}
 
 				{
 					Lock lock(mMutex);
@@ -276,6 +351,67 @@ namespace bs
 		mSwapBuffers = true;
 
 		return &mRenderData[mReadBufferIdx];
+	}
+
+	void ParticleManager::sortParticles(const ParticleSet& set, ParticleSortMode sortMode, const Vector3& viewPoint, 
+		UINT32* indices)
+	{
+		assert(sortMode != ParticleSortMode::None);
+
+		struct ParticleSortData
+		{
+			ParticleSortData(float key, UINT32 idx)
+				:key(key), idx(idx)
+			{ }
+
+			float key;
+			UINT32 idx;
+		};
+
+		const UINT32 count = set.getParticleCount();
+		const ParticleSetData& particles = set.getParticles();
+
+		bs_frame_mark();
+		{
+			FrameVector<ParticleSortData> sortData;
+			sortData.reserve(count);
+
+			switch(sortMode)
+			{
+			default:
+			case ParticleSortMode::Distance: 
+				for(UINT32 i = 0; i < count; i++)
+				{
+					float distance = viewPoint.squaredDistance(particles.position[i]);
+					sortData.emplace_back(distance, i);
+				}
+				break;
+			case ParticleSortMode::OldToYoung: 
+				for(UINT32 i = 0; i < count; i++)
+				{
+					float lifetime = particles.lifetime[i];
+					sortData.emplace_back(lifetime, i);
+				}
+				break;
+			case ParticleSortMode::YoungToOld:
+				for(UINT32 i = 0; i < count; i++)
+				{
+					float lifetime = particles.initialLifetime[i] - particles.lifetime[i];
+					sortData.emplace_back(lifetime, i);
+				}
+				break;
+			}
+
+			std::sort(sortData.begin(), sortData.end(), 
+				[](const ParticleSortData& lhs, const ParticleSortData& rhs)
+			{
+				return rhs.key < lhs.key;
+			});
+
+			for (UINT32 i = 0; i < count; i++)
+				indices[i] = sortData[i].idx;
+		}
+		bs_frame_clear();
 	}
 
 	UINT32 ParticleManager::registerParticleSystem(ParticleSystem* system)

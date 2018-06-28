@@ -23,6 +23,7 @@
 #include "BsRenderBeast.h"
 #include "Particles/BsParticleManager.h"
 #include "Particles/BsParticleSystem.h"
+#include "Threading/BsTaskScheduler.h"
 
 namespace bs { namespace ct
 {
@@ -1249,6 +1250,54 @@ namespace bs { namespace ct
 		if(particleData)
 		{
 			const auto numParticleSystems = (UINT32)inputs.scene.particleSystems.size();
+
+			// Sort particles
+			bs_frame_mark();
+			{
+				struct SortData
+				{
+					ParticleSystem* system;
+					ParticleRenderData* renderData;
+				};
+
+				FrameVector<SortData> systemsToSort;
+				for (UINT32 i = 0; i < numParticleSystems; i++)
+				{
+					if (!visibility.particleSystems[i])
+						continue;
+
+					const RendererParticles& rendererParticles = inputs.scene.particleSystems[i];
+
+					ParticleSystem* particleSystem = rendererParticles.particleSystem;
+					const auto iterFind = particleData->data.find(particleSystem->getId());
+					if (iterFind == particleData->data.end())
+						continue;
+
+					ParticleRenderData* renderData = iterFind->second;
+					if (particleSystem->getSortMode() == ParticleSortMode::Distance)
+						systemsToSort.push_back({ particleSystem, renderData });
+				}
+
+				auto worker = [systemsToSort, viewOrigin = viewProps.viewOrigin](UINT32 idx)
+				{
+					const SortData& data = systemsToSort[idx];
+
+					Vector3 refPoint = viewOrigin;
+
+					// Transform the view point into particle system's local space
+					if (data.system->getSimulationSpace() == ParticleSimulationSpace::Local)
+						refPoint = data.system->getTransform().getInvMatrix().multiplyAffine(refPoint);
+
+					data.renderData->updateSortIndices(refPoint);
+				};
+
+				SPtr<TaskGroup> sortTask = TaskGroup::create("ParticleSort", worker, (UINT32)systemsToSort.size());
+
+				TaskScheduler::instance().addTaskGroup(sortTask);
+				sortTask->wait();
+			}
+			bs_frame_clear();
+
 			for (UINT32 i = 0; i < numParticleSystems; i++)
 			{
 				if (!visibility.particleSystems[i])
@@ -1257,16 +1306,18 @@ namespace bs { namespace ct
 				const RendererParticles& rendererParticles = inputs.scene.particleSystems[i];
 				ParticlesRenderElement& renderElement = rendererParticles.renderElement;
 
-				const auto iterFind = particleData->data.find(rendererParticles.particleSystem->getId());
+				ParticleSystem* particleSystem = rendererParticles.particleSystem;
+				const auto iterFind = particleData->data.find(particleSystem->getId());
 				if (iterFind == particleData->data.end())
 					continue;
 
-				const ParticleRenderData* renderData = iterFind->second;
+				ParticleRenderData* renderData = iterFind->second;
 				const ParticleTextures* textures = particlesTexPool.alloc(*renderData);
 
 				renderElement.positionAndRotTexture.set(textures->positionAndRotation);
 				renderElement.colorTexture.set(textures->color);
 				renderElement.sizeAndFrameIdxTexture.set(textures->sizeAndFrameIdx);
+				renderElement.indicesBuffer.set(textures->indices);
 				renderElement.numParticles = renderData->numParticles;
 
 				UINT32 texSize = textures->positionAndRotation->getProperties().getWidth();

@@ -7,9 +7,12 @@
 #include "Utility/BsModule.h"
 #include "Math/BsAABox.h"
 #include "CoreThread/BsCoreThread.h"
+#include "BsParticleSystem.h"
 
 namespace bs
 {
+	class ParticleSet;
+
 	/** @addtogroup Particles-Internal
 	 *  @{
 	 */
@@ -18,7 +21,7 @@ namespace bs
 	 * Data used for rendering a ParticleSystem. Per-particle data is stored in a 2D square layout so it can be used for
 	 * quickly initializing a texture.
 	 */
-	struct ParticleRenderData
+	struct BS_CORE_EXPORT ParticleRenderData
 	{
 		/** Contains particle positions in .xyz and 2D rotation in .w */
 		PixelData positionAndRotation;
@@ -29,11 +32,20 @@ namespace bs
 		/** Contains 2D particle size in .xy, frame index (used for animation) in .z. */
 		PixelData sizeAndFrameIdx;
 
+		/** Contains mapping from unsorted to sorted particle indices. */
+		Vector<UINT32> indices;
+
 		/** Total number of particles in the particle system. */
 		UINT32 numParticles;
 
 		/** Local bounds of the particle system. */
 		AABox bounds;
+
+		/** 
+		 * Sorts the particles by distance from the reference point and updates the @p indices array with the sorted 
+		 * indices. 
+		 */
+		void updateSortIndices(const Vector3& referencePoint);
 	};
 
 	/** Contains all rendering data for all particle systems, for a single frame. */
@@ -64,6 +76,13 @@ namespace bs
 
 		/** Must be called by a ParticleSystem before destruction. */
 		void unregisterParticleSystem(ParticleSystem* system);
+
+		/** 
+		 * Sorts the particles in the provided @p using the @p sortMode. Sorted particle indices are placed in the
+		 * @p indices array which is expected to be pre-allocated with enough space to hold an index for each particle
+		 * in a set. @p viewPoint is used as a reference point when using the Distance sort mode.
+		 */
+		void sortParticles(const ParticleSet& set, ParticleSortMode sortMode, const Vector3& viewPoint, UINT32* indices);
 
 		Members* m;
 

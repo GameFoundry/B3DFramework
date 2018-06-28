@@ -57,6 +57,22 @@ namespace bs
 		World
 	};
 
+	/** Determines how to sort particles before rendering. */
+	enum class ParticleSortMode
+	{
+		/** Do not sort the particles. */
+		None,
+
+		/** Sort by distance from the camera, furthest to nearest. */
+		Distance,
+
+		/** Sort by age, oldest to youngest. */
+		OldToYoung,
+
+		/** Sort by age, youngest to oldest. */
+		YoungToOld
+	};
+
 	/** Common code used by both sim and core thread variations of ParticleSystem. */
 	class BS_CORE_EXPORT ParticleSystemBase : public SceneActor, public INonCopyable
 	{
@@ -93,11 +109,18 @@ namespace bs
 		/** @copydoc setOrientationPlane */
 		Plane getOrientationPlane() const { return mOrientationPlane; }
 
+		/** Determines how (and if) are particles sorted. Sorting controls in what order are particles rendered. */
+		void setSortMode(ParticleSortMode sortMode) { mSortMode = sortMode; _markCoreDirty(); }
+
+		/** @copydoc setSortMode */
+		ParticleSortMode getSortMode() const { return mSortMode; }
+
 	protected:
 		ParticleSimulationSpace mSimulationSpace = ParticleSimulationSpace::World;
 		ParticleOrientation mOrientation = ParticleOrientation::ViewPlane;
 		bool mOrientationLockY = false;
 		Plane mOrientationPlane = Plane(Vector3::UNIT_Z, Vector3::ZERO);
+		ParticleSortMode mSortMode = ParticleSortMode::None;
 	};
 
 	/** 
@@ -332,6 +355,7 @@ namespace bs
 			SPtr<Texture> positionAndRotation;
 			SPtr<Texture> color;
 			SPtr<Texture> sizeAndFrameIdx;
+			SPtr<GpuBuffer> indices; 
 		};
 
 		/** Core thread counterpart of bs::ParticleSystem. */

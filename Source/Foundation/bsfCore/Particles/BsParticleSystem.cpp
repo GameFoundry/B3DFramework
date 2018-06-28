@@ -216,6 +216,7 @@ namespace bs
 			rttiGetElemSize(mOrientation) +
 			rttiGetElemSize(mOrientationPlane) +
 			rttiGetElemSize(mOrientationLockY) +
+			rttiGetElemSize(mSortMode) + 
 			sizeof(SPtr<ct::Material>);
 
 		UINT8* data = allocator->alloc(size);
@@ -226,6 +227,7 @@ namespace bs
 		dataPtr = rttiWriteElem(mOrientation, dataPtr);
 		dataPtr = rttiWriteElem(mOrientationPlane, dataPtr);
 		dataPtr = rttiWriteElem(mOrientationLockY, dataPtr);
+		dataPtr = rttiWriteElem(mSortMode, dataPtr);
 
 		SPtr<ct::Material>* material = new (dataPtr) SPtr<ct::Material>();
 		if (mMaterial.isLoaded())
@@ -288,6 +290,7 @@ namespace bs
 			dataPtr = rttiReadElem(mOrientation, dataPtr);
 			dataPtr = rttiReadElem(mOrientationPlane, dataPtr);
 			dataPtr = rttiReadElem(mOrientationLockY, dataPtr);
+			dataPtr = rttiReadElem(mSortMode, dataPtr);
 
 			SPtr<Material>* material = (SPtr<Material>*)dataPtr;
 			mMaterial = *material;

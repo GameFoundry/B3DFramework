@@ -29,24 +29,27 @@ mixin ParticleVertex
 		Texture2D gPositionAndRotTex; // position in .xyz, rotation in radians in .w
 		Texture2D gColorTex;
 		Texture2D gSizeAndFrameIdxTex; // size in .xy, uv flip encoded in sign of .xy, frame index in .z, .w unused
+		Buffer<uint> gIndices;
 
 		[internal]
 		cbuffer ParticleParams
 		{
 			float4x4 gWorldTfrm;
-			uint gTexSize;
-			float3 gAxisUp;
-			float3 gAxisRight;
 			float4 gSubImageSize; // .xy column/row count, .zw inverse column/row count
 			float2 gUVOffset;
 			float2 gUVSize;
+			float3 gAxisUp;
+			uint gTexSize;
+			float3 gAxisRight;
 		}		
 
 		VStoFS vsmain(VertexInput input)
 		{
+			uint index = gIndices[input.instanceId];
+		
 			uint3 pixelPos;
-			pixelPos.y = input.instanceId / gTexSize;
-			pixelPos.x = input.instanceId - pixelPos.y * gTexSize;
+			pixelPos.y = index / gTexSize;
+			pixelPos.x = index - pixelPos.y * gTexSize;
 			pixelPos.z = 0;
 		
 			float4 posAndRot = gPositionAndRotTex.Load(pixelPos);
@@ -69,7 +72,7 @@ mixin ParticleVertex
 				axisRight = normalize(cross(diff, cameraUp));
 				
 				#if LOCK_Y
-					axisUp = float3(0, 1, 0);		
+					axisUp = float3(0, 1, 0);
 				#else
 					axisUp = normalize(cross(axisRight, diff));
 				#endif

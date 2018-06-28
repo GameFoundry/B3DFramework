@@ -6,6 +6,7 @@
 #include "RenderAPI/BsVertexDataDesc.h"
 #include "Mesh/BsMeshData.h"
 #include "Renderer/BsRendererUtility.h"
+#include "RenderAPI/BsGpuBuffer.h"
 
 namespace bs { namespace ct
 {
@@ -74,6 +75,7 @@ namespace bs { namespace ct
 		output->positionAndRotation->writeData(renderData.positionAndRotation, 0, 0, true);
 		output->color->writeData(renderData.color, 0, 0, true);
 		output->sizeAndFrameIdx->writeData(renderData.sizeAndFrameIdx, 0, 0, true);
+		output->indices->writeData(0, renderData.numParticles * sizeof(UINT32), renderData.indices.data(), BWT_DISCARD);
 
 		return output;
 	}
@@ -102,6 +104,13 @@ namespace bs { namespace ct
 
 		texDesc.format = PF_RGBA16F;
 		output->sizeAndFrameIdx = Texture::create(texDesc);
+
+		GPU_BUFFER_DESC bufferDesc;
+		bufferDesc.type = GBT_STANDARD;
+		bufferDesc.elementCount = size * size;
+		bufferDesc.format = BF_32X1U;
+
+		output->indices = GpuBuffer::create(bufferDesc);
 
 		mBufferList[size].buffers.push_back(output);
 
