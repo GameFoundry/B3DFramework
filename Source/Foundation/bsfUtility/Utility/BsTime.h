@@ -88,17 +88,23 @@ namespace bs
 		void _update();
 
 		/** 
-		 * Advances the fixed update timers and returns the number of fixed update iterations required, as well as the
-		 * step size for each iteration. Should be called every frame by Application.
+		 * Calculates the number of fixed update iterations required and their step size. Values depend on the current
+		 * time and previous calls to _advanceFixedUpdate().;
 		 * 
-		 * @param[out]		step	Duration of the fixed step in seconds. In most cases this is the same duration as the 
-		 *							fixed time delta, but in the cases where frame is taking a very long time the step
+		 * @param[out]		step	Duration of the fixed step in microseconds. In most cases this is the same duration as
+		 *							the	fixed time delta, but in the cases where frame is taking a very long time the step
 		 *							might be increased to avoid a large number of fixed updates per frame.
 		 * @return					Returns the number of fixed frame updates to execute (each of @p step duration). In most
 		 *							cases this will be either 1 or 0, or a larger amount of frames are taking a long time
 		 *							to execute (longer than a multiple of fixed frame step). 
 		 */
-		UINT32 _updateFixed(float& step);
+		UINT32 _getFixedUpdateStep(UINT64& step);
+
+		/** 
+		 * Advances the fixed update timers by @p step microseconds. Should be called once for each iteration as returned
+		 * by _getFixedUpdateStep(), per frame. 
+		 */
+		void _advanceFixedUpdate(UINT64 step);
 
 		/** @} */
 

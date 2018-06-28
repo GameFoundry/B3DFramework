@@ -227,13 +227,16 @@ namespace bs
 
 			// Trigger fixed updates if required
 			{
-				float step;
-				const UINT32 numIterations = gTime()._updateFixed(step);
+				UINT64 step;
+				const UINT32 numIterations = gTime()._getFixedUpdateStep(step);
 
+				const float stepSeconds = step / 1000000.0f;
 				for (UINT32 i = 0; i < numIterations; i++)
 				{
 					PROFILE_CALL(gSceneManager()._fixedUpdate(), "Scene fixed update");
-					gPhysics().fixedUpdate(step);
+					gPhysics().fixedUpdate(stepSeconds);
+
+					gTime()._advanceFixedUpdate(step);
 				}
 			}
 

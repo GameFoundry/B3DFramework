@@ -36,7 +36,7 @@ namespace bs
 		mCurrentFrame.fetch_add(1, std::memory_order_relaxed);
 	}
 	
-	UINT32 Time::_updateFixed(float& step)
+	UINT32 Time::_getFixedUpdateStep(UINT64& step)
 	{
 		const UINT64 currentTime = getTimePrecise();
 
@@ -62,14 +62,17 @@ namespace bs
 				numIterations = (UINT32)Math::divideAndRoundUp(simulationAmount, (INT64)stepus);
 			}
 
-			mLastFixedUpdateTime += stepus * numIterations;
-
-			step = (float)(stepus * MICROSEC_TO_SEC);
+			step = stepus;
 			return numIterations;
 		}
 
-		step = 0.0f;
+		step = 0;
 		return 0;
+	}
+
+	void Time::_advanceFixedUpdate(UINT64 step)
+	{
+		mLastFixedUpdateTime += step;
 	}
 
 	UINT64 Time::getTimePrecise() const
