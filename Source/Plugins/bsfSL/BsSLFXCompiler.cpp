@@ -2116,7 +2116,7 @@ namespace bs
 				// way the syntax could be enhanced with more complex features, while still being able to output pure
 				// HLSL.
 				static const std::regex attrRegex(
-					R"(\[\s*layout\s*\(.*\)\s*\]|\[\s*internal\s*\]|\[\s*color\s*\]|\[\s*alias\s*\(.*\)\s*\])");
+					R"(\[\s*layout\s*\(.*\)\s*\]|\[\s*internal\s*\]|\[\s*color\s*\]|\[\s*alias\s*\(.*\)\s*\]|\[\s*spriteuv\s*\(.*\)\s*\])");
 				hlslPassData.code = regex_replace(hlslPassData.code, attrRegex, "");
 
 				static const std::regex initializerRegex(
