@@ -14,6 +14,7 @@ namespace bs
 		setName("Bone");
 
 		mNotifyFlags = TCF_Parent;
+		setFlag(ComponentFlag::AlwaysRun, true);
 	}
 
 	CBone::CBone(const HSceneObject& parent)
@@ -50,7 +51,7 @@ namespace bs
 
 		mParent = nullptr;
 	}
-
+	
 	void CBone::onEnabled()
 	{
 		updateParentAnimation();

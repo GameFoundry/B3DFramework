@@ -86,9 +86,6 @@ namespace bs
 		return *this;
 	}
 
-	Skeleton::Skeleton()
-	{ }
-
 	Skeleton::Skeleton(BONE_DESC* bones, UINT32 numBones)
 		: mNumBones(numBones), mBoneTransforms(bs_newN<Transform>(numBones)), mInvBindPoses(bs_newN<Matrix4>(numBones))
 		, mBoneInfo(bs_newN<SkeletonBoneInfo>(numBones))
@@ -334,6 +331,24 @@ namespace bs
 
 		bs_stack_free(isGlobal);
 		bs_stack_free(hasAnimCurve);
+	}
+
+	Transform Skeleton::calcBoneTransform(UINT32 idx) const
+	{
+		if(idx >= mNumBones)
+			return Transform::IDENTITY;
+
+		Transform output = mBoneTransforms[idx];
+
+		UINT32 parentIdx = mBoneInfo[idx].parent;
+		while(parentIdx != (UINT32)-1)
+		{
+			output.makeWorld(mBoneTransforms[parentIdx]);
+
+			parentIdx = mBoneInfo[parentIdx].parent;
+		}
+
+		return output;
 	}
 
 	UINT32 Skeleton::getRootBoneIndex() const

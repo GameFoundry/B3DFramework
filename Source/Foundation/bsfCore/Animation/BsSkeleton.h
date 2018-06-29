@@ -165,6 +165,9 @@ namespace bs
 		/** Returns the inverse bind pose for the bone at the provided index. */
 		const Matrix4& getInvBindPose(UINT32 idx) const { return mInvBindPoses[idx]; }
 
+		/** Calculates the bind-pose transform of the bone at the specified index. */
+		Transform calcBoneTransform(UINT32 idx) const;
+
 		/** 
 		 * Creates a new Skeleton. 
 		 *
@@ -174,7 +177,7 @@ namespace bs
 		static SPtr<Skeleton> create(BONE_DESC* bones, UINT32 numBones);
 
 	private:
-		Skeleton();
+		Skeleton() = default;
 		Skeleton(BONE_DESC* bones, UINT32 numBones);
 
 		UINT32 mNumBones = 0;

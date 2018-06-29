@@ -236,7 +236,51 @@ namespace bs
 
 	void CAnimation::update()
 	{
-		bool isRunning = SceneManager::instance().isRunning();
+		const bool isRunning = SceneManager::instance().isRunning();
+		if(!isRunning && !mPreviewMode)
+		{
+			// Make sure attached CBone components match the position of the skeleton bones even when the component is not
+			// otherwise running.
+
+			HRenderable animatedRenderable = SO()->getComponent<CRenderable>();
+			if(animatedRenderable)
+			{
+				HMesh mesh = animatedRenderable->getMesh();
+				if(mesh.isLoaded())
+				{
+					const SPtr<Skeleton>& skeleton = mesh->getSkeleton();
+					if(skeleton)
+					{
+						for (auto& entry : mMappingInfos)
+						{
+							if(!entry.isMappedToBone)
+								continue;
+
+							const UINT32 numBones = skeleton->getNumBones();
+							for (UINT32 j = 0; j < numBones; j++)
+							{
+								if (skeleton->getBoneInfo(j).name == entry.bone->getBoneName())
+								{
+									Matrix4 bindPose = skeleton->getInvBindPose(j).inverseAffine();
+									bindPose = SO()->getTransform().getMatrix() * bindPose;
+
+									Vector3 position, scale;
+									Quaternion rotation;
+									bindPose.decomposition(position, rotation, scale);
+
+									entry.sceneObject->setWorldPosition(position);
+									entry.sceneObject->setWorldRotation(rotation);
+									entry.sceneObject->setWorldScale(scale);
+
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
 		if (mInternal == nullptr || !isRunning)
 			return;
 
@@ -305,7 +349,6 @@ namespace bs
 			mAnimatedRenderable->_unregisterAnimation();
 
 		mPrimaryPlayingClip = nullptr;
-		mMappingInfos.clear();
 
 		// This should release the last reference and destroy the internal listener
 		mInternal = nullptr;
@@ -370,9 +413,6 @@ namespace bs
 
 	void CAnimation::_addBone(const HBone& bone)
 	{
-		if (mInternal == nullptr)
-			return;
-
 		HSceneObject currentSO = bone->SO();
 
 		SceneObjectMappingInfo newMapping;
@@ -381,21 +421,23 @@ namespace bs
 		newMapping.bone = bone;
 
 		mMappingInfos.push_back(newMapping);
-		mInternal->mapCurveToSceneObject(bone->getBoneName(), newMapping.sceneObject);
+
+		if(mInternal)
+			mInternal->mapCurveToSceneObject(bone->getBoneName(), newMapping.sceneObject);
 	}
 
 	void CAnimation::_removeBone(const HBone& bone)
 	{
-		if (mInternal == nullptr)
-			return;
-
 		HSceneObject newSO;
 		for (UINT32 i = 0; i < (UINT32)mMappingInfos.size(); i++)
 		{
 			if (mMappingInfos[i].bone == bone)
 			{
 				mMappingInfos.erase(mMappingInfos.begin() + i);
-				mInternal->unmapSceneObject(mMappingInfos[i].sceneObject);
+
+				if(mInternal)
+					mInternal->unmapSceneObject(mMappingInfos[i].sceneObject);
+
 				i--;
 			}
 		}

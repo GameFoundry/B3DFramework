@@ -19,7 +19,7 @@ namespace bs
 	{
 	public:
 		CBone(const HSceneObject& parent);
-		virtual ~CBone() {}
+		virtual ~CBone() = default;
 		
 		/** Determines the name of the bone the component is referencing. */
 		BS_SCRIPT_EXPORT(n:Name,pr:setter)
