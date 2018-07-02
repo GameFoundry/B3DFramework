@@ -142,6 +142,23 @@ namespace bs
 		void _notifyComponentDestroyed(const HComponent& component);
 
 	protected:
+		/** Types of events that represent component state changes relevant to the scene manager. */
+		enum class ComponentStateEventType
+		{
+			Created, Activated, Deactivated, Destroyed
+		};
+
+		/** Describes a single component state change. */
+		struct ComponentStateChange
+		{
+			ComponentStateChange(HComponent obj, ComponentStateEventType type)
+				:obj(std::move(obj)), type(type)
+			{ }
+
+			HComponent obj;
+			ComponentStateEventType type;
+		};
+
 		friend class SceneObject;
 
 		/**
@@ -160,23 +177,26 @@ namespace bs
 		/**	Callback that is triggered when the main render target size is changed. */
 		void onMainRenderTargetResized();
 
-		/** Removes a component from the active component list. */
-		void removeFromActiveList(const HComponent& component);
+		/** 
+		 * Adds a component to the specified state list. Caller is expected to first remove the component from any
+		 * existing state lists.
+		 */
+		void addToStateList(const HComponent& component, UINT32 listType);
 
-		/** Removes a component from the inactive component list. */
-		void removeFromInactiveList(const HComponent& component);
+		/** Removes a component from its current scene manager state list (if any). */
+		void removeFromStateList(const HComponent& component);
 
-		/** Removes a component from the uninitialized component list. */
-		void removeFromUninitializedList(const HComponent& component);
+		/** Iterates over components that had their state modified and moves them to the appropriate state lists. */
+		void processStateChanges();
 
 		/** 
 		 * Encodes an index and a type into a single 32-bit integer. Top 2 bits represent the type, while the rest represent
 		 * the index.
 		 */
-		UINT32 encodeComponentId(UINT32 idx, UINT32 type);
+		static UINT32 encodeComponentId(UINT32 idx, UINT32 type);
 
 		/** Decodes an id encoded with encodeComponentId(). */
-		void decodeComponentId(UINT32 id, UINT32& idx, UINT32& type);
+		static void decodeComponentId(UINT32 id, UINT32& idx, UINT32& type);
 
 		/** Checks does the specified component type match the provided RTTI id. */
 		static bool isComponentOfType(const HComponent& component, UINT32 rttiId);
@@ -192,10 +212,15 @@ namespace bs
 		Vector<HComponent> mInactiveComponents;
 		Vector<HComponent> mUninitializedComponents;
 
+		std::array<Vector<HComponent>*, 3> mComponentsPerState = 
+			{ &mActiveComponents, &mInactiveComponents, &mUninitializedComponents };
+
 		SPtr<RenderTarget> mMainRT;
 		HEvent mMainRTResizedConn;
 
 		ComponentState mComponentState = ComponentState::Running;
+		bool mDisableStateChange = false;
+		Vector<ComponentStateChange> mStateChanges;
 	};
 
 	/**	Provides easy access to the SceneManager. */

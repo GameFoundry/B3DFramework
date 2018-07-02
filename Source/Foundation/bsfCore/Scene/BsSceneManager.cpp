@@ -16,9 +16,19 @@ namespace bs
 {
 	enum ListType
 	{
-		ActiveList = 0,
-		InactiveList = 1,
-		UninitializedList = 2
+		NoList = 0,
+		ActiveList = 1,
+		InactiveList = 2,
+		UninitializedList = 3
+	};
+
+	struct ScopeToggle
+	{
+		ScopeToggle(bool& val) :val(val) { val = true; }
+		~ScopeToggle() { val = false;}
+
+	private:
+		bool& val;
 	};
 
 	SceneManager::SceneManager()
@@ -191,6 +201,13 @@ namespace bs
 
 	void SceneManager::setComponentState(ComponentState state)
 	{
+		if(mDisableStateChange)
+		{
+			LOGWRN("Component state cannot be changed from the calling locating. Are you calling it from Component \
+				callbacks?");
+			return;
+		}
+
 		if (mComponentState == state)
 			return;
 
@@ -198,6 +215,11 @@ namespace bs
 
 		// Make sure to change the state before calling any callbacks, so callbacks can query the state
 		mComponentState = state;
+
+		// Make sure the per-state lists are up-to-date
+		processStateChanges();
+
+		ScopeToggle toggle(mDisableStateChange);
 
 		// Wake up all components with onInitialize/onEnable events if moving to running or paused state
 		if(state == ComponentState::Running || state == ComponentState::Paused)
@@ -212,16 +234,26 @@ namespace bs
 						entry->onDisabled();
 						entry->onEnabled();
 					}
-					
 				}
+
+				// Process any state changes queued by the component callbacks
+				processStateChanges();
 
 				// Trigger enable on all components that don't have AlwaysRun flag (at this point those will be all
 				// inactive components that have active scene object parents)
 				for(auto& entry : mInactiveComponents)
 				{
 					if (entry->sceneObject()->getActive())
+					{
 						entry->onEnabled();
+
+						if(state == ComponentState::Running)
+							mStateChanges.emplace_back(entry, ComponentStateEventType::Activated);
+					}
 				}
+
+				// Process any state changes queued by the component callbacks
+				processStateChanges();
 
 				// Initialize and enable uninitialized components
 				for(auto& entry : mUninitializedComponents)
@@ -231,55 +263,26 @@ namespace bs
 					if (entry->sceneObject()->getActive())
 					{
 						entry->onEnabled();
-
-						UINT32 idx = (UINT32)mActiveComponents.size();
-						mActiveComponents.push_back(entry);
-
-						entry->setSceneManagerId(encodeComponentId(idx, ActiveList));
+						mStateChanges.emplace_back(entry, ComponentStateEventType::Activated);
 					}
 					else
-					{
-						UINT32 idx = (UINT32)mInactiveComponents.size();
-						mInactiveComponents.push_back(entry);
-
-						entry->setSceneManagerId(encodeComponentId(idx, InactiveList));
-					}
+						mStateChanges.emplace_back(entry, ComponentStateEventType::Deactivated);
 				}
 
-				mUninitializedComponents.clear();
+				// Process any state changes queued by the component callbacks
+				processStateChanges();
 			}
 		}
 
-		// Start updates on all active components
-		if (state == ComponentState::Running)
-		{
-			// Move from inactive to active list
-			for(INT32 i = 0; i < (INT32)mInactiveComponents.size(); i++)
-			{
-				HComponent component = mInactiveComponents[i];
-				if (!component->sceneObject()->getActive())
-					continue;
-				
-				removeFromInactiveList(component);
-				i--; // Keep the same index next iteration to process the component we just swapped
-
-				UINT32 activeIdx = (UINT32)mActiveComponents.size();
-				mActiveComponents.push_back(component);
-
-				component->setSceneManagerId(encodeComponentId(activeIdx, ActiveList));
-			}
-		}
 		// Stop updates on all active components
-		else if(state == ComponentState::Paused || state == ComponentState::Stopped)
+		if(state == ComponentState::Paused || state == ComponentState::Stopped)
 		{
 			// Trigger onDisable events if stopping
 			if (state == ComponentState::Stopped)
 			{
-				for (INT32 i = 0; i < (INT32)mActiveComponents.size(); i++)
+				for (const auto& component : mActiveComponents)
 				{
-					HComponent component = mActiveComponents[i];
-
-					bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+					const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
 
 					component->onDisabled();
 
@@ -291,118 +294,87 @@ namespace bs
 			// Move from active to inactive list
 			for (INT32 i = 0; i < (INT32)mActiveComponents.size(); i++)
 			{
-				HComponent component = mActiveComponents[i];
+				const HComponent& component = mActiveComponents[i];
 
-				bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+				const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
 				if (alwaysRun)
 					continue;
 
-				removeFromActiveList(component);
+				removeFromStateList(component);
+				addToStateList(component, InactiveList);
+
 				i--; // Keep the same index next iteration to process the component we just swapped
-
-				UINT32 inactiveIdx = (UINT32)mInactiveComponents.size();
-				mInactiveComponents.push_back(component);
-
-				component->setSceneManagerId(encodeComponentId(inactiveIdx, InactiveList));
 			}
 		}
 	}
 
 	void SceneManager::_notifyComponentCreated(const HComponent& component, bool parentActive)
 	{
+		// Note: This method must remain reentrant (in case the callbacks below trigger component state changes)
+
+		// Queue the change before any callbacks trigger, as the callbacks could trigger their own changes and they should
+		// be in order
+		mStateChanges.emplace_back(component, ComponentStateEventType::Created);
+		ScopeToggle toggle(mDisableStateChange);
+		
 		component->onCreated();
 		
-		bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+		const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
 		if(alwaysRun || mComponentState != ComponentState::Stopped)
 		{
 			component->onInitialized();
 
 			if (parentActive)
-			{
 				component->onEnabled();
-
-				UINT32 idx = (UINT32)mActiveComponents.size();
-				mActiveComponents.push_back(component);
-
-				component->setSceneManagerId(encodeComponentId(idx, ActiveList));
-			}
-			else
-			{
-				UINT32 idx = (UINT32)mInactiveComponents.size();
-				mInactiveComponents.push_back(component);
-
-				component->setSceneManagerId(encodeComponentId(idx, InactiveList));
-			}
-		}
-		else // Stopped
-		{
-			UINT32 idx = (UINT32)mUninitializedComponents.size();
-			mUninitializedComponents.push_back(component);
-
-			component->setSceneManagerId(encodeComponentId(idx, UninitializedList));
 		}
 	}
 
 	void SceneManager::_notifyComponentActivated(const HComponent& component, bool triggerEvent)
 	{
-		bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+		// Note: This method must remain reentrant (in case the callbacks below trigger component state changes)
 
-		if (alwaysRun || mComponentState == ComponentState::Running || mComponentState == ComponentState::Paused)
+		// Queue the change before any callbacks trigger, as the callbacks could trigger their own changes and they should
+		// be in order
+		mStateChanges.emplace_back(component, ComponentStateEventType::Activated);
+		ScopeToggle toggle(mDisableStateChange);
+
+		const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+		if(alwaysRun || mComponentState != ComponentState::Stopped)
 		{
 			if (triggerEvent)
 				component->onEnabled();
-
-			removeFromInactiveList(component);
-
-			UINT32 activeIdx = (UINT32)mActiveComponents.size();
-			mActiveComponents.push_back(component);
-
-			component->setSceneManagerId(encodeComponentId(activeIdx, ActiveList));
 		}
 	}
 
 	void SceneManager::_notifyComponentDeactivated(const HComponent& component, bool triggerEvent)
 	{
-		bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+		// Note: This method must remain reentrant (in case the callbacks below trigger component state changes)
 
-		if (alwaysRun || mComponentState == ComponentState::Running || mComponentState == ComponentState::Paused)
+		// Queue the change before any callbacks trigger, as the callbacks could trigger their own changes and they should
+		// be in order
+		mStateChanges.emplace_back(component, ComponentStateEventType::Deactivated);
+		ScopeToggle toggle(mDisableStateChange);
+
+		const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+		if(alwaysRun || mComponentState != ComponentState::Stopped)
 		{
 			if (triggerEvent)
 				component->onDisabled();
-
-			removeFromActiveList(component);
-
-			UINT32 inactiveIdx = (UINT32)mInactiveComponents.size();
-			mInactiveComponents.push_back(component);
-
-			component->setSceneManagerId(encodeComponentId(inactiveIdx, InactiveList));
 		}
 	}
 
 	void SceneManager::_notifyComponentDestroyed(const HComponent& component)
 	{
-		UINT32 listType;
-		UINT32 idx;
-		decodeComponentId(component->getSceneManagerId(), idx, listType);
+		// Note: This method must remain reentrant (in case the callbacks below trigger component state changes)
 
-		switch(listType)
-		{
-		case ActiveList:
-			removeFromActiveList(component);
-			break;
-		case InactiveList:
-			removeFromInactiveList(component);
-			break;
-		case UninitializedList:
-			removeFromUninitializedList(component);
-			break;
-		default:
-			assert(false);
-			break;
-		}
+		// Queue the change before any callbacks trigger, as the callbacks could trigger their own changes and they should
+		// be in order
+		mStateChanges.emplace_back(component, ComponentStateEventType::Destroyed);
+		ScopeToggle toggle(mDisableStateChange);
 
-		bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
-		bool isEnabled = component->sceneObject()->getActive() && (alwaysRun || mComponentState != ComponentState::Stopped);
+		const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+		const bool isEnabled = component->sceneObject()->getActive() && (alwaysRun || 
+			mComponentState != ComponentState::Stopped);
 
 		if (isEnabled)
 			component->onDisabled();
@@ -410,65 +382,90 @@ namespace bs
 		component->onDestroyed();
 	}
 
-	void SceneManager::removeFromActiveList(const HComponent& component)
+	void SceneManager::addToStateList(const HComponent& component, UINT32 listType)
+	{
+		if(listType == 0)
+			return;
+
+		Vector<HComponent>& list = *mComponentsPerState[listType - 1];
+
+		const auto idx = (UINT32)list.size();
+		list.push_back(component);
+
+		component->setSceneManagerId(encodeComponentId(idx, listType));
+	}
+
+	void SceneManager::removeFromStateList(const HComponent& component)
 	{
 		UINT32 listType;
 		UINT32 idx;
 		decodeComponentId(component->getSceneManagerId(), idx, listType);
 
-		UINT32 lastIdx;
-		decodeComponentId(mActiveComponents.back()->getSceneManagerId(), lastIdx, listType);
+		if(listType == 0)
+			return;
 
-		assert(mActiveComponents[idx] == component);
+		Vector<HComponent>& list = *mComponentsPerState[listType - 1];
+
+		UINT32 lastIdx;
+		decodeComponentId(list.back()->getSceneManagerId(), lastIdx, listType);
+
+		assert(list[idx] == component);
 
 		if (idx != lastIdx)
 		{
-			std::swap(mActiveComponents[idx], mActiveComponents[lastIdx]);
-			mActiveComponents[idx]->setSceneManagerId(encodeComponentId(idx, ActiveList));
+			std::swap(list[idx], list[lastIdx]);
+			list[idx]->setSceneManagerId(encodeComponentId(idx, listType));
 		}
 
-		mActiveComponents.erase(mActiveComponents.end() - 1);
+		list.erase(list.end() - 1);
 	}
 
-	void SceneManager::removeFromInactiveList(const HComponent& component)
+	void SceneManager::processStateChanges()
 	{
-		UINT32 listType;
-		UINT32 idx;
-		decodeComponentId(component->getSceneManagerId(), idx, listType);
+		const bool isStopped = mComponentState == ComponentState::Stopped;
 
-		UINT32 lastIdx;
-		decodeComponentId(mInactiveComponents.back()->getSceneManagerId(), lastIdx, listType);
-
-		assert(mInactiveComponents[idx] == component);
-
-		if (idx != lastIdx)
+		for(auto& entry : mStateChanges)
 		{
-			std::swap(mInactiveComponents[idx], mInactiveComponents[lastIdx]);
-			mInactiveComponents[idx]->setSceneManagerId(encodeComponentId(idx, InactiveList));
+			const HComponent& component = entry.obj;
+			const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+			const bool isActive = component->SO()->getActive();
+
+			UINT32 listType = 0;
+			switch(entry.type)
+			{
+			case ComponentStateEventType::Created: 
+				if (alwaysRun || !isStopped)
+					listType = isActive ? ActiveList : InactiveList;
+				else
+					listType = UninitializedList;
+				break;
+			case ComponentStateEventType::Activated:
+			case ComponentStateEventType::Deactivated:
+				if (alwaysRun || !isStopped)
+					listType = isActive ? ActiveList : InactiveList;
+				break;
+			case ComponentStateEventType::Destroyed: 
+				listType = 0;
+				break;
+			default: break;
+			}
+
+			UINT32 existingListType;
+			UINT32 existingIdx;
+			decodeComponentId(component->getSceneManagerId(), existingIdx, existingListType);
+
+			if(existingListType == listType)
+				continue;
+
+			if(existingListType != 0)
+				removeFromStateList(component);
+
+			addToStateList(component, listType);
 		}
 
-		mInactiveComponents.erase(mInactiveComponents.end() - 1);
+		mStateChanges.clear();
 	}
 
-	void SceneManager::removeFromUninitializedList(const HComponent& component)
-	{
-		UINT32 listType;
-		UINT32 idx;
-		decodeComponentId(component->getSceneManagerId(), idx, listType);
-
-		UINT32 lastIdx;
-		decodeComponentId(mUninitializedComponents.back()->getSceneManagerId(), lastIdx, listType);
-
-		assert(mUninitializedComponents[idx] == component);
-
-		if (idx != lastIdx)
-		{
-			std::swap(mUninitializedComponents[idx], mUninitializedComponents[lastIdx]);
-			mUninitializedComponents[idx]->setSceneManagerId(encodeComponentId(idx, UninitializedList));
-		}
-
-		mUninitializedComponents.erase(mUninitializedComponents.end() - 1);
-	}
 
 	UINT32 SceneManager::encodeComponentId(UINT32 idx, UINT32 type)
 	{
@@ -490,9 +487,12 @@ namespace bs
 
 	void SceneManager::_update()
 	{
+		processStateChanges();
+
 		// Note: Eventually perform updates based on component types and/or on component priority. Right now we just
 		// iterate in an undefined order, but it wouldn't be hard to change it.
 
+		ScopeToggle toggle(mDisableStateChange);
 		for (auto& entry : mActiveComponents)
 			entry->update();
 
@@ -501,6 +501,9 @@ namespace bs
 
 	void SceneManager::_fixedUpdate()
 	{
+		processStateChanges();
+
+		ScopeToggle toggle(mDisableStateChange);
 		for (auto& entry : mActiveComponents)
 			entry->fixedUpdate();
 	}
