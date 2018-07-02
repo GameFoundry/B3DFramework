@@ -375,9 +375,6 @@ namespace bs
 			return;
 		}
 
-		// If only material parameters changed, no need to re-sync this object
-		auto material = static_cast<Material*>(dependency);
-
 		if(((UINT32)MaterialDirtyFlags::Shader & dirtyFlags) != 0)
 			CoreObject::onDependencyDirty(dependency, dirtyFlags);
 	}

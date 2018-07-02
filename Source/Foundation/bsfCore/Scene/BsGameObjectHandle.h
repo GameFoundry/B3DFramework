@@ -262,8 +262,8 @@ namespace bs
 		template<class _Ty1, class _Ty2>
 		friend GameObjectHandle<_Ty1> static_object_cast(const GameObjectHandle<_Ty2>& other);
 
-		template<class T>
-		friend GameObjectHandle<T> static_object_cast(const GameObjectHandleBase& other);
+		template<class _Ty1>
+		friend GameObjectHandle<_Ty1> static_object_cast(const GameObjectHandleBase& other);
 
 		GameObjectHandle(SPtr<GameObjectHandleData> data)
 			:GameObjectHandleBase(std::move(data))
