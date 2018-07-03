@@ -32,12 +32,12 @@ namespace bs
 		gCoreThread().queueCommand(std::bind(&RendererMaterialManager::destroyOnCore));
 	}
 
-	void RendererMaterialManager::_registerMaterial(ct::RendererMaterialMetaData* metaData, const Path& shaderPath)
+	void RendererMaterialManager::_registerMaterial(ct::RendererMaterialMetaData* metaData, const char* shaderPath)
 	{
 		Lock lock(getMutex());
 
 		Vector<RendererMaterialData>& materials = getMaterials();
-		materials.push_back({ metaData, shaderPath, });
+		materials.push_back({ metaData, shaderPath });
 	}
 
 	void RendererMaterialManager::initOnCore(const Vector<SPtr<ct::Shader>>& shaders)
@@ -56,6 +56,12 @@ namespace bs
 
 			for(auto& entry : techniques)
 				materials[i].metaData->variations.add(entry->getVariation());
+
+#if BS_PROFILING_ENABLED
+			String filename = materials[i].shaderPath.getFilename(false);
+			materials[i].metaData->profilerSampleName = ProfilerString("RM: ") + 
+				ProfilerString(filename.data(), filename.size());
+#endif
 		}
 	}
 

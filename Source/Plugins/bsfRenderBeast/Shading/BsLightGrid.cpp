@@ -107,6 +107,8 @@ namespace bs { namespace ct
 
 	void LightGridLLCreationMat::execute(const RendererView& view)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		mParams->setParamBlockBuffer("PerCamera", view.getPerViewBuffer());
 
 		UINT32 numGroupsX = (mGridSize[0] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
@@ -209,6 +211,8 @@ namespace bs { namespace ct
 
 	void LightGridLLReductionMat::execute(const RendererView& view)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		mParams->setParamBlockBuffer("PerCamera", view.getPerViewBuffer());
 
 		UINT32 numGroupsX = (mGridSize[0] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;

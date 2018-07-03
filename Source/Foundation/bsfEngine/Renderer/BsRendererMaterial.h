@@ -10,6 +10,10 @@
 #include "Material/BsPass.h"
 #include "RenderAPI/BsRenderAPI.h"
 
+#if BS_PROFILING_ENABLED
+#include "Profiling/BsProfilerGPU.h"
+#endif
+
 /** @addtogroup Renderer-Engine-Internal
  *  @{
  */
@@ -53,7 +57,24 @@ namespace bs { namespace ct
 		SmallVector<RendererMaterialBase*, 4> instances;
 		ShaderVariations variations;
 		ShaderDefines defines;
+
+#if BS_PROFILING_ENABLED
+		ProfilerString profilerSampleName;
+#endif
 	};
+
+	/** 
+	 * Helper class that performs GPU profiling in the current block. Profiling sample is started when the class is 
+	 * constructed and ended upon destruction. 
+	 */
+	struct RendererMaterialProfileBlock : ProfileGPUBlock
+	{
+		RendererMaterialProfileBlock(const RendererMaterialMetaData& metaData)
+			:ProfileGPUBlock(metaData.profilerSampleName)
+		{ }
+	};
+
+#define BS_RENMAT_PROFILE_BLOCK RendererMaterialProfileBlock __sampleBlock(mMetaData);
 
 	/**	Base class for all RendererMaterial instances, containing common data and methods. */
 	class BS_EXPORT RendererMaterialBase

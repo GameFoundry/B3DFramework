@@ -183,7 +183,7 @@ namespace bs
 
 	class RenderableHandler;
 	class CProfilerOverlay;
-	class ProfilerOverlayInternal;
+	class ProfilerOverlay;
 	class DrawHelper;
 	class PlainText;
 	class ScriptCode;

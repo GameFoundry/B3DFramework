@@ -271,10 +271,6 @@ namespace bs { namespace ct
 	{
 		auto& texProps = texture->getProperties();
 
-		BlitMat* blitMat = BlitMat::getVariation(texProps.getNumSamples(), !isDepth);
-		blitMat->setParameters(texture);
-		blitMat->bind();
-
 		Rect2 fArea((float)area.x, (float)area.y, (float)area.width, (float)area.height);
 		if (area.width == 0 || area.height == 0)
 		{
@@ -284,7 +280,8 @@ namespace bs { namespace ct
 			fArea.height = (float)texProps.getHeight();
 		}
 
-		drawScreenQuad(fArea, Vector2I(1, 1), 1, flipUV);
+		BlitMat* blitMat = BlitMat::getVariation(texProps.getNumSamples(), !isDepth);
+		blitMat->execute(texture, fArea, flipUV);
 	}
 
 	void RendererUtility::drawScreenQuad(const Rect2& uv, const Vector2I& textureSize, UINT32 numInstances, bool flipUV)
@@ -371,9 +368,14 @@ namespace bs { namespace ct
 		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSource", mSource);
 	}
 
-	void BlitMat::setParameters(const SPtr<Texture>& source)
+	void BlitMat::execute(const SPtr<Texture>& source, const Rect2& area, bool flipUV)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		mSource.set(source);
+		bind();
+
+		gRendererUtility().drawScreenQuad(area, Vector2I(1, 1), 1, flipUV);
 	}
 
 	BlitMat* BlitMat::getVariation(UINT32 msaaCount, bool isColor)
@@ -421,6 +423,8 @@ namespace bs { namespace ct
 
 	void ClearMat::execute(UINT32 value)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		gClearParamDef.gClearValue.set(mParamBuffer, value);
 
 		bind();

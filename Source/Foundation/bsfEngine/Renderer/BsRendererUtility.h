@@ -36,8 +36,8 @@ namespace bs { namespace ct
 	public:
 		BlitMat();
 
-		/** Updates the parameter buffers used by the material. */
-		void setParameters(const SPtr<Texture>& source);
+		/** Executes the material on the currently bound render target, copying from @p source. */
+		void execute(const SPtr<Texture>& source, const Rect2& area, bool flipUV);
 
 		/** 
 		 * Returns the material variation matching the provided parameters.

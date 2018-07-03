@@ -1021,6 +1021,8 @@ namespace bs { namespace ct
 
 		SPtr<GpuParamBlockBuffer> perViewBuffer = view.getPerViewBuffer();
 
+		ProfileGPUBlock sampleBlock("Render shadow occlusion");
+
 		RenderAPI& rapi = RenderAPI::instance();
 		const RenderAPIInfo& rapiInfo = rapi.getAPIInfo();
 		// TODO - Calculate and set a scissor rectangle for the light
@@ -1271,6 +1273,8 @@ namespace bs { namespace ct
 		Quaternion lightRotation(BsIdentity);
 		lightRotation.lookRotation(lightDir, Vector3::UNIT_Y);
 
+		ProfileGPUBlock profileSample("Project directional light shadow");
+
 		for (UINT32 i = 0; i < numCascades; ++i)
 		{
 			Sphere frustumBounds;
@@ -1387,6 +1391,8 @@ namespace bs { namespace ct
 		mapInfo.updateNormArea(MAX_ATLAS_SIZE);
 		ShadowMapAtlas& atlas = mDynamicShadowMaps[mapInfo.textureIdx];
 
+		ProfileGPUBlock profileSample("Project spot light shadows");
+
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(atlas.getTarget());
 		rapi.setViewport(mapInfo.normArea);
@@ -1495,6 +1501,8 @@ namespace bs { namespace ct
 		// Note: Projecting on positive Z axis, because cubemaps use a left-handed coordinate system
 		Matrix4 proj = Matrix4::projectionPerspective(Degree(90.0f), 1.0f, 0.05f, light->getAttenuationRadius(), true);
 		ConvexVolume localFrustum(proj);
+
+		ProfileGPUBlock profileSample("Project radial light shadows");
 
 		RenderAPI& rapi = RenderAPI::instance();
 		const RenderAPIInfo& rapiInfo = rapi.getAPIInfo();

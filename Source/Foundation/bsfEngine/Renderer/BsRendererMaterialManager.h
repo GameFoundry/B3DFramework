@@ -24,7 +24,7 @@ namespace bs
 		struct RendererMaterialData
 		{
 			ct::RendererMaterialMetaData* metaData;
-			Path shaderPath;
+			const Path shaderPath;
 		};
 
 	public:
@@ -32,7 +32,7 @@ namespace bs
 		~RendererMaterialManager();
 
 		/**	Registers a new material that should be initialized on module start-up. */
-		static void _registerMaterial(ct::RendererMaterialMetaData* metaData, const Path& shaderPath);
+		static void _registerMaterial(ct::RendererMaterialMetaData* metaData, const char* shaderPath);
 
 		/** Returns a set of defines to be used when importing the shader. */
 		static ShaderDefines _getDefines(const Path& shaderPath);

@@ -42,6 +42,8 @@ namespace bs { namespace ct
 		const GBufferTextures& gbuffer, const SPtr<Texture>& lightAccumTex, const SPtr<GpuBuffer>& lightAccumBuffer,
 		const SPtr<Texture>& msaaCoverage)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		const RendererViewProperties& viewProps = view.getProperties();
 		const RenderSettings& settings = view.getRenderSettings();
 
@@ -144,6 +146,8 @@ namespace bs { namespace ct
 
 	void FlatFramebufferToTextureMat::execute(const SPtr<GpuBuffer>& flatFramebuffer, const SPtr<Texture>& target)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		const TextureProperties& props = target->getProperties();
 
 		Vector2I framebufferSize;
@@ -204,6 +208,8 @@ namespace bs { namespace ct
 	void TiledDeferredImageBasedLightingMat::execute(const RendererView& view, const SceneInfo& sceneInfo, 
 		const VisibleReflProbeData& probeData, const Inputs& inputs)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		const RendererViewProperties& viewProps = view.getProperties();
 		UINT32 width = viewProps.viewRect.width;
 		UINT32 height = viewProps.viewRect.height;

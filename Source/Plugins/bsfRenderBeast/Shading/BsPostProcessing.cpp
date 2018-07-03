@@ -44,6 +44,8 @@ namespace bs { namespace ct
 
 	void DownsampleMat::execute(const SPtr<Texture>& input, const SPtr<RenderTarget>& output)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		// Set parameters
 		mInputTexture.set(input);
 
@@ -130,6 +132,8 @@ namespace bs { namespace ct
 	void EyeAdaptHistogramMat::execute(const SPtr<Texture>& input, const SPtr<Texture>& output, 
 		const AutoExposureSettings& settings)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		// Set parameters
 		mSceneColor.set(input);
 
@@ -197,6 +201,8 @@ namespace bs { namespace ct
 	void EyeAdaptHistogramReduceMat::execute(const SPtr<Texture>& sceneColor, const SPtr<Texture>& histogram,
 		const SPtr<Texture>& prevFrame, const SPtr<RenderTarget>& output)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		// Set parameters
 		mHistogramTex.set(histogram);
 
@@ -249,6 +255,8 @@ namespace bs { namespace ct
 	void EyeAdaptationMat::execute(const SPtr<Texture>& reducedHistogram, const SPtr<RenderTarget>& output, 
 		float frameDelta, const AutoExposureSettings& settings, float exposureScale)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		// Set parameters
 		mReducedHistogramTex.set(reducedHistogram);
 
@@ -319,6 +327,8 @@ namespace bs { namespace ct
 	void EyeAdaptationBasicSetupMat::execute(const SPtr<Texture>& input, const SPtr<RenderTarget>& output, 
 		float frameDelta, const AutoExposureSettings& settings, float exposureScale)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		// Set parameters
 		mInputTex.set(input);
 
@@ -356,6 +366,8 @@ namespace bs { namespace ct
 	void EyeAdaptationBasicMat::execute(const SPtr<Texture>& curFrame, const SPtr<Texture>& prevFrame, 
 		const SPtr<RenderTarget>& output, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		// Set parameters
 		mCurFrameTexParam.set(curFrame);
 
@@ -411,6 +423,7 @@ namespace bs { namespace ct
 	void CreateTonemapLUTMat::execute3D(const SPtr<Texture>& output, const RenderSettings& settings)
 	{
 		assert(mIs3D);
+		BS_RENMAT_PROFILE_BLOCK
 
 		populateParamBuffers(settings);
 
@@ -426,6 +439,7 @@ namespace bs { namespace ct
 	void CreateTonemapLUTMat::execute2D(const SPtr<RenderTexture>& output, const RenderSettings& settings)
 	{
 		assert(!mIs3D);
+		BS_RENMAT_PROFILE_BLOCK
 
 		populateParamBuffers(settings);
 
@@ -511,6 +525,8 @@ namespace bs { namespace ct
 	void TonemappingMat::execute(const SPtr<Texture>& sceneColor, const SPtr<Texture>& eyeAdaptation, 
 		const SPtr<Texture>& colorLUT, const SPtr<RenderTarget>& output, const RenderSettings& settings)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		const TextureProperties& texProps = sceneColor->getProperties();
 
 		gTonemappingParamDef.gRawGamma.set(mParamBuffer, 1.0f / settings.gamma);
@@ -630,6 +646,8 @@ namespace bs { namespace ct
 
 	void GaussianBlurMat::execute(const SPtr<Texture>& source, float filterSize, const SPtr<RenderTexture>& destination)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		const TextureProperties& srcProps = source->getProperties();
 		const RenderTextureProperties& dstProps = destination->getProperties();
 
@@ -817,6 +835,8 @@ namespace bs { namespace ct
 	void GaussianDOFSeparateMat::execute(const SPtr<Texture>& color, const SPtr<Texture>& depth, 
 		const RendererView& view, const DepthOfFieldSettings& settings)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		const TextureProperties& srcProps = color->getProperties();
 
 		UINT32 outputWidth = std::max(1U, srcProps.getWidth() / 2);
@@ -916,6 +936,8 @@ namespace bs { namespace ct
 		const SPtr<Texture>& far, const SPtr<Texture>& depth, const SPtr<RenderTarget>& output,
 		const RendererView& view, const DepthOfFieldSettings& settings)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		const TextureProperties& srcProps = focused->getProperties();
 
 		Vector2 invTexSize(1.0f / srcProps.getWidth(), 1.0f / srcProps.getHeight());
@@ -981,6 +1003,8 @@ namespace bs { namespace ct
 	void BuildHiZMat::execute(const SPtr<Texture>& source, UINT32 srcMip, const Rect2& srcRect, const Rect2& dstRect,
 		const SPtr<RenderTexture>& output)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		RenderAPI& rapi = RenderAPI::instance();
 
 		// If no texture view support, we must manually pick a valid mip level in the shader
@@ -1029,6 +1053,8 @@ namespace bs { namespace ct
 
 	void FXAAMat::execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& destination)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		const TextureProperties& srcProps = source->getProperties();
 
 		Vector2 invTexSize(1.0f / srcProps.getWidth(), 1.0f / srcProps.getHeight());
@@ -1109,6 +1135,8 @@ namespace bs { namespace ct
 	void SSAOMat::execute(const RendererView& view, const SSAOTextureInputs& textures, 
 		const SPtr<RenderTexture>& destination, const AmbientOcclusionSettings& settings)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		// Scale that can be used to adjust how quickly does AO radius increase with downsampled AO. This yields a very
 		// small AO radius at highest level, and very large radius at lowest level
 		static const float DOWNSAMPLE_SCALE = 4.0f;
@@ -1263,6 +1291,8 @@ namespace bs { namespace ct
 	void SSAODownsampleMat::execute(const RendererView& view, const SPtr<Texture>& depth, const SPtr<Texture>& normals, 
 		const SPtr<RenderTexture>& destination, float depthRange)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		const RendererViewProperties& viewProps = view.getProperties();
 		const RenderTargetProperties& rtProps = destination->getProperties();
 
@@ -1319,6 +1349,8 @@ namespace bs { namespace ct
 	void SSAOBlurMat::execute(const RendererView& view, const SPtr<Texture>& ao, const SPtr<Texture>& depth, 
 		const SPtr<RenderTexture>& destination, float depthRange)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		const RendererViewProperties& viewProps = view.getProperties();
 		const TextureProperties& texProps = ao->getProperties();
 
@@ -1371,6 +1403,8 @@ namespace bs { namespace ct
 	void SSRStencilMat::execute(const RendererView& view, GBufferTextures gbuffer, 
 		const ScreenSpaceReflectionsSettings& settings)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		mGBufferParams.bind(gbuffer);
 
 		Vector2 roughnessScaleBias = SSRTraceMat::calcRoughnessFadeScaleBias(settings.maxRoughness);
@@ -1434,6 +1468,8 @@ namespace bs { namespace ct
 			const SPtr<Texture>& hiZ, const ScreenSpaceReflectionsSettings& settings, 
 			const SPtr<RenderTarget>& destination)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		const RendererViewProperties& viewProps = view.getProperties();
 
 		const TextureProperties& hiZProps = hiZ->getProperties();
@@ -1586,6 +1622,8 @@ namespace bs { namespace ct
 	void SSRResolveMat::execute(const RendererView& view, const SPtr<Texture>& prevFrame, 
 		const SPtr<Texture>& curFrame, const SPtr<Texture>& sceneDepth, const SPtr<RenderTarget>& destination)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		// Note: This shader should not be called when temporal AA is turned on
 		// Note: This shader doesn't have velocity texture enabled and will only account for camera movement (can be easily
 		//		 enabled when velocity texture is added)
@@ -1731,6 +1769,8 @@ namespace bs { namespace ct
 
 	void EncodeDepthMat::execute(const SPtr<Texture>& depth, float near, float far, const SPtr<RenderTarget>& output)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		mInputTexture.set(depth);
 
 		gEncodeDepthParamDef.gNear.set(mParamBuffer, near);
@@ -1749,6 +1789,8 @@ namespace bs { namespace ct
 
 	void MSAACoverageMat::execute(const RendererView& view, GBufferTextures gbuffer) 
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		mGBufferParams.bind(gbuffer);
 
 		const Rect2I& viewRect = view.getProperties().viewRect;
@@ -1780,6 +1822,8 @@ namespace bs { namespace ct
 
 	void MSAACoverageStencilMat::execute(const RendererView& view, const SPtr<Texture>& coverage)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		const Rect2I& viewRect = view.getProperties().viewRect;
 		mCoverageTexParam.set(coverage);
 

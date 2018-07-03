@@ -133,7 +133,6 @@ set(BS_ENGINE_INC_RTTI
 	"bsfEngine/Private/RTTI/BsScriptCodeImportOptionsRTTI.h"
 	"bsfEngine/Private/RTTI/BsGUIElementStyleRTTI.h"
 	"bsfEngine/Private/RTTI/BsGUISkinRTTI.h"
-	"bsfEngine/Private/RTTI/BsProfilerOverlayRTTI.h"
 	"bsfEngine/Private/RTTI/BsCGUIWidgetRTTI.h"
 	"bsfEngine/Private/RTTI/BsGameSettingsRTTI.h"
 	"bsfEngine/Private/RTTI/BsResourceMappingRTTI.h"

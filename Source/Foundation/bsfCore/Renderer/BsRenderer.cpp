@@ -10,6 +10,7 @@
 #include "CoreThread/BsCoreObjectManager.h"
 #include "Scene/BsSceneManager.h"
 #include "Material/BsShader.h"
+#include "Profiling/BsProfilerGPU.h"
 
 namespace bs { namespace ct
 {
@@ -95,7 +96,13 @@ namespace bs { namespace ct
 
 				entry->mState.store(1);
 
-				bool complete = entry->mTaskWorker();
+				bool complete;
+				
+				{
+					ProfileGPUBlock sampleBlock("Renderer task: "+ ProfilerString(entry->mName.data(), entry->mName.size()));
+					complete = entry->mTaskWorker();
+				}
+
 				if (!complete)
 					mRemainingTasks.push_back(entry);
 				else
@@ -122,7 +129,11 @@ namespace bs { namespace ct
 		{
 			task.mState.store(1);
 
-			complete = task.mTaskWorker();
+			{
+				ProfileGPUBlock sampleBlock("Renderer task: " + ProfilerString(task.mName.data(), task.mName.size()));
+				complete = task.mTaskWorker();
+			}
+
 			if (complete)
 				task.mState.store(2);
 

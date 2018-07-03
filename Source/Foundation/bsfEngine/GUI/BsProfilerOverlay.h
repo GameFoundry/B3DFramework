@@ -5,7 +5,6 @@
 #include "BsPrerequisites.h"
 #include "Scene/BsComponent.h"
 #include "Profiling/BsProfilerGPU.h"
-#include "Utility/BsModule.h"
 #include "Utility/BsEvent.h"
 
 namespace bs
@@ -14,55 +13,10 @@ namespace bs
 	 *  @{
 	 */
 
-	class ProfilerOverlayInternal;
-
-	/**	Determines type of data to display on the profiler overlay. */
-	enum class ProfilerOverlayType
-	{
-		CPUSamples,
-		GPUSamples
-	};
-
-	/**
-	 * Handles rendering of Profiler information as an overlay in a viewport.
-	 *			
-	 * @note	Component wrapper of ProfilerOverlayInternal.
-	 */
-	class BS_EXPORT CProfilerOverlay : public Component
-	{
-	public:
-		/**	Constructs a new overlay attached to the specified parent and displayed on the provided viewport. */
-		CProfilerOverlay(const HSceneObject& parent, const SPtr<Camera>& target);
-		~CProfilerOverlay();
-
-		/**	Changes the camera to display the overlay on. */
-		void setTarget(const SPtr<Camera>& target);
-
-		/**	Shows the overlay of the specified type. */
-		void show(ProfilerOverlayType type);
-
-		/**	Hides the overlay. */
-		void hide();
-
-		/** @copydoc Component::update */
-		void update() override;
-
-	private:
-		ProfilerOverlayInternal* mInternal;
-
-		/************************************************************************/
-		/* 								RTTI		                     		*/
-		/************************************************************************/
-	public:
-		friend class ProfilerOverlayRTTI;
-		static RTTITypeBase* getRTTIStatic();
-		RTTITypeBase* getRTTI() const override;
-
-		CProfilerOverlay(); // Serialization only
-	};
+	class ProfilerOverlay;
 
 	/**	Handles rendering of Profiler information as an overlay in a viewport. */
-	class BS_EXPORT ProfilerOverlayInternal
+	class BS_EXPORT ProfilerOverlay
 	{
 	public:
 		/**	Holds data about GUI elements in a single row of a "CPU basic" sample. */
@@ -128,7 +82,9 @@ namespace bs
 		/**	Holds data about GUI elements in a single row of a GPU sample. */
 		struct GPUSampleRow
 		{
-			GUILayout* layout;
+			GUILayout* labelLayout;
+			GUILayout* contentLayout;
+			GUIFixedSpace* labelSpace;
 
 			GUILabel* guiName;
 			GUILabel* guiTime;
@@ -141,11 +97,11 @@ namespace bs
 
 	public:
 		/**	Constructs a new overlay attached to the specified parent and displayed on the provided camera. */
-		ProfilerOverlayInternal(const SPtr<Camera>& target);
-		~ProfilerOverlayInternal();
+		ProfilerOverlay(const SPtr<Camera>& camera);
+		~ProfilerOverlay();
 
 		/**	Changes the camera to display the overlay on. */
-		void setTarget(const SPtr<Camera>& target);
+		void setTarget(const SPtr<Camera>& camera);
 
 		/**	Shows the overlay of the specified type. */
 		void show(ProfilerOverlayType type);
@@ -177,7 +133,7 @@ namespace bs
 		 */
 		void updateGPUSampleContents(const GPUProfilerReport& gpuReport);
 
-		static const UINT32 MAX_DEPTH;
+		static constexpr UINT32 GPU_NUM_SAMPLE_COLUMNS = 3;
 
 		ProfilerOverlayType mType;
 		SPtr<Viewport> mTarget;
@@ -214,26 +170,27 @@ namespace bs
 		GUILayout* mGPULayoutFrameContentsLeft = nullptr;
 		GUILayout* mGPULayoutFrameContentsRight = nullptr;
 		GUILayout* mGPULayoutSamples = nullptr;
-		GUILayout* mGPULayoutSampleContents = nullptr;
+		GUILayout* mGPULayoutSampleLabels[GPU_NUM_SAMPLE_COLUMNS] = { };
+		GUILayout* mGPULayoutSampleContents[GPU_NUM_SAMPLE_COLUMNS] = { };
 
-		GUILabel* mGPUFrameNumLbl;
-		GUILabel* mGPUTimeLbl;
-		GUILabel* mGPUDrawCallsLbl;
-		GUILabel* mGPURenTargetChangesLbl;
-		GUILabel* mGPUPresentsLbl;
-		GUILabel* mGPUClearsLbl;
-		GUILabel* mGPUVerticesLbl;
-		GUILabel* mGPUPrimitivesLbl;
-		GUILabel* mGPUSamplesLbl;
-		GUILabel* mGPUPipelineStateChangesLbl;
+		GUILabel* mGPUFrameNumLbl = nullptr;
+		GUILabel* mGPUTimeLbl = nullptr;
+		GUILabel* mGPUDrawCallsLbl = nullptr;
+		GUILabel* mGPURenTargetChangesLbl = nullptr;
+		GUILabel* mGPUPresentsLbl = nullptr;
+		GUILabel* mGPUClearsLbl = nullptr;
+		GUILabel* mGPUVerticesLbl = nullptr;
+		GUILabel* mGPUPrimitivesLbl = nullptr;
+		GUILabel* mGPUSamplesLbl = nullptr;
+		GUILabel* mGPUPipelineStateChangesLbl = nullptr;
 
-		GUILabel* mGPUObjectsCreatedLbl;
-		GUILabel* mGPUObjectsDestroyedLbl;
-		GUILabel* mGPUResourceWritesLbl;
-		GUILabel* mGPUResourceReadsLbl;
-		GUILabel* mGPUParamBindsLbl;
-		GUILabel* mGPUVertexBufferBindsLbl;
-		GUILabel* mGPUIndexBufferBindsLbl;
+		GUILabel* mGPUObjectsCreatedLbl = nullptr;
+		GUILabel* mGPUObjectsDestroyedLbl = nullptr;
+		GUILabel* mGPUResourceWritesLbl = nullptr;
+		GUILabel* mGPUResourceReadsLbl = nullptr;
+		GUILabel* mGPUParamBindsLbl = nullptr;
+		GUILabel* mGPUVertexBufferBindsLbl = nullptr;
+		GUILabel* mGPUIndexBufferBindsLbl = nullptr;
 
 		HString mGPUFrameNumStr;
 		HString mGPUTimeStr;
@@ -256,10 +213,11 @@ namespace bs
 
 		Vector<BasicRow> mBasicRows;
 		Vector<PreciseRow> mPreciseRows;
-		Vector<GPUSampleRow> mGPUSampleRows;
+		Vector<GPUSampleRow> mGPUSampleRows[GPU_NUM_SAMPLE_COLUMNS];
 
 		HEvent mTargetResizedConn;
 		bool mIsShown;
+		UINT32 mNumGPUSamplesPerColumn = 20;
 	};
 
 	/** @} */

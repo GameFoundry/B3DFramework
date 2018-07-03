@@ -5,6 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "Utility/BsModule.h"
 #include "Profiling/BsRenderStats.h"
+#include "Allocators/BsPoolAlloc.h"
 
 namespace bs
 {
@@ -38,13 +39,14 @@ namespace bs
 
 		UINT32 numObjectsCreated; /**< How many GPU objects were created. */
 		UINT32 numObjectsDestroyed; /**< How many GPU objects were destroyed. */
+
+		Vector<GPUProfileSample> children;
 	};
 
 	/** Profiler report containing information about GPU sampling data from a single frame. */
 	struct GPUProfilerReport
 	{
 		GPUProfileSample frameSample; /**< Sample containing data for entire frame. */
-		Vector<GPUProfileSample> samples;
 	};
 
 	/**
@@ -55,19 +57,15 @@ namespace bs
 	class BS_CORE_EXPORT ProfilerGPU : public Module<ProfilerGPU>
 	{
 	private:
-		struct ActiveSample
+		struct ProfiledSample
 		{
-			ProfilerString sampleName;
+			ProfilerString name;
 			RenderStatsData startStats;
 			RenderStatsData endStats;
 			SPtr<ct::TimerQuery> activeTimeQuery;
 			SPtr<ct::OcclusionQuery> activeOcclusionQuery;
-		};
 
-		struct ActiveFrame
-		{
-			ActiveSample frameSample;
-			Vector<ActiveSample> samples;
+			Vector<ProfiledSample*> children;
 		};
 
 	public:
@@ -141,10 +139,10 @@ namespace bs
 
 	private:
 		/** Assigns start values for the provided sample. */
-		void beginSampleInternal(ActiveSample& sample);
+		void beginSampleInternal(ProfiledSample& sample);
 
 		/**	Assigns end values for the provided sample. */
-		void endSampleInternal(ActiveSample& sample);
+		void endSampleInternal(ProfiledSample& sample);
 
 		/**	Creates a new timer query or returns an existing free query. */
 		SPtr<ct::TimerQuery> getTimerQuery() const;
@@ -152,26 +150,25 @@ namespace bs
 		/**	Creates a new occlusion query or returns an existing free query. */
 		SPtr<ct::OcclusionQuery> getOcclusionQuery() const;
 
-		/**
-		 * Interprets the active frame results and generates a profiler report for the frame. Provided frame queries must
-		 * have finished before calling this.
-		 */
-		GPUProfilerReport resolveFrame(ActiveFrame& frame);
+		/** Frees the memory used by all the child samples. */
+		void freeSample(ProfiledSample& sample);
 
 		/** Resolves an active sample and converts it to report sample. */
-		void resolveSample(const ActiveSample& sample, GPUProfileSample& reportSample);
+		void resolveSample(const ProfiledSample& sample, GPUProfileSample& reportSample);
 
 	private:
-		ActiveFrame mActiveFrame;
+		ProfiledSample mFrameSample;
 		bool mIsFrameActive;
-		Stack<UINT32> mActiveSampleIndexes;
+		Stack<ProfiledSample*> mActiveSamples;
 
-		Queue<ActiveFrame> mUnresolvedFrames;
+		Queue<ProfiledSample> mUnresolvedFrames;
 		GPUProfilerReport* mReadyReports;
 
 		static const UINT32 MAX_QUEUE_ELEMENTS;
 		UINT32 mReportHeadPos;
 		UINT32 mReportCount;
+
+		PoolAlloc<sizeof(ProfiledSample)> mSamplePool;
 
 		mutable Stack<SPtr<ct::TimerQuery>> mFreeTimerQueries;
 		mutable Stack<SPtr<ct::OcclusionQuery>> mFreeOcclusionQueries;
@@ -181,6 +178,42 @@ namespace bs
 
 	/** Provides global access to ProfilerGPU instance. */
 	BS_CORE_EXPORT ProfilerGPU& gProfilerGPU();
+
+	/** Profiling macros that allow profiling functionality to be disabled at compile time. */
+#if BS_PROFILING_ENABLED
+	#define BS_GPU_PROFILE_BEGIN(name) gProfilerGPU().beginSample(name);
+	#define BS_GPU_PROFILE_END(name) gProfilerGPU().endSample(name);
+#else
+	#define BS_GPU_PROFILE_BEGIN(name)
+	#define BS_GPU_PROFILE_END(name)
+#endif
+
+	/** 
+	 * Helper class that performs GPU profiling in the current block. Profiling sample is started when the class is 
+	 * constructed and ended upon destruction. 
+	 */
+	struct ProfileGPUBlock
+	{
+		ProfileGPUBlock(ProfilerString name)
+		{
+#if BS_PROFILING_ENABLED
+			mSampleName = std::move(name);
+			gProfilerGPU().beginSample(mSampleName);
+#endif
+		}
+
+		~ProfileGPUBlock()
+		{
+#if BS_PROFILING_ENABLED
+			gProfilerGPU().endSample(mSampleName);
+#endif
+		}
+
+	private:
+#if BS_PROFILING_ENABLED
+		ProfilerString mSampleName;
+#endif
+	};
 
 	/** @} */
 }

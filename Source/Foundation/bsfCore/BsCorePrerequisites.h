@@ -531,7 +531,7 @@ namespace bs
 		TID_PrefabObjectDiff = 1079,
 		TID_PrefabComponentDiff = 1080,
 		TID_CGUIWidget = 1081,
-		TID_ProfilerOverlay = 1082,
+		/// TID_ProfilerOverlay = 1082,
 		TID_StringTable = 1083,
 		TID_LanguageData = 1084,
 		TID_LocalizedStringData = 1085,

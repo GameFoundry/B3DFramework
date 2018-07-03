@@ -77,13 +77,19 @@ namespace ct
 	 */
 	class RenderCompositor
 	{
+	public:
+		struct NodeType;
+
+	private:
 		/** Contains internal information about a single render node. */
 		struct NodeInfo
 		{
 			RenderCompositorNode* node;
+			NodeType* nodeType;
 			UINT32 lastUseIdx;
 			SmallVector<RenderCompositorNode*, 4> inputs;
 		};
+
 	public:
 		~RenderCompositor();
 
@@ -115,7 +121,7 @@ namespace ct
 		/** Contains information about a specific node type. */
 		struct NodeType
 		{
-			virtual ~NodeType() {};
+			virtual ~NodeType() = default;
 
 			/** Creates a new node of this type. */
 			virtual RenderCompositorNode* create() const = 0;
@@ -130,6 +136,11 @@ namespace ct
 		template<class T>
 		struct TNodeType : NodeType
 		{
+			TNodeType()
+			{
+				id = T::getNodeId();
+			}
+
 			/** @copydoc NodeType::create() */
 			RenderCompositorNode* create() const override { return bs_new<T>(); }
 

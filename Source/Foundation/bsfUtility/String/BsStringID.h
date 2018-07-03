@@ -93,7 +93,7 @@ namespace bs
 		const char* cstr() const
 		{
 			if (mData == nullptr)
-				return nullptr;
+				return "";
 
 			return mData->chars;
 		}

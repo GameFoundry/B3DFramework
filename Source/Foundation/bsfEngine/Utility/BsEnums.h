@@ -44,5 +44,12 @@ namespace bs
 		Line
 	};
 
+	/**	Determines type of data to display on the profiler overlay. */
+	enum class ProfilerOverlayType
+	{
+		CPUSamples,
+		GPUSamples
+	};
+
 	/** @} */
 }

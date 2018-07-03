@@ -24,6 +24,7 @@
 #include "Particles/BsParticleManager.h"
 #include "Particles/BsParticleSystem.h"
 #include "Threading/BsTaskScheduler.h"
+#include "Profiling/BsProfilerGPU.h"
 
 namespace bs { namespace ct
 {
@@ -87,6 +88,7 @@ namespace bs { namespace ct
 
 					NodeInfo& nodeInfo = mNodeInfos.back();
 					nodeInfo.node = nodeType->create();
+					nodeInfo.nodeType = nodeType;
 					nodeInfo.lastUseIdx = -1;
 
 					for (auto& depId : depIds)
@@ -147,7 +149,17 @@ namespace bs { namespace ct
 			for (auto& entry : mNodeInfos)
 			{
 				inputs.inputNodes = entry.inputs;
+
+#if BS_PROFILING_ENABLED
+				const ProfilerString sampleName = ProfilerString("RC: ") + entry.nodeType->id.cstr();
+				BS_GPU_PROFILE_BEGIN(sampleName);
+#endif
+
 				entry.node->render(inputs);
+
+#if BS_PROFILING_ENABLED
+				BS_GPU_PROFILE_END(sampleName);
+#endif
 
 				activeNodes.push_back(&entry);
 
@@ -674,6 +686,8 @@ namespace bs { namespace ct
 		// Render unshadowed lights
 		if(!tiledDeferredSupported)
 		{
+			ProfileGPUBlock sampleBlock("Standard deferred unshadowed lights");
+
 			rapi.setRenderTarget(output->renderTarget, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
 			rapi.clearRenderTarget(FBT_COLOR, Color::ZERO);
 
@@ -724,31 +738,35 @@ namespace bs { namespace ct
 		}
 
 		// Render shadowed lights
-		const ShadowRendering& shadowRenderer = inputs.viewGroup.getShadowRenderer();
-		for (UINT32 i = 0; i < (UINT32)LightType::Count; i++)
 		{
-			LightType lightType = (LightType)i;
+			ProfileGPUBlock sampleBlock("Standard deferred shadowed lights");
 
-			auto& lights = lightData.getLights(lightType);
-			UINT32 count = lightData.getNumShadowedLights(lightType);
-			UINT32 offset = lightData.getNumUnshadowedLights(lightType);
-
-			for (UINT32 j = 0; j < count; j++)
+			const ShadowRendering& shadowRenderer = inputs.viewGroup.getShadowRenderer();
+			for (UINT32 i = 0; i < (UINT32)LightType::Count; i++)
 			{
-				rapi.setRenderTarget(mLightOcclusionRT, FBT_DEPTH, RT_DEPTH_STENCIL);
+				LightType lightType = (LightType)i;
 
-				Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
-				rapi.setViewport(area);
+				auto& lights = lightData.getLights(lightType);
+				UINT32 count = lightData.getNumShadowedLights(lightType);
+				UINT32 offset = lightData.getNumUnshadowedLights(lightType);
 
-				rapi.clearViewport(FBT_COLOR, Color::ZERO);
+				for (UINT32 j = 0; j < count; j++)
+				{
+					rapi.setRenderTarget(mLightOcclusionRT, FBT_DEPTH, RT_DEPTH_STENCIL);
 
-				UINT32 lightIdx = offset + j;
-				const RendererLight& light = *lights[lightIdx];
-				shadowRenderer.renderShadowOcclusion(inputs.view, light, gbuffer);
+					Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
+					rapi.setViewport(area);
 
-				rapi.setRenderTarget(output->renderTarget, FBT_DEPTH | FBT_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
-				StandardDeferred::instance().renderLight(lightType, light, inputs.view, gbuffer,
-					lightOcclusionTex->texture);
+					rapi.clearViewport(FBT_COLOR, Color::ZERO);
+
+					UINT32 lightIdx = offset + j;
+					const RendererLight& light = *lights[lightIdx];
+					shadowRenderer.renderShadowOcclusion(inputs.view, light, gbuffer);
+
+					rapi.setRenderTarget(output->renderTarget, FBT_DEPTH | FBT_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
+					StandardDeferred::instance().renderLight(lightType, light, inputs.view, gbuffer,
+						lightOcclusionTex->texture);
+				}
 			}
 		}
 

@@ -16,6 +16,7 @@
 #include "Renderer/BsRendererExtension.h"
 #include "Resources/BsBuiltinResources.h"
 #include "Renderer/BsCamera.h"
+#include "Profiling/BsProfilerGPU.h"
 
 using namespace std::placeholders;
 
@@ -153,6 +154,8 @@ namespace bs
 
 	void DebugDrawMat::execute(const SPtr<GpuParamBlockBuffer>& params, const SPtr<Mesh>& mesh, const SubMesh& subMesh)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		mParams->setParamBlockBuffer("Params", params);
 
 		bind();

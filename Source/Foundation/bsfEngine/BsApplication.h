@@ -40,6 +40,17 @@ namespace bs
 			CoreApplication::startUp<T>(desc);
 		}
 
+		/** 
+		 * Shows the profiler overlay. 
+		 *
+		 * @param[in]	type	Type of information to display on the overlay.
+		 * @param[in]	camera	Camera to show the overlay on. If none the overlay will be shown on the main camera.
+		 */
+		void showProfilerOverlay(ProfilerOverlayType type, const SPtr<Camera>& camera = nullptr);
+
+		/** Hides the profiler overlay. */
+		void hideProfileOverlay();
+
 		// Scripting system related functionality required by the editor
 #if BS_IS_BANSHEE3D
 		/**	Returns the absolute path to the builtin managed engine assembly file. */
@@ -75,6 +86,8 @@ namespace bs
 
 		/**	Unloads script libraries and shuts down the script system. */
 		virtual void unloadScriptSystem();
+
+		SPtr<ProfilerOverlay> mProfilerOverlay;
 
 		// Scripting system related functionality required by the editor
 #if BS_IS_BANSHEE3D

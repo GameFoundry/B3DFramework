@@ -76,6 +76,9 @@ namespace bs { namespace ct
 			mFeatureSet = RenderBeastFeatureSet::DesktopMacOS;
 		}
 
+		// Ensure profiler methods can be called from start-up methods
+		gProfilerGPU().beginFrame();
+
 		RendererUtility::startUp();
 		GpuResourcePool::startUp();
 		IBLUtility::startUp<RenderBeastIBLUtility>();
@@ -88,6 +91,8 @@ namespace bs { namespace ct
 
 		StandardDeferred::startUp();
 		ParticleRenderer::startUp();
+
+		gProfilerGPU().endFrame();
 
 		RenderCompositor::registerNodeType<RCNodeSceneDepth>();
 		RenderCompositor::registerNodeType<RCNodeGBuffer>();

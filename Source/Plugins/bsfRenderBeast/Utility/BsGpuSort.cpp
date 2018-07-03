@@ -113,6 +113,8 @@ namespace bs { namespace ct
 	void RadixSortCountMat::execute(UINT32 numGroups, const SPtr<GpuParamBlockBuffer>& params, 
 		const SPtr<GpuBuffer>& inputKeys, const SPtr<GpuBuffer>& outputOffsets)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		mInputKeysParam.set(inputKeys);
 		mOutputCountsParam.set(outputOffsets);
 
@@ -136,6 +138,8 @@ namespace bs { namespace ct
 	void RadixSortPrefixScanMat::execute(const SPtr<GpuParamBlockBuffer>& params, const SPtr<GpuBuffer>& inputCounts, 
 		const SPtr<GpuBuffer>& outputOffsets)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		mInputCountsParam.set(inputCounts);
 		mOutputOffsetsParam.set(outputOffsets);
 
@@ -162,6 +166,8 @@ namespace bs { namespace ct
 	void RadixSortReorderMat::execute(UINT32 numGroups, const SPtr<GpuParamBlockBuffer>& params, 
 		const SPtr<GpuBuffer>& inputPrefix, const GpuSortBuffers& buffers, UINT32 inputBufferIdx)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		const UINT32 outputBufferIdx = (inputBufferIdx + 1) % 2;
 
 		mInputOffsetsBufferParam.set(inputPrefix);

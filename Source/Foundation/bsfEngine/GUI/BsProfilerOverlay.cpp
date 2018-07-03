@@ -15,7 +15,6 @@
 #include "Resources/BsBuiltinResources.h"
 #include "Profiling/BsProfilingManager.h"
 #include "RenderAPI/BsRenderTarget.h"
-#include "Private/RTTI/BsProfilerOverlayRTTI.h"
 #include "Renderer/BsCamera.h"
 #include "Localization/BsHEString.h"
 
@@ -23,6 +22,8 @@
 
 namespace bs
 {
+	constexpr UINT32 MAX_DEPTH = 4;
+
 	class BasicRowFiller
 	{
 	public:
@@ -30,9 +31,9 @@ namespace bs
 		GUILayout& labelLayout;
 		GUILayout& contentLayout;
 		GUIWidget& widget;
-		Vector<ProfilerOverlayInternal::BasicRow>& rows;
+		Vector<ProfilerOverlay::BasicRow>& rows;
 
-		BasicRowFiller(Vector<ProfilerOverlayInternal::BasicRow>& _rows, GUILayout& _labelLayout, GUILayout& _contentLayout, GUIWidget& _widget)
+		BasicRowFiller(Vector<ProfilerOverlay::BasicRow>& _rows, GUILayout& _labelLayout, GUILayout& _contentLayout, GUIWidget& _widget)
 			:curIdx(0), labelLayout(_labelLayout), contentLayout(_contentLayout), widget(_widget), rows(_rows)
 		{ }
 
@@ -41,7 +42,7 @@ namespace bs
 			UINT32 excessEntries = (UINT32)rows.size() - curIdx;
 			for(UINT32 i = 0; i < excessEntries; i++)
 			{
-				ProfilerOverlayInternal::BasicRow& row = rows[curIdx + i];
+				ProfilerOverlay::BasicRow& row = rows[curIdx + i];
 
 				if (!row.disabled)
 				{
@@ -59,9 +60,9 @@ namespace bs
 		{
 			if(curIdx >= rows.size())
 			{
-				rows.push_back(ProfilerOverlayInternal::BasicRow());
+				rows.push_back(ProfilerOverlay::BasicRow());
 
-				ProfilerOverlayInternal::BasicRow& newRow = rows.back();
+				ProfilerOverlay::BasicRow& newRow = rows.back();
 
 				newRow.disabled = false;
 				newRow.name = HEString(u8"{0}");
@@ -90,7 +91,7 @@ namespace bs
 				newRow.guiTotalTimeSelf = newRow.contentLayout->addNewElement<GUILabel>(newRow.totalTimeSelf, GUIOptions(GUIOption::fixedWidth(100)));
 			}
 			
-			ProfilerOverlayInternal::BasicRow& row = rows[curIdx];
+			ProfilerOverlay::BasicRow& row = rows[curIdx];
 
 			row.labelSpace->setSize(depth * 20);
 			row.name.setParameter(0, name);
@@ -131,9 +132,9 @@ namespace bs
 		GUILayout& labelLayout;
 		GUILayout& contentLayout;
 		GUIWidget& widget;
-		Vector<ProfilerOverlayInternal::PreciseRow>& rows;
+		Vector<ProfilerOverlay::PreciseRow>& rows;
 
-		PreciseRowFiller(Vector<ProfilerOverlayInternal::PreciseRow>& _rows, GUILayout& _labelLayout, GUILayout& _contentLayout, GUIWidget& _widget)
+		PreciseRowFiller(Vector<ProfilerOverlay::PreciseRow>& _rows, GUILayout& _labelLayout, GUILayout& _contentLayout, GUIWidget& _widget)
 			:curIdx(0), labelLayout(_labelLayout), contentLayout(_contentLayout), widget(_widget), rows(_rows)
 		{ }
 
@@ -142,7 +143,7 @@ namespace bs
 			UINT32 excessEntries = (UINT32)rows.size() - curIdx;
 			for(UINT32 i = 0; i < excessEntries; i++)
 			{
-				ProfilerOverlayInternal::PreciseRow& row = rows[curIdx + i];
+				ProfilerOverlay::PreciseRow& row = rows[curIdx + i];
 
 				if (!row.disabled)
 				{
@@ -160,9 +161,9 @@ namespace bs
 		{
 			if(curIdx >= rows.size())
 			{
-				rows.push_back(ProfilerOverlayInternal::PreciseRow());
+				rows.push_back(ProfilerOverlay::PreciseRow());
 
-				ProfilerOverlayInternal::PreciseRow& newRow = rows.back();
+				ProfilerOverlay::PreciseRow& newRow = rows.back();
 
 				newRow.disabled = false;
 				newRow.name = HEString(u8"{0}");
@@ -191,7 +192,7 @@ namespace bs
 				newRow.guiTotalCyclesSelf = newRow.contentLayout->addNewElement<GUILabel>(newRow.totalCyclesSelf, GUIOptions(GUIOption::fixedWidth(100)));
 			}
 
-			ProfilerOverlayInternal::PreciseRow& row = rows[curIdx];
+			ProfilerOverlay::PreciseRow& row = rows[curIdx];
 
 			row.labelSpace->setSize(depth * 20);
 			row.name.setParameter(0, name);
@@ -229,12 +230,14 @@ namespace bs
 	{
 	public:
 		UINT32 curIdx;
-		GUILayout& layout;
+		GUILayout& labelLayout;
+		GUILayout& contentLayout;
 		GUIWidget& widget;
-		Vector<ProfilerOverlayInternal::GPUSampleRow>& rows;
+		Vector<ProfilerOverlay::GPUSampleRow>& rows;
 
-		GPUSampleRowFiller(Vector<ProfilerOverlayInternal::GPUSampleRow>& _rows, GUILayout& _layout, GUIWidget& _widget)
-			:curIdx(0), layout(_layout), widget(_widget), rows(_rows)
+		GPUSampleRowFiller(Vector<ProfilerOverlay::GPUSampleRow>& rows, GUILayout& labelLayout, GUILayout& contentLayout, 
+			GUIWidget& _widget)
+			:curIdx(0), labelLayout(labelLayout), contentLayout(contentLayout), widget(_widget), rows(rows)
 		{ }
 
 		~GPUSampleRowFiller()
@@ -242,11 +245,12 @@ namespace bs
 			UINT32 excessEntries = (UINT32)rows.size() - curIdx;
 			for (UINT32 i = 0; i < excessEntries; i++)
 			{
-				ProfilerOverlayInternal::GPUSampleRow& row = rows[curIdx + i];
+				ProfilerOverlay::GPUSampleRow& row = rows[curIdx + i];
 
 				if (!row.disabled)
 				{
-					row.layout->setVisible(false);
+					row.labelLayout->setVisible(false);
+					row.contentLayout->setVisible(false);
 					row.disabled = true;
 				}
 			}
@@ -254,25 +258,30 @@ namespace bs
 			rows.resize(curIdx);
 		}
 
-		void addData(const String& name, float timeMs)
+		void addData(UINT32 depth, const String& name, float timeMs)
 		{
 			if (curIdx >= rows.size())
 			{
-				rows.push_back(ProfilerOverlayInternal::GPUSampleRow());
+				rows.push_back(ProfilerOverlay::GPUSampleRow());
 
-				ProfilerOverlayInternal::GPUSampleRow& newRow = rows.back();
+				ProfilerOverlay::GPUSampleRow& newRow = rows.back();
 
 				newRow.disabled = false;
 				newRow.name = HEString(u8"{1}");
 				newRow.time = HEString(u8"{0}");
 
-				newRow.layout = layout.insertNewElement<GUILayoutX>(layout.getNumChildren());
+				newRow.labelLayout = labelLayout.insertNewElement<GUILayoutX>(labelLayout.getNumChildren() - 1); // Insert before flexible space
+				newRow.contentLayout = contentLayout.insertNewElement<GUILayoutX>(contentLayout.getNumChildren() - 1); // Insert before flexible space
 
-				newRow.guiName = newRow.layout->addNewElement<GUILabel>(newRow.name, GUIOptions(GUIOption::fixedWidth(100)));
-				newRow.guiTime = newRow.layout->addNewElement<GUILabel>(newRow.time, GUIOptions(GUIOption::fixedWidth(100)));
+				newRow.labelSpace = newRow.labelLayout->addNewElement<GUIFixedSpace>(0);
+				newRow.guiName = newRow.labelLayout->addNewElement<GUILabel>(newRow.name, GUIOptions(GUIOption::fixedWidth(200)));
+
+				newRow.guiTime = newRow.contentLayout->addNewElement<GUILabel>(newRow.time, GUIOptions(GUIOption::fixedWidth(100)));
 			}
 
-			ProfilerOverlayInternal::GPUSampleRow& row = rows[curIdx];
+			ProfilerOverlay::GPUSampleRow& row = rows[curIdx];
+
+			row.labelSpace->setSize(depth * 20);
 			row.name.setParameter(0, name);
 			row.time.setParameter(0, toString(timeMs));
 
@@ -281,7 +290,8 @@ namespace bs
 
 			if (row.disabled)
 			{
-				row.layout->setVisible(true);
+				row.labelLayout->setVisible(false);
+				row.contentLayout->setVisible(false);
 				row.disabled = false;
 			}
 
@@ -289,62 +299,13 @@ namespace bs
 		}
 	};
 
-	const UINT32 ProfilerOverlayInternal::MAX_DEPTH = 4;
-
-	CProfilerOverlay::CProfilerOverlay()
-	{
-		setFlag(ComponentFlag::AlwaysRun, true);
-	}
-
-	CProfilerOverlay::CProfilerOverlay(const HSceneObject& parent, const SPtr<Camera>& target)
-		:Component(parent), mInternal(nullptr)
-	{
-		setFlag(ComponentFlag::AlwaysRun, true);
-		mInternal = bs_new<ProfilerOverlayInternal>(target);
-	}
-
-	CProfilerOverlay::~CProfilerOverlay()
-	{
-		bs_delete(mInternal);
-	}
-
-	void CProfilerOverlay::setTarget(const SPtr<Camera>& target)
-	{
-		mInternal->setTarget(target);
-	}
-
-	void CProfilerOverlay::show(ProfilerOverlayType type)
-	{
-		mInternal->show(type);
-	}
-
-	void CProfilerOverlay::hide()
-	{
-		mInternal->hide();
-	}
-
-	void CProfilerOverlay::update()
-	{
-		mInternal->update();
-	}
-
-	RTTITypeBase* CProfilerOverlay::getRTTIStatic()
-	{
-		return ProfilerOverlayRTTI::instance();
-	}
-
-	RTTITypeBase* CProfilerOverlay::getRTTI() const
-	{
-		return CProfilerOverlay::getRTTIStatic();
-	}
-
-	ProfilerOverlayInternal::ProfilerOverlayInternal(const SPtr<Camera>& camera)
+	ProfilerOverlay::ProfilerOverlay(const SPtr<Camera>& camera)
 		:mType(ProfilerOverlayType::CPUSamples), mIsShown(true)
 	{
 		setTarget(camera);
 	}
 
-	ProfilerOverlayInternal::~ProfilerOverlayInternal()
+	ProfilerOverlay::~ProfilerOverlay()
 	{
 		if(mTarget != nullptr)
 			mTargetResizedConn.disconnect();
@@ -353,14 +314,14 @@ namespace bs
 			mWidgetSO->destroy();
 	}
 
-	void ProfilerOverlayInternal::setTarget(const SPtr<Camera>& camera)
+	void ProfilerOverlay::setTarget(const SPtr<Camera>& camera)
 	{
 		if(mTarget != nullptr)
 			mTargetResizedConn.disconnect();
 
 		mTarget = camera->getViewport();
 
-		mTargetResizedConn = mTarget->getTarget()->onResized.connect(std::bind(&ProfilerOverlayInternal::targetResized, this));
+		mTargetResizedConn = mTarget->getTarget()->onResized.connect(std::bind(&ProfilerOverlay::targetResized, this));
 
 		if(mWidgetSO)
 			mWidgetSO->destroy();
@@ -437,22 +398,24 @@ namespace bs
 		mGPULayoutFrameContentsLeft = mGPULayoutFrameContents->addNewElement<GUILayoutY>();
 		mGPULayoutFrameContentsRight = mGPULayoutFrameContents->addNewElement<GUILayoutY>();
 
-		mGPULayoutSamples = mWidget->getPanel()->addNewElement<GUILayoutY>();
-
-		GUILayout* gpuSampleTitle = mGPULayoutSamples->addNewElement<GUILayoutY>();
-		mGPULayoutSampleContents = mGPULayoutSamples->addNewElement<GUILayoutY>();
-		mGPULayoutSamples->addNewElement<GUIFlexibleSpace>();
+		mGPULayoutSamples = mWidget->getPanel()->addNewElement<GUIPanel>();
 
 		HString gpuSamplesStr(u8"__ProfOvGPUSamples", u8"Samples");
-		gpuSampleTitle->addElement(GUILabel::create(gpuSamplesStr));
-		gpuSampleTitle->addNewElement<GUIFixedSpace>(20);
+		mGPULayoutSamples->addNewElement<GUILabel>(gpuSamplesStr);
 
-		GUILayout* gpuSampleTitleRow = gpuSampleTitle->addNewElement<GUILayoutX>();
+		for(UINT32 i = 0; i < GPU_NUM_SAMPLE_COLUMNS; i++)
+		{
+			mGPULayoutSampleLabels[i] = mGPULayoutSamples->addNewElement<GUILayoutY>();
+			mGPULayoutSampleContents[i] = mGPULayoutSamples->addNewElement<GUILayoutY>();
 
-		HString gpuSamplesNameStr(u8"__ProfOvGPUSampName", u8"Name");
-		HString gpuSamplesTimeStr(u8"__ProfOvGPUSampTime", u8"Time");
-		gpuSampleTitleRow->addElement(GUILabel::create(gpuSamplesNameStr, GUIOptions(GUIOption::fixedWidth(100))));
-		gpuSampleTitleRow->addElement(GUILabel::create(gpuSamplesTimeStr, GUIOptions(GUIOption::fixedWidth(100))));
+			HString gpuSamplesNameStr(u8"__ProfOvGPUSampName", u8"Name");
+			HString gpuSamplesTimeStr(u8"__ProfOvGPUSampTime", u8"Time");
+			mGPULayoutSampleLabels[i]->addElement(GUILabel::create(gpuSamplesNameStr, GUIOptions(GUIOption::fixedWidth(200))));
+			mGPULayoutSampleContents[i]->addElement(GUILabel::create(gpuSamplesTimeStr, GUIOptions(GUIOption::fixedWidth(100))));
+
+			mGPULayoutSampleLabels[i]->addNewElement<GUIFlexibleSpace>();
+			mGPULayoutSampleContents[i]->addNewElement<GUIFlexibleSpace>();
+		}
 
 		mGPUFrameNumStr = HEString(u8"__ProfOvFrame", u8"Frame #{0}");
 		mGPUTimeStr = HEString(u8"__ProfOvTime", u8"Time: {0}ms");
@@ -527,7 +490,7 @@ namespace bs
 		}
 	}
 
-	void ProfilerOverlayInternal::show(ProfilerOverlayType type)
+	void ProfilerOverlay::show(ProfilerOverlayType type)
 	{
 		if (type == ProfilerOverlayType::CPUSamples)
 		{
@@ -552,7 +515,7 @@ namespace bs
 		mIsShown = true;
 	}
 
-	void ProfilerOverlayInternal::hide()
+	void ProfilerOverlay::hide()
 	{
 		mBasicLayoutLabels->setVisible(false);
 		mPreciseLayoutLabels->setVisible(false);
@@ -563,7 +526,7 @@ namespace bs
 		mIsShown = false;
 	}
 
-	void ProfilerOverlayInternal::update()
+	void ProfilerOverlay::update()
 	{
 		const ProfilerReport& latestSimReport = ProfilingManager::instance().getReport(ProfiledThread::Sim);
 		const ProfilerReport& latestCoreReport = ProfilingManager::instance().getReport(ProfiledThread::Core);
@@ -579,13 +542,13 @@ namespace bs
 		}
 	}
 
-	void ProfilerOverlayInternal::targetResized()
+	void ProfilerOverlay::targetResized()
 	{
 		updateCPUSampleAreaSizes();
 		updateGPUSampleAreaSizes();
 	}
 
-	void ProfilerOverlayInternal::updateCPUSampleAreaSizes()
+	void ProfilerOverlay::updateCPUSampleAreaSizes()
 	{
 		static const INT32 PADDING = 10;
 		static const float LABELS_CONTENT_RATIO = 0.3f;
@@ -613,10 +576,13 @@ namespace bs
 		mPreciseLayoutContents->setHeight(height);
 	}
 
-	void ProfilerOverlayInternal::updateGPUSampleAreaSizes()
+	void ProfilerOverlay::updateGPUSampleAreaSizes()
 	{
 		static const INT32 PADDING = 10;
-		static const float SAMPLES_FRAME_RATIO = 0.5f;
+		static const float SAMPLES_FRAME_RATIO = 0.25f;
+		static const INT32 HEADER_HEIGHT = 20;
+		static const INT32 NUM_COLUMNS = 3;
+		static const INT32 HEIGHT_PER_ENTRY = 15;
 
 		UINT32 width = (UINT32)std::max(0, (INT32)mTarget->getPixelArea().width - PADDING * 2);
 		UINT32 height = (UINT32)std::max(0, (INT32)(mTarget->getPixelArea().height - PADDING * 3));
@@ -631,9 +597,24 @@ namespace bs
 		mGPULayoutSamples->setPosition(PADDING, PADDING + frameHeight + PADDING);
 		mGPULayoutSamples->setWidth(width);
 		mGPULayoutSamples->setHeight(samplesHeight);
+
+		UINT32 columnWidth = width / NUM_COLUMNS;
+		UINT32 columnHeight = samplesHeight - HEADER_HEIGHT;
+		for(UINT32 i = 0; i < NUM_COLUMNS; i++)
+		{
+			mGPULayoutSampleLabels[i]->setPosition(columnWidth * i, HEADER_HEIGHT);
+			mGPULayoutSampleLabels[i]->setWidth(columnWidth / 2);
+			mGPULayoutSampleLabels[i]->setHeight(columnHeight);
+
+			mGPULayoutSampleContents[i]->setPosition(columnWidth * i + columnWidth / 2, HEADER_HEIGHT);
+			mGPULayoutSampleContents[i]->setWidth(columnWidth / 2);
+			mGPULayoutSampleContents[i]->setHeight(columnHeight);
+		}
+
+		mNumGPUSamplesPerColumn = columnHeight / HEIGHT_PER_ENTRY;
 	}
 
-	void ProfilerOverlayInternal::updateCPUSampleContents(const ProfilerReport& simReport, const ProfilerReport& coreReport)
+	void ProfilerOverlay::updateCPUSampleContents(const ProfilerReport& simReport, const ProfilerReport& coreReport)
 	{
 		static const UINT32 NUM_ROOT_ENTRIES = 2;
 
@@ -724,7 +705,7 @@ namespace bs
 		}
 	}
 
-	void ProfilerOverlayInternal::updateGPUSampleContents(const GPUProfilerReport& gpuReport)
+	void ProfilerOverlay::updateGPUSampleContents(const GPUProfilerReport& gpuReport)
 	{
 		mGPUFrameNumStr.setParameter(0, toString((UINT64)gTime().getFrameIdx()));
 		mGPUTimeStr.setParameter(0, toString(gpuReport.frameSample.timeMs));
@@ -764,10 +745,48 @@ namespace bs
 		mGPUVertexBufferBindsLbl->setContent(mGPUVertexBufferBindsStr);
 		mGPUIndexBufferBindsLbl->setContent(mGPUIndexBufferBindsStr);
 
-		GPUSampleRowFiller sampleRowFiller(mGPUSampleRows, *mGPULayoutSampleContents, *mWidget->_getInternal());
-		for (auto& sample : gpuReport.samples)
+		GPUSampleRowFiller sampleRowFillers[GPU_NUM_SAMPLE_COLUMNS] = 
 		{
-			sampleRowFiller.addData(sample.name, sample.timeMs);
+			GPUSampleRowFiller(mGPUSampleRows[0], *mGPULayoutSampleLabels[0], *mGPULayoutSampleContents[0], *mWidget->_getInternal()),
+			GPUSampleRowFiller(mGPUSampleRows[1], *mGPULayoutSampleLabels[1], *mGPULayoutSampleContents[1], *mWidget->_getInternal()),
+			GPUSampleRowFiller(mGPUSampleRows[2], *mGPULayoutSampleLabels[2], *mGPULayoutSampleContents[2], *mWidget->_getInternal())
+		};
+
+		struct Todo
+		{
+			Todo(const GPUProfileSample& entry, UINT32 depth)
+				:entry(entry), depth(depth)
+			{ }
+
+			const GPUProfileSample& entry;
+			UINT32 depth;
+		};
+
+		UINT32 column = 0;
+		UINT32 currentCount = 0;
+
+		Stack<Todo> todo;
+		todo.push(Todo(gpuReport.frameSample, 0));
+
+		while (!todo.empty())
+		{
+			Todo curEntry = todo.top();
+			todo.pop();
+
+			const GPUProfileSample& data = curEntry.entry;
+
+			if(column < GPU_NUM_SAMPLE_COLUMNS)
+				sampleRowFillers[column].addData(curEntry.depth, data.name, data.timeMs);
+
+			currentCount++;
+			if (currentCount % mNumGPUSamplesPerColumn == 0)
+				column++;
+
+			if (curEntry.depth <= MAX_DEPTH)
+			{
+				for (auto iter = curEntry.entry.children.rbegin(); iter != curEntry.entry.children.rend(); ++iter)
+					todo.push(Todo(*iter, curEntry.depth + 1));
+			}
 		}
 	}
 }

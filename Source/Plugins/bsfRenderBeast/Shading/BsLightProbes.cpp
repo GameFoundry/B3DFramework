@@ -42,6 +42,8 @@ namespace bs { namespace ct
 	void TetrahedraRenderMat::execute(const RendererView& view, const SPtr<Texture>& sceneDepth, const SPtr<Mesh>& mesh, 
 		const SPtr<RenderTexture>& output)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		const TextureProperties& texProps = sceneDepth->getProperties();
 
 		Vector2I texSize(texProps.getWidth(), texProps.getHeight());
@@ -108,6 +110,8 @@ namespace bs { namespace ct
 		const SPtr<Texture>& lightProbeIndices, const LightProbesInfo& lightProbesInfo, const Skybox* skybox, 
 		const SPtr<Texture>& ambientOcclusion, const SPtr<RenderTexture>& output)
 	{
+		BS_RENMAT_PROFILE_BLOCK
+
 		const RendererViewProperties& viewProps = view.getProperties();
 
 		mGBufferParams.bind(gbuffer);
