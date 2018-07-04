@@ -1,6 +1,7 @@
 ﻿{
     "Blit.bsl": null,
     "Clear.bsl": null,
+    "ClearLoadStore.bsl": null,
     "DebugDraw.bsl": null,
     "Default.bsl": [
         {
@@ -184,6 +185,7 @@
         }
     ],
     "FlatFramebufferToTexture.bsl": null,
+    "FlatFramebufferToTexture2.bsl": null,
     "IrradianceAccumulateCubeSH.bsl": [
         {
             "Path": "PPBase.bslinc"
@@ -635,6 +637,7 @@
             "Path": "PerCameraData.bslinc"
         }
     ],
+    "TextureArrayToMSAATexture.bsl": null,
     "TiledDeferredImageBasedLighting.bsl": [
         {
             "Path": "ImageBasedLighting.bslinc"

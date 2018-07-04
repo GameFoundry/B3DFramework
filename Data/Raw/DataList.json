@@ -263,10 +263,6 @@
             "UUID": "10db2029-145c-424e-8399-2be48aa66680"
         },
         {
-            "Path": "FlatFramebufferToTexture.bsl",
-            "UUID": "c469c67d-6a43-4961-8e8c-d769f88546b7"
-        },
-        {
             "Path": "ReflectionCubeDownsample.bsl",
             "UUID": "0efe7fe5-f7da-4ac8-a634-522bf6791dad"
         },
@@ -449,6 +445,14 @@
         {
             "Path": "RadixSortReorder.bsl",
             "UUID": "0dd1ac91-402a-9e2e-2ba1-402a77f5efda"
+        },
+        {
+            "Path": "ClearLoadStore.bsl",
+            "UUID": "1e87bcc7-4477-7234-1482-4477d48e52d4"
+        },
+        {
+            "Path": "TextureArrayToMSAATexture.bsl",
+            "UUID": "a99d5d8d-4daa-3ced-a99b-4daa6fe91297"
         }
     ],
     "Skin": [

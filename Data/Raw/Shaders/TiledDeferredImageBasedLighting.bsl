@@ -31,20 +31,8 @@ shader TiledDeferredImageBasedLighting
 	
 		#if MSAA_COUNT > 1
 		Texture2DMS<float4> gInColor;
-		RWBuffer<float4> gOutput;
+		RWTexture2DArray<float4> gOutput;
 		Texture2D gMSAACoverage;
-		
-		uint getLinearAddress(uint2 coord, uint sampleIndex)
-		{
-			return (coord.y * gFramebufferSize.x + coord.x) * MSAA_COUNT + sampleIndex;
-		}
-		
-		void writeBufferSample(uint2 coord, uint sampleIndex, float4 color)
-		{
-			uint idx = getLinearAddress(coord, sampleIndex);
-			gOutput[idx] = color;
-		}
-
 		#else
 		Texture2D<float4> gInColor;
 		RWTexture2D<float4>	gOutput;
@@ -275,7 +263,7 @@ shader TiledDeferredImageBasedLighting
 				float coverage = gMSAACoverage.Load(int3(pixelPos, 0)).r;
 				
 				float4 lighting = getLighting(pixelPos, screenUv, 0, clipSpacePos.xy, surfaceData[0], 0, sNumProbes);
-				writeBufferSample(pixelPos, 0, lighting);
+				gOutput[uint3(pixelPos, 0)] = lighting;
 
 				bool doPerSampleShading = coverage > 0.5f;
 				if(doPerSampleShading)
@@ -284,7 +272,7 @@ shader TiledDeferredImageBasedLighting
 					for(uint i = 1; i < MSAA_COUNT; ++i)
 					{
 						lighting = getLighting(pixelPos, screenUv, i, clipSpacePos.xy, surfaceData[i], 0, sNumProbes);
-						writeBufferSample(pixelPos, i, lighting);
+						gOutput[uint3(pixelPos, i)] = lighting;
 					}
 				}
 				else // Splat same information to all samples
@@ -294,7 +282,7 @@ shader TiledDeferredImageBasedLighting
 					// so we need to resolve all samples. Consider getting around this issue somehow.				
 					[unroll]
 					for(uint i = 1; i < MSAA_COUNT; ++i)
-						writeBufferSample(pixelPos, i, lighting);
+						gOutput[uint3(pixelPos, i)] = lighting;
 				}
 				
 				#else

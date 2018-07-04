@@ -48,7 +48,7 @@ namespace bs { namespace ct
 
 		/** Binds the material for rendering, sets up parameters and executes it. */
 		void execute(const RendererView& view, const VisibleLightData& lightData, const GBufferTextures& gbuffer,
-			const SPtr<Texture>& lightAccumTex, const SPtr<GpuBuffer>& lightAccumBuffer, const SPtr<Texture>& msaaCoverage);
+			const SPtr<Texture>& lightAccumTex, const SPtr<Texture>& lightAccumTexArray, const SPtr<Texture>& msaaCoverage);
 
 		/** Returns the material variation matching the provided parameters. */
 		static TiledDeferredLightingMat* getVariation(UINT32 msaaCount);
@@ -59,7 +59,6 @@ namespace bs { namespace ct
 
 		GpuParamBuffer mLightBufferParam;
 		GpuParamLoadStoreTexture mOutputTextureParam;
-		GpuParamBuffer mOutputBufferParam;
 		GpuParamTexture mMSAACoverageTexParam;
 
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
@@ -67,23 +66,49 @@ namespace bs { namespace ct
 		static const UINT32 TILE_SIZE;
 	};
 
-	BS_PARAM_BLOCK_BEGIN(FlatFramebufferToTextureParamDef)
-		BS_PARAM_BLOCK_ENTRY(Vector2I, gFramebufferSize)
-		BS_PARAM_BLOCK_ENTRY(INT32, gSampleCount)
-	BS_PARAM_BLOCK_END
-
-	/** Shader that copies a flattened framebuffer into a multisampled texture. */
-	class FlatFramebufferToTextureMat : public RendererMaterial<FlatFramebufferToTextureMat>
+	/** 
+	 * Moves data from a texture array into a MSAA texture. Primarily useful when needing to do unordered writes to a 
+	 * MSAA texture which isn't directly supported on some backends, so writes are done to a texture array instead. The
+	 * array is expected to have the same number of layers as the number of samples in the MSAA texture, each layer
+	 * containing a sample for that specific pixel.
+	 */
+	class TextureArrayToMSAATexture : public RendererMaterial<TextureArrayToMSAATexture>
 	{
-		RMAT_DEF("FlatFramebufferToTexture.bsl");
+		RMAT_DEF("TextureArrayToMSAATexture.bsl");
 
 	public:
-		FlatFramebufferToTextureMat();
+		TextureArrayToMSAATexture();
 
 		/** Binds the material for rendering, sets up parameters and executes it. */
-		void execute(const SPtr<GpuBuffer>& flatFramebuffer, const SPtr<Texture>& target);
+		void execute(const SPtr<Texture>& inputArray, const SPtr<Texture>& target);
 	private:
-		GpuParamBuffer mInputParam;
+		GpuParamTexture mInputParam;
+	};
+
+	BS_PARAM_BLOCK_BEGIN(ClearLoadStoreParamDef)
+		BS_PARAM_BLOCK_ENTRY(Vector2I, gSize)
+	BS_PARAM_BLOCK_END
+
+	extern ClearLoadStoreParamDef gClearLoadStoreParamDef;
+
+	/** Clears the provided texture to zero, using a compute shader. */
+	class ClearLoadStore : public RendererMaterial<ClearLoadStore>
+	{
+		RMAT_DEF_CUSTOMIZED("ClearLoadStore.bsl");
+
+	public:
+		ClearLoadStore();
+
+		/** Binds the material for rendering, sets up parameters and executes it. */
+		void execute(const SPtr<Texture>& target, const TextureSurface& surface = TextureSurface::COMPLETE);
+	private:
+		/** TILE_SIZE * TILE_SIZE is the number of pixels to process per thread. */
+		static constexpr UINT32 TILE_SIZE = 4;
+
+		/** Number of threads to launch per work group. */
+		static constexpr UINT32 NUM_THREADS = 128;
+
+		GpuParamLoadStoreTexture mOutputParam;
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 	};
 
@@ -116,7 +141,7 @@ namespace bs { namespace ct
 			GBufferTextures gbuffer;
 			SPtr<Texture> lightAccumulation;
 			SPtr<Texture> sceneColorTex;
-			SPtr<GpuBuffer> sceneColorBuffer;
+			SPtr<Texture> sceneColorTexArray;
 			SPtr<Texture> preIntegratedGF;
 			SPtr<Texture> ambientOcclusion;
 			SPtr<Texture> ssr;
@@ -146,7 +171,6 @@ namespace bs { namespace ct
 		ImageBasedLightingParams mImageBasedParams;
 
 		GpuParamLoadStoreTexture mOutputTextureParam;
-		GpuParamBuffer mOutputBufferParam;
 
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		ReflProbeParamBuffer mReflProbeParamBuffer;

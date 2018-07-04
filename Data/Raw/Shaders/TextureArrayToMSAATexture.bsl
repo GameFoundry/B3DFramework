@@ -1,4 +1,4 @@
-shader FlatFBToTexture
+shader TextureArrayToMSAATexture
 {
 	depth
 	{
@@ -30,26 +30,12 @@ shader FlatFBToTexture
 			return output;
 		}			
 
-		[internal]
-		cbuffer Params : register(b0)
-		{
-			uint2 gFramebufferSize;
-			uint gSampleCount;
-		}		
-	
-		Buffer<float4> gInput : register(t0);
-
-		uint getLinearAddress(uint2 coord, uint sampleIndex)
-		{
-			return (coord.y * gFramebufferSize.x + coord.x) * gSampleCount + sampleIndex;
-		}			
+		Texture2DArray<float4> gInput;
 
 		float4 fsmain(VStoFS input, uint sampleIndex : SV_SampleIndex) : SV_Target0
 		{
 			int2 pixelPos = trunc(input.uv0);
-			uint sourceIdx = getLinearAddress(pixelPos, sampleIndex);
-
-			return gInput[sourceIdx];
+			return gInput.Load(uint4(pixelPos, sampleIndex, 0));
 		}
 	};
 };

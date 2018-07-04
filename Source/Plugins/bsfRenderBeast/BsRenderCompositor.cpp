@@ -401,11 +401,11 @@ namespace bs { namespace ct
 
 		if (tiledDeferredSupported && viewProps.numSamples > 1)
 		{
-			UINT32 bufferNumElements = width * height * viewProps.numSamples;
-			flattenedSceneColorBuffer = resPool.get(POOLED_STORAGE_BUFFER_DESC::createStandard(BF_16X4F, bufferNumElements));
+			sceneColorTexArray = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA32F, width, height, 
+				TU_LOADSTORE, 1, false, viewProps.numSamples));
 		}
 		else
-			flattenedSceneColorBuffer = nullptr;
+			sceneColorTexArray = nullptr;
 
 		bool rebuildRT = false;
 		if (renderTarget != nullptr)
@@ -438,23 +438,20 @@ namespace bs { namespace ct
 		GpuResourcePool& resPool = GpuResourcePool::instance();
 		resPool.release(sceneColorTex);
 
-		if (flattenedSceneColorBuffer != nullptr)
-			resPool.release(flattenedSceneColorBuffer);
+		if (sceneColorTexArray != nullptr)
+			resPool.release(sceneColorTexArray);
 	}
 
-	void RCNodeSceneColor::unflatten()
+	void RCNodeSceneColor::resolveMSAA()
 	{
-		FlatFramebufferToTextureMat* material = FlatFramebufferToTextureMat::get();
-
-		int readOnlyFlags = FBT_DEPTH | FBT_STENCIL;
-
 		RenderAPI& rapi = RenderAPI::instance();
-		rapi.setRenderTarget(renderTarget, readOnlyFlags, RT_DEPTH_STENCIL);
+		rapi.setRenderTarget(renderTarget, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
 
 		Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
 		rapi.setViewport(area);
 
-		material->execute(flattenedSceneColorBuffer->buffer, sceneColorTex->texture);
+		TextureArrayToMSAATexture* material = TextureArrayToMSAATexture::get();
+		material->execute(sceneColorTexArray->texture, sceneColorTex->texture);
 	}
 
 	SmallVector<StringID, 4> RCNodeSceneColor::getDependencies(const RendererView& view)
@@ -538,25 +535,25 @@ namespace bs { namespace ct
 		UINT32 width = viewProps.viewRect.width;
 		UINT32 height = viewProps.viewRect.height;
 		UINT32 numSamples = viewProps.numSamples;
-		
+
 		if (numSamples > 1)
 		{
-			UINT32 bufferNumElements = width * height * numSamples;
-			flattenedLightAccumBuffer =
-				resPool.get(POOLED_STORAGE_BUFFER_DESC::createStandard(BF_16X4F, bufferNumElements));
+			lightAccumulationTexArray = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width, height, 
+				TU_LOADSTORE, 1, false, numSamples));
 
-			SPtr<GpuBuffer> buffer = flattenedLightAccumBuffer->buffer;
-			auto& bufferProps = buffer->getProperties();
-
-			UINT32 bufferSize = bufferProps.getElementSize() * bufferProps.getElementCount();
-			UINT16* data = (UINT16*)buffer->lock(0, bufferSize, GBL_WRITE_ONLY_DISCARD);
+			for(UINT32 i = 0; i < numSamples ; i++)
 			{
-				memset(data, 0, bufferSize);
+				TextureSurface surface;
+				surface.face = i;
+				surface.numFaces = 1;
+				surface.mipLevel = 0;
+				surface.numMipLevels = 1;
+
+				ClearLoadStore::get()->execute(lightAccumulationTexArray->texture, surface);
 			}
-			buffer->unlock();
 		}
 		else
-			flattenedLightAccumBuffer = nullptr;
+			lightAccumulationTexArray = nullptr;
 
 		lightAccumulationTex = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width,
 			height, TU_LOADSTORE | TU_RENDERTARGET, numSamples, false));
@@ -589,13 +586,13 @@ namespace bs { namespace ct
 		mOwnsTexture = true;
 	}
 
-	void RCNodeLightAccumulation::unflatten()
+	void RCNodeLightAccumulation::resolveMSAA()
 	{
-		FlatFramebufferToTextureMat* material = FlatFramebufferToTextureMat::get();
-
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(renderTarget, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
-		material->execute(flattenedLightAccumBuffer->buffer, lightAccumulationTex->texture);
+
+		TextureArrayToMSAATexture* material = TextureArrayToMSAATexture::get();
+		material->execute(lightAccumulationTexArray->texture, lightAccumulationTex->texture);
 	}
 
 	void RCNodeLightAccumulation::clear()
@@ -609,8 +606,8 @@ namespace bs { namespace ct
 			renderTarget = nullptr;
 		}
 
-		if (flattenedLightAccumBuffer)
-			resPool.release(flattenedLightAccumBuffer);
+		if(lightAccumulationTexArray)
+			resPool.release(lightAccumulationTexArray);
 	}
 
 	SmallVector<StringID, 4> RCNodeLightAccumulation::getDependencies(const RendererView& view)
@@ -657,15 +654,16 @@ namespace bs { namespace ct
 			TiledDeferredLightingMat* tiledDeferredMat = TiledDeferredLightingMat::getVariation(viewProps.numSamples);
 
 			const VisibleLightData& lightData = inputs.viewGroup.getVisibleLightData();
-			SPtr<GpuBuffer> flattenedLightAccumBuffer;
-			if (output->flattenedLightAccumBuffer)
-				flattenedLightAccumBuffer = output->flattenedLightAccumBuffer->buffer;
+
+			SPtr<Texture> lightAccumTexArray;
+			if(output->lightAccumulationTexArray)
+				lightAccumTexArray = output->lightAccumulationTexArray->texture;
 
 			tiledDeferredMat->execute(inputs.view, lightData, gbuffer, output->lightAccumulationTex->texture, 
-				flattenedLightAccumBuffer, msaaCoverage);
+				lightAccumTexArray, msaaCoverage);
 
 			if (viewProps.numSamples > 1)
-				output->unflatten();
+				output->resolveMSAA();
 
 			// If shadows are disabled we handle all lights through tiled deferred so we can exit immediately
 			if (!inputs.view.getRenderSettings().enableShadows)
@@ -920,13 +918,13 @@ namespace bs { namespace ct
 			iblInputs.ssr = ssrNode->output;
 			iblInputs.msaaCoverage = msaaCoverage;
 
-			if (sceneColorNode->flattenedSceneColorBuffer)
-				iblInputs.sceneColorBuffer = sceneColorNode->flattenedSceneColorBuffer->buffer;
+			if (sceneColorNode->sceneColorTexArray)
+				iblInputs.sceneColorTexArray = sceneColorNode->sceneColorTexArray->texture;
 
 			material->execute(inputs.view, inputs.scene, inputs.viewGroup.getVisibleReflProbeData(), iblInputs);
 
 			if(viewProps.numSamples > 1)
-				sceneColorNode->unflatten();
+				sceneColorNode->resolveMSAA();
 		}
 		else // Standard deferred
 		{
@@ -1656,7 +1654,6 @@ namespace bs { namespace ct
 					settings.exposureScale);
 
 				resPool.release(reducedHistogram);
-				reducedHistogram = nullptr;
 			}
 			else
 			{

@@ -229,21 +229,21 @@ namespace ct
 	public:
 		// Outputs
 		/** 
-		 * Contains scene color. If MSAA is used this texture will be null until the flattened data from the buffer is
-		 * first resolved into this texture.
+		 * Contains scene color. If MSAA is used this texture will be null until the texture array data is first resolved 
+		 * into this texture.
 		 */
 		SPtr<PooledRenderTexture> sceneColorTex;
 
-		/** 
-		 * Flattened, buffer version of sceneColorTex. Only available when MSAA is used, since random writes to multisampled
-		 * textures aren't supported on all render backends.
+		/**
+		 * Texture array version of sceneColorTex. Only available when MSAA is used, since random writes to
+		 * multisampled texture aren't supported on all render backends.
 		 */
-		SPtr<PooledStorageBuffer> flattenedSceneColorBuffer;
+		SPtr<PooledRenderTexture> sceneColorTexArray;
 
 		SPtr<RenderTexture> renderTarget;
 
-		/** Converts a flattened scene color buffer into an unflattened texture. */
-		void unflatten();
+		/** Converts MSAA data from the texture array into the MSAA texture. */
+		void resolveMSAA();
 
 		static StringID getNodeId() { return "SceneColor"; }
 		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
@@ -287,20 +287,20 @@ namespace ct
 		// Outputs
 		/** 
 		 * Contains lighting information accumulated from multiple lights. If MSAA is used this texture will be null until
-		 * the flattened data from the buffer is first resolved into this texture.
+		 * the texture array data is first resolved into this texture.
 		 */
 		SPtr<PooledRenderTexture> lightAccumulationTex;
 
-		/** 
-		 * Flattened, buffer version of lightAccumulationTex. Only available when MSAA is used, since random writes to
-		 * multisampled textures aren't supported on all render backends.
+		/**
+		 * Texture array version of lightAccumulationTex. Only available when MSAA is used, since random writes to
+		 * multisampled texture aren't supported on all render backends.
 		 */
-		SPtr<PooledStorageBuffer> flattenedLightAccumBuffer;
+		SPtr<PooledRenderTexture> lightAccumulationTexArray;
 
 		SPtr<RenderTexture> renderTarget;
 
-		/** Converts a flattened light accumulation buffer into an unflattened texture. */
-		void unflatten();
+		/** Converts MSAA data from the texture array into the MSAA texture. */
+		void resolveMSAA();
 
 		static StringID getNodeId() { return "LightAccumulation"; }
 		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
