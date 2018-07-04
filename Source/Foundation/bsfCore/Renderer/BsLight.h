@@ -156,6 +156,9 @@ namespace bs
 		/** Calculates maximum light range based on light intensity. */
 		void updateAttenuationRange();
 
+		/** @copydoc SceneActor::setTransform */
+		void setTransform(const Transform& transform) override;
+
 		LightType mType; /**< Type of light that determines how are the rest of the parameters interpreted. */
 		bool mCastsShadows; /**< Determines whether the light casts shadows. */
 		Color mColor; /**< Color of the light. */

@@ -158,13 +158,22 @@ namespace bs
 			// the middle of the range)
 			float radius = (offset - coneDir).length();
 
-			Vector3 center = tfrm.getPosition() + tfrm.getRotation().rotate(offset);
+			Vector3 center = tfrm.getPosition() - tfrm.getRotation().rotate(offset);
 			mBounds = Sphere(center, radius);
 		}
 			break;
 		default:
 			break;
 		}
+	}
+
+	void LightBase::setTransform(const Transform& transform)
+	{
+		if (mMobility != ObjectMobility::Movable)
+			return;
+
+		SceneActor::setTransform(transform);
+		updateBounds();
 	}
 
 	Light::Light()
