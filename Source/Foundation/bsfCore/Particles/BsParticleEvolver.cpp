@@ -9,6 +9,7 @@
 #include "Physics/BsPhysics.h"
 #include "Physics/BsCollider.h"
 #include "Math/BsLineSegment3.h"
+#include "Private/RTTI/BsParticleSystemRTTI.h"
 
 namespace bs
 {
@@ -78,6 +79,16 @@ namespace bs
 			const float frame = particleT * numFrames;
 			particles.frame[i] = frameOffset + Math::clamp(frame, 0.0f, (float)(numFrames - 1));
 		}
+	}
+
+	RTTITypeBase* ParticleTextureAnimation::getRTTIStatic()
+	{
+		return ParticleTextureAnimationRTTI::instance();
+	}
+
+	RTTITypeBase* ParticleTextureAnimation::getRTTI() const
+	{
+		return getRTTIStatic();
 	}
 
 	/** Information about a particle collision. */
@@ -291,5 +302,15 @@ namespace bs
 			bs_stack_free(hits);
 			bs_stack_free(segments);
 		}
+	}
+
+	RTTITypeBase* ParticleCollisions::getRTTIStatic()
+	{
+		return ParticleCollisionsRTTI::instance();
+	}
+
+	RTTITypeBase* ParticleCollisions::getRTTI() const
+	{
+		return getRTTIStatic();
 	}
 }

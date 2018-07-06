@@ -610,6 +610,18 @@ namespace bs
 		TID_SHADER_PARAM_ATTRIBUTE = 1158,
 		TID_DataParamInfo = 1159,
 		TID_SpriteSheetGridAnimation = 1160,
+		TID_ParticleEmitter = 1161,
+		TID_ParticleEmitterConeShape = 1162,
+		TID_ParticleEmitterSphereShape = 1163,
+		TID_ParticleEmitterHemisphereShape = 1164,
+		TID_ParticleEmitterBoxShape = 1165,
+		TID_ParticleEmitterCircleShape = 1166,
+		TID_ParticleEmitterRectShape = 1167,
+		TID_ParticleEmitterLineShape = 1168,
+		TID_ParticleEmitterStaticMeshShape = 1169,
+		TID_ParticleEmitterSkinnedMeshShape = 1170,
+		TID_ParticleTextureAnimation = 1171,
+		TID_ParticleCollisions = 1172,
 
 		// Moved from Engine layer
 		TID_CCamera = 30000,

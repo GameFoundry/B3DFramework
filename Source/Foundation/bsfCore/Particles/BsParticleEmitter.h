@@ -22,7 +22,7 @@ namespace bs
 	/** 
 	 * Base class from all emitter shapes. Emitter shapes determine the position and direction of newly created particles.
 	 */
-	class BS_CORE_EXPORT ParticleEmitterShape
+	class BS_CORE_EXPORT ParticleEmitterShape : public IReflectable
 	{
 	public:
 		virtual ~ParticleEmitterShape() = default;
@@ -92,10 +92,27 @@ namespace bs
 		ParticleEmitterConeShape(const PARTICLE_CONE_SHAPE_DESC& desc);
 		virtual ~ParticleEmitterConeShape() = default;
 
+		/** @copydoc ParticleEmitterShape::spawn */
+		UINT32 spawn(const Random& random, ParticleSet& particles, UINT32 count, 
+			const ParticleSystemState& state) const override;
+
+		/** Spawns a single particle, generating its position and normal. */
+		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
+
 		/** Creates a new particle emitter cone shape. */
 		static UPtr<ParticleEmitterConeShape> create(const PARTICLE_CONE_SHAPE_DESC& desc);
 	protected:
 		PARTICLE_CONE_SHAPE_DESC mInfo;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		ParticleEmitterConeShape() = default; // RTTI only
+
+		friend class ParticleEmitterConeShapeRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** Information describing a ParticleEmitterSphereShape. */
@@ -133,6 +150,16 @@ namespace bs
 		static UPtr<ParticleEmitterShape> create(const PARTICLE_SPHERE_SHAPE_DESC& desc);
 	protected:
 		PARTICLE_SPHERE_SHAPE_DESC mInfo;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		ParticleEmitterSphereShape() = default; // RTTI only
+
+		friend class ParticleEmitterSphereShapeRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** Information describing a ParticleEmitterHemisphereShape. */
@@ -171,6 +198,16 @@ namespace bs
 
 	protected:
 		PARTICLE_HEMISPHERE_SHAPE_DESC mInfo;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		ParticleEmitterHemisphereShape() = default; // RTTI only
+
+		friend class ParticleEmitterHemisphereShapeRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** Determines the emission type for the cone particle emitter shape. */
@@ -204,11 +241,31 @@ namespace bs
 		ParticleEmitterBoxShape(const PARTICLE_BOX_SHAPE_DESC& desc);
 		virtual ~ParticleEmitterBoxShape() = default;
 
+		/** @copydoc ParticleEmitterShape::spawn */
+		UINT32 spawn(const Random& random, ParticleSet& particles, UINT32 count, 
+			const ParticleSystemState& state) const override;
+
+		/** Spawns a single particle, generating its position and normal. */
+		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
+
 		/** Creates a new particle emitter box shape. */
 		static UPtr<ParticleEmitterShape> create(const PARTICLE_BOX_SHAPE_DESC& desc);
 
 	protected:
 		PARTICLE_BOX_SHAPE_DESC mInfo;
+
+		float mSurfaceArea[3];
+		float mEdgeLengths[3];
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		ParticleEmitterBoxShape() = default; // RTTI only
+
+		friend class ParticleEmitterBoxShapeRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** Information describing a ParticleEmitterLineShape. */
@@ -236,6 +293,16 @@ namespace bs
 
 	protected:
 		PARTICLE_LINE_SHAPE_DESC mInfo;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		ParticleEmitterLineShape() = default; // RTTI only
+
+		friend class ParticleEmitterLineShapeRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** Information describing a ParticleEmitterCircleShape. */
@@ -266,11 +333,28 @@ namespace bs
 		ParticleEmitterCircleShape(const PARTICLE_CIRCLE_SHAPE_DESC& desc);
 		virtual ~ParticleEmitterCircleShape() = default;
 
+		/** @copydoc ParticleEmitterShape::spawn */
+		UINT32 spawn(const Random& random, ParticleSet& particles, UINT32 count, 
+			const ParticleSystemState& state) const override;
+
+		/** Spawns a single particle, generating its position and normal. */
+		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
+
 		/** Creates a new particle emitter circle shape. */
 		static UPtr<ParticleEmitterShape> create(const PARTICLE_CIRCLE_SHAPE_DESC& desc);
 
 	protected:
 		PARTICLE_CIRCLE_SHAPE_DESC mInfo;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		ParticleEmitterCircleShape() = default; // RTTI only
+
+		friend class ParticleEmitterCircleShapeRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** Information describing a ParticleEmitterRectShape. */
@@ -298,6 +382,16 @@ namespace bs
 
 	protected:
 		PARTICLE_RECT_SHAPE_DESC mInfo;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		ParticleEmitterRectShape() = default; // RTTI only
+
+		friend class ParticleEmitterRectShapeRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** Determines the emission type for the mesh particle emitter shape. */
@@ -330,6 +424,33 @@ namespace bs
 	};
 
 	/** 
+	 * Calculates and stores per-triangle weights that can be used for easily picking a random triangle on a mesh, ensuring
+	 * larger triangles are picked more likely.
+	 */
+	class MeshWeightedTriangles
+	{
+		/** Contains the cumulative, normalized weight of the triangle and its vertex indices. */
+		struct TriangleWeight
+		{
+			float cumulativeWeight;
+			UINT32 indices[3];
+		};
+
+	public:
+		MeshWeightedTriangles() = default;
+		MeshWeightedTriangles(const MeshData& meshData);
+
+		/** Updates the weights from the provided mesh data. */
+		void calculate(const MeshData& meshData);
+
+		/** Find a random triangle on the mesh and outputs its vertex indices. */
+		void getTriangle(const Random& random, UINT32 (&indices)[3]) const;
+
+	private:
+		Vector<TriangleWeight> mWeights;
+	};
+
+	/** 
 	 * Particle emitter shape that emits particles from a surface of a static (non-animated) mesh. Particles can be
 	 * emitted from mesh vertices, edges or triangles. If information about normals exists, particles will also inherit
 	 * the normals.
@@ -340,16 +461,35 @@ namespace bs
 		ParticleEmitterStaticMeshShape(const PARTICLE_MESH_SHAPE_DESC& desc);
 		virtual ~ParticleEmitterStaticMeshShape() = default;
 
+		/** @copydoc ParticleEmitterShape::spawn */
+		UINT32 spawn(const Random& random, ParticleSet& particles, UINT32 count, 
+			const ParticleSystemState& state) const override;
+
+		/** Spawns a single particle, generating its position and normal. */
+		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
+
 		/** Creates a new particle emitter static mesh shape. */
 		static UPtr<ParticleEmitterShape> create(const PARTICLE_MESH_SHAPE_DESC& desc);
 
 	protected:
 		PARTICLE_MESH_SHAPE_DESC mInfo;
+
+		MeshWeightedTriangles mWeightedTriangles;
 		UINT8* mVertices;
 		UINT8* mNormals;
 		UINT32 mNumVertices;
 		UINT32 mVertexStride;
 		bool m32BitNormals;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		ParticleEmitterStaticMeshShape() = default; // RTTI only
+
+		friend class ParticleEmitterStaticMeshShapeRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** Particle emitter shape that emits particles from a surface of a skinned (animated) mesh. Particles can be
@@ -362,6 +502,13 @@ namespace bs
 		ParticleEmitterSkinnedMeshShape(const PARTICLE_MESH_SHAPE_DESC& desc);
 		virtual ~ParticleEmitterSkinnedMeshShape() = default;
 
+		/** @copydoc ParticleEmitterShape::spawn */
+		UINT32 spawn(const Random& random, ParticleSet& particles, UINT32 count, 
+			const ParticleSystemState& state) const override;
+
+		/** Spawns a single particle, generating its position and normal. */
+		void spawn(const Random& random, const ParticleSystemState& state, Vector3& position, Vector3& normal) const;
+
 		/** Creates a new particle emitter skinned mesh shape. */
 		static UPtr<ParticleEmitterShape> create(const PARTICLE_MESH_SHAPE_DESC& desc);
 	protected:
@@ -369,6 +516,8 @@ namespace bs
 		Matrix4 getBlendMatrix(const ParticleSystemState& state, UINT32 vertexIdx) const;
 
 		PARTICLE_MESH_SHAPE_DESC mInfo;
+
+		MeshWeightedTriangles mWeightedTriangles;
 		UINT8* mVertices;
 		UINT8* mNormals;
 		UINT8* mBoneIndices;
@@ -376,6 +525,16 @@ namespace bs
 		UINT32 mNumVertices;
 		UINT32 mVertexStride;
 		bool m32BitNormals;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		ParticleEmitterSkinnedMeshShape() = default; // RTTI only
+
+		friend class ParticleEmitterSkinnedMeshShapeRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** Handles spawning of new particles using the specified parameters and shape. */
@@ -521,6 +680,14 @@ namespace bs
 
 		// Internal state
 		mutable float mEmitAccumulator = 0.0f;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class ParticleEmitterRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

@@ -4,6 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 #include "Particles/BsParticleDistribution.h"
+#include "Private/RTTI/BsAnimationCurveRTTI.h"
 
 namespace bs
 {
@@ -99,7 +100,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static UINT32 fromMemory(TAnimationCurve<T>& data, char* memory)
+		static UINT32 fromMemory(TDistribution<T>& data, char* memory)
 		{
 			UINT32 size = 0;
 			memory = rttiReadElem(size, memory);
@@ -125,7 +126,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getDynamicSize */
-		static UINT32 getDynamicSize(const TAnimationCurve<T>& data)
+		static UINT32 getDynamicSize(const TDistribution<T>& data)
 		{
 			UINT64 dataSize = sizeof(UINT32) + sizeof(UINT32);
 			dataSize += rttiGetElemSize(data.mType);

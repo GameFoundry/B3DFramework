@@ -69,6 +69,16 @@ namespace bs
 		bool isAnalytical() const override { return true; }
 	private:
 		PARTICLE_TEXTURE_ANIMATION_DESC mDesc;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		ParticleTextureAnimation() = default; // RTTI only
+
+		friend class ParticleTextureAnimationRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** Types of collision modes that ParticleCollisions evolver can operate in. */
@@ -140,6 +150,16 @@ namespace bs
 		PARTICLE_COLLISONS_DESC mDesc;
 
 		Vector<Plane> mCollisionPlanes;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		ParticleCollisions() = default; // RTTI only
+
+		friend class ParticleCollisionsRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

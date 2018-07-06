@@ -36,7 +36,7 @@ namespace bs
 	};
 
 	/** Module that in some way modified or effects a ParticleSystem. */
-	class BS_CORE_EXPORT ParticleModule
+	class BS_CORE_EXPORT ParticleModule : public IReflectable
 	{
 	protected:
 		friend class ParticleSystem;
