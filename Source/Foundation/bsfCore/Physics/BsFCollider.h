@@ -17,8 +17,7 @@ namespace bs
 	class BS_CORE_EXPORT FCollider
 	{
 	public:
-		FCollider() { }
-		virtual ~FCollider();
+		virtual ~FCollider() = default;
 
 		/** Returns the position of the collider. */
 		virtual Vector3 getPosition() const = 0;

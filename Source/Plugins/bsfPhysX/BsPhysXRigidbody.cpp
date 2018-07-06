@@ -394,23 +394,23 @@ namespace bs
 		}
 	}
 
-	void PhysXRigidbody::addCollider(FCollider* collider)
+	void PhysXRigidbody::addCollider(Collider* collider)
 	{
 		if (collider == nullptr)
 			return;
 
-		FPhysXCollider* physxCollider = static_cast<FPhysXCollider*>(collider);
+		FPhysXCollider* physxCollider = static_cast<FPhysXCollider*>(collider->_getInternal());
 		physxCollider->_setCCD(((UINT32)mFlags & (UINT32)RigidbodyFlag::CCD) != 0);
 
 		mInternal->attachShape(*physxCollider->_getShape());
 	}
 
-	void PhysXRigidbody::removeCollider(FCollider* collider)
+	void PhysXRigidbody::removeCollider(Collider* collider)
 	{
 		if (collider == nullptr)
 			return;
 
-		FPhysXCollider* physxCollider = static_cast<FPhysXCollider*>(collider);
+		FPhysXCollider* physxCollider = static_cast<FPhysXCollider*>(collider->_getInternal());
 		physxCollider->_setCCD(false);
 
 		mInternal->detachShape(*physxCollider->_getShape());

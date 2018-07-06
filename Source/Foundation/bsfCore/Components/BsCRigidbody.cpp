@@ -303,7 +303,7 @@ namespace bs
 					mChildren.push_back(entry);
 
 					collider->setRigidbody(mInternal.get());
-					mInternal->addCollider(collider->_getInternal());
+					mInternal->addCollider(collider);
 				}
 			}
 
@@ -337,7 +337,7 @@ namespace bs
 			return;
 
 		mChildren.push_back(collider);
-		mInternal->addCollider(collider->_getInternal()->_getInternal());
+		mInternal->addCollider(collider->_getInternal());
 	}
 
 	void CRigidbody::removeCollider(const HCollider& collider)
@@ -349,7 +349,7 @@ namespace bs
 
 		if(iterFind != mChildren.end())
 		{
-			mInternal->removeCollider(collider->_getInternal()->_getInternal());
+			mInternal->removeCollider(collider->_getInternal());
 			mChildren.erase(iterFind);
 		}
 	}

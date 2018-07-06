@@ -251,10 +251,10 @@ namespace bs
 		virtual Vector3 getVelocityAtPoint(const Vector3& point) const = 0;
 
 		/** Registers a new collider as a child of this rigidbody. */
-		virtual void addCollider(FCollider* collider) = 0;
+		virtual void addCollider(Collider* collider) = 0;
 
 		/** Removes a collider from the child list of this rigidbody. */
-		virtual void removeCollider(FCollider* collider) = 0;
+		virtual void removeCollider(Collider* collider) = 0;
 
 		/** Removes all colliders from the child list of this rigidbody. */
 		virtual void removeColliders() = 0;
@@ -320,8 +320,6 @@ namespace bs
 		/** @} */
 
 	protected:
-		friend class FCollider;
-
 		RigidbodyFlag mFlags = RigidbodyFlag::None;
 		PhysicsObjectOwner mOwner;
 		UINT32 mPhysicsId = 0;

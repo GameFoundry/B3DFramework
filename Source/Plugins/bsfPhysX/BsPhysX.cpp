@@ -359,7 +359,9 @@ namespace bs
 		output.distance = input.distance;
 		output.triangleIdx = input.faceIndex;
 		output.uv = Vector2(input.u, input.v);
-		output.colliderRaw = (Collider*)input.shape->userData;
+
+		if(input.shape)
+			output.colliderRaw = (Collider*)input.shape->userData;
 
 		if (output.colliderRaw != nullptr)
 		{

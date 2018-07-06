@@ -143,10 +143,10 @@ namespace bs
 		Vector3 getVelocityAtPoint(const Vector3& point) const override;
 
 		/** @copydoc Rigidbody::addCollider */
-		void addCollider(FCollider* collider) override;
+		void addCollider(Collider* collider) override;
 
 		/** @copydoc Rigidbody::removeCollider */
-		void removeCollider(FCollider* collider) override;
+		void removeCollider(Collider* collider) override;
 
 		/** @copydoc Rigidbody::removeColliders */
 		void removeColliders() override;
