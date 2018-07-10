@@ -123,6 +123,9 @@ namespace bs
 
 	UINT32 groupRaycast(LineSegment3* segments, ParticleHitInfo* hits, UINT32 numRays, UINT64 layer)
 	{
+		if(numRays == 0)
+			return 0;
+
 		// Calculate bounds of all rays
 		AABox groupBounds = AABox::INF_BOX;
 		for(UINT32 i = 0; i < numRays; i++)
