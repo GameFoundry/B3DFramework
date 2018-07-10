@@ -294,9 +294,12 @@ namespace bs { namespace ct
 		VkSubresourceLayout layout;
 		vkGetImageSubresourceLayout(device.getLogical(), mImage, &range, &layout);
 
-		assert(layout.size == output.getSize());
-		output.setRowPitch((UINT32)layout.rowPitch);
-		output.setSlicePitch((UINT32)layout.depthPitch);
+		const UINT32 pixelSize = PixelUtil::getNumElemBytes(output.getFormat());
+		assert((UINT32)layout.rowPitch % pixelSize == 0);
+		assert((UINT32)layout.depthPitch % pixelSize == 0);
+
+		output.setRowPitch((UINT32)layout.rowPitch / pixelSize);
+		output.setSlicePitch((UINT32)layout.depthPitch / pixelSize);
 
 		VkDeviceMemory memory;
 		VkDeviceSize memoryOffset;
