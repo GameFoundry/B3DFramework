@@ -24,16 +24,16 @@ namespace bs
 	 * Describes a memory stack of a certain block capacity. See MemStack for more information.
 	 *
 	 * @tparam	BlockCapacity Minimum size of a block. Larger blocks mean less memory allocations, but also potentially
-	 *						  more wasted memory. If an allocation requests more bytes than BlockCapacity, first largest 
+	 *						  more wasted memory. If an allocation requests more bytes than BlockCapacity, first largest
 	 *						  multiple is used instead.
 	 */
 	template <int BlockCapacity = 1024 * 1024>
 	class MemStackInternal
 	{
 	private:
-		/** 
-		 * A single block of memory of BlockCapacity size. A pointer to the first free address is stored, and a remaining 
-		 * size. 
+		/**
+		 * A single block of memory of BlockCapacity size. A pointer to the first free address is stored, and a remaining
+		 * size.
 		 */
 		class MemBlock
 		{
@@ -43,7 +43,7 @@ namespace bs
 			~MemBlock() = default;
 
 			/**
-			 * Returns the first free address and increments the free pointer. Caller needs to ensure the remaining block 
+			 * Returns the first free address and increments the free pointer. Caller needs to ensure the remaining block
 			 * size is adequate before calling.
 			 */
 			UINT8* alloc(UINT32 amount)
@@ -55,9 +55,9 @@ namespace bs
 			}
 
 			/**
-			 * Deallocates the provided pointer. Deallocation must happen in opposite order from allocation otherwise 
+			 * Deallocates the provided pointer. Deallocation must happen in opposite order from allocation otherwise
 			 * corruption will occur.
-			 * 			
+			 *
 			 * @note	Pointer to @p data isn't actually needed, but is provided for debug purposes in order to more
 			 * 			easily track out-of-order deallocations.
 			 */
@@ -99,11 +99,11 @@ namespace bs
 		 *
 		 * @param[in]	amount	The amount to allocate in bytes.
 		 *
-		 * @note	
-		 * Allocates the memory in the currently active block if it is large enough, otherwise a new block is allocated. 
+		 * @note
+		 * Allocates the memory in the currently active block if it is large enough, otherwise a new block is allocated.
 		 * If the allocation is larger than default block size a separate block will be allocated only for that allocation,
 		 * making it essentially a slower heap allocator.
-		 * @note			
+		 * @note
 		 * Each allocation comes with a 4 byte overhead.
 		 */
 		UINT8* alloc(UINT32 amount)
@@ -158,8 +158,8 @@ namespace bs
 	private:
 		MemBlock* mFreeBlock = nullptr;
 
-		/** 
-		 * Allocates a new block of memory using a heap allocator. Block will never be smaller than BlockCapacity no matter 
+		/**
+		 * Allocates a new block of memory using a heap allocator. Block will never be smaller than BlockCapacity no matter
 		 * the @p wantedSize.
 		 */
 		MemBlock* allocBlock(UINT32 wantedSize)
@@ -215,14 +215,14 @@ namespace bs
 	};
 
 	/**
-	 * One of the fastest, but also very limiting type of allocator. All deallocations must happen in opposite order from 
-	 * allocations. 
-	 * 			
-	 * @note	
-	 * It's mostly useful when you need to allocate something temporarily on the heap, usually something that gets 
+	 * One of the fastest, but also very limiting type of allocator. All deallocations must happen in opposite order from
+	 * allocations.
+	 *
+	 * @note
+	 * It's mostly useful when you need to allocate something temporarily on the heap, usually something that gets
 	 * allocated and freed within the same method.
 	 * @note
-	 * Each allocation comes with a pretty hefty 4 byte memory overhead, so don't use it for small allocations. 
+	 * Each allocation comes with a pretty hefty 4 byte memory overhead, so don't use it for small allocations.
 	 * @note
 	 * Thread safe. But you cannot allocate on one thread and deallocate on another. Threads will keep
 	 * separate stacks internally. Make sure to call beginThread()/endThread() for any thread this stack is used on.
@@ -231,13 +231,13 @@ namespace bs
 	{
 	public:
 		/**
-		 * Sets up the stack with the currently active thread. You need to call this on any thread before doing any 
+		 * Sets up the stack with the currently active thread. You need to call this on any thread before doing any
 		 * allocations or deallocations.
 		 */
 		static BS_UTILITY_EXPORT void beginThread();
 
 		/**
-		 * Cleans up the stack for the current thread. You may not perform any allocations or deallocations after this is 
+		 * Cleans up the stack for the current thread. You may not perform any allocations or deallocations after this is
 		 * called, unless you call beginThread again.
 		 */
 		static BS_UTILITY_EXPORT void endThread();
@@ -266,7 +266,7 @@ namespace bs
 	}
 
 	/**
-	 * Allocates enough memory to hold the specified type, on the stack, but does not initialize the object. 
+	 * Allocates enough memory to hold the specified type, on the stack, but does not initialize the object.
 	 *
 	 * @see	MemStackInternal::alloc()
 	 */
@@ -277,7 +277,7 @@ namespace bs
 	}
 
 	/**
-	 * Allocates enough memory to hold N objects of the specified type, on the stack, but does not initialize the objects. 
+	 * Allocates enough memory to hold N objects of the specified type, on the stack, but does not initialize the objects.
 	 *
 	 * @param[in]	amount	Number of entries of the requested type to allocate.
 	 *
@@ -348,10 +348,119 @@ namespace bs
 		MemStack::deallocLast((UINT8*)data);
 	}
 
+	inline void bs_stack_delete(void* data, UINT32 count)
+	{
+		MemStack::deallocLast((UINT8*)data);
+	}
+
 	/** @copydoc MemStackInternal::dealloc() */
 	inline void bs_stack_free(void* data)
 	{
 		return MemStack::deallocLast((UINT8*)data);
+	}
+
+	/**
+	 * An object used to transparently clean up a stack allocation when it's no longer in scope. Make sure to take great 
+	 * care not to free non-managed stack allocations out of order or to free the stack allocation managed by this object!
+	 */
+	template<typename T>
+	struct StackMemory
+	{
+		/*
+		 * Provide implicit conversion to the allocated buffer so that users of this code can "pretend" this object is a 
+		 * pointer to the stack buffer that they wanted.
+		 */
+		constexpr operator T*() const & noexcept
+		{
+			return mPtr;
+		}
+
+		/*
+		 * This ensures that the result of bs_managed_stack_alloc() doesn't get passed to a function call as a temporary, 
+		 * or immediately assigned as a T*. Instead, the user of this class is forced to deal with this class as itself, 
+		 * when handling the return value of bs_managed_stack_alloc() preventing an immediate (and erroneous) call to 
+		 * bs_stack_free().
+		 */
+		constexpr operator T*() const && noexcept = delete;
+
+		explicit constexpr StackMemory(T* p, size_t count = 1)
+		 : mPtr(p), mCount(count)
+		{ }
+
+		/** Needed until c++17 */
+		StackMemory(StackMemory && other)
+		 : mPtr(std::exchange(other.mPtr, nullptr))
+		 , mCount(std::exchange(other.mCount, 0))
+		{ }
+
+		StackMemory(StackMemory const&) = delete;
+		StackMemory& operator=(StackMemory &&)     = delete;
+		StackMemory& operator=(StackMemory const&) = delete;
+
+		/** Frees the stack allocation. */
+		~StackMemory()
+		{
+			if(mPtr != nullptr)
+			{
+				if(mCount >= 1)
+					bs_stack_delete(mPtr, (UINT32)mCount);
+				else
+					bs_stack_free(mPtr);
+			}
+		}
+
+	private:
+		T* mPtr = nullptr;
+		size_t mCount = 0;
+	};
+
+	/** 
+	 * Same as bs_stack_alloc() except the returned object takes care of automatically cleaning up when it goes out of 
+	 * scope. 
+	 */
+	inline StackMemory<void> bs_managed_stack_alloc(UINT32 amount)
+	{
+		return StackMemory<void>(bs_stack_alloc(amount));
+	}
+
+	/** 
+	 * Same as bs_stack_alloc() except the returned object takes care of automatically cleaning up when it goes out of 
+	 * scope. 
+	 */
+	template<class T>
+	StackMemory<T> bs_managed_stack_alloc()
+	{
+		return StackMemory<T>(bs_stack_alloc<T>());
+	}
+
+	/** 
+	 * Same as bs_stack_alloc() except the returned object takes care of automatically cleaning up when it goes out of 
+	 * scope. 
+	 */
+	template<class T>
+	StackMemory<T> bs_managed_stack_alloc(UINT32 amount)
+	{
+		return StackMemory<T>(bs_stack_alloc<T>(amount));
+	}
+
+	/** 
+	 * Same as bs_stack_new() except the returned object takes care of automatically cleaning up when it goes out of 
+	 * scope. 
+	 */
+	template<class T>
+	StackMemory<T> bs_managed_stack_new(size_t count = 1)
+	{
+		return StackMemory<T>(bs_stack_new<T>(count), count);
+	}
+
+	/** 
+	 * Same as bs_stack_new() except the returned object takes care of automatically cleaning up when it goes out of 
+	 * scope. 
+	 */
+	template<class T, class... Args>
+	StackMemory<T> bs_managed_stack_new(Args && ... args, size_t count = 1)
+	{
+		return StackMemory<T>(bs_stack_new<T>(std::forward<Args>(args)..., count), count);
 	}
 
 	/** @} */
@@ -365,16 +474,16 @@ namespace bs
 
 	/**
 	 * Allows use of a stack allocator by using normal new/delete/free/dealloc operators.
-	 * 			
+	 *
 	 * @see	MemStack
 	 */
 	class StackAlloc
 	{ };
 
 	/**
-	* Specialized memory allocator implementations that allows use of a stack allocator in normal new/delete/free/dealloc 
+	* Specialized memory allocator implementations that allows use of a stack allocator in normal new/delete/free/dealloc
 	* operators.
-	* 			
+	*
 	* @see MemStack
 	*/
 	template<>
