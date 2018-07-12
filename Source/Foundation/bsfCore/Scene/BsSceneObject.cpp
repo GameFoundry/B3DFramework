@@ -94,7 +94,7 @@ namespace bs
 				component->_setIsDestroyed();
 
 				if (isInstantiated())
-					gSceneManager()._notifyComponentDestroyed(component);
+					gSceneManager()._notifyComponentDestroyed(component, immediate);
 
 				component->destroyInternal(component, true);
 				mComponents.erase(mComponents.end() - 1);
@@ -777,7 +777,7 @@ namespace bs
 			(*iter)->_setIsDestroyed();
 
 			if (isInstantiated())
-				gSceneManager()._notifyComponentDestroyed(*iter);
+				gSceneManager()._notifyComponentDestroyed(*iter, immediate);
 			
 			(*iter)->destroyInternal(*iter, immediate);
 			mComponents.erase(iter);

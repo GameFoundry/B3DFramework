@@ -363,13 +363,18 @@ namespace bs
 		}
 	}
 
-	void SceneManager::_notifyComponentDestroyed(const HComponent& component)
+	void SceneManager::_notifyComponentDestroyed(const HComponent& component, bool immediate)
 	{
 		// Note: This method must remain reentrant (in case the callbacks below trigger component state changes)
 
 		// Queue the change before any callbacks trigger, as the callbacks could trigger their own changes and they should
 		// be in order
-		mStateChanges.emplace_back(component, ComponentStateEventType::Destroyed);
+		if(!immediate)
+		{
+			// If destruction is immediate no point in queuing state change since it will be ignored anyway
+			mStateChanges.emplace_back(component, ComponentStateEventType::Destroyed);
+		}
+
 		ScopeToggle toggle(mDisableStateChange);
 
 		const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
@@ -380,6 +385,19 @@ namespace bs
 			component->onDisabled();
 		
 		component->onDestroyed();
+
+		if(immediate)
+		{
+			// Since the state change wasn't queued, remove the component from the list right away. Its expected the caller
+			// knows what is he doing.
+
+			UINT32 existingListType;
+			UINT32 existingIdx;
+			decodeComponentId(component->getSceneManagerId(), existingIdx, existingListType);
+
+			if(existingListType != 0)
+				removeFromStateList(component);
+		}
 	}
 
 	void SceneManager::addToStateList(const HComponent& component, UINT32 listType)
@@ -427,6 +445,9 @@ namespace bs
 		for(auto& entry : mStateChanges)
 		{
 			const HComponent& component = entry.obj;
+			if(component.isDestroyed(false))
+				continue;
+
 			const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
 			const bool isActive = component->SO()->getActive();
 
