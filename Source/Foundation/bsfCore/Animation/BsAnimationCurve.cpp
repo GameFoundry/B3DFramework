@@ -161,6 +161,54 @@ namespace bs
 		template<>
 		INT32 getZero<INT32>() { return 0; }
 
+		template <class T>
+		UINT32 getNumComponents() { return 1; }
+
+		template<>
+		UINT32 getNumComponents<Vector3>() { return 3; }
+
+		template<>
+		UINT32 getNumComponents<Quaternion>() { return 4; }
+
+		template <class T>
+		float& getComponent(T& val, UINT32 idx) { return val; }
+
+		template<>
+		float& getComponent(Vector3& val, UINT32 idx) { return val[idx]; }
+
+		template<>
+		float& getComponent(Quaternion& val, UINT32 idx) { return val[idx]; }
+
+		template <class T>
+		float getComponent(const T& val, UINT32 idx) { return val; }
+
+		template<>
+		float getComponent(const Vector3& val, UINT32 idx) { return val[idx]; }
+
+		template<>
+		float getComponent(const Quaternion& val, UINT32 idx) { return val[idx]; }
+
+		template <class T>
+		void getMinMax(std::pair<T, T>& minmax, const T& value)
+		{
+			minmax.first = std::min(minmax.first, value);
+			minmax.second = std::max(minmax.second, value);
+		}
+
+		template <>
+		void getMinMax(std::pair<Vector3, Vector3>& minmax, const Vector3& value)
+		{
+			minmax.first = Vector3::min(minmax.first, value);
+			minmax.second = Vector3::max(minmax.second, value);
+		}
+
+		template <>
+		void getMinMax(std::pair<Quaternion, Quaternion>& minmax, const Quaternion& value)
+		{
+			minmax.first = Quaternion::min(minmax.first, value);
+			minmax.second = Quaternion::max(minmax.second, value);
+		}
+
 		template<class T>
 		TKeyframe<T> evaluateKey(const TKeyframe<T>& lhs, const TKeyframe<T>& rhs, float time)
 		{
@@ -199,20 +247,20 @@ namespace bs
 		}
 
 		template <class T>
-		T evaluateCache(float time, float start, float end, T (&coeffs)[4])
+		T evaluateCubic(float time, float start, float end, T (&coeffs)[4])
 		{
 			float t = time - start;
 			return t * (t * (t * coeffs[0] + coeffs[1]) + coeffs[2]) + coeffs[3];
 		}
 
 		template <>
-		INT32 evaluateCache(float time, float start, float end, INT32 (&coeffs)[4])
+		INT32 evaluateCubic(float time, float start, float end, INT32 (&coeffs)[4])
 		{
 			return time >= end ? coeffs[1] : coeffs[0];
 		}
 
 		template<class T>
-		T evaluateAndUpdateCache(const TKeyframe<T>& lhs, const TKeyframe<T>& rhs, float time, T (&coeffs)[4])
+		void calculateCoeffs(const TKeyframe<T>& lhs, const TKeyframe<T>& rhs, float time, T (&coeffs)[4])
 		{
 			float length = rhs.time - lhs.time;
 
@@ -223,15 +271,26 @@ namespace bs
 				coeffs[1] = impl::getZero<T>();
 				coeffs[2] = impl::getZero<T>();
 				coeffs[3] = lhs.value;
-
-				return lhs.value;
 			}
-
-			Math::cubicHermiteCoefficients(lhs.value, rhs.value, lhs.outTangent, rhs.inTangent, length, coeffs);
+			else
+				Math::cubicHermiteCoefficients(lhs.value, rhs.value, lhs.outTangent, rhs.inTangent, length, coeffs);
 
 			setStepCoefficients(lhs, rhs, coeffs);
+		}
 
-			return impl::evaluateCache(time, lhs.time, rhs.time, coeffs);
+		template<>
+		void calculateCoeffs(const TKeyframe<INT32>& lhs, const TKeyframe<INT32>& rhs, float time, INT32 (&coeffs)[4])
+		{
+			coeffs[0] = lhs.value;
+			coeffs[1] = rhs.value;
+		}
+
+		template<class T>
+		T evaluateAndUpdateCache(const TKeyframe<T>& lhs, const TKeyframe<T>& rhs, float time, T (&coeffs)[4])
+		{
+			calculateCoeffs(lhs, rhs, time, coeffs);
+
+			return impl::evaluateCubic(time, lhs.time, rhs.time, coeffs);
 		}
 
 		template<>
@@ -279,6 +338,59 @@ namespace bs
 		{
 			return time >= rhs.time ? rhs.value : lhs.value;
 		}
+
+		template <class T>
+		void integrate(T (&coeffs)[4])
+		{
+			coeffs[0] = (T)(coeffs[0] / 4.0f);
+			coeffs[1] = (T)(coeffs[1] / 3.0f);
+			coeffs[2] = (T)(coeffs[2] / 2.0f);
+		}
+
+		template <class T, class Eval>
+		struct calcMinMax
+		{
+			void operator()(std::pair<T, T>& minmax, float start, float end, const T& a, const T& b, const T& c, T(&coeffs)[4])
+			{
+				const UINT32 numComponents = getNumComponents<T>();
+
+				for (UINT32 i = 0; i < numComponents; i++)
+				{
+					float roots[2];
+					const UINT32 numRoots = Math::solveQuadratic(getComponent(a, i), getComponent(b, i), getComponent(c, i), roots);
+					for (UINT32 j = 0; j < numRoots; j++)
+					{
+						if ((roots[j] >= 0.0f) && ((start + roots[j]) < end))
+						{
+							float fltCoeffs[4] =
+							{
+								getComponent(coeffs[0], i),
+								getComponent(coeffs[1], i),
+								getComponent(coeffs[2], i),
+								getComponent(coeffs[3], i)
+							};
+
+							Eval eval;
+							float value = eval(roots[j], fltCoeffs);
+
+							getComponent(minmax.first, i) = std::min(getComponent(minmax.first, i), value);
+							getComponent(minmax.second, i) = std::max(getComponent(minmax.second, i), value);
+						}
+					}
+				}
+			}
+		};
+
+		template <class Eval>
+		struct calcMinMax<INT32, Eval>
+		{
+			void operator()(std::pair<INT32, INT32>& minmax, float start, float end, const INT32& a, const INT32& b,
+				const INT32& c, INT32(&coeffs)[4])
+			{
+				getMinMax(minmax, coeffs[0]);
+				getMinMax(minmax, coeffs[1]);
+			}
+		};
 	}
 
 	template <class T>
@@ -288,7 +400,6 @@ namespace bs
 	TAnimationCurve<T>::TAnimationCurve()
 		:mStart(0.0f), mEnd(0.0f), mLength(0.0f)
 	{
-		
 	}
 
 	template <class T>
@@ -337,7 +448,7 @@ namespace bs
 
 		// If time is within cache, evaluate it directly
 		if (time >= cache.cachedCurveStart && time < cache.cachedCurveEnd)
-			return impl::evaluateCache(time, cache.cachedCurveStart, cache.cachedCurveEnd, cache.cachedCubicCoefficients);
+			return impl::evaluateCubic(time, cache.cachedCurveStart, cache.cachedCurveEnd, cache.cachedCubicCoefficients);
 
 		// Clamp to start, cache constant of the first key and return
 		if(time < mStart)
@@ -405,6 +516,128 @@ namespace bs
 			return leftKey.value;
 
 		return impl::evaluate(leftKey, rightKey, time);
+	}
+
+	template <class T>
+	T TAnimationCurve<T>::evaluateIntegrated(float time, const TCurveIntegrationCache<T>& integrationCache) const
+	{
+		const auto numKeyframes = (UINT32)mKeyframes.size();
+		if (numKeyframes == 0)
+			return impl::getZero<T>();
+
+		if(time < mStart)
+			time = mStart;
+
+		// Generate integration cache if required
+		if(!integrationCache.segmentSums)
+		{
+			if (numKeyframes > 1)
+			{
+				integrationCache.init(numKeyframes);
+				integrationCache.segmentSums[0] = impl::getZero<T>();
+
+				for (UINT32 i = 1; i < numKeyframes; i++)
+				{
+					const TKeyframe<T>& lhs = mKeyframes[i - 1];
+					const TKeyframe<T>& rhs = mKeyframes[i];
+
+					T (&coeffs)[4] = integrationCache.coeffs[i - 1];
+					impl::calculateCoeffs(lhs, rhs, lhs.time, coeffs);
+					impl::integrate(coeffs);
+
+					// Evaluate value at the end of the segment and add to the cache (this value is the total area under
+					// the segment)
+					const float t = rhs.time - lhs.time;
+					const T value = (T)(impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t);
+					integrationCache.segmentSums[i] = integrationCache.segmentSums[i - 1] + value;
+				}
+			}
+		}
+
+		if(numKeyframes == 1)
+			return (T)(mKeyframes[0].value * (time - mKeyframes[0].time));
+
+		UINT32 leftKeyIdx;
+		UINT32 rightKeyIdx;
+
+		findKeys(time, leftKeyIdx, rightKeyIdx);
+
+		if(leftKeyIdx == rightKeyIdx)
+			return integrationCache.segmentSums[leftKeyIdx];
+
+		const KeyFrame& lhs = mKeyframes[leftKeyIdx];
+		T(&coeffs)[4] = integrationCache.coeffs[leftKeyIdx];
+
+		const float t = time - lhs.time;
+		return integrationCache.segmentSums[leftKeyIdx] + (T)(impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t);
+	}
+
+	template <class T>
+	T TAnimationCurve<T>::evaluateIntegratedDouble(float time, const TCurveIntegrationCache<T>& integrationCache) const
+	{
+		const auto numKeyframes = (UINT32)mKeyframes.size();
+		if (numKeyframes == 0)
+			return impl::getZero<T>();
+
+		if(time < mStart)
+			time = mStart;
+
+		// Generate integration cache if required
+		if(!integrationCache.segmentSums)
+		{
+			if (numKeyframes > 1)
+			{
+				integrationCache.initDouble(numKeyframes);
+				integrationCache.segmentSums[0] = impl::getZero<T>();
+				integrationCache.doubleSegmentSums[0] = impl::getZero<T>();
+
+				for (UINT32 i = 1; i < numKeyframes; i++)
+				{
+					const TKeyframe<T>& lhs = mKeyframes[i - 1];
+					const TKeyframe<T>& rhs = mKeyframes[i];
+
+					T (&coeffs)[4] = integrationCache.coeffs[i - 1];
+					impl::calculateCoeffs(lhs, rhs, lhs.time, coeffs);
+					impl::integrate(coeffs);
+
+					// Evaluate value at the end of the segment and add to the cache (this value is the total area under
+					// the segment)
+					const float t = rhs.time - lhs.time;
+					T value = (T)(impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t);
+					integrationCache.segmentSums[i] = integrationCache.segmentSums[i - 1] + value;
+
+					// Double integrate the already integrated coeffs
+					coeffs[0] = (T)(coeffs[0] / 5.0f);
+					coeffs[1] = (T)(coeffs[1] / 4.0f);
+					coeffs[2] = (T)(coeffs[2] / 3.0f);
+					coeffs[3] = (T)(coeffs[3] / 2.0f);
+
+					value = (T)(value * t + integrationCache.segmentSums[i - 1] * t);
+					integrationCache.doubleSegmentSums[i] = integrationCache.doubleSegmentSums[i - 1] + value;
+				}
+			}
+		}
+
+		if(numKeyframes == 1)
+		{
+			float t = time - mKeyframes[0].time;
+			return (T)(mKeyframes[0].value * t * t * 0.5f);
+		}
+
+		UINT32 leftKeyIdx;
+		UINT32 rightKeyIdx;
+
+		findKeys(time, leftKeyIdx, rightKeyIdx);
+
+		const KeyFrame& lhs = mKeyframes[leftKeyIdx];
+		const float t = time - lhs.time;
+
+		const T sum = (T)(integrationCache.doubleSegmentSums[leftKeyIdx] + integrationCache.segmentSums[leftKeyIdx] * t);
+		if(leftKeyIdx == rightKeyIdx)
+			return sum;
+
+		T(&coeffs)[4] = integrationCache.coeffs[leftKeyIdx];
+		return sum + (T)(impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t * t);
 	}
 
 	template <class T>
@@ -519,6 +752,7 @@ namespace bs
 		
 		return rightKeyIdx;
 	}
+
 	template <class T>
 	TKeyframe<T> TAnimationCurve<T>::evaluateKey(const KeyFrame& lhs, const KeyFrame& rhs, float time) const
 	{
@@ -631,6 +865,46 @@ namespace bs
 
 		for(UINT32 i = 1; i < numKeys; i++)
 			mKeyframes[i].value = impl::getDiff(mKeyframes[i].value, refKey.value);
+	}
+
+	template <class T>
+	std::pair<T, T> TAnimationCurve<T>::calculateRange() const
+	{
+		const auto numKeys = (UINT32)mKeyframes.size();
+		if(numKeys == 0)
+			return std::make_pair(impl::getZero<T>(), impl::getZero<T>());
+
+		std::pair<T, T> output = { std::numeric_limits<T>::infinity(), -std::numeric_limits<T>::infinity() };
+		impl::getMinMax(output, mKeyframes[0].value);
+
+		for(UINT32 i = 1; i < numKeys; i++)
+		{
+			const KeyFrame& lhs = mKeyframes[i - 1];
+			const KeyFrame& rhs = mKeyframes[i];
+
+			T coeffs[4];
+			impl::calculateCoeffs(lhs, rhs, lhs.time, coeffs);
+
+			// Differentiate
+			T a = (T)(3.0f * coeffs[0]);
+			T b = (T)(2.0f * coeffs[1]);
+			T c = (T)(1.0f * coeffs[2]);
+
+			struct EvalFunc
+			{
+				float operator()(float root, float (&coeffs)[4]) const
+				{
+					return impl::evaluateCubic(root, 0.0f, 0.0f, coeffs);
+				}
+			};
+
+			impl::calcMinMax<T, EvalFunc> calcMinMax;
+			calcMinMax(output, lhs.time, rhs.time, a, b, c, coeffs);
+
+			impl::getMinMax(output, impl::evaluateCubic(rhs.time, lhs.time, 0.0f, coeffs));
+		}
+
+		return output;
 	}
 
 	template class TAnimationCurve<Vector3>;

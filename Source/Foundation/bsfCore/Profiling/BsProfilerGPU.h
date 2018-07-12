@@ -201,11 +201,7 @@ namespace bs
 			gProfilerGPU().beginSample(mSampleName);
 		}
 #else
-		ProfileGPUBlock(const ProfilerString& name)
-		{
-			mSampleName = std::move(name);
-			gProfilerGPU().beginSample(mSampleName);
-		}
+		ProfileGPUBlock(const ProfilerString& name) = default;
 #endif
 
 #if BS_PROFILING_ENABLED

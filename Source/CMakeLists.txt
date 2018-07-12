@@ -141,10 +141,17 @@ if(BUILD_TESTS)
 	target_include_directories(UtilityTest PRIVATE 
 		"Foundation/bsfUtility"
 		"Foundation/bsfUtility/ThirdParty")
+
+	add_executable(CoreTest 
+		Foundation/bsfCore/Private/UnitTests/BsCoreTest.cpp)
+		
+	target_link_libraries(CoreTest bsf)
 	
 	set_property(TARGET UtilityTest PROPERTY FOLDER Tests)
-
-	add_test(NAME FrameworkTests COMMAND $<TARGET_FILE:UtilityTest>)
+	set_property(TARGET CoreTest PROPERTY FOLDER Tests)	
+	
+	add_test(NAME UtilityTests COMMAND $<TARGET_FILE:UtilityTest>)
+	add_test(NAME CoreTests COMMAND $<TARGET_FILE:UtilityTest>)
 endif()
 
 ## Install

@@ -296,30 +296,34 @@ namespace bs
 				// Advance the simulation
 				system->_simulate(timeDelta);
 
-				// Generate output data
-				const UINT32 numParticles = system->mParticleSet->getParticleCount();
-
-				ParticleRenderData* renderData = renderDataPool.alloc(*system->mParticleSet);
-				renderData->numParticles = numParticles;
-				renderData->bounds = system->_calculateBounds();
-
-				// If using a camera-independant sorting mode, sort the particles right away
-				switch(system->mSortMode)
+				ParticleRenderData* renderData = nullptr;
+				if(system->mParticleSet)
 				{
-				default:
-				case ParticleSortMode::None: // No sort, just point the indices back to themselves
-					renderData->indices.clear();
-					renderData->indices.reserve(numParticles);
-					for(UINT32 i = 0; i < numParticles; i++)
-						renderData->indices.push_back(i);
-					break;
-				case ParticleSortMode::OldToYoung:
-				case ParticleSortMode::YoungToOld:
-					renderData->indices.clear();
-					renderData->indices.resize(numParticles);
-					sortParticles(*system->mParticleSet, system->mSortMode, Vector3::ZERO, renderData->indices.data());
-					break;
-				case ParticleSortMode::Distance: break;
+					// Generate output data
+					const UINT32 numParticles = system->mParticleSet->getParticleCount();
+
+					renderData = renderDataPool.alloc(*system->mParticleSet);
+					renderData->numParticles = numParticles;
+					renderData->bounds = system->_calculateBounds();
+
+					// If using a camera-independant sorting mode, sort the particles right away
+					switch (system->mSortMode)
+					{
+					default:
+					case ParticleSortMode::None: // No sort, just point the indices back to themselves
+						renderData->indices.clear();
+						renderData->indices.reserve(numParticles);
+						for (UINT32 i = 0; i < numParticles; i++)
+							renderData->indices.push_back(i);
+						break;
+					case ParticleSortMode::OldToYoung:
+					case ParticleSortMode::YoungToOld:
+						renderData->indices.clear();
+						renderData->indices.resize(numParticles);
+						sortParticles(*system->mParticleSet, system->mSortMode, Vector3::ZERO, renderData->indices.data());
+						break;
+					case ParticleSortMode::Distance: break;
+					}
 				}
 
 				{
@@ -328,7 +332,8 @@ namespace bs
 					assert(mNumActiveWorkers > 0);
 					mNumActiveWorkers--;
 
-					renderDataGroup.data[system->mId] = renderData;
+					if(renderData)
+						renderDataGroup.data[system->mId] = renderData;
 				}
 
 				mWorkerDoneSignal.notify_one();

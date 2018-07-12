@@ -176,7 +176,7 @@ namespace bs
 
 	void ProfilerGPU::resolveSample(const ProfiledSample& sample, GPUProfileSample& reportSample)
 	{
-		reportSample.name = String(sample.name.data(), sample.name.size());
+		reportSample.name.assign(sample.name.data(), sample.name.size());
 		reportSample.timeMs = sample.activeTimeQuery->getTimeMs();
 
 		if(sample.activeOcclusionQuery)

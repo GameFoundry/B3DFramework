@@ -84,6 +84,32 @@ namespace bs
 		T evaluate(float time, bool loop = true) const;
 
 		/**
+		 * Evaluates the integrated animation curve. (e.g. evaluating a curve containing velocity values will return
+		 * a position).
+		 *
+		 * @param[in]	time				%Time to evaluate the curve at.
+		 * @param[in]	integrationCache	Cache storing the values required for integration. Generated the first time
+		 *									this method is called and re-used on subsequent calls. Caller must ensure to
+		 *									use the cache only with the curve it was originally used on. Separate caches
+		 *									need to be used for single and double integration evaluation.
+		 * @return							Interpolated value from the curve at provided time.
+		 */
+		T evaluateIntegrated(float time, const TCurveIntegrationCache<T>& integrationCache) const;
+
+		/**
+		 * Evaluates the double integrated animation curve. (e.g. evaluating a curve containing acceleration values will
+		 * return a position).
+		 *
+		 * @param[in]	time				%Time to evaluate the curve at.
+		 * @param[in]	integrationCache	Cache storing the values required for integration. Generated the first time
+		 *									this method is called and re-used on subsequent calls. Caller must ensure to
+		 *									use the cache only with the curve it was originally used on. Separate caches
+		 *									need to be used for single and double integration evaluation.
+		 * @return							Interpolated value from the curve at provided time.
+		 */
+		T evaluateIntegratedDouble(float time, const TCurveIntegrationCache<T>& integrationCache) const;
+
+		/**
 		 * Evaluate the animation curve at the specified time and returns a new keyframe containing the evaluated value
 		 * and tangents.
 		 *
@@ -109,6 +135,9 @@ namespace bs
 		 * reference keys.
 		 */
 		void makeAdditive();
+
+		/** Calculates the minimal and maximal value of the curve. */
+		std::pair<T, T> calculateRange() const;
 
 		/** Returns the length of the animation curve, from time zero to last keyframe. */
 		float getLength() const { return mEnd; }

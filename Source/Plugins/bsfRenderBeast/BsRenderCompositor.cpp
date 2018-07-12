@@ -1294,7 +1294,7 @@ namespace bs { namespace ct
 						systemsToSort.push_back({ particleSystem, renderData });
 				}
 
-				auto worker = [systemsToSort, viewOrigin = viewProps.viewOrigin](UINT32 idx)
+				const auto worker = [&systemsToSort, viewOrigin = viewProps.viewOrigin](UINT32 idx)
 				{
 					const SortData& data = systemsToSort[idx];
 
