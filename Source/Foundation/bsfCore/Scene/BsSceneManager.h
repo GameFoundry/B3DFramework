@@ -213,7 +213,7 @@ namespace bs
 		Vector<HComponent> mUninitializedComponents;
 
 		std::array<Vector<HComponent>*, 3> mComponentsPerState = 
-			{ &mActiveComponents, &mInactiveComponents, &mUninitializedComponents };
+			{ { &mActiveComponents, &mInactiveComponents, &mUninitializedComponents } };
 
 		SPtr<RenderTarget> mMainRT;
 		HEvent mMainRTResizedConn;
