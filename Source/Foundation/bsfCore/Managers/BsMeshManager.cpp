@@ -8,12 +8,6 @@
 
 namespace bs
 {
-	MeshManager::MeshManager()
-	{ }
-
-	MeshManager::~MeshManager()
-	{ }
-
 	void MeshManager::onStartUp()
 	{
 		SPtr<VertexDataDesc> vertexDesc = bs_shared_ptr_new<VertexDataDesc>();

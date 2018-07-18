@@ -12,16 +12,6 @@ namespace bs
 	Signal ResourceHandleBase::mResourceCreatedCondition;
 	Mutex ResourceHandleBase::mResourceCreatedMutex;
 
-	ResourceHandleBase::ResourceHandleBase()
-	{
-		mData = nullptr;
-	}
-
-	ResourceHandleBase::~ResourceHandleBase()
-	{
-
-	}
-
 	bool ResourceHandleBase::isLoaded(bool checkDependencies) const
 	{
 		bool isLoaded = (mData != nullptr && mData->mIsCreated && mData->mPtr != nullptr);

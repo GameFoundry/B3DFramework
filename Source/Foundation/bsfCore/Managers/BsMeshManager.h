@@ -16,9 +16,6 @@ namespace bs
 	class BS_CORE_EXPORT MeshManager : public Module<MeshManager>
 	{
 	public:
-		MeshManager();
-		~MeshManager();
-
 		/** Returns some dummy mesh data with one triangle you may use for initializing a mesh. */
 		SPtr<MeshData> getDummyMeshData() const { return mDummyMeshData; }
 

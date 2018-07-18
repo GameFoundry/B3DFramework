@@ -29,13 +29,6 @@ namespace bs
 	class BS_CORE_EXPORT ResourceHandleBase : public IReflectable
 	{
 	public:
-		ResourceHandleBase(const ResourceHandleBase& other) = default;
-		ResourceHandleBase(ResourceHandleBase&& other) = default;
-		virtual ~ResourceHandleBase();
-
-		ResourceHandleBase& operator=(const ResourceHandleBase& other) = default;
-		ResourceHandleBase& operator=(ResourceHandleBase&& other) = default;
-
 		/**
 		 * Checks if the resource is loaded. Until resource is loaded this handle is invalid and you may not get the 
 		 * internal resource from it.
@@ -72,8 +65,6 @@ namespace bs
 
 		/** @} */
 	protected:
-		ResourceHandleBase();
-
 		/**	Destroys the resource the handle is pointing to. */
 		void destroy();
 
@@ -130,9 +121,6 @@ namespace bs
 	template<>
 	class BS_CORE_EXPORT TResourceHandleBase<true> : public ResourceHandleBase
 	{
-	public:
-		virtual ~TResourceHandleBase() = default;
-
 	protected:
 		void addRef() { };
 		void releaseRef() { };
@@ -150,9 +138,6 @@ namespace bs
 	template<>
 	class BS_CORE_EXPORT TResourceHandleBase<false> : public ResourceHandleBase
 	{
-	public:
-		virtual ~TResourceHandleBase() = default;
-
 	protected:
 		void addRef()
 		{
@@ -164,10 +149,13 @@ namespace bs
 		{ 
 			if (mData)
 			{
-				std::uint32_t refCount = mData->mRefCount.fetch_sub(1, std::memory_order_relaxed);
+				std::uint32_t refCount = mData->mRefCount.fetch_sub(1, std::memory_order_release);
 
 				if (refCount == 1)
+				{
+					std::atomic_thread_fence(std::memory_order_acquire);
 					destroy();
+				}
 			}
 		};
 
@@ -186,8 +174,6 @@ namespace bs
 	class TResourceHandle : public TResourceHandleBase<WeakHandle>
 	{
 	public:
-		using TResourceHandleBase<WeakHandle>::TResourceHandleBase;
-
 		TResourceHandle() = default;
 
 		/**	Copy constructor. */
@@ -198,9 +184,9 @@ namespace bs
 		}
 
 		/** Move constructor. */
-		TResourceHandle(TResourceHandle&& other) noexcept = default;
+		TResourceHandle(TResourceHandle&& other) = default;
 
-		virtual ~TResourceHandle()
+		~TResourceHandle()
 		{
 			this->releaseRef();
 		}
@@ -245,9 +231,9 @@ namespace bs
 		}
 
 		/**	Move assignment. */
-		TResourceHandle& operator=(TResourceHandle&& other) noexcept
+		TResourceHandle& operator=(TResourceHandle&& other)
 		{
-			if(this->mData == other.mData)
+			if(this == &other)
 				return *this;
 
 			this->releaseRef();
