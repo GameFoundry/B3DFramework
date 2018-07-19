@@ -100,7 +100,7 @@ namespace bs
 		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
 
 		/** Creates a new particle emitter cone shape. */
-		static UPtr<ParticleEmitterConeShape> create(const PARTICLE_CONE_SHAPE_DESC& desc);
+		static SPtr<ParticleEmitterConeShape> create(const PARTICLE_CONE_SHAPE_DESC& desc);
 	protected:
 		PARTICLE_CONE_SHAPE_DESC mInfo;
 
@@ -147,7 +147,7 @@ namespace bs
 		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
 
 		/** Creates a new particle emitter sphere shape. */
-		static UPtr<ParticleEmitterShape> create(const PARTICLE_SPHERE_SHAPE_DESC& desc);
+		static SPtr<ParticleEmitterShape> create(const PARTICLE_SPHERE_SHAPE_DESC& desc);
 	protected:
 		PARTICLE_SPHERE_SHAPE_DESC mInfo;
 
@@ -194,7 +194,7 @@ namespace bs
 		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
 
 		/** Creates a new particle emitter sphere shape. */
-		static UPtr<ParticleEmitterShape> create(const PARTICLE_HEMISPHERE_SHAPE_DESC& desc);
+		static SPtr<ParticleEmitterShape> create(const PARTICLE_HEMISPHERE_SHAPE_DESC& desc);
 
 	protected:
 		PARTICLE_HEMISPHERE_SHAPE_DESC mInfo;
@@ -249,7 +249,7 @@ namespace bs
 		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
 
 		/** Creates a new particle emitter box shape. */
-		static UPtr<ParticleEmitterShape> create(const PARTICLE_BOX_SHAPE_DESC& desc);
+		static SPtr<ParticleEmitterShape> create(const PARTICLE_BOX_SHAPE_DESC& desc);
 
 	protected:
 		PARTICLE_BOX_SHAPE_DESC mInfo;
@@ -289,7 +289,7 @@ namespace bs
 		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
 
 		/** Creates a new particle emitter edge shape. */
-		static UPtr<ParticleEmitterShape> create(const PARTICLE_LINE_SHAPE_DESC& desc);
+		static SPtr<ParticleEmitterShape> create(const PARTICLE_LINE_SHAPE_DESC& desc);
 
 	protected:
 		PARTICLE_LINE_SHAPE_DESC mInfo;
@@ -341,7 +341,7 @@ namespace bs
 		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
 
 		/** Creates a new particle emitter circle shape. */
-		static UPtr<ParticleEmitterShape> create(const PARTICLE_CIRCLE_SHAPE_DESC& desc);
+		static SPtr<ParticleEmitterShape> create(const PARTICLE_CIRCLE_SHAPE_DESC& desc);
 
 	protected:
 		PARTICLE_CIRCLE_SHAPE_DESC mInfo;
@@ -378,7 +378,7 @@ namespace bs
 		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
 
 		/** Creates a new particle emitter rectangle shape. */
-		static UPtr<ParticleEmitterShape> create(const PARTICLE_RECT_SHAPE_DESC& desc);
+		static SPtr<ParticleEmitterShape> create(const PARTICLE_RECT_SHAPE_DESC& desc);
 
 	protected:
 		PARTICLE_RECT_SHAPE_DESC mInfo;
@@ -469,7 +469,7 @@ namespace bs
 		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
 
 		/** Creates a new particle emitter static mesh shape. */
-		static UPtr<ParticleEmitterShape> create(const PARTICLE_MESH_SHAPE_DESC& desc);
+		static SPtr<ParticleEmitterShape> create(const PARTICLE_MESH_SHAPE_DESC& desc);
 
 	protected:
 		PARTICLE_MESH_SHAPE_DESC mInfo;
@@ -510,7 +510,7 @@ namespace bs
 		void spawn(const Random& random, const ParticleSystemState& state, Vector3& position, Vector3& normal) const;
 
 		/** Creates a new particle emitter skinned mesh shape. */
-		static UPtr<ParticleEmitterShape> create(const PARTICLE_MESH_SHAPE_DESC& desc);
+		static SPtr<ParticleEmitterShape> create(const PARTICLE_MESH_SHAPE_DESC& desc);
 	protected:
 		/** Evaluates a blend matrix for a vertex at the specified index. */
 		Matrix4 getBlendMatrix(const ParticleSystemState& state, UINT32 vertexIdx) const;
@@ -541,10 +541,8 @@ namespace bs
 	class BS_CORE_EXPORT ParticleEmitter : public ParticleModule
 	{
 	public:
-		ParticleEmitter();
-
 		/** Shape over which to emit the particles. */
-		void setShape(UPtr<ParticleEmitterShape> shape) { mShape = std::move(shape); }
+		void setShape(SPtr<ParticleEmitterShape> shape) { mShape = std::move(shape); }
 
 		/** @copydoc setShape */
 		ParticleEmitterShape* getShape() const { return mShape.get(); }
@@ -659,7 +657,7 @@ namespace bs
 
 	private:
 		// User-visible properties
-		UPtr<ParticleEmitterShape> mShape;
+		SPtr<ParticleEmitterShape> mShape;
 
 		FloatDistribution mEmissionRate = 50.0f;
 		FloatDistribution mInitialLifetime = 10.0f;

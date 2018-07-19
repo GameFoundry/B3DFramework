@@ -159,10 +159,10 @@ namespace bs
 		}
 	}
 
-	UPtr<ParticleEmitterConeShape> ParticleEmitterConeShape::create(const PARTICLE_CONE_SHAPE_DESC& desc)
+	SPtr<ParticleEmitterConeShape> ParticleEmitterConeShape::create(const PARTICLE_CONE_SHAPE_DESC& desc)
 	{
 		ParticleEmitterConeShape* output = bs_new<ParticleEmitterConeShape>(desc);
-		return bs_unique_ptr(output);
+		return bs_shared_ptr(output);
 	}
 	
 	RTTITypeBase* ParticleEmitterConeShape::getRTTIStatic()
@@ -200,9 +200,9 @@ namespace bs
 		position *= mInfo.radius;
 	}
 
-	UPtr<ParticleEmitterShape> ParticleEmitterSphereShape::create(const PARTICLE_SPHERE_SHAPE_DESC& desc)
+	SPtr<ParticleEmitterShape> ParticleEmitterSphereShape::create(const PARTICLE_SPHERE_SHAPE_DESC& desc)
 	{
-		return bs_unique_ptr<ParticleEmitterShape>(bs_new<ParticleEmitterSphereShape>(desc));
+		return bs_shared_ptr<ParticleEmitterShape>(bs_new<ParticleEmitterSphereShape>(desc));
 	}
 
 	RTTITypeBase* ParticleEmitterSphereShape::getRTTIStatic()
@@ -242,9 +242,9 @@ namespace bs
 		position *= mInfo.radius;
 	}
 
-	UPtr<ParticleEmitterShape> ParticleEmitterHemisphereShape::create(const PARTICLE_HEMISPHERE_SHAPE_DESC& desc)
+	SPtr<ParticleEmitterShape> ParticleEmitterHemisphereShape::create(const PARTICLE_HEMISPHERE_SHAPE_DESC& desc)
 	{
-		return bs_unique_ptr<ParticleEmitterShape>(bs_new<ParticleEmitterHemisphereShape>(desc));
+		return bs_shared_ptr<ParticleEmitterShape>(bs_new<ParticleEmitterHemisphereShape>(desc));
 	}
 
 	RTTITypeBase* ParticleEmitterHemisphereShape::getRTTIStatic()
@@ -410,10 +410,10 @@ namespace bs
 		}
 	}
 
-	UPtr<ParticleEmitterShape> ParticleEmitterBoxShape::create(const PARTICLE_BOX_SHAPE_DESC& desc)
+	SPtr<ParticleEmitterShape> ParticleEmitterBoxShape::create(const PARTICLE_BOX_SHAPE_DESC& desc)
 	{
 		ParticleEmitterBoxShape* output = bs_new<ParticleEmitterBoxShape>(desc);
-		return bs_unique_ptr<ParticleEmitterShape>(output);
+		return bs_shared_ptr<ParticleEmitterShape>(output);
 	}
 
 	RTTITypeBase* ParticleEmitterBoxShape::getRTTIStatic()
@@ -449,9 +449,9 @@ namespace bs
 		normal = Vector3::UNIT_Z;
 	}
 
-	UPtr<ParticleEmitterShape> ParticleEmitterLineShape::create(const PARTICLE_LINE_SHAPE_DESC& desc)
+	SPtr<ParticleEmitterShape> ParticleEmitterLineShape::create(const PARTICLE_LINE_SHAPE_DESC& desc)
 	{
-		return bs_unique_ptr<ParticleEmitterShape>(bs_new<ParticleEmitterLineShape>(desc));
+		return bs_shared_ptr<ParticleEmitterShape>(bs_new<ParticleEmitterLineShape>(desc));
 	}
 
 	RTTITypeBase* ParticleEmitterLineShape::getRTTIStatic()
@@ -493,10 +493,10 @@ namespace bs
 		normal = Vector3::UNIT_Z;
 	}
 
-	UPtr<ParticleEmitterShape> ParticleEmitterCircleShape::create(const PARTICLE_CIRCLE_SHAPE_DESC& desc)
+	SPtr<ParticleEmitterShape> ParticleEmitterCircleShape::create(const PARTICLE_CIRCLE_SHAPE_DESC& desc)
 	{
 		ParticleEmitterCircleShape* output = bs_new<ParticleEmitterCircleShape>(desc);
-		return bs_unique_ptr<ParticleEmitterShape>(output);
+		return bs_shared_ptr<ParticleEmitterShape>(output);
 	}
 
 	RTTITypeBase* ParticleEmitterCircleShape::getRTTIStatic()
@@ -535,9 +535,9 @@ namespace bs
 		normal = Vector3::UNIT_Z;
 	}
 
-	UPtr<ParticleEmitterShape> ParticleEmitterRectShape::create(const PARTICLE_RECT_SHAPE_DESC& desc)
+	SPtr<ParticleEmitterShape> ParticleEmitterRectShape::create(const PARTICLE_RECT_SHAPE_DESC& desc)
 	{
-		return bs_unique_ptr<ParticleEmitterShape>(bs_new<ParticleEmitterRectShape>(desc));
+		return bs_shared_ptr<ParticleEmitterShape>(bs_new<ParticleEmitterRectShape>(desc));
 	}
 
 	RTTITypeBase* ParticleEmitterRectShape::getRTTIStatic()
@@ -711,13 +711,13 @@ namespace bs
 		}
 	}
 
-	UPtr<ParticleEmitterShape> ParticleEmitterStaticMeshShape::create(const PARTICLE_MESH_SHAPE_DESC& desc)
+	SPtr<ParticleEmitterShape> ParticleEmitterStaticMeshShape::create(const PARTICLE_MESH_SHAPE_DESC& desc)
 	{
 		// TODO - Only support TRIANGLE_LIST draw operation
 		// TODO - Ensure mesh-data at least has position (with correct type)
 
 		ParticleEmitterStaticMeshShape* output = bs_new<ParticleEmitterStaticMeshShape>(desc);
-		return bs_unique_ptr<ParticleEmitterShape>(output);
+		return bs_shared_ptr<ParticleEmitterShape>(output);
 	}
 
 	RTTITypeBase* ParticleEmitterStaticMeshShape::getRTTIStatic()
@@ -931,14 +931,14 @@ namespace bs
 		}
 	}
 
-	UPtr<ParticleEmitterShape> ParticleEmitterSkinnedMeshShape::create(const PARTICLE_MESH_SHAPE_DESC& desc)
+	SPtr<ParticleEmitterShape> ParticleEmitterSkinnedMeshShape::create(const PARTICLE_MESH_SHAPE_DESC& desc)
 	{
 		// TODO - Only support TRIANGLE_LIST draw operation
 		// TODO - Ensure mesh-data at least has position (with correct type)
 		// TODO - Ensure mesh data has bone weights and indices (with correct types)
 
 		ParticleEmitterSkinnedMeshShape* output = bs_new<ParticleEmitterSkinnedMeshShape>(desc);
-		return bs_unique_ptr<ParticleEmitterShape>(output);
+		return bs_shared_ptr<ParticleEmitterShape>(output);
 	}
 
 	RTTITypeBase* ParticleEmitterSkinnedMeshShape::getRTTIStatic()
@@ -950,10 +950,6 @@ namespace bs
 	{
 		return getRTTIStatic();
 	}
-
-	ParticleEmitter::ParticleEmitter()
-		:mShape(bs_unique_ptr<ParticleEmitterShape>(nullptr))
-	{ }
 
 	void ParticleEmitter::spawn(Random& random, const ParticleSystemState& state, ParticleSet& set) const
 	{

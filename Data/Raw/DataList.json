@@ -45,10 +45,6 @@
         {
             "Path": "bsfIcon.png",
             "UUID": "fc1a1c8f-4242-c2e9-728b-42429f5b7cd2"
-        },
-        {
-            "Path": "BansheeIcon.png",
-            "UUID": "385b2a7c-43f2-993b-9a9d-43f2fdb2c51d"
         }
     ],
     "Includes": [

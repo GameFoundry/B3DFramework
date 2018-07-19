@@ -137,14 +137,14 @@ namespace bs
 		~ParticleSystem() final;
 
 		/** Registers a new particle emitter. */
-		void addEmitter(UPtr<ParticleEmitter> emitter)
+		void addEmitter(SPtr<ParticleEmitter> emitter)
 		{
 			emitter->setParent(this);
 			mEmitters.push_back(std::move(emitter));
 		}
 
 		/** Registers a new particle evolver. */
-		void addEvolver(UPtr<ParticleEvolver> evolver)
+		void addEvolver(SPtr<ParticleEvolver> evolver)
 		{
 			mSortedEvolvers.insert(evolver.get());
 
@@ -185,7 +185,7 @@ namespace bs
 		void removeEmitter(ParticleEmitter* emitter)
 		{
 			const auto iterFind = std::find_if(mEmitters.begin(), mEmitters.end(), 
-				[emitter](const UPtr<ParticleEmitter>& curEmitter)
+				[emitter](const SPtr<ParticleEmitter>& curEmitter)
 			{
 				return curEmitter.get() == emitter;
 				
@@ -199,7 +199,7 @@ namespace bs
 		void removeEvolver(ParticleEvolver* evolver)
 		{
 			const auto iterFind = std::find_if(mEvolvers.begin(), mEvolvers.end(), 
-				[evolver](const UPtr<ParticleEvolver>& curEvolver)
+				[evolver](const SPtr<ParticleEvolver>& curEvolver)
 			{
 				return curEvolver.get() == evolver;
 				
@@ -331,8 +331,8 @@ namespace bs
 		typedef std::function<bool(const ParticleEvolver*, const ParticleEvolver*)> EvolverComparison; 
 		Set<ParticleEvolver*, EvolverComparison> mSortedEvolvers;
 
-		Vector<UPtr<ParticleEvolver>> mEvolvers;
-		Vector<UPtr<ParticleEmitter>> mEmitters;
+		Vector<SPtr<ParticleEvolver>> mEvolvers;
+		Vector<SPtr<ParticleEmitter>> mEmitters;
 
 		// Internal state
 		UINT32 mId = 0;

@@ -276,9 +276,9 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(mInitialColor, 9)
 			BS_RTTI_MEMBER_PLAIN(mFlipU, 10)
 			BS_RTTI_MEMBER_PLAIN(mFlipV, 11)
+			BS_RTTI_MEMBER_REFLPTR(mShape, 12)
 		BS_END_RTTI_MEMBERS
 
-		// TODO - Serialize shape
 	public:
 		const String& getRTTIName() override
 		{
@@ -370,9 +370,10 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(mGravityScale, 9)
 			BS_RTTI_MEMBER_PLAIN(mManualSeed, 10)
 			BS_RTTI_MEMBER_REFL(mMaterial, 11)
+			BS_RTTI_MEMBER_REFLPTR_ARRAY(mEmitters, 12)
+			BS_RTTI_MEMBER_REFLPTR_ARRAY(mEvolvers, 13)
 		BS_END_RTTI_MEMBERS
 
-		// TODO - Serialize emitters & evolvers
 	public:
 		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
