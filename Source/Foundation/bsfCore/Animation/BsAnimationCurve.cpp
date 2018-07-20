@@ -936,7 +936,6 @@ namespace bs
 			impl::calculateCoeffs(lhs, rhs, lhs.time, coeffs);
 			impl::calcMinMax(output, lhs.time, rhs.time, coeffs);
 
-			// Evaluate at end for step tangents
 			T endVal = impl::evaluateCubic(rhs.time, lhs.time, 0.0f, coeffs);
 			impl::getMinMax(output, endVal);
 		}
@@ -947,14 +946,15 @@ namespace bs
 	template <class T>
 	std::pair<T, T> TAnimationCurve<T>::calculateRangeIntegrated(const TCurveIntegrationCache<T>& cache) const
 	{
+		std::pair<T, T> output = std::make_pair(impl::getZero<T>(), impl::getZero<T>());
+
 		const auto numKeys = (UINT32)mKeyframes.size();
 		if(numKeys == 0)
-			return std::make_pair(impl::getZero<T>(), impl::getZero<T>());
+			return output;
 
 		if(!cache.segmentSums)
 			buildIntegrationCache(cache);
 
-		std::pair<T, T> output = { std::numeric_limits<T>::infinity(), -std::numeric_limits<T>::infinity() };
 		for(UINT32 i = 1; i < numKeys; i++)
 		{
 			const KeyFrame& lhs = mKeyframes[i - 1];
@@ -963,7 +963,6 @@ namespace bs
 			T (&coeffs)[4] = cache.coeffs[i - 1];
 			impl::calcMinMaxIntegrated(output, lhs.time, rhs.time, cache.segmentSums[i - 1], coeffs);
 
-			// Evaluate at end for step tangents
 			float t = rhs.time - lhs.time;
 			T endVal = (T)(cache.segmentSums[i - 1] + impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t);
 			impl::getMinMax(output, endVal);
@@ -975,14 +974,15 @@ namespace bs
 	template <class T>
 	std::pair<T, T> TAnimationCurve<T>::calculateRangeIntegratedDouble(const TCurveIntegrationCache<T>& cache) const
 	{
+		std::pair<T, T> output = std::make_pair(impl::getZero<T>(), impl::getZero<T>());
+
 		const auto numKeys = (UINT32)mKeyframes.size();
 		if(numKeys == 0)
-			return std::make_pair(impl::getZero<T>(), impl::getZero<T>());
+			return output;
 
 		if(!cache.segmentSums)
 			buildDoubleIntegrationCache(cache);
 
-		std::pair<T, T> output = { std::numeric_limits<T>::infinity(), -std::numeric_limits<T>::infinity() };
 		for(UINT32 i = 1; i < numKeys; i++)
 		{
 			const KeyFrame& lhs = mKeyframes[i - 1];
@@ -992,7 +992,6 @@ namespace bs
 			impl::calcMinMaxIntegratedDouble(output, lhs.time, rhs.time, cache.doubleSegmentSums[i - 1], 
 				cache.segmentSums[i - 1], coeffs);
 
-			// Evaluate at end for step tangents
 			float t = rhs.time - lhs.time;
 			T endVal = (T)(cache.doubleSegmentSums[i - 1] + cache.segmentSums[i - 1] * t + 
 				impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t * t);
@@ -1065,7 +1064,7 @@ namespace bs
 			coeffs[2] = (T)(coeffs[2] / 3.0f);
 			coeffs[3] = (T)(coeffs[3] / 2.0f);
 
-			value = (T)(value * t + cache.segmentSums[i - 1] * t);
+			value = (T)(impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t * t + cache.segmentSums[i - 1] * t);
 			cache.doubleSegmentSums[i] = cache.doubleSegmentSums[i - 1] + value;
 		}
 	}
