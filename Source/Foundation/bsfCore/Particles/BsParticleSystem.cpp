@@ -139,6 +139,7 @@ namespace bs
 		// Spawn new particles
 		ParticleSystemState state;
 		state.time = newTime;
+		state.nrmTime = newTime / mDuration;
 		state.length = mDuration;
 		state.timeStep = timeStep;
 		state.maxParticles = mMaxParticles;
@@ -152,6 +153,10 @@ namespace bs
 
 		UINT32 numParticles = mParticleSet->getParticleCount();
 		const ParticleSetData& particles = mParticleSet->getParticles();
+
+		// Remember old positions
+		for(UINT32 i = 0; i < numParticles; i++)
+			particles.prevPosition[i] = particles.position[i];
 
 		// Apply gravity
 		if(mGravityScale != 0.0f)

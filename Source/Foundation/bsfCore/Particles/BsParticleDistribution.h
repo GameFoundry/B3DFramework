@@ -201,7 +201,7 @@ namespace bs
 		 * @return				Evaluated value.
 		 *
 		 */
-		T evaluate(float t, Random& factor) const
+		T evaluate(float t, const Random& factor) const
 		{
 			switch(mType)
 			{

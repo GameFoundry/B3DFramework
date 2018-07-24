@@ -325,6 +325,34 @@ namespace bs
 		}
 	};
 
+	class BS_CORE_EXPORT ParticleOrbitRTTI : public RTTIType<ParticleOrbit, IReflectable, ParticleOrbitRTTI>
+	{
+	private:
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN_NAMED(center, mDesc.center, 0)
+			BS_RTTI_MEMBER_PLAIN_NAMED(velocity, mDesc.velocity, 1)
+			BS_RTTI_MEMBER_PLAIN_NAMED(radial, mDesc.radial, 2)
+			BS_RTTI_MEMBER_PLAIN_NAMED(worldSpace, mDesc.worldSpace, 3)
+		BS_END_RTTI_MEMBERS
+
+	public:
+		const String& getRTTIName() override
+		{
+			static String name = "ParticleOrbit";
+			return name;
+		}
+
+		UINT32 getRTTIId() override
+		{
+			return TID_ParticleOrbit;
+		}
+
+		SPtr<IReflectable> newRTTIObject() override
+		{
+			return bs_shared_ptr_new<ParticleOrbit>();
+		}
+	};
+
 	class BS_CORE_EXPORT ParticleCollisionsRTTI : 
 		public RTTIType<ParticleCollisions, IReflectable, ParticleCollisionsRTTI>
 	{

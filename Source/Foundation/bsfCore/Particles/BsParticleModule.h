@@ -17,6 +17,7 @@ namespace bs
 	struct ParticleSystemState
 	{
 		float time;
+		float nrmTime;
 		float length;
 		float timeStep;
 		UINT32 maxParticles;

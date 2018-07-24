@@ -61,6 +61,7 @@ namespace bs
 
 		UINT32 capacity = 0;
 
+		Vector3* prevPosition = nullptr;
 		Vector3* position = nullptr;
 		Vector3* velocity = nullptr;
 		Vector3* size = nullptr;
@@ -84,6 +85,7 @@ namespace bs
 				reserve<Vector3>(capacity).
 				reserve<Vector3>(capacity).
 				reserve<Vector3>(capacity).
+				reserve<Vector3>(capacity).
 				reserve<float>(capacity).
 				reserve<float>(capacity).
 				reserve<RGBA>(capacity).
@@ -92,6 +94,7 @@ namespace bs
 				reserve<UINT32>(capacity).
 				init();
 
+			prevPosition = alloc.alloc<Vector3>(capacity);
 			position = alloc.alloc<Vector3>(capacity);
 			velocity = alloc.alloc<Vector3>(capacity);
 			size = alloc.alloc<Vector3>(capacity);
@@ -107,6 +110,7 @@ namespace bs
 		/** Frees the internal buffers. */
 		void free()
 		{
+			if(prevPosition) alloc.free(prevPosition);
 			if(position) alloc.free(position);
 			if(velocity) alloc.free(velocity);
 			if(size) alloc.free(size);
@@ -124,6 +128,7 @@ namespace bs
 		/** Transfers ownership of @p other internal buffers to this object. */
 		void move(ParticleSetData& other)
 		{
+			prevPosition = std::exchange(other.prevPosition, nullptr);
 			position = std::exchange(other.position, nullptr);
 			velocity = std::exchange(other.velocity, nullptr);
 			size = std::exchange(other.size, nullptr);
@@ -144,6 +149,7 @@ namespace bs
 		{
 			assert(capacity >= other.capacity);
 
+			bs_copy(prevPosition, other.prevPosition, other.capacity);
 			bs_copy(position, other.position, other.capacity);
 			bs_copy(velocity, other.velocity, other.capacity);
 			bs_copy(size, other.size, other.capacity);
@@ -214,6 +220,7 @@ namespace bs
 			const UINT32 lastIdx = mCount - 1;
 			if(idx != lastIdx)
 			{
+				std::swap(mParticles.prevPosition[idx], mParticles.prevPosition[lastIdx]);
 				std::swap(mParticles.position[idx], mParticles.position[lastIdx]);
 				std::swap(mParticles.velocity[idx], mParticles.velocity[lastIdx]);
 				std::swap(mParticles.size[idx], mParticles.size[lastIdx]);

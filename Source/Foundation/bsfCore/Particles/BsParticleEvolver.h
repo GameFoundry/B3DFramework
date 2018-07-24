@@ -81,6 +81,50 @@ namespace bs
 		RTTITypeBase* getRTTI() const override;
 	};
 
+	/** Structure used for initializing a ParticleOrbit object. */
+	struct PARTICLE_ORBIT_DESC
+	{
+		/** Position of the center around which to orbit. Evaluated over particle system lifetime. */
+		Vector3Distribution center = Vector3(0.0f, 0.0f, 0.0f);
+
+		/** 
+		 * Determines the speed of rotation around each axis. The speed is specified in "turns" where 0 = no rotation, 
+		 * 0.5 = 180 degree rotation and 1 = 360 degree rotation. Evaluated over particle lifetime.
+		 */
+		Vector3Distribution velocity = Vector3(0.0f, 1.0f, 0.0f);
+
+		/** Speed at which to push or pull the particles towards/away from the center. Evaluated over particle lifetime. */
+		FloatDistribution radial = 0.0f;
+
+		/** True if the properties provided are in world space, false if in local space. */
+		bool worldSpace = false;
+	};
+
+	/** Moves particles so that their sprites orbit their center according to the provided offset and rotation values. */
+	class BS_CORE_EXPORT ParticleOrbit : public ParticleEvolver
+	{
+	public:
+		ParticleOrbit(const PARTICLE_ORBIT_DESC&desc);
+
+		/** @copydoc ParticleEvolver::evolve */
+		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const override;
+
+		/** @copydoc ParticleEvolver::isAnalytical */
+		bool isAnalytical() const override { return true; }
+	private:
+		PARTICLE_ORBIT_DESC mDesc;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		ParticleOrbit() = default; // RTTI only
+
+		friend class ParticleOrbitRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
+	};
+
 	/** Types of collision modes that ParticleCollisions evolver can operate in. */
 	enum class ParticleCollisionMode
 	{

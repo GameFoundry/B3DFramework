@@ -622,6 +622,7 @@ namespace bs
 		TID_ParticleEmitterSkinnedMeshShape = 1170,
 		TID_ParticleTextureAnimation = 1171,
 		TID_ParticleCollisions = 1172,
+		TID_ParticleOrbit = 1173,
 
 		// Moved from Engine layer
 		TID_CCamera = 30000,

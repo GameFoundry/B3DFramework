@@ -924,7 +924,7 @@ namespace bs
 		if(!mShape || !mShape->isValid())
 			return;
 
-		const float t = state.time / state.length;
+		const float t = state.nrmTime;
 		const float rate = mEmissionRate.evaluate(t, random);
 
 		mEmitAccumulator += rate * state.timeStep;

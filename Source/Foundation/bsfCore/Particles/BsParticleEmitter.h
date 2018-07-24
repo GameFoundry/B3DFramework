@@ -70,7 +70,7 @@ namespace bs
 		ParticleEmitterConeType type = ParticleEmitterConeType::Base;
 
 		/** Radius of the cone base. */
-		float radius = 1.0f;
+		float radius = 0.0f;
 
 		/** Angle of the cone. */
 		Degree angle = Degree(45.0f);
@@ -83,7 +83,7 @@ namespace bs
 		 * edge of the cone, while thickness of 1 results in particles being emitted from the entire volume. In-between
 		 * values will use a part of the volume.
 		 */
-		float thickness = 0.0f;
+		float thickness = 1.0f;
 
 		/** Angular portion of the cone from which to emit particles from, in degrees. */
 		Degree arc = Degree(360.0f);

@@ -16,6 +16,42 @@ namespace bs
 	// Arbitrary random numbers to add variation to different random particle properties, since we use just a single
 	// seed value per particle
 	static constexpr UINT32 PARTICLE_ROW_VARIATION = 0x1e8b2f4a;
+	static constexpr UINT32 PARTICLE_ORBIT_VELOCITY = 0x24c00a5b;
+	static constexpr UINT32 PARTICLE_ORBIT_RADIAL = 0x35978d21;
+
+	/** Helper method that applies a transform to either a point or a direction. */
+	template<bool dir>
+	Vector3 applyTransform(const Matrix4& tfrm, const Vector3& input)
+	{
+		return tfrm.multiplyAffine(input);		
+	}
+
+	template<>
+	Vector3 applyTransform<true>(const Matrix4& tfrm, const Vector3& input)
+	{
+		return tfrm.multiplyDirection(input);
+	}
+
+	/**
+	 * Evaluates a 3D vector distribution and transforms the output into the same space as the particle system. 
+	 * @p inWorldSpace parameter controls whether the values in the distribution are assumed to be in world or local space.
+	 * 
+	 * @tparam	dir		If true the evaluated vector is assumed to be a direction, otherwise a point.
+	 */
+	template<bool dir = false>
+	Vector3 evaluateTransformed(const Vector3Distribution& distribution, const ParticleSystemState& state, float t, 
+		const Random& factor, bool inWorldSpace)
+	{
+		const Vector3 output = distribution.evaluate(t, factor);
+
+		if(state.worldSpace == inWorldSpace)
+			return output;
+
+		if(state.worldSpace)
+			return applyTransform<dir>(state.localToWorld, output);
+		else
+			return applyTransform<dir>(state.worldToLocal, output);
+	}
 
 	ParticleTextureAnimation::ParticleTextureAnimation(const PARTICLE_TEXTURE_ANIMATION_DESC& desc)
 		:mDesc(desc)
@@ -87,6 +123,52 @@ namespace bs
 	}
 
 	RTTITypeBase* ParticleTextureAnimation::getRTTI() const
+	{
+		return getRTTIStatic();
+	}
+
+	ParticleOrbit::ParticleOrbit(const PARTICLE_ORBIT_DESC& desc)
+		:mDesc(desc)
+	{ }
+
+	void ParticleOrbit::evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const
+	{
+		const UINT32 count = set.getParticleCount();
+		ParticleSetData& particles = set.getParticles();
+
+		const Vector3 center = evaluateTransformed(mDesc.center, state, state.nrmTime, random, mDesc.worldSpace);
+		for (UINT32 i = 0; i < count; i++)
+		{
+			const float particleT = (particles.initialLifetime[i] - particles.lifetime[i]) / particles.initialLifetime[i];
+
+			const UINT32 velocitySeed = particles.seed[i] + PARTICLE_ORBIT_VELOCITY;
+			Vector3 orbitVelocity = evaluateTransformed<true>(mDesc.velocity, state, particleT, Random(velocitySeed), 
+				mDesc.worldSpace);
+			orbitVelocity *= Math::TWO_PI;
+			orbitVelocity *= state.timeStep;
+
+			const Matrix3 rotation(Radian(orbitVelocity.x), Radian(orbitVelocity.y), Radian(orbitVelocity.z));
+
+			const Vector3 point = particles.position[i] - center;
+			const Vector3 newPoint = rotation.multiply(point);
+
+			Vector3 velocity = newPoint - point;
+
+			const UINT32 radialSeed = particles.seed[i] + PARTICLE_ORBIT_RADIAL;
+			const float radial = mDesc.radial.evaluate(particleT, Random(radialSeed).getUNorm());
+			if(radial != 0.0f)
+				velocity += Vector3::normalize(point) * radial * state.timeStep;
+
+			particles.position[i] += velocity;
+		}
+	}
+
+	RTTITypeBase* ParticleOrbit::getRTTIStatic()
+	{
+		return ParticleOrbitRTTI::instance();
+	}
+
+	RTTITypeBase* ParticleOrbit::getRTTI() const
 	{
 		return getRTTIStatic();
 	}
@@ -260,13 +342,10 @@ namespace bs
 
 			for(UINT32 i = 0; i < numRays; i++)
 			{
-				Vector3& position = particles.position[rayStart + i];
-				Vector3& velocity = particles.velocity[rayStart + i];
+				const Vector3& prevPosition = particles.prevPosition[rayStart + i];
+				const Vector3& position = particles.position[rayStart + i];
 
-				const Vector3 from = position - velocity * state.timeStep;
-				const Vector3 to = position;
-
-				segments[i] = LineSegment3(from, to);
+				segments[i] = LineSegment3(prevPosition, position);
 			}
 
 			if(!state.worldSpace)
