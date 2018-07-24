@@ -18,6 +18,7 @@ namespace bs
 	static constexpr UINT32 PARTICLE_ROW_VARIATION = 0x1e8b2f4a;
 	static constexpr UINT32 PARTICLE_ORBIT_VELOCITY = 0x24c00a5b;
 	static constexpr UINT32 PARTICLE_ORBIT_RADIAL = 0x35978d21;
+	static constexpr UINT32 PARTICLE_LINEAR_VELOCITY = 0x0a299430;
 
 	/** Helper method that applies a transform to either a point or a direction. */
 	template<bool dir>
@@ -169,6 +170,37 @@ namespace bs
 	}
 
 	RTTITypeBase* ParticleOrbit::getRTTI() const
+	{
+		return getRTTIStatic();
+	}
+
+	ParticleVelocity::ParticleVelocity(const PARTICLE_VELOCITY_DESC& desc)
+		:mDesc(desc)
+	{ }
+
+	void ParticleVelocity::evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const
+	{
+		const UINT32 count = set.getParticleCount();
+		ParticleSetData& particles = set.getParticles();
+
+		for (UINT32 i = 0; i < count; i++)
+		{
+			const float particleT = (particles.initialLifetime[i] - particles.lifetime[i]) / particles.initialLifetime[i];
+
+			const UINT32 velocitySeed = particles.seed[i] + PARTICLE_ORBIT_VELOCITY;
+			const Vector3 velocity = evaluateTransformed<true>(mDesc.velocity, state, particleT, Random(velocitySeed), 
+				mDesc.worldSpace) * state.timeStep;
+
+			particles.position[i] += velocity;
+		}
+	}
+
+	RTTITypeBase* ParticleVelocity::getRTTIStatic()
+	{
+		return ParticleVelocityRTTI::instance();
+	}
+
+	RTTITypeBase* ParticleVelocity::getRTTI() const
 	{
 		return getRTTIStatic();
 	}

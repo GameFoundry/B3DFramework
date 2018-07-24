@@ -125,6 +125,41 @@ namespace bs
 		RTTITypeBase* getRTTI() const override;
 	};
 
+	/** Structure used for initializing a ParticleVelocity object. */
+	struct PARTICLE_VELOCITY_DESC
+	{
+		/** Determines the velocity of the particles evaluated over particle lifetime. */
+		Vector3Distribution velocity = Vector3(0.0f, 1.0f, 0.0f);
+
+		/** True if the velocity is provided in world space, false if in local space. */
+		bool worldSpace = false;
+	};
+
+	/** Applies linear velocity to the particles. */
+	class BS_CORE_EXPORT ParticleVelocity : public ParticleEvolver
+	{
+	public:
+		ParticleVelocity(const PARTICLE_VELOCITY_DESC&desc);
+
+		/** @copydoc ParticleEvolver::evolve */
+		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const override;
+
+		/** @copydoc ParticleEvolver::isAnalytical */
+		bool isAnalytical() const override { return true; }
+	private:
+		PARTICLE_VELOCITY_DESC mDesc;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		ParticleVelocity() = default; // RTTI only
+
+		friend class ParticleVelocityRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
+	};
+
 	/** Types of collision modes that ParticleCollisions evolver can operate in. */
 	enum class ParticleCollisionMode
 	{

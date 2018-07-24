@@ -623,6 +623,7 @@ namespace bs
 		TID_ParticleTextureAnimation = 1171,
 		TID_ParticleCollisions = 1172,
 		TID_ParticleOrbit = 1173,
+		TID_ParticleVelocity = 1174,
 
 		// Moved from Engine layer
 		TID_CCamera = 30000,
