@@ -635,8 +635,9 @@ namespace bs {	namespace ct
 		RendererParticles& rendererParticles = mInfo.particleSystems.back();
 		rendererParticles.particleSystem = particleSystem;
 
+		const ParticleSystemSettings& settings = particleSystem->getSettings();
 		Matrix4 transform;
-		if(particleSystem->getSimulationSpace() == ParticleSimulationSpace::Local)
+		if(settings.simulationSpace == ParticleSimulationSpace::Local)
 			transform = particleSystem->getTransform().getMatrix();
 		else
 			transform = Matrix4::IDENTITY;
@@ -644,7 +645,7 @@ namespace bs {	namespace ct
 		SPtr<GpuParamBlockBuffer> paramBuffer = gParticlesParamDef.createBuffer();
 		gParticlesParamDef.gWorldTfrm.set(paramBuffer, transform);
 
-		Vector3 axisForward = particleSystem->getOrientationPlane().normal;
+		Vector3 axisForward = settings.orientationPlane.normal;
 
 		Vector3 axisUp = Vector3::UNIT_Y;
 		if(axisForward.dot(axisUp) > 0.9998f)
@@ -661,7 +662,7 @@ namespace bs {	namespace ct
 		ParticlesRenderElement& renElement = rendererParticles.renderElement;
 		renElement.type = (UINT32)RenderElementType::Particle;
 
-		renElement.material = particleSystem->getMaterial();
+		renElement.material = settings.material;
 
 		if (renElement.material != nullptr && renElement.material->getShader() == nullptr)
 			renElement.material = nullptr;
@@ -690,8 +691,8 @@ namespace bs {	namespace ct
 			gParticlesParamDef.gSubImageSize.set(paramBuffer, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 		}
 
-		const ParticleOrientation orientation = particleSystem->getOrientation();
-		const bool lockY = particleSystem->getOrientationLockY();
+		const ParticleOrientation orientation = settings.orientation;
+		const bool lockY = settings.orientationLockY;
 		const ShaderVariation* variation = &getParticleShaderVariation(orientation, lockY);
 
 		FIND_TECHNIQUE_DESC findDesc;
@@ -1023,7 +1024,8 @@ namespace bs {	namespace ct
 
 			AABox worldBounds = iterFind->second->bounds;
 
-			if (entry.particleSystem->getSimulationSpace() == ParticleSimulationSpace::Local)
+			const ParticleSystemSettings& settings = entry.particleSystem->getSettings();
+			if (settings.simulationSpace == ParticleSimulationSpace::Local)
 				worldBounds.transformAffine(entry.particleSystem->getTransform().getMatrix());
 
 			mInfo.particleSystemBounds[rendererId] = worldBounds;

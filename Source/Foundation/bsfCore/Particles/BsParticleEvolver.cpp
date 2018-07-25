@@ -66,7 +66,7 @@ namespace bs
 		SpriteTexture* texture = nullptr;
 		if(mParent)
 		{
-			const HMaterial& material = mParent->getMaterial();
+			const HMaterial& material = mParent->getSettings().material;
 			if(material.isLoaded(false))
 			{
 				const HSpriteTexture& spriteTex = material->getSpriteTexture("gTexture");

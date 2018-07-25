@@ -308,7 +308,8 @@ namespace bs
 					renderData->bounds = system->_calculateBounds();
 
 					// If using a camera-independant sorting mode, sort the particles right away
-					switch (system->mSortMode)
+					const ParticleSystemSettings& settings = system->getSettings();
+					switch (settings.sortMode)
 					{
 					default:
 					case ParticleSortMode::None: // No sort, just point the indices back to themselves
@@ -321,7 +322,7 @@ namespace bs
 					case ParticleSortMode::YoungToOld:
 						renderData->indices.clear();
 						renderData->indices.resize(numParticles);
-						sortParticles(*system->mParticleSet, system->mSortMode, Vector3::ZERO, renderData->indices.data());
+						sortParticles(*system->mParticleSet, settings.sortMode, Vector3::ZERO, renderData->indices.data());
 						break;
 					case ParticleSortMode::Distance: break;
 					}

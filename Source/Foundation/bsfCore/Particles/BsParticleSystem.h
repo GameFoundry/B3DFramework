@@ -25,6 +25,16 @@ namespace bs
 
 	namespace ct { class ParticleSystem; }
 
+	/** @addtogroup Implementation
+	 *  @{
+	 */
+
+	template<bool Core> struct TMaterialHandleType { };
+	template<> struct TMaterialHandleType<false> { typedef HMaterial Type; };
+	template<> struct TMaterialHandleType<true> { typedef SPtr<ct::Material> Type; };
+
+	/** @} */
+
 	/** @addtogroup Particles
 	 *  @{
 	 */
@@ -74,55 +84,82 @@ namespace bs
 		YoungToOld
 	};
 
-	/** Common code used by both sim and core thread variations of ParticleSystem. */
-	class BS_CORE_EXPORT ParticleSystemBase : public SceneActor, public INonCopyable
+	/** @addtogroup Implementation
+	 *  @{
+	 */
+
+	/** Template version of ParticleSystemSettings used for creating the object for both sim and core threads. */
+	template<bool Core>
+	struct TParticleSystemSettings
 	{
-	public:
-		virtual ~ParticleSystemBase() = default;
+		typedef typename TMaterialHandleType<Core>::Type MaterialType;
 
 		/** Determines in which space are particles in. */
-		void setSimulationSpace(ParticleSimulationSpace value);
-
-		/** @copydoc setSimulationSpace */
-		ParticleSimulationSpace getSimulationSpace() const { return mSimulationSpace; }
+		ParticleSimulationSpace simulationSpace = ParticleSimulationSpace::World;
 
 		/** Determines how are particles oriented when rendering. */
-		void setOrientation(ParticleOrientation orientation) { mOrientation = orientation; _markCoreDirty(); }
-
-		/** @copydoc setOrientation */
-		ParticleOrientation getOrientation() const { return mOrientation; }
+		ParticleOrientation orientation = ParticleOrientation::ViewPlane;
 
 		/** 
 		 * Determines should the particles only be allowed to orient themselves around the Y axis, or freely. Ignored if
 		 * using the Plane orientation mode.
 		 */
-		void setOrientationLockY(bool lockY) { mOrientationLockY = lockY; _markCoreDirty(); }
-
-		/** @copydoc setOrientationLockY */
-		bool getOrientationLockY() const { return mOrientationLockY; }
+		bool orientationLockY = false;
 
 		/** 
-		 * Sets a plane to orient particles towards. Only used if particle orientation mode is set to 
+		 * Determines a plane to orient particles towards. Only used if particle orientation mode is set to 
 		 * ParticleOrientation::Plane. 
 		 */
-		void setOrientationPlane(const Plane& plane) { mOrientationPlane = plane; _markCoreDirty(); }
-
-		/** @copydoc setOrientationPlane */
-		Plane getOrientationPlane() const { return mOrientationPlane; }
+		Plane orientationPlane = Plane(Vector3::UNIT_Z, Vector3::ZERO);
 
 		/** Determines how (and if) are particles sorted. Sorting controls in what order are particles rendered. */
-		void setSortMode(ParticleSortMode sortMode) { mSortMode = sortMode; _markCoreDirty(); }
+		ParticleSortMode sortMode = ParticleSortMode::None;
 
-		/** @copydoc setSortMode */
-		ParticleSortMode getSortMode() const { return mSortMode; }
+		/** 
+		 * Determines the time period during which the system runs, in seconds. This effects evaluation of distributions
+		 * with curves using particle system time for evaluation.
+		 */
+		float duration = 5.0f;
 
-	protected:
-		ParticleSimulationSpace mSimulationSpace = ParticleSimulationSpace::World;
-		ParticleOrientation mOrientation = ParticleOrientation::ViewPlane;
-		bool mOrientationLockY = false;
-		Plane mOrientationPlane = Plane(Vector3::UNIT_Z, Vector3::ZERO);
-		ParticleSortMode mSortMode = ParticleSortMode::None;
+		/** Determines should the particle system time wrap around once it reaches its duration. */
+		bool isLooping = true;
+
+		/** Determines the maximum number of particles that can ever be active in this system. */
+		UINT32 maxParticles = 2000;
+
+		/** 
+		 * Determines should an automatic seed be used for the internal random number generator. This ensures the particle
+		 * system yields different results each time it is ran.
+		 */
+		bool useAutomaticSeed = true;
+
+		/** Scales the gravity (as set in the Physics module) and applies it to particles. */
+		float gravityScale = 0.0f;
+
+		/** 
+		 * Determines the seed to use for the internal random number generator. Allows you to guarantee identical behaviour
+		 * between different runs. Only relevant if automatic seed is disabled.
+		 */
+		UINT32 manualSeed = 0;
+
+		/** Material to render the particles with. */
+		MaterialType material;
 	};
+
+	/** @} */
+
+	/** @addtogroup Particles
+	 *  @{
+	 */
+
+	/** Settings used for controlling a ParticleSystem. */
+	struct ParticleSystemSettings : TParticleSystemSettings<false> { };
+
+	namespace ct
+	{
+		/** Core thread counterpart of bs::ParticleSystemSettings. */
+		struct ParticleSystemSettings : TParticleSystemSettings<true> { };
+	}
 
 	/** 
 	 * Controls spawning, evolution and rendering of particles. Particles can be 2D or 3D, with a variety of rendering
@@ -132,10 +169,16 @@ namespace bs
 	 * The particle system requires you to specify at least one ParticleEmitter, which controls how are new particles
 	 * generated. You will also want to specify one or more ParticleEvolver%s, which change particle properties over time.
 	 */
-	class BS_CORE_EXPORT ParticleSystem final : public IReflectable, public CoreObject, public ParticleSystemBase
+	class BS_CORE_EXPORT ParticleSystem final : public IReflectable, public CoreObject, public SceneActor, public INonCopyable 
 	{
 	public:
 		~ParticleSystem() final;
+
+		/** Determines general purpose settings that apply to the particle system. */
+		void setSettings(const ParticleSystemSettings& settings);
+
+		/** @copydoc setSettings */
+		const ParticleSystemSettings& getSettings() const { return mSettings; }
 
 		/** Registers a new particle emitter. */
 		void addEmitter(SPtr<ParticleEmitter> emitter)
@@ -221,58 +264,6 @@ namespace bs
 		/** Stops the particle system and resets it to initial state, clearing all particles. */
 		void stop();
 
-		/** Determines the duration during which the system runs, in seconds. */
-		void setDuration(float duration) { mDuration = duration; }
-
-		/** @copydoc setDuration */
-		float getDuration() const { return mDuration; }
-
-		/** Determines should the system start playing again once it reaches the end. */
-		void setLooping(bool loop) { mIsLooping = loop; }
-
-		/** @copydoc setLooping */
-		bool getLooping() const { return mIsLooping; }
-
-		/** Determines the maximum number of particles that can ever be active in this system. */
-		void setMaxParticles(UINT32 value);
-
-		/** @copydoc setMaxParticles */
-		UINT32 getMaxParticles() const { return mMaxParticles; }
-
-		/** 
-		 * Determines should an automatic seed be used for the internal random number generator. This ensures the particle
-		 * system yields different results each time it is ran.
-		 */
-		void setUseAutomaticSeed(bool enable);
-
-		/** @copydoc setUseAutomaticSeed */
-		bool getUseAutomaticSeed() const { return mUseAutomaticSeed; }
-
-		/** Scales the gravity (as set in the Physics module) and applies it to particles. */
-		void setGravityScale(float scale) { mGravityScale = scale; }
-
-		/** @copydoc setGravityScale */
-		float getGravityScale() const { return mGravityScale; }
-
-		/** 
-		 * Determines the seed to use for the internal random number generator. Allows you to guarantee identical behaviour
-		 * between different runs. Only relevant if automatic seed is disabled.
-		 */
-		void setManualSeed(UINT32 seed);
-
-		/** @copydoc setManualSeed */
-		UINT32 getManualSeed() const { return mSeed; }
-
-		/** Material to render the particles with. */
-		void setMaterial(const HMaterial& material)
-		{
-			mMaterial = material;
-			_markCoreDirty();
-		}
-
-		/** @copydoc setMaterial */
-		const HMaterial& getMaterial() const { return mMaterial; }
-
 		/**	Retrieves an implementation of the particle system usable only from the core thread. */
 		SPtr<ct::ParticleSystem> getCore() const;
 
@@ -320,14 +311,7 @@ namespace bs
 		/**	Creates a new ParticleSystem instance without initializing it. */
 		static SPtr<ParticleSystem> createEmpty();
 
-		// User-visible properties
-		float mDuration = 5.0f;
-		bool mIsLooping = true;
-		UINT32 mMaxParticles = 2000;
-		bool mUseAutomaticSeed = true;
-		float mGravityScale = 0.0f;
-		UINT32 mManualSeed = 0;
-		HMaterial mMaterial;
+		ParticleSystemSettings mSettings;
 
 		typedef std::function<bool(const ParticleEvolver*, const ParticleEvolver*)> EvolverComparison; 
 		Set<ParticleEvolver*, EvolverComparison> mSortedEvolvers;
@@ -374,10 +358,13 @@ namespace bs
 		};
 
 		/** Core thread counterpart of bs::ParticleSystem. */
-		class BS_CORE_EXPORT ParticleSystem final : public CoreObject, public ParticleSystemBase
+		class BS_CORE_EXPORT ParticleSystem final : public CoreObject, public SceneActor, public INonCopyable 
 		{
 		public:
 			~ParticleSystem();
+
+			/** @copydoc bs::ParticleSystem::setSettings */
+			const ParticleSystemSettings& getSettings() const { return mSettings; }
 
 			/**	Sets an ID that can be used for uniquely identifying this object by the renderer. */
 			void setRendererId(UINT32 id) { mRendererId = id; }
@@ -390,12 +377,6 @@ namespace bs
 			 * system render data in the structure output by the ParticlesManager. 
 			 */
 			UINT32 getId() const { return mId; }
-
-			/** @copydoc bs::ParticleSystem::setMaterial */
-			void setMaterial(SPtr<Material> material) { mMaterial = std::move(material); }
-
-			/** @copydoc setMaterial() */
-			const SPtr<Material>& getMaterial() const { return mMaterial; }
 
 			/** @copydoc CoreObject::initialize */
 			void initialize() override;
@@ -412,7 +393,7 @@ namespace bs
 			UINT32 mRendererId = 0;
 			UINT32 mId;
 
-			SPtr<Material> mMaterial;
+			ParticleSystemSettings mSettings;
 		};
 	}
 

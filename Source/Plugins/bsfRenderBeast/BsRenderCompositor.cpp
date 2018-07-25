@@ -1290,7 +1290,7 @@ namespace bs { namespace ct
 						continue;
 
 					ParticleRenderData* renderData = iterFind->second;
-					if (particleSystem->getSortMode() == ParticleSortMode::Distance)
+					if (particleSystem->getSettings().sortMode == ParticleSortMode::Distance)
 						systemsToSort.push_back({ particleSystem, renderData });
 				}
 
@@ -1301,7 +1301,8 @@ namespace bs { namespace ct
 					Vector3 refPoint = viewOrigin;
 
 					// Transform the view point into particle system's local space
-					if (data.system->getSimulationSpace() == ParticleSimulationSpace::Local)
+					const ParticleSystemSettings& settings = data.system->getSettings();
+					if (settings.simulationSpace == ParticleSimulationSpace::Local)
 						refPoint = data.system->getTransform().getInvMatrix().multiplyAffine(refPoint);
 
 					data.renderData->updateSortIndices(refPoint);

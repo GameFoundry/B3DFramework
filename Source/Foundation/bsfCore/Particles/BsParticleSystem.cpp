@@ -24,15 +24,6 @@ namespace bs
 			return a->getPriority() > b->getPriority();
 	}
 
-	void ParticleSystemBase::setSimulationSpace(ParticleSimulationSpace value)
-	{
-		if(mSimulationSpace == value)
-			return;
-
-		mSimulationSpace = value;
-		_markCoreDirty();
-	}
-
 	ParticleSystem::ParticleSystem()
 		:mSortedEvolvers(&evolverCompareCallback)
 	{
@@ -47,38 +38,32 @@ namespace bs
 		if(mParticleSet)
 			bs_delete(mParticleSet);
 	}
-
-	void ParticleSystem::setManualSeed(UINT32 seed)
+		
+	void ParticleSystem::setSettings(const ParticleSystemSettings& settings)
 	{
-		mManualSeed = seed;
-
-		if(!mUseAutomaticSeed)
+		if(settings.useAutomaticSeed != mSettings.useAutomaticSeed)
 		{
-			mSeed = seed;
-			mRandom.setSeed(seed);
+			if(settings.useAutomaticSeed)
+				mSeed = rand();
+			else
+				mSeed = settings.manualSeed;
+
+			mRandom.setSeed(mSeed);
 		}
-	}
-
-	void ParticleSystem::setUseAutomaticSeed(bool enable)
-	{
-		if(mUseAutomaticSeed == enable)
-			return;
-
-		if(enable)
-			mSeed = rand();
 		else
-			mSeed = mManualSeed;
+		{
+			if(!settings.useAutomaticSeed)
+			{
+				mSeed = settings.manualSeed;
+				mRandom.setSeed(mSeed);
+			}
+		}
 
-		mRandom.setSeed(mSeed);
-	}
+		if(settings.maxParticles < mSettings.maxParticles)
+			mParticleSet->clear(settings.maxParticles);
 
-	void ParticleSystem::setMaxParticles(UINT32 value)
-	{
-		if(mMaxParticles == value)
-			return;
-
-		mParticleSet->clear(value);
-		mMaxParticles = value;
+		mSettings = settings; 
+		_markCoreDirty();
 	}
 
 	void ParticleSystem::play()
@@ -88,7 +73,7 @@ namespace bs
 
 		if(mState == State::Uninitialized)
 		{
-			UINT32 particleCapacity = std::min(mMaxParticles, INITIAL_PARTICLE_CAPACITY);
+			UINT32 particleCapacity = std::min(mSettings.maxParticles, INITIAL_PARTICLE_CAPACITY);
 			mParticleSet = bs_new<ParticleSet>(particleCapacity);
 		}
 
@@ -120,14 +105,14 @@ namespace bs
 		float newTime = mTime;
 
 		float timeStep = timeDelta;
-		if(newTime >= mDuration)
+		if(newTime >= mSettings.duration)
 		{
-			if(mIsLooping)
-				newTime = fmod(newTime, mDuration);
+			if(mSettings.isLooping)
+				newTime = fmod(newTime, mSettings.duration);
 			else
 			{
-				timeStep = mTime - mDuration;
-				newTime = mDuration;
+				timeStep = mTime - mSettings.duration;
+				newTime = mSettings.duration;
 			}
 		}
 		else
@@ -139,11 +124,11 @@ namespace bs
 		// Spawn new particles
 		ParticleSystemState state;
 		state.time = newTime;
-		state.nrmTime = newTime / mDuration;
-		state.length = mDuration;
+		state.nrmTime = newTime / mSettings.duration;
+		state.length = mSettings.duration;
 		state.timeStep = timeStep;
-		state.maxParticles = mMaxParticles;
-		state.worldSpace = mSimulationSpace == ParticleSimulationSpace::World;
+		state.maxParticles = mSettings.maxParticles;
+		state.worldSpace = mSettings.simulationSpace == ParticleSimulationSpace::World;
 		state.localToWorld = mTransform.getMatrix();
 		state.worldToLocal = state.localToWorld.inverseAffine();
 		state.animData = animData;
@@ -159,10 +144,10 @@ namespace bs
 			particles.prevPosition[i] = particles.position[i];
 
 		// Apply gravity
-		if(mGravityScale != 0.0f)
+		if(mSettings.gravityScale != 0.0f)
 		{
 			// TODO - If the system is analytic don't apply gravity incrementally
-			Vector3 gravity = gPhysics().getGravity() * mGravityScale;
+			Vector3 gravity = gPhysics().getGravity() * mSettings.gravityScale;
 
 			if(!state.worldSpace)
 				gravity = state.worldToLocal.multiplyDirection(gravity);
@@ -256,26 +241,26 @@ namespace bs
 		const UINT32 size = 
 			getActorSyncDataSize() +
 			rttiGetElemSize(getCoreDirtyFlags()) +
-			rttiGetElemSize(mSimulationSpace) +
-			rttiGetElemSize(mOrientation) +
-			rttiGetElemSize(mOrientationPlane) +
-			rttiGetElemSize(mOrientationLockY) +
-			rttiGetElemSize(mSortMode) + 
+			rttiGetElemSize(mSettings.simulationSpace) +
+			rttiGetElemSize(mSettings.orientation) +
+			rttiGetElemSize(mSettings.orientationPlane) +
+			rttiGetElemSize(mSettings.orientationLockY) +
+			rttiGetElemSize(mSettings.sortMode) + 
 			sizeof(SPtr<ct::Material>);
 
 		UINT8* data = allocator->alloc(size);
 		char* dataPtr = (char*)data;
 		dataPtr = syncActorTo(dataPtr);
 		dataPtr = rttiWriteElem(getCoreDirtyFlags(), dataPtr);
-		dataPtr = rttiWriteElem(mSimulationSpace, dataPtr);
-		dataPtr = rttiWriteElem(mOrientation, dataPtr);
-		dataPtr = rttiWriteElem(mOrientationPlane, dataPtr);
-		dataPtr = rttiWriteElem(mOrientationLockY, dataPtr);
-		dataPtr = rttiWriteElem(mSortMode, dataPtr);
+		dataPtr = rttiWriteElem(mSettings.simulationSpace, dataPtr);
+		dataPtr = rttiWriteElem(mSettings.orientation, dataPtr);
+		dataPtr = rttiWriteElem(mSettings.orientationPlane, dataPtr);
+		dataPtr = rttiWriteElem(mSettings.orientationLockY, dataPtr);
+		dataPtr = rttiWriteElem(mSettings.sortMode, dataPtr);
 
 		SPtr<ct::Material>* material = new (dataPtr) SPtr<ct::Material>();
-		if (mMaterial.isLoaded())
-			*material = mMaterial->getCore();
+		if (mSettings.material.isLoaded())
+			*material = mSettings.material->getCore();
 
 		dataPtr += sizeof(SPtr<ct::Material>);
 
@@ -330,14 +315,14 @@ namespace bs
 
 			dataPtr = syncActorFrom(dataPtr);
 			dataPtr = rttiReadElem(dirtyFlags, dataPtr);
-			dataPtr = rttiReadElem(mSimulationSpace, dataPtr);
-			dataPtr = rttiReadElem(mOrientation, dataPtr);
-			dataPtr = rttiReadElem(mOrientationPlane, dataPtr);
-			dataPtr = rttiReadElem(mOrientationLockY, dataPtr);
-			dataPtr = rttiReadElem(mSortMode, dataPtr);
+			dataPtr = rttiReadElem(mSettings.simulationSpace, dataPtr);
+			dataPtr = rttiReadElem(mSettings.orientation, dataPtr);
+			dataPtr = rttiReadElem(mSettings.orientationPlane, dataPtr);
+			dataPtr = rttiReadElem(mSettings.orientationLockY, dataPtr);
+			dataPtr = rttiReadElem(mSettings.sortMode, dataPtr);
 
 			SPtr<Material>* material = (SPtr<Material>*)dataPtr;
-			mMaterial = *material;
+			mSettings.material = *material;
 			material->~SPtr<Material>();
 			dataPtr += sizeof(SPtr<Material>);
 
