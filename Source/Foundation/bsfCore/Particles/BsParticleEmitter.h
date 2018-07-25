@@ -41,6 +41,14 @@ namespace bs
 		virtual UINT32 spawn(const Random& random, ParticleSet& particles, UINT32 count, 
 			const ParticleSystemState& state) const = 0;
 
+		/**
+		 * Calculates the bounds of the emitter shape.
+		 * 
+		 * @param[in]	shape		AABB for the emitter shape itself.
+		 * @param[in]	velocity	AABB for the generated normals.
+		 */
+		virtual void calcBounds(AABox& shape, AABox& velocity) const = 0;
+
 		/** 
 		 * Checks has the emitter been initialized properly. If the emitter is not valid then the spawn() method is
 		 * not allowed to be called.
@@ -107,6 +115,9 @@ namespace bs
 		/** Spawns a single particle, generating its position and normal. */
 		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
 
+		/** @copydoc ParticleEmitterShape::calcBounds */
+		void calcBounds(AABox& shape, AABox& velocity) const override;
+
 		/** Creates a new particle emitter cone shape. */
 		static SPtr<ParticleEmitterConeShape> create(const PARTICLE_CONE_SHAPE_DESC& desc);
 	protected:
@@ -154,6 +165,9 @@ namespace bs
 		/** Spawns a single particle, generating its position and normal. */
 		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
 
+		/** @copydoc ParticleEmitterShape::calcBounds */
+		void calcBounds(AABox& shape, AABox& velocity) const override;
+
 		/** Creates a new particle emitter sphere shape. */
 		static SPtr<ParticleEmitterShape> create(const PARTICLE_SPHERE_SHAPE_DESC& desc);
 	protected:
@@ -200,6 +214,9 @@ namespace bs
 
 		/** Spawns a single particle, generating its position and normal. */
 		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
+
+		/** @copydoc ParticleEmitterShape::calcBounds */
+		void calcBounds(AABox& shape, AABox& velocity) const override;
 
 		/** Creates a new particle emitter sphere shape. */
 		static SPtr<ParticleEmitterShape> create(const PARTICLE_HEMISPHERE_SHAPE_DESC& desc);
@@ -256,6 +273,9 @@ namespace bs
 		/** Spawns a single particle, generating its position and normal. */
 		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
 
+		/** @copydoc ParticleEmitterShape::calcBounds */
+		void calcBounds(AABox& shape, AABox& velocity) const override;
+
 		/** Creates a new particle emitter box shape. */
 		static SPtr<ParticleEmitterShape> create(const PARTICLE_BOX_SHAPE_DESC& desc);
 
@@ -295,6 +315,9 @@ namespace bs
 
 		/** Spawns a single particle, generating its position and normal. */
 		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
+
+		/** @copydoc ParticleEmitterShape::calcBounds */
+		void calcBounds(AABox& shape, AABox& velocity) const override;
 
 		/** Creates a new particle emitter edge shape. */
 		static SPtr<ParticleEmitterShape> create(const PARTICLE_LINE_SHAPE_DESC& desc);
@@ -348,6 +371,9 @@ namespace bs
 		/** Spawns a single particle, generating its position and normal. */
 		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
 
+		/** @copydoc ParticleEmitterShape::calcBounds */
+		void calcBounds(AABox& shape, AABox& velocity) const override;
+
 		/** Creates a new particle emitter circle shape. */
 		static SPtr<ParticleEmitterShape> create(const PARTICLE_CIRCLE_SHAPE_DESC& desc);
 
@@ -384,6 +410,9 @@ namespace bs
 
 		/** Spawns a single particle, generating its position and normal. */
 		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
+
+		/** @copydoc ParticleEmitterShape::calcBounds */
+		void calcBounds(AABox& shape, AABox& velocity) const override;
 
 		/** Creates a new particle emitter rectangle shape. */
 		static SPtr<ParticleEmitterShape> create(const PARTICLE_RECT_SHAPE_DESC& desc);
@@ -515,6 +544,9 @@ namespace bs
 		/** Spawns a single particle, generating its position and normal. */
 		void spawn(const Random& random, Vector3& position, Vector3& normal) const;
 
+		/** @copydoc ParticleEmitterShape::calcBounds */
+		void calcBounds(AABox& shape, AABox& velocity) const override;
+
 		/** Creates a new particle emitter static mesh shape. */
 		static SPtr<ParticleEmitterShape> create(const PARTICLE_STATIC_MESH_SHAPE_DESC& desc);
 
@@ -565,6 +597,9 @@ namespace bs
 
 		/** Spawns a single particle, generating its position and normal. */
 		void spawn(const Random& random, const Matrix4* bones, Vector3& position, Vector3& normal) const;
+
+		/** @copydoc ParticleEmitterShape::calcBounds */
+		void calcBounds(AABox& shape, AABox& velocity) const override;
 
 		/** Creates a new particle emitter skinned mesh shape. */
 		static SPtr<ParticleEmitterShape> create(const PARTICLE_SKINNED_MESH_SHAPE_DESC& desc);

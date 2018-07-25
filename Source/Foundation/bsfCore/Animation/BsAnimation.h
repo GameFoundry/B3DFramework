@@ -325,14 +325,20 @@ namespace bs
 		/** Determines the speed for all animations. The default value is 1.0f. Use negative values to play-back in reverse. */
 		void setSpeed(float speed);
 
-		/** Sets bounds that will be used for animation culling, if enabled. Bounds must be in world space. */
+		/** Determines bounds that will be used for animation culling, if enabled. Bounds must be in world space. */
 		void setBounds(const AABox& bounds);
+
+		/** @copydoc setBounds */
+		const AABox& getBounds() const { return mBounds; }
 
 		/** 
 		 * When enabled, animation that is not in a view of any camera will not be evaluated. View determination is done by
 		 * checking the bounds provided in setBounds().
 		 */
 		void setCulling(bool cull);
+
+		/** @copydoc setCulling */
+		bool getCulling() const { return mCull; }
 
 		/** 
 		 * Plays the specified animation clip. 

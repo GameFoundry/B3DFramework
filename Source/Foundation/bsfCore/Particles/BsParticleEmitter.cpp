@@ -176,6 +176,29 @@ namespace bs
 		ParticleEmitterConeShape* output = bs_new<ParticleEmitterConeShape>(desc);
 		return bs_shared_ptr(output);
 	}
+
+	void ParticleEmitterConeShape::calcBounds(AABox& shape, AABox& velocity) const
+	{
+		const float sinAngle = Math::sin(mInfo.angle);
+		const float cosAngle = Math::cos(mInfo.angle);
+
+		if(mInfo.type == ParticleEmitterConeType::Base)
+		{
+			shape.setMin(Vector3(-mInfo.radius, -mInfo.radius, 0.0f));
+			shape.setMax(Vector3(mInfo.radius, mInfo.radius, 0.0f));
+		}
+		else
+		{
+			const float topRadius = mInfo.radius + mInfo.length * sinAngle;
+			const float length = mInfo.length * cosAngle;
+
+			shape.setMin(Vector3(-topRadius, -topRadius, 0.0f));
+			shape.setMax(Vector3(topRadius, topRadius, length));
+		}
+
+		velocity.setMin(Vector3(-sinAngle, -sinAngle, 0.0f));
+		velocity.setMax(Vector3(sinAngle, sinAngle, 1.0f));
+	}
 	
 	RTTITypeBase* ParticleEmitterConeShape::getRTTIStatic()
 	{
@@ -205,6 +228,15 @@ namespace bs
 		position *= mInfo.radius;
 	}
 
+	void ParticleEmitterSphereShape::calcBounds(AABox& shape, AABox& velocity) const
+	{
+		shape.setMin(Vector3::ONE * -mInfo.radius);
+		shape.setMax(Vector3::ONE * mInfo.radius);
+
+		velocity.setMin(-Vector3::ONE);
+		velocity.setMax(Vector3::ONE);
+	}
+	
 	SPtr<ParticleEmitterShape> ParticleEmitterSphereShape::create(const PARTICLE_SPHERE_SHAPE_DESC& desc)
 	{
 		return bs_shared_ptr<ParticleEmitterShape>(bs_new<ParticleEmitterSphereShape>(desc));
@@ -240,6 +272,15 @@ namespace bs
 		position *= mInfo.radius;
 	}
 
+	void ParticleEmitterHemisphereShape::calcBounds(AABox& shape, AABox& velocity) const
+	{
+		shape.setMin(Vector3(-mInfo.radius, -mInfo.radius, 0.0f));
+		shape.setMax(Vector3::ONE * mInfo.radius);
+
+		velocity.setMin(Vector3(-1.0f, -1.0f, 0.0f));
+		velocity.setMax(Vector3::ONE);
+	}
+	
 	SPtr<ParticleEmitterShape> ParticleEmitterHemisphereShape::create(const PARTICLE_HEMISPHERE_SHAPE_DESC& desc)
 	{
 		return bs_shared_ptr<ParticleEmitterShape>(bs_new<ParticleEmitterHemisphereShape>(desc));
@@ -400,6 +441,15 @@ namespace bs
 		}
 	}
 
+	void ParticleEmitterBoxShape::calcBounds(AABox& shape, AABox& velocity) const
+	{
+		shape.setMin(-mInfo.extents);
+		shape.setMax(mInfo.extents);
+
+		velocity.setMin(Vector3::ZERO);
+		velocity.setMax(Vector3::UNIT_Z);
+	}
+
 	SPtr<ParticleEmitterShape> ParticleEmitterBoxShape::create(const PARTICLE_BOX_SHAPE_DESC& desc)
 	{
 		ParticleEmitterBoxShape* output = bs_new<ParticleEmitterBoxShape>(desc);
@@ -428,8 +478,17 @@ namespace bs
 
 	void ParticleEmitterLineShape::spawn(const Random& random, Vector3& position, Vector3& normal) const
 	{
-		position = random.getSNorm() * mInfo.length * 0.5f;
+		position = Vector3(random.getSNorm() * mInfo.length * 0.5f, 0.0f, 0.0f);
 		normal = Vector3::UNIT_Z;
+	}
+
+	void ParticleEmitterLineShape::calcBounds(AABox& shape, AABox& velocity) const
+	{
+		shape.setMin(Vector3(-mInfo.length * 0.5f, 0.0f, 0.0f));
+		shape.setMax(Vector3(mInfo.length * 0.5f, 0.0f, 0.0f));
+
+		velocity.setMin(Vector3::ZERO);
+		velocity.setMax(Vector3::UNIT_Z);
 	}
 
 	SPtr<ParticleEmitterShape> ParticleEmitterLineShape::create(const PARTICLE_LINE_SHAPE_DESC& desc)
@@ -469,6 +528,15 @@ namespace bs
 		normal = Vector3::UNIT_Z;
 	}
 
+	void ParticleEmitterCircleShape::calcBounds(AABox& shape, AABox& velocity) const
+	{
+		shape.setMin(Vector3(-mInfo.radius, -mInfo.radius, 0.0f));
+		shape.setMax(Vector3(mInfo.radius, mInfo.radius, 0.0f));
+
+		velocity.setMin(Vector3::ZERO);
+		velocity.setMax(Vector3::UNIT_Z);
+	}
+
 	SPtr<ParticleEmitterShape> ParticleEmitterCircleShape::create(const PARTICLE_CIRCLE_SHAPE_DESC& desc)
 	{
 		ParticleEmitterCircleShape* output = bs_new<ParticleEmitterCircleShape>(desc);
@@ -502,6 +570,15 @@ namespace bs
 		position.z = 0.0f;
 
 		normal = Vector3::UNIT_Z;
+	}
+
+	void ParticleEmitterRectShape::calcBounds(AABox& shape, AABox& velocity) const
+	{
+		shape.setMin(Vector3(-mInfo.extents.x, -mInfo.extents.y, 0.0f));
+		shape.setMax(Vector3(mInfo.extents.x, mInfo.extents.y, 0.0f));
+
+		velocity.setMin(Vector3::ZERO);
+		velocity.setMax(Vector3::UNIT_Z);
 	}
 
 	SPtr<ParticleEmitterShape> ParticleEmitterRectShape::create(const PARTICLE_RECT_SHAPE_DESC& desc)
@@ -783,6 +860,17 @@ namespace bs
 		}
 	}
 
+	void ParticleEmitterStaticMeshShape::calcBounds(AABox& shape, AABox& velocity) const
+	{
+		if(mInfo.mesh.isLoaded(false))
+			shape = mInfo.mesh->getProperties().getBounds().getBox();
+		else
+			shape = AABox::BOX_EMPTY;
+
+		velocity.setMin(-Vector3::ONE);
+		velocity.setMax(Vector3::ONE);
+	}
+
 	SPtr<ParticleEmitterShape> ParticleEmitterStaticMeshShape::create(const PARTICLE_STATIC_MESH_SHAPE_DESC& desc)
 	{
 		ParticleEmitterStaticMeshShape* output = bs_new<ParticleEmitterStaticMeshShape>(desc);
@@ -901,6 +989,35 @@ namespace bs
 			}
 			break;
 		}
+	}
+
+	void ParticleEmitterSkinnedMeshShape::calcBounds(AABox& shape, AABox& velocity) const
+	{
+		if(mInfo.renderable)
+		{
+			const SPtr<Animation>& anim = mInfo.renderable->getAnimation();
+			if(anim)
+			{
+				// No culling, make the box infinite
+				if(!anim->getCulling())
+					shape = AABox::INF_BOX;
+				else
+					shape = anim->getBounds();
+			}
+			else
+			{
+				const HMesh& mesh = mInfo.renderable->getMesh();
+				if (mesh.isLoaded(false))
+					shape = mesh->getProperties().getBounds().getBox();
+				else
+					shape = AABox::BOX_EMPTY;
+			}
+		}
+		else
+			shape = AABox::BOX_EMPTY;
+
+		velocity.setMin(-Vector3::ONE);
+		velocity.setMax(Vector3::ONE);
 	}
 
 	SPtr<ParticleEmitterShape> ParticleEmitterSkinnedMeshShape::create(const PARTICLE_SKINNED_MESH_SHAPE_DESC& desc)
