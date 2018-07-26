@@ -35,15 +35,15 @@ namespace bs
 		return normal.dot(point) - d;
 	}
 
-	Plane::Side Plane::getSide(const Vector3& point) const
+	Plane::Side Plane::getSide(const Vector3& point, const float epsilon) const
 	{
 		float dist = getDistance(point);
 
-		if (dist < 0.0f)
-			return Plane::NEGATIVE_SIDE;
-
-		if (dist > 0.0f)
+		if (dist > epsilon)
 			return Plane::POSITIVE_SIDE;
+
+		if (dist < -epsilon)
+			return Plane::NEGATIVE_SIDE;
 
 		return Plane::NO_SIDE;
 	}
