@@ -55,7 +55,7 @@ namespace bs
 		}
 
 		/** Gets the dynamic size of the object. If object has no dynamic size, static size of the object is returned. */
-		virtual UINT32 getDynamicSize(void* object)
+		virtual UINT32 getDynamicSize(RTTITypeBase* rtti, void* object)
 		{
 			return 0;
 		}
@@ -64,7 +64,7 @@ namespace bs
 		 * Gets the dynamic size of an array element. If the element has no dynamic size, static size of the element 
 		 * is returned.
 		 */
-		virtual UINT32 getArrayElemDynamicSize(void* object, int index)
+		virtual UINT32 getArrayElemDynamicSize(RTTITypeBase* rtti, void* object, int index)
 		{
 			return 0;
 		}
@@ -73,33 +73,41 @@ namespace bs
 		 * Retrieves the value from the provided field of the provided object, and copies it into the buffer. It does not 
 		 * check if buffer is large enough.
 		 */
-		virtual void toBuffer(void* object, void* buffer) = 0;
+		virtual void toBuffer(RTTITypeBase* rtti, void* object, void* buffer) = 0;
 
 		/**
 		 * Retrieves the value at the specified array index on the provided field of the provided object, and copies it into
 		 * the buffer. It does not check if buffer is large enough.
 		 */
-		virtual void arrayElemToBuffer(void* object, int index, void* buffer) = 0;
+		virtual void arrayElemToBuffer(RTTITypeBase* rtti, void* object, int index, void* buffer) = 0;
 
 		/**
 		 * Sets the value on the provided field of the provided object. Value is copied from the buffer. It does not check 
 		 * the value in the buffer in any way. You must make sure buffer points to the proper location and contains the 
 		 * proper type.
 		 */
-		virtual void fromBuffer(void* object, void* buffer) = 0;
+		virtual void fromBuffer(RTTITypeBase* rtti, void* object, void* buffer) = 0;
 
 		/**
 		 * Sets the value at the specified array index on the provided field of the provided object. Value is copied from 
 		 * the buffer. It does not check the value in the buffer in any way. You must make sure buffer points to the proper 
 		 * location and contains the proper type.
 		 */
-		virtual void arrayElemFromBuffer(void* object, int index, void* buffer) = 0;
+		virtual void arrayElemFromBuffer(RTTITypeBase* rtti, void* object, int index, void* buffer) = 0;
 	};
 
 	/** Represents a plain class field containing a specific type. */
-	template <class DataType, class ObjectType>
+	template <class InterfaceType, class DataType, class ObjectType>
 	struct RTTIPlainField : public RTTIPlainFieldBase
 	{
+		typedef DataType& (InterfaceType::*GetterType)(ObjectType*);
+		typedef void (InterfaceType::*SetterType)(ObjectType*, DataType&);
+
+		typedef DataType& (InterfaceType::*ArrayGetterType)(ObjectType*, UINT32);
+		typedef void (InterfaceType::*ArraySetterType)(ObjectType*, UINT32, DataType&);
+		typedef UINT32(InterfaceType::*ArrayGetSizeType)(ObjectType*);
+		typedef void(InterfaceType::*ArraySetSizeType)(ObjectType*, UINT32);
+
 		/**
 		 * Initializes a plain field containing a single value.
 		 *
@@ -107,11 +115,11 @@ namespace bs
 		 * @param[in]	uniqueId	Unique identifier for this field. Although name is also a unique identifier we want a 
 		 *							small data type that can be used for efficiently serializing data to disk and similar. 
 		 *							It is primarily used for compatibility between different versions of serialized data.
-		 * @param[in]	getter  	The getter method for the field. Must be a specific signature: DataType(ObjectType*).
-		 * @param[in]	setter  	The setter method for the field. Must be a specific signature: void(ObjectType*, DataType)
+		 * @param[in]	getter  	The getter method for the field.
+		 * @param[in]	setter  	The setter method for the field.
 		 * @param[in]	flags		Various flags you can use to specialize how outside systems handle this field. See "RTTIFieldFlag".
 		 */
-		void initSingle(const String& name, UINT16 uniqueId, Any getter, Any setter, UINT64 flags)
+		void initSingle(const String& name, UINT16 uniqueId, GetterType getter, SetterType setter, UINT64 flags)
 		{
 			static_assert(sizeof(RTTIPlainType<DataType>::id) > 0, "Type has no RTTI ID."); // Just making sure provided type has a type ID
 
@@ -119,7 +127,10 @@ namespace bs
 				"Trying to create a plain RTTI field with size larger than 255. In order to use larger sizes for plain types please specialize " \
 				" RTTIPlainType, set hasDynamicSize to true.");
 
-			initAll(getter, setter, nullptr, nullptr, name, uniqueId, false, SerializableFT_Plain, flags);
+			this->getter = getter;
+			this->setter = setter;
+
+			init(name, uniqueId, false, SerializableFT_Plain, flags);
 		}
 
 		/**
@@ -129,14 +140,14 @@ namespace bs
 		 * @param[in]	uniqueId	Unique identifier for this field. Although name is also a unique identifier we want a 
 		 *							small data type that can be used for efficiently serializing data to disk and similar. 
 		 *							It is primarily used for compatibility between different versions of serialized data.
-		 * @param[in]	getter  	The getter method for the field. Must be a specific signature: DataType(ObjectType*, UINT32)
-		 * @param[in]	getSize 	Getter method that returns the size of an array. Must be a specific signature: UINT32(ObjectType*)
-		 * @param[in]	setter  	The setter method for the field. Must be a specific signature: void(ObjectType*, UINT32, DataType)
-		 * @param[in]	setSize 	Setter method that allows you to resize an array. Can be null. Must be a specific signature: void(ObjectType*, UINT32)
+		 * @param[in]	getter  	The getter method for the field.
+		 * @param[in]	getSize 	Getter method that returns the size of an array.
+		 * @param[in]	setter  	The setter method for the field.
+		 * @param[in]	setSize 	Setter method that allows you to resize an array. Can be null.
 		 * @param[in]	flags		Various flags you can use to specialize how outside systems handle this field. See "RTTIFieldFlag".
 		 */
-		void initArray(const String& name, UINT16 uniqueId, Any getter,
-			Any getSize, Any setter, Any setSize, UINT64 flags)
+		void initArray(const String& name, UINT16 uniqueId, ArrayGetterType getter,
+			ArrayGetSizeType getSize, ArraySetterType setter, ArraySetSizeType setSize, UINT64 flags)
 		{
 			static_assert((RTTIPlainType<DataType>::id != 0) || true, ""); // Just making sure provided type has a type ID
 
@@ -144,7 +155,12 @@ namespace bs
 				"Trying to create a plain RTTI field with size larger than 255. In order to use larger sizes for plain types please specialize " \
 				" RTTIPlainType, set hasDynamicSize to true.");
 
-			initAll(getter, setter, getSize, setSize, name, uniqueId, true, SerializableFT_Plain, flags);
+			arrayGetter = getter;
+			arraySetter = setter;
+			arrayGetSize = getSize;
+			arraySetSize = setSize;
+
+			init(name, uniqueId, true, SerializableFT_Plain, flags);
 		}
 
 		/** @copydoc RTTIField::getTypeSize */
@@ -166,127 +182,142 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainFieldBase::getDynamicSize */
-		UINT32 getDynamicSize(void* object) override
+		UINT32 getDynamicSize(RTTITypeBase* rtti, void* object) override
 		{
 			checkIsArray(false);
 			checkType<DataType>();
 
+			InterfaceType* rttiObject = static_cast<InterfaceType*>(rtti);
 			ObjectType* castObject = static_cast<ObjectType*>(object);
-
-			std::function<DataType&(ObjectType*)> f = any_cast<std::function<DataType&(ObjectType*)>>(valueGetter);
-			DataType value = f(castObject);
+			DataType value = (rttiObject->*getter)(castObject);
 
 			return RTTIPlainType<DataType>::getDynamicSize(value);
 		}
 
 		/** @copydoc RTTIPlainFieldBase::getArrayElemDynamicSize */
-		UINT32 getArrayElemDynamicSize(void* object, int index) override
+		UINT32 getArrayElemDynamicSize(RTTITypeBase* rtti, void* object, int index) override
 		{
 			checkIsArray(true);
 			checkType<DataType>();
 
+			InterfaceType* rttiObject = static_cast<InterfaceType*>(rtti);
 			ObjectType* castObject = static_cast<ObjectType*>(object);
-
-			std::function<DataType&(ObjectType*, UINT32)> f = any_cast<std::function<DataType&(ObjectType*, UINT32)>>(valueGetter);
-			DataType value = f(castObject, index);
+			DataType value = (rttiObject->*arrayGetter)(castObject, index);
 
 			return RTTIPlainType<DataType>::getDynamicSize(value);
 		}
 
 		/** Returns the size of the array managed by the field. */
-		UINT32 getArraySize(void* object) override
+		UINT32 getArraySize(RTTITypeBase* rtti, void* object) override
 		{
 			checkIsArray(true);
 
-			std::function<UINT32(ObjectType*)> f = any_cast<std::function<UINT32(ObjectType*)>>(arraySizeGetter);
+			InterfaceType* rttiObject = static_cast<InterfaceType*>(rtti);
 			ObjectType* castObject = static_cast<ObjectType*>(object);
-			return f(castObject);
+			return (rttiObject->*arrayGetSize)(castObject);
 		}
 
 		/** Changes the size of the array managed by the field. Array must be re-populated after. */
-		void setArraySize(void* object, UINT32 size) override
+		void setArraySize(RTTITypeBase* rtti, void* object, UINT32 size) override
 		{
 			checkIsArray(true);
 
-			if(arraySizeSetter.empty())
+			if(!arraySetSize)
 			{
 				BS_EXCEPT(InternalErrorException, "Specified field (" + mName + ") has no array size setter.");
 			}
 
-			std::function<void(ObjectType*, UINT32)> f = any_cast<std::function<void(ObjectType*, UINT32)>>(arraySizeSetter);
+			InterfaceType* rttiObject = static_cast<InterfaceType*>(rtti);
 			ObjectType* castObject = static_cast<ObjectType*>(object);
-			f(castObject, size);
+			(rttiObject->*arraySetSize)(castObject, size);
 		}
 
 		/** @copydoc RTTIPlainFieldBase::toBuffer */
-		void toBuffer(void* object, void* buffer) override
+		void toBuffer(RTTITypeBase* rtti, void* object, void* buffer) override
 		{
 			checkIsArray(false);
 			checkType<DataType>();
 
+			InterfaceType* rttiObject = static_cast<InterfaceType*>(rtti);
 			ObjectType* castObject = static_cast<ObjectType*>(object);
-
-			std::function<DataType&(ObjectType*)> f = any_cast<std::function<DataType&(ObjectType*)>>(valueGetter);
-			DataType value = f(castObject);
+			DataType value = (rttiObject->*getter)(castObject);
 
 			RTTIPlainType<DataType>::toMemory(value, (char*)buffer);
 		}
 
 		/** @copydoc RTTIPlainFieldBase::arrayElemToBuffer */
-		void arrayElemToBuffer(void* object, int index, void* buffer) override
+		void arrayElemToBuffer(RTTITypeBase* rtti, void* object, int index, void* buffer) override
 		{
 			checkIsArray(true);
 			checkType<DataType>();
 
+			InterfaceType* rttiObject = static_cast<InterfaceType*>(rtti);
 			ObjectType* castObject = static_cast<ObjectType*>(object);
-
-			std::function<DataType&(ObjectType*, UINT32)> f = any_cast<std::function<DataType&(ObjectType*, UINT32)>>(valueGetter);
-			DataType value = f(castObject, index);
+			DataType value = (rttiObject->*arrayGetter)(castObject, index);
 
 			RTTIPlainType<DataType>::toMemory(value, (char*)buffer);
 		}
 
 		/** @copydoc RTTIPlainFieldBase::fromBuffer */
-		void fromBuffer(void* object, void* buffer) override
+		void fromBuffer(RTTITypeBase* rtti, void* object, void* buffer) override
 		{
 			checkIsArray(false);
 			checkType<DataType>();
 
+			InterfaceType* rttiObject = static_cast<InterfaceType*>(rtti);
 			ObjectType* castObject = static_cast<ObjectType*>(object);
 
 			DataType value;
 			RTTIPlainType<DataType>::fromMemory(value, (char*)buffer);
 
-			if(valueSetter.empty())
+			if(!setter)
 			{
 				BS_EXCEPT(InternalErrorException,
 					"Specified field (" + mName + ") has no setter.");
 			}
 
-			std::function<void(ObjectType*, DataType&)> f = any_cast<std::function<void(ObjectType*, DataType&)>>(valueSetter);
-			f(castObject, value);
+			(rttiObject->*setter)(castObject, value);
 		}
 
 		/** @copydoc RTTIPlainFieldBase::arrayElemFromBuffer */
-		void arrayElemFromBuffer(void* object, int index, void* buffer) override
+		void arrayElemFromBuffer(RTTITypeBase* rtti, void* object, int index, void* buffer) override
 		{
 			checkIsArray(true);
 			checkType<DataType>();
 
+			InterfaceType* rttiObject = static_cast<InterfaceType*>(rtti);
 			ObjectType* castObject = static_cast<ObjectType*>(object);
 
 			DataType value;
 			RTTIPlainType<DataType>::fromMemory(value, (char*)buffer);
 
-			if(valueSetter.empty())
+			if(!arraySetter)
 			{
 				BS_EXCEPT(InternalErrorException, 
 					"Specified field (" + mName + ") has no setter.");
 			}
 
-			std::function<void(ObjectType*, UINT32, DataType&)> f = any_cast<std::function<void(ObjectType*, UINT32, DataType&)>>(valueSetter);
-			f(castObject, index, value);
+			(rttiObject->*arraySetter)(castObject, index, value);
 		}
+
+	private:
+		union
+		{
+			struct
+			{
+				GetterType getter;
+				SetterType setter;
+			};
+
+			struct
+			{
+				ArrayGetterType arrayGetter;
+				ArraySetterType arraySetter;
+
+				ArrayGetSizeType arrayGetSize;
+				ArraySetSizeType arraySetSize;
+			};
+		};
 	};
 
 	/** @} */

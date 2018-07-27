@@ -83,12 +83,6 @@ namespace bs
 	 */
 	struct BS_UTILITY_EXPORT RTTIField
 	{	
-		Any valueGetter;
-		Any valueSetter;
-
-		Any arraySizeGetter;
-		Any arraySizeSetter;
-
 		String mName;
 		UINT16 mUniqueId;
 		bool mIsVectorType;
@@ -119,13 +113,13 @@ namespace bs
 		 * Gets the size of an array contained by the field, if the field represents an array. Throws exception if field 
 		 * is not an array.
 		 */
-		virtual UINT32 getArraySize(void* object) = 0;
+		virtual UINT32 getArraySize(RTTITypeBase* rtti, void* object) = 0;
 
 		/**
 		 * Changes the size of an array contained by the field, if the field represents an array. Throws exception if field 
 		 * is not an array.
 		 */
-		virtual void setArraySize(void* object, UINT32 size) = 0;
+		virtual void setArraySize(RTTITypeBase* rtti, void* object, UINT32 size) = 0;
 
 		/** Returns the type id for the type used in this field. */
 		virtual UINT32 getTypeSize() = 0;
@@ -179,16 +173,11 @@ namespace bs
 		void checkIsDataBlock();
 
 	protected:
-		void initAll(Any valueGetter, Any valueSetter, Any arraySizeGetter, Any arraySizeSetter,
-			String mName, UINT16 mUniqueId, bool mIsVectorType, SerializableFieldType type, UINT64 flags)
+		void init(String name, UINT16 uniqueId, bool isVectorType, SerializableFieldType type, UINT64 flags)
 		{
-			this->valueGetter = valueGetter;
-			this->valueSetter = valueSetter;
-			this->arraySizeGetter = arraySizeGetter;
-			this->arraySizeSetter = arraySizeSetter;
-			this->mName = mName;
-			this->mUniqueId = mUniqueId;
-			this->mIsVectorType = mIsVectorType;
+			this->mName = name;
+			this->mUniqueId = uniqueId;
+			this->mIsVectorType = isVectorType;
 			this->mType = type;
 			this->mFlags = flags;
 		}

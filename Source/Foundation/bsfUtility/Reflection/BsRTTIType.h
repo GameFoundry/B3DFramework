@@ -361,304 +361,6 @@ namespace bs
 			return diffHandler;
 		}
 
-		/**
-		 * Allows you to assign a value to a plain field with the specified name on the provided instance.
-		 *
-		 * @note	Caller must ensure instance and value types are valid for this field.
-		 */
-		template <class ObjectType, class DataType>
-		void setPlainValue(ObjectType* object, const String& name, DataType& value)
-		{
-			RTTIField* genericField = findField(name);
-			genericField->checkIsPlain(false);
-
-			RTTIPlainFieldBase* field = static_cast<RTTIPlainFieldBase*>(genericField);
-
-			UINT32 typeSize = 0;
-			if(RTTIPlainType<DataType>::hasDynamicSize)
-				typeSize = RTTIPlainType<DataType>::getDynamicSize(value);
-			else
-				typeSize = sizeof(DataType);
-
-			UINT8* tempBuffer = (UINT8*)bs_stack_alloc(typeSize);
-			RTTIPlainType<DataType>::toMemory(value, (char*)tempBuffer);
-			
-			field->fromBuffer(object, tempBuffer);
-
-			bs_stack_free(tempBuffer);
-		}
-
-		/**
-		 * Allows you to assign a value to a plain field array element with the specified name and index on the provided instance.
-		 *
-		 * @note	Caller must ensure instance and value types are valid for this field.
-		 */
-		template <class ObjectType, class DataType>
-		void setPlainArrayValue(ObjectType* object, const String& name, UINT32 index, DataType& value)
-		{
-			RTTIField* genericField = findField(name);
-			genericField->checkIsPlain(true);
-
-			RTTIPlainFieldBase* field = static_cast<RTTIPlainFieldBase*>(genericField);
-
-			UINT32 typeSize = 0;
-			if(RTTIPlainType<DataType>::hasDynamicSize)
-				typeSize = RTTIPlainType<DataType>::getDynamicSize(value);
-			else
-				typeSize = sizeof(DataType);
-
-			UINT8* tempBuffer = (UINT8*)bs_stack_alloc(typeSize);
-			RTTIPlainType<DataType>::toMemory(value, (char*)tempBuffer);
-
-			field->arrayElemFromBuffer(object, index, tempBuffer);
-
-			bs_stack_free(tempBuffer);
-		}
-
-		/**
-		 * Allows you to assign a value to a reflectable field with the specified name on the provided instance.
-		 *
-		 * @note	Caller must ensure instance and value types are valid for this field.
-		 */
-		template <class ObjectType, class DataType>
-		void setReflectableValue(ObjectType* object, const String& name, DataType& value)
-		{
-			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), 
-				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
-
-			RTTIField* genericField = findField(name);
-			genericField->checkIsComplex(false);
-
-			RTTIReflectableFieldBase* field = static_cast<RTTIReflectableFieldBase*>(genericField);
-			field->setValue(object, value);
-		}
-
-		/**
-		 * Allows you to assign a value to a reflectable field array element with the specified name and index on the 
-		 * provided instance.
-		 *
-		 * @note	Caller must ensure instance and value types are valid for this field.
-		 */
-		template <class ObjectType, class DataType>
-		void setReflectableArrayValue(ObjectType* object, const String& name, UINT32 index, DataType& value)
-		{
-			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), 
-				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
-
-			RTTIField* genericField = findField(name);
-			genericField->checkIsComplex(true);
-
-			RTTIReflectableFieldBase* field = static_cast<RTTIReflectableFieldBase*>(genericField);
-			field->setArrayValue(object, index, value);
-		}
-
-		/**
-		 * Allows you to assign a value to a managed data block field with the specified name on the provided instance.
-		 *
-		 * @note	Caller must ensure instance type is valid for this field.
-		 */
-		template <class ObjectType>
-		void setDataBlockValue(ObjectType* object, const String& name, const SPtr<DataStream>& value, UINT32 size)
-		{
-			RTTIField* genericField = findField(name);
-			genericField->checkIsDataBlock();
-
-			RTTIManagedDataBlockFieldBase* field = static_cast<RTTIManagedDataBlockFieldBase*>(genericField);
-			field->setValue(object, value, size);
-		}
-
-		/**
-		 * Allows you to assign a value to a reflectable pointer field with the specified name on the provided instance.
-		 *
-		 * @note	Caller must ensure instance and value types are valid for this field.
-		 */
-		template <class ObjectType, class DataType>
-		void setReflectablePtrValue(ObjectType* object, const String& name, SPtr<DataType> value)
-		{
-			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), 
-				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
-
-			RTTIField* genericField = findField(name);
-			genericField->checkIsComplexPtr(false);
-
-			RTTIReflectablePtrFieldBase* field = static_cast<RTTIReflectablePtrFieldBase*>(genericField);
-			field->setValue(object, value);
-		}
-
-		/**
-		 * Allows you to assign a value to a reflectable pointer field array element with the specified name and index on 
-		 * the provided instance.
-		 *
-		 * @note	Caller must ensure instance and value types are valid for this field.
-		 */
-		template <class ObjectType, class DataType>
-		void setReflectablePtrArrayValue(ObjectType* object, const String& name, UINT32 index, SPtr<DataType> value)
-		{
-			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), 
-				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
-
-			RTTIField* genericField = findField(name);
-			genericField->checkIsComplexPtr(true);
-
-			RTTIReflectablePtrFieldBase* field = static_cast<RTTIReflectablePtrFieldBase*>(genericField);
-			field->setArrayValue(object, index, value);
-		}
-
-		/**
-		 * Reads a value from a plain field with the specified name from the provided instance.
-		 *
-		 * @note	Caller must ensure instance and value types are valid for this field.
-		 */
-		template <class ObjectType, class DataType>
-		void getPlainValue(ObjectType* object, const String& name, DataType& value)
-		{
-			RTTIField* genericField = findField(name);
-			genericField->checkIsPlain(false);
-
-			RTTIPlainFieldBase* field = static_cast<RTTIPlainFieldBase*>(genericField);
-
-			UINT32 typeSize = 0;
-			if(field->hasDynamicSize())
-				typeSize = field->getDynamicSize(object);
-			else
-				typeSize = field->getTypeSize();
-
-			UINT8* tempBuffer = (UINT8*)bs_stack_alloc(typeSize);
-
-			field->toBuffer(object, tempBuffer);
-			RTTIPlainType<DataType>::fromMemory(value, (char*)tempBuffer);
-
-			bs_stack_free(tempBuffer);
-		}
-
-		/**
-		 * Reads a value from a plain array field with the specified name and index from the provided instance.
-		 *
-		 * @note	Caller must ensure instance and value types are valid for this field.
-		 */
-		template <class ObjectType, class DataType>
-		void getPlainArrayValue(ObjectType* object, const String& name, UINT32 index, DataType& value)
-		{
-			RTTIField* genericField = findField(name);
-			genericField->checkIsPlain(true);
-
-			RTTIPlainFieldBase* field = static_cast<RTTIPlainFieldBase*>(genericField);
-
-			UINT32 typeSize = 0;
-			if(field->hasDynamicSize())
-				typeSize = field->getArrayElemDynamicSize(object, index);
-			else
-				typeSize = field->getTypeSize();
-
-			UINT8* tempBuffer = (UINT8*)bs_stack_alloc(typeSize);
-
-			field->arrayElemToBuffer(object, index, tempBuffer);
-			RTTIPlainType<DataType>::fromMemory(value, (char*)tempBuffer);
-
-			bs_stack_free(tempBuffer);
-		}	
-
-		/**
-		 * Reads a value from a reflectable object field with the specified name from the provided instance.
-		 *
-		 * @note	Caller must ensure instance and value types are valid for this field.
-		 */
-		template <class ObjectType>
-		IReflectable& getReflectableValue(ObjectType* object, const String& name)
-		{
-			RTTIField* genericField = findField(name);
-			genericField->checkIsComplex(false);
-
-			RTTIReflectableFieldBase* field = static_cast<RTTIReflectableFieldBase*>(genericField);
-			return field->getValue(object);
-		}
-
-		/**
-		 * Reads a value from a reflectable object array field with the specified name and index from the provided instance.
-		 *
-		 * @note	Caller must ensure instance and value types are valid for this field.
-		 */
-		template <class ObjectType>
-		IReflectable& getReflectableArrayValue(ObjectType* object, const String& name, UINT32 index)
-		{
-			RTTIField* genericField = findField(name);
-			genericField->checkIsComplex(true);
-
-			RTTIReflectableFieldBase* field = static_cast<RTTIReflectableFieldBase*>(genericField);
-			return field->getArrayValue(object, index);
-		}
-
-		/**
-		 * Reads a managed data block field with the specified name from the provided instance.
-		 *
-		 * @note	Caller must ensure instance type is valid for this field.
-		 */
-		template <class ObjectType>
-		SPtr<DataStream> getDataBlockValue(ObjectType* object, const String& name, UINT32& size)
-		{
-			RTTIField* genericField = findField(name);
-			genericField->checkIsDataBlock();
-
-			RTTIManagedDataBlockFieldBase* field = static_cast<RTTIManagedDataBlockFieldBase*>(genericField);
-			return field->getValue(object, size);
-		}
-
-		/**
-		 * Reads a value from a reflectable object pointer field with the specified name from the provided instance.
-		 *
-		 * @note	Caller must ensure instance and value types are valid for this field.
-		 */
-		template <class ObjectType>
-		SPtr<IReflectable> getReflectablePtrValue(ObjectType* object, const String& name)
-		{
-			RTTIField* genericField = findField(name);
-			genericField->checkIsComplexPtr(false);
-
-			RTTIReflectablePtrFieldBase* field = static_cast<RTTIReflectablePtrFieldBase*>(genericField);
-			return field->getValue(object);
-		}
-
-		/**
-		 * Reads a value from a reflectable pointer array field with the specified name and index from the provided instance.
-		 *
-		 * @note	Caller must ensure instance and value types are valid for this field.
-		 */
-		template <class ObjectType>
-		SPtr<IReflectable> getReflectablePtrArrayValue(ObjectType* object, const String& name, UINT32 index)
-		{
-			RTTIField* genericField = findField(name);
-			genericField->checkIsComplexPtr(true);
-
-			RTTIReflectablePtrFieldBase* field = static_cast<RTTIReflectablePtrFieldBase*>(genericField);
-			return field->getArrayValue(object, index);
-		}
-
-		/**
-		 * Returns the size of the array of the field with the specified name on the provided instance.
-		 *
-		 * @note	Caller must ensure instance type is valid and that the field as an array.
-		 */
-		template <class ObjectType>
-		UINT32 getArraySize(ObjectType* object, const String& name)
-		{
-			RTTIField* field = findField(name);
-			return field->getArraySize(object);
-		}
-
-		/**
-		 * Sets the size of the array of the field with the specified name on the provided instance.
-		 *
-		 * @note	
-		 * Caller must ensure instance type is valid and that the field as an array. This might clear any existing data 
-		 * from the array.
-		 */
-		template <class ObjectType>
-		void setArraySize(ObjectType* object, const String& name, UINT32 size)
-		{
-			RTTIField* field = findField(name);
-			field->setArraySize(object, size);
-		}	
-
 		/** Returns the total number of fields in this RTTI type. */
 		UINT32 getNumFields() const { return (UINT32)mFields.size(); }
 
@@ -839,196 +541,27 @@ namespace bs
 			getDerivedClasses().push_back(derivedClass);
 		}
 
-		/************************************************************************/
-		/* 			FIELDS OPERATING DIRECTLY ON SERIALIZABLE OBJECT            */
-		/************************************************************************/
-
-		/**
-		 * Registers a new plain field. This field can then be accessed dynamically from the RTTI system and used for 
-		 * automatic serialization. See RTTIField for more information about field types.
-		 *
-		 * @param[in]	name		Name of the field.
-		 * @param[in]	uniqueId	Unique identifier for this field. Although name is also a unique identifier we want a 
-		 *							small data type that can be used for efficiently serializing data to disk and similar. 
-		 *							It is primarily used for compatibility between different versions of serialized data.
-		 * @param[in]	getter  	Method used for retrieving the value of this field.
-		 * @param[in]	setter  	Method used for setting the value of this field.
-		 * @param[in]	flags		Various flags you can use to specialize how systems handle this field. See RTTIFieldFlag.
-		 */
-		template<class ObjectType, class DataType>
-		void addPlainField(const String& name, UINT32 uniqueId, DataType& (ObjectType::*getter)(), 
-			void (ObjectType::*setter)(DataType&) = nullptr, UINT64 flags = 0)
-		{
-			addPlainField<ObjectType, DataType>(name, uniqueId, 
-				std::function<DataType&(ObjectType*)>(getter), 
-				std::function<void(ObjectType*, DataType&)>(setter), flags);
-		}
-
-		/**
-		 * Registers a new reflectable object field. This field can then be accessed dynamically from the RTTI system and
-		 * used for automatic serialization. See RTTIField for more information about field types.
-		 *
-		 * @param[in]	name		Name of the field.
-		 * @param[in]	uniqueId	Unique identifier for this field. Although name is also a unique identifier we want a 
-		 *							small data type that can be used for efficiently serializing data to disk and similar. 
-		 *							It is primarily used for compatibility between different versions of serialized data.
-		 * @param[in]	getter  	Method used for retrieving the value of this field.
-		 * @param[in]	setter  	Method used for setting the value of this field.
-		 * @param[in]	flags		Various flags you can use to specialize how systems handle this field. See RTTIFieldFlag.
-		 */
-		template<class ObjectType, class DataType>
-		void addReflectableField(const String& name, UINT32 uniqueId, DataType& (ObjectType::*getter)(), 
-			void (ObjectType::*setter)(DataType&) = nullptr, UINT64 flags = 0)
-		{
-			addReflectableField<ObjectType, DataType>(name, uniqueId, 
-				std::function<DataType&(ObjectType*)>(getter), 
-				std::function<void(ObjectType*, DataType&)>(setter), flags);
-		}
-
-		/**
-		 * Registers a new reflectable object pointer field. This field can then be accessed dynamically from the RTTI 
-		 * system and used for automatic serialization. See RTTIField for more information about field types.
-		 *
-		 * @param[in]	name		Name of the field.
-		 * @param[in]	uniqueId	Unique identifier for this field. Although name is also a unique identifier we want a 
-		 *							small data type that can be used for efficiently serializing data to disk and similar. 
-		 *							It is primarily used for compatibility between different versions of serialized data.
-		 * @param[in]	getter  	Method used for retrieving the value of this field.
-		 * @param[in]	setter  	Method used for setting the value of this field.
-		 * @param[in]	flags		Various flags you can use to specialize how systems handle this field. See RTTIFieldFlag.
-		 */
-		template<class ObjectType, class DataType>
-		void addReflectablePtrField(const String& name, UINT32 uniqueId, SPtr<DataType> (ObjectType::*getter)(), 
-			void (ObjectType::*setter)(SPtr<DataType>) = nullptr, UINT64 flags = 0)
-		{
-			addReflectablePtrField<ObjectType, DataType>(name, uniqueId, 
-				std::function<SPtr<DataType>(ObjectType*)>(getter), 
-				std::function<void(ObjectType*, SPtr<DataType>)>(setter), flags);
-		}
-
-		/**
-		 * Registers a new field containg an array of plain values. This field can then be accessed dynamically from the 
-		 * RTTI system and used for automatic serialization. See RTTIField for more information about field types.
-		 *
-		 * @param[in]	name		Name of the field.
-		 * @param[in]	uniqueId	Unique identifier for this field. Although name is also a unique identifier we want a 
-		 *							small data type that can be used for efficiently serializing data to disk and similar. 
-		 *							It is primarily used for compatibility between different versions of serialized data.
-		 * @param[in]	getter  	Method used for retrieving a single element of the array.
-		 * @param[in]	getSize 	Getter method that returns the size of the array.
-		 * @param[in]	setter  	Method used for setting the a single element of the field.
-		 * @param[in]	setSize 	Setter method that allows you to resize the array. 
-		 * @param[in]	flags		Various flags you can use to specialize how systems handle this field. See RTTIFieldFlag.
-		 */
-		template<class ObjectType, class DataType>
-		void addPlainArrayField(const String& name, UINT32 uniqueId, DataType& (ObjectType::*getter)(UINT32), UINT32 (ObjectType::*getSize)(), 
-			void (ObjectType::*setter)(UINT32, DataType&) = nullptr, void(ObjectType::*setSize)(UINT32) = nullptr, UINT64 flags = 0)
-		{
-			addPlainArrayField<ObjectType, DataType>(name, uniqueId, 
-				std::function<DataType&(ObjectType*, UINT32)>(getter), 
-				std::function<UINT32(ObjectType*)>(getSize), 
-				std::function<void(ObjectType*, UINT32, DataType&)>(setter), 
-				std::function<void(ObjectType*, UINT32)>(setSize), flags);
-		}	
-
-		/**
-		 * Registers a new field containg an array of reflectable object values. This field can then be accessed dynamically
-		 * from the RTTI system and used for automatic serialization. See RTTIField for more information about field types.
-		 *
-		 * @param[in]	name		Name of the field.
-		 * @param[in]	uniqueId	Unique identifier for this field. Although name is also a unique identifier we want a 
-		 *							small data type that can be used for efficiently serializing data to disk and similar. 
-		 *							It is primarily used for compatibility between different versions of serialized data.
-		 * @param[in]	getter  	Method used for retrieving a single element of the array.
-		 * @param[in]	getSize 	Getter method that returns the size of the array.
-		 * @param[in]	setter  	Method used for setting the a single element of the field.
-		 * @param[in]	setSize 	Setter method that allows you to resize the array. 
-		 * @param[in]	flags		Various flags you can use to specialize how systems handle this field. See RTTIFieldFlag.
-		 */
-		template<class ObjectType, class DataType>
-		void addReflectableArrayField(const String& name, UINT32 uniqueId, DataType& (ObjectType::*getter)(UINT32), UINT32 (ObjectType::*getSize)(), 
-			void (ObjectType::*setter)(UINT32, DataType&) = nullptr, void(ObjectType::*setSize)(UINT32) = nullptr, UINT64 flags = 0)
-		{
-			addReflectableArrayField<ObjectType, DataType>(name, uniqueId, 
-				std::function<DataType&(ObjectType*, UINT32)>(getter), 
-				std::function<UINT32(ObjectType*)>(getSize), 
-				std::function<void(ObjectType*, UINT32, DataType&)>(setter), 
-				std::function<void(ObjectType*, UINT32)>(setSize), flags);
-		}
-
-		/**
-		 * Registers a new field containg an array of reflectable obejct pointers. This field can then be accessed 
-		 * dynamically from the RTTI system and used for automatic serialization. See RTTIField for more information 
-		 * about field types.
-		 *
-		 * @param[in]	name		Name of the field.
-		 * @param[in]	uniqueId	Unique identifier for this field. Although name is also a unique identifier we want a 
-		 *							small data type that can be used for efficiently serializing data to disk and similar. 
-		 *							It is primarily used for compatibility between different versions of serialized data.
-		 * @param[in]	getter  	Method used for retrieving a single element of the array.
-		 * @param[in]	getSize 	Getter method that returns the size of the array.
-		 * @param[in]	setter  	Method used for setting the a single element of the field.
-		 * @param[in]	setSize 	Setter method that allows you to resize the array. 
-		 * @param[in]	flags		Various flags you can use to specialize how systems handle this field. See RTTIFieldFlag.
-		 */
-		template<class ObjectType, class DataType>
-		void addReflectablePtrArrayField(const String& name, UINT32 uniqueId, SPtr<DataType> (ObjectType::*getter)(UINT32), UINT32 (ObjectType::*getSize)(), 
-			void (ObjectType::*setter)(UINT32, SPtr<DataType>) = nullptr, void(ObjectType::*setSize)(UINT32) = nullptr, UINT64 flags = 0)
-		{
-			addReflectablePtrArrayField<ObjectType, DataType>(name, uniqueId, 
-				std::function<SPtr<DataType>(ObjectType*, UINT32)>(getter), 
-				std::function<UINT32(ObjectType*)>(getSize), 
-				std::function<void(ObjectType*, UINT32, SPtr<DataType>)>(setter), 
-				std::function<void(ObjectType*, UINT32)>(setSize), flags);
-		}
-
-		/**
-		 * Registers a new managed data block field. This field can then be accessed dynamically from the RTTI system and
-		 * used for automatic serialization. See RTTIField for more information about field types.
-		 *
-		 * @param[in]	name		Name of the field.
-		 * @param[in]	uniqueId	Unique identifier for this field. Although name is also a unique identifier we want a 
-		 *							small data type that can be used for efficiently serializing data to disk and similar. 
-		 *							It is primarily used for compatibility between different versions of serialized data.
-		 * @param[in]	getter  	Method used for retrieving the value of this field.
-		 * @param[in]	setter  	Method used for setting the value of this field.
-		 * @param[in]	flags		Various flags you can use to specialize how systems handle this field. See RTTIFieldFlag.
-		 */
-		template<class ObjectType>
-		void addDataBlockField(const String& name, UINT32 uniqueId, SPtr<DataStream> (ObjectType::*getter)(UINT32&), 
-			void (ObjectType::*setter)(const SPtr<DataStream>&, UINT32) = nullptr, UINT64 flags = 0)
-		{
-			addDataBlockField<ObjectType>(name, uniqueId, 
-				std::function<SPtr<DataStream>(ObjectType*, UINT32&)>(getter),
-				std::function<void(ObjectType*, const SPtr<DataStream>&, UINT32)>(setter), flags);
-		}	
-
 	protected:
 		typedef Type OwnerType;
 		typedef MyRTTIType MyType;
 
 		virtual void initSerializableFields() {}
 
-		/************************************************************************/
-		/* 		FIELDS OPERATING ON DERIVED SERIALIZATION INTERFACE				*/
-		/*		(Needs an extra pointer to the actual object)					*/
-		/************************************************************************/
 		template<class InterfaceType, class ObjectType, class DataType>
 		void addPlainField(const String& name, UINT32 uniqueId, 
-			DataType& (InterfaceType::*getter)(ObjectType*), 
-			void (InterfaceType::*setter)(ObjectType*, DataType&), UINT64 flags = 0)
+			DataType& (InterfaceType::*getter)(ObjectType*),
+			void (InterfaceType::*setter)(ObjectType*, DataType&),
+			UINT64 flags = 0)
 		{
-			using namespace std::placeholders;
-
 			static_assert((std::is_base_of<bs::RTTIType<Type, BaseType, MyRTTIType>, InterfaceType>::value), 
 				"Class with the get/set methods must derive from bs::RTTIType.");
 
 			static_assert(!(std::is_base_of<bs::IReflectable, DataType>::value), 
 				"Data type derives from IReflectable but it is being added as a plain field.");
 
-			addPlainField<ObjectType, DataType>(name, uniqueId, 
-				std::function<DataType&(ObjectType*)>(std::bind(getter, static_cast<InterfaceType*>(this), _1)), 
-				std::function<void(ObjectType*, DataType&)>(std::bind(setter, static_cast<InterfaceType*>(this), _1, _2)), flags);
+			auto newField = bs_new<RTTIPlainField<InterfaceType, DataType, ObjectType>>();
+			newField->initSingle(name, uniqueId, getter, setter, flags);
+			addNewField(newField);
 		}
 
 		template<class InterfaceType, class ObjectType, class DataType>
@@ -1036,11 +569,12 @@ namespace bs
 			DataType& (InterfaceType::*getter)(ObjectType*), 
 			void (InterfaceType::*setter)(ObjectType*, DataType&), UINT64 flags = 0)
 		{
-			using namespace std::placeholders;
+			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), 
+				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
 
-			addReflectableField<ObjectType, DataType>(name, uniqueId, 
-				std::function<DataType&(ObjectType*)>(std::bind(getter, static_cast<InterfaceType*>(this), _1)), 
-				std::function<void(ObjectType*, DataType&)>(std::bind(setter, static_cast<InterfaceType*>(this), _1, _2)), flags);
+			auto newField = bs_new<RTTIReflectableField<InterfaceType, DataType, ObjectType>>();
+			newField->initSingle(name, uniqueId, getter, setter, flags);
+			addNewField(newField);
 		}
 
 		template<class InterfaceType, class ObjectType, class DataType>
@@ -1048,33 +582,31 @@ namespace bs
 			SPtr<DataType> (InterfaceType::*getter)(ObjectType*), 
 			void (InterfaceType::*setter)(ObjectType*, SPtr<DataType>), UINT64 flags = 0)
 		{
-			using namespace std::placeholders;
+			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), 
+				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
 
-			addReflectablePtrField<ObjectType, DataType>(name, uniqueId, 
-				std::function<SPtr<DataType>(ObjectType*)>(std::bind(getter, static_cast<InterfaceType*>(this), _1)), 
-				std::function<void(ObjectType*, SPtr<DataType>)>(std::bind(setter, static_cast<InterfaceType*>(this), _1, _2)), flags);
+			auto newField = bs_new<RTTIReflectablePtrField<InterfaceType, DataType, ObjectType>>();
+			newField->initSingle(name, uniqueId, getter, setter, flags);
+			addNewField(newField);
 		}
 
 		template<class InterfaceType, class ObjectType, class DataType>
 		void addPlainArrayField(const String& name, UINT32 uniqueId, 
-			DataType& (InterfaceType::*getter)(ObjectType*, UINT32), 
-			UINT32 (InterfaceType::*getSize)(ObjectType*), 
-			void (InterfaceType::*setter)(ObjectType*, UINT32, DataType&), 
-			void(InterfaceType::*setSize)(ObjectType*, UINT32), UINT64 flags = 0)
+			DataType& (InterfaceType::*getter)(ObjectType*, UINT32),
+			UINT32(InterfaceType::*getSize)(ObjectType*),
+			void (InterfaceType::*setter)(ObjectType*, UINT32, DataType&),
+			void(InterfaceType::*setSize)(ObjectType*, UINT32),
+			UINT64 flags = 0)
 		{
-			using namespace std::placeholders;
-
 			static_assert((std::is_base_of<bs::RTTIType<Type, BaseType, MyRTTIType>, InterfaceType>::value), 
 				"Class with the get/set methods must derive from bs::RTTIType.");
 
 			static_assert(!(std::is_base_of<bs::IReflectable, DataType>::value), 
 				"Data type derives from IReflectable but it is being added as a plain field.");
 
-			addPlainArrayField<ObjectType, DataType>(name, uniqueId, 
-				std::function<DataType&(ObjectType*, UINT32)>(std::bind(getter, static_cast<InterfaceType*>(this), _1, _2)), 
-				std::function<UINT32(ObjectType*)>(std::bind(getSize, static_cast<InterfaceType*>(this), _1)), 
-				std::function<void(ObjectType*, UINT32, DataType&)>(std::bind(setter, static_cast<InterfaceType*>(this), _1, _2, _3)), 
-				std::function<void(ObjectType*, UINT32)>(std::bind(setSize, static_cast<InterfaceType*>(this), _1, _2)), flags);
+			auto newField = bs_new<RTTIPlainField<InterfaceType, DataType, ObjectType>>();
+			newField->initArray(name, uniqueId, getter, getSize, setter, setSize, flags);
+			addNewField(newField);
 		}	
 
 		template<class InterfaceType, class ObjectType, class DataType>
@@ -1084,13 +616,12 @@ namespace bs
 			void (InterfaceType::*setter)(ObjectType*, UINT32, DataType&), 
 			void(InterfaceType::*setSize)(ObjectType*, UINT32), UINT64 flags = 0)
 		{
-			using namespace std::placeholders;
+			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), 
+				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
 
-			addReflectableArrayField<ObjectType, DataType>(name, uniqueId, 
-				std::function<DataType&(ObjectType*, UINT32)>(std::bind(getter, static_cast<InterfaceType*>(this), _1, _2)), 
-				std::function<UINT32(ObjectType*)>(std::bind(getSize, static_cast<InterfaceType*>(this), _1)), 
-				std::function<void(ObjectType*, UINT32, DataType&)>(std::bind(setter, static_cast<InterfaceType*>(this), _1, _2, _3)), 
-				std::function<void(ObjectType*, UINT32)>(std::bind(setSize, static_cast<InterfaceType*>(this), _1, _2)), flags);
+			auto newField = bs_new<RTTIReflectableField<InterfaceType, DataType, ObjectType>>();
+			newField->initArray(name, uniqueId, getter, getSize, setter, setSize, flags);
+			addNewField(newField);
 		}
 
 		template<class InterfaceType, class ObjectType, class DataType>
@@ -1100,101 +631,19 @@ namespace bs
 			void (InterfaceType::*setter)(ObjectType*, UINT32, SPtr<DataType>), 
 			void(InterfaceType::*setSize)(ObjectType*, UINT32), UINT64 flags = 0)
 		{
-			using namespace std::placeholders;
+			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), 
+				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
 
-			addReflectablePtrArrayField<ObjectType, DataType>(name, uniqueId, 
-				std::function<SPtr<DataType>(ObjectType*, UINT32)>(std::bind(getter, static_cast<InterfaceType*>(this), _1, _2)), 
-				std::function<UINT32(ObjectType*)>(std::bind(getSize, static_cast<InterfaceType*>(this), _1)), 
-				std::function<void(ObjectType*, UINT32, SPtr<DataType>)>(std::bind(setter, static_cast<InterfaceType*>(this), _1, _2, _3)), 
-				std::function<void(ObjectType*, UINT32)>(std::bind(setSize, static_cast<InterfaceType*>(this), _1, _2)), flags);
+			auto newField = bs_new<RTTIReflectablePtrField<InterfaceType, DataType, ObjectType>>();
+			newField->initArray(name, uniqueId, getter, getSize, setter, setSize, flags);
+			addNewField(newField);
 		}
 
 		template<class InterfaceType, class ObjectType>
 		void addDataBlockField(const String& name, UINT32 uniqueId, SPtr<DataStream> (InterfaceType::*getter)(ObjectType*, UINT32&), 
 			void (InterfaceType::*setter)(ObjectType*, const SPtr<DataStream>&, UINT32), UINT64 flags = 0)
 		{
-			using namespace std::placeholders;
-
-			addDataBlockField<ObjectType>(name, uniqueId, 
-				std::function<SPtr<DataStream>(ObjectType*, UINT32&)>(std::bind(getter, static_cast<InterfaceType*>(this), _1, _2)),
-				std::function<void(ObjectType*, const SPtr<DataStream>&, UINT32)>(std::bind(setter, static_cast<InterfaceType*>(this), _1, _2, _3)), flags);
-		}	
-
-	private:
-		template<class ObjectType, class DataType>
-		void addPlainField(const String& name, UINT32 uniqueId, Any getter, Any setter, UINT64 flags)
-		{
-			RTTIPlainField<DataType, ObjectType>* newField = 
-				bs_new<RTTIPlainField<DataType, ObjectType>>();
-			newField->initSingle(name, uniqueId, getter, setter, flags);
-			addNewField(newField);
-		}
-		
-		template<class ObjectType, class DataType>
-		void addReflectableField(const String& name, UINT32 uniqueId, Any getter, Any setter, UINT64 flags)
-		{
-			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), 
-				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
-
-			RTTIReflectableField<DataType, ObjectType>* newField = 
-				bs_new<RTTIReflectableField<DataType, ObjectType>>();
-			newField->initSingle(name, uniqueId, getter, setter, flags);
-			addNewField(newField);
-		}
-
-		template<class ObjectType, class DataType>
-		void addReflectablePtrField(const String& name, UINT32 uniqueId, Any getter, Any setter, UINT64 flags)
-		{
-			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), 
-				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
-
-			RTTIReflectablePtrField<DataType, ObjectType>* newField = 
-				bs_new<RTTIReflectablePtrField<DataType, ObjectType>>();
-			newField->initSingle(name, uniqueId, getter, setter, flags);
-			addNewField(newField);
-		}
-
-		template<class ObjectType, class DataType>
-		void addPlainArrayField(const String& name, UINT32 uniqueId, Any getter, Any getSize,
-			Any setter, Any setSize, UINT64 flags)
-		{
-			RTTIPlainField<DataType, ObjectType>* newField = 
-				bs_new<RTTIPlainField<DataType, ObjectType>>();
-			newField->initArray(name, uniqueId, getter, getSize, setter, setSize, flags);
-			addNewField(newField);
-		}	
-
-		template<class ObjectType, class DataType>
-		void addReflectableArrayField(const String& name, UINT32 uniqueId, Any getter, Any getSize,
-			Any setter, Any setSize, UINT64 flags)
-		{
-			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), 
-				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
-
-			RTTIReflectableField<DataType, ObjectType>* newField = 
-				bs_new<RTTIReflectableField<DataType, ObjectType>>();
-			newField->initArray(name, uniqueId, getter, getSize, setter, setSize, flags);
-			addNewField(newField);
-		}
-
-		template<class ObjectType, class DataType>
-		void addReflectablePtrArrayField(const String& name, UINT32 uniqueId, Any getter, Any getSize,
-			Any setter, Any setSize, UINT64 flags)
-		{
-			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), 
-				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
-
-			RTTIReflectablePtrField<DataType, ObjectType>* newField = 
-				bs_new<RTTIReflectablePtrField<DataType, ObjectType>>();
-			newField->initArray(name, uniqueId, getter, getSize, setter, setSize, flags);
-			addNewField(newField);
-		}
-
-		template<class ObjectType>
-		void addDataBlockField(const String& name, UINT32 uniqueId, Any getter, Any setter, UINT64 flags)
-		{
-			RTTIManagedDataBlockField<UINT8*, ObjectType>* newField = 
-				bs_new<RTTIManagedDataBlockField<UINT8*, ObjectType>>();
+			auto newField = bs_new<RTTIManagedDataBlockField<InterfaceType, UINT8*, ObjectType>>();
 			newField->initSingle(name, uniqueId, getter, setter, flags);
 			addNewField(newField);
 		}	

@@ -60,6 +60,7 @@ namespace bs
 		 */
 		struct DiffCommand
 		{
+			RTTITypeBase* rttiType;
 			RTTIField* field;
 			UINT32 type;
 			SPtr<IReflectable> object;

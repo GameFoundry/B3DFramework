@@ -33,28 +33,28 @@ namespace bs
 		 * 			
 		 * @note	Field type must not be an array.
 		 */
-		virtual SPtr<IReflectable> getValue(void* object) = 0;
+		virtual SPtr<IReflectable> getValue(RTTITypeBase* rtti, void* object) = 0;
 
 		/**
 		 * Retrieves the IReflectable value from an array on the provided instance and index.
 		 * 			
 		 * @note	Field type must be an array.
 		 */
-		virtual SPtr<IReflectable> getArrayValue(void* object, UINT32 index) = 0;
+		virtual SPtr<IReflectable> getArrayValue(RTTITypeBase* rtti, void* object, UINT32 index) = 0;
 
 		/**
 		 * Sets the IReflectable value in the provided instance.
 		 * 			
 		 * @note	Field type must not be an array.
 		 */
-		virtual void setValue(void* object, SPtr<IReflectable> value) = 0;
+		virtual void setValue(RTTITypeBase* rtti, void* object, SPtr<IReflectable> value) = 0;
 
 		/**
 		 * Sets the IReflectable value in an array on the provided instance and index.
 		 * 			
 		 * @note	Field type must be an array.
 		 */
-		virtual void setArrayValue(void* object, UINT32 index, SPtr<IReflectable> value) = 0;
+		virtual void setArrayValue(RTTITypeBase* rtti, void* object, UINT32 index, SPtr<IReflectable> value) = 0;
 
 		/** Creates a new object of the field type. */
 		virtual SPtr<IReflectable> newObject() = 0;
@@ -73,9 +73,17 @@ namespace bs
 	};
 
 	/** Reflectable field containing a pointer to a specific type with RTTI implemented.  */
-	template <class DataType, class ObjectType>
+	template <class InterfaceType, class DataType, class ObjectType>
 	struct RTTIReflectablePtrField : public RTTIReflectablePtrFieldBase
 	{
+		typedef SPtr<DataType> (InterfaceType::*GetterType)(ObjectType*);
+		typedef void (InterfaceType::*SetterType)(ObjectType*, SPtr<DataType>);
+
+		typedef SPtr<DataType> (InterfaceType::*ArrayGetterType)(ObjectType*, UINT32);
+		typedef void (InterfaceType::*ArraySetterType)(ObjectType*, UINT32, SPtr<DataType>);
+		typedef UINT32(InterfaceType::*ArrayGetSizeType)(ObjectType*);
+		typedef void(InterfaceType::*ArraySetSizeType)(ObjectType*, UINT32);
+
 		/**
 		 * Initializes a field pointing to a single data type implementing IReflectable interface.
 		 *
@@ -83,13 +91,16 @@ namespace bs
 		 * @param[in]	uniqueId	Unique identifier for this field. Although name is also a unique identifier we want a 
 		 *							small data type that can be used for efficiently serializing data to disk and similar. 
 		 *							It is primarily used for compatibility between different versions of serialized data.
-		 * @param[in]	getter  	The getter method for the field. Must be a specific signature: DataType*(ObjectType*)
-		 * @param[in]	setter  	The setter method for the field. Must be a specific signature: void(ObjectType*, DataType*)
+		 * @param[in]	getter  	The getter method for the field.
+		 * @param[in]	setter  	The setter method for the field.
 		 * @param[in]	flags		Various flags you can use to specialize how systems handle this field. See "RTTIFieldFlag".
 		 */
-		void initSingle(const String& name, UINT16 uniqueId, Any getter, Any setter, UINT64 flags)
+		void initSingle(const String& name, UINT16 uniqueId, GetterType getter, SetterType setter, UINT64 flags)
 		{
-			initAll(getter, setter, nullptr, nullptr, name, uniqueId, false, SerializableFT_ReflectablePtr, flags);
+			this->getter = getter;
+			this->setter = setter;
+
+			init(name, uniqueId, false, SerializableFT_ReflectablePtr, flags);
 		}
 
 		/**
@@ -99,16 +110,21 @@ namespace bs
 		 * @param[in]	uniqueId	Unique identifier for this field. Although name is also a unique identifier we want a 
 		 *							small data type that can be used for efficiently serializing data to disk and similar. 
 		 *							It is primarily used for compatibility between different versions of serialized data.
-		 * @param[in]	getter  	The getter method for the field. Must be a specific signature: DataType*(ObjectType*, UINT32)
-		 * @param[in]	getSize 	Getter method that returns the size of an array. Must be a specific signature: UINT32(ObjectType*)
-		 * @param[in]	setter  	The setter method for the field. Must be a specific signature: void(ObjectType*, UINT32, DataType*)
-		 * @param[in]	setSize 	Setter method that allows you to resize an array. Can be null. Must be a specific signature: void(ObjectType*, UINT32)
+		 * @param[in]	getter  	The getter method for the field.
+		 * @param[in]	getSize 	Getter method that returns the size of an array.
+		 * @param[in]	setter  	The setter method for the field.
+		 * @param[in]	setSize 	Setter method that allows you to resize an array. Can be null.
 		 * @param[in]	flags		Various flags you can use to specialize how systems handle this field. See "RTTIFieldFlag".
 		 */
-		void initArray(const String& name, UINT16 uniqueId, Any getter,
-			Any getSize, Any setter, Any setSize, UINT64 flags)
+		void initArray(const String& name, UINT16 uniqueId, ArrayGetterType getter, ArrayGetSizeType getSize, 
+			ArraySetterType setter, ArraySetSizeType setSize, UINT64 flags)
 		{
-			initAll(getter, setter, getSize, setSize, name, uniqueId, true, SerializableFT_ReflectablePtr, flags);
+			arrayGetter = getter;
+			arraySetter = setter;
+			arrayGetSize = getSize;
+			arraySetSize = setSize;
+
+			init(name, uniqueId, true, SerializableFT_ReflectablePtr, flags);
 		}
 
 		/** @copydoc RTTIField::getTypeSize */
@@ -118,87 +134,91 @@ namespace bs
 		}
 
 		/** @copydoc RTTIReflectablePtrFieldBase::getValue */
-		SPtr<IReflectable> getValue(void* object) override
+		SPtr<IReflectable> getValue(RTTITypeBase* rtti, void* object) override
 		{
 			checkIsArray(false);
 
+			InterfaceType* rttiObject = static_cast<InterfaceType*>(rtti);
 			ObjectType* castObjType = static_cast<ObjectType*>(object);
-			std::function<SPtr<DataType>(ObjectType*)> f = any_cast<std::function<SPtr<DataType>(ObjectType*)>>(valueGetter);
-			SPtr<IReflectable> castDataType = f(castObjType);
 
+			SPtr<IReflectable> castDataType = (rttiObject->*getter)(castObjType);
 			return castDataType;
 		}
 
 		/** @copydoc RTTIReflectablePtrFieldBase::getArrayValue */
-		SPtr<IReflectable> getArrayValue(void* object, UINT32 index) override
+		SPtr<IReflectable> getArrayValue(RTTITypeBase* rtti, void* object, UINT32 index) override
 		{
 			checkIsArray(true);
 
+			InterfaceType* rttiObject = static_cast<InterfaceType*>(rtti);
 			ObjectType* castObjType = static_cast<ObjectType*>(object);
-			std::function<SPtr<DataType>(ObjectType*, UINT32)> f = any_cast<std::function<SPtr<DataType>(ObjectType*, UINT32)>>(valueGetter);
 
-			SPtr<IReflectable> castDataType = f(castObjType, index);
+			SPtr<IReflectable> castDataType = (rttiObject->*arrayGetter)(castObjType, index);
 			return castDataType;
 		}
 
 		/** @copydoc RTTIReflectablePtrFieldBase::setValue */
-		void setValue(void* object, SPtr<IReflectable> value) override
+		void setValue(RTTITypeBase* rtti, void* object, SPtr<IReflectable> value) override
 		{
 			checkIsArray(false);
 
-			if(valueSetter.empty())
+			if(!setter)
 			{
 				BS_EXCEPT(InternalErrorException,
 					"Specified field (" + mName + ") has no setter.");
 			}
 
+			InterfaceType* rttiObject = static_cast<InterfaceType*>(rtti);
 			ObjectType* castObjType = static_cast<ObjectType*>(object);
 			SPtr<DataType> castDataObj = std::static_pointer_cast<DataType>(value);
-			std::function<void(ObjectType*, SPtr<DataType>)> f = any_cast<std::function<void(ObjectType*, SPtr<DataType>)>>(valueSetter);
-			f(castObjType, castDataObj);
+
+			(rttiObject->*setter)(castObjType, castDataObj);
 		}
 
 		/** @copydoc RTTIReflectablePtrFieldBase::setArrayValue */
-		void setArrayValue(void* object, UINT32 index, SPtr<IReflectable> value) override
+		void setArrayValue(RTTITypeBase* rtti, void* object, UINT32 index, SPtr<IReflectable> value) override
 		{
 			checkIsArray(true);
 
-			if(valueSetter.empty())
+			if(!arraySetter)
 			{
 				BS_EXCEPT(InternalErrorException, 
 					"Specified field (" + mName + ") has no setter.");
 			}
 
+			InterfaceType* rttiObject = static_cast<InterfaceType*>(rtti);
 			ObjectType* castObjType = static_cast<ObjectType*>(object);
 			SPtr<DataType> castDataObj = std::static_pointer_cast<DataType>(value);
-			std::function<void(ObjectType*, UINT32, SPtr<DataType>)> f = any_cast<std::function<void(ObjectType*, UINT32, SPtr<DataType>)>>(valueSetter);
-			f(castObjType, index, castDataObj);
+
+			(rttiObject->*arraySetter)(castObjType, index, castDataObj);
 		}
 
 		/** @copydoc RTTIField::setArraySize */
-		UINT32 getArraySize(void* object) override
+		UINT32 getArraySize(RTTITypeBase* rtti, void* object) override
 		{
 			checkIsArray(true);
 
-			std::function<UINT32(ObjectType*)> f = any_cast<std::function<UINT32(ObjectType*)>>(arraySizeGetter);
+			InterfaceType* rttiObject = static_cast<InterfaceType*>(rtti);
 			ObjectType* castObject = static_cast<ObjectType*>(object);
-			return f(castObject);
+
+			return (rttiObject->*arrayGetSize)(castObject);
 		}
 
 		/** @copydoc RTTIField::setArraySize */
-		void setArraySize(void* object, UINT32 size) override
+		void setArraySize(RTTITypeBase* rtti, void* object, UINT32 size) override
 		{
 			checkIsArray(true);
 
-			if(arraySizeSetter.empty())
+			if(!arraySetSize)
 			{
 				BS_EXCEPT(InternalErrorException, 
 					"Specified field (" + mName + ") has no array size setter.");
 			}
 
-			std::function<void(ObjectType*, UINT32)> f = any_cast<std::function<void(ObjectType*, UINT32)>>(arraySizeSetter);
+			InterfaceType* rttiObject = static_cast<InterfaceType*>(rtti);
 			ObjectType* castObject = static_cast<ObjectType*>(object);
-			f(castObject, size);
+
+			(rttiObject->*arraySetSize)(castObject, size);
 		}
 
 		/** @copydoc RTTIReflectablePtrFieldBase::newObject */
@@ -225,6 +245,25 @@ namespace bs
 		{
 			return DataType::getRTTIStatic();
 		}
+
+	private:
+		union
+		{
+			struct
+			{
+				GetterType getter;
+				SetterType setter;
+			};
+
+			struct
+			{
+				ArrayGetterType arrayGetter;
+				ArraySetterType arraySetter;
+
+				ArrayGetSizeType arrayGetSize;
+				ArraySetSizeType arraySetSize;
+			};
+		};
 	};
 
 	/** @} */

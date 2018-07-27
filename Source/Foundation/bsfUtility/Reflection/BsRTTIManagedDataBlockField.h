@@ -25,16 +25,19 @@ namespace bs
 	struct RTTIManagedDataBlockFieldBase : public RTTIField
 	{
 		/** Retrieves a managed data block from the specified instance. */
-		virtual SPtr<DataStream> getValue(void* object, UINT32& size) = 0;
+		virtual SPtr<DataStream> getValue(RTTITypeBase* rtti, void* object, UINT32& size) = 0;
 
 		/** Sets a managed data block on the specified instance. */
-		virtual void setValue(void* object, const SPtr<DataStream>& data, UINT32 size) = 0;
+		virtual void setValue(RTTITypeBase* rtti, void* object, const SPtr<DataStream>& data, UINT32 size) = 0;
 	};
 
 	/** Class containing a managed data block field containing a specific type. */
-	template <class DataType, class ObjectType>
+	template <class InterfaceType, class DataType, class ObjectType>
 	struct RTTIManagedDataBlockField : public RTTIManagedDataBlockFieldBase
 	{
+		typedef SPtr<DataStream> (InterfaceType::*GetterType)(ObjectType*, UINT32&);
+		typedef void (InterfaceType::*SetterType)(ObjectType*, const SPtr<DataStream>&, UINT32);
+
 		/**
 		 * Initializes a field that returns a block of bytes. Can be used for serializing pretty much anything.
 		 *
@@ -42,13 +45,16 @@ namespace bs
 		 * @param[in]	uniqueId		Unique identifier for this field. Although name is also a unique identifier we want a 
 		 *								small data type that can be used for efficiently serializing data to disk and similar. 
 		 *								It is primarily used for compatibility between different versions of serialized data.
-		 * @param[in]	getter  		The getter method for the field. Must be a specific signature: SerializableDataBlock(ObjectType*)
-		 * @param[in]	setter  		The setter method for the field. Must be a specific signature: void(ObjectType*, SerializableDataBlock)	
+		 * @param[in]	getter  		The getter method for the field.
+		 * @param[in]	setter  		The setter method for the field.
 		 * @param[in]	flags			Various flags you can use to specialize how systems handle this field. See RTTIFieldFlag.
 		 */
-		void initSingle(const String& name, UINT16 uniqueId, Any getter, Any setter, UINT64 flags)
+		void initSingle(const String& name, UINT16 uniqueId, GetterType getter, SetterType setter, UINT64 flags)
 		{
-			initAll(getter, setter, nullptr, nullptr, name, uniqueId, false, SerializableFT_DataBlock, flags);
+			this->getter = getter;
+			this->setter = setter;
+
+			init(name, uniqueId, false, SerializableFT_DataBlock, flags);
 		}
 
 		/** @copydoc RTTIField::getTypeSize */
@@ -64,7 +70,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIField::getArraySize */
-		UINT32 getArraySize(void* object) override
+		UINT32 getArraySize(RTTITypeBase* rtti, void* object) override
 		{
 			BS_EXCEPT(InternalErrorException, 
 				"Data block types don't support arrays.");
@@ -73,30 +79,33 @@ namespace bs
 		}
 
 		/** @copydoc RTTIField::setArraySize */
-		void setArraySize(void* object, UINT32 size) override
+		void setArraySize(RTTITypeBase* rtti, void* object, UINT32 size) override
 		{
 			BS_EXCEPT(InternalErrorException, 
 				"Data block types don't support arrays.");
 		}
 
 		/** @copydoc RTTIManagedDataBlockFieldBase::getValue */
-		SPtr<DataStream> getValue(void* object, UINT32& size) override
+		SPtr<DataStream> getValue(RTTITypeBase* rtti, void* object, UINT32& size) override
 		{
+			InterfaceType* rttiObject = static_cast<InterfaceType*>(rtti);
 			ObjectType* castObj = static_cast<ObjectType*>(object);
-			std::function<SPtr<DataStream>(ObjectType*, UINT32&)> f = any_cast<std::function<SPtr<DataStream>(ObjectType*, UINT32&)>>(valueGetter);
 
-			return f(castObj, size);
+			return (rttiObject->*getter)(castObj, size);
 		}
 
 		/** @copydoc RTTIManagedDataBlockFieldBase::setValue */
-		void setValue(void* object, const SPtr<DataStream>& value, UINT32 size) override
+		void setValue(RTTITypeBase* rtti, void* object, const SPtr<DataStream>& value, UINT32 size) override
 		{
+			InterfaceType* rttiObject = static_cast<InterfaceType*>(rtti);
 			ObjectType* castObj = static_cast<ObjectType*>(object);
-			std::function<void(ObjectType*, const SPtr<DataStream>&, UINT32)> f = 
-				any_cast<std::function<void(ObjectType*, const SPtr<DataStream>&, UINT32)>>(valueSetter);
 
-			f(castObj, value, size);
+			(rttiObject->*setter)(castObj, value, size);
 		}
+
+	private:
+		GetterType getter;
+		SetterType setter;
 	};
 
 	/** @} */

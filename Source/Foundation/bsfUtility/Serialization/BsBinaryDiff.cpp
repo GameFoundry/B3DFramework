@@ -137,7 +137,7 @@ namespace bs
 			switch (type)
 			{
 			case Diff_ArraySize:
-				command.field->setArraySize(destObject, command.arraySize);
+				command.field->setArraySize(command.rttiType, destObject, command.arraySize);
 				break;
 			case Diff_ObjectStart:
 			{
@@ -191,19 +191,19 @@ namespace bs
 				case Diff_ReflectablePtr:
 				{
 					RTTIReflectablePtrFieldBase* field = static_cast<RTTIReflectablePtrFieldBase*>(command.field);
-					field->setArrayValue(destObject, command.arrayIdx, command.object);
+					field->setArrayValue(command.rttiType, destObject, command.arrayIdx, command.object);
 				}
 					break;
 				case Diff_Reflectable:
 				{
 					RTTIReflectableFieldBase* field = static_cast<RTTIReflectableFieldBase*>(command.field);
-					field->setArrayValue(destObject, command.arrayIdx, *command.object);
+					field->setArrayValue(command.rttiType, destObject, command.arrayIdx, *command.object);
 				}
 					break;
 				case Diff_Plain:
 				{
 					RTTIPlainFieldBase* field = static_cast<RTTIPlainFieldBase*>(command.field);
-					field->arrayElemFromBuffer(destObject, command.arrayIdx, command.value);
+					field->arrayElemFromBuffer(command.rttiType, destObject, command.arrayIdx, command.value);
 				}
 					break;
 				default:
@@ -217,25 +217,25 @@ namespace bs
 				case Diff_ReflectablePtr:
 				{
 					RTTIReflectablePtrFieldBase* field = static_cast<RTTIReflectablePtrFieldBase*>(command.field);
-					field->setValue(destObject, command.object);
+					field->setValue(command.rttiType, destObject, command.object);
 				}
 					break;
 				case Diff_Reflectable:
 				{
 					RTTIReflectableFieldBase* field = static_cast<RTTIReflectableFieldBase*>(command.field);
-					field->setValue(destObject, *command.object);
+					field->setValue(command.rttiType, destObject, *command.object);
 				}
 					break;
 				case Diff_Plain:
 				{
 					RTTIPlainFieldBase* field = static_cast<RTTIPlainFieldBase*>(command.field);
-					field->fromBuffer(destObject, command.value);
+					field->fromBuffer(command.rttiType, destObject, command.value);
 				}
 					break;
 				case Diff_DataBlock:
 				{
 					RTTIManagedDataBlockFieldBase* field = static_cast<RTTIManagedDataBlockFieldBase*>(command.field);
-					field->setValue(destObject, command.streamValue, command.size);
+					field->setValue(command.rttiType, destObject, command.streamValue, command.size);
 				}
 					break;
 				default:
@@ -402,6 +402,7 @@ namespace bs
 			return;
 
 		DiffCommand objStartCommand;
+		objStartCommand.rttiType = nullptr;
 		objStartCommand.field = nullptr;
 		objStartCommand.type = Diff_ObjectStart;
 		objStartCommand.object = object;
@@ -436,6 +437,7 @@ namespace bs
 					UINT32 numArrayElements = (UINT32)diffArray->numElements;
 
 					DiffCommand arraySizeCommand;
+					arraySizeCommand.rttiType = rtti;
 					arraySizeCommand.field = genericField;
 					arraySizeCommand.type = Diff_ArraySize | Diff_ArrayFlag;
 					arraySizeCommand.arraySize = numArrayElements;
@@ -448,12 +450,13 @@ namespace bs
 					{
 						RTTIReflectablePtrFieldBase* field = static_cast<RTTIReflectablePtrFieldBase*>(genericField);
 
-						UINT32 orgArraySize = genericField->getArraySize(object.get());
+						UINT32 orgArraySize = genericField->getArraySize(rtti, object.get());
 						for (auto& arrayElem : diffArray->entries)
 						{
 							SPtr<SerializedObject> arrayElemData = std::static_pointer_cast<SerializedObject>(arrayElem.second.serialized);
 
 							DiffCommand command;
+							command.rttiType = rtti;
 							command.field = genericField;
 							command.type = Diff_ReflectablePtr | Diff_ArrayFlag;
 							command.arrayIdx = arrayElem.first;
@@ -469,7 +472,7 @@ namespace bs
 
 								if (!needsNewObject)
 								{
-									SPtr<IReflectable> childObj = field->getArrayValue(object.get(), arrayElem.first);
+									SPtr<IReflectable> childObj = field->getArrayValue(rtti, object.get(), arrayElem.first);
 									if (childObj != nullptr)
 									{
 										IDiff::applyDiff(childObj->getRTTI(), childObj, arrayElemData, objectMap, diffCommands);
@@ -509,13 +512,13 @@ namespace bs
 					{
 						RTTIReflectableFieldBase* field = static_cast<RTTIReflectableFieldBase*>(genericField);
 
-						UINT32 orgArraySize = genericField->getArraySize(object.get());
+						UINT32 orgArraySize = genericField->getArraySize(rtti, object.get());
 
 						Vector<SPtr<IReflectable>> newArrayElements(numArrayElements);
 						UINT32 minArrayLength = std::min(orgArraySize, numArrayElements);
 						for (UINT32 i = 0; i < minArrayLength; i++)
 						{
-							IReflectable& childObj = field->getArrayValue(object.get(), i);
+							IReflectable& childObj = field->getArrayValue(rtti, object.get(), i);
 							newArrayElements[i] = BinaryCloner::clone(&childObj, true);
 						}
 
@@ -544,6 +547,7 @@ namespace bs
 						for (UINT32 i = 0; i < numArrayElements; i++)
 						{
 							DiffCommand command;
+							command.rttiType = rtti;
 							command.field = genericField;
 							command.type = Diff_Reflectable | Diff_ArrayFlag;
 							command.arrayIdx = i;
@@ -561,6 +565,7 @@ namespace bs
 							if (fieldData != nullptr)
 							{
 								DiffCommand command;
+								command.rttiType = rtti;
 								command.field = genericField;
 								command.type = Diff_Plain | Diff_ArrayFlag;
 								command.value = fieldData->value;
@@ -586,6 +591,7 @@ namespace bs
 						SPtr<SerializedObject> fieldObjectData = std::static_pointer_cast<SerializedObject>(diffData);
 
 						DiffCommand command;
+						command.rttiType = rtti;
 						command.field = genericField;
 						command.type = Diff_ReflectablePtr;
 
@@ -593,7 +599,7 @@ namespace bs
 							command.object = nullptr;
 						else
 						{
-							SPtr<IReflectable> childObj = field->getValue(object.get());
+							SPtr<IReflectable> childObj = field->getValue(rtti, object.get());
 							if (childObj == nullptr)
 							{
 								RTTITypeBase* childRtti = IReflectable::_getRTTIfromTypeId(fieldObjectData->getRootTypeId());
@@ -629,12 +635,13 @@ namespace bs
 						RTTIReflectableFieldBase* field = static_cast<RTTIReflectableFieldBase*>(genericField);
 						SPtr<SerializedObject> fieldObjectData = std::static_pointer_cast<SerializedObject>(diffData);
 
-						IReflectable& childObj = field->getValue(object.get());
+						IReflectable& childObj = field->getValue(rtti, object.get());
 						SPtr<IReflectable> clonedObj = BinaryCloner::clone(&childObj, true);
 
 						IDiff::applyDiff(clonedObj->getRTTI(), clonedObj, fieldObjectData, objectMap, diffCommands);
 
 						DiffCommand command;
+						command.rttiType = rtti;
 						command.field = genericField;
 						command.type = Diff_Reflectable;
 						command.object = clonedObj;
@@ -649,6 +656,7 @@ namespace bs
 						if (diffFieldData->size > 0)
 						{
 							DiffCommand command;
+							command.rttiType = rtti;
 							command.field = genericField;
 							command.type = Diff_Plain;
 							command.value = diffFieldData->value;
@@ -663,6 +671,7 @@ namespace bs
 						SPtr<SerializedDataBlock> diffFieldData = std::static_pointer_cast<SerializedDataBlock>(diffData);
 
 						DiffCommand command;
+						command.rttiType = rtti;
 						command.field = genericField;
 						command.type = Diff_DataBlock;
 						command.streamValue = diffFieldData->stream;
@@ -678,6 +687,7 @@ namespace bs
 		}
 
 		DiffCommand objEndCommand;
+		objEndCommand.rttiType = nullptr;
 		objEndCommand.field = nullptr;
 		objEndCommand.type = Diff_ObjectEnd;
 		objEndCommand.object = object;

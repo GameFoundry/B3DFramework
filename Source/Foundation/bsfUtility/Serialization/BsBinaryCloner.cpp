@@ -59,7 +59,7 @@ namespace bs
 
 				if (field->isArray())
 				{
-					UINT32 numElements = field->getArraySize(object);
+					UINT32 numElements = field->getArraySize(rtti, object);
 
 					for (UINT32 j = 0; j < numElements; j++)
 					{
@@ -68,7 +68,7 @@ namespace bs
 						if (field->mType == SerializableFT_ReflectablePtr)
 						{
 							RTTIReflectablePtrFieldBase* curField = static_cast<RTTIReflectablePtrFieldBase*>(field);
-							SPtr<IReflectable> childObj = curField->getArrayValue(object, j);
+							SPtr<IReflectable> childObj = curField->getArrayValue(rtti, object, j);
 
 							if (childObj != nullptr)
 							{
@@ -88,7 +88,7 @@ namespace bs
 						else if (field->mType == SerializableFT_Reflectable)
 						{
 							RTTIReflectableFieldBase* curField = static_cast<RTTIReflectableFieldBase*>(field);
-							IReflectable* childObj = &curField->getArrayValue(object, j);
+							IReflectable* childObj = &curField->getArrayValue(rtti, object, j);
 							
 							if (subObjectData == nullptr)
 							{
@@ -110,7 +110,7 @@ namespace bs
 					if (field->mType == SerializableFT_ReflectablePtr)
 					{
 						RTTIReflectablePtrFieldBase* curField = static_cast<RTTIReflectablePtrFieldBase*>(field);
-						SPtr<IReflectable> childObj = curField->getValue(object);
+						SPtr<IReflectable> childObj = curField->getValue(rtti, object);
 
 						if (childObj != nullptr)
 						{
@@ -130,7 +130,7 @@ namespace bs
 					else if (field->mType == SerializableFT_Reflectable)
 					{
 						RTTIReflectableFieldBase* curField = static_cast<RTTIReflectableFieldBase*>(field);
-						IReflectable* childObj = &curField->getValue(object);
+						IReflectable* childObj = &curField->getValue(rtti, object);
 
 						if (subObjectData == nullptr)
 						{
@@ -178,9 +178,9 @@ namespace bs
 					RTTIReflectablePtrFieldBase* curField = static_cast<RTTIReflectablePtrFieldBase*>(reference.fieldId.field);
 
 					if (curField->isArray())
-						curField->setArrayValue(object, reference.fieldId.arrayIdx, reference.object);
+						curField->setArrayValue(subObject.rtti, object, reference.fieldId.arrayIdx, reference.object);
 					else
-						curField->setValue(object, reference.object);
+						curField->setValue(subObject.rtti, object, reference.object);
 				}
 
 				subObject.rtti->onDeserializationEnded(object, dummyParams);
@@ -199,9 +199,9 @@ namespace bs
 
 					IReflectable* childObj = nullptr;
 					if (curField->isArray())
-						childObj = &curField->getArrayValue(object, childObjectData.fieldId.arrayIdx);
+						childObj = &curField->getArrayValue(subObject.rtti, object, childObjectData.fieldId.arrayIdx);
 					else
-						childObj = &curField->getValue(object);
+						childObj = &curField->getValue(subObject.rtti, object);
 
 					restoreReferences(childObj, childObjectData);
 				}

@@ -237,7 +237,7 @@ namespace bs
 
 				if(curGenericField->mIsVectorType)
 				{
-					UINT32 arrayNumElems = curGenericField->getArraySize(object);
+					UINT32 arrayNumElems = curGenericField->getArraySize(si, object);
 
 					// Copy num vector elements
 					COPY_TO_BUFFER(&arrayNumElems, NUM_ELEM_FIELD_SIZE)
@@ -253,7 +253,7 @@ namespace bs
 								SPtr<IReflectable> childObject;
 								
 								if (!shallow)
-									childObject = curField->getArrayValue(object, arrIdx);
+									childObject = curField->getArrayValue(si, object, arrIdx);
 
 								UINT32 objId = registerObjectPtr(childObject);
 								COPY_TO_BUFFER(&objId, sizeof(UINT32))
@@ -267,7 +267,7 @@ namespace bs
 
 							for(UINT32 arrIdx = 0; arrIdx < arrayNumElems; arrIdx++)
 							{
-								IReflectable& childObject = curField->getArrayValue(object, arrIdx);
+								IReflectable& childObject = curField->getArrayValue(si, object, arrIdx);
 
 								buffer = complexTypeToBuffer(&childObject, buffer, bufferLength, 
 									bytesWritten, flushBufferCallback, shallow);
@@ -288,14 +288,14 @@ namespace bs
 							{
 								UINT32 typeSize = 0;
 								if(curField->hasDynamicSize())
-									typeSize = curField->getArrayElemDynamicSize(object, arrIdx);
+									typeSize = curField->getArrayElemDynamicSize(si, object, arrIdx);
 								else
 									typeSize = curField->getTypeSize();
 
 								if ((*bytesWritten + typeSize) > bufferLength)
 								{
 									UINT8* tempBuffer = (UINT8*)bs_stack_alloc(typeSize);
-									curField->arrayElemToBuffer(object, arrIdx, tempBuffer);
+									curField->arrayElemToBuffer(si, object, arrIdx, tempBuffer);
 
 									buffer = dataBlockToBuffer(tempBuffer, typeSize, buffer, bufferLength, bytesWritten, flushBufferCallback);
 									bs_stack_free(tempBuffer);
@@ -308,7 +308,7 @@ namespace bs
 								}
 								else
 								{
-									curField->arrayElemToBuffer(object, arrIdx, buffer);
+									curField->arrayElemToBuffer(si, object, arrIdx, buffer);
 									buffer += typeSize;
 									*bytesWritten += typeSize;
 								}
@@ -332,7 +332,7 @@ namespace bs
 							SPtr<IReflectable> childObject;
 							
 							if (!shallow)
-								childObject = curField->getValue(object);
+								childObject = curField->getValue(si, object);
 
 							UINT32 objId = registerObjectPtr(childObject);
 							COPY_TO_BUFFER(&objId, sizeof(UINT32))
@@ -342,7 +342,7 @@ namespace bs
 					case SerializableFT_Reflectable:
 						{
 							RTTIReflectableFieldBase* curField = static_cast<RTTIReflectableFieldBase*>(curGenericField);
-							IReflectable& childObject = curField->getValue(object);
+							IReflectable& childObject = curField->getValue(si, object);
 
 							buffer = complexTypeToBuffer(&childObject, buffer, bufferLength, 
 								bytesWritten, flushBufferCallback, shallow);
@@ -360,14 +360,14 @@ namespace bs
 
 							UINT32 typeSize = 0;
 							if(curField->hasDynamicSize())
-								typeSize = curField->getDynamicSize(object);
+								typeSize = curField->getDynamicSize(si, object);
 							else
 								typeSize = curField->getTypeSize();
 
 							if ((*bytesWritten + typeSize) > bufferLength)
 							{
 								UINT8* tempBuffer = (UINT8*)bs_stack_alloc(typeSize);
-								curField->toBuffer(object, tempBuffer);
+								curField->toBuffer(si, object, tempBuffer);
 								
 								buffer = dataBlockToBuffer(tempBuffer, typeSize, buffer, bufferLength, bytesWritten, flushBufferCallback);
 								bs_stack_free(tempBuffer);
@@ -380,7 +380,7 @@ namespace bs
 							}
 							else
 							{
-								curField->toBuffer(object, buffer);
+								curField->toBuffer(si, object, buffer);
 								buffer += typeSize;
 								*bytesWritten += typeSize;
 							}
@@ -392,7 +392,7 @@ namespace bs
 							RTTIManagedDataBlockFieldBase* curField = static_cast<RTTIManagedDataBlockFieldBase*>(curGenericField);
 
 							UINT32 dataBlockSize = 0;
-							SPtr<DataStream> blockStream = curField->getValue(object, dataBlockSize);
+							SPtr<DataStream> blockStream = curField->getValue(si, object, dataBlockSize);
 
 							// Data block size
 							COPY_TO_BUFFER(&dataBlockSize, sizeof(UINT32))
@@ -909,7 +909,7 @@ namespace bs
 					SPtr<SerializedArray> arrayData = std::static_pointer_cast<SerializedArray>(entryData);
 
 					UINT32 arrayNumElems = (UINT32)arrayData->numElements;
-					curGenericField->setArraySize(object.get(), arrayNumElems);
+					curGenericField->setArraySize(rtti, object.get(), arrayNumElems);
 
 					switch (curGenericField->mType)
 					{
@@ -956,11 +956,11 @@ namespace bs
 									}
 								}
 
-								curField->setArrayValue(object.get(), arrayElem.first, objToDecode.object);
+								curField->setArrayValue(rtti, object.get(), arrayElem.first, objToDecode.object);
 							}
 							else
 							{
-								curField->setArrayValue(object.get(), arrayElem.first, nullptr);
+								curField->setArrayValue(rtti, object.get(), arrayElem.first, nullptr);
 							}
 						}
 					}
@@ -981,7 +981,7 @@ namespace bs
 							{
 								SPtr<IReflectable> newObject = childRtti->newRTTIObject();
 								decodeEntry(newObject, arrayElemData);
-								curField->setArrayValue(object.get(), arrayElem.first, *newObject);
+								curField->setArrayValue(rtti, object.get(), arrayElem.first, *newObject);
 							}
 						}
 						break;
@@ -995,7 +995,7 @@ namespace bs
 							SPtr<SerializedField> fieldData = std::static_pointer_cast<SerializedField>(arrayElem.second.serialized);
 							if (fieldData != nullptr)
 							{
-								curField->arrayElemFromBuffer(object.get(), arrayElem.first, fieldData->value);
+								curField->arrayElemFromBuffer(rtti, object.get(), arrayElem.first, fieldData->value);
 							}
 						}
 					}
@@ -1049,11 +1049,11 @@ namespace bs
 								}
 							}
 
-							curField->setValue(object.get(), objToDecode.object);
+							curField->setValue(rtti, object.get(), objToDecode.object);
 						}
 						else
 						{
-							curField->setValue(object.get(), nullptr);
+							curField->setValue(rtti, object.get(), nullptr);
 						}
 					}
 						break;
@@ -1071,7 +1071,7 @@ namespace bs
 						{
 							SPtr<IReflectable> newObject = childRtti->newRTTIObject();
 							decodeEntry(newObject, fieldObjectData);
-							curField->setValue(object.get(), *newObject);
+							curField->setValue(rtti, object.get(), *newObject);
 						}
 						break;
 					}
@@ -1082,7 +1082,7 @@ namespace bs
 						SPtr<SerializedField> fieldData = std::static_pointer_cast<SerializedField>(entryData);
 						if (fieldData != nullptr)
 						{
-							curField->fromBuffer(object.get(), fieldData->value);
+							curField->fromBuffer(rtti, object.get(), fieldData->value);
 						}
 					}
 						break;
@@ -1094,7 +1094,7 @@ namespace bs
 						if (fieldData != nullptr)
 						{
 							fieldData->stream->seek(fieldData->offset);
-							curField->setValue(object.get(), fieldData->stream, fieldData->size);
+							curField->setValue(rtti, object.get(), fieldData->stream, fieldData->size);
 						}
 
 						break;

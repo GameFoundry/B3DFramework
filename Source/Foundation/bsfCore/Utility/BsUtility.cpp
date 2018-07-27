@@ -59,10 +59,10 @@ namespace bs
 					{
 						if (reflectableField->isArray())
 						{
-							const UINT32 numElements = reflectableField->getArraySize(&obj);
+							const UINT32 numElements = reflectableField->getArraySize(rtti, &obj);
 							for (UINT32 j = 0; j < numElements; j++)
 							{
-								HResource resource = (HResource&)reflectableField->getArrayValue(&obj, j);
+								HResource resource = (HResource&)reflectableField->getArrayValue(rtti, &obj, j);
 								if (!resource.getUUID().empty())
 								{
 									ResourceDependency& dependency = dependencies[resource.getUUID()];
@@ -73,7 +73,7 @@ namespace bs
 						}
 						else
 						{
-							HResource resource = (HResource&)reflectableField->getValue(&obj);
+							HResource resource = (HResource&)reflectableField->getValue(rtti, &obj);
 							if (!resource.getUUID().empty())
 							{
 								ResourceDependency& dependency = dependencies[resource.getUUID()];
@@ -90,16 +90,16 @@ namespace bs
 						{
 							if (reflectableField->isArray())
 							{
-								const UINT32 numElements = reflectableField->getArraySize(&obj);
+								const UINT32 numElements = reflectableField->getArraySize(rtti, &obj);
 								for (UINT32 j = 0; j < numElements; j++)
 								{
-									IReflectable& childObj = reflectableField->getArrayValue(&obj, j);
+									IReflectable& childObj = reflectableField->getArrayValue(rtti, &obj, j);
 									findResourceDependenciesInternal(childObj, true, dependencies);
 								}
 							}
 							else
 							{
-								IReflectable& childObj = reflectableField->getValue(&obj);
+								IReflectable& childObj = reflectableField->getValue(rtti, &obj);
 								findResourceDependenciesInternal(childObj, true, dependencies);
 							}
 						}
@@ -115,10 +115,10 @@ namespace bs
 					{
 						if (reflectablePtrField->isArray())
 						{
-							const UINT32 numElements = reflectablePtrField->getArraySize(&obj);
+							const UINT32 numElements = reflectablePtrField->getArraySize(rtti, &obj);
 							for (UINT32 j = 0; j < numElements; j++)
 							{
-								const SPtr<IReflectable>& childObj = reflectablePtrField->getArrayValue(&obj, j);
+								const SPtr<IReflectable>& childObj = reflectablePtrField->getArrayValue(rtti, &obj, j);
 
 								if (childObj != nullptr)
 									findResourceDependenciesInternal(*childObj, true, dependencies);
@@ -126,7 +126,7 @@ namespace bs
 						}
 						else
 						{
-							const SPtr<IReflectable>& childObj = reflectablePtrField->getValue(&obj);
+							const SPtr<IReflectable>& childObj = reflectablePtrField->getValue(rtti, &obj);
 
 							if (childObj != nullptr)
 								findResourceDependenciesInternal(*childObj, true, dependencies);
