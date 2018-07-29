@@ -251,9 +251,21 @@
 #if BS_COMPILER == BS_COMPILER_CLANG
 	/** @ref scriptBindingMacro */
 	#define BS_SCRIPT_EXPORT(...) __attribute__((annotate("se," #__VA_ARGS__)))
+
+	/** 
+	 * When applied to a parameter, makes it a variable argument parameter in the scripting interface (if supported
+	 * by the scripting language.
+	 */
+	#define BS_PARAMS __attribute__((annotate("params")))
 #else
 	/** @ref scriptBindingMacro */
 	#define BS_SCRIPT_EXPORT(...)
+
+	/** 
+	 * When applied to a parameter, makes it a variable argument parameter in the scripting interface (if supported
+	 * by the scripting language.
+	 */
+	#define BS_PARAMS
 #endif
 
 // Short-hand names for various built-in types
