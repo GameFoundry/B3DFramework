@@ -292,7 +292,7 @@ namespace bs
 			//// Then green-alpha
 			const UINT32 gaFrom = from & GA_MASK;
 			const UINT32 gaTo = to & GA_MASK;
-			const UINT32 ga = (gaFrom + ((((gaTo >> 8) - (gaFrom >> 8)) * t) >> 8)) & GA_MASK;
+			const UINT32 ga = (((gaFrom >> 8) + ((((gaTo >> 8) - (gaFrom >> 8)) * t) >> 8)) << 8) & GA_MASK;
 
 			return rb | ga;
 		}

@@ -44,9 +44,13 @@ namespace bs
 		/** Evaluates a color at the specified @p t. */
 		RGBA evaluate(float t) const;
 
-		/** Set of keys that control the gradient, sorted by time from first to last. */
+		/** Keys that control the gradient, sorted by time from first to last. Key times should be in range [0, 1]. */
 		BS_SCRIPT_EXPORT()
-		void setKeys(const Vector<ColorGradientKey>& keys);
+		void setKeys(const Vector<ColorGradientKey>& keys, float duration = 1.0f);
+
+		/** @copydoc setKeys */
+		BS_SCRIPT_EXPORT()
+		Vector<ColorGradientKey> getKeys() const;
 
 		/** Specify a "gradient" that represents a single color value. */
 		BS_SCRIPT_EXPORT()

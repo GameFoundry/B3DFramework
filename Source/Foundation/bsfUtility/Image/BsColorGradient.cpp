@@ -28,8 +28,7 @@ namespace bs
 		if(mDuration > 0.0f)
 			t = t / mDuration;
 
-		uint32_t time = Bitwise::unormToUint<16>(t);
-		time = Math::clamp(time, (uint32_t)mTimes[0], (uint32_t)mTimes[mNumKeys - 1]);
+		const uint32_t time = Bitwise::unormToUint<16>(Math::clamp01(t));
 
 		// Note: Add a version of evaluate that supports caching?
 		for(UINT32 i = 1; i < mNumKeys; i++)
@@ -46,7 +45,7 @@ namespace bs
 		return mColors[mNumKeys - 1];
 	}
 
-	void ColorGradient::setKeys(const Vector<ColorGradientKey>& keys)
+	void ColorGradient::setKeys(const Vector<ColorGradientKey>& keys, float duration)
 	{
 #if BS_DEBUG_MODE
 		// Ensure keys are sorted
@@ -67,23 +66,31 @@ namespace bs
 				toString(MAX_KEYS) + "). Keys will be ignored.");
 		}
 
-		if(!keys.empty())
-			mDuration = keys.back().time;
-		else
-			mDuration = 0.0f;
-
-
+		mDuration = duration;
 		mNumKeys = 0;
+
 		for(auto& key : keys)
 		{
 			if(mNumKeys >= MAX_KEYS)
 				break;
 
 			mColors[mNumKeys] = key.color.getAsRGBA();
-			mTimes[mNumKeys] = Bitwise::unormToUint<16>(key.time / mDuration);
+			mTimes[mNumKeys] = Bitwise::unormToUint<16>(Math::clamp01(key.time));
 
 			mNumKeys++;
 		}
+	}
+
+	Vector<ColorGradientKey> ColorGradient::getKeys() const
+	{
+		Vector<ColorGradientKey> output(mNumKeys);
+		for(UINT32 i = 0; i < mNumKeys; i++)
+		{
+			output[i].color.setAsRGBA(mColors[i]);
+			output[i].time = Bitwise::uintToUnorm<16>(mTimes[i]);
+		}
+
+		return output;
 	}
 
 	void ColorGradient::setConstant(const Color& color)
