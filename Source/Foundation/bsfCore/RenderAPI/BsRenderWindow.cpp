@@ -231,6 +231,8 @@ namespace bs
 					syncProps.hasFocus = true;
 				}
 
+				props.hasFocus = true;
+
 				ct::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
 				RenderWindowManager::instance().notifyFocusReceived(coreWindow);
 				break;
@@ -241,6 +243,8 @@ namespace bs
 					ScopedSpinLock lock(coreWindow->mLock);
 					syncProps.hasFocus = false;
 				}
+
+				props.hasFocus = false;
 
 				ct::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
 				RenderWindowManager::instance().notifyFocusLost(coreWindow);
@@ -253,6 +257,8 @@ namespace bs
 					syncProps.isMaximized = false;
 				}
 
+				props.isMaximized = false;
+
 				ct::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
 				break;
 			}
@@ -263,6 +269,8 @@ namespace bs
 					syncProps.isMaximized = true;
 				}
 
+				props.isMaximized = true;
+
 				ct::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
 				break;
 			}
@@ -272,6 +280,8 @@ namespace bs
 					ScopedSpinLock lock(coreWindow->mLock);
 					syncProps.isMaximized = false;
 				}
+
+				props.isMaximized = false;
 
 				ct::RenderWindowManager::instance().notifySyncDataDirty(coreWindow);
 				break;
@@ -368,6 +378,8 @@ namespace bs
 					syncProps.hasFocus = true;
 				}
 
+				props.hasFocus = true;
+
 				bs::RenderWindowManager::instance().notifySyncDataDirty(this);
 				bs::RenderWindowManager::instance().notifyFocusReceived(this);
 				break;
@@ -378,6 +390,8 @@ namespace bs
 					ScopedSpinLock lock(mLock);
 					syncProps.hasFocus = false;
 				}
+
+				props.hasFocus = false;
 
 				bs::RenderWindowManager::instance().notifySyncDataDirty(this);
 				bs::RenderWindowManager::instance().notifyFocusLost(this);
@@ -390,6 +404,8 @@ namespace bs
 					syncProps.isMaximized = false;
 				}
 
+				props.isMaximized = false;
+
 				bs::RenderWindowManager::instance().notifySyncDataDirty(this);
 				break;
 			}
@@ -400,6 +416,8 @@ namespace bs
 					syncProps.isMaximized = true;
 				}
 
+				props.isMaximized = true;
+
 				bs::RenderWindowManager::instance().notifySyncDataDirty(this);
 				break;
 			}
@@ -409,6 +427,8 @@ namespace bs
 					ScopedSpinLock lock(mLock);
 					syncProps.isMaximized = false;
 				}
+
+				props.isMaximized = false;
 
 				bs::RenderWindowManager::instance().notifySyncDataDirty(this);
 				break;

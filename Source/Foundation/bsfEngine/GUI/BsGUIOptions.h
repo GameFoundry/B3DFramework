@@ -74,7 +74,7 @@ namespace bs
 
 		GUIOptions(const GUIOption& e0)
 		{			
-			mOptions.push_back(e0);					
+			mOptions.push_back(e0);
 		}
 
 		GUIOptions(const GUIOption& e0, const GUIOption& e1)

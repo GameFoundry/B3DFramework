@@ -81,7 +81,7 @@ namespace bs
 	{
 	public:
 		RenderWindowProperties(const RENDER_WINDOW_DESC& desc);
-		virtual ~RenderWindowProperties() { }
+		virtual ~RenderWindowProperties() = default;
 
 		/**	True if window is running in fullscreen mode. */
 		bool isFullScreen = false;

@@ -65,8 +65,7 @@ namespace bs
 	class BS_CORE_EXPORT RenderTargetProperties
 	{
 	public:
-		RenderTargetProperties() { }
-		virtual ~RenderTargetProperties() { }
+		virtual ~RenderTargetProperties() = default;
 
 		/** Width of the render target, in pixels. */
 		UINT32 width = 0;

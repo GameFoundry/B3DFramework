@@ -263,6 +263,8 @@ namespace bs
 
 			for (auto& entry : windowsToBringToFront)
 				BringWindowToTop(entry);
+
+			SetFocus(m->hWnd);
 		}
 
 		if(desc.hidden)
