@@ -85,6 +85,18 @@ namespace bs
 		}
 
 		/**
+		 * Destructs and deallocates an object.
+		 *	
+		 * @note	Not thread safe.
+		 */
+		template<class T>
+		void destruct(T* data)
+		{
+			data->~T();
+			free((UINT8*)data);
+		}
+
+		/**
 		 * Deallocates a previously allocated block of memory.
 		 *
 		 * @note

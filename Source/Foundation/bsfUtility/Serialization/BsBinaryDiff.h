@@ -51,6 +51,7 @@ namespace bs
 			Diff_ArraySize = 0x05,
 			Diff_ObjectStart = 0x06,
 			Diff_ObjectEnd = 0x07,
+			Diff_SubObjectStart = 0x08,
 			Diff_ArrayFlag = 0x10
 		};
 		
@@ -60,7 +61,6 @@ namespace bs
 		 */
 		struct DiffCommand
 		{
-			RTTITypeBase* rttiType;
 			RTTIField* field;
 			UINT32 type;
 			SPtr<IReflectable> object;
@@ -72,6 +72,7 @@ namespace bs
 			{
 				UINT32 arrayIdx;
 				UINT32 arraySize;
+				RTTITypeBase* rttiType;
 			};
 		};
 
@@ -80,7 +81,8 @@ namespace bs
 		 *
 		 * @see		generateDiff(const SPtr<SerializedObject>&, const SPtr<SerializedObject>&)
 		 */
-		virtual SPtr<SerializedObject> generateDiff(const SPtr<SerializedObject>& orgObj, const SPtr<SerializedObject>& newObj, ObjectMap& objectMap) = 0;
+		virtual SPtr<SerializedObject> generateDiff(const SPtr<SerializedObject>& orgObj, 
+			const SPtr<SerializedObject>& newObj, ObjectMap& objectMap) = 0;
 
 		/**
 		 * Generates a difference between data of a specific field type indiscriminately of the specific field type.
@@ -96,14 +98,16 @@ namespace bs
 		 *
 		 * @see		applyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff)
 		 */
-		virtual void applyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff, DiffObjectMap& objectMap, Vector<DiffCommand>& diffCommands) = 0;
+		virtual void applyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff, FrameAlloc& alloc,
+			DiffObjectMap& objectMap, FrameVector<DiffCommand>& diffCommands) = 0;
 
 		/**
 		 * Applies diff according to the diff handler retrieved from the provided RTTI object.
 		 *
 		 * @see		applyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff)
 		 */
-		void applyDiff(RTTITypeBase* rtti, const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff, DiffObjectMap& objectMap, Vector<DiffCommand>& diffCommands);
+		void applyDiff(RTTITypeBase* rtti, const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff,
+			FrameAlloc& alloc, DiffObjectMap& objectMap, FrameVector<DiffCommand>& diffCommands);
 	};
 
 	/**
@@ -116,10 +120,12 @@ namespace bs
 	{
 	private:
 		/** @copydoc	IDiff::generateDiff(const SPtr<SerializedObject>&, const SPtr<SerializedObject>&, ObjectMap&) */
-		SPtr<SerializedObject> generateDiff(const SPtr<SerializedObject>& orgObj, const SPtr<SerializedObject>& newObj, ObjectMap& objectMap) override;
+		SPtr<SerializedObject> generateDiff(const SPtr<SerializedObject>& orgObj, const SPtr<SerializedObject>& newObj, 
+			ObjectMap& objectMap) override;
 
 		/** @copydoc	IDiff::applyDiff(const SPtr<IReflectable>&, const SPtr<SerializedObject>&, DiffObjectMap&, Vector<DiffCommand>&) */
-		void applyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff, DiffObjectMap& objectMap, Vector<DiffCommand>& diffCommands) override;
+		void applyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff, FrameAlloc& alloc, 
+			DiffObjectMap& objectMap, FrameVector<DiffCommand>& diffCommands) override;
 	};
 
 	/** @} */

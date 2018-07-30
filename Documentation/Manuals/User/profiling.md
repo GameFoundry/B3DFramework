@@ -45,14 +45,14 @@ for(CPUProfilerPreciseSamplingEntry& entry : report.getPreciseSamplingData())
 After retrieving the data, you can log it, display it on screen, or similar.
 
 ## Profiler overlay {#cpuProfiling_b_a}
-You can easily display the profiler reports on screen by adding the @ref bs::CProfilerOverlay "ProfilerOverlay" component to the scene and assigning it a camera. It will then automatically read profiler reports every frame and display them on the provided camera.
+You can easily display the profiler reports on screen by calling @ref bs::Application::showProfilerOverlay "Application::showProfilerOverlay()" with a camera to display the overlay on. If no camera is provided the system will use the main camera in the scene (if any). The method expects a parameter of type @ref bs::ProfilerOverlayType "ProfilerOverlayType" which controls whether to display CPU or GPU profiling data.
 
 ~~~~~~~~~~~~~{.cpp}
-HCamera camera = ...; // Add a scene camera
-
-HSceneObject profilerOverlaySO = SceneObject::create("Profiler overlay");
-HProfilerOverlay profilerOverlay = profilerOverlaySO->addComponent<CProfilerOverlay>(camera);
+// Display CPU sample overlay on the main camera
+gApplication().showProfilerOverlay(ProfilerOverlayType::CPUSamples);
 ~~~~~~~~~~~~~
+
+To hide the overlay call @ref bs::Application::hideProfilerOverlay "Application::hideProfilerOverlay()".
 
 ## Threads {#cpuProfiling_b_b}
 The profiler is thread-safe, but if you are profiling code on threads not managed by the engine, you must manually call @ref bs::ProfilerCPU::beginThread "ProfilerCPU::beginThread()" before any sample calls, and @ref bs::ProfilerCPU::endThread "ProfilerCPU::endThread()" after all sample calls.

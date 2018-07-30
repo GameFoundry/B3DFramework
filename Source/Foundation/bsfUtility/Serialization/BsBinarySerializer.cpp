@@ -40,6 +40,10 @@ buffer += size;															\
 
 namespace bs
 {
+	BinarySerializer::BinarySerializer()
+		:mAlloc(&gFrameAlloc())
+	{ }
+
 	void BinarySerializer::encode(IReflectable* object, UINT8* buffer, UINT32 bufferLength, UINT32* bytesWritten, 
 		std::function<UINT8*(UINT8*, UINT32, UINT32&)> flushBufferCallback, bool shallow, 
 		const UnorderedMap<String, UINT64>& params)
@@ -50,6 +54,8 @@ namespace bs
 		*bytesWritten = 0;
 		mTotalBytesWritten = 0;
 		mParams = params;
+
+		mAlloc->markFrame();
 
 		Vector<SPtr<IReflectable>> encodedObjects;
 		UINT32 objectId = findOrCreatePersistentId(object);
@@ -114,6 +120,8 @@ namespace bs
 		encodedObjects.clear();
 		mObjectsToEncode.clear();
 		mObjectAddrToId.clear();
+
+		mAlloc->clear();
 	}
 
 	SPtr<IReflectable> BinarySerializer::decode(const SPtr<DataStream>& data, UINT32 dataLength, 
@@ -133,6 +141,7 @@ namespace bs
 
 	SPtr<IReflectable> BinarySerializer::_decodeFromIntermediate(const SPtr<SerializedObject>& serializedObject)
 	{
+		mAlloc->markFrame();
 		mObjectMap.clear();
 
 		SPtr<IReflectable> output;
@@ -163,6 +172,8 @@ namespace bs
 		}
 
 		mObjectMap.clear();
+		mAlloc->clear();
+
 		return output;
 	}
 
@@ -213,22 +224,39 @@ namespace bs
 	UINT8* BinarySerializer::encodeEntry(IReflectable* object, UINT32 objectId, UINT8* buffer, UINT32& bufferLength, 
 		UINT32* bytesWritten, std::function<UINT8*(UINT8*, UINT32, UINT32&)> flushBufferCallback, bool shallow)
 	{
-		RTTITypeBase* si = object->getRTTI();
+		RTTITypeBase* rtti = object->getRTTI();
 		bool isBaseClass = false;
+
+		FrameStack<RTTITypeBase*> rttiInstances;
+
+		const auto cleanup = [&]()
+		{
+			while (!rttiInstances.empty())
+			{
+				RTTITypeBase* rttiInstance = rttiInstances.top();
+				rttiInstance->onSerializationEnded(object, mParams);
+				mAlloc->destruct(rttiInstance);
+
+				rttiInstances.pop();
+			}
+		};
 
 		// If an object has base classes, we need to iterate through all of them
 		do
 		{
-			si->onSerializationStarted(object, mParams);
+			RTTITypeBase* rttiInstance = rtti->_clone(*mAlloc);
+			rttiInstances.push(rttiInstance);
+
+			rttiInstance->onSerializationStarted(object, mParams);
 
 			// Encode object ID & type
-			ObjectMetaData objectMetaData = encodeObjectMetaData(objectId, si->getRTTIId(), isBaseClass);
+			ObjectMetaData objectMetaData = encodeObjectMetaData(objectId, rtti->getRTTIId(), isBaseClass);
 			COPY_TO_BUFFER(&objectMetaData, sizeof(ObjectMetaData))
 
-			int numFields = si->getNumFields();
-			for(int i = 0; i < numFields; i++)
+			const UINT32 numFields = rtti->getNumFields();
+			for(UINT32 i = 0; i < numFields; i++)
 			{
-				RTTIField* curGenericField = si->getField(i);
+				RTTIField* curGenericField = rtti->getField(i);
 
 				// Copy field ID & other meta-data like field size and type
 				int metaData = encodeFieldMetaData(curGenericField->mUniqueId, curGenericField->getTypeSize(), 
@@ -237,7 +265,7 @@ namespace bs
 
 				if(curGenericField->mIsVectorType)
 				{
-					UINT32 arrayNumElems = curGenericField->getArraySize(si, object);
+					UINT32 arrayNumElems = curGenericField->getArraySize(rttiInstance, object);
 
 					// Copy num vector elements
 					COPY_TO_BUFFER(&arrayNumElems, NUM_ELEM_FIELD_SIZE)
@@ -253,7 +281,7 @@ namespace bs
 								SPtr<IReflectable> childObject;
 								
 								if (!shallow)
-									childObject = curField->getArrayValue(si, object, arrIdx);
+									childObject = curField->getArrayValue(rttiInstance, object, arrIdx);
 
 								UINT32 objId = registerObjectPtr(childObject);
 								COPY_TO_BUFFER(&objId, sizeof(UINT32))
@@ -267,13 +295,13 @@ namespace bs
 
 							for(UINT32 arrIdx = 0; arrIdx < arrayNumElems; arrIdx++)
 							{
-								IReflectable& childObject = curField->getArrayValue(si, object, arrIdx);
+								IReflectable& childObject = curField->getArrayValue(rttiInstance, object, arrIdx);
 
 								buffer = complexTypeToBuffer(&childObject, buffer, bufferLength, 
 									bytesWritten, flushBufferCallback, shallow);
 								if(buffer == nullptr)
 								{
-									si->onSerializationEnded(object, mParams);
+									cleanup();
 									return nullptr;
 								}
 							}
@@ -288,27 +316,27 @@ namespace bs
 							{
 								UINT32 typeSize = 0;
 								if(curField->hasDynamicSize())
-									typeSize = curField->getArrayElemDynamicSize(si, object, arrIdx);
+									typeSize = curField->getArrayElemDynamicSize(rttiInstance, object, arrIdx);
 								else
 									typeSize = curField->getTypeSize();
 
 								if ((*bytesWritten + typeSize) > bufferLength)
 								{
 									UINT8* tempBuffer = (UINT8*)bs_stack_alloc(typeSize);
-									curField->arrayElemToBuffer(si, object, arrIdx, tempBuffer);
+									curField->arrayElemToBuffer(rttiInstance, object, arrIdx, tempBuffer);
 
 									buffer = dataBlockToBuffer(tempBuffer, typeSize, buffer, bufferLength, bytesWritten, flushBufferCallback);
 									bs_stack_free(tempBuffer);
 
 									if (buffer == nullptr || bufferLength == 0)
 									{
-										si->onSerializationEnded(object, mParams);
+										cleanup();
 										return nullptr;
 									}
 								}
 								else
 								{
-									curField->arrayElemToBuffer(si, object, arrIdx, buffer);
+									curField->arrayElemToBuffer(rttiInstance, object, arrIdx, buffer);
 									buffer += typeSize;
 									*bytesWritten += typeSize;
 								}
@@ -332,7 +360,7 @@ namespace bs
 							SPtr<IReflectable> childObject;
 							
 							if (!shallow)
-								childObject = curField->getValue(si, object);
+								childObject = curField->getValue(rttiInstance, object);
 
 							UINT32 objId = registerObjectPtr(childObject);
 							COPY_TO_BUFFER(&objId, sizeof(UINT32))
@@ -342,13 +370,13 @@ namespace bs
 					case SerializableFT_Reflectable:
 						{
 							RTTIReflectableFieldBase* curField = static_cast<RTTIReflectableFieldBase*>(curGenericField);
-							IReflectable& childObject = curField->getValue(si, object);
+							IReflectable& childObject = curField->getValue(rttiInstance, object);
 
 							buffer = complexTypeToBuffer(&childObject, buffer, bufferLength, 
 								bytesWritten, flushBufferCallback, shallow);
 							if(buffer == nullptr)
 							{
-								si->onSerializationEnded(object, mParams);
+								cleanup();
 								return nullptr;
 							}
 
@@ -360,27 +388,27 @@ namespace bs
 
 							UINT32 typeSize = 0;
 							if(curField->hasDynamicSize())
-								typeSize = curField->getDynamicSize(si, object);
+								typeSize = curField->getDynamicSize(rttiInstance, object);
 							else
 								typeSize = curField->getTypeSize();
 
 							if ((*bytesWritten + typeSize) > bufferLength)
 							{
 								UINT8* tempBuffer = (UINT8*)bs_stack_alloc(typeSize);
-								curField->toBuffer(si, object, tempBuffer);
+								curField->toBuffer(rttiInstance, object, tempBuffer);
 								
 								buffer = dataBlockToBuffer(tempBuffer, typeSize, buffer, bufferLength, bytesWritten, flushBufferCallback);
 								bs_stack_free(tempBuffer);
 
 								if (buffer == nullptr || bufferLength == 0)
 								{
-									si->onSerializationEnded(object, mParams);
+									cleanup();
 									return nullptr;
 								}
 							}
 							else
 							{
-								curField->toBuffer(si, object, buffer);
+								curField->toBuffer(rttiInstance, object, buffer);
 								buffer += typeSize;
 								*bytesWritten += typeSize;
 							}
@@ -392,7 +420,7 @@ namespace bs
 							RTTIManagedDataBlockFieldBase* curField = static_cast<RTTIManagedDataBlockFieldBase*>(curGenericField);
 
 							UINT32 dataBlockSize = 0;
-							SPtr<DataStream> blockStream = curField->getValue(si, object, dataBlockSize);
+							SPtr<DataStream> blockStream = curField->getValue(rttiInstance, object, dataBlockSize);
 
 							// Data block size
 							COPY_TO_BUFFER(&dataBlockSize, sizeof(UINT32))
@@ -406,7 +434,7 @@ namespace bs
 
 							if (buffer == nullptr || bufferLength == 0)
 							{
-								si->onSerializationEnded(object, mParams);
+								cleanup();
 								return nullptr;
 							}
 
@@ -420,12 +448,12 @@ namespace bs
 				}
 			}
 
-			si->onSerializationEnded(object, mParams);
-
-			si = si->getBaseClass();
+			rtti = rtti->getBaseClass();
 			isBaseClass = true;
 
-		} while(si != nullptr); // Repeat until we reach the top of the inheritance hierarchy
+		} while(rtti != nullptr); // Repeat until we reach the top of the inheritance hierarchy
+
+		cleanup();
 
 		return buffer;
 	}
@@ -882,7 +910,7 @@ namespace bs
 		if (numSubObjects == 0)
 			return;
 
-		Vector<RTTITypeBase*> rttiTypes;
+		FrameStack<RTTITypeBase*> rttiInstances;
 		for (INT32 subObjectIdx = numSubObjects - 1; subObjectIdx >= 0; subObjectIdx--)
 		{
 			const SerializedSubObject& subObject = serializableObject->subObjects[subObjectIdx];
@@ -891,8 +919,9 @@ namespace bs
 			if (rtti == nullptr)
 				continue;
 
-			rtti->onDeserializationStarted(object.get(), mParams);
-			rttiTypes.push_back(rtti);
+			RTTITypeBase* rttiInstance = rtti->_clone(*mAlloc);
+			rttiInstance->onDeserializationStarted(object.get(), mParams);
+			rttiInstances.push(rttiInstance);
 
 			UINT32 numFields = rtti->getNumFields();
 			for (UINT32 fieldIdx = 0; fieldIdx < numFields; fieldIdx++)
@@ -909,7 +938,7 @@ namespace bs
 					SPtr<SerializedArray> arrayData = std::static_pointer_cast<SerializedArray>(entryData);
 
 					UINT32 arrayNumElems = (UINT32)arrayData->numElements;
-					curGenericField->setArraySize(rtti, object.get(), arrayNumElems);
+					curGenericField->setArraySize(rttiInstance, object.get(), arrayNumElems);
 
 					switch (curGenericField->mType)
 					{
@@ -956,11 +985,11 @@ namespace bs
 									}
 								}
 
-								curField->setArrayValue(rtti, object.get(), arrayElem.first, objToDecode.object);
+								curField->setArrayValue(rttiInstance, object.get(), arrayElem.first, objToDecode.object);
 							}
 							else
 							{
-								curField->setArrayValue(rtti, object.get(), arrayElem.first, nullptr);
+								curField->setArrayValue(rttiInstance, object.get(), arrayElem.first, nullptr);
 							}
 						}
 					}
@@ -981,7 +1010,7 @@ namespace bs
 							{
 								SPtr<IReflectable> newObject = childRtti->newRTTIObject();
 								decodeEntry(newObject, arrayElemData);
-								curField->setArrayValue(rtti, object.get(), arrayElem.first, *newObject);
+								curField->setArrayValue(rttiInstance, object.get(), arrayElem.first, *newObject);
 							}
 						}
 						break;
@@ -995,7 +1024,7 @@ namespace bs
 							SPtr<SerializedField> fieldData = std::static_pointer_cast<SerializedField>(arrayElem.second.serialized);
 							if (fieldData != nullptr)
 							{
-								curField->arrayElemFromBuffer(rtti, object.get(), arrayElem.first, fieldData->value);
+								curField->arrayElemFromBuffer(rttiInstance, object.get(), arrayElem.first, fieldData->value);
 							}
 						}
 					}
@@ -1049,11 +1078,11 @@ namespace bs
 								}
 							}
 
-							curField->setValue(rtti, object.get(), objToDecode.object);
+							curField->setValue(rttiInstance, object.get(), objToDecode.object);
 						}
 						else
 						{
-							curField->setValue(rtti, object.get(), nullptr);
+							curField->setValue(rttiInstance, object.get(), nullptr);
 						}
 					}
 						break;
@@ -1071,7 +1100,7 @@ namespace bs
 						{
 							SPtr<IReflectable> newObject = childRtti->newRTTIObject();
 							decodeEntry(newObject, fieldObjectData);
-							curField->setValue(rtti, object.get(), *newObject);
+							curField->setValue(rttiInstance, object.get(), *newObject);
 						}
 						break;
 					}
@@ -1082,7 +1111,7 @@ namespace bs
 						SPtr<SerializedField> fieldData = std::static_pointer_cast<SerializedField>(entryData);
 						if (fieldData != nullptr)
 						{
-							curField->fromBuffer(rtti, object.get(), fieldData->value);
+							curField->fromBuffer(rttiInstance, object.get(), fieldData->value);
 						}
 					}
 						break;
@@ -1094,7 +1123,7 @@ namespace bs
 						if (fieldData != nullptr)
 						{
 							fieldData->stream->seek(fieldData->offset);
-							curField->setValue(rtti, object.get(), fieldData->stream, fieldData->size);
+							curField->setValue(rttiInstance, object.get(), fieldData->stream, fieldData->size);
 						}
 
 						break;
@@ -1104,9 +1133,13 @@ namespace bs
 			}
 		}
 
-		for (auto iterFind = rttiTypes.begin(); iterFind != rttiTypes.end(); ++iterFind)
+		while (!rttiInstances.empty())
 		{
-			(*iterFind)->onDeserializationEnded(object.get(), mParams);
+			RTTITypeBase* rttiInstance = rttiInstances.top();
+			rttiInstance->onDeserializationEnded(object.get(), mParams);
+			mAlloc->destruct(rttiInstance);
+
+			rttiInstances.pop();
 		}
 	}
 

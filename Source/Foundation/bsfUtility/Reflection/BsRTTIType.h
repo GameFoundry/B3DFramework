@@ -270,7 +270,12 @@ namespace bs
 	{																							\
 		META_InitAllMembers(MyType* owner)														\
 		{																						\
-			owner->META_InitPrevEntry(META_LastEntry());										\
+			static bool sMembersInitialized = false;											\
+			if(!sMembersInitialized)															\
+			{																					\
+				owner->META_InitPrevEntry(META_LastEntry());									\
+				sMembersInitialized = true;														\
+			}																					\
 		}																						\
 	};																							\
 																								\
@@ -390,6 +395,13 @@ namespace bs
 
 		/** Called by the RTTI system when a class is first found in order to form child/parent class hierarchy. */
 		virtual void _registerDerivedClass(RTTITypeBase* derivedClass) = 0;
+
+		/** 
+		 * Constucts a cloned version of the underlying class. The cloned version will not have any field information and
+		 * should instead be used for passing to various RTTIField methods during serialization/deserialization. This
+		 * allows each object instance to have a unique places to store temporary instance-specific data.
+		 */
+		virtual RTTITypeBase* _clone(FrameAlloc& alloc) = 0;
 
 		/** @} */
 
@@ -541,11 +553,15 @@ namespace bs
 			getDerivedClasses().push_back(derivedClass);
 		}
 
+		/** @copydoc RTTITypeBase::_clone */
+		RTTITypeBase* _clone(FrameAlloc& alloc) override
+		{
+			return alloc.construct<MyRTTIType>();
+		}
+
 	protected:
 		typedef Type OwnerType;
 		typedef MyRTTIType MyType;
-
-		virtual void initSerializableFields() {}
 
 		template<class InterfaceType, class ObjectType, class DataType>
 		void addPlainField(const String& name, UINT32 uniqueId, 

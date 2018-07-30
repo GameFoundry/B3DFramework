@@ -20,7 +20,7 @@ namespace bs
 		void setShader(Material* obj, HShader& val) { obj->mShader = val; }
 
 		SPtr<MaterialParams> getMaterialParams(Material* obj) { return obj->mParams; }
-		void setMaterialParams(Material* obj, SPtr<MaterialParams> value) { obj->mRTTIData = value; }
+		void setMaterialParams(Material* obj, SPtr<MaterialParams> value) { mMatParams = value; }
 
 	public:
 		MaterialRTTI()
@@ -43,6 +43,9 @@ namespace bs
 		}
 
 		SPtr<IReflectable> newRTTIObject() override;
+
+	private:
+		SPtr<MaterialParams> mMatParams;
 	};
 
 	/** @} */

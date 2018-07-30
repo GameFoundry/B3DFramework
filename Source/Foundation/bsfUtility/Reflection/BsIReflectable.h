@@ -82,10 +82,6 @@ namespace bs
 		static RTTITypeBase* getRTTIStatic();
 
 		/** @} */
-
-	protected:
-		Any mRTTIData; /**< Temporary per-instance data storage used during various RTTI operations.
-					    Needed since there is one RTTI class instance per type and sometimes we need per-instance data. */
 	};
 
 	/** @} */

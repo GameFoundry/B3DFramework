@@ -152,6 +152,7 @@ namespace bs
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 
+		Any mRTTIData;
 	public:
 		friend class PrefabDiffRTTI;
 		static RTTITypeBase* getRTTIStatic();

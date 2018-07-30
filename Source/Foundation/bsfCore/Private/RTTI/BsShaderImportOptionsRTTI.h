@@ -18,10 +18,7 @@ namespace bs
 	private:
 		std::pair<String, String>& getDefinePair(ShaderImportOptions* obj, UINT32 idx)
 		{
-			Vector<std::pair<String, String>>& definePairs = 
-				any_cast_ref<Vector<std::pair<String, String>>>(obj->mRTTIData);
-
-			return definePairs[idx];
+			return mDefinePairs[idx];
 		}
 
 
@@ -46,20 +43,9 @@ namespace bs
 		{
 			ShaderImportOptions* importOptions = static_cast<ShaderImportOptions*>(obj);
 
-			Vector<std::pair<String, String>> definePairs;
 			UnorderedMap<String, String>& defines = importOptions->getDefines();
-
 			for (auto& entry : defines)
-				definePairs.push_back(entry);
-
-			importOptions->mRTTIData = definePairs;
-		}
-
-		/** @copydoc RTTIType::onSerializationEnded */
-		void onSerializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
-		{
-			ShaderImportOptions* importOptions = static_cast<ShaderImportOptions*>(obj);
-			importOptions->mRTTIData = nullptr;
+				mDefinePairs.push_back(entry);
 		}
 
 		/** @copydoc RTTIType::getRTTIName */
@@ -80,6 +66,9 @@ namespace bs
 		{
 			return bs_shared_ptr_new<ShaderImportOptions>();
 		}
+
+	private:
+		Vector<std::pair<String, String>> mDefinePairs;
 	};
 
 	/** @} */

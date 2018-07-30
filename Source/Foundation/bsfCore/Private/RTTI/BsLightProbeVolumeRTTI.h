@@ -98,21 +98,19 @@ namespace bs
 			obj->updateCoefficients();
 
 			UINT32 numProbes = (UINT32)obj->mProbes.size();
-			SavedLightProbeInfo savedLightProbeInfo;
-			savedLightProbeInfo.coefficients.resize(numProbes);
-			savedLightProbeInfo.positions.resize(numProbes);
+			mSavedLightProbeInfo.coefficients.resize(numProbes);
+			mSavedLightProbeInfo.positions.resize(numProbes);
 
 			UINT32 idx = 0;
 			for(auto& entry : obj->mProbes)
 			{
-				savedLightProbeInfo.positions[idx] = entry.second.position;
-				savedLightProbeInfo.coefficients[idx] = entry.second.coefficients;
+				mSavedLightProbeInfo.positions[idx] = entry.second.position;
+				mSavedLightProbeInfo.coefficients[idx] = entry.second.coefficients;
 
 				idx++;
 			}
 
-			obj->mRTTIData = savedLightProbeInfo;
-			return any_cast_ref<SavedLightProbeInfo>(obj->mRTTIData);
+			return mSavedLightProbeInfo;
 		}
 
 		void setProbeInfo(LightProbeVolume* obj, SavedLightProbeInfo& data)
@@ -139,13 +137,6 @@ namespace bs
 				RTTI_Flag_SkipInReferenceSearch);
 		}
 
-		void onSerializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
-		{
-			// Clear temporary data
-			LightProbeVolume* volume = static_cast<LightProbeVolume*>(obj);
-			volume->mRTTIData = nullptr;
-		}
-
 		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			// Note: Since this is a CoreObject I should call initialize() right after deserialization,
@@ -169,6 +160,9 @@ namespace bs
 		{
 			return LightProbeVolume::createEmpty();
 		}
+
+	private:
+		SavedLightProbeInfo mSavedLightProbeInfo;
 	};
 
 	/** @} */

@@ -42,7 +42,7 @@ namespace bs
 		 * 			
 		 * @note	NO_SIDE signifies the point is on the plane.
 		 */
-		Side getSide(const Vector3& point, const float epsilon = 0.0f) const;
+		Side getSide(const Vector3& point, float epsilon = 0.0f) const;
 
 		/**
 		 * Returns the side where the alignedBox is. The flag BOTH_SIDE indicates an intersecting box.

@@ -103,15 +103,17 @@ namespace bs
 		String mName;
 		UINT32 mLinkId;
 
+		Any mRTTIData; // RTTI only
 	private:
 		friend class Prefab;
-
 		GameObjectInstanceDataPtr mInstanceData;
 		bool mIsDestroyed;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
+		friend class ComponentRTTI;
+		friend class SceneObjectRTTI;
 
 	public:
 		friend class GameObjectRTTI;

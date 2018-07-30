@@ -66,9 +66,7 @@ namespace bs
 	private:
 		GUISkinEntry& getStyle(GUISkin* obj, UINT32 idx) 
 		{ 
-			Vector<GUISkinEntry>& entries = any_cast_ref<Vector<GUISkinEntry>>(obj->mRTTIData);
-			
-			return entries[idx];
+			return mStyles[idx];
 		}
 
 		void setStyle(GUISkin* obj, UINT32 idx, GUISkinEntry& val) { obj->mStyles[val.name] = val.style; }
@@ -85,21 +83,9 @@ namespace bs
 		void onSerializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			GUISkin* skin = static_cast<GUISkin*>(obj);
-			Vector<GUISkinEntry> entries;
 
 			for (auto& style : skin->mStyles)
-			{
-				entries.push_back(GUISkinEntry(style.first, style.second));
-			}
-
-			skin->mRTTIData = entries;
-		}
-
-		void onSerializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
-		{
-			GUISkin* skin = static_cast<GUISkin*>(obj);
-
-			skin->mRTTIData = nullptr;
+				mStyles.push_back(GUISkinEntry(style.first, style.second));
 		}
 
 		const String& getRTTIName() override
@@ -117,6 +103,9 @@ namespace bs
 		{
 			return GUISkin::_createPtr();
 		}
+
+	private:
+		Vector<GUISkinEntry> mStyles;
 	};
 
 	/** @} */

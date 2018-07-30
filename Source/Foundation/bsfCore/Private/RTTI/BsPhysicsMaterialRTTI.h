@@ -15,37 +15,24 @@ namespace bs
 
 	class BS_CORE_EXPORT PhysicsMaterialRTTI : public RTTIType<PhysicsMaterial, Resource, PhysicsMaterialRTTI>
 	{
-		struct PhysicsMaterialData
-		{
-			float staticFriction;
-			float dynamicFriction;
-			float restitutionCoefficient;
-		};
-
 	private:
 		float& getStaticFriction(PhysicsMaterial* obj)
 		{
-			PhysicsMaterialData& materialData = any_cast_ref<PhysicsMaterialData>(obj->mRTTIData);
-
-			return materialData.staticFriction;
+			return mStaticFriction;
 		}
 
 		void setStaticFriction(PhysicsMaterial* obj, float& size) { obj->setStaticFriction(size); }
 
 		float& getDynamicFriction(PhysicsMaterial* obj)
 		{
-			PhysicsMaterialData& materialData = any_cast_ref<PhysicsMaterialData>(obj->mRTTIData);
-
-			return materialData.dynamicFriction;
+			return mDynamicFriction;
 		}
 
 		void setDynamicFriction(PhysicsMaterial* obj, float& size) { obj->setDynamicFriction(size); }
 
 		float& getRestitutionCoefficient(PhysicsMaterial* obj)
 		{
-			PhysicsMaterialData& materialData = any_cast_ref<PhysicsMaterialData>(obj->mRTTIData);
-
-			return materialData.restitutionCoefficient;
+			return mRestitutionCoefficient;
 		}
 
 		void setRestitutionCoefficient(PhysicsMaterial* obj, float& size) { obj->setRestitutionCoefficient(size); }
@@ -62,20 +49,9 @@ namespace bs
 		{
 			PhysicsMaterial* material = static_cast<PhysicsMaterial*>(obj);
 
-			PhysicsMaterialData materialData = 
-			{ 
-				material->getStaticFriction(), 
-				material->getDynamicFriction(), 
-				material->getRestitutionCoefficient() 
-			};
-
-			material->mRTTIData = materialData;
-		}
-
-		void onSerializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
-		{
-			PhysicsMaterial* material = static_cast<PhysicsMaterial*>(obj);
-			material->mRTTIData = nullptr;
+			mStaticFriction = material->getStaticFriction();
+			mDynamicFriction = material->getDynamicFriction();
+			mRestitutionCoefficient = material->getRestitutionCoefficient();
 		}
 
 		const String& getRTTIName() override
@@ -93,6 +69,11 @@ namespace bs
 		{
 			return PhysicsMaterial::_createPtr();
 		}
+
+	private:
+		float mStaticFriction;
+		float mDynamicFriction;
+		float mRestitutionCoefficient;
 	};
 
 	/** @} */

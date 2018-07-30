@@ -49,7 +49,7 @@ namespace bs
 		void showProfilerOverlay(ProfilerOverlayType type, const SPtr<Camera>& camera = nullptr);
 
 		/** Hides the profiler overlay. */
-		void hideProfileOverlay();
+		void hideProfilerOverlay();
 
 		// Scripting system related functionality required by the editor
 #if BS_IS_BANSHEE3D

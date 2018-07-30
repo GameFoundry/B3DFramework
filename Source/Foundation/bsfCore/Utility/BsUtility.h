@@ -48,18 +48,6 @@ namespace bs
 		static UINT32 getSceneObjectDepth(const HSceneObject& so);
 
 	private:
-		/**
-		 * Helper method for for recursion when finding resource dependencies.
-		 *
-		 * @see	findDependencies
-		 */
-		static void findResourceDependenciesInternal(IReflectable& object, bool recursive, Map<UUID, ResourceDependency>& dependencies);
-
-		/**
-		 * Checks if the specified type (or any of its derived classes) have any IReflectable pointer or value types as 
-		 * their fields.
-		 */
-		static bool hasReflectableChildren(RTTITypeBase* type);
 	};
 
 	/** @} */

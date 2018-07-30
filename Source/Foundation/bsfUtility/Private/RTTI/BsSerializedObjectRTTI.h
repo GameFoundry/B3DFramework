@@ -181,8 +181,7 @@ namespace bs
 
 		SerializedArrayEntry& getEntry(SerializedArray* obj, UINT32 arrayIdx)
 		{
-			Vector<SerializedArrayEntry>& sequentialEntries = any_cast_ref<Vector<SerializedArrayEntry>>(obj->mRTTIData);
-			return sequentialEntries[arrayIdx];
+			return mSequentialEntries[arrayIdx];
 		}
 
 		void setEntry(SerializedArray* obj, UINT32 arrayIdx, SerializedArrayEntry& val)
@@ -192,8 +191,7 @@ namespace bs
 
 		UINT32 getNumEntries(SerializedArray* obj)
 		{
-			Vector<SerializedArrayEntry>& sequentialEntries = any_cast_ref<Vector<SerializedArrayEntry>>(obj->mRTTIData);
-			return (UINT32)sequentialEntries.size();
+			return (UINT32)mSequentialEntries.size();
 		}
 
 		void setNumEntries(SerializedArray* obj, UINT32 numEntries)
@@ -212,17 +210,8 @@ namespace bs
 		{
 			SerializedArray* serializedArray = static_cast<SerializedArray*>(obj);
 
-			Vector<SerializedArrayEntry> sequentialData;
 			for (auto& entry : serializedArray->entries)
-				sequentialData.push_back(entry.second);
-
-			serializedArray->mRTTIData = sequentialData;
-		}
-
-		void onSerializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
-		{
-			SerializedArray* serializedArray = static_cast<SerializedArray*>(obj);
-			serializedArray->mRTTIData = nullptr;
+				mSequentialEntries.push_back(entry.second);
 		}
 
 		const String& getRTTIName() override
@@ -240,6 +229,9 @@ namespace bs
 		{
 			return bs_shared_ptr_new<SerializedArray>();
 		}
+
+	private:
+		Vector<SerializedArrayEntry> mSequentialEntries;
 	};
 
 	class BS_UTILITY_EXPORT SerializedSubObjectRTTI : public RTTIType <SerializedSubObject, IReflectable, SerializedSubObjectRTTI>
@@ -257,8 +249,7 @@ namespace bs
 
 		SerializedEntry& getEntry(SerializedSubObject* obj, UINT32 arrayIdx)
 		{
-			Vector<SerializedEntry>& sequentialEntries = any_cast_ref<Vector<SerializedEntry>>(obj->mRTTIData);
-			return sequentialEntries[arrayIdx];
+			return mSequentialEntries[arrayIdx];
 		}
 
 		void setEntry(SerializedSubObject* obj, UINT32 arrayIdx, SerializedEntry& val)
@@ -268,8 +259,7 @@ namespace bs
 
 		UINT32 getNumEntries(SerializedSubObject* obj)
 		{
-			Vector<SerializedEntry>& sequentialEntries = any_cast_ref<Vector<SerializedEntry>>(obj->mRTTIData);
-			return (UINT32)sequentialEntries.size();
+			return (UINT32)mSequentialEntries.size();
 		}
 
 		void setNumEntries(SerializedSubObject* obj, UINT32 numEntries)
@@ -288,17 +278,8 @@ namespace bs
 		{
 			SerializedSubObject* serializableObject = static_cast<SerializedSubObject*>(obj);
 
-			Vector<SerializedEntry> sequentialData;
 			for (auto& entry : serializableObject->entries)
-				sequentialData.push_back(entry.second);
-
-			serializableObject->mRTTIData = sequentialData;
-		}
-
-		void onSerializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
-		{
-			SerializedSubObject* serializableObject = static_cast<SerializedSubObject*>(obj);
-			serializableObject->mRTTIData = nullptr;
+				mSequentialEntries.push_back(entry.second);
 		}
 
 		const String& getRTTIName() override
@@ -316,6 +297,9 @@ namespace bs
 		{
 			return bs_shared_ptr_new<SerializedSubObject>();
 		}
+
+	private:
+		Vector<SerializedEntry> mSequentialEntries;
 	};
 
 	class BS_UTILITY_EXPORT SerializedEntryRTTI : public RTTIType <SerializedEntry, IReflectable, SerializedEntryRTTI>

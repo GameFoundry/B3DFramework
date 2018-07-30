@@ -11,20 +11,13 @@ namespace bs
 		Material* material = static_cast<Material*>(obj);
 		material->initialize();
 
-		if(material->mRTTIData.empty())
+		if(!mMatParams)
 			return;
 
 		material->initializeTechniques();
 
 		if (material->getNumTechniques() > 0)
-		{
-			SPtr<MaterialParams> matParams = any_cast<SPtr<MaterialParams>>(material->mRTTIData);
-
-			if(matParams)
-				material->setParams(matParams);
-		}
-
-		material->mRTTIData = nullptr; // Delete temporary data
+			material->setParams(mMatParams);
 	}
 
 	SPtr<IReflectable> MaterialRTTI::newRTTIObject()

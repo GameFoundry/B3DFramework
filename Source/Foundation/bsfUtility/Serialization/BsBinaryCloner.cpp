@@ -19,7 +19,13 @@ namespace bs
 
 		ObjectReferenceData referenceData;
 		if (shallow)
-			gatherReferences(object, referenceData);
+		{
+			FrameAlloc& alloc = gFrameAlloc();
+
+			alloc.markFrame();
+			gatherReferences(object, alloc, referenceData);
+			alloc.clear();
+		}
 
 		std::function<void*(UINT32)> allocator = &MemoryAllocator<GenAlloc>::allocate;
 
@@ -29,13 +35,19 @@ namespace bs
 		SPtr<IReflectable> clonedObj = ms.decode(data, dataSize);
 
 		if (shallow)
-			restoreReferences(clonedObj.get(), referenceData);
+		{
+			FrameAlloc& alloc = gFrameAlloc();
+
+			alloc.markFrame();
+			restoreReferences(clonedObj.get(), alloc, referenceData);
+			alloc.clear();
+		}
 
 		bs_free(data);
 		return clonedObj;
 	}
 
-	void BinaryCloner::gatherReferences(IReflectable* object, ObjectReferenceData& referenceData)
+	void BinaryCloner::gatherReferences(IReflectable* object, FrameAlloc& alloc, ObjectReferenceData& referenceData)
 	{
 		static const UnorderedMap<String, UINT64> dummyParams;
 
@@ -43,10 +55,12 @@ namespace bs
 			return;
 
 		RTTITypeBase* rtti = object->getRTTI();
-		Stack<RTTITypeBase*> rttiTypes;
+		Stack<RTTITypeBase*> rttiInstances;
 		while (rtti != nullptr)
 		{
-			rtti->onSerializationStarted(object, dummyParams);
+			RTTITypeBase* rttiInstance = rtti->_clone(alloc);
+
+			rttiInstance->onSerializationStarted(object, dummyParams);
 			SubObjectReferenceData* subObjectData = nullptr;
 
 			UINT32 numFields = rtti->getNumFields();
@@ -59,7 +73,7 @@ namespace bs
 
 				if (field->isArray())
 				{
-					UINT32 numElements = field->getArraySize(rtti, object);
+					const UINT32 numElements = field->getArraySize(rttiInstance, object);
 
 					for (UINT32 j = 0; j < numElements; j++)
 					{
@@ -67,8 +81,8 @@ namespace bs
 
 						if (field->mType == SerializableFT_ReflectablePtr)
 						{
-							RTTIReflectablePtrFieldBase* curField = static_cast<RTTIReflectablePtrFieldBase*>(field);
-							SPtr<IReflectable> childObj = curField->getArrayValue(rtti, object, j);
+							auto* curField = static_cast<RTTIReflectablePtrFieldBase*>(field);
+							SPtr<IReflectable> childObj = curField->getArrayValue(rttiInstance, object, j);
 
 							if (childObj != nullptr)
 							{
@@ -87,8 +101,8 @@ namespace bs
 						}
 						else if (field->mType == SerializableFT_Reflectable)
 						{
-							RTTIReflectableFieldBase* curField = static_cast<RTTIReflectableFieldBase*>(field);
-							IReflectable* childObj = &curField->getArrayValue(rtti, object, j);
+							auto* curField = static_cast<RTTIReflectableFieldBase*>(field);
+							IReflectable* childObj = &curField->getArrayValue(rttiInstance, object, j);
 							
 							if (subObjectData == nullptr)
 							{
@@ -101,7 +115,7 @@ namespace bs
 							ObjectReferenceData& childData = subObjectData->children.back();
 							childData.fieldId = fieldId;
 
-							gatherReferences(childObj, childData);
+							gatherReferences(childObj, alloc, childData);
 						}
 					}
 				}
@@ -109,8 +123,8 @@ namespace bs
 				{
 					if (field->mType == SerializableFT_ReflectablePtr)
 					{
-						RTTIReflectablePtrFieldBase* curField = static_cast<RTTIReflectablePtrFieldBase*>(field);
-						SPtr<IReflectable> childObj = curField->getValue(rtti, object);
+						auto* curField = static_cast<RTTIReflectablePtrFieldBase*>(field);
+						SPtr<IReflectable> childObj = curField->getValue(rttiInstance, object);
 
 						if (childObj != nullptr)
 						{
@@ -129,8 +143,8 @@ namespace bs
 					}
 					else if (field->mType == SerializableFT_Reflectable)
 					{
-						RTTIReflectableFieldBase* curField = static_cast<RTTIReflectableFieldBase*>(field);
-						IReflectable* childObj = &curField->getValue(rtti, object);
+						auto* curField = static_cast<RTTIReflectableFieldBase*>(field);
+						IReflectable* childObj = &curField->getValue(rttiInstance, object);
 
 						if (subObjectData == nullptr)
 						{
@@ -143,25 +157,26 @@ namespace bs
 						ObjectReferenceData& childData = subObjectData->children.back();
 						childData.fieldId = fieldId;
 
-						gatherReferences(childObj, childData);
+						gatherReferences(childObj, alloc, childData);
 					}
 				}
 			}
 
-			rttiTypes.push(rtti);
+			rttiInstances.push(rttiInstance);
 			rtti = rtti->getBaseClass();
 		}
 
-		while (!rttiTypes.empty())
+		while (!rttiInstances.empty())
 		{
-			rtti = rttiTypes.top();
-			rttiTypes.pop();
+			RTTITypeBase* rttiInstance = rttiInstances.top();
+			rttiInstances.pop();
 
-			rtti->onSerializationEnded(object, dummyParams);
+			rttiInstance->onSerializationEnded(object, dummyParams);
+			alloc.destruct(rttiInstance);
 		}
 	}
 
-	void BinaryCloner::restoreReferences(IReflectable* object, const ObjectReferenceData& referenceData)
+	void BinaryCloner::restoreReferences(IReflectable* object, FrameAlloc& alloc, const ObjectReferenceData& referenceData)
 	{
 		static const UnorderedMap<String, UINT64> dummyParams;
 
@@ -169,44 +184,48 @@ namespace bs
 		{
 			const SubObjectReferenceData& subObject = *iter;
 
-			if (subObject.references.size() > 0)
+			if (!subObject.references.empty())
 			{
-				subObject.rtti->onDeserializationStarted(object, dummyParams);
+				RTTITypeBase* rttiInstance = subObject.rtti->_clone(alloc);
+				rttiInstance->onDeserializationStarted(object, dummyParams);
 
 				for (auto& reference : subObject.references)
 				{
-					RTTIReflectablePtrFieldBase* curField = static_cast<RTTIReflectablePtrFieldBase*>(reference.fieldId.field);
+					auto* curField = static_cast<RTTIReflectablePtrFieldBase*>(reference.fieldId.field);
 
 					if (curField->isArray())
-						curField->setArrayValue(subObject.rtti, object, reference.fieldId.arrayIdx, reference.object);
+						curField->setArrayValue(rttiInstance, object, reference.fieldId.arrayIdx, reference.object);
 					else
-						curField->setValue(subObject.rtti, object, reference.object);
+						curField->setValue(rttiInstance, object, reference.object);
 				}
 
-				subObject.rtti->onDeserializationEnded(object, dummyParams);
+				rttiInstance->onDeserializationEnded(object, dummyParams);
+				alloc.destruct(rttiInstance);
 			}
 		}
 
 		for (auto& subObject : referenceData.subObjectData)
 		{
-			if (subObject.children.size() > 0)
+			if (!subObject.children.empty())
 			{
-				subObject.rtti->onSerializationStarted(object, dummyParams);
+				RTTITypeBase* rttiInstance = subObject.rtti->_clone(alloc);
+				rttiInstance->onSerializationStarted(object, dummyParams);
 
 				for (auto& childObjectData : subObject.children)
 				{
-					RTTIReflectableFieldBase* curField = static_cast<RTTIReflectableFieldBase*>(childObjectData.fieldId.field);
+					auto* curField = static_cast<RTTIReflectableFieldBase*>(childObjectData.fieldId.field);
 
 					IReflectable* childObj = nullptr;
 					if (curField->isArray())
-						childObj = &curField->getArrayValue(subObject.rtti, object, childObjectData.fieldId.arrayIdx);
+						childObj = &curField->getArrayValue(rttiInstance, object, childObjectData.fieldId.arrayIdx);
 					else
-						childObj = &curField->getValue(subObject.rtti, object);
+						childObj = &curField->getValue(rttiInstance, object);
 
-					restoreReferences(childObj, childObjectData);
+					restoreReferences(childObj, alloc, childObjectData);
 				}
 
-				subObject.rtti->onSerializationEnded(object, dummyParams);
+				rttiInstance->onSerializationEnded(object, dummyParams);
+				alloc.destruct(rttiInstance);
 			}
 		}
 	}

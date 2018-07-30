@@ -814,6 +814,10 @@ namespace bs
 		}
 
 		SPtr<Component> componentPtr = std::static_pointer_cast<Component>(newObj);
+
+		// Clean up the self-reference assigned by the RTTI system
+		componentPtr->mRTTIData = nullptr;
+
 		HComponent newComponent = static_object_cast<Component>(GameObjectManager::instance().registerObject(componentPtr));
 		newComponent->mParent = mThisHandle;
 

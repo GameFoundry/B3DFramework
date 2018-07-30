@@ -47,11 +47,6 @@ namespace bs
 
 	class BS_CORE_EXPORT FontRTTI : public RTTIType<Font, Resource, FontRTTI>
 	{
-		struct FontInitData
-		{
-			Vector<SPtr<FontBitmap>> fontDataPerSize;
-		};
-
 	private:
 		FontBitmap& getBitmap(Font* obj, UINT32 idx)
 		{
@@ -67,10 +62,8 @@ namespace bs
 
 		void setBitmap(Font* obj, UINT32 idx, FontBitmap& value)
 		{
-			FontInitData* initData = any_cast<FontInitData*>(obj->mRTTIData);
-
-			initData->fontDataPerSize[idx] = bs_shared_ptr_new<FontBitmap>();
-			*initData->fontDataPerSize[idx] = value;
+			mFontDataPerSize[idx] = bs_shared_ptr_new<FontBitmap>();
+			*mFontDataPerSize[idx] = value;
 		}
 
 		UINT32 getNumBitmaps(Font* obj)
@@ -80,9 +73,7 @@ namespace bs
 
 		void setNumBitmaps(Font* obj, UINT32 size)
 		{
-			FontInitData* initData = any_cast<FontInitData*>(obj->mRTTIData);
-
-			initData->fontDataPerSize.resize(size);
+			mFontDataPerSize.resize(size);
 		}
 
 	public:
@@ -108,23 +99,13 @@ namespace bs
 		}
 
 	protected:
-		void onDeserializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
-		{
-			FontInitData* initData = bs_new<FontInitData>();
-
-			Font* font = static_cast<Font*>(obj);
-			font->mRTTIData = initData;
-		}
-
 		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			Font* font = static_cast<Font*>(obj);
-			FontInitData* initData = any_cast<FontInitData*>(font->mRTTIData);
-
-			font->initialize(initData->fontDataPerSize);
-
-			bs_delete(initData);
+			font->initialize(mFontDataPerSize);
 		}
+
+		Vector<SPtr<FontBitmap>> mFontDataPerSize;
 	};
 
 	/** @} */

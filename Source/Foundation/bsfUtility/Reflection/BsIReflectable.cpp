@@ -24,10 +24,7 @@ namespace bs
 
 		SPtr<IReflectable> output;
 		if(type != nullptr)
-		{
 			output = type->newRTTIObject();
-			output->mRTTIData = nullptr;
-		}
 		
 		return output;
 	}

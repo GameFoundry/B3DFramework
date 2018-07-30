@@ -286,4 +286,52 @@ When implementing **RTTIType<Type, BaseType, MyRTTIType>** can optionally overri
  - @ref bs::RTTIType<Type, BaseType, MyRTTIType>::onDeserializationStarted "RTTIType::onDeserializationStarted"
  - @ref bs::RTTIType<Type, BaseType, MyRTTIType>::onDeserializationEnded "RTTIType::onDeserializationEnded"
  
-As their names imply they will get called during serialization/deserialization and allow you to do any pre- or post-processing of the data. Each of those methods accepts an **IReflectable** pointer to the object currently being processed. Each type that implements **IReflectable** also comes with a *mRTTIData* field which is of **Any** type, and can be used for storing temporary data during serialization/deserialization (primarily when using the methods above).
+As their names imply they will get called during serialization/deserialization and allow you to do any pre- or post-processing of the data. Each of those methods accepts an **IReflectable** pointer to the object currently being processed. 
+
+During the calls to those methods, as well as any field getter/setter methods, your instance of the **RTTIType** object is guaranteed to be unique for the instance of the **IReflectable** object it is processing. This means you may use object for temporary data storage during serialization/deserialization.
+
+```
+// RTTI for a Texture class that requires special initialization and checking after
+// deserialization ends
+class BS_CORE_EXPORT TextureRTTI : public RTTIType<Texture, Resource, TextureRTTI>
+{
+private:
+
+	// The setter doesn't write to Texture directly, instead it just stores the
+	// data in temporary field
+	void setPixelData(Texture* obj, SPtr<PixelData> data) { mPixelData = data; }
+	
+	SPtr<PixelData> getPixelData(Texture* obj) { /* Not relevant */ return ...; };	
+
+public:
+	TextureRTTI()
+	{
+		addReflectablePtrField("mPixelData", 0, 
+			&TextureRTTI::getPixelData, &TextureRTTI::setPixelData);
+	}
+
+	void onDeserializationEnded(IReflectable* obj, 
+		const UnorderedMap<String, UINT64>& params) override
+	{
+		Texture* texture = static_cast<Texture*>(obj);
+		
+		// Initialize the texture now that all fields have been deserialized
+		texture->initialize();
+		
+		// Check if the pixel data matches our texture and write the data from
+		// our temporary field
+		
+		// Do the checks
+		...
+		
+		texture->writeData(mPixelData);
+	}
+
+	// RTTIType boilerplate (name, id, newRTTIObject)
+	...
+	
+private:
+	// Temporary storage to be used during deserialization
+	SPtr<PixelData> mPixelData;
+};
+```

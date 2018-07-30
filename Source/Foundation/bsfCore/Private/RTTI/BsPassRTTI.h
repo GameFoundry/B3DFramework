@@ -81,16 +81,6 @@ namespace bs
 	class BS_CORE_EXPORT PassRTTI : public RTTIType<Pass, IReflectable, PassRTTI>
 	{
 	private:
-		struct GpuProgramInfo
-		{
-			SerializedGpuProgramData vertexProgramDesc;
-			SerializedGpuProgramData fragmentProgramDesc;
-			SerializedGpuProgramData geometryProgramDesc;
-			SerializedGpuProgramData hullProgramDesc;
-			SerializedGpuProgramData domainProgramDesc;
-			SerializedGpuProgramData computeProgramDesc;
-		};
-
 		BS_BEGIN_RTTI_MEMBERS
 			BS_RTTI_MEMBER_PLAIN_NAMED(blendStateDesc, mData.blendStateDesc, 0)
 			BS_RTTI_MEMBER_PLAIN_NAMED(rasterizerStateDesc, mData.rasterizerStateDesc, 1)
@@ -101,8 +91,7 @@ namespace bs
 
 		SerializedGpuProgramData& getVertexProgramDesc(Pass* obj)
 		{
-			GpuProgramInfo& info = any_cast_ref<GpuProgramInfo>(obj->mRTTIData);
-			return info.vertexProgramDesc;
+			return mVertexProgramDesc;
 		}
 
 		void setVertexProgramDesc(Pass* obj, SerializedGpuProgramData& val)
@@ -112,8 +101,7 @@ namespace bs
 
 		SerializedGpuProgramData& getFragmentProgramDesc(Pass* obj) 
 		{
-			GpuProgramInfo& info = any_cast_ref<GpuProgramInfo>(obj->mRTTIData);
-			return info.fragmentProgramDesc;
+			return mFragmentProgramDesc;
 		}
 
 		void setFragmentProgramDesc(Pass* obj, SerializedGpuProgramData& val)
@@ -123,8 +111,7 @@ namespace bs
 
 		SerializedGpuProgramData& getGeometryProgramDesc(Pass* obj)
 		{
-			GpuProgramInfo& info = any_cast_ref<GpuProgramInfo>(obj->mRTTIData);
-			return info.geometryProgramDesc;
+			return mGeometryProgramDesc;
 		}
 
 		void setGeometryProgramDesc(Pass* obj, SerializedGpuProgramData& val)
@@ -134,8 +121,7 @@ namespace bs
 
 		SerializedGpuProgramData& getHullProgramDesc(Pass* obj)
 		{
-			GpuProgramInfo& info = any_cast_ref<GpuProgramInfo>(obj->mRTTIData);
-			return info.hullProgramDesc;
+			return mHullProgramDesc;
 		}
 
 		void setHullProgramDesc(Pass* obj, SerializedGpuProgramData& val)
@@ -145,8 +131,7 @@ namespace bs
 
 		SerializedGpuProgramData& getDomainProgramDesc(Pass* obj)
 		{
-			GpuProgramInfo& info = any_cast_ref<GpuProgramInfo>(obj->mRTTIData);
-			return info.domainProgramDesc;
+			return mDomainProgramDesc;
 		}
 
 		void setDomainProgramDesc(Pass* obj, SerializedGpuProgramData& val)
@@ -156,8 +141,7 @@ namespace bs
 
 		SerializedGpuProgramData& getComputeProgramDesc(Pass* obj)
 		{
-			GpuProgramInfo& info = any_cast_ref<GpuProgramInfo>(obj->mRTTIData);
-			return info.computeProgramDesc;
+			return mComputeProgramDesc;
 		}
 
 		void setComputeProgramDesc(Pass* obj, SerializedGpuProgramData& val)
@@ -179,13 +163,12 @@ namespace bs
 		{
 			Pass* pass = static_cast<Pass*>(obj);
 
-			GpuProgramInfo info;
-			info.vertexProgramDesc = pass->mData.vertexProgramDesc;
-			info.fragmentProgramDesc = pass->mData.fragmentProgramDesc;
-			info.geometryProgramDesc = pass->mData.geometryProgramDesc;
-			info.hullProgramDesc = pass->mData.hullProgramDesc;
-			info.domainProgramDesc = pass->mData.domainProgramDesc;
-			info.computeProgramDesc = pass->mData.computeProgramDesc;
+			mVertexProgramDesc = pass->mData.vertexProgramDesc;
+			mFragmentProgramDesc = pass->mData.fragmentProgramDesc;
+			mGeometryProgramDesc = pass->mData.geometryProgramDesc;
+			mHullProgramDesc = pass->mData.hullProgramDesc;
+			mDomainProgramDesc = pass->mData.domainProgramDesc;
+			mComputeProgramDesc = pass->mData.computeProgramDesc;
 
 			auto initBytecode = [](const SPtr<GpuProgram>& prog, GPU_PROGRAM_DESC& desc)
 			{
@@ -199,38 +182,22 @@ namespace bs
 			const SPtr<GraphicsPipelineState>& graphicsPipeline = pass->getGraphicsPipelineState();
 			if(graphicsPipeline)
 			{
-				initBytecode(graphicsPipeline->getVertexProgram(), info.vertexProgramDesc);
-				initBytecode(graphicsPipeline->getFragmentProgram(), info.fragmentProgramDesc);
-				initBytecode(graphicsPipeline->getGeometryProgram(), info.geometryProgramDesc);
-				initBytecode(graphicsPipeline->getHullProgram(), info.hullProgramDesc);
-				initBytecode(graphicsPipeline->getDomainProgram(), info.domainProgramDesc);
+				initBytecode(graphicsPipeline->getVertexProgram(), mVertexProgramDesc);
+				initBytecode(graphicsPipeline->getFragmentProgram(), mFragmentProgramDesc);
+				initBytecode(graphicsPipeline->getGeometryProgram(), mGeometryProgramDesc);
+				initBytecode(graphicsPipeline->getHullProgram(), mHullProgramDesc);
+				initBytecode(graphicsPipeline->getDomainProgram(), mDomainProgramDesc);
 			}
 			
 			const SPtr<ComputePipelineState>& computePipeline = pass->getComputePipelineState();
 			if(computePipeline)
-				initBytecode(computePipeline->getProgram(), info.computeProgramDesc);
-
-			pass->mRTTIData = info;
-		}
-
-		void onSerializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
-		{
-			Pass* pass = static_cast<Pass*>(obj);
-			pass->mRTTIData = nullptr;
-		}
-
-		void onDeserializationStarted(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
-		{
-			Pass* pass = static_cast<Pass*>(obj);
-			pass->mRTTIData = GpuProgramInfo();
+				initBytecode(computePipeline->getProgram(), mComputeProgramDesc);
 		}
 
 		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			Pass* pass = static_cast<Pass*>(obj);
 			pass->initialize();
-
-			pass->mRTTIData = nullptr;
 		}
 
 		const String& getRTTIName() override
@@ -248,6 +215,14 @@ namespace bs
 		{
 			return Pass::createEmpty();
 		}
+
+	private:
+		SerializedGpuProgramData mVertexProgramDesc;
+		SerializedGpuProgramData mFragmentProgramDesc;
+		SerializedGpuProgramData mGeometryProgramDesc;
+		SerializedGpuProgramData mHullProgramDesc;
+		SerializedGpuProgramData mDomainProgramDesc;
+		SerializedGpuProgramData mComputeProgramDesc;
 	};
 
 	/** @} */

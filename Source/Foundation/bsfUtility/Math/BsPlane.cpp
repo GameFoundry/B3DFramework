@@ -35,7 +35,7 @@ namespace bs
 		return normal.dot(point) - d;
 	}
 
-	Plane::Side Plane::getSide(const Vector3& point, const float epsilon) const
+	Plane::Side Plane::getSide(const Vector3& point, float epsilon) const
 	{
 		float dist = getDistance(point);
 

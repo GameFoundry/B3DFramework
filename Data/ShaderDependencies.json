@@ -184,8 +184,6 @@
             "Path": "VertexInput.bslinc"
         }
     ],
-    "FlatFramebufferToTexture.bsl": null,
-    "FlatFramebufferToTexture2.bsl": null,
     "IrradianceAccumulateCubeSH.bsl": [
         {
             "Path": "PPBase.bslinc"
@@ -570,13 +568,13 @@
     ],
     "ShadowDepthNormalNoPS.bsl": [
         {
+            "Path": "ShadowDepthBase.bslinc"
+        },
+        {
             "Path": "PerObjectData.bslinc"
         },
         {
             "Path": "VertexInput.bslinc"
-        },
-        {
-            "Path": "ShadowDepthBase.bslinc"
         }
     ],
     "ShadowProject.bsl": [

@@ -40,7 +40,7 @@ namespace bs
 	class BS_UTILITY_EXPORT BinarySerializer
 	{
 	public:
-		BinarySerializer() = default;
+		BinarySerializer();
 
 		/**
 		 * Encodes all serializable fields provided by @p object into a binary format. Data is written in chunks. Whenever a 
@@ -197,6 +197,7 @@ namespace bs
 		UINT32 mLastUsedObjectId = 1;
 		Vector<ObjectToEncode> mObjectsToEncode;
 		UINT32 mTotalBytesWritten;
+		FrameAlloc* mAlloc = nullptr;
 
 		UnorderedMap<SPtr<SerializedObject>, ObjectToDecode> mObjectMap;
 		UnorderedMap<UINT32, SPtr<SerializedObject>> mInterimObjectMap;

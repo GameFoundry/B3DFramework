@@ -27,7 +27,7 @@ namespace bs
 			return invalidId;
 		}
 
-		void setInstanceId(GameObjectHandleBase* obj, UINT64& value) { obj->mRTTIData = value; } 
+		void setInstanceId(GameObjectHandleBase* obj, UINT64& value) { mOriginalInstanceId = value; } 
 
 	public:
 		GameObjectHandleRTTI()
@@ -38,10 +38,7 @@ namespace bs
 		void onDeserializationEnded(IReflectable* obj, const UnorderedMap<String, UINT64>& params) override
 		{
 			GameObjectHandleBase* gameObjectHandle = static_cast<GameObjectHandleBase*>(obj);
-
-			UINT64 originalInstanceId = any_cast<UINT64>(gameObjectHandle->mRTTIData);
-			GameObjectManager::instance().registerUnresolvedHandle(originalInstanceId, *gameObjectHandle);
-			gameObjectHandle->mRTTIData = nullptr;
+			GameObjectManager::instance().registerUnresolvedHandle(mOriginalInstanceId, *gameObjectHandle);
 		}
 
 		const String& getRTTIName() override
@@ -61,6 +58,9 @@ namespace bs
 
 			return obj;
 		}
+
+	private:
+		UINT64 mOriginalInstanceId;
 	};
 
 	/** @} */
