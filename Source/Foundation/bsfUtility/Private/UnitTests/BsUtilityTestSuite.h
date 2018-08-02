@@ -14,6 +14,7 @@ namespace bs
 		void shutDown() override;
 
 	private:
+		void testBitfield();
 		void testOctree();
 	};
 }

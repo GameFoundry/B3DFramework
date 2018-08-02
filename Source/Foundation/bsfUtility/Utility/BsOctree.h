@@ -460,7 +460,7 @@ namespace bs
 
 				mCurrentIdx++;
 
-				if(mCurrentIdx == mElemsInGroup) // Next group
+				if((UINT32)mCurrentIdx == mElemsInGroup) // Next group
 				{
 					mCurrentElemGroup = mCurrentElemGroup->next;
 					mCurrentBoundGroup = mCurrentBoundGroup->next;

@@ -5,6 +5,10 @@
 #include "Prerequisites/BsPrerequisitesUtil.h"
 #include "Math/BsMath.h"
 
+#if BS_COMPILER == BS_COMPILER_MSVC
+#include <intrin.h>
+#endif
+
 namespace bs 
 {
 	/** @addtogroup General
@@ -98,6 +102,36 @@ namespace bs
 				return prev;
 			
 			return next;
+		}
+#if BS_COMPILER == BS_COMPILER_MSVC
+#pragma intrinsic(_BitScanReverse,_BitScanForward)
+#endif
+
+		/** Finds the most-significant non-zero bit in the provided value. */
+		static UINT32 mostSignificantBit(UINT32 val)
+		{
+#if BS_COMPILER == BS_COMPILER_MSVC
+			unsigned long index;
+			_BitScanReverse(&index, val);
+			return index;
+#elif BS_COMPILER == BS_COMPILER_GNUC || BS_COMPILER == BS_COMPILER_CLANG
+			return 31 - __builtin_clz(val);
+#else
+			static_assert(false, "Not implemented");
+#endif
+		}
+		/** Finds the least-significant non-zero bit in the provided value. */
+		static UINT32 leastSignificantBit(UINT32 val)
+		{
+#if BS_COMPILER == BS_COMPILER_MSVC
+			unsigned long index;
+			_BitScanForward(&index, val);
+			return index;
+#elif BS_COMPILER == BS_COMPILER_GNUC || BS_COMPILER == BS_COMPILER_CLANG
+			return __builtin_ctz(val);
+#else
+			static_assert(false, "Not implemented");
+#endif
 		}
 
 		/** Determines whether the number is power-of-two or not. */

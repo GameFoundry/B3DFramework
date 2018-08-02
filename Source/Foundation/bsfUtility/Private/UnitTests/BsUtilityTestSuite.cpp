@@ -3,6 +3,7 @@
 #include "Private/UnitTests/BsUtilityTestSuite.h"
 #include "Private/UnitTests/BsFileSystemTestSuite.h"
 #include "Utility/BsOctree.h"
+#include "Utility/BsBitfield.h"
 
 namespace bs
 {
@@ -51,6 +52,82 @@ namespace bs
 	UtilityTestSuite::UtilityTestSuite()
 	{
 		BS_ADD_TEST(UtilityTestSuite::testOctree);
+		BS_ADD_TEST(UtilityTestSuite::testBitfield)
+	}
+
+	void UtilityTestSuite::testBitfield()
+	{
+		static constexpr UINT32 COUNT = 100;
+		static constexpr UINT32 EXTRA_COUNT = 32;
+
+		Bitfield bitfield(true, COUNT);
+
+		// Basic iteration
+		UINT32 i = 0;
+		for (auto iter : bitfield)
+		{
+			BS_TEST_ASSERT(iter == true)
+				i++;
+		}
+
+		UINT32 curCount = COUNT;
+		BS_TEST_ASSERT(i == curCount);
+
+		// Dynamic additon
+		bitfield.add(false);
+		bitfield.add(false);
+		bitfield.add(true);
+		bitfield.add(false);
+		curCount += 4;
+
+		// Realloc
+		curCount += EXTRA_COUNT;
+		for (uint32_t j = 0; j < 32; j++)
+			bitfield.add(false);
+
+		BS_TEST_ASSERT(bitfield.size() == curCount);
+
+		BS_TEST_ASSERT(bitfield[COUNT + 0] == false);
+		BS_TEST_ASSERT(bitfield[COUNT + 1] == false);
+		BS_TEST_ASSERT(bitfield[COUNT + 2] == true);
+		BS_TEST_ASSERT(bitfield[COUNT + 3] == false);
+
+		// Modify during iteration
+		i = 0;
+		for (auto iter : bitfield)
+		{
+			if (i >= 50 && i <= 70)
+				iter = false;
+
+			i++;
+		}
+
+		// Modify directly using []
+		bitfield[5] = false;
+		bitfield[6] = false;
+
+		for (UINT32 j = 50; j < 70; j++)
+			BS_TEST_ASSERT(bitfield[j] == false);
+
+		BS_TEST_ASSERT(bitfield[5] == false);
+		BS_TEST_ASSERT(bitfield[6] == false);
+
+		// Removal
+		bitfield.remove(10);
+		bitfield.remove(10);
+		curCount -= 2;
+
+		for (UINT32 j = 48; j < 68; j++)
+			BS_TEST_ASSERT(bitfield[j] == false);
+
+		BS_TEST_ASSERT(bitfield[5] == false);
+		BS_TEST_ASSERT(bitfield[6] == false);
+
+		BS_TEST_ASSERT(bitfield.size() == curCount);
+
+		// Find
+		BS_TEST_ASSERT(bitfield.find(true) == 0);
+		BS_TEST_ASSERT(bitfield.find(false) == 5);
 	}
 
 	void UtilityTestSuite::testOctree()
