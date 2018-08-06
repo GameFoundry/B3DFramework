@@ -320,6 +320,21 @@ namespace bs
 			return (uint32_t)-1;
 		}
 
+		/** Counts the number of values in the bit field. */
+		uint32_t count(bool value) const
+		{
+			// Note: Implement this faster via popcnt and similar instructions
+
+			uint32_t counter = 0;
+			for(auto& entry : *this)
+			{
+				if(entry == value)
+					counter++;
+			}
+
+			return counter;
+		}
+
 		/** Resets all the bits in the field to the specified value. */
 		void reset(bool value = false)
 		{
@@ -388,7 +403,7 @@ namespace bs
 
 			return ConstIterator(*this, bitIndex, dwordIndex, mask);
 		}
-
+		
 	private:
 		template<bool CONST>
 		friend class TBitfieldIterator;
@@ -423,5 +438,30 @@ namespace bs
 		uint32_t mNumBits;
 	};
 
-	/** @} */
+
 }
+
+/** @cond SPECIALIZATIONS */
+/** @addtogroup Implementation
+ *  @{
+ */
+
+namespace std
+{
+	template <> void swap(bs::BitReference& lhs, bs::BitReference& rhs)
+	{
+		const bool temp = lhs;
+		lhs = rhs;
+		rhs = temp;
+	}
+
+	inline void swap(bs::BitReference&& lhs, bs::BitReference&& rhs)
+	{
+		const bool temp = lhs;
+		lhs = rhs;
+		rhs = temp;
+	}
+};
+
+/** @endgroup */
+/** @endcond */

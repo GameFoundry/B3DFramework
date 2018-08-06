@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Prerequisites/BsPrerequisitesUtil.h"
+#include "BsVector2.h"
 
 namespace bs
 {
@@ -86,6 +87,11 @@ namespace bs
 			return Vector2I(x * val, y * val);
 		}
 
+		Vector2 operator* (float val) const
+		{
+			return Vector2(x * val, y * val);
+		}
+
 		Vector2I operator* (const Vector2I& rhs) const
 		{
 			return Vector2I(x * rhs.x, y * rhs.y);
@@ -96,6 +102,13 @@ namespace bs
 			assert(val != 0);
 
 			return Vector2I(x / val, y / val);
+		}
+
+		Vector2 operator/ (float val) const
+		{
+			assert(val != 0);
+
+			return Vector2(x / val, y / val);
 		}
 
 		Vector2I operator/ (const Vector2I& rhs) const

@@ -185,6 +185,12 @@ namespace bs
 			return std::max(std::min(val, (T)1), (T)0);
 		}
 
+		/** Returns the fractional part of a floating point number. */
+		static float frac(float val)
+		{
+			return val - (float)(int32_t)val;
+		}
+
 		/** Returns a floating point remainder for (@p val / @p length). */
 		static float repeat(float val, float length)
 		{

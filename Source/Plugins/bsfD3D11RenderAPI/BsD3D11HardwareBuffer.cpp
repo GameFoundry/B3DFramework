@@ -138,7 +138,7 @@ namespace bs { namespace ct
 					mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
 				else
 				{
-					// Note supported on anything but index/vertex buffers in DX11 (this restriction was dropped in 11.1)
+					// Not supported on anything but index/vertex buffers in DX11 (this restriction was dropped in 11.1)
 					mapType = D3D11_MAP_WRITE;
 				}
 				break;
