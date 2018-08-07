@@ -30,7 +30,7 @@ namespace bs { namespace ct
 	}
 
 	SPtr<GpuParamBlockBuffer> GLHardwareBufferManager::createGpuParamBlockBufferInternal(UINT32 size, 
-		GpuParamBlockUsage usage, GpuDeviceFlags deviceMask)
+		GpuBufferUsage usage, GpuDeviceFlags deviceMask)
 	{
 		GLGpuParamBlockBuffer* paramBlockBuffer = 
 			new (bs_alloc<GLGpuParamBlockBuffer>()) GLGpuParamBlockBuffer(size, usage, deviceMask);
@@ -54,13 +54,20 @@ namespace bs { namespace ct
 
 	GLenum GLHardwareBufferManager::getGLUsage(GpuBufferUsage usage)
 	{
-		if(usage & GBU_STATIC)
-			return GL_STATIC_DRAW;
+		if((usage & GBU_LOADSTORE) == GBU_LOADSTORE)
+		{
+			if ((usage & GBU_STATIC) != 0)
+				return GL_STATIC_READ;
 
-		if(usage & GBU_DYNAMIC)
+			return GL_DYNAMIC_READ;
+		}
+		else
+		{
+			if ((usage & GBU_STATIC) != 0)
+				return GL_STATIC_DRAW;
+
 			return GL_DYNAMIC_DRAW;
-
-		return GL_DYNAMIC_DRAW;
+		}
 	}
 
 	GLenum GLHardwareBufferManager::getGLType(VertexElementType type)

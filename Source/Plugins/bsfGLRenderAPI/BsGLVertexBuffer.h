@@ -32,7 +32,7 @@ namespace bs { namespace ct
 			bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 		/**	Returns internal OpenGL buffer ID. */
-		GLuint getGLBufferId() const { return mBuffer.getGLBufferId(); }
+		GLuint getGLBufferId() const { return mBuffer->getGLBufferId(); }
 
 		/**	Registers a new VertexArrayObject that uses this vertex buffer. */
 		void registerVAO(const GLVertexArrayObject& vao);
@@ -51,7 +51,7 @@ namespace bs { namespace ct
 		void unmap() override;
 
 	private:
-		GLBuffer mBuffer;
+		GLBuffer* mBuffer = nullptr;
 		GpuBufferUsage mUsage;
 
 		Vector<GLVertexArrayObject> mVAObjects;

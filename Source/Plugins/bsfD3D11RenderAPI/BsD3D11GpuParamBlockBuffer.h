@@ -15,7 +15,7 @@ namespace bs { namespace ct
 	class D3D11GpuParamBlockBuffer : public GpuParamBlockBuffer
 	{
 	public:
-		D3D11GpuParamBlockBuffer(UINT32 size, GpuParamBlockUsage usage, GpuDeviceFlags deviceMask);
+		D3D11GpuParamBlockBuffer(UINT32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask);
 		~D3D11GpuParamBlockBuffer();
 
 		/** @copydoc GpuParamBlockBuffer::writeToGPU */
@@ -28,7 +28,7 @@ namespace bs { namespace ct
 		void initialize() override;
 
 	private:
-		D3D11HardwareBuffer* mBuffer;
+		D3D11HardwareBuffer* mBuffer = nullptr;
 	};
 
 	/** @} */

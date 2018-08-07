@@ -39,7 +39,7 @@ namespace bs { namespace ct
 		 * Returns internal OpenGL buffer ID. If binding the buffer to the pipeline, bind the texture using
 		 * getGLTextureId() instead. 
 		 */
-		GLuint getGLBufferId() const { return mBuffer.getGLBufferId(); }
+		GLuint getGLBufferId() const { return mBuffer->getGLBufferId(); }
 
 		/**	Returns internal OpenGL texture ID. */
 		GLuint getGLTextureId() const { return mTextureID; }
@@ -51,13 +51,14 @@ namespace bs { namespace ct
 		friend class GLHardwareBufferManager;
 
 		GLGpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
+		GLGpuBuffer(const GPU_BUFFER_DESC& desc, const SPtr<GLBuffer>& underlyingBuffer);
 
 		/** @copydoc GpuBuffer::initialize */
 		void initialize() override;
 
-		GLuint mTextureID;
-		GLBuffer mBuffer;
-		GLenum mFormat;
+		GLuint mTextureID = 0;
+		GLBuffer* mBuffer = nullptr;
+		GLenum mFormat = 0;
 	};
 
 	/** @} */

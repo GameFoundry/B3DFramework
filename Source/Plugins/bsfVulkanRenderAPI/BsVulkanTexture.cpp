@@ -754,9 +754,7 @@ namespace bs { namespace ct
 		VkMemoryPropertyFlags flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 		VmaAllocation allocation = device.allocateMemory(buffer, flags);
 
-		VkBufferView view = VK_NULL_HANDLE;
-
-		return device.getResourceManager().create<VulkanBuffer>(buffer, view, allocation,
+		return device.getResourceManager().create<VulkanBuffer>(buffer, allocation,
 			pixelData.getRowPitch(), pixelData.getSlicePitch());
 	}
 

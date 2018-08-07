@@ -206,7 +206,7 @@ namespace bs { namespace ct
 		 * @param[in]	usage		Usage flag hinting the driver how is buffer going to be used.
 		 */
 		static POOLED_STORAGE_BUFFER_DESC createStandard(GpuBufferFormat format, UINT32 numElements, 
-			GpuBufferUsage usage = GBU_STATIC);
+			GpuBufferUsage usage = GBU_LOADSTORE);
 
 		/**
 		 * Creates a descriptor for a storage buffer containing structures.
@@ -216,7 +216,7 @@ namespace bs { namespace ct
 		 * @param[in]	usage		Usage flag hinting the driver how is buffer going to be used.
 		 */
 		static POOLED_STORAGE_BUFFER_DESC createStructured(UINT32 elementSize, UINT32 numElements,
-			GpuBufferUsage usage = GBU_STATIC);
+			GpuBufferUsage usage = GBU_LOADSTORE);
 
 	private:
 		friend class GpuResourcePool;

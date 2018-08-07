@@ -128,7 +128,6 @@ namespace bs { namespace ct
 		bufferDesc.elementCount = desc.numElements;
 		bufferDesc.format = desc.format;
 		bufferDesc.usage = desc.usage;
-		bufferDesc.randomGpuWrite = true;
 
 		newBufferData->buffer = GpuBuffer::create(bufferDesc);
 

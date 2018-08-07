@@ -40,6 +40,9 @@ namespace bs { namespace ct
 		/**	Returns internal DX11 device. */
 		ID3D11Device* getD3D11Device() const { return mD3D11Device; }		
 
+		/** Returns information about optional features supported by the device. */
+		const D3D11_FEATURE_DATA_D3D11_OPTIONS& getFeatureOptions() const { return mD3D11FeatureOptions; }
+
 		/**	Resets error state & error messages. */
 		void clearErrors();
 
@@ -59,12 +62,13 @@ namespace bs { namespace ct
 		void setExceptionsErrorLevel(const BS_D3D11_ERROR_LEVEL exceptionsErrorLevel);
 
 	private:
-		D3D11Device();
+		D3D11Device() = default;
 
-		ID3D11Device* mD3D11Device;
-		ID3D11DeviceContext* mImmediateContext;
-		ID3D11InfoQueue* mInfoQueue; 
-		ID3D11ClassLinkage* mClassLinkage;
+		ID3D11Device* mD3D11Device = nullptr;
+		ID3D11DeviceContext* mImmediateContext = nullptr;
+		ID3D11InfoQueue* mInfoQueue = nullptr; 
+		ID3D11ClassLinkage* mClassLinkage = nullptr;
+		D3D11_FEATURE_DATA_D3D11_OPTIONS mD3D11FeatureOptions;
 	};
 
 	/** @} */

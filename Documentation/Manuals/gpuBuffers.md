@@ -53,6 +53,14 @@ params->setBuffer(GPT_FRAGMENT_PROGRAM, "myBuffer", buffer);
 ~~~~~~~~~~~~~ 
 
 # Load-store buffers {#gpuBuffers_d}
-Same as with textures, buffers can also be used for GPU program load-store operations. You simply need to enable the @ref bs::GPU_BUFFER_DESC::randomGpuWrite "GPU_BUFFER_DESC::randomGpuWrite" option on buffer creation.
+Same as with textures, buffers can also be used for GPU program load-store operations. You simply need to set the @ref bs::GBU_LOADSTORE "GBU_LOADSTORE" flag on @ref bs::GPU_BUFFER_DESC::usage "GPU_BUFFER_DESC::usage" before creating the buffer creation.
+
+~~~~~~~~~~~~~{.cpp}
+GPU_BUFFER_DESC desc;
+... // Other options
+desc.usage |= GBU_LOADSTORE;
+
+SPtr<GpuBuffer> buffer = GpuBuffer::create(desc);
+~~~~~~~~~~~~~ 
 
 After that buffer can be bound as normal, as shown above. This is different from load-store textures which have a separate set of methods for binding in **GpuParams**.

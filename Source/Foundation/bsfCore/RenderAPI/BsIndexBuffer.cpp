@@ -51,7 +51,8 @@ namespace bs
 	namespace ct
 	{
 	IndexBuffer::IndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
-		:HardwareBuffer(calcIndexSize(desc.indexType) * desc.numIndices), mProperties(desc.indexType, desc.numIndices)
+		: HardwareBuffer(calcIndexSize(desc.indexType) * desc.numIndices, desc.usage, deviceMask)
+		, mProperties(desc.indexType, desc.numIndices)
 	{ }
 
 	SPtr<IndexBuffer> IndexBuffer::create(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)

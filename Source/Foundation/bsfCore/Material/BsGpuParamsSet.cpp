@@ -64,7 +64,7 @@ namespace bs
 	struct ShaderBlockDesc
 	{
 		String name;
-		GpuParamBlockUsage usage;
+		GpuBufferUsage usage;
 		int size;
 		bool external;
 		UINT32 sequentialIdx;
@@ -280,7 +280,7 @@ namespace bs
 
 			ShaderBlockDesc shaderBlockDesc;
 			shaderBlockDesc.external = false;
-			shaderBlockDesc.usage = GPBU_STATIC;
+			shaderBlockDesc.usage = GBU_STATIC;
 			shaderBlockDesc.size = curBlock.blockSize * sizeof(UINT32);
 			shaderBlockDesc.name = entry.first;
 			shaderBlockDesc.set = curBlock.set;

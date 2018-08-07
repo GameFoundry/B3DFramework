@@ -20,7 +20,7 @@ namespace bs
 	class BS_CORE_EXPORT HardwareBuffer
 	{
 	public:
-		virtual ~HardwareBuffer() {}
+		virtual ~HardwareBuffer() = default;
 
 		/**
 		 * Locks a portion of the buffer and returns pointer to the locked area. You must call unlock() when done.
@@ -130,6 +130,9 @@ namespace bs
 		/**	Returns whether or not this buffer is currently locked. */
 		bool isLocked() const { return mIsLocked; }
 
+		/** Returns a mask signifying on which devices has been this buffer created on. */
+		GpuDeviceFlags getDeviceMask() const { return mDeviceMask; }
+
 	protected:
 		friend class HardwareBufferManager;
 
@@ -137,9 +140,11 @@ namespace bs
 		 * Constructs a new buffer.
 		 *
 		 * @param[in]	size			Size of the buffer, in bytes.
+		 * @param[in]	usage			Hint on how the buffer is intended to be used.
+		 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
-		HardwareBuffer(UINT32 size)
-			: mSize(size), mIsLocked(false)
+		HardwareBuffer(UINT32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask)
+			: mSize(size), mUsage(usage), mDeviceMask(deviceMask)
 		{  }
 
 		/** @copydoc lock */
@@ -151,10 +156,12 @@ namespace bs
 
 	protected:
 		UINT32 mSize;
+		GpuBufferUsage mUsage;
+		GpuDeviceFlags mDeviceMask;
 
-		bool mIsLocked;
-		UINT32 mLockStart;
-		UINT32 mLockSize;
+		bool mIsLocked = false;
+		UINT32 mLockStart = 0;
+		UINT32 mLockSize = 0;
 	};
 
 	/** @} */

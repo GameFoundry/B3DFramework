@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsGLPrerequisites.h"
+#include "Allocators/BsPoolAlloc.h"
 #include "RenderAPI/BsVertexBuffer.h"
 #include "BsGLVertexArrayObjectManager.h"
 
@@ -13,76 +14,44 @@ namespace bs { namespace ct
 	 */
 
 	/** Wrapper around a generic OpenGL buffer. */
-	class GLBuffer
+	class GLBuffer : public HardwareBuffer
 	{
 	public:
-		/** Creates an uninitialized buffer object. You must call initialize() before using it. */
-		GLBuffer();
-
 		/** Creates and initializes the buffer object. */
 		GLBuffer(GLenum target, UINT32 size, GpuBufferUsage usage);
 		~GLBuffer();
 
-		/** 
-		 * Initializes the internal buffer object. Done automatically if the buffer was constructed using non-zero
-		 * parameter constructor.
-		 */
-		void initialize(GLenum target, UINT32 size, GpuBufferUsage usage);
+		/** @copydoc HardwareBuffer::readData */
+		void readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx = 0, UINT32 queueIdx = 0) override;
 
-		/**
-		 * Locks a portion of the buffer and returns pointer to the locked area. You must call unlock() when done.
-		 *
-		 * @param[in]	offset	Offset in bytes from which to lock the buffer.
-		 * @param[in]	length	Length of the area you want to lock, in bytes.
-		 * @param[in]	options	Signifies what you want to do with the returned pointer. Caller must ensure not to do 
-		 *						anything he hasn't requested (for example don't try to read from the buffer unless you
-		 *						requested it here).
-		 */
-		void* lock(UINT32 offset, UINT32 length, GpuLockOptions options);
+		/** @copydoc HardwareBuffer::writeData */
+		void writeData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, 
+			UINT32 queueIdx = 0) override;
 
-		/**	Releases the lock on this buffer. */
-		void unlock();
-
-		/**
-		 * Reads data from a portion of the buffer and copies it to the destination buffer. Caller must ensure destination 
-		 * buffer is large enough.
-		 *
-		 * @param[in]	offset	Offset in bytes from which to copy the data.
-		 * @param[in]	length	Length of the area you want to copy, in bytes.
-		 * @param[in]	dest	Destination buffer large enough to store the read data.
-		 */
-		void readData(UINT32 offset, UINT32 length, void* dest);
-
-		/**
-		 * Writes data into a portion of the buffer from the source memory. 
-		 *
-		 * @param[in]	offset		Offset in bytes from which to copy the data.
-		 * @param[in]	length		Length of the area you want to copy, in bytes.
-		 * @param[in]	source		Source buffer containing the data to write.
-		 * @param[in]	writeFlags	Optional write flags that may affect performance.
-		 */
-		void writeData(UINT32 offset, UINT32 length, const void* source,
-			BufferWriteType writeFlags = BWT_NORMAL);
-
-		/**
-		 * Copies data from a specific portion of this buffer into a specific portion of the provided buffer.
-		 *
-		 * @param[in]	dstBuffer			Buffer to copy from.
-		 * @param[in]	srcOffset			Offset into the source buffer to start copying from, in bytes.
-		 * @param[in]	dstOffset			Offset into this buffer to start copying to, in bytes.
-		 * @param[in]	length				Size of the data to copy, in bytes.
-		 */
-		void copyData(GLBuffer& dstBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length);
+		/** @copydoc HardwareBuffer::copyData */
+		void copyData(HardwareBuffer& dstBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length,
+			bool discardWholeBuffer = false, const SPtr<ct::CommandBuffer>& commandBuffer = nullptr) override;
 
 		/**	Returns internal OpenGL buffer ID. */
 		GLuint getGLBufferId() const { return mBufferId; }
 
 	private:
-		GLenum mTarget;
-		GLuint mBufferId;
+		/** @copydoc HardwareBuffer::map */
+		void* map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx) override;
 
-		bool mZeroLocked;
+		/** @copydoc HardwareBuffer::unmap */
+		void unmap() override;
+
+		GLenum mTarget;
+		GLuint mBufferId = 0;
+
+		bool mZeroLocked = false;
 	};
 
 	/** @} */
 }}
+
+namespace bs
+{
+	IMPLEMENT_GLOBAL_POOL(ct::GLBuffer, 32)
+}

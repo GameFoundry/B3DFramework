@@ -15,7 +15,7 @@ namespace bs { namespace ct
 	class VulkanGpuParamBlockBuffer : public GpuParamBlockBuffer
 	{
 	public:
-		VulkanGpuParamBlockBuffer(UINT32 size, GpuParamBlockUsage usage, GpuDeviceFlags deviceMask);
+		VulkanGpuParamBlockBuffer(UINT32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask);
 		~VulkanGpuParamBlockBuffer();
 
 		/** @copydoc GpuParamBlockBuffer::writeToGPU */
@@ -31,7 +31,7 @@ namespace bs { namespace ct
 		void initialize() override;
 
 	private:
-		VulkanHardwareBuffer* mBuffer;
+		VulkanHardwareBuffer* mBuffer = nullptr;
 		GpuDeviceFlags mDeviceMask;
 	};
 

@@ -56,7 +56,7 @@ namespace bs { namespace ct
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		HRESULT hr = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&mDXGIFactory);
+		HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&mDXGIFactory);
 		if(FAILED(hr))
 			BS_EXCEPT(RenderingAPIException, "Failed to create Direct3D11 DXGIFactory");
 
@@ -75,6 +75,7 @@ namespace bs { namespace ct
 		IDXGIAdapter* selectedAdapter = mActiveD3DDriver->getDeviceAdapter();
 
 		D3D_FEATURE_LEVEL requestedLevels[] = {
+			D3D_FEATURE_LEVEL_11_1,
 			D3D_FEATURE_LEVEL_11_0,
 			D3D_FEATURE_LEVEL_10_1,
 			D3D_FEATURE_LEVEL_10_0,
@@ -83,17 +84,23 @@ namespace bs { namespace ct
 			D3D_FEATURE_LEVEL_9_1
 		};
 
-		UINT32 numRequestedLevel = sizeof(requestedLevels) / sizeof(requestedLevels[0]);
+		const UINT32 numRequestedLevels = sizeof(requestedLevels) / sizeof(requestedLevels[0]);
 
 		UINT32 deviceFlags = 0;
-
 #if BS_DEBUG_MODE
 		deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
 		ID3D11Device* device;
 		hr = D3D11CreateDevice(selectedAdapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, deviceFlags, 
-			requestedLevels, numRequestedLevel, D3D11_SDK_VERSION, &device, &mFeatureLevel, nullptr);
+			requestedLevels, numRequestedLevels, D3D11_SDK_VERSION, &device, &mFeatureLevel, nullptr);
+
+		// This will fail on Win 7 due to lack of 11.1, so re-try again without it
+		if(hr == E_INVALIDARG)
+		{
+			hr = D3D11CreateDevice(selectedAdapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, deviceFlags,
+				&requestedLevels[1], numRequestedLevels - 1, D3D11_SDK_VERSION, &device, &mFeatureLevel, nullptr);
+		}
 
 		if(FAILED(hr))         
 			BS_EXCEPT(RenderingAPIException, "Failed to create Direct3D11 object. D3D11CreateDeviceN returned this error code: " + toString(hr));

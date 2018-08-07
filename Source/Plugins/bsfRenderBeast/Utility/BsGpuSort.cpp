@@ -68,14 +68,14 @@ namespace bs { namespace ct
 	const char* checkSortBuffer(GpuBuffer& buffer)
 	{
 		static constexpr const char* INVALID_GPU_WRITE_MSG = 
-			"All buffers provided to GpuSort must be created with 'randomGpuWrite' property enabled.";
+			"All buffers provided to GpuSort must be created with GBU_LOADSTORE flags enabled.";
 		static constexpr const char* INVALID_TYPE_MSG = 
 			"All buffers provided to GpuSort must be of GBT_STANDARD type.";
 		static constexpr const char* INVALID_FORMAT_MSG = 
 			"All buffers provided to GpuSort must have 32-bit unsigned integer elements.";
 
 		const GpuBufferProperties& bufferProps = buffer.getProperties();
-		if (!bufferProps.getRandomGpuWrite())
+		if ((bufferProps.getUsage() & GBU_LOADSTORE) != GBU_LOADSTORE)
 			return INVALID_GPU_WRITE_MSG;
 
 		if(bufferProps.getType() != GBT_STANDARD)
@@ -93,7 +93,7 @@ namespace bs { namespace ct
 		GPU_BUFFER_DESC desc;
 		desc.elementCount = MAX_NUM_GROUPS * NUM_DIGITS;
 		desc.format = BF_32X1U;
-		desc.randomGpuWrite = true;
+		desc.usage = GBU_LOADSTORE;
 		desc.type = GBT_STANDARD;
 
 		return GpuBuffer::create(desc);
@@ -261,7 +261,7 @@ namespace bs { namespace ct
 		bufferDesc.elementCount = numElements;
 		bufferDesc.format = BF_32X1U;
 		bufferDesc.type = GBT_STANDARD;
-		bufferDesc.randomGpuWrite = true;
+		bufferDesc.usage = GBU_LOADSTORE;
 
 		output.keys[0] = GpuBuffer::create(bufferDesc);
 		output.keys[1] = GpuBuffer::create(bufferDesc);

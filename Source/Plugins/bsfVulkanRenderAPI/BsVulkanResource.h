@@ -122,6 +122,9 @@ namespace bs { namespace ct
 		/** Returns true if the resource is only allowed to be used by a single queue family at once. */
 		bool isExclusive() const { Lock lock(mMutex); return mState != State::Shared; }
 
+		/** Returns the device this resource is created on. */
+		VulkanDevice& getDevice() const;
+
 		/** 
 		 * Destroys the resource and frees its memory. If the resource is currently being used on a device, the
 		 * destruction is delayed until the device is done with it.

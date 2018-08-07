@@ -45,7 +45,7 @@ namespace bs
 	class BS_CORE_EXPORT VertexBuffer : public CoreObject
 	{
 	public:
-		virtual ~VertexBuffer() { }
+		virtual ~VertexBuffer() = default;
 
 		/**
 		 * Retrieves a core implementation of a vertex buffer usable only from the core thread.
@@ -64,7 +64,7 @@ namespace bs
 		VertexBuffer(const VERTEX_BUFFER_DESC& desc);
 
 		/** @copydoc CoreObject::createCore */
-		virtual SPtr<ct::CoreObject> createCore() const;
+		SPtr<ct::CoreObject> createCore() const override;
 
 		VertexBufferProperties mProperties;
 		GpuBufferUsage mUsage;
@@ -84,7 +84,7 @@ namespace bs
 	{
 	public:
 		VertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
-		virtual ~VertexBuffer() { }
+		virtual ~VertexBuffer() = default;
 
 		/**	Returns information about the vertex buffer. */
 		const VertexBufferProperties& getProperties() const { return mProperties; }

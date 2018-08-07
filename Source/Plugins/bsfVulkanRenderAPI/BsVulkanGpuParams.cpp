@@ -422,7 +422,7 @@ namespace bs { namespace ct
 				VkBufferView bufferView;
 				if (bufferRes != nullptr)
 				{
-					bufferView = bufferRes->getView();
+					bufferView = vulkanBuffer->getView(i);
 					mPerDeviceData[i].buffers[sequentialIdx] = bufferRes->getHandle();
 				}
 				else
@@ -594,7 +594,7 @@ namespace bs { namespace ct
 			VkAccessFlags accessFlags = VK_ACCESS_SHADER_READ_BIT;
 			VulkanUseFlags useFlags = VulkanUseFlag::Read;
 
-			if (element->getProperties().getRandomGpuWrite())
+			if ((element->getProperties().getUsage() & GBU_LOADSTORE) == GBU_LOADSTORE)
 			{
 				accessFlags |= VK_ACCESS_SHADER_WRITE_BIT;
 				useFlags |= VulkanUseFlag::Write;
@@ -621,7 +621,7 @@ namespace bs { namespace ct
 				bool useView = writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 				if (useView)
 				{
-					perSetData.writeInfos[bindingIdx].bufferView = resource->getView();
+					perSetData.writeInfos[bindingIdx].bufferView = element->getView(deviceIdx);
 					perSetData.writeSetInfos[bindingIdx].pTexelBufferView = &perSetData.writeInfos[bindingIdx].bufferView;
 				}
 				else // Structured storage buffer

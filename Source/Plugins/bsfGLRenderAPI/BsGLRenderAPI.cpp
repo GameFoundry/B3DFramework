@@ -897,7 +897,7 @@ namespace bs { namespace ct
 							glUniformBlockBinding(glProgram, binding - 1, unit);
 							BS_CHECK_GL_ERROR();
 
-							glBindBufferBase(GL_UNIFORM_BUFFER, unit, glParamBlockBuffer->getGLHandle());
+							glBindBufferBase(GL_UNIFORM_BUFFER, unit, glParamBlockBuffer->getGLBufferId());
 							BS_CHECK_GL_ERROR();
 						}
 					}

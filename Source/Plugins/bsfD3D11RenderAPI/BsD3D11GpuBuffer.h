@@ -73,6 +73,7 @@ namespace bs { namespace ct
 		friend class D3D11HardwareBufferManager;
 
 		D3D11GpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
+		D3D11GpuBuffer(const GPU_BUFFER_DESC& desc, const SPtr<D3D11HardwareBuffer>& underlyingBuffer);
 
 		/**	Destroys all buffer views regardless if their reference count is zero or not. */
 		void clearBufferViews();
@@ -92,7 +93,7 @@ namespace bs { namespace ct
 			UINT32 refCount;
 		};
 
-		D3D11HardwareBuffer* mBuffer;
+		D3D11HardwareBuffer* mBuffer = nullptr;
 		GpuBufferView* mBufferView;
 
 		UnorderedMap<GPU_BUFFER_VIEW_DESC, GpuBufferReference*, GpuBufferView::HashFunction, GpuBufferView::EqualFunction> mBufferViews;

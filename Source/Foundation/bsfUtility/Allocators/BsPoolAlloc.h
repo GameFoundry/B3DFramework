@@ -259,7 +259,7 @@ namespace bs
 	 * will grow by that amount when exceeded. Global pools are thread safe by default.
 	 */
 #define IMPLEMENT_GLOBAL_POOL(Type, ElemsPerBlock)									\
-	template<> class GlobalPoolAlloc<Type> : public StaticPoolAlloc<Type> { };
+	template<> class GlobalPoolAlloc<Type> : public StaticPoolAlloc<Type, ElemsPerBlock> { };
 
 	/** Allocates a new object of type T using the global pool allocator, without constructing it. */
 	template<class T>

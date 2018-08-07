@@ -4,6 +4,7 @@
 
 #include "BsD3D11Prerequisites.h"
 #include "RenderAPI/BsHardwareBuffer.h"
+#include "Allocators/BsPoolAlloc.h"
 
 namespace bs { namespace ct
 {
@@ -19,28 +20,23 @@ namespace bs { namespace ct
 		enum BufferType
 		{
 			/** Contains geometry vertices and their properties. */
-			BT_VERTEX = 0x1, 
+			BT_VERTEX = 1 << 0, 
 			/** Contains triangle to vertex mapping. */
-			BT_INDEX = 0x2, 
+			BT_INDEX = 1 << 1, 
 			/** Contains GPU program parameters. */
-			BT_CONSTANT = 0x4, 
-			/** Special value signifying a buffer is of generic type. Not an actual buffer. */
-			BT_GROUP_GENERIC = 0x8, 
-			/** Generic buffer that holds one or more user-defined structures laid out sequentially. */
-			BT_STRUCTURED = BT_GROUP_GENERIC | 0x10, 
-			/** Generic buffer that holds raw block of bytes with no defined structure. */
-			BT_RAW = BT_GROUP_GENERIC | 0x20, 
-			/** Generic buffer that is used for holding parameters used for indirect rendering. */
-			BT_INDIRECTARGUMENT = BT_GROUP_GENERIC | 0x40, 
-			/** Generic buffer that allows the GPU program to use append/consume functionality. */
-			BT_APPENDCONSUME = BT_GROUP_GENERIC | 0x80, 
+			BT_CONSTANT = 1 << 2, 
 			/** Generic buffer that contains primitive types. */
-			BT_STANDARD = BT_GROUP_GENERIC | 0x100
+			BT_STANDARD = 1 << 3,
+			/** Generic buffer that holds one or more user-defined structures laid out sequentially. */
+			BT_STRUCTURED = 1 << 4, 
+			/** Generic buffer that holds raw block of bytes with no defined structure. */
+			BT_RAW = 1 << 5, 
+			/** Generic buffer that is used for holding parameters used for indirect rendering. */
+			BT_INDIRECTARGUMENT = 1 << 6, 
 		};
 
 		D3D11HardwareBuffer(BufferType btype, GpuBufferUsage usage, UINT32 elementCount, UINT32 elementSize, 
-			D3D11Device& device, bool systemMemory = false, bool streamOut = false, bool randomGpuWrite = false, 
-			bool useCounter = false);
+			D3D11Device& device, bool systemMemory = false, bool streamOut = false);
 		~D3D11HardwareBuffer();
 
 		/** @copydoc HardwareBuffer::readData */
@@ -65,16 +61,14 @@ namespace bs { namespace ct
 		void unmap() override;
 
 		BufferType mBufferType;
-		bool mRandomGpuWrite;
-		bool mUseCounter;
 		UINT32 mElementCount;
 		UINT32 mElementSize;
 		GpuBufferUsage mUsage;
 
-		ID3D11Buffer* mD3DBuffer;
+		ID3D11Buffer* mD3DBuffer = nullptr;
 
-		bool mUseTempStagingBuffer;
-		D3D11HardwareBuffer* mpTempStagingBuffer;
+		bool mUseTempStagingBuffer = false;
+		D3D11HardwareBuffer* mpTempStagingBuffer = nullptr;
 		bool mStagingUploadNeeded;
 		
 		D3D11Device& mDevice;
@@ -83,3 +77,8 @@ namespace bs { namespace ct
 
 	/** @} */
 }}
+
+namespace bs
+{
+	IMPLEMENT_GLOBAL_POOL(ct::D3D11HardwareBuffer, 32)
+}

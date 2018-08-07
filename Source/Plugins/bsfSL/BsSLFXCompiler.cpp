@@ -420,7 +420,7 @@ namespace bs
 			switch(entry.type)
 			{
 			case Xsc::Reflection::UniformType::UniformBuffer:
-				desc.setParamBlockAttribs(entry.ident.c_str(), false, GPBU_STATIC);
+				desc.setParamBlockAttribs(entry.ident.c_str(), false, GBU_STATIC);
 				break;
 			case Xsc::Reflection::UniformType::Buffer:
 				{

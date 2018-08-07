@@ -196,11 +196,13 @@ namespace bs
 		 * Signifies that you don't plan on modifying the buffer often (or at all) after creation. Modifying such buffer 
 		 * will involve a larger performance hit. Mutually exclusive with GBU_DYNAMIC.
 		 */
-		GBU_STATIC = 0x01,
+		GBU_STATIC = 1 << 0,
 		/** 
 		 * Signifies that you will modify this buffer fairly often (e.g. every frame). Mutually exclusive with GBU_STATIC. 
 		 */
-		GBU_DYNAMIC = 0x02,
+		GBU_DYNAMIC = 1 << 1,
+		/** Siginifies that the buffer can be used for arbitrary load/store operations on the GPU. Implies GBU_STATIC. */
+		GBU_LOADSTORE = GBU_STATIC | 1 << 2
 	};
 
 	/** Types of generic GPU buffers that may be attached to GPU programs. */
@@ -291,13 +293,6 @@ namespace bs
 		GDF_GPU4 = 0x08,
 		/** Use the fifth GPU. */
 		GDF_GPU5 = 0x10
-	};
-
-	/** Type of parameter block usages. Signifies how often will parameter blocks be changed. */
-	enum GpuParamBlockUsage
-	{
-		GPBU_STATIC, /**< Buffer will be rarely, if ever, updated. */
-		GPBU_DYNAMIC /**< Buffer will be updated often (for example every frame). */
 	};
 
 	/** Type of a parameter in a GPU program. */

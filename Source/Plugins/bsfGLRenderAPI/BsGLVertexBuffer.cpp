@@ -16,15 +16,18 @@ namespace bs { namespace ct
 
 	GLVertexBuffer::~GLVertexBuffer()
 	{
-		while (mVAObjects.size() > 0)
+		while (!mVAObjects.empty())
 			GLVertexArrayObjectManager::instance().notifyBufferDestroyed(mVAObjects[0]);
+
+		if(mBuffer)
+			bs_pool_delete(mBuffer);
 
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_VertexBuffer);
 	}
 
 	void GLVertexBuffer::initialize()
 	{
-		mBuffer.initialize(GL_ARRAY_BUFFER, mSize, mUsage);
+		mBuffer = bs_pool_new<GLBuffer>(GL_ARRAY_BUFFER, mSize, mUsage);
 		
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_VertexBuffer);
 		VertexBuffer::initialize();
@@ -45,23 +48,23 @@ namespace bs { namespace ct
 
 	void* GLVertexBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
 	{
-		return mBuffer.lock(offset, length, options);
+		return mBuffer->lock(offset, length, options);
 	}
 
 	void GLVertexBuffer::unmap()
 	{
-		mBuffer.unlock();
+		mBuffer->unlock();
 	}
 
 	void GLVertexBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
-		mBuffer.readData(offset, length, dest);
+		mBuffer->readData(offset, length, dest);
 	}
 
 	void GLVertexBuffer::writeData(UINT32 offset, UINT32 length,
 		const void* pSource, BufferWriteType writeFlags, UINT32 queueIdx)
 	{
-		mBuffer.writeData(offset, length, pSource, writeFlags);
+		mBuffer->writeData(offset, length, pSource, writeFlags);
 	}
 
 	void GLVertexBuffer::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset,
@@ -70,7 +73,7 @@ namespace bs { namespace ct
 		auto executeRef = [this](HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length)
 		{
 			GLVertexBuffer& glSrcBuffer = static_cast<GLVertexBuffer&>(srcBuffer);
-			glSrcBuffer.mBuffer.copyData(mBuffer, srcOffset, dstOffset, length);
+			glSrcBuffer.mBuffer->copyData(*mBuffer, srcOffset, dstOffset, length);
 		};
 
 		if (commandBuffer == nullptr)

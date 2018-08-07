@@ -32,15 +32,6 @@ namespace bs
 
 		/** Usage that tells the hardware how will be buffer be used. */
 		GpuBufferUsage usage = GBU_STATIC;
-
-		/** When true allows the GPU to write to the resource. Must be enabled if buffer type is GBT_APPENDCONSUME. */
-		bool randomGpuWrite = false;
-
-		/**
-		 * When true binds a counter that can be used from a GPU program on the buffer. Can only be used in combination
-		 * with GBT_STRUCTURED and randomGpuWrite must be enabled.
-		 */
-		bool useCounter = false;
 	};
 
 	/** 
@@ -64,12 +55,6 @@ namespace bs
 		/** Returns buffer usage which determines how are planning on updating the buffer contents. */
 		GpuBufferUsage getUsage() const { return mDesc.usage; }
 
-		/** Return whether the buffer supports random reads and writes within the GPU programs. */
-		bool getRandomGpuWrite() const { return mDesc.randomGpuWrite; }
-
-		/**	Returns whether the buffer supports counter use within GPU programs. */
-		bool getUseCounter() const { return mDesc.useCounter; }
-
 		/**	Returns number of elements in the buffer. */
 		UINT32 getElementCount() const { return mDesc.elementCount; }
 
@@ -83,26 +68,15 @@ namespace bs
 	};
 
 	/**
-	 * Handles a generic GPU buffer that you may use for storing any kind of data you wish to be accessible to the GPU.
-	 * These buffers may be bounds to GPU program binding slots and accessed from a GPU program, or may be used by fixed 
-	 * pipeline in some way.
-	 *
-	 * Buffer types:
-	 *  - Raw buffers containing a block of bytes that are up to the GPU program to interpret.
-	 *	- Structured buffer containing an array of structures compliant to a certain layout. Similar to raw buffer but 
-	 *    easier to interpret the data.
-	 *	- Random read/write buffers that allow you to write to random parts of the buffer from within the GPU program, and 
-	 *    then read it later. These can only be bound to pixel and compute stages.
-	 *	- Append/Consume buffers also allow you to write to them, but in a stack-like fashion, usually where one set of 
-	 *    programs produces data while other set consumes it from the same buffer. Append/Consume buffers are structured
-	 *	  by default.
+	 * Handles a generic GPU buffer that you may use for storing any kind of sequential data you wish to be accessible to
+	 * the GPU.
 	 *
 	 * @note	Sim thread only.
 	 */
 	class BS_CORE_EXPORT GpuBuffer : public CoreObject
 	{
 	public:
-		virtual ~GpuBuffer() { }
+		virtual ~GpuBuffer() = default;
 
 		/** Returns properties describing the buffer. */
 		const GpuBufferProperties& getProperties() const { return mProperties; }
@@ -143,7 +117,7 @@ namespace bs
 	class BS_CORE_EXPORT GpuBuffer : public CoreObject, public HardwareBuffer
 	{
 	public:
-		virtual ~GpuBuffer();
+		virtual ~GpuBuffer() = default;
 
 		/** Returns properties describing the buffer. */
 		const GpuBufferProperties& getProperties() const { return mProperties; }
@@ -152,9 +126,17 @@ namespace bs
 		static SPtr<GpuBuffer> create(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 	protected:
-		GpuBuffer(const GPU_BUFFER_DESC& desc, UINT32 deviceMask);
+		GpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
+
+		/** 
+		 * Creates a view of an existing hardware buffer. No internal buffer will be allocated and the provided buffer
+		 * will be used for all internal operations instead. Information provided in @p desc (such as element size and
+		 * count) must match the provided @p underlyingBuffer.
+		 */
+		GpuBuffer(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer);
 
 		GpuBufferProperties mProperties;
+		SPtr<HardwareBuffer> mExternalBuffer;
 	};
 
 	/** @} */

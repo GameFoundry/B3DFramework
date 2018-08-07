@@ -15,7 +15,7 @@ namespace bs { namespace ct
 	{
 	public:
 		/**	Constructs a new driver list from an existing DXGI factory object. */
-		D3D11DriverList(IDXGIFactory* dxgiFactory);
+		D3D11DriverList(IDXGIFactory1* dxgiFactory);
 		~D3D11DriverList();
 
 		/**	Returns the number of available drivers. */
@@ -29,7 +29,7 @@ namespace bs { namespace ct
 
 	private:
 		/**	Enumerates the DXGI factory object and constructs a list of available drivers. */
-		void enumerate(IDXGIFactory* dxgiFactory);
+		void enumerate(IDXGIFactory1* dxgiFactory);
 
 		Vector<D3D11Driver*> mDriverList;
 	};

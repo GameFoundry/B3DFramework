@@ -115,7 +115,7 @@ namespace bs { namespace ct
 		void determineMultisampleSettings(UINT32 multisampleCount, DXGI_FORMAT format, DXGI_SAMPLE_DESC* outputSampleDesc);
 
 		/**	Returns the main DXGI factory object. */
-		IDXGIFactory* getDXGIFactory() const { return mDXGIFactory; }
+		IDXGIFactory1* getDXGIFactory() const { return mDXGIFactory; }
 
 		/**	Returns the primary DX11 device object. */
 		D3D11Device& getPrimaryDevice() const { return *mDevice; }
@@ -152,7 +152,7 @@ namespace bs { namespace ct
 		void initCapabilites(IDXGIAdapter* adapter, RenderAPICapabilities& caps) const;
 
 	private:
-		IDXGIFactory* mDXGIFactory;
+		IDXGIFactory1* mDXGIFactory;
 		D3D11Device* mDevice;
 
 		D3D11DriverList* mDriverList;

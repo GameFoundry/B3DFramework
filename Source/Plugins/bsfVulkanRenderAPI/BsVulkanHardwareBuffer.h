@@ -5,6 +5,7 @@
 #include "BsVulkanPrerequisites.h"
 #include "BsVulkanResource.h"
 #include "RenderAPI/BsHardwareBuffer.h"
+#include "Allocators/BsPoolAlloc.h"
 
 namespace bs { namespace ct
 {
@@ -19,20 +20,16 @@ namespace bs { namespace ct
 		/** 
 		 * @param[in]	owner		Manager that takes care of tracking and releasing of this object.
 		 * @param[in]	buffer		Actual low-level Vulkan buffer handle.
-		 * @param[in]	view		Optional handle to the buffer view.
 		 * @param[in]	allocation	Information about memory mapped to the buffer.
 		 * @param[in]	rowPitch	If buffer maps to an image sub-resource, length of a single row (in elements).
 		 * @param[in]	slicePitch	If buffer maps to an image sub-resource, size of a single 2D surface (in elements).
 		 */
-		VulkanBuffer(VulkanResourceManager* owner, VkBuffer buffer, VkBufferView view, VmaAllocation allocation, 
+		VulkanBuffer(VulkanResourceManager* owner, VkBuffer buffer, VmaAllocation allocation, 
 			UINT32 rowPitch = 0, UINT32 slicePitch = 0);
 		~VulkanBuffer();
 
 		/** Returns the internal handle to the Vulkan object. */
 		VkBuffer getHandle() const { return mBuffer; }
-
-		/** Returns a buffer view that covers the entire buffer. */
-		VkBufferView getView() const { return mView; }
 
 		/**
 		 * If buffer represents an image sub-resource, this is the number of elements that separate one row of the 
@@ -79,7 +76,6 @@ namespace bs { namespace ct
 
 	private:
 		VkBuffer mBuffer;
-		VkBufferView mView;
 		VmaAllocation mAllocation;
 
 		UINT32 mRowPitch;
@@ -99,11 +95,9 @@ namespace bs { namespace ct
 			BT_INDEX,
 			/** Contains GPU program parameters. */
 			BT_UNIFORM,
-			/** Generic read-only GPU buffer containing non-formatted data. */
+			/** Generic GPU buffer containing non-formatted data. */
 			BT_GENERIC,
-			/** Generic read/write GPU buffer containing non-formatted data. */
-			BT_STORAGE,
-			/** Read/write GPU buffer containing structured data. */
+			/** Generic GPU buffer containing structured data. */
 			BT_STRUCTURED
 		};
 
@@ -149,13 +143,16 @@ namespace bs { namespace ct
 		GpuLockOptions mMappedLockOptions;
 
 		VkBufferCreateInfo mBufferCI;
-		VkBufferViewCreateInfo mViewCI;
 		VkBufferUsageFlags mUsageFlags;
 		bool mDirectlyMappable : 1;
 		bool mSupportsGPUWrites : 1;
-		bool mRequiresView : 1;
 		bool mIsMapped : 1;
 	};
 
 	/** @} */
 }}
+
+namespace bs
+{
+	IMPLEMENT_GLOBAL_POOL(ct::VulkanHardwareBuffer, 32)
+}

@@ -98,15 +98,26 @@ namespace bs
 
 	namespace ct
 	{
-	GpuBuffer::GpuBuffer(const GPU_BUFFER_DESC& desc, UINT32 deviceMask)
-		:HardwareBuffer(getBufferSize(desc)), mProperties(desc)
+	GpuBuffer::GpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+		:HardwareBuffer(getBufferSize(desc), desc.usage, deviceMask), mProperties(desc)
 	{
+		if (desc.type != GBT_STANDARD)
+			assert(desc.format == BF_UNKNOWN && "Format must be set to BF_UNKNOWN when using non-standard buffers");
+		else
+			assert(desc.elementSize == 0 && "No element size can be provided for standard buffer. Size is determined from format.");
 	}
 
-	GpuBuffer::~GpuBuffer()
+	GpuBuffer::GpuBuffer(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer)
+		: HardwareBuffer(getBufferSize(desc), desc.usage, underlyingBuffer->getDeviceMask()), mProperties(desc)
+		, mExternalBuffer(std::move(underlyingBuffer))
 	{
-		// Make sure that derived classes call clearBufferViews
-		// I can't call it here since it needs a virtual method call
+		const auto& props = getProperties();
+		assert(underlyingBuffer->getSize() == (props.getElementCount() * props.getElementSize()));
+
+		if (desc.type != GBT_STANDARD)
+			assert(desc.format == BF_UNKNOWN && "Format must be set to BF_UNKNOWN when using non-standard buffers");
+		else
+			assert(desc.elementSize == 0 && "No element size can be provided for standard buffer. Size is determined from format.");
 	}
 
 	SPtr<GpuBuffer> GpuBuffer::create(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)

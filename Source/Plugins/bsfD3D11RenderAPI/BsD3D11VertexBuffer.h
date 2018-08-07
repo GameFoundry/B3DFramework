@@ -17,7 +17,6 @@ namespace bs { namespace ct
 	{
 	public:
 		D3D11VertexBuffer(D3D11Device& device, const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
-
 		~D3D11VertexBuffer();
 
 		/** @copydoc VertexBuffer::readData */
@@ -39,12 +38,12 @@ namespace bs { namespace ct
 		void* map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx) override;
 
 		/** @copydoc VertexBuffer::unmap */
-		void unmap(void) override;
+		void unmap() override;
 
 		/** @copydoc VertexBuffer::initialize */
 		void initialize() override;
 
-		D3D11HardwareBuffer* mBuffer;
+		D3D11HardwareBuffer* mBuffer = nullptr;
 		D3D11Device& mDevice;
 		bool mStreamOut;
 		GpuBufferUsage mUsage;

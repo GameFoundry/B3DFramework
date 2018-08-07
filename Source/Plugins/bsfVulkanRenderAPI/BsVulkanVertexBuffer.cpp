@@ -7,20 +7,20 @@
 namespace bs { namespace ct
 {
 	VulkanVertexBuffer::VulkanVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
-		:VertexBuffer(desc, deviceMask), mBuffer(nullptr), mUsage(desc.usage), mDeviceMask(deviceMask)
+		:VertexBuffer(desc, deviceMask), mUsage(desc.usage), mDeviceMask(deviceMask)
 	{ }
 
 	VulkanVertexBuffer::~VulkanVertexBuffer()
 	{
 		if (mBuffer != nullptr)
-			bs_delete(mBuffer);
+			bs_pool_delete(mBuffer);
 
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_VertexBuffer);
 	}
 
 	void VulkanVertexBuffer::initialize()
 	{
-		mBuffer = bs_new<VulkanHardwareBuffer>(VulkanHardwareBuffer::BT_VERTEX, BF_UNKNOWN, mUsage, mSize, mDeviceMask);
+		mBuffer = bs_pool_new<VulkanHardwareBuffer>(VulkanHardwareBuffer::BT_VERTEX, BF_UNKNOWN, mUsage, mSize, mDeviceMask);
 
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_VertexBuffer);
 		VertexBuffer::initialize();

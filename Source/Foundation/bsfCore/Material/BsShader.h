@@ -127,7 +127,7 @@ namespace bs
 		String name;
 		bool shared;
 		StringID rendererSemantic;
-		GpuParamBlockUsage usage;
+		GpuBufferUsage usage;
 	};
 
 	/** Available attribute types that can be assigned to Shader parameters. */
@@ -275,7 +275,7 @@ namespace bs
 		 *									will be deemed incompatible and won't be used. Value of 0 signifies the parameter
 		 *									block is not used by the renderer.
 		 */
-		void setParamBlockAttribs(const String& name, bool shared, GpuParamBlockUsage usage, 
+		void setParamBlockAttribs(const String& name, bool shared, GpuBufferUsage usage, 
 			StringID rendererSemantic = StringID::NONE);
 
 		/**

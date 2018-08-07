@@ -46,7 +46,7 @@ namespace bs { namespace ct
 		void initialize() override;
 
 	private:
-		VulkanHardwareBuffer* mBuffer;
+		VulkanHardwareBuffer* mBuffer = nullptr;
 		GpuBufferUsage mUsage;
 		GpuDeviceFlags mDeviceMask;
 	};

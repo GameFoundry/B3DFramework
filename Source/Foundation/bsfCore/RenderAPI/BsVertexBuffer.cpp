@@ -39,7 +39,7 @@ namespace bs
 	namespace ct
 	{
 	VertexBuffer::VertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
-		:HardwareBuffer(desc.vertexSize * desc.numVerts), mProperties(desc.numVerts, desc.vertexSize)
+		:HardwareBuffer(desc.vertexSize * desc.numVerts, desc.usage, deviceMask), mProperties(desc.numVerts, desc.vertexSize)
 	{ }
 
 	SPtr<VertexBuffer> VertexBuffer::create(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)

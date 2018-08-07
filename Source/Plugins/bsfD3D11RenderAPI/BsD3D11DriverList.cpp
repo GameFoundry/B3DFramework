@@ -6,7 +6,7 @@
 
 namespace bs { namespace ct
 {
-	D3D11DriverList::D3D11DriverList(IDXGIFactory* dxgiFactory) 
+	D3D11DriverList::D3D11DriverList(IDXGIFactory1* dxgiFactory) 
 	{
 		enumerate(dxgiFactory);
 	}
@@ -21,7 +21,7 @@ namespace bs { namespace ct
 		mDriverList.clear();
 	}
 
-	void D3D11DriverList::enumerate(IDXGIFactory* dxgiFactory)
+	void D3D11DriverList::enumerate(IDXGIFactory1* dxgiFactory)
 	{
 		UINT32 adapterIdx = 0;
 		IDXGIAdapter* dxgiAdapter = nullptr;

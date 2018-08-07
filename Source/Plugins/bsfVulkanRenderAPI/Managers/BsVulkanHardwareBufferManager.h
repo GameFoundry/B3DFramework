@@ -41,7 +41,7 @@ namespace bs { namespace ct
 
 		/** @copydoc HardwareBufferManager::createGpuParamBlockBufferInternal  */
 		SPtr<GpuParamBlockBuffer> createGpuParamBlockBufferInternal(UINT32 size, 
-			GpuParamBlockUsage usage = GPBU_DYNAMIC, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
+			GpuBufferUsage usage = GBU_DYNAMIC, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
 		/** @copydoc HardwareBufferManager::createGpuBufferInternal */
 		SPtr<GpuBuffer> createGpuBufferInternal(const GPU_BUFFER_DESC& desc,
@@ -55,6 +55,9 @@ namespace bs { namespace ct
 		VulkanHardwareBuffer* mDummyStorageBuffer;
 		VulkanHardwareBuffer* mDummyUniformBuffer;
 		VulkanHardwareBuffer* mDummyStructuredBuffer;
+
+		VkBufferView mDummyReadBufferViews[BS_MAX_DEVICES];
+		VkBufferView mDummyStorageBufferViews[BS_MAX_DEVICES];
 	};
 
 	/** @} */

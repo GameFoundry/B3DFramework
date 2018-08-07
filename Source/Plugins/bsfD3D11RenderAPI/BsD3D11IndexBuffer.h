@@ -44,7 +44,7 @@ namespace bs { namespace ct
 		/** @copydoc IndexBuffer::initialize */
 		void initialize() override;
 
-		D3D11HardwareBuffer* mBuffer;
+		D3D11HardwareBuffer* mBuffer = nullptr;
 		D3D11Device& mDevice;
 		GpuBufferUsage mUsage;
 

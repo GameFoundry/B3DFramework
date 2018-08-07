@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	GpuParamBlockBuffer::GpuParamBlockBuffer(UINT32 size, GpuParamBlockUsage usage)
+	GpuParamBlockBuffer::GpuParamBlockBuffer(UINT32 size, GpuBufferUsage usage)
 		:mUsage(usage), mSize(size), mCachedData(nullptr)
 	{
 		if (mSize > 0)
@@ -83,14 +83,14 @@ namespace bs
 		return CoreSyncData(buffer, mSize);
 	}
 
-	SPtr<GpuParamBlockBuffer> GpuParamBlockBuffer::create(UINT32 size, GpuParamBlockUsage usage)
+	SPtr<GpuParamBlockBuffer> GpuParamBlockBuffer::create(UINT32 size, GpuBufferUsage usage)
 	{
 		return HardwareBufferManager::instance().createGpuParamBlockBuffer(size, usage);
 	}
 
 	namespace ct
 	{
-	GpuParamBlockBuffer::GpuParamBlockBuffer(UINT32 size, GpuParamBlockUsage usage, GpuDeviceFlags deviceMask)
+	GpuParamBlockBuffer::GpuParamBlockBuffer(UINT32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask)
 		:mUsage(usage), mSize(size), mCachedData(nullptr), mGPUBufferDirty(false)
 	{
 		if (mSize > 0)
@@ -166,7 +166,7 @@ namespace bs
 		write(0, data.getBuffer(), data.getBufferSize());
 	}
 
-	SPtr<GpuParamBlockBuffer> GpuParamBlockBuffer::create(UINT32 size, GpuParamBlockUsage usage,
+	SPtr<GpuParamBlockBuffer> GpuParamBlockBuffer::create(UINT32 size, GpuBufferUsage usage,
 		GpuDeviceFlags deviceMask)
 	{
 		return HardwareBufferManager::instance().createGpuParamBlockBuffer(size, usage, deviceMask);

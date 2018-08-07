@@ -16,12 +16,15 @@ namespace bs { namespace ct
 
 	GLIndexBuffer::~GLIndexBuffer()
 	{
+		if(mBuffer)
+			bs_pool_delete(mBuffer);
+
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_IndexBuffer);
 	}
 
 	void GLIndexBuffer::initialize()
 	{
-		mBuffer.initialize(GL_ELEMENT_ARRAY_BUFFER, mSize, mUsage);
+		mBuffer = bs_pool_new<GLBuffer>(GL_ELEMENT_ARRAY_BUFFER, mSize, mUsage);
 
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_IndexBuffer);
 		IndexBuffer::initialize();
@@ -29,23 +32,23 @@ namespace bs { namespace ct
 
 	void* GLIndexBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
 	{
-		return mBuffer.lock(offset, length, options);
+		return mBuffer->lock(offset, length, options, deviceIdx, queueIdx);
 	}
 
 	void GLIndexBuffer::unmap()
 	{
-		mBuffer.unlock();
+		mBuffer->unlock();
 	}
 
 	void GLIndexBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
-		mBuffer.readData(offset, length, dest);
+		mBuffer->readData(offset, length, dest);
 	}
 
 	void GLIndexBuffer::writeData(UINT32 offset, UINT32 length,
 		const void* pSource, BufferWriteType writeFlags, UINT32 queueIdx)
 	{
-		mBuffer.writeData(offset, length, pSource, writeFlags);
+		mBuffer->writeData(offset, length, pSource, writeFlags);
 	}
 
 	void GLIndexBuffer::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length, 
@@ -54,7 +57,7 @@ namespace bs { namespace ct
 		auto executeRef = [this](HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length)
 		{
 			GLIndexBuffer& glSrcBuffer = static_cast<GLIndexBuffer&>(srcBuffer);
-			glSrcBuffer.mBuffer.copyData(mBuffer, srcOffset, dstOffset, length);
+			glSrcBuffer.mBuffer->copyData(*mBuffer, srcOffset, dstOffset, length);
 		};
 
 		if (commandBuffer == nullptr)

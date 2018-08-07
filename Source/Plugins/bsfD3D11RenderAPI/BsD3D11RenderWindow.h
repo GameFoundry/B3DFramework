@@ -18,7 +18,7 @@ namespace bs {
 	class D3D11RenderWindow : public RenderWindow
 	{
 	public:
-		~D3D11RenderWindow() { }
+		~D3D11RenderWindow() = default;
 
 		/** @copydoc RenderWindow::screenToWindowPos */
 		void getCustomAttribute(const String& name, void* pData) const override;
@@ -36,8 +36,7 @@ namespace bs {
 		friend class D3D11RenderWindowManager;
 		friend class ct::D3D11RenderWindow;
 
-		D3D11RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId, 
-			ct::D3D11Device& device, IDXGIFactory* DXGIFactory);
+		D3D11RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId);
 
 		/** @copydoc RenderWindow::getProperties */
 		const RenderTargetProperties& getPropertiesInternal() const override { return mProperties; }
@@ -52,8 +51,6 @@ namespace bs {
 		HWND getHWnd() const;
 
 	private:
-		ct::D3D11Device& mDevice;
-		IDXGIFactory* mDXGIFactory;
 		RenderWindowProperties mProperties;
 	};
 
@@ -68,8 +65,7 @@ namespace bs {
 	{
 	public:
 		D3D11RenderWindow(const RENDER_WINDOW_DESC& desc, UINT32 windowId,
-			D3D11Device& device, IDXGIFactory* DXGIFactory);
-
+			D3D11Device& device, IDXGIFactory1* DXGIFactory);
 		~D3D11RenderWindow();
 
 		/** @copydoc RenderWindow::move */
@@ -160,23 +156,23 @@ namespace bs {
 
 	protected:
 		D3D11Device& mDevice;
-		IDXGIFactory* mDXGIFactory;
-		bool mSizing;
-		bool mIsChild;
-		bool mShowOnSwap;
+		IDXGIFactory1* mDXGIFactory;
+		bool mSizing = false;
+		bool mIsChild = false;
+		bool mShowOnSwap = false;
 
 		DXGI_SAMPLE_DESC mMultisampleType;
-		UINT32 mRefreshRateNumerator;
-		UINT32 mRefreshRateDenominator;
+		UINT32 mRefreshRateNumerator = 0;
+		UINT32 mRefreshRateDenominator = 0;
 
-		ID3D11Texture2D* mBackBuffer;
-		ID3D11RenderTargetView*	mRenderTargetView;
-		SPtr<TextureView> mDepthStencilView;
+		ID3D11Texture2D* mBackBuffer = nullptr;
+		ID3D11RenderTargetView* mRenderTargetView = nullptr;
+		SPtr<TextureView> mDepthStencilView = nullptr;
 		SPtr<Texture> mDepthStencilBuffer;
 
-		IDXGISwapChain*	mSwapChain;
+		IDXGISwapChain* mSwapChain = nullptr;
 		DXGI_SWAP_CHAIN_DESC mSwapChainDesc;
-		Win32Window* mWindow;
+		Win32Window* mWindow = nullptr;
 
 		RenderWindowProperties mProperties;
 		RenderWindowProperties mSyncedProperties;

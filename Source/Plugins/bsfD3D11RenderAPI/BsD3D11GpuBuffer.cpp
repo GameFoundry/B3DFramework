@@ -12,50 +12,55 @@
 namespace bs { namespace ct
 {
 	D3D11GpuBuffer::D3D11GpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
-		: GpuBuffer(desc, deviceMask), mBuffer(nullptr)
+		: GpuBuffer(desc, deviceMask)
 	{
-		if (desc.type != GBT_STANDARD)
-			assert(desc.format == BF_UNKNOWN && "Format must be set to BF_UNKNOWN when using non-standard buffers");
-		else
-			assert(desc.elementSize == 0 && "No element size can be provided for standard buffer. Size is determined from format.");
-
 		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX 11.");
 	}
 
+	D3D11GpuBuffer::D3D11GpuBuffer(const GPU_BUFFER_DESC& desc, const SPtr<D3D11HardwareBuffer>& underlyingBuffer)
+		: GpuBuffer(desc, underlyingBuffer), mBuffer(underlyingBuffer.get())
+	{ }
+
 	D3D11GpuBuffer::~D3D11GpuBuffer()
 	{ 
-		bs_delete(mBuffer);
+		if(mBuffer && !mExternalBuffer)
+			bs_pool_delete(mBuffer);
+
 		clearBufferViews();
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuBuffer);
 	}
 
 	void D3D11GpuBuffer::initialize()
 	{
-		D3D11HardwareBuffer::BufferType bufferType;
-		D3D11RenderAPI* d3d11rs = static_cast<D3D11RenderAPI*>(D3D11RenderAPI::instancePtr());
-
 		const GpuBufferProperties& props = getProperties();
 
-		switch (props.getType())
+		// Create a new buffer if not wrapping an external one
+		if(!mBuffer)
 		{
-		case GBT_STANDARD:
-			bufferType = D3D11HardwareBuffer::BT_STANDARD;
-			break;
-		case GBT_STRUCTURED:
-			bufferType = D3D11HardwareBuffer::BT_STRUCTURED;
-			break;
-		case GBT_INDIRECTARGUMENT:
-			bufferType = D3D11HardwareBuffer::BT_INDIRECTARGUMENT;
-			break;
-		default:
-			BS_EXCEPT(InvalidParametersException, "Unsupported buffer type " + toString(props.getType()));
+			D3D11HardwareBuffer::BufferType bufferType;
+			D3D11RenderAPI* d3d11rs = static_cast<D3D11RenderAPI*>(D3D11RenderAPI::instancePtr());
+
+			switch (props.getType())
+			{
+			case GBT_STANDARD:
+				bufferType = D3D11HardwareBuffer::BT_STANDARD;
+				break;
+			case GBT_STRUCTURED:
+				bufferType = D3D11HardwareBuffer::BT_STRUCTURED;
+				break;
+			case GBT_INDIRECTARGUMENT:
+				bufferType = D3D11HardwareBuffer::BT_INDIRECTARGUMENT;
+				break;
+			default:
+				BS_EXCEPT(InvalidParametersException, "Unsupported buffer type " + toString(props.getType()));
+			}
+
+			mBuffer = bs_pool_new<D3D11HardwareBuffer>(bufferType, props.getUsage(), props.getElementCount(),
+				props.getElementSize(), d3d11rs->getPrimaryDevice(), false, false);
 		}
 
-		mBuffer = bs_new<D3D11HardwareBuffer>(bufferType, props.getUsage(), props.getElementCount(), props.getElementSize(),
-			d3d11rs->getPrimaryDevice(), false, false, props.getRandomGpuWrite(), props.getUseCounter());
-
 		UINT32 usage = GVU_DEFAULT;
-		if (props.getRandomGpuWrite())
+		if ((props.getUsage() & GBU_LOADSTORE) == GBU_LOADSTORE)
 			usage |= GVU_RANDOMWRITE;
 
 		// Keep a single view of the entire buffer, we don't support views of sub-sets (yet)
@@ -127,7 +132,7 @@ namespace bs { namespace ct
 		key.numElements = numElements;
 		key.usage = usage;
 		key.format = props.getFormat();
-		key.useCounter = props.getUseCounter();
+		key.useCounter = false;
 
 		auto iterFind = buffer->mBufferViews.find(key);
 		if (iterFind == buffer->mBufferViews.end())

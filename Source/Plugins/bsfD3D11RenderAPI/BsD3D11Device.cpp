@@ -5,16 +5,8 @@
 
 namespace bs { namespace ct
 {
-	D3D11Device::D3D11Device() 
-		:mD3D11Device(nullptr), mImmediateContext(nullptr), mClassLinkage(nullptr)
-	{
-	}
-
 	D3D11Device::D3D11Device(ID3D11Device* device)
 		: mD3D11Device(device)
-		, mImmediateContext(nullptr)
-		, mInfoQueue(nullptr)
-		, mClassLinkage(nullptr)
 	{
 		assert(device != nullptr);
 
@@ -34,13 +26,16 @@ namespace bs { namespace ct
 
 			// If feature level is 11, create class linkage
 			SAFE_RELEASE(mClassLinkage);
-			if (mD3D11Device->GetFeatureLevel() == D3D_FEATURE_LEVEL_11_0)
+			if (mD3D11Device->GetFeatureLevel() >= D3D_FEATURE_LEVEL_11_0)
 			{
 				HRESULT hr = mD3D11Device->CreateClassLinkage(&mClassLinkage);
 
 				if (FAILED(hr))
 					BS_EXCEPT(RenderingAPIException, "Unable to create class linkage.");
 			}
+
+			// Get feature options
+			mD3D11Device->CheckFeatureSupport(D3D11_FEATURE_D3D11_OPTIONS, &mD3D11FeatureOptions, sizeof(mD3D11FeatureOptions));
 		}	
 	}
 
@@ -96,25 +91,17 @@ namespace bs { namespace ct
 	{
 		if (mInfoQueue != nullptr)
 		{
-			UINT64 numStoredMessages = mInfoQueue->GetNumStoredMessagesAllowedByRetrievalFilter();
-
-			if (numStoredMessages > 0)
-				return true;
-
-			return false;
+			const UINT64 numStoredMessages = mInfoQueue->GetNumStoredMessagesAllowedByRetrievalFilter();
+			return numStoredMessages > 0;
 		}
 		else
-		{
 			return false;
-		}
 	}
 
 	void D3D11Device::clearErrors()
 	{
 		if (mD3D11Device != nullptr && mInfoQueue != nullptr)
-		{
 			mInfoQueue->ClearStoredMessages();
-		}
 	}
 
 	void D3D11Device::setExceptionsErrorLevel(const BS_D3D11_ERROR_LEVEL exceptionsErrorLevel)

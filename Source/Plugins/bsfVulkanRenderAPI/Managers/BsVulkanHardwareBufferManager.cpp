@@ -8,6 +8,8 @@
 #include "BsVulkanGpuParams.h"
 #include "BsVulkanHardwareBuffer.h"
 #include "RenderAPI/BsGpuParamDesc.h"
+#include "BsVulkanUtility.h"
+#include "BsVulkanDevice.h"
 
 namespace bs { namespace ct
 {
@@ -18,17 +20,64 @@ namespace bs { namespace ct
 			VulkanHardwareBuffer::BT_GENERIC, BF_32X1F, GBU_STATIC, 16, GDF_DEFAULT);
 
 		mDummyStorageBuffer = bs_new<VulkanHardwareBuffer>(
-			VulkanHardwareBuffer::BT_STORAGE, BF_32X1F, GBU_STATIC, 16, GDF_DEFAULT);
+			VulkanHardwareBuffer::BT_GENERIC, BF_32X1F, GBU_LOADSTORE, 16, GDF_DEFAULT);
 
 		mDummyUniformBuffer = bs_new<VulkanHardwareBuffer>(
 			VulkanHardwareBuffer::BT_UNIFORM, BF_UNKNOWN, GBU_STATIC, 16, GDF_DEFAULT);
 
 		mDummyStructuredBuffer = bs_new<VulkanHardwareBuffer>(
-			VulkanHardwareBuffer::BT_STRUCTURED, BF_UNKNOWN, GBU_STATIC, 16, GDF_DEFAULT);
+			VulkanHardwareBuffer::BT_STRUCTURED, BF_UNKNOWN, GBU_LOADSTORE, 16, GDF_DEFAULT);
+
+		VkBufferViewCreateInfo viewCI;
+		viewCI.sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
+		viewCI.pNext = nullptr;
+		viewCI.flags = 0;
+		viewCI.format = VulkanUtility::getBufferFormat(BF_32X1F);
+		viewCI.offset = 0;
+		viewCI.range = VK_WHOLE_SIZE;
+
+		for(UINT32 i = 0; i < BS_MAX_DEVICES; i++)
+		{
+			VulkanBuffer* readBuffer = mDummyReadBuffer->getResource(i);
+			if(readBuffer)
+			{
+				viewCI.buffer = readBuffer->getHandle();
+
+				VkResult result = vkCreateBufferView(readBuffer->getDevice().getLogical(), &viewCI, gVulkanAllocator, 
+					&mDummyReadBufferViews[i]);
+				assert(result == VK_SUCCESS);
+			}
+			else
+				mDummyReadBufferViews[i] = VK_NULL_HANDLE;
+
+			VulkanBuffer* storageBuffer = mDummyStorageBuffer->getResource(i);
+			if(storageBuffer)
+			{
+				viewCI.buffer = storageBuffer->getHandle();
+
+				VkResult result = vkCreateBufferView(storageBuffer->getDevice().getLogical(), &viewCI, gVulkanAllocator, 
+					&mDummyStorageBufferViews[i]);
+				assert(result == VK_SUCCESS);
+			}
+			else
+				mDummyStorageBufferViews[i] = VK_NULL_HANDLE;
+		}
+
 	}
 
 	VulkanHardwareBufferManager::~VulkanHardwareBufferManager()
 	{
+		for(UINT32 i = 0; i < BS_MAX_DEVICES; i++)
+		{
+			VulkanBuffer* readBuffer = mDummyReadBuffer->getResource(i);
+			if(readBuffer)
+				vkDestroyBufferView(readBuffer->getDevice().getLogical(), mDummyReadBufferViews[i], gVulkanAllocator);
+
+			VulkanBuffer* storageBuffer = mDummyStorageBuffer->getResource(i);
+			if(storageBuffer)
+				vkDestroyBufferView(storageBuffer->getDevice().getLogical(), mDummyStorageBufferViews[i], gVulkanAllocator);
+		}
+
 		bs_delete(mDummyReadBuffer);
 		bs_delete(mDummyStorageBuffer);
 		bs_delete(mDummyUniformBuffer);
@@ -37,12 +86,12 @@ namespace bs { namespace ct
 
 	VkBufferView VulkanHardwareBufferManager::getDummyReadBufferView(UINT32 deviceIdx) const
 	{
-		return mDummyReadBuffer->getResource(deviceIdx)->getView();
+		return mDummyReadBufferViews[deviceIdx];
 	}
 
 	VkBufferView VulkanHardwareBufferManager::getDummyStorageBufferView(UINT32 deviceIdx) const
 	{
-		return mDummyStorageBuffer->getResource(deviceIdx)->getView();
+		return mDummyStorageBufferViews[deviceIdx];
 	}
 
 	VkBuffer VulkanHardwareBufferManager::getDummyUniformBuffer(UINT32 deviceIdx) const
@@ -74,7 +123,7 @@ namespace bs { namespace ct
 	}
 
 	SPtr<GpuParamBlockBuffer> VulkanHardwareBufferManager::createGpuParamBlockBufferInternal(UINT32 size,
-		GpuParamBlockUsage usage, GpuDeviceFlags deviceMask)
+		GpuBufferUsage usage, GpuDeviceFlags deviceMask)
 	{
 		VulkanGpuParamBlockBuffer* paramBlockBuffer =
 			new (bs_alloc<VulkanGpuParamBlockBuffer>()) VulkanGpuParamBlockBuffer(size, usage, deviceMask);

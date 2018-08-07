@@ -153,7 +153,7 @@ namespace bs { namespace ct
 		bufferDesc.type = GBT_STRUCTURED;
 		bufferDesc.elementCount = numCoeffSets;
 		bufferDesc.format = BF_UNKNOWN;
-		bufferDesc.randomGpuWrite = true;
+		bufferDesc.usage = GBU_LOADSTORE;
 
 		if(mVariation.getInt("SH_ORDER") == 3)
 			bufferDesc.elementSize = sizeof(SHCoeffsAndWeight3);

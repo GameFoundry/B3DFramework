@@ -10,18 +10,50 @@
 namespace bs { namespace ct
 {
 	D3D11HardwareBuffer::D3D11HardwareBuffer(BufferType btype, GpuBufferUsage usage, UINT32 elementCount, UINT32 elementSize, 
-		D3D11Device& device, bool useSystemMem, bool streamOut, bool randomGpuWrite, bool useCounter)
-		: HardwareBuffer(elementCount * elementSize), mD3DBuffer(nullptr), mpTempStagingBuffer(nullptr)
-		, mUseTempStagingBuffer(false), mBufferType(btype), mDevice(device), mElementCount(elementCount)
-		, mElementSize(elementSize), mUsage(usage), mRandomGpuWrite(randomGpuWrite), mUseCounter(useCounter)
+		D3D11Device& device, bool useSystemMem, bool streamOut)
+		: HardwareBuffer(elementCount * elementSize, usage, GDF_DEFAULT)
+		, mBufferType(btype), mElementCount(elementCount), mElementSize(elementSize), mUsage(usage), mDevice(device)
 	{
-		assert((!streamOut || btype == BT_VERTEX) && "Stream out flag is only supported on vertex buffers.");
-		assert(!randomGpuWrite || (btype & BT_GROUP_GENERIC) != 0 && "randomGpuWrite flag can only be enabled with standard, append/consume, indirect argument, structured or raw buffers.");
-		assert(btype != BT_APPENDCONSUME || randomGpuWrite && "Append/Consume buffer must be created with randomGpuWrite enabled.");
-		assert(!useCounter || btype == BT_STRUCTURED && "Counter can only be used with a structured buffer.");
-		assert(!useCounter || randomGpuWrite && "Counter can only be used with buffers that have randomGpuWrite enabled.");
-		assert(!randomGpuWrite || !useSystemMem && "randomGpuWrite and useSystemMem cannot be used together.");
-		assert(!(useSystemMem && streamOut) && "useSystemMem and streamOut cannot be used together.");
+		bool isLoadStore = (usage & GBU_LOADSTORE) == GBU_LOADSTORE;
+
+		if(useSystemMem)
+		{
+			if(isLoadStore)
+			{
+				LOGWRN("LoadStore usage and useSystemMem cannot be used together.");
+				isLoadStore = false;
+			}
+
+			if(streamOut)
+			{
+				LOGWRN("useSystemMem and streamOut cannot be used together.")
+				streamOut = false;
+			}
+		}
+
+		if(isLoadStore)
+		{
+			if(btype == BT_CONSTANT)
+			{
+				LOGWRN("Constant buffers cannot be bound with LoadStore usage.");
+				isLoadStore = false;
+			}
+
+			if(D3D11Mappings::isDynamic(usage))
+			{
+				LOGWRN("Dynamic usage not supported with LoadStore usage.");
+				usage = (GpuBufferUsage)(usage & ~GBU_DYNAMIC);
+			}
+		}
+
+		if(streamOut)
+		{
+			if(btype == BT_CONSTANT)
+			{
+				LOGWRN("Constant buffers cannot be used with streamOut.");
+				streamOut = false;
+			}
+		}
 
 		mDesc.ByteWidth = getSize();
 		mDesc.MiscFlags = 0;
@@ -33,27 +65,6 @@ namespace bs { namespace ct
 			mDesc.BindFlags = 0;
 			mDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ;
 		}
-		else if(randomGpuWrite)
-		{
-			mDesc.Usage = D3D11_USAGE_DEFAULT;
-			mDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
-			mDesc.CPUAccessFlags = 0;
-
-			switch (btype)
-			{
-			case BT_STRUCTURED:
-			case BT_APPENDCONSUME:
-				mDesc.StructureByteStride = elementSize;
-				mDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-				break;
-			case BT_RAW:
-				mDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
-				break;
-			case BT_INDIRECTARGUMENT:
-				mDesc.MiscFlags = D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
-				break;
-			}
-		}
 		else
 		{
 			mDesc.Usage = D3D11Mappings::getUsage(usage);
@@ -61,22 +72,11 @@ namespace bs { namespace ct
 
 			switch(btype)
 			{
+			default:
 			case BT_STANDARD:
 				mDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 				break;
-			case BT_VERTEX:
-				mDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-				if (streamOut)
-					mDesc.BindFlags |= D3D11_BIND_STREAM_OUTPUT;
-				break;
-			case BT_INDEX:
-				mDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-				break;
-			case BT_CONSTANT:
-				mDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-				break;
 			case BT_STRUCTURED:
-			case BT_APPENDCONSUME:
 				mDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 				mDesc.StructureByteStride = elementSize;
 				mDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
@@ -85,11 +85,26 @@ namespace bs { namespace ct
 				mDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 				mDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
 				break;
+			case BT_VERTEX:
+				mDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+				break;
+			case BT_INDEX:
+				mDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+				break;
+			case BT_CONSTANT:
+				mDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+				break;
 			case BT_INDIRECTARGUMENT:
 				mDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 				mDesc.MiscFlags = D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
 				break;
 			}
+
+			if(isLoadStore)
+				mDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+
+			if(streamOut)
+				mDesc.BindFlags |= D3D11_BIND_STREAM_OUTPUT;
 		}
 
 		HRESULT hr = device.getD3D11Device()->CreateBuffer(&mDesc, nullptr, &mD3DBuffer);
@@ -138,8 +153,14 @@ namespace bs { namespace ct
 					mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
 				else
 				{
-					// Not supported on anything but index/vertex buffers in DX11 (this restriction was dropped in 11.1)
-					mapType = D3D11_MAP_WRITE;
+					const auto& featureOptions = mDevice.getFeatureOptions();
+
+					if(mBufferType == BT_CONSTANT && featureOptions.MapNoOverwriteOnDynamicConstantBuffer)
+						mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
+					else if(featureOptions.MapNoOverwriteOnDynamicBufferSRV)
+						mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
+					else
+						mapType = D3D11_MAP_WRITE;
 				}
 				break;
 			case GBL_WRITE_ONLY:
@@ -160,6 +181,7 @@ namespace bs { namespace ct
 					mapType = D3D11_MAP_READ;
 				}
 				break;
+			default:
 			case GBL_READ_ONLY:
 				mapType = D3D11_MAP_READ;
 				break;
@@ -171,9 +193,8 @@ namespace bs { namespace ct
 			if(D3D11Mappings::isMappingWrite(mapType) && (mDesc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == 0)
 				LOGERR("Trying to write to a buffer, but buffer wasn't created with a write access flag.");
 
-			void * pRet = NULL;
 			D3D11_MAPPED_SUBRESOURCE mappedSubResource;
-			mappedSubResource.pData = NULL;
+			mappedSubResource.pData = nullptr;
 			mDevice.clearErrors();
 
 			HRESULT hr = mDevice.getImmediateContext()->Map(mD3DBuffer, 0, mapType, 0, &mappedSubResource);
@@ -183,9 +204,7 @@ namespace bs { namespace ct
 				BS_EXCEPT(RenderingAPIException, "Error calling Map: " + msg);
 			}
 
-			pRet = static_cast<void*>(static_cast<char*>(mappedSubResource.pData) + offset);
-
-			return pRet;
+			return static_cast<void*>(static_cast<char*>(mappedSubResource.pData) + offset);
 		}
 		else // Otherwise create a staging buffer to do all read/write operations on. Usually try to avoid this.
 		{
@@ -308,8 +327,6 @@ namespace bs { namespace ct
 			if (mBufferType == BT_CONSTANT)
 			{
 				assert(offset == 0);
-
-				// Constant buffer cannot be updated partially using UpdateSubresource
 				mDevice.getImmediateContext()->UpdateSubresource(mD3DBuffer, 0, nullptr, pSource, 0, 0);
 			}
 			else

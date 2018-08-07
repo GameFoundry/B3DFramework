@@ -33,7 +33,7 @@ namespace bs { namespace ct
 		GPU_BUFFER_DESC desc;
 		desc.elementCount = 1;
 		desc.format = BF_32X1U;
-		desc.randomGpuWrite = true;
+		desc.usage = GBU_LOADSTORE;
 		desc.type = GBT_STANDARD;
 		desc.elementSize = 0;
 
@@ -60,7 +60,7 @@ namespace bs { namespace ct
 			GPU_BUFFER_DESC desc;
 			desc.elementCount = numCells;
 			desc.format = BF_32X1U;
-			desc.randomGpuWrite = true;
+			desc.usage = GBU_LOADSTORE;
 			desc.type = GBT_STANDARD;
 			desc.elementSize = 0;
 
@@ -148,7 +148,7 @@ namespace bs { namespace ct
 		GPU_BUFFER_DESC desc;
 		desc.elementCount = 2;
 		desc.format = BF_32X1U;
-		desc.randomGpuWrite = true;
+		desc.usage = GBU_LOADSTORE;
 		desc.type = GBT_STANDARD;
 		desc.elementSize = 0;
 
@@ -173,7 +173,7 @@ namespace bs { namespace ct
 			GPU_BUFFER_DESC desc;
 			desc.elementCount = numCells;
 			desc.format = BF_32X4U;
-			desc.randomGpuWrite = true;
+			desc.usage = GBU_LOADSTORE;
 			desc.type = GBT_STANDARD;
 			desc.elementSize = 0;
 

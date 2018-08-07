@@ -6,33 +6,9 @@
 
 namespace bs { namespace ct
 {
-	GLBuffer::GLBuffer()
-		:mTarget(0), mBufferId(0), mZeroLocked(false)
-	{
-		
-	}
-
 	GLBuffer::GLBuffer(GLenum target, UINT32 size, GpuBufferUsage usage)
-		:mTarget(target), mBufferId(0), mZeroLocked(false)
+		: HardwareBuffer(size, usage, GDF_DEFAULT), mTarget(target)
 	{
-		initialize(target, size, usage);
-	}
-
-	GLBuffer::~GLBuffer()
-	{
-		if (mBufferId != 0)
-		{
-			glDeleteBuffers(1, &mBufferId);
-			BS_CHECK_GL_ERROR();
-		}
-	}
-
-	void GLBuffer::initialize(GLenum target, UINT32 size, GpuBufferUsage usage)
-	{
-		assert(mBufferId == 0 && "Buffer already initialized");
-
-		mTarget = target;
-
 		glGenBuffers(1, &mBufferId);
 		BS_CHECK_GL_ERROR();
 
@@ -46,7 +22,16 @@ namespace bs { namespace ct
 		BS_CHECK_GL_ERROR();
 	}
 
-	void* GLBuffer::lock(UINT32 offset, UINT32 length, GpuLockOptions options)
+	GLBuffer::~GLBuffer()
+	{
+		if (mBufferId != 0)
+		{
+			glDeleteBuffers(1, &mBufferId);
+			BS_CHECK_GL_ERROR();
+		}
+	}
+
+	void* GLBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		// If no buffer ID it's assumed this type of buffer is unsupported and we silently fail (it's up to the creator
 		// if the buffer to check for support and potentially print a warning)
@@ -90,7 +75,7 @@ namespace bs { namespace ct
 		return static_cast<void*>(static_cast<unsigned char*>(buffer));
 	}
 
-	void GLBuffer::unlock()
+	void GLBuffer::unmap()
 	{
 		if(mBufferId == 0)
 			return;
@@ -108,18 +93,17 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLBuffer::readData(UINT32 offset, UINT32 length, void* pDest)
+	void GLBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		if(mBufferId == 0)
 			return;
 
-		void* bufferData = lock(offset, length, GBL_READ_ONLY);
-		memcpy(pDest, bufferData, length);
+		void* bufferData = lock(offset, length, GBL_READ_ONLY, deviceIdx, queueIdx);
+		memcpy(dest, bufferData, length);
 		unlock();
 	}
 
-	void GLBuffer::writeData(UINT32 offset, UINT32 length,
-		const void* pSource, BufferWriteType writeFlags)
+	void GLBuffer::writeData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags, UINT32 queueIdx)
 	{
 		if(mBufferId == 0)
 			return;
@@ -130,12 +114,13 @@ namespace bs { namespace ct
 		else if (writeFlags == BTW_NO_OVERWRITE)
 			lockOption = GBL_WRITE_ONLY_NO_OVERWRITE;
 
-		void* bufferData = lock(offset, length, lockOption);
-		memcpy(bufferData, pSource, length);
+		void* bufferData = lock(offset, length, lockOption, 0, queueIdx);
+		memcpy(bufferData, source, length);
 		unlock();
 	}
 
-	void GLBuffer::copyData(GLBuffer& dstBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length)
+	void GLBuffer::copyData(HardwareBuffer& dstBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length,
+			bool discardWholeBuffer, const SPtr<ct::CommandBuffer>& commandBuffer)
 	{
 		if(mBufferId == 0)
 			return;
@@ -143,7 +128,8 @@ namespace bs { namespace ct
 		glBindBuffer(GL_COPY_READ_BUFFER, mBufferId);
 		BS_CHECK_GL_ERROR();
 
-		glBindBuffer(GL_COPY_WRITE_BUFFER, dstBuffer.getGLBufferId());
+		GLBuffer& glDstBuffer = static_cast<GLBuffer&>(dstBuffer);
+		glBindBuffer(GL_COPY_WRITE_BUFFER, glDstBuffer.getGLBufferId());
 		BS_CHECK_GL_ERROR();
 
 		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, srcOffset, dstOffset, length);

@@ -31,7 +31,7 @@ namespace bs { namespace ct
 			bool discardWholeBuffer = false, const SPtr<ct::CommandBuffer>& commandBuffer = nullptr) override;
 
 		/**	Returns internal OpenGL index buffer handle. */
-		GLuint getGLBufferId() const { return mBuffer.getGLBufferId(); }
+		GLuint getGLBufferId() const { return mBuffer->getGLBufferId(); }
 
 	protected:
 		/** @copydoc IndexBuffer::initialize */
@@ -44,7 +44,7 @@ namespace bs { namespace ct
 		void unmap() override;
 
 	private:
-		GLBuffer mBuffer;
+		GLBuffer* mBuffer;
 		GpuBufferUsage mUsage;
 	};
 

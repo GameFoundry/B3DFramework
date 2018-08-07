@@ -155,6 +155,11 @@ namespace bs { namespace ct
 			mOwner->destroy(this);
 	}
 
+	VulkanDevice& VulkanResource::getDevice() const
+	{
+		return mOwner->getDevice();
+	}
+
 	VulkanResourceManager::VulkanResourceManager(VulkanDevice& device)
 		:mDevice(device)
 	{ }
