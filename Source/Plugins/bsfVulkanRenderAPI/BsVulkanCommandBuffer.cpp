@@ -1196,7 +1196,7 @@ namespace bs { namespace ct
 				{
 					mVertexBuffersTemp[i] = resource->getHandle();
 
-					registerResource(resource, VulkanUseFlag::Read);
+					registerResource(resource, VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT, VulkanUseFlag::Read);
 				}
 				else
 					mVertexBuffersTemp[i] = VK_NULL_HANDLE;
@@ -1222,7 +1222,7 @@ namespace bs { namespace ct
 				vkBuffer = resource->getHandle();
 				indexType = VulkanUtility::getIndexType(buffer->getProperties().getType());
 
-				registerResource(resource, VulkanUseFlag::Read);
+				registerResource(resource, VK_ACCESS_INDEX_READ_BIT, VulkanUseFlag::Read);
 			}
 		}
 
@@ -2036,8 +2036,10 @@ namespace bs { namespace ct
 			bufferInfo.accessFlags |= accessFlags;
 
 			// If the buffer was written to previously in this pass, and is now being used by a shader we need to issue
-			// a barrier to make those writes visible.
-			bool isShaderRead = (accessFlags & VK_ACCESS_SHADER_READ_BIT) != 0;
+			// a barrier to make those writes visible. (Currently only generic, vertex and index buffers can be bound for
+			// shader writes, so we only check their access flags).
+			bool isShaderRead = (accessFlags & (VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_INDEX_READ_BIT | 
+				VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT)) != 0;
 			if(bufferInfo.needsBarrier && (isShaderRead || isShaderWrite))
 			{
 				// Need to end render pass in order to execute the barrier. Hopefully this won't trigger much since most
