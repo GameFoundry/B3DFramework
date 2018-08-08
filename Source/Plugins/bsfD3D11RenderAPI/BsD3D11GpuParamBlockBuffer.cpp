@@ -17,9 +17,7 @@ namespace bs { namespace ct
 	D3D11GpuParamBlockBuffer::~D3D11GpuParamBlockBuffer()
 	{
 		if (mBuffer != nullptr)
-			bs_pool_delete(mBuffer);
-
-		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuParamBuffer);
+			bs_pool_delete(static_cast<D3D11HardwareBuffer*>(mBuffer));
 	}
 
 	void D3D11GpuParamBlockBuffer::initialize()
@@ -28,22 +26,11 @@ namespace bs { namespace ct
 		D3D11Device& device = d3d11rs->getPrimaryDevice();
 
 		mBuffer = bs_pool_new<D3D11HardwareBuffer>(D3D11HardwareBuffer::BT_CONSTANT, mUsage, 1, mSize, device);
-
-		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuParamBuffer);
-
 		GpuParamBlockBuffer::initialize();
 	}
 
-
 	ID3D11Buffer* D3D11GpuParamBlockBuffer::getD3D11Buffer() const
 	{
-		return mBuffer->getD3DBuffer();
-	}
-
-	void D3D11GpuParamBlockBuffer::writeToGPU(const UINT8* data, UINT32 queueIdx)
-	{
-		mBuffer->writeData(0, mSize, data, BWT_DISCARD);
-
-		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuParamBuffer);
+		return static_cast<D3D11HardwareBuffer*>(mBuffer)->getD3DBuffer();
 	}
 }}

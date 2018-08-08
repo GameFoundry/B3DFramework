@@ -29,7 +29,7 @@ namespace bs { namespace ct
 			UINT32 queueIdx = 0) override;
 
 		/** @copydoc HardwareBuffer::copyData */
-		void copyData(HardwareBuffer& dstBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length,
+		void copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length,
 			bool discardWholeBuffer = false, const SPtr<ct::CommandBuffer>& commandBuffer = nullptr) override;
 
 		/**	Returns internal OpenGL buffer ID. */

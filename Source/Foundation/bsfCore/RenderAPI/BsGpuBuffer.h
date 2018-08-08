@@ -117,25 +117,49 @@ namespace bs
 	class BS_CORE_EXPORT GpuBuffer : public CoreObject, public HardwareBuffer
 	{
 	public:
-		virtual ~GpuBuffer() = default;
+		virtual ~GpuBuffer();
 
 		/** Returns properties describing the buffer. */
 		const GpuBufferProperties& getProperties() const { return mProperties; }
 
+		/** @copydoc HardwareBuffer::readData */
+		void readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx = 0, UINT32 queueIdx = 0) override;
+
+		/** @copydoc HardwareBuffer::writeData */
+		void writeData(UINT32 offset, UINT32 length, const void* source,
+			BufferWriteType writeFlags = BWT_NORMAL, UINT32 queueIdx = 0) override;
+
+		/** @copydoc HardwareBuffer::copyData */
+		void copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length, 
+			bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+
 		/** @copydoc HardwareBufferManager::createGpuBuffer */
 		static SPtr<GpuBuffer> create(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
-
-	protected:
-		GpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/** 
 		 * Creates a view of an existing hardware buffer. No internal buffer will be allocated and the provided buffer
 		 * will be used for all internal operations instead. Information provided in @p desc (such as element size and
 		 * count) must match the provided @p underlyingBuffer.
 		 */
+		static SPtr<GpuBuffer> create(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer);
+	protected:
+		friend class HardwareBufferManager;
+
+		GpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 		GpuBuffer(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer);
 
+		/** @copydoc HardwareBuffer::map */
+		void* map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx = 0, UINT32 queueIdx = 0) override;
+
+		/** @copydoc HardwareBuffer::unmap */
+		void unmap() override;
+
+		/** @copydoc CoreObject::initialize */
+		void initialize() override;
+
 		GpuBufferProperties mProperties;
+
+		HardwareBuffer* mBuffer = nullptr;
 		SPtr<HardwareBuffer> mExternalBuffer;
 	};
 

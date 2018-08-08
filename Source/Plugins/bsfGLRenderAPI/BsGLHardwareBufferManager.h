@@ -34,9 +34,13 @@ namespace bs { namespace ct
 		SPtr<GpuParamBlockBuffer> createGpuParamBlockBufferInternal(UINT32 size, 
 			GpuBufferUsage usage = GBU_DYNAMIC, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
-		/** @copydoc HardwareBufferManager::createGpuBufferInternal */
+		/** @copydoc HardwareBufferManager::createGpuBufferInternal(const GPU_BUFFER_DESC&, GpuDeviceMask) */
 		SPtr<GpuBuffer> createGpuBufferInternal(const GPU_BUFFER_DESC& desc, 
 			GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
+
+		/** @copydoc HardwareBufferManager::createGpuBufferInternal(const GPU_BUFFER_DESC&, SPtr<HardwareBuffer>) */
+		SPtr<GpuBuffer> createGpuBufferInternal(const GPU_BUFFER_DESC& desc, 
+			SPtr<HardwareBuffer> underlyingBuffer) override;
 	};
 
 	/** @} */

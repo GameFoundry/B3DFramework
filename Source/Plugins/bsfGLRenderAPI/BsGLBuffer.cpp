@@ -3,6 +3,7 @@
 #include "BsGLBuffer.h"
 #include "BsGLHardwareBufferManager.h"
 #include "Error/BsException.h"
+#include "BsGLCommandBuffer.h"
 
 namespace bs { namespace ct
 {
@@ -119,20 +120,35 @@ namespace bs { namespace ct
 		unlock();
 	}
 
-	void GLBuffer::copyData(HardwareBuffer& dstBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length,
+	void GLBuffer::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length,
 			bool discardWholeBuffer, const SPtr<ct::CommandBuffer>& commandBuffer)
 	{
 		if(mBufferId == 0)
 			return;
 
-		glBindBuffer(GL_COPY_READ_BUFFER, mBufferId);
-		BS_CHECK_GL_ERROR();
+		auto executeRef = [this](HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length)
+		{
+			GLBuffer& glSrcBuffer = static_cast<GLBuffer&>(srcBuffer);
 
-		GLBuffer& glDstBuffer = static_cast<GLBuffer&>(dstBuffer);
-		glBindBuffer(GL_COPY_WRITE_BUFFER, glDstBuffer.getGLBufferId());
-		BS_CHECK_GL_ERROR();
+			glBindBuffer(GL_COPY_READ_BUFFER, glSrcBuffer.getGLBufferId());
+			BS_CHECK_GL_ERROR();
 
-		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, srcOffset, dstOffset, length);
-		BS_CHECK_GL_ERROR();
+			glBindBuffer(GL_COPY_WRITE_BUFFER, mBufferId);
+			BS_CHECK_GL_ERROR();
+
+			glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, srcOffset, dstOffset, length);
+			BS_CHECK_GL_ERROR();
+		};
+
+		if (commandBuffer == nullptr)
+			executeRef(srcBuffer, srcOffset, dstOffset, length);
+		else
+		{
+			auto execute = [&]() { executeRef(srcBuffer, srcOffset, dstOffset, length); };
+
+			SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
+			cb->queueCommand(execute);
+		}
+
 	}
 }}

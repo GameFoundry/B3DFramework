@@ -7,6 +7,8 @@
 
 namespace bs
 {
+	class HardwareBuffer;
+
 	/** @addtogroup RenderAPI
 	 *  @{
 	 */
@@ -95,7 +97,7 @@ namespace bs
 		 * @param[in]	data		Data to write. Must match the size of the buffer.
 		 * @param[in]	queueIdx	Device queue to perform the write operation on. See @ref queuesDoc.
 		 */
-		virtual void writeToGPU(const UINT8* data, UINT32 queueIdx = 0) = 0;
+		void writeToGPU(const UINT8* data, UINT32 queueIdx = 0);
 
 		/** 
 		 * Flushes any cached data into the actual GPU buffer. 
@@ -135,8 +137,15 @@ namespace bs
 			GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 	protected:
+		friend class HardwareBufferManager;
+
 		/** @copydoc CoreObject::syncToCore */
 		void syncToCore(const CoreSyncData& data)  override;
+
+		/** @copydoc CoreObject::initialize */
+		void initialize() override;
+
+		HardwareBuffer* mBuffer;
 
 		GpuBufferUsage mUsage;
 		UINT32 mSize;

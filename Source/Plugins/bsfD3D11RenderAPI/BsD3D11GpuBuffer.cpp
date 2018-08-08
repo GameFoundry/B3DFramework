@@ -17,17 +17,16 @@ namespace bs { namespace ct
 		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX 11.");
 	}
 
-	D3D11GpuBuffer::D3D11GpuBuffer(const GPU_BUFFER_DESC& desc, const SPtr<D3D11HardwareBuffer>& underlyingBuffer)
-		: GpuBuffer(desc, underlyingBuffer), mBuffer(underlyingBuffer.get())
+	D3D11GpuBuffer::D3D11GpuBuffer(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer)
+		: GpuBuffer(desc, std::move(underlyingBuffer))
 	{ }
 
 	D3D11GpuBuffer::~D3D11GpuBuffer()
 	{ 
 		if(mBuffer && !mExternalBuffer)
-			bs_pool_delete(mBuffer);
+			bs_pool_delete(static_cast<D3D11HardwareBuffer*>(mBuffer));
 
 		clearBufferViews();
-		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuBuffer);
 	}
 
 	void D3D11GpuBuffer::initialize()
@@ -38,7 +37,7 @@ namespace bs { namespace ct
 		if(!mBuffer)
 		{
 			D3D11HardwareBuffer::BufferType bufferType;
-			D3D11RenderAPI* d3d11rs = static_cast<D3D11RenderAPI*>(D3D11RenderAPI::instancePtr());
+			D3D11RenderAPI* rapi = static_cast<D3D11RenderAPI*>(D3D11RenderAPI::instancePtr());
 
 			switch (props.getType())
 			{
@@ -56,7 +55,7 @@ namespace bs { namespace ct
 			}
 
 			mBuffer = bs_pool_new<D3D11HardwareBuffer>(bufferType, props.getUsage(), props.getElementCount(),
-				props.getElementSize(), d3d11rs->getPrimaryDevice(), false, false);
+				props.getElementSize(), rapi->getPrimaryDevice(), false, false);
 		}
 
 		UINT32 usage = GVU_DEFAULT;
@@ -71,54 +70,9 @@ namespace bs { namespace ct
 		GpuBuffer::initialize();
 	}
 
-	void* D3D11GpuBuffer::lock(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
-	{
-#if BS_PROFILING_ENABLED
-		if (options == GBL_READ_ONLY || options == GBL_READ_WRITE)
-		{
-			BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_GpuBuffer);
-		}
-
-		if (options == GBL_READ_WRITE || options == GBL_WRITE_ONLY || options == GBL_WRITE_ONLY_DISCARD || options == GBL_WRITE_ONLY_NO_OVERWRITE)
-		{
-			BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuBuffer);
-		}
-#endif
-
-		return mBuffer->lock(offset, length, options);
-	}
-
-	void D3D11GpuBuffer::unlock()
-	{
-		mBuffer->unlock();
-	}
-
-	void D3D11GpuBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
-	{
-		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_GpuBuffer);
-
-		mBuffer->readData(offset, length, dest);
-	}
-
-	void D3D11GpuBuffer::writeData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags, 
-		UINT32 queueIdx)
-	{
-		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuBuffer);
-
-		mBuffer->writeData(offset, length, source, writeFlags);
-	}
-
-	void D3D11GpuBuffer::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length, 
-		bool discardWholeBuffer, const SPtr<CommandBuffer>& commandBuffer)
-	{
-		D3D11GpuBuffer* d3d11SrcBuffer = static_cast<D3D11GpuBuffer*>(&srcBuffer);
-
-		mBuffer->copyData(*d3d11SrcBuffer->mBuffer, srcOffset, dstOffset, length, discardWholeBuffer, commandBuffer);
-	}
-
 	ID3D11Buffer* D3D11GpuBuffer::getDX11Buffer() const
 	{ 
-		return mBuffer->getD3DBuffer(); 
+		return static_cast<D3D11HardwareBuffer*>(mBuffer)->getD3DBuffer(); 
 	}
 
 	GpuBufferView* D3D11GpuBuffer::requestView(D3D11GpuBuffer* buffer, UINT32 firstElement, UINT32 numElements, 

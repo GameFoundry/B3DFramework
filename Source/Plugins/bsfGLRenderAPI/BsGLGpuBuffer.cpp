@@ -3,7 +3,6 @@
 #include "BsGLGpuBuffer.h"
 #include "Profiling/BsRenderStats.h"
 #include "BsGLPixelFormat.h"
-#include "BsGLHardwareBufferManager.h"
 #include "BsGLCommandBuffer.h"
 
 namespace bs { namespace ct
@@ -16,8 +15,8 @@ namespace bs { namespace ct
 		mFormat = GLPixelUtil::getBufferFormat(desc.format);
 	}
 
-	GLGpuBuffer::GLGpuBuffer(const GPU_BUFFER_DESC& desc, const SPtr<GLBuffer>& underlyingBuffer)
-		: GpuBuffer(desc, underlyingBuffer), mBuffer(underlyingBuffer.get())
+	GLGpuBuffer::GLGpuBuffer(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer)
+		: GpuBuffer(desc, std::move(underlyingBuffer))
 	{
 		mFormat = GLPixelUtil::getBufferFormat(desc.format);
 	}
@@ -31,9 +30,7 @@ namespace bs { namespace ct
 		}
 
 		if(mBuffer && !mExternalBuffer)
-			bs_pool_delete(mBuffer);
-
-		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuBuffer);
+			bs_pool_delete(static_cast<GLBuffer*>(mBuffer));
 	}
 
 	void GLGpuBuffer::initialize()
@@ -68,69 +65,10 @@ namespace bs { namespace ct
 			glBindTexture(GL_TEXTURE_BUFFER, mTextureID);
 			BS_CHECK_GL_ERROR();
 
-			glTexBuffer(GL_TEXTURE_BUFFER, mFormat, mBuffer->getGLBufferId());
+			glTexBuffer(GL_TEXTURE_BUFFER, mFormat, static_cast<GLBuffer*>(mBuffer)->getGLBufferId());
 			BS_CHECK_GL_ERROR();
 		}
 
-		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuBuffer);
 		GpuBuffer::initialize();
-	}
-
-	void* GLGpuBuffer::lock(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
-	{
-#if BS_PROFILING_ENABLED
-		if (options == GBL_READ_ONLY || options == GBL_READ_WRITE)
-		{
-			BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_GpuBuffer);
-		}
-
-		if (options == GBL_READ_WRITE || options == GBL_WRITE_ONLY || options == GBL_WRITE_ONLY_DISCARD 
-			|| options == GBL_WRITE_ONLY_NO_OVERWRITE)
-		{
-			BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuBuffer);
-		}
-#endif
-
-		return mBuffer->lock(offset, length, options);
-	}
-
-	void GLGpuBuffer::unlock()
-	{
-		mBuffer->unlock();
-	}
-
-	void GLGpuBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
-	{
-		mBuffer->readData(offset, length, dest, deviceIdx, queueIdx);
-
-		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_GpuBuffer);
-	}
-
-	void GLGpuBuffer::writeData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags,
-									UINT32 queueIdx)
-	{
-		mBuffer->writeData(offset, length, source, writeFlags);
-
-		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuBuffer);
-	}
-
-	void GLGpuBuffer::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length, 
-		bool discardWholeBuffer, const SPtr<CommandBuffer>& commandBuffer)
-	{
-		auto executeRef = [this](HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length)
-		{
-			GLGpuBuffer& glSrcBuffer = static_cast<GLGpuBuffer&>(srcBuffer);
-			glSrcBuffer.mBuffer->copyData(*mBuffer, srcOffset, dstOffset, length);
-		};
-
-		if (commandBuffer == nullptr)
-			executeRef(srcBuffer, srcOffset, dstOffset, length);
-		else
-		{
-			auto execute = [&]() { executeRef(srcBuffer, srcOffset, dstOffset, length); };
-
-			SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
-			cb->queueCommand(execute);
-		}
 	}
 }}

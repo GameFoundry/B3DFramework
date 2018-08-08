@@ -40,8 +40,6 @@ namespace bs
 			void* ret = map(offset, length, options, deviceIdx, queueIdx);
 			mIsLocked = true;
 
-			mLockStart = offset;
-			mLockSize = length;
 			return ret;
 		}
 
@@ -160,8 +158,6 @@ namespace bs
 		GpuDeviceFlags mDeviceMask;
 
 		bool mIsLocked = false;
-		UINT32 mLockStart = 0;
-		UINT32 mLockSize = 0;
 	};
 
 	/** @} */

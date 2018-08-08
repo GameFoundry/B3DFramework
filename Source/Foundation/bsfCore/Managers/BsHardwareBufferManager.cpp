@@ -179,6 +179,15 @@ namespace bs
 		return gbuf;
 	}
 
+	SPtr<GpuBuffer> HardwareBufferManager::createGpuBuffer(const GPU_BUFFER_DESC& desc, 
+		SPtr<HardwareBuffer> underlyingBuffer)
+	{
+		SPtr<GpuBuffer> gbuf = createGpuBufferInternal(desc, std::move(underlyingBuffer));
+		gbuf->initialize();
+
+		return gbuf;
+	}
+
 	SPtr<VertexDeclaration> HardwareBufferManager::createVertexDeclarationInternal(
 		const Vector<VertexElement>& elements, GpuDeviceFlags deviceMask)
 	{

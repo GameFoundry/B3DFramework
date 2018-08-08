@@ -13,8 +13,8 @@ namespace bs { namespace ct
 		: GpuBuffer(desc, deviceMask)
 	{ }
 
-	VulkanGpuBuffer::VulkanGpuBuffer(const GPU_BUFFER_DESC& desc, const SPtr<VulkanHardwareBuffer>& underlyingBuffer)
-		: GpuBuffer(desc, underlyingBuffer), mBuffer(underlyingBuffer.get())
+	VulkanGpuBuffer::VulkanGpuBuffer(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer)
+		: GpuBuffer(desc, std::move(underlyingBuffer))
 	{ }
 
 	VulkanGpuBuffer::~VulkanGpuBuffer()
@@ -26,12 +26,12 @@ namespace bs { namespace ct
 				if (mBufferViews[i] == VK_NULL_HANDLE)
 					continue;
 
-				VulkanBuffer* buffer = mBuffer->getResource(i);
+				VulkanBuffer* buffer = static_cast<VulkanHardwareBuffer*>(mBuffer)->getResource(i);
 				vkDestroyBufferView(buffer->getDevice().getLogical(), mBufferViews[i], gVulkanAllocator);
 			}
 
 			if(!mExternalBuffer)
-				bs_pool_delete(mBuffer);
+				bs_pool_delete(static_cast<VulkanHardwareBuffer*>(mBuffer));
 		}
 
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuBuffer);
@@ -68,58 +68,23 @@ namespace bs { namespace ct
 		GpuBuffer::initialize();
 	}
 
-	void* VulkanGpuBuffer::lock(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
+	void* VulkanGpuBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
 	{
-#if BS_PROFILING_ENABLED
-		if (options == GBL_READ_ONLY || options == GBL_READ_WRITE)
-		{
-			BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_GpuBuffer);
-		}
-
-		if (options == GBL_READ_WRITE || options == GBL_WRITE_ONLY || options == GBL_WRITE_ONLY_DISCARD || options == GBL_WRITE_ONLY_NO_OVERWRITE)
-		{
-			BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuBuffer);
-		}
-#endif
-
-		void* data = mBuffer->lock(offset, length, options, deviceIdx, queueIdx);
+		void* data = GpuBuffer::map(offset, length, options, deviceIdx, queueIdx);
 		updateViews();
 
 		return data;
 	}
 
-	void VulkanGpuBuffer::unlock()
+	void VulkanGpuBuffer::unmap()
 	{
-		mBuffer->unlock();
+		GpuBuffer::unmap();
 		updateViews();
-	}
-
-	void VulkanGpuBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
-	{
-		mBuffer->readData(offset, length, dest, deviceIdx, queueIdx);
-
-		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_GpuBuffer);
-	}
-
-	void VulkanGpuBuffer::writeData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags,
-										UINT32 queueIdx)
-	{
-		mBuffer->writeData(offset, length, source, writeFlags, queueIdx);
-
-		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuBuffer);
-	}
-
-	void VulkanGpuBuffer::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length, 
-		bool discardWholeBuffer, const SPtr<CommandBuffer>& commandBuffer)
-	{
-		VulkanGpuBuffer& vkSrcBuffer = static_cast<VulkanGpuBuffer&>(srcBuffer);
-
-		mBuffer->copyData(*vkSrcBuffer.mBuffer, srcOffset, dstOffset, length, discardWholeBuffer, commandBuffer);
 	}
 
 	VulkanBuffer* VulkanGpuBuffer::getResource(UINT32 deviceIdx) const
 	{
-		return mBuffer->getResource(deviceIdx);
+		return static_cast<VulkanHardwareBuffer*>(mBuffer)->getResource(deviceIdx);
 	}
 
 	VkBufferView VulkanGpuBuffer::getView(UINT32 deviceIdx) const
@@ -134,7 +99,7 @@ namespace bs { namespace ct
 
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
-			VulkanBuffer* buffer = mBuffer->getResource(i);
+			VulkanBuffer* buffer = static_cast<VulkanHardwareBuffer*>(mBuffer)->getResource(i);
 
 			VkBuffer newBufferHandle = VK_NULL_HANDLE;
 

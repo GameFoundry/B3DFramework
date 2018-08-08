@@ -127,6 +127,9 @@ namespace bs
 		 */
 		SPtr<GpuBuffer> createGpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
+		/** @copydoc GpuBuffer::create(const GPU_BUFFER_DESC&, SPtr<HardwareBuffer>) */
+		SPtr<GpuBuffer> createGpuBuffer(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer);
+
 		/** @copydoc GpuParams::create(const SPtr<GpuPipelineParamInfo>&, GpuDeviceFlags) */
 		SPtr<GpuParams> createGpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo,
 											GpuDeviceFlags deviceMask = GDF_DEFAULT);
@@ -172,9 +175,13 @@ namespace bs
 		virtual SPtr<GpuParamBlockBuffer> createGpuParamBlockBufferInternal(UINT32 size, 
 			GpuBufferUsage usage = GBU_DYNAMIC, GpuDeviceFlags deviceMask = GDF_DEFAULT) = 0;
 
-		/** @copydoc createGpuBuffer */
+		/** @copydoc createGpuBuffer(const GPU_BUFFER_DESC&, GpuDeviceFlags) */
 		virtual SPtr<GpuBuffer> createGpuBufferInternal(const GPU_BUFFER_DESC& desc, 
 			GpuDeviceFlags deviceMask = GDF_DEFAULT) = 0;
+
+		/** @copydoc createGpuBuffer(const GPU_BUFFER_DESC&, SPtr<HardwareBuffer>) */
+		virtual SPtr<GpuBuffer> createGpuBufferInternal(const GPU_BUFFER_DESC& desc, 
+			SPtr<HardwareBuffer> underlyingBuffer) = 0;
 
 		/** @copydoc createVertexDeclaration(const Vector<VertexElement>&, GpuDeviceFlags) */
 		virtual SPtr<VertexDeclaration> createVertexDeclarationInternal(const Vector<VertexElement>& elements,

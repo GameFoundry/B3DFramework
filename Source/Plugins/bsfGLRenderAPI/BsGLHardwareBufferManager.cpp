@@ -52,6 +52,17 @@ namespace bs { namespace ct
 		return bufferPtr;
 	}
 
+	SPtr<GpuBuffer> GLHardwareBufferManager::createGpuBufferInternal(const GPU_BUFFER_DESC& desc,
+		SPtr<HardwareBuffer> underlyingBuffer)
+	{
+		GLGpuBuffer* buffer = new (bs_alloc<GLGpuBuffer>()) GLGpuBuffer(desc, std::move(underlyingBuffer));
+
+		SPtr<GpuBuffer> bufferPtr = bs_shared_ptr<GLGpuBuffer>(buffer);
+		bufferPtr->_setThisPtr(bufferPtr);
+
+		return bufferPtr;
+	}
+
 	GLenum GLHardwareBufferManager::getGLUsage(GpuBufferUsage usage)
 	{
 		if((usage & GBU_LOADSTORE) == GBU_LOADSTORE)

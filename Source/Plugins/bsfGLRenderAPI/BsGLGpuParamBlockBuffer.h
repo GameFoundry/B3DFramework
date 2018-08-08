@@ -19,17 +19,11 @@ namespace bs { namespace ct
 		GLGpuParamBlockBuffer(UINT32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask);
 		~GLGpuParamBlockBuffer();
 
-		/** @copydoc GpuParamBlockBuffer::writeToGPU */
-		void writeToGPU(const UINT8* data, UINT32 queueIdx = 0) override;
-
 		/**	Returns internal OpenGL uniform buffer handle. */
-		GLuint getGLBufferId() const { return mBuffer->getGLBufferId(); }
+		GLuint getGLBufferId() const { return static_cast<GLBuffer*>(mBuffer)->getGLBufferId(); }
 	protected:
 		/** @copydoc GpuParamBlockBuffer::initialize */
 		void initialize() override ;
-
-	private:
-		GLBuffer* mBuffer = nullptr;
 	};
 
 	/** @} */

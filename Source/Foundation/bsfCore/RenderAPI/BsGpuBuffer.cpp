@@ -4,6 +4,7 @@
 #include "Error/BsException.h"
 #include "RenderAPI/BsRenderAPI.h"
 #include "Managers/BsHardwareBufferManager.h"
+#include "Profiling/BsRenderStats.h"
 
 namespace bs
 {
@@ -109,7 +110,7 @@ namespace bs
 
 	GpuBuffer::GpuBuffer(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer)
 		: HardwareBuffer(getBufferSize(desc), desc.usage, underlyingBuffer->getDeviceMask()), mProperties(desc)
-		, mExternalBuffer(std::move(underlyingBuffer))
+		, mBuffer(underlyingBuffer.get()), mExternalBuffer(std::move(underlyingBuffer))
 	{
 		const auto& props = getProperties();
 		assert(underlyingBuffer->getSize() == (props.getElementCount() * props.getElementSize()));
@@ -120,9 +121,71 @@ namespace bs
 			assert(desc.elementSize == 0 && "No element size can be provided for standard buffer. Size is determined from format.");
 	}
 
+	GpuBuffer::~GpuBuffer()
+	{
+		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuBuffer);
+	}
+
+	void GpuBuffer::initialize()
+	{
+		const GpuBufferProperties& props = getProperties();
+
+		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuBuffer);
+		CoreObject::initialize();
+	}
+
+	void* GpuBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
+	{
+#if BS_PROFILING_ENABLED
+		if (options == GBL_READ_ONLY || options == GBL_READ_WRITE)
+		{
+			BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_GpuBuffer);
+		}
+
+		if (options == GBL_READ_WRITE || options == GBL_WRITE_ONLY || options == GBL_WRITE_ONLY_DISCARD || options == GBL_WRITE_ONLY_NO_OVERWRITE)
+		{
+			BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuBuffer);
+		}
+#endif
+
+		return mBuffer->lock(offset, length, options, deviceIdx, queueIdx);
+	}
+
+	void GpuBuffer::unmap()
+	{
+		mBuffer->unlock();
+	}
+
+	void GpuBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
+	{
+		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_GpuBuffer);
+
+		mBuffer->readData(offset, length, dest, deviceIdx, queueIdx);
+	}
+
+	void GpuBuffer::writeData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags, 
+		UINT32 queueIdx)
+	{
+		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuBuffer);
+
+		mBuffer->writeData(offset, length, source, writeFlags, queueIdx);
+	}
+
+	void GpuBuffer::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length, 
+		bool discardWholeBuffer, const SPtr<CommandBuffer>& commandBuffer)
+	{
+		auto& srcGpuBuffer = static_cast<GpuBuffer&>(srcBuffer);
+		mBuffer->copyData(*srcGpuBuffer.mBuffer, srcOffset, dstOffset, length, discardWholeBuffer, commandBuffer);
+	}
+
 	SPtr<GpuBuffer> GpuBuffer::create(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 	{
 		return HardwareBufferManager::instance().createGpuBuffer(desc, deviceMask);
+	}
+
+	SPtr<GpuBuffer> GpuBuffer::create(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer)
+	{
+		return HardwareBufferManager::instance().createGpuBuffer(desc, std::move(underlyingBuffer));
 	}
 	}
 }
