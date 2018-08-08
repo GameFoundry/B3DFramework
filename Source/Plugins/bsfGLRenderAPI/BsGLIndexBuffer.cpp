@@ -10,7 +10,7 @@ namespace bs { namespace ct
 {
 	static void deleteBuffer(HardwareBuffer* buffer)
 	{
-		bs_pool_delete(static_cast<GLBuffer*>(buffer));
+		bs_pool_delete(static_cast<GLHardwareBuffer*>(buffer));
 	}
 
 	GLIndexBuffer::GLIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
@@ -21,7 +21,7 @@ namespace bs { namespace ct
 
 	void GLIndexBuffer::initialize()
 	{
-		mBuffer = bs_pool_new<GLBuffer>(GL_ELEMENT_ARRAY_BUFFER, mSize, mUsage);
+		mBuffer = bs_pool_new<GLHardwareBuffer>(GL_ELEMENT_ARRAY_BUFFER, mSize, mUsage);
 		mBufferDeleter = &deleteBuffer;
 
 		IndexBuffer::initialize();

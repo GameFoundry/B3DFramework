@@ -4,7 +4,7 @@
 
 #include "BsGLPrerequisites.h"
 #include "RenderAPI/BsIndexBuffer.h"
-#include "BsGLBuffer.h"
+#include "BsGLHardwareBuffer.h"
 
 namespace bs { namespace ct
 { 
@@ -19,7 +19,7 @@ namespace bs { namespace ct
 		GLIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/**	Returns internal OpenGL index buffer handle. */
-		GLuint getGLBufferId() const { return static_cast<GLBuffer*>(mBuffer)->getGLBufferId(); }
+		GLuint getGLBufferId() const { return static_cast<GLHardwareBuffer*>(mBuffer)->getGLBufferId(); }
 
 	protected:
 		/** @copydoc IndexBuffer::initialize */

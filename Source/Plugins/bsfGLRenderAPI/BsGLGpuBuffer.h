@@ -4,7 +4,7 @@
 
 #include "BsGLPrerequisites.h"
 #include "RenderAPI/BsGpuBuffer.h"
-#include "BsGLBuffer.h"
+#include "BsGLHardwareBuffer.h"
 
 namespace bs { namespace ct
 {
@@ -22,7 +22,7 @@ namespace bs { namespace ct
 		 * Returns internal OpenGL buffer ID. If binding the buffer to the pipeline, bind the texture using
 		 * getGLTextureId() instead. 
 		 */
-		GLuint getGLBufferId() const { return static_cast<GLBuffer*>(mBuffer)->getGLBufferId(); }
+		GLuint getGLBufferId() const { return static_cast<GLHardwareBuffer*>(mBuffer)->getGLBufferId(); }
 
 		/**	Returns internal OpenGL texture ID. */
 		GLuint getGLTextureId() const { return mTextureID; }

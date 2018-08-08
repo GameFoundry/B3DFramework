@@ -14,12 +14,12 @@ namespace bs { namespace ct
 	 */
 
 	/** Wrapper around a generic OpenGL buffer. */
-	class GLBuffer : public HardwareBuffer
+	class GLHardwareBuffer : public HardwareBuffer
 	{
 	public:
 		/** Creates and initializes the buffer object. */
-		GLBuffer(GLenum target, UINT32 size, GpuBufferUsage usage);
-		~GLBuffer();
+		GLHardwareBuffer(GLenum target, UINT32 size, GpuBufferUsage usage);
+		~GLHardwareBuffer();
 
 		/** @copydoc HardwareBuffer::readData */
 		void readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx = 0, UINT32 queueIdx = 0) override;
@@ -53,5 +53,5 @@ namespace bs { namespace ct
 
 namespace bs
 {
-	IMPLEMENT_GLOBAL_POOL(ct::GLBuffer, 32)
+	IMPLEMENT_GLOBAL_POOL(ct::GLHardwareBuffer, 32)
 }

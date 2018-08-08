@@ -10,7 +10,7 @@ namespace bs { namespace ct
 {
 	static void deleteBuffer(HardwareBuffer* buffer)
 	{
-		bs_pool_delete(static_cast<GLBuffer*>(buffer));
+		bs_pool_delete(static_cast<GLHardwareBuffer*>(buffer));
 	}
 
 	GLVertexBuffer::GLVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
@@ -27,7 +27,7 @@ namespace bs { namespace ct
 
 	void GLVertexBuffer::initialize()
 	{
-		mBuffer = bs_pool_new<GLBuffer>(GL_ARRAY_BUFFER, mSize, mUsage);
+		mBuffer = bs_pool_new<GLHardwareBuffer>(GL_ARRAY_BUFFER, mSize, mUsage);
 		mBufferDeleter = &deleteBuffer;
 		
 		VertexBuffer::initialize();

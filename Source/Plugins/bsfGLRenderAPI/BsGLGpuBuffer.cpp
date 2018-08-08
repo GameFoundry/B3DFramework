@@ -30,7 +30,7 @@ namespace bs { namespace ct
 		}
 
 		if(mBuffer && !mExternalBuffer)
-			bs_pool_delete(static_cast<GLBuffer*>(mBuffer));
+			bs_pool_delete(static_cast<GLHardwareBuffer*>(mBuffer));
 	}
 
 	void GLGpuBuffer::initialize()
@@ -43,7 +43,7 @@ namespace bs { namespace ct
 #if BS_OPENGL_4_2 || BS_OPENGLES_3_1
 				const auto& props = getProperties();
 				UINT32 size = props.getElementCount() * props.getElementSize();
-				mBuffer = bs_pool_new<GLBuffer>(GL_SHADER_STORAGE_BUFFER, size, props.getUsage());
+				mBuffer = bs_pool_new<GLHardwareBuffer>(GL_SHADER_STORAGE_BUFFER, size, props.getUsage());
 #else
 				LOGWRN("SSBOs are not supported on the current OpenGL version.");
 #endif
@@ -52,7 +52,7 @@ namespace bs { namespace ct
 			{
 				const auto& props = getProperties();
 				UINT32 size = props.getElementCount() * props.getElementSize();
-				mBuffer = bs_pool_new<GLBuffer>(GL_TEXTURE_BUFFER, size, props.getUsage());
+				mBuffer = bs_pool_new<GLHardwareBuffer>(GL_TEXTURE_BUFFER, size, props.getUsage());
 			}
 		}
 
@@ -65,7 +65,7 @@ namespace bs { namespace ct
 			glBindTexture(GL_TEXTURE_BUFFER, mTextureID);
 			BS_CHECK_GL_ERROR();
 
-			glTexBuffer(GL_TEXTURE_BUFFER, mFormat, static_cast<GLBuffer*>(mBuffer)->getGLBufferId());
+			glTexBuffer(GL_TEXTURE_BUFFER, mFormat, static_cast<GLHardwareBuffer*>(mBuffer)->getGLBufferId());
 			BS_CHECK_GL_ERROR();
 		}
 

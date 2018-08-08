@@ -1,13 +1,13 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsGLBuffer.h"
+#include "BsGLHardwareBuffer.h"
 #include "BsGLHardwareBufferManager.h"
 #include "Error/BsException.h"
 #include "BsGLCommandBuffer.h"
 
 namespace bs { namespace ct
 {
-	GLBuffer::GLBuffer(GLenum target, UINT32 size, GpuBufferUsage usage)
+	GLHardwareBuffer::GLHardwareBuffer(GLenum target, UINT32 size, GpuBufferUsage usage)
 		: HardwareBuffer(size, usage, GDF_DEFAULT), mTarget(target)
 	{
 		glGenBuffers(1, &mBufferId);
@@ -23,7 +23,7 @@ namespace bs { namespace ct
 		BS_CHECK_GL_ERROR();
 	}
 
-	GLBuffer::~GLBuffer()
+	GLHardwareBuffer::~GLHardwareBuffer()
 	{
 		if (mBufferId != 0)
 		{
@@ -32,7 +32,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void* GLBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
+	void* GLHardwareBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		// If no buffer ID it's assumed this type of buffer is unsupported and we silently fail (it's up to the creator
 		// if the buffer to check for support and potentially print a warning)
@@ -76,7 +76,7 @@ namespace bs { namespace ct
 		return static_cast<void*>(static_cast<unsigned char*>(buffer));
 	}
 
-	void GLBuffer::unmap()
+	void GLHardwareBuffer::unmap()
 	{
 		if(mBufferId == 0)
 			return;
@@ -94,7 +94,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
+	void GLHardwareBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		if(mBufferId == 0)
 			return;
@@ -104,7 +104,7 @@ namespace bs { namespace ct
 		unlock();
 	}
 
-	void GLBuffer::writeData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags, UINT32 queueIdx)
+	void GLHardwareBuffer::writeData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags, UINT32 queueIdx)
 	{
 		if(mBufferId == 0)
 			return;
@@ -120,7 +120,7 @@ namespace bs { namespace ct
 		unlock();
 	}
 
-	void GLBuffer::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length,
+	void GLHardwareBuffer::copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length,
 			bool discardWholeBuffer, const SPtr<ct::CommandBuffer>& commandBuffer)
 	{
 		if(mBufferId == 0)
@@ -128,7 +128,7 @@ namespace bs { namespace ct
 
 		auto executeRef = [this](HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length)
 		{
-			GLBuffer& glSrcBuffer = static_cast<GLBuffer&>(srcBuffer);
+			GLHardwareBuffer& glSrcBuffer = static_cast<GLHardwareBuffer&>(srcBuffer);
 
 			glBindBuffer(GL_COPY_READ_BUFFER, glSrcBuffer.getGLBufferId());
 			BS_CHECK_GL_ERROR();

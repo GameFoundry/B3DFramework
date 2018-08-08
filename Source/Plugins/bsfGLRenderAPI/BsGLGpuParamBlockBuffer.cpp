@@ -14,12 +14,12 @@ namespace bs { namespace ct
 	GLGpuParamBlockBuffer::~GLGpuParamBlockBuffer()
 	{
 		if(mBuffer)
-			bs_pool_delete(static_cast<GLBuffer*>(mBuffer));
+			bs_pool_delete(static_cast<GLHardwareBuffer*>(mBuffer));
 	}
 
 	void GLGpuParamBlockBuffer::initialize()
 	{
-		mBuffer = bs_pool_new<GLBuffer>(GL_UNIFORM_BUFFER, mSize, mUsage);
+		mBuffer = bs_pool_new<GLHardwareBuffer>(GL_UNIFORM_BUFFER, mSize, mUsage);
 		GpuParamBlockBuffer::initialize();
 	}
 }}

@@ -4,7 +4,7 @@
 
 #include "BsGLPrerequisites.h"
 #include "RenderAPI/BsVertexBuffer.h"
-#include "BsGLBuffer.h"
+#include "BsGLHardwareBuffer.h"
 #include "BsGLVertexArrayObjectManager.h"
 
 namespace bs { namespace ct
@@ -21,7 +21,7 @@ namespace bs { namespace ct
 		~GLVertexBuffer();
 
 		/**	Returns internal OpenGL buffer ID. */
-		GLuint getGLBufferId() const { return static_cast<GLBuffer*>(mBuffer)->getGLBufferId(); }
+		GLuint getGLBufferId() const { return static_cast<GLHardwareBuffer*>(mBuffer)->getGLBufferId(); }
 
 		/**	Registers a new VertexArrayObject that uses this vertex buffer. */
 		void registerVAO(const GLVertexArrayObject& vao);
