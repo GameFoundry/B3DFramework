@@ -24,6 +24,7 @@ Huge thanks to all the patrons, contributors and donators!
 - Akaoray [Founder]
 - Thomas Tang [Founder]
 - Nekith [Founder]
+- Summer Softleigh [Founder]
 
 # One-time donators
 - Žan Strahija [Founder]
