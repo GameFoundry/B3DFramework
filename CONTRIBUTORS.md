@@ -10,9 +10,10 @@ Huge thanks to all the patrons, contributors and donators!
 # Tier X Patrons
 - John Lagerquist [Founder]
 - Andreas Schüle [Founder]
+- Christian Clavet [Founder]
+- jeaninde [Founder]
 
 # Tier 3 Patrons
-- Christian Clavet [Founder]
 
 # Tier 2 Patrons
 - Andrzej Oraniewicz [Founder]
