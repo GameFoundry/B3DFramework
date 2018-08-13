@@ -29,7 +29,7 @@ mixin ParticleVertex
 		Texture2D gPositionAndRotTex; // position in .xyz, rotation in radians in .w
 		Texture2D gColorTex;
 		Texture2D gSizeAndFrameIdxTex; // size in .xy, uv flip encoded in sign of .xy, frame index in .z, .w unused
-		Buffer<uint> gIndices;
+		Buffer<uint2> gIndices;
 
 		[internal]
 		cbuffer ParticleParams
@@ -45,11 +45,8 @@ mixin ParticleVertex
 
 		VStoFS vsmain(VertexInput input)
 		{
-			uint index = gIndices[input.instanceId];
-		
 			uint3 pixelPos;
-			pixelPos.y = index / gTexSize;
-			pixelPos.x = index - pixelPos.y * gTexSize;
+			pixelPos.xy = gIndices[input.instanceId];
 			pixelPos.z = 0;
 		
 			float4 posAndRot = gPositionAndRotTex.Load(pixelPos);

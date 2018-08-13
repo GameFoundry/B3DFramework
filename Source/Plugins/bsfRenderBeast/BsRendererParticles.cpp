@@ -77,7 +77,28 @@ namespace bs { namespace ct
 		output->positionAndRotation->writeData(renderData.positionAndRotation, 0, 0, true);
 		output->color->writeData(renderData.color, 0, 0, true);
 		output->sizeAndFrameIdx->writeData(renderData.sizeAndFrameIdx, 0, 0, true);
-		output->indices->writeData(0, renderData.numParticles * sizeof(UINT32), renderData.indices.data(), BWT_DISCARD);
+
+		const auto numParticles = (UINT32)renderData.indices.size();
+		if(numParticles > 0)
+		{
+			auto* const indices = (UINT32*)output->indices->lock(GBL_WRITE_ONLY_DISCARD);
+			const UINT32 numRows = Math::divideAndRoundUp(numParticles, size);
+
+			UINT32 idx = 0;
+			UINT32 y = 0;
+			for (; y < numRows - 1; y++)
+			{
+				for (UINT32 x = 0; x < size; x++)
+					indices[idx++] = (x & 0xFFFF) | (y << 16);
+			}
+
+			// Final row
+			const UINT32 remainingParticles = numParticles - (numRows - 1) * size;
+			for (UINT32 x = 0; x < remainingParticles; x++)
+				indices[idx++] = (x & 0xFFFF) | (y << 16);
+
+			output->indices->unlock();
+		}
 
 		return output;
 	}
@@ -110,7 +131,7 @@ namespace bs { namespace ct
 		GPU_BUFFER_DESC bufferDesc;
 		bufferDesc.type = GBT_STANDARD;
 		bufferDesc.elementCount = size * size;
-		bufferDesc.format = BF_32X1U;
+		bufferDesc.format = BF_16X2U;
 
 		output->indices = GpuBuffer::create(bufferDesc);
 
@@ -665,7 +686,7 @@ namespace bs { namespace ct
 			rapi.setVertexDeclaration(mHelperBuffers.tileVertexDecl);
 
 			SPtr<VertexBuffer> buffers[] = { mHelperBuffers.spriteUVs };
-			rapi.setVertexBuffers(0, buffers, bs_size(buffers));
+			rapi.setVertexBuffers(0, buffers, (UINT32)bs_size(buffers));
 			rapi.setIndexBuffer(mHelperBuffers.spriteIndices);
 			rapi.setDrawOperation(DOT_TRIANGLE_LIST);
 
@@ -696,7 +717,7 @@ namespace bs { namespace ct
 			rapi.setVertexDeclaration(mHelperBuffers.tileVertexDecl);
 
 			SPtr<VertexBuffer> buffers[] = { mHelperBuffers.spriteUVs };
-			rapi.setVertexBuffers(0, buffers, bs_size(buffers));
+			rapi.setVertexBuffers(0, buffers, (UINT32)bs_size(buffers));
 			rapi.setIndexBuffer(mHelperBuffers.spriteIndices);
 			rapi.setDrawOperation(DOT_TRIANGLE_LIST);
 
@@ -730,7 +751,7 @@ namespace bs { namespace ct
 			rapi.setVertexDeclaration(mHelperBuffers.injectVertexDecl);
 
 			SPtr<VertexBuffer> buffers[] = { mHelperBuffers.injectScratch, mHelperBuffers.spriteUVs };
-			rapi.setVertexBuffers(0, buffers, bs_size(buffers));
+			rapi.setVertexBuffers(0, buffers, (UINT32)bs_size(buffers));
 			rapi.setIndexBuffer(mHelperBuffers.spriteIndices);
 			rapi.setDrawOperation(DOT_TRIANGLE_LIST);
 
