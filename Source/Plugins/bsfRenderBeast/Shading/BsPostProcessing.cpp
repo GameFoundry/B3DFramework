@@ -7,7 +7,7 @@
 #include "Material/BsGpuParamsSet.h"
 #include "Image/BsPixelUtil.h"
 #include "Utility/BsBitwise.h"
-#include "Utility/BsGpuResourcePool.h"
+#include "Renderer/BsGpuResourcePool.h"
 #include "BsRendererView.h"
 #include "BsRenderBeast.h"
 

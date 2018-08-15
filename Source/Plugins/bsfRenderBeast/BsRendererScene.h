@@ -12,7 +12,7 @@
 namespace bs 
 { 
 	struct EvaluatedAnimationData;
-	struct ParticleRenderDataGroup;
+	struct ParticleSimulationData;
 
 	namespace ct
 	{
@@ -136,7 +136,7 @@ namespace bs
 		void registerParticleSystem(ParticleSystem* particleSystem);
 
 		/** Updates information about a previously registered particle system. */
-		void updateParticleSystem(ParticleSystem* particleSystem);
+		void updateParticleSystem(ParticleSystem* particleSystem, bool tfrmOnly);
 
 		/** Removes a particle system from the scene. */
 		void unregisterParticleSystem(ParticleSystem* particleSystem);
@@ -169,7 +169,7 @@ namespace bs
 		void prepareRenderable(UINT32 idx, const FrameInfo& frameInfo);
 
 		/** Updates the bounds for all the particle systems from the provided object. */
-		void updateParticleSystemBounds(const ParticleRenderDataGroup* particleRenderData);
+		void updateParticleSystemBounds(const ParticleSimulationData* particleRenderData);
 
 		/** Returns a modifiable version of SceneInfo. Only to be used by friends who know what they are doing. */
 		SceneInfo& _getSceneInfo() { return mInfo; }

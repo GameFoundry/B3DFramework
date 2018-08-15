@@ -34,6 +34,7 @@ set(BS_RENDERBEAST_INC_SHADING
 	"Shading/BsLightProbes.h"
 	"Shading/BsShadowRendering.h"
 	"Shading/BsPostProcessing.h"
+	"Shading/BsGpuParticleSimulation.h"
 )
 
 set(BS_RENDERBEAST_SRC_SHADING
@@ -43,10 +44,10 @@ set(BS_RENDERBEAST_SRC_SHADING
 	"Shading/BsLightProbes.cpp"
 	"Shading/BsShadowRendering.cpp"
 	"Shading/BsPostProcessing.cpp"
+	"Shading/BsGpuParticleSimulation.cpp"
 )
 
 set(BS_RENDERBEAST_INC_UTILITY
-	"Utility/BsGpuResourcePool.h"
 	"Utility/BsGpuSort.h"
 	"Utility/BsSamplerOverrides.h"
 	"Utility/BsRendererTextures.h"
@@ -54,7 +55,6 @@ set(BS_RENDERBEAST_INC_UTILITY
 
 set(BS_RENDERBEAST_SRC_UTILITY
 	"Utility/BsGpuSort.cpp"
-	"Utility/BsGpuResourcePool.cpp"
 	"Utility/BsSamplerOverrides.cpp"
 	"Utility/BsRendererTextures.cpp"
 )

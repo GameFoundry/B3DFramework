@@ -9,7 +9,7 @@
 #include "Utility/BsBitwise.h"
 #include "Mesh/BsMesh.h"
 #include "Material/BsGpuParamsSet.h"
-#include "Utility/BsGpuResourcePool.h"
+#include "Renderer/BsGpuResourcePool.h"
 #include "Utility/BsRendererTextures.h"
 #include "Shading/BsStandardDeferred.h"
 #include "Shading/BsTiledDeferred.h"
@@ -25,6 +25,7 @@
 #include "Particles/BsParticleSystem.h"
 #include "Threading/BsTaskScheduler.h"
 #include "Profiling/BsProfilerGPU.h"
+#include "Shading/BsGpuParticleSimulation.h"
 
 namespace bs { namespace ct
 {
@@ -1261,7 +1262,7 @@ namespace bs { namespace ct
 		};
 
 		// Prepare all visible particle systems
-		const ParticleRenderDataGroup* particleData = inputs.frameInfo.perFrameData.particles;
+		const ParticleSimulationData* particleData = inputs.frameInfo.perFrameData.particles;
 		ParticleTexturePool& particlesTexPool = ParticleRenderer::instance().getTexturePool();
 		if(particleData)
 		{
@@ -1273,7 +1274,7 @@ namespace bs { namespace ct
 				struct SortData
 				{
 					ParticleSystem* system;
-					ParticleRenderData* renderData;
+					ParticleCPUSimulationData* simulationData;
 				};
 
 				FrameVector<SortData> systemsToSort;
@@ -1285,13 +1286,13 @@ namespace bs { namespace ct
 					const RendererParticles& rendererParticles = inputs.scene.particleSystems[i];
 
 					ParticleSystem* particleSystem = rendererParticles.particleSystem;
-					const auto iterFind = particleData->data.find(particleSystem->getId());
-					if (iterFind == particleData->data.end())
+					const auto iterFind = particleData->cpuData.find(particleSystem->getId());
+					if (iterFind == particleData->cpuData.end())
 						continue;
 
-					ParticleRenderData* renderData = iterFind->second;
+					ParticleCPUSimulationData* simulationData = iterFind->second;
 					if (particleSystem->getSettings().sortMode == ParticleSortMode::Distance)
-						systemsToSort.push_back({ particleSystem, renderData });
+						systemsToSort.push_back({ particleSystem, simulationData });
 				}
 
 				const auto worker = [&systemsToSort, viewOrigin = viewProps.viewOrigin](UINT32 idx)
@@ -1305,7 +1306,7 @@ namespace bs { namespace ct
 					if (settings.simulationSpace == ParticleSimulationSpace::Local)
 						refPoint = data.system->getTransform().getInvMatrix().multiplyAffine(refPoint);
 
-					data.renderData->updateSortIndices(refPoint);
+					data.simulationData->updateSortIndices(refPoint);
 				};
 
 				SPtr<TaskGroup> sortTask = TaskGroup::create("ParticleSort", worker, (UINT32)systemsToSort.size());
@@ -1315,6 +1316,8 @@ namespace bs { namespace ct
 			}
 			bs_frame_clear();
 
+			GpuParticleResources& gpuSimResources = GpuParticleSimulation::instance().getResources();
+			GpuParticleStateTextures& gpuSimStateTextures = gpuSimResources.getWriteState();
 			for (UINT32 i = 0; i < numParticleSystems; i++)
 			{
 				if (!visibility.particleSystems[i])
@@ -1324,21 +1327,39 @@ namespace bs { namespace ct
 				ParticlesRenderElement& renderElement = rendererParticles.renderElement;
 
 				ParticleSystem* particleSystem = rendererParticles.particleSystem;
-				const auto iterFind = particleData->data.find(particleSystem->getId());
-				if (iterFind == particleData->data.end())
-					continue;
 
-				ParticleRenderData* renderData = iterFind->second;
-				const ParticleTextures* textures = particlesTexPool.alloc(*renderData);
+				// Bind textures/buffers from CPU simulation
+				const auto iterFind = particleData->cpuData.find(particleSystem->getId());
+				if (iterFind != particleData->cpuData.end())
+				{
+					ParticleCPUSimulationData* simulationData = iterFind->second;
+					const ParticleTextures* textures = particlesTexPool.alloc(*simulationData);
 
-				renderElement.positionAndRotTexture.set(textures->positionAndRotation);
-				renderElement.colorTexture.set(textures->color);
-				renderElement.sizeAndFrameIdxTexture.set(textures->sizeAndFrameIdx);
-				renderElement.indicesBuffer.set(textures->indices);
-				renderElement.numParticles = renderData->numParticles;
+					renderElement.positionAndRotTexture.set(textures->positionAndRotation);
+					renderElement.colorTexture.set(textures->color);
+					renderElement.sizeAndFrameIdxTexture.set(textures->sizeAndFrameIdx);
+					renderElement.indicesBuffer.set(textures->indices);
+					renderElement.numParticles = simulationData->numParticles;
 
-				UINT32 texSize = textures->positionAndRotation->getProperties().getWidth();
-				gParticlesParamDef.gTexSize.set(rendererParticles.particlesParamBuffer, texSize);
+					UINT32 texSize = textures->positionAndRotation->getProperties().getWidth();
+					gParticlesParamDef.gTexSize.set(rendererParticles.particlesParamBuffer, texSize);
+				}
+				// Bind textures/buffers from GPU simulation
+				else if(rendererParticles.gpuParticleSystem)
+				{
+					GpuParticleSystem* gpuParticleSystem = rendererParticles.gpuParticleSystem;
+
+					// TODO - Actually bind the textures resulting from GPU simulation
+
+					//renderElement.positionAndRotTexture.set(textures->positionAndRotation);
+					//renderElement.colorTexture.set(textures->color);
+					//renderElement.sizeAndFrameIdxTexture.set(textures->sizeAndFrameIdx);
+					renderElement.indicesBuffer.set(gpuParticleSystem->getParticleIndices());
+					renderElement.numParticles = gpuParticleSystem->getNumTiles() * GpuParticleResources::PARTICLES_PER_TILE;
+
+					const UINT32 texSize = GpuParticleResources::TEX_SIZE;
+					gParticlesParamDef.gTexSize.set(rendererParticles.particlesParamBuffer, texSize);
+				}
 
 				SPtr<GpuParams> gpuParams = renderElement.params->getGpuParams();
 				for (UINT32 j = 0; j < GPT_COUNT; j++)

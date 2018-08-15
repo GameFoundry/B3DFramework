@@ -94,6 +94,12 @@ namespace bs
 	{
 		typedef typename TMaterialHandleType<Core>::Type MaterialType;
 
+		/** 
+		 * If true the particle system will be simulated on the GPU. This allows much higher particle counts at lower
+		 * performance cost. Note that GPU simulation only supports a subset of particle system evolvers.
+		 */
+		bool gpuSimulation = false;
+
 		/** Determines in which space are particles in. */
 		ParticleSimulationSpace simulationSpace = ParticleSimulationSpace::World;
 
@@ -112,7 +118,10 @@ namespace bs
 		 */
 		Plane orientationPlane = Plane(Vector3::UNIT_Z, Vector3::ZERO);
 
-		/** Determines how (and if) are particles sorted. Sorting controls in what order are particles rendered. */
+		/** 
+		 * Determines how (and if) are particles sorted. Sorting controls in what order are particles rendered. 
+		 * If @p gpuSimulation is enabled only distance based sorting is supported.
+		 */
 		ParticleSortMode sortMode = ParticleSortMode::None;
 
 		/** 
@@ -132,9 +141,6 @@ namespace bs
 		 * system yields different results each time it is ran.
 		 */
 		bool useAutomaticSeed = true;
-
-		/** Scales the gravity (as set in the Physics module) and applies it to particles. */
-		float gravityScale = 0.0f;
 
 		/** 
 		 * Determines the seed to use for the internal random number generator. Allows you to guarantee identical behaviour
@@ -232,7 +238,7 @@ namespace bs
 		/** Registers a new particle evolver. */
 		void add(SPtr<ParticleEvolver> evolver)
 		{
-			mSortedList.insert(evolver.get());
+			addToSortedList(evolver.get());
 			mList.push_back(std::move(evolver));
 		}
 
@@ -264,14 +270,51 @@ namespace bs
 			if(iterFind != mList.end())
 				mList.erase(iterFind);
 
-			mSortedList.erase(evolver);
+			const ParticleEvolverProperties& props = evolver->getProperties();
+
+			switch(props.type)
+			{
+			default:
+			case ParticleEvolverType::CPU: 
+				mSortedListCPU.erase(evolver);
+				break;
+			case ParticleEvolverType::GPU: 
+				mSortedListGPU.erase(evolver);
+				break;
+			case ParticleEvolverType::CPUAndGPU: 
+				mSortedListCPU.erase(evolver);
+				mSortedListGPU.erase(evolver);
+				break;
+			}
 		}
 
 	private:
 		friend class ParticleSystem;
 
+		/** Registers the particle evolver in one or multiple sorted lists, depending on its type. */
+		void addToSortedList(ParticleEvolver* evolver)
+		{
+			const ParticleEvolverProperties& props = evolver->getProperties();
+
+			switch(props.type)
+			{
+			default:
+			case ParticleEvolverType::CPU: 
+				mSortedListCPU.insert(evolver);
+				break;
+			case ParticleEvolverType::GPU: 
+				mSortedListGPU.insert(evolver);
+				break;
+			case ParticleEvolverType::CPUAndGPU: 
+				mSortedListCPU.insert(evolver);
+				mSortedListGPU.insert(evolver);
+				break;
+			}
+		}
+
 		typedef std::function<bool(const ParticleEvolver*, const ParticleEvolver*)> EvolverComparison; 
-		Set<ParticleEvolver*, EvolverComparison> mSortedList;
+		Set<ParticleEvolver*, EvolverComparison> mSortedListCPU;
+		Set<ParticleEvolver*, EvolverComparison> mSortedListGPU;
 
 		Vector<SPtr<ParticleEvolver>> mList;
 

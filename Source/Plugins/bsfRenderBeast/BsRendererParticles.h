@@ -11,10 +11,12 @@
 #include "Allocators/BsPoolAlloc.h"
 #include "Renderer/BsRendererMaterial.h"
 
-namespace bs { struct ParticleRenderData; }
+namespace bs { struct ParticleCPUSimulationData; }
 
 namespace bs { namespace ct
 {
+	class GpuParticleSystem;
+
 	/** @addtogroup RenderBeast
 	 *  @{
 	 */
@@ -85,7 +87,10 @@ namespace bs { namespace ct
 	struct RendererParticles
 	{
 		/** Owner particle system. */
-		ParticleSystem* particleSystem;
+		ParticleSystem* particleSystem = nullptr;
+
+		/** Variant of the particle system used for simulating the particles on the GPU. */
+		GpuParticleSystem* gpuParticleSystem = nullptr;
 
 		/** Element used for sorting and rendering the particle system. */
 		mutable ParticlesRenderElement renderElement;
@@ -111,10 +116,10 @@ namespace bs { namespace ct
 		~ParticleTexturePool();
 
 		/** 
-		 * Returns a set of textures containing the pixel data from the provided @p renderData. Returned textures
+		 * Returns a set of textures containing the pixel data from the provided @p simulationData. Returned textures
 		 * will remain in-use until the next call to clear().
 		 */
-		const ParticleTextures* alloc(const ParticleRenderData& renderData);
+		const ParticleTextures* alloc(const ParticleCPUSimulationData& simulationData);
 
 		/** Frees all allocates textures and makes them available for re-use. */
 		void clear();

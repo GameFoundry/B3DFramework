@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsRenderBeastPrerequisites.h"
+#include "BsCorePrerequisites.h"
 #include "Utility/BsModule.h"
 #include "Image/BsPixelUtil.h"
 #include "Image/BsTexture.h"
@@ -18,7 +18,7 @@ namespace bs { namespace ct
 	struct POOLED_STORAGE_BUFFER_DESC;
 
 	/**	Contains data about a single render texture in the GPU resource pool. */
-	struct PooledRenderTexture
+	struct BS_CORE_EXPORT PooledRenderTexture
 	{
 		PooledRenderTexture(GpuResourcePool* pool);
 		~PooledRenderTexture();
@@ -34,7 +34,7 @@ namespace bs { namespace ct
 	};
 
 	/**	Contains data about a single storage buffer in the GPU resource pool. */
-	struct PooledStorageBuffer
+	struct BS_CORE_EXPORT PooledStorageBuffer
 	{
 		PooledStorageBuffer(GpuResourcePool* pool);
 		~PooledStorageBuffer();
@@ -52,7 +52,7 @@ namespace bs { namespace ct
 	 * Contains a pool of textures and buffers meant to accommodate reuse of such resources for the main purpose of using
 	 * them as write targets on the GPU.
 	 */
-	class GpuResourcePool : public Module<GpuResourcePool>
+	class BS_CORE_EXPORT GpuResourcePool : public Module<GpuResourcePool>
 	{
 	public:
 		~GpuResourcePool();
@@ -130,7 +130,7 @@ namespace bs { namespace ct
 	};
 
 	/** Structure used for creating a new pooled render texture. */
-	struct POOLED_RENDER_TEXTURE_DESC
+	struct BS_CORE_EXPORT POOLED_RENDER_TEXTURE_DESC
 	{
 	public:
 		POOLED_RENDER_TEXTURE_DESC() {}
@@ -193,7 +193,7 @@ namespace bs { namespace ct
 	};
 
 	/** Structure used for describing a pooled storage buffer. */
-	struct POOLED_STORAGE_BUFFER_DESC
+	struct BS_CORE_EXPORT POOLED_STORAGE_BUFFER_DESC
 	{
 	public:
 		POOLED_STORAGE_BUFFER_DESC() {}

@@ -108,6 +108,7 @@ set(BS_CORE_INC_RENDERER
 	"bsfCore/Renderer/BsSkybox.h"
 	"bsfCore/Renderer/BsLightProbeVolume.h"
 	"bsfCore/Renderer/BsIBLUtility.h"
+	"bsfCore/Renderer/BsGpuResourcePool.h"
 )
 
 set(BS_CORE_SRC_LOCALIZATION
@@ -398,6 +399,7 @@ set(BS_CORE_SRC_RENDERER
 	"bsfCore/Renderer/BsSkybox.cpp"
 	"bsfCore/Renderer/BsLightProbeVolume.cpp"
 	"bsfCore/Renderer/BsIBLUtility.cpp"
+	"bsfCore/Renderer/BsGpuResourcePool.cpp"
 )
 
 set(BS_CORE_SRC_RESOURCES

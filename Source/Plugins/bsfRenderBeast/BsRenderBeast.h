@@ -55,7 +55,7 @@ namespace bs
 
 	public:
 		RenderBeast();
-		~RenderBeast() { }
+		~RenderBeast() = default;
 
 		/** @copydoc Renderer::getName */
 		const StringID& getName() const override;
@@ -144,7 +144,7 @@ namespace bs
 		void notifyParticleSystemAdded(ParticleSystem* particleSystem) override;
 
 		/** @copydoc Renderer::notifyParticleSystemUpdated */
-		void notifyParticleSystemUpdated(ParticleSystem* particleSystem) override;
+		void notifyParticleSystemUpdated(ParticleSystem* particleSystem, bool tfrmOnly) override;
 
 		/** @copydoc Renderer::notifyParticleSystemRemoved */
 		void notifyParticleSystemRemoved(ParticleSystem* particleSystem) override;

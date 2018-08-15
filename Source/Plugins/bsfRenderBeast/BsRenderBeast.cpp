@@ -24,7 +24,7 @@
 #include "Renderer/BsCamera.h"
 #include "Renderer/BsRendererUtility.h"
 #include "Utility/BsRendererTextures.h"
-#include "Utility/BsGpuResourcePool.h"
+#include "Renderer/BsGpuResourcePool.h"
 #include "Renderer/BsRendererManager.h"
 #include "Shading/BsShadowRendering.h"
 #include "Shading/BsStandardDeferred.h"
@@ -32,6 +32,7 @@
 #include "BsRenderBeastOptions.h"
 #include "BsRenderBeastIBLUtility.h"
 #include "BsRenderCompositor.h"
+#include "Shading/BsGpuParticleSimulation.h"
 
 using namespace std::placeholders;
 
@@ -91,6 +92,7 @@ namespace bs { namespace ct
 
 		StandardDeferred::startUp();
 		ParticleRenderer::startUp();
+		GpuParticleSimulation::startUp();
 
 		gProfilerGPU().endFrame();
 
@@ -124,6 +126,7 @@ namespace bs { namespace ct
 
 		RenderCompositor::cleanUp();
 
+		GpuParticleSimulation::shutDown();
 		ParticleRenderer::shutDown();
 		StandardDeferred::shutDown();
 
@@ -225,9 +228,9 @@ namespace bs { namespace ct
 		mScene->registerParticleSystem(particleSystem);
 	}
 
-	void RenderBeast::notifyParticleSystemUpdated(ParticleSystem* particleSystem)
+	void RenderBeast::notifyParticleSystemUpdated(ParticleSystem* particleSystem, bool tfrmOnly)
 	{
-		mScene->updateParticleSystem(particleSystem);
+		mScene->updateParticleSystem(particleSystem, tfrmOnly);
 	}
 
 	void RenderBeast::notifyParticleSystemRemoved(ParticleSystem* particleSystem)
@@ -347,6 +350,9 @@ namespace bs { namespace ct
 
 		// Update global per-frame hardware buffers
 		mScene->setParamFrameParams(timings.time);
+
+		// Simulate particles
+		GpuParticleSimulation::instance().simulate(perFrameData.particles, timings.timeDelta);
 
 		// Update bounds for all particle systems
 		if(perFrameData.particles)

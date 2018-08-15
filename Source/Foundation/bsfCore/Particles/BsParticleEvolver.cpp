@@ -202,6 +202,34 @@ namespace bs
 		return getRTTIStatic();
 	}
 
+	ParticleGravity::ParticleGravity(const PARTICLE_GRAVITY_DESC& desc)
+		:ParticleEvolver(), mDesc(desc)
+	{ }
+
+	void ParticleGravity::evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const
+	{
+		Vector3 gravity = gPhysics().getGravity() * mDesc.scale;
+
+		if (!state.worldSpace)
+			gravity = state.worldToLocal.multiplyDirection(gravity);
+
+		const UINT32 count = set.getParticleCount();
+		ParticleSetData& particles = set.getParticles();
+
+		for (UINT32 i = 0; i < count; i++)
+			particles.velocity[i] += gravity * state.timeStep;
+	}
+
+	RTTITypeBase* ParticleGravity::getRTTIStatic()
+	{
+		return ParticleGravityRTTI::instance();
+	}
+
+	RTTITypeBase* ParticleGravity::getRTTI() const
+	{
+		return getRTTIStatic();
+	}
+
 	/** Information about a particle collision. */
 	struct ParticleHitInfo
 	{

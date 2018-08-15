@@ -629,6 +629,7 @@ namespace bs
 		TID_ParticleSystemEmitters = 1176,
 		TID_ParticleSystemEvolvers = 1177,
 		TID_CParticleSystem = 1178,
+		TID_ParticleGravity = 1179,
 
 		// Moved from Engine layer
 		TID_CCamera = 30000,

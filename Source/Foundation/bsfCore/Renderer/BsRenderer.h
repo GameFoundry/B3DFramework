@@ -13,13 +13,13 @@ namespace bs
 	class LightProbeVolume;
 	struct RenderSettings;
 	struct EvaluatedAnimationData;
-	struct ParticleRenderDataGroup;
+	struct ParticleSimulationData;
 
 	/** Contains various data evaluated by external systems on a per-frame basis that is to be used by the renderer. */
 	struct PerFrameData
 	{
 		const EvaluatedAnimationData* animation = nullptr;
-		const ParticleRenderDataGroup* particles = nullptr;
+		const ParticleSimulationData* particles = nullptr;
 	};
 
 	namespace ct
@@ -282,7 +282,7 @@ namespace bs
 		 *
 		 * @note	Core thread.
 		 */
-		virtual void notifyParticleSystemUpdated(ParticleSystem* particleSystem) { }
+		virtual void notifyParticleSystemUpdated(ParticleSystem* particleSystem, bool tfrmOnly) { }
 
 		/**
 		 * Called whenever a particle system is destroyed.

@@ -10,7 +10,7 @@
 
 namespace bs
 {
-	void ParticleRenderData::updateSortIndices(const Vector3& referencePoint)
+	void ParticleCPUSimulationData::updateSortIndices(const Vector3& referencePoint)
 	{
 		struct ParticleSortData
 		{
@@ -55,51 +55,54 @@ namespace bs
 				return rhs.key < lhs.key;
 			});
 
-			indices.clear();
-			indices.reserve(numParticles);
-
 			for (UINT32 i = 0; i < numParticles; i++)
-				indices.push_back(sortData[i].idx);
+				indices[i] = sortData[i].idx;
 		}
 		bs_frame_clear();
 	}
 
 	/** 
-	 * Maintains a pool of buffers that are used for storing particle system rendering data. Buffers are always created
-	 * in 2D square layout as they are ultimately used for initializing textures.
+	 * Maintains a pool of buffers that are used for passing results of particle simulation from the simulation to the
+	 * core thread. 
 	 */
-	class ParticleRenderDataPool
+	class ParticleSimulationDataPool
 	{
 		/** Contains a list of buffers for the specified size. */
 		struct BuffersPerSize
 		{
-			Vector<ParticleRenderData*> buffers;
+			Vector<ParticleCPUSimulationData*> buffers;
 			UINT32 nextFreeIdx = 0;
 		};
 
 	public:
-		~ParticleRenderDataPool()
+		~ParticleSimulationDataPool()
 		{
 			Lock lock(mMutex);
 
-			for (auto& sizeEntry : mBufferList)
+			for (auto& sizeEntry : mCPUBufferList)
 			{
 				for (auto& entry : sizeEntry.second.buffers)
-					mAlloc.destruct(entry);
+					mCPUAlloc.destruct(entry);
 			}
+
+			for (auto& entry : mGPUBufferList)
+				mGPUAlloc.destruct(entry);
 		}
 
-		/** Returns a new set of render data buffers and populates them with data from the provided ParticleSet. */
-		ParticleRenderData* alloc(const ParticleSet& particleSet)
+		/** 
+		 * Returns a set of buffers containing particle data from the provided particle set. Usable for rendering the
+		 * results of the CPU particle simulation.
+		 */
+		ParticleCPUSimulationData* allocCPU(const ParticleSet& particleSet)
 		{
 			const UINT32 size = particleSet.determineTextureSize();
 
-			ParticleRenderData* output = nullptr;
+			ParticleCPUSimulationData* output = nullptr;
 
 			{
 				Lock lock(mMutex);
 
-				BuffersPerSize& buffers = mBufferList[size];
+				BuffersPerSize& buffers = mCPUBufferList[size];
 				if (buffers.nextFreeIdx < (UINT32)buffers.buffers.size())
 				{
 					output = buffers.buffers[buffers.nextFreeIdx];
@@ -109,11 +112,11 @@ namespace bs
 
 			if (!output)
 			{
-				output = createNewBuffers(size);
+				output = createNewBuffersCPU(size);
 
 				Lock lock(mMutex);
 
-				BuffersPerSize& buffers = mBufferList[size];
+				BuffersPerSize& buffers = mCPUBufferList[size];
 				buffers.buffers.push_back(output);
 				buffers.nextFreeIdx++;
 			}
@@ -206,22 +209,79 @@ namespace bs
 				}
 			}
 
+			output->indices.clear();
+			output->indices.resize(count);
+
 			return output;
 		}
 
+		/** 
+		 * Returns a list of particles from the provided particle set that may be used for inserting the particles into the
+		 * GPU simulation. 
+		 */
+		ParticleGPUSimulationData* allocGPU(const ParticleSet& particleSet)
+		{
+			ParticleGPUSimulationData* output = nullptr;
+
+			{
+				Lock lock(mMutex);
+
+				if (mNextFreeGPUBuffer < (UINT32)mGPUBufferList.size())
+				{
+					output = mGPUBufferList[mNextFreeGPUBuffer];
+					mNextFreeGPUBuffer++;
+				}
+			}
+
+			if (!output)
+			{
+				output = createNewBuffersGPU();
+
+				Lock lock(mMutex);
+
+				mGPUBufferList.push_back(output);
+				mNextFreeGPUBuffer++;
+			}
+
+			// Populate buffer contents
+			const UINT32 count = particleSet.getParticleCount();
+			const ParticleSetData& particles = particleSet.getParticles();
+
+			output->particles.clear();
+			output->particles.resize(count);
+
+			// TODO: Use non-temporal writes?
+			for (UINT32 i = 0; i < count; i++)
+			{
+				GpuParticle particle;
+				particle.position = particles.position[i];
+				particle.lifetime = particles.lifetime[i];
+				particle.initialLifetime =  particles.initialLifetime[i];
+				particle.velocity = particles.velocity[i];
+
+				output->particles[i] = particle;
+
+			}
+
+			return output;
+		}
+
+		/** Makes all the buffers available for allocations. Does not free internal buffer memory. */
 		void clear()
 		{
 			Lock lock(mMutex);
 
-			for(auto& buffers : mBufferList)
+			for(auto& buffers : mCPUBufferList)
 				buffers.second.nextFreeIdx = 0;
+
+			mNextFreeGPUBuffer = 0;
 		}
 
 	private:
-		/** Allocates a new set of buffers of the provided @p size width and height. */
-		ParticleRenderData* createNewBuffers(UINT32 size)
+		/** Allocates a new set of CPU buffers of the provided @p size width and height. */
+		ParticleCPUSimulationData* createNewBuffersCPU(UINT32 size)
 		{
-			ParticleRenderData* output = mAlloc.construct<ParticleRenderData>();
+			ParticleCPUSimulationData* output = mCPUAlloc.construct<ParticleCPUSimulationData>();
 
 			output->positionAndRotation = PixelData(size, size, 1, PF_RGBA32F);
 			output->color = PixelData(size, size, 1, PF_RGBA8);
@@ -235,15 +295,25 @@ namespace bs
 			return output;
 		}
 
-		UnorderedMap<UINT32, BuffersPerSize> mBufferList;
-		PoolAlloc<sizeof(ParticleRenderData), 32, 4, true> mAlloc;
+		/** Allocates a new set of GPU buffers of the provided @p size width and height. */
+		ParticleGPUSimulationData* createNewBuffersGPU()
+		{
+			return mGPUAlloc.construct<ParticleGPUSimulationData>();
+		}
+
+		UnorderedMap<UINT32, BuffersPerSize> mCPUBufferList;
+		Vector<ParticleGPUSimulationData*> mGPUBufferList;
+		UINT32 mNextFreeGPUBuffer = 0;
+
+		PoolAlloc<sizeof(ParticleCPUSimulationData), 32, 4, true> mCPUAlloc;
+		PoolAlloc<sizeof(ParticleGPUSimulationData), 32, 4, true> mGPUAlloc;
 		Mutex mMutex;
 	};
 
 	struct ParticleManager::Members
 	{
 		// TODO - Perhaps sharing one pool is better
-		ParticleRenderDataPool renderDataPool[CoreThread::NUM_SYNC_BUFFERS];
+		ParticleSimulationDataPool simDataPool[CoreThread::NUM_SYNC_BUFFERS];
 	};
 
 	ParticleManager::ParticleManager()
@@ -255,7 +325,7 @@ namespace bs
 		bs_delete(m);
 	}
 
-	ParticleRenderDataGroup* ParticleManager::update(const EvaluatedAnimationData& animData)
+	ParticleSimulationData* ParticleManager::update(const EvaluatedAnimationData& animData)
 	{
 		// Note: Allow the worker threads to work alongside the main thread? Would require extra synchronization but
 		// potentially no benefit?
@@ -270,14 +340,15 @@ namespace bs
 		}
 
 		if(mPaused)
-			return &mRenderData[mReadBufferIdx];
+			return &mSimulationData[mReadBufferIdx];
 
 		// TODO - Perform culling (but only on deterministic particle systems). In which case cache the bounds so we don't
 		// need to recalculate them below
 
 		// Prepare the write buffer
-		ParticleRenderDataGroup& renderDataGroup = mRenderData[mWriteBufferIdx];
-		renderDataGroup.data.clear();
+		ParticleSimulationData& simulationData = mSimulationData[mWriteBufferIdx];
+		simulationData.cpuData.clear();
+		simulationData.gpuData.clear();
 
 		// Queue evaluation tasks
 		{
@@ -287,44 +358,48 @@ namespace bs
 
 		float timeDelta = gTime().getFrameDelta();
 
-		ParticleRenderDataPool& renderDataPool = m->renderDataPool[mWriteBufferIdx];
-		renderDataPool.clear();
+		ParticleSimulationDataPool& simDataPool = m->simDataPool[mWriteBufferIdx];
+		simDataPool.clear();
 
 		for (auto& system : mSystems)
 		{
-			const auto evaluateWorker = [this, timeDelta, system, &animData, &renderDataPool, &renderDataGroup]()
+			const auto evaluateWorker = [this, timeDelta, system, &animData, &simDataPool, &simulationData]()
 			{
 				// Advance the simulation
 				system->_simulate(timeDelta, &animData);
 
-				ParticleRenderData* renderData = nullptr;
+				ParticleCPUSimulationData* simulationDataCPU = nullptr;
+				ParticleGPUSimulationData* simulationDataGPU = nullptr;
 				if(system->mParticleSet)
 				{
-					// Generate output data
+					// Generate simulation data to transfer to the core thread
 					const UINT32 numParticles = system->mParticleSet->getParticleCount();
 
-					renderData = renderDataPool.alloc(*system->mParticleSet);
-					renderData->numParticles = numParticles;
-					renderData->bounds = system->_calculateBounds();
-
-					// If using a camera-independant sorting mode, sort the particles right away
-					const ParticleSystemSettings& settings = system->getSettings();
-					switch (settings.sortMode)
+					if(system->getSettings().gpuSimulation)
 					{
-					default:
-					case ParticleSortMode::None: // No sort, just point the indices back to themselves
-						renderData->indices.clear();
-						renderData->indices.reserve(numParticles);
-						for (UINT32 i = 0; i < numParticles; i++)
-							renderData->indices.push_back(i);
-						break;
-					case ParticleSortMode::OldToYoung:
-					case ParticleSortMode::YoungToOld:
-						renderData->indices.clear();
-						renderData->indices.resize(numParticles);
-						sortParticles(*system->mParticleSet, settings.sortMode, Vector3::ZERO, renderData->indices.data());
-						break;
-					case ParticleSortMode::Distance: break;
+						simulationDataGPU = simDataPool.allocGPU(*system->mParticleSet);
+					}
+					else
+					{
+						simulationDataCPU = simDataPool.allocCPU(*system->mParticleSet);
+						simulationDataCPU->numParticles = numParticles;
+						simulationDataCPU->bounds = system->_calculateBounds();
+
+						// If using a camera-independant sorting mode, sort the particles right away
+						const ParticleSystemSettings& settings = system->getSettings();
+						switch (settings.sortMode)
+						{
+						default:
+						case ParticleSortMode::None: // No sort, just point the indices back to themselves
+							for (UINT32 i = 0; i < numParticles; i++)
+								simulationDataCPU->indices[i] = i;
+							break;
+						case ParticleSortMode::OldToYoung:
+						case ParticleSortMode::YoungToOld:
+							sortParticles(*system->mParticleSet, settings.sortMode, Vector3::ZERO, simulationDataCPU->indices.data());
+							break;
+						case ParticleSortMode::Distance: break;
+						}
 					}
 				}
 
@@ -334,8 +409,10 @@ namespace bs
 					assert(mNumActiveWorkers > 0);
 					mNumActiveWorkers--;
 
-					if(renderData)
-						renderDataGroup.data[system->mId] = renderData;
+					if(simulationDataCPU)
+						simulationData.cpuData[system->mId] = simulationDataCPU;
+					else if(simulationDataGPU)
+						simulationData.gpuData[system->mId] = simulationDataGPU;
 				}
 
 				mWorkerDoneSignal.notify_one();
@@ -357,7 +434,7 @@ namespace bs
 
 		mSwapBuffers = true;
 
-		return &mRenderData[mReadBufferIdx];
+		return &mSimulationData[mReadBufferIdx];
 	}
 
 	void ParticleManager::sortParticles(const ParticleSet& set, ParticleSortMode sortMode, const Vector3& viewPoint, 

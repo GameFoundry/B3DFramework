@@ -18,10 +18,10 @@ namespace bs
 
 	bool evolverCompareCallback(const ParticleEvolver* a, const ParticleEvolver* b)
 	{
-		if (a->getPriority() == b->getPriority())
+		if (a->getProperties().priority == b->getProperties().priority)
 			return a > b; // Use address, at this point it doesn't matter, but std::set requires us to differentiate
 		else
-			return a->getPriority() > b->getPriority();
+			return a->getProperties().priority > b->getProperties().priority;
 	}
 
 	RTTITypeBase* ParticleSystemSettings::getRTTIStatic()
@@ -45,7 +45,7 @@ namespace bs
 	}
 
 	ParticleSystemEvolvers::ParticleSystemEvolvers()
-		: mSortedList(&evolverCompareCallback)
+		: mSortedListCPU(&evolverCompareCallback), mSortedListGPU(&evolverCompareCallback)
 	{ }
 
 	RTTITypeBase* ParticleSystemEvolvers::getRTTIStatic()
@@ -167,69 +167,68 @@ namespace bs
 		state.system = this;
 		state.animData = animData;
 
+		// For GPU simulation we only care about newly spawned particles, so clear old ones
+		if(mSettings.gpuSimulation)
+			mParticleSet->clear();
+
 		// Spawn new particles
 		for(auto& emitter : mEmitters.mList)
 			emitter->spawn(mRandom, state, *mParticleSet);
 
-		UINT32 numParticles = mParticleSet->getParticleCount();
-		const ParticleSetData& particles = mParticleSet->getParticles();
-
-		// Remember old positions
-		for(UINT32 i = 0; i < numParticles; i++)
-			particles.prevPosition[i] = particles.position[i];
-
-		// Apply gravity
-		if(mSettings.gravityScale != 0.0f)
+		// Simulate if running on CPU, otherwise just pass the spawned particles off to the core thread
+		if(!mSettings.gpuSimulation)
 		{
-			// TODO - If the system is analytic don't apply gravity incrementally
-			Vector3 gravity = gPhysics().getGravity() * mSettings.gravityScale;
+			UINT32 numParticles = mParticleSet->getParticleCount();
+			const ParticleSetData& particles = mParticleSet->getParticles();
 
-			if(!state.worldSpace)
-				gravity = state.worldToLocal.multiplyDirection(gravity);
-
+			// Remember old positions
 			for (UINT32 i = 0; i < numParticles; i++)
-				particles.velocity[i] += gravity * timeStep;
-		}
+				particles.prevPosition[i] = particles.position[i];
 
-		// Evolve pre-simulation
-		auto evolverIter = mEvolvers.mSortedList.begin();
-		for(; evolverIter != mEvolvers.mSortedList.end(); ++evolverIter)
-		{
-			ParticleEvolver* evolver = *evolverIter;
-			if(evolver->getPriority() < 0)
-				break;
+			const auto& evolverList = mEvolvers.mSortedListCPU;
 
-			evolver->evolve(mRandom, state, *mParticleSet);
-		}
-
-		// Simulate
-		for(UINT32 i = 0; i < numParticles; i++)
-			particles.position[i] += particles.velocity[i] * timeStep;
-
-		// Evolve post-simulation
-		for(; evolverIter != mEvolvers.mSortedList.end(); ++evolverIter)
-		{
-			ParticleEvolver* evolver = *evolverIter;
-			evolver->evolve(mRandom, state, *mParticleSet);
-		}
-
-		// Decrement lifetime
-		for(UINT32 i = 0; i < numParticles; i++)
-			particles.lifetime[i] -= timeStep;
-
-		// Kill expired particles
-		for(UINT32 i = 0; i < numParticles;)
-		{
-			// TODO - Upon freeing a particle don't immediately remove it to save on swap, since we will be immediately
-			// spawning new particles. Perhaps keep a list of recently removed particles so it can immediately be
-			// re-used for spawn, and then only after spawn remove extra particles
-			if(particles.lifetime[i] <= 0.0f)
+			// Evolve pre-simulation
+			auto evolverIter = evolverList.begin();
+			for (; evolverIter != evolverList.end(); ++evolverIter)
 			{
-				mParticleSet->freeParticle(i);
-				numParticles--;
+				ParticleEvolver* evolver = *evolverIter;
+				const ParticleEvolverProperties& props = evolver->getProperties();
+
+				if (props.priority < 0)
+					break;
+
+				evolver->evolve(mRandom, state, *mParticleSet);
 			}
-			else
-				i++;
+
+			// Simulate
+			for (UINT32 i = 0; i < numParticles; i++)
+				particles.position[i] += particles.velocity[i] * timeStep;
+
+			// Evolve post-simulation
+			for (; evolverIter != evolverList.end(); ++evolverIter)
+			{
+				ParticleEvolver* evolver = *evolverIter;
+				evolver->evolve(mRandom, state, *mParticleSet);
+			}
+
+			// Decrement lifetime
+			for (UINT32 i = 0; i < numParticles; i++)
+				particles.lifetime[i] -= timeStep;
+
+			// Kill expired particles
+			for (UINT32 i = 0; i < numParticles;)
+			{
+				// TODO - Upon freeing a particle don't immediately remove it to save on swap, since we will be immediately
+				// spawning new particles. Perhaps keep a list of recently removed particles so it can immediately be
+				// re-used for spawn, and then only after spawn remove extra particles
+				if (particles.lifetime[i] <= 0.0f)
+				{
+					mParticleSet->freeParticle(i);
+					numParticles--;
+				}
+				else
+					i++;
+			}
 		}
 
 		mTime = newTime;
@@ -276,6 +275,7 @@ namespace bs
 		const UINT32 size = 
 			getActorSyncDataSize() +
 			rttiGetElemSize(getCoreDirtyFlags()) +
+			rttiGetElemSize(mSettings.gpuSimulation) +
 			rttiGetElemSize(mSettings.simulationSpace) +
 			rttiGetElemSize(mSettings.orientation) +
 			rttiGetElemSize(mSettings.orientationPlane) +
@@ -287,6 +287,7 @@ namespace bs
 		char* dataPtr = (char*)data;
 		dataPtr = syncActorTo(dataPtr);
 		dataPtr = rttiWriteElem(getCoreDirtyFlags(), dataPtr);
+		dataPtr = rttiWriteElem(mSettings.gpuSimulation, dataPtr);
 		dataPtr = rttiWriteElem(mSettings.simulationSpace, dataPtr);
 		dataPtr = rttiWriteElem(mSettings.orientation, dataPtr);
 		dataPtr = rttiWriteElem(mSettings.orientationPlane, dataPtr);
@@ -350,6 +351,7 @@ namespace bs
 
 			dataPtr = syncActorFrom(dataPtr);
 			dataPtr = rttiReadElem(dirtyFlags, dataPtr);
+			dataPtr = rttiReadElem(mSettings.gpuSimulation, dataPtr);
 			dataPtr = rttiReadElem(mSettings.simulationSpace, dataPtr);
 			dataPtr = rttiReadElem(mSettings.orientation, dataPtr);
 			dataPtr = rttiReadElem(mSettings.orientationPlane, dataPtr);
@@ -376,20 +378,12 @@ namespace bs
 				}
 				else
 				{
-					gRenderer()->notifyParticleSystemRemoved(this);
-					gRenderer()->notifyParticleSystemAdded(this);
+					if(mActive)
+						gRenderer()->notifyParticleSystemUpdated(this, false);
 				}
 			}
-			else if ((dirtyFlags & (UINT32)ActorDirtyFlag::Mobility) != 0)
-			{
-				gRenderer()->notifyParticleSystemRemoved(this);
-				gRenderer()->notifyParticleSystemAdded(this);
-			}
-			else if ((dirtyFlags & (UINT32)ActorDirtyFlag::Transform) != 0)
-			{
-				if (mActive)
-					gRenderer()->notifyParticleSystemUpdated(this);
-			}
+			else if ((dirtyFlags & ((UINT32)ActorDirtyFlag::Mobility | (UINT32)ActorDirtyFlag::Transform)) != 0)
+				gRenderer()->notifyParticleSystemUpdated(this, true);
 		}
 	}
 }

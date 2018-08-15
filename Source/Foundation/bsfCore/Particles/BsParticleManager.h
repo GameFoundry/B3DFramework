@@ -19,10 +19,10 @@ namespace bs
 	 */
 	
 	/** 
-	 * Data used for rendering a ParticleSystem. Per-particle data is stored in a 2D square layout so it can be used for
-	 * quickly initializing a texture.
+	 * Contains data resulting from CPU particle simulation of a single particle system. Per-particle data is stored in a
+	 * 2D square layout so it can be used for quickly initializing a texture.
 	 */
-	struct BS_CORE_EXPORT ParticleRenderData
+	struct BS_CORE_EXPORT ParticleCPUSimulationData
 	{
 		/** Contains particle positions in .xyz and 2D rotation in .w */
 		PixelData positionAndRotation;
@@ -49,10 +49,48 @@ namespace bs
 		void updateSortIndices(const Vector3& referencePoint);
 	};
 
-	/** Contains all rendering data for all particle systems, for a single frame. */
-	struct ParticleRenderDataGroup
+	/** 
+	 * Contains information about a single particle about to be inserted into the GPU simulation. Matches the structure
+	 * of the vertex buffer element used for injecting shader data into the simulation.
+	 */
+	struct GpuParticleVertex
 	{
-		UnorderedMap<UINT32, ParticleRenderData*> data;
+		Vector3 position;
+		float lifetime;
+		Vector3 velocity;
+		float unused;
+		Vector2 dataUV;
+	};
+
+	/** Extension of GpuParticle that contains data not required by the injection vertex buffer. */
+	struct GpuParticle : GpuParticleVertex
+	{
+		/** Gets a version of this object suitable for upload to the injection vertex buffer. */
+		GpuParticleVertex getVertex() const
+		{
+			GpuParticleVertex output;
+			output.position = position;
+			output.lifetime = (initialLifetime - lifetime) / initialLifetime;
+			output.velocity = velocity;
+			output.dataUV = dataUV;
+
+			return output;
+		}
+
+		float initialLifetime;
+	};
+
+	/** Contains new particles that were spawned this frame and should be inserted in the GPU simulation. */
+	struct BS_CORE_EXPORT ParticleGPUSimulationData
+	{
+		Vector<GpuParticle> particles;
+	};
+
+	/** Contains simulation data resulting from all particle systems, for a single frame. */
+	struct ParticleSimulationData
+	{
+		UnorderedMap<UINT32, ParticleCPUSimulationData*> cpuData;
+		UnorderedMap<UINT32, ParticleGPUSimulationData*> gpuData;
 	};
 
 	/** Keeps track of all active ParticleSystem%s and performs per-frame updates. */
@@ -67,7 +105,7 @@ namespace bs
 		 * Advances the simulation for all particle systems using the current frame time delta. Outputs a set of data
 		 * that can be used for rendering every active particle system.
 		 */
-		ParticleRenderDataGroup* update(const EvaluatedAnimationData& animData);
+		ParticleSimulationData* update(const EvaluatedAnimationData& animData);
 
 	private:
 		friend class ParticleSystem;
@@ -93,7 +131,7 @@ namespace bs
 		bool mPaused = false;
 
 		// Worker threads
-		ParticleRenderDataGroup mRenderData[CoreThread::NUM_SYNC_BUFFERS];
+		ParticleSimulationData mSimulationData[CoreThread::NUM_SYNC_BUFFERS];
 
 		UINT32 mReadBufferIdx = 1;
 		UINT32 mWriteBufferIdx = 0;

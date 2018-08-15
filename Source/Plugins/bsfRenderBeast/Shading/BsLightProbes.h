@@ -7,7 +7,7 @@
 #include "Math/BsMatrix4.h"
 #include "Math/BsMatrixNxM.h"
 #include "Renderer/BsRendererMaterial.h"
-#include "Utility/BsGpuResourcePool.h"
+#include "Renderer/BsGpuResourcePool.h"
 #include "Renderer/BsParamBlocks.h"
 #include "BsRendererLight.h"
 

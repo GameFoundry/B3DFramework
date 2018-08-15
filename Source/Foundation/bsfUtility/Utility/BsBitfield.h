@@ -448,7 +448,7 @@ namespace bs
 
 namespace std
 {
-	template <> void swap(bs::BitReference& lhs, bs::BitReference& rhs)
+	template <> inline void swap(bs::BitReference& lhs, bs::BitReference& rhs)
 	{
 		const bool temp = lhs;
 		lhs = rhs;

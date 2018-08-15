@@ -6,7 +6,7 @@
 #include "Renderer/BsIBLUtility.h"
 #include "Renderer/BsRendererMaterial.h"
 #include "Renderer/BsParamBlocks.h"
-#include "Utility/BsGpuResourcePool.h"
+#include "Renderer/BsGpuResourcePool.h"
 
 namespace bs { namespace ct
 {

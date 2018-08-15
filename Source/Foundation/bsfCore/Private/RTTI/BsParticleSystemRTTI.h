@@ -379,6 +379,31 @@ namespace bs
 		}
 	};
 
+	class BS_CORE_EXPORT ParticleGravityRTTI : public RTTIType<ParticleGravity, IReflectable, ParticleGravityRTTI>
+	{
+	private:
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN_NAMED(scale, mDesc.scale, 0)
+		BS_END_RTTI_MEMBERS
+
+	public:
+		const String& getRTTIName() override
+		{
+			static String name = "ParticleGravity";
+			return name;
+		}
+
+		UINT32 getRTTIId() override
+		{
+			return TID_ParticleGravity;
+		}
+
+		SPtr<IReflectable> newRTTIObject() override
+		{
+			return bs_shared_ptr_new<ParticleGravity>();
+		}
+	};
+
 	class BS_CORE_EXPORT ParticleCollisionsRTTI : 
 		public RTTIType<ParticleCollisions, IReflectable, ParticleCollisionsRTTI>
 	{
@@ -424,7 +449,7 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(isLooping, 6)
 			BS_RTTI_MEMBER_PLAIN(maxParticles, 7)
 			BS_RTTI_MEMBER_PLAIN(useAutomaticSeed, 8)
-			BS_RTTI_MEMBER_PLAIN(gravityScale, 9)
+			//BS_RTTI_MEMBER_PLAIN(gravityScale, 9)
 			BS_RTTI_MEMBER_PLAIN(manualSeed, 10)
 			BS_RTTI_MEMBER_REFL(material, 11)
 		BS_END_RTTI_MEMBERS
@@ -487,7 +512,7 @@ namespace bs
 			auto evolvers = static_cast<ParticleSystemEvolvers*>(obj);
 
 			for(auto& entry : evolvers->mList)
-				evolvers->mSortedList.insert(entry.get());
+				evolvers->addToSortedList(entry.get());
 		}
 
 		const String& getRTTIName() override

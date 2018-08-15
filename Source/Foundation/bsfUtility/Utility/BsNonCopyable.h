@@ -18,7 +18,6 @@ namespace bs
 	private:
 		INonCopyable(const INonCopyable&) = delete;
 		INonCopyable& operator=(const INonCopyable&) = delete;
-
 	};
 
 	/** @} */
