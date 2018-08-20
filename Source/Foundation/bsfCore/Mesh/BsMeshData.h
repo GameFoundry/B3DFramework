@@ -33,11 +33,14 @@ namespace bs
 			mEnd = mData + byteStride * numElements;
 		}
 
-		/**	Adds a new value to the iterators current position and advances the iterator. */
-		void addValue(const T& value)
+		/**	
+		 * Adds a new value to the iterators current position and advances the iterator. Returns true if there is more room
+		 * in the container.
+		 */
+		bool addValue(const T& value)
 		{
 			setValue(value);
-			moveNext();
+			return moveNext();
 		}
 
 		/**	Sets a new value at the iterators current position. */
@@ -64,7 +67,7 @@ namespace bs
 
 			mData += mByteStride;
 
-			return mData < mEnd;
+			return mData <= mEnd;
 		}
 
 		/**	Returns the number of elements this iterator can iterate over. */
