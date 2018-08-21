@@ -480,8 +480,6 @@ namespace bs { namespace ct
 		mutable UINT32 mNumUsedInterQueueSemaphores;
 
 		VulkanFramebuffer* mFramebuffer;
-		UINT32 mRenderTargetWidth;
-		UINT32 mRenderTargetHeight;
 		UINT32 mRenderTargetReadOnlyFlags;
 		RenderSurfaceMask mRenderTargetLoadMask;
 

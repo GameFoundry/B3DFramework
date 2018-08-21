@@ -77,7 +77,13 @@ namespace bs { namespace ct
 		/** Returns a unique ID of this framebuffer. */
 		UINT32 getId() const { return mId; }
 
-		/** 
+		/** Returns the width of the framebuffer, in pixels. */
+		UINT32 getWidth() const { return mFramebufferCI.width; }
+
+		/** Returns the height of the framebuffer, in pixels. */
+		UINT32 getHeight() const { return mFramebufferCI.height; }
+
+		/**
 		 * Gets internal Vulkan render pass object. 
 		 * 
 		 * @param[in]	loadMask	Mask that control which render target surface contents should be preserved on load.

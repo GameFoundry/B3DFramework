@@ -189,8 +189,7 @@ namespace bs { namespace ct
 	VulkanCmdBuffer::VulkanCmdBuffer(VulkanDevice& device, UINT32 id, VkCommandPool pool, UINT32 queueFamily, bool secondary)
 		: mId(id), mQueueFamily(queueFamily), mState(State::Ready), mDevice(device), mPool(pool)
 		, mIntraQueueSemaphore(nullptr), mInterQueueSemaphores(), mNumUsedInterQueueSemaphores(0)
-		, mFramebuffer(nullptr), mRenderTargetWidth(0)
-		, mRenderTargetHeight(0), mRenderTargetReadOnlyFlags(0), mRenderTargetLoadMask(RT_NONE), mGlobalQueueIdx(-1)
+		, mFramebuffer(nullptr), mRenderTargetReadOnlyFlags(0), mRenderTargetLoadMask(RT_NONE), mGlobalQueueIdx(-1)
 		, mViewport(0.0f, 0.0f, 1.0f, 1.0f), mScissor(0, 0, 0, 0), mStencilRef(0), mDrawOp(DOT_TRIANGLE_LIST)
 		, mNumBoundDescriptorSets(0), mGfxPipelineRequiresBind(true), mCmpPipelineRequiresBind(true)
 		, mViewportRequiresBind(true), mStencilRefRequiresBind(true), mScissorRequiresBind(true), mBoundParamsDirty(false)
@@ -331,7 +330,7 @@ namespace bs { namespace ct
 		{
 			// If a previous clear is queued, but it doesn't match the rendered area, need to execute a separate pass
 			// just for it
-			Rect2I rtArea(0, 0, mRenderTargetWidth, mRenderTargetHeight);
+			Rect2I rtArea(0, 0, mFramebuffer->getWidth(), mFramebuffer->getHeight());
 			if (mClearArea != rtArea)
 				executeClearPass();
 		}
@@ -347,8 +346,8 @@ namespace bs { namespace ct
 		renderPassBeginInfo.renderPass = mFramebuffer->getRenderPass(mRenderTargetLoadMask, readMask, mClearMask);
 		renderPassBeginInfo.renderArea.offset.x = 0;
 		renderPassBeginInfo.renderArea.offset.y = 0;
-		renderPassBeginInfo.renderArea.extent.width = mRenderTargetWidth;
-		renderPassBeginInfo.renderArea.extent.height = mRenderTargetHeight;
+		renderPassBeginInfo.renderArea.extent.width = mFramebuffer->getWidth();
+		renderPassBeginInfo.renderArea.extent.height = mFramebuffer->getHeight();
 		renderPassBeginInfo.clearValueCount = mFramebuffer->getNumClearEntries(mClearMask);
 		renderPassBeginInfo.pClearValues = mClearValues.data();
 
@@ -904,16 +903,12 @@ namespace bs { namespace ct
 		if(newFB == nullptr)
 		{
 			mFramebuffer = nullptr;
-			mRenderTargetWidth = 0;
-			mRenderTargetHeight = 0;
 			mRenderTargetReadOnlyFlags = 0;
 			mRenderTargetLoadMask = RT_NONE;
 		}
 		else
 		{
 			mFramebuffer = newFB;
-			mRenderTargetWidth = rt->getProperties().width;
-			mRenderTargetHeight = rt->getProperties().height;
 			mRenderTargetReadOnlyFlags = readOnlyFlags;
 			mRenderTargetLoadMask = loadMask;
 		}
@@ -1092,17 +1087,17 @@ namespace bs { namespace ct
 
 	void VulkanCmdBuffer::clearRenderTarget(UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask)
 	{
-		Rect2I area(0, 0, mRenderTargetWidth, mRenderTargetHeight);
+		Rect2I area(0, 0, mFramebuffer->getWidth(), mFramebuffer->getHeight());
 		clearViewport(area, buffers, color, depth, stencil, targetMask);
 	}
 
 	void VulkanCmdBuffer::clearViewport(UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask)
 	{
 		Rect2I area;
-		area.x = (UINT32)(mViewport.x * mRenderTargetWidth);
-		area.y = (UINT32)(mViewport.y * mRenderTargetHeight);
-		area.width = (UINT32)(mViewport.width * mRenderTargetWidth);
-		area.height = (UINT32)(mViewport.height * mRenderTargetHeight);
+		area.x = (UINT32)(mViewport.x * mFramebuffer->getWidth());
+		area.y = (UINT32)(mViewport.y * mFramebuffer->getHeight());
+		area.width = (UINT32)(mViewport.width * mFramebuffer->getWidth());
+		area.height = (UINT32)(mViewport.height * mFramebuffer->getHeight());
 
 		clearViewport(area, buffers, color, depth, stencil, targetMask);
 	}
@@ -1304,10 +1299,10 @@ namespace bs { namespace ct
 		if (mViewportRequiresBind || forceAll)
 		{
 			VkViewport viewport;
-			viewport.x = mViewport.x * mRenderTargetWidth;
-			viewport.y = mViewport.y * mRenderTargetHeight;
-			viewport.width = mViewport.width * mRenderTargetWidth;
-			viewport.height = mViewport.height * mRenderTargetHeight;
+			viewport.x = mViewport.x * mFramebuffer->getWidth();
+			viewport.y = mViewport.y * mFramebuffer->getHeight();
+			viewport.width = mViewport.width * mFramebuffer->getWidth();
+			viewport.height = mViewport.height * mFramebuffer->getHeight();
 			viewport.minDepth = 0.0f;
 			viewport.maxDepth = 1.0f;
 
@@ -1335,8 +1330,8 @@ namespace bs { namespace ct
 			{
 				scissorRect.offset.x = 0;
 				scissorRect.offset.y = 0;
-				scissorRect.extent.width = mRenderTargetWidth;
-				scissorRect.extent.height = mRenderTargetHeight;
+				scissorRect.extent.width = mFramebuffer->getWidth();
+				scissorRect.extent.height = mFramebuffer->getHeight();
 			}
 
 			vkCmdSetScissor(mCmdBuffer, 0, 1, &scissorRect);

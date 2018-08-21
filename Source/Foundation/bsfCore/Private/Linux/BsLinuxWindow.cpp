@@ -187,14 +187,18 @@ namespace bs
 		if(desc.parent)
 			XSetTransientForHint(display, m->xWindow, desc.parent);
 
-		XSelectInput(display, m->xWindow,
+		long eventMask =
 				ExposureMask | FocusChangeMask |
 				KeyPressMask | KeyReleaseMask |
 				ButtonPressMask | ButtonReleaseMask |
 				EnterWindowMask | LeaveWindowMask |
 				PointerMotionMask | ButtonMotionMask |
-				StructureNotifyMask | PropertyChangeMask
-		);
+				StructureNotifyMask | PropertyChangeMask;
+
+		if(!desc.parent)
+			eventMask |= SubstructureNotifyMask | SubstructureRedirectMask;
+
+		XSelectInput(display, m->xWindow, eventMask);
 
 		// Make sure we get the window delete message from WM, so we can clean up ourselves
 		Atom atomDeleteWindow = XInternAtom(display, "WM_DELETE_WINDOW", False);
