@@ -119,7 +119,7 @@ namespace bs
 		}
 
 		UINT32 elemSize = type == GBT_STANDARD ? bs::GpuBuffer::getFormatSize(format) : elementSize;
-		if((mBuffer->getSize() % elementSize) != 0)
+		if((mBuffer->getSize() % elemSize) != 0)
 		{
 			LOGERR("Size of the buffer isn't divisible by individual element size provided for the buffer view.");
 			return nullptr;
@@ -130,7 +130,7 @@ namespace bs
 		desc.format = format;
 		desc.usage = mUsage;
 		desc.elementSize = elementSize;
-		desc.elementCount = mBuffer->getSize() / elementSize;
+		desc.elementCount = mBuffer->getSize() / elemSize;
 
 		if(!mSharedBuffer)
 			mSharedBuffer = bs_shared_ptr(mBuffer, mBufferDeleter);

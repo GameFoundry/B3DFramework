@@ -128,8 +128,6 @@ namespace bs
 
 	void GpuBuffer::initialize()
 	{
-		const GpuBufferProperties& props = getProperties();
-
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuBuffer);
 		CoreObject::initialize();
 	}
