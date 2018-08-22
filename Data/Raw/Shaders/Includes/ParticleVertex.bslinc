@@ -8,6 +8,7 @@ mixin ParticleVertex
 	{
 		ORIENT = { 0, 1, 2 }; // 0 - Camera plane, 1 - Camera position, 2 - Axis
 		LOCK_Y = { false, true };
+		GPU = { false, true };
 	};
 
 	code
@@ -19,6 +20,17 @@ mixin ParticleVertex
 			uint instanceId	: SV_InstanceID;		
 		};
 	
+		struct ParticleInput
+		{
+			float3 position;
+			float rotation;
+			float2 uvflip;
+			float2 size;
+			float3 velocity;
+			float frame;
+			float4 color;
+		};
+	
 		struct VStoFS
 		{
 			float4 position : SV_Position;
@@ -26,9 +38,60 @@ mixin ParticleVertex
 			float4 color : COLOR0;
 		};
 		
+		#if GPU
+		Texture2D gPositionAndTimeTex; // position in .xyz, time (in [0, 1] range) in .w
+
+		ParticleInput getParticleInput(uint2 index)
+		{
+			uint3 pixelPos;
+			pixelPos.xy = index;
+			pixelPos.z = 0;
+			
+			ParticleInput pi;
+			
+			float4 posAndTime = gPositionAndTimeTex.Load(pixelPos);
+			pi.position = posAndTime.xyz;
+			pi.rotation = 0.0f; // TODO
+			
+			float time = posAndTime.w;
+			float aliveMask = step(time, 1.0f);
+			
+			pi.uvflip = 1.0f; // TODO
+			pi.size = aliveMask; // TODO
+			pi.frame = 0; // TODO
+			
+			pi.color = 1.0f; // TODO
+			
+			return pi;
+		}
+		#else
 		Texture2D gPositionAndRotTex; // position in .xyz, rotation in radians in .w
 		Texture2D gColorTex;
 		Texture2D gSizeAndFrameIdxTex; // size in .xy, uv flip encoded in sign of .xy, frame index in .z, .w unused
+		
+		ParticleInput getParticleInput(uint2 index)
+		{
+			uint3 pixelPos;
+			pixelPos.xy = index;
+			pixelPos.z = 0;
+			
+			ParticleInput pi;
+			
+			float4 posAndRot = gPositionAndRotTex.Load(pixelPos);
+			pi.position = posAndRot.xyz;
+			pi.rotation = posAndRot.w;
+			
+			float4 sizeAndFrame = gSizeAndFrameIdxTex.Load(pixelPos);
+			pi.uvflip = sign(sizeAndFrame.xy);
+			pi.size = abs(sizeAndFrame.xy);
+			pi.frame = sizeAndFrame.z;
+			
+			pi.color = gColorTex.Load(pixelPos);
+			
+			return pi;
+		}
+		#endif
+		
 		Buffer<uint2> gIndices;
 
 		[internal]
@@ -41,23 +104,14 @@ mixin ParticleVertex
 			float3 gAxisUp;
 			uint gTexSize;
 			float3 gAxisRight;
-		}		
-
+		}
+		
 		VStoFS vsmain(VertexInput input)
 		{
-			uint3 pixelPos;
-			pixelPos.xy = gIndices[input.instanceId];
-			pixelPos.z = 0;
+			ParticleInput pi = getParticleInput(gIndices[input.instanceId]);
 		
-			float4 posAndRot = gPositionAndRotTex.Load(pixelPos);
-			float4 worldPosition = mul(gWorldTfrm, float4(posAndRot.xyz, 1.0f));
-			
-			float3 sizeAndFrame = gSizeAndFrameIdxTex.Load(pixelPos).xyz;
-			float2 uvflip = sign(sizeAndFrame.xy);
-			float2 size = abs(sizeAndFrame.xy);
-			
-			float frame = sizeAndFrame.z;
-			
+			float4 worldPosition = mul(gWorldTfrm, float4(pi.position, 1.0f));
+		
 			float3 axisRight, axisUp;
 			#if ORIENT == 2 // Axis
 				axisRight = gAxisRight;
@@ -84,25 +138,25 @@ mixin ParticleVertex
 			#endif
 
 			float rotSin, rotCos;
-			sincos(posAndRot.w, rotSin, rotCos);
+			sincos(pi.rotation, rotSin, rotCos);
 			
 			float3 rotAxisRight = rotSin * axisUp + rotCos * axisRight;
 			float3 rotAxisUp = rotCos * axisUp - rotSin * axisRight;
 			
-			worldPosition.xyz += rotAxisRight * input.position.x * size.x + rotAxisUp * input.position.y  * size.y;	
+			worldPosition.xyz += rotAxisRight * input.position.x * pi.size.x + rotAxisUp * input.position.y  * pi.size.y;	
 			
 			float2 uv;
-			uv.x = uvflip.x >= 0.0f ? input.uv0.x : 1.0f - input.uv0.x;
-			uv.y = uvflip.y >= 0.0f ? input.uv0.y : 1.0f - input.uv0.y;
+			uv.x = pi.uvflip.x >= 0.0f ? input.uv0.x : 1.0f - input.uv0.x;
+			uv.y = pi.uvflip.y >= 0.0f ? input.uv0.y : 1.0f - input.uv0.y;
 			
-			frame -= frac(frame);
+			float frame = pi.frame - frac(pi.frame);
 			float row = fmod(frame, gSubImageSize.x);
 			float column = floor(frame * gSubImageSize.z);
 			
 			float2 subUV = (float2(row, column) + uv) * gSubImageSize.zw;
 			
 			VStoFS output;
-			output.color = gColorTex.Load(pixelPos);
+			output.color = pi.color;
 			output.uv0 = gUVOffset + subUV * gUVSize;
 			output.position = mul(gMatViewProj, worldPosition);
 		

@@ -1335,9 +1335,9 @@ namespace bs { namespace ct
 					ParticleCPUSimulationData* simulationData = iterFind->second;
 					const ParticleTextures* textures = particlesTexPool.alloc(*simulationData);
 
-					renderElement.positionAndRotTexture.set(textures->positionAndRotation);
-					renderElement.colorTexture.set(textures->color);
-					renderElement.sizeAndFrameIdxTexture.set(textures->sizeAndFrameIdx);
+					renderElement.paramsCPU.positionAndRotTexture.set(textures->positionAndRotation);
+					renderElement.paramsCPU.colorTexture.set(textures->color);
+					renderElement.paramsCPU.sizeAndFrameIdxTexture.set(textures->sizeAndFrameIdx);
 					renderElement.indicesBuffer.set(textures->indices);
 					renderElement.numParticles = simulationData->numParticles;
 
@@ -1349,11 +1349,7 @@ namespace bs { namespace ct
 				{
 					GpuParticleSystem* gpuParticleSystem = rendererParticles.gpuParticleSystem;
 
-					// TODO - Actually bind the textures resulting from GPU simulation
-
-					//renderElement.positionAndRotTexture.set(textures->positionAndRotation);
-					//renderElement.colorTexture.set(textures->color);
-					//renderElement.sizeAndFrameIdxTexture.set(textures->sizeAndFrameIdx);
+					renderElement.paramsGPU.positionAndTimeTexture.set(gpuSimStateTextures.positionAndTimeTex->texture);
 					renderElement.indicesBuffer.set(gpuParticleSystem->getParticleIndices());
 					renderElement.numParticles = gpuParticleSystem->getNumTiles() * GpuParticleResources::PARTICLES_PER_TILE;
 

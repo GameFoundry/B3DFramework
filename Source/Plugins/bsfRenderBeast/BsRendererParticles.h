@@ -38,14 +38,16 @@ namespace bs { namespace ct
 	 *
 	 * @tparam ORIENT	Particle orientiation mode.
 	 * @tparam LOCK_Y	If true, billboard rotation will be locked around the Y axis, otherwise the rotation is free.
+	 * @tparam GPU		If true, the particle shader expects input from the GPU simulation instead of the CPU simulation.
 	 */
-	template<ParticleOrientation ORIENT, bool LOCK_Y>
+	template<ParticleOrientation ORIENT, bool LOCK_Y, bool GPU>
 	static const ShaderVariation& getParticleShaderVariation()
 	{
 		static ShaderVariation variation = ShaderVariation(
 			Vector<ShaderVariation::Param>{
 				ShaderVariation::Param("ORIENT", (UINT32)ORIENT),
 				ShaderVariation::Param("LOCK_Y", LOCK_Y),
+				ShaderVariation::Param("GPU", GPU),
 		});
 
 		return variation;
@@ -56,28 +58,47 @@ namespace bs { namespace ct
 	 * 
 	 * @param[in]	orient	Determines in which direction are billboard particles oriented.
 	 * @param[in]	lockY	If true, billboard rotation will be locked around the Y axis, otherwise the rotation is free.
+	 * @param[in]	gpu		If true, the particle shader expects input from the GPU simulation instead of the CPU 
+	 *						simulation.
 	 * @return				Object that can be used for looking up the variation technique in the material. 
 	 */
-	const ShaderVariation& getParticleShaderVariation(ParticleOrientation orient, bool lockY);
+	const ShaderVariation& getParticleShaderVariation(ParticleOrientation orient, bool lockY, bool gpu);
 
 	/** Contains information required for rendering a single particle system. */
 	class ParticlesRenderElement : public RenderElement
 	{
 	public:
+		/** Parameters relevant for rendering the outputs of the particle CPU simulation. */
+		struct CPUSimulationParams
+		{
+			/** Binding spot for the texture containing position and rotation information. */
+			GpuParamTexture positionAndRotTexture;
+
+			/** Binding spot for the texture containing color information. */
+			GpuParamTexture colorTexture;
+
+			/** Binding spot for the texture containing size and sub-image index information. */
+			GpuParamTexture sizeAndFrameIdxTexture;
+		};
+
+		/** Parameters relevant for rendering the outputs of the particle GPU simulation. */
+		struct GPUSimulationParams
+		{
+			/** Binding spot for the texture containing position and time information. */
+			GpuParamTexture positionAndTimeTexture;
+		};
+
 		/** Binding locations for the per-camera param block buffer. */
 		GpuParamBinding perCameraBindings[GPT_COUNT];
 
-		/** Binding spot for the texture containing position and rotation information. */
-		GpuParamTexture positionAndRotTexture;
-
-		/** Binding spot for the texture containing color information. */
-		GpuParamTexture colorTexture;
-
-		/** Binding spot for the texture containing size and sub-image index information. */
-		GpuParamTexture sizeAndFrameIdxTexture;
-
 		/** Binding spot for the buffer containing instance id -> particle index mapping. */
 		GpuParamBuffer indicesBuffer;
+
+		/** Parameters relevant for rendering the outputs of the particle CPU simulation. */
+		CPUSimulationParams paramsCPU;
+
+		/** Parameters relevant for rendering the outputs of the particle GPU simulation. */
+		GPUSimulationParams paramsGPU;
 
 		/** Number of particles to render. */
 		UINT32 numParticles = 0;

@@ -724,7 +724,8 @@ namespace bs {	namespace ct
 
 			const ParticleOrientation orientation = settings.orientation;
 			const bool lockY = settings.orientationLockY;
-			const ShaderVariation* variation = &getParticleShaderVariation(orientation, lockY);
+			const bool gpu = settings.gpuSimulation;
+			const ShaderVariation* variation = &getParticleShaderVariation(orientation, lockY, gpu);
 
 			FIND_TECHNIQUE_DESC findDesc;
 			findDesc.variation = variation;
@@ -746,9 +747,21 @@ namespace bs {	namespace ct
 			// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
 			gpuParams->setParamBlockBuffer("ParticleParams", rendererParticles.particlesParamBuffer);
 
-			gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gPositionAndRotTex", renElement.positionAndRotTexture);
-			gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gColorTex", renElement.colorTexture);
-			gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gSizeAndFrameIdxTex", renElement.sizeAndFrameIdxTexture);
+			if(gpu)
+			{
+				gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gPositionAndTimeTex", 
+					renElement.paramsGPU.positionAndTimeTexture);
+			}
+			else
+			{
+				gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gPositionAndRotTex", 
+					renElement.paramsCPU.positionAndRotTexture);
+				gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gColorTex", 
+					renElement.paramsCPU.colorTexture);
+				gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gSizeAndFrameIdxTex", 
+					renElement.paramsCPU.sizeAndFrameIdxTexture);
+			}
+
 			gpuParams->getBufferParam(GPT_VERTEX_PROGRAM, "gIndices", renElement.indicesBuffer);
 
 			gpuParams->getParamInfo()->getBindings(

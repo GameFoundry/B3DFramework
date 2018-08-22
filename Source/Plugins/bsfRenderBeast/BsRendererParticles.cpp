@@ -10,34 +10,36 @@
 
 namespace bs { namespace ct
 {
-	const ShaderVariation& getParticleShaderVariation(ParticleOrientation orient, bool lockY)
+	template<bool LOCK_Y, bool GPU>
+	const ShaderVariation& _getParticleShaderVariation(ParticleOrientation orient)
+	{
+		switch (orient)
+		{
+		default:
+		case ParticleOrientation::ViewPlane:
+			return getParticleShaderVariation<ParticleOrientation::ViewPlane, LOCK_Y, GPU>();
+		case ParticleOrientation::ViewPosition:
+			return getParticleShaderVariation<ParticleOrientation::ViewPosition, LOCK_Y, GPU>();
+		case ParticleOrientation::Plane:
+			return getParticleShaderVariation<ParticleOrientation::Plane, LOCK_Y, GPU>();
+		}
+	}
+
+	template<bool GPU>
+	const ShaderVariation& _getParticleShaderVariation(ParticleOrientation orient, bool lockY)
 	{
 		if (lockY)
-		{
-			switch (orient)
-			{
-			default:
-			case ParticleOrientation::ViewPlane:
-				return getParticleShaderVariation<ParticleOrientation::ViewPlane, true>();
-			case ParticleOrientation::ViewPosition:
-				return getParticleShaderVariation<ParticleOrientation::ViewPosition, true>();
-			case ParticleOrientation::Plane:
-				return getParticleShaderVariation<ParticleOrientation::Plane, true>();
-			}
-		}
-		else
-		{
-			switch (orient)
-			{
-			default:
-			case ParticleOrientation::ViewPlane:
-				return getParticleShaderVariation<ParticleOrientation::ViewPlane, false>();
-			case ParticleOrientation::ViewPosition:
-				return getParticleShaderVariation<ParticleOrientation::ViewPosition, false>();
-			case ParticleOrientation::Plane:
-				return getParticleShaderVariation<ParticleOrientation::Plane, false>();
-			}
-		}
+			return _getParticleShaderVariation<true, GPU>(orient);
+
+		return _getParticleShaderVariation<false, GPU>(orient);
+	}
+
+	const ShaderVariation& getParticleShaderVariation(ParticleOrientation orient, bool lockY, bool gpu)
+	{
+		if(gpu)
+			return _getParticleShaderVariation<true>(orient, lockY);
+
+		return _getParticleShaderVariation<false>(orient, lockY);
 	}
 
 	ParticlesParamDef gParticlesParamDef;
