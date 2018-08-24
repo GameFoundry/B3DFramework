@@ -135,9 +135,8 @@ namespace bs
 		if(mState != State::Playing)
 			return;
 
-		float newTime = mTime;
-
 		float timeStep = timeDelta;
+		float newTime = mTime + timeStep;
 		if(newTime >= mSettings.duration)
 		{
 			if(mSettings.isLooping)
@@ -148,8 +147,6 @@ namespace bs
 				newTime = mSettings.duration;
 			}
 		}
-		else
-			newTime += timeDelta;
 
 		if(timeStep < 0.00001f)
 			return;

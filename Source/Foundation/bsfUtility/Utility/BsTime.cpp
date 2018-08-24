@@ -27,7 +27,14 @@ namespace bs
 	{
 		UINT64 currentFrameTime = mTimer->getMicroseconds();
 
-		mFrameDelta = (float)((currentFrameTime - mLastFrameTime) * MICROSEC_TO_SEC);
+		if(!mFirstFrame)
+			mFrameDelta = (float)((currentFrameTime - mLastFrameTime) * MICROSEC_TO_SEC);
+		else
+		{
+			mFrameDelta = 0.0f;
+			mFirstFrame = false;
+		}
+
 		mTimeSinceStartMs = (UINT64)(currentFrameTime / 1000);
 		mTimeSinceStart = mTimeSinceStartMs / 1000.0f;
 		
@@ -41,10 +48,10 @@ namespace bs
 		const UINT64 currentTime = getTimePrecise();
 
 		// Skip fixed update first frame (time delta is zero, and no input received yet)
-		if (mFirstFrame)
+		if (mFirstFixedFrame)
 		{
 			mLastFixedUpdateTime = currentTime;
-			mFirstFrame = false;
+			mFirstFixedFrame = false;
 		}
 
 		const UINT64 nextFrameTime = mLastFixedUpdateTime + mFixedStep;

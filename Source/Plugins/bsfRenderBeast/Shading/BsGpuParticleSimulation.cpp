@@ -113,6 +113,7 @@ namespace bs { namespace ct
 		GpuParticleHelperBuffers();
 		
 		SPtr<VertexBuffer> spriteUVs;
+		SPtr<VertexBuffer> particleUVs;
 		SPtr<IndexBuffer> spriteIndices;
 		SPtr<VertexDeclaration> tileVertexDecl;
 		SPtr<VertexDeclaration> injectVertexDecl;
@@ -172,8 +173,8 @@ namespace bs { namespace ct
 	Vector2I GpuParticleResources::getTileOffset(UINT32 tileId)
 	{
 		return Vector2I(
-			tileId % TILE_COUNT_1D,
-			tileId / TILE_COUNT_1D);
+			(tileId % TILE_COUNT_1D) * TILE_SIZE,
+			(tileId / TILE_COUNT_1D) * TILE_SIZE);
 	}
 
 	Vector2 GpuParticleResources::getTileCoords(UINT32 tileId)
@@ -208,29 +209,48 @@ namespace bs { namespace ct
 		SPtr<VertexDataDesc> injectVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
 		injectVertexDesc->addVertElem(VET_FLOAT4, VES_TEXCOORD, 0, 0, 1); // Position & time, per instance
 		injectVertexDesc->addVertElem(VET_FLOAT4, VES_TEXCOORD, 1, 0, 1); // Velocity, per instance
-		injectVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD, 3, 0, 1); // Data UV, per instance
-		injectVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD, 4, 1); // Sprite texture coordinates
+		injectVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD, 2, 0, 1); // Data UV, per instance
+		injectVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD, 3, 1); // Sprite texture coordinates
 
 		injectVertexDecl = VertexDeclaration::create(injectVertexDesc);
 
-		// Prepare UV coordinates for rendering tiles & particles
+		// Prepare UV coordinates for rendering tiles
 		VERTEX_BUFFER_DESC spriteUVBufferDesc;
 		spriteUVBufferDesc.numVerts = PARTICLES_PER_INSTANCE * 4;
 		spriteUVBufferDesc.vertexSize = tileVertexDesc->getVertexStride();
 
 		spriteUVs = VertexBuffer::create(spriteUVBufferDesc);
 
-		auto* const uvs = (Vector2*)spriteUVs->lock(GBL_WRITE_ONLY_DISCARD);
-		const float scale = GpuParticleResources::TILE_SIZE / (float)GpuParticleResources::TEX_SIZE;
+		auto* const spriteUVData = (Vector2*)spriteUVs->lock(GBL_WRITE_ONLY_DISCARD);
+		const float spriteUVScale = GpuParticleResources::TILE_SIZE / (float)GpuParticleResources::TEX_SIZE;
 		for (UINT32 i = 0; i < PARTICLES_PER_INSTANCE; i++)
 		{
-			uvs[i * 4 + 0] = Vector2(0.0f, 0.0f) * scale;
-			uvs[i * 4 + 1] = Vector2(1.0f, 0.0f) * scale;
-			uvs[i * 4 + 2] = Vector2(1.0f, 1.0f) * scale;
-			uvs[i * 4 + 3] = Vector2(0.0f, 1.0f) * scale;
+			spriteUVData[i * 4 + 0] = Vector2(0.0f, 0.0f) * spriteUVScale;
+			spriteUVData[i * 4 + 1] = Vector2(1.0f, 0.0f) * spriteUVScale;
+			spriteUVData[i * 4 + 2] = Vector2(1.0f, 1.0f) * spriteUVScale;
+			spriteUVData[i * 4 + 3] = Vector2(0.0f, 1.0f) * spriteUVScale;
 		}
 
 		spriteUVs->unlock();
+
+		// Prepare UV coordinates for rendering particles
+		VERTEX_BUFFER_DESC particleUVBufferDesc;
+		particleUVBufferDesc.numVerts = PARTICLES_PER_INSTANCE * 4;
+		particleUVBufferDesc.vertexSize = tileVertexDesc->getVertexStride();
+
+		particleUVs = VertexBuffer::create(particleUVBufferDesc);
+
+		auto* const particleUVData = (Vector2*)particleUVs->lock(GBL_WRITE_ONLY_DISCARD);
+		const float particleUVScale = 1.0f / (float)GpuParticleResources::TEX_SIZE;
+		for (UINT32 i = 0; i < PARTICLES_PER_INSTANCE; i++)
+		{
+			particleUVData[i * 4 + 0] = Vector2(0.0f, 0.0f) * particleUVScale;
+			particleUVData[i * 4 + 1] = Vector2(1.0f, 0.0f) * particleUVScale;
+			particleUVData[i * 4 + 2] = Vector2(1.0f, 1.0f) * particleUVScale;
+			particleUVData[i * 4 + 3] = Vector2(0.0f, 1.0f) * particleUVScale;
+		}
+
+		particleUVs->unlock();
 
 		// Prepare indices for rendering tiles & particles
 		INDEX_BUFFER_DESC spriteIndexBufferDesc;
@@ -242,8 +262,8 @@ namespace bs { namespace ct
 		auto* const indices = (UINT16*)spriteIndices->lock(GBL_WRITE_ONLY_DISCARD);
 		for (UINT32 i = 0; i < PARTICLES_PER_INSTANCE; i++)
 		{
-			indices[i * 6 + 0] = 0; indices[i * 6 + 1] = 1; indices[i * 6 + 2] = 2;
-			indices[i * 6 + 3] = 0; indices[i * 6 + 4] = 2; indices[i * 6 + 5] = 3;
+			indices[i * 6 + 0] = i * 4 + 0; indices[i * 6 + 1] = i * 4 + 1; indices[i * 6 + 2] = i * 4 + 2;
+			indices[i * 6 + 3] = i * 4 + 0; indices[i * 6 + 4] = i * 4 + 2; indices[i * 6 + 5] = i * 4 + 3;
 		}
 
 		spriteIndices->unlock();
@@ -251,7 +271,7 @@ namespace bs { namespace ct
 		// Prepare a scratch buffer we'll use to clear tiles
 		GPU_BUFFER_DESC tileScratchBufferDesc;
 		tileScratchBufferDesc.type = GBT_STANDARD;
-		tileScratchBufferDesc.format = BF_32X2U;
+		tileScratchBufferDesc.format = BF_32X2F;
 		tileScratchBufferDesc.elementCount = NUM_SCRATCH_TILES;
 		tileScratchBufferDesc.usage = GBU_DYNAMIC;
 
@@ -307,12 +327,13 @@ namespace bs { namespace ct
 						return newTilesAdded; // Out of space in the texture
 
 					GpuParticleTile newTile;
-					newTile.id = resources.allocTile();
+					newTile.id = tileId;
 					newTile.lifetime = 0.0f;
 
 					tileIdx = (UINT32)mTiles.size();
 					newTiles.push_back(newTile.id);
 					mTiles.push_back(newTile);
+					mActiveTiles.add(true);
 
 					newTilesAdded = true;
 				}
@@ -321,6 +342,7 @@ namespace bs { namespace ct
 				tileUV = GpuParticleResources::getTileCoords(mTiles[tileIdx].id);
 				mTiles[tileIdx].numFreeParticles = GpuParticleResources::PARTICLES_PER_TILE;
 
+				cachedTile = mTiles[tileIdx];
 				mNumActiveTiles++;
 			}
 
@@ -331,9 +353,11 @@ namespace bs { namespace ct
 			particle.dataUV = tileUV + GpuParticleResources::getParticleCoords(tileParticleIdx);
 
 			tile.numFreeParticles--;
-			tile.lifetime = std::max(tile.lifetime, mTime + (particle.initialLifetime - particle.lifetime));
+			tile.lifetime = std::max(tile.lifetime, mTime + particle.lifetime);
 
 			cachedTile.numFreeParticles--;
+
+
 		}
 
 		return newTilesAdded;
@@ -360,7 +384,7 @@ namespace bs { namespace ct
 	bool GpuParticleSystem::freeInactiveTiles(GpuParticleResources& resources)
 	{
 		const UINT32 numFreeTiles = (UINT32)mTiles.size() - mNumActiveTiles;
-		while (numFreeTiles > 0)
+		for(UINT32 i = 0; i < numFreeTiles; i++)
 		{
 			const UINT32 freeIdx = mActiveTiles.find(false);
 			assert(freeIdx != (UINT32)-1);
@@ -392,48 +416,56 @@ namespace bs { namespace ct
 		const UINT32 numTilesToAllocates = Math::divideAndRoundUp(numTiles, TILES_PER_INSTANCE) * TILES_PER_INSTANCE;
 
 		// Tile offsets buffer
-		GPU_BUFFER_DESC tilesBufferDesc;
-		tilesBufferDesc.type = GBT_STANDARD;
-		tilesBufferDesc.format = BF_32X2U;
-		tilesBufferDesc.elementCount = numTilesToAllocates;
+		if(numTiles > 0)
+		{
+			GPU_BUFFER_DESC tilesBufferDesc;
+			tilesBufferDesc.type = GBT_STANDARD;
+			tilesBufferDesc.format = BF_32X2F;
+			tilesBufferDesc.elementCount = numTilesToAllocates;
+			tilesBufferDesc.usage = GBU_DYNAMIC;
 
-		mTileUVs = GpuBuffer::create(tilesBufferDesc);
+			mTileUVs = GpuBuffer::create(tilesBufferDesc);
 
-		auto* tileUVs = (Vector2*)mTileUVs->lock(GBL_WRITE_ONLY_NO_OVERWRITE);
-		for (UINT32 i = 0; i < numTiles; i++)
-			tileUVs[i] = GpuParticleResources::getTileCoords(mTiles[i].id);
+			auto* tileUVs = (Vector2*)mTileUVs->lock(GBL_WRITE_ONLY_NO_OVERWRITE);
+			for (UINT32 i = 0; i < numTiles; i++)
+				tileUVs[i] = GpuParticleResources::getTileCoords(mTiles[i].id);
 
-		for (UINT32 i = numTiles; i < numTilesToAllocates; i++)
-			tileUVs[i] = Vector2(0.0f, 0.0f); // Out of range
+			for (UINT32 i = numTiles; i < numTilesToAllocates; i++)
+				tileUVs[i] = Vector2(0.0f, 0.0f); // Out of range
 
-		mTileUVs->unlock();
+			mTileUVs->unlock();
+		}
 
 		// Particle data offsets
 		const UINT32 numParticles = numTiles * GpuParticleResources::PARTICLES_PER_TILE;
 
-		GPU_BUFFER_DESC particleUVDesc;
-		particleUVDesc.type = GBT_STANDARD;
-		particleUVDesc.format = BF_16X2U;
-		particleUVDesc.elementCount = numParticles;
-
-		mParticleIndices = GpuBuffer::create(particleUVDesc);
-		auto* particleIndices = (UINT32*)mParticleIndices->lock(GBL_WRITE_ONLY_NO_OVERWRITE);
-
-		UINT32 idx = 0;
-		for (UINT32 i = 0; i < numTiles; i++)
+		if(numParticles > 0)
 		{
-			const Vector2I tileOffset = GpuParticleResources::getTileOffset(mTiles[i].id);
-			for (UINT32 y = 0; y < GpuParticleResources::TILE_SIZE; y++)
+			GPU_BUFFER_DESC particleUVDesc;
+			particleUVDesc.type = GBT_STANDARD;
+			particleUVDesc.format = BF_16X2U;
+			particleUVDesc.elementCount = numParticles;
+			particleUVDesc.usage = GBU_DYNAMIC;
+
+			mParticleIndices = GpuBuffer::create(particleUVDesc);
+			auto* particleIndices = (UINT32*)mParticleIndices->lock(GBL_WRITE_ONLY_NO_OVERWRITE);
+
+			UINT32 idx = 0;
+			for (UINT32 i = 0; i < numTiles; i++)
 			{
-				for (UINT32 x = 0; x < GpuParticleResources::TILE_SIZE; x++)
+				const Vector2I tileOffset = GpuParticleResources::getTileOffset(mTiles[i].id);
+				for (UINT32 y = 0; y < GpuParticleResources::TILE_SIZE; y++)
 				{
-					const Vector2I offset = tileOffset + Vector2I(x, y);
-					particleIndices[idx++] = (offset.x & 0xFFFF) | (offset.y << 16);
+					for (UINT32 x = 0; x < GpuParticleResources::TILE_SIZE; x++)
+					{
+						const Vector2I offset = tileOffset + Vector2I(x, y);
+						particleIndices[idx++] = (offset.x & 0xFFFF) | (offset.y << 16);
+					}
 				}
 			}
-		}
 
-		mParticleIndices->unlock();
+			mParticleIndices->unlock();
+		}
 	}
 
 	struct GpuParticleSimulation::Pimpl
@@ -513,6 +545,9 @@ namespace bs { namespace ct
 
 		for (auto& entry : m->systems)
 		{
+			if(entry->getNumTiles() == 0)
+				continue;
+
 			simulateMat->setTileUVs(entry->getTileUVs());
 
 			const UINT32 tileCount = entry->getNumTiles();
@@ -529,6 +564,9 @@ namespace bs { namespace ct
 	void GpuParticleSimulation::clearTiles(const Vector<UINT32>& tiles)
 	{
 		const auto numTiles = (UINT32)tiles.size();
+		if(numTiles == 0)
+			return;
+
 		const UINT32 numIterations = Math::divideAndRoundUp(numTiles, GpuParticleHelperBuffers::NUM_SCRATCH_TILES);
 
 		GpuParticleClearMat* clearMat = GpuParticleClearMat::get();
@@ -545,18 +583,25 @@ namespace bs { namespace ct
 		UINT32 tileStart = 0;
 		for (UINT32 i = 0; i < numIterations; i++)
 		{
+			static_assert(GpuParticleHelperBuffers::NUM_SCRATCH_TILES % TILES_PER_INSTANCE == 0, 
+				"Tile scratch buffer size must be divisble with number of tiles per instance.");
+
 			const UINT32 tileEnd = std::min(numTiles, tileStart + GpuParticleHelperBuffers::NUM_SCRATCH_TILES);
 
 			auto* tileUVs = (Vector2*)m->helperBuffers.tileScratch->lock(GBL_WRITE_ONLY_DISCARD);
 			for (UINT32 j = tileStart; j < tileEnd; j++)
 				tileUVs[j] = GpuParticleResources::getTileCoords(tiles[j]);
 
+			const UINT32 alignedTileEnd = Math::divideAndRoundUp(tileEnd, TILES_PER_INSTANCE) * TILES_PER_INSTANCE;
+			for (UINT32 j = tileEnd; j < alignedTileEnd; j++)
+				tileUVs[j] = Vector2(2.0f, 2.0f); // Out of bounds (we don't want to accidentaly clear used tiles)
+
 			m->helperBuffers.tileScratch->unlock();
 
-			const UINT32 numInstances = Math::divideAndRoundUp(tileEnd - tileStart, TILES_PER_INSTANCE);
+			const UINT32 numInstances = (alignedTileEnd - tileStart) / TILES_PER_INSTANCE;
 			rapi.drawIndexed(0, PARTICLES_PER_INSTANCE * 6, 0, PARTICLES_PER_INSTANCE * 4, numInstances);
 
-			tileStart = tileEnd;
+			tileStart = alignedTileEnd;
 		}
 	}
 
@@ -571,7 +616,7 @@ namespace bs { namespace ct
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setVertexDeclaration(m->helperBuffers.injectVertexDecl);
 
-		SPtr<VertexBuffer> buffers[] = { m->helperBuffers.injectScratch, m->helperBuffers.spriteUVs };
+		SPtr<VertexBuffer> buffers[] = { m->helperBuffers.injectScratch, m->helperBuffers.particleUVs };
 		rapi.setVertexBuffers(0, buffers, (UINT32)bs_size(buffers));
 		rapi.setIndexBuffer(m->helperBuffers.spriteIndices);
 		rapi.setDrawOperation(DOT_TRIANGLE_LIST);

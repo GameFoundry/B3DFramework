@@ -120,7 +120,7 @@ namespace bs
 
 		/** 
 		 * Determines how (and if) are particles sorted. Sorting controls in what order are particles rendered. 
-		 * If @p gpuSimulation is enabled only distance based sorting is supported.
+		 * If GPU simulation is enabled only distance based sorting is supported.
 		 */
 		ParticleSortMode sortMode = ParticleSortMode::None;
 
@@ -133,7 +133,11 @@ namespace bs
 		/** Determines should the particle system time wrap around once it reaches its duration. */
 		bool isLooping = true;
 
-		/** Determines the maximum number of particles that can ever be active in this system. */
+		/** 
+		 * Determines the maximum number of particles that can ever be active in this system. This number is ignored
+		 * if GPU simulation is enabled, and instead particle count is instead only limited by the size of the internal
+		 * buffers (shared between all particle systems).
+		 */
 		UINT32 maxParticles = 2000;
 
 		/** 

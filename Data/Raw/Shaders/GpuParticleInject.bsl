@@ -1,5 +1,11 @@
 shader GpuParticleInject
 {
+	depth
+	{
+		write = false;
+		read = false;
+	};
+
 	code
 	{	
 		struct VertexInput
@@ -24,7 +30,7 @@ shader GpuParticleInject
 		
 		VStoFS vsmain(VertexInput input)
 		{
-			float uv = input.uv0 + input.dataUV;
+			float2 uv = input.uv0 + input.dataUV;
 		
 			VStoFS output;
 			output.position = float4(uv * gUVToNDC.xy + gUVToNDC.zw, 0.0f, 1.0f);

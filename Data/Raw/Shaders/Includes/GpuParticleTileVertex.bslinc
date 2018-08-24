@@ -1,5 +1,11 @@
 mixin GpuParticleTileVertex
 {
+	depth
+	{
+		write = false;
+		read = false;
+	};
+
 	code
 	{	
 		struct VertexInput
@@ -25,7 +31,7 @@ mixin GpuParticleTileVertex
 		VStoFS vsmain(VertexInput input)
 		{
 			uint tileId = input.instanceId * TILES_PER_INSTANCE + input.vertexId / 4;
-			float uv = input.uv0 + gTileUVs[tileId];
+			float2 uv = input.uv0 + gTileUVs[tileId];
 		
 			VStoFS output;
 			output.position = float4(uv * gUVToNDC.xy + gUVToNDC.zw, 0.0f, 1.0f);

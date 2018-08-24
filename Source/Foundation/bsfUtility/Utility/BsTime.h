@@ -114,6 +114,7 @@ namespace bs
 		float mFrameDelta = 0.0f; /**< Frame delta in seconds */
 		float mTimeSinceStart = 0.0f; /**< Time since start in seconds */
 		UINT64 mTimeSinceStartMs = 0u;
+		bool mFirstFrame = true;
 
 		UINT64 mAppStartTime = 0u; /**< Time the application started, in microseconds */
 		UINT64 mLastFrameTime = 0u; /**< Time since last runOneFrame call, In microseconds */
@@ -122,7 +123,7 @@ namespace bs
 		// Fixed update
 		UINT64 mFixedStep = 16666; // 60 times a second in microseconds
 		UINT64 mLastFixedUpdateTime = 0;
-		bool mFirstFrame = true;
+		bool mFirstFixedFrame = true;
 
 		Timer* mTimer;
 	};

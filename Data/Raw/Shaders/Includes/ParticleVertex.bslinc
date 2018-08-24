@@ -57,7 +57,7 @@ mixin ParticleVertex
 			float aliveMask = step(time, 1.0f);
 			
 			pi.uvflip = 1.0f; // TODO
-			pi.size = aliveMask; // TODO
+			pi.size = 0.1f * aliveMask; // TODO
 			pi.frame = 0; // TODO
 			
 			pi.color = 1.0f; // TODO

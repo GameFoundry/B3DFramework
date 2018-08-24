@@ -58,7 +58,7 @@ namespace bs
 		Vector3 position;
 		float lifetime;
 		Vector3 velocity;
-		float unused;
+		float invMaxLifetime;
 		Vector2 dataUV;
 	};
 
@@ -72,6 +72,7 @@ namespace bs
 			output.position = position;
 			output.lifetime = (initialLifetime - lifetime) / initialLifetime;
 			output.velocity = velocity;
+			output.invMaxLifetime = 1.0f / initialLifetime;
 			output.dataUV = dataUV;
 
 			return output;

@@ -1380,7 +1380,9 @@ namespace bs { namespace ct
 				if(iter->renderElem->type == (UINT32)RenderElementType::Particle)
 				{
 					const auto& renderElem = static_cast<const ParticlesRenderElement*>(iter->renderElem);
-					ParticleRenderer::instance().drawBillboards(renderElem->numParticles);
+
+					if(renderElem->numParticles > 0)
+						ParticleRenderer::instance().drawBillboards(renderElem->numParticles);
 				}
 				else // Renderable
 				{
