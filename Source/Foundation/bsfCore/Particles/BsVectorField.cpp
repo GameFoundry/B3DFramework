@@ -155,9 +155,6 @@ namespace bs
 			data = stream->getAsString();
 		}
 
-
-		UINT32 idx = 0;
-
 		auto chars = bs_managed_stack_alloc<char>((UINT32)data.size() + 1);
 		memcpy(chars, data.data(), data.size());
 		chars[data.size()] = '\0';

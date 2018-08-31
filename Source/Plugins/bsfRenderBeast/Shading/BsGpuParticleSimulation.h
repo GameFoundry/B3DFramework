@@ -130,7 +130,7 @@ namespace bs { namespace ct
 		/** Inserts the provided set of particles into the particle textures. */
 		void injectParticles(const Vector<GpuParticle>& particles);
 
-		UPtr<Pimpl> m;
+		Pimpl* m;
 	};
 
 	/** Contains textures that get updated with every run of the GPU particle simulation. */

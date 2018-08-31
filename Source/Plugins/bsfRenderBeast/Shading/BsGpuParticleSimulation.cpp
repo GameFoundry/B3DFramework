@@ -521,13 +521,16 @@ namespace bs { namespace ct
 	};
 
 	GpuParticleSimulation::GpuParticleSimulation()
-		:m(bs_unique_ptr_new<Pimpl>())
+		:m(bs_new<Pimpl>())
 	{
 		m->vectorFieldParams = gVectorFieldParamsDef.createBuffer();
 		m->simulationParams = gGpuParticleSimulateParamsDef.createBuffer();
 	}
 
-	GpuParticleSimulation::~GpuParticleSimulation() = default;
+	GpuParticleSimulation::~GpuParticleSimulation()
+	{
+		bs_delete(m);
+	}
 
 	void GpuParticleSimulation::addSystem(GpuParticleSystem* system)
 	{
