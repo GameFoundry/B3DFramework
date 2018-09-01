@@ -25,26 +25,6 @@ namespace bs
 	 *  @{
 	 */
 
-	template<bool Core> struct TGpuParamBlockBufferPtrType { };
-	template<> struct TGpuParamBlockBufferPtrType<false> { typedef SPtr<GpuParamBlockBuffer> Type; };
-	template<> struct TGpuParamBlockBufferPtrType<true> { typedef SPtr<ct::GpuParamBlockBuffer> Type; };
-
-	template<bool Core> struct TGpuProgramType { };
-	template<> struct TGpuProgramType<false> { typedef SPtr<GpuProgram> Type; };
-	template<> struct TGpuProgramType<true> { typedef SPtr<ct::GpuProgram> Type; };
-
-	template<bool Core> struct TShaderType {};
-	template<> struct TShaderType < false > { typedef HShader Type; };
-	template<> struct TShaderType < true > { typedef SPtr<ct::Shader> Type; };
-
-	template<bool Core> struct TGpuParamBlockBufferType {};
-	template<> struct TGpuParamBlockBufferType < false > { typedef GpuParamBlockBuffer Type; };
-	template<> struct TGpuParamBlockBufferType < true > { typedef ct::GpuParamBlockBuffer Type; };
-	
-	template<bool Core> struct TGpuParamsSetType {};
-	template<> struct TGpuParamsSetType < false > { typedef GpuParamsSet Type; };
-	template<> struct TGpuParamsSetType < true > { typedef ct::GpuParamsSet Type; };
-
 	/** Flags that signal in what way did the Material change. */
 	enum class MaterialDirtyFlags
 	{
@@ -136,16 +116,16 @@ namespace bs
 	class BS_CORE_EXPORT TMaterial : public MaterialBase
 	{
 	public:
-		typedef typename TGpuParamTextureType<Core>::Type TextureType;
-		typedef typename TSpriteTextureType<Core>::Type SpriteTextureType;
-		typedef typename TGpuBufferType<Core>::Type BufferType;
-		typedef typename TGpuParamSamplerStateType<Core>::Type SamplerStateType;
-		typedef typename TGpuProgramType<Core>::Type GpuProgramType;
-		typedef typename TPassType<Core>::Type PassType;
-		typedef typename TTechniqueType<Core>::Type TechniqueType;
-		typedef typename TShaderType<Core>::Type ShaderType;
-		typedef typename TGpuParamsSetType<Core>::Type GpuParamsSetType;
-		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
+		using TextureType = CoreVariantHandleType<Texture, Core>;
+		using SpriteTextureType = CoreVariantHandleType<SpriteTexture, Core>;
+		using BufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
+		using SamplerStateType = SPtr<CoreVariantType<SamplerState, Core>>;
+		using GpuProgramPtrType = SPtr<CoreVariantType<GpuProgram, Core>>;
+		using PassType = CoreVariantType<Pass, Core>;
+		using TechniqueType = CoreVariantType<Technique, Core>;
+		using ShaderType = CoreVariantHandleType<Shader, Core>;
+		using GpuParamsSetType = CoreVariantType<GpuParamsSet, Core>;
+		using MaterialParamsType = CoreVariantType<MaterialParams, Core>;
 
 		TMaterial() = default;
 		virtual ~TMaterial() = default;

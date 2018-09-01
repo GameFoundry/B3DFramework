@@ -40,47 +40,20 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Contains all data used by a pass, templated so it may contain both core and sim thread data. */
-	template<bool Core>
-	struct TPassTypes
-	{ };
-
-	template<>
-	struct TPassTypes < false >
-	{
-		typedef BlendState BlendStateType;
-		typedef RasterizerState RasterizerStateType;
-		typedef DepthStencilState DepthStencilStateType;
-		typedef GpuProgram GpuProgramType;
-		typedef GraphicsPipelineState GraphicsPipelineStateType;
-		typedef ComputePipelineState ComputePipelineStateType;
-	};
-
-	template<>
-	struct TPassTypes < true >
-	{
-		typedef ct::BlendState BlendStateType;
-		typedef ct::RasterizerState RasterizerStateType;
-		typedef ct::DepthStencilState DepthStencilStateType;
-		typedef ct::GpuProgram GpuProgramType;
-		typedef ct::GraphicsPipelineState GraphicsPipelineStateType;
-		typedef ct::ComputePipelineState ComputePipelineStateType;
-	};
-
 	/** Contains common functionality used by both sim and core thread versions of Pass. */
 	template<bool Core>
 	class BS_CORE_EXPORT TPass
 	{
 	public:
-		typedef typename TPassTypes<Core>::BlendStateType BlendStateType;
-		typedef typename TPassTypes<Core>::RasterizerStateType RasterizerStateType;
-		typedef typename TPassTypes<Core>::DepthStencilStateType DepthStencilStateType;
-		typedef typename TPassTypes<Core>::GpuProgramType GpuProgramType;
-		typedef typename TPassTypes<Core>::GraphicsPipelineStateType GraphicsPipelineStateType;
-		typedef typename TPassTypes<Core>::ComputePipelineStateType ComputePipelineStateType;
-		typedef typename TGpuPipelineStateTypes<Core>::StateDescType PipelineStateDescType;
+		using BlendStateType = CoreVariantType<BlendState, Core>;
+		using RasterizerStateType = CoreVariantType<RasterizerState, Core>;
+		using DepthStencilStateType = CoreVariantType<DepthStencilState, Core>;
+		using GpuProgramType = CoreVariantType<GpuProgram, Core>;
+		using GraphicsPipelineStateType = CoreVariantType<GraphicsPipelineState, Core>;
+		using ComputePipelineStateType = CoreVariantType<ComputePipelineState, Core>;
+		using PipelineStateDescType = typename TGpuPipelineStateTypes<Core>::StateDescType;
 
-		virtual ~TPass() { }
+		virtual ~TPass() = default;
 
 		/**	Returns true if this pass has some element of transparency. */
 		bool hasBlending() const;
@@ -133,7 +106,7 @@ namespace bs
 	class BS_CORE_EXPORT Pass : public IReflectable, public CoreObject, public TPass<false>
 	{
 	public:
-		virtual ~Pass() { }
+		virtual ~Pass() = default;
 
 		/** Retrieves an implementation of a pass usable only from the core thread. */
 		SPtr<ct::Pass> getCore() const;
@@ -151,7 +124,7 @@ namespace bs
 	protected:
 		friend class Technique;
 
-		Pass() { }
+		Pass() = default;
 		Pass(const PASS_DESC& desc);
 
 		/** @copydoc CoreObject::syncToCore */
@@ -188,7 +161,7 @@ namespace bs
 	class BS_CORE_EXPORT Pass : public CoreObject, public TPass<true>
 	{
 	public:
-		virtual ~Pass() { }
+		virtual ~Pass() = default;
 
 		/**	Creates a new empty pass. */
 		static SPtr<Pass> create(const PASS_DESC& desc);
@@ -200,7 +173,7 @@ namespace bs
 		friend class bs::Pass;
 		friend class Technique;
 
-		Pass() { }
+		Pass() = default;
 		Pass(const PASS_DESC& desc);
 
 		/** @copydoc CoreObject::syncToCore */

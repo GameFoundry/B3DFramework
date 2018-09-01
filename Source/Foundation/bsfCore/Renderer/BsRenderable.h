@@ -35,8 +35,8 @@ namespace bs
 	template<bool Core>
 	class BS_CORE_EXPORT TRenderable : public SceneActor
 	{
-		typedef typename TMeshType<Core>::Type MeshType;
-		typedef typename TMaterialPtrType<Core>::Type MaterialType;
+		using MeshType = CoreVariantHandleType<Mesh, Core>;
+		using MaterialType = CoreVariantHandleType<Material, Core>;
 
 	public:
 		TRenderable();

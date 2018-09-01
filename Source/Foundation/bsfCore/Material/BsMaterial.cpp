@@ -34,14 +34,11 @@ namespace bs
 	template<>
 	bool isShaderValid(const SPtr<ct::Shader>& shader) { return shader != nullptr; }
 
-	template<bool Core> struct TMatType { };
-	template<> struct TMatType<false> { typedef Material Type; };
-	template<> struct TMatType<true> { typedef ct::Material Type; };
-
 	template<bool Core>
-	SPtr<typename TMatType<Core>::Type> getMaterialPtr(const TMaterial<Core>* material)
+	SPtr<CoreVariantType<Material, Core>> getMaterialPtr(const TMaterial<Core>* material)
 	{
-		return std::static_pointer_cast<typename TMatType<Core>::Type>(static_cast<const typename TMatType<Core>::Type*>(material)->getThisPtr());
+		return std::static_pointer_cast<CoreVariantType<Material, Core>>(
+			static_cast<const CoreVariantType<Material, Core>*>(material)->getThisPtr());
 	}
 
 	template<bool Core>

@@ -1023,7 +1023,7 @@ namespace bs
 				{
 					assert(paramSize == sizeof(Rect2));
 					
-					typename TSpriteTextureType<Core>::Type spriteTexture = 
+					CoreVariantHandleType<SpriteTexture, Core> spriteTexture =
 						params->getOwningSpriteTexture(*materialParamInfo);
 
 					UINT32 writeOffset = paramInfo.offset * sizeof(UINT32);

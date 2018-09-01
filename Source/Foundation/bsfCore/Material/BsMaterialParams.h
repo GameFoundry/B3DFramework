@@ -487,32 +487,18 @@ namespace bs
 	template<bool Core> struct TMaterialParamsTypes { };
 	template<> struct TMaterialParamsTypes < false >
 	{
-		typedef GpuParams GpuParamsType;
-		typedef HTexture TextureType;
-		typedef HSpriteTexture SpriteTextureType;
-		typedef SPtr<GpuBuffer> BufferType;
-		typedef SPtr<SamplerState> SamplerType;
-		typedef SPtr<GpuParamBlockBuffer> ParamsBufferType;
 		typedef MaterialParamStructData StructParamDataType;
 		typedef MaterialParamTextureData TextureParamDataType;
 		typedef MaterialParamBufferData BufferParamDataType;
 		typedef MaterialParamSamplerStateData SamplerStateParamDataType;
-		typedef HShader ShaderType;
 	};
 
 	template<> struct TMaterialParamsTypes < true >
 	{
-		typedef ct::GpuParams GpuParamsType;
-		typedef SPtr<ct::Texture> TextureType;
-		typedef SPtr<ct::SpriteTexture> SpriteTextureType;
-		typedef SPtr<ct::GpuBuffer> BufferType;
-		typedef SPtr<ct::SamplerState> SamplerType;
-		typedef SPtr<ct::GpuParamBlockBuffer> ParamsBufferType;
 		typedef MaterialParamStructDataCore StructParamDataType;
 		typedef MaterialParamTextureDataCore TextureParamDataType;
 		typedef MaterialParamBufferDataCore BufferParamDataType;
 		typedef MaterialParamSamplerStateDataCore SamplerStateParamDataType;
-		typedef SPtr<ct::Shader> ShaderType;
 	};
 
 	/** Common code that may be specialized for both MaterialParams and ct::MaterialParams. */
@@ -520,16 +506,17 @@ namespace bs
 	class BS_CORE_EXPORT TMaterialParams : public MaterialParamsBase
 	{
 	public:
-		typedef typename TMaterialParamsTypes<Core>::GpuParamsType GpuParamsType;
-		typedef typename TMaterialParamsTypes<Core>::TextureType TextureType;
-		typedef typename TMaterialParamsTypes<Core>::SpriteTextureType SpriteTextureType;
-		typedef typename TMaterialParamsTypes<Core>::BufferType BufferType;
-		typedef typename TMaterialParamsTypes<Core>::SamplerType SamplerType;
-		typedef typename TMaterialParamsTypes<Core>::ShaderType ShaderType;
-		typedef typename TMaterialParamsTypes<Core>::StructParamDataType ParamStructDataType;
-		typedef typename TMaterialParamsTypes<Core>::TextureParamDataType ParamTextureDataType;
-		typedef typename TMaterialParamsTypes<Core>::BufferParamDataType ParamBufferDataType;
-		typedef typename TMaterialParamsTypes<Core>::SamplerStateParamDataType ParamSamplerStateDataType;
+		using GpuParamsType = CoreVariantType<GpuParams, Core>;
+		using TextureType = CoreVariantHandleType<Texture, Core>;
+		using ShaderType = CoreVariantHandleType<Shader, Core>;
+		using SpriteTextureType = CoreVariantHandleType<SpriteTexture, Core>;
+		using BufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
+		using SamplerType = SPtr<CoreVariantType<SamplerState, Core>>;
+
+		using ParamStructDataType = typename TMaterialParamsTypes<Core>::StructParamDataType;
+		using ParamTextureDataType = typename TMaterialParamsTypes<Core>::TextureParamDataType;
+		using ParamBufferDataType = typename TMaterialParamsTypes<Core>::BufferParamDataType;
+		using ParamSamplerStateDataType = typename TMaterialParamsTypes<Core>::SamplerStateParamDataType;
 
 		/** Creates a new material params object and initializes enough room for parameters from the provided shader. */
 		TMaterialParams(const ShaderType& shader);

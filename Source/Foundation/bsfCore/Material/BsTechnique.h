@@ -39,20 +39,12 @@ namespace bs
 		ShaderVariation mVariation;
 	};
 
-	template<bool Core> struct TPassType { };
-	template<> struct TPassType < false > { typedef Pass Type; };
-	template<> struct TPassType < true > { typedef ct::Pass Type; };
-
-	template<bool Core> struct TTechniqueType {};
-	template<> struct TTechniqueType < false > { typedef Technique Type; };
-	template<> struct TTechniqueType < true > { typedef ct::Technique Type; };
-
 	/** Templated class that is used for implementing both sim and core versions of Technique. */
 	template<bool Core>
 	class BS_CORE_EXPORT TTechnique : public TechniqueBase
 	{
 	public:
-		typedef typename TPassType<Core>::Type PassType;
+		using PassType = CoreVariantType<Pass, Core>;
 		
 		TTechnique();
 		TTechnique(const String& language, const Vector<StringID>& tags, const ShaderVariation& variation, 

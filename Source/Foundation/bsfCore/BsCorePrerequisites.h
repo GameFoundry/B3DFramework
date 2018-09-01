@@ -221,41 +221,65 @@
 
 namespace bs 
 {
+	template<class T>
+	struct CoreThreadType
+	{ };
+
+#define CORE_OBJECT_FORWARD_DECLARE(TYPE)				\
+	class TYPE;											\
+	namespace ct { class TYPE; }						\
+	template<> struct CoreThreadType<TYPE> { typedef ct::TYPE Type; };
+
+	CORE_OBJECT_FORWARD_DECLARE(IndexBuffer)
+	CORE_OBJECT_FORWARD_DECLARE(VertexBuffer)
+	CORE_OBJECT_FORWARD_DECLARE(GpuBuffer)
+	CORE_OBJECT_FORWARD_DECLARE(GpuProgram)
+	CORE_OBJECT_FORWARD_DECLARE(Pass)
+	CORE_OBJECT_FORWARD_DECLARE(Technique)
+	CORE_OBJECT_FORWARD_DECLARE(Shader)
+	CORE_OBJECT_FORWARD_DECLARE(Material)
+	CORE_OBJECT_FORWARD_DECLARE(RenderTarget)
+	CORE_OBJECT_FORWARD_DECLARE(RenderTexture)
+	CORE_OBJECT_FORWARD_DECLARE(RenderWindow)
+	CORE_OBJECT_FORWARD_DECLARE(SamplerState)
+	CORE_OBJECT_FORWARD_DECLARE(Viewport)
+	CORE_OBJECT_FORWARD_DECLARE(VertexDeclaration)
+	CORE_OBJECT_FORWARD_DECLARE(DepthStencilState)
+	CORE_OBJECT_FORWARD_DECLARE(RasterizerState)
+	CORE_OBJECT_FORWARD_DECLARE(BlendState)
+	CORE_OBJECT_FORWARD_DECLARE(GpuParamBlockBuffer)
+	CORE_OBJECT_FORWARD_DECLARE(GpuParams)
+	CORE_OBJECT_FORWARD_DECLARE(GpuParamsSet)
+	CORE_OBJECT_FORWARD_DECLARE(MaterialParams)
+	CORE_OBJECT_FORWARD_DECLARE(Light)
+	CORE_OBJECT_FORWARD_DECLARE(Camera)
+	CORE_OBJECT_FORWARD_DECLARE(Renderable)
+	CORE_OBJECT_FORWARD_DECLARE(GraphicsPipelineState)
+	CORE_OBJECT_FORWARD_DECLARE(ComputePipelineState)
+	CORE_OBJECT_FORWARD_DECLARE(ReflectionProbe)
+	CORE_OBJECT_FORWARD_DECLARE(ParticleSystem)
+	CORE_OBJECT_FORWARD_DECLARE(Texture)
+	CORE_OBJECT_FORWARD_DECLARE(SpriteTexture)
+	CORE_OBJECT_FORWARD_DECLARE(Mesh)
+	CORE_OBJECT_FORWARD_DECLARE(VectorField)
+	CORE_OBJECT_FORWARD_DECLARE(Skybox)
+
 	class Color;
-	class GpuProgram;
 	class GpuProgramManager;
-	class IndexBuffer;
-	class VertexBuffer;
-	class GpuBuffer;
 	class GpuProgramManager;
 	class GpuProgramFactory;
 	class IndexData;
-	class Pass;
-	class Technique;
-	class Shader;
-	class Material;
 	class RenderAPICapabilities;
-	class RenderTarget;
-	class RenderTexture;
-	class RenderWindow;
 	class RenderTargetProperties;
-	class SamplerState;
 	class TextureManager;
-	class Viewport;
-	class VertexDeclaration;
 	class Input;
 	struct PointerEvent;
 	class RendererFactory;
 	class AsyncOp;
 	class HardwareBufferManager;
 	class FontManager;
-	class DepthStencilState;
 	class RenderStateManager;
-	class RasterizerState;
-	class BlendState;
 	class GpuParamBlock;
-	class GpuParamBlockBuffer;
-	class GpuParams;
 	struct GpuParamDesc;
 	struct GpuParamDataDesc;
 	struct GpuParamObjectDesc;
@@ -286,7 +310,6 @@ namespace bs
 	class Prefab;
 	class PrefabDiff;
 	class RendererMeshData;
-	class Light;
 	class Win32Window;
 	class RenderAPIFactory;
 	class PhysicsManager;
@@ -337,20 +360,13 @@ namespace bs
 	class CAudioSource;
 	class CAudioListener;
 	class GpuPipelineParamInfo;
-	class MaterialParams;
 	template <class T> class TAnimationCurve;
 	struct AnimationCurves;
 	class Skeleton;
 	class Animation;
-	class GpuParamsSet;
-	class Camera;
-	class Renderable;
 	class MorphShapes;
 	class MorphShape;
 	class MorphChannel;
-	class GraphicsPipelineState;
-	class ComputePipelineState;
-	class ReflectionProbe;
 	class CReflectionProbe;
 	class CSkybox;
 	class CLightProbeVolume;
@@ -358,7 +374,6 @@ namespace bs
 	class SceneActor;
 	class CoreObjectManager;
 	struct CollisionData;
-	class ParticleSystem;
 	class CParticleSystem;
 	// Asset import
 	class SpecificImporter;
@@ -367,8 +382,6 @@ namespace bs
 	class Resource;
 	class Resources;
 	class ResourceManifest;
-	class Texture;
-	class Mesh;
 	class MeshBase;
 	class TransientMesh;
 	class MeshHeap;
@@ -379,8 +392,6 @@ namespace bs
 	class PhysicsMaterial;
 	class PhysicsMesh;
 	class AudioClip;
-	class SpriteTexture;
-	class VectorField;
 	// Scene
 	class SceneObject;
 	class Component;
@@ -415,41 +426,11 @@ namespace bs
 	{
 		class Renderer;
 		class VertexData;
-		class SamplerState;
-		class IndexBuffer;
-		class VertexBuffer;
 		class RenderAPI;
-		class RenderTarget;
-		class RenderTexture;
-		class RenderWindow;
-		class DepthStencilState;
-		class RasterizerState;
-		class BlendState;
 		class CoreObject;
-		class Camera;
-		class Renderable;
 		class MeshBase;
-		class Mesh;
 		class TransientMesh;
-		class Texture;
 		class MeshHeap;
-		class VertexDeclaration;
-		class GpuBuffer;
-		class GpuParamBlockBuffer;
-		class GpuParams;
-		class Shader;
-		class Viewport;
-		class Pass;
-		class GpuParamsSet;
-		class Technique;
-		class Material;
-		class GpuProgram;
-		class Light;
-		class ComputePipelineState;
-		class GraphicsPipelineState;
-		class Camera;
-		class GpuParamsSet;
-		class MaterialParams;
 		class GpuPipelineParamInfo;
 		class CommandBuffer;
 		class EventQuery;
@@ -460,10 +441,6 @@ namespace bs
 		class RenderWindowManager;
 		class RenderStateManager;
 		class HardwareBufferManager;
-		class ReflectionProbe;
-		class Skybox;
-		class ParticleSystem;
-		class SpriteTexture;
 	}
 }
 
@@ -773,6 +750,37 @@ namespace bs
 
 	/** Used for marking a CoreObject dependency as dirty. */
 	static constexpr INT32 DIRTY_DEPENDENCY_MASK = 1 << 31;
+
+	template<class T, bool Core>
+	struct CoreVariant { };
+
+	template<class T>
+	struct CoreVariant<T, false> { typedef T Type; };
+
+	template<class T> struct CoreVariant<T, true> { typedef typename CoreThreadType<T>::Type Type; };
+
+	/** 
+	 * Allows a simple way to define a member that can be both CoreObject variants depending on the Core template 
+	 * parameter. 
+	 */
+	template<class T, bool Core>
+	using CoreVariantType = typename CoreVariant<T, Core>::Type;
+
+	template<class T, bool Core>
+	struct CoreVariantHandle { };
+
+	template<class T>
+	struct CoreVariantHandle<T, false> { typedef ResourceHandle<T> Type; };
+
+	template<class T> struct CoreVariantHandle<T, true> { typedef SPtr<typename CoreThreadType<T>::Type> Type; };
+
+	/** 
+	 * Allows a simple way to define a member that can be both CoreObject variants depending on the Core template 
+	 * parameter. Sim thread type is wrapped in as a resource handle while the core thread variant is wrapped in a shared 
+	 * pointer. 
+	 */
+	template<class T, bool Core>
+	using CoreVariantHandleType = typename CoreVariantHandle<T, Core>::Type;
 }
 
 #include "Utility/BsCommonTypes.h"

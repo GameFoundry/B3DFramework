@@ -19,26 +19,6 @@ namespace bs
 	 *  @{
 	 */
 
-	template<bool Core> struct TGpuParamsPtrType { };
-	template<> struct TGpuParamsPtrType<false> { typedef SPtr<GpuParams> Type; };
-	template<> struct TGpuParamsPtrType<true> { typedef SPtr<ct::GpuParams> Type; };
-
-	template<bool Core> struct TGpuParamTextureType { };
-	template<> struct TGpuParamTextureType < false > { typedef HTexture Type; };
-	template<> struct TGpuParamTextureType < true > { typedef SPtr<ct::Texture> Type; };
-
-	template<bool Core> struct TGpuParamSamplerStateType { };
-	template<> struct TGpuParamSamplerStateType < false > { typedef SPtr<SamplerState> Type; };
-	template<> struct TGpuParamSamplerStateType < true > { typedef SPtr<ct::SamplerState> Type; };
-
-	template<bool Core> struct TGpuParamBufferType { };
-	template<> struct TGpuParamBufferType < false > { typedef SPtr<GpuParamBlockBuffer> Type; };
-	template<> struct TGpuParamBufferType < true > { typedef SPtr<ct::GpuParamBlockBuffer> Type; };
-
-	template<bool Core> struct TGpuBufferType { };
-	template<> struct TGpuBufferType < false > { typedef SPtr<GpuBuffer> Type; };
-	template<> struct TGpuBufferType < true > { typedef SPtr<ct::GpuBuffer> Type; };
-
 	/**
 	 * Policy class that allows us to re-use this template class for matrices which might need transposing, and other 
 	 * types which do not. Matrix needs to be transposed for certain render systems depending on how they store them 
@@ -95,8 +75,8 @@ namespace bs
 	class BS_CORE_EXPORT TGpuDataParam
 	{
 	private:
-		typedef typename TGpuParamBufferType<Core>::Type GpuParamBufferType;
-		typedef typename TGpuParamsPtrType<Core>::Type GpuParamsType;
+		using GpuParamBufferType = SPtr<CoreVariantType<GpuParamBlockBuffer, Core>>;
+		using GpuParamsType = SPtr<CoreVariantType<GpuParams, Core>>;
 
 	public:
 		TGpuDataParam();
@@ -138,8 +118,8 @@ namespace bs
 	class BS_CORE_EXPORT TGpuParamStruct
 	{
 	public:
-		typedef typename TGpuParamBufferType<Core>::Type GpuParamBufferType;
-		typedef typename TGpuParamsPtrType<Core>::Type GpuParamsType;
+		using GpuParamBufferType = SPtr<CoreVariantType<GpuParamBlockBuffer, Core>>;
+		using GpuParamsType = SPtr<CoreVariantType<GpuParams, Core>>;
 
 		TGpuParamStruct();
 		TGpuParamStruct(GpuParamDataDesc* paramDesc, const GpuParamsType& parent);
@@ -175,8 +155,8 @@ namespace bs
 		friend class GpuParams;
 		friend class ct::GpuParams;
 
-		typedef typename TGpuParamsPtrType<Core>::Type GpuParamsType;
-		typedef typename TGpuParamTextureType<Core>::Type TextureType;
+		using GpuParamsType = SPtr<CoreVariantType<GpuParams, Core>>;
+		using TextureType = CoreVariantHandleType<Texture, Core>;
 
 	public:
 		TGpuParamTexture();
@@ -210,8 +190,8 @@ namespace bs
 		friend class GpuParams;
 		friend class ct::GpuParams;
 
-		typedef typename TGpuParamsPtrType<Core>::Type GpuParamsType;
-		typedef typename TGpuParamTextureType<Core>::Type TextureType;
+		using GpuParamsType = SPtr<CoreVariantType<GpuParams, Core>>;
+		using TextureType = CoreVariantHandleType<Texture, Core>;
 
 	public:
 		TGpuParamLoadStoreTexture();
@@ -245,8 +225,8 @@ namespace bs
 		friend class GpuParams;
 		friend class ct::GpuParams;
 
-		typedef typename TGpuParamsPtrType<Core>::Type GpuParamsType;
-		typedef typename TGpuBufferType<Core>::Type BufferType;
+		using GpuParamsType = SPtr<CoreVariantType<GpuParams, Core>>;
+		using BufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
 
 	public:
 		TGpuParamBuffer();
@@ -280,8 +260,8 @@ namespace bs
 		friend class GpuParams;
 		friend class ct::GpuParams;
 
-		typedef typename TGpuParamsPtrType<Core>::Type GpuParamsType;
-		typedef typename TGpuParamSamplerStateType<Core>::Type SamplerStateType;
+		using GpuParamsType = SPtr<CoreVariantType<GpuParams, Core>>;
+		using SamplerStateType = SPtr<CoreVariantType<SamplerState, Core>>;
 
 	public:
 		TGpuParamSampState();

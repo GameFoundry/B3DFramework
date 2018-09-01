@@ -21,16 +21,12 @@ namespace bs
 		class Shader;
 	}
 
-	template<bool Core> struct TShaderPtrType {};
-	template<> struct TShaderPtrType < false > { typedef SPtr<Shader> Type; };
-	template<> struct TShaderPtrType < true > { typedef SPtr<ct::Shader> Type; };
-
 	/** Templated version of SubShader that can be used for both core and sim threads. */
 	template<bool Core>
 	struct TSubShader
 	{
-		typedef typename TTechniqueType<Core>::Type TechniqueType;
-		typedef typename TShaderPtrType<Core>::Type ShaderType;
+		using TechniqueType = CoreVariantType<Technique, Core>;
+		using ShaderType = SPtr<CoreVariantType<Shader, Core>>;
 		
 		String name;
 		ShaderType shader;
@@ -178,10 +174,6 @@ namespace bs
 	 *  @{
 	 */
 
-	template<bool Core> struct TSamplerStateType {};
-	template<> struct TSamplerStateType < false > { typedef SPtr<SamplerState> Type; };
-	template<> struct TSamplerStateType < true > { typedef SPtr<ct::SamplerState> Type; };
-
 	template<bool Core> struct TSubShaderType {};
 	template<> struct TSubShaderType < false > { typedef SubShader Type; };
 	template<> struct TSubShaderType < true > { typedef TSubShader<true> Type; };
@@ -190,10 +182,10 @@ namespace bs
 	template<bool Core>
 	struct BS_CORE_EXPORT TSHADER_DESC
 	{
-		typedef typename TTextureType<Core>::Type TextureType;
-		typedef typename TSamplerStateType<Core>::Type SamplerStateType;
-		typedef typename TTechniqueType<Core>::Type TechniqueType;
-		typedef typename TSubShaderType<Core>::Type SubShaderType;
+		using TextureType = CoreVariantHandleType<Texture, Core>;
+		using SamplerStateType = SPtr<CoreVariantType<SamplerState, Core>>;
+		using TechniqueType = CoreVariantType<Technique, Core>;
+		using SubShaderType = typename TSubShaderType<Core>::Type ;
 
 		TSHADER_DESC();
 
@@ -342,10 +334,10 @@ namespace bs
 	class BS_CORE_EXPORT TShader
 	{
 	public:
-		typedef typename TTechniqueType<Core>::Type TechniqueType;
-		typedef typename TSHADER_DESC<Core>::TextureType TextureType;
-		typedef typename TSHADER_DESC<Core>::SamplerStateType SamplerStateType;
-		typedef typename TSubShaderType<Core>::Type SubShaderType;
+		using TechniqueType = CoreVariantType<Technique, Core>;
+		using TextureType = typename TSHADER_DESC<Core>::TextureType;
+		using SamplerStateType = typename TSHADER_DESC<Core>::SamplerStateType;
+		using SubShaderType = typename TSubShaderType<Core>::Type;
 
 		TShader() { }
 		TShader(const String& name, const TSHADER_DESC<Core>& desc, UINT32 id);

@@ -40,16 +40,12 @@ namespace bs
 
 	namespace detail
 	{
-		template<bool Core> struct TTextureType { };
-		template<> struct TTextureType<false> { typedef SPtr<Texture> Type; };
-		template<> struct TTextureType<true> { typedef SPtr<ct::Texture> Type; };
-
 		/** Common functionality for both the sim and core thread variants of VectorField. */
 		template<bool Core>
 		class BS_CORE_EXPORT TVectorField
 		{
 		public:
-			typedef typename TTextureType<Core>::Type TextureType;
+			using TextureType = SPtr<CoreVariantType<Texture, Core>>;
 
 			TVectorField() = default;
 			TVectorField(const VECTOR_FIELD_DESC& desc)

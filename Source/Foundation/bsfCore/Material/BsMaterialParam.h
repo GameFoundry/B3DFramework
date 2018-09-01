@@ -17,26 +17,13 @@ namespace bs
 	 *  @{
 	 */
 
-	template<bool Core> struct TMaterialType { };
-	template<> struct TMaterialType<false> { typedef SPtr<Material> Type; };
-	template<> struct TMaterialType<true> { typedef SPtr<ct::Material> Type; };
-
-	template<bool Core> struct TMaterialParamsType { };
-	template<> struct TMaterialParamsType<false> { typedef MaterialParams Type; };
-	template<> struct TMaterialParamsType<true> { typedef ct::MaterialParams Type; };
-
-	template<bool Core> struct TSpriteTextureType {};
-	template<> struct TSpriteTextureType < false > { typedef HSpriteTexture Type; };
-	template<> struct TSpriteTextureType < true > { typedef SPtr<ct::SpriteTexture> Type; };
-
-	
 	/** Common functionality for all material data params. */
 	template<int DATA_TYPE, bool Core>
 	class BS_CORE_EXPORT TMaterialDataCommon
 	{
 	protected:
-		typedef typename TMaterialType<Core>::Type MaterialPtrType;
-		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
+		using MaterialPtrType = SPtr<CoreVariantType<Material, Core>>;
+		using MaterialParamsType = CoreVariantType<MaterialParams, Core>;
 
 	public:
 		TMaterialDataCommon() = default;
@@ -140,9 +127,9 @@ namespace bs
 	template<bool Core>
 	class BS_CORE_EXPORT TMaterialParamTexture
 	{
-		typedef typename TMaterialType<Core>::Type MaterialPtrType;
-		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
-		typedef typename TGpuParamTextureType<Core>::Type TextureType;
+		using MaterialPtrType = SPtr<CoreVariantType<Material, Core>>;
+		using MaterialParamsType = CoreVariantType<MaterialParams, Core>;
+		using TextureType = CoreVariantHandleType<Texture, Core>;
 
 	public:
 		TMaterialParamTexture(const String& name, const MaterialPtrType& material);
@@ -169,10 +156,10 @@ namespace bs
 	template<bool Core>
 	class BS_CORE_EXPORT TMaterialParamSpriteTexture
 	{
-		typedef typename TMaterialType<Core>::Type MaterialPtrType;
-		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
-		typedef typename TSpriteTextureType<Core>::Type SpriteTextureType;
-		typedef typename TGpuParamTextureType<Core>::Type TextureType;
+		using MaterialPtrType = SPtr<CoreVariantType<Material, Core>>;
+		using MaterialParamsType = CoreVariantType<MaterialParams, Core>;
+		using SpriteTextureType = CoreVariantHandleType<SpriteTexture, Core>;
+		using TextureType = CoreVariantHandleType<Texture, Core>;
 
 	public:
 		TMaterialParamSpriteTexture(const String& name, const MaterialPtrType& material);
@@ -199,9 +186,9 @@ namespace bs
 	template<bool Core>
 	class BS_CORE_EXPORT TMaterialParamLoadStoreTexture
 	{
-		typedef typename TMaterialType<Core>::Type MaterialPtrType;
-		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
-		typedef typename TGpuParamTextureType<Core>::Type TextureType;
+		using MaterialPtrType = SPtr<CoreVariantType<Material, Core>>;
+		using MaterialParamsType = CoreVariantType<MaterialParams, Core>;
+		using TextureType = CoreVariantHandleType<Texture, Core>;
 
 	public:
 		TMaterialParamLoadStoreTexture(const String& name, const MaterialPtrType& material);
@@ -228,9 +215,9 @@ namespace bs
 	template<bool Core>
 	class BS_CORE_EXPORT TMaterialParamBuffer
 	{
-		typedef typename TMaterialType<Core>::Type MaterialPtrType;
-		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
-		typedef typename TGpuBufferType<Core>::Type BufferType;
+		using MaterialPtrType = SPtr<CoreVariantType<Material, Core>>;
+		using MaterialParamsType = CoreVariantType<MaterialParams, Core>;
+		using BufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
 
 	public:
 		TMaterialParamBuffer(const String& name, const MaterialPtrType& material);
@@ -257,9 +244,9 @@ namespace bs
 	template<bool Core>
 	class BS_CORE_EXPORT TMaterialParamSampState
 	{
-		typedef typename TMaterialType<Core>::Type MaterialPtrType;
-		typedef typename TMaterialParamsType<Core>::Type MaterialParamsType;
-		typedef typename TGpuParamSamplerStateType<Core>::Type SamplerStateType;
+		using MaterialPtrType = SPtr<CoreVariantType<Material, Core>>;
+		using MaterialParamsType = CoreVariantType<MaterialParams, Core>;
+		using SamplerStateType = SPtr<CoreVariantType<SamplerState, Core>>;
 
 	public:
 		TMaterialParamSampState(const String& name, const MaterialPtrType& material);
