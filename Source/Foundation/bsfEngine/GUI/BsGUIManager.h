@@ -235,6 +235,9 @@ namespace bs
 		 */
 		SPtr<RenderWindow> getBridgeWindow(const SPtr<RenderTexture>& target) const;
 
+		/**	Returns the parent render window of the specified widget. */
+		const RenderWindow* getWidgetWindow(const GUIWidget& widget) const;
+
 	private:
 		friend class ct::GUIRenderer;
 
@@ -313,9 +316,6 @@ namespace bs
 
 		/**	Converts screen coordinates to coordinates relative to the specified widget. */
 		Vector2I getWidgetRelativePos(const GUIWidget* widget, const Vector2I& screenPos) const;
-
-		/**	Returns the parent render window of the specified widget. */
-		const RenderWindow* getWidgetWindow(const GUIWidget& widget) const;
 
 		/**	Hides the tooltip if any is shown. */
 		void hideTooltip();

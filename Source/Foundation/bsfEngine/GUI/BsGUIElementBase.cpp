@@ -7,6 +7,7 @@
 #include "GUI/BsGUIElement.h"
 #include "Error/BsException.h"
 #include "GUI/BsGUIWidget.h"
+#include "BsGUIManager.h"
 
 namespace bs
 {
@@ -161,6 +162,37 @@ namespace bs
 			mParentWidget->_updateLayout(mUpdateParent);
 
 		return mLayoutData.area;
+	}
+
+	Rect2I GUIElementBase::getScreenBounds() const
+	{
+		if (mUpdateParent != nullptr && mUpdateParent->_isDirty() && mParentWidget != nullptr)
+			mParentWidget->_updateLayout(mUpdateParent);
+
+		Rect2I area = mLayoutData.area;
+		if(mParentWidget)
+		{
+			const Matrix4& widgetTfrm = mParentWidget->getWorldTfrm();
+			Vector2I localPos(area.x, area.y);
+
+			const Vector4 widgetPosFlt = widgetTfrm.multiplyAffine(Vector4((float)localPos.x, (float)localPos.y, 0.0f, 1.0f));
+			const Vector2I widgetPos(Math::roundToInt(widgetPosFlt.x), Math::roundToInt(widgetPosFlt.y));
+
+			const RenderWindow* parentWindow = GUIManager::instance().getWidgetWindow(*mParentWidget);
+			if(parentWindow)
+			{
+				const Vector2I windowPos = parentWindow->windowToScreenPos(widgetPos);
+				area.x = windowPos.x;
+				area.y = windowPos.y;
+			}
+			else
+			{
+				area.x = widgetPos.x;
+				area.y = widgetPos.y;
+			}
+		}
+
+		return area;
 	}
 
 	Rect2I GUIElementBase::getVisibleBounds()

@@ -122,6 +122,13 @@ namespace bs
 		 */
 		Rect2I getGlobalBounds();
 
+		/** 
+		 * Returns non-clipped bounds of the GUI element in screenspace. 
+		 *
+		 * @note	This call can be potentially expensive if the GUI state is dirty.
+		 */
+		Rect2I getScreenBounds() const;
+
 		/**
 		 * Returns non-clipped visible bounds of the GUI element (bounds exclude the margins). Relative to the parent GUI 
 		 * panel.
