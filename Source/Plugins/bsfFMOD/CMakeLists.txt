@@ -12,7 +12,9 @@ endif()
 add_library(bsfFMOD SHARED ${BS_FMOD_SRC})
 
 # Includes
-target_include_directories(bsfFMOD PRIVATE "./")
+target_include_directories(bsfFMOD PRIVATE 
+	"./"
+	"../bsfOpenAudio/")
 
 # Defines
 target_compile_definitions(bsfFMOD PRIVATE -DBS_FMOD_EXPORTS)

@@ -69,7 +69,7 @@ namespace bs
 		if(format != FMOD_SOUND_FORMAT_PCM8 && format != FMOD_SOUND_FORMAT_PCM16 && format != FMOD_SOUND_FORMAT_PCM24 
 			&& format != FMOD_SOUND_FORMAT_PCM32 && format != FMOD_SOUND_FORMAT_PCMFLOAT)
 		{
-			LOGERR("Failed importing audio file, invalid imported format: " + pathStr);
+			LOGERR("Failed importing audio file, invalid imported format: " + filePath.toString());
 			return nullptr;
 		}
 
