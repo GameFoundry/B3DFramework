@@ -39,8 +39,9 @@ mixin ParticleVertex
 		};
 		
 		#if GPU
-		Texture2D gPositionAndTimeTex; // position in .xyz, time (in [0, 1] range) in .w
-
+		Texture2D gPositionTimeTex; // position in .xyz, time (in [0, 1] range) in .w
+		Texture2D gSizeRotationTex; // size in .xy, rotation in .z
+		
 		ParticleInput getParticleInput(uint2 index)
 		{
 			uint3 pixelPos;
@@ -49,17 +50,19 @@ mixin ParticleVertex
 			
 			ParticleInput pi;
 			
-			float4 posAndTime = gPositionAndTimeTex.Load(pixelPos);
+			float4 posAndTime = gPositionTimeTex.Load(pixelPos);
 			pi.position = posAndTime.xyz;
-			pi.rotation = 0.0f; // TODO
 			
 			float time = posAndTime.w;
 			float aliveMask = step(time, 1.0f);
 			
-			pi.uvflip = 1.0f; // TODO
-			pi.size = 0.01f * aliveMask; // TODO
-			pi.frame = 0; // TODO
+			float4 sizeAndRotation = gSizeRotationTex.Load(pixelPos);
 			
+			pi.uvflip = sign(sizeAndRotation.xy);
+			pi.size = abs(sizeAndRotation.xy) * aliveMask;
+			pi.rotation = sizeAndRotation.z;
+			
+			pi.frame = 0; // TODO
 			pi.color = 1.0f; // TODO
 			
 			return pi;

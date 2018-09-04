@@ -46,6 +46,15 @@ namespace bs { namespace ct
 		GpuParticleInjectMat();
 	};
 
+	/** Material used for adding new curves into the curve texture. */
+	class GpuParticleCurveInjectMat : public RendererMaterial<GpuParticleCurveInjectMat>
+	{
+		RMAT_DEF("GpuParticleCurveInject.bsl");
+
+	public:
+		GpuParticleCurveInjectMat();
+	};
+
 	BS_PARAM_BLOCK_BEGIN(VectorFieldParamsDef)
 		BS_PARAM_BLOCK_ENTRY(Vector3, gFieldBounds)
 		BS_PARAM_BLOCK_ENTRY(float, gFieldIntensity)
@@ -161,26 +170,49 @@ namespace bs { namespace ct
 	GpuParticleResources::GpuParticleResources()
 	{
 		// Allocate textures
-		const POOLED_RENDER_TEXTURE_DESC positionAndTimeDesc =
-			POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA32F, TEX_SIZE, TEX_SIZE, TU_RENDERTARGET);
+		TEXTURE_DESC positionAndTimeDesc;
+		positionAndTimeDesc.format = PF_RGBA32F;
+		positionAndTimeDesc.width = TEX_SIZE;
+		positionAndTimeDesc.height = TEX_SIZE;
+		positionAndTimeDesc.usage = TU_RENDERTARGET;
 
-		const POOLED_RENDER_TEXTURE_DESC velocityDesc =
-			POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, TEX_SIZE, TEX_SIZE, TU_RENDERTARGET);
+		TEXTURE_DESC velocityDesc;
+		velocityDesc.format = PF_RGBA16F;
+		velocityDesc.width = TEX_SIZE;
+		velocityDesc.height = TEX_SIZE;
+		velocityDesc.usage = TU_RENDERTARGET;
 
 		for (UINT32 i = 0; i < 2; i++)
 		{
-			mStateTextures[i].positionAndTimeTex = GpuResourcePool::instance().get(positionAndTimeDesc);
-			mStateTextures[i].velocityTex = GpuResourcePool::instance().get(velocityDesc);
-
-			RENDER_TEXTURE_DESC rtDesc;
-			rtDesc.colorSurfaces[0].texture = mStateTextures[i].positionAndTimeTex->texture;
-			rtDesc.colorSurfaces[1].texture = mStateTextures[i].velocityTex->texture;
-
-			mStateTextures[i].renderTarget = RenderTexture::create(rtDesc);
+			mStateTextures[i].positionAndTimeTex = Texture::create(positionAndTimeDesc);
+			mStateTextures[i].velocityTex = Texture::create(velocityDesc);
 		}
 
-		// TODO - Allocate textures for other properties (not necessarily double-buffered):
-		//	      size, rotation, etc.
+		TEXTURE_DESC sizeAndRotationDesc;
+		sizeAndRotationDesc.format = PF_RGBA16F;
+		sizeAndRotationDesc.width = TEX_SIZE;
+		sizeAndRotationDesc.height = TEX_SIZE;
+		sizeAndRotationDesc.usage = TU_RENDERTARGET;
+
+		mStaticTextures.sizeAndRotationTex = Texture::create(sizeAndRotationDesc);
+
+		RENDER_TEXTURE_DESC staticRtDesc;
+		staticRtDesc.colorSurfaces[0].texture = mStaticTextures.sizeAndRotationTex;
+
+		for (UINT32 i = 0; i < 2; i++)
+		{
+			RENDER_TEXTURE_DESC simulationRTDesc;
+			simulationRTDesc.colorSurfaces[0].texture = mStateTextures[i].positionAndTimeTex;
+			simulationRTDesc.colorSurfaces[1].texture = mStateTextures[i].velocityTex;
+
+			mSimulateRT[i] = RenderTexture::create(simulationRTDesc);
+
+			RENDER_TEXTURE_DESC injectRTDesc;
+			injectRTDesc.colorSurfaces[0].texture = mStateTextures[i].positionAndTimeTex;
+			injectRTDesc.colorSurfaces[1].texture = mStateTextures[i].velocityTex;
+			injectRTDesc.colorSurfaces[2].texture = mStaticTextures.sizeAndRotationTex;
+			mInjectRT[i] = RenderTexture::create(injectRTDesc);
+		}
 
 		// Clear the free tile linked list
 		for (UINT32 i = 0; i < TILE_COUNT; i++)
@@ -246,8 +278,10 @@ namespace bs { namespace ct
 		SPtr<VertexDataDesc> injectVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
 		injectVertexDesc->addVertElem(VET_FLOAT4, VES_TEXCOORD, 0, 0, 1); // Position & time, per instance
 		injectVertexDesc->addVertElem(VET_FLOAT4, VES_TEXCOORD, 1, 0, 1); // Velocity, per instance
-		injectVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD, 2, 0, 1); // Data UV, per instance
-		injectVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD, 3, 1); // Sprite texture coordinates
+		injectVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD, 2, 0, 1); // Size, per instance
+		injectVertexDesc->addVertElem(VET_FLOAT1, VES_TEXCOORD, 3, 0, 1); // Rotation, per instance
+		injectVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD, 4, 0, 1); // Data UV, per instance
+		injectVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD, 5, 1); // Sprite texture coordinates
 
 		injectVertexDecl = VertexDeclaration::create(injectVertexDesc);
 
@@ -569,11 +603,8 @@ namespace bs { namespace ct
 				entry->updateGpuBuffers();
 		}
 
-		GpuParticleStateTextures& readState = m->resources.getReadState();
-		GpuParticleStateTextures& writeState = m->resources.getWriteState();
-
 		RenderAPI& rapi = RenderAPI::instance();
-		rapi.setRenderTarget(readState.renderTarget);
+		rapi.setRenderTarget(m->resources.getInjectTarget());
 
 		clearTiles(newTiles);
 		injectParticles(allNewParticles);
@@ -583,7 +614,7 @@ namespace bs { namespace ct
 		gGpuParticleSimulateParamsDef.gDT.set(m->simulationParams, dt);
 		gGpuParticleSimulateParamsDef.gNumIterations.set(m->simulationParams, 1);
 
-		rapi.setRenderTarget(writeState.renderTarget);
+		rapi.setRenderTarget(m->resources.getSimulationTarget());
 
 		GpuParticleSimulateMat* simulateMat = GpuParticleSimulateMat::get();
 		simulateMat->bindGlobal(m->resources, m->simulationParams);
@@ -792,6 +823,12 @@ namespace bs { namespace ct
 		mParams->setParamBlockBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
 	}
 
+	GpuParticleCurveInjectMat::GpuParticleCurveInjectMat()
+	{
+		const SPtr<GpuParamBlockBuffer> inputBuffer = createGpuParticleVertexInputBuffer();
+		mParams->setParamBlockBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
+	}
+
 	GpuParticleSimulateMat::GpuParticleSimulateMat()
 	{
 		const SPtr<GpuParamBlockBuffer> inputBuffer = createGpuParticleVertexInputBuffer();
@@ -824,12 +861,12 @@ namespace bs { namespace ct
 
 	void GpuParticleSimulateMat::bindGlobal(GpuParticleResources& resources, const SPtr<GpuParamBlockBuffer>& simulationParams)
 	{
-		GpuParticleStateTextures& readState = resources.getReadState();
+		GpuParticleStateTextures& prevState = resources.getPreviousState();
 
 		mParams->setParamBlockBuffer(mParamsBinding.set, mParamsBinding.slot, simulationParams);
 
-		mPosAndTimeTexParam.set(readState.positionAndTimeTex->texture);
-		mVelocityParam.set(readState.velocityTex->texture);
+		mPosAndTimeTexParam.set(prevState.positionAndTimeTex);
+		mVelocityParam.set(prevState.velocityTex);
 
 		RendererMaterial::bind(false);
 	}
@@ -905,5 +942,152 @@ namespace bs { namespace ct
 		output->unlock();
 
 		return AABox(min, max);
+	}
+
+	struct GpuParticleCurveInject
+	{
+		Color color;
+		Vector2 dataUV;
+	};
+
+	GpuParticleCurves::GpuParticleCurves()
+	{
+		TEXTURE_DESC textureDesc;
+		textureDesc.format = PF_RGBA16F;
+		textureDesc.width = TEX_SIZE;
+		textureDesc.height = TEX_SIZE;
+		textureDesc.usage = TU_RENDERTARGET;
+
+		mCurveTexture = Texture::create(textureDesc);
+
+		// Prepare vertex declaration for injecting new curves
+		SPtr<VertexDataDesc> injectVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+		injectVertexDesc->addVertElem(VET_FLOAT4, VES_TEXCOORD, 0, 0, 1); // Color, per instance
+		injectVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD, 1, 0, 1); // Data UV, per instance
+		injectVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD, 2, 1); // Pixel texture coordinates
+
+		mInjectVertexDecl = VertexDeclaration::create(injectVertexDesc);
+
+		// Prepare UV coordinates for injecting curves
+		VERTEX_BUFFER_DESC injectUVBufferDesc;
+		injectUVBufferDesc.numVerts = 4;
+		injectUVBufferDesc.vertexSize = injectVertexDesc->getVertexStride();
+
+		mInjectUV = VertexBuffer::create(injectUVBufferDesc);
+
+		auto* const tileUVData = (Vector2*)mInjectUV->lock(GBL_WRITE_ONLY_DISCARD);
+		const float tileUVScale = 1.0f / (float)TEX_SIZE;
+		tileUVData[0] = Vector2(0.0f, 0.0f) * tileUVScale;
+		tileUVData[1] = Vector2(1.0f, 0.0f) * tileUVScale;
+		tileUVData[2] = Vector2(1.0f, 1.0f) * tileUVScale;
+		tileUVData[3] = Vector2(0.0f, 1.0f) * tileUVScale;
+
+		mInjectUV->unlock();
+
+		// Prepare indices for injecting curves
+		INDEX_BUFFER_DESC injectIndexBufferDesc;
+		injectIndexBufferDesc.indexType = IT_16BIT;
+		injectIndexBufferDesc.numIndices = 6;
+
+		mInjectIndices = IndexBuffer::create(injectIndexBufferDesc);
+
+		auto* const indices = (UINT16*)mInjectIndices->lock(GBL_WRITE_ONLY_DISCARD);
+		indices[0] = 0; indices[1] = 1; indices[2] = 2;
+		indices[3] = 0; indices[4] = 2; indices[5] = 3;
+
+		mInjectIndices->unlock();
+
+		// Prepare a scratch buffer we'll use to inject new curves
+		VERTEX_BUFFER_DESC injectScratchBufferDesc;
+		injectScratchBufferDesc.numVerts = SCRATCH_NUM_VERTICES;
+		injectScratchBufferDesc.vertexSize = injectVertexDesc->getVertexStride(0);
+		injectScratchBufferDesc.usage = GBU_DYNAMIC;
+
+		mInjectScratch = VertexBuffer::create(injectScratchBufferDesc);
+	}
+
+	GpuParticleCurves::~GpuParticleCurves()
+	{
+		for(auto& entry : mPendingAllocations)
+			mPendingAllocator.free(entry.pixels);
+
+		mPendingAllocator.clear();
+	}
+
+	TextureRowAllocation GpuParticleCurves::alloc(Color* pixels, uint32_t count)
+	{
+		PendingAllocation pendingAlloc;
+		pendingAlloc.allocation = mRowAllocator.alloc(count);
+
+		if(pendingAlloc.allocation.length == 0)
+			return pendingAlloc.allocation;
+
+		pendingAlloc.pixels = (Color*)mPendingAllocator.alloc(sizeof(Color) * count);
+		memcpy(pendingAlloc.pixels, pixels, sizeof(Color) * count);
+
+		mPendingAllocations.push_back(pendingAlloc);
+		return pendingAlloc.allocation;
+	}
+
+	void GpuParticleCurves::free(const TextureRowAllocation& alloc)
+	{
+		mRowAllocator.free(alloc);
+	}
+
+	void GpuParticleCurves::apply()
+	{
+		const auto numCurves = (UINT32)mPendingAllocations.size();
+		if(numCurves == 0)
+			return;
+
+		GpuParticleCurveInjectMat* injectMat = GpuParticleCurveInjectMat::get();
+		injectMat->bind();
+
+		RenderAPI& rapi = RenderAPI::instance();
+		rapi.setVertexDeclaration(mInjectVertexDecl);
+
+		SPtr<VertexBuffer> buffers[] = { mInjectScratch, mInjectUV };
+		rapi.setVertexBuffers(0, buffers, (UINT32)bs_size(buffers));
+		rapi.setIndexBuffer(mInjectIndices);
+		rapi.setDrawOperation(DOT_TRIANGLE_LIST);
+
+		UINT32 curveIdx = 0;
+
+		auto* data = (GpuParticleCurveInject*)mInjectScratch->lock(GBL_WRITE_ONLY_DISCARD);
+		while(curveIdx < numCurves)
+		{
+			UINT32 count = 0;
+			for(; curveIdx < numCurves; curveIdx++)
+			{
+				const PendingAllocation& pendingAlloc = mPendingAllocations[curveIdx];
+
+				const UINT32 entryCount = pendingAlloc.allocation.length;
+				if((count + entryCount) > SCRATCH_NUM_VERTICES)
+					break;
+
+				for(UINT32 i = 0; i < entryCount; i++)
+				{
+					data[count].color = pendingAlloc.pixels[i];
+					data[count].dataUV = Vector2(
+						pendingAlloc.allocation.x / (float)TEX_SIZE,
+						pendingAlloc.allocation.y / (float)TEX_SIZE);
+					
+					count++;
+				}
+			}
+
+			mInjectScratch->unlock();
+			rapi.drawIndexed(0, 6, 0, 4, count);
+
+			data = (GpuParticleCurveInject*)mInjectScratch->lock(GBL_WRITE_ONLY_DISCARD);
+		}
+
+		mInjectScratch->unlock();
+
+		for(auto& entry : mPendingAllocations)
+			mPendingAllocator.free(entry.pixels);
+
+		mPendingAllocations.clear();
+		mPendingAllocator.clear();
 	}
 }}

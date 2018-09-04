@@ -7,6 +7,7 @@
 #include "Utility/BsModule.h"
 #include "Particles/BsParticleManager.h"
 #include "Allocators/BsPoolAlloc.h"
+#include "Utility/BsTextureRowAllocator.h"
 
 namespace bs { namespace ct 
 {
@@ -136,9 +137,14 @@ namespace bs { namespace ct
 	/** Contains textures that get updated with every run of the GPU particle simulation. */
 	struct GpuParticleStateTextures
 	{
-		SPtr<PooledRenderTexture> positionAndTimeTex;
-		SPtr<PooledRenderTexture> velocityTex;
-		SPtr<RenderTexture> renderTarget;
+		SPtr<Texture> positionAndTimeTex;
+		SPtr<Texture> velocityTex;
+	};
+
+	/** Contains textures that contain data static throughout the particle's lifetime. */
+	struct GpuParticleStaticTextures
+	{
+		SPtr<Texture> sizeAndRotationTex;
 	};
 
 	/** 
@@ -162,11 +168,20 @@ namespace bs { namespace ct
 		/** Swap the read and write state textures. */
 		void swap() { mWriteBufferIdx ^= 0x1; }
 
-		/** Returns state textures that contain last state of the particle system. */
-		GpuParticleStateTextures& getReadState() { return mStateTextures[mWriteBufferIdx ^ 0x1]; }
+		/** Returns textures that contain the results from the previous simulation step. */
+		GpuParticleStateTextures& getPreviousState() { return mStateTextures[mWriteBufferIdx ^ 0x1]; }
 
-		/** Returns state textures that can be used for writing the new state of the particle system. */
-		GpuParticleStateTextures& getWriteState() { return mStateTextures[mWriteBufferIdx]; }
+		/** Returns textures that contain the results from the last available simulation step. */
+		GpuParticleStateTextures& getCurrentState() { return mStateTextures[mWriteBufferIdx]; }
+
+		/** Returns a set of textures containing particle state that is static throughout the particle's lifetime. */
+		const GpuParticleStaticTextures& getStaticTextures() const { return mStaticTextures; }
+
+		/** Returns the render target which can be used for injecting new particle data in the state textures. */
+		const SPtr<RenderTexture>& getInjectTarget() const { return mInjectRT[mWriteBufferIdx ^ 0x1]; }
+
+		/** Returns the render target which can be used for writing the results of the particle system simulation. */
+		const SPtr<RenderTexture>& getSimulationTarget() const { return mSimulateRT[mWriteBufferIdx]; }
 
 		/** 
 		 * Attempts to allocate a new tile in particle textures. Returns index of the tile if successful or -1 if no more
@@ -197,11 +212,64 @@ namespace bs { namespace ct
 
 	private:
 		GpuParticleStateTextures mStateTextures[2];
+		GpuParticleStaticTextures mStaticTextures;
+		SPtr<RenderTexture> mSimulateRT[2];
+		SPtr<RenderTexture> mInjectRT[2];
 
 		UINT32 mWriteBufferIdx = 0;
 
 		UINT32 mFreeTiles[TILE_COUNT];
 		UINT32 mNumFreeTiles = TILE_COUNT;
+	};
+
+	/** Contains a texture containing quantized versions of all curves used for the GPU particle system. */
+	class GpuParticleCurves
+	{
+		static constexpr UINT32 TEX_SIZE = 1024;
+		static constexpr UINT32 SCRATCH_NUM_VERTICES = 16384;
+	public:
+		GpuParticleCurves();
+		~GpuParticleCurves();
+
+		/** 
+		 * Adds the provided set of pixels to the curve texture. Note you must call apply() to actually inject the
+		 * pixels into the texture.
+		 * 
+		 * @param[in]	pixels		Pixels to inject into the curve.
+		 * @param[in]	count		Number of pixels in the @p pixels array.
+		 * @return					Allocation information about in which part of the texture the pixels were places.
+		 */
+		TextureRowAllocation alloc(Color* pixels, uint32_t count);
+
+		/** Frees a previously allocated region. */
+		void free(const TextureRowAllocation& alloc);
+
+		/** 
+		 * Injects all the newly added pixels into the curve texture (since the last call to this method). Should be
+		 * called after alloc() has been called for all new entries, but before the texture is used for reading.
+		 */
+		void apply();
+
+	private:
+		/** Information about an allocation not yet injected into the curve texture. */
+		struct PendingAllocation
+		{
+			Color* pixels;
+			TextureRowAllocation allocation;
+		};
+
+		FrameAlloc mPendingAllocator;
+		Vector<PendingAllocation> mPendingAllocations;
+
+		SPtr<Texture> mCurveTexture;
+		SPtr<RenderTexture> mRT;
+
+		TextureRowAllocator<TEX_SIZE, TEX_SIZE> mRowAllocator;
+
+		SPtr<VertexBuffer> mInjectUV;
+		SPtr<IndexBuffer> mInjectIndices;
+		SPtr<VertexDeclaration> mInjectVertexDecl;
+		SPtr<VertexBuffer> mInjectScratch;
 	};
 
 	/** @} */

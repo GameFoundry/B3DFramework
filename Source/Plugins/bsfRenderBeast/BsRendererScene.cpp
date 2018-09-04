@@ -750,8 +750,10 @@ namespace bs {	namespace ct
 
 			if(gpu)
 			{
-				gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gPositionAndTimeTex", 
-					renElement.paramsGPU.positionAndTimeTexture);
+				gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gPositionTimeTex", 
+					renElement.paramsGPU.positionTimeTexture);
+				gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gSizeRotationTex", 
+					renElement.paramsGPU.sizeRotationTexture);
 			}
 			else
 			{

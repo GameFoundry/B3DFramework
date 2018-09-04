@@ -1317,7 +1317,8 @@ namespace bs { namespace ct
 			bs_frame_clear();
 
 			GpuParticleResources& gpuSimResources = GpuParticleSimulation::instance().getResources();
-			GpuParticleStateTextures& gpuSimStateTextures = gpuSimResources.getWriteState();
+			GpuParticleStateTextures& gpuSimStateTextures = gpuSimResources.getCurrentState();
+			const GpuParticleStaticTextures& gpuSimStaticTextures = gpuSimResources.getStaticTextures();
 			for (UINT32 i = 0; i < numParticleSystems; i++)
 			{
 				if (!visibility.particleSystems[i])
@@ -1349,7 +1350,8 @@ namespace bs { namespace ct
 				{
 					GpuParticleSystem* gpuParticleSystem = rendererParticles.gpuParticleSystem;
 
-					renderElement.paramsGPU.positionAndTimeTexture.set(gpuSimStateTextures.positionAndTimeTex->texture);
+					renderElement.paramsGPU.positionTimeTexture.set(gpuSimStateTextures.positionAndTimeTex);
+					renderElement.paramsGPU.sizeRotationTexture.set(gpuSimStaticTextures.sizeAndRotationTex);
 					renderElement.indicesBuffer.set(gpuParticleSystem->getParticleIndices());
 					renderElement.numParticles = gpuParticleSystem->getNumTiles() * GpuParticleResources::PARTICLES_PER_TILE;
 

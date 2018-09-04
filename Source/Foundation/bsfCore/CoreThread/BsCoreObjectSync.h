@@ -40,7 +40,10 @@ namespace bs
 		decltype(((std::decay_t<T>*)nullptr)->getInternalPtr()) remove_handle(T&& handle, std::enable_if_t<
 			is_resource_handle<std::decay_t<T>>::value>* = 0)
 		{
-			return handle.getInternalPtr();
+			if(handle.isLoaded(false))
+				return handle.getInternalPtr();
+
+			return nullptr;
 		}
 
 		// Converts a sim thread CoreObject into a core thread CoreObject. If the type is not a core-object, it is just

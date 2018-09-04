@@ -190,6 +190,7 @@
             "Path": "GpuParticleTileVertex.bslinc"
         }
     ],
+    "GpuParticleCurveInject.bsl": null,
     "GpuParticleInject.bsl": null,
     "GpuParticleSimulate.bsl": [
         {

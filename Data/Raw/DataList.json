@@ -473,6 +473,10 @@
         {
             "Path": "GpuParticleBounds.bsl",
             "UUID": "ba7c69fd-4b9b-3fc4-888a-4b9b29180376"
+        },
+        {
+            "Path": "GpuParticleCurveInject.bsl",
+            "UUID": "65877027-40ba-0789-cd8a-40ba393eec73"
         }
     ],
     "Skin": [

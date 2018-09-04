@@ -84,8 +84,11 @@ namespace bs { namespace ct
 		/** Parameters relevant for rendering the outputs of the particle GPU simulation. */
 		struct GPUSimulationParams
 		{
-			/** Binding spot for the texture containing position and time information. */
-			GpuParamTexture positionAndTimeTexture;
+			/** Binding spot for the texture containing position (.xyz) and time (.w) information. */
+			GpuParamTexture positionTimeTexture;
+
+			/** Binding spot for the texture containing 2D size (.xy) and rotation (.z) information. */
+			GpuParamTexture sizeRotationTexture;
 		};
 
 		/** Binding locations for the per-camera param block buffer. */

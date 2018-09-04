@@ -258,9 +258,10 @@ namespace bs
 				particle.lifetime = particles.lifetime[i];
 				particle.initialLifetime =  particles.initialLifetime[i];
 				particle.velocity = particles.velocity[i];
+				particle.size = Vector2(particles.size[i].x, particles.size[i].z);
+				particle.rotation = particles.rotation[i].z;
 
 				output->particles[i] = particle;
-
 			}
 
 			return output;
