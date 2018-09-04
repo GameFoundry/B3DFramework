@@ -111,7 +111,6 @@ namespace bs
 			}
 
 			UINT32 bufferSize = info.numSamples * (info.bitDepth / 8);
-			UINT8* sampleBuffer = (UINT8*)bs_stack_alloc(bufferSize);
 
 			FMOD_CREATESOUNDEXINFO exInfo;
 			memset(&exInfo, 0, sizeof(exInfo));
@@ -152,7 +151,7 @@ namespace bs
 				exInfo.defaultfrequency = mDesc.frequency;
 			}
 
-			sampleBuffer = (UINT8*)bs_stack_alloc(bufferSize);
+			UINT8* sampleBuffer = (UINT8*)bs_stack_alloc(bufferSize);
 			stream->seek(offset);
 			stream->read(sampleBuffer, bufferSize);
 
