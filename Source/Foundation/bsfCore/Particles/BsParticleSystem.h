@@ -218,7 +218,7 @@ namespace bs
 	{
 		/** Vector field resource used for influencing the particles. */
 		CoreVariantHandleType<VectorField, Core> vectorField;
-		
+
 		/** Applies an operation over all the serializable fields of this object. */
 		template<class Processor>
 		void rttiProcess(Processor p);
@@ -261,6 +261,12 @@ namespace bs
 		/** Settings used for controlling a vector field. */
 		ParticleVectorFieldSettings vectorField;
 
+		/** Determines particle color, evaluated over the particle lifetime. */
+		ColorDistribution colorOverLifetime = Color::White;
+
+		/** Determines particle size, evaluated over the particle lifetime. Multiplied by the initial particle size. */
+		Vector2Distribution sizeScaleOverLifetime = Vector2::ONE;
+
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
@@ -293,6 +299,12 @@ namespace bs
 		{
 			/** @copydoc bs::ParticleGpuSimulationSettings::vectorField */
 			ParticleVectorFieldSettings vectorField;
+
+			/** @copydoc bs::ParticleGpuSimulationSettings::colorOverLifetime */
+			ColorDistribution colorOverLifetime;
+
+			/** @copydoc bs::ParticleGpuSimulationSettings::sizeScaleOverLifetime */
+			Vector2Distribution sizeScaleOverLifetime;
 		};
 	}
 

@@ -147,6 +147,68 @@ namespace bs { namespace ct
 		SPtr<Texture> sizeAndRotationTex;
 	};
 
+	/** Contains a texture containing quantized versions of all curves used for the GPU particle system. */
+	class GpuParticleCurves
+	{
+		static constexpr UINT32 TEX_SIZE = 1024;
+		static constexpr UINT32 SCRATCH_NUM_VERTICES = 16384;
+	public:
+		GpuParticleCurves();
+		~GpuParticleCurves();
+
+		/** 
+		 * Adds the provided set of pixels to the curve texture. Note you must call apply() to actually inject the
+		 * pixels into the texture.
+		 * 
+		 * @param[in]	pixels		Pixels to inject into the curve.
+		 * @param[in]	count		Number of pixels in the @p pixels array.
+		 * @return					Allocation information about in which part of the texture the pixels were places.
+		 */
+		TextureRowAllocation alloc(Color* pixels, uint32_t count);
+
+		/** Frees a previously allocated region. */
+		void free(const TextureRowAllocation& alloc);
+
+		/** 
+		 * Injects all the newly added pixels into the curve texture (since the last call to this method). Should be
+		 * called after alloc() has been called for all new entries, but before the texture is used for reading.
+		 */
+		void applyChanges();
+
+		/** Returns the internal texture the curve data is written to. */
+		const SPtr<Texture>& getTexture() const { return mCurveTexture; }
+
+		/** Returns the UV coordinates at which the provided allocation starts. */
+		static Vector2 getUVOffset(const TextureRowAllocation& alloc);
+
+		/** 
+		 * Returns a value which scales a value in range [0, 1] to a range of pixels of the provided allocation, where 0
+		 * represents the left-most pixel, and 1 the right-most pixel.
+		 */
+		static float getUVScale(const TextureRowAllocation& alloc);
+
+	private:
+		/** Information about an allocation not yet injected into the curve texture. */
+		struct PendingAllocation
+		{
+			Color* pixels;
+			TextureRowAllocation allocation;
+		};
+
+		FrameAlloc mPendingAllocator;
+		Vector<PendingAllocation> mPendingAllocations;
+
+		SPtr<Texture> mCurveTexture;
+		SPtr<RenderTexture> mRT;
+
+		TextureRowAllocator<TEX_SIZE, TEX_SIZE> mRowAllocator;
+
+		SPtr<VertexBuffer> mInjectUV;
+		SPtr<IndexBuffer> mInjectIndices;
+		SPtr<VertexDeclaration> mInjectVertexDecl;
+		SPtr<VertexBuffer> mInjectScratch;
+	};
+
 	/** 
 	 * Contains textures and buffers used for GPU particle simulation and handles allocation of tiles within the particle
 	 * textures. State textures are double-buffered so one can be used for reading and other for writing during simulation.
@@ -176,6 +238,9 @@ namespace bs { namespace ct
 
 		/** Returns a set of textures containing particle state that is static throughout the particle's lifetime. */
 		const GpuParticleStaticTextures& getStaticTextures() const { return mStaticTextures; }
+
+		/** Returns an object containing quantized curves for all particle systems. */
+		GpuParticleCurves& getCurveTexture() { return mCurveTexture; }
 
 		/** Returns the render target which can be used for injecting new particle data in the state textures. */
 		const SPtr<RenderTexture>& getInjectTarget() const { return mInjectRT[mWriteBufferIdx ^ 0x1]; }
@@ -213,6 +278,8 @@ namespace bs { namespace ct
 	private:
 		GpuParticleStateTextures mStateTextures[2];
 		GpuParticleStaticTextures mStaticTextures;
+		GpuParticleCurves mCurveTexture;
+		
 		SPtr<RenderTexture> mSimulateRT[2];
 		SPtr<RenderTexture> mInjectRT[2];
 
@@ -220,56 +287,6 @@ namespace bs { namespace ct
 
 		UINT32 mFreeTiles[TILE_COUNT];
 		UINT32 mNumFreeTiles = TILE_COUNT;
-	};
-
-	/** Contains a texture containing quantized versions of all curves used for the GPU particle system. */
-	class GpuParticleCurves
-	{
-		static constexpr UINT32 TEX_SIZE = 1024;
-		static constexpr UINT32 SCRATCH_NUM_VERTICES = 16384;
-	public:
-		GpuParticleCurves();
-		~GpuParticleCurves();
-
-		/** 
-		 * Adds the provided set of pixels to the curve texture. Note you must call apply() to actually inject the
-		 * pixels into the texture.
-		 * 
-		 * @param[in]	pixels		Pixels to inject into the curve.
-		 * @param[in]	count		Number of pixels in the @p pixels array.
-		 * @return					Allocation information about in which part of the texture the pixels were places.
-		 */
-		TextureRowAllocation alloc(Color* pixels, uint32_t count);
-
-		/** Frees a previously allocated region. */
-		void free(const TextureRowAllocation& alloc);
-
-		/** 
-		 * Injects all the newly added pixels into the curve texture (since the last call to this method). Should be
-		 * called after alloc() has been called for all new entries, but before the texture is used for reading.
-		 */
-		void apply();
-
-	private:
-		/** Information about an allocation not yet injected into the curve texture. */
-		struct PendingAllocation
-		{
-			Color* pixels;
-			TextureRowAllocation allocation;
-		};
-
-		FrameAlloc mPendingAllocator;
-		Vector<PendingAllocation> mPendingAllocations;
-
-		SPtr<Texture> mCurveTexture;
-		SPtr<RenderTexture> mRT;
-
-		TextureRowAllocator<TEX_SIZE, TEX_SIZE> mRowAllocator;
-
-		SPtr<VertexBuffer> mInjectUV;
-		SPtr<IndexBuffer> mInjectIndices;
-		SPtr<VertexDeclaration> mInjectVertexDecl;
-		SPtr<VertexBuffer> mInjectScratch;
 	};
 
 	/** @} */

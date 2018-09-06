@@ -19,6 +19,13 @@ namespace bs
 	}
 
 	template <>
+	void addToVector(const Vector2& val, Vector<float>& output)
+	{
+		output.push_back(val.x);
+		output.push_back(val.y);
+	}
+
+	template <>
 	void addToVector(const Color& val, Vector<float>& output)
 	{
 		output.push_back(val.r);
@@ -155,4 +162,5 @@ namespace bs
 
 	template struct BS_CORE_EXPORT TDistribution<float>;
 	template struct BS_CORE_EXPORT TDistribution<Vector3>;
+	template struct BS_CORE_EXPORT TDistribution<Vector2>;
 }

@@ -579,6 +579,7 @@ namespace bs { namespace ct
 	void GpuParticleSimulation::simulate(const SceneInfo& sceneInfo, const ParticleSimulationData* simData, float dt)
 	{
 		m->resources.swap();
+		m->resources.getCurveTexture().applyChanges();
 
 		Vector<UINT32> newTiles;
 		Vector<GpuParticle> allNewParticles;
@@ -960,6 +961,11 @@ namespace bs { namespace ct
 
 		mCurveTexture = Texture::create(textureDesc);
 
+		RENDER_TEXTURE_DESC rtDesc;
+		rtDesc.colorSurfaces[0].texture = mCurveTexture;
+
+		mRT = RenderTexture::create(rtDesc);
+
 		// Prepare vertex declaration for injecting new curves
 		SPtr<VertexDataDesc> injectVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
 		injectVertexDesc->addVertElem(VET_FLOAT4, VES_TEXCOORD, 0, 0, 1); // Color, per instance
@@ -971,7 +977,7 @@ namespace bs { namespace ct
 		// Prepare UV coordinates for injecting curves
 		VERTEX_BUFFER_DESC injectUVBufferDesc;
 		injectUVBufferDesc.numVerts = 4;
-		injectUVBufferDesc.vertexSize = injectVertexDesc->getVertexStride();
+		injectUVBufferDesc.vertexSize = injectVertexDesc->getVertexStride(1);
 
 		mInjectUV = VertexBuffer::create(injectUVBufferDesc);
 
@@ -1034,7 +1040,7 @@ namespace bs { namespace ct
 		mRowAllocator.free(alloc);
 	}
 
-	void GpuParticleCurves::apply()
+	void GpuParticleCurves::applyChanges()
 	{
 		const auto numCurves = (UINT32)mPendingAllocations.size();
 		if(numCurves == 0)
@@ -1044,6 +1050,7 @@ namespace bs { namespace ct
 		injectMat->bind();
 
 		RenderAPI& rapi = RenderAPI::instance();
+		rapi.setRenderTarget(mRT);
 		rapi.setVertexDeclaration(mInjectVertexDecl);
 
 		SPtr<VertexBuffer> buffers[] = { mInjectScratch, mInjectUV };
@@ -1069,7 +1076,7 @@ namespace bs { namespace ct
 				{
 					data[count].color = pendingAlloc.pixels[i];
 					data[count].dataUV = Vector2(
-						pendingAlloc.allocation.x / (float)TEX_SIZE,
+						(pendingAlloc.allocation.x + i) / (float)TEX_SIZE,
 						pendingAlloc.allocation.y / (float)TEX_SIZE);
 					
 					count++;
@@ -1089,5 +1096,21 @@ namespace bs { namespace ct
 
 		mPendingAllocations.clear();
 		mPendingAllocator.clear();
+	}
+
+	Vector2 GpuParticleCurves::getUVOffset(const TextureRowAllocation& alloc)
+	{
+		return Vector2(
+			((float)alloc.x + 0.5f) / TEX_SIZE,
+			((float)alloc.y + 0.5f) / TEX_SIZE
+		);
+	}
+
+	float GpuParticleCurves::getUVScale(const TextureRowAllocation& alloc)
+	{
+		if(alloc.length == 0)
+			return 0.0f;
+
+		return (alloc.length - 1) / (float)TEX_SIZE;
 	}
 }}

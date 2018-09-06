@@ -43,6 +43,7 @@ namespace bs { namespace ct
 	}
 
 	ParticlesParamDef gParticlesParamDef;
+	GpuParticlesParamDef gGpuParticlesParamDef;
 
 	ParticleTexturePool::~ParticleTexturePool()
 	{

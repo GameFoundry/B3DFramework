@@ -10,6 +10,7 @@
 #include "Particles/BsParticleSystem.h"
 #include "Allocators/BsPoolAlloc.h"
 #include "Renderer/BsRendererMaterial.h"
+#include "Utility/BsTextureRowAllocator.h"
 
 namespace bs { struct ParticleCPUSimulationData; }
 
@@ -32,6 +33,15 @@ namespace bs { namespace ct
 	BS_PARAM_BLOCK_END
 
 	extern ParticlesParamDef gParticlesParamDef;
+
+	BS_PARAM_BLOCK_BEGIN(GpuParticlesParamDef)
+		BS_PARAM_BLOCK_ENTRY(Vector2, gColorCurveOffset)
+		BS_PARAM_BLOCK_ENTRY(Vector2, gColorCurveScale)
+		BS_PARAM_BLOCK_ENTRY(Vector2, gSizeScaleCurveOffset)
+		BS_PARAM_BLOCK_ENTRY(Vector2, gSizeScaleCurveScale)
+	BS_PARAM_BLOCK_END
+
+	extern GpuParticlesParamDef gGpuParticlesParamDef;
 
 	/** 
 	 * Returns a specific particle rendering shader variation.
@@ -89,6 +99,9 @@ namespace bs { namespace ct
 
 			/** Binding spot for the texture containing 2D size (.xy) and rotation (.z) information. */
 			GpuParamTexture sizeRotationTexture;
+
+			/** Binding spot for the texture containing quantized curves used for evaluating various particle properties. */
+			GpuParamTexture curvesTexture;
 		};
 
 		/** Binding locations for the per-camera param block buffer. */
@@ -124,6 +137,15 @@ namespace bs { namespace ct
 
 		/** Parameters used by the particle rendering shader. */
 		SPtr<GpuParamBlockBuffer> particlesParamBuffer;
+
+		/** Extra parameters required by the particle rendering shader if the particle system is GPU simulated. */
+		SPtr<GpuParamBlockBuffer> gpuParticlesParamBuffer;
+
+		/** Information about the color over lifetime curve stored in the global curve texture. */
+		TextureRowAllocation colorCurveAlloc;
+
+		/** Information about the size over lifetime curve stored in the global curve texture. */
+		TextureRowAllocation sizeScaleCurveAlloc;
 	};
 
 	/** Default material used for rendering particles, when no other is available. */

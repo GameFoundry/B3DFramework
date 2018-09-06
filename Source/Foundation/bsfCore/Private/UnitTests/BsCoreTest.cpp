@@ -126,8 +126,8 @@ namespace bs
 
 		for(UINT32 i = 0; i < 10; i++)
 		{
-			float* left;
-			float* right;
+			const float* left;
+			const float* right;
 			float lerp;
 
 			float t = (i / 9.0f) * 1.0f;

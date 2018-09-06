@@ -37,7 +37,7 @@ namespace bs
 	 */
 
 	/** Specifies a color as a distribution, which can include a constant color, random color range or a color gradient. */
-	struct ColorDistribution
+	struct BS_CORE_EXPORT ColorDistribution
 	{
 		/** Creates a new distribution that returns a constant color. */
 		ColorDistribution(const Color& color = Color::Black)
@@ -58,6 +58,9 @@ namespace bs
 		ColorDistribution(const ColorGradient& minGradient, const ColorGradient& maxGradient)
 			: mType(PDT_RandomCurveRange), mMinGradient(minGradient), mMaxGradient(maxGradient)
 		{ }
+
+		/** Returns the type of the represented distribution. */
+		PropertyDistributionType getType() const { return mType; }
 
 		/** 
 		 * Evaluates the value of the distribution.
@@ -174,6 +177,9 @@ namespace bs
 			: mType(PDT_RandomCurveRange), mMinCurve(minCurve), mMaxCurve(maxCurve)
 		{ }
 
+		/** Returns the type of the represented distribution. */
+		PropertyDistributionType getType() const { return mType; }
+
 		/** 
 		 * Evaluates the value of the distribution.
 		 * 
@@ -262,6 +268,7 @@ namespace bs
 
 	using FloatDistribution = TDistribution<float>;
 	using Vector3Distribution = TDistribution<Vector3>;
+	using Vector2Distribution = TDistribution<Vector2>;
 
 	/** @} */
 }

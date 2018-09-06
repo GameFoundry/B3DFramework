@@ -42,6 +42,20 @@ mixin ParticleVertex
 		Texture2D gPositionTimeTex; // position in .xyz, time (in [0, 1] range) in .w
 		Texture2D gSizeRotationTex; // size in .xy, rotation in .z
 		
+		Texture2D gCurvesTex;
+		
+		[alias(gCurvesTex)]
+		SamplerState gCurvesSampler;
+		
+		[internal]
+		cbuffer GpuParticleParams
+		{
+			float2 gColorCurveOffset;
+			float2 gColorCurveScale;
+			float2 gSizeScaleCurveOffset;
+			float2 gSizeScaleCurveScale;
+		};
+		
 		ParticleInput getParticleInput(uint2 index)
 		{
 			uint3 pixelPos;
@@ -58,12 +72,17 @@ mixin ParticleVertex
 			
 			float4 sizeAndRotation = gSizeRotationTex.Load(pixelPos);
 			
+			float2 sizeScaleCurveUV = gSizeScaleCurveOffset + time * gSizeScaleCurveScale;
+			float4 sizeScale = gCurvesTex.SampleLevel(gCurvesSampler, sizeScaleCurveUV, 0);
+			
 			pi.uvflip = sign(sizeAndRotation.xy);
-			pi.size = abs(sizeAndRotation.xy) * aliveMask;
+			pi.size = abs(sizeAndRotation.xy) * sizeScale.xy * aliveMask;
 			pi.rotation = sizeAndRotation.z;
 			
 			pi.frame = 0; // TODO
-			pi.color = 1.0f; // TODO
+			
+			float2 colorCurveUV = gColorCurveOffset + time * gColorCurveScale;
+			pi.color = gCurvesTex.SampleLevel(gCurvesSampler, colorCurveUV, 0);
 			
 			return pi;
 		}

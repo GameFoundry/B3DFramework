@@ -33,7 +33,7 @@ namespace bs
 	public:
 		virtual ~AudioSource() { }
 
-		/** Aaudio clip to play. */
+		/** Audio clip to play. */
 		virtual void setClip(const HAudioClip& clip);
 
 		/** @copydoc setClip() */

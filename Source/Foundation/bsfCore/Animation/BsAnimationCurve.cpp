@@ -3,6 +3,7 @@
 #include "Animation/BsAnimationCurve.h"
 #include "Private/RTTI/BsAnimationCurveRTTI.h"
 #include "Math/BsVector3.h"
+#include "Math/BsVector2.h"
 #include "Math/BsQuaternion.h"
 #include "Math/BsMath.h"
 #include "Animation/BsAnimationUtility.h"
@@ -30,6 +31,21 @@ namespace bs
 		void setStepCoefficients(const TKeyframe<Vector3>& lhs, const TKeyframe<Vector3>& rhs, Vector3(&coefficients)[4])
 		{
 			for (UINT32 i = 0; i < 3; i++)
+			{
+				if (lhs.outTangent[i] != std::numeric_limits<float>::infinity() &&
+					rhs.inTangent[i] != std::numeric_limits<float>::infinity())
+					continue;
+
+				coefficients[0][i] = 0.0f;
+				coefficients[1][i] = 0.0f;
+				coefficients[2][i] = 0.0f;
+				coefficients[3][i] = lhs.value[i];
+			}
+		}
+
+		void setStepCoefficients(const TKeyframe<Vector2>& lhs, const TKeyframe<Vector2>& rhs, Vector2(&coefficients)[4])
+		{
+			for (UINT32 i = 0; i < 2; i++)
 			{
 				if (lhs.outTangent[i] != std::numeric_limits<float>::infinity() &&
 					rhs.inTangent[i] != std::numeric_limits<float>::infinity())
@@ -79,6 +95,18 @@ namespace bs
 			}
 		}
 
+		void setStepValue(const TKeyframe<Vector2>& lhs, const TKeyframe<Vector2>& rhs, Vector2& value)
+		{
+			for (UINT32 i = 0; i < 2; i++)
+			{
+				if (lhs.outTangent[i] != std::numeric_limits<float>::infinity() &&
+					rhs.inTangent[i] != std::numeric_limits<float>::infinity())
+					continue;
+
+				value[i] = lhs.value[i];
+			}
+		}
+
 		void setStepValue(const TKeyframe<Quaternion>& lhs, const TKeyframe<Quaternion>& rhs, Quaternion& value)
 		{
 			for (UINT32 i = 0; i < 4; i++)
@@ -113,6 +141,18 @@ namespace bs
 			}
 		}
 
+		void setStepTangent(const TKeyframe<Vector2>& lhs, const TKeyframe<Vector2>& rhs, Vector2& tangent)
+		{
+			for (UINT32 i = 0; i < 2; i++)
+			{
+				if (lhs.outTangent[i] != std::numeric_limits<float>::infinity() &&
+					rhs.inTangent[i] != std::numeric_limits<float>::infinity())
+					continue;
+
+				tangent[i] = std::numeric_limits<float>::infinity();
+			}
+		}
+
 		void setStepTangent(const TKeyframe<Quaternion>& lhs, const TKeyframe<Quaternion>& rhs, Quaternion& tangent)
 		{
 			for (UINT32 i = 0; i < 4; i++)
@@ -132,6 +172,11 @@ namespace bs
 		}
 
 		Vector3 getDiff(const Vector3& lhs, const Vector3& rhs)
+		{
+			return lhs - rhs;
+		}
+
+		Vector2 getDiff(const Vector2& lhs, const Vector2& rhs)
 		{
 			return lhs - rhs;
 		}
@@ -156,6 +201,9 @@ namespace bs
 		Vector3 getZero<Vector3>() { return Vector3(BsZero); }
 
 		template<>
+		Vector2 getZero<Vector2>() { return Vector2(BsZero); }
+
+		template<>
 		Quaternion getZero<Quaternion>() { return Quaternion(BsZero); }
 
 		template<>
@@ -168,6 +216,9 @@ namespace bs
 		constexpr UINT32 getNumComponents<Vector3>() { return 3; }
 
 		template<>
+		constexpr UINT32 getNumComponents<Vector2>() { return 2; }
+
+		template<>
 		constexpr UINT32 getNumComponents<Quaternion>() { return 4; }
 
 		template <class T>
@@ -177,6 +228,9 @@ namespace bs
 		float& getComponent(Vector3& val, UINT32 idx) { return val[idx]; }
 
 		template<>
+		float& getComponent(Vector2& val, UINT32 idx) { return val[idx]; }
+
+		template<>
 		float& getComponent(Quaternion& val, UINT32 idx) { return val[idx]; }
 
 		template <class T>
@@ -184,6 +238,9 @@ namespace bs
 
 		template<>
 		float getComponent(const Vector3& val, UINT32 idx) { return val[idx]; }
+
+		template<>
+		float getComponent(const Vector2& val, UINT32 idx) { return val[idx]; }
 
 		template<>
 		float getComponent(const Quaternion& val, UINT32 idx) { return val[idx]; }
@@ -200,6 +257,13 @@ namespace bs
 		{
 			minmax.first = Vector3::min(minmax.first, value);
 			minmax.second = Vector3::max(minmax.second, value);
+		}
+
+		template <>
+		void getMinMax(std::pair<Vector2, Vector2>& minmax, const Vector2& value)
+		{
+			minmax.first = Vector2::min(minmax.first, value);
+			minmax.second = Vector2::max(minmax.second, value);
 		}
 
 		template <>
@@ -1082,6 +1146,7 @@ namespace bs
 	}
 
 	template class TAnimationCurve<Vector3>;
+	template class TAnimationCurve<Vector2>;
 	template class TAnimationCurve<Quaternion>;
 	template class TAnimationCurve<float>;
 	template class TAnimationCurve<INT32>;

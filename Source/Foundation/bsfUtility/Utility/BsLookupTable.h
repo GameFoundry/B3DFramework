@@ -42,7 +42,10 @@ namespace bs
 		 *							0 corresponds to the @p left value, 1 to the @p right value and values in-between
 		 *							interpolate linearly between the two.
 		 */
-		void evaluate(float t, float*& left, float*& right, float& fraction);
+		void evaluate(float t, const float*& left, const float*& right, float& fraction) const;
+
+		/** Returns a sample at the specified index. Returns last available sample if index is out of range. */
+		const float* getSample(uint32_t idx) const;
 
 	private:
 		Vector<float> mValues;

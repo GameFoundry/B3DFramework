@@ -32,7 +32,7 @@ shader Surface
 	
 		float4 fsmain(in VStoFS input) : SV_Target0
 		{
-			return gTexture.Sample(gSampler, input.uv0);
+			return gTexture.Sample(gSampler, input.uv0) * input.color;
 		}	
 	};
 };

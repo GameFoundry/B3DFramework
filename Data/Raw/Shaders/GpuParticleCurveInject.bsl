@@ -11,8 +11,8 @@ shader GpuParticleCurveInject
 		struct VertexInput
 		{
 			float4 color : TEXCOORD0;
-			float2 dataUV : TEXCOORD2;
-			float2 uv0 : TEXCOORD3;
+			float2 dataUV : TEXCOORD1;
+			float2 uv0 : TEXCOORD2;
 		};	
 	
 		struct VStoFS

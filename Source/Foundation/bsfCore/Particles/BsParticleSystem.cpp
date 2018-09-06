@@ -337,6 +337,8 @@ namespace bs
 	CoreSyncData ParticleSystem::syncToCore(FrameAlloc* allocator)
 	{
 		UINT32 size = getActorSyncDataSize() + rttiGetElemSize(getCoreDirtyFlags());
+		size += rttiGetElemSize(mGpuSimulationSettings.colorOverLifetime);
+		size += rttiGetElemSize(mGpuSimulationSettings.sizeScaleOverLifetime);
 
 		mSettings.rttiProcess(RttiCoreSyncSize(size));
 		mGpuSimulationSettings.vectorField.rttiProcess(RttiCoreSyncSize(size));
@@ -348,6 +350,9 @@ namespace bs
 
 		mSettings.rttiProcess(RttiCoreSyncWriter(&dataPtr));
 		mGpuSimulationSettings.vectorField.rttiProcess(RttiCoreSyncWriter(&dataPtr));
+
+		dataPtr = rttiWriteElem(mGpuSimulationSettings.colorOverLifetime, dataPtr);
+		dataPtr = rttiWriteElem(mGpuSimulationSettings.sizeScaleOverLifetime, dataPtr);
 
 		return CoreSyncData(data, size);
 	}
@@ -404,6 +409,9 @@ namespace bs
 
 			mSettings.rttiProcess(RttiCoreSyncReader(&dataPtr));
 			mGpuSimulationSettings.vectorField.rttiProcess(RttiCoreSyncReader(&dataPtr));
+
+			dataPtr = rttiReadElem(mGpuSimulationSettings.colorOverLifetime, dataPtr);
+			dataPtr = rttiReadElem(mGpuSimulationSettings.sizeScaleOverLifetime, dataPtr);
 
 			constexpr UINT32 updateEverythingFlag = (UINT32)ActorDirtyFlag::Everything
 				| (UINT32)ActorDirtyFlag::Active
