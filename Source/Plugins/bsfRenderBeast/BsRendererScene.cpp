@@ -785,7 +785,7 @@ namespace bs {	namespace ct
 				// Allocate curves
 				GpuParticleCurves& curves = GpuParticleSimulation::instance().getResources().getCurveTexture();
 				curves.free(rendererParticles.colorCurveAlloc);
-				curves.free(rendererParticles.sizeScaleCurveAlloc);
+				curves.free(rendererParticles.sizeScaleFrameIdxCurveAlloc);
 
 				static constexpr UINT32 NUM_CURVE_SAMPLES = 128;
 				Color samples[NUM_CURVE_SAMPLES];
@@ -803,27 +803,56 @@ namespace bs {	namespace ct
 
 				rendererParticles.colorCurveAlloc = curves.alloc(samples, NUM_CURVE_SAMPLES);
 
-				// Write size over lifetime curve
+				// Write size over lifetime / sprite animation curve
 				LookupTable sizeLookup = gpuSimSettings.sizeScaleOverLifetime.toLookupTable(NUM_CURVE_SAMPLES, true);
+
+				float frameSamples[NUM_CURVE_SAMPLES];
+				if(spriteTexture && spriteTexture->getAnimationPlayback() != SpriteAnimationPlayback::None)
+				{
+					const SpriteSheetGridAnimation& anim = spriteTexture->getAnimation();
+					for (UINT32 i = 0; i < NUM_CURVE_SAMPLES; i++)
+					{
+						const float t = i / (float)(NUM_CURVE_SAMPLES - 1);
+						frameSamples[i] = t * (anim.count - 1);
+					}
+				}
+				else
+					memset(frameSamples, 0, sizeof(frameSamples));
+
 				for (UINT32 i = 0; i < NUM_CURVE_SAMPLES; i++)
 				{
 					const float* sample = sizeLookup.getSample(i);
-					samples[i] = Color(sample[0], sample[1], 0.0f, 0.0f);
+					samples[i] = Color(sample[0], sample[1], frameSamples[i], 0.0f);
 				}
 
-				rendererParticles.sizeScaleCurveAlloc = curves.alloc(samples, NUM_CURVE_SAMPLES);
+				rendererParticles.sizeScaleFrameIdxCurveAlloc = curves.alloc(samples, NUM_CURVE_SAMPLES);
 
 				const Vector2 colorUVOffset = GpuParticleCurves::getUVOffset(rendererParticles.colorCurveAlloc);
 				const float colorUVScale = GpuParticleCurves::getUVScale(rendererParticles.colorCurveAlloc);
 
-				const Vector2 sizeScaleUVOffset = GpuParticleCurves::getUVOffset(rendererParticles.sizeScaleCurveAlloc);
-				const float sizeScaleUVScale = GpuParticleCurves::getUVScale(rendererParticles.sizeScaleCurveAlloc);
+				const Vector2 sizeScaleFrameIdxUVOffset = 
+					GpuParticleCurves::getUVOffset(rendererParticles.sizeScaleFrameIdxCurveAlloc);
+				const float sizeScaleFrameIdxUVScale = 
+					GpuParticleCurves::getUVScale(rendererParticles.sizeScaleFrameIdxCurveAlloc);
 
 				const SPtr<GpuParamBlockBuffer>& gpuParticlesParamBuffer = rendererParticles.gpuParticlesParamBuffer;
 				gGpuParticlesParamDef.gColorCurveOffset.set(gpuParticlesParamBuffer, colorUVOffset);
 				gGpuParticlesParamDef.gColorCurveScale.set(gpuParticlesParamBuffer, Vector2(colorUVScale, 0.0f));
-				gGpuParticlesParamDef.gSizeScaleCurveOffset.set(gpuParticlesParamBuffer, sizeScaleUVOffset);
-				gGpuParticlesParamDef.gSizeScaleCurveScale.set(gpuParticlesParamBuffer, Vector2(sizeScaleUVScale, 0.0f));
+				gGpuParticlesParamDef.gSizeScaleFrameIdxCurveOffset.set(gpuParticlesParamBuffer, 
+					sizeScaleFrameIdxUVOffset);
+				gGpuParticlesParamDef.gSizeScaleFrameIdxCurveScale.set(gpuParticlesParamBuffer, 
+					Vector2(sizeScaleFrameIdxUVScale, 0.0f));
+
+				// Write sprite animation curve
+				if (spriteTexture)
+				{
+					gParticlesParamDef.gUVOffset.set(paramBuffer, spriteTexture->getOffset());
+					gParticlesParamDef.gUVScale.set(paramBuffer, spriteTexture->getScale());
+
+					const SpriteSheetGridAnimation& anim = spriteTexture->getAnimation();
+					gParticlesParamDef.gSubImageSize.set(paramBuffer,
+						Vector4((float)anim.numColumns, (float)anim.numRows, 1.0f / anim.numColumns, 1.0f / anim.numRows));
+				}
 			}
 
 			// TODO - Set up buffers/bindings required for advanced lighting
@@ -838,7 +867,7 @@ namespace bs {	namespace ct
 		// Free curves
 		GpuParticleCurves& curves = GpuParticleSimulation::instance().getResources().getCurveTexture();
 		curves.free(rendererParticles.colorCurveAlloc);
-		curves.free(rendererParticles.sizeScaleCurveAlloc);
+		curves.free(rendererParticles.sizeScaleFrameIdxCurveAlloc);
 
 		if (rendererParticles.gpuParticleSystem)
 		{

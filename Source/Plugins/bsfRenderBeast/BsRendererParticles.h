@@ -37,8 +37,8 @@ namespace bs { namespace ct
 	BS_PARAM_BLOCK_BEGIN(GpuParticlesParamDef)
 		BS_PARAM_BLOCK_ENTRY(Vector2, gColorCurveOffset)
 		BS_PARAM_BLOCK_ENTRY(Vector2, gColorCurveScale)
-		BS_PARAM_BLOCK_ENTRY(Vector2, gSizeScaleCurveOffset)
-		BS_PARAM_BLOCK_ENTRY(Vector2, gSizeScaleCurveScale)
+		BS_PARAM_BLOCK_ENTRY(Vector2, gSizeScaleFrameIdxCurveOffset)
+		BS_PARAM_BLOCK_ENTRY(Vector2, gSizeScaleFrameIdxCurveScale)
 	BS_PARAM_BLOCK_END
 
 	extern GpuParticlesParamDef gGpuParticlesParamDef;
@@ -144,8 +144,8 @@ namespace bs { namespace ct
 		/** Information about the color over lifetime curve stored in the global curve texture. */
 		TextureRowAllocation colorCurveAlloc;
 
-		/** Information about the size over lifetime curve stored in the global curve texture. */
-		TextureRowAllocation sizeScaleCurveAlloc;
+		/** Information about the size over lifetime / frame index curve stored in the global curve texture. */
+		TextureRowAllocation sizeScaleFrameIdxCurveAlloc;
 	};
 
 	/** Default material used for rendering particles, when no other is available. */

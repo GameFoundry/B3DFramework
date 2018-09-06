@@ -52,8 +52,8 @@ mixin ParticleVertex
 		{
 			float2 gColorCurveOffset;
 			float2 gColorCurveScale;
-			float2 gSizeScaleCurveOffset;
-			float2 gSizeScaleCurveScale;
+			float2 gSizeScaleFrameIdxCurveOffset;
+			float2 gSizeScaleFrameIdxCurveScale;
 		};
 		
 		ParticleInput getParticleInput(uint2 index)
@@ -72,14 +72,16 @@ mixin ParticleVertex
 			
 			float4 sizeAndRotation = gSizeRotationTex.Load(pixelPos);
 			
-			float2 sizeScaleCurveUV = gSizeScaleCurveOffset + time * gSizeScaleCurveScale;
-			float4 sizeScale = gCurvesTex.SampleLevel(gCurvesSampler, sizeScaleCurveUV, 0);
+			float2 sizeScaleFrameIdxCurveUV = gSizeScaleFrameIdxCurveOffset + time * gSizeScaleFrameIdxCurveScale;
+			float3 sizeScaleFrameIdx = gCurvesTex.SampleLevel(gCurvesSampler, sizeScaleFrameIdxCurveUV, 0).xyz;
+			
+			float2 sizeScale = sizeScaleFrameIdx.xy;
 			
 			pi.uvflip = sign(sizeAndRotation.xy);
 			pi.size = abs(sizeAndRotation.xy) * sizeScale.xy * aliveMask;
 			pi.rotation = sizeAndRotation.z;
 			
-			pi.frame = 0; // TODO
+			pi.frame = sizeScaleFrameIdx.z;
 			
 			float2 colorCurveUV = gColorCurveOffset + time * gColorCurveScale;
 			pi.color = gCurvesTex.SampleLevel(gCurvesSampler, colorCurveUV, 0);
@@ -172,8 +174,8 @@ mixin ParticleVertex
 			uv.y = pi.uvflip.y >= 0.0f ? input.uv0.y : 1.0f - input.uv0.y;
 			
 			float frame = pi.frame - frac(pi.frame);
-			float row = fmod(frame, gSubImageSize.x);
-			float column = floor(frame * gSubImageSize.z);
+			float row = floor(frame * gSubImageSize.z);
+			float column = fmod(frame, gSubImageSize.x);
 			
 			float2 subUV = (float2(row, column) + uv) * gSubImageSize.zw;
 			

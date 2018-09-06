@@ -111,7 +111,7 @@ namespace bs
 			float particleT = (particles.initialLifetime[i] - particles.lifetime[i]) / particles.initialLifetime[i];
 			particleT = Math::repeat(mDesc.numCycles * particleT, 1.0f);
 
-			const float frame = particleT * numFrames;
+			const float frame = particleT * (numFrames - 1);
 			particles.frame[i] = frameOffset + Math::clamp(frame, 0.0f, (float)(numFrames - 1));
 		}
 	}
