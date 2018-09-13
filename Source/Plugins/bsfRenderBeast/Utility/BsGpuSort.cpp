@@ -3,6 +3,7 @@
 #include "Utility/BsGpuSort.h"
 #include "RenderAPI/BsGpuBuffer.h"
 #include "Math/BsRandom.h"
+#include "Renderer/BsRendererUtility.h"
 
 namespace bs { namespace ct
 {
@@ -72,7 +73,7 @@ namespace bs { namespace ct
 		static constexpr const char* INVALID_TYPE_MSG = 
 			"All buffers provided to GpuSort must be of GBT_STANDARD type.";
 		static constexpr const char* INVALID_FORMAT_MSG = 
-			"All buffers provided to GpuSort must have 32-bit unsigned integer elements.";
+			"All buffers provided to GpuSort must use a 32-bit unsigned integer format.";
 
 		const GpuBufferProperties& bufferProps = buffer.getProperties();
 		if ((bufferProps.getUsage() & GBU_LOADSTORE) != GBU_LOADSTORE)
@@ -97,6 +98,26 @@ namespace bs { namespace ct
 		desc.type = GBT_STANDARD;
 
 		return GpuBuffer::create(desc);
+	}
+
+	RadixSortClearMat::RadixSortClearMat()
+	{
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputParam);
+	}
+
+	void RadixSortClearMat::_initDefines(ShaderDefines& defines)
+	{
+		initCommonDefines(defines);
+	}
+
+	void RadixSortClearMat::execute(const SPtr<GpuBuffer>& outputOffsets)
+	{
+		BS_RENMAT_PROFILE_BLOCK
+
+		mOutputParam.set(outputOffsets);
+
+		bind();
+		RenderAPI::instance().dispatchCompute(1);
 	}
 
 	RadixSortCountMat::RadixSortCountMat()
@@ -188,7 +209,7 @@ namespace bs { namespace ct
 		mHelperBuffers[1] = createHelperBuffer();
 	}
 
-	UINT32 GpuSort::sort(const GpuSortBuffers& buffers, UINT32 keyMask)
+	UINT32 GpuSort::sort(const GpuSortBuffers& buffers, UINT32 numKeys, UINT32 keyMask)
 	{
 		// Nothing to do if no input or output key buffers
 		if(buffers.keys[0] == nullptr || buffers.keys[1] == nullptr)
@@ -229,7 +250,7 @@ namespace bs { namespace ct
 			return 0;
 		}
 
-		const GpuSortProperties gpuSortProps(buffers.keys[0]->getProperties().getElementCount());
+		const GpuSortProperties gpuSortProps(numKeys);
 		SPtr<GpuParamBlockBuffer> params = createGpuSortParams(gpuSortProps);
 
 		UINT32 bitOffset = 0;
@@ -240,6 +261,7 @@ namespace bs { namespace ct
 			{
 				gRadixSortParamsDef.gBitOffset.set(params, bitOffset);
 
+				RadixSortClearMat::get()->execute(mHelperBuffers[0]);
 				RadixSortCountMat::get()->execute(gpuSortProps.numGroups, params, buffers.keys[inputBufferIdx], mHelperBuffers[0]);
 				RadixSortPrefixScanMat::get()->execute(params, mHelperBuffers[0], mHelperBuffers[1]);
 				RadixSortReorderMat::get()->execute(gpuSortProps.numGroups, params, mHelperBuffers[1], buffers, inputBufferIdx);
@@ -287,13 +309,17 @@ namespace bs { namespace ct
 
 		Random random;
 		for(UINT32 i = 0; i < NUM_INPUT_KEYS; i++)
-			inputKeys.push_back(random.getRange(0, 15));
+			inputKeys.push_back(random.getRange(0, 15) << 4 | std::min(NUM_DIGITS - 1, (i / (NUM_INPUT_KEYS / 16))));
 
 		const auto count = (UINT32)inputKeys.size();
+		UINT32 bitOffset = 4;
+		UINT32 bitMask = (1 << RADIX_NUM_BITS) - 1;
 
 		// Prepare buffers
 		const GpuSortProperties gpuSortProps(count);
 		SPtr<GpuParamBlockBuffer> params = createGpuSortParams(gpuSortProps);
+
+		gRadixSortParamsDef.gBitOffset.set(params, bitOffset);
 
 		GpuSortBuffers sortBuffers = GpuSort::createSortBuffers(count);
 		sortBuffers.keys[0]->writeData(0, sortBuffers.keys[0]->getSize(), inputKeys.data(), BWT_DISCARD);
@@ -334,7 +360,7 @@ namespace bs { namespace ct
 				for(UINT32 threadIdx = 0; threadIdx < NUM_THREADS; threadIdx++)
 				{
 					UINT32 key = inputKeys[keyBegin + threadIdx];
-					UINT32 digit = key;
+					UINT32 digit = (key >> bitOffset) & bitMask;
 
 					localCounts[threadIdx * NUM_DIGITS + digit] += 1;
 				}
@@ -354,7 +380,7 @@ namespace bs { namespace ct
 						if((keyBegin + threadIdx) < keyEnd)
 						{
 							UINT32 key = inputKeys[keyBegin + threadIdx];
-							UINT32 digit = key;
+							UINT32 digit = (key >> bitOffset) & bitMask;
 
 							localCounts[threadIdx * NUM_DIGITS + digit] += 1;
 						}
@@ -425,6 +451,7 @@ namespace bs { namespace ct
 		}
 
 		// PARALLEL:
+		RadixSortClearMat::get()->execute(helperBuffers[0]);
 		RadixSortCountMat::get()->execute(gpuSortProps.numGroups, params, sortBuffers.keys[0], helperBuffers[0]);
 
 		// Compare with GPU count
@@ -537,8 +564,24 @@ namespace bs { namespace ct
 		// SERIAL:
 		// Reorder within each tile
 		Vector<UINT32> sortedKeys(inputKeys.size());
+		UINT32 sGroupOffsets[NUM_DIGITS];
+		UINT32 sLocalScratch[NUM_DIGITS * NUM_THREADS];
+		UINT32 sTileTotals[NUM_DIGITS];
+		UINT32 sCurrentTileTotal[NUM_DIGITS];
+
 		for(UINT32 groupIdx = 0; groupIdx < gpuSortProps.numGroups; groupIdx++)
 		{
+			for(UINT32 i = 0; i < NUM_DIGITS; i++)
+			{
+				// Load offsets for this group to local memory
+				sGroupOffsets[i] = offsets[groupIdx * NUM_DIGITS + i];
+
+				// Clear tile totals
+				sTileTotals[i] = 0;
+			}
+
+			// Handle case when number of tiles isn't exactly divisible by number of groups, in
+			// which case first N groups handle those extra tiles
 			UINT32 tileIdx;
 			UINT32 numTiles;
 			if(groupIdx < gpuSortProps.extraTiles)
@@ -552,38 +595,189 @@ namespace bs { namespace ct
 				tileIdx = groupIdx * numTiles + gpuSortProps.extraTiles;
 			}
 
-			UINT32 keyBegin = tileIdx * TILE_SIZE;
-			UINT32 keyEnd = keyBegin + numTiles * TILE_SIZE;	
+			// We need to generate per-thread offsets (prefix sum) of where to store the keys at
+			// (This is equivalent to what was done in count & prefix sum shaders, except that was done per-group)
 
-			while(keyBegin < keyEnd)
+			//// First, count all digits
+			UINT32 keyBegin[NUM_THREADS];
+			UINT32 keyEnd[NUM_THREADS];
+			for(UINT32 threadId = 0; threadId < NUM_THREADS; threadId++)
 			{
-				UINT32 key = inputKeys[keyBegin];
-				UINT32 digit = key;
-
-				UINT32 offset = offsets[groupIdx * NUM_DIGITS + digit];
-
-				sortedKeys[offset] = key;
-				offsets[groupIdx * NUM_DIGITS + digit]++;
-
-				keyBegin++;
+				keyBegin[threadId] = tileIdx * TILE_SIZE;
+				keyEnd[threadId] = keyBegin[threadId] + numTiles * TILE_SIZE;
 			}
 
-			if(groupIdx == (gpuSortProps.numGroups - 1))
+			auto prefixSum = [&keyBegin, &keyEnd, &sLocalScratch, &sCurrentTileTotal, &sGroupOffsets, &sTileTotals, 
+				&bitOffset, &inputKeys, &sortedKeys]()
 			{
-				keyBegin = keyEnd;
-				keyEnd = keyBegin + gpuSortProps.extraKeys;
+				// Upsweep to generate partial sums
+				UINT32 offsets[NUM_THREADS];
+				for (UINT32 threadId = 0; threadId < NUM_THREADS; threadId++)
+					offsets[threadId] = 1;
 
-				while(keyBegin < keyEnd)
+				for (UINT32 i = NUM_THREADS >> 1; i > 0; i >>= 1)
 				{
-					UINT32 key = inputKeys[keyBegin];
-					UINT32 digit = key;
+					for (UINT32 threadId = 0; threadId < NUM_THREADS; threadId++)
+					{
+						if (threadId < i)
+						{
+							// Note: If I run more than NUM_THREADS threads I wouldn't have to
+							// iterate over all digits in a single thread
+							// Note: Perhaps run part of this step serially for better performance
+							for (UINT32 j = 0; j < NUM_DIGITS; j++)
+							{
+								UINT32 idx0 = (offsets[threadId] * (2 * threadId + 1) - 1) * NUM_DIGITS + j;
+								UINT32 idx1 = (offsets[threadId] * (2 * threadId + 2) - 1) * NUM_DIGITS + j;
 
-					UINT32 offset = offsets[groupIdx * NUM_DIGITS + digit];;
+								// Note: Check and remove bank conflicts
+								sLocalScratch[idx1] += sLocalScratch[idx0];
+							}
+						}
 
-					sortedKeys[offset] = key;
-					offsets[groupIdx * NUM_DIGITS + digit]++;
+						offsets[threadId] <<= 1;
+					}
+				}
 
-					keyBegin++;
+				// Set tree roots to zero (prepare for downsweep)
+				for (UINT32 threadId = 0; threadId < NUM_THREADS; threadId++)
+				{
+					if (threadId < NUM_DIGITS)
+					{
+						UINT32 idx = (NUM_THREADS - 1) * NUM_DIGITS + threadId;
+						sCurrentTileTotal[threadId] = sLocalScratch[idx];
+
+						sLocalScratch[idx] = 0;
+					}
+				}
+
+				// Downsweep to calculate the prefix sum from partial sums that were generated
+				// during upsweep		
+				for (UINT32 i = 1; i < NUM_THREADS; i <<= 1)
+				{
+					for (UINT32 threadId = 0; threadId < NUM_THREADS; threadId++)
+					{
+						offsets[threadId] >>= 1;
+
+						if (threadId < i)
+						{
+							for (UINT32 j = 0; j < NUM_DIGITS; j++)
+							{
+								UINT32 idx0 = (offsets[threadId] * (2 * threadId + 1) - 1) * NUM_DIGITS + j;
+								UINT32 idx1 = (offsets[threadId] * (2 * threadId + 2) - 1) * NUM_DIGITS + j;
+
+								// Note: Check and resolve bank conflicts
+								UINT32 temp = sLocalScratch[idx0];
+								sLocalScratch[idx0] = sLocalScratch[idx1];
+								sLocalScratch[idx1] += temp;
+							}
+						}
+					}
+				}
+			};
+
+			for(UINT32 tileIdx = 0; tileIdx < numTiles; tileIdx++)
+			{
+				// Zero out local counter
+				for (UINT32 threadId = 0; threadId < NUM_THREADS; threadId++)
+					for (UINT32 i = 0; i < NUM_DIGITS; i++)
+						sLocalScratch[i * NUM_THREADS + threadId] = 0;
+
+				for (UINT32 threadId = 0; threadId < NUM_THREADS; threadId++)
+				{
+					for (UINT32 i = 0; i < KEYS_PER_LOOP; i++)
+					{
+						UINT32 idx = keyBegin[threadId] + threadId * KEYS_PER_LOOP + i;
+						UINT32 key = inputKeys[idx];
+						UINT32 digit = (key >> bitOffset) & KEY_MASK;
+
+						sLocalScratch[threadId * NUM_DIGITS + digit] += 1;
+					}
+				}
+
+				prefixSum();
+
+				// Actually re-order the keys
+				for (UINT32 threadId = 0; threadId < NUM_THREADS; threadId++)
+				{
+					UINT32 localOffsets[NUM_DIGITS];
+					for (UINT32 i = 0; i < NUM_DIGITS; i++)
+						localOffsets[i] = 0;
+
+					for (UINT32 i = 0; i < KEYS_PER_LOOP; i++)
+					{
+						UINT32 idx = keyBegin[threadId] + threadId * KEYS_PER_LOOP + i;
+						UINT32 key = inputKeys[idx];
+						UINT32 digit = (key >> bitOffset) & KEY_MASK;
+
+						UINT32 offset = sGroupOffsets[digit] + sTileTotals[digit] + sLocalScratch[threadId * NUM_DIGITS + digit] + localOffsets[digit];
+						localOffsets[digit]++;
+
+						// Note: First write to local memory then attempt to coalesce when writing to global?
+						sortedKeys[offset] = key;
+					}
+				}
+
+				// Update tile totals
+				for (UINT32 threadId = 0; threadId < NUM_THREADS; threadId++)
+				{
+					if (threadId < NUM_DIGITS)
+						sTileTotals[threadId] += sCurrentTileTotal[threadId];
+				}
+
+				for (UINT32 threadId = 0; threadId < NUM_THREADS; threadId++)
+					keyBegin[threadId] += TILE_SIZE;
+			}
+
+			if (groupIdx == (gpuSortProps.numGroups - 1) && gpuSortProps.extraKeys > 0)
+			{
+				// Zero out local counter
+				for (UINT32 threadId = 0; threadId < NUM_THREADS; threadId++)
+					for (UINT32 i = 0; i < NUM_DIGITS; i++)
+						sLocalScratch[i * NUM_THREADS + threadId] = 0;
+
+				for (UINT32 threadId = 0; threadId < NUM_THREADS; threadId++)
+				{
+					for (UINT32 i = 0; i < KEYS_PER_LOOP; i++)
+					{
+						UINT32 localIdx = threadId * KEYS_PER_LOOP + i;
+
+						if (localIdx >= gpuSortProps.extraKeys)
+							continue;
+
+						UINT32 idx = keyBegin[threadId] + localIdx;
+						UINT32 key = inputKeys[idx];
+						UINT32 digit = (key >> bitOffset) & KEY_MASK;
+
+						sLocalScratch[threadId * NUM_DIGITS + digit] += 1;
+					}
+				}
+
+				prefixSum();
+
+				// Actually re-order the keys
+				for (UINT32 threadId = 0; threadId < NUM_THREADS; threadId++)
+				{
+					UINT32 localOffsets[NUM_DIGITS];
+					for (UINT32 i = 0; i < NUM_DIGITS; i++)
+						localOffsets[i] = 0;
+
+					for (UINT32 i = 0; i < KEYS_PER_LOOP; i++)
+					{
+						UINT32 localIdx = threadId * KEYS_PER_LOOP + i;
+
+						if (localIdx >= gpuSortProps.extraKeys)
+							continue;
+
+						UINT32 idx = keyBegin[threadId] + localIdx;
+						UINT32 key = inputKeys[idx];
+						UINT32 digit = (key >> bitOffset) & KEY_MASK;
+
+						UINT32 offset = sGroupOffsets[digit] + sTileTotals[digit] + sLocalScratch[threadId * NUM_DIGITS + digit] + localOffsets[digit];
+						localOffsets[digit]++;
+
+						// Note: First write to local memory then attempt to coalesce when writing to global?
+						sortedKeys[offset] = key;
+					}
 				}
 			}
 		}

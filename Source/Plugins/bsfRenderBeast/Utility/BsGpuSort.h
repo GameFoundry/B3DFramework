@@ -31,6 +31,24 @@ namespace bs { namespace ct
 		SPtr<GpuBuffer> values[2];
 	};
 
+	/** Zeroes out the provided buffer. Should be called on the count output buffer before executing RadixSortCountMat. */
+	class RadixSortClearMat : public RendererMaterial<RadixSortClearMat>
+	{
+		RMAT_DEF_CUSTOMIZED("RadixSortClear.bsl");
+
+	public:
+		RadixSortClearMat();
+
+		/**
+		 * Executes the material, running the compute kernel.
+		 * 
+		 * @param[in]	outputCounts	Pre-allocated buffer to zero out.
+		 */
+		void execute(const SPtr<GpuBuffer>& outputCounts);
+
+		GpuParamBuffer mOutputParam;
+	};
+
 	/** 
 	 * Counts the occurrences of each digit in the input key buffer. Keys are separated into chunks per group and generated
 	 * counts only account for occurrences within that specific group. The resulting count can be provided to
@@ -141,13 +159,15 @@ namespace bs { namespace ct
 		 *							
 		 *							Buffers at index 0 will be used as input, and final output will be a buffer at the
 		 *							index as returned by this method.
+		 * @param[in]	numKeys		Number of keys to sort. This must be smaller or equal to the number of elements in the
+		 *							provided buffers.
 		 * @param[in]	keyMask		Mask that controls which portion of the keys are relevant for sorting. This serves as
 		 *							an optimization as less bits that need to be sorted, the faster can the algorithm run.
 		 *							(e.g. if you only need to sort the first 16 bits of the key, provide 0xFFFF as the 
 		 *							mask).
 		 * @return					Index of the buffer in @p buffers that will contain the final sorted keys and/or values.
 		 */
-		UINT32 sort(const GpuSortBuffers& buffers, UINT32 keyMask = 0xFFFFFFFF);
+		UINT32 sort(const GpuSortBuffers& buffers, UINT32 numKeys, UINT32 keyMask = 0xFFFFFFFF);
 
 		/** 
 		 * Creates a set of buffers buffer that can be used when calling the sort() method. 

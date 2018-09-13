@@ -11,6 +11,11 @@
 
 namespace bs { namespace ct
 {
+	static void deleteBuffer(HardwareBuffer* buffer)
+	{
+		bs_pool_delete(static_cast<D3D11HardwareBuffer*>(buffer));
+	}
+
 	D3D11GpuBuffer::D3D11GpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 		: GpuBuffer(desc, deviceMask)
 	{
@@ -23,15 +28,13 @@ namespace bs { namespace ct
 
 	D3D11GpuBuffer::~D3D11GpuBuffer()
 	{ 
-		if(mBuffer && !mExternalBuffer)
-			bs_pool_delete(static_cast<D3D11HardwareBuffer*>(mBuffer));
-
 		clearBufferViews();
 	}
 
 	void D3D11GpuBuffer::initialize()
 	{
 		const GpuBufferProperties& props = getProperties();
+		mBufferDeleter = &deleteBuffer;
 
 		// Create a new buffer if not wrapping an external one
 		if(!mBuffer)

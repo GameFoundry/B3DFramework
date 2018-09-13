@@ -30,6 +30,7 @@ namespace bs { namespace ct
 		BS_PARAM_BLOCK_ENTRY(Vector3, gAxisUp)
 		BS_PARAM_BLOCK_ENTRY(INT32, gTexSize)
 		BS_PARAM_BLOCK_ENTRY(Vector3, gAxisRight)
+		BS_PARAM_BLOCK_ENTRY(INT32, gBufferOffset)
 	BS_PARAM_BLOCK_END
 
 	extern ParticlesParamDef gParticlesParamDef;

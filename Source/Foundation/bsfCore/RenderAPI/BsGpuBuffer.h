@@ -133,6 +133,21 @@ namespace bs
 		void copyData(HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length, 
 			bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
+		/** 
+		 * Returns a view of this buffer with specified format/type.
+		 * 
+		 * @param[in]	type			Type of buffer to view the contents as. Only supported values are GBT_STANDARD and
+		 *								GBT_STRUCTURED.
+		 * @param[in]	format			Format of the data in the buffer. Size of the underlying buffer must be divisible by
+		 *								the	size of an individual element of this format. Must be BF_UNKNOWN if buffer type
+		 *								is GBT_STRUCTURED.
+		 * @param[in]	elementSize		Size of the individual element in the buffer. Size of the underlying buffer must be
+		 *								divisible by this size. Must be 0 if buffer type is GBT_STANDARD (element size gets
+		 *								deduced from format).
+		 * @return						New view of the buffer, using the provided format and type.
+		 */
+		SPtr<GpuBuffer> getView(GpuBufferType type, GpuBufferFormat format, UINT32 elementSize = 0);
+
 		/** @copydoc HardwareBufferManager::createGpuBuffer */
 		static SPtr<GpuBuffer> create(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
@@ -160,7 +175,11 @@ namespace bs
 		GpuBufferProperties mProperties;
 
 		HardwareBuffer* mBuffer = nullptr;
-		SPtr<HardwareBuffer> mExternalBuffer;
+		SPtr<HardwareBuffer> mSharedBuffer;
+		bool mIsExternalBuffer = false;
+
+		typedef void(*Deleter)(HardwareBuffer*);
+		Deleter mBufferDeleter = nullptr;
 	};
 
 	/** @} */

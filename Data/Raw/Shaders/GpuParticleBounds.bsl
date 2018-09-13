@@ -11,13 +11,7 @@ shader GpuParticleBounds
 		#define FLT_MIN -3.402823466e+38f
 
 		Buffer<uint2> gParticleIndices;
-		
 		Texture2D gPosAndTimeTex;
-		[alias(gPosAndTimeTex)]
-		SamplerState gPosAndTimeSampler
-		{
-            Filter = MIN_MAG_MIP_POINT;
-        };
 		
 		RWBuffer<float3> gOutput;
 		

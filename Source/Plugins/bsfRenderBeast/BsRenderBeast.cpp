@@ -81,6 +81,7 @@ namespace bs { namespace ct
 		gProfilerGPU().beginFrame();
 
 		RendererUtility::startUp();
+		GpuSort::startUp();
 		GpuResourcePool::startUp();
 		IBLUtility::startUp<RenderBeastIBLUtility>();
 		RendererTextures::startUp();
@@ -136,6 +137,7 @@ namespace bs { namespace ct
 		RendererTextures::shutDown();
 		IBLUtility::shutDown();
 		GpuResourcePool::shutDown();
+		GpuSort::shutDown();
 		RendererUtility::shutDown();
 	}
 

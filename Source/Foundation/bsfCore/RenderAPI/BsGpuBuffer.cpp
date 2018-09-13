@@ -110,10 +110,10 @@ namespace bs
 
 	GpuBuffer::GpuBuffer(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer)
 		: HardwareBuffer(getBufferSize(desc), desc.usage, underlyingBuffer->getDeviceMask()), mProperties(desc)
-		, mBuffer(underlyingBuffer.get()), mExternalBuffer(std::move(underlyingBuffer))
+		, mBuffer(underlyingBuffer.get()), mSharedBuffer(std::move(underlyingBuffer)), mIsExternalBuffer(true)
 	{
 		const auto& props = getProperties();
-		assert(underlyingBuffer->getSize() == (props.getElementCount() * props.getElementSize()));
+		assert(mSharedBuffer->getSize() == (props.getElementCount() * props.getElementSize()));
 
 		if (desc.type != GBT_STANDARD)
 			assert(desc.format == BF_UNKNOWN && "Format must be set to BF_UNKNOWN when using non-standard buffers");
@@ -124,6 +124,9 @@ namespace bs
 	GpuBuffer::~GpuBuffer()
 	{
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuBuffer);
+
+		if(mBuffer && !mSharedBuffer)
+			mBufferDeleter(mBuffer);
 	}
 
 	void GpuBuffer::initialize()
@@ -174,6 +177,32 @@ namespace bs
 	{
 		auto& srcGpuBuffer = static_cast<GpuBuffer&>(srcBuffer);
 		mBuffer->copyData(*srcGpuBuffer.mBuffer, srcOffset, dstOffset, length, discardWholeBuffer, commandBuffer);
+	}
+
+	SPtr<GpuBuffer> GpuBuffer::getView(GpuBufferType type, GpuBufferFormat format, UINT32 elementSize)
+	{
+		const UINT32 elemSize = type == GBT_STANDARD ? bs::GpuBuffer::getFormatSize(format) : elementSize;
+		if((mBuffer->getSize() % elemSize) != 0)
+		{
+			LOGERR("Size of the buffer isn't divisible by individual element size provided for the buffer view.");
+			return nullptr;
+		}
+
+		GPU_BUFFER_DESC desc;
+		desc.type = type;
+		desc.format = format;
+		desc.usage = mUsage;
+		desc.elementSize = elementSize;
+		desc.elementCount = mBuffer->getSize() / elemSize;
+
+		if(!mSharedBuffer)
+		{
+			mSharedBuffer = bs_shared_ptr(mBuffer, mBufferDeleter);
+			mIsExternalBuffer = false;
+		}
+
+		SPtr<GpuBuffer> newView = create(desc, mSharedBuffer);
+		return newView;
 	}
 
 	SPtr<GpuBuffer> GpuBuffer::create(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)

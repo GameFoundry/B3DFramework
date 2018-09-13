@@ -11,8 +11,11 @@
 #include "RenderAPI/BsGpuPipelineParamInfo.h"
 #include "Particles/BsVectorField.h"
 #include "Particles/BsParticleDistribution.h"
+#include "Math/BsVector3.h"
 #include "BsRendererParticles.h"
 #include "BsRendererScene.h"
+#include "BsRenderBeast.h"
+#include "Utility/BsGpuSort.h"
 
 namespace bs { namespace ct 
 {
@@ -184,6 +187,56 @@ namespace bs { namespace ct
 		SPtr<GpuParamBlockBuffer> mInputBuffer;
 	};
 
+	BS_PARAM_BLOCK_BEGIN(GpuParticleSortPrepareParamDef)
+		BS_PARAM_BLOCK_ENTRY(INT32, gIterationsPerGroup)
+		BS_PARAM_BLOCK_ENTRY(INT32, gNumExtraIterations)
+		BS_PARAM_BLOCK_ENTRY(INT32, gNumParticles)
+		BS_PARAM_BLOCK_ENTRY(INT32, gOutputOffset)
+		BS_PARAM_BLOCK_ENTRY(INT32, gSystemKey)
+		BS_PARAM_BLOCK_ENTRY(Vector3, gLocalViewOrigin)
+	BS_PARAM_BLOCK_END
+
+	GpuParticleSortPrepareParamDef gGpuParticleSortPrepareParamDef;
+
+	/** Material used for preparing key/values buffers used for particle sorting. */
+	class GpuParticleSortPrepareMat : public RendererMaterial<GpuParticleSortPrepareMat>
+	{
+		static constexpr UINT32 NUM_THREADS = 64;
+
+		RMAT_DEF_CUSTOMIZED("GpuParticleSortPrepare.bsl");
+
+	public:
+		GpuParticleSortPrepareMat();
+
+		/** Binds the material to the pipeline along with the global input texture containing particle positions and times. */
+		void bind(const SPtr<Texture>& positionAndTime);
+
+		/** 
+		 * Executes the material, generating sort data for a particular particle system and injecting it into the specified
+		 * location in the key and index buffers.
+		 *
+		 * @param[in]	system			System whose particles to insert into the sort key/index buffers.
+		 * @param[in]	systemIdx		Sequential index of the system to insert into the sort buffers.
+		 * @param[in]	offset			Offset into the key/index buffer at which to insert the sort data.
+		 * @param[in]	viewOrigin		View origin to use for determining sorting keys, in world space.
+		 * @param[out]	outKeys			Pre-allocated buffer that will receive the keys used for sorting. The buffer must
+		 *								be GPU writable and use a 1x 32-bit integer format.
+		 * @param[out]	outIndices		Pre-allocated buffer that will receive the indices to be sorted. The buffer must
+		 *								be GPU writable and use a 2x 16-bit integer format. Must have the same capacity
+		 *								as @p outKeys.
+		 * @return						Number of particle that were written to the buffers.
+		 */
+		UINT32 execute(const GpuParticleSystem& system, UINT32 systemIdx, const Vector3& viewOrigin, UINT32 offset, 
+			const SPtr<GpuBuffer>& outKeys, const SPtr<GpuBuffer>& outIndices);
+
+	private:
+		GpuParamBuffer mInputIndicesParam;
+		GpuParamBuffer mOutputKeysParam;
+		GpuParamBuffer mOutputIndicesParam;
+		GpuParamTexture mPosAndTimeTexParam;
+		SPtr<GpuParamBlockBuffer> mInputBuffer;
+	};
+
 	static constexpr UINT32 TILES_PER_INSTANCE = 8;
 	static constexpr UINT32 PARTICLES_PER_INSTANCE = TILES_PER_INSTANCE * GpuParticleResources::PARTICLES_PER_TILE;
 
@@ -251,6 +304,29 @@ namespace bs { namespace ct
 			mInjectRT[i] = RenderTexture::create(injectRTDesc);
 		}
 
+		// Allocate the buffer containing keys used for sorting
+		GPU_BUFFER_DESC sortKeysBufferDesc;
+		sortKeysBufferDesc.type = GBT_STANDARD;
+		sortKeysBufferDesc.format = BF_32X1U;
+		sortKeysBufferDesc.elementCount = TEX_SIZE * TEX_SIZE;
+		sortKeysBufferDesc.usage = GBU_LOADSTORE;
+
+		mSortBuffers.keys[0] = GpuBuffer::create(sortKeysBufferDesc);
+		mSortBuffers.keys[1] = GpuBuffer::create(sortKeysBufferDesc);
+
+		// Allocate the buffer containing sorted particle indices
+		GPU_BUFFER_DESC sortedIndicesBufferDesc;
+		sortedIndicesBufferDesc.type = GBT_STANDARD;
+		sortedIndicesBufferDesc.format = BF_16X2U;
+		sortedIndicesBufferDesc.elementCount = TEX_SIZE * TEX_SIZE;
+		sortedIndicesBufferDesc.usage = GBU_LOADSTORE;
+
+		mSortedIndices[0] = GpuBuffer::create(sortedIndicesBufferDesc); 
+		mSortedIndices[1] = GpuBuffer::create(sortedIndicesBufferDesc); 
+
+		mSortBuffers.values[0] = mSortedIndices[0]->getView(GBT_STANDARD, BF_32X1U);
+		mSortBuffers.values[1] = mSortedIndices[1]->getView(GBT_STANDARD, BF_32X1U);
+
 		// Clear the free tile linked list
 		for (UINT32 i = 0; i < TILE_COUNT; i++)
 			mFreeTiles[i] = TILE_COUNT - i - 1;
@@ -301,6 +377,11 @@ namespace bs { namespace ct
 	{
 		const Vector2I tileOffset = getParticleOffset(subTileId);
 		return tileOffset / (float)TEX_SIZE;
+	}
+
+	const SPtr<GpuBuffer>& GpuParticleResources::getSortedIndices() const
+	{
+		return mSortedIndices[mSortedIndicesBufferIdx];
 	}
 
 	GpuParticleHelperBuffers::GpuParticleHelperBuffers()
@@ -699,8 +780,60 @@ namespace bs { namespace ct
 				rapi.drawIndexed(0, TILES_PER_INSTANCE * 6, 0, TILES_PER_INSTANCE * 4, numInstances);
 			}
 		}
+	}
 
-		// TODO - Sort the particles (How to handle this per-simulation?)
+	void GpuParticleSimulation::sort(const RendererView& view)
+	{
+		const bool supportsCompute = gRenderBeast()->getFeatureSet() == RenderBeastFeatureSet::Desktop;
+		if(!supportsCompute)
+			return;
+
+		// Make sure that the position texture isn't bound for rendering
+		RenderAPI& rapi = RenderAPI::instance();
+		rapi.setRenderTarget(nullptr);
+
+		const Vector3& viewOrigin = view.getProperties().viewOrigin;
+
+		GpuParticleSortPrepareMat* prepareMat = GpuParticleSortPrepareMat::get();
+		prepareMat->bind(m->resources.getCurrentState().positionAndTimeTex);
+
+		UINT32 systemIdx = 0;
+		UINT32 offset = 0;
+		for (auto& entry : m->systems)
+		{
+			if (entry->getNumTiles() == 0)
+			{
+				entry->setSortInfo(false, 0);
+				continue;
+			}
+
+			ParticleSystem* parentSystem = entry->getParent();
+
+			const ParticleSystemSettings& settings = parentSystem->getSettings();
+			if (settings.sortMode != ParticleSortMode::Distance)
+			{
+				entry->setSortInfo(false, 0);
+				continue;
+			}
+
+			entry->setSortInfo(true, offset);
+
+			offset += prepareMat->execute(*entry, systemIdx, viewOrigin, offset,
+				m->resources.mSortBuffers.keys[0],
+				m->resources.mSortedIndices[0]);
+
+			systemIdx++;
+		}
+
+		const UINT32 numSystemsToSort = systemIdx;
+		if(numSystemsToSort == 0)
+			return;
+
+		const UINT32 totalNumKeys = offset;
+		const UINT32 keyMask = 0xFFFF | (Math::ceilToInt(Math::log2((float)(numSystemsToSort + 1))) << 16);
+		const UINT32 outputBufferIdx = GpuSort::instance().sort(m->resources.mSortBuffers, totalNumKeys, keyMask);
+
+		m->resources.mSortedIndicesBufferIdx = outputBufferIdx;
 	}
 
 	void GpuParticleSimulation::prepareBuffers(const GpuParticleSystem* system, const RendererParticles& rendererInfo)
@@ -807,11 +940,11 @@ namespace bs { namespace ct
 
 			auto* tileUVs = (Vector2*)m->helperBuffers.tileScratch->lock(GBL_WRITE_ONLY_DISCARD);
 			for (UINT32 j = tileStart; j < tileEnd; j++)
-				tileUVs[j] = GpuParticleResources::getTileCoords(tiles[j]);
+				tileUVs[j - tileStart] = GpuParticleResources::getTileCoords(tiles[j]);
 
 			const UINT32 alignedTileEnd = Math::divideAndRoundUp(tileEnd, TILES_PER_INSTANCE) * TILES_PER_INSTANCE;
 			for (UINT32 j = tileEnd; j < alignedTileEnd; j++)
-				tileUVs[j] = Vector2(2.0f, 2.0f); // Out of bounds (we don't want to accidentaly clear used tiles)
+				tileUVs[j - tileEnd] = Vector2(2.0f, 2.0f); // Out of bounds (we don't want to accidentaly clear used tiles)
 
 			m->helperBuffers.tileScratch->unlock();
 
@@ -1075,6 +1208,70 @@ namespace bs { namespace ct
 		output->unlock();
 
 		return AABox(min, max);
+	}
+
+	GpuParticleSortPrepareMat::GpuParticleSortPrepareMat()
+	{
+		mInputBuffer = gGpuParticleSortPrepareParamDef.createBuffer();
+		mParams->setParamBlockBuffer(GPT_COMPUTE_PROGRAM, "Input", mInputBuffer);
+		
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gInputIndices", mInputIndicesParam);
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutputKeys", mOutputKeysParam);
+		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutputIndices", mOutputIndicesParam);
+		mParams->getTextureParam(GPT_COMPUTE_PROGRAM, "gPosAndTimeTex", mPosAndTimeTexParam);
+	}
+
+	void GpuParticleSortPrepareMat::_initDefines(ShaderDefines& defines)
+	{
+		defines.set("NUM_THREADS", NUM_THREADS);
+	}
+
+	void GpuParticleSortPrepareMat::bind(const SPtr<Texture>& positionAndTime)
+	{
+		mPosAndTimeTexParam.set(positionAndTime);
+
+		RendererMaterial::bind(false);
+	}
+
+	UINT32 GpuParticleSortPrepareMat::execute(const GpuParticleSystem& system, UINT32 systemIdx, const Vector3& viewOrigin,
+		UINT32 offset, const SPtr<GpuBuffer>& outKeys, const SPtr<GpuBuffer>& outIndices)
+	{
+		static constexpr UINT32 MAX_NUM_GROUPS = 128;
+
+		assert(systemIdx < std::pow(2, 16));
+
+		const UINT32 numParticles = system.getNumTiles() * GpuParticleResources::PARTICLES_PER_TILE;
+
+		const UINT32 numIterations = Math::divideAndRoundUp(numParticles, NUM_THREADS);
+		const UINT32 numGroups = std::min(numIterations, MAX_NUM_GROUPS);
+
+		const UINT32 iterationsPerGroup = numIterations / numGroups;
+		const UINT32 extraIterations = numIterations % numGroups;
+
+		Vector3 localViewOrigin;
+		ParticleSystem* parentSystem = system.getParent();
+		if(parentSystem->getSettings().simulationSpace == ParticleSimulationSpace::Local)
+		{
+			const Matrix4& worldToLocal = parentSystem->getTransform().getInvMatrix();
+			localViewOrigin = worldToLocal.multiplyAffine(viewOrigin);
+		}
+		else
+			localViewOrigin = viewOrigin;
+
+		gGpuParticleSortPrepareParamDef.gIterationsPerGroup.set(mInputBuffer, iterationsPerGroup);
+		gGpuParticleSortPrepareParamDef.gNumExtraIterations.set(mInputBuffer, extraIterations);
+		gGpuParticleSortPrepareParamDef.gNumParticles.set(mInputBuffer, numParticles);
+		gGpuParticleSortPrepareParamDef.gOutputOffset.set(mInputBuffer, offset);
+		gGpuParticleSortPrepareParamDef.gSystemKey.set(mInputBuffer, systemIdx << 16);
+		gGpuParticleSortPrepareParamDef.gLocalViewOrigin.set(mInputBuffer, localViewOrigin);
+
+		mInputIndicesParam.set(system.getParticleIndices());
+		mOutputKeysParam.set(outKeys);
+		mOutputIndicesParam.set(outIndices);
+
+		bindParams();
+		RenderAPI::instance().dispatchCompute(numGroups);
+		return numParticles;
 	}
 
 	struct GpuParticleCurveInject

@@ -516,20 +516,22 @@ namespace bs { namespace ct
 	void RCNodeParticleSimulate::render(const RenderCompositorNodeInputs& inputs)
 	{
 		// Only simulate particles for the first view in the main render pass
-		if(!inputs.viewGroup.isMainPass() || inputs.view.getViewIdx() != 0)
-			return;
+		if(inputs.viewGroup.isMainPass() && inputs.view.getViewIdx() == 0)
+		{
+			RCNodeGBuffer* gbufferNode = static_cast<RCNodeGBuffer*>(inputs.inputNodes[0]);
+			RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[1]);
 
-		RCNodeGBuffer* gbufferNode = static_cast<RCNodeGBuffer*>(inputs.inputNodes[0]);
-		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[1]);
+			GBufferTextures gbuffer;
+			gbuffer.albedo = gbufferNode->albedoTex->texture;
+			gbuffer.normals = gbufferNode->normalTex->texture;
+			gbuffer.roughMetal = gbufferNode->roughMetalTex->texture;
+			gbuffer.depth = sceneDepthNode->depthTex->texture;
 
-		GBufferTextures gbuffer;
-		gbuffer.albedo = gbufferNode->albedoTex->texture;
-		gbuffer.normals = gbufferNode->normalTex->texture;
-		gbuffer.roughMetal = gbufferNode->roughMetalTex->texture;
-		gbuffer.depth = sceneDepthNode->depthTex->texture;
+			GpuParticleSimulation::instance().simulate(inputs.scene, inputs.frameInfo.perFrameData.particles,
+				inputs.view.getPerViewBuffer(), gbuffer, inputs.frameInfo.timeDelta);
+		}
 
-		GpuParticleSimulation::instance().simulate(inputs.scene, inputs.frameInfo.perFrameData.particles, 
-			inputs.view.getPerViewBuffer(), gbuffer, inputs.frameInfo.timeDelta);
+		GpuParticleSimulation::instance().sort(inputs.view);
 	}
 
 	void RCNodeParticleSimulate::clear()
@@ -1348,6 +1350,7 @@ namespace bs { namespace ct
 			GpuParticleStateTextures& gpuSimStateTextures = gpuSimResources.getCurrentState();
 			const GpuParticleStaticTextures& gpuSimStaticTextures = gpuSimResources.getStaticTextures();
 			const GpuParticleCurves& gpuCurves = gpuSimResources.getCurveTexture();
+			const SPtr<GpuBuffer>& sortedIndices = gpuSimResources.getSortedIndices();
 			for (UINT32 i = 0; i < numParticleSystems; i++)
 			{
 				if (!visibility.particleSystems[i])
@@ -1371,8 +1374,9 @@ namespace bs { namespace ct
 					renderElement.indicesBuffer.set(textures->indices);
 					renderElement.numParticles = simulationData->numParticles;
 
-					UINT32 texSize = textures->positionAndRotation->getProperties().getWidth();
+					const UINT32 texSize = textures->positionAndRotation->getProperties().getWidth();
 					gParticlesParamDef.gTexSize.set(rendererParticles.particlesParamBuffer, texSize);
+					gParticlesParamDef.gBufferOffset.set(rendererParticles.particlesParamBuffer, 0);
 				}
 				// Bind textures/buffers from GPU simulation
 				else if(rendererParticles.gpuParticleSystem)
@@ -1382,8 +1386,19 @@ namespace bs { namespace ct
 					renderElement.paramsGPU.positionTimeTexture.set(gpuSimStateTextures.positionAndTimeTex);
 					renderElement.paramsGPU.sizeRotationTexture.set(gpuSimStaticTextures.sizeAndRotationTex);
 					renderElement.paramsGPU.curvesTexture.set(gpuCurves.getTexture());
-					renderElement.indicesBuffer.set(gpuParticleSystem->getParticleIndices());
 					renderElement.numParticles = gpuParticleSystem->getNumTiles() * GpuParticleResources::PARTICLES_PER_TILE;
+
+					if(gpuParticleSystem->hasSortInfo())
+					{
+						renderElement.indicesBuffer.set(sortedIndices);
+						gParticlesParamDef.gBufferOffset.set(rendererParticles.particlesParamBuffer, 
+							gpuParticleSystem->getSortOffset());
+					}
+					else
+					{
+						renderElement.indicesBuffer.set(gpuParticleSystem->getParticleIndices());
+						gParticlesParamDef.gBufferOffset.set(rendererParticles.particlesParamBuffer, 0);
+					}
 
 					const UINT32 texSize = GpuParticleResources::TEX_SIZE;
 					gParticlesParamDef.gTexSize.set(rendererParticles.particlesParamBuffer, texSize);

@@ -8,6 +8,7 @@
 #include "Particles/BsParticleManager.h"
 #include "Allocators/BsPoolAlloc.h"
 #include "Utility/BsTextureRowAllocator.h"
+#include "Utility/BsGpuSort.h"
 
 namespace bs { namespace ct 
 {
@@ -86,6 +87,29 @@ namespace bs { namespace ct
 		/** Returns the object that can be used for retrieving random numbers when evaluating this particle system. */
 		const Random& getRandom() const { return mRandom; }
 
+		/** 
+		 * Sets information about the results of particle system sorting. 
+		 * 
+		 * @param[in]	sorted		True if the system has information in the sorted index buffer.
+		 * @param[in]	offset		Offset into the sorted index buffer. Only relevant if @p sorted is true.
+		 */
+		void setSortInfo(bool sorted, UINT32 offset)
+		{
+			mSorted = sorted;
+
+			if(sorted)
+				mSortOffset = offset;
+		}
+
+		/** Returns true if the particle system has its indices stored in the sorted index buffer. */
+		bool hasSortInfo() const { return mSorted; }
+
+		/** 
+		 * Returns offset into the sorted index buffer at which indices of the particle system start. Only available if
+		 * hasSortInfo() returns true.
+		 */
+		UINT32 getSortOffset() const { return mSortOffset; }
+
 	private:
 		ParticleSystem* mParent = nullptr;
 		Vector<GpuParticleTile> mTiles;
@@ -93,6 +117,8 @@ namespace bs { namespace ct
 		UINT32 mNumActiveTiles = 0;
 		UINT32 mLastAllocatedTile = (UINT32)-1;
 		float mTime = 0.0f;
+		bool mSorted = false;
+		UINT32 mSortOffset = 0;
 		Random mRandom;
 
 		SPtr<GpuBuffer> mTileUVs;
@@ -127,6 +153,13 @@ namespace bs { namespace ct
 		 */
 		void simulate(const SceneInfo& sceneInfo, const ParticleSimulationData* simData, 
 			const SPtr<GpuParamBlockBuffer>& viewParams, const GBufferTextures& gbuffer, float dt);
+
+		/** 
+		 * Sorts the particle systems for the provided view. Only sorts systems using distance based sorting and only
+		 * works on systems supporting compute. Sort results are written to a global buffer accessible through 
+		 * getResources(), with offsets into the buffer written into particle system objects in @p sceneInfo.
+		 */
+		void sort(const RendererView& view);
 
 		/** Returns textures used for storing particle data. */
 		GpuParticleResources& getResources() const;
@@ -257,6 +290,9 @@ namespace bs { namespace ct
 		/** Returns the render target which can be used for writing the results of the particle system simulation. */
 		const SPtr<RenderTexture>& getSimulationTarget() const { return mSimulateRT[mWriteBufferIdx]; }
 
+		/** Returns a global buffer containing particle indices for sorted particle systems. */
+		const SPtr<GpuBuffer>& getSortedIndices() const;
+
 		/** 
 		 * Attempts to allocate a new tile in particle textures. Returns index of the tile if successful or -1 if no more
 		 * room.
@@ -285,9 +321,14 @@ namespace bs { namespace ct
 		static Vector2 getParticleCoords(UINT32 subTileIdx);
 
 	private:
+		friend class GpuParticleSimulation;
+
 		GpuParticleStateTextures mStateTextures[2];
 		GpuParticleStaticTextures mStaticTextures;
 		GpuParticleCurves mCurveTexture;
+		GpuSortBuffers mSortBuffers;
+		SPtr<GpuBuffer> mSortedIndices[2];
+		UINT32 mSortedIndicesBufferIdx = 0;
 		
 		SPtr<RenderTexture> mSimulateRT[2];
 		SPtr<RenderTexture> mInjectRT[2];

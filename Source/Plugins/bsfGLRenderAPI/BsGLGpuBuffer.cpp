@@ -7,6 +7,11 @@
 
 namespace bs { namespace ct
 {
+	static void deleteBuffer(HardwareBuffer* buffer)
+	{
+		bs_pool_delete(static_cast<GLHardwareBuffer*>(buffer));
+	}
+
 	GLGpuBuffer::GLGpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 		: GpuBuffer(desc, deviceMask)
 	{
@@ -28,13 +33,12 @@ namespace bs { namespace ct
 			glDeleteTextures(1, &mTextureID);
 			BS_CHECK_GL_ERROR();
 		}
-
-		if(mBuffer && !mExternalBuffer)
-			bs_pool_delete(static_cast<GLHardwareBuffer*>(mBuffer));
 	}
 
 	void GLGpuBuffer::initialize()
 	{
+		mBufferDeleter = &deleteBuffer;
+
 		// Create a buffer if not wrapping an external one
 		if(!mBuffer)
 		{

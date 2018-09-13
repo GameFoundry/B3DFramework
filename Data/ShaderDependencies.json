@@ -200,6 +200,7 @@
             "Path": "PerCameraData.bslinc"
         }
     ],
+    "GpuParticleSortPrepare.bsl": null,
     "IrradianceAccumulateCubeSH.bsl": [
         {
             "Path": "PPBase.bslinc"
@@ -513,6 +514,11 @@
         },
         {
             "Path": "PerCameraData.bslinc"
+        }
+    ],
+    "RadixSortClear.bsl": [
+        {
+            "Path": "RadixSortCommon.bslinc"
         }
     ],
     "RadixSortCount.bsl": [

@@ -477,6 +477,14 @@
         {
             "Path": "GpuParticleCurveInject.bsl",
             "UUID": "65877027-40ba-0789-cd8a-40ba393eec73"
+        },
+        {
+            "Path": "GpuParticleSortPrepare.bsl",
+            "UUID": "a7de4e11-4de4-8ddc-8585-4de4d39a91b9"
+        },
+        {
+            "Path": "RadixSortClear.bsl",
+            "UUID": "26e580ba-4b0c-5872-dcb6-4b0c47c5eda8"
         }
     ],
     "Skin": [

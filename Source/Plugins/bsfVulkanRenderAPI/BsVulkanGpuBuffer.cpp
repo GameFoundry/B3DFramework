@@ -9,6 +9,11 @@
 
 namespace bs { namespace ct
 {
+	static void deleteBuffer(HardwareBuffer* buffer)
+	{
+		bs_pool_delete(static_cast<VulkanHardwareBuffer*>(buffer));
+	}
+
 	VulkanGpuBuffer::VulkanGpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 		: GpuBuffer(desc, deviceMask)
 	{ }
@@ -29,9 +34,6 @@ namespace bs { namespace ct
 				VulkanBuffer* buffer = static_cast<VulkanHardwareBuffer*>(mBuffer)->getResource(i);
 				buffer->freeView(mBufferViews[i]);
 			}
-
-			if(!mExternalBuffer)
-				bs_pool_delete(static_cast<VulkanHardwareBuffer*>(mBuffer));
 		}
 
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuBuffer);
@@ -42,6 +44,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuBuffer);
 
 		const GpuBufferProperties& props = getProperties();
+		mBufferDeleter = &deleteBuffer;
 
 		// Create a new buffer if external buffer is not provided
 		if(!mBuffer)

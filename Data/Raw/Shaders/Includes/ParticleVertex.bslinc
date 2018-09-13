@@ -128,11 +128,12 @@ mixin ParticleVertex
 			float3 gAxisUp;
 			uint gTexSize;
 			float3 gAxisRight;
+			uint gBufferOffset;
 		}
 		
 		VStoFS vsmain(VertexInput input)
 		{
-			ParticleInput pi = getParticleInput(gIndices[input.instanceId]);
+			ParticleInput pi = getParticleInput(gIndices[gBufferOffset + input.instanceId]);
 		
 			float4 worldPosition = mul(gWorldTfrm, float4(pi.position, 1.0f));
 		
