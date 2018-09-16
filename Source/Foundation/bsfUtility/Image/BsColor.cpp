@@ -5,12 +5,14 @@
 
 namespace bs 
 {
-	const Color Color::ZERO = Color(0.0,0.0,0.0,0.0);
-	const Color Color::Black = Color(0.0,0.0,0.0);
-	const Color Color::White = Color(1.0,1.0,1.0);
-	const Color Color::Red = Color(1.0,0.0,0.0);
-	const Color Color::Green = Color(0.0,1.0,0.0);
-	const Color Color::Blue = Color(0.0,0.0,1.0);
+	const Color Color::ZERO = Color(0.0f, 0.0f, 0.0f, 0.0f);
+	const Color Color::Black = Color(0.0f, 0.0f, 0.0f);
+	const Color Color::White = Color(1.0f, 1.0f, 1.0f);
+	const Color Color::Red = Color(1.0f, 0.0f, 0.0f);
+	const Color Color::Green = Color(0.0f, 1.0f, 0.0f);
+	const Color Color::Blue = Color(0.0f, 0.0f, 1.0f);
+	const Color Color::LightGray = Color(200.0f / 255.0f, 200.0f / 255.0f, 200.0f / 255.0f);
+	const Color Color::BansheeOrange = Color(1.0f, (168.0f/255.0f), 0.0f);
 
 	ABGR Color::getAsABGR() const
 	{

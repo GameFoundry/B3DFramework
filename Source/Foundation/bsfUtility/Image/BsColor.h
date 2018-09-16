@@ -28,8 +28,10 @@ namespace bs
 		static const Color Red;
 		static const Color Green;
 		static const Color Blue;
+		static const Color LightGray;
+		static const Color BansheeOrange;
 
-		explicit Color(float red = 1.0f, float green = 1.0f, float blue = 1.0f, float alpha = 1.0f ) 
+		constexpr explicit Color(float red = 1.0f, float green = 1.0f, float blue = 1.0f, float alpha = 1.0f ) 
 			:r(red), g(green), b(blue), a(alpha)
 		{ }
 

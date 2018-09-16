@@ -342,16 +342,23 @@ namespace bs
 		if (!mIsActive)
 			return false;
 
-		bool dirty = mWidgetIsDirty || mDirtyContents.size() > 0;
+		const bool dirty = mWidgetIsDirty || !mDirtyContents.empty();
 
 		if(cleanIfDirty && dirty)
 		{
 			mWidgetIsDirty = false;
 
-			for (auto& dirtyElement : mDirtyContents)
-				dirtyElement->_updateRenderElements();
+			// Update render contents recursively because updates can cause child GUI elements to become dirty
+			while(!mDirtyContents.empty())
+			{
+				mDirtyContentsTemp.swap(mDirtyContents);
 
-			mDirtyContents.clear();
+				for (auto& dirtyElement : mDirtyContentsTemp)
+					dirtyElement->_updateRenderElements();
+
+				mDirtyContentsTemp.clear();
+			}
+
 			updateBounds();
 		}
 		

@@ -200,6 +200,7 @@ namespace bs
 		HEvent mOwnerTargetResizedConn;
 
 		Set<GUIElement*> mDirtyContents;
+		Set<GUIElement*> mDirtyContentsTemp;
 
 		mutable UINT64 mCachedRTId;
 		mutable bool mWidgetIsDirty;
