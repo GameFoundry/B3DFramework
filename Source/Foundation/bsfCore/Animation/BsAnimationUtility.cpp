@@ -313,6 +313,70 @@ namespace bs
 		return bs_shared_ptr_new<TAnimationCurve<Vector3>>(keyframeList);
 	}
 
+	void AnimationUtility::calculateRange(const Vector<TAnimationCurve<float>>& curves, float& xMin, float& xMax, 
+		float& yMin, float& yMax)
+	{
+		xMin = std::numeric_limits<float>::infinity();
+		xMax = -std::numeric_limits<float>::infinity();
+		yMin = std::numeric_limits<float>::infinity();
+		yMax = -std::numeric_limits<float>::infinity();
+
+		for(auto& entry : curves)
+		{
+			const auto timeRange = entry.getTimeRange();
+			const auto valueRange = entry.calculateRange();
+
+			xMin = std::min(xMin, timeRange.first);
+			xMax = std::max(xMax, timeRange.second);
+			yMin = std::min(yMin, valueRange.first);
+			yMax = std::max(yMax, valueRange.second);
+		}
+
+		if (xMin == std::numeric_limits<float>::infinity())
+			xMin = 0.0f;
+
+		if (xMax == -std::numeric_limits<float>::infinity())
+			xMax = 0.0f;
+
+		if (yMin == std::numeric_limits<float>::infinity())
+			yMin = 0.0f;
+
+		if (yMax == -std::numeric_limits<float>::infinity())
+			yMax = 0.0f;
+	}
+
+	void AnimationUtility::calculateRange(const Vector<SPtr<TAnimationCurve<float>>>& curves, float& xMin, float& xMax, 
+		float& yMin, float& yMax)
+	{
+		xMin = std::numeric_limits<float>::infinity();
+		xMax = -std::numeric_limits<float>::infinity();
+		yMin = std::numeric_limits<float>::infinity();
+		yMax = -std::numeric_limits<float>::infinity();
+
+		for(auto& entry : curves)
+		{
+			const auto timeRange = entry->getTimeRange();
+			const auto valueRange = entry->calculateRange();
+
+			xMin = std::min(xMin, timeRange.first);
+			xMax = std::max(xMax, timeRange.second);
+			yMin = std::min(yMin, valueRange.first);
+			yMax = std::max(yMax, valueRange.second);
+		}
+
+		if (xMin == std::numeric_limits<float>::infinity())
+			xMin = 0.0f;
+
+		if (xMax == -std::numeric_limits<float>::infinity())
+			xMax = 0.0f;
+
+		if (yMin == std::numeric_limits<float>::infinity())
+			yMin = 0.0f;
+
+		if (yMax == -std::numeric_limits<float>::infinity())
+			yMax = 0.0f;
+	}
+
 	template<class T>
 	TAnimationCurve<T> AnimationUtility::scaleCurve(const TAnimationCurve<T>& curve, float factor)
 	{
