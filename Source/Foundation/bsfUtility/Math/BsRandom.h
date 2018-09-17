@@ -13,16 +13,18 @@ namespace bs
 	 */
 
 	/** Generates pseudo random numbers using the Xorshift128 algorithm. Suitable for high performance requirements. */
-	class Random
+	class BS_SCRIPT_EXPORT(m:Math) Random
 	{
 	public:
 		/** Initializes a new generator using the specified seed. */
+		BS_SCRIPT_EXPORT()
 		Random(uint32_t seed = 0)
 		{
 			setSeed(seed);
 		}
 
 		/** Changes the seed of the generator to the specified value. */
+		BS_SCRIPT_EXPORT()
 		void setSeed(uint32_t seed)
 		{
 			mSeed[0] = seed;
@@ -32,6 +34,7 @@ namespace bs
 		}
 
 		/** Returns a random value in range [0, std::numeric_limits<uint32_t>::max()]. */
+		BS_SCRIPT_EXPORT()
 		uint32_t get() const
 		{
 			// Using xorshift128 algorithm
@@ -52,6 +55,7 @@ namespace bs
 		}
 
 		/** Returns a random value in range [min, max]. */
+		BS_SCRIPT_EXPORT()
 		int32_t getRange(int32_t min, int32_t max) const
 		{
 			assert(max > min);
@@ -64,6 +68,7 @@ namespace bs
 		}
 
 		/** Returns a random value in range [0, 1]. */
+		BS_SCRIPT_EXPORT()
 		float getUNorm() const
 		{
 			// Mask first 23 bits and divide by 2^23-1
@@ -71,12 +76,14 @@ namespace bs
 		}
 		
 		/** Returns a random value in range [-1, 1]. */
+		BS_SCRIPT_EXPORT()
 		float getSNorm() const
 		{
 			return getUNorm() * 2.0f - 1.0f;
 		}
 
 		/** Returns a random unit vector in three dimensions. */
+		BS_SCRIPT_EXPORT()
 		Vector3 getUnitVector() const
 		{
 			// Pick a random number on a unit cube and use the result only if squared size less than 1. This is faster
@@ -98,6 +105,7 @@ namespace bs
 		}
 
 		/** Returns a random unit vector in two dimensions. */
+		BS_SCRIPT_EXPORT()
 		Vector2 getUnitVector2D() const
 		{
 			// Pick a random number on a unit square and use the result only if squared size less than 1. This is faster
@@ -118,6 +126,7 @@ namespace bs
 		}
 
 		/** Returns a random point inside a unit sphere. */
+		BS_SCRIPT_EXPORT()
 		Vector3 getPointInSphere() const
 		{
 			const Vector3 dir = getUnitVector();
@@ -130,6 +139,7 @@ namespace bs
 		 * will generate points within the entire sphere volume. Intermediate values represent the shell, which is a volume
 		 * between two concentric spheres.
 		 */
+		BS_SCRIPT_EXPORT()
 		Vector3 getPointInSphereShell(float thickness) const
 		{
 			const float minRadius = 1.0f - thickness;
@@ -139,6 +149,7 @@ namespace bs
 		}
 
 		/** Returns a random point inside a unit circle. */
+		BS_SCRIPT_EXPORT()
 		Vector2 getPointInCircle() const
 		{
 			const Vector2 dir = getUnitVector2D();
@@ -151,6 +162,7 @@ namespace bs
 		 * generate points within the entire circle surface. Intermediate values represent the shell, which is the surface
 		 * between two concentric circles.
 		 */
+		BS_SCRIPT_EXPORT()
 		Vector2 getPointInCircleShell(float thickness) const
 		{
 			const float minRadius = 1.0f - thickness;
@@ -160,6 +172,7 @@ namespace bs
 		}
 
 		/** Returns a random point on a unit arc with the specified length (angle). Angle of 360 represents a circle. */
+		BS_SCRIPT_EXPORT()
 		Vector2 getPointInArc(Degree angle) const
 		{
 			float val = getUNorm() * angle.valueRadians();
@@ -172,6 +185,7 @@ namespace bs
 		 * generate points on the arc edge, while thickness of 1 will generate points on the entire arc 'slice'. 
 		 * Intermediate vlaues represent the shell, which is the surface between two concentric circles.
 		 */
+		BS_SCRIPT_EXPORT()
 		Vector2 getPointInArcShell(Degree angle, float thickness) const
 		{
 			const float minRadius = 1.0f - thickness;
@@ -183,6 +197,7 @@ namespace bs
 		}
 
 		/** Returns a random set of Barycentric coordinates that may be used for generating random points on a triangle. */
+		BS_SCRIPT_EXPORT()
 		Vector3 getBarycentric() const
 		{
 			float u = getUNorm();

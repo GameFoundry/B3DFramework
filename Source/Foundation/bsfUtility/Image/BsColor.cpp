@@ -14,6 +14,144 @@ namespace bs
 	const Color Color::LightGray = Color(200.0f / 255.0f, 200.0f / 255.0f, 200.0f / 255.0f);
 	const Color Color::BansheeOrange = Color(1.0f, (168.0f/255.0f), 0.0f);
 
+	Color Color::fromRGBA(RGBA val)
+	{
+		Color output;
+		const UINT32 val32 = val;
+
+		output.a = ((val32 >> 24) & 0xFF) / 255.0f;
+		output.b = ((val32 >> 16) & 0xFF) / 255.0f;
+		output.g = ((val32 >> 8) & 0xFF) / 255.0f;
+		output.r = (val32 & 0xFF) / 255.0f;
+
+		return output;
+	}
+
+	Color Color::fromABGR(UINT32 val)
+	{
+		Color output;
+		const UINT32 val32 = val;
+
+		output.r = ((val32 >> 24) & 0xFF) / 255.0f;
+		output.g = ((val32 >> 16) & 0xFF) / 255.0f;
+		output.b = ((val32 >> 8) & 0xFF) / 255.0f;
+		output.a = (val32 & 0xFF) / 255.0f;
+
+		return output;
+	}
+
+	Color Color::fromARGB(ARGB val)
+	{
+		Color output;
+		const UINT32 val32 = val;
+
+		output.b = ((val32 >> 24) & 0xFF) / 255.0f;
+		output.g = ((val32 >> 16) & 0xFF) / 255.0f;
+		output.r = ((val32 >> 8) & 0xFF) / 255.0f;
+		output.a = (val32 & 0xFF) / 255.0f;
+
+		return output;
+	}
+
+	Color Color::fromBGRA(BGRA val)
+	{
+		Color output;
+		const UINT32 val32 = val;
+
+		output.a = ((val32 >> 24) & 0xFF) / 255.0f;
+		output.r = ((val32 >> 16) & 0xFF) / 255.0f;
+		output.g = ((val32 >> 8) & 0xFF) / 255.0f;
+		output.b = (val32 & 0xFF) / 255.0f;
+
+		return output;
+	}
+
+	Color Color::fromHSB(float hue, float saturation, float brightness)
+	{
+		Color output;
+
+		// wrap hue
+		if (hue > 1.0f)
+			hue -= (int)hue;
+		else if (hue < 0.0f)
+			hue += (int)hue + 1;
+
+		// clamp saturation / brightness
+		saturation = std::min(saturation, (float)1.0);
+		saturation = std::max(saturation, (float)0.0);
+		brightness = std::min(brightness, (float)1.0);
+		brightness = std::max(brightness, (float)0.0);
+
+		if (brightness == 0.0f)
+		{   
+			// early exit, this has to be black
+			output.r = output.g = output.b = 0.0f;
+			return output;
+		}
+
+		if (saturation == 0.0f)
+		{   
+			// early exit, this has to be grey
+
+			output.r = output.g = output.b = brightness;
+			return output;
+		}
+
+		float hueDomain  = hue * 6.0f;
+		if (hueDomain >= 6.0f)
+		{
+			// wrap around, and allow mathematical errors
+			hueDomain = 0.0f;
+		}
+
+		const auto domain = (unsigned short)hueDomain;
+		const float f1 = brightness * (1 - saturation);
+		const float f2 = brightness * (1 - saturation * (hueDomain - domain));
+		const float f3 = brightness * (1 - saturation * (1 - (hueDomain - domain)));
+
+		switch (domain)
+		{
+		case 0:
+			// red domain; green ascends
+			output.r = brightness;
+			output.g = f3;
+			output.b = f1;
+			break;
+		case 1:
+			// yellow domain; red descends
+			output.r = f2;
+			output.g = brightness;
+			output.b = f1;
+			break;
+		case 2:
+			// green domain; blue ascends
+			output.r = f1;
+			output.g = brightness;
+			output.b = f3;
+			break;
+		case 3:
+			// cyan domain; green descends
+			output.r = f1;
+			output.g = f2;
+			output.b = brightness;
+			break;
+		case 4:
+			// blue domain; red ascends
+			output.r = f3;
+			output.g = f1;
+			output.b = brightness;
+			break;
+		case 5:
+			// magenta domain; blue descends
+			output.r = brightness;
+			output.g = f1;
+			output.b = f2;
+			break;
+		}
+
+		return output;
+	}
+
 	ABGR Color::getAsABGR() const
 	{
 		UINT8 val8;
@@ -124,86 +262,6 @@ namespace bs
 		return val32;
 	}
 
-	void Color::setAsABGR(const ABGR val)
-	{
-		UINT32 val32 = val;
-
-		// Convert from 32bit pattern
-		// (RGBA = 8888)
-
-		// Red
-		r = ((val32 >> 24) & 0xFF) / 255.0f;
-
-		// Green
-		g = ((val32 >> 16) & 0xFF) / 255.0f;
-
-		// Blue
-		b = ((val32 >> 8) & 0xFF) / 255.0f;
-
-		// Alpha
-		a = (val32 & 0xFF) / 255.0f;
-	}
-
-	void Color::setAsBGRA(const BGRA val)
-	{
-		UINT32 val32 = val;
-
-		// Convert from 32bit pattern
-		// (ARGB = 8888)
-
-		// Alpha
-		a = ((val32 >> 24) & 0xFF) / 255.0f;
-
-		// Red
-		r = ((val32 >> 16) & 0xFF) / 255.0f;
-
-		// Green
-		g = ((val32 >> 8) & 0xFF) / 255.0f;
-
-		// Blue
-		b = (val32 & 0xFF) / 255.0f;
-	}
-
-	void Color::setAsARGB(const ARGB val)
-	{
-		UINT32 val32 = val;
-
-		// Convert from 32bit pattern
-		// (ARGB = 8888)
-
-		// Blue
-		b = ((val32 >> 24) & 0xFF) / 255.0f;
-
-		// Green
-		g = ((val32 >> 16) & 0xFF) / 255.0f;
-
-		// Red
-		r = ((val32 >> 8) & 0xFF) / 255.0f;
-
-		// Alpha
-		a = (val32 & 0xFF) / 255.0f;
-	}
-
-	void Color::setAsRGBA(const RGBA val)
-	{
-		UINT32 val32 = val;
-
-		// Convert from 32bit pattern
-		// (ABGR = 8888)
-
-		// Alpha
-		a = ((val32 >> 24) & 0xFF) / 255.0f;
-
-		// Blue
-		b = ((val32 >> 16) & 0xFF) / 255.0f;
-
-		// Green
-		g = ((val32 >> 8) & 0xFF) / 255.0f;
-
-		// Red
-		r = (val32 & 0xFF) / 255.0f;
-	}
-
 	bool Color::operator==(const Color& rhs) const
 	{
 		return (r == rhs.r &&
@@ -215,90 +273,6 @@ namespace bs
 	bool Color::operator!=(const Color& rhs) const
 	{
 		return !(*this == rhs);
-	}
-
-	void Color::setHSB(float hue, float saturation, float brightness)
-	{
-		// wrap hue
-		if (hue > 1.0f)
-		{
-			hue -= (int)hue;
-		}
-		else if (hue < 0.0f)
-		{
-			hue += (int)hue + 1;
-		}
-		// clamp saturation / brightness
-		saturation = std::min(saturation, (float)1.0);
-		saturation = std::max(saturation, (float)0.0);
-		brightness = std::min(brightness, (float)1.0);
-		brightness = std::max(brightness, (float)0.0);
-
-		if (brightness == 0.0f)
-		{   
-			// early exit, this has to be black
-			r = g = b = 0.0f;
-			return;
-		}
-
-		if (saturation == 0.0f)
-		{   
-			// early exit, this has to be grey
-
-			r = g = b = brightness;
-			return;
-		}
-
-		float hueDomain  = hue * 6.0f;
-		if (hueDomain >= 6.0f)
-		{
-			// wrap around, and allow mathematical errors
-			hueDomain = 0.0f;
-		}
-		unsigned short domain = (unsigned short)hueDomain;
-		float f1 = brightness * (1 - saturation);
-		float f2 = brightness * (1 - saturation * (hueDomain - domain));
-		float f3 = brightness * (1 - saturation * (1 - (hueDomain - domain)));
-
-		switch (domain)
-		{
-		case 0:
-			// red domain; green ascends
-			r = brightness;
-			g = f3;
-			b = f1;
-			break;
-		case 1:
-			// yellow domain; red descends
-			r = f2;
-			g = brightness;
-			b = f1;
-			break;
-		case 2:
-			// green domain; blue ascends
-			r = f1;
-			g = brightness;
-			b = f3;
-			break;
-		case 3:
-			// cyan domain; green descends
-			r = f1;
-			g = f2;
-			b = brightness;
-			break;
-		case 4:
-			// blue domain; red ascends
-			r = f3;
-			g = f1;
-			b = brightness;
-			break;
-		case 5:
-			// magenta domain; blue descends
-			r = brightness;
-			g = f1;
-			b = f2;
-			break;
-		}
 	}
 
 	void Color::getHSB(float* hue, float* saturation, float* brightness) const

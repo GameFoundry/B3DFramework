@@ -50,15 +50,10 @@ namespace bs
 		case PDT_Constant:
 		case PDT_RandomRange:
 		{
-			Color value;
-			value.setAsRGBA(mMinColor);
-			addToVector(value, values);
+			addToVector(Color::fromRGBA(mMinColor), values);
 
 			if(useRange)
-			{
-				value.setAsRGBA(mMaxColor);
-				addToVector(value, values);
-			}
+				addToVector(Color::fromRGBA(mMaxColor), values);
 		}
 			break;
 		case PDT_Curve:
@@ -82,16 +77,10 @@ namespace bs
 				float t = minT;
 				for(UINT32 i = 0; i < numSamples; i++)
 				{
-					Color value;
-					value.setAsRGBA(mMinGradient.evaluate(t));
-
-					addToVector(value, values);
+					addToVector(Color::fromRGBA(mMinGradient.evaluate(t)), values);
 
 					if(useRange)
-					{
-						value.setAsRGBA(mMaxGradient.evaluate(t));
-						addToVector(value, values);
-					}
+						addToVector(Color::fromRGBA(mMaxGradient.evaluate(t)), values);
 					
 					t += sampleInterval;
 				}

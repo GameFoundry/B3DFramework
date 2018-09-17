@@ -50,17 +50,14 @@ namespace bs
 		/** Returns the color as a 32-bit value in ABGR order. */
 		ABGR getAsABGR() const;
 
-		/** Assigns the color from a 32-bit value that encodes a RGBA color. */
-		void setAsRGBA(RGBA val);
-
-		/** Assigns the color from a 32-bit value that encodes a ARGB color. */
-		void setAsARGB(ARGB val);
-
-		/** Assigns the color from a 32-bit value that encodes a BGRA color. */
-		void setAsBGRA(BGRA val);
-
-		/** Assigns the color from a 32-bit value that encodes a ABGR color. */
-		void setAsABGR(ABGR val);
+		/** 
+		 * Convert the current color to hue, saturation and brightness values. 
+		 * 
+		 * @param[in] hue			Output hue value, scaled to the [0,1] range.
+		 * @param[in] saturation	Output saturation level, [0,1].
+		 * @param[in] brightness	Output brightness level, [0,1].
+		 */
+		void getHSB(float* hue, float* saturation, float* brightness) const;
 
 		/** Clamps color value to the range [0, 1]. */
 		void saturate()
@@ -251,23 +248,26 @@ namespace bs
 			return *this;
 		}
 
+		/** Creates a color value from a 32-bit value that encodes a RGBA color. */
+		static Color fromRGBA(RGBA val);
+
+		/** Creates a color value from a 32-bit value that encodes a ARGB color. */
+		static Color fromARGB(ARGB val);
+
+		/** Creates a color value from a 32-bit value that encodes a BGRA color. */
+		static Color fromBGRA(BGRA val);
+
+		/** Creates a color value from a 32-bit value that encodes a ABGR color. */
+		static Color fromABGR(ABGR val);
+
 		/** 
-		 * Set a color value from hue, saturation and brightness.
+		 * Creates a color value from hue, saturation and brightness.
 		 *
 		 * @param[in] hue			Hue value, scaled to the [0,1] range.
 		 * @param[in] saturation	Saturation level, [0,1].
 		 * @param[in] brightness	Brightness level, [0,1].
 		 */
-		void setHSB(float hue, float saturation, float brightness);
-
-		/** 
-		 * Convert the current color to hue, saturation and brightness values. 
-		 * 
-		 * @param[in] hue			Output hue value, scaled to the [0,1] range.
-		 * @param[in] saturation	Output saturation level, [0,1].
-		 * @param[in] brightness	Output brightness level, [0,1].
-		 */
-		void getHSB(float* hue, float* saturation, float* brightness) const;
+		static Color fromHSB(float hue, float saturation, float brightness);
 
 		/**
 		 * Linearly interpolates between the two colors using @p t. t should be in [0, 1] range, where t = 0 corresponds

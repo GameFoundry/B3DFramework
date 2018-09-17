@@ -1055,7 +1055,7 @@ namespace bs
 							const ColorGradient& gradient = params->getColorGradientParam(*materialParamInfo, i);
 
 							const float wrappedT = Math::repeat(t, gradient.getDuration());
-							value.setAsRGBA(gradient.evaluate(wrappedT));
+							value = Color::fromRGBA(gradient.evaluate(wrappedT));
 						}
 						else
 							memcpy(&value, data + arrayOffset, paramSize);

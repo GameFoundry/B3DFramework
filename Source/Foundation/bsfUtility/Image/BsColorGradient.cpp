@@ -86,7 +86,7 @@ namespace bs
 		Vector<ColorGradientKey> output(mNumKeys);
 		for(UINT32 i = 0; i < mNumKeys; i++)
 		{
-			output[i].color.setAsRGBA(mColors[i]);
+			output[i].color = Color::fromRGBA(mColors[i]);
 			output[i].time = Bitwise::uintToUnorm<16>(mTimes[i]);
 		}
 
