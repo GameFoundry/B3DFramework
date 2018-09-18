@@ -34,6 +34,7 @@ Huge thanks to all the patrons, contributors and donators!
 - Thomas Tang [Founder]
 - Nekith [Founder]
 - Summer Softleigh [Founder]
+- Vladimir [Founder]
 
 # One-time donators
 - Žan Strahija [Founder]
