@@ -706,7 +706,7 @@ namespace bs { namespace ct
 		m->systems.erase(system);
 	}
 
-	void GpuParticleSimulation::simulate(const SceneInfo& sceneInfo, const ParticleSimulationData* simData, 
+	void GpuParticleSimulation::simulate(const SceneInfo& sceneInfo, const ParticlePerFrameData* simData, 
 		const SPtr<GpuParamBlockBuffer>& viewParams, const GBufferTextures& gbuffer, float dt)
 	{
 		m->resources.swap();

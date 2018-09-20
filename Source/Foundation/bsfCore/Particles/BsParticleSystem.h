@@ -80,6 +80,16 @@ namespace bs
 		YoungToOld
 	};
 
+	/** Determines how are particles represented on the screen. */
+	enum class ParticleRenderMode
+	{
+		/** Particle is represented using a 2D quad. */
+		Billboard,
+
+		/** Particle is represented using a 3D mesh. */
+		Mesh
+	};
+
 	/** Controls depth buffer collisions for GPU simulated particles. */
 	struct ParticleDepthCollisionSettings : IReflectable
 	{
@@ -194,6 +204,9 @@ namespace bs
 		 * particle system.
 		 */
 		AABox customBounds;
+
+		/** Determines how is each particle represented on the screen. */
+		ParticleRenderMode renderMode = ParticleRenderMode::Billboard;
 	};
 
 	/** Templated common base for both sim and core thread variants of ParticleSystemSettings. */
@@ -201,9 +214,13 @@ namespace bs
 	struct TParticleSystemSettings : ParticleSystemSettingsBase
 	{
 		using MaterialType = CoreVariantHandleType<Material, Core>;
+		using MeshType = CoreVariantHandleType<Mesh, Core>;
 
 		/** Material to render the particles with. */
 		MaterialType material;
+
+		/** Mesh used for representing individual particles when using the Mesh rendering mode. */
+		MeshType mesh;
 
 		/** Applies an operation over all the serializable fields of this object. */
 		template<class Processor>
@@ -623,18 +640,6 @@ namespace bs
 
 	namespace ct
 	{
-		/** 
-		 * Contains a set of textures used for rendering a particle system. Each pixel in a texture represent properties
-		 * of a single particle.
-		 */
-		struct ParticleTextures
-		{
-			SPtr<Texture> positionAndRotation;
-			SPtr<Texture> color;
-			SPtr<Texture> sizeAndFrameIdx;
-			SPtr<GpuBuffer> indices; 
-		};
-
 		/** Core thread counterpart of bs::ParticleSystem. */
 		class BS_CORE_EXPORT ParticleSystem final : public CoreObject, public SceneActor, public INonCopyable 
 		{

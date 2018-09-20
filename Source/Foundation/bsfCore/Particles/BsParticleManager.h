@@ -19,10 +19,26 @@ namespace bs
 	 */
 	
 	/** 
-	 * Contains data resulting from CPU particle simulation of a single particle system. Per-particle data is stored in a
-	 * 2D square layout so it can be used for quickly initializing a texture.
+	 * Contains data resulting from a single frame of CPU particle simulation of a single particle system, used by all
+	 * rendering modes. 
 	 */
-	struct BS_CORE_EXPORT ParticleCPUSimulationData
+	struct BS_CORE_EXPORT ParticleRenderData
+	{
+		/** Contains mapping from unsorted to sorted particle indices. */
+		Vector<UINT32> indices;
+
+		/** Total number of particles in the particle system. */
+		UINT32 numParticles;
+
+		/** Bounds of the particle system, in the system's simulation space. */
+		AABox bounds;
+	};
+
+	/** 
+	 * Contains data used for rendering particles as billboards. Per-particle data is stored in a 2D square layout so it
+	 * can be used for quickly initializing a texture.
+	 */
+	struct BS_CORE_EXPORT ParticleBillboardRenderData : ParticleRenderData
 	{
 		/** Contains particle positions in .xyz and 2D rotation in .w */
 		PixelData positionAndRotation;
@@ -32,23 +48,26 @@ namespace bs
 
 		/** Contains 2D particle size in .xy, frame index (used for animation) in .z. */
 		PixelData sizeAndFrameIdx;
-
-		/** Contains mapping from unsorted to sorted particle indices. */
-		Vector<UINT32> indices;
-
-		/** Total number of particles in the particle system. */
-		UINT32 numParticles;
-
-		/** Bounds of the particle system, in the system's simulation space. */
-		AABox bounds;
-
-		/** 
-		 * Sorts the particles by distance from the reference point and updates the @p indices array with the sorted 
-		 * indices. 
-		 */
-		void updateSortIndices(const Vector3& referencePoint);
 	};
 
+	/** 
+	 * Contains data used for rendering particles as meshes. Per-particle data is stored in a 2D square layout so it
+	 * can be used for quickly initializing a texture.
+	 */
+	struct BS_CORE_EXPORT ParticleMeshRenderData : ParticleRenderData
+	{
+		/** Contains particle positions in .xyz with .w unused. */
+		PixelData position;
+
+		/** Contains particle color in .xyz and transparency in .a. */
+		PixelData color;
+
+		/** Contains particle size in .xyz with .w unused. */
+		PixelData size;
+
+		/** Contains particle rotation in radians in .xyz with .w unused. */
+		PixelData rotation;
+	};
 	/** 
 	 * Contains information about a single particle about to be inserted into the GPU simulation. Matches the structure
 	 * of the vertex buffer element used for injecting shader data into the simulation.
@@ -93,9 +112,9 @@ namespace bs
 	};
 
 	/** Contains simulation data resulting from all particle systems, for a single frame. */
-	struct ParticleSimulationData
+	struct ParticlePerFrameData
 	{
-		UnorderedMap<UINT32, ParticleCPUSimulationData*> cpuData;
+		UnorderedMap<UINT32, ParticleRenderData*> cpuData;
 		UnorderedMap<UINT32, ParticleGPUSimulationData*> gpuData;
 	};
 
@@ -109,9 +128,9 @@ namespace bs
 
 		/** 
 		 * Advances the simulation for all particle systems using the current frame time delta. Outputs a set of data
-		 * that can be used for rendering every active particle system.
+		 * that can be used for rendering & updating every active particle system.
 		 */
-		ParticleSimulationData* update(const EvaluatedAnimationData& animData);
+		ParticlePerFrameData* update(const EvaluatedAnimationData& animData);
 
 	private:
 		friend class ParticleSystem;
@@ -137,7 +156,7 @@ namespace bs
 		bool mPaused = false;
 
 		// Worker threads
-		ParticleSimulationData mSimulationData[CoreThread::NUM_SYNC_BUFFERS];
+		ParticlePerFrameData mSimulationData[CoreThread::NUM_SYNC_BUFFERS];
 
 		UINT32 mReadBufferIdx = 1;
 		UINT32 mWriteBufferIdx = 0;

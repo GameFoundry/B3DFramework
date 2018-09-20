@@ -326,10 +326,14 @@ namespace bs { namespace ct
 			if (!mVisibility.particleSystems[i])
 				continue;
 
+			const ParticlesRenderElement& renderElement = sceneInfo.particleSystems[i].renderElement;
+			if (!renderElement.isValid())
+				continue;
+
 			const AABox& boundingBox = sceneInfo.particleSystemBounds[i];
 			const float distanceToCamera = (mProperties.viewOrigin - boundingBox.getCenter()).length();
 
-			mTransparentQueue->add(&sceneInfo.particleSystems[i].renderElement, distanceToCamera);
+			mTransparentQueue->add(&renderElement, distanceToCamera);
 		}
 
 		mForwardOpaqueQueue->sort();

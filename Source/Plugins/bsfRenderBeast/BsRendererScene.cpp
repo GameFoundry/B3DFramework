@@ -644,21 +644,19 @@ namespace bs {	namespace ct
 		const UINT32 rendererId = particleSystem->getRendererId();
 		RendererParticles& rendererParticles = mInfo.particleSystems[rendererId];
 
+		const ParticleSystemSettings& settings = particleSystem->getSettings();
+		if (settings.simulationSpace == ParticleSimulationSpace::Local)
+			rendererParticles.localToWorld = particleSystem->getTransform().getMatrix();
+		else
+			rendererParticles.localToWorld = Matrix4::IDENTITY;
+
 		if(tfrmOnly)
 		{
-			rendererParticles.localToWorld = particleSystem->getTransform().getMatrix();
-
 			SPtr<GpuParamBlockBuffer>& paramBuffer = rendererParticles.particlesParamBuffer;
 			gParticlesParamDef.gWorldTfrm.set(paramBuffer, rendererParticles.localToWorld);
 		}
 		else
 		{
-			const ParticleSystemSettings& settings = particleSystem->getSettings();
-			if (settings.simulationSpace == ParticleSimulationSpace::Local)
-				rendererParticles.localToWorld = particleSystem->getTransform().getMatrix();
-			else
-				rendererParticles.localToWorld = Matrix4::IDENTITY;
-
 			SPtr<GpuParamBlockBuffer> paramBuffer = gParticlesParamDef.createBuffer();
 			gParticlesParamDef.gWorldTfrm.set(paramBuffer, rendererParticles.localToWorld);
 
@@ -726,7 +724,8 @@ namespace bs {	namespace ct
 			const ParticleOrientation orientation = settings.orientation;
 			const bool lockY = settings.orientationLockY;
 			const bool gpu = settings.gpuSimulation;
-			const ShaderVariation* variation = &getParticleShaderVariation(orientation, lockY, gpu);
+			const bool is3d = settings.renderMode == ParticleRenderMode::Mesh;
+			const ShaderVariation* variation = &getParticleShaderVariation(orientation, lockY, gpu, is3d);
 
 			FIND_TECHNIQUE_DESC findDesc;
 			findDesc.variation = variation;
@@ -754,15 +753,38 @@ namespace bs {	namespace ct
 					renElement.paramsGPU.curvesTexture);
 
 				rendererParticles.gpuParticlesParamBuffer = gGpuParticlesParamDef.createBuffer();
+				renElement.is3D = false;
 			}
 			else
 			{
-				gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gPositionAndRotTex", 
-					renElement.paramsCPU.positionAndRotTexture);
-				gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gColorTex", 
-					renElement.paramsCPU.colorTexture);
-				gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gSizeAndFrameIdxTex", 
-					renElement.paramsCPU.sizeAndFrameIdxTexture);
+				switch(settings.renderMode)
+				{
+				case ParticleRenderMode::Billboard: 
+					gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gPositionAndRotTex",
+						renElement.paramsCPUBillboard.positionAndRotTexture);
+					gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gColorTex",
+						renElement.paramsCPUBillboard.colorTexture);
+					gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gSizeAndFrameIdxTex",
+						renElement.paramsCPUBillboard.sizeAndFrameIdxTexture);
+
+					renElement.is3D = false;
+					break;
+				case ParticleRenderMode::Mesh: 
+					gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gPositionTex",
+						renElement.paramsCPUMesh.positionTexture);
+					gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gColorTex",
+						renElement.paramsCPUMesh.colorTexture);
+					gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gSizeTex",
+						renElement.paramsCPUMesh.sizeTexture);
+					gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gRotationTex",
+						renElement.paramsCPUMesh.rotationTexture);
+
+					renElement.is3D = true;
+					renElement.mesh = settings.mesh;
+					break;
+				default: 
+					break;
+				}
 
 				rendererParticles.gpuParticlesParamBuffer = nullptr;
 			}
@@ -1144,7 +1166,7 @@ namespace bs {	namespace ct
 		mInfo.renderableReady[idx] = true;
 	}
 
-	void RendererScene::updateParticleSystemBounds(const ParticleSimulationData* particleRenderData)
+	void RendererScene::updateParticleSystemBounds(const ParticlePerFrameData* particleRenderData)
 	{
 		// Note: Avoid updating bounds for deterministic particle systems every frame. Also see if this can be copied
 		// over in a faster way (or ideally just assigned)

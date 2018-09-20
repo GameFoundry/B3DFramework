@@ -13,13 +13,13 @@ namespace bs
 	class LightProbeVolume;
 	struct RenderSettings;
 	struct EvaluatedAnimationData;
-	struct ParticleSimulationData;
+	struct ParticlePerFrameData;
 
 	/** Contains various data evaluated by external systems on a per-frame basis that is to be used by the renderer. */
 	struct PerFrameData
 	{
 		const EvaluatedAnimationData* animation = nullptr;
-		const ParticleSimulationData* particles = nullptr;
+		const ParticlePerFrameData* particles = nullptr;
 	};
 
 	namespace ct

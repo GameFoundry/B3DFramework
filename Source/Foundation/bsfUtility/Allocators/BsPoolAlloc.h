@@ -21,7 +21,7 @@ namespace bs
 	 * @tparam	Alignment		Memory alignment of each allocated element. Note that alignments that are larger than
 	 *							element size, or aren't a multiplier of element size will introduce additionally padding
 	 *							for each element, and therefore require more internal memory.
-	 * @tparam	Lock			If true the pool allocator will be made thread safe (at the most of performance).
+	 * @tparam	Lock			If true the pool allocator will be made thread safe (at the cost of performance).
 	 */
 	template <int ElemSize, int ElemsPerBlock = 512, int Alignment = 4, bool Lock = false>
 	class PoolAlloc

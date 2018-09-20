@@ -1292,7 +1292,7 @@ namespace bs { namespace ct
 		};
 
 		// Prepare all visible particle systems
-		const ParticleSimulationData* particleData = inputs.frameInfo.perFrameData.particles;
+		const ParticlePerFrameData* particleData = inputs.frameInfo.perFrameData.particles;
 		ParticleTexturePool& particlesTexPool = ParticleRenderer::instance().getTexturePool();
 		if(particleData)
 		{
@@ -1304,7 +1304,7 @@ namespace bs { namespace ct
 				struct SortData
 				{
 					ParticleSystem* system;
-					ParticleCPUSimulationData* simulationData;
+					ParticleRenderData* renderData;
 				};
 
 				FrameVector<SortData> systemsToSort;
@@ -1320,7 +1320,7 @@ namespace bs { namespace ct
 					if (iterFind == particleData->cpuData.end())
 						continue;
 
-					ParticleCPUSimulationData* simulationData = iterFind->second;
+					ParticleRenderData* simulationData = iterFind->second;
 					if (particleSystem->getSettings().sortMode == ParticleSortMode::Distance)
 						systemsToSort.push_back({ particleSystem, simulationData });
 				}
@@ -1336,7 +1336,18 @@ namespace bs { namespace ct
 					if (settings.simulationSpace == ParticleSimulationSpace::Local)
 						refPoint = data.system->getTransform().getInvMatrix().multiplyAffine(refPoint);
 
-					data.simulationData->updateSortIndices(refPoint);
+					if (settings.renderMode == ParticleRenderMode::Billboard)
+					{
+						auto renderData = static_cast<ParticleBillboardRenderData*>(data.renderData);
+						ParticleRenderer::sortByDistance(refPoint, renderData->positionAndRotation, 
+							renderData->numParticles, 4, renderData->indices);
+					}
+					else
+					{
+						auto renderData = static_cast<ParticleMeshRenderData*>(data.renderData);
+						ParticleRenderer::sortByDistance(refPoint, renderData->position, renderData->numParticles, 
+							3, renderData->indices);
+					}
 				};
 
 				SPtr<TaskGroup> sortTask = TaskGroup::create("ParticleSort", worker, (UINT32)systemsToSort.size());
@@ -1359,22 +1370,53 @@ namespace bs { namespace ct
 				const RendererParticles& rendererParticles = inputs.scene.particleSystems[i];
 				ParticlesRenderElement& renderElement = rendererParticles.renderElement;
 
+				if(!renderElement.isValid())
+					continue;
+
 				ParticleSystem* particleSystem = rendererParticles.particleSystem;
 
 				// Bind textures/buffers from CPU simulation
 				const auto iterFind = particleData->cpuData.find(particleSystem->getId());
 				if (iterFind != particleData->cpuData.end())
 				{
-					ParticleCPUSimulationData* simulationData = iterFind->second;
-					const ParticleTextures* textures = particlesTexPool.alloc(*simulationData);
+					ParticleRenderData* renderData = iterFind->second;
 
-					renderElement.paramsCPU.positionAndRotTexture.set(textures->positionAndRotation);
-					renderElement.paramsCPU.colorTexture.set(textures->color);
-					renderElement.paramsCPU.sizeAndFrameIdxTexture.set(textures->sizeAndFrameIdx);
-					renderElement.indicesBuffer.set(textures->indices);
-					renderElement.numParticles = simulationData->numParticles;
+					const ParticleSystemSettings& settings = particleSystem->getSettings();
+					UINT32 texSize;
+					switch(settings.renderMode)
+					{
+					default:
+					case ParticleRenderMode::Billboard:
+					{
+						const auto billboardRenderData = static_cast<ParticleBillboardRenderData*>(renderData);
+						const ParticleBillboardTextures* textures = particlesTexPool.alloc(*billboardRenderData);
 
-					const UINT32 texSize = textures->positionAndRotation->getProperties().getWidth();
+						renderElement.paramsCPUBillboard.positionAndRotTexture.set(textures->positionAndRotation);
+						renderElement.paramsCPUBillboard.colorTexture.set(textures->color);
+						renderElement.paramsCPUBillboard.sizeAndFrameIdxTexture.set(textures->sizeAndFrameIdx);
+
+						renderElement.indicesBuffer.set(textures->indices);
+						texSize = textures->positionAndRotation->getProperties().getWidth();
+					}
+					break;
+					case ParticleRenderMode::Mesh:
+					{
+						const auto meshRenderData = static_cast<ParticleMeshRenderData*>(renderData);
+						const ParticleMeshTextures* textures = particlesTexPool.alloc(*meshRenderData);
+
+						renderElement.paramsCPUMesh.positionTexture.set(textures->position);
+						renderElement.paramsCPUMesh.colorTexture.set(textures->color);
+						renderElement.paramsCPUMesh.rotationTexture.set(textures->rotation);
+						renderElement.paramsCPUMesh.sizeTexture.set(textures->size);
+
+						renderElement.indicesBuffer.set(textures->indices);
+						texSize = textures->position->getProperties().getWidth();
+					}
+					break;
+					}
+
+					renderElement.numParticles = renderData->numParticles;
+
 					gParticlesParamDef.gTexSize.set(rendererParticles.particlesParamBuffer, texSize);
 					gParticlesParamDef.gBufferOffset.set(rendererParticles.particlesParamBuffer, 0);
 				}
@@ -1429,7 +1471,12 @@ namespace bs { namespace ct
 					const auto& renderElem = static_cast<const ParticlesRenderElement*>(iter->renderElem);
 
 					if(renderElem->numParticles > 0)
-						ParticleRenderer::instance().drawBillboards(renderElem->numParticles);
+					{
+						if(renderElem->is3D)
+							gRendererUtility().draw(renderElem->mesh, renderElem->numParticles);
+						else
+							ParticleRenderer::instance().drawBillboards(renderElem->numParticles);
+					}
 				}
 				else // Renderable
 				{

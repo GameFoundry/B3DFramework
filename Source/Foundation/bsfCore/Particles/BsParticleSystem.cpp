@@ -12,6 +12,7 @@
 #include "Renderer/BsRenderer.h"
 #include "Physics/BsPhysics.h"
 #include "Particles/BsVectorField.h"
+#include "Mesh/BsMesh.h"
 #include "CoreThread/BsCoreObjectSync.h"
 
 namespace bs
@@ -75,6 +76,8 @@ namespace bs
 		p << material;
 		p << useAutomaticBounds;
 		p << customBounds;
+		p << renderMode;
+		p << mesh;
 	}
 
 	template<bool Core>

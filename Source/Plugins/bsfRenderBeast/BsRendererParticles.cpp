@@ -10,56 +10,91 @@
 
 namespace bs { namespace ct
 {
-	template<bool LOCK_Y, bool GPU>
+	template<bool LOCK_Y, bool GPU, bool IS_3D>
 	const ShaderVariation& _getParticleShaderVariation(ParticleOrientation orient)
 	{
 		switch (orient)
 		{
 		default:
 		case ParticleOrientation::ViewPlane:
-			return getParticleShaderVariation<ParticleOrientation::ViewPlane, LOCK_Y, GPU>();
+			return getParticleShaderVariation<ParticleOrientation::ViewPlane, LOCK_Y, GPU, IS_3D>();
 		case ParticleOrientation::ViewPosition:
-			return getParticleShaderVariation<ParticleOrientation::ViewPosition, LOCK_Y, GPU>();
+			return getParticleShaderVariation<ParticleOrientation::ViewPosition, LOCK_Y, GPU, IS_3D>();
 		case ParticleOrientation::Plane:
-			return getParticleShaderVariation<ParticleOrientation::Plane, LOCK_Y, GPU>();
+			return getParticleShaderVariation<ParticleOrientation::Plane, LOCK_Y, GPU, IS_3D>();
 		}
 	}
 
-	template<bool GPU>
+	template<bool GPU, bool IS_3D>
 	const ShaderVariation& _getParticleShaderVariation(ParticleOrientation orient, bool lockY)
 	{
 		if (lockY)
-			return _getParticleShaderVariation<true, GPU>(orient);
+			return _getParticleShaderVariation<true, GPU, IS_3D>(orient);
 
-		return _getParticleShaderVariation<false, GPU>(orient);
+		return _getParticleShaderVariation<false, GPU, IS_3D>(orient);
 	}
 
-	const ShaderVariation& getParticleShaderVariation(ParticleOrientation orient, bool lockY, bool gpu)
+	template<bool IS_3D>
+	const ShaderVariation& _getParticleShaderVariation(ParticleOrientation orient, bool lockY, bool gpu)
 	{
 		if(gpu)
-			return _getParticleShaderVariation<true>(orient, lockY);
+			return _getParticleShaderVariation<true, IS_3D>(orient, lockY);
 
-		return _getParticleShaderVariation<false>(orient, lockY);
+		return _getParticleShaderVariation<false, IS_3D>(orient, lockY);
+	}
+
+	const ShaderVariation& getParticleShaderVariation(ParticleOrientation orient, bool lockY, bool gpu, bool is3D)
+	{
+		if(is3D)
+			return _getParticleShaderVariation<true>(orient, lockY, gpu);
+
+		return _getParticleShaderVariation<false>(orient, lockY, gpu);
 	}
 
 	ParticlesParamDef gParticlesParamDef;
 	GpuParticlesParamDef gGpuParticlesParamDef;
 
+	void writeIndices(GpuBuffer* buffer, const Vector<UINT32>& input, UINT32 texSize)
+	{
+		const auto numParticles = (UINT32)input.size();
+		if (numParticles == 0)
+			return;
+
+		auto* const indices = (UINT32*)buffer->lock(GBL_WRITE_ONLY_DISCARD);
+
+		UINT32 idx = 0;
+		for(auto& entry : input)
+		{
+			const UINT32 x = entry % texSize;
+			const UINT32 y = entry / texSize;
+
+			indices[idx++] = (x & 0xFFFF) | (y << 16);
+		}
+
+		buffer->unlock();
+	}
+
 	ParticleTexturePool::~ParticleTexturePool()
 	{
-		for (auto& sizeEntry : mBufferList)
+		for (auto& sizeEntry : mBillboardBufferList)
 		{
 			for (auto& entry : sizeEntry.second.buffers)
-				mAlloc.destruct(entry);
+				mBillboardAlloc.destruct(entry);
+		}
+
+		for (auto& sizeEntry : mMeshBufferList)
+		{
+			for (auto& entry : sizeEntry.second.buffers)
+				mMeshAlloc.destruct(entry);
 		}
 	}
 
-	const ParticleTextures* ParticleTexturePool::alloc(const ParticleCPUSimulationData& simulationData)
+	const ParticleBillboardTextures* ParticleTexturePool::alloc(const ParticleBillboardRenderData& simulationData)
 	{
 		const UINT32 size = simulationData.color.getWidth();
 
-		const ParticleTextures* output = nullptr;
-		BuffersPerSize& buffers = mBufferList[size];
+		const ParticleBillboardTextures* output = nullptr;
+		BillboardBuffersPerSize& buffers = mBillboardBufferList[size];
 		if (buffers.nextFreeIdx < (UINT32)buffers.buffers.size())
 		{
 			output = buffers.buffers[buffers.nextFreeIdx];
@@ -68,7 +103,7 @@ namespace bs { namespace ct
 
 		if (!output)
 		{
-			output = createNewTextures(size);
+			output = createNewBillboardTextures(size);
 			buffers.nextFreeIdx++;
 		}
 
@@ -79,40 +114,52 @@ namespace bs { namespace ct
 		output->color->writeData(simulationData.color, 0, 0, true);
 		output->sizeAndFrameIdx->writeData(simulationData.sizeAndFrameIdx, 0, 0, true);
 
-		const auto numParticles = (UINT32)simulationData.indices.size();
-		if(numParticles > 0)
+		writeIndices(output->indices.get(), simulationData.indices, size);
+		return output;
+	}
+
+	const ParticleMeshTextures* ParticleTexturePool::alloc(const ParticleMeshRenderData& simulationData)
+	{
+		const UINT32 size = simulationData.color.getWidth();
+
+		const ParticleMeshTextures* output = nullptr;
+		MeshBuffersPerSize& buffers = mMeshBufferList[size];
+		if (buffers.nextFreeIdx < (UINT32)buffers.buffers.size())
 		{
-			auto* const indices = (UINT32*)output->indices->lock(GBL_WRITE_ONLY_DISCARD);
-			const UINT32 numRows = Math::divideAndRoundUp(numParticles, size);
-
-			UINT32 idx = 0;
-			UINT32 y = 0;
-			for (; y < numRows - 1; y++)
-			{
-				for (UINT32 x = 0; x < size; x++)
-					indices[idx++] = (x & 0xFFFF) | (y << 16);
-			}
-
-			// Final row
-			const UINT32 remainingParticles = numParticles - (numRows - 1) * size;
-			for (UINT32 x = 0; x < remainingParticles; x++)
-				indices[idx++] = (x & 0xFFFF) | (y << 16);
-
-			output->indices->unlock();
+			output = buffers.buffers[buffers.nextFreeIdx];
+			buffers.nextFreeIdx++;
 		}
 
+		if (!output)
+		{
+			output = createNewMeshTextures(size);
+			buffers.nextFreeIdx++;
+		}
+
+		// Populate texture contents
+		// Note: Perhaps instead of using write-discard here, we should track which frame has finished rendering and then
+		// just use no-overwrite? write-discard will very likely allocate memory under the hood.
+		output->position->writeData(simulationData.position, 0, 0, true);
+		output->color->writeData(simulationData.color, 0, 0, true);
+		output->size->writeData(simulationData.size, 0, 0, true);
+		output->rotation->writeData(simulationData.rotation, 0, 0, true);
+
+		writeIndices(output->indices.get(), simulationData.indices, size);
 		return output;
 	}
 
 	void ParticleTexturePool::clear()
 	{
-		for(auto& buffers : mBufferList)
+		for(auto& buffers : mBillboardBufferList)
+			buffers.second.nextFreeIdx = 0;
+
+		for(auto& buffers : mMeshBufferList)
 			buffers.second.nextFreeIdx = 0;
 	}
 
-	ParticleTextures* ParticleTexturePool::createNewTextures(UINT32 size)
+	ParticleBillboardTextures* ParticleTexturePool::createNewBillboardTextures(UINT32 size)
 	{
-		ParticleTextures* output = mAlloc.construct<ParticleTextures>();
+		ParticleBillboardTextures* output = mBillboardAlloc.construct<ParticleBillboardTextures>();
 
 		TEXTURE_DESC texDesc;
 		texDesc.type = TEX_TYPE_2D;
@@ -136,11 +183,42 @@ namespace bs { namespace ct
 
 		output->indices = GpuBuffer::create(bufferDesc);
 
-		mBufferList[size].buffers.push_back(output);
-
+		mBillboardBufferList[size].buffers.push_back(output);
 		return output;
 	}
 
+	ParticleMeshTextures* ParticleTexturePool::createNewMeshTextures(UINT32 size)
+	{
+		ParticleMeshTextures* output = mMeshAlloc.construct<ParticleMeshTextures>();
+
+		TEXTURE_DESC texDesc;
+		texDesc.type = TEX_TYPE_2D;
+		texDesc.width = size;
+		texDesc.height = size;
+		texDesc.usage = TU_DYNAMIC;
+
+		texDesc.format = PF_RGBA32F;
+		output->position = Texture::create(texDesc);
+
+		texDesc.format = PF_RGBA8;
+		output->color = Texture::create(texDesc);
+
+		texDesc.format = PF_RGBA16F;
+		output->size = Texture::create(texDesc);
+
+		texDesc.format = PF_RGBA16F;
+		output->rotation = Texture::create(texDesc);
+
+		GPU_BUFFER_DESC bufferDesc;
+		bufferDesc.type = GBT_STANDARD;
+		bufferDesc.elementCount = size * size;
+		bufferDesc.format = BF_16X2U;
+
+		output->indices = GpuBuffer::create(bufferDesc);
+
+		mMeshBufferList[size].buffers.push_back(output);
+		return output;
+	}
 	struct ParticleRenderer::Members
 	{
 		SPtr<VertexBuffer> billboardVB;
@@ -192,4 +270,56 @@ namespace bs { namespace ct
 		rapi.setDrawOperation(DOT_TRIANGLE_STRIP);
 		rapi.draw(0, 4, count);
 	}
+
+	void ParticleRenderer::sortByDistance(const Vector3& refPoint, const PixelData& positions, UINT32 numParticles, 
+		UINT32 stride, Vector<UINT32>& indices)
+	{
+		struct ParticleSortData
+		{
+			ParticleSortData(float key, UINT32 idx)
+				:key(key), idx(idx)
+			{ }
+
+			float key;
+			UINT32 idx;
+		};
+
+		const UINT32 size = positions.getWidth();
+		UINT8* positionPtr = positions.getData();
+
+		bs_frame_mark();
+		{
+			FrameVector<ParticleSortData> sortData;
+			sortData.reserve(numParticles);
+
+			UINT32 x = 0;
+			for (UINT32 i = 0; i < numParticles; i++)
+			{
+				const Vector3& position = *(Vector3*)positionPtr;
+
+				float distance = refPoint.squaredDistance(position);
+				sortData.emplace_back(distance, i);
+
+				positionPtr += sizeof(float) * stride;
+				x++;
+
+				if (x >= size)
+				{
+					x = 0;
+					positionPtr += positions.getRowSkip();
+				}
+			}
+
+			std::sort(sortData.begin(), sortData.end(),
+				[](const ParticleSortData& lhs, const ParticleSortData& rhs)
+			{
+				return rhs.key < lhs.key;
+			});
+
+			for (UINT32 i = 0; i < numParticles; i++)
+				indices[i] = sortData[i].idx;
+		}
+		bs_frame_clear();
+	}
+
 }}

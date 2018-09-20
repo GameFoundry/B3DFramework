@@ -209,7 +209,6 @@ namespace bs
 	{
 	public:
 		PixelData();
-		~PixelData() {}
 
 		/**
 		 * Constructs a new object with an internal buffer capable of holding "extents" volume of pixels, where each pixel 

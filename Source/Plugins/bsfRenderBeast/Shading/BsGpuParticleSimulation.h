@@ -157,7 +157,7 @@ namespace bs { namespace ct
 		 * @param[in]	gbuffer		Populated GBuffer with depths and normals.
 		 * @param[in]	dt			Time step to advance the simulation by.
 		 */
-		void simulate(const SceneInfo& sceneInfo, const ParticleSimulationData* simData, 
+		void simulate(const SceneInfo& sceneInfo, const ParticlePerFrameData* simData, 
 			const SPtr<GpuParamBlockBuffer>& viewParams, const GBufferTextures& gbuffer, float dt);
 
 		/** 

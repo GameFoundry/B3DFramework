@@ -761,7 +761,7 @@ namespace bs
 		Vector3Distribution mInitialRotation3D = Vector3::ZERO;
 		bool mUse3DRotation = false;
 
-		ColorDistribution mInitialColor = Color::Black;
+		ColorDistribution mInitialColor = Color::White;
 
 		float mFlipU = 0.0f;
 		float mFlipV = 0.0f;
