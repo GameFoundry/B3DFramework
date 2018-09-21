@@ -68,7 +68,7 @@ namespace bs
 	/**	Set of options that can be used for controlling the renderer. */	
 	struct BS_CORE_EXPORT RendererOptions
 	{
-		virtual ~RendererOptions() { }
+		virtual ~RendererOptions() = default;
 	};
 
 	/** Settings that control renderer scene capture. */
@@ -131,7 +131,7 @@ namespace bs
 	{
 	public:
 		Renderer();
-		virtual ~Renderer() { }
+		virtual ~Renderer() = default;
 
 		/** Initializes the renderer. Must be called before using the renderer. */
 		virtual void initialize() { }

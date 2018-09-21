@@ -31,6 +31,40 @@ namespace bs { namespace ct
 {
 	UnorderedMap<StringID, RenderCompositor::NodeType*> RenderCompositor::mNodeTypes;
 
+	/** Renders all elements in a render queue. */
+	void renderQueueElements(const Vector<RenderQueueElement>& elements)
+	{
+		for(auto& entry : elements)
+		{
+			if (entry.applyPass)
+				gRendererUtility().setPass(entry.renderElem->material, entry.passIdx, entry.renderElem->techniqueIdx);
+
+			gRendererUtility().setPassParams(entry.renderElem->params, entry.passIdx);
+
+			if (entry.renderElem->type == (UINT32)RenderElementType::Particle)
+			{
+				const auto& renderElem = static_cast<const ParticlesRenderElement*>(entry.renderElem);
+
+				if (renderElem->numParticles > 0)
+				{
+					if (renderElem->is3D)
+						gRendererUtility().draw(renderElem->mesh, renderElem->numParticles);
+					else
+						ParticleRenderer::instance().drawBillboards(renderElem->numParticles);
+				}
+			}
+			else // Renderable
+			{
+				const auto& renderElem = static_cast<const RenderableElement*>(entry.renderElem);
+				if (renderElem->morphVertexDeclaration == nullptr)
+					gRendererUtility().draw(renderElem->mesh, renderElem->subMesh);
+				else
+					gRendererUtility().drawMorph(renderElem->mesh, renderElem->subMesh, renderElem->morphShapeBuffer,
+						renderElem->morphVertexDeclaration);
+			}
+		}
+	}
+
 	RenderCompositor::~RenderCompositor()
 	{
 		clear();
@@ -276,8 +310,9 @@ namespace bs { namespace ct
 		}
 
 		// Prepare all visible objects. Note that this also prepares non-opaque objects.
+		//// Prepare normal renderables
 		const VisibilityInfo& visibility = inputs.view.getVisibilityMasks();
-		UINT32 numRenderables = (UINT32)inputs.scene.renderables.size();
+		const auto numRenderables = (UINT32)inputs.scene.renderables.size();
 		for (UINT32 i = 0; i < numRenderables; i++)
 		{
 			if (!visibility.renderables[i])
@@ -295,6 +330,39 @@ namespace bs { namespace ct
 					if(binding.slot != (UINT32)-1)
 						gpuParams->setParamBlockBuffer(binding.set, binding.slot, inputs.view.getPerViewBuffer());
 				}
+			}
+		}
+
+		//// Prepare particle systems
+		const ParticlePerFrameData* particleData = inputs.frameInfo.perFrameData.particles;
+		if(particleData)
+		{
+			const auto numParticleSystems = (UINT32)inputs.scene.particleSystems.size();
+
+			const GpuParticleResources& gpuSimResources = GpuParticleSimulation::instance().getResources();
+			for (UINT32 i = 0; i < numParticleSystems; i++)
+			{
+				if (!visibility.particleSystems[i])
+					continue;
+
+				const RendererParticles& rendererParticles = inputs.scene.particleSystems[i];
+				ParticlesRenderElement& renderElement = rendererParticles.renderElement;
+
+				if(!renderElement.isValid())
+					continue;
+
+				ParticleSystem* particleSystem = rendererParticles.particleSystem;
+
+				// Bind textures/buffers from CPU simulation
+				const auto iterFind = particleData->cpuData.find(particleSystem->getId());
+				if (iterFind != particleData->cpuData.end())
+				{
+					ParticleRenderData* renderData = iterFind->second;
+					rendererParticles.bindCPUSimulatedInputs(renderData, inputs.view);
+				}
+				// Bind textures/buffers from GPU simulation
+				else if(rendererParticles.gpuParticleSystem)
+					rendererParticles.bindGPUSimulatedInputs(gpuSimResources, inputs.view);
 			}
 		}
 
@@ -332,23 +400,7 @@ namespace bs { namespace ct
 
 		// Render all visible opaque elements that use the deferred pipeline
 		const Vector<RenderQueueElement>& opaqueElements = inputs.view.getOpaqueQueue(false)->getSortedElements();
-		for (auto iter = opaqueElements.begin(); iter != opaqueElements.end(); ++iter)
-		{
-			const RenderableElement* renderElem = static_cast<const RenderableElement*>(iter->renderElem);
-
-			SPtr<Material> material = renderElem->material;
-
-			if (iter->applyPass)
-				gRendererUtility().setPass(material, iter->passIdx, renderElem->techniqueIdx);
-
-			gRendererUtility().setPassParams(renderElem->params, iter->passIdx);
-
-			if(renderElem->morphVertexDeclaration == nullptr)
-				gRendererUtility().draw(renderElem->mesh, renderElem->subMesh);
-			else
-				gRendererUtility().drawMorph(renderElem->mesh, renderElem->subMesh, renderElem->morphShapeBuffer, 
-					renderElem->morphVertexDeclaration);
-		}
+		renderQueueElements(opaqueElements);
 
 		// Make sure that any compute shaders are able to read g-buffer by unbinding it
 		rapi.setRenderTarget(nullptr);
@@ -375,7 +427,7 @@ namespace bs { namespace ct
 
 	SmallVector<StringID, 4> RCNodeGBuffer::getDependencies(const RendererView& view)
 	{
-		return { RCNodeSceneDepth::getNodeId() };
+		return { RCNodeSceneDepth::getNodeId(), RCNodeParticleSort::getNodeId() };
 	}
 
 	void RCNodeSceneColor::render(const RenderCompositorNodeInputs& inputs)
@@ -543,6 +595,87 @@ namespace bs { namespace ct
 	{
 		return { RCNodeGBuffer::getNodeId(), RCNodeSceneDepth::getNodeId() };
 	}
+
+	void RCNodeParticleSort::render(const RenderCompositorNodeInputs& inputs)
+	{
+		const ParticlePerFrameData* particleData = inputs.frameInfo.perFrameData.particles;
+		if(!particleData)
+			return;
+
+		const RendererViewProperties& viewProps = inputs.view.getProperties();
+		const VisibilityInfo& visibility = inputs.view.getVisibilityMasks();
+		const auto numParticleSystems = (UINT32)inputs.scene.particleSystems.size();
+
+		// Sort particles
+		bs_frame_mark();
+		{
+			struct SortData
+			{
+				ParticleSystem* system;
+				ParticleRenderData* renderData;
+			};
+
+			FrameVector<SortData> systemsToSort;
+			for (UINT32 i = 0; i < numParticleSystems; i++)
+			{
+				if (!visibility.particleSystems[i])
+					continue;
+
+				const RendererParticles& rendererParticles = inputs.scene.particleSystems[i];
+
+				ParticleSystem* particleSystem = rendererParticles.particleSystem;
+				const auto iterFind = particleData->cpuData.find(particleSystem->getId());
+				if (iterFind == particleData->cpuData.end())
+					continue;
+
+				ParticleRenderData* simulationData = iterFind->second;
+				if (particleSystem->getSettings().sortMode == ParticleSortMode::Distance)
+					systemsToSort.push_back({ particleSystem, simulationData });
+			}
+
+			const auto worker = [&systemsToSort, viewOrigin = viewProps.viewOrigin](UINT32 idx)
+			{
+				const SortData& data = systemsToSort[idx];
+
+				Vector3 refPoint = viewOrigin;
+
+				// Transform the view point into particle system's local space
+				const ParticleSystemSettings& settings = data.system->getSettings();
+				if (settings.simulationSpace == ParticleSimulationSpace::Local)
+					refPoint = data.system->getTransform().getInvMatrix().multiplyAffine(refPoint);
+
+				if (settings.renderMode == ParticleRenderMode::Billboard)
+				{
+					auto renderData = static_cast<ParticleBillboardRenderData*>(data.renderData);
+					ParticleRenderer::sortByDistance(refPoint, renderData->positionAndRotation,
+						renderData->numParticles, 4, renderData->indices);
+				}
+				else
+				{
+					auto renderData = static_cast<ParticleMeshRenderData*>(data.renderData);
+					ParticleRenderer::sortByDistance(refPoint, renderData->position, renderData->numParticles,
+						3, renderData->indices);
+				}
+			};
+
+			SPtr<TaskGroup> sortTask = TaskGroup::create("ParticleSort", worker, (UINT32)systemsToSort.size());
+
+			TaskScheduler::instance().addTaskGroup(sortTask);
+			sortTask->wait();
+		}
+		bs_frame_clear();
+	}
+
+	void RCNodeParticleSort::clear()
+	{
+		// Do nothing
+	}
+
+	SmallVector<StringID, 4> RCNodeParticleSort::getDependencies(const RendererView& view)
+	{
+		return { };
+	}
+
 	void RCNodeLightAccumulation::render(const RenderCompositorNodeInputs& inputs)
 	{
 		bool supportsTiledDeferred = gRenderBeast()->getFeatureSet() != RenderBeastFeatureSet::DesktopMacOS;
@@ -1092,9 +1225,6 @@ namespace bs { namespace ct
 		return deps;
 	}
 
-	RCNodeClusteredForward::RCNodeClusteredForward()
-	{ }
-
 	void RCNodeClusteredForward::render(const RenderCompositorNodeInputs& inputs)
 	{
 		const SceneInfo& sceneInfo = inputs.scene;
@@ -1103,30 +1233,27 @@ namespace bs { namespace ct
 		const VisibleLightData& visibleLightData = inputs.viewGroup.getVisibleLightData();
 		const VisibleReflProbeData& visibleReflProbeData = inputs.viewGroup.getVisibleReflProbeData();
 
-		// Buffers used when clustered forward is available
-		SPtr<GpuParamBlockBuffer> gridParams;
-		SPtr<GpuBuffer> gridLightOffsetsAndSize, gridLightIndices;
-		SPtr<GpuBuffer> gridProbeOffsetsAndSize, gridProbeIndices;
+		LightGridOutputs lightGridOutputs;
 
-		// Buffers used when clustered forward is unavailable
-		SPtr<GpuParamBlockBuffer> lightsParamBlock;
-		SPtr<GpuParamBlockBuffer> reflProbesParamBlock;
-		SPtr<GpuParamBlockBuffer> lightAndReflProbeParamsParamBlock;
+		struct StandardForwardBuffers
+		{
+			SPtr<GpuParamBlockBuffer> lightsParamBlock;
+			SPtr<GpuParamBlockBuffer> reflProbesParamBlock;
+			SPtr<GpuParamBlockBuffer> lightAndReflProbeParamsParamBlock;
+		} standardForwardBuffers;
 
-		bool supportsClusteredForward = gRenderBeast()->getFeatureSet() == RenderBeastFeatureSet::Desktop;
+		const bool supportsClusteredForward = gRenderBeast()->getFeatureSet() == RenderBeastFeatureSet::Desktop;
 		if(supportsClusteredForward)
 		{
 			const LightGrid& lightGrid = inputs.view.getLightGrid();
-
-			lightGrid.getOutputs(gridLightOffsetsAndSize, gridLightIndices, gridProbeOffsetsAndSize, gridProbeIndices,
-				gridParams);
+			lightGridOutputs = lightGrid.getOutputs();
 		}
 		else
 		{
 			// Note: Store these instead of creating them every time?
-			lightsParamBlock = gLightsParamDef.createBuffer();
-			reflProbesParamBlock = gReflProbesParamDef.createBuffer();
-			lightAndReflProbeParamsParamBlock = gLightAndReflProbeParamsParamDef.createBuffer();
+			standardForwardBuffers.lightsParamBlock = gLightsParamDef.createBuffer();
+			standardForwardBuffers.reflProbesParamBlock = gReflProbesParamDef.createBuffer();
+			standardForwardBuffers.lightAndReflProbeParamsParamBlock = gLightAndReflProbeParamsParamDef.createBuffer();
 		}
 
 		Skybox* skybox = nullptr;
@@ -1142,9 +1269,105 @@ namespace bs { namespace ct
 		if(skybox)
 			skyFilteredRadiance = skybox->getFilteredRadiance();
 
-		// Prepare objects for rendering
+		const auto bindParamsForClustered = [&lightGridOutputs, &visibleLightData, &visibleReflProbeData]
+			(GpuParams& gpuParams, const ForwardLightingParams& fwdParams, const ImageBasedLightingParams& iblParams)
+		{
+			for (UINT32 j = 0; j < GPT_COUNT; j++)
+			{
+				const GpuParamBinding& binding = fwdParams.gridParamsBindings[j];
+				if (binding.slot != (UINT32)-1)
+					gpuParams.setParamBlockBuffer(binding.set, binding.slot, lightGridOutputs.gridParams);
+			}
+
+			fwdParams.gridLightOffsetsAndSizeParam.set(lightGridOutputs.gridLightOffsetsAndSize);
+			fwdParams.gridProbeOffsetsAndSizeParam.set(lightGridOutputs.gridProbeOffsetsAndSize);
+
+			fwdParams.gridLightIndicesParam.set(lightGridOutputs.gridLightIndices);
+			iblParams.reflectionProbeIndicesParam.set(lightGridOutputs.gridProbeIndices);
+
+			fwdParams.lightsBufferParam.set(visibleLightData.getLightBuffer());
+			iblParams.reflectionProbesParam.set(visibleReflProbeData.getProbeBuffer());
+		};
+
+		const auto bindParamsForStandardForward = [&standardForwardBuffers, &visibleLightData, &visibleReflProbeData]
+			(GpuParams& gpuParams, const Bounds& bounds, const ForwardLightingParams& fwdParams, 
+				const ImageBasedLightingParams& iblParams)
+		{
+			// Populate light & probe buffers
+			Vector3I lightCounts;
+			const LightData* lights[STANDARD_FORWARD_MAX_NUM_LIGHTS];
+			visibleLightData.gatherInfluencingLights(bounds, lights, lightCounts);
+
+			Vector4I lightOffsets;
+			lightOffsets.x = lightCounts.x;
+			lightOffsets.y = lightCounts.x;
+			lightOffsets.z = lightOffsets.y + lightCounts.y;
+			lightOffsets.w = lightOffsets.z + lightCounts.z;
+
+			for (INT32 j = 0; j < lightOffsets.w; j++)
+				gLightsParamDef.gLights.set(standardForwardBuffers.lightsParamBlock, *lights[j], j);
+
+			INT32 numReflProbes = std::min(visibleReflProbeData.getNumProbes(), STANDARD_FORWARD_MAX_NUM_PROBES);
+			for (INT32 j = 0; j < numReflProbes; j++)
+			{
+				gReflProbesParamDef.gReflectionProbes.set(standardForwardBuffers.reflProbesParamBlock, 
+					visibleReflProbeData.getProbeData(j), j);
+			}
+
+			gLightAndReflProbeParamsParamDef.gLightOffsets.set(standardForwardBuffers.lightAndReflProbeParamsParamBlock, 
+				lightOffsets);
+			gLightAndReflProbeParamsParamDef.gReflProbeCount.set(standardForwardBuffers.lightAndReflProbeParamsParamBlock, 
+				numReflProbes);
+
+			if (iblParams.reflProbesBinding.set != (UINT32)-1)
+			{
+				gpuParams.setParamBlockBuffer(
+					iblParams.reflProbesBinding.set,
+					iblParams.reflProbesBinding.slot,
+					standardForwardBuffers.reflProbesParamBlock);
+			}
+
+			if (fwdParams.lightsParamBlockBinding.set != (UINT32)-1)
+			{
+				gpuParams.setParamBlockBuffer(
+					fwdParams.lightsParamBlockBinding.set,
+					fwdParams.lightsParamBlockBinding.slot,
+					standardForwardBuffers.lightsParamBlock);
+			}
+
+			if (fwdParams.lightAndReflProbeParamsParamBlockBinding.set != (UINT32)-1)
+			{
+				gpuParams.setParamBlockBuffer(
+					fwdParams.lightAndReflProbeParamsParamBlockBinding.set,
+					fwdParams.lightAndReflProbeParamsParamBlockBinding.slot,
+					standardForwardBuffers.lightAndReflProbeParamsParamBlock);
+			}
+		};
+
+		const auto bindCommonIBLParams = [&reflProbeParamBuffer, &skyFilteredRadiance, &sceneInfo]
+			(GpuParams& gpuParams, ImageBasedLightingParams& iblParams)
+		{
+			// Note: Ideally these should be bound once (they are the same for all renderables)
+			if (iblParams.reflProbeParamBindings.set != (UINT32)-1)
+			{
+				gpuParams.setParamBlockBuffer(
+					iblParams.reflProbeParamBindings.set,
+					iblParams.reflProbeParamBindings.slot,
+					reflProbeParamBuffer.buffer);
+			}
+
+			iblParams.skyReflectionsTexParam.set(skyFilteredRadiance);
+			iblParams.ambientOcclusionTexParam.set(Texture::WHITE); // Note: Add SSAO here?
+			iblParams.ssrTexParam.set(Texture::BLACK); // Note: Add SSR here?
+
+			iblParams.reflectionProbeCubemapsTexParam.set(sceneInfo.reflProbeCubemapsTex);
+			iblParams.preintegratedEnvBRDFParam.set(RendererTextures::preintegratedEnvGF);
+		};
+
+		// Prepare objects for rendering by binding forward lighting data
+		//// Normal renderables
 		const VisibilityInfo& visibility = inputs.view.getVisibilityMasks();
-		UINT32 numRenderables = (UINT32)sceneInfo.renderables.size();
+		const auto numRenderables = (UINT32)sceneInfo.renderables.size();
 		for (UINT32 i = 0; i < numRenderables; i++)
 		{
 			if (!visibility.renderables[i])
@@ -1154,98 +1377,62 @@ namespace bs { namespace ct
 			{
 				ShaderFlags shaderFlags = element.material->getShader()->getFlags();
 
-				bool useForwardRendering = shaderFlags.isSet(ShaderFlag::Forward) || shaderFlags.isSet(ShaderFlag::Transparent);
+				const bool useForwardRendering = shaderFlags.isSet(ShaderFlag::Forward) || shaderFlags.isSet(ShaderFlag::Transparent);
 				if (!useForwardRendering)
 					continue;
 
 				// Note: It would be nice to be able to set this once and keep it, only updating if the buffers actually
 				// change (e.g. when growing). 
-				SPtr<GpuParams> gpuParams = element.params->getGpuParams();
-				ImageBasedLightingParams& iblParams = element.imageBasedParams;
+				const SPtr<GpuParams> gpuParams = element.params->getGpuParams();
 				if(supportsClusteredForward)
-				{ 
-					for (UINT32 j = 0; j < GPT_COUNT; j++)
-					{
-						const GpuParamBinding& binding = element.gridParamsBindings[j];
-						if (binding.slot != (UINT32)-1)
-							gpuParams->setParamBlockBuffer(binding.set, binding.slot, gridParams);
-					}
-
-					element.gridLightOffsetsAndSizeParam.set(gridLightOffsetsAndSize);
-					element.gridProbeOffsetsAndSizeParam.set(gridProbeOffsetsAndSize);
-
-					element.gridLightIndicesParam.set(gridLightIndices);
-					iblParams.reflectionProbeIndicesParam.set(gridProbeIndices);
-
-					element.lightsBufferParam.set(visibleLightData.getLightBuffer());
-					iblParams.reflectionProbesParam.set(visibleReflProbeData.getProbeBuffer());
-				}
+					bindParamsForClustered(*gpuParams, element.forwardLightingParams, element.imageBasedParams);
 				else
 				{
 					// Populate light & probe buffers
 					const Bounds& bounds = sceneInfo.renderableCullInfos[i].bounds;
-
-					Vector3I lightCounts;
-					const LightData* lights[STANDARD_FORWARD_MAX_NUM_LIGHTS];
-					visibleLightData.gatherInfluencingLights(bounds, lights, lightCounts);
-
-					Vector4I lightOffsets;
-					lightOffsets.x = lightCounts.x;
-					lightOffsets.y = lightCounts.x;
-					lightOffsets.z = lightOffsets.y + lightCounts.y;
-					lightOffsets.w = lightOffsets.z + lightCounts.z;
-
-					for(INT32 j = 0; j < lightOffsets.w; j++)
-						gLightsParamDef.gLights.set(lightsParamBlock, *lights[j], j);
-
-					INT32 numReflProbes = std::min(visibleReflProbeData.getNumProbes(), STANDARD_FORWARD_MAX_NUM_PROBES);
-					for(INT32 j = 0; j < numReflProbes; j++)
-						gReflProbesParamDef.gReflectionProbes.set(reflProbesParamBlock, visibleReflProbeData.getProbeData(j), j);
-
-					gLightAndReflProbeParamsParamDef.gLightOffsets.set(lightAndReflProbeParamsParamBlock, lightOffsets);
-					gLightAndReflProbeParamsParamDef.gReflProbeCount.set(lightAndReflProbeParamsParamBlock, numReflProbes);
-
-					if(iblParams.reflProbesBinding.set != (UINT32)-1)
-					{
-						gpuParams->setParamBlockBuffer(
-							iblParams.reflProbesBinding.set,
-							iblParams.reflProbesBinding.slot,
-							reflProbesParamBlock);
-					}
-
-					if(element.lightsParamBlockBinding.set != (UINT32)-1)
-					{
-						gpuParams->setParamBlockBuffer(
-							element.lightsParamBlockBinding.set,
-							element.lightsParamBlockBinding.slot,
-							lightsParamBlock);
-					}
-
-					if(element.lightAndReflProbeParamsParamBlockBinding.set != (UINT32)-1)
-					{
-						gpuParams->setParamBlockBuffer(
-							element.lightAndReflProbeParamsParamBlockBinding.set,
-							element.lightAndReflProbeParamsParamBlockBinding.slot,
-							lightAndReflProbeParamsParamBlock);
-					}
+					bindParamsForStandardForward(*gpuParams, bounds, element.forwardLightingParams, element.imageBasedParams);
 				}
 
-				// Image based lighting params
-				// Note: Ideally these should be bound once (they are the same for all renderables)
-				if (iblParams.reflProbeParamBindings.set != (UINT32)-1)
+				bindCommonIBLParams(*gpuParams, element.imageBasedParams);
+			}
+		}
+
+		//// Particle systems
+		const ParticlePerFrameData* particleData = inputs.frameInfo.perFrameData.particles;
+		if(particleData)
+		{
+			const auto numParticleSystems = (UINT32)inputs.scene.particleSystems.size();
+
+			for (UINT32 i = 0; i < numParticleSystems; i++)
+			{
+				if (!visibility.particleSystems[i])
+					continue;
+
+				const RendererParticles& rendererParticles = inputs.scene.particleSystems[i];
+				ParticlesRenderElement& renderElement = rendererParticles.renderElement;
+
+				ShaderFlags shaderFlags = renderElement.material->getShader()->getFlags();
+				const bool requiresForwardLighting = shaderFlags.isSet(ShaderFlag::Forward);
+				if (!requiresForwardLighting)
+					continue;
+
+				if(!renderElement.isValid())
+					continue;
+
+				const SPtr<GpuParams> gpuParams = renderElement.params->getGpuParams();
+
+				// Note: It would be nice to be able to set this once and keep it, only updating if the buffers actually
+				// change (e.g. when growing). 
+				if(supportsClusteredForward)
+					bindParamsForClustered(*gpuParams, renderElement.forwardLightingParams, renderElement.imageBasedParams);
+				else
 				{
-					gpuParams->setParamBlockBuffer(
-						iblParams.reflProbeParamBindings.set,
-						iblParams.reflProbeParamBindings.slot,
-						reflProbeParamBuffer.buffer);
+					// Populate light & probe buffers
+					const Bounds& bounds = sceneInfo.renderableCullInfos[i].bounds;
+					bindParamsForStandardForward(*gpuParams, bounds, renderElement.forwardLightingParams, renderElement.imageBasedParams);
 				}
 
-				iblParams.skyReflectionsTexParam.set(skyFilteredRadiance);
-				iblParams.ambientOcclusionTexParam.set(Texture::WHITE); // Note: Add SSAO here?
-				iblParams.ssrTexParam.set(Texture::BLACK); // Note: Add SSR here?
-
-				iblParams.reflectionProbeCubemapsTexParam.set(sceneInfo.reflProbeCubemapsTex);
-				iblParams.preintegratedEnvBRDFParam.set(RendererTextures::preintegratedEnvGF);
+				bindCommonIBLParams(*gpuParams, renderElement.imageBasedParams);
 			}
 		}
 
@@ -1253,7 +1440,6 @@ namespace bs { namespace ct
 		// occlusion for all lights affecting this object into a single (or a few) textures. I can likely use texture 
 		// arrays for this, or to avoid sampling many textures, perhaps just jam it all in one or few texture channels. 
 
-		// Render base pass
 		RCNodeSceneColor* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[0]);
 		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[2]);
 
@@ -1291,207 +1477,12 @@ namespace bs { namespace ct
 			inputs.view.getTransparentQueue().get()
 		};
 
-		// Prepare all visible particle systems
-		const ParticlePerFrameData* particleData = inputs.frameInfo.perFrameData.particles;
-		ParticleTexturePool& particlesTexPool = ParticleRenderer::instance().getTexturePool();
-		if(particleData)
-		{
-			const auto numParticleSystems = (UINT32)inputs.scene.particleSystems.size();
-
-			// Sort particles
-			bs_frame_mark();
-			{
-				struct SortData
-				{
-					ParticleSystem* system;
-					ParticleRenderData* renderData;
-				};
-
-				FrameVector<SortData> systemsToSort;
-				for (UINT32 i = 0; i < numParticleSystems; i++)
-				{
-					if (!visibility.particleSystems[i])
-						continue;
-
-					const RendererParticles& rendererParticles = inputs.scene.particleSystems[i];
-
-					ParticleSystem* particleSystem = rendererParticles.particleSystem;
-					const auto iterFind = particleData->cpuData.find(particleSystem->getId());
-					if (iterFind == particleData->cpuData.end())
-						continue;
-
-					ParticleRenderData* simulationData = iterFind->second;
-					if (particleSystem->getSettings().sortMode == ParticleSortMode::Distance)
-						systemsToSort.push_back({ particleSystem, simulationData });
-				}
-
-				const auto worker = [&systemsToSort, viewOrigin = viewProps.viewOrigin](UINT32 idx)
-				{
-					const SortData& data = systemsToSort[idx];
-
-					Vector3 refPoint = viewOrigin;
-
-					// Transform the view point into particle system's local space
-					const ParticleSystemSettings& settings = data.system->getSettings();
-					if (settings.simulationSpace == ParticleSimulationSpace::Local)
-						refPoint = data.system->getTransform().getInvMatrix().multiplyAffine(refPoint);
-
-					if (settings.renderMode == ParticleRenderMode::Billboard)
-					{
-						auto renderData = static_cast<ParticleBillboardRenderData*>(data.renderData);
-						ParticleRenderer::sortByDistance(refPoint, renderData->positionAndRotation, 
-							renderData->numParticles, 4, renderData->indices);
-					}
-					else
-					{
-						auto renderData = static_cast<ParticleMeshRenderData*>(data.renderData);
-						ParticleRenderer::sortByDistance(refPoint, renderData->position, renderData->numParticles, 
-							3, renderData->indices);
-					}
-				};
-
-				SPtr<TaskGroup> sortTask = TaskGroup::create("ParticleSort", worker, (UINT32)systemsToSort.size());
-
-				TaskScheduler::instance().addTaskGroup(sortTask);
-				sortTask->wait();
-			}
-			bs_frame_clear();
-
-			GpuParticleResources& gpuSimResources = GpuParticleSimulation::instance().getResources();
-			GpuParticleStateTextures& gpuSimStateTextures = gpuSimResources.getCurrentState();
-			const GpuParticleStaticTextures& gpuSimStaticTextures = gpuSimResources.getStaticTextures();
-			const GpuParticleCurves& gpuCurves = gpuSimResources.getCurveTexture();
-			const SPtr<GpuBuffer>& sortedIndices = gpuSimResources.getSortedIndices();
-			for (UINT32 i = 0; i < numParticleSystems; i++)
-			{
-				if (!visibility.particleSystems[i])
-					continue;
-
-				const RendererParticles& rendererParticles = inputs.scene.particleSystems[i];
-				ParticlesRenderElement& renderElement = rendererParticles.renderElement;
-
-				if(!renderElement.isValid())
-					continue;
-
-				ParticleSystem* particleSystem = rendererParticles.particleSystem;
-
-				// Bind textures/buffers from CPU simulation
-				const auto iterFind = particleData->cpuData.find(particleSystem->getId());
-				if (iterFind != particleData->cpuData.end())
-				{
-					ParticleRenderData* renderData = iterFind->second;
-
-					const ParticleSystemSettings& settings = particleSystem->getSettings();
-					UINT32 texSize;
-					switch(settings.renderMode)
-					{
-					default:
-					case ParticleRenderMode::Billboard:
-					{
-						const auto billboardRenderData = static_cast<ParticleBillboardRenderData*>(renderData);
-						const ParticleBillboardTextures* textures = particlesTexPool.alloc(*billboardRenderData);
-
-						renderElement.paramsCPUBillboard.positionAndRotTexture.set(textures->positionAndRotation);
-						renderElement.paramsCPUBillboard.colorTexture.set(textures->color);
-						renderElement.paramsCPUBillboard.sizeAndFrameIdxTexture.set(textures->sizeAndFrameIdx);
-
-						renderElement.indicesBuffer.set(textures->indices);
-						texSize = textures->positionAndRotation->getProperties().getWidth();
-					}
-					break;
-					case ParticleRenderMode::Mesh:
-					{
-						const auto meshRenderData = static_cast<ParticleMeshRenderData*>(renderData);
-						const ParticleMeshTextures* textures = particlesTexPool.alloc(*meshRenderData);
-
-						renderElement.paramsCPUMesh.positionTexture.set(textures->position);
-						renderElement.paramsCPUMesh.colorTexture.set(textures->color);
-						renderElement.paramsCPUMesh.rotationTexture.set(textures->rotation);
-						renderElement.paramsCPUMesh.sizeTexture.set(textures->size);
-
-						renderElement.indicesBuffer.set(textures->indices);
-						texSize = textures->position->getProperties().getWidth();
-					}
-					break;
-					}
-
-					renderElement.numParticles = renderData->numParticles;
-
-					gParticlesParamDef.gTexSize.set(rendererParticles.particlesParamBuffer, texSize);
-					gParticlesParamDef.gBufferOffset.set(rendererParticles.particlesParamBuffer, 0);
-				}
-				// Bind textures/buffers from GPU simulation
-				else if(rendererParticles.gpuParticleSystem)
-				{
-					GpuParticleSystem* gpuParticleSystem = rendererParticles.gpuParticleSystem;
-
-					renderElement.paramsGPU.positionTimeTexture.set(gpuSimStateTextures.positionAndTimeTex);
-					renderElement.paramsGPU.sizeRotationTexture.set(gpuSimStaticTextures.sizeAndRotationTex);
-					renderElement.paramsGPU.curvesTexture.set(gpuCurves.getTexture());
-					renderElement.numParticles = gpuParticleSystem->getNumTiles() * GpuParticleResources::PARTICLES_PER_TILE;
-
-					if(gpuParticleSystem->hasSortInfo())
-					{
-						renderElement.indicesBuffer.set(sortedIndices);
-						gParticlesParamDef.gBufferOffset.set(rendererParticles.particlesParamBuffer, 
-							gpuParticleSystem->getSortOffset());
-					}
-					else
-					{
-						renderElement.indicesBuffer.set(gpuParticleSystem->getParticleIndices());
-						gParticlesParamDef.gBufferOffset.set(rendererParticles.particlesParamBuffer, 0);
-					}
-
-					const UINT32 texSize = GpuParticleResources::TEX_SIZE;
-					gParticlesParamDef.gTexSize.set(rendererParticles.particlesParamBuffer, texSize);
-				}
-
-				SPtr<GpuParams> gpuParams = renderElement.params->getGpuParams();
-				for (UINT32 j = 0; j < GPT_COUNT; j++)
-				{
-					const GpuParamBinding& binding = renderElement.perCameraBindings[j];
-					if (binding.slot != (UINT32)-1)
-						gpuParams->setParamBlockBuffer(binding.set, binding.slot, inputs.view.getPerViewBuffer());
-				}
-			}
-		}
-
+		// Render everything
 		for(UINT32 i = 0; i < bs_size(queues); i++)
-		{
-			const Vector<RenderQueueElement>& elements = queues[i]->getSortedElements();
-			for (auto iter = elements.begin(); iter != elements.end(); ++iter)
-			{
-				if (iter->applyPass)
-					gRendererUtility().setPass(iter->renderElem->material, iter->passIdx, iter->renderElem->techniqueIdx);
-
-				gRendererUtility().setPassParams(iter->renderElem->params, iter->passIdx);
-
-				if(iter->renderElem->type == (UINT32)RenderElementType::Particle)
-				{
-					const auto& renderElem = static_cast<const ParticlesRenderElement*>(iter->renderElem);
-
-					if(renderElem->numParticles > 0)
-					{
-						if(renderElem->is3D)
-							gRendererUtility().draw(renderElem->mesh, renderElem->numParticles);
-						else
-							ParticleRenderer::instance().drawBillboards(renderElem->numParticles);
-					}
-				}
-				else // Renderable
-				{
-					const auto& renderElem = static_cast<const RenderableElement*>(iter->renderElem);
-					if (renderElem->morphVertexDeclaration == nullptr)
-						gRendererUtility().draw(renderElem->mesh, renderElem->subMesh);
-					else
-						gRendererUtility().drawMorph(renderElem->mesh, renderElem->subMesh, renderElem->morphShapeBuffer,
-							renderElem->morphVertexDeclaration);
-				}
-			}
-		}
+			renderQueueElements(queues[i]->getSortedElements());
 
 		// Note: Perhaps delay clearing this one frame, so previous frame textures have a better chance of being done
-		particlesTexPool.clear();
+		ParticleRenderer::instance().getTexturePool().clear();
 
 		// Trigger post-lighting callbacks
 		Camera* sceneCamera = inputs.view.getSceneCamera();
@@ -1512,8 +1503,13 @@ namespace bs { namespace ct
 
 	SmallVector<StringID, 4> RCNodeClusteredForward::getDependencies(const RendererView& view)
 	{
-		return { RCNodeSceneColor::getNodeId(), RCNodeSkybox::getNodeId(), RCNodeSceneDepth::getNodeId(),
-			RCNodeParticleSimulate::getNodeId() };
+		return { 
+			RCNodeSceneColor::getNodeId(), 
+			RCNodeSkybox::getNodeId(), 
+			RCNodeSceneDepth::getNodeId(),
+			RCNodeParticleSimulate::getNodeId(),
+			RCNodeParticleSort::getNodeId()
+		};
 	}
 
 	void RCNodeSkybox::render(const RenderCompositorNodeInputs& inputs)

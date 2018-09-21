@@ -56,42 +56,12 @@ namespace bs { namespace ct
 		/** Binding indices representing where should the per-camera param block buffer be bound to. */
 		GpuParamBinding perCameraBindings[GPT_COUNT];
 
-		/** Binding indices representing where should lights param block buffer be bound to. */
-		GpuParamBinding gridParamsBindings[GPT_COUNT];
-
-		/** 
-		 * Parameter to which to bind a buffer containing light grid offsets and size, per grid cell. Used for forward
-		 * rendering. 
-		 */
-		GpuParamBuffer gridLightOffsetsAndSizeParam;
-
-		/** Parameter to which to bind a buffer containing all light indices, as mapped by grid offsets & size. */
-		GpuParamBuffer gridLightIndicesParam;
-
-		/** Parameter to which to bind light buffer used for forward rendering. */
-		GpuParamBuffer lightsBufferParam;
-
-		/** 
-		 * Parameter to which to bind a buffer containing reflection probe grid offsets and size, per grid cell. Used for
-		 * forward rendering. 
-		 */
-		GpuParamBuffer gridProbeOffsetsAndSizeParam;
+		/** Collection of parameters used for direct lighting using the forward rendering path. */
+		ForwardLightingParams forwardLightingParams;
 
 		/** Collection of parameters used for image based lighting. */
 		ImageBasedLightingParams imageBasedParams;
 		
-		/** 
-		 * Binding for a parameter block containing a list of lights influencing this object. Only used when standard
-		 * (non-clustered) forward rendering is used. 
-		 */
-		GpuParamBinding lightsParamBlockBinding;
-
-		/** 
-		 * Binding for a parameter block that contains the number of lights and reflection probes in the light/refl. probe 
-		 * parameter blocks. Only used when standard (non-clustered) forward rendering is used.
-		 */
-		GpuParamBinding lightAndReflProbeParamsParamBlockBinding;
-
 		/** GPU buffer containing element's bone matrices, if it requires any. */
 		SPtr<GpuBuffer> boneMatrixBuffer;
 

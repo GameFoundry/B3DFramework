@@ -27,6 +27,37 @@ namespace bs { namespace ct
 
 	extern LightGridParamDef gLightGridParamDefDef;
 
+	/** A set of buffers containing outputs from LightGrid. */
+	struct LightGridOutputs
+	{
+		/** Parameter block of LightGridParamDef. */
+		SPtr<GpuParamBlockBuffer> gridParams;
+		
+		/** 
+		 * Flattened array of grid cells, where each entry contains the number of lights affecting that cell, and a index
+		 * into the @p gridLightIndices buffer.
+		 */
+		SPtr<GpuBuffer> gridLightOffsetsAndSize;
+
+		/** 
+		 * A list of light indices. Each cell's indices start at specific position and are placed sequentially one after 
+		 * another. Lookup into this array is done through offset & size provided by @p gridLightOffsetsAndSize. 
+		 */
+		SPtr<GpuBuffer> gridLightIndices;
+
+		/** 
+		 * Flattened array of grid cells, where each entry contains the number of reflection probes affecting that cell, 
+		 * and a index into the @p gridProbeIndices buffer.
+		 */
+		SPtr<GpuBuffer> gridProbeOffsetsAndSize;
+
+		/** 
+		 * A list of reflection probe indices. Each cell's indices start at specific position and are placed sequentially 
+		 * one after another. Lookup into this array is done through offset & size provided by @p gridProbeOffsetsAndSize.
+		 */
+		SPtr<GpuBuffer> gridProbeIndices;
+	};
+
 	/** 
 	 * Shader that creates a linked list for each light grid cell, containing which lights and reflection probes affects
 	 * each cell. 
@@ -131,24 +162,10 @@ namespace bs { namespace ct
 			bool noLighting);
 
 		/** 
-		 * Returns the buffers containing light indices per grid cell and global grid parameters. 
-		 *
-		 * @param[out]	gridLightOffsetsAndSize	Flattened array of grid cells, where each entry contains the number of 
-		 *										lights affecting that cell, and a index into the @p gridLightIndices buffer.
-		 * @param[out]	gridLightIndices		A list of light indices. Each cell's indices start at specific position and
-		 *										are placed sequentially one after another. Lookup into this array is done
-		 *										through offset & size provided by @p gridLightOffsetsAndSize. 
-		 * @param[out]	gridProbeOffsetsAndSize	Flattened array of grid cells, where each entry contains the number of
-		 *										reflection probes affecting that cell, and a index into the 
-		 *										@p gridProbeIndices buffer.
-		 * @param[out]	gridProbeIndices		A list of reflection probe indices. Each cell's indices start at specific
-		 *										position and are placed sequentially one after another. Lookup into this
-		 *										array is done through offset & size provided by @p gridProbeOffsetsAndSize.
-		 * @param[out]	gridParams				Global grid parameter block.
+		 * Returns the buffers containing light indices per grid cell and global grid parameters. This data gets Updated on
+		 * every call to updateGrid().
 		 */
-		void getOutputs(SPtr<GpuBuffer>& gridLightOffsetsAndSize, SPtr<GpuBuffer>& gridLightIndices, 
-			SPtr<GpuBuffer>& gridProbeOffsetsAndSize, SPtr<GpuBuffer>& gridProbeIndices, 
-			SPtr<GpuParamBlockBuffer>& gridParams) const;
+		LightGridOutputs getOutputs() const;
 
 	private:
 		SPtr<GpuParamBlockBuffer> mGridParamBuffer;

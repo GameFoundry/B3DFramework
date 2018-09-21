@@ -11,6 +11,8 @@
 #include "Allocators/BsPoolAlloc.h"
 #include "Renderer/BsRendererMaterial.h"
 #include "Utility/BsTextureRowAllocator.h"
+#include "BsRendererLight.h"
+#include "BsRendererReflectionProbe.h"
 
 namespace bs 
 {
@@ -22,6 +24,7 @@ namespace bs
 namespace bs { namespace ct
 {
 	class GpuParticleSystem;
+	class GpuParticleResources;
 
 	/** @addtogroup RenderBeast
 	 *  @{
@@ -49,6 +52,19 @@ namespace bs { namespace ct
 
 	extern GpuParticlesParamDef gGpuParticlesParamDef;
 
+	/** Types of forward lighting supported on particle shaders. */
+	enum class ParticleForwardLightingType
+	{
+		/** No forward lighting. */
+		None,
+
+		/** Using the modern clustered forward lighting approach (requires compute). */
+		Clustered,
+
+		/** Using the old-school standard forward lighting approach. */
+		Standard
+	};
+
 	/** 
 	 * Returns a specific particle rendering shader variation.
 	 *
@@ -56,32 +72,52 @@ namespace bs { namespace ct
 	 * @tparam LOCK_Y	If true, billboard rotation will be locked around the Y axis, otherwise the rotation is free.
 	 * @tparam GPU		If true, the particle shader expects input from the GPU simulation instead of the CPU simulation.
 	 * @tparam IS_3D	If true, the particle shader will render meshes instead of billboards. 
+	 * @tparam FWD		Determines what form of forward lighting should the shader support. 
 	 */
-	template<ParticleOrientation ORIENT, bool LOCK_Y, bool GPU, bool IS_3D>
+	template<ParticleOrientation ORIENT, bool LOCK_Y, bool GPU, bool IS_3D, ParticleForwardLightingType FWD>
 	static const ShaderVariation& getParticleShaderVariation()
 	{
-		static ShaderVariation variation = ShaderVariation(
-			Vector<ShaderVariation::Param>{
-				ShaderVariation::Param("ORIENT", (UINT32)ORIENT),
-				ShaderVariation::Param("LOCK_Y", LOCK_Y),
-				ShaderVariation::Param("GPU", GPU),
-				ShaderVariation::Param("IS_3D", IS_3D),
-		});
+		static bool initialized = false;
+		static Vector<ShaderVariation::Param> params{
+			ShaderVariation::Param("ORIENT", (UINT32)ORIENT),
+			ShaderVariation::Param("LOCK_Y", LOCK_Y),
+			ShaderVariation::Param("GPU", GPU),
+			ShaderVariation::Param("IS_3D", IS_3D),
+		};
 
+		if(!initialized)
+		{
+			switch(FWD)
+			{
+			case ParticleForwardLightingType::Clustered:
+				params.push_back(ShaderVariation::Param("CLUSTERED", true));
+				break;
+			case ParticleForwardLightingType::Standard:
+				params.push_back(ShaderVariation::Param("CLUSTERED", false));
+				break;
+			}
+
+			initialized = true;
+		}
+
+		static ShaderVariation variation = ShaderVariation(params);
 		return variation;
 	}
 
 	/**
 	 * Returns a particle material variation matching the provided parameters.
 	 * 
-	 * @param[in]	orient	Determines in which direction are billboard particles oriented.
-	 * @param[in]	lockY	If true, billboard rotation will be locked around the Y axis, otherwise the rotation is free.
-	 * @param[in]	gpu		If true, the particle shader expects input from the GPU simulation instead of the CPU 
-	 *						simulation.
-	 * @param[in]	is3d	If true, the particle shader will render meshes instead of billboards.
-	 * @return				Object that can be used for looking up the variation technique in the material. 
+	 * @param[in]	orient				Determines in which direction are billboard particles oriented.
+	 * @param[in]	lockY				If true, billboard rotation will be locked around the Y axis, otherwise the 
+	 *									rotation is free.
+	 * @param[in]	gpu					If true, the particle shader expects input from the GPU simulation instead of the
+	 *									CPU simulation.
+	 * @param[in]	is3d				If true, the particle shader will render meshes instead of billboards.
+	 * @param[in]	forwardLighting		Form of forward lighting the shader should support.
+	 * @return							Object that can be used for looking up the variation technique in the material. 
 	 */
-	const ShaderVariation& getParticleShaderVariation(ParticleOrientation orient, bool lockY, bool gpu, bool is3d);
+	const ShaderVariation& getParticleShaderVariation(ParticleOrientation orient, bool lockY, bool gpu, bool is3d, 
+		ParticleForwardLightingType forwardLighting);
 
 	/** Contains information required for rendering a single particle system. */
 	class ParticlesRenderElement : public RenderElement
@@ -144,6 +180,12 @@ namespace bs { namespace ct
 		/** Parameters relevant for rendering the outputs of the particle GPU simulation. */
 		GpuSimulationParams paramsGPU;
 
+		/** Collection of parameters used for direct lighting using the forward rendering path. */
+		ForwardLightingParams forwardLightingParams;
+
+		/** Collection of parameters used for image based lighting. */
+		ImageBasedLightingParams imageBasedParams;
+
 		/** Number of particles to render. */
 		UINT32 numParticles = 0;
 
@@ -180,6 +222,22 @@ namespace bs { namespace ct
 
 		/** Information about the size over lifetime / frame index curve stored in the global curve texture. */
 		TextureRowAllocation sizeScaleFrameIdxCurveAlloc;
+
+		/** 
+		 * Binds all the GPU program inputs required for rendering a particle system that is being simulated by the CPU. 
+		 * 
+		 * @param[in]	renderData		Render data representing the state of a CPU simulated particle system. 
+		 * @param[in]	view			View the particle system is being rendered from.
+		 */
+		void bindCPUSimulatedInputs(const ParticleRenderData* renderData, const RendererView& view) const;
+
+		/** 
+		 * Binds all the GPU program inputs required for rendering a particle system that is being simulated by the GPU. 
+		 * 
+		 * @param[in]	gpuSimResources	Resources containing global data for all GPU simulated particle systems.
+		 * @param[in]	view			View the particle system is being rendered from.
+		 */
+		void bindGPUSimulatedInputs(const GpuParticleResources& gpuSimResources, const RendererView& view) const;
 	};
 
 	/** Default material used for rendering particles, when no other is available. */

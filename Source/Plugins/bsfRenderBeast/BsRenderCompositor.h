@@ -294,6 +294,20 @@ namespace ct
 		void clear() override;
 	};
 
+	/** Performs view-based sorting on CPU simulated particle systems. */
+	class RCNodeParticleSort : public RenderCompositorNode
+	{
+	public:
+		static StringID getNodeId() { return "ParticleSort"; }
+		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
+	protected:
+		/** @copydoc RenderCompositorNode::render */
+		void render(const RenderCompositorNodeInputs& inputs) override;
+
+		/** @copydoc RenderCompositorNode::clear */
+		void clear() override;
+	};
+
 	/************************************************************************/
 	/* 							LIGHTING NODES                     			*/
 	/************************************************************************/
@@ -401,8 +415,6 @@ namespace ct
 	class RCNodeClusteredForward : public RenderCompositorNode
 	{
 	public:
-		RCNodeClusteredForward();
-
 		static StringID getNodeId() { return "ClusteredForward"; }
 		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
 	protected:

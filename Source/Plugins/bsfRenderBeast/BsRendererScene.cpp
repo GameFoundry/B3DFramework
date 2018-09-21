@@ -411,50 +411,13 @@ namespace bs {	namespace ct
 				gpuParams->setBuffer(GPT_VERTEX_PROGRAM, "boneMatrices", element.boneMatrixBuffer);
 
 			ShaderFlags shaderFlags = shader->getFlags();
-			bool useForwardRendering = shaderFlags.isSet(ShaderFlag::Forward) || shaderFlags.isSet(ShaderFlag::Transparent);
+			const bool useForwardRendering = shaderFlags.isSet(ShaderFlag::Forward) || shaderFlags.isSet(ShaderFlag::Transparent);
 
 			if (useForwardRendering)
 			{
 				const bool supportsClusteredForward = gRenderBeast()->getFeatureSet() == RenderBeastFeatureSet::Desktop;
-				if (supportsClusteredForward)
-				{
-					gpuParams->getParamInfo()->getBindings(
-						GpuPipelineParamInfoBase::ParamType::ParamBlock,
-						"GridParams",
-						element.gridParamsBindings
-					);
 
-					if (gpuParams->hasBuffer(GPT_FRAGMENT_PROGRAM, "gLights"))
-						gpuParams->getBufferParam(GPT_FRAGMENT_PROGRAM, "gLights", element.lightsBufferParam);
-
-					if (gpuParams->hasBuffer(GPT_FRAGMENT_PROGRAM, "gGridLightOffsetsAndSize"))
-						gpuParams->getBufferParam(GPT_FRAGMENT_PROGRAM, "gGridLightOffsetsAndSize",
-							element.gridLightOffsetsAndSizeParam);
-
-					if (gpuParams->hasBuffer(GPT_FRAGMENT_PROGRAM, "gLightIndices"))
-						gpuParams->getBufferParam(GPT_FRAGMENT_PROGRAM, "gLightIndices", element.gridLightIndicesParam);
-
-					if (gpuParams->hasBuffer(GPT_FRAGMENT_PROGRAM, "gGridProbeOffsetsAndSize"))
-						gpuParams->getBufferParam(GPT_FRAGMENT_PROGRAM, "gGridProbeOffsetsAndSize",
-							element.gridProbeOffsetsAndSizeParam);
-				}
-				else
-				{
-					gpuParams->getParamInfo()->getBinding(
-						GPT_FRAGMENT_PROGRAM,
-						GpuPipelineParamInfoBase::ParamType::ParamBlock,
-						"Lights",
-						element.lightsParamBlockBinding
-					);
-
-					gpuParams->getParamInfo()->getBinding(
-						GPT_FRAGMENT_PROGRAM,
-						GpuPipelineParamInfoBase::ParamType::ParamBlock,
-						"LightAndReflProbeParams",
-						element.lightAndReflProbeParamsParamBlockBinding
-					);
-				}
-
+				element.forwardLightingParams.populate(gpuParams, supportsClusteredForward);
 				element.imageBasedParams.populate(gpuParams, GPT_FRAGMENT_PROGRAM, true, supportsClusteredForward,
 					supportsClusteredForward);
 			}
@@ -654,57 +617,236 @@ namespace bs {	namespace ct
 		{
 			SPtr<GpuParamBlockBuffer>& paramBuffer = rendererParticles.particlesParamBuffer;
 			gParticlesParamDef.gWorldTfrm.set(paramBuffer, rendererParticles.localToWorld);
+
+			return;
+		}
+
+		SPtr<GpuParamBlockBuffer> paramBuffer = gParticlesParamDef.createBuffer();
+		gParticlesParamDef.gWorldTfrm.set(paramBuffer, rendererParticles.localToWorld);
+
+		Vector3 axisForward = settings.orientationPlane.normal;
+
+		Vector3 axisUp = Vector3::UNIT_Y;
+		if (axisForward.dot(axisUp) > 0.9998f)
+			axisUp = Vector3::UNIT_Z;
+
+		Vector3 axisRight = axisUp.cross(axisForward);
+		Vector3::orthonormalize(axisRight, axisUp, axisForward);
+
+		gParticlesParamDef.gAxisUp.set(paramBuffer, axisUp);
+		gParticlesParamDef.gAxisRight.set(paramBuffer, axisRight);
+
+		rendererParticles.particlesParamBuffer = paramBuffer;
+
+		// Initialize the variant of the particle system for GPU simulation, if needed
+		if (settings.gpuSimulation)
+		{
+			if (!rendererParticles.gpuParticleSystem)
+				rendererParticles.gpuParticleSystem = bs_pool_new<GpuParticleSystem>(particleSystem);
 		}
 		else
 		{
-			SPtr<GpuParamBlockBuffer> paramBuffer = gParticlesParamDef.createBuffer();
-			gParticlesParamDef.gWorldTfrm.set(paramBuffer, rendererParticles.localToWorld);
-
-			Vector3 axisForward = settings.orientationPlane.normal;
-
-			Vector3 axisUp = Vector3::UNIT_Y;
-			if (axisForward.dot(axisUp) > 0.9998f)
-				axisUp = Vector3::UNIT_Z;
-
-			Vector3 axisRight = axisUp.cross(axisForward);
-			Vector3::orthonormalize(axisRight, axisUp, axisForward);
-
-			gParticlesParamDef.gAxisUp.set(paramBuffer, axisUp);
-			gParticlesParamDef.gAxisRight.set(paramBuffer, axisRight);
-
-			rendererParticles.particlesParamBuffer = paramBuffer;
-
-			// Initialize the variant of the particle system for GPU simulation, if needed
-			if(settings.gpuSimulation)
+			if (rendererParticles.gpuParticleSystem)
 			{
-				if(!rendererParticles.gpuParticleSystem)
-					rendererParticles.gpuParticleSystem = bs_pool_new<GpuParticleSystem>(particleSystem);
+				bs_pool_delete(rendererParticles.gpuParticleSystem);
+				rendererParticles.gpuParticleSystem = nullptr;
 			}
-			else
+		}
+
+		ParticlesRenderElement& renElement = rendererParticles.renderElement;
+		renElement.type = (UINT32)RenderElementType::Particle;
+
+		renElement.material = settings.material;
+
+		if (renElement.material != nullptr && renElement.material->getShader() == nullptr)
+			renElement.material = nullptr;
+
+		// If no material use the default material
+		if (renElement.material == nullptr)
+			renElement.material = Material::create(DefaultParticlesMat::get()->getShader());
+
+		const SPtr<Shader> shader = renElement.material->getShader();
+
+		SpriteTexture* spriteTexture = nullptr;
+		if (shader->hasTextureParam("gTexture"))
+			spriteTexture = renElement.material->getSpriteTexture("gTexture").get();
+
+		if (spriteTexture)
+		{
+			gParticlesParamDef.gUVOffset.set(paramBuffer, spriteTexture->getOffset());
+			gParticlesParamDef.gUVScale.set(paramBuffer, spriteTexture->getScale());
+
+			const SpriteSheetGridAnimation& anim = spriteTexture->getAnimation();
+			gParticlesParamDef.gSubImageSize.set(paramBuffer,
+				Vector4((float)anim.numColumns, (float)anim.numRows, 1.0f / anim.numColumns, 1.0f / anim.numRows));
+		}
+		else
+		{
+			gParticlesParamDef.gUVOffset.set(paramBuffer, Vector2::ZERO);
+			gParticlesParamDef.gUVScale.set(paramBuffer, Vector2::ONE);
+			gParticlesParamDef.gSubImageSize.set(paramBuffer, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+		}
+
+		const ParticleOrientation orientation = settings.orientation;
+		const bool lockY = settings.orientationLockY;
+		const bool gpu = settings.gpuSimulation;
+		const bool is3d = settings.renderMode == ParticleRenderMode::Mesh;
+
+		ShaderFlags shaderFlags = shader->getFlags();
+		const bool requiresForwardLighting = shaderFlags.isSet(ShaderFlag::Forward);
+		const bool supportsClusteredForward = gRenderBeast()->getFeatureSet() == RenderBeastFeatureSet::Desktop;
+
+		ParticleForwardLightingType forwardLightingType;
+		if(requiresForwardLighting)
+		{
+			forwardLightingType = supportsClusteredForward 
+				? ParticleForwardLightingType::Clustered 
+				: ParticleForwardLightingType::Standard;
+		}
+		else
+			forwardLightingType = ParticleForwardLightingType::None;
+
+		const ShaderVariation* variation = &getParticleShaderVariation(orientation, lockY, gpu, is3d, forwardLightingType);
+
+		FIND_TECHNIQUE_DESC findDesc;
+		findDesc.variation = variation;
+
+		UINT32 techniqueIdx = renElement.material->findTechnique(findDesc);
+
+		if (techniqueIdx == (UINT32)-1)
+			techniqueIdx = renElement.material->getDefaultTechnique();
+
+		renElement.techniqueIdx = techniqueIdx;
+
+		// Generate or assigned renderer specific data for the material
+		renElement.params = renElement.material->createParamsSet(techniqueIdx);
+		renElement.material->updateParamsSet(renElement.params, 0.0f, true);
+
+		SPtr<GpuParams> gpuParams = renElement.params->getGpuParams();
+
+		if (gpu)
+		{
+			gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gPositionTimeTex",
+				renElement.paramsGPU.positionTimeTexture);
+			gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gSizeRotationTex",
+				renElement.paramsGPU.sizeRotationTexture);
+			gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gCurvesTex",
+				renElement.paramsGPU.curvesTexture);
+
+			rendererParticles.gpuParticlesParamBuffer = gGpuParticlesParamDef.createBuffer();
+			renElement.is3D = false;
+		}
+		else
+		{
+			switch (settings.renderMode)
 			{
-				if(rendererParticles.gpuParticleSystem)
+			case ParticleRenderMode::Billboard:
+				gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gPositionAndRotTex",
+					renElement.paramsCPUBillboard.positionAndRotTexture);
+				gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gColorTex",
+					renElement.paramsCPUBillboard.colorTexture);
+				gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gSizeAndFrameIdxTex",
+					renElement.paramsCPUBillboard.sizeAndFrameIdxTexture);
+
+				renElement.is3D = false;
+				break;
+			case ParticleRenderMode::Mesh:
+				gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gPositionTex",
+					renElement.paramsCPUMesh.positionTexture);
+				gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gColorTex",
+					renElement.paramsCPUMesh.colorTexture);
+				gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gSizeTex",
+					renElement.paramsCPUMesh.sizeTexture);
+				gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gRotationTex",
+					renElement.paramsCPUMesh.rotationTexture);
+
+				renElement.is3D = true;
+				renElement.mesh = settings.mesh;
+				break;
+			default:
+				break;
+			}
+
+			rendererParticles.gpuParticlesParamBuffer = nullptr;
+		}
+
+		// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the 
+		// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
+		gpuParams->setParamBlockBuffer("ParticleParams", rendererParticles.particlesParamBuffer);
+		gpuParams->setParamBlockBuffer("GpuParticleParams", rendererParticles.gpuParticlesParamBuffer);
+
+		gpuParams->getBufferParam(GPT_VERTEX_PROGRAM, "gIndices", renElement.indicesBuffer);
+
+		gpuParams->getParamInfo()->getBindings(
+			GpuPipelineParamInfoBase::ParamType::ParamBlock,
+			"PerCamera",
+			renElement.perCameraBindings
+		);
+
+		if (gpu)
+		{
+			// Allocate curves
+			GpuParticleCurves& curves = GpuParticleSimulation::instance().getResources().getCurveTexture();
+			curves.free(rendererParticles.colorCurveAlloc);
+			curves.free(rendererParticles.sizeScaleFrameIdxCurveAlloc);
+
+			static constexpr UINT32 NUM_CURVE_SAMPLES = 128;
+			Color samples[NUM_CURVE_SAMPLES];
+
+			const ParticleGpuSimulationSettings& gpuSimSettings = particleSystem->getGpuSimulationSettings();
+
+			// Write color over lifetime curve
+			LookupTable colorLookup = gpuSimSettings.colorOverLifetime.toLookupTable(NUM_CURVE_SAMPLES, true);
+
+			for (UINT32 i = 0; i < NUM_CURVE_SAMPLES; i++)
+			{
+				const float* sample = colorLookup.getSample(i);
+				samples[i] = Color(sample[0], sample[1], sample[2], sample[3]);
+			}
+
+			rendererParticles.colorCurveAlloc = curves.alloc(samples, NUM_CURVE_SAMPLES);
+
+			// Write size over lifetime / sprite animation curve
+			LookupTable sizeLookup = gpuSimSettings.sizeScaleOverLifetime.toLookupTable(NUM_CURVE_SAMPLES, true);
+
+			float frameSamples[NUM_CURVE_SAMPLES];
+			if (spriteTexture && spriteTexture->getAnimationPlayback() != SpriteAnimationPlayback::None)
+			{
+				const SpriteSheetGridAnimation& anim = spriteTexture->getAnimation();
+				for (UINT32 i = 0; i < NUM_CURVE_SAMPLES; i++)
 				{
-					bs_pool_delete(rendererParticles.gpuParticleSystem);
-					rendererParticles.gpuParticleSystem = nullptr;
+					const float t = i / (float)(NUM_CURVE_SAMPLES - 1);
+					frameSamples[i] = t * (anim.count - 1);
 				}
 			}
+			else
+				memset(frameSamples, 0, sizeof(frameSamples));
 
-			ParticlesRenderElement& renElement = rendererParticles.renderElement;
-			renElement.type = (UINT32)RenderElementType::Particle;
+			for (UINT32 i = 0; i < NUM_CURVE_SAMPLES; i++)
+			{
+				const float* sample = sizeLookup.getSample(i);
+				samples[i] = Color(sample[0], sample[1], frameSamples[i], 0.0f);
+			}
 
-			renElement.material = settings.material;
+			rendererParticles.sizeScaleFrameIdxCurveAlloc = curves.alloc(samples, NUM_CURVE_SAMPLES);
 
-			if (renElement.material != nullptr && renElement.material->getShader() == nullptr)
-				renElement.material = nullptr;
+			const Vector2 colorUVOffset = GpuParticleCurves::getUVOffset(rendererParticles.colorCurveAlloc);
+			const float colorUVScale = GpuParticleCurves::getUVScale(rendererParticles.colorCurveAlloc);
 
-			// If no material use the default material
-			if (renElement.material == nullptr)
-				renElement.material = Material::create(DefaultParticlesMat::get()->getShader());
+			const Vector2 sizeScaleFrameIdxUVOffset =
+				GpuParticleCurves::getUVOffset(rendererParticles.sizeScaleFrameIdxCurveAlloc);
+			const float sizeScaleFrameIdxUVScale =
+				GpuParticleCurves::getUVScale(rendererParticles.sizeScaleFrameIdxCurveAlloc);
 
-			SpriteTexture* spriteTexture = nullptr;
-			if (renElement.material->getShader()->hasTextureParam("gTexture"))
-				spriteTexture = renElement.material->getSpriteTexture("gTexture").get();
+			const SPtr<GpuParamBlockBuffer>& gpuParticlesParamBuffer = rendererParticles.gpuParticlesParamBuffer;
+			gGpuParticlesParamDef.gColorCurveOffset.set(gpuParticlesParamBuffer, colorUVOffset);
+			gGpuParticlesParamDef.gColorCurveScale.set(gpuParticlesParamBuffer, Vector2(colorUVScale, 0.0f));
+			gGpuParticlesParamDef.gSizeScaleFrameIdxCurveOffset.set(gpuParticlesParamBuffer,
+				sizeScaleFrameIdxUVOffset);
+			gGpuParticlesParamDef.gSizeScaleFrameIdxCurveScale.set(gpuParticlesParamBuffer,
+				Vector2(sizeScaleFrameIdxUVScale, 0.0f));
 
+			// Write sprite animation curve
 			if (spriteTexture)
 			{
 				gParticlesParamDef.gUVOffset.set(paramBuffer, spriteTexture->getOffset());
@@ -714,170 +856,15 @@ namespace bs {	namespace ct
 				gParticlesParamDef.gSubImageSize.set(paramBuffer,
 					Vector4((float)anim.numColumns, (float)anim.numRows, 1.0f / anim.numColumns, 1.0f / anim.numRows));
 			}
-			else
-			{
-				gParticlesParamDef.gUVOffset.set(paramBuffer, Vector2::ZERO);
-				gParticlesParamDef.gUVScale.set(paramBuffer, Vector2::ONE);
-				gParticlesParamDef.gSubImageSize.set(paramBuffer, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-			}
+		}
 
-			const ParticleOrientation orientation = settings.orientation;
-			const bool lockY = settings.orientationLockY;
-			const bool gpu = settings.gpuSimulation;
-			const bool is3d = settings.renderMode == ParticleRenderMode::Mesh;
-			const ShaderVariation* variation = &getParticleShaderVariation(orientation, lockY, gpu, is3d);
-
-			FIND_TECHNIQUE_DESC findDesc;
-			findDesc.variation = variation;
-
-			UINT32 techniqueIdx = renElement.material->findTechnique(findDesc);
-
-			if (techniqueIdx == (UINT32)-1)
-				techniqueIdx = renElement.material->getDefaultTechnique();
-
-			renElement.techniqueIdx = techniqueIdx;
-
-			// Generate or assigned renderer specific data for the material
-			renElement.params = renElement.material->createParamsSet(techniqueIdx);
-			renElement.material->updateParamsSet(renElement.params, 0.0f, true);
-
-			SPtr<GpuParams> gpuParams = renElement.params->getGpuParams();
-
-			if(gpu)
-			{
-				gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gPositionTimeTex", 
-					renElement.paramsGPU.positionTimeTexture);
-				gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gSizeRotationTex", 
-					renElement.paramsGPU.sizeRotationTexture);
-				gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gCurvesTex", 
-					renElement.paramsGPU.curvesTexture);
-
-				rendererParticles.gpuParticlesParamBuffer = gGpuParticlesParamDef.createBuffer();
-				renElement.is3D = false;
-			}
-			else
-			{
-				switch(settings.renderMode)
-				{
-				case ParticleRenderMode::Billboard: 
-					gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gPositionAndRotTex",
-						renElement.paramsCPUBillboard.positionAndRotTexture);
-					gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gColorTex",
-						renElement.paramsCPUBillboard.colorTexture);
-					gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gSizeAndFrameIdxTex",
-						renElement.paramsCPUBillboard.sizeAndFrameIdxTexture);
-
-					renElement.is3D = false;
-					break;
-				case ParticleRenderMode::Mesh: 
-					gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gPositionTex",
-						renElement.paramsCPUMesh.positionTexture);
-					gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gColorTex",
-						renElement.paramsCPUMesh.colorTexture);
-					gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gSizeTex",
-						renElement.paramsCPUMesh.sizeTexture);
-					gpuParams->getTextureParam(GPT_VERTEX_PROGRAM, "gRotationTex",
-						renElement.paramsCPUMesh.rotationTexture);
-
-					renElement.is3D = true;
-					renElement.mesh = settings.mesh;
-					break;
-				default: 
-					break;
-				}
-
-				rendererParticles.gpuParticlesParamBuffer = nullptr;
-			}
-
-			// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the 
-			// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
-			gpuParams->setParamBlockBuffer("ParticleParams", rendererParticles.particlesParamBuffer);
-			gpuParams->setParamBlockBuffer("GpuParticleParams", rendererParticles.gpuParticlesParamBuffer);
-
-			gpuParams->getBufferParam(GPT_VERTEX_PROGRAM, "gIndices", renElement.indicesBuffer);
-
-			gpuParams->getParamInfo()->getBindings(
-				GpuPipelineParamInfoBase::ParamType::ParamBlock,
-				"PerCamera",
-				renElement.perCameraBindings
-			);
-
-			if(gpu)
-			{
-				// Allocate curves
-				GpuParticleCurves& curves = GpuParticleSimulation::instance().getResources().getCurveTexture();
-				curves.free(rendererParticles.colorCurveAlloc);
-				curves.free(rendererParticles.sizeScaleFrameIdxCurveAlloc);
-
-				static constexpr UINT32 NUM_CURVE_SAMPLES = 128;
-				Color samples[NUM_CURVE_SAMPLES];
-
-				const ParticleGpuSimulationSettings& gpuSimSettings = particleSystem->getGpuSimulationSettings();
-
-				// Write color over lifetime curve
-				LookupTable colorLookup = gpuSimSettings.colorOverLifetime.toLookupTable(NUM_CURVE_SAMPLES, true);
-
-				for (UINT32 i = 0; i < NUM_CURVE_SAMPLES; i++)
-				{
-					const float* sample = colorLookup.getSample(i);
-					samples[i] = Color(sample[0], sample[1], sample[2], sample[3]);
-				}
-
-				rendererParticles.colorCurveAlloc = curves.alloc(samples, NUM_CURVE_SAMPLES);
-
-				// Write size over lifetime / sprite animation curve
-				LookupTable sizeLookup = gpuSimSettings.sizeScaleOverLifetime.toLookupTable(NUM_CURVE_SAMPLES, true);
-
-				float frameSamples[NUM_CURVE_SAMPLES];
-				if(spriteTexture && spriteTexture->getAnimationPlayback() != SpriteAnimationPlayback::None)
-				{
-					const SpriteSheetGridAnimation& anim = spriteTexture->getAnimation();
-					for (UINT32 i = 0; i < NUM_CURVE_SAMPLES; i++)
-					{
-						const float t = i / (float)(NUM_CURVE_SAMPLES - 1);
-						frameSamples[i] = t * (anim.count - 1);
-					}
-				}
-				else
-					memset(frameSamples, 0, sizeof(frameSamples));
-
-				for (UINT32 i = 0; i < NUM_CURVE_SAMPLES; i++)
-				{
-					const float* sample = sizeLookup.getSample(i);
-					samples[i] = Color(sample[0], sample[1], frameSamples[i], 0.0f);
-				}
-
-				rendererParticles.sizeScaleFrameIdxCurveAlloc = curves.alloc(samples, NUM_CURVE_SAMPLES);
-
-				const Vector2 colorUVOffset = GpuParticleCurves::getUVOffset(rendererParticles.colorCurveAlloc);
-				const float colorUVScale = GpuParticleCurves::getUVScale(rendererParticles.colorCurveAlloc);
-
-				const Vector2 sizeScaleFrameIdxUVOffset = 
-					GpuParticleCurves::getUVOffset(rendererParticles.sizeScaleFrameIdxCurveAlloc);
-				const float sizeScaleFrameIdxUVScale = 
-					GpuParticleCurves::getUVScale(rendererParticles.sizeScaleFrameIdxCurveAlloc);
-
-				const SPtr<GpuParamBlockBuffer>& gpuParticlesParamBuffer = rendererParticles.gpuParticlesParamBuffer;
-				gGpuParticlesParamDef.gColorCurveOffset.set(gpuParticlesParamBuffer, colorUVOffset);
-				gGpuParticlesParamDef.gColorCurveScale.set(gpuParticlesParamBuffer, Vector2(colorUVScale, 0.0f));
-				gGpuParticlesParamDef.gSizeScaleFrameIdxCurveOffset.set(gpuParticlesParamBuffer, 
-					sizeScaleFrameIdxUVOffset);
-				gGpuParticlesParamDef.gSizeScaleFrameIdxCurveScale.set(gpuParticlesParamBuffer, 
-					Vector2(sizeScaleFrameIdxUVScale, 0.0f));
-
-				// Write sprite animation curve
-				if (spriteTexture)
-				{
-					gParticlesParamDef.gUVOffset.set(paramBuffer, spriteTexture->getOffset());
-					gParticlesParamDef.gUVScale.set(paramBuffer, spriteTexture->getScale());
-
-					const SpriteSheetGridAnimation& anim = spriteTexture->getAnimation();
-					gParticlesParamDef.gSubImageSize.set(paramBuffer,
-						Vector4((float)anim.numColumns, (float)anim.numRows, 1.0f / anim.numColumns, 1.0f / anim.numRows));
-				}
-			}
-
-			// TODO - Set up buffers/bindings required for advanced lighting
+		// Set up buffers for lighting
+		const bool useForwardRendering = shaderFlags.isSet(ShaderFlag::Forward);
+		if (useForwardRendering)
+		{
+			renElement.forwardLightingParams.populate(gpuParams, supportsClusteredForward);
+			renElement.imageBasedParams.populate(gpuParams, GPT_FRAGMENT_PROGRAM, true, supportsClusteredForward,
+				supportsClusteredForward);
 		}
 	}
 

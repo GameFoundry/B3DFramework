@@ -140,6 +140,48 @@ namespace bs { namespace ct
 		mGBufferDepth.set(gbuffer.depth);
 	}
 
+	void ForwardLightingParams::populate(const SPtr<GpuParams>& params, bool clustered)
+	{
+		if (clustered)
+		{
+			params->getParamInfo()->getBindings(
+				GpuPipelineParamInfoBase::ParamType::ParamBlock,
+				"GridParams",
+				gridParamsBindings
+			);
+
+			if (params->hasBuffer(GPT_FRAGMENT_PROGRAM, "gLights"))
+				params->getBufferParam(GPT_FRAGMENT_PROGRAM, "gLights", lightsBufferParam);
+
+			if (params->hasBuffer(GPT_FRAGMENT_PROGRAM, "gGridLightOffsetsAndSize"))
+				params->getBufferParam(GPT_FRAGMENT_PROGRAM, "gGridLightOffsetsAndSize",
+					gridLightOffsetsAndSizeParam);
+
+			if (params->hasBuffer(GPT_FRAGMENT_PROGRAM, "gLightIndices"))
+				params->getBufferParam(GPT_FRAGMENT_PROGRAM, "gLightIndices", gridLightIndicesParam);
+
+			if (params->hasBuffer(GPT_FRAGMENT_PROGRAM, "gGridProbeOffsetsAndSize"))
+				params->getBufferParam(GPT_FRAGMENT_PROGRAM, "gGridProbeOffsetsAndSize",
+					gridProbeOffsetsAndSizeParam);
+		}
+		else
+		{
+			params->getParamInfo()->getBinding(
+				GPT_FRAGMENT_PROGRAM,
+				GpuPipelineParamInfoBase::ParamType::ParamBlock,
+				"Lights",
+				lightsParamBlockBinding
+			);
+
+			params->getParamInfo()->getBinding(
+				GPT_FRAGMENT_PROGRAM,
+				GpuPipelineParamInfoBase::ParamType::ParamBlock,
+				"LightAndReflProbeParams",
+				lightAndReflProbeParamsParamBlockBinding
+			);
+		}
+	}
+
 	VisibleLightData::VisibleLightData()
 		:mNumLights{}, mNumShadowedLights{}
 	{ }

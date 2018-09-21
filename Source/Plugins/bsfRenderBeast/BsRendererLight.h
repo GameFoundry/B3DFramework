@@ -6,6 +6,7 @@
 #include "Renderer/BsRendererMaterial.h"
 #include "Renderer/BsParamBlocks.h"
 #include "Renderer/BsLight.h"
+#include "RenderAPI/BsGpuPipelineParamInfo.h"
 
 namespace bs 
 {
@@ -87,6 +88,52 @@ namespace ct
 		GpuParamTexture mGBufferB;
 		GpuParamTexture mGBufferC;
 		GpuParamTexture mGBufferDepth;
+	};
+
+	/** Helper struct containing all parameters required for forward lighting. */
+	struct ForwardLightingParams
+	{
+		/** 
+		 * Initializes the parameters from the provided parameters. 
+		 *
+		 * @param[in]	params		GPU parameters object to look for the parameters in.
+		 * @param[in]	clustered	If true, set up parameters for clustered forward rendering. If false, set up parameters
+		 *							for normal forward rendering.
+		 */
+		void populate(const SPtr<GpuParams>& params, bool clustered);
+
+		/** Binding indices representing where should lights param block buffer be bound to. */
+		GpuParamBinding gridParamsBindings[GPT_COUNT];
+
+		/** 
+		 * Parameter to which to bind a buffer containing light grid offsets and size, per grid cell. Used for forward
+		 * rendering. 
+		 */
+		GpuParamBuffer gridLightOffsetsAndSizeParam;
+
+		/** Parameter to which to bind a buffer containing all light indices, as mapped by grid offsets & size. */
+		GpuParamBuffer gridLightIndicesParam;
+
+		/** Parameter to which to bind light buffer used for forward rendering. */
+		GpuParamBuffer lightsBufferParam;
+
+		/** 
+		 * Parameter to which to bind a buffer containing reflection probe grid offsets and size, per grid cell. Used for
+		 * forward rendering. 
+		 */
+		GpuParamBuffer gridProbeOffsetsAndSizeParam;
+
+		/** 
+		 * Binding for a parameter block containing a list of lights influencing this object. Only used when standard
+		 * (non-clustered) forward rendering is used. 
+		 */
+		GpuParamBinding lightsParamBlockBinding;
+
+		/** 
+		 * Binding for a parameter block that contains the number of lights and reflection probes in the light/refl. probe 
+		 * parameter blocks. Only used when standard (non-clustered) forward rendering is used.
+		 */
+		GpuParamBinding lightAndReflProbeParamsParamBlockBinding;
 	};
 
 	/** 

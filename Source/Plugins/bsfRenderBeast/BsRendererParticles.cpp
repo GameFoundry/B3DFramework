@@ -7,48 +7,67 @@
 #include "RenderAPI/BsVertexBuffer.h"
 #include "Mesh/BsMeshData.h"
 #include "RenderAPI/BsVertexDataDesc.h"
+#include "Shading/BsGpuParticleSimulation.h"
+#include "Material/BsGpuParamsSet.h"
+#include "BsRendererView.h"
 
 namespace bs { namespace ct
 {
-	template<bool LOCK_Y, bool GPU, bool IS_3D>
+	template<bool LOCK_Y, bool GPU, bool IS_3D, ParticleForwardLightingType FWD>
 	const ShaderVariation& _getParticleShaderVariation(ParticleOrientation orient)
 	{
 		switch (orient)
 		{
 		default:
 		case ParticleOrientation::ViewPlane:
-			return getParticleShaderVariation<ParticleOrientation::ViewPlane, LOCK_Y, GPU, IS_3D>();
+			return getParticleShaderVariation<ParticleOrientation::ViewPlane, LOCK_Y, GPU, IS_3D, FWD>();
 		case ParticleOrientation::ViewPosition:
-			return getParticleShaderVariation<ParticleOrientation::ViewPosition, LOCK_Y, GPU, IS_3D>();
+			return getParticleShaderVariation<ParticleOrientation::ViewPosition, LOCK_Y, GPU, IS_3D, FWD>();
 		case ParticleOrientation::Plane:
-			return getParticleShaderVariation<ParticleOrientation::Plane, LOCK_Y, GPU, IS_3D>();
+			return getParticleShaderVariation<ParticleOrientation::Plane, LOCK_Y, GPU, IS_3D, FWD>();
 		}
 	}
 
-	template<bool GPU, bool IS_3D>
+	template<bool GPU, bool IS_3D, ParticleForwardLightingType FWD>
 	const ShaderVariation& _getParticleShaderVariation(ParticleOrientation orient, bool lockY)
 	{
 		if (lockY)
-			return _getParticleShaderVariation<true, GPU, IS_3D>(orient);
+			return _getParticleShaderVariation<true, GPU, IS_3D, FWD>(orient);
 
-		return _getParticleShaderVariation<false, GPU, IS_3D>(orient);
+		return _getParticleShaderVariation<false, GPU, IS_3D, FWD>(orient);
 	}
 
-	template<bool IS_3D>
+	template<bool IS_3D, ParticleForwardLightingType FWD>
 	const ShaderVariation& _getParticleShaderVariation(ParticleOrientation orient, bool lockY, bool gpu)
 	{
 		if(gpu)
-			return _getParticleShaderVariation<true, IS_3D>(orient, lockY);
+			return _getParticleShaderVariation<true, IS_3D, FWD>(orient, lockY);
 
-		return _getParticleShaderVariation<false, IS_3D>(orient, lockY);
+		return _getParticleShaderVariation<false, IS_3D, FWD>(orient, lockY);
 	}
 
-	const ShaderVariation& getParticleShaderVariation(ParticleOrientation orient, bool lockY, bool gpu, bool is3D)
+	template<ParticleForwardLightingType FWD>
+	const ShaderVariation& _getParticleShaderVariation(ParticleOrientation orient, bool lockY, bool gpu, bool is3D)
 	{
 		if(is3D)
-			return _getParticleShaderVariation<true>(orient, lockY, gpu);
+			return _getParticleShaderVariation<true, FWD>(orient, lockY, gpu);
 
-		return _getParticleShaderVariation<false>(orient, lockY, gpu);
+		return _getParticleShaderVariation<false, FWD>(orient, lockY, gpu);
+	}
+	
+	const ShaderVariation& getParticleShaderVariation(ParticleOrientation orient, bool lockY, bool gpu, 
+		bool is3D, ParticleForwardLightingType forwardLighting)
+	{
+		switch(forwardLighting)
+		{
+		default:
+		case ParticleForwardLightingType::None: 
+			return _getParticleShaderVariation<ParticleForwardLightingType::None>(orient, lockY, gpu, is3D);
+		case ParticleForwardLightingType::Clustered:
+			return _getParticleShaderVariation<ParticleForwardLightingType::Clustered>(orient, lockY, gpu, is3D);
+		case ParticleForwardLightingType::Standard:
+			return _getParticleShaderVariation<ParticleForwardLightingType::Standard>(orient, lockY, gpu, is3D);
+		}
 	}
 
 	ParticlesParamDef gParticlesParamDef;
@@ -72,6 +91,94 @@ namespace bs { namespace ct
 		}
 
 		buffer->unlock();
+	}
+
+	void RendererParticles::bindCPUSimulatedInputs(const ParticleRenderData* renderData, const RendererView& view) const
+	{
+		ParticleTexturePool& particlesTexPool = ParticleRenderer::instance().getTexturePool();
+
+		const ParticleSystemSettings& settings = particleSystem->getSettings();
+		UINT32 texSize;
+		switch (settings.renderMode)
+		{
+		default:
+		case ParticleRenderMode::Billboard:
+		{
+			const auto billboardRenderData = static_cast<const ParticleBillboardRenderData*>(renderData);
+			const ParticleBillboardTextures* textures = particlesTexPool.alloc(*billboardRenderData);
+
+			renderElement.paramsCPUBillboard.positionAndRotTexture.set(textures->positionAndRotation);
+			renderElement.paramsCPUBillboard.colorTexture.set(textures->color);
+			renderElement.paramsCPUBillboard.sizeAndFrameIdxTexture.set(textures->sizeAndFrameIdx);
+
+			renderElement.indicesBuffer.set(textures->indices);
+			texSize = textures->positionAndRotation->getProperties().getWidth();
+		}
+		break;
+		case ParticleRenderMode::Mesh:
+		{
+			const auto meshRenderData = static_cast<const ParticleMeshRenderData*>(renderData);
+			const ParticleMeshTextures* textures = particlesTexPool.alloc(*meshRenderData);
+
+			renderElement.paramsCPUMesh.positionTexture.set(textures->position);
+			renderElement.paramsCPUMesh.colorTexture.set(textures->color);
+			renderElement.paramsCPUMesh.rotationTexture.set(textures->rotation);
+			renderElement.paramsCPUMesh.sizeTexture.set(textures->size);
+
+			renderElement.indicesBuffer.set(textures->indices);
+			texSize = textures->position->getProperties().getWidth();
+		}
+		break;
+		}
+
+		renderElement.numParticles = renderData->numParticles;
+
+		gParticlesParamDef.gTexSize.set(particlesParamBuffer, texSize);
+		gParticlesParamDef.gBufferOffset.set(particlesParamBuffer, 0);
+
+		SPtr<GpuParams> gpuParams = renderElement.params->getGpuParams();
+		for (UINT32 j = 0; j < GPT_COUNT; j++)
+		{
+			const GpuParamBinding& binding = renderElement.perCameraBindings[j];
+			if (binding.slot != (UINT32)-1)
+				gpuParams->setParamBlockBuffer(binding.set, binding.slot, view.getPerViewBuffer());
+		}
+	}
+
+	void RendererParticles::bindGPUSimulatedInputs(const GpuParticleResources& gpuSimResources, const RendererView& view) const
+	{
+		const GpuParticleStateTextures& gpuSimStateTextures = gpuSimResources.getCurrentState();
+		const GpuParticleStaticTextures& gpuSimStaticTextures = gpuSimResources.getStaticTextures();
+		const GpuParticleCurves& gpuCurves = gpuSimResources.getCurveTexture();
+		const SPtr<GpuBuffer>& sortedIndices = gpuSimResources.getSortedIndices();
+
+		renderElement.paramsGPU.positionTimeTexture.set(gpuSimStateTextures.positionAndTimeTex);
+		renderElement.paramsGPU.sizeRotationTexture.set(gpuSimStaticTextures.sizeAndRotationTex);
+		renderElement.paramsGPU.curvesTexture.set(gpuCurves.getTexture());
+		renderElement.numParticles = gpuParticleSystem->getNumTiles() * GpuParticleResources::PARTICLES_PER_TILE;
+
+		if (gpuParticleSystem->hasSortInfo())
+		{
+			renderElement.indicesBuffer.set(sortedIndices);
+			gParticlesParamDef.gBufferOffset.set(particlesParamBuffer,
+				gpuParticleSystem->getSortOffset());
+		}
+		else
+		{
+			renderElement.indicesBuffer.set(gpuParticleSystem->getParticleIndices());
+			gParticlesParamDef.gBufferOffset.set(particlesParamBuffer, 0);
+		}
+
+		const UINT32 texSize = GpuParticleResources::TEX_SIZE;
+		gParticlesParamDef.gTexSize.set(particlesParamBuffer, texSize);
+
+		SPtr<GpuParams> gpuParams = renderElement.params->getGpuParams();
+		for (UINT32 j = 0; j < GPT_COUNT; j++)
+		{
+			const GpuParamBinding& binding = renderElement.perCameraBindings[j];
+			if (binding.slot != (UINT32)-1)
+				gpuParams->setParamBlockBuffer(binding.set, binding.slot, view.getPerViewBuffer());
+		}
 	}
 
 	ParticleTexturePool::~ParticleTexturePool()

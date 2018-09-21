@@ -298,12 +298,19 @@ namespace bs { namespace ct
 		reductionMat->execute(view);
 	}
 
-	void LightGrid::getOutputs(SPtr<GpuBuffer>& gridLightOffsetsAndSize, SPtr<GpuBuffer>& gridLightIndices,
-		SPtr<GpuBuffer>& gridProbeOffsetsAndSize, SPtr<GpuBuffer>& gridProbeIndices, 
-		SPtr<GpuParamBlockBuffer>& gridParams) const
+	LightGridOutputs LightGrid::getOutputs() const
 	{
+		LightGridOutputs outputs;
+
 		LightGridLLReductionMat* reductionMat = LightGridLLReductionMat::get();
-		reductionMat->getOutputs(gridLightOffsetsAndSize, gridLightIndices, gridProbeOffsetsAndSize, gridProbeIndices);
-		gridParams = mGridParamBuffer;
+		reductionMat->getOutputs(
+			outputs.gridLightOffsetsAndSize, 
+			outputs.gridLightIndices, 
+			outputs.gridProbeOffsetsAndSize, 
+			outputs.gridProbeIndices);
+
+		outputs.gridParams = mGridParamBuffer;
+
+		return outputs;
 	}
 }}
