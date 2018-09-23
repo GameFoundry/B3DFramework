@@ -96,6 +96,9 @@ namespace bs
 		/**	Called for each iteration of the main loop. Called after all game objects and plugins are updated. */
 		virtual void postUpdate();
 
+		/** Called during the fixed update of the main loop. Called after preUpdate and before postUpdate. */
+		virtual void fixedUpdate();
+
 		/**	Initializes the renderer specified during construction. Called during initialization. */
 		virtual void startUpRenderer();
 

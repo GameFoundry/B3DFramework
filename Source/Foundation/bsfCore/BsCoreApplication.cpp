@@ -238,6 +238,7 @@ namespace bs
 				const float stepSeconds = step / 1000000.0f;
 				for (UINT32 i = 0; i < numIterations; i++)
 				{
+					fixedUpdate();
 					PROFILE_CALL(gSceneManager()._fixedUpdate(), "Scene fixed update");
 					gPhysics().fixedUpdate(stepSeconds);
 
@@ -326,6 +327,11 @@ namespace bs
 	void CoreApplication::postUpdate()
 	{
 		// Do nothing
+	}
+
+	void CoreApplication::fixedUpdate()
+	{
+	   // Do nothing
 	}
 
 	void CoreApplication::stopMainLoop()
