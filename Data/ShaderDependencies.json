@@ -21,6 +21,9 @@
         },
         {
             "Path": "VertexInput.bslinc"
+        },
+        {
+            "Path": "VertexCommon.bslinc"
         }
     ],
     "DeferredDirectionalLight.bsl": [
@@ -182,6 +185,9 @@
         },
         {
             "Path": "VertexInput.bslinc"
+        },
+        {
+            "Path": "VertexCommon.bslinc"
         }
     ],
     "GpuParticleBounds.bsl": null,
@@ -508,12 +514,67 @@
             "Path": "PPTonemapCommon.bslinc"
         }
     ],
+    "ParticlesLit.bsl": [
+        {
+            "Path": "ImageBasedLighting.bslinc"
+        },
+        {
+            "Path": "ForwardLighting.bslinc"
+        },
+        {
+            "Path": "ReflProbeAccumulator.bslinc"
+        },
+        {
+            "Path": "ReflectionCubemapCommon.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "DirectLightAccumulator.bslinc"
+        },
+        {
+            "Path": "DirectLighting.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        },
+        {
+            "Path": "LightGridCommon.bslinc"
+        },
+        {
+            "Path": "ParticleVertex.bslinc"
+        },
+        {
+            "Path": "PerObjectData.bslinc"
+        }
+    ],
+    "ParticlesLitOpaque.bsl": [
+        {
+            "Path": "GBufferOutput.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        },
+        {
+            "Path": "ParticleVertex.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "PerObjectData.bslinc"
+        }
+    ],
     "ParticlesUnlit.bsl": [
         {
             "Path": "ParticleVertex.bslinc"
         },
         {
             "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "PerObjectData.bslinc"
         }
     ],
     "RadixSortClear.bsl": [
@@ -564,6 +625,9 @@
         },
         {
             "Path": "VertexInput.bslinc"
+        },
+        {
+            "Path": "VertexCommon.bslinc"
         }
     ],
     "ShadowDepthDirectional.bsl": [
@@ -575,6 +639,9 @@
         },
         {
             "Path": "VertexInput.bslinc"
+        },
+        {
+            "Path": "VertexCommon.bslinc"
         }
     ],
     "ShadowDepthNormal.bsl": [
@@ -586,6 +653,9 @@
         },
         {
             "Path": "VertexInput.bslinc"
+        },
+        {
+            "Path": "VertexCommon.bslinc"
         }
     ],
     "ShadowDepthNormalNoPS.bsl": [
@@ -597,6 +667,9 @@
         },
         {
             "Path": "VertexInput.bslinc"
+        },
+        {
+            "Path": "VertexCommon.bslinc"
         }
     ],
     "ShadowProject.bsl": [
@@ -743,6 +816,9 @@
         },
         {
             "Path": "VertexInput.bslinc"
+        },
+        {
+            "Path": "VertexCommon.bslinc"
         },
         {
             "Path": "PerObjectData.bslinc"

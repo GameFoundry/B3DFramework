@@ -1,0 +1,175 @@
+mixin VertexCommon
+{
+	code
+	{
+		struct VStoFS
+		{
+			float4 position : SV_Position;
+			float2 uv0 : TEXCOORD0;
+			
+			#if LIGHTING_DATA
+				float3 worldPosition : TEXCOORD1;
+				float3 tangentToWorldZ : NORMAL; // Note: Half-precision could be used
+				float4 tangentToWorldX : TANGENT; // Note: Half-precision could be used
+			#endif
+		};
+
+		struct VertexInput
+		{
+			#if POSITION_2D
+				float2 position : POSITION;
+			#else
+				float3 position : POSITION;
+			#endif
+			
+			float2 uv0 : TEXCOORD0;
+			
+			#if LIGHTING_DATA
+				float3 normal : NORMAL; // Note: Half-precision could be used
+				float4 tangent : TANGENT; // Note: Half-precision could be used
+			#endif
+			
+			#if SKINNED
+				uint4 blendIndices : BLENDINDICES;
+				float4 blendWeights : BLENDWEIGHT;
+			#endif
+			
+			#if MORPH
+				float3 deltaPosition : POSITION1;
+				float4 deltaNormal : NORMAL1;
+			#endif				
+		};
+		
+		// Vertex input containing only position data
+		struct VertexInput_PO
+		{
+			#if POSITION_2D
+				float2 position : POSITION;
+			#else
+				float3 position : POSITION;
+			#endif
+			
+			#if SKINNED
+				uint4 blendIndices : BLENDINDICES;
+				float4 blendWeights : BLENDWEIGHT;
+			#endif			
+			
+			#if MORPH
+				float3 deltaPosition : POSITION1;
+			#endif	
+		};			
+		
+		struct VertexIntermediate
+		{
+			#if SKINNED
+				float3x4 blendMatrix;
+			#endif
+		
+			#if LIGHTING_DATA
+				float3 worldNormal; // Note: Half-precision could be used
+				float4 worldTangent; // Note: Half-precision could be used
+			#endif
+		};
+		
+		#if SKINNED
+		Buffer<float4> boneMatrices;
+		
+		float3x4 getBoneMatrix(uint idx)
+		{
+			float4 row0 = boneMatrices[idx * 3 + 0];
+			float4 row1 = boneMatrices[idx * 3 + 1];
+			float4 row2 = boneMatrices[idx * 3 + 2];
+			
+			return float3x4(row0, row1, row2);
+		}
+		
+		float3x4 getBlendMatrix(float4 blendWeights, uint4 blendIndices)
+		{
+			float3x4 result = blendWeights.x * getBoneMatrix(blendIndices.x);
+			result += blendWeights.y * getBoneMatrix(blendIndices.y);
+			result += blendWeights.z * getBoneMatrix(blendIndices.z);
+			result += blendWeights.w * getBoneMatrix(blendIndices.w);
+			
+			return result;
+		}
+		#endif
+		
+		#if LIGHTING_DATA
+		float3x3 getTangentToLocal(VertexInput input, out float tangentSign
+			#if SKINNED
+			, float3x4 blendMatrix
+			#endif
+			)
+		{
+			float3 normal = input.normal * 2.0f - 1.0f;
+			float3 tangent = input.tangent.xyz * 2.0f - 1.0f;
+			
+			#if MORPH
+				float3 deltaNormal = (input.deltaNormal.xyz * 2.0f - 1.0f) * 2.0f;
+				normal = normalize(normal + deltaNormal * input.deltaNormal.w);
+				tangent = normalize(tangent - dot(tangent, normal) * normal);
+			#endif
+			
+			#if SKINNED
+				normal = mul(blendMatrix, float4(normal, 0.0f)).xyz;
+				tangent = mul(blendMatrix, float4(tangent, 0.0f)).xyz;
+			#endif
+			
+			tangentSign = input.tangent.w < 0.5f ? -1.0f : 1.0f;
+			float3 bitangent = cross(normal, tangent) * tangentSign;
+			tangentSign *= gWorldDeterminantSign;
+			
+			// Note: Maybe it's better to store everything in row vector format?
+			float3x3 result = float3x3(tangent, bitangent, normal);
+			result = transpose(result);
+											
+			return result;
+		}
+		
+		float3 calcWorldNormal(VStoFS input, float3 surfaceNormal)
+		{
+			float3 tangentToWorldX = input.tangentToWorldX.xyz;
+			float3 tangentToWorldZ = input.tangentToWorldZ;
+			float3 tangentToWorldY = cross(tangentToWorldZ, tangentToWorldX) * input.tangentToWorldX.w;
+			
+			float3x3 tangentToWorld = float3x3(tangentToWorldX, tangentToWorldY, tangentToWorldZ);
+			
+			// Multiplication order flipped because we stored basis vectors as rows
+			return normalize(mul(surfaceNormal, tangentToWorld));			
+		}
+		#endif
+		
+		VertexIntermediate getVertexIntermediate(VertexInput input)
+		{
+			VertexIntermediate result;
+			
+			float tangentSign;
+			#if SKINNED
+				result.blendMatrix = getBlendMatrix(input.blendWeights, input.blendIndices);
+				float3x3 tangentToLocal = getTangentToLocal(input, tangentSign, result.blendMatrix);
+			#else
+				float3x3 tangentToLocal = getTangentToLocal(input, tangentSign);
+			#endif
+			
+			#if LIGHTING_DATA
+				float3x3 tangentToWorld = mul((float3x3)gMatWorldNoScale, tangentToLocal);
+				
+				// Note: Consider transposing these externally, for easier reads
+				result.worldNormal = float3(tangentToWorld[0][2], tangentToWorld[1][2], tangentToWorld[2][2]); // Normal basis vector
+				result.worldTangent = float4(tangentToWorld[0][0], tangentToWorld[1][0], tangentToWorld[2][0], tangentSign); // Tangent basis vector
+			#endif
+			
+			return result;
+		}
+				
+		void populateVertexOutput(VertexInput input, VertexIntermediate intermediate, inout VStoFS result)
+		{
+			result.uv0 = input.uv0;
+			
+			#if LIGHTING_DATA
+				result.tangentToWorldZ = intermediate.worldNormal;
+				result.tangentToWorldX = intermediate.worldTangent;
+			#endif
+		}
+	};
+};

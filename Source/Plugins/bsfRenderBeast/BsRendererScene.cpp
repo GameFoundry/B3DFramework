@@ -608,21 +608,31 @@ namespace bs {	namespace ct
 		RendererParticles& rendererParticles = mInfo.particleSystems[rendererId];
 
 		const ParticleSystemSettings& settings = particleSystem->getSettings();
+		Matrix4 localToWorldNoScale;
 		if (settings.simulationSpace == ParticleSimulationSpace::Local)
-			rendererParticles.localToWorld = particleSystem->getTransform().getMatrix();
+		{
+			const Transform& tfrm = particleSystem->getTransform();
+
+			rendererParticles.localToWorld = tfrm.getMatrix();
+			localToWorldNoScale = Matrix4::TRS(tfrm.getPosition(), tfrm.getRotation(), Vector3::ONE);
+		}
 		else
+		{
 			rendererParticles.localToWorld = Matrix4::IDENTITY;
+			localToWorldNoScale = Matrix4::IDENTITY;
+		}
 
 		if(tfrmOnly)
 		{
-			SPtr<GpuParamBlockBuffer>& paramBuffer = rendererParticles.particlesParamBuffer;
-			gParticlesParamDef.gWorldTfrm.set(paramBuffer, rendererParticles.localToWorld);
+			SPtr<GpuParamBlockBuffer>& paramBuffer = rendererParticles.perObjectParamBuffer;
+			PerObjectBuffer::update(paramBuffer, rendererParticles.localToWorld, localToWorldNoScale);
 
 			return;
 		}
 
-		SPtr<GpuParamBlockBuffer> paramBuffer = gParticlesParamDef.createBuffer();
-		gParticlesParamDef.gWorldTfrm.set(paramBuffer, rendererParticles.localToWorld);
+		SPtr<GpuParamBlockBuffer> perObjectParamBuffer = gPerObjectParamDef.createBuffer();
+		SPtr<GpuParamBlockBuffer> particlesParamBuffer = gParticlesParamDef.createBuffer();
+		PerObjectBuffer::update(perObjectParamBuffer, rendererParticles.localToWorld, localToWorldNoScale);
 
 		Vector3 axisForward = settings.orientationPlane.normal;
 
@@ -633,10 +643,11 @@ namespace bs {	namespace ct
 		Vector3 axisRight = axisUp.cross(axisForward);
 		Vector3::orthonormalize(axisRight, axisUp, axisForward);
 
-		gParticlesParamDef.gAxisUp.set(paramBuffer, axisUp);
-		gParticlesParamDef.gAxisRight.set(paramBuffer, axisRight);
+		gParticlesParamDef.gAxisUp.set(particlesParamBuffer, axisUp);
+		gParticlesParamDef.gAxisRight.set(particlesParamBuffer, axisRight);
 
-		rendererParticles.particlesParamBuffer = paramBuffer;
+		rendererParticles.perObjectParamBuffer = perObjectParamBuffer;
+		rendererParticles.particlesParamBuffer = particlesParamBuffer;
 
 		// Initialize the variant of the particle system for GPU simulation, if needed
 		if (settings.gpuSimulation)
@@ -671,20 +682,23 @@ namespace bs {	namespace ct
 		if (shader->hasTextureParam("gTexture"))
 			spriteTexture = renElement.material->getSpriteTexture("gTexture").get();
 
+		if(!spriteTexture && shader->hasTextureParam("gAlbedo"))
+			spriteTexture = renElement.material->getSpriteTexture("gAlbedo").get();
+
 		if (spriteTexture)
 		{
-			gParticlesParamDef.gUVOffset.set(paramBuffer, spriteTexture->getOffset());
-			gParticlesParamDef.gUVScale.set(paramBuffer, spriteTexture->getScale());
+			gParticlesParamDef.gUVOffset.set(particlesParamBuffer, spriteTexture->getOffset());
+			gParticlesParamDef.gUVScale.set(particlesParamBuffer, spriteTexture->getScale());
 
 			const SpriteSheetGridAnimation& anim = spriteTexture->getAnimation();
-			gParticlesParamDef.gSubImageSize.set(paramBuffer,
+			gParticlesParamDef.gSubImageSize.set(particlesParamBuffer,
 				Vector4((float)anim.numColumns, (float)anim.numRows, 1.0f / anim.numColumns, 1.0f / anim.numRows));
 		}
 		else
 		{
-			gParticlesParamDef.gUVOffset.set(paramBuffer, Vector2::ZERO);
-			gParticlesParamDef.gUVScale.set(paramBuffer, Vector2::ONE);
-			gParticlesParamDef.gSubImageSize.set(paramBuffer, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+			gParticlesParamDef.gUVOffset.set(particlesParamBuffer, Vector2::ZERO);
+			gParticlesParamDef.gUVScale.set(particlesParamBuffer, Vector2::ONE);
+			gParticlesParamDef.gSubImageSize.set(particlesParamBuffer, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 		}
 
 		const ParticleOrientation orientation = settings.orientation;
@@ -773,6 +787,7 @@ namespace bs {	namespace ct
 		// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the 
 		// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
 		gpuParams->setParamBlockBuffer("ParticleParams", rendererParticles.particlesParamBuffer);
+		gpuParams->setParamBlockBuffer("PerObject", rendererParticles.perObjectParamBuffer);
 		gpuParams->setParamBlockBuffer("GpuParticleParams", rendererParticles.gpuParticlesParamBuffer);
 
 		gpuParams->getBufferParam(GPT_VERTEX_PROGRAM, "gIndices", renElement.indicesBuffer);
@@ -849,11 +864,11 @@ namespace bs {	namespace ct
 			// Write sprite animation curve
 			if (spriteTexture)
 			{
-				gParticlesParamDef.gUVOffset.set(paramBuffer, spriteTexture->getOffset());
-				gParticlesParamDef.gUVScale.set(paramBuffer, spriteTexture->getScale());
+				gParticlesParamDef.gUVOffset.set(particlesParamBuffer, spriteTexture->getOffset());
+				gParticlesParamDef.gUVScale.set(particlesParamBuffer, spriteTexture->getScale());
 
 				const SpriteSheetGridAnimation& anim = spriteTexture->getAnimation();
-				gParticlesParamDef.gSubImageSize.set(paramBuffer,
+				gParticlesParamDef.gSubImageSize.set(particlesParamBuffer,
 					Vector4((float)anim.numColumns, (float)anim.numRows, 1.0f / anim.numColumns, 1.0f / anim.numRows));
 			}
 		}

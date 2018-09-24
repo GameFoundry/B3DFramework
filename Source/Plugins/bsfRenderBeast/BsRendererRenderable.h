@@ -32,6 +32,14 @@ namespace bs { namespace ct
 
 	extern PerCallParamDef gPerCallParamDef;
 
+	/** Helper class used for manipulating the PerObject parameter buffer. */
+	class PerObjectBuffer
+	{
+	public:
+		/** Updates the provided buffer with the data from the provided matrices. */
+		static void update(SPtr<GpuParamBlockBuffer>& buffer, const Matrix4& tfrm, const Matrix4& tfrmNoScale);
+	};
+
 	struct MaterialSamplerOverrides;
 
 	/**

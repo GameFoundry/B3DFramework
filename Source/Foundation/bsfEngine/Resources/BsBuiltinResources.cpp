@@ -84,9 +84,12 @@ namespace bs
 	const String BuiltinResources::ShaderSpriteImageAlphaFile = u8"SpriteImageAlpha.bsl";
 	const String BuiltinResources::ShaderSpriteImageNoAlphaFile = u8"SpriteImageNoAlpha.bsl";
 	const String BuiltinResources::ShaderSpriteLineFile = u8"SpriteLine.bsl";
-	const String BuiltinResources::ShaderDiffuseFile = u8"Diffuse.bsl";
-	const String BuiltinResources::ShaderTransparentFile = u8"Transparent.bsl";
-	const String BuiltinResources::ShaderParticlesUnlitFile = u8"ParticlesUnlit.bsl";
+
+	constexpr char* ShaderDiffuseFile = u8"Diffuse.bsl";
+	constexpr char* ShaderTransparentFile = u8"Transparent.bsl";
+	constexpr char* ShaderParticlesUnlitFile = u8"ParticlesUnlit.bsl";
+	constexpr char* ShaderParticlesLitFile = u8"ParticlesLit.bsl";
+	constexpr char* ShaderParticlesLitOpaqueFile = u8"ParticlesLitOpaque.bsl";
 
 	/************************************************************************/
 	/* 								MESHES							  		*/
@@ -225,6 +228,8 @@ namespace bs
 		mShaderDiffuse = getShader(ShaderDiffuseFile);
 		mShaderTransparent = getShader(ShaderTransparentFile);
 		mShaderParticlesUnlit = getShader(ShaderParticlesUnlitFile);
+		mShaderParticlesLit = getShader(ShaderParticlesLitFile);
+		mShaderParticlesLitOpaque = getShader(ShaderParticlesLitOpaqueFile);
 
 		SPtr<PixelData> dummyPixelData = PixelData::create(2, 2, 1, PF_RGBA8);
 
@@ -858,6 +863,10 @@ namespace bs
 			return mShaderTransparent;
 		case BuiltinShader::ParticlesUnlit:
 			return mShaderParticlesUnlit;
+		case BuiltinShader::ParticlesLit:
+			return mShaderParticlesLit;
+		case BuiltinShader::ParticlesLitOpaque:
+			return mShaderParticlesLitOpaque;
 		default:
 			break;
 		}

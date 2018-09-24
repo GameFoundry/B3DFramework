@@ -40,3 +40,4 @@ Huge thanks to all the patrons, contributors and donators!
 - Žan Strahija [Founder]
 - Michael Jones [Founder]
 - Patrick Meyer [Founder]
+- Paolo Francesco

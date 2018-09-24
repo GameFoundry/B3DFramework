@@ -1,8 +1,11 @@
 #include "$ENGINE$\PerCameraData.bslinc"
+#include "$ENGINE$\PerObjectData.bslinc"
+// Note: I should include VertexCommon.bslinc here, instead of redefining vertex input code below
 
 mixin ParticleVertex
 {
 	mixin PerCameraData;
+	mixin PerObjectData;
 
 	variations
 	{
@@ -14,14 +17,26 @@ mixin ParticleVertex
 
 	code
 	{
-		#if IS_3D && !GPU
+		#define RENDER_3D IS_3D && !GPU
+	
 		struct VertexInput
 		{
+			#if RENDER_3D
 			float3 position : POSITION;
+			#else
+			float2 position : POSITION;
+			#endif
+			
 			float2 uv0 : TEXCOORD0;
-			uint instanceId	: SV_InstanceID;		
-		};		
-		
+			uint instanceId	: SV_InstanceID;
+
+			#ifdef LIGHTING_DATA
+			float3 normal : NORMAL; // Note: Half-precision could be used
+			float4 tangent : TANGENT; // Note: Half-precision could be used
+			#endif
+		};	
+	
+		#if RENDER_3D
 		struct ParticleInput
 		{
 			float3 position;
@@ -31,13 +46,6 @@ mixin ParticleVertex
 			float4 color;
 		};
 		#else
-		struct VertexInput
-		{
-			float2 position : POSITION;
-			float2 uv0 : TEXCOORD0;
-			uint instanceId	: SV_InstanceID;		
-		};		
-		
 		struct ParticleInput
 		{
 			float3 position;
@@ -55,6 +63,13 @@ mixin ParticleVertex
 			float4 position : SV_Position;
 			float2 uv0 : TEXCOORD0;
 			float4 color : COLOR0;
+
+			#ifdef LIGHTING_DATA
+			float3 worldPosition : TEXCOORD1;
+			
+			float3 tangentToWorldZ : NORMAL; // Note: Half-precision could be used
+			float4 tangentToWorldX : TANGENT; // Note: Half-precision could be used
+			#endif
 		};
 		
 		#if GPU
@@ -185,16 +200,45 @@ mixin ParticleVertex
 		[internal]
 		cbuffer ParticleParams
 		{
-			float4x4 gWorldTfrm;
 			float4 gSubImageSize; // .xy column/row count, .zw inverse column/row count
-			float2 gUVOffset;
-			float2 gUVSize;
+			float2 gParticleUVOffset;
+			float2 gParticleUVSize;
 			float3 gAxisUp;
 			uint gTexSize;
 			float3 gAxisRight;
 			uint gBufferOffset;
 		}
 		
+		#ifdef LIGHTING_DATA
+		float3x3 getTangentToLocal(VertexInput input, out float tangentSign)
+		{
+			float3 normal = input.normal * 2.0f - 1.0f;
+			float3 tangent = input.tangent.xyz * 2.0f - 1.0f;
+			
+			tangentSign = input.tangent.w < 0.5f ? -1.0f : 1.0f;
+			float3 bitangent = cross(normal, tangent) * tangentSign;
+			tangentSign *= gWorldDeterminantSign;
+			
+			// Note: Maybe it's better to store everything in row vector format?
+			float3x3 result = float3x3(tangent, bitangent, normal);
+			result = transpose(result);
+											
+			return result;
+		}
+		
+		float3 calcWorldNormal(VStoFS input, float3 surfaceNormal)
+		{
+			float3 tangentToWorldX = input.tangentToWorldX.xyz;
+			float3 tangentToWorldZ = input.tangentToWorldZ;
+			float3 tangentToWorldY = cross(tangentToWorldZ, tangentToWorldX) * input.tangentToWorldX.w;
+			
+			float3x3 tangentToWorld = float3x3(tangentToWorldX, tangentToWorldY, tangentToWorldZ);
+			
+			// Multiplication order flipped because we stored basis vectors as rows
+			return normalize(mul(surfaceNormal, tangentToWorld));			
+		}	
+		#endif
+
 		VStoFS vsmain(VertexInput input)
 		{
 			ParticleInput pi = getParticleInput(gIndices[gBufferOffset + input.instanceId]);
@@ -202,14 +246,14 @@ mixin ParticleVertex
 			VStoFS output;
 			output.color = pi.color;
 			
-			float4 worldPosition = mul(gWorldTfrm, float4(pi.position, 1.0f));
+			float4 worldPosition = mul(gMatWorld, float4(pi.position, 1.0f));
 
-			#if IS_3D && !GPU
+			#if RENDER_3D
 				float3x3 rotScale = getRotationScaleMatrix(pi.rotation, pi.size);
 				worldPosition.xyz += mul(rotScale, input.position);
 
 				output.uv0 = input.uv0;
-			#else // IS_3D
+			#else // RENDER_3D
 				float3 axisRight, axisUp;
 				#if ORIENT == 2 // Axis
 					axisRight = gAxisRight;
@@ -252,9 +296,21 @@ mixin ParticleVertex
 				float column = fmod(frame, gSubImageSize.x);
 				
 				float2 subUV = (float2(row, column) + uv) * gSubImageSize.zw;
-				output.uv0 = gUVOffset + subUV * gUVSize;
-			#endif
+				output.uv0 = gParticleUVOffset + subUV * gParticleUVSize;
+			#endif // RENDER_3D
 
+			#ifdef LIGHTING_DATA
+				float tangentSign;
+				float3x3 tangentToLocal = getTangentToLocal(input, tangentSign);
+				float3x3 tangentToWorld = mul((float3x3)gMatWorldNoScale, tangentToLocal);
+			
+				// Note: Consider transposing these externally, for easier reads
+				output.tangentToWorldZ = float3(tangentToWorld[0][2], tangentToWorld[1][2], tangentToWorld[2][2]); // Normal basis vector
+				output.tangentToWorldX = float4(tangentToWorld[0][0], tangentToWorld[1][0], tangentToWorld[2][0], tangentSign); // Tangent basis vector
+				
+				output.worldPosition = worldPosition.xyz;
+			#endif
+			
 			output.position = mul(gMatViewProj, worldPosition);
 			return output;
 		}

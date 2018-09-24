@@ -36,8 +36,19 @@ namespace bs
 		Standard, 
 		/** Physically based shader used for transparent 3D geometry. */
 		Transparent,
-		/** Special shader used for rendering particles without any lighting. */
-		ParticlesUnlit
+		/** Special shader used for rendering particles without any lighting, with support for transparency. */
+		ParticlesUnlit,
+		/** 
+		 * Special shader used for rendering particles with lighting using the forward rendering pipeline (supports 
+		 * transparency). 
+		 */
+		ParticlesLit,
+		/** 
+		 * Special shader used for rendering particles with lighting using the deferred rendering pipeline (no support
+		 * for transparency).
+		 */
+		ParticlesLitOpaque,
+
 	};
 
 	/**	Holds references to built-in resources used by the core engine. */
@@ -190,6 +201,8 @@ namespace bs
 		HShader mShaderDiffuse;
 		HShader mShaderTransparent;
 		HShader mShaderParticlesUnlit;
+		HShader mShaderParticlesLit;
+		HShader mShaderParticlesLitOpaque;
 
 		SPtr<ResourceManifest> mResourceManifest;
 
@@ -246,9 +259,6 @@ namespace bs
 		static const String ShaderSpriteImageAlphaFile;
 		static const String ShaderSpriteImageNoAlphaFile;
 		static const String ShaderSpriteLineFile;
-		static const String ShaderDiffuseFile;
-		static const String ShaderTransparentFile;
-		static const String ShaderParticlesUnlitFile;
 
 		static const String MeshSphereFile;
 		static const String MeshBoxFile;

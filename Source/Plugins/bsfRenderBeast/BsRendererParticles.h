@@ -31,7 +31,6 @@ namespace bs { namespace ct
 	 */
 
 	BS_PARAM_BLOCK_BEGIN(ParticlesParamDef)
-		BS_PARAM_BLOCK_ENTRY(Matrix4, gWorldTfrm)
 		BS_PARAM_BLOCK_ENTRY(Vector4, gSubImageSize)
 		BS_PARAM_BLOCK_ENTRY(Vector2, gUVOffset)
 		BS_PARAM_BLOCK_ENTRY(Vector2, gUVScale)
@@ -216,6 +215,9 @@ namespace bs { namespace ct
 
 		/** Extra parameters required by the particle rendering shader if the particle system is GPU simulated. */
 		SPtr<GpuParamBlockBuffer> gpuParticlesParamBuffer;
+
+		/** Buffer containing the world transform data for the rendered object. */
+		SPtr<GpuParamBlockBuffer> perObjectParamBuffer;
 
 		/** Information about the color over lifetime curve stored in the global curve texture. */
 		TextureRowAllocation colorCurveAlloc;

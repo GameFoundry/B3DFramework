@@ -179,6 +179,10 @@
         {
             "Path": "GpuParticleTileVertex.bslinc",
             "UUID": "a6943ff6-4123-4bbc-d397-4123245a6cae"
+        },
+        {
+            "Path": "VertexCommon.bslinc",
+            "UUID": "7f6cf98d-48da-efc9-c1a2-48da18703e92"
         }
     ],
     "Shaders": [
@@ -485,6 +489,14 @@
         {
             "Path": "RadixSortClear.bsl",
             "UUID": "26e580ba-4b0c-5872-dcb6-4b0c47c5eda8"
+        },
+        {
+            "Path": "ParticlesLit.bsl",
+            "UUID": "dca4932c-472b-bf22-ecbe-472bb581143d"
+        },
+        {
+            "Path": "ParticlesLitOpaque.bsl",
+            "UUID": "520813e4-4e15-b067-72ae-4e15d603d443"
         }
     ],
     "Skin": [
