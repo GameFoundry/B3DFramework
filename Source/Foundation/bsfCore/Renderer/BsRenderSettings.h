@@ -337,14 +337,14 @@ namespace bs
 		 * zone. Set to zero to disable near-field blur. Only relevant for Gaussian depth of field.
 		 */
 		BS_SCRIPT_EXPORT()
-		float nearBlurAmount = 0.15f;
+		float nearBlurAmount = 0.02f;
 
 		/** 
 		 * Determines the amount of blur to apply to fully unfocused objects that are farther away from camera than the
 		 * in-focus zone. Set to zero to disable far-field blur. Only relevant for Gaussian depth of field.
 		 */
 		BS_SCRIPT_EXPORT()
-		float farBlurAmount = 0.15f;
+		float farBlurAmount = 0.02f;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

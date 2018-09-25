@@ -737,10 +737,16 @@ namespace bs { namespace ct
 		filterRadius = Math::clamp(filterRadius, 0.00001f, (float)(MAX_BLUR_SAMPLES - 1));
 		INT32 intFilterRadius = std::min(Math::ceilToInt(filterRadius), MAX_BLUR_SAMPLES - 1);
 
+		// Note: Does not include the scaling factor since we normalize later anyway
 		auto normalDistribution = [](int i, float scale)
 		{
+			// Higher value gives more weight to samples near the center
+			constexpr float CENTER_BIAS = 30;
+
+			// Mathematica visualization: Manipulate[Plot[E^(-0.5*centerBias*(Abs[x]*(1/radius))^2), {x, -radius, radius}], 
+			//	{centerBias, 1, 30}, {radius, 1, 72}]
 			float samplePos = fabs((float)i) * scale;
-			return exp(samplePos * samplePos);
+			return exp(-0.5f * CENTER_BIAS * samplePos * samplePos);
 		};
 
 		// We make use of the hardware linear filtering, and therefore only generate half the number of samples.
@@ -771,7 +777,7 @@ namespace bs { namespace ct
 			float w2 = normalDistribution(i + 1, scale);
 
 			float w3 = w1 + w2;
-			float o = w2/w3; // Relative to first sample
+			float o = (float)i + w2/w3; // Relative to first sample
 
 			weights[numSamples] = w3;
 			offsets[numSamples] = o;
@@ -783,7 +789,7 @@ namespace bs { namespace ct
 		// Special case for last weight, as it doesn't have a matching pair
 		float w = normalDistribution(intFilterRadius, scale);
 		weights[numSamples] = w;
-		offsets[numSamples] = 0.0f;
+		offsets[numSamples] = (float)(intFilterRadius - 1);
 
 		numSamples++;
 		totalWeight += w;
