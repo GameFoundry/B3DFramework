@@ -118,6 +118,9 @@ namespace bs { namespace ct
 		RenderCompositor::registerNodeType<RCNodeMSAACoverage>();
 		RenderCompositor::registerNodeType<RCNodeParticleSimulate>();
 		RenderCompositor::registerNodeType<RCNodeParticleSort>();
+		RenderCompositor::registerNodeType<RCNodeHalfSceneColor>();
+		RenderCompositor::registerNodeType<RCNodeBloom>();
+		RenderCompositor::registerNodeType<RCNodeEyeAdaptation>();
 	}
 
 	void RenderBeast::destroyCore()

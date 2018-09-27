@@ -74,7 +74,7 @@ namespace bs { namespace ct
 		switch (texProps.getTextureType())
 		{
 		case TEX_TYPE_1D:
-			if (numFaces <= 1)
+			if (numArraySlices <= 1)
 			{
 				desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1D;
 				desc.Texture1D.MipLevels = numMips;
@@ -92,7 +92,7 @@ namespace bs { namespace ct
 		case TEX_TYPE_2D:
 			if (texProps.getNumSamples() > 1)
 			{
-				if (numFaces <= 1)
+				if (numArraySlices <= 1)
 				{
 					desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
 				}
@@ -105,7 +105,7 @@ namespace bs { namespace ct
 			}
 			else
 			{
-				if (numFaces <= 1)
+				if (numArraySlices <= 1)
 				{
 					desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 					desc.Texture2D.MipLevels = numMips;
@@ -186,7 +186,7 @@ namespace bs { namespace ct
 		switch (texProps.getTextureType())
 		{
 		case TEX_TYPE_1D:
-			if (numFaces <= 1)
+			if (numArraySlices <= 1)
 			{
 				desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE1D;
 				desc.Texture1D.MipSlice = mipSlice;
@@ -202,7 +202,7 @@ namespace bs { namespace ct
 		case TEX_TYPE_2D:
 			if (texProps.getNumSamples() > 1)
 			{
-				if (numFaces <= 1)
+				if (numArraySlices <= 1)
 				{
 					desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
 				}
@@ -215,7 +215,7 @@ namespace bs { namespace ct
 			}
 			else
 			{
-				if (numFaces <= 1)
+				if (numArraySlices <= 1)
 				{
 					desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 					desc.Texture2D.MipSlice = mipSlice;
@@ -273,7 +273,7 @@ namespace bs { namespace ct
 		switch (texProps.getTextureType())
 		{
 		case TEX_TYPE_1D:
-			if (numFaces <= 1)
+			if (numArraySlices <= 1)
 			{
 				desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE1D;
 				desc.Texture1D.MipSlice = mipSlice;
@@ -287,7 +287,7 @@ namespace bs { namespace ct
 			}
 			break;
 		case TEX_TYPE_2D:
-			if (numFaces <= 1)
+			if (numArraySlices <= 1)
 			{
 				desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
 				desc.Texture2D.MipSlice = mipSlice;
@@ -344,7 +344,7 @@ namespace bs { namespace ct
 		switch (texProps.getTextureType())
 		{
 		case TEX_TYPE_1D:
-			if (numFaces <= 1)
+			if (numArraySlices <= 1)
 			{
 				desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE1D;
 				desc.Texture1D.MipSlice = mipSlice;
@@ -360,7 +360,7 @@ namespace bs { namespace ct
 		case TEX_TYPE_2D:
 			if (texProps.getNumSamples() > 1)
 			{
-				if (numFaces <= 1)
+				if (numArraySlices <= 1)
 				{
 					desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
 				}
@@ -373,7 +373,7 @@ namespace bs { namespace ct
 			}
 			else
 			{
-				if (numFaces <= 1)
+				if (numArraySlices <= 1)
 				{
 					desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 					desc.Texture2D.MipSlice = mipSlice;

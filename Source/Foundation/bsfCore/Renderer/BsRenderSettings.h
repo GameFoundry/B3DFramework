@@ -5,6 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsIReflectable.h"
 #include "Math/BsVector3.h"
+#include "Image/BsColor.h"
 
 namespace bs
 {
@@ -87,6 +88,11 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
+
+		/** Applies an operation over all the serializable fields of this object. */
+		template<class Processor>
+		void rttiProcess(Processor p);
+
 	public:
 		friend class AutoExposureSettingsRTTI;
 		static RTTITypeBase* getRTTIStatic();
@@ -142,6 +148,11 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
+
+		/** Applies an operation over all the serializable fields of this object. */
+		template<class Processor>
+		void rttiProcess(Processor p);
+
 	public:
 		friend class TonemappingSettingsRTTI;
 		static RTTITypeBase* getRTTIStatic();
@@ -175,6 +186,11 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
+
+		/** Applies an operation over all the serializable fields of this object. */
+		template<class Processor>
+		void rttiProcess(Processor p);
+
 	public:
 		friend class WhiteBalanceSettingsRTTI;
 		static RTTITypeBase* getRTTIStatic();
@@ -217,6 +233,11 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
+
+		/** Applies an operation over all the serializable fields of this object. */
+		template<class Processor>
+		void rttiProcess(Processor p);
+
 	public:
 		friend class ColorGradingSettingsRTTI;
 		static RTTITypeBase* getRTTIStatic();
@@ -289,6 +310,11 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
+
+		/** Applies an operation over all the serializable fields of this object. */
+		template<class Processor>
+		void rttiProcess(Processor p);
+
 	public:
 		friend class AmbientOcclusionSettingsRTTI;
 		static RTTITypeBase* getRTTIStatic();
@@ -349,6 +375,11 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
+
+		/** Applies an operation over all the serializable fields of this object. */
+		template<class Processor>
+		void rttiProcess(Processor p);
+
 	public:
 		friend class DepthOfFieldSettingsRTTI;
 		static RTTITypeBase* getRTTIStatic();
@@ -394,8 +425,63 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
+
+		/** Applies an operation over all the serializable fields of this object. */
+		template<class Processor>
+		void rttiProcess(Processor p);
+
 	public:
 		friend class ScreenSpaceReflectionsRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
+	};
+
+	/** Settings that control the bloom effect. Bloom adds an extra highlight to bright areas of the scene. */
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) BloomSettings : public IReflectable
+	{
+		BS_SCRIPT_EXPORT()
+		BloomSettings() = default;
+
+		/** Enables or disables the bloom effect. */
+		BS_SCRIPT_EXPORT()
+		bool enabled = false;
+
+		/** 
+		 * Quality of the bloom effect. Higher values will use higher resolution texture for calculating bloom, at the cost
+		 * of lower performance. Valid range is [0, 3], default is 2.
+		 */
+		BS_SCRIPT_EXPORT()
+		UINT32 quality = 2;
+
+		/** 
+		 * Determines the minimal threshold of pixel luminance to be included in the bloom calculations. Any pixel with
+		 * luminance below this value will be ignored for the purposes of bloom. The value represents luminance after
+		 * it is scaled by exposure. Set to zero or negative to disable the threshold and include all pixels in the
+		 * calculations.
+		 */
+		BS_SCRIPT_EXPORT()
+		float threshold = 1.0f;
+
+		/** 
+		 * Determines the intensity of the bloom effect. Ideally should be in [0, 4] range but higher values are allowed. 
+		 */
+		BS_SCRIPT_EXPORT()
+		float intensity = 0.5f;
+
+		/** Tint color to apply to the bloom highlight. A pure white means the bloom inherits the underlying scene color. */
+		BS_SCRIPT_EXPORT()
+		Color tint = Color::White;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+
+		/** Applies an operation over all the serializable fields of this object. */
+		template<class Processor>
+		void rttiProcess(Processor p);
+
+	public:
+		friend class BloomSettingsRTTI;
 		static RTTITypeBase* getRTTIStatic();
 		RTTITypeBase* getRTTI() const override;
 	};
@@ -442,6 +528,11 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
+
+		/** Applies an operation over all the serializable fields of this object. */
+		template<class Processor>
+		void rttiProcess(Processor p);
+
 	public:
 		friend class ShadowSettingsRTTI;
 		static RTTITypeBase* getRTTIStatic();
@@ -517,6 +608,10 @@ namespace bs
 		/** Parameters used for customizing screen space reflections. */
 		BS_SCRIPT_EXPORT()
 		ScreenSpaceReflectionsSettings screenSpaceReflections;
+
+		/** Parameters used for customizing the bloom effect. */
+		BS_SCRIPT_EXPORT()
+		BloomSettings bloom;
 
 		/** Enables the fast approximate anti-aliasing effect. */
 		BS_SCRIPT_EXPORT()
@@ -608,6 +703,11 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
+
+		/** Applies an operation over all the serializable fields of this object. */
+		template<class Processor>
+		void rttiProcess(Processor p);
+
 	public:
 		friend class RenderSettingsRTTI;
 		static RTTITypeBase* getRTTIStatic();

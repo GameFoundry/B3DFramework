@@ -512,6 +512,7 @@ namespace bs { namespace ct
 		mParams->setParamBlockBuffer("Input", mParamBuffer);
 		mParams->getTextureParam(GPT_VERTEX_PROGRAM, "gEyeAdaptationTex", mEyeAdaptationTex);
 		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
+		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gBloomTex", mBloomTex);
 
 		if(!mVariation.getBool("GAMMA_ONLY"))
 			mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gColorLUT", mColorLUT);
@@ -523,7 +524,8 @@ namespace bs { namespace ct
 	}
 
 	void TonemappingMat::execute(const SPtr<Texture>& sceneColor, const SPtr<Texture>& eyeAdaptation, 
-		const SPtr<Texture>& colorLUT, const SPtr<RenderTarget>& output, const RenderSettings& settings)
+		const SPtr<Texture>& bloom, const SPtr<Texture>& colorLUT, const SPtr<RenderTarget>& output, 
+		const RenderSettings& settings)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
@@ -531,24 +533,22 @@ namespace bs { namespace ct
 
 		gTonemappingParamDef.gRawGamma.set(mParamBuffer, 1.0f / settings.gamma);
 		gTonemappingParamDef.gManualExposureScale.set(mParamBuffer, Math::pow(2.0f, settings.exposureScale));
+		gTonemappingParamDef.gTexSize.set(mParamBuffer, Vector2((float)texProps.getWidth(), (float)texProps.getHeight()));
+		gTonemappingParamDef.gBloomTint.set(mParamBuffer, settings.bloom.tint);
 		gTonemappingParamDef.gNumSamples.set(mParamBuffer, texProps.getNumSamples());
 
 		// Set parameters
 		mInputTex.set(sceneColor);
 		mColorLUT.set(colorLUT);
 		mEyeAdaptationTex.set(eyeAdaptation);
+		mBloomTex.set(bloom != nullptr ? bloom : Texture::BLACK);
 
 		// Render
 		RenderAPI& rapi = RenderAPI::instance();
-
 		rapi.setRenderTarget(output);
 
 		bind();
-
-		if (mVariation.getBool("MSAA"))
-			gRendererUtility().drawScreenQuad(Rect2(0.0f, 0.0f, (float)texProps.getWidth(), (float)texProps.getHeight()));
-		else
-			gRendererUtility().drawScreenQuad();
+		gRendererUtility().drawScreenQuad();
 	}
 
 	TonemappingMat* TonemappingMat::getVariation(bool volumeLUT, bool gammaOnly, bool autoExposure, bool MSAA)
@@ -629,14 +629,58 @@ namespace bs { namespace ct
 		}
 	}
 
+	BloomClipParamDef gBloomClipParamDef;
+
+	BloomClipMat::BloomClipMat()
+	{
+		mParamBuffer = gBloomClipParamDef.createBuffer();
+
+		mParams->setParamBlockBuffer("Input", mParamBuffer);
+		mParams->getTextureParam(GPT_VERTEX_PROGRAM, "gEyeAdaptationTex", mEyeAdaptationTex);
+		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
+	}
+
+	void BloomClipMat::execute(const SPtr<Texture>& input, float threshold, const SPtr<Texture>& eyeAdaptation, 
+		const RenderSettings& settings, const SPtr<RenderTarget>& output)
+	{
+		BS_RENMAT_PROFILE_BLOCK
+
+		gBloomClipParamDef.gThreshold.set(mParamBuffer, threshold);
+		gBloomClipParamDef.gManualExposureScale.set(mParamBuffer, Math::pow(2.0f, settings.exposureScale));
+
+		// Set parameters
+		mInputTex.set(input);
+		mEyeAdaptationTex.set(eyeAdaptation);
+
+		// Render
+		RenderAPI& rapi = RenderAPI::instance();
+
+		rapi.setRenderTarget(output);
+
+		bind();
+		gRendererUtility().drawScreenQuad();
+	}
+
+	BloomClipMat* BloomClipMat::getVariation(bool autoExposure)
+	{
+		if (autoExposure)
+			return get(getVariation<true>());
+		
+		return get(getVariation<false>());
+	}
+
 	GaussianBlurParamDef gGaussianBlurParamDef;
 
 	GaussianBlurMat::GaussianBlurMat()
 	{
 		mParamBuffer = gGaussianBlurParamDef.createBuffer();
+		mIsAdditive = mVariation.getBool("ADDITIVE");
 
 		mParams->setParamBlockBuffer("Input", mParamBuffer);
 		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
+
+		if(mIsAdditive)
+			mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gAdditiveTex", mAdditiveTexture);
 	}
 
 	void GaussianBlurMat::_initDefines(ShaderDefines& defines)
@@ -644,7 +688,8 @@ namespace bs { namespace ct
 		defines.set("MAX_NUM_SAMPLES", MAX_BLUR_SAMPLES);
 	}
 
-	void GaussianBlurMat::execute(const SPtr<Texture>& source, float filterSize, const SPtr<RenderTexture>& destination)
+	void GaussianBlurMat::execute(const SPtr<Texture>& source, float filterSize, const SPtr<RenderTexture>& destination,
+		const Color& tint, const SPtr<Texture>& additive)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
@@ -660,20 +705,19 @@ namespace bs { namespace ct
 			dstProps.width, dstProps.height, TU_RENDERTARGET);
 		SPtr<PooledRenderTexture> tempTexture = GpuResourcePool::instance().get(tempTextureDesc);
 
-		auto updateParamBuffer = [&](Direction direction)
+		const auto updateParamBuffer = 
+			[&source, &filterSize, &sampleWeights, &sampleOffsets, &invTexSize, &paramBuffer = mParamBuffer]
+		(Direction direction, const Color& tint)
 		{
-			float kernelRadius = calcKernelRadius(source, filterSize, direction);
-			UINT32 numSamples = calcStdDistribution(kernelRadius, sampleWeights, sampleOffsets);
+			const float kernelRadius = calcKernelRadius(source, filterSize, direction);
+			const UINT32 numSamples = calcStdDistribution(kernelRadius, sampleWeights, sampleOffsets);
 
-			for(UINT32 i = 0; i < (numSamples + 3) / 4; ++i)
+			for(UINT32 i = 0; i < numSamples; ++i)
 			{
-				UINT32 remainder = std::min(4U, numSamples - i * 4);
+				Vector4 weight(tint.r, tint.g, tint.b, tint.a);
+				weight *= sampleWeights[i];
 
-				Vector4 weights;
-				for (UINT32 j = 0; j < remainder; ++j)
-					weights[j] = sampleWeights[i * 4 + j];
-
-				gGaussianBlurParamDef.gSampleWeights.set(mParamBuffer, weights, i);
+				gGaussianBlurParamDef.gSampleWeights.set(paramBuffer, weight, i);
 			}
 
 			UINT32 axis0 = direction == DirHorizontal ? 0 : 1;
@@ -698,16 +742,19 @@ namespace bs { namespace ct
 					offset[axis1 + 2] = 0.0f;
 				}
 
-				gGaussianBlurParamDef.gSampleOffsets.set(mParamBuffer, offset, i);
+				gGaussianBlurParamDef.gSampleOffsets.set(paramBuffer, offset, i);
 			}
 
-			gGaussianBlurParamDef.gNumSamples.set(mParamBuffer, numSamples);
+			gGaussianBlurParamDef.gNumSamples.set(paramBuffer, numSamples);
 		};
 
 		// Horizontal pass
 		{
-			updateParamBuffer(DirHorizontal);
+			updateParamBuffer(DirHorizontal, Color::White);
 			mInputTexture.set(source);
+
+			if(mIsAdditive)
+				mAdditiveTexture.set(Texture::BLACK);
 
 			RenderAPI& rapi = RenderAPI::instance();
 			rapi.setRenderTarget(tempTexture->renderTexture);
@@ -718,8 +765,16 @@ namespace bs { namespace ct
 
 		// Vertical pass
 		{
-			updateParamBuffer(DirVertical);
+			updateParamBuffer(DirVertical, tint);
 			mInputTexture.set(tempTexture->texture);
+
+			if(mIsAdditive)
+			{
+				if(additive)
+					mAdditiveTexture.set(additive);
+				else
+					mAdditiveTexture.set(Texture::BLACK);
+			}
 
 			RenderAPI& rapi = RenderAPI::instance();
 			rapi.setRenderTarget(destination);
@@ -814,6 +869,14 @@ namespace bs { namespace ct
 
 		// Divide by two because we need the radius
 		return std::min(length * scale / 2, (float)MAX_BLUR_SAMPLES - 1);
+	}
+
+	GaussianBlurMat* GaussianBlurMat::getVariation(bool additive)
+	{
+		if(additive)
+			return get(getVariation<true>());
+
+		return get(getVariation<false>());
 	}
 
 	GaussianDOFParamDef gGaussianDOFParamDef;

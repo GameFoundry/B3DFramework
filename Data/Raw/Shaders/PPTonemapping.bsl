@@ -61,10 +61,15 @@ shader PPTonemapping
 		Texture2D gColorLUT;
 		#endif
 		
+		Texture2D gBloomTex;
+		SamplerState gBloomSamp;
+		
 		cbuffer Input
 		{
 			float gRawGamma;
 			float gManualExposureScale;
+			float2 gTexSize;
+			float4 gBloomTint;
 			uint gNumSamples;
 		}				
 		
@@ -114,18 +119,20 @@ shader PPTonemapping
 		float4 fsmain(VStoFS input) : SV_Target0
 		{
 			float4 sceneColor = 0;
+			float3 bloomColor = gBloomTex.Sample(gBloomSamp, input.uv0) * gBloomTint;
 			#if MSAA
 				// Note: Ideally I'd want to use the MSAA coverage texture here, so I can only average samples for pixels
 				// that really need it. But because forward rendering doesn't write to MSAA coverage I can't do it as I
 				// don't have up-to-date coverage information. It might be good to find a way around this.
+				int2 pixelXY = trunc(input.uv0 * gTexSize);
 				for(uint i = 0; i < gNumSamples; ++i)
-					sceneColor.rgb += tonemapSample(gInputTex.Load(trunc(input.uv0), i).rgb, input.exposureScale);
+					sceneColor.rgb += tonemapSample(gInputTex.Load(pixelXY, i).rgb + bloomColor, input.exposureScale);
 			
 				sceneColor.rgb /= gNumSamples;
 			#else
-				sceneColor.rgb = tonemapSample(gInputTex.Sample(gInputSamp, input.uv0).rgb, input.exposureScale);
+				sceneColor.rgb = tonemapSample(gInputTex.Sample(gInputSamp, input.uv0).rgb + bloomColor, input.exposureScale);
 			#endif
-						
+					
 			// Output luma in gamma-space, for FXAA
 			// Note: This can be avoided if FXAA is not used
 			sceneColor.a = dot(sceneColor.rgb, float3(0.299, 0.587, 0.114));

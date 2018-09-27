@@ -34,7 +34,12 @@ shader PPDownsample
 				return sampleSum * 0.25f;
 			}
 		#else
-			SamplerState gInputSamp;
+			SamplerState gInputSamp
+			{
+				AddressU = CLAMP;
+				AddressV = CLAMP;
+				AddressW = CLAMP;
+			};
 			Texture2D gInputTex;
 			
 			// position is expected to be at the center of 2x2 pixel tile, in UV

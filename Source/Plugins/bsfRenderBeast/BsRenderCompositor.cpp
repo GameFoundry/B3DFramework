@@ -1693,38 +1693,28 @@ namespace bs { namespace ct
 		return {};
 	}
 
-	RCNodeTonemapping::~RCNodeTonemapping()
+	RCNodeEyeAdaptation::~RCNodeEyeAdaptation()
 	{
 		GpuResourcePool& resPool = GpuResourcePool::instance();
 
-		if (mTonemapLUT)
-			resPool.release(mTonemapLUT);
-
-		if (prevEyeAdaptation)
-			resPool.release(prevEyeAdaptation);
+		if (previous)
+			resPool.release(previous);
 	}
 
-	void RCNodeTonemapping::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeEyeAdaptation::render(const RenderCompositorNodeInputs& inputs)
 	{
 		GpuResourcePool& resPool = GpuResourcePool::instance();
 
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
 		const RenderSettings& settings = inputs.view.getRenderSettings();
 
-		RCNodeSceneColor* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[0]);
-		RCNodePostProcess* postProcessNode = static_cast<RCNodePostProcess*>(inputs.inputNodes[2]);
-		SPtr<Texture> sceneColor = sceneColorNode->sceneColorTex->texture;
-
-		bool hdr = settings.enableHDR;
-		bool msaa = viewProps.numSamples > 1;
+		const bool hdr = settings.enableHDR;
 
 		if(hdr && settings.enableAutoExposure)
 		{
-			// Downsample scene
-			DownsampleMat* downsampleMat = DownsampleMat::getVariation(1, msaa);
-			SPtr<PooledRenderTexture> downsampledScene = resPool.get(DownsampleMat::getOutputDesc(sceneColor));
-
-			downsampleMat->execute(sceneColor, downsampledScene->renderTexture);
+			// Get downsample scene
+			auto* halfSceneColorNode = static_cast<RCNodeHalfSceneColor*>(inputs.inputNodes[1]);
+			const SPtr<PooledRenderTexture>& downsampledScene = halfSceneColorNode->output;
 
 			if(useHistogramEyeAdapatation(inputs))
 			{
@@ -1738,8 +1728,8 @@ namespace bs { namespace ct
 				SPtr<PooledRenderTexture> reducedHistogram = resPool.get(EyeAdaptHistogramReduceMat::getOutputDesc());
 
 				SPtr<Texture> prevFrameEyeAdaptation;
-				if (prevEyeAdaptation != nullptr)
-					prevFrameEyeAdaptation = prevEyeAdaptation->texture;
+				if (previous != nullptr)
+					prevFrameEyeAdaptation = previous->texture;
 
 				EyeAdaptHistogramReduceMat* eyeAdaptHistogramReduce = EyeAdaptHistogramReduceMat::get();
 				eyeAdaptHistogramReduce->execute(
@@ -1748,18 +1738,15 @@ namespace bs { namespace ct
 					prevFrameEyeAdaptation,
 					reducedHistogram->renderTexture);
 
-				resPool.release(downsampledScene);
-				downsampledScene = nullptr;
-
 				resPool.release(eyeAdaptHistogram);
 				eyeAdaptHistogram = nullptr;
 
 				// Generate eye adaptation value
-				eyeAdaptation = resPool.get(EyeAdaptationMat::getOutputDesc());
+				output = resPool.get(EyeAdaptationMat::getOutputDesc());
 				EyeAdaptationMat* eyeAdaptationMat = EyeAdaptationMat::get();
 				eyeAdaptationMat->execute(
 					reducedHistogram->texture,
-					eyeAdaptation->renderTexture,
+					output->renderTexture,
 					inputs.frameInfo.timeDelta,
 					settings.autoExposure,
 					settings.exposureScale);
@@ -1786,7 +1773,7 @@ namespace bs { namespace ct
 				// Downsample some more
 				for(UINT32 i = 0; i < 5; i++)
 				{
-					downsampleMat = DownsampleMat::getVariation(1, false);
+					DownsampleMat* downsampleMat = DownsampleMat::getVariation(1, false);
 					SPtr<PooledRenderTexture> downsampledLuminance = 
 						resPool.get(DownsampleMat::getOutputDesc(downsampleInput));
 
@@ -1798,14 +1785,14 @@ namespace bs { namespace ct
 				EyeAdaptationBasicMat* eyeAdaptationMat = EyeAdaptationBasicMat::get();
 
 				SPtr<Texture> prevFrameEyeAdaptation;
-				if (prevEyeAdaptation != nullptr)
-					prevFrameEyeAdaptation = prevEyeAdaptation->texture;
+				if (previous != nullptr)
+					prevFrameEyeAdaptation = previous->texture;
 
-				eyeAdaptation = resPool.get(EyeAdaptationBasicMat::getOutputDesc());
+				output = resPool.get(EyeAdaptationBasicMat::getOutputDesc());
 				eyeAdaptationMat->execute(
 					downsampleInput,
 					prevFrameEyeAdaptation,
-					eyeAdaptation->renderTexture,
+					output->renderTexture,
 					inputs.frameInfo.timeDelta,
 					settings.autoExposure,
 					settings.exposureScale);
@@ -1813,22 +1800,74 @@ namespace bs { namespace ct
 		}
 		else
 		{
-			if(prevEyeAdaptation)
-				resPool.release(prevEyeAdaptation);
+			if(previous)
+				resPool.release(previous);
 
-			prevEyeAdaptation = nullptr;
-			eyeAdaptation = nullptr;
+			previous = nullptr;
+			output = nullptr;
 		}
+	}
 
-		bool volumeLUT = inputs.featureSet == RenderBeastFeatureSet::Desktop;
+	void RCNodeEyeAdaptation::clear()
+	{
+		GpuResourcePool& resPool = GpuResourcePool::instance();
+
+		// Save eye adaptation for next frame
+		if(previous)
+			resPool.release(previous);
+
+		std::swap(output, previous);
+	}
+	
+	bool RCNodeEyeAdaptation::useHistogramEyeAdapatation(const RenderCompositorNodeInputs& inputs)
+	{
+		return inputs.featureSet == RenderBeastFeatureSet::Desktop;
+	}
+
+	SmallVector<StringID, 4> RCNodeEyeAdaptation::getDependencies(const RendererView& view)
+	{
+		SmallVector<StringID, 4> deps;
+		deps.push_back(RCNodeClusteredForward::getNodeId());
+
+		const RenderSettings& settings = view.getRenderSettings();
+		if(settings.enableHDR && settings.enableAutoExposure)
+			deps.push_back(RCNodeHalfSceneColor::getNodeId());
+
+		return deps;
+	}
+
+	RCNodeTonemapping::~RCNodeTonemapping()
+	{
+		GpuResourcePool& resPool = GpuResourcePool::instance();
+
+		if (mTonemapLUT)
+			resPool.release(mTonemapLUT);
+	}
+
+	void RCNodeTonemapping::render(const RenderCompositorNodeInputs& inputs)
+	{
+		GpuResourcePool& resPool = GpuResourcePool::instance();
+
+		const RendererViewProperties& viewProps = inputs.view.getProperties();
+		const RenderSettings& settings = inputs.view.getRenderSettings();
+
+		auto* eyeAdaptationNode = static_cast<RCNodeEyeAdaptation*>(inputs.inputNodes[0]);
+		auto* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[1]);
+		auto* postProcessNode = static_cast<RCNodePostProcess*>(inputs.inputNodes[3]);
+		const SPtr<Texture>& sceneColor = sceneColorNode->sceneColorTex->texture;
+
+		const bool hdr = settings.enableHDR;
+		const bool msaa = viewProps.numSamples > 1;
+
+		const bool volumeLUT = inputs.featureSet == RenderBeastFeatureSet::Desktop;
 		bool gammaOnly;
 		bool autoExposure;
 		if (hdr)
 		{
 			if (settings.enableTonemapping)
 			{
-				UINT64 latestHash = inputs.view.getRenderSettingsHash();
-				bool tonemapLUTDirty = mTonemapLastUpdateHash != latestHash;
+				const UINT64 latestHash = inputs.view.getRenderSettingsHash();
+				const bool tonemapLUTDirty = mTonemapLastUpdateHash != latestHash;
 
 				if (tonemapLUTDirty) // Rebuild LUT if PP settings changed
 				{
@@ -1873,35 +1912,42 @@ namespace bs { namespace ct
 		postProcessNode->getAndSwitch(inputs.view, ppOutput, ppLastFrame);
 
 		SPtr<Texture> eyeAdaptationTex;
-		if (eyeAdaptation)
-			eyeAdaptationTex = eyeAdaptation->texture;
+		if (eyeAdaptationNode->output)
+			eyeAdaptationTex = eyeAdaptationNode->output->texture;
 
 		SPtr<Texture> tonemapLUTTex;
 		if (mTonemapLUT)
 			tonemapLUTTex = mTonemapLUT->texture;
 
-		tonemapping->execute(sceneColor, eyeAdaptationTex, tonemapLUTTex, ppOutput, settings);
+		SPtr<Texture> bloomTex;
+		if(settings.bloom.enabled)
+		{
+			auto* bloomNode = static_cast<RCNodeBloom*>(inputs.inputNodes[5]);
+			bloomTex = bloomNode->output;
+		}
+
+		tonemapping->execute(sceneColor, eyeAdaptationTex, bloomTex, tonemapLUTTex, ppOutput, settings);
 	}
 
 	void RCNodeTonemapping::clear()
 	{
-		GpuResourcePool& resPool = GpuResourcePool::instance();
-
-		// Save eye adaptation for next frame
-		if(prevEyeAdaptation)
-			resPool.release(prevEyeAdaptation);
-
-		std::swap(eyeAdaptation, prevEyeAdaptation);
+		// Do nothing
 	}
 	
-	bool RCNodeTonemapping::useHistogramEyeAdapatation(const RenderCompositorNodeInputs& inputs)
-	{
-		return inputs.featureSet == RenderBeastFeatureSet::Desktop;
-	}
-
 	SmallVector<StringID, 4> RCNodeTonemapping::getDependencies(const RendererView& view)
 	{
-		return{ RCNodeSceneColor::getNodeId(), RCNodeClusteredForward::getNodeId(), RCNodePostProcess::getNodeId() };
+		SmallVector<StringID, 4> deps = {
+			RCNodeEyeAdaptation::getNodeId(),
+			RCNodeSceneColor::getNodeId(), 
+			RCNodeClusteredForward::getNodeId(), 
+			RCNodePostProcess::getNodeId(), 
+			RCNodeHalfSceneColor::getNodeId()
+		};
+
+		if(view.getRenderSettings().bloom.enabled)
+			deps.push_back(RCNodeBloom::getNodeId());
+
+		return deps;
 	}
 
 	void RCNodeGaussianDOF::render(const RenderCompositorNodeInputs& inputs)
@@ -2013,6 +2059,34 @@ namespace bs { namespace ct
 	SmallVector<StringID, 4> RCNodeFXAA::getDependencies(const RendererView& view)
 	{
 		return { RCNodeGaussianDOF::getNodeId(), RCNodePostProcess::getNodeId() };
+	}
+
+	void RCNodeHalfSceneColor::render(const RenderCompositorNodeInputs& inputs)
+	{
+		const RendererViewProperties& viewProps = inputs.view.getProperties();
+
+		auto* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[0]);
+		const SPtr<Texture>& input = sceneColorNode->sceneColorTex->texture;
+
+		// Downsample scene
+		const bool msaa = viewProps.numSamples > 1;
+		DownsampleMat* downsampleMat = DownsampleMat::getVariation(1, msaa);
+
+		GpuResourcePool& resPool = GpuResourcePool::instance();
+		output = resPool.get(DownsampleMat::getOutputDesc(input));
+
+		downsampleMat->execute(input, output->renderTexture);
+	}
+
+	void RCNodeHalfSceneColor::clear()
+	{
+		GpuResourcePool& resPool = GpuResourcePool::instance();
+		resPool.release(output);
+	}
+
+	SmallVector<StringID, 4> RCNodeHalfSceneColor::getDependencies(const RendererView& view)
+	{
+		return { RCNodeSceneColor::getNodeId() };
 	}
 
 	void RCNodeResolvedSceneDepth::render(const RenderCompositorNodeInputs& inputs)
@@ -2497,4 +2571,103 @@ namespace bs { namespace ct
 
 		return deps;
 	}
+
+	void RCNodeBloom::render(const RenderCompositorNodeInputs& inputs)
+	{
+		GpuResourcePool& resPool = GpuResourcePool::instance();
+		const RenderSettings& settings = inputs.view.getRenderSettings();
+
+		// Grab 1/2 scene color to use as input
+		auto* halfSceneColorNode = static_cast<RCNodeHalfSceneColor*>(inputs.inputNodes[1]);
+		const SPtr<Texture>& halfSceneColor = halfSceneColorNode->output->texture;
+
+		// Clip color values based on intensity (if enabled)
+		SPtr<PooledRenderTexture> clipOutput;
+		SPtr<PooledRenderTexture> downsampleInput;
+		if(settings.bloom.threshold > 0.0f)
+		{
+			const bool autoExposure = settings.enableHDR && settings.enableAutoExposure;
+			BloomClipMat* clipMat = BloomClipMat::getVariation(autoExposure);
+
+			SPtr<Texture> eyeAdaptationTex = nullptr;
+
+			if(autoExposure)
+			{
+				auto* eyeAdapatationNode = static_cast<RCNodeEyeAdaptation*>(inputs.inputNodes[2]);
+
+				if(eyeAdapatationNode->output)
+					eyeAdaptationTex = eyeAdapatationNode->output->texture;
+			}
+
+			const TextureProperties& halfSceneColorProps = halfSceneColor->getProperties();
+			clipOutput = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(
+				halfSceneColorProps.getFormat(),
+				halfSceneColorProps.getWidth(),
+				halfSceneColorProps.getHeight(),
+				TU_RENDERTARGET));
+
+			clipMat->execute(halfSceneColor, settings.bloom.threshold, eyeAdaptationTex, settings, 
+				clipOutput->renderTexture);
+
+			downsampleInput = clipOutput;
+		}
+		else
+			downsampleInput = halfSceneColorNode->output;
+
+		// Generate the downsample pyramid
+		constexpr UINT32 NUM_DOWNSAMPLE_LEVELS = 6;
+		SPtr<PooledRenderTexture> downsamplePyramid[NUM_DOWNSAMPLE_LEVELS];
+		downsamplePyramid[0] = downsampleInput;
+
+		DownsampleMat* downsampleMat = DownsampleMat::getVariation(1, false);
+		for(UINT32 i = 1; i < NUM_DOWNSAMPLE_LEVELS; i++)
+		{
+			downsamplePyramid[i] = resPool.get(DownsampleMat::getOutputDesc(downsamplePyramid[i - 1]->texture));
+			downsampleMat->execute(downsamplePyramid[i - 1]->texture, downsamplePyramid[i]->renderTexture);
+		}
+
+		// Blur the downsampled entries and add them together
+		const UINT32 quality = Math::clamp(settings.bloom.quality, 0U, 3U);
+		constexpr UINT32 NUM_STEPS_PER_QUALITY[] = { 3, 4, 5, 6  };
+		constexpr float FILTER_SIZE_PER_STEP[] = { 4.0f, 16.0f, 64.0f, 128.0f, 256.0f, 256.0f };
+		
+		GaussianBlurMat* filterMat = GaussianBlurMat::getVariation(true);
+		const UINT32 numSteps = NUM_STEPS_PER_QUALITY[quality];
+		SPtr<PooledRenderTexture> prevOutput;
+		for(UINT32 i = 0; i < numSteps; i++)
+		{
+			const UINT32 srcIdx = NUM_DOWNSAMPLE_LEVELS - i - 1;
+			const TextureProperties& inputProps = downsamplePyramid[srcIdx]->texture->getProperties();
+
+			SPtr<PooledRenderTexture> filterOutput = resPool.get(
+				POOLED_RENDER_TEXTURE_DESC::create2D(inputProps.getFormat(), inputProps.getWidth(), 
+				inputProps.getHeight(), TU_RENDERTARGET));
+
+			SPtr<Texture> additiveInput;
+			if(prevOutput)
+				additiveInput = prevOutput->texture;
+
+			const Color tint = Color::White * (settings.bloom.intensity / (float)numSteps);
+			filterMat->execute(downsamplePyramid[srcIdx]->texture, FILTER_SIZE_PER_STEP[i], filterOutput->renderTexture, 
+				tint, additiveInput);
+			prevOutput = filterOutput;
+		}
+
+		mPooledOutput = prevOutput;
+		output = mPooledOutput->texture;
+	}
+
+	void RCNodeBloom::clear()
+	{
+		GpuResourcePool& resPool = GpuResourcePool::instance();
+		resPool.release(mPooledOutput);
+
+		output = nullptr;
+	}
+
+	SmallVector<StringID, 4> RCNodeBloom::getDependencies(const RendererView& view)
+	{
+		return { RCNodeClusteredForward::getNodeId(), RCNodeHalfSceneColor::getNodeId(), RCNodeEyeAdaptation::getNodeId() };
+	}
+
 }}

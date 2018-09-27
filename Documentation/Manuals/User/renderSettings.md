@@ -103,3 +103,11 @@ Shadow rendering for a specific view can be completely disabled through @ref bs:
 
 # Indirect lighting {#renderSettings_k}
 Indirect lighting provided by **LightProbeVolume** can be fully disabled for a view through @ref bs::RenderSettings::enableIndirectLighting "RenderSettings::enableIndirectLighting".
+
+# Bloom {#renderSettings_l}
+Bloom provides an extra highlight to already bright areas of the scene, simulating the real-world camera effect where an extremely bright light overwhelms the camera. The effect produces a fringe extending from the borders of the bright areas of the image. This effect is only used if tonemapping and HDR is enabled.
+
+![Image without bloom](BloomOffSmall.png)  
+![Image with bloom](BloomOnSmall.png)  
+
+You can enable/disable, as well as tweak the effect through @ref bs::RenderSettings::bloom "RenderSettings::bloom". You can control the intensity treshold at which bloom will be shown, as well as tweak the global intensity and tint, along with a quality setting for performance/quality tradeoff.

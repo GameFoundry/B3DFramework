@@ -298,6 +298,8 @@ namespace bs { namespace ct
 	BS_PARAM_BLOCK_BEGIN(TonemappingParamDef)
 		BS_PARAM_BLOCK_ENTRY(float, gRawGamma)
 		BS_PARAM_BLOCK_ENTRY(float, gManualExposureScale)
+		BS_PARAM_BLOCK_ENTRY(Vector2, gTexSize)
+		BS_PARAM_BLOCK_ENTRY(Color, gBloomTint)
 		BS_PARAM_BLOCK_ENTRY(int, gNumSamples)
 	BS_PARAM_BLOCK_END
 
@@ -326,8 +328,8 @@ namespace bs { namespace ct
 		TonemappingMat();
 
 		/** Executes the post-process effect with the provided parameters. */
-		void execute(const SPtr<Texture>& sceneColor, const SPtr<Texture>& eyeAdaptation, const SPtr<Texture>& colorLUT,
-			const SPtr<RenderTarget>& output, const RenderSettings& settings);
+		void execute(const SPtr<Texture>& sceneColor, const SPtr<Texture>& eyeAdaptation, const SPtr<Texture>& bloom,
+			const SPtr<Texture>& colorLUT, const SPtr<RenderTarget>& output, const RenderSettings& settings);
 
 		/** Returns the material variation matching the provided parameters. */
 		static TonemappingMat* getVariation(bool volumeLUT, bool gammaOnly, bool autoExposure, bool MSAA);
@@ -336,15 +338,73 @@ namespace bs { namespace ct
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 
 		GpuParamTexture mInputTex;
+		GpuParamTexture mBloomTex;
 		GpuParamTexture mColorLUT;
 		GpuParamTexture mEyeAdaptationTex;
+	};	
+	
+	BS_PARAM_BLOCK_BEGIN(BloomClipParamDef)
+		BS_PARAM_BLOCK_ENTRY(float, gThreshold)
+		BS_PARAM_BLOCK_ENTRY(float, gManualExposureScale)
+	BS_PARAM_BLOCK_END
+
+	extern BloomClipParamDef gBloomClipParamDef;
+
+	/** Shader that clips parts of the image that shouldn't be affected by bloom (parts that aren't bright enough). */
+	class BloomClipMat : public RendererMaterial<BloomClipMat>
+	{
+		RMAT_DEF("PPBloomClip.bsl");
+
+		/** Helper method used for initializing variations of this material. */
+		template<bool AUTO_EXPOSURE>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation(
+				Vector<ShaderVariation::Param>{
+				ShaderVariation::Param("AUTO_EXPOSURE", AUTO_EXPOSURE)
+			});
+
+			return variation;
+		}
+	public:
+		BloomClipMat();
+
+		/** 
+		 * Executes the post-process effect with the provided parameters and writes the results to the currently bound
+		 * render target.
+		 *
+		 * @param[in]	input			Texture to process.
+		 * @param[in]	threshold		Treshold below which values will be ignored for purposes of bloom.
+		 * @param[in]	eyeAdaptation	Texture containing eye adaptation exposure value. Only needed if using the
+		 *								AUTO_EXPOSURE variation of this material.
+		 * @param[in]	settings		Render settings for the current view.
+		 * @param[in]	output			Render target to write the results to.
+		 */
+		void execute(const SPtr<Texture>& input, float threshold, const SPtr<Texture>& eyeAdaptation, 
+			const RenderSettings& settings, const SPtr<RenderTarget>& output);
+
+		/** 
+		 * Returns the material variation matching the provided parameters. 
+		 * 
+		 * @param[in]	autoExposure	If true the exposure value will need to be provided in a texture output from the
+		 *								eye adaptation material. Otherwise manual exposure scale from render settings will
+		 *								be used.
+		 */
+		static BloomClipMat* getVariation(bool autoExposure);
+
+	private:
+		SPtr<GpuParamBlockBuffer> mParamBuffer;
+
+		GpuParamTexture mInputTex;
+		GpuParamTexture mEyeAdaptationTex;
+		bool mUseAutoExposure;
 	};
 
 	const int MAX_BLUR_SAMPLES = 128;
 
 	BS_PARAM_BLOCK_BEGIN(GaussianBlurParamDef)
 		BS_PARAM_BLOCK_ENTRY_ARRAY(Vector4, gSampleOffsets, (MAX_BLUR_SAMPLES + 1) / 2)
-		BS_PARAM_BLOCK_ENTRY_ARRAY(Vector4, gSampleWeights, (MAX_BLUR_SAMPLES + 3) / 4)
+		BS_PARAM_BLOCK_ENTRY_ARRAY(Vector4, gSampleWeights, MAX_BLUR_SAMPLES)
 		BS_PARAM_BLOCK_ENTRY(int, gNumSamples)
 	BS_PARAM_BLOCK_END
 
@@ -362,6 +422,17 @@ namespace bs { namespace ct
 
 		RMAT_DEF_CUSTOMIZED("PPGaussianBlur.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<bool ADDITIVE>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation(
+			Vector<ShaderVariation::Param>{
+				ShaderVariation::Param("ADDITIVE", ADDITIVE),
+			});
+
+			return variation;
+		}
 	public:
 		GaussianBlurMat();
 
@@ -371,8 +442,21 @@ namespace bs { namespace ct
 		 * @param[in]	source		Input texture to blur.
 		 * @param[in]	filterSize	Size of the blurring filter, in percent of the source texture. In range [0, 1].
 		 * @param[in]	destination	Output texture to which to write the blurred image to.
+		 * @param[in]	tint		Optional tint to apply all filtered pixels.
+		 * @param[in]	additive	Optional texture whose values to add to the destination texture (won't be included
+		 *							in filtering). Only used if using the variation of this shader that supports additive
+		 *							input.
 		 */
-		void execute(const SPtr<Texture>& source, float filterSize, const SPtr<RenderTexture>& destination);
+		void execute(const SPtr<Texture>& source, float filterSize, const SPtr<RenderTexture>& destination, 
+			const Color& tint = Color::White, const SPtr<Texture>& additive = nullptr);
+
+		/** 
+		 * Returns the material variation matching the provided parameters. 
+		 * 
+		 * @param[in]	additive	If true the returned variation will support and additional input texture that will be
+		 *							added on top of the filtered output.
+		 */
+		static GaussianBlurMat* getVariation(bool additive);
 
 	private:
 		/** Calculates weights and offsets for the standard distribution of the specified filter size. */
@@ -384,6 +468,8 @@ namespace bs { namespace ct
 
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		GpuParamTexture mInputTexture;
+		GpuParamTexture mAdditiveTexture;
+		bool mIsAdditive = false;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(GaussianDOFParamDef)

@@ -331,6 +331,11 @@
             "Path": "PPBase.bslinc"
         }
     ],
+    "PPBloomClip.bsl": [
+        {
+            "Path": "ColorSpace.bslinc"
+        }
+    ],
     "PPBuildHiZ.bsl": [
         {
             "Path": "PPBase.bslinc"

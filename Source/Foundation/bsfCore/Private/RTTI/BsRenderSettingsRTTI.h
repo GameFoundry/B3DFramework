@@ -221,6 +221,35 @@ namespace bs
 		}
 	};
 
+	class BS_CORE_EXPORT BloomSettingsRTTI : public RTTIType <BloomSettings, IReflectable, BloomSettingsRTTI>
+	{
+	private:
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(enabled, 0)
+			BS_RTTI_MEMBER_PLAIN(quality, 1)
+			BS_RTTI_MEMBER_PLAIN(threshold, 2)
+			BS_RTTI_MEMBER_PLAIN(intensity, 3)
+			BS_RTTI_MEMBER_PLAIN(tint, 4)
+		BS_END_RTTI_MEMBERS
+
+	public:
+		const String& getRTTIName() override
+		{
+			static String name = "BloomSettings";
+			return name;
+		}
+
+		UINT32 getRTTIId() override
+		{
+			return TID_BloomSettings;
+		}
+
+		SPtr<IReflectable> newRTTIObject() override
+		{
+			return bs_shared_ptr_new<BloomSettings>();
+		}
+	};
+
 	class BS_CORE_EXPORT ShadowSettingsRTTI : public RTTIType <ShadowSettings, IReflectable, ShadowSettingsRTTI>
 	{
 	private:
@@ -272,6 +301,7 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(enableIndirectLighting, 16)
 			BS_RTTI_MEMBER_REFL(shadowSettings, 17)
 			BS_RTTI_MEMBER_PLAIN(enableSkybox, 18)
+			BS_RTTI_MEMBER_REFL(bloom, 19)
 		BS_END_RTTI_MEMBERS
 
 	public:

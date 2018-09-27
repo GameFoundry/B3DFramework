@@ -497,6 +497,10 @@
         {
             "Path": "ParticlesLitOpaque.bsl",
             "UUID": "520813e4-4e15-b067-72ae-4e15d603d443"
+        },
+        {
+            "Path": "PPBloomClip.bsl",
+            "UUID": "0a832da9-47df-8c7d-268a-47dfcd36cc48"
         }
     ],
     "Skin": [

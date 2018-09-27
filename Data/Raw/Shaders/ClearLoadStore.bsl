@@ -4,7 +4,7 @@ shader ClearLoadStore
 
 	code
 	{
-		RWTexture2D<uint> gOutput;
+		RWTexture2D<float> gOutput;
 		
 		[internal]
 		cbuffer Params : register(b0)
@@ -30,7 +30,7 @@ shader ClearLoadStore
 					if(pixelPos.x >= gSize.x || pixelPos.y >= gSize.y)
 						continue;
 
-					gOutput[pixelPos] = 0;
+					gOutput[pixelPos] = 0.0f;
 				}
 			}
 		}
