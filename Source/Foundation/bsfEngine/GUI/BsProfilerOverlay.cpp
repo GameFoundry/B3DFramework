@@ -554,7 +554,7 @@ namespace bs
 		static const float LABELS_CONTENT_RATIO = 0.3f;
 
 		UINT32 width = (UINT32)std::max(0, (INT32)mTarget->getPixelArea().width - PADDING * 2);
-		UINT32 height = (UINT32)std::max(0, (INT32)(mTarget->getPixelArea().height - PADDING * 3)/2);
+		UINT32 height = (UINT32)std::max(0, (INT32)(mTarget->getPixelArea().height - PADDING * 3));
 
 		UINT32 labelsWidth = Math::ceilToInt(width * LABELS_CONTENT_RATIO);
 		UINT32 contentWidth = width - labelsWidth;

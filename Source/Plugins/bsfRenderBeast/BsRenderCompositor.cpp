@@ -26,6 +26,7 @@
 #include "Threading/BsTaskScheduler.h"
 #include "Profiling/BsProfilerGPU.h"
 #include "Shading/BsGpuParticleSimulation.h"
+#include "Profiling/BsProfilerCPU.h"
 
 namespace bs { namespace ct
 {
@@ -188,11 +189,13 @@ namespace bs { namespace ct
 #if BS_PROFILING_ENABLED
 				const ProfilerString sampleName = ProfilerString("RC: ") + entry.nodeType->id.c_str();
 				BS_GPU_PROFILE_BEGIN(sampleName);
+				gProfilerCPU().beginSample(sampleName.c_str());
 #endif
 
 				entry.node->render(inputs);
 
 #if BS_PROFILING_ENABLED
+				gProfilerCPU().endSample(sampleName.c_str());
 				BS_GPU_PROFILE_END(sampleName);
 #endif
 

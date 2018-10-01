@@ -414,10 +414,12 @@ namespace bs
 	BS_CORE_EXPORT ProfilerCPU& gProfilerCPU();
 
 	/** Shortcut for profiling a single function call. */
-#define PROFILE_CALL(call, name)							\
-	bs::gProfilerCPU().beginSample(name);		\
-	call;													\
-	bs::gProfilerCPU().endSample(name);
+#define PROFILE_CALL(call, name)					\
+	{												\
+		bs::gProfilerCPU().beginSample(name);		\
+		call;										\
+		bs::gProfilerCPU().endSample(name);			\
+	}
 
 	/** @} */
 }

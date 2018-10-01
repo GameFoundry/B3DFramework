@@ -325,7 +325,7 @@ namespace bs { namespace ct
 	void RenderBeast::renderAll(PerFrameData perFrameData) 
 	{
 		// Sync all dirty sim thread CoreObject data to core thread
-		CoreObjectManager::instance().syncToCore();
+		PROFILE_CALL(CoreObjectManager::instance().syncToCore(), "Sync to core")
 
 		if (mOptionsDirty)
 		{
@@ -346,7 +346,7 @@ namespace bs { namespace ct
 		THROW_IF_NOT_CORE_THREAD;
 
 		gProfilerGPU().beginFrame();
-		gProfilerCPU().beginSample("renderAllCore");
+		gProfilerCPU().beginSample("Render");
 
 		const SceneInfo& sceneInfo = mScene->getSceneInfo();
 
@@ -360,7 +360,7 @@ namespace bs { namespace ct
 
 		// Update bounds for all particle systems
 		if(perFrameData.particles)
-			mScene->updateParticleSystemBounds(perFrameData.particles);
+			PROFILE_CALL(mScene->updateParticleSystemBounds(perFrameData.particles), "Particle bounds")
 
 		sceneInfo.renderableReady.resize(sceneInfo.renderables.size(), false);
 		sceneInfo.renderableReady.assign(sceneInfo.renderables.size(), false);
@@ -397,17 +397,17 @@ namespace bs { namespace ct
 			}
 
 			mMainViewGroup->setViews(views.data(), (UINT32)views.size());
-			mMainViewGroup->determineVisibility(sceneInfo);
+			PROFILE_CALL(mMainViewGroup->determineVisibility(sceneInfo), "Determine visibility")
 
 			// Render everything
 			renderViews(*mMainViewGroup, frameInfo);
 
 			if(rtInfo.target->getProperties().isWindow)
-				RenderAPI::instance().swapBuffers(rtInfo.target);
+				PROFILE_CALL(RenderAPI::instance().swapBuffers(rtInfo.target), "Swap buffers");
 		}
 
 		gProfilerGPU().endFrame();
-		gProfilerCPU().endSample("renderAllCore");
+		gProfilerCPU().endSample("Render");
 	}
 
 	void RenderBeast::renderViews(RendererViewGroup& viewGroup, const FrameInfo& frameInfo)
@@ -444,7 +444,7 @@ namespace bs { namespace ct
 
 	void RenderBeast::renderView(const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo)
 	{
-		gProfilerCPU().beginSample("Render");
+		gProfilerCPU().beginSample("Render view");
 
 		const SceneInfo& sceneInfo = mScene->getSceneInfo();
 		auto& viewProps = view.getProperties();
@@ -488,16 +488,16 @@ namespace bs { namespace ct
 		}
 
 		const RenderCompositor& compositor = view.getCompositor();
-		compositor.execute(inputs);
+		PROFILE_CALL(compositor.execute(inputs), "Compositor")
 
 		view.endFrame();
 
-		gProfilerCPU().endSample("Render");
+		gProfilerCPU().endSample("Render view");
 	}
 
 	void RenderBeast::renderOverlay(RendererView& view)
 	{
-		gProfilerCPU().beginSample("RenderOverlay");
+		gProfilerCPU().beginSample("Render overlay");
 
 		view.getPerViewBuffer()->flushToGPU();
 		view.beginFrame();
@@ -548,7 +548,7 @@ namespace bs { namespace ct
 
 		view.endFrame();
 
-		gProfilerCPU().endSample("RenderOverlay");
+		gProfilerCPU().endSample("Render overlay");
 	}
 	
 	void RenderBeast::updateReflProbeArray()

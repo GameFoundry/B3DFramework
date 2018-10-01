@@ -240,7 +240,7 @@ namespace bs
 				{
 					fixedUpdate();
 					PROFILE_CALL(gSceneManager()._fixedUpdate(), "Scene fixed update");
-					gPhysics().fixedUpdate(stepSeconds);
+					PROFILE_CALL(gPhysics().fixedUpdate(stepSeconds), "Physics simulation");
 
 					gTime()._advanceFixedUpdate(step);
 				}
