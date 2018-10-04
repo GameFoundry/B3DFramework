@@ -36,7 +36,7 @@ namespace bs
 		auto a5 = alloc.alloc(16);
 		auto a6 = alloc.alloc(8);
 		auto a7 = alloc.alloc(8);
-		auto p0 = alloc.alloc(32);
+		alloc.alloc(32);
 
 		// Test if free space can get re-allocated
 		alloc.free(a1);

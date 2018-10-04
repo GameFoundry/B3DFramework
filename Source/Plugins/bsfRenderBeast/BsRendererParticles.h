@@ -94,6 +94,8 @@ namespace bs { namespace ct
 			case ParticleForwardLightingType::Standard:
 				params.push_back(ShaderVariation::Param("CLUSTERED", false));
 				break;
+			case ParticleForwardLightingType::None:
+				break;
 			}
 
 			initialized = true;

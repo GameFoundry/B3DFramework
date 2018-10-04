@@ -600,12 +600,8 @@ namespace bs { namespace ct
 
 			//// First, count all digits
 			UINT32 keyBegin[NUM_THREADS];
-			UINT32 keyEnd[NUM_THREADS];
 			for(UINT32 threadId = 0; threadId < NUM_THREADS; threadId++)
-			{
 				keyBegin[threadId] = tileIdx * TILE_SIZE;
-				keyEnd[threadId] = keyBegin[threadId] + numTiles * TILE_SIZE;
-			}
 
 			auto prefixSum = [&sLocalScratch, &sCurrentTileTotal]()
 			{

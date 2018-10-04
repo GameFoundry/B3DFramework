@@ -20,10 +20,10 @@ target_compile_definitions(bsfOpenAudio PRIVATE -DBS_OA_EXPORTS)
 
 # Libraries
 ## External libs: FLAC, Vorbis, Ogg, OpenAL
+target_link_libraries(bsfOpenAudio PRIVATE ${OpenAL_LIBRARIES})
+target_link_libraries(bsfOpenAudio PRIVATE ${vorbis_LIBRARIES})
 target_link_libraries(bsfOpenAudio PRIVATE ${FLAC_LIBRARIES})
 target_link_libraries(bsfOpenAudio PRIVATE ${ogg_LIBRARIES})
-target_link_libraries(bsfOpenAudio PRIVATE ${vorbis_LIBRARIES})
-target_link_libraries(bsfOpenAudio PRIVATE ${OpenAL_LIBRARIES})
 
 ## OS libs
 if(APPLE) # MacOS

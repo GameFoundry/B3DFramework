@@ -1710,7 +1710,6 @@ namespace bs { namespace ct
 	{
 		GpuResourcePool& resPool = GpuResourcePool::instance();
 
-		const RendererViewProperties& viewProps = inputs.view.getProperties();
 		const RenderSettings& settings = inputs.view.getRenderSettings();
 
 		const bool hdr = settings.enableHDR;
