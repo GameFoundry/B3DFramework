@@ -326,14 +326,21 @@ namespace bs { namespace ct
 			if (!mVisibility.particleSystems[i])
 				continue;
 
-			const ParticlesRenderElement& renderElement = sceneInfo.particleSystems[i].renderElement;
-			if (!renderElement.isValid())
+			const ParticlesRenderElement& renderElem = sceneInfo.particleSystems[i].renderElement;
+			if (!renderElem.isValid())
 				continue;
 
 			const AABox& boundingBox = sceneInfo.particleSystemBounds[i];
 			const float distanceToCamera = (mProperties.viewOrigin - boundingBox.getCenter()).length();
 
-			mTransparentQueue->add(&renderElement, distanceToCamera);
+			ShaderFlags shaderFlags = renderElem.material->getShader()->getFlags();
+
+			if (shaderFlags.isSet(ShaderFlag::Transparent))
+				mTransparentQueue->add(&renderElem, distanceToCamera);
+			else if (shaderFlags.isSet(ShaderFlag::Forward))
+				mForwardOpaqueQueue->add(&renderElem, distanceToCamera);
+			else
+				mDeferredOpaqueQueue->add(&renderElem, distanceToCamera);
 		}
 
 		mForwardOpaqueQueue->sort();
