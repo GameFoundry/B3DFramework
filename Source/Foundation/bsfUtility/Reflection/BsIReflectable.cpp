@@ -29,26 +29,23 @@ namespace bs
 		return output;
 	}
 
-	RTTITypeBase* IReflectable::_getRTTIfromTypeId(UINT32 rttiTypeId)
+	RTTITypeBase* getRTTIfromTypeId(UINT32 rttiTypeId, const Vector<RTTITypeBase*>& types)
 	{
-		Stack<RTTITypeBase*> todo;
-
-		for(const auto& item : getDerivedClasses())
-			todo.push(item);
-
-		while(!todo.empty())
+		for (auto& entry : types)
 		{
-			RTTITypeBase* curType = todo.top();
-			todo.pop();
+			if (entry->getRTTIId() == rttiTypeId)
+				return entry;
 
-			if(curType->getRTTIId() == rttiTypeId)
-				return curType;
-
-			for(const auto& item : curType->getDerivedClasses())
-				todo.push(item);
+			if (const auto type = getRTTIfromTypeId(rttiTypeId, entry->getDerivedClasses()))
+				return type;
 		}
 
 		return nullptr;
+	}
+
+	RTTITypeBase* IReflectable::_getRTTIfromTypeId(UINT32 rttiTypeId)
+	{
+		return getRTTIfromTypeId(rttiTypeId, getDerivedClasses());
 	}
 
 	bool IReflectable::_isTypeIdDuplicate(UINT32 typeId)
