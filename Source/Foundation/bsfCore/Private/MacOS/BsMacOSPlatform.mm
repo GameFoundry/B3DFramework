@@ -58,7 +58,7 @@
 @end
 
 @class BSCursor;
-@class BSPlatform;
+@class BSFPlatform;
 
 namespace bs
 {
@@ -78,7 +78,7 @@ namespace bs
 		UnorderedMap<UINT32, CocoaWindow*> allWindows;
 		Vector<ModalWindowInfo> modalWindows;
 
-		BSPlatform* platformManager = nil;
+		BSFPlatform* platformManager = nil;
 
 		// Cursor
 		BSCursor* cursorManager = nil;
@@ -266,8 +266,8 @@ namespace bs
 @end
 
 /** Contains platform specific functionality that is meant to be delayed executed from the sim thread, through Platform. */
-@interface BSPlatform : NSObject
--(BSPlatform*) initWithPlatformData:(bs::Platform::Pimpl*)platformData;
+@interface BSFPlatform : NSObject
+-(BSFPlatform*) initWithPlatformData:(bs::Platform::Pimpl*)platformData;
 -(void) setCaptionNonClientAreas:(NSArray*) params;
 -(void) resetNonClientAreas:(NSValue*) windowIdValue;
 -(void) openFolder:(NSURL*) url;
@@ -276,12 +276,12 @@ namespace bs
 -(int32_t) getClipboardChangeCount;
 @end
 
-@implementation BSPlatform
+@implementation BSFPlatform
 {
 	bs::Platform::Pimpl* mPlatformData;
 }
 
-- (BSPlatform*)initWithPlatformData:(bs::Platform::Pimpl*)platformData
+- (BSFPlatform*)initWithPlatformData:(bs::Platform::Pimpl*)platformData
 {
 	self = [super init];
 
@@ -869,7 +869,7 @@ namespace bs
 
 		mData->appDelegate = [[BSAppDelegate alloc] init];
 		mData->cursorManager = [[BSCursor alloc] initWithPlatformData:mData];
-		mData->platformManager = [[BSPlatform alloc] initWithPlatformData:mData];
+		mData->platformManager = [[BSFPlatform alloc] initWithPlatformData:mData];
 		[BSApplication sharedApplication];
 
 		[NSApp setDelegate:mData->appDelegate];
