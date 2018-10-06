@@ -7,12 +7,17 @@
 #include "Renderer/BsRenderer.h"
 #include "Utility/BsUUID.h"
 #include "Renderer/BsIBLUtility.h"
+#include "CoreThread/BsCoreObjectSync.h"
 
 namespace bs
 {
-	SkyboxBase::SkyboxBase()
-		: mBrightness(1.0f)
-	{ }
+	template <bool Core>
+	template <class P>
+	void TSkybox<Core>::rttiEnumFields(P p)
+	{
+		p(mBrightness);
+		p(mTexture);
+	}
 
 	Skybox::Skybox()
 	{
@@ -150,25 +155,16 @@ namespace bs
 	CoreSyncData Skybox::syncToCore(FrameAlloc* allocator)
 	{
 		UINT32 size = 0;
-		size += getActorSyncDataSize();
-		size += rttiGetElemSize(mBrightness);
-		size += sizeof(SPtr<ct::Texture>);
 		size += rttiGetElemSize(getCoreDirtyFlags());
+		size += coreSyncGetElemSize((SceneActor&)*this);
+		size += coreSyncGetElemSize(*this);
 
 		UINT8* buffer = allocator->alloc(size);
 
 		char* dataPtr = (char*)buffer;
-		dataPtr = syncActorTo(dataPtr);
-		dataPtr = rttiWriteElem(mBrightness, dataPtr);
 		dataPtr = rttiWriteElem(getCoreDirtyFlags(), dataPtr);
-
-		SPtr<ct::Texture>* texture = new (dataPtr) SPtr<ct::Texture>();
-		if (mTexture.isLoaded(false))
-			*texture = mTexture->getCore();
-		else
-			*texture = nullptr;
-
-		dataPtr += sizeof(SPtr<ct::Texture>);
+		dataPtr = coreSyncWriteElem((SceneActor&)*this, dataPtr);
+		dataPtr = coreSyncWriteElem(*this, dataPtr);
 
 		return CoreSyncData(buffer, size);
 	}
@@ -215,15 +211,9 @@ namespace bs
 			SkyboxDirtyFlag dirtyFlags;
 			bool oldIsActive = mActive;
 
-			dataPtr = syncActorFrom(dataPtr);
-			dataPtr = rttiReadElem(mBrightness, dataPtr);
 			dataPtr = rttiReadElem(dirtyFlags, dataPtr);
-
-			SPtr<Texture>* texture = (SPtr<Texture>*)dataPtr;
-
-			mTexture = *texture;
-			texture->~SPtr<Texture>();
-			dataPtr += sizeof(SPtr<Texture>);
+			dataPtr = coreSyncReadElem((SceneActor&)*this, dataPtr);
+			dataPtr = coreSyncReadElem(*this, dataPtr);
 
 			if (oldIsActive != mActive)
 			{

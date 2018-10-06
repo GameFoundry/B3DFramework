@@ -81,6 +81,20 @@ namespace bs
 		 */
 		virtual void _updateState(const SceneObject& so, bool force = false);
 
+		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
+		template<class P>
+		void rttiEnumFields(P p, ActorDirtyFlags flags = ActorDirtyFlag::Everything)
+		{
+			if (flags.isSetAny(ActorDirtyFlag::Transform | ActorDirtyFlag::Everything))
+				p(mTransform);
+
+			if (flags.isSetAny(ActorDirtyFlag::Active | ActorDirtyFlag::Everything))
+				p(mActive);
+
+			if (flags.isSetAny(ActorDirtyFlag::Mobility | ActorDirtyFlag::Everything))
+				p(mMobility);
+		}
+
 		/** @} */
 	protected:
 		/** 
@@ -89,20 +103,6 @@ namespace bs
 		 */
 		virtual void _markCoreDirty(ActorDirtyFlag flag = ActorDirtyFlag::Everything) { }
 
-		/** 
-		 * Writes the contents of this object into the provided data buffer. Buffer must have enough size of hold
-		 * getSyncActorDataSize() bytes. Returns the address after the last written byte.
-		 */
-		char* syncActorTo(char* data, ActorDirtyFlags flags = ActorDirtyFlag::Everything);
-
-		/** 
-		 * Reads the contents of this object from the provided data buffer. The buffer is expected to be populated by the
-		 * sim thread version of this object by calling syncActorTo(). Returns the address after the last read byte. 
-		 */
-		char* syncActorFrom(char* data, ActorDirtyFlags flags = ActorDirtyFlag::Everything);
-
-		/** Returns the size of the buffer required to store all data in this object, in bytes. */
-		UINT32 getActorSyncDataSize(ActorDirtyFlags flags = ActorDirtyFlag::Everything) const;
 	protected:
 		friend class SceneManager;
 

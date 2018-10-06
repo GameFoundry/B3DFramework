@@ -373,18 +373,17 @@ namespace bs
 
 	CoreSyncData ParticleSystem::syncToCore(FrameAlloc* allocator)
 	{
-		UINT32 size = getActorSyncDataSize() + rttiGetElemSize(getCoreDirtyFlags());
-
-		mSettings.rttiEnumFields(RttiCoreSyncSize(size));
-		mGpuSimulationSettings.rttiEnumFields(RttiCoreSyncSize(size));
+		UINT32 size = rttiGetElemSize(getCoreDirtyFlags());
+		size += coreSyncGetElemSize((SceneActor&)*this);
+		size += coreSyncGetElemSize(mSettings);
+		size += coreSyncGetElemSize(mGpuSimulationSettings);
 
 		UINT8* data = allocator->alloc(size);
 		char* dataPtr = (char*)data;
-		dataPtr = syncActorTo(dataPtr);
 		dataPtr = rttiWriteElem(getCoreDirtyFlags(), dataPtr);
-
-		mSettings.rttiEnumFields(RttiCoreSyncWriter(&dataPtr));
-		mGpuSimulationSettings.rttiEnumFields(RttiCoreSyncWriter(&dataPtr));
+		dataPtr = coreSyncWriteElem((SceneActor&)*this, dataPtr);
+		dataPtr = coreSyncWriteElem(mSettings, dataPtr);
+		dataPtr = coreSyncWriteElem(mGpuSimulationSettings, dataPtr);
 
 		return CoreSyncData(data, size);
 	}
@@ -436,12 +435,11 @@ namespace bs
 			UINT32 dirtyFlags = 0;
 			const bool oldIsActive = mActive;
 
-			dataPtr = syncActorFrom(dataPtr);
 			dataPtr = rttiReadElem(dirtyFlags, dataPtr);
-
-			mSettings.rttiEnumFields(RttiCoreSyncReader(&dataPtr));
-			mGpuSimulationSettings.rttiEnumFields(RttiCoreSyncReader(&dataPtr));
-
+			dataPtr = coreSyncReadElem((SceneActor&)*this, dataPtr);
+			dataPtr = coreSyncReadElem(mSettings, dataPtr);
+			dataPtr = coreSyncReadElem(mGpuSimulationSettings, dataPtr);
+			
 			constexpr UINT32 updateEverythingFlag = (UINT32)ActorDirtyFlag::Everything
 				| (UINT32)ActorDirtyFlag::Active
 				| (UINT32)ActorDirtyFlag::Dependency;

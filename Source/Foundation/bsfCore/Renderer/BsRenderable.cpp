@@ -12,6 +12,7 @@
 #include "RenderAPI/BsGpuBuffer.h"
 #include "Animation/BsAnimationManager.h"
 #include "Scene/BsSceneManager.h"
+#include "CoreThread/BsCoreObjectSync.h"
 
 namespace bs
 {
@@ -295,7 +296,8 @@ namespace bs
 	CoreSyncData Renderable::syncToCore(FrameAlloc* allocator)
 	{
 		const UINT32 dirtyFlags = getCoreDirtyFlags();
-		UINT32 size = rttiGetElemSize(dirtyFlags) + getActorSyncDataSize((ActorDirtyFlags)dirtyFlags);
+		UINT32 size = rttiGetElemSize(dirtyFlags);
+		SceneActor::rttiEnumFields(RttiCoreSyncSize(size), (ActorDirtyFlags)dirtyFlags);
 
 		// The most common case if only the transform changed, so we sync only transform related options
 		UINT32 numMaterials = 0;
@@ -325,7 +327,7 @@ namespace bs
 		char* dataPtr = (char*)data;
 
 		dataPtr = rttiWriteElem(dirtyFlags, dataPtr);
-		dataPtr = syncActorTo(dataPtr, (ActorDirtyFlags)dirtyFlags);
+		SceneActor::rttiEnumFields(RttiCoreSyncWriter(&dataPtr), (ActorDirtyFlags)dirtyFlags);
 
 		if(dirtyFlags != (UINT32)ActorDirtyFlag::Transform)
 		{
@@ -610,7 +612,7 @@ namespace bs
 		bool oldIsActive = mActive;
 
 		dataPtr = rttiReadElem(dirtyFlags, dataPtr);
-		dataPtr = syncActorFrom(dataPtr, (ActorDirtyFlags)dirtyFlags);
+		SceneActor::rttiEnumFields(RttiCoreSyncReader(&dataPtr), (ActorDirtyFlags)dirtyFlags);
 
 		mTfrmMatrix = mTransform.getMatrix();
 		mTfrmMatrixNoScale = Matrix4::TRS(mTransform.getPosition(), mTransform.getRotation(), Vector3::ONE);

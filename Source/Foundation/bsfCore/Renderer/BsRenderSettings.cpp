@@ -214,6 +214,10 @@ namespace bs
 		p(enableSkybox);
 	}
 
+	template void RenderSettings::rttiEnumFields(RttiCoreSyncSize);
+	template void RenderSettings::rttiEnumFields(RttiCoreSyncWriter);
+	template void RenderSettings::rttiEnumFields(RttiCoreSyncReader);
+
 	RTTITypeBase* RenderSettings::getRTTIStatic()
 	{
 		return RenderSettingsRTTI::instance();
@@ -222,30 +226,5 @@ namespace bs
 	RTTITypeBase* RenderSettings::getRTTI() const
 	{
 		return getRTTIStatic();
-	}
-
-	void RenderSettings::_getSyncData(UINT8* buffer, UINT32& size)
-	{
-		UINT32 bufferSize = 0;
-		rttiEnumFields(RttiCoreSyncSize(bufferSize));
-
-		if (buffer == nullptr)
-		{
-			size = bufferSize;
-			return;
-		}
-
-		if (bufferSize != size)
-		{
-			LOGERR("Invalid buffer size");
-			return;
-		}
-
-		rttiEnumFields(RttiCoreSyncWriter((char**)&buffer));
-	}
-
-	void RenderSettings::_setSyncData(UINT8* buffer, UINT32 size)
-	{
-		rttiEnumFields(RttiCoreSyncReader((char**)&buffer));
 	}
 }

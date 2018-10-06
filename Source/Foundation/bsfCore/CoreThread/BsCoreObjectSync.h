@@ -266,6 +266,40 @@ namespace bs
 		UINT32& mSize;
 	};
 
+	/**
+	 * Calculates the size of the provided object, using rules for core object syncing. Object must have rttiEnumFields()
+	 * method implementation.
+	 */
+	template<class T>
+	UINT32 coreSyncGetElemSize(T& v)
+	{
+		UINT32 size = 0;
+		v.rttiEnumFields(RttiCoreSyncSize(size));
+		return size;
+	}
+
+	/**
+	 * Writes the provided object into the provided memory location, using rules for core object syncing. Returns the
+	 * memory location after the end of the written object. 
+	 */
+	template<class T>
+	char* coreSyncWriteElem(T& v, char* memory)
+	{
+		v.rttiEnumFields(RttiCoreSyncWriter(&memory));
+		return memory;
+	}
+
+	/**
+	 * Decodes information from the provided memory buffer and writes it into the provided object, using rules for core
+	 * object syncing. Returns the memory location after the end of the read object. 
+	 */
+	template<class T>
+	char* coreSyncReadElem(T& v, char* memory)
+	{
+		v.rttiEnumFields(RttiCoreSyncReader(&memory));
+		return memory;
+	}
+
 	/** @} */
 }
 

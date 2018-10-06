@@ -35,12 +35,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/**
-	 * Camera determines how is world geometry projected onto a 2D surface. You may position and orient it in space, set
-	 * options like aspect ratio and field or view and it outputs view and projection matrices required for rendering.
-	 *
-	 * @note	This class contains funcionality common to both core and non-core versions of the camera.
-	 */
+	/** Common base class for both sim and core thread implementations of Camera. */
 	class BS_CORE_EXPORT CameraBase : public SceneActor
 	{
 	public:
@@ -440,7 +435,28 @@ namespace bs
 		mutable bool mRecalcView : 1; /**< Should view matrix be recalculated. */
 		mutable float mLeft, mRight, mTop, mBottom; /**< Frustum extents. */
 		mutable AABox mBoundingBox; /**< Frustum bounding box. */
-	 };
+	};
+
+	/** Templated common base class for both sim and core thread implementations of Camera. */
+	template<bool Core>
+	class TCamera : public CameraBase
+	{
+		using ViewportType = CoreVariantType<Viewport, Core>;
+
+	public:
+		virtual ~TCamera() = default;
+
+		/**	Returns the viewport used by the camera. */	
+		SPtr<ViewportType> getViewport() const { return mViewport; }
+
+		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
+		template<class P>
+		void rttiEnumFields(P p);
+
+	protected:
+		/** Viewport that describes a 2D rendering surface. */
+		SPtr<ViewportType> mViewport;
+	};
 
 	/** @} */
 
@@ -448,13 +464,13 @@ namespace bs
 	 *  @{
 	 */
 
-	/** @copydoc CameraBase */
-	class BS_CORE_EXPORT Camera : public IReflectable, public CoreObject, public CameraBase
+	/**
+	 * Camera determines how is world geometry projected onto a 2D surface. You may position and orient it in space, set
+	 * options like aspect ratio and field or view and it outputs view and projection matrices required for rendering.
+	 */
+	class BS_CORE_EXPORT Camera : public IReflectable, public CoreObject, public TCamera<false>
 	{
 	public:
-		/**	Returns the viewport used by the camera. */	
-		SPtr<Viewport> getViewport() const { return mViewport; }
-
 		/**
 		 * Determines whether this is the main application camera. Main camera controls the final render surface that is
 		 * displayed to the user.
@@ -501,8 +517,6 @@ namespace bs
 		/**	Creates a new camera without initializing it. */
 		static SPtr<Camera> createEmpty();
 
-		SPtr<Viewport> mViewport; /**< Viewport that describes 2D rendering surface. */
-
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
@@ -514,17 +528,14 @@ namespace bs
 
 	namespace ct
 	{
-	/** @copydoc CameraBase */
-	class BS_CORE_EXPORT Camera : public CoreObject, public CameraBase
+	/** @copydoc bs::Camera */
+	class BS_CORE_EXPORT Camera : public CoreObject, public TCamera<true>
 	{
 	public:
 		~Camera();
 
 		/** @copydoc bs::Camera::setMain() */
 		bool isMain() const { return mMain; }
-
-		/**	Returns the viewport used by the camera. */	
-		SPtr<Viewport> getViewport() const { return mViewport; }
 
 		/**	Sets an ID that can be used for uniquely identifying this object by the renderer. */
 		void setRendererId(UINT32 id) { mRendererId = id; }
@@ -550,7 +561,6 @@ namespace bs
 		void syncToCore(const CoreSyncData& data) override;
 
 		UINT32 mRendererId;
-		SPtr<Viewport> mViewport;
 	};
 	}
 

@@ -30,8 +30,8 @@ namespace bs
 	class BS_CORE_EXPORT SkyboxBase : public SceneActor
 	{
 	public:
-		SkyboxBase();
-		virtual ~SkyboxBase() { }
+		SkyboxBase() = default;
+		virtual ~SkyboxBase() = default;
 
 		/** 
 		 * Brightness multiplier that will be applied to skybox values before they're being used. Allows you to make the
@@ -43,7 +43,29 @@ namespace bs
 		float getBrightness() const { return mBrightness; }
 
 	protected:
-		float mBrightness; /**< Multiplier to apply to evaluated skybox values before using them. */
+		float mBrightness = 1.0f; /**< Multiplier to apply to evaluated skybox values before using them. */
+	};
+
+	/** Templated base class for both core and sim thread implementations of a skybox. */
+	template<bool Core>
+	class BS_CORE_EXPORT TSkybox : public SkyboxBase
+	{
+	public:
+		using TextureType = CoreVariantHandleType<Texture, Core>;
+
+		virtual ~TSkybox() = default;
+
+		/**
+		 * Determines an environment map to use for sampling skybox radiance. Must be a cube-map texture, and should ideally
+		 * contain HDR data.
+		 */
+		TextureType getTexture() const { return mTexture; }
+
+		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
+		template<class P>
+		void rttiEnumFields(P p);
+	protected:
+		TextureType mTexture;
 	};
 
 	/** @} */
@@ -54,20 +76,14 @@ namespace bs
 	namespace ct { class Skybox; }
 
 	/** Allows you to specify an environment map to use for sampling radiance of the sky. */
-	class BS_CORE_EXPORT Skybox : public IReflectable, public CoreObject, public SkyboxBase
+	class BS_CORE_EXPORT Skybox : public IReflectable, public CoreObject, public TSkybox<false>
 	{
 	public:
 		~Skybox();
 
-		/**
-		 * Determines an environment map to use for sampling skybox radiance. Must be a cube-map texture, and should ideally
-		 * contain HDR data.
-		 */
+		/** @copydoc TSkybox<Core>::getTexture */
 		void setTexture(const HTexture& texture);
 
-		/** @copydoc setTexture */
-		HTexture getTexture() const { return mTexture; }
-		
 		/**	Retrieves an implementation of the skybox usable only from the core thread. */
 		SPtr<ct::Skybox> getCore() const;
 
@@ -92,7 +108,6 @@ namespace bs
 		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData syncToCore(FrameAlloc* allocator) override;
 
-		HTexture mTexture;
 		SPtr<Texture> mFilteredRadiance;
 		SPtr<Texture> mIrradiance;
 		SPtr<ct::RendererTask> mRendererTask;
@@ -112,14 +127,11 @@ namespace bs
 	namespace ct
 	{
 		/** Core thread usable version of a bs::Skybox */
-		class BS_CORE_EXPORT Skybox : public CoreObject, public SkyboxBase
+		class BS_CORE_EXPORT Skybox : public CoreObject, public TSkybox<true>
 		{
 		public:
 			~Skybox();
 
-			/** @copydoc bs::Skybox::setTexture */
-			SPtr<Texture> getTexture() const { return mTexture; }
-		
 			/** 
 			 * Returns a texture containing filtered version of the radiance texture used for reflections. This might not
 			 * be available if it hasn't been generated yet.
@@ -142,7 +154,6 @@ namespace bs
 			/** @copydoc CoreObject::syncToCore */
 			void syncToCore(const CoreSyncData& data) override;
 
-			SPtr<Texture> mTexture;
 			SPtr<Texture> mFilteredRadiance;
 			SPtr<Texture> mIrradiance;
 		};

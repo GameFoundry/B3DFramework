@@ -118,7 +118,6 @@ namespace bs
 		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
 		template<class P>
 		void rttiEnumFields(P p);
-		void rttiEnumFieldsDbg(ParticleRenderMode rm);
 	public:
 		friend class ParticleDepthCollisonSettingsRTTI;
 		static RTTITypeBase* getRTTIStatic();

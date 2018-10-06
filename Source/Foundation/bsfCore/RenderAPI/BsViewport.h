@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+#include <utility>
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsIReflectable.h"
 #include "CoreThread/BsCoreObject.h"
@@ -28,14 +29,11 @@ namespace bs
 	typedef Flags<ClearFlagBits> ClearFlags;
 	BS_FLAGS_OPERATORS(ClearFlagBits)
 
-	/**
-	 * Viewport determines to which RenderTarget should rendering be performed. It allows you to render to a sub-region of the
-	 * target by specifying the area rectangle, and allows you to set up color/depth/stencil clear values for that specific region.
-	 */
+	/** Common base type used for both sim and core thread variants of Viewport. */
 	class BS_CORE_EXPORT ViewportBase
 	{
 	public:
-		virtual ~ViewportBase() { }
+		virtual ~ViewportBase() = default;
 
 		/** Determines the area that the viewport covers. Coordinates are in normalized [0, 1] range. */
 		BS_SCRIPT_EXPORT(n:Area,pr:setter)
@@ -109,14 +107,38 @@ namespace bs
 		static const Color DEFAULT_CLEAR_COLOR;
 	};
 
+	/** Templated common base type used for both sim and core thread variants of Viewport. */
+	template<bool Core>
+	class TViewport : public ViewportBase
+	{
+	public:
+		using RenderTargetType = CoreVariantType<RenderTarget, Core>;
+
+		TViewport(SPtr<RenderTargetType> target = nullptr, float x = 0.0f, float y = 0.0f, float width = 1.0f, 
+			float height = 1.0f)
+			:ViewportBase(x, y, width, height), mTarget(std::move(target))
+		{ }
+		virtual ~TViewport() = default;
+
+		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
+		template<class P>
+		void rttiEnumFields(P p);
+
+	protected:
+		SPtr<RenderTargetType> mTarget;
+	};
+
 	/** @} */
 
 	/** @addtogroup RenderAPI
 	 *  @{
 	 */
 
-	/** @copydoc ViewportBase */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) Viewport : public IReflectable, public CoreObject, public ViewportBase
+	/**
+	 * Viewport determines to which RenderTarget should rendering be performed. It allows you to render to a sub-region of the
+	 * target by specifying the area rectangle, and allows you to set up color/depth/stencil clear values for that specific region.
+	 */
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) Viewport : public IReflectable, public CoreObject, public TViewport<false>
 	{
 	public:
 		/**	Determines the render target the viewport is associated with. */
@@ -160,12 +182,10 @@ namespace bs
 		/** @copydoc CoreObject::createCore */
 		SPtr<ct::CoreObject> createCore() const override;
 
-		SPtr<RenderTarget> mTarget;
-
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-		Viewport();
+		Viewport() = default;
 
 		/** Creates an empty viewport for serialization purposes. */
 		static SPtr<Viewport> createEmpty();
@@ -183,8 +203,8 @@ namespace bs
 	 *  @{
 	 */
 
-	/** @copydoc ViewportBase */
-	class BS_CORE_EXPORT Viewport : public CoreObject, public ViewportBase
+	/** @copydoc bs::Viewport */
+	class BS_CORE_EXPORT Viewport : public CoreObject, public TViewport<true>
 	{
 	public:
 		/**	Returns the render target the viewport is associated with. */
@@ -210,8 +230,6 @@ namespace bs
 
 		/** @copydoc CoreObject::syncToCore */
 		void syncToCore(const CoreSyncData& data) override;
-
-		SPtr<RenderTarget> mTarget;
 	};
 
 	/** @} */

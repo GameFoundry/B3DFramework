@@ -6,6 +6,7 @@
 #include "RenderAPI/BsRenderTarget.h"
 #include "Math/BsMath.h"
 #include "RenderAPI/BsRenderAPI.h"
+#include "CoreThread/BsCoreObjectSync.h"
 
 namespace bs 
 {
@@ -76,14 +77,21 @@ namespace bs
 		_markCoreDirty();
 	}
 
-	Viewport::Viewport()
-		:ViewportBase()
-	{ }
+	template <bool Core>
+	template <class P>
+	void TViewport<Core>::rttiEnumFields(P p)
+	{
+		p(mNormArea);
+		p(mClearFlags);
+		p(mClearColorValue);
+		p(mClearDepthValue);
+		p(mClearStencilValue);
+		p(mTarget);
+	}
 
 	Viewport::Viewport(const SPtr<RenderTarget>& target, float x, float y, float width, float height)
-		:ViewportBase(x, y, width, height), mTarget(target)
+		:TViewport(target, x, y, width, height)
 	{
-
 	}
 
 	void Viewport::setTarget(const SPtr<RenderTarget>& target)
@@ -137,28 +145,12 @@ namespace bs
 
 	CoreSyncData Viewport::syncToCore(FrameAlloc* allocator)
 	{
-		UINT32 size = 0;
-		size += rttiGetElemSize(mNormArea);
-		size += rttiGetElemSize(mClearFlags);
-		size += rttiGetElemSize(mClearColorValue);
-		size += rttiGetElemSize(mClearDepthValue);
-		size += rttiGetElemSize(mClearStencilValue);
-		size += sizeof(SPtr<ct::RenderTarget>);
+		UINT32 size = coreSyncGetElemSize(*this);
 
 		UINT8* buffer = allocator->alloc(size);
 
 		char* dataPtr = (char*)buffer;
-		dataPtr = rttiWriteElem(mNormArea, dataPtr);
-		dataPtr = rttiWriteElem(mClearFlags, dataPtr);
-		dataPtr = rttiWriteElem(mClearColorValue, dataPtr);
-		dataPtr = rttiWriteElem(mClearDepthValue, dataPtr);
-		dataPtr = rttiWriteElem(mClearStencilValue, dataPtr);
-
-		SPtr<ct::RenderTarget>* rtPtr = new (dataPtr) SPtr<ct::RenderTarget>();
-		if (mTarget != nullptr)
-			*rtPtr = mTarget->getCore();
-		else
-			*rtPtr = nullptr;
+		dataPtr = coreSyncWriteElem(*this, dataPtr);
 
 		return CoreSyncData(buffer, size);
 	}
@@ -201,10 +193,8 @@ namespace bs
 	namespace ct
 	{
 	Viewport::Viewport(const SPtr<RenderTarget>& target, float x, float y, float width, float height)
-		:ViewportBase(x, y, width, height), mTarget(target)
-	{
-
-	}
+		:TViewport(target, x, y, width, height)
+	{ }
 
 	SPtr<Viewport> Viewport::create(const SPtr<RenderTarget>& target, float x, float y, float width, float height)
 	{
@@ -236,16 +226,7 @@ namespace bs
 	void Viewport::syncToCore(const CoreSyncData& data)
 	{
 		char* dataPtr = (char*)data.getBuffer();
-		dataPtr = rttiReadElem(mNormArea, dataPtr);
-		dataPtr = rttiReadElem(mClearFlags, dataPtr);
-		dataPtr = rttiReadElem(mClearColorValue, dataPtr);
-		dataPtr = rttiReadElem(mClearDepthValue, dataPtr);
-		dataPtr = rttiReadElem(mClearStencilValue, dataPtr);
-
-		SPtr<RenderTarget>* rtPtr = (SPtr<RenderTarget>*)dataPtr;
-		mTarget = *rtPtr;
-
-		rtPtr->~SPtr<RenderTarget>();
+		coreSyncReadElem(*this, dataPtr);
 	}
 	}
 }

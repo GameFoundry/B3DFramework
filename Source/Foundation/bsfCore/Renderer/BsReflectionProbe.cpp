@@ -7,6 +7,7 @@
 #include "Renderer/BsRenderer.h"
 #include "Utility/BsUUID.h"
 #include "Renderer/BsIBLUtility.h"
+#include "CoreThread/BsCoreObjectSync.h"
 
 namespace bs
 {
@@ -41,13 +42,20 @@ namespace bs
 		}
 	}
 
-	ReflectionProbe::ReflectionProbe()
+	template <bool Core>
+	template <class P>
+	void TReflectionProbe<Core>::rttiEnumFields(P p)
 	{
-
+		p(mType);
+		p(mRadius);
+		p(mExtents);
+		p(mTransitionDistance);
+		p(mBounds);
+		p(mFilteredTexture);
 	}
 
 	ReflectionProbe::ReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents)
-		: ReflectionProbeBase(type, radius, extents)
+		: TReflectionProbe(type, radius, extents)
 	{
 		// Calling virtual method is okay here because this is the most derived type
 		updateBounds();
@@ -193,25 +201,17 @@ namespace bs
 
 	CoreSyncData ReflectionProbe::syncToCore(FrameAlloc* allocator)
 	{
-		UINT32 size = getActorSyncDataSize();
-		size += rttiGetElemSize(mType);
-		size += rttiGetElemSize(mRadius);
-		size += rttiGetElemSize(mExtents);
-		size += rttiGetElemSize(mTransitionDistance);
+		UINT32 size = 0;
 		size += rttiGetElemSize(getCoreDirtyFlags());
-		size += rttiGetElemSize(mBounds);
-		size += sizeof(SPtr<ct::Texture>);
+		size += coreSyncGetElemSize((SceneActor&)*this);
+		size += coreSyncGetElemSize(*this);
 
 		UINT8* buffer = allocator->alloc(size);
 
 		char* dataPtr = (char*)buffer;
-		dataPtr = syncActorTo(dataPtr);
-		dataPtr = rttiWriteElem(mType, dataPtr);
-		dataPtr = rttiWriteElem(mRadius, dataPtr);
-		dataPtr = rttiWriteElem(mExtents, dataPtr);
-		dataPtr = rttiWriteElem(mTransitionDistance, dataPtr);
 		dataPtr = rttiWriteElem(getCoreDirtyFlags(), dataPtr);
-		dataPtr = rttiWriteElem(mBounds, dataPtr);
+		dataPtr = coreSyncWriteElem((SceneActor&)*this, dataPtr);
+		dataPtr = coreSyncWriteElem(*this, dataPtr);
 
 		return CoreSyncData(buffer, size);
 	}
@@ -231,13 +231,16 @@ namespace bs
 		return ReflectionProbe::getRTTIStatic();
 	}
 
+	template class TReflectionProbe<true>;
+	template class TReflectionProbe<false>;
+
 	namespace ct
 	{
 	ReflectionProbe::ReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents, 
 		const SPtr<Texture>& filteredTexture)
-		: ReflectionProbeBase(type, radius, extents), mRendererId(0), mFilteredTexture(filteredTexture)
+		: TReflectionProbe(type, radius, extents), mRendererId(0)
 	{
-
+		mFilteredTexture = filteredTexture;
 	}
 
 	ReflectionProbe::~ReflectionProbe()
@@ -261,13 +264,9 @@ namespace bs
 		bool oldIsActive = mActive;
 		ReflectionProbeType oldType = mType;
 
-		dataPtr = syncActorFrom(dataPtr);
-		dataPtr = rttiReadElem(mType, dataPtr);
-		dataPtr = rttiReadElem(mRadius, dataPtr);
-		dataPtr = rttiReadElem(mExtents, dataPtr);
-		dataPtr = rttiReadElem(mTransitionDistance, dataPtr);
 		dataPtr = rttiReadElem(dirtyFlags, dataPtr);
-		dataPtr = rttiReadElem(mBounds, dataPtr);
+		dataPtr = coreSyncReadElem((SceneActor&)*this, dataPtr);
+		dataPtr = coreSyncReadElem(*this, dataPtr);
 
 		updateBounds();
 
@@ -301,5 +300,4 @@ namespace bs
 			}
 		}
 	}
-
 }}

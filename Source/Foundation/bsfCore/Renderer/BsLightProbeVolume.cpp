@@ -7,6 +7,7 @@
 #include "Image/BsTexture.h"
 #include "Renderer/BsIBLUtility.h"
 #include "Scene/BsSceneObject.h"
+#include "CoreThread/BsCoreObjectSync.h"
 
 namespace bs
 {
@@ -327,7 +328,7 @@ namespace bs
 			UINT32 numDirtyProbes = (UINT32)dirtyProbes.size();
 			UINT32 numRemovedProbes = (UINT32)removedProbes.size();
 
-			size += getActorSyncDataSize();
+			size += coreSyncGetElemSize((SceneActor&)*this);
 			size += rttiGetElemSize(numDirtyProbes);
 			size += rttiGetElemSize(numRemovedProbes);
 			size += (sizeof(UINT32) + sizeof(Vector3) + sizeof(LightProbeFlags)) * numDirtyProbes;
@@ -336,7 +337,7 @@ namespace bs
 			buffer = allocator->alloc(size);
 
 			char* dataPtr = (char*)buffer;
-			dataPtr = syncActorTo(dataPtr);
+			dataPtr = coreSyncWriteElem((SceneActor&)*this, dataPtr);
 			dataPtr = rttiWriteElem(numDirtyProbes, dataPtr);
 			dataPtr = rttiWriteElem(numRemovedProbes, dataPtr);
 
@@ -494,7 +495,7 @@ namespace bs
 
 		bool oldIsActive = mActive;
 
-		dataPtr = syncActorFrom(dataPtr);
+		dataPtr = coreSyncReadElem((SceneActor&)*this, dataPtr);
 
 		UINT32 numDirtyProbes, numRemovedProbes;
 		dataPtr = rttiReadElem(numDirtyProbes, dataPtr);

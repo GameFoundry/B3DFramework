@@ -666,31 +666,6 @@ namespace bs
 		BS_SCRIPT_EXPORT()
 		bool enableSkybox = true;
 
-		/** @name Internal
-		 *  @{
-		 */
-
-		/** 
-		 * Populates the provided buffer with data that can be used for syncing between two versions of this object.
-		 * Apply the retrieved buffer via _setSyncData().
-		 *
-		 * @param[in]		buffer		Pre-allocated buffer to store the sync data in. Set to null to calculate the size
-		 *								of the required buffer.
-		 * @param[in, out]	size		Size of the provided allocated buffer. Or if the buffer is null, this parameter will
-		 *								contain the required buffer size when the method executes.
-		 */
-		void _getSyncData(UINT8* buffer, UINT32& size);
-
-		/** 
-		 * Updates the stored data from the provided buffer, allowing changes to be transfered between two versions of this
-		 * object. Buffer must be retrieved from _getSyncData(). 
-		 *
-		 * @param[in]		buffer		Buffer containing the dirty data.
-		 * @param[in, out]	size		Size of the provided buffer.
-		 */
-		void _setSyncData(UINT8* buffer, UINT32 size);
-
-		/** @} */
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/

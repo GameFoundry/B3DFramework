@@ -149,6 +149,10 @@ namespace bs
 		 */
 		float getLuminance() const;
 
+		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
+		template<class P>
+		void rttiEnumFields(P p);
+
 	protected:
 		/** Updates the internal bounds for the light. Call this whenever a property affecting the bounds changes. */
 		void updateBounds();
@@ -228,7 +232,7 @@ namespace bs
 		RTTITypeBase* getRTTI() const override;
 
 	protected:
-		Light(); // Serialization only
+		Light() = default; // Serialization only
 	};
 
 	namespace ct

@@ -58,6 +58,12 @@ namespace bs
 		PingPong
 	};
 
+	/** @} */
+
+	/** @addtogroup Implementation
+	 *  @{
+	 */
+
 	/** Base class used for both sim and core thread SpriteTexture implementations. */
 	class BS_CORE_EXPORT SpriteTextureBase
 	{
@@ -127,13 +133,40 @@ namespace bs
 		SpriteSheetGridAnimation mAnimation;
 	};
 
+	/** Templated base class used for both sim and core thread SpriteTexture implementations. */
+	template<bool Core>
+	class BS_CORE_EXPORT TSpriteTexture : public SpriteTextureBase
+	{
+	public:
+		using TextureType = CoreVariantHandleType<Texture, Core>;
+
+		TSpriteTexture(const Vector2& uvOffset, const Vector2& uvScale, TextureType atlasTexture)
+			:SpriteTextureBase(uvOffset, uvScale), mAtlasTexture(std::move(atlasTexture))
+		{ }
+
+		virtual ~TSpriteTexture() = default;
+
+		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
+		template<class P>
+		void rttiEnumFields(P p);
+
+	protected:
+		TextureType mAtlasTexture;
+	};
+
+	/** @} */
+	/** @addtogroup Resources
+	 *  @{
+	 */
+
+
 	/**
 	 * Texture that references a part of a larger texture by specifying an UV subset. When the sprite texture is rendererd
 	 * only the portion of the texture specified by the UV subset will be rendered. This allows you to use the same texture
 	 * for multiple sprites (texture atlasing). Sprite textures also allow you to specify sprite sheet animation by varying
 	 * which portion of the UV is selected over time.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) SpriteTexture : public Resource, public SpriteTextureBase
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) SpriteTexture : public Resource, public TSpriteTexture<false>
 	{
 	public:
 		/**	Determines the internal texture that the sprite texture references. */
@@ -201,8 +234,6 @@ namespace bs
 		/** @copydoc CoreObject::getCoreDependencies */
 		void getCoreDependencies(Vector<CoreObject*>& dependencies) override;
 
-		HTexture mAtlasTexture;
-
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
@@ -228,7 +259,7 @@ namespace bs
 		 *
 		 * @note	Core thread.
 		 */
-		class BS_CORE_EXPORT SpriteTexture : public CoreObject, public SpriteTextureBase
+		class BS_CORE_EXPORT SpriteTexture : public CoreObject, public TSpriteTexture<true>
 		{
 		public:
 			/**	Determines the internal texture that the sprite texture references. */
@@ -245,8 +276,6 @@ namespace bs
 
 			/** @copydoc CoreObject::syncToCore */
 			void syncToCore(const CoreSyncData& data) override;
-
-			SPtr<Texture> mAtlasTexture;
 		};
 
 		/** @} */

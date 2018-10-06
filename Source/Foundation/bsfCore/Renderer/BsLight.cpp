@@ -5,6 +5,7 @@
 #include "Renderer/BsRenderer.h"
 #include "Scene/BsSceneObject.h"
 #include "Mesh/BsMesh.h"
+#include "CoreThread/BsCoreObjectSync.h"
 
 namespace bs
 {
@@ -176,9 +177,20 @@ namespace bs
 		updateBounds();
 	}
 
-	Light::Light()
+	template <class P>
+	void LightBase::rttiEnumFields(P p)
 	{
-		
+		p(mType);
+		p(mCastsShadows);
+		p(mColor);
+		p(mAttRadius);
+		p(mSourceRadius);
+		p(mIntensity);
+		p(mSpotAngle);
+		p(mSpotFalloffAngle);
+		p(mAutoAttenuation);
+		p(mBounds);
+		p(mShadowBias);
 	}
 
 	Light::Light(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, 
@@ -227,36 +239,17 @@ namespace bs
 
 	CoreSyncData Light::syncToCore(FrameAlloc* allocator)
 	{
-		UINT32 size = getActorSyncDataSize();
-		size += rttiGetElemSize(mType);
-		size += rttiGetElemSize(mCastsShadows);
-		size += rttiGetElemSize(mColor);
-		size += rttiGetElemSize(mAttRadius);
-		size += rttiGetElemSize(mSourceRadius);
-		size += rttiGetElemSize(mIntensity);
-		size += rttiGetElemSize(mSpotAngle);
-		size += rttiGetElemSize(mSpotFalloffAngle);
-		size += rttiGetElemSize(mAutoAttenuation);
+		UINT32 size = 0;
 		size += rttiGetElemSize(getCoreDirtyFlags());
-		size += rttiGetElemSize(mBounds);
-		size += rttiGetElemSize(mShadowBias);
+		size += coreSyncGetElemSize((SceneActor&)*this);
+		size += coreSyncGetElemSize(*this);
 
 		UINT8* buffer = allocator->alloc(size);
 
 		char* dataPtr = (char*)buffer;
-		dataPtr = syncActorTo(dataPtr);
-		dataPtr = rttiWriteElem(mType, dataPtr);
-		dataPtr = rttiWriteElem(mCastsShadows, dataPtr);
-		dataPtr = rttiWriteElem(mColor, dataPtr);
-		dataPtr = rttiWriteElem(mAttRadius, dataPtr);
-		dataPtr = rttiWriteElem(mSourceRadius, dataPtr);
-		dataPtr = rttiWriteElem(mIntensity, dataPtr);
-		dataPtr = rttiWriteElem(mSpotAngle, dataPtr);
-		dataPtr = rttiWriteElem(mSpotFalloffAngle, dataPtr);
-		dataPtr = rttiWriteElem(mAutoAttenuation, dataPtr);
 		dataPtr = rttiWriteElem(getCoreDirtyFlags(), dataPtr);
-		dataPtr = rttiWriteElem(mBounds, dataPtr);
-		dataPtr = rttiWriteElem(mShadowBias, dataPtr);
+		dataPtr = coreSyncWriteElem((SceneActor&)*this, dataPtr);
+		dataPtr = coreSyncWriteElem(*this, dataPtr);
 
 		return CoreSyncData(buffer, size);
 	}
@@ -309,19 +302,9 @@ namespace bs
 		bool oldIsActive = mActive;
 		LightType oldType = mType;
 
-		dataPtr = syncActorFrom(dataPtr);
-		dataPtr = rttiReadElem(mType, dataPtr);
-		dataPtr = rttiReadElem(mCastsShadows, dataPtr);
-		dataPtr = rttiReadElem(mColor, dataPtr);
-		dataPtr = rttiReadElem(mAttRadius, dataPtr);
-		dataPtr = rttiReadElem(mSourceRadius, dataPtr);
-		dataPtr = rttiReadElem(mIntensity, dataPtr);
-		dataPtr = rttiReadElem(mSpotAngle, dataPtr);
-		dataPtr = rttiReadElem(mSpotFalloffAngle, dataPtr);
-		dataPtr = rttiReadElem(mAutoAttenuation, dataPtr);
 		dataPtr = rttiReadElem(dirtyFlags, dataPtr);
-		dataPtr = rttiReadElem(mBounds, dataPtr);
-		dataPtr = rttiReadElem(mShadowBias, dataPtr);
+		dataPtr = coreSyncReadElem((SceneActor&)*this, dataPtr);
+		dataPtr = coreSyncReadElem(*this, dataPtr);
 
 		updateBounds();
 
