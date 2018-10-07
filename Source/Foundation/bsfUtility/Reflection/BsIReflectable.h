@@ -32,11 +32,11 @@ namespace bs
 		 */
 		virtual RTTITypeBase* getRTTI() const = 0;
 
-		/** Returns all classes deriving directly from IReflectable. */
-		static Vector<RTTITypeBase*>& getDerivedClasses()
+		/** Returns all available RTTI types. */
+		static UnorderedMap<UINT32, RTTITypeBase*>& getAllRTTITypes()
 		{
-			static Vector<RTTITypeBase*> mRTTIDerivedClasses;
-			return mRTTIDerivedClasses;
+			static UnorderedMap<UINT32, RTTITypeBase*> mAllRTTITypes;
+			return mAllRTTITypes;
 		}
 
 		/** Returns true if current RTTI class is derived from @p base (Or if it is the same type as base). */
@@ -59,8 +59,8 @@ namespace bs
 		 *  @{
 		 */
 
-		/** Called by each type deriving from IReflectable, on program load. */
-		static void _registerDerivedClass(RTTITypeBase* derivedClass);
+		/** Called by each type implementing RTTITypeBase, on program load. */
+		static void _registerRTTIType(RTTITypeBase* rttiType);
 
 		/** Returns class' RTTI type from type id. */
 		static RTTITypeBase* _getRTTIfromTypeId(UINT32 rttiTypeId);

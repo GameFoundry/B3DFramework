@@ -2,8 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include <unordered_map>
-
 #include "Prerequisites/BsPrerequisitesUtil.h"
 #include "Serialization/BsSerializedObject.h"
 #include "Reflection/BsRTTIField.h"
@@ -18,12 +16,6 @@ namespace bs
 	struct RTTIReflectableFieldBase;
 	struct RTTIReflectablePtrFieldBase;
 
-	// TODO - Low priority. I will probably want to extract a generalized Serializer class so we can re-use the code
-	// in text or other serializers
-	// TODO - Low priority. Encode does a chunk-based encode so that we don't need to know the buffer size in advance,
-	// and don't have to use a lot of memory for the buffer. Consider doing something similar for decode.
-	// TODO - Low priority. Add a simple encode method that doesn't require a callback, instead it calls the callback internally
-	// and creates the buffer internally.
 	/**
 	 * Encodes all the fields of the provided object into a binary format. Fields are encoded using their unique IDs. 
 	 * Encoded data will remain compatible for decoding even if you modify the encoded class, as long as you assign new 
@@ -76,41 +68,6 @@ namespace bs
 		 */
 		SPtr<IReflectable> decode(const SPtr<DataStream>& data, UINT32 dataLength, 
 			const UnorderedMap<String, UINT64>& params = UnorderedMap<String, UINT64>());
-
-		/** @name Internal 
-		 *  @{
-		 */
-
-		/**
-		 * Encodes an object into an intermediate representation.
-		 *
-		 * @param[in]	object		Object to encode.
-		 * @param[in]	shallow		Determines how to handle referenced objects. If true then references will not be encoded
-		 *							and will be set to null. If false then references will be encoded as well and restored
-		 *							upon decoding.
-		 */
-		SPtr<SerializedObject> _encodeToIntermediate(IReflectable* object, bool shallow = false);
-
-		/**
-		 * Decodes a serialized object into an intermediate representation for easier parsing.
-		 *			
-		 * @param[in] 	data  		Binary data to decode.
-		 * @param[in]	dataLength	Length of the data in bytes.
-		 * @param[in]	copyData	Determines should the data be copied or just referenced. If referenced then the returned
-		 *							serialized object will be invalid as soon as the original data buffer is destroyed.
-		 *							Referencing is faster than copying. If the source data stream is a file stream the data
-		 *							will always be copied.
-		 *
-		 * @note
-		 * References to field data will point to the original buffer and will become invalid when it is destroyed.
-		 */
-		SPtr<SerializedObject> _decodeToIntermediate(const SPtr<DataStream>& data, UINT32 dataLength, bool copyData = false);
-
-		/** Decodes an intermediate representation of a serialized object into the actual object. */
-		SPtr<IReflectable> _decodeFromIntermediate(const SPtr<SerializedObject>& serializedObject);
-
-		/** @} */
-
 	private:
 		struct ObjectMetaData
 		{
@@ -120,7 +77,7 @@ namespace bs
 
 		struct ObjectToEncode
 		{
-			ObjectToEncode(UINT32 _objectId, SPtr<IReflectable> _object)
+			ObjectToEncode(UINT32 _objectId, const SPtr<IReflectable>& _object)
 				:objectId(_objectId), object(_object)
 			{ }
 
@@ -130,14 +87,14 @@ namespace bs
 
 		struct ObjectToDecode
 		{
-			ObjectToDecode(const SPtr<IReflectable>& _object, const SPtr<SerializedObject>& serializedObject)
-				:object(_object), serializedObject(serializedObject), isDecoded(false), decodeInProgress(false)
+			ObjectToDecode(const SPtr<IReflectable>& _object, size_t offset = 0)
+				:object(_object), offset(offset)
 			{ }
 
 			SPtr<IReflectable> object;
-			SPtr<SerializedObject> serializedObject;
-			bool isDecoded;
-			bool decodeInProgress; // Used for error reporting circular references
+			bool isDecoded = false;
+			bool decodeInProgress = false; // Used for error reporting circular references
+			size_t offset;
 		};
 
 		/** Encodes a single IReflectable object. */
@@ -145,11 +102,7 @@ namespace bs
 			std::function<UINT8*(UINT8* buffer, UINT32 bytesWritten, UINT32& newBufferSize)> flushBufferCallback, bool shallow);
 
 		/**	Decodes a single IReflectable object. */
-		void decodeEntry(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& serializableObject);
-
-		/**	Decodes an object in memory into an intermediate representation for easier parsing. */
-		bool decodeEntry(const SPtr<DataStream>& data, UINT32 dataLength, UINT32& bytesRead, SPtr<SerializedObject>& output, 
-			bool copyData, bool streamDataBlock);
+		bool decodeEntry(const SPtr<DataStream>& data, size_t dataLength, const SPtr<IReflectable>& output);
 
 		/**	Helper method for encoding a complex object and copying its data to a buffer. */
 		UINT8* complexTypeToBuffer(IReflectable* object, UINT8* buffer, UINT32& bufferLength, UINT32* bytesWritten,
@@ -193,14 +146,12 @@ namespace bs
 		/** Returns true if the provided encoded meta data represents object meta data. */
 		static bool isObjectMetaData(UINT32 encodedData);
 
+		Map<UINT32, ObjectToDecode> mDecodeObjectMap;
+		Vector<ObjectToEncode> mObjectsToEncode;
 		UnorderedMap<void*, UINT32> mObjectAddrToId;
 		UINT32 mLastUsedObjectId = 1;
-		Vector<ObjectToEncode> mObjectsToEncode;
 		UINT32 mTotalBytesWritten;
 		FrameAlloc* mAlloc = nullptr;
-
-		UnorderedMap<SPtr<SerializedObject>, ObjectToDecode> mObjectMap;
-		UnorderedMap<UINT32, SPtr<SerializedObject>> mInterimObjectMap;
 
 		UnorderedMap<String, UINT64> mParams;
 
@@ -209,6 +160,13 @@ namespace bs
 		static constexpr const int COMPLEX_TYPE_FIELD_SIZE = 4; // Size of the field storing the size of a child complex type
 		static constexpr const int DATA_BLOCK_TYPE_FIELD_SIZE = 4;
 	};
+
+	// TODO - Potential improvements:
+	//  - I will probably want to extract a generalized Serializer class so we can re-use the code in text or other serializers
+	//  - Encode does a chunk-based encode so that we don't need to know the buffer size in advance, and don't have to use 
+	//    a lot of memory for the buffer. Consider doing something similar for decode.
+	//  - Add a simple encode method that doesn't require a callback, instead it calls the callback internally and creates
+	//    the buffer internally.
 
 	/** @} */
 }

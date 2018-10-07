@@ -425,6 +425,7 @@ namespace bs
 	public:
 		InitRTTIOnStart()
 		{
+			IReflectable::_registerRTTIType(Type::getRTTIStatic());
 			BaseType::getRTTIStatic()->_registerDerivedClass(Type::getRTTIStatic());
 		}
 
@@ -438,7 +439,7 @@ namespace bs
 	public:
 		InitRTTIOnStart()
 		{
-			IReflectable::_registerDerivedClass(Type::getRTTIStatic());
+			IReflectable::_registerRTTIType(Type::getRTTIStatic());
 		}
 
 		void makeSureIAmInstantiated() { }
@@ -544,12 +545,6 @@ namespace bs
 		/** @copydoc RTTITypeBase::_registerDerivedClass */
 		void _registerDerivedClass(RTTITypeBase* derivedClass) override
 		{
-			if(IReflectable::_isTypeIdDuplicate(derivedClass->getRTTIId()))
-			{
-				BS_EXCEPT(InternalErrorException, "RTTI type \"" + derivedClass->getRTTIName() + 
-					"\" has a duplicate ID: " + toString(derivedClass->getRTTIId()));
-			}
-
 			getDerivedClasses().push_back(derivedClass);
 		}
 

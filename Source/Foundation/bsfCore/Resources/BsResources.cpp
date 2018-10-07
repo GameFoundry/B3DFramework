@@ -394,7 +394,7 @@ namespace bs
 					stream = Compression::decompress(stream);
 
 				BinarySerializer bs;
-				loadedData = std::static_pointer_cast<SavedResourceData>(bs.decode(stream, objectSize, params));
+				loadedData = bs.decode(stream, objectSize, params);
 			}
 		}
 

@@ -112,16 +112,14 @@ namespace bs
 
 		for (auto& addedComponentData : diff->addedComponents)
 		{
-			BinarySerializer bs;
-			SPtr<Component> component = std::static_pointer_cast<Component>(bs._decodeFromIntermediate(addedComponentData));
+			SPtr<Component> component = std::static_pointer_cast<Component>(addedComponentData->decode());
 
 			object->addAndInitializeComponent(component);
 		}
 
 		for (auto& addedChildData : diff->addedChildren)
 		{
-			BinarySerializer bs;
-			SPtr<SceneObject> sceneObject = std::static_pointer_cast<SceneObject>(bs._decodeFromIntermediate(addedChildData));
+			SPtr<SceneObject> sceneObject = std::static_pointer_cast<SceneObject>(addedChildData->decode());
 			sceneObject->setParent(object);
 
 			if(object->isInstantiated())
@@ -275,8 +273,7 @@ namespace bs
 
 			if (!foundMatching)
 			{
-				BinarySerializer bs;
-				SPtr<SerializedObject> obj = bs._encodeToIntermediate(instanceChild.get());
+				SPtr<SerializedObject> obj = SerializedObject::create(*instanceChild);
 
 				if (output == nullptr)
 					output = bs_shared_ptr_new<PrefabObjectDiff>();
@@ -304,9 +301,8 @@ namespace bs
 
 				if (prefabComponent->getLinkId() == instanceComponent->getLinkId())
 				{
-					BinarySerializer bs;
-					SPtr<SerializedObject> encodedPrefab = bs._encodeToIntermediate(prefabComponent.get());
-					SPtr<SerializedObject> encodedInstance = bs._encodeToIntermediate(instanceComponent.get());
+					SPtr<SerializedObject> encodedPrefab = SerializedObject::create(*prefabComponent);
+					SPtr<SerializedObject> encodedInstance = SerializedObject::create(*instanceComponent);
 
 					IDiff& diffHandler = prefabComponent->getRTTI()->getDiffHandler();
 					SPtr<SerializedObject> diff = diffHandler.generateDiff(encodedPrefab, encodedInstance);
@@ -364,8 +360,7 @@ namespace bs
 
 			if (!foundMatching)
 			{
-				BinarySerializer bs;
-				SPtr<SerializedObject> obj = bs._encodeToIntermediate(instanceComponent.get());
+				SPtr<SerializedObject> obj = SerializedObject::create(*instanceComponent);
 
 				if (output == nullptr)
 					output = bs_shared_ptr_new<PrefabObjectDiff>();
