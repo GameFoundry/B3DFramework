@@ -80,9 +80,12 @@ public:
             return nullptr;
         }
 
-        if (n > max_size()) {
-            throw std::length_error("aligned_allocator<T,A>::allocate() - Integer overflow.");
-        }
+		if (n > max_size()) {
+            //BSF: replaced throw with a simple abort, since in `-fno-exceptions` mode the compiler would put
+            // an abort in here anyway.
+            //throw std::length_error("aligned_allocator<T,A>::allocate() - Integer overflow.");
+            abort();
+		}
 
 
         /* We align the storage by adding @a alignment bytes and truncating the
