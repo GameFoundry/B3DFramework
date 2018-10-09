@@ -4,9 +4,16 @@
 #include "Debug/BsDebug.h"
 #include <mono/jit/jit.h>
 #include "String/BsUnicode.h"
+#include <mono/metadata/mono-debug.h>
+#include "BsMonoAssembly.h"
+#include "BsMonoClass.h"
+#include "BsMonoProperty.h"
 
 namespace bs
 {
+	static bool sGenericHelpersInitialized = false;
+	static MonoProperty* sGenericParamsProp = nullptr;
+
 	WString MonoUtil::monoToWString(MonoString* str)
 	{
 		if (str == nullptr)
@@ -64,7 +71,12 @@ namespace bs
 		}
 		else
 		{
-			typeName = String("+") + mono_class_get_name(monoClass);
+			const char* className = mono_class_get_name(monoClass);
+
+			// Class name is generally never null, except for the case of specialized generic types, which we handle
+			// separately
+			if(className)
+				typeName = String("+") + className;
 
 			do
 			{
@@ -237,6 +249,50 @@ namespace bs
 			types[i] = mono_class_get_type(params[i]);
 
 		return mono_class_bind_generic_parameters(klass, numParams, types, false);
+	}
+
+	void MonoUtil::getGenericParameters(::MonoClass* klass, ::MonoClass** params, UINT32& numParams)
+	{
+		MonoType* monoType = mono_class_get_type(klass);
+		getGenericParameters(mono_type_get_object(MonoManager::instance().getDomain(), monoType), params, numParams);
+	}
+
+	void MonoUtil::getGenericParameters(::MonoReflectionType* type, ::MonoClass** params, UINT32& numParams)
+	{
+		if(!sGenericHelpersInitialized)
+		{
+			MonoAssembly* corlib = MonoManager::instance().getAssembly("corlib");
+			MonoClass* type = corlib->getClass("System", "Type");
+			sGenericParamsProp = type->getProperty("GenericTypeArguments");
+
+			sGenericHelpersInitialized = true;
+		}
+
+		MonoArray* array = (MonoArray*)sGenericParamsProp->get((MonoObject*)type);
+		if(array)
+		{
+			ScriptArray scriptArray(array);
+
+			numParams = scriptArray.size();
+
+			if(params)
+			{
+				for(UINT32 i = 0; i < numParams; i++)
+				{
+					MonoReflectionType* paramType = scriptArray.get<MonoReflectionType*>(i);
+					if(paramType)
+						params[i] = getClass(paramType);
+				}
+			}
+			
+		}
+		else
+		{
+			numParams = 0;
+
+			if(params)
+				*params = nullptr;
+		}
 	}
 
 	::MonoClass* MonoUtil::getUINT16Class()

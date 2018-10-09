@@ -113,6 +113,20 @@ namespace bs
 		/** Binds parameters to a generic class, and returns a new instantiable class with the bound parameters. */
 		static ::MonoClass* bindGenericParameters(::MonoClass* klass, ::MonoClass** params, UINT32 numParams);
 
+		/** 
+		 * Returns the generic parameters of the provided type. @p params must be a pre-allocated buffer able to hold the
+		 * class types for each parameter. If @p params is null, then @p numParams will be populated with the number of
+		 * available parameters.
+		 */
+		static void getGenericParameters(::MonoClass* klass, ::MonoClass** params, UINT32& numParams);
+
+		/** 
+		 * Returns the generic parameters of the provided type. @p params must be a pre-allocated buffer able to hold the
+		 * class types for each parameter. If @p params is null, then @p numParams will be populated with the number of
+		 * available parameters.
+		 */
+		static void getGenericParameters(::MonoReflectionType* type, ::MonoClass** params, UINT32& numParams);
+
 		/** Returns Mono class for a 16-bit unsigned integer. */
 		static ::MonoClass* getUINT16Class();
 
