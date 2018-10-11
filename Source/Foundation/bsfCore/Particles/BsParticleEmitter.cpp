@@ -1047,8 +1047,6 @@ namespace bs
 
 	void ParticleEmitter::spawn(Random& random, const ParticleSystemState& state, ParticleSet& set) const
 	{
-		constexpr float MIN_BURST_INTERVAL = 0.01f;
-
 		if(!mShape || !mShape->isValid())
 			return;
 
@@ -1067,6 +1065,8 @@ namespace bs
 		UINT32 numBurst = 0;
 		const auto emitBursts = [this, &emitterT, &random](float start, float end)
 		{
+			constexpr float MIN_BURST_INTERVAL = 0.01f;
+
 			UINT32 numBurst = 0;
 			for (UINT32 i = 0; i < (UINT32)mBursts.size(); i++)
 			{
