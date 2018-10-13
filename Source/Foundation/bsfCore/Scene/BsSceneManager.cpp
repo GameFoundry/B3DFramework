@@ -294,7 +294,8 @@ namespace bs
 			// Move from active to inactive list
 			for (INT32 i = 0; i < (INT32)mActiveComponents.size(); i++)
 			{
-				const HComponent& component = mActiveComponents[i];
+				// Note: Purposely not a reference since the list changes in the add/remove methods below
+				const HComponent component = mActiveComponents[i];
 
 				const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
 				if (alwaysRun)
