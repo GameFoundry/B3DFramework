@@ -6,13 +6,6 @@
 
 namespace bs
 {
-	GameObject::GameObject()
-		:mLinkId((UINT32)-1), mIsDestroyed(false)
-	{ }
-
-	GameObject::~GameObject()
-	{ }
-
 	void GameObject::initialize(const SPtr<GameObject>& object, UINT64 instanceId)
 	{
 		mInstanceData = bs_shared_ptr_new<GameObjectInstanceData>();

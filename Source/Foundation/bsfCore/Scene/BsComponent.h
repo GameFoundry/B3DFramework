@@ -117,7 +117,7 @@ namespace bs
 		friend class SceneObjectRTTI;
 
 		Component(HSceneObject parent);
-		virtual ~Component();
+		virtual ~Component() = default;
 
 		/** Called once when the component has been created. Called regardless of the state the component is in. */
 		virtual void onCreated() {}

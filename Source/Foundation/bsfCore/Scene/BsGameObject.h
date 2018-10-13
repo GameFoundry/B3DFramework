@@ -32,8 +32,8 @@ namespace bs
 	class BS_CORE_EXPORT GameObject : public IReflectable
 	{
 	public:
-		GameObject();
-		virtual ~GameObject();
+		GameObject() = default;
+		virtual ~GameObject() = default;
 
 		/**	Returns the unique instance ID of the GameObject. */
 		UINT64 getInstanceId() const { return mInstanceData->mInstanceId; }
@@ -101,13 +101,13 @@ namespace bs
 
 	protected:
 		String mName;
-		UINT32 mLinkId;
+		UINT32 mLinkId = (UINT32)-1;
 
 		Any mRTTIData; // RTTI only
 	private:
 		friend class Prefab;
 		GameObjectInstanceDataPtr mInstanceData;
-		bool mIsDestroyed;
+		bool mIsDestroyed = false;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

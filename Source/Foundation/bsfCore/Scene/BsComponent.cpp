@@ -12,11 +12,6 @@ namespace bs
 		setName("Component");
 	}
 
-	Component::~Component()
-	{
-
-	}
-
 	bool Component::typeEquals(const Component& other)
 	{
 		return getRTTI()->getRTTIId() == other.getRTTI()->getRTTIId();

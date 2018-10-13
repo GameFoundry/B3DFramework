@@ -279,7 +279,7 @@ namespace bs
 				initiateLoad = !alreadyLoading && !filePath.isEmpty();
 
 				if(savedResourceData != nullptr)
-					synchronous = synchronous & savedResourceData->allowAsyncLoading();
+					synchronous = synchronous || !savedResourceData->allowAsyncLoading();
 			}
 		}
 
