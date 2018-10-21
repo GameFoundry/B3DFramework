@@ -21,6 +21,10 @@ namespace bs
 	static constexpr UINT32 PARTICLE_ORBIT_VELOCITY = 0x24c00a5b;
 	static constexpr UINT32 PARTICLE_ORBIT_RADIAL = 0x35978d21;
 	static constexpr UINT32 PARTICLE_LINEAR_VELOCITY = 0x0a299430;
+	static constexpr UINT32 PARTICLE_FORCE = 0x1b618144;
+	static constexpr UINT32 PARTICLE_COLOR = 0x378578b2;
+	static constexpr UINT32 PARTICLE_SIZE = 0x91088409;
+	static constexpr UINT32 PARTICLE_ROTATION = 0x4680eaa4;
 
 	/** Helper method that applies a transform to either a point or a direction. */
 	template<bool dir>
@@ -197,7 +201,7 @@ namespace bs
 		{
 			const float particleT = (particles.initialLifetime[i] - particles.lifetime[i]) / particles.initialLifetime[i];
 
-			const UINT32 velocitySeed = particles.seed[i] + PARTICLE_ORBIT_VELOCITY;
+			const UINT32 velocitySeed = particles.seed[i] + PARTICLE_LINEAR_VELOCITY;
 			const Vector3 velocity = evaluateTransformed<true>(mDesc.velocity, state, particleT, Random(velocitySeed), 
 				mDesc.worldSpace) * state.timeStep;
 
@@ -211,6 +215,37 @@ namespace bs
 	}
 
 	RTTITypeBase* ParticleVelocity::getRTTI() const
+	{
+		return getRTTIStatic();
+	}
+
+	ParticleForce::ParticleForce(const PARTICLE_FORCE_DESC& desc)
+		:mDesc(desc)
+	{ }
+
+	void ParticleForce::evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const
+	{
+		const UINT32 count = set.getParticleCount();
+		ParticleSetData& particles = set.getParticles();
+
+		for (UINT32 i = 0; i < count; i++)
+		{
+			const float particleT = (particles.initialLifetime[i] - particles.lifetime[i]) / particles.initialLifetime[i];
+
+			const UINT32 forceSeed = particles.seed[i] + PARTICLE_FORCE;
+			const Vector3 force = evaluateTransformed<true>(mDesc.force, state, particleT, Random(forceSeed), 
+				mDesc.worldSpace) * state.timeStep;
+
+			particles.velocity[i] += force * state.timeStep;
+		}
+	}
+
+	RTTITypeBase* ParticleForce::getRTTIStatic()
+	{
+		return ParticleForceRTTI::instance();
+	}
+
+	RTTITypeBase* ParticleForce::getRTTI() const
 	{
 		return getRTTIStatic();
 	}
@@ -239,6 +274,118 @@ namespace bs
 	}
 
 	RTTITypeBase* ParticleGravity::getRTTI() const
+	{
+		return getRTTIStatic();
+	}
+
+	ParticleColor::ParticleColor(const PARTICLE_COLOR_DESC& desc)
+		:mDesc(desc)
+	{ }
+
+	void ParticleColor::evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const
+	{
+		const UINT32 count = set.getParticleCount();
+		ParticleSetData& particles = set.getParticles();
+
+		for (UINT32 i = 0; i < count; i++)
+		{
+			const UINT32 colorSeed = particles.seed[i] + PARTICLE_COLOR;
+			const float particleT = (particles.initialLifetime[i] - particles.lifetime[i]) / particles.initialLifetime[i];
+
+			particles.color[i] = mDesc.color.evaluate(particleT, Random(colorSeed));
+		}
+	}
+
+	RTTITypeBase* ParticleColor::getRTTIStatic()
+	{
+		return ParticleColorRTTI::instance();
+	}
+
+	RTTITypeBase* ParticleColor::getRTTI() const
+	{
+		return getRTTIStatic();
+	}
+
+	ParticleSize::ParticleSize(const PARTICLE_SIZE_DESC& desc)
+		:mDesc(desc)
+	{ }
+
+	void ParticleSize::evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const
+	{
+		const UINT32 count = set.getParticleCount();
+		ParticleSetData& particles = set.getParticles();
+
+		if(!mDesc.use3DSize)
+		{
+			for (UINT32 i = 0; i < count; i++)
+			{
+				const UINT32 sizeSeed = particles.seed[i] + PARTICLE_SIZE;
+				const float particleT = (particles.initialLifetime[i] - particles.lifetime[i]) / particles.initialLifetime[i];
+
+				const float size = mDesc.size.evaluate(particleT, Random(sizeSeed));
+				particles.size[i] = Vector3(size, size, size);
+			}
+		}
+		else
+		{
+			for (UINT32 i = 0; i < count; i++)
+			{
+				const UINT32 sizeSeed = particles.seed[i] + PARTICLE_SIZE;
+				const float particleT = (particles.initialLifetime[i] - particles.lifetime[i]) / particles.initialLifetime[i];
+
+				particles.size[i] = mDesc.size3D.evaluate(particleT, Random(sizeSeed));
+			}
+		}
+	}
+
+	RTTITypeBase* ParticleSize::getRTTIStatic()
+	{
+		return ParticleSizeRTTI::instance();
+	}
+
+	RTTITypeBase* ParticleSize::getRTTI() const
+	{
+		return getRTTIStatic();
+	}
+
+	ParticleRotation::ParticleRotation(const PARTICLE_ROTATION_DESC& desc)
+		:mDesc(desc)
+	{ }
+
+	void ParticleRotation::evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const
+	{
+		const UINT32 count = set.getParticleCount();
+		ParticleSetData& particles = set.getParticles();
+
+		if(!mDesc.use3DRotation)
+		{
+			for (UINT32 i = 0; i < count; i++)
+			{
+				const UINT32 rotationSeed = particles.seed[i] + PARTICLE_ROTATION;
+				const float particleT = (particles.initialLifetime[i] - particles.lifetime[i]) / particles.initialLifetime[i];
+
+				const float rotation = mDesc.rotation.evaluate(particleT, Random(rotationSeed));
+				particles.rotation[i] = Vector3(rotation, 0.0f, 0.0f);
+			}
+		}
+		else
+		{
+			for (UINT32 i = 0; i < count; i++)
+			{
+				const UINT32 rotationSeed = particles.seed[i] + PARTICLE_ROTATION;
+				const float particleT = (particles.initialLifetime[i] - particles.lifetime[i]) / particles.initialLifetime[i];
+
+				particles.rotation[i] = mDesc.rotation3D.evaluate(particleT, Random(rotationSeed));
+			}
+		}
+	}
+
+	RTTITypeBase* ParticleRotation::getRTTIStatic()
+	{
+		return ParticleRotationRTTI::instance();
+	}
+
+	RTTITypeBase* ParticleRotation::getRTTI() const
 	{
 		return getRTTIStatic();
 	}

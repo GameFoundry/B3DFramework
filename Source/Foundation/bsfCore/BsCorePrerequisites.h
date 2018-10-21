@@ -615,6 +615,10 @@ namespace bs
 		TID_BloomSettings = 1184,
 		TID_ParticleBurst = 1185,
 		TID_CoreSerializationContext = 1186,
+		TID_ParticleForce = 1187,
+		TID_ParticleSize = 1188,
+		TID_ParticleColor = 1189,
+		TID_ParticleRotation = 1190,
 
 		// Moved from Engine layer
 		TID_CCamera = 30000,

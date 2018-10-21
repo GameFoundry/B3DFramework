@@ -183,6 +183,45 @@ namespace bs
 		RTTITypeBase* getRTTI() const override;
 	};
 
+	/** Structure used for initializing a ParticleForce object. */
+	struct PARTICLE_FORCE_DESC
+	{
+		/** Determines the force of the particles evaluated over particle lifetime. */
+		Vector3Distribution force = Vector3(0.0f, 0.0f, 0.0f);
+
+		/** True if the force is provided in world space, false if in local space. */
+		bool worldSpace = false;
+	};
+
+	/** Applies an arbitrary force to the particles. */
+	class BS_CORE_EXPORT ParticleForce : public ParticleEvolver
+	{
+	public:
+		ParticleForce(const PARTICLE_FORCE_DESC&desc);
+
+		/** @copydoc ParticleEvolver::evolve */
+		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const override;
+
+		/** @copydoc ParticleEvolver::getProperties */
+		const ParticleEvolverProperties& getProperties() const override
+		{
+			static const ParticleEvolverProperties sProperties(true, 0);
+			return sProperties;
+		}
+	private:
+		PARTICLE_FORCE_DESC mDesc;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		ParticleForce() = default; // RTTI only
+
+		friend class ParticleForceRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
+	};
+
 	/** Structure used for initializing a ParticleGravity object. */
 	struct PARTICLE_GRAVITY_DESC
 	{
@@ -215,6 +254,140 @@ namespace bs
 		ParticleGravity() = default;
 
 		friend class ParticleGravityRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
+	};
+
+	/** Structure used for initializing a ParticleColor object. */
+	struct PARTICLE_COLOR_DESC
+	{
+		/** Determines the color of the particles evaluated over particle lifetime. */
+		ColorDistribution color = Color::White;
+	};
+
+	/** Changes the color of the particles over the particle lifetime. */
+	class BS_CORE_EXPORT ParticleColor : public ParticleEvolver
+	{
+	public:
+		ParticleColor(const PARTICLE_COLOR_DESC& desc);
+
+		/** @copydoc ParticleEvolver::evolve */
+		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const override;
+
+		/** @copydoc ParticleEvolver::getProperties */
+		const ParticleEvolverProperties& getProperties() const override
+		{
+			static const ParticleEvolverProperties sProperties(true, 0);
+			return sProperties;
+		}
+	private:
+		PARTICLE_COLOR_DESC mDesc;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		ParticleColor() = default; // RTTI only
+
+		friend class ParticleColorRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
+	};
+
+	/** Structure used for initializing a ParticleSize object. */
+	struct PARTICLE_SIZE_DESC
+	{
+		/** 
+		 * Determines the uniform size of the particles evaluated over particle lifetime. Only used if 3D size is disabled.
+		 */
+		FloatDistribution size = 1.0f;
+
+		/** 
+		 * Determines the non-uniform size of the particles evaluated over particle lifetime. Only used if 3D size is
+		 * enabled.
+		 */
+		Vector3Distribution size3D = Vector3::ONE;
+
+		/** 
+		 * Determines should the size be evaluated uniformly for all dimensions, or evaluate each dimension with its own
+		 * distribution.
+		 */
+		bool use3DSize = false;
+	};
+
+	/** Changes the size of the particles over the particle lifetime. */
+	class BS_CORE_EXPORT ParticleSize : public ParticleEvolver
+	{
+	public:
+		ParticleSize(const PARTICLE_SIZE_DESC& desc);
+
+		/** @copydoc ParticleEvolver::evolve */
+		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const override;
+
+		/** @copydoc ParticleEvolver::getProperties */
+		const ParticleEvolverProperties& getProperties() const override
+		{
+			static const ParticleEvolverProperties sProperties(true, 0);
+			return sProperties;
+		}
+	private:
+		PARTICLE_SIZE_DESC mDesc;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		ParticleSize() = default; // RTTI only
+
+		friend class ParticleSizeRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
+	};
+
+	/** Structure used for initializing a ParticleRotation object. */
+	struct PARTICLE_ROTATION_DESC
+	{
+		/** 
+		 * Determines the rotation of the particles in degrees, applied around the particle's local Z axis. Only used if 
+		 * 3D rotation is disabled. 
+		 */
+		FloatDistribution rotation = 0.0f;
+
+		/** Determines the rotation of the particles in degrees as Euler angles. Only used if 3D rotation is enabled. */
+		Vector3Distribution rotation3D = Vector3::ZERO;
+
+		/**
+		 * Determines should the particle rotation be a single angle applied around a Z axis (if disabled), or a 
+		 * set of Euler angles that allow you to rotate around every axis (if enabled).
+		 */
+		bool use3DRotation = false;
+	};
+
+	/** Rotates the particles over the particle lifetime. */
+	class BS_CORE_EXPORT ParticleRotation : public ParticleEvolver
+	{
+	public:
+		ParticleRotation(const PARTICLE_ROTATION_DESC& desc);
+
+		/** @copydoc ParticleEvolver::evolve */
+		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const override;
+
+		/** @copydoc ParticleEvolver::getProperties */
+		const ParticleEvolverProperties& getProperties() const override
+		{
+			static const ParticleEvolverProperties sProperties(true, 0);
+			return sProperties;
+		}
+	private:
+		PARTICLE_ROTATION_DESC mDesc;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		ParticleRotation() = default; // RTTI only
+
+		friend class ParticleRotationRTTI;
 		static RTTITypeBase* getRTTIStatic();
 		RTTITypeBase* getRTTI() const override;
 	};

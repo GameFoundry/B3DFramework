@@ -51,6 +51,7 @@ shader Surface
 		cbuffer MaterialParams
 		{
 			float gOpacity = 1.0f;
+			[color]
 			float3 gEmissiveColor = { 1.0f, 1.0f, 1.0f };
 			float2 gUVOffset = { 0.0f, 0.0f };
 			float2 gUVTile = { 1.0f, 1.0f };

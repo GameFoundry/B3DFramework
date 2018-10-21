@@ -143,7 +143,7 @@ namespace bs
 		 * @return				Evaluated color.
 		 *
 		 */
-		RGBA evaluate(float t, Random& factor) const
+		RGBA evaluate(float t, const Random& factor) const
 		{
 			switch(mType)
 			{

@@ -454,6 +454,32 @@ namespace bs
 		}
 	};
 
+	class BS_CORE_EXPORT ParticleForceRTTI : public RTTIType<ParticleForce, IReflectable, ParticleForceRTTI>
+	{
+	private:
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN_NAMED(force, mDesc.force, 0)
+			BS_RTTI_MEMBER_PLAIN_NAMED(worldSpace, mDesc.worldSpace, 1)
+		BS_END_RTTI_MEMBERS
+
+	public:
+		const String& getRTTIName() override
+		{
+			static String name = "ParticleForce";
+			return name;
+		}
+
+		UINT32 getRTTIId() override
+		{
+			return TID_ParticleForce;
+		}
+
+		SPtr<IReflectable> newRTTIObject() override
+		{
+			return bs_shared_ptr_new<ParticleForce>();
+		}
+	};
+
 	class BS_CORE_EXPORT ParticleGravityRTTI : public RTTIType<ParticleGravity, IReflectable, ParticleGravityRTTI>
 	{
 	private:
@@ -476,6 +502,85 @@ namespace bs
 		SPtr<IReflectable> newRTTIObject() override
 		{
 			return bs_shared_ptr_new<ParticleGravity>();
+		}
+	};
+
+	class BS_CORE_EXPORT ParticleColorRTTI : public RTTIType<ParticleColor, IReflectable, ParticleColorRTTI>
+	{
+	private:
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN_NAMED(color, mDesc.color, 0)
+		BS_END_RTTI_MEMBERS
+
+	public:
+		const String& getRTTIName() override
+		{
+			static String name = "ParticleColor";
+			return name;
+		}
+
+		UINT32 getRTTIId() override
+		{
+			return TID_ParticleColor;
+		}
+
+		SPtr<IReflectable> newRTTIObject() override
+		{
+			return bs_shared_ptr_new<ParticleColor>();
+		}
+	};
+
+	class BS_CORE_EXPORT ParticleSizeRTTI : public RTTIType<ParticleSize, IReflectable, ParticleSizeRTTI>
+	{
+	private:
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN_NAMED(size, mDesc.size, 0)
+			BS_RTTI_MEMBER_PLAIN_NAMED(size3D, mDesc.size3D, 1)
+			BS_RTTI_MEMBER_PLAIN_NAMED(use3DSize, mDesc.use3DSize, 2)
+		BS_END_RTTI_MEMBERS
+
+	public:
+		const String& getRTTIName() override
+		{
+			static String name = "ParticleSize";
+			return name;
+		}
+
+		UINT32 getRTTIId() override
+		{
+			return TID_ParticleSize;
+		}
+
+		SPtr<IReflectable> newRTTIObject() override
+		{
+			return bs_shared_ptr_new<ParticleSize>();
+		}
+	};
+
+	class BS_CORE_EXPORT ParticleRotationRTTI : public RTTIType<ParticleRotation, IReflectable, ParticleRotationRTTI>
+	{
+	private:
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN_NAMED(rotation, mDesc.rotation, 0)
+			BS_RTTI_MEMBER_PLAIN_NAMED(rotation3D, mDesc.rotation3D, 1)
+			BS_RTTI_MEMBER_PLAIN_NAMED(use3DRotation, mDesc.use3DRotation, 2)
+		BS_END_RTTI_MEMBERS
+
+	public:
+		const String& getRTTIName() override
+		{
+			static String name = "ParticleRotation";
+			return name;
+		}
+
+		UINT32 getRTTIId() override
+		{
+			return TID_ParticleRotation;
+		}
+
+		SPtr<IReflectable> newRTTIObject() override
+		{
+			return bs_shared_ptr_new<ParticleRotation>();
 		}
 	};
 
