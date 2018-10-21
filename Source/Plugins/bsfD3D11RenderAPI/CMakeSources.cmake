@@ -76,6 +76,7 @@ set(BS_D3D11RENDERAPI_SRC_NOFILTER
 	"BsD3D11RenderAPIFactory.cpp"
 	"BsD3D11CommandBuffer.cpp"
 	"BsD3D11CommandBufferManager.cpp"
+	"BsD3D11Win32Resource.rc"
 )
 
 source_group("" FILES ${BS_D3D11RENDERAPI_SRC_NOFILTER} ${BS_D3D11RENDERAPI_INC_NOFILTER})

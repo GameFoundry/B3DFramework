@@ -21,9 +21,18 @@ set(BS_FMOD_SRC_NOFILTER
 	"../bsfOpenAudio/BsOggVorbisDecoder.cpp"
 )
 
-source_group("" FILES ${BS_FMOD_INC_NOFILTER} ${BS_FMOD_SRC_NOFILTER})
+if(WIN32)
+	set(BS_FMOD_WIN32RES
+	"BsFMODWin32Resource.rc"
+	)
+else()
+	set(BS_FMOD_WIN32RES )
+endif()
+
+source_group("" FILES ${BS_FMOD_INC_NOFILTER} ${BS_FMOD_SRC_NOFILTER} ${BS_FMOD_WIN32RES})
 
 set(BS_FMOD_SRC
 	${BS_FMOD_INC_NOFILTER}
 	${BS_FMOD_SRC_NOFILTER}
+	${BS_FMOD_WIN32RES}
 )

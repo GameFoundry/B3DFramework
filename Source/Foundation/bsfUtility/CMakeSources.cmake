@@ -266,6 +266,7 @@ set(BS_UTILITY_SRC_WIN32
 	"bsfUtility/Private/Win32/BsWin32CrashHandler.cpp"
 	"bsfUtility/Private/Win32/BsWin32PlatformUtility.cpp"
 	"bsfUtility/Private/Win32/BsWin32Window.cpp"
+	"bsfUtility/Private/Win32/BsWin32Resource.rc"
 )
 
 set(BS_UTILITY_SRC_UNIX

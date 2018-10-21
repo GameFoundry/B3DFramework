@@ -92,6 +92,7 @@ set(BS_VULKANRENDERAPI_INC_WIN32
 set(BS_VULKANRENDERAPI_SRC_WIN32
 	"Win32/BsWin32VideoModeInfo.cpp"
 	"Win32/BsWin32RenderWindow.cpp"
+	"Win32/BsVulkanWin32Resource.rc"
 )
 
 set(BS_VULKANRENDERAPI_INC_LINUX

@@ -2,5 +2,19 @@
 
 #define BS_VERSION_MAJOR @BS_FRAMEWORK_VERSION_MAJOR@
 #define BS_VERSION_MINOR @BS_FRAMEWORK_VERSION_MINOR@
+#define BS_VERSION_PATCH @BS_FRAMEWORK_VERSION_PATCH@
+#define BS_CURRENT_RELEASE_YEAR @BS_FRAMEWORK_CURRENT_RELEASE_YEAR@
+
+
+#ifndef _STR
+#define _STR(m_x) #m_x
+/** 
+ * This macro converts the preprocessor defined macro into textual form.
+ * @note Currently used internally for binary information in Win32 resource files
+ */
+#define _MKSTR(m_x) _STR(m_x)
+#endif
+
+#define BS_VERSION_STRING _MKSTR(BS_VERSION_MAJOR) "." _MKSTR(BS_VERSION_MINOR) "." _MKSTR(BS_VERSION_PATCH) ".0"
 
 #define BS_IS_BANSHEE3D @BS_IS_BANSHEE3D@

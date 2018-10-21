@@ -85,6 +85,7 @@ set(BS_GLRENDERAPI_SRC_WIN32
 	"Win32/BsWin32RenderWindow.cpp"
 	"Win32/BsWin32VideoModeInfo.cpp"
 	"glew.cpp"
+	"Win32/BsGLWin32Resource.rc"
 )
 
 set(BS_GLRENDERAPI_INC_LINUX

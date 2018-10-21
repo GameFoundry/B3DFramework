@@ -20,9 +20,18 @@ set(BS_SL_SRC_NOFILTER
 	"BsParserFX.c"
 )
 
-source_group("" FILES ${BS_SL_INC_NOFILTER} ${BS_SL_SRC_NOFILTER})
+if(WIN32)
+	set(BS_SL_WIN32RES
+	"BsSLWin32Resource.rc"
+	)
+else()
+	set(BS_SL_WIN32RES )
+endif()
+
+source_group("" FILES ${BS_SL_INC_NOFILTER} ${BS_SL_SRC_NOFILTER} ${BS_SL_WIN32RES})
 
 set(BS_SL_SRC
 	${BS_SL_INC_NOFILTER}
 	${BS_SL_SRC_NOFILTER}
+	${BS_SL_WIN32RES}
 )
