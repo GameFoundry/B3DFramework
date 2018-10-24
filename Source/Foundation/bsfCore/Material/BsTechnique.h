@@ -19,7 +19,7 @@ namespace bs
 	{
 	public:
 		TechniqueBase(const String& language, const Vector<StringID>& tags, const ShaderVariation& variation);
-		virtual ~TechniqueBase() { }
+		virtual ~TechniqueBase() = default;
 
 		/**	Checks if this technique is supported based on current render and other systems. */
 		bool isSupported() const;
@@ -49,7 +49,7 @@ namespace bs
 		TTechnique();
 		TTechnique(const String& language, const Vector<StringID>& tags, const ShaderVariation& variation, 
 			const Vector<SPtr<PassType>>& passes);
-		virtual ~TTechnique() { }
+		virtual ~TTechnique() = default;
 
 		/**	Returns a pass with the specified index. */
 		SPtr<PassType> getPass(UINT32 idx) const;

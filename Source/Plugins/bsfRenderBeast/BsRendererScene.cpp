@@ -269,7 +269,7 @@ namespace bs {	namespace ct
 				static_assert((UINT32)RenderableAnimType::Count == 4, "RenderableAnimType is expected to have four sequential entries.");
 
 				ShaderFlags shaderFlags = renElement.material->getShader()->getFlags();
-				bool useForwardRendering = shaderFlags.isSet(ShaderFlag::Forward) || shaderFlags.isSet(ShaderFlag::Transparent);
+				const bool useForwardRendering = shaderFlags.isSet(ShaderFlag::Forward) || shaderFlags.isSet(ShaderFlag::Transparent);
 				
 				RenderableAnimType animType = renderable->getAnimType();
 
@@ -305,6 +305,7 @@ namespace bs {	namespace ct
 
 				FIND_TECHNIQUE_DESC findDesc;
 				findDesc.variation = variation;
+				findDesc.override = true;
 
 				UINT32 techniqueIdx = renElement.material->findTechnique(findDesc);
 
@@ -312,6 +313,11 @@ namespace bs {	namespace ct
 					techniqueIdx = renElement.material->getDefaultTechnique();
 
 				renElement.techniqueIdx = techniqueIdx;
+
+				// Make sure the technique shaders are compiled
+				const SPtr<Technique>& technique = renElement.material->getTechnique(techniqueIdx);
+				if(technique)
+					technique->compile();
 
 #if BS_DEBUG_MODE
 				// Validate mesh <-> shader vertex bindings
@@ -724,6 +730,7 @@ namespace bs {	namespace ct
 
 		FIND_TECHNIQUE_DESC findDesc;
 		findDesc.variation = variation;
+		findDesc.override = true;
 
 		UINT32 techniqueIdx = renElement.material->findTechnique(findDesc);
 
@@ -731,6 +738,11 @@ namespace bs {	namespace ct
 			techniqueIdx = renElement.material->getDefaultTechnique();
 
 		renElement.techniqueIdx = techniqueIdx;
+
+		// Make sure the technique shaders are compiled
+		const SPtr<Technique>& technique = renElement.material->getTechnique(techniqueIdx);
+		if (technique)
+			technique->compile();
 
 		// Generate or assigned renderer specific data for the material
 		renElement.params = renElement.material->createParamsSet(techniqueIdx);

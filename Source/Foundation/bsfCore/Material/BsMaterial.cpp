@@ -6,7 +6,6 @@
 #include "Material/BsPass.h"
 #include "RenderAPI/BsRenderAPI.h"
 #include "Private/RTTI/BsMaterialRTTI.h"
-#include "Material/BsMaterialManager.h"
 #include "Resources/BsResources.h"
 #include "Math/BsMatrixNxM.h"
 #include "Math/BsVector3I.h"
@@ -15,6 +14,8 @@
 #include "Material/BsMaterialParams.h"
 #include "Material/BsGpuParamsSet.h"
 #include "Animation/BsAnimationCurve.h"
+#include "CoreThread/BsCoreObjectSync.h"
+#include "Private/RTTI/BsShaderVariationRTTI.h"
 
 namespace bs
 {
@@ -60,8 +61,12 @@ namespace bs
 	template<bool Core>
 	UINT32 TMaterial<Core>::findTechnique(const FIND_TECHNIQUE_DESC& desc) const
 	{
+		UINT32 bestTechniqueIdx = (UINT32)-1;
+		UINT32 bestTechniqueScore = std::numeric_limits<UINT32>::max();
+
 		for(UINT32 i = 0; i < (UINT32)mTechniques.size(); i++)
 		{
+			// Make sure tags match
 			bool foundMatch = true;
 			for(UINT32 j = 0; j < desc.numTags; j++)
 			{
@@ -75,48 +80,194 @@ namespace bs
 			if(!foundMatch)
 				continue;
 
-			if(desc.variation)
+			const ShaderVariation& curVariation = mTechniques[i]->getVariation();
+			const auto& curVarParams = curVariation.getParams();
+			const auto& internalVarParams = mVariation.getParams();
+
+			UINT32 numMatchedSearchParams = 0;
+			UINT32 numMatchedInternalParams = 0;
+			UINT32 currentScore = 0;
+			for(auto& param : curVarParams)
 			{
-				const ShaderVariation& curVariation = mTechniques[i]->getVariation();
-				const auto& curVarParams = curVariation.getParams();
-
-				foundMatch = true;
-				const auto& searchVarParams = desc.variation->getParams();
-				for (auto& param : searchVarParams)
+				enum SearchResult
 				{
-					auto iterFind = curVarParams.find(param.first);
-					if (iterFind == curVarParams.end())
+					NoParam,
+					NotMatching,
+					Matching
+				};
+
+				SearchResult matchesSearch = NoParam;
+				if(desc.variation)
+				{
+					const auto& searchVarParams = desc.variation->getParams();
+					const auto findSearch = searchVarParams.find(param.first);
+					if(findSearch != searchVarParams.end())
+						matchesSearch = findSearch->second.i == param.second.i ? Matching : NotMatching;
+				}
+
+				SearchResult matchesInternal = NoParam;
+				const auto findInternal = internalVarParams.find(param.first);
+				if (findInternal != internalVarParams.end())
+					matchesInternal = findInternal->second.i == param.second.i ? Matching : NotMatching;
+
+				switch(matchesSearch)
+				{
+				default:
+				case NoParam: 
+					switch(matchesInternal)
+					{
+					default: 
+					case NoParam: 
+						// When it comes to parameters not part of the search, prefer those with 0 default value
+						currentScore += param.second.ui;
+						break;
+					case NotMatching: 
+						foundMatch = false;
+						break;
+					case Matching: 
+						numMatchedInternalParams++;
+						break;
+					}
+					break;
+				case NotMatching: 
+					if(desc.override)
 					{
 						foundMatch = false;
 						break;
 					}
 
-					if (param.second.i != iterFind->second.i)
+					switch(matchesInternal)
 					{
+					default:
+					case NoParam: 
 						foundMatch = false;
 						break;
+					case NotMatching: 
+						foundMatch = false;
+						break;
+					case Matching: 
+						numMatchedSearchParams++;
+						numMatchedInternalParams++;
+						break;
 					}
+					break;
+				case Matching: 
+					switch(matchesInternal) 
+					{ 
+					default:
+						case NoParam: 
+						numMatchedSearchParams++;
+						break;
+						case NotMatching: 
+						if(desc.override)
+						{
+							numMatchedSearchParams++;
+							numMatchedInternalParams++;
+						}
+						else
+							foundMatch = false;
+						break;
+						case Matching: 
+							numMatchedSearchParams++;
+							numMatchedInternalParams++;
+						break;
+					}
+						break;
 				}
+
+				if(!foundMatch)
+					break;
 			}
 
-			if(foundMatch)
-				return i;
+			if (!foundMatch)
+				continue;
+
+			if(desc.variation)
+			{
+				const auto& searchVarParams = desc.variation->getParams();
+				if(numMatchedSearchParams != (UINT32)searchVarParams.size())
+					continue;
+			}
+
+			if(numMatchedInternalParams != (UINT32)internalVarParams.size())
+				continue;
+
+			if (currentScore < bestTechniqueScore)
+			{
+				bestTechniqueIdx = i;
+				bestTechniqueScore = currentScore;
+			}
 		}
 
-		return (UINT32)-1;
+		return bestTechniqueIdx;
 		
 	}
 
 	template<bool Core>
 	UINT32 TMaterial<Core>::getDefaultTechnique() const
 	{
+		UINT32 bestTechniqueIdx = 0;
+		UINT32 bestTechniqueScore = std::numeric_limits<UINT32>::max();
+
 		for (UINT32 i = 0; i < (UINT32)mTechniques.size(); i++)
 		{
-			if (!mTechniques[i]->hasTags())
-				return i;
+			if (mTechniques[i]->hasTags())
+				continue;
+
+			const ShaderVariation& curVariation = mTechniques[i]->getVariation();
+			const auto& curVarParams = curVariation.getParams();
+			const auto& internalVarParams = mVariation.getParams();
+
+			bool foundMatch = true;
+			UINT32 numMatchedParams = 0;
+			UINT32 currentScore = 0;
+			for(auto& param : curVarParams)
+			{
+				enum SearchResult
+				{
+					NoParam,
+					NotMatching,
+					Matching
+				};
+
+				SearchResult matches = NoParam;
+				const auto findInternal = internalVarParams.find(param.first);
+				if (findInternal != internalVarParams.end())
+					matches = findInternal->second.i == param.second.i ? Matching : NotMatching;
+
+				switch(matches)
+				{
+				default:
+				case NoParam: 
+					// When it comes to parameters not part of the search, prefer those with 0 default value
+					currentScore += param.second.ui;
+					break;
+				case NotMatching: 
+					foundMatch = false;
+					break;
+				case Matching: 
+					numMatchedParams++;
+					break;
+				}
+
+				if(!foundMatch)
+					break;
+			}
+
+			if (!foundMatch)
+				continue;
+
+			if(numMatchedParams != (UINT32)internalVarParams.size())
+				continue;
+
+			if (currentScore < bestTechniqueScore)
+			{
+				bestTechniqueIdx = i;
+				bestTechniqueScore = currentScore;
+			}
 		}
 
-		return 0;
+		return bestTechniqueIdx;
 	}
 
 	template<bool Core>
@@ -211,24 +362,17 @@ namespace bs
 	}
 
 	template<bool Core>
-	void TMaterial<Core>::initializeTechniques(bool allVariations, const ShaderVariation& variation)
+	void TMaterial<Core>::initializeTechniques()
 	{
 		mTechniques.clear();
 
 		if (isShaderValid(mShader))
 		{
 			mParams = bs_shared_ptr_new<MaterialParamsType>(mShader);
+			mTechniques = mShader->getCompatibleTechniques();
 
-			if(allVariations)
-				mTechniques = mShader->getCompatibleTechniques();
-			else
-				mTechniques = mShader->getCompatibleTechniques(variation);
-
-			if (mTechniques.size() == 0)
+			if (mTechniques.empty())
 				return;
-
-			for(auto& entry : mTechniques)
-				entry->compile();
 
 			initDefaultParameters();
 		}
@@ -374,14 +518,10 @@ namespace bs
 	void TMaterial<Core>::throwIfNotInitialized() const
 	{
 		if (mShader == nullptr)
-		{
 			BS_EXCEPT(InternalErrorException, "Material does not have shader set.");
-		}
 
-		if (mTechniques.size() == 0)
-		{
+		if (mTechniques.empty())
 			BS_EXCEPT(InternalErrorException, "Shader does not contain a supported technique.");
-		}
 	}
 
 	template class TMaterial < false > ;
@@ -429,10 +569,11 @@ namespace bs
 		:mLoadFlags(Load_None)
 	{ }
 
-	Material::Material(const HShader& shader)
+	Material::Material(const HShader& shader, const ShaderVariation& variation)
 		:mLoadFlags(Load_None)
 	{
 		mShader = shader;
+		mVariation = variation;
 	}
 
 	void Material::initialize()
@@ -459,6 +600,12 @@ namespace bs
 		_markResourcesDirty();
 
 		initializeIfLoaded();
+	}
+
+	void Material::setVariation(const ShaderVariation& variation)
+	{
+		mVariation = variation;
+		markCoreDirty();
 	}
 
 	void Material::_markCoreDirty(MaterialDirtyFlags flags)
@@ -496,11 +643,11 @@ namespace bs
 			
 			SPtr<ct::MaterialParams> materialParams = bs_shared_ptr_new<ct::MaterialParams>(shader, mParams);
 
-			material = new (bs_alloc<ct::Material>()) ct::Material(shader, techniques, materialParams);
+			material = new (bs_alloc<ct::Material>()) ct::Material(shader, techniques, materialParams, mVariation);
 		}
 		
 		if (material == nullptr)
-			material = new (bs_alloc<ct::Material>()) ct::Material(shader);
+			material = new (bs_alloc<ct::Material>()) ct::Material(shader, mVariation);
 
 		SPtr<ct::Material> materialPtr = bs_shared_ptr<ct::Material>(material);
 		materialPtr->_setThisPtr(materialPtr);
@@ -510,7 +657,7 @@ namespace bs
 
 	CoreSyncData Material::syncToCore(FrameAlloc* allocator)
 	{
-		bool syncAllParams = (getCoreDirtyFlags() & (UINT32)MaterialDirtyFlags::ParamResource) != 0;
+		const bool syncAllParams = (getCoreDirtyFlags() & (UINT32)MaterialDirtyFlags::ParamResource) != 0;
 
 		UINT32 paramsSize = 0;
 		if (mParams != nullptr)
@@ -519,6 +666,8 @@ namespace bs
 		UINT32 numTechniques = (UINT32)mTechniques.size();
 		UINT32 size = sizeof(bool) + sizeof(UINT32) * 2 + sizeof(SPtr<ct::Shader>) + 
 			sizeof(SPtr<ct::Technique>) * numTechniques + paramsSize;
+
+		size += coreSyncGetElemSize(mVariation);
 
 		UINT8* buffer = allocator->alloc(size);
 		char* dataPtr = (char*)buffer;
@@ -547,6 +696,7 @@ namespace bs
 			mParams->getSyncData((UINT8*)dataPtr, paramsSize, syncAllParams);
 
 		dataPtr += paramsSize;
+		dataPtr = coreSyncWriteElem(mVariation, dataPtr);
 
 		return CoreSyncData(buffer, size);
 	}
@@ -589,7 +739,7 @@ namespace bs
 				initializeTechniques();
 				markCoreDirty();
 
-				if (mTechniques.size() == 0) // Wasn't initialized
+				if (mTechniques.empty()) // Wasn't initialized
 					return;
 
 				if(oldParams)
@@ -826,16 +976,30 @@ namespace bs
 
 	HMaterial Material::create()
 	{
-		SPtr<Material> materialPtr = MaterialManager::instance().create();
-
+		const SPtr<Material> materialPtr = createEmpty();
 		return static_resource_cast<Material>(gResources()._createResourceHandle(materialPtr));
 	}
 
 	HMaterial Material::create(const HShader& shader)
 	{
-		SPtr<Material> materialPtr = MaterialManager::instance().create(shader);
+		return create(shader, ShaderVariation::EMPTY);
+	}
+
+	HMaterial Material::create(const HShader& shader, const ShaderVariation& variation)
+	{
+		SPtr<Material> materialPtr = bs_core_ptr<Material>(new (bs_alloc<Material>()) Material(shader, variation));
+		materialPtr->_setThisPtr(materialPtr);
+		materialPtr->initialize();
 
 		return static_resource_cast<Material>(gResources()._createResourceHandle(materialPtr));
+	}
+
+	SPtr<Material> Material::createEmpty()
+	{
+		SPtr<Material> newMat = bs_core_ptr<Material>(new (bs_alloc<Material>()) Material());
+		newMat->_setThisPtr(newMat);
+
+		return newMat;
 	}
 
 	RTTITypeBase* Material::getRTTIStatic()
@@ -850,22 +1014,19 @@ namespace bs
 
 	namespace ct
 	{
-	Material::Material(const SPtr<Shader>& shader)
+	Material::Material(const SPtr<Shader>& shader, const ShaderVariation& variation)
 	{
+		mVariation = variation;
 		setShader(shader);
 	}
 	
-	Material::Material(const SPtr<Shader>& shader, const ShaderVariation& variation)
-	{
-		setShader(shader, variation);
-	}
-
 	Material::Material(const SPtr<Shader>& shader, const Vector<SPtr<Technique>>& techniques,
-		const SPtr<MaterialParams>& materialParams)
+		const SPtr<MaterialParams>& materialParams, const ShaderVariation& variation)
 	{
 		mShader = shader;
 		mParams = materialParams;
 		mTechniques = techniques;
+		mVariation = variation;
 	}
 
 	void Material::setShader(const SPtr<Shader>& shader)
@@ -873,17 +1034,13 @@ namespace bs
 		mShader = shader;
 
 		initializeTechniques();
-		_markCoreDirty(MaterialDirtyFlags::Shader);
+	}
+
+	void Material::setVariation(const ShaderVariation& variation)
+	{
+		mVariation = variation;
 	}
 	
-	void Material::setShader(const SPtr<Shader>& shader, const ShaderVariation& variation)
-	{
-		mShader = shader;
-
-		initializeTechniques(false, variation);
-		_markCoreDirty(MaterialDirtyFlags::Shader);
-	}
-
 	void Material::syncToCore(const CoreSyncData& data)
 	{
 		char* dataPtr = (char*)data.getBuffer();
@@ -921,21 +1078,14 @@ namespace bs
 			mParams->setSyncData((UINT8*)dataPtr, paramsSize);
 
 		dataPtr += paramsSize;
+
+		mVariation.clearParams();
+		dataPtr = coreSyncReadElem(mVariation, dataPtr);
 	}
 
 	SPtr<Material> Material::create(const SPtr<Shader>& shader)
 	{
-		Material* material = new (bs_alloc<Material>()) Material(shader);
-		SPtr<Material> materialPtr = bs_shared_ptr<Material>(material);
-		materialPtr->_setThisPtr(materialPtr);
-		materialPtr->initialize();
-
-		return materialPtr;
-	}
-	
-	SPtr<Material> Material::create(const SPtr<Shader>& shader, const ShaderVariation& variation)
-	{
-		Material* material = new (bs_alloc<Material>()) Material(shader, variation);
+		Material* material = new (bs_alloc<Material>()) Material(shader, ShaderVariation::EMPTY);
 		SPtr<Material> materialPtr = bs_shared_ptr<Material>(material);
 		materialPtr->_setThisPtr(materialPtr);
 		materialPtr->initialize();

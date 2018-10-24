@@ -86,7 +86,7 @@ namespace bs
 			ParamType type;
 		};
 
-		ShaderVariation() { }
+		ShaderVariation() = default;
 		
 		/** Creates a new shader variation with the specified parameters. */
 		ShaderVariation(const SmallVector<Param, 4>& params);
@@ -112,6 +112,39 @@ namespace bs
 		 */
 		bool getBool(const StringID& name);
 
+		/** Registers a new parameter that controls the variation. */
+		void addParam(const Param& param) { mParams[param.name] = param; }
+
+		/** Removes a parameter with the specified name. */
+		void removeParam(const StringID& paramName) { mParams.erase(paramName); }
+
+		/** Removes all parameters. */
+		void clearParams() { mParams.clear(); }
+
+		/** 
+		 * Checks if this variation matches some other variation. 
+		 * 
+		 * @param[in]		other		Other variation to compare it to.
+		 * @param[in]		exact		When true both variations need to have the exact number of parameters with identical
+		 *								contents, equivalent to the equals operator. When false, only the subset of 
+		 *								parameters present in @p other is used for comparison, while any extra parameters 
+		 *								present in this object are ignored.
+		 */
+		bool matches(const ShaderVariation& other, bool exact = true) const;
+
+		/** Returns all the variation parameters. */
+		const UnorderedMap<StringID, Param>& getParams() const { return mParams; }
+
+		bool operator==(const ShaderVariation& rhs) const;
+
+		/** Empty variation with no parameters. */
+		static const ShaderVariation EMPTY;
+
+		/**
+		 * @name Internal
+		 * @{
+		 */
+
 		/** Converts all the variation parameters in a ShaderDefines object, that may be consumed by the shader compiler. */
 		ShaderDefines getDefines() const;
 
@@ -123,14 +156,14 @@ namespace bs
 		/** Assigns a unique index to the variation that can later be used for quick lookup. */
 		void setIdx(UINT32 idx) const { mIdx = idx; }
 
-		/** Registers a new parameter that controls the variation. */
-		void addParam(const Param& param) { mParams[param.name] = param; }
+		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
+		template<class P>
+		void rttiEnumFields(P p)
+		{
+			p(mParams);
+		}
 
-		/** Returns all the variation parameters. */
-		const UnorderedMap<StringID, Param>& getParams() const { return mParams; }
-
-		bool operator==(const ShaderVariation& rhs) const;
-
+		/** @} */
 	private:
 		friend class ShaderVariations;
 

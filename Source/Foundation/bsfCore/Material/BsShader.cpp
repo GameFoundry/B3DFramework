@@ -406,12 +406,12 @@ namespace bs
 
 	template<bool Core>
 	Vector<SPtr<typename TShader<Core>::TechniqueType>> TShader<Core>::getCompatibleTechniques(
-		const ShaderVariation& variation) const
+		const ShaderVariation& variation, bool exact) const
 	{
 		Vector<SPtr<TechniqueType>> output;
 		for (auto& technique : mDesc.techniques)
 		{
-			if (technique->isSupported() && technique->getVariation() == variation)
+			if (technique->isSupported() && technique->getVariation().matches(variation, exact))
 				output.push_back(technique);
 		}
 

@@ -50,6 +50,15 @@ namespace bs
 		/** Specified variation of the technique. Parameters not specified in the variation are assumed to be irrelevant. */
 		const ShaderVariation* variation = nullptr;
 
+		/**
+		 * Determines should the parameters in @p variation override any parameters that might have been defined on the
+		 * Material itself. If false then you are guaranteed to search only over the subset of techniques that match the
+		 * Material's internal variaton parameters. If true then you can search outside that range by setting a variation
+		 * parameter to some different value. Overriding can be useful for renderers which might need to override the user's 
+		 * choice of variation.
+		 */
+		bool override = false;
+
 		/** Registers a new tag to look for when searching for the technique. */
 		void addTag(const StringID& tag)
 		{
@@ -134,13 +143,29 @@ namespace bs
 		BS_SCRIPT_EXPORT(n:Shader,pr:getter)
 		ShaderType getShader() const { return mShader; }
 
+		/** @copydoc Material::setVariation */
+		const ShaderVariation& getVariation() const { return mVariation; }
+
 		/** Returns the total number of techniques supported by this material. */
 		UINT32 getNumTechniques() const { return (UINT32)mTechniques.size(); }
 
-		/** Attempts to find a technique matching the specified variation and tags. Returns -1 if none can be found. */
+		/** Returns the technique at the specified index. */
+		const SPtr<TechniqueType>& getTechnique(UINT32 idx) const { return mTechniques[idx]; }
+
+		/** 
+		 * Attempts to find a technique matching the specified variation and tags among the supported techniques. 
+		 * 
+		 * @param[in]	desc				Object containing an optional set of tags and a set of variation parameters to 
+		 *									look for.
+		 * @return							First technique that matches the tags & variation parameters specified in 
+		 *									@p desc.
+		 */
 		UINT32 findTechnique(const FIND_TECHNIQUE_DESC& desc) const;
 
-		/** Finds the index of the default (primary) technique to use. */
+		/** 
+		 * Finds the index of the default (primary) technique to use. This will be the first technique that matches the
+		 * currently set variation parameters (if any).
+		 */
 		UINT32 getDefaultTechnique() const;
 
 		/** 
@@ -676,10 +701,9 @@ namespace bs
 
 		/**
 		 * Initializes the material by using the compatible techniques from the currently set shader. Shader must contain 
-		 * the techniques that matches the current renderer and render system. Only the techniques matching the provided
-		 * variation will be used, unless @p allVariations is set to true, in which case @p variation parameter is ignored.
+		 * the techniques that matches the current renderer and render system. 
 		 */
-		void initializeTechniques(bool allVariations = true, const ShaderVariation& variation = ShaderVariation());
+		void initializeTechniques();
 
 		/** Assigns all the default parameters specified in the shader to the material. */
 		void initDefaultParameters();
@@ -690,6 +714,7 @@ namespace bs
 		ShaderType mShader;
 		SPtr<MaterialParamsType> mParams;
 		Vector<SPtr<TechniqueType>> mTechniques;
+		ShaderVariation mVariation;
 	};
 
 	/** @} */
@@ -702,7 +727,7 @@ namespace bs
 	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) Material: public Resource, public TMaterial<false>, public IResourceListener
 	{
 	public:
-		~Material() { }
+		~Material() = default;
 
 		/**
 		 * Sets a shader that will be used by the material. Material will be initialized using all compatible techniques
@@ -710,6 +735,14 @@ namespace bs
 		 */
 		BS_SCRIPT_EXPORT(n:Shader,pr:setter)
 		void setShader(const HShader& shader);
+
+		/** 
+		 * Set of parameters that determine which subset of techniques in the assigned shader should be used. Only the 
+		 * techniques that have the provided parameters with the provided values will match. This will control which 
+		 * technique is considered the default technique and which subset of techniques are searched during a call to 
+		 * findTechnique().
+		 */
+		void setVariation(const ShaderVariation& variation);
 
 		/** Retrieves an implementation of a material usable only from the core thread. */
 		SPtr<ct::Material> getCore() const;
@@ -733,6 +766,12 @@ namespace bs
 		BS_SCRIPT_EXPORT(ec:Material)
 		static HMaterial create(const HShader& shader);
 
+		/** 
+		 * Creates a new material with the specified shader, and a set of parameters that determine which subset of 
+		 * techniques in the shader should the material use.
+		 */
+		static HMaterial create(const HShader& shader, const ShaderVariation& variation);
+
 		/** @name Internal
 		 *  @{
 		 */
@@ -751,10 +790,8 @@ namespace bs
 
 		/** @} */
 	private:
-		friend class MaterialManager;
-
 		Material();
-		Material(const HShader& shader);
+		Material(const HShader& shader, const ShaderVariation& variation);
 
 		/** @copydoc CoreObject::createCore */
 		SPtr<ct::CoreObject> createCore() const override;
@@ -786,6 +823,9 @@ namespace bs
 		 */
 		void setParams(const SPtr<MaterialParams>& params);
 
+		/**	Creates a new empty material but doesn't initialize it. */
+		static SPtr<Material> createEmpty();
+
 		UINT32 mLoadFlags;
 		
 		/************************************************************************/
@@ -810,34 +850,28 @@ namespace bs
 	class BS_CORE_EXPORT Material : public CoreObject, public TMaterial<true>
 	{
 	public:
-		~Material() { }
+		~Material() = default;
 
 		/** @copydoc bs::Material::setShader */
 		void setShader(const SPtr<Shader>& shader);
 
-		/**
-		 * Sets a shader that will be used by the material. Material will be initialized using a subset of compatible 
-		 * techniques matching the provided variation. Shader must be set before doing any other operations with the
-		 * material.
-		 */
-		void setShader(const SPtr<Shader>& shader, const ShaderVariation& variation);
-
 		/** 
-		 * Creates a new material with the specified shader. If the shader has multiple variations all of them are
-		 * initialized and can then be retrieved through findTechnique(const ShaderVariation&). 
+		 * Set of parameters that determine which subset of techniques in the assigned shader should be used. Only the 
+		 * techniques that have the provided parameters with the provided values will match. This will control which 
+		 * technique is considered the default technique and which subset of techniques are searched during a call to 
+		 * findTechnique().
 		 */
-		static SPtr<Material> create(const SPtr<Shader>& shader);
+		void setVariation(const ShaderVariation& variation);
 
-		/** Creates a new material with the specified shader, using only the provided shader variation. */
-		static SPtr<Material> create(const SPtr<Shader>& shader, const ShaderVariation& variation);
+		/** Creates a new material with the specified shader. */
+		static SPtr<Material> create(const SPtr<Shader>& shader);
 	private:
 		friend class bs::Material;
 
-		Material() { }
-		Material(const SPtr<Shader>& shader);
+		Material() = default;
 		Material(const SPtr<Shader>& shader, const ShaderVariation& variation);
 		Material(const SPtr<Shader>& shader, const Vector<SPtr<Technique>>& techniques,
-			const SPtr<MaterialParams>& materialParams);
+			const SPtr<MaterialParams>& materialParams, const ShaderVariation& variation);
 
 		/** @copydoc CoreObject::syncToCore */
 		void syncToCore(const CoreSyncData& data) override;

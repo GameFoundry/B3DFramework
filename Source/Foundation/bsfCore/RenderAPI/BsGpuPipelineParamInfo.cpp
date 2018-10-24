@@ -185,9 +185,6 @@ namespace bs
 		}
 	}
 
-	GpuPipelineParamInfoBase::~GpuPipelineParamInfoBase()
-	{ }
-
 	UINT32 GpuPipelineParamInfoBase::getSequentialSlot(ParamType type, UINT32 set, UINT32 slot) const
 	{
 #if BS_DEBUG_MODE

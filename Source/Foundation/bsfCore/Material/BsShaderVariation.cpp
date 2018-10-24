@@ -25,6 +25,8 @@ namespace bs
 		mDefines[name] = value;
 	}
 
+	const ShaderVariation ShaderVariation::EMPTY;
+
 	ShaderVariation::ShaderVariation(const SmallVector<Param, 4>& params)
 	{
 		for (auto& entry : params)
@@ -90,19 +92,37 @@ namespace bs
 		return defines;
 	}
 
-	bool ShaderVariation::operator==(const ShaderVariation& rhs) const
+	bool ShaderVariation::matches(const ShaderVariation& other, bool exact) const
 	{
-		for(auto& entry : mParams)
+		for(auto& entry : other.mParams)
 		{
-			auto iterFind = rhs.mParams.find(entry.first);
-			if(iterFind == rhs.mParams.end())
+			const auto iterFind = mParams.find(entry.first);
+			if(iterFind == mParams.end())
 				return false;
 
 			if(entry.second.i != iterFind->second.i)
 				return false;
 		}
 
+		if(exact)
+		{
+			for (auto& entry : mParams)
+			{
+				const auto iterFind = other.mParams.find(entry.first);
+				if (iterFind == other.mParams.end())
+					return false;
+
+				if (entry.second.i != iterFind->second.i)
+					return false;
+			}
+		}
+
 		return true;
+	}
+
+	bool ShaderVariation::operator==(const ShaderVariation& rhs) const
+	{
+		return matches(rhs, true);
 	}
 
 	void ShaderVariations::add(const ShaderVariation& variation)

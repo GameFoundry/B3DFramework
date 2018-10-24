@@ -139,7 +139,7 @@ namespace bs
 
 		Color operator/ (const Color& rhs) const
 		{
-			return Color(rhs.r / r, rhs.g / g, rhs.b / b, rhs.a / a);
+			return Color(r / rhs.r, g / rhs.g, b / rhs.b, a / rhs.a);
 		}
 
 		Color operator/ (float rhs) const

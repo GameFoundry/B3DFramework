@@ -138,6 +138,9 @@ namespace bs
 		if(mComputePipelineState || mGraphicsPipelineState)
 			return; // Already compiled
 
+		// Note: It's possible (and quite likely) the pass has already been compiled on the core thread, so this will
+		// unnecessarily recompile it. However syncing them in a clean way is not trivial hard and this method is currently
+		// not being used much (at all) to warrant a complex solution. Something to keep in mind for later though.
 		createPipelineState();
 
 		markCoreDirty();

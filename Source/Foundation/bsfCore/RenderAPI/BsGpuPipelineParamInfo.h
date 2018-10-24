@@ -42,7 +42,7 @@ namespace bs
 
 		/** Constructs the object using the provided GPU parameter descriptors. */
 		GpuPipelineParamInfoBase(const GPU_PIPELINE_PARAMS_DESC& desc);
-		virtual ~GpuPipelineParamInfoBase();
+		virtual ~GpuPipelineParamInfoBase() = default;
 
 		/** Gets the total number of sets. */
 		UINT32 getNumSets() const { return mNumSets; }
@@ -112,7 +112,7 @@ namespace bs
 	class BS_CORE_EXPORT GpuPipelineParamInfo : public CoreObject, public GpuPipelineParamInfoBase
 	{
 	public:
-		virtual ~GpuPipelineParamInfo() { }
+		virtual ~GpuPipelineParamInfo() = default;
 
 		/**
 		 * Retrieves a core implementation of this object usable only from the core thread.
@@ -141,7 +141,7 @@ namespace bs
 	class BS_CORE_EXPORT GpuPipelineParamInfo : public CoreObject, public GpuPipelineParamInfoBase
 	{
 	public:
-		virtual ~GpuPipelineParamInfo() { }
+		virtual ~GpuPipelineParamInfo() = default;
 
 		/** 
 		 * @copydoc bs::GpuPipelineParamInfo::create 

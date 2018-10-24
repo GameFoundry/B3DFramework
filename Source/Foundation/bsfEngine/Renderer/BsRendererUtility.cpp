@@ -145,9 +145,6 @@ namespace bs { namespace ct
 		}
 	}
 
-	RendererUtility::~RendererUtility()
-	{ }
-
 	void RendererUtility::setPass(const SPtr<Material>& material, UINT32 passIdx, UINT32 techniqueIdx)
 	{
 		RenderAPI& rapi = RenderAPI::instance();

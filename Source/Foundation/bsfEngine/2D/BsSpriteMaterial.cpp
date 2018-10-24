@@ -28,8 +28,13 @@ namespace bs
 	void SpriteMaterial::initialize()
 	{
 		// Make sure that mMaterial assignment completes on the previous thread before continuing
-		bool materialStored = mMaterialStored.load(std::memory_order_acquire);
+		const bool materialStored = mMaterialStored.load(std::memory_order_acquire);
 		assert(materialStored == true);
+
+		const SPtr<ct::Pass>& pass = mMaterial->getPass();
+
+		if(pass)
+			pass->compile();
 
 		mParams = mMaterial->createParamsSet();
 

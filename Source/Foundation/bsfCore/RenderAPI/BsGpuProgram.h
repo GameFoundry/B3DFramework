@@ -47,7 +47,7 @@ namespace bs
 			String messages;
 		};
 
-		virtual ~GpuProgram() { }
+		virtual ~GpuProgram() = default;
 
 		/**
 		 * Returns true if the program was successfully compiled. 

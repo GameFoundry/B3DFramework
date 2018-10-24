@@ -429,7 +429,7 @@ namespace bs
 		typedef std::unordered_map<Key, Value, std::hash<Key>, std::equal_to<Key>, StdAlloc<std::pair<const Key, Value>>> MapType;
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static void toMemory(MapType& data, char* memory)
+		static void toMemory(const MapType& data, char* memory)
 		{
 			UINT32 size = sizeof(UINT32);
 			char* memoryStart = memory;
@@ -515,7 +515,7 @@ namespace bs
 		typedef std::unordered_set<Key, std::hash<Key>, std::equal_to<Key>, StdAlloc<Key>> MapType;
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static void toMemory(MapType& data, char* memory)
+		static void toMemory(const MapType& data, char* memory)
 		{
 			UINT32 size = sizeof(UINT32);
 			char* memoryStart = memory;

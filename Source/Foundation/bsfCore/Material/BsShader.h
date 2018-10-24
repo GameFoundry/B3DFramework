@@ -339,7 +339,7 @@ namespace bs
 		using SamplerStateType = typename TSHADER_DESC<Core>::SamplerStateType;
 		using SubShaderType = typename TSubShaderType<Core>::Type;
 
-		TShader() { }
+		TShader() = default;
 		TShader(const String& name, const TSHADER_DESC<Core>& desc, UINT32 id);
 		virtual ~TShader();
 	
@@ -352,8 +352,14 @@ namespace bs
 		/** 
 		 * Returns the list of all supported techniques based on current render API and renderer, and limits the techniques
 		 * to only those implementing the specified variation.
+		 * 
+		 * @param[in]		variation	Object containing variation parameters to compare to technique variation.
+		 * @param[in]		exact		When true the technique variation needs to have the exact number of parameters with
+		 *								identical contents to the provided variation. When false, only the provided subset 
+		 *								of parameters is used for comparison, while any extra parameters present in
+		 *								the technique are not compared.
 		 */
-		Vector<SPtr<TechniqueType>> getCompatibleTechniques(const ShaderVariation& variation) const;
+		Vector<SPtr<TechniqueType>> getCompatibleTechniques(const ShaderVariation& variation, bool exact) const;
 
 		/** Returns a list of all techniques in this shader. */
 		const Vector<SPtr<TechniqueType>>& getTechniques() const { return mDesc.techniques; }
@@ -581,7 +587,7 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-		Shader() { }
+		Shader() = default;
 
 	public:
 		friend class ShaderRTTI;

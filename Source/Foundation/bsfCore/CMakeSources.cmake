@@ -195,7 +195,6 @@ set(BS_CORE_INC_MATERIAL
 	"bsfCore/Material/BsTechnique.h"
 	"bsfCore/Material/BsShader.h"
 	"bsfCore/Material/BsPass.h"
-	"bsfCore/Material/BsMaterialManager.h"
 	"bsfCore/Material/BsMaterial.h"
 	"bsfCore/Material/BsMaterialParam.h"
 	"bsfCore/Material/BsShaderManager.h"
@@ -433,7 +432,6 @@ set(BS_CORE_SRC_IMAGE
 
 set(BS_CORE_SRC_MATERIAL
 	"bsfCore/Material/BsMaterial.cpp"
-	"bsfCore/Material/BsMaterialManager.cpp"
 	"bsfCore/Material/BsPass.cpp"
 	"bsfCore/Material/BsShader.cpp"
 	"bsfCore/Material/BsTechnique.cpp"

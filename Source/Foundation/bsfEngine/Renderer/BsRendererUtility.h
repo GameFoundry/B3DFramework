@@ -83,7 +83,7 @@ namespace bs { namespace ct
 	{
 	public:
 		RendererUtility();
-		~RendererUtility();
+		~RendererUtility() = default;
 
 		/**
 		 * Activates the specified material pass for rendering. Any further draw calls will be executed using this pass.
