@@ -183,6 +183,10 @@
         {
             "Path": "VertexCommon.bslinc",
             "UUID": "7f6cf98d-48da-efc9-c1a2-48da18703e92"
+        },
+        {
+            "Path": "DepthInput.bslinc",
+            "UUID": "06b077c9-432d-43b1-8884-432d5ddfe878"
         }
     ],
     "Shaders": [

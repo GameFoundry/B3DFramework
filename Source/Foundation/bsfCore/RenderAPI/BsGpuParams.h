@@ -41,7 +41,7 @@ namespace bs
 	class BS_CORE_EXPORT GpuParamsBase
 	{
 	public:
-		virtual ~GpuParamsBase();
+		virtual ~GpuParamsBase() = default;
 
 		// Note: Disallow copy/assign because it would require some care when copying (copy internal data shared_ptr and
 		// all the internal buffers too). Trivial to implement but not needed at this time. Un-delete and implement if necessary.

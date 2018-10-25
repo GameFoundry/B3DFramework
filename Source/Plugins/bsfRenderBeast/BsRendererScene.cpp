@@ -893,6 +893,14 @@ namespace bs {	namespace ct
 			renElement.imageBasedParams.populate(gpuParams, GPT_FRAGMENT_PROGRAM, true, supportsClusteredForward,
 				supportsClusteredForward);
 		}
+
+		const bool isTransparent = shaderFlags.isSet(ShaderFlag::Transparent);
+		if(isTransparent)
+		{
+			// Optional depth buffer input if requested
+			if (gpuParams->hasTexture(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex"))
+				gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", renElement.depthInputTexture);
+		}
 	}
 
 	void RendererScene::unregisterParticleSystem(ParticleSystem* particleSystem)

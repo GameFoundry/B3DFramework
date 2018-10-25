@@ -24,9 +24,6 @@ namespace bs
 		:mParamInfo(paramInfo)
 	{ }
 
-	GpuParamsBase::~GpuParamsBase()
-	{ }
-
 	SPtr<GpuParamDesc> GpuParamsBase::getParamDesc(GpuProgramType type) const
 	{
 		return mParamInfo->getParamDesc(type);

@@ -573,13 +573,16 @@
     ],
     "ParticlesUnlit.bsl": [
         {
-            "Path": "ParticleVertex.bslinc"
-        },
-        {
             "Path": "PerCameraData.bslinc"
         },
         {
             "Path": "PerObjectData.bslinc"
+        },
+        {
+            "Path": "DepthInput.bslinc"
+        },
+        {
+            "Path": "ParticleVertex.bslinc"
         }
     ],
     "RadixSortClear.bsl": [

@@ -172,6 +172,9 @@ namespace bs { namespace ct
 		/** Binding spot for the buffer containing instance id -> particle index mapping. */
 		GpuParamBuffer indicesBuffer;
 
+		/** Optional texture input for the depth buffer. */
+		GpuParamTexture depthInputTexture;
+
 		/** Parameters relevant for billboard rendering of the outputs of the particle CPU simulation. */
 		CpuBillboardSimulationParams paramsCPUBillboard;
 

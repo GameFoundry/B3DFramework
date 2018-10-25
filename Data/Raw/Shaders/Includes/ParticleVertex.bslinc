@@ -63,9 +63,13 @@ mixin ParticleVertex
 			float4 position : SV_Position;
 			float2 uv0 : TEXCOORD0;
 			float4 color : COLOR0;
+			
+			#ifdef VIEW_DEPTH
+			float depth : TEXCOORD1;
+			#endif
 
 			#ifdef LIGHTING_DATA
-			float3 worldPosition : TEXCOORD1;
+			float3 worldPosition : TEXCOORD2;
 			
 			float3 tangentToWorldZ : NORMAL; // Note: Half-precision could be used
 			float4 tangentToWorldX : TANGENT; // Note: Half-precision could be used
@@ -312,6 +316,11 @@ mixin ParticleVertex
 			#endif
 			
 			output.position = mul(gMatViewProj, worldPosition);
+			
+			#ifdef VIEW_DEPTH
+				output.depth = output.position.w;
+			#endif
+			
 			return output;
 		}
 	};

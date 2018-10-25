@@ -1379,6 +1379,36 @@ namespace bs { namespace ct
 			iblParams.preintegratedEnvBRDFParam.set(RendererTextures::preintegratedEnvGF);
 		};
 
+		// Prepare render target
+		auto sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[0]);
+		auto sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[2]);
+		auto resolvedSceneDepthNode = static_cast<RCNodeResolvedSceneDepth*>(inputs.inputNodes[5]);
+
+		bool rebuildRT;
+		if (renderTarget != nullptr)
+		{
+			rebuildRT = renderTarget->getColorTexture(0) != sceneColorNode->sceneColorTex->texture;
+			rebuildRT |= renderTarget->getDepthStencilTexture() != sceneDepthNode->depthTex->texture;
+		}
+		else
+			rebuildRT = true;
+
+		if (rebuildRT)
+		{
+			RENDER_TEXTURE_DESC rtDesc;
+			rtDesc.colorSurfaces[0].texture = sceneColorNode->sceneColorTex->texture;
+			rtDesc.colorSurfaces[0].face = 0;
+			rtDesc.colorSurfaces[0].numFaces = 1;
+			rtDesc.colorSurfaces[0].mipLevel = 0;
+
+			rtDesc.depthStencilSurface.texture = sceneDepthNode->depthTex->texture;
+			rtDesc.depthStencilSurface.face = 0;
+			rtDesc.depthStencilSurface.numFaces = 1;
+			rtDesc.depthStencilSurface.mipLevel = 0;
+
+			renderTarget = RenderTexture::create(rtDesc);
+		}
+
 		// Prepare objects for rendering by binding forward lighting data
 		//// Normal renderables
 		const VisibilityInfo& visibility = inputs.view.getVisibilityMasks();
@@ -1427,6 +1457,10 @@ namespace bs { namespace ct
 				ParticlesRenderElement& renderElement = rendererParticles.renderElement;
 
 				ShaderFlags shaderFlags = renderElement.material->getShader()->getFlags();
+
+				if(shaderFlags.isSet(ShaderFlag::Transparent))
+					renderElement.depthInputTexture.set(resolvedSceneDepthNode->output->texture);
+
 				const bool requiresForwardLighting = shaderFlags.isSet(ShaderFlag::Forward);
 				if (!requiresForwardLighting)
 					continue;
@@ -1455,46 +1489,17 @@ namespace bs { namespace ct
 		// occlusion for all lights affecting this object into a single (or a few) textures. I can likely use texture 
 		// arrays for this, or to avoid sampling many textures, perhaps just jam it all in one or few texture channels. 
 
-		RCNodeSceneColor* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[0]);
-		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[2]);
-
-		bool rebuildRT;
-		if (renderTarget != nullptr)
-		{
-			rebuildRT = renderTarget->getColorTexture(0) != sceneColorNode->sceneColorTex->texture;
-			rebuildRT |= renderTarget->getDepthStencilTexture() != sceneDepthNode->depthTex->texture;
-		}
-		else
-			rebuildRT = true;
-
-		if (rebuildRT)
-		{
-			RENDER_TEXTURE_DESC rtDesc;
-			rtDesc.colorSurfaces[0].texture = sceneColorNode->sceneColorTex->texture;
-			rtDesc.colorSurfaces[0].face = 0;
-			rtDesc.colorSurfaces[0].numFaces = 1;
-			rtDesc.colorSurfaces[0].mipLevel = 0;
-
-			rtDesc.depthStencilSurface.texture = sceneDepthNode->depthTex->texture;
-			rtDesc.depthStencilSurface.face = 0;
-			rtDesc.depthStencilSurface.numFaces = 1;
-			rtDesc.depthStencilSurface.mipLevel = 0;
-
-			renderTarget = RenderTexture::create(rtDesc);
-		}
-
-		RenderAPI& rapi = RenderAPI::instance();
-		rapi.setRenderTarget(renderTarget, 0, RT_ALL);
-
-		RenderQueue* queues[] =
-		{
-			inputs.view.getOpaqueQueue(true).get(),
-			inputs.view.getTransparentQueue().get()
-		};
-
 		// Render everything
-		for(UINT32 i = 0; i < bs_size(queues); i++)
-			renderQueueElements(queues[i]->getSortedElements());
+		RenderAPI& rapi = RenderAPI::instance();
+
+		RenderQueue* opaqueQueue = inputs.view.getOpaqueQueue(true).get();
+		RenderQueue* transparentQueue = inputs.view.getTransparentQueue().get();
+
+		rapi.setRenderTarget(renderTarget, 0, RT_ALL);
+		renderQueueElements(opaqueQueue->getSortedElements());
+
+		rapi.setRenderTarget(renderTarget, FBT_DEPTH, RT_ALL);
+		renderQueueElements(transparentQueue->getSortedElements());
 
 		// Note: Perhaps delay clearing this one frame, so previous frame textures have a better chance of being done
 		ParticleRenderer::instance().getTexturePool().clear();
@@ -1523,7 +1528,8 @@ namespace bs { namespace ct
 			RCNodeSkybox::getNodeId(), 
 			RCNodeSceneDepth::getNodeId(),
 			RCNodeParticleSimulate::getNodeId(),
-			RCNodeParticleSort::getNodeId()
+			RCNodeParticleSort::getNodeId(),
+			RCNodeResolvedSceneDepth::getNodeId()
 		};
 	}
 
