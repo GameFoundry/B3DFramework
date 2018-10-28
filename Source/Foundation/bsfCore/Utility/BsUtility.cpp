@@ -224,12 +224,12 @@ namespace bs
 		}
 	};
 
-	inline RTTITypeBase* CoreSerializationContext::getRTTIStatic()
+	RTTITypeBase* CoreSerializationContext::getRTTIStatic()
 	{
 		return CoreSerializationContextRTTI::instance();
 	}
 
-	inline RTTITypeBase* CoreSerializationContext::getRTTI() const
+	RTTITypeBase* CoreSerializationContext::getRTTI() const
 	{
 		return getRTTIStatic();
 	}
