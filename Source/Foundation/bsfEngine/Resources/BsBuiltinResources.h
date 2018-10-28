@@ -149,24 +149,31 @@ namespace bs
 		static constexpr const char* IconTextureName = "bsfIcon.png";
 		static constexpr const char* MultiLineLabelStyle = "MultiLineLabel";
 
+		static constexpr const char* SHADER_FOLDER = "Shaders/";
+		static constexpr const char* CURSOR_FOLDER = "Cursors/";
+		static constexpr const char* ICON_FOLDER = "Icons/";
+		static constexpr const char* SKIN_FOLDER = "Skin/"; 
+		static constexpr const char* SHADER_INCLUDE_FOLDER = "Shaders/Includes/";
+		static constexpr const char* MESH_FOLDER = "Meshes/";
+		static constexpr const char* TEXTURE_FOLDER = "Textures/";
+		static constexpr const char* SPRITE_FOLDER = "Sprites/";
+
+		static constexpr const char* MESH_SPHERE_FILE = u8"Sphere.asset";
+		static constexpr const char* MESH_BOX_FILE = u8"Box.asset";
+		static constexpr const char* MESH_CONE_FILE = u8"Cone.asset";
+		static constexpr const char* MESH_CYLINDER_FILE = u8"Cylinder.asset";
+		static constexpr const char* MESH_QUAD_FILE = u8"Quad.asset";
+		static constexpr const char* MESH_DISC_FILE = u8"Disc.asset";
+
+		static constexpr const char* TEXTURE_WHITE_FILE = u8"White.asset";
+		static constexpr const char* TEXTURE_BLACK_FILE = u8"Black.asset";
+		static constexpr const char* TEXTURE_NORMAL_FILE = u8"Normal.asset";
+
+		static constexpr const char* DEFAULT_FONT_NAME = u8"arial.ttf";
+		static constexpr const UINT32 DEFAULT_FONT_SIZE = 8;
+
+		static constexpr const char* GUI_SKIN_FILE = u8"GUISkin";
 	private:
-		/**
-		 * Imports all necessary resources and converts them to engine-ready format.
-		 *
-		 * @note	
-		 * Normally you only want to use this during development phase and then ship with engine-ready format only.
-		 */
-		void preprocess(bool forceImport, time_t lastUpdateTime);
-
-		/**	Generates the default engine skin and all GUI element styles. */
-		SPtr<GUISkin> generateGUISkin();
-
-		/**	Generates the builtin meshes. */
-		void generateMeshes();
-
-		/**	Generates the builtin textures. */
-		void generateTextures();
-
 		/**	Loads a GUI skin texture with the specified filename. */
 		HSpriteTexture getSkinTexture(const String& name) const;
 
@@ -215,22 +222,6 @@ namespace bs
 
 		Path ResourceManifestPath;
 
-		static constexpr const char* SHADER_FOLDER = "Shaders/";
-		static constexpr const char* CURSOR_FOLDER = "Cursors/";
-		static constexpr const char* ICON_FOLDER = "Icons/";
-		static constexpr const char* SKIN_FOLDER = "Skin/"; 
-		static constexpr const char* SHADER_INCLUDE_FOLDER = "Shaders/Includes/";
-		static constexpr const char* MESH_FOLDER = "Meshes/";
-		static constexpr const char* TEXTURE_FOLDER = "Textures/";
-		static constexpr const char* SPRITE_FOLDER = "Sprites/";
-
-		static constexpr const char* DATA_LIST_JSON = "DataList.json";
-		static constexpr const char* GUI_SKIN_JSON = "GUISkin.json";
-
-		static const String DefaultFontFilename;
-		static const UINT32 DefaultFontSize;
-
-		static const String GUISkinFile;
 		static const String WhiteTex;
 
 		static const String CursorArrowTex;
@@ -259,17 +250,6 @@ namespace bs
 		static const String ShaderSpriteImageAlphaFile;
 		static const String ShaderSpriteImageNoAlphaFile;
 		static const String ShaderSpriteLineFile;
-
-		static const String MeshSphereFile;
-		static const String MeshBoxFile;
-		static const String MeshConeFile;
-		static const String MeshCylinderFile;
-		static const String MeshQuadFile;
-		static const String MeshDiscFile;
-
-		static const String TextureWhiteFile;
-		static const String TextureBlackFile;
-		static const String TextureNormalFile;
 	};
 
 	/**	Provides easy access to BuiltinResources. */

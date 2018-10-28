@@ -798,11 +798,6 @@ namespace bs
 				resData.resource = newHandle.getWeak();
 			}
 
-#if BS_DEBUG_MODE
-			const auto iterFind = mHandles.find(UUID);
-			assert(iterFind == mHandles.end() && "Overwriting an existing handle!");
-#endif
-
 			mHandles[UUID] = newHandle.getWeak();
 		}
 

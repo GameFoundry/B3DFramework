@@ -6,7 +6,7 @@ set (BS_FRAMEWORK_CURRENT_RELEASE_YEAR 2018)
 
 set (BS_FRAMEWORK_PREBUILT_DEPENDENCIES_VERSION 8)
 set (BS_FRAMEWORK_SRC_DEPENDENCIES_VERSION 1)
-set (BS_FRAMEWORK_BUILTIN_ASSETS_VERSION 5)
+set (BS_FRAMEWORK_BUILTIN_ASSETS_VERSION 6)
 
 # Options
 set(AUDIO_MODULE "OpenAudio" CACHE STRING "Audio backend to use.")
@@ -34,6 +34,10 @@ set(INCLUDE_ALL_IN_WORKFLOW OFF CACHE BOOL "If true, all libraries (even those n
 set(BUILD_TESTS OFF CACHE BOOL "If true, build targets for running unit tests will be included in the output.")
 
 set(BUILD_BSL OFF CACHE BOOL "If true, build lexer & parser for BSL. Requires flex & bison dependencies.")
+
+set(BUILD_ASSETS OFF CACHE BOOL "If true, built-in assets will be imported from raw assets. Enable this if modifying any of the built-in raw assets. Otherwise the assets will be retrieved from an online repository.")
+
+set(UPLOAD_ASSETS OFF CACHE BOOL "Only relevant if BUILD_ASSETS is true. When enabled the system will upload a package with the latest assets whenever assets are built, provided valid server and credentials are present.")
 
 set(ENABLE_COTIRE false CACHE BOOL "Enable cotire's precompiled headers and unity build support (experimental).")
 
@@ -65,7 +69,7 @@ if(WIN32)
 endif()
 
 ## Check data dependencies
-check_and_update_builtin_assets(bsf ${BSF_SOURCE_DIR}/../Data ${BS_FRAMEWORK_BUILTIN_ASSETS_VERSION} YES)
+check_and_update_builtin_assets(bsf ${BSF_SOURCE_DIR}/../Data/Raw Raw ${BS_FRAMEWORK_BUILTIN_ASSETS_VERSION} NO)
 
 # Config file
 ## Note: Must happen before script binding generation
@@ -155,6 +159,27 @@ if(BUILD_TESTS)
 	add_test(NAME UtilityTests COMMAND $<TARGET_FILE:UtilityTest>)
 	add_test(NAME CoreTests COMMAND $<TARGET_FILE:UtilityTest>)
 endif()
+
+## Builtin resource preprocessing
+add_executable(bsfImportTool
+	Foundation/bsfEngine/Resources/BsBuiltinResourcesImporter.cpp)
+
+target_link_libraries(bsfImportTool bsf)
+	
+add_engine_dependencies(bsfImportTool)
+add_importer_dependencies(bsfImportTool)
+
+set_property(TARGET bsfImportTool PROPERTY FOLDER Utilities)
+
+install(TARGETS bsfImportTool RUNTIME DESTINATION bin)	
+
+if(${BUILD_ASSETS})
+	run_import_tool()
+endif()
+
+set(COMPILED_ASSETS_VERSION_FILE ${BSF_SOURCE_DIR}/../Data/.reqversion)
+file (STRINGS ${COMPILED_ASSETS_VERSION_FILE} COMPILED_ASSETS_VERSION)
+check_and_update_builtin_assets(bsfCompiled ${BSF_SOURCE_DIR}/../Data Data ${COMPILED_ASSETS_VERSION} NO)
 
 ## Install
 install(
