@@ -172,10 +172,6 @@ namespace bs
 	template <typename K, typename V, typename H = HashType<K>, typename C = std::equal_to<K>, typename A = StdAlloc<std::pair<const K, V>>>
 	using UnorderedMultimap = std::unordered_multimap<K, V, H, C, A>;
 
-	/** Equivalent to Vector, except it avoids any dynamic allocations until the number of elements exceeds @p Count. */
-	template <typename T, int Count, typename Alloc = StdAlloc<T>>
-	using SmallVector = std::vector<T, Alloc>; // TODO: Currently equivalent to Vector, need to implement the allocator
-
 	/** @} */
 
 	/** @addtogroup Memory

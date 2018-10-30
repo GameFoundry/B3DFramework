@@ -103,7 +103,7 @@ namespace bs { namespace ct
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
-			Vector<ShaderVariation::Param>{
+			{
 				ShaderVariation::Param("DEPTH_COLLISIONS", DEPTH_COLLISIONS)
 			});
 

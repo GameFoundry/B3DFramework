@@ -41,7 +41,7 @@ namespace bs { namespace ct
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
-			Vector<ShaderVariation::Param>{
+			{
 				ShaderVariation::Param("MSAA", msaa),
 				ShaderVariation::Param("MSAA_RESOLVE_0TH", singleSampleMSAA)
 			});
@@ -100,7 +100,7 @@ namespace bs { namespace ct
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
-			Vector<ShaderVariation::Param>{
+			{
 				ShaderVariation::Param("MSAA", msaa),
 				ShaderVariation::Param("MSAA_RESOLVE_0TH", singleSampleMSAA),
 				ShaderVariation::Param("SKY_ONLY", skyOnly)

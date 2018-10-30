@@ -52,7 +52,7 @@ namespace bs
 
 			// Note: Making the assumption here that all the techniques are generated due to shader variations
 			Vector<SPtr<ct::Technique>> techniques = shaders[i]->getCompatibleTechniques();
-			materials[i].metaData->instances.resize(techniques.size());
+			materials[i].metaData->instances.resize((UINT32)techniques.size());
 
 			for(auto& entry : techniques)
 				materials[i].metaData->variations.add(entry->getVariation());

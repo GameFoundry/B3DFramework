@@ -132,7 +132,7 @@ namespace bs { namespace ct
 						iterFind2 = processedNodes.find(depId);
 
 						NodeInfo& depNodeInfo = mNodeInfos[iterFind2->second];
-						nodeInfo.inputs.push_back(depNodeInfo.node);
+						nodeInfo.inputs.add(depNodeInfo.node);
 					}
 				}
 				else // Existing node
@@ -791,11 +791,11 @@ namespace bs { namespace ct
 	{
 		SmallVector<StringID, 4> deps;
 
-		bool supportsTiledDeferred = gRenderBeast()->getFeatureSet() != RenderBeastFeatureSet::DesktopMacOS;
+		const bool supportsTiledDeferred = gRenderBeast()->getFeatureSet() != RenderBeastFeatureSet::DesktopMacOS;
 		if(!supportsTiledDeferred)
-			deps.push_back(RCNodeSceneColor::getNodeId());
+			deps.add(RCNodeSceneColor::getNodeId());
 		else
-			deps.push_back(RCNodeSceneDepth::getNodeId());
+			deps.add(RCNodeSceneDepth::getNodeId());
 
 		return deps;
 	}
@@ -960,11 +960,11 @@ namespace bs { namespace ct
 	SmallVector<StringID, 4> RCNodeDeferredDirectLighting::getDependencies(const RendererView& view)
 	{
 		SmallVector<StringID, 4> deps;
-		deps.push_back(RCNodeLightAccumulation::getNodeId());
-		deps.push_back(RCNodeGBuffer::getNodeId());
-		deps.push_back(RCNodeSceneDepth::getNodeId());
-		deps.push_back(RCNodeSceneColor::getNodeId());
-		deps.push_back(RCNodeMSAACoverage::getNodeId());
+		deps.add(RCNodeLightAccumulation::getNodeId());
+		deps.add(RCNodeGBuffer::getNodeId());
+		deps.add(RCNodeSceneDepth::getNodeId());
+		deps.add(RCNodeSceneColor::getNodeId());
+		deps.add(RCNodeMSAACoverage::getNodeId());
 
 		return deps;
 	}
@@ -1049,12 +1049,11 @@ namespace bs { namespace ct
 	SmallVector<StringID, 4> RCNodeIndirectDiffuseLighting::getDependencies(const RendererView& view)
 	{
 		SmallVector<StringID, 4> deps;
-
-		deps.push_back(RCNodeGBuffer::getNodeId());
-		deps.push_back(RCNodeSceneDepth::getNodeId());
-		deps.push_back(RCNodeLightAccumulation::getNodeId());
-		deps.push_back(RCNodeSSAO::getNodeId());
-		deps.push_back(RCNodeDeferredDirectLighting::getNodeId());
+		deps.add(RCNodeGBuffer::getNodeId());
+		deps.add(RCNodeSceneDepth::getNodeId());
+		deps.add(RCNodeLightAccumulation::getNodeId());
+		deps.add(RCNodeSSAO::getNodeId());
+		deps.add(RCNodeDeferredDirectLighting::getNodeId());
 
 		return deps;
 	}
@@ -1227,15 +1226,14 @@ namespace bs { namespace ct
 	SmallVector<StringID, 4> RCNodeDeferredIndirectSpecularLighting::getDependencies(const RendererView& view)
 	{
 		SmallVector<StringID, 4> deps;
-
-		deps.push_back(RCNodeSceneColor::getNodeId());
-		deps.push_back(RCNodeGBuffer::getNodeId());
-		deps.push_back(RCNodeSceneDepth::getNodeId());
-		deps.push_back(RCNodeLightAccumulation::getNodeId());
-		deps.push_back(RCNodeSSR::getNodeId());
-		deps.push_back(RCNodeSSAO::getNodeId());
-		deps.push_back(RCNodeMSAACoverage::getNodeId());
-		deps.push_back(RCNodeIndirectDiffuseLighting::getNodeId());
+		deps.add(RCNodeSceneColor::getNodeId());
+		deps.add(RCNodeGBuffer::getNodeId());
+		deps.add(RCNodeSceneDepth::getNodeId());
+		deps.add(RCNodeLightAccumulation::getNodeId());
+		deps.add(RCNodeSSR::getNodeId());
+		deps.add(RCNodeSSAO::getNodeId());
+		deps.add(RCNodeMSAACoverage::getNodeId());
+		deps.add(RCNodeIndirectDiffuseLighting::getNodeId());
 
 		return deps;
 	}
@@ -1573,8 +1571,8 @@ namespace bs { namespace ct
 	SmallVector<StringID, 4> RCNodeSkybox::getDependencies(const RendererView& view)
 	{
 		SmallVector<StringID, 4> deps;
-		deps.push_back(RCNodeSceneColor::getNodeId());
-		deps.push_back(RCNodeDeferredIndirectSpecularLighting::getNodeId());
+		deps.add(RCNodeSceneColor::getNodeId());
+		deps.add(RCNodeDeferredIndirectSpecularLighting::getNodeId());
 
 		return deps;
 	}
@@ -1636,17 +1634,17 @@ namespace bs { namespace ct
 		SmallVector<StringID, 4> deps;
 		if(viewProps.runPostProcessing)
 		{
-			deps.push_back(RCNodePostProcess::getNodeId());
-			deps.push_back(RCNodeFXAA::getNodeId());
+			deps.add(RCNodePostProcess::getNodeId());
+			deps.add(RCNodeFXAA::getNodeId());
 		}
 		else
 		{
-			deps.push_back(RCNodeSceneColor::getNodeId());
-			deps.push_back(RCNodeClusteredForward::getNodeId());
+			deps.add(RCNodeSceneColor::getNodeId());
+			deps.add(RCNodeClusteredForward::getNodeId());
 		}
 
 		if(viewProps.encodeDepth)
-			deps.push_back(RCNodeResolvedSceneDepth::getNodeId());
+			deps.add(RCNodeResolvedSceneDepth::getNodeId());
 
 		return deps;
 	}
@@ -1847,11 +1845,11 @@ namespace bs { namespace ct
 	SmallVector<StringID, 4> RCNodeEyeAdaptation::getDependencies(const RendererView& view)
 	{
 		SmallVector<StringID, 4> deps;
-		deps.push_back(RCNodeClusteredForward::getNodeId());
+		deps.add(RCNodeClusteredForward::getNodeId());
 
 		const RenderSettings& settings = view.getRenderSettings();
 		if(settings.enableHDR && settings.enableAutoExposure)
-			deps.push_back(RCNodeHalfSceneColor::getNodeId());
+			deps.add(RCNodeHalfSceneColor::getNodeId());
 
 		return deps;
 	}
@@ -1965,7 +1963,7 @@ namespace bs { namespace ct
 		};
 
 		if(view.getRenderSettings().bloom.enabled)
-			deps.push_back(RCNodeBloom::getNodeId());
+			deps.add(RCNodeBloom::getNodeId());
 
 		return deps;
 	}
@@ -2581,12 +2579,12 @@ namespace bs { namespace ct
 		SmallVector<StringID, 4> deps;
 		if (view.getRenderSettings().screenSpaceReflections.enabled)
 		{
-			deps.push_back(RCNodeSceneDepth::getNodeId());
-			deps.push_back(RCNodeLightAccumulation::getNodeId());
-			deps.push_back(RCNodeGBuffer::getNodeId());
-			deps.push_back(RCNodeHiZ::getNodeId());
-			deps.push_back(RCNodeResolvedSceneDepth::getNodeId());
-			deps.push_back(RCNodeIndirectDiffuseLighting::getNodeId());
+			deps.add(RCNodeSceneDepth::getNodeId());
+			deps.add(RCNodeLightAccumulation::getNodeId());
+			deps.add(RCNodeGBuffer::getNodeId());
+			deps.add(RCNodeHiZ::getNodeId());
+			deps.add(RCNodeResolvedSceneDepth::getNodeId());
+			deps.add(RCNodeIndirectDiffuseLighting::getNodeId());
 		}
 
 		return deps;

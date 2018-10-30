@@ -1,11 +1,13 @@
 #pragma once
 
-#include "Prerequisites/BsPrerequisitesUtil.h"
-
 namespace bs
 {
-	template <UINT32 N, class Type>
-	class BsSmallVector final
+	/** 
+	 * Dynamically sized container that statically allocates enough room for @p N elements of type @p Type. If the element 
+	 * count exceeds the statically allocated buffer size the vector falls back to general purpose dynamic allocator.
+	 */
+	template <class Type, UINT32 N>
+	class SmallVector final
 	{
 	public:
 		typedef Type ValueType;
@@ -14,233 +16,311 @@ namespace bs
 		typedef std::reverse_iterator<Type*> ReverseIterator;
 		typedef std::reverse_iterator<const Type*> ConstReverseIterator;
 
-		typename std::aligned_storage<sizeof(Type), alignof(Type)>::type storage[N];
-
-		BsSmallVector() {}
-
-		BsSmallVector(const BsSmallVector<N, ValueType>& other)
+		SmallVector() = default;
+		SmallVector(const SmallVector<ValueType, N>& other)
 		{
-			*this = other;
+			if(!other.empty())
+				*this = other;
 		}
 
-		BsSmallVector(UINT32 sz)
+		SmallVector(SmallVector<ValueType, N>&& other)
 		{
-			realloc(sz, false);
+			if(!other.empty())
+				*this = std::move(other);
 		}
 
-		~BsSmallVector()
+		SmallVector(UINT32 size, const Type& value = Type())
 		{
-			realloc(0, false);
+			append(size, value);
 		}
 
-		BsSmallVector<N, ValueType>& operator= (const BsSmallVector<N, ValueType>& other)
+		SmallVector(std::initializer_list<Type> list)
 		{
-			if (mMaxSize < other.mMaxSize)
+			append(list);
+		}
+
+		~SmallVector()
+		{
+			for (auto& entry : *this)
+				entry.~Type();
+
+			if(!isSmall())
+				bs_free(mElements);
+		}
+
+		SmallVector<ValueType, N>& operator= (const SmallVector<ValueType, N>& other)
+		{
+			if(this == &other)
+				return *this;
+
+			UINT32 mySize = size();
+			const UINT32 otherSize = other.size();
+
+			// Use assignment copy if we have more elements than the other array, and destroy any excess elements
+			if(mySize > otherSize)
 			{
-				mMaxSize = other.mMaxSize << 2;
-				realloc(mMaxSize, false);
+				Iterator newEnd;
+				if(otherSize > 0)
+					newEnd = std::copy(other.begin(), other.end(), begin());
+				else
+					newEnd = begin();
+
+				for(;newEnd != end(); ++newEnd)
+					(*newEnd).~Type();
+
+			}
+			// Otherwise we need to partially copy (up to our size), and do uninitialized copy for rest. And an optional
+			// grow if our capacity isn't enough (in which case we do uninitialized copy for all).
+			else
+			{
+				if (otherSize > mCapacity)
+				{
+					clear();
+					mySize = 0;
+
+					grow(otherSize);
+				}
+				else if (mySize > 0)
+					std::copy(other.begin(), other.begin() + mySize, begin());
+
+				std::uninitialized_copy(other.begin() + mySize, other.end(), begin() + mySize);
 			}
 
-			for (UINT32 i = 0; i < other.mSize; ++i)
-			{
-				mArr[i] = other.mArr[i];
-			}
-
-			mSize = other.mSize;
+			mSize = otherSize;
+			return *this;
 		}
 
-		BsSmallVector<N, ValueType>& operator= (BsSmallVector<N, ValueType>&& other)
+		SmallVector<ValueType, N>& operator= (SmallVector<ValueType, N>&& other)
 		{
-			if (mMaxSize < other.mMaxSize)
+			if(this == &other)
+				return *this;
+
+			// If the other buffer isn't small, we can just steal its buffer
+			if(!other.isSmall())
 			{
-				mMaxSize = other.mMaxSize << 2;
-				realloc(mMaxSize, false);
+				for(auto& entry : *this)
+					entry.~Type();
+
+				if(!isSmall())
+					bs_free(mElements);
+
+				mElements = other.mElements;
+				other.mElements = (Type*)other.mStorage;
+				mSize = std::exchange(other.mSize, 0);
+				mCapacity = std::exchange(other.mCapacity, N);
+			}
+			// Otherwise we do essentially the same thing as in non-move assigment, except for also clearing the other
+			// vector
+			else
+			{
+				UINT32 mySize = size();
+				const UINT32 otherSize = other.size();
+
+				// Use assignment copy if we have more elements than the other array, and destroy any excess elements
+				if(mySize > otherSize)
+				{
+					Iterator newEnd;
+					if(otherSize > 0)
+						newEnd = std::move(other.begin(), other.end(), begin());
+					else
+						newEnd = begin();
+
+					for(;newEnd != end(); ++newEnd)
+						(*newEnd).~Type();
+				}	
+				else
+				{
+					if (otherSize > mCapacity)
+					{
+						clear();
+						mySize = 0;
+
+						grow(otherSize);
+					}
+					else if (mySize > 0)
+						std::move(other.begin(), other.begin() + mySize, begin());
+
+					std::uninitialized_copy(
+						std::make_move_iterator(other.begin() + mySize),
+						std::make_move_iterator(other.end()), 
+						begin() + mySize);
+				}
+
+				mSize = otherSize;
+				other.clear();
 			}
 
-			for (UINT32 i = 0; i < other.mSize; ++i)
-			{
-				mArr[i] = std::move(other.mArr[i]);
-			}
-
-			mSize = other.mSize;
+			return *this;
 		}
 
-		bool operator== (const BsSmallVector<N, ValueType>& other)
+		SmallVector<ValueType, N>& operator=(std::initializer_list<Type> list)
 		{
-			if (mSize != other.mSize)
-				return false;
-
-			for (UINT32 i = 0; i < mSize; ++i)
-			{
-				if (mArr[i] != other.mArr[i])
-					return false;
-			}
-
-			return true;
+			clear();
+			append(list);
 		}
 
-		bool operator!= (const BsSmallVector<N, ValueType>& other)
+		bool operator== (const SmallVector<ValueType, N>& other)
 		{
-			if (mSize != other.mSize)
-				return true;
-
-			for (UINT32 i = 0; i < mSize; ++i)
-			{
-				if (mArr[i] != other.mArr[i])
-					return true;
-			}
-
-			return false;
+			if (this->size() != other.size()) return false;
+			return std::equal(this->begin(), this->end(), other.begin());
 		}
 
-		bool operator< (const BsSmallVector<N, ValueType>& other) const
+		bool operator!= (const SmallVector<ValueType, N>& other)
 		{
-			UINT32 lenght = mSize < other.mSize ? mSize : other.mSize;
-
-			for (UINT32 i = 0; i < lenght; ++i)
-			{
-				if (mArr[i] != other.mArr[i])
-					return mArr[i] < other.mArr[i];
-			}
-
-			return mSize < other.mSize;
+			return !(*this == other);
 		}
 
-		bool operator<= (const BsSmallVector<N, ValueType>& other) const
+		bool operator< (const SmallVector<ValueType, N>& other) const
 		{
-			UINT32 length = mSize < other.mSize ? mSize : other.mSize;
-
-			for (UINT32 i = 0; i < length; ++i)
-			{
-				if (mArr[i] != other.mArr[i])
-					return mArr[i] < other.mArr[i];
-			}
-
-			return mSize <= other.mSize;
+			return std::lexicographical_compare(begin(), end(), other.begin(), other.end());
 		}
 
-		bool operator> (const BsSmallVector<N, ValueType>& other) const
+		bool operator> (const SmallVector<ValueType, N>& other) const
 		{
-			UINT32 length = mSize < other.mSize ? mSize : other.mSize;
-
-			for (UINT32 i = 0; i < length; ++i)
-			{
-				if (mArr[i] != other.mArr[i])
-					return mArr[i] > other.mArr[i];
-			}
-
-			return mSize > other.mSize;
+			return other < *this;
 		}
 
-		bool operator>= (const BsSmallVector<N, ValueType>& other) const
+		bool operator<= (const SmallVector<ValueType, N>& other) const
 		{
-			UINT32 length = mSize < other.mSize ? mSize : other.mSize;
-
-			for (UINT32 i = 0; i < length; ++i)
-			{
-				if (mArr[i] != other.mArr[i])
-					return mArr[i] > other.mArr[i];
-			}
-
-			return mSize >= other.mSize;
+			return !(other < *this);
 		}
 
-		Type& operator[] (UINT32 index) { return mArr[index]; };
-		const Type& operator[] (UINT32 index) const { return mArr[index]; };
+		bool operator>= (const SmallVector<ValueType, N>& other) const
+		{
+			return !(*this < other);
+		}
 
-		bool isEmpty() const { return mSize == 0; };
+		Type& operator[] (UINT32 index)
+		{
+			assert(index < mSize && "Array index out-of-range.");
 
-		Iterator begin() { return mArr; };
-		Iterator end() { return mArr + mSize; };
+			return mElements[index];
+		}
 
-		ConstIterator cbegin() const { return mArr; };
-		ConstIterator cend() const { return mArr + mSize; };
+		const Type& operator[] (UINT32 index) const
+		{
+			assert(index < mSize && "Array index out-of-range.");
 
-		ReverseIterator rbegin() { ReverseIterator(begin()); };
-		ReverseIterator rend() { ReverseIterator(end()); };
+			return mElements[index];
+		}
 
-		ConstReverseIterator crbegin() const { ReverseIterator(begin()); };
-		ConstReverseIterator crend() const { ReverseIterator(end()); };
+		bool empty() const { return mSize == 0; }
 
-		UINT32 size() { return mSize; };
-		UINT32 capacity() { return mMaxSize; }
+		Iterator begin() { return mElements; }
+		Iterator end() { return mElements + mSize; }
 
-		Type* data() { return mArr; }
-		const Type* data() const { return mArr; }
+		ConstIterator begin() const { return mElements; }
+		ConstIterator end() const { return mElements + mSize; }
 
-		Type* front() { return mArr[0]; };
-		Type* back() { return mArr[mSize - 1]; };
+		ConstIterator cbegin() const { return mElements; }
+		ConstIterator cend() const { return mElements + mSize; }
 
-		const Type* front() const { return mArr[0]; };
-		const Type* back() const { return mArr[mSize - 1]; };
+		ReverseIterator rbegin() { return ReverseIterator(end()); }
+		ReverseIterator rend() { return ReverseIterator(begin()); }
+
+		ConstReverseIterator rbegin() const { return ReverseIterator(end()); }
+		ConstReverseIterator rend() const { return ReverseIterator(begin()); }
+
+		ConstReverseIterator crbegin() const { return ReverseIterator(end()); }
+		ConstReverseIterator crend() const { return ReverseIterator(begin()); }
+
+		UINT32 size() const { return mSize; }
+		UINT32 capacity() const { return mCapacity; }
+
+		Type* data() { return mElements; }
+		const Type* data() const { return mElements; }
+
+		Type& front()
+		{
+			assert(!empty());
+			return *mElements[0];
+		}
+
+		Type& back()
+		{
+			assert(!empty());
+			return *mElements[mSize - 1];
+		}
+
+		const Type& front() const
+		{
+			assert(!empty());
+			return mElements[0];
+		}
+
+		const Type& back() const
+		{
+			assert(!empty());
+			return mElements[mSize - 1];
+		}
 
 		void add(const Type& element)
 		{
-			if (mSize == mMaxSize)
-			{
-				if (mMaxSize == 0)
-				{
-					realloc(1, false);
-				}
-				else
-				{
-					realloc(2 * mMaxSize, true);
-				}
+			if (mSize == mCapacity)
+				grow(mCapacity << 1);
 
-				if (mSize == mMaxSize)
-				{
-					return;
-				}
-			}
-
-			mArr[mSize++] = element;
+			new (&mElements[mSize++]) Type(element);
 		}
 
 		void add(Type&& element)
 		{
-			if (mSize == mMaxSize)
-			{
-				if (mMaxSize == 0)
-				{
-					realloc(1, false);
-				}
-				else
-				{
-					realloc(2 * mMaxSize, true);
-				}
+			if (mSize == mCapacity)
+				grow(mCapacity << 1);
 
-				if (mSize == mMaxSize)
-				{
-					return;
-				}
-			}
+			new (&mElements[mSize++]) Type(std::move(element));
+		}
 
-			mArr[mSize++] = std::move(element);
+		void append(ConstIterator start, ConstIterator end) 
+		{
+			const UINT32 count = (UINT32)std::distance(start, end);
+
+			if ((size() + count) > capacity())
+				this->grow(size() + count);
+
+			std::uninitialized_copy(start, end, this->end());
+			mSize += count;
+		}
+
+		void append(UINT32 count, const Type& element) 
+		{
+			if ((size() + count) > capacity())
+				this->grow(size() + count);
+
+			std::uninitialized_fill_n(end(), count, element);
+			mSize += count;
+		}
+
+		void append(std::initializer_list<Type> list) 
+		{
+			append(list.begin(), list.end());
 		}
 
 		Type pop()
 		{
-			return mArr[--mSize];
+			assert(mSize > 0 && "Popping an empty array.");
+			return mElements[--mSize];
 		}
 
-		void remove(int index)
+		void erase(ConstIterator iter)
 		{
-			if (index < mSize)
-			{
-				for (UINT32 i = index; i < mSize - 1; i++)
-				{
-					mArr[i] = mArr[i + 1];
-				}
+			assert(iter >= begin() && "Iterator to erase is out of bounds.");
+			assert(iter < end() && "Erasing at past-the-end iterator.");
 
-				pop();
-			}
+			Iterator toErase = const_cast<Iterator>(iter);
+			std::move(toErase + 1, end(), toErase);
+			pop();
+		}
+
+		void remove(UINT32 index)
+		{
+			erase(begin() + index);
 		}
 
 		bool contains(const Type& element)
 		{
 			for (UINT32 i = 0; i < mSize; i++)
 			{
-				if (mArr[i] == element)
+				if (mElements[i] == element)
 					return true;
 			}
 
@@ -251,7 +331,7 @@ namespace bs
 		{
 			for (UINT32 i = 0; i < mSize; i++)
 			{
-				if (mArr[i] == element)
+				if (mElements[i] == element)
 				{
 					remove(i);
 					break;
@@ -262,126 +342,70 @@ namespace bs
 		void clear()
 		{
 			for (UINT32 i = 0; i < mSize; ++i)
-			{
-				mArr[i].~Type();
-			}
+				mElements[i].~Type();
 
 			mSize = 0;
 		}
 
-		void reserve(UINT32 sz)
+		void reserve(UINT32 capacity)
 		{
-			if (sz > mMaxSize)
-			{	
-				realloc(sz, true);
+			if (capacity > mCapacity)
+				grow(capacity);
+		}
+
+		void resize(UINT32 size, const Type& value = Type())
+		{
+			if(size > mCapacity)
+				grow(size);
+
+			if(size > mSize)
+			{
+				for(UINT32 i = mSize; i < size; i++)
+					new (&mElements[i]) Type(value);
+			}
+			else
+			{
+				for(UINT32 i = size; i < mSize; i++)
+					mElements[i].~Type();
 			}
 
-			mSize = sz;
+			mSize = size;
 		}
 
 	private:
-		void realloc(UINT32 elements, bool data)
+		/** Returns true if the vector is still using its static memory and hasn't made any dynamic allocations. */
+		bool isSmall() const { return mElements == (Type*)mStorage; }
+
+		void grow(UINT32 capacity)
 		{
-			Type* tmp = 0;
+			assert(capacity > N);
 
-			if (elements)
-			{
-				if (sizeof(Type) * elements <= sizeof(storage))
-				{
-					// It uses the internal storage.
-					tmp = reinterpret_cast<Type*>(storage);
-				}
-				else
-				{
-					// Allocate the elements.
-					tmp = bs_allocN<Type>(elements);
+			// Allocate memory with the new capacity (caller guarantees never to call this with capacity <= N, so we don't
+			// need to worry about the static buffer)
+			Type* buffer = bs_allocN<Type>(capacity);
 
-					if (tmp == 0)
-					{
-						// Out of memory.
-						return;
-					}
-				}
+			// Move any existing elements
+			std::uninitialized_copy(
+				std::make_move_iterator(begin()), 
+				std::make_move_iterator(end()),
+				buffer);
 
-				if (mArr == tmp)
-				{
-					// Construct only the newly allocated elements.
-					for (UINT32 i = mSize; i < elements; i++)
-					{
-						new (&tmp[i]) Type();
-					}
-				}
-				else
-				{
-					// Construct all elements.
-					for (UINT32 i = 0; i < elements; i++)
-					{
-						new (&tmp[i]) Type();
-					}
-				}
-			}
+			// Destoy existing elements in old memory
+			for (auto& entry : *this)
+				entry.~Type();
 
-			if (mArr)
-			{
-				const unsigned oldSize = mSize;
-				if (mArr == tmp)
-				{
-					if (data)
-					{
-						if (mSize > elements)
-						{
-							mSize = elements;
-						}
-					}
-					else
-					{
-						mSize = 0;
-					}
+			// If the current buffer is dynamically allocated, free it
+			if(!isSmall())
+				bs_free(mElements);
 
-					// Destruct the elements that are no longer used in the array.
-					for (UINT32 i = mSize; i < oldSize; i++)
-					{
-						mArr[i].~Type();
-					}
-				}
-				else
-				{
-					if (data)
-					{
-						if (mSize > elements)
-						{
-							mSize = elements;
-						}
-
-						for (UINT32 i = 0; i < mSize; i++)
-						{
-							tmp[i] = mArr[i];
-						}
-					}
-					else
-					{
-						mSize = 0;
-					}
-
-					// Destruct all the elements.
-					for (UINT32 i = 0; i < oldSize; i++)
-					{
-						mArr[i].~Type();
-					}
-
-					if (mArr != reinterpret_cast<Type*>(storage))
-					{
-						bs_free(mArr);
-					}
-				}
-			}
-
-			mArr = tmp;
-			mMaxSize = elements;
+			mElements = buffer;
+			mCapacity = capacity;
 		}
 
-		Type* mArr = nullptr;
+		std::aligned_storage_t<sizeof(Type), alignof(Type)> mStorage[N];
+		Type* mElements = (Type*)mStorage;
+
 		UINT32 mSize = 0;
-		UINT32 mMaxSize = 0;
+		UINT32 mCapacity = N;
 	};
 }

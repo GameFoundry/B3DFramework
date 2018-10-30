@@ -7,6 +7,7 @@ Huge thanks to all the patrons, contributors and donators!
  - @nemerle - Various bugfixes and code improvements.
  - @jonesmz - Various refactors and code modernization. 
  - @cwfitzgerald - Added cotire support and various build system improvements.
+ - @paolopaoletto - SmallVector implementation.
 
 # Commercial Tier 2 Patron
 - Chance McDonald [Founder]

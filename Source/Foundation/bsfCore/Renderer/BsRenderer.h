@@ -38,7 +38,7 @@ namespace bs
 	static const ShaderVariation& getVertexInputVariation()
 	{
 		static ShaderVariation variation = ShaderVariation(
-		Vector<ShaderVariation::Param>{
+		{
 			ShaderVariation::Param("SKINNED", skinned),
 			ShaderVariation::Param("MORPH", morph),
 		});
@@ -51,7 +51,7 @@ namespace bs
 	static const ShaderVariation& getForwardRenderingVariation()
 	{
 		static ShaderVariation variation = ShaderVariation(
-		Vector<ShaderVariation::Param>{
+		{
 			ShaderVariation::Param("SKINNED", skinned),
 			ShaderVariation::Param("MORPH", morph),
 			ShaderVariation::Param("CLUSTERED", clustered),

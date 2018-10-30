@@ -129,7 +129,7 @@ namespace bs
 	{
 		variation.mIdx = mNextIdx++;
 
-		mVariations.push_back(variation);
+		mVariations.add(variation);
 	}
 	
 	UINT32 ShaderVariations::find(const ShaderVariation& variation) const

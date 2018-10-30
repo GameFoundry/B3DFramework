@@ -173,7 +173,7 @@ namespace bs { namespace ct
 			if(mMetaData.overrideShader == shader)
 				return;
 
-			for(size_t i = 0; i < mMetaData.instances.size(); i++)
+			for(UINT32 i = 0; i < mMetaData.instances.size(); i++)
 			{
 				if (mMetaData.instances[i] != nullptr)
 					bs_delete(mMetaData.instances[i]);

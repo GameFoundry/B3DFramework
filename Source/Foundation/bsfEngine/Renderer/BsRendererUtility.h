@@ -26,7 +26,7 @@ namespace bs { namespace ct
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
-			Vector<ShaderVariation::Param>{
+			{
 				ShaderVariation::Param("MSAA_COUNT", msaa),
 				ShaderVariation::Param("COLOR", color),
 			});

@@ -53,6 +53,7 @@ namespace bs
 	{
 		BS_ADD_TEST(UtilityTestSuite::testOctree);
 		BS_ADD_TEST(UtilityTestSuite::testBitfield)
+		BS_ADD_TEST(UtilityTestSuite::testSmallVector)
 	}
 
 	void UtilityTestSuite::testBitfield()
@@ -219,5 +220,91 @@ namespace bs
 		// Ensure nothing goes wrong during element removal
 		for(auto& entry : octreeData.elements)
 			octree.removeElement(entry.octreeId);
+	}
+
+	void UtilityTestSuite::testSmallVector()
+	{
+		struct SomeElem
+		{
+			int a = 10;
+			int b = 0;
+		};
+
+		// Make sure initial construction works
+		SmallVector<SomeElem, 4> v(4);
+		BS_TEST_ASSERT(v.size() == 4);
+		BS_TEST_ASSERT(v.capacity() == 4);
+		BS_TEST_ASSERT(v[0].a == 10);
+		BS_TEST_ASSERT(v[3].a == 10);
+		BS_TEST_ASSERT(v[3].b == 0);
+
+		// Making the vector dynamic
+		v.add({3, 4});
+		BS_TEST_ASSERT(v.size() == 5);
+		BS_TEST_ASSERT(v[0].a == 10);
+		BS_TEST_ASSERT(v[3].a == 10);
+		BS_TEST_ASSERT(v[3].b == 0);
+		BS_TEST_ASSERT(v[4].a == 3);
+		BS_TEST_ASSERT(v[4].b == 4);
+
+		// Make a copy
+		SmallVector<SomeElem, 4> v2 = v;
+		BS_TEST_ASSERT(v2.size() == 5);
+		BS_TEST_ASSERT(v2[0].a == 10);
+		BS_TEST_ASSERT(v2[3].a == 10);
+		BS_TEST_ASSERT(v2[3].b == 0);
+		BS_TEST_ASSERT(v2[4].a == 3);
+		BS_TEST_ASSERT(v2[4].b == 4);
+
+		// Pop an element
+		v2.pop();
+		BS_TEST_ASSERT(v2.size() == 4);
+		BS_TEST_ASSERT(v2[0].a == 10);
+		BS_TEST_ASSERT(v2[3].a == 10);
+		BS_TEST_ASSERT(v2[3].b == 0);
+
+		// Make a static only copy
+		SmallVector<SomeElem, 4> v3 = v2;
+		BS_TEST_ASSERT(v3.size() == 4);
+		BS_TEST_ASSERT(v3.capacity() == 4);
+		BS_TEST_ASSERT(v3[0].a == 10);
+		BS_TEST_ASSERT(v3[3].a == 10);
+		BS_TEST_ASSERT(v3[3].b == 0);
+
+		// Remove an element
+		v.remove(2);
+		BS_TEST_ASSERT(v.size() == 4);
+		BS_TEST_ASSERT(v[0].a == 10);
+		BS_TEST_ASSERT(v[2].a == 10);
+		BS_TEST_ASSERT(v[3].a == 3);
+		BS_TEST_ASSERT(v[3].b == 4);
+
+		// Move a static vector
+		SmallVector<SomeElem, 4> v4 = std::move(v3);
+		BS_TEST_ASSERT(v3.size() == 0);
+		BS_TEST_ASSERT(v4.size() == 4);
+		BS_TEST_ASSERT(v4.capacity() == 4);
+		BS_TEST_ASSERT(v4[0].a == 10);
+		BS_TEST_ASSERT(v4[3].a == 10);
+		BS_TEST_ASSERT(v4[3].b == 0);
+
+		// Move a dynamic vector
+		SmallVector<SomeElem, 4> v5 = std::move(v2);
+		BS_TEST_ASSERT(v2.size() == 0);
+		BS_TEST_ASSERT(v5.size() == 4);
+		BS_TEST_ASSERT(v5[0].a == 10);
+		BS_TEST_ASSERT(v5[3].a == 10);
+		BS_TEST_ASSERT(v5[3].b == 0);
+
+		// Move a dynamic vector into a dynamic vector
+		v.add({33, 44});
+		SmallVector<SomeElem, 4> v6 = std::move(v);
+		BS_TEST_ASSERT(v.size() == 0);
+		BS_TEST_ASSERT(v6.size() == 5);
+		BS_TEST_ASSERT(v6[0].a == 10);
+		BS_TEST_ASSERT(v6[3].a == 3);
+		BS_TEST_ASSERT(v6[3].b == 4);
+		BS_TEST_ASSERT(v6[4].a == 33);
+		BS_TEST_ASSERT(v6[4].b == 44);
 	}
 }

@@ -100,6 +100,7 @@ set(BS_UTILITY_INC_UTILITY
 	"bsfUtility/Utility/BsOctree.h"
 	"bsfUtility/Utility/BsDataBlob.h"
 	"bsfUtility/Utility/BsLookupTable.h"
+	"bsfUtility/Utility/BsSmallVector.h"
 )
 
 set(BS_UTILITY_SRC_ALLOCATORS

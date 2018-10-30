@@ -1666,7 +1666,7 @@ namespace bs { namespace ct
 			const RenderSettings& viewSettings = view.getRenderSettings();
 
 			if(!viewSettings.enableShadows)
-				fadePercents.push_back(0.0f);
+				fadePercents.add(0.0f);
 			else
 			{
 				// Approximation for screen space sphere radius: screenSize * 0.5 * cot(fov) * radius / Z, where FOV is the 
@@ -1695,7 +1695,7 @@ namespace bs { namespace ct
 
 				// Determine if the shadow should fade out
 				float fadePercent = Math::invLerp(optimalMapSize, (float)MIN_SHADOW_MAP_SIZE, (float)SHADOW_MAP_FADE_SIZE);
-				fadePercents.push_back(fadePercent);
+				fadePercents.add(fadePercent);
 				maxFadePercent = std::max(maxFadePercent, fadePercent);
 			}
 		}

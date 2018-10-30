@@ -469,19 +469,19 @@ namespace bs { namespace ct
 				switch(location)
 				{
 				case RenderLocation::Prepare:
-					inputs.extPrepare.push_back(extension);
+					inputs.extPrepare.add(extension);
 					break;
 				case RenderLocation::PreBasePass: 
-					inputs.extPreBasePass.push_back(extension);
+					inputs.extPreBasePass.add(extension);
 					break;
 				case RenderLocation::PostBasePass:
-					inputs.extPostBasePass.push_back(extension);
+					inputs.extPostBasePass.add(extension);
 					break;
 				case RenderLocation::PostLightPass:
-					inputs.extPostLighting.push_back(extension);
+					inputs.extPostLighting.add(extension);
 					break;
 				case RenderLocation::Overlay:
-					inputs.extOverlay.push_back(extension);
+					inputs.extOverlay.add(extension);
 					break;
 				}
 			}

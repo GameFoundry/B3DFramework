@@ -33,7 +33,7 @@ namespace bs { namespace ct
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
-			Vector<ShaderVariation::Param>{
+			{
 				ShaderVariation::Param("QUALITY", quality),
 				ShaderVariation::Param("MSAA", MSAA)
 			});
@@ -248,7 +248,7 @@ namespace bs { namespace ct
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
-			Vector<ShaderVariation::Param>{
+			{
 				ShaderVariation::Param("VOLUME_LUT", is3D),
 			});
 
@@ -315,7 +315,7 @@ namespace bs { namespace ct
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
-			Vector<ShaderVariation::Param>{
+			{
 				ShaderVariation::Param("VOLUME_LUT", volumeLUT),
 				ShaderVariation::Param("GAMMA_ONLY", gammaOnly),
 				ShaderVariation::Param("AUTO_EXPOSURE", autoExposure),
@@ -360,7 +360,7 @@ namespace bs { namespace ct
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
-				Vector<ShaderVariation::Param>{
+			{
 				ShaderVariation::Param("AUTO_EXPOSURE", AUTO_EXPOSURE)
 			});
 
@@ -427,7 +427,7 @@ namespace bs { namespace ct
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
-			Vector<ShaderVariation::Param>{
+			{
 				ShaderVariation::Param("ADDITIVE", ADDITIVE),
 			});
 
@@ -497,7 +497,7 @@ namespace bs { namespace ct
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
-			Vector<ShaderVariation::Param>{
+			{
 				ShaderVariation::Param("NEAR", near),
 				ShaderVariation::Param("FAR", far)
 			});
@@ -561,7 +561,7 @@ namespace bs { namespace ct
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
-			Vector<ShaderVariation::Param>{
+			{
 				ShaderVariation::Param("NEAR", near),
 				ShaderVariation::Param("FAR", far),
 			});
@@ -623,7 +623,7 @@ namespace bs { namespace ct
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
-			Vector<ShaderVariation::Param>{
+			{
 				ShaderVariation::Param("NO_TEXTURE_VIEWS", noTextureViews),
 			});
 
@@ -729,7 +729,7 @@ namespace bs { namespace ct
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
-			Vector<ShaderVariation::Param>{
+			{
 				ShaderVariation::Param("MIX_WITH_UPSAMPLED", upsample),
 				ShaderVariation::Param("FINAL_AO", finalPass),
 				ShaderVariation::Param("QUALITY", quality)
@@ -829,7 +829,7 @@ namespace bs { namespace ct
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
-			Vector<ShaderVariation::Param>{
+			{
 				ShaderVariation::Param("DIR_HORZ", horizontal)
 			});
 
@@ -875,7 +875,7 @@ namespace bs { namespace ct
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
-			Vector<ShaderVariation::Param>{
+			{
 				ShaderVariation::Param("MSAA_COUNT", msaa ? 2 : 1),
 				ShaderVariation::Param("MSAA_RESOLVE_0TH", singleSampleMSAA)
 			});
@@ -930,7 +930,7 @@ namespace bs { namespace ct
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
-			Vector<ShaderVariation::Param>{
+			{
 				ShaderVariation::Param("MSAA_COUNT", msaa ? 2 : 1),
 				ShaderVariation::Param("QUALITY", quality),
 				ShaderVariation::Param("MSAA_RESOLVE_0TH", singleSampleMSAA)
@@ -1004,7 +1004,7 @@ namespace bs { namespace ct
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
-			Vector<ShaderVariation::Param>{
+			{
 				ShaderVariation::Param("MSAA", msaa)
 			});
 
@@ -1092,7 +1092,7 @@ namespace bs { namespace ct
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
-			Vector<ShaderVariation::Param>{
+			{
 				ShaderVariation::Param("MSAA_COUNT", msaa)
 			});
 

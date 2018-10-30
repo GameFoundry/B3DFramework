@@ -195,7 +195,7 @@ namespace bs
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
-			Vector<ShaderVariation::Param>{
+			{
 				ShaderVariation::Param("SOLID", solid),
 				ShaderVariation::Param("LINE", line),
 				ShaderVariation::Param("WIRE", wire)
