@@ -1,4 +1,17 @@
 ﻿{
+	"Fonts": [
+		{
+			"Path": "arial.ttf",
+			"Name": "arial.ttf",
+			"Sizes": [ 8 ],
+			"Antialiasing": false,
+			"UUID": "c9f08cab-f9c9-47c4-96e0-1066a8d4455b"
+		}
+	],
+	"GUISkin": {
+		"Path": "GUISkin.json",
+		"UUID": "c1bf9a9d-4355-4841-a538-25e67730ec4b"
+	},
     "Cursors": [
         {
             "Path": "Arrow.psd",
