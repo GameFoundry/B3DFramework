@@ -509,7 +509,7 @@ function(update_data_file_package _NAME _FOLDER _FILES)
 	message(STATUS "...data file packaging succesful, new version is ${NEW_VERSION_NUM}.")
 endfunction()
 
-function(run_import_tool)
+function(run_import_tool _PREFIX _FOLDER)
 	find_package(bsfImportTool)
 
 	message(STATUS "Checking built-in assets for modifications...")
@@ -522,10 +522,10 @@ function(run_import_tool)
 	endif()
 	
 	execute_process(
-		COMMAND ${bsfImportTool_EXECUTABLE} ${BSF_SOURCE_DIR}/../Data/Raw/ ${BSF_SOURCE_DIR}/../Data/
+		COMMAND ${bsfImportTool_EXECUTABLE} ${_FOLDER}/Data/Raw/ ${_FOLDER}/Data/
 		COMMENT "...importing files, please wait."
 		RESULT_VARIABLE IMPORT_STATUS_CODE
-		WORKING_DIRECTORY ${BSF_SOURCE_DIR}/..
+		WORKING_DIRECTORY ${_FOLDER}
 	)
 	
 	if(IMPORT_STATUS_CODE GREATER 1)
@@ -543,7 +543,7 @@ function(run_import_tool)
 	
 	if(${UPLOAD_ASSETS})	
 		if(IMPORT_STATUS_CODE EQUAL 1)
-			update_data_file_package("bsfCompiledData_Master" ${BSF_SOURCE_DIR}/../Data Raw/DataPackageContents.txt)
+			update_data_file_package("${_PREFIX}CompiledData_Master" ${FOLDER}/Data Raw/DataPackageContents.txt)
 		endif()
 	endif()
 endfunction()

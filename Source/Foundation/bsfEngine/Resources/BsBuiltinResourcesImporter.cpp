@@ -13,6 +13,9 @@
 #include "Renderer/BsRendererMeshData.h"
 #include "Image/BsTexture.h"
 #include "RenderAPI/BsVertexDataDesc.h"
+#include "Serialization/BsFileSerializer.h"
+#include "Importer/BsImporter.h"
+#include "Importer/BsTextureImportOptions.h"
 
 namespace bs
 {
@@ -27,7 +30,7 @@ namespace bs
 	static Path sManifestPath;
 	static SPtr<ResourceManifest> sManifest;
 
-	void processAssets(bool, time_t);
+	void processAssets(bool, bool, time_t);
 }
 
 int main(int argc, char * argv[]) 
@@ -60,6 +63,16 @@ int main(int argc, char * argv[])
 	sOutputFolder = argv[2];
 	sManifestPath = sOutputFolder + MANIFEST_NAME;
 
+	bool generateGenerated = true;
+	bool forceImport = false;
+	for(int i = 3; i < argc; i++)
+	{
+		if(strcmp(argv[i], "--editor") == 0)
+			generateGenerated = false;
+		else if(strcmp(argv[i], "--force") == 0)
+			forceImport = true;
+	}
+
 	if (FileSystem::exists(sInputFolder))
 	{
 		time_t lastUpdateTime;
@@ -67,6 +80,9 @@ int main(int argc, char * argv[])
 			sInputFolder,
 			sOutputFolder + TIMESTAMP_NAME,
 			lastUpdateTime);
+
+		if(forceImport)
+			modifications = 2;
 
 		// Check if manifest needs to be rebuilt
 		if (modifications == 0 && !FileSystem::exists(sManifestPath))
@@ -79,7 +95,7 @@ int main(int argc, char * argv[])
 			sManifest = ResourceManifest::create("BuiltinResources");
 			gResources().registerResourceManifest(sManifest);
 
-			processAssets(fullReimport, lastUpdateTime);
+			processAssets(generateGenerated, fullReimport, lastUpdateTime);
 			BuiltinResourcesHelper::writeTimestamp(sOutputFolder + TIMESTAMP_NAME);
 
 			ResourceManifest::save(sManifest, sManifestPath, sOutputFolder);
@@ -259,12 +275,16 @@ namespace bs
 		return skin;
 	}
 
-	void processAssets(bool forceImport, time_t lastUpdateTime)
+	void processAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTime)
 	{
 		using nlohmann::json;
 
 		// Hidden dependency: Textures need to be generated before shaders as they may use the default textures
-		generateTextures();
+		if(generateGenerated)
+		{
+			generateTextures();
+			generateMeshes();
+		}
 
 		const Path dataListsFilePath = sInputFolder + DATA_LIST_JSON;
 		SPtr<DataStream> dataListStream = FileSystem::openFile(dataListsFilePath);
@@ -275,6 +295,15 @@ namespace bs
 		json iconsJSON = dataListJSON["Icons"];
 		json includesJSON = dataListJSON["Includes"];
 		json shadersJSON = dataListJSON["Shaders"];
+		json fontsJSON = dataListJSON["Fonts"];
+		json guiSkinJSON = dataListJSON["GUISkin"];
+
+		json splashScreenJSON;
+		{
+			auto iterFind = dataListJSON.find("SplashScreen");
+			if(iterFind != dataListJSON.end())
+				splashScreenJSON = *iterFind;
+		}
 
 		const Path rawSkinFolder = sInputFolder + BuiltinResources::SKIN_FOLDER;
 		const Path rawCursorFolder = sInputFolder + BuiltinResources::CURSOR_FOLDER;
@@ -320,6 +349,11 @@ namespace bs
 			dataListJSON["Icons"] = iconsJSON;
 			dataListJSON["Includes"] = includesJSON;
 			dataListJSON["Shaders"] = shadersJSON;
+			dataListJSON["Fonts"] = fontsJSON;
+			dataListJSON["GUISkin"] = guiSkinJSON;
+
+			if(splashScreenJSON)
+				dataListJSON["SplashScreen"] = splashScreenJSON;
 
 			String jsonString = dataListJSON.dump(4).c_str();
 			dataListStream = FileSystem::createAndOpenFile(dataListsFilePath);
@@ -485,30 +519,65 @@ namespace bs
 			dataListStream->close();
 		}
 
-		// Import font
-		const Path fontSourcePath = sInputFolder + BuiltinResources::DEFAULT_FONT_NAME;
+		// Import fonts
+		for(auto& entry : fontsJSON)
+		{
+			std::string path = entry["Path"];
+			std::string name = entry["Name"];
+			std::string uuidStr = entry["UUID"];
+			const bool antialiasing = entry["Antialiasing"];
 
-		BuiltinResourcesHelper::importFont(
-			fontSourcePath,
-			BuiltinResources::DEFAULT_FONT_NAME,
-			sOutputFolder,
-			{ BuiltinResources::DEFAULT_FONT_SIZE },
-			false,
-			UUID("c9f08cab-f9c9-47c4-96e0-1066a8d4455b"),
-			sManifest);
+			json fontSizesJSON = entry["Sizes"];
+			Vector<UINT32> fontSizes;
+			for(auto& sizeEntry : fontSizesJSON)
+				fontSizes.push_back(sizeEntry);
+
+			String inputName(path.data(), path.size());
+			String outputName(name.data(), name.size());
+			UUID UUID(String(uuidStr.data(), uuidStr.size()));
+
+			const Path fontSourcePath = sInputFolder + inputName;
+
+			BuiltinResourcesHelper::importFont(fontSourcePath, outputName, sOutputFolder, fontSizes, antialiasing, UUID, 
+				sManifest);
+		}
 
 		// Generate & save GUI skin
 		{
-			const SPtr<GUISkin> skin = generateGUISkin();
-			const Path outputPath = sOutputFolder + (String(BuiltinResources::GUI_SKIN_FILE) + u8".asset");
+			std::string name = guiSkinJSON["Path"];
+			std::string uuidStr = guiSkinJSON["UUID"];
 
-			HResource skinResource = gResources()._createResourceHandle(skin, UUID("c1bf9a9d-4355-4841-a538-25e67730ec4b"));
+			String fileName(name.data(), name.size());
+			UUID UUID(String(uuidStr.data(), uuidStr.size()));
+
+			const SPtr<GUISkin> skin = generateGUISkin();
+			const Path outputPath = sOutputFolder + (fileName + u8".asset");
+
+			HResource skinResource = gResources()._createResourceHandle(skin, UUID);
 
 			gResources().save(skinResource, outputPath, true);
 			sManifest->registerResource(skinResource.getUUID(), outputPath);
 		}
 
-		// Generate & save meshes
-		generateMeshes();
+		// Generate & save splash screen
+		if(splashScreenJSON)
+		{
+			std::string name = splashScreenJSON["Path"];
+			String fileName(name.data(), name.size());
+
+			Path inputPath = sInputFolder + fileName;
+			Path outputPath = sOutputFolder + (fileName + ".asset");
+
+			auto textureIO = gImporter().createImportOptions<TextureImportOptions>(inputPath);
+			textureIO->setCPUCached(true);
+			textureIO->setGenerateMipmaps(false);
+			HTexture splashTexture = gImporter().import<Texture>(inputPath, textureIO);
+
+			SPtr<PixelData> splashPixelData = splashTexture->getProperties().allocBuffer(0, 0);
+			splashTexture->readCachedData(*splashPixelData);
+
+			FileEncoder fe(outputPath);
+			fe.encode(splashPixelData.get());
+		}
 	}
 }

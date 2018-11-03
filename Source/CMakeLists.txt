@@ -174,7 +174,7 @@ set_property(TARGET bsfImportTool PROPERTY FOLDER Utilities)
 install(TARGETS bsfImportTool RUNTIME DESTINATION bin)	
 
 if(${BUILD_ASSETS})
-	run_import_tool()
+	run_import_tool(bsf ${BSF_SOURCE_DIR}/..)
 endif()
 
 set(COMPILED_ASSETS_VERSION_FILE ${BSF_SOURCE_DIR}/../Data/.reqversion)
