@@ -297,13 +297,7 @@ namespace bs
 		json shadersJSON = dataListJSON["Shaders"];
 		json fontsJSON = dataListJSON["Fonts"];
 		json guiSkinJSON = dataListJSON["GUISkin"];
-
-		json splashScreenJSON;
-		{
-			auto iterFind = dataListJSON.find("SplashScreen");
-			if(iterFind != dataListJSON.end())
-				splashScreenJSON = *iterFind;
-		}
+		json splashScreenJSON = dataListJSON["SplashScreen"];
 
 		const Path rawSkinFolder = sInputFolder + BuiltinResources::SKIN_FOLDER;
 		const Path rawCursorFolder = sInputFolder + BuiltinResources::CURSOR_FOLDER;
@@ -313,30 +307,46 @@ namespace bs
 
 		// Update DataList.json if needed
 		bool updatedDataLists = false;
-		updatedDataLists |= BuiltinResourcesHelper::updateJSON(
-			rawCursorFolder,
-			BuiltinResourcesHelper::AssetType::Normal,
-			cursorsJSON);
 
-		updatedDataLists |= BuiltinResourcesHelper::updateJSON(
-			rawIconFolder,
-			BuiltinResourcesHelper::AssetType::Normal,
-			iconsJSON);
+		if(!cursorsJSON.is_null())
+		{
+			updatedDataLists |= BuiltinResourcesHelper::updateJSON(
+				rawCursorFolder,
+				BuiltinResourcesHelper::AssetType::Normal,
+				cursorsJSON);
+		}
 
-		updatedDataLists |= BuiltinResourcesHelper::updateJSON(
-			rawShaderIncludeFolder,
-			BuiltinResourcesHelper::AssetType::Normal,
-			includesJSON);
+		if(!iconsJSON.is_null())
+		{
+			updatedDataLists |= BuiltinResourcesHelper::updateJSON(
+				rawIconFolder,
+				BuiltinResourcesHelper::AssetType::Normal,
+				iconsJSON);
+		}
 
-		updatedDataLists |= BuiltinResourcesHelper::updateJSON(
-			rawShaderFolder,
-			BuiltinResourcesHelper::AssetType::Normal,
-			shadersJSON);
+		if(!includesJSON.is_null())
+		{
+			updatedDataLists |= BuiltinResourcesHelper::updateJSON(
+				rawShaderIncludeFolder,
+				BuiltinResourcesHelper::AssetType::Normal,
+				includesJSON);
+		}
 
-		updatedDataLists |= BuiltinResourcesHelper::updateJSON(
-			rawSkinFolder,
-			BuiltinResourcesHelper::AssetType::Sprite,
-			skinJSON);
+		if(!shadersJSON.is_null())
+		{
+			updatedDataLists |= BuiltinResourcesHelper::updateJSON(
+				rawShaderFolder,
+				BuiltinResourcesHelper::AssetType::Normal,
+				shadersJSON);
+		}
+
+		if(!skinJSON.is_null())
+		{
+			updatedDataLists |= BuiltinResourcesHelper::updateJSON(
+				rawSkinFolder,
+				BuiltinResourcesHelper::AssetType::Sprite,
+				skinJSON);
+		}
 
 		dataListStream->close();
 
@@ -344,15 +354,28 @@ namespace bs
 		{
 			FileSystem::remove(dataListsFilePath);
 
-			dataListJSON["Skin"] = skinJSON;
-			dataListJSON["Cursors"] = cursorsJSON;
-			dataListJSON["Icons"] = iconsJSON;
-			dataListJSON["Includes"] = includesJSON;
-			dataListJSON["Shaders"] = shadersJSON;
-			dataListJSON["Fonts"] = fontsJSON;
-			dataListJSON["GUISkin"] = guiSkinJSON;
+			if(!skinJSON.is_null())
+				dataListJSON["Skin"] = skinJSON;
 
-			if(splashScreenJSON)
+			if(!cursorsJSON.is_null())
+				dataListJSON["Cursors"] = cursorsJSON;
+
+			if(!iconsJSON.is_null())
+				dataListJSON["Icons"] = iconsJSON;
+
+			if(!includesJSON.is_null())
+				dataListJSON["Includes"] = includesJSON;
+
+			if(!shadersJSON.is_null())
+				dataListJSON["Shaders"] = shadersJSON;
+
+			if(!fontsJSON.is_null())
+				dataListJSON["Fonts"] = fontsJSON;
+
+			if(!guiSkinJSON.is_null())
+				dataListJSON["GUISkin"] = guiSkinJSON;
+
+			if(!splashScreenJSON.is_null())
 				dataListJSON["SplashScreen"] = splashScreenJSON;
 
 			String jsonString = dataListJSON.dump(4).c_str();
@@ -371,11 +394,20 @@ namespace bs
 		// If forcing import, clear all data folders since everything will be recreated anyway
 		if(forceImport)
 		{
-			FileSystem::remove(cursorFolder);
-			FileSystem::remove(iconFolder);
-			FileSystem::remove(shaderIncludeFolder);
-			FileSystem::remove(shaderFolder);
-			FileSystem::remove(skinFolder);
+			if(FileSystem::exists(cursorFolder))
+				FileSystem::remove(cursorFolder);
+
+			if(FileSystem::exists(iconFolder))
+				FileSystem::remove(iconFolder);
+
+			if(FileSystem::exists(shaderIncludeFolder))
+				FileSystem::remove(shaderIncludeFolder);
+
+			if(FileSystem::exists(shaderFolder))
+				FileSystem::remove(shaderFolder);
+
+			if(FileSystem::exists(skinFolder))
+				FileSystem::remove(skinFolder);
 			
 			FileSystem::remove(shaderDependenciesFile);
 		}
@@ -390,6 +422,7 @@ namespace bs
 		}
 
 		// Import cursors
+		if(!cursorsJSON.is_null())
 		{
 			BuiltinResourcesHelper::updateManifest(
 				cursorFolder,
@@ -413,6 +446,7 @@ namespace bs
 		}
 
 		// Import icons
+		if(!iconsJSON.is_null())
 		{
 			BuiltinResourcesHelper::updateManifest(
 				iconFolder,
@@ -436,6 +470,7 @@ namespace bs
 		}
 
 		// Import shaders
+		if(!shadersJSON.is_null() && !includesJSON.is_null())
 		{
 			BuiltinResourcesHelper::updateManifest(
 				shaderIncludeFolder,
@@ -488,6 +523,7 @@ namespace bs
 		}
 
 		// Import GUI sprites
+		if(!skinJSON.is_null())
 		{
 			BuiltinResourcesHelper::updateManifest(
 				skinFolder,
@@ -520,29 +556,33 @@ namespace bs
 		}
 
 		// Import fonts
-		for(auto& entry : fontsJSON)
+		if(!fontsJSON.is_null())
 		{
-			std::string path = entry["Path"];
-			std::string name = entry["Name"];
-			std::string uuidStr = entry["UUID"];
-			const bool antialiasing = entry["Antialiasing"];
+			for (auto& entry : fontsJSON)
+			{
+				std::string path = entry["Path"];
+				std::string name = entry["Name"];
+				std::string uuidStr = entry["UUID"];
+				const bool antialiasing = entry["Antialiasing"];
 
-			json fontSizesJSON = entry["Sizes"];
-			Vector<UINT32> fontSizes;
-			for(auto& sizeEntry : fontSizesJSON)
-				fontSizes.push_back(sizeEntry);
+				json fontSizesJSON = entry["Sizes"];
+				Vector<UINT32> fontSizes;
+				for (auto& sizeEntry : fontSizesJSON)
+					fontSizes.push_back(sizeEntry);
 
-			String inputName(path.data(), path.size());
-			String outputName(name.data(), name.size());
-			UUID UUID(String(uuidStr.data(), uuidStr.size()));
+				String inputName(path.data(), path.size());
+				String outputName(name.data(), name.size());
+				UUID UUID(String(uuidStr.data(), uuidStr.size()));
 
-			const Path fontSourcePath = sInputFolder + inputName;
+				const Path fontSourcePath = sInputFolder + inputName;
 
-			BuiltinResourcesHelper::importFont(fontSourcePath, outputName, sOutputFolder, fontSizes, antialiasing, UUID, 
-				sManifest);
+				BuiltinResourcesHelper::importFont(fontSourcePath, outputName, sOutputFolder, fontSizes, antialiasing, UUID,
+					sManifest);
+			}
 		}
 
 		// Generate & save GUI skin
+		if(!guiSkinJSON.is_null())
 		{
 			std::string name = guiSkinJSON["Path"];
 			std::string uuidStr = guiSkinJSON["UUID"];
@@ -560,7 +600,7 @@ namespace bs
 		}
 
 		// Generate & save splash screen
-		if(splashScreenJSON)
+		if(!splashScreenJSON.is_null())
 		{
 			std::string name = splashScreenJSON["Path"];
 			String fileName(name.data(), name.size());

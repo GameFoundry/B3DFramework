@@ -509,10 +509,10 @@ function(update_data_file_package _NAME _FOLDER _FILES)
 	message(STATUS "...data file packaging succesful, new version is ${NEW_VERSION_NUM}.")
 endfunction()
 
-function(run_import_tool _PREFIX _FOLDER)
+function(run_import_tool _PREFIX _FOLDER _ARGS)
 	find_package(bsfImportTool)
 
-	message(STATUS "Checking built-in assets for modifications...")
+	message(STATUS "Checking built-in assets for modifications for '${_PREFIX}'...")
 	
 	# Cannot find binaries, see if we can compile them
 	if(NOT bsfImportTool_FOUND)
@@ -522,10 +522,9 @@ function(run_import_tool _PREFIX _FOLDER)
 	endif()
 	
 	execute_process(
-		COMMAND ${bsfImportTool_EXECUTABLE} ${_FOLDER}/Data/Raw/ ${_FOLDER}/Data/
+		COMMAND ${bsfImportTool_EXECUTABLE} ${_FOLDER}/Data/Raw/ ${_FOLDER}/Data/ ${_ARGS}
 		COMMENT "...importing files, please wait."
 		RESULT_VARIABLE IMPORT_STATUS_CODE
-		WORKING_DIRECTORY ${_FOLDER}
 	)
 	
 	if(IMPORT_STATUS_CODE GREATER 1)
