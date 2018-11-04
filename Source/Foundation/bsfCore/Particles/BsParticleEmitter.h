@@ -562,10 +562,10 @@ namespace bs
 		bool initialize(const HMesh& mesh, bool perVertex, bool skinning);
 
 		/** 
-		 * Picks a vertex on the mesh sequentially using @p t, in range [0, 1] where 0 represents the first vertex and
-		 * 1 the last vertex. Returns vertex position, normal and index.
+		 * Returns the next sequential vertex on the mesh and increments the internal counter so the next vertex is
+		 * returned on the following call. Loops around if end is reached. Returns vertex position, normal and index.
 		 */
-		void getSequentialVertex(float t, Vector3& position, Vector3& normal, UINT32& idx) const;
+		void getSequentialVertex(Vector3& position, Vector3& normal, UINT32& idx) const;
 
 		/** Randomly picks a vertex on the mesh and returns its position, normal and index. */
 		void getRandomVertex(const Random& random, Vector3& position, Vector3& normal, UINT32& idx) const;
@@ -594,6 +594,9 @@ namespace bs
 		UINT8* mBoneWeights = nullptr;
 
 		SPtr<MeshData> mMeshData;
+
+		// Transient
+		mutable UINT32 mNextSequentialIdx = 0;
 	};
 
 	/** 

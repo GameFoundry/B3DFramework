@@ -823,9 +823,9 @@ namespace bs
 		return true;
 	}
 
-	void MeshEmissionHelper::getSequentialVertex(float t, class Vector3& position, class Vector3& normal, UINT32& idx) const
+	void MeshEmissionHelper::getSequentialVertex(class Vector3& position, class Vector3& normal, UINT32& idx) const
 	{
-		idx = (UINT32)Math::clamp(t * mNumVertices, 0.0f, (float)mNumVertices - 1.0f);
+		idx = mNextSequentialIdx;
 		position = *(Vector3*)(mVertices + mVertexStride * idx);
 
 		if (mNormals)
@@ -837,6 +837,8 @@ namespace bs
 		}
 		else
 			normal = Vector3::UNIT_Z;
+
+		mNextSequentialIdx = (mNextSequentialIdx + 1) % mNumVertices;
 	}
 
 	void MeshEmissionHelper::getRandomVertex(const Random& random, Vector3& position, Vector3& normal, 
@@ -960,12 +962,10 @@ namespace bs
 		case ParticleEmitterMeshType::Vertex: 
 			if(mInfo.sequential)
 			{
-				float dt = (state.timeStep / count) / state.length;
-
-				return spawnMultiple(particles, count, [this, &state, dt](UINT32 idx, Vector3& position, Vector3& normal)
+				return spawnMultiple(particles, count, [this](UINT32 idx, Vector3& position, Vector3& normal)
 				{
 					UINT32 vertexIdx;
-					mMeshEmissionHelper.getSequentialVertex(state.nrmTimeStart + dt * idx, position, normal, vertexIdx);
+					mMeshEmissionHelper.getSequentialVertex(position, normal, vertexIdx);
 				});
 			}
 			else
@@ -1082,7 +1082,7 @@ namespace bs
 				(UINT32 idx, Vector3& position, Vector3& normal)
 				{
 					UINT32 vertexIdx;
-					mMeshEmissionHelper.getSequentialVertex(state.nrmTimeStart + dt * idx, position, normal, vertexIdx);
+					mMeshEmissionHelper.getSequentialVertex(position, normal, vertexIdx);
 
 					Matrix4 blendMatrix = mMeshEmissionHelper.getBlendMatrix(bones, vertexIdx);
 					position = blendMatrix.multiplyAffine(position);
