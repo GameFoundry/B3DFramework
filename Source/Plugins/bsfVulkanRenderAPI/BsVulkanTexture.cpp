@@ -275,6 +275,7 @@ namespace bs { namespace ct
 
 	VulkanImageSubresource* VulkanImage::getSubresource(UINT32 face, UINT32 mipLevel)
 	{
+		assert(mipLevel * mNumFaces + face < mNumFaces * mNumMipLevels);
 		return mSubresources[mipLevel * mNumFaces + face];
 	}
 
