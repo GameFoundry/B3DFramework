@@ -42,27 +42,7 @@ namespace bs { namespace ct
 
 			gRendererUtility().setPassParams(entry.renderElem->params, entry.passIdx);
 
-			if (entry.renderElem->type == (UINT32)RenderElementType::Particle)
-			{
-				const auto& renderElem = static_cast<const ParticlesRenderElement*>(entry.renderElem);
-
-				if (renderElem->numParticles > 0)
-				{
-					if (renderElem->is3D)
-						gRendererUtility().draw(renderElem->mesh, renderElem->numParticles);
-					else
-						ParticleRenderer::instance().drawBillboards(renderElem->numParticles);
-				}
-			}
-			else // Renderable
-			{
-				const auto& renderElem = static_cast<const RenderableElement*>(entry.renderElem);
-				if (renderElem->morphVertexDeclaration == nullptr)
-					gRendererUtility().draw(renderElem->mesh, renderElem->subMesh);
-				else
-					gRendererUtility().drawMorph(renderElem->mesh, renderElem->subMesh, renderElem->morphShapeBuffer,
-						renderElem->morphVertexDeclaration);
-			}
+			entry.renderElem->draw();
 		}
 	}
 
@@ -396,6 +376,8 @@ namespace bs { namespace ct
 				if (binding.slot != (UINT32)-1)
 					gpuParams->setParamBlockBuffer(binding.set, binding.slot, inputs.view.getPerViewBuffer());
 			}
+
+			renderElement.depthInputTexture.set(sceneDepthTex->texture);
 		}
 
 		Camera* sceneCamera = inputs.view.getSceneCamera();
@@ -433,6 +415,12 @@ namespace bs { namespace ct
 		// Render all visible opaque elements that use the deferred pipeline
 		const Vector<RenderQueueElement>& opaqueElements = inputs.view.getOpaqueQueue(false)->getSortedElements();
 		renderQueueElements(opaqueElements);
+
+		// Render decals after all normal objects, using a read-only depth buffer
+		rapi.setRenderTarget(renderTarget, FBT_DEPTH, RT_ALL);
+
+		const Vector<RenderQueueElement>& decalElements = inputs.view.getDecalQueue()->getSortedElements();
+		renderQueueElements(decalElements);
 
 		// Make sure that any compute shaders are able to read g-buffer by unbinding it
 		rapi.setRenderTarget(nullptr);

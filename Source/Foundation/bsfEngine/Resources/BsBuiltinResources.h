@@ -48,6 +48,8 @@ namespace bs
 		 * for transparency).
 		 */
 		ParticlesLitOpaque,
+		/** Special shader used for rendering decals that project onto other geometry. */
+		Decal
 	};
 
 	/**	Holds references to built-in resources used by the core engine. */
@@ -209,6 +211,7 @@ namespace bs
 		HShader mShaderParticlesUnlit;
 		HShader mShaderParticlesLit;
 		HShader mShaderParticlesLitOpaque;
+		HShader mShaderDecal;
 
 		SPtr<ResourceManifest> mResourceManifest;
 

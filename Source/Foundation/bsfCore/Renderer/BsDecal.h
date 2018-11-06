@@ -56,6 +56,17 @@ namespace bs
 		/**	Gets world bounds of this object. */
 		Bounds getBounds() const { return mBounds; }
 
+		/**	Returns the transform matrix that is applied to the object when its being rendered. */
+		Matrix4 getMatrix() const { return mTfrmMatrix; }
+
+		/**
+		 * Returns the transform matrix that is applied to the object when its being rendered. This transform matrix does 
+		 * not include scale values.
+		 */
+		Matrix4 getMatrixNoScale() const { return mTfrmMatrixNoScale; }
+
+		/** @copydoc SceneActor::setTransform */
+		void setTransform(const Transform& transform) override;
 	protected:
 		/** Updates the internal bounds for the decal. Call this whenever a property affecting the bounds changes. */
 		void updateBounds();
@@ -63,6 +74,8 @@ namespace bs
 		Vector2 mSize = Vector2::ONE;
 		float mMaxDistance = 10.0f;
 		UINT64 mLayer = 1;
+		Matrix4 mTfrmMatrix = BsIdentity;
+		Matrix4 mTfrmMatrixNoScale = BsIdentity;
 
 		Bounds mBounds;
 	};

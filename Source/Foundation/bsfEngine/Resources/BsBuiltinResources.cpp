@@ -70,6 +70,7 @@ namespace bs
 	constexpr const char* ShaderParticlesUnlitFile = u8"ParticlesUnlit.bsl";
 	constexpr const char* ShaderParticlesLitFile = u8"ParticlesLit.bsl";
 	constexpr const char* ShaderParticlesLitOpaqueFile = u8"ParticlesLitOpaque.bsl";
+	constexpr const char* ShaderDecalFile = u8"Decal.bsl";
 
 	BuiltinResources::~BuiltinResources()
 	{
@@ -118,6 +119,7 @@ namespace bs
 		mShaderParticlesUnlit = getShader(ShaderParticlesUnlitFile);
 		mShaderParticlesLit = getShader(ShaderParticlesLitFile);
 		mShaderParticlesLitOpaque = getShader(ShaderParticlesLitOpaqueFile);
+		mShaderDecal = getShader(ShaderDecalFile);
 
 		SPtr<PixelData> dummyPixelData = PixelData::create(2, 2, 1, PF_RGBA8);
 
@@ -343,6 +345,8 @@ namespace bs
 			return mShaderParticlesLit;
 		case BuiltinShader::ParticlesLitOpaque:
 			return mShaderParticlesLitOpaque;
+		case BuiltinShader::Decal:
+			return mShaderDecal;
 		default:
 			break;
 		}

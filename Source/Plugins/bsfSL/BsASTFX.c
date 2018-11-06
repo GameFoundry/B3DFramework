@@ -348,10 +348,13 @@ void pushConditional(ParseState* parseState, const char* name)
 	ConditionalData* conditional = mmalloc(parseState->memContext, sizeof(ConditionalData));
 	conditional->enabled = (parseState->conditionalStack == 0 || parseState->conditionalStack->enabled);
 	conditional->selfEnabled = 0;
-	conditional->name = mmalloc_strdup(parseState->memContext, name);
 	conditional->op = CO_None;
 	conditional->value = NULL;
+	conditional->name = NULL;
 	conditional->next = parseState->conditionalStack;
+
+	if(name)
+		conditional->name = mmalloc_strdup(parseState->memContext, name);
 
 	parseState->conditionalStack = conditional;
 }

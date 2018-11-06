@@ -395,6 +395,14 @@ namespace bs { namespace ct
 				element.materialAnimationTime += timings.timeDelta;
 		}
 
+		for (UINT32 i = 0; i < sceneInfo.decals.size(); i++)
+		{
+			const RendererDecal& decal = sceneInfo.decals[i];
+			decal.renderElement.materialAnimationTime += timings.timeDelta;
+
+			mScene->prepareDecal(i, frameInfo);
+		}
+
 		// Gather all views
 		for (auto& rtInfo : sceneInfo.renderTargets)
 		{

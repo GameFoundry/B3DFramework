@@ -12,6 +12,10 @@ mixin VertexCommon
 				float3 tangentToWorldZ : NORMAL; // Note: Half-precision could be used
 				float4 tangentToWorldX : TANGENT; // Note: Half-precision could be used
 			#endif
+			
+			#if CLIP_POS
+				float4 clipPos : TEXCOORD2;
+			#endif
 		};
 
 		struct VertexInput
@@ -135,7 +139,7 @@ mixin VertexCommon
 			float3x3 tangentToWorld = float3x3(tangentToWorldX, tangentToWorldY, tangentToWorldZ);
 			
 			// Multiplication order flipped because we stored basis vectors as rows
-			return normalize(mul(surfaceNormal, tangentToWorld));			
+			return normalize(mul(surfaceNormal, tangentToWorld));
 		}
 		#endif
 		
@@ -169,6 +173,10 @@ mixin VertexCommon
 			#if LIGHTING_DATA
 				result.tangentToWorldZ = intermediate.worldNormal;
 				result.tangentToWorldX = intermediate.worldTangent;
+			#endif
+			
+			#if CLIP_POS
+				result.clipPos = result.position;
 			#endif
 		}
 	};

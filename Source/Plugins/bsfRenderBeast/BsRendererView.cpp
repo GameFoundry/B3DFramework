@@ -95,6 +95,7 @@ namespace bs { namespace ct
 			transparentStateReduction = StateReduction::Distance; // Transparent object MUST be sorted by distance
 
 		mTransparentQueue = bs_shared_ptr_new<RenderQueue>(transparentStateReduction);
+		mDecalQueue = bs_shared_ptr_new<RenderQueue>(StateReduction::Material);
 	}
 
 	void RendererView::setRenderSettings(const SPtr<RenderSettings>& settings)
@@ -156,6 +157,7 @@ namespace bs { namespace ct
 		mDeferredOpaqueQueue->clear();
 		mForwardOpaqueQueue->clear();
 		mTransparentQueue->clear();
+		mDecalQueue->clear();
 	}
 
 	void RendererView::determineVisible(const Vector<RendererRenderable*>& renderables, const Vector<CullInfo>& cullInfos,
@@ -384,12 +386,13 @@ namespace bs { namespace ct
 			if (shaderFlags.isSetAny(ShaderFlag::Transparent | ShaderFlag::Forward))
 				continue;
 
-			mDeferredOpaqueQueue->add(&renderElem, distanceToCamera);
+			mDecalQueue->add(&renderElem, distanceToCamera);
 		}
 
 		mForwardOpaqueQueue->sort();
 		mDeferredOpaqueQueue->sort();
 		mTransparentQueue->sort();
+		mDecalQueue->sort();
 	}
 
 	Vector2 RendererView::getDeviceZToViewZ(const Matrix4& projMatrix)

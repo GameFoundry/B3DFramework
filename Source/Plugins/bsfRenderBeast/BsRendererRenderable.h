@@ -84,6 +84,9 @@ namespace bs { namespace ct
 
 		/** Version of the morph shape vertices in the buffer. */
 		mutable UINT32 morphShapeVersion;
+
+		/** @copydoc RenderElement::draw */
+		void draw() const override;
 	};
 
 	 /** Contains information about a Renderable, used by the Renderer. */

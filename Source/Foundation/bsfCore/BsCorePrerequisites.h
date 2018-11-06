@@ -263,6 +263,7 @@ namespace bs
 	CORE_OBJECT_FORWARD_DECLARE(Mesh)
 	CORE_OBJECT_FORWARD_DECLARE(VectorField)
 	CORE_OBJECT_FORWARD_DECLARE(Skybox)
+	CORE_OBJECT_FORWARD_DECLARE(Decal)
 
 	class Color;
 	class GpuProgramManager;
@@ -375,6 +376,7 @@ namespace bs
 	class CoreObjectManager;
 	struct CollisionData;
 	class CParticleSystem;
+	class CDecal;
 	// Asset import
 	class SpecificImporter;
 	class Importer;
@@ -620,6 +622,7 @@ namespace bs
 		TID_ParticleColor = 1189,
 		TID_ParticleRotation = 1190,
 		TID_Decal = 1191,
+		TID_CDecal = 1192,
 
 		// Moved from Engine layer
 		TID_CCamera = 30000,
@@ -708,6 +711,7 @@ namespace bs
 	typedef GameObjectHandle<CAudioSource> HAudioSource;
 	typedef GameObjectHandle<CAudioListener> HAudioListener;
 	typedef GameObjectHandle<CParticleSystem> HParticleSystem;
+	typedef GameObjectHandle<CDecal> HDecal;
 
 	/** @} */
 }

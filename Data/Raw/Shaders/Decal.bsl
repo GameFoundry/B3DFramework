@@ -1,3 +1,4 @@
+#define CLIP_POS 1
 #include "$ENGINE$\BasePass.bslinc"
 #include "$ENGINE$\GBufferOutput.bslinc"
 #include "$ENGINE$\DepthInput.bslinc"
@@ -36,13 +37,15 @@ shader Surface
 			enabled = true;
 			
 			#if BLEND_MODE == 1
-				color = { one, one, mul };
+				color = { dstRGB, zero, add };
 			#else
 				color = { srcA, srcIA, add };
 			#endif
 			
-			#if BLEND_MODE == 2 || BLEND_MODE == 3
+			#if BLEND_MODE != 0
+			#if BLEND_MODE != 1
 				writemask = empty;
+			#endif
 			#endif
 		};
 		
@@ -63,8 +66,10 @@ shader Surface
 			enabled = true;
 			color = { srcA, srcIA, add };
 			
-			#if BLEND_MODE == 2 || BLEND_MODE == 3
+			#if BLEND_MODE != 0
+			#if BLEND_MODE != 1
 				writemask = empty;
+			#endif
 			#endif
 		};
 	};	
@@ -123,20 +128,28 @@ shader Surface
 				[color]
 				float3 gEmissiveColor = { 1.0f, 1.0f, 1.0f };
 			#endif
+			
+			#if BLEND_MODE == 0 || BLEND_MODE == 1
+				[spriteuv(gAlbedoTex)]
+				float4 gSpriteUV;
+			#endif
 		};
 	
+		[internal]
 		cbuffer DecalParams
 		{
 			float4x4 gWorldToDecal;
+			float3 gDecalNormal;
+			float gNormalTolerance;
 		}
 		
-		float3x3 tangentFrame(float3 N, float3 p, float2 uv )
+		float3x3 getWorldToTangent(float3 N, float3 p, float2 uv)
 		{
 			float3 dp1 = ddx(p);
 			float3 dp2 = ddy(p);
 			float2 duv1 = ddx(uv);
 			float2 duv2 = ddy(uv);
-		 
+			
 			float3 dp2perp = cross(dp2, N);
 			float3 dp1perp = cross(N, dp1);
 			float3 T = dp2perp * duv1.x + dp1perp * duv2.x;
@@ -153,7 +166,7 @@ shader Surface
 			out float4 OutGBufferA : SV_Target1,
 			out float4 OutGBufferB : SV_Target2,
 			out float2 OutGBufferC : SV_Target3)
-		{
+		{		
 			#if MSAA_COUNT > 1
 				// Note: Always sampling from 0th MSAA sample, could impact quality/aliasing
 				float deviceZ = gDepthBufferTex.Load(screenPos.xy, 0).r;
@@ -162,6 +175,7 @@ shader Surface
 			#endif	
 		
 			float depth = convertFromDeviceZ(deviceZ);
+			float2 ndcPos = input.clipPos.xy / input.clipPos.w;
 		
 			// x, y are now in clip space, z, w are in view space
 			// We multiply them by a special inverse view-projection matrix, that had the projection entries that effect
@@ -171,17 +185,20 @@ shader Surface
 			float4 worldPosition4D = mul(gMatScreenToWorld, mixedSpacePos);
 			float3 worldPosition = worldPosition4D.xyz / worldPosition4D.w;
 			
-			// TODO - gWorldToDecal needs to include decal size
 			float4 decalPos = mul(gWorldToDecal, float4(worldPosition, 1.0f));
-			float2 decalUV = (decalPos + 1.0f) * 0.5f;
+			float3 decalUV = (decalPos.xyz + 1.0f) * 0.5f;
 						
 			float alpha = 0.0f;
 			if(any(decalUV < 0.0f) || any(decalUV > 1.0f))
-				return;
+				discard;
 				
-			// TODO - Clip based on normal direction
+			float3 worldNormal = normalize(cross(ddy(worldPosition), ddx(worldPosition)));
+			if(dot(worldNormal, gDecalNormal) > gNormalTolerance)
+				discard;
 				
-			float2 uv = decalUV * gUVTile + gUVOffset;
+			float3x3 worldToTangent = getWorldToTangent(worldNormal, worldPosition, decalUV.xy);
+				
+			float2 uv = (decalUV.xy * gUVTile + gUVOffset) * gSpriteUV.zw + gSpriteUV.xy;
 			float opacity = gOpacityTex.Sample(gOpacitySamp, uv);
 				
 			#if BLEND_MODE == 3
@@ -189,14 +206,16 @@ shader Surface
 			#elif BLEND_MODE == 2
 				float3 normal = normalize(gNormalTex.Sample(gNormalSamp, uv) * 2.0f - float3(1, 1, 1));
 				
-				// TODO - Get normal tangent space
-				float3 worldNormal;
+				// Flip multiplication order since we need to transform with tangentToWorld, which is the transpose
+				worldNormal = mul(normal, worldToTangent);
 				OutGBufferB = float4(worldNormal * 0.5f + 0.5f, opacity);
 			#else
 				OutGBufferA = float4(gAlbedoTex.Sample(gAlbedoSamp, uv).xyz, opacity);
 				
-				// TODO - Get normal tangent space
-				float3 worldNormal;
+				float3 normal = normalize(gNormalTex.Sample(gNormalSamp, uv) * 2.0f - float3(1, 1, 1));
+				
+				// Flip multiplication order since we need to transform with tangentToWorld, which is the transpose
+				worldNormal = mul(normal, worldToTangent);
 				OutGBufferB = float4(worldNormal * 0.5f + 0.5f, opacity);
 				
 				float roughness = gRoughnessTex.Sample(gRoughnessSamp, uv).x;

@@ -41,6 +41,12 @@ namespace bs
 		/** @copydoc ParticleSystem::getEvolvers */
 		ParticleSystemEvolvers& getEvolvers();
 
+		/** @copydoc ParticleSystem::setLayer() */
+		void setLayer(UINT64 layer);
+
+		/** @copydoc ParticleSystem::getLayer() */
+		UINT64 getLayer() const { return mLayer; }
+
 		/** @name Internal
 		 *  @{
 		 */
@@ -80,6 +86,7 @@ namespace bs
 		ParticleGpuSimulationSettings mGpuSimulationSettings;
 		ParticleSystemEmitters mEmitters;
 		ParticleSystemEvolvers mEvolvers;
+		UINT64 mLayer = 1;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

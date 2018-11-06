@@ -2081,6 +2081,7 @@ namespace bs
 
 		// Parse extended HLSL code and generate per-program code, also convert to GLSL/VKSL
 		const auto end = (UINT32)shaderData.size();
+		Vector<pair<ASTFXNode*, ShaderData>> outputShaderData;
 		for(UINT32 i = 0; i < end; i++)
 		{
 			const ShaderMetaData& metaData = shaderData[i].second.metaData;
@@ -2243,11 +2244,12 @@ namespace bs
 				}
 			}
 
-			shaderData.push_back(std::make_pair(nullptr, glslShaderData));
-			shaderData.push_back(std::make_pair(nullptr, vkslShaderData));
+			outputShaderData.push_back(std::make_pair(nullptr, hlslShaderData));
+			outputShaderData.push_back(std::make_pair(nullptr, glslShaderData));
+			outputShaderData.push_back(std::make_pair(nullptr, vkslShaderData));
 		}
 
-		for(auto& entry : shaderData)
+		for(auto& entry : outputShaderData)
 		{
 			const ShaderMetaData& metaData = entry.second.metaData;
 			if (metaData.isMixin)

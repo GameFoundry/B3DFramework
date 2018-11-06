@@ -25,6 +25,7 @@ set(BS_CORE_INC_COMPONENTS
 	"bsfCore/Components/BsCSkybox.h"
 	"bsfCore/Components/BsCLightProbeVolume.h"
 	"bsfCore/Components/BsCParticleSystem.h"
+	"bsfCore/Components/BsCDecal.h"
 )
 
 set(BS_CORE_INC_PHYSICS
@@ -279,6 +280,7 @@ set(BS_CORE_SRC_COMPONENTS
 	"bsfCore/Components/BsCSkybox.cpp"
 	"bsfCore/Components/BsCLightProbeVolume.cpp"
 	"bsfCore/Components/BsCParticleSystem.cpp"
+	"bsfCore/Components/BsCDecal.cpp"
 )
 
 set(BS_CORE_SRC_IMPORTER
@@ -386,6 +388,7 @@ set(BS_CORE_INC_RTTI
 	"bsfCore/Private/RTTI/BsCParticleSystemRTTI.h"
 	"bsfCore/Private/RTTI/BsVectorFieldRTTI.h"
 	"bsfCore/Private/RTTI/BsDecalRTTI.h"
+	"bsfCore/Private/RTTI/BsCDecalRTTI.h"
 )
 
 set(BS_CORE_SRC_RENDERER

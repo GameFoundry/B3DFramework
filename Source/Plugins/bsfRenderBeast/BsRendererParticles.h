@@ -198,6 +198,9 @@ namespace bs { namespace ct
 
 		/** Checks if the element has all the properties required for rendering. */
 		bool isValid() const { return !is3D || mesh != nullptr; }
+
+		/** @copydoc RenderElement::draw */
+		void draw() const override;
 	};
 
 	/** Contains information about a ParticleSystem, used by the Renderer. */

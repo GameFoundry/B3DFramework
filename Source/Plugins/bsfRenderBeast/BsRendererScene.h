@@ -174,7 +174,7 @@ namespace bs
 		void setParamFrameParams(float time);
 
 		/**
-		 * Performs necessary steps to make a renderable ready for rendering. This must be called at least once every frame,
+		 * Performs necessary steps to make a renderable ready for rendering. This must be called at least once every frame
 		 * for every renderable that will be drawn. Multiple calls for the same renderable during a single frame will result
 		 * in a no-op.
 		 * 
@@ -182,6 +182,15 @@ namespace bs
 		 * @param[in]	frameInfo	Global information describing the current frame.
 		 */
 		void prepareRenderable(UINT32 idx, const FrameInfo& frameInfo);
+
+		/**
+		 * Performs necessary steps to make a decal ready for rendering. This must be called at least once every frame
+		 * for every decal that will be drawn. 
+		 * 
+		 * @param[in]	idx			Index of the decal to prepare.
+		 * @param[in]	frameInfo	Global information describing the current frame.
+		 */
+		void prepareDecal(UINT32 idx, const FrameInfo& frameInfo);
 
 		/** Updates the bounds for all the particle systems from the provided object. */
 		void updateParticleSystemBounds(const ParticlePerFrameData* particleRenderData);

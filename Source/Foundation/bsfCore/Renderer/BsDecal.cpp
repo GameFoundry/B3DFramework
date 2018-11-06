@@ -33,15 +33,29 @@ namespace bs
 		mLayer = layer;
 		_markCoreDirty();
 	}	
-	
+
+	void DecalBase::setTransform(const Transform& transform)
+	{
+		if (mMobility != ObjectMobility::Movable)
+			return;
+
+		mTransform = transform;
+		mTfrmMatrix = transform.getMatrix();
+		mTfrmMatrixNoScale = Matrix4::TRS(transform.getPosition(), transform.getRotation(), Vector3::ONE);
+
+		_markCoreDirty(ActorDirtyFlag::Transform);
+	}
+
 	void DecalBase::updateBounds()
 	{
+		const Vector2& extents = mSize * 0.5f;
+
 		AABox localAABB(
-			Vector3(-mSize.x, -mSize.y, 0.0f),
-			Vector3(mSize.x, mSize.y, mMaxDistance)
+			Vector3(-extents.x, -extents.y, -mMaxDistance),
+			Vector3(extents.x, extents.y, 0.0f)
 		);
 
-		localAABB.transformAffine(mTransform.getMatrix());
+		localAABB.transformAffine(mTfrmMatrix);
 
 		mBounds = Bounds(localAABB, Sphere(localAABB.getCenter(), localAABB.getRadius()));
 	}
@@ -165,6 +179,9 @@ namespace bs
 		dataPtr = rttiReadElem(dirtyFlags, dataPtr);
 		dataPtr = coreSyncReadElem((SceneActor&)*this, dataPtr);
 		dataPtr = coreSyncReadElem(*this, dataPtr);
+
+		mTfrmMatrix = mTransform.getMatrix();
+		mTfrmMatrixNoScale = Matrix4::TRS(mTransform.getPosition(), mTransform.getRotation(), Vector3::ONE);
 
 		updateBounds();
 

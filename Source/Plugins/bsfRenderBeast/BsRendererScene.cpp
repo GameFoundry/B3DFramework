@@ -965,6 +965,9 @@ namespace bs {	namespace ct
 			"PerCamera",
 			renElement.perCameraBindings
 		);
+
+		if (gpuParams->hasTexture(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex"))
+			gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", renElement.depthInputTexture);
 	}
 
 	void RendererScene::updateDecal(Decal* decal)
@@ -1254,6 +1257,14 @@ namespace bs {	namespace ct
 		mInfo.renderableReady[idx] = true;
 	}
 
+	void RendererScene::prepareDecal(UINT32 idx, const FrameInfo& frameInfo)
+	{
+		DecalRenderElement& renElement = mInfo.decals[idx].renderElement;
+		renElement.material->updateParamsSet(renElement.params, renElement.materialAnimationTime);
+		
+		mInfo.decals[idx].perObjectParamBuffer->flushToGPU();
+	}
+
 	void RendererScene::updateParticleSystemBounds(const ParticlePerFrameData* particleRenderData)
 	{
 		// Note: Avoid updating bounds for deterministic particle systems every frame. Also see if this can be copied
@@ -1297,7 +1308,7 @@ namespace bs {	namespace ct
 			mSamplerOverrides[samplerKey] = samplerOverrides;
 
 			samplerOverrides->refCount++;
-			return iterFind->second;
+			return samplerOverrides;
 		}
 	}
 

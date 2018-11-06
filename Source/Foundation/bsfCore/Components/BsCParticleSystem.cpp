@@ -53,6 +53,14 @@ namespace bs
 		return mEvolvers;
 	}
 
+	void CParticleSystem::setLayer(UINT64 layer)
+	{
+		mLayer = layer;
+
+		if(mInternal)
+			mInternal->setLayer(layer);
+	}
+
 	void CParticleSystem::onDestroyed()
 	{
 		destroyInternal();
@@ -82,6 +90,7 @@ namespace bs
 		mInternal->setGpuSimulationSettings(mGpuSimulationSettings);
 		mInternal->getEmitters() = mEmitters;
 		mInternal->getEvolvers() = mEvolvers;
+		mInternal->setLayer(mLayer);
 	}
 
 	void CParticleSystem::destroyInternal()

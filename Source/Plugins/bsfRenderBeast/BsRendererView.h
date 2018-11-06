@@ -270,6 +270,12 @@ namespace bs { namespace ct
 		 */
 		const SPtr<RenderQueue>& getTransparentQueue() const { return mTransparentQueue; }
 
+		/** 
+		 * Returns a render queue containing all decal renderable objects. Make sure to call determineVisible() beforehand 
+		 * if view or object transforms changed since the last time it was called. 
+		 */
+		const SPtr<RenderQueue>& getDecalQueue() const { return mDecalQueue; }
+		
 		/** Returns the compositor in charge of rendering for this view. */
 		const RenderCompositor& getCompositor() const { return mCompositor; }
 
@@ -441,6 +447,7 @@ namespace bs { namespace ct
 		SPtr<RenderQueue> mDeferredOpaqueQueue;
 		SPtr<RenderQueue> mForwardOpaqueQueue;
 		SPtr<RenderQueue> mTransparentQueue;
+		SPtr<RenderQueue> mDecalQueue;
 
 		RenderCompositor mCompositor;
 		SPtr<RenderSettings> mRenderSettings;

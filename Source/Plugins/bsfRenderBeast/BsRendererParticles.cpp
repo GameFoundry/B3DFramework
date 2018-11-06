@@ -6,6 +6,7 @@
 #include "RenderAPI/BsGpuBuffer.h"
 #include "RenderAPI/BsVertexBuffer.h"
 #include "Mesh/BsMeshData.h"
+#include "Mesh/BsMesh.h"
 #include "RenderAPI/BsVertexDataDesc.h"
 #include "Shading/BsGpuParticleSimulation.h"
 #include "Material/BsGpuParamsSet.h"
@@ -91,6 +92,17 @@ namespace bs { namespace ct
 		}
 
 		buffer->unlock();
+	}
+
+	void ParticlesRenderElement::draw() const
+	{
+		if (numParticles > 0)
+		{
+			if (is3D)
+				gRendererUtility().draw(mesh, numParticles);
+			else
+				ParticleRenderer::instance().drawBillboards(numParticles);
+		}
 	}
 
 	void RendererParticles::bindCPUSimulatedInputs(const ParticleRenderData* renderData, const RendererView& view) const

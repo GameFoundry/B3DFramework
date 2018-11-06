@@ -217,7 +217,7 @@ RGBA			{ yylval->intValue = 0xF; return TOKEN_COLORMASK; }
 <UNDEF_COND>.					{ return yytext[0]; }
 
 #if								{ BEGIN(CONDITIONAL_IF); }
-<CONDITIONAL_IF>{IDENTIFIER}	{ pushConditional(yyextra, true); }
+<CONDITIONAL_IF>{IDENTIFIER}	{ pushConditional(yyextra, yytext); }
 <CONDITIONAL_IF>==				{ setConditionalOp(yyextra, CO_Equals); }
 <CONDITIONAL_IF>!=				{ setConditionalOp(yyextra, CO_NotEquals); }
 <CONDITIONAL_IF>>				{ setConditionalOp(yyextra, CO_Greater); }
@@ -226,19 +226,19 @@ RGBA			{ yylval->intValue = 0xF; return TOKEN_COLORMASK; }
 <CONDITIONAL_IF><=				{ setConditionalOp(yyextra, CO_LesserEqual); }
 <CONDITIONAL_IF>{INTEGER}		{ setConditionalVal(yyextra, yytext); }
 <CONDITIONAL_IF>{ENDLINE}		{ 
-	bool isEnabled = evalConditional();
+	int isEnabled = evalConditional(yyextra);
 	if(!isEnabled)
 		BEGIN(CONDITIONAL_IGNORE);
 	else
 		BEGIN(INITIAL);
 }
-<CONDITIONAL_IF>{WS}			{ /* Skip blank */ }
+<CONDITIONAL_IF>{SPACE}			{ /* Skip blank */ }
 <CONDITIONAL_IF>.
 
 #ifdef							{ BEGIN(CONDITIONAL_IFDEF); }
 <CONDITIONAL_IFDEF>{WS}			{ /* Skip blank */ }
 <CONDITIONAL_IFDEF>{IDENTIFIER}	{ 
-	int isEnabled = pushConditional(yyextra, hasDefine(yyextra, yytext));
+	int isEnabled = pushConditionalDef(yyextra, hasDefine(yyextra, yytext));
 	if(!isEnabled)
 		BEGIN(CONDITIONAL_IGNORE);
 	else
@@ -249,7 +249,7 @@ RGBA			{ yylval->intValue = 0xF; return TOKEN_COLORMASK; }
 #ifndef								{ BEGIN(CONDITIONAL_IFNDEF); }
 <CONDITIONAL_IFNDEF>{WS}			{ /* Skip blank */ }
 <CONDITIONAL_IFNDEF>{IDENTIFIER}	{ 
-	int isEnabled = pushConditional(yyextra, !hasDefine(yyextra, yytext));
+	int isEnabled = pushConditionalDef(yyextra, !hasDefine(yyextra, yytext));
 	if(!isEnabled)
 		BEGIN(CONDITIONAL_IGNORE);
 	else
@@ -289,13 +289,13 @@ RGBA			{ yylval->intValue = 0xF; return TOKEN_COLORMASK; }
 <CONDITIONAL_ELIF><=			{ setConditionalOp(yyextra, CO_LesserEqual); }
 <CONDITIONAL_ELIF>{INTEGER}		{ setConditionalVal(yyextra, yytext); }
 <CONDITIONAL_ELIF>{ENDLINE}		{ 
-	bool isEnabled = evalConditional();
+	int isEnabled = evalConditional(yyextra);
 	if(!isEnabled)
 		BEGIN(CONDITIONAL_IGNORE);
 	else
 		BEGIN(INITIAL);
 }
-<CONDITIONAL_ELIF>{WS}			{ /* Skip blank */ }
+<CONDITIONAL_ELIF>{SPACE}		{ /* Skip blank */ }
 <CONDITIONAL_ELIF>.				{ return yytext[0]; }
 
 	/* Code block */

@@ -19,6 +19,8 @@ namespace bs { namespace ct
 
 	BS_PARAM_BLOCK_BEGIN(DecalParamDef)
 		BS_PARAM_BLOCK_ENTRY(Matrix4, gWorldToDecal)
+		BS_PARAM_BLOCK_ENTRY(Vector3, gDecalNormal)
+		BS_PARAM_BLOCK_ENTRY(float, gNormalTolerance)
 	BS_PARAM_BLOCK_END
 
 	extern DecalParamDef gDecalParamDef;
@@ -43,6 +45,12 @@ namespace bs { namespace ct
 
 		/** Time to used for evaluating material animation. */
 		float materialAnimationTime = 0.0f;
+
+		/** Texture input for the depth buffer. */
+		GpuParamTexture depthInputTexture;
+
+		/** @copydoc RenderElement::draw */
+		void draw() const override;
 	};
 
 	 /** Contains information about a Decal, used by the Renderer. */

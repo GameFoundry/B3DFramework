@@ -1,6 +1,8 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsRendererRenderable.h"
+#include "Renderer/BsRendererUtility.h"
+#include "Mesh/BsMesh.h"
 
 namespace bs { namespace ct
 {
@@ -14,6 +16,14 @@ namespace bs { namespace ct
 		gPerObjectParamDef.gMatWorldNoScale.set(buffer, tfrmNoScale);
 		gPerObjectParamDef.gMatInvWorldNoScale.set(buffer, tfrmNoScale.inverseAffine());
 		gPerObjectParamDef.gWorldDeterminantSign.set(buffer, tfrm.determinant3x3() >= 0.0f ? 1.0f : -1.0f);
+	}
+
+	void RenderableElement::draw() const
+	{
+		if (morphVertexDeclaration == nullptr)
+			gRendererUtility().draw(mesh, subMesh);
+		else
+			gRendererUtility().drawMorph(mesh, subMesh, morphShapeBuffer, morphVertexDeclaration);
 	}
 
 	RendererRenderable::RendererRenderable()
