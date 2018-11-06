@@ -20,6 +20,7 @@ Huge thanks to all the patrons, contributors and donators!
 - Christian Clavet [Founder]
 - jeaninde [Founder]
 - Robert Campbell [Founder]
+- Galnart
 
 # Tier 3 Patrons
 
