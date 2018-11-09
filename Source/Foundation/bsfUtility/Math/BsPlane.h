@@ -91,8 +91,6 @@ namespace bs
 		float d = 0.0f;
 	};
 
-	typedef Vector<Plane> PlaneList;
-
 	BS_ALLOW_MEMCPY_SERIALIZATION(Plane)
 
 	/** @} */

@@ -36,7 +36,7 @@ namespace bs
 	 */
 
 	/** Possible orientations when rendering billboard particles. */
-	enum class ParticleOrientation
+	enum class BS_SCRIPT_EXPORT(m:Particles) ParticleOrientation
 	{
 		/** Orient towards view (camera) plane. */
 		ViewPlane,
@@ -49,7 +49,7 @@ namespace bs
 	};
 
 	/** Space in which to spawn/transform particles. */
-	enum class ParticleSimulationSpace
+	enum class BS_SCRIPT_EXPORT(m:Particles) ParticleSimulationSpace
 	{
 		/** 
 		 * Particles will always remain local to their transform parent. This means if the transform parent moves so will
@@ -65,7 +65,7 @@ namespace bs
 	};
 
 	/** Determines how to sort particles before rendering. */
-	enum class ParticleSortMode
+	enum class BS_SCRIPT_EXPORT(m:Particles) ParticleSortMode
 	{
 		/** Do not sort the particles. */
 		None,
@@ -81,7 +81,7 @@ namespace bs
 	};
 
 	/** Determines how are particles represented on the screen. */
-	enum class ParticleRenderMode
+	enum class BS_SCRIPT_EXPORT(m:Particles) ParticleRenderMode
 	{
 		/** Particle is represented using a 2D quad. */
 		Billboard,
@@ -91,24 +91,31 @@ namespace bs
 	};
 
 	/** Controls depth buffer collisions for GPU simulated particles. */
-	struct ParticleDepthCollisionSettings : IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleDepthCollisionSettings : IReflectable
 	{
+		BS_SCRIPT_EXPORT()
+		ParticleDepthCollisionSettings() = default;
+
 		/** Determines if depth collisions are enabled. */
+		BS_SCRIPT_EXPORT()
 		bool enabled = false;
 
 		/** 
 		 * Determines the elasticity (bounciness) of the particle collision. Lower values make the collision less bouncy
 		 * and higher values more. 
 		 */
+		BS_SCRIPT_EXPORT()
 		float restitution = 1.0f;
 
 		/**
 		 * Determines how much velocity should a particle lose after a collision, in percent of its current velocity. In
 		 * range [0, 1].
 		 */
+		BS_SCRIPT_EXPORT()
 		float dampening = 0.5f;
 
 		/** Scale which to apply to particle size in order to determine the collision radius. */
+		BS_SCRIPT_EXPORT()
 		float radiusScale = 1.0f;
 
 		/************************************************************************/
@@ -137,39 +144,47 @@ namespace bs
 		 * performance cost. GPU simulation ignores any provided evolvers and instead uses ParticleGpuSimulationSettings
 		 * to customize the GPU simulation. 
 		 */
+		BS_SCRIPT_EXPORT()
 		bool gpuSimulation = false;
 
 		/** Determines in which space are particles in. */
+		BS_SCRIPT_EXPORT()
 		ParticleSimulationSpace simulationSpace = ParticleSimulationSpace::World;
 
 		/** Determines how are particles oriented when rendering. */
+		BS_SCRIPT_EXPORT()
 		ParticleOrientation orientation = ParticleOrientation::ViewPlane;
 
 		/** 
 		 * Determines should the particles only be allowed to orient themselves around the Y axis, or freely. Ignored if
 		 * using the Plane orientation mode.
 		 */
+		BS_SCRIPT_EXPORT()
 		bool orientationLockY = false;
 
 		/** 
 		 * Determines a plane to orient particles towards. Only used if particle orientation mode is set to 
 		 * ParticleOrientation::Plane. 
 		 */
+		BS_SCRIPT_EXPORT()
 		Plane orientationPlane = Plane(Vector3::UNIT_Z, Vector3::ZERO);
 
 		/** 
 		 * Determines how (and if) are particles sorted. Sorting controls in what order are particles rendered. 
 		 * If GPU simulation is enabled only distance based sorting is supported.
 		 */
+		BS_SCRIPT_EXPORT()
 		ParticleSortMode sortMode = ParticleSortMode::None;
 
 		/** 
 		 * Determines the time period during which the system runs, in seconds. This effects evaluation of distributions
 		 * with curves using particle system time for evaluation.
 		 */
+		BS_SCRIPT_EXPORT()
 		float duration = 5.0f;
 
 		/** Determines should the particle system time wrap around once it reaches its duration. */
+		BS_SCRIPT_EXPORT()
 		bool isLooping = true;
 
 		/** 
@@ -177,18 +192,21 @@ namespace bs
 		 * if GPU simulation is enabled, and instead particle count is instead only limited by the size of the internal
 		 * buffers (shared between all particle systems).
 		 */
+		BS_SCRIPT_EXPORT()
 		UINT32 maxParticles = 2000;
 
 		/** 
 		 * Determines should an automatic seed be used for the internal random number generator. This ensures the particle
 		 * system yields different results each time it is ran.
 		 */
+		BS_SCRIPT_EXPORT()
 		bool useAutomaticSeed = true;
 
 		/** 
 		 * Determines the seed to use for the internal random number generator. Allows you to guarantee identical behaviour
 		 * between different runs. Only relevant if automatic seed is disabled.
 		 */
+		BS_SCRIPT_EXPORT()
 		UINT32 manualSeed = 0;
 
 		/**
@@ -196,15 +214,18 @@ namespace bs
 		 * be used. Bounds are used primarily for culling purposes. Note that automatic bounds are not supported when GPU
 		 * simulation is enabled.
 		 */
+		BS_SCRIPT_EXPORT()
 		bool useAutomaticBounds = true;
 
 		/** 
 		 * Custom bounds to use them @p useAutomaticBounds is disabled. The bounds are in the simulation space of the
 		 * particle system.
 		 */
+		BS_SCRIPT_EXPORT()
 		AABox customBounds;
 
 		/** Determines how is each particle represented on the screen. */
+		BS_SCRIPT_EXPORT()
 		ParticleRenderMode renderMode = ParticleRenderMode::Billboard;
 	};
 
@@ -216,9 +237,11 @@ namespace bs
 		using MeshType = CoreVariantHandleType<Mesh, Core>;
 
 		/** Material to render the particles with. */
+		BS_SCRIPT_EXPORT()
 		MaterialType material;
 
 		/** Mesh used for representing individual particles when using the Mesh rendering mode. */
+		BS_SCRIPT_EXPORT()
 		MeshType mesh;
 
 		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
@@ -230,6 +253,7 @@ namespace bs
 	struct ParticleVectorFieldSettingsBase
 	{
 		/** Intensity of the forces and velocities applied by the vector field. */
+		BS_SCRIPT_EXPORT()
 		float intensity = 1.0f;
 
 		/** 
@@ -237,42 +261,50 @@ namespace bs
 		 * will be snapped to the exact velocity of the value in the field, and if set to 0 the field will not influence
 		 * particle velocities directly. 
 		 */
+		BS_SCRIPT_EXPORT()
 		float tightness = 0.0f;
 
 		/** Scale to apply to the vector field bounds. This is multiplied with the bounds of the vector field resource. */
+		BS_SCRIPT_EXPORT()
 		Vector3 scale = Vector3::ONE;
 
 		/** 
 		 * Amount of to move the vector field by relative to the parent particle system. This is added to the bounds
 		 * provided in the vector field resource.
 		 */
+		BS_SCRIPT_EXPORT()
 		Vector3 offset = Vector3::ZERO;
 
 		/** Initial rotation of the vector field. */
+		BS_SCRIPT_EXPORT()
 		Quaternion rotation = Quaternion::IDENTITY;
 
 		/** 
 		 * Determines the amount to rotate the vector field every second, in degrees, around XYZ axis respectively. 
 		 * Evaluated over the particle system lifetime. 
 		 */
+		BS_SCRIPT_EXPORT()
 		Vector3Distribution rotationRate = Vector3(0.0f, 90.0f, 0.0f);
 
 		/** 
 		 * Determines should the field influence particles outside of the field bounds. If true the field will be tiled
 		 * infinitely in the X direction.
 		 */
+		BS_SCRIPT_EXPORT()
 		bool tilingX = false;
 
 		/** 
 		 * Determines should the field influence particles outside of the field bounds. If true the field will be tiled
 		 * infinitely in the Y direction.
 		 */
+		BS_SCRIPT_EXPORT()
 		bool tilingY = false;
 
 		/** 
 		 * Determines should the field influence particles outside of the field bounds. If true the field will be tiled
 		 * infinitely in the Z direction.
 		 */
+		BS_SCRIPT_EXPORT()
 		bool tilingZ = false;
 	};
 
@@ -281,6 +313,7 @@ namespace bs
 	struct TParticleVectorFieldSettings : ParticleVectorFieldSettingsBase
 	{
 		/** Vector field resource used for influencing the particles. */
+		BS_SCRIPT_EXPORT()
 		CoreVariantHandleType<VectorField, Core> vectorField;
 
 		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
@@ -294,7 +327,8 @@ namespace bs
 	 */
 
 	/** Settings used for controlling a vector field in a GPU simulated particle system. */
-	struct BS_CORE_EXPORT ParticleVectorFieldSettings : TParticleVectorFieldSettings<false>, IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) 
+	ParticleVectorFieldSettings : TParticleVectorFieldSettings<false>, IReflectable
 	{
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -324,18 +358,23 @@ namespace bs
 	struct ParticleGpuSimulationSettingsBase
 	{
 		/** Determines particle color, evaluated over the particle lifetime. */
+		BS_SCRIPT_EXPORT()
 		ColorDistribution colorOverLifetime = Color::White;
 
 		/** Determines particle size, evaluated over the particle lifetime. Multiplied by the initial particle size. */
+		BS_SCRIPT_EXPORT()
 		Vector2Distribution sizeScaleOverLifetime = Vector2::ONE;
 
 		/** Constant acceleration to apply for each step of the simulation. */
+		BS_SCRIPT_EXPORT()
 		Vector3 acceleration = Vector3::ZERO;
 
 		/** Amount of resistance to apply in the direction opposite of the particle's velocity. */
+		BS_SCRIPT_EXPORT()
 		float drag = 0.0f;
 
 		/** Settings controlling particle depth buffer collisions. */
+		BS_SCRIPT_EXPORT()
 		ParticleDepthCollisionSettings depthCollision;
 	};
 
@@ -343,6 +382,7 @@ namespace bs
 	template<bool Core>
 	struct TParticleGpuSimulationSettings : ParticleGpuSimulationSettingsBase
 	{
+		BS_SCRIPT_EXPORT()
 		CoreVariantType<ParticleVectorFieldSettings, Core> vectorField;
 
 		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
@@ -356,7 +396,8 @@ namespace bs
 	 */
 
 	/** Generic settings used for controlling a ParticleSystem. */
-	struct BS_CORE_EXPORT ParticleSystemSettings : TParticleSystemSettings<false>, IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) 
+	ParticleSystemSettings : TParticleSystemSettings<false>, IReflectable
 	{
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -368,7 +409,8 @@ namespace bs
 	};
 
 	/** Settings used for controlling particle system GPU simulation. */
-	struct BS_CORE_EXPORT ParticleGpuSimulationSettings : TParticleGpuSimulationSettings<false>, IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) 
+	ParticleGpuSimulationSettings : TParticleGpuSimulationSettings<false>, IReflectable
 	{
 		/************************************************************************/
 		/* 								RTTI		                     		*/

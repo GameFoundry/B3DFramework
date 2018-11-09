@@ -81,7 +81,7 @@ namespace bs
 	public:
 		~Skybox();
 
-		/** @copydoc TSkybox<Core>::getTexture */
+		/** @copydoc TSkybox::getTexture */
 		void setTexture(const HTexture& texture);
 
 		/**	Retrieves an implementation of the skybox usable only from the core thread. */

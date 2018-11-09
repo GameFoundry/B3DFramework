@@ -75,7 +75,7 @@ namespace bs
 	 * Represents a three dimensional field of vectors. It is represented by spatial bounds which are split into a grid
 	 * of values with user-defined density, where each grid cell is assigned a vector.
 	 */
-	class BS_CORE_EXPORT VectorField : public Resource, public detail::TVectorField<false>
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) VectorField : public Resource, public detail::TVectorField<false>
 	{
 	public:
 		/**	Retrieves a core implementation of a vector field usable only from the core thread. */
