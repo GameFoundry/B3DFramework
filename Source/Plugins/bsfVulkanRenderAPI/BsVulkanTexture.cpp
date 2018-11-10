@@ -973,9 +973,6 @@ namespace bs { namespace ct
 				1, &imageRegion);
 		}
 
-		// Transfer back to optimal layouts
-		srcLayout = srcImage->getOptimalLayout();
-
 		// Notify the command buffer that these resources are being used on it
 		vkCB->registerResource(srcImage, srcRange, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VulkanUseFlag::Read, ResourceUsage::Transfer);
 		vkCB->registerResource(dstImage, dstRange, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VulkanUseFlag::Write, ResourceUsage::Transfer);
