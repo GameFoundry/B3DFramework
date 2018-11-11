@@ -132,6 +132,11 @@ namespace bs
 		}
 	}
 
+	SPtr<ParticleTextureAnimation> ParticleTextureAnimation::create(const PARTICLE_TEXTURE_ANIMATION_DESC& desc)
+	{
+		return bs_shared_ptr_new<ParticleTextureAnimation>(desc);
+	}
+
 	RTTITypeBase* ParticleTextureAnimation::getRTTIStatic()
 	{
 		return ParticleTextureAnimationRTTI::instance();
@@ -178,6 +183,11 @@ namespace bs
 		}
 	}
 
+	SPtr<ParticleOrbit> ParticleOrbit::create(const PARTICLE_ORBIT_DESC& desc)
+	{
+		return bs_shared_ptr_new<ParticleOrbit>(desc);
+	}
+
 	RTTITypeBase* ParticleOrbit::getRTTIStatic()
 	{
 		return ParticleOrbitRTTI::instance();
@@ -207,6 +217,11 @@ namespace bs
 
 			particles.position[i] += velocity;
 		}
+	}
+
+	SPtr<ParticleVelocity> ParticleVelocity::create(const PARTICLE_VELOCITY_DESC& desc)
+	{
+		return bs_shared_ptr_new<ParticleVelocity>(desc);
 	}
 
 	RTTITypeBase* ParticleVelocity::getRTTIStatic()
@@ -240,6 +255,11 @@ namespace bs
 		}
 	}
 
+	SPtr<ParticleForce> ParticleForce::create(const PARTICLE_FORCE_DESC& desc)
+	{
+		return bs_shared_ptr_new<ParticleForce>(desc);
+	}
+
 	RTTITypeBase* ParticleForce::getRTTIStatic()
 	{
 		return ParticleForceRTTI::instance();
@@ -268,6 +288,11 @@ namespace bs
 			particles.velocity[i] += gravity * state.timeStep;
 	}
 
+	SPtr<ParticleGravity> ParticleGravity::create(const PARTICLE_GRAVITY_DESC& desc)
+	{
+		return bs_shared_ptr_new<ParticleGravity>(desc);
+	}
+
 	RTTITypeBase* ParticleGravity::getRTTIStatic()
 	{
 		return ParticleGravityRTTI::instance();
@@ -294,6 +319,11 @@ namespace bs
 
 			particles.color[i] = mDesc.color.evaluate(particleT, Random(colorSeed));
 		}
+	}
+
+	SPtr<ParticleColor> ParticleColor::create(const PARTICLE_COLOR_DESC& desc)
+	{
+		return bs_shared_ptr_new<ParticleColor>(desc);
 	}
 
 	RTTITypeBase* ParticleColor::getRTTIStatic()
@@ -338,6 +368,11 @@ namespace bs
 		}
 	}
 
+	SPtr<ParticleSize> ParticleSize::create(const PARTICLE_SIZE_DESC& desc)
+	{
+		return bs_shared_ptr_new<ParticleSize>(desc);
+	}
+
 	RTTITypeBase* ParticleSize::getRTTIStatic()
 	{
 		return ParticleSizeRTTI::instance();
@@ -380,6 +415,11 @@ namespace bs
 		}
 	}
 
+	SPtr<ParticleRotation> ParticleRotation::create(const PARTICLE_ROTATION_DESC& desc)
+	{
+		return bs_shared_ptr_new<ParticleRotation>(desc);
+	}
+
 	RTTITypeBase* ParticleRotation::getRTTIStatic()
 	{
 		return ParticleRotationRTTI::instance();
@@ -400,7 +440,7 @@ namespace bs
 
 	/** Calculates the new position and velocity after a particle was detected to be colliding. */
 	void calcCollisionResponse(Vector3& position, Vector3& velocity, const ParticleHitInfo& hitInfo, 
-		const PARTICLE_COLLISONS_DESC& desc)
+		const PARTICLE_COLLISIONS_DESC& desc)
 	{
 		Vector3 diff = position - hitInfo.position;
 
@@ -476,7 +516,7 @@ namespace bs
 		return numHits;
 	}
 
-	ParticleCollisions::ParticleCollisions(const PARTICLE_COLLISONS_DESC& desc)
+	ParticleCollisions::ParticleCollisions(const PARTICLE_COLLISIONS_DESC& desc)
 		:mDesc(desc)
 	{
 		mDesc.restitution = std::max(mDesc.restitution, 0.0f);
@@ -601,6 +641,11 @@ namespace bs
 			bs_stack_free(hits);
 			bs_stack_free(segments);
 		}
+	}
+
+	SPtr<ParticleCollisions> ParticleCollisions::create(const PARTICLE_COLLISIONS_DESC& desc)
+	{
+		return bs_shared_ptr_new<ParticleCollisions>(desc);
 	}
 
 	RTTITypeBase* ParticleCollisions::getRTTIStatic()
