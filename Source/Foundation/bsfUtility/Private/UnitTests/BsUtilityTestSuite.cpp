@@ -4,6 +4,7 @@
 #include "Private/UnitTests/BsFileSystemTestSuite.h"
 #include "Utility/BsOctree.h"
 #include "Utility/BsBitfield.h"
+#include "Utility/BsDynArray.h"
 
 namespace bs
 {
@@ -54,6 +55,7 @@ namespace bs
 		BS_ADD_TEST(UtilityTestSuite::testOctree);
 		BS_ADD_TEST(UtilityTestSuite::testBitfield)
 		BS_ADD_TEST(UtilityTestSuite::testSmallVector)
+		BS_ADD_TEST(UtilityTestSuite::testDynArray)
 	}
 
 	void UtilityTestSuite::testBitfield()
@@ -306,5 +308,119 @@ namespace bs
 		BS_TEST_ASSERT(v6[3].b == 4);
 		BS_TEST_ASSERT(v6[4].a == 33);
 		BS_TEST_ASSERT(v6[4].b == 44);
+	}
+
+	void UtilityTestSuite::testDynArray()
+	{
+		struct SomeElem
+		{
+			int a = 10;
+			int b = 0;
+		};
+
+		// Make sure initial construction works
+		DynArray<SomeElem> v(4);
+		BS_TEST_ASSERT(v.size() == 4);
+		BS_TEST_ASSERT(v.capacity() == 4);
+		BS_TEST_ASSERT(v[0].a == 10);
+		BS_TEST_ASSERT(v[3].a == 10);
+		BS_TEST_ASSERT(v[3].b == 0);
+
+		// Add an element
+		v.add({3, 4});
+		BS_TEST_ASSERT(v.size() == 5);
+		BS_TEST_ASSERT(v[0].a == 10);
+		BS_TEST_ASSERT(v[3].a == 10);
+		BS_TEST_ASSERT(v[3].b == 0);
+		BS_TEST_ASSERT(v[4].a == 3);
+		BS_TEST_ASSERT(v[4].b == 4);
+
+		// Make a copy
+		DynArray<SomeElem> v2 = v;
+		BS_TEST_ASSERT(v2.size() == 5);
+		BS_TEST_ASSERT(v2[0].a == 10);
+		BS_TEST_ASSERT(v2[3].a == 10);
+		BS_TEST_ASSERT(v2[3].b == 0);
+		BS_TEST_ASSERT(v2[4].a == 3);
+		BS_TEST_ASSERT(v2[4].b == 4);
+
+		// Pop an element
+		v2.pop();
+		BS_TEST_ASSERT(v2.size() == 4);
+		BS_TEST_ASSERT(v2[0].a == 10);
+		BS_TEST_ASSERT(v2[3].a == 10);
+		BS_TEST_ASSERT(v2[3].b == 0);
+
+		// Remove an element
+		v.remove(2);
+		BS_TEST_ASSERT(v.size() == 4);
+		BS_TEST_ASSERT(v[0].a == 10);
+		BS_TEST_ASSERT(v[2].a == 10);
+		BS_TEST_ASSERT(v[3].a == 3);
+		BS_TEST_ASSERT(v[3].b == 4);
+
+		// Insert an element
+		v.insert(v.begin() + 2, { 99, 100 });
+		BS_TEST_ASSERT(v.size() == 5);
+		BS_TEST_ASSERT(v[0].a == 10);
+		BS_TEST_ASSERT(v[2].a == 99);
+		BS_TEST_ASSERT(v[3].a == 10);
+		BS_TEST_ASSERT(v[4].a == 3);
+		BS_TEST_ASSERT(v[4].b == 4);
+
+		// Insert a list
+		v.insert(v.begin() + 1, {{ 55, 100 }, { 56, 100 }, { 57, 100 }});
+		BS_TEST_ASSERT(v.size() == 8);
+		BS_TEST_ASSERT(v[0].a == 10);
+		BS_TEST_ASSERT(v[1].a == 55);
+		BS_TEST_ASSERT(v[2].a == 56);
+		BS_TEST_ASSERT(v[3].a == 57);
+		BS_TEST_ASSERT(v[4].a == 10);
+		BS_TEST_ASSERT(v[5].a == 99);
+		BS_TEST_ASSERT(v[6].a == 10);
+		BS_TEST_ASSERT(v[7].a == 3);
+		BS_TEST_ASSERT(v[7].b == 4);
+
+		// Erase a range of elements
+		v.erase(v.begin() + 2, v.begin() + 5);
+		BS_TEST_ASSERT(v.size() == 5);
+		BS_TEST_ASSERT(v[0].a == 10);
+		BS_TEST_ASSERT(v[1].a == 55);
+		BS_TEST_ASSERT(v[2].a == 99);
+		BS_TEST_ASSERT(v[3].a == 10);
+		BS_TEST_ASSERT(v[4].a == 3);
+		BS_TEST_ASSERT(v[4].b == 4);
+
+		// Insert a range
+		v.insert(v.begin() + 1, v2.begin() + 1, v2.begin() + 3);
+		BS_TEST_ASSERT(v.size() == 7);
+		BS_TEST_ASSERT(v[0].a == 10);
+		BS_TEST_ASSERT(v[1].a == 10);
+		BS_TEST_ASSERT(v[2].a == 10);
+		BS_TEST_ASSERT(v[3].a == 55);
+		BS_TEST_ASSERT(v[4].a == 99);
+		BS_TEST_ASSERT(v[5].a == 10);
+		BS_TEST_ASSERT(v[6].a == 3);
+		BS_TEST_ASSERT(v[6].b == 4);
+
+		// Shrink capacity
+		v.shrink();
+		BS_TEST_ASSERT(v.size() == v.capacity());
+		BS_TEST_ASSERT(v[0].a == 10);
+		BS_TEST_ASSERT(v[1].a == 10);
+		BS_TEST_ASSERT(v[2].a == 10);
+		BS_TEST_ASSERT(v[3].a == 55);
+		BS_TEST_ASSERT(v[4].a == 99);
+		BS_TEST_ASSERT(v[5].a == 10);
+		BS_TEST_ASSERT(v[6].a == 3);
+		BS_TEST_ASSERT(v[6].b == 4);
+
+		// Move it
+		DynArray<SomeElem> v3 = std::move(v2);
+		BS_TEST_ASSERT(v2.size() == 0);
+		BS_TEST_ASSERT(v3.size() == 4);
+		BS_TEST_ASSERT(v3[0].a == 10);
+		BS_TEST_ASSERT(v3[3].a == 10);
+		BS_TEST_ASSERT(v3[3].b == 0);
 	}
 }

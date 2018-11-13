@@ -17,5 +17,6 @@ namespace bs
 		void testBitfield();
 		void testOctree();
 		void testSmallVector();
+		void testDynArray();
 	};
 }

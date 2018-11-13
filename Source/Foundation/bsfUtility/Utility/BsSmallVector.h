@@ -155,8 +155,41 @@ namespace bs
 
 		SmallVector<ValueType, N>& operator=(std::initializer_list<Type> list)
 		{
-			clear();
-			append(list);
+			UINT32 mySize = size();
+			const UINT32 otherSize = (UINT32)list.size();
+
+			// Use assignment copy if we have more elements than the list, and destroy any excess elements
+			if(mySize > otherSize)
+			{
+				Iterator newEnd;
+				if(otherSize > 0)
+					newEnd = std::copy(list.begin(), list.end(), begin());
+				else
+					newEnd = begin();
+
+				for(;newEnd != end(); ++newEnd)
+					(*newEnd).~Type();
+
+			}
+			// Otherwise we need to partially copy (up to our size), and do uninitialized copy for rest. And an optional
+			// grow if our capacity isn't enough (in which case we do uninitialized copy for all).
+			else
+			{
+				if (otherSize > mCapacity)
+				{
+					clear();
+					mySize = 0;
+
+					grow(otherSize);
+				}
+				else if (mySize > 0)
+					std::copy(list.begin(), list.begin() + mySize, begin());
+
+				std::uninitialized_copy(list.begin() + mySize, list.end(), begin() + mySize);
+			}
+
+			mSize = otherSize;
+			return *this;;
 		}
 
 		bool operator== (const SmallVector<ValueType, N>& other)
@@ -295,13 +328,14 @@ namespace bs
 			append(list.begin(), list.end());
 		}
 
-		Type pop()
+		void pop()
 		{
 			assert(mSize > 0 && "Popping an empty array.");
-			return mElements[--mSize];
+			mSize--;
+			mElements[mSize].~Type();
 		}
 
-		void erase(ConstIterator iter)
+		Iterator erase(ConstIterator iter)
 		{
 			assert(iter >= begin() && "Iterator to erase is out of bounds.");
 			assert(iter < end() && "Erasing at past-the-end iterator.");
@@ -309,6 +343,8 @@ namespace bs
 			Iterator toErase = const_cast<Iterator>(iter);
 			std::move(toErase + 1, end(), toErase);
 			pop();
+
+			return toErase;
 		}
 
 		void remove(UINT32 index)
