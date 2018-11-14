@@ -22,7 +22,7 @@ HParticleSystem particleSystem = particleSystemSO->addComponent<CParticleSystem>
 HShader shader = gBuiltinResources().getBuiltinShader(BuiltinShader::ParticlesUnlit);
 HTexture texture = gBuiltinResources().getTexture(BuiltinTexture::White);
 
-HMaterial material = Material::create(particleShader);
+HMaterial material = Material::create(shader);
 material->setTexture("gTexture", texture);
 
 // Set the material to be used by the particle system
