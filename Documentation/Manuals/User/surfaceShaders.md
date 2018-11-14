@@ -44,7 +44,7 @@ struct VStoFS
 It must include the following mixins:
  - **VertexInput** (from `VertexInput.bslinc`) - Contains a set of helper methods useful for transforming vertex inputs into outputs.
  - **PerCameraData** (from `PerCameraData.bslinc`) - Provides a variety of camera parameters, including the view-projection matrix, view direction and origin. Check the contents of `PerCameraData.bslinc` to see all the provided properties.
- - **PerObjectData** (from `PerObjectData.bslinc`) - Provides a variety of per-object paramters, including the world transform, and the world-view-projection matrix. Check the contents of `PerObjectData.bslinc` to see all the provided properties.
+ - **PerObjectData** (from `PerObjectData.bslinc`) - Provides a variety of per-object paramters, including the world transform, world-view-projection matrix and object layer. Check the contents of `PerObjectData.bslinc` to see all the provided properties.
 
 ~~~~~~~~~~~~~
 #include "$ENGINE$\PerCameraData.bslinc"
@@ -115,12 +115,15 @@ Due to the way its rendering works, this pipeline is incompatible with transpare
 
 ## Surface {#surfaceShaders_b_a}
 This shader is responsible for writing the surface data into the GBuffer. Its entry point must have the following signature:
- - `void fsmain(in VStoFS input, out float3 OutSceneColor : SV_Target0, out float4 OutGBufferA : SV_Target1, out float4 OutGBufferB : SV_Target2, out float2 OutGBufferC : SV_Target3)`
+ - `void fsmain(in VStoFS input, out float3 OutSceneColor : SV_Target0, out float4 OutGBufferA : SV_Target1, out float4 OutGBufferB : SV_Target2, out float2 OutGBufferC : SV_Target3, out uint OutGBufferD : SV_Target4)`
  
 Where:
  - *input* - **VSToFS** structure that gets output from the vertex shader.
- - *OutSceneColor* - Use to write scene color directly. This will be blended as-is with results from the lighting calculations.
- - *OutGBufferA*, *OutGBufferB*, *OutGBufferC* - Textures that make up the GBuffer. This is where the surface properties like albedo color and roughness will be written.
+ - *OutSceneColor* - Use to write scene color directly. This will be blended as-is with results from the lighting calculations. Used for emissive materials.
+ - *OutGBufferA* - RGB channels containing albedo color, while A contains opacity.
+ - *OutGBufferB* - RGB channels containing encoded world-space normals, while A channel contains a non-zero value if anything was rendered to that location.
+ - *OutGBufferC* - R channel contains roughness, G channels contains metalness. Used by physically based lighting.
+ - *OutGBufferD* - R channel contains the layer of the rendered object. Layer can be used for masking on which surfaces things like decals render on.
  
 The shader needs to include the following mixins:
  - **BasePass** (from `BasePass.bslinc`) - Performs the default per-vertex transformations and outputs data in the **VStoFS** structure. Optionally you can provide your own vertex evaluation code, as described earlier.
@@ -142,7 +145,8 @@ shader Surface
 			out float4 OutSceneColor : SV_Target0,
 			out float4 OutGBufferA : SV_Target1,
 			out float4 OutGBufferB : SV_Target2,
-			out float2 OutGBufferC : SV_Target3)
+			out float2 OutGBufferC : SV_Target3,
+			out uint OutGBufferD : SV_Target4)
 		{
 			// ...
 		}	
@@ -160,6 +164,7 @@ struct SurfaceData
 	float depth;
 	float roughness;
 	float metalness;
+	uint mask;
 };
 ~~~~~~~~~~~~~
 
@@ -186,15 +191,17 @@ shader Surface
 			out float4 OutSceneColor : SV_Target0,
 			out float4 OutGBufferA : SV_Target1,
 			out float4 OutGBufferB : SV_Target2,
-			out float2 OutGBufferC : SV_Target3)
+			out float2 OutGBufferC : SV_Target3,
+			out uint OutGBufferD : SV_Target4)
 		{
 			SurfaceData surfaceData;
 			surfaceData.albedo = gAlbedoTex.Sample(gAlbedoSamp, input.uv0);
 			surfaceData.worldNormal.xyz = float3(0, 1, 0);
 			surfaceData.roughness = 1.0f;
 			surfaceData.metalness = 0.0f;
+			surfaceData.mask = gLayer;
 			
-			encodeGBuffer(surfaceData, OutGBufferA, OutGBufferB, OutGBufferC);
+			encodeGBuffer(surfaceData, OutGBufferA, OutGBufferB, OutGBufferC, OutGBufferD);
 			
 			OutSceneColor = 0.0f;
 		}	

@@ -36,7 +36,7 @@ namespace bs { namespace ct
 		const Matrix4 worldTransform = decal->getMatrix() * scaleAndOffset;
 		const Matrix4 worldNoScaleTransform = decal->getMatrixNoScale() * scaleAndOffset;
 
-		PerObjectBuffer::update(perObjectParamBuffer, worldTransform, worldNoScaleTransform);
+		PerObjectBuffer::update(perObjectParamBuffer, worldTransform, worldNoScaleTransform, 0);
 
 		const Transform& tfrm = decal->getTransform();
 
@@ -51,6 +51,7 @@ namespace bs { namespace ct
 		gDecalParamDef.gWorldToDecal.set(decalParamBuffer, worldToDecal);
 		gDecalParamDef.gDecalNormal.set(decalParamBuffer, decalNormal);
 		gDecalParamDef.gNormalTolerance.set(decalParamBuffer, normalTolerance);
+		gDecalParamDef.gLayerMask.set(decalParamBuffer, (INT32)decal->getLayerMask());
 	}
 
 	void RendererDecal::updatePerCallBuffer(const Matrix4& viewProj, bool flush) const

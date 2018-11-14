@@ -32,7 +32,7 @@ namespace bs
 
 		mLayer = layer;
 		_markCoreDirty();
-	}	
+	}
 
 	void DecalBase::setTransform(const Transform& transform)
 	{
@@ -69,6 +69,7 @@ namespace bs
 		p(mMaterial);
 		p(mBounds);
 		p(mLayer);
+		p(mLayerMask);
 	}
 
 	Decal::Decal(const HMaterial& material, const Vector2& size, float maxDistance)

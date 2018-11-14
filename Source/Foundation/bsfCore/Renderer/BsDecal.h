@@ -38,9 +38,19 @@ namespace bs
 		/** @copydoc getSize */
 		float getMaxDistance() const { return mMaxDistance * mTransform.getScale().z; }
 
+		/** 
+		 * Bitfield that allows you to mask on which objects will the decal be projected onto. Only objects with the 
+		 * matching layers will be projected onto. Note that decal layer mask only supports 32-bits and objects with
+		 * layers in bits >= 32 will always be projected onto.
+		 */
+		void setLayerMask(UINT32 mask) { mLayerMask = mask; _markCoreDirty(); }
+
+		/** @copydoc setLayerMask */
+		UINT32 getLayerMask() const { return mLayerMask; }
+
 		/**
-		 * Determines the layer bitfield that controls whether a system is considered visible in a specific camera. 
-		 * Layer must match camera layer in order for the camera to render the component.
+		 * Determines the layer that controls whether a system is considered visible in a specific camera. Layer must match 
+		 * camera layer bitfield in order for the camera to render the decal.
 		 */
 		void setLayer(UINT64 layer);
 
@@ -68,6 +78,7 @@ namespace bs
 		Vector2 mSize = Vector2::ONE;
 		float mMaxDistance = 10.0f;
 		UINT64 mLayer = 1;
+		UINT32 mLayerMask = 0xFFFFFFFF;
 		Matrix4 mTfrmMatrix = BsIdentity;
 		Matrix4 mTfrmMatrixNoScale = BsIdentity;
 

@@ -6,13 +6,14 @@ mixin GBufferOutput
 
 	code
 	{
-		void encodeGBuffer(SurfaceData data, out float4 GBufferAData, out float4 GBufferBData, out float2 GBufferCData)
+		void encodeGBuffer(SurfaceData data, out float4 GBufferAData, out float4 GBufferBData, out float2 GBufferCData, out uint GBufferDData)
 		{
 			GBufferAData = data.albedo;
 			GBufferBData.xyz = float3(data.worldNormal.xyz * 0.5f + 0.5f);
 			GBufferBData.w = 1.0f; // Marks that some deferred data was written
 			GBufferCData.x = data.roughness;
 			GBufferCData.y = data.metalness;
+			GBufferDData.x = data.mask;
 		}
 	};
 };

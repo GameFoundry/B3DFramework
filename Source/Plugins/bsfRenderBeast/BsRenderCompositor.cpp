@@ -252,6 +252,8 @@ namespace bs { namespace ct
 			numSamples, false));
 		roughMetalTex = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RG16F, width, height, TU_RENDERTARGET,
 			numSamples, false)); // Note: Metal doesn't need 16-bit float
+		idTex = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8U, width, height, TU_RENDERTARGET,
+			numSamples, false));
 
 		auto sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[0]);
 		auto sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[1]);
@@ -265,6 +267,7 @@ namespace bs { namespace ct
 			rebuildRT |= renderTarget->getColorTexture(1) != albedoTex->texture;
 			rebuildRT |= renderTarget->getColorTexture(2) != normalTex->texture;
 			rebuildRT |= renderTarget->getColorTexture(3) != roughMetalTex->texture;
+			rebuildRT |= renderTarget->getColorTexture(4) != idTex->texture;
 			rebuildRT |= renderTarget->getDepthStencilTexture() != sceneDepthTex->texture;
 		}
 		else
@@ -296,6 +299,13 @@ namespace bs { namespace ct
 			gbufferDesc.depthStencilSurface.texture = sceneDepthTex->texture;
 			gbufferDesc.depthStencilSurface.face = 0;
 			gbufferDesc.depthStencilSurface.mipLevel = 0;
+
+			renderTargetNoMask = RenderTexture::create(gbufferDesc);
+
+			gbufferDesc.colorSurfaces[4].texture = idTex->texture;
+			gbufferDesc.colorSurfaces[4].face = 0;
+			gbufferDesc.colorSurfaces[4].numFaces = 1;
+			gbufferDesc.colorSurfaces[4].mipLevel = 0;
 
 			renderTarget = RenderTexture::create(gbufferDesc);
 		}
@@ -378,6 +388,7 @@ namespace bs { namespace ct
 			}
 
 			renderElement.depthInputTexture.set(sceneDepthTex->texture);
+			renderElement.maskInputTexture.set(idTex->texture);
 		}
 
 		Camera* sceneCamera = inputs.view.getSceneCamera();
@@ -437,7 +448,7 @@ namespace bs { namespace ct
 		}
 
 		// Render decals after all normal objects, using a read-only depth buffer
-		rapi.setRenderTarget(renderTarget, FBT_DEPTH, RT_ALL);
+		rapi.setRenderTarget(renderTargetNoMask, FBT_DEPTH, RT_ALL);
 
 		const Vector<RenderQueueElement>& decalElements = inputs.view.getDecalQueue()->getSortedElements();
 		renderQueueElements(decalElements);
@@ -463,6 +474,7 @@ namespace bs { namespace ct
 		resPool.release(albedoTex);
 		resPool.release(normalTex);
 		resPool.release(roughMetalTex);
+		resPool.release(idTex);
 	}
 
 	SmallVector<StringID, 4> RCNodeBasePass::getDependencies(const RendererView& view)

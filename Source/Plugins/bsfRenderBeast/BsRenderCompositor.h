@@ -210,8 +210,10 @@ namespace ct
 		SPtr<PooledRenderTexture> albedoTex;
 		SPtr<PooledRenderTexture> normalTex;
 		SPtr<PooledRenderTexture> roughMetalTex;
+		SPtr<PooledRenderTexture> idTex;
 
 		SPtr<RenderTexture> renderTarget;
+		SPtr<RenderTexture> renderTargetNoMask;
 
 		static StringID getNodeId() { return "BasePass"; }
 		static SmallVector<StringID, 4> getDependencies(const RendererView& view);

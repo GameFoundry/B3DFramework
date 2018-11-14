@@ -6,6 +6,7 @@
 	#define MSAA_COUNT 2
 #endif
 #include "$ENGINE$\DepthInput.bslinc"
+#include "$ENGINE$\MaskInput.bslinc"
 
 #include "$ENGINE$\GBufferOutput.bslinc"
 
@@ -14,6 +15,7 @@ shader Surface
 	mixin BasePass;
 	mixin GBufferOutput;
 	mixin DepthInput;
+	mixin MaskInput;
 
 	variations
 	{
@@ -183,6 +185,7 @@ shader Surface
 			float4x4 gWorldToDecal;
 			float3 gDecalNormal;
 			float gNormalTolerance;
+			uint gLayerMask;
 		}
 		
 		float3x3 getWorldToTangent(float3 N, float3 p, float2 uv)
@@ -214,11 +217,17 @@ shader Surface
 		{		
 			#if MSAA_MODE == 0
 				float deviceZ = gDepthBufferTex.Load(int3(screenPos.xy, 0)).r;
+				uint layer = gMaskTex.Load(int3(screenPos.xy, 0)).r;
 			#elif MSAA_MODE == 1
 				float deviceZ = gDepthBufferTex.Load(screenPos.xy, 0).r;
+				uint layer = gMaskTex.Load(screenPos.xy, 0).r;
 			#else
 				float deviceZ = gDepthBufferTex.Load(screenPos.xy, sampleIdx).r;
-			#endif	
+				uint layer = gMaskTex.Load(screenPos.xy, sampleIdx).r;
+			#endif
+			
+			if(layer < 32 && (gLayerMask & (1 << layer)) == 0)
+				discard;
 		
 			float depth = convertFromDeviceZ(deviceZ);
 			float2 ndcPos = input.clipPos.xy / input.clipPos.w;

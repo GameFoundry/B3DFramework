@@ -202,6 +202,10 @@
         {
             "Path": "DepthInput.bslinc",
             "UUID": "06b077c9-432d-43b1-8884-432d5ddfe878"
+        },
+        {
+            "Path": "MaskInput.bslinc",
+            "UUID": "e69b8e15-4301-f0fb-11ad-430140d3a7d6"
         }
     ],
     "Shaders": [

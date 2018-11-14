@@ -107,7 +107,7 @@ namespace bs
 #pragma intrinsic(_BitScanReverse,_BitScanForward)
 #endif
 
-		/** Finds the most-significant non-zero bit in the provided value. */
+		/** Finds the most-significant non-zero bit in the provided value and returns the index of that bit. */
 		static UINT32 mostSignificantBit(UINT32 val)
 		{
 #if BS_COMPILER == BS_COMPILER_MSVC
@@ -120,7 +120,7 @@ namespace bs
 			static_assert(false, "Not implemented");
 #endif
 		}
-		/** Finds the least-significant non-zero bit in the provided value. */
+		/** Finds the least-significant non-zero bit in the provided value and returns the index of that bit. */
 		static UINT32 leastSignificantBit(UINT32 val)
 		{
 #if BS_COMPILER == BS_COMPILER_MSVC
@@ -129,6 +129,33 @@ namespace bs
 			return index;
 #elif BS_COMPILER == BS_COMPILER_GNUC || BS_COMPILER == BS_COMPILER_CLANG
 			return __builtin_ctz(val);
+#else
+			static_assert(false, "Not implemented");
+#endif
+		}
+
+		/** Finds the most-significant non-zero bit in the provided value and returns the index of that bit. */
+		static UINT32 mostSignificantBit(UINT64 val)
+		{
+#if BS_COMPILER == BS_COMPILER_MSVC
+			unsigned long index;
+			_BitScanReverse64(&index, val);
+			return index;
+#elif BS_COMPILER == BS_COMPILER_GNUC || BS_COMPILER == BS_COMPILER_CLANG
+			return 31 - __builtin_clzll(val);
+#else
+			static_assert(false, "Not implemented");
+#endif
+		}
+		/** Finds the least-significant non-zero bit in the provided value and returns the index of that bit. */
+		static UINT32 leastSignificantBit(UINT64 val)
+		{
+#if BS_COMPILER == BS_COMPILER_MSVC
+			unsigned long index;
+			_BitScanForward64(&index, val);
+			return index;
+#elif BS_COMPILER == BS_COMPILER_GNUC || BS_COMPILER == BS_COMPILER_CLANG
+			return __builtin_ctzll(val);
 #else
 			static_assert(false, "Not implemented");
 #endif

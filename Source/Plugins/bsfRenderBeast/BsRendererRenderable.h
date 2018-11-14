@@ -22,6 +22,7 @@ namespace bs { namespace ct
 		BS_PARAM_BLOCK_ENTRY(Matrix4, gMatWorldNoScale)
 		BS_PARAM_BLOCK_ENTRY(Matrix4, gMatInvWorldNoScale)
 		BS_PARAM_BLOCK_ENTRY(float, gWorldDeterminantSign)
+		BS_PARAM_BLOCK_ENTRY(INT32, gLayer)
 	BS_PARAM_BLOCK_END
 
 	extern PerObjectParamDef gPerObjectParamDef;
@@ -37,7 +38,8 @@ namespace bs { namespace ct
 	{
 	public:
 		/** Updates the provided buffer with the data from the provided matrices. */
-		static void update(SPtr<GpuParamBlockBuffer>& buffer, const Matrix4& tfrm, const Matrix4& tfrmNoScale);
+		static void update(SPtr<GpuParamBlockBuffer>& buffer, const Matrix4& tfrm, const Matrix4& tfrmNoScale, 
+			UINT32 layer);
 	};
 
 	struct MaterialSamplerOverrides;

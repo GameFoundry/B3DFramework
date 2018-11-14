@@ -9,6 +9,7 @@ mixin SurfaceData
 			float depth;
 			float roughness;
 			float metalness;
+			uint mask;
 		};
 	};
 };

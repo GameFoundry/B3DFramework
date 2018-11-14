@@ -51,6 +51,14 @@ namespace bs
 		BS_SCRIPT_EXPORT(n:Layer,pr:getter)
 		UINT64 getLayer() const { return mInternal->getLayer(); }
 
+		BS_SCRIPT_EXPORT(n:LayerMask,pr:setter)
+		/** @copydoc Decal::setLayerMask */
+		void setLayerMask(UINT32 mask) { mInternal->setLayerMask(mask); }
+
+		BS_SCRIPT_EXPORT(n:LayerMask,pr:getter)
+		/** @copydoc setLayerMask */
+		UINT32 getLayerMask() const { return mInternal->getLayerMask(); }
+
 		/** @name Internal
 		 *  @{
 		 */

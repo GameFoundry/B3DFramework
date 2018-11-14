@@ -602,6 +602,7 @@ namespace bs {	namespace ct
 		RendererParticles& rendererParticles = mInfo.particleSystems[rendererId];
 
 		const ParticleSystemSettings& settings = particleSystem->getSettings();
+		const UINT32 layer = Bitwise::mostSignificantBit(particleSystem->getLayer());
 		Matrix4 localToWorldNoScale;
 		if (settings.simulationSpace == ParticleSimulationSpace::Local)
 		{
@@ -619,14 +620,14 @@ namespace bs {	namespace ct
 		if(tfrmOnly)
 		{
 			SPtr<GpuParamBlockBuffer>& paramBuffer = rendererParticles.perObjectParamBuffer;
-			PerObjectBuffer::update(paramBuffer, rendererParticles.localToWorld, localToWorldNoScale);
+			PerObjectBuffer::update(paramBuffer, rendererParticles.localToWorld, localToWorldNoScale, layer);
 
 			return;
 		}
 
 		SPtr<GpuParamBlockBuffer> perObjectParamBuffer = gPerObjectParamDef.createBuffer();
 		SPtr<GpuParamBlockBuffer> particlesParamBuffer = gParticlesParamDef.createBuffer();
-		PerObjectBuffer::update(perObjectParamBuffer, rendererParticles.localToWorld, localToWorldNoScale);
+		PerObjectBuffer::update(perObjectParamBuffer, rendererParticles.localToWorld, localToWorldNoScale, layer);
 
 		Vector3 axisForward = settings.orientationPlane.normal;
 
@@ -995,6 +996,9 @@ namespace bs {	namespace ct
 
 		if (gpuParams->hasTexture(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex"))
 			gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", renElement.depthInputTexture);
+
+		if (gpuParams->hasTexture(GPT_FRAGMENT_PROGRAM, "gMaskTex"))
+			gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gMaskTex", renElement.maskInputTexture);
 	}
 
 	void RendererScene::updateDecal(Decal* decal)

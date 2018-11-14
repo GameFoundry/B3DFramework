@@ -3,19 +3,22 @@
 #include "BsRendererRenderable.h"
 #include "Renderer/BsRendererUtility.h"
 #include "Mesh/BsMesh.h"
+#include "Utility/BsBitwise.h"
 
 namespace bs { namespace ct
 {
 	PerObjectParamDef gPerObjectParamDef;
 	PerCallParamDef gPerCallParamDef;
 
-	void PerObjectBuffer::update(SPtr<GpuParamBlockBuffer>& buffer, const Matrix4& tfrm, const Matrix4& tfrmNoScale)
+	void PerObjectBuffer::update(SPtr<GpuParamBlockBuffer>& buffer, const Matrix4& tfrm, const Matrix4& tfrmNoScale,
+		UINT32 layer)
 	{
 		gPerObjectParamDef.gMatWorld.set(buffer, tfrm);
 		gPerObjectParamDef.gMatInvWorld.set(buffer, tfrm.inverseAffine());
 		gPerObjectParamDef.gMatWorldNoScale.set(buffer, tfrmNoScale);
 		gPerObjectParamDef.gMatInvWorldNoScale.set(buffer, tfrmNoScale.inverseAffine());
 		gPerObjectParamDef.gWorldDeterminantSign.set(buffer, tfrm.determinant3x3() >= 0.0f ? 1.0f : -1.0f);
+		gPerObjectParamDef.gLayer.set(buffer, (INT32)layer);
 	}
 
 	void RenderableElement::draw() const
@@ -36,8 +39,9 @@ namespace bs { namespace ct
 	{
 		const Matrix4 worldTransform = renderable->getMatrix();
 		const Matrix4 worldNoScaleTransform = renderable->getMatrixNoScale();
+		const UINT32 layer = Bitwise::mostSignificantBit(renderable->getLayer());
 
-		PerObjectBuffer::update(perObjectParamBuffer, worldTransform, worldNoScaleTransform);
+		PerObjectBuffer::update(perObjectParamBuffer, worldTransform, worldNoScaleTransform, layer);
 	}
 
 	void RendererRenderable::updatePerCallBuffer(const Matrix4& viewProj, bool flush)

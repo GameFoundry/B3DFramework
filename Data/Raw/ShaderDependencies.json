@@ -11,7 +11,13 @@
             "Path": "GBufferOutput.bslinc"
         },
         {
+            "Path": "MaskInput.bslinc"
+        },
+        {
             "Path": "SurfaceData.bslinc"
+        },
+        {
+            "Path": "DepthInput.bslinc"
         },
         {
             "Path": "PerCameraData.bslinc"
@@ -21,9 +27,6 @@
         },
         {
             "Path": "VertexInput.bslinc"
-        },
-        {
-            "Path": "DepthInput.bslinc"
         },
         {
             "Path": "VertexCommon.bslinc"

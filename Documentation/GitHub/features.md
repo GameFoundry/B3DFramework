@@ -27,6 +27,7 @@
 		* Shadows
 			* Percentage closer shadows
 			* Cascaded shadow maps
+		* Deferred decals
 	* Post processing effects
 		* Screen space ambient occlusion (SSAO)
 		* Depth of field

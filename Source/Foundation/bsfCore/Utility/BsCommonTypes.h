@@ -81,9 +81,9 @@ namespace bs
 	/**	Types of frame buffers. */
 	enum FrameBufferType
 	{
-		FBT_COLOR = 0x1, /**< Clear the color surface. */
-		FBT_DEPTH = 0x2, /**< Clear the depth surface. */
-		FBT_STENCIL = 0x4 /**< Clear the stencil surface. */
+		FBT_COLOR = 0x1, /**< Color surface. */
+		FBT_DEPTH = 0x2, /**< Depth surface. */
+		FBT_STENCIL = 0x4 /**< Stencil surface. */
 	};
 
 	/**

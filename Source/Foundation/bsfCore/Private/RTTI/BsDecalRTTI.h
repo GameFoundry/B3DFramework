@@ -25,6 +25,7 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(mMaxDistance, 4)
 			BS_RTTI_MEMBER_REFL(mMaterial, 5)
 			BS_RTTI_MEMBER_PLAIN(mLayer, 6)
+			BS_RTTI_MEMBER_PLAIN(mLayerMask, 7)
 		BS_END_RTTI_MEMBERS
 	public:
 		void onDeserializationEnded(IReflectable* obj, SerializationContext* context) override
