@@ -99,7 +99,7 @@ namespace bs
 		void moveRelative(const Vector3& vec);
 
 		/**
-		 * Gets the Z (forward) axis of the object.
+		 * Gets the negative Z (forward) axis of the object.
 		 *
 		 * @return	Forward axis of the object.
 		 */

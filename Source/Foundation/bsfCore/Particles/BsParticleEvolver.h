@@ -551,6 +551,17 @@ namespace bs
 		BS_SCRIPT_EXPORT(pr:getter,n:Planes)
 		const Vector<Plane>& getPlanes() const { return mCollisionPlanes; }
 
+		/** 
+		 * Determines a set of objects whose transforms to derive the collision planes from. Objects can move in the world
+		 * and collision planes will be updated automatically. Object's negative Z axis is considered to be plane normal.
+		 */
+		BS_SCRIPT_EXPORT(pr:setter,n:PlaneObjects)
+		void setPlaneObjects(Vector<HSceneObject> objects) { mCollisionPlaneObjects = std::move(objects); }
+
+		/** @copydoc setPlaneObjects */
+		BS_SCRIPT_EXPORT(pr:getter,n:PlaneObjects)
+		const Vector<HSceneObject>& getPlaneObjects() const { return mCollisionPlaneObjects; }
+
 		/** Options describing the evolver. */
 		BS_SCRIPT_EXPORT(pr:setter,n:Options)
 		void setOptions(const PARTICLE_COLLISIONS_DESC& options) { mDesc = options; }
@@ -576,6 +587,7 @@ namespace bs
 		PARTICLE_COLLISIONS_DESC mDesc;
 
 		Vector<Plane> mCollisionPlanes;
+		Vector<HSceneObject> mCollisionPlaneObjects;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

@@ -12,6 +12,7 @@
 #include "Physics/BsCollider.h"
 #include "Math/BsLineSegment3.h"
 #include "Material/BsShader.h"
+#include "Scene/BsSceneObject.h"
 
 namespace bs
 {
@@ -532,58 +533,88 @@ namespace bs
 
 		if(mDesc.mode == ParticleCollisionMode::Plane)
 		{
-			const auto numPlanes = (UINT32)mCollisionPlanes.size();
+			UINT32 numPlanes[2] = { 0, 0 };
+			Plane* planes[2];
 
-			Plane* planes;
-			Plane* localPlanes = nullptr;
+			// Extract planes from scene objects
+			Plane* objPlanes = nullptr;
+			
+			if(!mCollisionPlaneObjects.empty())
+			{
+				objPlanes = bs_stack_alloc<Plane>((UINT32)mCollisionPlaneObjects.size());
+				for (auto& entry : mCollisionPlaneObjects)
+				{
+					if(entry.isDestroyed())
+						continue;
+
+					const Transform& tfrm = entry->getTransform();
+					Plane plane = Plane(tfrm.getForward(), tfrm.getPosition());
+
+					if(!state.worldSpace)
+						plane = state.worldToLocal.multiplyAffine(plane);
+						
+					objPlanes[numPlanes[0]++] = plane;
+				}
+			}
+
+			planes[0] = objPlanes;
 
 			// If particles are in world space, we can just use collision planes as is
-			if(state.worldSpace)
-				planes = (Plane*)mCollisionPlanes.data();
+			Plane* localPlanes = nullptr;
+			if (state.worldSpace)
+				planes[1] = (Plane*)mCollisionPlanes.data();
 			else
 			{
 				const Matrix4& worldToLocal = state.worldToLocal;
 				localPlanes = bs_stack_alloc<Plane>(numParticles);
 
-				for (UINT32 i = 0; i < numPlanes; i++)
+				for (UINT32 i = 0; i < (UINT32)mCollisionPlanes.size(); i++)
 					localPlanes[i] = worldToLocal.multiplyAffine(mCollisionPlanes[i]);
 
-				planes = localPlanes;
+				planes[1] = localPlanes;
 			}
+
+			numPlanes[1] = (UINT32)mCollisionPlanes.size();
 
 			for(UINT32 i = 0; i < numParticles; i++)
 			{
 				Vector3& position = particles.position[i];
 				Vector3& velocity = particles.velocity[i];
 
-				for (UINT32 j = 0; j < numPlanes; j++)
+				for(UINT32 j = 0; j < bs_size(planes); j++)
 				{
-					const Plane& plane = planes[j];
+					for (UINT32 k = 0; k < numPlanes[j]; k++)
+					{
+						const Plane& plane = planes[j][k];
 
-					const float dist = plane.getDistance(position);
-					if(dist > mDesc.radius)
-						continue;
+						const float dist = plane.getDistance(position);
+						if (dist > mDesc.radius)
+							continue;
 
-					const float distToTravelAlongNormal = plane.normal.dot(velocity);
+						const float distToTravelAlongNormal = plane.normal.dot(velocity);
 
-					// Ignore movement parallel to the plane
-					if (Math::approxEquals(distToTravelAlongNormal, 0.0f))
-						continue;
+						// Ignore movement parallel to the plane
+						if (Math::approxEquals(distToTravelAlongNormal, 0.0f))
+							continue;
 
-					const float distFromBoundary = mDesc.radius - dist;
-					const float rayT = distFromBoundary / distToTravelAlongNormal;
+						const float distFromBoundary = mDesc.radius - dist;
+						const float rayT = distFromBoundary / distToTravelAlongNormal;
 
-					ParticleHitInfo hitInfo;
-					hitInfo.normal = plane.normal;
-					hitInfo.position = position + velocity * rayT;
-					hitInfo.idx = i;
+						ParticleHitInfo hitInfo;
+						hitInfo.normal = plane.normal;
+						hitInfo.position = position + velocity * rayT;
+						hitInfo.idx = i;
 
-					calcCollisionResponse(position, velocity, hitInfo, mDesc);
-					particles.lifetime[i] -= mDesc.lifetimeLoss * particles.initialLifetime[i];
+						calcCollisionResponse(position, velocity, hitInfo, mDesc);
+						particles.lifetime[i] -= mDesc.lifetimeLoss * particles.initialLifetime[i];
 
-					break;
+						break;
+					}
 				}
 			}
+
+			if(objPlanes)
+				bs_stack_free(objPlanes);
 
 			if(localPlanes)
 				bs_stack_free(localPlanes);
