@@ -140,7 +140,7 @@
 #define BS_PROFILING_ENABLED 1
 
 // Config from the build system
-#include "BsFrameworkConfig.h"
+#include <BsFrameworkConfig.h>
 
 // Platform-specific stuff
 #include "Prerequisites/BsPlatformDefines.h"

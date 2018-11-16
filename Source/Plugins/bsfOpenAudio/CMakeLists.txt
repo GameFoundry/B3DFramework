@@ -12,6 +12,9 @@ endif()
 # Target
 add_library(bsfOpenAudio SHARED ${BS_OPENAUDIO_SRC})
 
+# Common flags
+add_common_flags(bsfOpenAudio)
+
 # Includes
 target_include_directories(bsfOpenAudio PRIVATE "./")
 

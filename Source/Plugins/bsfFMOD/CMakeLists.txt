@@ -11,6 +11,9 @@ endif()
 # Target
 add_library(bsfFMOD SHARED ${BS_FMOD_SRC})
 
+# Common flags
+add_common_flags(bsfFMOD)
+
 # Includes
 target_include_directories(bsfFMOD PRIVATE 
 	"./"

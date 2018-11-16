@@ -93,9 +93,9 @@ endif()
 set(RENDERER_MODULE_LIB bsfRenderBeast)
 set(PHYSICS_MODULE_LIB bsfPhysX)
 
-## Generate config files)
-configure_file("${BSF_SOURCE_DIR}/CMake/BsEngineConfig.h.in" "${BSF_SOURCE_DIR}/Foundation/bsfEngine/BsEngineConfig.h")
-configure_file("${BSF_SOURCE_DIR}/CMake/BsFrameworkConfig.h.in" "${BSF_SOURCE_DIR}/Foundation/bsfUtility/BsFrameworkConfig.h")
+## Generate config files
+configure_file("${BSF_SOURCE_DIR}/CMake/BsEngineConfig.h.in" "${PROJECT_BINARY_DIR}/Generated/bsfEngine/BsEngineConfig.h")
+configure_file("${BSF_SOURCE_DIR}/CMake/BsFrameworkConfig.h.in" "${PROJECT_BINARY_DIR}/Generated/bsfUtility/BsFrameworkConfig.h")
 
 # Set files disallowed in precompiled headers
 set_directory_properties(PROPERTIES
@@ -165,6 +165,7 @@ endif()
 ## Builtin resource preprocessing
 add_executable(bsfImportTool
 	Foundation/bsfEngine/Resources/BsBuiltinResourcesImporter.cpp)
+add_common_flags(bsfImportTool)
 
 target_link_libraries(bsfImportTool bsf)
 	
@@ -188,4 +189,6 @@ install(
 	DIRECTORY ../Data
 	DESTINATION bin/
 	PATTERN "../Data/Raw" EXCLUDE
+	PATTERN ".version" EXCLUDE
+	PATTERN ".reqversion" EXCLUDE
 )

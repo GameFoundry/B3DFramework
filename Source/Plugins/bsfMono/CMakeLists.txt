@@ -7,6 +7,9 @@ find_package(mono)
 # Target
 add_library(bsfMono SHARED ${BS_MONO_SRC})
 
+# Common flags
+add_common_flags(bsfMono)
+
 # Includes
 target_include_directories(bsfMono PUBLIC "./")
 

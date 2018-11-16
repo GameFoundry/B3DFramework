@@ -7,6 +7,9 @@ find_package(freetype REQUIRED)
 # Target
 add_library(bsfFontImporter SHARED ${BS_FONTIMPORTER_SRC})
 
+# Common flags
+add_common_flags(bsfFontImporter)
+
 # Includes
 target_include_directories(bsfFontImporter PRIVATE "./")
 

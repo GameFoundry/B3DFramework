@@ -29,13 +29,25 @@ endif()
 
 # Third party (non-package) libraries
 add_library(ThirdParty INTERFACE)
-target_include_directories(ThirdParty INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/bsfUtility/ThirdParty")
+target_include_directories(ThirdParty INTERFACE
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bsfUtility/ThirdParty>
+	$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include/bsfUtility/ThirdParty>)
 
 # Target
 add_library(bsf SHARED ${BS_UTILITY_SRC} ${BS_CORE_SRC} ${BS_ENGINE_SRC})
 
+add_common_flags(bsf)
+
 # Includes
-target_include_directories(bsf PUBLIC "bsfUtility" "bsfCore" "bsfEngine")
+target_include_directories(bsf PUBLIC
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bsfUtility>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bsfCore>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bsfEngine>
+	$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/Generated/bsfUtility>
+	$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/Generated/bsfEngine>
+	$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include/bsfUtility>
+	$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include/bsfCore>
+	$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include/bsfEngine>)
 
 # Defines
 target_compile_definitions(bsf PRIVATE 
@@ -46,6 +58,22 @@ target_compile_definitions(bsf PRIVATE
 	$<$<CONFIG:RelWithDebInfo>:BS_CONFIG=BS_CONFIG_RELWITHDEBINFO>
 	$<$<CONFIG:MinSizeRel>:BS_CONFIG=BS_CONFIG_MINSIZEREL>
 	$<$<CONFIG:Release>:BS_CONFIG=BS_CONFIG_RELEASE>)
+
+if(MSVC)
+	target_compile_options(bsf PUBLIC
+		-fno-exceptions
+		$<$<COMPILE_LANGUAGE:CXX>:/GR->)
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
+	target_compile_options(bsf PUBLIC
+		-fno-exceptions
+		$<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	target_compile_options(bsf PUBLIC
+		-fno-exceptions
+		$<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+else()
+# TODO_OTHER_COMPILERS_GO_HERE
+endif()
 
 # Libraries
 ## External lib: NVTT
@@ -113,7 +141,32 @@ install(
 	PATTERN "Private" EXCLUDE
 )
 
+install(
+	DIRECTORY ${PROJECT_BINARY_DIR}/Generated/bsfEngine
+	DESTINATION include
+	FILES_MATCHING
+	PATTERN "*.h"
+)
+
+install(
+	DIRECTORY ${PROJECT_BINARY_DIR}/Generated/bsfUtility
+	DESTINATION include
+	FILES_MATCHING
+	PATTERN "*.h"
+)
+
 install_bsf_target(bsf)
+
+# This doesn't actually install anything as it is an imported library
+# but it is required because it is a dependency of the bsf target
+install(TARGETS ThirdParty EXPORT bsf)
+
+install(
+	EXPORT bsf
+	NAMESPACE bsf::
+	FILE bsf-config.cmake
+	DESTINATION lib/bsf
+)
 
 # Precompiled headers (Cotire)
 if(MSVC)

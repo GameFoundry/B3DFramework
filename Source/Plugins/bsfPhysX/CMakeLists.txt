@@ -7,6 +7,9 @@ find_package(PhysX REQUIRED)
 # Target
 add_library(bsfPhysX SHARED ${BS_PHYSX_SRC})
 
+# Common flags
+add_common_flags(bsfPhysX)
+
 # Includes
 target_include_directories(bsfPhysX PRIVATE "./")
 

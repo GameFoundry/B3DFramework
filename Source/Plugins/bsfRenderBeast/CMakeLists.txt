@@ -4,6 +4,9 @@ include(CMakeSources.cmake)
 # Target
 add_library(bsfRenderBeast SHARED ${BS_RENDERBEAST_SRC})
 
+# Common flags
+add_common_flags(bsfRenderBeast)
+
 # Includes
 target_include_directories(bsfRenderBeast PRIVATE "./")
 

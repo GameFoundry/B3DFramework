@@ -30,6 +30,9 @@ find_package(XShaderCompiler)
 # Target
 add_library(bsfSL SHARED ${BS_SL_SRC})
 
+# Common flags
+add_common_flags(bsfSL)
+
 # Includes
 target_include_directories(bsfSL PRIVATE "./")
 

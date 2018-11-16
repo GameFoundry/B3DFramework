@@ -7,6 +7,9 @@ find_package(FBXSDK REQUIRED)
 # Target
 add_library(bsfFBXImporter SHARED ${BS_FBXIMPORTER_SRC})
 
+# Common flags
+add_common_flags(bsfFBXImporter)
+
 # Includes
 target_include_directories(bsfFBXImporter PRIVATE "./")
 
