@@ -161,7 +161,7 @@ namespace bs
 		{
 			if(mAnimatedRenderable != nullptr)
 			{
-				SPtr<Renderable> renderable = mAnimatedRenderable->_getRenderable();
+				SPtr<Renderable> renderable = mAnimatedRenderable->_getInternal();
 				if (renderable != nullptr)
 					renderable->setOverrideBounds(bounds);
 
@@ -433,10 +433,10 @@ namespace bs
 		{
 			if (mMappingInfos[i].bone == bone)
 			{
+				mMappingInfos.erase(mMappingInfos.begin() + i);
+
 				if(mInternal)
 					mInternal->unmapSceneObject(mMappingInfos[i].sceneObject);
-
-				mMappingInfos.erase(mMappingInfos.begin() + i);
 
 				i--;
 			}
@@ -475,7 +475,7 @@ namespace bs
 	{
 		SPtr<Renderable> renderable;
 		if (updateRenderable && mAnimatedRenderable != nullptr)
-			renderable = mAnimatedRenderable->_getRenderable();
+			renderable = mAnimatedRenderable->_getInternal();
 
 		if (mUseBounds)
 		{

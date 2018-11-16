@@ -17,7 +17,7 @@ namespace bs
 	 */
 
 	/** Descriptor structure used for initialization of a VectorField. */
-	struct VECTOR_FIELD_DESC
+	struct BS_SCRIPT_EXPORT(m:Particles,pl:true,n:VectorFieldOptions) VECTOR_FIELD_DESC
 	{
 		/** Number of entries in the vector field along the X axis. */
 		UINT32 countX = 1;
@@ -92,6 +92,7 @@ namespace bs
 		 * @param[in]	values	Values to assign to the vector field. Number of entries must match 
 		 *						VECTOR_FIELD_DESC::countX * VECTOR_FIELD_DESC::countY * VECTOR_FIELD_DESC::countZ.
 		 */
+		BS_SCRIPT_EXPORT(ec:true)
 		static HVectorField create(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values);
 
 		/** @name Internal 

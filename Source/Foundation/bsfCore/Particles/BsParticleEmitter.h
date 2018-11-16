@@ -782,7 +782,7 @@ namespace bs
 		 * vectors, blend indices encoded in 4-byte format, and blend weights encoded a 4D float vectors. Can optionally 
 		 * contain per-vertex normals encoded as 3D float vectors or as 4-byte unsigned-normalized format.
 		 */
-		SPtr<Renderable> renderable;
+		ComponentOrActor<Renderable> renderable;
 	};
 
 	/** 

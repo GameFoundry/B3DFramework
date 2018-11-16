@@ -5,7 +5,7 @@
 #include "Mesh/BsMeshUtility.h"
 #include "RenderAPI/BsVertexDataDesc.h"
 #include "Math/BsRandom.h"
-#include "Renderer/BsRenderable.h"
+#include "Components/BsCRenderable.h"
 #include "Private/Particles/BsParticleSet.h"
 #include "Private/RTTI/BsParticleSystemRTTI.h"
 #include "Animation/BsAnimation.h"
@@ -1041,8 +1041,8 @@ namespace bs
 		:mInfo(desc)
 	{
 		HMesh mesh;
-		if(desc.renderable)
-			mesh = desc.renderable->getMesh();
+		if(!desc.renderable.empty())
+			mesh = desc.renderable.getActor()->getMesh();
 
 		mIsValid = mMeshEmissionHelper.initialize(mesh, desc.type == ParticleEmitterMeshType::Vertex, false);
 	}
@@ -1055,9 +1055,10 @@ namespace bs
 
 		const Matrix4* bones = nullptr;
 
-		if(mInfo.renderable)
+		if(!mInfo.renderable.empty())
 		{
-			const SPtr<Animation>& animation = mInfo.renderable->getAnimation();
+			const SPtr<Renderable>& renderable = mInfo.renderable.getActor();
+			const SPtr<Animation>& animation = renderable->getAnimation();;
 			if(animation)
 			{
 				const UINT64 animId = animation->_getId();
@@ -1154,9 +1155,10 @@ namespace bs
 
 	void ParticleEmitterSkinnedMeshShape::calcBounds(AABox& shape, AABox& velocity) const
 	{
-		if(mInfo.renderable)
+		if(!mInfo.renderable.empty())
 		{
-			const SPtr<Animation>& anim = mInfo.renderable->getAnimation();
+			const SPtr<Renderable>& renderable = mInfo.renderable.getActor();
+			const SPtr<Animation>& anim = renderable->getAnimation();
 			if(anim)
 			{
 				// No culling, make the box infinite
@@ -1167,7 +1169,7 @@ namespace bs
 			}
 			else
 			{
-				const HMesh& mesh = mInfo.renderable->getMesh();
+				const HMesh& mesh = renderable->getMesh();
 				if (mesh.isLoaded(false))
 					shape = mesh->getProperties().getBounds().getBox();
 				else
