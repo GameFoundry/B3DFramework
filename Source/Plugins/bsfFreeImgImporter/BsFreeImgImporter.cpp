@@ -445,13 +445,13 @@ namespace bs
 		{
 			output[i] = PixelData::create(faceSize, faceSize, 1, source->getFormat());
 
+			PixelVolume volume(faceStart.x, faceStart.y, faceStart.x + faceSize, faceStart.y + faceSize);
+			PixelUtil::copy(*source, *output[i], faceStart.x, faceStart.y);
+
 			if (vertical)
 				faceStart.y += faceSize;
 			else
 				faceStart.x += faceSize;
-
-			PixelVolume volume(faceStart.x, faceStart.y, faceStart.x + faceSize, faceStart.y + faceSize);
-			PixelUtil::copy(*source, *output[i], faceStart.x, faceStart.y);
 		}
 	}
 
