@@ -101,6 +101,13 @@ configure_file("${BSF_SOURCE_DIR}/CMake/BsFrameworkConfig.h.in" "${PROJECT_BINAR
 set_directory_properties(PROPERTIES
     COTIRE_PREFIX_HEADER_IGNORE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
 
+# Remove /EHsc from CMAKE_CXX_FLAGS for MSVC to disable exceptions
+if (MSVC)
+	if(CMAKE_CXX_FLAGS MATCHES "/EHsc")
+		string(REPLACE "/EHsc" "/EHs-c-" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+	endif()
+endif()
+
 # Sub-directories
 ## Foundation
 add_subdirectory(Foundation)
