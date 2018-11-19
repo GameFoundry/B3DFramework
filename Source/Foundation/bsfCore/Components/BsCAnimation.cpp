@@ -433,11 +433,10 @@ namespace bs
 		{
 			if (mMappingInfos[i].bone == bone)
 			{
-				mMappingInfos.erase(mMappingInfos.begin() + i);
-
 				if(mInternal)
 					mInternal->unmapSceneObject(mMappingInfos[i].sceneObject);
 
+				mMappingInfos.erase(mMappingInfos.begin() + i);
 				i--;
 			}
 		}
