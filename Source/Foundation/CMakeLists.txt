@@ -61,7 +61,6 @@ target_compile_definitions(bsf PRIVATE
 
 if(MSVC)
 	target_compile_options(bsf PUBLIC
-		-fno-exceptions
 		$<$<COMPILE_LANGUAGE:CXX>:/GR->)
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
 	target_compile_options(bsf PUBLIC

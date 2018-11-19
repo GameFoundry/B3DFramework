@@ -434,7 +434,7 @@ function(add_common_flags target)
 			set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS -fno-ms-compatibility)
 
 			if(APPLE)
-				set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS -fobjc-arc -std=c++1z)
+				set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS -fobjc-arc $<$<COMPILE_LANGUAGE:CXX>:-std=c++1z>)
 			endif()
 		endif()
 
