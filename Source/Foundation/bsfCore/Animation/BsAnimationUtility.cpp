@@ -463,7 +463,7 @@ namespace bs
 		}
 
 		// Inner keyframes
-		for (int i = 1; i < keyframes.size() - 1; i++)
+		for (UINT32 i = 1; i < (UINT32)keyframes.size() - 1; i++)
 		{
 			const Keyframe& keyPrev = keyframes[i - 1];
 			Keyframe& keyThis = keyframes[i];

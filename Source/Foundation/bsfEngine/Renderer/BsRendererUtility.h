@@ -26,10 +26,10 @@ namespace bs { namespace ct
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
-			{
+			SmallVector<ShaderVariation::Param, 4>({
 				ShaderVariation::Param("MSAA_COUNT", msaa),
 				ShaderVariation::Param("COLOR", color),
-			});
+			}));
 
 			return variation;
 		}

@@ -48,7 +48,7 @@ namespace bs { namespace ct
 	 * Contains information required for rendering a single Renderable sub-mesh, representing a generic static or animated
 	 * 3D model.
 	 */
-	class RenderableElement : public RenderElement
+	class RenderableElement final : public RenderElement
 	{
 	public:
 		/**

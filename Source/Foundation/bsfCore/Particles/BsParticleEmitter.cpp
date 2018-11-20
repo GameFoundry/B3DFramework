@@ -1077,9 +1077,7 @@ namespace bs
 		case ParticleEmitterMeshType::Vertex: 
 			if(mInfo.sequential)
 			{
-				float dt = (state.timeStep / count) / state.length;
-
-				return spawnMultiple(particles, count, [this, &state, dt, bones]
+				return spawnMultiple(particles, count, [this, bones]
 				(UINT32 idx, Vector3& position, Vector3& normal)
 				{
 					UINT32 vertexIdx;
@@ -1221,8 +1219,6 @@ namespace bs
 		mEmitAccumulator += rate * state.timeStep;
 		const auto numContinous = (UINT32)mEmitAccumulator;
 		mEmitAccumulator -= (float)numContinous;
-
-		const float spacing = numContinous > 0 ? 1.0f / (float)numContinous : 1.0f;
 
 		// Bursts
 		UINT32 numBurst = 0;

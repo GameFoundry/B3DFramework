@@ -44,8 +44,7 @@ namespace bs
 		 * @param[in]	pow2			When true the resulting atlas size will always be a power of two.
 		 */
 		TextureAtlasLayout(UINT32 width, UINT32 height, UINT32 maxWidth, UINT32 maxHeight, bool pow2 = false)
-			: mInitialWidth(width), mInitialHeight(height), mWidth(width), mHeight(height), mMaxWidth(maxWidth)
-			, mMaxHeight(maxHeight), mPow2(pow2)
+			: mInitialWidth(width), mInitialHeight(height), mWidth(width), mHeight(height), mPow2(pow2)
 		{
 			mNodes.push_back(TexAtlasNode(0, 0, maxWidth, maxHeight));
 		}
@@ -94,8 +93,6 @@ namespace bs
 		UINT32 mInitialHeight = 0;
 		UINT32 mWidth = 0;
 		UINT32 mHeight = 0;
-		UINT32 mMaxWidth = 0;
-		UINT32 mMaxHeight = 0;
 		bool mPow2 = false;
 
 		Vector<TexAtlasNode> mNodes;

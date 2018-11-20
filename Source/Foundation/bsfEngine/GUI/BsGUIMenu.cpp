@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	bool GUIMenuItemComparer::operator() (const GUIMenuItem* const& a, const GUIMenuItem* const& b)
+	bool GUIMenuItemComparer::operator() (const GUIMenuItem* const& a, const GUIMenuItem* const& b) const
 	{
 		return a->mPriority > b->mPriority || (a->mPriority == b->mPriority && a->mSeqIdx < b->mSeqIdx);
 	}

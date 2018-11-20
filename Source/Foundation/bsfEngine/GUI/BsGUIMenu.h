@@ -17,7 +17,7 @@ namespace bs
 	/** Used for comparing GUI menu items in order to determine the order in which they are presented. */
 	struct GUIMenuItemComparer
 	{
-		bool operator() (const GUIMenuItem* const& a, const GUIMenuItem* const& b);
+		bool operator() (const GUIMenuItem* const& a, const GUIMenuItem* const& b) const;
 	};
 
 	/** Holds information about a single element in a GUI menu. */

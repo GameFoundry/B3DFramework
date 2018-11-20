@@ -397,7 +397,6 @@ namespace bs { namespace ct
 
 		GpuParamTexture mInputTex;
 		GpuParamTexture mEyeAdaptationTex;
-		bool mUseAutoExposure;
 	};
 
 	const int MAX_BLUR_SAMPLES = 128;
