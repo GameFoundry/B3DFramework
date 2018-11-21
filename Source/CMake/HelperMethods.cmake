@@ -386,28 +386,32 @@ function(add_common_flags target)
 
 	if(MSVC)
 		# Linker
-		set_property(TARGET ${target} APPEND PROPERTY LINK_FLAGS /DYNAMICBASE /NOLOGO)
+		# The VS generator seems picky about how the linker flags are passed: we have to make sure
+		# the options are quoted correctly and with append_string or random semicolons will be
+		# inserted in the command line; and unrecognised options are only treated as warnings
+		# and not errors so they won't be caught by CI. Make sure the options are separated by
+		# spaces too.
+		# For some reason this does not apply to the compiler options...
 
-		set_property(TARGET ${target} APPEND PROPERTY LINK_FLAGS_DEBUG /DEBUG)
-		set_property(TARGET ${target} APPEND PROPERTY LINK_FLAGS_RELWITHDEBINFO /LTCG:incremental /INCREMENTAL:NO /OPT:REF /DEBUG)
-		set_property(TARGET ${target} APPEND PROPERTY LINK_FLAGS_MINSIZEREL /DEBUG /LTCG /INCREMENTAL:NO /OPT:REF)
-		set_property(TARGET ${target} APPEND PROPERTY LINK_FLAGS_RELEASE /DEBUG /LTCG /INCREMENTAL:NO /OPT:REF)
+		set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS "/DYNAMICBASE /NOLOGO")
+
+		set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS_DEBUG "/DEBUG")
+		set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS_RELWITHDEBINFO "/DEBUG /LTCG:incremental /INCREMENTAL:NO /OPT:REF")
+		set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS_MINSIZEREL "/DEBUG /LTCG /INCREMENTAL:NO /OPT:REF")
+		set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS_RELEASE "/DEBUG /LTCG /INCREMENTAL:NO /OPT:REF")
 
 		if(BS_64BIT)
-			set_property(TARGET ${target} APPEND PROPERTY LINK_FLAGS_RELWITHDEBINFO /OPT:ICF)
-			set_property(TARGET ${target} APPEND PROPERTY LINK_FLAGS_MINSIZEREL /OPT:ICF)
-			set_property(TARGET ${target} APPEND PROPERTY LINK_FLAGS_RELEASE /OPT:ICF)
+			set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS_RELWITHDEBINFO " /OPT:ICF")
+			set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS_MINSIZEREL " /OPT:ICF")
+			set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS_RELEASE " /OPT:ICF")
 		endif()
 
 		if (${target_type} STREQUAL "SHARED_LIBRARY" OR ${target_type} STREQUAL "MODULE_LIBRARY")
-			set_property(TARGET ${target} APPEND PROPERTY LINK_FLAGS_DEBUG /DLL)
-			set_property(TARGET ${target} APPEND PROPERTY LINK_FLAGS_RELWITHDEBINFO /DLL)
-			set_property(TARGET ${target} APPEND PROPERTY LINK_FLAGS_MINSIZEREL /DLL)
-			set_property(TARGET ${target} APPEND PROPERTY LINK_FLAGS_RELEASE /DLL)
+			set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS " /DLL")
 		endif()
 
 		# Compiler
-		set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS /GS- /W3 /WX- /MP /nologo /bigobj /wd"4577" /wd"4530")
+		set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS /GS- /W3 /WX- /MP /nologo /bigobj /wd4577 /wd4530)
 		set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS -DWIN32 -D_WINDOWS)
 
 		set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS $<$<CONFIG:Debug>:/Od /RTC1 /MDd -DDEBUG>)
