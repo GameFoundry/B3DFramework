@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.12.4)
+cmake_minimum_required (VERSION 3.12.0)
 project (bsf)
 
 set (BSF_SOURCE_DIR ${PROJECT_SOURCE_DIR}/Source)
