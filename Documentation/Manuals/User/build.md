@@ -38,7 +38,7 @@ First create a new directory where you would like your project to live. Grab the
 In your project folder create `CMakeLists.txt`, and fill it out like so:
 ```
 # Minimum version of CMake as required by bsf
-cmake_minimum_required (VERSION 3.9.0)
+cmake_minimum_required (VERSION 3.12.4)
 
 # Name of your project
 project (myProject)
@@ -92,7 +92,7 @@ We will explain the code above in following manuals, but for now you can just co
 Place the `Main.cpp` into your project's root folder.
 
 ## Get CMake {#build_a_e}
-If you don't already have it, grab the latest version of CMake from [www.cmake.org](https://cmake.org/download/). Make sure to grab version 3.9.0 or later. 
+If you don't already have it, grab the latest version of CMake from [www.cmake.org](https://cmake.org/download/). Make sure to grab version 3.12.4 or later. 
 
 ## Build {#build_a_f}
 You are now ready to build the project. From your project's root folder execute the following commands in terminal/command line:
@@ -134,7 +134,7 @@ First make sure to follow the compilation guide on [GitHub](https://github.com/G
 Create a new project folder, with a `CMakeLists.txt` file with the following contents:
 ```
 # Minimum version of CMake as required by bsf
-cmake_minimum_required (VERSION 3.9.0)
+cmake_minimum_required (VERSION 3.12.4)
 
 # Name of your project
 project (myProject)

@@ -3,7 +3,7 @@
 ## Quick start
 Use the guide below to get bs::framework up and running as quickly as possible. Scroll further below for advanced build options that allow for more customization.
 
-- Install git (https://git-scm.com) and CMake 3.9.0 or higher (https://cmake.org)
+- Install git (https://git-scm.com) and CMake 3.12.4 or higher (https://cmake.org)
   - Ensure they are added to your *PATH* environment variable
 - Install other dependencies
   - See [here](#otherDeps)
