@@ -43,6 +43,8 @@ install:
       mkdir cmake
       travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
       export PATH=${DEPS_DIR}/cmake/bin:${PATH}
+    else
+      brew install cmake || brew upgrade cmake
     fi
 
   # Download GCC 7.1
