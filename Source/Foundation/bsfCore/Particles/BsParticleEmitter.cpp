@@ -1269,36 +1269,63 @@ namespace bs
 		else
 			numBurst += emitBursts(state.timeStart, state.timeEnd);
 
-		UINT32 numToSpawn = numContinous + numBurst;
+		const UINT32 startIdx = set.getParticleCount();
+		spawn(numContinous, random, state, set, true);
 
-		const UINT32 numPartices = set.getParticleCount() + numToSpawn;
+		state.system->preSimulate(state, startIdx, numContinous, true, mEmitAccumulator);
+		state.system->simulate(state, startIdx, numContinous, true, mEmitAccumulator);
+
+		spawn(numBurst, random, state, set, false);
+	}	
+	
+	void ParticleEmitter::spawn(UINT32 count, Random& random, const ParticleSystemState& state, ParticleSet& set, 
+		bool spacing) const
+	{
+		const float subFrameSpacing = count > 0 ? 1.0f / count : 1.0f;
+
+		const UINT32 numPartices = set.getParticleCount() + count;
 		if(!state.gpuSimulated)
 		{
 			if (numPartices > state.maxParticles)
-				numToSpawn = state.maxParticles - set.getParticleCount();
+				count = state.maxParticles - set.getParticleCount();
 		}
 
-		const UINT32 firstIdx = mShape->_spawn(random, set, numToSpawn, state);
-		const UINT32 endIdx = firstIdx + numToSpawn;
+		const UINT32 firstIdx = mShape->_spawn(random, set, count, state);
+		const UINT32 endIdx = firstIdx + count;
 
 		ParticleSetData& particles = set.getParticles();
+		float* emitterT = bs_stack_alloc<float>(sizeof(float) * count);
+
+		if(spacing)
+		{
+			for (UINT32 i = 0; i < count; i++)
+			{
+				const float subFrameOffset = (i + mEmitAccumulator) * subFrameSpacing;
+				emitterT[i] = state.nrmTimeStart + state.timeStep * subFrameOffset;
+			}
+		}
+		else
+		{
+			for (UINT32 i = 0; i < count; i++)
+				emitterT[i] = state.nrmTimeEnd;
+		}
 
 		for(UINT32 i = firstIdx; i < endIdx; i++)
 		{
-			const float lifetime = mInitialLifetime.evaluate(emitterT, random);
+			const float lifetime = mInitialLifetime.evaluate(emitterT[i - firstIdx], random);
 
 			particles.initialLifetime[i] = lifetime;
 			particles.lifetime[i] = lifetime;
 		}
 
 		for(UINT32 i = firstIdx; i < endIdx; i++)
-			particles.velocity[i] *= mInitialSpeed.evaluate(emitterT, random);
+			particles.velocity[i] *= mInitialSpeed.evaluate(emitterT[i - firstIdx], random);
 
 		if(!mUse3DSize)
 		{
 			for (UINT32 i = firstIdx; i < endIdx; i++)
 			{
-				const float size = mInitialSize.evaluate(emitterT, random);
+				const float size = mInitialSize.evaluate(emitterT[i - firstIdx], random);
 
 				// Encode UV flip in size XY as sign
 				const float flipU = random.getUNorm() < mFlipU ? -1.0f : 1.0f;
@@ -1311,7 +1338,7 @@ namespace bs
 		{
 			for (UINT32 i = firstIdx; i < endIdx; i++)
 			{
-				Vector3 size = mInitialSize3D.evaluate(emitterT, random);
+				Vector3 size = mInitialSize3D.evaluate(emitterT[i - firstIdx], random);
 
 				// Encode UV flip in size XY as sign
 				size.x *= random.getUNorm() < mFlipU ? -1.0f : 1.0f;
@@ -1331,7 +1358,7 @@ namespace bs
 		{
 			for (UINT32 i = firstIdx; i < endIdx; i++)
 			{
-				const float rotation = mInitialRotation.evaluate(emitterT, random);
+				const float rotation = mInitialRotation.evaluate(emitterT[i - firstIdx], random);
 				particles.rotation[i] = Vector3(rotation, 0.0f, 0.0f);
 			}
 		}
@@ -1339,13 +1366,13 @@ namespace bs
 		{
 			for (UINT32 i = firstIdx; i < endIdx; i++)
 			{
-				const Vector3 rotation = mInitialRotation3D.evaluate(emitterT, random);
+				const Vector3 rotation = mInitialRotation3D.evaluate(emitterT[i - firstIdx], random);
 				particles.rotation[i] = rotation;
 			}
 		}
 
 		for(UINT32 i = firstIdx; i < endIdx; i++)
-			particles.color[i] = mInitialColor.evaluate(emitterT, random);
+			particles.color[i] = mInitialColor.evaluate(emitterT[i - firstIdx], random);
 
 		for(UINT32 i = firstIdx; i < endIdx; i++)
 			particles.seed[i] = random.get();
@@ -1362,6 +1389,8 @@ namespace bs
 			for (UINT32 i = firstIdx; i < endIdx; i++)
 				particles.velocity[i] = state.localToWorld.multiplyDirection(particles.velocity[i]);
 		}
+
+		bs_stack_free(emitterT);
 	}	
 	
 	RTTITypeBase* ParticleEmitter::getRTTIStatic()

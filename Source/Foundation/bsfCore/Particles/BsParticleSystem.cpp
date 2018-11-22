@@ -267,58 +267,100 @@ namespace bs
 		// Simulate if running on CPU, otherwise just pass the spawned particles off to the core thread
 		if(!mSettings.gpuSimulation)
 		{
-			UINT32 numParticles = mParticleSet->getParticleCount();
-			const ParticleSetData& particles = mParticleSet->getParticles();
+			const UINT32 numParticles = mParticleSet->getParticleCount();
 
-			// Remember old positions
-			for (UINT32 i = 0; i < numParticles; i++)
-				particles.prevPosition[i] = particles.position[i];
-
-			// Evolve pre-simulation
-			auto evolverIter = mEvolvers.begin();
-			for (; evolverIter != mEvolvers.end(); ++evolverIter)
-			{
-				ParticleEvolver* evolver = evolverIter->get();
-				const ParticleEvolverProperties& props = evolver->getProperties();
-
-				if (props.priority < 0)
-					break;
-
-				evolver->evolve(mRandom, state, *mParticleSet);
-			}
-
-			// Simulate
-			for (UINT32 i = 0; i < numParticles; i++)
-				particles.position[i] += particles.velocity[i] * timeStep;
-
-			// Evolve post-simulation
-			for (; evolverIter != mEvolvers.end(); ++evolverIter)
-			{
-				ParticleEvolver* evolver = evolverIter->get();
-				evolver->evolve(mRandom, state, *mParticleSet);
-			}
-
-			// Decrement lifetime
-			for (UINT32 i = 0; i < numParticles; i++)
-				particles.lifetime[i] -= timeStep;
-
-			// Kill expired particles
-			for (UINT32 i = 0; i < numParticles;)
-			{
-				// TODO - Upon freeing a particle don't immediately remove it to save on swap, since we will be immediately
-				// spawning new particles. Perhaps keep a list of recently removed particles so it can immediately be
-				// re-used for spawn, and then only after spawn remove extra particles
-				if (particles.lifetime[i] <= 0.0f)
-				{
-					mParticleSet->freeParticle(i);
-					numParticles--;
-				}
-				else
-					i++;
-			}
+			preSimulate(state, 0, numParticles, false, 0.0f);
+			simulate(state, 0, numParticles, false, 0.0f);
+			postSimulate(state, 0, numParticles, false, 0.0f);
 		}
 
 		mTime = newTime;
+	}
+
+	void ParticleSystem::preSimulate(const ParticleSystemState& state, UINT32 startIdx, UINT32 count, bool spacing, 
+		float spacingOffset)
+	{
+		const ParticleSetData& particles = mParticleSet->getParticles();
+		const float subFrameSpacing = (spacing && count > 0) ? 1.0f / count : 1.0f;
+		const UINT32 endIdx = startIdx + count;
+
+		// Decrement lifetime
+		for (UINT32 i = startIdx; i < endIdx; i++)
+		{
+			float timeStep = state.timeStep;
+			if(spacing)
+			{
+				// Note: We're calculating this in a few places during a single frame. Store it and re-use?
+				const UINT32 localIdx = i - startIdx;
+				const float subFrameOffset = ((float)localIdx + spacingOffset) * subFrameSpacing;
+				timeStep *= subFrameOffset;
+			}
+
+			particles.lifetime[i] -= timeStep;
+		}
+
+		// Kill expired particles
+		UINT32 numParticles = count;
+		for (UINT32 i = 0; i < numParticles;)
+		{
+			const UINT32 particleIdx = startIdx + i;
+			if (particles.lifetime[particleIdx] <= 0.0f)
+			{
+				mParticleSet->freeParticle(particleIdx);
+				numParticles--;
+			}
+			else
+				i++;
+		}
+
+		// Remember old positions
+		for (UINT32 i = startIdx; i < endIdx; i++)
+			particles.prevPosition[i] = particles.position[i];
+
+		// Evolve pre-simulation
+		for(auto& evolver : mEvolvers)
+		{
+			const ParticleEvolverProperties& props = evolver->getProperties();
+			if (props.priority < 0)
+				break;
+
+			evolver->evolve(mRandom, state, *mParticleSet, startIdx, count, spacing, spacingOffset);
+		}
+	}
+
+	void ParticleSystem::simulate(const ParticleSystemState& state, UINT32 startIdx, UINT32 count, bool spacing, 
+		float spacingOffset)
+	{
+		const ParticleSetData& particles = mParticleSet->getParticles();
+		const float subFrameSpacing = (spacing && count > 0) ? 1.0f / count : 1.0f;
+		const UINT32 endIdx = startIdx + count;
+
+		for (UINT32 i = startIdx; i < endIdx; i++)
+		{
+			float timeStep = state.timeStep;
+			if(spacing)
+			{
+				const UINT32 localIdx = i - startIdx;
+				const float subFrameOffset = ((float)localIdx + spacingOffset) * subFrameSpacing;
+				timeStep *= subFrameOffset;
+			}
+
+			particles.position[i] += particles.velocity[i] * timeStep;
+		}
+	}
+
+	void ParticleSystem::postSimulate(const ParticleSystemState& state, UINT32 startIdx, UINT32 count, bool spacing, 
+		float spacingOffset)
+	{
+		// Evolve post-simulation
+		for(auto& evolver : mEvolvers)
+		{
+			const ParticleEvolverProperties& props = evolver->getProperties();
+			if(props.priority >= 0)
+				continue;
+
+			evolver->evolve(mRandom, state, *mParticleSet, startIdx, count, spacing, spacingOffset);
+		}
 	}
 
 	AABox ParticleSystem::_calculateBounds() const

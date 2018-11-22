@@ -547,6 +547,7 @@ namespace bs
 	private:
 		friend class ParticleManager;
 		friend class ParticleSystemRTTI;
+		friend class ParticleEmitter;
 		friend class ct::ParticleSystem;
 
 		/** States the particle system can be in. */
@@ -556,6 +557,52 @@ namespace bs
 		};
 
 		ParticleSystem();
+
+		/**
+		 * Decrements particle lifetime, kills expired particles and executes evolvers that need to run before
+		 * the simulation.
+		 *
+		 * @param[in]	state			State describing the current state of the simulation.
+		 * @param[in]	startIdx		Index of the first particle to update.
+		 * @param[in]	count			Number of particles to update, starting from @p startIdx.
+		 * @param[in]	spacing			When false all particles will use the same time-step. If true the time-step will
+		 *								be divided by @p count so particles are uniformly distributed over the 
+		 *								time-step.
+		 * @param[in]	spacingOffset	Extra offset that controls the starting position of the first particle when
+		 *								calculating spacing. Should be in range [0, 1). 0 = beginning of the current
+		 *								time step, 1 = start of next particle.
+		 */
+		void preSimulate(const ParticleSystemState& state, UINT32 startIdx, UINT32 count, bool spacing, float spacingOffset);
+
+		/** 
+		 * Integrates particle properties, advancing the simulation. 
+		 * 
+		 * @param[in]	state			State describing the current state of the simulation.
+		 * @param[in]	startIdx		Index of the first particle to update.
+		 * @param[in]	count			Number of particles to update, starting from @p startIdx.
+		 * @param[in]	spacing			When false all particles will use the same time-step. If true the time-step will
+		 *								be divided by @p count so particles are uniformly distributed over the 
+		 *								time-step.
+		 * @param[in]	spacingOffset	Extra offset that controls the starting position of the first particle when
+		 *								calculating spacing. Should be in range [0, 1). 0 = beginning of the current
+		 *								time step, 1 = start of next particle.
+		 */
+		void simulate(const ParticleSystemState& state, UINT32 startIdx, UINT32 count, bool spacing, float spacingOffset);
+
+		/** 
+		 * Executes evolvers that need to run after the simulation. 
+		 * 
+		 * @param[in]	state			State describing the current state of the simulation.
+		 * @param[in]	startIdx		Index of the first particle to update.
+		 * @param[in]	count			Number of particles to update, starting from @p startIdx.
+		 * @param[in]	spacing			When false all particles will use the same time-step. If true the time-step will
+		 *								be divided by @p count so particles are uniformly distributed over the 
+		 *								time-step.
+		 * @param[in]	spacingOffset	Extra offset that controls the starting position of the first particle when
+		 *								calculating spacing. Should be in range [0, 1). 0 = beginning of the current
+		 *								time step, 1 = start of next particle.
+		 */
+		void postSimulate(const ParticleSystemState& state, UINT32 startIdx, UINT32 count, bool spacing, float spacingOffset);
 
 		/** @copydoc CoreObject::createCore */
 		SPtr<ct::CoreObject> createCore() const override;

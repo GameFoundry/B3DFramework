@@ -1025,6 +1025,19 @@ namespace bs
 		 */
 		void spawn(Random& random, const ParticleSystemState& state, ParticleSet& set) const;
 
+		/** 
+		 * Spawns the specified number of particles. 
+		 *
+		 * @param[in]	count			Number of particles to spawn.
+		 * @param[in]	random			Random number generator.
+		 * @param[in]	state			Various per-frame information provided by the parent particle system.
+		 * @param[in]	set				Set to which to append new particles to.
+		 * @param[in]	spacing			When false all particles will use the current emitter time. When true the particles
+		 *								will be assigned a time between current time and time step end time, so they are
+		 *								unifomly distributed in this time range.
+		 */
+		void spawn(UINT32 count, Random& random, const ParticleSystemState& state, ParticleSet& set, bool spacing) const;
+
 		// User-visible properties
 		SPtr<ParticleEmitterShape> mShape;
 

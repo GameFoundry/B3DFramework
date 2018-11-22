@@ -49,8 +49,23 @@ namespace bs
 	protected:
 		friend class ParticleSystem;
 
-		/** Updates properties of all particles in the @p set according to the ruleset of the evolver. */
-		virtual void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const = 0;
+		/** 
+		 * Updates properties of particles in the provided range according to the ruleset of the evolver. 
+		 * 
+		 * @param[in]	random			Utility class for generating random numbers.
+		 * @param[in]	state			Particle system state for this frame.
+		 * @param[in]	set				Set containing the particles to update.
+		 * @param[in]	startIdx		Index of the first particle in @p set to update.
+		 * @param[in]	count			Number of particles to update, starting from @p startIdx.
+		 * @param[in]	spacing			When false all particles will use the same time-step as provided by @p state. If
+		 *								true the time-step will be divided by @p count so particles are uniformly
+		 *								distributed over the time-step.
+		 * @param[in]	spacingOffset	Extra offset that controls the starting position of the first particle when
+		 *								calculating spacing. Should be in range [0, 1). 0 = beginning of the current
+		 *								time step, 1 = start of next particle.
+		 */
+		virtual void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set, UINT32 startIdx, 
+			UINT32 count, bool spacing, float spacingOffset) const = 0;
 	};
 
 	/** Structure used for initializing a ParticleTextureAnimation object. */
@@ -95,7 +110,8 @@ namespace bs
 		static SPtr<ParticleTextureAnimation> create(const PARTICLE_TEXTURE_ANIMATION_DESC& desc);
 	private:
 		/** @copydoc ParticleEvolver::evolve */
-		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const override;
+		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set, UINT32 startIdx, 
+			UINT32 count, bool spacing, float spacingOffset) const override;
 
 		PARTICLE_TEXTURE_ANIMATION_DESC mDesc;
 
@@ -155,7 +171,8 @@ namespace bs
 		static SPtr<ParticleOrbit> create(const PARTICLE_ORBIT_DESC& desc);
 	private:
 		/** @copydoc ParticleEvolver::evolve */
-		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const override;
+		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set, UINT32 startIdx, 
+			UINT32 count, bool spacing, float spacingOffset) const override;
 
 		PARTICLE_ORBIT_DESC mDesc;
 
@@ -206,7 +223,8 @@ namespace bs
 		static SPtr<ParticleVelocity> create(const PARTICLE_VELOCITY_DESC& desc);
 	private:
 		/** @copydoc ParticleEvolver::evolve */
-		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const override;
+		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set, UINT32 startIdx, 
+			UINT32 count, bool spacing, float spacingOffset) const override;
 
 		PARTICLE_VELOCITY_DESC mDesc;
 
@@ -257,7 +275,8 @@ namespace bs
 		static SPtr<ParticleForce> create(const PARTICLE_FORCE_DESC& desc);
 	private:
 		/** @copydoc ParticleEvolver::evolve */
-		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const override;
+		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set, UINT32 startIdx, 
+			UINT32 count, bool spacing, float spacingOffset) const override;
 
 		PARTICLE_FORCE_DESC mDesc;
 
@@ -305,7 +324,8 @@ namespace bs
 		static SPtr<ParticleGravity> create(const PARTICLE_GRAVITY_DESC& desc);
 	private:
 		/** @copydoc ParticleEvolver::evolve */
-		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const override;
+		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set, UINT32 startIdx, 
+			UINT32 count, bool spacing, float spacingOffset) const override;
 
 		PARTICLE_GRAVITY_DESC mDesc;
 
@@ -353,7 +373,8 @@ namespace bs
 		static SPtr<ParticleColor> create(const PARTICLE_COLOR_DESC& desc);
 	private:
 		/** @copydoc ParticleEvolver::evolve */
-		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const override;
+		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set, UINT32 startIdx, 
+			UINT32 count, bool spacing, float spacingOffset) const override;
 
 		PARTICLE_COLOR_DESC mDesc;
 
@@ -415,7 +436,8 @@ namespace bs
 		static SPtr<ParticleSize> create(const PARTICLE_SIZE_DESC& desc);
 	private:
 		/** @copydoc ParticleEvolver::evolve */
-		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const override;
+		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set, UINT32 startIdx, 
+			UINT32 count, bool spacing, float spacingOffset) const override;
 
 		PARTICLE_SIZE_DESC mDesc;
 
@@ -475,7 +497,8 @@ namespace bs
 		static SPtr<ParticleRotation> create(const PARTICLE_ROTATION_DESC& desc);
 	private:
 		/** @copydoc ParticleEvolver::evolve */
-		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const override;
+		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set, UINT32 startIdx, 
+			UINT32 count, bool spacing, float spacingOffset) const override;
 
 		PARTICLE_ROTATION_DESC mDesc;
 
@@ -582,7 +605,8 @@ namespace bs
 		static SPtr<ParticleCollisions> create(const PARTICLE_COLLISIONS_DESC& desc);
 	private:
 		/** @copydoc ParticleEvolver::evolve */
-		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set) const override;
+		void evolve(Random& random, const ParticleSystemState& state, ParticleSet& set, UINT32 startIdx, 
+			UINT32 count, bool spacing, float spacingOffset) const override;
 
 		PARTICLE_COLLISIONS_DESC mDesc;
 
