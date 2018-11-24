@@ -344,9 +344,9 @@ namespace bs
 		velocity.setMax(Vector3::ONE);
 	}
 	
-	SPtr<ParticleEmitterShape> ParticleEmitterSphereShape::create(const PARTICLE_SPHERE_SHAPE_DESC& desc)
+	SPtr<ParticleEmitterSphereShape> ParticleEmitterSphereShape::create(const PARTICLE_SPHERE_SHAPE_DESC& desc)
 	{
-		return bs_shared_ptr<ParticleEmitterShape>(bs_new<ParticleEmitterSphereShape>(desc));
+		return bs_shared_ptr_new<ParticleEmitterSphereShape>(desc);
 	}
 
 	RTTITypeBase* ParticleEmitterSphereShape::getRTTIStatic()
@@ -388,9 +388,9 @@ namespace bs
 		velocity.setMax(Vector3::ONE);
 	}
 	
-	SPtr<ParticleEmitterShape> ParticleEmitterHemisphereShape::create(const PARTICLE_HEMISPHERE_SHAPE_DESC& desc)
+	SPtr<ParticleEmitterHemisphereShape> ParticleEmitterHemisphereShape::create(const PARTICLE_HEMISPHERE_SHAPE_DESC& desc)
 	{
-		return bs_shared_ptr<ParticleEmitterShape>(bs_new<ParticleEmitterHemisphereShape>(desc));
+		return bs_shared_ptr_new<ParticleEmitterHemisphereShape>(desc);
 	}
 
 	RTTITypeBase* ParticleEmitterHemisphereShape::getRTTIStatic()
@@ -557,10 +557,9 @@ namespace bs
 		velocity.setMax(Vector3::UNIT_Z);
 	}
 
-	SPtr<ParticleEmitterShape> ParticleEmitterBoxShape::create(const PARTICLE_BOX_SHAPE_DESC& desc)
+	SPtr<ParticleEmitterBoxShape> ParticleEmitterBoxShape::create(const PARTICLE_BOX_SHAPE_DESC& desc)
 	{
-		ParticleEmitterBoxShape* output = bs_new<ParticleEmitterBoxShape>(desc);
-		return bs_shared_ptr<ParticleEmitterShape>(output);
+		return bs_shared_ptr_new<ParticleEmitterBoxShape>(desc);
 	}
 
 	RTTITypeBase* ParticleEmitterBoxShape::getRTTIStatic()
@@ -605,9 +604,9 @@ namespace bs
 		velocity.setMax(Vector3::UNIT_Z);
 	}
 
-	SPtr<ParticleEmitterShape> ParticleEmitterLineShape::create(const PARTICLE_LINE_SHAPE_DESC& desc)
+	SPtr<ParticleEmitterLineShape> ParticleEmitterLineShape::create(const PARTICLE_LINE_SHAPE_DESC& desc)
 	{
-		return bs_shared_ptr<ParticleEmitterShape>(bs_new<ParticleEmitterLineShape>(desc));
+		return bs_shared_ptr_new<ParticleEmitterLineShape>(desc);
 	}
 
 	RTTITypeBase* ParticleEmitterLineShape::getRTTIStatic()
@@ -660,10 +659,9 @@ namespace bs
 		velocity.setMax(Vector3::UNIT_Z);
 	}
 
-	SPtr<ParticleEmitterShape> ParticleEmitterCircleShape::create(const PARTICLE_CIRCLE_SHAPE_DESC& desc)
+	SPtr<ParticleEmitterCircleShape> ParticleEmitterCircleShape::create(const PARTICLE_CIRCLE_SHAPE_DESC& desc)
 	{
-		ParticleEmitterCircleShape* output = bs_new<ParticleEmitterCircleShape>(desc);
-		return bs_shared_ptr<ParticleEmitterShape>(output);
+		return bs_shared_ptr_new<ParticleEmitterCircleShape>(desc);
 	}
 
 	RTTITypeBase* ParticleEmitterCircleShape::getRTTIStatic()
@@ -704,9 +702,9 @@ namespace bs
 		velocity.setMax(Vector3::UNIT_Z);
 	}
 
-	SPtr<ParticleEmitterShape> ParticleEmitterRectShape::create(const PARTICLE_RECT_SHAPE_DESC& desc)
+	SPtr<ParticleEmitterRectShape> ParticleEmitterRectShape::create(const PARTICLE_RECT_SHAPE_DESC& desc)
 	{
-		return bs_shared_ptr<ParticleEmitterShape>(bs_new<ParticleEmitterRectShape>(desc));
+		return bs_shared_ptr_new<ParticleEmitterRectShape>(desc);
 	}
 
 	RTTITypeBase* ParticleEmitterRectShape::getRTTIStatic()
@@ -1021,10 +1019,9 @@ namespace bs
 		velocity.setMax(Vector3::ONE);
 	}
 
-	SPtr<ParticleEmitterShape> ParticleEmitterStaticMeshShape::create(const PARTICLE_STATIC_MESH_SHAPE_DESC& desc)
+	SPtr<ParticleEmitterStaticMeshShape> ParticleEmitterStaticMeshShape::create(const PARTICLE_STATIC_MESH_SHAPE_DESC& desc)
 	{
-		ParticleEmitterStaticMeshShape* output = bs_new<ParticleEmitterStaticMeshShape>(desc);
-		return bs_shared_ptr<ParticleEmitterShape>(output);
+		return bs_shared_ptr_new<ParticleEmitterStaticMeshShape>(desc);
 	}
 
 	RTTITypeBase* ParticleEmitterStaticMeshShape::getRTTIStatic()
@@ -1181,10 +1178,9 @@ namespace bs
 		velocity.setMax(Vector3::ONE);
 	}
 
-	SPtr<ParticleEmitterShape> ParticleEmitterSkinnedMeshShape::create(const PARTICLE_SKINNED_MESH_SHAPE_DESC& desc)
+	SPtr<ParticleEmitterSkinnedMeshShape> ParticleEmitterSkinnedMeshShape::create(const PARTICLE_SKINNED_MESH_SHAPE_DESC& desc)
 	{
-		ParticleEmitterSkinnedMeshShape* output = bs_new<ParticleEmitterSkinnedMeshShape>(desc);
-		return bs_shared_ptr<ParticleEmitterShape>(output);
+		return bs_shared_ptr_new<ParticleEmitterSkinnedMeshShape>(desc);
 	}
 
 	RTTITypeBase* ParticleEmitterSkinnedMeshShape::getRTTIStatic()

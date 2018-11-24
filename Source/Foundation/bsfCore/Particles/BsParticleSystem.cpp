@@ -119,6 +119,15 @@ namespace bs
 	{
 		mId = ParticleManager::instance().registerParticleSystem(this);
 		mSeed = rand();
+
+		auto emitter = bs_shared_ptr_new<ParticleEmitter>();
+
+		PARTICLE_SPHERE_SHAPE_DESC desc;
+		desc.radius = 0.05f;
+
+		emitter->setShape(ParticleEmitterSphereShape::create(desc));
+
+		mEmitters = { emitter };
 	}
 
 	ParticleSystem::~ParticleSystem()

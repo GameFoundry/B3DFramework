@@ -90,9 +90,9 @@ namespace bs
 		 *
 		 * @param[in]	desc  	Description of the vector field to create.
 		 * @param[in]	values	Values to assign to the vector field. Number of entries must match 
-		 *						VECTOR_FIELD_DESC::countX * VECTOR_FIELD_DESC::countY * VECTOR_FIELD_DESC::countZ.
+		 *						countX * countY * countZ.
 		 */
-		BS_SCRIPT_EXPORT(ec:true)
+		BS_SCRIPT_EXPORT(ec:T)
 		static HVectorField create(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values);
 
 		/** @name Internal 

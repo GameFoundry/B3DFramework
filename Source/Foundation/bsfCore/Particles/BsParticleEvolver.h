@@ -106,7 +106,7 @@ namespace bs
 		}
 
 		/** Creates a new particle texture animation evolver. */
-		BS_SCRIPT_EXPORT(ec:true)
+		BS_SCRIPT_EXPORT(ec:T)
 		static SPtr<ParticleTextureAnimation> create(const PARTICLE_TEXTURE_ANIMATION_DESC& desc);
 	private:
 		/** @copydoc ParticleEvolver::evolve */
@@ -167,7 +167,7 @@ namespace bs
 		}
 
 		/** Creates a new particle orbit evolver. */
-		BS_SCRIPT_EXPORT(ec:true)
+		BS_SCRIPT_EXPORT(ec:T)
 		static SPtr<ParticleOrbit> create(const PARTICLE_ORBIT_DESC& desc);
 	private:
 		/** @copydoc ParticleEvolver::evolve */
@@ -219,7 +219,7 @@ namespace bs
 		}
 
 		/** Creates a new particle velocity evolver. */
-		BS_SCRIPT_EXPORT(ec:true)
+		BS_SCRIPT_EXPORT(ec:T)
 		static SPtr<ParticleVelocity> create(const PARTICLE_VELOCITY_DESC& desc);
 	private:
 		/** @copydoc ParticleEvolver::evolve */
@@ -271,7 +271,7 @@ namespace bs
 		}
 
 		/** Creates a new particle force evolver. */
-		BS_SCRIPT_EXPORT(ec:true)
+		BS_SCRIPT_EXPORT(ec:T)
 		static SPtr<ParticleForce> create(const PARTICLE_FORCE_DESC& desc);
 	private:
 		/** @copydoc ParticleEvolver::evolve */
@@ -320,7 +320,7 @@ namespace bs
 		}
 
 		/** Creates a new particle gravity evolver. */
-		BS_SCRIPT_EXPORT(ec:true)
+		BS_SCRIPT_EXPORT(ec:T)
 		static SPtr<ParticleGravity> create(const PARTICLE_GRAVITY_DESC& desc);
 	private:
 		/** @copydoc ParticleEvolver::evolve */
@@ -369,7 +369,7 @@ namespace bs
 		}
 
 		/** Creates a new particle color evolver. */
-		BS_SCRIPT_EXPORT(ec:true)
+		BS_SCRIPT_EXPORT(ec:T)
 		static SPtr<ParticleColor> create(const PARTICLE_COLOR_DESC& desc);
 	private:
 		/** @copydoc ParticleEvolver::evolve */
@@ -432,7 +432,7 @@ namespace bs
 		}
 
 		/** Creates a new particle size evolver. */
-		BS_SCRIPT_EXPORT(ec:true)
+		BS_SCRIPT_EXPORT(ec:T)
 		static SPtr<ParticleSize> create(const PARTICLE_SIZE_DESC& desc);
 	private:
 		/** @copydoc ParticleEvolver::evolve */
@@ -493,7 +493,7 @@ namespace bs
 		}
 
 		/** Creates a new particle rotation evolver. */
-		BS_SCRIPT_EXPORT(ec:true)
+		BS_SCRIPT_EXPORT(ec:T)
 		static SPtr<ParticleRotation> create(const PARTICLE_ROTATION_DESC& desc);
 	private:
 		/** @copydoc ParticleEvolver::evolve */
@@ -601,7 +601,7 @@ namespace bs
 		}
 
 		/** Creates a new particle collision evolver. */
-		BS_SCRIPT_EXPORT(ec:true)
+		BS_SCRIPT_EXPORT(ec:T)
 		static SPtr<ParticleCollisions> create(const PARTICLE_COLLISIONS_DESC& desc);
 	private:
 		/** @copydoc ParticleEvolver::evolve */

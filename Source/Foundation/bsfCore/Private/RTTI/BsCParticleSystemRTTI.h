@@ -14,7 +14,7 @@ namespace bs
 	 *  @{
 	 */
 
-	class BS_CORE_EXPORT CParticleSystemRTTI : public RTTIType<CParticleSystem, IReflectable, CParticleSystemRTTI>
+	class BS_CORE_EXPORT CParticleSystemRTTI : public RTTIType<CParticleSystem, Component, CParticleSystemRTTI>
 	{
 	private:
 		BS_BEGIN_RTTI_MEMBERS
