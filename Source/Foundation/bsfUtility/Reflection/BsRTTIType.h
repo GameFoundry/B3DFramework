@@ -714,5 +714,15 @@ namespace bs
 		return object->isDerivedFrom(T::getRTTIStatic());
 	}
 
+	/** Attempts to cast the object to the provided type, or returns null if cast is not valid. */
+	template<class T>
+	T* rtti_cast(IReflectable* object)
+	{
+		if(rtti_is_subclass<T>(object))
+			return (T*)object;
+
+		return nullptr;
+	}
+
 	/** @} */
 }
