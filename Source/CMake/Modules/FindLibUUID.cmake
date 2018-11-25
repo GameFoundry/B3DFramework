@@ -4,7 +4,12 @@
 #  LibUUID_FOUND               True if libuuid was found
 
 find_path(LibUUID_INCLUDE_DIR uuid/uuid.h)
-find_library(LibUUID_LIBRARY NAMES libuuid.a uuid)
+
+if(APPLE)
+	find_library(LibUUID_LIBRARY NAMES libuuid.a uuid)
+else()
+	find_library(LibUUID_LIBRARY NAMES uuid)
+endif()
 
 if(LibUUID_INCLUDE_DIR AND LibUUID_LIBRARY)
     set(LibUUID_FOUND TRUE)
