@@ -21,9 +21,13 @@ HShader shader = BuiltinResources::instance().getBuiltinShader(BuiltinShader::St
 Both of these shaders provide physically based shading and expect four different parameters (see below on how to set parameters):
  - **gAlbedoTex** - RGBA texture representing the color of the object's surface. If using the transparent shader, alpha channel determines the amount of transparency.
  - **gNormalTex** - Normal map (texture containing surface normals encoded into RGB channels)
- - **gRoughnessTex** - 1D texture that determines the roughness of the surface. Values closer to 1 mean a more rough (less reflective) surface, while values closer to 0 mean less rough (more reflective, mirror like) surface.
- - **gMetalnessTex** - 1D texture that determines if the part of the surface is a metal or a dieletric. This texture should only generally contain values 1 (metal) or 0 (dieletric). Metal surfaces are reflective reflective while dieletric ones are not.
-
+ - **gRoughnessTex** - Single-channel texture that determines the roughness of the surface. Values closer to 1 mean a more rough (less reflective) surface, while values closer to 0 mean less rough (more reflective, mirror like) surface.
+ - **gMetalnessTex** - Single-channel texture that determines if the part of the surface is a metal or a dieletric. This texture should only generally contain values 1 (metal) or 0 (dieletric). Metal surfaces are reflective reflective while dieletric ones are not.
+ - **gEmissiveMaskTex** - Single-channel texture that determines which parts of the surface emit light. Black values specify no light is emitted, while white values specify light at full brightness is emitted.
+ - **gEmissiveColor** - Color and intensity of the emitted light, for areas marked by **gEmissiveMaskTex**.
+ - **gUVOffset** - 2D vector value that allows you to change the starting offset at which textures are sampled. By default (0, 0).
+ - **gUVTile** - 2D vector that allows you to specify how many times should the texture repeat, used for tiling textures. By default (1, 1).
+ 
 At minimum you need to provide the albedo texture, while others can be left as default (or be assigned pure white, or pure black textures) if not required. 
  
 # Material creation {#simpleMaterial_b}

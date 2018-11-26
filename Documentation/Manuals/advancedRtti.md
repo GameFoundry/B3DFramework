@@ -230,12 +230,13 @@ bs_free(data);
 ~~~~~~~~~~~~~
 
 # Querying RTTI {#advancedRtti_c}
-Aside from using RTTI for serialization, you can also use it to manually query various information about objects. 
+Aside from using RTTI for serialization, you can also use it to manually query various information about objects, as well as create and cast object instances. 
 
 Global queries:
  - @ref bs::rtti_is_of_type "rtti_is_of_type<T>()" - Checks is a specific object of type *T*
  - @ref bs::rtti_is_subclass "rtti_is_subclass<T>()" - Checks is a specific object derived from type *T*
  - @ref bs::rtti_create "rtti_create()" - Creates a new object from its type ID
+ - @ref bs::rtti_cast "rtti_cast<T>()" - Casts an object to the specified type if the cast is valid, or returns null otherwise
  
 **IReflectable** queries:
  - @ref bs::IReflectable::getTypeName "IReflectable::getTypeName()" - Gets the name of the object's type
@@ -260,6 +261,7 @@ IReflectable* myObject = ...;
 rtti_is_of_type<Texture>(myObject);
 rtti_is_subclass<Texture>(myObject);
 rtti_create(TID_Texture);
+Texture* myTexture = rtti_cast<Texture>(myObject);
 
 myObject->getTypeName();
 myObject->getTypeId();
@@ -310,8 +312,7 @@ public:
 			&TextureRTTI::getPixelData, &TextureRTTI::setPixelData);
 	}
 
-	void onDeserializationEnded(IReflectable* obj, 
-		const UnorderedMap<String, UINT64>& params) override
+	void onDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 	{
 		Texture* texture = static_cast<Texture*>(obj);
 		

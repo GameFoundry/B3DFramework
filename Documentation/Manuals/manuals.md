@@ -68,6 +68,7 @@ User manuals									{#manuals}
   - [BSL syntax](@ref bsl)
   - [Importing shaders](@ref importingShaders)
   - [Surface & lighting shaders](@ref surfaceShaders)
+  - [Particle surface shaders](@ref particleSurfaceShaders)
 - **Utilities**
  - [Containers](@ref containers)
  - [Strings](@ref strings)

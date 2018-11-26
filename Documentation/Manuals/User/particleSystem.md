@@ -52,6 +52,8 @@ Multiple built-in shaders exist for the purpose of rendering particle systems:
  - @ref bs::BuiltinShader::ParticlesUnlit "BuiltinShader::ParticlesUnlit" - Renders particles without any lighting, and supports transparent particles. This is the most commonly used shader for rendering particles. Use the **gTexture** property to assign a texture to the material.
  - @ref bs::BuiltinShader::ParticlesLit "BuiltinShader::ParticlesLit" - Renders particles using the physically based shading model, while supporting transparent particles. Similar to the **BuiltinShader::Transparent** shader, supporting the same properties.
  - @ref bs::BuiltinShader::ParticlesLitOpaque "BuiltinShader::ParticlesLitOpaque" - Renders particles using the physically based shading model through the more feature-rich deferred rendering path, but without supporting particle transparency. Similar to the **BuiltinShader::Standard** shader, supporting the same properties.
+
+**BuiltinShader::ParticlesUnlit** and **BuiltinShader::ParticlesLit** also support an optional **SOFT** variation that blends the particles softly with any intersecting surfaces, making such intersections less noticeable (see below for an example).
  
 ~~~~~~~~~~~~~{.cpp}
 // Create a material to use for rendering the particles
@@ -61,6 +63,10 @@ HTexture texture = gBuiltinResources().getTexture(BuiltinTexture::White);
 HMaterial material = Material::create(particleShader);
 material->setTexture("gTexture", texture);
 
+// Use the soft variation
+particleMaterial->setVariation(
+	ShaderVariation({ ShaderVariation::Param("SOFT", true) }));
+
 // Set the material to be used by the particle system
 ParticleSystemSettings psSettings;
 psSettings.material = particleMaterial;
@@ -69,6 +75,8 @@ particleSystem->setSettings(psSettings);
 ~~~~~~~~~~~~~
 
 You may also create your own particle shaders, as we will show later.
+
+![Left - Normal (non-soft) shader, Right - soft shader](softParticles.gif)  
 
 # Emitter {#particleSystem_b}
 
