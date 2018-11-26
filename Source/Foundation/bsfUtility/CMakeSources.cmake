@@ -226,6 +226,7 @@ set(BS_UTILITY_INC_MATH
 	"bsfUtility/Math/BsLine2.h"
 	"bsfUtility/Math/BsSIMD.h"
 	"bsfUtility/Math/BsRandom.h"
+	"bsfUtility/Math/BsComplex.h"
 )
 
 set(BS_UTILITY_SRC_ERROR

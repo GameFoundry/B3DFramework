@@ -18,5 +18,6 @@ namespace bs
 		void testOctree();
 		void testSmallVector();
 		void testDynArray();
+		void testComplex();
 	};
 }
