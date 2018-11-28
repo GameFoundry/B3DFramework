@@ -91,7 +91,7 @@ script:
   
 after_success:
   - cd ..
-  - today=`date +%d.%m.%Y`
+  - today=`date +%Y.%m.%d`
   - |
     if [ -n "$TRAVIS_TAG" ]; then
       buildName=${TRAVIS_TAG}
