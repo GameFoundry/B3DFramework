@@ -21,6 +21,9 @@ Data/Raw/*
 !Data/Raw/.reqversion
 !Data/Raw/DataPackageContents.txt
 Documentation/Generated
+Documentation/Manuals/Images
+Documentation/.version
+Documentation/Timestamp.asset
 /Build
 *.aps
 *.opendb

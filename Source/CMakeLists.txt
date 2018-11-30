@@ -191,6 +191,19 @@ set(COMPILED_ASSETS_VERSION_FILE ${BSF_SOURCE_DIR}/../Data/.reqversion)
 file (STRINGS ${COMPILED_ASSETS_VERSION_FILE} COMPILED_ASSETS_VERSION)
 check_and_update_builtin_assets(bsfCompiled ${BSF_SOURCE_DIR}/../Data Data ${COMPILED_ASSETS_VERSION} NO)
 
+## Documentation images
+if(${UPLOAD_ASSETS})
+	check_for_changes(${BSF_SOURCE_DIR}/../Documentation/Manuals/Images *.* ${BSF_SOURCE_DIR}/../Documentation/Timestamp.asset IS_CHANGED)
+	if(${IS_CHANGED})
+		execute_process(COMMAND ${CMAKE_COMMAND} -E touch ${BSF_SOURCE_DIR}/../Documentation/Timestamp.asset)
+		update_data_file_package("bsfDocImagesData_Master" ${BSF_SOURCE_DIR}/../Documentation DataPackageContents.txt)
+	endif()
+endif()
+
+set(DOC_IMAGES_VERSION_FILE ${BSF_SOURCE_DIR}/../Documentation/.reqversion)
+file (STRINGS ${DOC_IMAGES_VERSION_FILE} DOC_IMAGES_VERSION)
+check_and_update_builtin_assets(bsfDocImages ${BSF_SOURCE_DIR}/../Documentation Documentation ${DOC_IMAGES_VERSION} NO)
+
 ## Install
 install(
 	DIRECTORY ../Data

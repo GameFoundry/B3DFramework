@@ -471,6 +471,25 @@ endfunction()
 ##################### Built-in asset import and versioning ############################
 #######################################################################################
 
+function(check_for_changes2 _FOLDER _FILTER _TIMESTAMP _IS_CHANGED)
+	file(GLOB_RECURSE ALL_FILES "${_FOLDER}/${_FILTER}")
+	foreach(CUR_FILE ${ALL_FILES})
+		file(TIMESTAMP ${CUR_FILE} FILE_TIMESTAMP %s)
+		if(${FILE_TIMESTAMP} GREATER ${_TIMESTAMP})
+			set(${_IS_CHANGED} ON PARENT_SCOPE)
+			return()
+		endif()
+	endforeach()
+	
+	set(${_IS_CHANGED} OFF PARENT_SCOPE)
+endfunction()
+
+function(check_for_changes _FOLDER _FILTER _TIMESTAMP_FILE IS_CHANGED)
+	file(TIMESTAMP ${_TIMESTAMP_FILE} _TIMESTAMP %s)
+	check_for_changes2(${_FOLDER} ${_FILTER} ${_TIMESTAMP} IS_CHANGED_FOLDER)
+	set(${IS_CHANGED} ${IS_CHANGED_FOLDER} PARENT_SCOPE)
+endfunction()
+
 function(update_builtin_assets ASSET_PREFIX ASSET_FOLDER FOLDER_NAME ASSET_VERSION CLEAR_MANIFEST)
 	# Clean and create a temporary folder
 	execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${PROJECT_SOURCE_DIR}/Temp)	
