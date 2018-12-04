@@ -1493,8 +1493,8 @@ namespace bs { namespace ct
 		VkRenderPassBeginInfo renderPassBeginInfo;
 		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassBeginInfo.pNext = nullptr;
-		renderPassBeginInfo.framebuffer = mFramebuffer->getFramebuffer(RT_NONE, RT_NONE, mClearMask);
-		renderPassBeginInfo.renderPass = mFramebuffer->getRenderPass(RT_NONE, RT_NONE, mClearMask);
+		renderPassBeginInfo.framebuffer = mFramebuffer->getFramebuffer(mRenderTargetLoadMask, RT_NONE, mClearMask);
+		renderPassBeginInfo.renderPass = mFramebuffer->getRenderPass(mRenderTargetLoadMask, RT_NONE, mClearMask);
 		renderPassBeginInfo.renderArea.offset.x = mClearArea.x;
 		renderPassBeginInfo.renderArea.offset.y = mClearArea.y;
 		renderPassBeginInfo.renderArea.extent.width = mClearArea.width;
