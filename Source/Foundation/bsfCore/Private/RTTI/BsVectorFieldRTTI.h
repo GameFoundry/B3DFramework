@@ -13,7 +13,7 @@ namespace bs
 	 *  @{
 	 */
 
-	class BS_CORE_EXPORT VectorFieldRTTI : public RTTIType<VectorField, IReflectable, VectorFieldRTTI>
+	class BS_CORE_EXPORT VectorFieldRTTI : public RTTIType<VectorField, Resource, VectorFieldRTTI>
 	{
 	private:
 		BS_BEGIN_RTTI_MEMBERS
