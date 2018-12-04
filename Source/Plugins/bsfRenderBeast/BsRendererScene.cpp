@@ -908,8 +908,8 @@ namespace bs {	namespace ct
 			rendererParticles.gpuParticleSystem = nullptr;
 		}
 
-		const RendererParticles& lastSystem = mInfo.particleSystems.back();
-		const UINT32 lastRendererId = lastSystem.particleSystem->getRendererId();
+		ParticleSystem* lastSystem = mInfo.particleSystems.back().particleSystem;
+		const UINT32 lastRendererId = lastSystem->getRendererId();
 
 		if (rendererId != lastRendererId)
 		{
@@ -917,7 +917,7 @@ namespace bs {	namespace ct
 			std::swap(mInfo.particleSystems[rendererId], mInfo.particleSystems[lastRendererId]);
 			std::swap(mInfo.particleSystemCullInfos[rendererId], mInfo.particleSystemCullInfos[lastRendererId]);
 
-			particleSystem->setRendererId(rendererId);
+			lastSystem->setRendererId(rendererId);
 		}
 
 		// Last element is the one we want to erase
