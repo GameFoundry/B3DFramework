@@ -102,6 +102,7 @@ set(BS_UTILITY_INC_UTILITY
 	"bsfUtility/Utility/BsLookupTable.h"
 	"bsfUtility/Utility/BsSmallVector.h"
 	"bsfUtility/Utility/BsDynArray.h"
+	"bsfUtility/Utility/BsMinHeap.h"
 )
 
 set(BS_UTILITY_SRC_ALLOCATORS

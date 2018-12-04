@@ -19,5 +19,6 @@ namespace bs
 		void testSmallVector();
 		void testDynArray();
 		void testComplex();
+		void testMinHeap();
 	};
 }

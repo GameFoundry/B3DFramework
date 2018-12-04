@@ -6,6 +6,7 @@
 #include "Utility/BsBitfield.h"
 #include "Utility/BsDynArray.h"
 #include "Math/BsComplex.h"
+#include "Utility/BsMinHeap.h"
 
 namespace bs
 {
@@ -58,6 +59,7 @@ namespace bs
 		BS_ADD_TEST(UtilityTestSuite::testSmallVector)
 		BS_ADD_TEST(UtilityTestSuite::testDynArray)
 		BS_ADD_TEST(UtilityTestSuite::testComplex)
+		BS_ADD_TEST(UtilityTestSuite::testMinHeap)
 	}
 
 	void UtilityTestSuite::testBitfield()
@@ -505,5 +507,46 @@ namespace bs
 		BS_TEST_ASSERT(c7.real() == 3.22260213f);
 		BS_TEST_ASSERT(c7.imag() == 0.620616496f);
 		c7 = 0;
+	}
+	
+	void UtilityTestSuite::testMinHeap() 
+	{
+		struct SomeElem 
+		{
+			int a;
+			int b;
+		};
+
+		MinHeap<SomeElem, int> m;
+		m.resize(8);
+		BS_TEST_ASSERT(m.valid() == true);
+
+		SomeElem elements;
+		elements.a = 4;
+		elements.b = 5;
+
+		m.insert(elements, 10);
+		BS_TEST_ASSERT(m[0].key.a == 4);
+		BS_TEST_ASSERT(m[0].key.b == 5);
+		BS_TEST_ASSERT(m[0].value == 10);
+		BS_TEST_ASSERT(m.size() == 1);
+
+		int v = 11;
+		m.insert(elements, v);
+		BS_TEST_ASSERT(m[1].key.a == 4);
+		BS_TEST_ASSERT(m[1].key.b == 5);
+		BS_TEST_ASSERT(m[1].value == 11);
+		BS_TEST_ASSERT(m.size() == 2);
+
+		SomeElem minKey;
+		int minValue;
+
+		m.minimum(minKey, minValue);
+		BS_TEST_ASSERT(minKey.a == 4);
+		BS_TEST_ASSERT(minKey.b == 5);
+		BS_TEST_ASSERT(minValue == 10);
+
+		m.erase(elements, v);
+		BS_TEST_ASSERT(m.size() == 1);
 	}
 }
