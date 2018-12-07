@@ -24,10 +24,16 @@ if(UNIX AND NOT APPLE)
 endif()
 
 # Global compile & linker flags
-## Compiler-agnostic settings
 ### Target at least C++14
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+
+## Remove /EHsc from CMAKE_CXX_FLAGS for MSVC to disable exceptions
+if (MSVC)
+	if(CMAKE_CXX_FLAGS MATCHES "/EHsc")
+		string(REPLACE "/EHsc" "/EHs-c-" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+	endif()
+endif()
 
 set(CMAKE_INSTALL_RPATH "\$ORIGIN")
 
