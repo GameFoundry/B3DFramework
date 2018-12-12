@@ -180,7 +180,7 @@ namespace bs { namespace ct
 		}
 
 		if (src == 0)
-			src = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			src = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
 
 		if (dst == 0)
 			dst = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
@@ -385,11 +385,7 @@ namespace bs { namespace ct
 			ImageSubresourceInfo& subresourceInfo = mSubresourceInfoStorage[entry];
 			subresourceInfo.isShaderInput = false;
 			subresourceInfo.isReadOnly = true;
-			subresourceInfo.needsBarrier = false;
 		}
-
-		for (auto& entry : mBuffers)
-			entry.second.needsBarrier = false;
 
 		mPassTouchedSubresourceInfos.clear();
 
@@ -1443,11 +1439,15 @@ namespace bs { namespace ct
 		VkPipelineStageFlags dstStage = 0;
 		getPipelineStageFlags(mLayoutTransitionBarriersTemp, srcStage, dstStage);
 
-		vkCmdPipelineBarrier(mCmdBuffer,
-							 srcStage, dstStage,
-							 0, 0, nullptr,
-							 0, nullptr,
-							 (UINT32)mLayoutTransitionBarriersTemp.size(), mLayoutTransitionBarriersTemp.data());
+		if(mLayoutTransitionBarriersTemp.size() > 0)
+		{
+			vkCmdPipelineBarrier(
+				mCmdBuffer,
+				srcStage, dstStage,
+				0, 0, nullptr,
+				0, nullptr,
+				(UINT32) mLayoutTransitionBarriersTemp.size(), mLayoutTransitionBarriersTemp.data());
+		}
 
 		mQueuedLayoutTransitions.clear();
 		mLayoutTransitionBarriersTemp.clear();
@@ -1639,11 +1639,7 @@ namespace bs { namespace ct
 			ImageSubresourceInfo& subresourceInfo = mSubresourceInfoStorage[entry];
 			subresourceInfo.isShaderInput = false;
 			subresourceInfo.isReadOnly = true;
-			subresourceInfo.needsBarrier = false;
 		}
-
-		for (auto& entry : mBuffers)
-			entry.second.needsBarrier = false;
 
 		mPassTouchedSubresourceInfos.clear();
 	}
