@@ -37,6 +37,7 @@ Huge thanks to all the patrons, contributors and donators!
 - Nekith [Founder]
 - Summer Softleigh [Founder]
 - Vladimir [Founder]
+- Timothy Green
 
 # One-time donators
 - Žan Strahija [Founder]
