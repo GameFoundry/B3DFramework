@@ -13,11 +13,6 @@ namespace bs { namespace ct
 		, mLayoutInfos()
 	{ }
 
-	VulkanGpuPipelineParamInfo::~VulkanGpuPipelineParamInfo()
-	{
-
-	}
-
 	void VulkanGpuPipelineParamInfo::initialize()
 	{
 		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::instance());

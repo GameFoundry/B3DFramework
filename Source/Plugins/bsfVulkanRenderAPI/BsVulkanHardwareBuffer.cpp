@@ -89,7 +89,7 @@ namespace bs { namespace ct
 		vkCmdUpdateBuffer(cb->getHandle(), mBuffer, offset, length, (uint32_t*)data);
 	}
 
-	void VulkanBuffer::notifyDone(UINT32 globalQueueIdx, VulkanUseFlags useFlags)
+	void VulkanBuffer::notifyDone(UINT32 globalQueueIdx, VulkanAccessFlags useFlags)
 	{
 		{
 			Lock lock(mMutex);
@@ -325,7 +325,7 @@ namespace bs { namespace ct
 		if(mDirectlyMappable)
 		{
 			// Check is the GPU currently reading or writing from the buffer
-			UINT32 useMask = buffer->getUseInfo(VulkanUseFlag::Read | VulkanUseFlag::Write);
+			UINT32 useMask = buffer->getUseInfo(VulkanAccessFlag::Read | VulkanAccessFlag::Write);
 
 			// Note: Even if GPU isn't currently using the buffer, but the buffer supports GPU writes, we consider it as
 			// being used because the write could have completed yet still not visible, so we need to issue a pipeline
@@ -386,9 +386,9 @@ namespace bs { namespace ct
 				// Ensure flush() will wait for all queues currently using to the buffer (if any) to finish
 				// If only reading, wait for all writes to complete, otherwise wait on both writes and reads
 				if (options == GBL_READ_ONLY)
-					useMask = buffer->getUseInfo(VulkanUseFlag::Write);
+					useMask = buffer->getUseInfo(VulkanAccessFlag::Write);
 				else
-					useMask = buffer->getUseInfo(VulkanUseFlag::Read | VulkanUseFlag::Write);
+					useMask = buffer->getUseInfo(VulkanAccessFlag::Read | VulkanAccessFlag::Write);
 
 				transferCB->appendMask(useMask);
 
@@ -462,7 +462,7 @@ namespace bs { namespace ct
 				
 			// Similar to above, if buffer supports GPU writes or is currently being written to, we need to wait on any
 			// potential writes to complete
-			UINT32 writeUseMask = buffer->getUseInfo(VulkanUseFlag::Write);
+			UINT32 writeUseMask = buffer->getUseInfo(VulkanAccessFlag::Write);
 			if(mSupportsGPUWrites || writeUseMask != 0)
 			{
 				// Ensure flush() will wait for all queues currently writing to the buffer (if any) to finish
@@ -523,7 +523,7 @@ namespace bs { namespace ct
 
 				// If the buffer is used in any way on the GPU, we need to wait for that use to finish before
 				// we issue our copy
-				UINT32 useMask = buffer->getUseInfo(VulkanUseFlag::Read | VulkanUseFlag::Write);
+				UINT32 useMask = buffer->getUseInfo(VulkanAccessFlag::Read | VulkanAccessFlag::Write);
 				bool isNormalWrite = false;
 				if(useMask != 0) // Buffer is currently used on the GPU
 				{
@@ -570,7 +570,7 @@ namespace bs { namespace ct
 						{
 							buffer->copy(transferCB->getCB(), newBuffer, 0, 0, mSize);
 
-							transferCB->getCB()->registerResource(buffer, VK_ACCESS_TRANSFER_READ_BIT, VulkanUseFlag::Read);
+							transferCB->getCB()->registerBuffer(buffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
 						}
 
 						buffer->destroy();
@@ -583,14 +583,14 @@ namespace bs { namespace ct
 				if (mStagingBuffer != nullptr)
 				{
 					mStagingBuffer->copy(transferCB->getCB(), buffer, 0, mMappedOffset, mMappedSize);
-					transferCB->getCB()->registerResource(mStagingBuffer, VK_ACCESS_TRANSFER_READ_BIT, VulkanUseFlag::Read);
+					transferCB->getCB()->registerBuffer(mStagingBuffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
 				}
 				else // Staging memory
 				{
 					buffer->update(transferCB->getCB(), mStagingMemory, mMappedOffset, mMappedSize);
 				}
 
-				transferCB->getCB()->registerResource(buffer, VK_ACCESS_TRANSFER_WRITE_BIT, VulkanUseFlag::Write);
+				transferCB->getCB()->registerBuffer(buffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Write);
 
 				// We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead
 				// done automatically before next "normal" command buffer submission.
@@ -654,8 +654,8 @@ namespace bs { namespace ct
 		src->copy(vkCB, dst, srcOffset, dstOffset, length);
 
 		// Notify the command buffer that these resources are being used on it
-		vkCB->registerResource(src, VK_ACCESS_TRANSFER_READ_BIT, VulkanUseFlag::Read);
-		vkCB->registerResource(dst, VK_ACCESS_TRANSFER_WRITE_BIT, VulkanUseFlag::Write);
+		vkCB->registerBuffer(src, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
+		vkCB->registerBuffer(dst, BufferUseFlagBits::Transfer, VulkanAccessFlag::Write);
 	}
 
 	void VulkanHardwareBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)

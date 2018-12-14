@@ -17,7 +17,7 @@ namespace bs { namespace ct
 	{
 	public:
 		VulkanGpuPipelineParamInfo(const GPU_PIPELINE_PARAMS_DESC& desc, GpuDeviceFlags deviceMask);
-		~VulkanGpuPipelineParamInfo();
+		~VulkanGpuPipelineParamInfo() = default;
 
 		/** Returns the number of bindings present at the layout at the specified index. */
 		UINT32 getNumBindings(UINT32 layoutIdx) const { return mLayoutInfos[layoutIdx].numBindings; }

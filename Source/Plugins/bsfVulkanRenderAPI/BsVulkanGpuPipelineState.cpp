@@ -364,7 +364,7 @@ namespace bs { namespace ct
 				VulkanShaderModule* module = entry->getShaderModule(deviceIdx);
 
 				if(module != nullptr)
-					cmdBuffer->registerResource(module, VulkanUseFlag::Read);
+					cmdBuffer->registerResource(module, VulkanAccessFlag::Read);
 			}
 		}
 	}
@@ -604,7 +604,7 @@ namespace bs { namespace ct
 			VulkanShaderModule* module = program->getShaderModule(deviceIdx);
 
 			if (module != nullptr)
-				cmdBuffer->registerResource(module, VulkanUseFlag::Read);
+				cmdBuffer->registerResource(module, VulkanAccessFlag::Read);
 		}
 	}
 }}

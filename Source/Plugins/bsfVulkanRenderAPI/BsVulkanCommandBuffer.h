@@ -77,16 +77,32 @@ namespace bs { namespace ct
 		Compute = 1 << 1
 	};
 
-	/** Specifies for what purpose is a resource being bound to a command buffer. */
-	enum class ResourceUsage
-	{
-		ShaderBind,
-		Framebuffer,
-		Transfer
-	};
-
 	typedef Flags<DescriptorSetBindFlag> DescriptorSetBindFlags;
 	BS_FLAGS_OPERATORS(DescriptorSetBindFlag)
+
+	/** Bits that represent different ways an image subresource can be used. */
+	enum class ImageUseFlagBits
+	{
+		Shader = 1 << 0,
+		Framebuffer = 1 << 1,
+		Transfer = 1 << 2
+	};
+
+	typedef Flags<ImageUseFlagBits> ImageUseFlags;
+	BS_FLAGS_OPERATORS(ImageUseFlagBits)
+
+	/** Bits that represent different ways a buffer can be used. */
+	enum class BufferUseFlagBits
+	{
+		Generic = 1 << 0,
+		Index = 1 << 1,
+		Vertex = 1 << 2,
+		Parameter = 1 << 3,
+		Transfer = 1 << 4
+	};
+
+	typedef Flags<BufferUseFlagBits> BufferUseFlags;
+	BS_FLAGS_OPERATORS(BufferUseFlagBits)
 
 	/** 
 	 * Represents a direct wrapper over an internal Vulkan command buffer. This is unlike VulkanCommandBuffer which is a
@@ -206,38 +222,36 @@ namespace bs { namespace ct
 		 * device when the command buffer is submitted. If a resource is an image or a buffer use the more specific
 		 * registerResource() overload.
 		 */
-		void registerResource(VulkanResource* res, VulkanUseFlags flags);
+		void registerResource(VulkanResource* res, VulkanAccessFlags flags);
 
 		/** 
-		 * Lets the command buffer know that the provided image resource has been queued on it, and will be used by the
-		 * device when the command buffer is submitted. Executes a layout transition to @p newLayout (if needed), and
-		 * updates the externally visible image layout field to @p finalLayout (once submitted).
-		 * 
-		 * @param[in]	res						Image to register with the command buffer.
-		 * @param[in]	range					Range of sub-resources to register.
-		 * @param[in]	newLayout				Layout the image needs to be transitioned in before use. Set to undefined
-		 *										layout if no transition is required.
-		 * @param[in]	finalLayout				Determines what value the externally visible image layout will be set after
-		 *										submit() is called. Normally this will be same as @p newLayout, but can be
-		 *										different if some form of automatic layout transitions are happening.
-		 * @param[in]	flags					Flags that determine how will be command buffer be using the buffer.
-		 * @param[in]	usage					Determines for what purpose is the resource being registered for.
+		 * Lets the command buffer know that the provided image will be used for shader reads or writes in a subsequent draw
+		 * or dispatch call. Transfers the image to the provided layout and issues any necessary execution and memory
+		 * barriers.
 		 */
-		void registerResource(VulkanImage* res, const VkImageSubresourceRange& range, VkImageLayout newLayout, 
-							  VkImageLayout finalLayout, VulkanUseFlags flags, ResourceUsage usage);
+		void registerImageShader(VulkanImage* image, const VkImageSubresourceRange& range, VkImageLayout layout, 
+			VulkanAccessFlags access, VkPipelineStageFlags stages); 
 
 		/** 
-		 * Lets the command buffer know that the provided image resource has been queued on it, and will be used by the
-		 * device when the command buffer is submitted. Assumes the image is in its optimal layout.
+		 * Lets the command buffer know that the provided image will be used as a framebuffer attachment in a subsequent 
+		 * draw call. Transfers the image to the provided layout and issues any necessary execution and memory barriers.
 		 */
-		void registerResource(VulkanImage* res, const VkImageSubresourceRange& range, VulkanUseFlags flags, 
-			ResourceUsage usage);
+		void registerImageFramebuffer(VulkanImage* image, const VkImageSubresourceRange& range, VkImageLayout layout, 
+			VkImageLayout finalLayout, VulkanAccessFlags access, VkPipelineStageFlags stages); 
 
 		/** 
-		 * Lets the command buffer know that the provided image resource has been queued on it, and will be used by the
-		 * device when the command buffer is submitted. 
+		 * Lets the command buffer know that the provided image will be used for a transfer operation. Transfers the image
+		 * to the provided layout and issues any necessary execution and memory barriers.
 		 */
-		void registerResource(VulkanBuffer* res, VkAccessFlags accessFlags, VulkanUseFlags flags);
+		void registerImageTransfer(VulkanImage* image, const VkImageSubresourceRange& range, VkImageLayout layout, 
+			VulkanAccessFlags access);
+		/** 
+		 * Lets the command buffer know that the provided image resource has been queued on it, and will be used by the
+		 * device when the command buffer is submitted. @p stages can be left empty for all uses except for generic and
+		 * parameter buffer types.
+		 */
+		void registerBuffer(VulkanBuffer* res, BufferUseFlagBits useFlags, VulkanAccessFlags access, 
+			VkPipelineStageFlags stages = 0);
 
 		/** 
 		 * Lets the command buffer know that the provided framebuffer resource has been queued on it, and will be used by
@@ -335,14 +349,6 @@ namespace bs { namespace ct
 						   VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage);
 
 		/** 
-		 * Issues a pipeline barrier on the provided image. See vkCmdPipelineBarrier in Vulkan spec. for usage
-		 * information.
-		 */
-		void memoryBarrier(VkImage image, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags,
-						   VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage, VkImageLayout layout, 
-						   const VkImageSubresourceRange& range);
-
-		/** 
 		 * Issues a pipeline barrier on the provided image, changing its layout. See vkCmdPipelineBarrier in Vulkan spec. 
 		 * for usage information.
 		 */
@@ -372,20 +378,33 @@ namespace bs { namespace ct
 		struct ResourceUseHandle
 		{
 			bool used;
-			VulkanUseFlags flags;
+			VulkanAccessFlags flags;
+		};
+
+		/** Describes where and how is a resource being accessed and by which stages. */
+		struct ResourcePipelineUse
+		{
+			/** Specifies how will the subresource be accessed during the current render pass or dispatch call. */ 
+			VulkanAccessFlags access;
+
+			/** Stages the image is being used in during the current render pass or dispatch call. */
+			VkPipelineStageFlags stages = 0;
 		};
 
 		/** Contains information about a single Vulkan buffer resource bound/used on this command buffer. */
 		struct BufferInfo
 		{
-			VkAccessFlags accessFlags;
 			ResourceUseHandle useHandle;
 
+			BufferUseFlags useFlags;
+
 			/** 
-			 * True if the buffer was at some point written to by the shader during the current render pass, and barrier
-			 * wasn't issued yet. 
+			 * Use flags when buffer is bound for any kind of operation that will require an execution or memory 
+			 * barrier due to a write hazard. Currently used for issuing execution/memory barriers after shader writes
+			 * (not counting transfer operations which handle the barriers explicitly). Reset after a memory barrier is 
+			 * issued.
 			 */
-			bool needsBarrier;
+			ResourcePipelineUse writeHazardUse;
 		};
 
 		/** Contains information about a single Vulkan image resource bound/used on this command buffer. */
@@ -402,13 +421,52 @@ namespace bs { namespace ct
 		{
 			VkImageSubresourceRange range;
 
+			// Storing stage & access flags separately per use category so they can be cleared independantly when that use
+			// ends (e.g. image unbound as FB attachment, or memory barrier executed)
+
+			/** Use flags when subresource is bound for shader reads or writes. Reset after resource is unbound. */
+			ResourcePipelineUse shaderUse;
+
+			/** Use flags when subresource is bound as a framebuffer attachment. Reset after resource is unbound. */
+			ResourcePipelineUse fbUse;
+
+			/** Use flags when subresource is bound for a transfer operation. Currently unused. */
+			ResourcePipelineUse transferUse;
+
+			/** 
+			 * Use flags when subresource is bound for any kind of operation that will require an execution or memory 
+			 * barrier due to a write hazard. Currently used for issuing execution/memory barriers after shader writes
+			 * (not counting render pass writes, which handles barriers through subpass dependencies, or transfer operations
+			 * which handle the barriers explicitly). Reset after a memory barrier is issued.
+			 */
+			ResourcePipelineUse writeHazardUse;
+
+			/** 
+			 * Specifies how will the subresource be used during the current render pass or dispatch call. Reset 
+			 * after use. 
+			 */
+			ImageUseFlags useFlags;
+
+			/** Determines is the initial use of this subresource read-only. Used for better determining access flags. */
+			bool initialReadOnly = false;
+
 			// Only relevant for layout transitions
 			/** 
 			 * Layout transition performed during the submit() call. Doesn't require ending the render pass since it
 			 * will be delayed until submit().
 			 */
 			VkImageLayout initialLayout;
+
+			/**
+			 * Layout the image is currently in. This will be the initial layout if no other transition was performed, or
+			 * layout resulting from the last performed transition.
+			 */
 			VkImageLayout currentLayout;
+
+			/**
+			 * Stores the layout that the image needs to be before being used in the current render pass or dispatch call.
+			 * Equal to currentLayout if no transition is needed. Updated after every render pass or dispatch call.
+			 */
 			VkImageLayout requiredLayout;
 
 			/** 
@@ -416,26 +474,6 @@ namespace bs { namespace ct
 			 * does on its attachments. Only relevant for FB attachments. Ignored if render pass doesn't execute.
 			 */
 			VkImageLayout renderPassLayout;
-
-			/** 
-			 * Final layout the image will have after a queue submission. This will be equivalent to renderPassLayout
-			 * if the image is a FB attachment and the pass was executed. Otherwise it will be equal to the explicitly
-			 * set layout when image was bound.
-			 */
-			VkImageLayout finalLayout;
-
-			bool isFBAttachment : 1;
-			bool isShaderInput : 1;
-			bool hasTransitioned : 1;
-			bool hasExternalTransition : 1;
-			bool isReadOnly : 1;
-			bool isInitialReadOnly : 1;
-
-			/** 
-			 * True if the buffer was at some point written to by the shader during the current render pass, and barrier
-			 * wasn't issued yet. 
-			 */
-			bool needsBarrier : 1;
 		};
 
 		/** Checks if all the prerequisites for rendering have been made (e.g. render target and pipeline state are set.) */
@@ -467,6 +505,9 @@ namespace bs { namespace ct
 		/** Executes any queued layout transitions by issuing a pipeline barrier. */
 		void executeLayoutTransitions();
 
+		/** Executes any queued memory barriers. */
+		void executeWriteHazardBarrier();
+
 		/** 
 		 * Updates final layouts for images used by the current framebuffer, reflecting layout changes performed by render
 		 * pass' automatic layout transitions. 
@@ -474,11 +515,42 @@ namespace bs { namespace ct
 		void updateFinalLayouts();
 
 		/** 
-		 * Updates an existing sub-resource info range with new layout, use flags and framebuffer flag. Returns true if
-		 * the bound sub-resource is a read-only framebuffer attachment.
+		 * Lets the command buffer know that the provided image subresource will be used in subsequent draw or dispatch 
+		 * calls. Transitions the image to @p layout (if needed).
+		 *
+		 * @param[in]	image					Image to register with the command buffer.
+		 * @param[in]	range					Sub-resource range of the image that affected.
+		 * @param[in]	use						Intended use for the resource.
+		 * @param[in]	layout					Layout the image needs to be transitioned in before use. Set to undefined
+		 *										layout if no transition is required.
+		 * @param[in]	finalLayout				Final layout transitioned into by a render pass. Only relevant if image
+		 *										is being used as a framebuffer attachment.
+		 * @param[in]	access					Flags that determine will the resource be written or read from (or both).
+		 * @param[in]	stages					Set of stages that read/write from/to the resource.
 		 */
-		bool updateSubresourceInfo(VulkanImage* image, UINT32 imageInfoIdx, ImageSubresourceInfo& subresourceInfo, 
-			VkImageLayout newLayout, VkImageLayout finalLayout, VulkanUseFlags flags, ResourceUsage usage);
+		void registerResource(VulkanImage* image, const VkImageSubresourceRange& range, ImageUseFlagBits use,
+			VkImageLayout layout, VkImageLayout finalLayout, VulkanAccessFlags access, VkPipelineStageFlags stages);
+
+		/** 
+		 * Updates an existing image sub-resource with new layout, access and stage flags for the purposes of shader
+		 * read or write. Sets up any necessary execution and memory barriers, as well as layout transitions.
+		 */
+		void updateShaderSubresource(VulkanImage* image, UINT32 imageInfoIdx, ImageSubresourceInfo& subresourceInfo, 
+			VkImageLayout layout, VulkanAccessFlags access, VkPipelineStageFlags stages);
+
+		/** 
+		 * Updates an existing image sub-resource with new layout, access and stage flags for the purposes of being bound
+		 * as a framebuffer attachment. Sets up any necessary execution and memory barriers, as well as layout transitions.
+		 */
+		void updateFramebufferSubresource(VulkanImage* image, UINT32 imageInfoIdx, ImageSubresourceInfo& subresourceInfo, 
+			VkImageLayout layout, VkImageLayout finalLayout, VulkanAccessFlags access, VkPipelineStageFlags stages);
+
+		/** 
+		 * Updates an existing image sub-resource with new access and stage flags for the purposes of being used for a
+		 * transfer operation. Sets up any necessary execution and memory barriers, as well as layout transitions.
+		 */
+		void updateTransferSubresource(VulkanImage* image, UINT32 imageInfoIdx, ImageSubresourceInfo& subresourceInfo, 
+			VkImageLayout layout, VulkanAccessFlags access, VkPipelineStageFlags stages);
 
 		/** Finds a subresource info structure containing the specified face and mip level of the provided image. */
 		ImageSubresourceInfo& findSubresourceInfo(VulkanImage* image, UINT32 face, UINT32 mip);
@@ -513,8 +585,15 @@ namespace bs { namespace ct
 		UnorderedSet<VulkanTimerQuery*> mTimerQueries;
 		Vector<ImageInfo> mImageInfos;
 		Vector<ImageSubresourceInfo> mSubresourceInfoStorage;
-		Set<UINT32> mPassTouchedSubresourceInfos; // All subresource infos touched by the current render pass
+		Set<UINT32> mShaderBoundSubresourceInfos;
 		UINT32 mGlobalQueueIdx;
+
+		bool mNeedsWARMemoryBarrier : 1;
+		bool mNeedsRAWMemoryBarrier : 1;
+		VkPipelineStageFlags mMemoryBarrierSrcStages = 0;
+		VkPipelineStageFlags mMemoryBarrierDstStages = 0;
+		VkAccessFlags mMemoryBarrierSrcAccess = 0;
+		VkAccessFlags mMemoryBarrierDstAccess = 0;
 
 		SPtr<VulkanGraphicsPipelineState> mGraphicsPipeline;
 		SPtr<VulkanComputePipelineState> mComputePipeline;

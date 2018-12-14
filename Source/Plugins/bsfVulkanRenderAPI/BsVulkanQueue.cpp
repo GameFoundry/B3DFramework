@@ -227,7 +227,7 @@ namespace bs { namespace ct
 				VulkanSemaphore* semaphore = mActiveSemaphores.front();
 				mActiveSemaphores.pop();
 
-				semaphore->notifyDone(0, VulkanUseFlag::Read | VulkanUseFlag::Write);
+				semaphore->notifyDone(0, VulkanAccessFlag::Read | VulkanAccessFlag::Write);
 			}
 
 			for(UINT32 i = 0; i < iter->numCommandBuffers; i++)
@@ -250,7 +250,7 @@ namespace bs { namespace ct
 			VulkanSemaphore* semaphore = inSemaphores[i];
 
 			semaphore->notifyBound();
-			semaphore->notifyUsed(0, 0, VulkanUseFlag::Read | VulkanUseFlag::Write);
+			semaphore->notifyUsed(0, 0, VulkanAccessFlag::Read | VulkanAccessFlag::Write);
 
 			outSemaphores[semaphoreIdx++] = semaphore->getHandle();
 			mActiveSemaphores.push(semaphore);
@@ -262,7 +262,7 @@ namespace bs { namespace ct
 			VulkanSemaphore* prevSemaphore = mLastCommandBuffer->getIntraQueueSemaphore();
 
 			prevSemaphore->notifyBound();
-			prevSemaphore->notifyUsed(0, 0, VulkanUseFlag::Read | VulkanUseFlag::Write);
+			prevSemaphore->notifyUsed(0, 0, VulkanAccessFlag::Read | VulkanAccessFlag::Write);
 
 			outSemaphores[semaphoreIdx++] = prevSemaphore->getHandle();
 			mActiveSemaphores.push(prevSemaphore);

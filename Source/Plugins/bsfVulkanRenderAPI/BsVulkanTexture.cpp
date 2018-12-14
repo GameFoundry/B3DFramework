@@ -827,8 +827,8 @@ namespace bs { namespace ct
 		cb->setLayout(dstImage->getHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, dstAccessMask,
 							  transferDstLayout, dstFinalLayout, range);
 
-		cb->getCB()->registerResource(srcImage, range, VulkanUseFlag::Read, ResourceUsage::Transfer);
-		cb->getCB()->registerResource(dstImage, range, VulkanUseFlag::Write, ResourceUsage::Transfer);
+		cb->getCB()->registerImageTransfer(srcImage, range, srcFinalLayout, VulkanAccessFlag::Read);
+		cb->getCB()->registerImageTransfer(dstImage, range, dstFinalLayout, VulkanAccessFlag::Write);
 
 		bs_stack_free(imageRegions);
 	}
@@ -974,8 +974,8 @@ namespace bs { namespace ct
 		}
 
 		// Notify the command buffer that these resources are being used on it
-		vkCB->registerResource(srcImage, srcRange, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VulkanUseFlag::Read, ResourceUsage::Transfer);
-		vkCB->registerResource(dstImage, dstRange, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VulkanUseFlag::Write, ResourceUsage::Transfer);
+		vkCB->registerImageTransfer(srcImage, srcRange, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VulkanAccessFlag::Read);
+		vkCB->registerImageTransfer(dstImage, dstRange, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VulkanAccessFlag::Write);
 	}
 
 	PixelData VulkanTexture::lockImpl(GpuLockOptions options, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx,
@@ -1041,7 +1041,7 @@ namespace bs { namespace ct
 			assert(!mSupportsGPUWrites);
 
 			// Check is the GPU currently reading from the image
-			UINT32 useMask = subresource->getUseInfo(VulkanUseFlag::Read);
+			UINT32 useMask = subresource->getUseInfo(VulkanAccessFlag::Read);
 			bool isUsedOnGPU = useMask != 0;
 
 			// We're safe to map directly since GPU isn't using the subresource
@@ -1107,9 +1107,9 @@ namespace bs { namespace ct
 				// Ensure flush() will wait for all queues currently using to the texture (if any) to finish
 				// If only reading, wait for all writes to complete, otherwise wait on both writes and reads
 				if (options == GBL_READ_ONLY)
-					useMask = subresource->getUseInfo(VulkanUseFlag::Write);
+					useMask = subresource->getUseInfo(VulkanAccessFlag::Write);
 				else
-					useMask = subresource->getUseInfo(VulkanUseFlag::Read | VulkanUseFlag::Write);
+					useMask = subresource->getUseInfo(VulkanAccessFlag::Read | VulkanAccessFlag::Write);
 
 				transferCB->appendMask(useMask);
 
@@ -1164,7 +1164,7 @@ namespace bs { namespace ct
 
 			// Similar to above, if image supports GPU writes or is currently being written to, we need to wait on any
 			// potential writes to complete
-			UINT32 writeUseMask = subresource->getUseInfo(VulkanUseFlag::Write);
+			UINT32 writeUseMask = subresource->getUseInfo(VulkanAccessFlag::Write);
 
 			if (mSupportsGPUWrites || writeUseMask != 0)
 			{
@@ -1207,7 +1207,7 @@ namespace bs { namespace ct
 
 			transferCB->setLayout(image->getHandle(), VK_ACCESS_TRANSFER_READ_BIT, currentAccessMask,
 								  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dstLayout, range);
-			transferCB->getCB()->registerResource(image, range, VulkanUseFlag::Read, ResourceUsage::Transfer);
+			transferCB->getCB()->registerImageTransfer(image, range, dstLayout, VulkanAccessFlag::Read);
 
 			// Ensure data written to the staging buffer is visible
 			VkAccessFlags stagingAccessFlags;
@@ -1267,7 +1267,7 @@ namespace bs { namespace ct
 
 				// If the subresource is used in any way on the GPU, we need to wait for that use to finish before
 				// we issue our copy
-				UINT32 useMask = subresource->getUseInfo(VulkanUseFlag::Read | VulkanUseFlag::Write);
+				UINT32 useMask = subresource->getUseInfo(VulkanAccessFlag::Read | VulkanAccessFlag::Write);
 				bool isNormalWrite = false;
 				if (useMask != 0) // Subresource is currently used on the GPU
 				{
@@ -1368,8 +1368,8 @@ namespace bs { namespace ct
 									  transferLayout, dstLayout, range);
 
 				// Notify the command buffer that these resources are being used on it
-				transferCB->getCB()->registerResource(mStagingBuffer, VK_ACCESS_TRANSFER_READ_BIT, VulkanUseFlag::Read);
-				transferCB->getCB()->registerResource(image, range, VulkanUseFlag::Write, ResourceUsage::Transfer);
+				transferCB->getCB()->registerBuffer(mStagingBuffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
+				transferCB->getCB()->registerImageTransfer(image, range, dstLayout, VulkanAccessFlag::Write);
 
 				// We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead
 				// done automatically before next "normal" command buffer submission.

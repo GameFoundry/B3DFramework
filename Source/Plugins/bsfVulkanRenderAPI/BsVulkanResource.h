@@ -11,8 +11,8 @@ namespace bs { namespace ct
 	 *  @{
 	 */
 
-	/** Flags that determine how is a resource being used by the GPU. */
-	enum class VulkanUseFlag
+	/** Flags that determine how is a resource being accessed by the GPU. */
+	enum class VulkanAccessFlag
 	{
 		None = 0,
 		Read = 0x1,
@@ -21,8 +21,8 @@ namespace bs { namespace ct
 
 	class VulkanResourceManager;
 
-	typedef Flags<VulkanUseFlag> VulkanUseFlags;
-	BS_FLAGS_OPERATORS(VulkanUseFlag);
+	typedef Flags<VulkanAccessFlag> VulkanAccessFlags;
+	BS_FLAGS_OPERATORS(VulkanAccessFlag);
 
 	/** 
 	 * Wraps one or multiple native Vulkan objects. Allows the object usage to be tracked in command buffers, handles
@@ -56,7 +56,7 @@ namespace bs { namespace ct
 		 * @param[in]	queueFamily		Family of the queue the resource is being used in.
 		 * @param[in]	useFlags		Flags that determine in what way is the resource being used.
 		 */
-		void notifyUsed(UINT32 globalQueueIdx, UINT32 queueFamily, VulkanUseFlags useFlags);
+		void notifyUsed(UINT32 globalQueueIdx, UINT32 queueFamily, VulkanAccessFlags useFlags);
 
 		/** 
 		 * Notifies the resource that it is no longer used by on the GPU. This makes the resource usable on other command
@@ -67,7 +67,7 @@ namespace bs { namespace ct
 		 * @param[in]	globalQueueIdx	Global index of the queue that finished using the resource.
 		 * @param[in]	useFlags		Use flags that specify how was the resource being used.
 		 */
-		virtual void notifyDone(UINT32 globalQueueIdx, VulkanUseFlags useFlags);
+		virtual void notifyDone(UINT32 globalQueueIdx, VulkanAccessFlags useFlags);
 
 		/** 
 		 * Notifies the resource that it is no longer queued on the command buffer. This is similar to notifyDone(), but
@@ -111,7 +111,7 @@ namespace bs { namespace ct
 		 * @return					Bitmask of which queues is the resource used on. This has the same format as sync mask
 		 *							created by CommandSyncMask.
 		 */
-		UINT32 getUseInfo(VulkanUseFlags useFlags) const;
+		UINT32 getUseInfo(VulkanAccessFlags useFlags) const;
 
 		/** Returns on how many command buffers is the buffer currently used on. */
 		UINT32 getUseCount() const { return mNumUsedHandles; }

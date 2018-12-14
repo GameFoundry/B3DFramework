@@ -559,8 +559,15 @@ namespace bs { namespace ct
 			if (resource == nullptr)
 				continue;
 
+			UINT32 set, slot;
+			mParamInfo->getBinding(GpuPipelineParamInfo::ParamType::ParamBlock, i, set, slot);
+
+			UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
+			VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.getBindings(set);
+			VkPipelineStageFlags stages = perSetBindings[bindingIdx].stageFlags;
+
 			// Register with command buffer
-			buffer.registerResource(resource, VK_ACCESS_UNIFORM_READ_BIT, VulkanUseFlag::Read);
+			buffer.registerBuffer(resource, BufferUseFlagBits::Parameter, VulkanAccessFlag::Read, stages);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			assert(perDeviceData.uniformBuffers[i] != VK_NULL_HANDLE);
@@ -569,11 +576,6 @@ namespace bs { namespace ct
 			if(perDeviceData.uniformBuffers[i] != vkBuffer)
 			{
 				perDeviceData.uniformBuffers[i] = vkBuffer;
-			
-				UINT32 set, slot;
-				mParamInfo->getBinding(GpuPipelineParamInfo::ParamType::ParamBlock, i, set, slot);
-
-				UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
 				perDeviceData.perSetData[set].writeInfos[bindingIdx].buffer.buffer = vkBuffer;
 
 				mSetsDirty[set] = true;
@@ -591,16 +593,19 @@ namespace bs { namespace ct
 				continue;
 
 			// Register with command buffer
-			VkAccessFlags accessFlags = VK_ACCESS_SHADER_READ_BIT;
-			VulkanUseFlags useFlags = VulkanUseFlag::Read;
+			VulkanAccessFlags useFlags = VulkanAccessFlag::Read;
 
 			if ((element->getProperties().getUsage() & GBU_LOADSTORE) == GBU_LOADSTORE)
-			{
-				accessFlags |= VK_ACCESS_SHADER_WRITE_BIT;
-				useFlags |= VulkanUseFlag::Write;
-			}
+				useFlags |= VulkanAccessFlag::Write;
 
-			buffer.registerResource(resource, accessFlags, useFlags);
+			UINT32 set, slot;
+			mParamInfo->getBinding(GpuPipelineParamInfo::ParamType::Buffer, i, set, slot);
+
+			UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
+			VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.getBindings(set);
+			VkPipelineStageFlags stages = perSetBindings[bindingIdx].stageFlags;
+
+			buffer.registerBuffer(resource, BufferUseFlagBits::Generic, useFlags, stages);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			assert(perDeviceData.buffers[i] != VK_NULL_HANDLE);
@@ -609,11 +614,6 @@ namespace bs { namespace ct
 			if (perDeviceData.buffers[i] != vkBuffer)
 			{
 				perDeviceData.buffers[i] = vkBuffer;
-
-				UINT32 set, slot;
-				mParamInfo->getBinding(GpuPipelineParamInfo::ParamType::Buffer, i, set, slot);
-
-				UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
 
 				PerSetData& perSetData = perDeviceData.perSetData[set];
 				VkWriteDescriptorSet& writeSetInfo = perSetData.writeSetInfos[bindingIdx];
@@ -645,7 +645,7 @@ namespace bs { namespace ct
 				continue;
 
 			// Register with command buffer
-			buffer.registerResource(resource, VulkanUseFlag::Read);
+			buffer.registerResource(resource, VulkanAccessFlag::Read);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			assert(perDeviceData.samplers[i] != VK_NULL_HANDLE);
@@ -678,10 +678,16 @@ namespace bs { namespace ct
 			const TextureSurface& surface = mLoadStoreTextureData[i].surface;
 			VkImageSubresourceRange range = resource->getRange(surface);
 
+			UINT32 set, slot;
+			mParamInfo->getBinding(GpuPipelineParamInfo::ParamType::LoadStoreTexture, i, set, slot);
+
+			UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
+			VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.getBindings(set);
+			VkPipelineStageFlags stages = perSetBindings[bindingIdx].stageFlags;
+
 			// Register with command buffer
-			VulkanUseFlags useFlags = VulkanUseFlag::Read | VulkanUseFlag::Write;
-			buffer.registerResource(resource, range, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_GENERAL, useFlags, 
-				ResourceUsage::ShaderBind);
+			VulkanAccessFlags useFlags = VulkanAccessFlag::Read | VulkanAccessFlag::Write;
+			buffer.registerImageShader(resource, range, VK_IMAGE_LAYOUT_GENERAL, useFlags, stages);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			assert(perDeviceData.storageImages[i] != VK_NULL_HANDLE);
@@ -691,10 +697,6 @@ namespace bs { namespace ct
 			{
 				perDeviceData.storageImages[i] = vkImage;
 
-				UINT32 set, slot;
-				mParamInfo->getBinding(GpuPipelineParamInfo::ParamType::LoadStoreTexture, i, set, slot);
-
-				UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
 				perDeviceData.perSetData[set].writeInfos[bindingIdx].image.imageView = resource->getView(surface, false);;
 
 				mSetsDirty[set] = true;
@@ -724,7 +726,14 @@ namespace bs { namespace ct
 			else
 				layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-			buffer.registerResource(resource, range, layout, layout, VulkanUseFlag::Read, ResourceUsage::ShaderBind);
+			UINT32 set, slot;
+			mParamInfo->getBinding(GpuPipelineParamInfo::ParamType::Texture, i, set, slot);
+
+			UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
+			VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.getBindings(set);
+			VkPipelineStageFlags stages = perSetBindings[bindingIdx].stageFlags;
+
+			buffer.registerImageShader(resource, range, layout, VulkanAccessFlag::Read, stages);
 
 			// Actual layout might be different than requested if the image is also used as a FB attachment
 			layout = buffer.getCurrentLayout(resource, range, true);
@@ -732,10 +741,6 @@ namespace bs { namespace ct
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			assert(perDeviceData.sampledImages[i] != VK_NULL_HANDLE);
 
-			UINT32 set, slot;
-			mParamInfo->getBinding(GpuPipelineParamInfo::ParamType::Texture, i, set, slot);
-
-			UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
 			VkDescriptorImageInfo& imgInfo = perDeviceData.perSetData[set].writeInfos[bindingIdx].image;
 
 			VkImage vkImage = resource->getHandle();
@@ -801,7 +806,7 @@ namespace bs { namespace ct
 		{
 			VulkanDescriptorSet* set = perDeviceData.perSetData[i].latestSet;
 
-			buffer.registerResource(set, VulkanUseFlag::Read);
+			buffer.registerResource(set, VulkanAccessFlag::Read);
 			sets[i] = set->getHandle();
 		}
 	}

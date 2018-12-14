@@ -75,7 +75,7 @@ namespace bs { namespace ct
 		void update(VulkanCmdBuffer* cb, UINT8* data, VkDeviceSize offset, VkDeviceSize length);
 
 		/** @copydoc VulkanResource::notifyDone */
-		void notifyDone(UINT32 globalQueueIdx, VulkanUseFlags useFlags) override;
+		void notifyDone(UINT32 globalQueueIdx, VulkanAccessFlags useFlags) override;
 
 		/** @copydoc VulkanResource::notifyUnbound */
 		void notifyUnbound() override;

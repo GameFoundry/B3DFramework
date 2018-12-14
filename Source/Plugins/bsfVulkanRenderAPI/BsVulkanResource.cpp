@@ -36,10 +36,10 @@ namespace bs { namespace ct
 		mNumBoundHandles++;
 	}
 
-	void VulkanResource::notifyUsed(UINT32 globalQueueIdx, UINT32 queueFamily, VulkanUseFlags useFlags)
+	void VulkanResource::notifyUsed(UINT32 globalQueueIdx, UINT32 queueFamily, VulkanAccessFlags useFlags)
 	{
 		Lock lock(mMutex);
-		assert(useFlags != VulkanUseFlag::None);
+		assert(useFlags != VulkanAccessFlag::None);
 
 		bool isUsed = mNumUsedHandles > 0;
 		if(isUsed && mState == State::Normal) // Used without support for concurrency
@@ -53,20 +53,20 @@ namespace bs { namespace ct
 
 		assert(globalQueueIdx < MAX_UNIQUE_QUEUES);
 		
-		if (useFlags.isSet(VulkanUseFlag::Read))
+		if (useFlags.isSet(VulkanAccessFlag::Read))
 		{
 			assert(mReadUses[globalQueueIdx] < 255 && "Resource used in too many command buffers at once.");
 			mReadUses[globalQueueIdx]++;
 		}
 		
-		if(useFlags.isSet(VulkanUseFlag::Write))
+		if(useFlags.isSet(VulkanAccessFlag::Write))
 		{
 			assert(mWriteUses[globalQueueIdx] < 255 && "Resource used in too many command buffers at once.");
 			mWriteUses[globalQueueIdx]++;
 		}
 	}
 
-	void VulkanResource::notifyDone(UINT32 globalQueueIdx, VulkanUseFlags useFlags)
+	void VulkanResource::notifyDone(UINT32 globalQueueIdx, VulkanAccessFlags useFlags)
 	{
 		bool destroy;
 		{
@@ -74,13 +74,13 @@ namespace bs { namespace ct
 			mNumUsedHandles--;
 			mNumBoundHandles--;
 
-			if (useFlags.isSet(VulkanUseFlag::Read))
+			if (useFlags.isSet(VulkanAccessFlag::Read))
 			{
 				assert(mReadUses[globalQueueIdx] > 0);
 				mReadUses[globalQueueIdx]--;
 			}
 
-			if (useFlags.isSet(VulkanUseFlag::Write))
+			if (useFlags.isSet(VulkanAccessFlag::Write))
 			{
 				assert(mWriteUses[globalQueueIdx] > 0);
 				mWriteUses[globalQueueIdx]--;
@@ -111,11 +111,11 @@ namespace bs { namespace ct
 			mOwner->destroy(this);
 	}
 
-	UINT32 VulkanResource::getUseInfo(VulkanUseFlags useFlags) const
+	UINT32 VulkanResource::getUseInfo(VulkanAccessFlags useFlags) const
 	{
 		UINT32 mask = 0;
 
-		if(useFlags.isSet(VulkanUseFlag::Read))
+		if(useFlags.isSet(VulkanAccessFlag::Read))
 		{
 			for (UINT32 i = 0; i < MAX_UNIQUE_QUEUES; i++)
 			{
@@ -124,7 +124,7 @@ namespace bs { namespace ct
 			}
 		}
 
-		if (useFlags.isSet(VulkanUseFlag::Write))
+		if (useFlags.isSet(VulkanAccessFlag::Write))
 		{
 			for (UINT32 i = 0; i < MAX_UNIQUE_QUEUES; i++)
 			{

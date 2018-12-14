@@ -112,7 +112,7 @@ namespace bs { namespace ct
 		vkCmdWriteTimestamp(vkCmdBuf, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, query->mPool, query->mQueryIdx);
 
 		// Note: Must happen only here because we need to check VulkanResource::isBound under the same mutex
-		cb->registerResource(query, VulkanUseFlag::Write);
+		cb->registerResource(query, VulkanAccessFlag::Write);
 
 		return query;
 	}
@@ -129,7 +129,7 @@ namespace bs { namespace ct
 		vkCmdBeginQuery(vkCmdBuf, query->mPool, query->mQueryIdx, precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
 
 		// Note: Must happen only here because we need to check VulkanResource::isBound under the same mutex
-		cb->registerResource(query, VulkanUseFlag::Write);
+		cb->registerResource(query, VulkanAccessFlag::Write);
 
 		return query;
 	}
