@@ -135,6 +135,9 @@ namespace bs
 		/** @copydoc GUIElement::_getOptimalSize */
 		Vector2I _getOptimalSize() const override;
 
+		/** @copydoc GUIElement::_getRenderElementDepthRange */
+		UINT32 _getRenderElementDepthRange() const override { return mDepthRange; }
+
 		/** @} */
 	protected:
 		/** Type of elements that may be drawn on the canvas. */
@@ -219,9 +222,6 @@ namespace bs
 
 		/** @copydoc GUIElement::_getRenderElementDepth */
 		UINT32 _getRenderElementDepth(UINT32 renderElementIdx) const override;
-
-		/** @copydoc GUIElement::_getRenderElementDepthRange */
-		UINT32 _getRenderElementDepthRange() const override { return mDepthRange; }
 
 		/** @copydoc GUIElement::updateRenderElementsInternal */
 		void updateRenderElementsInternal() override;

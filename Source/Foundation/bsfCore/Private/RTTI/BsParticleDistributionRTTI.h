@@ -27,8 +27,6 @@ namespace bs
 			UINT32 version = 0; // In case the data structure changes
 			memory = rttiWriteElem(version, memory, size);
 			memory = rttiWriteElem(data.mType, memory, size);
-			memory = rttiWriteElem(data.mMinColor, memory, size);
-			memory = rttiWriteElem(data.mMaxColor, memory, size);
 			memory = rttiWriteElem(data.mMinGradient, memory, size);
 			memory = rttiWriteElem(data.mMaxGradient, memory, size);
 
@@ -48,8 +46,6 @@ namespace bs
 			{
 			case 0:
 				memory = rttiReadElem(data.mType, memory);
-				memory = rttiReadElem(data.mMinColor, memory);
-				memory = rttiReadElem(data.mMaxColor, memory);
 				memory = rttiReadElem(data.mMinGradient, memory);
 				memory = rttiReadElem(data.mMaxGradient, memory);
 				break;
@@ -66,8 +62,6 @@ namespace bs
 		{
 			UINT64 dataSize = sizeof(UINT32) + sizeof(UINT32);
 			dataSize += rttiGetElemSize(data.mType);
-			dataSize += rttiGetElemSize(data.mMinColor);
-			dataSize += rttiGetElemSize(data.mMaxColor);
 			dataSize += rttiGetElemSize(data.mMinGradient);
 			dataSize += rttiGetElemSize(data.mMaxGradient);
 
@@ -91,8 +85,6 @@ namespace bs
 			UINT32 version = 0; // In case the data structure changes
 			memory = rttiWriteElem(version, memory, size);
 			memory = rttiWriteElem(data.mType, memory, size);
-			memory = rttiWriteElem(data.mMinValue, memory, size);
-			memory = rttiWriteElem(data.mMaxValue, memory, size);
 			memory = rttiWriteElem(data.mMinCurve, memory, size);
 			memory = rttiWriteElem(data.mMaxCurve, memory, size);
 
@@ -112,8 +104,6 @@ namespace bs
 			{
 			case 0:
 				memory = rttiReadElem(data.mType, memory);
-				memory = rttiReadElem(data.mMinValue, memory);
-				memory = rttiReadElem(data.mMaxValue, memory);
 				memory = rttiReadElem(data.mMinCurve, memory);
 				memory = rttiReadElem(data.mMaxCurve, memory);
 				break;
@@ -130,8 +120,6 @@ namespace bs
 		{
 			UINT64 dataSize = sizeof(UINT32) + sizeof(UINT32);
 			dataSize += rttiGetElemSize(data.mType);
-			dataSize += rttiGetElemSize(data.mMinValue);
-			dataSize += rttiGetElemSize(data.mMaxValue);
 			dataSize += rttiGetElemSize(data.mMinCurve);
 			dataSize += rttiGetElemSize(data.mMaxCurve);
 

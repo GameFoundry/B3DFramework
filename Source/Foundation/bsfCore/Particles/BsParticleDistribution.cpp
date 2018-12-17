@@ -50,10 +50,10 @@ namespace bs
 		case PDT_Constant:
 		case PDT_RandomRange:
 		{
-			addToVector(Color::fromRGBA(mMinColor), values);
+			addToVector(getMinConstant(), values);
 
 			if(useRange)
-				addToVector(Color::fromRGBA(mMaxColor), values);
+				addToVector(getMaxConstant(), values);
 		}
 			break;
 		case PDT_Curve:
@@ -106,10 +106,10 @@ namespace bs
 		default:
 		case PDT_Constant:
 		case PDT_RandomRange:
-			addToVector(mMinValue, values);
+			addToVector(getMinConstant(), values);
 
 			if(useRange)
-				addToVector(mMaxValue, values);
+				addToVector(getMaxConstant(), values);
 			break;
 		case PDT_Curve:
 		case PDT_RandomCurveRange:

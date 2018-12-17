@@ -30,6 +30,9 @@ namespace bs
 
 		const uint32_t time = Bitwise::unormToUint<16>(Math::clamp01(t));
 
+		if(time < mTimes[0])
+			return mColors[0];
+
 		// Note: Add a version of evaluate that supports caching?
 		for(UINT32 i = 1; i < mNumKeys; i++)
 		{
@@ -91,6 +94,14 @@ namespace bs
 		}
 
 		return output;
+	}
+
+	ColorGradientKey ColorGradient::getKey(UINT32 idx) const
+	{
+		if(idx >= mNumKeys)
+			return ColorGradientKey(Color::Black, 0.0f);
+
+		return ColorGradientKey(Color::fromRGBA(mColors[idx]), Bitwise::uintToUnorm<16>(mTimes[idx]));
 	}
 
 	void ColorGradient::setConstant(const Color& color)

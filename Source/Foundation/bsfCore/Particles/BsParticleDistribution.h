@@ -8,6 +8,7 @@
 #include "Math/BsVector3.h"
 #include "Math/BsRandom.h"
 #include "Animation/BsAnimationCurve.h"
+#include "Animation/BsAnimationUtility.h"
 #include "Utility/BsBitwise.h"
 #include "Utility/BsLookupTable.h"
 
@@ -42,32 +43,50 @@ namespace bs
 		/** Creates a new empty distribution. */
 		BS_SCRIPT_EXPORT()
 		ColorDistribution()
-			: mType(PDT_Constant), mMinColor(Color::Black.getAsRGBA())
+			: mType(PDT_Constant)
+			, mMinGradient({ ColorGradientKey(Color::Black, 0.0f) })
+			, mMaxGradient({ ColorGradientKey(Color::Black, 0.0f) })
 		{ }
 
 		/** Creates a new distribution that returns a constant color. */
 		BS_SCRIPT_EXPORT()
 		ColorDistribution(const Color& color)
-			: mType(PDT_Constant), mMinColor(color.getAsRGBA())
+			: mType(PDT_Constant)
+			, mMinGradient({ ColorGradientKey(color, 0.0f) })
+			, mMaxGradient({ ColorGradientKey(color, 0.0f) })
 		{ }
 
 		/** Creates a new distribution that returns a random color in the specified range. */
 		BS_SCRIPT_EXPORT()
 		ColorDistribution(const Color& minColor, const Color& maxColor)
-			: mType(PDT_RandomRange), mMinColor(minColor.getAsRGBA()), mMaxColor(maxColor.getAsRGBA())
+			: mType(PDT_RandomRange)
+			, mMinGradient({ ColorGradientKey(minColor, 0.0f) })
+			, mMaxGradient({ ColorGradientKey(maxColor, 0.0f) })
 		{ }
 
 		/** Creates a new distribution that evaluates a color gradient. */
 		BS_SCRIPT_EXPORT()
 		ColorDistribution(const ColorGradient& gradient)
-			: mType(PDT_Curve), mMinGradient(gradient)
-		{ }
+			: mType(PDT_Curve), mMinGradient(gradient), mMaxGradient(gradient)
+		{
+			if(mMinGradient.getNumKeys() == 0)
+				mMinGradient = ColorGradient({ ColorGradientKey(Color::Black, 0.0f) });
+
+			if(mMaxGradient.getNumKeys() == 0)
+				mMaxGradient = ColorGradient({ ColorGradientKey(Color::Black, 0.0f) });
+		}
 
 		/** Creates a new distribution that returns a random color in a range determined by two gradients. */
 		BS_SCRIPT_EXPORT()
 		ColorDistribution(const ColorGradient& minGradient, const ColorGradient& maxGradient)
 			: mType(PDT_RandomCurveRange), mMinGradient(minGradient), mMaxGradient(maxGradient)
-		{ }
+		{
+			if(mMinGradient.getNumKeys() == 0)
+				mMinGradient = ColorGradient({ ColorGradientKey(Color::Black, 0.0f) });
+
+			if(mMaxGradient.getNumKeys() == 0)
+				mMaxGradient = ColorGradient({ ColorGradientKey(Color::Black, 0.0f) });
+		}
 
 		/** Returns the type of the represented distribution. */
 		BS_SCRIPT_EXPORT(pr:getter,n:DistributionType)
@@ -78,13 +97,13 @@ namespace bs
 		 * the distribution is represented by a gradient. 
 		 */
 		BS_SCRIPT_EXPORT()
-		Color getMinConstant() const { return Color::fromRGBA(mMinColor); }
+		Color getMinConstant() const { return mMinGradient.getKey(0).color; }
 
 		/** 
 		 * Returns the maximum value of a constant range. Only defined if the distribution represents a non-gradient range.
 		 */
 		BS_SCRIPT_EXPORT()
-		Color getMaxConstant() const { return Color::fromRGBA(mMaxColor); }
+		Color getMaxConstant() const { return mMaxGradient.getKey(0).color; }
 
 		/** 
 		 * Returns the gradient representing the distribution, or the first gradient representing a gradient range. 
@@ -118,9 +137,14 @@ namespace bs
 			{
 			default:
 			case PDT_Constant:
-				return mMinColor;
+				return mMinGradient.evaluate(0.0f);
 			case PDT_RandomRange:
-				return Color::lerp(byteFactor, mMinColor, mMaxColor);
+				{
+					const RGBA minColor = mMinGradient.evaluate(0.0f);
+					const RGBA maxColor = mMaxGradient.evaluate(0.0f);
+
+					return Color::lerp(byteFactor, minColor, maxColor);
+				}
 			case PDT_Curve:
 				return mMinGradient.evaluate(t);
 			case PDT_RandomCurveRange:
@@ -149,11 +173,14 @@ namespace bs
 			{
 			default:
 			case PDT_Constant:
-				return mMinColor;
+				return mMinGradient.evaluate(0.0f);
 			case PDT_RandomRange:
 			{
+				const RGBA minColor = mMinGradient.evaluate(0.0f);
+				const RGBA maxColor = mMaxGradient.evaluate(0.0f);
+
 				const UINT32 byteFactor = Bitwise::unormToUint<8>(factor.getUNorm());
-				return Color::lerp(byteFactor, mMinColor, mMaxColor);
+				return Color::lerp(byteFactor, minColor, maxColor);
 			}
 			case PDT_Curve:
 				return mMinGradient.evaluate(t);
@@ -185,8 +212,6 @@ namespace bs
 		friend struct RTTIPlainType<ColorDistribution>;
 
 		PropertyDistributionType mType;
-		RGBA mMinColor;
-		RGBA mMaxColor;
 		ColorGradient mMinGradient;
 		ColorGradient mMaxGradient;
 	};
@@ -198,31 +223,49 @@ namespace bs
 		/** Creates a new empty distribution. */
 		BS_SCRIPT_EXPORT()
 		TDistribution()
-			: mType(PDT_Constant), mMinValue(T())
+			: mType(PDT_Constant)
+			, mMinCurve({ TKeyframe<T>{ T(), TCurveProperties<T>::getZero(), TCurveProperties<T>::getZero(), 0.0f} })
+			, mMaxCurve({ TKeyframe<T>{ T(), TCurveProperties<T>::getZero(), TCurveProperties<T>::getZero(), 0.0f} })
 		{ }
 		/** Creates a new distribution that returns a constant value. */
 		BS_SCRIPT_EXPORT()
 		TDistribution(T value)
-			: mType(PDT_Constant), mMinValue(value)
+			: mType(PDT_Constant)
+			, mMinCurve({ TKeyframe<T>{ value, TCurveProperties<T>::getZero(), TCurveProperties<T>::getZero(), 0.0f} })
+			, mMaxCurve({ TKeyframe<T>{ value, TCurveProperties<T>::getZero(), TCurveProperties<T>::getZero(), 0.0f} })
 		{ }
 
 		/** Creates a new distribution that returns a random value in the specified range. */
 		BS_SCRIPT_EXPORT()
 		TDistribution(T minValue, T maxValue)
-			: mType(PDT_RandomRange), mMinValue(minValue), mMaxValue(maxValue)
+			: mType(PDT_RandomRange)
+			, mMinCurve({ TKeyframe<T>{ minValue, TCurveProperties<T>::getZero(), TCurveProperties<T>::getZero(), 0.0f} })
+			, mMaxCurve({ TKeyframe<T>{ maxValue, TCurveProperties<T>::getZero(), TCurveProperties<T>::getZero(), 0.0f} })
 		{ }
 
 		/** Creates a new distribution that evaluates a curve. */
 		BS_SCRIPT_EXPORT()
 		TDistribution(const TAnimationCurve<T>& curve)
-			: mType(PDT_Curve), mMinCurve(curve)
-		{ }
+			: mType(PDT_Curve), mMinCurve(curve), mMaxCurve(curve)
+		{
+			if(mMinCurve.getKeyFrames().empty())
+				mMinCurve = TAnimationCurve<T>({ TKeyframe<T>{ T(), TCurveProperties<T>::getZero(), TCurveProperties<T>::getZero(), 0.0f} });
+
+			if(mMaxCurve.getKeyFrames().empty())
+				mMaxCurve = TAnimationCurve<T>({ TKeyframe<T>{ T(), TCurveProperties<T>::getZero(), TCurveProperties<T>::getZero(), 0.0f} });
+		}
 
 		/** Creates a new distribution that returns a random value in a range determined by two curves. */
 		BS_SCRIPT_EXPORT()
 		TDistribution(const TAnimationCurve<T>& minCurve, const TAnimationCurve<T>& maxCurve)
 			: mType(PDT_RandomCurveRange), mMinCurve(minCurve), mMaxCurve(maxCurve)
-		{ }
+		{
+			if(mMinCurve.getKeyFrames().empty())
+				mMinCurve = TAnimationCurve<T>({ TKeyframe<T>{ T(), TCurveProperties<T>::getZero(), TCurveProperties<T>::getZero(), 0.0f} });
+
+			if(mMaxCurve.getKeyFrames().empty())
+				mMaxCurve = TAnimationCurve<T>({ TKeyframe<T>{ T(), TCurveProperties<T>::getZero(), TCurveProperties<T>::getZero(), 0.0f} });
+		}
 
 		/** Returns the type of the represented distribution. */
 		BS_SCRIPT_EXPORT(pr:getter,n:DistributionType)
@@ -233,13 +276,13 @@ namespace bs
 		 * the distribution is represented by a curve. 
 		 */
 		BS_SCRIPT_EXPORT()
-		const T& getMinConstant() const { return mMinValue; }
+		const T& getMinConstant() const { return mMinCurve.getKeyFrames()[0].value; }
 
 		/** 
 		 * Returns the maximum value of a constant range. Only defined if the distribution represents a non-curve range.
 		 */
 		BS_SCRIPT_EXPORT()
-		const T& getMaxConstant() const { return mMaxValue; }
+		const T& getMaxConstant() const { return mMaxCurve.getKeyFrames()[0].value; }
 
 		/** 
 		 * Returns the curve representing the distribution, or the first curve representing a curve range. Undefined if
@@ -273,9 +316,9 @@ namespace bs
 			{
 			default:
 			case PDT_Constant:
-				return mMinValue;
+				return getMinConstant();
 			case PDT_RandomRange:
-				return Math::lerp(factor, mMinValue, mMaxValue);
+				return Math::lerp(factor, getMinConstant(), getMaxConstant());
 			case PDT_Curve:
 				return mMinCurve.evaluate(t);
 			case PDT_RandomCurveRange:
@@ -305,9 +348,9 @@ namespace bs
 			{
 			default:
 			case PDT_Constant:
-				return mMinValue;
+				return getMinConstant();
 			case PDT_RandomRange:
-				return Math::lerp(factor.getUNorm(), mMinValue, mMaxValue);
+				return Math::lerp(factor.getUNorm(), getMinConstant(), getMaxConstant());
 			case PDT_Curve:
 				return mMinCurve.evaluate(t);
 			case PDT_RandomCurveRange:
@@ -337,8 +380,6 @@ namespace bs
 		friend struct RTTIPlainType<TDistribution<T>>;
 
 		PropertyDistributionType mType;
-		T mMinValue;
-		T mMaxValue;
 		TAnimationCurve<T> mMinCurve;
 		TAnimationCurve<T> mMaxCurve;
 	};
