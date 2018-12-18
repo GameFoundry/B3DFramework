@@ -311,7 +311,7 @@ namespace bs
 				memory = rttiReadElem(data.interval, memory);
 				break;
 			default:
-				LOGERR("Unknown version of TDistribution<T> data. Unable to deserialize.");
+				LOGERR("Unknown version of ParticleBurst data. Unable to deserialize.");
 				break;
 			}
 

@@ -131,9 +131,9 @@ namespace bs
 	template<class ElemType>
 	char* rttiReadElem(ElemType& data, char* memory)
 	{
-		RTTIPlainType<ElemType>::fromMemory(data, memory);
+		UINT32 size = RTTIPlainType<ElemType>::fromMemory(data, memory);
 
-		return memory + rttiGetElemSize(data);
+		return memory + size;
 	}
 
 	/**
@@ -147,11 +147,9 @@ namespace bs
 	template<class ElemType>
 	char* rttiReadElem(ElemType& data, char* memory, UINT32& size)
 	{
-		RTTIPlainType<ElemType>::fromMemory(data, memory);
+		UINT32 elemSize = RTTIPlainType<ElemType>::fromMemory(data, memory);
 
-		UINT32 elemSize = rttiGetElemSize(data);
 		size += elemSize;
-
 		return memory + elemSize;
 	}
 
@@ -237,6 +235,7 @@ namespace bs
 			memcpy(&numElements, memory, sizeof(UINT32));
 			memory += sizeof(UINT32);
 
+			data.clear();
 			for(UINT32 i = 0; i < numElements; i++)
 			{
 				T element;
