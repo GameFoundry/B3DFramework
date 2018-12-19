@@ -229,6 +229,9 @@
     "GpuParticleInject.bsl": null,
     "GpuParticleSimulate.bsl": [
         {
+            "Path": "PerObjectData.bslinc"
+        },
+        {
             "Path": "GpuParticleTileVertex.bslinc"
         },
         {

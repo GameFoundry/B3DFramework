@@ -1,17 +1,19 @@
 #include "$ENGINE$/GpuParticleTileVertex.bslinc"
 #include "$ENGINE$/PerCameraData.bslinc"
+#include "$ENGINE$/PerObjectData.bslinc"
 
 shader GpuParticleSimulate
 {
 	variations
 	{
-		DEPTH_COLLISIONS = { false, true };
+		DEPTH_COLLISIONS = { 0, 1, 2 };
 	};
 
 	mixin GpuParticleTileVertex;
 	
 	#if DEPTH_COLLISIONS
 		mixin PerCameraData;
+		mixin PerObjectData;
 	#endif
 	
 	code
@@ -220,6 +222,11 @@ shader GpuParticleSimulate
 				size *= 0.5f * sizeScale;
 				float collisionRadius = min(size.x, size.y) * gCollisionRadiusScale;
 
+			#if DEPTH_COLLISIONS == 2
+				position = mul(gMatWorld, float4(position, 1.0f)).xyz;
+				velocity = mul(gMatWorld, float4(velocity, 0.0f)).xyz;			
+			#endif
+				
 				float3 outPosition;
 				float3 outVelocity;
 				integrateWithDepthCollisions(
@@ -228,8 +235,13 @@ shader GpuParticleSimulate
 					gDT, 
 					acceleration, collisionRadius);
 					
+			#if DEPTH_COLLISIONS == 2
+				position = mul(gMatInvWorld, float4(outPosition, 1.0f)).xyz;
+				velocity = mul(gMatInvWorld, float4(outVelocity, 0.0f)).xyz;
+			#else
 				position = outPosition;
 				velocity = outVelocity;
+			#endif
 #else
 				position += (velocity + acceleration * 0.5f) * gDT;
 				velocity += acceleration;
