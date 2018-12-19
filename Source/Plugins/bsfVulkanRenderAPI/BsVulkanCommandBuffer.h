@@ -13,6 +13,8 @@ namespace bs { namespace ct
 	class VulkanOcclusionQuery;
 	class VulkanTimerQuery;
 	class VulkanImage;
+	class VulkanIndexBuffer;
+	class VulkanVertexBuffer;
 
 	/** @addtogroup Vulkan
 	 *  @{
@@ -492,6 +494,9 @@ namespace bs { namespace ct
 		 */
 		void bindDynamicStates(bool forceAll);
 
+		/** Binds vertex and index buffers to the pipeline, if dirty. */
+		void bindVertexInputs();
+
 		/** Binds the currently stored GPU parameters object, if dirty. */
 		void bindGpuParams();
 
@@ -563,19 +568,19 @@ namespace bs { namespace ct
 
 		UINT32 mId;
 		UINT32 mQueueFamily;
-		State mState;
+		State mState = State::Ready;
 		VulkanDevice& mDevice;
 		VkCommandPool mPool;
 		VkCommandBuffer mCmdBuffer;
 		VkFence mFence;
 
-		VulkanSemaphore* mIntraQueueSemaphore;
-		VulkanSemaphore* mInterQueueSemaphores[BS_MAX_VULKAN_CB_DEPENDENCIES];
-		mutable UINT32 mNumUsedInterQueueSemaphores;
+		VulkanSemaphore* mIntraQueueSemaphore = nullptr;
+		VulkanSemaphore* mInterQueueSemaphores[BS_MAX_VULKAN_CB_DEPENDENCIES] { };
+		mutable UINT32 mNumUsedInterQueueSemaphores = 0;
 
-		VulkanFramebuffer* mFramebuffer;
-		UINT32 mRenderTargetReadOnlyFlags;
-		RenderSurfaceMask mRenderTargetLoadMask;
+		VulkanFramebuffer* mFramebuffer = nullptr;
+		UINT32 mRenderTargetReadOnlyFlags = 0;
+		RenderSurfaceMask mRenderTargetLoadMask = RT_NONE;
 
 		UnorderedMap<VulkanResource*, ResourceUseHandle> mResources;
 		UnorderedMap<VulkanResource*, UINT32> mImages;
@@ -586,7 +591,7 @@ namespace bs { namespace ct
 		Vector<ImageInfo> mImageInfos;
 		Vector<ImageSubresourceInfo> mSubresourceInfoStorage;
 		Set<UINT32> mShaderBoundSubresourceInfos;
-		UINT32 mGlobalQueueIdx;
+		UINT32 mGlobalQueueIdx = -1;
 
 		bool mNeedsWARMemoryBarrier : 1;
 		bool mNeedsRAWMemoryBarrier : 1;
@@ -598,27 +603,30 @@ namespace bs { namespace ct
 		SPtr<VulkanGraphicsPipelineState> mGraphicsPipeline;
 		SPtr<VulkanComputePipelineState> mComputePipeline;
 		SPtr<VertexDeclaration> mVertexDecl;
-		Rect2 mViewport;
-		Rect2I mScissor;
-		UINT32 mStencilRef;
-		DrawOperationType mDrawOp;
-		UINT32 mNumBoundDescriptorSets;
+		SPtr<VulkanIndexBuffer> mIndexBuffer;
+		Vector<SPtr<VulkanVertexBuffer>> mVertexBuffers;
+		Rect2 mViewport { 0.0f, 0.0f, 1.0f, 1.0f };
+		Rect2I mScissor { 0, 0, 0, 0 };
+		UINT32 mStencilRef = 0;
+		DrawOperationType mDrawOp = DOT_TRIANGLE_LIST;
+		UINT32 mNumBoundDescriptorSets = 0;
 		bool mGfxPipelineRequiresBind : 1;
 		bool mCmpPipelineRequiresBind : 1;
 		bool mViewportRequiresBind : 1;
 		bool mStencilRefRequiresBind : 1;
 		bool mScissorRequiresBind : 1;
 		bool mBoundParamsDirty : 1;
+		bool mVertexInputsDirty : 1;
 		DescriptorSetBindFlags mDescriptorSetsBindState;
 		SPtr<VulkanGpuParams> mBoundParams;
 
-		std::array<VkClearValue, BS_MAX_MULTIPLE_RENDER_TARGETS + 1> mClearValues;
+		std::array<VkClearValue, BS_MAX_MULTIPLE_RENDER_TARGETS + 1> mClearValues { };
 		ClearMask mClearMask;
 		Rect2I mClearArea;
 
-		Vector<VulkanSemaphore*> mSemaphoresTemp;
-		VkBuffer mVertexBuffersTemp[BS_MAX_BOUND_VERTEX_BUFFERS];
-		VkDeviceSize mVertexBufferOffsetsTemp[BS_MAX_BOUND_VERTEX_BUFFERS];
+		Vector<VulkanSemaphore*> mSemaphoresTemp { BS_MAX_UNIQUE_QUEUES };
+		VkBuffer mVertexBuffersTemp[BS_MAX_BOUND_VERTEX_BUFFERS] { };
+		VkDeviceSize mVertexBufferOffsetsTemp[BS_MAX_BOUND_VERTEX_BUFFERS] { };
 		VkDescriptorSet* mDescriptorSetsTemp;
 		UnorderedMap<UINT32, TransitionInfo> mTransitionInfoTemp;
 		Vector<VkImageMemoryBarrier> mLayoutTransitionBarriersTemp;

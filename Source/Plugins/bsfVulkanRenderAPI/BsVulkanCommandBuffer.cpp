@@ -187,14 +187,10 @@ namespace bs { namespace ct
 	}
 
 	VulkanCmdBuffer::VulkanCmdBuffer(VulkanDevice& device, UINT32 id, VkCommandPool pool, UINT32 queueFamily, bool secondary)
-		: mId(id), mQueueFamily(queueFamily), mState(State::Ready), mDevice(device), mPool(pool)
-		, mIntraQueueSemaphore(nullptr), mInterQueueSemaphores(), mNumUsedInterQueueSemaphores(0)
-		, mFramebuffer(nullptr), mRenderTargetReadOnlyFlags(0), mRenderTargetLoadMask(RT_NONE), mGlobalQueueIdx(-1)
-		, mViewport(0.0f, 0.0f, 1.0f, 1.0f), mScissor(0, 0, 0, 0), mStencilRef(0), mDrawOp(DOT_TRIANGLE_LIST)
-		, mNumBoundDescriptorSets(0), mGfxPipelineRequiresBind(true), mCmpPipelineRequiresBind(true)
-		, mViewportRequiresBind(true), mStencilRefRequiresBind(true), mScissorRequiresBind(true), mBoundParamsDirty(false)
-		, mNeedsWARMemoryBarrier(false), mNeedsRAWMemoryBarrier(false), mClearValues(), mClearMask()
-		, mSemaphoresTemp(BS_MAX_UNIQUE_QUEUES), mVertexBuffersTemp(), mVertexBufferOffsetsTemp()
+		: mId(id), mQueueFamily(queueFamily), mDevice(device), mPool(pool)
+		, mNeedsWARMemoryBarrier(false), mNeedsRAWMemoryBarrier(false), mGfxPipelineRequiresBind(true)
+		, mCmpPipelineRequiresBind(true), mViewportRequiresBind(true), mStencilRefRequiresBind(true)
+		, mScissorRequiresBind(true), mBoundParamsDirty(false), mVertexInputsDirty(false)
 	{
 		UINT32 maxBoundDescriptorSets = device.getDeviceProperties().limits.maxBoundDescriptorSets;
 		mDescriptorSetsTemp = (VkDescriptorSet*)bs_alloc(sizeof(VkDescriptorSet) * maxBoundDescriptorSets);
@@ -754,6 +750,9 @@ namespace bs { namespace ct
 		mDescriptorSetsBindState = DescriptorSetBindFlag::Graphics | DescriptorSetBindFlag::Compute;
 		mQueuedLayoutTransitions.clear();
 		mBoundParams = nullptr;
+		mIndexBuffer = nullptr;
+		mVertexBuffers.clear();
+		mVertexInputsDirty = true;
 		mActiveSwapChains.clear();
 	}
 
@@ -1222,49 +1221,21 @@ namespace bs { namespace ct
 		if (numBuffers == 0)
 			return;
 
-		for(UINT32 i = 0; i < numBuffers; i++)
-		{
-			VulkanVertexBuffer* vertexBuffer = static_cast<VulkanVertexBuffer*>(buffers[i].get());
+		UINT32 endIdx = index + numBuffers;
+		if(mVertexBuffers.size() < endIdx)
+			mVertexBuffers.resize(endIdx);
 
-			if (vertexBuffer != nullptr)
-			{
-				VulkanBuffer* resource = vertexBuffer->getResource(mDevice.getIndex());
-				if (resource != nullptr)
-				{
-					mVertexBuffersTemp[i] = resource->getHandle();
+		for(UINT32 i = index; i < endIdx; i++)
+			mVertexBuffers[i] = std::static_pointer_cast<VulkanVertexBuffer>(buffers[i]);
 
-					registerBuffer(resource, BufferUseFlagBits::Vertex, VulkanAccessFlag::Read);
-					
-				}
-				else
-					mVertexBuffersTemp[i] = VK_NULL_HANDLE;
-			}
-			else
-				mVertexBuffersTemp[i] = VK_NULL_HANDLE;
-		}
-
-		vkCmdBindVertexBuffers(mCmdBuffer, index, numBuffers, mVertexBuffersTemp, mVertexBufferOffsetsTemp);
+		mVertexInputsDirty = true;
 	}
 
 	void VulkanCmdBuffer::setIndexBuffer(const SPtr<IndexBuffer>& buffer)
 	{
-		VulkanIndexBuffer* indexBuffer = static_cast<VulkanIndexBuffer*>(buffer.get());
+		mIndexBuffer = std::static_pointer_cast<VulkanIndexBuffer>(buffer);
 
-		VkBuffer vkBuffer = VK_NULL_HANDLE;
-		VkIndexType indexType = VK_INDEX_TYPE_UINT32;
-		if (indexBuffer != nullptr)
-		{
-			VulkanBuffer* resource = indexBuffer->getResource(mDevice.getIndex());
-			if (resource != nullptr)
-			{
-				vkBuffer = resource->getHandle();
-				indexType = VulkanUtility::getIndexType(buffer->getProperties().getType());
-
-				registerBuffer(resource, BufferUseFlagBits::Index, VulkanAccessFlag::Read);
-			}
-		}
-
-		vkCmdBindIndexBuffer(mCmdBuffer, vkBuffer, 0, indexType);
+		mVertexInputsDirty = true;
 	}
 
 	void VulkanCmdBuffer::setVertexDeclaration(const SPtr<VertexDeclaration>& decl)
@@ -1381,6 +1352,74 @@ namespace bs { namespace ct
 
 			mScissorRequiresBind = false;
 		}
+	}
+
+	void VulkanCmdBuffer::bindVertexInputs()
+	{
+		if (!mVertexBuffers.empty())
+		{
+			UINT32 lastValidIdx = (UINT32)-1;
+			UINT32 curIdx = 0;
+			for(auto& vertexBuffer : mVertexBuffers)
+			{
+				bool validBuffer = false;
+				if (vertexBuffer != nullptr)
+				{
+					VulkanBuffer* resource = vertexBuffer->getResource(mDevice.getIndex());
+					if (resource != nullptr)
+					{
+						mVertexBuffersTemp[curIdx] = resource->getHandle();
+
+						registerBuffer(resource, BufferUseFlagBits::Vertex, VulkanAccessFlag::Read);
+
+						if(lastValidIdx == (UINT32)-1)
+							lastValidIdx = curIdx;
+
+						validBuffer = true;
+					}
+				}
+
+				if(!validBuffer && lastValidIdx != (UINT32)-1)
+				{
+					UINT32 count = curIdx - lastValidIdx;
+					if(count > 0)
+					{
+						vkCmdBindVertexBuffers(mCmdBuffer, lastValidIdx, count, mVertexBuffersTemp, 
+							mVertexBufferOffsetsTemp);
+
+						lastValidIdx = (UINT32)-1;
+					}
+				}
+
+				curIdx++;
+			}
+
+			if (lastValidIdx != (UINT32)-1)
+			{
+				UINT32 count = curIdx - lastValidIdx;
+				if (count > 0)
+				{
+					vkCmdBindVertexBuffers(mCmdBuffer, lastValidIdx, count, mVertexBuffersTemp,
+						mVertexBufferOffsetsTemp);
+				}
+			}
+		}
+
+		VkBuffer vkBuffer = VK_NULL_HANDLE;
+		VkIndexType indexType = VK_INDEX_TYPE_UINT32;
+		if (mIndexBuffer != nullptr)
+		{
+			VulkanBuffer* resource = mIndexBuffer->getResource(mDevice.getIndex());
+			if (resource != nullptr)
+			{
+				vkBuffer = resource->getHandle();
+				indexType = VulkanUtility::getIndexType(mIndexBuffer->getProperties().getType());
+
+				registerBuffer(resource, BufferUseFlagBits::Index, VulkanAccessFlag::Read);
+			}
+		}
+
+		vkCmdBindIndexBuffer(mCmdBuffer, vkBuffer, 0, indexType);
 	}
 
 	void VulkanCmdBuffer::bindGpuParams()
@@ -1586,6 +1625,12 @@ namespace bs { namespace ct
 		if (!isInRenderPass())
 			beginRenderPass();
 
+		if(mVertexInputsDirty)
+		{
+			bindVertexInputs();
+			mVertexInputsDirty = false;
+		}
+
 		if (mGfxPipelineRequiresBind)
 		{
 			if (!bindGraphicsPipeline())
@@ -1624,6 +1669,12 @@ namespace bs { namespace ct
 
 		if (!isInRenderPass())
 			beginRenderPass();
+
+		if(mVertexInputsDirty)
+		{
+			bindVertexInputs();
+			mVertexInputsDirty = false;
+		}
 
 		if (mGfxPipelineRequiresBind)
 		{
