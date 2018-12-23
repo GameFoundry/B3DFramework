@@ -141,16 +141,16 @@ namespace bs
 	{
 		float tx  = x+x;
 		float ty  = y+y;
-		float fTz  = z+z;
+		float tz  = z+z;
 		float twx = tx*w;
 		float twy = ty*w;
-		float twz = fTz*w;
+		float twz = tz*w;
 		float txx = tx*x;
 		float txy = ty*x;
-		float txz = fTz*x;
+		float txz = tz*x;
 		float tyy = ty*y;
-		float tyz = fTz*y;
-		float tzz = fTz*z;
+		float tyz = tz*y;
+		float tzz = tz*z;
 
 		mat[0][0] = 1.0f-(tyy+tzz);
 		mat[0][1] = txy-twz;

@@ -24,19 +24,19 @@ namespace bs
 		virtual ~CParticleSystem() = default;
 		
 		/** @copydoc ParticleSystem::setSettings */
-		BS_SCRIPT_EXPORT(pr:setter,n:Settings)
+		BS_SCRIPT_EXPORT(pr:setter,n:Settings,passByCopy)
 		void setSettings(const ParticleSystemSettings& settings);
 
 		/** @copydoc ParticleSystem::getSettings */
-		BS_SCRIPT_EXPORT(pr:getter,n:Settings)
+		BS_SCRIPT_EXPORT(pr:getter,n:Settings,passByCopy)
 		const ParticleSystemSettings& getSettings() const { return mSettings; }
 
 		/** @copydoc ParticleSystem::setGpuSimulationSettings */
-		BS_SCRIPT_EXPORT(pr:setter,n:GpuSimulationSettings)
+		BS_SCRIPT_EXPORT(pr:setter,n:GpuSimulationSettings,passByCopy)
 		void setGpuSimulationSettings(const ParticleGpuSimulationSettings& settings);
 
 		/** @copydoc ParticleSystem::getGpuSimulationSettings */
-		BS_SCRIPT_EXPORT(pr:getter,n:GpuSimulationSettings)
+		BS_SCRIPT_EXPORT(pr:getter,n:GpuSimulationSettings,passByCopy)
 		const ParticleGpuSimulationSettings& getGpuSimulationSettings() const { return mGpuSimulationSettings; }
 
 		/** @copydoc ParticleSystem::setEmitters */
