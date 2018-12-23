@@ -831,7 +831,71 @@ namespace bs
 			coefficients[2] = tangentA;
 			coefficients[3] = pointA;
 		}
+		
+		/**
+		* Calculates the Romberg Integration.
+		*
+		* @param[in]  a				Lower bound.
+		* @param[in]  b				Upper bound.
+		* @param[in]  order			Order of the function.
+		* @param[in]  integrand		Function to integrate.
+		* @return					Integrated function.
+		*/
+		template <typename T>
+		static T rombergIntegration(T a, T b, int order, const std::function<T(T)> integrand) 
+		{
+			T h[order + 1]; 
+			T r[order + 1][order + 1];
 
+			for (int i = 1; i < order + 1; ++i)
+				h[i] = (b - a) / Math::pow(2, i - 1);
+
+			r[1][1] = h[1] / 2 * (integrand(a) + integrand(b));
+
+			for (int i = 2; i < order + 1; ++i) 
+			{
+				T coeff = 0;
+				for (int k = 1; k <= Math::pow(2, i - 2); ++k)
+					coeff += integrand(a + (2 * k - 1) * h[i]);
+
+				r[i][1] = 0.5 * (r[i - 1][1] + h[i - 1] * coeff);
+			}
+
+			for (int i = 2; i < order + 1; ++i) 
+			{
+				for (int j = 2; j <= i; ++j)
+					r[i][j] = r[i][j - 1] + (r[i][j - 1] - r[i - 1][j - 1]) / (Math::pow(4, j - 1) - 1);
+			}
+
+			return r[order][order];
+		}
+
+		/**
+		* Calculates the Gaussian Quadrature.
+		*
+		* @param[in]  a				Lower bound.
+		* @param[in]  b				Upper bound.
+		* @param[in]  roots			Roots of the function.
+		* @param[in]  coefficients  Coefficients of the function.
+		* @param[in]  integrand		Function to integrate.
+		* @return					Gaussian Quadrature integration.
+		*/
+		template <typename T>
+		static T gaussianQuadrature(T a, T b, T* roots, T* coefficients, const std::function <T(T)>& integrand)
+		{
+			const T half = (T)0.5;
+			const T radius = half * (b - a);
+			const T center = half * (b + a);
+			T res = (T)0;
+
+			for (UINT32 i = 0; i < sizeof(roots) / sizeof(*roots); ++i)
+				res += coefficients[i] * integrand(radius * roots[i] + center);
+
+			res *= radius;
+
+			return res;
+		}
+		
 		static constexpr float POS_INFINITY = std::numeric_limits<float>::infinity();
 		static constexpr float NEG_INFINITY = -std::numeric_limits<float>::infinity();
 		static constexpr float PI = 3.14159265358979323846f;
