@@ -418,6 +418,9 @@ namespace bs
 	{
 		numVertices = 20 * (3 * ((UINT32)std::pow(4, quality)));
 		numIndices = numVertices;
+
+		// Extra for the seam fix. 4 initial triangles each split 4 times per quality level, one vertex each
+		numVertices += (3 * (UINT32)pow(4, quality));
 	}
 
 	void ShapeMeshes3D::getNumElementsWireSphere(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
@@ -680,16 +683,17 @@ namespace bs
 			UINT32 numVertices = curVertOffset - vertexOffset;
 
 			outUV += (vertexOffset * vertexStride);
+			UINT8* curUV = outUV;
 			for(UINT32 i = 0; i < numVertices; i++)
 			{
 				Vector3 position = *(Vector3*)&outVertices[(vertexOffset + i) * vertexStride];
 				Vector3 normal = Vector3::normalize(position);
 
 				Vector2 uv;
-				uv.x = atan2(normal.x, normal.z) / Math::TWO_PI + 0.5f;
-				uv.y = normal.y * 0.5f + 0.5f;
+				uv.x = 0.5f - atan2(normal.x, normal.z) / Math::TWO_PI;
+				uv.y = 0.5f - asin(normal.y) / Math::PI;
 
-				outUV = writeVector2(outUV, vertexStride, uv);
+				curUV = writeVector2(curUV, vertexStride, uv);
 			}
 		}
 
@@ -702,6 +706,160 @@ namespace bs
 			outIndices[i] = vertexOffset + i + 2;
 			outIndices[i + 1] = vertexOffset + i + 1;
 			outIndices[i + 2] = vertexOffset + i + 0;
+		}
+
+		// Fix UV seams
+		if (outUV != nullptr)
+		{
+			// Note: This only fixes seams for tileable textures. To properly fix seams for all textures the triangles
+			// would actually need to be split along the UV seam. This is ignored as non-tileable textures won't look
+			// good on a sphere regardless of the seam.
+			UINT32 extraVertIdx = 0;
+			UINT8* extraPositions = outVertices + curVertOffset * vertexStride;
+
+			UINT8* extraNormals = nullptr;
+			if(outNormals)
+				extraNormals = outNormals + curVertOffset * vertexStride;
+
+			UINT8* extraUV = outUV + curVertOffset * vertexStride;
+
+			for (UINT32 i = 0; i < numIndices; i += 3)
+			{
+				const Vector2& uv0 = *(Vector2*)&outUV[(i + 0) * vertexStride];
+				const Vector2& uv1 = *(Vector2*)&outUV[(i + 1) * vertexStride];
+				const Vector2& uv2 = *(Vector2*)&outUV[(i + 2) * vertexStride];
+
+				UINT32 indexToSplit = (UINT32)-1;
+				float offset = 1.0f;
+				if(fabs(uv2.x - uv0.x) > 0.5f)
+				{
+					if(uv0.x < 0.5f)
+					{
+						// 2 is the odd-one out, > 0.5
+						if(uv1.x < 0.5f)
+						{
+							indexToSplit = 2;
+							offset = -1.0f;
+						}
+						// 0 is the odd-one out, < 0.5
+						else
+						{
+							indexToSplit = 0;
+							offset = 1.0f;
+						}
+					}
+					else
+					{
+						// 2 is the odd-one out, < 0.5
+						if(uv1.x > 0.5f)
+						{
+							indexToSplit = 2;
+							offset = 1.0f;
+						}
+						// 0 is the odd-one out, > 0.5
+						else
+						{
+							indexToSplit = 0;
+							offset = -1.0f;
+						}
+
+					}
+				}
+				else if(fabs(uv1.x - uv0.x) > 0.5f)
+				{
+					if(uv0.x < 0.5f)
+					{
+						// 1 is the odd-one out, > 0.5
+						if(uv2.x < 0.5f)
+						{
+							indexToSplit = 1;
+							offset = -1.0f;
+						}
+						// 0 is the odd-one out, < 0.5
+						else
+						{
+							indexToSplit = 0;
+							offset = 1.0f;
+						}
+					}
+					else
+					{
+						// 1 is the odd-one out, < 0.5
+						if(uv2.x > 0.5f)
+						{
+							indexToSplit = 1;
+							offset = 1.0f;
+						}
+						// 0 is the odd-one out, > 0.5
+						else
+						{
+							indexToSplit = 0;
+							offset = -1.0f;
+						}
+					}
+				}
+				else if(fabs(uv1.x - uv2.x) > 0.5f)
+				{
+					if(uv2.x < 0.5f)
+					{
+						// 1 is the odd-one out, > 0.5
+						if(uv0.x < 0.5f)
+						{
+							indexToSplit = 1;
+							offset = -1.0f;
+						}
+						// 2 is the odd-one out, < 0.5
+						else
+						{
+							indexToSplit = 2;
+							offset = 1.0f;
+						}
+					}
+					else
+					{
+						// 1 is the odd-one out, < 0.5
+						if(uv0.x > 0.5f)
+						{
+							indexToSplit = 1;
+							offset = 1.0f;
+						}
+						// 2 is the odd-one out, > 0.5
+						else
+						{
+							indexToSplit = 2;
+							offset = -1.0f;
+						}
+					}
+				}
+
+				if(indexToSplit != (UINT32)-1)
+				{
+					Vector3 position = *(Vector3*)&outVertices[(vertexOffset + i + indexToSplit) * vertexStride];
+					extraPositions = writeVector3(extraPositions, vertexStride, position);
+
+					if(extraNormals)
+					{
+						Vector3 normal = *(Vector3*)&outNormals[(vertexOffset + i + indexToSplit) * vertexStride];
+						extraNormals = writeVector3(extraNormals, vertexStride, normal);
+					}
+
+					Vector2 uv = *(Vector2*)&outUV[(i + indexToSplit) * vertexStride];
+					uv.x += offset;
+
+					extraUV = writeVector2(extraUV, vertexStride, uv);
+
+					// Index 0 maps to vertex 2, index 1 to vertex 1, index 2 to vertex 0
+					if(indexToSplit == 0)
+						indexToSplit = 2;
+					else if(indexToSplit == 2)
+						indexToSplit = 0;
+
+					outIndices[i + indexToSplit] = vertexOffset + numIndices + extraVertIdx;
+
+					assert(extraVertIdx < (3 * pow(4, quality)));
+					extraVertIdx++;
+				}
+			}
 		}
 	}
 

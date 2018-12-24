@@ -13,7 +13,7 @@ mixin GBufferOutput
 			GBufferBData.w = 1.0f; // Marks that some deferred data was written
 			GBufferCData.x = data.roughness;
 			GBufferCData.y = data.metalness;
-			GBufferDData.x = data.mask;
+			GBufferDData = data.mask;
 		}
 	};
 };
