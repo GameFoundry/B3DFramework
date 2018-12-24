@@ -53,6 +53,9 @@ namespace bs::ct
 		m = bs_new<Pimpl>();
 		m->context = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:nil];
 
+		if(!m->context)
+			BS_EXCEPT(InternalErrorException, "Unable to create OpenGL context.");
+
 		markAsDirty();
 	}}
 
