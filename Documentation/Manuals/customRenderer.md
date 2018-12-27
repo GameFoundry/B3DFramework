@@ -22,7 +22,9 @@ Majority of the renderer interface consists of methods that notify the renderer 
  - @ref bs::ReflectionProbe "ReflectionProbe"
  - @ref bs::Skybox "Skybox"
  - @ref bs::LightProbeVolume "LightProbeVolume"
- 
+ - @ref bs::ParticleSystem "ParticleSystem"
+ - @ref bs::Decal "Decal"
+  
 Whenever such objects are created, destroyed or some property on them is updated, one of the following methods is called:
  - @ref bs::ct::Renderer::notifyCameraAdded "ct::Renderer::notifyCameraAdded()" - Called when a new **Camera** is created (e.g. when a **CCamera** component is added to the scene).
  - @ref bs::ct::Renderer::notifyCameraUpdated "ct::Renderer::notifyCameraUpdated()" - Called when **Camera** position, rotation or scale changes.
@@ -41,6 +43,12 @@ Whenever such objects are created, destroyed or some property on them is updated
  - @ref bs::ct::Renderer::notifyLightProbeVolumeAdded "ct::Renderer::notifyLightProbeVolumeAdded()" - Called when a new **LightProbeVolume** is created (e.g. when a **CLightProbeVolume** component is added to the scene).
  - @ref bs::ct::Renderer::notifyLightProbeVolumeUpdated "ct::Renderer::notifyLightProbeVolumeUpdated()" - Called when probes are added or modified in a **LightProbeVolume**. 
  - @ref bs::ct::Renderer::notifyLightProbeVolumeRemoved "ct::Renderer::notifyLightProbeVolumeRemoved()" - Called when a **LightProbeVolume** is destroyed.
+ - @ref bs::ct::Renderer::notifyParticleSystemAdded "ct::Renderer::notifyParticleSystemAdded()" - Called when a new **ParticleSystem** is created (e.g. when a **CParticleSystem** component is added to the scene).
+ - @ref bs::ct::Renderer::notifyParticleSystemUpdated "ct::Renderer::notifyParticleSystemUpdated()" - Called when particle system transform changes or when its settings are modified. 
+ - @ref bs::ct::Renderer::notifyParticleSystemRemoved "ct::Renderer::notifyParticleSystemRemoved()" - Called when a **ParticleSystem** is destroyed.
+ - @ref bs::ct::Renderer::notifyDecalAdded "ct::Renderer::notifyDecalAdded()" - Called when a new **Decal** is created (e.g. when a **CDecal** component is added to the scene).
+ - @ref bs::ct::Renderer::notifyDecalUpdated "ct::Renderer::notifyDecalUpdated()" - Called when decal position, rotation or scale changes.
+ - @ref bs::ct::Renderer::notifyDecalRemoved "ct::Renderer::notifyDecalRemoved()" - Called when a **Decal** is destroyed.
  
 Your renderer implementation can choose to implement some or all of those methods. By implementing these methods your renderer implementation is expected to keep track of the scene state, and then use that scene state for rendering. For example most renderers will at least need to keep track of all active cameras and renderable objects.
  
