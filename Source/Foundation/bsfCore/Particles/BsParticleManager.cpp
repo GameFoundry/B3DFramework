@@ -465,7 +465,7 @@ namespace bs
 
 		mSwapBuffers = true;
 
-		return &mSimulationData[mReadBufferIdx];
+		return &mSimulationData[mWriteBufferIdx];
 	}
 
 	void ParticleManager::sortParticles(const ParticleSet& set, ParticleSortMode sortMode, const Vector3& viewPoint, 
