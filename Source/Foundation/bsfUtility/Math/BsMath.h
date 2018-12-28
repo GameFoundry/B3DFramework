@@ -901,8 +901,14 @@ namespace bs
 		static constexpr float PI = 3.14159265358979323846f;
 		static constexpr float TWO_PI = (float)(2.0f * PI);
 		static constexpr float HALF_PI = (float)(0.5f * PI);
+		static constexpr float QUARTER_PI = (float)(0.25f * PI);
+		static constexpr float INV_PI = (float)(1 / PI);
+		static constexpr float INV_HALF_PI = (float)(INV_PI / 2);
+		static constexpr float INV_TWO_PI = (float)(2.0f * INV_PI);
 		static constexpr float DEG2RAD = PI / 180.0f;
 		static constexpr float RAD2DEG = 180.0f / PI;
+		static constexpr float SQRT2 = 1.4142135623730951f;
+		static constexpr float INV_SQRT2 = (float)(1.0f / SQRT2);
 		static const float LOG2;
 	};
 
