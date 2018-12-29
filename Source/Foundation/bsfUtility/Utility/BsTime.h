@@ -80,6 +80,46 @@ namespace bs
 		 */
 		UINT64 getStartTimeMs() const { return mAppStartTime; }
 
+		/**
+		 * Gets the current date and time in textual form.
+		 * 
+		 * @param[in]	isUTC Outputs the date in Coordinated Universal Time, otherwise in local time.
+		 * 
+		 * @return A String containing the current date and time.
+		 * 
+		 * @note
+		 * Thread safe.
+		 * The output format is <DayOfWeek>, <Month> <NumericalDate>, <NumericalYear> <HH>::<MM>::<SS>.
+		 */
+		String getCurrentDateTime(bool isUTC);
+
+		/**
+		 * Gets the current time in textual form
+		 * 
+		 * @param[in]	isUTC Outputs the date in Coordinated Universal Time, otherwise in local time.
+		 * 
+		 * @return A String containing the current time.
+		 * 
+		 * @note
+		 * Thread safe.
+		 * The output format is <HH>::<MM>::<SS>.
+		 */
+		String getCurrentTime(bool isUTC);
+
+		/**
+		 * Gets the date and time where the application has been started in textual form.
+		 *
+		 * @param[in]	isUTC Outputs the date in Coordinated Universal Time, otherwise in local time.
+		 * 
+		 * @return A String containing the application startup date and time.
+		 * 
+		 * @note
+		 * Thread safe.
+		 * The output format is <DayOfWeek>, <Month> <NumericalDate>, <NumericalYear> <HH>::<MM>::<SS>.
+		 */
+		String getAppStartUpDate(bool isUTC);
+
+
 		/** @name Internal 
 		 *  @{
 		 */
@@ -124,6 +164,8 @@ namespace bs
 		UINT64 mFixedStep = 16666; // 60 times a second in microseconds
 		UINT64 mLastFixedUpdateTime = 0;
 		bool mFirstFixedFrame = true;
+
+		std::time_t mAppStartUpDate;
 
 		Timer* mTimer;
 	};
