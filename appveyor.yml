@@ -12,6 +12,16 @@ environment:
     secure: vkR/qaZuHZ7k7iZQBfLlNYJzx/+rzkhRlOloJq7o0mk=
 
 build_script:
+  # Setup and CMake configure
+  - cmd: set INSTALL_DIR=C:/Projects/bsf/install/Release
+  - cmd: set INSTALL_DIR_DBG=C:/Projects/bsf/install/Debug
+  - cmd: mkdir "%INSTALL_DIR%"
+  - cmd: mkdir "%INSTALL_DIR_DBG%"
+  - cmd: mkdir Build
+  - cmd: cd Build
+  - cmd: cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_INSTALL_PREFIX:STRING=%INSTALL_DIR% ..
+  - cmd: cd ..
+  # Generate documentation (only tagged and nightly builds)
   - ps: |
         if($env:APPVEYOR_REPO_TAG -eq "true" -or $env:APPVEYOR_SCHEDULED_BUILD -eq "true")
         {
@@ -28,13 +38,8 @@ build_script:
           cd ../..
           7z a bsfDocs.zip ./Documentation/Generated/* -r
         }
-  - cmd: set INSTALL_DIR=C:/Projects/bsf/install/Release
-  - cmd: set INSTALL_DIR_DBG=C:/Projects/bsf/install/Debug
-  - cmd: mkdir "%INSTALL_DIR%"
-  - cmd: mkdir "%INSTALL_DIR_DBG%"
-  - cmd: mkdir Build
+  # Build and install
   - cmd: cd Build
-  - cmd: cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_INSTALL_PREFIX:STRING=%INSTALL_DIR% ..
   - cmd: cmake --build ./ --config Release
   - cmd: cmake --build ./ --config Release --target INSTALL
   # Build debug version as well, if building due to a tag
@@ -101,7 +106,7 @@ deploy:
     bucket: bsf-nightly
     region: us-east-1
     folder:
-    artifact: bsfBinaries bsfSymbols
+    artifact: bsfBinaries,bsfSymbols
     set_public: false
     on:
       APPVEYOR_SCHEDULED_BUILD: true
@@ -113,7 +118,7 @@ deploy:
     bucket: bsf-nightly
     region: us-east-1
     folder:
-    artifact: bsfBinaries bsfSymbols
+    artifact: bsfBinaries,bsfSymbols
     set_public: false
     on:
       APPVEYOR_REPO_TAG: true
