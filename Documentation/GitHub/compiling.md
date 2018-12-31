@@ -105,7 +105,7 @@ The following dependencies will need to be installed manually. Which ones are re
       - `mv /usr/bin/bison /usr/bin/bison-2.3`
 
 **All OS**
-  - **Vulkan SDK 1.0.65.1** (Optional) 
+  - **Vulkan SDK 1.1.85.0** (Optional) 
     - Only needed if you selected the Vulkan render API during build configuration
     - https://lunarg.com/vulkan-sdk/
     - Set up VULKAN_SDK environment variable pointing to your instalation
