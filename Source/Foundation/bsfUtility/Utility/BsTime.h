@@ -89,7 +89,7 @@ namespace bs
 		 * 
 		 * @note
 		 * Thread safe.
-		 * The output format is <DayOfWeek>, <Month> <NumericalDate>, <NumericalYear> <HH>::<MM>::<SS>.
+		 * The output format is [DayOfWeek], [Month] [NumericalDate], [NumericalYear] [HH]::[MM]::[SS].
 		 */
 		String getCurrentDateTime(bool isUTC);
 
@@ -102,7 +102,7 @@ namespace bs
 		 * 
 		 * @note
 		 * Thread safe.
-		 * The output format is <HH>::<MM>::<SS>.
+		 * The output format is [HH]::[MM]::[SS].
 		 */
 		String getCurrentTime(bool isUTC);
 
@@ -115,7 +115,7 @@ namespace bs
 		 * 
 		 * @note
 		 * Thread safe.
-		 * The output format is <DayOfWeek>, <Month> <NumericalDate>, <NumericalYear> <HH>::<MM>::<SS>.
+		 * The output format is [DayOfWeek], [Month] [NumericalDate], [NumericalYear] [HH]::[MM]::[SS].
 		 */
 		String getAppStartUpDate(bool isUTC);
 

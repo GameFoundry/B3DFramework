@@ -4,7 +4,7 @@ Setting up a project				{#build}
 
 This manual will explain how to set up your own project and link it with bs::framework. We'll explore two options:
  - **Link with binaries** - Either download the precompiled set of binaries or compile them yourself. Then create a project that links with the binaries. If you do not wish to compile `bsf` yourself, this is the best approach to follow.
- - **Link with source** - Grab the source code and include it as part of your own project. Requires you to go through the same steps as if you were compiling `bsf` from scratch, but allows you to easily recompile the framework from latest source, or due to your own modifications. If you plan on making changes to the framework, or want to frequently update to the latest version, this is the best approach.
+ - **Link with source** - Grab the source code and include it as part of your own project. Requires you to go through the same steps as if you were compiling `bsf` from scratch, but allows you to easily recompile the framework from latest source, or due to your own modifications. If you plan on making changes to the framework, or want to frequently update to the latest version, this is the best approach. Linux users should also prefer this approach as binary incompatibilities between different Linux distributions might make the provided binaries incompatible with your particular distribution.
 
 # Link with binaries {#build_a}
  
@@ -17,14 +17,15 @@ Whether you downloaded precompiled binaries or compiled them yourself you should
  - `include` - Contains public header files
  - `lib` - Contains shared and import libraries
  
-For precompiled dependencies these folders will be part of the downloaded archive, and for manually compiled option they will be placed in the chosen `install` folder.
+If you downloaded a precompiled package these folders will be part of the downloaded archive.
+If you manually compiled they will be placed in the chosen `install` folder after you run the install step (as described by the compilation guide on the GitHub page).
 
 In order to get your project running you will need to:
  - Provide a path to the bsf's include folder to your compiler
  - Link with the `bsf` dynamic/shared library
  - Make sure your executable can find all the dynamic libraries and data files
 
-We'll use CMake to create a project that will ultimately work with any major build tool (like Visual Studio, XCode or Makefiles).
+We'll handle these steps by creating a CMake project that will ultimately work with any major build tool (like Visual Studio, XCode or Makefiles).
  
 ## CMake {#build_a_a}
 CMake is a build system that allows you define a project that can then be used for building across multiple platforms and build tools. Such CMake project can be used to create a Visual Studio solution, XCode project or Unix Makefiles. `bsf` also comes with modules that make using `bsf` in your CMake project easier.
@@ -69,6 +70,8 @@ find_package(bsf REQUIRED)
 target_link_libraries(myApp PRIVATE bsf)
 ```
 
+Make sure to modify `C:/path/to/bsf/install` and set it to the path where you extracted/installed `bsf`.
+
 ## Code {#build_a_d}
 The CMake file above references `Main.cpp` file. The most basic file that runs the framework looks like so:
 ```
@@ -99,7 +102,7 @@ You are now ready to build the project. From your project's root folder execute 
  - `mkdir build`
  - `cd build`
  - `cmake -G "$generator" ..`
-   - Where *$generator$* should be replaced with any of the supported generators. Some common ones:
+   - Where *$generator* should be replaced with any of the supported generators. Some common ones:
      - `Visual Studio 15 2017 Win64` - Visual Studio 2017 (64-bit build)
 	 - `Unix Makefiles`
 	 - `Ninja`
@@ -160,6 +163,8 @@ add_dependencies(myApp bsfFBXImporter bsfFontImporter bsfFreeImgImporter)
 # When 'myApp' target is built, copy required binaries from bsf
 copyBsfBinaries(myApp ${BSF_DIRECTORY})
 ```
+
+Make sure to set `C:/bsf` to the directory where you cloned `bsf`.
 
 ## Code {#build_b_c}
 The CMake file above references `Main.cpp` file. The most basic file that runs the framework looks like so:
