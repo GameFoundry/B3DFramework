@@ -6,6 +6,9 @@
 
 namespace bs
 {
+	constexpr UINT32 Time::MAX_ACCUM_FIXED_UPDATES;
+	constexpr UINT32 Time::NEW_FIXED_UPDATES_PER_FRAME;
+
 	const double Time::MICROSEC_TO_SEC = 1.0/1000000.0;
 
 	Time::Time()
