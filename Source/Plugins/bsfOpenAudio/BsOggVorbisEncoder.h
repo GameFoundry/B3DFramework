@@ -15,7 +15,7 @@ namespace bs
 	class OggVorbisEncoder
 	{
 	public:
-		OggVorbisEncoder();
+		OggVorbisEncoder() = default;
 		~OggVorbisEncoder();
 
 		/** 
@@ -68,10 +68,10 @@ namespace bs
 
 		std::function<void(UINT8*, UINT32)> mWriteCallback;
 		UINT8 mBuffer[BUFFER_SIZE];
-		UINT32 mBufferOffset;
-		UINT32 mNumChannels;
-		UINT32 mBitDepth;
-		bool mClosed;
+		UINT32 mBufferOffset = 0;
+		UINT32 mNumChannels = 0;
+		UINT32 mBitDepth = 0;
+		bool mClosed = true;
 
 		ogg_stream_state mOggState;
 		vorbis_info mVorbisInfo;

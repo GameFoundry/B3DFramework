@@ -28,7 +28,7 @@ namespace bs
 	class FLACDecoder : public AudioDecoder
 	{
 	public:
-		FLACDecoder();
+		FLACDecoder() = default;
 		~FLACDecoder();
 
 		/** @copydoc AudioDecoder::open */
@@ -46,7 +46,7 @@ namespace bs
 		/** Cleans up the FLAC decoder. */
 		void close();
 
-		FLAC__StreamDecoder* mDecoder;
+		FLAC__StreamDecoder* mDecoder = nullptr;
 		FLACDecoderData mData;
 	};
 

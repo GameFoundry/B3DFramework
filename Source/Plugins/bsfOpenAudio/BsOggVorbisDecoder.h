@@ -44,7 +44,7 @@ namespace bs
 	private:
 		OggDecoderData mDecoderData;
 		OggVorbis_File mOggVorbisFile;
-		UINT32 mChannelCount;
+		UINT32 mChannelCount = 0;
 	};
 
 	/** @} */

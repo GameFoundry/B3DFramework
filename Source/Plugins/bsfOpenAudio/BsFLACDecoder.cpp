@@ -128,10 +128,6 @@ namespace bs
 		data->error = true;
 	}
 
-	FLACDecoder::FLACDecoder()
-		:mDecoder(nullptr)
-	{ }
-
 	FLACDecoder::~FLACDecoder()
 	{
 		close();

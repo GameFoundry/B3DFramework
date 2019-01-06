@@ -19,10 +19,6 @@ namespace bs
 		mBufferOffset += length;						\
 	}
 
-	OggVorbisEncoder::OggVorbisEncoder()
-		:mBufferOffset(0), mNumChannels(0), mBitDepth(0), mClosed(true)
-	{ }
-
 	OggVorbisEncoder::~OggVorbisEncoder()
 	{
 		close();

@@ -41,7 +41,6 @@ namespace bs
 	static ov_callbacks callbacks = { &oggRead, &oggSeek, nullptr, &oggTell };
 
 	OggVorbisDecoder::OggVorbisDecoder()
-		:mChannelCount(0)
 	{
 		mOggVorbisFile.datasource = nullptr;
 	}
