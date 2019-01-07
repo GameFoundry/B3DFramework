@@ -15,7 +15,7 @@ namespace bs
 {
 	AnimationManager::AnimationManager()
 		: mNextId(1), mUpdateRate(1.0f / 60.0f), mAnimationTime(0.0f), mLastAnimationUpdateTime(0.0f)
-		, mNextAnimationUpdateTime(0.0f), mPaused(false), mPoseReadBufferIdx(1), mPoseWriteBufferIdx(0)
+		, mNextAnimationUpdateTime(0.0f), mPaused(false), mPoseReadBufferIdx(2), mPoseWriteBufferIdx(0)
 	{
 		mBlendShapeVertexDesc = VertexDataDesc::create();
 		mBlendShapeVertexDesc->addVertElem(VET_FLOAT3, VES_POSITION, 1, 1);
@@ -162,7 +162,10 @@ namespace bs
 
 		mSwapBuffers = true;
 
-		return &mAnimData[mPoseReadBufferIdx];
+		if(!async)
+			return &mAnimData[mPoseWriteBufferIdx];
+		else
+			return &mAnimData[mPoseReadBufferIdx];
 	}
 
 	void AnimationManager::evaluateAnimation(AnimationProxy* anim, UINT32& curBoneIdx)
