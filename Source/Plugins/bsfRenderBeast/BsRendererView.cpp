@@ -293,16 +293,28 @@ namespace bs { namespace ct
 	{
 		UINT64 cameraLayers = mProperties.visibleLayers;
 		const ConvexVolume& worldFrustum = mProperties.cullFrustum;
+		const Vector3& worldCameraPosition = mCamera->getTransform().getPosition();
+		float baseCullDistance = mRenderSettings->cullDistance;
 
 		for (UINT32 i = 0; i < (UINT32)cullInfos.size(); i++)
 		{
 			if ((cullInfos[i].layer & cameraLayers) == 0)
 				continue;
 
+			// Do distance culling
+			const Sphere& boundingSphere = cullInfos[i].bounds.getSphere();
+			const Vector3& worldRenderablePosition = boundingSphere.getCenter();
+
+			float distanceToCameraSq = worldCameraPosition.squaredDistance(worldRenderablePosition);
+			float correctedCullDistance = cullInfos[i].cullDistanceFactor * baseCullDistance;
+			float maxDistanceToCamera = correctedCullDistance + boundingSphere.getRadius();
+
+			if (distanceToCameraSq > maxDistanceToCamera * maxDistanceToCamera)
+				continue;
+
 			// Do frustum culling
 			// Note: This is bound to be a bottleneck at some point. When it is ensure that intersect methods use vector
 			// operations, as it is trivial to update them. Also consider spatial partitioning.
-			const Sphere& boundingSphere = cullInfos[i].bounds.getSphere();
 			if (worldFrustum.intersects(boundingSphere))
 			{
 				// More precise with the box

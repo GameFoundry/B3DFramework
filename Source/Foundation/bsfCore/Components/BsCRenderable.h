@@ -49,6 +49,14 @@ namespace bs
 		BS_SCRIPT_EXPORT(n:Materials,pr:getter)
 		const Vector<HMaterial>& getMaterials() { return mInternal->getMaterials(); }
 
+		/** @copydoc Renderable::setCullDistance() */
+		BS_SCRIPT_EXPORT(n:CullDistance, pr:setter)
+		void setCullDistanceFactor(float factor) { mInternal->setCullDistanceFactor(factor); }
+
+		/** @copydoc Renderable::getCullDistance() */
+		BS_SCRIPT_EXPORT(n:CullDistance, pr:getter)
+		float getCullDistanceFactor() const { return mInternal->getCullDistanceFactor(); }
+		
 		/** @copydoc Renderable::setLayer */
 		BS_SCRIPT_EXPORT(n:Layers,pr:setter)
 		void setLayer(UINT64 layer) { mInternal->setLayer(layer); }

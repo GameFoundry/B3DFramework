@@ -132,6 +132,14 @@ namespace bs
 		_markCoreDirty();
 	}
 
+	template<bool Core>
+	void TRenderable<Core>::setCullDistanceFactor(float factor)
+	{
+		mCullDistanceFactor = factor;
+
+		_markCoreDirty();
+	}
+
 	template class TRenderable < false >;
 	template class TRenderable < true >;
 
@@ -310,6 +318,7 @@ namespace bs
 				rttiGetElemSize(numMaterials) +
 				rttiGetElemSize(animationId) +
 				rttiGetElemSize(mAnimType) +
+				rttiGetElemSize(mCullDistanceFactor) +
 				sizeof(SPtr<ct::Mesh>) +
 				numMaterials * sizeof(SPtr<ct::Material>);
 		}
@@ -329,6 +338,7 @@ namespace bs
 			dataPtr = rttiWriteElem(numMaterials, dataPtr);
 			dataPtr = rttiWriteElem(animationId, dataPtr);
 			dataPtr = rttiWriteElem(mAnimType, dataPtr);
+			dataPtr = rttiWriteElem(mCullDistanceFactor, dataPtr);
 
 			SPtr<ct::Mesh>* mesh = new (dataPtr) SPtr<ct::Mesh>();
 			if (mMesh.isLoaded())
@@ -617,6 +627,7 @@ namespace bs
 			dataPtr = rttiReadElem(numMaterials, dataPtr);
 			dataPtr = rttiReadElem(mAnimationId, dataPtr);
 			dataPtr = rttiReadElem(mAnimType, dataPtr);
+			dataPtr = rttiReadElem(mCullDistanceFactor, dataPtr);
 
 			SPtr<Mesh>* mesh = (SPtr<Mesh>*)dataPtr;
 			mMesh = *mesh;

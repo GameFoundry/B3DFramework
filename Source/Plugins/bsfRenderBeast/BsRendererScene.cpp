@@ -244,7 +244,7 @@ namespace bs {	namespace ct
 		renderable->setRendererId(renderableId);
 
 		mInfo.renderables.push_back(bs_new<RendererRenderable>());
-		mInfo.renderableCullInfos.push_back(CullInfo(renderable->getBounds(), renderable->getLayer()));
+		mInfo.renderableCullInfos.push_back(CullInfo(renderable->getBounds(), renderable->getLayer(), renderable->getCullDistanceFactor()));
 
 		RendererRenderable* rendererRenderable = mInfo.renderables.back();
 		rendererRenderable->renderable = renderable;
@@ -436,6 +436,7 @@ namespace bs {	namespace ct
 
 		mInfo.renderables[renderableId]->updatePerObjectBuffer();
 		mInfo.renderableCullInfos[renderableId].bounds = renderable->getBounds();
+		mInfo.renderableCullInfos[renderableId].cullDistanceFactor = renderable->getCullDistanceFactor();
 	}
 
 	void RendererScene::unregisterRenderable(Renderable* renderable)

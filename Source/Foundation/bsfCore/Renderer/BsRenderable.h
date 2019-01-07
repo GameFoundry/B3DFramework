@@ -95,6 +95,12 @@ namespace bs
 		 */
 		void setUseOverrideBounds(bool enable);
 
+		/** Factor to be applied to the cull distance set in the camera's render settings.  */
+		void setCullDistanceFactor(float factor);
+
+		/** @copydoc setCullDistanceFactor() */
+		float getCullDistanceFactor() const { return mCullDistanceFactor; }
+
 		/** @copydoc setLayer() */
 		UINT64 getLayer() const { return mLayer; }
 
@@ -132,6 +138,7 @@ namespace bs
 		UINT64 mLayer = 1;
 		AABox mOverrideBounds;
 		bool mUseOverrideBounds = false;
+		float mCullDistanceFactor = 1.0f;
 		Matrix4 mTfrmMatrix = BsIdentity;
 		Matrix4 mTfrmMatrixNoScale = BsIdentity;
 		RenderableAnimType mAnimType = RenderableAnimType::None;

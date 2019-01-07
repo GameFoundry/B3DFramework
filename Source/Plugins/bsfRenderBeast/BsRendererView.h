@@ -201,12 +201,13 @@ namespace bs { namespace ct
 	/** Information used for culling an object against a view. */
 	struct CullInfo
 	{
-		CullInfo(const Bounds& bounds, UINT64 layer = -1)
-			:bounds(bounds), layer(layer)
+		CullInfo(const Bounds& bounds, UINT64 layer = -1, float cullDistanceFactor = 1.0f)
+			:bounds(bounds), layer(layer), cullDistanceFactor(cullDistanceFactor)
 		{ }
 
-		Bounds bounds;
 		UINT64 layer;
+		Bounds bounds;
+		float cullDistanceFactor;
 	};
 
 	/**	Renderer information specific to a single render target. */

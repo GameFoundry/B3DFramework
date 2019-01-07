@@ -212,6 +212,7 @@ namespace bs
 		p(enableIndirectLighting);
 		p(overlayOnly);
 		p(enableSkybox);
+		p(cullDistance);
 	}
 
 	template void RenderSettings::rttiEnumFields(RttiCoreSyncSize);

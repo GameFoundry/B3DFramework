@@ -6,6 +6,7 @@
 #include "Reflection/BsIReflectable.h"
 #include "Math/BsVector3.h"
 #include "Image/BsColor.h"
+#include <cfloat>
 
 namespace bs
 {
@@ -665,6 +666,13 @@ namespace bs
 		 */
 		BS_SCRIPT_EXPORT()
 		bool enableSkybox = true;
+
+		/** 
+		 * The absolute base cull-distance for objects rendered through this camera in world units. Objects will use this 
+		 * distance and apply their own factor to it to determine whether they should be visible.
+		 */
+		BS_SCRIPT_EXPORT()
+		float cullDistance = FLT_MAX;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
