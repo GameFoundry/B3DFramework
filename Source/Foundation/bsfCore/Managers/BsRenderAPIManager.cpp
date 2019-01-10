@@ -8,10 +8,6 @@
 
 namespace bs
 {
-	RenderAPIManager::RenderAPIManager()
-		:mRenderAPIInitialized(false)
-	{ }
-
 	RenderAPIManager::~RenderAPIManager()
 	{
 		if(mRenderAPIInitialized)

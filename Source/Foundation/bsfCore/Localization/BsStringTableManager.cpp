@@ -4,12 +4,6 @@
 
 namespace bs
 {
-	StringTableManager::StringTableManager()
-		:mActiveLanguage(StringTable::DEFAULT_LANGUAGE)
-	{
-
-	}
-
 	void StringTableManager::setActiveLanguage(Language language)
 	{
 		if (language != mActiveLanguage)

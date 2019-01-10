@@ -20,7 +20,7 @@ namespace bs { namespace ct
 	class BS_CORE_EXPORT QueryManager : public Module<QueryManager>
 	{
 	public:
-		QueryManager();
+		QueryManager() = default;
 		~QueryManager();
 
 		/** 

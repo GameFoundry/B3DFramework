@@ -16,12 +16,10 @@ namespace bs
 	/** Contains information about a resource dependency, including the dependant resource and number of references to it. */
 	struct ResourceDependency
 	{
-		ResourceDependency()
-			:numReferences(0)
-		{ }
+		ResourceDependency() = default;
 
 		HResource resource;
-		UINT32 numReferences;
+		UINT32 numReferences = 0;
 	};
 
 	/** Static class containing various utility methods that do not fit anywhere else. */

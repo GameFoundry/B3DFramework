@@ -19,7 +19,7 @@ namespace bs
 	class BS_CORE_EXPORT DeferredCallManager : public Module<DeferredCallManager>
 	{
 	public:
-		DeferredCallManager();
+		DeferredCallManager() = default;
 
 		/**
 		 * Register a deferred call that will be executed once at the start of next frame.

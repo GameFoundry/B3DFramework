@@ -14,7 +14,7 @@ namespace bs
 	class RenderAPIFactory
 	{
 	public:
-		virtual ~RenderAPIFactory() { }
+		virtual ~RenderAPIFactory() = default;
 
 		/**	Creates and starts up the render system managed by this factory.  */
 		virtual void create() = 0;

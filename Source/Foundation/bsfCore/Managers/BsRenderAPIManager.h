@@ -16,7 +16,7 @@ namespace bs
 	class BS_CORE_EXPORT RenderAPIManager : public Module<RenderAPIManager>
 	{
 	public:
-		RenderAPIManager();
+		RenderAPIManager() = default;
 		~RenderAPIManager();
 
 		/**
@@ -33,7 +33,7 @@ namespace bs
 		void registerFactory(SPtr<RenderAPIFactory> factory);
 	private:
 		Vector<SPtr<RenderAPIFactory>> mAvailableFactories;
-		bool mRenderAPIInitialized;
+		bool mRenderAPIInitialized = false;
 	};
 
 	/** @} */

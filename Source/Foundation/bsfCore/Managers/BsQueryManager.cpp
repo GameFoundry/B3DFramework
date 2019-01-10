@@ -8,11 +8,6 @@
 
 namespace bs { namespace ct
 {
-	QueryManager::QueryManager()
-	{
-
-	}
-
 	QueryManager::~QueryManager()
 	{
 		// Trigger all remaining queries, whether they completed or not

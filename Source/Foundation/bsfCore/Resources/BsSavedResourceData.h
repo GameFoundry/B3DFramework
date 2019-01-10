@@ -19,7 +19,7 @@ namespace bs
 	class BS_CORE_EXPORT SavedResourceData : public IReflectable
 	{
 	public:
-		SavedResourceData();
+		SavedResourceData() = default;
 		SavedResourceData(const Vector<UUID>& dependencies, bool allowAsync, UINT32 compressionMethod);
 
 		/**	Returns a list of all resource dependencies. */
@@ -33,8 +33,8 @@ namespace bs
 
 	private:
 		Vector<UUID> mDependencies;
-		bool mAllowAsync;
-		UINT32 mCompressionMethod;
+		bool mAllowAsync = true;
+		UINT32 mCompressionMethod = 0;
 
 	/************************************************************************/
 	/* 								SERIALIZATION                      		*/

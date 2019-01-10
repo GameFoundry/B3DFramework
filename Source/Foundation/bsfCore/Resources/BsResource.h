@@ -17,7 +17,7 @@ namespace bs
 	{
 	public:
 		Resource(bool requiresGpuInitialization = true);
-		virtual ~Resource() {};
+		virtual ~Resource() = default;
 
 		/**	Returns the name of the resource. */
 		const String& getName() const;

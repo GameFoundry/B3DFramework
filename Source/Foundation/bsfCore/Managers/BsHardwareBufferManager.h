@@ -25,8 +25,8 @@ namespace bs
 	class BS_CORE_EXPORT HardwareBufferManager : public Module<HardwareBufferManager>
 	{
 	public:
-		HardwareBufferManager();
-		virtual ~HardwareBufferManager();
+		HardwareBufferManager() = default;
+		virtual ~HardwareBufferManager() = default;
 
 		/**
 		 * Creates a new vertex buffer used for holding number of vertices and other per-vertex data. Buffer can be bound 

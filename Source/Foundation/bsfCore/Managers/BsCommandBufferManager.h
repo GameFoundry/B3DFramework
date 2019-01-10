@@ -19,7 +19,7 @@ namespace bs { namespace ct
 	class BS_CORE_EXPORT CommandBufferManager : public Module<CommandBufferManager>
 	{
 	public:
-		virtual ~CommandBufferManager() {}
+		virtual ~CommandBufferManager() = default;
 
 		/** @copydoc CommandBuffer::create */
 		SPtr<CommandBuffer> create(GpuQueueType type, UINT32 deviceIdx = 0, UINT32 queueIdx = 0,

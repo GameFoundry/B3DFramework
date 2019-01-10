@@ -10,14 +10,6 @@
 
 namespace bs 
 {
-	HardwareBufferManager::HardwareBufferManager()
-	{
-	}
-
-	HardwareBufferManager::~HardwareBufferManager()
-	{
-	}
-
 	SPtr<VertexDeclaration> HardwareBufferManager::createVertexDeclaration(const SPtr<VertexDataDesc>& desc)
 	{
 		VertexDeclaration* decl = new (bs_alloc<VertexDeclaration>()) VertexDeclaration(desc->createElements());

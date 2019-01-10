@@ -218,24 +218,22 @@ namespace bs
 	{
 		struct ParamOffset
 		{
-			ParamOffset()
-				:paramIdx(0), location(0)
-			{ }
+			ParamOffset() = default;
 
 			ParamOffset(UINT32 _paramIdx, UINT32 _location)
 				:paramIdx(_paramIdx), location(_location)
 			{ }
 
-			UINT32 paramIdx;
-			UINT32 location;
+			UINT32 paramIdx = 0;
+			UINT32 location = 0;
 		};
 
-		LocalizedStringData();
+		LocalizedStringData() = default;
 		~LocalizedStringData();
 
 		String string;
-		UINT32 numParameters;
-		ParamOffset* parameterOffsets; 
+		UINT32 numParameters = 0;
+		ParamOffset* parameterOffsets = nullptr; 
 
 		void concatenateString(String& outputString, String* parameters, UINT32 numParameterValues) const;
 		void updateString(const String& string);

@@ -28,7 +28,7 @@ namespace bs
 	class BS_CORE_EXPORT GpuResourceData : public IReflectable
 	{
 	public:
-		GpuResourceData();
+		GpuResourceData() = default;
 		GpuResourceData(const GpuResourceData& copy);
 		virtual ~GpuResourceData();
 
@@ -83,9 +83,9 @@ namespace bs
 		virtual UINT32 getInternalBufferSize() const = 0;
 
 	private:
-		UINT8* mData;
-		bool mOwnsData;
-		mutable bool mLocked;
+		UINT8* mData = nullptr;
+		bool mOwnsData = false;
+		mutable bool mLocked = false;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

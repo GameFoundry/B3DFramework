@@ -17,8 +17,8 @@ namespace bs
 	class BS_CORE_EXPORT RenderWindowManager : public Module<RenderWindowManager>
 	{
 	public:
-		RenderWindowManager();
-		~RenderWindowManager();
+		RenderWindowManager() = default;
+		~RenderWindowManager() = default;
 
 		/**
 		 * Creates a new render window using the specified options. Optionally makes the created window a child of another
@@ -78,8 +78,8 @@ namespace bs
 		Map<UINT32, RenderWindow*> mWindows;
 		Vector<RenderWindow*> mModalWindowStack;
 
-		RenderWindow* mWindowInFocus;
-		RenderWindow* mNewWindowInFocus;
+		RenderWindow* mWindowInFocus = nullptr;
+		RenderWindow* mNewWindowInFocus = nullptr;
 		Vector<RenderWindow*> mMovedOrResizedWindows;
 		Vector<RenderWindow*> mMouseLeftWindows;
 		Vector<RenderWindow*> mCloseRequestedWindows;

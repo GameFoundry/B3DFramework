@@ -102,50 +102,44 @@ namespace bs
 		/**	Contains data about a cached blend state. */
 		struct CachedBlendState
 		{
-			CachedBlendState()
-				:id(0)
-			{ }
+			CachedBlendState() = default;
 
 			CachedBlendState(UINT32 id)
 				:id(id)
 			{ }
 
 			std::weak_ptr<BlendState> state;
-			UINT32 id;
+			UINT32 id = 0;
 		};
 
 		/**	Contains data about a cached rasterizer state. */
 		struct CachedRasterizerState
 		{
-			CachedRasterizerState()
-				:id(0)
-			{ }
+			CachedRasterizerState() = default;
 
 			CachedRasterizerState(UINT32 id)
 				:id(id)
 			{ }
 
 			std::weak_ptr<RasterizerState> state;
-			UINT32 id;
+			UINT32 id = 0;
 		};
 
 		/** Contains data about a cached depth stencil state. */
 		struct CachedDepthStencilState
 		{
-			CachedDepthStencilState()
-				:id(0)
-			{ }
+			CachedDepthStencilState() = default;
 
 			CachedDepthStencilState(UINT32 id)
 				:id(id)
 			{ }
 
 			std::weak_ptr<DepthStencilState> state;
-			UINT32 id;
+			UINT32 id = 0;
 		};
 
 	public:
-		RenderStateManager();
+		RenderStateManager() = default;
 
 		/** 
 		 * @copydoc bs::RenderStateManager::createSamplerState 
@@ -295,9 +289,9 @@ namespace bs
 		mutable UnorderedMap<RASTERIZER_STATE_DESC, CachedRasterizerState> mCachedRasterizerStates;
 		mutable UnorderedMap<DEPTH_STENCIL_STATE_DESC, CachedDepthStencilState> mCachedDepthStencilStates;
 
-		mutable UINT32 mNextBlendStateId;
-		mutable UINT32 mNextRasterizerStateId;
-		mutable UINT32 mNextDepthStencilStateId;
+		mutable UINT32 mNextBlendStateId = 0;
+		mutable UINT32 mNextRasterizerStateId = 0;
+		mutable UINT32 mNextDepthStencilStateId = 0;
 
 		mutable Mutex mMutex;
 	};

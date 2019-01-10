@@ -19,7 +19,7 @@ namespace bs
 	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(n:StringTables,m:Localization) StringTableManager : public Module<StringTableManager>
 	{
 	public:
-		StringTableManager();
+		StringTableManager() = default;
 
 		/** Determines the currently active language. Any newly created strings will use this value. */
 		BS_SCRIPT_EXPORT(n:ActiveLanguage,pr:setter)
@@ -56,7 +56,7 @@ namespace bs
 		void setTable(UINT32 id, const HStringTable& table);
 
 	private:
-		Language mActiveLanguage;
+		Language mActiveLanguage = StringTable::DEFAULT_LANGUAGE;
 		UnorderedMap<UINT32, HStringTable> mTables;
 	};
 

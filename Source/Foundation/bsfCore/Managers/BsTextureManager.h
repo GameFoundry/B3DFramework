@@ -21,7 +21,7 @@ namespace bs
 	class BS_CORE_EXPORT TextureManager : public Module<TextureManager>
 	{
 	public:
-		virtual ~TextureManager() { }
+		virtual ~TextureManager() = default;
 
 		/** @copydoc Texture::create(const TEXTURE_DESC&) */
 		SPtr<Texture> createTexture(const TEXTURE_DESC& desc);
@@ -89,7 +89,7 @@ namespace bs
 	class BS_CORE_EXPORT TextureManager : public Module<TextureManager>
 	{
 	public:
-		virtual ~TextureManager() { }
+		virtual ~TextureManager() = default;
 
 		/** @copydoc Module::onStartUp */
 		void onStartUp() override;

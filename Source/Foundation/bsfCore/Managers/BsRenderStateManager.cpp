@@ -140,12 +140,6 @@ namespace bs
 
 	namespace ct
 	{
-	RenderStateManager::RenderStateManager()
-		:mNextBlendStateId(0), mNextRasterizerStateId(0), mNextDepthStencilStateId(0)
-	{
-		
-	}
-
 	SPtr<SamplerState> RenderStateManager::createSamplerState(const SAMPLER_STATE_DESC& desc, 
 		GpuDeviceFlags deviceMask) const
 	{

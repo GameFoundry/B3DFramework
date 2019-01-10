@@ -7,12 +7,6 @@
 
 namespace bs
 {
-	GpuResourceData::GpuResourceData()
-		:mData(nullptr), mOwnsData(false), mLocked(false)
-	{
-
-	}
-
 	GpuResourceData::GpuResourceData(const GpuResourceData& copy)
 	{
 		mData = copy.mData;

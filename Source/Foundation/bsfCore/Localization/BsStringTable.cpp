@@ -9,12 +9,6 @@ namespace bs
 {
 	const Language StringTable::DEFAULT_LANGUAGE = Language::EnglishUS;
 
-	LocalizedStringData::LocalizedStringData()
-		:numParameters(0), parameterOffsets(nullptr)
-	{
-
-	}
-
 	LocalizedStringData::~LocalizedStringData()
 	{
 		if(parameterOffsets != nullptr)

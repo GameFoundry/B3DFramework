@@ -8,15 +8,6 @@ using namespace std::placeholders;
 
 namespace bs
 {
-	RenderWindowManager::RenderWindowManager()
-		:mWindowInFocus(nullptr), mNewWindowInFocus(nullptr)
-	{ }
-
-	RenderWindowManager::~RenderWindowManager()
-	{
-
-	}
-
 	SPtr<RenderWindow> RenderWindowManager::create(RENDER_WINDOW_DESC& desc, SPtr<RenderWindow> parentWindow)
 	{
 		UINT32 id = ct::RenderWindowManager::instance().mNextWindowId.fetch_add(1, std::memory_order_relaxed);

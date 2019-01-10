@@ -15,7 +15,7 @@ namespace bs
 	class BS_EXPORT ScriptLibrary
 	{
 	public:
-		virtual ~ScriptLibrary() { }
+		virtual ~ScriptLibrary() = default;
 
 		/**	Called when the script system is being activated. */
 		virtual void initialize() = 0;
@@ -31,8 +31,8 @@ namespace bs
 	class BS_EXPORT ScriptManager : public Module<ScriptManager>
 	{
 	public:
-		ScriptManager() { }
-		~ScriptManager() { }
+		ScriptManager() = default;
+		~ScriptManager() = default;
 
 		/** Initializes the currently active script library loading the scripts contained within. */
 		void initialize();
