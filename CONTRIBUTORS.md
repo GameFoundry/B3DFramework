@@ -23,6 +23,7 @@ Huge thanks to all the patrons, contributors and donators!
 - Galnart
 
 # Tier 3 Patrons
+- Dreyton Brereton
 
 # Tier 2 Patrons
 - Andrzej Oraniewicz [Founder]
