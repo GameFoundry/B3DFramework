@@ -20,8 +20,8 @@ namespace bs { namespace ct
 	class BS_CORE_EXPORT VertexData
 	{
     public:
-        VertexData();
-        ~VertexData();
+        VertexData() = default;
+        ~VertexData() = default;
 
 		/**	Assigns a new vertex buffer to the specified index. */
 		void setBuffer(UINT32 index, SPtr<VertexBuffer> buffer);
@@ -45,7 +45,7 @@ namespace bs { namespace ct
 		SPtr<VertexDeclaration> vertexDeclaration;
 
 		/**	Number of vertices to use. */
-		UINT32 vertexCount;
+		UINT32 vertexCount = 0;
 
 	private:
 		void recalculateMaxIndex();

@@ -21,7 +21,7 @@ namespace bs
 	{
 	public:
 		CCollider(const HSceneObject& parent);
-		virtual ~CCollider() {}
+		virtual ~CCollider() = default;
 
 		/** @copydoc Collider::setIsTrigger */
 		BS_SCRIPT_EXPORT(n:Trigger,pr:setter)

@@ -19,7 +19,7 @@ namespace bs { namespace ct
 	class BS_CORE_EXPORT TimerQuery
 	{
 	public:
-		virtual ~TimerQuery() {}
+		virtual ~TimerQuery() = default;
 
 		/**
 		 * Starts the counter. 

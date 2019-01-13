@@ -25,10 +25,6 @@ namespace bs
 	}
 
 	template<bool Core>
-	TGraphicsPipelineState<Core>::TGraphicsPipelineState()
-	{ }
-
-	template<bool Core>
 	TGraphicsPipelineState<Core>::TGraphicsPipelineState(const StateDescType& data)
 		:mData(data)
 	{ }

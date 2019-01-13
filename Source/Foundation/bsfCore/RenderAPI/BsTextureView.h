@@ -63,7 +63,7 @@ namespace bs
 			bool operator()(const TEXTURE_VIEW_DESC &a, const TEXTURE_VIEW_DESC &b) const;
 		};
 
-		virtual ~TextureView();
+		virtual ~TextureView() = default;
 
 		/**	Returns the most detailed mip level visible by the view. */
 		UINT32 getMostDetailedMip() const { return mDesc.mostDetailMip; }

@@ -10,10 +10,6 @@ namespace bs
 			bs_delete(child);
 	}
 
-	FBXImportScene::FBXImportScene()
-		:rootNode(nullptr), scaleFactor(1.0f), globalScale(Matrix4::IDENTITY)
-	{ }
-
 	FBXImportScene::~FBXImportScene()
 	{
 		if (rootNode != nullptr)

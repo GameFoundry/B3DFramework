@@ -43,7 +43,7 @@ namespace bs
 	/** Holds data about render system driver version. */
 	struct BS_CORE_EXPORT DriverVersion 
 	{
-		DriverVersion() { }
+		DriverVersion() = default;
 
 		/**	Returns the driver version as a single string. */
 		String toString() const 
@@ -94,7 +94,7 @@ namespace bs
 	{
 	public:	
 		RenderAPICapabilities ();
-		virtual ~RenderAPICapabilities ();
+		virtual ~RenderAPICapabilities () = default;
 
 		/** Sets the current driver version. */
 		void setDriverVersion(const DriverVersion& version)

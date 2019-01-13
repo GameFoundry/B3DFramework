@@ -36,10 +36,6 @@ namespace bs
 		mNumLoadStoreTextureUnitsPerStage[GPT_COMPUTE_PROGRAM] = 0;
 	}
 
-	RenderAPICapabilities::~RenderAPICapabilities()
-	{
-	}
-
 	GPUVendor RenderAPICapabilities::vendorFromString(const String& vendorString)
 	{
 		initVendorStrings();

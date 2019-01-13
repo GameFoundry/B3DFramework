@@ -21,7 +21,7 @@ namespace bs
 	{
 	public:
 		CAudioListener(const HSceneObject& parent);
-		virtual ~CAudioListener() {}
+		virtual ~CAudioListener() = default;
 		
 		/** @name Internal
 		 *  @{

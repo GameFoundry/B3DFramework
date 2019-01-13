@@ -21,7 +21,7 @@ namespace bs
 	{
 	public:
 		CAudioSource(const HSceneObject& parent);
-		virtual ~CAudioSource() {}
+		virtual ~CAudioSource() = default;
 		
 		/** @copydoc AudioSource::setClip */
 		BS_SCRIPT_EXPORT(n:Clip,pr:setter)

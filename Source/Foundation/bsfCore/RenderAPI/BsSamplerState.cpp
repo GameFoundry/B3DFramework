@@ -50,11 +50,6 @@ namespace bs
 
 	}
 
-	SamplerState::~SamplerState()
-	{
-
-	}
-
 	SPtr<ct::SamplerState> SamplerState::getCore() const
 	{
 		return std::static_pointer_cast<ct::SamplerState>(mCoreSpecific);

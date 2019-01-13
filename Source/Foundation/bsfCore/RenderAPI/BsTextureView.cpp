@@ -24,9 +24,6 @@ namespace bs { namespace ct
 			&& a.firstArraySlice == b.firstArraySlice && a.numArraySlices == b.numArraySlices && a.usage == b.usage;
 	}
 
-	TextureView::~TextureView()
-	{ }
-
 	TextureView::TextureView(const TEXTURE_VIEW_DESC& desc)
 		:mDesc(desc)
 	{

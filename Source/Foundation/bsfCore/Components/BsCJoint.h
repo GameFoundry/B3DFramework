@@ -21,7 +21,7 @@ namespace bs
 	{
 	public:
 		CJoint(const HSceneObject& parent, JOINT_DESC& desc);
-		virtual ~CJoint() {}
+		virtual ~CJoint() = default;
 
 		/** @copydoc Joint::getBody */
 		BS_SCRIPT_EXPORT(n:GetBody)

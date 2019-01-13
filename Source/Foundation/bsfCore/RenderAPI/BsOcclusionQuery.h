@@ -19,7 +19,7 @@ namespace bs { namespace ct
 	{
 	public:
 		OcclusionQuery(bool binary);
-		virtual ~OcclusionQuery() {}
+		virtual ~OcclusionQuery() = default;
 
 		/**
 		 * Starts the query. Any draw calls after this call will have any rendered samples counted in the query.

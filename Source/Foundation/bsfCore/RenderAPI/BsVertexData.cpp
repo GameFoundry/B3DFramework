@@ -9,16 +9,6 @@
 
 namespace bs { namespace ct
 {
-	VertexData::VertexData()
-	{
-		vertexCount = 0;
-
-	}
-
-	VertexData::~VertexData()
-	{
-	}
-
 	void VertexData::setBuffer(UINT32 index, SPtr<VertexBuffer> buffer)
 	{
 		mVertexBuffers[index] = buffer;

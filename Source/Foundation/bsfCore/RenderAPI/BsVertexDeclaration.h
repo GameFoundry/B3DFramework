@@ -61,7 +61,7 @@ namespace bs
 	class BS_CORE_EXPORT VertexElement
 	{
 	public:
-		VertexElement() {}
+		VertexElement() = default;
 		VertexElement(UINT16 source, UINT32 offset, VertexElementType theType,
 			VertexElementSemantic semantic, UINT16 index = 0, UINT32 instanceStepRate = 0);
 

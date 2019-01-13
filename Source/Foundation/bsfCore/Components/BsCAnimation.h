@@ -29,7 +29,7 @@ namespace bs
 
 	public:
 		CAnimation(const HSceneObject& parent);
-		virtual ~CAnimation() {}
+		virtual ~CAnimation() = default;
 		
 		/** 
 		 * Determines the default clip to play as soon as the component is enabled. If more control over playing clips is needed
@@ -282,11 +282,11 @@ namespace bs
 
 		HAnimationClip mDefaultClip;
 		HAnimationClip mPrimaryPlayingClip;
-		AnimWrapMode mWrapMode;
-		float mSpeed;
-		bool mEnableCull;
-		bool mUseBounds;
-		bool mPreviewMode;
+		AnimWrapMode mWrapMode = AnimWrapMode::Loop;
+		float mSpeed = 1.0f;
+		bool mEnableCull = true;
+		bool mUseBounds = false;
+		bool mPreviewMode = false;
 		AABox mBounds;
 
 		Vector<SceneObjectMappingInfo> mMappingInfos;

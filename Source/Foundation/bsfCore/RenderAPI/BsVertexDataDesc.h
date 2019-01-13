@@ -18,7 +18,7 @@ namespace bs
 	class BS_CORE_EXPORT VertexDataDesc : public IReflectable
 	{
 	public:
-		VertexDataDesc() {}
+		VertexDataDesc() = default;
 
 		/**
 		 * Informs the internal buffer that it needs to make room for the specified vertex element. If a vertex with same 

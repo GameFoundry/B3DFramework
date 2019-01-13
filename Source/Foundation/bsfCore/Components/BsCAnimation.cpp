@@ -15,7 +15,6 @@ using namespace std::placeholders;
 namespace bs
 {
 	CAnimation::CAnimation()
-		:mWrapMode(AnimWrapMode::Loop), mSpeed(1.0f), mEnableCull(true), mUseBounds(false), mPreviewMode(false)
 	{
 		mNotifyFlags = TCF_Transform;
 		setFlag(ComponentFlag::AlwaysRun, true);

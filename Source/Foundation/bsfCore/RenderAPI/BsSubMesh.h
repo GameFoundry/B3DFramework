@@ -13,17 +13,15 @@ namespace bs
 	/**	Data about a sub-mesh range and the type of primitives contained in the range. */
 	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(pl:true,m:Rendering) SubMesh
 	{
-		SubMesh()
-			: indexOffset(0), indexCount(0), drawOp(DOT_TRIANGLE_LIST)
-		{ }
+		SubMesh() = default;
 
 		SubMesh(UINT32 indexOffset, UINT32 indexCount, DrawOperationType drawOp):
 			indexOffset(indexOffset), indexCount(indexCount), drawOp(drawOp)
 		{ }
 
-		UINT32 indexOffset;
-		UINT32 indexCount;
-		DrawOperationType drawOp;
+		UINT32 indexOffset = 0;
+		UINT32 indexCount = 0;
+		DrawOperationType drawOp = DOT_TRIANGLE_LIST;
 	};
 
 	/** @} */

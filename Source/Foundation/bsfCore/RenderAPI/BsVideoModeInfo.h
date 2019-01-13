@@ -17,7 +17,7 @@ namespace bs
 	class BS_CORE_EXPORT VideoMode
 	{
 	public:
-		VideoMode() {}
+		VideoMode() = default;
 
 		/**
 		 * Creates a new video mode.

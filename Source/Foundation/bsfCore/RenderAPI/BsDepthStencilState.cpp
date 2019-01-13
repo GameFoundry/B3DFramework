@@ -39,11 +39,6 @@ namespace bs
 
 	}
 
-	DepthStencilState::~DepthStencilState()
-	{
-
-	}
-
 	SPtr<ct::DepthStencilState> DepthStencilState::getCore() const
 	{
 		return std::static_pointer_cast<ct::DepthStencilState>(mCoreSpecific);

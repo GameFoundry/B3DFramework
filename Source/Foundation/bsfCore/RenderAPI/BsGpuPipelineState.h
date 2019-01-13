@@ -88,7 +88,7 @@ namespace bs
 		using StateDescType = typename TGpuPipelineStateTypes<Core>::StateDescType;
 		using GpuPipelineParamInfoType = typename TGpuPipelineStateTypes<Core>::GpuPipelineParamInfoType;
 
-		virtual ~TGraphicsPipelineState() { }
+		virtual ~TGraphicsPipelineState() = default;
 
 		bool hasVertexProgram() const { return mData.vertexProgram != nullptr; }
 		bool hasFragmentProgram() const { return mData.fragmentProgram != nullptr; }
@@ -110,7 +110,7 @@ namespace bs
 		const SPtr<GpuPipelineParamInfoType>& getParamInfo() const { return mParamInfo; }
 
 	protected:
-		TGraphicsPipelineState();
+		TGraphicsPipelineState() = default;
 		TGraphicsPipelineState(const StateDescType& desc);
 
 		StateDescType mData;

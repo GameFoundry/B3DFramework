@@ -22,9 +22,8 @@ namespace bs { namespace ct
 	class BS_CORE_EXPORT EventQuery
 	{
 	public:
-		EventQuery()
-			:mActive(false) {}
-		virtual ~EventQuery() {}
+		EventQuery() = default;
+		virtual ~EventQuery() = default;
 
 		/**
 		 * Starts the query. 
@@ -60,7 +59,7 @@ namespace bs { namespace ct
 		void setActive(bool active) { mActive = active; }
 
 	protected:
-		bool mActive;
+		bool mActive = false;
 	};
 
 	/** @} */

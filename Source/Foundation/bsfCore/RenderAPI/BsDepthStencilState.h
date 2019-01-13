@@ -153,7 +153,7 @@ namespace bs
 	class BS_CORE_EXPORT DepthStencilState : public IReflectable, public CoreObject
 	{
 	public:
-		virtual ~DepthStencilState();
+		virtual ~DepthStencilState() = default;
 
 		/**	Returns information about the depth stencil state. */
 		const DepthStencilProperties& getProperties() const;
