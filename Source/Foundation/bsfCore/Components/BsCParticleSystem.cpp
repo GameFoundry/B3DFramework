@@ -13,12 +13,14 @@ namespace bs
 	CParticleSystem::CParticleSystem()
 	{
 		setName("ParticleSystem");
+		setFlag(ComponentFlag::AlwaysRun, true);
 	}
 
 	CParticleSystem::CParticleSystem(const HSceneObject& parent)
 		: Component(parent)
 	{
 		setName("ParticleSystem");
+		setFlag(ComponentFlag::AlwaysRun, true);
 	}
 
 	void CParticleSystem::setSettings(const ParticleSystemSettings& settings)
@@ -73,9 +75,17 @@ namespace bs
 
 	void CParticleSystem::onEnabled()
 	{
-		restoreInternal();
-
-		mInternal->play();
+		if(mPreviewMode)
+		{
+			destroyInternal();
+			mPreviewMode = false;
+		}
+		
+		if(SceneManager::instance().isRunning())
+		{
+			restoreInternal();
+			mInternal->play();
+		}
 	}
 
 	void CParticleSystem::restoreInternal()
@@ -105,6 +115,35 @@ namespace bs
 
 		// This should release the last reference and destroy the internal object
 		mInternal = nullptr;
+	}
+
+	bool CParticleSystem::_togglePreviewMode(bool enabled)
+	{
+		bool isRunning = SceneManager::instance().isRunning();
+
+		if(enabled)
+		{
+			// Cannot enable preview while running
+			if (isRunning)
+				return false;
+
+			if(!mPreviewMode)
+			{
+				restoreInternal();
+				mInternal->play();
+				mPreviewMode = true;
+			}
+
+			return true;
+		}
+		else
+		{
+			if (!isRunning)
+				destroyInternal();
+
+			mPreviewMode = false;
+			return false;
+		}
 	}
 
 	RTTITypeBase* CParticleSystem::getRTTIStatic()

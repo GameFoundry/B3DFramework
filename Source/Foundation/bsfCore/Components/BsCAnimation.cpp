@@ -23,7 +23,7 @@ namespace bs
 	}
 
 	CAnimation::CAnimation(const HSceneObject& parent)
-		: Component(parent), mWrapMode(AnimWrapMode::Loop), mSpeed(1.0f), mEnableCull(true), mUseBounds(false), mPreviewMode(false)
+		: Component(parent)
 	{
 		mNotifyFlags = TCF_Transform;
 		setFlag(ComponentFlag::AlwaysRun, true);
@@ -64,7 +64,7 @@ namespace bs
 	void CAnimation::blendAdditive(const HAnimationClip& clip, float weight, float fadeLength, UINT32 layer)
 	{
 		if (mInternal != nullptr && !mPreviewMode)
-			mInternal->play(clip);
+			mInternal->blendAdditive(clip, weight, fadeLength, layer);
 	}
 
 	void CAnimation::blend1D(const Blend1DInfo& info, float t)
