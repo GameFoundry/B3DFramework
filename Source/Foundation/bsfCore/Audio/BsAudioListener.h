@@ -19,7 +19,7 @@ namespace bs
 	class BS_CORE_EXPORT AudioListener : public IReflectable, public SceneActor
 	{
 	public:
-		virtual ~AudioListener() {}
+		virtual ~AudioListener() = default;
 
 		/** Sets the velocity of the listener. */
 		virtual void setVelocity(const Vector3& velocity);

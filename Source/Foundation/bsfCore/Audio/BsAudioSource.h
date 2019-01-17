@@ -31,7 +31,7 @@ namespace bs
 	class BS_CORE_EXPORT AudioSource : public IReflectable, public SceneActor, public IResourceListener
 	{
 	public:
-		virtual ~AudioSource() { }
+		virtual ~AudioSource() = default;
 
 		/** Audio clip to play. */
 		virtual void setClip(const HAudioClip& clip);
