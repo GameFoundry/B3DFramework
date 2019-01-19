@@ -110,6 +110,20 @@ namespace bs
 		sphereData.center = mTransform.multiplyAffine(position);
 	}
 
+	void DrawHelper::wireHemisphere(const Vector3& position, float radius, UINT32 quality)
+	{
+		mWireHemisphereData.push_back(SphereData());
+		SphereData& sphereData = mWireHemisphereData.back();
+
+		sphereData.position = position;
+		sphereData.radius = radius;
+		sphereData.quality = quality;
+		sphereData.color = mColor;
+		sphereData.transform = mTransform;
+		sphereData.layer = mLayer;
+		sphereData.center = mTransform.multiplyAffine(position);
+	}
+
 	void DrawHelper::line(const Vector3& start, const Vector3& end)
 	{
 		mLineData.push_back(LineData());
@@ -311,6 +325,7 @@ namespace bs
 		mWireCubeData.clear();
 		mSolidSphereData.clear();
 		mWireSphereData.clear();
+		mWireHemisphereData.clear();
 		mLineData.clear();
 		mLineListData.clear();
 		mRect3Data.clear();
@@ -332,7 +347,7 @@ namespace bs
 		enum class ShapeType
 		{
 			Cube, Sphere, WireCube, WireSphere, WireCone, Line, LineList, Frustum, 
-			Cone, Disc, WireDisc, Arc, WireArc, Rectangle, Text, WireMesh
+			Cone, Disc, WireDisc, Arc, WireArc, Rectangle, Text, WireMesh, WireHemisphere
 		};
 
 		struct RawData
@@ -527,6 +542,28 @@ namespace bs
 			rawData.distance = shapeData.center.distance(reference);
 
 			ShapeMeshes3D::getNumElementsWireSphere(shapeData.quality,
+				rawData.numVertices, rawData.numIndices);
+		}
+
+		localIdx = 0;
+		for (auto& shapeData : mWireHemisphereData)
+		{
+			if ((shapeData.layer & layers) == 0)
+			{
+				localIdx++;
+				continue;
+			}
+
+			allShapes.push_back(RawData());
+			RawData& rawData = allShapes.back();
+
+			rawData.idx = localIdx++;
+			rawData.textIdx = 0;
+			rawData.meshType = MeshType::Line;
+			rawData.shapeType = ShapeType::WireHemisphere;
+			rawData.distance = shapeData.center.distance(reference);
+
+			ShapeMeshes3D::getNumElementsWireHemisphere(shapeData.quality,
 				rawData.numVertices, rawData.numIndices);
 		}
 
@@ -1054,6 +1091,18 @@ namespace bs
 
 						Sphere sphere(sphereData.position, sphereData.radius);
 						ShapeMeshes3D::wireSphere(sphere, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx],
+							sphereData.quality);
+
+						transform = &sphereData.transform;
+						color = sphereData.color.getAsRGBA();
+					}
+						break;
+					case ShapeType::WireHemisphere:
+					{
+						SphereData& sphereData = mWireHemisphereData[shapeData.idx];
+
+						Sphere sphere(sphereData.position, sphereData.radius);
+						ShapeMeshes3D::wireHemisphere(sphere, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx],
 							sphereData.quality);
 
 						transform = &sphereData.transform;

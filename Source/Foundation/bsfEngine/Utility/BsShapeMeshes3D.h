@@ -80,6 +80,28 @@ namespace bs
 			UINT32 quality = 10);
 
 		/**
+		 * Fills the mesh data with vertices representing an outline of a hemisphere.
+		 *
+		 * @param[in]		sphere			Sphere to get the mesh data for
+		 * @param[in, out]	meshData		Mesh data that will be populated.
+		 * @param[in]		vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
+		 * @param[in]		indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
+		 * @param[in]		quality			Represents the level of tessellation the sphere will have. Higher level means 
+		 *									higher quality but also more vertices and primitives.
+		 *
+		 * @note	
+		 * Provided MeshData must have some specific elements at least:
+		 *  Vector3 VES_POSITION
+		 *  32bit index buffer
+		 *  Enough space for 3 * ((quality + 1) * 5) vertices 
+		 *	Enough space for 6 * ((quality + 1) * 5 - 1) indices
+		 * @note
+		 * Primitives are output in the form of a line list.
+		 */
+		static void wireHemisphere(const Sphere& sphere, const SPtr<MeshData>& meshData, UINT32 vertexOffset, 
+			UINT32 indexOffset, UINT32 quality = 10);
+
+		/**
 		 * Fills the mesh data with vertices representing a sphere.
 		 *
 		 * @param[in]		sphere			Sphere to get the mesh data for
@@ -695,6 +717,9 @@ namespace bs
 
 		/**	Calculates number of vertices and indices required for geometry of a wire sphere of the specified quality. */
 		static void getNumElementsWireSphere(UINT32 quality, UINT32& numVertices, UINT32& numIndices);
+
+		/**	Calculates number of vertices and indices required for geometry of a wire hemisphere of the specified quality. */
+		static void getNumElementsWireHemisphere(UINT32 quality, UINT32& numVertices, UINT32& numIndices);
 
 		/**	Calculates number of vertices and indices required for geometry of a solid arc of the specified quality. */
 		static void getNumElementsArc(UINT32 quality, UINT32& numVertices, UINT32& numIndices);

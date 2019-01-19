@@ -67,6 +67,9 @@ namespace bs
 		/**	Records a wireframe sphere with the specified properties in the internal draw queue. */
 		void wireSphere(const Vector3& position, float radius, UINT32 quality = 10);
 
+		/**	Records a wireframe hemisphere with the specified properties in the internal draw queue. */
+		void wireHemisphere(const Vector3& position, float radius, UINT32 quality = 10);
+
 		/**	Records a line with the specified properties in the internal draw queue. */
 		void line(const Vector3& start, const Vector3& end);
 
@@ -233,6 +236,7 @@ namespace bs
 		Vector<CubeData> mWireCubeData;
 		Vector<SphereData> mSolidSphereData;
 		Vector<SphereData> mWireSphereData;
+		Vector<SphereData> mWireHemisphereData;
 		Vector<LineData> mLineData;
 		Vector<LineListData> mLineListData;
 		Vector<Rect3Data> mRect3Data;

@@ -271,7 +271,10 @@ namespace bs
 
 		// Spawn new particles
 		for(auto& emitter : mEmitters)
-			emitter->spawn(mRandom, state, *mParticleSet);
+		{
+			if(emitter)
+				emitter->spawn(mRandom, state, *mParticleSet);
+		}
 
 		// Simulate if running on CPU, otherwise just pass the spawned particles off to the core thread
 		if(!mSettings.gpuSimulation)

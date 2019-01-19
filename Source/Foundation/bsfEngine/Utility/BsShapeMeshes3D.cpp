@@ -89,6 +89,28 @@ namespace bs
 			vertexOffset + verticesPerArc * 2, indexOffset + indicesPerArc * 2, quality);
 	}
 
+	void ShapeMeshes3D::wireHemisphere(const Sphere& sphere, const SPtr<MeshData>& meshData, UINT32 vertexOffset, 
+		UINT32 indexOffset, UINT32 quality)
+	{
+		UINT32 requiredNumVertices, requiredNumIndices;
+		getNumElementsWireHemisphere(quality, requiredNumVertices, requiredNumIndices);
+
+		assert((vertexOffset + requiredNumVertices) <= meshData->getNumVertices());
+		assert((indexOffset + requiredNumIndices) <= meshData->getNumIndices());
+
+		UINT32 verticesPerArc = (quality + 1) * 5;
+		UINT32 indicesPerArc = (verticesPerArc - 1) * 2;
+
+		wireArc(sphere.getCenter(), sphere.getRadius(), Vector3::UNIT_X, Degree(0.0f), Degree(180.0f), meshData,
+			vertexOffset, indexOffset, quality);
+
+		wireArc(sphere.getCenter(), sphere.getRadius(), Vector3::UNIT_Y, Degree(0.0f), Degree(180.0f), meshData,
+			vertexOffset + verticesPerArc, indexOffset + indicesPerArc, quality);
+
+		wireArc(sphere.getCenter(), sphere.getRadius(), Vector3::UNIT_Z, Degree(0.0f), Degree(180.0f), meshData,
+			vertexOffset + verticesPerArc * 2, indexOffset + indicesPerArc * 2, quality);
+	}
+
 	void ShapeMeshes3D::solidSphere(const Sphere& sphere, const SPtr<MeshData>& meshData, UINT32 vertexOffset, 
 		UINT32 indexOffset, UINT32 quality)
 	{
@@ -424,6 +446,13 @@ namespace bs
 	}
 
 	void ShapeMeshes3D::getNumElementsWireSphere(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
+	{
+		getNumElementsWireArc(quality, numVertices, numIndices);
+		numVertices *= 3;
+		numIndices *= 3;
+	}
+
+	void ShapeMeshes3D::getNumElementsWireHemisphere(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
 	{
 		getNumElementsWireArc(quality, numVertices, numIndices);
 		numVertices *= 3;
