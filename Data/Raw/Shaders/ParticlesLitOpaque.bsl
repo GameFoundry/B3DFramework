@@ -21,7 +21,7 @@ shader Surface
 		[alias(gMetalnessTex)]
 		SamplerState gMetalnessSamp;
 	
-		[alias(gMetalnessTex)]
+		[alias(gEmissiveMaskTex)]
 		SamplerState gEmissiveMaskSamp;	
 		
 		Texture2D gAlbedoTex = white;
