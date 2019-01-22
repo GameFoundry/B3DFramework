@@ -1,10 +1,28 @@
-mixin SpriteImage
+shader SpriteImage
 {
+	variations
+	{
+		TRANSPARENT = { false, true };
+		ANIMATED = { false, true };
+	};
+
 	depth
 	{
 		read = false;
 		write = false;
 	};
+	
+	#if TRANSPARENT
+	blend
+	{
+		target	
+		{
+			enabled = true;
+			color = { srcA, srcIA, add };
+			writemask = RGB;
+		};
+	};
+	#endif
 
 	code
 	{
@@ -15,6 +33,7 @@ mixin SpriteImage
 			float gInvViewportHeight;
 			float gViewportYFlip;
 			float4 gTint;
+			float4 gUVSizeOffset;
 		}	
 
 		void vsmain(
@@ -29,7 +48,12 @@ mixin SpriteImage
 			float tfrmdY = (1.0f - (tfrmdPos.y * gInvViewportHeight)) * gViewportYFlip;
 
 			oPosition = float4(tfrmdX, tfrmdY, 0, 1);
+			
+			#if ANIMATED
+			oUv = uv * gUVSizeOffset.xy + gUVSizeOffset.zw;
+			#else
 			oUv = uv;
+			#endif
 		}
 
 		[alias(gMainTexture)]

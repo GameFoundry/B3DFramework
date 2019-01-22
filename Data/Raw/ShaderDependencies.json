@@ -750,6 +750,7 @@
             "Path": "PerCameraData.bslinc"
         }
     ],
+    "SpriteImage.bsl": null,
     "SpriteImageAlpha.bsl": [
         {
             "Path": "SpriteImage.bslinc"

@@ -84,7 +84,7 @@ namespace bs
 		const HSpriteTexture& activeTex = _getStyle()->normal.texture;
 		if (SpriteTexture::checkIsLoaded(activeTex))
 		{
-			mImageDesc.texture = activeTex.getInternalPtr();
+			mImageDesc.texture = activeTex;
 
 			if (mImageSprite == nullptr)
 				mImageSprite = bs_new<ImageSprite>();

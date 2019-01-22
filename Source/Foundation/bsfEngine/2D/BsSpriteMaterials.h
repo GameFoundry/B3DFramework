@@ -11,18 +11,11 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Sprite material used for rendering transparent images. */
-	class BS_EXPORT SpriteImageTransparentMaterial : public SpriteMaterial
+	/** Sprite material used for rendering images. */
+	class BS_EXPORT SpriteImageMaterial : public SpriteMaterial
 	{
 	public:
-		SpriteImageTransparentMaterial();
-	};
-
-	/** Sprite material used for rendering opaque images. */
-	class BS_EXPORT SpriteImageOpaqueMaterial : public SpriteMaterial
-	{
-	public:
-		SpriteImageOpaqueMaterial();
+		SpriteImageMaterial(bool transparent, bool animated = false);
 	};
 
 	/** Sprite material used for rendering text. */

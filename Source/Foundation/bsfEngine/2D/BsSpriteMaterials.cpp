@@ -7,19 +7,37 @@
 
 namespace bs
 {
-	SpriteImageTransparentMaterial::SpriteImageTransparentMaterial()
-		:SpriteMaterial(0, BuiltinResources::instance().createSpriteImageMaterial())
-	{ }
+	UINT32 getMaterialId(bool transparent, bool animated)
+	{
+		if(!animated)
+			return transparent ? 0 : 1;
 
-	SpriteImageOpaqueMaterial::SpriteImageOpaqueMaterial()
-		: SpriteMaterial(1, BuiltinResources::instance().createSpriteNonAlphaImageMaterial())
-	{ }
+		return transparent ? 2 : 3;
+	}
+
+	ShaderVariation getMaterialVariation(bool transparent, bool animated)
+	{
+		return ShaderVariation(SmallVector<ShaderVariation::Param, 4>({
+			ShaderVariation::Param("TRANSPARENT", transparent),
+			ShaderVariation::Param("ANIMATED", animated)
+			}));
+	}
+
+	SpriteImageMaterial::SpriteImageMaterial(bool transparent, bool animated)
+		:SpriteMaterial(
+			getMaterialId(transparent, animated), 
+			BuiltinResources::instance().createSpriteImageMaterial(),
+			getMaterialVariation(transparent, animated), 
+			!animated)
+	{
+		
+	}
 
 	SpriteTextMaterial::SpriteTextMaterial()
-		: SpriteMaterial(2, BuiltinResources::instance().createSpriteTextMaterial())
+		: SpriteMaterial(4, BuiltinResources::instance().createSpriteTextMaterial())
 	{ }
 
 	SpriteLineMaterial::SpriteLineMaterial()
-		: SpriteMaterial(3, BuiltinResources::instance().createSpriteLineMaterial())
+		: SpriteMaterial(5, BuiltinResources::instance().createSpriteLineMaterial())
 	{ }
 }

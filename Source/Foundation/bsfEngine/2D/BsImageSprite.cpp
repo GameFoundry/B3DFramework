@@ -14,7 +14,7 @@ namespace bs
 
 	void ImageSprite::update(const IMAGE_SPRITE_DESC& desc, UINT64 groupId)
 	{
-		if(desc.texture == nullptr || desc.texture->getTexture() == nullptr)
+		if(!SpriteTexture::checkIsLoaded(desc.texture))
 		{
 			clearMesh();
 			return;
@@ -31,7 +31,6 @@ namespace bs
 		if(useScale9Grid)
 			numQuads = 9;
 
-		UINT32 texPage = 0;
 		SpriteRenderElement& renderElem = mCachedRenderElements[0];
 		{
 			UINT32 newNumQuads = numQuads;
@@ -56,13 +55,13 @@ namespace bs
 			matInfo.groupId = groupId;
 			matInfo.texture = tex;
 			matInfo.tint = desc.color;
+			matInfo.animationStartTime = desc.animationStartTime;
 
-			if (desc.transparent)
-				renderElem.material = SpriteManager::instance().getImageTransparentMaterial();
-			else
-				renderElem.material = SpriteManager::instance().getImageOpaqueMaterial();
+			bool animated = desc.texture->getAnimation().count > 1;
+			if(animated)
+				matInfo.spriteTexture = desc.texture;
 
-			texPage++;
+			renderElem.material = SpriteManager::instance().getImageMaterial(desc.transparent, animated);
 		}
 
 		for(UINT32 i = 0; i < numQuads; i++)

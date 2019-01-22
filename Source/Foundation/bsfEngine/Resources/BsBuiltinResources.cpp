@@ -61,8 +61,7 @@ namespace bs
 	/************************************************************************/
 
 	const String BuiltinResources::ShaderSpriteTextFile = u8"SpriteText.bsl";
-	const String BuiltinResources::ShaderSpriteImageAlphaFile = u8"SpriteImageAlpha.bsl";
-	const String BuiltinResources::ShaderSpriteImageNoAlphaFile = u8"SpriteImageNoAlpha.bsl";
+	const String BuiltinResources::ShaderSpriteImageFile = u8"SpriteImage.bsl";
 	const String BuiltinResources::ShaderSpriteLineFile = u8"SpriteLine.bsl";
 
 	constexpr const char* ShaderDiffuseFile = u8"Diffuse.bsl";
@@ -111,8 +110,7 @@ namespace bs
 
 		// Load basic resources
 		mShaderSpriteText = getShader(ShaderSpriteTextFile);
-		mShaderSpriteImage = getShader(ShaderSpriteImageAlphaFile);
-		mShaderSpriteNonAlphaImage = getShader(ShaderSpriteImageNoAlphaFile);
+		mShaderSpriteImage = getShader(ShaderSpriteImageFile);
 		mShaderSpriteLine = getShader(ShaderSpriteLineFile);
 		mShaderDiffuse = getShader(ShaderDiffuseFile);
 		mShaderTransparent = getShader(ShaderTransparentFile);
@@ -383,11 +381,6 @@ namespace bs
 	HMaterial BuiltinResources::createSpriteImageMaterial() const
 	{
 		return Material::create(mShaderSpriteImage);
-	}
-
-	HMaterial BuiltinResources::createSpriteNonAlphaImageMaterial() const
-	{
-		return Material::create(mShaderSpriteNonAlphaImage);
 	}
 
 	HMaterial BuiltinResources::createSpriteLineMaterial() const

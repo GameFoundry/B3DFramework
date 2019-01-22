@@ -414,10 +414,18 @@ namespace bs
 					else
 						textureCore = nullptr;
 
+					SPtr<ct::SpriteTexture> spriteTextureCore;
+					if (entry.matInfo.spriteTexture.isLoaded())
+						spriteTextureCore = entry.matInfo.spriteTexture->getCore();
+					else
+						spriteTextureCore = nullptr;
+
 					newEntry.material = entry.material;
 					newEntry.mesh = mesh->getCore();
 					newEntry.texture = textureCore;
+					newEntry.spriteTexture = spriteTextureCore;
 					newEntry.tint = entry.matInfo.tint;
+					newEntry.animationStartTime = entry.matInfo.animationStartTime;
 					newEntry.worldTransform = entry.widget->getWorldTfrm();
 					newEntry.additionalData = entry.matInfo.additionalData;
 
@@ -431,6 +439,8 @@ namespace bs
 
 			mCoreDirty = false;
 		}
+
+		gCoreThread().queueCommand(std::bind(&ct::GUIRenderer::update, mRenderer.get(), gTime().getTime()));
 	}
 
 	void GUIManager::processDestroyQueue()
@@ -522,58 +532,60 @@ namespace bs
 					//    overlap the current elements bounds.
 					GUIMaterialGroup* foundGroup = nullptr;
 
-					for (auto groupIter = groupsPerMaterial.rbegin(); groupIter != groupsPerMaterial.rend(); ++groupIter)
+					if(spriteMaterial->allowBatching())
 					{
-						// If we separate meshes by widget, ignore any groups with widget parents other than mine
-						if (mSeparateMeshesByWidget)
+						for (auto groupIter = groupsPerMaterial.rbegin(); groupIter != groupsPerMaterial.rend(); ++groupIter)
 						{
-							if (groupIter->elements.size() > 0)
+							// If we separate meshes by widget, ignore any groups with widget parents other than mine
+							if (mSeparateMeshesByWidget)
 							{
-								GUIElement* otherElem = groupIter->elements.begin()->element; // We only need to check the first element
-								if (otherElem->_getParentWidget() != guiElem->_getParentWidget())
-									continue;
-							}
-						}
-
-						GUIMaterialGroup& group = *groupIter;
-
-						if (group.depth == elemDepth)
-						{
-							foundGroup = &group;
-							break;
-						}
-						else
-						{
-							UINT32 startDepth = elemDepth;
-							UINT32 endDepth = group.depth;
-
-							Rect2I potentialGroupBounds = group.bounds;
-							potentialGroupBounds.encapsulate(tfrmedBounds);
-
-							bool foundOverlap = false;
-							for (auto& material : materialGroups)
-							{
-								for (auto& matGroup : material.second)
+								if (groupIter->elements.size() > 0)
 								{
-									if (&matGroup == &group)
+									GUIElement* otherElem = groupIter->elements.begin()->element; // We only need to check the first element
+									if (otherElem->_getParentWidget() != guiElem->_getParentWidget())
 										continue;
-
-									if ((matGroup.minDepth >= startDepth && matGroup.minDepth <= endDepth)
-										|| (matGroup.depth >= startDepth && matGroup.depth <= endDepth))
-									{
-										if (matGroup.bounds.overlaps(potentialGroupBounds))
-										{
-											foundOverlap = true;
-											break;
-										}
-									}
 								}
 							}
 
-							if (!foundOverlap)
+							GUIMaterialGroup& group = *groupIter;
+							if (group.depth == elemDepth)
 							{
 								foundGroup = &group;
 								break;
+							}
+							else
+							{
+								UINT32 startDepth = elemDepth;
+								UINT32 endDepth = group.depth;
+
+								Rect2I potentialGroupBounds = group.bounds;
+								potentialGroupBounds.encapsulate(tfrmedBounds);
+
+								bool foundOverlap = false;
+								for (auto& material : materialGroups)
+								{
+									for (auto& matGroup : material.second)
+									{
+										if (&matGroup == &group)
+											continue;
+
+										if ((matGroup.minDepth >= startDepth && matGroup.minDepth <= endDepth)
+											|| (matGroup.depth >= startDepth && matGroup.depth <= endDepth))
+										{
+											if (matGroup.bounds.overlaps(potentialGroupBounds))
+											{
+												foundOverlap = true;
+												break;
+											}
+										}
+									}
+								}
+
+								if (!foundOverlap)
+								{
+									foundGroup = &group;
+									break;
+								}
 							}
 						}
 					}
@@ -1878,6 +1890,22 @@ namespace bs
 			gGUISpriteParamBlockDef.gInvViewportHeight.set(buffer, invViewportHeight);
 			gGUISpriteParamBlockDef.gViewportYFlip.set(buffer, viewflipYFlip);
 
+			float t = std::max(0.0f, mTime - entry.animationStartTime);
+			if(entry.spriteTexture)
+			{
+				UINT32 row;
+				UINT32 column;
+				entry.spriteTexture->getAnimationFrame(t, row, column);
+
+				float invWidth = 1.0f / entry.spriteTexture->getAnimation().numColumns;
+				float invHeight = 1.0f / entry.spriteTexture->getAnimation().numRows;
+
+				Vector4 sizeOffset(invWidth, invHeight, column * invWidth, row * invHeight);
+				gGUISpriteParamBlockDef.gUVSizeOffset.set(buffer, sizeOffset);
+			}
+			else
+				gGUISpriteParamBlockDef.gUVSizeOffset.set(buffer, Vector4(0.0f, 0.0f, 1.0f, 1.0f));
+
 			buffer->flushToGPU();
 		}
 
@@ -1890,6 +1918,11 @@ namespace bs
 
 			entry.material->render(entry.mesh, entry.subMesh, entry.texture, mSamplerState, buffer, entry.additionalData);
 		}
+	}
+
+	void GUIRenderer::update(float time)
+	{
+		mTime = time;
 	}
 
 	void GUIRenderer::updateData(const UnorderedMap<SPtr<Camera>, Vector<GUIManager::GUICoreRenderData>>& newPerCameraData)

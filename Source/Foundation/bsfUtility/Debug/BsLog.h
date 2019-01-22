@@ -17,7 +17,7 @@ namespace bs
 	public:
 		LogEntry() = default;
 		LogEntry(String msg, UINT32 channel)
-			:mMsg(std::move(msg)), mChannel(channel), mLocalTime(gTime().getCurrentTime(false))
+			:mMsg(std::move(msg)), mChannel(channel), mLocalTime(gTime().getCurrentTimeString(false))
 		{ }
 
 		/** Channel the message was recorded on. */

@@ -105,7 +105,7 @@ namespace bs
 		return mTimer->getMicroseconds();
 	}
 
-	String Time::getCurrentDateTime(bool isUTC)
+	String Time::getCurrentDateTimeString(bool isUTC)
 	{
 		std::time_t t = std::time(nullptr);
 		char out[100];
@@ -116,7 +116,7 @@ namespace bs
 		return String(out);
 	}
 
-	String Time::getCurrentTime(bool isUTC)
+	String Time::getCurrentTimeString(bool isUTC)
 	{
 		std::time_t t = std::time(nullptr);
 		char out[15];
@@ -127,7 +127,7 @@ namespace bs
 		return String(out);
 	}
 
-	String Time::getAppStartUpDate(bool isUTC)
+	String Time::getAppStartUpDateString(bool isUTC)
 	{
 		char out[100];
 		if (isUTC)

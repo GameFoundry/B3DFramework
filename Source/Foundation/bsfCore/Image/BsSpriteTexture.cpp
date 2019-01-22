@@ -14,6 +14,32 @@ namespace bs
 		if(mPlayback == SpriteAnimationPlayback::None)
 			return Rect2(mUVOffset.x, mUVOffset.y, mUVScale.x, mUVScale.y);
 
+		UINT32 row;
+		UINT32 column;
+		getAnimationFrame(t, row, column);
+
+		Rect2 output;
+
+		// Note: These could be pre-calculated
+		output.width = mUVScale.x / mAnimation.numColumns;
+		output.height = mUVScale.y / mAnimation.numRows;
+
+		output.x = mUVOffset.x + column * output.width;
+		output.y = mUVOffset.y + row * output.height;
+
+		return output;
+	}
+
+	void SpriteTextureBase::getAnimationFrame(float t, UINT32& row, UINT32& column) const
+	{
+		if(mPlayback == SpriteAnimationPlayback::None)
+		{
+			row = 0;
+			column = 0;
+
+			return;
+		}
+
 		// Note: Duration could be pre-calculated
 		float duration = 0.0f;
 		if (mAnimation.fps > 0)
@@ -39,19 +65,8 @@ namespace bs
 		if(mAnimation.count > 0)
 			frame = Math::clamp(Math::floorToPosInt(pct * mAnimation.count), 0U, mAnimation.count - 1);
 
-		const UINT32 row = frame / mAnimation.numRows;
-		const UINT32 column = frame % mAnimation.numColumns;
-
-		Rect2 output;
-
-		// Note: These could be pre-calculated
-		output.width = mUVScale.x / mAnimation.numColumns;
-		output.height = mUVScale.y / mAnimation.numRows;
-
-		output.x = mUVOffset.x + column * output.width;
-		output.y = mUVOffset.y + row * output.height;
-
-		return output;
+		row = frame / mAnimation.numColumns;
+		column = frame % mAnimation.numColumns;
 	}
 
 	template <bool Core>

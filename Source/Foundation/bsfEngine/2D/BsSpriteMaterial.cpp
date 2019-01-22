@@ -11,10 +11,16 @@
 
 namespace bs
 {
-	SpriteMaterial::SpriteMaterial(UINT32 id, const HMaterial& material)
-		:mId(id), mMaterialStored(false), mParamBufferIdx(-1)
+	SpriteMaterial::SpriteMaterial(UINT32 id, const HMaterial& material, const ShaderVariation& variation, 
+		bool allowBatching)
+		:mId(id), mMaterialStored(false), mAllowBatching(allowBatching), mParamBufferIdx(-1)
 	{
 		mMaterial = material->getCore();
+
+		FIND_TECHNIQUE_DESC findTechniqueDesc;
+		findTechniqueDesc.variation = &variation;
+
+		mTechnique = mMaterial->findTechnique(findTechniqueDesc);
 		mMaterialStored.store(true, std::memory_order_release);
 
 		gCoreThread().queueCommand(std::bind(&SpriteMaterial::initialize, this));
@@ -31,12 +37,12 @@ namespace bs
 		const bool materialStored = mMaterialStored.load(std::memory_order_acquire);
 		assert(materialStored == true);
 
-		const SPtr<ct::Pass>& pass = mMaterial->getPass();
+		const SPtr<ct::Pass>& pass = mMaterial->getPass(0, mTechnique);
 
 		if(pass)
 			pass->compile();
 
-		mParams = mMaterial->createParamsSet();
+		mParams = mMaterial->createParamsSet(mTechnique);
 
 		SPtr<ct::Shader> shader = mMaterial->getShader();
 		if(shader->hasTextureParam("gMainTexture"))
@@ -89,7 +95,7 @@ namespace bs
 
 		mMaterial->updateParamsSet(mParams);
 
-		ct::gRendererUtility().setPass(mMaterial);
+		ct::gRendererUtility().setPass(mMaterial, 0, mTechnique);
 		ct::gRendererUtility().setPassParams(mParams);
 		ct::gRendererUtility().draw(mesh, subMesh);
 	}

@@ -116,9 +116,6 @@ namespace bs
 		/**	Creates a material used for image sprite rendering (for example images in GUI). */
 		HMaterial createSpriteImageMaterial() const;
 
-		/**	Creates a material used for non-transparent image sprite rendering (for example images in GUI). */
-		HMaterial createSpriteNonAlphaImageMaterial() const;
-
 		/** Creates a material used for antialiased line rendering (for example curve rendering in GUI). */
 		HMaterial createSpriteLineMaterial() const;
 
@@ -204,7 +201,6 @@ namespace bs
 
 		HShader mShaderSpriteText;
 		HShader mShaderSpriteImage;
-		HShader mShaderSpriteNonAlphaImage;
 		HShader mShaderSpriteLine;
 		HShader mShaderDiffuse;
 		HShader mShaderTransparent;
@@ -249,8 +245,7 @@ namespace bs
 		static const Vector2I CursorSizeWEHotspot;
 
 		static const String ShaderSpriteTextFile;
-		static const String ShaderSpriteImageAlphaFile;
-		static const String ShaderSpriteImageNoAlphaFile;
+		static const String ShaderSpriteImageFile;
 		static const String ShaderSpriteLineFile;
 	};
 

@@ -114,7 +114,7 @@ namespace bs
 		IMAGE_SPRITE_DESC desc;
 
 		if(_getStyle()->normal.texture != nullptr && _getStyle()->normal.texture.isLoaded())
-			desc.texture = _getStyle()->normal.texture.getInternalPtr();
+			desc.texture = _getStyle()->normal.texture;
 
 		desc.width = mLayoutData.area.width;
 		desc.height = mLayoutData.area.height;

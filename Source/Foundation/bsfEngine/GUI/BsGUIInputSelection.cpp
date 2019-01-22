@@ -50,7 +50,7 @@ namespace bs
 			IMAGE_SPRITE_DESC desc;
 			desc.width = mSelectionRects[idx].width;
 			desc.height = mSelectionRects[idx].height;
-			desc.texture = GUIManager::instance().getTextSelectionTexture().getInternalPtr();
+			desc.texture = GUIManager::instance().getTextSelectionTexture();
 
 			sprite->update(desc, (UINT64)widget);
 			idx++;

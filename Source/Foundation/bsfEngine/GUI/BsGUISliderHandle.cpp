@@ -105,7 +105,7 @@ namespace bs
 
 		HSpriteTexture activeTex = getActiveTexture();
 		if(SpriteTexture::checkIsLoaded(activeTex))
-			desc.texture = activeTex.getInternalPtr();
+			desc.texture = activeTex;
 
 		UINT32 handleSize = getHandleSize();
 		if (mFlags.isSet(GUISliderHandleFlag::Horizontal))

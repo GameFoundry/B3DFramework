@@ -94,6 +94,9 @@ namespace bs
 		/** @copydoc GUIElement::_getTooltip */
 		String _getTooltip() const override;
 
+		/** @copydoc GUIElement::styleUpdated */
+		void styleUpdated() override;
+
 		/** Creates or destroys the content image sprite depending if there is a content image for the active state. */
 		void refreshContentSprite();
 
@@ -117,6 +120,7 @@ namespace bs
 		IMAGE_SPRITE_DESC mImageDesc;
 		GUIContent mContent;
 		bool mHasFocus = false;
+		float mContentAnimationStartTime = 0.0f;
 	};
 
 	/** @} */

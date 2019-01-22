@@ -54,7 +54,7 @@ namespace bs
 		IMAGE_SPRITE_DESC mCaretDesc;
 		mCaretDesc.width = 1;
 		mCaretDesc.height = getCaretHeight();
-		mCaretDesc.texture = GUIManager::instance().getCaretTexture().getInternalPtr();
+		mCaretDesc.texture = GUIManager::instance().getCaretTexture();
 
 		GUIWidget* widget = nullptr;
 		if (mElement != nullptr)

@@ -80,8 +80,10 @@ namespace bs
 			SPtr<ct::Mesh> mesh;
 			SubMesh subMesh;
 			SPtr<ct::Texture> texture;
+			SPtr<ct::SpriteTexture> spriteTexture;
 			SpriteMaterial* material;
 			Color tint;
+			float animationStartTime;
 			Matrix4 worldTransform;
 			SPtr<SpriteMaterialExtraInfo> additionalData;
 			UINT32 bufferIdx;
@@ -446,6 +448,7 @@ namespace bs
 		BS_PARAM_BLOCK_ENTRY(float, gInvViewportHeight)
 		BS_PARAM_BLOCK_ENTRY(float, gViewportYFlip)
 		BS_PARAM_BLOCK_ENTRY(Color, gTint)
+		BS_PARAM_BLOCK_ENTRY(Vector4, gUVSizeOffset)
 	BS_PARAM_BLOCK_END
 
 	extern GUISpriteParamBlockDef gGUISpriteParamBlockDef;
@@ -468,6 +471,9 @@ namespace bs
 		void render(const Camera& camera) override;
 
 	private:
+		/** Called every frame from the main thread with the time of the current frame. */
+		void update(float time);
+
 		/**
 		 * Updates the internal data that determines what will be rendered on the next render() call.
 		 *
@@ -479,6 +485,7 @@ namespace bs
 		Set<SPtr<Camera>> mReferencedCameras;
 		Vector<SPtr<GpuParamBlockBuffer>> mParamBlocks;
 		SPtr<SamplerState> mSamplerState;
+		float mTime = 0.0f;
 	};
 	}
 

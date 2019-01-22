@@ -155,9 +155,7 @@ namespace bs
 
 		const HSpriteTexture& activeTex = getActiveTexture();
 		if(SpriteTexture::checkIsLoaded(activeTex))
-		{
-			mImageDesc.texture = activeTex.getInternalPtr();
-		}
+			mImageDesc.texture = activeTex;
 
 		mImageSprite->update(mImageDesc, (UINT64)_getParentWidget());
 

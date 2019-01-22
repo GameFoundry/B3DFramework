@@ -256,7 +256,7 @@ namespace bs
 			*material = element.imageSprite->getMaterial(renderElementIdx);
 			return element.textSprite->getMaterialInfo(renderElementIdx);
 		case CanvasElementType::Triangle:
-			*material = SpriteManager::instance().getImageTransparentMaterial();
+			*material = SpriteManager::instance().getImageMaterial(true);
 			return mTriangleElementData[element.dataId].matInfo;
 		default:
 			*material = nullptr;
@@ -472,7 +472,7 @@ namespace bs
 		Vector2I textureSize;
 		if (SpriteTexture::checkIsLoaded(imageData.texture))
 		{
-			desc.texture = imageData.texture.getInternalPtr();
+			desc.texture = imageData.texture;
 			textureSize.x = desc.texture->getWidth();
 			textureSize.y = desc.texture->getHeight();
 		}

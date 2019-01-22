@@ -25,8 +25,13 @@ namespace bs
 		Vector2 uvOffset = Vector2(0.0f, 0.0f); /**< Offset applied to UV coordinates when rendering the sprite. */
 		bool transparent = true; /**< Should the sprite be rendered with transparency. */
 
-		SPtr<SpriteTexture> texture; /**< Texture to overlay on the sprite. */
+		HSpriteTexture texture; /**< Texture to overlay on the sprite. */
 		Color color; /**< Color tint to apply to the sprite. */
+		/** 
+		 * Time (since application start) at which the sprite texture's 0th frame is played. Used if the sprite texture
+		 * has sprite sheet animation defined.
+		 */
+		float animationStartTime = 0.0f;
 
 		/** 
 		 * Borders (in texels) that allow you to control how is the texture scaled. If borders are 0 the texture will be 

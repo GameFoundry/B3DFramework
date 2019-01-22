@@ -19,6 +19,7 @@ namespace bs
 		:GUIElement(styleName, dimensions), mScaleMode(scale), mTransparent(transparent), mUsingStyleTexture(false)
 	{
 		mImageSprite = bs_new<ImageSprite>();
+		mDesc.animationStartTime = gTime().getTime();
 
 		if(texture != nullptr)
 		{
@@ -108,6 +109,7 @@ namespace bs
 
 		mActiveTexture = texture;
 		mUsingStyleTexture = false;
+		mDesc.animationStartTime = gTime().getTime();
 
 		Vector2I newSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
 		if (origSize != newSize)
@@ -150,7 +152,7 @@ namespace bs
 		Vector2I textureSize;
 		if (SpriteTexture::checkIsLoaded(mActiveTexture))
 		{
-			mDesc.texture = mActiveTexture.getInternalPtr();
+			mDesc.texture = mActiveTexture;
 			textureSize.x = mDesc.texture->getWidth();
 			textureSize.y = mDesc.texture->getHeight();
 		}
@@ -166,7 +168,10 @@ namespace bs
 	void GUITexture::styleUpdated()
 	{
 		if (mUsingStyleTexture)
+		{
 			mActiveTexture = _getStyle()->normal.texture;
+			mDesc.animationStartTime = gTime().getTime();
+		}
 	}
 
 	Vector2I GUITexture::_getOptimalSize() const

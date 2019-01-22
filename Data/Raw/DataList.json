@@ -88,10 +88,6 @@
             "UUID": "eef92578-b8ed-45d6-8eed-d85697ade3c5"
         },
         {
-            "Path": "SpriteImage.bslinc",
-            "UUID": "0114b1da-9899-45ca-8486-a9791482d3c5"
-        },
-        {
             "Path": "VolumeRenderBase.bslinc",
             "UUID": "6d0dfe4e-45ef-4fe1-9344-33b8b9e69048"
         },
@@ -260,14 +256,6 @@
         {
             "Path": "Skybox.bsl",
             "UUID": "b1c191fa-0c24-4987-8d3b-72b17511621d"
-        },
-        {
-            "Path": "SpriteImageAlpha.bsl",
-            "UUID": "4c00537f-9d3e-4cb7-8a30-b4ee9f278006"
-        },
-        {
-            "Path": "SpriteImageNoAlpha.bsl",
-            "UUID": "2db979ff-386a-492e-8f6d-675ed5133e31"
         },
         {
             "Path": "SpriteLine.bsl",
@@ -528,6 +516,10 @@
         {
             "Path": "Decal.bsl",
             "UUID": "8d448d61-463b-84fe-d0a1-463b897090a3"
+        },
+        {
+            "Path": "SpriteImage.bsl",
+            "UUID": "430d9f0c-491b-d499-a994-491bfb3a1907"
         }
     ],
     "Skin": [

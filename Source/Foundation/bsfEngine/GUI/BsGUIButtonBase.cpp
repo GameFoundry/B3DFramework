@@ -19,6 +19,9 @@ namespace bs
 		mImageSprite = bs_new<ImageSprite>();
 		mTextSprite = bs_new<TextSprite>();
 
+		mImageDesc.animationStartTime = gTime().getTime();
+		mContentAnimationStartTime = mImageDesc.animationStartTime;
+
 		refreshContentSprite();
 	}
 
@@ -35,6 +38,7 @@ namespace bs
 	{
 		Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
 		mContent = content;
+		mContentAnimationStartTime = gTime().getTime();
 
 		refreshContentSprite();
 
@@ -117,7 +121,7 @@ namespace bs
 
 		const HSpriteTexture& activeTex = getActiveTexture();
 		if (SpriteTexture::checkIsLoaded(activeTex))
-			mImageDesc.texture = activeTex.getInternalPtr();
+			mImageDesc.texture = activeTex;
 		else
 			mImageDesc.texture = nullptr;
 
@@ -157,10 +161,11 @@ namespace bs
 			}
 
 			IMAGE_SPRITE_DESC contentImgDesc;
-			contentImgDesc.texture = image.getInternalPtr();
+			contentImgDesc.texture = image;
 			contentImgDesc.width = contentWidth;
 			contentImgDesc.height = contentHeight;
 			contentImgDesc.color = getTint();
+			contentImgDesc.animationStartTime = mContentAnimationStartTime;
 
 			mContentImageSprite->update(contentImgDesc, (UINT64)_getParentWidget());
 		}
@@ -433,9 +438,18 @@ namespace bs
 		return textDesc;
 	}
 
+	void GUIButtonBase::styleUpdated()
+	{
+		mImageDesc.animationStartTime = gTime().getTime();
+	}
+
 	void GUIButtonBase::_setState(GUIElementState state)
 	{
 		Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+
+		if(mActiveState != state)
+			mImageDesc.animationStartTime = gTime().getTime();
+
 		mActiveState = state;
 		refreshContentSprite();
 		Vector2I newSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;

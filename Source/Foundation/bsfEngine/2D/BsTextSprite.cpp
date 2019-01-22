@@ -54,6 +54,7 @@ namespace bs
 				matInfo.groupId = groupId;
 				matInfo.texture = tex;
 				matInfo.tint = desc.color;
+				matInfo.animationStartTime = 0.0f;
 
 				cachedElem.material = SpriteManager::instance().getTextMaterial();
 

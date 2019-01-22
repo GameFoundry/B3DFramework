@@ -20,6 +20,8 @@ namespace bs
 		{
 			ImageTransparent,
 			ImageOpaque,
+			ImageTransparentAnimated,
+			ImageOpaqueAnimated,
 			Text,
 			Line,
 			Count // Keep at end
@@ -29,13 +31,29 @@ namespace bs
 		SpriteManager();
 		~SpriteManager();
 
-		/** Returns the material used for rendering transparent image sprites. */
-		SpriteMaterial* getImageTransparentMaterial() const 
-			{ return getMaterial(builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::ImageTransparent]); }
+		/** Returns the material used for rendering image sprites. 
+		 *
+		 * @param[in]	transparent		True if the material should be able to render transparecy.
+		 * @param[in]	animation		True if the material should be able to perform sprite sheet animation.
+		 * @return						Requested sprite material.
+		 */
+		SpriteMaterial* getImageMaterial(bool transparent, bool animation = false) const
+		{
+			if(!animation)
+			{
+				if(transparent)
+					return getMaterial(builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::ImageTransparent]);
 
-		/** Returns the material used for rendering opaque image sprites. */
-		SpriteMaterial* getImageOpaqueMaterial() const
-			{ return getMaterial(builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::ImageOpaque]); }
+				return getMaterial(builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::ImageOpaque]);
+			}
+			else
+			{
+				if(transparent)
+					return getMaterial(builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::ImageTransparentAnimated]);
+
+				return getMaterial(builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::ImageOpaqueAnimated]);
+			}
+		}
 
 		/** Returns the material used for rendering text sprites. */
 		SpriteMaterial* getTextMaterial() const
@@ -54,10 +72,10 @@ namespace bs
 		 *
 		 * @return	Newly created material, or at existing one if one already exists.
 		 */
-		template <class T>
-		SpriteMaterial* registerMaterial()
+		template <class T, class... Args>
+		SpriteMaterial* registerMaterial(Args &&...args)
 		{
-			SpriteMaterial* newMaterial = bs_new<T>();
+			SpriteMaterial* newMaterial = bs_new<T>(std::forward<Args>(args)...);
 			
 			UINT32 id = newMaterial->getId();
 			auto iterFind = mMaterials.find(id);

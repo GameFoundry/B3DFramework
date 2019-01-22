@@ -102,6 +102,9 @@ namespace bs
 		 */
 		Rect2 evaluate(float t) const;
 
+		/** Returns the row and column of the current animation frame for time @p t. */
+		void getAnimationFrame(float t, UINT32& row, UINT32& column) const;
+
 		/** 
 		 * Sets properties describing sprite animation. The animation splits the sprite area into a grid of sub-images
 		 * which can be evaluated over time. In order to view the animation you must also enable playback through

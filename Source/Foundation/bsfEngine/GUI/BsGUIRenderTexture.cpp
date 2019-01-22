@@ -77,9 +77,7 @@ namespace bs
 	void GUIRenderTexture::updateRenderElementsInternal()
 	{		
 		if(mActiveTexture != nullptr && mActiveTexture.isLoaded())
-		{
-			mDesc.texture = mActiveTexture.getInternalPtr();
-		}
+			mDesc.texture = mActiveTexture;
 
 		mDesc.width = mLayoutData.area.width;
 		mDesc.height = mLayoutData.area.height;
