@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	/** Flags that can be used to control resource loading. */
-	enum class ResourceLoadFlag
+	enum class BS_SCRIPT_EXPORT(m:Resources) ResourceLoadFlag
 	{
 		/** No flags. */
 		None = 0,

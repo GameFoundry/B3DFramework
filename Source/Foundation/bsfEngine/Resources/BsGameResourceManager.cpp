@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Resources/BsGameResourceManager.h"
 #include "Private/RTTI/BsResourceMappingRTTI.h"
-#include "Resources/BsResources.h"
 #include "FileSystem/BsFileSystem.h"
 
 namespace bs
@@ -27,17 +26,21 @@ namespace bs
 		return getRTTIStatic();
 	}
 
-	HResource StandaloneResourceLoader::load(const Path& path, bool keepLoaded) const
+	HResource StandaloneResourceLoader::load(const Path& path, ResourceLoadFlags flags, bool async) const
 	{
-		ResourceLoadFlags loadFlags = ResourceLoadFlag::LoadDependencies;
-		if (keepLoaded)
-			loadFlags |= ResourceLoadFlag::KeepInternalRef;
-
 		auto iterFind = mMapping.find(path);
 		if(iterFind != mMapping.end())
-			return gResources().load(iterFind->second, loadFlags);
+		{
+			if(!async)
+				return gResources().load(iterFind->second, flags);
+			else
+				return gResources().loadAsync(iterFind->second, flags);
+		}
 		
-		return gResources().load(path, loadFlags);
+		if (!async)
+			return gResources().load(path, flags);
+		else
+			return gResources().loadAsync(path, flags);
 	}
 
 	void StandaloneResourceLoader::setMapping(const SPtr<ResourceMapping>& mapping)
@@ -51,9 +54,9 @@ namespace bs
 		
 	}
 
-	HResource GameResourceManager::load(const Path& path, bool keepLoaded) const
+	HResource GameResourceManager::load(const Path& path, ResourceLoadFlags flags, bool async) const
 	{
-		return mLoader->load(path, keepLoaded);
+		return mLoader->load(path, flags, async);
 	}
 
 	void GameResourceManager::setMapping(const SPtr<ResourceMapping>& mapping)
