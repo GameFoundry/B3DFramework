@@ -23,6 +23,13 @@ namespace bs
 		String input; /**< Name of the input plugin to use. */
 		bool scripting = false; /**< True to load the scripting system. */
 
+		/**
+		 * True if physics cooking library should be loaded. Cooking is useful for creating collision meshes during
+		 * development type, but might be unnecessary in the final application. When turned off you can save on space by
+		 * not shipping the cooking library.
+		 */
+		bool physicsCooking = true;
+
 		RENDER_WINDOW_DESC primaryWindowDesc; /**< Describes the window to create during start-up. */
 
 		Vector<String> importers; /**< A list of importer plugins to load. */

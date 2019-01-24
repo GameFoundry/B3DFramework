@@ -165,7 +165,7 @@ namespace bs
 		MeshManager::startUp();
 		Importer::startUp();
 		AudioManager::startUp(mStartUpDesc.audio);
-		PhysicsManager::startUp(mStartUpDesc.physics, isEditor());
+		PhysicsManager::startUp(mStartUpDesc.physics, mStartUpDesc.physicsCooking);
 		AnimationManager::startUp();
 		ParticleManager::startUp();
 
