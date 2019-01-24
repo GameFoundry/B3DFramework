@@ -339,7 +339,7 @@ namespace bs
 		using SamplerStateType = typename TSHADER_DESC<Core>::SamplerStateType;
 		using SubShaderType = typename TSubShaderType<Core>::Type;
 
-		TShader() = default;
+		TShader(UINT32 id);
 		TShader(const String& name, const TSHADER_DESC<Core>& desc, UINT32 id);
 		virtual ~TShader();
 	
@@ -587,7 +587,7 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-		Shader() = default;
+		Shader(UINT32 id);
 
 	public:
 		friend class ShaderRTTI;

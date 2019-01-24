@@ -84,7 +84,7 @@ namespace bs { namespace ct
 			sortMethod = &elementSorterPreferGroup;
 			break;
 		case StateReduction::Distance:
-			sortMethod = &elementSorterPreferSort;
+			sortMethod = &elementSorterPreferDistance;
 			break;
 		}
 
@@ -185,7 +185,7 @@ namespace bs { namespace ct
 		return isHigher > isLower;
 	}
 
-	bool RenderQueue::elementSorterPreferSort(UINT32 aIdx, UINT32 bIdx, const Vector<SortableElement>& lookup)
+	bool RenderQueue::elementSorterPreferDistance(UINT32 aIdx, UINT32 bIdx, const Vector<SortableElement>& lookup)
 	{
 		const SortableElement& a = lookup[aIdx];
 		const SortableElement& b = lookup[bIdx];

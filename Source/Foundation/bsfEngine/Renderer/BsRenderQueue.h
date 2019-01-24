@@ -86,7 +86,7 @@ namespace bs { namespace ct
 		static bool elementSorterPreferGroup(UINT32 aIdx, UINT32 bIdx, const Vector<SortableElement>& lookup);
 
 		/**	Callback used for sorting elements with material grouping after sorting. */
-		static bool elementSorterPreferSort(UINT32 aIdx, UINT32 bIdx, const Vector<SortableElement>& lookup);
+		static bool elementSorterPreferDistance(UINT32 aIdx, UINT32 bIdx, const Vector<SortableElement>& lookup);
 
 		Vector<SortableElement> mSortableElements;
 		Vector<UINT32> mSortableElementIdx;
