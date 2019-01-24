@@ -23,6 +23,16 @@ namespace bs
 		T inTangent; /**< Input tangent (going from the previous key to this one) of the key. */
 		T outTangent; /**< Output tangent (going from this key to next one) of the key. */
 		float time; /**< Position of the key along the animation spline. */
+
+		bool operator== (const TKeyframe<T>& rhs) const
+		{
+			return (value == rhs.value && inTangent == rhs.inTangent && outTangent == rhs.outTangent && time == rhs.time);
+		}
+
+		bool operator!= (const TKeyframe<T>& rhs) const
+		{
+			return !operator==(rhs);
+		}
 	};
 
 	/** Keyframe specialization for integers (no tangents). */
@@ -31,6 +41,16 @@ namespace bs
 	{
 		INT32 value; /**< Value of the key. */
 		float time; /**< Position of the key along the animation spline. */
+
+		bool operator== (const TKeyframe<INT32>& rhs) const
+		{
+			return (value == rhs.value && time == rhs.time);
+		}
+
+		bool operator!= (const TKeyframe<INT32>& rhs) const
+		{
+			return !operator==(rhs);
+		}
 	};
 
 	template struct BS_SCRIPT_EXPORT(m:Animation,n:KeyFrame,pl:true) TKeyframe<float>;
@@ -163,6 +183,8 @@ namespace bs
 		BS_SCRIPT_EXPORT(n:KeyFrames,pr:getter)
 		const Vector<TKeyframe<T>>& getKeyFrames() const { return mKeyframes; }
 
+		bool operator== (const TAnimationCurve<T>& rhs) const;
+		bool operator!= (const TAnimationCurve<T>& rhs) const { return !operator==(rhs); }
 	private:
 		friend struct RTTIPlainType<TAnimationCurve<T>>;
 

@@ -73,6 +73,8 @@ namespace bs
 		/** Returns the time of the first and last keyframe in the gradient. */
 		std::pair<float, float> getTimeRange() const;
 
+		bool operator== (const ColorGradient& rhs) const;
+		bool operator!= (const ColorGradient& rhs) const { return !operator==(rhs); }
 	private:
 		friend struct RTTIPlainType<ColorGradient>;
 

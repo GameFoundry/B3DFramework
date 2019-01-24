@@ -208,6 +208,19 @@ namespace bs
 		 * @return							Resampled lookup table.
 		 */
 		LookupTable toLookupTable(UINT32 numSamples = 128, bool ignoreRange = false) const;
+
+		bool operator== (const ColorDistribution& rhs) const
+		{
+			if(mType != rhs.mType)
+				return false;
+
+			if(mType == PDT_Constant || mType == PDT_Curve)
+				return mMinGradient == rhs.mMinGradient;
+			else
+				return mMinGradient == rhs.mMinGradient && mMaxGradient == rhs.mMaxGradient;
+		}
+
+		bool operator!= (const ColorDistribution& rhs) const { return !operator==(rhs); }
 	private:
 		friend struct RTTIPlainType<ColorDistribution>;
 
@@ -376,6 +389,19 @@ namespace bs
 		 * @return							Resampled lookup table.
 		 */
 		LookupTable toLookupTable(UINT32 numSamples = 128, bool ignoreRange = false) const;
+
+		bool operator== (const TDistribution<T>& rhs) const
+		{
+			if(mType != rhs.mType)
+				return false;
+
+			if(mType == PDT_Constant || mType == PDT_Curve)
+				return mMinCurve == rhs.mMinCurve;
+			else
+				return mMinCurve == rhs.mMinCurve && mMaxCurve == rhs.mMaxCurve;
+		}
+
+		bool operator!= (const TDistribution<T>& rhs) const { return !operator==(rhs); }
 	private:
 		friend struct RTTIPlainType<TDistribution<T>>;
 

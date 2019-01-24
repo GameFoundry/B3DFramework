@@ -129,4 +129,17 @@ namespace bs
 		);
 	}
 
+	bool ColorGradient::operator== (const ColorGradient& rhs) const
+	{
+		if (mNumKeys != rhs.mNumKeys || mDuration != rhs.mDuration)
+			return false;
+
+		for (uint32_t i = 0; i < mNumKeys; i++)
+		{
+			if (mColors[i] != rhs.mColors[i] || mTimes[i] != rhs.mTimes[i])
+				return false;
+		}
+
+		return true;
+	}
 }

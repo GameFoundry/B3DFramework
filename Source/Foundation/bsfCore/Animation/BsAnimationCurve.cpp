@@ -1139,6 +1139,15 @@ namespace bs
 		}
 	}
 
+	template <class T>
+	bool TAnimationCurve<T>::operator==(const TAnimationCurve<T>& rhs) const
+	{
+		if(mLength != rhs.mLength || mStart != rhs.mStart || mEnd != rhs.mEnd)
+			return false;
+
+		return mKeyframes == rhs.mKeyframes;
+	}
+
 	template class TAnimationCurve<Vector3>;
 	template class TAnimationCurve<Vector2>;
 	template class TAnimationCurve<Quaternion>;
