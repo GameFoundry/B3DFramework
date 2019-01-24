@@ -83,6 +83,50 @@ namespace bs
 			}
 		};
 
+		/**
+		* Version of bs::Rect2 suitable for SIMD use.
+		*/
+		struct Rect2
+		{
+			/** Center of the bounds. Z and W component unused.*/
+			SIMDPP_ALIGN(16) Vector4 center;
+
+			/** Extents (half-size) of the bounds. Z and W component unused. */
+			SIMDPP_ALIGN(16) Vector4 extents;
+
+			Rect2() = default;
+
+			/** Initializes bounds from an Rect2. */
+			Rect2(const bs::Rect2& rect)
+			{
+				center = Vector4(rect.getCenter().x, rect.getCenter().y, 0.0f, 0.0f);
+				extents = Vector4(rect.getHalfSize().x, rect.getHalfSize().y, 0.0f, 0.0f);
+			}
+
+			/** Initializes bounds from a vector representing the center and equal extents in all directions. */
+			Rect2(const Vector2& center, float extent)
+			{
+				this->center = Vector4(center.x, center.y, 0.0f, 0.0f);
+				extents = Vector4(extent, extent, 0.0f, 0.0f);
+			}
+
+			/** Returns true if the current bounds object intersects the provided object. */
+			bool overlaps(const Rect2& other) const
+			{
+				auto myCenter = load<float32x4>(&center);
+				auto otherCenter = load<float32x4>(&other.center);
+
+				float32x4 diff = abs(sub(myCenter, otherCenter));
+
+				auto myExtents = simd::load<float32x4>(&extents);
+				auto otherExtents = simd::load<float32x4>(&other.extents);
+
+				float32x4 extents = add(myExtents, otherExtents);
+
+				return test_bits_any(bit_cast<uint32x4>(cmp_gt(diff, extents))) == false;
+			}
+		};
+
 		/** @} */
 	}
 }

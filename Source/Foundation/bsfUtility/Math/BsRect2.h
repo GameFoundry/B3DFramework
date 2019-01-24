@@ -49,6 +49,12 @@ namespace bs
 		 */
 		void transform(const Matrix4& matrix);
 
+		/** Center of the rectangle. */
+		Vector2 getCenter() const;
+
+		/** Extents of the rectangle (distance from center to one of the corners) */
+		Vector2 getHalfSize() const;
+
 		bool operator== (const Rect2& rhs) const
 		{
 			return x == rhs.x && y == rhs.y && width == rhs.width && height == rhs.height;
