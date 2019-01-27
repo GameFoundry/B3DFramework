@@ -1,5 +1,5 @@
-//********************************** Banshee Engine (www.banshee3d.com) **************************************************//
-//**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
+//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsEngineScriptLibrary.h"
 #include "BsMonoManager.h"
 #include "BsMonoAssembly.h"
