@@ -7,12 +7,17 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
+#if IS_B3D
 [assembly: AssemblyTitle("MBansheeEngine")]
+[assembly: AssemblyProduct("MBansheeEngine")]
+#else
+[assembly: AssemblyTitle("bsfSharp")]
+[assembly: AssemblyProduct("bsfSharp")]
+#endif
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("MBansheeEngine")]
-[assembly: AssemblyCopyright("Copyright ©  2013")]
+[assembly: AssemblyCopyright("Copyright © 2018-2019 Marko Pintera")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

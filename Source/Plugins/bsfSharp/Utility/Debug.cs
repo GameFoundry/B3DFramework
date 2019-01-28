@@ -9,7 +9,11 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
+#if IS_B3D
 namespace BansheeEngine
+#else
+namespace bs
+#endif
 {
     /** @addtogroup Utility
      *  @{

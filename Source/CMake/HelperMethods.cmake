@@ -405,40 +405,25 @@ function(install_dll_on_build target srcDir)
 	endif()
 endfunction()
 
-# BS_SHARP_ROOT_NS, BS_SHARP_ASSEMBLY_NAME, BS_SHARP_DEFINES need to be set before calling
-function(generate_csharp_project)
-	file(GLOB_RECURSE ALL_FILES 
-		RELATIVE "${BSF_SOURCE_DIR}/Plugins/bsfSharp/" 
-		"${BSF_SOURCE_DIR}/Plugins/bsfSharp/*.cs")
+function(generate_csharp_project folder project_name namespace assembly)
+	file(GLOB_RECURSE ALL_FILES RELATIVE ${folder} ${folder}/*.cs)
 		
-	set(BS_SHARP_GENERATED_FILE_LIST "")
+	set(BS_SHARP_FILE_LIST "")
 	foreach(CUR_FILE ${ALL_FILES})
 		string(REGEX REPLACE "/" "\\\\" CUR_FILE_PATH ${CUR_FILE})
-		string(APPEND BS_SHARP_GENERATED_FILE_LIST "\t<Compile Include=\"${CUR_FILE_PATH}\"/>\n")
+		string(APPEND BS_SHARP_FILE_LIST "\t<Compile Include=\"${CUR_FILE_PATH}\"/>\n")
 	endforeach()
 
-	if(BS_IS_BANSHEE3D)
-		set(BS_SHARP_ROOT_NS "BansheeEngine")
-		set(BS_SHARP_ASSEMBLY_NAME "MBansheeEngine")
-		set(BS_SHARP_DEFINES "IS_B3D;")
-	else()
-		set(BS_SHARP_ROOT_NS "bsf")
-		set(BS_SHARP_ASSEMBLY_NAME "bsfSharp")
-		set(BS_SHARP_DEFINES "IS_BSF;")
-	endif()
+	set(BS_SHARP_ROOT_NS ${namespace})
+	set(BS_SHARP_ASSEMBLY_NAME ${assembly})
+	set(BS_SHARP_DEFINES "IS_B3D=${BS_IS_BANSHEE3D};")
 
 	string(REGEX REPLACE "/" "\\\\" BINARY_DIR_PATH ${PROJECT_BINARY_DIR})
 	set(BS_SHARP_ASSEMBLY_OUTPUT "${BINARY_DIR_PATH}\\bin\\Assemblies")
 
-	set(RunAssetImport_EXECUTABLE ${bsfImportTool_EXECUTABLE})
-	set(RunAssetImport_INPUT_FOLDER ${_FOLDER})
-	set(RunAssetImport_CMD_ARGS ${__ARGS})
-	set(RunAssetImport_PREFIX ${_PREFIX})
-	set(RunAssetImport_WORKING_DIR ${_WORKING_DIR})
-	
 	configure_file(
-		${BSF_SOURCE_DIR}/Plugins/bsfSharp/bsfSharp.csproj.in
-		${BSF_SOURCE_DIR}/Plugins/bsfSharp/${BS_SHARP_ASSEMBLY_NAME}.csproj)
+		${folder}/${project_name}.csproj.in
+		${folder}/${BS_SHARP_ASSEMBLY_NAME}.csproj)
 endfunction()
 
 function(add_common_flags target)

@@ -4,7 +4,11 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("MBansheeEditor")]
 
+#if IS_B3D
 namespace BansheeEngine
+#else
+namespace bs
+#endif
 {
     /** @addtogroup BansheeEngine
      *  Documentation for the engine scripting API.

@@ -5,7 +5,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
+#if IS_B3D
 namespace BansheeEngine
+#else
+namespace bs
+#endif
 {
     /** @addtogroup Serialization
      *  @{
@@ -359,10 +363,10 @@ namespace BansheeEngine
         private static extern object Internal_CloneManagedInstance(IntPtr nativeInstance, object original);
 
         /// <summary>
-        /// Converts a C# type into Banshee-specific serialization type.
+        /// Converts a C# type into internal serialization type.
         /// </summary>
         /// <param name="internalType">C# to convert.</param>
-        /// <returns>Banshee-specific serialization type. Throws an exception if matching type cannot be found.</returns>
+        /// <returns>Internal serialization type. Throws an exception if matching type cannot be found.</returns>
         public static FieldType DetermineFieldType(Type internalType)
         {
             if (!internalType.IsArray)
