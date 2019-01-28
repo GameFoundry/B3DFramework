@@ -7,7 +7,7 @@
 
 namespace bs
 {
-	/** @addtogroup BansheeSL
+	/** @addtogroup bsfSL
 	 *  @{
 	 */
 

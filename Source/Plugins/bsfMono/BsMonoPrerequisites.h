@@ -37,7 +37,7 @@
  *  @{
  */
 
-/** @defgroup Mono BansheeMono
+/** @defgroup Mono bsfMono
  *	Scripting language backend using Mono's CLR.
  */
 

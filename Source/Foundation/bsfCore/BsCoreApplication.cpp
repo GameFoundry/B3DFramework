@@ -131,7 +131,7 @@ namespace bs
 		MessageHandler::startUp();
 		ProfilerCPU::startUp();
 		ProfilingManager::startUp();
-		ThreadPool::startUp<TThreadPool<ThreadBansheePolicy>>((numWorkerThreads));
+		ThreadPool::startUp<TThreadPool<ThreadDefaultPolicy>>((numWorkerThreads));
 		TaskScheduler::startUp();
 		TaskScheduler::instance().removeWorker();
 		RenderStats::startUp();

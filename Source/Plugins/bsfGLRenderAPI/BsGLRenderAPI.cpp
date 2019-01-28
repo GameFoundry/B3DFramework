@@ -32,7 +32,7 @@
 
 namespace bs { namespace ct
 {
-	const char* MODULE_NAME = "BansheeGLRenderAPI.dll";
+	const char* MODULE_NAME = "bsfGLRenderAPI.dll";
 
 	const char* bs_get_gl_error_string(GLenum errorCode)
 	{

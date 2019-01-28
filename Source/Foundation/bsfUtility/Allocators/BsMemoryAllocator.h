@@ -379,7 +379,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Allocator for the standard library that internally uses Banshee memory allocator. */
+	/** Allocator for the standard library that internally uses bsf memory allocator. */
 	template <class T, class Alloc = GenAlloc>
 	class StdAlloc
 	{

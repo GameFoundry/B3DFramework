@@ -8,7 +8,7 @@
  *  @{
  */
 
-/** @defgroup FreeImg BansheeFreeImgImporter
+/** @defgroup FreeImg bsfFreeImgImporter
  *	FreeImg importer for import of most popular image formats (for example PSD, PNG, JPG, etc.).
  */
 

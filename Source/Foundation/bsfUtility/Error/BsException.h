@@ -11,9 +11,9 @@ namespace bs
 	 */
 
 	/**
-	 * Base class for all Banshee exceptions.
+	 * Base class for all BSF exceptions.
 	 *
-	 * @note	Banshee doesn't perform exception handling, but these classes remain here in case others wish to enable them.
+	 * @note	BSF doesn't perform exception handling, but these classes remain here in case others wish to enable them.
 	 */
 	class Exception : public std::exception
 	{
@@ -55,7 +55,7 @@ namespace bs
 			{
 				StringStream desc;
 
-				desc << "BANSHEE EXCEPTION(" << mTypeName << "): "
+				desc << "bs::framework EXCEPTION(" << mTypeName << "): "
 					<< mDescription
 					<< " in " << mSource;
 
@@ -168,7 +168,7 @@ namespace bs
 	 * Macro for throwing exceptions that will automatically fill out function name, file name and line number of the
 	 * exception.
 	 */
-	// Banshee doesn't actually use exceptions, so we just emulate the unhandled exception handler by crashing the application.
+	// BSF doesn't actually use exceptions, so we just emulate the unhandled exception handler by crashing the application.
 #ifndef BS_EXCEPT
 #define BS_EXCEPT(type, desc)																\
 	{																						\

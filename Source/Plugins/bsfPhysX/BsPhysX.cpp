@@ -289,7 +289,7 @@ namespace bs
 	public:
 		void submitTask(PxBaseTask& physxTask) override
 		{
-			// Note: Banshee's task scheduler is pretty low granularity. Consider a better task manager in case PhysX ends
+			// Note: Framework's task scheduler is pretty low granularity. Consider a better task manager in case PhysX ends
 			// up submitting many tasks.
 			// - PhysX's task manager doesn't seem much lighter either. But perhaps I can at least create a task pool to 
 			//   avoid allocating them constantly.

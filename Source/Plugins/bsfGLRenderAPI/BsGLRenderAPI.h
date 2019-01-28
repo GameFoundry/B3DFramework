@@ -144,10 +144,10 @@ namespace bs { namespace ct
 		/**	Retrieves the active GPU program of the specified type. */
 		SPtr<GLSLGpuProgram> getActiveProgram(GpuProgramType gptype) const;
 
-		/**	Converts Banshee blend mode to OpenGL blend mode. */
+		/**	Converts framework's blend mode to OpenGL blend mode. */
 		GLint getBlendMode(BlendFactor blendMode) const;
 
-		/**	Converts Banshee texture addressing mode to OpenGL texture addressing mode. */
+		/**	Converts framework's texture addressing mode to OpenGL texture addressing mode. */
 		GLint getTextureAddressingMode(TextureAddressingMode tam) const;
 
 		/** Gets a combined min/mip filter value usable by OpenGL from the currently set min and mip filters. */

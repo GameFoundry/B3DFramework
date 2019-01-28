@@ -144,7 +144,7 @@ namespace bs
 #ifdef BS_STATIC_LIB
 		windowDesc.module = GetModuleHandle(NULL);
 #else
-		windowDesc.module = GetModuleHandle("BansheeD3D11RenderAPI.dll");
+		windowDesc.module = GetModuleHandle("bsfD3D11RenderAPI.dll");
 #endif
 
 		NameValuePairList::const_iterator opt;

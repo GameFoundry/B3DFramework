@@ -15,7 +15,7 @@ namespace bs
  *  @{
  */
 
-/** @defgroup FMOD BansheeFMOD
+/** @defgroup FMOD bsfFMOD
  *	Audio system implementation using FMOD.
  */
 

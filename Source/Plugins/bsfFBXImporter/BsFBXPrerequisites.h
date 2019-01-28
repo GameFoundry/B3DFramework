@@ -8,7 +8,7 @@
  *  @{
  */
 
-/** @defgroup FBX BansheeFBXImporter
+/** @defgroup FBX bsfFBXImporter
  *	%Mesh importer for the FBX file format.
  */
 

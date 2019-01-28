@@ -130,7 +130,7 @@ namespace bs
 #ifdef BS_STATIC_LIB
 		windowDesc.module = GetModuleHandle(NULL);
 #else
-		windowDesc.module = GetModuleHandle("BansheeVulkanRenderAPI.dll");
+		windowDesc.module = GetModuleHandle("bsfVulkanRenderAPI.dll");
 #endif
 
 		NameValuePairList::const_iterator opt;

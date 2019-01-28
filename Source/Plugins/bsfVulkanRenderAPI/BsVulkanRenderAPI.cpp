@@ -109,9 +109,9 @@ namespace bs { namespace ct
 		VkApplicationInfo appInfo;
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		appInfo.pNext = nullptr;
-		appInfo.pApplicationName = "Banshee3D App";
+		appInfo.pApplicationName = "bs::framework app";
 		appInfo.applicationVersion = 1;
-		appInfo.pEngineName = "Banshee3D";
+		appInfo.pEngineName = "bs::framework";
 		appInfo.engineVersion = (0 << 24) | (4 << 16) | 0;
 		appInfo.apiVersion = VK_API_VERSION_1_0;
 

@@ -204,7 +204,7 @@ namespace bs
 	typedef ResourceHandle<GUISkin> HGUISkin;
 
 	/**	RTTI types. */
-	enum TypeID_Banshee
+	enum TypeID_Engine
 	{
 		/* TID_CCamera = 30000, */
 		/* TID_CRenderable = 30001, */

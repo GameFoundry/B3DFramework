@@ -41,7 +41,7 @@ namespace bs
 	};
 
 	/**
-	 * Default renderer for Banshee. Performs frustum culling, sorting and renders all scene objects while applying
+	 * Default framework renderer. Performs frustum culling, sorting and renders all scene objects while applying
 	 * lighting, shadowing, special effects and post-processing.
 	 */
 	class RenderBeast : public Renderer

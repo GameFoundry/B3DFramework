@@ -140,7 +140,7 @@ namespace bs
 	{
 #if BS_IS_BANSHEE3D
 		loadPlugin("bsfMono", &mMonoPlugin);
-		loadPlugin("SBansheeEngine", &mSBansheeEnginePlugin); 
+		loadPlugin("bsfScript", &mScriptPlugin); 
 
 		ScriptManager::instance().initialize();
 #endif
@@ -152,8 +152,8 @@ namespace bs
 		// These plugins must be unloaded before any other script plugins, because
 		// they will cause finalizers to trigger and various modules those finalizers
 		// might reference must still be active
-		if(mSBansheeEnginePlugin != nullptr)
-			unloadPlugin(mSBansheeEnginePlugin);
+		if(mScriptPlugin != nullptr)
+			unloadPlugin(mScriptPlugin);
 
 		if(mMonoPlugin != nullptr)
 			unloadPlugin(mMonoPlugin);

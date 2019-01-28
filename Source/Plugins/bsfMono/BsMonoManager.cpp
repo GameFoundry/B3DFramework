@@ -132,7 +132,7 @@ namespace bs
 
 		mono_config_parse(nullptr);
 
-		mRootDomain = mono_jit_init_version("BansheeMono", MONO_VERSION_DATA[(int)MONO_VERSION].version.c_str());
+		mRootDomain = mono_jit_init_version("bsfMono", MONO_VERSION_DATA[(int)MONO_VERSION].version.c_str());
 		if (mRootDomain == nullptr)
 			BS_EXCEPT(InternalErrorException, "Cannot initialize Mono runtime.");
 

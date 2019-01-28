@@ -95,9 +95,6 @@
 		* Animation sockets for animating in-game objects
 		* Post-processing hooks for IK support
 	* Blend shape animation
-	* Generic property animation
-		* Animate any script property
-		* Built-in animation curve editor
 	* Multi-threaded and GPU accelerated
 * __Input__
 	* Mouse/keyboard/gamepad support

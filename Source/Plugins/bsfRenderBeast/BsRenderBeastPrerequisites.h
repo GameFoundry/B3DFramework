@@ -9,7 +9,7 @@
  */
 
 /** @defgroup RenderBeast RenderBeast
- *	Banshee's default renderer implementation.
+ *	Framework's default renderer implementation.
  */
 
 /** @} */

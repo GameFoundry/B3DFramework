@@ -455,7 +455,12 @@ namespace bs
 		WString simpleErrorMessage = msg
 			+ L"\n\nFor more information check the crash report located at:\n "
 			+ UTF8::toWide(folder.toString());
+
+#if BS_IS_BANSHEE3D
 		MessageBoxW(nullptr, simpleErrorMessage.c_str(), L"Banshee fatal error!", MB_OK);
+#else
+		MessageBoxW(nullptr, simpleErrorMessage.c_str(), L"bs::framework fatal error!", MB_OK);
+#endif
 
 	}
 	void CrashHandler::reportCrash(const String& type, const String& description, const String& function, 

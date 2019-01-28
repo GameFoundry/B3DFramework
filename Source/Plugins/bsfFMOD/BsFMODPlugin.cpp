@@ -25,7 +25,7 @@ namespace bs
 	/**	Returns a name of the plugin. */
 	extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
 	{
-		static const char* pluginName = "BansheeFMOD";
+		static const char* pluginName = "bsfFMOD";
 		return pluginName;
 	}
 

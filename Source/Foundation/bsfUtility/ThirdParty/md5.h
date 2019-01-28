@@ -1,5 +1,5 @@
 /* MD5
-Slightly modified version for the purposes of Banshee Engine by Marko Pintera.
+Slightly modified version for the purposes of bs::framework and Banshee Engine by Marko Pintera.
 
 converted to C++ class by Frank Thilo (thilo@unix-ag.org)
 for bzflag (http://www.bzflag.org)

@@ -12,7 +12,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/**	Primary entry point for Banshee engine. Handles startup and shutdown. */
+	/**	Primary entry point for the framework. Handles startup and shutdown. */
 	class BS_EXPORT Application : public CoreApplication
 	{
 	private:
@@ -25,7 +25,7 @@ namespace bs
 		Application(const START_UP_DESC& desc);
 		virtual ~Application();
 
-		/** Starts the Banshee engine. If using a custom Application system, provide it as a template parameter. */
+		/** Starts the framework. If using a custom Application system, provide it as a template parameter. */
 		template<class T = Application>
 		static void startUp(VideoMode videoMode, const String& title, bool fullscreen)
 		{
@@ -33,7 +33,7 @@ namespace bs
 			CoreApplication::startUp<T>(desc);
 		}
 
-		/** Starts the Banshee engine. If using a custom Application system, provide it as a template parameter. */
+		/** Starts the framework. If using a custom Application system, provide it as a template parameter. */
 		template<class T = Application>
 		static void startUp(const START_UP_DESC& desc)
 		{
@@ -95,7 +95,7 @@ namespace bs
 		virtual Path getBuiltinAssemblyFolder() const;
 		
 		DynLib* mMonoPlugin = nullptr;
-		DynLib* mSBansheeEnginePlugin = nullptr;
+		DynLib* mScriptPlugin = nullptr;
 #endif
 	};
 

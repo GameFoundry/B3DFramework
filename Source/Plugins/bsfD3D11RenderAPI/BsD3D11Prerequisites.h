@@ -23,7 +23,7 @@
  *  @{
  */
 
-/** @defgroup D3D11 BansheeD3D11RenderAPI
+/** @defgroup D3D11 bsfD3D11RenderAPI
  *	Wrapper around the DirectX 11 render API.
  */
 

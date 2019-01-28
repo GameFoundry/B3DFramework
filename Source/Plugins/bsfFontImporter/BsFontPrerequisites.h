@@ -8,7 +8,7 @@
  *  @{
  */
 
-/** @defgroup Font BansheeFontImporter
+/** @defgroup Font bsfFontImporter
  *	FreeType importer for font file formats (TTF, OTF).
  */
 

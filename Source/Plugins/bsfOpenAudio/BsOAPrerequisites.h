@@ -14,7 +14,7 @@ namespace bs
  *  @{
  */
 
-/** @defgroup OpenAudio BansheeOpenAudio
+/** @defgroup OpenAudio bsfOpenAudio
  *	Open source audio implementation using OpenAL, libFLAC and libvorbis.
  */
 

@@ -29,7 +29,7 @@
  *  @{
  */
 
-/** @defgroup Vulkan BansheeVulkanRenderAPI
+/** @defgroup Vulkan bsfVulkanRenderAPI
  *	Wrapper around the Vulkan render API.
  */
 

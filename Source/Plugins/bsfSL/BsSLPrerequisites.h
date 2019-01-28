@@ -8,8 +8,8 @@
  *  @{
  */
 
-/** @defgroup BansheeSL BansheeSL
- *	Implementation of the Banshee Shading Language.
+/** @defgroup bsfSL bsfSL
+ *	Implementation of the BSF Shading Language.
  */
 
 /** @} */

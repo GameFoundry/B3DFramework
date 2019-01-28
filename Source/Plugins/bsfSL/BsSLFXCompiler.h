@@ -16,7 +16,7 @@ extern "C" {
 
 namespace bs
 {
-	/** @addtogroup BansheeSL
+	/** @addtogroup bsfSL
 	 *  @{
 	 */
 

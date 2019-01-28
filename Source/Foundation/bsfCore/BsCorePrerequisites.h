@@ -761,8 +761,8 @@ namespace bs
 	template <typename T, typename A = StdAlloc<T, ProfilerAlloc>>
 	using ProfilerStack = std::stack<T, std::deque<T, A>>;
 
-	/** Banshee thread policy that performs special startup/shutdown on threads managed by thread pool. */
-	class BS_CORE_EXPORT ThreadBansheePolicy
+	/** Default thread policy for the framework. Performs special startup/shutdown on threads managed by thread pool. */
+	class BS_CORE_EXPORT ThreadDefaultPolicy
 	{
 	public:
 		static void onThreadStarted(const String& name)

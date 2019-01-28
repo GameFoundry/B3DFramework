@@ -306,7 +306,7 @@ namespace bs
 				UINT32 numTriangles = numIndices / 3;
 				for (UINT32 i = 0; i < numTriangles; i++)
 				{
-					// Flip triangles as PhysX keeps them opposite to what Banshee expects
+					// Flip triangles as PhysX keeps them opposite to what framework expects
 					outIndices[i * 3 + 0] = (UINT32)indices[i * 3 + 0];
 					outIndices[i * 3 + 1] = (UINT32)indices[i * 3 + 2];
 					outIndices[i * 3 + 2] = (UINT32)indices[i * 3 + 1];
@@ -319,7 +319,7 @@ namespace bs
 				UINT32 numTriangles = numIndices / 3;
 				for (UINT32 i = 0; i < numTriangles; i++)
 				{
-					// Flip triangles as PhysX keeps them opposite to what Banshee expects
+					// Flip triangles as PhysX keeps them opposite to what framework expects
 					outIndices[i * 3 + 0] = indices[i * 3 + 0];
 					outIndices[i * 3 + 1] = indices[i * 3 + 2];
 					outIndices[i * 3 + 2] = indices[i * 3 + 1];

@@ -6,7 +6,7 @@ namespace bs
 {
 	extern "C" BS_MONO_EXPORT const char* getPluginName()
 	{
-		static const char* pluginName = "BansheeMono";
+		static const char* pluginName = "bsfMono";
 		return pluginName;
 	}
 }

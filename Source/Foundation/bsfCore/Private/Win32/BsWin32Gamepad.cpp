@@ -152,7 +152,7 @@ namespace bs
 		}
 	}
 
-	/** Converts a DirectInput or XInput button code to Banshee ButtonCode. */
+	/** Converts a DirectInput or XInput button code to BSF ButtonCode. */
 	ButtonCode gamepadButtonToButtonCode(INT32 code)
 	{
 		switch (code)

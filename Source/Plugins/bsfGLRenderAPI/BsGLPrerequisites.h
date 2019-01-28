@@ -62,7 +62,7 @@
  *  @{
  */
 
-/** @defgroup GL BansheeGLRenderAPI
+/** @defgroup GL bsfGLRenderAPI
  *	Wrapper around the OpenGL render API.
  */
 

@@ -1925,7 +1925,7 @@ namespace bs
 
 	void FBXImporter::bakeTransforms(FbxScene* scene)
 	{
-		// FBX stores transforms in a more complex way than just translation-rotation-scale as used by Banshee.
+		// FBX stores transforms in a more complex way than just translation-rotation-scale as used by the framework.
 		// Instead they also support rotations offsets and pivots, scaling pivots and more. We wish to bake all this data
 		// into a standard transform so we can access it using node's local TRS properties (e.g. FbxNode::LclTranslation).
 
@@ -1961,7 +1961,7 @@ namespace bs
 				node->SetGeometricRotation(FbxNode::eDestinationPivot, node->GetGeometricRotation(FbxNode::eSourcePivot));
 				node->SetGeometricScaling(FbxNode::eDestinationPivot, node->GetGeometricScaling(FbxNode::eSourcePivot));
 
-				// Banshee assumes euler angles are in YXZ order
+				// Framework assumes euler angles are in YXZ order
 				node->SetRotationOrder(FbxNode::eDestinationPivot, FbxEuler::eOrderYXZ);
 
 				// Keep interpolation as is

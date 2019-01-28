@@ -13,11 +13,11 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Basic string that uses Banshee memory allocators. */
+	/** Basic string that uses framework's memory allocators. */
 	template <typename T>
 	using BasicString = std::basic_string < T, std::char_traits<T>, StdAlloc<T> > ;
 
-	/**	Basic string stream that uses Banshee memory allocators. */
+	/**	Basic string stream that uses framework's memory allocators. */
 	template <typename T>
 	using BasicStringStream = std::basic_stringstream < T, std::char_traits<T>, StdAlloc<T> > ;
 

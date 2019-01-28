@@ -14,8 +14,8 @@ namespace bs
  *  @{
  */
 
-/** @defgroup PhysX BansheePhysX
- *	NVIDIA %PhysX implementation of Banshee's physics.
+/** @defgroup PhysX bsfPhysX
+ *	NVIDIA %PhysX implementation of framework's physics.
  *  @{
  */
 
@@ -37,48 +37,48 @@ namespace bs
 	 */
 
 	/**	Type IDs used by the RTTI system for the PhysX library. */
-	enum TypeID_BansheeEditor
+	enum TypeID_PhysX
 	{
 		TID_FPhysXMesh = 100000,
 	};
 
-	/** Converts a Banshee vector to a PhysX vector. */
+	/** Converts a framework vector to a PhysX vector. */
 	inline const physx::PxVec3& toPxVector(const Vector3& input)
 	{
 		return *(physx::PxVec3*)&input;
 	}
 
-	/** Converts a Banshee vector to a PhysX vector. */
+	/** Converts a framework vector to a PhysX vector. */
 	inline const physx::PxVec4& toPxVector(const Vector4& input)
 	{
 		return *(physx::PxVec4*)&input;
 	}
 
-	/** Converts a Banshee quaternion to a PhysX quaternion. */
+	/** Converts a framework quaternion to a PhysX quaternion. */
 	inline const physx::PxQuat& toPxQuaternion(const Quaternion& input)
 	{
 		return *(physx::PxQuat*)&input;
 	}
 
-	/** Converts a Banshee position/rotation pair to a PhysX transform. */
+	/** Converts a framework position/rotation pair to a PhysX transform. */
 	inline physx::PxTransform toPxTransform(const Vector3& pos, const Quaternion& rot)
 	{
 		return physx::PxTransform(toPxVector(pos), toPxQuaternion(rot));
 	}
 
-	/** Converts a PhysX vector to a Banshee vector. */
+	/** Converts a PhysX vector to framework's vector. */
 	inline const Vector3& fromPxVector(const physx::PxVec3& input)
 	{
 		return *(Vector3*)&input;
 	}
 
-	/** Converts a PhysX vector to a Banshee vector. */
+	/** Converts a PhysX vector to framework's vector. */
 	inline const Vector4& fromPxVector(const physx::PxVec4& input)
 	{
 		return *(Vector4*)&input;
 	}
 
-	/** Converts a PhysX quaternion to a Banshee quaternion. */
+	/** Converts a PhysX quaternion to framework's quaternion. */
 	inline const Quaternion& fromPxQuaternion(const physx::PxQuat& input)
 	{
 		return *(Quaternion*)&input;
