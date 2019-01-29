@@ -46,13 +46,11 @@ namespace bs
 		/** Path to the root data directory. Relative to working directory, or RAW_APP_ROOT. */
 		static const Path FRAMEWORK_DATA_PATH;
 		
-#if BS_IS_BANSHEE3D
 		/** Path where the release configuration managed assemblies are located at, relative to the working directory. */
 		static const Path RELEASE_ASSEMBLY_PATH;
 
 		/** Path where the debug configuration managed assemblies are located at, relative to the working directory. */
 		static const Path DEBUG_ASSEMBLY_PATH;;
-#endif
 	};
 
 	/** @} */

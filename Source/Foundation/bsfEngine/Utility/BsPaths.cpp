@@ -7,10 +7,8 @@
 
 namespace bs
 {
-#if BS_IS_BANSHEE3D
 	const Path Paths::RELEASE_ASSEMBLY_PATH = "bin/Assemblies/Release/";
 	const Path Paths::DEBUG_ASSEMBLY_PATH = "bin/Assemblies/Debug/";
-#endif
 
 	const Path Paths::FRAMEWORK_DATA_PATH = "Data/";
 

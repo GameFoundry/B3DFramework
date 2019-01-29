@@ -49,12 +49,14 @@ namespace bs
 
 		ScriptAssemblyManager::instance().loadAssemblyInfo(ENGINE_ASSEMBLY);
 
+#if BS_IS_BANSHEE3D
 		Path gameAssemblyPath = getGameAssemblyPath();
 		if (FileSystem::exists(gameAssemblyPath))
 		{
 			MonoManager::instance().loadAssembly(gameAssemblyPath.toString(), SCRIPT_GAME_ASSEMBLY);
 			ScriptAssemblyManager::instance().loadAssemblyInfo(SCRIPT_GAME_ASSEMBLY);
 		}
+#endif
 
 		engineAssembly.invoke(ASSEMBLY_ENTRY_POINT);
 	}
@@ -62,7 +64,6 @@ namespace bs
 	void EngineScriptLibrary::reload()
 	{
 		Path engineAssemblyPath = getEngineAssemblyPath();
-		Path gameAssemblyPath = getGameAssemblyPath();
 
 		// Do a full refresh if we have already loaded script assemblies
 		if (mScriptAssembliesLoaded)
@@ -70,8 +71,11 @@ namespace bs
 			Vector<std::pair<String, Path>> assemblies;
 			assemblies.push_back({ ENGINE_ASSEMBLY, engineAssemblyPath });
 
+#if BS_IS_BANSHEE3D
+			Path gameAssemblyPath = getGameAssemblyPath();
 			if (FileSystem::exists(gameAssemblyPath))
 				assemblies.push_back({ SCRIPT_GAME_ASSEMBLY, gameAssemblyPath });
+#endif
 
 			ScriptObjectManager::instance().refreshAssemblies(assemblies);
 		}
@@ -80,11 +84,14 @@ namespace bs
 			MonoManager::instance().loadAssembly(engineAssemblyPath.toString(), ENGINE_ASSEMBLY);
 			ScriptAssemblyManager::instance().loadAssemblyInfo(ENGINE_ASSEMBLY);
 
+#if BS_IS_BANSHEE3D
+			Path gameAssemblyPath = getGameAssemblyPath();
 			if (FileSystem::exists(gameAssemblyPath))
 			{
 				MonoManager::instance().loadAssembly(gameAssemblyPath.toString(), SCRIPT_GAME_ASSEMBLY);
 				ScriptAssemblyManager::instance().loadAssemblyInfo(SCRIPT_GAME_ASSEMBLY);
 			}
+#endif
 
 			mScriptAssembliesLoaded = true;
 		}
@@ -131,6 +138,7 @@ namespace bs
 		return assemblyPath;
 	}
 
+#if BS_IS_BANSHEE3D
 	Path EngineScriptLibrary::getGameAssemblyPath() const
 	{
 		Path assemblyPath = getScriptAssemblyFolder();
@@ -138,6 +146,7 @@ namespace bs
 
 		return assemblyPath;
 	}
+#endif
 
 	Path EngineScriptLibrary::getBuiltinAssemblyFolder() const
 	{
