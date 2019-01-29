@@ -19,7 +19,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptShaderParameter : public ScriptObject<ScriptShaderParameter>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ShaderParameter")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ShaderParameter")
 
 		static MonoObject* box(const __ShaderParameterInterop& value);
 		static __ShaderParameterInterop unbox(MonoObject* value);

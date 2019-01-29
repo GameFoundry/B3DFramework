@@ -14,7 +14,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleColor : public ScriptObject<ScriptParticleColor, ScriptParticleEvolverBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleColor")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleColor")
 
 		ScriptParticleColor(MonoObject* managedInstance, const SPtr<ParticleColor>& value);
 

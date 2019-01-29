@@ -14,7 +14,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleSize : public ScriptObject<ScriptParticleSize, ScriptParticleEvolverBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleSize")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleSize")
 
 		ScriptParticleSize(MonoObject* managedInstance, const SPtr<ParticleSize>& value);
 

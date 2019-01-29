@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleVectorFieldSettings : public ScriptObject<ScriptParticleVectorFieldSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleVectorFieldSettings")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleVectorFieldSettings")
 
 		ScriptParticleVectorFieldSettings(MonoObject* managedInstance, const SPtr<ParticleVectorFieldSettings>& value);
 

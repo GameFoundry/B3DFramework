@@ -14,7 +14,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCBoxCollider : public TScriptComponent<ScriptCBoxCollider, CBoxCollider, ScriptCColliderBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "BoxCollider")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "BoxCollider")
 
 		ScriptCBoxCollider(MonoObject* managedInstance, const GameObjectHandle<CBoxCollider>& value);
 

@@ -9,8 +9,6 @@ namespace bs
 	 */
 
 #if BS_IS_BANSHEE3D
-	constexpr const char* ENGINE_ASSEMBLY = "MBansheeEngine";
-	constexpr const char* SCRIPT_GAME_ASSEMBLY = "MScriptGame";
 	constexpr const char* GAME_RESOURCES_FOLDER_NAME = "Resources/";
 	constexpr const char* GAME_SETTINGS_NAME = "GameSettings.asset";
 	constexpr const char* GAME_RESOURCE_MANIFEST_NAME = "ResourceManifest.asset";
@@ -28,12 +26,6 @@ namespace bs
 		static const Path& getBinariesPath();
 
 #if BS_IS_BANSHEE3D
-		/**	Returns the absolute path where the managed release assemblies are located. */
-		static const Path& getReleaseAssemblyPath();
-
-		/**	Returns the absolute path where the managed debug assemblies are located. */
-		static const Path& getDebugAssemblyPath();
-
 		/**	Returns the absolute path to the game settings file used by editor-built executables. */
 		static const Path& getGameSettingsPath();
 

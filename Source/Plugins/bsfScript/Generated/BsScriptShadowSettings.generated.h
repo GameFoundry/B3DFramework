@@ -12,7 +12,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptShadowSettings : public ScriptObject<ScriptShadowSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ShadowSettings")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ShadowSettings")
 
 		ScriptShadowSettings(MonoObject* managedInstance, const SPtr<ShadowSettings>& value);
 

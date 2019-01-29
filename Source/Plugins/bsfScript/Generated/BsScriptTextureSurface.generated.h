@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTextureSurface : public ScriptObject<ScriptTextureSurface>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "TextureSurface")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "TextureSurface")
 
 		static MonoObject* box(const TextureSurface& value);
 		static TextureSurface unbox(MonoObject* value);

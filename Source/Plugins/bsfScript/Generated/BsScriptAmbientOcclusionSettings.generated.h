@@ -12,7 +12,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptAmbientOcclusionSettings : public ScriptObject<ScriptAmbientOcclusionSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "AmbientOcclusionSettings")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AmbientOcclusionSettings")
 
 		ScriptAmbientOcclusionSettings(MonoObject* managedInstance, const SPtr<AmbientOcclusionSettings>& value);
 

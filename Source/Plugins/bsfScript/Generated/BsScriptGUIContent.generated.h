@@ -21,7 +21,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUIContent : public ScriptObject<ScriptGUIContent>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "GUIContent")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUIContent")
 
 		static MonoObject* box(const __GUIContentInterop& value);
 		static __GUIContentInterop unbox(MonoObject* value);

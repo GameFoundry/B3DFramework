@@ -13,7 +13,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCAudioSource : public TScriptComponent<ScriptCAudioSource, CAudioSource>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "AudioSource")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AudioSource")
 
 		ScriptCAudioSource(MonoObject* managedInstance, const GameObjectHandle<CAudioSource>& value);
 

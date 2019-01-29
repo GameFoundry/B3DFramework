@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCLight : public TScriptComponent<ScriptCLight, CLight>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "Light")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Light")
 
 		ScriptCLight(MonoObject* managedInstance, const GameObjectHandle<CLight>& value);
 

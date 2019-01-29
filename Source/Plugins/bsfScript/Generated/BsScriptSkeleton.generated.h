@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptSkeleton : public ScriptObject<ScriptSkeleton>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "Skeleton")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Skeleton")
 
 		ScriptSkeleton(MonoObject* managedInstance, const SPtr<Skeleton>& value);
 

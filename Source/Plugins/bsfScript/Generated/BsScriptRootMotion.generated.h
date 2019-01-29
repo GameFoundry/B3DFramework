@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptRootMotion : public ScriptObject<ScriptRootMotion>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "RootMotion")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "RootMotion")
 
 		ScriptRootMotion(MonoObject* managedInstance, const SPtr<RootMotion>& value);
 

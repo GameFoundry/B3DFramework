@@ -12,7 +12,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptMorphShapes : public ScriptObject<ScriptMorphShapes>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "MorphShapes")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "MorphShapes")
 
 		ScriptMorphShapes(MonoObject* managedInstance, const SPtr<MorphShapes>& value);
 

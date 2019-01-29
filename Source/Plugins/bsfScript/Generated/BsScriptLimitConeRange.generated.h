@@ -22,7 +22,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptLimitConeRange : public ScriptObject<ScriptLimitConeRange>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "LimitConeRange")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "LimitConeRange")
 
 		static MonoObject* box(const __LimitConeRangeInterop& value);
 		static __LimitConeRangeInterop unbox(MonoObject* value);

@@ -14,7 +14,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptAudioClip : public TScriptResource<ScriptAudioClip, AudioClip>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "AudioClip")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AudioClip")
 
 		ScriptAudioClip(MonoObject* managedInstance, const ResourceHandle<AudioClip>& value);
 

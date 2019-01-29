@@ -20,7 +20,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptMesh : public TScriptResource<ScriptMesh, Mesh>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "Mesh")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Mesh")
 
 		ScriptMesh(MonoObject* managedInstance, const ResourceHandle<Mesh>& value);
 

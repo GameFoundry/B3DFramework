@@ -13,7 +13,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptStringTable : public TScriptResource<ScriptStringTable, StringTable>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "StringTable")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "StringTable")
 
 		ScriptStringTable(MonoObject* managedInstance, const ResourceHandle<StringTable>& value);
 

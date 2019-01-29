@@ -19,7 +19,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPARTICLE_SKINNED_MESH_SHAPE_DESC : public ScriptObject<ScriptPARTICLE_SKINNED_MESH_SHAPE_DESC>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleSkinnedMeshShapeOptions")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleSkinnedMeshShapeOptions")
 
 		static MonoObject* box(const __PARTICLE_SKINNED_MESH_SHAPE_DESCInterop& value);
 		static __PARTICLE_SKINNED_MESH_SHAPE_DESCInterop unbox(MonoObject* value);

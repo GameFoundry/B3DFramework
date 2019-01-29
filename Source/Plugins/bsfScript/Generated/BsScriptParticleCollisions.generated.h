@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleCollisions : public ScriptObject<ScriptParticleCollisions, ScriptParticleEvolverBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleCollisions")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleCollisions")
 
 		ScriptParticleCollisions(MonoObject* managedInstance, const SPtr<ParticleCollisions>& value);
 

@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPARTICLE_COLLISIONS_DESC : public ScriptObject<ScriptPARTICLE_COLLISIONS_DESC>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleCollisionsOptions")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleCollisionsOptions")
 
 		static MonoObject* box(const PARTICLE_COLLISIONS_DESC& value);
 		static PARTICLE_COLLISIONS_DESC unbox(MonoObject* value);

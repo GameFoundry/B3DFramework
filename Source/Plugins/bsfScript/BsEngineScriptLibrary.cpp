@@ -28,7 +28,7 @@ namespace bs
 
 	void EngineScriptLibrary::initialize()
 	{
-		Path engineAssemblyPath = gApplication().getEngineAssemblyPath();
+		Path engineAssemblyPath = getEngineAssemblyPath();
 		const String ASSEMBLY_ENTRY_POINT = "Program::Start";
 
 		MonoManager::startUp();
@@ -49,7 +49,7 @@ namespace bs
 
 		ScriptAssemblyManager::instance().loadAssemblyInfo(ENGINE_ASSEMBLY);
 
-		Path gameAssemblyPath = gApplication().getGameAssemblyPath();
+		Path gameAssemblyPath = getGameAssemblyPath();
 		if (FileSystem::exists(gameAssemblyPath))
 		{
 			MonoManager::instance().loadAssembly(gameAssemblyPath.toString(), SCRIPT_GAME_ASSEMBLY);
@@ -61,8 +61,8 @@ namespace bs
 
 	void EngineScriptLibrary::reload()
 	{
-		Path engineAssemblyPath = gApplication().getEngineAssemblyPath();
-		Path gameAssemblyPath = gApplication().getGameAssemblyPath();
+		Path engineAssemblyPath = getEngineAssemblyPath();
+		Path gameAssemblyPath = getGameAssemblyPath();
 
 		// Do a full refresh if we have already loaded script assemblies
 		if (mScriptAssembliesLoaded)
@@ -122,4 +122,56 @@ namespace bs
 		// Make sure all GUI elements are actually destroyed
 		GUIManager::instance().processDestroyQueue();
 	}
+
+	Path EngineScriptLibrary::getEngineAssemblyPath() const
+	{
+		Path assemblyPath = getBuiltinAssemblyFolder();
+		assemblyPath.append(String(ENGINE_ASSEMBLY) + ".dll");
+
+		return assemblyPath;
+	}
+
+	Path EngineScriptLibrary::getGameAssemblyPath() const
+	{
+		Path assemblyPath = getScriptAssemblyFolder();
+		assemblyPath.append(String(SCRIPT_GAME_ASSEMBLY) + ".dll");
+
+		return assemblyPath;
+	}
+
+	Path EngineScriptLibrary::getBuiltinAssemblyFolder() const
+	{
+		Path releaseAssemblyFolder = getReleaseAssemblyPath();
+		Path debugAssemblyFolder = getDebugAssemblyPath();
+
+#if BS_DEBUG_MODE == 0
+		if (FileSystem::exists(releaseAssemblyFolder))
+			return releaseAssemblyFolder;
+
+		return debugAssemblyFolder;
+#else
+		if (FileSystem::exists(debugAssemblyFolder))
+			return debugAssemblyFolder;
+
+		return releaseAssemblyFolder;
+#endif
+	}
+
+	Path EngineScriptLibrary::getScriptAssemblyFolder() const
+	{
+		return getBuiltinAssemblyFolder();
+	}
+
+	const Path& EngineScriptLibrary::getReleaseAssemblyPath()
+	{
+		static Path path = Paths::findPath(Paths::RELEASE_ASSEMBLY_PATH);
+		return path;
+	}
+
+	const Path& EngineScriptLibrary::getDebugAssemblyPath()
+	{
+		static Path path = Paths::findPath(Paths::DEBUG_ASSEMBLY_PATH);
+		return path;
+	}
+
 }

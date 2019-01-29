@@ -12,7 +12,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleDepthCollisionSettings : public ScriptObject<ScriptParticleDepthCollisionSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleDepthCollisionSettings")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleDepthCollisionSettings")
 
 		ScriptParticleDepthCollisionSettings(MonoObject* managedInstance, const SPtr<ParticleDepthCollisionSettings>& value);
 

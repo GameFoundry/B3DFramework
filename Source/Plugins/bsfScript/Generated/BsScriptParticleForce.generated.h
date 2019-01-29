@@ -14,7 +14,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleForce : public ScriptObject<ScriptParticleForce, ScriptParticleEvolverBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleForce")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleForce")
 
 		ScriptParticleForce(MonoObject* managedInstance, const SPtr<ParticleForce>& value);
 

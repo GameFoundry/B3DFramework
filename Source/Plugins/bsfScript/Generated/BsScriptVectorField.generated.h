@@ -14,7 +14,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptVectorField : public TScriptResource<ScriptVectorField, VectorField>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "VectorField")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "VectorField")
 
 		ScriptVectorField(MonoObject* managedInstance, const ResourceHandle<VectorField>& value);
 

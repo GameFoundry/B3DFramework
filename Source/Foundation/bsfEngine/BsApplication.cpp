@@ -138,17 +138,14 @@ namespace bs
 
 	void Application::loadScriptSystem()
 	{
-#if BS_IS_BANSHEE3D
 		loadPlugin("bsfMono", &mMonoPlugin);
 		loadPlugin("bsfScript", &mScriptPlugin); 
 
 		ScriptManager::instance().initialize();
-#endif
 	}
 
 	void Application::unloadScriptSystem()
 	{
-#if BS_IS_BANSHEE3D
 		// These plugins must be unloaded before any other script plugins, because
 		// they will cause finalizers to trigger and various modules those finalizers
 		// might reference must still be active
@@ -157,7 +154,6 @@ namespace bs
 
 		if(mMonoPlugin != nullptr)
 			unloadPlugin(mMonoPlugin);
-#endif
 	}
 
 	void Application::startUpRenderer()
@@ -174,7 +170,7 @@ namespace bs
 		desc.renderer = BS_RENDERER_MODULE;
 		desc.audio = BS_AUDIO_MODULE;
 		desc.physics = BS_PHYSICS_MODULE;
-		desc.scripting = false;
+		desc.scripting = BS_SCRIPTING_ENABLED;
 
 		desc.importers.push_back("bsfFreeImgImporter");
 		desc.importers.push_back("bsfFBXImporter");
@@ -192,47 +188,6 @@ namespace bs
 	{
 		return bs_shared_ptr_new<EngineShaderIncludeHandler>();
 	}
-
-#if BS_IS_BANSHEE3D
-	Path Application::getEngineAssemblyPath() const
-	{
-		Path assemblyPath = getBuiltinAssemblyFolder();
-		assemblyPath.append(String(ENGINE_ASSEMBLY) + ".dll");
-
-		return assemblyPath;
-	}
-
-	Path Application::getGameAssemblyPath() const
-	{
-		Path assemblyPath = getScriptAssemblyFolder();
-		assemblyPath.append(String(SCRIPT_GAME_ASSEMBLY) + ".dll");
-
-		return assemblyPath;
-	}
-
-	Path Application::getBuiltinAssemblyFolder() const
-	{
-		Path releaseAssemblyFolder = Paths::getReleaseAssemblyPath();
-		Path debugAssemblyFolder = Paths::getDebugAssemblyPath();
-
-#if BS_DEBUG_MODE == 0
-		if (FileSystem::exists(releaseAssemblyFolder))
-			return releaseAssemblyFolder;
-
-		return debugAssemblyFolder;
-#else
-		if (FileSystem::exists(debugAssemblyFolder))
-			return debugAssemblyFolder;
-
-		return releaseAssemblyFolder;
-#endif
-	}
-
-	Path Application::getScriptAssemblyFolder() const
-	{
-		return getBuiltinAssemblyFolder();
-	}
-#endif
 
 	Application& gApplication()
 	{

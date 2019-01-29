@@ -8,7 +8,7 @@
 start_find_package(mono)
 
 if(USE_BUNDLED_LIBRARIES)
-	set(mono_INSTALL_DIR ${PROJECT_SOURCE_DIR}/Dependencies/mono CACHE PATH "")
+	set(mono_INSTALL_DIR ${BSF_SOURCE_DIR}/../Dependencies/mono CACHE PATH "")
 endif()
 
 gen_default_lib_search_dirs(mono)

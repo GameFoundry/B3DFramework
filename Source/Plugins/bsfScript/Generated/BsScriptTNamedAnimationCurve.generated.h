@@ -32,7 +32,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTNamedAnimationCurvefloat : public ScriptObject<ScriptTNamedAnimationCurvefloat>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "NamedFloatCurve")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "NamedFloatCurve")
 
 		static MonoObject* box(const __TNamedAnimationCurvefloatInterop& value);
 		static __TNamedAnimationCurvefloatInterop unbox(MonoObject* value);
@@ -54,7 +54,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTNamedAnimationCurveVector3 : public ScriptObject<ScriptTNamedAnimationCurveVector3>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "NamedVector3Curve")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "NamedVector3Curve")
 
 		static MonoObject* box(const __TNamedAnimationCurveVector3Interop& value);
 		static __TNamedAnimationCurveVector3Interop unbox(MonoObject* value);
@@ -76,7 +76,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTNamedAnimationCurveVector2 : public ScriptObject<ScriptTNamedAnimationCurveVector2>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "NamedVector2Curve")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "NamedVector2Curve")
 
 		static MonoObject* box(const __TNamedAnimationCurveVector2Interop& value);
 		static __TNamedAnimationCurveVector2Interop unbox(MonoObject* value);
@@ -98,7 +98,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTNamedAnimationCurveQuaternion : public ScriptObject<ScriptTNamedAnimationCurveQuaternion>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "NamedQuaternionCurve")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "NamedQuaternionCurve")
 
 		static MonoObject* box(const __TNamedAnimationCurveQuaternionInterop& value);
 		static __TNamedAnimationCurveQuaternionInterop unbox(MonoObject* value);
@@ -120,7 +120,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTNamedAnimationCurveint32_t : public ScriptObject<ScriptTNamedAnimationCurveint32_t>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "NamedIntegerCurve")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "NamedIntegerCurve")
 
 		static MonoObject* box(const __TNamedAnimationCurveint32_tInterop& value);
 		static __TNamedAnimationCurveint32_tInterop unbox(MonoObject* value);

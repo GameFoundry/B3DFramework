@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptSpriteSheetGridAnimation : public ScriptObject<ScriptSpriteSheetGridAnimation>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "SpriteSheetGridAnimation")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "SpriteSheetGridAnimation")
 
 		static MonoObject* box(const SpriteSheetGridAnimation& value);
 		static SpriteSheetGridAnimation unbox(MonoObject* value);

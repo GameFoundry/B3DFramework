@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptHingeJointDrive : public ScriptObject<ScriptHingeJointDrive>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "HingeJointDrive")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "HingeJointDrive")
 
 		static MonoObject* box(const HingeJointDrive& value);
 		static HingeJointDrive unbox(MonoObject* value);

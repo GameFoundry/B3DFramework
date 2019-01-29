@@ -12,7 +12,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptAutoExposureSettings : public ScriptObject<ScriptAutoExposureSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "AutoExposureSettings")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AutoExposureSettings")
 
 		ScriptAutoExposureSettings(MonoObject* managedInstance, const SPtr<AutoExposureSettings>& value);
 

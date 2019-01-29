@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptKerningPair : public ScriptObject<ScriptKerningPair>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "KerningPair")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "KerningPair")
 
 		static MonoObject* box(const KerningPair& value);
 		static KerningPair unbox(MonoObject* value);

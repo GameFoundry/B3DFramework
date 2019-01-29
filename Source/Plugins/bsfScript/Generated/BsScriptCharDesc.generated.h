@@ -29,7 +29,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCharDesc : public ScriptObject<ScriptCharDesc>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "CharDesc")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "CharDesc")
 
 		static MonoObject* box(const __CharDescInterop& value);
 		static __CharDescInterop unbox(MonoObject* value);

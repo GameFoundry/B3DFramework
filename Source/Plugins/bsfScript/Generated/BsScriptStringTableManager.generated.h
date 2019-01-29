@@ -13,7 +13,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptStringTableManager : public ScriptObject<ScriptStringTableManager>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "StringTables")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "StringTables")
 
 		ScriptStringTableManager(MonoObject* managedInstance);
 

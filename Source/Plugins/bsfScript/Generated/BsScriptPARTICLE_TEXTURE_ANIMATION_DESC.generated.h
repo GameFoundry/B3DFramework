@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPARTICLE_TEXTURE_ANIMATION_DESC : public ScriptObject<ScriptPARTICLE_TEXTURE_ANIMATION_DESC>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleTextureAnimationOptions")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleTextureAnimationOptions")
 
 		static MonoObject* box(const PARTICLE_TEXTURE_ANIMATION_DESC& value);
 		static PARTICLE_TEXTURE_ANIMATION_DESC unbox(MonoObject* value);

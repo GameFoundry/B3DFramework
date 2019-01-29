@@ -21,7 +21,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptLimitLinearRange : public ScriptObject<ScriptLimitLinearRange>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "LimitLinearRange")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "LimitLinearRange")
 
 		static MonoObject* box(const __LimitLinearRangeInterop& value);
 		static __LimitLinearRangeInterop unbox(MonoObject* value);

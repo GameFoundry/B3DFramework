@@ -22,7 +22,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptLimitAngularRange : public ScriptObject<ScriptLimitAngularRange>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "LimitAngularRange")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "LimitAngularRange")
 
 		static MonoObject* box(const __LimitAngularRangeInterop& value);
 		static __LimitAngularRangeInterop unbox(MonoObject* value);

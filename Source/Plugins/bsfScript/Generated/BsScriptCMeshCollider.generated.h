@@ -13,7 +13,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCMeshCollider : public TScriptComponent<ScriptCMeshCollider, CMeshCollider, ScriptCColliderBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "MeshCollider")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "MeshCollider")
 
 		ScriptCMeshCollider(MonoObject* managedInstance, const GameObjectHandle<CMeshCollider>& value);
 

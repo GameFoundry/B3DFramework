@@ -4,7 +4,11 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+#if IS_B3D
+namespace BansheeEngine
+#else
 namespace bs
+#endif
 {
 	/// <summary>
 	/// A buffer describing a volume (3D), image (2D) or line (1D) of pixels in memory. Pixels are stored as a succession  of 

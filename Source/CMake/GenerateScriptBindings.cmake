@@ -33,7 +33,8 @@ function(add_generate_script_bindings_target)
 		set(BS_SCRIPT_PARSER_INCLUDE_DIRS 
 			${BS_SCRIPT_PARSER_INCLUDE_DIRS} 
 			"-I${BSF_SOURCE_DIR}/Plugins/bsfMono"
-			"-I${BSF_SOURCE_DIR}/Foundation/bsfUtility/ThirdParty")
+			"-I${BSF_SOURCE_DIR}/Foundation/bsfUtility/ThirdParty"
+			"-I${PROJECT_BINARY_DIR}/Generated/bsfUtility/")
 
 		set(BS_SCRIPT_PARSER_H_FILES 
 			"${BSF_SOURCE_DIR}/Foundation/bsfUtility/Prerequisites/BsPrerequisitesUtil.h"
@@ -58,13 +59,11 @@ function(add_generate_script_bindings_target)
 		set(GenScriptBinding_WORKING_DIR ${PROJECT_SOURCE_DIR})
 		
 		if(BS_IS_BANSHEE3D)
-			set(GenScriptBinding_OUTPUT_CPP_EDITOR_DIR ${PROJECT_SOURCE_DIR}/EditorScript/Generated)
-			set(GenScriptBinding_OUTPUT_CS_EDITOR_DIR ${PROJECT_SOURCE_DIR}/EditorManaged/Generated)
-			set(GenScriptBinding_CS_NAMESPACE "BansheeEngine")
+			set(GenScriptBinding_OUTPUT_CPP_EDITOR_DIR ${PROJECT_SOURCE_DIR}/Source/EditorScript/Generated)
+			set(GenScriptBinding_OUTPUT_CS_EDITOR_DIR ${PROJECT_SOURCE_DIR}/Source/EditorManaged/Generated)
 		else()
 			set(GenScriptBinding_OUTPUT_CPP_EDITOR_DIR "")
 			set(GenScriptBinding_OUTPUT_CS_EDITOR_DIR "")
-			set(GenScriptBinding_CS_NAMESPACE "bs")
 		endif()
 
 		configure_file(

@@ -29,7 +29,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTAnimationCurvefloat : public ScriptObject<ScriptTAnimationCurvefloat>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "AnimationCurve")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AnimationCurve")
 
 		ScriptTAnimationCurvefloat(MonoObject* managedInstance, const SPtr<TAnimationCurve<float>>& value);
 
@@ -47,7 +47,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTAnimationCurveVector3 : public ScriptObject<ScriptTAnimationCurveVector3>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "Vector3Curve")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Vector3Curve")
 
 		ScriptTAnimationCurveVector3(MonoObject* managedInstance, const SPtr<TAnimationCurve<Vector3>>& value);
 
@@ -65,7 +65,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTAnimationCurveVector2 : public ScriptObject<ScriptTAnimationCurveVector2>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "Vector2Curve")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Vector2Curve")
 
 		ScriptTAnimationCurveVector2(MonoObject* managedInstance, const SPtr<TAnimationCurve<Vector2>>& value);
 
@@ -83,7 +83,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTAnimationCurveQuaternion : public ScriptObject<ScriptTAnimationCurveQuaternion>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "QuaternionCurve")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "QuaternionCurve")
 
 		ScriptTAnimationCurveQuaternion(MonoObject* managedInstance, const SPtr<TAnimationCurve<Quaternion>>& value);
 
@@ -101,7 +101,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTAnimationCurveint32_t : public ScriptObject<ScriptTAnimationCurveint32_t>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "IntegerCurve")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "IntegerCurve")
 
 		ScriptTAnimationCurveint32_t(MonoObject* managedInstance, const SPtr<TAnimationCurve<int32_t>>& value);
 

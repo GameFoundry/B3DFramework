@@ -12,7 +12,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCAudioListener : public TScriptComponent<ScriptCAudioListener, CAudioListener>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "AudioListener")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AudioListener")
 
 		ScriptCAudioListener(MonoObject* managedInstance, const GameObjectHandle<CAudioListener>& value);
 

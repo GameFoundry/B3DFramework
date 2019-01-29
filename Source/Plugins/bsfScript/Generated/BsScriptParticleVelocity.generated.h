@@ -14,7 +14,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleVelocity : public ScriptObject<ScriptParticleVelocity, ScriptParticleEvolverBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleVelocity")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleVelocity")
 
 		ScriptParticleVelocity(MonoObject* managedInstance, const SPtr<ParticleVelocity>& value);
 

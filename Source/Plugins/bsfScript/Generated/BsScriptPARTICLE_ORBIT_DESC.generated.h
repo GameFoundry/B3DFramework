@@ -21,7 +21,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPARTICLE_ORBIT_DESC : public ScriptObject<ScriptPARTICLE_ORBIT_DESC>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleOrbitOptions")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleOrbitOptions")
 
 		static MonoObject* box(const __PARTICLE_ORBIT_DESCInterop& value);
 		static __PARTICLE_ORBIT_DESCInterop unbox(MonoObject* value);

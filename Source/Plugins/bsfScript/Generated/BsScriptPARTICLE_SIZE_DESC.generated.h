@@ -20,7 +20,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPARTICLE_SIZE_DESC : public ScriptObject<ScriptPARTICLE_SIZE_DESC>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleSizeOptions")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleSizeOptions")
 
 		static MonoObject* box(const __PARTICLE_SIZE_DESCInterop& value);
 		static __PARTICLE_SIZE_DESCInterop unbox(MonoObject* value);

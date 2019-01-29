@@ -12,7 +12,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTonemappingSettings : public ScriptObject<ScriptTonemappingSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "TonemappingSettings")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "TonemappingSettings")
 
 		ScriptTonemappingSettings(MonoObject* managedInstance, const SPtr<TonemappingSettings>& value);
 

@@ -12,7 +12,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptMorphChannel : public ScriptObject<ScriptMorphChannel>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "MorphChannel")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "MorphChannel")
 
 		ScriptMorphChannel(MonoObject* managedInstance, const SPtr<MorphChannel>& value);
 

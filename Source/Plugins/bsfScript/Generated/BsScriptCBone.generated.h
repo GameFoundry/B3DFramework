@@ -12,7 +12,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCBone : public TScriptComponent<ScriptCBone, CBone>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "Bone")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Bone")
 
 		ScriptCBone(MonoObject* managedInstance, const GameObjectHandle<CBone>& value);
 

@@ -22,7 +22,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCJoint : public TScriptComponent<ScriptCJoint, CJoint, ScriptCJointBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "Joint")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Joint")
 
 		ScriptCJoint(MonoObject* managedInstance, const GameObjectHandle<CJoint>& value);
 

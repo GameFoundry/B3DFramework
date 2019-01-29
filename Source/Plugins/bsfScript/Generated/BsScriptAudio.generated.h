@@ -13,7 +13,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptAudio : public ScriptObject<ScriptAudio>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "Audio")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Audio")
 
 		ScriptAudio(MonoObject* managedInstance);
 

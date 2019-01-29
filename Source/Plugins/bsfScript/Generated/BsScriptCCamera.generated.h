@@ -19,7 +19,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCCamera : public TScriptComponent<ScriptCCamera, CCamera>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "Camera")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Camera")
 
 		ScriptCCamera(MonoObject* managedInstance, const GameObjectHandle<CCamera>& value);
 

@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptRenderTexture : public ScriptObject<ScriptRenderTexture, ScriptRenderTargetBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "RenderTexture")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "RenderTexture")
 
 		ScriptRenderTexture(MonoObject* managedInstance, const SPtr<RenderTexture>& value);
 

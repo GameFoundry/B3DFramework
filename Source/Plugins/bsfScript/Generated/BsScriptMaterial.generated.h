@@ -21,7 +21,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptMaterial : public TScriptResource<ScriptMaterial, Material>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "Material")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Material")
 
 		ScriptMaterial(MonoObject* managedInstance, const ResourceHandle<Material>& value);
 

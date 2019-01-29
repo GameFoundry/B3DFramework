@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptVector4I : public ScriptObject<ScriptVector4I>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "Vector4I")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Vector4I")
 
 		static MonoObject* box(const Vector4I& value);
 		static Vector4I unbox(MonoObject* value);

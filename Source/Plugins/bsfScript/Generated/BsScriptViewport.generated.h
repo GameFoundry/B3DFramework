@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptViewport : public ScriptObject<ScriptViewport>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "Viewport")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Viewport")
 
 		ScriptViewport(MonoObject* managedInstance, const SPtr<Viewport>& value);
 

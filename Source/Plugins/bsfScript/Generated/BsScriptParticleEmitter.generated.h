@@ -17,7 +17,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleEmitter : public ScriptObject<ScriptParticleEmitter>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleEmitter")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleEmitter")
 
 		ScriptParticleEmitter(MonoObject* managedInstance, const SPtr<ParticleEmitter>& value);
 

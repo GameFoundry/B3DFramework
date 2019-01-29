@@ -13,7 +13,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptBloomSettings : public ScriptObject<ScriptBloomSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "BloomSettings")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "BloomSettings")
 
 		ScriptBloomSettings(MonoObject* managedInstance, const SPtr<BloomSettings>& value);
 

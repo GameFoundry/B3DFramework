@@ -4,7 +4,11 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+#if IS_B3D
+namespace BansheeEngine
+#else
 namespace bs
+#endif
 {
 	/// <summary>Represents a 3D region of pixels used for referencing pixel data.</summary>
 	[StructLayout(LayoutKind.Sequential), SerializeObject]

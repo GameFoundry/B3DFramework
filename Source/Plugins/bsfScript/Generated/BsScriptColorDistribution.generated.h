@@ -17,7 +17,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptColorDistribution : public ScriptObject<ScriptColorDistribution>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ColorDistribution")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ColorDistribution")
 
 		ScriptColorDistribution(MonoObject* managedInstance, const SPtr<ColorDistribution>& value);
 

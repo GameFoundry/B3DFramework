@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPixelData : public ScriptObject<ScriptPixelData>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "PixelData")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "PixelData")
 
 		ScriptPixelData(MonoObject* managedInstance, const SPtr<PixelData>& value);
 

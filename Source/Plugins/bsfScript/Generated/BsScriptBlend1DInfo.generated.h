@@ -18,7 +18,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptBlend1DInfo : public ScriptObject<ScriptBlend1DInfo>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "Blend1DInfo")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Blend1DInfo")
 
 		static MonoObject* box(const __Blend1DInfoInterop& value);
 		static __Blend1DInfoInterop unbox(MonoObject* value);

@@ -4,7 +4,11 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+#if IS_B3D
+namespace BansheeEngine
+#else
 namespace bs
+#endif
 {
 	/** @addtogroup Animation
 	 *  @{

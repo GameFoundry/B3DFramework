@@ -17,7 +17,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptAnimationEvent : public ScriptObject<ScriptAnimationEvent>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "AnimationEvent")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AnimationEvent")
 
 		static MonoObject* box(const __AnimationEventInterop& value);
 		static __AnimationEventInterop unbox(MonoObject* value);

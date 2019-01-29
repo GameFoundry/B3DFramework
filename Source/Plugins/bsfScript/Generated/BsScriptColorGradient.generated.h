@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptColorGradient : public ScriptObject<ScriptColorGradient>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ColorGradient")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ColorGradient")
 
 		ScriptColorGradient(MonoObject* managedInstance, const SPtr<ColorGradient>& value);
 

@@ -14,7 +14,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleOrbit : public ScriptObject<ScriptParticleOrbit, ScriptParticleEvolverBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleOrbit")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleOrbit")
 
 		ScriptParticleOrbit(MonoObject* managedInstance, const SPtr<ParticleOrbit>& value);
 

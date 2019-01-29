@@ -18,7 +18,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPARTICLE_VELOCITY_DESC : public ScriptObject<ScriptPARTICLE_VELOCITY_DESC>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleVelocityOptions")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleVelocityOptions")
 
 		static MonoObject* box(const __PARTICLE_VELOCITY_DESCInterop& value);
 		static __PARTICLE_VELOCITY_DESCInterop unbox(MonoObject* value);

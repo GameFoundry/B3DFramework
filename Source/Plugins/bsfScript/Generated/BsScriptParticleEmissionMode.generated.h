@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleEmissionMode : public ScriptObject<ScriptParticleEmissionMode>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleEmissionMode")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleEmissionMode")
 
 		static MonoObject* box(const ParticleEmissionMode& value);
 		static ParticleEmissionMode unbox(MonoObject* value);

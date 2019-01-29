@@ -12,7 +12,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptAsyncOpEx : public ScriptObject<ScriptAsyncOpEx>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "AsyncOp")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AsyncOp")
 
 		ScriptAsyncOpEx(MonoObject* managedInstance, const SPtr<AsyncOpEx>& value);
 

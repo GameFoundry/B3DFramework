@@ -19,7 +19,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCRigidbody : public TScriptComponent<ScriptCRigidbody, CRigidbody>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "Rigidbody")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Rigidbody")
 
 		ScriptCRigidbody(MonoObject* managedInstance, const GameObjectHandle<CRigidbody>& value);
 

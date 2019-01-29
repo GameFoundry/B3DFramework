@@ -22,7 +22,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptControllerColliderCollision : public ScriptObject<ScriptControllerColliderCollision>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ControllerColliderCollision")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ControllerColliderCollision")
 
 		static MonoObject* box(const __ControllerColliderCollisionInterop& value);
 		static __ControllerColliderCollisionInterop unbox(MonoObject* value);

@@ -26,7 +26,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCD6Joint : public TScriptComponent<ScriptCD6Joint, CD6Joint, ScriptCJointBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "D6Joint")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "D6Joint")
 
 		ScriptCD6Joint(MonoObject* managedInstance, const GameObjectHandle<CD6Joint>& value);
 

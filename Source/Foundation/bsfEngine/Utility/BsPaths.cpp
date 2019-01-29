@@ -64,18 +64,6 @@ namespace bs
 	}
 
 #if BS_IS_BANSHEE3D
-	const Path& Paths::getReleaseAssemblyPath()
-	{
-		static Path path = findPath(RELEASE_ASSEMBLY_PATH);
-		return path;
-	}
-
-	const Path& Paths::getDebugAssemblyPath()
-	{
-		static Path path = findPath(DEBUG_ASSEMBLY_PATH);
-		return path;
-	}
-
 	const Path& Paths::getGameSettingsPath()
 	{
 		static Path path = findPath(GAME_SETTINGS_NAME);
@@ -101,15 +89,9 @@ namespace bs
 			return output;
 		}
 
-		// Then, check the source distribution itself, in case we're running directly from the build directory
-		output.makeAbsolute(RAW_APP_ROOT);
+		// Then, check the build directory itself, in case we're running directly from it (during development)
+		output.makeAbsolute(BUILD_APP_ROOT);
 		if (FileSystem::exists(output))
-			return output;
-
-		// Also, check the secondary root (useful if actual project using bsf is in a different folder)
-		output = path;
-		output.makeAbsolute(SECONDARY_APP_ROOT);
-		if(FileSystem::exists(output))
 			return output;
 
 		// No path found, but return the initial value by default

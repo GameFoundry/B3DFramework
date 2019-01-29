@@ -25,7 +25,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPARTICLE_CONE_SHAPE_DESC : public ScriptObject<ScriptPARTICLE_CONE_SHAPE_DESC>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleConeShapeOptions")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleConeShapeOptions")
 
 		static MonoObject* box(const __PARTICLE_CONE_SHAPE_DESCInterop& value);
 		static __PARTICLE_CONE_SHAPE_DESCInterop unbox(MonoObject* value);

@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPARTICLE_SPHERE_SHAPE_DESC : public ScriptObject<ScriptPARTICLE_SPHERE_SHAPE_DESC>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleSphereShapeOptions")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleSphereShapeOptions")
 
 		static MonoObject* box(const PARTICLE_SPHERE_SHAPE_DESC& value);
 		static PARTICLE_SPHERE_SHAPE_DESC unbox(MonoObject* value);

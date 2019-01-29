@@ -93,6 +93,10 @@ endif()
 set(RENDERER_MODULE_LIB bsfRenderBeast)
 set(PHYSICS_MODULE_LIB bsfPhysX)
 
+if((SCRIPT_API AND (NOT SCRIPT_API MATCHES "None")) OR BS_IS_BANSHEE3D)
+	set(BS_SCRIPTING_ENABLED 1)
+endif()
+
 ## Generate config files
 configure_file("${BSF_SOURCE_DIR}/CMake/BsEngineConfig.h.in" "${PROJECT_BINARY_DIR}/Generated/bsfEngine/BsEngineConfig.h")
 configure_file("${BSF_SOURCE_DIR}/CMake/BsFrameworkConfig.h.in" "${PROJECT_BINARY_DIR}/Generated/bsfUtility/BsFrameworkConfig.h")

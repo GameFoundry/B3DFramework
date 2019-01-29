@@ -63,6 +63,7 @@ namespace bs
 #else
 	constexpr const char* ENGINE_ASSEMBLY = "MBansheeEngine";
 	constexpr const char* ENGINE_NS = "BansheeEngine";
+	constexpr const char* SCRIPT_GAME_ASSEMBLY = "MScriptGame";
 #endif
 
 	class ScriptObjectBase;

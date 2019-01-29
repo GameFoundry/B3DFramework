@@ -46,6 +46,9 @@ namespace bs
 		/** Sets the active script library that controls what kind and which scripts are loaded. */
 		void _setScriptLibrary(const SPtr<ScriptLibrary>& library);
 
+		/** Returns the currently assigned script library. */
+		const SPtr<ScriptLibrary>& _getScriptLibrary() const { return mScriptLibrary; }
+
 	private:
 		/** @copydoc ScriptManager::onShutDown */
 		void onShutDown() override;

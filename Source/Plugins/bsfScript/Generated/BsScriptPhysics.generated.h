@@ -19,7 +19,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPhysics : public ScriptObject<ScriptPhysics>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "Physics")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Physics")
 
 		ScriptPhysics(MonoObject* managedInstance);
 

@@ -13,7 +13,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCFixedJoint : public TScriptComponent<ScriptCFixedJoint, CFixedJoint, ScriptCJointBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "FixedJoint")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "FixedJoint")
 
 		ScriptCFixedJoint(MonoObject* managedInstance, const GameObjectHandle<CFixedJoint>& value);
 

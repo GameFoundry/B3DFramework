@@ -14,7 +14,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCSphereCollider : public TScriptComponent<ScriptCSphereCollider, CSphereCollider, ScriptCColliderBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "SphereCollider")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "SphereCollider")
 
 		ScriptCSphereCollider(MonoObject* managedInstance, const GameObjectHandle<CSphereCollider>& value);
 

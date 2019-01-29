@@ -23,7 +23,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleEvolver : public ScriptObject<ScriptParticleEvolver, ScriptParticleEvolverBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleEvolver")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleEvolver")
 
 		ScriptParticleEvolver(MonoObject* managedInstance, const SPtr<ParticleEvolver>& value);
 

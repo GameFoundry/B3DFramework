@@ -13,7 +13,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCRenderable : public TScriptComponent<ScriptCRenderable, CRenderable>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "Renderable")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Renderable")
 
 		ScriptCRenderable(MonoObject* managedInstance, const GameObjectHandle<CRenderable>& value);
 

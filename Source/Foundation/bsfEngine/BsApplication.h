@@ -51,17 +51,6 @@ namespace bs
 		/** Hides the profiler overlay. */
 		void hideProfilerOverlay();
 
-		// Scripting system related functionality required by the editor
-#if BS_IS_BANSHEE3D
-		/**	Returns the absolute path to the builtin managed engine assembly file. */
-		Path getEngineAssemblyPath() const;
-
-		/**	Returns the absolute path to the game managed assembly file. */
-		Path getGameAssemblyPath() const;
-
-		/**	Returns the absolute path to the folder where script assemblies are located in. */
-		virtual Path getScriptAssemblyFolder() const;
-#endif
 	protected:
 		/** @copydoc Module::onStartUp */
 		void onStartUp() override;
@@ -89,14 +78,8 @@ namespace bs
 
 		SPtr<ProfilerOverlay> mProfilerOverlay;
 
-		// Scripting system related functionality required by the editor
-#if BS_IS_BANSHEE3D
-		/**	Returns the absolute path to the folder where built-in assemblies are located in. */
-		virtual Path getBuiltinAssemblyFolder() const;
-		
 		DynLib* mMonoPlugin = nullptr;
 		DynLib* mScriptPlugin = nullptr;
-#endif
 	};
 
 	/** Easy way to access Application. */

@@ -13,7 +13,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptFontBitmap : public ScriptObject<ScriptFontBitmap>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "FontBitmap")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "FontBitmap")
 
 		ScriptFontBitmap(MonoObject* managedInstance, const SPtr<FontBitmap>& value);
 

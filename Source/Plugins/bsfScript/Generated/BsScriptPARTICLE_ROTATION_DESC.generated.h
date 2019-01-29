@@ -20,7 +20,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPARTICLE_ROTATION_DESC : public ScriptObject<ScriptPARTICLE_ROTATION_DESC>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleRotationOptions")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleRotationOptions")
 
 		static MonoObject* box(const __PARTICLE_ROTATION_DESCInterop& value);
 		static __PARTICLE_ROTATION_DESCInterop unbox(MonoObject* value);

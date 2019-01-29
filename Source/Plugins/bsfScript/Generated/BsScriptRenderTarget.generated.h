@@ -24,7 +24,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptRenderTarget : public ScriptObject<ScriptRenderTarget, ScriptRenderTargetBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "RenderTarget")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "RenderTarget")
 
 		ScriptRenderTarget(MonoObject* managedInstance, const SPtr<RenderTarget>& value);
 

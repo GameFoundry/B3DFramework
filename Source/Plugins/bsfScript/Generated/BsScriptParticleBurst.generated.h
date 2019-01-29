@@ -20,7 +20,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleBurst : public ScriptObject<ScriptParticleBurst>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "ParticleBurst")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleBurst")
 
 		static MonoObject* box(const __ParticleBurstInterop& value);
 		static __ParticleBurstInterop unbox(MonoObject* value);

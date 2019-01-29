@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptShader : public TScriptResource<ScriptShader, Shader>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, "bs", "Shader")
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Shader")
 
 		ScriptShader(MonoObject* managedInstance, const ResourceHandle<Shader>& value);
 

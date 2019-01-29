@@ -26,6 +26,30 @@ namespace bs
 		/** @copydoc ScriptLibrary::destroy */
 		void destroy() override;
 
+		/**	Returns the absolute path to the builtin managed engine assembly file. */
+		Path getEngineAssemblyPath() const;
+
+		/**	Returns the absolute path to the game managed assembly file. */
+		Path getGameAssemblyPath() const;
+
+		/**	Returns the absolute path to the folder where built-in assemblies are located in. */
+		virtual Path getBuiltinAssemblyFolder() const;
+
+		/**	Returns the absolute path to the folder where script assemblies are located in. */
+		virtual Path getScriptAssemblyFolder() const;
+
+		/**	Returns the absolute path where the managed release assemblies are located. */
+		static const Path& getReleaseAssemblyPath();
+
+		/**	Returns the absolute path where the managed debug assemblies are located. */
+		static const Path& getDebugAssemblyPath();
+
+		/** Returns the singleton instance of this library. */
+		static EngineScriptLibrary& instance()
+		{
+			return static_cast<EngineScriptLibrary&>(*ScriptManager::instance()._getScriptLibrary());
+		}
+
 	protected:
 		/** Unloads all manages assemblies and the mono domain. */
 		void unloadAssemblies();
