@@ -41,10 +41,6 @@ namespace bs
 		return false;
 	}
 
-	ManagedSerializableFieldKey::ManagedSerializableFieldKey()
-		:mTypeId(0), mFieldId(0)
-	{ }
-
 	ManagedSerializableFieldKey::ManagedSerializableFieldKey(UINT16 typeId, UINT16 fieldId)
 		:mTypeId(typeId), mFieldId(fieldId)
 	{ }

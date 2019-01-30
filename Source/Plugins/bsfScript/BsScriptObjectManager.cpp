@@ -9,12 +9,6 @@
 
 namespace bs
 {
-	ScriptObjectManager::ScriptObjectManager()
-		:mFinalizedQueueIdx(0)
-	{
-
-	}
-
 	ScriptObjectManager::~ScriptObjectManager()
 	{
 		processFinalizedObjects();

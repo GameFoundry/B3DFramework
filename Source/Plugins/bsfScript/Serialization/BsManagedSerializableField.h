@@ -21,7 +21,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedSerializableFieldKey : public IReflectable
 	{
 	public:
-		ManagedSerializableFieldKey();
+		ManagedSerializableFieldKey() = default;
 		ManagedSerializableFieldKey(UINT16 typeId, UINT16 fieldId);
 
 		/**
@@ -32,8 +32,8 @@ namespace bs
 		 */
 		static SPtr<ManagedSerializableFieldKey> create(UINT16 typeId, UINT16 fieldId);
 
-		UINT16 mTypeId;
-		UINT16 mFieldId;
+		UINT16 mTypeId = 0;
+		UINT16 mFieldId = 0;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -56,7 +56,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedSerializableFieldData : public IReflectable
 	{
 	public:
-		virtual ~ManagedSerializableFieldData() { }
+		virtual ~ManagedSerializableFieldData() = default;
 
 		/**
 		 * Creates a new data wrapper for some field data.
@@ -166,7 +166,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedSerializableFieldDataBool : public ManagedSerializableFieldData
 	{
 	public:
-		ManagedSerializableFieldDataBool() { }
+		ManagedSerializableFieldDataBool() = default;
 
 		/** @copydoc ManagedSerializableFieldData::getValue */
 		void* getValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
@@ -200,7 +200,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedSerializableFieldDataChar : public ManagedSerializableFieldData
 	{
 	public:
-		ManagedSerializableFieldDataChar() {}
+		ManagedSerializableFieldDataChar() = default;
 
 		/** @copydoc ManagedSerializableFieldData::getValue */
 		void* getValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
@@ -234,7 +234,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedSerializableFieldDataI8 : public ManagedSerializableFieldData
 	{
 	public:
-		ManagedSerializableFieldDataI8() {}
+		ManagedSerializableFieldDataI8() = default;
 
 		/** @copydoc ManagedSerializableFieldData::getValue */
 		void* getValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
@@ -268,7 +268,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedSerializableFieldDataU8 : public ManagedSerializableFieldData
 	{
 	public:
-		ManagedSerializableFieldDataU8() {}
+		ManagedSerializableFieldDataU8() = default;
 
 		/** @copydoc ManagedSerializableFieldData::getValue */
 		void* getValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
@@ -302,7 +302,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedSerializableFieldDataI16 : public ManagedSerializableFieldData
 	{
 	public:
-		ManagedSerializableFieldDataI16() {}
+		ManagedSerializableFieldDataI16() = default;
 
 		/** @copydoc ManagedSerializableFieldData::getValue */
 		void* getValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
@@ -336,7 +336,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedSerializableFieldDataU16 : public ManagedSerializableFieldData
 	{
 	public:
-		ManagedSerializableFieldDataU16() {}
+		ManagedSerializableFieldDataU16() = default;
 
 		/** @copydoc ManagedSerializableFieldData::getValue */
 		void* getValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
@@ -370,7 +370,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedSerializableFieldDataI32 : public ManagedSerializableFieldData
 	{
 	public:
-		ManagedSerializableFieldDataI32() {}
+		ManagedSerializableFieldDataI32() = default;
 
 		/** @copydoc ManagedSerializableFieldData::getValue */
 		void* getValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
@@ -404,7 +404,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedSerializableFieldDataU32 : public ManagedSerializableFieldData
 	{
 	public:
-		ManagedSerializableFieldDataU32() {}
+		ManagedSerializableFieldDataU32() = default;
 
 		/** @copydoc ManagedSerializableFieldData::getValue */
 		void* getValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
@@ -438,7 +438,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedSerializableFieldDataI64 : public ManagedSerializableFieldData
 	{
 	public:
-		ManagedSerializableFieldDataI64() {}
+		ManagedSerializableFieldDataI64() = default;
 
 		/** @copydoc ManagedSerializableFieldData::getValue */
 		void* getValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
@@ -472,7 +472,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedSerializableFieldDataU64 : public ManagedSerializableFieldData
 	{
 	public:
-		ManagedSerializableFieldDataU64() {}
+		ManagedSerializableFieldDataU64() = default;
 
 		/** @copydoc ManagedSerializableFieldData::getValue */
 		void* getValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
@@ -506,7 +506,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedSerializableFieldDataFloat : public ManagedSerializableFieldData
 	{
 	public:
-		ManagedSerializableFieldDataFloat() {}
+		ManagedSerializableFieldDataFloat() = default;
 
 		/** @copydoc ManagedSerializableFieldData::getValue */
 		void* getValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
@@ -540,7 +540,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedSerializableFieldDataDouble : public ManagedSerializableFieldData
 	{
 	public:
-		ManagedSerializableFieldDataDouble() {}
+		ManagedSerializableFieldDataDouble() = default;
 
 		/** @copydoc ManagedSerializableFieldData::getValue */
 		void* getValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
@@ -574,7 +574,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedSerializableFieldDataString : public ManagedSerializableFieldData
 	{
 	public:
-		ManagedSerializableFieldDataString() {}
+		ManagedSerializableFieldDataString() = default;
 
 		/** @copydoc ManagedSerializableFieldData::getValue */
 		void* getValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;

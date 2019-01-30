@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedResourceManager : public Module <ManagedResourceManager>
 	{
 	public:
-		ManagedResourceManager();
+		ManagedResourceManager() = default;
 		~ManagedResourceManager();
 
 		/** Unloads all managed resources. */

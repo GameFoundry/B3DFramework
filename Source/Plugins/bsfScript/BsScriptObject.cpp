@@ -38,9 +38,4 @@ namespace bs
 	{
 
 	}
-
-	PersistentScriptObjectBase::~PersistentScriptObjectBase()
-	{
-
-	}
 }

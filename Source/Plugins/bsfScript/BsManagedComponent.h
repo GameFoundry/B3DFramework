@@ -20,7 +20,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedComponent : public Component
 	{
 	public:
-		~ManagedComponent();
+		~ManagedComponent() = default;
 
 		/**	Returns managed component object instance. */
 		MonoObject* getManagedInstance() const;
@@ -157,7 +157,7 @@ namespace bs
 		RTTITypeBase* getRTTI() const override;
 
 	protected:
-		ManagedComponent(); // Serialization only
+		ManagedComponent() = default; // Serialization only
 	};
 
 	/** @} */

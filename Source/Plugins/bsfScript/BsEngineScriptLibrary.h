@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT EngineScriptLibrary : public ScriptLibrary
 	{
 	public:
-		EngineScriptLibrary();
+		EngineScriptLibrary() = default;
 
 		/** @copydoc ScriptLibrary::initialize */
 		void initialize() override;
@@ -60,7 +60,7 @@ namespace bs
 		void shutdownModules();
 
 	private:
-		bool mScriptAssembliesLoaded;
+		bool mScriptAssembliesLoaded = false;
 	};
 
 	/** @} */

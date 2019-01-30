@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptObjectManager : public Module <ScriptObjectManager>
 	{
 	public:
-		ScriptObjectManager();
+		ScriptObjectManager() = default;
 		~ScriptObjectManager();
 
 		/**	Registers a newly created script interop object. */
@@ -69,7 +69,7 @@ namespace bs
 		Set<ScriptObjectBase*> mScriptObjects;
 
 		Vector<ScriptObjectBase*> mFinalizedObjects[2];
-		UINT32 mFinalizedQueueIdx;
+		UINT32 mFinalizedQueueIdx = 0;
 		Mutex mMutex;
 	};
 

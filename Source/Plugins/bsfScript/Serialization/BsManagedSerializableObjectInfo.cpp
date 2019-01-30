@@ -25,12 +25,6 @@ namespace bs
 		return ManagedSerializableAssemblyInfo::getRTTIStatic();
 	}
 
-	ManagedSerializableObjectInfo::ManagedSerializableObjectInfo()
-		:mMonoClass(nullptr)
-	{
-
-	}
-
 	SPtr<ManagedSerializableMemberInfo> ManagedSerializableObjectInfo::findMatchingField(const SPtr<ManagedSerializableMemberInfo>& fieldInfo,
 		const SPtr<ManagedSerializableTypeInfo>& fieldTypeInfo) const
 	{
@@ -76,12 +70,6 @@ namespace bs
 		return ManagedSerializableObjectInfo::getRTTIStatic();
 	}
 
-	ManagedSerializableMemberInfo::ManagedSerializableMemberInfo()
-		:mFieldId(0), mFlags(0)
-	{
-
-	}
-
 	RTTITypeBase* ManagedSerializableMemberInfo::getRTTIStatic()
 	{
 		return ManagedSerializableMemberInfoRTTI::instance();
@@ -90,12 +78,6 @@ namespace bs
 	RTTITypeBase* ManagedSerializableMemberInfo::getRTTI() const
 	{
 		return ManagedSerializableMemberInfo::getRTTIStatic();
-	}
-
-	ManagedSerializableFieldInfo::ManagedSerializableFieldInfo()
-		:mMonoField(nullptr)
-	{
-
 	}
 
 	::MonoObject* ManagedSerializableFieldInfo::getAttribute(MonoClass* monoClass)
@@ -121,12 +103,6 @@ namespace bs
 	RTTITypeBase* ManagedSerializableFieldInfo::getRTTI() const
 	{
 		return ManagedSerializableFieldInfo::getRTTIStatic();
-	}
-
-	ManagedSerializablePropertyInfo::ManagedSerializablePropertyInfo()
-		:mMonoProperty(nullptr)
-	{
-
 	}
 
 	::MonoObject* ManagedSerializablePropertyInfo::getAttribute(MonoClass* monoClass)

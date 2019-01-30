@@ -20,10 +20,6 @@ using namespace std::placeholders;
 
 namespace bs
 {
-	ScriptGameObjectManager::ScriptGameObjectEntry::ScriptGameObjectEntry()
-		:instance(nullptr), isComponent(false)
-	{ }
-
 	ScriptGameObjectManager::ScriptGameObjectEntry::ScriptGameObjectEntry(ScriptGameObjectBase* instance, bool isComponent)
 		:instance(instance), isComponent(isComponent)
 	{ }

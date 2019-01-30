@@ -22,11 +22,11 @@ namespace bs
 		/**	Contains information about a single interop object containing a game object. */
 		struct ScriptGameObjectEntry
 		{
-			ScriptGameObjectEntry();
+			ScriptGameObjectEntry() = default;
 			ScriptGameObjectEntry(ScriptGameObjectBase* instance, bool isComponent);
 
-			ScriptGameObjectBase* instance;
-			bool isComponent;
+			ScriptGameObjectBase* instance = nullptr;
+			bool isComponent = false;
 		};
 
 	public:

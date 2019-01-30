@@ -5,11 +5,6 @@
 
 namespace bs
 {
-	ManagedResourceManager::ManagedResourceManager()
-	{
-
-	}
-
 	ManagedResourceManager::~ManagedResourceManager()
 	{
 		clear();

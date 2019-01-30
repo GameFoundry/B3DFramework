@@ -22,10 +22,6 @@
 
 namespace bs
 {
-	EngineScriptLibrary::EngineScriptLibrary()
-		:mScriptAssembliesLoaded(false)
-	{ }
-
 	void EngineScriptLibrary::initialize()
 	{
 		Path engineAssemblyPath = getEngineAssemblyPath();

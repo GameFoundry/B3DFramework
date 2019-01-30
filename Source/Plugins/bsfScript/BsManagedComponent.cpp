@@ -17,19 +17,11 @@
 
 namespace bs
 {
-	ManagedComponent::ManagedComponent()
-	{ }
-
 	ManagedComponent::ManagedComponent(const HSceneObject& parent, MonoReflectionType* runtimeType)
 		: Component(parent), mRuntimeType(runtimeType)
 	{
 		MonoUtil::getClassName(mRuntimeType, mNamespace, mTypeName);
 		setName(mTypeName);
-	}
-
-	ManagedComponent::~ManagedComponent()
-	{
-
 	}
 
 	MonoObject* ManagedComponent::getManagedInstance() const
