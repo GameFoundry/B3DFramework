@@ -127,6 +127,14 @@ Additionally, if the dependency structure still isn't clear, download one of the
 - Required by bsfSL
 - Compile as a static library
 
+**mono**
+- Mono 5.4
+- Only required if SCRIPT_API=C# option is specified during the build (i.e. C# scripting is enabled)
+- http://www.mono-project.com/
+- Required by bsfMono
+- Compile as a dynamic library
+ - See MonoIntegrationGuide.txt for additional notes
+
 **bison**
 - Bison 3.0.4
 - Only required if BUILD_BSL option is specified during the build (off by default)
@@ -155,3 +163,10 @@ Additionally, if the dependency structure still isn't clear, download one of the
   - `brew install flex`
 - Required by bsfSL
 - Executable (tool)
+
+ **BansheeSBGen**
+ - Banshee Script Binding Generator 1.0
+ - Only required if SCRIPT_BINDING_GENERATION option is specified during the build (off by default)
+ - https://github.com/BearishSun/BansheeSBGen
+ - Required for generation of C# script binding files. Not required if not using the scripting sub-system.
+ - Executable (tool)

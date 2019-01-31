@@ -21,7 +21,7 @@ Current feature-set includes a wide range of high level systems, ranging from ma
 * [Roadmap](https://github.com/GameFoundry/bsf/blob/master/Documentation/GitHub/roadmap.md) - A list of features to be implemented in both near and far future. 
 
 # Get started
-* [Documentation](https://www.bsframework.io/docs/index.html) - Head over to the "User manuals" section to learn how to use the framework from the ground up. Use the API reference to look up what a particular class/method does.
+* [Documentation](http://docs.bsframework.io/nightly/index.html) - Head over to the "User manuals" section to learn how to use the framework from the ground up. Use the API reference to look up what a particular class/method does.
 * [Examples](https://github.com/gamefoundry/bsfExamples) - Grab a set of working examples and start tinkering and analyzing them to figure out how things work. They are well documented and can be used for quickly learning the framework.
 * [Compiling](https://github.com/GameFoundry/bsf/blob/master/Documentation/GitHub/compiling.md) - Learn how to compile the framework from the source code. 
 
