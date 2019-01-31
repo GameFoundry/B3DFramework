@@ -57,7 +57,6 @@ namespace bs
 		/// Checks if the body is sleeping. Objects that aren't moved/rotated for a while are put to sleep to reduce load on the 
 		/// physics system.
 		/// </summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public bool IsSleeping
 		{

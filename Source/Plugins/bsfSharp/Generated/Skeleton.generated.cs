@@ -22,7 +22,6 @@ namespace bs
 		protected Skeleton() { }
 
 		/// <summary>Returns the total number of bones in the skeleton.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public uint NumBones
 		{

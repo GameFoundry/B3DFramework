@@ -83,7 +83,6 @@ namespace bs
 		/// curves manually, instead of through the normal animation process. This property is only available if animation clip 
 		/// was imported with root motion import enabled.
 		/// </summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public RootMotion RootMotion
 		{
@@ -91,7 +90,6 @@ namespace bs
 		}
 
 		/// <summary>Checks if animation clip has root motion curves separate from the normal animation curves.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public bool HasRootMotion
 		{
@@ -102,7 +100,6 @@ namespace bs
 		/// Checks are the curves contained within the clip additive. Additive clips are intended to be added on top of other 
 		/// clips.
 		/// </summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public bool IsAddtive
 		{
@@ -110,7 +107,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the length of the animation clip, in seconds.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public float Length
 		{

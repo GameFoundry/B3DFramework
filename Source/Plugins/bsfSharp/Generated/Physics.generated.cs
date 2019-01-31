@@ -36,7 +36,6 @@ namespace bs
 		}
 
 		/// <summary>Checks is the physics simulation update currently in progress.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public static bool IsUpdateInProgress
 		{

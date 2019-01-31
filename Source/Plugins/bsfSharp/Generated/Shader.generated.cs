@@ -31,7 +31,6 @@ namespace bs
 		}
 
 		/// <summary>Returns information about all parameters available in the shader.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public ShaderParameter[] Parameters
 		{

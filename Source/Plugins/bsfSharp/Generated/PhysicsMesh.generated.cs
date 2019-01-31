@@ -42,7 +42,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the type of the physics mesh.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public PhysicsMeshType Type
 		{
@@ -50,7 +49,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the mesh's indices and vertices.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public MeshData MeshData
 		{

@@ -26,7 +26,6 @@ namespace bs
 		protected MorphShapes() { }
 
 		/// <summary>Returns a list of all morph channels in the morph animation.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public MorphChannel[] Channels
 		{

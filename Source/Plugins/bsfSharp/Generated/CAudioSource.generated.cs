@@ -121,7 +121,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the current state of the audio playback (playing/paused/stopped).</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public AudioSourceState State
 		{

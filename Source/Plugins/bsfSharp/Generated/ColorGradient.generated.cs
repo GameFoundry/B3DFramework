@@ -39,7 +39,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the number of color keys in the gradient.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public uint NumKeys
 		{

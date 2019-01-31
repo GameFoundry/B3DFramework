@@ -22,7 +22,6 @@ namespace bs
 		protected RootMotion() { }
 
 		/// <summary>Animation curve representing the movement of the root bone.</summary>
-		[ShowInInspector]
 		[NotNull]
 		[PassByCopy]
 		[NativeWrapper]
@@ -32,7 +31,6 @@ namespace bs
 		}
 
 		/// <summary>Animation curve representing the rotation of the root bone.</summary>
-		[ShowInInspector]
 		[NotNull]
 		[PassByCopy]
 		[NativeWrapper]

@@ -26,7 +26,6 @@ namespace bs
 		protected MorphChannel() { }
 
 		/// <summary>Returns the unique name of the channel.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public string Name
 		{
@@ -34,7 +33,6 @@ namespace bs
 		}
 
 		/// <summary>Returns all morph shapes within this channel, in order from lowest to highest.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public MorphShape[] Shapes
 		{

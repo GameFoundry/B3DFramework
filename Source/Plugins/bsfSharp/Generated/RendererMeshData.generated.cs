@@ -107,7 +107,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the number of vertices contained in the mesh.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public int VertexCount
 		{
@@ -115,7 +114,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the number of indices contained in the mesh.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public int IndexCount
 		{

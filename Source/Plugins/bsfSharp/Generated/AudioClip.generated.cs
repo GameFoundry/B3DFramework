@@ -31,7 +31,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the size of a single sample, in bits.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public uint BitDepth
 		{
@@ -39,7 +38,6 @@ namespace bs
 		}
 
 		/// <summary>Returns how many samples per second is the audio encoded in.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public uint SampleRate
 		{
@@ -47,7 +45,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the number of channels provided by the clip.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public uint NumChannels
 		{
@@ -55,7 +52,6 @@ namespace bs
 		}
 
 		/// <summary>Returns in which format is audio data stored in.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public AudioFormat Format
 		{
@@ -63,7 +59,6 @@ namespace bs
 		}
 
 		/// <summary>Returns how is the audio data read/decoded.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public AudioReadMode ReadMode
 		{
@@ -71,7 +66,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the length of the audio clip, in seconds.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public float Duration
 		{
@@ -79,7 +73,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the total number of samples in the clip (includes all channels).</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public uint NumSamples
 		{
@@ -87,7 +80,6 @@ namespace bs
 		}
 
 		/// <summary>Determines will the clip be played a spatial 3D sound, or as a normal sound (for example music).</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public bool Is3D
 		{

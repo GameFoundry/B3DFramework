@@ -22,7 +22,6 @@ namespace bs
 		protected RenderTarget() { }
 
 		/// <summary>Width of the render target, in pixels.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public uint Width
 		{
@@ -30,7 +29,6 @@ namespace bs
 		}
 
 		/// <summary>Height of the render target, in pixels.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public uint Height
 		{
@@ -38,7 +36,6 @@ namespace bs
 		}
 
 		/// <summary>True if pixels written to the render target will be gamma corrected.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public bool GammaCorrection
 		{
@@ -58,7 +55,6 @@ namespace bs
 		}
 
 		/// <summary>Controls how many samples are used for multisampling. (0 or 1 if multisampling is not used).</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public uint SampleCount
 		{

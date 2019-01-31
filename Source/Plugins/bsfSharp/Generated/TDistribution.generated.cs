@@ -51,7 +51,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the type of the represented distribution.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public PropertyDistributionType DistributionType
 		{
@@ -191,7 +190,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the type of the represented distribution.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public PropertyDistributionType DistributionType
 		{
@@ -339,7 +337,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the type of the represented distribution.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public PropertyDistributionType DistributionType
 		{

@@ -54,7 +54,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the default audio device identifier.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public static AudioDevice DefaultDevice
 		{
@@ -67,7 +66,6 @@ namespace bs
 		}
 
 		/// <summary>Returns a list of all available audio devices.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public static AudioDevice[] AllDevices
 		{

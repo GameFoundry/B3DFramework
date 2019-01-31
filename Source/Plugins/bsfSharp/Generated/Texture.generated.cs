@@ -36,7 +36,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the pixel format for the texture surface.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public PixelFormat PixelFormat
 		{
@@ -44,7 +43,6 @@ namespace bs
 		}
 
 		/// <summary>Returns a value that signals the engine in what way is the texture expected to be used.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public TextureUsage Usage
 		{
@@ -52,7 +50,6 @@ namespace bs
 		}
 
 		/// <summary>Gets the type of texture.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public TextureType Type
 		{
@@ -60,7 +57,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the width of the texture.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public uint Width
 		{
@@ -68,7 +64,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the height of the texture.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public uint Height
 		{
@@ -76,7 +71,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the depth of the texture (only applicable for 3D textures).</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public uint Depth
 		{
@@ -87,7 +81,6 @@ namespace bs
 		/// Determines does the texture contain gamma corrected data. If true then the GPU will automatically convert the  pixels 
 		/// to linear space before reading from the texture, and convert them to gamma space when writing to the texture.
 		/// </summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public bool GammaSpace
 		{
@@ -95,7 +88,6 @@ namespace bs
 		}
 
 		/// <summary>Gets the number of samples used for multisampling (0 or 1 if multisampling is not used).</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public uint SampleCount
 		{
@@ -106,7 +98,6 @@ namespace bs
 		/// Gets the number of mipmaps to be used for this texture. This number excludes the top level map (which is always 
 		/// assumed to be present).
 		/// </summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public uint MipMapCount
 		{

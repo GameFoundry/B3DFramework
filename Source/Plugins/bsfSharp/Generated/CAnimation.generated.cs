@@ -63,7 +63,6 @@ namespace bs
 		}
 
 		/// <summary>Checks if any animation clips are currently playing.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public bool IsPlaying
 		{

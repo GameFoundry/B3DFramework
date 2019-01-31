@@ -54,7 +54,6 @@ namespace bs
 		}
 
 		/// <summary>Returns width of the sprite texture in pixels.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public uint Width
 		{
@@ -62,7 +61,6 @@ namespace bs
 		}
 
 		/// <summary>Returns height of the sprite texture in pixels.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public uint Height
 		{

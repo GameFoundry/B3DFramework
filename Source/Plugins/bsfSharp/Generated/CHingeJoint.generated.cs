@@ -25,7 +25,6 @@ namespace bs
 		protected HingeJoint() { }
 
 		/// <summary>Returns the current angle between the two attached bodes.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Radian Angle
 		{
@@ -38,7 +37,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the current angular speed of the joint.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public float Speed
 		{

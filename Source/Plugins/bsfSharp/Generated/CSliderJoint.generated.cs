@@ -24,7 +24,6 @@ namespace bs
 		protected SliderJoint() { }
 
 		/// <summary>Returns the current position of the slider.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public float Position
 		{
@@ -32,7 +31,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the current speed of the slider.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public float Speed
 		{

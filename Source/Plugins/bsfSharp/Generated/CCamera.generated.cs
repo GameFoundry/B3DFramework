@@ -25,7 +25,6 @@ namespace bs
 		protected Camera() { }
 
 		/// <summary>Returns the viewport used by the camera.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Viewport Viewport
 		{
@@ -86,7 +85,6 @@ namespace bs
 		/// Returns the standard projection matrix that determines how are 3D points projected to two dimensions. The layout of 
 		/// this matrix depends on currently used render system.
 		/// </summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Matrix4 ProjMatrix
 		{
@@ -99,7 +97,6 @@ namespace bs
 		}
 
 		/// <summary>Gets the camera view matrix. Used for positioning/orienting the camera.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Matrix4 ViewMatrix
 		{

@@ -25,7 +25,6 @@ namespace bs
 		protected MorphShape() { }
 
 		/// <summary>Returns the name of the shape.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public string Name
 		{
@@ -33,7 +32,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the weight of the shape, determining how are different shapes within a channel blended.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public float Weight
 		{

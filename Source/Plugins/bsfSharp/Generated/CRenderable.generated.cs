@@ -71,7 +71,6 @@ namespace bs
 		}
 
 		/// <summary>Gets world bounds of the mesh rendered by this object.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Bounds Bounds
 		{

@@ -71,7 +71,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the primary color surface that contains rendered color data.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Texture ColorSurface
 		{
@@ -79,7 +78,6 @@ namespace bs
 		}
 
 		/// <summary>Returns all the color surfaces.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Texture[] ColorSurfaces
 		{
@@ -87,7 +85,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the depth/stencil surface that contains rendered depth and stencil data.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Texture DepthStencilSurface
 		{

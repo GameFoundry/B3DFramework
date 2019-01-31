@@ -33,7 +33,6 @@ namespace bs
 		}
 
 		/// <summary>Returns a total number of strings in the table.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public uint NumStrings
 		{
@@ -41,7 +40,6 @@ namespace bs
 		}
 
 		/// <summary>Returns all identifiers that the string table contains localized strings for.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public string[] Identifiers
 		{

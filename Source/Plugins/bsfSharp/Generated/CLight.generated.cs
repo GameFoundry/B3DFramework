@@ -157,7 +157,6 @@ namespace bs
 		}
 
 		/// <summary>Returns world space bounds that completely encompass the light's area of influence.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Sphere Bounds
 		{

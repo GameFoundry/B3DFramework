@@ -22,7 +22,6 @@ namespace bs
 		protected DistanceJoint() { }
 
 		/// <summary>Returns the current distance between the two joint bodies.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public float Distance
 		{

@@ -32,7 +32,6 @@ namespace bs
 		}
 
 		/// <summary>Returns a list of all keyframes in the curve.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public KeyFrame[] KeyFrames
 		{
@@ -85,7 +84,6 @@ namespace bs
 		}
 
 		/// <summary>Returns a list of all keyframes in the curve.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public KeyFrameVec3[] KeyFrames
 		{
@@ -140,7 +138,6 @@ namespace bs
 		}
 
 		/// <summary>Returns a list of all keyframes in the curve.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public KeyFrameVec2[] KeyFrames
 		{
@@ -195,7 +192,6 @@ namespace bs
 		}
 
 		/// <summary>Returns a list of all keyframes in the curve.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public KeyFrameQuat[] KeyFrames
 		{
@@ -250,7 +246,6 @@ namespace bs
 		}
 
 		/// <summary>Returns a list of all keyframes in the curve.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public KeyFrameInt[] KeyFrames
 		{

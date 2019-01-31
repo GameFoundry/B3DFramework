@@ -27,7 +27,6 @@ namespace bs
 		protected D6Joint() { }
 
 		/// <summary>Returns the current rotation of the joint around the X axis.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Radian Twist
 		{
@@ -40,7 +39,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the current rotation of the joint around the Y axis.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Radian SwingY
 		{
@@ -53,7 +51,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the current rotation of the joint around the Z axis.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Radian SwingZ
 		{
@@ -112,7 +109,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the drive's target position relative to the joint's first body.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Vector3 DrivePosition
 		{
@@ -125,7 +121,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the drive's target rotation relative to the joint's first body.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Quaternion DriveRotation
 		{
@@ -138,7 +133,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the drive's target linear velocity.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Vector3 DriveLinearVelocity
 		{
@@ -151,7 +145,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the drive's target angular velocity.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Vector3 DriveAngularVelocity
 		{

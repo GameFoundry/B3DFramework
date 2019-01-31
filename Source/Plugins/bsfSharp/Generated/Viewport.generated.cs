@@ -55,7 +55,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the area of the render target covered by the viewport, in pixels.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Rect2I PixelArea
 		{

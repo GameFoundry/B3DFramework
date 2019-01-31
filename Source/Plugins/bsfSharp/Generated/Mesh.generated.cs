@@ -107,7 +107,6 @@ namespace bs
 		}
 
 		/// <summary>Gets the skeleton required for animation of this mesh, if any is available.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Skeleton Skeleton
 		{
@@ -115,7 +114,6 @@ namespace bs
 		}
 
 		/// <summary>Returns an object containing all shapes used for morph animation, if any are available.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public MorphShapes MorphShapes
 		{
@@ -123,7 +121,6 @@ namespace bs
 		}
 
 		/// <summary>Returns all sub-meshes contained in the mesh.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public SubMesh[] SubMeshes
 		{
@@ -131,7 +128,6 @@ namespace bs
 		}
 
 		/// <summary>Returns the number of sub-meshes contained in this mesh.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public uint SubMeshCount
 		{
