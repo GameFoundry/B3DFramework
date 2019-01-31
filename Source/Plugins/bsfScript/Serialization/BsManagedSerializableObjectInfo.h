@@ -53,12 +53,15 @@ namespace bs
 		Range               = 1 << 2,
 		Step                = 1 << 3,
 		Animable            = 1 << 4,
-		LayerMask           = 1 << 5,
+		AsLayerMask         = 1 << 5,
 		PassByCopy          = 1 << 6,
 		NotNull             = 1 << 7,
 		NativeWrapper       = 1 << 8,
 		ApplyOnDirty        = 1 << 9,
-		DisplayAsQuaternion = 1 << 10
+		AsQuaternion        = 1 << 10,
+		Category			= 1 << 11,
+		Order				= 1 << 12,
+		Inline				= 1 << 13
 	};
 
 	typedef Flags<ScriptFieldFlag> ScriptFieldFlags;
@@ -317,18 +320,6 @@ namespace bs
 		/**	Determines should the member be serialized when serializing the parent object. */
 		bool isSerializable() const { return mFlags.isSet(ScriptFieldFlag::Serializable); }
 
-		/** Returns the minimum value associated to a Range attribute. */
-		virtual float getRangeMinimum() const = 0;
-
-		/** Returns the maximum value associated to a Range attribute. */
-		virtual float getRangeMaximum() const = 0;
-
-		/** Checks whether the field should be rendered as a slider. */
-		virtual bool renderAsSlider() const = 0;
-
-		/** Returns the step value of the member. */
-		virtual float getStep() const = 0;
-
 		/**
 		 * Returns a boxed value contained in the member in the specified object instance.
 		 *
@@ -345,6 +336,12 @@ namespace bs
 		 *							reference type it should be a pointer to MonoObject.
 		 */
 		virtual void setValue(MonoObject* instance, void* value) const = 0;
+
+		/** 
+		 * Checks if the attribute of the provided type exists on the member and returns it, or returns null if the
+		 * attribute is not present.
+		 */
+		virtual MonoObject* getAttribute(MonoClass* monoClass) = 0;
 
 		String mName;
 		UINT32 mFieldId;
@@ -368,17 +365,8 @@ namespace bs
 	public:
 		ManagedSerializableFieldInfo();
 
-		/** @copydoc ManagedSerializableMemberInfo::getRangeMinimum */
-		float getRangeMinimum() const override;
-
-		/** @copydoc ManagedSerializableMemberInfo::getRangeMaximum */
-		float getRangeMaximum() const override;
-
-		/** @copydoc ManagedSerializableMemberInfo::renderAsSlider */
-		bool renderAsSlider() const override;
-
-		/** @copydoc ManagedSerializableMemberInfo::getStep */
-		float getStep() const override;
+		/** @copydoc ManagedSerializableMemberInfo::getAttribute */
+		MonoObject* getAttribute(MonoClass* monoClass) override;
 
 		/** @copydoc ManagedSerializableMemberInfo::getValue */
 		MonoObject* getValue(MonoObject* instance) const override;
@@ -403,17 +391,8 @@ namespace bs
 	public:
 		ManagedSerializablePropertyInfo();
 
-		/** @copydoc ManagedSerializableMemberInfo::getRangeMinimum */
-		float getRangeMinimum() const override;
-
-		/** @copydoc ManagedSerializableMemberInfo::getRangeMaximum */
-		float getRangeMaximum() const override;
-
-		/** @copydoc ManagedSerializableMemberInfo::renderAsSlider */
-		bool renderAsSlider() const override;
-
-		/** @copydoc ManagedSerializableMemberInfo::getStep */
-		float getStep() const override;
+		/** @copydoc ManagedSerializableMemberInfo::getAttribute */
+		MonoObject* getAttribute(MonoClass* monoClass) override;
 
 		/** @copydoc ManagedSerializableMemberInfo::getValue */
 		MonoObject* getValue(MonoObject* instance) const override;

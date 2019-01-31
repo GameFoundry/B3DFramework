@@ -8,6 +8,11 @@
 #include "BsMonoUtil.h"
 #include "Serialization/BsManagedSerializableObjectInfo.h"
 #include "Wrappers/BsScriptSerializableProperty.h"
+#include "GUI/BsScriptRange.h"
+#include "Serialization/BsScriptAssemblyManager.h"
+#include "GUI/BsScriptStep.h"
+#include "BsScriptCategory.h"
+#include "BsScriptOrder.h"
 
 namespace bs
 {
@@ -59,18 +64,63 @@ namespace bs
 		else
 			nativeInstance->mFieldInfo->setValue(instance, value);
 	}
+
 	void ScriptSerializableField::internal_getStyle(ScriptSerializableField* nativeInstance, SerializableMemberStyle* style)
 	{
 		SPtr<ManagedSerializableMemberInfo> fieldInfo = nativeInstance->mFieldInfo;
-		*style = SerializableMemberStyle();
+		SerializableMemberStyle interopStyle;
 
 		ScriptFieldFlags fieldFlags = fieldInfo->mFlags;
-		style->displayAsSlider = fieldInfo->renderAsSlider();
-		style->rangeMin = fieldInfo->getRangeMinimum();
-		style->rangeMax = fieldInfo->getRangeMaximum();
-		style->stepIncrement = fieldInfo->getStep();
-		style->hasStep = fieldFlags.isSet(ScriptFieldFlag::Step);
-		style->hasRange = fieldFlags.isSet(ScriptFieldFlag::Range);
-		style->displayAsLayerMask = fieldFlags.isSet(ScriptFieldFlag::LayerMask);
+		if (fieldFlags.isSet(ScriptFieldFlag::Range))
+		{
+			MonoClass* range = ScriptAssemblyManager::instance().getBuiltinClasses().rangeAttribute;
+			if (range != nullptr)
+			{
+				MonoObject* attrib = fieldInfo->getAttribute(range);
+
+				ScriptRange::getMinRangeField()->get(attrib, &style->rangeMin);
+				ScriptRange::getMaxRangeField()->get(attrib, &style->rangeMax);
+				ScriptRange::getSliderField()->get(attrib, &style->displayAsSlider);
+			}
+		}
+
+		if (fieldFlags.isSet(ScriptFieldFlag::Step))
+		{
+			MonoClass* step = ScriptAssemblyManager::instance().getBuiltinClasses().stepAttribute;
+			if (step != nullptr)
+			{
+				MonoObject* attrib = fieldInfo->getAttribute(step);
+				ScriptStep::getStepField()->get(attrib, &style->stepIncrement);
+			}
+		}
+
+		if (fieldFlags.isSet(ScriptFieldFlag::Category))
+		{
+			MonoClass* category = ScriptAssemblyManager::instance().getBuiltinClasses().categoryAttribute;
+			if (category != nullptr)
+			{
+				MonoObject* attrib = fieldInfo->getAttribute(category);
+				ScriptCategory::getNameField()->get(attrib, &style->categoryName);
+			}
+		}
+
+		if (fieldFlags.isSet(ScriptFieldFlag::Order))
+		{
+			MonoClass* order = ScriptAssemblyManager::instance().getBuiltinClasses().orderAttribute;
+			if (order != nullptr)
+			{
+				MonoObject* attrib = fieldInfo->getAttribute(order);
+				ScriptOrder::getIndexField()->get(attrib, &style->order);
+			}
+		}
+
+		MonoUtil::valueCopy(&style, &interopStyle, ScriptSerializableFieldStyle::getMetaData()->scriptClass->_getInternalClass());
 	}
+
+	ScriptSerializableFieldStyle::ScriptSerializableFieldStyle(MonoObject* managedInstance)
+		:ScriptObject(managedInstance)
+	{ }
+
+	void ScriptSerializableFieldStyle::initRuntimeData()
+	{ }
 }

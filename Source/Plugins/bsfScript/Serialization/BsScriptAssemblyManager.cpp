@@ -220,16 +220,25 @@ namespace bs
 						if (primTypeInfo->mType == ScriptPrimitiveType::I64 ||
 							primTypeInfo->mType == ScriptPrimitiveType::U64)
 						{
-							fieldInfo->mFlags |= ScriptFieldFlag::LayerMask;
+							fieldInfo->mFlags |= ScriptFieldFlag::AsLayerMask;
 						}
 					}
 				}
 
 				if (field->hasAttribute(mBuiltin.asQuaternionAttribute))
-					fieldInfo->mFlags |= ScriptFieldFlag::DisplayAsQuaternion;
+					fieldInfo->mFlags |= ScriptFieldFlag::AsQuaternion;
 
 				if(field->hasAttribute(mBuiltin.notNullAttribute))
 					fieldInfo->mFlags |= ScriptFieldFlag::NotNull;
+
+				if(field->hasAttribute(mBuiltin.categoryAttribute))
+					fieldInfo->mFlags |= ScriptFieldFlag::Category;
+
+				if(field->hasAttribute(mBuiltin.orderAttribute))
+					fieldInfo->mFlags |= ScriptFieldFlag::Order;
+
+				if(field->hasAttribute(mBuiltin.inlineAttribute))
+					fieldInfo->mFlags |= ScriptFieldFlag::Inline;
 
 				objInfo->mFieldNameToId[fieldInfo->mName] = fieldInfo->mFieldId;
 				objInfo->mFields[fieldInfo->mFieldId] = fieldInfo;
@@ -284,13 +293,13 @@ namespace bs
 							if (primTypeInfo->mType == ScriptPrimitiveType::I64 ||
 								primTypeInfo->mType == ScriptPrimitiveType::U64)
 							{
-								propertyInfo->mFlags |= ScriptFieldFlag::LayerMask;
+								propertyInfo->mFlags |= ScriptFieldFlag::AsLayerMask;
 							}
 						}
 					}
 
 					if (property->hasAttribute(mBuiltin.asQuaternionAttribute))
-						propertyInfo->mFlags |= ScriptFieldFlag::DisplayAsQuaternion;
+						propertyInfo->mFlags |= ScriptFieldFlag::AsQuaternion;
 
 					if (property->hasAttribute(mBuiltin.notNullAttribute))
 						propertyInfo->mFlags |= ScriptFieldFlag::NotNull;
@@ -303,6 +312,15 @@ namespace bs
 
 					if (property->hasAttribute(mBuiltin.nativeWrapperAttribute))
 						propertyInfo->mFlags |= ScriptFieldFlag::NativeWrapper;
+
+					if (property->hasAttribute(mBuiltin.categoryAttribute))
+						propertyInfo->mFlags |= ScriptFieldFlag::Category;
+
+					if (property->hasAttribute(mBuiltin.orderAttribute))
+						propertyInfo->mFlags |= ScriptFieldFlag::Order;
+
+					if (property->hasAttribute(mBuiltin.inlineAttribute))
+						propertyInfo->mFlags |= ScriptFieldFlag::Inline;
 				}
 
 				objInfo->mFieldNameToId[propertyInfo->mName] = propertyInfo->mFieldId;
@@ -704,6 +722,18 @@ namespace bs
 		mBuiltin.showInInspectorAttribute = engineAssembly->getClass(ENGINE_NS, "ShowInInspector");
 		if (mBuiltin.showInInspectorAttribute == nullptr)
 			BS_EXCEPT(InvalidStateException, "Cannot find ShowInInspector managed class.");
+
+		mBuiltin.categoryAttribute = engineAssembly->getClass(ENGINE_NS, "Category");
+		if (mBuiltin.categoryAttribute == nullptr)
+			BS_EXCEPT(InvalidStateException, "Cannot find Category managed class.");
+
+		mBuiltin.orderAttribute = engineAssembly->getClass(ENGINE_NS, "Order");
+		if (mBuiltin.orderAttribute == nullptr)
+			BS_EXCEPT(InvalidStateException, "Cannot find Order managed class.");
+
+		mBuiltin.inlineAttribute = engineAssembly->getClass(ENGINE_NS, "Inline");
+		if (mBuiltin.inlineAttribute == nullptr)
+			BS_EXCEPT(InvalidStateException, "Cannot find Inline managed class.");
 
 		mBaseTypesInitialized = true;
 	}

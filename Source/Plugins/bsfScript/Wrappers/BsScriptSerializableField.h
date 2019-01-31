@@ -14,14 +14,13 @@ namespace bs
 	/** Contains information about a style of a serializable field. */
 	struct SerializableMemberStyle // Note: Must match C# struct SerializableFieldStyle
 	{
-		bool hasRange; /**< True if the range of the field is limited, false if unlimited. */
 		float rangeMin; /**< Returns the lower bound of the range. Only relevant if @see hasRange is true. */
 		float rangeMax; /**< Returns the upper bound of the range. Only relevant if @see hasRange is true. */
-		bool hasStep; /**< True if the field value can only be incremented in specific increments. */
 		/** Minimum increment the field value can be increment/decremented by. Only relevant if @see hasStep is true. */
 		float stepIncrement; 
 		bool displayAsSlider; /**< If true, number fields will be displayed as sliders instead of regular input boxes. */
-		bool displayAsLayerMask; /**< If true, 64-bit fields will be displayed as a layer mask drop down menu. */
+		MonoString* categoryName; /**< Name of the category to display in inspector, if the member is part of one. */
+		int order; /**< Determines ordering in inspector relative to other members. */
 	};
 
 	/**	Interop class between C++ & CLR for ManagedSerializableFieldInfo. */
@@ -50,6 +49,16 @@ namespace bs
 		static MonoObject* internal_getValue(ScriptSerializableField* nativeInstance, MonoObject* instance);
 		static void internal_setValue(ScriptSerializableField* nativeInstance, MonoObject* instance, MonoObject* value);
 		static void internal_getStyle(ScriptSerializableField* nativeInstance, SerializableMemberStyle* style);
+	};
+
+	/** Interop class between C++ & CLR for SerializableFieldStyle. */
+	class BS_SCR_BE_EXPORT ScriptSerializableFieldStyle : public ScriptObject<ScriptSerializableFieldStyle>
+	{
+	public:
+		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "SerializableFieldStyle")
+
+	private:
+		ScriptSerializableFieldStyle(MonoObject* managedInstance);
 	};
 
 	/** @} */

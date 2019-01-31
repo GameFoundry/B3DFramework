@@ -98,65 +98,9 @@ namespace bs
 
 	}
 
-	float ManagedSerializableFieldInfo::getRangeMinimum() const
+	::MonoObject* ManagedSerializableFieldInfo::getAttribute(MonoClass* monoClass)
 	{
-		if (mFlags.isSet(ScriptFieldFlag::Range))
-		{
-			MonoClass* range = ScriptAssemblyManager::instance().getBuiltinClasses().rangeAttribute;
-			if (range != nullptr)
-			{
-				float min = 0;
-				ScriptRange::getMinRangeField()->get(mMonoField->getAttribute(range), &min);
-				return min;
-			}
-		}
-		return 0;
-	}
-
-	float ManagedSerializableFieldInfo::getRangeMaximum() const
-	{
-		if (mFlags.isSet(ScriptFieldFlag::Range))
-		{
-			MonoClass* range = ScriptAssemblyManager::instance().getBuiltinClasses().rangeAttribute;
-			if (range != nullptr)
-			{
-				float max = 0;
-				ScriptRange::getMaxRangeField()->get(mMonoField->getAttribute(range), &max);
-				return max;
-			}
-		}
-		return 0;
-	}
-
-	bool ManagedSerializableFieldInfo::renderAsSlider() const
-	{
-		if (mFlags.isSet(ScriptFieldFlag::Range))
-		{
-			MonoClass* range = ScriptAssemblyManager::instance().getBuiltinClasses().rangeAttribute;
-			if (range != nullptr)
-			{
-				bool slider = false;
-				ScriptRange::getSliderField()->get(mMonoField->getAttribute(range), &slider);
-				return slider;
-			}
-		}
-		return false;
-	}
-
-
-	float ManagedSerializableFieldInfo::getStep() const
-	{
-		if (mFlags.isSet(ScriptFieldFlag::Step))
-		{
-			MonoClass* step = ScriptAssemblyManager::instance().getBuiltinClasses().stepAttribute;
-			if (step != nullptr)
-			{
-				float value = 0;
-				ScriptStep::getStepField()->get(mMonoField->getAttribute(step), &value);
-				return value;
-			}
-		}
-		return 0;
+		return mMonoField->getAttribute(monoClass);
 	}
 
 	MonoObject* ManagedSerializableFieldInfo::getValue(MonoObject* instance) const
@@ -185,69 +129,9 @@ namespace bs
 
 	}
 
-	float ManagedSerializablePropertyInfo::getRangeMinimum() const
+	::MonoObject* ManagedSerializablePropertyInfo::getAttribute(MonoClass* monoClass)
 	{
-		if (mFlags.isSet(ScriptFieldFlag::Range))
-		{
-			MonoClass* range = ScriptAssemblyManager::instance().getBuiltinClasses().rangeAttribute;
-			if (range != nullptr)
-			{
-				float min = 0;
-				ScriptRange::getMinRangeField()->get(mMonoProperty->getAttribute(range), &min);
-				return min;
-			}
-		}
-
-		return 0;
-	}
-
-	float ManagedSerializablePropertyInfo::getRangeMaximum() const
-	{
-		if (mFlags.isSet(ScriptFieldFlag::Range))
-		{
-			MonoClass* range = ScriptAssemblyManager::instance().getBuiltinClasses().rangeAttribute;
-			if (range != nullptr)
-			{
-				float max = 0;
-				ScriptRange::getMaxRangeField()->get(mMonoProperty->getAttribute(range), &max);
-				return max;
-			}
-		}
-
-		return 0;
-	}
-
-	bool ManagedSerializablePropertyInfo::renderAsSlider() const
-	{
-		if (mFlags.isSet(ScriptFieldFlag::Range))
-		{
-			MonoClass* range = ScriptAssemblyManager::instance().getBuiltinClasses().rangeAttribute;
-			if (range != nullptr)
-			{
-				bool slider = false;
-				ScriptRange::getSliderField()->get(mMonoProperty->getAttribute(range), &slider);
-				return slider;
-			}
-		}
-
-		return false;
-	}
-
-
-	float ManagedSerializablePropertyInfo::getStep() const
-	{
-		if (mFlags.isSet(ScriptFieldFlag::Step))
-		{
-			MonoClass* step = ScriptAssemblyManager::instance().getBuiltinClasses().stepAttribute;
-			if (step != nullptr)
-			{
-				float value = 0;
-				ScriptStep::getStepField()->get(mMonoProperty->getAttribute(step), &value);
-				return value;
-			}
-		}
-
-		return 0;
+		return mMonoProperty->getAttribute(monoClass);
 	}
 
 	MonoObject* ManagedSerializablePropertyInfo::getValue(MonoObject* instance) const

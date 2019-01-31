@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 #if IS_B3D
 namespace BansheeEngine
@@ -46,7 +47,7 @@ namespace bs
         /// <summary>
         /// Integer field rendered as a layer selection dropdown.
         /// </summary>
-        LayerMask           = 1 << 5,
+        AsLayerMask         = 1 << 5,
 
         /// <summary>
         /// Field containing a reference type being passed by copy instead of by reference.
@@ -74,7 +75,25 @@ namespace bs
         /// When a quaternion is displayed in the inspector, by default it will be displayed as converted into euler angles.
         /// Use this flag to force it to be displayed as a quaternion (4D value) with no conversion instead.
         /// </summary>
-        DisplayAsQuaternion = 1 << 10
+        AsQuaternion        = 1 << 10,
+
+        /// <summary>
+        /// Fields contains information about a category, which is used for grouping fields under a foldout in the
+        /// inspector. Retrieve the category field style for information about the category.
+        /// </summary>
+        Category			= 1 << 11,
+
+        /// <summary>
+        /// Field contains information about its order relative to other fields. Retrieve the order field style
+        /// for information about the order.
+        /// </summary>
+        Order				= 1 << 12,
+
+        /// <summary>
+        /// Singifies that the field containing a class/struct should display the child fields of that objects as if they
+        /// were part of the parent class in the inspector.
+        /// </summary>
+        Inline				= 1 << 13
     }
 
     /// <summary>
@@ -202,37 +221,38 @@ namespace bs
     /// <summary>
     /// Contains information about a style of a serializable field.
     /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
     public struct SerializableFieldStyle // Note: Must match C++ struct SerializableMemberStyle
     {
         /// <summary>
-        /// True if the range of the field is limited, false if unlimited.
-        /// </summary>
-        public bool HasRange;
-        /// <summary>
-        /// Returns the lower bound of the range. Only relevant if <see cref="HasRange"/> is true.
+        /// Returns the lower bound of the range, if the field has <see cref="Range"/> attribute.
         /// </summary>
         public float RangeMin;
+
         /// <summary>
-        /// Returns the upper bound of the range. Only relevant if <see cref="HasRange"/> is true.
+        /// Returns the upper bound of the range, if the field has <see cref="Range"/> attribute.
         /// </summary>
         public float RangeMax;
+
         /// <summary>
-        /// True if the field value can only be incremented in specific increments.
-        /// </summary>
-        public bool HasStep;
-        /// <summary>
-        /// Minimum increment the field value can be increment/decremented by. Only relevant if <see cref="HasStep"/> is true.
+        /// Minimum increment the field value can be increment/decremented by.
         /// </summary>
         public float StepIncrement;
+
         /// <summary>
         /// If true, number fields will be displayed as sliders instead of regular input boxes.
         /// </summary>
         public bool DisplayAsSlider; 
-        
+
         /// <summary>
-        /// If true, 64-bit fields will be displayed as a layer mask drop down menu.
+        /// Name of the category to display in inspector, if the member is part of one.
         /// </summary>
-        public bool DisplayAsLayerMask;
+        public string CategoryName;
+
+        /// <summary>
+        /// Determines ordering in inspector relative to other members.
+        /// </summary>
+        public int Order;
     }
 
     /** @} */

@@ -88,6 +88,8 @@ set(BS_SCRIPT_INC_WRAPPERS
 	"Wrappers/BsScriptManagedComponent.h"
 	"Wrappers/BsScriptQuaternion.h"
 	"Wrappers/BsScriptPlane.h"
+	"Wrappers/BsScriptCategory.h"
+	"Wrappers/BsScriptOrder.h"
 )
 
 set(BS_SCRIPT_INC_WRAPPERS_GUI
@@ -167,6 +169,8 @@ set(BS_SCRIPT_SRC_WRAPPERS
 	"Wrappers/BsScriptManagedComponent.cpp"
 	"Wrappers/BsScriptQuaternion.cpp"
 	"Wrappers/BsScriptPlane.cpp"
+	"Wrappers/BsScriptCategory.cpp"
+	"Wrappers/BsScriptOrder.cpp"
 )
 
 set(BS_SCRIPT_INC_SERIALIZATION

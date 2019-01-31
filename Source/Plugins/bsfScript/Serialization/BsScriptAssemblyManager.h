@@ -43,6 +43,9 @@ namespace bs
 		MonoClass* passByCopyAttribute = nullptr;
 		MonoClass* applyOnDirtyAttribute = nullptr;
 		MonoClass* asQuaternionAttribute = nullptr;
+		MonoClass* categoryAttribute = nullptr;
+		MonoClass* orderAttribute = nullptr;
+		MonoClass* inlineAttribute = nullptr;
 	};
 
 	/**	Stores data about managed serializable objects in specified assemblies. */
