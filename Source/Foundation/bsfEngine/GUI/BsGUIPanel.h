@@ -12,12 +12,12 @@ namespace bs
 	 */
 
 	/**	Represents a GUI panel that you can use for free placement of GUI elements within its bounds. */
-	class BS_EXPORT GUIPanel : public GUILayout
+	class BS_EXPORT GUIPanel final : public GUILayout
 	{
 	public:
+		GUIPanel() = default;
 		GUIPanel(INT16 depth, UINT16 depthRangeMin, UINT16 depthRangeMax, const GUIDimensions& dimensions);
-		GUIPanel() {};
-		~GUIPanel() {};
+		~GUIPanel() = default;
 
 		/**
 		 * Changes values that control at which depth is GUI panel and its children rendered.

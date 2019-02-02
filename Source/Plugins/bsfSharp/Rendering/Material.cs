@@ -13,7 +13,8 @@ namespace bs
     public partial class Material
     {
         /// <summary>
-        /// Returns a texture assigned to the material.
+        /// Returns a texture assigned to the material. If the material has a sprite texture assigned, this will return
+        /// the parent texture of the sprite.
         /// </summary>
         /// <param name="name">Name of the texture parameter.</param>
         /// <returns>Texture assigned to the specified material</returns>
@@ -43,6 +44,27 @@ namespace bs
         public void SetTexture(string name, RRef<Texture> texture)
         {
             Internal_setTexture(mCachedPtr, name, texture, 0, 0, 0, 0);
+        }
+
+        /// <summary>
+        /// Returns a sprite texture assigned to the material.
+        /// </summary>
+        /// <param name="name">Name of the texture parameter.</param>
+        /// <returns>Texture assigned to the specified material</returns>
+        public RRef<SpriteTexture> GetSpriteTexture(string name)
+        {
+            return Internal_getSpriteTexture(mCachedPtr, name);
+        }
+
+        /// <summary>
+        /// Assigns a sprite texture to the specified material parameter. Sprite texture is allowed to be animated, or just
+        /// used for referencing a subset of a texture atlas.
+        /// </summary>
+        /// <param name="name">Name of the texture parameter.</param>
+        /// <param name="texture">Texture resource to assign.</param>
+        public void SetSpriteTexture(string name, RRef<SpriteTexture> texture)
+        {
+            Internal_setSpriteTexture(mCachedPtr, name, texture);
         }
     }
 
