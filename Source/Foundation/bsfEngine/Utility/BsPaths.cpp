@@ -14,7 +14,6 @@ namespace bs
 
 	const Path& Paths::getDataPath()
 	{
-#if BS_IS_BANSHEE3D
 		static bool initialized = false;
 		static Path path;
 
@@ -23,14 +22,14 @@ namespace bs
 			if (FileSystem::exists(FRAMEWORK_DATA_PATH))
 				path = FileSystem::getWorkingDirectoryPath() + FRAMEWORK_DATA_PATH;
 			else
+#if BS_IS_BANSHEE3D
 				path = Path(RAW_APP_ROOT) + Path("Source/bsf") + FRAMEWORK_DATA_PATH;
+#else
+				path = Path(RAW_APP_ROOT) +  FRAMEWORK_DATA_PATH;
+#endif
 
 			initialized = true;
 		}
-
-#else
-		static Path path = findPath(FRAMEWORK_DATA_PATH);
-#endif
 
 		return path;
 	}
