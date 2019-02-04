@@ -19,6 +19,7 @@ Huge thanks to all the patrons, contributors and donators!
 - Nathan Warden [Founder]
  
 # Tier X Patrons
+- Andreas Schüle [Founder]
 - John Lagerquist [Founder]
 - Christian Clavet [Founder]
 - jeaninde [Founder]
@@ -31,7 +32,6 @@ Huge thanks to all the patrons, contributors and donators!
 # Tier 2 Patrons
 - Andrzej Oraniewicz [Founder]
 - Nemerle [Founder]
-- Andreas Schüle [Founder]
 - Thomas Tang [Founder]
 
 # Tier 1 Patrons
