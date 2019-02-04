@@ -324,6 +324,10 @@ namespace bs { namespace ct
 		// If memory is host visible try mapping it directly
 		if(mDirectlyMappable)
 		{
+			// Caller guarantees he won't touch the same data as the GPU, so just map even if the GPU is using the buffer
+			if (options == GBL_WRITE_ONLY_NO_OVERWRITE)
+				return buffer->map(offset, length);
+
 			// Check is the GPU currently reading or writing from the buffer
 			UINT32 useMask = buffer->getUseInfo(VulkanAccessFlag::Read | VulkanAccessFlag::Write);
 
@@ -361,10 +365,6 @@ namespace bs { namespace ct
 
 				return buffer->map(offset, length);
 			}
-
-			// Caller guarantees he won't touch the same data as the GPU, so just map even though the GPU is using the buffer
-			if (options == GBL_WRITE_ONLY_NO_OVERWRITE)
-				return buffer->map(offset, length);
 
 			// Caller doesn't care about buffer contents, so just discard the existing buffer and create a new one
 			if (options == GBL_WRITE_ONLY_DISCARD)
