@@ -563,16 +563,11 @@ namespace bs { namespace ct
 				if(typeList == nullptr)
 					continue;
 
+				UINT32 bufferOffset = 0;
 				for (auto iter = typeList->begin(); iter != typeList->end(); ++iter)
 				{
 					const glslang::TType* paramTType = iter->type;
 					String paramName = paramTType->getFieldName().c_str();
-
-					auto findIter = uniforms.find(paramName);
-					if(findIter == uniforms.end()) // Likely unused and was optimized out
-						continue;
-
-					const UniformInfo& uniformInfo = findIter->second;
 
 					GpuParamDataType paramType;
 					UINT32 elementSize = 0;
@@ -598,27 +593,63 @@ namespace bs { namespace ct
 						continue;
 					}
 
+					UINT32 arraySize = paramTType->isArray() ? paramTType->getCumulativeArraySize() : 1;
 					if (paramType != GPDT_STRUCT)
 					{
 						const GpuParamDataTypeInfo& typeInfo = bs::GpuParams::PARAM_SIZES.lookup[paramType];
 						elementSize = typeInfo.size / 4;
-						arrayStride = elementSize;
+
+						// Array elements in std140 are always rounded to vec4
+						if (arraySize > 1)
+							arrayStride = Math::divideAndRoundUp(elementSize, 4U) * 4;
+						else
+							arrayStride = elementSize;
 					}
 
-					int bufferOffset = uniformInfo.bufferOffset / 4;
+					UINT32 stride;
+					if (paramTType->getBasicType() == glslang::EbtStruct)
+					{
+						// Structs are always aligned and rounded up to vec4
+						stride = Math::divideAndRoundUp(elementSize, 16U) * 4;
+						bufferOffset = Math::divideAndRoundUp(bufferOffset, 4U) * 4;
+					}
+					else
+						stride = VulkanUtility::calcInterfaceBlockElementSizeAndOffset(paramType, arraySize, bufferOffset);
 
-					GpuParamDataDesc paramDesc;
-					paramDesc.name = paramName;
-					paramDesc.type = paramType;
-					paramDesc.paramBlockSet = blockDesc.set;
-					paramDesc.paramBlockSlot = blockDesc.slot;
-					paramDesc.elementSize = elementSize;
-					paramDesc.arrayElementStride = arrayStride;
-					paramDesc.arraySize = paramTType->isArray() ? paramTType->getCumulativeArraySize() : 1;
-					paramDesc.cpuMemOffset = bufferOffset;
-					paramDesc.gpuMemOffset = bufferOffset;
+					bool unusedMember = false;
+					auto findIter = uniforms.find(paramName);
+					if(findIter != uniforms.end()) // Likely unused and was optimized out
+					{
+						// Ensure our calculation matches the glslang provided one. We don't use glslang directly because
+						// for some cases offset is not provided (e.g. structs that have members optimized out).
+						const UniformInfo& uniformInfo = findIter->second;
+						assert((uniformInfo.bufferOffset / 4) == bufferOffset);
+					}
+					else
+					{
+						// Ignore unused members. We never ignore structs because their members get reported as individual
+						// uniforms rather than a whole struct, and we don't have the logic to check that case.
+						if(paramType != GPDT_STRUCT)
+							unusedMember = true;
+					}
 
-					desc.params[paramName] = paramDesc;
+					if(!unusedMember)
+					{
+						GpuParamDataDesc paramDesc;
+						paramDesc.name = paramName;
+						paramDesc.type = paramType;
+						paramDesc.paramBlockSet = blockDesc.set;
+						paramDesc.paramBlockSlot = blockDesc.slot;
+						paramDesc.elementSize = elementSize;
+						paramDesc.arrayElementStride = arrayStride;
+						paramDesc.arraySize = arraySize;
+						paramDesc.cpuMemOffset = bufferOffset;
+						paramDesc.gpuMemOffset = bufferOffset;
+
+						desc.params[paramName] = paramDesc;
+					}
+
+					bufferOffset += stride * arraySize;
 				}
 			}
 		}

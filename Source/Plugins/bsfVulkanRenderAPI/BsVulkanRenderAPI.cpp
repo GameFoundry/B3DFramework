@@ -604,25 +604,11 @@ namespace bs { namespace ct
 			else
 				size = VulkanUtility::calcInterfaceBlockElementSizeAndOffset(param.type, param.arraySize, block.blockSize);
 
-			if (param.arraySize > 1)
-			{
-				param.elementSize = size;
-				param.arrayElementStride = size;
-				param.cpuMemOffset = block.blockSize;
-				param.gpuMemOffset = 0;
-
-				block.blockSize += size * param.arraySize;
-			}
-			else
-			{
-				param.elementSize = size;
-				param.arrayElementStride = size;
-				param.cpuMemOffset = block.blockSize;
-				param.gpuMemOffset = 0;
-
-				block.blockSize += size;
-			}
-
+			param.elementSize = size;
+			param.arrayElementStride = size;
+			param.cpuMemOffset = block.blockSize;
+			param.gpuMemOffset = 0;
+			block.blockSize += size * param.arraySize;
 			param.paramBlockSlot = 0;
 			param.paramBlockSet = 0;
 		}
