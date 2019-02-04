@@ -69,6 +69,7 @@ namespace bs
 			UINT32 paramIdx;
 			UINT32 blockIdx;
 			UINT32 offset;
+			UINT32 arrayStride;
 		};
 
 		/** Information about how an object parameter maps from a material parameter to a GPU stage slot. */

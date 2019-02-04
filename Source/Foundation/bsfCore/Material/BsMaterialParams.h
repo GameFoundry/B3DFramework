@@ -522,7 +522,7 @@ namespace bs
 		TMaterialParams(const ShaderType& shader);
 
 		/** Constructor for serialization use only. */
-		TMaterialParams() { }
+		TMaterialParams() = default;
 
 		virtual ~TMaterialParams();
 

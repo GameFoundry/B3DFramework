@@ -286,6 +286,34 @@ namespace bs
 		return HTexture();
 	}
 
+	UINT32 getStructSize(INT32 structIdx, const std::vector<Xsc::Reflection::Struct>& structLookup)
+	{
+		if(structIdx < 0 || structIdx >= (INT32)structLookup.size())
+			return 0;
+
+		UINT32 size = 0;
+
+		const Xsc::Reflection::Struct& structInfo = structLookup[structIdx];
+		for(auto& entry : structInfo.members)
+		{
+			if(entry.type == Xsc::Reflection::VariableType::Variable)
+			{
+				// Note: We're ignoring any padding. Since we can't guarantee the padding will be same for structs across
+				// different render backends it's expected for the user to set up structs in such a way so padding is not
+				// needed (i.e. add padding variables manually).
+				GpuParamDataType type = ReflTypeToDataType((Xsc::Reflection::DataType)entry.baseType);
+
+				const GpuParamDataTypeInfo& typeInfo = GpuParams::PARAM_SIZES.lookup[(int)type];
+				size += typeInfo.numColumns * typeInfo.numRows * typeInfo.baseTypeSize * entry.arraySize;
+
+			}
+			else if(entry.type == Xsc::Reflection::VariableType::Struct)
+				size += getStructSize(entry.baseType, structLookup);
+		}
+
+		return size;
+	}
+
 	TextureAddressingMode parseTexAddrMode(Xsc::Reflection::TextureAddressMode addrMode)
 	{
 		switch (addrMode)
@@ -419,10 +447,10 @@ namespace bs
 			String ident = entry.ident.c_str();
 			switch(entry.type)
 			{
-			case Xsc::Reflection::UniformType::UniformBuffer:
+			case Xsc::Reflection::VariableType::UniformBuffer:
 				desc.setParamBlockAttribs(entry.ident.c_str(), false, GBU_STATIC);
 				break;
-			case Xsc::Reflection::UniformType::Buffer:
+			case Xsc::Reflection::VariableType::Buffer:
 				{
 					GpuParamObjectType objType = ReflTypeToTextureType((Xsc::Reflection::BufferType)entry.baseType);
 					if(objType != GPOT_UNKNOWN)
@@ -453,7 +481,7 @@ namespace bs
 					}
 				}
 				break;
-			case Xsc::Reflection::UniformType::Sampler:
+			case Xsc::Reflection::VariableType::Sampler:
 			{
 				auto findIter = reflData.samplerStates.find(entry.ident);
 				if (findIter != reflData.samplerStates.end())
@@ -487,7 +515,7 @@ namespace bs
 				}
 				break;
 			}
-			case Xsc::Reflection::UniformType::Variable:
+			case Xsc::Reflection::VariableType::Variable:
 			{
 				bool isBlockInternal = false;
 				if(entry.uniformBlock != -1)
@@ -495,7 +523,7 @@ namespace bs
 					std::string blockName = reflData.constantBuffers[entry.uniformBlock].ident;
 					for (auto& uniform : reflData.uniforms)
 					{
-						if (uniform.type == Xsc::Reflection::UniformType::UniformBuffer && uniform.ident == blockName)
+						if (uniform.type == Xsc::Reflection::VariableType::UniformBuffer && uniform.ident == blockName)
 						{
 							isBlockInternal = (uniform.flags & Xsc::Reflection::Uniform::Flags::Internal) != 0;
 							break;
@@ -512,13 +540,15 @@ namespace bs
 						type = GPDT_COLOR;
 					}
 
+					UINT32 arraySize = entry.arraySize;
+
 					if (entry.defaultValue == -1)
-						desc.addParameter(SHADER_DATA_PARAM_DESC(ident, ident, type));
+						desc.addParameter(SHADER_DATA_PARAM_DESC(ident, ident, type, StringID::NONE, arraySize));
 					else
 					{
 						const Xsc::Reflection::DefaultValue& defVal = reflData.defaultValues[entry.defaultValue];
 
-						desc.addParameter(SHADER_DATA_PARAM_DESC(ident, ident, type, StringID::NONE, 1, 0), 
+						desc.addParameter(SHADER_DATA_PARAM_DESC(ident, ident, type, StringID::NONE, arraySize, 0), 
 							(UINT8*)defVal.matrix);
 					}
 
@@ -534,7 +564,14 @@ namespace bs
 				}
 			}
 				break;
-			case Xsc::Reflection::UniformType::Struct:
+			case Xsc::Reflection::VariableType::Struct:
+			{
+				INT32 structIdx = entry.baseType;
+				UINT32 structSize = getStructSize(structIdx, reflData.structs);
+
+				desc.addParameter(SHADER_DATA_PARAM_DESC(ident, ident, GPDT_STRUCT, StringID::NONE, entry.arraySize,
+					structSize));
+			}
 				break;
 			default: ;
 			}

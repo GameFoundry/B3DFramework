@@ -21,6 +21,12 @@ if(BUILD_BSL)
 	file(RENAME "${BSF_SOURCE_DIR}/Plugins/bsfSL/BsParserFX.c" "${BSF_SOURCE_DIR}/Plugins/bsfSL/BsParserFX.c")
 endif()
 
+# Ensure pre-built binary dependencies are up to date
+if(USE_BUNDLED_LIBRARIES)
+	set(BS_XSC_PREBUILT_DEPENDENCY_VERSION 1) # Tick this when you change the binaries
+	check_and_update_binary_deps(bsfDep_XShaderCompiler XShaderCompiler ${BSF_SOURCE_DIR}/../Dependencies/XShaderCompiler ${BS_XSC_PREBUILT_DEPENDENCY_VERSION})
+endif()
+
 # Source files and their filters
 include(CMakeSources.cmake)
 
