@@ -65,8 +65,8 @@ namespace bs
 	class BS_EXPORT GUIInputTool
 	{
 	public:
-		GUIInputTool();
-		~GUIInputTool();
+		GUIInputTool() = default;
+		~GUIInputTool() = default;
 
 		/**
 		 * Updates the input tool with new text descriptor and parent GUI element. These values will be used for all 
@@ -131,10 +131,10 @@ namespace bs
 		bool isNewline(UINT32 inputIdx) const;
 
 	protected:
-		const GUIElement* mElement;
+		const GUIElement* mElement = nullptr;
 
-		Vector2* mQuads;
-		UINT32 mNumQuads;
+		Vector2* mQuads = nullptr;
+		UINT32 mNumQuads = 0;
 
 		TEXT_SPRITE_DESC mTextDesc;
 		UINT32 mNumChars = 0;

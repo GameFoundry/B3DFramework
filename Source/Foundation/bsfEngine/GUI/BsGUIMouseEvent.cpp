@@ -4,13 +4,6 @@
 
 namespace bs
 {
-	GUIMouseEvent::GUIMouseEvent()
-		: mWheelScrollAmount(0.0f), mType(GUIMouseEventType::MouseMove), mButton(GUIMouseButton::Left)
-		, mShift(false), mCtrl(false), mAlt(false)
-	{
-
-	}
-
 	GUIMouseEvent::GUIMouseEvent(bool buttonStates[(int)GUIMouseButton::Count], bool shift, bool ctrl, bool alt)
 		:mType(GUIMouseEventType::MouseMove), mButton(GUIMouseButton::Left), mShift(shift), mCtrl(ctrl), mAlt(alt)
 	{

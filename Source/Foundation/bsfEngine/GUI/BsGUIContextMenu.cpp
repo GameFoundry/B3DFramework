@@ -6,12 +6,6 @@
 
 namespace bs
 {
-	GUIContextMenu::GUIContextMenu()
-		:GUIMenu(), mContextMenuOpen(false)
-	{
-
-	}
-
 	GUIContextMenu::~GUIContextMenu()
 	{
 		close();

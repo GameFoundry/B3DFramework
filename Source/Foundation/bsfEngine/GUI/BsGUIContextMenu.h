@@ -18,7 +18,7 @@ namespace bs
 	class BS_EXPORT GUIContextMenu : public GUIMenu
 	{
 	public:
-		GUIContextMenu();
+		GUIContextMenu() = default;
 		~GUIContextMenu();
 
 		/** Opens a context menu at the specified position relative to the provided widget. */
@@ -34,7 +34,7 @@ namespace bs
 		void onMenuClosed();
 
 	private:
-		bool mContextMenuOpen;
+		bool mContextMenuOpen = false;
 	};
 
 	/** @} */

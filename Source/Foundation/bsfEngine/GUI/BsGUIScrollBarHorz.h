@@ -60,7 +60,7 @@ namespace bs
 			const String& styleName = StringUtil::BLANK);
 	protected:
 		GUIScrollBarHorz(bool resizeable, const String& styleName, const GUIDimensions& dimensions);
-		~GUIScrollBarHorz();
+		~GUIScrollBarHorz() = default;
 	};
 
 	/** @} */

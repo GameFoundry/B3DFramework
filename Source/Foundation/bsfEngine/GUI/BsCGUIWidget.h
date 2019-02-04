@@ -17,7 +17,7 @@ namespace bs
 	class BS_EXPORT CGUIWidget : public Component
 	{
 	public:
-		virtual ~CGUIWidget();
+		virtual ~CGUIWidget() = default;
 
 		/** @copydoc GUIWidget::setSkin */
 		void setSkin(const HGUISkin& skin);

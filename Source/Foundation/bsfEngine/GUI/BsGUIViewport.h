@@ -61,7 +61,7 @@ namespace bs
 		/** @} */
 
 	protected:
-		~GUIViewport();
+		~GUIViewport() = default;
 
 		/** @copydoc GUIElement::_getNumRenderElements */
 		UINT32 _getNumRenderElements() const override;

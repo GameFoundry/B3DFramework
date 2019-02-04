@@ -17,11 +17,7 @@ namespace bs
 	/**	Holds data returned by DragAndDropManager callbacks. */
 	struct BS_EXPORT DragCallbackInfo
 	{
-		DragCallbackInfo()
-			:processed(false)
-		{ }
-
-		bool processed;
+		bool processed = false;
 	};
 
 	/**
@@ -107,15 +103,15 @@ namespace bs
 		void cursorReleased(const PointerEvent& event);
 
 	private:
-		UINT32 mDragTypeId;
-		void* mData;
+		UINT32 mDragTypeId = 0;
+		void* mData = nullptr;
 		Vector<std::function<void(bool)>> mDropCallbacks;
-		bool mIsDragInProgress;
-		bool mNeedsValidDropTarget;
+		bool mIsDragInProgress = false;
+		bool mNeedsValidDropTarget = false;
 		HEvent mMouseCaptureChangedConn;
 
-		std::atomic<bool> mCaptureChanged;
-		std::atomic<int> mCaptureActive;
+		std::atomic<bool> mCaptureChanged { false };
+		std::atomic<int> mCaptureActive { 0 };
 		std::atomic<UINT64> mCaptureChangeFrame;
 	};
 

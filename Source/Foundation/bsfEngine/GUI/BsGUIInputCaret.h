@@ -93,7 +93,7 @@ namespace bs
 		/**	Returns current caret index (not equal to character index). */
 		UINT32 getCaretPos() const { return mCaretPos; }
 	private:
-		UINT32 mCaretPos;
+		UINT32 mCaretPos = 0;
 		ImageSprite* mCaretSprite;
 	};
 

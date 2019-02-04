@@ -143,7 +143,7 @@ namespace bs
 
 		/** @} */
 	protected:
-		~GUIScrollArea();
+		~GUIScrollArea() = default;
 
 		/** @copydoc GUIElementContainer::_getLayoutSizeRange */
 		LayoutSizeRange _getLayoutSizeRange() const override;

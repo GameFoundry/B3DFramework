@@ -29,9 +29,6 @@ namespace bs
 		:CGUIWidget(parent, camera->_getCamera())
 	{ }
 
-	CGUIWidget::~CGUIWidget()
-	{ }
-
 	void CGUIWidget::setSkin(const HGUISkin& skin)
 	{
 		mInternal->setSkin(skin);

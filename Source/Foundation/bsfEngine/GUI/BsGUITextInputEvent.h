@@ -16,7 +16,7 @@ namespace bs
 	class BS_EXPORT GUITextInputEvent
 	{
 	public:
-		GUITextInputEvent();
+		GUITextInputEvent() = default;
 
 		/**	Character code that was input. */
 		const UINT32& getInputChar() const { return mInputChar; }
@@ -26,7 +26,7 @@ namespace bs
 		/**	Initializes the event data with the character that was input. */
 		void setData(UINT32 inputChar);
 
-		UINT32 mInputChar;
+		UINT32 mInputChar = 0;
 	};
 
 	/** @} */

@@ -8,10 +8,6 @@
 
 namespace bs
 {
-	GUIInputSelection::GUIInputSelection()
-		:mSelectionStart(0), mSelectionEnd(0), mSelectionAnchor(0), mSelectionDragAnchor(0)
-	{ }
-
 	GUIInputSelection::~GUIInputSelection()
 	{
 		for(auto& sprite : mSprites)

@@ -95,9 +95,4 @@ namespace bs
 		backgroundPanel->setPosition(placementBounds.x, placementBounds.y);
 		contentPanel->setPosition(placementBounds.x + contentOffsetX, placementBounds.y + contentOffsetY);
 	}
-
-	GUITooltip::~GUITooltip()
-	{
-
-	}
 }

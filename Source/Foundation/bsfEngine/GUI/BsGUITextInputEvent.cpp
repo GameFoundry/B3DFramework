@@ -4,12 +4,6 @@
 
 namespace bs
 {
-	GUITextInputEvent::GUITextInputEvent()
-		:mInputChar(0)
-	{
-
-	}
-
 	void GUITextInputEvent::setData(UINT32 inputChar)
 	{
 		mInputChar = inputChar;

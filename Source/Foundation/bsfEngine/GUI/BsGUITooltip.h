@@ -27,7 +27,7 @@ namespace bs
 		 * @param[in]	text			Text to display in the tooltip.
 		 */
 		GUITooltip(const HSceneObject& parent, const GUIWidget& overlaidWidget, const Vector2I& position, const String& text);
-		~GUITooltip();
+		~GUITooltip() = default;
 
 	private:
 		static const UINT32 TOOLTIP_WIDTH;

@@ -11,11 +11,6 @@ namespace bs
 
 	}
 
-	GUIScrollBarHorz::~GUIScrollBarHorz()
-	{
-
-	}
-
 	GUIScrollBarHorz* GUIScrollBarHorz::create(const String& styleName)
 	{
 		return new (bs_alloc<GUIScrollBarHorz>()) GUIScrollBarHorz(false, getStyleName<GUIScrollBarHorz>(false, styleName), 

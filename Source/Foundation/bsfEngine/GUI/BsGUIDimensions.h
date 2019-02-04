@@ -37,7 +37,7 @@ namespace bs
 		/**	Creates layout options with user defined options. */
 		static GUIDimensions create(const GUIOptions& options);
 
-		GUIDimensions();
+		GUIDimensions() = default;
 
 		/**
 		 * Updates layout options from the provided style. If user has not manually set a specific layout property, that
@@ -64,9 +64,14 @@ namespace bs
 		/**	Checks do the dimensions contain fixed height. */
 		bool fixedHeight() const { return (flags & GUIDF_FixedHeight) != 0; }
 
-		INT32 x, y;
-		UINT32 minWidth, maxWidth, minHeight, maxHeight;
-		UINT32 flags;
+		INT32 x = 0;
+		INT32 y = 0;
+
+		UINT32 minWidth = 0;
+		UINT32 maxWidth = 0;
+		UINT32 minHeight = 0;
+		UINT32 maxHeight = 0;
+		UINT32 flags = 0;
 	};
 
 	/** @} */

@@ -59,7 +59,7 @@ namespace bs
 		static GUIScrollBarVert* create(bool resizable, const GUIOptions& options, const String& styleName = StringUtil::BLANK);
 	protected:
 		GUIScrollBarVert(bool resizable, const String& styleName, const GUIDimensions& dimensions);
-		~GUIScrollBarVert();
+		~GUIScrollBarVert() = default;
 	};
 
 	/** @} */

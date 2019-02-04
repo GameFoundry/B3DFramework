@@ -82,13 +82,6 @@ namespace bs
 		}
 	}
 
-	GUIDimensions::GUIDimensions()
-		:x(0), y(0), minWidth(0), maxWidth(0),
-		 minHeight(0), maxHeight(0), flags(0)
-	{
-
-	}
-
 	LayoutSizeRange GUIDimensions::calculateSizeRange(const Vector2I& optimal) const
 	{
 		LayoutSizeRange sizeRange;

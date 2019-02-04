@@ -9,13 +9,6 @@
 
 namespace bs
 {
-	GUIInputTool::GUIInputTool()
-		:mElement(nullptr), mQuads(nullptr), mNumQuads(0)
-	{ }
-
-	GUIInputTool::~GUIInputTool()
-	{ }
-
 	void GUIInputTool::updateText(const GUIElement* element, const TEXT_SPRITE_DESC& textDesc)
 	{
 		mElement = element;

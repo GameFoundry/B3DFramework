@@ -16,7 +16,7 @@ namespace bs
 	class BS_EXPORT GUIInputSelection : public GUIInputTool
 	{
 	public:
-		GUIInputSelection();
+		GUIInputSelection() = default;
 		~GUIInputSelection();
 
 		/**	Returns sprites representing the currently selected areas. */
@@ -88,10 +88,10 @@ namespace bs
 		Vector<Rect2I> getSelectionRects() const;
 
 	private:
-		UINT32 mSelectionStart;
-		UINT32 mSelectionEnd;
-		UINT32 mSelectionAnchor;
-		UINT32 mSelectionDragAnchor;
+		UINT32 mSelectionStart = 0;
+		UINT32 mSelectionEnd = 0;
+		UINT32 mSelectionAnchor = 0;
+		UINT32 mSelectionDragAnchor = 0;
 
 		Vector<Rect2I> mSelectionRects;
 		Vector<ImageSprite*> mSprites;

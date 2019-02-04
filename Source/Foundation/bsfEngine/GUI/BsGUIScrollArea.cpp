@@ -35,11 +35,6 @@ namespace bs
 		mVertScroll->onScrollOrResize.connect(std::bind(&GUIScrollArea::vertScrollUpdate, this, _1));
 	}
 
-	GUIScrollArea::~GUIScrollArea()
-	{
-
-	}
-
 	void GUIScrollArea::updateClippedBounds()
 	{
 		mClippedBounds = mLayoutData.area;

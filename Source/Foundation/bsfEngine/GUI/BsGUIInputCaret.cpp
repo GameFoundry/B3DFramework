@@ -10,7 +10,6 @@
 namespace bs
 {
 	GUIInputCaret::GUIInputCaret()
-		:mCaretPos(0)
 	{
 		mCaretSprite = bs_new<ImageSprite>();
 	}

@@ -42,7 +42,7 @@ namespace bs
 	class BS_EXPORT GUIMouseEvent
 	{
 	public:
-		GUIMouseEvent();
+		GUIMouseEvent() = default;
 		GUIMouseEvent(bool buttonStates[(int)GUIMouseButton::Count], bool shift, bool ctrl, bool alt);
 
 		/**
@@ -129,15 +129,15 @@ namespace bs
 		Vector2I mPosition;
 		Vector2I mDragStartPosition;
 		Vector2I mDragAmount;
-		float mWheelScrollAmount;
-		GUIMouseEventType mType;
-		GUIMouseButton mButton;
+		float mWheelScrollAmount = 0.0f;
+		GUIMouseEventType mType = GUIMouseEventType::MouseMove;
+		GUIMouseButton mButton = GUIMouseButton::Left;
 		UINT32 mDragTypeId;
 		void* mDragData;
 
-		bool mShift;
-		bool mCtrl;
-		bool mAlt;
+		bool mShift = false;
+		bool mCtrl = false;
+		bool mAlt = false;
 	};
 
 	/** @} */

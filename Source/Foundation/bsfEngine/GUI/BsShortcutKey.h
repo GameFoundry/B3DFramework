@@ -24,7 +24,7 @@ namespace bs
 			bool operator()(const ShortcutKey& a, const ShortcutKey& b) const;
 		};
 
-		ShortcutKey();
+		ShortcutKey() = default;
 		ShortcutKey(ButtonModifier modifier, ButtonCode code);
 
 		/**	Checks is the shortcut button and modifier combination valid. */
@@ -33,8 +33,8 @@ namespace bs
 		/**	Returns a readable name of the shortcut key (for example "Shift + F"). */
 		String getName() const;
 
-		ButtonModifier modifier;
-		ButtonCode button;
+		ButtonModifier modifier = ButtonModifier::None;
+		ButtonCode button = BC_UNASSIGNED;
 
 		static const ShortcutKey NONE;
 	};

@@ -4,12 +4,6 @@
 
 namespace bs
 {
-	GUIOption::GUIOption()
-		:min(0), max(0), type(Type::FixedWidth)
-	{
-
-	}
-
 	GUIOption GUIOption::position(INT32 x, INT32 y)
 	{
 		GUIOption option;

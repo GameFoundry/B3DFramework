@@ -48,7 +48,7 @@ namespace bs
 			Up, Down
 		};
 
-		DropDownAreaPlacement() { }
+		DropDownAreaPlacement() = default;
 
 		/**
 		 * Drop down box will be placed at the specified position. By default the system prefers the top left corner of the

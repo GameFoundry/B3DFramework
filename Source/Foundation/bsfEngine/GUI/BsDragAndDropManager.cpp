@@ -10,8 +10,6 @@ using namespace std::placeholders;
 namespace bs
 {
 	DragAndDropManager::DragAndDropManager()
-		: mDragTypeId(0), mData(nullptr), mIsDragInProgress(false), mNeedsValidDropTarget(false), mCaptureChanged(false)
-		, mCaptureActive(0)
 	{
 		mMouseCaptureChangedConn = Platform::onMouseCaptureChanged.connect(std::bind(&DragAndDropManager::mouseCaptureChanged, this));
 		Input::instance().onPointerReleased.connect(std::bind(&DragAndDropManager::cursorReleased, this, _1));

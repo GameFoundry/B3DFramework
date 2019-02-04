@@ -23,10 +23,6 @@ namespace bs
 		return a.button == b.button && a.modifier == b.modifier;
 	}
 
-	ShortcutKey::ShortcutKey()
-		:modifier(ButtonModifier::None), button(BC_UNASSIGNED)
-	{ }
-
 	ShortcutKey::ShortcutKey(ButtonModifier modifier, ButtonCode code)
 		: modifier(modifier), button(code)
 	{ }

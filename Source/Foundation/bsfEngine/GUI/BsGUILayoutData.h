@@ -18,7 +18,6 @@ namespace bs
 	struct BS_EXPORT GUILayoutData
 	{
 		GUILayoutData()
-			:depth(0), depthRangeMin(-1), depthRangeMax(-1)
 		{ 
 			setPanelDepth(0);
 		}
@@ -63,9 +62,9 @@ namespace bs
 
 		Rect2I area;
 		Rect2I clipRect;
-		UINT32 depth;
-		UINT16 depthRangeMin;
-		UINT16 depthRangeMax;
+		UINT32 depth = 0;
+		UINT16 depthRangeMin = -1;
+		UINT16 depthRangeMax = -1;
 	};
 
 	/** @} */

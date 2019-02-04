@@ -11,11 +11,6 @@ namespace bs
 
 	}
 
-	GUIScrollBarVert::~GUIScrollBarVert()
-	{
-
-	}
-
 	GUIScrollBarVert* GUIScrollBarVert::create(const String& styleName)
 	{
 		return new (bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(false, getStyleName<GUIScrollBarVert>(false, styleName), 

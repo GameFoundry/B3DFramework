@@ -15,8 +15,7 @@ namespace bs
 	class BS_EXPORT GUIVirtualButtonEvent
 	{
 	public:
-		GUIVirtualButtonEvent()
-		{ }
+		GUIVirtualButtonEvent() = default;
 
 		/**	Returns the virtual button the event is referring to. */
 		const VirtualButton& getButton() const { return mButton; }
