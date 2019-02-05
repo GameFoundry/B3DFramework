@@ -711,7 +711,17 @@ namespace bs
 		static_assert((std::is_base_of<bs::IReflectable, T>::value),
 			"Invalid data type for type checking. It needs to derive from bs::IReflectable.");
 
-		return object->isDerivedFrom(T::getRTTIStatic());
+		return object && object->isDerivedFrom(T::getRTTIStatic());
+	}
+
+	/** Checks is the current object a subclass of some type. */
+	template<class T>
+	bool rtti_is_subclass(const SPtr<IReflectable>& object)
+	{
+		static_assert((std::is_base_of<bs::IReflectable, T>::value),
+			"Invalid data type for type checking. It needs to derive from bs::IReflectable.");
+
+		return object && object->isDerivedFrom(T::getRTTIStatic());
 	}
 
 	/** Attempts to cast the object to the provided type, or returns null if cast is not valid. */
@@ -724,5 +734,14 @@ namespace bs
 		return nullptr;
 	}
 
+	/** Attempts to cast the object to the provided type, or returns null if cast is not valid. */
+	template<class T>
+	SPtr<T> rtti_cast(const SPtr<IReflectable> object)
+	{
+		if(rtti_is_subclass<T>(object))
+			return std::static_pointer_cast<T>(object);
+
+		return nullptr;
+	}
 	/** @} */
 }
