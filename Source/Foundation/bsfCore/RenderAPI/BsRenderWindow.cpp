@@ -51,6 +51,7 @@ namespace bs
 		getMutableProperties().height = height;
 
 		gCoreThread().queueCommand(std::bind(resizeFunc, getCore(), width, height));
+		gCoreThread().submit(true);
 	}
 
 	void RenderWindow::move(INT32 left, INT32 top)
@@ -65,6 +66,7 @@ namespace bs
 		getMutableProperties().top = top;
 
 		gCoreThread().queueCommand(std::bind(moveFunc, getCore(), left, top));
+		gCoreThread().submit(true);
 	}
 
 	void RenderWindow::hide()
@@ -78,6 +80,7 @@ namespace bs
 		getMutableProperties().isHidden = true;
 
 		gCoreThread().queueCommand(std::bind(hideFunc, getCore()));
+		gCoreThread().submit(true);
 	}
 
 	void RenderWindow::show()
@@ -91,6 +94,7 @@ namespace bs
 		getMutableProperties().isHidden = false;
 
 		gCoreThread().queueCommand(std::bind(showFunc, getCore()));
+		gCoreThread().submit(true);
 	}
 
 	void RenderWindow::minimize()
@@ -104,6 +108,7 @@ namespace bs
 		getMutableProperties().isMaximized = false;
 
 		gCoreThread().queueCommand(std::bind(minimizeFunc, getCore()));
+		gCoreThread().submit(true);
 	}
 
 	void RenderWindow::maximize()
@@ -117,6 +122,7 @@ namespace bs
 		getMutableProperties().isMaximized = true;
 
 		gCoreThread().queueCommand(std::bind(maximizeFunc, getCore()));
+		gCoreThread().submit(true);
 	}
 
 	void RenderWindow::restore()
@@ -130,6 +136,7 @@ namespace bs
 		getMutableProperties().isMaximized = false;
 
 		gCoreThread().queueCommand(std::bind(restoreFunc, getCore()));
+		gCoreThread().submit(true);
 	}
 
 	void RenderWindow::setFullscreen(UINT32 width, UINT32 height, float refreshRate, UINT32 monitorIdx)
@@ -141,6 +148,7 @@ namespace bs
 		};
 
 		gCoreThread().queueCommand(std::bind(fullscreenFunc, getCore(), width, height, refreshRate, monitorIdx));
+		gCoreThread().submit(true);
 	}
 
 	void RenderWindow::setFullscreen(const VideoMode& mode)
@@ -152,6 +160,7 @@ namespace bs
 		};
 
 		gCoreThread().queueCommand(std::bind(fullscreenFunc, getCore(), std::cref(mode)));
+		gCoreThread().submit(true);
 	}
 
 	void RenderWindow::setWindowed(UINT32 width, UINT32 height)
@@ -163,6 +172,7 @@ namespace bs
 		};
 
 		gCoreThread().queueCommand(std::bind(windowedFunc, getCore(), width, height));
+		gCoreThread().submit(true);
 	}
 
 	SPtr<ct::RenderWindow> RenderWindow::getCore() const
