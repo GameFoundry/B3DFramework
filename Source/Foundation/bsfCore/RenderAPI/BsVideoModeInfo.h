@@ -62,7 +62,7 @@ namespace bs
 	class BS_CORE_EXPORT VideoOutputInfo
 	{
 	public:
-		VideoOutputInfo() { }
+		VideoOutputInfo() = default;
 		virtual ~VideoOutputInfo();
 
 		VideoOutputInfo(const VideoOutputInfo&) = delete; // Make non-copyable
@@ -90,7 +90,7 @@ namespace bs
 	class BS_CORE_EXPORT VideoModeInfo
 	{
 	public:
-		VideoModeInfo() { }
+		VideoModeInfo() = default;
 		virtual ~VideoModeInfo();
 
 		VideoModeInfo(const VideoModeInfo&) = delete; // Make non-copyable

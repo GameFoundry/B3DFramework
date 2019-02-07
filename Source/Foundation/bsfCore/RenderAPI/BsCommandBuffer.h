@@ -45,7 +45,7 @@ namespace bs { namespace ct
 	class BS_CORE_EXPORT CommandBuffer
 	{
 	public:
-		virtual ~CommandBuffer() { }
+		virtual ~CommandBuffer() = default;
 
 		/**
 		 * Creates a new CommandBuffer.

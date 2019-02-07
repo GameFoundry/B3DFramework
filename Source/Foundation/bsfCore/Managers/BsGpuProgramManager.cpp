@@ -33,30 +33,24 @@ namespace bs
 	String sNullLang = "null";
 
 	/** Null GPU program used in place of GPU programs we cannot create. Null programs don't do anything. */
-	class NullProgram : public GpuProgram
+	class NullProgram final : public GpuProgram
 	{
 	public:
 		NullProgram()
 			:GpuProgram(GPU_PROGRAM_DESC(), GDF_DEFAULT)
 		{ }
 
-		~NullProgram() { }
+		~NullProgram() = default;
 
-		bool isSupported() const { return false; }
-		const String& getLanguage() const { return sNullLang; }
-
-	protected:
-		void loadFromSource() {}
-
-		void buildConstantDefinitions() const { }
+		bool isSupported() const override { return false; }
 	};
 
 	/**	Factory that creates null GPU programs.  */
 	class NullProgramFactory : public GpuProgramFactory
 	{
 	public:
-		NullProgramFactory() {}
-		~NullProgramFactory() {}
+		NullProgramFactory() = default;
+		~NullProgramFactory() = default;
 
 		SPtr<GpuProgram> create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask) override
 		{

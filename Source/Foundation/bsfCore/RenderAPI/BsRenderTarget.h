@@ -193,7 +193,7 @@ namespace bs
 		};
 
 		RenderTarget();
-		virtual ~RenderTarget() { }
+		virtual ~RenderTarget() = default;
 
 		/**
 		 * Sets a priority that determines in which orders the render targets the processed.
