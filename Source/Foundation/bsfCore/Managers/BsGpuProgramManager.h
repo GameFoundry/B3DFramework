@@ -103,6 +103,18 @@ namespace bs
 		UnorderedMap<String, GpuProgramFactory*> mFactories;
 		GpuProgramFactory* mNullFactory; /**< Factory for dealing with GPU programs that can't be created. */
 	};
+
+	/**	Factory that creates null GPU programs.  */
+	class BS_CORE_EXPORT NullProgramFactory : public GpuProgramFactory
+	{
+	public:
+		NullProgramFactory() = default;
+		~NullProgramFactory() = default;
+
+		SPtr<GpuProgram> create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask) override;
+		SPtr<GpuProgram> create(GpuProgramType type, GpuDeviceFlags deviceMask) override;
+		SPtr<GpuProgramBytecode> compileBytecode(const GPU_PROGRAM_DESC& desc) override;
+	};
 	}
 	/** @} */
 }

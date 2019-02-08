@@ -36,11 +36,11 @@ namespace bs
 	 */
 	struct InputPrivateData
 	{
-		IDirectInput8* directInput;
+		IDirectInput8* directInput = nullptr;
 		Vector<GamepadInfo> gamepadInfos;
 
-		DWORD kbSettings;
-		DWORD mouseSettings;
+		DWORD kbSettings = 0;
+		DWORD mouseSettings = 0;
 	};
 
 	// Max number of elements to collect from buffered DirectInput

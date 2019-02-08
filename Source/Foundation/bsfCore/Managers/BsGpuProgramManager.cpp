@@ -45,37 +45,29 @@ namespace bs
 		bool isSupported() const override { return false; }
 	};
 
-	/**	Factory that creates null GPU programs.  */
-	class NullProgramFactory : public GpuProgramFactory
+	SPtr<GpuProgram> NullProgramFactory::create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-	public:
-		NullProgramFactory() = default;
-		~NullProgramFactory() = default;
+		SPtr<NullProgram> ret = bs_shared_ptr_new<NullProgram>();
+		ret->_setThisPtr(ret);
 
-		SPtr<GpuProgram> create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask) override
-		{
-			SPtr<NullProgram> ret = bs_shared_ptr_new<NullProgram>();
-			ret->_setThisPtr(ret);
+		return ret;
+	}
 
-			return ret;
-		}
+	SPtr<GpuProgram> NullProgramFactory::create(GpuProgramType type, GpuDeviceFlags deviceMask)
+	{
+		SPtr<NullProgram> ret = bs_shared_ptr_new<NullProgram>();
+		ret->_setThisPtr(ret);
 
-		SPtr<GpuProgram> create(GpuProgramType type, GpuDeviceFlags deviceMask) override
-		{
-			SPtr<NullProgram> ret = bs_shared_ptr_new<NullProgram>();
-			ret->_setThisPtr(ret);
+		return ret;
+	}
 
-			return ret;
-		}
+	SPtr<GpuProgramBytecode> NullProgramFactory::compileBytecode(const GPU_PROGRAM_DESC& desc)
+	{
+		auto bytecode = bs_shared_ptr_new<GpuProgramBytecode>();
+		bytecode->compilerId = "Null";
 
-		SPtr<GpuProgramBytecode> compileBytecode(const GPU_PROGRAM_DESC& desc) override
-		{
-			auto bytecode = bs_shared_ptr_new<GpuProgramBytecode>();
-			bytecode->compilerId = "Null";
-
-			return bytecode;
-		}
-	};
+		return bytecode;
+	}
 
 	GpuProgramManager::GpuProgramManager()
 	{

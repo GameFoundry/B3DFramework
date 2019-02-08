@@ -6,6 +6,7 @@
 #include "Input/BsMouse.h"
 #include "Input/BsKeyboard.h"
 #include "Input/BsGamepad.h"
+#include "RenderAPI/BsRenderAPI.h"
 
 namespace bs
 {
@@ -149,6 +150,10 @@ namespace bs
 	{
 		mPlatformData = bs_new<InputPrivateData>();
 		
+		bool isHeadless = ct::gCaps().deviceName == "Null";
+		if(isHeadless)
+			return;
+
 		if (IsWindow((HWND)mWindowHandle) == 0)
 			BS_EXCEPT(InvalidStateException, "RawInputManager failed to initialized. Invalid HWND provided.")
 
@@ -197,7 +202,8 @@ namespace bs
 		for (auto& gamepad : mGamepads)
 			bs_delete(gamepad);
 
-		mPlatformData->directInput->Release();
+		if(mPlatformData->directInput != nullptr)
+			mPlatformData->directInput->Release();
 
 		bs_delete(mPlatformData);
 	}

@@ -7,6 +7,8 @@
 
 namespace bs { namespace ct
 {
+	class NullProgramFactory;
+
 	/** @addtogroup NullRenderAPI
 	 *  @{
 	 */
@@ -106,6 +108,8 @@ namespace bs { namespace ct
 
 		/** @copydoc RenderAPI::destroyCore */
 		void destroyCore() override;
+
+		NullProgramFactory* mNullProgramFactory = nullptr;
 	};
 
 	/** @} */

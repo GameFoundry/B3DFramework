@@ -5,6 +5,7 @@
 #include "Math/BsMatrix4.h"
 #include "RenderAPI/BsGpuParamDesc.h"
 #include "RenderAPI/BsGpuParams.h"
+#include "Managers/BsGpuProgramManager.h"
 #include "BsNullCommandBuffer.h"
 #include "BsNullTexture.h"
 #include "BsNullBuffers.h"
@@ -47,6 +48,10 @@ namespace bs { namespace ct
 		// Create render state manager
 		RenderStateManager::startUp<NullRenderStateManager>();
 
+		// Pretend as if we can parse HLSL
+		mNullProgramFactory = bs_new<NullProgramFactory>();
+		GpuProgramManager::instance().addFactory("hlsl", mNullProgramFactory);
+
 		mNumDevices = 1;
 		mCurrentCapabilities = bs_newN<RenderAPICapabilities>(mNumDevices);
 		mCurrentCapabilities->deviceName = "Null";
@@ -68,6 +73,12 @@ namespace bs { namespace ct
 		THROW_IF_NOT_CORE_THREAD;
 
 		mActiveRenderTarget = nullptr;
+
+		if(mNullProgramFactory != nullptr)
+		{
+			bs_delete(mNullProgramFactory);
+			mNullProgramFactory = nullptr;
+		}
 
 		QueryManager::shutDown();
 		RenderStateManager::shutDown();

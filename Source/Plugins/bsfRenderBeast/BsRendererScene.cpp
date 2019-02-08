@@ -347,7 +347,7 @@ namespace bs {	namespace ct
 						SPtr<GraphicsPipelineState> graphicsPipeline = pass->getGraphicsPipelineState();
 
 						SPtr<VertexDeclaration> shaderDecl = graphicsPipeline->getVertexProgram()->getInputDeclaration();
-						if (!vertexDecl->isCompatible(shaderDecl))
+						if (shaderDecl && !vertexDecl->isCompatible(shaderDecl))
 						{
 							Vector<VertexElement> missingElements = vertexDecl->getMissingElements(shaderDecl);
 
