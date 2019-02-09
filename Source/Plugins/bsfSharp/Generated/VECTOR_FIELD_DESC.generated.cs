@@ -31,11 +31,11 @@ namespace bs
 		}
 
 		/// <summary>Number of entries in the vector field along the X axis.</summary>
-		public uint countX;
+		public int countX;
 		/// <summary>Number of entries in the vector field along the Y axis.</summary>
-		public uint countY;
+		public int countY;
 		/// <summary>Number of entries in the vector field along the Z axis.</summary>
-		public uint countZ;
+		public int countZ;
 		/// <summary>Spatial bounds of the vector field.</summary>
 		public AABox bounds;
 	}

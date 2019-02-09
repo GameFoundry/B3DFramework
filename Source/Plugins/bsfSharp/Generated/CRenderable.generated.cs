@@ -86,7 +86,7 @@ namespace bs
 		/// Sets a material that will be used for rendering a sub-mesh with the specified index. If a sub-mesh doesn't have a 
 		/// specific material set then the primary material will be used.
 		/// </summary>
-		public void SetMaterial(uint idx, RRef<Material> material)
+		public void SetMaterial(int idx, RRef<Material> material)
 		{
 			Internal_setMaterial(mCachedPtr, idx, material);
 		}
@@ -101,7 +101,7 @@ namespace bs
 		}
 
 		/// <summary>Returns the material used for rendering a sub-mesh with the specified index.</summary>
-		public RRef<Material> GetMaterial(uint idx)
+		public RRef<Material> GetMaterial(int idx)
 		{
 			return Internal_getMaterial(mCachedPtr, idx);
 		}
@@ -111,11 +111,11 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern RRef<Mesh> Internal_getMesh(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setMaterial(IntPtr thisPtr, uint idx, RRef<Material> material);
+		private static extern void Internal_setMaterial(IntPtr thisPtr, int idx, RRef<Material> material);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setMaterial0(IntPtr thisPtr, RRef<Material> material);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern RRef<Material> Internal_getMaterial(IntPtr thisPtr, uint idx);
+		private static extern RRef<Material> Internal_getMaterial(IntPtr thisPtr, int idx);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setMaterials(IntPtr thisPtr, RRef<Material>[] materials);
 		[MethodImpl(MethodImplOptions.InternalCall)]

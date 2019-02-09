@@ -418,7 +418,7 @@ namespace bs
                 foreach (var entry in floatProperties)
                 {
                     float curveValue;
-                    if (Internal__getGenericCurveValue(mCachedPtr, (uint)entry.curveIdx, out curveValue))
+                    if (Internal__getGenericCurveValue(mCachedPtr, entry.curveIdx, out curveValue))
                         entry.setter(curveValue);
                 }
             }

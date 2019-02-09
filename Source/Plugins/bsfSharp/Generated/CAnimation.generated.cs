@@ -145,7 +145,7 @@ namespace bs
 		/// Layer to play the clip in. Multiple additive clips can be playing at once in separate layers and each layer has its 
 		/// own weight.
 		/// </param>
-		public void BlendAdditive(RRef<AnimationClip> clip, float weight, float fadeLength = 0f, uint layer = 0)
+		public void BlendAdditive(RRef<AnimationClip> clip, float weight, float fadeLength = 0f, int layer = 0)
 		{
 			Internal_blendAdditive(mCachedPtr, clip, weight, fadeLength, layer);
 		}
@@ -206,7 +206,7 @@ namespace bs
 		/// Stops playing all animations on the provided layer. Specify -1 to stop animation on the main layer  (non-additive 
 		/// animations).
 		/// </summary>
-		public void Stop(uint layer)
+		public void Stop(int layer)
 		{
 			Internal_stop(mCachedPtr, layer);
 		}
@@ -266,7 +266,7 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_play(IntPtr thisPtr, RRef<AnimationClip> clip);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_blendAdditive(IntPtr thisPtr, RRef<AnimationClip> clip, float weight, float fadeLength, uint layer);
+		private static extern void Internal_blendAdditive(IntPtr thisPtr, RRef<AnimationClip> clip, float weight, float fadeLength, int layer);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_blend1D(IntPtr thisPtr, ref Blend1DInfo info, float t);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -276,7 +276,7 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_sample(IntPtr thisPtr, RRef<AnimationClip> clip, float time);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_stop(IntPtr thisPtr, uint layer);
+		private static extern void Internal_stop(IntPtr thisPtr, int layer);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_stopAll(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -300,13 +300,13 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_getEnableCull(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getNumClips(IntPtr thisPtr);
+		private static extern int Internal_getNumClips(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern RRef<AnimationClip> Internal_getClip(IntPtr thisPtr, uint idx);
+		private static extern RRef<AnimationClip> Internal_getClip(IntPtr thisPtr, int idx);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal__refreshClipMappings(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal__getGenericCurveValue(IntPtr thisPtr, uint curveIdx, out float value);
+		private static extern bool Internal__getGenericCurveValue(IntPtr thisPtr, int curveIdx, out float value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal__togglePreviewMode(IntPtr thisPtr, bool enabled);
 		private void Internal__scriptRebuildFloatProperties(RRef<AnimationClip> p0)

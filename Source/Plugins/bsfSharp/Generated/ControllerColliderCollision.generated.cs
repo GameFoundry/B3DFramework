@@ -49,7 +49,7 @@ namespace bs
 		/// </summary>
 		public Collider collider;
 		/// <summary>Touched triangle index for mesh colliders.</summary>
-		public uint triangleIndex;
+		public int triangleIndex;
 		/// <summary>Contact position.</summary>
 		public Vector3 position;
 		/// <summary>Contact normal.</summary>

@@ -170,7 +170,7 @@ namespace bs
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public uint SampleCount
+		public int SampleCount
 		{
 			get { return Internal_getMSAACount(mCachedPtr); }
 			set { Internal_setMSAACount(mCachedPtr, value); }
@@ -424,9 +424,9 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern ulong Internal_getLayers(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setMSAACount(IntPtr thisPtr, uint count);
+		private static extern void Internal_setMSAACount(IntPtr thisPtr, int count);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getMSAACount(IntPtr thisPtr);
+		private static extern int Internal_getMSAACount(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setRenderSettings(IntPtr thisPtr, RenderSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]

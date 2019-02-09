@@ -70,7 +70,7 @@ namespace bs
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public uint Priority
+		public int Priority
 		{
 			get { return Internal_getPriority(mCachedPtr); }
 			set { Internal_setPriority(mCachedPtr, value); }
@@ -162,9 +162,9 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_getIsLooping(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setPriority(IntPtr thisPtr, uint priority);
+		private static extern void Internal_setPriority(IntPtr thisPtr, int priority);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getPriority(IntPtr thisPtr);
+		private static extern int Internal_getPriority(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setMinDistance(IntPtr thisPtr, float distance);
 		[MethodImpl(MethodImplOptions.InternalCall)]

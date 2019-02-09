@@ -34,7 +34,7 @@ namespace bs
 		/// </summary>
 		public bool randomizeRow;
 		/// <summary>Number of cycles to loop the animation during particle's lifetime.</summary>
-		public uint numCycles;
+		public int numCycles;
 	}
 
 	/** @} */

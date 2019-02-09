@@ -48,7 +48,7 @@ namespace bs
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public uint Quality
+		public int Quality
 		{
 			get { return Internal_getquality(mCachedPtr); }
 			set { Internal_setquality(mCachedPtr, value); }
@@ -82,9 +82,9 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setenabled(IntPtr thisPtr, bool value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getquality(IntPtr thisPtr);
+		private static extern int Internal_getquality(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setquality(IntPtr thisPtr, uint value);
+		private static extern void Internal_setquality(IntPtr thisPtr, int value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern float Internal_getintensity(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

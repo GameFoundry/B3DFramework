@@ -29,15 +29,15 @@ namespace bs
 			return value;
 		}
 
-		public SubMesh(uint indexOffset, uint indexCount, MeshTopology drawOp)
+		public SubMesh(int indexOffset, int indexCount, MeshTopology drawOp)
 		{
 			this.indexOffset = indexOffset;
 			this.indexCount = indexCount;
 			this.drawOp = drawOp;
 		}
 
-		public uint indexOffset;
-		public uint indexCount;
+		public int indexOffset;
+		public int indexCount;
 		public MeshTopology drawOp;
 	}
 

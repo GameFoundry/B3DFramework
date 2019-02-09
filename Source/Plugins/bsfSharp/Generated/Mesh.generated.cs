@@ -129,7 +129,7 @@ namespace bs
 
 		/// <summary>Returns the number of sub-meshes contained in this mesh.</summary>
 		[NativeWrapper]
-		public uint SubMeshCount
+		public int SubMeshCount
 		{
 			get { return Internal_getSubMeshCount(mCachedPtr); }
 		}
@@ -167,7 +167,7 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern SubMesh[] Internal_getSubMeshes(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getSubMeshCount(IntPtr thisPtr);
+		private static extern int Internal_getSubMeshCount(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_getBounds(IntPtr thisPtr, out AABox box, out Sphere sphere);
 		[MethodImpl(MethodImplOptions.InternalCall)]

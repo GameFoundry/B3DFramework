@@ -32,21 +32,21 @@ namespace bs
 
 		/// <summary>Returns the size of a single sample, in bits.</summary>
 		[NativeWrapper]
-		public uint BitDepth
+		public int BitDepth
 		{
 			get { return Internal_getBitDepth(mCachedPtr); }
 		}
 
 		/// <summary>Returns how many samples per second is the audio encoded in.</summary>
 		[NativeWrapper]
-		public uint SampleRate
+		public int SampleRate
 		{
 			get { return Internal_getFrequency(mCachedPtr); }
 		}
 
 		/// <summary>Returns the number of channels provided by the clip.</summary>
 		[NativeWrapper]
-		public uint NumChannels
+		public int NumChannels
 		{
 			get { return Internal_getNumChannels(mCachedPtr); }
 		}
@@ -74,7 +74,7 @@ namespace bs
 
 		/// <summary>Returns the total number of samples in the clip (includes all channels).</summary>
 		[NativeWrapper]
-		public uint NumSamples
+		public int NumSamples
 		{
 			get { return Internal_getNumSamples(mCachedPtr); }
 		}
@@ -93,11 +93,11 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern RRef<AudioClip> Internal_GetRef(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getBitDepth(IntPtr thisPtr);
+		private static extern int Internal_getBitDepth(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getFrequency(IntPtr thisPtr);
+		private static extern int Internal_getFrequency(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getNumChannels(IntPtr thisPtr);
+		private static extern int Internal_getNumChannels(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern AudioFormat Internal_getFormat(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -105,7 +105,7 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern float Internal_getLength(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getNumSamples(IntPtr thisPtr);
+		private static extern int Internal_getNumSamples(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_is3D(IntPtr thisPtr);
 	}

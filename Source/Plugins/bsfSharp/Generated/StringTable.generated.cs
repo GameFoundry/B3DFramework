@@ -34,7 +34,7 @@ namespace bs
 
 		/// <summary>Returns a total number of strings in the table.</summary>
 		[NativeWrapper]
-		public uint NumStrings
+		public int NumStrings
 		{
 			get { return Internal_getNumStrings(mCachedPtr); }
 		}
@@ -83,7 +83,7 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_contains(IntPtr thisPtr, string identifier);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getNumStrings(IntPtr thisPtr);
+		private static extern int Internal_getNumStrings(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern string[] Internal_getIdentifiers(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

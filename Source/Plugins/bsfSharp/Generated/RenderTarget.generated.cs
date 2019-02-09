@@ -23,14 +23,14 @@ namespace bs
 
 		/// <summary>Width of the render target, in pixels.</summary>
 		[NativeWrapper]
-		public uint Width
+		public int Width
 		{
 			get { return Internal_getWidth(mCachedPtr); }
 		}
 
 		/// <summary>Height of the render target, in pixels.</summary>
 		[NativeWrapper]
-		public uint Height
+		public int Height
 		{
 			get { return Internal_getHeight(mCachedPtr); }
 		}
@@ -56,15 +56,15 @@ namespace bs
 
 		/// <summary>Controls how many samples are used for multisampling. (0 or 1 if multisampling is not used).</summary>
 		[NativeWrapper]
-		public uint SampleCount
+		public int SampleCount
 		{
 			get { return Internal_getSampleCount(mCachedPtr); }
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getWidth(IntPtr thisPtr);
+		private static extern int Internal_getWidth(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getHeight(IntPtr thisPtr);
+		private static extern int Internal_getHeight(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_getGammaCorrection(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -72,7 +72,7 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setPriority(IntPtr thisPtr, int priority);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getSampleCount(IntPtr thisPtr);
+		private static extern int Internal_getSampleCount(IntPtr thisPtr);
 	}
 
 	/** @} */

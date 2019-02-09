@@ -43,7 +43,7 @@ namespace bs
 		/// <summary>Distance from the query origin to the hit position.</summary>
 		public float distance;
 		/// <summary>Index of the triangle that was hit (only applicable when triangle meshes are hit).</summary>
-		public uint triangleIdx;
+		public int triangleIdx;
 		/// <summary>
 		/// Component of the collider that was hit. This may be null if the hit collider has no owner component, in which case 
 		/// refer to #colliderRaw.

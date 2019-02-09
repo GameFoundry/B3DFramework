@@ -55,19 +55,19 @@ namespace bs
 		/// Adds a new probe at the specified position and returns a handle to the probe. The position is relative to the volume 
 		/// origin.
 		/// </summary>
-		public uint AddProbe(Vector3 position)
+		public int AddProbe(Vector3 position)
 		{
 			return Internal_addProbe(mCachedPtr, ref position);
 		}
 
 		/// <summary>Updates the position of the probe with the specified handle.</summary>
-		public void SetProbePosition(uint handle, Vector3 position)
+		public void SetProbePosition(int handle, Vector3 position)
 		{
 			Internal_setProbePosition(mCachedPtr, handle, ref position);
 		}
 
 		/// <summary>Retrieves the position of the probe with the specified handle.</summary>
-		public Vector3 GetProbePosition(uint handle)
+		public Vector3 GetProbePosition(int handle)
 		{
 			Vector3 temp;
 			Internal_getProbePosition(mCachedPtr, handle, out temp);
@@ -78,7 +78,7 @@ namespace bs
 		/// Removes the probe with the specified handle. Note that if this is one of the last four remaining probes in the volume 
 		/// it cannot be removed.
 		/// </summary>
-		public void RemoveProbe(uint handle)
+		public void RemoveProbe(int handle)
 		{
 			Internal_removeProbe(mCachedPtr, handle);
 		}
@@ -93,7 +93,7 @@ namespace bs
 		/// Causes the information for this specific light probe to be updated. You generally want to call this when the probe is 
 		/// moved or the scene around the probe changes.
 		/// </summary>
-		public void RenderProbe(uint handle)
+		public void RenderProbe(int handle)
 		{
 			Internal_renderProbe(mCachedPtr, handle);
 		}
@@ -160,17 +160,17 @@ namespace bs
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_addProbe(IntPtr thisPtr, ref Vector3 position);
+		private static extern int Internal_addProbe(IntPtr thisPtr, ref Vector3 position);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setProbePosition(IntPtr thisPtr, uint handle, ref Vector3 position);
+		private static extern void Internal_setProbePosition(IntPtr thisPtr, int handle, ref Vector3 position);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_getProbePosition(IntPtr thisPtr, uint handle, out Vector3 __output);
+		private static extern void Internal_getProbePosition(IntPtr thisPtr, int handle, out Vector3 __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_removeProbe(IntPtr thisPtr, uint handle);
+		private static extern void Internal_removeProbe(IntPtr thisPtr, int handle);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern LightProbeInfo[] Internal_getProbes(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_renderProbe(IntPtr thisPtr, uint handle);
+		private static extern void Internal_renderProbe(IntPtr thisPtr, int handle);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_renderProbes(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

@@ -33,7 +33,7 @@ namespace bs
 		/// </summary>
 		/// <param name="identifier">String you can use for later referencing the localized string.</param>
 		/// <param name="stringTableId">Unique identifier of the string table to retrieve the string from.</param>
-		public LocString(string identifier, uint stringTableId = 0)
+		public LocString(string identifier, int stringTableId = 0)
 		{
 			Internal_HString(this, identifier, stringTableId);
 		}
@@ -48,14 +48,14 @@ namespace bs
 		/// StringTable::DEFAULT_LANGUAGE value.
 		/// </param>
 		/// <param name="stringTableId">Unique identifier of the string table to retrieve the string from.</param>
-		public LocString(string identifier, string defaultString, uint stringTableId = 0)
+		public LocString(string identifier, string defaultString, int stringTableId = 0)
 		{
 			Internal_HString0(this, identifier, defaultString, stringTableId);
 		}
 
 		/// <summary>Creates a new empty localized string.</summary>
 		/// <param name="stringTableId">Unique identifier of the string table to retrieve the string from.</param>
-		public LocString(uint stringTableId)
+		public LocString(int stringTableId)
 		{
 			Internal_HString1(this, stringTableId);
 		}
@@ -70,23 +70,23 @@ namespace bs
 		/// Sets a value of a string parameter. Parameters are specified as bracketed values within the string itself  (for 
 		/// example {0}, {1}) etc. Use ^ as an escape character.
 		/// </summary>
-		public void SetParameter(uint idx, string value)
+		public void SetParameter(int idx, string value)
 		{
 			Internal_setParameter(mCachedPtr, idx, value);
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_HString(LocString managedInstance, string identifier, uint stringTableId);
+		private static extern void Internal_HString(LocString managedInstance, string identifier, int stringTableId);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_HString0(LocString managedInstance, string identifier, string defaultString, uint stringTableId);
+		private static extern void Internal_HString0(LocString managedInstance, string identifier, string defaultString, int stringTableId);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_HString1(LocString managedInstance, uint stringTableId);
+		private static extern void Internal_HString1(LocString managedInstance, int stringTableId);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_HString2(LocString managedInstance);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern string Internal_getValue(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setParameter(IntPtr thisPtr, uint idx, string value);
+		private static extern void Internal_setParameter(IntPtr thisPtr, int idx, string value);
 	}
 
 	/** @} */

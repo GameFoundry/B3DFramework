@@ -24,7 +24,7 @@ namespace bs
 		/// <summary>Font size for which the data is contained.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public uint Size
+		public int Size
 		{
 			get { return Internal_getsize(mCachedPtr); }
 			set { Internal_setsize(mCachedPtr, value); }
@@ -42,7 +42,7 @@ namespace bs
 		/// <summary>Height of a single line of the font, in pixels.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public uint LineHeight
+		public int LineHeight
 		{
 			get { return Internal_getlineHeight(mCachedPtr); }
 			set { Internal_setlineHeight(mCachedPtr, value); }
@@ -65,7 +65,7 @@ namespace bs
 		/// <summary>Width of a space in pixels.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public uint SpaceWidth
+		public int SpaceWidth
 		{
 			get { return Internal_getspaceWidth(mCachedPtr); }
 			set { Internal_setspaceWidth(mCachedPtr, value); }
@@ -81,7 +81,7 @@ namespace bs
 		}
 
 		/// <summary>Returns a character description for the character with the specified Unicode key.</summary>
-		public CharDesc GetCharDesc(uint charId)
+		public CharDesc GetCharDesc(int charId)
 		{
 			CharDesc temp;
 			Internal_getCharDesc(mCachedPtr, charId, out temp);
@@ -89,27 +89,27 @@ namespace bs
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_getCharDesc(IntPtr thisPtr, uint charId, out CharDesc __output);
+		private static extern void Internal_getCharDesc(IntPtr thisPtr, int charId, out CharDesc __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getsize(IntPtr thisPtr);
+		private static extern int Internal_getsize(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setsize(IntPtr thisPtr, uint value);
+		private static extern void Internal_setsize(IntPtr thisPtr, int value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern int Internal_getbaselineOffset(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setbaselineOffset(IntPtr thisPtr, int value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getlineHeight(IntPtr thisPtr);
+		private static extern int Internal_getlineHeight(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setlineHeight(IntPtr thisPtr, uint value);
+		private static extern void Internal_setlineHeight(IntPtr thisPtr, int value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_getmissingGlyph(IntPtr thisPtr, out CharDesc __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setmissingGlyph(IntPtr thisPtr, ref CharDesc value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getspaceWidth(IntPtr thisPtr);
+		private static extern int Internal_getspaceWidth(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setspaceWidth(IntPtr thisPtr, uint value);
+		private static extern void Internal_setspaceWidth(IntPtr thisPtr, int value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern RRef<Texture>[] Internal_gettexturePages(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

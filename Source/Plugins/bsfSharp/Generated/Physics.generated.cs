@@ -394,13 +394,13 @@ namespace bs
 		/// to be in, and objects outside of these regions will not be handled by physics. You do not need to set up these 
 		/// regions by default.
 		/// </summary>
-		public static uint AddPhysicsRegion(AABox region)
+		public static int AddPhysicsRegion(AABox region)
 		{
 			return Internal_addBroadPhaseRegion(ref region);
 		}
 
 		/// <summary>Removes a physics region.</summary>
-		public static void RemovePhysicsRegion(uint handle)
+		public static void RemovePhysicsRegion(int handle)
 		{
 			Internal_removeBroadPhaseRegion(handle);
 		}
@@ -483,9 +483,9 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setGravity(ref Vector3 gravity);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_addBroadPhaseRegion(ref AABox region);
+		private static extern int Internal_addBroadPhaseRegion(ref AABox region);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_removeBroadPhaseRegion(uint handle);
+		private static extern void Internal_removeBroadPhaseRegion(int handle);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_clearBroadPhaseRegions();
 		[MethodImpl(MethodImplOptions.InternalCall)]

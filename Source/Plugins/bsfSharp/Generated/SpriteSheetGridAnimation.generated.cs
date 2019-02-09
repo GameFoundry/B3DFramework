@@ -36,7 +36,7 @@ namespace bs
 			return value;
 		}
 
-		public SpriteSheetGridAnimation(uint numRows, uint numColumns, uint count, uint fps)
+		public SpriteSheetGridAnimation(int numRows, int numColumns, int count, int fps)
 		{
 			this.numRows = numRows;
 			this.numColumns = numColumns;
@@ -48,18 +48,18 @@ namespace bs
 		/// Number of rows to divide the parent's texture area. Determines height of the individual frame (depends on  parent 
 		/// texture size).
 		/// </summary>
-		public uint numRows;
+		public int numRows;
 		/// <summary>
 		/// Number of columns to divide the parent's texture area. Determines column of the individual frame (depends on  parent 
 		/// texture size).
 		/// </summary>
-		public uint numColumns;
+		public int numColumns;
 		/// <summary>
 		/// Number of frames in the animation. Must be less or equal than <see cref="numRows"/> * <see cref="numColumns"/>.
 		/// </summary>
-		public uint count;
+		public int count;
 		/// <summary>How many frames to evaluate each second. Determines the animation speed.</summary>
-		public uint fps;
+		public int fps;
 	}
 
 	/** @} */

@@ -46,7 +46,7 @@ namespace bs
 		/// Optional set of curves that can be used for animating the root bone. Not used by the animation system directly but is 
 		/// instead provided to the user for manual evaluation.
 		/// </param>
-		public AnimationClip(AnimationCurves curves, bool isAdditive = false, uint sampleRate = 1, RootMotion rootMotion = null)
+		public AnimationClip(AnimationCurves curves, bool isAdditive = false, int sampleRate = 1, RootMotion rootMotion = null)
 		{
 			Internal_create0(this, curves, isAdditive, sampleRate, rootMotion);
 		}
@@ -120,7 +120,7 @@ namespace bs
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public uint SampleRate
+		public int SampleRate
 		{
 			get { return Internal_getSampleRate(mCachedPtr); }
 			set { Internal_setSampleRate(mCachedPtr, value); }
@@ -149,13 +149,13 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern float Internal_getLength(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getSampleRate(IntPtr thisPtr);
+		private static extern int Internal_getSampleRate(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setSampleRate(IntPtr thisPtr, uint sampleRate);
+		private static extern void Internal_setSampleRate(IntPtr thisPtr, int sampleRate);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_create(AnimationClip managedInstance, bool isAdditive);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_create0(AnimationClip managedInstance, AnimationCurves curves, bool isAdditive, uint sampleRate, RootMotion rootMotion);
+		private static extern void Internal_create0(AnimationClip managedInstance, AnimationCurves curves, bool isAdditive, int sampleRate, RootMotion rootMotion);
 	}
 
 	/** @} */

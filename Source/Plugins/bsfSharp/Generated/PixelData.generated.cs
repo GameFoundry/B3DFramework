@@ -25,7 +25,7 @@ namespace bs
 			Internal_create(this, ref volume, format);
 		}
 
-		public PixelData(uint width, uint height, uint depth = 1, PixelFormat pixelFormat = PixelFormat.BGRA8)
+		public PixelData(int width, int height, int depth = 1, PixelFormat pixelFormat = PixelFormat.BGRA8)
 		{
 			Internal_create0(this, width, height, depth, pixelFormat);
 		}
@@ -35,7 +35,7 @@ namespace bs
 		/// buffers require padding.
 		/// </summary>
 		[NativeWrapper]
-		public uint RawRowPitch
+		public int RawRowPitch
 		{
 			get { return Internal_getRowPitch(mCachedPtr); }
 		}
@@ -45,7 +45,7 @@ namespace bs
 		/// have to be as some buffers require padding.
 		/// </summary>
 		[NativeWrapper]
-		public uint RawSlicePitch
+		public int RawSlicePitch
 		{
 			get { return Internal_getSlicePitch(mCachedPtr); }
 		}
@@ -80,7 +80,7 @@ namespace bs
 
 		/// <summary>Return the size (in bytes) of the buffer this image requires.</summary>
 		[NativeWrapper]
-		public uint RawSize
+		public int RawSize
 		{
 			get { return Internal_getSize(mCachedPtr); }
 		}
@@ -150,9 +150,9 @@ namespace bs
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getRowPitch(IntPtr thisPtr);
+		private static extern int Internal_getRowPitch(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getSlicePitch(IntPtr thisPtr);
+		private static extern int Internal_getSlicePitch(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern PixelFormat Internal_getFormat(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -160,11 +160,11 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_isConsecutive(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getSize(IntPtr thisPtr);
+		private static extern int Internal_getSize(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_create(PixelData managedInstance, ref PixelVolume volume, PixelFormat format);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_create0(PixelData managedInstance, uint width, uint height, uint depth, PixelFormat pixelFormat);
+		private static extern void Internal_create0(PixelData managedInstance, int width, int height, int depth, PixelFormat pixelFormat);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_getPixel(IntPtr thisPtr, int x, int y, int z, out Color __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]

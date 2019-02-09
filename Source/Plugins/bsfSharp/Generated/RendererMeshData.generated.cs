@@ -23,7 +23,7 @@ namespace bs
 		private MeshData(bool __dummy0) { }
 		protected MeshData() { }
 
-		public MeshData(uint numVertices, uint numIndices, VertexLayout layout, IndexType indexType = IndexType.Index32)
+		public MeshData(int numVertices, int numIndices, VertexLayout layout, IndexType indexType = IndexType.Index32)
 		{
 			Internal_create(this, numVertices, numIndices, layout, indexType);
 		}
@@ -100,7 +100,7 @@ namespace bs
 		/// <summary>An array of all indices.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public uint[] Indices
+		public int[] Indices
 		{
 			get { return Internal_getIndices(mCachedPtr); }
 			set { Internal_setIndices(mCachedPtr, value); }
@@ -121,7 +121,7 @@ namespace bs
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_create(MeshData managedInstance, uint numVertices, uint numIndices, VertexLayout layout, IndexType indexType);
+		private static extern void Internal_create(MeshData managedInstance, int numVertices, int numIndices, VertexLayout layout, IndexType indexType);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern Vector3[] Internal_getPositions(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -151,9 +151,9 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setBoneWeights(IntPtr thisPtr, BoneWeight[] value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint[] Internal_getIndices(IntPtr thisPtr);
+		private static extern int[] Internal_getIndices(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setIndices(IntPtr thisPtr, uint[] value);
+		private static extern void Internal_setIndices(IntPtr thisPtr, int[] value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern int Internal_getVertexCount(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

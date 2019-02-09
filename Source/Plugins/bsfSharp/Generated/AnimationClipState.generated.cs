@@ -33,7 +33,7 @@ namespace bs
 		}
 
 		/// <summary>Layer the clip is playing on. Multiple clips can be played simulatenously on different layers.</summary>
-		public uint layer;
+		public int layer;
 		/// <summary>Current time the animation is playing from.</summary>
 		public float time;
 		/// <summary>Speed at which the animation is playing.</summary>

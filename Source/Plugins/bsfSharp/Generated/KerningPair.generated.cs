@@ -18,7 +18,7 @@ namespace bs
 	[StructLayout(LayoutKind.Sequential), SerializeObject]
 	public partial struct KerningPair
 	{
-		public uint otherCharId;
+		public int otherCharId;
 		public int amount;
 	}
 

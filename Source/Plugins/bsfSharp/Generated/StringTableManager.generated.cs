@@ -36,14 +36,14 @@ namespace bs
 		/// <summary>Returns the string table with the specified id. If the table doesn't exist new one is created.</summary>
 		/// <param name="id">Identifier of the string table.</param>
 		/// <returns>String table with the specified identifier.</returns>
-		public static RRef<StringTable> GetTable(uint id)
+		public static RRef<StringTable> GetTable(int id)
 		{
 			return Internal_getTable(id);
 		}
 
 		/// <summary>Removes the string table with the specified id.</summary>
 		/// <param name="id">Identifier of the string table.</param>
-		public static void RemoveTable(uint id)
+		public static void RemoveTable(int id)
 		{
 			Internal_removeTable(id);
 		}
@@ -51,7 +51,7 @@ namespace bs
 		/// <summary>Registers a new string table or replaces an old one at the specified id.</summary>
 		/// <param name="id">Identifier of the string table.</param>
 		/// <param name="table">New string table to assign to the specified identifier.</param>
-		public static void SetTable(uint id, RRef<StringTable> table)
+		public static void SetTable(int id, RRef<StringTable> table)
 		{
 			Internal_setTable(id, table);
 		}
@@ -61,11 +61,11 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern Language Internal_getActiveLanguage();
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern RRef<StringTable> Internal_getTable(uint id);
+		private static extern RRef<StringTable> Internal_getTable(int id);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_removeTable(uint id);
+		private static extern void Internal_removeTable(int id);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setTable(uint id, RRef<StringTable> table);
+		private static extern void Internal_setTable(int id, RRef<StringTable> table);
 	}
 
 	/** @} */

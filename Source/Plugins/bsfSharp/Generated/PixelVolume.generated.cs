@@ -28,7 +28,7 @@ namespace bs
 			return value;
 		}
 
-		public PixelVolume(uint left, uint top, uint right, uint bottom)
+		public PixelVolume(int left, int top, int right, int bottom)
 		{
 			this.left = left;
 			this.top = top;
@@ -38,7 +38,7 @@ namespace bs
 			this.back = 1;
 		}
 
-		public PixelVolume(uint left, uint top, uint front, uint right, uint bottom, uint back)
+		public PixelVolume(int left, int top, int front, int right, int bottom, int back)
 		{
 			this.left = left;
 			this.top = top;
@@ -48,11 +48,11 @@ namespace bs
 			this.back = back;
 		}
 
-		public uint left;
-		public uint top;
-		public uint right;
-		public uint bottom;
-		public uint front;
-		public uint back;
+		public int left;
+		public int top;
+		public int right;
+		public int bottom;
+		public int front;
+		public int back;
 	}
 }

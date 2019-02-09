@@ -30,7 +30,7 @@ namespace bs
 			return value;
 		}
 
-		public ParticleBurst(float time, FloatDistribution count, uint cycles = 1, float interval = 1f)
+		public ParticleBurst(float time, FloatDistribution count, int cycles = 1, float interval = 1f)
 		{
 			this.time = time;
 			this.count = count;
@@ -46,7 +46,7 @@ namespace bs
 		/// Determines how many times to trigger the burst. If 0 the burst will trigger infinitely. Use <see cref="interval"/> to 
 		/// to control the time between each cycle.
 		/// </summary>
-		public uint cycles;
+		public int cycles;
 		/// <summary>Controls how much time needs to pass before triggering another burst cycle, in seconds.</summary>
 		public float interval;
 	}

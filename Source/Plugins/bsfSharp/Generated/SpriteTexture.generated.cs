@@ -55,14 +55,14 @@ namespace bs
 
 		/// <summary>Returns width of the sprite texture in pixels.</summary>
 		[NativeWrapper]
-		public uint Width
+		public int Width
 		{
 			get { return Internal_getWidth(mCachedPtr); }
 		}
 
 		/// <summary>Returns height of the sprite texture in pixels.</summary>
 		[NativeWrapper]
-		public uint Height
+		public int Height
 		{
 			get { return Internal_getHeight(mCachedPtr); }
 		}
@@ -137,9 +137,9 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern RRef<Texture> Internal_getTexture(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getWidth(IntPtr thisPtr);
+		private static extern int Internal_getWidth(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getHeight(IntPtr thisPtr);
+		private static extern int Internal_getHeight(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setOffset(IntPtr thisPtr, ref Vector2 offset);
 		[MethodImpl(MethodImplOptions.InternalCall)]

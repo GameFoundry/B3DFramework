@@ -68,12 +68,12 @@ namespace bs
 		///
 		/// Optionally if the parameter is an array you may provide an array index to assign the value to.
 		/// </summary>
-		public void SetFloat(string name, float value, uint arrayIdx = 0)
+		public void SetFloat(string name, float value, int arrayIdx = 0)
 		{
 			Internal_setFloat(mCachedPtr, name, value, arrayIdx);
 		}
 
-		public void SetFloatCurve(string name, AnimationCurve value, uint arrayIdx = 0)
+		public void SetFloatCurve(string name, AnimationCurve value, int arrayIdx = 0)
 		{
 			Internal_setFloatCurve(mCachedPtr, name, value, arrayIdx);
 		}
@@ -83,7 +83,7 @@ namespace bs
 		///
 		/// Optionally if the parameter is an array you may provide an array index to assign the value to.
 		/// </summary>
-		public void SetColor(string name, Color value, uint arrayIdx = 0)
+		public void SetColor(string name, Color value, int arrayIdx = 0)
 		{
 			Internal_setColor(mCachedPtr, name, ref value, arrayIdx);
 		}
@@ -94,7 +94,7 @@ namespace bs
 		///
 		/// Optionally if the parameter is an array you may provide an array index to assign the value to.
 		/// </summary>
-		public void SetColorGradient(string name, ColorGradient value, uint arrayIdx = 0)
+		public void SetColorGradient(string name, ColorGradient value, int arrayIdx = 0)
 		{
 			Internal_setColorGradient(mCachedPtr, name, value, arrayIdx);
 		}
@@ -104,7 +104,7 @@ namespace bs
 		///
 		/// Optionally if the parameter is an array you may provide an array index to assign the value to.
 		/// </summary>
-		public void SetVector2(string name, Vector2 value, uint arrayIdx = 0)
+		public void SetVector2(string name, Vector2 value, int arrayIdx = 0)
 		{
 			Internal_setVec2(mCachedPtr, name, ref value, arrayIdx);
 		}
@@ -114,7 +114,7 @@ namespace bs
 		///
 		/// Optionally if the parameter is an array you may provide an array index to assign the value to.
 		/// </summary>
-		public void SetVector3(string name, Vector3 value, uint arrayIdx = 0)
+		public void SetVector3(string name, Vector3 value, int arrayIdx = 0)
 		{
 			Internal_setVec3(mCachedPtr, name, ref value, arrayIdx);
 		}
@@ -124,7 +124,7 @@ namespace bs
 		///
 		/// Optionally if the parameter is an array you may provide an array index to assign the value to.
 		/// </summary>
-		public void SetVector4(string name, Vector4 value, uint arrayIdx = 0)
+		public void SetVector4(string name, Vector4 value, int arrayIdx = 0)
 		{
 			Internal_setVec4(mCachedPtr, name, ref value, arrayIdx);
 		}
@@ -134,7 +134,7 @@ namespace bs
 		///
 		/// Optionally if the parameter is an array you may provide an array index to assign the value to.
 		/// </summary>
-		public void SetMatrix3(string name, Matrix3 value, uint arrayIdx = 0)
+		public void SetMatrix3(string name, Matrix3 value, int arrayIdx = 0)
 		{
 			Internal_setMat3(mCachedPtr, name, ref value, arrayIdx);
 		}
@@ -144,7 +144,7 @@ namespace bs
 		///
 		/// Optionally if the parameter is an array you may provide an array index to assign the value to.
 		/// </summary>
-		public void SetMatrix4(string name, Matrix4 value, uint arrayIdx = 0)
+		public void SetMatrix4(string name, Matrix4 value, int arrayIdx = 0)
 		{
 			Internal_setMat4(mCachedPtr, name, ref value, arrayIdx);
 		}
@@ -155,7 +155,7 @@ namespace bs
 		///
 		/// Optionally if the parameter is an array you may provide an array index you which to retrieve.
 		/// </summary>
-		public float GetFloat(string name, uint arrayIdx = 0)
+		public float GetFloat(string name, int arrayIdx = 0)
 		{
 			return Internal_getFloat(mCachedPtr, name, arrayIdx);
 		}
@@ -167,7 +167,7 @@ namespace bs
 		///
 		/// Optionally if the parameter is an array you may provide an array index you which to retrieve.
 		/// </summary>
-		public AnimationCurve GetFloatCurve(string name, uint arrayIdx = 0)
+		public AnimationCurve GetFloatCurve(string name, int arrayIdx = 0)
 		{
 			return Internal_getFloatCurve(mCachedPtr, name, arrayIdx);
 		}
@@ -179,7 +179,7 @@ namespace bs
 		///
 		/// Optionally if the parameter is an array you may provide an array index you which to retrieve.
 		/// </summary>
-		public Color GetColor(string name, uint arrayIdx = 0)
+		public Color GetColor(string name, int arrayIdx = 0)
 		{
 			Color temp;
 			Internal_getColor(mCachedPtr, name, arrayIdx, out temp);
@@ -193,7 +193,7 @@ namespace bs
 		///
 		/// Optionally if the parameter is an array you may provide an array index you which to retrieve.
 		/// </summary>
-		public ColorGradient GetColorGradient(string name, uint arrayIdx = 0)
+		public ColorGradient GetColorGradient(string name, int arrayIdx = 0)
 		{
 			return Internal_getColorGradient(mCachedPtr, name, arrayIdx);
 		}
@@ -203,7 +203,7 @@ namespace bs
 		///
 		/// Optionally if the parameter is an array you may provide an array index you which to retrieve.
 		/// </summary>
-		public Vector2 GetVector2(string name, uint arrayIdx = 0)
+		public Vector2 GetVector2(string name, int arrayIdx = 0)
 		{
 			Vector2 temp;
 			Internal_getVec2(mCachedPtr, name, arrayIdx, out temp);
@@ -215,7 +215,7 @@ namespace bs
 		///
 		/// Optionally if the parameter is an array you may provide an array index you which to retrieve.
 		/// </summary>
-		public Vector3 GetVector3(string name, uint arrayIdx = 0)
+		public Vector3 GetVector3(string name, int arrayIdx = 0)
 		{
 			Vector3 temp;
 			Internal_getVec3(mCachedPtr, name, arrayIdx, out temp);
@@ -227,7 +227,7 @@ namespace bs
 		///
 		/// Optionally if the parameter is an array you may provide an array index you which to retrieve.
 		/// </summary>
-		public Vector4 GetVector4(string name, uint arrayIdx = 0)
+		public Vector4 GetVector4(string name, int arrayIdx = 0)
 		{
 			Vector4 temp;
 			Internal_getVec4(mCachedPtr, name, arrayIdx, out temp);
@@ -239,7 +239,7 @@ namespace bs
 		///
 		/// Optionally if the parameter is an array you may provide an array index you which to retrieve.
 		/// </summary>
-		public Matrix3 GetMatrix3(string name, uint arrayIdx = 0)
+		public Matrix3 GetMatrix3(string name, int arrayIdx = 0)
 		{
 			Matrix3 temp;
 			Internal_getMat3(mCachedPtr, name, arrayIdx, out temp);
@@ -251,7 +251,7 @@ namespace bs
 		///
 		/// Optionally if the parameter is an array you may provide an array index you which to retrieve.
 		/// </summary>
-		public Matrix4 GetMatrix4(string name, uint arrayIdx = 0)
+		public Matrix4 GetMatrix4(string name, int arrayIdx = 0)
 		{
 			Matrix4 temp;
 			Internal_getMat4(mCachedPtr, name, arrayIdx, out temp);
@@ -267,47 +267,47 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern RRef<Shader> Internal_getShader(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setFloat(IntPtr thisPtr, string name, float value, uint arrayIdx);
+		private static extern void Internal_setFloat(IntPtr thisPtr, string name, float value, int arrayIdx);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setFloatCurve(IntPtr thisPtr, string name, AnimationCurve value, uint arrayIdx);
+		private static extern void Internal_setFloatCurve(IntPtr thisPtr, string name, AnimationCurve value, int arrayIdx);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setColor(IntPtr thisPtr, string name, ref Color value, uint arrayIdx);
+		private static extern void Internal_setColor(IntPtr thisPtr, string name, ref Color value, int arrayIdx);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setColorGradient(IntPtr thisPtr, string name, ColorGradient value, uint arrayIdx);
+		private static extern void Internal_setColorGradient(IntPtr thisPtr, string name, ColorGradient value, int arrayIdx);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setVec2(IntPtr thisPtr, string name, ref Vector2 value, uint arrayIdx);
+		private static extern void Internal_setVec2(IntPtr thisPtr, string name, ref Vector2 value, int arrayIdx);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setVec3(IntPtr thisPtr, string name, ref Vector3 value, uint arrayIdx);
+		private static extern void Internal_setVec3(IntPtr thisPtr, string name, ref Vector3 value, int arrayIdx);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setVec4(IntPtr thisPtr, string name, ref Vector4 value, uint arrayIdx);
+		private static extern void Internal_setVec4(IntPtr thisPtr, string name, ref Vector4 value, int arrayIdx);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setMat3(IntPtr thisPtr, string name, ref Matrix3 value, uint arrayIdx);
+		private static extern void Internal_setMat3(IntPtr thisPtr, string name, ref Matrix3 value, int arrayIdx);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setMat4(IntPtr thisPtr, string name, ref Matrix4 value, uint arrayIdx);
+		private static extern void Internal_setMat4(IntPtr thisPtr, string name, ref Matrix4 value, int arrayIdx);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern float Internal_getFloat(IntPtr thisPtr, string name, uint arrayIdx);
+		private static extern float Internal_getFloat(IntPtr thisPtr, string name, int arrayIdx);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern AnimationCurve Internal_getFloatCurve(IntPtr thisPtr, string name, uint arrayIdx);
+		private static extern AnimationCurve Internal_getFloatCurve(IntPtr thisPtr, string name, int arrayIdx);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_getColor(IntPtr thisPtr, string name, uint arrayIdx, out Color __output);
+		private static extern void Internal_getColor(IntPtr thisPtr, string name, int arrayIdx, out Color __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern ColorGradient Internal_getColorGradient(IntPtr thisPtr, string name, uint arrayIdx);
+		private static extern ColorGradient Internal_getColorGradient(IntPtr thisPtr, string name, int arrayIdx);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_getVec2(IntPtr thisPtr, string name, uint arrayIdx, out Vector2 __output);
+		private static extern void Internal_getVec2(IntPtr thisPtr, string name, int arrayIdx, out Vector2 __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_getVec3(IntPtr thisPtr, string name, uint arrayIdx, out Vector3 __output);
+		private static extern void Internal_getVec3(IntPtr thisPtr, string name, int arrayIdx, out Vector3 __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_getVec4(IntPtr thisPtr, string name, uint arrayIdx, out Vector4 __output);
+		private static extern void Internal_getVec4(IntPtr thisPtr, string name, int arrayIdx, out Vector4 __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_getMat3(IntPtr thisPtr, string name, uint arrayIdx, out Matrix3 __output);
+		private static extern void Internal_getMat3(IntPtr thisPtr, string name, int arrayIdx, out Matrix3 __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_getMat4(IntPtr thisPtr, string name, uint arrayIdx, out Matrix4 __output);
+		private static extern void Internal_getMat4(IntPtr thisPtr, string name, int arrayIdx, out Matrix4 __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_create(Material managedInstance);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_create0(Material managedInstance, RRef<Shader> shader);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setTexture(IntPtr thisPtr, string name, RRef<Texture> value, uint mipLevel, uint numMipLevels, uint arraySlice, uint numArraySlices);
+		private static extern void Internal_setTexture(IntPtr thisPtr, string name, RRef<Texture> value, int mipLevel, int numMipLevels, int arraySlice, int numArraySlices);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern RRef<Texture> Internal_getTexture(IntPtr thisPtr, string name);
 		[MethodImpl(MethodImplOptions.InternalCall)]

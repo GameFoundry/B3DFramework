@@ -198,7 +198,7 @@ namespace bs
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public uint PositionSolverCount
+		public int PositionSolverCount
 		{
 			get { return Internal_getPositionSolverCount(mCachedPtr); }
 			set { Internal_setPositionSolverCount(mCachedPtr, value); }
@@ -210,7 +210,7 @@ namespace bs
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public uint VelocitySolverCount
+		public int VelocitySolverCount
 		{
 			get { return Internal_getVelocitySolverCount(mCachedPtr); }
 			set { Internal_setVelocitySolverCount(mCachedPtr, value); }
@@ -376,13 +376,13 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_getCenterOfMassRotation(IntPtr thisPtr, out Quaternion __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setPositionSolverCount(IntPtr thisPtr, uint count);
+		private static extern void Internal_setPositionSolverCount(IntPtr thisPtr, int count);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getPositionSolverCount(IntPtr thisPtr);
+		private static extern int Internal_getPositionSolverCount(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setVelocitySolverCount(IntPtr thisPtr, uint count);
+		private static extern void Internal_setVelocitySolverCount(IntPtr thisPtr, int count);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getVelocitySolverCount(IntPtr thisPtr);
+		private static extern int Internal_getVelocitySolverCount(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setCollisionReportMode(IntPtr thisPtr, CollisionReportMode mode);
 		[MethodImpl(MethodImplOptions.InternalCall)]

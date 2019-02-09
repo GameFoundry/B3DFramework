@@ -139,7 +139,7 @@ namespace bs
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public uint MaxParticles
+		public int MaxParticles
 		{
 			get { return Internal_getmaxParticles(mCachedPtr); }
 			set { Internal_setmaxParticles(mCachedPtr, value); }
@@ -163,7 +163,7 @@ namespace bs
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public uint ManualSeed
+		public int ManualSeed
 		{
 			get { return Internal_getmanualSeed(mCachedPtr); }
 			set { Internal_setmanualSeed(mCachedPtr, value); }
@@ -249,17 +249,17 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setisLooping(IntPtr thisPtr, bool value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getmaxParticles(IntPtr thisPtr);
+		private static extern int Internal_getmaxParticles(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setmaxParticles(IntPtr thisPtr, uint value);
+		private static extern void Internal_setmaxParticles(IntPtr thisPtr, int value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_getuseAutomaticSeed(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setuseAutomaticSeed(IntPtr thisPtr, bool value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getmanualSeed(IntPtr thisPtr);
+		private static extern int Internal_getmanualSeed(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setmanualSeed(IntPtr thisPtr, uint value);
+		private static extern void Internal_setmanualSeed(IntPtr thisPtr, int value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_getuseAutomaticBounds(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

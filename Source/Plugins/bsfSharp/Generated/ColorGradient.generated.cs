@@ -40,7 +40,7 @@ namespace bs
 
 		/// <summary>Returns the number of color keys in the gradient.</summary>
 		[NativeWrapper]
-		public uint NumKeys
+		public int NumKeys
 		{
 			get { return Internal_getNumKeys(mCachedPtr); }
 		}
@@ -62,7 +62,7 @@ namespace bs
 		}
 
 		/// <summary>Returns the color key at the specified index. If out of range an empty key is returned.</summary>
-		public ColorGradientKey GetKey(uint idx)
+		public ColorGradientKey GetKey(int idx)
 		{
 			ColorGradientKey temp;
 			Internal_getKey(mCachedPtr, idx, out temp);
@@ -94,9 +94,9 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern ColorGradientKey[] Internal_getKeys(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getNumKeys(IntPtr thisPtr);
+		private static extern int Internal_getNumKeys(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_getKey(IntPtr thisPtr, uint idx, out ColorGradientKey __output);
+		private static extern void Internal_getKey(IntPtr thisPtr, int idx, out ColorGradientKey __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setConstant(IntPtr thisPtr, ref Color color);
 		[MethodImpl(MethodImplOptions.InternalCall)]

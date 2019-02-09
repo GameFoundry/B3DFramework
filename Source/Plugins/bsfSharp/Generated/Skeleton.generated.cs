@@ -23,7 +23,7 @@ namespace bs
 
 		/// <summary>Returns the total number of bones in the skeleton.</summary>
 		[NativeWrapper]
-		public uint NumBones
+		public int NumBones
 		{
 			get { return Internal_getNumBones(mCachedPtr); }
 		}
@@ -39,7 +39,7 @@ namespace bs
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_getNumBones(IntPtr thisPtr);
+		private static extern int Internal_getNumBones(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_getBoneInfo(IntPtr thisPtr, int boneIdx, out BoneInfo __output);
 	}

@@ -24,19 +24,19 @@ namespace bs
 		protected Random() { }
 
 		/// <summary>Initializes a new generator using the specified seed.</summary>
-		public Random(uint seed = 0)
+		public Random(int seed = 0)
 		{
 			Internal_Random(this, seed);
 		}
 
 		/// <summary>Changes the seed of the generator to the specified value.</summary>
-		public void SetSeed(uint seed)
+		public void SetSeed(int seed)
 		{
 			Internal_setSeed(mCachedPtr, seed);
 		}
 
 		/// <summary>Returns a random value in range [0, std::numeric_limits<uint32_t>::max()].</summary>
-		public uint Get()
+		public int Get()
 		{
 			return Internal_get(mCachedPtr);
 		}
@@ -151,11 +151,11 @@ namespace bs
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Random(Random managedInstance, uint seed);
+		private static extern void Internal_Random(Random managedInstance, int seed);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setSeed(IntPtr thisPtr, uint seed);
+		private static extern void Internal_setSeed(IntPtr thisPtr, int seed);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern uint Internal_get(IntPtr thisPtr);
+		private static extern int Internal_get(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern int Internal_getRange(IntPtr thisPtr, int min, int max);
 		[MethodImpl(MethodImplOptions.InternalCall)]

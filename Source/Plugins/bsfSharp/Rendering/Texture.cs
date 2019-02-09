@@ -28,8 +28,8 @@ namespace bs
         /// <param name="gammaCorrection">If true the texture data is assumed to have be gamma corrected and will be
         ///                               converted back to linear space when sampled on GPU, and converted to gamma space
         ///                               before being written by the GPU.</param>
-        public static Texture Create2D(uint width, uint height, PixelFormat format = PixelFormat.RGBA8, 
-            TextureUsage usage = TextureUsage.Default, uint numSamples = 1, bool hasMipmaps = false, 
+        public static Texture Create2D(int width, int height, PixelFormat format = PixelFormat.RGBA8, 
+            TextureUsage usage = TextureUsage.Default, int numSamples = 1, bool hasMipmaps = false, 
             bool gammaCorrection = false)
         {
             Texture texture = new Texture(true);
@@ -49,7 +49,7 @@ namespace bs
         /// <param name="usage">Describes planned texture use.</param>
         /// <param name="hasMipmaps">Should the texture allocate memory for the entire mip-map chain or only the top level.
         ///                          </param>
-        public static Texture Create3D(uint width, uint height, uint depth, PixelFormat format = PixelFormat.RGBA8,
+        public static Texture Create3D(int width, int height, int depth, PixelFormat format = PixelFormat.RGBA8,
             TextureUsage usage = TextureUsage.Default, bool hasMipmaps = false)
         {
             Texture texture = new Texture(true);
@@ -70,7 +70,7 @@ namespace bs
         /// <param name="gammaCorrection">If true the texture data is assumed to have be gamma corrected and will be
         ///                               converted back to linear space when sampled on GPU, and converted to gamma space
         ///                               before being written by the GPU.</param>
-        public static Texture CreateCube(uint size, PixelFormat format = PixelFormat.RGBA8,
+        public static Texture CreateCube(int size, PixelFormat format = PixelFormat.RGBA8,
             TextureUsage usage = TextureUsage.Default, bool hasMipmaps = false, bool gammaCorrection = false)
         {
             Texture texture = new Texture(true);

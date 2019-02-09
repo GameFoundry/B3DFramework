@@ -19,9 +19,9 @@ namespace bs
 	public partial struct CharDesc
 	{
 		/// <summary>Character ID, corresponding to a Unicode key.</summary>
-		public uint charId;
+		public int charId;
 		/// <summary>Index of the texture the character is located on.</summary>
-		public uint page;
+		public int page;
 		/// <summary>Texture coordinates of the character in the page texture.</summary>
 		public float uvX;
 		/// <summary>Texture coordinates of the character in the page texture.</summary>
@@ -31,9 +31,9 @@ namespace bs
 		/// <summary>Width/height of the character in texture coordinates.</summary>
 		public float uvHeight;
 		/// <summary>Width/height of the character in pixels.</summary>
-		public uint width;
+		public int width;
 		/// <summary>Width/height of the character in pixels.</summary>
-		public uint height;
+		public int height;
 		/// <summary>Offset for the visible portion of the character in pixels.</summary>
 		public int xOffset;
 		/// <summary>Offset for the visible portion of the character in pixels.</summary>
