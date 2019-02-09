@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Prerequisites/BsPrerequisitesUtil.h"
+#include "Math/BsVector2.h"
 
 namespace bs
 {
@@ -16,8 +17,12 @@ namespace bs
 	public:
 		Rect2() = default;
 
-		Rect2(float _x, float _y, float _width, float _height)
-			:x(_x), y(_y), width(_width), height(_height)
+		Rect2(float x, float y, float width, float height)
+			:x(x), y(y), width(width), height(height)
+		{ }
+
+		Rect2(const Vector2& topLeft, const Vector2& size)
+			:x(topLeft.x), y(topLeft.y), width(size.x), height(size.y)
 		{ }
 
 		float x = 0.0f;

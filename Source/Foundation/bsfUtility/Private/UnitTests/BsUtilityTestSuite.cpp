@@ -7,6 +7,7 @@
 #include "Utility/BsDynArray.h"
 #include "Math/BsComplex.h"
 #include "Utility/BsMinHeap.h"
+#include "Utility/BsQuadtree.h"
 
 namespace bs
 {
@@ -42,6 +43,39 @@ namespace bs
 	};
 
 	typedef Octree<UINT32, DebugOctreeOptions> DebugOctree;
+
+	struct DebugQuadtreeElem
+	{
+		Rect2 box;
+		mutable QuadtreeElementId quadtreeId;
+	};
+
+	struct DebugQuadtreeData
+	{
+		Vector<DebugQuadtreeElem> elements;
+	};
+
+	struct DebugQuadtreeOptions
+	{
+		enum { LoosePadding = 8 };
+		enum { MinElementsPerNode = 4 };
+		enum { MaxElementsPerNode = 8 };
+		enum { MaxDepth = 6 };
+
+		static simd::Rect2 getBounds(UINT32 elem, void* context)
+		{
+			DebugQuadtreeData* quadtreeData = (DebugQuadtreeData*)context;
+			return simd::Rect2(quadtreeData->elements[elem].box);
+		}
+
+		static void setElementId(UINT32 elem, const QuadtreeElementId& id, void* context)
+		{
+			DebugQuadtreeData* quadtreeData = (DebugQuadtreeData*)context;
+			quadtreeData->elements[elem].quadtreeId = id;
+		}
+	};
+
+	typedef Quadtree<UINT32, DebugQuadtreeOptions> DebugQuadtree;
 	void UtilityTestSuite::startUp()
 	{
 		SPtr<TestSuite> fileSystemTests = create<FileSystemTestSuite>();
@@ -60,6 +94,7 @@ namespace bs
 		BS_ADD_TEST(UtilityTestSuite::testDynArray)
 		BS_ADD_TEST(UtilityTestSuite::testComplex)
 		BS_ADD_TEST(UtilityTestSuite::testMinHeap)
+		BS_ADD_TEST(UtilityTestSuite::testQuadtree)
 	}
 
 	void UtilityTestSuite::testBitfield()
@@ -548,5 +583,94 @@ namespace bs
 
 		m.erase(elements, v);
 		BS_TEST_ASSERT(m.size() == 1);
+	}
+
+	void UtilityTestSuite::testQuadtree() 
+	{
+		DebugQuadtreeData quadtreeData;
+		DebugQuadtree quadtree(Vector2(0, 0), 800.0f, &quadtreeData);
+
+		struct SizeAndCount
+		{
+			float sizeMin;
+			float sizeMax;
+			UINT32 count;
+		};
+
+		SizeAndCount types[]
+		{
+			{ 0.02f, 0.2f, 2000 }, // Very small objects
+			{ 0.2f, 1.0f, 2000 }, // Small objects
+			{ 1.0f, 5.0f, 5000 }, // Medium sized objects
+			{ 5.0f, 30.0f, 4000 }, // Large objects
+			{ 30.0f, 100.0f, 2000 } // Very large objects
+		};
+
+		float placementExtents = 750.0f;
+		for (UINT32 i = 0; i < sizeof(types) / sizeof(types[0]); i++)
+		{
+			for (UINT32 j = 0; j < types[i].count; j++)
+			{
+				Vector2 position(
+					((rand() / (float)RAND_MAX) * 2.0f - 1.0f) * placementExtents,
+					((rand() / (float)RAND_MAX) * 2.0f - 1.0f) * placementExtents
+				);
+
+				Vector2 extents(
+					types[i].sizeMin + ((rand() / (float)RAND_MAX)) * (types[i].sizeMax - types[i].sizeMin) * 0.5f,
+					types[i].sizeMin + ((rand() / (float)RAND_MAX)) * (types[i].sizeMax - types[i].sizeMin) * 0.5f
+				);
+
+				DebugQuadtreeElem elem;
+				elem.box = Rect2(position - extents, extents);
+
+				UINT32 elemIdx = (UINT32)quadtreeData.elements.size();
+				quadtreeData.elements.push_back(elem);
+				quadtree.addElement(elemIdx);
+			}
+		}
+
+		DebugQuadtreeElem manualElems[3];
+		manualElems[0].box = Rect2(Vector2(100.0f, 100.0f), Vector2(110.0f, 115.0f));
+		manualElems[1].box = Rect2(Vector2(200.0f, 100.0f), Vector2(250.0f, 150.0f));
+		manualElems[2].box = Rect2(Vector2(90.0f, 90.0f), Vector2(105.0f, 105.0f));
+
+
+		for (UINT32 i = 0; i < 3; i++)
+		{
+			UINT32 elemIdx = (UINT32)quadtreeData.elements.size();
+			quadtreeData.elements.push_back(manualElems[i]);
+			quadtree.addElement(elemIdx);
+		}
+
+		Rect2 queryBounds = manualElems[0].box;
+		DebugQuadtree::BoxIntersectIterator interIter(quadtree, queryBounds);
+
+		Vector<UINT32> overlapElements;
+		while (interIter.moveNext())
+		{
+			UINT32 element = interIter.getElement();
+			overlapElements.push_back(element);
+
+			// Manually check for intersections
+			assert(quadtreeData.elements[element].box.overlaps(queryBounds));
+		}
+
+		// Ensure that all we have found all possible overlaps by manually testing all elements
+		UINT32 elemIdx = 0;
+		for (auto& entry : quadtreeData.elements)
+		{
+			if (entry.box.overlaps(queryBounds))
+			{
+				auto iterFind = std::find(overlapElements.begin(), overlapElements.end(), elemIdx);
+				assert(iterFind != overlapElements.end());
+			}
+
+			elemIdx++;
+		}
+
+		// Ensure nothing goes wrong during element removal
+		for (auto& entry : quadtreeData.elements)
+			quadtree.removeElement(entry.quadtreeId);
 	}
 }

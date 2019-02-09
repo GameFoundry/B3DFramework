@@ -243,7 +243,9 @@ table td
 
 		// Write header information
 		stream << "<p>bs::framework version: " << BS_VERSION_MAJOR << "." << BS_VERSION_MINOR <<"." << BS_VERSION_PATCH << "</p>\n";
-		stream << "<p>Started on: " << gTime().getAppStartUpDateString(false) << "</p>\n";
+
+		if(Time::isStarted())
+			stream << "<p>Started on: " << gTime().getAppStartUpDateString(false) << "</p>\n";
 
 		SystemInfo systemInfo = PlatformUtility::getSystemInfo();
 		stream << "<p>OS version: " << systemInfo.osName << " " << (systemInfo.osIs64Bit ? "64-bit" : "32-bit") << "</p>\n";

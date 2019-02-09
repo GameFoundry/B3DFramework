@@ -6,6 +6,7 @@
 #include "Math/BsVector4.h"
 #include "Math/BsAABox.h"
 #include "Math/BsSphere.h"
+#include "Math/BsRect2.h"
 
 #define SIMDPP_ARCH_X86_SSE4_1
 

@@ -20,5 +20,6 @@ namespace bs
 		void testDynArray();
 		void testComplex();
 		void testMinHeap();
+		void testQuadtree();
 	};
 }
