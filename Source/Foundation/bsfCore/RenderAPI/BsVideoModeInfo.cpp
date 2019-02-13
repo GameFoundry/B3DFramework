@@ -4,19 +4,10 @@
 
 namespace bs
 {
-	VideoMode::VideoMode(UINT32 width, UINT32 height, float refreshRate, UINT32 outputIdx)
-		:mWidth(width), mHeight(height), mRefreshRate(refreshRate), mOutputIdx(outputIdx), mIsCustom(true)
-	{
-
-	}
-
-	VideoMode::~VideoMode()
-	{ }
-
 	bool VideoMode::operator== (const VideoMode& other) const
 	{
-		return mWidth == other.mWidth && mHeight == other.mHeight && 
-			mOutputIdx == other.mOutputIdx && mRefreshRate == other.mRefreshRate;
+		return width == other.width && height == other.height && 
+			outputIdx == other.outputIdx && refreshRate == other.refreshRate;
 	}
 
 	VideoOutputInfo::~VideoOutputInfo()

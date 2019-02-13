@@ -687,8 +687,8 @@ namespace bs
 			Path outputPath = sOutputFolder + (fileName + ".asset");
 
 			auto textureIO = gImporter().createImportOptions<TextureImportOptions>(inputPath);
-			textureIO->setCPUCached(true);
-			textureIO->setGenerateMipmaps(false);
+			textureIO->cpuCached = true;
+			textureIO->generateMips = false;
 			HTexture splashTexture = gImporter().import<Texture>(inputPath, textureIO);
 
 			SPtr<PixelData> splashPixelData = splashTexture->getProperties().allocBuffer(0, 0);

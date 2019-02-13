@@ -20,6 +20,9 @@ namespace bs
 		/**	Called when the script system is being activated. */
 		virtual void initialize() = 0;
 
+		/** Called once per frame. */
+		virtual void update() { }
+
 		/** Called when the script libraries should be reloaded (for example when they are recompiled). */
 		virtual void reload() = 0;
 
@@ -36,6 +39,9 @@ namespace bs
 
 		/** Initializes the currently active script library loading the scripts contained within. */
 		void initialize();
+
+		/** Called once per frame. */
+		void update();
 
 		/**
 		 * Reloads any scripts in the currently active library. Should be called after some change to the scripts was made

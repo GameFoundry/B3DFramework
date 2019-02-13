@@ -18,6 +18,7 @@ namespace bs
     /// </summary>
     public static class Scene
     {
+#if IS_B3D
         /// <summary>
         /// Returns the name of the scene prefab. This is empty if scene hasn't been saved yet.
         /// </summary>
@@ -38,6 +39,7 @@ namespace bs
         private static UUID activeSceneUUID;
         private static bool isGenericPrefab = false;
         private static RRef<Prefab> activateOnLoadScene;
+#endif
 
         /// <summary>
         /// Returns the root scene object for the current scene.
@@ -64,6 +66,7 @@ namespace bs
             }
         }
 
+#if IS_B3D
         /// <summary>
         /// Clears all scene objects from the current scene.
         /// </summary>
@@ -188,6 +191,7 @@ namespace bs
         {
             Scene.isGenericPrefab = isGenericPrefab;
         }
+#endif
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetActiveScene(IntPtr prefab);

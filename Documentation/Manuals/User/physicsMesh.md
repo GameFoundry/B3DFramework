@@ -7,11 +7,11 @@ Physics meshes are represented using the @ref bs::PhysicsMesh "PhysicsMesh" clas
 ![Physics mesh](MeshCollider.png)  
 
 # Import {#physicsMesh_a}
-The import process is slightly different from other resources because physics meshes are imported from the same file types as normal meshes. We must first create **MeshImportOptions** object, and specify that we wish to import a physics mesh along with a normal mesh by calling @ref bs::MeshImportOptions::setCollisionMeshType "MeshImportOptions::setCollisionMeshType()".
+The import process is slightly different from other resources because physics meshes are imported from the same file types as normal meshes. We must first create **MeshImportOptions** object, and specify that we wish to import a physics mesh along with a normal mesh by setting @ref bs::MeshImportOptions::collisionMeshType "MeshImportOptions::collisionMeshType".
 
 ~~~~~~~~~~~~~{.cpp}
 auto importOptions = MeshImportOptions::create();
-importOptions->setCollisionMeshType(CollisionMeshType::Normal);
+importOptions->collisionMeshType = CollisionMeshType::Normal;
 ~~~~~~~~~~~~~
 
 Then in order to perform actual import we call @ref bs::Importer::importAll "Importer::importAll()", instead of **Importer::import<T>()** we have been calling so far. **Importer::importAll()** should be used when import operation can return more than one resource (since **Importer::import<T>()** will only return the default resource, i.e. a **Mesh**).
@@ -30,7 +30,7 @@ HPhysicsMesh physicsMesh = static_resource_cast<PhysicsMesh>(resources[1].value)
 Note that performing physics tests is expensive and you should always strive to minimize the amount of triangles in a physics mesh. Using a render mesh for physics is almost never a good idea. Instead strive to have a few dozen triangles in your physics mesh, with a few hundred for the most complex geometry. Whenever possible use the basic collider shapes like box/sphere instead of physics meshes.
 
 # Physics mesh types {#physicsMesh_c}
-During import when calling **MeshImportOptions::setCollisionMeshType()** we provided a @ref bs::CollisionMeshType "CollisionMeshType" enum to specify we want a mesh imported. It has two possible values:
+During import when setting **MeshImportOptions::collisionMeshType** we provided a @ref bs::CollisionMeshType "CollisionMeshType" enum to specify we want a mesh imported. It has two possible values:
  - **CollisionMeshType::Normal**
  - **CollisionMeshType::Convex**
  

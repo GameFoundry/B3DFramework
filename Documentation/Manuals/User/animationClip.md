@@ -19,11 +19,11 @@ Animation clip consists of a set of animation curves, each animating either a bo
 # Import {#animationClip_a}
 Animation clips are imported from the same source file that contains the mesh object. The import process is similar to how we imported physics meshes, using **Importer::importAll()** to retrieve the clips.
 
-To enable animation clip import you must set @ref bs::MeshImportOptions::setImportAnimation "MeshImportOptions::setImportAnimation()" to true, import the mesh and retrieve the clip from the resulting resource array. Note that a source file could contain multiple animation clips (depending on how it was created).
+To enable animation clip import you must set @ref bs::MeshImportOptions::importAnimation "MeshImportOptions::importAnimation" to true, import the mesh and retrieve the clip from the resulting resource array. Note that a source file could contain multiple animation clips (depending on how it was created).
 
 ~~~~~~~~~~~~~{.cpp}
 auto importOptions = MeshImportOptions::create();
-importOptions->setImportAnimation(true);
+importOptions->importAnimation = true;
 
 auto resources = gImporter().importAll("humanAnimated.fbx", importOptions);
 HAnimationClip animationClip = static_resource_cast<AnimationClip>(resources[1].value);
@@ -31,11 +31,11 @@ HAnimationClip animationClip = static_resource_cast<AnimationClip>(resources[1].
 
 We'll show how to use animation clips in the following chapter, while in this one we'll just focus on importing them.
 
-Aside from the animation clip you will also need to import additional data for the mesh itself. Depending on whether you're using skeletal or morph animation (or both), you need to enable @ref bs::MeshImportOptions::setImportSkin "MeshImportOptions::setImportSkin()" and/or @ref bs::MeshImportOptions::setImportBlendShapes "MeshImportOptions::setImportBlendShapes()". This will import required additional per-vertex information, skeleton & bone information, as well as morph shapes.
+Aside from the animation clip you will also need to import additional data for the mesh itself. Depending on whether you're using skeletal or morph animation (or both), you need to enable @ref bs::MeshImportOptions::importSkin "MeshImportOptions::importSkin" and/or @ref bs::MeshImportOptions::importBlendShapes "MeshImportOptions::importBlendShapes". This will import required additional per-vertex information, skeleton & bone information, as well as morph shapes.
 
 ~~~~~~~~~~~~~{.cpp}
-importOptions->setImportSkin(true); // For skeletal animation
-importOptions->setImportBlendShapes(true); // For morph shapes
+importOptions->importSkin = true; // For skeletal animation
+importOptions->importBlendShapes = true; // For morph shapes
 ~~~~~~~~~~~~~
 
 > These options add additional information to **Mesh**, accessible through @ref bs::Mesh::getSkeleton "Mesh::getSkeleton()" and @ref bs::Mesh::getMorphShapes "Mesh::getMorphShapes()". This information will automatically be used by the animation system (you don't need to do anything but enable these flags on import), but can be accessed by the user if required for some special purpose.
@@ -47,7 +47,7 @@ These aren't properties you need to access manually for normal animation playbac
 
 # Advanced {#animationClip_c}
 ## Splitting {#animationClip_c_a}
-Often the creator of the animation will place several animations into the same set of animation curves, one playing after another. When imported in bs::f this will result in a single continous animation clip. This is not useful and in such cases you can break up the animation into multiple clips by populating a set of @ref bs::AnimationSplitInfo "AnimationSplitInfo" structures, and providing them to @ref bs::MeshImportOptions::setAnimationClipSplits "MeshImportOptions::setAnimationClipSplits()".
+Often the creator of the animation will place several animations into the same set of animation curves, one playing after another. When imported in bs::f this will result in a single continous animation clip. This is not useful and in such cases you can break up the animation into multiple clips by populating a set of @ref bs::AnimationSplitInfo "AnimationSplitInfo" structures, and providing them to @ref bs::MeshImportOptions::animationSplits "MeshImportOptions::animationSplits".
 
 Each of **AnimationSplitInfo** entries requires the starting and ending frame of the animation, as well as a name to make it easier to identify. Starting/ending frames are something you must receive from the animation creator, or guess from animation playback.
 
@@ -65,7 +65,7 @@ splitInfos[2].name = "Wave";
 splitInfos[2].startFrame = 240;
 splitInfos[2].endFrame = 300;
 
-importOptions->setAnimationClipSplits(splitInfos);
+importOptions->animationSplits = splitInfos;
 auto resources = gImporter().importAll("humanAnimated.fbx", importOptions);
 
 HAnimationClip walkClip, runClip, waveClip;
@@ -83,10 +83,10 @@ for(auto& entry : resource)
 ## Keyframe reduction {#animationClip_c_b}
 Tools that create animation will often output a large set of animation keyframes, usually at a fixed rate (e.g. 60 per second). In most cases this amount of keyframes is not necessary as many of them are static and change very slowly. Additionally bs::f uses keyframe tangents to better approximate the animation curve, ensuring less keyframes need to be used. 
 
-By enabling @ref bs::MeshImportOptions::setKeyFrameReduction "MeshImportOptions::setKeyFrameReduction()" you can ensure that bs::f eliminates any keyframes it deems unnecessary. This can greately reduce the memory usage of animation clips, but might yield animation clips that don't look exactly as imagined by the creator. In most cases you should enable this unless you notice problems.
+By enabling @ref bs::MeshImportOptions::reduceKeyFrames "MeshImportOptions::reduceKeyFrames" you can ensure that bsf eliminates any keyframes it deems unnecessary. This can greately reduce the memory usage of animation clips, but might yield animation clips that don't look exactly as imagined by the creator. In most cases you should enable this unless you notice problems.
 
 ~~~~~~~~~~~~~{.cpp}
-importOptions->setKeyFrameReduction(true);
+importOptions->reduceKeyFrames = true;
 ~~~~~~~~~~~~~
 
 ## Animation events {#animationClip_c_c}
@@ -111,13 +111,13 @@ Root motion represents an animation curve used for movement of the root bone in 
 
 By enabling root motion you ensure that the animation clip's root motion curve is removed, and you instead get access to the relevant curve directly. You can then use this curve to move the entity through the world. This results in motion that is more realistic and more in line with the animation, than if you just moved the entity in some linear fashion (e.g. a walking character would appear to be gliding, rather than actually walking, since humans and animals don't move at a constant pace).
 
-Enable root motion import by calling @ref bs::MeshImportOptions::setImportRootMotion "MeshImportOptions::setImportRootMotion()". Then retrieve the root motion curve through @ref bs::AnimationClip::getRootMotion "AnimationClip::getRootMotion()". This will return a @ref bs::RootMotion "RootMotion" object, which contains two animation curves, one for rotation, other for translation.
+Enable root motion import by setting @ref bs::MeshImportOptions::importRootMotion "MeshImportOptions::importRootMotion". Then retrieve the root motion curve through @ref bs::AnimationClip::getRootMotion "AnimationClip::getRootMotion()". This will return a @ref bs::RootMotion "RootMotion" object, which contains two animation curves, one for rotation, other for translation.
 
 Animation curves are represented through the @ref bs::TAnimationCurve<T> "TAnimationCurve<T>" object. You can evaluate the curve by calling @ref bs::TAnimationCurve<T>::evaluate "TAnimationCurve<T>::evaluate()" with a specific time value.
 
 ~~~~~~~~~~~~~{.cpp}
 // Import animation with root motion
-importOptions->setImportRootMotion(true);
+importOptions->importRootMotion = true;
 
 auto resources = gImporter().importAll("humanAnimated.fbx", importOptions);
 HAnimationClip animationClip = static_resource_cast<AnimationClip>(resources[1].value);

@@ -87,8 +87,9 @@ namespace bs
 		ScriptArray array__output = ScriptArray::create<ScriptTAnimationCurvefloat>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
+			SPtr<TAnimationCurve<float>> arrayElemPtr__output = vec__output[i];
 			MonoObject* arrayElem__output;
-			arrayElem__output = ScriptTAnimationCurvefloat::create(vec__output[i]);
+			arrayElem__output = ScriptTAnimationCurvefloat::create(arrayElemPtr__output);
 			array__output.set(i, arrayElem__output);
 		}
 		__output = array__output.getInternal();
@@ -109,7 +110,10 @@ namespace bs
 				ScriptTAnimationCurvefloat* scriptcurveComponents;
 				scriptcurveComponents = ScriptTAnimationCurvefloat::toNative(arraycurveComponents.get<MonoObject*>(i));
 				if(scriptcurveComponents != nullptr)
-					veccurveComponents[i] = scriptcurveComponents->getInternal();
+				{
+					SPtr<TAnimationCurve<float>> arrayElemPtrcurveComponents = scriptcurveComponents->getInternal();
+					veccurveComponents[i] = arrayElemPtrcurveComponents;
+				}
 			}
 		}
 		tmp__output = AnimationUtility::combineCurve3D(veccurveComponents);
@@ -135,8 +139,9 @@ namespace bs
 		ScriptArray array__output = ScriptArray::create<ScriptTAnimationCurvefloat>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
+			SPtr<TAnimationCurve<float>> arrayElemPtr__output = vec__output[i];
 			MonoObject* arrayElem__output;
-			arrayElem__output = ScriptTAnimationCurvefloat::create(vec__output[i]);
+			arrayElem__output = ScriptTAnimationCurvefloat::create(arrayElemPtr__output);
 			array__output.set(i, arrayElem__output);
 		}
 		__output = array__output.getInternal();
@@ -157,7 +162,10 @@ namespace bs
 				ScriptTAnimationCurvefloat* scriptcurveComponents;
 				scriptcurveComponents = ScriptTAnimationCurvefloat::toNative(arraycurveComponents.get<MonoObject*>(i));
 				if(scriptcurveComponents != nullptr)
-					veccurveComponents[i] = scriptcurveComponents->getInternal();
+				{
+					SPtr<TAnimationCurve<float>> arrayElemPtrcurveComponents = scriptcurveComponents->getInternal();
+					veccurveComponents[i] = arrayElemPtrcurveComponents;
+				}
 			}
 		}
 		tmp__output = AnimationUtility::combineCurve2D(veccurveComponents);
@@ -180,7 +188,10 @@ namespace bs
 				ScriptTAnimationCurvefloat* scriptcurves;
 				scriptcurves = ScriptTAnimationCurvefloat::toNative(arraycurves.get<MonoObject*>(i));
 				if(scriptcurves != nullptr)
-					veccurves[i] = scriptcurves->getInternal();
+				{
+					SPtr<TAnimationCurve<float>> arrayElemPtrcurves = scriptcurves->getInternal();
+					veccurves[i] = arrayElemPtrcurves;
+				}
 			}
 
 		}

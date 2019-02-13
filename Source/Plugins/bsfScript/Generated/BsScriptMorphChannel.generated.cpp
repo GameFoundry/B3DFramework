@@ -53,8 +53,9 @@ namespace bs
 		ScriptArray array__output = ScriptArray::create<ScriptMorphShape>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
+			SPtr<MorphShape> arrayElemPtr__output = vec__output[i];
 			MonoObject* arrayElem__output;
-			arrayElem__output = ScriptMorphShape::create(vec__output[i]);
+			arrayElem__output = ScriptMorphShape::create(arrayElemPtr__output);
 			array__output.set(i, arrayElem__output);
 		}
 		__output = array__output.getInternal();

@@ -10,9 +10,9 @@ Skybox is represented by the @ref bs::CSkybox "Skybox" component, which requires
 ~~~~~~~~~~~~~{.cpp}
 // Import a sky cubemap from a cylindrical (panoramic) image
 SPtr<ImportOptions> tio = TextureImportOptions::create();
-tio->setIsCubemap(true);
-tio->setCubemapSourceType(CubemapSourceType::Cylindrical);
-tio->setFormat(PF_FLOAT_R11G11B10); // Or the 16-bit floating point format
+tio->cubemap = true;
+tio->cubemapSourceType = CubemapSourceType::Cylindrical;
+tio->format = PF_FLOAT_R11G11B10; // Or the 16-bit floating point format
 
 HTexture skyTexture = gImporter().import<Texture>("MySkybox.hdr", tio);
 
@@ -23,7 +23,7 @@ HSkybox skybox = skyboxSO->addComponent<CSkybox>();
 skybox->setTexture(skyTexture);
 ~~~~~~~~~~~~~
 
-Note that importing a cubemap texture requires special texture import options @ref bs::TextureImportOptions::setIsCubemap "TextureImportOptions::setIsCubemap()" and @ref bs::TextureImportOptions::setCubemapSourceType "TextureImportOptions::setCubemapSourceType()". The second property expects you to provide the a @ref bs::CubemapSourceType "CubemapSourceType" that defines in what format is the texture stored in. The formats are:
+Note that importing a cubemap texture requires special texture import options @ref bs::TextureImportOptions::cubemap "TextureImportOptions::cubemap" and @ref bs::TextureImportOptions::cubemapSourceType "TextureImportOptions::cubemapSourceType". The second property expects you to provide the a @ref bs::CubemapSourceType "CubemapSourceType" that defines in what format is the texture stored in. The formats are:
  - **CubemapSourceType::Cylindrical** - The source is a typical panoramic image. This is the most common format.
  - **CubemapSourceType::Spherical** - The source is an image captured off a surface of a sphere. This is an older format that is less commonly used today.
  - **CubemapSourceType::Single** - The source is a normal 2D texture. All cubemap faces will use the same image.

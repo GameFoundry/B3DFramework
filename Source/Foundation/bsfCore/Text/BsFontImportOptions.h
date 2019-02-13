@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/**	Determines how is a font rendered into the bitmap texture. */
-	enum class FontRenderMode
+	enum class BS_SCRIPT_EXPORT(m:Text,api:bsf) FontRenderMode
 	{
 		Smooth, /*< Render antialiased fonts without hinting (slightly more blurry). */
 		Raster, /*< Render non-antialiased fonts without hinting (slightly more blurry). */
@@ -21,61 +21,51 @@ namespace bs
 		HintedRaster /*< Render non-antialiased fonts with hinting. */
 	};
 
+	/** Represents a range of character code. */
+	struct BS_SCRIPT_EXPORT(m:Text,pl:true,api:bsf) CharRange
+	{
+		CharRange() = default;
+		CharRange(UINT32 start, UINT32 end)
+			: start(start), end(end)
+		{ }
+
+		UINT32 start = 0;
+		UINT32 end = 0;
+	};
+
 	/**	Import options that allow you to control how is a font imported. */
-	class BS_CORE_EXPORT FontImportOptions : public ImportOptions
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Text,api:bsf) FontImportOptions : public ImportOptions
 	{
 	public:
-		FontImportOptions();
+		FontImportOptions() = default;
 
-		/**	Sets font sizes that are to be imported. Sizes are in points. */
-		void setFontSizes(const Vector<UINT32>& fontSizes) { mFontSizes = fontSizes; }
+		/**	Determines font sizes that are to be imported. Sizes are in points. */
+		BS_SCRIPT_EXPORT()
+		Vector<UINT32> fontSizes = { 10 };
 
-		/**	Adds an index range of characters to import.  */
-		void addCharIndexRange(UINT32 from, UINT32 to);
+		/**	Determines character index ranges to import. Ranges are defined as unicode numbers. */
+		BS_SCRIPT_EXPORT()
+		Vector<CharRange> charIndexRanges = { CharRange(33, 166) }; // Most used ASCII characters
 
-		/**	Clears all character indexes, so no character are imported. */
-		void clearCharIndexRanges();
+		/**	Determines dots per inch scale that will be used when rendering the characters. */
+		BS_SCRIPT_EXPORT()
+		UINT32 dpi = 96;
 
-		/**	Sets dots per inch resolution to use when rendering the characters into the texture. */
-		void setDPI(UINT32 dpi) { mDPI = dpi; }
+		/**	Determines the render mode used for rendering the characters into a bitmap. */
+		BS_SCRIPT_EXPORT()
+		FontRenderMode renderMode = FontRenderMode::HintedSmooth;
 
-		/**	Set the render mode used for rendering the characters into a bitmap. */
-		void setRenderMode(FontRenderMode renderMode) { mRenderMode = renderMode; }
+		/**	Determines whether the bold font style should be used when rendering. */
+		BS_SCRIPT_EXPORT()
+		bool bold = false;
 
-		/**	Sets whether the bold font style should be used when rendering. */
-		void setBold(bool bold) { mBold = bold; }
-
-		/**	Sets whether the italic font style should be used when rendering. */
-		void setItalic(bool italic) { mItalic = italic; }
-
-		/**	Gets the sizes that are to be imported. Ranges are defined as unicode numbers. */
-		Vector<UINT32> getFontSizes() const { return mFontSizes; }
-
-		/**	Gets character index ranges to import. Ranges are defined as unicode numbers. */
-		Vector<std::pair<UINT32, UINT32>> getCharIndexRanges() const { return mCharIndexRanges; }
-
-		/**	Returns dots per inch scale that will be used when rendering the characters. */
-		UINT32 getDPI() const { return mDPI; }
-
-		/**	Get the render mode used for rendering the characters into a bitmap. */
-		FontRenderMode getRenderMode() const { return mRenderMode; }
-
-		/**	Sets whether the bold font style should be used when rendering. */
-		bool getBold() const { return mBold; }
-
-		/**	Sets whether the italic font style should be used when rendering. */
-		bool getItalic() const { return mItalic; }
+		/**	Determines whether the italic font style should be used when rendering. */
+		BS_SCRIPT_EXPORT()
+		bool italic = false;
 
 		/** Creates a new import options object that allows you to customize how are fonts imported. */
+		BS_SCRIPT_EXPORT(ec:T)
 		static SPtr<FontImportOptions> create();
-
-	private:
-		Vector<UINT32> mFontSizes;
-		Vector<std::pair<UINT32, UINT32>> mCharIndexRanges;
-		UINT32 mDPI;
-		FontRenderMode mRenderMode;
-		bool mBold;
-		bool mItalic;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

@@ -25,12 +25,6 @@ namespace bs
 		return ImportedAnimationEvents::getRTTIStatic();
 	}
 
-	MeshImportOptions::MeshImportOptions()
-		: mCPUCached(false), mImportNormals(true), mImportTangents(true), mImportBlendShapes(false), mImportSkin(false)
-		, mImportAnimation(false), mReduceKeyFrames(true), mImportRootMotion(false), mImportScale(1.0f)
-		, mCollisionMeshType(CollisionMeshType::None)
-	{ }
-
 	SPtr<MeshImportOptions> MeshImportOptions::create()
 	{
 		return bs_shared_ptr_new<MeshImportOptions>();

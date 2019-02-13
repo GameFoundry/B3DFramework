@@ -105,22 +105,22 @@ namespace bs::ct
 	MacOSVideoMode::MacOSVideoMode(CGDisplayModeRef mode, CVDisplayLinkRef linkRef, UINT32 outputIdx)
 			:VideoMode(0, 0, 0.0f, outputIdx), mModeRef(mode)
 	{
-		mWidth = (UINT32)CGDisplayModeGetPixelWidth(mModeRef);
-		mHeight = (UINT32)CGDisplayModeGetPixelHeight(mModeRef);
+		width = (UINT32)CGDisplayModeGetPixelWidth(mModeRef);
+		height = (UINT32)CGDisplayModeGetPixelHeight(mModeRef);
 
-		mRefreshRate = (float)CGDisplayModeGetRefreshRate(mModeRef);
-		if(mRefreshRate == 0.0f && linkRef != nullptr)
+		refreshRate = (float)CGDisplayModeGetRefreshRate(mModeRef);
+		if(refreshRate == 0.0f && linkRef != nullptr)
 		{
 			CVTime time = CVDisplayLinkGetNominalOutputVideoRefreshPeriod(linkRef);
 			if((time.flags & kCVTimeIsIndefinite) == 0 && time.timeValue != 0)
-				mRefreshRate = time.timeScale / (float)time.timeValue;
+				refreshRate = time.timeScale / (float)time.timeValue;
 		}
-		mIsCustom = false;
+		isCustom = false;
 	}
 
 	MacOSVideoMode::~MacOSVideoMode()
 	{
-		if(!mIsCustom && mModeRef)
+		if(!isCustom && mModeRef)
 			CGDisplayModeRelease(mModeRef);
 	}
 }

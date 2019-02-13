@@ -8,6 +8,7 @@
 
 namespace bs
 {
+#if BS_IS_BANSHEE3D
 	class ScriptRRefBase;
 
 	/** @addtogroup ScriptInteropEngine
@@ -37,4 +38,5 @@ namespace bs
 	};
 
 	/** @} */
+#endif
 }

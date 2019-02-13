@@ -10,8 +10,6 @@
 #include "BsScriptCBoxCollider.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCAudioListener.h"
 #include "BsScriptCAudioListener.generated.h"
-#include "../../../Foundation/bsfCore/Components/BsCCharacterController.h"
-#include "BsScriptCCharacterController.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCAnimation.h"
 #include "BsScriptCAnimation.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCAudioSource.h"
@@ -20,6 +18,8 @@
 #include "BsScriptCBone.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCCollider.h"
 #include "BsScriptCCollider.generated.h"
+#include "../../../Foundation/bsfCore/Components/BsCCharacterController.h"
+#include "BsScriptCCharacterController.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCCapsuleCollider.h"
 #include "BsScriptCCapsuleCollider.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCJoint.h"
@@ -65,11 +65,11 @@ namespace bs
 		ADD_ENTRY(CCamera, ScriptCCamera)
 		ADD_ENTRY(CBoxCollider, ScriptCBoxCollider)
 		ADD_ENTRY(CAudioListener, ScriptCAudioListener)
-		ADD_ENTRY(CCharacterController, ScriptCCharacterController)
 		ADD_ENTRY(CAnimation, ScriptCAnimation)
 		ADD_ENTRY(CAudioSource, ScriptCAudioSource)
 		ADD_ENTRY(CBone, ScriptCBone)
 		ADD_ENTRY(CCollider, ScriptCCollider)
+		ADD_ENTRY(CCharacterController, ScriptCCharacterController)
 		ADD_ENTRY(CCapsuleCollider, ScriptCCapsuleCollider)
 		ADD_ENTRY(CJoint, ScriptCJoint)
 		ADD_ENTRY(CD6Joint, ScriptCD6Joint)

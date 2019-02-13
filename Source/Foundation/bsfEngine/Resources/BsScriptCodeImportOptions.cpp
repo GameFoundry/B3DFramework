@@ -5,12 +5,6 @@
 
 namespace bs
 {
-	ScriptCodeImportOptions::ScriptCodeImportOptions()
-		:mEditorScript(false)
-	{
-
-	}
-
 	SPtr<ScriptCodeImportOptions> ScriptCodeImportOptions::create()
 	{
 		return bs_shared_ptr_new<ScriptCodeImportOptions>();

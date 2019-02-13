@@ -17,13 +17,13 @@ namespace bs
 	{
 	private:
 		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(mFormat, 0)
-			BS_RTTI_MEMBER_PLAIN(mGenerateMips, 1)
-			BS_RTTI_MEMBER_PLAIN(mMaxMip, 2)
-			BS_RTTI_MEMBER_PLAIN(mCPUCached, 3)
-			BS_RTTI_MEMBER_PLAIN(mSRGB, 4)
-			BS_RTTI_MEMBER_PLAIN(mCubemap, 5)
-			BS_RTTI_MEMBER_PLAIN(mCubemapSourceType, 6)
+			BS_RTTI_MEMBER_PLAIN(format, 0)
+			BS_RTTI_MEMBER_PLAIN(generateMips, 1)
+			BS_RTTI_MEMBER_PLAIN(maxMip, 2)
+			BS_RTTI_MEMBER_PLAIN(cpuCached, 3)
+			BS_RTTI_MEMBER_PLAIN(sRGB, 4)
+			BS_RTTI_MEMBER_PLAIN(cubemap, 5)
+			BS_RTTI_MEMBER_PLAIN(cubemapSourceType, 6)
 		BS_END_RTTI_MEMBERS
 
 	public:

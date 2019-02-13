@@ -92,7 +92,10 @@ namespace bs
 				ScriptSceneObject* scriptobjects;
 				scriptobjects = ScriptSceneObject::toNative(arrayobjects.get<MonoObject*>(i));
 				if(scriptobjects != nullptr)
-					vecobjects[i] = scriptobjects->getHandle();
+				{
+					GameObjectHandle<SceneObject> arrayElemPtrobjects = scriptobjects->getHandle();
+					vecobjects[i] = arrayElemPtrobjects;
+				}
 			}
 		}
 		thisPtr->getInternal()->setPlaneObjects(vecobjects);

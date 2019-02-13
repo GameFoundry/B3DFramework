@@ -39,7 +39,7 @@ HAudioClip clip = gImporter().import<AudioClip>("myAudioClip.ogg", importOptions
 A variety of properties can be customized on import, the most important of which being audio format, compression/streaming mode, bit depth and 2D/3D toggle.
 
 ## Audio format {#importingAudio_a_a}
-Audio format determines in what format will audio data be stored in, once imported. It is controlled by @ref bs::AudioClipImportOptions::setFormat "AudioClipImportOptions::setFormat()" which accepts @ref bs::AudioFormat "AudioFormat" enumeration as a parameter.
+Audio format determines in what format will audio data be stored in, once imported. It is controlled by @ref bs::AudioClipImportOptions::format "AudioClipImportOptions::format" which accepts @ref bs::AudioFormat "AudioFormat" enumeration.
 
 There are only two formats supported:
  - PCM - This is raw uncompressed audio data stored in pulse-code modulation format
@@ -50,11 +50,11 @@ In most cases you want to use the Vorbis compressed format, in order to save on 
  - CPU overhead of decompression is too high (see streaming/decompression section below)
  
 ~~~~~~~~~~~~~{.cpp}
-importOptions->setFormat(AudioFormat::Vorbis);
+importOptions->format = AudioFormat::Vorbis;
 ~~~~~~~~~~~~~
 
 ## Streaming/decompression {#importingAudio_a_b}
-When an audio clip is loaded for playback, you can choose how is its data accessed, in order to tweak required memory and/or CPU usage by setting the read mode though @ref bs::AudioClipImportOptions::setReadMode "AudioClipImportOptions::setReadMode()".
+When an audio clip is loaded for playback, you can choose how is its data accessed, in order to tweak required memory and/or CPU usage by setting the read mode though @ref bs::AudioClipImportOptions::readMode "AudioClipImportOptions::readMode".
 
 Available read modes are part of the @ref bs::AudioReadMode "AudioReadMode" enumeration. They are:
  - **LoadDecompressed** - When an audio clip is first loaded it will immediately be decompressed in entirety, and playback will then proceed by using the uncompressed version. This uses more memory as the uncompressed clip is present in its entirety in memory, but has very small CPU overhead during playback due to it not requiring decompression. This option is not relevant for clips in PCM format, as they are already decompressed.
@@ -64,23 +64,23 @@ Available read modes are part of the @ref bs::AudioReadMode "AudioReadMode" enum
 In most cases you will want to use **LoadCompressed** for smaller audio clips (like audio cues), and **Streaming** for longer clips (like music).
 
 ~~~~~~~~~~~~~{.cpp}
-importOptions->setReadMode(AudioReadMode::LoadCompressed);
+importOptions->readMode = AudioReadMode::LoadCompressed;
 ~~~~~~~~~~~~~
 
 ## Bit depth {#importingAudio_a_c}
-@ref bs::AudioClipImportOptions::setBitDepth "AudioClipImportOptions::setBitDepth()" controls how many bits will a single audio sample be stored in. Smaller values yield smaller memory footprint, but lesser quality, and the other way around.
+@ref bs::AudioClipImportOptions::bitDepth "AudioClipImportOptions::bitDepth" controls how many bits will a single audio sample be stored in. Smaller values yield smaller memory footprint, but lesser quality, and the other way around.
 
 In general value of 16 is enough (the default). Other accepted values are 8, 24 and 32.
 
 ~~~~~~~~~~~~~{.cpp}
-importOptions->setBitDepth(24);
+importOptions->bitDepth = 24;
 ~~~~~~~~~~~~~
 
 ## 2D/3D {#importingAudio_a_d}
-Audio files can be played back in 2D or 3D mode. 2D audio is the familiar audio playback, like music. 3D audio will control playback volume, pitch and other properties based on the position and velocity of the listener compared to the audio source. This can be controlled by setting the @ref bs::AudioClipImportOptions::setIs3D "AudioClipImportOptions::setIs3D()". Note this is on by default.
+Audio files can be played back in 2D or 3D mode. 2D audio is the familiar audio playback, like music. 3D audio will control playback volume, pitch and other properties based on the position and velocity of the listener compared to the audio source. This can be controlled by setting the @ref bs::AudioClipImportOptions::is3D "AudioClipImportOptions::is3D". Note this is on by default.
 
 In general you want to use 2D audio for music or narration, and 3D audio for audio cues, in-game character voices and similar.
 
 ~~~~~~~~~~~~~{.cpp}
-importOptions->setIs3D(false);
+importOptions->is3D = false;
 ~~~~~~~~~~~~~

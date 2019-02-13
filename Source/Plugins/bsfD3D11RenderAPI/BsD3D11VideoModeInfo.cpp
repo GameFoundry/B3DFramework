@@ -53,7 +53,7 @@ namespace bs { namespace ct
 			{
 				D3D11VideoMode* d3d11videoMode = static_cast<D3D11VideoMode*>(videoMode);
 
-				if (d3d11videoMode->mWidth == displayMode.Width && d3d11videoMode->mHeight == displayMode.Height &&
+				if (d3d11videoMode->width == displayMode.Width && d3d11videoMode->height == displayMode.Height &&
 					d3d11videoMode->mRefreshRateNumerator == displayMode.RefreshRate.Numerator &&
 					d3d11videoMode->mRefreshRateDenominator == displayMode.RefreshRate.Denominator)
 				{

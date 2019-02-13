@@ -146,10 +146,16 @@ namespace bs
 		BS_MONO_EXPORT WString ScriptArray_get(MonoArray* array, UINT32 idx);
 
 		template<>
+		BS_MONO_EXPORT Path ScriptArray_get(MonoArray* array, UINT32 idx);
+
+		template<>
 		BS_MONO_EXPORT void ScriptArray_set<String>(MonoArray* array, UINT32 idx, const String& value);
 
 		template<>
 		BS_MONO_EXPORT void ScriptArray_set<WString>(MonoArray* array, UINT32 idx, const WString& value);
+
+		template<>
+		BS_MONO_EXPORT void ScriptArray_set<Path>(MonoArray* array, UINT32 idx, const Path& value);
 
 		template<>
 		BS_MONO_EXPORT void ScriptArray_set<std::nullptr_t>(MonoArray* array, UINT32 idx, const std::nullptr_t& value);
@@ -222,6 +228,12 @@ namespace bs
 
 		template<>
 		inline ScriptArray ScriptArray_create<String>(UINT32 size)
+		{
+			return ScriptArray(MonoUtil::getStringClass(), size);
+		}
+
+		template<>
+		inline ScriptArray ScriptArray_create<Path>(UINT32 size)
 		{
 			return ScriptArray(MonoUtil::getStringClass(), size);
 		}

@@ -70,8 +70,8 @@ namespace bs { namespace ct
 			{
 				Win32VideoMode* win32VideoMode = static_cast<Win32VideoMode*>(videoMode);
 
-				UINT32 intRefresh = Math::roundToInt(win32VideoMode->mRefreshRate);
-				if (win32VideoMode->mWidth == devMode.dmPelsWidth && win32VideoMode->mHeight == devMode.dmPelsHeight
+				UINT32 intRefresh = Math::roundToInt(win32VideoMode->refreshRate);
+				if (win32VideoMode->width == devMode.dmPelsWidth && win32VideoMode->height == devMode.dmPelsHeight
 					&& intRefresh == devMode.dmDisplayFrequency)
 				{
 					foundVideoMode = true;
@@ -83,7 +83,7 @@ namespace bs { namespace ct
 			{
 				Win32VideoMode* videoMode = bs_new<Win32VideoMode>(devMode.dmPelsWidth, devMode.dmPelsHeight,
 					(float)devMode.dmDisplayFrequency, outputIdx);
-				videoMode->mIsCustom = false;
+				videoMode->isCustom = false;
 
 				mVideoModes.push_back(videoMode);
 			}
@@ -94,7 +94,7 @@ namespace bs { namespace ct
 
 		Win32VideoMode* desktopVideoMode = bs_new<Win32VideoMode>(devMode.dmPelsWidth, devMode.dmPelsHeight,
 			(float)devMode.dmDisplayFrequency, outputIdx);
-		desktopVideoMode->mIsCustom = false;
+		desktopVideoMode->isCustom = false;
 
 		mDesktopVideoMode = desktopVideoMode;
 	}

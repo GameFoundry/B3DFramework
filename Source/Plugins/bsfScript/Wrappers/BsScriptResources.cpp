@@ -12,6 +12,7 @@
 
 namespace bs
 {
+#if BS_IS_BANSHEE3D
 	ScriptResources::ScriptResources(MonoObject* instance)
 		:ScriptObject(instance)
 	{ }
@@ -107,4 +108,5 @@ namespace bs
 	{
 		gResources().unloadAllUnused();
 	}
+#endif
 }

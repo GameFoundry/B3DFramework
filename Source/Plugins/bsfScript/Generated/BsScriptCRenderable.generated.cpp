@@ -108,7 +108,10 @@ namespace bs
 				ScriptRRefBase* scriptmaterials;
 				scriptmaterials = ScriptRRefBase::toNative(arraymaterials.get<MonoObject*>(i));
 				if(scriptmaterials != nullptr)
-					vecmaterials[i] = static_resource_cast<Material>(scriptmaterials->getHandle());
+				{
+					ResourceHandle<Material> arrayElemPtrmaterials = static_resource_cast<Material>(scriptmaterials->getHandle());
+					vecmaterials[i] = arrayElemPtrmaterials;
+				}
 			}
 		}
 		thisPtr->getHandle()->setMaterials(vecmaterials);

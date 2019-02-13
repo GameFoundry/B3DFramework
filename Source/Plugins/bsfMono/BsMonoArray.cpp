@@ -23,6 +23,12 @@ namespace bs
 		}
 
 		template<>
+		Path ScriptArray_get<Path>(MonoArray* array, UINT32 idx)
+		{
+			return MonoUtil::monoToString(mono_array_get(array, MonoString*, idx));
+		}
+
+		template<>
 		void ScriptArray_set<String>(MonoArray* array, UINT32 idx, const String& value)
 		{
 			MonoString* monoString = MonoUtil::stringToMono(value);
@@ -33,6 +39,13 @@ namespace bs
 		void ScriptArray_set<WString>(MonoArray* array, UINT32 idx, const WString& value)
 		{
 			MonoString* monoString = MonoUtil::wstringToMono(value);
+			mono_array_setref(array, idx, monoString);
+		}
+
+		template<>
+		void ScriptArray_set<Path>(MonoArray* array, UINT32 idx, const Path& value)
+		{
+			MonoString* monoString = MonoUtil::stringToMono(value.toString());
 			mono_array_setref(array, idx, monoString);
 		}
 

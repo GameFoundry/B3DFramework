@@ -24,35 +24,35 @@ HFont font = gImporter().import<Font>("lato.ttf", importOptions);
 A variety of properties can be customized on import, the most important of which being font size, font style, DPI and a range of characters to import.
 
 ## Font size {#importingFonts_a_a}
-Call @ref bs::FontImportOptions::setFontSizes() "FontImportOptions::setFontSizes()" to provide a list of font sizes (in point units) to import. Usually whenever you are using a font, you will be also asked for a font size. If a font is imported without the requested size, the nearest size will be used instead.
+Set @ref bs::FontImportOptions::fontSizes "FontImportOptions::fontSizes" with a list of font sizes (in point units) to import. Usually whenever you are using a font, you will be also asked for a font size. If a font is imported without the requested size, the nearest size will be used instead.
 
 ~~~~~~~~~~~~~{.cpp}
 // Import font of size 11, 12 and 16
-importOptions->setFontSizes({ 11, 12, 16 });
+importOptions->fontSizes = { 11, 12, 16 };
 ~~~~~~~~~~~~~
 
 ## Font style {#importingFonts_a_b}
 When it comes to font style, you can control three options: bold, italic and rendering mode.
 
 ### Bold {#importingFonts_a_b_a}
-When bold font is enabled, the font characters will be rendered thicker than normal. Call @ref bs::FontImportOptions::setBold "FontImportOptions::setBold()" to enable/disable this option.
+When bold font is enabled, the font characters will be rendered thicker than normal. Set @ref bs::FontImportOptions::bold "FontImportOptions::bold" to enable/disable this option.
 
 ~~~~~~~~~~~~~{.cpp}
-importOptions->setBold(true);
+importOptions->bold = true;
 ~~~~~~~~~~~~~
 
 ### Italic {#importingFonts_a_b_b}
-When italic font is enabled, the font characters will be rendered slightly skewed. Call @ref bs::FontImportOptions::setItalic "FontImportOptions::setItalic()" to enable/disable this option.
+When italic font is enabled, the font characters will be rendered slightly skewed. Set @ref bs::FontImportOptions::italic "FontImportOptions::italic" to enable/disable this option.
 
 ~~~~~~~~~~~~~{.cpp}
-importOptions->setItalic(true);
+importOptions->italic = true;
 ~~~~~~~~~~~~~
 
 ### Render mode {#importingFonts_a_b_c}
-Allows you to control should smoothing be applied to rendered fonts, and what kind. See the @ref bs::FontRenderMode "FontRenderMode" enumeration for more information. To set render mode call @ref bs::FontImportOptions::setRenderMode "FontImportOptions::setRenderMode()".
+Allows you to control should smoothing be applied to rendered fonts, and what kind. See the @ref bs::FontRenderMode "FontRenderMode" enumeration for more information. Set the render mode through @ref bs::FontImportOptions::renderMode "FontImportOptions::renderMode".
 
 ~~~~~~~~~~~~~{.cpp}
-importOptions->setRenderMode(FontRenderMode::HintedSmooth);
+importOptions->renderMode = FontRenderMode::HintedSmooth;
 ~~~~~~~~~~~~~
 
 ## DPI {#importingFonts_a_c}
@@ -69,11 +69,11 @@ importOptions->setDPI(96);
 ~~~~~~~~~~~~~
 
 ## Character range {#importingFonts_a_d}
-When importing a font you must specify a set of characters to import. By default all english letters and other common characters are imported, but if you also require other character sets (e.g. Cyrillic, Japanese, Korean) you must specify them by calling @ref bs::FontImportOptions::addCharIndexRange "FontImportOptions::addCharIndexRange()".
+When importing a font you must specify a set of characters to import. By default all english letters and other common characters are imported, but if you also require other character sets (e.g. Cyrillic, Japanese, Korean) you must specify them by setting @ref bs::FontImportOptions::charIndexRanges "FontImportOptions::charIndexRanges".
 
 The provided range uses Unicode character codes. You can find indices for various sets at the official [Unicode page](http://www.unicode.org/charts/).
 
 ~~~~~~~~~~~~~{.cpp}
 // Add Cyrillic characters
-importOptions->addCharIndexRange(0x400, 0x4FF);
+importOptions->charIndexRanges = { CharRange(0x400, 0x4FF) };
 ~~~~~~~~~~~~~

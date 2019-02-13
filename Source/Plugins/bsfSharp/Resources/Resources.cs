@@ -5,9 +5,6 @@ using System.Runtime.CompilerServices;
 
 #if IS_B3D
 namespace BansheeEngine
-#else
-namespace bs
-#endif
 {
     /** @addtogroup Resources
      *  @{
@@ -176,3 +173,4 @@ namespace bs
 
     /** @} */
 }
+#endif

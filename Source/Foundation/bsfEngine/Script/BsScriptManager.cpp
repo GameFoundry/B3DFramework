@@ -10,6 +10,12 @@ namespace bs
 			mScriptLibrary->initialize();
 	}
 
+	void ScriptManager::update()
+	{
+		if(mScriptLibrary)
+			mScriptLibrary->update();
+	}
+
 	void ScriptManager::reload()
 	{
 		if (mScriptLibrary != nullptr)

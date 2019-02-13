@@ -13,48 +13,35 @@ namespace bs
 	 */
 
 	/** Contains import options you may use to control how an audio clip is imported. */
-	class BS_CORE_EXPORT AudioClipImportOptions : public ImportOptions
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Importer,api:bsf) AudioClipImportOptions : public ImportOptions
 	{
 	public:
 		AudioClipImportOptions() = default;
 
-		/** Returns the audio format to import the audio clip as. */
-		AudioFormat getFormat() const { return mFormat; }
+		/** Audio format to import the audio clip as. */
+		BS_SCRIPT_EXPORT()
+		AudioFormat format = AudioFormat::PCM;
 
-		/** Sets the audio format to import the audio clip as. */
-		void setFormat(AudioFormat format) { mFormat = format; }
+		/** Determines how is audio data loaded into memory. */
+		BS_SCRIPT_EXPORT()
+		AudioReadMode readMode = AudioReadMode::LoadDecompressed;
 
-		/** Returns read mode that determines how is audio data loaded into memory. */
-		AudioReadMode getReadMode() const { return mReadMode; }
-
-		/** Sets read mode that determines how is audio data loaded into memory. */
-		void setReadMode(AudioReadMode readMode) { mReadMode = readMode; }
-
-		/** Checks should the clip be played as spatial (3D) audio or as normal audio. */
-		bool getIs3D() const { return mIs3D; }
-
-		/** 
-		 * Sets whether the clip should be played as spatial (3D) audio or as normal audio. 3D clips will be converted
-		 * to mono on import.
+		/**
+		 * Determines should the clip be played as spatial (3D) audio or as normal audio. 3D clips will be converted
+		 * to mono on import. 
 		 */
-		void setIs3D(bool is3d) { mIs3D = is3d; }
+		BS_SCRIPT_EXPORT()
+		bool is3D = true;
 
-		/** Returns the size of a single sample in bits. */
-		UINT32 getBitDepth() const { return mBitDepth; }
-
-		/** Sets the size of a single sample in bits. The clip will be converted to this bit depth on import. */
-		void setBitDepth(UINT32 bitDepth) { mBitDepth = bitDepth; }
+		/** Size of a single sample in bits. The clip will be converted to this bit depth on import. */
+		BS_SCRIPT_EXPORT()
+		UINT32 bitDepth = 16;
 
 		// Note: Add options to resample to a different frequency
 
 		/** Creates a new import options object that allows you to customize how are audio clips imported. */
+		BS_SCRIPT_EXPORT(ec:T)
 		static SPtr<AudioClipImportOptions> create();
-
-	private:
-		AudioFormat mFormat = AudioFormat::PCM;
-		AudioReadMode mReadMode = AudioReadMode::LoadDecompressed;
-		bool mIs3D = true;
-		UINT32 mBitDepth = 16;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

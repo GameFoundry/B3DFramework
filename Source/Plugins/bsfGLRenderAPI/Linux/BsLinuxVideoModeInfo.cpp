@@ -163,8 +163,8 @@ namespace bs { namespace ct
 			if(screenRes->modes[k].id == currentMode)
 			{
 				mDesktopVideoMode = new (bs_alloc<LinuxVideoMode>())
-						LinuxVideoMode(mVideoModes[k]->getWidth(), mVideoModes[k]->getHeight(),
-						mVideoModes[k]->getRefreshRate(), mVideoModes[k]->getOutputIdx(), currentMode);
+						LinuxVideoMode(mVideoModes[k]->width, mVideoModes[k]->height,
+						mVideoModes[k]->refreshRate, mVideoModes[k]->outputIdx, currentMode);
 				break;
 			}
 		}

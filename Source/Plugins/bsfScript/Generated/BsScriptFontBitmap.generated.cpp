@@ -173,7 +173,10 @@ namespace bs
 				ScriptRRefBase* scriptvalue;
 				scriptvalue = ScriptRRefBase::toNative(arrayvalue.get<MonoObject*>(i));
 				if(scriptvalue != nullptr)
-					vecvalue[i] = static_resource_cast<Texture>(scriptvalue->getHandle());
+				{
+					ResourceHandle<Texture> arrayElemPtrvalue = static_resource_cast<Texture>(scriptvalue->getHandle());
+					vecvalue[i] = arrayElemPtrvalue;
+				}
 			}
 
 		}

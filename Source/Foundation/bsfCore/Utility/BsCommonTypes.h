@@ -513,7 +513,7 @@ namespace bs
 	};
 
 	/** Determines the type of the source image for generating cubemaps. */
-	enum class CubemapSourceType
+	enum class BS_SCRIPT_EXPORT(m:Utility,api:bsf) CubemapSourceType
 	{
 		/** Source is a single image that will be replicated on all cubemap faces. */
 		Single,
@@ -654,8 +654,6 @@ namespace bs
 		UINT8* data;
 		UINT32 size;
 	};
-
-	typedef Map<String, String> NameValuePairList;
 
 	/** @cond SPECIALIZATIONS */
 	BS_ALLOW_MEMCPY_SERIALIZATION(TextureSurface);

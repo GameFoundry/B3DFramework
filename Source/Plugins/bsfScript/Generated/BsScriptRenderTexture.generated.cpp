@@ -92,7 +92,10 @@ namespace bs
 				ScriptTexture* scriptcolorSurface;
 				scriptcolorSurface = ScriptTexture::toNative(arraycolorSurface.get<MonoObject*>(i));
 				if(scriptcolorSurface != nullptr)
-					veccolorSurface[i] = scriptcolorSurface->getHandle();
+				{
+					ResourceHandle<Texture> arrayElemPtrcolorSurface = scriptcolorSurface->getHandle();
+					veccolorSurface[i] = arrayElemPtrcolorSurface;
+				}
 			}
 		}
 		SPtr<RenderTexture> instance = RenderTextureEx::create(veccolorSurface);
@@ -111,7 +114,10 @@ namespace bs
 				ScriptTexture* scriptcolorSurface;
 				scriptcolorSurface = ScriptTexture::toNative(arraycolorSurface.get<MonoObject*>(i));
 				if(scriptcolorSurface != nullptr)
-					veccolorSurface[i] = scriptcolorSurface->getHandle();
+				{
+					ResourceHandle<Texture> arrayElemPtrcolorSurface = scriptcolorSurface->getHandle();
+					veccolorSurface[i] = arrayElemPtrcolorSurface;
+				}
 			}
 
 		}

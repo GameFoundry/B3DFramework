@@ -18,18 +18,18 @@ namespace bs
 	{
 	private:
 		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(mCPUCached, 0)
-			BS_RTTI_MEMBER_PLAIN(mImportNormals, 1)
-			BS_RTTI_MEMBER_PLAIN(mImportTangents, 2)
-			BS_RTTI_MEMBER_PLAIN(mImportBlendShapes, 3)
-			BS_RTTI_MEMBER_PLAIN(mImportSkin, 4)
-			BS_RTTI_MEMBER_PLAIN(mImportAnimation, 5)
-			BS_RTTI_MEMBER_PLAIN(mImportScale, 6)
-			BS_RTTI_MEMBER_PLAIN(mCollisionMeshType, 7)
-			BS_RTTI_MEMBER_REFL_ARRAY(mAnimationSplits, 8)
-			BS_RTTI_MEMBER_PLAIN(mReduceKeyFrames, 9)
-			BS_RTTI_MEMBER_REFL_ARRAY(mAnimationEvents, 10)
-			BS_RTTI_MEMBER_PLAIN(mImportRootMotion, 11)
+			BS_RTTI_MEMBER_PLAIN(cpuCached, 0)
+			BS_RTTI_MEMBER_PLAIN(importNormals, 1)
+			BS_RTTI_MEMBER_PLAIN(importTangents, 2)
+			BS_RTTI_MEMBER_PLAIN(importBlendShapes, 3)
+			BS_RTTI_MEMBER_PLAIN(importSkin, 4)
+			BS_RTTI_MEMBER_PLAIN(importAnimation, 5)
+			BS_RTTI_MEMBER_PLAIN(importScale, 6)
+			BS_RTTI_MEMBER_PLAIN(collisionMeshType, 7)
+			BS_RTTI_MEMBER_REFL_ARRAY(animationSplits, 8)
+			BS_RTTI_MEMBER_PLAIN(reduceKeyFrames, 9)
+			BS_RTTI_MEMBER_REFL_ARRAY(animationEvents, 10)
+			BS_RTTI_MEMBER_PLAIN(importRootMotion, 11)
 		BS_END_RTTI_MEMBERS
 	public:
 		const String& getRTTIName() override

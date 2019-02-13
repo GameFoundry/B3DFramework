@@ -79,7 +79,7 @@ namespace bs
 					SPtr<TextureImportOptions> texImportOptions = 
 						std::static_pointer_cast<TextureImportOptions>(importOptions);
 
-					texImportOptions->setGenerateMipmaps(mipmap);
+					texImportOptions->generateMips = mipmap;
 				}
 				else if (rtti_is_of_type<ShaderImportOptions>(importOptions))
 				{
@@ -88,8 +88,9 @@ namespace bs
 					SPtr<ShaderImportOptions> shaderImportOptions = 
 						std::static_pointer_cast<ShaderImportOptions>(importOptions);
 
-					if (!defines.getAll().empty())
-						shaderImportOptions->getDefines() = defines.getAll();
+					UnorderedMap<String, String> allDefines = defines.getAll();
+					for(auto& define : allDefines)
+						shaderImportOptions->setDefine(define.first, define.second);
 				}
 			}
 
@@ -300,8 +301,8 @@ namespace bs
 		{
 			FontImportOptions* importOptions = static_cast<FontImportOptions*>(fontImportOptions.get());
 
-			importOptions->setFontSizes(fontSizes);
-			importOptions->setRenderMode(antialiasing ? FontRenderMode::HintedSmooth : FontRenderMode::HintedRaster);
+			importOptions->fontSizes = { fontSizes };
+			importOptions->renderMode = antialiasing ? FontRenderMode::HintedSmooth : FontRenderMode::HintedRaster;
 		}
 		else
 			return;

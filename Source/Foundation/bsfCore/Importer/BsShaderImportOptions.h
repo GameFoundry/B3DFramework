@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	/** Supported types of low-level shading languages. */
-	enum class ShadingLanguageFlag
+	enum class BS_SCRIPT_EXPORT(m:Importer,n:ShadingLanguageFlags,api:bsf) ShadingLanguageFlag
 	{
 		/** High level shading language used by DirectX backend. */
 		HLSL = 1 << 0, 
@@ -28,26 +28,74 @@ namespace bs
 	BS_FLAGS_OPERATORS(ShadingLanguageFlag)
 
 	/** Contains import options you may use to control how is a shader imported. */
-	class BS_CORE_EXPORT ShaderImportOptions : public ImportOptions
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Importer,api:bsf) ShaderImportOptions : public ImportOptions
 	{
 	public:
-		/** Returns a modifiable list of defines that will control shader compilation. */
-		UnorderedMap<String, String>& getDefines() { return mDefines; }
+		/** 
+		 * Sets a define and its value. Replaces an existing define if one already exists with the provided name. 
+		 * 
+		 * @param[in]	define		Name of the define.
+		 * @param[in]	value		Value to assign to the define.
+		 */
+		BS_SCRIPT_EXPORT()
+		void setDefine(const String& define, const String& value)
+		{
+			mDefines[define] = value;
+		}
 
-		/** Returns a list of defines that will control shader compilation. */
+		/** 
+		 * Checks if the define exists and returns its value if it does. 
+		 * 
+		 * @param[in]	define		Name of the define to get the value for.
+		 * @param[out]	value		value of the define. Only defined if the method returns true.
+		 * @returns					True if the define was found, false otherwise.
+		 */
+		BS_SCRIPT_EXPORT()
+		bool getDefine(const String& define, String& value) const
+		{
+			auto iterFind = mDefines.find(define);
+			if(iterFind != mDefines.end())
+			{
+				value = iterFind->second;
+				return true;
+			}
+
+			return false;
+		}
+
+		/** 
+		 * Checks if the provided define exists. 
+		 *
+		 * @param[in]	define		Name of the define to check.
+		 * @returns					True if the define was found, false otherwise.
+		 */
+		BS_SCRIPT_EXPORT()
+		bool hasDefine(const String& define) const
+		{
+			auto iterFind = mDefines.find(define);
+			return iterFind != mDefines.end();
+		}
+
+		/**
+		 * Unregisters a previously set define.
+		 * 
+		 * @param[in]	define		Name of the define to unregister. 
+		 */
+		BS_SCRIPT_EXPORT()
+		void removeDefine(const String& define)
+		{
+			mDefines.erase(define);
+		}
+
+		/** Returns all the set defines and their values. */
 		const UnorderedMap<String, String>& getDefines() const { return mDefines; }
 
 		/** 
-		 * Returns a modifiable set of flags that control which shading languages should the BSL shader be converted into.
-		 * This ultimately controls on which render backends it will be able to run on.
+		 * Flags that control which shading languages should the BSL shader be converted into. This ultimately controls on 
+		 * which render backends it will be able to run on.
 		 */
-		ShadingLanguageFlags& getLanguages() { return mLanguages; }
-
-		/** 
-		 * Returns a set of flags that control which shading languages should the BSL shader be converted into.
-		 * This ultimately controls on which render backends it will be able to run on.
-		 */
-		const ShadingLanguageFlags& getLanguages() const { return mLanguages; }
+		BS_SCRIPT_EXPORT()
+		ShadingLanguageFlags languages = ShadingLanguageFlag::All;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -59,7 +107,6 @@ namespace bs
 
 	private:
 		UnorderedMap<String, String> mDefines;
-		ShadingLanguageFlags mLanguages = ShadingLanguageFlag::All;
 	};
 
 	/** @} */

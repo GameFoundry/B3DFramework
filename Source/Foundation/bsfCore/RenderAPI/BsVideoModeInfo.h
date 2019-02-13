@@ -14,7 +14,7 @@ namespace bs
 	 * Video mode contains information about how a render window presents its information to an output device like a 
 	 * monitor.
 	 */
-	class BS_CORE_EXPORT VideoMode
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:RenderAPI,pl:true,api:bsf) VideoMode
 	{
 	public:
 		VideoMode() = default;
@@ -28,34 +28,30 @@ namespace bs
 		 * @param[in]	outputIdx	Output index of the output device. Normally this means output monitor. 0th index always
 		 *							represents the primary device while order of others is undefined.
 		 */
-		VideoMode(UINT32 width, UINT32 height, float refreshRate = 60.0f, UINT32 outputIdx = 0);
-		virtual ~VideoMode();
+		VideoMode(UINT32 width, UINT32 height, float refreshRate = 60.0f, UINT32 outputIdx = 0)
+			:width(width), height(height), refreshRate(refreshRate), outputIdx(outputIdx)
+		{ }
+		virtual ~VideoMode() = default;
 
 		bool operator== (const VideoMode& other) const;
 
 		/**	Width of the front/back buffer in pixels. */
-		UINT32 getWidth() const { return mWidth; }
+		UINT32 width = 1280;
 
 		/**	Height of the front/back buffer in pixels. */
-		UINT32 getHeight() const { return mHeight; }
+		UINT32 height = 720;
 
-		/**	Returns a refresh rate in hertz. */
-		virtual float getRefreshRate() const { return mRefreshRate; }
+		/**	Refresh rate in hertz. */
+		float refreshRate = 60.0f;
 
-		/**	Returns information about the parent output. */
-		UINT32 getOutputIdx() const { return mOutputIdx; }
+		/**	Index of the parent video output. */
+		UINT32 outputIdx = 0;
 
 		/**
 		 * Determines was video mode user created or provided by the API/OS. API/OS created video modes can contain 
 		 * additional information that allows the video mode to be used more accurately and you should use them when possible.
 		 */
-		bool isCustom() const { return mIsCustom;  }
-	protected:
-		UINT32 mWidth = 1280;
-		UINT32 mHeight = 720;
-		float mRefreshRate = 60.0f;
-		UINT32 mOutputIdx = 0;
-		bool mIsCustom = true;
+		bool isCustom = true;
 	};
 
 	/** Contains information about a video output device, including a list of all available video modes. */

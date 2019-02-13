@@ -27,8 +27,8 @@ namespace bs
 		WINDOW_DESC windowDesc;
 		windowDesc.x = mDesc.left;
 		windowDesc.y = mDesc.top;
-		windowDesc.width = mDesc.videoMode.getWidth();
-		windowDesc.height = mDesc.videoMode.getHeight();
+		windowDesc.width = mDesc.videoMode.width;
+		windowDesc.height = mDesc.videoMode.height;
 		windowDesc.title = mDesc.title;
 		windowDesc.showDecorations = mDesc.showTitleBar;
 		windowDesc.allowResize = mDesc.allowResize;
@@ -217,7 +217,7 @@ namespace bs
 
 		const VideoModeInfo& videoModeInfo = ct::RenderAPI::instance().getVideoModeInfo();
 
-		UINT32 outputIdx = videoMode.getOutputIdx();
+		UINT32 outputIdx = videoMode.outputIdx;
 		if(outputIdx >= videoModeInfo.getNumOutputs())
 		{
 			LOGERR("Invalid output device index.")
@@ -226,7 +226,7 @@ namespace bs
 
 		const VideoOutputInfo& outputInfo = videoModeInfo.getOutputInfo (outputIdx);
 
-		if(!videoMode.isCustom())
+		if(!videoMode.isCustom)
 			setDisplayMode(outputInfo, videoMode);
 		else
 		{
@@ -237,11 +237,11 @@ namespace bs
 			{
 				const VideoMode& currentMode = outputInfo.getVideoMode(i);
 
-				if (currentMode.getWidth() == videoMode.getWidth() && currentMode.getHeight() == videoMode.getHeight())
+				if (currentMode.width == videoMode.width && currentMode.height == videoMode.height)
 				{
 					foundMode = i;
 
-					if (Math::approxEquals(currentMode.getRefreshRate(), videoMode.getRefreshRate()))
+					if (Math::approxEquals(currentMode.refreshRate, videoMode.refreshRate))
 						break;
 				}
 			}
@@ -262,8 +262,8 @@ namespace bs
 
 		props.top = 0;
 		props.left = 0;
-		props.width = videoMode.getWidth();
-		props.height = videoMode.getHeight();
+		props.width = videoMode.width;
+		props.height = videoMode.height;
 
 		{
 			ScopedSpinLock lock(getCore()->mLock);

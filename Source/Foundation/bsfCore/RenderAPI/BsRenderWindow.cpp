@@ -11,8 +11,8 @@ namespace bs
 {
 	RenderWindowProperties::RenderWindowProperties(const RENDER_WINDOW_DESC& desc)
 	{
-		width = desc.videoMode.getWidth();
-		height = desc.videoMode.getHeight();
+		width = desc.videoMode.width;
+		height = desc.videoMode.height;
 		hwGamma = desc.gamma;
 		vsync = desc.vsync;
 		vsyncInterval = desc.vsyncInterval;

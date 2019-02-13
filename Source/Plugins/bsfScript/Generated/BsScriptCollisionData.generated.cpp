@@ -41,7 +41,10 @@ namespace bs
 				ScriptCColliderBase* scriptcollider;
 				scriptcollider = (ScriptCColliderBase*)ScriptCCollider::toNative(arraycollider.get<MonoObject*>(i));
 				if(scriptcollider != nullptr)
-					veccollider[i] = static_object_cast<CCollider>(scriptcollider->getComponent());
+				{
+					GameObjectHandle<CCollider> arrayElemPtrcollider = static_object_cast<CCollider>(scriptcollider->getComponent());
+					veccollider[i] = arrayElemPtrcollider;
+				}
 			}
 		}
 		auto tmpcollider = veccollider;

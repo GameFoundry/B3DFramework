@@ -29,7 +29,7 @@ Sometimes you need more control over import. In which case you can provide an ad
 auto importOptions = TextureImportOptions::create();
 
 // Specify we wish to import the texture as an uncompressed 32-bit RGBA format
-importOptions->setFormat(PF_R8G8B8A8); 
+importOptions->format  = PF_R8G8B8A8; 
 
 // Import a texture using the specified import options
 HTexture texture = gImporter().import<Texture>("myTexture.jpg", importOptions);

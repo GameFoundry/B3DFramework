@@ -115,8 +115,8 @@ namespace bs
 		windowDesc.allowResize = mDesc.allowResize;
 		windowDesc.enableDoubleClick = true;
 		windowDesc.fullscreen = mDesc.fullscreen;
-		windowDesc.width = mDesc.videoMode.getWidth();
-		windowDesc.height = mDesc.videoMode.getHeight();
+		windowDesc.width = mDesc.videoMode.width;
+		windowDesc.height = mDesc.videoMode.height;
 		windowDesc.hidden = mDesc.hidden || mDesc.hideUntilSwap;
 		windowDesc.left = mDesc.left;
 		windowDesc.top = mDesc.top;
@@ -133,8 +133,7 @@ namespace bs
 		windowDesc.module = GetModuleHandle("bsfVulkanRenderAPI.dll");
 #endif
 
-		NameValuePairList::const_iterator opt;
-		opt = mDesc.platformSpecific.find("parentWindowHandle");
+		auto opt = mDesc.platformSpecific.find("parentWindowHandle");
 		if (opt != mDesc.platformSpecific.end())
 			windowDesc.parent = (HWND)parseUINT64(opt->second);
 
@@ -146,7 +145,7 @@ namespace bs
 		UINT32 numOutputs = videoModeInfo.getNumOutputs();
 		if (numOutputs > 0)
 		{
-			UINT32 actualMonitorIdx = std::min(mDesc.videoMode.getOutputIdx(), numOutputs - 1);
+			UINT32 actualMonitorIdx = std::min(mDesc.videoMode.outputIdx, numOutputs - 1);
 			const Win32VideoOutputInfo& outputInfo = static_cast<const Win32VideoOutputInfo&>(videoModeInfo.getOutputInfo(actualMonitorIdx));
 			windowDesc.monitor = outputInfo.getMonitorHandle();
 		}
@@ -161,7 +160,7 @@ namespace bs
 		mWindow = bs_new<Win32Window>(windowDesc);
 
 		mIsChild = windowDesc.parent != nullptr;
-		mDisplayFrequency = Math::roundToInt(mDesc.videoMode.getRefreshRate());
+		mDisplayFrequency = Math::roundToInt(mDesc.videoMode.refreshRate);
 
 		// Update local properties
 		props.isFullScreen = mDesc.fullscreen && !mIsChild;
@@ -452,7 +451,7 @@ namespace bs
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		setFullscreen(mode.getWidth(), mode.getHeight(), mode.getRefreshRate(), mode.getOutputIdx());
+		setFullscreen(mode.width, mode.height, mode.refreshRate, mode.outputIdx);
 	}
 
 	void Win32RenderWindow::setWindowed(UINT32 width, UINT32 height)

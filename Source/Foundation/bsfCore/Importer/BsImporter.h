@@ -17,7 +17,7 @@ namespace bs
 	 * Contains a resource that was imported from a file that contains multiple resources (for example an animation from an
 	 * FBX file). 
 	 */
-	struct SubResource
+	struct BS_SCRIPT_EXPORT(m:Importer,pl:true,api:bsf) SubResource
 	{
 		String name; /**< Unique name of the sub-resource. */
 		HResource value; /**< Contents of the sub-resource. */

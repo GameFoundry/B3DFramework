@@ -21,7 +21,7 @@ namespace bs
 	 * @note
 	 * Thread safe.
 	 */
-	class BS_CORE_EXPORT ResourceManifest : public IReflectable
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Resources,api:bsf) ResourceManifest : public IReflectable
 	{
 		struct ConstructPrivately {};
 	public:
@@ -29,30 +29,37 @@ namespace bs
 		ResourceManifest(const String& name);
 
 		/**	Returns an unique name of the resource manifest. */
+		BS_SCRIPT_EXPORT(pr:getter,n:Name)
 		const String& getName() const { return mName; }
 
 		/**	Registers a new resource in the manifest. */
+		BS_SCRIPT_EXPORT()
 		void registerResource(const UUID& uuid, const Path& filePath);
 
 		/**	Removes a resource from the manifest. */
+		BS_SCRIPT_EXPORT()
 		void unregisterResource(const UUID& uuid);
 
 		/**
 		 * Attempts to find a resource with the provided UUID and outputs the path to the resource if found. Returns true
 		 * if UUID was found, false otherwise.
 		 */
+		BS_SCRIPT_EXPORT()
 		bool uuidToFilePath(const UUID& uuid, Path& filePath) const;
 
 		/**
 		 * Attempts to find a resource with the provided path and outputs the UUID to the resource if found. Returns true
 		 * if path was found, false otherwise.
 		 */
+		BS_SCRIPT_EXPORT()
 		bool filePathToUUID(const Path& filePath, UUID& outUUID) const;
 
 		/**	Checks if provided UUID exists in the manifest. */
+		BS_SCRIPT_EXPORT()
 		bool uuidExists(const UUID& uuid) const;
 
 		/**	Checks if the provided path exists in the manifest. */
+		BS_SCRIPT_EXPORT()
 		bool filePathExists(const Path& filePath) const;
 
 		/**
@@ -63,6 +70,7 @@ namespace bs
 		 * @param[in]	relativePath	If not empty, all pathnames in the manifest will be stored as if relative to this 
 		 *								path.
 		 */
+		BS_SCRIPT_EXPORT()
 		static void save(const SPtr<ResourceManifest>& manifest, const Path& path, const Path& relativePath);
 
 		/**
@@ -71,9 +79,11 @@ namespace bs
 		 * @param[in]	path			Full pathname of the file to load the manifest from.
 		 * @param[in]	relativePath	If not empty, all loaded pathnames will have this path prepended.
 		 */
+		BS_SCRIPT_EXPORT()
 		static SPtr<ResourceManifest> load(const Path& path, const Path& relativePath);
 
 		/** Creates a new empty resource manifest. Provided name should be unique among manifests. */
+		BS_SCRIPT_EXPORT(ec:ResourceManifest)
 		static SPtr<ResourceManifest> create(const String& name);
 
 	private:
@@ -91,7 +101,7 @@ namespace bs
 	public:
 		friend class ResourceManifestRTTI;
 		static RTTITypeBase* getRTTIStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		RTTITypeBase* getRTTI() const override;
 	};
 
 	/** @} */

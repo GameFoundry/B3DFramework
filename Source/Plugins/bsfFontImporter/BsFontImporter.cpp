@@ -69,12 +69,12 @@ namespace bs
 			BS_EXCEPT(InternalErrorException, "Failed to load font file: " + filePath.toString() + ". Unknown error.");
 		}
 
-		Vector<std::pair<UINT32, UINT32>> charIndexRanges = fontImportOptions->getCharIndexRanges();
-		Vector<UINT32> fontSizes = fontImportOptions->getFontSizes();
-		UINT32 dpi = fontImportOptions->getDPI();
+		Vector<CharRange> charIndexRanges = fontImportOptions->charIndexRanges;
+		Vector<UINT32> fontSizes = fontImportOptions->fontSizes;
+		UINT32 dpi = fontImportOptions->dpi;
 
 		FT_Int32 loadFlags;
-		switch (fontImportOptions->getRenderMode())
+		switch (fontImportOptions->renderMode)
 		{
 		case FontRenderMode::Smooth:
 			loadFlags = FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_HINTING;
@@ -126,7 +126,7 @@ namespace bs
 			Map<UINT32, UINT32> seqIdxToCharIdx;
 			for(auto iter = charIndexRanges.begin(); iter != charIndexRanges.end(); ++iter)
 			{
-				for(UINT32 charIdx = iter->first; charIdx <= iter->second; charIdx++)
+				for(UINT32 charIdx = iter->start; charIdx <= iter->end; charIdx++)
 				{
 					error = FT_Load_Char(face, (FT_ULong)charIdx, loadFlags);
 
@@ -292,7 +292,7 @@ namespace bs
 						FT_Vector resultKerning;
 						for(auto kerningIter = charIndexRanges.begin(); kerningIter != charIndexRanges.end(); ++kerningIter)
 						{
-							for(UINT32 kerningCharIdx = kerningIter->first; kerningCharIdx <= kerningIter->second; kerningCharIdx++)
+							for(UINT32 kerningCharIdx = kerningIter->start; kerningCharIdx <= kerningIter->end; kerningCharIdx++)
 							{
 								if(kerningCharIdx == charIdx)
 									continue;
