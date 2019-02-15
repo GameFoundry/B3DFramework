@@ -45,7 +45,6 @@ int main(int argc, char * argv[])
 	desc.renderer = BS_RENDERER_MODULE;
 	desc.audio = BS_AUDIO_MODULE;
 	desc.physics = BS_PHYSICS_MODULE;
-	desc.scripting = false;
 
 	desc.importers.push_back("bsfFreeImgImporter");
 	desc.importers.push_back("bsfFBXImporter");
