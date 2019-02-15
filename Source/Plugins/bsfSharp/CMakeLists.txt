@@ -4,7 +4,7 @@ if(BS_IS_BANSHEE3D)
 	set(BS_CS_ASSEMBLY_NAME "MBansheeEngine")
 else()
 	set(BS_CS_NAMESPACE "bs")
-	set(BS_CS_ASSEMBLY_NAME "bsfSharp")
+	set(BS_CS_ASSEMBLY_NAME "bsfSharpCore")
 endif()
 
 generate_csharp_project(${BSF_SOURCE_DIR}/Plugins/bsfSharp bsfSharp ${BS_CS_NAMESPACE} ${BS_CS_ASSEMBLY_NAME})

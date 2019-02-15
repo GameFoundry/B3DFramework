@@ -65,7 +65,7 @@ gResources().release(mesh);
 But you can also force the system to not create the internal reference by passing a custom @ref bs::ResourceLoadFlag "ResourceLoadFlag" to the @ref bs::Resources::load() "Resources::load()" method. This flag should not include the @ref bs::ResourceLoadFlag::KeepInternalRef "ResourceLoadFlag::KeepInternalRef".
 
 ~~~~~~~~~~~~~{.cpp}
-HMesh mesh = gResources().load("myMesh.asset", ResourceLoadFlag::Default & ~ResourceLoadFlag::KeepInternalRef);
+HMesh mesh = gResources().load("myMesh.asset", ResourceLoadFlags(ResourceLoadFlag::Default) & ~ResourceLoadFlag::KeepInternalRef);
 ~~~~~~~~~~~~~ 
 
 # Weak handles {#resourceSavingAndLoading_e}

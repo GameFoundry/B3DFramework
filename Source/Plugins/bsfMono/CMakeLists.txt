@@ -11,7 +11,7 @@ endif()
 find_package(mono)
 
 # Target
-add_library(bsfMono SHARED ${BS_MONO_SRC})
+add_library(bsfMono OBJECT ${BS_MONO_SRC})
 
 # Common flags
 add_common_flags(bsfMono)
@@ -20,26 +20,23 @@ add_common_flags(bsfMono)
 target_include_directories(bsfMono PUBLIC "./")
 
 # Defines
-target_compile_definitions(bsfMono PRIVATE -DBS_MONO_EXPORTS)
+target_compile_definitions(bsfMono PUBLIC -DBS_MONO_STATIC_LIB)
 
 # Libraries
 ## External lib: Mono
-target_link_libraries(bsfMono PRIVATE ${mono_LIBRARIES})
+target_link_libraries(bsfMono PUBLIC ${mono_LIBRARIES})
 
 ## Local libs
 target_link_libraries(bsfMono PUBLIC bsf)
 
 # Runtime executable
-add_executable(MonoExec BsMonoExec.cpp)
-target_link_libraries(MonoExec ${mono_LIBRARIES})
+if(BS_IS_BANSHEE3D)
+	# Target for running generic Mono code
+	add_executable(MonoExec BsMonoGenericExec.cpp)
+	target_link_libraries(MonoExec ${mono_LIBRARIES})
+endif()
 
 # IDE specific
 set_property(TARGET bsfMono PROPERTY FOLDER Script)
-
-# Copy .dlls on build
-if(USE_BUNDLED_LIBRARIES)
-	install_dll_on_build(bsfMono ${BSF_SOURCE_DIR}/../Dependencies/mono)
-	copy_folder_on_build(bsfMono ${BSF_SOURCE_DIR}/../Dependencies/mono ${PROJECT_BINARY_DIR} bin/Mono "*.*")
-endif()
 
 conditional_cotire(bsfMono)

@@ -182,7 +182,6 @@ set(BS_SCRIPT_INC_SERIALIZATION
 )
 
 set(BS_SCRIPT_SRC_NOFILTER
-	"BsScriptEnginePlugin.cpp"
 	"BsManagedComponent.cpp"
 	"BsScriptResourceManager.cpp"
 	"BsScriptGameObjectManager.cpp"
@@ -216,6 +215,7 @@ set(BS_SCRIPT_INC_EXTENSIONS
 	"Extensions/BsRenderTargetEx.h"
 	"Extensions/BsColorGradientEx.h"
 	"Extensions/BsParticleDistributionEx.h"
+	"Extensions/BsApplicationEx.h"
 )
 
 set(BS_SCRIPT_SRC_EXTENSIONS
@@ -232,6 +232,7 @@ set(BS_SCRIPT_SRC_EXTENSIONS
 	"Extensions/BsRenderTargetEx.cpp"
 	"Extensions/BsColorGradientEx.cpp"
 	"Extensions/BsParticleDistributionEx.cpp"
+	"Extensions/BsApplicationEx.cpp"
 )
 
 source_group("" FILES ${BS_SCRIPT_INC_NOFILTER} ${BS_SCRIPT_SRC_NOFILTER})

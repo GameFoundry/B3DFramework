@@ -9,8 +9,8 @@
 #include "Resources/BsBuiltinResources.h"
 #include "Components/BsCCamera.h"
 
-#include "BsScriptCCamera.generated.h"
-#include "BsScriptGUISkin.generated.h"
+#include "Generated/BsScriptCCamera.generated.h"
+#include "Generated/BsScriptGUISkin.generated.h"
 
 namespace bs
 {

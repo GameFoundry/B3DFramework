@@ -7,7 +7,7 @@
 // DLL export
 #if BS_PLATFORM == BS_PLATFORM_WIN32 // Windows
 #  if BS_COMPILER == BS_COMPILER_MSVC
-#    if defined(BS_STATIC_LIB)
+#    if defined(BS_SCR_BE_STATIC_LIB)
 #      define BS_SCR_BE_EXPORT
 #    else
 #      if defined(BS_SCR_BE_EXPORTS)
@@ -17,7 +17,7 @@
 #      endif
 #	 endif
 #  else
-#    if defined(BS_STATIC_LIB)
+#    if defined(BS_SCR_BE_STATIC_LIB)
 #      define BS_SCR_BE_EXPORT
 #    else
 #      if defined(BS_SCR_BE_EXPORTS)
@@ -58,7 +58,7 @@
 namespace bs
 {
 #if !BS_IS_BANSHEE3D
-	constexpr const char* ENGINE_ASSEMBLY = "bsfSharp";
+	constexpr const char* ENGINE_ASSEMBLY = "bsfSharpCore";
 	constexpr const char* ENGINE_NS = "bs";
 #else
 	constexpr const char* ENGINE_ASSEMBLY = "MBansheeEngine";

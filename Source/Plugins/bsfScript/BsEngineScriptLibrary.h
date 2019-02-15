@@ -20,6 +20,9 @@ namespace bs
 		/** @copydoc ScriptLibrary::initialize */
 		void initialize() override;
 
+		/** @copydoc ScriptLibrary::update */
+		void update() override;
+
 		/** @copydoc ScriptLibrary::reload */
 		void reload() override;
 

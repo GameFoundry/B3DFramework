@@ -29,6 +29,6 @@ Documentation/Timestamp.asset
 *.opendb
 BsEngineConfig.h
 BsFrameworkConfig.h
-Source/Plugins/bsfSharp/bsfSharp.csproj
+Source/Plugins/bsfSharp/bsfSharpCore.csproj
 Source/Plugins/bsfSharp/MBansheeEngine.csproj
 

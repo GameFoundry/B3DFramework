@@ -39,7 +39,7 @@ namespace bs
 
 	}
 
-	MonoAssembly::MonoAssembly(const String& path, const String& name)
+	MonoAssembly::MonoAssembly(const Path& path, const String& name)
 		: mName(name), mPath(path), mMonoImage(nullptr), mMonoAssembly(nullptr), mDebugData(nullptr), mIsLoaded(false)
 		, mIsDependency(false), mHaveCachedClassList(false)
 	{
@@ -60,7 +60,7 @@ namespace bs
 		SPtr<DataStream> assemblyStream = FileSystem::openFile(mPath, true);
 		if (assemblyStream == nullptr)
 		{
-			LOGERR("Cannot load assembly at path \"" + mPath + "\" because the file doesn't exist");
+			LOGERR("Cannot load assembly at path \"" + mPath.toString() + "\" because the file doesn't exist");
 			return;
 		}
 
@@ -68,7 +68,7 @@ namespace bs
 		char* assemblyData = (char*)bs_stack_alloc(assemblySize);
 		assemblyStream->read(assemblyData, assemblySize);
 
-		String imageName = Path(mPath).getFilename();
+		String imageName = mPath.getFilename();
 
 		MonoImageOpenStatus status = MONO_IMAGE_OK;
 		MonoImage* image = mono_image_open_from_data_with_name(assemblyData, assemblySize, true, &status, false, imageName.c_str());
@@ -76,13 +76,15 @@ namespace bs
 
 		if (status != MONO_IMAGE_OK || image == nullptr)
 		{
-			LOGERR("Failed loading image data for assembly \"" + mPath + "\"");
+			LOGERR("Failed loading image data for assembly \"" + mPath.toString() + "\"");
 			return;
 		}
 
 		// Load MDB file
 #if BS_DEBUG_MODE
-		Path mdbPath = mPath + ".mdb";
+		Path mdbPath = mPath;
+		mdbPath.setExtension(mdbPath.getExtension() + ".mdb");
+
 		if (FileSystem::exists(mdbPath))
 		{
 			SPtr<DataStream> mdbStream = FileSystem::openFile(mdbPath, true);
@@ -101,7 +103,7 @@ namespace bs
 		mMonoAssembly = mono_assembly_load_from_full(image, imageName.c_str(), &status, false);
 		if (status != MONO_IMAGE_OK || mMonoAssembly == nullptr)
 		{
-			LOGERR("Failed loading assembly \"" + mPath + "\"");
+			LOGERR("Failed loading assembly \"" + mPath.toString() + "\"");
 			return;
 		}
 		

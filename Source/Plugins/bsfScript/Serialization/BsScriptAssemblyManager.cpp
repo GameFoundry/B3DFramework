@@ -10,7 +10,6 @@
 #include "BsMonoProperty.h"
 #include "Wrappers/BsScriptManagedResource.h"
 #include "Wrappers/BsScriptComponent.h"
-#include "BsBuiltinComponentLookup.generated.h"
 
 // Note: This resource registration code is only here because resource lookup auto-generation isn't yet hooked up
 #include "Image/BsSpriteTexture.h"
@@ -30,27 +29,28 @@
 #include "Animation/BsAnimationClip.h"
 #include "Particles/BsVectorField.h"
 
-#include "BsScriptTexture.generated.h"
 #include "Wrappers/BsScriptPlainText.h"
 #include "Wrappers/BsScriptScriptCode.h"
 #include "Wrappers/BsScriptShaderInclude.h"
 #include "Wrappers/BsScriptPrefab.h"
-#include "Serialization/BsBuiltinResourceLookup.h"
-
-#include "BsScriptMesh.generated.h"
-#include "BsScriptPhysicsMesh.generated.h"
-#include "BsScriptPhysicsMaterial.generated.h"
-#include "BsScriptAnimationClip.generated.h"
-#include "BsScriptAudioClip.generated.h"
-#include "BsScriptShader.generated.h"
-#include "BsScriptMaterial.generated.h"
-#include "BsScriptFont.generated.h"
-#include "BsScriptSpriteTexture.generated.h"
-#include "BsScriptStringTable.generated.h"
-#include "BsScriptVectorField.generated.h"
-#include "BsScriptGUISkin.generated.h"
 #include "Wrappers/BsScriptRRefBase.h"
 
+#include "Generated/BsBuiltinComponentLookup.generated.h"
+#include "Serialization/BsBuiltinResourceLookup.h"
+
+#include "Generated/BsScriptTexture.generated.h"
+#include "Generated/BsScriptMesh.generated.h"
+#include "Generated/BsScriptPhysicsMesh.generated.h"
+#include "Generated/BsScriptPhysicsMaterial.generated.h"
+#include "Generated/BsScriptAnimationClip.generated.h"
+#include "Generated/BsScriptAudioClip.generated.h"
+#include "Generated/BsScriptShader.generated.h"
+#include "Generated/BsScriptMaterial.generated.h"
+#include "Generated/BsScriptFont.generated.h"
+#include "Generated/BsScriptSpriteTexture.generated.h"
+#include "Generated/BsScriptStringTable.generated.h"
+#include "Generated/BsScriptVectorField.generated.h"
+#include "Generated/BsScriptGUISkin.generated.h"
 
 namespace bs
 {

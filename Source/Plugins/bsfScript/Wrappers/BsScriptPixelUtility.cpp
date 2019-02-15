@@ -5,7 +5,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "Debug/BsDebug.h"
-#include "BsScriptPixelData.generated.h"
+#include "Generated/BsScriptPixelData.generated.h"
 
 namespace bs
 {

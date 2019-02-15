@@ -34,11 +34,8 @@ namespace bs
 	class BS_EXPORT ScriptManager : public Module<ScriptManager>
 	{
 	public:
-		ScriptManager() = default;
-		~ScriptManager() = default;
-
-		/** Initializes the currently active script library loading the scripts contained within. */
-		void initialize();
+		ScriptManager();
+		~ScriptManager();
 
 		/** Called once per frame. */
 		void update();
@@ -49,17 +46,17 @@ namespace bs
 		 */
 		void reload();
 
-		/** Sets the active script library that controls what kind and which scripts are loaded. */
-		void _setScriptLibrary(const SPtr<ScriptLibrary>& library);
+		/** 
+		 * Sets the active script library that controls what kind and which scripts are loaded. Must be called before
+		 * the module is started up.
+		 */
+		static void _setScriptLibrary(const SPtr<ScriptLibrary>& library) { sScriptLibrary = library; }
 
 		/** Returns the currently assigned script library. */
-		const SPtr<ScriptLibrary>& _getScriptLibrary() const { return mScriptLibrary; }
+		static const SPtr<ScriptLibrary>& _getScriptLibrary() { return sScriptLibrary; }
 
 	private:
-		/** @copydoc ScriptManager::onShutDown */
-		void onShutDown() override;
-
-		SPtr<ScriptLibrary> mScriptLibrary;
+		static SPtr<ScriptLibrary> sScriptLibrary;
 	};
 
 	/** @} */

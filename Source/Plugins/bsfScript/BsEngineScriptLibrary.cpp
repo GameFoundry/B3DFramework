@@ -27,8 +27,10 @@ namespace bs
 		Path engineAssemblyPath = getEngineAssemblyPath();
 		const String ASSEMBLY_ENTRY_POINT = "Program::Start";
 
+#if BS_IS_BANSHEE3D
 		MonoManager::startUp();
 		MonoAssembly& engineAssembly = MonoManager::instance().loadAssembly(engineAssemblyPath.toString(), ENGINE_ASSEMBLY);
+#endif
 
 		PlayInEditorManager::startUp();
 		ScriptDebug::startUp();
@@ -52,13 +54,22 @@ namespace bs
 			MonoManager::instance().loadAssembly(gameAssemblyPath.toString(), SCRIPT_GAME_ASSEMBLY);
 			ScriptAssemblyManager::instance().loadAssemblyInfo(SCRIPT_GAME_ASSEMBLY);
 		}
-#endif
 
 		engineAssembly.invoke(ASSEMBLY_ENTRY_POINT);
+#endif
+	}
+
+	void EngineScriptLibrary::update()
+	{
+		ScriptScene::update();
+		PlayInEditorManager::instance().update();
+		ScriptObjectManager::instance().update();
+		ScriptGUI::update();
 	}
 
 	void EngineScriptLibrary::reload()
 	{
+#if BS_IS_BANSHEE3D
 		Path engineAssemblyPath = getEngineAssemblyPath();
 
 		// Do a full refresh if we have already loaded script assemblies
@@ -67,11 +78,9 @@ namespace bs
 			Vector<std::pair<String, Path>> assemblies;
 			assemblies.push_back({ ENGINE_ASSEMBLY, engineAssemblyPath });
 
-#if BS_IS_BANSHEE3D
 			Path gameAssemblyPath = getGameAssemblyPath();
 			if (FileSystem::exists(gameAssemblyPath))
 				assemblies.push_back({ SCRIPT_GAME_ASSEMBLY, gameAssemblyPath });
-#endif
 
 			ScriptObjectManager::instance().refreshAssemblies(assemblies);
 		}
@@ -80,17 +89,15 @@ namespace bs
 			MonoManager::instance().loadAssembly(engineAssemblyPath.toString(), ENGINE_ASSEMBLY);
 			ScriptAssemblyManager::instance().loadAssemblyInfo(ENGINE_ASSEMBLY);
 
-#if BS_IS_BANSHEE3D
 			Path gameAssemblyPath = getGameAssemblyPath();
 			if (FileSystem::exists(gameAssemblyPath))
 			{
 				MonoManager::instance().loadAssembly(gameAssemblyPath.toString(), SCRIPT_GAME_ASSEMBLY);
 				ScriptAssemblyManager::instance().loadAssemblyInfo(SCRIPT_GAME_ASSEMBLY);
 			}
-#endif
-
 			mScriptAssembliesLoaded = true;
 		}
+#endif
 	}
 
 	void EngineScriptLibrary::destroy()
@@ -113,7 +120,13 @@ namespace bs
 		ScriptInput::shutDown();
 		ScriptScene::shutDown();
 		ManagedResourceManager::shutDown();
+
+#if BS_IS_BANSHEE3D
 		MonoManager::shutDown();
+#else
+		MonoManager::instance().unloadAll();
+#endif
+
 		ScriptGameObjectManager::shutDown();
 		ScriptResourceManager::shutDown();
 		ScriptAssemblyManager::shutDown();
@@ -178,5 +191,4 @@ namespace bs
 		static Path path = Paths::findPath(Paths::DEBUG_ASSEMBLY_PATH);
 		return path;
 	}
-
 }

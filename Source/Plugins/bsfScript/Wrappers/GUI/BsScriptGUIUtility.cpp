@@ -13,7 +13,7 @@
 #include "GUI/BsGUILayoutUtility.h"
 #include "GUI/BsGUIHelper.h"
 
-#include "BsScriptFont.generated.h"
+#include "Generated/BsScriptFont.generated.h"
 
 namespace bs
 {

@@ -4,32 +4,29 @@
 
 namespace bs
 {
-	void ScriptManager::initialize()
+	SPtr<ScriptLibrary> ScriptManager::sScriptLibrary;
+
+	ScriptManager::ScriptManager()
 	{
-		if (mScriptLibrary != nullptr)
-			mScriptLibrary->initialize();
+		if (sScriptLibrary)
+			sScriptLibrary->initialize();
+	}
+
+	ScriptManager::~ScriptManager()
+	{
+		if (sScriptLibrary)
+			sScriptLibrary->destroy();
 	}
 
 	void ScriptManager::update()
 	{
-		if(mScriptLibrary)
-			mScriptLibrary->update();
+		if(sScriptLibrary)
+			sScriptLibrary->update();
 	}
 
 	void ScriptManager::reload()
 	{
-		if (mScriptLibrary != nullptr)
-			mScriptLibrary->reload();
-	}
-
-	void ScriptManager::onShutDown()
-	{
-		if (mScriptLibrary != nullptr)
-			mScriptLibrary->destroy();
-	}
-
-	void ScriptManager::_setScriptLibrary(const SPtr<ScriptLibrary>& library)
-	{
-		mScriptLibrary = library;
+		if (sScriptLibrary)
+			sScriptLibrary->reload();
 	}
 }

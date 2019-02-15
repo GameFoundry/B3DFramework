@@ -70,16 +70,7 @@ namespace bs
 		/** @copydoc CoreApplication::getShaderIncludeHandler */
 		SPtr<IShaderIncludeHandler> getShaderIncludeHandler() const override;
 
-		/**	Loads the script system and all script libraries. */
-		virtual void loadScriptSystem();
-
-		/**	Unloads script libraries and shuts down the script system. */
-		virtual void unloadScriptSystem();
-
 		SPtr<ProfilerOverlay> mProfilerOverlay;
-
-		DynLib* mMonoPlugin = nullptr;
-		DynLib* mScriptPlugin = nullptr;
 	};
 
 	/** Easy way to access Application. */

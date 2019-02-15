@@ -62,8 +62,8 @@ function(add_generate_script_bindings_target)
 			set(GenScriptBinding_OUTPUT_CPP_EDITOR_DIR ${PROJECT_SOURCE_DIR}/Source/EditorScript/Generated)
 			set(GenScriptBinding_OUTPUT_CS_EDITOR_DIR ${PROJECT_SOURCE_DIR}/Source/EditorManaged/Generated)
 		else()
-			set(GenScriptBinding_OUTPUT_CPP_EDITOR_DIR "")
-			set(GenScriptBinding_OUTPUT_CS_EDITOR_DIR "")
+			set(GenScriptBinding_OUTPUT_CPP_EDITOR_DIR "\"\"")
+			set(GenScriptBinding_OUTPUT_CS_EDITOR_DIR "\"\"")
 		endif()
 
 		configure_file(

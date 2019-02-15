@@ -18,7 +18,6 @@ set(BS_MONO_SRC_NOFILTER
 	"BsMonoManager.cpp"
 	"BsMonoMethod.cpp"
 	"BsMonoProperty.cpp"
-	"BsMonoPlugin.cpp"
 	"BsScriptMeta.cpp"
 	"BsMonoUtil.cpp"
 	"BsMonoArray.cpp"

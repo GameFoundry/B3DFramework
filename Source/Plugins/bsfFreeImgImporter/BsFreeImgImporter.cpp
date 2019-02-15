@@ -165,7 +165,7 @@ namespace bs
 			UINT32 maxPossibleMip = PixelUtil::getMaxMipmaps(faceData[0]->getWidth(), faceData[0]->getHeight(), 
 				faceData[0]->getDepth(), faceData[0]->getFormat());
 
-			if (textureImportOptions->getMaxMip() == 0)
+			if (textureImportOptions->maxMip == 0)
 				numMips = maxPossibleMip;
 			else
 				numMips = std::min(maxPossibleMip, textureImportOptions->maxMip);

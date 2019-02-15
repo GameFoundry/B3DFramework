@@ -3,7 +3,7 @@
 #include "Extensions/BsTextureEx.h"
 #include "Extensions/BsAsyncOpEx.h"
 
-#include "BsScriptPixelData.generated.h"
+#include "Generated/BsScriptPixelData.generated.h"
 
 using namespace std::placeholders;
 

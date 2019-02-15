@@ -28,10 +28,13 @@ namespace bs
 		/**
 		 * Loads a new assembly from the provided path.
 		 *
-		 * @param[in]	path	Absolute path to the assembly .dll.
-		 * @param[in]	name	Unique name for the assembly.
+		 * @param[in]	path				Absolute path to the assembly .dll.
+		 * @param[in]	name				Unique name for the assembly.
 		 */
-		MonoAssembly& loadAssembly(const String& path, const String& name);
+		MonoAssembly& loadAssembly(const Path& path, const String& name);
+
+		/** Unloads all assemblies and shuts down the runtime. Called automatically on module shut-down. */
+		void unloadAll();
 
 		/**	Searches all loaded assemblies for the specified class. */
 		MonoClass* findClass(const String& ns, const String& typeName);
@@ -80,8 +83,11 @@ namespace bs
 			ScriptMeta localMetaData;
 		};
 
-		/**	Initializes a previous loaded assembly. */
-		void initializeAssembly(MonoAssembly& assembly);
+		/** 
+		 * Initializes any script types registered with registerScriptType() for this assembly. This sets up any
+		 * native <-> managed internal calls and other similar code for such types.
+		 */
+		void initializeScriptTypes(MonoAssembly& assembly);
 
 		/**	Returns a list of all types that will be initializes with their assembly gets loaded. */
 		static UnorderedMap<String, Vector<ScriptMetaInfo>>& getScriptMetaData()

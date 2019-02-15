@@ -7,8 +7,8 @@
 #include "GUI/BsGUICanvas.h"
 #include "GUI/BsGUIOptions.h"
 
-#include "BsScriptFont.generated.h"
-#include "BsScriptSpriteTexture.generated.h"
+#include "Generated/BsScriptFont.generated.h"
+#include "Generated/BsScriptSpriteTexture.generated.h"
 
 namespace bs
 {

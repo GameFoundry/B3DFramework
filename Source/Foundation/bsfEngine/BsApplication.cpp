@@ -70,9 +70,6 @@ namespace bs
 		DebugDraw::startUp();
 
 		ScriptManager::startUp();
-
-		if(mStartUpDesc.scripting)
-			loadScriptSystem();
 	}
 
 	void Application::onShutDown()
@@ -90,9 +87,6 @@ namespace bs
 		ScriptManager::shutDown();
 		DebugDraw::shutDown();
 
-		if (mStartUpDesc.scripting)
-			unloadScriptSystem();
-
 		CoreApplication::onShutDown();
 	}
 
@@ -109,6 +103,7 @@ namespace bs
 	void Application::postUpdate()
 	{
 		CoreApplication::postUpdate();
+		ScriptManager::instance().update();
 
 		PROFILE_CALL(GUIManager::instance().update(), "GUI");
 		DebugDraw::instance()._update();
@@ -136,26 +131,6 @@ namespace bs
 		mProfilerOverlay = nullptr;
 	}
 
-	void Application::loadScriptSystem()
-	{
-		loadPlugin("bsfMono", &mMonoPlugin);
-		loadPlugin("bsfScript", &mScriptPlugin); 
-
-		ScriptManager::instance().initialize();
-	}
-
-	void Application::unloadScriptSystem()
-	{
-		// These plugins must be unloaded before any other script plugins, because
-		// they will cause finalizers to trigger and various modules those finalizers
-		// might reference must still be active
-		if(mScriptPlugin != nullptr)
-			unloadPlugin(mScriptPlugin);
-
-		if(mMonoPlugin != nullptr)
-			unloadPlugin(mMonoPlugin);
-	}
-
 	void Application::startUpRenderer()
 	{
 		// Do nothing, we activate the renderer at a later stage
@@ -170,7 +145,6 @@ namespace bs
 		desc.renderer = BS_RENDERER_MODULE;
 		desc.audio = BS_AUDIO_MODULE;
 		desc.physics = BS_PHYSICS_MODULE;
-		desc.scripting = BS_SCRIPTING_ENABLED;
 
 		desc.importers.push_back("bsfFreeImgImporter");
 		desc.importers.push_back("bsfFBXImporter");

@@ -63,7 +63,7 @@ namespace bs
 	private:
 		friend class MonoManager;
 
-		MonoAssembly(const String& path, const String& name);
+		MonoAssembly(const Path& path, const String& name);
 
 		/**
 	     * Attempts to find a managed class with the specified namespace and name in this assembly. Registers a new class
@@ -96,7 +96,7 @@ namespace bs
 		bool isGenericClass(const String& name) const;
 
 		String mName;
-		String mPath;
+		Path mPath;
 		MonoImage* mMonoImage;
 		::MonoAssembly* mMonoAssembly;
 		UINT8* mDebugData;

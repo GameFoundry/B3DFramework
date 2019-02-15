@@ -8,8 +8,8 @@
 #include "Resources/BsBuiltinResources.h"
 #include "BsScriptResourceManager.h"
 
-#include "BsScriptFont.generated.h"
-#include "BsScriptSpriteTexture.generated.h"
+#include "Generated/BsScriptFont.generated.h"
+#include "Generated/BsScriptSpriteTexture.generated.h"
 
 namespace bs
 {

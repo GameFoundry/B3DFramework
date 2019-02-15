@@ -1,15 +1,11 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsMonoManager.h"
-#include "Error/BsException.h"
 #include "BsScriptMeta.h"
 #include "BsMonoAssembly.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "FileSystem/BsFileSystem.h"
-#include "Error/BsException.h"
-#include "BsApplication.h"
-#include "BsEngineConfig.h"
 
 #include "mono/jit/jit.h"
 #include <mono/metadata/assembly.h>
@@ -139,7 +135,7 @@ namespace bs
 		mono_thread_set_main(mono_thread_current());
 
 		// Load corlib
-		mCorlibAssembly = new (bs_alloc<MonoAssembly>()) MonoAssembly("corlib", "corlib");
+		mCorlibAssembly = new (bs_alloc<MonoAssembly>()) MonoAssembly("", "corlib");
 		mCorlibAssembly->loadFromImage(mono_get_corlib());
 
 		mAssemblies["corlib"] = mCorlibAssembly;
@@ -147,27 +143,10 @@ namespace bs
 
 	MonoManager::~MonoManager()
 	{
-		for (auto& entry : mAssemblies)
-		{
-			bs_delete(entry.second);
-		}
-
-		mAssemblies.clear();
-
-		unloadScriptDomain();
-
-		if (mRootDomain != nullptr)
-		{
-			mono_jit_cleanup(mRootDomain);
-			mRootDomain = nullptr;
-		}
-
-		// Make sure to explicitly clear this meta-data, as it contains structures allocated from other dynamic libraries,
-		// which will likely get unloaded right after shutdown
-		getScriptMetaData().clear();
+		unloadAll();
 	}
 
-	MonoAssembly& MonoManager::loadAssembly(const String& path, const String& name)
+	MonoAssembly& MonoManager::loadAssembly(const Path& path, const String& name)
 	{
 		MonoAssembly* assembly = nullptr;
 
@@ -194,12 +173,17 @@ namespace bs
 			mAssemblies[name] = assembly;
 		}
 		
-		initializeAssembly(*assembly);
+		if (!assembly->mIsLoaded)
+		{
+			assembly->load();
+			initializeScriptTypes(*assembly);
+		}
+
 
 		return *assembly;
 	}
 
-	void MonoManager::initializeAssembly(MonoAssembly& assembly)
+	void MonoManager::initializeScriptTypes(MonoAssembly& assembly)
 	{
 		if (!assembly.mIsLoaded)
 		{
@@ -216,7 +200,7 @@ namespace bs
 				if (meta->scriptClass == nullptr)
 				{
 					BS_EXCEPT(InvalidParametersException,
-							"Unable to find class of type: \"" + meta->ns + "::" + meta->name + "\"");
+						"Unable to find class of type: \"" + meta->ns + "::" + meta->name + "\"");
 				}
 
 				if (meta->scriptClass->hasField("mCachedPtr"))
@@ -227,6 +211,26 @@ namespace bs
 				meta->initCallback();
 			}
 		}
+	}
+
+	void MonoManager::unloadAll()
+	{
+		for (auto& entry : mAssemblies)
+			bs_delete(entry.second);
+
+		mAssemblies.clear();
+
+		unloadScriptDomain();
+
+		if (mRootDomain != nullptr)
+		{
+			mono_jit_cleanup(mRootDomain);
+			mRootDomain = nullptr;
+		}
+
+		// Make sure to explicitly clear this meta-data, as it contains structures allocated from other dynamic libraries,
+		// which will likely get unloaded right after shutdown
+		getScriptMetaData().clear();
 	}
 
 	MonoAssembly* MonoManager::getAssembly(const String& name) const
