@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/** Contains import options you may use to control how is a texture imported. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Importer,api:bsf) TextureImportOptions : public ImportOptions
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Importer,api:bsf,api:bed) TextureImportOptions : public ImportOptions
 	{
 	public:
 		TextureImportOptions() = default;

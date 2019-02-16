@@ -7,7 +7,7 @@
 // DLL export
 #if BS_PLATFORM == BS_PLATFORM_WIN32 // Windows
 #  if BS_COMPILER == BS_COMPILER_MSVC
-#    if defined(BS_SCR_BE_STATIC_LIB)
+#    if defined(BS_SCR_BE_STATIC_LIB) || defined(BS_SBGEN)
 #      define BS_SCR_BE_EXPORT
 #    else
 #      if defined(BS_SCR_BE_EXPORTS)
@@ -17,7 +17,7 @@
 #      endif
 #	 endif
 #  else
-#    if defined(BS_SCR_BE_STATIC_LIB)
+#    if defined(BS_SCR_BE_STATIC_LIB) || defined(BS_SBGEN)
 #      define BS_SCR_BE_EXPORT
 #    else
 #      if defined(BS_SCR_BE_EXPORTS)

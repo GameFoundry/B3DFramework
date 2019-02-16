@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/** Contains import options you may use to control how an audio clip is imported. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Importer,api:bsf) AudioClipImportOptions : public ImportOptions
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Importer,api:bsf,api:bed) AudioClipImportOptions : public ImportOptions
 	{
 	public:
 		AudioClipImportOptions() = default;

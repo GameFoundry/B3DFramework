@@ -69,7 +69,7 @@ namespace bs
 		SceneManager::instance().setMainRenderTarget(getPrimaryWindow());
 		DebugDraw::startUp();
 
-		ScriptManager::startUp();
+		startUpScriptManager();
 	}
 
 	void Application::onShutDown()
@@ -134,6 +134,11 @@ namespace bs
 	void Application::startUpRenderer()
 	{
 		// Do nothing, we activate the renderer at a later stage
+	}
+
+	void Application::startUpScriptManager()
+	{
+		ScriptManager::startUp();
 	}
 
 	START_UP_DESC Application::buildStartUpDesc(VideoMode videoMode, const String& title, bool fullscreen)

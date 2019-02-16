@@ -179,37 +179,31 @@ namespace bs
 			initializeScriptTypes(*assembly);
 		}
 
-
 		return *assembly;
 	}
 
 	void MonoManager::initializeScriptTypes(MonoAssembly& assembly)
 	{
-		if (!assembly.mIsLoaded)
+		// Fully initialize all types that use this assembly
+		Vector<ScriptMetaInfo>& typeMetas = getScriptMetaData()[assembly.mName];
+		for (auto& entry : typeMetas)
 		{
-			assembly.load();
+			ScriptMeta* meta = entry.metaData;
+			*meta = entry.localMetaData;
 
-			// Fully initialize all types that use this assembly
-			Vector<ScriptMetaInfo>& typeMetas = getScriptMetaData()[assembly.mName];
-			for (auto& entry : typeMetas)
+			meta->scriptClass = assembly.getClass(meta->ns, meta->name);
+			if (meta->scriptClass == nullptr)
 			{
-				ScriptMeta* meta = entry.metaData;
-				*meta = entry.localMetaData;
-
-				meta->scriptClass = assembly.getClass(meta->ns, meta->name);
-				if (meta->scriptClass == nullptr)
-				{
-					BS_EXCEPT(InvalidParametersException,
-						"Unable to find class of type: \"" + meta->ns + "::" + meta->name + "\"");
-				}
-
-				if (meta->scriptClass->hasField("mCachedPtr"))
-					meta->thisPtrField = meta->scriptClass->getField("mCachedPtr");
-				else
-					meta->thisPtrField = nullptr;
-
-				meta->initCallback();
+				BS_EXCEPT(InvalidParametersException,
+					"Unable to find class of type: \"" + meta->ns + "::" + meta->name + "\"");
 			}
+
+			if (meta->scriptClass->hasField("mCachedPtr"))
+				meta->thisPtrField = meta->scriptClass->getField("mCachedPtr");
+			else
+				meta->thisPtrField = nullptr;
+
+			meta->initCallback();
 		}
 	}
 

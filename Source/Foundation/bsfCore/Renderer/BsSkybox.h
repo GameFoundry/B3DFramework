@@ -39,7 +39,7 @@ namespace bs
 		 */
 		void setBrightness(float brightness) { mBrightness = brightness; _markCoreDirty(); }
 
-		/** @see setBrightness */
+		/** @copydoc setBrightness */
 		float getBrightness() const { return mBrightness; }
 
 	protected:

@@ -67,6 +67,9 @@ namespace bs
 		/** @copydoc CoreApplication::startUpRenderer */
 		void startUpRenderer() override;
 
+		/** Initializes the script manager. */
+		virtual void startUpScriptManager();
+
 		/** @copydoc CoreApplication::getShaderIncludeHandler */
 		SPtr<IShaderIncludeHandler> getShaderIncludeHandler() const override;
 

@@ -16,7 +16,9 @@ add_library(bsfScript OBJECT
 add_common_flags(bsfScript)
 	
 # Includes
-set(bsfScript_INC "./")
+set(bsfScript_INC 
+	"./"
+	"./Generated/")
 
 target_include_directories(bsfScript PUBLIC ${bsfScript_INC})
 	

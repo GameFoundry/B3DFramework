@@ -61,9 +61,11 @@ function(add_generate_script_bindings_target)
 		if(BS_IS_BANSHEE3D)
 			set(GenScriptBinding_OUTPUT_CPP_EDITOR_DIR ${PROJECT_SOURCE_DIR}/Source/EditorScript/Generated)
 			set(GenScriptBinding_OUTPUT_CS_EDITOR_DIR ${PROJECT_SOURCE_DIR}/Source/EditorManaged/Generated)
+			set(GenScriptBinding_DEFINES -gen-editor)
 		else()
 			set(GenScriptBinding_OUTPUT_CPP_EDITOR_DIR "\"\"")
 			set(GenScriptBinding_OUTPUT_CS_EDITOR_DIR "\"\"")
+			set(GenScriptBinding_DEFINES "")
 		endif()
 
 		configure_file(

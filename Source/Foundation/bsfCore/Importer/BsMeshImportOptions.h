@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/** Controls what type of collision mesh should be imported during mesh import. */
-	enum class BS_SCRIPT_EXPORT(m:Importer,api:bsf) CollisionMeshType
+	enum class BS_SCRIPT_EXPORT(m:Importer,api:bsf,api:bed) CollisionMeshType
 	{
 		None, /**< No collision mesh will be imported. */
 		Normal, /**< Normal triangle mesh will be imported. */
@@ -21,7 +21,7 @@ namespace bs
 	};
 
 	/** Information about how to split an AnimationClip into multiple separate clips. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Importer,api:bsf) AnimationSplitInfo : IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Importer,api:bsf,api:bed) AnimationSplitInfo : IReflectable
 	{
 		BS_SCRIPT_EXPORT()
 		AnimationSplitInfo() = default;
@@ -53,7 +53,7 @@ namespace bs
 	};
 
 	/** A set of animation events that will be added to an animation clip during animation import. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Importer,api:bsf) ImportedAnimationEvents : IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Importer,api:bsf,api:bed) ImportedAnimationEvents : IReflectable
 	{
 		BS_SCRIPT_EXPORT()
 		ImportedAnimationEvents() = default;
@@ -76,7 +76,7 @@ namespace bs
 	/**
 	 * Contains import options you may use to control how is a mesh imported from some external format into engine format.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Importer,api:bsf) MeshImportOptions : public ImportOptions
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Importer,api:bsf,api:bed) MeshImportOptions : public ImportOptions
 	{
 	public:
 		MeshImportOptions() = default;

@@ -13,7 +13,7 @@ namespace bs
 	/** @cond SCRIPT_EXTENSIONS */
 
 	/** Script-exported API for Application. */
-	class BS_SCRIPT_EXPORT(m:Application,n:Application) ApplicationEx
+	class BS_SCRIPT_EXPORT(m:Application,n:Application,api:bsf) ApplicationEx
 	{
 	public:
 		BS_SCRIPT_EXPORT()

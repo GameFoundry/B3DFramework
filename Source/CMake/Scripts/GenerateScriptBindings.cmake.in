@@ -4,6 +4,7 @@ set(BS_GSB_COMMAND @GenScriptBinding_SBGEN_EXECUTABLE@
 	-output-cs @GenScriptBinding_OUTPUT_CS_DIR@
 	-output-cpp-editor @GenScriptBinding_OUTPUT_CPP_EDITOR_DIR@
 	-output-cs-editor @GenScriptBinding_OUTPUT_CS_EDITOR_DIR@
+	@GenScriptBinding_DEFINES@
 	-- @GenScriptBinding_INCLUDE_DIRS@
 	-std=c++14
 	-DBS_STATIC_LIB
