@@ -34,7 +34,7 @@ namespace bs
 		Path nativePath = MonoUtil::monoToString(path);
 
 		HResource resource = GameResourceManager::instance().load(nativePath, flags, false);
-		if (resource == nullptr)
+		if (!resource.isLoaded(false))
 			return nullptr;
 
 		ScriptResourceBase* scriptResource = ScriptResourceManager::instance().getScriptResource(resource, true);
@@ -48,8 +48,8 @@ namespace bs
 		if (gApplication().isEditor())
 			loadFlags |= ResourceLoadFlag::KeepSourceData;
 
-		HResource resource = gResources().loadFromUUID(*uuid, loadFlags);
-		if (resource == nullptr)
+		HResource resource = gResources().loadFromUUID(*uuid, false, loadFlags);
+		if (!resource.isLoaded(false))
 			return nullptr;
 
 		ScriptResourceBase* scriptResource = ScriptResourceManager::instance().getScriptResource(resource, true);
@@ -78,7 +78,7 @@ namespace bs
 		if (gApplication().isEditor())
 			loadFlags |= ResourceLoadFlag::KeepSourceData;
 
-		HResource resource = gResources().loadFromUUID(*uuid, loadFlags);
+		HResource resource = gResources().loadFromUUID(*uuid, true, loadFlags);
 		if (resource == nullptr)
 			return nullptr;
 
