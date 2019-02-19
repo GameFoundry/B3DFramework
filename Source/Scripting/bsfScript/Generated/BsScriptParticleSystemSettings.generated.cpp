@@ -24,24 +24,26 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_setmaterial", (void*)&ScriptParticleSystemSettings::Internal_setmaterial);
 		metaData.scriptClass->addInternalCall("Internal_getmesh", (void*)&ScriptParticleSystemSettings::Internal_getmesh);
 		metaData.scriptClass->addInternalCall("Internal_setmesh", (void*)&ScriptParticleSystemSettings::Internal_setmesh);
-		metaData.scriptClass->addInternalCall("Internal_getgpuSimulation", (void*)&ScriptParticleSystemSettings::Internal_getgpuSimulation);
-		metaData.scriptClass->addInternalCall("Internal_setgpuSimulation", (void*)&ScriptParticleSystemSettings::Internal_setgpuSimulation);
 		metaData.scriptClass->addInternalCall("Internal_getsimulationSpace", (void*)&ScriptParticleSystemSettings::Internal_getsimulationSpace);
 		metaData.scriptClass->addInternalCall("Internal_setsimulationSpace", (void*)&ScriptParticleSystemSettings::Internal_setsimulationSpace);
 		metaData.scriptClass->addInternalCall("Internal_getorientation", (void*)&ScriptParticleSystemSettings::Internal_getorientation);
 		metaData.scriptClass->addInternalCall("Internal_setorientation", (void*)&ScriptParticleSystemSettings::Internal_setorientation);
-		metaData.scriptClass->addInternalCall("Internal_getorientationLockY", (void*)&ScriptParticleSystemSettings::Internal_getorientationLockY);
-		metaData.scriptClass->addInternalCall("Internal_setorientationLockY", (void*)&ScriptParticleSystemSettings::Internal_setorientationLockY);
-		metaData.scriptClass->addInternalCall("Internal_getorientationPlaneNormal", (void*)&ScriptParticleSystemSettings::Internal_getorientationPlaneNormal);
-		metaData.scriptClass->addInternalCall("Internal_setorientationPlaneNormal", (void*)&ScriptParticleSystemSettings::Internal_setorientationPlaneNormal);
-		metaData.scriptClass->addInternalCall("Internal_getsortMode", (void*)&ScriptParticleSystemSettings::Internal_getsortMode);
-		metaData.scriptClass->addInternalCall("Internal_setsortMode", (void*)&ScriptParticleSystemSettings::Internal_setsortMode);
 		metaData.scriptClass->addInternalCall("Internal_getduration", (void*)&ScriptParticleSystemSettings::Internal_getduration);
 		metaData.scriptClass->addInternalCall("Internal_setduration", (void*)&ScriptParticleSystemSettings::Internal_setduration);
 		metaData.scriptClass->addInternalCall("Internal_getisLooping", (void*)&ScriptParticleSystemSettings::Internal_getisLooping);
 		metaData.scriptClass->addInternalCall("Internal_setisLooping", (void*)&ScriptParticleSystemSettings::Internal_setisLooping);
 		metaData.scriptClass->addInternalCall("Internal_getmaxParticles", (void*)&ScriptParticleSystemSettings::Internal_getmaxParticles);
 		metaData.scriptClass->addInternalCall("Internal_setmaxParticles", (void*)&ScriptParticleSystemSettings::Internal_setmaxParticles);
+		metaData.scriptClass->addInternalCall("Internal_getgpuSimulation", (void*)&ScriptParticleSystemSettings::Internal_getgpuSimulation);
+		metaData.scriptClass->addInternalCall("Internal_setgpuSimulation", (void*)&ScriptParticleSystemSettings::Internal_setgpuSimulation);
+		metaData.scriptClass->addInternalCall("Internal_getrenderMode", (void*)&ScriptParticleSystemSettings::Internal_getrenderMode);
+		metaData.scriptClass->addInternalCall("Internal_setrenderMode", (void*)&ScriptParticleSystemSettings::Internal_setrenderMode);
+		metaData.scriptClass->addInternalCall("Internal_getorientationLockY", (void*)&ScriptParticleSystemSettings::Internal_getorientationLockY);
+		metaData.scriptClass->addInternalCall("Internal_setorientationLockY", (void*)&ScriptParticleSystemSettings::Internal_setorientationLockY);
+		metaData.scriptClass->addInternalCall("Internal_getorientationPlaneNormal", (void*)&ScriptParticleSystemSettings::Internal_getorientationPlaneNormal);
+		metaData.scriptClass->addInternalCall("Internal_setorientationPlaneNormal", (void*)&ScriptParticleSystemSettings::Internal_setorientationPlaneNormal);
+		metaData.scriptClass->addInternalCall("Internal_getsortMode", (void*)&ScriptParticleSystemSettings::Internal_getsortMode);
+		metaData.scriptClass->addInternalCall("Internal_setsortMode", (void*)&ScriptParticleSystemSettings::Internal_setsortMode);
 		metaData.scriptClass->addInternalCall("Internal_getuseAutomaticSeed", (void*)&ScriptParticleSystemSettings::Internal_getuseAutomaticSeed);
 		metaData.scriptClass->addInternalCall("Internal_setuseAutomaticSeed", (void*)&ScriptParticleSystemSettings::Internal_setuseAutomaticSeed);
 		metaData.scriptClass->addInternalCall("Internal_getmanualSeed", (void*)&ScriptParticleSystemSettings::Internal_getmanualSeed);
@@ -50,8 +52,6 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_setuseAutomaticBounds", (void*)&ScriptParticleSystemSettings::Internal_setuseAutomaticBounds);
 		metaData.scriptClass->addInternalCall("Internal_getcustomBounds", (void*)&ScriptParticleSystemSettings::Internal_getcustomBounds);
 		metaData.scriptClass->addInternalCall("Internal_setcustomBounds", (void*)&ScriptParticleSystemSettings::Internal_setcustomBounds);
-		metaData.scriptClass->addInternalCall("Internal_getrenderMode", (void*)&ScriptParticleSystemSettings::Internal_getrenderMode);
-		metaData.scriptClass->addInternalCall("Internal_setrenderMode", (void*)&ScriptParticleSystemSettings::Internal_setrenderMode);
 
 	}
 
@@ -118,22 +118,6 @@ namespace bs
 		thisPtr->getInternal()->mesh = tmpvalue;
 	}
 
-	bool ScriptParticleSystemSettings::Internal_getgpuSimulation(ScriptParticleSystemSettings* thisPtr)
-	{
-		bool tmp__output;
-		tmp__output = thisPtr->getInternal()->gpuSimulation;
-
-		bool __output;
-		__output = tmp__output;
-
-		return __output;
-	}
-
-	void ScriptParticleSystemSettings::Internal_setgpuSimulation(ScriptParticleSystemSettings* thisPtr, bool value)
-	{
-		thisPtr->getInternal()->gpuSimulation = value;
-	}
-
 	ParticleSimulationSpace ScriptParticleSystemSettings::Internal_getsimulationSpace(ScriptParticleSystemSettings* thisPtr)
 	{
 		ParticleSimulationSpace tmp__output;
@@ -164,53 +148,6 @@ namespace bs
 	void ScriptParticleSystemSettings::Internal_setorientation(ScriptParticleSystemSettings* thisPtr, ParticleOrientation value)
 	{
 		thisPtr->getInternal()->orientation = value;
-	}
-
-	bool ScriptParticleSystemSettings::Internal_getorientationLockY(ScriptParticleSystemSettings* thisPtr)
-	{
-		bool tmp__output;
-		tmp__output = thisPtr->getInternal()->orientationLockY;
-
-		bool __output;
-		__output = tmp__output;
-
-		return __output;
-	}
-
-	void ScriptParticleSystemSettings::Internal_setorientationLockY(ScriptParticleSystemSettings* thisPtr, bool value)
-	{
-		thisPtr->getInternal()->orientationLockY = value;
-	}
-
-	void ScriptParticleSystemSettings::Internal_getorientationPlaneNormal(ScriptParticleSystemSettings* thisPtr, Vector3* __output)
-	{
-		Vector3 tmp__output;
-		tmp__output = thisPtr->getInternal()->orientationPlaneNormal;
-
-		*__output = tmp__output;
-
-
-	}
-
-	void ScriptParticleSystemSettings::Internal_setorientationPlaneNormal(ScriptParticleSystemSettings* thisPtr, Vector3* value)
-	{
-		thisPtr->getInternal()->orientationPlaneNormal = *value;
-	}
-
-	ParticleSortMode ScriptParticleSystemSettings::Internal_getsortMode(ScriptParticleSystemSettings* thisPtr)
-	{
-		ParticleSortMode tmp__output;
-		tmp__output = thisPtr->getInternal()->sortMode;
-
-		ParticleSortMode __output;
-		__output = tmp__output;
-
-		return __output;
-	}
-
-	void ScriptParticleSystemSettings::Internal_setsortMode(ScriptParticleSystemSettings* thisPtr, ParticleSortMode value)
-	{
-		thisPtr->getInternal()->sortMode = value;
 	}
 
 	float ScriptParticleSystemSettings::Internal_getduration(ScriptParticleSystemSettings* thisPtr)
@@ -259,6 +196,85 @@ namespace bs
 	void ScriptParticleSystemSettings::Internal_setmaxParticles(ScriptParticleSystemSettings* thisPtr, uint32_t value)
 	{
 		thisPtr->getInternal()->maxParticles = value;
+	}
+
+	bool ScriptParticleSystemSettings::Internal_getgpuSimulation(ScriptParticleSystemSettings* thisPtr)
+	{
+		bool tmp__output;
+		tmp__output = thisPtr->getInternal()->gpuSimulation;
+
+		bool __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	void ScriptParticleSystemSettings::Internal_setgpuSimulation(ScriptParticleSystemSettings* thisPtr, bool value)
+	{
+		thisPtr->getInternal()->gpuSimulation = value;
+	}
+
+	ParticleRenderMode ScriptParticleSystemSettings::Internal_getrenderMode(ScriptParticleSystemSettings* thisPtr)
+	{
+		ParticleRenderMode tmp__output;
+		tmp__output = thisPtr->getInternal()->renderMode;
+
+		ParticleRenderMode __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	void ScriptParticleSystemSettings::Internal_setrenderMode(ScriptParticleSystemSettings* thisPtr, ParticleRenderMode value)
+	{
+		thisPtr->getInternal()->renderMode = value;
+	}
+
+	bool ScriptParticleSystemSettings::Internal_getorientationLockY(ScriptParticleSystemSettings* thisPtr)
+	{
+		bool tmp__output;
+		tmp__output = thisPtr->getInternal()->orientationLockY;
+
+		bool __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	void ScriptParticleSystemSettings::Internal_setorientationLockY(ScriptParticleSystemSettings* thisPtr, bool value)
+	{
+		thisPtr->getInternal()->orientationLockY = value;
+	}
+
+	void ScriptParticleSystemSettings::Internal_getorientationPlaneNormal(ScriptParticleSystemSettings* thisPtr, Vector3* __output)
+	{
+		Vector3 tmp__output;
+		tmp__output = thisPtr->getInternal()->orientationPlaneNormal;
+
+		*__output = tmp__output;
+
+
+	}
+
+	void ScriptParticleSystemSettings::Internal_setorientationPlaneNormal(ScriptParticleSystemSettings* thisPtr, Vector3* value)
+	{
+		thisPtr->getInternal()->orientationPlaneNormal = *value;
+	}
+
+	ParticleSortMode ScriptParticleSystemSettings::Internal_getsortMode(ScriptParticleSystemSettings* thisPtr)
+	{
+		ParticleSortMode tmp__output;
+		tmp__output = thisPtr->getInternal()->sortMode;
+
+		ParticleSortMode __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	void ScriptParticleSystemSettings::Internal_setsortMode(ScriptParticleSystemSettings* thisPtr, ParticleSortMode value)
+	{
+		thisPtr->getInternal()->sortMode = value;
 	}
 
 	bool ScriptParticleSystemSettings::Internal_getuseAutomaticSeed(ScriptParticleSystemSettings* thisPtr)
@@ -322,21 +338,5 @@ namespace bs
 	void ScriptParticleSystemSettings::Internal_setcustomBounds(ScriptParticleSystemSettings* thisPtr, AABox* value)
 	{
 		thisPtr->getInternal()->customBounds = *value;
-	}
-
-	ParticleRenderMode ScriptParticleSystemSettings::Internal_getrenderMode(ScriptParticleSystemSettings* thisPtr)
-	{
-		ParticleRenderMode tmp__output;
-		tmp__output = thisPtr->getInternal()->renderMode;
-
-		ParticleRenderMode __output;
-		__output = tmp__output;
-
-		return __output;
-	}
-
-	void ScriptParticleSystemSettings::Internal_setrenderMode(ScriptParticleSystemSettings* thisPtr, ParticleRenderMode value)
-	{
-		thisPtr->getInternal()->renderMode = value;
 	}
 }

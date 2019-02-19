@@ -24,7 +24,7 @@ namespace bs
 		virtual ~CParticleSystem() = default;
 		
 		/** @copydoc ParticleSystem::setSettings */
-		BS_SCRIPT_EXPORT(pr:setter,n:Settings,passByCopy)
+		BS_SCRIPT_EXPORT(pr:setter,n:Settings,passByCopy,inline)
 		void setSettings(const ParticleSystemSettings& settings);
 
 		/** @copydoc ParticleSystem::getSettings */

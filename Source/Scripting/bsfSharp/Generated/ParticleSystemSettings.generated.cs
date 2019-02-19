@@ -28,24 +28,12 @@ namespace bs
 
 		/// <summary>Mesh used for representing individual particles when using the Mesh rendering mode.</summary>
 		[ShowInInspector]
+		[Order(2)]
 		[NativeWrapper]
 		public RRef<Mesh> Mesh
 		{
 			get { return Internal_getmesh(mCachedPtr); }
 			set { Internal_setmesh(mCachedPtr, value); }
-		}
-
-		/// <summary>
-		/// If true the particle system will be simulated on the GPU. This allows much higher particle counts at lower 
-		/// performance cost. GPU simulation ignores any provided evolvers and instead uses ParticleGpuSimulationSettings to 
-		/// customize the GPU simulation.
-		/// </summary>
-		[ShowInInspector]
-		[NativeWrapper]
-		public bool GpuSimulation
-		{
-			get { return Internal_getgpuSimulation(mCachedPtr); }
-			set { Internal_setgpuSimulation(mCachedPtr, value); }
 		}
 
 		/// <summary>Determines in which space are particles in.</summary>
@@ -64,47 +52,6 @@ namespace bs
 		{
 			get { return Internal_getorientation(mCachedPtr); }
 			set { Internal_setorientation(mCachedPtr, value); }
-		}
-
-		/// <summary>
-		/// Determines should the particles only be allowed to orient themselves around the Y axis, or freely. Ignored if using 
-		/// the Plane orientation mode.
-		/// </summary>
-		[ShowInInspector]
-		[NativeWrapper]
-		public bool OrientationLockY
-		{
-			get { return Internal_getorientationLockY(mCachedPtr); }
-			set { Internal_setorientationLockY(mCachedPtr, value); }
-		}
-
-		/// <summary>
-		/// Determines a normal of the plane to orient particles towards. Only used if particle orientation mode is set to  
-		/// ParticleOrientation::Plane.
-		/// </summary>
-		[ShowInInspector]
-		[NativeWrapper]
-		public Vector3 OrientationPlaneNormal
-		{
-			get
-			{
-				Vector3 temp;
-				Internal_getorientationPlaneNormal(mCachedPtr, out temp);
-				return temp;
-			}
-			set { Internal_setorientationPlaneNormal(mCachedPtr, ref value); }
-		}
-
-		/// <summary>
-		/// Determines how (and if) are particles sorted. Sorting controls in what order are particles rendered.  If GPU 
-		/// simulation is enabled only distance based sorting is supported.
-		/// </summary>
-		[ShowInInspector]
-		[NativeWrapper]
-		public ParticleSortMode SortMode
-		{
-			get { return Internal_getsortMode(mCachedPtr); }
-			set { Internal_setsortMode(mCachedPtr, value); }
 		}
 
 		/// <summary>
@@ -142,10 +89,80 @@ namespace bs
 		}
 
 		/// <summary>
+		/// If true the particle system will be simulated on the GPU. This allows much higher particle counts at lower 
+		/// performance cost. GPU simulation ignores any provided evolvers and instead uses ParticleGpuSimulationSettings to 
+		/// customize the GPU simulation.
+		/// </summary>
+		[ShowInInspector]
+		[Order(1)]
+		[Category("Advanced")]
+		[NativeWrapper]
+		public bool GpuSimulation
+		{
+			get { return Internal_getgpuSimulation(mCachedPtr); }
+			set { Internal_setgpuSimulation(mCachedPtr, value); }
+		}
+
+		/// <summary>Determines how is each particle represented on the screen.</summary>
+		[ShowInInspector]
+		[Order(2)]
+		[NativeWrapper]
+		public ParticleRenderMode RenderMode
+		{
+			get { return Internal_getrenderMode(mCachedPtr); }
+			set { Internal_setrenderMode(mCachedPtr, value); }
+		}
+
+		/// <summary>
+		/// Determines should the particles only be allowed to orient themselves around the Y axis, or freely. Ignored if using 
+		/// the Plane orientation mode.
+		/// </summary>
+		[ShowInInspector]
+		[Order(2)]
+		[NativeWrapper]
+		public bool OrientationLockY
+		{
+			get { return Internal_getorientationLockY(mCachedPtr); }
+			set { Internal_setorientationLockY(mCachedPtr, value); }
+		}
+
+		/// <summary>
+		/// Determines a normal of the plane to orient particles towards. Only used if particle orientation mode is set to  
+		/// ParticleOrientation::Plane.
+		/// </summary>
+		[ShowInInspector]
+		[Order(2)]
+		[NativeWrapper]
+		public Vector3 OrientationPlaneNormal
+		{
+			get
+			{
+				Vector3 temp;
+				Internal_getorientationPlaneNormal(mCachedPtr, out temp);
+				return temp;
+			}
+			set { Internal_setorientationPlaneNormal(mCachedPtr, ref value); }
+		}
+
+		/// <summary>
+		/// Determines how (and if) are particles sorted. Sorting controls in what order are particles rendered.  If GPU 
+		/// simulation is enabled only distance based sorting is supported.
+		/// </summary>
+		[ShowInInspector]
+		[Order(2)]
+		[NativeWrapper]
+		public ParticleSortMode SortMode
+		{
+			get { return Internal_getsortMode(mCachedPtr); }
+			set { Internal_setsortMode(mCachedPtr, value); }
+		}
+
+		/// <summary>
 		/// Determines should an automatic seed be used for the internal random number generator. This ensures the particle 
 		/// system yields different results each time it is ran.
 		/// </summary>
 		[ShowInInspector]
+		[Order(2)]
 		[NativeWrapper]
 		public bool UseAutomaticSeed
 		{
@@ -158,6 +175,7 @@ namespace bs
 		/// between different runs. Only relevant if automatic seed is disabled.
 		/// </summary>
 		[ShowInInspector]
+		[Order(2)]
 		[NativeWrapper]
 		public int ManualSeed
 		{
@@ -171,6 +189,7 @@ namespace bs
 		/// enabled.
 		/// </summary>
 		[ShowInInspector]
+		[Order(2)]
 		[NativeWrapper]
 		public bool UseAutomaticBounds
 		{
@@ -183,6 +202,7 @@ namespace bs
 		/// particle system.
 		/// </summary>
 		[ShowInInspector]
+		[Order(2)]
 		[NativeWrapper]
 		public AABox CustomBounds
 		{
@@ -195,15 +215,6 @@ namespace bs
 			set { Internal_setcustomBounds(mCachedPtr, ref value); }
 		}
 
-		/// <summary>Determines how is each particle represented on the screen.</summary>
-		[ShowInInspector]
-		[NativeWrapper]
-		public ParticleRenderMode RenderMode
-		{
-			get { return Internal_getrenderMode(mCachedPtr); }
-			set { Internal_setrenderMode(mCachedPtr, value); }
-		}
-
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern RRef<Material> Internal_getmaterial(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -213,10 +224,6 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setmesh(IntPtr thisPtr, RRef<Mesh> value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_getgpuSimulation(IntPtr thisPtr);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setgpuSimulation(IntPtr thisPtr, bool value);
-		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern ParticleSimulationSpace Internal_getsimulationSpace(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setsimulationSpace(IntPtr thisPtr, ParticleSimulationSpace value);
@@ -224,18 +231,6 @@ namespace bs
 		private static extern ParticleOrientation Internal_getorientation(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setorientation(IntPtr thisPtr, ParticleOrientation value);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_getorientationLockY(IntPtr thisPtr);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setorientationLockY(IntPtr thisPtr, bool value);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_getorientationPlaneNormal(IntPtr thisPtr, out Vector3 __output);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setorientationPlaneNormal(IntPtr thisPtr, ref Vector3 value);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern ParticleSortMode Internal_getsortMode(IntPtr thisPtr);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setsortMode(IntPtr thisPtr, ParticleSortMode value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern float Internal_getduration(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -248,6 +243,26 @@ namespace bs
 		private static extern int Internal_getmaxParticles(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setmaxParticles(IntPtr thisPtr, int value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern bool Internal_getgpuSimulation(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_setgpuSimulation(IntPtr thisPtr, bool value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern ParticleRenderMode Internal_getrenderMode(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_setrenderMode(IntPtr thisPtr, ParticleRenderMode value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern bool Internal_getorientationLockY(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_setorientationLockY(IntPtr thisPtr, bool value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_getorientationPlaneNormal(IntPtr thisPtr, out Vector3 __output);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_setorientationPlaneNormal(IntPtr thisPtr, ref Vector3 value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern ParticleSortMode Internal_getsortMode(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_setsortMode(IntPtr thisPtr, ParticleSortMode value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_getuseAutomaticSeed(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -264,10 +279,6 @@ namespace bs
 		private static extern void Internal_getcustomBounds(IntPtr thisPtr, out AABox __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setcustomBounds(IntPtr thisPtr, ref AABox value);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern ParticleRenderMode Internal_getrenderMode(IntPtr thisPtr);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setrenderMode(IntPtr thisPtr, ParticleRenderMode value);
 	}
 
 	/** @} */

@@ -139,14 +139,6 @@ namespace bs
 	/** Common base for both sim and core thread variants of ParticleSystemSettings. */
 	struct ParticleSystemSettingsBase
 	{
-		/** 
-		 * If true the particle system will be simulated on the GPU. This allows much higher particle counts at lower
-		 * performance cost. GPU simulation ignores any provided evolvers and instead uses ParticleGpuSimulationSettings
-		 * to customize the GPU simulation. 
-		 */
-		BS_SCRIPT_EXPORT()
-		bool gpuSimulation = false;
-
 		/** Determines in which space are particles in. */
 		BS_SCRIPT_EXPORT()
 		ParticleSimulationSpace simulationSpace = ParticleSimulationSpace::World;
@@ -154,27 +146,6 @@ namespace bs
 		/** Determines how are particles oriented when rendering. */
 		BS_SCRIPT_EXPORT()
 		ParticleOrientation orientation = ParticleOrientation::ViewPlane;
-
-		/** 
-		 * Determines should the particles only be allowed to orient themselves around the Y axis, or freely. Ignored if
-		 * using the Plane orientation mode.
-		 */
-		BS_SCRIPT_EXPORT()
-		bool orientationLockY = false;
-
-		/** 
-		 * Determines a normal of the plane to orient particles towards. Only used if particle orientation mode is set to 
-		 * ParticleOrientation::Plane. 
-		 */
-		BS_SCRIPT_EXPORT()
-		Vector3 orientationPlaneNormal = Vector3::UNIT_Z;
-
-		/** 
-		 * Determines how (and if) are particles sorted. Sorting controls in what order are particles rendered. 
-		 * If GPU simulation is enabled only distance based sorting is supported.
-		 */
-		BS_SCRIPT_EXPORT()
-		ParticleSortMode sortMode = ParticleSortMode::None;
 
 		/** 
 		 * Determines the time period during which the system runs, in seconds. This effects evaluation of distributions
@@ -196,17 +167,51 @@ namespace bs
 		UINT32 maxParticles = 2000;
 
 		/** 
+		 * If true the particle system will be simulated on the GPU. This allows much higher particle counts at lower
+		 * performance cost. GPU simulation ignores any provided evolvers and instead uses ParticleGpuSimulationSettings
+		 * to customize the GPU simulation. 
+		 */
+		BS_SCRIPT_EXPORT(category:Advanced,order:1)
+		bool gpuSimulation = false;
+
+
+		/** Determines how is each particle represented on the screen. */
+		BS_SCRIPT_EXPORT(order:2)
+		ParticleRenderMode renderMode = ParticleRenderMode::Billboard;
+
+		/** 
+		 * Determines should the particles only be allowed to orient themselves around the Y axis, or freely. Ignored if
+		 * using the Plane orientation mode.
+		 */
+		BS_SCRIPT_EXPORT(order:2)
+		bool orientationLockY = false;
+
+		/** 
+		 * Determines a normal of the plane to orient particles towards. Only used if particle orientation mode is set to 
+		 * ParticleOrientation::Plane. 
+		 */
+		BS_SCRIPT_EXPORT(order:2)
+		Vector3 orientationPlaneNormal = Vector3::UNIT_Z;
+
+		/** 
+		 * Determines how (and if) are particles sorted. Sorting controls in what order are particles rendered. 
+		 * If GPU simulation is enabled only distance based sorting is supported.
+		 */
+		BS_SCRIPT_EXPORT(order:2)
+		ParticleSortMode sortMode = ParticleSortMode::None;
+
+		/** 
 		 * Determines should an automatic seed be used for the internal random number generator. This ensures the particle
 		 * system yields different results each time it is ran.
 		 */
-		BS_SCRIPT_EXPORT()
+		BS_SCRIPT_EXPORT(order:2)
 		bool useAutomaticSeed = true;
 
 		/** 
 		 * Determines the seed to use for the internal random number generator. Allows you to guarantee identical behaviour
 		 * between different runs. Only relevant if automatic seed is disabled.
 		 */
-		BS_SCRIPT_EXPORT()
+		BS_SCRIPT_EXPORT(order:2)
 		UINT32 manualSeed = 0;
 
 		/**
@@ -214,19 +219,15 @@ namespace bs
 		 * be used. Bounds are used primarily for culling purposes. Note that automatic bounds are not supported when GPU
 		 * simulation is enabled.
 		 */
-		BS_SCRIPT_EXPORT()
+		BS_SCRIPT_EXPORT(order:2)
 		bool useAutomaticBounds = true;
 
 		/** 
 		 * Custom bounds to use them @p useAutomaticBounds is disabled. The bounds are in the simulation space of the
 		 * particle system.
 		 */
-		BS_SCRIPT_EXPORT()
+		BS_SCRIPT_EXPORT(order:2)
 		AABox customBounds;
-
-		/** Determines how is each particle represented on the screen. */
-		BS_SCRIPT_EXPORT()
-		ParticleRenderMode renderMode = ParticleRenderMode::Billboard;
 	};
 
 	/** Templated common base for both sim and core thread variants of ParticleSystemSettings. */
@@ -241,7 +242,7 @@ namespace bs
 		MaterialType material;
 
 		/** Mesh used for representing individual particles when using the Mesh rendering mode. */
-		BS_SCRIPT_EXPORT()
+		BS_SCRIPT_EXPORT(order:2)
 		MeshType mesh;
 
 		/** Enumerates all the fields in the type and executes the specified processor action for each field. */

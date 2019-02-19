@@ -26,6 +26,7 @@ namespace bs
 
 		/// <summary>Determines general purpose settings that apply to the particle system.</summary>
 		[ShowInInspector]
+		[Inline]
 		[NotNull]
 		[PassByCopy]
 		[NativeWrapper]
