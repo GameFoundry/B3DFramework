@@ -4,7 +4,6 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 #include "Reflection/BsRTTIType.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 #include "BsScriptParticleEmitterHemisphereShape.generated.h"
@@ -34,7 +33,7 @@
 namespace bs
 {
 	ScriptParticleEmitter::ScriptParticleEmitter(MonoObject* managedInstance, const SPtr<ParticleEmitter>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		:TScriptReflectable(managedInstance, value)
 	{
 	}
 

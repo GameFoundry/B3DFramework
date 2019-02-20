@@ -3,25 +3,23 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Animation/BsMorphShapes.h"
 
 namespace bs
 {
 	class MorphShapes;
 
-	class BS_SCR_BE_EXPORT ScriptMorphShapes : public ScriptObject<ScriptMorphShapes>
+	class BS_SCR_BE_EXPORT ScriptMorphShapes : public TScriptReflectable<ScriptMorphShapes, MorphShapes>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "MorphShapes")
 
 		ScriptMorphShapes(MonoObject* managedInstance, const SPtr<MorphShapes>& value);
 
-		SPtr<MorphShapes> getInternal() const { return mInternal; }
 		static MonoObject* create(const SPtr<MorphShapes>& value);
 
 	private:
-		SPtr<MorphShapes> mInternal;
-
 		static MonoArray* Internal_getChannels(ScriptMorphShapes* thisPtr);
 	};
 }

@@ -4,7 +4,6 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 #include "BsScriptResourceManager.h"
 #include "Wrappers/BsScriptRRefBase.h"
 #include "../../../Foundation/bsfCore/Material/BsMaterial.h"
@@ -14,7 +13,7 @@
 namespace bs
 {
 	ScriptParticleSystemSettings::ScriptParticleSystemSettings(MonoObject* managedInstance, const SPtr<ParticleSystemSettings>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		:TScriptReflectable(managedInstance, value)
 	{
 	}
 

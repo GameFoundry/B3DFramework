@@ -3,7 +3,8 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
@@ -14,19 +15,16 @@ namespace bs
 	class ParticleEmitter;
 	struct __ParticleBurstInterop;
 
-	class BS_SCR_BE_EXPORT ScriptParticleEmitter : public ScriptObject<ScriptParticleEmitter>
+	class BS_SCR_BE_EXPORT ScriptParticleEmitter : public TScriptReflectable<ScriptParticleEmitter, ParticleEmitter>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleEmitter")
 
 		ScriptParticleEmitter(MonoObject* managedInstance, const SPtr<ParticleEmitter>& value);
 
-		SPtr<ParticleEmitter> getInternal() const { return mInternal; }
 		static MonoObject* create(const SPtr<ParticleEmitter>& value);
 
 	private:
-		SPtr<ParticleEmitter> mInternal;
-
 		static void Internal_setShape(ScriptParticleEmitter* thisPtr, MonoObject* shape);
 		static MonoObject* Internal_getShape(ScriptParticleEmitter* thisPtr);
 		static void Internal_setEmissionRate(ScriptParticleEmitter* thisPtr, MonoObject* value);

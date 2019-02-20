@@ -3,26 +3,24 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "Image/BsColor.h"
 
 namespace bs
 {
 	struct BloomSettings;
 
-	class BS_SCR_BE_EXPORT ScriptBloomSettings : public ScriptObject<ScriptBloomSettings>
+	class BS_SCR_BE_EXPORT ScriptBloomSettings : public TScriptReflectable<ScriptBloomSettings, BloomSettings>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "BloomSettings")
 
 		ScriptBloomSettings(MonoObject* managedInstance, const SPtr<BloomSettings>& value);
 
-		SPtr<BloomSettings> getInternal() const { return mInternal; }
 		static MonoObject* create(const SPtr<BloomSettings>& value);
 
 	private:
-		SPtr<BloomSettings> mInternal;
-
 		static void Internal_BloomSettings(MonoObject* managedInstance);
 		static bool Internal_getenabled(ScriptBloomSettings* thisPtr);
 		static void Internal_setenabled(ScriptBloomSettings* thisPtr, bool value);

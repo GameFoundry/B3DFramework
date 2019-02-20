@@ -4,24 +4,22 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/RenderAPI/BsRenderTarget.h"
 #include "../Extensions/BsRenderTargetEx.h"
 
 namespace bs
 {
 	ScriptRenderTargetBase::ScriptRenderTargetBase(MonoObject* managedInstance)
-		:ScriptObjectBase(managedInstance)
+		:ScriptReflectableBase(managedInstance)
 	 { }
 
-	ScriptRenderTarget::ScriptRenderTarget(MonoObject* managedInstance, const SPtr<RenderTarget>& value)
-		:ScriptObject(managedInstance)
-	{
-		mInternal = value;
-	}
-
-	SPtr<RenderTarget> ScriptRenderTarget::getInternal() const 
+	SPtr<RenderTarget> ScriptRenderTargetBase::getInternal() const
 	{
 		return std::static_pointer_cast<RenderTarget>(mInternal);
+	}
+	ScriptRenderTarget::ScriptRenderTarget(MonoObject* managedInstance, const SPtr<RenderTarget>& value)
+		:TScriptReflectable(managedInstance, value)
+	{
+		mInternal = value;
 	}
 
 	void ScriptRenderTarget::initRuntimeData()

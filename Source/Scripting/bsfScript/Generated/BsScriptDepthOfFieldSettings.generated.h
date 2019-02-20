@@ -3,25 +3,23 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
 namespace bs
 {
 	struct DepthOfFieldSettings;
 
-	class BS_SCR_BE_EXPORT ScriptDepthOfFieldSettings : public ScriptObject<ScriptDepthOfFieldSettings>
+	class BS_SCR_BE_EXPORT ScriptDepthOfFieldSettings : public TScriptReflectable<ScriptDepthOfFieldSettings, DepthOfFieldSettings>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "DepthOfFieldSettings")
 
 		ScriptDepthOfFieldSettings(MonoObject* managedInstance, const SPtr<DepthOfFieldSettings>& value);
 
-		SPtr<DepthOfFieldSettings> getInternal() const { return mInternal; }
 		static MonoObject* create(const SPtr<DepthOfFieldSettings>& value);
 
 	private:
-		SPtr<DepthOfFieldSettings> mInternal;
-
 		static void Internal_DepthOfFieldSettings(MonoObject* managedInstance);
 		static bool Internal_getenabled(ScriptDepthOfFieldSettings* thisPtr);
 		static void Internal_setenabled(ScriptDepthOfFieldSettings* thisPtr, bool value);

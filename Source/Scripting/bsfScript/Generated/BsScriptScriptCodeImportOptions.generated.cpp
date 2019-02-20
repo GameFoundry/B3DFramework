@@ -4,21 +4,15 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfEngine/Resources/BsScriptCodeImportOptions.h"
 #include "BsScriptScriptCodeImportOptions.generated.h"
 
 namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptScriptCodeImportOptions::ScriptScriptCodeImportOptions(MonoObject* managedInstance, const SPtr<ScriptCodeImportOptions>& value)
-		:ScriptObject(managedInstance)
+		:TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
-	}
-
-	SPtr<ScriptCodeImportOptions> ScriptScriptCodeImportOptions::getInternal() const 
-	{
-		return std::static_pointer_cast<ScriptCodeImportOptions>(mInternal);
 	}
 
 	void ScriptScriptCodeImportOptions::initRuntimeData()

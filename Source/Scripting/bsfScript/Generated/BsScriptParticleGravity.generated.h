@@ -3,22 +3,22 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
 #include "BsScriptParticleEvolver.generated.h"
+#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
 namespace bs
 {
 	class ParticleGravity;
 
-	class BS_SCR_BE_EXPORT ScriptParticleGravity : public ScriptObject<ScriptParticleGravity, ScriptParticleEvolverBase>
+	class BS_SCR_BE_EXPORT ScriptParticleGravity : public TScriptReflectable<ScriptParticleGravity, ParticleGravity, ScriptParticleEvolverBase>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleGravity")
 
 		ScriptParticleGravity(MonoObject* managedInstance, const SPtr<ParticleGravity>& value);
 
-		SPtr<ParticleGravity> getInternal() const;
 		static MonoObject* create(const SPtr<ParticleGravity>& value);
 
 	private:

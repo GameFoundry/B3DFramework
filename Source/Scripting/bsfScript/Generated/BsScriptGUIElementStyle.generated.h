@@ -3,7 +3,8 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfEngine/GUI/BsGUIElementStyle.h"
 #include "../../../Foundation/bsfEngine/Utility/BsRectOffset.h"
 #include "../../../Foundation/bsfEngine/2D/BsTextSprite.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIElementStyle.h"
@@ -15,19 +16,16 @@ namespace bs
 	struct GUIElementStyle;
 	struct __GUIElementStateStyleInterop;
 
-	class BS_SCR_BE_EXPORT ScriptGUIElementStyle : public ScriptObject<ScriptGUIElementStyle>
+	class BS_SCR_BE_EXPORT ScriptGUIElementStyle : public TScriptReflectable<ScriptGUIElementStyle, GUIElementStyle>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUIElementStyle")
 
 		ScriptGUIElementStyle(MonoObject* managedInstance, const SPtr<GUIElementStyle>& value);
 
-		SPtr<GUIElementStyle> getInternal() const { return mInternal; }
 		static MonoObject* create(const SPtr<GUIElementStyle>& value);
 
 	private:
-		SPtr<GUIElementStyle> mInternal;
-
 		static void Internal_GUIElementStyle(MonoObject* managedInstance);
 		static void Internal_addSubStyle(ScriptGUIElementStyle* thisPtr, MonoString* guiType, MonoString* styleName);
 		static MonoObject* Internal_getfont(ScriptGUIElementStyle* thisPtr);

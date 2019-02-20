@@ -3,25 +3,23 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
 namespace bs
 {
 	struct WhiteBalanceSettings;
 
-	class BS_SCR_BE_EXPORT ScriptWhiteBalanceSettings : public ScriptObject<ScriptWhiteBalanceSettings>
+	class BS_SCR_BE_EXPORT ScriptWhiteBalanceSettings : public TScriptReflectable<ScriptWhiteBalanceSettings, WhiteBalanceSettings>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "WhiteBalanceSettings")
 
 		ScriptWhiteBalanceSettings(MonoObject* managedInstance, const SPtr<WhiteBalanceSettings>& value);
 
-		SPtr<WhiteBalanceSettings> getInternal() const { return mInternal; }
 		static MonoObject* create(const SPtr<WhiteBalanceSettings>& value);
 
 	private:
-		SPtr<WhiteBalanceSettings> mInternal;
-
 		static void Internal_WhiteBalanceSettings(MonoObject* managedInstance);
 		static float Internal_gettemperature(ScriptWhiteBalanceSettings* thisPtr);
 		static void Internal_settemperature(ScriptWhiteBalanceSettings* thisPtr, float value);

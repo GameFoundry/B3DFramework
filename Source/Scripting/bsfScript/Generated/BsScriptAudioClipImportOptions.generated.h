@@ -3,8 +3,9 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
 #include "BsScriptImportOptions.generated.h"
+#include "../../../Foundation/bsfCore/Audio/BsAudioClipImportOptions.h"
 #include "../../../Foundation/bsfCore/Audio/BsAudioClip.h"
 #include "../../../Foundation/bsfCore/Audio/BsAudioClip.h"
 
@@ -13,14 +14,13 @@ namespace bs
 	class AudioClipImportOptions;
 
 #if !BS_IS_BANSHEE3D
-	class BS_SCR_BE_EXPORT ScriptAudioClipImportOptions : public ScriptObject<ScriptAudioClipImportOptions, ScriptImportOptionsBase>
+	class BS_SCR_BE_EXPORT ScriptAudioClipImportOptions : public TScriptReflectable<ScriptAudioClipImportOptions, AudioClipImportOptions, ScriptImportOptionsBase>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AudioClipImportOptions")
 
 		ScriptAudioClipImportOptions(MonoObject* managedInstance, const SPtr<AudioClipImportOptions>& value);
 
-		SPtr<AudioClipImportOptions> getInternal() const;
 		static MonoObject* create(const SPtr<AudioClipImportOptions>& value);
 
 	private:

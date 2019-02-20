@@ -3,8 +3,9 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
 #include "BsScriptRenderTarget.generated.h"
+#include "../../../Foundation/bsfCore/RenderAPI/BsRenderTexture.h"
 #include "../../../Foundation/bsfCore/Image/BsPixelData.h"
 
 namespace bs
@@ -12,14 +13,13 @@ namespace bs
 	class RenderTexture;
 	class RenderTextureEx;
 
-	class BS_SCR_BE_EXPORT ScriptRenderTexture : public ScriptObject<ScriptRenderTexture, ScriptRenderTargetBase>
+	class BS_SCR_BE_EXPORT ScriptRenderTexture : public TScriptReflectable<ScriptRenderTexture, RenderTexture, ScriptRenderTargetBase>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "RenderTexture")
 
 		ScriptRenderTexture(MonoObject* managedInstance, const SPtr<RenderTexture>& value);
 
-		SPtr<RenderTexture> getInternal() const;
 		static MonoObject* create(const SPtr<RenderTexture>& value);
 
 	private:

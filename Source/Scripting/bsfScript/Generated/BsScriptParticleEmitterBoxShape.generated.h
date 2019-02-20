@@ -3,22 +3,22 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
 #include "BsScriptParticleEmitterShape.generated.h"
+#include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 
 namespace bs
 {
 	class ParticleEmitterBoxShape;
 	struct __PARTICLE_BOX_SHAPE_DESCInterop;
 
-	class BS_SCR_BE_EXPORT ScriptParticleEmitterBoxShape : public ScriptObject<ScriptParticleEmitterBoxShape, ScriptParticleEmitterShapeBase>
+	class BS_SCR_BE_EXPORT ScriptParticleEmitterBoxShape : public TScriptReflectable<ScriptParticleEmitterBoxShape, ParticleEmitterBoxShape, ScriptParticleEmitterShapeBase>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleEmitterBoxShape")
 
 		ScriptParticleEmitterBoxShape(MonoObject* managedInstance, const SPtr<ParticleEmitterBoxShape>& value);
 
-		SPtr<ParticleEmitterBoxShape> getInternal() const;
 		static MonoObject* create(const SPtr<ParticleEmitterBoxShape>& value);
 
 	private:

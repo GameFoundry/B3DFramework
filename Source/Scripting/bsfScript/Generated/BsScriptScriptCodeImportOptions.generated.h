@@ -3,22 +3,22 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
 #include "BsScriptImportOptions.generated.h"
+#include "../../../Foundation/bsfEngine/Resources/BsScriptCodeImportOptions.h"
 
 namespace bs
 {
 	class ScriptCodeImportOptions;
 
 #if !BS_IS_BANSHEE3D
-	class BS_SCR_BE_EXPORT ScriptScriptCodeImportOptions : public ScriptObject<ScriptScriptCodeImportOptions, ScriptImportOptionsBase>
+	class BS_SCR_BE_EXPORT ScriptScriptCodeImportOptions : public TScriptReflectable<ScriptScriptCodeImportOptions, ScriptCodeImportOptions, ScriptImportOptionsBase>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ScriptCodeImportOptions")
 
 		ScriptScriptCodeImportOptions(MonoObject* managedInstance, const SPtr<ScriptCodeImportOptions>& value);
 
-		SPtr<ScriptCodeImportOptions> getInternal() const;
 		static MonoObject* create(const SPtr<ScriptCodeImportOptions>& value);
 
 	private:

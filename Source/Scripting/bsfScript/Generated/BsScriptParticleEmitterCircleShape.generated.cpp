@@ -4,21 +4,15 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 #include "BsScriptPARTICLE_CIRCLE_SHAPE_DESC.generated.h"
 #include "BsScriptParticleEmitterCircleShape.generated.h"
 
 namespace bs
 {
 	ScriptParticleEmitterCircleShape::ScriptParticleEmitterCircleShape(MonoObject* managedInstance, const SPtr<ParticleEmitterCircleShape>& value)
-		:ScriptObject(managedInstance)
+		:TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
-	}
-
-	SPtr<ParticleEmitterCircleShape> ScriptParticleEmitterCircleShape::getInternal() const 
-	{
-		return std::static_pointer_cast<ParticleEmitterCircleShape>(mInternal);
 	}
 
 	void ScriptParticleEmitterCircleShape::initRuntimeData()

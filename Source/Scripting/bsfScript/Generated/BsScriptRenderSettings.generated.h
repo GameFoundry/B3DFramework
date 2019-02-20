@@ -3,7 +3,8 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
@@ -18,19 +19,16 @@ namespace bs
 {
 	struct RenderSettings;
 
-	class BS_SCR_BE_EXPORT ScriptRenderSettings : public ScriptObject<ScriptRenderSettings>
+	class BS_SCR_BE_EXPORT ScriptRenderSettings : public TScriptReflectable<ScriptRenderSettings, RenderSettings>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "RenderSettings")
 
 		ScriptRenderSettings(MonoObject* managedInstance, const SPtr<RenderSettings>& value);
 
-		SPtr<RenderSettings> getInternal() const { return mInternal; }
 		static MonoObject* create(const SPtr<RenderSettings>& value);
 
 	private:
-		SPtr<RenderSettings> mInternal;
-
 		static void Internal_RenderSettings(MonoObject* managedInstance);
 		static bool Internal_getenableAutoExposure(ScriptRenderSettings* thisPtr);
 		static void Internal_setenableAutoExposure(ScriptRenderSettings* thisPtr, bool value);

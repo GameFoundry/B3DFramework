@@ -3,25 +3,23 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
 namespace bs
 {
 	struct ShadowSettings;
 
-	class BS_SCR_BE_EXPORT ScriptShadowSettings : public ScriptObject<ScriptShadowSettings>
+	class BS_SCR_BE_EXPORT ScriptShadowSettings : public TScriptReflectable<ScriptShadowSettings, ShadowSettings>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ShadowSettings")
 
 		ScriptShadowSettings(MonoObject* managedInstance, const SPtr<ShadowSettings>& value);
 
-		SPtr<ShadowSettings> getInternal() const { return mInternal; }
 		static MonoObject* create(const SPtr<ShadowSettings>& value);
 
 	private:
-		SPtr<ShadowSettings> mInternal;
-
 		static void Internal_ShadowSettings(MonoObject* managedInstance);
 		static float Internal_getdirectionalShadowDistance(ScriptShadowSettings* thisPtr);
 		static void Internal_setdirectionalShadowDistance(ScriptShadowSettings* thisPtr, float value);

@@ -3,7 +3,8 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 #include "Math/BsAABox.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
@@ -15,19 +16,16 @@ namespace bs
 {
 	struct ParticleSystemSettings;
 
-	class BS_SCR_BE_EXPORT ScriptParticleSystemSettings : public ScriptObject<ScriptParticleSystemSettings>
+	class BS_SCR_BE_EXPORT ScriptParticleSystemSettings : public TScriptReflectable<ScriptParticleSystemSettings, ParticleSystemSettings>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleSystemSettings")
 
 		ScriptParticleSystemSettings(MonoObject* managedInstance, const SPtr<ParticleSystemSettings>& value);
 
-		SPtr<ParticleSystemSettings> getInternal() const { return mInternal; }
 		static MonoObject* create(const SPtr<ParticleSystemSettings>& value);
 
 	private:
-		SPtr<ParticleSystemSettings> mInternal;
-
 		static MonoObject* Internal_getmaterial(ScriptParticleSystemSettings* thisPtr);
 		static void Internal_setmaterial(ScriptParticleSystemSettings* thisPtr, MonoObject* value);
 		static MonoObject* Internal_getmesh(ScriptParticleSystemSettings* thisPtr);

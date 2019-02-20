@@ -4,13 +4,12 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "Wrappers/BsScriptColor.h"
 
 namespace bs
 {
 	ScriptBloomSettings::ScriptBloomSettings(MonoObject* managedInstance, const SPtr<BloomSettings>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		:TScriptReflectable(managedInstance, value)
 	{
 	}
 

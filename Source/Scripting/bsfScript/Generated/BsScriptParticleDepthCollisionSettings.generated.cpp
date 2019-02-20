@@ -4,12 +4,11 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 
 namespace bs
 {
 	ScriptParticleDepthCollisionSettings::ScriptParticleDepthCollisionSettings(MonoObject* managedInstance, const SPtr<ParticleDepthCollisionSettings>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		:TScriptReflectable(managedInstance, value)
 	{
 	}
 

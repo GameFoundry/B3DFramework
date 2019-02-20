@@ -4,7 +4,6 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Image/BsPixelData.h"
 #include "Wrappers/BsScriptColor.h"
 #include "BsScriptPixelVolume.generated.h"
 #include "BsScriptPixelData.generated.h"
@@ -13,7 +12,7 @@
 namespace bs
 {
 	ScriptPixelData::ScriptPixelData(MonoObject* managedInstance, const SPtr<PixelData>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		:TScriptReflectable(managedInstance, value)
 	{
 	}
 

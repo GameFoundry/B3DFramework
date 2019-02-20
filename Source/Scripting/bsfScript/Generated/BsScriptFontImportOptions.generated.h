@@ -3,8 +3,9 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
 #include "BsScriptImportOptions.generated.h"
+#include "../../../Foundation/bsfCore/Text/BsFontImportOptions.h"
 #include "../../../Foundation/bsfCore/Text/BsFontImportOptions.h"
 #include "../../../Foundation/bsfCore/Text/BsFontImportOptions.h"
 
@@ -13,14 +14,13 @@ namespace bs
 	class FontImportOptions;
 
 #if !BS_IS_BANSHEE3D
-	class BS_SCR_BE_EXPORT ScriptFontImportOptions : public ScriptObject<ScriptFontImportOptions, ScriptImportOptionsBase>
+	class BS_SCR_BE_EXPORT ScriptFontImportOptions : public TScriptReflectable<ScriptFontImportOptions, FontImportOptions, ScriptImportOptionsBase>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "FontImportOptions")
 
 		ScriptFontImportOptions(MonoObject* managedInstance, const SPtr<FontImportOptions>& value);
 
-		SPtr<FontImportOptions> getInternal() const;
 		static MonoObject* create(const SPtr<FontImportOptions>& value);
 
 	private:

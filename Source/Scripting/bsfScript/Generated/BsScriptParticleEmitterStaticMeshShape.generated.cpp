@@ -4,21 +4,15 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 #include "BsScriptPARTICLE_STATIC_MESH_SHAPE_DESC.generated.h"
 #include "BsScriptParticleEmitterStaticMeshShape.generated.h"
 
 namespace bs
 {
 	ScriptParticleEmitterStaticMeshShape::ScriptParticleEmitterStaticMeshShape(MonoObject* managedInstance, const SPtr<ParticleEmitterStaticMeshShape>& value)
-		:ScriptObject(managedInstance)
+		:TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
-	}
-
-	SPtr<ParticleEmitterStaticMeshShape> ScriptParticleEmitterStaticMeshShape::getInternal() const 
-	{
-		return std::static_pointer_cast<ParticleEmitterStaticMeshShape>(mInternal);
 	}
 
 	void ScriptParticleEmitterStaticMeshShape::initRuntimeData()

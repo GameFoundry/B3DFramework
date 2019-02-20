@@ -4,12 +4,11 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Animation/BsMorphShapes.h"
 
 namespace bs
 {
 	ScriptMorphShape::ScriptMorphShape(MonoObject* managedInstance, const SPtr<MorphShape>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		:TScriptReflectable(managedInstance, value)
 	{
 	}
 

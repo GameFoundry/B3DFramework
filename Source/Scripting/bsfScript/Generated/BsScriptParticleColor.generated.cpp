@@ -4,21 +4,15 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "BsScriptPARTICLE_COLOR_DESC.generated.h"
 #include "BsScriptParticleColor.generated.h"
 
 namespace bs
 {
 	ScriptParticleColor::ScriptParticleColor(MonoObject* managedInstance, const SPtr<ParticleColor>& value)
-		:ScriptObject(managedInstance)
+		:TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
-	}
-
-	SPtr<ParticleColor> ScriptParticleColor::getInternal() const 
-	{
-		return std::static_pointer_cast<ParticleColor>(mInternal);
 	}
 
 	void ScriptParticleColor::initRuntimeData()

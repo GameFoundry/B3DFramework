@@ -3,26 +3,24 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Importer/BsMeshImportOptions.h"
 
 namespace bs
 {
 	struct AnimationSplitInfo;
 
 #if !BS_IS_BANSHEE3D
-	class BS_SCR_BE_EXPORT ScriptAnimationSplitInfo : public ScriptObject<ScriptAnimationSplitInfo>
+	class BS_SCR_BE_EXPORT ScriptAnimationSplitInfo : public TScriptReflectable<ScriptAnimationSplitInfo, AnimationSplitInfo>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AnimationSplitInfo")
 
 		ScriptAnimationSplitInfo(MonoObject* managedInstance, const SPtr<AnimationSplitInfo>& value);
 
-		SPtr<AnimationSplitInfo> getInternal() const { return mInternal; }
 		static MonoObject* create(const SPtr<AnimationSplitInfo>& value);
 
 	private:
-		SPtr<AnimationSplitInfo> mInternal;
-
 		static void Internal_AnimationSplitInfo(MonoObject* managedInstance);
 		static void Internal_AnimationSplitInfo0(MonoObject* managedInstance, MonoString* name, uint32_t startFrame, uint32_t endFrame, bool isAdditive);
 		static MonoString* Internal_getname(ScriptAnimationSplitInfo* thisPtr);

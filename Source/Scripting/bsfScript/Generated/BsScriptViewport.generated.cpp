@@ -4,7 +4,6 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/RenderAPI/BsViewport.h"
 #include "Reflection/BsRTTIType.h"
 #include "Wrappers/BsScriptColor.h"
 #include "BsScriptRenderTarget.generated.h"
@@ -15,7 +14,7 @@
 namespace bs
 {
 	ScriptViewport::ScriptViewport(MonoObject* managedInstance, const SPtr<Viewport>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		:TScriptReflectable(managedInstance, value)
 	{
 	}
 

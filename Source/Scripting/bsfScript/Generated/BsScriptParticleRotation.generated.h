@@ -3,22 +3,22 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
 #include "BsScriptParticleEvolver.generated.h"
+#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
 namespace bs
 {
 	struct __PARTICLE_ROTATION_DESCInterop;
 	class ParticleRotation;
 
-	class BS_SCR_BE_EXPORT ScriptParticleRotation : public ScriptObject<ScriptParticleRotation, ScriptParticleEvolverBase>
+	class BS_SCR_BE_EXPORT ScriptParticleRotation : public TScriptReflectable<ScriptParticleRotation, ParticleRotation, ScriptParticleEvolverBase>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleRotation")
 
 		ScriptParticleRotation(MonoObject* managedInstance, const SPtr<ParticleRotation>& value);
 
-		SPtr<ParticleRotation> getInternal() const;
 		static MonoObject* create(const SPtr<ParticleRotation>& value);
 
 	private:

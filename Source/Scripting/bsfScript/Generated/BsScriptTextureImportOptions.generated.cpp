@@ -4,21 +4,15 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Importer/BsTextureImportOptions.h"
 #include "BsScriptTextureImportOptions.generated.h"
 
 namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptTextureImportOptions::ScriptTextureImportOptions(MonoObject* managedInstance, const SPtr<TextureImportOptions>& value)
-		:ScriptObject(managedInstance)
+		:TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
-	}
-
-	SPtr<TextureImportOptions> ScriptTextureImportOptions::getInternal() const 
-	{
-		return std::static_pointer_cast<TextureImportOptions>(mInternal);
 	}
 
 	void ScriptTextureImportOptions::initRuntimeData()

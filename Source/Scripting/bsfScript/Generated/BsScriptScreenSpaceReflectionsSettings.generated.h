@@ -3,25 +3,23 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
 namespace bs
 {
 	struct ScreenSpaceReflectionsSettings;
 
-	class BS_SCR_BE_EXPORT ScriptScreenSpaceReflectionsSettings : public ScriptObject<ScriptScreenSpaceReflectionsSettings>
+	class BS_SCR_BE_EXPORT ScriptScreenSpaceReflectionsSettings : public TScriptReflectable<ScriptScreenSpaceReflectionsSettings, ScreenSpaceReflectionsSettings>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ScreenSpaceReflectionsSettings")
 
 		ScriptScreenSpaceReflectionsSettings(MonoObject* managedInstance, const SPtr<ScreenSpaceReflectionsSettings>& value);
 
-		SPtr<ScreenSpaceReflectionsSettings> getInternal() const { return mInternal; }
 		static MonoObject* create(const SPtr<ScreenSpaceReflectionsSettings>& value);
 
 	private:
-		SPtr<ScreenSpaceReflectionsSettings> mInternal;
-
 		static void Internal_ScreenSpaceReflectionsSettings(MonoObject* managedInstance);
 		static bool Internal_getenabled(ScriptScreenSpaceReflectionsSettings* thisPtr);
 		static void Internal_setenabled(ScriptScreenSpaceReflectionsSettings* thisPtr, bool value);

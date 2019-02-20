@@ -3,26 +3,24 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Text/BsFont.h"
 
 namespace bs
 {
 	struct __CharDescInterop;
 	struct FontBitmap;
 
-	class BS_SCR_BE_EXPORT ScriptFontBitmap : public ScriptObject<ScriptFontBitmap>
+	class BS_SCR_BE_EXPORT ScriptFontBitmap : public TScriptReflectable<ScriptFontBitmap, FontBitmap>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "FontBitmap")
 
 		ScriptFontBitmap(MonoObject* managedInstance, const SPtr<FontBitmap>& value);
 
-		SPtr<FontBitmap> getInternal() const { return mInternal; }
 		static MonoObject* create(const SPtr<FontBitmap>& value);
 
 	private:
-		SPtr<FontBitmap> mInternal;
-
 		static void Internal_getCharDesc(ScriptFontBitmap* thisPtr, uint32_t charId, __CharDescInterop* __output);
 		static uint32_t Internal_getsize(ScriptFontBitmap* thisPtr);
 		static void Internal_setsize(ScriptFontBitmap* thisPtr, uint32_t value);

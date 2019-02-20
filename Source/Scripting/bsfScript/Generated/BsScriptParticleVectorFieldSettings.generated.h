@@ -3,7 +3,8 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 #include "Math/BsVector3.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 #include "Math/BsQuaternion.h"
@@ -12,19 +13,16 @@ namespace bs
 {
 	struct ParticleVectorFieldSettings;
 
-	class BS_SCR_BE_EXPORT ScriptParticleVectorFieldSettings : public ScriptObject<ScriptParticleVectorFieldSettings>
+	class BS_SCR_BE_EXPORT ScriptParticleVectorFieldSettings : public TScriptReflectable<ScriptParticleVectorFieldSettings, ParticleVectorFieldSettings>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleVectorFieldSettings")
 
 		ScriptParticleVectorFieldSettings(MonoObject* managedInstance, const SPtr<ParticleVectorFieldSettings>& value);
 
-		SPtr<ParticleVectorFieldSettings> getInternal() const { return mInternal; }
 		static MonoObject* create(const SPtr<ParticleVectorFieldSettings>& value);
 
 	private:
-		SPtr<ParticleVectorFieldSettings> mInternal;
-
 		static MonoObject* Internal_getvectorField(ScriptParticleVectorFieldSettings* thisPtr);
 		static void Internal_setvectorField(ScriptParticleVectorFieldSettings* thisPtr, MonoObject* value);
 		static float Internal_getintensity(ScriptParticleVectorFieldSettings* thisPtr);

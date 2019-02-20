@@ -4,21 +4,15 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "BsScriptPARTICLE_VELOCITY_DESC.generated.h"
 #include "BsScriptParticleVelocity.generated.h"
 
 namespace bs
 {
 	ScriptParticleVelocity::ScriptParticleVelocity(MonoObject* managedInstance, const SPtr<ParticleVelocity>& value)
-		:ScriptObject(managedInstance)
+		:TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
-	}
-
-	SPtr<ParticleVelocity> ScriptParticleVelocity::getInternal() const 
-	{
-		return std::static_pointer_cast<ParticleVelocity>(mInternal);
 	}
 
 	void ScriptParticleVelocity::initRuntimeData()

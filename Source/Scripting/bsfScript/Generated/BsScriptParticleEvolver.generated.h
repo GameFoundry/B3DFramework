@@ -3,31 +3,29 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
 namespace bs
 {
 	class ParticleEvolver;
 
-	class BS_SCR_BE_EXPORT ScriptParticleEvolverBase : public ScriptObjectBase
+	class BS_SCR_BE_EXPORT ScriptParticleEvolverBase : public ScriptReflectableBase
 	{
 	public:
 		ScriptParticleEvolverBase(MonoObject* instance);
 		virtual ~ScriptParticleEvolverBase() {}
 
-		SPtr<ParticleEvolver> getInternal() const { return mInternal; }
-	protected:
-		SPtr<ParticleEvolver> mInternal;
+		SPtr<ParticleEvolver> getInternal() const;
 	};
 
-	class BS_SCR_BE_EXPORT ScriptParticleEvolver : public ScriptObject<ScriptParticleEvolver, ScriptParticleEvolverBase>
+	class BS_SCR_BE_EXPORT ScriptParticleEvolver : public TScriptReflectable<ScriptParticleEvolver, ParticleEvolver, ScriptParticleEvolverBase>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleEvolver")
 
 		ScriptParticleEvolver(MonoObject* managedInstance, const SPtr<ParticleEvolver>& value);
 
-		SPtr<ParticleEvolver> getInternal() const;
 		static MonoObject* create(const SPtr<ParticleEvolver>& value);
 
 	private:

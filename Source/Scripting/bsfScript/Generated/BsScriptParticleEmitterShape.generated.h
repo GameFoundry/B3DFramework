@@ -3,31 +3,29 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 
 namespace bs
 {
 	class ParticleEmitterShape;
 
-	class BS_SCR_BE_EXPORT ScriptParticleEmitterShapeBase : public ScriptObjectBase
+	class BS_SCR_BE_EXPORT ScriptParticleEmitterShapeBase : public ScriptReflectableBase
 	{
 	public:
 		ScriptParticleEmitterShapeBase(MonoObject* instance);
 		virtual ~ScriptParticleEmitterShapeBase() {}
 
-		SPtr<ParticleEmitterShape> getInternal() const { return mInternal; }
-	protected:
-		SPtr<ParticleEmitterShape> mInternal;
+		SPtr<ParticleEmitterShape> getInternal() const;
 	};
 
-	class BS_SCR_BE_EXPORT ScriptParticleEmitterShape : public ScriptObject<ScriptParticleEmitterShape, ScriptParticleEmitterShapeBase>
+	class BS_SCR_BE_EXPORT ScriptParticleEmitterShape : public TScriptReflectable<ScriptParticleEmitterShape, ParticleEmitterShape, ScriptParticleEmitterShapeBase>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleEmitterShape")
 
 		ScriptParticleEmitterShape(MonoObject* managedInstance, const SPtr<ParticleEmitterShape>& value);
 
-		SPtr<ParticleEmitterShape> getInternal() const;
 		static MonoObject* create(const SPtr<ParticleEmitterShape>& value);
 
 	private:

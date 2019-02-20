@@ -3,25 +3,23 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
 namespace bs
 {
 	struct AmbientOcclusionSettings;
 
-	class BS_SCR_BE_EXPORT ScriptAmbientOcclusionSettings : public ScriptObject<ScriptAmbientOcclusionSettings>
+	class BS_SCR_BE_EXPORT ScriptAmbientOcclusionSettings : public TScriptReflectable<ScriptAmbientOcclusionSettings, AmbientOcclusionSettings>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AmbientOcclusionSettings")
 
 		ScriptAmbientOcclusionSettings(MonoObject* managedInstance, const SPtr<AmbientOcclusionSettings>& value);
 
-		SPtr<AmbientOcclusionSettings> getInternal() const { return mInternal; }
 		static MonoObject* create(const SPtr<AmbientOcclusionSettings>& value);
 
 	private:
-		SPtr<AmbientOcclusionSettings> mInternal;
-
 		static void Internal_AmbientOcclusionSettings(MonoObject* managedInstance);
 		static bool Internal_getenabled(ScriptAmbientOcclusionSettings* thisPtr);
 		static void Internal_setenabled(ScriptAmbientOcclusionSettings* thisPtr, bool value);

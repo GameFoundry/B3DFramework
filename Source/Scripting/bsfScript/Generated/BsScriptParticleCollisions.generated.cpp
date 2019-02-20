@@ -4,7 +4,6 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "BsScriptGameObjectManager.h"
 #include "Wrappers/BsScriptPlane.h"
 #include "Wrappers/BsScriptSceneObject.h"
@@ -14,14 +13,9 @@
 namespace bs
 {
 	ScriptParticleCollisions::ScriptParticleCollisions(MonoObject* managedInstance, const SPtr<ParticleCollisions>& value)
-		:ScriptObject(managedInstance)
+		:TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
-	}
-
-	SPtr<ParticleCollisions> ScriptParticleCollisions::getInternal() const 
-	{
-		return std::static_pointer_cast<ParticleCollisions>(mInternal);
 	}
 
 	void ScriptParticleCollisions::initRuntimeData()

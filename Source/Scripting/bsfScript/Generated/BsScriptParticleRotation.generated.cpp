@@ -4,21 +4,15 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "BsScriptPARTICLE_ROTATION_DESC.generated.h"
 #include "BsScriptParticleRotation.generated.h"
 
 namespace bs
 {
 	ScriptParticleRotation::ScriptParticleRotation(MonoObject* managedInstance, const SPtr<ParticleRotation>& value)
-		:ScriptObject(managedInstance)
+		:TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
-	}
-
-	SPtr<ParticleRotation> ScriptParticleRotation::getInternal() const 
-	{
-		return std::static_pointer_cast<ParticleRotation>(mInternal);
 	}
 
 	void ScriptParticleRotation::initRuntimeData()

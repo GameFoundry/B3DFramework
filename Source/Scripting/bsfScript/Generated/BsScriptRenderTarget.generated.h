@@ -3,32 +3,30 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/RenderAPI/BsRenderTarget.h"
 
 namespace bs
 {
 	class RenderTarget;
 	class RenderTargetEx;
 
-	class BS_SCR_BE_EXPORT ScriptRenderTargetBase : public ScriptObjectBase
+	class BS_SCR_BE_EXPORT ScriptRenderTargetBase : public ScriptReflectableBase
 	{
 	public:
 		ScriptRenderTargetBase(MonoObject* instance);
 		virtual ~ScriptRenderTargetBase() {}
 
-		SPtr<RenderTarget> getInternal() const { return mInternal; }
-	protected:
-		SPtr<RenderTarget> mInternal;
+		SPtr<RenderTarget> getInternal() const;
 	};
 
-	class BS_SCR_BE_EXPORT ScriptRenderTarget : public ScriptObject<ScriptRenderTarget, ScriptRenderTargetBase>
+	class BS_SCR_BE_EXPORT ScriptRenderTarget : public TScriptReflectable<ScriptRenderTarget, RenderTarget, ScriptRenderTargetBase>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "RenderTarget")
 
 		ScriptRenderTarget(MonoObject* managedInstance, const SPtr<RenderTarget>& value);
 
-		SPtr<RenderTarget> getInternal() const;
 		static MonoObject* create(const SPtr<RenderTarget>& value);
 
 	private:

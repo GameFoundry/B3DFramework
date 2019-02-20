@@ -3,7 +3,8 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Image/BsPixelData.h"
 #include "Image/BsColor.h"
 #include "../../../Foundation/bsfCore/Image/BsPixelData.h"
 #include "../../../Foundation/bsfCore/Image/BsPixelVolume.h"
@@ -13,19 +14,16 @@ namespace bs
 	class PixelData;
 	class PixelDataEx;
 
-	class BS_SCR_BE_EXPORT ScriptPixelData : public ScriptObject<ScriptPixelData>
+	class BS_SCR_BE_EXPORT ScriptPixelData : public TScriptReflectable<ScriptPixelData, PixelData>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "PixelData")
 
 		ScriptPixelData(MonoObject* managedInstance, const SPtr<PixelData>& value);
 
-		SPtr<PixelData> getInternal() const { return mInternal; }
 		static MonoObject* create(const SPtr<PixelData>& value);
 
 	private:
-		SPtr<PixelData> mInternal;
-
 		static uint32_t Internal_getRowPitch(ScriptPixelData* thisPtr);
 		static uint32_t Internal_getSlicePitch(ScriptPixelData* thisPtr);
 		static PixelFormat Internal_getFormat(ScriptPixelData* thisPtr);

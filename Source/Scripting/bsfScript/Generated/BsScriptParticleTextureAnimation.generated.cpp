@@ -4,21 +4,15 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "BsScriptPARTICLE_TEXTURE_ANIMATION_DESC.generated.h"
 #include "BsScriptParticleTextureAnimation.generated.h"
 
 namespace bs
 {
 	ScriptParticleTextureAnimation::ScriptParticleTextureAnimation(MonoObject* managedInstance, const SPtr<ParticleTextureAnimation>& value)
-		:ScriptObject(managedInstance)
+		:TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
-	}
-
-	SPtr<ParticleTextureAnimation> ScriptParticleTextureAnimation::getInternal() const 
-	{
-		return std::static_pointer_cast<ParticleTextureAnimation>(mInternal);
 	}
 
 	void ScriptParticleTextureAnimation::initRuntimeData()

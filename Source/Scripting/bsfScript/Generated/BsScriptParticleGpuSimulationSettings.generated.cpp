@@ -4,7 +4,6 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 #include "BsScriptParticleDepthCollisionSettings.generated.h"
 #include "BsScriptParticleVectorFieldSettings.generated.h"
 #include "BsScriptColorDistribution.generated.h"
@@ -14,7 +13,7 @@
 namespace bs
 {
 	ScriptParticleGpuSimulationSettings::ScriptParticleGpuSimulationSettings(MonoObject* managedInstance, const SPtr<ParticleGpuSimulationSettings>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		:TScriptReflectable(managedInstance, value)
 	{
 	}
 

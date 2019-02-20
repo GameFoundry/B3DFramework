@@ -4,21 +4,15 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Audio/BsAudioClipImportOptions.h"
 #include "BsScriptAudioClipImportOptions.generated.h"
 
 namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptAudioClipImportOptions::ScriptAudioClipImportOptions(MonoObject* managedInstance, const SPtr<AudioClipImportOptions>& value)
-		:ScriptObject(managedInstance)
+		:TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
-	}
-
-	SPtr<AudioClipImportOptions> ScriptAudioClipImportOptions::getInternal() const 
-	{
-		return std::static_pointer_cast<AudioClipImportOptions>(mInternal);
 	}
 
 	void ScriptAudioClipImportOptions::initRuntimeData()

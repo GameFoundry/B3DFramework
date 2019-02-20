@@ -4,21 +4,15 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "BsScriptPARTICLE_SIZE_DESC.generated.h"
 #include "BsScriptParticleSize.generated.h"
 
 namespace bs
 {
 	ScriptParticleSize::ScriptParticleSize(MonoObject* managedInstance, const SPtr<ParticleSize>& value)
-		:ScriptObject(managedInstance)
+		:TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
-	}
-
-	SPtr<ParticleSize> ScriptParticleSize::getInternal() const 
-	{
-		return std::static_pointer_cast<ParticleSize>(mInternal);
 	}
 
 	void ScriptParticleSize::initRuntimeData()

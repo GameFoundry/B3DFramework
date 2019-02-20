@@ -4,7 +4,6 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/RenderAPI/BsRenderTexture.h"
 #include "BsScriptResourceManager.h"
 #include "BsScriptTexture.generated.h"
 #include "BsScriptRenderTexture.generated.h"
@@ -13,14 +12,9 @@
 namespace bs
 {
 	ScriptRenderTexture::ScriptRenderTexture(MonoObject* managedInstance, const SPtr<RenderTexture>& value)
-		:ScriptObject(managedInstance)
+		:TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
-	}
-
-	SPtr<RenderTexture> ScriptRenderTexture::getInternal() const 
-	{
-		return std::static_pointer_cast<RenderTexture>(mInternal);
 	}
 
 	void ScriptRenderTexture::initRuntimeData()

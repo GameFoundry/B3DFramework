@@ -4,21 +4,15 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "BsScriptPARTICLE_GRAVITY_DESC.generated.h"
 #include "BsScriptParticleGravity.generated.h"
 
 namespace bs
 {
 	ScriptParticleGravity::ScriptParticleGravity(MonoObject* managedInstance, const SPtr<ParticleGravity>& value)
-		:ScriptObject(managedInstance)
+		:TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
-	}
-
-	SPtr<ParticleGravity> ScriptParticleGravity::getInternal() const 
-	{
-		return std::static_pointer_cast<ParticleGravity>(mInternal);
 	}
 
 	void ScriptParticleGravity::initRuntimeData()

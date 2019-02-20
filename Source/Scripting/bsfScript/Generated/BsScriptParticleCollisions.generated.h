@@ -3,8 +3,9 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
 #include "BsScriptParticleEvolver.generated.h"
+#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "Math/BsPlane.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
@@ -12,14 +13,13 @@ namespace bs
 {
 	class ParticleCollisions;
 
-	class BS_SCR_BE_EXPORT ScriptParticleCollisions : public ScriptObject<ScriptParticleCollisions, ScriptParticleEvolverBase>
+	class BS_SCR_BE_EXPORT ScriptParticleCollisions : public TScriptReflectable<ScriptParticleCollisions, ParticleCollisions, ScriptParticleEvolverBase>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleCollisions")
 
 		ScriptParticleCollisions(MonoObject* managedInstance, const SPtr<ParticleCollisions>& value);
 
-		SPtr<ParticleCollisions> getInternal() const;
 		static MonoObject* create(const SPtr<ParticleCollisions>& value);
 
 	private:

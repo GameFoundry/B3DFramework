@@ -3,26 +3,24 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "Math/BsVector3.h"
 
 namespace bs
 {
 	struct ColorGradingSettings;
 
-	class BS_SCR_BE_EXPORT ScriptColorGradingSettings : public ScriptObject<ScriptColorGradingSettings>
+	class BS_SCR_BE_EXPORT ScriptColorGradingSettings : public TScriptReflectable<ScriptColorGradingSettings, ColorGradingSettings>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ColorGradingSettings")
 
 		ScriptColorGradingSettings(MonoObject* managedInstance, const SPtr<ColorGradingSettings>& value);
 
-		SPtr<ColorGradingSettings> getInternal() const { return mInternal; }
 		static MonoObject* create(const SPtr<ColorGradingSettings>& value);
 
 	private:
-		SPtr<ColorGradingSettings> mInternal;
-
 		static void Internal_getsaturation(ScriptColorGradingSettings* thisPtr, Vector3* __output);
 		static void Internal_setsaturation(ScriptColorGradingSettings* thisPtr, Vector3* value);
 		static void Internal_getcontrast(ScriptColorGradingSettings* thisPtr, Vector3* __output);

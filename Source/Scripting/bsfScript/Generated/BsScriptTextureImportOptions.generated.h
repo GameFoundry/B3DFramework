@@ -3,8 +3,9 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
 #include "BsScriptImportOptions.generated.h"
+#include "../../../Foundation/bsfCore/Importer/BsTextureImportOptions.h"
 #include "../../../Foundation/bsfCore/Image/BsPixelData.h"
 #include "../../../Foundation/bsfCore/Utility/BsCommonTypes.h"
 
@@ -13,14 +14,13 @@ namespace bs
 	class TextureImportOptions;
 
 #if !BS_IS_BANSHEE3D
-	class BS_SCR_BE_EXPORT ScriptTextureImportOptions : public ScriptObject<ScriptTextureImportOptions, ScriptImportOptionsBase>
+	class BS_SCR_BE_EXPORT ScriptTextureImportOptions : public TScriptReflectable<ScriptTextureImportOptions, TextureImportOptions, ScriptImportOptionsBase>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "TextureImportOptions")
 
 		ScriptTextureImportOptions(MonoObject* managedInstance, const SPtr<TextureImportOptions>& value);
 
-		SPtr<TextureImportOptions> getInternal() const;
 		static MonoObject* create(const SPtr<TextureImportOptions>& value);
 
 	private:

@@ -41,7 +41,7 @@ namespace bs
 		static ::MonoClass* getManagedResourceClass(UINT32 rttiId);
 
 		/** 
-		 * Returns a RRef<T> type that can be used for wrapping a resource of the type represeented by the provided 
+		 * Returns a RRef<T> type that can be used for wrapping a resource of the type represented by the provided 
 		 * RTTI ID. 
 		 */
 		static ::MonoClass* getRRefClass(UINT32 rttiId);

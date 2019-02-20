@@ -4,7 +4,6 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIElementStyle.h"
 #include "BsScriptResourceManager.h"
 #include "BsScriptFont.generated.h"
 #include "BsScriptRectOffset.generated.h"
@@ -13,7 +12,7 @@
 namespace bs
 {
 	ScriptGUIElementStyle::ScriptGUIElementStyle(MonoObject* managedInstance, const SPtr<GUIElementStyle>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		:TScriptReflectable(managedInstance, value)
 	{
 	}
 

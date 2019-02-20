@@ -3,25 +3,23 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 
 namespace bs
 {
 	struct ParticleDepthCollisionSettings;
 
-	class BS_SCR_BE_EXPORT ScriptParticleDepthCollisionSettings : public ScriptObject<ScriptParticleDepthCollisionSettings>
+	class BS_SCR_BE_EXPORT ScriptParticleDepthCollisionSettings : public TScriptReflectable<ScriptParticleDepthCollisionSettings, ParticleDepthCollisionSettings>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleDepthCollisionSettings")
 
 		ScriptParticleDepthCollisionSettings(MonoObject* managedInstance, const SPtr<ParticleDepthCollisionSettings>& value);
 
-		SPtr<ParticleDepthCollisionSettings> getInternal() const { return mInternal; }
 		static MonoObject* create(const SPtr<ParticleDepthCollisionSettings>& value);
 
 	private:
-		SPtr<ParticleDepthCollisionSettings> mInternal;
-
 		static void Internal_ParticleDepthCollisionSettings(MonoObject* managedInstance);
 		static bool Internal_getenabled(ScriptParticleDepthCollisionSettings* thisPtr);
 		static void Internal_setenabled(ScriptParticleDepthCollisionSettings* thisPtr, bool value);

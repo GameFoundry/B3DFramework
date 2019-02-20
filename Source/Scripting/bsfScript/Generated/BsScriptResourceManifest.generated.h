@@ -3,7 +3,8 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Resources/BsResourceManifest.h"
 #include "Utility/BsUUID.h"
 
 namespace bs
@@ -11,19 +12,16 @@ namespace bs
 	class ResourceManifest;
 
 #if !BS_IS_BANSHEE3D
-	class BS_SCR_BE_EXPORT ScriptResourceManifest : public ScriptObject<ScriptResourceManifest>
+	class BS_SCR_BE_EXPORT ScriptResourceManifest : public TScriptReflectable<ScriptResourceManifest, ResourceManifest>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ResourceManifest")
 
 		ScriptResourceManifest(MonoObject* managedInstance, const SPtr<ResourceManifest>& value);
 
-		SPtr<ResourceManifest> getInternal() const { return mInternal; }
 		static MonoObject* create(const SPtr<ResourceManifest>& value);
 
 	private:
-		SPtr<ResourceManifest> mInternal;
-
 		static MonoString* Internal_getName(ScriptResourceManifest* thisPtr);
 		static void Internal_registerResource(ScriptResourceManifest* thisPtr, UUID* uuid, MonoString* filePath);
 		static void Internal_unregisterResource(ScriptResourceManifest* thisPtr, UUID* uuid);

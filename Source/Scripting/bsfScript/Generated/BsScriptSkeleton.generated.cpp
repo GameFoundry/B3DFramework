@@ -4,14 +4,13 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Animation/BsSkeleton.h"
 #include "BsScriptSkeletonBoneInfoEx.generated.h"
 #include "../Extensions/BsSkeletonEx.h"
 
 namespace bs
 {
 	ScriptSkeleton::ScriptSkeleton(MonoObject* managedInstance, const SPtr<Skeleton>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		:TScriptReflectable(managedInstance, value)
 	{
 	}
 

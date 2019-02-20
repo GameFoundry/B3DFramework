@@ -4,21 +4,15 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "BsScriptPARTICLE_ORBIT_DESC.generated.h"
 #include "BsScriptParticleOrbit.generated.h"
 
 namespace bs
 {
 	ScriptParticleOrbit::ScriptParticleOrbit(MonoObject* managedInstance, const SPtr<ParticleOrbit>& value)
-		:ScriptObject(managedInstance)
+		:TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
-	}
-
-	SPtr<ParticleOrbit> ScriptParticleOrbit::getInternal() const 
-	{
-		return std::static_pointer_cast<ParticleOrbit>(mInternal);
 	}
 
 	void ScriptParticleOrbit::initRuntimeData()

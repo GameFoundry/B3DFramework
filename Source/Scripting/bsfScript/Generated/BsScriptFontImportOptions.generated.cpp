@@ -4,7 +4,6 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Text/BsFontImportOptions.h"
 #include "BsScriptCharRange.generated.h"
 #include "BsScriptFontImportOptions.generated.h"
 
@@ -12,14 +11,9 @@ namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptFontImportOptions::ScriptFontImportOptions(MonoObject* managedInstance, const SPtr<FontImportOptions>& value)
-		:ScriptObject(managedInstance)
+		:TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
-	}
-
-	SPtr<FontImportOptions> ScriptFontImportOptions::getInternal() const 
-	{
-		return std::static_pointer_cast<FontImportOptions>(mInternal);
 	}
 
 	void ScriptFontImportOptions::initRuntimeData()

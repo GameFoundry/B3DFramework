@@ -3,8 +3,9 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
 #include "BsScriptImportOptions.generated.h"
+#include "../../../Foundation/bsfCore/Importer/BsShaderImportOptions.h"
 #include "../../../Foundation/bsfCore/Importer/BsShaderImportOptions.h"
 
 namespace bs
@@ -12,14 +13,13 @@ namespace bs
 	class ShaderImportOptions;
 
 #if !BS_IS_BANSHEE3D
-	class BS_SCR_BE_EXPORT ScriptShaderImportOptions : public ScriptObject<ScriptShaderImportOptions, ScriptImportOptionsBase>
+	class BS_SCR_BE_EXPORT ScriptShaderImportOptions : public TScriptReflectable<ScriptShaderImportOptions, ShaderImportOptions, ScriptImportOptionsBase>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ShaderImportOptions")
 
 		ScriptShaderImportOptions(MonoObject* managedInstance, const SPtr<ShaderImportOptions>& value);
 
-		SPtr<ShaderImportOptions> getInternal() const;
 		static MonoObject* create(const SPtr<ShaderImportOptions>& value);
 
 	private:

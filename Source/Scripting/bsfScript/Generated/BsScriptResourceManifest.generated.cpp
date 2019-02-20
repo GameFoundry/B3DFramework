@@ -4,14 +4,13 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Resources/BsResourceManifest.h"
 #include "BsScriptResourceManifest.generated.h"
 
 namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptResourceManifest::ScriptResourceManifest(MonoObject* managedInstance, const SPtr<ResourceManifest>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		:TScriptReflectable(managedInstance, value)
 	{
 	}
 

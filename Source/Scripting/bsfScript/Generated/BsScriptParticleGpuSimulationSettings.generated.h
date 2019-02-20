@@ -3,7 +3,8 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
@@ -14,19 +15,16 @@ namespace bs
 {
 	struct ParticleGpuSimulationSettings;
 
-	class BS_SCR_BE_EXPORT ScriptParticleGpuSimulationSettings : public ScriptObject<ScriptParticleGpuSimulationSettings>
+	class BS_SCR_BE_EXPORT ScriptParticleGpuSimulationSettings : public TScriptReflectable<ScriptParticleGpuSimulationSettings, ParticleGpuSimulationSettings>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleGpuSimulationSettings")
 
 		ScriptParticleGpuSimulationSettings(MonoObject* managedInstance, const SPtr<ParticleGpuSimulationSettings>& value);
 
-		SPtr<ParticleGpuSimulationSettings> getInternal() const { return mInternal; }
 		static MonoObject* create(const SPtr<ParticleGpuSimulationSettings>& value);
 
 	private:
-		SPtr<ParticleGpuSimulationSettings> mInternal;
-
 		static MonoObject* Internal_getvectorField(ScriptParticleGpuSimulationSettings* thisPtr);
 		static void Internal_setvectorField(ScriptParticleGpuSimulationSettings* thisPtr, MonoObject* value);
 		static MonoObject* Internal_getcolorOverLifetime(ScriptParticleGpuSimulationSettings* thisPtr);

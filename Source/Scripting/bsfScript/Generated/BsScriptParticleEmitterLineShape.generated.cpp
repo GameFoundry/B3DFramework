@@ -4,21 +4,15 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 #include "BsScriptPARTICLE_LINE_SHAPE_DESC.generated.h"
 #include "BsScriptParticleEmitterLineShape.generated.h"
 
 namespace bs
 {
 	ScriptParticleEmitterLineShape::ScriptParticleEmitterLineShape(MonoObject* managedInstance, const SPtr<ParticleEmitterLineShape>& value)
-		:ScriptObject(managedInstance)
+		:TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
-	}
-
-	SPtr<ParticleEmitterLineShape> ScriptParticleEmitterLineShape::getInternal() const 
-	{
-		return std::static_pointer_cast<ParticleEmitterLineShape>(mInternal);
 	}
 
 	void ScriptParticleEmitterLineShape::initRuntimeData()

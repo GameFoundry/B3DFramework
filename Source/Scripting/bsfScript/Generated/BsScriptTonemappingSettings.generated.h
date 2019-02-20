@@ -3,25 +3,23 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
 namespace bs
 {
 	struct TonemappingSettings;
 
-	class BS_SCR_BE_EXPORT ScriptTonemappingSettings : public ScriptObject<ScriptTonemappingSettings>
+	class BS_SCR_BE_EXPORT ScriptTonemappingSettings : public TScriptReflectable<ScriptTonemappingSettings, TonemappingSettings>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "TonemappingSettings")
 
 		ScriptTonemappingSettings(MonoObject* managedInstance, const SPtr<TonemappingSettings>& value);
 
-		SPtr<TonemappingSettings> getInternal() const { return mInternal; }
 		static MonoObject* create(const SPtr<TonemappingSettings>& value);
 
 	private:
-		SPtr<TonemappingSettings> mInternal;
-
 		static void Internal_TonemappingSettings(MonoObject* managedInstance);
 		static float Internal_getfilmicCurveShoulderStrength(ScriptTonemappingSettings* thisPtr);
 		static void Internal_setfilmicCurveShoulderStrength(ScriptTonemappingSettings* thisPtr, float value);
