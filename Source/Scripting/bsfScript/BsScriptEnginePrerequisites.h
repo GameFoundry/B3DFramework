@@ -125,6 +125,7 @@ namespace bs
 	class ScriptRigidbody;
 	class ScriptColliderBase;
 	class ScriptAudioClip;
+	class ScriptReflectableBase;
 	struct ScriptMeta;
 
 	typedef GameObjectHandle<ManagedComponent> HManagedComponent;
@@ -186,6 +187,7 @@ namespace bs
 		TID_SerializablePropertyInfo = 50052,
 		TID_SerializableTypeInfoRRef = 50053,
 		TID_SerializableTypeInfoEnum = 50054,
+		TID_SerializableFieldDataReflectableRef = 50055,
 	};
 
 	/** Information about a builtin component wrapped as a script object. */
@@ -214,4 +216,14 @@ namespace bs
 		ScriptResourceType resType;
 		std::function<ScriptResourceBase*(const HResource&, MonoObject*)> createCallback;
 	};
+
+	/** Information about a native reflectable object wrapped as a script object. */
+	struct ReflectableTypeInfo
+	{
+		const ScriptMeta* metaData;
+		UINT32 typeId;
+		MonoClass* monoClass;
+		std::function<MonoObject*(const SPtr<IReflectable>&)> createCallback;
+	};
+
 }

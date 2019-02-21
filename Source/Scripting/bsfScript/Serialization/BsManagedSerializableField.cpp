@@ -16,6 +16,7 @@
 #include "Serialization/BsManagedSerializableList.h"
 #include "Serialization/BsManagedSerializableDictionary.h"
 #include "Serialization/BsScriptAssemblyManager.h"
+#include "Wrappers/BsScriptReflectable.h"
 
 namespace bs
 {
@@ -268,6 +269,22 @@ namespace bs
 				{
 					ScriptResourceBase* scriptResource = ScriptResource::toNative(value);
 					fieldData->value = scriptResource->getGenericHandle();
+				}
+
+				return fieldData;
+			}
+			case ScriptReferenceType::ReflectableObject:
+			{
+				ReflectableTypeInfo* info = ScriptAssemblyManager::instance().getReflectableTypeInfo(refTypeInfo->mRTIITypeId);
+				if (info == nullptr)
+					return nullptr;
+
+				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataReflectableRef>();
+
+				if (value != nullptr)
+				{
+					ScriptReflectableBase* scriptReflectable = (ScriptReflectableBase*)ScriptObjectImpl::toNative(value);
+					fieldData->value = scriptReflectable->getReflectable();
 				}
 
 				return fieldData;
@@ -576,6 +593,28 @@ namespace bs
 		return nullptr;
 	}
 
+	void* ManagedSerializableFieldDataReflectableRef::getValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+	{
+		if(typeInfo->getTypeId() == TID_SerializableTypeInfoRef)
+		{
+			const auto refTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoRef>(typeInfo);
+
+			if (!value)
+				return nullptr;
+
+			UINT32 rttiId = refTypeInfo->mRTIITypeId;
+			ReflectableTypeInfo* info = ScriptAssemblyManager::instance().getReflectableTypeInfo(rttiId);
+
+			if (info == nullptr)
+				return nullptr;
+
+			return info->createCallback(value);
+		}
+
+		BS_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
+		return nullptr;
+	}
+
 	void* ManagedSerializableFieldDataObject::getValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
 	{
 		if(typeInfo->getTypeId() == TID_SerializableTypeInfoObject)
@@ -781,6 +820,11 @@ namespace bs
 		return (MonoObject*)getValue(typeInfo);
 	}
 
+	MonoObject* ManagedSerializableFieldDataReflectableRef::getValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+	{
+		return (MonoObject*)getValue(typeInfo);
+	}
+
 	MonoObject* ManagedSerializableFieldDataObject::getValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
 	{
 		if (typeInfo->getTypeId() == TID_SerializableTypeInfoObject)
@@ -893,6 +937,11 @@ namespace bs
 		return compareFieldData(this, other);
 	}
 
+	bool ManagedSerializableFieldDataReflectableRef::equals(const SPtr<ManagedSerializableFieldData>& other)
+	{
+		return compareFieldData(this, other);
+	}
+
 	bool ManagedSerializableFieldDataObject::equals(const SPtr<ManagedSerializableFieldData>& other)
 	{
 		return compareFieldData(this, other);
@@ -915,116 +964,102 @@ namespace bs
 
 	size_t ManagedSerializableFieldDataBool::getHash()
 	{
-		std::hash<bool> hasher;
-		return hasher(value);
+		return bs_hash(value);
 	}
 
 	size_t ManagedSerializableFieldDataChar::getHash()
 	{
-		std::hash<wchar_t> hasher;
-		return hasher(value);
+		return bs_hash(value);
 	}
 
 	size_t ManagedSerializableFieldDataI8::getHash()
 	{
-		std::hash<INT8> hasher;
-		return hasher(value);
+		return bs_hash(value);
 	}
 
 	size_t ManagedSerializableFieldDataU8::getHash()
 	{
-		std::hash<UINT8> hasher;
-		return hasher(value);
+		return bs_hash(value);
 	}
 
 	size_t ManagedSerializableFieldDataI16::getHash()
 	{
-		std::hash<INT16> hasher;
-		return hasher(value);
+		return bs_hash(value);
 	}
 
 	size_t ManagedSerializableFieldDataU16::getHash()
 	{
-		std::hash<UINT16> hasher;
-		return hasher(value);
+		return bs_hash(value);
 	}
 
 	size_t ManagedSerializableFieldDataI32::getHash()
 	{
-		std::hash<INT32> hasher;
-		return hasher(value);
+		return bs_hash(value);
 	}
 
 	size_t ManagedSerializableFieldDataU32::getHash()
 	{
-		std::hash<UINT32> hasher;
-		return hasher(value);
+		return bs_hash(value);
 	}
 
 	size_t ManagedSerializableFieldDataI64::getHash()
 	{
-		std::hash<INT64> hasher;
-		return hasher(value);
+		return bs_hash(value);
 	}
 
 	size_t ManagedSerializableFieldDataU64::getHash()
 	{
-		std::hash<UINT64> hasher;
-		return hasher(value);
+		return bs_hash(value);
 	}
 
 	size_t ManagedSerializableFieldDataFloat::getHash()
 	{
-		std::hash<float> hasher;
-		return hasher(value);
+		return bs_hash(value);
 	}
 
 	size_t ManagedSerializableFieldDataDouble::getHash()
 	{
-		std::hash<double> hasher;
-		return hasher(value);
+		return bs_hash(value);
 	}
 
 	size_t ManagedSerializableFieldDataString::getHash()
 	{
-		std::hash<WString> hasher;
-		return hasher(value);
+		return bs_hash(value);
 	}
 
 	size_t ManagedSerializableFieldDataResourceRef::getHash()
 	{
-		std::hash<UUID> hasher;
-		return hasher(value.getUUID());
+		return bs_hash(value.getUUID());
 	}
 
 	size_t ManagedSerializableFieldDataGameObjectRef::getHash()
 	{
-		std::hash<UINT64> hasher;
-		return hasher(value.getInstanceId());
+		return bs_hash(value.getInstanceId());
+	}
+
+	size_t ManagedSerializableFieldDataReflectableRef::getHash()
+	{
+		return bs_hash(value);
 	}
 
 	size_t ManagedSerializableFieldDataObject::getHash()
 	{
-		std::hash<SPtr<ManagedSerializableObject>> hasher;
-		return hasher(value);
+		return bs_hash(value);
 	}
 
 	size_t ManagedSerializableFieldDataArray::getHash()
 	{
-		std::hash<SPtr<ManagedSerializableArray>> hasher;
-		return hasher(value);
+		return bs_hash(value);
 	}
 
 	size_t ManagedSerializableFieldDataList::getHash()
 	{
-		std::hash<SPtr<ManagedSerializableList>> hasher;
-		return hasher(value);
+		return bs_hash(value);
 	}
 
 	size_t ManagedSerializableFieldDataDictionary::getHash()
 	{
-		std::hash<SPtr<ManagedSerializableDictionary>> hasher;
-		return hasher(value);
+		return bs_hash(value);
 	}
 
 	void ManagedSerializableFieldDataObject::serialize()
@@ -1265,6 +1300,16 @@ namespace bs
 	RTTITypeBase* ManagedSerializableFieldDataGameObjectRef::getRTTI() const
 	{
 		return ManagedSerializableFieldDataGameObjectRef::getRTTIStatic();
+	}
+
+	RTTITypeBase* ManagedSerializableFieldDataReflectableRef::getRTTIStatic()
+	{
+		return ManagedSerializableFieldDataReflectableRefRTTI::instance();
+	}
+
+	RTTITypeBase* ManagedSerializableFieldDataReflectableRef::getRTTI() const
+	{
+		return ManagedSerializableFieldDataReflectableRef::getRTTIStatic();
 	}
 
 	RTTITypeBase* ManagedSerializableFieldDataObject::getRTTIStatic()

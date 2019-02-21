@@ -4,6 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Script/BsScriptManager.h"
+#include "Serialization/BsScriptAssemblyManager.h"
 
 namespace bs
 {
@@ -61,6 +62,8 @@ namespace bs
 
 		/** Shuts down all script engine modules. */
 		void shutdownModules();
+
+		BuiltinTypeMappings mEngineTypeMappings;
 
 	private:
 		bool mScriptAssembliesLoaded = false;

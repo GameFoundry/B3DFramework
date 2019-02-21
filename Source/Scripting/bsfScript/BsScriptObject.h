@@ -49,6 +49,9 @@ namespace bs
 		 */
 		virtual bool isPersistent() const { return false; }
 
+		/** Returns true if the script objects wraps an object implementing the IReflectable interface. */
+		virtual bool isReflectable() const { return false; }
+
 		/** 
 		 * Clears any managed instance references from the interop object, and releases any GC handles. Called during
 		 * assembly refresh just before the script domain is unloaded. 

@@ -543,6 +543,35 @@ namespace bs
 		}
 	};
 
+	class BS_SCR_BE_EXPORT ManagedSerializableFieldDataReflectableRefRTTI : public RTTIType<ManagedSerializableFieldDataReflectableRef, ManagedSerializableFieldData, ManagedSerializableFieldDataReflectableRefRTTI>
+	{
+	private:
+		SPtr<IReflectable> getValue(ManagedSerializableFieldDataReflectableRef* obj) { return obj->value; }
+		void setValue(ManagedSerializableFieldDataReflectableRef* obj, SPtr<IReflectable> val) { obj->value = val; }
+
+	public:
+		ManagedSerializableFieldDataReflectableRefRTTI()
+		{
+			addReflectablePtrField("mValue", 0, &ManagedSerializableFieldDataReflectableRefRTTI::getValue, &ManagedSerializableFieldDataReflectableRefRTTI::setValue);
+		}
+
+		const String& getRTTIName() override
+		{
+			static String name = "SerializableFieldDataReflectableRef";
+			return name;
+		}
+
+		UINT32 getRTTIId() override
+		{
+			return TID_SerializableFieldDataReflectableRef;
+		}
+
+		SPtr<IReflectable> newRTTIObject() override
+		{
+			return bs_shared_ptr_new<ManagedSerializableFieldDataReflectableRef>();
+		}
+	};
+
 	class BS_SCR_BE_EXPORT ManagedSerializableFieldDataObjectRTTI : public RTTIType<ManagedSerializableFieldDataObject, ManagedSerializableFieldData, ManagedSerializableFieldDataObjectRTTI>
 	{
 	private:

@@ -24,7 +24,7 @@ namespace bs
 		mScriptObjects.erase(instance);
 	}
 
-	void ScriptObjectManager::refreshAssemblies(const Vector<std::pair<String, Path>>& assemblies)
+	void ScriptObjectManager::refreshAssemblies(const Vector<AssemblyRefreshInfo>& assemblies)
 	{
 		Map<ScriptObjectBase*, ScriptObjectBackup> backupData;
 
@@ -53,10 +53,10 @@ namespace bs
 
 		ScriptAssemblyManager::instance().clearAssemblyInfo();
 
-		for (auto& assemblyPair : assemblies)
+		for (auto& entry : assemblies)
 		{
-			MonoManager::instance().loadAssembly(assemblyPair.second.toString(), assemblyPair.first);
-			ScriptAssemblyManager::instance().loadAssemblyInfo(assemblyPair.first);
+			MonoManager::instance().loadAssembly(*entry.path, entry.name);
+			ScriptAssemblyManager::instance().loadAssemblyInfo(entry.name, *entry.typeMapping);
 		}
 
 		Vector<ScriptObjectBase*> scriptObjCopy(mScriptObjects.size()); // Store originals as we could add new objects during the next iteration

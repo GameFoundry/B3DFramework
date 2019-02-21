@@ -61,7 +61,7 @@
 
 namespace bs
 {
-	LOOKUP_BEGIN
+	LOOKUP_BEGIN(BuiltinComponent)
 		ADD_ENTRY(CCamera, ScriptCCamera)
 		ADD_ENTRY(CBoxCollider, ScriptCBoxCollider)
 		ADD_ENTRY(CAudioListener, ScriptCAudioListener)

@@ -4,12 +4,26 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Utility/BsModule.h"
+#include "Serialization/BsScriptAssemblyManager.h"
 
 namespace bs
 {
 	/** @addtogroup bsfScript
 	 *  @{
 	 */
+
+	/** Information required for reloading an assembly. */
+	struct AssemblyRefreshInfo
+	{
+		AssemblyRefreshInfo() = default;
+		AssemblyRefreshInfo(const char* name, const Path* path, const BuiltinTypeMappings* typeMapping)
+			:name(name), path(path), typeMapping(typeMapping)
+		{ }
+
+		const char* name = nullptr;
+		const Path* path = nullptr;
+		const BuiltinTypeMappings* typeMapping = nullptr;
+	};
 
 	/**	Keeps track of all script interop objects and handles assembly refresh. */
 	class BS_SCR_BE_EXPORT ScriptObjectManager : public Module <ScriptObjectManager>
@@ -31,7 +45,7 @@ namespace bs
 		 * @param[in]	assemblies	A list of assembly names and paths to load. First value represents the assembly name,
 		 *							and second a path its the assembly .dll. Assemblies will be loaded in order specified.
 		 */
-		void refreshAssemblies(const Vector<std::pair<String, Path>>& assemblies);
+		void refreshAssemblies(const Vector<AssemblyRefreshInfo>& assemblies);
 
 		/**	Called once per frame. Triggers queued finalizer callbacks. */
 		void update();

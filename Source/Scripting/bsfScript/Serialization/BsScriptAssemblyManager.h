@@ -48,6 +48,16 @@ namespace bs
 		MonoClass* inlineAttribute = nullptr;
 	};
 
+	/** Contains mapping between managed objects and their native wrappers for various types. */
+	struct BuiltinTypeMappings
+	{
+		Vector<BuiltinComponentInfo> components;
+		Vector<BuiltinResourceInfo> resources;
+		Vector<ReflectableTypeInfo> reflectableObjects;
+
+		static BuiltinTypeMappings EMPTY;
+	};
+
 	/**	Stores data about managed serializable objects in specified assemblies. */
 	class BS_SCR_BE_EXPORT ScriptAssemblyManager : public Module<ScriptAssemblyManager>
 	{
@@ -57,8 +67,11 @@ namespace bs
 		 * currently loaded. Once the data has been loaded you will be able to call getSerializableObjectInfo() and
 		 * hasSerializableObjectInfo() to retrieve information about those objects. If an assembly already had data loaded
 		 * it will be rebuilt.
+		 * 
+		 * @param[in]	assemblyName		Name of the assembly to load the information about.
+		 * @param[in]	typeMappings		Contains information about managed objects that wrap native objects.
 		 */
-		void loadAssemblyInfo(const String& assemblyName);
+		void loadAssemblyInfo(const String& assemblyName, const BuiltinTypeMappings& typeMappings);
 
 		/**	Clears any assembly data previously loaded with loadAssemblyInfo(). */
 		void clearAssemblyInfo();
@@ -92,7 +105,7 @@ namespace bs
 
 		/** 
 		 * Maps a mono type to information about a wrapped built-in resource. Returns null if type doesn't correspond to
-		 * a builtin resource. 
+		 * a builtin resource.
 		 */
 		BuiltinResourceInfo* getBuiltinResourceInfo(::MonoReflectionType* type);
 
@@ -107,6 +120,18 @@ namespace bs
 		 * a builtin resource. 
 		 */
 		BuiltinResourceInfo* getBuiltinResourceInfo(ScriptResourceType type);
+
+		/** 
+		 * Maps a mono type to information about a wrapped reflectable object. Returns null if type doesn't correspond to
+		 * a reflectable object. 
+		 */
+		ReflectableTypeInfo* getReflectableTypeInfo(::MonoReflectionType* type);
+
+		/** 
+		 * Maps a type id to information about a wrapped reflectable object. Returns null if type id doesn't correspond to
+		 * a reflectable object. 
+		 */
+		ReflectableTypeInfo* getReflectableTypeInfo(UINT32 rttiTypeId);
 
 		/**
 		 * Checks if the managed serializable object info for the specified type exists.
@@ -133,11 +158,11 @@ namespace bs
 		 */
 		void initializeBaseTypes();
 
-		/** Initializes information required for mapping builtin components to managed components. */
-		void initializeBuiltinComponentInfos();
-
-		/** Initializes information required for mapping builtin resources to managed resources. */
-		void initializeBuiltinResourceInfos();
+		/** 
+		 * Adds mappings between managed objects and their native wrappers to their respective lookup tables and 
+		 * initializes any assembly specific data. 
+		 */
+		void loadTypeMappings(MonoAssembly& assembly, const BuiltinTypeMappings& mapping);
 
 		UnorderedMap<String, SPtr<ManagedSerializableAssemblyInfo>> mAssemblyInfos;
 		UnorderedMap<::MonoReflectionType*, BuiltinComponentInfo> mBuiltinComponentInfos;
@@ -145,6 +170,8 @@ namespace bs
 		UnorderedMap<::MonoReflectionType*, BuiltinResourceInfo> mBuiltinResourceInfos;
 		UnorderedMap<UINT32, BuiltinResourceInfo> mBuiltinResourceInfosByTID;
 		UnorderedMap<UINT32, BuiltinResourceInfo> mBuiltinResourceInfosByType;
+		UnorderedMap<UINT32, ReflectableTypeInfo> mReflectableTypeInfosByTID;
+		UnorderedMap<::MonoReflectionType*, ReflectableTypeInfo> mReflectableTypeInfos;
 		bool mBaseTypesInitialized = false;
 
 		BuiltinScriptClasses mBuiltin;

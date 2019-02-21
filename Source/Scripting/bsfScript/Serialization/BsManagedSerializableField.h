@@ -666,6 +666,38 @@ namespace bs
 	};
 
 	/**
+	 * Contains field data for a native object implementing IReflectable.
+	 *
+	 * @copydoc	ManagedSerializableFieldData
+	 */
+	class BS_SCR_BE_EXPORT ManagedSerializableFieldDataReflectableRef : public ManagedSerializableFieldData
+	{
+	public:
+		/** @copydoc ManagedSerializableFieldData::getValue */
+		void* getValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
+
+		/** @copydoc ManagedSerializableFieldData::getValueBoxed */
+		MonoObject* getValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
+
+		/** @copydoc ManagedSerializableFieldData::equals */
+		bool equals(const SPtr<ManagedSerializableFieldData>& other) override;
+
+		/** @copydoc ManagedSerializableFieldData::getHash */
+		size_t getHash() override;
+
+		SPtr<IReflectable> value;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+
+	public:
+		friend class ManagedSerializableFieldReflectableRefRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
+	};
+
+	/**
 	 * Contains complex object field data.
 	 *
 	 * @copydoc	ManagedSerializableFieldData

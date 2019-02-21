@@ -262,6 +262,7 @@ namespace bs
 		case ScriptReferenceType::ManagedComponentBase:
 		case ScriptReferenceType::BuiltinComponent:
 		case ScriptReferenceType::SceneObject:
+		case ScriptReferenceType::ReflectableObject:
 			return true;
 		default:
 			break;

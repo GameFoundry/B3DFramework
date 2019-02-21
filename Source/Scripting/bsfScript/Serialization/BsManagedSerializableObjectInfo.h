@@ -42,6 +42,7 @@ namespace bs
 		ManagedComponentBase,
 		ManagedComponent,
 		SceneObject,
+		ReflectableObject,
 		Count // Keep at end
 	};
 

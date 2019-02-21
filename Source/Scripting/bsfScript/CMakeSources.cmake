@@ -180,6 +180,7 @@ set(BS_SCRIPT_INC_SERIALIZATION
 	"Serialization/BsManagedDiff.h"
 	"Serialization/BsBuiltinComponentLookup.h"
 	"Serialization/BsBuiltinResourceLookup.h"
+	"Serialization/BsBuiltinReflectableTypesLookup.h"
 )
 
 set(BS_SCRIPT_SRC_NOFILTER

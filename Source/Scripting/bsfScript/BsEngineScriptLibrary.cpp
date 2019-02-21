@@ -20,6 +20,10 @@
 #include "Wrappers/BsScriptScene.h"
 #include "GUI/BsGUIManager.h"
 
+#include "Serialization/BsBuiltinResourceLookup.h"
+#include "Generated/BsBuiltinComponentLookup.generated.h"
+#include "Generated/BsBuiltinReflectableTypesLookup.generated.h"
+
 namespace bs
 {
 	void EngineScriptLibrary::initialize()
@@ -45,14 +49,18 @@ namespace bs
 		ScriptVirtualInput::startUp();
 		ScriptGUI::startUp();
 
-		ScriptAssemblyManager::instance().loadAssemblyInfo(ENGINE_ASSEMBLY);
+		mEngineTypeMappings.resources = BuiltinResourceTypes::getEntries();
+		mEngineTypeMappings.components = BuiltinComponent::getEntries();
+		mEngineTypeMappings.reflectableObjects = BuiltinReflectableTypes::getEntries();
+
+		ScriptAssemblyManager::instance().loadAssemblyInfo(ENGINE_ASSEMBLY, mEngineTypeMappings);
 
 #if BS_IS_BANSHEE3D
 		Path gameAssemblyPath = getGameAssemblyPath();
 		if (FileSystem::exists(gameAssemblyPath))
 		{
 			MonoManager::instance().loadAssembly(gameAssemblyPath.toString(), SCRIPT_GAME_ASSEMBLY);
-			ScriptAssemblyManager::instance().loadAssemblyInfo(SCRIPT_GAME_ASSEMBLY);
+			ScriptAssemblyManager::instance().loadAssemblyInfo(SCRIPT_GAME_ASSEMBLY, BuiltinTypeMappings());
 		}
 
 		engineAssembly.invoke(ASSEMBLY_ENTRY_POINT);
@@ -75,25 +83,27 @@ namespace bs
 		// Do a full refresh if we have already loaded script assemblies
 		if (mScriptAssembliesLoaded)
 		{
-			Vector<std::pair<String, Path>> assemblies;
-			assemblies.push_back({ ENGINE_ASSEMBLY, engineAssemblyPath });
+			Vector<AssemblyRefreshInfo> assemblies;
+			assemblies.push_back(AssemblyRefreshInfo(ENGINE_ASSEMBLY, &engineAssemblyPath, &mEngineTypeMappings));
 
 			Path gameAssemblyPath = getGameAssemblyPath();
 			if (FileSystem::exists(gameAssemblyPath))
-				assemblies.push_back({ SCRIPT_GAME_ASSEMBLY, gameAssemblyPath });
+				assemblies.push_back(AssemblyRefreshInfo(SCRIPT_GAME_ASSEMBLY, &gameAssemblyPath, &BuiltinTypeMappings::EMPTY));
 
 			ScriptObjectManager::instance().refreshAssemblies(assemblies);
 		}
 		else // Otherwise just additively load them
 		{
+			ScriptAssemblyManager::instance().clearAssemblyInfo();
+
 			MonoManager::instance().loadAssembly(engineAssemblyPath.toString(), ENGINE_ASSEMBLY);
-			ScriptAssemblyManager::instance().loadAssemblyInfo(ENGINE_ASSEMBLY);
+			ScriptAssemblyManager::instance().loadAssemblyInfo(ENGINE_ASSEMBLY, mEngineTypeMappings);
 
 			Path gameAssemblyPath = getGameAssemblyPath();
 			if (FileSystem::exists(gameAssemblyPath))
 			{
 				MonoManager::instance().loadAssembly(gameAssemblyPath.toString(), SCRIPT_GAME_ASSEMBLY);
-				ScriptAssemblyManager::instance().loadAssemblyInfo(SCRIPT_GAME_ASSEMBLY);
+				ScriptAssemblyManager::instance().loadAssemblyInfo(SCRIPT_GAME_ASSEMBLY, BuiltinTypeMappings());
 			}
 			mScriptAssembliesLoaded = true;
 		}
