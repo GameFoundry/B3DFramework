@@ -10,6 +10,8 @@
 #include "BsMonoProperty.h"
 #include "Wrappers/BsScriptManagedResource.h"
 #include "Wrappers/BsScriptComponent.h"
+#include "Wrappers/BsScriptReflectable.h"
+#include "BsManagedSerializableObject.h"
 
 namespace bs
 {
@@ -466,18 +468,18 @@ namespace bs
 				::MonoReflectionType* type = MonoUtil::getType(monoClass->_getInternalClass());
 
 				// Is this a wrapper for some reflectable type?
-				//ReflectableTypeInfo* reflTypeInfo = getReflectableTypeInfo(type);
-				//if(reflTypeInfo != nullptr)
-				//{
-				//	SPtr<ManagedSerializableTypeInfoRef> typeInfo = bs_shared_ptr_new<ManagedSerializableTypeInfoRef>();
-				//	typeInfo->mTypeNamespace = monoClass->getNamespace();
-				//	typeInfo->mTypeName = monoClass->getTypeName();
-				//	typeInfo->mRTIITypeId = reflTypeInfo->typeId;
-				//	typeInfo->mType = ScriptReferenceType::ReflectableObject;
+				ReflectableTypeInfo* reflTypeInfo = getReflectableTypeInfo(type);
+				if(reflTypeInfo != nullptr)
+				{
+					SPtr<ManagedSerializableTypeInfoRef> typeInfo = bs_shared_ptr_new<ManagedSerializableTypeInfoRef>();
+					typeInfo->mTypeNamespace = monoClass->getNamespace();
+					typeInfo->mTypeName = monoClass->getTypeName();
+					typeInfo->mRTIITypeId = reflTypeInfo->typeId;
+					typeInfo->mType = ScriptReferenceType::ReflectableObject;
 
-				//	return typeInfo;
-				//}
-				//else
+					return typeInfo;
+				}
+				else
 				{
 					// Finally, it's either a normal managed object, or a non-reflectable type wrapper
 					SPtr<ManagedSerializableObjectInfo> objInfo;
@@ -834,5 +836,65 @@ namespace bs
 		}
 
 		return false;
+	}
+
+	SPtr<IReflectable> ScriptAssemblyManager::getReflectableFromManagedObject(MonoObject* value)
+	{
+		SPtr<IReflectable> nativeValue;
+		if (value != nullptr)
+		{
+			String elementNs;
+			String elementTypeName;
+			MonoUtil::getClassName(value, elementNs, elementTypeName);
+
+			SPtr<ManagedSerializableObjectInfo> objInfo;
+			if (!instance().getSerializableObjectInfo(elementNs, elementTypeName, objInfo))
+			{
+				LOGERR("Object has no serialization meta-data.");
+				return nullptr;
+			}
+
+			if (auto typeInfoRef = rtti_cast<ManagedSerializableTypeInfoRef>(objInfo->mTypeInfo))
+			{
+				if (typeInfoRef->mType == ScriptReferenceType::ReflectableObject)
+				{
+					::MonoClass* monoClass = MonoUtil::getClass(value);
+					::MonoReflectionType* monoType = MonoUtil::getType(monoClass);
+
+					const ReflectableTypeInfo* reflTypeInfo = instance().getReflectableTypeInfo(monoType);
+					assert(reflTypeInfo);
+
+					ScriptReflectableBase* scriptReflectable = nullptr;
+
+					if (reflTypeInfo->metaData->thisPtrField != nullptr)
+						reflTypeInfo->metaData->thisPtrField->get(value, &scriptReflectable);
+
+					nativeValue = scriptReflectable->getReflectable();
+				}
+				else
+				{
+					LOGERR(StringUtil::format("Object type ({0}) is not allowed.", (UINT32)typeInfoRef->mType));
+				}
+			}
+			else if (rtti_is_of_type<ManagedSerializableTypeInfoObject>(objInfo->mTypeInfo))
+			{
+				SPtr<ManagedSerializableObject> managedObj = ManagedSerializableObject::createFromExisting(value);
+				if (!managedObj)
+				{
+					LOGERR("Object failed to serialize due to an internal error.");
+					return nullptr;
+				}
+
+				managedObj->serialize();
+				nativeValue = managedObj;
+			}
+			else
+			{
+				LOGERR(StringUtil::format("Object type ({0}) is not allowed.", objInfo->mTypeInfo->getRTTI()->getRTTIId()));
+				return nullptr;
+			}
+		}
+
+		return nativeValue;
 	}
 }

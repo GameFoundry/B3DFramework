@@ -148,6 +148,15 @@ namespace bs
 		/** Returns type information for various built-in classes. */
 		const BuiltinScriptClasses& getBuiltinClasses() const { return mBuiltin; }
 
+
+		/**
+		* Converts a managed object into an IReflectable object. The system first checks if the managed object is just a
+		* wrapper for a reflectable object already, and if so returns the wrapped reflectable object. Otherwise the managed
+		* object is serialized and the serialized version of the object is returned. The provided object cannot be an array,
+		* list, dictionary, component or a resource.
+		*/
+		static SPtr<IReflectable> getReflectableFromManagedObject(MonoObject* value);
+
 	private:
 		/**	Deletes all stored managed serializable object infos for all assemblies. */
 		void clearScriptObjects();
