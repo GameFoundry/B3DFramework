@@ -1,0 +1,451 @@
+mixin ShapingCommon 
+{
+	code 
+	{
+		#define EPSILON 0.00001f
+		#define PI 3.1415926f
+
+		float almostIdentity(float x, float m, float n)
+		{
+		    if(x > m) 
+				return x;
+		
+		    float a = 2.0f * n - m
+		    float b = 2.0f * m - 3.0f * n;
+		    float t = x / m;
+		
+		    return (a * t + b) * t * t + n;
+		}
+
+		float gain(float x, float k)
+		{
+			float a = 0;
+			float res = 0;
+
+			if(x < 0.5f)
+				a = 0.5f * pow(2.0f * x, k);
+			else
+				a = 0.5f * pow(2.0f * (1.0f - x), k);
+
+			if(x < 0.5f)
+				res = a;
+			else 
+				res = 1.0f - a;
+
+			return res;
+		}
+
+		float parabola(float x, float k)
+		{
+		    return pow(4.0f * x * (1.0f - x), k);
+		}
+
+		// Power curve
+		float pcurve(float x, float a, float b)
+		{
+		    float k = pow(a + b, a + b) / (pow(a, a) * pow(b, b));
+		    return k * pow(x, a) * pow(1.0f - x, b);
+		}
+
+		// Sinc Curve
+		float sinc(float x, float k)
+		{
+		    float a = PI * ((float(k) * x - 1.0f);
+		    return sin(a) / a;
+		}
+
+		// Blinn-Wyvill Approximation to the Raised Inverted Cosine
+		float cosApprox(float x)
+		{
+			float x2 = x * x;
+			float x4 = x2 * x2;
+			float x6 = x4 * x2;
+
+			float fa = (4.0f / 9.0f);
+			float fb = (17.0f / 9.0f);
+			float fc = (22.0f / 9.0f);
+			
+			return fa * x6 - fb * x4 + fc * x2;
+		}
+
+		// Seat shaped function formed by joining two 3rd order polynomial curves
+		// The curves meet with a horizontal inflection point at the control coordinate (a, b) in the unit square
+		float cubicSeat(float x, float a, float b)
+		{
+			float minA = 0.0f + EPSILON;
+			float maxA = 1.0f - EPSILON;
+			float minB = 0.0f;
+			float maxB = 1.0f;
+			float res = 0;
+
+			a = min(maxA, max(minA, a));
+			b = min(maxB, max(minB, b));
+
+			if (x <= a)
+				res = b - b * pow(1 - x / a, 3.0f);
+			else 
+				res = b + (1 - b) * pow((x - a) / (1 - a), 3.0f);
+
+			return res;
+		}
+
+		// Double cubic Seat function uses a single variable to control the location of its inflection point along the diagonal of the unit square
+		// The second parameter is used to blend the curve with the identity function (y = x)
+		// Uses the variable b to control the blending amount
+		float cubicSeatWithLinearBlend(float x, float a, float b)
+		{
+			float minA = 0.0f + EPSILON;
+			float maxA = 1.0f - EPSILON;
+			float minB = 0.0f;
+			float maxB = 1.0f;
+			float res = 0;
+
+			a = min(maxA, max(minA, a));  
+			b = min(maxB, max(minB, b)); 
+			b = 1.0 - b;
+			
+			if (x <= a)
+				res = b * x + (1 - b) * a * (1 - pow(1 - x / a, 3.0f));
+			else 
+				res = b * x + (1 - b) * (a + (1 - a) * pow((x - a) / (1 - a), 3.0f));
+
+			return res;
+		}
+
+		float oddPolynomialSeat(float x, float a, float b, int n)
+		{
+			float minA = 0.0f + EPSILON;
+			float maxA = 1.0f - EPSILON;
+			float minB = 0.0f;
+			float maxB = 1.0f;
+			float res = 0;
+
+			a = min(maxA, max(minA, a));  
+			b = min(maxB, max(minB, b)); 
+			int p = 2 * n + 1;
+
+			if (x <= a)
+				res = b - b * pow(1 - x / a, p);
+			else 
+				res = b + (1 - b) * pow((x - a) / (1 - a), p);
+
+			return res;
+		}
+
+		float polynomialSigmoid(float x, float a, float b, int n)
+		{
+			float res = 0;
+			if (n % 2 == 0)
+			{ 
+				// Even polynomial
+				if (x <= 0.5f)
+					res = pow(2.0f * x, n) / 2.0f;
+				else 
+					res = 1.0f - pow(2 * (x - 1), n) / 2.0f;
+			} 
+			else 
+			{ 
+				// Odd polynomial
+				if (x <= 0.5f)
+					res = pow(2.0f * x, n) / 2.0f;
+				else 
+					res = 1.0f + pow(2.0f * (x - 1), n) / 2.0f;
+			}
+
+			return res;
+		}
+
+		// Defines a parabola which passes through a user provided point (a, b) in the unit square
+		float quadraticThroughPoint(float x, float a, float b)
+		{
+			float minA = 0.0f + EPSILON;
+			float maxA = 1.0f - EPSILON;
+			float minB = 0.0f;
+			float maxB = 1.0f;
+
+			a = min(maxA, max(minA, a));
+			b = min(maxB, max(minB, b));
+			
+			float fA = (1 - b) / (1 - a) - (b / a);
+			float fB = (fA * (a * a) - b) / a;
+			float res = fA * (x * x) - fB * (x);
+
+			return min(1, max(0, res));
+		}
+
+		float exponentialEasing(float x, float a)
+		{
+			float minA = 0.0f + EPSILON;
+			float maxA = 1.0f - EPSILON;
+			float res = 0;
+
+			a = max(minA, min(maxA, a));
+			
+			if (a < 0.5f)
+			{
+				a = 2.0f * a;
+				res = pow(x, a);
+			} 
+			else 
+			{
+				a = 2.0f * (a - 0.5f);
+				res = pow(x, 1.0f / (1 - a));
+			}
+
+			return res;
+		}
+
+		float exponentialSeat(float x, float a)
+		{
+			float minA = 0.0f + EPSILON;
+			float maxA = 1.0f - EPSILON;
+			float res = 0;
+
+			a = min(maxA, max(minA, a)); 
+
+			if (x <= 0.5f)
+				res = (pow(2.0f * x, 1 - a)) / 2.0f;
+			else 
+				res = 1.0f - (pow(2.0f * (1.0f - x), 1 - a)) / 2.0f;
+
+			return res;
+		}
+
+		float exponentialSigmoid(float x, float a)
+		{
+			float minA = 0.0f + EPSILON;
+			float maxA = 1.0f - EPSILON;
+			float res = 0;
+
+			a = min(maxA, max(minA, a));
+			a = 1.0f - a;
+			
+			if (x <= 0.5f)
+				res = (pow(2.0f * x, 1.0f / a)) / 2.0f;
+			else 
+				res = 1.0f - (pow(2.0f * (1.0f - x), 1.0f / a)) / 2.0f;
+
+			return res;
+		}
+
+		float logisticSigmoid(float x, float a)
+		{
+			float minA = 0.0f + EPSILON;
+			float maxA = 1.0f - EPSILON;
+
+			a = max(minA, min(maxA, a));
+			a = (1 / (1 - a) - 1);
+
+			float fA = 1.0f / (1.0f + exp(0 - ((x - 0.5f) * a * 2.0f)));
+			float fB = 1.0f / (1.0f + exp(a));
+			float fC = 1.0f / (1.0f + exp(0 - a)); 
+			
+			return (fA - fB) / (fC - fB);
+		}
+
+		// A circular arc for easing in of the unit square.
+		float circularEaseIn(float x)
+		{
+			return 1 - sqrt(1 - x * x);
+		}
+
+		// A circular arc for easing out of the unit square.
+		float circularEaseOut(float x)
+		{
+			return sqrt(1 - pow(1 - x, 2));
+		}
+
+		float circleSeat(float x, float a)
+		{
+			float minA = 0.0f;
+			float maxA = 1.0f;
+			float res = 0;
+
+			a = max(minA, min(maxA, a)); 
+
+			if (x <= a)
+				res = sqrt(pow(a, 2) - pow(x - a, 2));
+			else 
+				res = 1 - sqrt(pow(1 - a, 2) - pow(x - a, 2));
+
+			return res;
+		}
+
+		float circleSigmoid(float x, float a)
+		{
+			float minA = 0.0f;
+			float maxA = 1.0f;
+			float res = 0;
+
+			a = max(minA, min(maxA, a));
+
+			if (x <= a)
+				res = a - sqrt(a * a - x * x);
+			else 
+				res = a + sqrt(pow(1 - a, 2) - pow(x - 1, 2));
+
+			return res;
+		}
+
+		float ellipticSeat(float x, float a, float b)
+		{
+			float minA = 0.0f + EPSILON;
+			float maxA = 1.0f - EPSILON;
+			float minB = 0.0f;
+			float maxB = 1.0f;
+			float res = 0;
+
+			a = max(minA, min(maxA, a)); 
+			b = max(minB, min(maxB, b)); 
+
+			if (x <= a)
+				res = (b / a) * sqrt(pow(a, 2) - pow(x - a, 2));
+			else 
+				res = 1 - ((1 - b) / (1 - a)) * sqrt(pow(1 - a, 2) - pow(x - a, 2));
+
+			return res;
+		}
+
+		float ellipticSigmoid(float x, float a, float b)
+		{
+			float minA = 0.0f + EPSILON;
+			float maxA = 1.0f - EPSILON;
+			float minB = 0.0f;
+			float maxB = 1.0f;
+			float res = 0;
+
+			a = max(minA, min(maxA, a)); 
+			b = max(minB, min(maxB, b));
+ 
+			if (x <= a)
+				res = b * (1 - (sqrt(pow(a, 2) - pow(x, 2)) / a));
+			else 
+				res = b + ((1 - b) / (1 - a)) * sqrt(pow(1 - a, 2) - pow(x - 1));
+
+			return res;
+		}
+
+		// Defines a 2nd order Bezier curve with a single spline control point at the coordinate (a, b) in the unit square. 
+		float quadraticBezier(float x, float a, float b)
+		{
+			a = max(0, min(1, a)); 
+			b = max(0, min(1, b)); 
+
+			if (a == 0.5f)
+				a += EPSILON;
+			
+			// Solve t from x (an inverse operation)
+			float om2a = 1 - 2 * a;
+			float t = (sqrt(a * a + om2a * x) - a) / om2a;
+			float res = (1 - 2 * b) * (t * t) + (2 * b) * t;
+			
+			return res;
+		}
+
+		float slopeFromT(float t, float A, float B, float C)
+		{
+			return 1.0f / (3.0f* A * t * t + 2.0f* B * t + C); 
+		}
+		
+		float xFromT(float t, float A, float B, float C, float D)
+		{
+			return A * (t * t * t) + B * (t * t) + C * t + D;
+		}
+		
+		float yFromT(float t, float E, float F, float G, float H)
+		{
+			return E * (t * t * t) + F * (t * t) + G * t + H;
+		}
+
+		float cubicBezier(float x, float a, float b, float c, float d)
+		{
+			float y0a = 0.0f;
+			float x0a = 0.0f;
+			float y1a = b;   
+			float x1a = a; 
+			float y2a = d;
+			float x2a = c;
+			float y3a = 1.0f;
+			float x3a = 1.0f;
+
+			float A = x3a - 3 * x2a + 3 * x1a - x0a;
+			float B = 3 * x2a - 6 * x1a + 3 * x0a;
+			float C = 3 * x1a - 3 * x0a;   
+			float D = x0a;
+
+			float E = y3a - 3 * y2a + 3 * y1a - y0a;    
+			float F = 3 * y2a - 6 * y1a + 3 * y0a;             
+			float G = 3 * y1a - 3 * y0a;             
+			float H = y0a;
+
+			// Solve for t given x (using Newton-Raphelson), then solve for y given t.
+			// Assume for the first guess that t = x.
+			float currentt = x;
+			int iteration = 5;
+			for (int i = 0; i < iteration; i++)
+			{
+				float currentx = xFromT(currentt, A, B, C, D); 
+				float currentslope = slopeFromT(currentt, A, B, C);
+				currentt -= (currentx - x) * (currentslope);
+				currentt = clamp(currentt, 0, 1);
+			} 
+
+			float res = yFromT(currentt, E, F, G, H);
+			return res;
+		}
+
+		float cubicBezierThroughTwoPoints(float x, float a, float b, float c, float d)
+		{
+			float minA = 0.0f + EPSILON;
+			float maxA = 1.0f - EPSILON;
+			float minB = 0.0f + EPSILON;
+			float maxB = 1.0f - EPSILON;
+			float res = 0;
+
+			a = max(minA, min(maxA, a));
+			b = max(minB, min(maxB, b));
+
+			float x0 = 0;  
+			float y0 = 0;
+			float x4 = a;  
+			float y4 = b;
+			float x5 = c;  
+			float y5 = d;
+			float x3 = 1;  
+			float y3 = 1;
+			float x1, y1, x2, y2;
+
+			// arbitrary but reasonable 
+			// t-values for interior control points
+			float t1 = 0.3f;
+			float t2 = 0.7f;
+
+			float B0t1 = (1 - t1) * (1 - t1) * (1 - t1);
+			float B1t1 = 3.0f * t1 * (1 - t1) * (1 - t1);
+			float B2t1 = 3.0f * t1 * t1 * (1 - t1);
+			float B3t1 = t1 * t1 * t1;
+			float B0t2 = (1 - t2) * (1 - t2) * (1 - t2);
+			float B1t2 = 3.0f * t2 * (1 - t2) * (1 - t2);
+			float B2t2 = 3.0f * t2 * t2 * (1 - t2);
+			float B3t2 = t2 * t2 * t2;
+
+			float ccx = x4 - x0 * B0t1 - x3 * B3t1;
+			float ccy = y4 - y0 * B0t1 - y3 * B3t1;
+			float ffx = x5 - x0 * B0t2 - x3 * B3t2;
+			float ffy = y5 - y0 * B0t2 - y3 * B3t2;
+
+			x2 = (ccx - (ffx * B1t1) / B1t2) / (B2t1 - (B1t1 * B2t2) / B1t2);
+			y2 = (ccy - (ffy * B1t1) / B1t2) / (B2t1 - (B1t1 * B2t2) / B1t2);
+			x1 = (ccx - x2 * B2t1) / B1t1;
+			y1 = (ccy - y2 * B2t1) / B1t1;
+
+			x1 = max(0 + EPSILON, min(1 - EPSILON, x1));
+			x2 = max(0 + EPSILON, min(1 - EPSILON, x2));
+
+			res = cubicBezier(x, x1, y1, x2, y2);
+			res = max(0, min(1, y));
+
+			return res;
+		}
+	};
+};
