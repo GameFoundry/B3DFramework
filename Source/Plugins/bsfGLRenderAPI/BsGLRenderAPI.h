@@ -19,7 +19,7 @@ namespace bs { namespace ct
 	{
 	public:
 		GLRenderAPI();
-		~GLRenderAPI();
+		~GLRenderAPI() = default;
 
 		/** @copydoc RenderAPI::getName() */
 		const StringID& getName() const override;
@@ -361,32 +361,38 @@ namespace bs { namespace ct
 
 		static const UINT32 MAX_VB_COUNT = 32;
 
-		Rect2 mViewportNorm;
-		UINT32 mScissorTop, mScissorBottom, mScissorLeft, mScissorRight;
-		UINT32 mViewportLeft, mViewportTop, mViewportWidth, mViewportHeight;
-		bool mScissorEnabled;
+		Rect2 mViewportNorm = Rect2(0.0f, 0.0f, 1.0f, 1.0f);
+		UINT32 mScissorTop = 0; 
+		UINT32 mScissorBottom = 720; 
+		UINT32 mScissorLeft = 0; 
+		UINT32 mScissorRight = 1280;
+		UINT32 mViewportLeft = 0; 
+		UINT32 mViewportTop = 0; 
+		UINT32 mViewportWidth = 0; 
+		UINT32 mViewportHeight = 0;
+		bool mScissorEnabled = false;
 
-		UINT32 mStencilReadMask;
-		UINT32 mStencilWriteMask;
-		UINT32 mStencilRefValue;
-		CompareFunction mStencilCompareFront;
-		CompareFunction mStencilCompareBack;
+		UINT32 mStencilReadMask = 0xFFFFFFFF;
+		UINT32 mStencilWriteMask = 0xFFFFFFFF;
+		UINT32 mStencilRefValue = 0;
+		CompareFunction mStencilCompareFront = CMPF_ALWAYS_PASS;
+		CompareFunction mStencilCompareBack = CMPF_ALWAYS_PASS;
 
 		// Last min & mip filtering options, so we can combine them
 		FilterOptions mMinFilter;
 		FilterOptions mMipFilter;
 
 		// Holds texture type settings for every stage
-		UINT32 mNumTextureUnits;
-		TextureInfo* mTextureInfos;
-		bool mDepthWrite;
+		UINT32 mNumTextureUnits = 0;
+		TextureInfo* mTextureInfos = nullptr;
+		bool mDepthWrite = true;
 		bool mColorWrite[4];
 
 		GLSupport* mGLSupport;
 		bool mGLInitialised;
 
-		GLSLProgramFactory* mGLSLProgramFactory;
-		GLSLProgramPipelineManager* mProgramPipelineManager;
+		GLSLProgramFactory* mGLSLProgramFactory = nullptr;
+		GLSLProgramPipelineManager* mProgramPipelineManager = nullptr;
 
 		SPtr<GLSLGpuProgram> mCurrentVertexProgram;
 		SPtr<GLSLGpuProgram> mCurrentFragmentProgram;
@@ -395,19 +401,19 @@ namespace bs { namespace ct
 		SPtr<GLSLGpuProgram> mCurrentDomainProgram;
 		SPtr<GLSLGpuProgram> mCurrentComputeProgram;
 
-		const GLSLProgramPipeline* mActivePipeline;
+		const GLSLProgramPipeline* mActivePipeline = nullptr;
 
 		std::array<SPtr<VertexBuffer>, MAX_VB_COUNT> mBoundVertexBuffers;
 		SPtr<VertexDeclaration> mBoundVertexDeclaration;
 		SPtr<IndexBuffer> mBoundIndexBuffer;
-		DrawOperationType mCurrentDrawOperation;
+		DrawOperationType mCurrentDrawOperation = DOT_TRIANGLE_LIST;
 
 		SPtr<GLContext> mMainContext;
 		SPtr<GLContext> mCurrentContext;
 
-		bool mDrawCallInProgress;
+		bool mDrawCallInProgress = false;
 
-		UINT16 mActiveTextureUnit;
+		UINT16 mActiveTextureUnit = -1;
 	};
 
 	/** @} */

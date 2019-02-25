@@ -79,24 +79,6 @@ namespace bs { namespace ct
 	/************************************************************************/
 
 	GLRenderAPI::GLRenderAPI()
-		: mViewportNorm(0.0f, 0.0f, 1.0f, 1.0f)
-		, mScissorTop(0), mScissorBottom(720), mScissorLeft(0), mScissorRight(1280)
-		, mViewportLeft(0), mViewportTop(0), mViewportWidth(0), mViewportHeight(0)
-		, mScissorEnabled(false)
-		, mStencilReadMask(0xFFFFFFFF)
-		, mStencilWriteMask(0xFFFFFFFF)
-		, mStencilRefValue(0)
-		, mStencilCompareFront(CMPF_ALWAYS_PASS)
-		, mStencilCompareBack(CMPF_ALWAYS_PASS)
-		, mNumTextureUnits(0)
-		, mTextureInfos(nullptr)
-		, mDepthWrite(true)
-		, mGLSLProgramFactory(nullptr)
-		, mProgramPipelineManager(nullptr)
-		, mActivePipeline(nullptr)
-		, mCurrentDrawOperation(DOT_TRIANGLE_LIST)
-		, mDrawCallInProgress(false)
-		, mActiveTextureUnit(-1)
 	{
 		// Get our GLSupport
 		mGLSupport = ct::getGLSupport();
@@ -112,11 +94,6 @@ namespace bs { namespace ct
 		mMipFilter = FO_POINT;
 
 		mProgramPipelineManager = bs_new<GLSLProgramPipelineManager>();
-	}
-
-	GLRenderAPI::~GLRenderAPI()
-	{
-
 	}
 
 	const StringID& GLRenderAPI::getName() const

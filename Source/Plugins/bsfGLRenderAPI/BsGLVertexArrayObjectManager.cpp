@@ -11,10 +11,6 @@
 
 namespace bs { namespace ct
 {
-	GLVertexArrayObject::GLVertexArrayObject()
-		:mHandle(0), mVertProgId(0), mAttachedBuffers(nullptr), mNumBuffers(0)
-	{ }
-
 	GLVertexArrayObject::GLVertexArrayObject(GLuint handle, UINT64 vertexProgramId, 
 		GLVertexBuffer** attachedBuffers, UINT32 numBuffers)
 		:mHandle(handle), mVertProgId(vertexProgramId), mAttachedBuffers(attachedBuffers), mNumBuffers(numBuffers)

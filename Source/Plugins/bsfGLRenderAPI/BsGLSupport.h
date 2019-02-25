@@ -19,8 +19,8 @@ namespace bs { namespace ct
 	class GLSupport
 	{
 	public:
-		GLSupport() { }
-		virtual ~GLSupport() { }
+		GLSupport() = default;
+		virtual ~GLSupport() = default;
 
 		/**
 		 * Creates a new render window using the specified descriptor.
