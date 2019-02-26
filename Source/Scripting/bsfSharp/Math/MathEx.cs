@@ -703,6 +703,19 @@ namespace bs
         }
 
         /// <summary>
+        /// Performs smooth Hermite interpolation between values.
+        /// </summary>
+        /// <param name="val1">First value.</param>
+        /// <param name="val2">Second Value.</param>
+        /// <param name="t">Value in range [0, 1] that determines how much to interpolate.</param>
+        /// <returns>Hermite interpolated value at position <paramref name="t"/>.</returns>
+        public static float SmoothStep(float val1, float val2, float t)
+        {
+            t = Clamp((t - val1) / (val2 - val1), 0.0f, 1.0f);
+            return t * t * (3.0f - 2.0f * t);
+        }
+       
+        /// <summary>
         /// Compares two floating point numbers with an error margin.
         /// </summary>
         /// <param name="a">First number to compare.</param>
@@ -712,6 +725,62 @@ namespace bs
         public static bool ApproxEquals(float a, float b, float epsilon = 1.192092896e-07F)
         {
             return Abs(b - a) <= epsilon;
+        }
+
+        /// <summary>
+        /// Compares two 2D vectors with an error margin.
+        /// </summary>
+        /// <param name="a">First vector to compare.</param>
+        /// <param name="b">Second vector to compare.</param>
+        /// <param name="epsilon">Error margin within which the numbers should be considered equal.</param>
+        /// <returns>True if equal, false otherwise.</returns>
+        public static bool ApproxEquals(Vector2 a, Vector2 b, float epsilon = 1.192092896e-07F)
+        {
+            return Abs(b.x - a.x) <= epsilon && Abs(b.y - a.y) <= epsilon;
+        }
+
+        /// <summary>
+        /// Compares two 3D vectors with an error margin.
+        /// </summary>
+        /// <param name="a">First vector to compare.</param>
+        /// <param name="b">Second vector to compare.</param>
+        /// <param name="epsilon">Error margin within which the numbers should be considered equal.</param>
+        /// <returns>True if equal, false otherwise.</returns>
+        public static bool ApproxEquals(Vector3 a, Vector3 b, float epsilon = 1.192092896e-07F)
+        {
+            return Abs(b.x - a.x) <= epsilon && Abs(b.y - a.y) <= epsilon && Abs(b.z - a.z) <= epsilon;
+        }
+
+        /// <summary>
+        /// Compares two 4D vectors with an error margin.
+        /// </summary>
+        /// <param name="a">First vector to compare.</param>
+        /// <param name="b">Second vector to compare.</param>
+        /// <param name="epsilon">Error margin within which the numbers should be considered equal.</param>
+        /// <returns>True if equal, false otherwise.</returns>
+        public static bool ApproxEquals(Vector4 a, Vector4 b, float epsilon = 1.192092896e-07F)
+        {
+            return
+                Abs(b.x - a.x) <= epsilon && 
+                Abs(b.y - a.y) <= epsilon && 
+                Abs(b.z - a.z) <= epsilon &&
+                Abs(b.w - a.w) <= epsilon;
+        }
+
+        /// <summary>
+        /// Compares two Quaternion with an error margin.
+        /// </summary>
+        /// <param name="a">First quaternion to compare.</param>
+        /// <param name="b">Second quaternion to compare.</param>
+        /// <param name="epsilon">Error margin within which the numbers should be considered equal.</param>
+        /// <returns>True if equal, false otherwise.</returns>
+        public static bool ApproxEquals(Quaternion a, Quaternion b, float epsilon = 1.192092896e-07F)
+        {
+            return 
+                Abs(b.x - a.x) <= epsilon && 
+                Abs(b.y - a.y) <= epsilon && 
+                Abs(b.z - a.z) <= epsilon &&
+                Abs(b.w - a.w) <= epsilon;
         }
     }
 
