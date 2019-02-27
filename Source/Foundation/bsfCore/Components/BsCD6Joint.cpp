@@ -3,6 +3,7 @@
 #include "Components/BsCD6Joint.h"
 #include "Scene/BsSceneObject.h"
 #include "Private/RTTI/BsCD6JointRTTI.h"
+#include "Scene/BsSceneManager.h"
 
 namespace bs
 {
@@ -168,7 +169,8 @@ namespace bs
 
 	SPtr<Joint> CD6Joint::createInternal()
 	{
-		SPtr<Joint> joint = D6Joint::create(mDesc);
+		const SPtr<SceneInstance>& scene = SO()->getScene();
+		SPtr<Joint> joint = D6Joint::create(*scene->getPhysicsScene(), mDesc);
 
 		joint->_setOwner(PhysicsOwnerType::Component, this);
 		return joint;

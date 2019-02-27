@@ -5,8 +5,8 @@
 
 namespace bs
 {
-	SPtr<SphericalJoint> SphericalJoint::create(const SPHERICAL_JOINT_DESC& desc)
+	SPtr<SphericalJoint> SphericalJoint::create(PhysicsScene& scene, const SPHERICAL_JOINT_DESC& desc)
 	{
-		return gPhysics().createSphericalJoint(desc);
+		return scene.createSphericalJoint(desc);
 	}
 }

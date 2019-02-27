@@ -38,10 +38,10 @@ User manuals									{#manuals}
  - [Colliders](@ref colliders)
  - [Physics mesh import](@ref physicsMesh)
  - [Triggers](@ref triggers)
+ - [Scene queries](@ref sceneQueries)
  - [Dynamic objects](@ref rigidbodies)
  - [Physics material](@ref physicsMaterial)
  - [Character controller](@ref characterController)
- - [Scene queries](@ref sceneQueries)
  - [Joints](@ref joints)
 - **Animation**
  - [Loading animation clips](@ref animationClip)

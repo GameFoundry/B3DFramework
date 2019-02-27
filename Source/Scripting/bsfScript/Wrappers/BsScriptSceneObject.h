@@ -65,6 +65,7 @@ namespace bs
 
 		static void internal_setParent(ScriptSceneObject* nativeInstance, MonoObject* parent);
 		static MonoObject* internal_getParent(ScriptSceneObject* nativeInstance);
+		static MonoObject* internal_getScene(ScriptSceneObject* nativeInstance);
 
 		static void internal_getNumChildren(ScriptSceneObject* nativeInstance, UINT32* value);
 		static MonoObject* internal_getChild(ScriptSceneObject* nativeInstance, UINT32 idx);

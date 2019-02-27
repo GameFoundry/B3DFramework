@@ -10,6 +10,8 @@
 #include "Scene/BsSceneObject.h"
 #include "BsMonoUtil.h"
 
+#include "Generated/BsScriptSceneInstance.generated.h"
+
 namespace bs
 {
 	ScriptSceneObject::ScriptSceneObject(MonoObject* instance, const HSceneObject& sceneObject)
@@ -30,6 +32,7 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_GetParent", (void*)&ScriptSceneObject::internal_getParent);
 		metaData.scriptClass->addInternalCall("Internal_GetParent", (void*)&ScriptSceneObject::internal_getParent);
 		metaData.scriptClass->addInternalCall("Internal_SetParent", (void*)&ScriptSceneObject::internal_setParent);
+		metaData.scriptClass->addInternalCall("Internal_GetScene", (void*)&ScriptSceneObject::internal_getScene);
 		metaData.scriptClass->addInternalCall("Internal_GetNumChildren", (void*)&ScriptSceneObject::internal_getNumChildren);
 		metaData.scriptClass->addInternalCall("Internal_GetChild", (void*)&ScriptSceneObject::internal_getChild);
 		metaData.scriptClass->addInternalCall("Internal_FindChild", (void*)&ScriptSceneObject::internal_findChild);
@@ -144,6 +147,14 @@ namespace bs
 		}
 
 		return nullptr;
+	}
+
+	MonoObject* ScriptSceneObject::internal_getScene(ScriptSceneObject* nativeInstance)
+	{
+		if (checkIfDestroyed(nativeInstance))
+			return nullptr;
+
+		return ScriptSceneInstance::create(nativeInstance->mSceneObject->getScene());
 	}
 
 	void ScriptSceneObject::internal_getNumChildren(ScriptSceneObject* nativeInstance, UINT32* value)

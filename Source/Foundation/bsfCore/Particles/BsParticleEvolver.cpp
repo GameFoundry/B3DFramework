@@ -13,6 +13,7 @@
 #include "Math/BsLineSegment3.h"
 #include "Material/BsShader.h"
 #include "Scene/BsSceneObject.h"
+#include "Scene/BsSceneManager.h"
 
 namespace bs
 {
@@ -332,7 +333,7 @@ namespace bs
 	void ParticleGravity::evolve(Random& random, const ParticleSystemState& state, ParticleSet& set, 
 		UINT32 startIdx, UINT32 count, bool spacing, float spacingOffset) const
 	{
-		Vector3 gravity = gPhysics().getGravity() * mDesc.scale;
+		Vector3 gravity = state.scene->getPhysicsScene()->getGravity() * mDesc.scale;
 
 		if (!state.worldSpace)
 			gravity = state.worldToLocal.multiplyDirection(gravity);
@@ -550,7 +551,8 @@ namespace bs
 		velocity = reflectedVel;
 	}
 
-	UINT32 groupRaycast(LineSegment3* segments, ParticleHitInfo* hits, UINT32 numRays, UINT64 layer)
+	UINT32 groupRaycast(const PhysicsScene& physicsScene, LineSegment3* segments, ParticleHitInfo* hits, UINT32 numRays, 
+		UINT64 layer)
 	{
 		if(numRays == 0)
 			return 0;
@@ -563,7 +565,7 @@ namespace bs
 			groupBounds.merge(segments[i].end);
 		}
 
-		Vector<Collider*> hitColliders = gPhysics()._boxOverlap(groupBounds, Quaternion::IDENTITY, layer);
+		Vector<Collider*> hitColliders = physicsScene._boxOverlap(groupBounds, Quaternion::IDENTITY, layer);
 		if(hitColliders.empty())
 			return 0;
 
@@ -735,7 +737,8 @@ namespace bs
 				}
 			}
 
-			const UINT32 numHits = groupRaycast(segments, hits, numRays, mDesc.layer);
+			const PhysicsScene& physicsScene = *state.scene->getPhysicsScene();
+			const UINT32 numHits = groupRaycast(physicsScene, segments, hits, numRays, mDesc.layer);
 
 			if(!state.worldSpace)
 			{

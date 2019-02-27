@@ -125,7 +125,7 @@ namespace bs
 
 	void PlayInEditorManager::saveSceneInMemory()
 	{
-		mSavedScene = SceneManager::instance().getRootNode()->clone(false);
+		mSavedScene = SceneManager::instance().getMainScene()->getRoot()->clone(false);
 
 		// Remove objects with "dont save" flag
 		Stack<HSceneObject> todo;

@@ -5,8 +5,8 @@
 
 namespace bs
 {
-	SPtr<PlaneCollider> PlaneCollider::create(const Vector3& position, const Quaternion& rotation)
+	SPtr<PlaneCollider> PlaneCollider::create(PhysicsScene& scene, const Vector3& position, const Quaternion& rotation)
 	{
-		return Physics::instance().createPlaneCollider(position, rotation);
+		return scene.createPlaneCollider(position, rotation);
 	}
 }

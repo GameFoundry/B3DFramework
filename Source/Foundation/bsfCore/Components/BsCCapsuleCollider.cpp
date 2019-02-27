@@ -4,6 +4,7 @@
 #include "Scene/BsSceneObject.h"
 #include "Components/BsCRigidbody.h"
 #include "Private/RTTI/BsCCapsuleColliderRTTI.h"
+#include "Scene/BsSceneManager.h"
 
 namespace bs
 {
@@ -81,9 +82,11 @@ namespace bs
 
 	SPtr<Collider> CCapsuleCollider::createInternal()
 	{
+		const SPtr<SceneInstance>& scene = SO()->getScene();
 		const Transform& tfrm = SO()->getTransform();
-		SPtr<Collider> collider = CapsuleCollider::create(mRadius, mHalfHeight, tfrm.getPosition(), 
-			tfrm.getRotation());
+
+		SPtr<Collider> collider = CapsuleCollider::create(*scene->getPhysicsScene(), mRadius, mHalfHeight, 
+			tfrm.getPosition(), tfrm.getRotation());
 
 		collider->_setOwner(PhysicsOwnerType::Component, this);
 		return collider;

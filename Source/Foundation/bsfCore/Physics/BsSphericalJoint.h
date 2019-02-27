@@ -7,6 +7,7 @@
 
 namespace bs
 {
+	class PhysicsScene;
 	/** @addtogroup Physics
 	 *  @{
 	 */
@@ -45,8 +46,13 @@ namespace bs
 		/** Checks is the specified flag enabled. */
 		virtual bool hasFlag(SphericalJointFlag flag) const = 0;
 
-		/** Creates a new spherical joint. */
-		static SPtr<SphericalJoint> create(const SPHERICAL_JOINT_DESC& desc);
+		/** 
+		 * Creates a new spherical joint. 
+		 * 
+		 * @param[in]	scene		Scene to which to add the joint.
+		 * @param[in]	desc		Settings describing the joint.
+		 */
+		static SPtr<SphericalJoint> create(PhysicsScene& scene, const SPHERICAL_JOINT_DESC& desc);
 	};
 
 	/** Structure used for initializing a new SphericalJoint. */

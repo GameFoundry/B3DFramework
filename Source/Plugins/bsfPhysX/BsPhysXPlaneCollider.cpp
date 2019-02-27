@@ -9,7 +9,8 @@ using namespace physx;
 
 namespace bs
 {
-	PhysXPlaneCollider::PhysXPlaneCollider(PxPhysics* physx, const Vector3& position, const Quaternion& rotation)
+	PhysXPlaneCollider::PhysXPlaneCollider(PxPhysics* physx, PxScene* scene, const Vector3& position, 
+		const Quaternion& rotation)
 	{
 		PxPlaneGeometry geometry;
 
@@ -17,7 +18,7 @@ namespace bs
 		shape->setLocalPose(toPxTransform(position, rotation));
 		shape->userData = this;
 
-		mInternal = bs_new<FPhysXCollider>(shape);
+		mInternal = bs_new<FPhysXCollider>(scene, shape);
 	}
 
 	PhysXPlaneCollider::~PhysXPlaneCollider()

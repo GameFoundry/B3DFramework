@@ -9,6 +9,8 @@
 
 namespace bs
 {
+	class PhysicsScene;
+
 	/** @addtogroup Physics
 	 *  @{
 	 */
@@ -28,12 +30,13 @@ namespace bs
 		/**
 		 * Creates a new sphere collider.
 		 * 
+		 * @param[in]	scene		Scene into which to add the collider to.
 		 * @param[in]	radius		Radius of the sphere geometry.
 		 * @param[in]	position	Position of the collider.
 		 * @param[in]	rotation	Rotation of the collider.
 		 */
-		static SPtr<SphereCollider> create(float radius = 0.0f, const Vector3& position = Vector3::ZERO, 
-			const Quaternion& rotation = Quaternion::IDENTITY);
+		static SPtr<SphereCollider> create(PhysicsScene& scene, float radius = 0.0f, 
+			const Vector3& position = Vector3::ZERO, const Quaternion& rotation = Quaternion::IDENTITY);
 	};
 
 	/** @} */

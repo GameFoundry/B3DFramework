@@ -4,6 +4,7 @@
 #include "Scene/BsSceneObject.h"
 #include "Components/BsCRigidbody.h"
 #include "Private/RTTI/BsCSphereColliderRTTI.h"
+#include "Scene/BsSceneManager.h"
 
 namespace bs
 {
@@ -48,8 +49,11 @@ namespace bs
 
 	SPtr<Collider> CSphereCollider::createInternal()
 	{
+		const SPtr<SceneInstance>& scene = SO()->getScene();
 		const Transform& tfrm = SO()->getTransform();
-		SPtr<Collider> collider = SphereCollider::create(mRadius, tfrm.getPosition(), tfrm.getRotation());
+
+		SPtr<Collider> collider = SphereCollider::create(*scene->getPhysicsScene(), mRadius, tfrm.getPosition(), 
+			tfrm.getRotation());
 
 		collider->_setOwner(PhysicsOwnerType::Component, this);
 		return collider;

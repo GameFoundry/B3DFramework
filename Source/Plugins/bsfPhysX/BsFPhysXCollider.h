@@ -17,7 +17,7 @@ namespace bs
 	class FPhysXCollider : public FCollider
 	{
 	public:
-		explicit FPhysXCollider(physx::PxShape* shape);
+		explicit FPhysXCollider(physx::PxScene* scene, physx::PxShape* shape);
 		~FPhysXCollider();
 
 		/** @copydoc FCollider::getPosition */
@@ -83,6 +83,7 @@ namespace bs
 		/** Updates shape filter data from stored values. */
 		void updateFilter();
 
+		physx::PxScene* mScene = nullptr;
 		physx::PxShape* mShape = nullptr;
 		physx::PxRigidStatic* mStaticBody = nullptr;
 		bool mIsTrigger = false;

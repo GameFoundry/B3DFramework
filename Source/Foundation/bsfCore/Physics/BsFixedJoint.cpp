@@ -5,8 +5,8 @@
 
 namespace bs
 {
-	SPtr<FixedJoint> FixedJoint::create(const FIXED_JOINT_DESC& desc)
+	SPtr<FixedJoint> FixedJoint::create(PhysicsScene& scene, const FIXED_JOINT_DESC& desc)
 	{
-		return gPhysics().createFixedJoint(desc);
+		return scene.createFixedJoint(desc);
 	}
 }

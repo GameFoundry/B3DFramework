@@ -71,11 +71,12 @@ You can enable gravity on a rigidbody by calling @ref bs::CRigidbody::setUseGrav
 rigidbody->setUseGravity(false);
 ~~~~~~~~~~~~~
 
-You can also change the strength of gravity by changing its acceleration factor. This can be done globally through the @ref bs::Physics "Physics" system accessible through @ref bs::gPhysics() "gPhysics()". Call @ref bs::Physics::setGravity "Physics::setGravity()" to change gravity.
+You can also change the strength of gravity by changing its acceleration factor. This can be done through the **PhysicsScene**. Call @ref bs::PhysicsScene::setGravity "PhysicsScene::setGravity()" to change gravity.
 
 ~~~~~~~~~~~~~{.cpp}
-// Set gravity to the value on the Moon
-gPhysics().setGravity(Vector3(0, -1.622f, 0)); // in m/s^2
+// Set gravity of the main scene to the value on the Moon
+const SPtr<PhysicsScene>& physicsScene = gSceneManager().getMainScene()->getPhysicsScene();
+physicsScene.setGravity(Vector3(0, -1.622f, 0)); // in m/s^2
 ~~~~~~~~~~~~~
 
 ## Manual forces {#rigidbodies_c_b}
@@ -162,10 +163,7 @@ When moving a rigid object you should be careful not to move it too much in a si
 
 In case you are making a fast-paced game, where movement in a single-frame is very high (e.g. a racing game), and want to prevent rigidbodies "tunneling" through obstacles, you can enable continous collision detection by calling @ref bs::CRigidbody::setFlags "CRigidbody::setFlags()" with @ref bs::RigidbodyFlag::CCD "RigidbodyFlag::CCD" flag.
 
-You must also enable CCD globally through @ref bs::Physics::setFlag "Physics::setFlag()", by enabling the @ref bs::PhysicsFlag::CCD_Enable "PhysicsFlag::CCD_Enable" flag.
-
 ~~~~~~~~~~~~~{.cpp}
-gPhysics().setFlag(PhysicsFlag::CCD_Enable, true);
 rigidbody->setFlags(RigidbodyFlag::CCD);
 ~~~~~~~~~~~~~
 

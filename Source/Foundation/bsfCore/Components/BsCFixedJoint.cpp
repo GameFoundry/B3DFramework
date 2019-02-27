@@ -4,6 +4,7 @@
 #include "Scene/BsSceneObject.h"
 #include "Components/BsCRigidbody.h"
 #include "Private/RTTI/BsCFixedJointRTTI.h"
+#include "Scene/BsSceneManager.h"
 
 namespace bs
 {
@@ -21,7 +22,8 @@ namespace bs
 
 	SPtr<Joint> CFixedJoint::createInternal()
 	{
-		SPtr<Joint> joint = FixedJoint::create(mDesc);
+		const SPtr<SceneInstance>& scene = SO()->getScene();
+		SPtr<Joint> joint = FixedJoint::create(*scene->getPhysicsScene(), mDesc);
 
 		joint->_setOwner(PhysicsOwnerType::Component, this);
 		return joint;

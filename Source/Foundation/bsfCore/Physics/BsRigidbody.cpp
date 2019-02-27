@@ -3,6 +3,7 @@
 #include "Physics/BsRigidbody.h"
 #include "Physics/BsPhysics.h"
 #include "Scene/BsSceneObject.h"
+#include "Scene/BsSceneManager.h"
 
 namespace bs
 {
@@ -20,6 +21,14 @@ namespace bs
 
 	SPtr<Rigidbody> Rigidbody::create(const HSceneObject& linkedSO)
 	{
-		return gPhysics().createRigidbody(linkedSO);
+		const SPtr<SceneInstance>& scene = linkedSO->getScene();
+
+		if(!scene)
+		{
+			LOGERR("Trying to create a Rigidbody with an uninstantiated scene object.")
+			return nullptr;
+		}
+
+		return scene->getPhysicsScene()->createRigidbody(linkedSO);
 	}
 }

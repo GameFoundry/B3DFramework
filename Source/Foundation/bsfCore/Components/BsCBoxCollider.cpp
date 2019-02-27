@@ -4,6 +4,7 @@
 #include "Scene/BsSceneObject.h"
 #include "Components/BsCRigidbody.h"
 #include "Private/RTTI/BsCBoxColliderRTTI.h"
+#include "Scene/BsSceneManager.h"
 
 namespace bs
 {
@@ -49,8 +50,11 @@ namespace bs
 
 	SPtr<Collider> CBoxCollider::createInternal()
 	{
+		const SPtr<SceneInstance>& scene = SO()->getScene();
 		const Transform& tfrm = SO()->getTransform();
-		SPtr<Collider> collider = BoxCollider::create(mExtents, tfrm.getPosition(), tfrm.getRotation());
+
+		SPtr<Collider> collider = BoxCollider::create(*scene->getPhysicsScene(), mExtents, tfrm.getPosition(), 
+			tfrm.getRotation());
 		collider->_setOwner(PhysicsOwnerType::Component, this);
 
 		return collider;

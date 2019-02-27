@@ -16,7 +16,8 @@ namespace bs
 	class PhysXMeshCollider : public MeshCollider
 	{
 	public:
-		PhysXMeshCollider(physx::PxPhysics* physx, const Vector3& position, const Quaternion& rotation);
+		PhysXMeshCollider(physx::PxPhysics* physx, physx::PxScene* scene, const Vector3& position, 
+			const Quaternion& rotation);
 		~PhysXMeshCollider();
 
 		/** @copydoc MeshCollider::setScale */

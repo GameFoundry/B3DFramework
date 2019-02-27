@@ -412,6 +412,7 @@ namespace bs
 	class SceneObject;
 	class Component;
 	class SceneManager;
+	class SceneInstance;
 	// RTTI
 	class MeshRTTI;
 	// Desc structs

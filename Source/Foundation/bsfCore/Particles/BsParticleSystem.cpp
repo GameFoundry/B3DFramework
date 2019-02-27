@@ -14,6 +14,7 @@
 #include "Particles/BsVectorField.h"
 #include "Mesh/BsMesh.h"
 #include "CoreThread/BsCoreObjectSync.h"
+#include "Scene/BsSceneManager.h"
 
 namespace bs
 {
@@ -263,6 +264,7 @@ namespace bs
 		state.localToWorld = mTransform.getMatrix();
 		state.worldToLocal = state.localToWorld.inverseAffine();
 		state.system = this;
+		state.scene = (mScene && mScene->isActive()) ? mScene.get() : gSceneManager().getMainScene().get();
 		state.animData = animData;
 
 		// For GPU simulation we only care about newly spawned particles, so clear old ones

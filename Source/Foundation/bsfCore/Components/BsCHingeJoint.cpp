@@ -3,6 +3,7 @@
 #include "Components/BsCHingeJoint.h"
 #include "Scene/BsSceneObject.h"
 #include "Private/RTTI/BsCHingeJointRTTI.h"
+#include "Scene/BsSceneManager.h"
 
 namespace bs
 {
@@ -88,7 +89,8 @@ namespace bs
 
 	SPtr<Joint> CHingeJoint::createInternal()
 	{
-		SPtr<Joint> joint = HingeJoint::create(mDesc);
+		const SPtr<SceneInstance>& scene = SO()->getScene();
+		SPtr<Joint> joint = HingeJoint::create(*scene->getPhysicsScene(), mDesc);
 
 		joint->_setOwner(PhysicsOwnerType::Component, this);
 		return joint;

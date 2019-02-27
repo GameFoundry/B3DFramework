@@ -7,6 +7,7 @@
 
 namespace bs
 {
+	class PhysicsScene;
 	/** @addtogroup Physics
 	 *  @{
 	 */
@@ -89,8 +90,13 @@ namespace bs
 		/** Checks is the specified option enabled. */
 		virtual bool hasFlag(HingeJointFlag flag) const = 0;
 
-		/** Creates a new hinge joint. */
-		static SPtr<HingeJoint> create(const HINGE_JOINT_DESC& desc);
+		/** 
+		 * Creates a new hinge joint. 
+		 * 
+		 * @param[in]	scene		Scene to which to add the joint.
+		 * @param[in]	desc		Settings describing the joint.
+		 */
+		static SPtr<HingeJoint> create(PhysicsScene& scene, const HINGE_JOINT_DESC& desc);
 	};
 
 	/** Structure used for initializing a new HingeJoint. */

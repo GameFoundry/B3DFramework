@@ -9,8 +9,8 @@ using namespace physx;
 
 namespace bs
 {
-	PhysXBoxCollider::PhysXBoxCollider(PxPhysics* physx, const Vector3& position, const Quaternion& rotation, 
-		const Vector3& extents)
+	PhysXBoxCollider::PhysXBoxCollider(PxPhysics* physx, PxScene* scene, const Vector3& position, 
+		const Quaternion& rotation, const Vector3& extents)
 		:mExtents(extents)
 	{
 		PxBoxGeometry geometry(extents.x, extents.y, extents.z);
@@ -19,7 +19,7 @@ namespace bs
 		shape->setLocalPose(toPxTransform(position, rotation));
 		shape->userData = this;
 
-		mInternal = bs_new<FPhysXCollider>(shape);
+		mInternal = bs_new<FPhysXCollider>(scene, shape);
 		applyGeometry();
 	}
 

@@ -15,9 +15,7 @@
 namespace bs
 {
 	SceneObject::SceneObject(const String& name, UINT32 flags)
-		: GameObject(), mPrefabHash(0), mFlags(flags), mCachedLocalTfrm(Matrix4::IDENTITY)
-		, mCachedWorldTfrm(Matrix4::IDENTITY), mDirtyFlags(0xFFFFFFFF), mDirtyHash(0), mActiveSelf(true)
-		, mActiveHierarchy(true), mMobility(ObjectMobility::Movable)
+		: GameObject(), mFlags(flags)
 	{
 		setName(name);
 	}
@@ -530,7 +528,12 @@ namespace bs
 				mParent->removeChild(mThisHandle);
 
 			if (parent != nullptr)
+			{
 				parent->addChild(mThisHandle);
+				setScene(parent->getScene());
+			}
+			else
+				setScene(nullptr);
 
 			mParent = parent;
 
@@ -544,6 +547,27 @@ namespace bs
 
 			notifyTransformChanged((TransformChangedFlags)(TCF_Parent | TCF_Transform));
 		}
+	}
+
+	const SPtr<SceneInstance>& SceneObject::getScene() const
+	{
+		if(mParentScene)
+			return mParentScene;
+
+		LOGWRN("Attempting to access a scene of a SceneObject with no scene, returning main scene instead.");
+		return gSceneManager().getMainScene();
+		
+	}
+
+	void SceneObject::setScene(const SPtr<SceneInstance>& scene)
+	{
+		if(mParentScene == scene)
+			return;
+
+		mParentScene = scene;
+
+		for(auto& child : mChildren)
+			child->setScene(scene);
 	}
 
 	HSceneObject SceneObject::getChild(UINT32 idx) const

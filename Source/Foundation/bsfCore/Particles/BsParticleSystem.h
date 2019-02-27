@@ -617,6 +617,7 @@ namespace bs
 		/**	Creates a new ParticleSystem instance without initializing it. */
 		static SPtr<ParticleSystem> createEmpty();
 
+		SPtr<SceneInstance> mScene;
 		ParticleSystemSettings mSettings;
 		ParticleGpuSimulationSettings mGpuSimulationSettings;
 		Vector<SPtr<ParticleEmitter>> mEmitters;

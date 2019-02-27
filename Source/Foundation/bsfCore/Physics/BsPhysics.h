@@ -18,6 +18,7 @@ namespace bs
 	 */
 
 	struct PHYSICS_INIT_DESC;
+	class PhysicsScene;
 
 	/** Flags for controlling physics behaviour globally. */
 	enum class PhysicsFlag
@@ -60,6 +61,104 @@ namespace bs
 		Physics(const PHYSICS_INIT_DESC& init);
 		virtual ~Physics() = default;
 
+		/******************************************************************************************************************/
+		/************************************************* OPTIONS ********************************************************/
+		/******************************************************************************************************************/
+
+		/** Pauses or resumes the physics simulation. */
+		virtual void setPaused(bool paused) = 0;
+
+		/** 
+		 * Enables or disables collision between two layers. Each physics object can be assigned a specific layer, and here
+		 * you can determine which layers can interact with each other.
+		 */
+		BS_SCRIPT_EXPORT(n:ToggleCollision)
+		void toggleCollision(UINT64 groupA, UINT64 groupB, bool enabled);
+
+		/** Checks if two collision layers are allowed to interact. */
+		BS_SCRIPT_EXPORT(n:IsCollisionEnabled)
+		bool isCollisionEnabled(UINT64 groupA, UINT64 groupB) const;
+
+		/** @name Internal
+		 *  @{
+		 */
+
+		/******************************************************************************************************************/
+		/************************************************* CREATION *******************************************************/
+		/******************************************************************************************************************/
+
+		/** @copydoc PhysicsMaterial::create */
+		virtual SPtr<PhysicsMaterial> createMaterial(float staticFriction, float dynamicFriction, float restitution) = 0;
+
+		/** @copydoc PhysicsMesh::create */
+		virtual SPtr<PhysicsMesh> createMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type) = 0;
+
+		/** Creates an object representing the physics scene. Must be manually released via destroyPhysicsScene(). */
+		virtual SPtr<PhysicsScene> createPhysicsScene() = 0;
+
+		/** 
+		 * Updates the physics simulation. In order to maintain stability of the physics calculations this method should
+		 * be called at fixed intervals (e.g. 60 times a second). 
+		 *
+		 * @param[in]	step	Time delta to advance the physics simulation by, in seconds.
+		 */
+		virtual void fixedUpdate(float step) = 0;
+
+		/** 
+		 * Performs any physics operations that arent tied to the fixed update interval. Should be called once per frame. 
+		 */
+		virtual void update() { }
+
+		/** Checks is the physics simulation update currently in progress. */
+		BS_SCRIPT_EXPORT(n:IsUpdateInProgress,pr:getter)
+		bool _isUpdateInProgress() const { return mUpdateInProgress; }
+
+		/** 
+		 * Checks does the ray hit the provided collider. 
+		 *
+		 * @param[in]	origin		Origin of the ray to check.
+		 * @param[in]	unitDir		Unit direction of the ray to check.
+		 * @param[in]	collider	Collider to check for hit.
+		 * @param[out]	hit			Information about the hit. Valid only if the method returns true.
+		 * @param[in]	maxDist		Maximum distance from the ray origin to search for hits.
+		 * @return					True if the ray has hit the collider.
+		 */
+		virtual bool _rayCast(const Vector3& origin, const Vector3& unitDir, const Collider& collider, PhysicsQueryHit& hit, 
+			float maxDist = FLT_MAX) const = 0;
+
+		/** @} */
+
+		static const UINT64 CollisionMapSize = 64;
+	protected:
+		friend class Rigidbody;
+
+		mutable Mutex mMutex;
+		bool mCollisionMap[CollisionMapSize][CollisionMapSize];
+
+		bool mUpdateInProgress = false;
+	};
+
+	/** Provides easier access to Physics. */
+	BS_CORE_EXPORT Physics& gPhysics();
+
+	/** Contains parameters used for initializing the physics system. */
+	struct PHYSICS_INIT_DESC
+	{
+		float typicalLength = 1.0f; /**< Typical length of an object in the scene. */
+		float typicalSpeed = 9.81f; /**< Typical speed of an object in the scene. */
+		Vector3 gravity = Vector3(0.0f, -9.81f, 0.0f); /**< Initial gravity. */
+		bool initCooking = true; /**< Determines should the cooking library be initialized. */
+		/** Flags that control global physics option. */
+		PhysicsFlags flags = PhysicsFlag::CCT_OverlapRecovery | PhysicsFlag::CCT_PreciseSweeps | PhysicsFlag::CCD_Enable;
+	};
+
+	/** 
+	 * Physical representation of a scene, allowing creation of new physical objects in the scene and queries against
+	 * those objects. Objects created in different scenes cannot physically interact with eachother.
+	 */
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Physics) PhysicsScene
+	{
+	public:
 		/******************************************************************************************************************/
 		/************************************************* QUERIES ********************************************************/
 		/******************************************************************************************************************/
@@ -437,8 +536,19 @@ namespace bs
 		/** Enables or disabled a specific physics option. */
 		virtual void setFlag(PhysicsFlags flag, bool enabled) { if (enabled) mFlags |= flag; else mFlags &= ~flag; }
 
-		/** Pauses or resumes the physics simulation. */
-		virtual void setPaused(bool paused) = 0;
+		/** 
+		 * Returns a maximum edge length before a triangle is tesselated. 
+		 *
+		 * @see PhysicsFlags::CCT_Tesselation
+		 */
+		virtual float getMaxTesselationEdgeLength() const = 0;
+
+		/** 
+		 * Sets a maximum edge length before a triangle is tesselated. 
+		 *
+		 * @see PhysicsFlags::CCT_Tesselation
+		 */
+		virtual void setMaxTesselationEdgeLength(float length) = 0;
 
 		/** @copydoc setGravity() */
 		BS_SCRIPT_EXPORT(n:Gravity,pr:getter)
@@ -464,31 +574,6 @@ namespace bs
 		BS_SCRIPT_EXPORT(n:ClearPhysicsRegions)
 		virtual void clearBroadPhaseRegions() = 0;
 
-		/** 
-		 * Returns a maximum edge length before a triangle is tesselated. 
-		 *
-		 * @see PhysicsFlags::CCT_Tesselation
-		 */
-		virtual float getMaxTesselationEdgeLength() const = 0;
-
-		/** 
-		 * Sets a maximum edge length before a triangle is tesselated. 
-		 *
-		 * @see PhysicsFlags::CCT_Tesselation
-		 */
-		virtual void setMaxTesselationEdgeLength(float length) = 0;
-
-		/** 
-		 * Enables or disables collision between two layers. Each physics object can be assigned a specific layer, and here
-		 * you can determine which layers can interact with each other.
-		 */
-		BS_SCRIPT_EXPORT(n:ToggleCollision)
-		void toggleCollision(UINT64 groupA, UINT64 groupB, bool enabled);
-
-		/** Checks if two collision layers are allowed to interact. */
-		BS_SCRIPT_EXPORT(n:IsCollisionEnabled)
-		bool isCollisionEnabled(UINT64 groupA, UINT64 groupB) const;
-
 		/** @name Internal
 		 *  @{
 		 */
@@ -497,124 +582,127 @@ namespace bs
 		/************************************************* CREATION *******************************************************/
 		/******************************************************************************************************************/
 
-		/** @copydoc PhysicsMaterial::create */
-		virtual SPtr<PhysicsMaterial> createMaterial(float staticFriction, float dynamicFriction, float restitution) = 0;
-
-		/** @copydoc PhysicsMesh::create */
-		virtual SPtr<PhysicsMesh> createMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type) = 0;
-
 		/** @copydoc Rigidbody::create */
 		virtual SPtr<Rigidbody> createRigidbody(const HSceneObject& linkedSO) = 0;
 
-		/** @copydoc BoxCollider::create */
+		/** 
+		 * Creates a new box collider.
+		 *
+		 * @param[in]	extents		Extents (half size) of the box.
+		 * @param[in]	position	Center of the box.
+		 * @param[in]	rotation	Rotation of the box.
+		 */
 		virtual SPtr<BoxCollider> createBoxCollider(const Vector3& extents, const Vector3& position,
 			const Quaternion& rotation) = 0;
 
-		/** @copydoc SphereCollider::create */
+		/**
+		 * Creates a new sphere collider.
+		 * 
+		 * @param[in]	radius		Radius of the sphere geometry.
+		 * @param[in]	position	Position of the collider.
+		 * @param[in]	rotation	Rotation of the collider.
+		 */
 		virtual SPtr<SphereCollider> createSphereCollider(float radius,
 			const Vector3& position, const Quaternion& rotation) = 0;
 
-		/** @copydoc PlaneCollider::create */
+		/** 
+		 * Creates a new plane collider. 
+		 *
+		 * @param[in]	position	Position of the collider.
+		 * @param[in]	rotation	Rotation of the collider.
+		 */
 		virtual SPtr<PlaneCollider> createPlaneCollider(const Vector3& position, const Quaternion& rotation) = 0;
 
-		/** @copydoc CapsuleCollider::create */
+		/** 
+		 * Creates a new capsule collider. 
+		 *
+		 * @param[in]	radius		Radius of the capsule.
+		 * @param[in]	halfHeight	Half height of the capsule, from the origin to one of the hemispherical centers, along
+		 *							the normal vector.
+		 * @param[in]	position	Center of the box.
+		 * @param[in]	rotation	Rotation of the box.
+		 */
 		virtual SPtr<CapsuleCollider> createCapsuleCollider(float radius, float halfHeight,
 			const Vector3& position, const Quaternion& rotation) = 0;
 
-		/** @copydoc MeshCollider::create */
+		/** 
+		 * Creates a new mesh collider. 
+		 *
+		 * @param[in]	position	Position of the collider.
+		 * @param[in]	rotation	Rotation of the collider.
+		 */
 		virtual SPtr<MeshCollider> createMeshCollider(const Vector3& position, const Quaternion& rotation) = 0;
 
-		/** @copydoc FixedJoint::create */
+		/** 
+		 * Creates a new fixed joint. 
+		 * 
+		 * @param[in]	desc		Settings describing the joint.
+		 */
 		virtual SPtr<FixedJoint> createFixedJoint(const FIXED_JOINT_DESC& desc) = 0;
 
-		/** @copydoc DistanceJoint::create */
+		/** 
+		 * Creates a new distance joint. 
+		 * 
+		 * @param[in]	desc		Settings describing the joint.
+		 */
 		virtual SPtr<DistanceJoint> createDistanceJoint(const DISTANCE_JOINT_DESC& desc) = 0;
 
-		/** @copydoc HingeJoint::create */
+		/** 
+		 * Creates a new hinge joint. 
+		 * 
+		 * @param[in]	desc		Settings describing the joint.
+		 */
 		virtual SPtr<HingeJoint> createHingeJoint(const HINGE_JOINT_DESC& desc) = 0;
 
-		/** @copydoc SphericalJoint::create */
+		/** 
+		 * Creates a new spherical joint. 
+		 * 
+		 * @param[in]	desc		Settings describing the joint.
+		 */
 		virtual SPtr<SphericalJoint> createSphericalJoint(const SPHERICAL_JOINT_DESC& desc) = 0;
 
-		/** @copydoc SliderJoint::create */
+		/** 
+		 * Creates a new spherical joint. 
+		 * 
+		 * @param[in]	desc		Settings describing the joint.
+		 */
 		virtual SPtr<SliderJoint> createSliderJoint(const SLIDER_JOINT_DESC& desc) = 0;
 
-		/** @copydoc D6Joint::create */
+		/** 
+		 * Creates a new D6 joint. 
+		 * 
+		 * @param[in]	desc		Settings describing the joint.
+		 */
 		virtual SPtr<D6Joint> createD6Joint(const D6_JOINT_DESC& desc) = 0;
 
-		/** @copydoc CharacterController::create */
+		/** 
+		 * Creates a new character controller. 
+		 *
+		 * @param[in]	desc		Describes controller geometry and movement.
+		 */
 		virtual SPtr<CharacterController> createCharacterController(const CHAR_CONTROLLER_DESC& desc) = 0;
 
-		/** 
-		 * Updates the physics simulation. In order to maintain stability of the physics calculations this method should
-		 * be called at fixed intervals (e.g. 60 times a second). 
-		 *
-		 * @param[in]	step	Time delta to advance the physics simulation by, in seconds.
-		 */
-		virtual void fixedUpdate(float step) = 0;
-
-		/** 
-		 * Performs any physics operations that arent tied to the fixed update interval. Should be called once per frame. 
-		 */
-		virtual void update() { }
-
-		/** @copydoc Physics::boxOverlap() */
+		/** @copydoc PhysicsScene::boxOverlap() */
 		virtual Vector<Collider*> _boxOverlap(const AABox& box, const Quaternion& rotation,
 			UINT64 layer = BS_ALL_LAYERS) const = 0;
 
-		/** @copydoc Physics::sphereOverlap() */
+		/** @copydoc PhysicsScene::sphereOverlap() */
 		virtual Vector<Collider*> _sphereOverlap(const Sphere& sphere, UINT64 layer = BS_ALL_LAYERS) const = 0;
 
-		/** @copydoc Physics::capsuleOverlap() */
+		/** @copydoc PhysicsScene::capsuleOverlap() */
 		virtual Vector<Collider*> _capsuleOverlap(const Capsule& capsule, const Quaternion& rotation,
 			UINT64 layer = BS_ALL_LAYERS) const = 0;
 
-		/** @copydoc Physics::convexOverlap() */
+		/** @copydoc PhysicsScene::convexOverlap() */
 		virtual Vector<Collider*> _convexOverlap(const HPhysicsMesh& mesh, const Vector3& position,
 			const Quaternion& rotation, UINT64 layer = BS_ALL_LAYERS) const = 0;
 
-		/** 
-		 * Checks does the ray hit the provided collider. 
-		 *
-		 * @param[in]	origin		Origin of the ray to check.
-		 * @param[in]	unitDir		Unit direction of the ray to check.
-		 * @param[in]	collider	Collider to check for hit.
-		 * @param[out]	hit			Information about the hit. Valid only if the method returns true.
-		 * @param[in]	maxDist		Maximum distance from the ray origin to search for hits.
-		 * @return					True if the ray has hit the collider.
-		 */
-		virtual bool _rayCast(const Vector3& origin, const Vector3& unitDir, const Collider& collider, PhysicsQueryHit& hit, 
-			float maxDist = FLT_MAX) const = 0;
-
-		/** Checks is the physics simulation update currently in progress. */
-		BS_SCRIPT_EXPORT(n:IsUpdateInProgress,pr:getter)
-		bool _isUpdateInProgress() const { return mUpdateInProgress; }
-
 		/** @} */
-
-		static const UINT64 CollisionMapSize = 64;
 	protected:
-		friend class Rigidbody;
+		PhysicsScene() = default;
+		virtual ~PhysicsScene() = default;
 
-		mutable Mutex mMutex;
-		bool mCollisionMap[CollisionMapSize][CollisionMapSize];
-
-		bool mUpdateInProgress = false;
 		PhysicsFlags mFlags;
-	};
-
-	/** Provides easier access to Physics. */
-	BS_CORE_EXPORT Physics& gPhysics();
-
-	/** Contains parameters used for initializing the physics system. */
-	struct PHYSICS_INIT_DESC
-	{
-		float typicalLength = 1.0f; /**< Typical length of an object in the scene. */
-		float typicalSpeed = 9.81f; /**< Typical speed of an object in the scene. */
-		Vector3 gravity = Vector3(0.0f, -9.81f, 0.0f); /**< Initial gravity. */
-		bool initCooking = true; /**< Determines should the cooking library be initialized. */
-		/** Flags that control global physics option. */
-		PhysicsFlags flags = PhysicsFlag::CCT_OverlapRecovery | PhysicsFlag::CCT_PreciseSweeps | PhysicsFlag::CCD_Enable;
 	};
 
 	/** @} */

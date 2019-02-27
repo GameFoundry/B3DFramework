@@ -3,6 +3,7 @@
 #include "Components/BsCDistanceJoint.h"
 #include "Scene/BsSceneObject.h"
 #include "Private/RTTI/BsCDistanceJointRTTI.h"
+#include "Scene/BsSceneManager.h"
 
 namespace bs
 {
@@ -112,7 +113,8 @@ namespace bs
 
 	SPtr<Joint> CDistanceJoint::createInternal()
 	{
-		SPtr<Joint> joint = DistanceJoint::create(mDesc);
+		const SPtr<SceneInstance>& scene = SO()->getScene();
+		SPtr<Joint> joint = DistanceJoint::create(*scene->getPhysicsScene(), mDesc);
 
 		joint->_setOwner(PhysicsOwnerType::Component, this);
 		return joint;

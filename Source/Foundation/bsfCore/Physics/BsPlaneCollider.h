@@ -9,6 +9,8 @@
 
 namespace bs
 {
+	class PhysicsScene;
+
 	/** @addtogroup Physics
 	 *  @{
 	 */
@@ -22,10 +24,11 @@ namespace bs
 		/** 
 		 * Creates a new plane collider. 
 		 *
+		 * @param[in]	scene		Scene into which to add the collider to.
 		 * @param[in]	position	Position of the collider.
 		 * @param[in]	rotation	Rotation of the collider.
 		 */
-		static SPtr<PlaneCollider> create(const Vector3& position = Vector3::ZERO, 
+		static SPtr<PlaneCollider> create(PhysicsScene& scene, const Vector3& position = Vector3::ZERO, 
 			const Quaternion& rotation = Quaternion::IDENTITY);
 	};
 

@@ -11,6 +11,7 @@
 #include "RenderAPI/BsRenderTarget.h"
 #include "Renderer/BsLightProbeVolume.h"
 #include "Scene/BsSceneActor.h"
+#include "Physics/BsPhysics.h"
 
 namespace bs
 {
@@ -31,25 +32,36 @@ namespace bs
 		bool& val;
 	};
 
+	SceneInstance::SceneInstance(ConstructPrivately dummy, const String& name, const HSceneObject& root, 
+		const SPtr<PhysicsScene>& physicsScene)
+		:mName(name), mRoot(root), mPhysicsScene(physicsScene)
+	{ }
+
 	SceneManager::SceneManager()
+		: mMainScene(
+			bs_shared_ptr_new<SceneInstance>(SceneInstance::ConstructPrivately(), "Main", 
+				SceneObject::createInternal("SceneRoot"),
+				gPhysics().createPhysicsScene()))
 	{
-		mRootNode = SceneObject::createInternal("SceneRoot");
+		mMainScene->mRoot->setScene(mMainScene);
 	}
 
 	SceneManager::~SceneManager()
 	{
-		if (mRootNode != nullptr && !mRootNode.isDestroyed())
-			mRootNode->destroy(true);
+		mMainScene->mPhysicsScene = nullptr;
+
+		if (mMainScene->mRoot != nullptr && !mMainScene->mRoot.isDestroyed())
+			mMainScene->mRoot->destroy(true);
 	}
 
 	void SceneManager::clearScene(bool forceAll)
 	{
-		UINT32 numChildren = mRootNode->getNumChildren();
+		UINT32 numChildren = mMainScene->mRoot->getNumChildren();
 
 		UINT32 curIdx = 0;
 		for (UINT32 i = 0; i < numChildren; i++)
 		{
-			HSceneObject child = mRootNode->getChild(curIdx);
+			HSceneObject child = mMainScene->mRoot->getChild(curIdx);
 
 			if (forceAll || !child->hasFlag(SOF_Persistent))
 				child->destroy();
@@ -68,7 +80,7 @@ namespace bs
 		if (root == nullptr)
 			return;
 
-		HSceneObject oldRoot = mRootNode;
+		HSceneObject oldRoot = mMainScene->mRoot;
 
 		UINT32 numChildren = oldRoot->getNumChildren();
 		// Make sure to keep persistent objects
@@ -89,8 +101,9 @@ namespace bs
 		}
 		bs_frame_clear();
 
-		mRootNode = root;
-		mRootNode->_setParent(HSceneObject());
+		mMainScene->mRoot = root;
+		mMainScene->mRoot->_setParent(HSceneObject());
+		mMainScene->mRoot->setScene(mMainScene);
 
 		oldRoot->destroy();
 	}
@@ -532,8 +545,8 @@ namespace bs
 
 	void SceneManager::registerNewSO(const HSceneObject& node)
 	{ 
-		if(mRootNode)
-			node->setParent(mRootNode);
+		if(mMainScene->getRoot())
+			node->setParent(mMainScene->getRoot());
 	}
 
 	void SceneManager::onMainRenderTargetResized()

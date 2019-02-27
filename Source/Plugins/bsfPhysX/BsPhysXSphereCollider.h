@@ -16,7 +16,8 @@ namespace bs
 	class PhysXSphereCollider : public SphereCollider
 	{
 	public:
-		PhysXSphereCollider(physx::PxPhysics* physx, const Vector3& position, const Quaternion& rotation, float radius);
+		PhysXSphereCollider(physx::PxPhysics* physx, physx::PxScene* scene, const Vector3& position, 
+			const Quaternion& rotation, float radius);
 		~PhysXSphereCollider();
 
 		/** @copydoc SphereCollider::setScale */

@@ -16,8 +16,8 @@ namespace bs
 	class PhysXBoxCollider : public BoxCollider
 	{
 	public:
-		PhysXBoxCollider(physx::PxPhysics* physx, const Vector3& position, const Quaternion& rotation, 
-			const Vector3& extents);
+		PhysXBoxCollider(physx::PxPhysics* physx, physx::PxScene* scene, const Vector3& position, 
+			const Quaternion& rotation, const Vector3& extents);
 		~PhysXBoxCollider();
 
 		/** @copydoc BoxCollider::setScale */

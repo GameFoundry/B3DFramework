@@ -28,6 +28,7 @@ namespace bs
 		Matrix4 localToWorld;
 		Matrix4 worldToLocal;
 		ParticleSystem* system;
+		const SceneInstance* scene;
 		const EvaluatedAnimationData* animData;
 	};
 

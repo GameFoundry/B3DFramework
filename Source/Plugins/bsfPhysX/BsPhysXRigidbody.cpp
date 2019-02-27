@@ -47,7 +47,6 @@ namespace bs
 	PhysXRigidbody::PhysXRigidbody(PxPhysics* physx, PxScene* scene, const HSceneObject& linkedSO)
 		:Rigidbody(linkedSO)
 	{
-
 		const Transform& tfrm = linkedSO->getTransform();
 		PxTransform pxTfrm = toPxTransform(tfrm.getPosition(), tfrm.getRotation());
 
@@ -299,12 +298,6 @@ namespace bs
 		
 		if(ccdEnabledOld != ccdEnabledNew)
 		{
-			if(ccdEnabledNew)
-			{
-				if (!gPhysics().hasFlag(PhysicsFlag::CCD_Enable))
-					LOGWRN("Enabling CCD on a Rigidbody but CCD is not enabled globally.");
-			}
-
 			mInternal->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, ccdEnabledNew);
 
 			// Enable/disable CCD on shapes so the filter can handle them properly

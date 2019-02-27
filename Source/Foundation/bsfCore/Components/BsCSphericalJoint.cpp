@@ -3,6 +3,7 @@
 #include "Components/BsCSphericalJoint.h"
 #include "Scene/BsSceneObject.h"
 #include "Private/RTTI/BsCSphericalJointRTTI.h"
+#include "Scene/BsSceneManager.h"
 
 namespace bs
 {
@@ -56,7 +57,8 @@ namespace bs
 
 	SPtr<Joint> CSphericalJoint::createInternal()
 	{
-		SPtr<Joint> joint = SphericalJoint::create(mDesc);
+		const SPtr<SceneInstance>& scene = SO()->getScene();
+		SPtr<Joint> joint = SphericalJoint::create(*scene->getPhysicsScene(), mDesc);
 
 		joint->_setOwner(PhysicsOwnerType::Component, this);
 		return joint;

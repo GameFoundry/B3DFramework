@@ -11,14 +11,13 @@ using namespace physx;
 
 namespace bs
 {
-	FPhysXCollider::FPhysXCollider(PxShape* shape)
-		:mShape(shape)
+	FPhysXCollider::FPhysXCollider(PxScene* scene, PxShape* shape)
+		:mScene(scene), mShape(shape)
 	{
 		mStaticBody = gPhysX().getPhysX()->createRigidStatic(PxTransform(PxIdentity));
 		mStaticBody->attachShape(*mShape);
 
-		PxScene* scene = gPhysX().getScene();
-		scene->addActor(*mStaticBody);
+		mScene->addActor(*mStaticBody);
 
 		updateFilter();
 	}
@@ -126,8 +125,7 @@ namespace bs
 			mStaticBody = gPhysX().getPhysX()->createRigidStatic(PxTransform(PxIdentity));
 			mStaticBody->attachShape(*mShape);
 
-			PxScene* scene = gPhysX().getScene();
-			scene->addActor(*mStaticBody);
+			mScene->addActor(*mStaticBody);
 		}
 	}
 

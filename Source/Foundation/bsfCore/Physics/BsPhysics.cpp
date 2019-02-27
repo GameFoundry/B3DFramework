@@ -35,17 +35,17 @@ namespace bs
 		return mCollisionMap[groupA][groupB];
 	}
 
-	bool Physics::rayCast(const Ray& ray, PhysicsQueryHit& hit, UINT64 layer, float max) const
+	bool PhysicsScene::rayCast(const Ray& ray, PhysicsQueryHit& hit, UINT64 layer, float max) const
 	{
 		return rayCast(ray.getOrigin(), ray.getDirection(), hit, layer, max);
 	}
 
-	Vector<PhysicsQueryHit> Physics::rayCastAll(const Ray& ray, UINT64 layer, float max) const
+	Vector<PhysicsQueryHit> PhysicsScene::rayCastAll(const Ray& ray, UINT64 layer, float max) const
 	{
 		return rayCastAll(ray.getOrigin(), ray.getDirection(), layer, max);
 	}
 
-	bool Physics::rayCastAny(const Ray& ray, UINT64 layer, float max) const
+	bool PhysicsScene::rayCastAny(const Ray& ray, UINT64 layer, float max) const
 	{
 		return rayCastAny(ray.getOrigin(), ray.getDirection(), layer, max);
 	}
@@ -71,22 +71,22 @@ namespace bs
 		return output;
 	}
 
-	Vector<HCollider> Physics::boxOverlap(const AABox& box, const Quaternion& rotation, UINT64 layer) const
+	Vector<HCollider> PhysicsScene::boxOverlap(const AABox& box, const Quaternion& rotation, UINT64 layer) const
 	{
 		return rawToComponent(_boxOverlap(box, rotation, layer));
 	}
 
-	Vector<HCollider> Physics::sphereOverlap(const Sphere& sphere, UINT64 layer) const
+	Vector<HCollider> PhysicsScene::sphereOverlap(const Sphere& sphere, UINT64 layer) const
 	{
 		return rawToComponent(_sphereOverlap(sphere, layer));
 	}
 
-	Vector<HCollider> Physics::capsuleOverlap(const Capsule& capsule, const Quaternion& rotation, UINT64 layer) const
+	Vector<HCollider> PhysicsScene::capsuleOverlap(const Capsule& capsule, const Quaternion& rotation, UINT64 layer) const
 	{
 		return rawToComponent(_capsuleOverlap(capsule, rotation, layer));
 	}
 
-	Vector<HCollider> Physics::convexOverlap(const HPhysicsMesh& mesh, const Vector3& position,
+	Vector<HCollider> PhysicsScene::convexOverlap(const HPhysicsMesh& mesh, const Vector3& position,
 		const Quaternion& rotation, UINT64 layer) const
 	{
 		return rawToComponent(_convexOverlap(mesh, position, rotation, layer));

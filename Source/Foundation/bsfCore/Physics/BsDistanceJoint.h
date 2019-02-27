@@ -7,6 +7,7 @@
 
 namespace bs
 {
+	class PhysicsScene;
 	/** @addtogroup Physics
 	 *  @{
 	 */
@@ -75,8 +76,13 @@ namespace bs
 		/** Checks whether a certain joint flag is enabled. */
 		virtual bool hasFlag(DistanceJointFlag flag) const = 0;
 
-		/** Creates a new distance joint. */
-		static SPtr<DistanceJoint> create(const DISTANCE_JOINT_DESC& desc);
+		/** 
+		 * Creates a new distance joint. 
+		 * 
+		 * @param[in]	scene		Scene to which to add the joint.
+		 * @param[in]	desc		Settings describing the joint.
+		 */
+		static SPtr<DistanceJoint> create(PhysicsScene& scene, const DISTANCE_JOINT_DESC& desc);
 	};
 
 	/** Structure used for initializing a new DistanceJoint. */

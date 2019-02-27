@@ -5,6 +5,7 @@
 #include "Components/BsCRigidbody.h"
 #include "Physics/BsPhysicsMesh.h"
 #include "Private/RTTI/BsCMeshColliderRTTI.h"
+#include "Scene/BsSceneManager.h"
 
 namespace bs
 {
@@ -50,8 +51,11 @@ namespace bs
 
 	SPtr<Collider> CMeshCollider::createInternal()
 	{
+		const SPtr<SceneInstance>& scene = SO()->getScene();
 		const Transform& tfrm = SO()->getTransform();
-		SPtr<MeshCollider> collider = MeshCollider::create(tfrm.getPosition(), tfrm.getRotation());
+
+		SPtr<MeshCollider> collider = MeshCollider::create(*scene->getPhysicsScene(), tfrm.getPosition(), 
+			tfrm.getRotation());
 		collider->setMesh(mMesh);
 		collider->_setOwner(PhysicsOwnerType::Component, this);
 

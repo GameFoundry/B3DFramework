@@ -4,6 +4,7 @@
 #include "Scene/BsSceneObject.h"
 #include "Components/BsCRigidbody.h"
 #include "Private/RTTI/BsCSliderJointRTTI.h"
+#include "Scene/BsSceneManager.h"
 
 namespace bs
 {
@@ -73,7 +74,8 @@ namespace bs
 
 	SPtr<Joint> CSliderJoint::createInternal()
 	{
-		SPtr<Joint> joint = SliderJoint::create(mDesc);
+		const SPtr<SceneInstance>& scene = SO()->getScene();
+		SPtr<Joint> joint = SliderJoint::create(*scene->getPhysicsScene(), mDesc);
 
 		joint->_setOwner(PhysicsOwnerType::Component, this);
 		return joint;

@@ -2,7 +2,9 @@ Scene queries						{#sceneQueries}
 ===============
 [TOC]
 
-Scene queries allow you to specify a geometric object and perform a query if that object intersects or overlaps any physics object in the scene. Most queries also return detailed information about the intersection. All queries are performed through the global @ref bs::Physics "Physics" interface, accessible through @ref bs::gPhysics "gPhysics()".
+Scene queries allow you to specify a geometric object and perform a query if that object intersects or overlaps any physics object in the scene. Most queries also return detailed information about the intersection. All queries are performed through the @ref bs::PhysicsScene "PhysicsScene" interface.
+
+All queries will operate only on objects in a particular scene. Usually you will only have one scene, and you can retrieve it through @ref bs::SceneManager::getMainScene "SceneManager::getMainScene()". This will return a @ref bs::SceneInstance "SceneInstance" object through which you can get a **PhysicsScene** by calling @ref bs::SceneInstance::getPhysicsScene "SceneInstance::getPhysicsScene()". 
 
 Here is a short example of a basic query, to give you a better idea:
 
@@ -15,7 +17,8 @@ Ray ray(origin, direction);
 PhysicsQueryHit hitInfo;
 
 // Cast a ray into the scene and return information about first object hit
-if(gPhysics().rayCast(ray, hitInfo))
+const SPtr<PhysicsScene>& physicsScene = gSceneManager().getMainScene()->getPhysicsScene();
+if(physicsScene->rayCast(ray, hitInfo))
 {
 	HCollider hitCollider = hitInfo.collider;
 	String hitSceneObjectName = hitCollider->SO()->getName();
@@ -48,11 +51,11 @@ They can also be categorized by the type of values they return:
   
 ## All hit casts {#sceneQueries_a_a}
 As the name implies, these type of queries perform a cast and then return information about all hit objects. Relevant methods are:
- - @ref bs::Physics::rayCastAll "Physics::rayCastAll()"
- - @ref bs::Physics::boxCastAll "Physics::boxCastAll()"
- - @ref bs::Physics::sphereCastAll "Physics::sphereCastAll()"
- - @ref bs::Physics::capsuleCastAll "Physics::capsuleCastAll()"
- - @ref bs::Physics::convexCastAll "Physics::convexCastAll()"
+ - @ref bs::PhysicsScene::rayCastAll "PhysicsScene::rayCastAll()"
+ - @ref bs::PhysicsScene::boxCastAll "PhysicsScene::boxCastAll()"
+ - @ref bs::PhysicsScene::sphereCastAll "PhysicsScene::sphereCastAll()"
+ - @ref bs::PhysicsScene::capsuleCastAll "PhysicsScene::capsuleCastAll()"
+ - @ref bs::PhysicsScene::convexCastAll "PhysicsScene::convexCastAll()"
  
 They all share a common interface, where as the first parameter they accept a shape with its starting position and orientation, travel direction, and finally an optional maximum range. They return an array of @ref bs::PhysicsQueryHit "PhysicsQueryHit" objects.
 
@@ -64,7 +67,8 @@ Sphere sphere(Vector3(0, 0, 0), 0.5f);
 Vector3 direction(0, 0, -1);
 
 // Find all objects intersecting the sphere traveling in the specified direction
-Vector<PhysicsQueryHit> hits = gPhysics().sphereCastAll(sphere, direction);
+const SPtr<PhysicsScene>& physicsScene = gSceneManager().getMainScene()->getPhysicsScene();
+Vector<PhysicsQueryHit> hits = physicsScene.sphereCastAll(sphere, direction);
 
 for(auto& entry : hits)
 {
@@ -87,11 +91,11 @@ for(auto& entry : hits)
 Closest hit casts are nearly identical to all hit casts, with the main difference is that they return a boolean value if a hit occurred or not, and output a single **PhysicsQueryHit** object. Hit information returned always concerns the closest found hit. 
 
 Checking for closest hit is cheaper than checking for them all, and is usually adequate for most applications. Relevant methods are:
- - @ref bs::Physics::rayCast "Physics::rayCast()"
- - @ref bs::Physics::boxCast "Physics::boxCast()"
- - @ref bs::Physics::sphereCast "Physics::sphereCast()"
- - @ref bs::Physics::capsuleCast "Physics::capsuleCast()"
- - @ref bs::Physics::convexCast "Physics::convexCast()"
+ - @ref bs::PhysicsScene::rayCast "PhysicsScene::rayCast()"
+ - @ref bs::PhysicsScene::boxCast "PhysicsScene::boxCast()"
+ - @ref bs::PhysicsScene::sphereCast "PhysicsScene::sphereCast()"
+ - @ref bs::PhysicsScene::capsuleCast "PhysicsScene::capsuleCast()"
+ - @ref bs::PhysicsScene::convexCast "PhysicsScene::convexCast()"
  
 They also share a common interface where as the first parameter they accept a shape with its starting position and orientation, travel direction, reference to a **PhysicsQueryHit** object to receive the results, and finally an optional maximum range. They return a boolean value that returns true if anything was hit.
 
@@ -104,7 +108,8 @@ Vector3 direction(0, 0, -1);
 
 // Find closest object intersecting the box traveling in the specified direction
 PhysicsQueryHit hitInfo;
-if(gPhysics().boxCast(box, direction, hitInfo))
+const SPtr<PhysicsScene>& physicsScene = gSceneManager().getMainScene()->getPhysicsScene();
+if(physicsScene.boxCast(box, direction, hitInfo))
 {
 	HCollider hitCollider = hitInfo.collider;
 	String hitSceneObjectName = hitCollider->SO()->getName();
@@ -118,11 +123,11 @@ if(gPhysics().boxCast(box, direction, hitInfo))
 Finally, any hit casts are the simplest (and cheapest) of them all. They simply return a boolean value if a hit occurred or not. They do not return any further information about the hit.
 
 Relevant methods are:
- - @ref bs::Physics::rayCastAny "Physics::rayCastAny()"
- - @ref bs::Physics::boxCastAny "Physics::boxCastAny()"
- - @ref bs::Physics::sphereCastAny "Physics::sphereCastAny()"
- - @ref bs::Physics::capsuleCastAny "Physics::capsuleCastAny()"
- - @ref bs::Physics::convexCastAny "Physics::convexCastAny()"
+ - @ref bs::PhysicsScene::rayCastAny "PhysicsScene::rayCastAny()"
+ - @ref bs::PhysicsScene::boxCastAny "PhysicsScene::boxCastAny()"
+ - @ref bs::PhysicsScene::sphereCastAny "PhysicsScene::sphereCastAny()"
+ - @ref bs::PhysicsScene::capsuleCastAny "PhysicsScene::capsuleCastAny()"
+ - @ref bs::PhysicsScene::convexCastAny "PhysicsScene::convexCastAny()"
  
 ~~~~~~~~~~~~~{.cpp}
 // Ray starting at origin, traveling towards negative Z
@@ -131,7 +136,8 @@ Vector3 direction(0, 0, -1);
 Ray ray(origin, direction);
 
 // See if the ray intersects anything while traveling in the specified direction
-if(gPhysics().rayCastAny(ray))
+const SPtr<PhysicsScene>& physicsScene = gSceneManager().getMainScene()->getPhysicsScene();
+if(physicsScene.rayCastAny(ray))
 	gDebug().logDebug("Found hit!");
 ~~~~~~~~~~~~~
 
@@ -150,10 +156,10 @@ They can also be categorized by the type of values they return:
   
 ## All overlap methods {#sceneQueries_b_a}
 These overlap methods return an array of **Collider**%s consisting of all the objects the provided shape is currently overlapping. Relevant methods are:
- - @ref bs::Physics::boxOverlap "Physics::boxOverlap()"
- - @ref bs::Physics::sphereOverlap "Physics::sphereOverlap()"
- - @ref bs::Physics::capsuleOverlap "Physics::capsuleOverlap()"
- - @ref bs::Physics::convexOverlap "Physics::convexOverlap()"
+ - @ref bs::PhysicsScene::boxOverlap "PhysicsScene::boxOverlap()"
+ - @ref bs::PhysicsScene::sphereOverlap "PhysicsScene::sphereOverlap()"
+ - @ref bs::PhysicsScene::capsuleOverlap "PhysicsScene::capsuleOverlap()"
+ - @ref bs::PhysicsScene::convexOverlap "PhysicsScene::convexOverlap()"
  
 They all share a common interface. As input they take a shape with its starting position and orientation, and return an array of overlapping objects. 
 
@@ -162,7 +168,8 @@ They all share a common interface. As input they take a shape with its starting 
 Sphere sphere(Vector3(0, 0, 0), 0.5f);
 
 // Find all objects overlapping the sphere
-Vector<HCollider> overlaps = gPhysics().sphereOverlap(sphere);
+const SPtr<PhysicsScene>& physicsScene = gSceneManager().getMainScene()->getPhysicsScene();
+Vector<HCollider> overlaps = physicsScene.sphereOverlap(sphere);
 
 for(auto& entry : overlaps)
 {
@@ -173,16 +180,17 @@ for(auto& entry : overlaps)
 
 ## Any overlap methods {#sceneQueries_b_b}
 This is a set of overlap methods that returns only a boolean value if the overlap occurred or not, without a list of colliders that are overlapping. This is cheaper than querying for all overlaps. The relevant methods are:
- - @ref bs::Physics::boxOverlapAny "Physics::boxOverlapAny()"
- - @ref bs::Physics::sphereOverlapAny "Physics::sphereOverlapAny()"
- - @ref bs::Physics::capsuleOverlapAny "Physics::capsuleOverlapAny()"
- - @ref bs::Physics::convexOverlapAny "Physics::convexOverlapAny()"
+ - @ref bs::PhysicsScene::boxOverlapAny "PhysicsScene::boxOverlapAny()"
+ - @ref bs::PhysicsScene::sphereOverlapAny "PhysicsScene::sphereOverlapAny()"
+ - @ref bs::PhysicsScene::capsuleOverlapAny "PhysicsScene::capsuleOverlapAny()"
+ - @ref bs::PhysicsScene::convexOverlapAny "PhysicsScene::convexOverlapAny()"
  
  ~~~~~~~~~~~~~{.cpp}
 // Sphere centered at origin with radius 0.5
 Sphere sphere(Vector3(0, 0, 0), 0.5f);
 
-// Check if sphere overlaps anything 
-if(gPhysics().sphereOverlapAny(sphere))
+// Check if sphere overlaps anything
+const SPtr<PhysicsScene>& physicsScene = gSceneManager().getMainScene()->getPhysicsScene();
+if(physicsScene.sphereOverlapAny(sphere))
 	gDebug().logDebug("Found overlap!");
 ~~~~~~~~~~~~~

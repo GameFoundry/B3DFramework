@@ -10,7 +10,8 @@ using namespace physx;
 
 namespace bs
 {
-	PhysXMeshCollider::PhysXMeshCollider(PxPhysics* physx, const Vector3& position, const Quaternion& rotation)
+	PhysXMeshCollider::PhysXMeshCollider(PxPhysics* physx, PxScene* scene, const Vector3& position, 
+		const Quaternion& rotation)
 	{
 		PxSphereGeometry geometry(0.01f); // Dummy
 
@@ -18,7 +19,7 @@ namespace bs
 		shape->setLocalPose(toPxTransform(position, rotation));
 		shape->userData = this;
 
-		mInternal = bs_new<FPhysXCollider>(shape);
+		mInternal = bs_new<FPhysXCollider>(scene, shape);
 	}
 
 	PhysXMeshCollider::~PhysXMeshCollider()

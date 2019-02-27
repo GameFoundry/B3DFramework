@@ -34,6 +34,14 @@ namespace bs
         }
 
         /// <summary>
+        /// Scene this object is part of.
+        /// </summary>
+        public SceneInstance Scene
+        {
+            get { return Internal_GetScene(mCachedPtr);  }
+        }
+
+        /// <summary>
         /// Determines if the object's components are being updated or not.
         /// </summary>
         public bool Active
@@ -491,6 +499,9 @@ namespace bs
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern SceneObject Internal_GetParent(IntPtr nativeInstance);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern SceneInstance Internal_GetScene(IntPtr nativeInstance);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_GetNumChildren(IntPtr nativeInstance, out int value);

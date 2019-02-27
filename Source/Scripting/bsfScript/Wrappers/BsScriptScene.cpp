@@ -135,7 +135,7 @@ namespace bs
 
 	MonoObject* ScriptScene::internal_GetRoot()
 	{
-		HSceneObject root = SceneManager::instance().getRootNode();
+		HSceneObject root = SceneManager::instance().getMainScene()->getRoot();
 
 		ScriptSceneObject* scriptRoot = ScriptGameObjectManager::instance().getOrCreateScriptSceneObject(root);
 		return scriptRoot->getManagedInstance();

@@ -8,6 +8,8 @@
 
 namespace bs
 {
+	class PhysicsScene;
+
 	/** @addtogroup Physics
 	 *  @{
 	 */
@@ -143,8 +145,13 @@ namespace bs
 		/** @copydoc setLayer() */
 		virtual UINT64 getLayer() const { return mLayer; }
 
-		/** Creates a new character controller. */
-		static SPtr<CharacterController> create(const CHAR_CONTROLLER_DESC& desc);
+		/** 
+		 * Creates a new character controller. 
+		 *
+		 * @param[in]	scene		Scene to add the controller to.
+		 * @param[in]	desc		Describes controller geometry and movement.
+		 */
+		static SPtr<CharacterController> create(PhysicsScene& scene, const CHAR_CONTROLLER_DESC& desc);
 
 		/** Triggered when the controller hits a collider. */
 		Event<void(const ControllerColliderCollision&)> onColliderHit;

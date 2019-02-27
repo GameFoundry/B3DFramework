@@ -16,7 +16,8 @@ namespace bs
 	class PhysXPlaneCollider : public PlaneCollider
 	{
 	public:
-		PhysXPlaneCollider(physx::PxPhysics* physx, const Vector3& position, const Quaternion& rotation);
+		PhysXPlaneCollider(physx::PxPhysics* physx, physx::PxScene* scene, const Vector3& position, 
+			const Quaternion& rotation);
 		~PhysXPlaneCollider();
 
 	private:
