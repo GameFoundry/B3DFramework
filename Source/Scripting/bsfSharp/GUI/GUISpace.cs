@@ -21,6 +21,7 @@ namespace bs
         ///                    layout is vertical or horizontal.</param>
         public GUIFixedSpace(int size)
         {
+            size = Math.Max(0, size);
             Internal_CreateInstance(this, size);
         }
 
@@ -31,6 +32,7 @@ namespace bs
         /// layout is vertical or horizontal.</param>
         public void SetSize(int size)
         {
+            size = Math.Max(0, size);
             Internal_SetSize(mCachedPtr, size);
         }
 
