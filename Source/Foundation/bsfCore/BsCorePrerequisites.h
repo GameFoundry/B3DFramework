@@ -820,7 +820,7 @@ namespace bs
 		 * Used when deserializing resources. Lets the system know not to discard any intermediate resource data that might
 		 * be required if the resource needs to be serialized.
 		 */
-		SF_KeepResourceSourceData
+		SF_KeepResourceSourceData = 1
 	};
 
 	/** Helper type that can contain either a component or scene actor version of an object. */

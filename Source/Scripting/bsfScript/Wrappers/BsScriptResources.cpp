@@ -33,7 +33,12 @@ namespace bs
 	{
 		Path nativePath = MonoUtil::monoToString(path);
 
-		HResource resource = GameResourceManager::instance().load(nativePath, flags, false);
+		ResourceLoadFlags loadFlags = flags;
+
+		if (gApplication().isEditor())
+			loadFlags |= ResourceLoadFlag::KeepSourceData;
+
+		HResource resource = GameResourceManager::instance().load(nativePath, loadFlags, false);
 		if (!resource.isLoaded(false))
 			return nullptr;
 
@@ -60,7 +65,12 @@ namespace bs
 	{
 		Path nativePath = MonoUtil::monoToString(path);
 
-		HResource resource = GameResourceManager::instance().load(nativePath, flags, true);
+		ResourceLoadFlags loadFlags = flags;
+
+		if (gApplication().isEditor())
+			loadFlags |= ResourceLoadFlag::KeepSourceData;
+
+		HResource resource = GameResourceManager::instance().load(nativePath, loadFlags, true);
 		if (resource == nullptr)
 			return nullptr;
 
