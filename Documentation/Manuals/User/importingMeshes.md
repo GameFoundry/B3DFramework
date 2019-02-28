@@ -97,11 +97,8 @@ HMesh mesh = gImporter().import<Mesh>("dragon.fbx", importOptions);
 SPtr<VertexDataDesc> vertexDesc = VertexDataDesc::create();
 vertexDesc->addVertElem(VET_FLOAT3, VES_POSITION);
 
-//// Create enough room for 8 vertices of specified properties, and 36 indices (12 triangles)
-SPtr<MeshData> meshData = MeshData::create(8, 36, vertexDesc);
-
 // Read cached data
-mesh->getCachedData(*meshData);
+SPtr<MeshData> meshData = mesh->getCachedData();
 
 // Read vertex positions
 Vector<Vector3> vertices(8);

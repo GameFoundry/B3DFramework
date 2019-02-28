@@ -139,11 +139,10 @@ When you are sure you will overwrite all the contents of a mesh, make sure to se
 # Reading cached CPU data {#creatingMeshes_c}
 Reading cached CPU data allows you to read-back any data you have written to the mesh when calling **Mesh::writeData()**. It is particularily useful when importing meshes from external files and wish to access their vertex/index data. Note that mesh must be created with the **MeshUsage::MU_CPUCACHED** usage flag in order for CPU cached data to be available. When importing meshes this flag will automatically be set if the relevant property is enabled in **MeshImportOptions**.
 
-Cached CPU data can be read by calling @ref bs::Mesh::getCachedData "Mesh::getCachedData()". It accepts a **MeshData** parameter to which to output the index and vertex data.
+Cached CPU data can be read by calling @ref bs::Mesh::getCachedData "Mesh::getCachedData()".
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<MeshData> meshData = mesh->allocBuffer();
-mesh->getCachedData(*meshData);
+SPtr<MeshData> meshData = mesh->getCachedData();
 ~~~~~~~~~~~~~
 
 After reading the data you can access it through @ref bs::MeshData::getVertexData "PixelData::getVertexData()", @ref bs::MeshData::getElementData "PixelData::getElementData()" or through iterators.
