@@ -14,11 +14,11 @@ environment:
 install:
   # Install composer on tagged and scheduled builds (need it for documentation gen.)
   - cmd: if "%APPVEYOR_REPO_TAG%" == "true" (choco install composer)
-  - cmd: if "%APPVEYOR_SCHEDULED_BUILD%" == "true" (choco install composer)
+  - cmd: if "%APPVEYOR_SCHEDULED_BUILD%" == "True" (choco install composer)
   - cmd: refreshenv
   # Install daux on tagged and scheduled builds (need it for documentation gen.)
   - cmd: if "%APPVEYOR_REPO_TAG%" == "true" (composer global require daux/daux.io)
-  - cmd: if "%APPVEYOR_SCHEDULED_BUILD%" == "true" (composer global require daux/daux.io)
+  - cmd: if "%APPVEYOR_SCHEDULED_BUILD%" == "True" (composer global require daux/daux.io)
   - cmd: refreshenv
 
 build_script:
@@ -49,7 +49,7 @@ build_script:
   # Generate manuals (only tagged and nightly builds)
   - cmd: cd Documentation/Manuals
   - cmd: if "%APPVEYOR_REPO_TAG%" == "true" (daux generate)
-  - cmd: if "%APPVEYOR_SCHEDULED_BUILD%" == "true" (daux generate)
+  - cmd: if "%APPVEYOR_SCHEDULED_BUILD%" == "True" (daux generate)
   - cmd: cd ../..
   # Package documentation (only tagged and nightly builds)
   - ps: |
