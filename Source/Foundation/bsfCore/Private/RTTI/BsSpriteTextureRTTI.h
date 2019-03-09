@@ -40,6 +40,13 @@ namespace bs
 		{
 			return SpriteTexture::createEmpty();
 		}
+
+	private:
+		void onDeserializationEnded(IReflectable* obj, SerializationContext* context) override
+		{
+			SpriteTexture* texture = static_cast<SpriteTexture*>(obj);
+			texture->initialize();
+		}
 	};
 
 	template<> struct RTTIPlainType<SpriteSheetGridAnimation>

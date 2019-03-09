@@ -255,7 +255,7 @@ namespace bs
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 
-		/**	Creates a new empty and uninitialized sprite texture. To be used by factory methods. */
+		/**	Creates a new empty and uninitialized sprite texture. */
 		static SPtr<SpriteTexture> createEmpty();
 	public:
 		friend class SpriteTextureRTTI;

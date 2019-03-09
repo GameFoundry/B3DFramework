@@ -204,7 +204,6 @@ namespace bs
 			(new (bs_alloc<SpriteTexture>()) SpriteTexture(Vector2(0.0f, 0.0f), Vector2(1.0f, 1.0f), HTexture()));
 
 		texturePtr->_setThisPtr(texturePtr);
-		texturePtr->initialize();
 
 		return texturePtr;
 	}
