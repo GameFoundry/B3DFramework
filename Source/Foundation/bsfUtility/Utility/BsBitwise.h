@@ -91,6 +91,22 @@ namespace bs
 			
 			return next;
 		}
+		/** Returns modular exponentiation for integers. */
+		static UINT32 modPow(UINT32 val1, UINT32 val2, UINT32 t)
+		{
+			int res = 1;
+
+			while (val2 != 0)
+			{
+				if (val2 & 1)
+					res = (res * val1) % t;
+
+				val2 >>= 1;
+				val1 = (val1 * val1) % t;
+			}
+
+			return res;
+		}
 #if BS_COMPILER == BS_COMPILER_MSVC
 #pragma intrinsic(_BitScanReverse,_BitScanForward)
 #endif

@@ -56,6 +56,20 @@ namespace bs
 		{
 			return max(max(a, b), max(args...));
 		}
+
+		/** Helper method for implementing Math::gcd. */
+		template <typename A, typename B>
+		std::common_type_t<A, B> gcd(const A& a, const B& b) 
+		{
+			return (b == 0) ? a : gcd(b, a % b);
+		}
+
+		/** Helper method for implementing Math::lcm. */
+		template <typename A, typename B>
+		std::common_type_t<A, B> lcm(const A& a, const B& b) 
+		{
+			return (a * b) / gcd(a, b);
+		}
 	}
 
 	/** @} */
@@ -275,6 +289,35 @@ namespace bs
 		{
 			return f != f;
 		}
+
+		/** Check if the value is a prime number. */
+		static bool isPrime(int n) 
+		{
+			if (n < 2)
+				return false;
+
+			if (n % 2 == 0) 
+				return n == 2;
+
+			if (n % 3 == 0) 
+				return n == 3;
+
+			int d = 5;
+			while (d * d <= n) 
+			{
+				if (n % d == 0) 
+					return false;
+
+				d += 2;
+
+				if (n % d == 0) 
+					return false;
+				d += 4;
+			}
+
+			return true;
+		}
+
 		/** Performs smooth Hermite interpolation between values. */
 		static float smoothStep(float val1, float val2, float t) 
 		{
@@ -613,6 +656,20 @@ namespace bs
 		static std::common_type_t<A, B, Args...> max(const A& a, const B& b, const Args&... args)
 		{
 			return impl::max(a, b, args...);
+		}
+
+		/** Return the greater common divisor between two values. */
+		template <typename A, typename B>
+		static std::common_type_t<A, B> gcd(const A& a, const B& b) 
+		{
+			return impl::gcd(a, b);
+		}
+
+		/** Return the least common multiple between two values. */
+		template <typename A, typename B>
+		static std::common_type_t<A, B> lcm(const A& a, const B& b) 
+		{
+			return impl::lcm(a, b);
 		}
 
 		/**
@@ -1006,7 +1063,7 @@ namespace bs
 
 			return res;
 		}
-		
+
 		static constexpr float POS_INFINITY = std::numeric_limits<float>::infinity();
 		static constexpr float NEG_INFINITY = -std::numeric_limits<float>::infinity();
 		static constexpr float PI = 3.14159265358979323846f;
