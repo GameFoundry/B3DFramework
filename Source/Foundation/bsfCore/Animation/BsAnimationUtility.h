@@ -74,7 +74,8 @@ namespace bs
 
 		/** Converts a curve in euler angles (in degrees) into a curve using quaternions. */
 		BS_SCRIPT_EXPORT()
-		static SPtr<TAnimationCurve<Quaternion>> eulerToQuaternionCurve(const SPtr<TAnimationCurve<Vector3>>& eulerCurve);
+		static SPtr<TAnimationCurve<Quaternion>> eulerToQuaternionCurve(const SPtr<TAnimationCurve<Vector3>>& eulerCurve, 
+			EulerAngleOrder order = EulerAngleOrder::YXZ);
 
 		/** Converts a curve in quaternions into a curve using euler angles (in degrees). */
 		BS_SCRIPT_EXPORT()

@@ -379,7 +379,7 @@ namespace bs
 
 			for (auto& node : mesh->referencedBy)
 			{
-				Matrix4 worldTransform = scene.globalScale * node->worldTransform * node->geomTransform;
+				Matrix4 worldTransform = node->worldTransform * node->geomTransform;
 				Matrix4 worldTransformIT = worldTransform.inverse();
 				worldTransformIT = worldTransformIT.transpose();
 
@@ -538,10 +538,19 @@ namespace bs
 			importScale = options.importScale;
 
 		FbxSystemUnit units = scene->GetGlobalSettings().GetSystemUnit();
-		FbxSystemUnit bsScaledUnits(100.0f);
+		FbxSystemUnit bsScaledUnits(100.0f / importScale);
 
-		outputScene.scaleFactor = (float)units.GetConversionFactorTo(bsScaledUnits) * importScale;
-		outputScene.globalScale = Matrix4::scaling(outputScene.scaleFactor);
+		const FbxSystemUnit::ConversionOptions convOptions = {
+			false,
+			true,
+			true,
+			true,
+			true,
+			true
+		};
+
+		bsScaledUnits.ConvertScene(scene, convOptions);
+
 		outputScene.rootNode = createImportNode(outputScene, scene->GetRootNode(), nullptr);
 
 		Stack<FbxNode*> todo;
@@ -615,7 +624,8 @@ namespace bs
 		Vector3 rotationEuler = FBXToNativeType(fbxNode->EvaluateLocalRotation(FbxTime(0)));
 		Vector3 scale = FBXToNativeType(fbxNode->EvaluateLocalScaling(FbxTime(0)));
 
-		Quaternion rotation((Degree)rotationEuler.x, (Degree)rotationEuler.y, (Degree)rotationEuler.z);
+		Quaternion rotation((Degree)rotationEuler.x, (Degree)rotationEuler.y, (Degree)rotationEuler.z, 
+			EulerAngleOrder::XYZ);
 
 		node->name = fbxNode->GetNameWithoutNameSpacePrefix().Buffer();
 		node->fbxNode = fbxNode;
@@ -636,7 +646,7 @@ namespace bs
 		Vector3 geomRotEuler = FBXToNativeType(fbxNode->GeometricRotation.Get());
 		Vector3 geomScale = FBXToNativeType(fbxNode->GeometricScaling.Get());
 
-		Quaternion geomRotation((Degree)geomRotEuler.x, (Degree)geomRotEuler.y, (Degree)geomRotEuler.z);
+		Quaternion geomRotation((Degree)geomRotEuler.x, (Degree)geomRotEuler.y, (Degree)geomRotEuler.z, EulerAngleOrder::XYZ);
 		node->geomTransform = Matrix4::TRS(geomTrans, geomRotation, geomScale);
 
 		scene.nodeMap.insert(std::make_pair(fbxNode, node));
@@ -864,9 +874,24 @@ namespace bs
 	{
 		Vector<SPtr<MeshData>> allMeshData;
 		Vector<Vector<SubMesh>> allSubMeshes;
-		Vector<BONE_DESC> allBones;
-		UnorderedMap<FBXImportNode*, UINT32> boneMap;
 		UINT32 boneIndexOffset = 0;
+
+		// Generate unique indices for all the bones. This is mirrored in createSkeleton().
+		UnorderedMap<FBXImportNode*, UINT32> boneMap;
+		for (auto& mesh : scene.meshes)
+		{
+			// Create bones
+			for (auto& fbxBone : mesh->bones)
+			{
+				UINT32 boneIdx = (UINT32)boneMap.size();
+
+				auto iterFind = boneMap.find(fbxBone.node);
+				if(iterFind != boneMap.end())
+					continue; // Duplicate
+
+				boneMap[fbxBone.node] = boneIdx;
+			}
+		}
 
 		for (auto& mesh : scene.meshes)
 		{
@@ -934,7 +959,7 @@ namespace bs
 			UINT32 numIndices = (UINT32)mesh->indices.size();
 			for (auto& node : mesh->referencedBy)
 			{
-				Matrix4 worldTransform = scene.globalScale * node->worldTransform * node->geomTransform;
+				Matrix4 worldTransform = node->worldTransform * node->geomTransform;
 				Matrix4 worldTransformIT = worldTransform.inverse();
 				worldTransformIT = worldTransformIT.transpose();
 
@@ -1046,22 +1071,34 @@ namespace bs
 					}
 				}
 
-				// Copy bone influences
+				// Copy bone influences & remap bone indices
 				if(hasBoneInfluences)
 				{
 					UINT32 bufferSize = sizeof(BoneWeight) * (UINT32)numVertices;
 					BoneWeight* weights = (BoneWeight*)bs_stack_alloc(bufferSize);
 					for(UINT32 i = 0; i < (UINT32)numVertices; i++)
 					{
-						weights[i].index0 = mesh->boneInfluences[i].indices[0] + boneIndexOffset;
-						weights[i].index1 = mesh->boneInfluences[i].indices[1] + boneIndexOffset;
-						weights[i].index2 = mesh->boneInfluences[i].indices[2] + boneIndexOffset;
-						weights[i].index3 = mesh->boneInfluences[i].indices[3] + boneIndexOffset;
+						int* indices[] = { &weights[i].index0, &weights[i].index1, &weights[i].index2, &weights[i].index3};
+						float* amounts[] = { &weights[i].weight0, &weights[i].weight1, &weights[i].weight2, &weights[i].weight3};
 
-						weights[i].weight0 = mesh->boneInfluences[i].weights[0];
-						weights[i].weight1 = mesh->boneInfluences[i].weights[1];
-						weights[i].weight2 = mesh->boneInfluences[i].weights[2];
-						weights[i].weight3 = mesh->boneInfluences[i].weights[3];
+						for(UINT32 j = 0; j < 4; j++)
+						{
+							int boneIdx = mesh->boneInfluences[i].indices[j];
+							if(boneIdx != -1)
+							{
+								FBXImportNode* boneNode = mesh->bones[boneIdx].node;
+
+								auto iterFind = boneMap.find(boneNode);
+								if(iterFind != boneMap.end())
+									*indices[j] = iterFind->second;
+								else
+									*indices[j] = -1;
+							}
+							else
+								*indices[j] = boneIdx;
+
+							*amounts[j] = mesh->boneInfluences[i].weights[j];
+						}
 					}
 
 					meshData->setBoneWeights(weights, bufferSize);
@@ -1542,8 +1579,6 @@ namespace bs
 		Vector<FBXBoneInfluence>& influences = mesh.boneInfluences;
 		influences.resize(mesh.positions.size());
 
-		Matrix4 invGlobalScale = scene.globalScale.inverseAffine();
-
 		UnorderedSet<FbxNode*> existingBones;
 		UINT32 boneCount = (UINT32)skin->GetClusterCount();
 		for (UINT32 i = 0; i < boneCount; i++)
@@ -1582,31 +1617,12 @@ namespace bs
 
 			bone.localTfrm = bone.node->localTransform;
 
-			Vector3 localTfrmPos = bone.localTfrm.getPosition();
-			localTfrmPos *= scene.scaleFactor;
-
-			bone.localTfrm.setPosition(localTfrmPos);
-
 			FbxAMatrix invLinkTransform = linkTransform.Inverse();
 			bone.bindPose = FBXToNativeType(invLinkTransform * clusterTransform);
 			
 			// Undo the transform we baked into the mesh
 			bone.bindPose = bone.bindPose * (parentNode->worldTransform * parentNode->geomTransform).inverseAffine();
 			
-			// Apply global scale to bind pose (we only apply the scale to translation portion because we scale the
-			// translation animation curves)
-			const Matrix4& nodeTfrm = iterFind->second->worldTransform;
-
-			Matrix4 nodeTfrmScaledTranslation = nodeTfrm;
-			nodeTfrmScaledTranslation[0][3] = nodeTfrmScaledTranslation[0][3] / scene.scaleFactor;
-			nodeTfrmScaledTranslation[1][3] = nodeTfrmScaledTranslation[1][3] / scene.scaleFactor;
-			nodeTfrmScaledTranslation[2][3] = nodeTfrmScaledTranslation[2][3] / scene.scaleFactor;
-
-			Matrix4 nodeTfrmInv = nodeTfrm.inverseAffine();
-
-			Matrix4 scaledTranslation = nodeTfrmInv * scene.globalScale * nodeTfrmScaledTranslation;
-			bone.bindPose = scaledTranslation * bone.bindPose * invGlobalScale;
-
 			bool isDuplicate = !existingBones.insert(link).second;
 			bool isAdditive = cluster->GetLinkMode() == FbxCluster::eAdditive;
 
@@ -1872,8 +1888,7 @@ namespace bs
 				*eulerAnimation = reduceKeyframes(*eulerAnimation);
 			}
 
-			boneAnim.translation = AnimationUtility::scaleCurve(boneAnim.translation, importScene.scaleFactor);
-			boneAnim.rotation = *AnimationUtility::eulerToQuaternionCurve(eulerAnimation);
+			boneAnim.rotation = *AnimationUtility::eulerToQuaternionCurve(eulerAnimation, EulerAngleOrder::XYZ);
 		}
 
 		if (importOptions.importBlendShapes)
@@ -1961,8 +1976,8 @@ namespace bs
 				node->SetGeometricRotation(FbxNode::eDestinationPivot, node->GetGeometricRotation(FbxNode::eSourcePivot));
 				node->SetGeometricScaling(FbxNode::eDestinationPivot, node->GetGeometricScaling(FbxNode::eSourcePivot));
 
-				// Framework assumes euler angles are in YXZ order
-				node->SetRotationOrder(FbxNode::eDestinationPivot, FbxEuler::eOrderYXZ);
+				// Use XYZ as that appears to be the default for FBX (other orders sometimes have artifacts)
+				node->SetRotationOrder(FbxNode::eDestinationPivot, FbxEuler::eOrderXYZ);
 
 				// Keep interpolation as is
 				node->SetQuaternionInterpolation(FbxNode::eDestinationPivot, node->GetQuaternionInterpolation(FbxNode::eSourcePivot));

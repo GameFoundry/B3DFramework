@@ -175,9 +175,6 @@ namespace bs
 		UnorderedMap<FbxMesh*, UINT32> meshMap;
 
 		Vector<FBXAnimationClip> clips;
-
-		float scaleFactor = 1.0f;
-		Matrix4 globalScale = Matrix4::IDENTITY;
 	};
 
 	/** @} */

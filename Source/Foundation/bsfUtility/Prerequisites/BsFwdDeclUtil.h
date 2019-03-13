@@ -11,7 +11,7 @@ namespace bs
 	 */
 
 	/** Values that represent in which order are euler angles applied when used in transformations. */
-	enum class EulerAngleOrder
+	enum class BS_SCRIPT_EXPORT() EulerAngleOrder
 	{
 		XYZ,
 		XZY,

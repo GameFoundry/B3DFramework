@@ -66,7 +66,8 @@ namespace bs
 		}
 	}
 
-	SPtr<TAnimationCurve<Quaternion>> AnimationUtility::eulerToQuaternionCurve(const SPtr<TAnimationCurve<Vector3>>& eulerCurve)
+	SPtr<TAnimationCurve<Quaternion>> AnimationUtility::eulerToQuaternionCurve(
+		const SPtr<TAnimationCurve<Vector3>>& eulerCurve, EulerAngleOrder order)
 	{
 		// TODO: We calculate tangents by sampling which can introduce error in the tangents. The error can be exacerbated
 		// by the fact we constantly switch between the two representations, possibly losing precision every time. Instead 
@@ -90,7 +91,7 @@ namespace bs
 			Quaternion quat(
 				Degree(angles.x),
 				Degree(angles.y),
-				Degree(angles.z));
+				Degree(angles.z), order);
 
 			// Flip quaternion in case rotation is over 180 degrees (use shortest path)
 			if (keyIdx > 0)
