@@ -114,59 +114,63 @@ endif()
 set_property(TARGET bsf PROPERTY FOLDER Foundation)
 
 # Install
-install(
-	DIRECTORY bsfUtility
-	DESTINATION include
-	FILES_MATCHING 
-	PATTERN "*.h"
-	PATTERN "*.hpp"
-	PATTERN "Private" EXCLUDE
-)
+if(NOT BS_IS_BANSHEE3D)
+	install(
+		DIRECTORY bsfUtility
+		DESTINATION include
+		FILES_MATCHING 
+		PATTERN "*.h"
+		PATTERN "*.hpp"
+		PATTERN "Private" EXCLUDE
+	)
 
-install(
-	DIRECTORY bsfCore 
-	DESTINATION include
-	FILES_MATCHING 
-	PATTERN "*.h"
-	PATTERN "*.hpp"
-	PATTERN "Private" EXCLUDE
-)
+	install(
+		DIRECTORY bsfCore 
+		DESTINATION include
+		FILES_MATCHING 
+		PATTERN "*.h"
+		PATTERN "*.hpp"
+		PATTERN "Private" EXCLUDE
+	)
 
-install(
-	DIRECTORY bsfEngine
-	DESTINATION include
-	FILES_MATCHING 
-	PATTERN "*.h"
-	PATTERN "*.hpp"
-	PATTERN "Private" EXCLUDE
-)
+	install(
+		DIRECTORY bsfEngine
+		DESTINATION include
+		FILES_MATCHING 
+		PATTERN "*.h"
+		PATTERN "*.hpp"
+		PATTERN "Private" EXCLUDE
+	)
 
-install(
-	DIRECTORY ${PROJECT_BINARY_DIR}/Generated/bsfEngine
-	DESTINATION include
-	FILES_MATCHING
-	PATTERN "*.h"
-)
+	install(
+		DIRECTORY ${PROJECT_BINARY_DIR}/Generated/bsfEngine
+		DESTINATION include
+		FILES_MATCHING
+		PATTERN "*.h"
+	)
 
-install(
-	DIRECTORY ${PROJECT_BINARY_DIR}/Generated/bsfUtility
-	DESTINATION include
-	FILES_MATCHING
-	PATTERN "*.h"
-)
+	install(
+		DIRECTORY ${PROJECT_BINARY_DIR}/Generated/bsfUtility
+		DESTINATION include
+		FILES_MATCHING
+		PATTERN "*.h"
+	)
+endif()
 
 install_bsf_target(bsf)
 
-# This doesn't actually install anything as it is an imported library
-# but it is required because it is a dependency of the bsf target
-install(TARGETS ThirdParty EXPORT bsf)
+if(NOT BS_IS_BANSHEE3D)
+	# This doesn't actually install anything as it is an imported library
+	# but it is required because it is a dependency of the bsf target
+	install(TARGETS ThirdParty EXPORT bsf)
 
-install(
-	EXPORT bsf
-	NAMESPACE bsf::
-	FILE bsf-config.cmake
-	DESTINATION lib/bsf
-)
+	install(
+		EXPORT bsf
+		NAMESPACE bsf::
+		FILE bsf-config.cmake
+		DESTINATION lib/bsf
+	)
+endif()
 
 # Precompiled headers (Cotire)
 if(MSVC)

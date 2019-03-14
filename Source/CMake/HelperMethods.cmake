@@ -141,7 +141,7 @@ MACRO(find_imported_library3 FOLDER_NAME LIB_NAME DEBUG_LIB_NAME IS_SHARED)
 ENDMACRO()
 
 MACRO(find_imported_library_shared2 FOLDER_NAME LIB_NAME DEBUG_LIB_NAME)
-		list(APPEND ${FOLDER_NAME}_SHARED_LIBS ${LIB_NAME})
+	list(APPEND ${FOLDER_NAME}_SHARED_LIBS ${LIB_NAME})
 	find_imported_library3(${FOLDER_NAME} ${LIB_NAME} ${DEBUG_LIB_NAME} TRUE)
 ENDMACRO()
 
@@ -195,8 +195,11 @@ function(install_dependency_binary FILE_PATH CONFIG)
 		return()
 	endif()
 
-	get_filename_component(FILE_NAME ${FILE_PATH} NAME_WE)
-
+	get_filename_component(FILE_NAME ${FILE_PATH} NAME)
+	
+	# Remove shortest extension (CMake built-in method removes longest)
+	string(REGEX REPLACE "\\.[^.]*$" "" FILE_NAME ${FILE_NAME})
+	
 	if(WIN32)
 		if(BS_64BIT)
 			set(PLATFORM "x64")
@@ -206,7 +209,7 @@ function(install_dependency_binary FILE_PATH CONFIG)
 
 		set(FULL_FILE_NAME ${FILE_NAME}.dll)
 
-		set(SRC_PATH "${PROJECT_SOURCE_DIR}/bin/${PLATFORM}/${CONFIG}/${FULL_FILE_NAME}")
+		set(SRC_PATH "${BSF_SOURCE_DIR}/../bin/${PLATFORM}/${CONFIG}/${FULL_FILE_NAME}")
 		set(DEST_DIR bin)
 	else()
 		# Check if there are so-versioned files in the source directory, and if so use the filename including
@@ -230,7 +233,12 @@ function(install_dependency_binary FILE_PATH CONFIG)
 		endif()
 
 		set(SRC_PATH ${FILE_PATH})
-		set(DEST_DIR lib/bsf-${BS_FRAMEWORK_VERSION_MAJOR}.${BS_FRAMEWORK_VERSION_MINOR}.${BS_FRAMEWORK_VERSION_PATCH})
+		
+		if(NOT BS_IS_BANSHEE3D)
+			set(DEST_DIR lib/bsf-${BS_FRAMEWORK_VERSION_MAJOR}.${BS_FRAMEWORK_VERSION_MINOR}.${BS_FRAMEWORK_VERSION_PATCH})
+		else()
+			set(DEST_DIR lib/b3d-${BS_B3D_VERSION_MAJOR}.${BS_B3D_VERSION_MINOR}.${BS_B3D_VERSION_PATCH})
+		endif()
 	endif()
 
 	if(CONFIG MATCHES "Release")
@@ -252,6 +260,32 @@ MACRO(install_dependency_binaries FOLDER_NAME)
 		install_dependency_binary(${${LOOP_ENTRY}_LIBRARY_RELEASE} Release)
 		install_dependency_binary(${${LOOP_ENTRY}_LIBRARY_DEBUG} Debug)
 	endforeach()
+ENDMACRO()
+
+# Dependency .dll install is handled automatically if the imported .lib has the same name as the .dll
+# and the .dll is in the project root bin folder. Otherwise you need to call this manually.
+MACRO(install_dependency_dll FOLDER_NAME SRC_DIR LIB_NAME)
+	if(BS_64BIT)
+		set(PLATFORM "x64")
+	else()
+		set(PLATFORM "x86")
+	endif()
+
+	set(FULL_FILE_NAME ${LIB_NAME}.dll)
+	set(SRC_RELEASE "${SRC_DIR}/bin/${PLATFORM}/Release/${FULL_FILE_NAME}")
+	set(SRC_DEBUG "${SRC_DIR}/bin/${PLATFORM}/Debug/${FULL_FILE_NAME}")
+	
+	install(
+		FILES ${SRC_RELEASE}
+		DESTINATION bin
+		CONFIGURATIONS Release RelWithDebInfo MinSizeRel
+	)
+		
+	install(
+		FILES ${SRC_DEBUG}
+		DESTINATION bin
+		CONFIGURATIONS Debug
+	)
 ENDMACRO()
 
 function(target_link_framework TARGET FRAMEWORK)
@@ -365,13 +399,22 @@ endfunction()
 function(install_bsf_target targetName)
 	strip_symbols(${targetName} symbolsFile)
 	
-	install(
-		TARGETS ${targetName}
-		EXPORT bsf
-		RUNTIME DESTINATION bin
-		LIBRARY DESTINATION lib
-		ARCHIVE DESTINATION lib
-	)		
+	if(NOT BS_IS_BANSHEE3D)
+		install(
+			TARGETS ${targetName}
+			EXPORT bsf
+			RUNTIME DESTINATION bin
+			LIBRARY DESTINATION lib
+			ARCHIVE DESTINATION lib
+		)
+	else()
+		install(
+			TARGETS ${targetName}
+			EXPORT bsf
+			RUNTIME DESTINATION bin
+			LIBRARY DESTINATION lib
+		)
+	endif()
 	
 	if(MSVC)
 		install(

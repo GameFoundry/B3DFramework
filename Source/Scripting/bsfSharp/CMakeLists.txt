@@ -26,3 +26,9 @@ else()
 			COMMAND xbuild /p:Configuration=${CS_PROJ_CONFIG} ${BS_CS_PROJ}
 			COMMENT "Building managed assembly \"${BS_CS_ASSEMBLY_NAME}\"")
 endif()
+
+# Install managed assemblies
+install(
+	DIRECTORY ${PROJECT_BINARY_DIR}/bin/Assemblies
+	DESTINATION bin/
+)

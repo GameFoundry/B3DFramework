@@ -211,8 +211,10 @@ add_importer_dependencies(bsfImportTool)
 
 set_property(TARGET bsfImportTool PROPERTY FOLDER Utilities)
 
-install(TARGETS bsfImportTool RUNTIME DESTINATION bin)	
-
+if(NOT BS_IS_BANSHEE3D)
+	install(TARGETS bsfImportTool RUNTIME DESTINATION bin)	
+endif()
+	
 set(BS_FTP_CREDENTIALS_FILE "${PROJECT_SOURCE_DIR}/../ftp_credentials" CACHE STRING "The location containing the FTP server credentials to use for uploading packages. The file is expected to contain three lines: URL/Username/Password, in that order.")
 mark_as_advanced(BS_FTP_CREDENTIALS_FILE)
 
