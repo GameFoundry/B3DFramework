@@ -26,8 +26,6 @@ namespace bs
 	}
 
 	Input::Input()
-		: mPointerDoubleClicked(false), mLastPositionSet(false), mMouseScroll(0.0f), mMouseSmoothingEnabled(false)
-		, mMouse(nullptr), mKeyboard(nullptr)
 	{
 		SPtr<RenderWindow> primaryWindow = gCoreApplication().getPrimaryWindow();
 		primaryWindow->getCustomAttribute("WINDOW", &mWindowHandle);

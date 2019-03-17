@@ -286,12 +286,12 @@ namespace bs
 		Vector2I mLastPointerPosition;
 		Vector2I mPointerDelta;
 		ButtonState mPointerButtonStates[3];
-		bool mPointerDoubleClicked;
-		bool mLastPositionSet;
+		bool mPointerDoubleClicked = false;
+		bool mLastPositionSet = false;
 
 		// Thread safe
 		Vector2I mPointerPosition;
-		float mMouseScroll;
+		float mMouseScroll = 0.0f;
 		OSPointerButtonStates mPointerState;
 
 		Vector<QueuedEvent> mQueuedEvents[2];
@@ -318,8 +318,8 @@ namespace bs
 		bool mMouseSmoothingEnabled;
 		UINT64 mWindowHandle;
 
-		Mouse* mMouse;
-		Keyboard* mKeyboard;
+		Mouse* mMouse = nullptr;
+		Keyboard* mKeyboard = nullptr;
 		Vector<Gamepad*> mGamepads;
 
 		float mTotalMouseSamplingTime[2];
