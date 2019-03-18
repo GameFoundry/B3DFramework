@@ -277,7 +277,9 @@ namespace bs
 			relativePos = relativePos + relativeRot.rotate(mLocalPosition * scale);
 			relativeRot = relativeRot * mLocalRotation;
 
-			mInternal->setTransform(relativePos, relativeRot);
+			if(mInternal)
+				mInternal->setTransform(relativePos, relativeRot);
+
 			mParent->_updateMassDistribution();
 		}
 		else
@@ -286,10 +288,12 @@ namespace bs
 			Vector3 myPos = tfrm.getPosition() + myRot.rotate(mLocalPosition * myScale);
 			myRot = myRot * mLocalRotation;
 
-			mInternal->setTransform(myPos, myRot);
+			if(mInternal)
+				mInternal->setTransform(myPos, myRot);
 		}
 
-		mInternal->setScale(myScale);
+		if (mInternal)
+			mInternal->setScale(myScale);
 	}
 
 	void CCollider::updateCollisionReportMode()
