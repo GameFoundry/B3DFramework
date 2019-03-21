@@ -1679,8 +1679,8 @@ namespace bs
 			float x = vecLocalPos.x - (float)bridgeBounds.x;
 			float y = vecLocalPos.y - (float)bridgeBounds.y;
 
-			float scaleX = rtProps.width / (float)bridgeBounds.width;
-			float scaleY = rtProps.height / (float)bridgeBounds.height;
+			float scaleX = bridgeBounds.width > 0 ? rtProps.width / (float)bridgeBounds.width : 0.0f;
+			float scaleY = bridgeBounds.height > 0 ? rtProps.height / (float)bridgeBounds.height : 0.0f;
 
 			return Vector2I(Math::roundToInt(x * scaleX), Math::roundToInt(y * scaleY));
 		}
