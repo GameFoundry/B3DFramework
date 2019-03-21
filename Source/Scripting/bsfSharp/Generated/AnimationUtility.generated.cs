@@ -18,9 +18,9 @@ namespace bs
 		protected AnimationUtility() { }
 
 		/// <summary>Converts a curve in euler angles (in degrees) into a curve using quaternions.</summary>
-		public static QuaternionCurve EulerToQuaternionCurve(Vector3Curve eulerCurve)
+		public static QuaternionCurve EulerToQuaternionCurve(Vector3Curve eulerCurve, EulerAngleOrder order = EulerAngleOrder.YXZ)
 		{
-			return Internal_eulerToQuaternionCurve(eulerCurve);
+			return Internal_eulerToQuaternionCurve(eulerCurve, order);
 		}
 
 		/// <summary>Converts a curve in quaternions into a curve using euler angles (in degrees).</summary>
@@ -65,7 +65,7 @@ namespace bs
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern QuaternionCurve Internal_eulerToQuaternionCurve(Vector3Curve eulerCurve);
+		private static extern QuaternionCurve Internal_eulerToQuaternionCurve(Vector3Curve eulerCurve, EulerAngleOrder order);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern Vector3Curve Internal_quaternionToEulerCurve(QuaternionCurve quatCurve);
 		[MethodImpl(MethodImplOptions.InternalCall)]

@@ -40,7 +40,7 @@ namespace bs
 		new (bs_alloc<ScriptAnimationUtility>()) ScriptAnimationUtility(managedInstance, value);
 		return managedInstance;
 	}
-	MonoObject* ScriptAnimationUtility::Internal_eulerToQuaternionCurve(MonoObject* eulerCurve)
+	MonoObject* ScriptAnimationUtility::Internal_eulerToQuaternionCurve(MonoObject* eulerCurve, EulerAngleOrder order)
 	{
 		SPtr<TAnimationCurve<Quaternion>> tmp__output;
 		SPtr<TAnimationCurve<Vector3>> tmpeulerCurve;
@@ -48,7 +48,7 @@ namespace bs
 		scripteulerCurve = ScriptTAnimationCurveVector3::toNative(eulerCurve);
 		if(scripteulerCurve != nullptr)
 			tmpeulerCurve = scripteulerCurve->getInternal();
-		tmp__output = AnimationUtility::eulerToQuaternionCurve(tmpeulerCurve);
+		tmp__output = AnimationUtility::eulerToQuaternionCurve(tmpeulerCurve, order);
 
 		MonoObject* __output;
 		__output = ScriptTAnimationCurveQuaternion::create(tmp__output);

@@ -10,16 +10,6 @@ namespace bs
 
 
     /// <summary>
-    /// Available builtin shader types.
-    /// </summary>
-    public enum BuiltinShader // Note: Must match C++ BuiltinShader enum
-    {
-        Custom,
-        Standard,
-        Transparent
-    }
-
-    /// <summary>
     /// Contains various builtin resources that are always available.
     /// </summary>
     public static class Builtin

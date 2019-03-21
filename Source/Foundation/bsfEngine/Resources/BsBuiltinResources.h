@@ -29,7 +29,7 @@ namespace bs
 	};
 
 	/** Types of builtin shaders that are always available. */
-	enum class BuiltinShader
+	enum class BS_SCRIPT_EXPORT() BuiltinShader
 	{
 		Custom, 
 		/** Physically based shader used for opaque 3D geometry. */

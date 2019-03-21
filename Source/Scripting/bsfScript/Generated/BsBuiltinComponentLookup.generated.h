@@ -4,10 +4,10 @@
 
 #include "Serialization/BsBuiltinComponentLookup.h"
 #include "Reflection/BsRTTIType.h"
-#include "../../../Foundation/bsfCore/Components/BsCCamera.h"
-#include "BsScriptCCamera.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCBoxCollider.h"
 #include "BsScriptCBoxCollider.generated.h"
+#include "../../../Foundation/bsfCore/Components/BsCCamera.h"
+#include "BsScriptCCamera.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCAudioListener.h"
 #include "BsScriptCAudioListener.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCAnimation.h"
@@ -62,8 +62,8 @@
 namespace bs
 {
 	LOOKUP_BEGIN(BuiltinComponent)
-		ADD_ENTRY(CCamera, ScriptCCamera)
 		ADD_ENTRY(CBoxCollider, ScriptCBoxCollider)
+		ADD_ENTRY(CCamera, ScriptCCamera)
 		ADD_ENTRY(CAudioListener, ScriptCAudioListener)
 		ADD_ENTRY(CAnimation, ScriptCAnimation)
 		ADD_ENTRY(CAudioSource, ScriptCAudioSource)

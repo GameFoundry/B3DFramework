@@ -4,6 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObject.h"
+#include "../../../Foundation/bsfUtility/Prerequisites/BsFwdDeclUtil.h"
 
 namespace bs
 {
@@ -22,7 +23,7 @@ namespace bs
 	private:
 		SPtr<AnimationUtility> mInternal;
 
-		static MonoObject* Internal_eulerToQuaternionCurve(MonoObject* eulerCurve);
+		static MonoObject* Internal_eulerToQuaternionCurve(MonoObject* eulerCurve, EulerAngleOrder order);
 		static MonoObject* Internal_quaternionToEulerCurve(MonoObject* quatCurve);
 		static MonoArray* Internal_splitCurve3D(MonoObject* compoundCurve);
 		static MonoObject* Internal_combineCurve3D(MonoArray* curveComponents);
