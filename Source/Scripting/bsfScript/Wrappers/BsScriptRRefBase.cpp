@@ -109,7 +109,7 @@ namespace bs
 			if (gApplication().isEditor())
 				loadFlags |= ResourceLoadFlag::KeepSourceData;
 
-			const HResource loadedResource = gResources().loadFromUUID(thisPtr->getHandle().getUUID(), loadFlags);
+			const HResource loadedResource = gResources().loadFromUUID(thisPtr->getHandle().getUUID(), false, loadFlags);
 			thisPtr->mScriptResource = ScriptResourceManager::instance().getScriptResource(loadedResource, true);
 		}
 
