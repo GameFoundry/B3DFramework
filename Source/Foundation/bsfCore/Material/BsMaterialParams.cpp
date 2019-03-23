@@ -13,6 +13,25 @@
 
 namespace bs
 {
+	namespace impl
+	{
+		SPtr<ct::Texture> getSpriteTextureAtlas(const SPtr<ct::SpriteTexture>& spriteTexture)
+		{
+			if(spriteTexture)
+				return spriteTexture->getTexture();
+
+			return nullptr;
+		}
+
+		HTexture getSpriteTextureAtlas(const HSpriteTexture& spriteTexture)
+		{
+			if(spriteTexture.isLoaded())
+				return spriteTexture->getTexture();
+
+			return HTexture();
+		}
+	}
+
 	MaterialParamsBase::MaterialParamsBase(
 		const Map<String, SHADER_DATA_PARAM_DESC>& dataParams,
 		const Map<String, SHADER_OBJECT_PARAM_DESC>& textureParams,
@@ -639,7 +658,7 @@ namespace bs
 		if(textureParam.texture)
 			value = textureParam.texture;
 		else if(textureParam.spriteTexture)
-			value = textureParam.spriteTexture->getTexture();
+			value = impl::getSpriteTextureAtlas(textureParam.spriteTexture);
 
 		surface = textureParam.surface;
 	}
