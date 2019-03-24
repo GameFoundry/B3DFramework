@@ -1065,8 +1065,9 @@ namespace bs
 		 * @param[in]	spacing			When false all particles will use the current emitter time. When true the particles
 		 *								will be assigned a time between current time and time step end time, so they are
 		 *								unifomly distributed in this time range.
+		 * @return						Actual number of spawned particles.
 		 */
-		void spawn(UINT32 count, Random& random, const ParticleSystemState& state, ParticleSet& set, bool spacing) const;
+		UINT32 spawn(UINT32 count, Random& random, const ParticleSystemState& state, ParticleSet& set, bool spacing) const;
 
 		// User-visible properties
 		SPtr<ParticleEmitterShape> mShape;

@@ -1284,7 +1284,7 @@ namespace bs
 		const float rate = mEmissionRate.evaluate(emitterT, random);
 
 		mEmitAccumulator += rate * state.timeStep;
-		const auto numContinous = (UINT32)mEmitAccumulator;
+		auto numContinous = (UINT32)mEmitAccumulator;
 		mEmitAccumulator -= (float)numContinous;
 
 		// Bursts
@@ -1337,7 +1337,7 @@ namespace bs
 			numBurst += emitBursts(state.timeStart, state.timeEnd);
 
 		const UINT32 startIdx = set.getParticleCount();
-		spawn(numContinous, random, state, set, true);
+		numContinous = spawn(numContinous, random, state, set, true);
 
 		state.system->preSimulate(state, startIdx, numContinous, true, mEmitAccumulator);
 		state.system->simulate(state, startIdx, numContinous, true, mEmitAccumulator);
@@ -1345,7 +1345,7 @@ namespace bs
 		spawn(numBurst, random, state, set, false);
 	}	
 	
-	void ParticleEmitter::spawn(UINT32 count, Random& random, const ParticleSystemState& state, ParticleSet& set, 
+	UINT32 ParticleEmitter::spawn(UINT32 count, Random& random, const ParticleSystemState& state, ParticleSet& set, 
 		bool spacing) const
 	{
 		const float subFrameSpacing = count > 0 ? 1.0f / count : 1.0f;
@@ -1458,6 +1458,8 @@ namespace bs
 		}
 
 		bs_stack_free(emitterT);
+
+		return count;
 	}	
 	
 	SPtr<ParticleEmitter> ParticleEmitter::create()
