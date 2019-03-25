@@ -54,44 +54,7 @@ namespace bs
         private Type internalType;
         private Getter getter;
         private Setter setter;
-
-        /// <summary>
-        /// Constructor for internal use by the native code.
-        /// </summary>
-        private SerializableProperty()
-        { }
-
-        /// <summary>
-        /// Creates a new serializable property.
-        /// </summary>
-        /// <param name="type">Type of data the property contains.</param>
-        /// <param name="internalType">Type of data the property contains, as C# type.</param>
-        /// <param name="getter">Method that allows you to retrieve contents of the property.</param>
-        /// <param name="setter">Method that allows you to set contents of the property</param>
-        public SerializableProperty(FieldType type, Type internalType, Getter getter, Setter setter)
-        {
-            this.type = type;
-            this.internalType = internalType;
-            this.getter = getter;
-            this.setter = setter;
-
-            Internal_CreateInstance(this, internalType);
-        }
-
-        /// <summary>
-        /// Finalizes construction of the serializable property. Must be called after creation.
-        /// </summary>
-        /// <param name="type">Type of data the property contains.</param>
-        /// <param name="internalType">Type of data the property contains, as C# type.</param>
-        /// <param name="getter">Method that allows you to retrieve contents of the property.</param>
-        /// <param name="setter">Method that allows you to set contents of the property</param>
-        internal void Construct(FieldType type, Type internalType, Getter getter, Setter setter)
-        {
-            this.type = type;
-            this.internalType = internalType;
-            this.getter = getter;
-            this.setter = setter;
-        }
+        private bool applyOnChildChanges;
 
         /// <summary>
         /// Returns type of data the property contains.
@@ -115,6 +78,69 @@ namespace bs
         public bool IsValueType
         {
             get { return internalType.IsValueType; }
+        }
+
+        /// <summary>
+        /// Only relevant if the property represents an object. When true, whenever a child property changes value,
+        /// this property's setter will be called with the new modified version of the object. This is useful for
+        /// value-types, for reference types being passed by copy, or for situations where changes to an object must be
+        /// explicitly applied by re-assigning the object.
+        /// </summary>
+        public bool ApplyOnChildChanges
+        {
+            get { return applyOnChildChanges; }
+        }
+
+        /// <summary>
+        /// Constructor for internal use by the native code.
+        /// </summary>
+        private SerializableProperty()
+        { }
+
+        /// <summary>
+        /// Creates a new serializable property.
+        /// </summary>
+        /// <param name="type">Type of data the property contains.</param>
+        /// <param name="internalType">Type of data the property contains, as C# type.</param>
+        /// <param name="getter">Method that allows you to retrieve contents of the property.</param>
+        /// <param name="setter">Method that allows you to set contents of the property</param>
+        /// <param name="applyOnChildChanges">
+        /// Only relevant if the property represents an object. When true, whenever a child property changes value,
+        /// this property's setter will be called with the new modified version of the object. This is useful for
+        /// value-types, for reference types being passed by copy, or for situations where changes to an object must be
+        /// explicitly applied by re-assigning the object.</param>
+        public SerializableProperty(FieldType type, Type internalType, Getter getter, Setter setter, 
+            bool applyOnChildChanges = false)
+        {
+            this.type = type;
+            this.internalType = internalType;
+            this.getter = getter;
+            this.setter = setter;
+            this.applyOnChildChanges = applyOnChildChanges;
+
+            Internal_CreateInstance(this, internalType);
+        }
+
+        /// <summary>
+        /// Finalizes construction of the serializable property. Must be called after creation.
+        /// </summary>
+        /// <param name="type">Type of data the property contains.</param>
+        /// <param name="internalType">Type of data the property contains, as C# type.</param>
+        /// <param name="getter">Method that allows you to retrieve contents of the property.</param>
+        /// <param name="setter">Method that allows you to set contents of the property</param>
+        /// <param name="applyOnChildChanges">
+        /// Only relevant if the property represents an object. When true, whenever a child property changes value,
+        /// this property's setter will be called with the new modified version of the object. This is useful for
+        /// value-types, for reference types being passed by copy, or for situations where changes to an object must be
+        /// explicitly applied by re-assigning the object.</param>
+        internal void Construct(FieldType type, Type internalType, Getter getter, Setter setter, 
+            bool applyOnChildChanges = false)
+        {
+            this.type = type;
+            this.internalType = internalType;
+            this.getter = getter;
+            this.setter = setter;
+            this.applyOnChildChanges = applyOnChildChanges;
         }
 
         /// <summary>
@@ -331,7 +357,7 @@ namespace bs
         private static extern void Internal_CreateInstance(SerializableProperty instance, Type type);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern SerializableObject Internal_CreateObject(IntPtr nativeInstance, object managedInstance, 
+        private static extern SerializableObject Internal_CreateObject(IntPtr nativeInstance, object managedInstance,
             Type actualType);
 
         [MethodImpl(MethodImplOptions.InternalCall)]

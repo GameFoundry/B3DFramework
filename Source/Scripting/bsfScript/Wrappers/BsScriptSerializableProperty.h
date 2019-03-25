@@ -31,7 +31,7 @@ namespace bs
 		/**	Returns the data about the type the property is referencing. */
 		SPtr<ManagedSerializableTypeInfo> getTypeInfo() const { return mTypeInfo; }
 
-		~ScriptSerializableProperty() {}
+		~ScriptSerializableProperty() = default;
 
 	private:
 		ScriptSerializableProperty(MonoObject* instance, const SPtr<ManagedSerializableTypeInfo>& typeInfo);

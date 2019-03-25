@@ -178,8 +178,7 @@ namespace bs
                     return null;
             };
 
-            bool applyOnChange = Flags.HasFlag(SerializableFieldAttributes.ApplyOnDirty) || 
-                                 Flags.HasFlag(SerializableFieldAttributes.PassByCopy);
+            bool parentApplyOnChildChanges = parent.parentProperty?.ApplyOnChildChanges ?? false;
 
             SerializableProperty.Setter setter = (object value) =>
             {
@@ -190,13 +189,17 @@ namespace bs
                     Internal_SetValue(mCachedPtr, parentObject, value);
 
                     // If value type we cannot just modify the parent object because it's just a copy
-                    if ((applyOnChange || parentObject.GetType().IsValueType) && parent.parentProperty != null)
+                    if ((parentApplyOnChildChanges || parentObject.GetType().IsValueType) && parent.parentProperty != null)
                         parent.parentProperty.SetValue(parentObject);
                 }
             };
 
+            bool applyOnChildChanges = Flags.HasFlag(SerializableFieldAttributes.ApplyOnDirty) ||
+                                       Flags.HasFlag(SerializableFieldAttributes.PassByCopy) || 
+                                       parentApplyOnChildChanges;
+
             SerializableProperty newProperty = Internal_CreateProperty(mCachedPtr);
-            newProperty.Construct(type, internalType, getter, setter);
+            newProperty.Construct(type, internalType, getter, setter, applyOnChildChanges);
 
             return newProperty;
         }
