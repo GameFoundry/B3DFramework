@@ -46,6 +46,7 @@ namespace bs
 		MonoClass* categoryAttribute = nullptr;
 		MonoClass* orderAttribute = nullptr;
 		MonoClass* inlineAttribute = nullptr;
+		MonoClass* loadOnAssignAttribute = nullptr;
 	};
 
 	/** Contains mapping between managed objects and their native wrappers for various types. */

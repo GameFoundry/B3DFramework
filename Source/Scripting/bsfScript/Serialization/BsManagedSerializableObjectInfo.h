@@ -49,20 +49,21 @@ namespace bs
 	/**	Flags that are used to further define a field in a managed serializable object. */
 	enum class ScriptFieldFlag
 	{
-		Serializable        = 1 << 0,
-		Inspectable         = 1 << 1,
-		Range               = 1 << 2,
-		Step                = 1 << 3,
-		Animable            = 1 << 4,
-		AsLayerMask         = 1 << 5,
-		PassByCopy          = 1 << 6,
-		NotNull             = 1 << 7,
-		NativeWrapper       = 1 << 8,
-		ApplyOnDirty        = 1 << 9,
-		AsQuaternion        = 1 << 10,
-		Category			= 1 << 11,
-		Order				= 1 << 12,
-		Inline				= 1 << 13
+		Serializable  = 1 << 0,
+		Inspectable   = 1 << 1,
+		Range         = 1 << 2,
+		Step          = 1 << 3,
+		Animable      = 1 << 4,
+		AsLayerMask   = 1 << 5,
+		PassByCopy    = 1 << 6,
+		NotNull       = 1 << 7,
+		NativeWrapper = 1 << 8,
+		ApplyOnDirty  = 1 << 9,
+		AsQuaternion  = 1 << 10,
+		Category      = 1 << 11,
+		Order         = 1 << 12,
+		Inline        = 1 << 13,
+		LoadOnAssign  = 1 << 14
 	};
 
 	typedef Flags<ScriptFieldFlag> ScriptFieldFlags;

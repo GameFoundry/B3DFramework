@@ -19,6 +19,7 @@ namespace bs
 
 		/// <summary>Material to render the particles with.</summary>
 		[ShowInInspector]
+		[LoadOnAssign]
 		[NativeWrapper]
 		public RRef<Material> Material
 		{
@@ -29,6 +30,7 @@ namespace bs
 		/// <summary>Mesh used for representing individual particles when using the Mesh rendering mode.</summary>
 		[ShowInInspector]
 		[Order(2)]
+		[LoadOnAssign]
 		[NativeWrapper]
 		public RRef<Mesh> Mesh
 		{

@@ -86,10 +86,15 @@ namespace bs
         Order				= 1 << 12,
 
         /// <summary>
-        /// Singifies that the field containing a class/struct should display the child fields of that objects as if they
+        /// Signifies that the field containing a class/struct should display the child fields of that objects as if they
         /// were part of the parent class in the inspector.
         /// </summary>
-        Inline				= 1 << 13
+        Inline				= 1 << 13,
+
+        /// <summary>
+        /// Signifies that a <see cref="RRef{T}"/> should be loaded when assigned to field through the inspector.
+        /// </summary>
+        LoadOnAssign        = 1 << 14
     }
 
     /// <summary>

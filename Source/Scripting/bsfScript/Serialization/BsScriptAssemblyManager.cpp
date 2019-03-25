@@ -188,6 +188,9 @@ namespace bs
 				if(field->hasAttribute(mBuiltin.inlineAttribute))
 					fieldInfo->mFlags |= ScriptFieldFlag::Inline;
 
+				if (field->hasAttribute(mBuiltin.loadOnAssignAttribute))
+					fieldInfo->mFlags |= ScriptFieldFlag::LoadOnAssign;
+
 				objInfo->mFieldNameToId[fieldInfo->mName] = fieldInfo->mFieldId;
 				objInfo->mFields[fieldInfo->mFieldId] = fieldInfo;
 			}
@@ -269,6 +272,9 @@ namespace bs
 
 					if (property->hasAttribute(mBuiltin.inlineAttribute))
 						propertyInfo->mFlags |= ScriptFieldFlag::Inline;
+
+					if (property->hasAttribute(mBuiltin.loadOnAssignAttribute))
+						propertyInfo->mFlags |= ScriptFieldFlag::LoadOnAssign;
 				}
 
 				objInfo->mFieldNameToId[propertyInfo->mName] = propertyInfo->mFieldId;
@@ -710,6 +716,10 @@ namespace bs
 		mBuiltin.inlineAttribute = engineAssembly->getClass(ENGINE_NS, "Inline");
 		if (mBuiltin.inlineAttribute == nullptr)
 			BS_EXCEPT(InvalidStateException, "Cannot find Inline managed class.");
+
+		mBuiltin.loadOnAssignAttribute = engineAssembly->getClass(ENGINE_NS, "LoadOnAssign");
+		if (mBuiltin.loadOnAssignAttribute == nullptr)
+			BS_EXCEPT(InvalidStateException, "Cannot find LoadOnAssign managed class.");
 
 		mBaseTypesInitialized = true;
 	}

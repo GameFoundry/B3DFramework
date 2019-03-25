@@ -238,11 +238,11 @@ namespace bs
 		using MeshType = CoreVariantHandleType<Mesh, Core>;
 
 		/** Material to render the particles with. */
-		BS_SCRIPT_EXPORT()
+		BS_SCRIPT_EXPORT(loadOnAssign)
 		MaterialType material;
 
 		/** Mesh used for representing individual particles when using the Mesh rendering mode. */
-		BS_SCRIPT_EXPORT(order:2)
+		BS_SCRIPT_EXPORT(loadOnAssign,order:2)
 		MeshType mesh;
 
 		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
