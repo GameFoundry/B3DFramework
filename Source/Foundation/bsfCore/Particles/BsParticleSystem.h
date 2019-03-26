@@ -614,6 +614,9 @@ namespace bs
 		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData syncToCore(FrameAlloc* allocator) override;
 
+		/** @copydoc CoreObject::getCoreDependencies */
+		void getCoreDependencies(Vector<CoreObject*>& dependencies) override;
+
 		/**	Creates a new ParticleSystem instance without initializing it. */
 		static SPtr<ParticleSystem> createEmpty();
 

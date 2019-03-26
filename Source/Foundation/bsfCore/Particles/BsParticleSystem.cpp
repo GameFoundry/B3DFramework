@@ -164,6 +164,7 @@ namespace bs
 
 		mSettings = settings; 
 		_markCoreDirty();
+		markDependenciesDirty();
 	}
 
 	void ParticleSystem::setGpuSimulationSettings(const ParticleGpuSimulationSettings& settings)
@@ -457,6 +458,15 @@ namespace bs
 		dataPtr = rttiWriteElem(mLayer, dataPtr);
 
 		return CoreSyncData(data, size);
+	}
+
+	void ParticleSystem::getCoreDependencies(Vector<CoreObject*>& dependencies)
+	{
+		if (mSettings.mesh.isLoaded())
+			dependencies.push_back(mSettings.mesh.get());
+
+		if (mSettings.material.isLoaded())
+			dependencies.push_back(mSettings.material.get());
 	}
 
 	SPtr<ParticleSystem> ParticleSystem::create()

@@ -184,6 +184,15 @@ namespace bs
 		void prepareRenderable(UINT32 idx, const FrameInfo& frameInfo);
 
 		/**
+		 * Performs necessary steps to make a particle system ready for rendering. This must be called at least once every 
+		 * frame for every particle system that will be drawn. 
+		 * 
+		 * @param[in]	idx			Index of the particle system to prepare.
+		 * @param[in]	frameInfo	Global information describing the current frame.
+		 */
+		void prepareParticleSystem(UINT32 idx, const FrameInfo& frameInfo);
+
+		/**
 		 * Performs necessary steps to make a decal ready for rendering. This must be called at least once every frame
 		 * for every decal that will be drawn. 
 		 * 

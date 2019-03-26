@@ -1289,6 +1289,14 @@ namespace bs {	namespace ct
 		mInfo.renderableReady[idx] = true;
 	}
 
+	void RendererScene::prepareParticleSystem(UINT32 idx, const FrameInfo& frameInfo)
+	{
+		ParticlesRenderElement& renElement = mInfo.particleSystems[idx].renderElement;
+		renElement.material->updateParamsSet(renElement.params, 0.0f);
+		
+		mInfo.particleSystems[idx].perObjectParamBuffer->flushToGPU();
+	}
+
 	void RendererScene::prepareDecal(UINT32 idx, const FrameInfo& frameInfo)
 	{
 		DecalRenderElement& renElement = mInfo.decals[idx].renderElement;
