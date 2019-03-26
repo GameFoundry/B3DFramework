@@ -381,7 +381,7 @@ namespace bs
 	void ParticleEmitterHemisphereShape::_spawn(const Random& random, Vector3& position, Vector3& normal) const
 	{
 		position = random.getPointInSphereShell(mInfo.thickness);
-		if (position.z < 0.0f)
+		if (position.z > 0.0f)
 			position.z *= -1.0f;
 
 		normal = Vector3::normalize(position);
