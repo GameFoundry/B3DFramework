@@ -112,42 +112,53 @@ namespace bs
 
 	void ResourceManifest::save(const SPtr<ResourceManifest>& manifest, const Path& path, const Path& relativePath)
 	{
-		SPtr<ResourceManifest> copy = create(manifest->mName);
-
-		for(auto& elem : manifest->mFilePathToUUID)
+		if(relativePath.isEmpty())
 		{
-			if (!relativePath.includes(elem.first))
+			FileEncoder fs(path);
+			fs.encode(manifest.get());
+		}
+		else
+		{
+			SPtr<ResourceManifest> copy = create(manifest->mName);
+
+			for (auto& elem : manifest->mFilePathToUUID)
 			{
-				BS_EXCEPT(InvalidStateException, "Path in resource manifest cannot be made relative to: \"" + 
-					relativePath.toString() + "\". Path: \"" + elem.first.toString() + "\"");
+				if (!relativePath.includes(elem.first))
+				{
+					BS_EXCEPT(InvalidStateException, "Path in resource manifest cannot be made relative to: \"" +
+						relativePath.toString() + "\". Path: \"" + elem.first.toString() + "\"");
+				}
+
+				Path elementRelativePath = elem.first.getRelative(relativePath);
+
+				copy->mFilePathToUUID[elementRelativePath] = elem.second;
 			}
 
-			Path elementRelativePath = elem.first.getRelative(relativePath);
-
-			copy->mFilePathToUUID[elementRelativePath] = elem.second;
-		}
-
-		for(auto& elem : manifest->mUUIDToFilePath)
-		{
-			if(!relativePath.includes(elem.second))
+			for (auto& elem : manifest->mUUIDToFilePath)
 			{
-				BS_EXCEPT(InvalidStateException, "Path in resource manifest cannot be made relative to: \"" + 
-					relativePath.toString() + "\". Path: \"" + elem.second.toString() + "\"");
+				if (!relativePath.includes(elem.second))
+				{
+					BS_EXCEPT(InvalidStateException, "Path in resource manifest cannot be made relative to: \"" +
+						relativePath.toString() + "\". Path: \"" + elem.second.toString() + "\"");
+				}
+
+				Path elementRelativePath = elem.second.getRelative(relativePath);
+
+				copy->mUUIDToFilePath[elem.first] = elementRelativePath;
 			}
 
-			Path elementRelativePath = elem.second.getRelative(relativePath);
-
-			copy->mUUIDToFilePath[elem.first] = elementRelativePath;
+			FileEncoder fs(path);
+			fs.encode(copy.get());
 		}
-
-		FileEncoder fs(path);
-		fs.encode(copy.get());
 	}
 
 	SPtr<ResourceManifest> ResourceManifest::load(const Path& path, const Path& relativePath)
 	{
 		FileDecoder fs(path);
 		SPtr<ResourceManifest> manifest = std::static_pointer_cast<ResourceManifest>(fs.decode());
+
+		if(relativePath.isEmpty())
+			return manifest;
 
 		SPtr<ResourceManifest> copy = create(manifest->mName);
 
