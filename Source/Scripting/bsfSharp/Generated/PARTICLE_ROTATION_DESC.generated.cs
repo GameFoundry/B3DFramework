@@ -26,8 +26,8 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Determines the rotation of the particles in degrees, applied around the particle's local Z axis. Only used if  3D 
-		/// rotation is disabled.
+		/// Determines the rotation of the particles in degrees, applied around the particle&apos;s local Z axis. Only used if  
+		/// 3D rotation is disabled.
 		/// </summary>
 		public FloatDistribution rotation;
 		/// <summary>

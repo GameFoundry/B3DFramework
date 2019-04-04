@@ -45,6 +45,10 @@ namespace bs
      *  Materials, shaders, textures, meshes and components relating to rendering.
      */
 
+    /** @defgroup Particles Particles 
+     *  Rendering and simulation of particle systems.
+     */
+
     /** @defgroup Resources Resources 
      *  Resource types and resource management functionality.
      */

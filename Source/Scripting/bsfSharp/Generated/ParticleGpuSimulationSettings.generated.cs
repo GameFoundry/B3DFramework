@@ -65,7 +65,7 @@ namespace bs
 			set { Internal_setacceleration(mCachedPtr, ref value); }
 		}
 
-		/// <summary>Amount of resistance to apply in the direction opposite of the particle's velocity.</summary>
+		/// <summary>Amount of resistance to apply in the direction opposite of the particle&apos;s velocity.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
 		public float Drag

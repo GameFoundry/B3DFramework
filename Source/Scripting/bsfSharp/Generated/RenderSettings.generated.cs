@@ -233,9 +233,9 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Signals the renderer to only render overlays (like GUI), and not scene objects. Such rendering doesn't require depth 
-		/// buffer or multi-sampled render targets and will not render any scene objects. This can improve performance and memory 
-		/// usage for overlay-only views.
+		/// Signals the renderer to only render overlays (like GUI), and not scene objects. Such rendering doesn&apos;t require 
+		/// depth buffer or multi-sampled render targets and will not render any scene objects. This can improve performance and 
+		/// memory usage for overlay-only views.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]

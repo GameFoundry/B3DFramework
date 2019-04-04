@@ -11,7 +11,7 @@ namespace bs
 	 */
 
 	/// <summary>
-	/// GUI element style that determines the look of a GUI element, as well as the element's default layout options.  
+	/// GUI element style that determines the look of a GUI element, as well as the element&apos;s default layout options.  
 	/// Different looks can be provided for different element states.
 	/// </summary>
 	[ShowInInspector]
@@ -69,7 +69,7 @@ namespace bs
 			set { Internal_setimagePosition(mCachedPtr, value); }
 		}
 
-		/// <summary>Should the text word wrap if it doesn't fit.</summary>
+		/// <summary>Should the text word wrap if it doesn&apos;t fit.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
 		public bool WordWrap
@@ -79,8 +79,8 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Style used when the element doesn't have focus nor is the user interacting with the element. Used when the  element 
-		/// is in the 'off' state.
+		/// Style used when the element doesn&apos;t have focus nor is the user interacting with the element. Used when the  
+		/// element is in the &apos;off&apos; state.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
@@ -96,8 +96,8 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Style used when the user is hovering the pointer over the element, while the element doesn't have focus. Used when 
-		/// the element is in the 'off' state.
+		/// Style used when the user is hovering the pointer over the element, while the element doesn&apos;t have focus. Used 
+		/// when the element is in the &apos;off&apos; state.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
@@ -113,7 +113,8 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Style used when the user is actively interacting with the element. Used when the element is in the 'off' state.
+		/// Style used when the user is actively interacting with the element. Used when the element is in the &apos;off&apos; 
+		/// state.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
@@ -130,7 +131,7 @@ namespace bs
 
 		/// <summary>
 		/// Style used when the element has focus but the pointer is not hovering over the element. Used when the element is in 
-		/// the 'off' state.
+		/// the &apos;off&apos; state.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
@@ -147,7 +148,7 @@ namespace bs
 
 		/// <summary>
 		/// Style used when the element has focus and the pointer is hovering over the element. Used when the element is in the 
-		/// 'off' state.
+		/// &apos;off&apos; state.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
@@ -162,7 +163,7 @@ namespace bs
 			set { Internal_setfocusedHover(mCachedPtr, ref value); }
 		}
 
-		/// <summary>Same as GUIElementStyle::normal, except it's used when element is in the 'on' state.</summary>
+		/// <summary>Same as GUIElementStyle::normal, except it&apos;s used when element is in the &apos;on&apos; state.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
 		public GUIElementStateStyle NormalOn
@@ -176,7 +177,7 @@ namespace bs
 			set { Internal_setnormalOn(mCachedPtr, ref value); }
 		}
 
-		/// <summary>Same as GUIElementStyle::hover, except it's used when element is in the 'on' state.</summary>
+		/// <summary>Same as GUIElementStyle::hover, except it&apos;s used when element is in the &apos;on&apos; state.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
 		public GUIElementStateStyle HoverOn
@@ -190,7 +191,7 @@ namespace bs
 			set { Internal_sethoverOn(mCachedPtr, ref value); }
 		}
 
-		/// <summary>Same as GUIElementStyle::active, except it's used when element is in the 'on' state.</summary>
+		/// <summary>Same as GUIElementStyle::active, except it&apos;s used when element is in the &apos;on&apos; state.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
 		public GUIElementStateStyle ActiveOn
@@ -204,7 +205,7 @@ namespace bs
 			set { Internal_setactiveOn(mCachedPtr, ref value); }
 		}
 
-		/// <summary>Same as GUIElementStyle::focused, except it's used when element is in the 'on' state.</summary>
+		/// <summary>Same as GUIElementStyle::focused, except it&apos;s used when element is in the &apos;on&apos; state.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
 		public GUIElementStateStyle FocusedOn
@@ -218,7 +219,7 @@ namespace bs
 			set { Internal_setfocusedOn(mCachedPtr, ref value); }
 		}
 
-		/// <summary>Same as GUIElementStyle::focusedHover, except it's used when element is in the 'on' state.</summary>
+		/// <summary>Same as GUIElementStyle::focusedHover, except it&apos;s used when element is in the &apos;on&apos; state.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
 		public GUIElementStateStyle FocusedHoverOn
@@ -263,7 +264,7 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Additional offset to the content, that doesn't effect the bounds. Applied on top of the margins offsets.
+		/// Additional offset to the content, that doesn&apos;t effect the bounds. Applied on top of the margins offsets.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]

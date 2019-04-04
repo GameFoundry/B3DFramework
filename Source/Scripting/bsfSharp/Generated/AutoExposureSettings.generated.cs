@@ -92,8 +92,8 @@ namespace bs
 
 		/// <summary>
 		/// Clamps the maximum eye adaptation scale to this value. This allows you to limit eye adaptation so that exposure is 
-		/// never too low (for example when looking at a very bright light source you probably don't want the exposure to be so 
-		/// low that the rest of the scene is all white (overexposed). In range [0.0f, 10.0f].
+		/// never too low (for example when looking at a very bright light source you probably don&apos;t want the exposure to be 
+		/// so low that the rest of the scene is all white (overexposed). In range [0.0f, 10.0f].
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]

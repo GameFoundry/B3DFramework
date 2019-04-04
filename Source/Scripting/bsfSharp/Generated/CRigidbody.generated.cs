@@ -50,8 +50,8 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Checks if the body is sleeping. Objects that aren't moved/rotated for a while are put to sleep to reduce load on the 
-		/// physics system.
+		/// Checks if the body is sleeping. Objects that aren&apos;t moved/rotated for a while are put to sleep to reduce load on 
+		/// the physics system.
 		/// </summary>
 		[NativeWrapper]
 		public bool IsSleeping
@@ -157,7 +157,7 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Determines the rigidbody's center of mass position. Only relevant if RigibodyFlag::AutoTensors is turned off.
+		/// Determines the rigidbody&apos;s center of mass position. Only relevant if RigibodyFlag::AutoTensors is turned off.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
@@ -173,7 +173,7 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Determines the rigidbody's center of mass rotation. Only relevant if RigibodyFlag::AutoTensors is turned off.
+		/// Determines the rigidbody&apos;s center of mass rotation. Only relevant if RigibodyFlag::AutoTensors is turned off.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]

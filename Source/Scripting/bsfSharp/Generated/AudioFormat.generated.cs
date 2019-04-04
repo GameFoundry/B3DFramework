@@ -13,7 +13,7 @@ namespace bs
 	/// <summary>Valid internal engine audio formats.</summary>
 	public enum AudioFormat
 	{
-		/// <summary>Pulse code modulation audio ("raw" uncompressed audio).</summary>
+		/// <summary>Pulse code modulation audio (&quot;raw&quot; uncompressed audio).</summary>
 		PCM = 0,
 		/// <summary>Vorbis compressed audio.</summary>
 		VORBIS = 1

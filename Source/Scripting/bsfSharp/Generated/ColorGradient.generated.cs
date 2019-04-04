@@ -65,7 +65,7 @@ namespace bs
 			return temp;
 		}
 
-		/// <summary>Specify a "gradient" that represents a single color value.</summary>
+		/// <summary>Specify a &quot;gradient&quot; that represents a single color value.</summary>
 		public void SetConstant(Color color)
 		{
 			Internal_setConstant(mCachedPtr, ref color);

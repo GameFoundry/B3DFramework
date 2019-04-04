@@ -31,7 +31,7 @@ namespace bs
 			set { Internal_setExtents(mCachedPtr, ref value); }
 		}
 
-		/// <summary>Determines the position of the box shape, relative to the component's scene object.</summary>
+		/// <summary>Determines the position of the box shape, relative to the component&apos;s scene object.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
 		public Vector3 Center

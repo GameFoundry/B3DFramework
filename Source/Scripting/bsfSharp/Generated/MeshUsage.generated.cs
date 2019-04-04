@@ -11,8 +11,8 @@ namespace bs
 	 */
 
 	/// <summary>
-	/// Planned usage for the mesh. These options usually affect performance and you should specify static if you don't plan 
-	/// on modifying the mesh often, otherwise specify dynamic.
+	/// Planned usage for the mesh. These options usually affect performance and you should specify static if you don&apos;t 
+	/// plan on modifying the mesh often, otherwise specify dynamic.
 	/// </summary>
 	public enum MeshUsage
 	{

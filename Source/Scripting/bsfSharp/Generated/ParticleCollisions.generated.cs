@@ -41,7 +41,7 @@ namespace bs
 
 		/// <summary>
 		/// Determines a set of objects whose transforms to derive the collision planes from. Objects can move in the world and 
-		/// collision planes will be updated automatically. Object's negative Z axis is considered to be plane normal.
+		/// collision planes will be updated automatically. Object&apos;s negative Z axis is considered to be plane normal.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]

@@ -18,10 +18,10 @@ namespace bs
 		/// <summary>If enabled all resources referenced by the root resource will be loaded as well.</summary>
 		LoadDependencies = 1,
 		/// <summary>
-		/// If enabled the resource system will keep an internal reference to the resource so it doesn't get destroyed when it 
-		/// goes out of scope. You can call Resources::release() to release the internal reference. Each call to load will create 
-		/// a new internal reference and therefore must be followed by the same number of release calls. If dependencies are 
-		/// being loaded, they will not have internal references created regardless of this parameter.
+		/// If enabled the resource system will keep an internal reference to the resource so it doesn&apos;t get destroyed when 
+		/// it goes out of scope. You can call Resources::release() to release the internal reference. Each call to load will 
+		/// create a new internal reference and therefore must be followed by the same number of release calls. If dependencies 
+		/// are being loaded, they will not have internal references created regardless of this parameter.
 		/// </summary>
 		KeepInternalRef = 2,
 		/// <summary>

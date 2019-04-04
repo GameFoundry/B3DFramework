@@ -10,7 +10,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/// <summary>Properties of a drive that drives the joint's angular velocity towards a paricular value.</summary>
+	/// <summary>Properties of a drive that drives the joint&apos;s angular velocity towards a paricular value.</summary>
 	[StructLayout(LayoutKind.Sequential), SerializeObject]
 	public partial struct HingeJointDrive
 	{
@@ -33,8 +33,8 @@ namespace bs
 		/// <summary>Scales the velocity of the first body, and its response to drive torque is scaled down.</summary>
 		public float gearRatio;
 		/// <summary>
-		/// If the joint is moving faster than the drive's target speed, the drive will try to break. If you don't want the 
-		/// breaking to happen set this to true.
+		/// If the joint is moving faster than the drive&apos;s target speed, the drive will try to break. If you don&apos;t want 
+		/// the breaking to happen set this to true.
 		/// </summary>
 		public bool freeSpin;
 	}

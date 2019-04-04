@@ -95,7 +95,7 @@ namespace bs
 
 		/// <summary>
 		/// Enables or disables import of root motion curves. When enabled, any animation curves in imported animations  
-		/// affecting the root bone will be available through a set of separate curves in AnimationClip, and they won't be 
+		/// affecting the root bone will be available through a set of separate curves in AnimationClip, and they won&apos;t be 
 		/// evaluated through normal animation process. Instead it is expected that the user evaluates the curves manually and 
 		/// applies them as required.
 		/// </summary>

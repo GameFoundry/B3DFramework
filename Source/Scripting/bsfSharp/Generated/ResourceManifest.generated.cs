@@ -11,7 +11,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/// <summary>Serializable class that contains UUID <-> file path mapping for resources.</summary>
+	/// <summary>Serializable class that contains UUID &lt;-&gt; file path mapping for resources.</summary>
 	[ShowInInspector]
 	public partial class ResourceManifest : ScriptObject
 	{

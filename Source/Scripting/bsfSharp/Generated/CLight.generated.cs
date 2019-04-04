@@ -98,7 +98,7 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Determines the power of the light source. This will be luminous flux for radial & spot lights,  luminance for 
+		/// Determines the power of the light source. This will be luminous flux for radial &amp; spot lights,  luminance for 
 		/// directional lights with no area, and illuminance for directional lights with area (non-zero source radius).
 		/// </summary>
 		[ShowInInspector]
@@ -152,7 +152,7 @@ namespace bs
 			set { Internal_setUseAutoAttenuation(mCachedPtr, value); }
 		}
 
-		/// <summary>Returns world space bounds that completely encompass the light's area of influence.</summary>
+		/// <summary>Returns world space bounds that completely encompass the light&apos;s area of influence.</summary>
 		[NativeWrapper]
 		public Sphere Bounds
 		{

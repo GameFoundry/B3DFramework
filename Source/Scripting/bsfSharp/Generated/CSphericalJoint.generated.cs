@@ -38,7 +38,7 @@ namespace bs
 			set { Internal_setLimit(mCachedPtr, ref value); }
 		}
 
-		/// <summary>Enables or disables a flag that controls the joint's behaviour.</summary>
+		/// <summary>Enables or disables a flag that controls the joint&apos;s behaviour.</summary>
 		public void SetFlag(SphericalJointFlag flag, bool enabled)
 		{
 			Internal_setFlag(mCachedPtr, flag, enabled);

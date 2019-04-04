@@ -15,7 +15,7 @@ namespace bs
 	/// source must have an AudioClip to play-back, and it can also have a position in the case of spatial (3D) audio.
 	///
 	/// Whether or not an audio source is spatial is controlled by the assigned AudioClip. The volume and the pitch of a 
-	/// spatial audio source is controlled by its position and the AudioListener's position/direction/velocity.
+	/// spatial audio source is controlled by its position and the AudioListener&apos;s position/direction/velocity.
 	/// </summary>
 	[ShowInInspector]
 	public partial class AudioSource : Component
@@ -96,8 +96,8 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Determines the current time of playback. If playback hasn't yet started, it specifies the time at which playback will 
-		/// start at. The time is in seconds, in range [0, clipLength].
+		/// Determines the current time of playback. If playback hasn&apos;t yet started, it specifies the time at which playback 
+		/// will start at. The time is in seconds, in range [0, clipLength].
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]

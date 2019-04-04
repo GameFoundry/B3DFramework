@@ -12,7 +12,7 @@ namespace bs
 
 	/// <summary>
 	/// Collider represents physics geometry that can be in multiple states: - Default: Static geometry that physics objects 
-	/// can collide with. - Trigger: Static geometry that can't be collided with but will report touch events. - Dynamic: 
+	/// can collide with. - Trigger: Static geometry that can&apos;t be collided with but will report touch events. - Dynamic: 
 	/// Dynamic geometry that is a part of a Rigidbody. A set of colliders defines the shape of the parent  rigidbody.
 	/// </summary>
 	[ShowInInspector]
@@ -35,8 +35,8 @@ namespace bs
 
 		/// <summary>
 		/// Determines the mass of the collider. Only relevant if the collider is part of a rigidbody. Ultimately this will 
-		/// determine the total mass, center of mass and inertia tensors of the parent rigidbody (if they're being calculated 
-		/// automatically).
+		/// determine the total mass, center of mass and inertia tensors of the parent rigidbody (if they&apos;re being 
+		/// calculated automatically).
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]

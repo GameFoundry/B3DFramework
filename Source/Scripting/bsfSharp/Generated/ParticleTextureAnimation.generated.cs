@@ -11,8 +11,8 @@ namespace bs
 	 */
 
 	/// <summary>
-	/// Provides functionality for particle texture animation. Uses the sprite texture assigned to the particle's material to 
-	/// determine animation properties.
+	/// Provides functionality for particle texture animation. Uses the sprite texture assigned to the particle&apos;s 
+	/// material to determine animation properties.
 	/// </summary>
 	[ShowInInspector]
 	public partial class ParticleTextureAnimation : ParticleEvolver

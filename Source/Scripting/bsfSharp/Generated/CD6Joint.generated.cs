@@ -104,7 +104,7 @@ namespace bs
 			set { Internal_setLimitSwing(mCachedPtr, ref value); }
 		}
 
-		/// <summary>Returns the drive's target position relative to the joint's first body.</summary>
+		/// <summary>Returns the drive&apos;s target position relative to the joint&apos;s first body.</summary>
 		[NativeWrapper]
 		public Vector3 DrivePosition
 		{
@@ -116,7 +116,7 @@ namespace bs
 			}
 		}
 
-		/// <summary>Returns the drive's target rotation relative to the joint's first body.</summary>
+		/// <summary>Returns the drive&apos;s target rotation relative to the joint&apos;s first body.</summary>
 		[NativeWrapper]
 		public Quaternion DriveRotation
 		{
@@ -128,7 +128,7 @@ namespace bs
 			}
 		}
 
-		/// <summary>Returns the drive's target linear velocity.</summary>
+		/// <summary>Returns the drive&apos;s target linear velocity.</summary>
 		[NativeWrapper]
 		public Vector3 DriveLinearVelocity
 		{
@@ -140,7 +140,7 @@ namespace bs
 			}
 		}
 
-		/// <summary>Returns the drive's target angular velocity.</summary>
+		/// <summary>Returns the drive&apos;s target angular velocity.</summary>
 		[NativeWrapper]
 		public Vector3 DriveAngularVelocity
 		{
@@ -196,13 +196,13 @@ namespace bs
 			Internal_setDrive(mCachedPtr, type, ref drive);
 		}
 
-		/// <summary>Sets the drive's target position and rotation relative to the joint's first body.</summary>
+		/// <summary>Sets the drive&apos;s target position and rotation relative to the joint&apos;s first body.</summary>
 		public void SetDriveTransform(Vector3 position, Quaternion rotation)
 		{
 			Internal_setDriveTransform(mCachedPtr, ref position, ref rotation);
 		}
 
-		/// <summary>Sets the drive's target linear and angular velocities.</summary>
+		/// <summary>Sets the drive&apos;s target linear and angular velocities.</summary>
 		public void SetDriveVelocity(Vector3 linear, Vector3 angular)
 		{
 			Internal_setDriveVelocity(mCachedPtr, ref linear, ref angular);

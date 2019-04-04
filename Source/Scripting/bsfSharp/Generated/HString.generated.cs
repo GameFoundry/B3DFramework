@@ -14,7 +14,7 @@ namespace bs
 	/// String handle. Provides a wrapper around an Unicode string, primarily for localization purposes.
 	///
 	/// Actual value for this string is looked up in a global string table based on the provided identifier string and  
-	/// currently active language. If such value doesn't exist then the identifier is used as is.
+	/// currently active language. If such value doesn&apos;t exist then the identifier is used as is.
 	///
 	/// Use {0}, {1}, etc. in the string value for values that might change dynamically.
 	/// </summary>
@@ -24,7 +24,7 @@ namespace bs
 		private LocString(bool __dummy0) { }
 
 		/// <summary>
-		/// Creates a new localized string with the specified identifier. If the identifier doesn't previously exist in the  
+		/// Creates a new localized string with the specified identifier. If the identifier doesn&apos;t previously exist in the  
 		/// string table, identifier value will also be used for initializing the default language version of the string.
 		/// </summary>
 		/// <param name="identifier">String you can use for later referencing the localized string.</param>

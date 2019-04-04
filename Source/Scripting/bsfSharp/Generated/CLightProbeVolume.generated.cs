@@ -23,7 +23,7 @@ namespace bs
 		private LightProbeVolume(bool __dummy0) { }
 		protected LightProbeVolume() { }
 
-		/// <summary>Returns the volume that's used for adding probes in a uniform grid pattern.</summary>
+		/// <summary>Returns the volume that&apos;s used for adding probes in a uniform grid pattern.</summary>
 		[NativeWrapper]
 		public AABox GridVolume
 		{
@@ -35,7 +35,7 @@ namespace bs
 			}
 		}
 
-		/// <summary>Returns the cell count that's used for determining the density of probes within a grid volume.</summary>
+		/// <summary>Returns the cell count that&apos;s used for determining the density of probes within a grid volume.</summary>
 		[NativeWrapper]
 		public Vector3I CellCount
 		{

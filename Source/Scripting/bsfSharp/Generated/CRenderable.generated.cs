@@ -45,7 +45,7 @@ namespace bs
 			set { Internal_setMaterials(mCachedPtr, value); }
 		}
 
-		/// <summary>Factor to be applied to the cull distance set in the camera's render settings.</summary>
+		/// <summary>Factor to be applied to the cull distance set in the camera&apos;s render settings.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
 		public float CullDistance
@@ -79,8 +79,8 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Sets a material that will be used for rendering a sub-mesh with the specified index. If a sub-mesh doesn't have a 
-		/// specific material set then the primary material will be used.
+		/// Sets a material that will be used for rendering a sub-mesh with the specified index. If a sub-mesh doesn&apos;t have 
+		/// a specific material set then the primary material will be used.
 		/// </summary>
 		public void SetMaterial(int idx, RRef<Material> material)
 		{
@@ -88,8 +88,8 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Sets a material that will be used for rendering a sub-mesh with the specified index. If a sub-mesh doesn't have a 
-		/// specific material set then the primary material will be used.
+		/// Sets a material that will be used for rendering a sub-mesh with the specified index. If a sub-mesh doesn&apos;t have 
+		/// a specific material set then the primary material will be used.
 		/// </summary>
 		public void SetMaterial(RRef<Material> material)
 		{

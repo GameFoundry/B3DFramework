@@ -39,8 +39,8 @@ namespace bs
 		/// <summary>Determines what happens to other animation clips when a new clip starts playing.</summary>
 		public AnimWrapMode wrapMode;
 		/// <summary>
-		/// Determines should the time be advanced automatically. Certain type of animation clips don't involve playback  (e.g. 
-		/// for blending where animation weight controls the animation).
+		/// Determines should the time be advanced automatically. Certain type of animation clips don&apos;t involve playback  
+		/// (e.g. for blending where animation weight controls the animation).
 		/// </summary>
 		public bool stopped;
 	}

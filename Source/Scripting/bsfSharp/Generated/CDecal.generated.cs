@@ -63,8 +63,8 @@ namespace bs
 
 		/// <summary>
 		/// Bitfield that allows you to mask on which objects will the decal be projected onto. Only objects with the  matching 
-		/// layers will be projected onto. Note that decal layer mask only supports 32-bits and objects with layers in bits >= 32 
-		/// will always be projected onto.
+		/// layers will be projected onto. Note that decal layer mask only supports 32-bits and objects with layers in bits &gt;= 
+		/// 32 will always be projected onto.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]

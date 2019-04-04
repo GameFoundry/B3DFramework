@@ -29,8 +29,8 @@ namespace bs
 		/// <summary>Position of the center around which to orbit. Evaluated over particle system lifetime.</summary>
 		public Vector3Distribution center;
 		/// <summary>
-		/// Determines the speed of rotation around each axis. The speed is specified in "turns" where 0 = no rotation,  0.5 = 
-		/// 180 degree rotation and 1 = 360 degree rotation. Evaluated over particle lifetime.
+		/// Determines the speed of rotation around each axis. The speed is specified in &quot;turns&quot; where 0 = no rotation, 
+		///  0.5 = 180 degree rotation and 1 = 360 degree rotation. Evaluated over particle lifetime.
 		/// </summary>
 		public Vector3Distribution velocity;
 		/// <summary>

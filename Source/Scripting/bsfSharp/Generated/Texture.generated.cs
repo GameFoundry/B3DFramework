@@ -105,14 +105,15 @@ namespace bs
 		{ return Internal_GetRef(x.mCachedPtr); }
 
 		/// <summary>
-		/// Returns pixels for the specified mip level & face. Pixels will be read from system memory, which means the texture 
-		/// has to be created with TextureUsage.CPUCached. If the texture was updated from the GPU the pixels retrieved from this 
-		/// method will not reflect that, and you should use GetGPUPixels instead.
+		/// Returns pixels for the specified mip level &amp; face. Pixels will be read from system memory, which means the 
+		/// texture has to be created with TextureUsage.CPUCached. If the texture was updated from the GPU the pixels retrieved 
+		/// from this method will not reflect that, and you should use GetGPUPixels instead.
 		/// </summary>
 		/// <param name="mipLevel">Mip level to retrieve pixels for. Top level (0) is the highest quality.</param>
 		/// <param name="face">
 		/// Face to read the pixels from. Cubemap textures have six faces whose face indices are as specified in the CubeFace 
-		/// enum. Array textures can have an arbitrary number of faces (if it's a cubemap array it has to be a multiple of 6).
+		/// enum. Array textures can have an arbitrary number of faces (if it&apos;s a cubemap array it has to be a multiple of 
+		/// 6).
 		/// </param>
 		/// <returns>A set of pixels for the specified mip level.</returns>
 		public PixelData GetPixels(int face = 0, int mipLevel = 0)
@@ -121,15 +122,16 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Reads texture pixels directly from the GPU. This is similar to GetPixels but the texture doesn't need to be created 
-		/// with TextureUsage.CPUCached, and the data will contain any updates performed by the GPU. This method can be 
+		/// Reads texture pixels directly from the GPU. This is similar to GetPixels but the texture doesn&apos;t need to be 
+		/// created with TextureUsage.CPUCached, and the data will contain any updates performed by the GPU. This method can be 
 		/// potentially slow as it introduces a CPU-GPU synchronization point. Additionally this method is asynchronous which 
 		/// means the data is not available immediately.
 		/// </summary>
 		/// <param name="mipLevel">Mip level to retrieve pixels for. Top level (0) is the highest quality.</param>
 		/// <param name="face">
 		/// Face to read the pixels from. Cubemap textures have six faces whose face indices are as specified in the CubeFace 
-		/// enum. Array textures can have an arbitrary number of faces (if it's a cubemap array it has to be a multiple of 6).
+		/// enum. Array textures can have an arbitrary number of faces (if it&apos;s a cubemap array it has to be a multiple of 
+		/// 6).
 		/// </param>
 		/// <returns>AsyncOp object that will contain a PixelData object when the operation completes.</returns>
 		public AsyncOp GetGPUPixels(int face = 0, int mipLevel = 0)
@@ -144,7 +146,8 @@ namespace bs
 		/// <param name="mipLevel">Mip level to set pixels for. Top level (0) is the highest quality.</param>
 		/// <param name="face">
 		/// Face to write the pixels to. Cubemap textures have six faces whose face indices are as specified in the CubeFace 
-		/// enum. Array textures can have an arbitrary number of faces (if it's a cubemap array it has to be a multiple of 6).
+		/// enum. Array textures can have an arbitrary number of faces (if it&apos;s a cubemap array it has to be a multiple of 
+		/// 6).
 		/// </param>
 		public void SetPixels(PixelData data, int face = 0, int mipLevel = 0)
 		{
@@ -159,7 +162,8 @@ namespace bs
 		/// <param name="mipLevel">Mip level to set pixels for. Top level (0) is the highest quality.</param>
 		/// <param name="face">
 		/// Face to write the pixels to. Cubemap textures have six faces whose face indices are as specified in the CubeFace 
-		/// enum. Array textures can have an arbitrary number of faces (if it's a cubemap array it has to be a multiple of 6).
+		/// enum. Array textures can have an arbitrary number of faces (if it&apos;s a cubemap array it has to be a multiple of 
+		/// 6).
 		/// </param>
 		public void SetPixels(Color[] colors, int face = 0, int mipLevel = 0)
 		{

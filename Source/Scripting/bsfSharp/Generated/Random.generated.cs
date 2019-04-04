@@ -31,7 +31,7 @@ namespace bs
 			Internal_setSeed(mCachedPtr, seed);
 		}
 
-		/// <summary>Returns a random value in range [0, std::numeric_limits<uint32_t>::max()].</summary>
+		/// <summary>Returns a random value in range [0, std::numeric_limits&lt;uint32_t&gt;::max()].</summary>
 		public int Get()
 		{
 			return Internal_get(mCachedPtr);
@@ -126,8 +126,8 @@ namespace bs
 		/// <summary>
 		/// Returns a random point inside the specified range in an arc shell of unit radius, with the specified  length (angle) 
 		/// and thickness in range [0, 1]. Angle of 360 represents a circle shell. Thickness of 0 will generate points on the arc 
-		/// edge, while thickness of 1 will generate points on the entire arc 'slice'.  Intermediate vlaues represent the shell, 
-		/// which is the surface between two concentric circles.
+		/// edge, while thickness of 1 will generate points on the entire arc &apos;slice&apos;.  Intermediate vlaues represent 
+		/// the shell, which is the surface between two concentric circles.
 		/// </summary>
 		public Vector2 GetPointInArcShell(Degree angle, float thickness)
 		{

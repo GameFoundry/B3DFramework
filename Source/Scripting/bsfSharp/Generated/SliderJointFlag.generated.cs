@@ -10,7 +10,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/// <summary>Flag that controls slider joint's behaviour.</summary>
+	/// <summary>Flag that controls slider joint&apos;s behaviour.</summary>
 	public enum SliderJointFlag
 	{
 		/// <summary>Enables the linear range limit.</summary>

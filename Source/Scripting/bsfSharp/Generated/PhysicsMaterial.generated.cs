@@ -30,8 +30,8 @@ namespace bs
 		/// (for example how quickly does an object slow down when sliding along another object).
 		/// </param>
 		/// <param name="restitution">
-		/// Controls "bounciness" of an object during a collision. Value of 1 means the collision is elastic, and value of 0 
-		/// means the value is inelastic. Must be in [0, 1] range.
+		/// Controls &quot;bounciness&quot; of an object during a collision. Value of 1 means the collision is elastic, and value 
+		/// of 0 means the value is inelastic. Must be in [0, 1] range.
 		/// </param>
 		public PhysicsMaterial(float staticFriction = 0f, float dynamicFriction = 0f, float restitution = 0f)
 		{
@@ -69,8 +69,8 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Controls "bounciness" of an object during a collision. Value of 1 means the collision is elastic, and value of 0  
-		/// means the value is inelastic. Must be in [0, 1] range.
+		/// Controls &quot;bounciness&quot; of an object during a collision. Value of 1 means the collision is elastic, and value 
+		/// of 0  means the value is inelastic. Must be in [0, 1] range.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]

@@ -53,7 +53,7 @@ namespace bs
 			set { Internal_setEnableCollision(mCachedPtr, value); }
 		}
 
-		/// <summary>Triggered when the joint's break force or torque is exceeded.</summary>
+		/// <summary>Triggered when the joint&apos;s break force or torque is exceeded.</summary>
 		public event Action OnJointBreak;
 
 		/// <summary>Determines a body managed by the joint. One of the bodies must be movable (non-kinematic).</summary>

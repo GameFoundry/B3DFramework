@@ -55,7 +55,7 @@ namespace bs
 
 		/// <summary>
 		/// A set of all curves stored in the animation. Returned value will not be updated if the animation clip curves are 
-		/// added or removed, as it is a copy of clip's internal values.
+		/// added or removed, as it is a copy of clip&apos;s internal values.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]

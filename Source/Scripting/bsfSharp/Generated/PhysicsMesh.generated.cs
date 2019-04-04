@@ -44,7 +44,7 @@ namespace bs
 			get { return Internal_getType(mCachedPtr); }
 		}
 
-		/// <summary>Returns the mesh's indices and vertices.</summary>
+		/// <summary>Returns the mesh&apos;s indices and vertices.</summary>
 		[NativeWrapper]
 		public MeshData MeshData
 		{

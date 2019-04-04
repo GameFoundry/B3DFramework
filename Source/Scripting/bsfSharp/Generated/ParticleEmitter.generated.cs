@@ -63,7 +63,7 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Sets the initial speed of the particles, in meters/second. The speed is applied along the particle's velocity 
+		/// Sets the initial speed of the particles, in meters/second. The speed is applied along the particle&apos;s velocity 
 		/// direction, which is determined by the emission shape and potentially other properties.
 		/// </summary>
 		[ShowInInspector]
@@ -118,7 +118,7 @@ namespace bs
 
 		/// <summary>
 		/// Determines the rotation of the particles when initially spawned, in degrees. The rotation is applied around the  
-		/// particle's local Z axis. Only used if 3D rotation is disabled.
+		/// particle&apos;s local Z axis. Only used if 3D rotation is disabled.
 		/// </summary>
 		[ShowInInspector]
 		[NotNull]

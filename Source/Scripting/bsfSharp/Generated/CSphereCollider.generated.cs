@@ -26,7 +26,7 @@ namespace bs
 			set { Internal_setRadius(mCachedPtr, value); }
 		}
 
-		/// <summary>Determines position of the sphere shape, relative to the component's scene object.</summary>
+		/// <summary>Determines position of the sphere shape, relative to the component&apos;s scene object.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
 		public Vector3 Center

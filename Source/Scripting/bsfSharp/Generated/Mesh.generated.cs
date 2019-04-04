@@ -132,7 +132,8 @@ namespace bs
 
 		/// <summary>
 		/// Accesses the vertex and index data of the mesh. If reading, mesh must have been created with the MeshUsage::CPUCached 
-		/// flag. If writing the caller must ensure the data matches mesh's vertex/index counts, vertex layout and index format.
+		/// flag. If writing the caller must ensure the data matches mesh&apos;s vertex/index counts, vertex layout and index 
+		/// format.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]

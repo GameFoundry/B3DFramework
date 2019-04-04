@@ -61,7 +61,7 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Returns a string translation for the specified language. Returns the identifier itself if one doesn't exist.
+		/// Returns a string translation for the specified language. Returns the identifier itself if one doesn&apos;t exist.
 		/// </summary>
 		public string GetString(string identifier, Language language)
 		{

@@ -198,7 +198,7 @@ namespace bs
 
 		/// <summary>Converts a point in world space to screen coordinates.</summary>
 		/// <param name="worldPoint">3D point in world space.</param>
-		/// <returns>2D point on the render target attached to the camera's viewport, in pixels.</returns>
+		/// <returns>2D point on the render target attached to the camera&apos;s viewport, in pixels.</returns>
 		public Vector2I WorldToScreenPoint(Vector3 worldPoint)
 		{
 			Vector2I temp;
@@ -208,7 +208,7 @@ namespace bs
 
 		/// <summary>Converts a point in world space to normalized device coordinates.</summary>
 		/// <param name="worldPoint">3D point in world space.</param>
-		/// <returns>2D point in normalized device coordinates ([-1, 1] range), relative to the camera's viewport.</returns>
+		/// <returns>2D point in normalized device coordinates ([-1, 1] range), relative to the camera&apos;s viewport.</returns>
 		public Vector2 WorldToNdcPoint(Vector3 worldPoint)
 		{
 			Vector2 temp;
@@ -218,7 +218,7 @@ namespace bs
 
 		/// <summary>Converts a point in world space to view space coordinates.</summary>
 		/// <param name="worldPoint">3D point in world space.</param>
-		/// <returns>3D point relative to the camera's coordinate system.</returns>
+		/// <returns>3D point relative to the camera&apos;s coordinate system.</returns>
 		public Vector3 WorldToViewPoint(Vector3 worldPoint)
 		{
 			Vector3 temp;
@@ -227,7 +227,7 @@ namespace bs
 		}
 
 		/// <summary>Converts a point in screen space to a point in world space.</summary>
-		/// <param name="screenPoint">2D point on the render target attached to the camera's viewport, in pixels.</param>
+		/// <param name="screenPoint">2D point on the render target attached to the camera&apos;s viewport, in pixels.</param>
 		/// <param name="depth">
 		/// Depth to place the world point at, in world coordinates. The depth is applied to the  vector going from camera origin 
 		/// to the point on the near plane.
@@ -241,12 +241,12 @@ namespace bs
 		}
 
 		/// <summary>Converts a point in screen space to a point in view space.</summary>
-		/// <param name="screenPoint">2D point on the render target attached to the camera's viewport, in pixels.</param>
+		/// <param name="screenPoint">2D point on the render target attached to the camera&apos;s viewport, in pixels.</param>
 		/// <param name="depth">
 		/// Depth to place the world point at, in device depth. The depth is applied to the  vector going from camera origin to 
 		/// the point on the near plane.
 		/// </param>
-		/// <returns>3D point relative to the camera's coordinate system.</returns>
+		/// <returns>3D point relative to the camera&apos;s coordinate system.</returns>
 		public Vector3 ScreenToViewPoint(Vector2I screenPoint, float depth = 0.5f)
 		{
 			Vector3 temp;
@@ -255,8 +255,8 @@ namespace bs
 		}
 
 		/// <summary>Converts a point in screen space to normalized device coordinates.</summary>
-		/// <param name="screenPoint">2D point on the render target attached to the camera's viewport, in pixels.</param>
-		/// <returns>2D point in normalized device coordinates ([-1, 1] range), relative to  the camera's viewport.</returns>
+		/// <param name="screenPoint">2D point on the render target attached to the camera&apos;s viewport, in pixels.</param>
+		/// <returns>2D point in normalized device coordinates ([-1, 1] range), relative to  the camera&apos;s viewport.</returns>
 		public Vector2 ScreenToNdcPoint(Vector2I screenPoint)
 		{
 			Vector2 temp;
@@ -265,7 +265,7 @@ namespace bs
 		}
 
 		/// <summary>Converts a point in view space to world space.</summary>
-		/// <param name="viewPoint">3D point relative to the camera's coordinate system.</param>
+		/// <param name="viewPoint">3D point relative to the camera&apos;s coordinate system.</param>
 		/// <returns>3D point in world space.</returns>
 		public Vector3 ViewToWorldPoint(Vector3 viewPoint)
 		{
@@ -275,8 +275,8 @@ namespace bs
 		}
 
 		/// <summary>Converts a point in view space to screen space.</summary>
-		/// <param name="viewPoint">3D point relative to the camera's coordinate system.</param>
-		/// <returns>2D point on the render target attached to the camera's viewport, in pixels.</returns>
+		/// <param name="viewPoint">3D point relative to the camera&apos;s coordinate system.</param>
+		/// <returns>2D point on the render target attached to the camera&apos;s viewport, in pixels.</returns>
 		public Vector2I ViewToScreenPoint(Vector3 viewPoint)
 		{
 			Vector2I temp;
@@ -285,8 +285,8 @@ namespace bs
 		}
 
 		/// <summary>Converts a point in view space to normalized device coordinates.</summary>
-		/// <param name="viewPoint">3D point relative to the camera's coordinate system.</param>
-		/// <returns>2D point in normalized device coordinates ([-1, 1] range), relative to  the camera's viewport.</returns>
+		/// <param name="viewPoint">3D point relative to the camera&apos;s coordinate system.</param>
+		/// <returns>2D point in normalized device coordinates ([-1, 1] range), relative to  the camera&apos;s viewport.</returns>
 		public Vector2 ViewToNdcPoint(Vector3 viewPoint)
 		{
 			Vector2 temp;
@@ -296,7 +296,7 @@ namespace bs
 
 		/// <summary>Converts a point in normalized device coordinates to world space.</summary>
 		/// <param name="ndcPoint">
-		/// 2D point in normalized device coordinates ([-1, 1] range), relative to  the camera's viewport.
+		/// 2D point in normalized device coordinates ([-1, 1] range), relative to  the camera&apos;s viewport.
 		/// </param>
 		/// <param name="depth">
 		/// Depth to place the world point at. The depth is applied to the vector going from camera origin to the point on the 
@@ -312,13 +312,13 @@ namespace bs
 
 		/// <summary>Converts a point in normalized device coordinates to view space.</summary>
 		/// <param name="ndcPoint">
-		/// 2D point in normalized device coordinates ([-1, 1] range), relative to  the camera's viewport.
+		/// 2D point in normalized device coordinates ([-1, 1] range), relative to  the camera&apos;s viewport.
 		/// </param>
 		/// <param name="depth">
 		/// Depth to place the world point at. The depth is applied to the vector going from camera origin to the point on the 
 		/// near plane.
 		/// </param>
-		/// <returns>3D point relative to the camera's coordinate system.</returns>
+		/// <returns>3D point relative to the camera&apos;s coordinate system.</returns>
 		public Vector3 NdcToViewPoint(Vector2 ndcPoint, float depth = 0.5f)
 		{
 			Vector3 temp;
@@ -328,9 +328,9 @@ namespace bs
 
 		/// <summary>Converts a point in normalized device coordinates to screen space.</summary>
 		/// <param name="ndcPoint">
-		/// 2D point in normalized device coordinates ([-1, 1] range), relative to  the camera's viewport.
+		/// 2D point in normalized device coordinates ([-1, 1] range), relative to  the camera&apos;s viewport.
 		/// </param>
-		/// <returns>2D point on the render target attached to the camera's viewport, in pixels.</returns>
+		/// <returns>2D point on the render target attached to the camera&apos;s viewport, in pixels.</returns>
 		public Vector2I NdcToScreenPoint(Vector2 ndcPoint)
 		{
 			Vector2I temp;
@@ -339,7 +339,7 @@ namespace bs
 		}
 
 		/// <summary>Converts a point in screen space to a ray in world space.</summary>
-		/// <param name="screenPoint">2D point on the render target attached to the camera's viewport, in pixels.</param>
+		/// <param name="screenPoint">2D point on the render target attached to the camera&apos;s viewport, in pixels.</param>
 		/// <returns>Ray in world space, originating at the selected point on the camera near plane.</returns>
 		public Ray ScreenPointToRay(Vector2I screenPoint)
 		{
@@ -352,10 +352,10 @@ namespace bs
 		/// Projects a point in view space to normalized device coordinates. Similar to viewToNdcPoint() but preserves the depth 
 		/// component.
 		/// </summary>
-		/// <param name="point">3D point relative to the camera's coordinate system.</param>
+		/// <param name="point">3D point relative to the camera&apos;s coordinate system.</param>
 		/// <returns>
-		/// 3D point in normalized device coordinates ([-1, 1] range), relative to the  camera's viewport. Z value range depends 
-		/// on active render API.
+		/// 3D point in normalized device coordinates ([-1, 1] range), relative to the  camera&apos;s viewport. Z value range 
+		/// depends on active render API.
 		/// </returns>
 		public Vector3 ProjectPoint(Vector3 point)
 		{
@@ -366,10 +366,10 @@ namespace bs
 
 		/// <summary>Un-projects a point in normalized device space to view space.</summary>
 		/// <param name="point">
-		/// 3D point in normalized device coordinates ([-1, 1] range), relative to the  camera's viewport. Z value range depends 
-		/// on active render API.
+		/// 3D point in normalized device coordinates ([-1, 1] range), relative to the  camera&apos;s viewport. Z value range 
+		/// depends on active render API.
 		/// </param>
-		/// <returns>3D point relative to the camera's coordinate system.</returns>
+		/// <returns>3D point relative to the camera&apos;s coordinate system.</returns>
 		public Vector3 UnprojectPoint(Vector3 point)
 		{
 			Vector3 temp;

@@ -11,9 +11,9 @@ namespace bs
 	 */
 
 	/// <summary>
-	/// Special physics controller meant to be used for game characters. Uses the "slide-and-collide" physics instead of of 
-	/// the standard physics model to handle various issues with manually moving kinematic objects. Uses a capsule to 
-	/// represent the character's bounds.
+	/// Special physics controller meant to be used for game characters. Uses the &quot;slide-and-collide&quot; physics 
+	/// instead of of the standard physics model to handle various issues with manually moving kinematic objects. Uses a 
+	/// capsule to represent the character&apos;s bounds.
 	/// </summary>
 	[ShowInInspector]
 	public partial class CharacterController : Component
@@ -125,8 +125,8 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Controls which slopes should the character consider too steep and won't be able to move over. See nonWalkableMode for 
-		/// more information.
+		/// Controls which slopes should the character consider too steep and won&apos;t be able to move over. See 
+		/// nonWalkableMode for more information.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]

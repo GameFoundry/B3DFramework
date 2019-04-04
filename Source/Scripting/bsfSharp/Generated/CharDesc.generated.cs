@@ -39,7 +39,8 @@ namespace bs
 		/// <summary>Determines how much to advance the pen after writing this character, in pixels.</summary>
 		public int yAdvance;
 		/// <summary>
-		/// Pairs that determine if certain character pairs should be closer or father together. for example "AV" combination.
+		/// Pairs that determine if certain character pairs should be closer or father together. for example &quot;AV&quot; 
+		/// combination.
 		/// </summary>
 		public KerningPair[] kerningPairs;
 	}

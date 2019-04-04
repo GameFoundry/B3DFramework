@@ -67,7 +67,7 @@ namespace bs
 			set { Internal_setspaceWidth(mCachedPtr, value); }
 		}
 
-		/// <summary>Textures in which the character's pixels are stored.</summary>
+		/// <summary>Textures in which the character&apos;s pixels are stored.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
 		public RRef<Texture>[] TexturePages

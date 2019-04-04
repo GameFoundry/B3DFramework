@@ -26,10 +26,10 @@ namespace bs
 
 		/// <summary>
 		/// Randomly pick a row to use for animation when the particle is first spawned. This implies that only a single row of 
-		/// the grid will be used for individual particle's animation.
+		/// the grid will be used for individual particle&apos;s animation.
 		/// </summary>
 		public bool randomizeRow;
-		/// <summary>Number of cycles to loop the animation during particle's lifetime.</summary>
+		/// <summary>Number of cycles to loop the animation during particle&apos;s lifetime.</summary>
 		public int numCycles;
 	}
 

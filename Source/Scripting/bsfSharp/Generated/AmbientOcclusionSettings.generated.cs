@@ -46,7 +46,7 @@ namespace bs
 
 		/// <summary>
 		/// Bias used to reduce false occlusion artifacts. Higher values reduce the amount of artifacts but will cause details to 
-		/// be lost in areas where occlusion isn't high. Value is in millimeters. Usually best to keep at a few dozen 
+		/// be lost in areas where occlusion isn&apos;t high. Value is in millimeters. Usually best to keep at a few dozen 
 		/// millimeters, valid range is roughly [0, 200].
 		/// </summary>
 		[ShowInInspector]

@@ -8,7 +8,7 @@ namespace bs
 {
 	/// <summary>
 	/// A buffer describing a volume (3D), image (2D) or line (1D) of pixels in memory. Pixels are stored as a succession  of 
-	/// "depth" slices, each containing "height" rows of "width" pixels.
+	/// &quot;depth&quot; slices, each containing &quot;height&quot; rows of &quot;width&quot; pixels.
 	/// </summary>
 	[ShowInInspector]
 	public partial class PixelData : ScriptObject
@@ -27,8 +27,8 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Returns the number of pixels that offsets one row from another. This can be "width", but doesn't have to be as some 
-		/// buffers require padding.
+		/// Returns the number of pixels that offsets one row from another. This can be &quot;width&quot;, but doesn&apos;t have 
+		/// to be as some buffers require padding.
 		/// </summary>
 		[NativeWrapper]
 		public int RawRowPitch
@@ -37,8 +37,8 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Returns the number of pixels that offsets one depth slice from another. This can be "width * height", but  doesn't 
-		/// have to be as some buffers require padding.
+		/// Returns the number of pixels that offsets one depth slice from another. This can be &quot;width * height&quot;, but  
+		/// doesn&apos;t have to be as some buffers require padding.
 		/// </summary>
 		[NativeWrapper]
 		public int RawSlicePitch
@@ -105,8 +105,8 @@ namespace bs
 
 		/// <summary>Returns values of all pixels.</summary>
 		/// <returns>
-		/// All pixels in the buffer ordered consecutively. Pixels are stored as a succession of "depth" slices,  each containing 
-		/// "height" rows of "width" pixels.
+		/// All pixels in the buffer ordered consecutively. Pixels are stored as a succession of &quot;depth&quot; slices,  each 
+		/// containing &quot;height&quot; rows of &quot;width&quot; pixels.
 		/// </returns>
 		public Color[] GetPixels()
 		{
@@ -117,8 +117,8 @@ namespace bs
 		/// Sets all pixels in the buffer.Caller must ensure that number of pixels match the extends of the buffer.
 		/// </summary>
 		/// <param name="value">
-		/// All pixels in the buffer ordered consecutively. Pixels are stored as a succession of "depth" slices,  each containing 
-		/// "height" rows of "width" pixels.
+		/// All pixels in the buffer ordered consecutively. Pixels are stored as a succession of &quot;depth&quot; slices,  each 
+		/// containing &quot;height&quot; rows of &quot;width&quot; pixels.
 		/// </param>
 		public void SetPixels(Color[] value)
 		{

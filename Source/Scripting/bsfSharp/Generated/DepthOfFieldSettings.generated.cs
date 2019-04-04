@@ -39,7 +39,7 @@ namespace bs
 
 		/// <summary>
 		/// Range within which the objects remain fully in focus. This range is applied relative to the focal distance.  Only 
-		/// relevant if Gaussian depth of field is used as other methods don't use a constant in-focus range.
+		/// relevant if Gaussian depth of field is used as other methods don&apos;t use a constant in-focus range.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]

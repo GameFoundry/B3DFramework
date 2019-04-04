@@ -21,7 +21,7 @@ namespace bs
 			Internal_AnimationCurves(this);
 		}
 
-		/// <summary>Curves for animating scene object's position.</summary>
+		/// <summary>Curves for animating scene object&apos;s position.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
 		public NamedVector3Curve[] Position
@@ -30,7 +30,7 @@ namespace bs
 			set { Internal_setPositionCurves(mCachedPtr, value); }
 		}
 
-		/// <summary>Curves for animating scene object's rotation.</summary>
+		/// <summary>Curves for animating scene object&apos;s rotation.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
 		public NamedQuaternionCurve[] Rotation
@@ -39,7 +39,7 @@ namespace bs
 			set { Internal_setRotationCurves(mCachedPtr, value); }
 		}
 
-		/// <summary>Curves for animating scene object's scale.</summary>
+		/// <summary>Curves for animating scene object&apos;s scale.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
 		public NamedVector3Curve[] Scale

@@ -41,13 +41,13 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Number of rows to divide the parent's texture area. Determines height of the individual frame (depends on  parent 
-		/// texture size).
+		/// Number of rows to divide the parent&apos;s texture area. Determines height of the individual frame (depends on  
+		/// parent texture size).
 		/// </summary>
 		public int numRows;
 		/// <summary>
-		/// Number of columns to divide the parent's texture area. Determines column of the individual frame (depends on  parent 
-		/// texture size).
+		/// Number of columns to divide the parent&apos;s texture area. Determines column of the individual frame (depends on  
+		/// parent texture size).
 		/// </summary>
 		public int numColumns;
 		/// <summary>
