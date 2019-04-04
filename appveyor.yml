@@ -38,12 +38,17 @@ build_script:
           cd Documentation/Doxygen
           Invoke-WebRequest https://data.banshee3d.com/doxygen-1.8.15.windows.x64.bin.zip -OutFile doxygen.zip
           7z x doxygen.zip
-          ./doxygen config.doxyconfig
-          cd ../Generated/html
+          ./doxygen native.doxyconfig
+          ./doxygen csharp.doxyconfig
+          cd ../Generated/native/html
           Invoke-WebRequest https://data.banshee3d.com/SemanticUI.zip -OutFile SemanticUI.zip
           7z x SemanticUI.zip
           rm SemanticUI.zip
-          cd ../../..
+          cd ../../csharp/html
+          Invoke-WebRequest https://data.banshee3d.com/SemanticUI.zip -OutFile SemanticUI.zip
+          7z x SemanticUI.zip
+          rm SemanticUI.zip
+          cd ../../../..
         }
   
   # Generate manuals (only tagged and nightly builds)
@@ -58,9 +63,13 @@ build_script:
           cd Documentation/Manuals
           mkdir Generated
           Move-Item static Generated/nightly
-          cd ../Generated
-          Move-Item html ../Manuals/Generated/nightly/api
-          cd ../..
+          cd Generated/nightly
+          mkdir csharp
+          cd ../../Generated/native
+          Move-Item html ../../Manuals/Generated/nightly/api
+          cd ../csharp
+          Move-Item html ../../Manuals/Generated/nightly/csharp/api
+          cd ../../..
           7z a bsfDocs.zip ./Documentation/Manuals/Generated/* -r
         }
   # Build and install

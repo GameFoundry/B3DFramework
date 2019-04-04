@@ -721,7 +721,7 @@ class Processor extends \Todaymade\Daux\Processor
     public function extendCommonMarkEnvironment(Environment $environment)
     {
         $up = '..' . DIRECTORY_SEPARATOR;
-        $xmlRoot = __DIR__ . DIRECTORY_SEPARATOR . $up . $up . 'Generated' . DIRECTORY_SEPARATOR . 'xml' . DIRECTORY_SEPARATOR;
+        $xmlRoot = __DIR__ . DIRECTORY_SEPARATOR . $up . $up . 'Generated' . DIRECTORY_SEPARATOR . 'native' . DIRECTORY_SEPARATOR . 'xml' . DIRECTORY_SEPARATOR;
         $xmlPath = $xmlRoot . 'index.xml';
         $xml = simplexml_load_file($xmlPath);
 

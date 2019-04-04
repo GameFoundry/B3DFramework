@@ -58,7 +58,7 @@ PROJECT_LOGO           =
 # entered, it will be relative to the location where doxygen was started. If
 # left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       = ../Generated
+OUTPUT_DIRECTORY       = ../Generated/csharp
 
 # If the CREATE_SUBDIRS tag is set to YES then doxygen will create 4096 sub-
 # directories (in 2 levels) under the output directory of each output format and
@@ -651,7 +651,7 @@ GENERATE_DEPRECATEDLIST= YES
 # sections, marked by \if <section_label> ... \endif and \cond <section_label>
 # ... \endcond blocks.
 
-ENABLED_SECTIONS       = native
+ENABLED_SECTIONS       = script
 
 # The MAX_INITIALIZER_LINES tag determines the maximum number of lines that the
 # initial value of a variable or macro / define can have for it to appear in the
@@ -706,7 +706,7 @@ FILE_VERSION_FILTER    =
 # DoxygenLayout.xml, doxygen will parse it automatically even if the LAYOUT_FILE
 # tag is left empty.
 
-LAYOUT_FILE            = Layout.xml
+LAYOUT_FILE            = CSharpLayout.xml
 
 # The CITE_BIB_FILES tag can be used to specify one or more bib files containing
 # the reference definitions. This must be a list of .bib files. The .bib
@@ -793,23 +793,7 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = ../../Source/Foundation/bsfUtility \
-                         ../../Source/Foundation/bsfCore \
-                         ../../Source/Foundation/bsfEngine \
-                         ../../Source/Plugins/bsfD3D11RenderAPI \
-                         ../../Source/Plugins/bsfGLRenderAPI \
-                         ../../Source/Plugins/bsfFBXImporter \
-                         ../../Source/Plugins/bsfFontImporter \
-                         ../../Source/Plugins/bsfFreeImgImporter \
-                         ../../Source/Plugins/bsfPhysX \
-                         ../../Source/Plugins/bsfSL \
-                         ../../Source/Plugins/bsfRenderBeast \
-                         ./Pages \
-                         ../../Source/Plugins/bsfFMOD \
-                         ../../Source/Plugins/bsfOpenAudio \
-                         ../../Source/Plugins/bsfVulkanRenderAPI \
-                         ../../Source/Scripting/bsfMono \
-                         ../../Source/Scripting/bsfScript
+INPUT                  = ../../Source/Scripting/bsfSharp
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -872,8 +856,7 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                = ../../Source/Foundation/bsfUtility/ThirdParty \
-                         ../../Source/Plugins/bsfVulkanRenderAPI/ThirdParty
+EXCLUDE                = 
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
@@ -926,7 +909,7 @@ EXAMPLE_RECURSIVE      = NO
 # that contain images that are to be included in the documentation (see the
 # \image command).
 
-IMAGE_PATH             = ../Manuals/Images
+IMAGE_PATH             = 
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program
