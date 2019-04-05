@@ -136,7 +136,7 @@ namespace bs
 		 * and tangents.
 		 *
 		 * @param[in]	time	%Time to evaluate the curve at.		
-		 * @param[in]	loop	If true the curve will loop when it goes past the end or beggining. Otherwise the curve 
+		 * @param[in]	loop	If true the curve will loop when it goes past the end or beginning. Otherwise the curve 
 		 *						value will be clamped.
 		 * @return				Keyframe containing the interpolated value and tangents at provided time.
 		 */

@@ -15,17 +15,38 @@ use Todaymade\Daux\Tree\Entry;
 
 class APIDocLinkParser extends CommonMark\Inline\Parser\AbstractInlineParser
 {
+    private $language;
+
     private $compoundLookup;
     private $compoundLookupByRef;
     private $typedefLookup;
 
-    public function __construct($compoundLookup, $typedefLookup) {
+    private $scriptMapping = null;
+    private $scriptClassLookup = null;
+    private $scriptStructLookup = null;
+    private $scriptEnumLookup = null;
+
+    public function __construct($compoundLookup, $typedefLookup, $scriptMapping, $language) {
+        $this->language = $language;
+
         $this->compoundLookup = $compoundLookup;
         $this->typedefLookup = $typedefLookup;
+        $this->scriptMapping = $scriptMapping;
 
         $this->compoundLookupByRef = array();
         foreach($this->compoundLookup as $key => $value)
             $this->compoundLookupByRef[$value->file] = $value;
+
+        if($this->scriptMapping !== null) {
+            foreach ($this->scriptMapping->classes as $class)
+                $this->scriptClassLookup[$class->name] = $class;
+
+            foreach ($this->scriptMapping->structs as $struct)
+                $this->scriptStructLookup[$struct->name] = $struct;
+
+            foreach ($this->scriptMapping->enums as $enum)
+                $this->scriptEnumLookup[$enum->name] = $enum;
+        }
     }
 
     public function getCharacters()
@@ -57,6 +78,184 @@ class APIDocLinkParser extends CommonMark\Inline\Parser\AbstractInlineParser
         }
 
         return join(",", $output);
+    }
+
+    private function remapType(&$typeName, &$argList)
+    {
+        $names = preg_split('/::/', $typeName);
+
+        // Clear the bs:: namespace
+        $prefix = "";
+        if(!empty($names))
+        {
+            if($names[0] == "bs") {
+                $prefix = "bs::";
+                array_shift($names);
+            }
+        }
+
+        if(empty($names))
+            return false;
+
+        // Look for class, struct or enum references
+        $cleanTypeName = join("::", $names);
+
+        if(array_key_exists($cleanTypeName, $this->scriptClassLookup))
+        {
+            $typeName = $prefix . $this->scriptClassLookup[$cleanTypeName]->scriptName;
+            return true;
+        }
+
+        if(array_key_exists($cleanTypeName, $this->scriptStructLookup))
+        {
+            $typeName = $prefix . $this->scriptStructLookup[$cleanTypeName]->scriptName;
+            return true;
+        }
+
+        if(array_key_exists($cleanTypeName, $this->scriptEnumLookup))
+        {
+            $typeName = $prefix . $this->scriptEnumLookup[$cleanTypeName]->scriptName;
+            return true;
+        }
+
+        // Look for a member of a class, struct or enum
+        $names = preg_split('/::/', $cleanTypeName);
+
+        $memberName = array_pop($names);
+        if(empty($names))
+            return false;
+
+        $cleanTypeName = join("::", $names);
+
+        if(array_key_exists($cleanTypeName, $this->scriptClassLookup))
+        {
+            $typeInfo = $this->scriptClassLookup[$cleanTypeName];
+
+            if(end($names) == $memberName)
+            {
+                foreach($typeInfo->ctors as $ctor)
+                {
+                    if(empty($argList))
+                    {
+                        $typeName = $prefix . $typeInfo->scriptName . "::" . $typeInfo->scriptName;
+                        return true;
+                    }
+
+                    $mappedArgList = getMappedArgList($ctor->params);
+
+                    if($mappedArgList === $argList)
+                    {
+                        $typeName = $prefix . $typeInfo->scriptName . "::" . $typeInfo->scriptName;
+                        $argList = $mappedArgList;
+                        return true;
+                    }
+                }
+            }
+
+            foreach($typeInfo->methods as $method)
+            {
+                if($method->name === $memberName) {
+                    if (empty($argList)) {
+                        $typeName = $prefix . $typeInfo->scriptName . "::" . $method->scriptName;
+                        return true;
+                    } else {
+                        // TODO - Compare argument list
+//                        $mappedArgList = getMappedArgList($method->params);
+//
+//                        if ($mappedArgList === $argList) {
+//                            $typeName = $typeInfo->scriptName . "::" . $method->scriptName;
+//                            $argList = $mappedArgList;
+//                            return true;
+//                        }
+                    }
+                }
+            }
+
+            foreach($typeInfo->events as $event)
+            {
+                if($event->name === $memberName)
+                {
+                    if(empty($argList))
+                    {
+                        $typeName = $prefix . $typeInfo->scriptName . "::" . $event->scriptName;
+                        return true;
+                    }
+                    else
+                    {
+                        // TODO - Compare argument list
+//                        $mappedArgList = getMappedArgList($event->params);
+//
+//                        if($mappedArgList === $argList)
+//                        {
+//                            $typeName = $typeInfo->scriptName . "::" . $event->scriptName;
+//                            $argList = $mappedArgList;
+//                            return true;
+//                        }
+                    }
+                }
+            }
+
+            foreach($typeInfo->properties as $property)
+            {
+                if($property->getter === $memberName || $property->setter === $memberName)
+                {
+                    $typeName = $prefix . $typeInfo->scriptName . "::" . $property->name;
+                    return true;
+                }
+            }
+        }
+
+        if(array_key_exists($cleanTypeName, $this->scriptStructLookup))
+        {
+            $typeInfo = $this->scriptStructLookup[$cleanTypeName];
+
+            foreach($typeInfo->fields as $field)
+            {
+                if($field->name === $memberName)
+                {
+                    $typeName = $prefix . $typeInfo->scriptName . "::" . $field->scriptName;
+                    return true;
+                }
+            }
+
+            if(end($names) == $memberName)
+            {
+                foreach($typeInfo->ctors as $ctor)
+                {
+                    if(empty($argList))
+                    {
+                        $typeName = $prefix . $typeInfo->scriptName . "::" . $typeInfo->scriptName;
+                        return true;
+                    }
+
+                    // TODO - Compare argument list
+//                    $mappedArgList = getMappedArgList($ctor->params);
+//
+//                    if($mappedArgList === $argList)
+//                    {
+//                        $typeName = $typeInfo->scriptName . "::" . $typeInfo->scriptName;
+//                        $argList = $mappedArgList;
+//                        return true;
+//                    }
+                }
+            }
+        }
+
+        if(array_key_exists($cleanTypeName, $this->scriptEnumLookup))
+        {
+            $typeInfo = $this->scriptEnumLookup[$cleanTypeName];
+
+            foreach($typeInfo->entries as $entry)
+            {
+                if($entry->name === $memberName)
+                {
+                    $typeName = $prefix . $typeInfo->scriptName . "::" . $entry->scriptName;
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private function lookUpFunction($typeInfo, $name, $argList, &$functionInfo)
@@ -163,7 +362,7 @@ class APIDocLinkParser extends CommonMark\Inline\Parser\AbstractInlineParser
     {
         if(array_key_exists($typeName, $this->compoundLookup))
             return $this->compoundLookup[$typeName];
-        elseif($checkTypedef == true)
+        elseif($checkTypedef == true && $this->typedefLookup !== null)
         {
             if(array_key_exists($typeName, $this->typedefLookup))
             {
@@ -309,6 +508,12 @@ class APIDocLinkParser extends CommonMark\Inline\Parser\AbstractInlineParser
         $customTitle = $cursor->match('/^\[[^\]]*\]/');
         if(!empty($customTitle))
             $customTitle = substr($customTitle, 1, strlen($customTitle) - 2);
+
+        if($this->scriptMapping !== null)
+        {
+            if(!$this->remapType($typeName, $argList))
+                \Todaymade\Daux\Daux::write(PHP_EOL . "    [WARNING] Unable to find script mapping for type '$typeName'.");
+        }
 
         // Add bs:: prefix if not specified, and not in some other namespace
         $prefixAdded = false;
@@ -539,6 +744,88 @@ class APIDocCompoundInfo
     public $bases = array();
 }
 
+class MappingParamInfo
+{
+    public $name = "";
+    public $type = "";
+    public $doc = "";
+}
+
+class MappingFieldInfo
+{
+    public $name = "";
+    public $type = "";
+    public $doc = "";
+}
+
+class MappingPropertyInfo
+{
+    public $name = "";
+    public $type = "";
+    public $getter = "";
+    public $setter = "";
+    public $static = false;
+    public $doc = "";
+}
+
+class MappingReturnInfo
+{
+    public $type = "";
+    public $doc = "";
+}
+
+class MappingMethodInfo
+{
+    public $name = "";
+    public $scriptName = "";
+    public $static = false;
+    public $doc = "";
+    public $params = array();
+    public $returns = null;
+}
+
+class MappingEnumEntryInfo
+{
+    public $name = "";
+    public $scriptName = "";
+    public $doc = "";
+}
+
+class MappingEnumInfo
+{
+    public $name = "";
+    public $scriptName = "";
+    public $doc = "";
+    public $entries = array();
+}
+
+class MappingStructInfo
+{
+    public $name = "";
+    public $scriptName = "";
+    public $doc = "";
+    public $ctors = array();
+    public $fields = array();
+}
+
+class MappingClassInfo
+{
+    public $name = "";
+    public $scriptName = "";
+    public $doc = "";
+    public $ctors = array();
+    public $methods = array();
+    public $properties = array();
+    public $events = array();
+}
+
+class MappingInfo
+{
+    public $classes = array();
+    public $structs = array();
+    public $enums = array();
+}
+
 class Processor extends \Todaymade\Daux\Processor
 {
     private function parsePathAndId($fullId, $isEnumValue)
@@ -592,6 +879,7 @@ class Processor extends \Todaymade\Daux\Processor
                 {
                     case "variable":
                     case "typedef":
+                    case "property":
                         $field = new APIDocMemberInfo();
                         $this->parseCommonMember($member, $field);
 
@@ -664,7 +952,7 @@ class Processor extends \Todaymade\Daux\Processor
         $xml = simplexml_load_file($xmlCompoundPath);
 
         if($xml === FALSE)
-            throw new \RuntimeException("Unable to parse index.xml at path '$xmlCompoundPath'");
+            throw new \RuntimeException("Unable to parse compound XML at path '$xmlCompoundPath'");
 
         foreach($xml->compounddef as $xmlCompound) {
             $compound = $this->parseCompound($xmlCompound);
@@ -686,12 +974,12 @@ class Processor extends \Todaymade\Daux\Processor
         }
     }
 
-    private function parseFileXml($xmlCompoundPath)
+    private function parseFileXml($xmlFilePath)
     {
-        $xml = simplexml_load_file($xmlCompoundPath);
+        $xml = simplexml_load_file($xmlFilePath);
 
         if($xml === FALSE)
-            throw new \RuntimeException("Unable to parse index.xml at path '$xmlCompoundPath'");
+            throw new \RuntimeException("Unable to parse file XML at path '$xmlFilePath'");
 
         foreach($xml->compounddef as $xmlCompound) {
             // Top level typedefs and defines
@@ -718,15 +1006,193 @@ class Processor extends \Todaymade\Daux\Processor
         }
     }
 
-    public function extendCommonMarkEnvironment(Environment $environment)
+    private $mappingInfo = null;
+    private function parseMappingParam($xml)
     {
-        $up = '..' . DIRECTORY_SEPARATOR;
-        $xmlRoot = __DIR__ . DIRECTORY_SEPARATOR . $up . $up . 'Generated' . DIRECTORY_SEPARATOR . 'native' . DIRECTORY_SEPARATOR . 'xml' . DIRECTORY_SEPARATOR;
-        $xmlPath = $xmlRoot . 'index.xml';
+        $paramInfo = new MappingParamInfo();
+        $paramInfo->name = (string)$xml["name"];
+        $paramInfo->type = (string)$xml["type"];
+
+        foreach($xml->doc as $doc) {
+            $paramInfo->doc = (string)$doc;
+            break;
+        }
+
+        return $paramInfo;
+    }
+
+    private function parseMappingField($xml)
+    {
+        $fieldInfo = new MappingFieldInfo();
+        $fieldInfo->name = (string)$xml["name"];
+        $fieldInfo->type = (string)$xml["type"];
+
+        foreach($xml->doc as $doc) {
+            $fieldInfo->doc = (string)$doc;
+            break;
+        }
+
+        return $fieldInfo;
+    }
+
+    private function parseMappingProperty($xml)
+    {
+        $propertyInfo = new MappingPropertyInfo();
+        $propertyInfo->name = (string)$xml["name"];
+        $propertyInfo->type = (string)$xml["type"];
+        $propertyInfo->getter = (string)$xml["getter"];
+        $propertyInfo->setter = (string)$xml["setter"];
+
+        foreach($xml->doc as $doc) {
+            $propertyInfo->doc = (string)$doc;
+            break;
+        }
+
+        return $propertyInfo;
+    }
+
+    private function parseMappingReturn($xml)
+    {
+        $returnInfo = new MappingReturnInfo();
+        $returnInfo->type = (string)$xml["type"];
+
+        foreach($xml->doc as $doc) {
+            $returnInfo->doc = (string)$doc;
+            break;
+        }
+
+        return $returnInfo;
+    }
+
+    private function parseMappingMethod($xml)
+    {
+        $methodInfo = new MappingMethodInfo();
+        $methodInfo->name = (string)$xml["native"];
+        $methodInfo->scriptName = (string)$xml["script"];
+        $methodInfo->static = (bool)$xml["static"];
+
+        foreach($xml->doc as $doc) {
+            $methodInfo->doc = (string)$doc;
+            break;
+        }
+
+        foreach($xml->param as $param)
+            array_push($methodInfo->params, $this->parseMappingParam($param));
+
+        foreach($xml->returns as $return) {
+            $methodInfo->returns = $this->parseMappingReturn($return);
+            break;
+        }
+
+        return $methodInfo;
+    }
+
+    private function parseMappingXml($xmlPath)
+    {
         $xml = simplexml_load_file($xmlPath);
 
         if($xml === FALSE)
-            throw new \RuntimeException("Unable to parse index.xml at path '$xmlPath'");
+            throw new \RuntimeException("Unable to parse mapping XML at path '$xmlPath'");
+
+        $this->mappingInfo = new MappingInfo();
+        foreach($xml->enum as $enum)
+        {
+            $enumInfo = new MappingEnumInfo();
+            $enumInfo->name = (string)$enum["native"];
+            $enumInfo->scriptName = (string)$enum["script"];
+
+            foreach($enum->doc as $doc) {
+                $enumInfo->doc = (string)$doc;
+                break;
+            }
+
+            foreach($enum->enumentry as $enumEntry)
+            {
+                $enumEntryInfo = new MappingEnumEntryInfo();
+                $enumEntryInfo->name = (string)$enumEntry["native"];
+                $enumEntryInfo->scriptName = (string)$enumEntry["script"];
+
+                foreach($enumEntry->doc as $doc) {
+                    $enumEntryInfo->doc = (string)$doc;
+                    break;
+                }
+
+                array_push($enumInfo->entries, $enumEntryInfo);
+            }
+
+            array_push($this->mappingInfo->enums, $enumInfo);
+        }
+
+        foreach($xml->struct as $struct)
+        {
+            $structInfo = new MappingStructInfo();
+            $structInfo->name = (string)$struct["native"];
+            $structInfo->scriptName = (string)$struct["script"];
+
+            foreach($struct->doc as $doc) {
+                $structInfo->doc = (string)$doc;
+                break;
+            }
+
+            foreach($struct->field as $field)
+                array_push($structInfo->fields, $this->parseMappingField($field));
+
+            foreach($struct->ctor as $ctor)
+                array_push($structInfo->ctors, $this->parseMappingMethod($ctor));
+
+            array_push($this->mappingInfo->structs, $structInfo);
+        }
+
+        foreach($xml->class as $class)
+        {
+            $classInfo = new MappingClassInfo();
+            $classInfo->name = (string)$class["native"];
+            $classInfo->scriptName = (string)$class["script"];
+
+            foreach($class->doc as $doc) {
+                $classInfo->doc = (string)$doc;
+                break;
+            }
+
+            foreach($class->ctor as $ctor)
+                array_push($classInfo->ctors, $this->parseMappingMethod($ctor));
+
+            foreach($class->method as $method)
+                array_push($classInfo->methods, $this->parseMappingMethod($method));
+
+            foreach($class->event as $event)
+                array_push($classInfo->events, $this->parseMappingMethod($event));
+
+            foreach($class->property as $property)
+                array_push($classInfo->properties, $this->parseMappingProperty($property));
+
+            array_push($this->mappingInfo->classes, $classInfo);
+        }
+    }
+
+    public function extendCommonMarkEnvironment(Environment $environment)
+    {
+        $up = '..' . DIRECTORY_SEPARATOR;
+        $iniFilePath = __DIR__ . DIRECTORY_SEPARATOR . $up . "daux_config.ini";
+        $ini = parse_ini_file($iniFilePath);
+
+        $xmlRootFolder = $ini["xmlRootFolder"];
+        $language = $ini["language"];
+
+        if(array_key_exists("scriptMappingFilePath", $ini))
+        {
+            $scriptMappingFilePath = $ini["scriptMappingFilePath"];
+
+            if(!empty($scriptMappingFilePath))
+                $this->parseMappingXml(__DIR__ . DIRECTORY_SEPARATOR . $scriptMappingFilePath);
+        }
+
+        $xmlRootFolder = __DIR__ . DIRECTORY_SEPARATOR . $xmlRootFolder;
+        $xmlIndexPath = $xmlRootFolder . 'index.xml';
+        $xml = simplexml_load_file($xmlIndexPath);
+
+        if($xml === FALSE)
+            throw new \RuntimeException("Unable to parse index.xml at path '$xmlIndexPath'");
 
         foreach($xml->compound as $compound)
         {
@@ -738,17 +1204,17 @@ class Processor extends \Todaymade\Daux\Processor
                 case "struct":
                 case "union":
                 case "namespace":
-                    $compoundXmlPath = $xmlRoot . $compound["refid"] . '.xml';
+                    $compoundXmlPath = $xmlRootFolder . $compound["refid"] . '.xml';
                     $this->parseCompoundXml($compoundXmlPath);
                     break;
                 case "file":
-                    $compoundXmlPath = $xmlRoot . $compound["refid"] . '.xml';
+                    $compoundXmlPath = $xmlRootFolder . $compound["refid"] . '.xml';
                     $this->parseFileXml($compoundXmlPath);
                     break;
             }
         }
 
-        $environment->addInlineParser(new APIDocLinkParser($this->compoundLookup, $this->typedefLookup));
+        $environment->addInlineParser(new APIDocLinkParser($this->compoundLookup, $this->typedefLookup, $this->mappingInfo, $language));
         $environment->addInlineRenderer('League\CommonMark\Inline\Element\Link', new APIDocLinkRenderer($environment->getConfig('daux')));
     }
 }
