@@ -707,6 +707,250 @@ namespace bs
 			return *(float*)&output;
 		}
 
+		/**
+		 * Encodes a 32-bit integer value as a base-128 varint. Varints are a method of serializing integers using one or
+		 * more bytes, where smaller values use less bytes.
+		 * 
+		 * @param[in]	value		Value to encode.
+		 * @param[out]	output		Buffer to store the encoded bytes in. Must be at least 5 bytes in length.
+		 * @return					Number of bytes required to store the value, in range [1, 5]
+		 */
+		static UINT32 encodeVarInt(UINT32 value, UINT8* output)
+		{
+			UINT32 idx = 0;
+			if (value & 0xFFFFFF80U) 
+			{
+				output[idx++] = (UINT8)(value | 0x80);
+				value >>= 7;
+
+				if (value & 0xFFFFFF80U) 
+				{
+					output[idx++] = (UINT8)(value | 0x80);
+					value >>= 7;
+
+					if (value & 0xFFFFFF80U) 
+					{
+						output[idx++] = (UINT8)(value | 0x80);
+						value >>= 7;
+
+						if (value & 0xFFFFFF80U) 
+						{
+							output[idx++] = (UINT8)(value | 0x80);
+							value >>= 7;
+						}
+					}
+				}
+			}
+
+			output[idx++] = (UINT8)value;
+			return idx;
+		}
+
+		/**
+		 * Decodes a value encoded using encodeVarInt(UINT32, UINT8*).
+		 * 
+		 * @param[out]	value	Variable to receive the decoded value.
+		 * @param[in]	input	Input buffer to decode the data from.
+		 * @param[in]	size	Size of the input buffer.
+		 * @return				Number of bytes read.
+		 */
+		static UINT32 decodeVarInt(UINT32& value, UINT8* input, UINT32 size)
+		{
+			if(size == 0)
+				return 0;
+
+			UINT32 idx = 0; 
+			value = (UINT32)(input[idx] & 0x7F);
+			if (input[idx++] & 0x80 && --size) 
+			{
+				value |= (UINT32)(input[idx] & 0x7F) << 7;
+
+				if (input[idx++] & 0x80 && --size) 
+				{
+					value |= (UINT32)(input[idx] & 0x7F) << 14;
+
+					if (input[idx++] & 0x80 && --size) 
+					{
+						value |= (UINT32)(input[idx] & 0x7F) << 21;
+
+						if (input[idx++] & 0x80 && --size) 
+							value |= (UINT32)(input[idx++]) << 28;
+					}
+				}
+			}
+
+			return !size || input[idx - 1] & 0x80 ? 0 : idx;
+		}
+
+		/** @copydoc encodeVarInt(UINT32, UINT8*) */
+		static UINT32 encodeVarInt(INT32 value, UINT8* output)
+		{
+			// Encode using zig-zag pattern so that negative values don't take up max byte count
+			UINT32 temp = (value << 1) ^ (value >> 31);
+			return encodeVarInt(temp, output);
+		}
+
+		/** @copydoc decodeVarInt(UINT32, UINT8*) */
+		static UINT32 decodeVarInt(INT32& value, UINT8* input, UINT32 size)
+		{
+			UINT32 temp; 
+			
+			UINT32 readBytes = decodeVarInt(temp, input, size);
+			value = (INT32)((temp >> 1) ^ -((INT32)temp & 1));
+
+			return readBytes;
+		}
+
+		/**
+		 * Encodes a 64-bit integer value as a base-128 varint. Varints are a method of serializing integers using one or
+		 * more bytes, where smaller values use less bytes.
+		 * 
+		 * @param[in]	value		Value to encode.
+		 * @param[out]	output		Buffer to store the encoded bytes in. Must be at least 10 bytes in length.
+		 * @return					Number of bytes required to store the value, in range [1, 10]
+		 */
+		static UINT32 encodeVarInt(UINT64 value, UINT8* output)
+		{
+			UINT32 idx = 0;
+			if (value & 0xFFFFFFFFFFFFFF80ULL) 
+			{
+				output[idx++] = (UINT8)(value | 0x80);
+				value >>= 7;
+
+				if (value & 0xFFFFFFFFFFFFFF80ULL) 
+				{
+					output[idx++] = (UINT8)(value | 0x80);
+					value >>= 7;
+
+					if (value & 0xFFFFFFFFFFFFFF80ULL) 
+					{
+						output[idx++] = (UINT8)(value | 0x80);
+						value >>= 7;
+
+						if (value & 0xFFFFFFFFFFFFFF80ULL) 
+						{
+							output[idx++] = (UINT8)(value | 0x80);
+							value >>= 7;
+
+							if (value & 0xFFFFFFFFFFFFFF80ULL) 
+							{
+								output[idx++] = (UINT8)(value | 0x80);
+								value >>= 7;
+
+								if (value & 0xFFFFFFFFFFFFFF80ULL) 
+								{
+									output[idx++] = (UINT8)(value | 0x80);
+									value >>= 7;
+
+									if (value & 0xFFFFFFFFFFFFFF80ULL) 
+									{
+										output[idx++] = (UINT8)(value | 0x80);
+										value >>= 7;
+
+										if (value & 0xFFFFFFFFFFFFFF80ULL) 
+										{
+											output[idx++] = (UINT8)(value | 0x80);
+											value >>= 7;
+
+											if (value & 0xFFFFFFFFFFFFFF80ULL) 
+											{
+												output[idx++] = (UINT8)(value | 0x80);
+												value >>= 7;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			output[idx++] = (UINT8)value;
+			return idx;
+		}
+
+		/**
+		 * Decodes a value encoded using encodeVarInt(UINT64, UINT8*).
+		 * 
+		 * @param[out]	value	Variable to receive the decoded value.
+		 * @param[in]	input	Input buffer to decode the data from.
+		 * @param[in]	size	Size of the input buffer.
+		 * @return				Number of bytes read.
+		 */
+		static UINT32 decodeVarInt(UINT64& value, UINT8* input, UINT32 size)
+		{
+			if(size == 0)
+				return 0;
+
+			UINT32 idx = 0; 
+			auto temp = (UINT64)(input[idx] & 0x7F);
+			if (input[idx++] & 0x80 && --size) 
+			{
+				temp |= (UINT64)(input[idx] & 0x7F) << 7;
+
+				if (input[idx++] & 0x80 && --size) 
+				{
+					temp |= (UINT64)(input[idx] & 0x7F) << 14;
+
+					if (input[idx++] & 0x80 && --size) 
+					{
+						temp |= (UINT64)(input[idx] & 0x7F) << 21;
+
+						if (input[idx++] & 0x80 && --size) 
+						{
+							temp |= (UINT64)(input[idx] & 0x7F) << 28;
+
+							if (input[idx++] & 0x80 && --size) 
+							{
+								temp |= (UINT64)(input[idx] & 0x7F) << 35;
+
+								if (input[idx++] & 0x80 && --size) 
+								{
+									temp |= (UINT64)(input[idx] & 0x7F) << 42;
+
+									if (input[idx++] & 0x80 && --size) 
+									{
+										temp |= (UINT64)(input[idx] & 0x7F) << 49;
+
+										if (input[idx++] & 0x80 && --size) 
+										{
+											temp |= (UINT64)(input[idx] & 0x7F) << 56;
+
+											if (input[idx++] & 0x80 && --size)
+												temp |= (UINT64)(input[idx++]) << 63;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			*(UINT64 *)value = temp;
+			return !size || input[idx - 1] & 0x80 ? 0 : idx;
+		}
+
+		/** @copydoc encodeVarInt(UINT64, UINT8*) */
+		static UINT32 encodeVarInt(INT64 value, UINT8* output)
+		{
+			// Encode using zig-zag pattern so that negative values don't take up max byte count
+			UINT64 temp = (value << 1) ^ (value >> 63);
+			return encodeVarInt(temp, output);
+		}
+
+		/** @copydoc decodeVarInt(UINT64, UINT8*) */
+		static UINT32 decodeVarInt(INT64& value, UINT8* input, UINT32 size)
+		{
+			UINT32 temp; 
+
+			UINT32 readBytes = decodeVarInt(temp, input, size);
+			value = (INT64)((temp >> 1) ^ -((INT64)temp & 1));
+
+			return readBytes;
+		}
+
 		/** Converts a float in range [-1,1] into an unsigned 8-bit integer. */
 		static UINT8 quantize8BitSigned(float v)
 		{

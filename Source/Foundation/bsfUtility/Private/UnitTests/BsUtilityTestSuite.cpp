@@ -95,6 +95,7 @@ namespace bs
 		BS_ADD_TEST(UtilityTestSuite::testComplex)
 		BS_ADD_TEST(UtilityTestSuite::testMinHeap)
 		BS_ADD_TEST(UtilityTestSuite::testQuadtree)
+		BS_ADD_TEST(UtilityTestSuite::testVarInt)
 	}
 
 	void UtilityTestSuite::testBitfield()
@@ -673,4 +674,77 @@ namespace bs
 		for (auto& entry : quadtreeData.elements)
 			quadtree.removeElement(entry.quadtreeId);
 	}
+
+	void UtilityTestSuite::testVarInt()
+	{
+		UINT32 u0 = 0;
+		UINT32 u1 = 127;
+		UINT32 u2 = 255;
+		UINT32 u3 = 123456;
+
+		INT32 i0 = 0;
+		INT32 i1 = 127;
+		INT32 i2 = -1;
+		INT32 i3 = -123456;
+		INT32 i4 = 123456;
+
+		UINT8 output[50];
+
+		UINT32 writeIdx = Bitwise::encodeVarInt(u0, output);
+		BS_TEST_ASSERT(writeIdx == 1);
+
+		writeIdx += Bitwise::encodeVarInt(u1, output + writeIdx);
+		BS_TEST_ASSERT(writeIdx == 2);
+
+		writeIdx += Bitwise::encodeVarInt(u2, output + writeIdx);
+		BS_TEST_ASSERT(writeIdx == 4);
+
+		writeIdx += Bitwise::encodeVarInt(u3, output + writeIdx);
+
+		writeIdx += Bitwise::encodeVarInt(i0, output + writeIdx);
+		writeIdx += Bitwise::encodeVarInt(i1, output + writeIdx);
+		writeIdx += Bitwise::encodeVarInt(i2, output + writeIdx);
+		writeIdx += Bitwise::encodeVarInt(i3, output + writeIdx);
+		writeIdx += Bitwise::encodeVarInt(i4, output + writeIdx);
+
+		UINT32 readIdx = 0;
+		UINT32 uv;
+		readIdx += Bitwise::decodeVarInt(uv, output + readIdx, writeIdx - readIdx);
+		BS_TEST_ASSERT(uv == u0);
+		BS_TEST_ASSERT(writeIdx > readIdx);
+
+		readIdx += Bitwise::decodeVarInt(uv, output + readIdx, writeIdx - readIdx);
+		BS_TEST_ASSERT(uv == u1);
+		BS_TEST_ASSERT(writeIdx > readIdx);
+
+		readIdx += Bitwise::decodeVarInt(uv, output + readIdx, writeIdx - readIdx);
+		BS_TEST_ASSERT(uv == u2);
+		BS_TEST_ASSERT(writeIdx > readIdx);
+
+		readIdx += Bitwise::decodeVarInt(uv, output + readIdx, writeIdx - readIdx);
+		BS_TEST_ASSERT(uv == u3);
+		BS_TEST_ASSERT(writeIdx > readIdx);
+
+		INT32 iv;
+		readIdx += Bitwise::decodeVarInt(iv, output + readIdx, writeIdx - readIdx);
+		BS_TEST_ASSERT(iv == i0);
+		BS_TEST_ASSERT(writeIdx > readIdx);
+
+		readIdx += Bitwise::decodeVarInt(iv, output + readIdx, writeIdx - readIdx);
+		BS_TEST_ASSERT(iv == i1);
+		BS_TEST_ASSERT(writeIdx > readIdx);
+
+		readIdx += Bitwise::decodeVarInt(iv, output + readIdx, writeIdx - readIdx);
+		BS_TEST_ASSERT(iv == i2);
+		BS_TEST_ASSERT(writeIdx > readIdx);
+
+		readIdx += Bitwise::decodeVarInt(iv, output + readIdx, writeIdx - readIdx);
+		BS_TEST_ASSERT(iv == i3);
+		BS_TEST_ASSERT(writeIdx > readIdx);
+
+		readIdx += Bitwise::decodeVarInt(iv, output + readIdx, writeIdx - readIdx);
+		BS_TEST_ASSERT(iv == i4);
+		BS_TEST_ASSERT(writeIdx == readIdx);
+	}
+
 }

@@ -43,7 +43,7 @@ namespace bs
 
 		virtual ~DataStream() = default;
 
-		const String& getName(void) { return mName; }
+		const String& getName() const { return mName; }
 		UINT16 getAccessMode() const { return mAccess; }
 
 		virtual bool isReadable() const { return (mAccess & READ) != 0; }
