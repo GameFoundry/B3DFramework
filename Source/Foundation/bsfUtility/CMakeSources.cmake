@@ -81,6 +81,7 @@ set(BS_UTILITY_INC_UTILITY
 	"bsfUtility/Utility/BsAny.h"
 	"bsfUtility/Utility/BsBitfield.h"
 	"bsfUtility/Utility/BsBitwise.h"
+	"bsfUtility/Utility/BsBitstream.h"
 	"bsfUtility/Utility/BsDynLib.h"
 	"bsfUtility/Utility/BsDynLibManager.h"
 	"bsfUtility/Utility/BsEvent.h"

@@ -8,6 +8,7 @@
 #include "Math/BsComplex.h"
 #include "Utility/BsMinHeap.h"
 #include "Utility/BsQuadtree.h"
+#include "Utility/BsBitstream.h"
 
 namespace bs
 {
@@ -96,6 +97,7 @@ namespace bs
 		BS_ADD_TEST(UtilityTestSuite::testMinHeap)
 		BS_ADD_TEST(UtilityTestSuite::testQuadtree)
 		BS_ADD_TEST(UtilityTestSuite::testVarInt)
+		BS_ADD_TEST(UtilityTestSuite::testBitStream)
 	}
 
 	void UtilityTestSuite::testBitfield()
@@ -747,4 +749,56 @@ namespace bs
 		BS_TEST_ASSERT(writeIdx == readIdx);
 	}
 
+	void UtilityTestSuite::testBitStream()
+	{
+		uint32_t v0 = 12345;
+		bool v1 = true;
+		uint32_t v2 = 67890;
+		bool v3 = true;
+		bool v4 = false;
+		uint32_t v5 = 987;
+		uint64_t v6 = 5555555555ULL;
+
+		Bitstream bs;
+
+		bs.write(v0);
+		bs.write(v1);
+		bs.write(v2);
+		bs.write(v3);
+		bs.write(v4);
+
+		bs.writeBits((uint8_t*)&v5, 10);
+		bs.align();
+		bs.write(v6);
+
+		BS_TEST_ASSERT(bs.size() == 164);
+
+		uint32_t uv;
+		uint64_t ulv;
+		bool bv;
+
+		bs.seek(0);
+		bs.read(uv);
+		BS_TEST_ASSERT(uv == v0);
+
+		bs.read(bv);
+		BS_TEST_ASSERT(bv == v1);
+
+		bs.read(uv);
+		BS_TEST_ASSERT(uv == v2);
+
+		bs.read(bv);
+		BS_TEST_ASSERT(bv == v3);
+
+		bs.read(bv);
+		BS_TEST_ASSERT(bv == v4);
+
+		uv = 0;
+		bs.readBits((uint8_t*)&uv, 10);
+		BS_TEST_ASSERT(uv == v5);
+
+		bs.align();
+		bs.read(ulv);
+		BS_TEST_ASSERT(ulv == v6);
+	}
 }

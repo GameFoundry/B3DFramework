@@ -91,6 +91,21 @@ namespace bs
 			
 			return next;
 		}
+
+
+		/** Returns base-2 logarithm for common bit counts (8, 16, 32, 64), as a constant expression. */
+		static constexpr UINT32 bitsLog2(UINT32 v)
+		{
+			switch(v)
+			{
+			default:
+			case 8: return 3;
+			case 16: return 4;
+			case 32: return 5;
+			case 64: return 6;
+			}
+		}
+
 		/** Returns modular exponentiation for integers. */
 		static UINT32 modPow(UINT32 val1, UINT32 val2, UINT32 t)
 		{
