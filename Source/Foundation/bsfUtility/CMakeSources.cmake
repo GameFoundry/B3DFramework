@@ -105,6 +105,7 @@ set(BS_UTILITY_INC_UTILITY
 	"bsfUtility/Utility/BsDynArray.h"
 	"bsfUtility/Utility/BsMinHeap.h"
 	"bsfUtility/Utility/BsDenseMap.h"
+	"bsfUtility/Utility/BsUSPtr.h"
 )
 
 set(BS_UTILITY_SRC_ALLOCATORS

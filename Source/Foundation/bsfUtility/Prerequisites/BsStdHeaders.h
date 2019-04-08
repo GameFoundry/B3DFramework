@@ -185,17 +185,9 @@ namespace bs
 	template <typename T>
 	using SPtr = std::shared_ptr<T>;
 
-	/** Smart pointer that does not support usage across multiple threads. Cheaper to use than SPtr. @see SPtr. */
-	template <typename T>
-	using USPtr = std::shared_ptr<T>; // Note: Currently not implemented, just using normal shared_ptr
-
 	/** Holds a reference to an object whose lifetime is managed by a SPtr, but doesn't increment the reference count. */
 	template <typename T>
 	using WeakSPtr = std::weak_ptr<T>;
-
-	/** Holds a reference to an object whose lifetime is managed by a SPtr, but doesn't increment the reference count. */
-	template <typename T>
-	using WeakUSPtr = std::weak_ptr<T>;
 
 	/**
 	 * Smart pointer that retains shared ownership of an project through a pointer. Reference to the object must be unique.

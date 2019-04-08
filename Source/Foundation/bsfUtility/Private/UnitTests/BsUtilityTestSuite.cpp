@@ -9,6 +9,7 @@
 #include "Utility/BsMinHeap.h"
 #include "Utility/BsQuadtree.h"
 #include "Utility/BsBitstream.h"
+#include "Utility/BsUSPtr.h"
 
 namespace bs
 {
