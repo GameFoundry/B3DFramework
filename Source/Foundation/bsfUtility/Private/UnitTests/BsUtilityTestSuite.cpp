@@ -757,25 +757,43 @@ namespace bs
 		bool v3 = true;
 		bool v4 = false;
 		uint32_t v5 = 987;
-		uint64_t v6 = 5555555555ULL;
+		String v6 = "Some test string";
+		int32_t v7 = -777;
+		uint64_t v8 = 1919191919191919ULL;
+		float v9 = 0.3333f;
+		float v10 = 10.54321f;
+
+		uint64_t v11 = 5555555555ULL;
 
 		Bitstream bs;
 
-		bs.write(v0);
-		bs.write(v1);
-		bs.write(v2);
-		bs.write(v3);
-		bs.write(v4);
+		bs.write(v0); // 0  - 32
+		bs.write(v1); // 32 - 33
+		bs.write(v2); // 33 - 65
+		bs.write(v3); // 65 - 66
+		bs.write(v4); // 66 - 67
 
-		bs.writeBits((uint8_t*)&v5, 10);
-		bs.align();
-		bs.write(v6);
+		bs.writeBits((uint8_t*)&v5, 10); // 67 - 77
+		bs.write(v6); // 77 - 213
+		bs.writeVarInt(v7); // 213 - 229
+		bs.writeVarIntDelta(v7, 0); // 229 - 246
+		bs.writeVarInt(v8); // 246 - 310
+		bs.writeVarIntDelta(v8, v8); // 310 - 311
+		bs.writeNorm(v9); // 311 - 327
+		bs.writeRange(v10, 5.0f, 15.0f); // 327 - 343
+		bs.writeRange(v5, 500U, 1000U); // 343 - 352
 
-		BS_TEST_ASSERT(bs.size() == 164);
+		bs.align(); // 352
+		bs.write(v11); // 352 - 416
+
+		BS_TEST_ASSERT(bs.size() == 416);
 
 		uint32_t uv;
 		uint64_t ulv;
+		int32_t iv;
 		bool bv;
+		float fv;
+		String sv;
 
 		bs.seek(0);
 		bs.read(uv);
@@ -797,8 +815,32 @@ namespace bs
 		bs.readBits((uint8_t*)&uv, 10);
 		BS_TEST_ASSERT(uv == v5);
 
+		bs.read(sv);
+		BS_TEST_ASSERT(sv == v6);
+
+		bs.readVarInt(iv);
+		BS_TEST_ASSERT(iv == v7);
+
+		bs.readVarIntDelta(iv, 0);
+		BS_TEST_ASSERT(iv == v7);
+
+		bs.readVarInt(ulv);
+		BS_TEST_ASSERT(ulv == v8);
+
+		bs.readVarIntDelta(v8, v8);
+		BS_TEST_ASSERT(ulv == v8);
+
+		bs.readNorm(fv);
+		BS_TEST_ASSERT(Math::approxEquals(fv, v9, 0.01f));
+
+		bs.readRange(fv, 5.0f, 15.0f);
+		BS_TEST_ASSERT(Math::approxEquals(fv, v10, 0.01f));
+
+		bs.readRange(uv, 500U, 1000U);
+		BS_TEST_ASSERT(uv == v5);
+
 		bs.align();
 		bs.read(ulv);
-		BS_TEST_ASSERT(ulv == v6);
+		BS_TEST_ASSERT(ulv == v11);
 	}
 }

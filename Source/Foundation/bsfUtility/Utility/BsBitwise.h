@@ -769,7 +769,7 @@ namespace bs
 		 * @param[in]	size	Size of the input buffer.
 		 * @return				Number of bytes read.
 		 */
-		static UINT32 decodeVarInt(UINT32& value, UINT8* input, UINT32 size)
+		static UINT32 decodeVarInt(UINT32& value, const UINT8* input, UINT32 size)
 		{
 			if(size == 0)
 				return 0;
@@ -806,7 +806,7 @@ namespace bs
 		}
 
 		/** @copydoc decodeVarInt(UINT32, UINT8*) */
-		static UINT32 decodeVarInt(INT32& value, UINT8* input, UINT32 size)
+		static UINT32 decodeVarInt(INT32& value, const UINT8* input, UINT32 size)
 		{
 			UINT32 temp; 
 			
@@ -893,47 +893,47 @@ namespace bs
 		 * @param[in]	size	Size of the input buffer.
 		 * @return				Number of bytes read.
 		 */
-		static UINT32 decodeVarInt(UINT64& value, UINT8* input, UINT32 size)
+		static UINT32 decodeVarInt(UINT64& value, const UINT8* input, UINT32 size)
 		{
 			if(size == 0)
 				return 0;
 
 			UINT32 idx = 0; 
-			auto temp = (UINT64)(input[idx] & 0x7F);
+			value = (UINT64)(input[idx] & 0x7F);
 			if (input[idx++] & 0x80 && --size) 
 			{
-				temp |= (UINT64)(input[idx] & 0x7F) << 7;
+				value |= (UINT64)(input[idx] & 0x7F) << 7;
 
 				if (input[idx++] & 0x80 && --size) 
 				{
-					temp |= (UINT64)(input[idx] & 0x7F) << 14;
+					value |= (UINT64)(input[idx] & 0x7F) << 14;
 
 					if (input[idx++] & 0x80 && --size) 
 					{
-						temp |= (UINT64)(input[idx] & 0x7F) << 21;
+						value |= (UINT64)(input[idx] & 0x7F) << 21;
 
 						if (input[idx++] & 0x80 && --size) 
 						{
-							temp |= (UINT64)(input[idx] & 0x7F) << 28;
+							value |= (UINT64)(input[idx] & 0x7F) << 28;
 
 							if (input[idx++] & 0x80 && --size) 
 							{
-								temp |= (UINT64)(input[idx] & 0x7F) << 35;
+								value |= (UINT64)(input[idx] & 0x7F) << 35;
 
 								if (input[idx++] & 0x80 && --size) 
 								{
-									temp |= (UINT64)(input[idx] & 0x7F) << 42;
+									value |= (UINT64)(input[idx] & 0x7F) << 42;
 
 									if (input[idx++] & 0x80 && --size) 
 									{
-										temp |= (UINT64)(input[idx] & 0x7F) << 49;
+										value |= (UINT64)(input[idx] & 0x7F) << 49;
 
 										if (input[idx++] & 0x80 && --size) 
 										{
-											temp |= (UINT64)(input[idx] & 0x7F) << 56;
+											value |= (UINT64)(input[idx] & 0x7F) << 56;
 
 											if (input[idx++] & 0x80 && --size)
-												temp |= (UINT64)(input[idx++]) << 63;
+												value |= (UINT64)(input[idx++]) << 63;
 										}
 									}
 								}
@@ -943,7 +943,6 @@ namespace bs
 				}
 			}
 
-			*(UINT64 *)value = temp;
 			return !size || input[idx - 1] & 0x80 ? 0 : idx;
 		}
 
@@ -956,9 +955,9 @@ namespace bs
 		}
 
 		/** @copydoc decodeVarInt(UINT64, UINT8*) */
-		static UINT32 decodeVarInt(INT64& value, UINT8* input, UINT32 size)
+		static UINT32 decodeVarInt(INT64& value, const UINT8* input, UINT32 size)
 		{
-			UINT32 temp; 
+			UINT64 temp; 
 
 			UINT32 readBytes = decodeVarInt(temp, input, size);
 			value = (INT64)((temp >> 1) ^ -((INT64)temp & 1));
