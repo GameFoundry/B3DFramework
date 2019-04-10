@@ -470,7 +470,8 @@ namespace bs
 		element->_setVisible(_isVisible());
 		element->_setDisabled(_isDisabled());
 
-		_markLayoutAsDirty();
+		// No need to mark ourselves as dirty. If we're part of the element's update chain, this will do it for us.
+		element->_markLayoutAsDirty();
 	}
 
 	void GUIElementBase::_unregisterChildElement(GUIElementBase* element)
@@ -482,11 +483,12 @@ namespace bs
 
 			if (child == element)
 			{
+				element->_markLayoutAsDirty();
+
 				mChildren.erase(iter);
 				element->_setParent(nullptr);
 				foundElem = true;
 
-				_markLayoutAsDirty();
 				break;
 			}
 		}

@@ -333,7 +333,7 @@ namespace bs
 		GUIElementBase* mUpdateParent = nullptr;
 		GUIElementBase* mParentElement = nullptr;
 
-		Vector<GUIElementBase*> mChildren;	
+		Vector<GUIElementBase*> mChildren;
 		UINT8 mFlags = GUIElem_Dirty;
 
 		GUIDimensions mDimensions;
