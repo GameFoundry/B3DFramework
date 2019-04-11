@@ -197,8 +197,6 @@ namespace bs
 		Vector3 mScale;
 		Matrix4 mTransform;
 
-		HEvent mOwnerTargetResizedConn;
-
 		Set<GUIElement*> mDirtyContents;
 		Set<GUIElement*> mDirtyContentsTemp;
 

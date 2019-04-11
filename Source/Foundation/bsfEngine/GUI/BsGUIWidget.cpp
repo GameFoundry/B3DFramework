@@ -35,10 +35,7 @@ namespace bs
 			SPtr<RenderTarget> target = mCamera->getViewport()->getTarget();
 
 			if (target != nullptr)
-			{
-				mOwnerTargetResizedConn = target->onResized.connect(std::bind(&GUIWidget::ownerTargetResized, this));
 				mCachedRTId = target->getInternalID();
-			}
 		}
 
 		mDefaultNavGroup = GUINavGroup::create();
@@ -76,8 +73,6 @@ namespace bs
 		if (mCamera != nullptr)
 		{
 			GUIManager::instance().unregisterWidget(this);
-			mOwnerTargetResizedConn.disconnect();
-
 			mCamera = nullptr;
 		}
 
@@ -148,17 +143,28 @@ namespace bs
 		if(mCachedRTId != newRTId)
 		{
 			mCachedRTId = newRTId;
-
-			mOwnerTargetResizedConn.disconnect();
-			if(rt != nullptr)
-				mOwnerTargetResizedConn = rt->onResized.connect(std::bind(&GUIWidget::ownerTargetResized, this));
-
 			updateRootPanel();
 		}
 	}
 
 	void GUIWidget::_updateLayout()
 	{
+		// Check if render target size changed and update if needed
+		// Note: Purposely not relying to the RenderTarget::onResized callback, as it will trigger /before/ Input events.
+		// These events might trigger a resize, meaning the size would be delayed one frame, resulting in a visual artifact
+		// where the GUI doesn't match the target size.
+		Viewport* target = getTarget();
+		if (target != nullptr)
+		{
+			Rect2I area = target->getPixelArea();
+			UINT32 width = area.width;
+			UINT32 height = area.height;
+
+			const Rect2I& panelArea = mPanel->_getLayoutData().area;
+			if(panelArea.width != width || panelArea.height != height)
+				updateRootPanel();
+		}
+
 		bs_frame_mark();
 
 		// Determine dirty contents and layouts
@@ -318,15 +324,7 @@ namespace bs
 			return;
 
 		GUIManager::instance().unregisterWidget(this);
-
-		mOwnerTargetResizedConn.disconnect();
-
 		mCamera = newCamera;
-
-		Viewport* viewport = getTarget();
-		if (viewport != nullptr && viewport->getTarget() != nullptr)
-			mOwnerTargetResizedConn = viewport->getTarget()->onResized.connect(std::bind(&GUIWidget::ownerTargetResized, this));
-
 		GUIManager::instance().registerWidget(this);
 
 		updateRootPanel();
