@@ -37,7 +37,7 @@ namespace bs
 
 			double time;
 		private:
-			double startTime;
+			double startTime = 0.0f;
 			std::chrono::high_resolution_clock mHRClock;
 
 			/**	Returns time elapsed since CPU was started in millseconds. */
@@ -228,13 +228,13 @@ namespace bs
 			void releaseBlock(ProfiledBlock* block);
 
 			static BS_THREADLOCAL ThreadInfo* activeThread;
-			bool isActive;
+			bool isActive = false;
 
-			ProfiledBlock* rootBlock;
+			ProfiledBlock* rootBlock = nullptr;
 
 			FrameAlloc frameAlloc;
 			ActiveBlock activeBlock;
-			Stack<ActiveBlock, StdFrameAlloc<ActiveBlock>>* activeBlocks;
+			Stack<ActiveBlock, StdFrameAlloc<ActiveBlock>>* activeBlocks = nullptr;
 		};
 
 	public:
@@ -312,13 +312,13 @@ namespace bs
 		void estimateTimerOverhead();
 
 	private:
-		double mBasicTimerOverhead;
-		UINT64 mPreciseTimerOverhead;
+		double mBasicTimerOverhead = 0.0;
+		UINT64 mPreciseTimerOverhead = 0;
 
-		double mBasicSamplingOverheadMs;
-		double mPreciseSamplingOverheadMs;
-		UINT64 mBasicSamplingOverheadCycles;
-		UINT64 mPreciseSamplingOverheadCycles;
+		double mBasicSamplingOverheadMs = 0.0;
+		double mPreciseSamplingOverheadMs = 0.0;
+		UINT64 mBasicSamplingOverheadCycles = 0;
+		UINT64 mPreciseSamplingOverheadCycles = 0;
 
 		ProfilerVector<ThreadInfo*> mActiveThreads;
 		Mutex mThreadSync;
@@ -329,25 +329,25 @@ namespace bs
 	{
 		struct BS_CORE_EXPORT Data
 		{
-			Data();
+			Data() = default;
 
 			String name; /**< Name of the profiling block. */
-			UINT32 numCalls; /**< Number of times the block was entered. */
+			UINT32 numCalls = 0; /**< Number of times the block was entered. */
 
 			UINT64 memAllocs; /**< Number of memory allocations that happened within the block. */
 			UINT64 memFrees; /**< Number of memory deallocations that happened within the block. */
 
-			double avgTimeMs; /**< Average time it took to execute the block, per call. In milliseconds. */
-			double maxTimeMs; /**< Maximum time of a single call in the block. In milliseconds. */
-			double totalTimeMs; /**< Total time the block took, across all calls. In milliseconds. */
+			double avgTimeMs = 0.0; /**< Average time it took to execute the block, per call. In milliseconds. */
+			double maxTimeMs = 0.0; /**< Maximum time of a single call in the block. In milliseconds. */
+			double totalTimeMs = 0.0; /**< Total time the block took, across all calls. In milliseconds. */
 
-			double avgSelfTimeMs; /**< Average time it took to execute the block, per call. Ignores time used by child blocks. In milliseconds. */
-			double totalSelfTimeMs; /**< Total time the block took, across all calls. Ignores time used by child blocks. In milliseconds. */
+			double avgSelfTimeMs = 0.0; /**< Average time it took to execute the block, per call. Ignores time used by child blocks. In milliseconds. */
+			double totalSelfTimeMs = 0.0; /**< Total time the block took, across all calls. Ignores time used by child blocks. In milliseconds. */
 
-			double estimatedSelfOverheadMs; /**< Estimated overhead of profiling methods, only for this exact block. In milliseconds. */
-			double estimatedOverheadMs; /**< Estimated overhead of profiling methods for this block and all children. In milliseconds. */
+			double estimatedSelfOverheadMs = 0.0; /**< Estimated overhead of profiling methods, only for this exact block. In milliseconds. */
+			double estimatedOverheadMs = 0.0; /**< Estimated overhead of profiling methods for this block and all children. In milliseconds. */
 
-			float pctOfParent; /**< Percent of parent block time this block took to execute. Ranging [0.0, 1.0]. */
+			float pctOfParent = 1.0f; /**< Percent of parent block time this block took to execute. Ranging [0.0, 1.0]. */
 		} data;
 
 		ProfilerVector<CPUProfilerBasicSamplingEntry> childEntries;
@@ -361,25 +361,25 @@ namespace bs
 	{
 		struct BS_CORE_EXPORT Data
 		{
-			Data();
+			Data() = default;
 
 			String name; /**< Name of the profiling block. */
-			UINT32 numCalls; /**< Number of times the block was entered. */
+			UINT32 numCalls = 0; /**< Number of times the block was entered. */
 
 			UINT64 memAllocs; /**< Number of memory allocations that happened within the block. */
 			UINT64 memFrees; /**< Number of memory deallocations that happened within the block. */
 
-			UINT64 avgCycles; /**< Average number of cycles it took to execute the block, per call. */
-			UINT64 maxCycles; /**< Maximum number of cycles of a single call in the block. */
-			UINT64 totalCycles; /**< Total number of cycles across all calls in the block. */
+			UINT64 avgCycles = 0; /**< Average number of cycles it took to execute the block, per call. */
+			UINT64 maxCycles = 0; /**< Maximum number of cycles of a single call in the block. */
+			UINT64 totalCycles = 0; /**< Total number of cycles across all calls in the block. */
 
-			UINT64 avgSelfCycles; /**< Average number of cycles it took to execute the block, per call. Ignores cycles used by child blocks. */
-			UINT64 totalSelfCycles; /**< Total number of cycles across all calls in the block. Ignores time used by child blocks. */
+			UINT64 avgSelfCycles = 0; /**< Average number of cycles it took to execute the block, per call. Ignores cycles used by child blocks. */
+			UINT64 totalSelfCycles = 0; /**< Total number of cycles across all calls in the block. Ignores time used by child blocks. */
 
-			UINT64 estimatedSelfOverhead; /**< Estimated overhead of profiling methods, only for this exact block. In cycles. */
-			UINT64 estimatedOverhead; /**< Estimated overhead of profiling methods for this block and all children. In cycles. */
+			UINT64 estimatedSelfOverhead = 0; /**< Estimated overhead of profiling methods, only for this exact block. In cycles. */
+			UINT64 estimatedOverhead = 0; /**< Estimated overhead of profiling methods for this block and all children. In cycles. */
 
-			float pctOfParent; /**< Percent of parent block cycles used by this block. Ranging [0.0, 1.0]. */
+			float pctOfParent = 1.0f; /**< Percent of parent block cycles used by this block. Ranging [0.0, 1.0]. */
 		} data;
 
 		ProfilerVector<CPUProfilerPreciseSamplingEntry> childEntries;
@@ -389,7 +389,7 @@ namespace bs
 	class BS_CORE_EXPORT CPUProfilerReport
 	{
 	public:
-		CPUProfilerReport();
+		CPUProfilerReport() = default;
 
 		/**
 		 * Returns root entry for the basic (time based) sampling data. Root entry always contains the profiling block 

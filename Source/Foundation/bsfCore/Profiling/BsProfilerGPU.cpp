@@ -11,7 +11,6 @@ namespace bs
 	const UINT32 ProfilerGPU::MAX_QUEUE_ELEMENTS = 5;
 
 	ProfilerGPU::ProfilerGPU()
-		:mIsFrameActive(false), mReadyReports(nullptr), mReportHeadPos(0), mReportCount(0)
 	{
 		mReadyReports = bs_newN<GPUProfilerReport>(MAX_QUEUE_ELEMENTS);
 	}

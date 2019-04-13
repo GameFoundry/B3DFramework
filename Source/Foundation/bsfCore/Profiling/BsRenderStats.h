@@ -26,26 +26,22 @@ namespace bs
 	/** Object that stores various render statistics. */
 	struct BS_CORE_EXPORT RenderStatsData
 	{
-		RenderStatsData()
-		: numDrawCalls(0), numComputeCalls(0), numRenderTargetChanges(0), numPresents(0), numClears(0)
-		, numVertices(0), numPrimitives(0), numPipelineStateChanges(0), numGpuParamBinds(0), numVertexBufferBinds(0)
-		, numIndexBufferBinds(0)
-		{ }
+		RenderStatsData() = default;
 
-		UINT64 numDrawCalls;
-		UINT64 numComputeCalls;
-		UINT64 numRenderTargetChanges;
-		UINT64 numPresents;
-		UINT64 numClears;
+		UINT64 numDrawCalls = 0;
+		UINT64 numComputeCalls = 0;
+		UINT64 numRenderTargetChanges = 0;
+		UINT64 numPresents = 0;
+		UINT64 numClears = 0;
 
-		UINT64 numVertices;
-		UINT64 numPrimitives;
+		UINT64 numVertices = 0;
+		UINT64 numPrimitives = 0;
 
-		UINT64 numPipelineStateChanges;
+		UINT64 numPipelineStateChanges = 0;
 
-		UINT64 numGpuParamBinds; 
-		UINT64 numVertexBufferBinds; 
-		UINT64 numIndexBufferBinds;
+		UINT64 numGpuParamBinds = 0; 
+		UINT64 numVertexBufferBinds = 0; 
+		UINT64 numIndexBufferBinds = 0;
 
 		UINT64 numResourceWrites;
 		UINT64 numResourceReads;

@@ -62,7 +62,7 @@ namespace bs
 	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:GUI_Engine) Font : public Resource
 	{
 	public:
-		virtual ~Font();
+		virtual ~Font() = default;
 
 		/**
 		 * Returns font bitmap for a specific font size.

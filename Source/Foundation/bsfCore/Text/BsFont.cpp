@@ -31,9 +31,6 @@ namespace bs
 		:Resource(false)
 	{ }
 
-	Font::~Font()
-	{ }
-
 	void Font::initialize(const Vector<SPtr<FontBitmap>>& fontData)
 	{
 		for(auto iter = fontData.begin(); iter != fontData.end(); ++iter)

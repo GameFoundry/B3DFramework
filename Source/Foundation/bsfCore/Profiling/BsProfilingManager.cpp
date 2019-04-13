@@ -8,8 +8,6 @@ namespace bs
 	const UINT32 ProfilingManager::NUM_SAVED_FRAMES = 200;
 
 	ProfilingManager::ProfilingManager()
-		:mSavedSimReports(nullptr), mNextSimReportIdx(0),
-		mSavedCoreReports(nullptr), mNextCoreReportIdx(0)
 	{
 		mSavedSimReports = bs_newN<ProfilerReport, ProfilerAlloc>(NUM_SAVED_FRAMES);
 		mSavedCoreReports = bs_newN<ProfilerReport, ProfilerAlloc>(NUM_SAVED_FRAMES);

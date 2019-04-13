@@ -158,15 +158,15 @@ namespace bs
 
 	private:
 		ProfiledSample mFrameSample;
-		bool mIsFrameActive;
+		bool mIsFrameActive = false;
 		Stack<ProfiledSample*> mActiveSamples;
 
 		Queue<ProfiledSample> mUnresolvedFrames;
-		GPUProfilerReport* mReadyReports;
+		GPUProfilerReport* mReadyReports = nullptr;
 
 		static const UINT32 MAX_QUEUE_ELEMENTS;
-		UINT32 mReportHeadPos;
-		UINT32 mReportCount;
+		UINT32 mReportHeadPos = 0;
+		UINT32 mReportCount = 0;
 
 		PoolAlloc<sizeof(ProfiledSample), 256> mSamplePool;
 

@@ -62,11 +62,11 @@ namespace bs
 
 	private:
 		static const UINT32 NUM_SAVED_FRAMES;
-		ProfilerReport* mSavedSimReports;
-		UINT32 mNextSimReportIdx;
+		ProfilerReport* mSavedSimReports = nullptr;
+		UINT32 mNextSimReportIdx = 0;
 
-		ProfilerReport* mSavedCoreReports;
-		UINT32 mNextCoreReportIdx;
+		ProfilerReport* mSavedCoreReports = nullptr;
+		UINT32 mNextCoreReportIdx = 0;
 
 		mutable Mutex mSync;
 	};

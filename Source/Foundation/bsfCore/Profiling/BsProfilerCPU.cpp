@@ -26,7 +26,6 @@ using namespace std::chrono;
 namespace bs
 {
 	ProfilerCPU::Timer::Timer()
-		:startTime(0.0f)
 	{
 		time = 0.0f;
 	}
@@ -159,13 +158,13 @@ namespace bs
 	}
 
 	BS_THREADLOCAL ProfilerCPU::ThreadInfo* ProfilerCPU::ThreadInfo::activeThread = nullptr;
-
+	
 	ProfilerCPU::ThreadInfo::ThreadInfo()
-		:isActive(false), rootBlock(nullptr), frameAlloc(1024 * 512), activeBlocks(nullptr)
+		:frameAlloc(1024 * 512)
 	{
 
 	}
-
+	
 	void ProfilerCPU::ThreadInfo::begin(const char* _name)
 	{
 		if(isActive)
@@ -276,8 +275,6 @@ namespace bs
 	}
 
 	ProfilerCPU::ProfilerCPU()
-		: mBasicTimerOverhead(0.0), mPreciseTimerOverhead(0), mBasicSamplingOverheadMs(0.0), mPreciseSamplingOverheadMs(0.0)
-		, mBasicSamplingOverheadCycles(0), mPreciseSamplingOverheadCycles(0)
 	{
 		// TODO - We only estimate overhead on program start. It might be better to estimate it each time beginThread is called,
 		// and keep separate values per thread.
@@ -997,23 +994,6 @@ namespace bs
 			if (avgCyclesPrecise < mPreciseSamplingOverheadCycles)
 				mPreciseSamplingOverheadCycles = avgCyclesPrecise;
 		}
-	}
-
-	CPUProfilerBasicSamplingEntry::Data::Data()
-		:numCalls(0), avgTimeMs(0.0), maxTimeMs(0.0), totalTimeMs(0.0),
-		avgSelfTimeMs(0.0), totalSelfTimeMs(0.0), estimatedSelfOverheadMs(0.0),
-		estimatedOverheadMs(0.0), pctOfParent(1.0f)
-	{ }
-
-	CPUProfilerPreciseSamplingEntry::Data::Data()
-		:numCalls(0), avgCycles(0), maxCycles(0), totalCycles(0),
-		avgSelfCycles(0), totalSelfCycles(0), estimatedSelfOverhead(0),
-		estimatedOverhead(0), pctOfParent(1.0f)
-	{ }
-
-	CPUProfilerReport::CPUProfilerReport()
-	{
-
 	}
 
 	ProfilerCPU& gProfilerCPU()

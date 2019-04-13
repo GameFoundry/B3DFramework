@@ -109,9 +109,9 @@ namespace bs
 		static SPtr<Prefab> createEmpty();
 
 		HSceneObject mRoot;
-		UINT32 mHash;
+		UINT32 mHash = 0;
 		UUID mUUID;
-		bool mIsScene;
+		bool mIsScene = true;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
