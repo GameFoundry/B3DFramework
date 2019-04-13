@@ -58,11 +58,10 @@ namespace bs
 
 		/** 
 		 * Same as import(), except it imports a resource without blocking the main thread. The resulting resource will be
-		 * placed in the returned AsyncOp object when the import ends. If @p handle is true, the returned object will be
-		 * a resource handle, otherwise it will be a SPtr to the resource.
+		 * placed in the returned AsyncOp object when the import ends. 
 		 */
-		AsyncOp importAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, 
-			const UUID& UUID = UUID::EMPTY, bool handle = true);
+		TAsyncOp<HResource> importAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, 
+			const UUID& UUID = UUID::EMPTY);
 
 		/**
 		 * Imports a resource at the specified location, and returns the loaded data. This method returns all imported
@@ -82,11 +81,10 @@ namespace bs
 
 		/** 
 		 * Same as importAll(), except it imports a resource without blocking the main thread. The returned AsyncOp will
-		 * contain a Vector<SubResource> containing the imported resources, after the import ends. If @p handle is true, 
-		 * the returned object will be a resource handle, otherwise it will be a SPtr to the resource.
+		 * contain a list of the imported resources, after the import ends. 
 		 */
-		AsyncOp importAllAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, 
-			bool handle = true);
+		TAsyncOp<Vector<SubResource>> importAllAsync(const Path& inputFilePath, 
+			SPtr<const ImportOptions> importOptions = nullptr);
 
 		/**
 		 * Automatically detects the importer needed for the provided file and returns valid type of import options for 
@@ -151,27 +149,6 @@ namespace bs
 
 		/** @} */
 	private:
-		/** Information about a single queued import operation. */
-		struct QueuedOperation
-		{
-			QueuedOperation() = default;
-
-			QueuedOperation(SpecificImporter* importer, const Path& filePath, SPtr<const ImportOptions> importOptions, 
-				bool importAll, const UUID& uuid, bool handle, const AsyncOp& op)
-				: importer(importer), filePath(filePath), importOptions(importOptions), importAll(importAll), uuid(uuid)
-				, handle(handle), op(op)
-			{ }
-
-			SpecificImporter* importer;
-			Path filePath;
-			SPtr<const ImportOptions> importOptions;
-			bool importAll;
-			UUID uuid;
-			bool handle;
-
-			AsyncOp op;
-		};
-
 		/** 
 		 * Searches available importers and attempts to find one that can import the file of the provided type. Returns null
 		 * if one cannot be found.
@@ -182,8 +159,9 @@ namespace bs
 		 * Queues resource for import on a secondary thread. The system will execute the import as soon as possible
 		 * and write the resulting resource to the provided @p op object. 
 		 */
-		void queueForImport(SpecificImporter* importer, const Path& inputFilePath, SPtr<const ImportOptions> importOptions, 
-			bool importAll, const UUID& uuid, bool handle, AsyncOp& op);
+		template<class ReturnType>
+		void queueForImport(SpecificImporter* importer, const Path& inputFilePath, 
+			const SPtr<const ImportOptions>& importOptions, const UUID& uuid, TAsyncOp<ReturnType>& op);
 
 		/**
 		 * Prepares for import of a file at the specified path. Returns the type of importer the file can be imported with,

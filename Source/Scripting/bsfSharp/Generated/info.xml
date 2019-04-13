@@ -1488,18 +1488,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Signifies the curve is used to adjust the weight of a morph channel. In range [0, 1].</doc>
 		</enumentry>
 	</enum>
-	<class native="AsyncOpEx" script="AsyncOp">
-		<doc>Object you may use to check on the results of an asynchronous operation. Contains uninitialized data until  IsComplete returns true.</doc>
-		<method native="blockUntilComplete" script="BlockUntilComplete" static="false">
-			<doc>Blocks the caller thread until the AsyncOp completes.</doc>
-		</method>
-		<property name="IsComplete" type="bool" getter="isComplete" setter="" static="false">
-			<doc>Returns true if the async operation has completed.</doc>
-		</property>
-		<property name="ReturnValue" type="object" getter="getReturnValue" setter="" static="false">
-			<doc>Retrieves the value returned by the async operation. Only valid if IsComplete returns true.</doc>
-		</property>
-	</class>
 	<struct native="TNamedAnimationCurve&lt;float&gt;" script="NamedFloatCurve">
 		<doc>An animation curve and its name.</doc>
 		<ctor>
@@ -5380,6 +5368,18 @@ The shape and mass of a rigidbody is governed by its colliders. You must attach 
 	</class>
 	<class native="Texture" script="Texture">
 		<doc>Abstract class representing a texture. Specific render systems have their own Texture implementations. Internally represented as one or more surfaces with pixels in a certain number of dimensions, backed by a hardware buffer.</doc>
+		<method native="readData" script="GetGPUPixels" static="false">
+			<doc>Reads internal texture data into a newly allocated buffer.</doc>
+			<param name="face" type="int">
+				<doc>Texture face to read from.</doc>
+			</param>
+			<param name="mipLevel" type="int">
+				<doc>Mipmap level to read from.</doc>
+			</param>
+			<returns type="AsyncOp&lt;PixelData&gt;">
+				<doc>Async operation object that will contain the buffer with the data once the operation completes.</doc>
+			</returns>
+		</method>
 		<ctor>
 			<param name="format" type="PixelFormat">
 			</param>
@@ -5410,18 +5410,6 @@ The shape and mass of a rigidbody is governed by its colliders. You must attach 
 			</param>
 			<returns type="PixelData">
 				<doc>A set of pixels for the specified mip level.</doc>
-			</returns>
-		</method>
-		<method native="getGPUPixels" script="GetGPUPixels" static="false">
-			<doc>Reads texture pixels directly from the GPU. This is similar to GetPixels but the texture doesn&apos;t need to be created with TextureUsage.CPUCached, and the data will contain any updates performed by the GPU. This method can be potentially slow as it introduces a CPU-GPU synchronization point. Additionally this method is asynchronous which means the data is not available immediately.</doc>
-			<param name="face" type="int">
-				<doc>Face to read the pixels from. Cubemap textures have six faces whose face indices are as specified in the CubeFace enum. Array textures can have an arbitrary number of faces (if it&apos;s a cubemap array it has to be a multiple of 6).</doc>
-			</param>
-			<param name="mipLevel" type="int">
-				<doc>Mip level to retrieve pixels for. Top level (0) is the highest quality.</doc>
-			</param>
-			<returns type="AsyncOp">
-				<doc>AsyncOp object that will contain a PixelData object when the operation completes.</doc>
 			</returns>
 		</method>
 		<method native="setPixels" script="SetPixels" static="false">

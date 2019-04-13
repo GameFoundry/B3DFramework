@@ -29,6 +29,7 @@ namespace bs
 
 		MonoClass* rrefBaseClass = nullptr;
 		MonoClass* genericRRefClass = nullptr;
+		MonoClass* genericAsyncOpClass = nullptr;
 
 		MonoClass* serializeObjectAttribute = nullptr;
 		MonoClass* dontSerializeFieldAttribute = nullptr;

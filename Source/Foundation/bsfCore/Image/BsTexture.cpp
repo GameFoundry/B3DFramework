@@ -147,6 +147,26 @@ namespace bs
 			data, std::placeholders::_1));
 	}
 
+	TAsyncOp<SPtr<PixelData>> Texture::readData(UINT32 face, UINT32 mipLevel)
+	{
+		TAsyncOp<SPtr<PixelData>> op;
+
+		auto func = [&texture = getCore(), face, mipLevel, op]() mutable
+		{
+			// Make sure any queued command start executing before reading
+			ct::RenderAPI::instance().submitCommandBuffer(nullptr);
+
+			SPtr<PixelData> output = texture->getProperties().allocBuffer(face, mipLevel);
+			texture->readData(*output, mipLevel, face);
+
+			op._completeOperation(output);
+
+		};
+
+		gCoreThread().queueCommand(func);
+		return op;
+	}
+
 	UINT32 Texture::calculateSize() const
 	{
 		return mProperties.getNumFaces() * PixelUtil::getMemorySize(mProperties.getWidth(),

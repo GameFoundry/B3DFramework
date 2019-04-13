@@ -37,18 +37,8 @@ namespace bs
 	 *  @{
 	 */
 
-	/**
-	 * Object you may use to check on the results of an asynchronous operation. Contains uninitialized data until 
-	 * hasCompleted() returns true. 
-	 * 			
-	 * @note	
-	 * You are allowed (and meant to) to copy this by value.
-	 * @note
-	 * You'll notice mIsCompleted isn't synchronized. This is because we're okay if mIsCompleted reports true a few cycles 
-	 * too late, which is not relevant for practical use. And in cases where you need to ensure operation has completed 
-	 * you will usually use some kind of synchronization primitive that includes a memory barrier anyway.
-	 */
-	class BS_UTILITY_EXPORT AsyncOp
+	/** Common base for all TAsyncOp specializations. */
+	class BS_UTILITY_EXPORT AsyncOpBase
 	{
 	private:
 		struct AsyncOpData
@@ -60,23 +50,26 @@ namespace bs
 		};
 
 	public:
-		AsyncOp()
+		AsyncOpBase()
 			:mData(bs_shared_ptr_new<AsyncOpData>())
 		{ }
 
-		AsyncOp(AsyncOpEmpty empty)
+		AsyncOpBase(AsyncOpEmpty empty)
 		{ }
 
-		AsyncOp(const SPtr<AsyncOpSyncData>& syncData)
+		AsyncOpBase(const SPtr<AsyncOpSyncData>& syncData)
 			:mData(bs_shared_ptr_new<AsyncOpData>()), mSyncData(syncData)
 		{ }
 
-		AsyncOp(AsyncOpEmpty empty, const SPtr<AsyncOpSyncData>& syncData)
+		AsyncOpBase(AsyncOpEmpty empty, const SPtr<AsyncOpSyncData>& syncData)
 			:mSyncData(syncData)
 		{ }
 
 		/** Returns true if the async operation has completed. */
-		bool hasCompleted() const;
+		bool hasCompleted() const
+		{
+			return mData->mIsCompleted.load(std::memory_order_acquire);
+		}
 
 		/**
 		 * Blocks the caller thread until the AsyncOp completes.
@@ -85,58 +78,123 @@ namespace bs
 		 * Do not call this on the thread that is completing the async op, as it will cause a deadlock. Make sure the 
 		 * command you are waiting for is actually queued for execution because a deadlock will occur otherwise.
 		 */
-		void blockUntilComplete() const;
+		void blockUntilComplete() const
+		{
+			if (mSyncData == nullptr)
+			{
+				LOGERR("No sync data is available. Cannot block until AsyncOp is complete.");
+				return;
+			}
 
-		/** Retrieves the value returned by the async operation. Only valid if hasCompleted() returns true. */
-		template <typename T>
-		T getReturnValue() const 
-		{ 
-#if BS_DEBUG_MODE
-			if(!hasCompleted())
-				BS_EXCEPT(InternalErrorException, "Trying to get AsyncOp return value but the operation hasn't completed.");
-#endif
-			// Be careful if cast throws an exception. It doesn't support casting of polymorphic types. Provided and returned
-			// types must be EXACT. (You'll have to cast the data yourself when completing the operation)
-			return any_cast<T>(mData->mReturnValue);
+			Lock lock(mSyncData->mMutex);
+			while (!hasCompleted())
+				mSyncData->mCondition.wait(lock);
 		}
 
 		/** 
-		 * Retrieves the value returned by the async operation as a generic type. Only valid if hasCompleted() returns 
-		 * true. 
-		 */
-		Any getGenericReturnValue() const { return mData->mReturnValue; }
+		* Retrieves the value returned by the async operation as a generic type. Only valid if hasCompleted() returns 
+		* true. 
+		*/
+		Any getGenericReturnValue() const
+		{
+#if BS_DEBUG_MODE
+			if(!hasCompleted())
+				LOGERR("Trying to get AsyncOp return value but the operation hasn't completed.");
+#endif
+
+			return mData->mReturnValue;
+		}
+
+	protected:
+		SPtr<AsyncOpData> mData;
+		SPtr<AsyncOpSyncData> mSyncData;
+	};
+
+	/**
+	 * Object you may use to check on the results of an asynchronous operation. Contains uninitialized data until 
+	 * hasCompleted() returns true. 
+	 * 			
+	 * @note	
+	 * You are allowed (and meant to) to copy this by value.
+	 * @note
+	 * You'll notice mIsCompleted isn't synchronized. This is because we're okay if mIsCompleted reports true a few cycles 
+	 * too late, which is not relevant for practical use. And in cases where you need to ensure operation has completed 
+	 * you will usually use some kind of synchronization primitive that includes a memory barrier anyway.
+	 */
+	template<class ReturnType>
+	class BS_UTILITY_EXPORT TAsyncOp : public AsyncOpBase
+	{
+	public:
+		using ReturnValueType = ReturnType;
+
+		TAsyncOp() = default;
+
+		TAsyncOp(AsyncOpEmpty empty)
+			:AsyncOpBase(empty)
+		{ }
+
+		TAsyncOp(const SPtr<AsyncOpSyncData>& syncData)
+			:AsyncOpBase(syncData)
+		{ }
+
+		TAsyncOp(AsyncOpEmpty empty, const SPtr<AsyncOpSyncData>& syncData)
+			:AsyncOpBase(empty, syncData)
+		{ }
+
+		/** Retrieves the value returned by the async operation. Only valid if hasCompleted() returns true. */
+		ReturnType getReturnValue() const 
+		{ 
+#if BS_DEBUG_MODE
+			if(!hasCompleted())
+				LOGERR("Trying to get AsyncOp return value but the operation hasn't completed.");
+#endif
+
+			return any_cast<ReturnType>(mData->mReturnValue);
+		}
 
 	public: // ***** INTERNAL ******
 		/** @name Internal 
 		 *  @{
 		 */
 
-		/** Mark the async operation as completed. */
-		void _completeOperation(Any returnValue);
-
 		/** Mark the async operation as completed, without setting a return value. */
-		void _completeOperation();
+		void _completeOperation()
+		{
+			mData->mIsCompleted.store(true, std::memory_order_release);
+
+			if (mSyncData != nullptr)
+				mSyncData->mCondition.notify_all();
+		}
+
+		/** Mark the async operation as completed. */
+		void _completeOperation(const ReturnType& returnValue)
+		{
+			mData->mReturnValue = returnValue;
+			_completeOperation();
+		}
 
 		/** @} */
-	private:
-		friend bool operator==(const AsyncOp&, std::nullptr_t);
-		friend bool operator!=(const AsyncOp&, std::nullptr_t);
-
-		SPtr<AsyncOpData> mData;
-		SPtr<AsyncOpSyncData> mSyncData;
+	protected:
+		friend bool operator==(const TAsyncOp&, std::nullptr_t);
+		friend bool operator!=(const TAsyncOp&, std::nullptr_t);
 	};
 
 	/**	Checks if an AsyncOp is null. */
-	inline bool operator==(const AsyncOp& lhs, std::nullptr_t rhs)
+	template<class ReturnType>
+	bool operator==(const TAsyncOp<ReturnType>& lhs, std::nullptr_t rhs)
 	{	
 		return lhs.mData == nullptr;
 	}
 
 	/**	Checks if an AsyncOp is not null. */
-	inline bool operator!=(const AsyncOp& lhs, std::nullptr_t rhs)
+	template<class ReturnType>
+	bool operator!=(const TAsyncOp<ReturnType>& lhs, std::nullptr_t rhs)
 	{	
 		return lhs.mData != nullptr;
 	}
+
+	/** @copydoc TAsyncOp */
+	using AsyncOp = TAsyncOp<Any>;
 
 	/** @} */
 }

@@ -66,10 +66,10 @@ namespace bs
 		return gResources()._createResourceHandle(importedResource, UUID);
 	}
 
-	AsyncOp Importer::importAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions, const UUID& UUID,
-		bool handle)
+	TAsyncOp<HResource> Importer::importAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions, 
+		const UUID& UUID)
 	{
-		AsyncOp output(mAsyncOpSyncData);
+		TAsyncOp<HResource> output(mAsyncOpSyncData);
 
 		SpecificImporter* importer = prepareForImport(inputFilePath, importOptions);
 		if(!importer)
@@ -78,7 +78,7 @@ namespace bs
 			return output;
 		}
 
-		queueForImport(importer, inputFilePath, importOptions, false, UUID, handle, output);
+		queueForImport(importer, inputFilePath, importOptions, UUID, output);
 		return output;
 	}
 
@@ -96,9 +96,10 @@ namespace bs
 		return output;
 	}
 
-	AsyncOp Importer::importAllAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions, bool handle)
+	TAsyncOp<Vector<SubResource>> Importer::importAllAsync(const Path& inputFilePath, 
+		SPtr<const ImportOptions> importOptions)
 	{
-		AsyncOp output(mAsyncOpSyncData);
+		TAsyncOp<Vector<SubResource>> output(mAsyncOpSyncData);
 
 		SpecificImporter* importer = prepareForImport(inputFilePath, importOptions);
 		if(!importer)
@@ -107,7 +108,7 @@ namespace bs
 			return output;
 		}
 
-		queueForImport(importer, inputFilePath, importOptions, true, UUID::EMPTY, handle, output);
+		queueForImport(importer, inputFilePath, importOptions, UUID::EMPTY, output);
 		return output;
 	}
 
@@ -214,8 +215,47 @@ namespace bs
 		return taskId;
 	}
 
+	template<class ReturnType>
+	void doImport(TAsyncOp<ReturnType> op, SpecificImporter* importer, const Path& filePath, const UUID& uuid, 
+		const SPtr<const ImportOptions>& importOptions)
+	{
+		assert(false && "Invalid template instantiation called.");
+	}
+
+	template<>
+	void doImport(TAsyncOp<HResource> op, SpecificImporter* importer, const Path& filePath, const UUID& uuid,
+		const SPtr<const ImportOptions>& importOptions)
+	{
+		SPtr<Resource> resourcePtr = importer->import(filePath, importOptions);
+
+		HResource resource;
+		if (uuid.empty())
+			resource = gResources()._createResourceHandle(resourcePtr);
+		else
+			resource = gResources()._createResourceHandle(resourcePtr, uuid);
+
+		op._completeOperation(resource);
+	}
+
+	template<>
+	void doImport(TAsyncOp<Vector<SubResource>> op, SpecificImporter* importer, const Path& filePath, const UUID& uuid,
+		const SPtr<const ImportOptions>& importOptions)
+	{
+		Vector<SubResourceRaw> rawSubresources = importer->importAll(filePath, importOptions);
+
+		Vector<SubResource> subresources;
+		for (auto& entry : rawSubresources)
+		{
+			HResource handle = gResources()._createResourceHandle(entry.value);
+			subresources.push_back({ entry.name, handle });
+		}
+
+		op._completeOperation(subresources);
+	}
+
+	template<class ReturnType>
 	void Importer::queueForImport(SpecificImporter* importer, const Path& inputFilePath, 
-		SPtr<const ImportOptions> importOptions, bool importAll, const UUID& uuid, bool handle, AsyncOp& op)
+		const SPtr<const ImportOptions>& importOptions, const UUID& uuid, TAsyncOp<ReturnType>& op)
 	{
 		ImporterAsyncMode asyncMode = importer->getAsyncMode();
 
@@ -233,52 +273,15 @@ namespace bs
 				dependency = iterFind->second.task;
 		}
 
-		QueuedOperation queuedOp(importer, inputFilePath, importOptions, importAll, uuid, handle, op);
 		SPtr<Task> task = Task::create("ImportWorker", 
-		[this, taskId, queuedOp] 
+		[this, importer, inputFilePath, importOptions, uuid, taskId, op] 
 		{ 
-			AsyncOp op = queuedOp.op;
-			if (queuedOp.importAll)
-			{
-				Vector<SubResourceRaw> rawSubresources = queuedOp.importer->importAll(queuedOp.filePath,
-					queuedOp.importOptions);
-
-				if(queuedOp.handle)
-				{
-					Vector<SubResource> subresources;
-					for (auto& entry : rawSubresources)
-					{
-						HResource handle = gResources()._createResourceHandle(entry.value);
-						subresources.push_back({ entry.name, handle });
-					}
-
-					op._completeOperation(subresources);
-				}
-				else
-					op._completeOperation(rawSubresources);
-			}
-			else
-			{
-				SPtr<Resource> resourcePtr = queuedOp.importer->import(queuedOp.filePath, queuedOp.importOptions);
-
-				if(queuedOp.handle)
-				{
-					HResource resource;
-					if (queuedOp.uuid.empty())
-						resource = gResources()._createResourceHandle(resourcePtr);
-					else
-						resource = gResources()._createResourceHandle(resourcePtr, queuedOp.uuid);
-
-					op._completeOperation(resource);
-				}
-				else
-					op._completeOperation(resourcePtr);
-			}
+			doImport(op, importer, inputFilePath, uuid, importOptions);
 
 			// Clear itself from the task list so we don't unnecessarily keep a reference. But first make sure we are the
 			// last task by comparing the ids.
 			Lock lock(mLastTaskMutex);
-			auto iterFind = mLastQueuedTask.find(queuedOp.importer);
+			auto iterFind = mLastQueuedTask.find(importer);
 			if(iterFind != mLastQueuedTask.end())
 			{
 				if(iterFind->second.id == taskId)
@@ -297,6 +300,12 @@ namespace bs
 
 		TaskScheduler::instance().addTask(task);
 	}
+
+	template void Importer::queueForImport(SpecificImporter*, const Path&, const SPtr<const ImportOptions>&, const UUID&, 
+		TAsyncOp<HResource>&);
+
+	template void Importer::queueForImport(SpecificImporter*, const Path&, const SPtr<const ImportOptions>&, const UUID&, 
+		TAsyncOp<Vector<SubResource>>&);
 
 	SPtr<ImportOptions> Importer::createImportOptions(const Path& inputFilePath)
 	{

@@ -343,7 +343,6 @@ namespace bs
 	class Input;
 	struct PointerEvent;
 	class RendererFactory;
-	class AsyncOp;
 	class HardwareBufferManager;
 	class FontManager;
 	class RenderStateManager;

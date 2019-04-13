@@ -104,6 +104,15 @@ namespace bs
 		public static implicit operator RRef<Texture>(Texture x)
 		{ return Internal_GetRef(x.mCachedPtr); }
 
+		/// <summary>Reads internal texture data into a newly allocated buffer.</summary>
+		/// <param name="face">Texture face to read from.</param>
+		/// <param name="mipLevel">Mipmap level to read from.</param>
+		/// <returns>Async operation object that will contain the buffer with the data once the operation completes.</returns>
+		public AsyncOp<PixelData> GetGPUPixels(int face = 0, int mipLevel = 0)
+		{
+			return Internal_readData(mCachedPtr, face, mipLevel);
+		}
+
 		/// <summary>
 		/// Returns pixels for the specified mip level &amp; face. Pixels will be read from system memory, which means the 
 		/// texture has to be created with TextureUsage.CPUCached. If the texture was updated from the GPU the pixels retrieved 
@@ -119,24 +128,6 @@ namespace bs
 		public PixelData GetPixels(int face = 0, int mipLevel = 0)
 		{
 			return Internal_getPixels(mCachedPtr, face, mipLevel);
-		}
-
-		/// <summary>
-		/// Reads texture pixels directly from the GPU. This is similar to GetPixels but the texture doesn&apos;t need to be 
-		/// created with TextureUsage.CPUCached, and the data will contain any updates performed by the GPU. This method can be 
-		/// potentially slow as it introduces a CPU-GPU synchronization point. Additionally this method is asynchronous which 
-		/// means the data is not available immediately.
-		/// </summary>
-		/// <param name="mipLevel">Mip level to retrieve pixels for. Top level (0) is the highest quality.</param>
-		/// <param name="face">
-		/// Face to read the pixels from. Cubemap textures have six faces whose face indices are as specified in the CubeFace 
-		/// enum. Array textures can have an arbitrary number of faces (if it&apos;s a cubemap array it has to be a multiple of 
-		/// 6).
-		/// </param>
-		/// <returns>AsyncOp object that will contain a PixelData object when the operation completes.</returns>
-		public AsyncOp GetGPUPixels(int face = 0, int mipLevel = 0)
-		{
-			return Internal_getGPUPixels(mCachedPtr, face, mipLevel);
 		}
 
 		/// <summary>Sets pixels for the specified mip level and face.</summary>
@@ -173,6 +164,8 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern RRef<Texture> Internal_GetRef(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern AsyncOp<PixelData> Internal_readData(IntPtr thisPtr, int face, int mipLevel);
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_create(Texture managedInstance, PixelFormat format, int width, int height, int depth, TextureType texType, TextureUsage usage, int numSamples, bool hasMipmaps, bool gammaCorrection);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern PixelFormat Internal_getPixelFormat(IntPtr thisPtr);
@@ -194,8 +187,6 @@ namespace bs
 		private static extern int Internal_getMipmapCount(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern PixelData Internal_getPixels(IntPtr thisPtr, int face, int mipLevel);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern AsyncOp Internal_getGPUPixels(IntPtr thisPtr, int face, int mipLevel);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setPixels(IntPtr thisPtr, PixelData data, int face, int mipLevel);
 		[MethodImpl(MethodImplOptions.InternalCall)]

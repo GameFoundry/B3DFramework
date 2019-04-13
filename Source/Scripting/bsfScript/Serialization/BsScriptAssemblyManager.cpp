@@ -693,6 +693,10 @@ namespace bs
 		if(mBuiltin.genericRRefClass == nullptr)
 			BS_EXCEPT(InvalidStateException, "Cannot find RRef<T> managed class.");
 
+		mBuiltin.genericAsyncOpClass = engineAssembly->getClass(ENGINE_NS, "AsyncOp`1");
+		if(mBuiltin.genericAsyncOpClass == nullptr)
+			BS_EXCEPT(InvalidStateException, "Cannot find AsyncOp<T> managed class.");
+
 		mBuiltin.serializeFieldAttribute = engineAssembly->getClass(ENGINE_NS, "SerializeField");
 		if(mBuiltin.serializeFieldAttribute == nullptr)
 			BS_EXCEPT(InvalidStateException, "Cannot find SerializeField managed class.");

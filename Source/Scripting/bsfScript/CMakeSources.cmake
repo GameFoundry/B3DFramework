@@ -87,6 +87,7 @@ set(BS_SCRIPT_INC_WRAPPERS
 	"Wrappers/BsScriptPlane.h"
 	"Wrappers/BsScriptCategory.h"
 	"Wrappers/BsScriptOrder.h"
+	"Wrappers/BsScriptAsyncOp.h"
 )
 
 set(BS_SCRIPT_INC_WRAPPERS_GUI
@@ -166,6 +167,7 @@ set(BS_SCRIPT_SRC_WRAPPERS
 	"Wrappers/BsScriptPlane.cpp"
 	"Wrappers/BsScriptCategory.cpp"
 	"Wrappers/BsScriptOrder.cpp"
+	"Wrappers/BsScriptAsyncOp.cpp"
 )
 
 set(BS_SCRIPT_INC_SERIALIZATION
@@ -204,7 +206,6 @@ set(BS_SCRIPT_INC_RTTI
 
 set(BS_SCRIPT_INC_EXTENSIONS
 	"Extensions/BsPixelDataEx.h"
-	"Extensions/BsAsyncOpEx.h"
 	"Extensions/BsTextureEx.h"
 	"Extensions/BsMeshDataEx.h"
 	"Extensions/BsMeshEx.h"
@@ -221,7 +222,6 @@ set(BS_SCRIPT_INC_EXTENSIONS
 
 set(BS_SCRIPT_SRC_EXTENSIONS
 	"Extensions/BsPixelDataEx.cpp"
-	"Extensions/BsAsyncOpEx.cpp"
 	"Extensions/BsTextureEx.cpp"
 	"Extensions/BsMeshDataEx.cpp"
 	"Extensions/BsMeshEx.cpp"

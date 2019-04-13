@@ -206,8 +206,8 @@ namespace bs
 		 *
 		 * @param[in]	data				Pixel data to write. User must ensure it is in format and size compatible with 
 		 *									the texture.
-		 * @param[in]	face				Texture face to write to.	
-		 * @param[in]	mipLevel			Mipmap level to write to.				
+		 * @param[in]	face				Texture face to write to.
+		 * @param[in]	mipLevel			Mipmap level to write to.
 		 * @param[in]	discardEntireBuffer When true the existing contents of the resource you are updating will be 
 		 *									discarded. This can make the operation faster. Resources with certain buffer 
 		 *									types might require this flag to be in a specific state otherwise the operation 
@@ -232,6 +232,19 @@ namespace bs
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
 		AsyncOp readData(const SPtr<PixelData>& data, UINT32 face = 0, UINT32 mipLevel = 0);
+
+		/**
+		 * Reads internal texture data into a newly allocated buffer.
+		 *
+		 * @param[in]	face		Texture face to read from.
+		 * @param[in]	mipLevel	Mipmap level to read from.
+		 * @return					Async operation object that will contain the buffer with the data once the operation
+		 *							completes.
+		 *
+		 * @note This is an @ref asyncMethod "asynchronous method".
+		 */
+		BS_SCRIPT_EXPORT(n:GetGPUPixels)
+		TAsyncOp<SPtr<PixelData>> readData(UINT32 face = 0, UINT32 mipLevel = 0);
 
 		/**
 		 * Reads data from the cached system memory texture buffer into the provided buffer. 

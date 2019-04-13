@@ -7,11 +7,11 @@
 #include "../../../Foundation/bsfCore/Image/BsTexture.h"
 #include "BsScriptResourceManager.h"
 #include "Wrappers/BsScriptRRefBase.h"
+#include "Wrappers/BsScriptAsyncOp.h"
+#include "BsScriptPixelData.generated.h"
 #include "../../../Foundation/bsfCore/Image/BsTexture.h"
 #include "Wrappers/BsScriptColor.h"
 #include "../Extensions/BsTextureEx.h"
-#include "BsScriptPixelData.generated.h"
-#include "BsScriptAsyncOpEx.generated.h"
 
 namespace bs
 {
@@ -23,6 +23,7 @@ namespace bs
 	void ScriptTexture::initRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetRef", (void*)&ScriptTexture::Internal_getRef);
+		metaData.scriptClass->addInternalCall("Internal_readData", (void*)&ScriptTexture::Internal_readData);
 		metaData.scriptClass->addInternalCall("Internal_create", (void*)&ScriptTexture::Internal_create);
 		metaData.scriptClass->addInternalCall("Internal_getPixelFormat", (void*)&ScriptTexture::Internal_getPixelFormat);
 		metaData.scriptClass->addInternalCall("Internal_getUsage", (void*)&ScriptTexture::Internal_getUsage);
@@ -34,7 +35,6 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_getSampleCount", (void*)&ScriptTexture::Internal_getSampleCount);
 		metaData.scriptClass->addInternalCall("Internal_getMipmapCount", (void*)&ScriptTexture::Internal_getMipmapCount);
 		metaData.scriptClass->addInternalCall("Internal_getPixels", (void*)&ScriptTexture::Internal_getPixels);
-		metaData.scriptClass->addInternalCall("Internal_getGPUPixels", (void*)&ScriptTexture::Internal_getGPUPixels);
 		metaData.scriptClass->addInternalCall("Internal_setPixels", (void*)&ScriptTexture::Internal_setPixels);
 		metaData.scriptClass->addInternalCall("Internal_setPixelsArray", (void*)&ScriptTexture::Internal_setPixelsArray);
 
@@ -50,6 +50,25 @@ namespace bs
 	MonoObject* ScriptTexture::Internal_getRef(ScriptTexture* thisPtr)
 	{
 		return thisPtr->getRRef();
+	}
+
+	MonoObject* ScriptTexture::Internal_readData(ScriptTexture* thisPtr, uint32_t face, uint32_t mipLevel)
+	{
+		TAsyncOp<SPtr<PixelData>> tmp__output;
+		tmp__output = thisPtr->getHandle()->readData(face, mipLevel);
+
+		MonoObject* __output;
+		auto convertCallback = [](const Any& returnVal)
+		{
+			SPtr<PixelData> nativeObj = any_cast<SPtr<PixelData>>(returnVal);
+			MonoObject* monoObj;
+			monoObj = ScriptPixelData::create(nativeObj);
+			return monoObj;
+		};
+
+;		__output = ScriptAsyncOpBase::create(tmp__output, convertCallback);
+
+		return __output;
 	}
 
 	void ScriptTexture::Internal_create(MonoObject* managedInstance, PixelFormat format, uint32_t width, uint32_t height, uint32_t depth, TextureType texType, TextureUsage usage, uint32_t numSamples, bool hasMipmaps, bool gammaCorrection)
@@ -164,17 +183,6 @@ namespace bs
 
 		MonoObject* __output;
 		__output = ScriptPixelData::create(tmp__output);
-
-		return __output;
-	}
-
-	MonoObject* ScriptTexture::Internal_getGPUPixels(ScriptTexture* thisPtr, uint32_t face, uint32_t mipLevel)
-	{
-		SPtr<AsyncOpEx> tmp__output;
-		tmp__output = TextureEx::getGPUPixels(thisPtr->getHandle(), face, mipLevel);
-
-		MonoObject* __output;
-		__output = ScriptAsyncOpEx::create(tmp__output);
 
 		return __output;
 	}

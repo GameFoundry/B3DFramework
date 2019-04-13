@@ -1,7 +1,6 @@
 //********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Extensions/BsTextureEx.h"
-#include "Extensions/BsAsyncOpEx.h"
 
 #include "Generated/BsScriptPixelData.generated.h"
 
@@ -86,20 +85,6 @@ namespace bs
 		thisPtr->readCachedData(*pixelData, face, mipLevel);
 
 		return pixelData;
-	}
-
-	SPtr<AsyncOpEx> TextureEx::getGPUPixels(const HTexture& thisPtr, UINT32 face, UINT32 mipLevel)
-	{
-		SPtr<PixelData> readData = thisPtr->getProperties().allocBuffer(face, mipLevel);
-		AsyncOp asyncOp = thisPtr->readData(readData, face, mipLevel);
-
-		std::function<MonoObject*(const AsyncOp&)> asyncOpToMono =
-			[&readData](const AsyncOp& op)
-		{
-			return ScriptPixelData::create(readData);
-		};
-
-		return bs_shared_ptr_new<AsyncOpEx>(asyncOp, asyncOpToMono);
 	}
 
 	void TextureEx::setPixels(const HTexture& thisPtr, const SPtr<PixelData>& data, UINT32 face, UINT32 mipLevel)

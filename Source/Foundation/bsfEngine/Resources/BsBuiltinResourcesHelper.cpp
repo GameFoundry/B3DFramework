@@ -42,11 +42,11 @@ namespace bs
 
 		struct QueuedImportOp
 		{
-			QueuedImportOp(const AsyncOp& op, const Path& outputPath, const nlohmann::json& jsonEntry)
+			QueuedImportOp(const TAsyncOp<HResource>& op, const Path& outputPath, const nlohmann::json& jsonEntry)
 				:op(op), outputPath(outputPath), jsonEntry(jsonEntry)
 			{ }
 
-			AsyncOp op;
+			TAsyncOp<HResource> op;
 			Path outputPath;
 			const nlohmann::json& jsonEntry;
 		};
@@ -96,7 +96,7 @@ namespace bs
 
 			Path outputPath = outputFolder + relativeAssetPath;
 
-			AsyncOp op = gImporter().importAsync(filePath, importOptions, UUID);
+			TAsyncOp<HResource> op = gImporter().importAsync(filePath, importOptions, UUID);
 			queuedOps.emplace_back(op, outputPath, entry);
 		};
 
@@ -167,7 +167,7 @@ namespace bs
 					continue;
 				}
 
-				HResource outputRes = importOp.op.getReturnValue<HResource>();
+				HResource outputRes = importOp.op.getReturnValue();
 				if (outputRes != nullptr)
 				{
 					Resources::instance().save(outputRes, importOp.outputPath, true, compress);
