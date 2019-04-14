@@ -251,11 +251,6 @@ namespace bs
 					INT32 curX = penX + curChar.xOffset;
 					INT32 curY = ((INT32) mTextData->getBaselineOffset() - curChar.yOffset);
 
-					// If index is negative, offset it so the text always begins at X=0. This works under the assumption
-					// that only the first character on a line can have a negative offset.
-					if (curX < 0)
-						penNegativeXOffset = penX - curChar.xOffset;
-
 					curX += penNegativeXOffset;
 					penX += curChar.xAdvance + kerning;
 					
