@@ -151,7 +151,7 @@ namespace bs
 	{
 		TAsyncOp<SPtr<PixelData>> op;
 
-		auto func = [&texture = getCore(), face, mipLevel, op]() mutable
+		auto func = [texture = getCore(), face, mipLevel, op]() mutable
 		{
 			// Make sure any queued command start executing before reading
 			ct::RenderAPI::instance().submitCommandBuffer(nullptr);

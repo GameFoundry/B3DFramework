@@ -175,8 +175,8 @@ namespace bs
 
 		/** @} */
 	protected:
-		friend bool operator==(const TAsyncOp&, std::nullptr_t);
-		friend bool operator!=(const TAsyncOp&, std::nullptr_t);
+		friend bool operator==(const TAsyncOp<ReturnType>&, std::nullptr_t);
+		friend bool operator!=(const TAsyncOp<ReturnType>&, std::nullptr_t);
 	};
 
 	/**	Checks if an AsyncOp is null. */
