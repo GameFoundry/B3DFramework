@@ -755,8 +755,7 @@ namespace bs
 			((MINMAXINFO*)lParam)->ptMinTrackSize.y = 100;
 
 			// Ensure maximizes window has proper size and doesn't cover the entire screen
-			const POINT ptZero = { 0, 0 };
-			HMONITOR primaryMonitor = MonitorFromPoint(ptZero, MONITOR_DEFAULTTOPRIMARY);
+			HMONITOR primaryMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
 
 			MONITORINFO monitorInfo;
 			monitorInfo.cbSize = sizeof(MONITORINFO);
