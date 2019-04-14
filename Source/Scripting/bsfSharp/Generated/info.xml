@@ -1270,6 +1270,17 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Position of the key along the animation spline.</doc>
 		</field>
 	</struct>
+	<class native="MultiResource" script="MultiResource">
+		<doc>Contains a group of resources imported from a single source file.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="entries" type="SubResource">
+			</param>
+		</ctor>
+		<property name="Entries" type="SubResource" getter="getentries" setter="setentries" static="false">
+		</property>
+	</class>
 	<struct native="RENDER_WINDOW_DESC" script="RenderWindowDesc">
 		<doc>Structure that is used for initializing a render window.</doc>
 		<ctor>
@@ -5473,6 +5484,133 @@ The shape and mass of a rigidbody is governed by its colliders. You must attach 
 			<doc>Contents of the sub-resource.</doc>
 		</field>
 	</struct>
+	<class native="Importer" script="Importer">
+		<doc>Module responsible for importing various asset types and converting them to types usable by the engine.</doc>
+		<method native="import" script="Import" static="false">
+			<doc>Imports a resource at the specified location, and returns the loaded data. If file contains more than one resource only the primary resource is imported (for example an FBX a mesh would be imported, but animations ignored).</doc>
+			<param name="inputFilePath" type="string">
+				<doc>Pathname of the input file.</doc>
+			</param>
+			<param name="importOptions" type="ImportOptions">
+				<doc>(optional) Options for controlling the import. Caller must ensure import options  actually match the type of the importer used for the file type.</doc>
+			</param>
+			<param name="UUID" type="UUID">
+				<doc>Specific UUID to assign to the resource. If not specified a randomly generated UUID will be assigned.</doc>
+			</param>
+			<returns type="Resource">
+				<doc>Imported resource.</doc>
+			</returns>
+		</method>
+		<method native="importAsync" script="ImportAsync" static="false">
+			<doc>Same as import(), except it imports a resource without blocking the main thread. The resulting resource will be placed in the returned AsyncOp object when the import ends.</doc>
+			<param name="inputFilePath" type="string">
+			</param>
+			<param name="importOptions" type="ImportOptions">
+			</param>
+			<param name="UUID" type="UUID">
+			</param>
+			<returns type="AsyncOp&lt;RRefBase&gt;">
+			</returns>
+		</method>
+		<method native="importAll" script="ImportAll" static="false">
+			<doc>Imports a resource at the specified location, and returns the loaded data. This method returns all imported resources, which is relevant for files that can contain multiple resources (for example an FBX which may contain both a mesh and animations).</doc>
+			<param name="inputFilePath" type="string">
+				<doc>Pathname of the input file.</doc>
+			</param>
+			<param name="importOptions" type="ImportOptions">
+				<doc>(optional) Options for controlling the import. Caller must ensure import options  actually match the type of the importer used for the file type.</doc>
+			</param>
+			<returns type="MultiResource">
+				<doc>A list of all imported resources. The primary resource is always the first returned resource.</doc>
+			</returns>
+		</method>
+		<method native="importAllAsync" script="ImportAllAsync" static="false">
+			<doc>Same as importAll(), except it imports a resource without blocking the main thread. The returned AsyncOp will contain a list of the imported resources, after the import ends.</doc>
+			<param name="inputFilePath" type="string">
+			</param>
+			<param name="importOptions" type="ImportOptions">
+			</param>
+			<returns type="AsyncOp&lt;MultiResource&gt;">
+			</returns>
+		</method>
+		<method native="supportsFileType" script="SupportsFileType" static="false">
+			<doc>Checks if we can import a file with the specified extension.</doc>
+			<param name="extension" type="string">
+				<doc>The extension without the leading dot.</doc>
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="import" script="Import" static="false">
+			<doc>Imports a resource at the specified location, and returns the loaded data. If file contains more than one resource only the primary resource is imported (for example an FBX a mesh would be imported, but animations ignored).</doc>
+			<param name="inputFilePath" type="string">
+				<doc>Pathname of the input file.</doc>
+			</param>
+			<param name="importOptions" type="ImportOptions">
+				<doc>(optional) Options for controlling the import. Caller must ensure import options  actually match the type of the importer used for the file type.</doc>
+			</param>
+			<param name="UUID" type="UUID">
+			</param>
+			<returns type="Resource">
+				<doc>Imported resource.</doc>
+			</returns>
+		</method>
+		<method native="import" script="Import" static="false">
+			<doc>Imports a resource at the specified location, and returns the loaded data. If file contains more than one resource only the primary resource is imported (for example an FBX a mesh would be imported, but animations ignored).</doc>
+			<param name="inputFilePath" type="string">
+				<doc>Pathname of the input file.</doc>
+			</param>
+			<param name="importOptions" type="ImportOptions">
+			</param>
+			<param name="UUID" type="UUID">
+			</param>
+			<returns type="Resource">
+				<doc>Imported resource.</doc>
+			</returns>
+		</method>
+		<method native="importAsync" script="ImportAsync" static="false">
+			<doc>Same as import(), except it imports a resource without blocking the main thread. The resulting resource will be placed in the returned AsyncOp object when the import ends.</doc>
+			<param name="inputFilePath" type="string">
+			</param>
+			<param name="importOptions" type="ImportOptions">
+			</param>
+			<param name="UUID" type="UUID">
+			</param>
+			<returns type="AsyncOp&lt;RRefBase&gt;">
+			</returns>
+		</method>
+		<method native="importAsync" script="ImportAsync" static="false">
+			<doc>Same as import(), except it imports a resource without blocking the main thread. The resulting resource will be placed in the returned AsyncOp object when the import ends.</doc>
+			<param name="inputFilePath" type="string">
+			</param>
+			<param name="importOptions" type="ImportOptions">
+			</param>
+			<param name="UUID" type="UUID">
+			</param>
+			<returns type="AsyncOp&lt;RRefBase&gt;">
+			</returns>
+		</method>
+		<method native="importAll" script="ImportAll" static="false">
+			<doc>Imports a resource at the specified location, and returns the loaded data. This method returns all imported resources, which is relevant for files that can contain multiple resources (for example an FBX which may contain both a mesh and animations).</doc>
+			<param name="inputFilePath" type="string">
+				<doc>Pathname of the input file.</doc>
+			</param>
+			<param name="importOptions" type="ImportOptions">
+			</param>
+			<returns type="MultiResource">
+				<doc>A list of all imported resources. The primary resource is always the first returned resource.</doc>
+			</returns>
+		</method>
+		<method native="importAllAsync" script="ImportAllAsync" static="false">
+			<doc>Same as importAll(), except it imports a resource without blocking the main thread. The returned AsyncOp will contain a list of the imported resources, after the import ends.</doc>
+			<param name="inputFilePath" type="string">
+			</param>
+			<param name="importOptions" type="ImportOptions">
+			</param>
+			<returns type="AsyncOp&lt;MultiResource&gt;">
+			</returns>
+		</method>
+	</class>
 	<enum native="CollisionMeshType" script="CollisionMeshType">
 		<doc>Controls what type of collision mesh should be imported during mesh import.</doc>
 		<enumentry native="None" script="None">
@@ -6941,6 +7079,165 @@ Optionally if the parameter is an array you may provide an array index you which
 			<doc>Default set of flags used for resource loading.</doc>
 		</enumentry>
 	</enum>
+	<class native="Resources" script="Resources">
+		<doc>Manager for dealing with all engine resources. It allows you to save new resources and load existing ones.</doc>
+		<method native="load" script="Load" static="false">
+			<doc>Loads the resource from a given path. Returns an empty handle if resource can&apos;t be loaded. Resource is loaded  synchronously.</doc>
+			<param name="filePath" type="string">
+				<doc>File path to the resource to load. This can be absolute or relative to the working  folder.</doc>
+			</param>
+			<param name="loadFlags" type="ResourceLoadFlag">
+				<doc>Flags used to control the load process.</doc>
+			</param>
+			<returns type="Resource">
+			</returns>
+		</method>
+		<method native="loadAsync" script="LoadAsync" static="false">
+			<doc>Loads the resource asynchronously. Initially returned resource handle will be invalid until resource loading is  done. Use ResourceHandle&lt;T&gt;::isLoaded to check if resource has been loaded, or  ResourceHandle&lt;T&gt;::blockUntilLoaded to wait until load completes.</doc>
+			<param name="filePath" type="string">
+				<doc>Full pathname of the file.</doc>
+			</param>
+			<param name="loadFlags" type="ResourceLoadFlag">
+				<doc>Flags used to control the load process.</doc>
+			</param>
+			<returns type="RRefBase">
+			</returns>
+		</method>
+		<method native="loadFromUUID" script="LoadFromUUID" static="false">
+			<doc>Loads the resource with the given UUID. Returns an empty handle if resource can&apos;t be loaded.</doc>
+			<param name="uuid" type="UUID">
+				<doc>UUID of the resource to load.</doc>
+			</param>
+			<param name="async" type="bool">
+				<doc>If true resource will be loaded asynchronously. Handle to non-loaded resource will be returned immediately while loading will continue in the background.</doc>
+			</param>
+			<param name="loadFlags" type="ResourceLoadFlag">
+				<doc>Flags used to control the load process.</doc>
+			</param>
+			<returns type="RRefBase">
+			</returns>
+		</method>
+		<method native="release" script="Release" static="false">
+			<doc>Releases an internal reference to the resource held by the resources system. This allows the resource to be  unloaded when it goes out of scope, if the resource was loaded with <see cref="keepInternalReference"/> parameter.
+Alternatively you can also skip manually calling release() and call unloadAllUnused() which will unload all  resources that do not have any external references, but you lose the fine grained control of what will be  unloaded.</doc>
+			<param name="resource" type="RRefBase">
+				<doc>Handle of the resource to release.</doc>
+			</param>
+		</method>
+		<method native="unloadAllUnused" script="UnloadAllUnused" static="false">
+			<doc>Finds all resources that aren&apos;t being referenced outside of the resources system and unloads them.</doc>
+		</method>
+		<method native="unloadAll" script="UnloadAll" static="false">
+			<doc>Forces unload of all resources, whether they are being used or not.</doc>
+		</method>
+		<method native="save" script="Save" static="false">
+			<doc>Saves the resource at the specified location.</doc>
+			<param name="resource" type="Resource">
+				<doc>Handle to the resource.</doc>
+			</param>
+			<param name="filePath" type="string">
+				<doc>Full pathname of the file to save as.</doc>
+			</param>
+			<param name="overwrite" type="bool">
+				<doc>If true, any existing resource at the specified location will be overwritten.</doc>
+			</param>
+			<param name="compress" type="bool">
+				<doc>Should the resource be compressed before saving. Some resources have data that is already compressed and this option will be ignored for such resources.</doc>
+			</param>
+		</method>
+		<method native="save" script="Save" static="false">
+			<doc>Saves an existing resource to its previous location.</doc>
+			<param name="resource" type="Resource">
+				<doc>Handle to the resource.</doc>
+			</param>
+			<param name="compress" type="bool">
+				<doc>Should the resource be compressed before saving. Some resources have data that is already compressed and this option will be ignored for such resources.</doc>
+			</param>
+		</method>
+		<method native="getDependencies" script="GetDependencies" static="false">
+			<doc>Returns a list of dependencies from the resources at the specified path. Resource will not be loaded or parsed,  but instead the saved list of dependencies will be read from the file and returned.</doc>
+			<param name="filePath" type="string">
+				<doc>Full path to the resource to get dependencies for.</doc>
+			</param>
+			<returns type="UUID">
+				<doc>List of dependencies represented as UUIDs.</doc>
+			</returns>
+		</method>
+		<method native="isLoaded" script="IsLoaded" static="false">
+			<doc>Checks is the resource with the specified UUID loaded.</doc>
+			<param name="uuid" type="UUID">
+				<doc>UUID of the resource to check.</doc>
+			</param>
+			<param name="checkInProgress" type="bool">
+				<doc>Should this method also check resources that are in progress of being  asynchronously loaded.</doc>
+			</param>
+			<returns type="bool">
+				<doc>True if loaded or loading in progress, false otherwise.</doc>
+			</returns>
+		</method>
+		<method native="getLoadProgress" script="GetLoadProgress" static="false">
+			<doc>Returns the loading progress of a resource that&apos;s being asynchronously loaded.</doc>
+			<param name="resource" type="RRefBase">
+				<doc>Resource whose load progress to check.</doc>
+			</param>
+			<param name="includeDependencies" type="bool">
+				<doc>If false the progress will reflect the load progress only for this inidividual resource. If true the progress will reflect load progress of this resource and all of its dependencies.</doc>
+			</param>
+			<returns type="float">
+				<doc>Load progress in range [0, 1].</doc>
+			</returns>
+		</method>
+		<method native="registerResourceManifest" script="RegisterResourceManifest" static="false">
+			<doc>Allows you to set a resource manifest containing UUID &lt;-&gt; file path mapping that is used when resolving  resource references.</doc>
+			<param name="manifest" type="ResourceManifest">
+			</param>
+		</method>
+		<method native="unregisterResourceManifest" script="UnregisterResourceManifest" static="false">
+			<doc>Unregisters a resource manifest previously registered with registerResourceManifest().</doc>
+			<param name="manifest" type="ResourceManifest">
+			</param>
+		</method>
+		<method native="getResourceManifest" script="GetResourceManifest" static="false">
+			<doc>Allows you to retrieve resource manifest containing UUID &lt;-&gt; file path mapping that is used when resolving  resource references.</doc>
+			<param name="name" type="string">
+			</param>
+			<returns type="ResourceManifest">
+			</returns>
+		</method>
+		<method native="getFilePathFromUUID" script="GetFilePathFromUUID" static="false">
+			<doc>Attempts to retrieve file path from the provided UUID. Returns true if successful, false otherwise.</doc>
+			<param name="uuid" type="UUID">
+			</param>
+			<param name="filePath" type="string">
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="getUUIDFromFilePath" script="GetUUIDFromFilePath" static="false">
+			<doc>Attempts to retrieve UUID from the provided file path. Returns true if successful, false otherwise.</doc>
+			<param name="path" type="string">
+			</param>
+			<param name="uuid" type="UUID">
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<event native="onResourceLoaded" script="OnResourceLoaded" static="false">
+			<doc>Called when the resource has been successfully loaded.</doc>
+			<param name="p0" type="RRefBase">
+			</param>
+		</event>
+		<event native="onResourceDestroyed" script="OnResourceDestroyed" static="false">
+			<doc>Called when the resource has been destroyed. Provides UUID of the destroyed resource.</doc>
+			<param name="p0" type="UUID">
+			</param>
+		</event>
+		<event native="onResourceModified" script="OnResourceModified" static="false">
+			<doc>Called when the internal resource the handle is pointing to has changed.</doc>
+			<param name="p0" type="RRefBase">
+			</param>
+		</event>
+	</class>
 	<struct native="KerningPair" script="KerningPair">
 		<doc>Kerning pair representing larger or smaller offset between a specific pair of characters.</doc>
 		<field name="otherCharId" type="int">

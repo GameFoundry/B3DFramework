@@ -82,7 +82,7 @@ namespace bs
 		return output;
 	}
 
-	Vector<SubResource> Importer::importAll(const Path& inputFilePath, SPtr<const ImportOptions> importOptions)
+	SPtr<MultiResource> Importer::importAll(const Path& inputFilePath, SPtr<const ImportOptions> importOptions)
 	{
 		Vector<SubResource> output;
 
@@ -93,18 +93,18 @@ namespace bs
 			output.push_back({ entry.name, handle });
 		}
 
-		return output;
+		return bs_shared_ptr_new<MultiResource>(output);
 	}
 
-	TAsyncOp<Vector<SubResource>> Importer::importAllAsync(const Path& inputFilePath, 
+	TAsyncOp<SPtr<MultiResource>> Importer::importAllAsync(const Path& inputFilePath, 
 		SPtr<const ImportOptions> importOptions)
 	{
-		TAsyncOp<Vector<SubResource>> output(mAsyncOpSyncData);
+		TAsyncOp<SPtr<MultiResource>> output(mAsyncOpSyncData);
 
 		SpecificImporter* importer = prepareForImport(inputFilePath, importOptions);
 		if(!importer)
 		{
-			output._completeOperation(Vector<SubResource>());
+			output._completeOperation(bs_shared_ptr_new<MultiResource>());
 			return output;
 		}
 
@@ -238,7 +238,7 @@ namespace bs
 	}
 
 	template<>
-	void doImport(TAsyncOp<Vector<SubResource>> op, SpecificImporter* importer, const Path& filePath, const UUID& uuid,
+	void doImport(TAsyncOp<SPtr<MultiResource>> op, SpecificImporter* importer, const Path& filePath, const UUID& uuid,
 		const SPtr<const ImportOptions>& importOptions)
 	{
 		Vector<SubResourceRaw> rawSubresources = importer->importAll(filePath, importOptions);
@@ -250,7 +250,7 @@ namespace bs
 			subresources.push_back({ entry.name, handle });
 		}
 
-		op._completeOperation(subresources);
+		op._completeOperation(bs_shared_ptr_new<MultiResource>(subresources));
 	}
 
 	template<class ReturnType>
@@ -305,7 +305,7 @@ namespace bs
 		TAsyncOp<HResource>&);
 
 	template void Importer::queueForImport(SpecificImporter*, const Path&, const SPtr<const ImportOptions>&, const UUID&, 
-		TAsyncOp<Vector<SubResource>>&);
+		TAsyncOp<SPtr<MultiResource>>&);
 
 	SPtr<ImportOptions> Importer::createImportOptions(const Path& inputFilePath)
 	{

@@ -183,4 +183,22 @@ namespace bs
 
     /** @} */
 }
+#else
+namespace bs
+{
+    partial class Resources
+    {
+        /// <summary>
+        /// Loads the resource from a given path. Returns an empty handle if resource can&apos;t be loaded. Resource is loaded  
+        /// synchronously.
+        /// </summary>
+        /// <param name="filePath">File path to the resource to load. This can be absolute or relative to the working folder.
+        /// </param>
+        /// <param name="loadFlags">Flags used to control the load process.</param>
+        public static T Load<T>(string filePath, ResourceLoadFlag loadFlags = ResourceLoadFlag.Default) where T: Resource
+        {
+            return Load(filePath, loadFlags) as T;
+        }
+    }
+}
 #endif

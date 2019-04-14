@@ -5,7 +5,6 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "BsScriptResourceManager.h"
-#include "Wrappers/BsScriptRRefBase.h"
 #include "Resources/BsResource.h"
 #include "Wrappers/BsScriptResource.h"
 
@@ -36,10 +35,10 @@ namespace bs
 		tmpname = MonoUtil::monoToString(value.name);
 		output.name = tmpname;
 		ResourceHandle<Resource> tmpvalue;
-		ScriptRRefBase* scriptvalue;
-		scriptvalue = ScriptRRefBase::toNative(value.value);
+		ScriptResource* scriptvalue;
+		scriptvalue = ScriptResource::toNative(value.value);
 		if(scriptvalue != nullptr)
-			tmpvalue = static_resource_cast<Resource>(scriptvalue->getHandle());
+			tmpvalue = static_resource_cast<Resource>(scriptvalue->getGenericHandle());
 		output.value = tmpvalue;
 
 		return output;
@@ -51,8 +50,8 @@ namespace bs
 		MonoString* tmpname;
 		tmpname = MonoUtil::stringToMono(value.name);
 		output.name = tmpname;
-		ScriptRRefBase* scriptvalue;
-		scriptvalue = ScriptResourceManager::instance().getScriptRRef(value.value);
+		ScriptResourceBase* scriptvalue;
+		scriptvalue = ScriptResourceManager::instance().getScriptResource(value.value, true);
 		MonoObject* tmpvalue;
 		if(scriptvalue != nullptr)
 			tmpvalue = scriptvalue->getManagedInstance();

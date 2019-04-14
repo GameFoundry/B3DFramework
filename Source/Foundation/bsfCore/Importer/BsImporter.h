@@ -20,11 +20,26 @@ namespace bs
 	struct BS_SCRIPT_EXPORT(m:Importer,pl:true,api:bsf) SubResource
 	{
 		String name; /**< Unique name of the sub-resource. */
-		HResource value; /**< Contents of the sub-resource. */
+		BS_NORREF HResource value; /**< Contents of the sub-resource. */
+	};
+
+	/** Contains a group of resources imported from a single source file. */
+	struct BS_SCRIPT_EXPORT(m:Importer,api:bsf) MultiResource
+	{
+		BS_SCRIPT_EXPORT()
+		MultiResource() = default;
+
+		BS_SCRIPT_EXPORT()
+		MultiResource(const Vector<SubResource>& entries)
+			:entries(entries)
+		{ }
+
+		BS_SCRIPT_EXPORT()
+		Vector<SubResource> entries;
 	};
 
 	/** Module responsible for importing various asset types and converting them to types usable by the engine. */
-	class BS_CORE_EXPORT Importer : public Module<Importer>
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Importer,api:bsf) Importer : public Module<Importer>
 	{
 	public:
 		Importer(); 
@@ -45,7 +60,8 @@ namespace bs
 		 * @see		createImportOptions
 		 * @note	Thread safe.
 		 */
-		HResource import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, 
+		BS_SCRIPT_EXPORT()
+		BS_NORREF HResource import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, 
 			const UUID& UUID = UUID::EMPTY);
 
 		/** @copydoc import */
@@ -60,6 +76,7 @@ namespace bs
 		 * Same as import(), except it imports a resource without blocking the main thread. The resulting resource will be
 		 * placed in the returned AsyncOp object when the import ends. 
 		 */
+		BS_SCRIPT_EXPORT()
 		TAsyncOp<HResource> importAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, 
 			const UUID& UUID = UUID::EMPTY);
 
@@ -77,13 +94,15 @@ namespace bs
 		 * @see		createImportOptions
 		 * @note	Thread safe.
 		 */
-		Vector<SubResource> importAll(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr);
+		BS_SCRIPT_EXPORT()
+		SPtr<MultiResource> importAll(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr);
 
 		/** 
 		 * Same as importAll(), except it imports a resource without blocking the main thread. The returned AsyncOp will
 		 * contain a list of the imported resources, after the import ends. 
 		 */
-		TAsyncOp<Vector<SubResource>> importAllAsync(const Path& inputFilePath, 
+		BS_SCRIPT_EXPORT()
+		TAsyncOp<SPtr<MultiResource>> importAllAsync(const Path& inputFilePath, 
 			SPtr<const ImportOptions> importOptions = nullptr);
 
 		/**
@@ -114,6 +133,7 @@ namespace bs
 		 *
 		 * @param[in]	extension	The extension without the leading dot.
 		 */
+		BS_SCRIPT_EXPORT()
 		bool supportsFileType(const String& extension) const;
 
 		/**

@@ -66,7 +66,7 @@ namespace bs
 			return monoObj;
 		};
 
-;		__output = ScriptAsyncOpBase::create(tmp__output, convertCallback);
+;		__output = ScriptAsyncOpBase::create(tmp__output, convertCallback, ScriptPixelData::getMetaData()->scriptClass);
 
 		return __output;
 	}

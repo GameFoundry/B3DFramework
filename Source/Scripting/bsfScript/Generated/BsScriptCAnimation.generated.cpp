@@ -71,6 +71,8 @@ namespace bs
 		scriptp0 = ScriptResourceManager::instance().getScriptRRef(p0);
 		if(scriptp0 != nullptr)
 			tmpp0 = scriptp0->getManagedInstance();
+		else
+			tmpp0 = nullptr;
 		MonoUtil::invokeThunk(_scriptRebuildFloatPropertiesThunk, getManagedInstance(), tmpp0);
 	}
 
@@ -86,6 +88,8 @@ namespace bs
 		scriptp0 = ScriptResourceManager::instance().getScriptRRef(p0);
 		if(scriptp0 != nullptr)
 			tmpp0 = scriptp0->getManagedInstance();
+		else
+			tmpp0 = nullptr;
 		MonoString* tmpp1;
 		tmpp1 = MonoUtil::stringToMono(p1);
 		MonoUtil::invokeThunk(_scriptOnEventTriggeredThunk, getManagedInstance(), tmpp0, tmpp1);

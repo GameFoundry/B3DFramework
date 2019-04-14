@@ -41,6 +41,12 @@ namespace bs
 			return nullptr;
 		}
 
+		return createInternal(op, convertCallback, returnTypeClass);
+	}
+
+	MonoObject* ScriptAsyncOpBase::createInternal(const AsyncOpBase& op, 
+		const std::function<MonoObject*(const Any&)>& convertCallback, MonoClass* returnTypeClass)
+	{
 		MonoClass* asyncOpClass = nullptr;
 		if(!returnTypeClass)
 			asyncOpClass = metaData.scriptClass;

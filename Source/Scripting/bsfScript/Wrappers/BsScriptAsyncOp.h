@@ -32,6 +32,17 @@ namespace bs
 			return createInternal(op, convertCallback);
 		}
 
+		/** 
+		 * Creates a new managed AsyncOp<T> from a native TAsyncOp and a managed class representing the return type. 
+		 * To be used when return type T does not implement IReflectable.
+		 */
+		template<class T>
+		static MonoObject* create(const TAsyncOp<T>& op, const std::function<MonoObject*(const Any&)>& convertCallback,
+			MonoClass* returnTypeClass)
+		{
+			return createInternal(op, convertCallback, returnTypeClass);
+		}
+
 		/** Creates a AsyncOp type with the provided class bound as its template parameter. */
 		static ::MonoClass* bindGenericParam(::MonoClass* param);
 
@@ -46,6 +57,10 @@ namespace bs
 		/** @copydoc create() */
 		static MonoObject* createInternal(const AsyncOpBase& op, 
 			const std::function<MonoObject*(const Any&)>& convertCallback);
+
+		/** @copydoc create() */
+		static MonoObject* createInternal(const AsyncOpBase& op, 
+			const std::function<MonoObject*(const Any&)>& convertCallback, MonoClass* returnTypeClass);
 
 		AsyncOpBase mOp;
 		std::function<MonoObject*(const Any&)> mConvertCallback;
