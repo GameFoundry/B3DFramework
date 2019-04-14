@@ -162,7 +162,10 @@ namespace bs
 
 			const Rect2I& panelArea = mPanel->_getLayoutData().area;
 			if(panelArea.width != width || panelArea.height != height)
+			{
 				updateRootPanel();
+				onOwnerTargetResized();
+			}
 		}
 
 		bs_frame_mark();
@@ -390,13 +393,6 @@ namespace bs
 			Rect2I elemBounds = elem->_getClippedBounds();
 			mBounds.encapsulate(elemBounds);
 		}
-	}
-
-	void GUIWidget::ownerTargetResized()
-	{
-		updateRootPanel();
-
-		onOwnerTargetResized();
 	}
 
 	void GUIWidget::ownerWindowFocusChanged()

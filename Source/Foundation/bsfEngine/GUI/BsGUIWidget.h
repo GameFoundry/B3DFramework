@@ -173,9 +173,6 @@ namespace bs
 		/**	Common code for constructors. */
 		void construct(const SPtr<Camera>& camera);
 
-		/**	Called when the viewport size changes and widget elements need to be updated. */
-		virtual void ownerTargetResized();
-
 		/**	Called when the parent window gained or lost focus. */
 		virtual void ownerWindowFocusChanged();
 	private:
