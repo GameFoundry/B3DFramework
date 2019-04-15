@@ -738,20 +738,23 @@ namespace bs
 		}
 
 		// Fix UV seams
+		UINT8* extraPositions = outVertices + curVertOffset * vertexStride;
+
+		UINT8* extraNormals = nullptr;
+		if (outNormals)
+			extraNormals = outNormals + curVertOffset * vertexStride;
+
+		UINT8* extraUV = nullptr;
+		if(outUV)
+			extraUV = outUV + curVertOffset * vertexStride;
+
+		const UINT32 maxExtraVerts = 3 * pow(4, quality);
+		UINT32 extraVertIdx = 0;
 		if (outUV != nullptr)
 		{
 			// Note: This only fixes seams for tileable textures. To properly fix seams for all textures the triangles
 			// would actually need to be split along the UV seam. This is ignored as non-tileable textures won't look
 			// good on a sphere regardless of the seam.
-			UINT32 extraVertIdx = 0;
-			UINT8* extraPositions = outVertices + curVertOffset * vertexStride;
-
-			UINT8* extraNormals = nullptr;
-			if(outNormals)
-				extraNormals = outNormals + curVertOffset * vertexStride;
-
-			UINT8* extraUV = outUV + curVertOffset * vertexStride;
-
 			for (UINT32 i = 0; i < numIndices; i += 3)
 			{
 				const Vector2& uv0 = *(Vector2*)&outUV[(i + 0) * vertexStride];
@@ -885,10 +888,22 @@ namespace bs
 
 					outIndices[i + indexToSplit] = vertexOffset + numIndices + extraVertIdx;
 
-					assert(extraVertIdx < (3 * pow(4, quality)));
+					assert(extraVertIdx < maxExtraVerts);
 					extraVertIdx++;
 				}
 			}
+		}
+
+		// Fill out the remaining extra vertices, just so they aren't uninitialized
+		for(; extraVertIdx < maxExtraVerts; extraVertIdx++)
+		{
+			extraPositions = writeVector3(extraPositions, vertexStride, sphere.getCenter());
+
+			if (extraNormals)
+				extraNormals = writeVector3(extraNormals, vertexStride, Vector3::UNIT_Z);
+
+			if(extraUV)
+				extraUV = writeVector2(extraUV, vertexStride, Vector2::ZERO);
 		}
 	}
 
