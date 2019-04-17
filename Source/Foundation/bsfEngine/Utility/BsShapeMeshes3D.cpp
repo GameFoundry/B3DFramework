@@ -748,7 +748,7 @@ namespace bs
 		if(outUV)
 			extraUV = outUV + curVertOffset * vertexStride;
 
-		const UINT32 maxExtraVerts = 3 * pow(4, quality);
+		const UINT32 maxExtraVerts = 3 * (UINT32)pow(4, quality);
 		UINT32 extraVertIdx = 0;
 		if (outUV != nullptr)
 		{

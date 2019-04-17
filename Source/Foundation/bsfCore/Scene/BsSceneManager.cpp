@@ -124,6 +124,7 @@ namespace bs
 	void SceneManager::_bindActor(const SPtr<SceneActor>& actor, const HSceneObject& so)
 	{
 		mBoundActors[actor.get()] = BoundActorData(actor, so);
+		actor->_updateState(*so, true);
 	}
 
 	void SceneManager::_unbindActor(const SPtr<SceneActor>& actor)
