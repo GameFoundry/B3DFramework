@@ -1,3 +1,9 @@
+# Generate the CS version information class for framework and engine
+if(BS_IS_BANSHEE3D)
+	configure_file("${BSF_SOURCE_DIR}/Scripting/bsfSharp/EngineVersion.cs.in" "${BSF_SOURCE_DIR}/Scripting/bsfSharp/EngineVersion.cs")
+endif()
+configure_file("${BSF_SOURCE_DIR}/Scripting/bsfSharp/FrameworkVersion.cs.in" "${BSF_SOURCE_DIR}/Scripting/bsfSharp/FrameworkVersion.cs")
+
 # Generate the CS project file
 if(BS_IS_BANSHEE3D)
 	set(BS_CS_ASSEMBLY_NAME "MBansheeEngine")

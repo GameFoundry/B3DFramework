@@ -23,18 +23,9 @@ set(BS_MONO_SRC_NOFILTER
 	"BsMonoArray.cpp"
 )
 
-if(WIN32)
-	set(BS_MONO_WIN32RES
-	"BsMonoWin32Resource.rc"
-	)
-else()
-	set(BS_MONO_WIN32RES )
-endif()
-
-source_group("" FILES ${BS_MONO_INC_NOFILTER} ${BS_MONO_SRC_NOFILTER} ${BS_MONO_WIN32RES})
+source_group("" FILES ${BS_MONO_INC_NOFILTER} ${BS_MONO_SRC_NOFILTER})
 
 set(BS_MONO_SRC
 	${BS_MONO_INC_NOFILTER}
 	${BS_MONO_SRC_NOFILTER}
-	${BS_MONO_WIN32RES}
 )

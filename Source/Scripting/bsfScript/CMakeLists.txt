@@ -32,7 +32,7 @@ target_link_libraries(bsfScript bsfMono bsf)
 # Runtime executable
 if(NOT BS_IS_BANSHEE3D)
 	# Target for running framework scripting assemblies
-	add_executable(bsfSharp WIN32 BsScriptExec.cpp)
+	add_executable(bsfSharp WIN32 BsScriptExec.cpp BsScriptWin32Resource.rc)
 	target_link_libraries(bsfSharp bsfScript bsfMono bsf)
 	
 	set_property(TARGET bsfSharp PROPERTY FOLDER Script)

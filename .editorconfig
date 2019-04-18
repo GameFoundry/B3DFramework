@@ -7,3 +7,6 @@ max_line_length=125
 
 [*.cs]
 indent_style = space
+
+[*.cs.in]
+indent_style = space
