@@ -166,7 +166,7 @@ namespace bs
 		if (guiElemBase->_getType() == GUIElementBase::Type::Element)
 		{
 			GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
-			guiElem->setFocus(focus);
+			guiElem->setFocus(focus, true);
 		}		
 	}
 

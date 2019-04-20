@@ -735,7 +735,7 @@ namespace bs
 					renderData.lineMesh = Mesh::_createPtr(meshData[1], MU_STATIC, DOT_LINE_LIST);
 			}
 
-			bs_frame_clear();			
+			bs_frame_clear();
 		}
 	}
 

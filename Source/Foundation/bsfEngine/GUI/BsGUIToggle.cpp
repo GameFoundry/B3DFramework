@@ -106,29 +106,32 @@ namespace bs
 		}
 	}
 
-	void GUIToggle::toggleOn()
+	void GUIToggle::_toggleOn(bool triggerEvent)
 	{
 		if(mIsToggled)
 			return;
 
 		mIsToggled = true;
 
-		if(!onToggled.empty())
-			onToggled(mIsToggled);
+		if(triggerEvent)
+		{
+			if (!onToggled.empty())
+				onToggled(mIsToggled);
+		}
 
 		if(mToggleGroup != nullptr)
 		{
 			for(auto& toggleElem : mToggleGroup->mButtons)
 			{
 				if(toggleElem != this)
-					toggleElem->toggleOff();
+					toggleElem->_toggleOff(triggerEvent);
 			}
 		}
 
 		_setOn(true);
 	}
 
-	void GUIToggle::toggleOff()
+	void GUIToggle::_toggleOff(bool triggerEvent)
 	{
 		if(!mIsToggled)
 			return;
@@ -156,8 +159,11 @@ namespace bs
 		{
 			mIsToggled = false;
 
-			if(!onToggled.empty())
-				onToggled(mIsToggled);
+			if(triggerEvent)
+			{
+				if (!onToggled.empty())
+					onToggled(mIsToggled);
+			}
 
 			_setOn(false);
 		}
@@ -172,9 +178,9 @@ namespace bs
 			if (!_isDisabled())
 			{
 				if (mIsToggled)
-					toggleOff();
+					_toggleOff(false);
 				else
-					toggleOn();
+					_toggleOn(false);
 			}
 
 			processed = true;
@@ -192,9 +198,9 @@ namespace bs
 			if(!_isDisabled())
 			{
 				if(mIsToggled)
-					toggleOff();
+					_toggleOff(false);
 				else
-					toggleOn();
+					_toggleOn(false);
 			}
 
 			return true;
