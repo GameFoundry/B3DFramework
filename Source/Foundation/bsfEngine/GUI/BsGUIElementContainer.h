@@ -14,6 +14,10 @@ namespace bs
 	/** Base for GUI elements that combine multiple GUI elements into one more complex element. */
 	class BS_EXPORT GUIElementContainer : public GUIElement
 	{
+	public:
+		/** @copydoc GUIElement::setFocus */
+		void setFocus(bool enabled, bool clear = false) override;
+
 	protected:
 		GUIElementContainer(const GUIDimensions& dimensions, const String& style = StringUtil::BLANK, 
 			GUIElementOptions options = GUIElementOptions(0));
@@ -37,6 +41,8 @@ namespace bs
 
 		/** @copydoc GUIElement::_commandEvent */
 		bool _commandEvent(const GUICommandEvent& ev) override;
+
+		GUIElement* mFocusElement = nullptr;
 	};
 
 	/** @} */

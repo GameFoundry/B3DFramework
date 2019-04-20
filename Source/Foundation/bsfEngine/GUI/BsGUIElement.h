@@ -67,7 +67,7 @@ namespace bs
 		 * @param[in]	clear		If true the focus will be cleared from any elements currently in focus. Otherwise
 		 *							the element will just be appended to the in-focus list (if enabling focus).
 		 */
-		void setFocus(bool enabled, bool clear = false);
+		virtual void setFocus(bool enabled, bool clear = false);
 
 		/**	Sets the tint of the GUI element. */
 		virtual void setTint(const Color& color);

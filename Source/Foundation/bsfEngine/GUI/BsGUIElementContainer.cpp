@@ -39,13 +39,27 @@ namespace bs
 		return Vector2I();
 	}
 
+	void GUIElementContainer::setFocus(bool enabled, bool clear)
+	{
+		if(mFocusElement)
+			mFocusElement->setFocus(enabled, clear);
+		else
+			GUIElement::setFocus(enabled, clear);
+	}
+
 	bool GUIElementContainer::_commandEvent(const GUICommandEvent& ev)
 	{
 		// Make sure to pass through focus events to elements below
 		if (ev.getType() == GUICommandEventType::FocusGained)
+		{
+			onFocusChanged(true);
 			return false;
+		}
 		else if (ev.getType() == GUICommandEventType::FocusLost)
+		{
+			onFocusChanged(false);
 			return false;
+		}
 
 		return GUIElement::_commandEvent(ev);
 	}
