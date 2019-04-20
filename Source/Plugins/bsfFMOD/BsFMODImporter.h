@@ -16,7 +16,7 @@ namespace bs
 	{
 	public:
 		FMODImporter();
-		virtual ~FMODImporter();
+		virtual ~FMODImporter() = default;
 
 		/** @copydoc SpecificImporter::isExtensionSupported */
 		bool isExtensionSupported(const String& ext) const override;

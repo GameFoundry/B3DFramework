@@ -10,7 +10,7 @@
 namespace bs
 {
 	OAAudioClip::OAAudioClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples, const AUDIO_CLIP_DESC& desc)
-		:AudioClip(samples, streamSize, numSamples, desc), mNeedsDecompression(false), mBufferId((UINT32)-1), mSourceStreamSize(0)
+		:AudioClip(samples, streamSize, numSamples, desc)
 	{ }
 
 	OAAudioClip::~OAAudioClip()
@@ -160,7 +160,7 @@ namespace bs
 		{
 			assert(!mNeedsDecompression); // Normal stream must exist if decompressing
 
-			UINT32 bytesPerSample = mDesc.bitDepth / 8;
+			const UINT32 bytesPerSample = mDesc.bitDepth / 8;
 			UINT32 size = count * bytesPerSample;
 			UINT32 streamOffset = offset * bytesPerSample;
 

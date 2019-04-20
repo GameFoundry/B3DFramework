@@ -16,7 +16,7 @@ namespace bs
 	{
 	public:
 		OAImporter();
-		virtual ~OAImporter();
+		virtual ~OAImporter() = default;
 
 		/** @copydoc SpecificImporter::isExtensionSupported */
 		bool isExtensionSupported(const String& ext) const override;

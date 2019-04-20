@@ -18,11 +18,6 @@ namespace bs
 
 	}
 
-	OAImporter::~OAImporter()
-	{
-
-	}
-
 	bool OAImporter::isExtensionSupported(const String& ext) const
 	{
 		String lowerCaseExt = ext;

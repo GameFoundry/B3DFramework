@@ -68,7 +68,7 @@ namespace bs
 	}
 
 	FMODAudioClip::FMODAudioClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples, const AUDIO_CLIP_DESC& desc)
-		:AudioClip(samples, streamSize, numSamples, desc), mSound(nullptr), mSourceStreamSize(0)
+		:AudioClip(samples, streamSize, numSamples, desc)
 	{ }
 
 	FMODAudioClip::~FMODAudioClip()

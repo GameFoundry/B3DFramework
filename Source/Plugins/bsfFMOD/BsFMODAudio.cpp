@@ -43,7 +43,6 @@ namespace bs
 	}
 
 	FMODAudio::FMODAudio()
-		:mFMOD(nullptr), mMasterChannelGroup(nullptr), mVolume(1.0f), mIsPaused(false)
 	{
 		FMOD::Memory_Initialize(nullptr, 0, &FMODAlloc, &FMODRealloc, &FMODFree);
 		FMOD::System_Create(&mFMOD);

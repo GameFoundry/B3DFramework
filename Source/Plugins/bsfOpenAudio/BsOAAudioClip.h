@@ -50,13 +50,13 @@ namespace bs
 	private:
 		mutable Mutex mMutex;
 		mutable OggVorbisDecoder mVorbisReader;
-		bool mNeedsDecompression;
-		UINT32 mBufferId;
+		bool mNeedsDecompression = false;
+		UINT32 mBufferId = (UINT32)-1;
 
 		// These streams exist to save original audio data in case it's needed later (usually for saving with the editor, or
 		// manual data manipulation). In normal usage (in-game) these will be null so no memory is wasted.
 		SPtr<DataStream> mSourceStreamData;
-		UINT32 mSourceStreamSize;
+		UINT32 mSourceStreamSize = 0;
 	};
 
 	/** @} */

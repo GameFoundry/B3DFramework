@@ -80,11 +80,11 @@ namespace bs
 		/** Rebuilds information about all listeners. Should be called when listener list changes. */
 		void rebuildListeners();
 
-		FMOD::System* mFMOD;
-		FMOD::ChannelGroup* mMasterChannelGroup;
+		FMOD::System* mFMOD = nullptr;
+		FMOD::ChannelGroup* mMasterChannelGroup = nullptr;
 
-		float mVolume;
-		bool mIsPaused;
+		float mVolume = 1.0f;
+		bool mIsPaused = false;
 
 		Vector<FMODAudioListener*> mListeners;
 		UnorderedSet<FMODAudioSource*> mSources;

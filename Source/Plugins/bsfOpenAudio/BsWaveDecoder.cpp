@@ -8,10 +8,6 @@ namespace bs
 #define WAVE_FORMAT_PCM			0x0001
 #define WAVE_FORMAT_EXTENDED	0xFFFE
 
-	WaveDecoder::WaveDecoder()
-		:mDataOffset(0), mBytesPerSample(0)
-	{ }
-
 	bool WaveDecoder::isValid(const SPtr<DataStream>& stream, UINT32 offset)
 	{
 		stream->seek(offset);

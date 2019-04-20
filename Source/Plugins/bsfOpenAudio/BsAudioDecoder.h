@@ -14,7 +14,7 @@ namespace bs
 	class AudioDecoder
 	{
 	public:
-		virtual ~AudioDecoder() { }
+		virtual ~AudioDecoder() = default;
 
 		/** 
 		 * Attempts to open audio data from the provided stream. Must be called before any reads or seeks. 

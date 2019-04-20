@@ -15,12 +15,10 @@ namespace bs
 	/** Information used by the active decoder. */
 	struct OggDecoderData
 	{
-		OggDecoderData()
-			: offset(0)
-		{ }
+		OggDecoderData() = default;
 
 		SPtr<DataStream> stream;
-		UINT32 offset;
+		UINT32 offset = 0;
 	};
 
 	/** Used for reading Ogg Vorbis audio data. */

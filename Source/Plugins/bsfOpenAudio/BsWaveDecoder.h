@@ -15,7 +15,7 @@ namespace bs
 	class WaveDecoder : public AudioDecoder
 	{
 	public:
-		WaveDecoder();
+		WaveDecoder() = default;
 
 		/** @copydoc AudioDecoder::open */
 		bool open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset = 0) override;
@@ -33,8 +33,8 @@ namespace bs
 		bool parseHeader(AudioDataInfo& info);
 
 		SPtr<DataStream> mStream;
-		UINT32 mDataOffset;
-		UINT32 mBytesPerSample;
+		UINT32 mDataOffset = 0;
+		UINT32 mBytesPerSample = 0;
 
 		static const UINT32 MAIN_CHUNK_SIZE = 12;
 	};

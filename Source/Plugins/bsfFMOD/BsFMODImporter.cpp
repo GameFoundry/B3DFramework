@@ -18,11 +18,6 @@ namespace bs
 
 	}
 
-	FMODImporter::~FMODImporter()
-	{
-
-	}
-
 	bool FMODImporter::isExtensionSupported(const String& ext) const
 	{
 		String lowerCaseExt = ext;
