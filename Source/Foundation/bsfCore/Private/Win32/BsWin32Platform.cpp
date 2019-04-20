@@ -526,6 +526,7 @@ namespace bs
 
 	bool isShiftPressed = false;
 	bool isCtrlPressed = false;
+	bool isAltPressed = false;
 
 	/**	Translate engine non client area to win32 non client area. */
 	LRESULT translateNonClientAreaType(NonClientAreaBorderType type)
@@ -973,6 +974,12 @@ namespace bs
 					break;
 				}
 
+				if(wParam == VK_MENU)
+				{
+					isAltPressed = true;
+					break;
+				}
+
 				InputCommandType command = InputCommandType::Backspace;
 				if(getCommand((unsigned int)wParam, command))
 				{
@@ -988,14 +995,13 @@ namespace bs
 		case WM_KEYUP:
 			{
 				if(wParam == VK_SHIFT)
-				{
 					isShiftPressed = false;
-				}
 
 				if(wParam == VK_CONTROL)
-				{
 					isCtrlPressed = false;
-				}
+
+				if(wParam == VK_MENU)
+					isAltPressed = false;
 
 				return 0;
 			}
@@ -1006,6 +1012,10 @@ namespace bs
 				// Ignore rarely used special command characters, usually triggered by ctrl+key
 				// combinations. (We want to keep ctrl+key free for shortcuts instead)
 				if (wParam <= 23)
+					break;
+
+				// Ignore shortcut key combinations
+				if(isCtrlPressed || isAltPressed)
 					break;
 
 				switch (wParam) 
