@@ -123,10 +123,10 @@ namespace bs
 		static SPtr<GUIToggleGroup> createToggleGroup(bool allowAllOff = false);
 
 		/**	Checks the toggle, making it active. */
-		void toggleOn() { _toggleOn(true); }
+		void toggleOn() { _toggleOn(false); }
 
 		/**	Unchecks the toggle, making it inactive. */
-		void toggleOff() { _toggleOff(true); }
+		void toggleOff() { _toggleOff(false); }
 
 		/**	Checks is the toggle currently on. */
 		bool isToggled() const { return mIsToggled; }

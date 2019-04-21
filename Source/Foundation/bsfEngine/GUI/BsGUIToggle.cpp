@@ -178,9 +178,9 @@ namespace bs
 			if (!_isDisabled())
 			{
 				if (mIsToggled)
-					_toggleOff(false);
+					_toggleOff(true);
 				else
-					_toggleOn(false);
+					_toggleOn(true);
 			}
 
 			processed = true;
@@ -198,9 +198,9 @@ namespace bs
 			if(!_isDisabled())
 			{
 				if(mIsToggled)
-					_toggleOff(false);
+					_toggleOff(true);
 				else
-					_toggleOn(false);
+					_toggleOn(true);
 			}
 
 			return true;

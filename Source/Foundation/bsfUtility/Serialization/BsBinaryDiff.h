@@ -121,6 +121,9 @@ namespace bs
 	 */
 	class BS_UTILITY_EXPORT BinaryDiff : public IDiff
 	{
+	public:
+		using IDiff::generateDiff;
+
 	private:
 		/** @copydoc	IDiff::generateDiff(const SPtr<SerializedObject>&, const SPtr<SerializedObject>&, ObjectMap&) */
 		SPtr<SerializedObject> generateDiff(const SPtr<SerializedObject>& orgObj, const SPtr<SerializedObject>& newObj, 
