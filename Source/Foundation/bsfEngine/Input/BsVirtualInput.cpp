@@ -190,6 +190,22 @@ namespace bs
 				break; // Only repeat the first device. Repeat only makes sense for keyboard which there is only one of.
 			}
 		}
+
+		// Send button held events
+		UINT32 deviceIdx = 0;
+		for (auto& deviceData : mDevices)
+		{
+			for (auto& btnIdentifier : deviceData.heldButtons)
+			{
+				Map<UINT32, ButtonData>& cachedStates = deviceData.cachedStates;
+				ButtonData& data = cachedStates[btnIdentifier];
+
+				onButtonHeld(data.button, deviceIdx);
+			}
+
+			deviceIdx++;
+		}
+
 	}
 
 	void VirtualInput::buttonDown(const ButtonEvent& event)
@@ -210,6 +226,7 @@ namespace bs
 				mDevices.push_back(DeviceData());
 
 			Map<UINT32, ButtonData>& cachedStates = mDevices[event.deviceIdx].cachedStates;
+			DynArray<UINT32>& heldButtons = mDevices[event.deviceIdx].heldButtons;
 
 			UINT32 numButtons = (UINT32)tempButtons.size();
 			for (UINT32 i = 0; i < numButtons; i++)
@@ -231,6 +248,7 @@ namespace bs
 				virtualEvent.deviceIdx = event.deviceIdx;
 
 				mEvents.push(virtualEvent);
+				heldButtons.add(btn.buttonIdentifier);
 			}
 		}
 	}
@@ -253,6 +271,7 @@ namespace bs
 				mDevices.push_back(DeviceData());
 
 			Map<UINT32, ButtonData>& cachedStates = mDevices[event.deviceIdx].cachedStates;
+			DynArray<UINT32>& heldButtons = mDevices[event.deviceIdx].heldButtons;
 
 			UINT32 numButtons = (UINT32)tempButtons.size();
 			for (UINT32 i = 0; i < numButtons; i++)
@@ -274,6 +293,10 @@ namespace bs
 				virtualEvent.deviceIdx = event.deviceIdx;
 
 				mEvents.push(virtualEvent);
+
+				auto iterFind = std::find(heldButtons.begin(), heldButtons.end(), btn.buttonIdentifier);
+				if(iterFind != heldButtons.end())
+					heldButtons.swapAndErase(iterFind);
 			}
 		}
 	}
