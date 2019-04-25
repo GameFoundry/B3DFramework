@@ -81,9 +81,9 @@ namespace bs { namespace ct
 		SPtr<TextureView> createView(const TEXTURE_VIEW_DESC& desc) override;
 
 	private:
-		GLuint mTextureID;
-		GLenum mGLFormat;
-		PixelFormat mInternalFormat;
+		GLuint mTextureID = 0;
+		GLenum mGLFormat = 0;
+		PixelFormat mInternalFormat = PF_UNKNOWN;
 		GLSupport& mGLSupport;
 		SPtr<GLPixelBuffer> mLockedBuffer;
 		

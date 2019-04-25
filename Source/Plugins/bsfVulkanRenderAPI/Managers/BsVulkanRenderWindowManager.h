@@ -15,7 +15,7 @@ namespace bs
 	class VulkanRenderWindowManager : public RenderWindowManager
 	{
 	public:
-		VulkanRenderWindowManager();
+		VulkanRenderWindowManager() = default;
 
 	protected:
 		/** @copydoc RenderWindowManager::createImpl */

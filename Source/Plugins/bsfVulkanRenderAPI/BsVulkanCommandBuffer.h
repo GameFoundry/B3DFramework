@@ -68,7 +68,7 @@ namespace bs { namespace ct
 
 		VulkanDevice& mDevice;
 		UnorderedMap<UINT32, PoolInfo> mPools;
-		UINT32 mNextId;
+		UINT32 mNextId = 1;
 	};
 
 	/** Determines where are the current descriptor sets bound to. */

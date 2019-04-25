@@ -83,16 +83,10 @@ namespace bs { namespace ct
 	}
 
 	VulkanRenderAPI::VulkanRenderAPI()
-		:mInstance(nullptr)
 	{
 #if BS_DEBUG_MODE
 		mDebugCallback = nullptr;
 #endif
-	}
-
-	VulkanRenderAPI::~VulkanRenderAPI()
-	{
-
 	}
 
 	const StringID& VulkanRenderAPI::getName() const

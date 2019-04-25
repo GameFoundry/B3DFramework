@@ -48,7 +48,7 @@ namespace bs { namespace ct
 		VulkanDevice& mDevice;
 		Vector<VulkanQuery*> mQueries;
 
-		UINT64 mNumSamples;
+		UINT64 mNumSamples = 0;
 		bool mQueryEndCalled : 1;
 		bool mQueryFinalized : 1;
 		bool mQueryInterrupted : 1;

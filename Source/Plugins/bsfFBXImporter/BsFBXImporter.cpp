@@ -38,31 +38,17 @@ namespace bs
 
 	Vector3 FBXToNativeType(const FbxVector4& value)
 	{
-		Vector3 native;
-		native.x = (float)value[0];
-		native.y = (float)value[1];
-		native.z = (float)value[2];
-
-		return native;
+		return Vector3((float)value[0], (float)value[1], (float)value[2]);
 	}
 
 	Vector3 FBXToNativeType(const FbxDouble3& value)
 	{
-		Vector3 native;
-		native.x = (float)value[0];
-		native.y = (float)value[1];
-		native.z = (float)value[2];
-
-		return native;
+		return Vector3((float)value[0], (float)value[1], (float)value[2]);
 	}
 
 	Vector2 FBXToNativeType(const FbxVector2& value)
 	{
-		Vector2 native;
-		native.x = (float)value[0];
-		native.y = (float)value[1];
-
-		return native;
+		return Vector2((float)value[0], (float)value[1]);
 	}
 
 	RGBA FBXToNativeType(const FbxColor& value)
@@ -87,7 +73,6 @@ namespace bs
 	}
 
 	FBXImporter::FBXImporter()
-		: mFBXManager(nullptr)
 	{
 		mExtensions.push_back(u8"fbx");
 		mExtensions.push_back(u8"obj");

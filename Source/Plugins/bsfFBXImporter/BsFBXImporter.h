@@ -158,7 +158,7 @@ namespace bs
 
 	private:
 		Vector<String> mExtensions;
-		FbxManager* mFBXManager;
+		FbxManager* mFBXManager = nullptr;
 	};
 
 	/** @} */

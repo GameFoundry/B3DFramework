@@ -19,7 +19,7 @@ namespace bs
 	class Win32RenderWindow : public RenderWindow
 	{
 	public:
-		~Win32RenderWindow() { }
+		~Win32RenderWindow() = default;
 
 		/** @copydoc RenderWindow::screenToWindowPos */
 		void getCustomAttribute(const String& name, void* pData) const override;

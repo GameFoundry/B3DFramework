@@ -33,7 +33,7 @@ namespace bs { namespace ct
 		VkPipeline mPipeline;
 
 		std::array<bool, BS_MAX_MULTIPLE_RENDER_TARGETS> mReadOnlyColor;
-		bool mReadOnlyDepth;
+		bool mReadOnlyDepth = false;
 	};
 
 	/**	Vulkan implementation of a graphics pipeline state. */

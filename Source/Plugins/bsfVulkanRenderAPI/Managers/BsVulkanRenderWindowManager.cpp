@@ -10,9 +10,6 @@
 
 namespace bs 
 {
-	VulkanRenderWindowManager::VulkanRenderWindowManager()
-	{ }
-
 	SPtr<RenderWindow> VulkanRenderWindowManager::createImpl(RENDER_WINDOW_DESC& desc, UINT32 windowId, const SPtr<RenderWindow>& parentWindow)
 	{
 		if(parentWindow != nullptr)

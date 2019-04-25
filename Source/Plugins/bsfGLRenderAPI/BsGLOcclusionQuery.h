@@ -37,11 +37,11 @@ namespace bs { namespace ct
 		void finalize();
 
 	private:
-		GLuint mQueryObj;
-		bool mFinalized;
-		bool mEndIssued;
+		GLuint mQueryObj = 0;
+		bool mFinalized = false;
+		bool mEndIssued = false;
 
-		UINT32 mNumSamples;
+		UINT32 mNumSamples = 0;
 	};
 
 	/** @} */

@@ -28,7 +28,7 @@ namespace bs { namespace ct
 
 		GLTextureView(const GLTexture* texture, const TEXTURE_VIEW_DESC& desc);
 	private:
-		GLuint mViewID;
+		GLuint mViewID = 0;
 		GLuint mTarget;
 	};
 

@@ -14,7 +14,7 @@ namespace bs { namespace ct
 	}
 
 	LinuxContext::LinuxContext(::Display* display, XVisualInfo& visualInfo)
-	: mDisplay(display), mCurrentWindow(0), mContext(0)
+	: mDisplay(display)
 	{
 		LinuxPlatform::lockX();
 

@@ -46,7 +46,7 @@ namespace bs { namespace ct
 		VulkanDevice& mDevice;
 		Vector < std::pair<VulkanQuery*, VulkanQuery*>> mQueries;
 
-		float mTimeDelta;
+		float mTimeDelta = 0.0f;
 		bool mQueryEndCalled : 1;
 		bool mQueryFinalized : 1;
 		bool mQueryInterrupted : 1;

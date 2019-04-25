@@ -25,7 +25,7 @@ namespace bs { namespace ct
 		bool isReady() const override;
 
 	private:
-		GLuint mQueryObj;
+		GLuint mQueryObj = 0;
 	};
 
 	/** @} */

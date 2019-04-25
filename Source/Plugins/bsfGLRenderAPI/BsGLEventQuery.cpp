@@ -7,7 +7,6 @@
 namespace bs { namespace ct
 {
 	GLEventQuery::GLEventQuery(UINT32 deviceIdx)
-		:mQueryObj(0)
 	{
 		assert(deviceIdx == 0 && "Multiple GPUs not supported natively on OpenGL.");
 

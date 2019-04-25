@@ -18,7 +18,7 @@ namespace bs
 	{
 	public:
 		GLTextureManager(ct::GLSupport& support);
-		virtual ~GLTextureManager();
+		virtual ~GLTextureManager() = default;
 
 		/**
 		 * Converts the provided format for the specified texture type and usage into a format that is supported by OpenGL.

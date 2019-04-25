@@ -23,7 +23,7 @@ namespace bs { namespace ct
 	{ }
 
 	VulkanPipeline::VulkanPipeline(VulkanResourceManager* owner, VkPipeline pipeline)
-		: VulkanResource(owner, true), mPipeline(pipeline), mReadOnlyColor(), mReadOnlyDepth(false)
+		: VulkanResource(owner, true), mPipeline(pipeline), mReadOnlyColor()
 	{ }
 
 	VulkanPipeline::~VulkanPipeline()

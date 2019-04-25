@@ -37,12 +37,12 @@ namespace bs { namespace ct
 		void finalize();
 
 	private:
-		GLuint mQueryStartObj;
-		GLuint mQueryEndObj;
-		bool mFinalized;
-		bool mEndIssued;
+		GLuint mQueryStartObj = 0;
+		GLuint mQueryEndObj = 0;
+		bool mFinalized = false;
+		bool mEndIssued = false;
 
-		float mTimeDelta;
+		float mTimeDelta = 0.0f;
 	};
 
 	/** @} */

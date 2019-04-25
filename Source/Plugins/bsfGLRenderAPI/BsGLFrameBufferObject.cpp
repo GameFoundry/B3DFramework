@@ -9,7 +9,6 @@
 namespace bs { namespace ct
 {
 	GLFrameBufferObject::GLFrameBufferObject()
-		: mDepthStencilAllLayers(false)
 	{
 		glGenFramebuffers(1, &mFB);
 		BS_CHECK_GL_ERROR();

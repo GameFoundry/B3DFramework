@@ -22,8 +22,6 @@ namespace bs { namespace ct
 	}
 
 	Win32GLSupport::Win32GLSupport()
-		: mInitialWindow(nullptr), mHasPixelFormatARB(false), mHasMultisample(false), mHasHardwareGamma(false)
-		, mHasAdvancedContext(false)
 	{
 		initialiseWGL();
 	} 

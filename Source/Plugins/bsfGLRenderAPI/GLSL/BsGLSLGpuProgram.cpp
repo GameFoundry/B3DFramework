@@ -52,7 +52,7 @@ namespace bs { namespace ct
 	}
 	
 	GLSLGpuProgram::GLSLGpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
-		:GpuProgram(desc, deviceMask), mProgramID(0), mGLHandle(0)
+		:GpuProgram(desc, deviceMask)
 	{ }
 
 	GLSLGpuProgram::~GLSLGpuProgram()

@@ -126,7 +126,7 @@ namespace bs { namespace ct
 	protected:
 		UINT32 mSizeInBytes;
 		GpuBufferUsage mUsage;
-		bool mIsLocked;
+		bool mIsLocked = false;
 
 		UINT32 mWidth, mHeight, mDepth;
 		PixelFormat mFormat;
@@ -182,7 +182,7 @@ namespace bs { namespace ct
 
 	protected:
 		GLenum mTarget;
-		GLenum mFaceTarget;
+		GLenum mFaceTarget = 0;
 		GLuint mTextureID;
 		GLint mFace;
 		GLint mLevel;

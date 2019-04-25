@@ -16,8 +16,8 @@ namespace bs { namespace ct
 	class GLContext
 	{
 	public:
-		GLContext();
-		virtual ~GLContext();
+		GLContext() = default;
+		virtual ~GLContext() = default;
 
 		/**	Activates the rendering context (all subsequent rendering commands will be executed on it). */
 		virtual void setCurrent(const RenderWindow& window) = 0;

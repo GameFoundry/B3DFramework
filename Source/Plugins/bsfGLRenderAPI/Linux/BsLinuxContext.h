@@ -35,8 +35,8 @@ namespace bs { namespace ct
 
 	protected:
 		::Display* mDisplay;
-		::Window mCurrentWindow;
-		GLXContext mContext;
+		::Window mCurrentWindow = 0;
+		GLXContext mContext = 0;
 	};
 
 	/** @} */

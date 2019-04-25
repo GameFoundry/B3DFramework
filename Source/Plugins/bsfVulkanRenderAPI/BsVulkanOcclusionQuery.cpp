@@ -10,7 +10,7 @@
 namespace bs { namespace ct
 {
 	VulkanOcclusionQuery::VulkanOcclusionQuery(VulkanDevice& device, bool binary)
-		: OcclusionQuery(binary), mDevice(device), mNumSamples(0), mQueryEndCalled(false), mQueryFinalized(false)
+		: OcclusionQuery(binary), mDevice(device), mQueryEndCalled(false), mQueryFinalized(false)
 		, mQueryInterrupted(false)
 	{
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);

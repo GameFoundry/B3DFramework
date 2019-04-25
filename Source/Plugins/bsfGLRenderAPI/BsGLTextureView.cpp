@@ -5,7 +5,7 @@
 
 namespace bs { namespace ct {
 	GLTextureView::GLTextureView(const GLTexture* texture, const TEXTURE_VIEW_DESC& desc)
-		:TextureView(desc), mViewID(0)
+		:TextureView(desc)
 	{
 		const TextureProperties& props = texture->getProperties();
 

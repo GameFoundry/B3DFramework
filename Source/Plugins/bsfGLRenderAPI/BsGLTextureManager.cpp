@@ -13,11 +13,6 @@ namespace bs
 
 	}
 
-	GLTextureManager::~GLTextureManager()
-	{
-
-	}
-
 	SPtr<RenderTexture> GLTextureManager::createRenderTextureImpl(const RENDER_TEXTURE_DESC& desc)
 	{
 		GLRenderTexture* tex = new (bs_alloc<GLRenderTexture>()) GLRenderTexture(desc);

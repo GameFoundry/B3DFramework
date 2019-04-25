@@ -16,7 +16,7 @@ namespace bs { namespace ct
 	class VulkanTransferBuffer
 	{
 	public:
-		VulkanTransferBuffer();
+		VulkanTransferBuffer() = default;
 		VulkanTransferBuffer(VulkanDevice* device, GpuQueueType type, UINT32 queueIdx);
 		~VulkanTransferBuffer();
 
@@ -68,14 +68,14 @@ namespace bs { namespace ct
 		/** Allocates a new internal command buffer. */
 		void allocate();
 
-		VulkanDevice* mDevice;
-		GpuQueueType mType;
-		UINT32 mQueueIdx;
-		VulkanQueue* mQueue;
-		UINT32 mQueueMask;
+		VulkanDevice* mDevice = nullptr;
+		GpuQueueType mType = GQT_GRAPHICS;
+		UINT32 mQueueIdx = 0;
+		VulkanQueue* mQueue = nullptr;
+		UINT32 mQueueMask = 0;
 
-		VulkanCmdBuffer* mCB;
-		UINT32 mSyncMask;
+		VulkanCmdBuffer* mCB = nullptr;
+		UINT32 mSyncMask = 0;
 
 		Vector<VkImageMemoryBarrier> mBarriersTemp;
 	};

@@ -9,7 +9,7 @@
 namespace bs { namespace ct
 {
 	VulkanGpuPipelineParamInfo::VulkanGpuPipelineParamInfo(const GPU_PIPELINE_PARAMS_DESC& desc, GpuDeviceFlags deviceMask)
-		: GpuPipelineParamInfo(desc, deviceMask), mDeviceMask(deviceMask), mSetExtraInfos(nullptr), mLayouts()
+		: GpuPipelineParamInfo(desc, deviceMask), mDeviceMask(deviceMask), mLayouts()
 		, mLayoutInfos()
 	{ }
 

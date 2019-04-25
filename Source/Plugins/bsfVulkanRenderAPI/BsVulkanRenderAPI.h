@@ -16,7 +16,7 @@ namespace bs { namespace ct
 	{
 	public:
 		VulkanRenderAPI();
-		~VulkanRenderAPI();
+		~VulkanRenderAPI() = default;
 
 		/** @copydoc RenderAPI::getName */
 		const StringID& getName() const override;
@@ -144,7 +144,7 @@ namespace bs { namespace ct
 		VulkanCommandBuffer* getCB(const SPtr<CommandBuffer>& buffer);
 
 	private:
-		VkInstance mInstance;
+		VkInstance mInstance = nullptr;
 
 		Vector<SPtr<VulkanDevice>> mDevices;
 		Vector<SPtr<VulkanDevice>> mPrimaryDevices;

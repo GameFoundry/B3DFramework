@@ -10,7 +10,7 @@
 namespace bs { namespace ct
 {
 	VulkanTimerQuery::VulkanTimerQuery(VulkanDevice& device)
-		: mDevice(device), mTimeDelta(0.0f), mQueryEndCalled(false), mQueryFinalized(false), mQueryInterrupted(false)
+		: mDevice(device), mQueryEndCalled(false), mQueryFinalized(false), mQueryInterrupted(false)
 	{
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
 	}

@@ -17,14 +17,12 @@ namespace bs { namespace ct
 	struct GLSurfaceDesc
 	{
 	public:
-		GLSurfaceDesc()
-			:zoffset(0), numSamples(0), allLayers(false)
-		{ }
+		GLSurfaceDesc() = default;
 
 		SPtr<GLPixelBuffer> buffer;
-		UINT32 zoffset;
-		UINT32 numSamples;
-		bool allLayers;
+		UINT32 zoffset = 0;
+		UINT32 numSamples = 0;
+		bool allLayers = false;
 	};
 
 	/**
@@ -85,7 +83,7 @@ namespace bs { namespace ct
 
 		GLSurfaceDesc mColor[BS_MAX_MULTIPLE_RENDER_TARGETS];
 		SPtr<GLPixelBuffer> mDepthStencilBuffer;
-		bool mDepthStencilAllLayers;
+		bool mDepthStencilAllLayers = false;
 	};
 
 	/** @} */

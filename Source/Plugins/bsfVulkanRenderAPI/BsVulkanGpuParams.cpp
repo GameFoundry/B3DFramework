@@ -20,7 +20,7 @@
 namespace bs { namespace ct
 {
 	VulkanGpuParams::VulkanGpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo, GpuDeviceFlags deviceMask)
-		: GpuParams(paramInfo, deviceMask), mPerDeviceData(), mDeviceMask(deviceMask), mSetsDirty(nullptr)
+		: GpuParams(paramInfo, deviceMask), mPerDeviceData(), mDeviceMask(deviceMask)
 	{
 		
 	}

@@ -121,8 +121,8 @@ namespace bs { namespace ct
 		void setIndex(UINT32 index) { mDeviceIdx = index; }
 
 		VkPhysicalDevice mPhysicalDevice;
-		VkDevice mLogicalDevice;
-		bool mIsPrimary;
+		VkDevice mLogicalDevice = nullptr;
+		bool mIsPrimary = false;
 		UINT32 mDeviceIdx;
 
 		VulkanCmdBufferPool* mCommandBufferPool;

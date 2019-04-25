@@ -95,7 +95,7 @@ namespace bs { namespace ct
 
 		PerDeviceData mPerDeviceData[BS_MAX_DEVICES];
 		GpuDeviceFlags mDeviceMask;
-		bool* mSetsDirty;
+		bool* mSetsDirty = nullptr;
 
 		GroupAlloc mAlloc;
 		Mutex mMutex;

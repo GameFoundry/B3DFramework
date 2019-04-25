@@ -7,8 +7,7 @@
 namespace bs { namespace ct
 {
 	VulkanQueue::VulkanQueue(VulkanDevice& device, VkQueue queue, GpuQueueType type, UINT32 index)
-		: mDevice(device), mQueue(queue), mType(type), mIndex(index), mLastCommandBuffer(nullptr)
-		, mLastCBSemaphoreUsed(false), mNextSubmitIdx(1)
+		: mDevice(device), mQueue(queue), mType(type), mIndex(index)
 	{
 		for (UINT32 i = 0; i < BS_MAX_UNIQUE_QUEUES; i++)
 			mSubmitDstWaitMask[i] = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;

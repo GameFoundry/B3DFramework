@@ -8,7 +8,7 @@
 namespace bs { namespace ct
 {
 	GLOcclusionQuery::GLOcclusionQuery(bool binary, UINT32 deviceIdx)
-		:OcclusionQuery(binary), mQueryObj(0), mFinalized(false), mEndIssued(false), mNumSamples(0)
+		:OcclusionQuery(binary)
 	{
 		assert(deviceIdx == 0 && "Multiple GPUs not supported natively on OpenGL.");
 

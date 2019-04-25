@@ -118,9 +118,9 @@ namespace bs { namespace ct
 		List<SubmitInfo> mActiveSubmissions;
 		Queue<VulkanCmdBuffer*> mActiveBuffers;
 		Queue<VulkanSemaphore*> mActiveSemaphores;
-		VulkanCmdBuffer* mLastCommandBuffer;
-		bool mLastCBSemaphoreUsed;
-		UINT32 mNextSubmitIdx;
+		VulkanCmdBuffer* mLastCommandBuffer = nullptr;
+		bool mLastCBSemaphoreUsed = false;
+		UINT32 mNextSubmitIdx = 1;
 
 		Vector<VkSemaphore> mSemaphoresTemp;
 	};

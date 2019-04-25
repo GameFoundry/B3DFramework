@@ -35,8 +35,8 @@ namespace bs { namespace ct
 		void initialize() override;
 
 	private:
-		UINT32 mProgramID;
-		GLuint mGLHandle;
+		UINT32 mProgramID = 0;
+		GLuint mGLHandle = 0;
 
 		static UINT32 sVertexShaderCount;
 		static UINT32 sFragmentShaderCount;

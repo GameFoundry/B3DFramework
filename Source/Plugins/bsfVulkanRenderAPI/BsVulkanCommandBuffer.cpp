@@ -46,7 +46,7 @@ namespace bs { namespace ct
 	}
 
 	VulkanCmdBufferPool::VulkanCmdBufferPool(VulkanDevice& device)
-		:mDevice(device), mNextId(1)
+		:mDevice(device)
 	{
 		for (UINT32 i = 0; i < GQT_COUNT; i++)
 		{

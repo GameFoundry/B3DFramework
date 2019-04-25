@@ -13,7 +13,7 @@
 namespace bs { namespace ct
 {
 	GLPixelBuffer::GLPixelBuffer(UINT32 inWidth, UINT32 inHeight, UINT32 inDepth, PixelFormat inFormat, GpuBufferUsage usage)
-		: mUsage(usage), mIsLocked(false), mWidth(inWidth), mHeight(inHeight), mDepth(inDepth), mFormat(inFormat)
+		: mUsage(usage), mWidth(inWidth), mHeight(inHeight), mDepth(inDepth), mFormat(inFormat)
 		, mBuffer(inWidth, inHeight, inDepth, inFormat)
 	{
 		mSizeInBytes = mHeight*mWidth*PixelUtil::getNumElemBytes(mFormat);
@@ -113,7 +113,7 @@ namespace bs { namespace ct
 
 	GLTextureBuffer::GLTextureBuffer(GLenum target, GLuint id, GLint face, GLint level, PixelFormat format, 
 		GpuBufferUsage usage, bool hwGamma, UINT32 multisampleCount)
-		: GLPixelBuffer(0, 0, 0, format, usage), mTarget(target), mFaceTarget(0), mTextureID(id), mFace(face)
+		: GLPixelBuffer(0, 0, 0, format, usage), mTarget(target), mTextureID(id), mFace(face)
 		, mLevel(level), mMultisampleCount(multisampleCount), mHwGamma(hwGamma)
 	{
 		GLint value = 0;

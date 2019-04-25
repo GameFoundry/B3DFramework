@@ -8,7 +8,6 @@
 namespace bs { namespace ct
 {
 	GLTimerQuery::GLTimerQuery(UINT32 deviceIdx)
-		:mQueryStartObj(0), mQueryEndObj(0), mFinalized(false), mEndIssued(false), mTimeDelta(0.0f)
 	{
 		assert(deviceIdx == 0 && "Multiple GPUs not supported natively on OpenGL.");
 

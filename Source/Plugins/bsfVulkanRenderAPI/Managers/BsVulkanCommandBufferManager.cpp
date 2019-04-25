@@ -9,12 +9,8 @@
 
 namespace bs { namespace ct
 {
-	VulkanTransferBuffer::VulkanTransferBuffer()
-		:mDevice(nullptr), mType(GQT_GRAPHICS), mQueueIdx(0), mQueue(nullptr), mQueueMask(0), mCB(nullptr), mSyncMask(0)
-	{ }
-
 	VulkanTransferBuffer::VulkanTransferBuffer(VulkanDevice* device, GpuQueueType type, UINT32 queueIdx)
-		:mDevice(device), mType(type), mQueueIdx(queueIdx), mQueue(nullptr), mQueueMask(0), mCB(nullptr), mSyncMask(0)
+		:mDevice(device), mType(type), mQueueIdx(queueIdx)
 	{
 		UINT32 numQueues = device->getNumQueues(mType);
 		if (numQueues == 0)

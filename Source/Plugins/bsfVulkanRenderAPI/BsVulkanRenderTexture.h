@@ -20,7 +20,7 @@ namespace bs
 	class VulkanRenderTexture : public RenderTexture
 	{
 	public:
-		virtual ~VulkanRenderTexture() { }
+		virtual ~VulkanRenderTexture() = default;
 
 	protected:
 		friend class VulkanTextureManager;
