@@ -787,10 +787,13 @@ namespace bs
 
 	HComponent SceneObject::getComponent(RTTITypeBase* type) const
 	{
-		for(auto& entry : mComponents)
+		if(type != Component::getRTTIStatic())
 		{
-			if(entry->getRTTI()->isDerivedFrom(type))
-				return entry;
+			for (auto& entry : mComponents)
+			{
+				if (entry->getRTTI()->isDerivedFrom(type))
+					return entry;
+			}
 		}
 
 		return HComponent();
