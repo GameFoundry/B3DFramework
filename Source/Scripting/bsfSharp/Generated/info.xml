@@ -1165,6 +1165,25 @@ Does not account for gravity, you must apply it manually.</doc>
 			<doc>Clamp to end/beginning, keeping the last/first frame active.</doc>
 		</enumentry>
 	</enum>
+	<struct native="SkeletonBoneInfoEx" script="BoneInfo">
+		<doc>Contains internal information about a single bone in a Skeleton.</doc>
+		<field name="name" type="string">
+			<doc>Unique name of the bone.</doc>
+		</field>
+		<field name="parent" type="int">
+			<doc>Index of the parent bone (within the relevant Skeleton object). -1 if root bone.</doc>
+		</field>
+		<field name="invBindPose" type="Matrix4">
+			<doc>Inverse transform of the pose the skeleton was initially created in.</doc>
+		</field>
+	</struct>
+	<enum native="RangeComponent" script="RangeComponent">
+		<doc>Identifiers representing a range of values.</doc>
+		<enumentry native="Min" script="Min">
+		</enumentry>
+		<enumentry native="Max" script="Max">
+		</enumentry>
+	</enum>
 	<enum native="ObjectMobility" script="ObjectMobility">
 		<doc>Controls what kind of mobility restrictions a scene object has. This is used primarily as a performance hint to other systems. Generally the more restricted the mobility the higher performance can be achieved.</doc>
 		<enumentry native="Movable" script="Movable">
@@ -1886,38 +1905,6 @@ Does not account for gravity, you must apply it manually.</doc>
 			<doc>Curves for animating generic component properties.</doc>
 		</property>
 	</class>
-	<class native="ParticleGravity" script="ParticleGravity">
-		<doc>Applies gravity to the particles.</doc>
-		<ctor>
-			<doc>Creates a new particle gravity evolver.</doc>
-			<param name="desc" type="ParticleGravityOptions">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new particle gravity evolver.</doc>
-		</ctor>
-		<property name="Options" type="ParticleGravityOptions" getter="getOptions" setter="setOptions" static="false">
-			<doc>Options describing the evolver.</doc>
-		</property>
-	</class>
-	<enum native="LightType" script="LightType">
-		<doc>Light type that determines how is light information parsed by the renderer and other systems.</doc>
-		<enumentry native="Directional" script="Directional">
-		</enumentry>
-		<enumentry native="Radial" script="Radial">
-		</enumentry>
-		<enumentry native="Spot" script="Spot">
-		</enumentry>
-	</enum>
-	<struct native="CollisionData" script="CollisionData">
-		<doc>Information about a collision between two physics objects.</doc>
-		<field name="collider" type="Collider">
-			<doc>Components of the colliders that have collided.</doc>
-		</field>
-		<field name="contactPoints" type="ContactPoint">
-			<doc>Information about all the contact points for the hit.</doc>
-		</field>
-	</struct>
 	<class native="AudioClip" script="AudioClip">
 		<doc>Audio clip stores audio data in a compressed or uncompressed format. Clips can be provided to audio sources or other audio methods to be played.</doc>
 		<property name="BitDepth" type="int" getter="getBitDepth" setter="" static="false">
@@ -2640,6 +2627,38 @@ Whether or not an audio source is spatial is controlled by the assigned AudioCli
 			<doc>Determines the name of the bone the component is referencing.</doc>
 		</property>
 	</class>
+	<class native="ParticleGravity" script="ParticleGravity">
+		<doc>Applies gravity to the particles.</doc>
+		<ctor>
+			<doc>Creates a new particle gravity evolver.</doc>
+			<param name="desc" type="ParticleGravityOptions">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new particle gravity evolver.</doc>
+		</ctor>
+		<property name="Options" type="ParticleGravityOptions" getter="getOptions" setter="setOptions" static="false">
+			<doc>Options describing the evolver.</doc>
+		</property>
+	</class>
+	<enum native="LightType" script="LightType">
+		<doc>Light type that determines how is light information parsed by the renderer and other systems.</doc>
+		<enumentry native="Directional" script="Directional">
+		</enumentry>
+		<enumentry native="Radial" script="Radial">
+		</enumentry>
+		<enumentry native="Spot" script="Spot">
+		</enumentry>
+	</enum>
+	<struct native="CollisionData" script="CollisionData">
+		<doc>Information about a collision between two physics objects.</doc>
+		<field name="collider" type="Collider">
+			<doc>Components of the colliders that have collided.</doc>
+		</field>
+		<field name="contactPoints" type="ContactPoint">
+			<doc>Information about all the contact points for the hit.</doc>
+		</field>
+	</struct>
 	<enum native="CollisionReportMode" script="CollisionReportMode">
 		<doc>Determines which collision events will be reported by physics objects.</doc>
 		<enumentry native="None" script="None">
@@ -7670,18 +7689,6 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 		</field>
 		<field name="isInternal" type="bool">
 			<doc>Determines is parameter managed internally be the renderer, or is it expected to be set by the user.</doc>
-		</field>
-	</struct>
-	<struct native="SkeletonBoneInfoEx" script="BoneInfo">
-		<doc>Contains internal information about a single bone in a Skeleton.</doc>
-		<field name="name" type="string">
-			<doc>Unique name of the bone.</doc>
-		</field>
-		<field name="parent" type="int">
-			<doc>Index of the parent bone (within the relevant Skeleton object). -1 if root bone.</doc>
-		</field>
-		<field name="invBindPose" type="Matrix4">
-			<doc>Inverse transform of the pose the skeleton was initially created in.</doc>
 		</field>
 	</struct>
 </entries>

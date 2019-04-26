@@ -543,6 +543,12 @@ namespace bs
 		R, G, B, A
 	};
 
+	/** Identifiers representing a range of values. */
+	enum class BS_SCRIPT_EXPORT(m:Utility) RangeComponent
+	{
+		Min, Max
+	};
+
 	/** 
 	 * Bits that map to a specific surface of a render target. Combine the bits to generate a mask that references
 	 * only specific render target surfaces.

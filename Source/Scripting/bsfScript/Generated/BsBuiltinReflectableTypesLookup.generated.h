@@ -24,8 +24,6 @@
 #include "BsScriptSkeleton.generated.h"
 #include "../../../Foundation/bsfCore/Text/BsFont.h"
 #include "BsScriptFontBitmap.generated.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
-#include "BsScriptParticleGravity.generated.h"
 #include "../../../Foundation/bsfCore/Animation/BsMorphShapes.h"
 #include "BsScriptMorphShape.generated.h"
 #include "../../../Foundation/bsfCore/Animation/BsMorphShapes.h"
@@ -40,6 +38,8 @@
 #include "BsScriptViewport.generated.h"
 #include "../../../Foundation/bsfCore/RenderAPI/BsRenderTarget.h"
 #include "BsScriptRenderTarget.generated.h"
+#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
+#include "BsScriptParticleGravity.generated.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "BsScriptAutoExposureSettings.generated.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
@@ -149,7 +149,6 @@ namespace bs
 		ADD_ENTRY(MorphShapes, ScriptMorphShapes)
 		ADD_ENTRY(Skeleton, ScriptSkeleton)
 		ADD_ENTRY(FontBitmap, ScriptFontBitmap)
-		ADD_ENTRY(ParticleGravity, ScriptParticleGravity)
 		ADD_ENTRY(MorphShape, ScriptMorphShape)
 		ADD_ENTRY(MorphChannel, ScriptMorphChannel)
 #if !BS_IS_BANSHEE3D
@@ -158,6 +157,7 @@ namespace bs
 		ADD_ENTRY(PixelData, ScriptPixelData)
 		ADD_ENTRY(Viewport, ScriptViewport)
 		ADD_ENTRY(RenderTarget, ScriptRenderTarget)
+		ADD_ENTRY(ParticleGravity, ScriptParticleGravity)
 		ADD_ENTRY(AutoExposureSettings, ScriptAutoExposureSettings)
 		ADD_ENTRY(TonemappingSettings, ScriptTonemappingSettings)
 		ADD_ENTRY(WhiteBalanceSettings, ScriptWhiteBalanceSettings)
