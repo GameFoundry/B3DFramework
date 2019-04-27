@@ -293,7 +293,7 @@ namespace bs { namespace ct
 	{
 		UINT64 cameraLayers = mProperties.visibleLayers;
 		const ConvexVolume& worldFrustum = mProperties.cullFrustum;
-		const Vector3& worldCameraPosition = mCamera->getTransform().getPosition();
+		const Vector3& worldCameraPosition = mProperties.viewOrigin;
 		float baseCullDistance = mRenderSettings->cullDistance;
 
 		for (UINT32 i = 0; i < (UINT32)cullInfos.size(); i++)
