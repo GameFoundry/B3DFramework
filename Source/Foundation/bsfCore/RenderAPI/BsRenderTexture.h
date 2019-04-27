@@ -46,7 +46,7 @@ namespace bs
 	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) RenderTexture : public RenderTarget
 	{
 	public:
-		virtual ~RenderTexture() { }
+		virtual ~RenderTexture() = default;
 
 		/** @copydoc TextureManager::createRenderTexture(const TEXTURE_DESC&, bool, PixelFormat) */
 		static SPtr<RenderTexture> create(const TEXTURE_DESC& colorDesc, 
@@ -133,7 +133,7 @@ namespace bs
 	{
 	public:
 		RenderTexture(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx);
-		virtual ~RenderTexture();
+		virtual ~RenderTexture() = default;
 
 		/** @copydoc CoreObject::initialize */
 		void initialize() override;

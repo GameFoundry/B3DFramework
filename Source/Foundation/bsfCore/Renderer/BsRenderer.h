@@ -408,14 +408,27 @@ namespace bs
 	protected:
 		friend class RendererTask;
 
+		/** Information about a renderer task queued to be executed. */
+		struct RendererTaskQueuedInfo
+		{
+			RendererTaskQueuedInfo(const SPtr<RendererTask>& task, UINT64 frameIdx)
+				:task(task), frameIdx(frameIdx)
+			{ }
+
+			SPtr<RendererTask> task;
+			UINT64 frameIdx;
+		};
+
 		/**
 		 * Executes all renderer tasks queued for this frame.
 		 *
 		 * @param[in]	forceAll	If true, multi-frame tasks will be forced to execute fully within this call.
+		 * @param[in]	upToFrame	Only tasks that were queued before or during the frame with the provided index will
+		 *							be processed.
 		 * 
 		 * @note	Core thread.
 		 */
-		void processTasks(bool forceAll);
+		void processTasks(bool forceAll, UINT64 upToFrame = std::numeric_limits<UINT64>::max());
 
 		/**
 		 * Executes the provided renderer task.
@@ -432,7 +445,7 @@ namespace bs
 
 		Set<RendererExtension*, std::function<bool(const RendererExtension*, const RendererExtension*)>> mCallbacks;
 
-		Vector<SPtr<RendererTask>> mQueuedTasks; // Sim & core thread
+		Vector<RendererTaskQueuedInfo> mQueuedTasks; // Sim & core thread
 		Vector<SPtr<RendererTask>> mUnresolvedTasks; // Sim thread
 		Vector<SPtr<RendererTask>> mRemainingUnresolvedTasks; // Sim thread
 		Vector<SPtr<RendererTask>> mRunningTasks; // Core thread

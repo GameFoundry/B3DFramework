@@ -82,8 +82,10 @@ namespace bs
 		 * Signals an end of the currently sampled frame. Results of the sampling will be available once
 		 * getNumAvailableReports increments. This may take a while as the sampling is scheduled on the core thread and
 		 * on the GPU.
+		 * 
+		 * @param[in]	 discard		If true, the results of the frame will not be resolved and it will be discarded.
 		 */
-		void endFrame();
+		void endFrame(bool discard = false);
 
 		/**
 		 * Begins sample measurement. Must be followed by endSample().

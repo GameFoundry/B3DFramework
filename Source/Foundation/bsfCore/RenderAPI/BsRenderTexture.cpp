@@ -193,9 +193,6 @@ namespace bs
 		:mDesc(desc)
 	{ }
 
-	RenderTexture::~RenderTexture()
-	{ }
-
 	void RenderTexture::initialize()
 	{
 		RenderTarget::initialize();

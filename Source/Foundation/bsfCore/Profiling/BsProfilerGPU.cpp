@@ -43,7 +43,7 @@ namespace bs
 		mIsFrameActive = true;
 	}
 
-	void ProfilerGPU::endFrame()
+	void ProfilerGPU::endFrame(bool discard)
 	{
 		if (!mActiveSamples.empty())
 		{
@@ -56,7 +56,9 @@ namespace bs
 
 		endSampleInternal(mFrameSample);
 
-		mUnresolvedFrames.push(mFrameSample);
+		if(!discard)
+			mUnresolvedFrames.push(mFrameSample);
+
 		mIsFrameActive = false;
 	}
 

@@ -381,7 +381,7 @@ namespace bs { namespace ct
 		FrameInfo frameInfo(timings, perFrameData);
 
 		// Make sure any renderer tasks finish first, as rendering might depend on them
-		processTasks(false);
+		processTasks(false, timings.frameIdx);
 
 		// If any reflection probes were updated or added, we need to copy them over in the global reflection probe array
 		updateReflProbeArray();

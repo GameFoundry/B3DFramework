@@ -11,6 +11,7 @@
 #include "Scene/BsSceneManager.h"
 #include "Material/BsShader.h"
 #include "Profiling/BsProfilerGPU.h"
+#include "Profiling/BsProfilerCPU.h"
 
 namespace bs { namespace ct
 {
@@ -73,18 +74,28 @@ namespace bs { namespace ct
 		assert(task->mState != 1 && "Task is already executing, it cannot be executed again until it finishes.");
 		task->mState.store(0); // Reset state in case the task is getting re-queued
 
-		mQueuedTasks.push_back(task);
+		mQueuedTasks.push_back(RendererTaskQueuedInfo(task, gTime().getFrameIdx()));
 		mUnresolvedTasks.push_back(task);
 	}
 
-	void Renderer::processTasks(bool forceAll)
+	void Renderer::processTasks(bool forceAll, UINT64 upToFrame)
 	{
 		// Move all tasks to the core thread queue
 		{
 			Lock lock(mTaskMutex);
 
-			mRunningTasks.insert(mRunningTasks.end(), mQueuedTasks.begin(), mQueuedTasks.end());
-			mQueuedTasks.clear();
+			for(UINT32 i = 0; i < (UINT32)mQueuedTasks.size();)
+			{
+				if(mQueuedTasks[i].frameIdx <= upToFrame)
+				{
+					mRunningTasks.push_back(mQueuedTasks[i].task);
+					bs_swap_and_erase(mQueuedTasks, mQueuedTasks.begin() + i);
+					
+					continue;
+				}
+
+				i++;
+			}
 		}
 
 		do
@@ -115,12 +126,20 @@ namespace bs { namespace ct
 
 	void Renderer::processTask(RendererTask& task, bool forceAll)
 	{
-		// Move all tasks to the core thread queue
+		// Move task to the core thread queue
 		{
 			Lock lock(mTaskMutex);
 
-			mRunningTasks.insert(mRunningTasks.end(), mQueuedTasks.begin(), mQueuedTasks.end());
-			mQueuedTasks.clear();
+			for(UINT32 i = 0; i < (UINT32)mQueuedTasks.size(); i++)
+			{
+				if(mQueuedTasks[i].task.get() == &task)
+				{
+					mRunningTasks.push_back(mQueuedTasks[i].task);
+					bs_swap_and_erase(mQueuedTasks, mQueuedTasks.begin() + i);
+
+					break;
+				}
+			}
 		}
 
 		bool complete = task.isCanceled() || task.isComplete();
@@ -128,10 +147,14 @@ namespace bs { namespace ct
 		{
 			task.mState.store(1);
 
+			gProfilerGPU().beginFrame();
+			gProfilerCPU().beginThread("RenderTask");
 			{
 				ProfileGPUBlock sampleBlock("Renderer task: " + ProfilerString(task.mName.data(), task.mName.size()));
 				complete = task.mTaskWorker();
 			}
+			gProfilerCPU().endThread();
+			gProfilerGPU().endFrame(true);
 
 			if (complete)
 				task.mState.store(2);
