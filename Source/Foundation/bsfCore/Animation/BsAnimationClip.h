@@ -7,6 +7,7 @@
 #include "Math/BsVector3.h"
 #include "Math/BsQuaternion.h"
 #include "Animation/BsAnimationCurve.h"
+#include <array>
 
 namespace bs
 {
@@ -306,7 +307,7 @@ namespace bs
 		/** 
 		 * Contains a map from curve name to curve index. Indices are stored as specified in CurveType enum. 
 		 */
-		UnorderedMap<String, UINT32[(int)CurveType::Count]> mNameMapping;
+		UnorderedMap<String, std::array<UINT32, (int)CurveType::Count>> mNameMapping;
 
 		Vector<AnimationEvent> mEvents;
 		bool mIsAdditive;

@@ -183,7 +183,7 @@ namespace bs
 				auto iterFind = mNameMapping.find(entry.name);
 				if (iterFind == mNameMapping.end())
 				{
-					UINT32* indices = mNameMapping[entry.name];
+					UINT32* indices = mNameMapping[entry.name].data();
 					memset(indices, -1, sizeof(UINT32) * (int)CurveType::Count);
 
 					indices[typeIdx] = i;
@@ -215,7 +215,7 @@ namespace bs
 				auto iterFind = mNameMapping.find(entry.name);
 				if (iterFind == mNameMapping.end())
 				{
-					UINT32* indices = mNameMapping[entry.name];
+					UINT32* indices = mNameMapping[entry.name].data();
 					memset(indices, -1, sizeof(UINT32) * (int)CurveType::Count);
 
 					indices[typeIdx] = i;
@@ -249,7 +249,7 @@ namespace bs
 		auto iterFind = mNameMapping.find(name);
 		if (iterFind != mNameMapping.end())
 		{
-			const UINT32* indices = iterFind->second;
+			const UINT32* indices = iterFind->second.data();
 
 			mapping.position = indices[(UINT32)CurveType::Position];
 			mapping.rotation = indices[(UINT32)CurveType::Rotation];
@@ -264,7 +264,7 @@ namespace bs
 		auto iterFind = mNameMapping.find(name);
 		if (iterFind != mNameMapping.end())
 		{
-			const UINT32* indices = iterFind->second;
+			const UINT32* indices = iterFind->second.data();
 
 			frameIdx = indices[(UINT32)CurveType::MorphFrame];
 			weightIdx = indices[(UINT32)CurveType::MorphWeight];
