@@ -34,6 +34,8 @@ if(BS_IS_BANSHEE3D)
 	# Target for running generic Mono code
 	add_executable(MonoExec BsMonoExec.cpp)
 	target_link_libraries(MonoExec ${mono_LIBRARIES})
+
+	install_bsf_target(MonoExec)
 endif()
 
 # IDE specific
