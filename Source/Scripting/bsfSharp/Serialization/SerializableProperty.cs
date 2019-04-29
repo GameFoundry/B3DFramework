@@ -144,6 +144,21 @@ namespace bs
         }
 
         /// <summary>
+        /// Creates a serializable property with a custom getter and setter callbacks.
+        /// </summary>
+        /// <typeparam name="T">Type returned/set by getter/setter.</typeparam>
+        /// <param name="getter">Callback that returns the current value of the property.</param>
+        /// <param name="setter">Callback that assigns a new value to the properly.</param>
+        /// <returns>New property instance with the specified callbacks.</returns>
+        public static SerializableProperty Create<T>(Func<T> getter, Action<T> setter)
+        {
+            var output = new SerializableProperty(
+                DetermineFieldType(typeof(T)), typeof(T), () => getter(), x => setter((T)x));
+
+            return output;
+        }
+
+        /// <summary>
         /// Retrieves the value contained in the property.
         /// </summary>
         /// <typeparam name="T">Type of the value to retrieve. Caller must ensure the type matches the property type.</typeparam>
