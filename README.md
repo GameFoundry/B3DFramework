@@ -2,7 +2,7 @@
 
 | CI            | Community   | Support |
 | ------------- |-------------|--------|
-[![Build Status](https://travis-ci.org/GameFoundry/bsf.svg?branch=master)](https://travis-ci.org/GameFoundry/bsf) [![Build status](https://ci.appveyor.com/api/projects/status/lafi3jj8bqowh25d?svg=true)](https://ci.appveyor.com/project/BearishSun/bsf) | [![Forums](https://img.shields.io/discourse/https/discourse.bsframework.io/posts.svg)](https://discourse.bsframework.io) ![Discord](https://img.shields.io/discord/572359664528916490.svg?logo=discord) | [![Patreon](https://img.shields.io/badge/Donate-Patreon-orange.svg)](https://www.patreon.com/bePatron?c=1646501) [![Paypal](https://img.shields.io/badge/Donate-Paypal-blue.svg)](https://www.paypal.me/MarkoPintera/10)
+[![Build Status](https://travis-ci.org/GameFoundry/bsf.svg?branch=master)](https://travis-ci.org/GameFoundry/bsf) [![Build status](https://ci.appveyor.com/api/projects/status/lafi3jj8bqowh25d?svg=true)](https://ci.appveyor.com/project/BearishSun/bsf) | [![Forums](https://img.shields.io/discourse/https/discourse.bsframework.io/posts.svg)](https://discourse.bsframework.io) [![Discord](https://img.shields.io/discord/572359664528916490.svg?logo=discord)](https://discord.gg/8Xyf5gF) | [![Patreon](https://img.shields.io/badge/Donate-Patreon-orange.svg)](https://www.patreon.com/bePatron?c=1646501) [![Paypal](https://img.shields.io/badge/Donate-Paypal-blue.svg)](https://www.paypal.me/MarkoPintera/10)
 
 bs::framework is a C++ library that aims to provide a unified foundation for the development of real-time graphical applications, whether games, engines or tools. 
 
