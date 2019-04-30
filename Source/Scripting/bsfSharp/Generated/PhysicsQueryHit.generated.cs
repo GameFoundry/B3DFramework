@@ -23,6 +23,7 @@ namespace bs
 			value.uv = Vector2.Default();
 			value.distance = 0f;
 			value.triangleIdx = 0;
+			value.unmappedTriangleIdx = 0;
 			value.collider = null;
 
 			return value;
@@ -40,6 +41,13 @@ namespace bs
 		public float distance;
 		/// <summary>Index of the triangle that was hit (only applicable when triangle meshes are hit).</summary>
 		public int triangleIdx;
+		/// <summary>
+		/// Unmapped index of the triangle that was hit (only applicable when triangle meshes are hit).  It represents an index 
+		/// into the original MeshData used to create the PhysicsMesh associated with <see cref="collider"/>. In contrast, <see 
+		/// cref="triangleIdx"/> is only a valid index for the MeshData directly obtained from #collider which can  differ from 
+		/// the original MeshData due to the internal implementation.
+		/// </summary>
+		public int unmappedTriangleIdx;
 		/// <summary>
 		/// Component of the collider that was hit. This may be null if the hit collider has no owner component, in which case 
 		/// refer to #colliderRaw.

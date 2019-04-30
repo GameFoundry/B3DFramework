@@ -352,12 +352,36 @@ namespace bs
 		return PxFilterFlags();
 	}
 
-	void parseHit(const PxRaycastHit& input, PhysicsQueryHit& output)
+	void setUnmappedTriangleIndex(const PxQueryHit& input, PhysicsQueryHit& output, PxShape* shapeHint = nullptr)
+	{
+		// We can only assign a valid unmapped triangle index if the hit geometry is a triangle mesh
+		// and it was created with the flags to store the remapping.
+		// As a fallback, the raw face index is used.
+
+		PxShape* shape = shapeHint ? shapeHint : input.shape;
+
+		if (shape != nullptr && shape->getGeometryType() == PxGeometryType::eTRIANGLEMESH)
+		{
+			PxTriangleMeshGeometry triMeshGeometry;
+			shape->getTriangleMeshGeometry(triMeshGeometry);
+
+			if (triMeshGeometry.isValid() && triMeshGeometry.triangleMesh->getTrianglesRemap() != nullptr)
+			{
+				output.unmappedTriangleIdx = triMeshGeometry.triangleMesh->getTrianglesRemap()[input.faceIndex];
+				return;
+			}
+		}
+
+		output.unmappedTriangleIdx = input.faceIndex;
+	}
+
+	void parseHit(const PxRaycastHit& input, PhysicsQueryHit& output, PxShape* shapeHint = nullptr)
 	{
 		output.point = fromPxVector(input.position);
 		output.normal = fromPxVector(input.normal);
 		output.distance = input.distance;
 		output.triangleIdx = input.faceIndex;
+		setUnmappedTriangleIndex(input, output, shapeHint);
 		output.uv = Vector2(input.u, input.v);
 
 		if(input.shape)
@@ -371,13 +395,14 @@ namespace bs
 		}
 	}
 
-	void parseHit(const PxSweepHit& input, PhysicsQueryHit& output)
+	void parseHit(const PxSweepHit& input, PhysicsQueryHit& output, PxShape* shapeHint = nullptr)
 	{
 		output.point = fromPxVector(input.position);
 		output.normal = fromPxVector(input.normal);
 		output.uv = Vector2::ZERO;
 		output.distance = input.distance;
 		output.triangleIdx = input.faceIndex;
+		setUnmappedTriangleIndex(input, output, shapeHint);
 		output.colliderRaw = (Collider*)input.shape->userData;
 
 		if (output.colliderRaw != nullptr)
@@ -721,7 +746,7 @@ namespace bs
 			maxDist, hitFlags, maxHits, &hitInfo, anyHit);
 
 		if(hitCount > 0)
-			parseHit(hitInfo, hit);
+			parseHit(hitInfo, hit, shape); // We have to provide a hint for the tested shape, as it is not contained in single-geometry raycast hit results
 
 		return hitCount > 0;
 	}

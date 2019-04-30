@@ -39,6 +39,7 @@ namespace bs
 		output.uv = value.uv;
 		output.distance = value.distance;
 		output.triangleIdx = value.triangleIdx;
+		output.unmappedTriangleIdx = value.unmappedTriangleIdx;
 		GameObjectHandle<CCollider> tmpcollider;
 		ScriptCColliderBase* scriptcollider;
 		scriptcollider = (ScriptCColliderBase*)ScriptCCollider::toNative(value.collider);
@@ -57,6 +58,7 @@ namespace bs
 		output.uv = value.uv;
 		output.distance = value.distance;
 		output.triangleIdx = value.triangleIdx;
+		output.unmappedTriangleIdx = value.unmappedTriangleIdx;
 		ScriptComponentBase* scriptcollider = nullptr;
 		if(value.collider)
 			scriptcollider = ScriptGameObjectManager::instance().getBuiltinScriptComponent(static_object_cast<Component>(value.collider));

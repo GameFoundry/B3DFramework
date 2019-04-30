@@ -17,6 +17,7 @@ namespace bs
 		Vector2 uv;
 		float distance;
 		uint32_t triangleIdx;
+		uint32_t unmappedTriangleIdx;
 		MonoObject* collider;
 	};
 
