@@ -32,7 +32,7 @@ namespace bs
 		HAudioClip getClip() const { return mAudioClip; }
 
 		/** @copydoc AudioSource::setVolume */
-		BS_SCRIPT_EXPORT(n:Volume,pr:setter)
+		BS_SCRIPT_EXPORT(n:Volume,pr:setter,range:[0,1],slider)
 		void setVolume(float volume);
 
 		/** @copydoc AudioSource::getVolume */
@@ -80,11 +80,11 @@ namespace bs
 		float getAttenuation() const { return mAttenuation; }
 
 		/** @copydoc AudioSource::setTime */
-		BS_SCRIPT_EXPORT(n:Time,pr:setter)
+		BS_SCRIPT_EXPORT(n:Time,pr:setter,hide)
 		void setTime(float time);
 
 		/** @copydoc AudioSource::getTime */
-		BS_SCRIPT_EXPORT(n:Time,pr:getter)
+		BS_SCRIPT_EXPORT(n:Time,pr:getter,hide)
 		float getTime() const;
 
 		/** Sets whether playback should start as soon as the component is enabled. */

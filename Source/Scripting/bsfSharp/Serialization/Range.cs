@@ -11,7 +11,7 @@ namespace bs
     /// <summary>
     /// Makes an integer or a floating point field be displayed as a slider with a specified range in the inspector.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public sealed class Range : Attribute
     {
         /// <summary>
