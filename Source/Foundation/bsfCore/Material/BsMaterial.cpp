@@ -983,6 +983,8 @@ namespace bs
 	HMaterial Material::create()
 	{
 		const SPtr<Material> materialPtr = createEmpty();
+		materialPtr->initialize();
+
 		return static_resource_cast<Material>(gResources()._createResourceHandle(materialPtr));
 	}
 
