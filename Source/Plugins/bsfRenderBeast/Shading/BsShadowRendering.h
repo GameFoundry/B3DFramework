@@ -51,7 +51,7 @@ namespace bs { namespace ct
 		}
 
 	public:
-		ShadowDepthNormalMat();
+		ShadowDepthNormalMat() = default;
 
 		/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
 		void bind(const SPtr<GpuParamBlockBuffer>& shadowParams);

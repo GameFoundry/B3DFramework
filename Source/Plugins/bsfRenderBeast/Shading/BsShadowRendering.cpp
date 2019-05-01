@@ -17,9 +17,6 @@ namespace bs { namespace ct
 {
 	ShadowParamsDef gShadowParamsDef;
 
-	ShadowDepthNormalMat::ShadowDepthNormalMat()
-	{ }
-
 	void ShadowDepthNormalMat::bind(const SPtr<GpuParamBlockBuffer>& shadowParams)
 	{
 		mParams->setParamBlockBuffer("ShadowParams", shadowParams);

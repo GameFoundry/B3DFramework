@@ -19,7 +19,6 @@ namespace bs { namespace ct
 	LightGridParamDef gLightGridParamDefDef;
 
 	LightGridLLCreationMat::LightGridLLCreationMat()
-		:mBufferNumCells(0)
 	{
 		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gLights", mLightBufferParam);
 		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gLightsCounter", mLightsCounterParam);

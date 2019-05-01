@@ -98,7 +98,7 @@ namespace bs { namespace ct
 		SPtr<GpuBuffer> mProbesLLHeads;
 		SPtr<GpuBuffer> mProbesLL;
 
-		UINT32 mBufferNumCells;
+		UINT32 mBufferNumCells = 0;
 		Vector3I mGridSize;
 	};
 

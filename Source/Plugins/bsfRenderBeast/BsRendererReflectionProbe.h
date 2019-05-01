@@ -38,7 +38,7 @@ namespace bs { namespace ct
 	class VisibleReflProbeData
 	{
 	public:
-		VisibleReflProbeData();
+		VisibleReflProbeData() = default;
 
 		/** 
 		 * Updates the internal buffers with a new set of refl. probes. Before calling make sure that probe visibility has
@@ -58,7 +58,7 @@ namespace bs { namespace ct
 	private:
 		Vector<ReflProbeData> mReflProbeData;
 		SPtr<GpuBuffer> mProbeBuffer;
-		UINT32 mNumProbes;
+		UINT32 mNumProbes = 0;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(ReflProbeParamsParamDef)

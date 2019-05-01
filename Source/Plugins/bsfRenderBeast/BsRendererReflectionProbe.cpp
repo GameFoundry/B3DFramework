@@ -14,10 +14,6 @@ namespace bs { namespace ct
 	
 	ReflProbeParamsParamDef gReflProbeParamsParamDef;
 
-	VisibleReflProbeData::VisibleReflProbeData()
-		:mNumProbes(0)
-	{ }
-
 	void VisibleReflProbeData::update(const SceneInfo& sceneInfo, const RendererViewGroup& viewGroup)
 	{
 		mReflProbeData.clear();
