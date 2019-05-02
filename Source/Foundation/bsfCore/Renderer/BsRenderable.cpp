@@ -98,6 +98,15 @@ namespace bs
 		setMaterial(0, material);
 	}
 
+	template <bool Core>
+	typename TRenderable<Core>::MaterialType TRenderable<Core>::getMaterial(UINT32 idx) const
+	{
+		if(idx >= (UINT32)mMaterials.size())
+			return nullptr;
+
+		return mMaterials[idx];
+	}
+
 	template<bool Core>
 	void TRenderable<Core>::setLayer(UINT64 layer)
 	{

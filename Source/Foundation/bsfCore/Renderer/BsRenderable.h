@@ -108,7 +108,7 @@ namespace bs
 		MeshType getMesh() const { return mMesh; }
 
 		/**	Returns the material used for rendering a sub-mesh with the specified index. */
-		MaterialType getMaterial(UINT32 idx) const { return mMaterials[idx]; }
+		MaterialType getMaterial(UINT32 idx) const;
 
 		/**	Returns the transform matrix that is applied to the object when its being rendered. */
 		Matrix4 getMatrix() const { return mTfrmMatrix; }
