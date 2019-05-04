@@ -12,7 +12,7 @@
 namespace bs
 {
 	ReflectionProbeBase::ReflectionProbeBase(ReflectionProbeType type, float radius, const Vector3& extents)
-		: mType(type), mRadius(radius), mExtents(extents), mTransitionDistance(0.1f), mBounds(Vector3::ZERO, 1.0f)
+		: mType(type), mRadius(radius), mExtents(extents)
 	{ }
 
 	float ReflectionProbeBase::getRadius() const
@@ -163,7 +163,7 @@ namespace bs
 
 	SPtr<ReflectionProbe> ReflectionProbe::createBox(const Vector3& extents)
 	{
-		ReflectionProbe* probe = new (bs_alloc<ReflectionProbe>()) ReflectionProbe(ReflectionProbeType::Box, 0.0f, extents);
+		ReflectionProbe* probe = new (bs_alloc<ReflectionProbe>()) ReflectionProbe(ReflectionProbeType::Box, 1.0f, extents);
 		SPtr<ReflectionProbe> probePtr = bs_core_ptr<ReflectionProbe>(probe);
 		probePtr->_setThisPtr(probePtr);
 		probePtr->initialize();
