@@ -32,6 +32,8 @@ namespace bs
 		/// horizontal axis. Vertical FOV is calculated from the horizontal FOV and the aspect ratio.
 		/// </summary>
 		[ShowInInspector]
+		[Range(1f, 360f, true)]
+		[Order(-1)]
 		[NativeWrapper]
 		public Radian FieldOfView
 		{
@@ -109,6 +111,7 @@ namespace bs
 		/// 2D plane.
 		/// </summary>
 		[ShowInInspector]
+		[Order(-2)]
 		[NativeWrapper]
 		public ProjectionType ProjectionType
 		{
@@ -121,6 +124,7 @@ namespace bs
 		/// calculated from the aspect ratio. Value is specified in world units.
 		/// </summary>
 		[ShowInInspector]
+		[Order(-1)]
 		[NativeWrapper]
 		public float OrthoHeight
 		{
@@ -132,7 +136,6 @@ namespace bs
 		/// Determines the orthographic window width, for use with orthographic rendering only. The height of the window will be 
 		/// calculated from the aspect ratio. Value is specified in world units.
 		/// </summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public float OrthoWidth
 		{
@@ -154,6 +157,7 @@ namespace bs
 
 		/// <summary>Determines layer bitfield that is used when determining which object should the camera render.</summary>
 		[ShowInInspector]
+		[LayerMask]
 		[NativeWrapper]
 		public ulong Layers
 		{
@@ -177,6 +181,7 @@ namespace bs
 		/// will be enabled, and what properties will those effects use.
 		/// </summary>
 		[ShowInInspector]
+		[ApplyOnDirty]
 		[NativeWrapper]
 		public RenderSettings RenderSettings
 		{

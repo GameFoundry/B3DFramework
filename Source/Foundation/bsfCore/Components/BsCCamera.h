@@ -28,11 +28,11 @@ namespace bs
 		SPtr<Viewport> getViewport() const { return mInternal->getViewport(); }
 
 		/** @copydoc Camera::setHorzFOV */
-		BS_SCRIPT_EXPORT(n:FieldOfView,pr:setter)
+		BS_SCRIPT_EXPORT(n:FieldOfView,pr:setter,range:[1,360],slider,order:-1)
 		virtual void setHorzFOV(const Radian& fovy) { mInternal->setHorzFOV(fovy); }
 
 		/** @copydoc Camera::getHorzFOV */
-		BS_SCRIPT_EXPORT(n:FieldOfView,pr:getter)
+		BS_SCRIPT_EXPORT(n:FieldOfView,pr:getter,range:[1,360],slider,order:-1)
 		virtual const Radian& getHorzFOV() const { return mInternal->getHorzFOV(); }
 
 		/** @copydoc Camera::setNearClipDistance */
@@ -113,30 +113,30 @@ namespace bs
 		const AABox& getBoundingBox() const { return mInternal->getBoundingBox(); }
 
 		/** @copydoc Camera::setProjectionType */
-		BS_SCRIPT_EXPORT(n:ProjectionType,pr:setter)
+		BS_SCRIPT_EXPORT(n:ProjectionType,pr:setter,order:-2)
 		virtual void setProjectionType(ProjectionType pt) { mInternal->setProjectionType(pt); }
 
 		/** @copydoc Camera::getProjectionType */
-		BS_SCRIPT_EXPORT(n:ProjectionType,pr:getter)
+		BS_SCRIPT_EXPORT(n:ProjectionType,pr:getter,order:-2)
 		virtual ProjectionType getProjectionType() const { return mInternal->getProjectionType(); }
 
 		/** @copydoc Camera::setOrthoWindow */
 		virtual void setOrthoWindow(float w, float h) { mInternal->setOrthoWindow(w, h); }
 
 		/** @copydoc Camera::setOrthoWindowHeight */
-		BS_SCRIPT_EXPORT(n:OrthoHeight,pr:setter)
+		BS_SCRIPT_EXPORT(n:OrthoHeight,pr:setter,order:-1)
 		virtual void setOrthoWindowHeight(float h) { mInternal->setOrthoWindowHeight(h); }
 
 		/** @copydoc Camera::getOrthoWindowHeight */
-		BS_SCRIPT_EXPORT(n:OrthoHeight,pr:getter)
+		BS_SCRIPT_EXPORT(n:OrthoHeight,pr:getter,order:-1)
 		virtual float getOrthoWindowHeight() const { return mInternal->getOrthoWindowHeight(); }
 
 		/** @copydoc Camera::setOrthoWindowWidth */
-		BS_SCRIPT_EXPORT(n:OrthoWidth,pr:setter)
+		BS_SCRIPT_EXPORT(n:OrthoWidth,pr:setter,hide)
 		virtual void setOrthoWindowWidth(float w) { mInternal->setOrthoWindowWidth(w); }
 
 		/** @copydoc Camera::getOrthoWindowWidth */
-		BS_SCRIPT_EXPORT(n:OrthoWidth,pr:getter)
+		BS_SCRIPT_EXPORT(n:OrthoWidth,pr:getter,hide)
 		virtual float getOrthoWindowWidth() const { return mInternal->getOrthoWindowWidth(); }
 
 		/** @copydoc Camera::setPriority */
@@ -148,11 +148,11 @@ namespace bs
 		INT32 getPriority() const { return mInternal->getPriority(); }
 
 		/** @copydoc Camera::setLayers */
-		BS_SCRIPT_EXPORT(n:Layers,pr:setter)
+		BS_SCRIPT_EXPORT(n:Layers,pr:setter,layerMask)
 		void setLayers(UINT64 layers) { mInternal->setLayers(layers); }
 
 		/** @copydoc Camera::getLayers */
-		BS_SCRIPT_EXPORT(n:Layers,pr:getter)
+		BS_SCRIPT_EXPORT(n:Layers,pr:getter,layerMask)
 		UINT64 getLayers() const { return mInternal->getLayers(); }
 
 		/** @copydoc Camera::setMSAACount */
@@ -164,11 +164,11 @@ namespace bs
 		UINT32 getMSAACount() const { return mInternal->getMSAACount(); }
 
 		/** @copydoc Camera::setRenderSettings() */
-		BS_SCRIPT_EXPORT(n:RenderSettings,pr:setter)
+		BS_SCRIPT_EXPORT(n:RenderSettings,pr:setter,applyOnDirty)
 		void setRenderSettings(const SPtr<RenderSettings>& settings) { mInternal->setRenderSettings(settings); }
 
 		/** @copydoc Camera::getRenderSettings() */
-		BS_SCRIPT_EXPORT(n:RenderSettings,pr:getter)
+		BS_SCRIPT_EXPORT(n:RenderSettings,pr:getter,applyOnDirty)
 		const SPtr<RenderSettings>& getRenderSettings() const { return mInternal->getRenderSettings(); }
 
 		/** @copydoc Camera::worldToScreenPoint */
