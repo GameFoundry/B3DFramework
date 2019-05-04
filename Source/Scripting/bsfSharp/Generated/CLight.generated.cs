@@ -26,33 +26,6 @@ namespace bs
 			set { Internal_setType(mCachedPtr, value); }
 		}
 
-		/// <summary>Determines does this light cast shadows when rendered.</summary>
-		[ShowInInspector]
-		[NativeWrapper]
-		public bool CastsShadow
-		{
-			get { return Internal_getCastsShadow(mCachedPtr); }
-			set { Internal_setCastsShadow(mCachedPtr, value); }
-		}
-
-		/// <summary>
-		/// Shadow bias determines offset at which the shadows are rendered from the shadow caster. Bias value of 0 means the 
-		/// shadow will be renderered exactly at the casters position. If your geometry has thin areas this will produce an 
-		/// artifact called shadow acne, in which case you can increase the shadow bias value to eliminate it.  Note that 
-		/// increasing the shadow bias will on the other hand make the shadow be offset from the caster and may make the caster 
-		/// appear as if floating (Peter Panning artifact). Neither is perfect, so it is preferable to ensure all your geometry 
-		/// has thickness and keep the bias at zero, or even at negative values.
-		///
-		/// Default value is 0.5. Should be in rough range [-1, 1].
-		/// </summary>
-		[ShowInInspector]
-		[NativeWrapper]
-		public float ShadowBias
-		{
-			get { return Internal_getShadowBias(mCachedPtr); }
-			set { Internal_setShadowBias(mCachedPtr, value); }
-		}
-
 		/// <summary>Determines the color emitted by the light.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
@@ -65,6 +38,30 @@ namespace bs
 				return temp;
 			}
 			set { Internal_setColor(mCachedPtr, ref value); }
+		}
+
+		/// <summary>
+		/// Determines the power of the light source. This will be luminous flux for radial &amp; spot lights,  luminance for 
+		/// directional lights with no area, and illuminance for directional lights with area (non-zero source radius).
+		/// </summary>
+		[ShowInInspector]
+		[NativeWrapper]
+		public float Intensity
+		{
+			get { return Internal_getIntensity(mCachedPtr); }
+			set { Internal_setIntensity(mCachedPtr, value); }
+		}
+
+		/// <summary>
+		/// If enabled the attenuation radius will automatically be controlled in order to provide reasonable light radius,  
+		/// depending on its intensity.
+		/// </summary>
+		[ShowInInspector]
+		[NativeWrapper]
+		public bool UseAutoAttenuation
+		{
+			get { return Internal_getUseAutoAttenuation(mCachedPtr); }
+			set { Internal_setUseAutoAttenuation(mCachedPtr, value); }
 		}
 
 		/// <summary>
@@ -97,20 +94,9 @@ namespace bs
 			set { Internal_setSourceRadius(mCachedPtr, value); }
 		}
 
-		/// <summary>
-		/// Determines the power of the light source. This will be luminous flux for radial &amp; spot lights,  luminance for 
-		/// directional lights with no area, and illuminance for directional lights with area (non-zero source radius).
-		/// </summary>
-		[ShowInInspector]
-		[NativeWrapper]
-		public float Intensity
-		{
-			get { return Internal_getIntensity(mCachedPtr); }
-			set { Internal_setIntensity(mCachedPtr, value); }
-		}
-
 		/// <summary>Determines the total angle covered by a spot light.</summary>
 		[ShowInInspector]
+		[Range(1f, 180f, true)]
 		[NativeWrapper]
 		public Degree SpotAngle
 		{
@@ -128,6 +114,7 @@ namespace bs
 		/// starts quadratically falling off as the angle approaches the total spot angle.
 		/// </summary>
 		[ShowInInspector]
+		[Range(1f, 180f, true)]
 		[NativeWrapper]
 		public Degree SpotAngleFalloff
 		{
@@ -140,16 +127,32 @@ namespace bs
 			set { Internal_setSpotFalloffAngle(mCachedPtr, ref value); }
 		}
 
-		/// <summary>
-		/// If enabled the attenuation radius will automatically be controlled in order to provide reasonable light radius,  
-		/// depending on its intensity.
-		/// </summary>
+		/// <summary>Determines does this light cast shadows when rendered.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public bool UseAutoAttenuation
+		public bool CastsShadow
 		{
-			get { return Internal_getUseAutoAttenuation(mCachedPtr); }
-			set { Internal_setUseAutoAttenuation(mCachedPtr, value); }
+			get { return Internal_getCastsShadow(mCachedPtr); }
+			set { Internal_setCastsShadow(mCachedPtr, value); }
+		}
+
+		/// <summary>
+		/// Shadow bias determines offset at which the shadows are rendered from the shadow caster. Bias value of 0 means the 
+		/// shadow will be renderered exactly at the casters position. If your geometry has thin areas this will produce an 
+		/// artifact called shadow acne, in which case you can increase the shadow bias value to eliminate it.  Note that 
+		/// increasing the shadow bias will on the other hand make the shadow be offset from the caster and may make the caster 
+		/// appear as if floating (Peter Panning artifact). Neither is perfect, so it is preferable to ensure all your geometry 
+		/// has thickness and keep the bias at zero, or even at negative values.
+		///
+		/// Default value is 0.5. Should be in rough range [-1, 1].
+		/// </summary>
+		[ShowInInspector]
+		[Range(-1f, 1f, true)]
+		[NativeWrapper]
+		public float ShadowBias
+		{
+			get { return Internal_getShadowBias(mCachedPtr); }
+			set { Internal_setShadowBias(mCachedPtr, value); }
 		}
 
 		/// <summary>Returns world space bounds that completely encompass the light&apos;s area of influence.</summary>
@@ -169,17 +172,17 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern LightType Internal_getType(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setCastsShadow(IntPtr thisPtr, bool castsShadow);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_getCastsShadow(IntPtr thisPtr);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setShadowBias(IntPtr thisPtr, float bias);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern float Internal_getShadowBias(IntPtr thisPtr);
-		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setColor(IntPtr thisPtr, ref Color color);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_getColor(IntPtr thisPtr, out Color __output);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_setIntensity(IntPtr thisPtr, float intensity);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern float Internal_getIntensity(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_setUseAutoAttenuation(IntPtr thisPtr, bool enabled);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern bool Internal_getUseAutoAttenuation(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setAttenuationRadius(IntPtr thisPtr, float radius);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -189,10 +192,6 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern float Internal_getSourceRadius(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setIntensity(IntPtr thisPtr, float intensity);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern float Internal_getIntensity(IntPtr thisPtr);
-		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setSpotAngle(IntPtr thisPtr, ref Degree spotAngle);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_getSpotAngle(IntPtr thisPtr, out Degree __output);
@@ -201,9 +200,13 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_getSpotFalloffAngle(IntPtr thisPtr, out Degree __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setUseAutoAttenuation(IntPtr thisPtr, bool enabled);
+		private static extern void Internal_setCastsShadow(IntPtr thisPtr, bool castsShadow);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_getUseAutoAttenuation(IntPtr thisPtr);
+		private static extern bool Internal_getCastsShadow(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_setShadowBias(IntPtr thisPtr, float bias);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern float Internal_getShadowBias(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_getBounds(IntPtr thisPtr, out Sphere __output);
 	}

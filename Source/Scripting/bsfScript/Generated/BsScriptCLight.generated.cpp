@@ -18,24 +18,24 @@ namespace bs
 	{
 		metaData.scriptClass->addInternalCall("Internal_setType", (void*)&ScriptCLight::Internal_setType);
 		metaData.scriptClass->addInternalCall("Internal_getType", (void*)&ScriptCLight::Internal_getType);
-		metaData.scriptClass->addInternalCall("Internal_setCastsShadow", (void*)&ScriptCLight::Internal_setCastsShadow);
-		metaData.scriptClass->addInternalCall("Internal_getCastsShadow", (void*)&ScriptCLight::Internal_getCastsShadow);
-		metaData.scriptClass->addInternalCall("Internal_setShadowBias", (void*)&ScriptCLight::Internal_setShadowBias);
-		metaData.scriptClass->addInternalCall("Internal_getShadowBias", (void*)&ScriptCLight::Internal_getShadowBias);
 		metaData.scriptClass->addInternalCall("Internal_setColor", (void*)&ScriptCLight::Internal_setColor);
 		metaData.scriptClass->addInternalCall("Internal_getColor", (void*)&ScriptCLight::Internal_getColor);
+		metaData.scriptClass->addInternalCall("Internal_setIntensity", (void*)&ScriptCLight::Internal_setIntensity);
+		metaData.scriptClass->addInternalCall("Internal_getIntensity", (void*)&ScriptCLight::Internal_getIntensity);
+		metaData.scriptClass->addInternalCall("Internal_setUseAutoAttenuation", (void*)&ScriptCLight::Internal_setUseAutoAttenuation);
+		metaData.scriptClass->addInternalCall("Internal_getUseAutoAttenuation", (void*)&ScriptCLight::Internal_getUseAutoAttenuation);
 		metaData.scriptClass->addInternalCall("Internal_setAttenuationRadius", (void*)&ScriptCLight::Internal_setAttenuationRadius);
 		metaData.scriptClass->addInternalCall("Internal_getAttenuationRadius", (void*)&ScriptCLight::Internal_getAttenuationRadius);
 		metaData.scriptClass->addInternalCall("Internal_setSourceRadius", (void*)&ScriptCLight::Internal_setSourceRadius);
 		metaData.scriptClass->addInternalCall("Internal_getSourceRadius", (void*)&ScriptCLight::Internal_getSourceRadius);
-		metaData.scriptClass->addInternalCall("Internal_setIntensity", (void*)&ScriptCLight::Internal_setIntensity);
-		metaData.scriptClass->addInternalCall("Internal_getIntensity", (void*)&ScriptCLight::Internal_getIntensity);
 		metaData.scriptClass->addInternalCall("Internal_setSpotAngle", (void*)&ScriptCLight::Internal_setSpotAngle);
 		metaData.scriptClass->addInternalCall("Internal_getSpotAngle", (void*)&ScriptCLight::Internal_getSpotAngle);
 		metaData.scriptClass->addInternalCall("Internal_setSpotFalloffAngle", (void*)&ScriptCLight::Internal_setSpotFalloffAngle);
 		metaData.scriptClass->addInternalCall("Internal_getSpotFalloffAngle", (void*)&ScriptCLight::Internal_getSpotFalloffAngle);
-		metaData.scriptClass->addInternalCall("Internal_setUseAutoAttenuation", (void*)&ScriptCLight::Internal_setUseAutoAttenuation);
-		metaData.scriptClass->addInternalCall("Internal_getUseAutoAttenuation", (void*)&ScriptCLight::Internal_getUseAutoAttenuation);
+		metaData.scriptClass->addInternalCall("Internal_setCastsShadow", (void*)&ScriptCLight::Internal_setCastsShadow);
+		metaData.scriptClass->addInternalCall("Internal_getCastsShadow", (void*)&ScriptCLight::Internal_getCastsShadow);
+		metaData.scriptClass->addInternalCall("Internal_setShadowBias", (void*)&ScriptCLight::Internal_setShadowBias);
+		metaData.scriptClass->addInternalCall("Internal_getShadowBias", (void*)&ScriptCLight::Internal_getShadowBias);
 		metaData.scriptClass->addInternalCall("Internal_getBounds", (void*)&ScriptCLight::Internal_getBounds);
 
 	}
@@ -56,38 +56,6 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCLight::Internal_setCastsShadow(ScriptCLight* thisPtr, bool castsShadow)
-	{
-		thisPtr->getHandle()->setCastsShadow(castsShadow);
-	}
-
-	bool ScriptCLight::Internal_getCastsShadow(ScriptCLight* thisPtr)
-	{
-		bool tmp__output;
-		tmp__output = thisPtr->getHandle()->getCastsShadow();
-
-		bool __output;
-		__output = tmp__output;
-
-		return __output;
-	}
-
-	void ScriptCLight::Internal_setShadowBias(ScriptCLight* thisPtr, float bias)
-	{
-		thisPtr->getHandle()->setShadowBias(bias);
-	}
-
-	float ScriptCLight::Internal_getShadowBias(ScriptCLight* thisPtr)
-	{
-		float tmp__output;
-		tmp__output = thisPtr->getHandle()->getShadowBias();
-
-		float __output;
-		__output = tmp__output;
-
-		return __output;
-	}
-
 	void ScriptCLight::Internal_setColor(ScriptCLight* thisPtr, Color* color)
 	{
 		thisPtr->getHandle()->setColor(*color);
@@ -99,6 +67,38 @@ namespace bs
 		tmp__output = thisPtr->getHandle()->getColor();
 
 		*__output = tmp__output;
+	}
+
+	void ScriptCLight::Internal_setIntensity(ScriptCLight* thisPtr, float intensity)
+	{
+		thisPtr->getHandle()->setIntensity(intensity);
+	}
+
+	float ScriptCLight::Internal_getIntensity(ScriptCLight* thisPtr)
+	{
+		float tmp__output;
+		tmp__output = thisPtr->getHandle()->getIntensity();
+
+		float __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	void ScriptCLight::Internal_setUseAutoAttenuation(ScriptCLight* thisPtr, bool enabled)
+	{
+		thisPtr->getHandle()->setUseAutoAttenuation(enabled);
+	}
+
+	bool ScriptCLight::Internal_getUseAutoAttenuation(ScriptCLight* thisPtr)
+	{
+		bool tmp__output;
+		tmp__output = thisPtr->getHandle()->getUseAutoAttenuation();
+
+		bool __output;
+		__output = tmp__output;
+
+		return __output;
 	}
 
 	void ScriptCLight::Internal_setAttenuationRadius(ScriptCLight* thisPtr, float radius)
@@ -133,22 +133,6 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCLight::Internal_setIntensity(ScriptCLight* thisPtr, float intensity)
-	{
-		thisPtr->getHandle()->setIntensity(intensity);
-	}
-
-	float ScriptCLight::Internal_getIntensity(ScriptCLight* thisPtr)
-	{
-		float tmp__output;
-		tmp__output = thisPtr->getHandle()->getIntensity();
-
-		float __output;
-		__output = tmp__output;
-
-		return __output;
-	}
-
 	void ScriptCLight::Internal_setSpotAngle(ScriptCLight* thisPtr, Degree* spotAngle)
 	{
 		thisPtr->getHandle()->setSpotAngle(*spotAngle);
@@ -175,17 +159,33 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptCLight::Internal_setUseAutoAttenuation(ScriptCLight* thisPtr, bool enabled)
+	void ScriptCLight::Internal_setCastsShadow(ScriptCLight* thisPtr, bool castsShadow)
 	{
-		thisPtr->getHandle()->setUseAutoAttenuation(enabled);
+		thisPtr->getHandle()->setCastsShadow(castsShadow);
 	}
 
-	bool ScriptCLight::Internal_getUseAutoAttenuation(ScriptCLight* thisPtr)
+	bool ScriptCLight::Internal_getCastsShadow(ScriptCLight* thisPtr)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->getHandle()->getUseAutoAttenuation();
+		tmp__output = thisPtr->getHandle()->getCastsShadow();
 
 		bool __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	void ScriptCLight::Internal_setShadowBias(ScriptCLight* thisPtr, float bias)
+	{
+		thisPtr->getHandle()->setShadowBias(bias);
+	}
+
+	float ScriptCLight::Internal_getShadowBias(ScriptCLight* thisPtr)
+	{
+		float tmp__output;
+		tmp__output = thisPtr->getHandle()->getShadowBias();
+
+		float __output;
 		__output = tmp__output;
 
 		return __output;

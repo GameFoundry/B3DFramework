@@ -3783,15 +3783,14 @@ Angular degrees of freedom are partitioned as twist (around X axis) and swing (a
 		<property name="Type" type="LightType" getter="getType" setter="setType" static="false">
 			<doc>Determines the type of the light.</doc>
 		</property>
-		<property name="CastsShadow" type="bool" getter="getCastsShadow" setter="setCastsShadow" static="false">
-			<doc>Determines does this light cast shadows when rendered.</doc>
-		</property>
-		<property name="ShadowBias" type="float" getter="getShadowBias" setter="setShadowBias" static="false">
-			<doc>Shadow bias determines offset at which the shadows are rendered from the shadow caster. Bias value of 0 means the shadow will be renderered exactly at the casters position. If your geometry has thin areas this will produce an artifact called shadow acne, in which case you can increase the shadow bias value to eliminate it.  Note that increasing the shadow bias will on the other hand make the shadow be offset from the caster and may make the caster appear as if floating (Peter Panning artifact). Neither is perfect, so it is preferable to ensure all your geometry has thickness and keep the bias at zero, or even at negative values.
-Default value is 0.5. Should be in rough range [-1, 1].</doc>
-		</property>
 		<property name="Color" type="Color" getter="getColor" setter="setColor" static="false">
 			<doc>Determines the color emitted by the light.</doc>
+		</property>
+		<property name="Intensity" type="float" getter="getIntensity" setter="setIntensity" static="false">
+			<doc>Determines the power of the light source. This will be luminous flux for radial &amp; spot lights,  luminance for directional lights with no area, and illuminance for directional lights with area (non-zero source radius).</doc>
+		</property>
+		<property name="UseAutoAttenuation" type="bool" getter="getUseAutoAttenuation" setter="setUseAutoAttenuation" static="false">
+			<doc>If enabled the attenuation radius will automatically be controlled in order to provide reasonable light radius,  depending on its intensity.</doc>
 		</property>
 		<property name="AttenuationRadius" type="float" getter="getAttenuationRadius" setter="setAttenuationRadius" static="false">
 			<doc>Range at which the light contribution fades out to zero. Use setUseAutoAttenuation to provide a radius automatically dependant on light intensity. The radius will cut-off light contribution and therefore manually set very small radius can end up being very physically incorrect.</doc>
@@ -3799,17 +3798,18 @@ Default value is 0.5. Should be in rough range [-1, 1].</doc>
 		<property name="SourceRadius" type="float" getter="getSourceRadius" setter="setSourceRadius" static="false">
 			<doc>Radius of the light source. If non-zero then this light represents an area light, otherwise it is a punctual light. Area lights have different attenuation then punctual lights, and their appearance in specular reflections is realistic. Shape of the area light depends on light type: - For directional light the shape is a disc projected on the hemisphere on the sky. This parameter represents angular radius (in degrees) of the disk and should be very small (think of how much space the Sun takes on the sky - roughly 0.25 degree radius). - For radial light the shape is a sphere and the source radius is the radius of the sphere. - For spot lights the shape is a disc oriented in the direction of the spot light and the source radius is the radius of the disc.</doc>
 		</property>
-		<property name="Intensity" type="float" getter="getIntensity" setter="setIntensity" static="false">
-			<doc>Determines the power of the light source. This will be luminous flux for radial &amp; spot lights,  luminance for directional lights with no area, and illuminance for directional lights with area (non-zero source radius).</doc>
-		</property>
 		<property name="SpotAngle" type="Degree" getter="getSpotAngle" setter="setSpotAngle" static="false">
 			<doc>Determines the total angle covered by a spot light.</doc>
 		</property>
 		<property name="SpotAngleFalloff" type="Degree" getter="getSpotFalloffAngle" setter="setSpotFalloffAngle" static="false">
 			<doc>Determines the falloff angle covered by a spot light. Falloff angle determines at what point does light intensity  starts quadratically falling off as the angle approaches the total spot angle.</doc>
 		</property>
-		<property name="UseAutoAttenuation" type="bool" getter="getUseAutoAttenuation" setter="setUseAutoAttenuation" static="false">
-			<doc>If enabled the attenuation radius will automatically be controlled in order to provide reasonable light radius,  depending on its intensity.</doc>
+		<property name="CastsShadow" type="bool" getter="getCastsShadow" setter="setCastsShadow" static="false">
+			<doc>Determines does this light cast shadows when rendered.</doc>
+		</property>
+		<property name="ShadowBias" type="float" getter="getShadowBias" setter="setShadowBias" static="false">
+			<doc>Shadow bias determines offset at which the shadows are rendered from the shadow caster. Bias value of 0 means the shadow will be renderered exactly at the casters position. If your geometry has thin areas this will produce an artifact called shadow acne, in which case you can increase the shadow bias value to eliminate it.  Note that increasing the shadow bias will on the other hand make the shadow be offset from the caster and may make the caster appear as if floating (Peter Panning artifact). Neither is perfect, so it is preferable to ensure all your geometry has thickness and keep the bias at zero, or even at negative values.
+Default value is 0.5. Should be in rough range [-1, 1].</doc>
 		</property>
 		<property name="Bounds" type="Sphere" getter="getBounds" setter="" static="false">
 			<doc>Returns world space bounds that completely encompass the light&apos;s area of influence.</doc>
