@@ -193,7 +193,7 @@ namespace bs
 	 * Smart pointer that retains shared ownership of an project through a pointer. Reference to the object must be unique.
 	 * The object is destroyed automatically when the pointer to the object is destroyed.
 	 */
-	template <typename T, typename Alloc = GenAlloc, typename Delete = decltype(&bs_delete<T, Alloc>)>
+	template <typename T, typename Alloc = GenAlloc, typename Delete = Deleter<T, Alloc>>
 	using UPtr = std::unique_ptr<T, Delete>;
 
 	/** Create a new shared pointer using a custom allocator category. */
@@ -207,8 +207,8 @@ namespace bs
 	 * Create a new shared pointer from a previously constructed object.
 	 * Pointer specific data will be allocated using the provided allocator category.
 	 */
-	template<typename Type, typename MainAlloc = GenAlloc, typename PtrDataAlloc = GenAlloc, typename Deleter = decltype(&bs_delete<Type, MainAlloc>)>
-	SPtr<Type> bs_shared_ptr(Type* data, Deleter del = &bs_delete<Type, MainAlloc>)
+	template<typename Type, typename MainAlloc = GenAlloc, typename PtrDataAlloc = GenAlloc, typename Delete = Deleter<Type, MainAlloc>>
+	SPtr<Type> bs_shared_ptr(Type* data, Delete del = Delete())
 	{
 		return SPtr<Type>(data, std::move(del), StdAlloc<Type, PtrDataAlloc>());
 	}
@@ -217,19 +217,19 @@ namespace bs
 	 * Create a new unique pointer from a previously constructed object.
 	 * Pointer specific data will be allocated using the provided allocator category.
 	 */
-	template<typename Type, typename Alloc = GenAlloc, typename Deleter = decltype(&bs_delete<Type, Alloc>)>
-	UPtr<Type, Alloc, Deleter> bs_unique_ptr(Type* data, Deleter del = &bs_delete<Type, Alloc>)
+	template<typename Type, typename Alloc = GenAlloc, typename Delete = Deleter<Type, Alloc>>
+	UPtr<Type, Alloc, Delete> bs_unique_ptr(Type* data, Delete del = Delete())
 	{
-		return std::unique_ptr<Type, Deleter>(data, std::move(del));
+		return std::unique_ptr<Type, Delete>(data, std::move(del));
 	}
 
 	/** Create a new unique pointer using a custom allocator category. */
-	template<typename Type, typename Alloc = GenAlloc, typename Deleter = decltype(&bs_delete<Type, Alloc>), typename... Args>
-	UPtr<Type, Alloc, Deleter> bs_unique_ptr_new(Args &&... args)
+	template<typename Type, typename Alloc = GenAlloc, typename Delete = Deleter<Type, Alloc>, typename... Args>
+	UPtr<Type, Alloc, Delete> bs_unique_ptr_new(Args &&... args)
 	{
 		Type* rawPtr = bs_new<Type, Alloc>(std::forward<Args>(args)...);
 
-		return bs_unique_ptr<Type, Alloc, Deleter>(rawPtr);
+		return bs_unique_ptr<Type, Alloc, Delete>(rawPtr);
 	}
 
 	/**

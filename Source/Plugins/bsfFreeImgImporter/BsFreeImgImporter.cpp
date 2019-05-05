@@ -219,7 +219,7 @@ namespace bs
 
 	SPtr<PixelData> FreeImgImporter::importRawImage(const Path& filePath)
 	{
-		UPtr<MemoryDataStream> memStream(nullptr, nullptr);
+		UPtr<MemoryDataStream> memStream;
 		FREE_IMAGE_FORMAT imageFormat;
 		{
 			Lock lock = FileScheduler::getLock(filePath);

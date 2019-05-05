@@ -222,21 +222,21 @@ namespace bs
 
 	/** Allocates the specified number of bytes. */
 	template<class Alloc>
-	inline void* bs_alloc(size_t count)
+	void* bs_alloc(size_t count)
 	{
 		return MemoryAllocator<Alloc>::allocate(count);
 	}
 
 	/** Allocates enough bytes to hold the specified type, but doesn't construct it. */
 	template<class T, class Alloc>
-	inline T* bs_alloc()
+	T* bs_alloc()
 	{
 		return (T*)MemoryAllocator<Alloc>::allocate(sizeof(T));
 	}
 
 	/** Creates and constructs an array of @p count elements. */
 	template<class T, class Alloc>
-	inline T* bs_newN(size_t count)
+	T* bs_newN(size_t count)
 	{
 		T* ptr = (T*)MemoryAllocator<Alloc>::allocate(sizeof(T) * count);
 
@@ -255,23 +255,39 @@ namespace bs
 
 	/** Frees all the bytes allocated at the specified location. */
 	template<class Alloc>
-	inline void bs_free(void* ptr)
+	void bs_free(void* ptr)
 	{
 		MemoryAllocator<Alloc>::free(ptr);
 	}
 
 	/** Destructs and frees the specified object. */
 	template<class T, class Alloc = GenAlloc>
-	inline void bs_delete(T* ptr)
+	void bs_delete(T* ptr)
 	{
 		(ptr)->~T();
 
 		MemoryAllocator<Alloc>::free(ptr);
 	}
 
+	/** Callable struct that acts as a proxy for bs_delete */
+	template<class T, class Alloc = GenAlloc>
+	struct Deleter
+	{
+		constexpr Deleter() noexcept = default;
+
+		/** Constructor enabling deleter conversion and therefore polymorphism with smart points (if they use the same allocator). */
+		template <class T2, std::enable_if_t<std::is_convertible<T2*, T*>::value, int> = 0>
+		constexpr Deleter(const Deleter<T2, Alloc>& other) noexcept { }
+
+		void operator()(T* ptr) const
+		{
+			bs_delete<T, Alloc>(ptr);
+		}
+	};
+
 	/** Destructs and frees the specified array of objects. */
 	template<class T, class Alloc = GenAlloc>
-	inline void bs_deleteN(T* ptr, size_t count)
+	void bs_deleteN(T* ptr, size_t count)
 	{
 		for(size_t i = 0; i < count; ++i)
 			ptr[i].~T();
@@ -291,7 +307,7 @@ namespace bs
 
 	/** Allocates enough bytes to hold the specified type, but doesn't construct it. */
 	template<class T>
-	inline T* bs_alloc()
+	T* bs_alloc()
 	{
 		return (T*)MemoryAllocator<GenAlloc>::allocate(sizeof(T));
 	}
@@ -314,14 +330,14 @@ namespace bs
 
 	/** Allocates enough bytes to hold an array of @p count elements the specified type, but doesn't construct them. */
 	template<class T>
-	inline T* bs_allocN(size_t count)
+	T* bs_allocN(size_t count)
 	{
 		return (T*)MemoryAllocator<GenAlloc>::allocate(count * sizeof(T));
 	}
 
 	/** Creates and constructs an array of @p count elements. */
 	template<class T>
-	inline T* bs_newN(size_t count)
+	T* bs_newN(size_t count)
 	{
 		T* ptr = (T*)MemoryAllocator<GenAlloc>::allocate(count * sizeof(T));
 

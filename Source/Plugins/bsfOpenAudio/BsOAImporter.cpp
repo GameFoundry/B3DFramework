@@ -50,13 +50,13 @@ namespace bs
 			String extension = filePath.getExtension();
 			StringUtil::toLowerCase(extension);
 
-			UPtr<AudioDecoder> reader(nullptr, nullptr);
+			UPtr<AudioDecoder> reader;
 			if (extension == u8".wav")
-				reader = bs_unique_ptr<AudioDecoder>(bs_new<WaveDecoder>());
+				reader = bs_unique_ptr_new<WaveDecoder>();
 			else if (extension == u8".flac")
-				reader = bs_unique_ptr<AudioDecoder>(bs_new<FLACDecoder>());
+				reader = bs_unique_ptr_new<FLACDecoder>();
 			else if (extension == u8".ogg")
-				reader = bs_unique_ptr<AudioDecoder>(bs_new<OggVorbisDecoder>());
+				reader = bs_unique_ptr_new<OggVorbisDecoder>();
 
 			if (reader == nullptr)
 				return nullptr;

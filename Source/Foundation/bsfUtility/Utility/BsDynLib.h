@@ -57,7 +57,7 @@ namespace bs
 
 		/** Constructs the dynamic library object and loads the library with the specified name. */
 		DynLib(String name);
-		~DynLib() = default;
+		~DynLib();
 
 		/** Loads the library. Does nothing if library is already loaded. */
 		void load();

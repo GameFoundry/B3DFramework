@@ -23,6 +23,11 @@ namespace bs
 		load();
 	}
 
+	DynLib::~DynLib()
+	{
+		unload();
+	}
+
 	void DynLib::load()
 	{
 		if (mHandle)
@@ -33,8 +38,7 @@ namespace bs
 		if (!mHandle)
 		{
 			BS_EXCEPT(InternalErrorException,
-				"Could not load dynamic library " + mName +
-				".  System Error: " + dynlibError());
+				"Could not load dynamic library " + mName + ".  System Error: " + dynlibError());
 		}
 	}
 
@@ -46,9 +50,10 @@ namespace bs
 		if (DYNLIB_UNLOAD(mHandle))
 		{
 			BS_EXCEPT(InternalErrorException,
-				"Could not unload dynamic library " + mName +
-				".  System Error: " + dynlibError());
+				"Could not unload dynamic library " + mName + ".  System Error: " + dynlibError());
 		}
+
+		mHandle = nullptr;
 	}
 
 	void* DynLib::getSymbol(const String& strName) const

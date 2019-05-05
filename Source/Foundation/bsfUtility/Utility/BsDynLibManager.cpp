@@ -5,16 +5,6 @@
 
 namespace bs
 {
-
-namespace
-{
-	static void dynlib_delete(DynLib* lib)
-	{
-		lib->unload();
-		bs_delete(lib);
-	}
-} // namespace ()
-
 	static bool operator<(const UPtr<DynLib>& lhs, const String& rhs)
 	{
 		return lhs->getName() < rhs;
@@ -53,7 +43,8 @@ namespace
 		else
 		{
 			DynLib* newLib = bs_new<DynLib>(std::move(filename));
-			mLoadedLibraries.emplace_hint(iterFind, newLib, &dynlib_delete);
+			mLoadedLibraries.emplace_hint(iterFind, newLib);
+
 			return newLib;
 		}
 	}
@@ -62,15 +53,9 @@ namespace
 	{
 		const auto& iterFind = mLoadedLibraries.find(lib->getName());
 		if(iterFind != mLoadedLibraries.end())
-		{
 			mLoadedLibraries.erase(iterFind);
-		}
 		else
-		{
-			// Somehow a DynLib not owned by the manager...?
-			// Well, we should clean it up anyway...
-			dynlib_delete(lib);
-		}
+			bs_delete(lib);
 	}
 
 	DynLibManager& gDynLibManager()
