@@ -62,7 +62,6 @@ namespace bs
 		/// <summary>
 		/// Determines a threshold of force and torque under which the object will be considered to be put to sleep.
 		/// </summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public float SleepThreshold
 		{
@@ -80,7 +79,6 @@ namespace bs
 		}
 
 		/// <summary>Determines the linear velocity of the body.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Vector3 Velocity
 		{
@@ -94,7 +92,6 @@ namespace bs
 		}
 
 		/// <summary>Determines the angular velocity of the body.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Vector3 AngularVelocity
 		{
@@ -134,7 +131,6 @@ namespace bs
 		/// Values of zero in the inertia tensor mean the object will be unable to rotate around a specific axis.  Only relevant 
 		/// if RigidbodyFlag::AutoTensors is turned off.
 		/// </summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Vector3 InertiaTensor
 		{
@@ -148,7 +144,6 @@ namespace bs
 		}
 
 		/// <summary>Determines the maximum angular velocity of the rigidbody. Velocity will be clamped to this value.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public float MaxAngularVelocity
 		{
@@ -159,7 +154,6 @@ namespace bs
 		/// <summary>
 		/// Determines the rigidbody&apos;s center of mass position. Only relevant if RigibodyFlag::AutoTensors is turned off.
 		/// </summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Vector3 CenterOfMassPosition
 		{
@@ -175,7 +169,6 @@ namespace bs
 		/// <summary>
 		/// Determines the rigidbody&apos;s center of mass rotation. Only relevant if RigibodyFlag::AutoTensors is turned off.
 		/// </summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public Quaternion CenterOfMassRotation
 		{
@@ -192,7 +185,6 @@ namespace bs
 		/// Determines the number of iterations to use when solving for position. Higher values can improve precision and  
 		/// numerical stability of the simulation.
 		/// </summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public int PositionSolverCount
 		{
@@ -204,7 +196,6 @@ namespace bs
 		/// Determines the number of iterations to use when solving for velocity. Higher values can improve precision and  
 		/// numerical stability of the simulation.
 		/// </summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public int VelocitySolverCount
 		{
@@ -222,7 +213,6 @@ namespace bs
 		}
 
 		/// <summary>Flags that control the behaviour of the rigidbody.</summary>
-		[ShowInInspector]
 		[NativeWrapper]
 		public RigidbodyFlag Flags
 		{

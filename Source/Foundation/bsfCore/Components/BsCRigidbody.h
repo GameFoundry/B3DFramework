@@ -64,7 +64,7 @@ namespace bs
 		void wakeUp();
 
 		/** @copydoc Rigidbody::setSleepThreshold */
-		BS_SCRIPT_EXPORT(n:SleepThreshold,pr:setter)
+		BS_SCRIPT_EXPORT(n:SleepThreshold,pr:setter,hide)
 		void setSleepThreshold(float threshold);
 
 		/** @copydoc Rigidbody::getSleepThreshold */
@@ -80,7 +80,7 @@ namespace bs
 		bool getUseGravity() const { return mUseGravity; }
 
 		/** @copydoc Rigidbody::setVelocity */
-		BS_SCRIPT_EXPORT(n:Velocity,pr:setter)
+		BS_SCRIPT_EXPORT(n:Velocity,pr:setter,hide)
 		void setVelocity(const Vector3& velocity);
 
 		/** @copydoc Rigidbody::getVelocity */
@@ -88,7 +88,7 @@ namespace bs
 		Vector3 getVelocity() const;
 
 		/** @copydoc Rigidbody::setAngularVelocity */
-		BS_SCRIPT_EXPORT(n:AngularVelocity,pr:setter)
+		BS_SCRIPT_EXPORT(n:AngularVelocity,pr:setter,hide)
 		void setAngularVelocity(const Vector3& velocity);
 
 		/** @copydoc Rigidbody::getAngularVelocity */
@@ -112,7 +112,7 @@ namespace bs
 		float getAngularDrag() const { return mAngularDrag; }
 
 		/** @copydoc Rigidbody::setInertiaTensor */
-		BS_SCRIPT_EXPORT(n:InertiaTensor,pr:setter)
+		BS_SCRIPT_EXPORT(n:InertiaTensor,pr:setter,hide)
 		void setInertiaTensor(const Vector3& tensor);
 
 		/** @copydoc Rigidbody::getInertiaTensor */
@@ -120,7 +120,7 @@ namespace bs
 		Vector3 getInertiaTensor() const;
 
 		/** @copydoc Rigidbody::setMaxAngularVelocity */
-		BS_SCRIPT_EXPORT(n:MaxAngularVelocity,pr:setter)
+		BS_SCRIPT_EXPORT(n:MaxAngularVelocity,pr:setter,hide)
 		void setMaxAngularVelocity(float maxVelocity);
 
 		/** @copydoc Rigidbody::getMaxAngularVelocity */
@@ -128,7 +128,7 @@ namespace bs
 		float getMaxAngularVelocity() const { return mMaxAngularVelocity; }
 
 		/** Determines the rigidbody's center of mass position. Only relevant if RigibodyFlag::AutoTensors is turned off. */
-		BS_SCRIPT_EXPORT(n:CenterOfMassPosition,pr:setter)
+		BS_SCRIPT_EXPORT(n:CenterOfMassPosition,pr:setter,hide)
 		void setCenterOfMassPosition(const Vector3& position);
 
 		/** @copydoc setCenterOfMassPosition() */
@@ -136,7 +136,7 @@ namespace bs
 		Vector3 getCenterOfMassPosition() const;
 
 		/** Determines the rigidbody's center of mass rotation. Only relevant if RigibodyFlag::AutoTensors is turned off. */
-		BS_SCRIPT_EXPORT(n:CenterOfMassRotation,pr:setter)
+		BS_SCRIPT_EXPORT(n:CenterOfMassRotation,pr:setter,hide)
 		void setCenterOfMassRotation(const Quaternion& rotation);
 
 		/** @copydoc setCenterOfMassRotation() */
@@ -144,7 +144,7 @@ namespace bs
 		Quaternion getCenterOfMassRotation() const;
 
 		/** @copydoc Rigidbody::setPositionSolverCount */
-		BS_SCRIPT_EXPORT(n:PositionSolverCount,pr:setter)
+		BS_SCRIPT_EXPORT(n:PositionSolverCount,pr:setter,hide)
 		void setPositionSolverCount(UINT32 count);
 
 		/** @copydoc Rigidbody::getPositionSolverCount */
@@ -152,7 +152,7 @@ namespace bs
 		UINT32 getPositionSolverCount() const { return mPositionSolverCount; }
 
 		/** @copydoc Rigidbody::setVelocitySolverCount */
-		BS_SCRIPT_EXPORT(n:VelocitySolverCount,pr:setter)
+		BS_SCRIPT_EXPORT(n:VelocitySolverCount,pr:setter,hide)
 		void setVelocitySolverCount(UINT32 count);
 
 		/** @copydoc Rigidbody::getVelocitySolverCount */
@@ -168,7 +168,7 @@ namespace bs
 		CollisionReportMode getCollisionReportMode() const { return mCollisionReportMode; }
 
 		/** @copydoc Rigidbody::setFlags */
-		BS_SCRIPT_EXPORT(n:Flags,pr:setter)
+		BS_SCRIPT_EXPORT(n:Flags,pr:setter,hide)
 		void setFlags(RigidbodyFlag flags);
 
 		/** @copydoc Rigidbody::getFlags */
