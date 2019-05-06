@@ -175,7 +175,7 @@ namespace bs
 
 	void CAudioSource::update()
 	{
-		Vector3 worldPos = SO()->getTransform().getPosition();
+		const Vector3 worldPos = SO()->getTransform().getPosition();
 
 		const float frameDelta = gTime().getFrameDelta();
 		if(frameDelta > 0.0f)

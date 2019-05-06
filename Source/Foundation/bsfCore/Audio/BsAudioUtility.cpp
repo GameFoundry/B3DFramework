@@ -148,7 +148,7 @@ namespace bs
 	{
 		INT32* srcBuffer = nullptr;
 
-		bool needTempBuffer = inBitDepth != 32;
+		const bool needTempBuffer = inBitDepth != 32;
 		if (needTempBuffer)
 			srcBuffer = (INT32*)bs_stack_alloc(numSamples * sizeof(INT32));
 		else

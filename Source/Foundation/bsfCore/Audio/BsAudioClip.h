@@ -159,8 +159,8 @@ namespace bs
 		AUDIO_CLIP_DESC mDesc;
 		UINT32 mNumSamples;
 		UINT32 mStreamSize;
-		UINT32 mStreamOffset;
-		float mLength;
+		UINT32 mStreamOffset = 0;
+		float mLength = 0.0f;
 		SPtr<DataStream> mStreamData;
 
 		/************************************************************************/

@@ -7,7 +7,6 @@
 namespace bs
 {
 	AudioManager::AudioManager(const String& pluginName)
-		:mPlugin(nullptr), mFactory(nullptr)
 	{
 		mPlugin = DynLibManager::instance().load(pluginName);
 
