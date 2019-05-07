@@ -2,7 +2,7 @@
 include(CMakeSources.cmake)
 
 # Packages
-if(RENDER_API_MODULE MATCHES "Vulkan" OR INCLUDE_ALL_IN_WORKFLOW)
+if(RENDER_API_MODULE MATCHES "Vulkan" OR INCLUDE_ALL_IN_WORKFLOW OR BUILD_ALL_RENDER_API)
 	find_package(Vulkan)
 	find_package(glslang)
 endif()
@@ -31,7 +31,7 @@ target_link_libraries(bsfVulkanRenderAPI PRIVATE bsf)
 set_property(TARGET bsfVulkanRenderAPI PROPERTY FOLDER Plugins)
 
 # Install
-if(RENDER_API_MODULE MATCHES "Vulkan")
+if(RENDER_API_MODULE MATCHES "Vulkan" OR BUILD_ALL_RENDER_API)
 	install_bsf_target(bsfVulkanRenderAPI)
 endif()
 

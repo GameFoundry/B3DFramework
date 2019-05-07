@@ -35,6 +35,8 @@ set(BUILD_TESTS OFF CACHE BOOL "If true, build targets for running unit tests wi
 
 set(BUILD_BSL OFF CACHE BOOL "If true, build lexer & parser for BSL. Requires flex & bison dependencies.")
 
+set(BUILD_ALL_RENDER_API OFF CACHE BOOL "If true, all supported render backends will be built, regardless of choice in RENDER_API_MODULE. Choice in RENDER_API_MODULE will still be used as the default.")
+
 set(INCLUDE_ASSET_PACKAGING_SCRIPTS OFF CACHE BOOL "If true, generate helper targets that allow you to import built-in assets as well as upload new package versions.")
 
 set(UPLOAD_ASSETS OFF CACHE BOOL "Only relevant if BUILD_ASSETS is true. When enabled the system will upload a package with the latest assets whenever assets are built, provided valid server and credentials are present.")

@@ -30,7 +30,7 @@ target_link_libraries(bsfD3D11RenderAPI bsf)
 set_property(TARGET bsfD3D11RenderAPI PROPERTY FOLDER Plugins)
 
 # Install
-if(RENDER_API_MODULE MATCHES "DirectX 11")
+if(RENDER_API_MODULE MATCHES "DirectX 11" OR BUILD_ALL_RENDER_API)
 	install_bsf_target(bsfD3D11RenderAPI)
 endif()
 
