@@ -7,7 +7,7 @@ function(add_prefix var prefix)
 endfunction()
 
 function(add_engine_dependencies target_name)
-	add_engine_dependencies2(${target_name} FALSE)
+	add_engine_dependencies2(${target_name} ${BUILD_ALL_RENDER_API})
 endfunction()
 
 function(add_engine_dependencies2 target_name all_render_api)
