@@ -19,6 +19,7 @@ Huge thanks to all the patrons, contributors and donators!
 - Nathan Warden [Founder]
  
 # Tier X Patrons
+- Henri Hyyryläinen
 - Dreyton Brereton
 - Andreas Schüle [Founder]
 - John Lagerquist [Founder]
