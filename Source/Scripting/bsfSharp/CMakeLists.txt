@@ -11,7 +11,7 @@ else()
 	set(BS_CS_ASSEMBLY_NAME "bsfSharpCore")
 endif()
 
-generate_csharp_project(${BSF_SOURCE_DIR}/Scripting/bsfSharp bsfSharp bs ${BS_CS_ASSEMBLY_NAME})
+generate_csharp_project(${BSF_SOURCE_DIR}/Scripting/bsfSharp bsfSharp bs ${BS_CS_ASSEMBLY_NAME} "" "")
 
 # Include the CS project in the build
 set(BS_CS_PROJ "${BS_CS_ASSEMBLY_NAME}.csproj")

@@ -1092,7 +1092,6 @@ namespace bs
 				{
 					params->getStructData(*materialParamInfo, paramData, paramSize, i);
 
-					UINT32 readOffset = i * paramSize;
 					UINT32 writeOffset = (paramInfo.offset + paramInfo.arrayStride * i) * sizeof(UINT32);
 					paramBlock->write(writeOffset, paramData, paramSize);
 				}	

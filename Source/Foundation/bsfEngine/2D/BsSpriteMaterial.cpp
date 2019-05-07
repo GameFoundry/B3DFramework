@@ -13,7 +13,7 @@ namespace bs
 {
 	SpriteMaterial::SpriteMaterial(UINT32 id, const HMaterial& material, const ShaderVariation& variation, 
 		bool allowBatching)
-		:mId(id), mMaterialStored(false), mAllowBatching(allowBatching), mParamBufferIdx(-1)
+		:mId(id), mAllowBatching(allowBatching), mMaterialStored(false), mParamBufferIdx(-1)
 	{
 		mMaterial = material->getCore();
 

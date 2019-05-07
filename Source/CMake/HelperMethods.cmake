@@ -445,29 +445,39 @@ function(install_bsf_target targetName)
 	endif()
 endfunction()
 
+function(install_binaries_on_build target srcDir subDir extension)
+	set(BIN_SRC_DIR "${srcDir}/${subDir}")
+	set(BIN_DST_DIR ${PROJECT_BINARY_DIR}/${subDir})
+
+	file(GLOB_RECURSE BIN_FILES RELATIVE ${BIN_SRC_DIR} "${BIN_SRC_DIR}/*.${extension}")
+
+	foreach(CUR_PATH ${BIN_FILES})
+		get_filename_component(FILENAME ${CUR_PATH} NAME)
+
+		if(FILENAME MATCHES "^bsf.*")
+			continue()
+		endif()
+
+		set(SRC ${BIN_SRC_DIR}/${CUR_PATH})
+		set(DST ${BIN_DST_DIR}/${CUR_PATH})
+		add_custom_command(
+			TARGET ${target} POST_BUILD
+			COMMAND ${CMAKE_COMMAND}
+			ARGS    -E copy_if_different ${SRC} ${DST}
+			COMMENT "Copying ${SRC} ${DST}"
+		)
+	endforeach()
+endfunction()
+
 function(install_dll_on_build target srcDir)
 	if(WIN32)
-		set(BIN_SRC_DIR "${srcDir}/bin")
-		set(BIN_DST_DIR ${PROJECT_BINARY_DIR}/bin)
-		
-		file(GLOB_RECURSE BIN_FILES RELATIVE ${BIN_SRC_DIR} "${BIN_SRC_DIR}/*.dll")
+		install_binaries_on_build(${target} ${srcDir}/bin bin dll)
+	endif()
+endfunction()
 
-		foreach(CUR_PATH ${BIN_FILES})
-			get_filename_component(FILENAME ${CUR_PATH} NAME)
-		
-			if(FILENAME MATCHES "^bsf.*")
-				continue()
-			endif()
-		
-			set(SRC ${BIN_SRC_DIR}/${CUR_PATH})
-			set(DST ${BIN_DST_DIR}/${CUR_PATH})
-			add_custom_command(
-			   TARGET ${target} POST_BUILD
-			   COMMAND ${CMAKE_COMMAND}
-			   ARGS    -E copy_if_different ${SRC} ${DST}
-			   COMMENT "Copying ${SRC} ${DST}\n"
-			   )
-		endforeach()
+function(install_dylib_on_build target srcDir)
+	if(APPLE)
+		install_binaries_on_build(${target} ${srcDir}/bin lib dylib)
 	endif()
 endfunction()
 
@@ -486,12 +496,12 @@ function(copy_folder_on_build target srcDir dstDir name filter)
 		   TARGET ${target} POST_BUILD
 		   COMMAND ${CMAKE_COMMAND}
 		   ARGS    -E copy_if_different ${SRC} ${DST}
-		   COMMENT "Copying ${SRC} ${DST}\n"
+		   COMMENT "Copying ${SRC} ${DST}"
 		   )
 	endforeach()
 endfunction()
 
-function(generate_csharp_project folder project_name namespace assembly)
+function(generate_csharp_project folder project_name namespace assembly refs projectRefs)
 	file(GLOB_RECURSE ALL_FILES RELATIVE ${folder} ${folder}/*.cs)
 		
 	set(BS_SHARP_FILE_LIST "")
@@ -513,6 +523,8 @@ function(generate_csharp_project folder project_name namespace assembly)
 
 	string(REGEX REPLACE "/" "\\\\" BINARY_DIR_PATH ${PROJECT_BINARY_DIR})
 	set(BS_SHARP_ASSEMBLY_OUTPUT "${BINARY_DIR_PATH}\\bin\\Assemblies")
+	set(BS_SHARP_PROJECT_REFS ${projectRefs})
+	set(BS_SHARP_REFS ${refs})
 
 	configure_file(
 		${folder}/${project_name}.csproj.in
