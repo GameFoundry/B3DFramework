@@ -29,7 +29,7 @@ else()
 	endif()
 
 	add_custom_target(${BS_CS_ASSEMBLY_NAME}
-			COMMAND msbuild /p:Configuration=${CS_PROJ_CONFIG} ${CMAKE_CURRENT_SOURCE_DIR}/${BS_CS_PROJ}
+			COMMAND ${msbuild_EXECUTABLE} /p:Configuration=${CS_PROJ_CONFIG} ${CMAKE_CURRENT_SOURCE_DIR}/${BS_CS_PROJ}
 			COMMENT "Building managed assembly \"${BS_CS_ASSEMBLY_NAME}\"")
 endif()
 
