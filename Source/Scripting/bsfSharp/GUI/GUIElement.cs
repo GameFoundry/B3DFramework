@@ -73,12 +73,12 @@ namespace bs
         /// <summary>
         /// Returns the non-clipped bounds of the GUI element including the margins. Relative to a parent GUI panel.
         /// </summary>
-        public Rect2I VisualBounds
+        public Rect2I VisibleBounds
         {
             get
             {
                 Rect2I bounds;
-                Internal_GetVisualBounds(mCachedPtr, out bounds);
+                Internal_GetVisibleBounds(mCachedPtr, out bounds);
                 return bounds;
             }
         }
