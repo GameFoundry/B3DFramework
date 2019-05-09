@@ -170,6 +170,7 @@ namespace bs
 
 	void AnimationManager::evaluateAnimation(AnimationProxy* anim, UINT32& curBoneIdx)
 	{
+		// Culling
 		if (anim->mCullEnabled)
 		{
 			bool isVisible = false;
@@ -183,9 +184,15 @@ namespace bs
 			}
 
 			if (!isVisible)
+			{
+				anim->wasCulled = true;
 				return;
+			}
 		}
 
+		anim->wasCulled = false;
+
+		// Evaluation
 		EvaluatedAnimationData& renderData = mAnimData[mPoseWriteBufferIdx];
 		
 		UINT32 prevPoseBufferIdx = (mPoseWriteBufferIdx + CoreThread::NUM_SYNC_BUFFERS) % (CoreThread::NUM_SYNC_BUFFERS + 1);

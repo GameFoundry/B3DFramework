@@ -248,25 +248,25 @@ namespace bs
 		UINT64 id;
 
 		// Skeletal animation
-		AnimationStateLayer* layers;
-		UINT32 numLayers;
+		AnimationStateLayer* layers = nullptr;
+		UINT32 numLayers = 0;
 		SPtr<Skeleton> skeleton;
 		SkeletonMask skeletonMask;
-		UINT32 numSceneObjects;
-		AnimatedSceneObjectInfo* sceneObjectInfos;
-		Matrix4* sceneObjectTransforms;
+		UINT32 numSceneObjects = 0;
+		AnimatedSceneObjectInfo* sceneObjectInfos = nullptr;
+		Matrix4* sceneObjectTransforms = nullptr;
 
 		// Morph shape animation
-		MorphChannelInfo* morphChannelInfos;
-		MorphShapeInfo* morphShapeInfos;
-		UINT32 numMorphChannels;
-		UINT32 numMorphShapes;
-		UINT32 numMorphVertices;
-		bool morphChannelWeightsDirty;
+		MorphChannelInfo* morphChannelInfos = nullptr;
+		MorphShapeInfo* morphShapeInfos = nullptr;
+		UINT32 numMorphChannels = 0;
+		UINT32 numMorphShapes = 0;
+		UINT32 numMorphVertices = 0;
+		bool morphChannelWeightsDirty = false;
 
 		// Culling
 		AABox mBounds;
-		bool mCullEnabled;
+		bool mCullEnabled = true;
 
 		// Single frame sample
 		AnimSampleStep sampleStep = AnimSampleStep::None;
@@ -274,8 +274,9 @@ namespace bs
 		// Evaluation results
 		LocalSkeletonPose skeletonPose;
 		LocalSkeletonPose sceneObjectPose;
-		UINT32 numGenericCurves;
-		float* genericCurveOutputs;
+		UINT32 numGenericCurves = 0;
+		float* genericCurveOutputs = nullptr;
+		bool wasCulled = false;
 	};
 
 	/**

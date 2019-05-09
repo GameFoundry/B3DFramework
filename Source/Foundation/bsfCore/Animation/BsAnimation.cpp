@@ -10,15 +10,11 @@
 namespace bs
 {
 	AnimationClipInfo::AnimationClipInfo(const HAnimationClip& clip)
-		: clip(clip), playbackType(AnimPlaybackType::Normal), fadeDirection(0.0f), fadeTime(0.0f), fadeLength(0.0f)
-		, curveVersion(0), layerIdx((UINT32)-1), stateIdx((UINT32)-1)
+		: clip(clip) 
 	{ }
 
 	AnimationProxy::AnimationProxy(UINT64 id)
-		: id(id), layers(nullptr), numLayers(0), numSceneObjects(0), sceneObjectInfos(nullptr)
-		, sceneObjectTransforms(nullptr), morphChannelInfos(nullptr), morphShapeInfos(nullptr), numMorphChannels(0)
-		, numMorphShapes(0), numMorphVertices(0), morphChannelWeightsDirty(false), mCullEnabled(true), numGenericCurves(0)
-		, genericCurveOutputs(nullptr)
+		: id(id)
 	{ }
 
 	AnimationProxy::~AnimationProxy()
@@ -1395,6 +1391,10 @@ namespace bs
 		// means (e.g. for the purposes of recording new keyframes if running from the editor).
 		const bool disableSOUpdates = mAnimProxy->sampleStep == AnimSampleStep::Done;
 		if(disableSOUpdates)
+			return;
+
+		// If the object was culled, then we have no valid data to read back
+		if(mAnimProxy->wasCulled)
 			return;
 
 		HSceneObject rootSO;
