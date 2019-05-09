@@ -391,6 +391,15 @@ namespace bs
 								serializedArray->entries[arrayEntryPair.first] = arrayEntry;
 							}
 						}
+
+						if(newArrayData->numElements != orgArrayData->numElements)
+						{
+							if (serializedArray == nullptr)
+							{
+								serializedArray = bs_shared_ptr_new<SerializedArray>();
+								serializedArray->numElements = newArrayData->numElements;
+							}
+						}
 					}
 					else if (newEntryData == nullptr)
 					{
