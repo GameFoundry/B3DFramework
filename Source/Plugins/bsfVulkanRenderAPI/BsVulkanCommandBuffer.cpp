@@ -22,6 +22,8 @@
 #include "Win32/BsWin32RenderWindow.h"
 #elif BS_PLATFORM == BS_PLATFORM_LINUX
 #include "Linux/BsLinuxRenderWindow.h"
+#elif BS_PLATFORM == BS_PLATFORM_OSX
+#include "MacOS/BsMacOSRenderWindow.h"
 #else
 static_assert(false, "Other platforms go here");
 #endif
@@ -144,9 +146,17 @@ namespace bs { namespace ct
 
 		if ((accessFlags & (VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT)) != 0)
 		{
-			flags |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
-			flags |= VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT | VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
-			flags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+			flags |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+			flags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+			// MoltenVK doesn't support geometry and tessellation shaders
+			// Note: Once we upgrade to a newer version they should be supported and we can remove this
+#if BS_PLATFORM != BS_PLATFORM_OSX
+			flags |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+			flags |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT
+			flags |= VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+#endif
 		}
 
 		if ((accessFlags & VK_ACCESS_INPUT_ATTACHMENT_READ_BIT) != 0)
@@ -856,6 +866,8 @@ namespace bs { namespace ct
 				Win32RenderWindow* window = static_cast<Win32RenderWindow*>(rt.get());
 #elif BS_PLATFORM == BS_PLATFORM_LINUX
 				LinuxRenderWindow* window = static_cast<LinuxRenderWindow*>(rt.get());
+#elif BS_PLATFORM == BS_PLATFORM_OSX
+				MacOSRenderWindow* window = static_cast<MacOSRenderWindow*>(rt.get());
 #endif
 				window->acquireBackBuffer();
 
@@ -2345,7 +2357,6 @@ namespace bs { namespace ct
 		if(res->hasDepthAttachment())
 		{
 			const VulkanFramebufferAttachment& attachment = res->getDepthStencilAttachment();
-			VulkanAccessFlag useFlag = VulkanAccessFlag::Write;
 
 			// If image is being loaded, we need to transfer it to correct layout, otherwise it doesn't matter. We're using
 			// these values because that's what VulkanFramebuffer expects as initialLayout.

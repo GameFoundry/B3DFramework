@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsGLPrerequisites.h"
+#include "BsCorePrerequisites.h"
 #include "RenderAPI/BsVideoModeInfo.h"
 #include <CoreGraphics/CoreGraphics.h>
 #include <CoreVideo/CoreVideo.h>

@@ -25,6 +25,8 @@
 	#include "Win32/BsWin32VideoModeInfo.h"
 #elif BS_PLATFORM == BS_PLATFORM_LINUX
 	#include "Linux/BsLinuxVideoModeInfo.h"
+#elif BS_PLATFORM == BS_PLATFORM_OSX
+	#include "MacOS/BsMacOSVideoModeInfo.h"
 #else
 	static_assert(false, "Other platform includes go here.");
 #endif
@@ -140,8 +142,12 @@ namespace bs { namespace ct
 		extensions[1] = VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
 #elif BS_PLATFORM == BS_PLATFORM_ANDROID
 		extensions[1] = VK_KHR_ANDROID_SURFACE_EXTENSION_NAME;
-#else
+#elif BS_PLATFORM == BS_PLATFORM_LINUX
 		extensions[1] = VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
+#elif BS_PLATFORM == BS_PLATFORM_OSX
+		extensions[1] = VK_MVK_MACOS_SURFACE_EXTENSION_NAME;
+#else
+		static_assert(false, "Other platform includes go here.");
 #endif
 
 		uint32_t numExtensions = sizeof(extensions) / sizeof(extensions[0]);
@@ -224,6 +230,8 @@ namespace bs { namespace ct
 		mVideoModeInfo = bs_shared_ptr_new<Win32VideoModeInfo>();
 #elif BS_PLATFORM == BS_PLATFORM_LINUX
 		mVideoModeInfo = bs_shared_ptr_new<LinuxVideoModeInfo>();
+#elif BS_PLATFORM == BS_PLATFORM_OSX
+		mVideoModeInfo = bs_shared_ptr_new<MacOSVideoModeInfo>();
 #else
 		static_assert(false, "mVideoModeInfo needs to be created.");
 #endif

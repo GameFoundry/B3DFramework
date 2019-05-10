@@ -15,6 +15,8 @@
 	#define VK_USE_PLATFORM_XLIB_KHR
 #elif BS_PLATFORM == BS_PLATFORM_ANDROID
 	#define VK_USE_PLATFORM_ANDROID_KHR
+#elif BS_PLATFORM == BS_PLATFORM_OSX
+	#define VK_USE_PLATFORM_MACOS_MVK
 #endif
 
 /** Maximum number of GPU queues that may exist at once. */

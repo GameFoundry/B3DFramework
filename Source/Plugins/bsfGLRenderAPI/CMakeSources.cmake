@@ -110,14 +110,14 @@ set(BS_GLRENDERAPI_INC_MACOS
 	"MacOS/BsMacOSContext.h"
 	"MacOS/BsMacOSGLSupport.h"
 	"MacOS/BsMacOSRenderWindow.h"
-	"MacOS/BsMacOSVideoModeInfo.h"
+	"../Shared/MacOS/BsMacOSVideoModeInfo.h"
 )
 
 set(BS_GLRENDERAPI_SRC_MACOS
 	"MacOS/BsMacOSContext.mm"
 	"MacOS/BsMacOSGLSupport.cpp"
 	"MacOS/BsMacOSRenderWindow.mm"
-	"MacOS/BsMacOSVideoModeInfo.cpp"
+	"../Shared/MacOS/BsMacOSVideoModeInfo.cpp"
 )
 
 source_group("" FILES ${BS_GLRENDERAPI_INC_NOFILTER} ${BS_GLRENDERAPI_SRC_NOFILTER})

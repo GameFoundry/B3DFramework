@@ -28,5 +28,10 @@ endif()
 find_imported_includes(Vulkan vulkan/vulkan.h)
 find_imported_library_shared(Vulkan ${Vulkan_LIBNAME})
 
+if(APPLE)
+	find_imported_library_shared(Vulkan MoltenVK)
+	find_imported_library(Vulkan SPIRV-Tools-opt)
+endif()
+
 end_find_package(Vulkan ${Vulkan_LIBNAME})
 

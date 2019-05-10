@@ -14,7 +14,10 @@ add_library(bsfGLRenderAPI SHARED ${BS_GLRENDERAPI_SRC})
 add_common_flags(bsfGLRenderAPI)
 
 # Includes
-target_include_directories(bsfGLRenderAPI PRIVATE "./")
+target_include_directories(bsfGLRenderAPI PRIVATE
+	"./"
+	"../Shared/"
+)
 
 # Defines
 target_compile_definitions(bsfGLRenderAPI PRIVATE -DBS_RSGL_EXPORTS -DGLEW_STATIC)

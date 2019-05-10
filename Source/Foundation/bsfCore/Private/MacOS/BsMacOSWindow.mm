@@ -10,6 +10,8 @@
 #include "String/BsUnicode.h"
 #include "RenderAPI/BsRenderWindow.h"
 
+#import <QuartzCore/CAMetalLayer.h>
+
 using namespace bs;
 
 /** Converts a keycode reported by Cocoa into a potential input command. */
@@ -657,6 +659,7 @@ namespace bs
 		[m->window setDelegate:m->delegate];
 
 		m->view = [[BSView alloc] init];
+
 		[m->window setContentView:m->view];
 
 		if(desc.background)
@@ -694,7 +697,7 @@ namespace bs
         m->delegate = nil;
         m->responder = nil;
         m->view = nil;
-        
+
         bs_delete(m);
 	}
 
@@ -905,5 +908,11 @@ namespace bs
 	{
 		NSOpenGLContext* glContext = (__bridge_transfer NSOpenGLContext* )context;
 		[m->view setGLContext:glContext];
+	}
+
+	void CocoaWindow::_setLayer(void* layer)
+	{
+		[m->view setWantsLayer:TRUE];
+		[m->view setLayer:(__bridge CALayer*)layer];
 	}
 }

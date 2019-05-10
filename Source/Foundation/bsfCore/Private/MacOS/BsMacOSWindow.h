@@ -15,6 +15,7 @@
 @class BSWindowListener;
 @class BSView;
 @class BSWindow;
+@class CAMetalLayer;
 #endif
 
 namespace bs
@@ -153,6 +154,9 @@ namespace bs
 
 		/** Lets the window know that the provided OpenGL context will be rendering to it. */
 		void _registerGLContext(void* context);
+
+		/** Assigns a CALayer to the windows' view, and enables layer backing on the view. */
+		void _setLayer(void* layer);
 
 		/** Returns internal private data for use by friends. */
 		Pimpl* _getPrivateData() const { return m; }

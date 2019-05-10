@@ -14,7 +14,10 @@ add_library(bsfVulkanRenderAPI SHARED ${BS_VULKANRENDERAPI_SRC})
 add_common_flags(bsfVulkanRenderAPI)
 
 # Includes
-target_include_directories(bsfVulkanRenderAPI PRIVATE "./")
+target_include_directories(bsfVulkanRenderAPI PRIVATE
+	"./"
+	"../Shared/"
+)
 
 # Defines
 target_compile_definitions(bsfVulkanRenderAPI PRIVATE -DBS_VULKAN_EXPORTS)
@@ -23,6 +26,17 @@ target_compile_definitions(bsfVulkanRenderAPI PRIVATE -DBS_VULKAN_EXPORTS)
 ## External libs: Vulkan, glslang
 target_link_libraries(bsfVulkanRenderAPI PRIVATE ${Vulkan_LIBRARIES})
 target_link_libraries(bsfVulkanRenderAPI PRIVATE ${glslang_LIBRARIES})
+
+## OS libs
+if(APPLE) # MacOS
+	target_link_framework(bsfVulkanRenderAPI Foundation)
+	target_link_framework(bsfVulkanRenderAPI CoreGraphics)
+	target_link_framework(bsfVulkanRenderAPI CoreVideo)
+	target_link_framework(bsfVulkanRenderAPI IOKit)
+	target_link_framework(bsfVulkanRenderAPI AppKit)
+	target_link_framework(bsfVulkanRenderAPI QuartzCore)
+	target_link_framework(bsfVulkanRenderAPI Metal)
+endif()
 
 ## Local libs
 target_link_libraries(bsfVulkanRenderAPI PRIVATE bsf)

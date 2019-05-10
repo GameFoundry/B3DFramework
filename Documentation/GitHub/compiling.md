@@ -108,7 +108,13 @@ The following dependencies will need to be installed manually. Which ones are re
   - **Vulkan SDK 1.1.85.0** (Optional) 
     - Only needed if you selected the Vulkan render API during build configuration
     - https://lunarg.com/vulkan-sdk/
-    - Set up VULKAN_SDK environment variable pointing to your instalation
+    - Set up `VULKAN_SDK` environment variable pointing to your installation
+    - **Additional setup for MacOS**
+      - Set up the following environment variables:
+        - `VULKAN_SDK = $SDK_DIR$/macOS`
+        - `VK_LAYER_PATH = $SDK_DIR$/macOS/etc/vulkan/explicit_layer.d`
+        - `VK_ICD_FILENAMES = $SDK_DIR$/macOS/etc/vulkan/icd.d/MoltenVK_icd.json`
+      - Replacing `$SDK_DIR$` with the directory where you extracted the SDK
   - **FMOD Low Level Programmer API 1.08.02** (Optional)
     - Only needed if you selected the FMOD audio module during build configuration
     - http://www.fmod.org/download/

@@ -7,6 +7,7 @@
 #define NV_EXTENSIONS
 #include "glslang/Public/ShaderLang.h"
 #include "glslang/Include/Types.h"
+#include "glslang/Include/revision.h"
 #include "SPIRV/GlslangToSpv.h"
 #include "SPIRV/Logger.h"
 #include "BsVulkanUtility.h"
@@ -100,6 +101,17 @@ namespace bs { namespace ct
 		/* .MaxCullDistances = */ 8,
 		/* .MaxCombinedClipAndCullDistances = */ 8,
 		/* .MaxSamples = */ 4,
+#if GLSLANG_PATCH_LEVEL >= 2892
+		/* .maxMeshOutputVerticesNV = */ 256,
+		/* .maxMeshOutputPrimitivesNV = */ 512,
+		/* .maxMeshWorkGroupSizeX_NV = */ 32,
+		/* .maxMeshWorkGroupSizeY_NV = */ 1,
+		/* .maxMeshWorkGroupSizeZ_NV = */ 1,
+		/* .maxTaskWorkGroupSizeX_NV = */ 32,
+		/* .maxTaskWorkGroupSizeY_NV = */ 1,
+		/* .maxTaskWorkGroupSizeZ_NV = */ 1,
+		/* .maxMeshViewCountNV = */ 4,
+#endif
 		/* .limits = */{
 		/* .nonInductiveForLoops = */ 1,
 		/* .whileLoops = */ 1,
