@@ -14,6 +14,9 @@
 
 void logToIDEConsole(const bs::String& message, const char* channel)
 {
+	static bs::Mutex mutex;
+
+	bs::Lock lock(mutex);
 	OutputDebugString("[");
 	OutputDebugString(channel);
 	OutputDebugString("] ");
