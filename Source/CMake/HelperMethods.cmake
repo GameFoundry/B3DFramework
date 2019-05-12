@@ -471,13 +471,13 @@ endfunction()
 
 function(install_dll_on_build target srcDir)
 	if(WIN32)
-		install_binaries_on_build(${target} ${srcDir}/bin bin dll)
+		install_binaries_on_build(${target} ${srcDir} bin dll)
 	endif()
 endfunction()
 
 function(install_dylib_on_build target srcDir)
 	if(APPLE)
-		install_binaries_on_build(${target} ${srcDir}/bin lib dylib)
+		install_binaries_on_build(${target} ${srcDir} lib dylib)
 	endif()
 endfunction()
 
