@@ -683,7 +683,7 @@ namespace bs { namespace ct
 
 			UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
 			VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.getBindings(set);
-			VkPipelineStageFlags stages = perSetBindings[bindingIdx].stageFlags;
+			VkPipelineStageFlags stages = VulkanUtility::shaderToPipelineStage(perSetBindings[bindingIdx].stageFlags);
 
 			// Register with command buffer
 			VulkanAccessFlags useFlags = VulkanAccessFlag::Read | VulkanAccessFlag::Write;
