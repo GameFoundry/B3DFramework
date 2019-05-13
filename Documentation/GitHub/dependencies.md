@@ -117,7 +117,7 @@ Additionally, if the dependency structure still isn't clear, download one of the
   - Requires libogg, as described in its readme file.
    
 **glslang**
-- glslang commit: 32d3ec319909fcad0b2b308fe1635198773e8316
+- glslang commit: 377bccb143941ec4931e6aed9ac07752ccefb979
 - https://github.com/KhronosGroup/glslang
 - Required by bsfVulkanRenderAPI
 - Compile as a static library

@@ -121,7 +121,7 @@ namespace bs { namespace ct
 	{
 		Lock lock(mMutex);
 
-		VulkanQuery* query = getQuery(VK_QUERY_TYPE_TIMESTAMP);
+		VulkanQuery* query = getQuery(VK_QUERY_TYPE_OCCLUSION);
 		query->mFree = false;
 
 		VkCommandBuffer vkCmdBuf = cb->getHandle();
