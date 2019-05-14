@@ -3,7 +3,7 @@
 #include "MacOS/BsMacOSGLSupport.h"
 #include "MacOS/BsMacOSContext.h"
 #include "MacOS/BsMacOSRenderWindow.h"
-#include "BsMacOSVideoModeInfo.h"
+#include "MacOS/BsMacOSVideoModeInfo.h"
 #include "BsGLRenderAPI.h"
 #include <dlfcn.h>
 
