@@ -154,7 +154,7 @@ namespace bs { namespace ct
 			// Note: Once we upgrade to a newer version they should be supported and we can remove this
 #if BS_PLATFORM != BS_PLATFORM_OSX
 			flags |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
-			flags |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT
+			flags |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
 			flags |= VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
 #endif
 		}
