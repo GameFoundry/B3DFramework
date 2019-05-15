@@ -224,7 +224,7 @@ namespace bs
 			memcpy(memoryStart, &size, sizeof(UINT32));
 		}
 
-		/** @copydoc RTTIPlainType::toMemory */
+		/** @copydoc RTTIPlainType::fromMemory */
 		static UINT32 fromMemory(std::vector<T, StdAlloc<T>>& data, char* memory)
 		{
 			UINT32 size = 0;
@@ -248,7 +248,7 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::toMemory */
+		/** @copydoc RTTIPlainType::getDynamicSize */
 		static UINT32 getDynamicSize(const std::vector<T, StdAlloc<T>>& data)
 		{
 			UINT64 dataSize = sizeof(UINT32) * 2;
@@ -295,7 +295,7 @@ namespace bs
 			memcpy(memoryStart, &size, sizeof(UINT32));
 		}
 
-		/** @copydoc RTTIPlainType::toMemory */
+		/** @copydoc RTTIPlainType::fromMemory */
 		static UINT32 fromMemory(std::list<T, StdAlloc<T>>& data, char* memory)
 		{
 			UINT32 size = 0;
@@ -318,7 +318,7 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::toMemory */
+		/** @copydoc RTTIPlainType::getDynamicSize */
 		static UINT32 getDynamicSize(const std::list<T, StdAlloc<T>>& data)
 		{
 			UINT64 dataSize = sizeof(UINT32) * 2;
@@ -365,7 +365,7 @@ namespace bs
 			memcpy(memoryStart, &size, sizeof(UINT32));
 		}
 
-		/** @copydoc RTTIPlainType::toMemory */
+		/** @copydoc RTTIPlainType::fromMemory */
 		static UINT32 fromMemory(std::set<T, std::less<T>, StdAlloc<T>>& data, char* memory)
 		{
 			UINT32 size = 0;
@@ -388,7 +388,7 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::toMemory */
+		/** @copydoc RTTIPlainType::getDynamicSize */
 		static UINT32 getDynamicSize(const std::set<T, std::less<T>, StdAlloc<T>>& data)
 		{
 			UINT64 dataSize = sizeof(UINT32) * 2;
