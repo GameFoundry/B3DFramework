@@ -174,6 +174,7 @@ namespace bs
 				loadFailed = true;
 			}
 
+			bool loadDependencies = loadFlags.isSet(ResourceLoadFlag::LoadDependencies);
 			if(!loadFailed)
 			{
 				// Load dependency data if a file path is provided
@@ -209,7 +210,7 @@ namespace bs
 					loadData->notifyImmediately = synchronous;
 
 					// Register dependencies and count them so we know when the resource is fully loaded
-					if (loadFlags.isSet(ResourceLoadFlag::LoadDependencies) && savedResourceData != nullptr)
+					if (loadDependencies && savedResourceData != nullptr)
 					{
 						for (auto& dependency : savedResourceData->getDependencies())
 						{
@@ -223,7 +224,7 @@ namespace bs
 					}
 				}
 				// The resource is already being loaded, or is loaded, but we might still need to load some dependencies
-				else if(savedResourceData != nullptr)
+				else if(loadDependencies && savedResourceData != nullptr)
 				{
 					const Vector<UUID>& dependencies = savedResourceData->getDependencies();
 					if (!dependencies.empty())
@@ -243,24 +244,30 @@ namespace bs
 						else
 							loadData = mInProgressResources[uuid];
 
-						// Find dependencies that aren't already queued for loading
+						// Find dependencies that aren't already loaded or queued for loading
 						for (auto& dependency : dependencies)
 						{
 							if (dependency != uuid)
 							{
-								bool registerDependency = true;
+								bool registerDependency = false;
 
-								auto iterFind2 = mDependantLoads.find(dependency);
-								if (iterFind2 != mDependantLoads.end())
+								auto iterFind3 = mLoadedResources.find(dependency);
+								if(iterFind3 == mLoadedResources.end())
 								{
-									Vector<ResourceLoadData*>& dependantData = iterFind2->second;
-									auto iterFind3 = std::find_if(dependantData.begin(), dependantData.end(),
-										[&](ResourceLoadData* x)
-									{
-										return x->resData.resource.getUUID() == output.resource.getUUID();
-									});
+									registerDependency = true;
 
-									registerDependency = iterFind3 == dependantData.end();
+									auto iterFind2 = mDependantLoads.find(dependency);
+									if (iterFind2 != mDependantLoads.end())
+									{
+										Vector<ResourceLoadData*>& dependantData = iterFind2->second;
+										auto iterFind3 = std::find_if(dependantData.begin(), dependantData.end(),
+											[&](ResourceLoadData* x)
+										{
+											return x->resData.resource.getUUID() == output.resource.getUUID();
+										});
+
+										registerDependency = iterFind3 == dependantData.end();
+									}
 								}
 
 								if (registerDependency)
@@ -288,10 +295,6 @@ namespace bs
 					synchronous = synchronous || !savedResourceData->allowAsyncLoading();
 			}
 		}
-
-		// Previously being loaded as async but now we want it synced, so we wait
-		if (loadInProgress && synchronous)
-			output.resource.blockUntilLoaded();
 
 		// Something went wrong, clean up and exit
 		if(loadFailed)
@@ -350,6 +353,10 @@ namespace bs
 				}
 			}
 		}
+
+		// Previously being loaded as async but now we want it synced, so we wait
+		if (loadInProgress && synchronous)
+			output.resource.blockUntilLoaded(false);
 
 		// Actually start the file read operation if not already loaded or in progress
 		if (initiateLoad)
@@ -745,6 +752,7 @@ namespace bs
 	{
 		const UUID& uuid = handle.getUUID();
 		handle.setHandleData(resource, uuid);
+		handle.notifyLoadComplete();
 
 		if(resource)
 		{
@@ -959,7 +967,7 @@ namespace bs
 			{
 				myLoadData = iterFind->second;
 				finishLoad = myLoadData->remainingDependencies == 0;
-				
+
 				if (finishLoad)
 					mInProgressResources.erase(iterFind);
 			}
@@ -982,6 +990,8 @@ namespace bs
 					mLoadedResources[uuid] = myLoadData->resData;
 					resource.setHandleData(myLoadData->loadedData, uuid);
 				}
+
+				resource.notifyLoadComplete();
 
 				for (auto& dependantLoad : dependantLoads)
 					dependantLoad->remainingDependencies--;

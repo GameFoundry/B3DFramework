@@ -93,6 +93,12 @@ namespace bs
 		void removeInternalRef();
 
 		/** 
+		 * Notification sent by the resource system when the resource is done with the loading process. This will trigger
+		 * even if the load fails.
+		 */
+		void notifyLoadComplete();
+
+		/** 
 		 * @note	
 		 * All handles to the same source must share this same handle data. Otherwise things like counting number of 
 		 * references or replacing pointed to resource become impossible without additional logic. */
@@ -313,6 +319,7 @@ namespace bs
 			this->addRef();
 
 			this->setHandleData(SPtr<Resource>(ptr), uuid);
+			this->mIsCreated = true;
 		}
 
 		/**
@@ -333,7 +340,8 @@ namespace bs
 			this->mData = bs_shared_ptr_new<ResourceHandleData>();
 			this->addRef();
 
-			setHandleData(ptr, uuid);
+			this->setHandleData(ptr, uuid);
+			this->mData->mIsCreated = true;
 		}
 
 		/**	Replaces the internal handle data pointer, effectively transforming the handle into a different handle. */

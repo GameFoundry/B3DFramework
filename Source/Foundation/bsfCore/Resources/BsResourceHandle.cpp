@@ -72,18 +72,19 @@ namespace bs
 		mData->mPtr = ptr;
 
 		if(mData->mPtr)
-		{
 			mData->mUUID = uuid;
+	}
 
-			if(!mData->mIsCreated)
+	void ResourceHandleBase::notifyLoadComplete()
+	{
+		if (!mData->mIsCreated)
+		{
+			Lock lock(mResourceCreatedMutex);
 			{
-				Lock lock(mResourceCreatedMutex);
-				{
-					mData->mIsCreated = true;
-				}
-
-				mResourceCreatedCondition.notify_all();
+				mData->mIsCreated = true;
 			}
+
+			mResourceCreatedCondition.notify_all();
 		}
 	}
 
