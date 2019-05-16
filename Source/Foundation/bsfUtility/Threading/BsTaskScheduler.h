@@ -54,6 +54,9 @@ namespace bs
 		/**	Returns true if the task has been canceled. */
 		bool isCanceled() const;
 
+		/** Returns true if the task has started or completed execution. */
+		bool hasStarted() const;
+
 		/**
 		 * Blocks the current thread until the task has completed.
 		 *

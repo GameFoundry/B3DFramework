@@ -28,6 +28,13 @@ namespace bs
 		return mState == 3;
 	}
 
+	bool Task::hasStarted() const
+	{
+		UINT32 state = mState;
+
+		return state == 1 || state == 2;
+	}
+
 	void Task::wait()
 	{
 		if(mParent != nullptr)
@@ -249,6 +256,35 @@ namespace bs
 		if(task->isCanceled())
 			return;
 
+		if(task->mTaskDependency)
+			task->mTaskDependency->wait();
+
+		// If we haven't started executing the task yet, just execute it right here
+		SPtr<Task> queuedTask;
+		{
+			Lock lock(mReadyMutex);
+
+			if(!task->hasStarted())
+			{
+				auto iterFind = std::find_if(mTaskQueue.begin(), mTaskQueue.end(),
+					[task](const SPtr<Task>& x) { return x.get() == task; });
+
+				assert(iterFind != mTaskQueue.end());
+
+				queuedTask = *iterFind;
+				mTaskQueue.erase(iterFind);
+
+				queuedTask->mState.store(1);
+			}
+		}
+
+		if(queuedTask)
+		{
+			runTask(queuedTask);
+			return;
+		}
+
+		// Otherwise we wait until the task completes
 		{
 			Lock lock(mCompleteMutex);
 
