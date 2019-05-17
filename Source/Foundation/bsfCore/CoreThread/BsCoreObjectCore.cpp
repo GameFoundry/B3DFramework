@@ -40,6 +40,8 @@ namespace bs
 				BS_EXCEPT(InternalErrorException, "You cannot call this method on the core thread. It will cause a deadlock!");
 #endif
 
+			gCoreThread().submitAll(true);
+
 			Lock lock(mCoreGpuObjectLoadedMutex);
 			while (!isInitialized())
 			{

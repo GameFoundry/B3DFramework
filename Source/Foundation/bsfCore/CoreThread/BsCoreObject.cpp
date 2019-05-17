@@ -131,7 +131,7 @@ namespace bs
 	{
 		std::function<void()> func = std::bind(&ct::CoreObject::initialize, obj.get());
 
-		CoreThread::instance().queueCommand(std::bind(&CoreObject::executeGpuCommand, obj, func), CTQF_InternalQueue);
+		CoreThread::instance().queueCommand(std::bind(&CoreObject::executeGpuCommand, obj, func));
 	}
 
 	void CoreObject::queueDestroyGpuCommand(const SPtr<ct::CoreObject>& obj)
