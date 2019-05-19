@@ -162,6 +162,9 @@ namespace bs
 		RENDER_WINDOW_DESC windowDesc = primaryWindowDesc;
 		SPtr<bs::RenderWindow> renderWindow = bs::RenderWindow::create(windowDesc, nullptr);
 
+		// Make sure render window initialization is submitted to the internal queue
+		gCoreThread().submitAll();
+
 		gCoreThread().queueCommand(std::bind(&RenderAPI::initializeWithWindow, this, renderWindow->getCore()), 
 			CTQF_InternalQueue | CTQF_BlockUntilComplete);
 
