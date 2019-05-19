@@ -12,7 +12,7 @@
 #include "Serialization/BsScriptAssemblyManager.h"
 #include "Wrappers/BsScriptManagedComponent.h"
 #include "BsMonoAssembly.h"
-#include "BsPlayInEditorManager.h"
+#include "BsPlayInEditor.h"
 #include "Utility/BsUtility.h"
 
 namespace bs

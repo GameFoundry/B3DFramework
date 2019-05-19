@@ -16,7 +16,7 @@
 #include "FileSystem/BsFileSystem.h"
 #include "Wrappers/BsScriptDebug.h"
 #include "Wrappers/GUI/BsScriptGUI.h"
-#include "BsPlayInEditorManager.h"
+#include "BsPlayInEditor.h"
 #include "Wrappers/BsScriptScene.h"
 #include "GUI/BsGUIManager.h"
 
@@ -36,7 +36,7 @@ namespace bs
 		MonoAssembly& engineAssembly = MonoManager::instance().loadAssembly(engineAssemblyPath.toString(), ENGINE_ASSEMBLY);
 #endif
 
-		PlayInEditorManager::startUp();
+		PlayInEditor::startUp();
 		ScriptDebug::startUp();
 		GameResourceManager::startUp();
 		ScriptObjectManager::startUp();
@@ -63,7 +63,7 @@ namespace bs
 	void EngineScriptLibrary::update()
 	{
 		ScriptScene::update();
-		PlayInEditorManager::instance().update();
+		PlayInEditor::instance().update();
 		ScriptObjectManager::instance().update();
 		ScriptGUI::update();
 	}
@@ -132,7 +132,7 @@ namespace bs
 		ScriptObjectManager::shutDown();
 		GameResourceManager::shutDown();
 		ScriptDebug::shutDown();
-		PlayInEditorManager::shutDown();
+		PlayInEditor::shutDown();
 
 		// Make sure all GUI elements are actually destroyed
 		GUIManager::instance().processDestroyQueue();

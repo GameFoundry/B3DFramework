@@ -95,7 +95,7 @@ namespace bs
         /// </summary>
         internal void UpdateFloatProperties()
         {
-            _UpdateFloatProperties();
+            Callback__UpdateFloatProperties();
         }
 
         /// <summary>
@@ -260,7 +260,7 @@ namespace bs
         /// Builds a list of properties that will be animated using float animation curves.
         /// </summary>
         /// <param name="clip">Clip to retrieve the float animation curves from.</param>
-        partial void RebuildFloatProperties(RRef<AnimationClip> clip)
+        partial void Callback_RebuildFloatProperties(RRef<AnimationClip> clip)
         {
             if (clip == null)
             {
@@ -379,7 +379,7 @@ namespace bs
         /// </summary>
         /// <param name="clip">Clip that the event originated from.</param>
         /// <param name="name">Name of the event.</param>
-        partial void EventTriggered(RRef<AnimationClip> clip, string name)
+        partial void Callback_EventTriggered(RRef<AnimationClip> clip, string name)
         {
             // Event should be in format "ComponentType/MethodName"
             if (string.IsNullOrEmpty(name))
@@ -406,7 +406,7 @@ namespace bs
         /// <summary>
         /// Partial method implementation for <see cref="UpdateFloatProperties"/>
         /// </summary>
-        partial void _UpdateFloatProperties()
+        partial void Callback__UpdateFloatProperties()
         {
             // Apply values from generic float curves
             if (floatProperties != null)

@@ -9,7 +9,7 @@ set(BS_SCRIPT_INC_NOFILTER
 	"BsManagedResourceManager.h"
 	"BsScriptObjectManager.h"
 	"BsEngineScriptLibrary.h"
-	"BsPlayInEditorManager.h"
+	"BsPlayInEditor.h"
 )
 
 set(BS_SCRIPT_SRC_WRAPPERS_GUI
@@ -197,7 +197,7 @@ set(BS_SCRIPT_SRC_NOFILTER
 	"BsManagedResourceManager.cpp"
 	"BsScriptObjectManager.cpp"
 	"BsEngineScriptLibrary.cpp"
-	"BsPlayInEditorManager.cpp"
+	"BsPlayInEditor.cpp"
 )
 
 set(BS_SCRIPT_INC_RTTI

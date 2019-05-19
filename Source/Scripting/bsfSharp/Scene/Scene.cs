@@ -119,6 +119,7 @@ namespace bs
 
             return activateOnLoadScene;
         }
+
         /// <summary>
         /// Sets the currently active scene to the provided scene.
         /// </summary>

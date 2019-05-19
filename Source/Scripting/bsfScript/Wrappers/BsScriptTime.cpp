@@ -6,7 +6,7 @@
 #include "BsMonoMethod.h"
 #include "BsMonoUtil.h"
 #include "Utility/BsTime.h"
-#include "BsPlayInEditorManager.h"
+#include "BsPlayInEditor.h"
 
 namespace bs
 {
@@ -30,7 +30,7 @@ namespace bs
 
 	float ScriptTime::internal_getElapsed()
 	{
-		return PlayInEditorManager::instance().getPausableTime();
+		return PlayInEditor::instance().getPausableTime();
 	}
 
 	float ScriptTime::internal_getFrameDelta()

@@ -1,6 +1,6 @@
 //********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsPlayInEditorManager.h"
+#include "BsPlayInEditor.h"
 #include "BsScriptGameObjectManager.h"
 #include "Utility/BsTime.h"
 #include "Scene/BsSceneManager.h"
@@ -12,7 +12,7 @@
 
 namespace bs
 {
-	PlayInEditorManager::PlayInEditorManager()
+	PlayInEditor::PlayInEditor()
 		:mState(PlayInEditorState::Stopped), mNextState(PlayInEditorState::Stopped), 
 		mFrameStepActive(false), mScheduledStateChange(false), mPausableTime(0.0f)
 	{
@@ -25,7 +25,7 @@ namespace bs
 		}
 	}
 
-	void PlayInEditorManager::setState(PlayInEditorState state)
+	void PlayInEditor::setState(PlayInEditorState state)
 	{
 		if (!gApplication().isEditor())
 			return;
@@ -36,7 +36,7 @@ namespace bs
 		mNextState = state;
 	}
 
-	void PlayInEditorManager::setStateImmediate(PlayInEditorState state)
+	void PlayInEditor::setStateImmediate(PlayInEditorState state)
 	{
 		if (mState == state)
 			return;
@@ -58,6 +58,7 @@ namespace bs
 			gSceneManager()._setRootNode(mSavedScene);
 
 			mSavedScene = nullptr;
+			onStopped();
 		}
 			break;
 		case PlayInEditorState::Playing:
@@ -68,6 +69,11 @@ namespace bs
 			gSceneManager().setComponentState(ComponentState::Running);
 			setSystemsPauseState(false);
 			gAnimation().setPaused(false);
+
+			if (oldState == PlayInEditorState::Stopped)
+				onPlay();
+			else
+				onUnpaused();
 		}
 			break;
 		case PlayInEditorState::Paused:
@@ -80,6 +86,11 @@ namespace bs
 				saveSceneInMemory();
 
 			gSceneManager().setComponentState(ComponentState::Paused);
+
+			if (oldState == PlayInEditorState::Stopped)
+				onPlay();
+
+			onPaused();
 		}
 			break;
 		default:
@@ -87,7 +98,7 @@ namespace bs
 		}		
 	}
 
-	void PlayInEditorManager::frameStep()
+	void PlayInEditor::frameStep()
 	{
 		if (!gApplication().isEditor())
 			return;
@@ -105,7 +116,7 @@ namespace bs
 		mFrameStepActive = true;
 	}
 
-	void PlayInEditorManager::update()
+	void PlayInEditor::update()
 	{
 		if (mState == PlayInEditorState::Playing)
 			mPausableTime += gTime().getFrameDelta();
@@ -123,7 +134,7 @@ namespace bs
 		}
 	}
 
-	void PlayInEditorManager::saveSceneInMemory()
+	void PlayInEditor::saveSceneInMemory()
 	{
 		mSavedScene = SceneManager::instance().getMainScene()->getRoot()->clone(false, true);
 
@@ -147,7 +158,7 @@ namespace bs
 		}
 	}
 
-	void PlayInEditorManager::setSystemsPauseState(bool paused)
+	void PlayInEditor::setSystemsPauseState(bool paused)
 	{
 		gPhysics().setPaused(paused);
 		gAudio().setPaused(paused);

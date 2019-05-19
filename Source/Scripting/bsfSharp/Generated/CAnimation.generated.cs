@@ -107,15 +107,15 @@ namespace bs
 		/// <summary>
 		/// Triggered when the list of properties animated via generic animation curves needs to be recreated (script only).
 		/// </summary>
-		partial void RebuildFloatProperties(RRef<AnimationClip> p0);
+		partial void Callback_RebuildFloatProperties(RRef<AnimationClip> p0);
 
 		/// <summary>
 		/// Triggered when generic animation curves values need be applied to the properties they effect (script only).
 		/// </summary>
-		partial void _UpdateFloatProperties();
+		partial void Callback__UpdateFloatProperties();
 
 		/// <summary>Triggers a callback in script code when animation event is triggered (script only).</summary>
-		partial void EventTriggered(RRef<AnimationClip> p0, string p1);
+		partial void Callback_EventTriggered(RRef<AnimationClip> p0, string p1);
 
 		/// <summary>Plays the specified animation clip.</summary>
 		/// <param name="clip">Clip to play.</param>
@@ -307,15 +307,15 @@ namespace bs
 		private static extern bool Internal__togglePreviewMode(IntPtr thisPtr, bool enabled);
 		private void Internal__scriptRebuildFloatProperties(RRef<AnimationClip> p0)
 		{
-			RebuildFloatProperties(p0);
+			Callback_RebuildFloatProperties(p0);
 		}
 		private void Internal__scriptUpdateFloatProperties()
 		{
-			_UpdateFloatProperties();
+			Callback__UpdateFloatProperties();
 		}
 		private void Internal__scriptOnEventTriggered(RRef<AnimationClip> p0, string p1)
 		{
-			EventTriggered(p0, p1);
+			Callback_EventTriggered(p0, p1);
 		}
 	}
 

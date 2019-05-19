@@ -7,7 +7,7 @@
 #include "BsMonoUtil.h"
 #include "Input/BsInput.h"
 #include "Wrappers/BsScriptVector2I.h"
-#include "BsPlayInEditorManager.h"
+#include "BsPlayInEditor.h"
 
 namespace bs
 {
@@ -79,7 +79,7 @@ namespace bs
 
 	void ScriptInput::onButtonDown(const ButtonEvent& ev)
 	{
-		if (PlayInEditorManager::instance().getState() != PlayInEditorState::Playing)
+		if (PlayInEditor::instance().getState() != PlayInEditorState::Playing)
 			return;
 
 		MonoUtil::invokeThunk(OnButtonPressedThunk, ev.buttonCode, ev.deviceIdx, ev.isUsed());
@@ -87,7 +87,7 @@ namespace bs
 
 	void ScriptInput::onButtonUp(const ButtonEvent& ev)
 	{
-		if (PlayInEditorManager::instance().getState() != PlayInEditorState::Playing)
+		if (PlayInEditor::instance().getState() != PlayInEditorState::Playing)
 			return;
 
 		MonoUtil::invokeThunk(OnButtonReleasedThunk, ev.buttonCode, ev.deviceIdx, ev.isUsed());
@@ -95,7 +95,7 @@ namespace bs
 
 	void ScriptInput::onCharInput(const TextInputEvent& ev)
 	{
-		if (PlayInEditorManager::instance().getState() != PlayInEditorState::Playing)
+		if (PlayInEditor::instance().getState() != PlayInEditorState::Playing)
 			return;
 
 		MonoUtil::invokeThunk(OnCharInputThunk, ev.textChar, ev.isUsed());
@@ -103,7 +103,7 @@ namespace bs
 
 	void ScriptInput::onPointerMoved(const PointerEvent& ev)
 	{
-		if (PlayInEditorManager::instance().getState() != PlayInEditorState::Playing)
+		if (PlayInEditor::instance().getState() != PlayInEditorState::Playing)
 			return;
 
 		MonoObject* screenPos = ScriptVector2I::box(ev.screenPos);
@@ -115,7 +115,7 @@ namespace bs
 
 	void ScriptInput::onPointerPressed(const PointerEvent& ev)
 	{
-		if (PlayInEditorManager::instance().getState() != PlayInEditorState::Playing)
+		if (PlayInEditor::instance().getState() != PlayInEditorState::Playing)
 			return;
 
 		MonoObject* screenPos = ScriptVector2I::box(ev.screenPos);
@@ -127,7 +127,7 @@ namespace bs
 
 	void ScriptInput::onPointerReleased(const PointerEvent& ev)
 	{
-		if (PlayInEditorManager::instance().getState() != PlayInEditorState::Playing)
+		if (PlayInEditor::instance().getState() != PlayInEditorState::Playing)
 			return;
 
 		MonoObject* screenPos = ScriptVector2I::box(ev.screenPos);
@@ -139,7 +139,7 @@ namespace bs
 
 	void ScriptInput::onPointerDoubleClick(const PointerEvent& ev)
 	{
-		if (PlayInEditorManager::instance().getState() != PlayInEditorState::Playing)
+		if (PlayInEditor::instance().getState() != PlayInEditorState::Playing)
 			return;
 
 		MonoObject* screenPos = ScriptVector2I::box(ev.screenPos);

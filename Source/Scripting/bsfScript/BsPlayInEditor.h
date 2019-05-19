@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	/**	States the game in editor can be in. */
-	enum class PlayInEditorState
+	enum class BS_SCRIPT_EXPORT(api:bed,m:Editor-General) PlayInEditorState
 	{
 		Stopped,
 		Playing,
@@ -20,15 +20,21 @@ namespace bs
 	};
 
 	/** Handles functionality specific to running the game in editor. */
-	class BS_SCR_BE_EXPORT PlayInEditorManager : public Module<PlayInEditorManager>
+	class BS_SCR_BE_EXPORT BS_SCRIPT_EXPORT(api:bed,m:Editor-General) PlayInEditor : public Module<PlayInEditor>
 	{
 	public:
-		PlayInEditorManager();
+		PlayInEditor();
 
 		/**	Returns the current play state of the game. */
+		BS_SCRIPT_EXPORT(in:true)
 		PlayInEditorState getState() const { return mState; }
 
-		/**	Updates the play state of the game, making the game stop or start running. */
+		/**	
+		 * Updates the play state of the game, making the game stop or start running. Note the actual state change
+		 * will be delayed until the next update() call. Use the onPlay/onStopped/onPaused/onUnpaused event to get notified 
+		 * when the change actually happens.
+		 */
+		BS_SCRIPT_EXPORT(in:true)
 		void setState(PlayInEditorState state);
 
 		/**
@@ -38,7 +44,24 @@ namespace bs
 		float getPausableTime() const { return mPausableTime; }
 
 		/**	Runs the game for a single frame and then pauses it. */
+		BS_SCRIPT_EXPORT()
 		void frameStep();
+
+		/** Triggered right after the play mode is entered. */
+		BS_SCRIPT_EXPORT()
+		Event<void()> onPlay;
+
+		/** Triggered right after the play mode is exited. */
+		BS_SCRIPT_EXPORT(in:true)
+		Event<void()> onStopped;
+
+		/** Triggered right after the user pauses play mode. */
+		BS_SCRIPT_EXPORT()
+		Event<void()> onPaused;
+
+		/** Triggered right after the user unpauses play mode. */
+		BS_SCRIPT_EXPORT()
+		Event<void()> onUnpaused;
 
 		/** @name Internal
 		 *  @{

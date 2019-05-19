@@ -8,7 +8,7 @@
 #include "Input/BsVirtualInput.h"
 #include "Wrappers/BsScriptVirtualButton.h"
 #include "Wrappers/BsScriptInputConfiguration.h"
-#include "BsPlayInEditorManager.h"
+#include "BsPlayInEditor.h"
 
 namespace bs
 {
@@ -56,7 +56,7 @@ namespace bs
 
 	void ScriptVirtualInput::onButtonDown(const VirtualButton& btn, UINT32 deviceIdx)
 	{
-		if (PlayInEditorManager::instance().getState() != PlayInEditorState::Playing)
+		if (PlayInEditor::instance().getState() != PlayInEditorState::Playing)
 			return;
 
 		MonoObject* virtualButton = ScriptVirtualButton::box(btn);
@@ -65,7 +65,7 @@ namespace bs
 
 	void ScriptVirtualInput::onButtonUp(const VirtualButton& btn, UINT32 deviceIdx)
 	{
-		if (PlayInEditorManager::instance().getState() != PlayInEditorState::Playing)
+		if (PlayInEditor::instance().getState() != PlayInEditorState::Playing)
 			return;
 
 		MonoObject* virtualButton = ScriptVirtualButton::box(btn);
@@ -74,7 +74,7 @@ namespace bs
 
 	void ScriptVirtualInput::onButtonHeld(const VirtualButton& btn, UINT32 deviceIdx)
 	{
-		if (PlayInEditorManager::instance().getState() != PlayInEditorState::Playing)
+		if (PlayInEditor::instance().getState() != PlayInEditorState::Playing)
 			return;
 
 		MonoObject* virtualButton = ScriptVirtualButton::box(btn);

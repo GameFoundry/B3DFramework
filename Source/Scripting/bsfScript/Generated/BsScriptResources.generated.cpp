@@ -17,6 +17,10 @@ namespace bs
 	ScriptResources::onResourceDestroyedThunkDef ScriptResources::onResourceDestroyedThunk; 
 	ScriptResources::onResourceModifiedThunkDef ScriptResources::onResourceModifiedThunk; 
 
+	HEvent ScriptResources::onResourceLoadedConn;
+	HEvent ScriptResources::onResourceDestroyedConn;
+	HEvent ScriptResources::onResourceModifiedConn;
+
 	ScriptResources::ScriptResources(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{
