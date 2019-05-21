@@ -583,7 +583,8 @@ namespace bs
 	{
 		GLSL45,
 		GLSL41,
-		VKSL45
+		VKSL45,
+		MVKSL
 	};
 
 	String crossCompile(const String& hlsl, GpuProgramType type, CrossCompileOutput outputType, bool optionalEntry,
@@ -591,11 +592,20 @@ namespace bs
 	{
 		SPtr<StringStream> input = bs_shared_ptr_new<StringStream>();
 
-		bool isVulkan = outputType == CrossCompileOutput::VKSL45;
-		if (isVulkan)
-			*input << "#define VULKAN 1" << std::endl;
-		else
+		bool autoBinding = outputType == CrossCompileOutput::VKSL45 || outputType == CrossCompileOutput::MVKSL;
+		switch(outputType)
+		{
+		case CrossCompileOutput::GLSL41:
+		case CrossCompileOutput::GLSL45:
 			*input << "#define OPENGL 1" << std::endl;
+			break;
+		case CrossCompileOutput::VKSL45:
+			*input << "#define VULKAN 1" << std::endl;
+			break;
+		case CrossCompileOutput::MVKSL:
+			*input << "#define METAL 1" << std::endl;
+			break;
+		}
 
 		*input << hlsl;
 
@@ -638,7 +648,7 @@ namespace bs
 
 		Xsc::ShaderOutput outputDesc;
 		outputDesc.sourceCode = &output;
-		outputDesc.options.autoBinding = isVulkan;
+		outputDesc.options.autoBinding = autoBinding;
 		outputDesc.options.autoBindingStartSlot = startBindingSlot;
 		outputDesc.options.fragmentLocations = true;
 		outputDesc.options.separateShaders = true;
@@ -657,6 +667,9 @@ namespace bs
 			outputDesc.shaderVersion = Xsc::OutputShaderVersion::GLSL410;
 			break;
 		case CrossCompileOutput::VKSL45:
+			outputDesc.shaderVersion = Xsc::OutputShaderVersion::VKSL450;
+			break;
+		case CrossCompileOutput::MVKSL:
 			outputDesc.shaderVersion = Xsc::OutputShaderVersion::VKSL450;
 			break;
 		}
@@ -738,8 +751,7 @@ namespace bs
 		return output.str();
 	}
 
-	// Convert HLSL code to GLSL
-	String HLSLtoGLSL(const String& hlsl, GpuProgramType type, CrossCompileOutput outputType, UINT32& startBindingSlot)
+	String crossCompile(const String& hlsl, GpuProgramType type, CrossCompileOutput outputType, UINT32& startBindingSlot)
 	{
 		return crossCompile(hlsl, type, outputType, false, startBindingSlot);
 	}
@@ -2116,7 +2128,7 @@ namespace bs
 
 		parseStateDelete(parseState);
 
-		// Parse extended HLSL code and generate per-program code, also convert to GLSL/VKSL
+		// Parse extended HLSL code and generate per-program code, also convert to GLSL/VKSL/MSL
 		const auto end = (UINT32)shaderData.size();
 		Vector<pair<ASTFXNode*, ShaderData>> outputShaderData;
 		for(UINT32 i = 0; i < end; i++)
@@ -2143,6 +2155,9 @@ namespace bs
 			ShaderData vkslShaderData = shaderData[i].second;
 			vkslShaderData.metaData.language = "vksl";
 
+			ShaderData mvksl = shaderData[i].second;
+			mvksl.metaData.language = "mvksl";
+
 			const auto numPasses = (UINT32)shaderDataEntry.passes.size();
 			for(UINT32 j = 0; j < numPasses; j++)
 			{
@@ -2155,83 +2170,46 @@ namespace bs
 				Vector<GpuProgramType> types;
 				reflectHLSL(passData.code, shaderDesc, types);
 
-				if(languages.isSet(ShadingLanguageFlag::GLSL))
+				auto crossCompilePass = [&types](PassData& passData, CrossCompileOutput language)
 				{
-					PassData& glslPassData = glslShaderData.passes[j];
-					UINT32 glslBinding = 0;
+					UINT32 binding = 0;
 
 					for (auto& type : types)
 					{
 						switch (type)
 						{
 						case GPT_VERTEX_PROGRAM:
-							glslPassData.vertexCode = HLSLtoGLSL(glslPassData.code, GPT_VERTEX_PROGRAM,
-								glslVersion, glslBinding);
+							passData.vertexCode = crossCompile(passData.code, GPT_VERTEX_PROGRAM, language, binding);
 							break;
 						case GPT_FRAGMENT_PROGRAM:
-							glslPassData.fragmentCode = HLSLtoGLSL(glslPassData.code, GPT_FRAGMENT_PROGRAM,
-								glslVersion, glslBinding);
+							passData.fragmentCode = crossCompile(passData.code, GPT_FRAGMENT_PROGRAM, language, binding);
 							break;
 						case GPT_GEOMETRY_PROGRAM:
-							glslPassData.geometryCode = HLSLtoGLSL(glslPassData.code, GPT_GEOMETRY_PROGRAM,
-								glslVersion, glslBinding);
+							passData.geometryCode = crossCompile(passData.code, GPT_GEOMETRY_PROGRAM, language, binding);
 							break;
 						case GPT_HULL_PROGRAM:
-							glslPassData.hullCode = HLSLtoGLSL(glslPassData.code, GPT_HULL_PROGRAM,
-								glslVersion, glslBinding);
+							passData.hullCode = crossCompile(passData.code, GPT_HULL_PROGRAM, language, binding);
 							break;
 						case GPT_DOMAIN_PROGRAM:
-							glslPassData.domainCode = HLSLtoGLSL(glslPassData.code, GPT_DOMAIN_PROGRAM,
-								glslVersion, glslBinding);
+							passData.domainCode = crossCompile(passData.code, GPT_DOMAIN_PROGRAM, language, binding);
 							break;
 						case GPT_COMPUTE_PROGRAM:
-							glslPassData.computeCode = HLSLtoGLSL(glslPassData.code, GPT_COMPUTE_PROGRAM,
-								glslVersion, glslBinding);
+							passData.computeCode = crossCompile(passData.code, GPT_COMPUTE_PROGRAM, language, binding);
 							break;
 						default:
 							break;
 						}
 					}
-				}
+				};
+
+				if(languages.isSet(ShadingLanguageFlag::GLSL))
+					crossCompilePass(glslShaderData.passes[j], glslVersion);
 
 				if(languages.isSet(ShadingLanguageFlag::VKSL))
-				{
-					PassData& vkslPassData = vkslShaderData.passes[j];
-					UINT32 vkslBinding = 0;
+					crossCompilePass(vkslShaderData.passes[j], CrossCompileOutput::VKSL45);
 
-					for (auto& type : types)
-					{
-						switch (type)
-						{
-						case GPT_VERTEX_PROGRAM:
-							vkslPassData.vertexCode = HLSLtoGLSL(vkslPassData.code, GPT_VERTEX_PROGRAM,
-								CrossCompileOutput::VKSL45, vkslBinding);
-							break;
-						case GPT_FRAGMENT_PROGRAM:
-							vkslPassData.fragmentCode = HLSLtoGLSL(vkslPassData.code, GPT_FRAGMENT_PROGRAM,
-								CrossCompileOutput::VKSL45, vkslBinding);
-							break;
-						case GPT_GEOMETRY_PROGRAM:
-							vkslPassData.geometryCode = HLSLtoGLSL(vkslPassData.code, GPT_GEOMETRY_PROGRAM,
-								CrossCompileOutput::VKSL45, vkslBinding);
-							break;
-						case GPT_HULL_PROGRAM:
-							vkslPassData.hullCode = HLSLtoGLSL(vkslPassData.code, GPT_HULL_PROGRAM,
-								CrossCompileOutput::VKSL45, vkslBinding);
-							break;
-						case GPT_DOMAIN_PROGRAM:
-							vkslPassData.domainCode = HLSLtoGLSL(vkslPassData.code, GPT_DOMAIN_PROGRAM,
-								CrossCompileOutput::VKSL45, vkslBinding);
-							break;
-						case GPT_COMPUTE_PROGRAM:
-							vkslPassData.computeCode = HLSLtoGLSL(vkslPassData.code, GPT_COMPUTE_PROGRAM,
-								CrossCompileOutput::VKSL45, vkslBinding);
-							break;
-						default:
-							break;
-						}
-					}
-				}
+				if(languages.isSet(ShadingLanguageFlag::MSL))
+					crossCompilePass(mvksl.passes[j], CrossCompileOutput::MVKSL);
 
 				if(languages.isSet(ShadingLanguageFlag::HLSL))
 				{
@@ -2284,6 +2262,7 @@ namespace bs
 			outputShaderData.push_back(std::make_pair(nullptr, hlslShaderData));
 			outputShaderData.push_back(std::make_pair(nullptr, glslShaderData));
 			outputShaderData.push_back(std::make_pair(nullptr, vkslShaderData));
+			outputShaderData.push_back(std::make_pair(nullptr, mvksl));
 		}
 
 		for(auto& entry : outputShaderData)

@@ -17,8 +17,8 @@ namespace bs { namespace ct
 	{
 	public:
 		/**	Finds the closest pixel format that a specific Vulkan device supports. */
-		static PixelFormat getClosestSupportedPixelFormat(VulkanDevice& device, PixelFormat format, TextureType texType, 
-			int usage, bool optimalTiling, bool hwGamma);
+		static PixelFormat getClosestSupportedPixelFormat(const VulkanDevice& device, PixelFormat format,
+			TextureType texType, int usage, bool optimalTiling, bool hwGamma);
 
 		/** Converts between framework's and Vulkan pixel format. */
 		static VkFormat getPixelFormat(PixelFormat format, bool sRGB = false);

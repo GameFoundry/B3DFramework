@@ -52,13 +52,21 @@ namespace bs { namespace ct
 			return;
 		}
 
-		if(!mBytecode || mBytecode->compilerId != VULKAN_COMPILER_ID || 
-			mBytecode->compilerVersion != VULKAN_COMPILER_VERSION)
+		if(!mBytecode ||
+#if BS_PLATFORM == BS_PLATFORM_OSX
+			mBytecode->compilerId != MOLTENVK_COMPILER_ID || mBytecode->compilerVersion != MOLTENVK_COMPILER_VERSION)
+#else
+			mBytecode->compilerId != VULKAN_COMPILER_ID || mBytecode->compilerVersion != VULKAN_COMPILER_VERSION)
+#endif
 		{
 			GPU_PROGRAM_DESC desc;
 			desc.type = mType;
 			desc.entryPoint = mEntryPoint;
+#if BS_PLATFORM == BS_PLATFORM_OSX
+			desc.language = "mvksl";
+#else
 			desc.language = "vksl";
+#endif
 			desc.source = mSource;
 
 			mBytecode = compileBytecode(desc);

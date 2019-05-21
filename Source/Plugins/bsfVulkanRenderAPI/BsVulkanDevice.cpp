@@ -3,6 +3,7 @@
 #include "BsVulkanDevice.h"
 #include "BsVulkanQueue.h"
 #include "BsVulkanCommandBuffer.h"
+#include "BsVulkanUtility.h"
 #include "Managers/BsVulkanDescriptorManager.h"
 #include "Managers/BsVulkanQueryManager.h"
 
@@ -239,7 +240,11 @@ namespace bs { namespace ct
 		SurfaceFormat output;
 		output.colorFormat = VK_FORMAT_R8G8B8A8_UNORM;
 		output.colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-		output.depthFormat = VK_FORMAT_D24_UNORM_S8_UINT;
+
+		PixelFormat depthFormat = VulkanUtility::getClosestSupportedPixelFormat(*this, PF_D24S8, TEX_TYPE_2D,
+			TU_DEPTHSTENCIL, true, false);
+
+		output.depthFormat = VulkanUtility::getPixelFormat(depthFormat);
 
 		// If there is no preferred format, use standard RGBA
 		if ((numFormats == 1) && (surfaceFormats[0].format == VK_FORMAT_UNDEFINED))

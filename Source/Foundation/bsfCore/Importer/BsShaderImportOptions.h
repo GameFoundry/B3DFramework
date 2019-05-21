@@ -20,8 +20,10 @@ namespace bs
 		GLSL = 1 << 1, 
 		/** Variant of GLSL used for Vulkan. */
 		VKSL = 1 << 2,
+		/** Metal shading language. */
+		MSL = 1 << 3,
 		/** Helper entry that includes all languages. */
-		All = HLSL | GLSL | VKSL
+		All = HLSL | GLSL | VKSL | MSL
 	};
 
 	using ShadingLanguageFlags = Flags<ShadingLanguageFlag>;

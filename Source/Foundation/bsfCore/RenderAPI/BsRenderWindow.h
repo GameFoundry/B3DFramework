@@ -63,7 +63,7 @@ namespace bs
 		bool hidden = false;
 
 		/** Should the window be created with a depth/stencil buffer. */
-		bool depthBuffer = true;
+		bool depthBuffer = false;
 
 		/** If higher than 1, texture containing multiple samples per pixel is created. */
 		UINT32 multisampleCount = 0;

@@ -8,8 +8,8 @@
 
 namespace bs { namespace ct
 {
-	PixelFormat VulkanUtility::getClosestSupportedPixelFormat(VulkanDevice& device, PixelFormat format, TextureType texType,
-		int usage, bool optimalTiling, bool hwGamma)
+	PixelFormat VulkanUtility::getClosestSupportedPixelFormat(const VulkanDevice& device, PixelFormat format,
+		TextureType texType, int usage, bool optimalTiling, bool hwGamma)
 	{
 		// Check for any obvious issues first
 		PixelUtil::checkFormat(format, texType, usage);

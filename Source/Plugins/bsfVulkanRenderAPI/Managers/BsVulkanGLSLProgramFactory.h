@@ -12,7 +12,7 @@ namespace bs { namespace ct
 	 */
 
 	/**	Handles creation of GLSL GPU programs. */
-	class VulkanGLSLProgramFactory : public GpuProgramFactory
+	class VulkanGLSLProgramFactory final : public GpuProgramFactory
 	{
 	public:
 		VulkanGLSLProgramFactory();

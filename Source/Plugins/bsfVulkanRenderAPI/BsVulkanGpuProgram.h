@@ -63,5 +63,14 @@ namespace bs { namespace ct
 	 */
 	static constexpr UINT32 VULKAN_COMPILER_VERSION = 1;
 
+	/** Identifier of the compiler used for compiling MoltenVK GPU programs. */
+	static constexpr const char* MOLTENVK_COMPILER_ID = "MoltenVK";
+
+	/**
+	 * Version of the compiler used for compiling MoltenVK GPU programs. Tick this whenever the compiler updates in order
+	 * to force bytecode to rebuild.
+	 */
+	static constexpr UINT32 MOLTENVK_COMPILER_VERSION = 1;
+
 	/** @} */
 }}

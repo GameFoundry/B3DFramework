@@ -5,6 +5,10 @@ include(CMakeSources.cmake)
 if(RENDER_API_MODULE MATCHES "Vulkan" OR INCLUDE_ALL_IN_WORKFLOW OR BUILD_ALL_RENDER_API)
 	find_package(Vulkan)
 	find_package(glslang)
+
+	if(APPLE)
+		find_package(SPIRVCross)
+	endif()
 endif()
 	
 # Target
@@ -26,6 +30,10 @@ target_compile_definitions(bsfVulkanRenderAPI PRIVATE -DBS_VULKAN_EXPORTS)
 ## External libs: Vulkan, glslang
 target_link_libraries(bsfVulkanRenderAPI PRIVATE ${Vulkan_LIBRARIES})
 target_link_libraries(bsfVulkanRenderAPI PRIVATE ${glslang_LIBRARIES})
+
+if(APPLE) # MacOS
+	target_link_libraries(bsfVulkanRenderAPI PRIVATE ${SPIRVCross_LIBRARIES})
+endif()
 
 ## OS libs
 if(APPLE) # MacOS

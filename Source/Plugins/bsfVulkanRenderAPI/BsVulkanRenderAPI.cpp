@@ -281,12 +281,17 @@ namespace bs { namespace ct
 		// Create vertex input manager
 		VulkanVertexInputManager::startUp();
 
-		// Create & register HLSL factory		
+		// Create & register GPU program factories
 		mGLSLFactory = bs_new<VulkanGLSLProgramFactory>();
+
+#if BS_PLATFORM == BS_PLATFORM_OSX
+		GpuProgramManager::instance().addFactory("mvksl", mGLSLFactory);
+#else
+		GpuProgramManager::instance().addFactory("vksl", mGLSLFactory);
+#endif
 
 		// Create render state manager
 		RenderStateManager::startUp<VulkanRenderStateManager>();
-		GpuProgramManager::instance().addFactory("vksl", mGLSLFactory);
 
 		initCapabilites();
 		

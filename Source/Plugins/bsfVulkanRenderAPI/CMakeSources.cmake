@@ -26,6 +26,7 @@ set(BS_VULKANRENDERAPI_INC_NOFILTER
 	"BsVulkanDescriptorSet.h"
 	"BsVulkanSamplerState.h"
 	"BsVulkanGpuPipelineParamInfo.h"
+	"BsVulkanGLSLToSPIRV.h"
 )
 
 set(BS_VULKANRENDERAPI_INC_MANAGERS
@@ -69,6 +70,7 @@ set(BS_VULKANRENDERAPI_SRC_NOFILTER
 	"BsVulkanDescriptorSet.cpp"
 	"BsVulkanSamplerState.cpp"
 	"BsVulkanGpuPipelineParamInfo.cpp"
+	"BsVulkanGLSLToSPIRV.cpp"
 )
 
 set(BS_VULKANRENDERAPI_SRC_MANAGERS
