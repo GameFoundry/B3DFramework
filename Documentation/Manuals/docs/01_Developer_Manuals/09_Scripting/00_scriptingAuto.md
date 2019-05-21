@@ -2,9 +2,11 @@
 title: Exposing code to script API (automated)
 ---
 
-When you've added a new feature, system or just extended existing ones you might want to expose that functionality to the scripting API. bs::f makes this process easier through its automated script binding generator tool. All you need to do is to decorate the C++ types and methods you wish to export and run the tool. The tool is ran automatically whenever you build through CMake if *GENERATE_SCRIPT_BINDINGS* option is turned on.
+When you've added a new feature, system or just extended an existing one you might want to expose that functionality to the scripting API. The framework makes this process easier through its automated script binding generator tool. All you need to do is to decorate the C++ types and methods you wish to export and run the tool.
 
-**BS_SCRIPT_EXPORT** macro supports a variety of parameters used for customizing how will the type/method be exported.
+This manual will teach you how to decorate the C++ code in order to expose it to the script API. To learn how to run the script binding generator tool visit the [Generating script bindings](../Build/generatingScriptBindings) manual.
+
+Entirety of automated script export is handled through the **BS_SCRIPT_EXPORT** macro. The macro supports a variety of parameters used for customizing how will the type/method be exported.
 
 # Exporting classes
 In order to export a class to script code you need to decorate the class and one or multiple methods with **BS_SCRIPT_EXPORT** macro. 
@@ -33,7 +35,7 @@ public partial class MyClass : ScriptObject
 ~~~~~~~~~~~~~
 
 There are a few important rules when using **BS_SCRIPT_EXPORT**:
- - It CAN be used on non-templated classes or structs, as well as **Resource**%s and **Component**%s
+ - It CAN be used on non-templated classes or structs, as well as **Resource**s and **Component**s
  - It CANNOT be used on templated classes or structs
  - It CAN be used on public constructors and non-templated methods
  - It CANNOT be used on destructors, operators, templated methods or private/protected methods of any kind
