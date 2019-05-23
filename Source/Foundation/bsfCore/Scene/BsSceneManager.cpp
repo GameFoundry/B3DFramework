@@ -476,6 +476,10 @@ namespace bs
 			if(component.isDestroyed(false))
 				continue;
 
+			UINT32 existingListType;
+			UINT32 existingIdx;
+			decodeComponentId(component->getSceneManagerId(), existingIdx, existingListType);
+
 			const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
 			const bool isActive = component->SO()->getActive();
 
@@ -492,16 +496,14 @@ namespace bs
 			case ComponentStateEventType::Deactivated:
 				if (alwaysRun || !isStopped)
 					listType = isActive ? ActiveList : InactiveList;
+				else
+					listType = (existingListType == UninitializedList) ? UninitializedList : InactiveList;
 				break;
 			case ComponentStateEventType::Destroyed: 
 				listType = 0;
 				break;
 			default: break;
 			}
-
-			UINT32 existingListType;
-			UINT32 existingIdx;
-			decodeComponentId(component->getSceneManagerId(), existingIdx, existingListType);
 
 			if(existingListType == listType)
 				continue;
