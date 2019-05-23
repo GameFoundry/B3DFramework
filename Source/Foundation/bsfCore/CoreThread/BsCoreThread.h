@@ -5,7 +5,6 @@
 #include "BsCorePrerequisites.h"
 #include "Utility/BsModule.h"
 #include "CoreThread/BsCommandQueue.h"
-#include "CoreThread/BsCoreThreadQueue.h"
 #include "Threading/BsThreadPool.h"
 
 namespace bs
@@ -60,7 +59,7 @@ namespace bs
 		/** Contains data about an queue for a specific thread. */
 		struct ThreadQueueContainer
 		{
-			SPtr<TCoreThreadQueue<CommandQueueNoSync>> queue;
+			SPtr<CommandQueue<CommandQueueSync>> queue;
 			bool isMain;
 		};
 
@@ -181,7 +180,13 @@ namespace bs
 		void shutdownCoreThread();
 
 		/** Creates or retrieves a queue for the calling thread. */
-		SPtr<TCoreThreadQueue<CommandQueueNoSync>> getQueue();
+		SPtr<CommandQueue<CommandQueueSync>> getQueue();
+
+		/** 
+		 * Submits all the commands from the provided command queue to the internal command queue. Optionally blocks the
+		 * calling thread until all the submitted commands have done executing.
+		 */
+		void submitCommandQueue(CommandQueue<CommandQueueSync>& queue, bool blockUntilComplete);
 
 		/**
 		 * Blocks the calling thread until the command with the specified ID completes. Make sure that the specified ID 

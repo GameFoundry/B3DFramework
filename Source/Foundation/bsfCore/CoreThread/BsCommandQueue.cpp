@@ -83,6 +83,7 @@ namespace bs
 	{
 		bs::Queue<QueuedCommand>* oldCommands = mCommands;
 
+		Lock lock(mEmptyCommandQueueMutex);
 		if(!mEmptyCommandQueues.empty())
 		{
 			mCommands = mEmptyCommandQueues.top();
@@ -132,6 +133,7 @@ namespace bs
 			commands->pop();
 		}
 
+		Lock lock(mEmptyCommandQueueMutex);
 		mEmptyCommandQueues.push(commands);
 	}
 
@@ -147,6 +149,7 @@ namespace bs
 		while(!commands->empty())
 			commands->pop();
 
+		Lock lock(mEmptyCommandQueueMutex);
 		mEmptyCommandQueues.push(commands);
 	}
 

@@ -137,11 +137,11 @@ namespace bs
 #endif
 	}
 
-	SPtr<TCoreThreadQueue<CommandQueueNoSync>> CoreThread::getQueue()
+	SPtr<CommandQueue<CommandQueueSync>> CoreThread::getQueue()
 	{
 		if(mPerThreadQueue.current == nullptr)
 		{
-			SPtr<TCoreThreadQueue<CommandQueueNoSync>> newQueue = bs_shared_ptr_new<TCoreThreadQueue<CommandQueueNoSync>>(BS_THREAD_CURRENT_ID);
+			SPtr<CommandQueue<CommandQueueSync>> newQueue = bs_shared_ptr_new<CommandQueue<CommandQueueSync>>(BS_THREAD_CURRENT_ID);
 			mPerThreadQueue.current = bs_new<ThreadQueueContainer>();
 			mPerThreadQueue.current->queue = newQueue;
 			mPerThreadQueue.current->isMain = BS_THREAD_CURRENT_ID == mSimThreadId;
@@ -151,6 +151,18 @@ namespace bs
 		}
 
 		return mPerThreadQueue.current->queue;
+	}
+
+	void CoreThread::submitCommandQueue(CommandQueue<CommandQueueSync>& queue, bool blockUntilComplete)
+	{
+		Queue<QueuedCommand>* commands = queue.flush();
+
+		CoreThreadQueueFlags flags = CTQF_InternalQueue;
+
+		if(blockUntilComplete)
+			flags |= CTQF_BlockUntilComplete;
+
+		queueCommand(std::bind(&CommandQueueBase::playback, &queue, commands), flags);
 	}
 
 	void CoreThread::submitAll(bool blockUntilComplete)
@@ -168,19 +180,19 @@ namespace bs
 		for (auto& queue : queueCopies)
 		{
 			if (!queue->isMain)
-				queue->queue->submitToCoreThread(blockUntilComplete);
+				submitCommandQueue(*queue->queue, blockUntilComplete);
 			else
 				mainQueue = queue;
 		}
 
 		// Then main
 		if (mainQueue != nullptr)
-			mainQueue->queue->submitToCoreThread(blockUntilComplete);
+			submitCommandQueue(*mainQueue->queue, blockUntilComplete);
 	}
 
 	void CoreThread::submit(bool blockUntilComplete)
 	{
-		getQueue()->submitToCoreThread(blockUntilComplete);
+		submitCommandQueue(*getQueue(), blockUntilComplete);
 	}
 
 	AsyncOp CoreThread::queueReturnCommand(std::function<void(AsyncOp&)> commandCallback, CoreThreadQueueFlags flags)
@@ -188,7 +200,7 @@ namespace bs
 		assert(BS_THREAD_CURRENT_ID != getCoreThreadId() && "Cannot queue commands on the core thread for the core thread");
 
 		if (!flags.isSet(CTQF_InternalQueue))
-			return getQueue()->queueReturnCommand(commandCallback);
+			return getQueue()->queueReturn(commandCallback);
 		else
 		{
 			bool blockUntilComplete = flags.isSet(CTQF_BlockUntilComplete);
@@ -221,7 +233,7 @@ namespace bs
 		assert(BS_THREAD_CURRENT_ID != getCoreThreadId() && "Cannot queue commands on the core thread for the core thread");
 
 		if (!flags.isSet(CTQF_InternalQueue))
-			getQueue()->queueCommand(commandCallback);
+			getQueue()->queue(commandCallback);
 		else
 		{
 			bool blockUntilComplete = flags.isSet(CTQF_BlockUntilComplete);

@@ -146,7 +146,6 @@ namespace bs
 		 * @param[in]	threadId	   	Identifier for the thread the command queue will be getting commands from.					
 		 */
 		CommandQueueBase(ThreadId threadId);
-		virtual ~CommandQueueBase();
 
 		/**
 		 * Gets the thread identifier the command queue is used on.
@@ -229,6 +228,8 @@ namespace bs
 		bool isEmpty();
 
 	protected:
+		~CommandQueueBase();
+
 		/**
 		 * Helper method that throws an "Invalid thread" exception. Used primarily so we can avoid including Exception 
 		 * include in this header.
@@ -237,10 +238,12 @@ namespace bs
 
 	private:
 		Queue<QueuedCommand>* mCommands;
-		Stack<Queue<QueuedCommand>*> mEmptyCommandQueues; /**< List of empty queues for reuse. */
 
 		SPtr<AsyncOpSyncData> mAsyncOpSyncData;
 		ThreadId mMyThreadId;
+
+		Stack<Queue<QueuedCommand>*> mEmptyCommandQueues; /**< List of empty queues for reuse. */
+		Mutex mEmptyCommandQueueMutex;
 
 		// Various variables that allow for easier debugging by allowing us to trigger breakpoints
 		// when a certain command was queued.
