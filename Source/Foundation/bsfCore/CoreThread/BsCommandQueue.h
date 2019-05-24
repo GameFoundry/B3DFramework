@@ -19,16 +19,14 @@ namespace bs
 	class CommandQueueNoSync
 	{
 	public:
-		CommandQueueNoSync() {}
-		virtual ~CommandQueueNoSync() {}
+		struct LockGuard { };
 
 		bool isValidThread(ThreadId ownerThread) const
 		{
 			return BS_THREAD_CURRENT_ID == ownerThread;
 		}
 
-		void lock() { };
-		void unlock() { }
+		LockGuard lock();
 	};
 
 	/**
@@ -38,29 +36,23 @@ namespace bs
 	class CommandQueueSync
 	{
 	public:
-		CommandQueueSync()
-			:mLock(mCommandQueueMutex, std::defer_lock)
-		{ }
-		virtual ~CommandQueueSync() {}
+		struct LockGuard
+		{
+			Lock lock;
+		};
 
 		bool isValidThread(ThreadId ownerThread) const
 		{
 			return true;
 		}
 
-		void lock() 
+		LockGuard lock() 
 		{
-			mLock.lock();
+			return LockGuard { Lock(mCommandQueueMutex) };
 		};
-
-		void unlock()
-		{
-			mLock.unlock();
-		}
 
 	private:
 		Mutex mCommandQueueMutex;
-		Lock mLock;
 	};
 
 	/**
@@ -312,9 +304,8 @@ namespace bs
 #endif
 #endif
 
-			this->lock();
+			typename SyncPolicy::LockGuard lockGuard = this->lock();
 			AsyncOp asyncOp = CommandQueueBase::queueReturn(commandCallback, _notifyWhenComplete, _callbackId);
-			this->unlock();
 
 			return asyncOp;
 		}
@@ -329,9 +320,8 @@ namespace bs
 #endif
 #endif
 
-			this->lock();
+			typename SyncPolicy::LockGuard lockGuard = this->lock();
 			CommandQueueBase::queue(commandCallback, _notifyWhenComplete, _callbackId);
-			this->unlock();
 		}
 
 		/** @copydoc CommandQueueBase::flush */
@@ -344,9 +334,8 @@ namespace bs
 #endif
 #endif
 
-			this->lock();
-			bs::Queue<QueuedCommand>* commands = CommandQueueBase::flush();
-			this->unlock();
+			typename SyncPolicy::LockGuard lockGuard = this->lock();
+			Queue<QueuedCommand>* commands = CommandQueueBase::flush();
 
 			return commands;
 		}
@@ -361,9 +350,8 @@ namespace bs
 #endif
 #endif
 
-			this->lock();
+			typename SyncPolicy::LockGuard lockGuard = this->lock();
 			CommandQueueBase::cancelAll();
-			this->unlock();
 		}
 
 		/** @copydoc CommandQueueBase::isEmpty */
@@ -376,9 +364,8 @@ namespace bs
 #endif
 #endif
 
-			this->lock();
+			typename SyncPolicy::LockGuard lockGuard = this->lock();
 			bool empty = CommandQueueBase::isEmpty();
-			this->unlock();
 
 			return empty;
 		}
