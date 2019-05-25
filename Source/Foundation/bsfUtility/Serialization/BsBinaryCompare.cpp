@@ -11,6 +11,11 @@ namespace bs
 		template<class T>
 		struct ScopeGuard
 		{
+			~ScopeGuard()
+			{
+				callback();
+			}
+
 			T callback;
 		};
 
