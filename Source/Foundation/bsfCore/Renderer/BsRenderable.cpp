@@ -159,6 +159,9 @@ namespace bs
 		// Since we don't pass any information along to the core thread object on its construction, make sure the data
 		// sync executes
 		_markCoreDirty();
+
+		// If any resources were deserialized before initialization, make sure the listener is notified
+		_markResourcesDirty();
 	}
 
 
