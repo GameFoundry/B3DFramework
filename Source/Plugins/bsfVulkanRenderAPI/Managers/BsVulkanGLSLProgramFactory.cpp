@@ -99,7 +99,6 @@ namespace bs { namespace ct
 				break;
 			}
 
-			//Vector<ParamBlockMapping> paramBlockMapping;
 			for(auto& entry : msl->paramDesc->paramBlocks)
 			{
 				spirv_cross::MSLResourceBinding binding;
@@ -118,10 +117,20 @@ namespace bs { namespace ct
 				binding.stage = stage;
 				binding.desc_set = entry.second.set;
 				binding.binding = entry.second.slot;
-				binding.msl_buffer = bufferIdx;
+
+				// Non-structured buffers treated as textures by MSL
+				if(entry.second.type == GPOT_BYTE_BUFFER || entry.second.type == GPOT_RWBYTE_BUFFER)
+				{
+					binding.msl_texture = textureIdx;
+					textureIdx++;
+				}
+				else
+				{
+					binding.msl_buffer = bufferIdx;
+					bufferIdx++;
+				}
 
 				compiler.add_msl_resource_binding(binding);
-				bufferIdx++;
 			}
 
 			for(auto& entry : msl->paramDesc->samplers)
