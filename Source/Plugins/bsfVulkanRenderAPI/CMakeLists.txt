@@ -4,7 +4,7 @@ if(APPLE) # MacOS
 		set(BS_SPVC_PREBUILT_DEPENDENCY_VERSION 1) # Tick this when you change the binaries
 		check_and_update_binary_deps(bsfDep_SPIRVCross SPIRVCross ${BSF_SOURCE_DIR}/../Dependencies/SPIRVCross ${BS_SPVC_PREBUILT_DEPENDENCY_VERSION})
 
-		set(BS_MVK_PREBUILT_DEPENDENCY_VERSION 1) # Tick this when you change the binaries
+		set(BS_MVK_PREBUILT_DEPENDENCY_VERSION 2) # Tick this when you change the binaries
 		check_and_update_binary_deps(bsfDep_MoltenVK MoltenVK ${BSF_SOURCE_DIR}/../Dependencies/MoltenVK ${BS_MVK_PREBUILT_DEPENDENCY_VERSION})
 	endif()
 endif()

@@ -13,6 +13,10 @@
 #include "FileSystem/BsFileSystem.h"
 #include "FileSystem/BsDataStream.h"
 
+#if BS_PLATFORM == BS_PLATFORM_OSX
+	#include <MoltenVK/vk_mvk_moltenvk.h>
+#endif
+
 namespace bs { namespace ct
 {
 	VulkanShaderModule::VulkanShaderModule(VulkanResourceManager* owner, VkShaderModule module)
@@ -80,13 +84,28 @@ namespace bs { namespace ct
 			VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::instance());
 			VulkanDevice* devices[BS_MAX_DEVICES];
 
+			UINT32 codeSize = mBytecode->instructions.size;
+			UINT8* code = mBytecode->instructions.data;
+
+#if BS_PLATFORM == BS_PLATFORM_OSX
+			UINT32 workgroupSize[3] = { 1, 1, 1 };
+			if(mType == GPT_COMPUTE_PROGRAM)
+			{
+				assert(codeSize > sizeof(workgroupSize));
+
+				memcpy(workgroupSize, code, sizeof(workgroupSize));
+				code += sizeof(workgroupSize);
+				codeSize -= sizeof(workgroupSize);
+			}
+#endif
+
 			// Create Vulkan module
 			VkShaderModuleCreateInfo moduleCI;
 			moduleCI.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 			moduleCI.pNext = nullptr;
 			moduleCI.flags = 0;
-			moduleCI.codeSize = mBytecode->instructions.size;
-			moduleCI.pCode = (uint32_t*)mBytecode->instructions.data;
+			moduleCI.codeSize = codeSize;
+			moduleCI.pCode = (uint32_t*)code;
 
 			VulkanUtility::getDevices(rapi, mDeviceMask, devices);
 
@@ -101,6 +120,10 @@ namespace bs { namespace ct
 					VkResult result = vkCreateShaderModule(vkDevice, &moduleCI, gVulkanAllocator, &shaderModule);
 					assert(result == VK_SUCCESS);
 
+#if BS_PLATFORM == BS_PLATFORM_OSX
+					if(mType == GPT_COMPUTE_PROGRAM)
+						vkSetThreadgroupSizeMVK(shaderModule, workgroupSize[0], workgroupSize[1], workgroupSize[2]);
+#endif
 					mModules[i] = rescManager.create<VulkanShaderModule>(shaderModule);
 				}
 			}

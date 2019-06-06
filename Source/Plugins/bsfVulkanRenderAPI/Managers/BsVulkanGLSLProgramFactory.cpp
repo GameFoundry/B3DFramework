@@ -90,10 +90,6 @@ namespace bs { namespace ct
 		spirv_cross::CompilerMSL compiler((UINT32*)spirv->instructions.data, spirv->instructions.size / sizeof(UINT32));
 
 		// Remap resource bindings
-		UINT32 bufferIdx = 0;
-		UINT32 samplerIdx = 0;
-		UINT32 textureIdx = 0;
-
 		if(msl->paramDesc)
 		{
 			spv::ExecutionModel stage;
@@ -122,79 +118,98 @@ namespace bs { namespace ct
 				break;
 			}
 
-			iterateSorted(msl->paramDesc->paramBlocks, [stage, &compiler, &bufferIdx](const GpuParamBlockDesc* desc)
-			{
-				spirv_cross::MSLResourceBinding binding;
-				binding.stage = stage;
-				binding.desc_set = desc->set;
-				binding.binding = desc->slot;
-				binding.msl_buffer = bufferIdx;
+			auto count
+				= msl->paramDesc->paramBlocks.size()
+				+ msl->paramDesc->textures.size()
+				+ msl->paramDesc->samplers.size()
+				+ msl->paramDesc->loadStoreTextures.size()
+				+ msl->paramDesc->buffers.size();
 
-				compiler.add_msl_resource_binding(binding);
-				bufferIdx++;
-			});
+			auto sortedEntries = bs_managed_stack_alloc<spirv_cross::MSLResourceBinding>((UINT32)count);
+			size_t i = 0;
 
-			iterateSorted(msl->paramDesc->buffers,
-					[stage, &compiler, &bufferIdx, &textureIdx](const GpuParamObjectDesc* desc)
+			for(auto& entry : msl->paramDesc->paramBlocks)
 			{
-				spirv_cross::MSLResourceBinding binding;
+				spirv_cross::MSLResourceBinding& binding = sortedEntries[i++];
 				binding.stage = stage;
-				binding.desc_set = desc->set;
-				binding.binding = desc->slot;
+				binding.desc_set = entry.second.set;
+				binding.binding = entry.second.slot;
+				binding.msl_buffer = 2;
+			}
+
+			for(auto& entry : msl->paramDesc->textures)
+			{
+				spirv_cross::MSLResourceBinding& binding = sortedEntries[i++];
+				binding.stage = stage;
+				binding.desc_set = entry.second.set;
+				binding.binding = entry.second.slot;
+				binding.msl_buffer = 0;
+			}
+
+			for(auto& entry : msl->paramDesc->samplers)
+			{
+				spirv_cross::MSLResourceBinding& binding = sortedEntries[i++];
+				binding.stage = stage;
+				binding.desc_set = entry.second.set;
+				binding.binding = entry.second.slot;
+				binding.msl_buffer = 1;
+			}
+
+			for(auto& entry : msl->paramDesc->loadStoreTextures)
+			{
+				spirv_cross::MSLResourceBinding& binding = sortedEntries[i++];
+				binding.stage = stage;
+				binding.desc_set = entry.second.set;
+				binding.binding = entry.second.slot;
+				binding.msl_buffer = 0;
+			}
+
+			for(auto& entry : msl->paramDesc->buffers)
+			{
+				spirv_cross::MSLResourceBinding& binding = sortedEntries[i++];
+				binding.stage = stage;
+				binding.desc_set = entry.second.set;
+				binding.binding = entry.second.slot;
 
 				// Non-structured buffers treated as textures by MSL
-				if(desc->type == GPOT_BYTE_BUFFER || desc->type == GPOT_RWBYTE_BUFFER)
-				{
-					binding.msl_texture = textureIdx;
-					textureIdx++;
-				}
+				if(entry.second.type == GPOT_BYTE_BUFFER || entry.second.type == GPOT_RWBYTE_BUFFER)
+					binding.msl_buffer = 0;
 				else
+					binding.msl_buffer = 2;
+			}
+
+			std::sort(sortedEntries + 0, sortedEntries + count,
+				[](const spirv_cross::MSLResourceBinding& a, const spirv_cross::MSLResourceBinding& b)
 				{
-					binding.msl_buffer = bufferIdx;
-					bufferIdx++;
+					if(a.desc_set == b.desc_set)
+						return a.binding < b.binding;
+
+					return a.desc_set < b.desc_set;
+				});
+
+			UINT32 bufferIdx = 0;
+			UINT32 samplerIdx = 0;
+			UINT32 textureIdx = 0;
+
+			for(i = 0; i < count; i++)
+			{
+				spirv_cross::MSLResourceBinding& binding = sortedEntries[i];
+				switch(binding.msl_buffer)
+				{
+				default:
+				case 0: // Texture
+					binding.msl_sampler = binding.msl_buffer = binding.msl_texture = textureIdx++;
+					break;
+				case 1: // Sampler
+					binding.msl_sampler = binding.msl_buffer = binding.msl_texture = samplerIdx++;
+					break;
+				case 2: // Buffer
+					binding.msl_sampler = binding.msl_buffer = binding.msl_texture = bufferIdx++;
+					break;
 				}
 
 				compiler.add_msl_resource_binding(binding);
-			});
-
-			iterateSorted(msl->paramDesc->samplers,
-					[stage, &compiler, &samplerIdx](const GpuParamObjectDesc* desc)
-			{
-				spirv_cross::MSLResourceBinding binding;
-				binding.stage = stage;
-				binding.desc_set = desc->set;
-				binding.binding = desc->slot;
-				binding.msl_sampler = samplerIdx;
-
-				compiler.add_msl_resource_binding(binding);
-				samplerIdx++;
-			});
-
-			iterateSorted(msl->paramDesc->textures,
-					[stage, &compiler, &textureIdx](const GpuParamObjectDesc* desc)
-			{
-				spirv_cross::MSLResourceBinding binding;
-				binding.stage = stage;
-				binding.desc_set = desc->set;
-				binding.binding = desc->slot;
-				binding.msl_texture = textureIdx;
-
-				compiler.add_msl_resource_binding(binding);
-				textureIdx++;
-			});
-
-			iterateSorted(msl->paramDesc->loadStoreTextures,
-					[stage, &compiler, &textureIdx](const GpuParamObjectDesc* desc)
-			{
-				spirv_cross::MSLResourceBinding binding;
-				binding.stage = stage;
-				binding.desc_set = desc->set;
-				binding.binding = desc->slot;
-				binding.msl_texture = textureIdx;
-
-				compiler.add_msl_resource_binding(binding);
-				textureIdx++;
-			});
+			}
 		}
 
 		spirv_cross::CompilerMSL::Options mslOptions;
@@ -208,6 +223,23 @@ namespace bs { namespace ct
 
 		compiler.set_common_options(glslOptions);
 		std::string source = compiler.compile();
+
+		// Parse workgroup size for compute shaders
+		UINT32 workgroupSize[3] = { 1, 1, 1 };
+		if(desc.type == GPT_COMPUTE_PROGRAM)
+		{
+			spirv_cross::SPIREntryPoint spvEP;
+			const auto& entryPoints = compiler.get_entry_points_and_stages();
+			if (!entryPoints.empty())
+			{
+				auto& ep = entryPoints[0];
+				spvEP = compiler.get_entry_point(ep.name, ep.execution_model);
+			}
+
+			workgroupSize[0] = spvEP.workgroup_size.x;
+			workgroupSize[1] = spvEP.workgroup_size.y;
+			workgroupSize[2] = spvEP.workgroup_size.z;
+		}
 
 		// Copy the source into destination buffer
 		if(msl->instructions.data)
@@ -223,12 +255,24 @@ namespace bs { namespace ct
 		constexpr UINT32 MVK_MSL_Source = 0x19960412;
 
 		UINT32 size = (UINT32)source.size() + sizeof(MVK_MSL_Source) + 1;
+		if(desc.type == GPT_COMPUTE_PROGRAM)
+			size += sizeof(workgroupSize);
+
 		UINT32 wordSize = Math::divideAndRoundUp(size, 4U);
 
 		UINT8* buffer = (UINT8*)bs_alloc(wordSize * 4);
+		UINT8* dst = buffer;
 
-		memcpy(buffer, &MVK_MSL_Source, sizeof(MVK_MSL_Source));
-		memcpy(buffer + sizeof(MVK_MSL_Source), source.data(), source.size());
+		if(desc.type == GPT_COMPUTE_PROGRAM)
+		{
+			memcpy(dst, workgroupSize, sizeof(workgroupSize));
+			dst += sizeof(workgroupSize);
+		}
+
+		memcpy(dst, &MVK_MSL_Source, sizeof(MVK_MSL_Source));
+		dst += sizeof(MVK_MSL_Source);
+
+		memcpy(dst, source.data(), source.size());
 
 		for(UINT32 i = size - 1; i < wordSize * 4; i++)
 			buffer[i] = '\0';
