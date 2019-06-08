@@ -8,10 +8,11 @@
 #include "../../../Foundation/bsfUtility/Image/BsColorGradient.h"
 #include "Image/BsColor.h"
 #include "Math/BsMatrix4.h"
+#include "Math/BsMatrix3.h"
+#include "../../../Foundation/bsfCore/Material/BsShaderVariation.h"
 #include "Math/BsVector4.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "Math/BsVector3.h"
-#include "Math/BsMatrix3.h"
 
 namespace bs
 {
@@ -31,8 +32,10 @@ namespace bs
 		static MonoObject* Internal_getRef(ScriptMaterial* thisPtr);
 
 		static void Internal_setShader(ScriptMaterial* thisPtr, MonoObject* shader);
+		static void Internal_setVariation(ScriptMaterial* thisPtr, MonoObject* variation);
 		static MonoObject* Internal_clone(ScriptMaterial* thisPtr);
 		static MonoObject* Internal_getShader(ScriptMaterial* thisPtr);
+		static MonoObject* Internal_getVariation(ScriptMaterial* thisPtr);
 		static void Internal_setFloat(ScriptMaterial* thisPtr, MonoString* name, float value, uint32_t arrayIdx);
 		static void Internal_setFloatCurve(ScriptMaterial* thisPtr, MonoString* name, MonoObject* value, uint32_t arrayIdx);
 		static void Internal_setColor(ScriptMaterial* thisPtr, MonoString* name, Color* value, uint32_t arrayIdx);

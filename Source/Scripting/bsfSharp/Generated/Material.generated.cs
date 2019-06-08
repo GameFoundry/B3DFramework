@@ -49,6 +49,20 @@ namespace bs
 			set { Internal_setShader(mCachedPtr, value); }
 		}
 
+		/// <summary>
+		/// Set of parameters that determine which subset of techniques in the assigned shader should be used. Only the  
+		/// techniques that have the provided parameters with the provided values will match. This will control which  technique 
+		/// is considered the default technique and which subset of techniques are searched during a call to  findTechnique().
+		/// </summary>
+		[NotNull]
+		[PassByCopy]
+		[NativeWrapper]
+		public ShaderVariation Variation
+		{
+			get { return Internal_getVariation(mCachedPtr); }
+			set { Internal_setVariation(mCachedPtr, value); }
+		}
+
 		/// <summary>Returns a reference wrapper for this resource.</summary>
 		public static implicit operator RRef<Material>(Material x)
 		{
@@ -273,9 +287,13 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setShader(IntPtr thisPtr, RRef<Shader> shader);
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_setVariation(IntPtr thisPtr, ShaderVariation variation);
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern RRef<Material> Internal_clone(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern RRef<Shader> Internal_getShader(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern ShaderVariation Internal_getVariation(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setFloat(IntPtr thisPtr, string name, float value, int arrayIdx);
 		[MethodImpl(MethodImplOptions.InternalCall)]

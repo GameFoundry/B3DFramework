@@ -12,6 +12,7 @@
 #include "Wrappers/BsScriptColor.h"
 #include "../../../Foundation/bsfCore/Material/BsMaterial.h"
 #include "../../../Foundation/bsfCore/Material/BsShader.h"
+#include "BsScriptShaderVariation.generated.h"
 #include "Wrappers/BsScriptVector.h"
 #include "BsScriptTAnimationCurve.generated.h"
 #include "Wrappers/BsScriptVector.h"
@@ -30,8 +31,10 @@ namespace bs
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetRef", (void*)&ScriptMaterial::Internal_getRef);
 		metaData.scriptClass->addInternalCall("Internal_setShader", (void*)&ScriptMaterial::Internal_setShader);
+		metaData.scriptClass->addInternalCall("Internal_setVariation", (void*)&ScriptMaterial::Internal_setVariation);
 		metaData.scriptClass->addInternalCall("Internal_clone", (void*)&ScriptMaterial::Internal_clone);
 		metaData.scriptClass->addInternalCall("Internal_getShader", (void*)&ScriptMaterial::Internal_getShader);
+		metaData.scriptClass->addInternalCall("Internal_getVariation", (void*)&ScriptMaterial::Internal_getVariation);
 		metaData.scriptClass->addInternalCall("Internal_setFloat", (void*)&ScriptMaterial::Internal_setFloat);
 		metaData.scriptClass->addInternalCall("Internal_setFloatCurve", (void*)&ScriptMaterial::Internal_setFloatCurve);
 		metaData.scriptClass->addInternalCall("Internal_setColor", (void*)&ScriptMaterial::Internal_setColor);
@@ -82,6 +85,16 @@ namespace bs
 		thisPtr->getHandle()->setShader(tmpshader);
 	}
 
+	void ScriptMaterial::Internal_setVariation(ScriptMaterial* thisPtr, MonoObject* variation)
+	{
+		SPtr<ShaderVariation> tmpvariation;
+		ScriptShaderVariation* scriptvariation;
+		scriptvariation = ScriptShaderVariation::toNative(variation);
+		if(scriptvariation != nullptr)
+			tmpvariation = scriptvariation->getInternal();
+		thisPtr->getHandle()->setVariation(*tmpvariation);
+	}
+
 	MonoObject* ScriptMaterial::Internal_clone(ScriptMaterial* thisPtr)
 	{
 		ResourceHandle<Material> tmp__output;
@@ -110,6 +123,17 @@ namespace bs
 			__output = script__output->getManagedInstance();
 		else
 			__output = nullptr;
+
+		return __output;
+	}
+
+	MonoObject* ScriptMaterial::Internal_getVariation(ScriptMaterial* thisPtr)
+	{
+		SPtr<ShaderVariation> tmp__output = bs_shared_ptr_new<ShaderVariation>();
+		*tmp__output = thisPtr->getHandle()->getVariation();
+
+		MonoObject* __output;
+		__output = ScriptShaderVariation::create(tmp__output);
 
 		return __output;
 	}

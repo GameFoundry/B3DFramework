@@ -5771,6 +5771,9 @@ The shape and mass of a rigidbody is governed by its colliders. You must attach 
 		<enumentry native="VKSL" script="VKSL">
 			<doc>Variant of GLSL used for Vulkan.</doc>
 		</enumentry>
+		<enumentry native="MSL" script="MSL">
+			<doc>Metal shading language.</doc>
+		</enumentry>
 		<enumentry native="All" script="All">
 			<doc>Helper entry that includes all languages.</doc>
 		</enumentry>
@@ -6341,6 +6344,78 @@ The shape and mass of a rigidbody is governed by its colliders. You must attach 
 			<doc>All mesh data will also be cached in CPU memory, making it available for fast read access from the CPU. Can be  combined with other usage flags.</doc>
 		</enumentry>
 	</enum>
+	<class native="ShaderVariation" script="ShaderVariation">
+		<doc>Contains information about a single variation of a Shader. Each variation can have a separate set of #defines that control shader compilation.</doc>
+		<ctor>
+		</ctor>
+		<method native="getInt" script="GetInt" static="false">
+			<doc>Returns the value of a signed integer parameter with the specified name. Returns 0 if the parameter cannot be  found.</doc>
+			<param name="name" type="string">
+			</param>
+			<returns type="int">
+			</returns>
+		</method>
+		<method native="getUInt" script="GetUInt" static="false">
+			<doc>Returns the value of a unsigned integer parameter with the specified name. Returns 0 if the parameter cannot be found.</doc>
+			<param name="name" type="string">
+			</param>
+			<returns type="int">
+			</returns>
+		</method>
+		<method native="getFloat" script="GetFloat" static="false">
+			<doc>Returns the value of a float parameter with the specified name. Returns 0 if the parameter cannot be found.</doc>
+			<param name="name" type="string">
+			</param>
+			<returns type="float">
+			</returns>
+		</method>
+		<method native="getBool" script="GetBool" static="false">
+			<doc>Returns the value of a boolean parameter with the specified name. Returns false if the parameter cannot be  found.</doc>
+			<param name="name" type="string">
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="setInt" script="SetInt" static="false">
+			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name  will be overwritten.</doc>
+			<param name="name" type="string">
+			</param>
+			<param name="value" type="int">
+			</param>
+		</method>
+		<method native="setUInt" script="SetUInt" static="false">
+			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name  will be overwritten.</doc>
+			<param name="name" type="string">
+			</param>
+			<param name="value" type="int">
+			</param>
+		</method>
+		<method native="setFloat" script="SetFloat" static="false">
+			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name  will be overwritten.</doc>
+			<param name="name" type="string">
+			</param>
+			<param name="value" type="float">
+			</param>
+		</method>
+		<method native="setBool" script="SetBool" static="false">
+			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name  will be overwritten.</doc>
+			<param name="name" type="string">
+			</param>
+			<param name="value" type="bool">
+			</param>
+		</method>
+		<method native="removeParam" script="RemoveParam" static="false">
+			<doc>Removes a parameter with the specified name.</doc>
+			<param name="paramName" type="string">
+			</param>
+		</method>
+		<method native="clearParams" script="ClearParams" static="false">
+			<doc>Removes all parameters.</doc>
+		</method>
+		<property name="ParamNames" type="string" getter="getParamNames" setter="" static="false">
+			<doc>Returns a list of names of all registered parameters.</doc>
+		</property>
+	</class>
 	<class native="Material" script="Material">
 		<doc>Material that controls how objects are rendered. It is represented by a shader and parameters used to set up that shader. It provides a simple interface for manipulating the parameters.</doc>
 		<method native="clone" script="Clone" static="false">
@@ -6545,6 +6620,9 @@ Optionally if the parameter is an array you may provide an array index you which
 		</ctor>
 		<property name="Shader" type="RRef&lt;Shader&gt;" getter="getShader" setter="setShader" static="false">
 			<doc>Sets a shader that will be used by the material. Material will be initialized using all compatible techniques from the shader. Shader must be set before doing any other operations with the material.</doc>
+		</property>
+		<property name="Variation" type="ShaderVariation" getter="getVariation" setter="setVariation" static="false">
+			<doc>Set of parameters that determine which subset of techniques in the assigned shader should be used. Only the  techniques that have the provided parameters with the provided values will match. This will control which  technique is considered the default technique and which subset of techniques are searched during a call to  findTechnique().</doc>
 		</property>
 	</class>
 	<class native="Physics" script="Physics">

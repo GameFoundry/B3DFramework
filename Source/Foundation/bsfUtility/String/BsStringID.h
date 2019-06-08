@@ -83,6 +83,9 @@ namespace bs
 			return mData != rhs.mData;
 		}
 
+		/** Implicitly converts to a normal string. */
+		operator String() const { return String(mData->chars); }
+
 		/**	Returns true if the string id has no value assigned. */
 		bool empty() const
 		{

@@ -128,6 +128,8 @@
 #include "../../../Foundation/bsfCore/Importer/BsTextureImportOptions.h"
 #endif
 #include "BsScriptTextureImportOptions.generated.h"
+#include "../../../Foundation/bsfCore/Material/BsShaderVariation.h"
+#include "BsScriptShaderVariation.generated.h"
 #if !BS_IS_BANSHEE3D
 #include "../../../Foundation/bsfCore/Text/BsFontImportOptions.h"
 #endif
@@ -209,6 +211,7 @@ namespace bs
 #if !BS_IS_BANSHEE3D
 		ADD_ENTRY(TextureImportOptions, ScriptTextureImportOptions)
 #endif
+		ADD_ENTRY(ShaderVariation, ScriptShaderVariation)
 #if !BS_IS_BANSHEE3D
 		ADD_ENTRY(FontImportOptions, ScriptFontImportOptions)
 #endif

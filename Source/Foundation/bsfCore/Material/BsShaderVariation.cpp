@@ -69,6 +69,37 @@ namespace bs
 			return iterFind->second.i > 0 ? true : false;
 	}
 
+	void ShaderVariation::setInt(const StringID& name, INT32 value)
+	{
+		addParam(Param(name, value));
+	}
+
+	void ShaderVariation::setUInt(const StringID& name, UINT32 value)
+	{
+		addParam(Param(name, value));
+	}
+
+	void ShaderVariation::setFloat(const StringID& name, float value)
+	{
+		addParam(Param(name, value));
+	}
+
+	void ShaderVariation::setBool(const StringID& name, bool value)
+	{
+		addParam(Param(name, value));
+	}
+
+	Vector<String> ShaderVariation::getParamNames() const
+	{
+		Vector<String> params;
+		params.reserve(mParams.size());
+
+		for(auto& entry : mParams)
+			params.push_back(entry.first);
+
+		return params;
+	}
+
 	ShaderDefines ShaderVariation::getDefines() const
 	{
 		ShaderDefines defines;

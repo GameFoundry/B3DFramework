@@ -40,7 +40,7 @@ namespace bs
 	 * Contains information about a single variation of a Shader. Each variation can have a separate set of
 	 * \#defines that control shader compilation.
 	 */
-	class BS_CORE_EXPORT ShaderVariation : public IReflectable
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) ShaderVariation : public IReflectable
 	{
 	public:
 		/** Possible types of a variation parameter. */
@@ -86,6 +86,7 @@ namespace bs
 			ParamType type;
 		};
 
+		BS_SCRIPT_EXPORT()
 		ShaderVariation() = default;
 		
 		/** Creates a new shader variation with the specified parameters. */
@@ -95,31 +96,69 @@ namespace bs
 		 * Returns the value of a signed integer parameter with the specified name. Returns 0 if the parameter cannot be 
 		 * found.
 		 */
+		BS_SCRIPT_EXPORT()
 		INT32 getInt(const StringID& name);
 
 		/** 
 		 * Returns the value of a unsigned integer parameter with the specified name. Returns 0 if the parameter cannot be
 		 * found.
 		 */
+		BS_SCRIPT_EXPORT()
 		UINT32 getUInt(const StringID& name);
 
 		/** Returns the value of a float parameter with the specified name. Returns 0 if the parameter cannot be found.  */
+		BS_SCRIPT_EXPORT()
 		float getFloat(const StringID& name);
 
 		/** 
 		 * Returns the value of a boolean parameter with the specified name. Returns false if the parameter cannot be 
 		 * found.
 		 */
+		BS_SCRIPT_EXPORT()
 		bool getBool(const StringID& name);
+
+		/** 
+		 * Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name 
+		 * will be overwritten. 
+		 */
+		BS_SCRIPT_EXPORT()
+		void setInt(const StringID& name, INT32 value);
+
+		/** 
+		 * Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name 
+		 * will be overwritten. 
+		 */
+		BS_SCRIPT_EXPORT()
+		void setUInt(const StringID& name, UINT32 value);
+
+		/** 
+		 * Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name 
+		 * will be overwritten. 
+		 */
+		BS_SCRIPT_EXPORT()
+		void setFloat(const StringID& name, float value);
+
+		/** 
+		 * Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name 
+		 * will be overwritten. 
+		 */
+		BS_SCRIPT_EXPORT()
+		void setBool(const StringID& name, bool value);
 
 		/** Registers a new parameter that controls the variation. */
 		void addParam(const Param& param) { mParams[param.name] = param; }
 
 		/** Removes a parameter with the specified name. */
+		BS_SCRIPT_EXPORT()
 		void removeParam(const StringID& paramName) { mParams.erase(paramName); }
 
 		/** Removes all parameters. */
+		BS_SCRIPT_EXPORT()
 		void clearParams() { mParams.clear(); }
+
+		/** Returns a list of names of all registered parameters. */
+		BS_SCRIPT_EXPORT(n:ParamNames,pr:getter)
+		Vector<String> getParamNames() const;
 
 		/** 
 		 * Checks if this variation matches some other variation. 

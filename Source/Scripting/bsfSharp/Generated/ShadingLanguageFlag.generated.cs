@@ -20,8 +20,10 @@ namespace bs
 		GLSL = 2,
 		/// <summary>Variant of GLSL used for Vulkan.</summary>
 		VKSL = 4,
+		/// <summary>Metal shading language.</summary>
+		MSL = 8,
 		/// <summary>Helper entry that includes all languages.</summary>
-		All = 7
+		All = 15
 	}
 
 	/** @} */

@@ -24,7 +24,7 @@ namespace bs
 			value.vsync = false;
 			value.vsyncInterval = 1;
 			value.hidden = false;
-			value.depthBuffer = true;
+			value.depthBuffer = false;
 			value.multisampleCount = 0;
 			value.multisampleHint = "";
 			value.gamma = false;
