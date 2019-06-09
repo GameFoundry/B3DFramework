@@ -24,7 +24,9 @@ enum tagNodeType
 	NT_Tags,
 	NT_Code,
 	NT_Variations,
-	NT_Variation
+	NT_Variation,
+	NT_VariationOption,
+	NT_Attributes
 };
 
 enum tagOptionType
@@ -82,6 +84,9 @@ enum tagOptionType
 	OT_Variation,
 	OT_VariationValue,
 	OT_Forward,
+	OT_Attributes,
+	OT_AttrName,
+	OT_VariationOption,
 	OT_Count
 };
 

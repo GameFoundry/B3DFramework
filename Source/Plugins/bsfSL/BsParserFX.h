@@ -146,7 +146,8 @@ typedef struct YYLTYPE {
      TOKEN_ALPHA = 312,
      TOKEN_SOURCE = 313,
      TOKEN_DEST = 314,
-     TOKEN_OP = 315
+     TOKEN_OP = 315,
+     TOKEN_NAME = 316
    };
 #endif
 

@@ -949,9 +949,19 @@ namespace bs
 			case OT_Identifier:
 				variationData.identifier = option->value.strValue;
 				break;
-			case OT_VariationValue:
-				variationData.values.push_back(option->value.intValue);
+			case OT_VariationOption:
+				variationData.values.push_back(parseVariationOption(option->value.nodePtr));
 				break;
+			case OT_Attributes:
+				{
+				AttributeData attribs = parseAttributes(option->value.nodePtr);
+
+				for (auto& entry : attribs.attributes)
+				{
+					if (entry.first == OT_AttrName)
+						variationData.name = entry.second;
+				}
+				}
 			default:
 				break;
 			}
@@ -959,6 +969,60 @@ namespace bs
 
 		if (!variationData.identifier.empty())
 			metaData.variations.push_back(variationData);
+	}
+
+	BSLFXCompiler::VariationOption BSLFXCompiler::parseVariationOption(ASTFXNode* variationOption)
+	{
+		assert(variationOption->type == NT_VariationOption);
+
+		VariationOption output;
+		for (int i = 0; i < variationOption->options->count; i++)
+		{
+			NodeOption* option = &variationOption->options->entries[i];
+
+			switch (option->type)
+			{
+			case OT_VariationValue:
+				output.value = option->value.intValue;
+				break;
+			case OT_Attributes:
+				{
+					AttributeData attribs = parseAttributes(option->value.nodePtr);
+
+					for(auto& entry : attribs.attributes)
+					{
+						if(entry.first == OT_AttrName)
+							output.name = entry.second;
+					}
+				}
+			default:
+				break;
+			}
+		}
+
+		return output;
+	}
+
+	BSLFXCompiler::AttributeData BSLFXCompiler::parseAttributes(ASTFXNode* attributes)
+	{
+		assert(attributes->type == NT_Attributes);
+
+		AttributeData attributeData;
+		for (int i = 0; i < attributes->options->count; i++)
+		{
+			NodeOption* option = &attributes->options->entries[i];
+
+			switch (option->type)
+			{
+			case OT_AttrName:
+				attributeData.attributes.push_back(std::pair<INT32, String>(OT_AttrName, option->value.strValue));
+				break;
+			default:
+				break;
+			}
+		}
+
+		return attributeData;
 	}
 
 	QueueSortType BSLFXCompiler::parseSortType(CullAndSortModeValue sortType)
@@ -1776,7 +1840,7 @@ namespace bs
 							for (UINT32 i = 0; i < (UINT32)current->values.size(); i++)
 							{
 								ShaderVariation variation;
-								variation.addParam(ShaderVariation::Param(current->identifier, current->values[i]));
+								variation.addParam(ShaderVariation::Param(current->identifier, current->values[i].value));
 
 								variations.push_back(variation);
 							}
@@ -1789,12 +1853,12 @@ namespace bs
 								for (UINT32 j = 1; j < (UINT32)current->values.size(); j++)
 								{
 									ShaderVariation copy = variations[i];
-									copy.addParam(ShaderVariation::Param(current->identifier, current->values[j]));
+									copy.addParam(ShaderVariation::Param(current->identifier, current->values[j].value));
 
 									variations.push_back(copy);
 								}
 
-								variations[i].addParam(ShaderVariation::Param(current->identifier, current->values[0]));
+								variations[i].addParam(ShaderVariation::Param(current->identifier, current->values[0].value));
 							}
 						}
 					}

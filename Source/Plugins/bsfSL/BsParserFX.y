@@ -111,6 +111,9 @@ typedef struct YYLTYPE {
 %token TOKEN_ALPHATOCOVERAGE TOKEN_INDEPENDANTBLEND TOKEN_TARGET TOKEN_INDEX
 %token TOKEN_COLOR TOKEN_ALPHA TOKEN_SOURCE TOKEN_DEST TOKEN_OP
 
+	/* Attribute keywords */
+%token TOKEN_NAME
+
 %type <nodePtr>		root;
 %type <nodeOption>	root_statement;
 
@@ -135,9 +138,12 @@ typedef struct YYLTYPE {
 
 %type <nodePtr>		variations;
 %type <nodePtr>		variations_header;
+%type <nodePtr>		variation_header_with_attr
 %type <nodeOption>	variation;
 %type <nodePtr>		variation_header;
-%type <nodeOption>  variation_option;
+%type <nodePtr>  	variation_option;
+%type <nodePtr>		variation_option_with_attr;
+%type <nodeOption>  variation_option_value;
 
 %type <nodePtr>		raster;
 %type <nodePtr>		raster_header;
@@ -169,6 +175,10 @@ typedef struct YYLTYPE {
 %type <nodePtr>		blend_color_header;
 %type <nodePtr>		blend_alpha_header;
 %type <nodeOption>	blenddef_option;
+
+%type <nodePtr>		attributes;
+%type <nodePtr>		attributes_header;
+%type <nodeOption>	attribute;
 
 %%
 
@@ -360,24 +370,19 @@ variations_body
 	;
 
 variation
-	: variation_header '{' '}' ';'		{ nodePop(parse_state); $$.type = OT_Variation; $$.value.nodePtr = $1; }
-	| variation_header '{' TOKEN_BOOLEAN variation_body '}' ';'		
-		{ 
-			NodeOption entry; entry.type = OT_VariationValue; entry.value.intValue = $3;
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry); 
-		
-			nodePop(parse_state); 
-			$$.type = OT_Variation; $$.value.nodePtr = $1;
-		}
-	| variation_header '{' TOKEN_INTEGER variation_body '}' ';'		
-		{ 
-			NodeOption entry; entry.type = OT_VariationValue; entry.value.intValue = $3;
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry);
-			
-			nodePop(parse_state); 
-			$$.type = OT_Variation; $$.value.nodePtr = $1;
-		}
+	: variation_header_with_attr '{' variation_body '}' ';'		{ nodePop(parse_state); $$.type = OT_Variation; $$.value.nodePtr = $1; }	
 	;	
+	
+variation_header_with_attr
+	: variation_header				{ $$ = $1; }
+	| attributes variation_header
+		{ 
+			NodeOption attrEntry; attrEntry.type = OT_Attributes; attrEntry.value.nodePtr = $1;
+			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &attrEntry);
+
+			$$ = $2;			
+		}
+	;
 	
 variation_header
 	: TOKEN_IDENTIFIER '='
@@ -392,12 +397,47 @@ variation_header
 	
 variation_body
 	: /* empty */
-	| variation_option variation_body		{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	| variation_option_with_attr						
+		{ 
+			NodeOption entry; entry.type = OT_VariationOption; entry.value.nodePtr = $1; 
+			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry);
+		}
+	| variation_option_with_attr ',' variation_body		
+		{ 
+			NodeOption entry; entry.type = OT_VariationOption; entry.value.nodePtr = $1; 
+			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry);
+		}
+	;
+	
+variation_option_with_attr
+	: variation_option 				
+		{ 
+			$$ = $1;
+			nodePop(parse_state);
+		}
+	| attributes variation_option 	
+		{ 
+			NodeOption attrEntry; attrEntry.type = OT_Attributes; attrEntry.value.nodePtr = $1;
+			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &attrEntry);
+		
+			$$ = $2;
+			nodePop(parse_state); 
+		}
 	;
 	
 variation_option
-	: ',' TOKEN_BOOLEAN 	{ $$.type = OT_VariationValue; $$.value.intValue = $2; }
-	| ',' TOKEN_INTEGER 	{ $$.type = OT_VariationValue; $$.value.intValue = $2; }
+	: variation_option_value 	
+		{ 
+			$$ = nodeCreate(parse_state->memContext, NT_VariationOption); 
+			nodePush(parse_state, $$);
+			
+			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); 	 
+		}
+	;
+	
+variation_option_value
+	: TOKEN_BOOLEAN 	{ $$.type = OT_VariationValue; $$.value.intValue = $1; }
+	| TOKEN_INTEGER 	{ $$.type = OT_VariationValue; $$.value.intValue = $1; }
 	;
 
 	/* Raster state */
@@ -642,6 +682,29 @@ blenddef_option
 	: TOKEN_SOURCE '=' TOKEN_OPVALUE ';'					{ $$.type = OT_Source; $$.value.intValue = $3; }
 	| TOKEN_DEST '=' TOKEN_OPVALUE ';'						{ $$.type = OT_Dest; $$.value.intValue = $3; }
 	| TOKEN_OP '=' TOKEN_BLENDOPVALUE ';'					{ $$.type = OT_Op; $$.value.intValue = $3; }
+	;
+	
+	/* Attribute */
+attributes
+	: attributes_header attributes_body ']' { nodePop(parse_state); $$ = $1; }
+	;
+	
+attributes_header
+	: '['
+		{
+			$$ = nodeCreate(parse_state->memContext, NT_Attributes); 
+			nodePush(parse_state, $$);
+		}
+	;
+	
+attributes_body
+	: /* empty */
+	| attribute								{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	| attribute ','	attributes_body			{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	;
+	
+attribute
+	: TOKEN_NAME '(' TOKEN_STRING ')'		{ $$.type = OT_AttrName; $$.value.strValue = $3; }
 	;
 
 %%
