@@ -23,7 +23,7 @@ endif()
 
 # Ensure pre-built binary dependencies are up to date
 if(USE_BUNDLED_LIBRARIES)
-	set(BS_XSC_PREBUILT_DEPENDENCY_VERSION 2) # Tick this when you change the binaries
+	set(BS_XSC_PREBUILT_DEPENDENCY_VERSION 3) # Tick this when you change the binaries
 	check_and_update_binary_deps(bsfDep_XShaderCompiler XShaderCompiler ${BSF_SOURCE_DIR}/../Dependencies/XShaderCompiler ${BS_XSC_PREBUILT_DEPENDENCY_VERSION})
 endif()
 
