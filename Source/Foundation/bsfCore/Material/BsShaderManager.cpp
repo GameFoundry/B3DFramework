@@ -15,4 +15,10 @@ namespace bs
 	{
 		return mIncludeHandler->findInclude(name);
 	}
+
+	void ShaderManager::addSearchPath(const Path& path)
+	{
+		if(mIncludeHandler)
+			mIncludeHandler->addSearchPath(path);
+	}
 }
