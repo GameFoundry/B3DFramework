@@ -57,11 +57,12 @@ Multisampled textures cannot be used directly by materials or sampled in shaders
  - Write a custom shader that manually reads samples from the texture and outputs pixels (out of the scope of this manual)
 
 # Rendering to textures
-To render to a render texture you can simply pass it to a **Camera** component on construction, or you may use the low-level API to directly bind the texture for rendering (see the low level rendering manuals).
+To render to a render texture you can assign it to a **Viewport** that's part of a **Camera** component, or you may use the low-level API to directly bind the texture for rendering (see the low level rendering manuals).
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject cameraSO = SceneObject::create("Camera");
-HCamera camera = cameraSO->addComponent<CCamera>(renderTexture);
+HCamera camera = cameraSO->addComponent<CCamera>();
+camera->getViewport()->setTarget(renderTexture);
 ~~~~~~~~~~~~~
 
 # Using render textures as input
