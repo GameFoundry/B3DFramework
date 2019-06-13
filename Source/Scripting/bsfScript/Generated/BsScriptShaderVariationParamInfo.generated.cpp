@@ -35,7 +35,7 @@ namespace bs
 		String tmpidentifier;
 		tmpidentifier = MonoUtil::monoToString(value.identifier);
 		output.identifier = tmpidentifier;
-		output.internal = value.internal;
+		output.isInternal = value.isInternal;
 		SmallVector<ShaderVariationParamValue, 4> vecvalues;
 		if(value.values != nullptr)
 		{
@@ -60,7 +60,7 @@ namespace bs
 		MonoString* tmpidentifier;
 		tmpidentifier = MonoUtil::stringToMono(value.identifier);
 		output.identifier = tmpidentifier;
-		output.internal = value.internal;
+		output.isInternal = value.isInternal;
 		int arraySizevalues = (int)value.values.size();
 		MonoArray* vecvalues;
 		ScriptArray arrayvalues = ScriptArray::create<ScriptShaderVariationParamValue>(arraySizevalues);

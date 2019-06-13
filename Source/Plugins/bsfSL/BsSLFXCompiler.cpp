@@ -1781,7 +1781,7 @@ namespace bs
 		for(auto& entry : shaderMetaData.variations)
 		{
 			ShaderVariationParamInfo paramInfo;
-			paramInfo.internal = entry.internal;
+			paramInfo.isInternal = entry.internal;
 			paramInfo.name = entry.name;
 			paramInfo.identifier = entry.identifier;
 

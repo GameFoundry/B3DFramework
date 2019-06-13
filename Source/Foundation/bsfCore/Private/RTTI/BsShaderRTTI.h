@@ -337,7 +337,7 @@ namespace bs
 			memory = rttiWriteElem(VERSION, memory, size);
 			memory = rttiWriteElem(data.name, memory, size);
 			memory = rttiWriteElem(data.identifier, memory, size);
-			memory = rttiWriteElem(data.internal, memory, size);
+			memory = rttiWriteElem(data.isInternal, memory, size);
 			memory = rttiWriteElem(data.values, memory, size);
 
 			memcpy(memoryStart, &size, sizeof(UINT32));
@@ -355,7 +355,7 @@ namespace bs
 
 			memory = rttiReadElem(data.name, memory);
 			memory = rttiReadElem(data.identifier, memory);
-			memory = rttiReadElem(data.internal, memory);
+			memory = rttiReadElem(data.isInternal, memory);
 			memory = rttiReadElem(data.values, memory);
 
 			return size;
@@ -367,7 +367,7 @@ namespace bs
 			UINT64 dataSize = sizeof(UINT8) + sizeof(UINT32);
 			dataSize += rttiGetElemSize(data.name);
 			dataSize += rttiGetElemSize(data.identifier);
-			dataSize += rttiGetElemSize(data.internal);
+			dataSize += rttiGetElemSize(data.isInternal);
 			dataSize += rttiGetElemSize(data.values);
 
 			assert(dataSize <= std::numeric_limits<UINT32>::max());

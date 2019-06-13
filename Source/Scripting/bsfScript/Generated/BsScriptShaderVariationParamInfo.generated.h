@@ -14,7 +14,7 @@ namespace bs
 	{
 		MonoString* name;
 		MonoString* identifier;
-		bool internal;
+		bool isInternal;
 		MonoArray* values;
 	};
 

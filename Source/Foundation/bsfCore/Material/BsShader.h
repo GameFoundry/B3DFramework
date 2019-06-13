@@ -170,7 +170,7 @@ namespace bs
 		String identifier;
 
 		/** True if the parameter is for internal use by the renderer, and false if its intended to be set by the user. */
-		bool internal = true;
+		bool isInternal = true;
 
 		/** A list of potential values this parameter can take on. */
 		SmallVector<ShaderVariationParamValue, 4> values;

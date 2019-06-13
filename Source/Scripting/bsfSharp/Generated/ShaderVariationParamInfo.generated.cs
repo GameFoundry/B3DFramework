@@ -20,7 +20,7 @@ namespace bs
 			ShaderVariationParamInfo value = new ShaderVariationParamInfo();
 			value.name = "";
 			value.identifier = "";
-			value.internal = true;
+			value.isInternal = true;
 			value.values = null;
 
 			return value;
@@ -33,7 +33,7 @@ namespace bs
 		/// <summary>
 		/// True if the parameter is for internal use by the renderer, and false if its intended to be set by the user.
 		/// </summary>
-		public bool internal;
+		public bool isInternal;
 		/// <summary>A list of potential values this parameter can take on.</summary>
 		public ShaderVariationParamValue[] values;
 	}

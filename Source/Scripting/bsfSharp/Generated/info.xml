@@ -6649,7 +6649,7 @@ Optionally if the parameter is an array you may provide an array index you which
 		<field name="identifier" type="string">
 			<doc>BSL identifier for the parameter.</doc>
 		</field>
-		<field name="internal" type="bool">
+		<field name="isInternal" type="bool">
 			<doc>True if the parameter is for internal use by the renderer, and false if its intended to be set by the user.</doc>
 		</field>
 		<field name="values" type="ShaderVariationParamValue">
