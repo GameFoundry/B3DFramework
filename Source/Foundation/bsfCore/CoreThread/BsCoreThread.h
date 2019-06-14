@@ -158,7 +158,7 @@ namespace bs
 		ThreadId mSimThreadId;
 		ThreadId mCoreThreadId;
 		Mutex mCommandQueueMutex;
-		Mutex mCoreQueueMutex;
+		Mutex mSubmitMutex;
 		Signal mCommandReadyCondition;
 		Mutex mCommandNotifyMutex;
 		Signal mCommandCompleteCondition;
