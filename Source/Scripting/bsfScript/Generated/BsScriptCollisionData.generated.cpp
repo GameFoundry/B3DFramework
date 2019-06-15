@@ -57,7 +57,7 @@ namespace bs
 			veccontactPoints.resize(arraycontactPoints.size());
 			for(int i = 0; i < (int)arraycontactPoints.size(); i++)
 			{
-				veccontactPoints[i] = arraycontactPoints.get<ContactPoint>(i);
+				veccontactPoints[i] = ScriptContactPoint::fromInterop(arraycontactPoints.get<__ContactPointInterop>(i));
 			}
 		}
 		output.contactPoints = veccontactPoints;
@@ -88,7 +88,7 @@ namespace bs
 		ScriptArray arraycontactPoints = ScriptArray::create<ScriptContactPoint>(arraySizecontactPoints);
 		for(int i = 0; i < arraySizecontactPoints; i++)
 		{
-			arraycontactPoints.set(i, value.contactPoints[i]);
+			arraycontactPoints.set(i, ScriptContactPoint::toInterop(value.contactPoints[i]));
 		}
 		veccontactPoints = arraycontactPoints.getInternal();
 		output.contactPoints = veccontactPoints;

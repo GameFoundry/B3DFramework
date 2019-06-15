@@ -43,7 +43,7 @@ namespace bs
 			vecvalues.resize(arrayvalues.size());
 			for(int i = 0; i < (int)arrayvalues.size(); i++)
 			{
-				vecvalues[i] = arrayvalues.get<ShaderVariationParamValue>(i);
+				vecvalues[i] = ScriptShaderVariationParamValue::fromInterop(arrayvalues.get<__ShaderVariationParamValueInterop>(i));
 			}
 		}
 		output.values = vecvalues;
@@ -66,7 +66,7 @@ namespace bs
 		ScriptArray arrayvalues = ScriptArray::create<ScriptShaderVariationParamValue>(arraySizevalues);
 		for(int i = 0; i < arraySizevalues; i++)
 		{
-			arrayvalues.set(i, value.values[i]);
+			arrayvalues.set(i, ScriptShaderVariationParamValue::toInterop(value.values[i]));
 		}
 		vecvalues = arrayvalues.getInternal();
 		output.values = vecvalues;

@@ -36,7 +36,7 @@ namespace bs
 			vecclips.resize(arrayclips.size());
 			for(int i = 0; i < (int)arrayclips.size(); i++)
 			{
-				vecclips[i] = arrayclips.get<BlendClipInfo>(i);
+				vecclips[i] = ScriptBlendClipInfo::fromInterop(arrayclips.get<__BlendClipInfoInterop>(i));
 			}
 		}
 		output.clips = vecclips;
@@ -52,7 +52,7 @@ namespace bs
 		ScriptArray arrayclips = ScriptArray::create<ScriptBlendClipInfo>(arraySizeclips);
 		for(int i = 0; i < arraySizeclips; i++)
 		{
-			arrayclips.set(i, value.clips[i]);
+			arrayclips.set(i, ScriptBlendClipInfo::toInterop(value.clips[i]));
 		}
 		vecclips = arrayclips.getInternal();
 		output.clips = vecclips;
