@@ -1017,7 +1017,10 @@ namespace bs
 			switch (option->type)
 			{
 			case OT_AttrName:
-				attributeData.attributes.push_back(std::pair<INT32, String>(OT_AttrName, option->value.strValue));
+				attributeData.attributes.push_back(std::pair<INT32, String>(OT_AttrName, removeQuotes(option->value.strValue)));
+				break;
+			case OT_AttrShow:
+				attributeData.attributes.push_back(std::pair<INT32, String>(OT_AttrShow, ""));
 				break;
 			default:
 				break;
