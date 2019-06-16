@@ -188,7 +188,7 @@ namespace bs
 		 * Populates blend state descriptor for a single render target from the provided AST node. Which target gets 
 		 * updated depends on the index set in the AST node.
 		 */
-		static void parseRenderTargetBlendState(BLEND_STATE_DESC& desc, ASTFXNode* targetNode);
+		static void parseRenderTargetBlendState(BLEND_STATE_DESC& desc, ASTFXNode* targetNode, UINT32& index);
 
 		/**
 		 * Parses the blend state AST node and populates the pass' blend state descriptor. Returns false if the descriptor

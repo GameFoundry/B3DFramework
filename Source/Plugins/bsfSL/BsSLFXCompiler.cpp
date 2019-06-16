@@ -1284,12 +1284,10 @@ namespace bs
 		}
 	}
 
-	void BSLFXCompiler::parseRenderTargetBlendState(BLEND_STATE_DESC& desc, ASTFXNode* targetNode)
+	void BSLFXCompiler::parseRenderTargetBlendState(BLEND_STATE_DESC& desc, ASTFXNode* targetNode, UINT32& index)
 	{
 		if (targetNode == nullptr || targetNode->type != NT_Target)
 			return;
-
-		UINT32 index = 0;
 
 		for (int i = 0; i < targetNode->options->count; i++)
 		{
@@ -1331,6 +1329,8 @@ namespace bs
 				break;
 			}
 		}
+
+		index++;
 	}
 
 	bool BSLFXCompiler::parseBlendState(PassData& desc, ASTFXNode* blendNode)
@@ -1339,6 +1339,7 @@ namespace bs
 			return false;
 
 		bool isDefault = true;
+		SmallVector<ASTFXNode*, 8> targets;
 
 		for (int i = 0; i < blendNode->options->count; i++)
 		{
@@ -1355,13 +1356,19 @@ namespace bs
 				isDefault = false;
 				break;
 			case OT_Target:
-				parseRenderTargetBlendState(desc.blendDesc, option->value.nodePtr);
+				targets.add(option->value.nodePtr);
 				isDefault = false;
 				break;
 			default:
 				break;
 			}
 		}
+
+		// Parse targets in reverse as their order matters and we want to visit them in the top-down order as defined in
+		// the source code
+		UINT32 index = 0;
+		for(auto iter = targets.rbegin(); iter != targets.rend(); ++iter)
+			parseRenderTargetBlendState(desc.blendDesc, *iter, index);
 
 		return !isDefault;
 	}
