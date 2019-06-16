@@ -40,13 +40,16 @@ shader Surface
 	
 	blend
 	{
+		independant = true;
+	
 		// Scene color
 		target	
 		{
 			enabled = true;
 			color = { srcA, srcIA, add };
+			alpha = { zero, one, add };
 			
-			#if BLEND_MODE == 3
+			#if BLEND_MODE != 3
 				writemask = empty;
 			#endif
 		};
@@ -62,6 +65,8 @@ shader Surface
 				color = { srcA, srcIA, add };
 			#endif
 			
+			alpha = { zero, one, add };
+			
 			#if BLEND_MODE != 0
 			#if BLEND_MODE != 1
 				writemask = empty;
@@ -74,6 +79,7 @@ shader Surface
 		{
 			enabled = true;
 			color = { srcA, srcIA, add };
+			alpha = { zero, one, add };
 			
 			#if BLEND_MODE == 3
 				writemask = empty;
@@ -85,6 +91,7 @@ shader Surface
 		{
 			enabled = true;
 			color = { srcA, srcIA, add };
+			alpha = { zero, one, add };
 			
 			#if BLEND_MODE != 0
 			#if BLEND_MODE != 1
