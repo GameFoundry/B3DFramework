@@ -960,7 +960,10 @@ namespace bs {	namespace ct
 				findDesc.variation = DECAL_VAR_LOOKUP[i][j];
 				findDesc.override = true;
 
-				const UINT32 techniqueIdx = renElement.material->findTechnique(findDesc);
+				UINT32 techniqueIdx = renElement.material->findTechnique(findDesc);
+				if(techniqueIdx == (UINT32)-1)
+					techniqueIdx = 0;
+
 				const SPtr<Technique>& technique = renElement.material->getTechnique(techniqueIdx);
 				if (technique)
 					technique->compile();
