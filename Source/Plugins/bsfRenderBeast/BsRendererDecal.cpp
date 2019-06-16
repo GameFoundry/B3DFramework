@@ -41,7 +41,7 @@ namespace bs { namespace ct
 		const Transform& tfrm = decal->getTransform();
 
 		const Matrix4 view = Matrix4::view(tfrm.getPosition(), tfrm.getRotation());
-		const Matrix4 proj = Matrix4::projectionOrthographic(-extent.x, extent.x, extent.y, -extent.y, 0.0f, 
+		const Matrix4 proj = Matrix4::projectionOrthographic(-extent.x, extent.x, -extent.y, extent.y, 0.0f, 
 			decal->getMaxDistance());
 
 		const Matrix4 worldToDecal = proj * view;
