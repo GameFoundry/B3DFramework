@@ -21,17 +21,35 @@ namespace bs
 		Texture3D, TextureCube, Sampler
 	};
 
+	/** Flags used to further describe a shader parameter. */
+	enum class BS_SCRIPT_EXPORT(m:Rendering) ShaderParameterFlag
+	{
+		None = 0,
+
+		/** Parameter is for internal use by the renderer and isn't expected to be set by the user. */
+		Internal = 1 << 0,
+
+		/** Parameter should not be displayed in the editor inspector. */
+		HideInInspector = 1 << 1
+	};
+
+	using ShaderParameterFlags = Flags<ShaderParameterFlag>;
+	BS_FLAGS_OPERATORS(ShaderParameterFlag)
+
 	/** Contains information about a single shader parameter. */
 	struct BS_SCRIPT_EXPORT(m:Rendering,pl:true) ShaderParameter
 	{
 		/** Name of the parameter variable. */
 		String name;
 
+		/** Variable identifier of the parameter. */
+		String identifier;
+
 		/** Data type of the parameter. */
 		ShaderParameterType type;
 
-		/** Determines is parameter managed internally be the renderer, or is it expected to be set by the user. */
-		bool isInternal;
+		/** Flags used to further describe the parameter. */
+		ShaderParameterFlags flags;
 	};
 
 	/** Extension class for Shader, for adding additional functionality for the script version of the class. */

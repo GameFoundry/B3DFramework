@@ -41,9 +41,9 @@ shader Surface
 
 		Texture2D gTexture = white;
 	
-		[internal]
 		cbuffer Params
 		{
+			[hideInInspector]
 			float gInvDepthRange = 1.0f;
 		};
 	

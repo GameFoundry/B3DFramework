@@ -445,6 +445,28 @@ namespace bs
 				continue;
 
 			String ident = entry.ident.c_str();
+			auto parseCommonAttributes = [&entry, &ident, &desc]()
+			{
+				if (!entry.readableName.empty())
+				{
+					SHADER_PARAM_ATTRIBUTE attribute;
+					attribute.value.assign(entry.readableName.data(), entry.readableName.size());
+					attribute.nextParamIdx = (UINT32)-1;
+					attribute.type = ShaderParamAttributeType::Name;
+
+					desc.setParameterAttribute(ident, attribute);
+				}
+
+				if ((entry.flags & Xsc::Reflection::Uniform::Flags::HideInInspector) != 0)
+				{
+					SHADER_PARAM_ATTRIBUTE attribute;
+					attribute.nextParamIdx = (UINT32)-1;
+					attribute.type = ShaderParamAttributeType::HideInInspector;
+
+					desc.setParameterAttribute(ident, attribute);
+				}
+			};
+
 			switch(entry.type)
 			{
 			case Xsc::Reflection::VariableType::UniformBuffer:
@@ -468,6 +490,8 @@ namespace bs
 							desc.addParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, objType),
 								getBuiltinTexture(defVal.integer));
 						}
+
+						parseCommonAttributes();
 					}
 					else
 					{
@@ -478,6 +502,8 @@ namespace bs
 
 						objType = ReflTypeToBufferType((Xsc::Reflection::BufferType)entry.baseType);
 						desc.addParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, objType));
+
+						parseCommonAttributes();
 					}
 				}
 				break;
@@ -561,6 +587,8 @@ namespace bs
 
 						desc.setParameterAttribute(ident, attribute);
 					}
+
+					parseCommonAttributes();
 				}
 			}
 				break;
@@ -2331,9 +2359,21 @@ namespace bs
 						R"(\[\s*layout\s*\(.*\)\s*\]|\[\s*internal\s*\]|\[\s*color\s*\]|\[\s*alias\s*\(.*\)\s*\]|\[\s*spriteuv\s*\(.*\)\s*\])");
 					hlslPassData.code = regex_replace(hlslPassData.code, attrRegex, "");
 
+					static const std::regex attr2Regex(
+						R"(\[\s*hideInInspector\s*\]|\[\s*name\s*\(".*"\)\s*\])");
+					hlslPassData.code = regex_replace(hlslPassData.code, attr2Regex, "");
+
 					static const std::regex initializerRegex(
 						R"(Texture2D\s*(\S*)\s*=.*;)");
 					hlslPassData.code = regex_replace(hlslPassData.code, initializerRegex, "Texture2D $1;");
+
+					static const std::regex warpWithSyncRegex(
+						R"(Warp(Group|Device|All)MemoryBarrierWithWarpSync)");
+					hlslPassData.code = regex_replace(hlslPassData.code, warpWithSyncRegex, "$1MemoryBarrierWithGroupSync");
+
+					static const std::regex warpNoSyncRegex(
+						R"(Warp(Group|Device|All)MemoryBarrier)");
+					hlslPassData.code = regex_replace(hlslPassData.code, warpNoSyncRegex, "$1MemoryBarrier");
 
 					// Note: I'm just copying HLSL code as-is. This code will contain all entry points which could have
 					// an effect on compile time. It would be ideal to remove dead code depending on program type. This would

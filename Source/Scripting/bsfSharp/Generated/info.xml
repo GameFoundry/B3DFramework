@@ -4304,6 +4304,17 @@ Resize will not change the positions of current light probes. If you wish to res
 			<doc>Scale which to apply to the gravity value retrieved from the physics sub-system.</doc>
 		</field>
 	</struct>
+	<enum native="ShaderParameterFlag" script="ShaderParameterFlag">
+		<doc>Flags used to further describe a shader parameter.</doc>
+		<enumentry native="None" script="None">
+		</enumentry>
+		<enumentry native="Internal" script="Internal">
+			<doc>Parameter is for internal use by the renderer and isn&apos;t expected to be set by the user.</doc>
+		</enumentry>
+		<enumentry native="HideInInspector" script="HideInInspector">
+			<doc>Parameter should not be displayed in the editor inspector.</doc>
+		</enumentry>
+	</enum>
 	<struct native="PARTICLE_COLOR_DESC" script="ParticleColorOptions">
 		<doc>Structure used for initializing a ParticleColor object.</doc>
 		<field name="color" type="ColorDistribution">
@@ -5351,6 +5362,9 @@ The shape and mass of a rigidbody is governed by its colliders. You must attach 
 		</enumentry>
 		<enumentry native="TU_CPUREADABLE" script="CPUReadable">
 			<doc>Allows the CPU to directly read the texture data buffers from the GPU.</doc>
+		</enumentry>
+		<enumentry native="TU_MUTABLEFORMAT" script="MutableFormat">
+			<doc>Allows you to retrieve views of the texture using a format different from one specified on creation.</doc>
 		</enumentry>
 	</enum>
 	<struct native="SpriteSheetGridAnimation" script="SpriteSheetGridAnimation">
@@ -7796,11 +7810,14 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 		<field name="name" type="string">
 			<doc>Name of the parameter variable.</doc>
 		</field>
+		<field name="identifier" type="string">
+			<doc>Variable identifier of the parameter.</doc>
+		</field>
 		<field name="type" type="ShaderParameterType">
 			<doc>Data type of the parameter.</doc>
 		</field>
-		<field name="isInternal" type="bool">
-			<doc>Determines is parameter managed internally be the renderer, or is it expected to be set by the user.</doc>
+		<field name="flags" type="ShaderParameterFlag">
+			<doc>Flags used to further describe the parameter.</doc>
 		</field>
 	</struct>
 </entries>

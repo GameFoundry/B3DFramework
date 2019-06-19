@@ -13,8 +13,33 @@ namespace bs
 		const Map<String, SHADER_DATA_PARAM_DESC>& dataParams = thisPtr->getDataParams();
 		const Map<String, SHADER_OBJECT_PARAM_DESC>& textureParams = thisPtr->getTextureParams();
 		const Map<String, SHADER_OBJECT_PARAM_DESC>& samplerParams = thisPtr->getSamplerParams();
+		const Vector<SHADER_PARAM_ATTRIBUTE> attributes = thisPtr->getParamAttributes();
 
 		Vector<ShaderParameter> paramInfos;
+		auto parseParam = [&paramInfos, &attributes](const String& identifier, ShaderParameterType type, bool isInternal, 
+			UINT32 attribIdx)
+		{
+			ShaderParameter output;
+			output.identifier = identifier;
+			output.type = type;
+			output.flags = isInternal ? ShaderParameterFlag::Internal : ShaderParameterFlag::None;
+
+			while (attribIdx != (UINT32)-1)
+			{
+				const SHADER_PARAM_ATTRIBUTE& attrib = attributes[attribIdx];
+				if (attrib.type == ShaderParamAttributeType::Name)
+					output.name = attrib.value;
+				else if(attrib.type == ShaderParamAttributeType::HideInInspector)
+					output.flags |= ShaderParameterFlag::HideInInspector;
+
+				attribIdx = attrib.nextParamIdx;
+			}
+
+			if(output.name.empty())
+				output.name = output.identifier;
+
+			paramInfos.push_back(output);
+		};
 
 		// TODO - Ignoring int, bool, struct and non-square matrices
 		// TODO - Ignoring buffers and load/store textures
@@ -58,7 +83,7 @@ namespace bs
 			}
 
 			if (isValidType)
-				paramInfos.push_back({ param.first, type, isInternal });
+				parseParam(param.first, type, isInternal, param.second.attribIdx);
 		}
 
 		for (auto& param : textureParams)
@@ -86,14 +111,15 @@ namespace bs
 			}
 
 			if (isValidType)
-				paramInfos.push_back({ param.first, type, isInternal });
+				parseParam(param.first, type, isInternal, param.second.attribIdx);
 		}
 
 		for (auto& param : samplerParams)
 		{
 			ShaderParameterType type = ShaderParameterType::Sampler;
 			bool isInternal = !param.second.rendererSemantic.empty();
-			paramInfos.push_back({ param.first, type, isInternal });
+
+			parseParam(param.first, type, isInternal, param.second.attribIdx);
 		}
 
 		return paramInfos;

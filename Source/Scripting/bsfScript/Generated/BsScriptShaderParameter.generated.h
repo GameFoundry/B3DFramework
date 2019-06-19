@@ -6,14 +6,16 @@
 #include "BsScriptObject.h"
 #include "../Extensions/BsShaderEx.h"
 #include "../Extensions/BsShaderEx.h"
+#include "../Extensions/BsShaderEx.h"
 
 namespace bs
 {
 	struct __ShaderParameterInterop
 	{
 		MonoString* name;
+		MonoString* identifier;
 		ShaderParameterType type;
-		bool isInternal;
+		Flags<ShaderParameterFlag> flags;
 	};
 
 	class BS_SCR_BE_EXPORT ScriptShaderParameter : public ScriptObject<ScriptShaderParameter>

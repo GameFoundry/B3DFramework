@@ -113,8 +113,8 @@ namespace bs { namespace ct
 		appInfo.pApplicationName = "bs::framework app";
 		appInfo.applicationVersion = 1;
 		appInfo.pEngineName = "bs::framework";
-		appInfo.engineVersion = (0 << 24) | (4 << 16) | 0;
-		appInfo.apiVersion = VK_API_VERSION_1_0;
+		appInfo.engineVersion = (BS_VERSION_MAJOR << 24) | (BS_VERSION_MINOR << 16) | BS_VERSION_PATCH;
+		appInfo.apiVersion = VK_API_VERSION_1_1;
 
 #if BS_DEBUG_MODE && USE_VALIDATION_LAYERS
 		const char* layers[] =

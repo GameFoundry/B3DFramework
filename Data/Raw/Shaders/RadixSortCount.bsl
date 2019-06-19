@@ -111,7 +111,7 @@ shader RadixSortCount
 				for(uint i = 1; i < NUM_REDUCE_THREADS_PER_DIGIT; i <<= 1)
 				{
 					// Not using sync because operations at this point should happen in the same warp
-					GroupMemoryBarrier();
+					WarpGroupMemoryBarrier();
 				
 					// Note: Check & reduce bank conflicts
 					total += sReduceCounters[digitIdx * NUM_REDUCE_THREADS_PER_DIGIT + setIdx + i];

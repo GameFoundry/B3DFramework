@@ -209,12 +209,12 @@ shader Surface
 			float3 dp2 = ddy(p);
 			float2 duv1 = ddx(uv);
 			float2 duv2 = ddy(uv);
-			
+
 			float3 dp2perp = cross(dp2, N);
 			float3 dp1perp = cross(N, dp1);
 			float3 T = dp2perp * duv1.x + dp1perp * duv2.x;
 			float3 B = dp2perp * duv1.y + dp1perp * duv2.y;
-		 
+
 			float invmax = rsqrt(max(dot(T,T), dot(B,B)));
 			return float3x3(T * invmax, B * invmax, N);
 		}
@@ -278,8 +278,20 @@ shader Surface
 						
 			float alpha = 0.0f;
 			if(any(decalUV < 0.0f) || any(decalUV > 1.0f))
+			{
+#ifdef METAL
+				// 'discard' is causing artifacts on Metal
+				OutSceneColor = 0;
+				OutGBufferA = 0;
+				OutGBufferB = 0;
+				OutGBufferC = 0;
+
+				return;
+#else
 				discard;
-			
+#endif
+			}
+
 			float3 worldNormal = normalize(cross(ddy(worldPosition), ddx(worldPosition))) * gFlipDerivatives;
 			if(dot(worldNormal, gDecalNormal) > gNormalTolerance)
 				discard;
@@ -291,14 +303,14 @@ shader Surface
 			#if BLEND_MODE == 0 || BLEND_MODE == 1
 				uv = uv * gSpriteUV.zw + gSpriteUV.xy;
 			#endif
-			
+
 			float opacity = gOpacityTex.Sample(gOpacitySamp, uv);
-				
+
 			#if BLEND_MODE == 3
 				OutSceneColor = float4(gEmissiveColor * gEmissiveMaskTex.Sample(gEmissiveMaskSamp, uv).x, opacity);
 			#elif BLEND_MODE == 2
 				float3 normal = normalize(gNormalTex.Sample(gNormalSamp, uv) * 2.0f - float3(1, 1, 1));
-				
+
 				// Flip multiplication order since we need to transform with tangentToWorld, which is the transpose
 				worldNormal = mul(normal, worldToTangent);
 				OutGBufferB = float4(worldNormal * 0.5f + 0.5f, opacity);
@@ -306,16 +318,16 @@ shader Surface
 				float4 albedo = gAlbedoTex.Sample(gAlbedoSamp, uv);
 				opacity *= albedo.a;
 				OutGBufferA = float4(albedo.xyz, opacity);
-				
+
 				float3 normal = normalize(gNormalTex.Sample(gNormalSamp, uv) * 2.0f - float3(1, 1, 1));
-				
+
 				// Flip multiplication order since we need to transform with tangentToWorld, which is the transpose
 				worldNormal = mul(normal, worldToTangent);
 				OutGBufferB = float4(worldNormal * 0.5f + 0.5f, opacity);
-				
+
 				float roughness = gRoughnessTex.Sample(gRoughnessSamp, uv).x;
 				float metalness = gMetalnessTex.Sample(gMetalnessSamp, uv).x;
-				
+
 				OutGBufferC = float4(roughness, metalness, 0.0f, opacity);
 			#endif
 		}	

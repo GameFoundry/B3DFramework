@@ -797,6 +797,7 @@ namespace bs { namespace ct
 		const char* sourceBytes = source.c_str();
 
 		glslang::TShader* shader = bs_new<glslang::TShader>(glslType);
+		shader->setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_3);
 		shader->setStrings(&sourceBytes, 1);
 		shader->setEntryPoint("main");
 

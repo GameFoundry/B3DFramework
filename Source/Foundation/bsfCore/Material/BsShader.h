@@ -134,7 +134,13 @@ namespace bs
 		 * when attaching a SpriteTexture to the material parameter). The attribute value is a string naming the texture
 		 * parameter that contains the texture whose subset the UV represents.
 		 */
-		SpriteUV
+		SpriteUV,
+
+		/** Specifies a human readable name of the shader parameter. */
+		Name,
+
+		/** Hides the parameter from the display in editor inspector. */
+		HideInInspector
 	};
 
 	/** Optional attribute that can be applied to a shader parameter. */

@@ -30,8 +30,11 @@ namespace bs
 		String tmpname;
 		tmpname = MonoUtil::monoToString(value.name);
 		output.name = tmpname;
+		String tmpidentifier;
+		tmpidentifier = MonoUtil::monoToString(value.identifier);
+		output.identifier = tmpidentifier;
 		output.type = value.type;
-		output.isInternal = value.isInternal;
+		output.flags = value.flags;
 
 		return output;
 	}
@@ -42,8 +45,11 @@ namespace bs
 		MonoString* tmpname;
 		tmpname = MonoUtil::stringToMono(value.name);
 		output.name = tmpname;
+		MonoString* tmpidentifier;
+		tmpidentifier = MonoUtil::stringToMono(value.identifier);
+		output.identifier = tmpidentifier;
 		output.type = value.type;
-		output.isInternal = value.isInternal;
+		output.flags = value.flags;
 
 		return output;
 	}

@@ -16,12 +16,12 @@ namespace bs
 	{
 		/// <summary>Name of the parameter variable.</summary>
 		public string name;
+		/// <summary>Variable identifier of the parameter.</summary>
+		public string identifier;
 		/// <summary>Data type of the parameter.</summary>
 		public ShaderParameterType type;
-		/// <summary>
-		/// Determines is parameter managed internally be the renderer, or is it expected to be set by the user.
-		/// </summary>
-		public bool isInternal;
+		/// <summary>Flags used to further describe the parameter.</summary>
+		public ShaderParameterFlag flags;
 	}
 
 	/** @} */
