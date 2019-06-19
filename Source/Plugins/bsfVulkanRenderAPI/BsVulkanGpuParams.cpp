@@ -137,6 +137,7 @@ namespace bs { namespace ct
 
 				VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.getBindings(j);
 				GpuParamObjectType* types = vkParamInfo.getLayoutTypes(j);
+				GpuBufferFormat* elementTypes = vkParamInfo.getLayoutElementTypes(j);
 				for (UINT32 k = 0; k < numBindingsPerSet; k++)
 				{
 					// Note: Instead of using one structure per binding, it's possible to update multiple at once
@@ -176,7 +177,7 @@ namespace bs { namespace ct
 							if (isLoadStore)
 							{
 								imageInfo.sampler = VK_NULL_HANDLE;
-								imageInfo.imageView = vkTexManager.getDummyImageView(types[k], i);
+								imageInfo.imageView = vkTexManager.getDummyImageView(types[k], elementTypes[k], i);
 								imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
 							}
 							else
@@ -188,7 +189,7 @@ namespace bs { namespace ct
 								else
 									imageInfo.sampler = VK_NULL_HANDLE;
 
-								imageInfo.imageView = vkTexManager.getDummyImageView(types[k], i);
+								imageInfo.imageView = vkTexManager.getDummyImageView(types[k], elementTypes[k], i);
 								imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 							}
 
@@ -222,9 +223,9 @@ namespace bs { namespace ct
 								bool isLoadStore = writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
 								VkBufferView bufferView;
 								if (isLoadStore)
-									bufferView = vkBufManager.getDummyStorageBufferView(i);
+									bufferView = vkBufManager.getDummyStorageBufferView(elementTypes[k], i);
 								else
-									bufferView = vkBufManager.getDummyReadBufferView(i);
+									bufferView = vkBufManager.getDummyReadBufferView(elementTypes[k], i);
 
 								perSetData.writeInfos[k].bufferView = bufferView;
 								writeSetInfo.pBufferInfo = nullptr;
@@ -342,9 +343,10 @@ namespace bs { namespace ct
 					TextureManager::instance());
 
 				GpuParamObjectType* types = vkParamInfo.getLayoutTypes(set);
-				GpuParamObjectType type = types[bindingIdx];
+				GpuBufferFormat* elementTypes = vkParamInfo.getLayoutElementTypes(set);
 
-				perSetData.writeInfos[bindingIdx].image.imageView = vkTexManager.getDummyImageView(type, i);
+				perSetData.writeInfos[bindingIdx].image.imageView = vkTexManager.getDummyImageView(types[bindingIdx], 
+					elementTypes[bindingIdx], i);
 				mPerDeviceData[i].sampledImages[sequentialIdx] = VK_NULL_HANDLE;
 			}
 		}
@@ -394,9 +396,10 @@ namespace bs { namespace ct
 					TextureManager::instance());
 
 				GpuParamObjectType* types = vkParamInfo.getLayoutTypes(set);
-				GpuParamObjectType type = types[bindingIdx];
+				GpuBufferFormat* elementTypes = vkParamInfo.getLayoutElementTypes(set);
 
-				perSetData.writeInfos[bindingIdx].image.imageView = vkTexManager.getDummyImageView(type, i);
+				perSetData.writeInfos[bindingIdx].image.imageView = vkTexManager.getDummyImageView(types[bindingIdx],
+					elementTypes[bindingIdx], i);
 				mPerDeviceData[i].storageImages[sequentialIdx] = VK_NULL_HANDLE;
 			}
 		}
@@ -451,11 +454,12 @@ namespace bs { namespace ct
 					VulkanHardwareBufferManager& vkBufManager = static_cast<VulkanHardwareBufferManager&>(
 						HardwareBufferManager::instance());
 
+					GpuBufferFormat* elementTypes = vkParamInfo.getLayoutElementTypes(set);
 					bool isLoadStore = writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
 					if (isLoadStore)
-						bufferView = vkBufManager.getDummyStorageBufferView(i);
+						bufferView = vkBufManager.getDummyStorageBufferView(elementTypes[bindingIdx], i);
 					else
-						bufferView = vkBufManager.getDummyReadBufferView(i);
+						bufferView = vkBufManager.getDummyReadBufferView(elementTypes[bindingIdx], i);
 
 					mPerDeviceData[i].buffers[sequentialIdx] = nullptr;
 				}

@@ -32,6 +32,8 @@ namespace bs
 		TU_CPUCACHED		BS_SCRIPT_EXPORT(n:CPUCached)		= 0x1000,
 		/** Allows the CPU to directly read the texture data buffers from the GPU. */
 		TU_CPUREADABLE		BS_SCRIPT_EXPORT(n:CPUReadable)		= 0x2000,
+		/** Allows you to retrieve views of the texture using a format different from one specified on creation. */
+		TU_MUTABLEFORMAT	BS_SCRIPT_EXPORT(n:MutableFormat)	= 0x4000,
 		/** Default (most common) texture usage. */
 		TU_DEFAULT			BS_SCRIPT_EXPORT(ex:true)			= TU_STATIC
 	};

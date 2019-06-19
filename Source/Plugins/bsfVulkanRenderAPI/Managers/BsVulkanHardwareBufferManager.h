@@ -19,10 +19,10 @@ namespace bs { namespace ct
 		~VulkanHardwareBufferManager();
 
 		/** Returns a buffer view that can be used for buffer read operations when no other buffer is bound. */
-		VkBufferView getDummyReadBufferView(UINT32 deviceIdx) const;
+		VkBufferView getDummyReadBufferView(GpuBufferFormat elementType, UINT32 deviceIdx) const;
 
 		/** Returns a buffer view that can be used for buffer storage operations when no other buffer is bound. */
-		VkBufferView getDummyStorageBufferView(UINT32 deviceIdx) const;
+		VkBufferView getDummyStorageBufferView(GpuBufferFormat elementType, UINT32 deviceIdx) const;
 
 		/** Returns a buffer that can be used for uniform storage when no other buffer is bound. */
 		VkBuffer getDummyUniformBuffer(UINT32 deviceIdx) const;
@@ -60,8 +60,8 @@ namespace bs { namespace ct
 		VulkanHardwareBuffer* mDummyUniformBuffer;
 		VulkanHardwareBuffer* mDummyStructuredBuffer;
 
-		VkBufferView mDummyReadBufferViews[BS_MAX_DEVICES];
-		VkBufferView mDummyStorageBufferViews[BS_MAX_DEVICES];
+		mutable VkBufferView mDummyReadBufferViews[BS_MAX_DEVICES][BF_COUNT];
+		mutable VkBufferView mDummyStorageBufferViews[BS_MAX_DEVICES][BF_COUNT];
 	};
 
 	/** @} */

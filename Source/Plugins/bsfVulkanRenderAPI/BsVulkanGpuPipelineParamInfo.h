@@ -28,6 +28,9 @@ namespace bs { namespace ct
 		/** Returns a pointer to any array of types expected by layout bindings. */
 		GpuParamObjectType* getLayoutTypes(UINT32 layoutIdx) const { return mLayoutInfos[layoutIdx].types; }
 
+		/** Returns a pointer to any array of underlying element types for textures/buffers. */
+		GpuBufferFormat* getLayoutElementTypes(UINT32 layoutIdx) const { return mLayoutInfos[layoutIdx].elementTypes; }
+
 		/** Returns the sequential index of the binding at the specificn set/slot. Returns -1 if slot is not used. */
 		UINT32 getBindingIdx(UINT32 set, UINT32 slot) const { return mSetExtraInfos[set].slotIndices[slot]; }
 
@@ -46,6 +49,7 @@ namespace bs { namespace ct
 		{
 			VkDescriptorSetLayoutBinding* bindings;
 			GpuParamObjectType* types;
+			GpuBufferFormat* elementTypes;
 			UINT32 numBindings;
 		};
 

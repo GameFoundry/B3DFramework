@@ -269,6 +269,83 @@ namespace bs { namespace ct
 		return GPDT_UNKNOWN;
 	}
 
+	GpuBufferFormat mapSamplerBasicType(const glslang::TSampler& sampler)
+	{
+		UINT32 vectorSize = sampler.vectorSize;
+		switch (sampler.type)
+		{
+		case glslang::EbtFloat:
+			switch (vectorSize)
+			{
+			case 1:		return BF_32X1F;
+			case 2:		return BF_32X2F;
+			case 3:		return BF_32X3F;
+			case 4:		return BF_32X4F;
+			default:	return BF_UNKNOWN;
+			}
+		case glslang::EbtFloat16:
+			switch (vectorSize)
+			{
+			case 1:		return BF_16X1F;
+			case 2:		return BF_16X2F;
+			case 4:		return BF_16X4F;
+			default:	return BF_UNKNOWN;
+			}
+		case glslang::EbtInt16:
+			switch (vectorSize)
+			{
+			case 1:		return BF_16X1U;
+			case 2:		return BF_16X2U;
+			case 4:		return BF_16X4U;
+			default:	return BF_UNKNOWN;
+			}
+		case glslang::EbtUint16:
+			switch (vectorSize)
+			{
+			case 1:		return BF_16X1S;
+			case 2:		return BF_16X2S;
+			case 4:		return BF_16X4S;
+			default:	return BF_UNKNOWN;
+			}
+		case glslang::EbtInt8:
+			switch (vectorSize)
+			{
+			case 1:		return BF_8X1U;
+			case 2:		return BF_8X2U;
+			case 4:		return BF_8X4U;
+			default:	return BF_UNKNOWN;
+			}
+		case glslang::EbtUint8:
+			switch (vectorSize)
+			{
+			case 1:		return BF_8X1S;
+			case 2:		return BF_8X2S;
+			case 4:		return BF_8X4S;
+			default:	return BF_UNKNOWN;
+			}
+		case glslang::EbtInt:
+			switch (vectorSize)
+			{
+			case 1:		return BF_32X1S;
+			case 2:		return BF_32X2S;
+			case 3:		return BF_32X3S;
+			case 4:		return BF_32X4S;
+			default:	return BF_UNKNOWN;
+			}
+		case glslang::EbtUint:
+			switch (vectorSize)
+			{
+			case 1:		return BF_32X1U;
+			case 2:		return BF_32X2U;
+			case 3:		return BF_32X3U;
+			case 4:		return BF_32X4U;
+			default:	return BF_UNKNOWN;
+			}
+		default:
+			return BF_UNKNOWN;
+		}
+	}
+
 	/**	Holds a GLSL program input attribute used in vertex programs. */
 	struct GLSLAttribute
 	{
@@ -444,6 +521,7 @@ namespace bs { namespace ct
 				param.slot = qualifier.layoutBinding;
 				param.set = qualifier.layoutSet;
 				param.type = GPOT_UNKNOWN;
+				param.elementType = mapSamplerBasicType(sampler);
 
 				if (param.set == glslang::TQualifier::layoutSetEnd)
 					param.set = 0;

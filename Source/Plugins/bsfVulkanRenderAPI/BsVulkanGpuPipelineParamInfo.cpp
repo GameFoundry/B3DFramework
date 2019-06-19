@@ -32,6 +32,7 @@ namespace bs { namespace ct
 
 		mAlloc.reserve<VkDescriptorSetLayoutBinding>(mNumElements)
 			.reserve<GpuParamObjectType>(mNumElements)
+			.reserve<GpuBufferFormat>(mNumElements)
 			.reserve<LayoutInfo>(mNumSets)
 			.reserve<VulkanDescriptorLayout*>(mNumSets * numDevices)
 			.reserve<SetExtraInfo>(mNumSets)
@@ -41,6 +42,7 @@ namespace bs { namespace ct
 		mLayoutInfos = mAlloc.alloc<LayoutInfo>(mNumSets);
 		VkDescriptorSetLayoutBinding* bindings = mAlloc.alloc<VkDescriptorSetLayoutBinding>(mNumElements);
 		GpuParamObjectType* types = mAlloc.alloc<GpuParamObjectType>(mNumElements);
+		GpuBufferFormat* elementTypes = mAlloc.alloc<GpuBufferFormat>(mNumElements);
 
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
@@ -61,6 +63,9 @@ namespace bs { namespace ct
 		if (types != nullptr)
 			bs_zero_out(types, mNumElements);
 
+		if (elementTypes != nullptr)
+			bs_zero_out(elementTypes, mNumElements);
+
 		UINT32 globalBindingIdx = 0;
 		for (UINT32 i = 0; i < mNumSets; i++)
 		{
@@ -69,6 +74,7 @@ namespace bs { namespace ct
 			mLayoutInfos[i].numBindings = 0;
 			mLayoutInfos[i].bindings = nullptr;
 			mLayoutInfos[i].types = nullptr;
+			mLayoutInfos[i].elementTypes = nullptr;
 
 			for (UINT32 j = 0; j < mSetInfos[i].numSlots; j++)
 			{
@@ -92,6 +98,7 @@ namespace bs { namespace ct
 		{
 			mLayoutInfos[i].bindings = &bindings[offset];
 			mLayoutInfos[i].types = &types[offset];
+			mLayoutInfos[i].elementTypes = &elementTypes[offset];
 			offset += mLayoutInfos[i].numBindings;
 		}
 
@@ -137,6 +144,7 @@ namespace bs { namespace ct
 					binding.descriptorType = descType;
 
 					types[bindingIdx] = entry.second.type;
+					elementTypes[bindingIdx] = entry.second.elementType;
 				}
 			};
 
@@ -162,6 +170,7 @@ namespace bs { namespace ct
 					binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
 
 					types[bindingIdx] = entry.second.type;
+					elementTypes[bindingIdx] = entry.second.elementType;
 				}
 			}
 
@@ -191,6 +200,7 @@ namespace bs { namespace ct
 				}
 
 				types[bindingIdx] = entry.second.type;
+				elementTypes[bindingIdx] = entry.second.elementType;
 			}
 		}
 

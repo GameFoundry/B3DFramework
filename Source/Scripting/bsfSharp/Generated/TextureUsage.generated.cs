@@ -28,7 +28,11 @@ namespace bs
 		/// </summary>
 		CPUCached = 4096,
 		/// <summary>Allows the CPU to directly read the texture data buffers from the GPU.</summary>
-		CPUReadable = 8192
+		CPUReadable = 8192,
+		/// <summary>
+		/// Allows you to retrieve views of the texture using a format different from one specified on creation.
+		/// </summary>
+		MutableFormat = 16384
 	}
 
 	/** @} */

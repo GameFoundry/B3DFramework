@@ -69,16 +69,17 @@ namespace bs { namespace ct
 		TextureSurface completeSurface(0, desc.numMipLevels, 0, desc.numFaces);
 		if ((mUsage & TU_DEPTHSTENCIL) != 0)
 		{
-			mFramebufferMainView = createView(completeSurface, getAspectFlags());
-			mMainView = createView(completeSurface, VK_IMAGE_ASPECT_DEPTH_BIT);
+			mFramebufferMainView = createView(completeSurface, desc.format, getAspectFlags());
+			mMainView = createView(completeSurface, desc.format, VK_IMAGE_ASPECT_DEPTH_BIT);
 		}
 		else
-			mMainView = createView(completeSurface, VK_IMAGE_ASPECT_COLOR_BIT);
+			mMainView = createView(completeSurface, desc.format, VK_IMAGE_ASPECT_COLOR_BIT);
 
 		ImageViewInfo mainViewInfo;
 		mainViewInfo.surface = completeSurface;
 		mainViewInfo.framebuffer = false;
 		mainViewInfo.view = mMainView;
+		mainViewInfo.format = desc.format;
 
 		mImageInfos.push_back(mainViewInfo);
 
@@ -88,6 +89,7 @@ namespace bs { namespace ct
 			fbMainViewInfo.surface = completeSurface;
 			fbMainViewInfo.framebuffer = true;
 			fbMainViewInfo.view = mFramebufferMainView;
+			fbMainViewInfo.format = desc.format;
 
 			mImageInfos.push_back(fbMainViewInfo);
 		}
@@ -131,12 +133,24 @@ namespace bs { namespace ct
 
 	VkImageView VulkanImage::getView(const TextureSurface& surface, bool framebuffer) const
 	{
+		return getView(mImageViewCI.format, surface, framebuffer);
+	}
+
+	VkImageView VulkanImage::getView(VkFormat format, bool framebuffer) const
+	{
+		TextureSurface completeSurface(0, mNumMipLevels, 0, mNumFaces);
+		return getView(format, completeSurface, framebuffer);
+	}
+
+	VkImageView VulkanImage::getView(VkFormat format, const TextureSurface& surface, bool framebuffer) const
+	{
 		for(auto& entry : mImageInfos)
 		{
 			if (surface.mipLevel == entry.surface.mipLevel &&
 				surface.numMipLevels == entry.surface.numMipLevels &&
 				surface.face == entry.surface.face &&
-				surface.numFaces == entry.surface.numFaces)
+				surface.numFaces == entry.surface.numFaces &&
+				format == entry.format)
 			{
 				if((mUsage & TU_DEPTHSTENCIL) == 0)
 					return entry.view;
@@ -151,25 +165,27 @@ namespace bs { namespace ct
 		ImageViewInfo info;
 		info.surface = surface;
 		info.framebuffer = framebuffer;
+		info.format = format;
 
 		if ((mUsage & TU_DEPTHSTENCIL) != 0)
 		{
 			if(framebuffer)
-				info.view = createView(surface, getAspectFlags());
+				info.view = createView(surface, format, getAspectFlags());
 			else
-				info.view = createView(surface, VK_IMAGE_ASPECT_DEPTH_BIT);
+				info.view = createView(surface, format, VK_IMAGE_ASPECT_DEPTH_BIT);
 		}
 		else
-			info.view = createView(surface, VK_IMAGE_ASPECT_COLOR_BIT);
+			info.view = createView(surface, format, VK_IMAGE_ASPECT_COLOR_BIT);
 
 		mImageInfos.push_back(info);
 
 		return info.view;
 	}
 
-	VkImageView VulkanImage::createView(const TextureSurface& surface, VkImageAspectFlags aspectMask) const
+	VkImageView VulkanImage::createView(const TextureSurface& surface, VkFormat format, VkImageAspectFlags aspectMask) const
 	{
 		VkImageViewType oldViewType = mImageViewCI.viewType;
+		VkFormat oldFormat = mImageViewCI.format;
 
 		const UINT32 numFaces = surface.numFaces == 0 ? mNumFaces : surface.numFaces;
 
@@ -204,12 +220,14 @@ namespace bs { namespace ct
 		mImageViewCI.subresourceRange.levelCount = surface.numMipLevels == 0 ? VK_REMAINING_MIP_LEVELS : surface.numMipLevels;
 		mImageViewCI.subresourceRange.baseArrayLayer = surface.face;
 		mImageViewCI.subresourceRange.layerCount = surface.numFaces == 0 ? VK_REMAINING_ARRAY_LAYERS : surface.numFaces;
+		mImageViewCI.format = format;
 
 		VkImageView view;
 		VkResult result = vkCreateImageView(mOwner->getDevice().getLogical(), &mImageViewCI, gVulkanAllocator, &view);
 		assert(result == VK_SUCCESS);
 
 		mImageViewCI.viewType = oldViewType;
+		mImageViewCI.format = oldFormat;
 		return view;
 	}
 
@@ -677,6 +695,9 @@ namespace bs { namespace ct
 				}
 			}
 		}
+
+		if((usage & TU_MUTABLEFORMAT) != 0)
+			mImageCI.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
 
 		mImageCI.extent = { props.getWidth(), props.getHeight(), props.getDepth() };
 		mImageCI.mipLevels = props.getNumMipmaps() + 1;

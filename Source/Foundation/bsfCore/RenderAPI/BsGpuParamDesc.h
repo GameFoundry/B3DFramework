@@ -31,8 +31,14 @@ namespace bs
 		String name;
 		GpuParamObjectType type;
 
-		UINT32 slot; /** Slot within a set. Uniquely identifies bind location in the GPU pipeline, together with the set. */
-		UINT32 set; /** Uniquely identifies the bind location in the GPU pipeline, together with the slot. */
+		/** Slot within a set. Uniquely identifies bind location in the GPU pipeline, together with the set. */
+		UINT32 slot;
+
+		/** Uniquely identifies the bind location in the GPU pipeline, together with the slot. */
+		UINT32 set;
+
+		/** Underlying type of individual elements in the buffer or texture. */
+		GpuBufferFormat elementType = BF_UNKNOWN;
 	};
 
 	/**	Describes a GPU program parameter block (collection of GPU program data parameters). */
@@ -137,7 +143,7 @@ namespace bs
 	template<> struct RTTIPlainType<GpuParamObjectDesc>
 	{
 		enum { id = TID_GpuParamObjectDesc }; enum { hasDynamicSize = 1 };
-		static constexpr UINT32 VERSION = 1;
+		static constexpr UINT32 VERSION = 2;
 
 		static void toMemory(const GpuParamObjectDesc& data, char* memory)
 		{
@@ -152,7 +158,8 @@ namespace bs
 			memory = rttiWriteElem(data.name, memory);
 			memory = rttiWriteElem(data.type, memory);
 			memory = rttiWriteElem(data.slot, memory);
-			rttiWriteElem(data.set, memory);
+			memory = rttiWriteElem(data.set, memory);
+			rttiWriteElem(data.elementType, memory);
 		}
 
 		static UINT32 fromMemory(GpuParamObjectDesc& data, char* memory)
@@ -163,12 +170,14 @@ namespace bs
 
 			UINT32 version = 0;
 			memory = rttiReadElem(version, memory);
-			assert(version == VERSION);
 
 			memory = rttiReadElem(data.name, memory);
 			memory = rttiReadElem(data.type, memory);
 			memory = rttiReadElem(data.slot, memory);
-			rttiReadElem(data.set, memory);
+			memory = rttiReadElem(data.set, memory);
+
+			if(version > 1)
+				rttiReadElem(data.elementType, memory);
 
 			return size;
 		}
@@ -176,7 +185,7 @@ namespace bs
 		static UINT32 getDynamicSize(const GpuParamObjectDesc& data)
 		{
 			UINT32 dataSize = rttiGetElemSize(VERSION) + rttiGetElemSize(data.name) + rttiGetElemSize(data.type) +
-				rttiGetElemSize(data.slot) + rttiGetElemSize(data.set) + sizeof(UINT32);
+				rttiGetElemSize(data.slot) + rttiGetElemSize(data.set) + rttiGetElemSize(data.elementType) + sizeof(UINT32);
 
 			return dataSize;
 		}

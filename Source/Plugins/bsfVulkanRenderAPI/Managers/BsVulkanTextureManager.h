@@ -33,7 +33,7 @@ namespace bs
 		void onStartUp() override;
 
 		/** Returns a image view that can be used for shader operations when no other image is bound. */
-		VkImageView getDummyImageView(GpuParamObjectType type, UINT32 deviceIdx) const;
+		VkImageView getDummyImageView(GpuParamObjectType type, GpuBufferFormat elementType, UINT32 deviceIdx) const;
 
 	protected:
 		/** @copydoc TextureManager::createTextureInternal */

@@ -68,7 +68,7 @@ namespace bs
 			desc.depth = entry.depth;
 			desc.numArraySlices = entry.arraySize;
 			desc.format = PF_RGBA8;
-			desc.usage = TU_STATIC;
+			desc.usage = TU_STATIC | TU_MUTABLEFORMAT;
 
 			mDummyReadTextures[idx] = std::static_pointer_cast<VulkanTexture>(createTexture(desc));
 			mDummyReadTextures[idx]->writeData(*pixelData);
@@ -80,7 +80,8 @@ namespace bs
 		}
 	}
 
-	VkImageView VulkanTextureManager::getDummyImageView(GpuParamObjectType type, UINT32 deviceIdx) const
+	VkImageView VulkanTextureManager::getDummyImageView(GpuParamObjectType type, GpuBufferFormat elementType, 
+		UINT32 deviceIdx) const
 	{
 		SPtr<VulkanTexture> texture;
 		switch(type)
@@ -129,7 +130,58 @@ namespace bs
 			break;
 		}
 
-		return texture->getResource(deviceIdx)->getView(false);
+		// Map to a format that matches the one in the shader. Shader only cares about uint/int/float distinctions
+		// (no normalized, no scaled, etc.). We also need to ensure all formats are 32 bits total, as that is the size
+		// of the original format in our dummy texture, and different bit size formats aren't compatible as per Vulkan
+		// spec.
+		VkFormat format;
+		switch(elementType)
+		{
+		case BF_16X1F:
+		case BF_32X1F:
+			format = VK_FORMAT_R32_SFLOAT;
+			break;
+		case BF_16X2F:
+		case BF_32X2F:
+			format = VK_FORMAT_R16G16_UNORM;
+			break;
+		case BF_32X3F:
+		case BF_32X4F:
+		case BF_16X4F:
+			format = VK_FORMAT_R8G8B8A8_UNORM;
+			break;
+		case BF_16X1U:
+		case BF_32X1U:
+			format = VK_FORMAT_R32_UINT;
+			break;
+		case BF_16X2U:
+		case BF_32X2U:
+			format = VK_FORMAT_R16G16_UINT;
+			break;
+		case BF_32X3U:
+		case BF_32X4U:
+		case BF_16X4U:
+			format = VK_FORMAT_R8G8B8A8_UINT;
+			break;
+		case BF_16X1S:
+		case BF_32X1S:
+			format = VK_FORMAT_R32_SINT;
+			break;
+		case BF_16X2S:
+		case BF_32X2S:
+			format = VK_FORMAT_R16G16_SINT;
+			break;
+		case BF_32X3S:
+		case BF_32X4S:
+		case BF_16X4S:
+			format = VK_FORMAT_R8G8B8A8_SINT;
+			break;
+		default:
+			format = VK_FORMAT_UNDEFINED;
+			break;
+		}
+
+		return texture->getResource(deviceIdx)->getView(format, false);
 	}
 
 	SPtr<Texture> VulkanTextureManager::createTextureInternal(const TEXTURE_DESC& desc,

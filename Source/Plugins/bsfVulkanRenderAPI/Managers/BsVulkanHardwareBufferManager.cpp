@@ -28,41 +28,14 @@ namespace bs { namespace ct
 		mDummyStructuredBuffer = bs_new<VulkanHardwareBuffer>(
 			VulkanHardwareBuffer::BT_STRUCTURED, BF_UNKNOWN, GBU_LOADSTORE, 16, GDF_DEFAULT);
 
-		VkBufferViewCreateInfo viewCI;
-		viewCI.sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
-		viewCI.pNext = nullptr;
-		viewCI.flags = 0;
-		viewCI.format = VulkanUtility::getBufferFormat(BF_32X1F);
-		viewCI.offset = 0;
-		viewCI.range = VK_WHOLE_SIZE;
-
 		for(UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
-			VulkanBuffer* readBuffer = mDummyReadBuffer->getResource(i);
-			if(readBuffer)
+			for(UINT32 j = 0; j < BF_COUNT; j++)
 			{
-				viewCI.buffer = readBuffer->getHandle();
-
-				VkResult result = vkCreateBufferView(readBuffer->getDevice().getLogical(), &viewCI, gVulkanAllocator, 
-					&mDummyReadBufferViews[i]);
-				assert(result == VK_SUCCESS);
+				mDummyReadBufferViews[i][j] = VK_NULL_HANDLE;
+				mDummyStorageBufferViews[i][j] = VK_NULL_HANDLE;
 			}
-			else
-				mDummyReadBufferViews[i] = VK_NULL_HANDLE;
-
-			VulkanBuffer* storageBuffer = mDummyStorageBuffer->getResource(i);
-			if(storageBuffer)
-			{
-				viewCI.buffer = storageBuffer->getHandle();
-
-				VkResult result = vkCreateBufferView(storageBuffer->getDevice().getLogical(), &viewCI, gVulkanAllocator, 
-					&mDummyStorageBufferViews[i]);
-				assert(result == VK_SUCCESS);
-			}
-			else
-				mDummyStorageBufferViews[i] = VK_NULL_HANDLE;
 		}
-
 	}
 
 	VulkanHardwareBufferManager::~VulkanHardwareBufferManager()
@@ -70,12 +43,24 @@ namespace bs { namespace ct
 		for(UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
 			VulkanBuffer* readBuffer = mDummyReadBuffer->getResource(i);
-			if(readBuffer)
-				vkDestroyBufferView(readBuffer->getDevice().getLogical(), mDummyReadBufferViews[i], gVulkanAllocator);
+			if (readBuffer)
+			{
+				for (UINT32 j = 0; j < BF_COUNT; j++)
+				{
+					if(mDummyReadBufferViews[i][j] != VK_NULL_HANDLE)
+						vkDestroyBufferView(readBuffer->getDevice().getLogical(), mDummyReadBufferViews[i][j], gVulkanAllocator);
+				}
+			}
 
 			VulkanBuffer* storageBuffer = mDummyStorageBuffer->getResource(i);
-			if(storageBuffer)
-				vkDestroyBufferView(storageBuffer->getDevice().getLogical(), mDummyStorageBufferViews[i], gVulkanAllocator);
+			if (storageBuffer)
+			{
+				for (UINT32 j = 0; j < BF_COUNT; j++)
+				{
+					if(mDummyStorageBufferViews[i][j] != VK_NULL_HANDLE)
+						vkDestroyBufferView(storageBuffer->getDevice().getLogical(), mDummyStorageBufferViews[i][j], gVulkanAllocator);
+				}
+			}
 		}
 
 		bs_delete(mDummyReadBuffer);
@@ -84,14 +69,56 @@ namespace bs { namespace ct
 		bs_delete(mDummyStructuredBuffer);
 	}
 
-	VkBufferView VulkanHardwareBufferManager::getDummyReadBufferView(UINT32 deviceIdx) const
+	VkBufferView VulkanHardwareBufferManager::getDummyReadBufferView(GpuBufferFormat elementType, UINT32 deviceIdx) const
 	{
-		return mDummyReadBufferViews[deviceIdx];
+		UINT32 elementIdx = (UINT32)elementType;
+		if(mDummyReadBufferViews[deviceIdx][elementIdx] == VK_NULL_HANDLE)
+		{
+			VulkanBuffer* readBuffer = mDummyReadBuffer->getResource(deviceIdx);
+			if (readBuffer)
+			{
+				VkBufferViewCreateInfo viewCI;
+				viewCI.sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
+				viewCI.pNext = nullptr;
+				viewCI.flags = 0;
+				viewCI.format = VulkanUtility::getBufferFormat(elementType);
+				viewCI.offset = 0;
+				viewCI.range = VK_WHOLE_SIZE;
+				viewCI.buffer = readBuffer->getHandle();
+
+				VkResult result = vkCreateBufferView(readBuffer->getDevice().getLogical(), &viewCI, gVulkanAllocator,
+					&mDummyReadBufferViews[deviceIdx][elementIdx]);
+				assert(result == VK_SUCCESS);
+			}
+		}
+
+		return mDummyReadBufferViews[deviceIdx][elementIdx];
 	}
 
-	VkBufferView VulkanHardwareBufferManager::getDummyStorageBufferView(UINT32 deviceIdx) const
+	VkBufferView VulkanHardwareBufferManager::getDummyStorageBufferView(GpuBufferFormat elementType, UINT32 deviceIdx) const
 	{
-		return mDummyStorageBufferViews[deviceIdx];
+		UINT32 elementIdx = (UINT32)elementType;
+		if(mDummyStorageBufferViews[deviceIdx][elementIdx] == VK_NULL_HANDLE)
+		{
+			VulkanBuffer* readBuffer = mDummyStorageBuffer->getResource(deviceIdx);
+			if (readBuffer)
+			{
+				VkBufferViewCreateInfo viewCI;
+				viewCI.sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
+				viewCI.pNext = nullptr;
+				viewCI.flags = 0;
+				viewCI.format = VulkanUtility::getBufferFormat(elementType);
+				viewCI.offset = 0;
+				viewCI.range = VK_WHOLE_SIZE;
+				viewCI.buffer = readBuffer->getHandle();
+
+				VkResult result = vkCreateBufferView(readBuffer->getDevice().getLogical(), &viewCI, gVulkanAllocator,
+					&mDummyStorageBufferViews[deviceIdx][elementIdx]);
+				assert(result == VK_SUCCESS);
+			}
+		}
+
+		return mDummyStorageBufferViews[deviceIdx][elementIdx];
 	}
 
 	VkBuffer VulkanHardwareBufferManager::getDummyUniformBuffer(UINT32 deviceIdx) const

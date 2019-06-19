@@ -75,6 +75,25 @@ namespace bs { namespace ct
 		 */
 		VkImageView getView(const TextureSurface& surface, bool framebuffer) const;
 		
+		/** 
+		 * Returns an image view with a specific format.
+		 *
+		 * @param[in]	format		Format to view the texture pixels as.
+		 * @param[in]	framebuffer	Set to true if the view will be used as a framebuffer attachment. Ensures proper
+		 *							attachment flags are set on the view.
+		 */
+		VkImageView getView(VkFormat format, bool framebuffer) const;
+
+		/** 
+		 * Returns an image view that covers the specified faces and mip maps of the texture, with a specific format. 
+		 *
+		 * @param[in]	format		Format to view the texture pixels as.
+		 * @param[in]	surface		Surface that describes which faces and mip levels to retrieve the view for.
+		 * @param[in]	framebuffer	Set to true if the view will be used as a framebuffer attachment. Ensures proper
+		 *							attachment flags are set on the view.
+		 */
+		VkImageView getView(VkFormat format, const TextureSurface& surface, bool framebuffer) const;
+
 		/** Get aspect flags that represent the contents of this image. */
 		VkImageAspectFlags getAspectFlags() const;
 
@@ -137,7 +156,7 @@ namespace bs { namespace ct
 
 	private:
 		/** Creates a new view of the provided part (or entirety) of surface. */
-		VkImageView createView(const TextureSurface& surface, VkImageAspectFlags aspectMask) const;
+		VkImageView createView(const TextureSurface& surface, VkFormat format, VkImageAspectFlags aspectMask) const;
 
 		/** Contains information about view for a specific surface(s) of this image. */
 		struct ImageViewInfo
@@ -145,6 +164,7 @@ namespace bs { namespace ct
 			TextureSurface surface;
 			bool framebuffer;
 			VkImageView view;
+			VkFormat format;
 		};
 
 		VkImage mImage;
