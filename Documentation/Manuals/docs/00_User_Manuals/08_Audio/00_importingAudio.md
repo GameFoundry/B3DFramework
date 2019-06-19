@@ -6,20 +6,20 @@ Audio in bs::f is represented in the form of an @bs::AudioClip object. An audio 
 
 Different audio file formats are supported depending on which audio backend is used:
  - OpenAudio (default)
-  - .FLAC 
-  - .OGG
-  - .WAV
+   - .FLAC 
+   - .OGG
+   - .WAV
  - FMOD
-  - .AIFF
-  - .ASF
-  - .ASX
-  - .DLS
-  - .FLAC
-  - .MIDI
-  - .MP3
-  - .OGG
-  - .WAV
-  - .WMA
+   - .AIFF
+   - .ASF
+   - .ASX
+   - .DLS
+   - .FLAC
+   - .MIDI
+   - .MP3
+   - .OGG
+   - .WAV
+   - .WMA
   
 ~~~~~~~~~~~~~{.cpp}
 // Import an audio clip from disk
