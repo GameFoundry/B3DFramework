@@ -113,13 +113,9 @@ namespace bs
 	/**
 	 * Object you may use to check on the results of an asynchronous operation. Contains uninitialized data until 
 	 * hasCompleted() returns true. 
-	 * 			
+	 * 
 	 * @note	
 	 * You are allowed (and meant to) to copy this by value.
-	 * @note
-	 * You'll notice mIsCompleted isn't synchronized. This is because we're okay if mIsCompleted reports true a few cycles 
-	 * too late, which is not relevant for practical use. And in cases where you need to ensure operation has completed 
-	 * you will usually use some kind of synchronization primitive that includes a memory barrier anyway.
 	 */
 	template<class ReturnType>
 	class BS_UTILITY_EXPORT TAsyncOp : public AsyncOpBase

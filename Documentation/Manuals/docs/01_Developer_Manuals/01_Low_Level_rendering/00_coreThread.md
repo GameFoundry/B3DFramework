@@ -14,7 +14,7 @@ Dealing with the core thread on the other hand requires some knowledge of how it
 Here are some examples of when the simulation thread needs to interact with the core thread:
  - You add a new renderable object to the scene. The simulation thread needs to notify the renderer.
  - You modify a property on a renderable/camera/light object. The simulation thread needs to notify the renderer.
- - You create a resource like a mesh or a texture. The simulation thread must schedule resource creation with the render API (i.e. creating vertex/pixel buffers for mesh, texture surfaces for texture).
+ - You create a resource like a mesh or a texture. The simulation thread must schedule resource creation with the render API (i.e. creating vertex/index buffers for mesh, texture surfaces for texture).
  - You destroy a resource like a mesh or texture. The simulation thread must call into render API to free the GPU portions of those objects.
  - You create a new window and the simulation thread needs to schedule its creation on the core thread.
  - You resize/move a window and the simulation thread needs to notify the core thread.
