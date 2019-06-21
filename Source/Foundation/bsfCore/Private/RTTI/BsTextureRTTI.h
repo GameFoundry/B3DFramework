@@ -55,7 +55,7 @@ namespace bs
 			SPtr<PixelData> pixelData = obj->mProperties.allocBuffer(face, mipmap);
 
 			obj->readData(pixelData, face, mipmap);
-			gCoreThread().submitAll(true);
+			gCoreThread().submit(true);
 
 			return pixelData;
 		}
