@@ -37,13 +37,13 @@ namespace bs
 		/**	Generates a hash value for field key data identifying a single field in the object. */
 		struct BS_SCR_BE_EXPORT Hash
 		{
-			inline size_t operator()(const ManagedSerializableFieldKey& x) const;
+			size_t operator()(const ManagedSerializableFieldKey& x) const;
 		};
 
 		/**	Compares two field key objects. */
 		struct BS_SCR_BE_EXPORT Equals
 		{
-			inline bool operator()(const ManagedSerializableFieldKey& a, const ManagedSerializableFieldKey& b) const;
+			bool operator()(const ManagedSerializableFieldKey& a, const ManagedSerializableFieldKey& b) const;
 		};
 
 	public:
