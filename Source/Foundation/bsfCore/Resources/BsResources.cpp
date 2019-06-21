@@ -355,9 +355,34 @@ namespace bs
 			}
 		}
 
+		// Check if resource load already started on another thread (in case it was already being loaded), in which case 
+		// we want to wait
+		bool waitOnLoadInProgress = false;
+		SPtr<Task> loadTask;
+		{
+			Lock inProgressLock(mInProgressResourcesMutex);
+
+			const auto iterFind = mInProgressResources.find(uuid);
+			if (iterFind != mInProgressResources.end())
+			{
+				if (iterFind->second->loadStarted)
+				{
+					waitOnLoadInProgress = true;
+					loadTask = iterFind->second->task;
+				}
+				else
+					iterFind->second->loadStarted = true;
+			}
+		}
+
 		// Previously being loaded as async but now we want it synced, so we wait
-		if (loadInProgress && synchronous)
+		if (loadInProgress && synchronous && waitOnLoadInProgress)
+		{
+			if(loadTask)
+				loadTask->wait();
+
 			output.resource.blockUntilLoaded(false);
+		}
 
 		// Actually start the file read operation if not already loaded or in progress
 		if (initiateLoad)
@@ -375,7 +400,17 @@ namespace bs
 				bool keepSourceData = loadFlags.isSet(ResourceLoadFlag::KeepSourceData);
 				SPtr<Task> task = Task::create(taskName, 
 					std::bind(&Resources::loadCallback, this, filePath, output.resource, keepSourceData));
-				TaskScheduler::instance().addTask(task);
+
+				// Register the task
+				{
+					Lock inProgressLock(mInProgressResourcesMutex);
+
+					const auto iterFind = mInProgressResources.find(uuid);
+					if (iterFind != mInProgressResources.end())
+						iterFind->second->task = task;
+
+					TaskScheduler::instance().addTask(task);
+				}
 			}
 		}
 		else

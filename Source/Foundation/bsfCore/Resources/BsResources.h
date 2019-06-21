@@ -71,6 +71,8 @@ namespace bs
 			UINT32 remainingDependencies;
 			Vector<HResource> dependencies;
 			bool notifyImmediately;
+			bool loadStarted = false;
+			SPtr<Task> task;
 
 			// Progress reporting
 			UINT32 dependencySize = 0;
