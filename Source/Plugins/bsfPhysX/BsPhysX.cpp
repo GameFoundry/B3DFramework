@@ -109,15 +109,15 @@ namespace bs
 			{
 			case 0:
 				ss << "PhysX info (" << errorCode << "): " << message << " at " << file << ":" << line;
-				LOGDBG(ss.str());
+				BS_LOG(Info, Physics, ss.str());
 				break;
 			case 1:
 				ss << "PhysX warning (" << errorCode << "): " << message << " at " << file << ":" << line;
-				LOGWRN(ss.str());
+				BS_LOG(Warning, Physics, ss.str());
 				break;
 			case 2:
 				ss << "PhysX error (" << errorCode << "): " << message << " at " << file << ":" << line;
-				LOGERR(ss.str());
+				BS_LOG(Error, Physics, ss.str());
 				BS_ASSERT(false); // Halt execution on debug builds when error occurs
 				break;
 			}

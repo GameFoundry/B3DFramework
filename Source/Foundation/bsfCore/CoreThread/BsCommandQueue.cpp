@@ -115,7 +115,8 @@ namespace bs
 
 				if(!command.asyncOp.hasCompleted())
 				{
-					LOGDBG("Async operation return value wasn't resolved properly. Resolving automatically to nullptr. " \
+					BS_LOG(Warning, CoreThread, 
+						"Async operation return value wasn't resolved properly. Resolving automatically to nullptr. " \
 						"Make sure to complete the operation before returning from the command callback method.");
 					command.asyncOp._completeOperation(nullptr);
 				}

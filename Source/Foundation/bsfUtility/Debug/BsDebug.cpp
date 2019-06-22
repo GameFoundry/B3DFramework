@@ -35,33 +35,35 @@ void logToIDEConsole(const bs::String& message, const char* channel)
 
 namespace bs
 {
-	void Debug::logDebug(const String& msg)
+	void Debug::log(const String& message, LogVerbosity verbosity, UINT32 category)
 	{
-		mLog.logMsg(msg, (UINT32)DebugChannel::Debug);
-		logToIDEConsole(msg, "DEBUG");
-	}
+		mLog.logMsg(message, verbosity, category);
 
-	void Debug::logWarning(const String& msg)
-	{
-		mLog.logMsg(msg, (UINT32)DebugChannel::Warning);
-		logToIDEConsole(msg, "WARNING");
-	}
-
-	void Debug::logError(const String& msg)
-	{
-		mLog.logMsg(msg, (UINT32)DebugChannel::Error);
-		logToIDEConsole(msg, "ERROR");
-	}
-
-	void Debug::log(const String& msg, UINT32 channel)
-	{
-		mLog.logMsg(msg, channel);
-		if (channel == (UINT32)DebugChannel::Debug)
-			logToIDEConsole(msg, "DEBUG");
-		if (channel == (UINT32)DebugChannel::Warning || channel == (UINT32)DebugChannel::CompilerWarning)
-			logToIDEConsole(msg, "WARNING");
-		if (channel == (UINT32)DebugChannel::Error || channel == (UINT32)DebugChannel::CompilerError)
-			logToIDEConsole(msg, "ERROR");
+		if(verbosity != LogVerbosity::Log)
+		{
+			switch(verbosity)
+			{
+			case LogVerbosity::Fatal: 
+				logToIDEConsole(message, "FATAL");
+				break;
+			case LogVerbosity::Error:
+				logToIDEConsole(message, "ERROR");
+				break;
+			case LogVerbosity::Warning: 
+				logToIDEConsole(message, "ERROR");
+				break;
+			default:
+			case LogVerbosity::Info:
+				logToIDEConsole(message, "INFO");
+				break;
+			case LogVerbosity::Verbose: 
+				logToIDEConsole(message, "VERBOSE");
+				break;
+			case LogVerbosity::VeryVerbose: 
+				logToIDEConsole(message, "VERY_VERBOSE");
+				break;
+			}
+		}
 	}
 
 	void Debug::writeAsBMP(UINT8* rawPixels, UINT32 bytesPerPixel, UINT32 width, UINT32 height, const Path& filePath, 
@@ -276,32 +278,38 @@ table td
 		for (auto& entry : entries)
 		{
 			String channelName;
-			if (entry.getChannel() == (UINT32)DebugChannel::Error || entry.getChannel() == (UINT32)DebugChannel::CompilerError)
+
+			switch(entry.getVerbosity())
 			{
+			case LogVerbosity::Fatal:
+			case LogVerbosity::Error:
 				if (!alternate)
 					stream << R"(		<tr class="error-row">)" << std::endl;
 				else
 					stream << R"(		<tr class="error-alt-row">)" << std::endl;
 
 				stream << R"(			<td>Error</td>)" << std::endl;
-			}
-			else if (entry.getChannel() == (UINT32)DebugChannel::Warning || entry.getChannel() == (UINT32)DebugChannel::CompilerWarning)
-			{
+				break;
+			case LogVerbosity::Warning:
 				if (!alternate)
 					stream << R"(		<tr class="warn-row">)" << std::endl;
 				else
 					stream << R"(		<tr class="warn-alt-row">)" << std::endl;
 
 				stream << R"(			<td>Warning</td>)" << std::endl;
-			}
-			else
-			{
+				break;
+			default:
+			case LogVerbosity::Info:
+			case LogVerbosity::Log:
+			case LogVerbosity::Verbose:
+			case LogVerbosity::VeryVerbose:
 				if (!alternate)
 					stream << R"(		<tr class="debug-row">)" << std::endl;
 				else
 					stream << R"(		<tr class="debug-alt-row">)" << std::endl;
 
 				stream << R"(			<td>Debug</td>)" << std::endl;
+				break;
 			}
 
 			stream << R"(			<td>)" << entry.getLocalTime() << "</td>" << std::endl;

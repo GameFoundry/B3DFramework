@@ -13,12 +13,6 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Available types of channels that debug messages can be logged to. */
-	enum class DebugChannel
-	{
-		Debug, Warning, Error, CompilerWarning, CompilerError
-	};
-
 	/**
 	 * Utility class providing various debug functionality.
 	 *
@@ -29,17 +23,14 @@ namespace bs
 	public:
 		Debug() = default;
 
-		/** Adds a log entry in the "Debug" channel. */
-		void logDebug(const String& msg);
-
-		/** Adds a log entry in the "Warning" channel. */
-		void logWarning(const String& msg);
-
-		/** Adds a log entry in the "Error" channel. */
-		void logError(const String& msg);
-
-		/** Adds a log entry in the specified channel. You may specify custom channels as needed. */
-		void log(const String& msg, UINT32 channel);
+		/**
+		 * Logs a new message. 
+		 *
+		 * @param[in]	message		The message describing the log entry.
+		 * @param[in]	verbosity	Verbosity of the message, determining its importance.
+		 * @param[in]	category	Category of the message, determining which system is it relevant to.
+		 */
+		void log(const String& message, LogVerbosity verbosity, UINT32 category = 0);
 
 		/** Retrieves the Log used by the Debug instance. */
 		Log& getLog() { return mLog; }
@@ -90,29 +81,47 @@ namespace bs
 	/** A simpler way of accessing the Debug module. */
 	BS_UTILITY_EXPORT Debug& gDebug();
 
+#if BS_DEBUG_MODE
+	#define BS_LOG_VERBOSITY LogVerbosity::Log
+#else
+	#define BS_LOG_VERBOSITY LogVerbosity::Warning
+#endif
+
+
 /** Shortcut for logging a message in the debug channel. */
-#define LOGDBG(x) bs::gDebug().logDebug((x) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n");
+#define LOGDBG(x) bs::gDebug().log((x) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n", LogVerbosity::Info);
 
 /** Shortcut for logging a message in the warning channel. */
-#define LOGWRN(x) bs::gDebug().logWarning((x) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n");
+#define LOGWRN(x) bs::gDebug().log((x) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n", LogVerbosity::Warning);
 
 /** Shortcut for logging a message in the error channel. */
-#define LOGERR(x) bs::gDebug().logError((x) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n");
+#define LOGERR(x) bs::gDebug().log((x) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n", LogVerbosity::Error);
 
 /** Shortcut for logging a message in the debug channel, with support for formatting through StringUtil::format(). */
-#define LOGDBG_FMT(...) bs::gDebug().logDebug(StringUtil::format(__VA_ARGS__) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n");
+#define LOGDBG_FMT(...) bs::gDebug().log(StringUtil::format(__VA_ARGS__) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n", LogVerbosity::Info);
 
 /** Shortcut for logging a message in the warning channel, with support for formatting through StringUtil::format(). */
-#define LOGWRN_FMT(...) bs::gDebug().logWarning(StringUtil::format(__VA_ARGS__) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n");
+#define LOGWRN_FMT(...) bs::gDebug().log(StringUtil::format(__VA_ARGS__) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n", LogVerbosity::Warning);
 
 /** Shortcut for logging a message in the error channel, with support for formatting through StringUtil::format(). */
-#define LOGERR_FMT(...) bs::gDebug().logError(StringUtil::format(__VA_ARGS__) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n");
+#define LOGERR_FMT(...) bs::gDebug().log(StringUtil::format(__VA_ARGS__) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n", LogVerbosity::Error);
 
 /** Shortcut for logging a verbose message in the debug channel. Verbose messages can be ignored unlike other log messages. */
 #define LOGDBG_VERBOSE(x) ((void)0)
 
 /** Shortcut for logging a verbose message in the warning channel. Verbose messages can be ignored unlike other log messages. */
 #define LOGWRN_VERBOSE(x) ((void)0)
+
+/** Defines a new log category to use with BS_LOG. Each category must have a unique ID. */
+#define BS_LOG_CATEGORY(name, id) struct LogCategory##name { enum { _id = id }; };
+
+#define BS_LOG(verbosity, category, message, ...)																			\
+	if((INT32)LogVerbosity::verbosity <= (INT32)BS_LOG_VERBOSITY) {															\
+		bs::gDebug().log(StringUtil::format(message, __VA_ARGS__) + String("\n\t\t in ") + __PRETTY_FUNCTION__ +			\
+			" [" + __FILE__ + ":" + toString(__LINE__) + "]\n", LogVerbosity::verbosity, LogCategory##category::_id);		\
+	}
+
+BS_LOG_CATEGORY(Uncategorized, 0)
 
 	/** @} */
 }

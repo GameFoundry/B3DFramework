@@ -40,7 +40,7 @@ namespace bs
 		errorMessage << "\n\nStack trace: \n";
 		errorMessage << stackTrace;
 
-		gDebug().logError(errorMessage.str());
+		gDebug().log(errorMessage.str(), LogVerbosity::Fatal);
 	}
 
 	void CrashHandler::logErrorAndStackTrace(const String& type, const String& description, const String& function,

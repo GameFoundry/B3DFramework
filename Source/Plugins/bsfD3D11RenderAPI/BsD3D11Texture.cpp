@@ -318,9 +318,10 @@ namespace bs { namespace ct
 
 		if (format != closestFormat)
 		{
-			LOGWRN(StringUtil::format("Provided pixel format is not supported by the driver: {0}. Falling back on: {1}.",
-									  format, closestFormat));
+			BS_LOG(Verbose, RenderBackend,
+				"Provided pixel format is not supported by the driver: {0}. Falling back on: {1}.", format, closestFormat);
 		}
+
 
 		mInternalFormat = closestFormat;
 		mDXGIColorFormat = d3dPF;
@@ -441,8 +442,8 @@ namespace bs { namespace ct
 
 		if (format != closestFormat)
 		{
-			LOGWRN(StringUtil::format("Provided pixel format is not supported by the driver: {0}. Falling back on: {1}.",
-									  format, closestFormat));
+			BS_LOG(Verbose, RenderBackend,
+				"Provided pixel format is not supported by the driver: {0}. Falling back on: {1}.", format, closestFormat);
 		}
 
 		mInternalFormat = closestFormat;
@@ -582,9 +583,10 @@ namespace bs { namespace ct
 		
 		if (format != closestFormat)
 		{
-			LOGWRN(StringUtil::format("Provided pixel format is not supported by the driver: {0}. Falling back on: {1}.",
-									  format, closestFormat));
+			BS_LOG(Verbose, RenderBackend,
+				"Provided pixel format is not supported by the driver: {0}. Falling back on: {1}.", format, closestFormat);
 		}
+
 
 		mInternalFormat = closestFormat;
 		mDXGIColorFormat = d3dPF;

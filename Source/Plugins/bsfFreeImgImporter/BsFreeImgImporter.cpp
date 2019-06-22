@@ -27,11 +27,11 @@ namespace bs
 		const char* typeName = FreeImage_GetFormatFromFIF(fif);
 		if (typeName)
 		{
-			gDebug().logError("FreeImage error: '" + String(message) + "' when loading format " + typeName);
+			LOGERR("FreeImage error: '" + String(message) + "' when loading format " + typeName);
 		}
 		else
 		{
-			gDebug().logError("FreeImage error: '" + String(message) + "'");
+			LOGERR("FreeImage error: '" + String(message) + "'");
 		}
 	}
 

@@ -803,7 +803,7 @@ namespace bs
 	{
 		if(component == nullptr)
 		{
-			LOGDBG("Trying to remove a null component");
+			BS_LOG(Warning, Scene, "Trying to remove a null component");
 			return;
 		}
 
@@ -820,7 +820,7 @@ namespace bs
 			mComponents.erase(iter);
 		}
 		else
-			LOGDBG("Trying to remove a component that doesn't exist on this SceneObject.");
+			BS_LOG(Warning, Scene, "Trying to remove a component that doesn't exist on this SceneObject.");
 	}
 
 	void SceneObject::destroyComponent(Component* component, bool immediate)

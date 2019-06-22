@@ -37,14 +37,14 @@ namespace bs
 	// Print out the FX AST, only for debug purposes
 	void SLFXDebugPrint(ASTFXNode* node, String indent)
 	{
-		LOGDBG(indent + "NODE " + toString(node->type));
+		BS_LOG(Info, BSLCompiler, indent + "NODE {0}", node->type);
 
 		for (int i = 0; i < node->options->count; i++)
 		{
 			OptionDataType odt = OPTION_LOOKUP[(int)node->options->entries[i].type].dataType;
 			if (odt == ODT_Complex)
 			{
-				LOGDBG(indent + toString(i) + ". " + toString(node->options->entries[i].type));
+				BS_LOG(Info, BSLCompiler, "{0}{1}. {2}", indent, i, node->options->entries[i].type);
 				SLFXDebugPrint(node->options->entries[i].value.nodePtr, indent + "\t");
 				continue;
 			}
@@ -74,7 +74,7 @@ namespace bs
 				break;
 			}
 
-			LOGDBG(indent + toString(i) + ". " + toString(node->options->entries[i].type) + " = " + value);
+			BS_LOG(Info, BSLCompiler, "{0}{1}. {2} = {3}", indent, i, node->options->entries[i].type, value);
 		}
 	}
 

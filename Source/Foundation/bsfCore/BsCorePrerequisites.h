@@ -868,4 +868,12 @@ namespace bs
 	};
 }
 
+BS_LOG_CATEGORY(CoreThread, 20)
+BS_LOG_CATEGORY(Renderer, 21)
+BS_LOG_CATEGORY(Scene, 22)
+BS_LOG_CATEGORY(Physics, 23)
+BS_LOG_CATEGORY(Audio, 24)
+BS_LOG_CATEGORY(RenderBackend, 25)
+BS_LOG_CATEGORY(BSLCompiler, 26)
+
 #include "Utility/BsCommonTypes.h"
