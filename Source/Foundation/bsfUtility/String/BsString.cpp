@@ -559,6 +559,16 @@ namespace bs
 		return stream.str();
 	}
 
+	String toString(const UUID& val)
+	{
+		return val.toString();
+	}
+
+	String toString(const Path& val)
+	{
+		return val.toString();
+	}
+
 	String toString(const Vector<bs::String>& val)
 	{
 		StringStream stream;

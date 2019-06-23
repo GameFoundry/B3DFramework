@@ -9,6 +9,8 @@
 
 namespace bs
 {
+	struct UUID;
+
 	/** @addtogroup String
 	 *  @{
 	 */
@@ -282,6 +284,12 @@ namespace bs
 	 * @note	Format is "r g b a".
 	 */
 	BS_UTILITY_EXPORT String toString(const Color& val);
+
+	/** Converts an UUID to a string. */
+	BS_UTILITY_EXPORT String toString(const UUID& val);
+
+	/** Converts a path to a string. */
+	BS_UTILITY_EXPORT String toString(const Path& val);
 
 	/**
 	 * Converts a vector of strings into a single string where the substrings are delimited by spaces.
