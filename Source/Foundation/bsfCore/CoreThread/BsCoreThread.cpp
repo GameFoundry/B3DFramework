@@ -12,7 +12,13 @@ namespace bs
 	CoreThread::QueueData CoreThread::mPerThreadQueue;
 	BS_THREADLOCAL CoreThread::ThreadQueueContainer* CoreThread::QueueData::current = nullptr;
 
-	CoreThread::CoreThread()
+#if BS_CORE_THREAD_IS_MAIN
+	bool CoreThread::sAppStarted = false;
+	Mutex CoreThread::sAppStartedMutex;
+	Signal CoreThread::sAppStartedCondition;
+#endif
+
+	void CoreThread::onStartUp()
 	{
 		for (UINT32 i = 0; i < NUM_SYNC_BUFFERS; i++)
 		{
@@ -57,7 +63,16 @@ namespace bs
 	void CoreThread::initCoreThread()
 	{
 #if !BS_FORCE_SINGLETHREADED_RENDERING
+#if !BS_CORE_THREAD_IS_MAIN
 		mCoreThread = ThreadPool::instance().run("Core", std::bind(&CoreThread::runCoreThread, this));
+#else
+		{
+			Lock lock(sAppStartedMutex);
+			sAppStarted = true;
+		}
+
+		sAppStartedCondition.notify_one();
+#endif
 		
 		// Need to wait to unsure thread ID is correctly set before continuing
 		Lock lock(mThreadStartedMutex);
@@ -66,6 +81,23 @@ namespace bs
 			mCoreThreadStartedCondition.wait(lock);
 #endif
 	}
+
+#if BS_CORE_THREAD_IS_MAIN
+	void CoreThread::_run()
+	{
+		// Wait for the application to reach a point where core thread can be safely started
+		{
+			Lock lock(sAppStartedMutex);
+
+			while (!sAppStarted)
+				sAppStartedCondition.wait(lock);
+		}
+
+		ThreadDefaultPolicy::onThreadStarted("Core");
+		instance().runCoreThread();
+		ThreadDefaultPolicy::onThreadEnded("Core");
+	}
+#endif
 
 	void CoreThread::runCoreThread()
 	{
@@ -124,7 +156,9 @@ namespace bs
 
 		mCoreThreadId = BS_THREAD_CURRENT_ID;
 
+#if !BS_CORE_THREAD_IS_MAIN
 		mCoreThread.blockUntilComplete();
+#endif
 #endif
 	}
 

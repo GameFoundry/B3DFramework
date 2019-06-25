@@ -6,7 +6,7 @@ The framework comes with a variety of assets that are considered built-in. This 
 
 These assets are located in the `bsf/Data` folder, while their raw (un-imported) versions are located in the `bsf/Data/Raw` folder.
 
-If you even need to modify these assets (e.g. change the source code for a built-in shader), you would modify the asset in `bsf/Data/Raw/` (e.g. shader code in `bsf/Data/Raw/Shaders`) and then run the import tool to compile that raw asset into a form usable by the engine. The import tool  basically calls @bs::Importer::import same as if you were importing assets manually in your application.
+If you ever need to modify these assets (e.g. change the source code for a built-in shader), you would modify the asset in `bsf/Data/Raw/` (e.g. shader code in `bsf/Data/Raw/Shaders`) and then run the import tool to compile that raw asset into a form usable by the engine. The import tool  basically calls @bs::Importer::import same as if you were importing assets manually in your application.
 
 # Compiling & running the import tool
 The import tool executable is not provided out of the box, and must be manually compiled. This can be done by compiling the `bsfImportTool` target included in `bsf`. Once compiled the tool should be installed to `bsf/Dependencies/tools/bsfImportTool/`.

@@ -72,11 +72,13 @@ namespace bs
 		};
 
 	public:
-		CoreThread();
 		~CoreThread();
 
+		/** @copydoc Module::onStartUp */
+		void onStartUp() override;
+
 		/** Returns the id of the core thread.  */
-		ThreadId getCoreThreadId() { return mCoreThreadId; }
+		ThreadId getCoreThreadId() const { return mCoreThreadId; }
 
 		/** Submits the commands from all queues and starts executing them on the core thread. */
 		void submitAll(bool blockUntilComplete = false);
@@ -124,6 +126,18 @@ namespace bs
 		FrameAlloc* getFrameAlloc() const;
 
 		/** 
+		 * @name Internal 
+		 * @{
+		 */
+
+#if BS_CORE_THREAD_IS_MAIN
+		/** Runs the core thread loop as soon as CoreThread module is started. */
+		static void _run();
+#endif
+
+		/** @} */
+
+		/** 
 		 * Returns number of buffers needed to sync data between core and sim thread. Currently the sim thread can be one frame
 		 * ahead of the core thread, meaning we need two buffers. If this situation changes increase this number.
 		 *
@@ -153,7 +167,6 @@ namespace bs
 
 		volatile bool mCoreThreadShutdown = false;
 
-		HThread mCoreThread;
 		bool mCoreThreadStarted = false;
 		ThreadId mSimThreadId;
 		ThreadId mCoreThreadId;
@@ -164,6 +177,13 @@ namespace bs
 		Signal mCommandCompleteCondition;
 		Mutex mThreadStartedMutex;
 		Signal mCoreThreadStartedCondition;
+#if BS_CORE_THREAD_IS_MAIN
+		static bool sAppStarted;
+		static Mutex sAppStartedMutex;
+		static Signal sAppStartedCondition;
+#else
+		HThread mCoreThread;
+#endif
 
 		CommandQueue<CommandQueueSync>* mCommandQueue = nullptr;
 

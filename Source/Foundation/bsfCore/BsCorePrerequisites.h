@@ -186,6 +186,12 @@
 #define BS_MAX_MULTIPLE_RENDER_TARGETS 8
 #define BS_FORCE_SINGLETHREADED_RENDERING 0
 
+/** 
+ * Runs the core thead on the application's main (initial) thread, rather than on a separate worker. Important for macOS
+ * which has limitations regarding what can run on non-main threads.
+ */
+#define BS_CORE_THREAD_IS_MAIN 0
+
 /** Maximum number of individual GPU queues, per type. */
 #define BS_MAX_QUEUES_PER_TYPE 8
 

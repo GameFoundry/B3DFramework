@@ -4,16 +4,16 @@ title: Startup and main loop
 
 # Preparation
 
-Start by including *BsApplication.h* header into your project. It contains the @bs::Application class which is the primary entry point into bs::f.
+Start by including *BsEntry.h* header into your project. It contains the definition for the main entry point `bs_main`, as well as the @bs::Application class which is used for starting up and running `bsf`.
 
-Entirety of bs::f API is contained in the **bs** namespace, so you will also likely want to add a `using namespace bs;` directive.
+Entirety of `bsf` API is contained in the **bs** namespace, so you will also likely want to add a `using namespace bs;` directive.
 
 ~~~~~~~~~~~~~{.cpp}
-#include "BsApplication.h"
+#include "BsEntry.h"
 
 using namespace bs;
 
-int main()
+int bs_main(int argc, char* argv[])
 {
 	// ...
 
@@ -21,9 +21,11 @@ int main()
 }
 ~~~~~~~~~~~~~
 
+The entry method must have the identical signature to `int bs_main(int argc, char* argv[])`.
+
 # Start up
 
-bs::f can then be started by calling @bs::Application::startUp. By default bs::f always creates a single window on start-up, and the method expects you to provide the initial resolution of the window, window title and an optional fullscreen flag.
+The framework can then be started by calling @bs::Application::startUp. By default `bsf` always creates a single window on start-up, and the method expects you to provide the initial resolution of the window, window title and an optional fullscreen flag.
 
 ~~~~~~~~~~~~~{.cpp}
 // Start an application in windowed mode using 1280x720 resolution
@@ -37,7 +39,7 @@ Application::startUp(
 
 After the application has been started you can proceed to load necessary resources, create scene objects and set up their components.
 
-By default bs::f uses an entity/component model for managing its scene. The scene is represented through scene objects which can be positioned and oriented in the scene, on which you attach components that execute some logic. Components can be built-in providing basic functionality like rendering an object, or they can be user-created and execute gameplay logic. You will also load resources like meshes and textures, which can then be provided to components.
+By default `bsf` uses an entity/component model for managing its scene. The scene is represented through scene objects which can be positioned and oriented in the scene, on which you attach components that execute some logic. Components can be built-in providing basic functionality like rendering an object, or they can be user-created and execute gameplay logic. You will also load resources like meshes and textures, which can then be provided to components.
 
 We will go into much more detail about components in the next manual, but a quick example below shows how you would add a camera component in the scene.
 
@@ -68,12 +70,12 @@ Once the main loop has been stopped, you will want to clean up any allocated res
 Here's a complete code of what we have so far. The code doesn't do much - it opens up a basic window and adds a camera to the scene. Since we haven't actually added any renderable objects to the scene the camera wont see anything. The code also doesn't respond to any input and therefore doesn't offer any way for the user to stop the main loop.
 
 ~~~~~~~~~~~~~{.cpp}
-#include "BsApplication.h"
+#include "BsEntry.h"
 #include "Scene/BsSceneObject.h"
 #include "Components/BsCCamera.h"
 
 using namespace bs;
-int main()
+int bs_main(int argc, char* argv[])
 {
 	Application::startUp(VideoMode(1280, 720), "My app", false);
 	

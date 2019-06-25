@@ -55,7 +55,7 @@ endif()
 set(CMAKE_CXX_STANDARD 14)
 
 # Build an executable from the provided C++ files
-add_executable(myApp "Main.cpp")
+add_executable(myApp WIN32 "Main.cpp")
 
 # Path to where you have installed bsf
 set(bsf_INSTALL_DIR "C:/path/to/bsf/install")
@@ -75,9 +75,9 @@ Make sure to modify `C:/path/to/bsf/install` and set it to the path where you ex
 ## Code
 The CMake file above references `Main.cpp` file. The most basic file that runs the framework looks like so:
 ```
-#include "BsApplication.h"
+#include "BsEntry.h"
 
-int main()
+int bs_main(int argc, char* argv[])
 {
 	using namespace bs;
 
@@ -149,7 +149,7 @@ set(BSF_DIRECTORY "C:/bsf" CACHE STRING "bsf directory")
 include(${BSF_DIRECTORY}/Source/CMake/ProjectDefaults.cmake)
 
 # Build an executable from the provided C++ files
-add_executable(myApp "Main.cpp")
+add_executable(myApp WIN32 "Main.cpp")
 
 # Add bsf as a dependency
 target_link_libraries(myApp bsf)
@@ -169,9 +169,9 @@ Make sure to set `C:/bsf` to the directory where you cloned `bsf`.
 ## Code
 The CMake file above references `Main.cpp` file. The most basic file that runs the framework looks like so:
 ```
-#include "BsApplication.h"
+#include "BsEntry.h"
 
-int main()
+int bs_main(int argc, char* argv[])
 {
 	using namespace bs;
 
