@@ -13,11 +13,6 @@ namespace bs
 	BS_THREADLOCAL CoreThread::ThreadQueueContainer* CoreThread::QueueData::current = nullptr;
 
 	CoreThread::CoreThread()
-		: mActiveFrameAlloc(0)
-		, mCoreThreadShutdown(false)
-		, mCoreThreadStarted(false)
-		, mCommandQueue(nullptr)
-		, mMaxCommandNotifyId(0)
 	{
 		for (UINT32 i = 0; i < NUM_SYNC_BUFFERS; i++)
 		{
@@ -62,7 +57,6 @@ namespace bs
 	void CoreThread::initCoreThread()
 	{
 #if !BS_FORCE_SINGLETHREADED_RENDERING
-#if BS_THREAD_SUPPORT
 		mCoreThread = ThreadPool::instance().run("Core", std::bind(&CoreThread::runCoreThread, this));
 		
 		// Need to wait to unsure thread ID is correctly set before continuing
@@ -70,9 +64,6 @@ namespace bs
 
 		while (!mCoreThreadStarted)
 			mCoreThreadStartedCondition.wait(lock);
-#else
-		BS_EXCEPT(InternalErrorException, "Attempting to start a core thread but application isn't compiled with thread support.");
-#endif
 #endif
 	}
 

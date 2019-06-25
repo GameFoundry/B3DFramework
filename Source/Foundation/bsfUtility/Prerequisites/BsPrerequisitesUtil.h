@@ -132,11 +132,6 @@
  *	Very specialized base classes, templates and helper code used for construction of more concrete types.
  */
 
-// 0 - No thread support
-// 1 - Render system is thread safe (TODO: NOT WORKING and will probably be removed)
-// 2 - Thread support but render system can only be accessed from main thread
-#define BS_THREAD_SUPPORT 2
-
 #define BS_PROFILING_ENABLED 1
 
 // Config from the build system

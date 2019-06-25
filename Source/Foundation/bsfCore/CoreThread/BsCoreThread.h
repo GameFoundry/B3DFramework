@@ -146,15 +146,15 @@ namespace bs
 		 * you should be able to easily add more).
 		 */
 		FrameAlloc* mFrameAllocs[NUM_SYNC_BUFFERS];
-		UINT32 mActiveFrameAlloc;
+		UINT32 mActiveFrameAlloc = 0;
 
 		static QueueData mPerThreadQueue;
 		Vector<ThreadQueueContainer*> mAllQueues;
 
-		volatile bool mCoreThreadShutdown;
+		volatile bool mCoreThreadShutdown = false;
 
 		HThread mCoreThread;
-		bool mCoreThreadStarted;
+		bool mCoreThreadStarted = false;
 		ThreadId mSimThreadId;
 		ThreadId mCoreThreadId;
 		Mutex mCommandQueueMutex;
@@ -165,9 +165,9 @@ namespace bs
 		Mutex mThreadStartedMutex;
 		Signal mCoreThreadStartedCondition;
 
-		CommandQueue<CommandQueueSync>* mCommandQueue;
+		CommandQueue<CommandQueueSync>* mCommandQueue = nullptr;
 
-		UINT32 mMaxCommandNotifyId; /**< ID that will be assigned to the next command with a notifier callback. */
+		UINT32 mMaxCommandNotifyId = 0; /**< ID that will be assigned to the next command with a notifier callback. */
 		Vector<UINT32> mCommandsCompleted; /**< Completed commands that have notifier callbacks set up */
 
 		/** Starts the core thread worker method. Should only be called once. */

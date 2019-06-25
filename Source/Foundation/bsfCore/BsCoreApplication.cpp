@@ -133,7 +133,6 @@ namespace bs
 		ProfilingManager::startUp();
 		ThreadPool::startUp<TThreadPool<ThreadDefaultPolicy>>((numWorkerThreads));
 		TaskScheduler::startUp();
-		TaskScheduler::instance().removeWorker();
 		RenderStats::startUp();
 		CoreThread::startUp();
 		StringTableManager::startUp();
