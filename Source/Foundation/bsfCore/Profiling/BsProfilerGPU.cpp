@@ -58,6 +58,8 @@ namespace bs
 
 		if(!discard)
 			mUnresolvedFrames.push(mFrameSample);
+		else
+			freeSample(mFrameSample);
 
 		mIsFrameActive = false;
 	}
