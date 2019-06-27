@@ -280,7 +280,7 @@ namespace bs { namespace ct
 		mesh->_notifyUsedOnGPU();
 	}
 
-	void RendererUtility::blit(const SPtr<Texture>& texture, const Rect2I& area, bool flipUV, bool isDepth)
+	void RendererUtility::blit(const SPtr<Texture>& texture, const Rect2I& area, bool flipUV, bool isDepth, bool isFiltered)
 	{
 		auto& texProps = texture->getProperties();
 
@@ -293,7 +293,7 @@ namespace bs { namespace ct
 			fArea.height = (float)texProps.getHeight();
 		}
 
-		BlitMat* blitMat = BlitMat::getVariation(texProps.getNumSamples(), !isDepth);
+		BlitMat* blitMat = BlitMat::getVariation(texProps.getNumSamples(), !isDepth, isFiltered);
 		blitMat->execute(texture, fArea, flipUV);
 	}
 
@@ -384,6 +384,7 @@ namespace bs { namespace ct
 	BlitMat::BlitMat()
 	{
 		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSource", mSource);
+		mIsFiltered = mVariation.getInt("MODE") == 1;
 	}
 
 	void BlitMat::execute(const SPtr<Texture>& source, const Rect2& area, bool flipUV)
@@ -393,24 +394,27 @@ namespace bs { namespace ct
 		mSource.set(source);
 		bind();
 
-		gRendererUtility().drawScreenQuad(area, Vector2I(1, 1), 1, flipUV);
+		if(!mIsFiltered)
+			gRendererUtility().drawScreenQuad(area, Vector2I(1, 1), 1, flipUV);
+		else
+			gRendererUtility().drawScreenQuad(Rect2(0, 0, 1, 1), Vector2I(1, 1), 1, flipUV);
 	}
 
-	BlitMat* BlitMat::getVariation(UINT32 msaaCount, bool isColor)
+	BlitMat* BlitMat::getVariation(UINT32 msaaCount, bool isColor, bool isFiltered)
 	{
 		if (msaaCount > 1)
 		{
 			if(isColor)
 			{
-				switch(msaaCount)
+				switch (msaaCount)
 				{
 				case 2:
-					return get(getVariation<2, true>());
+					return get(getVariation<2, 0>());
 				case 4:
-					return get(getVariation<4, true>());
+					return get(getVariation<4, 0>());
 				default:
 				case 8:
-					return get(getVariation<8, true>());
+					return get(getVariation<8, 0>());
 				}
 			}
 			else
@@ -418,17 +422,22 @@ namespace bs { namespace ct
 				switch(msaaCount)
 				{
 				case 2:
-					return get(getVariation<2, false>());
+					return get(getVariation<2, 2>());
 				case 4:
-					return get(getVariation<4, false>());
+					return get(getVariation<4, 2>());
 				default:
 				case 8:
-					return get(getVariation<8, false>());
+					return get(getVariation<8, 2>());
 				}
 			}
 		}
 		else
-			return get(getVariation<1, true>());
+		{
+			if(isFiltered)
+				return get(getVariation<1, 1>());
+			else
+				return get(getVariation<1, 0>());
+		}
 	}
 
 	ClearParamDef gClearParamDef;

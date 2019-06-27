@@ -2,13 +2,18 @@ shader Blit
 {
 	variations
 	{
-		COLOR = { true, false };
+		MODE = 
+			{ 
+				0, // Color (point filtering) 
+				1, // Color (bilinear filtering)
+				2, // Depth
+			};
 		MSAA_COUNT = { 1, 2, 4, 8 };
 	};
 
 	depth
 	{	
-		#if COLOR
+		#if MODE != 2
 		read = false;
 		write = false;	
 		#else
@@ -43,19 +48,20 @@ shader Blit
 
 		#if MSAA_COUNT > 1
 		
-		#if COLOR
+		#if MODE != 2
 		Texture2DMS<float4> gSource;
 		
 		float4 fsmain(VStoFS input) : SV_Target0
-		#else // Assuming depth
+		#else // MODE
+		// Depth
 		Texture2DMS<float> gSource;
 		
 		float fsmain(VStoFS input, out float depth : SV_Depth) : SV_Target0
-		#endif
+		#endif // MODE
 		{
 			int2 iUV = trunc(input.uv0);
 		
-			#if COLOR
+			#if MODE != 2
 				float4 sum = float4(0, 0, 0, 0);
 				
 				[unroll]
@@ -63,7 +69,8 @@ shader Blit
 					sum += gSource.Load(iUV, i);
 					
 				return sum / MSAA_COUNT;
-			#else // Assuming depth
+			#else // MODE 
+				// Depth
 				float minVal = gSource.Load(iUV, 0);
 				
 				[unroll]
@@ -72,19 +79,27 @@ shader Blit
 					
 				depth = minVal;
 				return 0.0f;
-			#endif
+			#endif // MODE
 		}
 		
-		#else
+		#else // MSAA_COUNT
 		
 		Texture2D<float4> gSource;
+		
+		#if MODE == 1
+			SamplerState gSampler;
+		#endif
 	
 		float4 fsmain(VStoFS input) : SV_Target0
 		{
-			int2 iUV = trunc(input.uv0);
-			return gSource.Load(int3(iUV.xy, 0));
+			#if MODE == 1
+				return gSource.Sample(gSampler, input.uv0);
+			#else // MODE
+				int2 iUV = trunc(input.uv0);
+				return gSource.Load(int3(iUV.xy, 0));
+			#endif // MODE
 		}
 		
-		#endif
+		#endif // MSAA_COUNT
 	};
 };

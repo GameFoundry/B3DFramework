@@ -22,13 +22,13 @@ namespace bs { namespace ct
 		RMAT_DEF("Blit.bsl");
 
 		/** Helper method used for initializing variations of this material. */
-		template<UINT32 msaa, bool color>
+		template<UINT32 MSAA, UINT32 MODE>
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
 			SmallVector<ShaderVariation::Param, 4>({
-				ShaderVariation::Param("MSAA_COUNT", msaa),
-				ShaderVariation::Param("COLOR", color),
+				ShaderVariation::Param("MSAA_COUNT", MSAA),
+				ShaderVariation::Param("MODE", MODE),
 			}));
 
 			return variation;
@@ -48,10 +48,13 @@ namespace bs { namespace ct
 		 *							the input is a 1-component depth texture. This controls how is the texture resolve and is
 		 *							only relevant if @p msaaCount > 1. Color texture MSAA samples will be averaged, while for
 		 *							depth textures the minimum of all samples will be used.
+		 * @param	isFiltered		True if to apply bilinear filtering to the sampled texture. Only relevant for color
+		 *							textures with no multiple samples.
 		 */
-		static BlitMat* getVariation(UINT32 msaaCount, bool isColor);
+		static BlitMat* getVariation(UINT32 msaaCount, bool isColor, bool isFiltered);
 	private:
 		GpuParamTexture mSource;
+		bool mIsFiltered = false;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(ClearParamDef)
@@ -163,9 +166,11 @@ namespace bs { namespace ct
 		 * @param[in]	isDepth	If true, the input texture is assumed to be a depth texture (instead of a color one).
 		 *						Multisampled depth textures will be resolved by taking the minimum value of all samples,
 		 *						unlike color textures which wil be averaged.
+		 * @param	isFiltered	True if to apply bilinear filtering to the sampled texture. Only relevant for color
+		 *						textures with no multiple samples.
 		 */
 		void blit(const SPtr<Texture>& texture, const Rect2I& area = Rect2I::EMPTY, bool flipUV = false, 
-			bool isDepth = false);
+			bool isDepth = false, bool isFiltered = false);
 
 		/**
 		 * Draws a quad over the entire viewport in normalized device coordinates.
