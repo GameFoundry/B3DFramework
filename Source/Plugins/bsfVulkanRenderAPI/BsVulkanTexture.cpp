@@ -779,8 +779,18 @@ namespace bs { namespace ct
 		assert(pixelData.getRowPitch() % blockSize == 0);
 		assert(pixelData.getSlicePitch() % blockSize == 0);
 
+		UINT32 rowPitchInPixels = pixelData.getRowPitch() / blockSize;
+		UINT32 slicePitchInPixels = pixelData.getSlicePitch() / blockSize;
+
+		if(PixelUtil::isCompressed(pixelData.getFormat()))
+		{
+			Vector2I blockDim = PixelUtil::getBlockDimensions(pixelData.getFormat());
+			rowPitchInPixels *= blockDim.x;
+			slicePitchInPixels *= blockDim.x * blockDim.y;
+		}
+
 		return device.getResourceManager().create<VulkanBuffer>(buffer, allocation,
-			pixelData.getRowPitch() / blockSize, pixelData.getSlicePitch() / blockSize);
+			rowPitchInPixels, slicePitchInPixels);
 	}
 
 	void VulkanTexture::copyImage(VulkanTransferBuffer* cb, VulkanImage* srcImage, VulkanImage* dstImage, 
