@@ -43,6 +43,10 @@ namespace bs { namespace ct
 		UINT32 numMips = mProperties.getNumMipmaps();
 		UINT32 numFaces = mProperties.getNumFaces();
 
+		// 0-sized textures aren't supported by the API
+		width = std::max(width, 1U);
+		height = std::max(height, 1U);
+
 		PixelFormat pixFormat = mProperties.getFormat();
 		mInternalFormat = GLPixelUtil::getClosestSupportedPF(pixFormat, texType, usage);
 
