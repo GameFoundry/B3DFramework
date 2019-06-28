@@ -175,11 +175,12 @@ namespace bs { namespace ct
 		if(PixelUtil::isCompressed(data.getFormat()))
 		{
 			// Block-compressed data cannot be smaller than 4x4, and must be a multiple of 4
-			const UINT32 actualWidth = Math::divideAndRoundUp(std::max(mWidth, 4U), 4U) * 4U;
-			const UINT32 actualHeight = Math::divideAndRoundUp(std::max(mHeight, 4U), 4U) * 4U;
+			const UINT32 widthInBlocks = Math::divideAndRoundUp(std::max(mWidth, 4U), 4U);
+			const UINT32 heightInBlocks = Math::divideAndRoundUp(std::max(mHeight, 4U), 4U);
 
-			const UINT32 expectedRowPitch = actualWidth;
-			const UINT32 expectedSlicePitch = actualWidth * actualHeight;
+			const UINT32 blockSize = PixelUtil::getBlockSize(data.getFormat());
+			const UINT32 expectedRowPitch = widthInBlocks * blockSize;
+			const UINT32 expectedSlicePitch = widthInBlocks * heightInBlocks * blockSize;
 
 			const bool isConsecutive = data.getRowPitch() == expectedRowPitch && data.getSlicePitch() == expectedSlicePitch;
 			if (data.getFormat() != mFormat || !isConsecutive)
@@ -223,15 +224,19 @@ namespace bs { namespace ct
 		} 
 		else
 		{
-			if (data.getWidth() != data.getRowPitch())
+			UINT32 pixelSize = PixelUtil::getNumElemBytes(data.getFormat());
+			UINT32 rowPitchInPixels = data.getRowPitch() / pixelSize;
+			UINT32 slicePitchInPixels = data.getSlicePitch() / pixelSize;
+
+			if (data.getWidth() != rowPitchInPixels)
 			{
-				glPixelStorei(GL_UNPACK_ROW_LENGTH, data.getRowPitch());
+				glPixelStorei(GL_UNPACK_ROW_LENGTH, rowPitchInPixels);
 				BS_CHECK_GL_ERROR();
 			}
 
-			if (data.getHeight()*data.getWidth() != data.getSlicePitch())
+			if (data.getHeight()*data.getWidth() != slicePitchInPixels)
 			{
-				glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, (data.getSlicePitch() / data.getWidth()));
+				glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, (slicePitchInPixels / data.getWidth()));
 				BS_CHECK_GL_ERROR();
 			}
 
@@ -239,11 +244,11 @@ namespace bs { namespace ct
 			{
 				glPixelStorei(
 					GL_UNPACK_SKIP_PIXELS, 
-					data.getLeft() + data.getRowPitch() * data.getTop() + data.getSlicePitch() * data.getFront());
+					data.getLeft() + rowPitchInPixels * data.getTop() + slicePitchInPixels * data.getFront());
 				BS_CHECK_GL_ERROR();
 			}
 
-			if ((data.getWidth()*PixelUtil::getNumElemBytes(data.getFormat())) & 3)
+			if ((data.getWidth()*pixelSize) & 3)
 			{
 				glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 				BS_CHECK_GL_ERROR();
@@ -310,11 +315,12 @@ namespace bs { namespace ct
 		if(PixelUtil::isCompressed(data.getFormat()))
 		{
 			// Block-compressed data cannot be smaller than 4x4, and must be a multiple of 4
-			const UINT32 actualWidth = Math::divideAndRoundUp(std::max(mWidth, 4U), 4U) * 4U;
-			const UINT32 actualHeight = Math::divideAndRoundUp(std::max(mHeight, 4U), 4U) * 4U;
+			const UINT32 widthInBlocks = Math::divideAndRoundUp(std::max(mWidth, 4U), 4U);
+			const UINT32 heightInBlocks = Math::divideAndRoundUp(std::max(mHeight, 4U), 4U);
 
-			const UINT32 expectedRowPitch = actualWidth;
-			const UINT32 expectedSlicePitch = actualWidth * actualHeight;
+			const UINT32 blockSize = PixelUtil::getBlockSize(data.getFormat());
+			const UINT32 expectedRowPitch = widthInBlocks * blockSize;
+			const UINT32 expectedSlicePitch = widthInBlocks * heightInBlocks * blockSize;
 
 			const bool isConsecutive = data.getRowPitch() == expectedRowPitch && data.getSlicePitch() == expectedSlicePitch;
 			if (data.getFormat() != mFormat || !isConsecutive)
@@ -330,15 +336,19 @@ namespace bs { namespace ct
 		} 
 		else
 		{
-			if (data.getWidth() != data.getRowPitch())
+			UINT32 pixelSize = PixelUtil::getNumElemBytes(data.getFormat());
+			UINT32 rowPitchInPixels = data.getRowPitch() / pixelSize;
+			UINT32 slicePitchInPixels = data.getSlicePitch() / pixelSize;
+
+			if (data.getWidth() != rowPitchInPixels)
 			{
-				glPixelStorei(GL_PACK_ROW_LENGTH, data.getRowPitch());
+				glPixelStorei(GL_PACK_ROW_LENGTH, rowPitchInPixels)
 				BS_CHECK_GL_ERROR();
 			}
 
-			if (data.getHeight()*data.getWidth() != data.getSlicePitch())
+			if (data.getHeight()*data.getWidth() != slicePitchInPixels)
 			{
-				glPixelStorei(GL_PACK_IMAGE_HEIGHT, (data.getSlicePitch() / data.getWidth()));
+				glPixelStorei(GL_PACK_IMAGE_HEIGHT, (slicePitchInPixels / data.getWidth()));
 				BS_CHECK_GL_ERROR();
 			}
 
@@ -346,11 +356,11 @@ namespace bs { namespace ct
 			{
 				glPixelStorei(
 					GL_PACK_SKIP_PIXELS, 
-					data.getLeft() + data.getRowPitch() * data.getTop() + data.getSlicePitch() * data.getFront());
+					data.getLeft() + rowPitchInPixels * data.getTop() + slicePitchInPixels * data.getFront());
 				BS_CHECK_GL_ERROR();
 			}
 
-			if ((data.getWidth()*PixelUtil::getNumElemBytes(data.getFormat())) & 3)
+			if ((data.getWidth()*pixelSize) & 3)
 			{
 				glPixelStorei(GL_PACK_ALIGNMENT, 1);
 				BS_CHECK_GL_ERROR();

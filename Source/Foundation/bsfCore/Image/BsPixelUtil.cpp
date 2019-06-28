@@ -41,7 +41,7 @@ namespace bs
 					for (UINT32 x = dest.getLeft(); x < dest.getRight(); x++, curX += stepX)
 					{
 						UINT32 offsetX = (UINT32)(curX >> 48);
-						UINT32 offsetBytes = elementSize*(offsetX + offsetY + offsetZ);
+						UINT32 offsetBytes = elementSize*offsetX + offsetY + offsetZ;
 
 						UINT8* curSourcePtr = sourceData + offsetBytes;
 
@@ -49,10 +49,10 @@ namespace bs
 						destPtr += elementSize;
 					}
 
-					destPtr += elementSize*dest.getRowSkip();
+					destPtr += dest.getRowSkip();
 				}
 
-				destPtr += elementSize*dest.getSliceSkip();
+				destPtr += dest.getSliceSkip();
 			}
 		}
 	};
@@ -109,7 +109,7 @@ namespace bs
 						Color x1y1z1, x2y1z1, x1y2z1, x2y2z1;
 						Color x1y1z2, x2y1z2, x1y2z2, x2y2z2;
 
-#define GETSOURCEDATA(x, y, z) sourceData + sourceElemSize*((x)+(y)*source.getRowPitch() + (z)*source.getSlicePitch())
+#define GETSOURCEDATA(x, y, z) sourceData + sourceElemSize*(x)+(y)*source.getRowPitch() + (z)*source.getSlicePitch()
 
 						PixelUtil::unpackColor(&x1y1z1, source.getFormat(), GETSOURCEDATA(sampleCoordX1, sampleCoordY1, sampleCoordZ1));
 						PixelUtil::unpackColor(&x2y1z1, source.getFormat(), GETSOURCEDATA(sampleCoordX2, sampleCoordY1, sampleCoordZ1));
@@ -136,10 +136,10 @@ namespace bs
 						destPtr += destElemSize;
 					}
 
-					destPtr += destElemSize * dest.getRowSkip();
+					destPtr += dest.getRowSkip();
 				}
 
-				destPtr += destElemSize * dest.getSliceSkip();
+				destPtr += dest.getSliceSkip();
 			}
 		}
 	};
@@ -153,8 +153,11 @@ namespace bs
 	{
 		static void scale(const PixelData& source, const PixelData& dest)
 		{
-			UINT32 numSourceChannels = PixelUtil::getNumElemBytes(source.getFormat()) / sizeof(float);
-			UINT32 numDestChannels = PixelUtil::getNumElemBytes(dest.getFormat()) / sizeof(float);
+			UINT32 sourcePixelSize = PixelUtil::getNumElemBytes(source.getFormat());
+			UINT32 destPixelSize = PixelUtil::getNumElemBytes(dest.getFormat());
+
+			UINT32 numSourceChannels = sourcePixelSize / sizeof(float);
+			UINT32 numDestChannels = destPixelSize / sizeof(float);
 
 			float* sourceData = (float*)source.getData();
 			float* destPtr = (float*)dest.getData();
@@ -163,6 +166,9 @@ namespace bs
 			UINT64 stepX = ((UINT64)source.getWidth() << 48) / dest.getWidth();
 			UINT64 stepY = ((UINT64)source.getHeight() << 48) / dest.getHeight();
 			UINT64 stepZ = ((UINT64)source.getDepth() << 48) / dest.getDepth();
+
+			UINT32 sourceRowPitch = source.getRowPitch() / sourcePixelSize;
+			UINT32 sourceSlicePitch = source.getSlicePitch() / sourcePixelSize;
 
 			// Contains 16/16 fixed point precision format. Most significant
 			// 16 bits will contain the coordinate in the source image, and the
@@ -203,13 +209,13 @@ namespace bs
 
 #define ACCUM3(x,y,z,factor) \
 						{ float f = factor; \
-						UINT32 offset = (x + y*source.getRowPitch() + z*source.getSlicePitch())*numSourceChannels; \
+						UINT32 offset = (x + y*sourceRowPitch + z*sourceSlicePitch)*numSourceChannels; \
 						accum[0] += sourceData[offset + 0] * f; accum[1] += sourceData[offset + 1] * f; \
 						accum[2] += sourceData[offset + 2] * f; }
 
 #define ACCUM4(x,y,z,factor) \
 						{ float f = factor; \
-						UINT32 offset = (x + y*source.getRowPitch() + z*source.getSlicePitch())*numSourceChannels; \
+						UINT32 offset = (x + y*sourceRowPitch + z*sourceSlicePitch)*numSourceChannels; \
 						accum[0] += sourceData[offset + 0] * f; accum[1] += sourceData[offset + 1] * f; \
 						accum[2] += sourceData[offset + 2] * f; accum[3] += sourceData[offset + 3] * f; }
 
@@ -247,10 +253,10 @@ namespace bs
 						destPtr += numDestChannels;
 					}
 
-					destPtr += numDestChannels*dest.getRowSkip();
+					destPtr += dest.getRowSkip() / sizeof(float);
 				}
 
-				destPtr += numDestChannels*dest.getSliceSkip();
+				destPtr += dest.getSliceSkip() / sizeof(float);
 			}
 		}
 	};
@@ -318,17 +324,17 @@ namespace bs
 					for (UINT32 k = 0; k < channels; k++)
 					{
 						UINT32 accum =
-							sourceData[(sampleCoordX1 + sampleY1Offset)*channels+k]*(0x1000000-(sampleWeightX<<12)-(sampleWeightY<<12)+sxfsyf) +
-							sourceData[(sampleCoordX2 + sampleY1Offset)*channels+k]*((sampleWeightX<<12)-sxfsyf) +
-							sourceData[(sampleCoordX1 + sampleY2Offset)*channels+k]*((sampleWeightY<<12)-sxfsyf) +
-							sourceData[(sampleCoordX2 + sampleY2Offset)*channels+k]*sxfsyf;
+							sourceData[sampleCoordX1 * channels + sampleY1Offset + k]*(0x1000000-(sampleWeightX<<12)-(sampleWeightY<<12)+sxfsyf) +
+							sourceData[sampleCoordX2 * channels + sampleY1Offset + k]*((sampleWeightX<<12)-sxfsyf) +
+							sourceData[sampleCoordX1 * channels + sampleY2Offset + k]*((sampleWeightY<<12)-sxfsyf) +
+							sourceData[sampleCoordX2 * channels + sampleY2Offset + k]*sxfsyf;
 
 						// Round up to byte size
 						*destPtr = (UINT8)((accum + 0x800000) >> 24);
 						destPtr++;
 					}
 				}
-				destPtr += channels*dest.getRowSkip();
+				destPtr += dest.getRowSkip();
 			}
 		}
 	};
@@ -1396,6 +1402,8 @@ namespace bs
 	void PixelUtil::getPitch(UINT32 width, UINT32 height, UINT32 depth, PixelFormat format,
 						 UINT32& rowPitch, UINT32& depthPitch)
 	{
+		UINT32 blockSize = getBlockSize(format);
+
 		if (isCompressed(format))
 		{
 			switch (format)
@@ -1409,18 +1417,16 @@ namespace bs
 			case PF_BC5:
 			case PF_BC6H:
 			case PF_BC7:
-				rowPitch = Math::divideAndRoundUp(width, 4U) * 4;
-				depthPitch = Math::divideAndRoundUp(height, 4U) * 4 * rowPitch;
-				return;
-
+				width = Math::divideAndRoundUp(width, 4U);
+				height = Math::divideAndRoundUp(height, 4U);
+				break;
 			default:
-				BS_EXCEPT(InvalidParametersException, "Invalid compressed pixel format");
-				return;
+				break;
 			}
 		}
 
-		rowPitch = width;
-		depthPitch = width * height;
+		rowPitch = width * blockSize;
+		depthPitch = width * height * blockSize;
 	}
 
 	void PixelUtil::getSizeForMipLevel(UINT32 width, UINT32 height, UINT32 depth, UINT32 mipLevel,
@@ -1961,16 +1967,16 @@ namespace bs
 			}
 
 			UINT8* srcPtr = static_cast<UINT8*>(src.getData())
-				+ (src.getLeft() + src.getTop() * src.getRowPitch() + src.getFront() * src.getSlicePitch()) * pixelSize;
+				+ src.getLeft() * pixelSize + src.getTop() * src.getRowPitch() + src.getFront() * src.getSlicePitch();
 			UINT8* dstPtr = static_cast<UINT8*>(dst.getData())
-				+ (dst.getLeft() + dst.getTop() * dst.getRowPitch() + dst.getFront() * dst.getSlicePitch()) * pixelSize;
+				+ dst.getLeft() * pixelSize + dst.getTop() * dst.getRowPitch() + dst.getFront() * dst.getSlicePitch();
 
-			// Calculate pitches+skips in bytes
-			const UINT32 srcRowPitchBytes = src.getRowPitch()*pixelSize;
-			const UINT32 srcSliceSkipBytes = src.getSliceSkip()*pixelSize;
+			// Get pitches+skips in bytes
+			const UINT32 srcRowPitchBytes = src.getRowPitch();
+			const UINT32 srcSliceSkipBytes = src.getSliceSkip();
 
-			const UINT32 dstRowPitchBytes = dst.getRowPitch()*pixelSize;
-			const UINT32 dstSliceSkipBytes = dst.getSliceSkip()*pixelSize;
+			const UINT32 dstRowPitchBytes = dst.getRowPitch();
+			const UINT32 dstSliceSkipBytes = dst.getSliceSkip();
 
 			// Otherwise, copy per row
 			const UINT32 rowSize = src.getWidth()*pixelSize;
@@ -2014,18 +2020,18 @@ namespace bs
 			}
 		}
 
-		UINT32 srcPixelSize = PixelUtil::getNumElemBytes(src.getFormat());
-		UINT32 dstPixelSize = PixelUtil::getNumElemBytes(dst.getFormat());
+		UINT32 srcPixelSize = getNumElemBytes(src.getFormat());
+		UINT32 dstPixelSize = getNumElemBytes(dst.getFormat());
 		UINT8 *srcptr = static_cast<UINT8*>(src.getData())
-			+ (src.getLeft() + src.getTop() * src.getRowPitch() + src.getFront() * src.getSlicePitch()) * srcPixelSize;
+			+ src.getLeft() * srcPixelSize + src.getTop() * src.getRowPitch() + src.getFront() * src.getSlicePitch();
 		UINT8 *dstptr = static_cast<UINT8*>(dst.getData())
-			+ (dst.getLeft() + dst.getTop() * dst.getRowPitch() + dst.getFront() * dst.getSlicePitch()) * dstPixelSize;
+			+ dst.getLeft() * dstPixelSize + dst.getTop() * dst.getRowPitch() + dst.getFront() * dst.getSlicePitch();
 
-		// Calculate pitches+skips in bytes
-		UINT32 srcRowSkipBytes = src.getRowSkip()*srcPixelSize;
-		UINT32 srcSliceSkipBytes = src.getSliceSkip()*srcPixelSize;
-		UINT32 dstRowSkipBytes = dst.getRowSkip()*dstPixelSize;
-		UINT32 dstSliceSkipBytes = dst.getSliceSkip()*dstPixelSize;
+		// Get pitches+skips in bytes
+		UINT32 srcRowSkipBytes = src.getRowSkip();
+		UINT32 srcSliceSkipBytes = src.getSliceSkip();
+		UINT32 dstRowSkipBytes = dst.getRowSkip();
+		UINT32 dstSliceSkipBytes = dst.getSliceSkip();
 
 		// The brute force fallback
 		float r, g, b, a;
@@ -2114,8 +2120,8 @@ namespace bs
 		UINT8* dataPtr = data.getData();
 
 		UINT32 pixelSize = pfd.elemBytes;
-		UINT32 rowSkipBytes = data.getRowSkip()*pixelSize;
-		UINT32 sliceSkipBytes = data.getSliceSkip()*pixelSize;
+		UINT32 rowSkipBytes = data.getRowSkip();
+		UINT32 sliceSkipBytes = data.getSliceSkip();
 
 		for (UINT32 z = 0; z < data.getDepth(); z++)
 		{
@@ -2301,19 +2307,19 @@ namespace bs
 
 		for(UINT32 z = 0; z < dst.getDepth(); z++)
 		{
-			UINT8* srcRowPtr = srcPtr + offsetY * src.getRowPitch() * elemSize;
+			UINT8* srcRowPtr = srcPtr + offsetY * src.getRowPitch();
 			UINT8* dstRowPtr = dstPtr;
 
 			for(UINT32 y = 0; y < dst.getHeight(); y++)
 			{
 				memcpy(dstRowPtr, srcRowPtr + offsetX * elemSize, rowSize);
 
-				srcRowPtr += src.getRowPitch() * elemSize;
-				dstRowPtr += dst.getRowPitch() * elemSize;
+				srcRowPtr += src.getRowPitch();
+				dstRowPtr += dst.getRowPitch();
 			}
 
-			srcPtr += src.getSlicePitch() * elemSize;
-			dstPtr += dst.getSlicePitch() * elemSize;
+			srcPtr += src.getSlicePitch();
+			dstPtr += dst.getSlicePitch();
 		}
 	}
 
@@ -2368,7 +2374,7 @@ namespace bs
 
 				// Note: If flipping X as well I could do it here without an extra set of memcpys
 
-				slicePtr += pixelData.getSlicePitch() * elemSize;
+				slicePtr += pixelData.getSlicePitch();
 			}
 
 			bs_stack_free(rowTemp);
@@ -2395,10 +2401,10 @@ namespace bs
 						memcpy(&rowPtr[srcX], elemTemp, elemSize);
 					}
 
-					rowPtr += pixelData.getRowPitch() * elemSize;
+					rowPtr += pixelData.getRowPitch();
 				}
 
-				slicePtr += pixelData.getSlicePitch() * elemSize;
+				slicePtr += pixelData.getSlicePitch();
 			}
 
 			bs_stack_free(elemTemp);
@@ -2458,11 +2464,11 @@ namespace bs
 
 		for (UINT32 z = 0; z < depth; z++)
 		{
-			UINT32 zDataIdx = z * pixelData.getSlicePitch() * pixelSize;
+			UINT32 zDataIdx = z * pixelData.getSlicePitch();
 
 			for (UINT32 y = 0; y < height; y++)
 			{
-				UINT32 yDataIdx = y * pixelData.getRowPitch() * pixelSize;
+				UINT32 yDataIdx = y * pixelData.getRowPitch();
 
 				for (UINT32 x = 0; x < width; x++)
 				{
@@ -2490,11 +2496,11 @@ namespace bs
 
 		for (UINT32 z = 0; z < depth; z++)
 		{
-			UINT32 zDataIdx = z * pixelData.getSlicePitch() * pixelSize;
+			UINT32 zDataIdx = z * pixelData.getSlicePitch();
 
 			for (UINT32 y = 0; y < height; y++)
 			{
-				UINT32 yDataIdx = y * pixelData.getRowPitch() * pixelSize;
+				UINT32 yDataIdx = y * pixelData.getRowPitch();
 
 				for (UINT32 x = 0; x < width; x++)
 				{

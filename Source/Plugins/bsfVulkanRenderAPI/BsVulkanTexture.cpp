@@ -314,12 +314,8 @@ namespace bs { namespace ct
 		VkSubresourceLayout layout;
 		vkGetImageSubresourceLayout(device.getLogical(), mImage, &range, &layout);
 
-		const UINT32 pixelSize = PixelUtil::getNumElemBytes(output.getFormat());
-		assert((UINT32)layout.rowPitch % pixelSize == 0);
-		assert((UINT32)layout.depthPitch % pixelSize == 0);
-
-		output.setRowPitch((UINT32)layout.rowPitch / pixelSize);
-		output.setSlicePitch((UINT32)layout.depthPitch / pixelSize);
+		output.setRowPitch((UINT32)layout.rowPitch);
+		output.setSlicePitch((UINT32)layout.depthPitch);
 
 		VkDeviceMemory memory;
 		VkDeviceSize memoryOffset;
@@ -778,8 +774,13 @@ namespace bs { namespace ct
 		VkMemoryPropertyFlags flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 		VmaAllocation allocation = device.allocateMemory(buffer, flags);
 
+		UINT32 blockSize = PixelUtil::getBlockSize(pixelData.getFormat());
+
+		assert(pixelData.getRowPitch() % blockSize == 0);
+		assert(pixelData.getSlicePitch() % blockSize == 0);
+
 		return device.getResourceManager().create<VulkanBuffer>(buffer, allocation,
-			pixelData.getRowPitch(), pixelData.getSlicePitch());
+			pixelData.getRowPitch() / blockSize, pixelData.getSlicePitch() / blockSize);
 	}
 
 	void VulkanTexture::copyImage(VulkanTransferBuffer* cb, VulkanImage* srcImage, VulkanImage* dstImage, 

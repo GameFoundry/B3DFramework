@@ -116,9 +116,11 @@ namespace bs
 			UINT32& mipWidth, UINT32& mipHeight, UINT32& mipDepth);
 
 		/** 
-		 * Calculates row and depth pitch for a texture surface of the specified size and format. For most this will be
-		 * equal to their width & height, respectively. But some texture formats (especially compressed ones) might
-		 * require extra padding.
+		 * Calculates row and depth pitch for a texture surface of the specified size and format. For most formats row
+		 * pitch will equal the number of bytes required for storing "width" pixels, and slice pitch will equal the
+		 * number of bytes required for storing "width*height" pixels. But some texture formats (especially compressed 
+		 * ones) might require extra padding. Input width/height/depth values are in pixels, while output pitch values
+		 * are in bytes.
 		 */
 		static void getPitch(UINT32 width, UINT32 height, UINT32 depth, PixelFormat format,
 			UINT32& rowPitch, UINT32& depthPitch);

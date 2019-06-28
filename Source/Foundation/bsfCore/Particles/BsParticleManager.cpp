@@ -28,7 +28,7 @@ namespace bs
 			if (x >= pixels.getWidth())
 			{
 				x = 0;
-				dest += pixels.getRowSkip() * PixelUtil::getNumElemBytes(pixels.getFormat());;
+				dest += pixels.getRowSkip();
 			}
 		}
 	}

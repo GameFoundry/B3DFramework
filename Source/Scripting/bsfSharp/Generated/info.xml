@@ -2344,10 +2344,10 @@ Does not account for gravity, you must apply it manually.</doc>
 			</param>
 		</method>
 		<property name="RawRowPitch" type="int" getter="getRowPitch" setter="" static="false">
-			<doc>Returns the number of pixels that offsets one row from another. This can be &quot;width&quot;, but doesn&apos;t have to be as some buffers require padding.</doc>
+			<doc>Returns the number of bytes that offsets one row from another. This can be exact number of bytes required  to hold &quot;width&quot; pixel, but doesn&apos;t have to be as some buffers require padding.</doc>
 		</property>
 		<property name="RawSlicePitch" type="int" getter="getSlicePitch" setter="" static="false">
-			<doc>Returns the number of pixels that offsets one depth slice from another. This can be &quot;width * height&quot;, but  doesn&apos;t have to be as some buffers require padding.</doc>
+			<doc>Returns the number of bytes that offsets one depth slice from another. This can be exact number of bytes required to hold &quot;width * height&quot; pixels, but doesn&apos;t have to be as some buffers require padding.</doc>
 		</property>
 		<property name="Format" type="PixelFormat" getter="getFormat" setter="" static="false">
 			<doc>Returns the pixel format used by the internal buffer for storing the pixels.</doc>

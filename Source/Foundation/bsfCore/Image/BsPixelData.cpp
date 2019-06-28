@@ -44,6 +44,24 @@ namespace bs
 		return *this;
 	}
 
+	UINT32 PixelData::getRowSkip() const
+	{
+		UINT32 optimalRowPitch, optimalSlicePitch;
+		PixelUtil::getPitch(getWidth(), getHeight(), getDepth(), mFormat, optimalRowPitch, 
+			optimalSlicePitch);
+
+		return mRowPitch - optimalRowPitch;
+	}
+
+	UINT32 PixelData::getSliceSkip() const
+	{
+		UINT32 optimalRowPitch, optimalSlicePitch;
+		PixelUtil::getPitch(getWidth(), getHeight(), getDepth(), mFormat, optimalRowPitch, 
+			optimalSlicePitch);
+
+		return mSlicePitch - optimalSlicePitch;
+	}
+
 	UINT32 PixelData::getConsecutiveSize() const
 	{
 		return PixelUtil::getMemorySize(getWidth(), getHeight(), getDepth(), mFormat);
@@ -51,10 +69,7 @@ namespace bs
 
 	UINT32 PixelData::getSize() const
 	{
-		if(mRowPitch == 0)
-			return 0;
-
-		return PixelUtil::getMemorySize(mRowPitch, mSlicePitch / mRowPitch, getDepth(), getFormat());
+		return mSlicePitch * getDepth();
 	}
 
 	PixelData PixelData::getSubVolume(const PixelVolume& volume) const
@@ -80,8 +95,8 @@ namespace bs
 		PixelData rval(volume.getWidth(), volume.getHeight(), volume.getDepth(), mFormat);
 
 		rval.setExternalBuffer(((UINT8*)getData()) + ((volume.left - getLeft())*elemSize)
-			+ ((volume.top - getTop())*mRowPitch*elemSize)
-			+ ((volume.front - getFront())*mSlicePitch*elemSize));
+			+ ((volume.top - getTop())*mRowPitch)
+			+ ((volume.front - getFront())*mSlicePitch));
 
 		rval.mFormat = mFormat;
 		PixelUtil::getPitch(volume.getWidth(), volume.getHeight(), volume.getDepth(), mFormat, rval.mRowPitch,
@@ -135,7 +150,7 @@ namespace bs
 		Color cv;
 
 		UINT32 pixelSize = PixelUtil::getNumElemBytes(mFormat);
-		UINT32 pixelOffset = pixelSize * (z * mSlicePitch + y * mRowPitch + x);
+		UINT32 pixelOffset = z * mSlicePitch + y * mRowPitch + x * pixelSize;
 		PixelUtil::unpackColor(&cv, mFormat, (unsigned char *)getData() + pixelOffset);
 
 		return cv;
@@ -144,7 +159,7 @@ namespace bs
 	void PixelData::setColorAt(const Color& color, UINT32 x, UINT32 y, UINT32 z)
 	{
 		UINT32 pixelSize = PixelUtil::getNumElemBytes(mFormat);
-		UINT32 pixelOffset = pixelSize * (z * mSlicePitch + y * mRowPitch + x);
+		UINT32 pixelOffset = z * mSlicePitch + y * mRowPitch + x * pixelSize;
 		PixelUtil::packColor(color, mFormat, (unsigned char *)getData() + pixelOffset);
 	}
 
@@ -161,12 +176,12 @@ namespace bs
 		for (UINT32 z = 0; z < depth; z++)
 		{
 			UINT32 zArrayIdx = z * width * height;
-			UINT32 zDataIdx = z * mSlicePitch * pixelSize;
+			UINT32 zDataIdx = z * mSlicePitch;
 
 			for (UINT32 y = 0; y < height; y++)
 			{
 				UINT32 yArrayIdx = y * width;
-				UINT32 yDataIdx = y * mRowPitch * pixelSize;
+				UINT32 yDataIdx = y * mRowPitch;
 
 				for (UINT32 x = 0; x < width; x++)
 				{
@@ -202,12 +217,12 @@ namespace bs
 		for (UINT32 z = 0; z < depth; z++)
 		{
 			UINT32 zArrayIdx = z * width * height;
-			UINT32 zDataIdx = z * mSlicePitch * pixelSize;
+			UINT32 zDataIdx = z * mSlicePitch;
 
 			for (UINT32 y = 0; y < height; y++)
 			{
 				UINT32 yArrayIdx = y * width;
-				UINT32 yDataIdx = y * mRowPitch * pixelSize;
+				UINT32 yDataIdx = y * mRowPitch;
 
 				for (UINT32 x = 0; x < width; x++)
 				{
@@ -249,11 +264,11 @@ namespace bs
 		UINT8* data = getData();
 		for (UINT32 z = 0; z < depth; z++)
 		{
-			UINT32 zDataIdx = z * mSlicePitch * pixelSize;
+			UINT32 zDataIdx = z * mSlicePitch;
 
 			for (UINT32 y = 0; y < height; y++)
 			{
-				UINT32 yDataIdx = y * mRowPitch * pixelSize;
+				UINT32 yDataIdx = y * mRowPitch;
 
 				for (UINT32 x = 0; x < width; x++)
 				{
@@ -269,7 +284,7 @@ namespace bs
 	float PixelData::getDepthAt(UINT32 x, UINT32 y, UINT32 z) const
 	{
 		UINT32 pixelSize = PixelUtil::getNumElemBytes(mFormat);
-		UINT32 pixelOffset = pixelSize * (z * mSlicePitch + y * mRowPitch + x);
+		UINT32 pixelOffset = z * mSlicePitch + y * mRowPitch + x * pixelSize;
 		return PixelUtil::unpackDepth(mFormat, (unsigned char *)getData() + pixelOffset);;
 	}
 
@@ -286,12 +301,12 @@ namespace bs
 		for (UINT32 z = 0; z < depth; z++)
 		{
 			UINT32 zArrayIdx = z * width * height;
-			UINT32 zDataIdx = z * mSlicePitch * pixelSize;
+			UINT32 zDataIdx = z * mSlicePitch;
 
 			for (UINT32 y = 0; y < height; y++)
 			{
 				UINT32 yArrayIdx = y * width;
-				UINT32 yDataIdx = y * mRowPitch * pixelSize;
+				UINT32 yDataIdx = y * mRowPitch;
 
 				for (UINT32 x = 0; x < width; x++)
 				{

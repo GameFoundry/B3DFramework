@@ -27,8 +27,8 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Returns the number of pixels that offsets one row from another. This can be &quot;width&quot;, but doesn&apos;t have 
-		/// to be as some buffers require padding.
+		/// Returns the number of bytes that offsets one row from another. This can be exact number of bytes required  to hold 
+		/// &quot;width&quot; pixel, but doesn&apos;t have to be as some buffers require padding.
 		/// </summary>
 		[NativeWrapper]
 		public int RawRowPitch
@@ -37,8 +37,8 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Returns the number of pixels that offsets one depth slice from another. This can be &quot;width * height&quot;, but  
-		/// doesn&apos;t have to be as some buffers require padding.
+		/// Returns the number of bytes that offsets one depth slice from another. This can be exact number of bytes required to 
+		/// hold &quot;width * height&quot; pixels, but doesn&apos;t have to be as some buffers require padding.
 		/// </summary>
 		[NativeWrapper]
 		public int RawSlicePitch

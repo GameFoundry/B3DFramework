@@ -226,42 +226,42 @@ namespace bs
 		PixelData& operator=(const PixelData& rhs);
 
 		/**
-		 * Returns the number of pixels that offsets one row from another. This can be "width", but doesn't have to be as
-		 * some buffers require padding.
+		 * Returns the number of bytes that offsets one row from another. This can be exact number of bytes required 
+		 * to hold "width" pixel, but doesn't have to be as some buffers require padding.
 		 */
 		BS_SCRIPT_EXPORT(n:RawRowPitch,pr:getter)
 		UINT32 getRowPitch() const { return mRowPitch; }
 
 		/**
-		 * Returns the number of pixels that offsets one depth slice from another. This can be "width * height", but 
-		 * doesn't have to be as some buffers require padding.
+		 * Returns the number of bytes that offsets one depth slice from another. This can be exact number of bytes
+		 * required to hold "width * height" pixels, but doesn't have to be as some buffers require padding.
 		 */
 		BS_SCRIPT_EXPORT(n:RawSlicePitch,pr:getter)
 		UINT32 getSlicePitch() const { return mSlicePitch; }
 
 		/**
-		 * Sets the pitch (in pixels) that determines offset between rows of the pixel buffer. Call this before allocating
+		 * Sets the pitch (in bytes) that determines offset between rows of the pixel buffer. Call this before allocating
 		 * the buffer.
 		 */
 		void setRowPitch(UINT32 rowPitch) { mRowPitch = rowPitch; }
 
 		/**
-		 * Sets the pitch (in pixels) that determines offset between depth slices of the pixel buffer. Call this before 
+		 * Sets the pitch (in bytes) that determines offset between depth slices of the pixel buffer. Call this before 
 		 * allocating the buffer.
 		 */
 		void setSlicePitch(UINT32 slicePitch) { mSlicePitch = slicePitch; }
 
 		/**
-		 * Returns the number of extra pixels in a row (non-zero only if rows are not consecutive (row pitch is larger 
-		 * than width)).
+		 * Returns the number of extra bytes in a row (non-zero only if rows are not consecutive (row pitch is larger 
+		 * than the number of bytes required to hold "width" pixels)).
 		 */
-		UINT32 getRowSkip() const { return mRowPitch - getWidth(); }
+		UINT32 getRowSkip() const;
 
 		/**
-		 * Returns the number of extra pixels in a depth slice (non-zero only if slices aren't consecutive (slice pitch is 
-		 * larger than width*height).
+		 * Returns the number of extra bytes in a depth slice (non-zero only if slices aren't consecutive (slice pitch is 
+		 * larger than the number of bytes required to hold "width * height").
 		 */
-		UINT32 getSliceSkip() const { return mSlicePitch - (getHeight() * mRowPitch); }
+		UINT32 getSliceSkip() const;
 
 		/** Returns the pixel format used by the internal buffer for storing the pixels. */
 		BS_SCRIPT_EXPORT(n:Format,pr:getter)
@@ -321,8 +321,8 @@ namespace bs
 		 */
 		BS_SCRIPT_EXPORT(n:RawIsConsecutive,pr:getter)
 		bool isConsecutive() const
-		{ 
-			return mRowPitch == getWidth() && mSlicePitch == getWidth()*getHeight(); 
+		{
+			return mSlicePitch * getDepth() == getConsecutiveSize();
 		}
 
 		/** Return the size (in bytes) this image would take if it was laid out consecutive in memory. */

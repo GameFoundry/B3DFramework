@@ -41,12 +41,12 @@ namespace bs
 		for(UINT32 z = 0; z < (UINT32)mDesc.countZ; z++)
 		{
 			const UINT32 zArrayIdx = z * mDesc.countY * mDesc.countX;
-			const UINT32 zDataIdx = z * pixelData->getSlicePitch() * pixelSize;
+			const UINT32 zDataIdx = z * pixelData->getSlicePitch();
 
 			for(UINT32 y = 0; y < (UINT32)mDesc.countY; y++)
 			{
 				const UINT32 yArrayIdx = y * mDesc.countX;
-				const UINT32 yDataIdx = y * pixelData->getRowPitch() * pixelSize;
+				const UINT32 yDataIdx = y * pixelData->getRowPitch();
 
 				for(UINT32 x = 0; x < (UINT32)mDesc.countX; x++)
 				{

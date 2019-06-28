@@ -16,32 +16,22 @@ namespace bs
 
 	class BS_CORE_EXPORT PixelDataRTTI : public RTTIType<PixelData, GpuResourceData, PixelDataRTTI>
 	{
-		UINT32& getLeft(PixelData* obj) { return obj->mExtents.left; }
-		void setLeft(PixelData* obj, UINT32& val) { obj->mExtents.left = val; }
+		static UINT32 VERSION;
 
-		UINT32& getTop(PixelData* obj) { return obj->mExtents.top; }
-		void setTop(PixelData* obj, UINT32& val) { obj->mExtents.top = val; }
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN_NAMED(left, mExtents.left, 0)
+			BS_RTTI_MEMBER_PLAIN_NAMED(top, mExtents.top, 1)
+			BS_RTTI_MEMBER_PLAIN_NAMED(right, mExtents.right, 2)
+			BS_RTTI_MEMBER_PLAIN_NAMED(bottom, mExtents.bottom, 3)
+			BS_RTTI_MEMBER_PLAIN_NAMED(front, mExtents.front, 4)
+			BS_RTTI_MEMBER_PLAIN_NAMED(back, mExtents.back, 5)
+			BS_RTTI_MEMBER_PLAIN(mRowPitch, 6)
+			BS_RTTI_MEMBER_PLAIN(mSlicePitch, 7)
+			BS_RTTI_MEMBER_PLAIN(mFormat, 8)
+		BS_END_RTTI_MEMBERS
 
-		UINT32& getRight(PixelData* obj) { return obj->mExtents.right; }
-		void setRight(PixelData* obj, UINT32& val) { obj->mExtents.right = val; }
-
-		UINT32& getBottom(PixelData* obj) { return obj->mExtents.bottom; }
-		void setBottom(PixelData* obj, UINT32& val) { obj->mExtents.bottom = val; }
-
-		UINT32& getFront(PixelData* obj) { return obj->mExtents.front; }
-		void setFront(PixelData* obj, UINT32& val) { obj->mExtents.front = val; }
-
-		UINT32& getBack(PixelData* obj) { return obj->mExtents.back; }
-		void setBack(PixelData* obj, UINT32& val) { obj->mExtents.back = val; }
-
-		UINT32& getRowPitch(PixelData* obj) { return obj->mRowPitch; }
-		void setRowPitch(PixelData* obj, UINT32& val) { obj->mRowPitch = val; }
-
-		UINT32& getSlicePitch(PixelData* obj) { return obj->mSlicePitch; }
-		void setSlicePitch(PixelData* obj, UINT32& val) { obj->mSlicePitch = val; }
-
-		PixelFormat& getFormat(PixelData* obj) { return obj->mFormat; }
-		void setFormat(PixelData* obj, PixelFormat& val) { obj->mFormat = val; }
+		UINT32& getVersion(PixelData* obj) { return VERSION; }
+		void setVersion(PixelData* obj, UINT32& val) { mVersion = val; }
 
 		SPtr<DataStream> getData(PixelData* obj, UINT32& size)
 		{
@@ -59,36 +49,46 @@ namespace bs
 	public:
 		PixelDataRTTI()
 		{
-			addPlainField("left", 0, &PixelDataRTTI::getLeft, &PixelDataRTTI::setLeft);
-			addPlainField("top", 1, &PixelDataRTTI::getTop, &PixelDataRTTI::setTop);
-			addPlainField("right", 2, &PixelDataRTTI::getRight, &PixelDataRTTI::setRight);
-			addPlainField("bottom", 3, &PixelDataRTTI::getBottom, &PixelDataRTTI::setBottom);
-			addPlainField("front", 4, &PixelDataRTTI::getFront, &PixelDataRTTI::setFront);
-			addPlainField("back", 5, &PixelDataRTTI::getBack, &PixelDataRTTI::setBack);
-			addPlainField("rowPitch", 6, &PixelDataRTTI::getRowPitch, &PixelDataRTTI::setRowPitch);
-			addPlainField("slicePitch", 7, &PixelDataRTTI::getSlicePitch, &PixelDataRTTI::setSlicePitch);
-			addPlainField("format", 8, &PixelDataRTTI::getFormat, &PixelDataRTTI::setFormat);
 			addDataBlockField("data", 9, &PixelDataRTTI::getData, &PixelDataRTTI::setData);
+			addPlainField("version", 10, &PixelDataRTTI::getVersion, &PixelDataRTTI::setVersion);
 		}
 
-		virtual const String& getRTTIName() override
+		void onDeserializationEnded(IReflectable* obj, SerializationContext* context) override
+		{
+			PixelData* pixelData = static_cast<PixelData*>(obj);
+
+			// Convert row & slice pitch from pixels to bytes, in case pixel data was stored with an older version
+			if(mVersion == 0)
+			{
+				UINT32 pixelSize = PixelUtil::getNumElemBytes(pixelData->getFormat());
+				pixelData->mRowPitch *= pixelSize;
+				pixelData->mSlicePitch *= pixelSize;
+			}
+		}
+
+		const String& getRTTIName() override
 		{
 			static String name = "PixelData";
 			return name;
 		}
 
-		virtual UINT32 getRTTIId() override
+		UINT32 getRTTIId() override
 		{
 			return TID_PixelData;
 		}
 
-		virtual SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> newRTTIObject() override
 		{
 			SPtr<PixelData> newPixelData = bs_shared_ptr_new<PixelData>();
 
 			return newPixelData;
 		}
+
+	private:
+		UINT32 mVersion = 0;
 	};
+
+	UINT32 PixelDataRTTI::VERSION = 1;
 
 	/** @} */
 	/** @endcond */
