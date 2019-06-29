@@ -266,7 +266,7 @@ namespace bs
 		XRRScreenResources* screenRes = XRRGetScreenResources (display, rootWindow);
 		if(screenRes == nullptr)
 		{
-			LOGERR("XRR: Failed to retrieve screen resources. ");
+			BS_LOG(Error, Platform, "XRR: Failed to retrieve screen resources. ");
 			return;
 		}
 
@@ -275,7 +275,7 @@ namespace bs
 		{
 			XRRFreeScreenResources(screenRes);
 
-			LOGERR("XRR: Failed to retrieve output info for output: " + toString((UINT32)output));
+			BS_LOG(Error, Platform, "XRR: Failed to retrieve output info for output: {0}", (UINT32)output);
 			return;
 		}
 
@@ -285,7 +285,7 @@ namespace bs
 			XRRFreeScreenResources(screenRes);
 			XRRFreeOutputInfo(outputInfo);
 
-			LOGERR("XRR: Failed to retrieve CRTC info for output: " + toString((UINT32)output));
+			BS_LOG(Error, Platform, "XRR: Failed to retrieve CRTC info for output: {0}", (UINT32)output);
 			return;
 		}
 
@@ -295,7 +295,7 @@ namespace bs
 			crtcInfo->x, crtcInfo->y, mode, crtcInfo->rotation, &output, 1);
 
 		if(status != Success)
-			LOGERR("XRR: XRRSetCrtcConfig failed.");
+			BS_LOG(Error, Platform, "XRR: XRRSetCrtcConfig failed.");
 
 		XRRFreeCrtcInfo(crtcInfo);
 		XRRFreeOutputInfo(outputInfo);
@@ -315,7 +315,7 @@ namespace bs
 		UINT32 outputIdx = mode.outputIdx;
 		if(outputIdx >= videoModeInfo.getNumOutputs())
 		{
-			LOGERR("Invalid output device index.")
+			BS_LOG(Error, Platform, "Invalid output device index.")
 			return;
 		}
 
@@ -342,7 +342,7 @@ namespace bs
 			XRRScreenResources* screenRes = XRRGetScreenResources(display, rootWindow);
 			if (screenRes == nullptr)
 			{
-				LOGERR("XRR: Failed to retrieve screen resources. ");
+				BS_LOG(Error, Platform, "XRR: Failed to retrieve screen resources. ");
 				return;
 			}
 
@@ -351,7 +351,7 @@ namespace bs
 			{
 				XRRFreeScreenResources(screenRes);
 
-				LOGERR("XRR: Failed to retrieve output info for output: " + toString((UINT32)outputID));
+				BS_LOG(Error, Platform, "XRR: Failed to retrieve output info for output: {0}", (UINT32)outputID);
 				return;
 			}
 
@@ -361,7 +361,7 @@ namespace bs
 				XRRFreeScreenResources(screenRes);
 				XRRFreeOutputInfo(outputInfo);
 
-				LOGERR("XRR: Failed to retrieve CRTC info for output: " + toString((UINT32)outputID));
+				BS_LOG(Error, Platform, "XRR: Failed to retrieve CRTC info for output: {0}", (UINT32)outputID);
 				return;
 			}
 
@@ -403,7 +403,7 @@ namespace bs
 			{
 				LinuxPlatform::unlockX();
 
-				LOGERR("Unable to enter fullscreen, unsupported video mode requested.");
+				BS_LOG(Error, Platform, "Unable to enter fullscreen, unsupported video mode requested.");
 				return;
 			}
 
@@ -455,7 +455,7 @@ namespace bs
 		UINT32 outputIdx = 0; // 0 is always primary
 		if(outputIdx >= videoModeInfo.getNumOutputs())
 		{
-			LOGERR("Invalid output device index.")
+			BS_LOG(Error, Platform, "Invalid output device index.")
 			return;
 		}
 

@@ -251,7 +251,7 @@ namespace bs
 
 		char buffer[256];
 		XGetErrorText(display, event->error_code, buffer, sizeof(buffer));
-		LOGWRN("X11 error: " + String(buffer));
+		BS_LOG(Warning, Platform, "X11 error: " + String(buffer));
 
 		return 0;
 	}

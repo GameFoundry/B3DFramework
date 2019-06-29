@@ -69,7 +69,7 @@ namespace bs
 		if(watchHandle == -1)
 		{
 			String error = strerror(errno);
-			LOGERR("Unable to start folder monitor for path: \"" + pathString +"\". Error: " + error);
+			BS_LOG(Error, Platform, "Unable to start folder monitor for path: \"{0}\". Error: {1}", pathString, error);
 		}
 
 		pathToHandle[path] = watchHandle;
@@ -242,7 +242,7 @@ namespace bs
 	{
 		if(!FileSystem::isDirectory(folderPath))
 		{
-			LOGERR("Provided path \"" + folderPath.toString() + "\" is not a directory");
+			BS_LOG(Error, Platform, "Provided path \"{0}\" is not a directory", folderPath);
 			return;
 		}
 
@@ -252,21 +252,21 @@ namespace bs
 			// Identical monitor exists
 			if(monitor->folderToMonitor.equals(folderPath))
 			{
-				LOGWRN("Folder is already monitored, cannot monitor it again.");
+				BS_LOG(Warning, Platform, "Folder is already monitored, cannot monitor it again.");
 				return;
 			}
 
 			// This directory is part of a directory that's being monitored
 			if(monitor->monitorSubdirectories && folderPath.includes(monitor->folderToMonitor))
 			{
-				LOGWRN("Folder is already monitored, cannot monitor it again.");
+				BS_LOG(Warning, Platform, "Folder is already monitored, cannot monitor it again.");
 				return;
 			}
 
 			// This directory would include a directory of another monitor
 			if(subdirectories && monitor->folderToMonitor.includes(folderPath))
 			{
-				LOGWRN("Cannot add a recursive monitor as it conflicts with a previously monitored path");
+				BS_LOG(Warning, Platform, "Cannot add a recursive monitor as it conflicts with a previously monitored path");
 				return;
 			}
 		}
@@ -296,7 +296,7 @@ namespace bs
 			m->workerThread = bs_new<Thread>(std::bind(&FolderMonitor::workerThreadMain, this));
 
 			if(m->workerThread == nullptr)
-				LOGERR("Failed to create a new worker thread for folder monitoring");
+				BS_LOG(Error, Platform, "Failed to create a new worker thread for folder monitoring");
 		}
 	}
 

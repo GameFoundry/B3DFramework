@@ -45,7 +45,7 @@ namespace bs
 
 					if (ioctl(fileHandle, EVIOCGBIT(i, sizeof(absAxisBits)), absAxisBits) == -1)
 					{
-						LOGERR("Could not read device absolute axis features.");
+						BS_LOG(Error, Platform, "Could not read device absolute axis features.");
 						continue;
 					}
 
@@ -67,7 +67,7 @@ namespace bs
 
 					if (ioctl(fileHandle, EVIOCGBIT(i, sizeof(relAxisBits)), relAxisBits) == -1)
 					{
-						LOGERR("Could not read device relative axis features.");
+						BS_LOG(Error, Platform, "Could not read device relative axis features.");
 						continue;
 					}
 
@@ -84,7 +84,7 @@ namespace bs
 
 					if (ioctl(fileHandle, EVIOCGBIT(i, sizeof(keyBits)), keyBits) == -1)
 					{
-						LOGERR("Could not read device key features.");
+						BS_LOG(Error, Platform, "Could not read device key features.");
 						continue;
 					}
 
@@ -206,7 +206,7 @@ namespace bs
 			if (ioctl(fileHandle, EVIOCGNAME(sizeof(name)), name) != -1)
 				info.name = String(name);
 			else
-				LOGERR("Could not read device name.");
+				BS_LOG(Error, Platform, "Could not read device name.");
 
 			// Get axis ranges
 			UINT32 unknownAxisIdx = 0;
@@ -219,7 +219,7 @@ namespace bs
 				input_absinfo absinfo;
 				if (ioctl(fileHandle, EVIOCGABS(entry), &absinfo) == -1)
 				{
-					LOGERR("Could not read absolute axis device features.");
+					BS_LOG(Error, Platform, "Could not read absolute axis device features.");
 					continue;
 				}
 

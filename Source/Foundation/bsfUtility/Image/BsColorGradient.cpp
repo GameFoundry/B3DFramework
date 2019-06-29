@@ -7,6 +7,8 @@
 
 namespace bs
 {
+	constexpr UINT32 ColorGradient::MAX_KEYS;
+
 	ColorGradient::ColorGradient(const Color& color)
 	{
 		setConstant(color);

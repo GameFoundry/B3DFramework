@@ -29,7 +29,7 @@ namespace bs
 		m->fileHandle = open(eventPath.c_str(), O_RDWR | O_NONBLOCK);
 
 		if(m->fileHandle == -1)
-			LOGERR("Failed to open input event file handle for device: " + gamepadInfo.name);
+			BS_LOG(Error, Platform, "Failed to open input event file handle for device: {0}", gamepadInfo.name);
 	}
 
 	Gamepad::~Gamepad()
