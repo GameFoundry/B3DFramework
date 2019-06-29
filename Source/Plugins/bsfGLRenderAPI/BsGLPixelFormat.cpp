@@ -325,7 +325,7 @@ namespace bs { namespace ct
 			break;
 		}
 
-		LOGERR("Invalid depth stencil format");
+		BS_LOG(Error, RenderBackend, "Invalid depth stencil format");
 		return PF_D32_S8X24;
 	}
 		
@@ -345,7 +345,7 @@ namespace bs { namespace ct
 			break;
 		}
 
-		LOGERR("Invalid depth stencil format");
+		BS_LOG(Error, RenderBackend, "Invalid depth stencil format");
 		return GL_DEPTH_STENCIL;
 	}
 

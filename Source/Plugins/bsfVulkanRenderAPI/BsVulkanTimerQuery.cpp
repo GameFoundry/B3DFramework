@@ -72,7 +72,7 @@ namespace bs { namespace ct
 
 		if (mQueries.empty())
 		{
-			LOGERR("end() called but query was never started.");
+			BS_LOG(Error, RenderBackend, "end() called but query was never started.");
 			return;
 		}
 

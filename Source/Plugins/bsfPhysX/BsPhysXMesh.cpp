@@ -106,14 +106,14 @@ namespace bs
 		PxCooking* cooking = gPhysX().getCooking();
 		if (cooking == nullptr)
 		{
-			LOGWRN("Attempting to cook a physics mesh but cooking is not enabled globally.");
+			BS_LOG(Warning, Physics, "Attempting to cook a physics mesh but cooking is not enabled globally.");
 			return false;
 		}
 
 		SPtr<VertexDataDesc> vertexDesc = meshData->getVertexDesc();
 		if (!vertexDesc->hasElement(VES_POSITION))
 		{
-			LOGWRN("Provided PhysicsMesh mesh data has no vertex positions.");
+			BS_LOG(Warning, Physics, "Provided PhysicsMesh mesh data has no vertex positions.");
 			return false;
 		}
 
@@ -121,7 +121,8 @@ namespace bs
 		{
 			if(!cookConvex(cooking, meshData, data, size))
 			{
-				LOGWRN("Failed cooking a convex mesh. Perpahs it is too complex? Maximum number of convex vertices is 256.");
+				BS_LOG(Warning, Physics, "Failed cooking a convex mesh. Perpahs it is too complex? Maximum number of "
+					"convex vertices is 256.");
 				return false;
 			}
 		}

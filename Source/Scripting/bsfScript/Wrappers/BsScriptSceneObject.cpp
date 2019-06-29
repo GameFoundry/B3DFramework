@@ -183,8 +183,8 @@ namespace bs
 		UINT32 numChildren = nativeInstance->mSceneObject->getNumChildren();
 		if(idx >= numChildren)
 		{
-			LOGWRN("Attempting to access an out of range SceneObject child. Provided index: \"" + toString(idx)
-				+ "\". Valid range: [0 .. " + toString(numChildren) + ")");
+			BS_LOG(Warning, Scene, "Attempting to access an out of range SceneObject child. Provided index: \"{0}\". "
+				"Valid range: [0, {1})", idx, numChildren);
 			return nullptr;
 		}
 
@@ -410,7 +410,8 @@ namespace bs
 	{
 		if (nativeInstance->mSceneObject.isDestroyed())
 		{
-			LOGWRN("Trying to access a destroyed SceneObject with instance ID: " + toString(nativeInstance->mSceneObject.getInstanceId()));
+			BS_LOG(Warning, Scene, "Trying to access a destroyed SceneObject with instance ID: {0}", + 
+				nativeInstance->mSceneObject.getInstanceId());
 			return true;
 		}
 

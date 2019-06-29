@@ -113,8 +113,8 @@ namespace bs
 #if BS_DEBUG_MODE
 		if (sizeBytes > elementSizeBytes)
 		{
-			LOGWRN("Provided element size larger than maximum element size. Maximum size: " +
-				toString(elementSizeBytes) + ". Supplied size: " + toString(sizeBytes));
+			BS_LOG(Warning, RenderBackend, "Provided element size larger than maximum element size. Maximum size: {0}."
+				" Supplied size: {1}", elementSizeBytes, sizeBytes);
 		}
 
 		if (arrayIdx >= mParamDesc->arraySize)
@@ -153,8 +153,8 @@ namespace bs
 #if BS_DEBUG_MODE
 		if (sizeBytes > elementSizeBytes)
 		{
-			LOGWRN("Provided element size larger than maximum element size. Maximum size: " +
-				toString(elementSizeBytes) + ". Supplied size: " + toString(sizeBytes));
+			BS_LOG(Warning, RenderBackend, "Provided element size larger than maximum element size. Maximum size: {0}."
+				" Supplied size: {1}", elementSizeBytes, sizeBytes);
 		}
 
 		if (arrayIdx >= mParamDesc->arraySize)

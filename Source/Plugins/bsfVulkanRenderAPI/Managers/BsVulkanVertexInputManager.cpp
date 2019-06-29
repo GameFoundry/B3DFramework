@@ -158,8 +158,9 @@ namespace bs { namespace ct
 				if ((binding.inputRate == VK_VERTEX_INPUT_RATE_VERTEX && !isPerVertex) ||
 					(binding.inputRate == VK_VERTEX_INPUT_RATE_INSTANCE && isPerVertex))
 				{
-					LOGERR("Found multiple vertex attributes belonging to the same binding but with different input rates. "
-						"All attributes in a binding must have the same input rate. Ignoring invalid input rates.")
+					BS_LOG(Error, RenderBackend, "Found multiple vertex attributes belonging to the same binding but with "
+						"different input rates. All attributes in a binding must have the same input rate. Ignoring "
+						"invalid input rates.")
 				}
 			}
 
@@ -194,9 +195,10 @@ namespace bs { namespace ct
 
 		if (!mWarningShown)
 		{
-			LOGWRN("Vertex input buffer is full, pruning last " + toString(NUM_ELEMENTS_TO_PRUNE) + " elements. This is "
+			BS_LOG(Warning, RenderBackend, "Vertex input buffer is full, pruning last {0} elements. This is "
 				"probably okay unless you are creating a massive amount of input layouts as they will get re-created every "
-				"frame. In that case you should increase the layout buffer size. This warning won't be shown again.");
+				"frame. In that case you should increase the layout buffer size. This warning won't be shown again.", 
+				NUM_ELEMENTS_TO_PRUNE);
 
 			mWarningShown = true;
 		}

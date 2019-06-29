@@ -61,30 +61,30 @@ namespace bs
 
 		if (errorLevel == 0)
 		{
-			LOGERR(StringUtil::format("Mono: {0} in domain {1}", message, logDomain));
+			BS_LOG(Error, Script, "Mono: {0} in domain {1}", message, logDomain);
 		}
 		else if (errorLevel <= 2)
 		{
-			LOGERR(StringUtil::format("Mono: {0} in domain {1} [{2}]", message, logDomain, logLevel));
+			BS_LOG(Error, Script, "Mono: {0} in domain {1} [{2}]", message, logDomain, logLevel);
 		}
 		else if (errorLevel <= 3)
 		{
-			LOGWRN(StringUtil::format("Mono: {0} in domain {1} [{2}]", message, logDomain, logLevel));
+			BS_LOG(Warning, Script, "Mono: {0} in domain {1} [{2}]", message, logDomain, logLevel);
 		}
 		else
 		{
-			LOGDBG(StringUtil::format("Mono: {0} in domain {1} [{2}]", message, logDomain, logLevel));
+			BS_LOG(Info, Particles, "Mono: {0} in domain {1} [{2}]", message, logDomain, logLevel);
 		}
 	}
 
 	void monoPrintCallback(const char* string, mono_bool isStdout)
 	{
-		LOGWRN(StringUtil::format("Mono error: {0}", string));
+		BS_LOG(Warning, Script, "Mono error: {0}", string);
 	}
 
 	void monoPrintErrorCallback(const char* string, mono_bool isStdout)
 	{
-		LOGERR(StringUtil::format("Mono error: {0}", string));
+		BS_LOG(Error, Script, "Mono error: {0}", string);
 	}	
 	
 	MonoManager::MonoManager()

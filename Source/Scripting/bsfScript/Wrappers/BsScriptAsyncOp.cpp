@@ -37,7 +37,7 @@ namespace bs
 
 		if(!returnTypeClass)
 		{
-			LOGERR("Unable to create a managed AsyncOp. Using an unsupported return value type?");
+			BS_LOG(Error, Generic, "Unable to create a managed AsyncOp. Using an unsupported return value type?");
 			return nullptr;
 		}
 

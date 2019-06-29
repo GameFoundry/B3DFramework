@@ -438,7 +438,8 @@ namespace bs { namespace ct
 			{
 				VertexElementType type = mapGLSLangToVertexElemType(*ttype);
 				if (type == VET_UNKNOWN)
-					LOGERR("Cannot determine vertex input attribute type for attribute: " + String(attribName));
+					BS_LOG(Error, RenderBackend, "Cannot determine vertex input attribute type for attribute: {0}", 
+						attribName);
 
 				elementList.push_back(VertexElement(0, location, type, semantic, index));
 			}
@@ -446,7 +447,10 @@ namespace bs { namespace ct
 			{
 				// Ignore built-in attributes
 				if (memcmp(attribName, "gl_", 3) != 0)
-					LOGERR("Cannot determine vertex input attribute semantic for attribute: " + String(attribName));
+				{
+					BS_LOG(Error, RenderBackend, "Cannot determine vertex input attribute semantic for attribute: {0}", 
+						attribName);
+				}
 			}
 		}
 
@@ -473,7 +477,7 @@ namespace bs { namespace ct
 				GpuParamDataType paramType = mapGLSLangToGpuParamDataType(*ttype);
 				if (paramType == GPDT_UNKNOWN)
 				{
-					LOGWRN("Cannot determine type for uniform inside a struct.");
+					BS_LOG(Warning, RenderBackend, "Cannot determine type for uniform inside a struct.");
 					continue;
 				}
 
@@ -590,7 +594,7 @@ namespace bs { namespace ct
 				}
 
 				if(param.type == GPOT_UNKNOWN)
-					LOGERR("Cannot determine type for uniform: " + String(name));
+					BS_LOG(Error, RenderBackend, "Cannot determine type for uniform: {0}", name);
 			}
 			else
 			{
@@ -681,7 +685,7 @@ namespace bs { namespace ct
 
 					if (paramType == GPDT_UNKNOWN)
 					{
-						LOGWRN("Cannot determine type for uniform: " + String(name));
+						BS_LOG(Warning, RenderBackend, "Cannot determine type for uniform: {0}", name);
 						continue;
 					}
 

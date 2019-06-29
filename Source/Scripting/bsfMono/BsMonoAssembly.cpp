@@ -60,7 +60,7 @@ namespace bs
 		SPtr<DataStream> assemblyStream = FileSystem::openFile(mPath, true);
 		if (assemblyStream == nullptr)
 		{
-			LOGERR("Cannot load assembly at path \"" + mPath.toString() + "\" because the file doesn't exist");
+			BS_LOG(Error, Script, "Cannot load assembly at path \"{0}\" because the file doesn't exist", mPath);
 			return;
 		}
 
@@ -76,7 +76,7 @@ namespace bs
 
 		if (status != MONO_IMAGE_OK || image == nullptr)
 		{
-			LOGERR("Failed loading image data for assembly \"" + mPath.toString() + "\"");
+			BS_LOG(Error, Script, "Failed loading image data for assembly \"{0}\"", mPath);
 			return;
 		}
 
@@ -103,7 +103,7 @@ namespace bs
 		mMonoAssembly = mono_assembly_load_from_full(image, imageName.c_str(), &status, false);
 		if (status != MONO_IMAGE_OK || mMonoAssembly == nullptr)
 		{
-			LOGERR("Failed loading assembly \"" + mPath.toString() + "\"");
+			BS_LOG(Error, Script, "Failed loading assembly \"{0}\"", mPath);
 			return;
 		}
 		

@@ -318,7 +318,10 @@ namespace bs { namespace ct
 				output.colorSpace = surfaceFormats[0].colorSpace;
 
 				if (gamma)
-					LOGERR("Cannot find a valid sRGB format for a render window surface, falling back to a default format.");
+				{
+					BS_LOG(Error, RenderBackend, "Cannot find a valid sRGB format for a render window surface, "
+						"falling back to a default format.");
+				}
 			}
 		}
 

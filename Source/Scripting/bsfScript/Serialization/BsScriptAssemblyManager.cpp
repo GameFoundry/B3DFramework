@@ -873,14 +873,14 @@ namespace bs
 
 			if (MonoUtil::isEnum(klass))
 			{
-				LOGWRN("Unsupported type provided.");
+				BS_LOG(Warning, Script, "Unsupported type provided.");
 				return nullptr;
 			}
 
 			MonoPrimitiveType monoPrimitiveType = MonoUtil::getPrimitiveType(klass);
 			if(monoPrimitiveType != MonoPrimitiveType::Class && monoPrimitiveType != MonoPrimitiveType::ValueType)
 			{
-				LOGWRN("Unsupported type provided.");
+				BS_LOG(Warning, Script, "Unsupported type provided.");
 				return nullptr;
 			}
 
@@ -892,7 +892,7 @@ namespace bs
 				if (monoClass == ScriptResource::getMetaData()->scriptClass ||
 					monoClass == ScriptManagedResource::getMetaData()->scriptClass)
 				{
-					LOGWRN("Unsupported type provided.");
+					BS_LOG(Warning, Script, "Unsupported type provided.");
 					return nullptr;
 				}
 
@@ -937,7 +937,7 @@ namespace bs
 			{
 				if (monoClass == mBuiltin.componentClass || monoClass == mBuiltin.managedComponentClass)
 				{
-					LOGWRN("Unsupported type provided.");
+					BS_LOG(Warning, Script, "Unsupported type provided.");
 					return nullptr;
 				}
 
@@ -987,7 +987,7 @@ namespace bs
 			SPtr<ManagedSerializableObjectInfo> objInfo;
 			if (!instance().getSerializableObjectInfo(elementNs, elementTypeName, objInfo))
 			{
-				LOGERR("Object has no serialization meta-data.");
+				BS_LOG(Error, Script, "Object has no serialization meta-data.");
 				return nullptr;
 			}
 
@@ -1011,7 +1011,7 @@ namespace bs
 				SPtr<ManagedSerializableObject> managedObj = ManagedSerializableObject::createFromExisting(value);
 				if (!managedObj)
 				{
-					LOGERR("Object failed to serialize due to an internal error.");
+					BS_LOG(Error, Script, "Object failed to serialize due to an internal error.");
 					return nullptr;
 				}
 

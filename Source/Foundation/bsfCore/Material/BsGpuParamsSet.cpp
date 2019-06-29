@@ -428,8 +428,9 @@ namespace bs
 			if (findIter->second->type != iter->second.type && 
 				!(iter->second.type == GPDT_COLOR && (findIter->second->type == GPDT_FLOAT4 || findIter->second->type == GPDT_FLOAT3)))
 			{
-				LOGWRN("Ignoring shader parameter \"" + iter->first + "\". Type doesn't match the one defined in the gpu program. "
-					+ "Shader defined type: " + toString(iter->second.type) + " - Gpu program defined type: " + toString(findIter->second->type));
+				BS_LOG(Warning, Material, "Ignoring shader parameter \"{0}\". Type doesn't match the one defined in the "
+					"GPU program. Shader defined type: {1} - Gpu program defined type: {2}",
+					iter->first, iter->second.type, findIter->second->type);
 				continue;
 			}
 

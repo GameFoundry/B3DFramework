@@ -117,7 +117,7 @@ namespace bs
 	{
 		if(((UINT32)mFlags & (UINT32)RigidbodyFlag::AutoMass) != 0)
 		{
-			LOGWRN("Attempting to set Rigidbody mass, but it has automatic mass calculation turned on.");
+			BS_LOG(Warning, Physics, "Attempting to set Rigidbody mass, but it has automatic mass calculation turned on.");
 			return;
 		}
 
@@ -218,7 +218,8 @@ namespace bs
 	{
 		if (((UINT32)mFlags & (UINT32)RigidbodyFlag::AutoTensors) != 0)
 		{
-			LOGWRN("Attempting to set Rigidbody inertia tensor, but it has automatic tensor calculation turned on.");
+			BS_LOG(Warning, Physics, 
+				"Attempting to set Rigidbody inertia tensor, but it has automatic tensor calculation turned on.");
 			return;
 		}
 
@@ -244,7 +245,8 @@ namespace bs
 	{
 		if (((UINT32)mFlags & (UINT32)RigidbodyFlag::AutoTensors) != 0)
 		{
-			LOGWRN("Attempting to set Rigidbody center of mass, but it has automatic tensor calculation turned on.");
+			BS_LOG(Warning, Physics, 
+				"Attempting to set Rigidbody center of mass, but it has automatic tensor calculation turned on.");
 			return;
 		}
 

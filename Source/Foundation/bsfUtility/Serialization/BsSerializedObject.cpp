@@ -165,11 +165,12 @@ namespace bs
 									{
 										if (objToDecode.decodeInProgress)
 										{
-											LOGWRN("Detected a circular reference when decoding. Referenced object fields " \
-												"will be resolved in an undefined order (i.e. one of the objects will not " \
-												"be fully deserialized when assigned to its field). Use RTTI_Flag_WeakRef to " \
-												"get rid of this warning and tell the system which of the objects is allowed " \
-												"to be deserialized after it is assigned to its field.");
+											BS_LOG(Warning, Generic, "Detected a circular reference when decoding. "
+												"Referenced object's fields will be resolved in an undefined order "
+												"(i.e. one of the objects will not be fully deserialized when assigned "
+												"to its field). Use RTTI_Flag_WeakRef to get rid of this warning and tell "
+												"the system which of the objects is allowed to be deserialized after it "
+												"is assigned to its field.");
 										}
 										else
 										{
@@ -259,11 +260,11 @@ namespace bs
 								{
 									if (objToDecode.decodeInProgress)
 									{
-										LOGWRN("Detected a circular reference when decoding. Referenced object's fields " \
-											"will be resolved in an undefined order (i.e. one of the objects will not " \
-											"be fully deserialized when assigned to its field). Use RTTI_Flag_WeakRef to " \
-											"get rid of this warning and tell the system which of the objects is allowed " \
-											"to be deserialized after it is assigned to its field.");
+										BS_LOG(Warning, Generic, "Detected a circular reference when decoding. Referenced "
+											"object's fields will be resolved in an undefined order (i.e. one of the "
+											"objects will not be fully deserialized when assigned to its field). "
+											"Use RTTI_Flag_WeakRef to get rid of this warning and tell the system which of"
+											"the objects is allowed to be deserialized after it is assigned to its field.");
 									}
 									else
 									{
@@ -625,7 +626,10 @@ namespace bs
 		if (cloneData)
 		{
 			if(stream->isFile())
-				LOGWRN("Cloning a file stream. Streaming is disabled and stream data will be loaded into memory.");
+			{
+				BS_LOG(Warning, Generic, 
+					"Cloning a file stream. Streaming is disabled and stream data will be loaded into memory.");
+			}
 
 			UINT8* data = (UINT8*)bs_alloc(size);
 			stream->read(data, size);

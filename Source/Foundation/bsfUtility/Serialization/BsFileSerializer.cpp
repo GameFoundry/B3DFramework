@@ -25,7 +25,7 @@ namespace bs
 		mOutputStream.open(fileLocation.toPlatformString().c_str(), std::ios::out | std::ios::binary);
 		if (mOutputStream.fail())
 		{
-			LOGWRN("Failed to save file: \"" + fileLocation.toString() + "\". Error: " + strerror(errno) + ".");
+			BS_LOG(Warning, FileSystem, "Failed to save file: \"" + fileLocation.toString() + "\". Error: " + strerror(errno) + ".");
 		}
 	}
 

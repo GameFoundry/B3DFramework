@@ -21,13 +21,13 @@ namespace bs { namespace ct
 #if BS_DEBUG_MODE
 		if(!secondaryBuffer->mIsSecondary)
 		{
-			LOGERR("Cannot append a command buffer that is not secondary.");
+			BS_LOG(Error, RenderBackend, "Cannot append a command buffer that is not secondary.");
 			return;
 		}
 
 		if(mIsSecondary)
 		{
-			LOGERR("Cannot append a buffer to a secondary command buffer.");
+			BS_LOG(Error, RenderBackend, "Cannot append a buffer to a secondary command buffer.");
 			return;
 		}
 #endif
@@ -41,7 +41,7 @@ namespace bs { namespace ct
 #if BS_DEBUG_MODE
 		if (mIsSecondary)
 		{
-			LOGERR("Cannot execute commands on a secondary buffer.");
+			BS_LOG(Error, RenderBackend, "Cannot execute commands on a secondary buffer.");
 			return;
 		}
 #endif

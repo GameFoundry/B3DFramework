@@ -165,7 +165,7 @@ namespace bs { namespace ct
 	{
 		if ((mUsage & TU_DEPTHSTENCIL) != 0)
 		{
-			LOGERR("Writing to depth stencil texture from CPU not supported.");
+			BS_LOG(Error, RenderBackend, "Writing to depth stencil texture from CPU not supported.");
 			return;
 		}
 
@@ -185,7 +185,7 @@ namespace bs { namespace ct
 			const bool isConsecutive = data.getRowPitch() == expectedRowPitch && data.getSlicePitch() == expectedSlicePitch;
 			if (data.getFormat() != mFormat || !isConsecutive)
 			{
-				LOGERR("Compressed images must be consecutive, in the source format");
+				BS_LOG(Error, RenderBackend, "Compressed images must be consecutive, in the source format");
 				return;
 			}
 
@@ -305,7 +305,7 @@ namespace bs { namespace ct
 	{
 		if (data.getWidth() != getWidth() || data.getHeight() != getHeight() || data.getDepth() != getDepth())
 		{
-			LOGERR("Only download of entire buffer is supported by OpenGL.");
+			BS_LOG(Error, RenderBackend, "Only download of entire buffer is supported by OpenGL.");
 			return;
 		}
 
@@ -325,7 +325,7 @@ namespace bs { namespace ct
 			const bool isConsecutive = data.getRowPitch() == expectedRowPitch && data.getSlicePitch() == expectedSlicePitch;
 			if (data.getFormat() != mFormat || !isConsecutive)
 			{
-				LOGERR("Compressed images must be consecutive, in the source format");
+				BS_LOG(Error, RenderBackend, "Compressed images must be consecutive, in the source format");
 				return;
 			}
 

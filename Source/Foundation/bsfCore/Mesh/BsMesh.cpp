@@ -347,7 +347,7 @@ namespace bs
 		{
 			if ((mUsage & MU_STATIC) != 0)
 			{
-				LOGWRN("Buffer discard is enabled but buffer was not created as dynamic. Disabling discard.");
+				BS_LOG(Warning, Mesh, "Buffer discard is enabled but buffer was not created as dynamic. Disabling discard.");
 				discardEntireBuffer = false;
 			}
 		}
@@ -355,7 +355,7 @@ namespace bs
 		{
 			if ((mUsage & MU_DYNAMIC) != 0)
 			{
-				LOGWRN("Buffer discard is not enabled but buffer was created as dynamic. Enabling discard.");
+				BS_LOG(Warning, Mesh, "Buffer discard is not enabled but buffer was created as dynamic. Enabling discard.");
 				discardEntireBuffer = true;
 			}
 		}

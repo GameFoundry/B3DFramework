@@ -772,7 +772,7 @@ namespace bs { namespace ct
 
 #if BS_DEBUG_MODE
 			if (mDevice->hasError())
-				LOGWRN(mDevice->getErrorDescription());
+				BS_LOG(Warning, RenderBackend, mDevice->getErrorDescription());
 #endif
 		};
 
@@ -814,7 +814,7 @@ namespace bs { namespace ct
 
 #if BS_DEBUG_MODE
 			if (mDevice->hasError())
-				LOGWRN(mDevice->getErrorDescription());
+				BS_LOG(Warning, RenderBackend, mDevice->getErrorDescription());
 #endif
 		};
 
@@ -850,7 +850,7 @@ namespace bs { namespace ct
 
 #if BS_DEBUG_MODE
 			if (mDevice->hasError())
-				LOGWRN(mDevice->getErrorDescription());
+				BS_LOG(Warning, RenderBackend, mDevice->getErrorDescription());
 #endif
 		};
 
@@ -1453,18 +1453,19 @@ namespace bs { namespace ct
 	{
 		if(mActiveVertexDeclaration == nullptr)
 		{
-			LOGWRN("Cannot apply input layout without a vertex declaration. Set vertex declaration before calling this method.");
+			BS_LOG(Warning, RenderBackend, "Cannot apply input layout without a vertex declaration. Set vertex declaration "
+				"before calling this method.");
 			return;
 		}
 
 		if(mActiveVertexShader == nullptr)
 		{
-			LOGWRN("Cannot apply input layout without a vertex shader. Set vertex shader before calling this method.");
+			BS_LOG(Warning, RenderBackend, "Cannot apply input layout without a vertex shader. Set vertex shader before "
+				"calling this method.");
 			return;
 		}
 
 		ID3D11InputLayout* ia = mIAManager->retrieveInputLayout(mActiveVertexShader->getInputDeclaration(), mActiveVertexDeclaration, *mActiveVertexShader);
-
 		mDevice->getImmediateContext()->IASetInputLayout(ia);
 	}
 }}

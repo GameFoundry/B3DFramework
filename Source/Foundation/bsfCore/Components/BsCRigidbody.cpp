@@ -362,8 +362,9 @@ namespace bs
 		{
 			if(currentSO->hasComponent<CRigidbody>())
 			{
-				LOGWRN("Nested Rigidbodies detected. This will result in inconsistent transformations. To parent one " \
-					"Rigidbody to another move its colliders to the new parent, but remove the Rigidbody component.");
+				BS_LOG(Warning, Physics, "Nested Rigidbodies detected. This will result in inconsistent transformations. "
+					"To parent one Rigidbody to another move its colliders to the new parent, but remove the Rigidbody "
+					"component.");
 				return;
 			}
 

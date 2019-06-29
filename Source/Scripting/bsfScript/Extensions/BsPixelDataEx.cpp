@@ -70,8 +70,8 @@ namespace bs
 		UINT32 arrayLen = (UINT32)value.size();
 		if (thisPtr->getSize() != arrayLen)
 		{
-			LOGERR("Unable to set colors, invalid array size.")
-				return;
+			BS_LOG(Warning, Texture, "Unable to set colors, invalid array size.");
+			return;
 		}
 
 		UINT8* data = thisPtr->getData();
@@ -82,7 +82,7 @@ namespace bs
 	{
 		if (thisPtr->isLocked())
 		{
-			LOGWRN("Attempting to access a locked pixel data buffer.");
+			BS_LOG(Warning, Texture, "Attempting to access a locked pixel data buffer.");
 			return true;
 		}
 

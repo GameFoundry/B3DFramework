@@ -312,7 +312,7 @@ namespace bs
 		{
 			Collider* collider = (Collider*)shape.userData;
 			if (collider != nullptr)
-				LOGWRN("Physics object out of bounds. Consider increasing broadphase region!");
+				BS_LOG(Warning, Physics, "Physics object out of bounds. Consider increasing broadphase region!");
 		}
 
 		void onObjectOutOfBounds(PxAggregate& aggregate) override { /* Do nothing */ }
@@ -540,7 +540,7 @@ namespace bs
 
 			UINT32 errorState;
 			if (!scene->mScene->fetchResults(true, &errorState))
-				LOGWRN("Physics simulation failed. Error code: " + toString(errorState));
+				BS_LOG(Warning, Physics, "Physics simulation failed. Error code: {0}" + errorState);
 		}
 
 		bs_frame_free_aligned(scratchBuffer);

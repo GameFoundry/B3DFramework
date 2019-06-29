@@ -52,15 +52,15 @@ namespace bs { namespace ct
 
 		if (pixFormat != mInternalFormat)
 		{
-			LOGWRN(StringUtil::format("Provided pixel format is not supported by the driver: {0}. Falling back on: {1}.",
-									  pixFormat, mInternalFormat));
+			BS_LOG(Warning, RenderBackend, "Provided pixel format is not supported by the driver: {0}. "
+				"Falling back on: {1}.", pixFormat, mInternalFormat);
 		}
 
 		// Check requested number of mipmaps
 		UINT32 maxMips = PixelUtil::getMaxMipmaps(width, height, depth, mProperties.getFormat());
 		if (numMips > maxMips)
 		{
-			LOGERR("Invalid number of mipmaps. Maximum allowed is: " + toString(maxMips));
+			BS_LOG(Error, RenderBackend, "Invalid number of mipmaps. Maximum allowed is: {0}", maxMips);
 			numMips = maxMips;
 		}
 
@@ -68,7 +68,8 @@ namespace bs { namespace ct
 		{
 			if (texType != TEX_TYPE_2D && texType != TEX_TYPE_CUBE_MAP)
 			{
-				LOGERR("Only 2D and cubemap depth stencil textures are supported. Ignoring depth-stencil flag.");
+				BS_LOG(Error, RenderBackend, 
+					"Only 2D and cubemap depth stencil textures are supported. Ignoring depth-stencil flag.");
 				usage &= ~TU_DEPTHSTENCIL;
 			}
 		}
@@ -399,7 +400,7 @@ namespace bs { namespace ct
 	{
 		if (mLockedBuffer == nullptr)
 		{
-			LOGERR("Trying to unlock a buffer that's not locked.");
+			BS_LOG(Error, RenderBackend, "Trying to unlock a buffer that's not locked.");
 			return;
 		}
 
@@ -411,7 +412,7 @@ namespace bs { namespace ct
 	{
 		if (mProperties.getNumSamples() > 1)
 		{
-			LOGERR("Multisampled textures cannot be accessed from the CPU directly.");
+			BS_LOG(Error, RenderBackend, "Multisampled textures cannot be accessed from the CPU directly.");
 			return;
 		}
 
@@ -432,7 +433,7 @@ namespace bs { namespace ct
 	{
 		if (mProperties.getNumSamples() > 1)
 		{
-			LOGERR("Multisampled textures cannot be accessed from the CPU directly.");
+			BS_LOG(Error, RenderBackend, "Multisampled textures cannot be accessed from the CPU directly.");
 			return;
 		}
 

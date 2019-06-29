@@ -688,15 +688,15 @@ namespace bs { namespace ct
 
 							if(!bindAllLayers && surface.numFaces > 1)
 							{
-								LOGWRN("Attempting to bind multiple faces of a load-store texture. You are allowed to bind \
-									either a single face, or all the faces of the texture. Only the first face will \
-									be bound instead.");
+								BS_LOG(Warning, RenderBackend, "Attempting to bind multiple faces of a load-store texture."
+									"You are allowed to bind either a single face, or all the faces of the texture. Only "
+									"the first face will be bound instead.");
 							}
 
 							if(surface.numMipLevels > 1)
 							{
-								LOGWRN("Attempting to bind multiple mip levels of a load-store texture. This is not \
-									supported and only the first provided level will be bound.");
+								BS_LOG(Warning, RenderBackend, "Attempting to bind multiple mip levels of a load-store "
+									"texture. This is not supported and only the first provided level will be bound.");
 							}
 
 							texId = tex->getGLID();
@@ -1024,8 +1024,8 @@ namespace bs { namespace ct
 		UINT32 lastIdx = index + numBuffers;
 		if(lastIdx > MAX_VB_COUNT)
 		{
-			LOGERR("Provided vertex buffer slot range is invalid: " + toString(index) + " to " + 
-				toString(index + numBuffers) + ".");
+			BS_LOG(Error, RenderBackend, "Provided vertex buffer slot range is invalid: {0} to {1}.", 
+				index, index + numBuffers);
 			return;
 		}
 #endif
@@ -1173,7 +1173,7 @@ namespace bs { namespace ct
 
 			if (mBoundIndexBuffer == nullptr)
 			{
-				LOGWRN("Cannot draw indexed because index buffer is not set.");
+				BS_LOG(Warning, RenderBackend, "Cannot draw indexed because index buffer is not set.");
 				return;
 			}
 
@@ -1247,7 +1247,7 @@ namespace bs { namespace ct
 
 			if (mCurrentComputeProgram == nullptr)
 			{
-				LOGWRN("Cannot dispatch compute without a set compute program.");
+				BS_LOG(Warning, RenderBackend, "Cannot dispatch compute without a set compute program.");
 				return;
 			}
 
@@ -2109,8 +2109,8 @@ namespace bs { namespace ct
 			}
 			else
 			{
-				LOGWRN("Provided texture unit index is higher than OpenGL supports. Provided: " + toString(unit) + 
-					". Supported range: 0 .. " + toString(getCapabilities(0).numCombinedTextureUnits - 1));
+				BS_LOG(Warning, RenderBackend, "Provided texture unit index is higher than OpenGL supports. Provided: {0}. "
+					"Supported range: 0 .. {1}", unit, getCapabilities(0).numCombinedTextureUnits - 1);
 				return false;
 			}
 		}
@@ -2129,13 +2129,13 @@ namespace bs { namespace ct
 
 		if(mCurrentVertexProgram == nullptr)
 		{
-			LOGWRN("Cannot render without a set vertex shader.");
+			BS_LOG(Warning, RenderBackend, "Cannot render without a set vertex shader.");
 			return;
 		}
 
 		if(mBoundVertexDeclaration == nullptr)
 		{
-			LOGWRN("Cannot render without a set vertex declaration.");
+			BS_LOG(Warning, RenderBackend, "Cannot render without a set vertex declaration.");
 			return;
 		}
 

@@ -192,7 +192,7 @@ namespace bs
 			idx++;
 		}
 
-		BS_LOG(Error, Profiler, "Invalid character index: {0}", charIdx);
+		BS_LOG(Error, GUI, "Invalid character index: {0}", charIdx);
 		return 0;
 	}
 

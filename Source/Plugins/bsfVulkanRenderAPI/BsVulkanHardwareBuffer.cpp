@@ -303,8 +303,8 @@ namespace bs { namespace ct
 	{
 		if ((offset + length) > mSize)
 		{
-			LOGERR("Provided offset(" + toString(offset) + ") + length(" + toString(length) + ") "
-				   "is larger than the buffer " + toString(mSize) + ".");
+			BS_LOG(Error, RenderBackend, "Provided offset({0}) + length({1}) is larger than the buffer {2}.", 
+				offset, length, mSize);
 
 			return nullptr;
 		}
@@ -635,16 +635,16 @@ namespace bs { namespace ct
 	{
 		if ((dstOffset + length) > mSize)
 		{
-			LOGERR("Provided offset(" + toString(dstOffset) + ") + length(" + toString(length) + ") "
-				   "is larger than the destination buffer " + toString(mSize) + ". Copy operation aborted.");
+			BS_LOG(Error, RenderBackend, "Provided offset({0}) + length({1}) is larger than the destination buffer {2}. "
+				"Copy operation aborted.", dstOffset, length, mSize);
 
 			return;
 		}
 
 		if ((srcOffset + length) > srcBuffer.getSize())
 		{
-			LOGERR("Provided offset(" + toString(srcOffset) + ") + length(" + toString(length) + ") "
-				   "is larger than the source buffer " + toString(srcBuffer.getSize()) + ". Copy operation aborted.");
+			BS_LOG(Error, RenderBackend, "Provided offset({0}) + length({1}) is larger than the source buffer {2}. "
+				"Copy operation aborted.", srcOffset, length, srcBuffer.getSize());
 
 			return;
 		}

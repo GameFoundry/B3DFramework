@@ -57,9 +57,9 @@ namespace bs { namespace ct
 	{
 		assert(!mQueryInterrupted);
 
-		if(mQueries.size() == 0)
+		if(mQueries.empty())
 		{
-			LOGERR("end() called but query was never started.");
+			BS_LOG(Error, RenderBackend, "end() called but query was never started.");
 			return;
 		}
 

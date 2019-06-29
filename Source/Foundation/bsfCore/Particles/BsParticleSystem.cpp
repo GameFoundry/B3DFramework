@@ -179,7 +179,7 @@ namespace bs
 
 		if (!isPow2)
 		{
-			LOGWRN("Invalid layer provided. Only one layer bit may be set. Ignoring.");
+			BS_LOG(Warning, Particles, "Invalid layer provided. Only one layer bit may be set. Ignoring.");
 			return;
 		}
 
@@ -515,7 +515,7 @@ namespace bs
 
 			if (!isPow2)
 			{
-				LOGWRN("Invalid layer provided. Only one layer bit may be set. Ignoring.");
+				BS_LOG(Warning, Particles, "Invalid layer provided. Only one layer bit may be set. Ignoring.");
 				return;
 			}
 

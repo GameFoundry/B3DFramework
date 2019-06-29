@@ -170,7 +170,7 @@ namespace bs
 
 		if(!paramDesc)
 		{
-			LOGWRN("Attempting to apply a shader parameter attribute to a non-existing parameter.");
+			BS_LOG(Warning, Material, "Attempting to apply a shader parameter attribute to a non-existing parameter.");
 			return;
 		}
 
@@ -178,13 +178,13 @@ namespace bs
 		{
 			if(paramDescObj)
 			{
-				LOGWRN("Attempting to apply SpriteUV attribute to an object parameter is not supported.");
+				BS_LOG(Warning, Material, "Attempting to apply SpriteUV attribute to an object parameter is not supported.");
 				return;
 			}
 
 			if(paramDescData->type != GPDT_FLOAT4)
 			{
-				LOGWRN("SpriteUV attribute can only be applied to 4D vectors.");
+				BS_LOG(Warning, Material, "SpriteUV attribute can only be applied to 4D vectors.");
 				return;
 			}
 		}

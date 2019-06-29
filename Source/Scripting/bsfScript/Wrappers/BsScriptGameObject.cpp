@@ -11,7 +11,7 @@ namespace bs
 		HGameObject go = nativeInstance->getNativeHandle();
 		if (go.isDestroyed())
 		{
-			LOGWRN("Trying to access a destroyed GameObject with instance ID: " + toString(go.getInstanceId()));
+			BS_LOG(Warning, Scene, "Trying to access a destroyed GameObject with instance ID: {0}", go.getInstanceId());
 			return true;
 		}
 

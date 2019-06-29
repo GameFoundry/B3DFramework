@@ -115,7 +115,7 @@ namespace bs
 			
 			if(fmod->playSound(sound, nullptr, true, &mChannel) != FMOD_OK)
 			{
-				LOGERR("Failed playing sound.");
+				BS_LOG(Error, Audio, "Failed playing sound.");
 
 				if (mStreamingSound != nullptr)
 				{

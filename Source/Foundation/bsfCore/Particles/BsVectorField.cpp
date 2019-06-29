@@ -19,7 +19,7 @@ namespace bs
 		:TVectorField(desc)
 	{
 		if(mDesc.countX == 0 || mDesc.countY == 0 || mDesc.countZ == 0)
-			LOGWRN("Vector field count cannot be zero.");
+			BS_LOG(Warning, Particles, "Vector field count cannot be zero.");
 
 		mDesc.countX = std::max(1U, mDesc.countX);
 		mDesc.countY = std::max(1U, mDesc.countY);
@@ -28,8 +28,8 @@ namespace bs
 		const UINT32 count = mDesc.countX * mDesc.countY * mDesc.countZ;
 		if(count != (UINT32)values.size())
 		{
-			LOGWRN(StringUtil::format("Number of values provided to the vector field does not match the expected number. \
-				Expected: {0}. Got: {1}.", count, (UINT32)values.size()));
+			BS_LOG(Warning, Particles, "Number of values provided to the vector field does not match the expected number. "
+				"Expected: {0}. Got: {1}.", count, (UINT32)values.size());
 		}
 
 		const UINT32 valuesToCopy = std::min(count, (UINT32)values.size());

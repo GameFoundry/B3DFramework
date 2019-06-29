@@ -87,31 +87,6 @@ namespace bs
 	#define BS_LOG_VERBOSITY LogVerbosity::Warning
 #endif
 
-
-/** Shortcut for logging a message in the debug channel. */
-#define LOGDBG(x) bs::gDebug().log((x) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n", LogVerbosity::Info);
-
-/** Shortcut for logging a message in the warning channel. */
-#define LOGWRN(x) bs::gDebug().log((x) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n", LogVerbosity::Warning);
-
-/** Shortcut for logging a message in the error channel. */
-#define LOGERR(x) bs::gDebug().log((x) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n", LogVerbosity::Error);
-
-/** Shortcut for logging a message in the debug channel, with support for formatting through StringUtil::format(). */
-#define LOGDBG_FMT(...) bs::gDebug().log(StringUtil::format(__VA_ARGS__) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n", LogVerbosity::Info);
-
-/** Shortcut for logging a message in the warning channel, with support for formatting through StringUtil::format(). */
-#define LOGWRN_FMT(...) bs::gDebug().log(StringUtil::format(__VA_ARGS__) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n", LogVerbosity::Warning);
-
-/** Shortcut for logging a message in the error channel, with support for formatting through StringUtil::format(). */
-#define LOGERR_FMT(...) bs::gDebug().log(StringUtil::format(__VA_ARGS__) + String("\n\t\t in ") + __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n", LogVerbosity::Error);
-
-/** Shortcut for logging a verbose message in the debug channel. Verbose messages can be ignored unlike other log messages. */
-#define LOGDBG_VERBOSE(x) ((void)0)
-
-/** Shortcut for logging a verbose message in the warning channel. Verbose messages can be ignored unlike other log messages. */
-#define LOGWRN_VERBOSE(x) ((void)0)
-
 /** Defines a new log category to use with BS_LOG. Each category must have a unique ID. */
 #define BS_LOG_CATEGORY(name, id) struct LogCategory##name { enum { _id = id }; };
 

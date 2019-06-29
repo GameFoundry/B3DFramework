@@ -378,7 +378,8 @@ namespace bs
 				}
 				else
 				{
-					LOGWRN("OpenAL doesn't support bit depth larger than 16. Your audio data will be truncated.");
+					BS_LOG(Warning, RenderBackend, 
+						"OpenAL doesn't support bit depth larger than 16. Your audio data will be truncated.");
 
 					UINT32 bufferSize = info.numSamples * 2;
 					UINT8* sampleBuffer16 = (UINT8*)bs_stack_alloc(bufferSize);

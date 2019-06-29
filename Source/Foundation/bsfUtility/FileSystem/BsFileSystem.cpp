@@ -31,7 +31,8 @@ namespace bs
 						FileSystem::remove(destinationPath);
 					else
 					{
-						LOGWRN("Copy operation failed because another file already exists at the new path: \"" + destinationPath.toString() + "\"");
+						BS_LOG(Warning, FileSystem, "Copy operation failed because another file already exists at the new "
+							"path: \"{0}\"", destinationPath);
 						return;
 					}
 				}
@@ -99,7 +100,8 @@ namespace bs
 				FileSystem::remove(newPath);
 			else
 			{
-				LOGWRN("Move operation failed because another file already exists at the new path: \"" + newPath.toString() + "\"");
+				BS_LOG(Warning, FileSystem, "Move operation failed because another file already exists at the new "
+					"path: \"{0}\"", newPath);
 				return;
 			}
 		}

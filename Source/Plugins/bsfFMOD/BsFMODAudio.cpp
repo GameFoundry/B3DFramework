@@ -127,7 +127,7 @@ namespace bs
 			}
 		}
 
-		LOGWRN("Failed changing audio device to: " + device.name);
+		BS_LOG(Warning, Audio, "Failed changing audio device to: {0}", device.name);
 	}
 
 	SPtr<AudioClip> FMODAudio::createClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples,

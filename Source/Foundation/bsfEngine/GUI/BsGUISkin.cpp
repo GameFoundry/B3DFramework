@@ -35,7 +35,7 @@ namespace bs
 		if(iterFind != mStyles.end())
 			return &iterFind->second;
 
-		LOGWRN("Cannot find GUI style with name: " + guiElemType + ". Returning default style.");
+		BS_LOG(Warning, GUI, "Cannot find GUI style with name: {0}. Returning default style.", guiElemType);
 
 		return &DefaultStyle;
 	}

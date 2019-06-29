@@ -280,8 +280,8 @@ namespace bs { namespace ct
 		UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
 		if(bindingIdx == (UINT32)-1)
 		{
-			LOGERR("Provided set/slot combination is not used by the GPU program: " + toString(set) + "," + 
-				toString(slot) + ".");
+			BS_LOG(Error, RenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", 
+				set, slot);
 			return;
 		}
 
@@ -330,8 +330,8 @@ namespace bs { namespace ct
 		UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
 		if (bindingIdx == (UINT32)-1)
 		{
-			LOGERR("Provided set/slot combination is not used by the GPU program: " + toString(set) + "," +
-				   toString(slot) + ".");
+			BS_LOG(Error, RenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", 
+				set, slot);
 			return;
 		}
 
@@ -393,8 +393,8 @@ namespace bs { namespace ct
 		UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
 		if (bindingIdx == (UINT32)-1)
 		{
-			LOGERR("Provided set/slot combination is not used by the GPU program: " + toString(set) + "," +
-				   toString(slot) + ".");
+			BS_LOG(Error, RenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", 
+				set, slot);
 			return;
 		}
 
@@ -446,8 +446,8 @@ namespace bs { namespace ct
 		UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
 		if (bindingIdx == (UINT32)-1)
 		{
-			LOGERR("Provided set/slot combination is not used by the GPU program: " + toString(set) + "," +
-				   toString(slot) + ".");
+			BS_LOG(Error, RenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", 
+				set, slot);
 			return;
 		}
 
@@ -535,8 +535,8 @@ namespace bs { namespace ct
 		UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
 		if (bindingIdx == (UINT32)-1)
 		{
-			LOGERR("Provided set/slot combination is not used by the GPU program: " + toString(set) + "," +
-				   toString(slot) + ".");
+			BS_LOG(Error, RenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", 
+				set, slot);
 			return;
 		}
 

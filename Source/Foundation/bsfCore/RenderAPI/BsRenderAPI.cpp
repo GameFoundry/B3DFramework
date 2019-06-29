@@ -196,7 +196,8 @@ namespace bs
 	{
 		if(deviceIdx >= mNumDevices)
 		{
-			LOGWRN("Invalid device index provided: " + toString(deviceIdx) + ". Valid range is: [0, " + toString(mNumDevices) + ").");
+			BS_LOG(Warning, RenderBackend, "Invalid device index provided: {0}. Valid range is: [0, {1}).", 
+				deviceIdx, mNumDevices);
 			return mCurrentCapabilities[0];
 		}
 

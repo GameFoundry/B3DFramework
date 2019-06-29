@@ -58,10 +58,10 @@ namespace bs
 			if (texture->getProperties().getTextureType() == TEX_TYPE_3D)
 			{
 				if(view->getFirstArraySlice() > 0)
-					LOGERR("Non-zero array slice offset not supported when rendering to a 3D texture.");
+					BS_LOG(Error, RenderBackend, "Non-zero array slice offset not supported when rendering to a 3D texture.");
 
 				if (view->getNumArraySlices() > 1)
-					LOGERR("Cannot specify array slices when rendering to a 3D texture.");
+					BS_LOG(Error, RenderBackend, "Cannot specify array slices when rendering to a 3D texture.");
 
 				surface.face = 0;
 				surface.numFaces = mProperties.numSlices;
@@ -98,10 +98,10 @@ namespace bs
 				if (texture->getProperties().getTextureType() == TEX_TYPE_3D)
 				{
 					if (view->getFirstArraySlice() > 0)
-						LOGERR("Non-zero array slice offset not supported when rendering to a 3D texture.");
+						BS_LOG(Error, RenderBackend, "Non-zero array slice offset not supported when rendering to a 3D texture.");
 
 					if (view->getNumArraySlices() > 1)
-						LOGERR("Cannot specify array slices when rendering to a 3D texture.");
+						BS_LOG(Error, RenderBackend, "Cannot specify array slices when rendering to a 3D texture.");
 
 					surface.face = 0;
 					surface.numFaces = 1;

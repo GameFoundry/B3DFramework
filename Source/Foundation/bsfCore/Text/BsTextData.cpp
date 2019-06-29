@@ -364,7 +364,8 @@ namespace bs
 
 		if(mFontData->size != fontSize)
 		{
-			LOGWRN("Unable to find font with specified size (" + toString(fontSize) + "). Using nearest available size: " + toString(mFontData->size));
+			BS_LOG(Warning, GUI, "Unable to find font with specified size ({0}). Using nearest available size: {1}", 
+				fontSize, mFontData->size);
 		}
 
 		bool widthIsLimited = width > 0;

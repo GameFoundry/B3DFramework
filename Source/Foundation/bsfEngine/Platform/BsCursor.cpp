@@ -64,7 +64,7 @@ namespace bs
 		auto iterFind = mCustomIconNameToId.find(name);
 		if(iterFind == mCustomIconNameToId.end())
 		{
-			LOGWRN("Cannot find cursor icon with name: " + name);
+			BS_LOG(Warning, Platform, "Cannot find cursor icon with name: " + name);
 			return;
 		}
 

@@ -662,8 +662,8 @@ mTotalBytesRead -= size;												\
 							{
 								if(childObjectId != 0)
 								{
-									LOGWRN("When deserializing, object ID: " + toString(childObjectId) + 
-										" was found but no such object was contained in the file.");
+									BS_LOG(Warning, Generic, "When deserializing, object ID: {0} was found but no such "
+										"object was contained in the file.", childObjectId);
 								}
 
 								curField->setArrayValue(rttiInstance, output.get(), i, nullptr);
@@ -677,11 +677,11 @@ mTotalBytesRead -= size;												\
 								{
 									if (objToDecode.decodeInProgress)
 									{
-										LOGWRN("Detected a circular reference when decoding. Referenced object's fields " \
-											"will be resolved in an undefined order (i.e. one of the objects will not " \
-											"be fully deserialized when assigned to its field). Use RTTI_Flag_WeakRef to " \
-											"get rid of this warning and tell the system which of the objects is allowed " \
-											"to be deserialized after it is assigned to its field.");
+										BS_LOG(Warning, Generic, "Detected a circular reference when decoding. Referenced "
+											"object's fields will be resolved in an undefined order (i.e. one of the "
+											"objects will not be fully deserialized when assigned to its field). "
+											"Use RTTI_Flag_WeakRef to get rid of this warning and tell the system which of"
+											"the objects is allowed to be deserialized after it is assigned to its field.");
 									}
 									else
 									{
@@ -778,8 +778,8 @@ mTotalBytesRead -= size;												\
 						{
 							if(childObjectId != 0)
 							{
-								LOGWRN("When deserializing, object ID: " + toString(childObjectId) + 
-									" was found but no such object was contained in the file.");
+								BS_LOG(Warning, Generic, "When deserializing, object ID: {0} was found but no such object "
+									"was contained in the file.", childObjectId);
 							}
 
 							curField->setValue(rttiInstance, output.get(), nullptr);
@@ -793,11 +793,11 @@ mTotalBytesRead -= size;												\
 							{
 								if (objToDecode.decodeInProgress)
 								{
-									LOGWRN("Detected a circular reference when decoding. Referenced object's fields " \
-										"will be resolved in an undefined order (i.e. one of the objects will not " \
-										"be fully deserialized when assigned to its field). Use RTTI_Flag_WeakRef to " \
-										"get rid of this warning and tell the system which of the objects is allowed " \
-										"to be deserialized after it is assigned to its field.");
+									BS_LOG(Warning, Generic, "Detected a circular reference when decoding. Referenced "
+										"object's fields will be resolved in an undefined order (i.e. one of the objects "
+										"will not be fully deserialized when assigned to its field). Use "
+										"RTTI_Flag_WeakRef to get rid of this warning and tell the system which of the "
+										"objects is allowed to be deserialized after it is assigned to its field.");
 								}
 								else
 								{

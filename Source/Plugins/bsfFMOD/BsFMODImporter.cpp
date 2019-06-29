@@ -50,7 +50,7 @@ namespace bs
 			String pathStr = filePath.toString();
 			if (gFMODAudio()._getFMOD()->createSound(pathStr.c_str(), FMOD_CREATESAMPLE, nullptr, &sound) != FMOD_OK)
 			{
-				LOGERR("Failed importing audio file: " + pathStr);
+				BS_LOG(Error, Audio, "Failed importing audio file: {0}", pathStr);
 				return nullptr;
 			}
 		}
@@ -64,7 +64,7 @@ namespace bs
 		if(format != FMOD_SOUND_FORMAT_PCM8 && format != FMOD_SOUND_FORMAT_PCM16 && format != FMOD_SOUND_FORMAT_PCM24 
 			&& format != FMOD_SOUND_FORMAT_PCM32 && format != FMOD_SOUND_FORMAT_PCMFLOAT)
 		{
-			LOGERR("Failed importing audio file, invalid imported format: " + filePath.toString());
+			BS_LOG(Error, Audio, "Failed importing audio file, invalid imported format: ", filePath);
 			return nullptr;
 		}
 

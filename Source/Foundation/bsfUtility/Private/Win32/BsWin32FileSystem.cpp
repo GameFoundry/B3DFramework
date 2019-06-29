@@ -277,7 +277,7 @@ namespace bs
 
 		if (!win32_pathExists(pathString) || !win32_isFile(pathString))
 		{
-			LOGWRN("Attempting to open a file that doesn't exist: " + fullPath.toString());
+			BS_LOG(Warning, Platform, "Attempting to open a file that doesn't exist: {0}", fullPath);
 			return nullptr;
 		}
 

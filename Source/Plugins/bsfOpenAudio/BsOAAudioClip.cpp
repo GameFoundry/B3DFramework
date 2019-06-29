@@ -169,7 +169,7 @@ namespace bs
 			return;
 		}
 
-		LOGWRN("Attempting to read samples while sample data is not available.");
+		BS_LOG(Warning, RenderBackend, "Attempting to read samples while sample data is not available.");
 	}
 
 	SPtr<DataStream> OAAudioClip::getSourceStream(UINT32& size)

@@ -347,7 +347,7 @@ namespace bs
 		auto iterFind = mData->mDropTargets.dropTargetsPerWindow.find(target->_getOwnerWindow());
 		if (iterFind == mData->mDropTargets.dropTargetsPerWindow.end())
 		{
-			LOGWRN("Attempting to destroy a drop target but cannot find its parent window.");
+			BS_LOG(Warning, Platform, "Attempting to destroy a drop target but cannot find its parent window.");
 		}
 		else
 		{
@@ -456,7 +456,7 @@ namespace bs
 
 		if (timeBeginPeriod(1) == TIMERR_NOCANDO)
 		{
-			LOGWRN("Unable to set timer resolution to 1ms. This can cause significant waste " \
+			BS_LOG(Warning, Platform, "Unable to set timer resolution to 1ms. This can cause significant waste "
 				"in performance for waiting threads.");
 		}
 

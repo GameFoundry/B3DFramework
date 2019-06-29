@@ -53,7 +53,10 @@ namespace bs { namespace ct
 			{
 				// Ignore built-in attributes
 				if(memcmp(attributeName, "gl_", 3) != 0)
-					LOGWRN("Cannot determine vertex input attribute type for attribute: " + String(attributeName));
+				{
+					BS_LOG(Warning, RenderBackend, "Cannot determine vertex input attribute type for attribute: {0}", 
+						String(attributeName));
+				}
 			}
 		}
 

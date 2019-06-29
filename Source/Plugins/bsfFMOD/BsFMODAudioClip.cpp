@@ -58,7 +58,7 @@ namespace bs
 			decompressor->readPos = position / bytesPerSample;
 			break;
 		default:
-			LOGERR("Invalid time unit.");
+			BS_LOG(Error, Audio, "Invalid time unit.");
 			break;
 		}
 
@@ -158,7 +158,7 @@ namespace bs
 			FMOD::System* fmod = gFMODAudio()._getFMOD();
 			if (fmod->createSound((const char*)sampleBuffer, flags, &exInfo, &mSound) != FMOD_OK)
 			{
-				LOGERR("Failed creating sound.");
+				BS_LOG(Error, Audio, "Failed creating sound.");
 			}
 			else
 			{
@@ -199,7 +199,7 @@ namespace bs
 	{
 		if(!requiresStreaming() || mStreamData == nullptr)
 		{
-			LOGERR("Invalid audio stream data.");
+			BS_LOG(Error, Audio, "Invalid audio stream data.");
 			return nullptr;
 		}
 
@@ -259,7 +259,7 @@ namespace bs
 
 				if (!decompressorData->vorbisReader.open(memStream, info, mStreamOffset))
 				{
-					LOGERR("Failed decompressing AudioClip stream.");
+					BS_LOG(Error, Audio, "Failed decompressing AudioClip stream.");
 					return nullptr;
 				}
 
@@ -307,7 +307,7 @@ namespace bs
 		FMOD::System* fmod = gFMODAudio()._getFMOD();
 		if (fmod->createSound(streamData, flags, &exInfo, &sound) != FMOD_OK)
 		{
-			LOGERR("Failed creating a streaming sound.");
+			BS_LOG(Error, Audio, "Failed creating a streaming sound.");
 			return nullptr;
 		}
 

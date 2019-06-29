@@ -83,7 +83,7 @@ namespace bs
 		}
 		else
 		{
-			LOGERR("Attempting to activate a scene that hasn't finished loading yet.");
+			BS_LOG(Error, Scene, "Attempting to activate a scene that hasn't finished loading yet.");
 		}
 	}
 

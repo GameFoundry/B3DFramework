@@ -105,7 +105,7 @@ namespace bs
 	{
 		if (vertices.size() < 3)
 		{
-			LOGWRN("Invalid number of vertices. Ignoring call.");
+			BS_LOG(Warning, GUI, "Invalid number of vertices. Ignoring call.");
 			return;
 		}
 
@@ -151,7 +151,7 @@ namespace bs
 	{
 		if (vertices.size() < 3 || vertices.size() % 3 != 0)
 		{
-			LOGWRN("Invalid number of vertices. Ignoring call.");
+			BS_LOG(Warning, GUI, "Invalid number of vertices. Ignoring call.");
 			return;
 		}
 

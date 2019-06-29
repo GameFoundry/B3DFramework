@@ -81,9 +81,9 @@ namespace bs { namespace ct
 		if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
 			BS_EXCEPT(RenderingAPIException, message.str())
 		else if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT || flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
-			LOGWRN(message.str())
+			BS_LOG(Warning, RenderBackend, message.str())
 		else
-			LOGDBG(message.str())
+			BS_LOG(Info, RenderBackend, message.str())
 
 		// Don't abort calls that caused a validation message
 		return VK_FALSE;

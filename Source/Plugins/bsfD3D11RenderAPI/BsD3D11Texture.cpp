@@ -487,8 +487,8 @@ namespace bs { namespace ct
 				desc.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
 			else
 			{
-				LOGWRN("Unable to create a load-store texture with multiple samples. This is not supported on DirectX 11. "
-					   "Ignoring load-store usage flag.");
+				BS_LOG(Warning, RenderBackend, "Unable to create a load-store texture with multiple samples. This is not "
+					"supported on DirectX 11. Ignoring load-store usage flag.");
 			}
 		}
 

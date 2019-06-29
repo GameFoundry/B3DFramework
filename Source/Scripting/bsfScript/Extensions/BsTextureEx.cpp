@@ -102,7 +102,7 @@ namespace bs
 
 		if (texNumElements != numElements)
 		{
-			LOGWRN("SetPixels called with incorrect dimensions. Ignoring call.");
+			BS_LOG(Warning, Texture, "SetPixels called with incorrect dimensions. Ignoring call.");
 			return;
 		}		
 

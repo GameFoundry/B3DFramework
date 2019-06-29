@@ -89,7 +89,7 @@ namespace bs
 				path = Path(RAW_APP_ROOT) + FRAMEWORK_DATA_PATH;
 
 				if (!FileSystem::exists(path))
-					LOGERR("Cannot find builtin assets for the editor at path '" + path.toString() + "'.");
+					BS_LOG(Error, FileSystem, "Cannot find builtin assets for the editor at path '{0}'.", path);
 			}
 
 			initialized = true;

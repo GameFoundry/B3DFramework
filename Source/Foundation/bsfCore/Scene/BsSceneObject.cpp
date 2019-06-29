@@ -24,7 +24,7 @@ namespace bs
 	{
 		if(!mThisHandle.isDestroyed())
 		{
-			LOGWRN("Object is being deleted without being destroyed first? " + mName);
+			BS_LOG(Warning, Scene, "Object is being deleted without being destroyed first? {0}", mName);
 			destroyInternal(mThisHandle, true);
 		}
 	}
@@ -557,7 +557,8 @@ namespace bs
 		if(mParentScene)
 			return mParentScene;
 
-		LOGWRN("Attempting to access a scene of a SceneObject with no scene, returning main scene instead.");
+		BS_LOG(Warning, Scene, 
+			"Attempting to access a scene of a SceneObject with no scene, returning main scene instead.");
 		return gSceneManager().getMainScene();
 		
 	}

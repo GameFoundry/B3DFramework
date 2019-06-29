@@ -27,7 +27,7 @@ namespace bs
 
 		if(getIsTrigger() && mesh->getType() == PhysicsMeshType::Triangle)
 		{
-			LOGWRN("Triangle meshes are not supported on Trigger colliders.");
+			BS_LOG(Warning, Physics, "Triangle meshes are not supported on Trigger colliders.");
 			return;
 		}
 

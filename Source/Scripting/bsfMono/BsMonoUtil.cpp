@@ -388,7 +388,7 @@ namespace bs
 			// Note: If you modify this format make sure to also modify Debug.ParseExceptionMessage in managed code.
 			String msg = "Managed exception: " + monoToString(exceptionMsg) + "\n" + monoToString(exceptionStackTrace);
 
-			LOGERR(msg);
+			BS_LOG(Error, Script, msg);
 		}
 	}
 }

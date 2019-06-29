@@ -236,7 +236,7 @@ namespace bs { namespace ct
 			assert(result == VK_SUCCESS || result == VK_TIMEOUT);
 
 			if (result == VK_TIMEOUT)
-				LOGWRN("Freeing a command buffer before done executing because fence wait expired!");
+				BS_LOG(Warning, RenderBackend, "Freeing a command buffer before done executing because fence wait expired!");
 
 			// Resources have been marked as used, make sure to notify them we're done with them
 			reset();
@@ -337,7 +337,8 @@ namespace bs { namespace ct
 
 		if (mFramebuffer == nullptr)
 		{
-			LOGWRN("Attempting to begin a render pass but no render target is bound to the command buffer.");
+			BS_LOG(Warning, RenderBackend, 
+				"Attempting to begin a render pass but no render target is bound to the command buffer.");
 			return;
 		}
 
@@ -885,16 +886,16 @@ namespace bs { namespace ct
 		// Warn if invalid load mask
 		if (loadMask.isSet(RT_DEPTH) && !loadMask.isSet(RT_STENCIL))
 		{
-			LOGWRN("setRenderTarget() invalid load mask, depth enabled but stencil disabled. This is not supported. Both \
-				will be loaded.");
+			BS_LOG(Warning, RenderBackend, "setRenderTarget() invalid load mask, depth enabled but stencil disabled. "
+				"This is not supported. Both will be loaded.");
 
 			loadMask.set(RT_STENCIL);
 		}
 
 		if (!loadMask.isSet(RT_DEPTH) && loadMask.isSet(RT_STENCIL))
 		{
-			LOGWRN("setRenderTarget() invalid load mask, stencil enabled but depth disabled. This is not supported. Both \
-				will be loaded.");
+			BS_LOG(Warning, RenderBackend, "setRenderTarget() invalid load mask, stencil enabled but depth disabled. "
+				"This is not supported. Both will be loaded.");
 
 			loadMask.set(RT_DEPTH);
 		}
@@ -1016,8 +1017,8 @@ namespace bs { namespace ct
 						{
 							// Note: This could be supported relatively easily: we would need to issue multiple separate
 							// clear commands for such framebuffers. 
-							LOGERR("Attempting to clear a texture that has multiple multi-layer surfaces with mismatching "
-								   "starting layers. This is currently not supported.");
+							BS_LOG(Error, RenderBackend, "Attempting to clear a texture that has multiple multi-layer "
+								"surfaces with mismatching starting layers. This is currently not supported.");
 						}
 					}
 
@@ -1054,8 +1055,8 @@ namespace bs { namespace ct
 						{
 							// Note: This could be supported relatively easily: we would need to issue multiple separate
 							// clear commands for such framebuffers. 
-							LOGERR("Attempting to clear a texture that has multiple multi-layer surfaces with mismatching "
-								   "starting layers. This is currently not supported.");
+							BS_LOG(Error, RenderBackend, "Attempting to clear a texture that has multiple multi-layer "
+								"surfaces with mismatching starting layers. This is currently not supported.");
 						}
 					}
 
@@ -1292,8 +1293,8 @@ namespace bs { namespace ct
 
 			if (subresourceInfo.useFlags.isSet(ImageUseFlagBits::Shader) && !pipeline->isColorReadOnly(i))
 			{
-				LOGWRN("Framebuffer attachment also used as a shader input, but color writes aren't disabled. This will"
-					" result in undefined behavior.");
+				BS_LOG(Warning, RenderBackend, "Framebuffer attachment also used as a shader input, but color writes "
+					"aren't disabled. This will result in undefined behavior.");
 			}
 		}
 
@@ -1305,8 +1306,8 @@ namespace bs { namespace ct
 
 			if (subresourceInfo.useFlags.isSet(ImageUseFlagBits::Shader) && !pipeline->isDepthReadOnly())
 			{
-				LOGWRN("Framebuffer attachment also used as a shader input, but depth/stencil writes aren't disabled. "
-					"This will result in undefined behavior.");
+				BS_LOG(Warning, RenderBackend, "Framebuffer attachment also used as a shader input, but depth/stencil "
+					"writes aren't disabled. This will result in undefined behavior.");
 			}
 		}
 

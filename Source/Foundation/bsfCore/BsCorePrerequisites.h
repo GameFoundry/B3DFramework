@@ -891,5 +891,7 @@ BS_LOG_CATEGORY(GUI, 33)
 BS_LOG_CATEGORY(Profiler, 34)
 BS_LOG_CATEGORY(Material, 35)
 BS_LOG_CATEGORY(FreeImageImporter, 36)
+BS_LOG_CATEGORY(Script, 37)
+BS_LOG_CATEGORY(Importer, 38)
 
 #include "Utility/BsCommonTypes.h"

@@ -230,8 +230,8 @@ namespace bs
 	{
 		if(mDisableStateChange)
 		{
-			LOGWRN("Component state cannot be changed from the calling locating. Are you calling it from Component \
-				callbacks?");
+			BS_LOG(Warning, Scene, "Component state cannot be changed from the calling locating. "
+				"Are you calling it from Component callbacks?");
 			return;
 		}
 

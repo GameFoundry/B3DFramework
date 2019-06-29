@@ -36,7 +36,7 @@ namespace bs
 	{
 		if (handle.isDestroyed())
 		{
-			LOGWRN("Trying to access a destroyed GameObject with instance ID: " + toString(handle.getInstanceId()));
+			BS_LOG(Warning, Scene, "Trying to access a destroyed GameObject with instance ID: {0}", handle.getInstanceId());
 			return true;
 		}
 
@@ -262,7 +262,7 @@ namespace bs
 			}
 		}
 
-		LOGWRN("Attempting to remove a component that doesn't exists on SceneObject \"" + so->getName() + "\"");
+		BS_LOG(Warning, Scene, "Attempting to remove a component that doesn't exists on SceneObject \"{0}\"", so->getName());
 	}
 
 	MonoObject* ScriptComponent::internal_getSceneObject(ScriptComponentBase* nativeInstance)

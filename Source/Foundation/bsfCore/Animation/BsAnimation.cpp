@@ -740,7 +740,8 @@ namespace bs
 	{
 		if(clip != nullptr && !clip->isAdditive())
 		{
-			LOGWRN("blendAdditive() called with a clip that doesn't contain additive animation. Ignoring.");
+			BS_LOG(Warning, Renderer, 
+				"blendAdditive() called with a clip that doesn't contain additive animation. Ignoring.");
 
 			// Stop any clips on this layer, even if invalid
 			HAnimationClip nullClip;

@@ -638,7 +638,7 @@ namespace bs
 				}
 				else
 				{
-					LOGWRN("Unable to generate a cubemap: unrecognized face configuration.");
+					BS_LOG(Warning, FreeImageImporter, "Unable to generate a cubemap: unrecognized face configuration.");
 					return false;
 				}
 			}
@@ -663,13 +663,13 @@ namespace bs
 
 		if (faceSize.x != faceSize.y)
 		{
-			LOGWRN("Unable to generate a cubemap: width & height must match.");
+			BS_LOG(Warning, FreeImageImporter, "Unable to generate a cubemap: width & height must match.");
 			return false;
 		}
 
 		if (!Bitwise::isPow2(faceSize.x))
 		{
-			LOGWRN("Unable to generate a cubemap: width & height must be powers of 2.");
+			BS_LOG(Warning, FreeImageImporter, "Unable to generate a cubemap: width & height must be powers of 2.");
 			return false;
 		}
 

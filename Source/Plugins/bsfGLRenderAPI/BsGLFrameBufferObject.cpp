@@ -129,10 +129,10 @@ namespace bs { namespace ct
 		case GL_FRAMEBUFFER_COMPLETE:
 			break;
 		case GL_FRAMEBUFFER_UNSUPPORTED:
-			LOGERR("All framebuffer formats with this texture internal format unsupported");
+			BS_LOG(Error, RenderBackend, "All framebuffer formats with this texture internal format unsupported");
 			break;
 		default:
-			LOGERR("Framebuffer incomplete or other FBO status error");
+			BS_LOG(Error, RenderBackend, "Framebuffer incomplete or other FBO status error");
 		}
 	}
 

@@ -82,7 +82,7 @@ namespace bs
 			if (iterFind != mMaterials.end())
 			{
 				// Already exists
-				LOGWRN("Attempting to register a sprite material that already exists, ignoring request.");
+				BS_LOG(Warning, Generic, "Attempting to register a sprite material that already exists, ignoring request.");
 				bs_delete(newMaterial);
 				return iterFind->second;
 			}

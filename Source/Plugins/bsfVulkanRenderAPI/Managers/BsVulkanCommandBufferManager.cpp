@@ -142,8 +142,8 @@ namespace bs { namespace ct
 		UINT32 numDevices = mRapi._getNumDevices();
 		if(deviceIdx >= numDevices)
 		{
-			LOGERR("Cannot create command buffer, invalid device index: " + toString(deviceIdx) + 
-				". Valid range: [0, " + toString(numDevices) + ").");
+			BS_LOG(Error, RenderBackend, "Cannot create command buffer, invalid device index: {0}. Valid range: [0, {1}).",
+				deviceIdx, numDevices);
 
 			return nullptr;
 		}
@@ -197,10 +197,10 @@ namespace bs { namespace ct
 
 		if (semaphoreRequestFailed)
 		{
-			LOGERR("Failed to allocate semaphores for a command buffer sync. This means some of the dependency requests "
-				"will not be fulfilled. This happened because a command buffer has too many dependant command "
-				"buffers. The maximum allowed number is " + toString(BS_MAX_VULKAN_CB_DEPENDENCIES) + " but can be "
-				"increased by incrementing the value of BS_MAX_VULKAN_CB_DEPENDENCIES.");
+			BS_LOG(Error, RenderBackend, "Failed to allocate semaphores for a command buffer sync. This means some of the "
+				"dependency requests will not be fulfilled. This happened because a command buffer has too many "
+				"dependant command buffers. The maximum allowed number is {0} but can be increased by incrementing the "
+				"value of BS_MAX_VULKAN_CB_DEPENDENCIES.", BS_MAX_VULKAN_CB_DEPENDENCIES);
 		}
 	}
 

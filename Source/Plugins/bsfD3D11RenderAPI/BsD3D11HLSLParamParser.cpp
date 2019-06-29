@@ -150,7 +150,8 @@ namespace bs { namespace ct
 						isTexture = false;
 						break;
 					default:
-						LOGWRN("Skipping texture because it has unsupported dimension: " + toString(resourceDesc.Dimension));
+						BS_LOG(Warning, RenderBackend, "Skipping texture because it has unsupported dimension: {0}",
+							resourceDesc.Dimension);
 					}
 
 					if (memberDesc.type != GPOT_UNKNOWN)
@@ -215,7 +216,8 @@ namespace bs { namespace ct
 						desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
 						break;
 					default:
-						LOGWRN("Skipping typed UAV because it has unsupported dimension: " + toString(resourceDesc.Dimension));
+						BS_LOG(Warning, RenderBackend, "Skipping typed UAV because it has unsupported dimension: {0}", 
+							resourceDesc.Dimension);
 					}
 
 					break;
@@ -251,7 +253,8 @@ namespace bs { namespace ct
 					desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
 					break;
 				default:
-					LOGWRN("Skipping resource because it has unsupported type: " + toString(resourceDesc.Type));
+					BS_LOG(Warning, RenderBackend, "Skipping resource because it has unsupported type: {0}", 
+						resourceDesc.Type);
 				}
 			}
 		}
@@ -338,7 +341,8 @@ namespace bs { namespace ct
 					memberDesc.type = GPDT_FLOAT1;
 					break;
 				default:
-					LOGWRN("Skipping variable because it has unsupported type: " + toString(varTypeDesc.Type));
+					BS_LOG(Warning, RenderBackend, "Skipping variable because it has unsupported type: {0}", 
+						varTypeDesc.Type);
 				}
 			}
 			break;
@@ -442,7 +446,7 @@ namespace bs { namespace ct
 			memberDesc.type = GPDT_STRUCT;
 			break;
 		default:
-			LOGWRN("Skipping variable because it has unsupported class: " + toString(varTypeDesc.Class));
+			BS_LOG(Warning, RenderBackend, "Skipping variable because it has unsupported class: {0}", varTypeDesc.Class);
 		}
 
 		desc.params.insert(std::make_pair(memberDesc.name, memberDesc));

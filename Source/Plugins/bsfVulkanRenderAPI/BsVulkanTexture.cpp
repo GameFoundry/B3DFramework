@@ -431,7 +431,7 @@ namespace bs { namespace ct
 			break;
 		default:
 			accessFlags = 0;
-			LOGWRN("Unsupported source layout for Vulkan image.");
+			BS_LOG(Warning, RenderBackend, "Unsupported source layout for Vulkan image.");
 			break;
 		}
 
@@ -880,7 +880,7 @@ namespace bs { namespace ct
 
 		if ((srcProps.getUsage() & TU_DEPTHSTENCIL) != 0 || (dstProps.getUsage() & TU_DEPTHSTENCIL) != 0)
 		{
-			LOGERR("Texture copy/resolve isn't supported for depth-stencil textures.");
+			BS_LOG(Error, RenderBackend, "Texture copy/resolve isn't supported for depth-stencil textures.");
 			return;
 		}
 
@@ -890,7 +890,7 @@ namespace bs { namespace ct
 		{
 			if (srcProps.getNumSamples() != dstProps.getNumSamples())
 			{
-				LOGERR("When copying textures their multisample counts must match. Ignoring copy.");
+				BS_LOG(Error, RenderBackend, "When copying textures their multisample counts must match. Ignoring copy.");
 				return;
 			}
 		}
@@ -1019,7 +1019,7 @@ namespace bs { namespace ct
 
 		if (props.getNumSamples() > 1)
 		{
-			LOGERR("Multisampled textures cannot be accessed from the CPU directly.");
+			BS_LOG(Error, RenderBackend, "Multisampled textures cannot be accessed from the CPU directly.");
 			return PixelData();
 		}
 
@@ -1420,7 +1420,7 @@ namespace bs { namespace ct
 	{
 		if (mProperties.getNumSamples() > 1)
 		{
-			LOGERR("Multisampled textures cannot be accessed from the CPU directly.");
+			BS_LOG(Error, RenderBackend, "Multisampled textures cannot be accessed from the CPU directly.");
 			return;
 		}
 
@@ -1436,7 +1436,7 @@ namespace bs { namespace ct
 	{
 		if (mProperties.getNumSamples() > 1)
 		{
-			LOGERR("Multisampled textures cannot be accessed from the CPU directly.");
+			BS_LOG(Error, RenderBackend, "Multisampled textures cannot be accessed from the CPU directly.");
 			return;
 		}
 
@@ -1445,7 +1445,7 @@ namespace bs { namespace ct
 
 		if (face > 0 && mProperties.getTextureType() == TEX_TYPE_3D)
 		{
-			LOGERR("3D texture arrays are not supported.");
+			BS_LOG(Error, RenderBackend, "3D texture arrays are not supported.");
 			return;
 		}
 

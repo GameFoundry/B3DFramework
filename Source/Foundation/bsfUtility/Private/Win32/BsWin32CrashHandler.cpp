@@ -255,7 +255,8 @@ namespace bs
 
 				if(!SymGetModuleInfo64(GetCurrentProcess(), moduleAddress, &imageInfo))
 				{
-					LOGWRN("Failed retrieving module info for module: " + String(moduleName) + ". Error code: " + toString((UINT32)GetLastError()));
+					BS_LOG(Warning, Platform, "Failed retrieving module info for module: {0}. Error code: {1}", 
+						moduleName, (UINT32)GetLastError());
 				}
 				else
 				{
@@ -268,8 +269,8 @@ namespace bs
 			}
 			else
 			{
-				LOGWRN("Failed loading module " + String(moduleName) + ".Error code: " + toString((UINT32)GetLastError()) +
-					". Search path: " + String(pdbSearchPath) + ". Image name: " + String(imageName));
+				BS_LOG(Warning, Platform, "Failed loading module {0}.Error code: {1}. Search path: {2}. Image name: {3}", 
+					moduleName, (UINT32)GetLastError(), pdbSearchPath, imageName);
 			}
 		}
 

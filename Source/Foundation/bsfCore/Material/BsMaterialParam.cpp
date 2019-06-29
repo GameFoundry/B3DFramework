@@ -41,8 +41,8 @@ namespace bs
 
 		if(arrayIdx >= this->mArraySize)
 		{
-			LOGWRN("Array index out of range. Provided index was " + toString(arrayIdx) + 
-				" but array length is " + toString(this->mArraySize));
+			BS_LOG(Warning, Material, "Array index out of range. Provided index was {0} but array length is {1}", 
+				arrayIdx, this->mArraySize);
 			return;
 		}
 
@@ -75,8 +75,8 @@ namespace bs
 
 		if(arrayIdx >= this->mArraySize)
 		{
-			LOGWRN("Array index out of range. Provided index was " + toString(arrayIdx) + 
-				" but array length is " + toString(this->mArraySize));
+			BS_LOG(Warning, Material, "Array index out of range. Provided index was {0} but array length is {1}", 
+				arrayIdx, this->mArraySize);
 			return;
 		}
 
@@ -109,8 +109,8 @@ namespace bs
 
 		if(arrayIdx >= this->mArraySize)
 		{
-			LOGWRN("Array index out of range. Provided index was " + toString(arrayIdx) + 
-				" but array length is " + toString(this->mArraySize));
+			BS_LOG(Warning, Material, "Array index out of range. Provided index was {0} but array length is {1}", 
+				arrayIdx, this->mArraySize);
 			return;
 		}
 
@@ -143,8 +143,8 @@ namespace bs
 
 		if (arrayIdx >= this->mArraySize)
 		{
-			LOGWRN("Array index out of range. Provided index was " + toString(arrayIdx) +
-				" but array length is " + toString(this->mArraySize));
+			BS_LOG(Warning, Material, "Array index out of range. Provided index was {0} but array length is {1}", 
+				arrayIdx, this->mArraySize);
 			return;
 		}
 

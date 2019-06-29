@@ -155,7 +155,8 @@ namespace bs
 				// Check if an element is too large to ever fit
 				if(element.input.width > maxWidth || element.input.height > maxHeight)
 				{
-					LOGWRN("Some of the provided elements don't fit in an atlas of provided size. Returning empty array of pages.");
+					BS_LOG(Warning, Generic, "Some of the provided elements don't fit in an atlas of provided size. "
+						"Returning empty array of pages.");
 					return Vector<Page>();
 				}
 

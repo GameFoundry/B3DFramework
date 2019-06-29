@@ -169,7 +169,7 @@ namespace bs
 	{
 		if(isActive)
 		{
-			LOGWRN("Profiler::beginThread called on a thread that was already being sampled");
+			BS_LOG(Warning, Profiler, "Profiler::beginThread called on a thread that was already being sampled");
 			return;
 		}
 
@@ -197,11 +197,12 @@ namespace bs
 		activeBlocks->pop();
 
 		if(!isActive)
-			LOGWRN("Profiler::endThread called on a thread that isn't being sampled.");
+			BS_LOG(Warning, Profiler, "Profiler::endThread called on a thread that isn't being sampled.");
 
 		if (activeBlocks->size() > 0)
 		{
-			LOGWRN("Profiler::endThread called but not all sample pairs were closed. Sampling data will not be valid.");
+			BS_LOG(Warning, Profiler, "Profiler::endThread called but not all sample pairs were closed. "
+				"Sampling data will not be valid.");
 
 			while (activeBlocks->size() > 0)
 			{
@@ -354,20 +355,20 @@ namespace bs
 #if BS_DEBUG_MODE
 		if(block == nullptr)
 		{
-			LOGWRN("Mismatched CPUProfiler::endSample. No beginSample was called.");
+			BS_LOG(Warning, Profiler, "Mismatched CPUProfiler::endSample. No beginSample was called.");
 			return;
 		}
 
 		if(thread->activeBlock.type == ActiveSamplingType::Precise)
 		{
-			LOGWRN("Mismatched CPUProfiler::endSample. Was expecting Profiler::endSamplePrecise.");
+			BS_LOG(Warning, Profiler, "Mismatched CPUProfiler::endSample. Was expecting Profiler::endSamplePrecise.");
 			return;
 		}
 
 		if(strcmp(block->name, name) != 0)
 		{
-			LOGWRN("Mismatched CPUProfiler::endSample. Was expecting \"" + String(block->name) + 
-				"\" but got \"" + String(name) + "\". Sampling data will not be valid.");
+			BS_LOG(Warning, Profiler, "Mismatched CPUProfiler::endSample. Was expecting \"{0}\" but got \"{1}\". "
+				"Sampling data will not be valid.", block->name, name);
 			return;
 		}
 #endif
@@ -421,20 +422,20 @@ namespace bs
 #if BS_DEBUG_MODE
 		if(block == nullptr)
 		{
-			LOGWRN("Mismatched Profiler::endSamplePrecise. No beginSamplePrecise was called.");
+			BS_LOG(Warning, Profiler, "Mismatched Profiler::endSamplePrecise. No beginSamplePrecise was called.");
 			return;
 		}
 
 		if(thread->activeBlock.type == ActiveSamplingType::Basic)
 		{
-			LOGWRN("Mismatched CPUProfiler::endSamplePrecise. Was expecting Profiler::endSample.");
+			BS_LOG(Warning, Profiler, "Mismatched CPUProfiler::endSamplePrecise. Was expecting Profiler::endSample.");
 			return;
 		}
 
 		if (strcmp(block->name, name) != 0)
 		{
-			LOGWRN("Mismatched Profiler::endSamplePrecise. Was expecting \"" + String(block->name) + 
-				"\" but got \"" + String(name) + "\". Sampling data will not be valid.");
+			BS_LOG(Warning, Profiler, "Mismatched Profiler::endSamplePrecise. Was expecting \"{0}\" but got \"{1}\". "
+				"Sampling data will not be valid.", block->name, name);
 			return;
 		}
 #endif

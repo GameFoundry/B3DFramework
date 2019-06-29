@@ -372,7 +372,7 @@ namespace bs {	namespace ct
 								for (auto& entry : missingElements)
 									wrnStream << "\t" << toString(entry.getSemantic()) << entry.getSemanticIdx() << std::endl;
 
-								LOGWRN(wrnStream.str());
+								BS_LOG(Warning, Renderer, wrnStream.str());
 								break;
 							}
 						}
@@ -395,7 +395,7 @@ namespace bs {	namespace ct
 			SPtr<Shader> shader = element.material->getShader();
 			if (shader == nullptr)
 			{
-				LOGWRN("Missing shader on material.");
+				BS_LOG(Warning, Renderer, "Missing shader on material.");
 				continue;
 			}
 

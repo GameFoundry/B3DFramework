@@ -20,13 +20,13 @@ namespace bs { namespace ct
 		{
 			if(isLoadStore)
 			{
-				LOGWRN("LoadStore usage and useSystemMem cannot be used together.");
+				BS_LOG(Warning, RenderBackend, "LoadStore usage and useSystemMem cannot be used together.");
 				isLoadStore = false;
 			}
 
 			if(streamOut)
 			{
-				LOGWRN("useSystemMem and streamOut cannot be used together.")
+				BS_LOG(Warning, RenderBackend, "useSystemMem and streamOut cannot be used together.")
 				streamOut = false;
 			}
 		}
@@ -35,13 +35,13 @@ namespace bs { namespace ct
 		{
 			if(btype == BT_CONSTANT)
 			{
-				LOGWRN("Constant buffers cannot be bound with LoadStore usage.");
+				BS_LOG(Warning, RenderBackend, "Constant buffers cannot be bound with LoadStore usage.");
 				isLoadStore = false;
 			}
 
 			if(D3D11Mappings::isDynamic(usage))
 			{
-				LOGWRN("Dynamic usage not supported with LoadStore usage.");
+				BS_LOG(Warning, RenderBackend, "Dynamic usage not supported with LoadStore usage.");
 				usage = (GpuBufferUsage)(usage & ~GBU_DYNAMIC);
 			}
 		}
@@ -50,7 +50,7 @@ namespace bs { namespace ct
 		{
 			if(btype == BT_CONSTANT)
 			{
-				LOGWRN("Constant buffers cannot be used with streamOut.");
+				BS_LOG(Warning, RenderBackend, "Constant buffers cannot be used with streamOut.");
 				streamOut = false;
 			}
 		}

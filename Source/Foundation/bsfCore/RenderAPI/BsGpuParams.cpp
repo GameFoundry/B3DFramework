@@ -238,14 +238,14 @@ namespace bs
 		const SPtr<GpuParamDesc>& paramDescs = mParamInfo->getParamDesc(type);
 		if(paramDescs == nullptr)
 		{
-			LOGWRN("Cannot find parameter block with the name: '" + name + "'");
+			BS_LOG(Warning, RenderBackend, "Cannot find parameter block with the name: '{0}'", name);
 			return;
 		}
 
 		auto iterFind = paramDescs->paramBlocks.find(name);
 		if (iterFind == paramDescs->paramBlocks.end())
 		{
-			LOGWRN("Cannot find parameter block with the name: '" + name + "'");
+			BS_LOG(Warning, RenderBackend, "Cannot find parameter block with the name: '{0}'", name);
 			return;
 		}
 
@@ -277,7 +277,7 @@ namespace bs
 		if (paramDescs == nullptr)
 		{
 			output = TGpuDataParam<T, Core>(nullptr, nullptr);
-			LOGWRN("Cannot find parameter block with the name: '" + name + "'");
+			BS_LOG(Warning, RenderBackend, "Cannot find parameter with the name: '{0}'", name);
 			return;
 		}
 
@@ -285,7 +285,7 @@ namespace bs
 		if (iterFind == paramDescs->params.end())
 		{
 			output = TGpuDataParam<T, Core>(nullptr, nullptr);
-			LOGWRN("Cannot find parameter with the name '" + name + "'");
+			BS_LOG(Warning, RenderBackend, "Cannot find parameter with the name: '{0}'", name);
 		}
 		else
 			output = TGpuDataParam<T, Core>(&iterFind->second, _getThisPtr());
@@ -298,7 +298,7 @@ namespace bs
 		if (paramDescs == nullptr)
 		{
 			output = TGpuParamStruct<Core>(nullptr, nullptr);
-			LOGWRN("Cannot find struct parameter with the name: '" + name + "'");
+			BS_LOG(Warning, RenderBackend, "Cannot find struct parameter with the name: '{0}'", name);
 			return;
 		}
 
@@ -306,7 +306,7 @@ namespace bs
 		if (iterFind == paramDescs->params.end() || iterFind->second.type != GPDT_STRUCT)
 		{
 			output = TGpuParamStruct<Core>(nullptr, nullptr);
-			LOGWRN("Cannot find struct parameter with the name '" + name + "'");
+			BS_LOG(Warning, RenderBackend, "Cannot find struct parameter with the name: '{0}'", name);
 		}
 		else
 			output = TGpuParamStruct<Core>(&iterFind->second, _getThisPtr());
@@ -319,7 +319,7 @@ namespace bs
 		if (paramDescs == nullptr)
 		{
 			output = TGpuParamTexture<Core>(nullptr, nullptr);
-			LOGWRN("Cannot find texture parameter with the name: '" + name + "'");
+			BS_LOG(Warning, RenderBackend, "Cannot find texture parameter with the name: '{0}'", name);
 			return;
 		}
 
@@ -327,7 +327,7 @@ namespace bs
 		if (iterFind == paramDescs->textures.end())
 		{
 			output = TGpuParamTexture<Core>(nullptr, nullptr);
-			LOGWRN("Cannot find texture parameter with the name '" + name + "'");
+			BS_LOG(Warning, RenderBackend, "Cannot find texture parameter with the name: '{0}'", name);
 		}
 		else
 			output = TGpuParamTexture<Core>(&iterFind->second, _getThisPtr());
@@ -340,7 +340,7 @@ namespace bs
 		if (paramDescs == nullptr)
 		{
 			output = TGpuParamLoadStoreTexture<Core>(nullptr, nullptr);
-			LOGWRN("Cannot find texture parameter with the name: '" + name + "'");
+			BS_LOG(Warning, RenderBackend, "Cannot find load-store parameter with the name: '{0}'", name);
 			return;
 		}
 
@@ -348,7 +348,7 @@ namespace bs
 		if (iterFind == paramDescs->loadStoreTextures.end())
 		{
 			output = TGpuParamLoadStoreTexture<Core>(nullptr, nullptr);
-			LOGWRN("Cannot find texture parameter with the name '" + name + "'");
+			BS_LOG(Warning, RenderBackend, "Cannot find load-store parameter with the name: '{0}'", name);
 		}
 		else
 			output = TGpuParamLoadStoreTexture<Core>(&iterFind->second, _getThisPtr());
@@ -361,7 +361,7 @@ namespace bs
 		if (paramDescs == nullptr)
 		{
 			output = TGpuParamBuffer<Core>(nullptr, nullptr);
-			LOGWRN("Cannot find buffer parameter with the name: '" + name + "'");
+			BS_LOG(Warning, RenderBackend, "Cannot find buffer parameter with the name: '{0}'", name);
 			return;
 		}
 
@@ -369,7 +369,7 @@ namespace bs
 		if (iterFind == paramDescs->buffers.end())
 		{
 			output = TGpuParamBuffer<Core>(nullptr, nullptr);
-			LOGWRN("Cannot find buffer parameter with the name '" + name + "'");
+			BS_LOG(Warning, RenderBackend, "Cannot find buffer parameter with the name: '{0}'", name);
 		}
 		else
 			output = TGpuParamBuffer<Core>(&iterFind->second, _getThisPtr());
@@ -382,7 +382,7 @@ namespace bs
 		if (paramDescs == nullptr)
 		{
 			output = TGpuParamSampState<Core>(nullptr, nullptr);
-			LOGWRN("Cannot find sampler state parameter with the name: '" + name + "'");
+			BS_LOG(Warning, RenderBackend, "Cannot find sampler state parameter with the name: '{0}'", name);
 			return;
 		}
 
@@ -390,7 +390,7 @@ namespace bs
 		if (iterFind == paramDescs->samplers.end())
 		{
 			output = TGpuParamSampState<Core>(nullptr, nullptr);
-			LOGWRN("Cannot find sampler state parameter with the name '" + name + "'");
+			BS_LOG(Warning, RenderBackend, "Cannot find sampler state parameter with the name: '{0}'", name);
 		}
 		else
 			output = TGpuParamSampState<Core>(&iterFind->second, _getThisPtr());

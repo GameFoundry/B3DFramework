@@ -34,7 +34,10 @@ namespace bs
 		{
 			SPtr<DataStream> stream = obj->getSourceStream(size);
 			if (stream != nullptr && stream->isFile())
-				LOGWRN("Saving an AudioClip which uses streaming data. Streaming data might not be available if saving to the same file.");
+			{
+				BS_LOG(Warning, RTTI, "Saving an AudioClip which uses streaming data. Streaming data might not be "
+					"available if saving to the same file.");
+			}
 
 			return stream;
 		}

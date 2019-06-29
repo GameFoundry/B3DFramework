@@ -189,8 +189,8 @@ namespace bs
 
 		if(!mVertexData->hasElement(semantic, semanticIdx, streamIdx))
 		{
-			LOGWRN("MeshData doesn't contain an element of specified type: Semantic: " + toString(semantic) + ", Semantic index: "
-				+ toString(semanticIdx) + ", Stream index: " + toString(streamIdx));
+			BS_LOG(Warning, Mesh, "MeshData doesn't contain an element of specified type: Semantic: {0}, "
+				"Semantic index: {1}, Stream index: {2}", semantic, semanticIdx, streamIdx);
 			return;
 		}
 
@@ -223,8 +223,8 @@ namespace bs
 
 		if (!mVertexData->hasElement(semantic, semanticIdx, streamIdx))
 		{
-			LOGWRN("MeshData doesn't contain an element of specified type: Semantic: " + toString(semantic) + ", Semantic index: "
-				+ toString(semanticIdx) + ", Stream index: " + toString(streamIdx));
+			BS_LOG(Warning, Mesh, "MeshData doesn't contain an element of specified type: Semantic: {0}, "
+				"Semantic index: {1}, Stream index: {2}", semantic, semanticIdx, streamIdx);
 			return;
 		}
 

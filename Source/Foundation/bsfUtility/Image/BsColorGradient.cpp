@@ -65,8 +65,8 @@ namespace bs
 
 		if(keys.size() > MAX_KEYS)
 		{
-			LOGWRN("Number of keys in ColorGradient exceeds the support number (" + 
-				toString(MAX_KEYS) + "). Keys will be ignored.");
+			BS_LOG(Warning, Generic, "Number of keys in ColorGradient exceeds the support number ({0}). "
+				"Keys will be ignored.", MAX_KEYS);
 		}
 
 		mDuration = duration;

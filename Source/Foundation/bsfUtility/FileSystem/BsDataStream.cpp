@@ -105,7 +105,7 @@ namespace bs
 				dataOffset = 4;
 			else if (isUTF32BE(headerBytes))
 			{
-				LOGWRN("UTF-32 big endian decoding not supported");
+				BS_LOG(Warning, Generic, "UTF-32 big endian decoding not supported");
 				return u8"";
 			}
 		}
@@ -122,7 +122,7 @@ namespace bs
 				dataOffset = 2;
 			else if (isUTF16BE(headerBytes))
 			{
-				LOGWRN("UTF-16 big endian decoding not supported");
+				BS_LOG(Warning, Generic, "UTF-16 big endian decoding not supported");
 				return u8"";
 			}
 		}
@@ -336,7 +336,7 @@ namespace bs
 		// Should check ensure open succeeded, in case fail for some reason.
 		if (mInStream->fail())
 		{
-			LOGWRN("Cannot open file: " + path.toString());
+			BS_LOG(Warning, FileSystem, "Cannot open file: " + path.toString());
 			return;
 		}
 

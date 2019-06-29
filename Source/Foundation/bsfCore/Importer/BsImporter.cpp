@@ -165,7 +165,7 @@ namespace bs
 	{
 		if (!FileSystem::isFile(filePath))
 		{
-			LOGWRN("Trying to import asset that doesn't exists. Asset path: " + filePath.toString());
+			BS_LOG(Warning, Importer, "Trying to import asset that doesn't exists. Asset path: {0}", filePath);
 			return nullptr;
 		}
 
@@ -311,7 +311,7 @@ namespace bs
 	{
 		if(!FileSystem::isFile(inputFilePath))
 		{
-			LOGWRN("Trying to import asset that doesn't exists. Asset path: " + inputFilePath.toString());
+			BS_LOG(Warning, Importer, "Trying to import asset that doesn't exists. Asset path: {0}", inputFilePath);
 			return nullptr;
 		}
 
@@ -326,7 +326,7 @@ namespace bs
 	{
 		if(!importer)
 		{
-			LOGWRN("Trying to register a null asset importer!");
+			BS_LOG(Warning, Importer, "Trying to register a null asset importer!");
 			return;
 		}
 
@@ -342,7 +342,7 @@ namespace bs
 		ext = ext.substr(1, ext.size() - 1); // Remove the .
 		if(!supportsFileType(ext))
 		{
-			LOGWRN("There is no importer for the provided file type. (" + inputFilePath.toString() + ")");
+			BS_LOG(Warning, Importer, "There is no importer for the provided file type. ({0})", inputFilePath);
 			return nullptr;
 		}
 
