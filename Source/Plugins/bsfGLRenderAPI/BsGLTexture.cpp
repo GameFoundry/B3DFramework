@@ -215,7 +215,7 @@ namespace bs { namespace ct
 				}
 				else
 				{
-					LOGERR("Unsupported texture type for depth-stencil attachment usage.");
+					BS_LOG(Error, RenderBackend, "Unsupported texture type for depth-stencil attachment usage.");
 				}
 			}
 			else

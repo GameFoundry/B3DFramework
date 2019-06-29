@@ -263,7 +263,7 @@ namespace bs
 					// Disabled because too much spam in the log, enable as needed
 #if 0
 					if (imageInfo.SymType == SymNone)
-						LOGWRN("Failed loading symbols for module: " + String(moduleName));
+						BS_LOG(Warning, Platform, "Failed loading symbols for module: {0}", moduleName);
 #endif
 				}
 			}

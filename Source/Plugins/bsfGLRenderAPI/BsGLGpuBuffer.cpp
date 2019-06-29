@@ -49,7 +49,7 @@ namespace bs { namespace ct
 				UINT32 size = props.getElementCount() * props.getElementSize();
 				mBuffer = bs_pool_new<GLHardwareBuffer>(GL_SHADER_STORAGE_BUFFER, size, props.getUsage());
 #else
-				LOGWRN("SSBOs are not supported on the current OpenGL version.");
+				BS_LOG(Warning, RenderBackend, "SSBOs are not supported on the current OpenGL version.");
 #endif
 			}
 			else

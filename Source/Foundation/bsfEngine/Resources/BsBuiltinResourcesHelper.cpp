@@ -628,7 +628,7 @@ namespace bs
 #if BS_DEBUG_MODE
 			BS_EXCEPT(InvalidStateException, "Error occured while compiling a shader. Check earlier log messages for exact error.");
 #else
-			LOGERR("Error occured while compiling a shader. Check earlier log messages for exact error.")
+			BS_LOG(Error, Importer, "Error occured while compiling a shader. Check earlier log messages for exact error.")
 #endif
 			return false;
 		}
@@ -673,7 +673,7 @@ namespace bs
 #if BS_DEBUG_MODE
 						BS_EXCEPT(InvalidStateException, errMsg);
 #else
-						LOGERR(errMsg)
+						BS_LOG(Error, Importer, errMsg)
 #endif
 						return false;
 					}

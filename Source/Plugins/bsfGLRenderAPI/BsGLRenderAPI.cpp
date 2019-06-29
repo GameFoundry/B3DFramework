@@ -495,7 +495,8 @@ namespace bs { namespace ct
 								(surface.numMipLevels != 0 && surface.numMipLevels != props.getNumMipmaps()) ||
 								(surface.numFaces != 0 && surface.numFaces != props.getNumFaces()))
 							{
-								LOGWRN("Attempting to bind only a part of a texture, but texture views are not supported. "
+								BS_LOG(Warning, RenderBackend, 
+									"Attempting to bind only a part of a texture, but texture views are not supported. "
 									"Entire texture will be bound instead.");
 							}
 
@@ -1260,7 +1261,7 @@ namespace bs { namespace ct
 
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 #else
-			LOGWRN("Compute shaders not supported on current OpenGL version.");
+			BS_LOG(Warning, RenderBackend, "Compute shaders not supported on current OpenGL version.");
 #endif
 		};
 
