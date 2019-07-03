@@ -11,6 +11,7 @@ Huge thanks to all the patrons, contributors and donators!
  - @guestnone - Logging system improvements.
  - @Meumeu - Modernizing & clean-up of the build system.
  - @ataulien - Added distance culling.
+ - @remoe - Initial work on MoltenVK render backend.
  
 # Commercial Tier 2 Patron
 - Chance McDonald [Founder] [Inactive]
