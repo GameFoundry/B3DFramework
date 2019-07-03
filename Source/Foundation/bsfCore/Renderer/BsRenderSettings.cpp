@@ -159,6 +159,7 @@ namespace bs
 		p(threshold);
 		p(intensity);
 		p(tint);
+		p(filterSize);
 	}
 
 	RTTITypeBase* BloomSettings::getRTTIStatic()
@@ -167,6 +168,35 @@ namespace bs
 	}
 
 	RTTITypeBase* BloomSettings::getRTTI() const
+	{
+		return getRTTIStatic();
+	}
+
+	template <class Processor>
+	void ScreenSpaceLensFlareSettings::rttiEnumFields(Processor p)
+	{
+		p(enabled);
+		p(downsampleCount);
+		p(threshold);
+		p(ghostCount);
+		p(ghostSpacing);
+		p(brightness);
+		p(filterSize);
+		p(halo);
+		p(haloRadius);
+		p(haloThickness);
+		p(haloThreshold);
+		p(haloAspectRatio);
+		p(chromaticAberration);
+		p(chromaticAberrationOffset);
+	}
+
+	RTTITypeBase* ScreenSpaceLensFlareSettings::getRTTIStatic()
+	{
+		return ScreenSpaceLensFlareSettingsRTTI::instance();
+	}
+
+	RTTITypeBase* ScreenSpaceLensFlareSettings::getRTTI() const
 	{
 		return getRTTIStatic();
 	}
@@ -203,6 +233,7 @@ namespace bs
 		p(ambientOcclusion);
 		p(screenSpaceReflections);
 		p(bloom);
+		p(screenSpaceLensFlare);
 		p(exposureScale);
 		p(gamma);
 		p(enableFXAA);

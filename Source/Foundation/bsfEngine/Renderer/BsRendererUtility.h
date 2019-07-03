@@ -17,7 +17,7 @@ namespace bs { namespace ct
 	 */
 
 	/** Shader that copies a source texture into a render target, and optionally resolves it. */
-	class BlitMat : public RendererMaterial<BlitMat>
+	class BS_EXPORT BlitMat : public RendererMaterial<BlitMat>
 	{
 		RMAT_DEF("Blit.bsl");
 
@@ -57,6 +57,35 @@ namespace bs { namespace ct
 		bool mIsFiltered = false;
 	};
 
+	BS_PARAM_BLOCK_BEGIN(CompositeParamDef)
+		BS_PARAM_BLOCK_ENTRY(Color, gTint)
+	BS_PARAM_BLOCK_END
+
+	extern CompositeParamDef gCompositeParamDef;
+
+	/** Blends the contents of the provided texture with the bound render target. */
+	class BS_EXPORT CompositeMat : public RendererMaterial<CompositeMat>
+	{
+		RMAT_DEF("Composite.bsl");
+
+	public:
+		CompositeMat();
+
+		/** 
+		 * Executes the post-process effect with the provided parameters and writes the results to the provided
+		 * render target.
+		*
+		* @param[in]	source			Texture to blend with the target.
+		* @param[in]	target			Render target to blend with and write the results to.
+		* @param[in]	tint			Optional value to multiply all the values from @p source before blending.
+		*/
+		void execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint = Color::White);
+
+	private:
+		SPtr<GpuParamBlockBuffer> mParamBuffer;
+		GpuParamTexture mSourceTex;
+	};
+
 	BS_PARAM_BLOCK_BEGIN(ClearParamDef)
 		BS_PARAM_BLOCK_ENTRY(INT32, gClearValue)
 	BS_PARAM_BLOCK_END
@@ -64,7 +93,7 @@ namespace bs { namespace ct
 	extern ClearParamDef gClearParamDef;
 
 	/** Shader that clears the currently bound render target to an integer value. */
-	class ClearMat : public RendererMaterial<ClearMat>
+	class BS_EXPORT ClearMat : public RendererMaterial<ClearMat>
 	{
 		RMAT_DEF("Clear.bsl");
 

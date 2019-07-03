@@ -466,6 +466,13 @@ namespace bs
 		BS_SCRIPT_EXPORT()
 		Color tint = Color::White;
 
+		/** 
+		 * Determines the percent of the texture to account for when filtering for bloom. Larger values will include
+		 * farther away pixels.
+		 */
+		BS_SCRIPT_EXPORT(range:[0.01,1.0])
+		float filterSize = 0.15f;
+
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
@@ -475,6 +482,111 @@ namespace bs
 		void rttiEnumFields(P processor);
 	public:
 		friend class BloomSettingsRTTI;
+		static RTTITypeBase* getRTTIStatic();
+		RTTITypeBase* getRTTI() const override;
+	};
+
+	/** Settings that control the screen-space lens flare effect. */
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) ScreenSpaceLensFlareSettings : public IReflectable
+	{
+		BS_SCRIPT_EXPORT()
+		ScreenSpaceLensFlareSettings() = default;
+
+		/** Enables or disables the lens flare effect. */
+		BS_SCRIPT_EXPORT()
+		bool enabled = false;
+
+		/** 
+		 * Determines how many times to downsample the scene texture before using it for lens flare effect. Lower values 
+		 * will use higher resolution texture for calculating lens flare, at the cost of lower performance. 
+		 * Valid range is [1, 6], default is 4.
+		 */
+		BS_SCRIPT_EXPORT(range:[1,6])
+		UINT32 downsampleCount = 4;
+
+		/** 
+		 * Determines the minimal threshold of pixel luminance to be included in the lens flare calculations. Any pixel 
+		 * with luminance below this value will be ignored for the purposes of lens flare. Set to zero or negative to 
+		 * disable the threshold and include all pixels in the calculations.
+		 */
+		BS_SCRIPT_EXPORT()
+		float threshold = 32.0f;
+
+		/** Determines the number of ghost features to appear, shown as blurred blobs of bright areas of the scene. */
+		BS_SCRIPT_EXPORT(range:[1,10])
+		UINT32 ghostCount = 2;
+
+		/** 
+		 * Determines the distance between ghost features. Value is in normalized screen space, in range [0,1] where
+		 * 1 represents the full screen length.
+		 */
+		BS_SCRIPT_EXPORT(range:[0,1])
+		float ghostSpacing = 0.5f;
+
+		/** 
+		 * Determines the brightness of the lens flare effect. Value of 1 means the lens flare will be displayed at the
+		 * same intensity as the scene it was derived from. In range [0, 1], default being 0.05.
+		 */
+		BS_SCRIPT_EXPORT(range:[0,1])
+		float brightness = 0.05f;
+
+		/** 
+		 * Determines the size of the filter when blurring the lens flare features. Larger values yield a blurrier image
+		 * and will require more performance.
+		 */
+		BS_SCRIPT_EXPORT(range:[0.01,1.0])
+		float filterSize = 0.2f;
+
+		/** Determines if a halo effect should be rendered as part of the lens flare. */
+		BS_SCRIPT_EXPORT()
+		bool halo = true;
+
+		/** 
+		 * Determines how far away from the screen center does the halo appear, in normalized screen space (range [0,1])
+		 * where 0.5 represents half screen length.
+		 */
+		BS_SCRIPT_EXPORT(range:[0,1])
+		float haloRadius = 0.35f;
+
+		/** Determines the thickness of the halo ring. In normalized screen space (range [0.01,0.5]). */
+		BS_SCRIPT_EXPORT(range:[0.01,0.5])
+		float haloThickness = 0.15f;
+
+		/** 
+		 * Determines the minimal threshold of pixel luminance to be included for halo generation. Any pixel with
+		 * luminance below this value will be ignored for the purposes of halo generation.
+		 */
+		BS_SCRIPT_EXPORT()
+		float haloThreshold = 4.0f;
+
+		/** Determines the shape of the halo. Set to value other than 1 to make the halo an oval rather than a circle. */
+		BS_SCRIPT_EXPORT(range:[0,2])
+		float haloAspectRatio = 1.0f;
+
+		/** 
+		 * Enables or disables chromatic aberration of the lens flare and halo features. Chromatic aberration separates
+		 * the values of red, green and blue channels according to a user provided offset.
+		 */
+		BS_SCRIPT_EXPORT()
+		bool chromaticAberration = true;
+
+		/**
+		 * Determines the distance between pixels within which to sample different channels. The value is in 
+		 * UV coordinates, range [0, 1].
+		 */
+		BS_SCRIPT_EXPORT(range:[0,1])
+		float chromaticAberrationOffset = 0.01f;
+
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+
+		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
+		template<class P>
+		void rttiEnumFields(P processor);
+	public:
+		friend class ScreenSpaceLensFlareSettingsRTTI;
 		static RTTITypeBase* getRTTIStatic();
 		RTTITypeBase* getRTTI() const override;
 	};
@@ -604,6 +716,10 @@ namespace bs
 		/** Parameters used for customizing the bloom effect. */
 		BS_SCRIPT_EXPORT()
 		BloomSettings bloom;
+
+		/** Parameters used for customizing the screen space lens flare effect. */
+		BS_SCRIPT_EXPORT()
+		ScreenSpaceLensFlareSettings screenSpaceLensFlare;
 
 		/** Enables the fast approximate anti-aliasing effect. */
 		BS_SCRIPT_EXPORT()

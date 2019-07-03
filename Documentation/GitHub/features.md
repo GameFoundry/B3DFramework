@@ -32,6 +32,7 @@
 		* Screen space ambient occlusion (SSAO)
 		* Depth of field
 		* Bloom
+		* Lens flare
 		* Fast approximate anti-aliasing (FXAA)
 	* Extensive material & shader system
 		* Custom high level shading language (BSL)

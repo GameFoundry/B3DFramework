@@ -457,4 +457,31 @@ namespace bs { namespace ct
 		bind();
 		gRendererUtility().drawScreenQuad();
 	}
+
+	CompositeParamDef gCompositeParamDef;
+
+	CompositeMat::CompositeMat()
+	{
+		mParamBuffer = gCompositeParamDef.createBuffer();
+		mParams->setParamBlockBuffer("Input", mParamBuffer);
+
+		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSource", mSourceTex);
+	}
+
+	void CompositeMat::execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint)
+	{
+		BS_RENMAT_PROFILE_BLOCK
+
+		// Set parameters
+		mSourceTex.set(source);
+
+		gCompositeParamDef.gTint.set(mParamBuffer, tint);
+
+		// Render
+		RenderAPI& rapi = RenderAPI::instance();
+		rapi.setRenderTarget(target);
+
+		bind();
+		gRendererUtility().drawScreenQuad();
+	}
 }}

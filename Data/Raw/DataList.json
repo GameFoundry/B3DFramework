@@ -207,6 +207,10 @@
         {
             "Path": "ShapingCommon.bslinc",
             "UUID": "3d40728a-454c-0618-cb8d-454c0d8b9d07"
+        },
+        {
+            "Path": "PPGaussianBlurCommon.bslinc",
+            "UUID": "5fcd03a8-489b-a141-a2b6-489b4995ad59"
         }
     ],
     "Shaders": [
@@ -525,6 +529,14 @@
         {
             "Path": "SpriteImage.bsl",
             "UUID": "430d9f0c-491b-d499-a994-491bfb3a1907"
+        },
+        {
+            "Path": "PPScreenSpaceLensFlare.bsl",
+            "UUID": "77a9c58f-4f0c-b1db-6294-4f0c85c504db"
+        },
+        {
+            "Path": "Composite.bsl",
+            "UUID": "9035d668-46c0-ba4a-75b0-46c0cf3c64e7"
         }
     ],
     "Skin": [

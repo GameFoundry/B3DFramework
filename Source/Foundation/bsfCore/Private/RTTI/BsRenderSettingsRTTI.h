@@ -230,6 +230,7 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(threshold, 2)
 			BS_RTTI_MEMBER_PLAIN(intensity, 3)
 			BS_RTTI_MEMBER_PLAIN(tint, 4)
+			BS_RTTI_MEMBER_PLAIN(filterSize, 5)
 		BS_END_RTTI_MEMBERS
 
 	public:
@@ -247,6 +248,45 @@ namespace bs
 		SPtr<IReflectable> newRTTIObject() override
 		{
 			return bs_shared_ptr_new<BloomSettings>();
+		}
+	};
+
+	class BS_CORE_EXPORT ScreenSpaceLensFlareSettingsRTTI : 
+	public RTTIType <ScreenSpaceLensFlareSettings, IReflectable, ScreenSpaceLensFlareSettingsRTTI>
+	{
+	private:
+		BS_BEGIN_RTTI_MEMBERS
+			BS_RTTI_MEMBER_PLAIN(enabled, 0)
+			BS_RTTI_MEMBER_PLAIN(downsampleCount, 1)
+			BS_RTTI_MEMBER_PLAIN(threshold, 2)
+			BS_RTTI_MEMBER_PLAIN(ghostCount, 3)
+			BS_RTTI_MEMBER_PLAIN(ghostSpacing, 4)
+			BS_RTTI_MEMBER_PLAIN(brightness, 5)
+			BS_RTTI_MEMBER_PLAIN(filterSize, 6)
+			BS_RTTI_MEMBER_PLAIN(halo, 7)
+			BS_RTTI_MEMBER_PLAIN(haloAspectRatio, 8)
+			BS_RTTI_MEMBER_PLAIN(haloRadius, 9)
+			BS_RTTI_MEMBER_PLAIN(haloThickness, 10)
+			BS_RTTI_MEMBER_PLAIN(haloThreshold, 11)
+			BS_RTTI_MEMBER_PLAIN(chromaticAberration, 12)
+			BS_RTTI_MEMBER_PLAIN(chromaticAberrationOffset, 13)
+		BS_END_RTTI_MEMBERS
+
+	public:
+		const String& getRTTIName() override
+		{
+			static String name = "ScreenSpaceLensFlareSettings";
+			return name;
+		}
+
+		UINT32 getRTTIId() override
+		{
+			return TID_ScreenSpaceLensFlareSettings;
+		}
+
+		SPtr<IReflectable> newRTTIObject() override
+		{
+			return bs_shared_ptr_new<ScreenSpaceLensFlareSettings>();
 		}
 	};
 
@@ -302,6 +342,7 @@ namespace bs
 			BS_RTTI_MEMBER_REFL(shadowSettings, 17)
 			BS_RTTI_MEMBER_PLAIN(enableSkybox, 18)
 			BS_RTTI_MEMBER_REFL(bloom, 19)
+			BS_RTTI_MEMBER_REFL(screenSpaceLensFlare, 20)
 		BS_END_RTTI_MEMBERS
 
 	public:

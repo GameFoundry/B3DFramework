@@ -1996,6 +1996,9 @@ namespace bs { namespace ct
 		if(view.getRenderSettings().bloom.enabled)
 			deps.add(RCNodeBloom::getNodeId());
 
+		if(view.getRenderSettings().screenSpaceLensFlare.enabled)
+			deps.add(RCNodeScreenSpaceLensFlare::getNodeId());
+
 		return deps;
 	}
 
@@ -2136,6 +2139,49 @@ namespace bs { namespace ct
 	SmallVector<StringID, 4> RCNodeHalfSceneColor::getDependencies(const RendererView& view)
 	{
 		return { RCNodeSceneColor::getNodeId() };
+	}
+
+	void RCNodeSceneColorDownsamples::render(const RenderCompositorNodeInputs& inputs)
+	{
+		GpuResourcePool& resPool = GpuResourcePool::instance();
+
+		auto* halfSceneColorNode = static_cast<RCNodeHalfSceneColor*>(inputs.inputNodes[0]);
+		const TextureProperties& halfSceneProps = halfSceneColorNode->output->texture->getProperties();
+
+		const UINT32 totalDownsampleLevels = PixelUtil::getMaxMipmaps(
+			halfSceneProps.getWidth(), 
+			halfSceneProps.getHeight(), 
+			1, 
+			halfSceneProps.getFormat()
+		) + 1;
+
+		availableDownsamples = Math::min(MAX_NUM_DOWNSAMPLES, totalDownsampleLevels);
+
+		{
+			output[0] = halfSceneColorNode->output;
+
+			DownsampleMat* downsampleMat = DownsampleMat::getVariation(1, false);
+			for (UINT32 i = 1; i < availableDownsamples; i++)
+			{
+				output[i] = resPool.get(DownsampleMat::getOutputDesc(output[i - 1]->texture));
+				downsampleMat->execute(output[i - 1]->texture, output[i]->renderTexture);
+			}
+		}
+	}
+
+	void RCNodeSceneColorDownsamples::clear()
+	{
+		GpuResourcePool& resPool = GpuResourcePool::instance();
+
+		for(UINT32 i = 1; i < MAX_NUM_DOWNSAMPLES; i++)
+			resPool.release(output[i]);
+
+		output[0] = nullptr;
+	}
+
+	SmallVector<StringID, 4> RCNodeSceneColorDownsamples::getDependencies(const RendererView& view)
+	{
+		return { RCNodeHalfSceneColor::getNodeId() };
 	}
 
 	void RCNodeResolvedSceneDepth::render(const RenderCompositorNodeInputs& inputs)
@@ -2625,80 +2671,68 @@ namespace bs { namespace ct
 		GpuResourcePool& resPool = GpuResourcePool::instance();
 		const RenderSettings& settings = inputs.view.getRenderSettings();
 
-		// Grab 1/2 scene color to use as input
-		auto* halfSceneColorNode = static_cast<RCNodeHalfSceneColor*>(inputs.inputNodes[1]);
-		const SPtr<Texture>& halfSceneColor = halfSceneColorNode->output->texture;
+		// Grab downsampled scene color to use as input
+		auto* sceneDownsamplesNode = static_cast<RCNodeSceneColorDownsamples*>(inputs.inputNodes[1]);
 
-		// Clip color values based on intensity (if enabled)
-		SPtr<PooledRenderTexture> clipOutput;
-		SPtr<PooledRenderTexture> downsampleInput;
-		if(settings.bloom.threshold > 0.0f)
-		{
-			const bool autoExposure = settings.enableHDR && settings.enableAutoExposure;
-			BloomClipMat* clipMat = BloomClipMat::getVariation(autoExposure);
+		constexpr UINT32 PREFERRED_NUM_DOWNSAMPLE_LEVELS = 6;
+		const UINT32 availableDownsamples = sceneDownsamplesNode->availableDownsamples;
+		const UINT32 numDownsamples = Math::min(availableDownsamples, PREFERRED_NUM_DOWNSAMPLE_LEVELS);
+		assert(numDownsamples >= 1);
 
-			SPtr<Texture> eyeAdaptationTex = nullptr;
-
-			if(autoExposure)
-			{
-				auto* eyeAdapatationNode = static_cast<RCNodeEyeAdaptation*>(inputs.inputNodes[2]);
-
-				if(eyeAdapatationNode->output)
-					eyeAdaptationTex = eyeAdapatationNode->output->texture;
-			}
-
-			const TextureProperties& halfSceneColorProps = halfSceneColor->getProperties();
-			clipOutput = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(
-				halfSceneColorProps.getFormat(),
-				halfSceneColorProps.getWidth(),
-				halfSceneColorProps.getHeight(),
-				TU_RENDERTARGET));
-
-			clipMat->execute(halfSceneColor, settings.bloom.threshold, eyeAdaptationTex, settings, 
-				clipOutput->renderTexture);
-
-			downsampleInput = clipOutput;
-		}
-		else
-			downsampleInput = halfSceneColorNode->output;
-
-		// Generate the downsample pyramid
-		constexpr UINT32 NUM_DOWNSAMPLE_LEVELS = 6;
-		SPtr<PooledRenderTexture> downsamplePyramid[NUM_DOWNSAMPLE_LEVELS];
-		downsamplePyramid[0] = downsampleInput;
-
-		DownsampleMat* downsampleMat = DownsampleMat::getVariation(1, false);
-		for(UINT32 i = 1; i < NUM_DOWNSAMPLE_LEVELS; i++)
-		{
-			downsamplePyramid[i] = resPool.get(DownsampleMat::getOutputDesc(downsamplePyramid[i - 1]->texture));
-			downsampleMat->execute(downsamplePyramid[i - 1]->texture, downsamplePyramid[i]->renderTexture);
-		}
-
-		// Blur the downsampled entries and add them together
+		// Blur & clip the downsampled entries and add them together
 		const UINT32 quality = Math::clamp(settings.bloom.quality, 0U, 3U);
 		constexpr UINT32 NUM_STEPS_PER_QUALITY[] = { 3, 4, 5, 6  };
-		constexpr float FILTER_SIZE_PER_STEP[] = { 4.0f, 16.0f, 64.0f, 128.0f, 256.0f, 256.0f };
-		
+
 		GaussianBlurMat* filterMat = GaussianBlurMat::getVariation(true);
+
+		const bool autoExposure = settings.enableHDR && settings.enableAutoExposure;
+		BloomClipMat* clipMat = BloomClipMat::getVariation(autoExposure);
+
+		SPtr<Texture> eyeAdaptationTex = nullptr;
+		if (autoExposure)
+		{
+			auto* eyeAdapatationNode = static_cast<RCNodeEyeAdaptation*>(inputs.inputNodes[2]);
+
+			if (eyeAdapatationNode->output)
+				eyeAdaptationTex = eyeAdapatationNode->output->texture;
+		}
+
 		const UINT32 numSteps = NUM_STEPS_PER_QUALITY[quality];
 		SPtr<PooledRenderTexture> prevOutput;
 		for(UINT32 i = 0; i < numSteps; i++)
 		{
-			const UINT32 srcIdx = NUM_DOWNSAMPLE_LEVELS - i - 1;
-			const TextureProperties& inputProps = downsamplePyramid[srcIdx]->texture->getProperties();
+			const UINT32 srcIdx = numDownsamples - i - 1;
+			const SPtr<PooledRenderTexture> downsampledTex = sceneDownsamplesNode->output[srcIdx];
+
+			const TextureProperties& inputProps = downsampledTex->texture->getProperties();
 
 			SPtr<PooledRenderTexture> filterOutput = resPool.get(
-				POOLED_RENDER_TEXTURE_DESC::create2D(inputProps.getFormat(), inputProps.getWidth(), 
-				inputProps.getHeight(), TU_RENDERTARGET));
+				POOLED_RENDER_TEXTURE_DESC::create2D(
+					inputProps.getFormat(), 
+					inputProps.getWidth(), 
+					inputProps.getHeight(), 
+					TU_RENDERTARGET)
+			);
+
+			SPtr<PooledRenderTexture> blurInput = downsampledTex;
+			SPtr<PooledRenderTexture> blurOutput = filterOutput;
+			if(settings.bloom.threshold > 0.0f)
+			{
+				clipMat->execute(downsampledTex->texture, settings.bloom.threshold, eyeAdaptationTex, settings, 
+					filterOutput->renderTexture);
+
+				blurOutput = blurInput;
+				blurInput = filterOutput;
+			}
 
 			SPtr<Texture> additiveInput;
 			if(prevOutput)
 				additiveInput = prevOutput->texture;
 
 			const Color tint = Color::White * (settings.bloom.intensity / (float)numSteps);
-			filterMat->execute(downsamplePyramid[srcIdx]->texture, FILTER_SIZE_PER_STEP[i], filterOutput->renderTexture, 
+			filterMat->execute(blurInput->texture, settings.bloom.filterSize, blurOutput->renderTexture, 
 				tint, additiveInput);
-			prevOutput = filterOutput;
+			prevOutput = blurOutput;
 		}
 
 		mPooledOutput = prevOutput;
@@ -2715,7 +2749,69 @@ namespace bs { namespace ct
 
 	SmallVector<StringID, 4> RCNodeBloom::getDependencies(const RendererView& view)
 	{
-		return { RCNodeClusteredForward::getNodeId(), RCNodeHalfSceneColor::getNodeId(), RCNodeEyeAdaptation::getNodeId() };
+		return 
+		{ 
+			RCNodeClusteredForward::getNodeId(), 
+			RCNodeSceneColorDownsamples::getNodeId(), 
+			RCNodeEyeAdaptation::getNodeId() 
+		};
 	}
 
+	void RCNodeScreenSpaceLensFlare::render(const RenderCompositorNodeInputs& inputs)
+	{
+		GpuResourcePool& resPool = GpuResourcePool::instance();
+		const RenderSettings& settings = inputs.view.getRenderSettings();
+		const ScreenSpaceLensFlareSettings& lensFlareSettings = settings.screenSpaceLensFlare;
+
+		// Grab downsampled scene color to use as input
+		auto* sceneDownsamplesNode = static_cast<RCNodeSceneColorDownsamples*>(inputs.inputNodes[2]);
+
+		const UINT32 availableDownsamples = sceneDownsamplesNode->availableDownsamples;
+		const UINT32 numDownsamples = Math::min(settings.screenSpaceLensFlare.downsampleCount, availableDownsamples);
+		assert(numDownsamples >= 1);
+
+		SPtr<PooledRenderTexture> downsampledTex = sceneDownsamplesNode->output[numDownsamples - 1];
+		const TextureProperties& sceneTexProps = downsampledTex->texture->getProperties();
+
+		// Ghost features
+		SPtr<PooledRenderTexture> featureTex = resPool.get(
+			POOLED_RENDER_TEXTURE_DESC::create2D(
+				sceneTexProps.getFormat(), 
+				sceneTexProps.getWidth(),
+				sceneTexProps.getHeight(), 
+				TU_RENDERTARGET));
+
+		bool haloAspect = lensFlareSettings.haloAspectRatio != 1.0f;
+		ScreenSpaceLensFlareMat* lensFlareMat = ScreenSpaceLensFlareMat::getVariation(
+			lensFlareSettings.halo, 
+			haloAspect, 
+			lensFlareSettings.chromaticAberration);
+		lensFlareMat->execute(downsampledTex->texture, lensFlareSettings, featureTex->renderTexture);
+
+		// Blur
+		GaussianBlurMat* filterMat = GaussianBlurMat::get();
+		filterMat->execute(featureTex->texture, lensFlareSettings.filterSize, downsampledTex->renderTexture, Color::White);
+
+		auto* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[1]);
+		CompositeMat* compositeMat = CompositeMat::get();
+		compositeMat->execute(
+			downsampledTex->texture, 
+			sceneColorNode->renderTarget, 
+			Color::White * lensFlareSettings.brightness);
+	}
+
+	void RCNodeScreenSpaceLensFlare::clear()
+	{
+		// Do nothing
+	}
+
+	SmallVector<StringID, 4> RCNodeScreenSpaceLensFlare::getDependencies(const RendererView& view)
+	{
+		return 
+		{ 
+			RCNodeClusteredForward::getNodeId(), 
+			RCNodeSceneColor::getNodeId(), 
+			RCNodeSceneColorDownsamples::getNodeId()
+		};
+	}
 }}

@@ -120,6 +120,8 @@ namespace bs { namespace ct
 		RenderCompositor::registerNodeType<RCNodeHalfSceneColor>();
 		RenderCompositor::registerNodeType<RCNodeBloom>();
 		RenderCompositor::registerNodeType<RCNodeEyeAdaptation>();
+		RenderCompositor::registerNodeType<RCNodeScreenSpaceLensFlare>();
+		RenderCompositor::registerNodeType<RCNodeSceneColorDownsamples>();
 	}
 
 	void RenderBeast::destroyCore()

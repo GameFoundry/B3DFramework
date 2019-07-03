@@ -10,6 +10,7 @@
 #include "Renderer/BsGpuResourcePool.h"
 #include "BsRendererView.h"
 #include "BsRenderBeast.h"
+#include "Utility/BsRendererTextures.h"
 
 namespace bs { namespace ct
 {
@@ -669,6 +670,71 @@ namespace bs { namespace ct
 		return get(getVariation<false>());
 	}
 
+	ScreenSpaceLensFlareParamDef gScreenSpaceLensFlareParamDef;
+
+	ScreenSpaceLensFlareMat::ScreenSpaceLensFlareMat()
+	{
+		mParamBuffer = gScreenSpaceLensFlareParamDef.createBuffer();
+
+		mParams->setParamBlockBuffer("Input", mParamBuffer);
+		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
+		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gGradientTex", mGradientTex);
+	}
+
+	void ScreenSpaceLensFlareMat::execute(const SPtr<Texture>& input, const ScreenSpaceLensFlareSettings& settings, 
+		const SPtr<RenderTarget>& output)
+	{
+		BS_RENMAT_PROFILE_BLOCK
+
+		// Set parameters
+		gScreenSpaceLensFlareParamDef.gThreshold.set(mParamBuffer, settings.threshold);
+		gScreenSpaceLensFlareParamDef.gGhostCount.set(mParamBuffer, settings.ghostCount);
+		gScreenSpaceLensFlareParamDef.gGhostSpacing.set(mParamBuffer, settings.ghostSpacing);
+		gScreenSpaceLensFlareParamDef.gHaloRadius.set(mParamBuffer, settings.haloRadius);
+		gScreenSpaceLensFlareParamDef.gHaloThickness.set(mParamBuffer, settings.haloThickness);
+		gScreenSpaceLensFlareParamDef.gHaloThreshold.set(mParamBuffer, settings.haloThreshold);
+		gScreenSpaceLensFlareParamDef.gHaloAspectRatio.set(mParamBuffer, settings.haloAspectRatio);
+		gScreenSpaceLensFlareParamDef.gChromaticAberration.set(mParamBuffer, settings.chromaticAberrationOffset);
+
+		mInputTex.set(input);
+		mGradientTex.set(RendererTextures::lensFlareGradient);
+
+		// Render
+		RenderAPI& rapi = RenderAPI::instance();
+		rapi.setRenderTarget(output);
+
+		bind();
+		gRendererUtility().drawScreenQuad();
+	}
+
+	ScreenSpaceLensFlareMat* ScreenSpaceLensFlareMat::getVariation(bool halo, bool haloAspect, bool chromaticAberration)
+	{
+		if(halo)
+		{
+			if(haloAspect)
+			{
+				if(chromaticAberration)
+					return get(getVariation<1, true>());
+				
+				return get(getVariation<1, false>());
+			}
+			else
+			{
+				if(chromaticAberration)
+					return get(getVariation<2, true>());
+				
+				return get(getVariation<2, false>());
+			}
+		}
+		else
+		{
+			if (chromaticAberration)
+				return get(getVariation<0, true>());
+
+			return get(getVariation<0, false>());
+		}
+	}
+
 	GaussianBlurParamDef gGaussianBlurParamDef;
 
 	GaussianBlurMat::GaussianBlurMat()
@@ -676,7 +742,7 @@ namespace bs { namespace ct
 		mParamBuffer = gGaussianBlurParamDef.createBuffer();
 		mIsAdditive = mVariation.getBool("ADDITIVE");
 
-		mParams->setParamBlockBuffer("Input", mParamBuffer);
+		mParams->setParamBlockBuffer("GaussianBlurParams", mParamBuffer);
 		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 
 		if(mIsAdditive)
@@ -696,61 +762,13 @@ namespace bs { namespace ct
 		const TextureProperties& srcProps = source->getProperties();
 		const RenderTextureProperties& dstProps = destination->getProperties();
 
-		Vector2 invTexSize(1.0f / srcProps.getWidth(), 1.0f / srcProps.getHeight());
-
-		std::array<float, MAX_BLUR_SAMPLES> sampleOffsets;
-		std::array<float, MAX_BLUR_SAMPLES> sampleWeights;
-
 		POOLED_RENDER_TEXTURE_DESC tempTextureDesc = POOLED_RENDER_TEXTURE_DESC::create2D(srcProps.getFormat(), 
 			dstProps.width, dstProps.height, TU_RENDERTARGET);
 		SPtr<PooledRenderTexture> tempTexture = GpuResourcePool::instance().get(tempTextureDesc);
 
-		const auto updateParamBuffer = 
-			[&source, &filterSize, &sampleWeights, &sampleOffsets, &invTexSize, &paramBuffer = mParamBuffer]
-		(Direction direction, const Color& tint)
-		{
-			const float kernelRadius = calcKernelRadius(source, filterSize, direction);
-			const UINT32 numSamples = calcStdDistribution(kernelRadius, sampleWeights, sampleOffsets);
-
-			for(UINT32 i = 0; i < numSamples; ++i)
-			{
-				Vector4 weight(tint.r, tint.g, tint.b, tint.a);
-				weight *= sampleWeights[i];
-
-				gGaussianBlurParamDef.gSampleWeights.set(paramBuffer, weight, i);
-			}
-
-			UINT32 axis0 = direction == DirHorizontal ? 0 : 1;
-			UINT32 axis1 = (axis0 + 1) % 2;
-
-			for(UINT32 i = 0; i < (numSamples + 1) / 2; ++i)
-			{
-				UINT32 remainder = std::min(2U, numSamples - i * 2);
-
-				Vector4 offset;
-				offset[axis0] = sampleOffsets[i * 2 + 0] * invTexSize[axis0];
-				offset[axis1] = 0.0f;
-
-				if(remainder == 2)
-				{
-					offset[axis0 + 2] = sampleOffsets[i * 2 + 1] * invTexSize[axis0];
-					offset[axis1 + 2] = 0.0f;
-				}
-				else
-				{
-					offset[axis0 + 2] = 0.0f;
-					offset[axis1 + 2] = 0.0f;
-				}
-
-				gGaussianBlurParamDef.gSampleOffsets.set(paramBuffer, offset, i);
-			}
-
-			gGaussianBlurParamDef.gNumSamples.set(paramBuffer, numSamples);
-		};
-
 		// Horizontal pass
 		{
-			updateParamBuffer(DirHorizontal, Color::White);
+			populateBuffer(mParamBuffer, DirHorizontal, source, filterSize, Color::White);
 			mInputTexture.set(source);
 
 			if(mIsAdditive)
@@ -765,7 +783,7 @@ namespace bs { namespace ct
 
 		// Vertical pass
 		{
-			updateParamBuffer(DirVertical, tint);
+			populateBuffer(mParamBuffer, DirVertical, source, filterSize, tint);
 			mInputTexture.set(tempTexture->texture);
 
 			if(mIsAdditive)
@@ -869,6 +887,55 @@ namespace bs { namespace ct
 
 		// Divide by two because we need the radius
 		return std::min(length * scale / 2, (float)MAX_BLUR_SAMPLES - 1);
+	}
+
+	void GaussianBlurMat::populateBuffer(const SPtr<GpuParamBlockBuffer>& buffer, Direction direction, 
+		const SPtr<Texture>& source, float filterSize, const Color& tint)
+	{
+		const TextureProperties& srcProps = source->getProperties();
+
+		Vector2 invTexSize(1.0f / srcProps.getWidth(), 1.0f / srcProps.getHeight());
+
+		std::array<float, MAX_BLUR_SAMPLES> sampleOffsets;
+		std::array<float, MAX_BLUR_SAMPLES> sampleWeights;
+
+		const float kernelRadius = calcKernelRadius(source, filterSize, direction);
+		const UINT32 numSamples = calcStdDistribution(kernelRadius, sampleWeights, sampleOffsets);
+
+		for (UINT32 i = 0; i < numSamples; ++i)
+		{
+			Vector4 weight(tint.r, tint.g, tint.b, tint.a);
+			weight *= sampleWeights[i];
+
+			gGaussianBlurParamDef.gSampleWeights.set(buffer, weight, i);
+		}
+
+		UINT32 axis0 = direction == DirHorizontal ? 0 : 1;
+		UINT32 axis1 = (axis0 + 1) % 2;
+
+		for (UINT32 i = 0; i < (numSamples + 1) / 2; ++i)
+		{
+			UINT32 remainder = std::min(2U, numSamples - i * 2);
+
+			Vector4 offset;
+			offset[axis0] = sampleOffsets[i * 2 + 0] * invTexSize[axis0];
+			offset[axis1] = 0.0f;
+
+			if (remainder == 2)
+			{
+				offset[axis0 + 2] = sampleOffsets[i * 2 + 1] * invTexSize[axis0];
+				offset[axis1 + 2] = 0.0f;
+			}
+			else
+			{
+				offset[axis0 + 2] = 0.0f;
+				offset[axis1 + 2] = 0.0f;
+			}
+
+			gGaussianBlurParamDef.gSampleOffsets.set(buffer, offset, i);
+		}
+
+		gGaussianBlurParamDef.gNumSamples.set(buffer, numSamples);
 	}
 
 	GaussianBlurMat* GaussianBlurMat::getVariation(bool additive)

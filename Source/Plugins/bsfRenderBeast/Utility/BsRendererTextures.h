@@ -35,6 +35,9 @@ namespace bs { namespace ct
 
 		/** Cubemap containing indirect lighting, when no other is available. */
 		static SPtr<Texture> defaultIndirect;
+
+		/** Texture used for coloring the lens flare effect depending on its distance from screen center. */
+		static SPtr<Texture> lensFlareGradient;
 	};
 
 	/** @} */

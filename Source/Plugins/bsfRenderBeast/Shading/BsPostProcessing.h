@@ -374,7 +374,7 @@ namespace bs { namespace ct
 		 * render target.
 		 *
 		 * @param[in]	input			Texture to process.
-		 * @param[in]	threshold		Treshold below which values will be ignored for purposes of bloom.
+		 * @param[in]	threshold		Threshold below which values will be ignored for purposes of bloom.
 		 * @param[in]	eyeAdaptation	Texture containing eye adaptation exposure value. Only needed if using the
 		 *								AUTO_EXPOSURE variation of this material.
 		 * @param[in]	settings		Render settings for the current view.
@@ -399,6 +399,68 @@ namespace bs { namespace ct
 		GpuParamTexture mEyeAdaptationTex;
 	};
 
+	BS_PARAM_BLOCK_BEGIN(ScreenSpaceLensFlareParamDef)
+		BS_PARAM_BLOCK_ENTRY(float, gThreshold)
+		BS_PARAM_BLOCK_ENTRY(float, gGhostSpacing)
+		BS_PARAM_BLOCK_ENTRY(INT32, gGhostCount)
+		BS_PARAM_BLOCK_ENTRY(float, gHaloRadius)
+		BS_PARAM_BLOCK_ENTRY(float, gHaloThickness)
+		BS_PARAM_BLOCK_ENTRY(float, gHaloThreshold)
+		BS_PARAM_BLOCK_ENTRY(float, gHaloAspectRatio)
+		BS_PARAM_BLOCK_ENTRY(float, gChromaticAberration)
+	BS_PARAM_BLOCK_END
+
+	extern ScreenSpaceLensFlareParamDef gScreenSpaceLensFlareParamDef;
+
+	/** Generates ghost features from bright areas of an image, required for screen space lens flare rendering. */
+	class ScreenSpaceLensFlareMat : public RendererMaterial<ScreenSpaceLensFlareMat>
+	{
+		RMAT_DEF("PPScreenSpaceLensFlare.bsl");
+
+		/** Helper method used for initializing variations of this material. */
+		template<UINT32 HALO_MODE, bool CHROMATIC_ABERRATION>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation(
+			{
+				ShaderVariation::Param("HALO_MODE", HALO_MODE),
+				ShaderVariation::Param("CHROMATIC_ABERRATION", CHROMATIC_ABERRATION)
+			});
+
+			return variation;
+		}
+	public:
+		ScreenSpaceLensFlareMat();
+
+		/** 
+		 * Executes the post-process effect with the provided parameters and writes the results to the provided
+		 * render target.
+		 *
+		 * @param[in]	input		Texture to process.
+		 * @param[in]	settings	Settings used for customizing the effect.
+		 * @param[in]	output		Render target to write the results to.
+		 */
+		void execute(const SPtr<Texture>& input, const ScreenSpaceLensFlareSettings& settings, 
+			const SPtr<RenderTarget>& output);
+
+		/** 
+		 * Returns the material variation matching the provided parameters. 
+		 * 
+		 * @param[in]	halo					If true the effect will render a halo as well as a normal lens flare.
+		 * @param[in]	haloAspect				If true, user can set a custom aspect ratio for the rendered halo. 
+		 *										Only relevant if @p halo is turned on.
+		 * @param[in]	chromaticAberration		If true, lens flare and halo (if enabled) features will be rendered by
+		 *										splitting the red, green and blue channels according to a user-provided
+		 *										offset.
+		 */
+		static ScreenSpaceLensFlareMat* getVariation(bool halo, bool haloAspect, bool chromaticAberration);
+	private:
+		SPtr<GpuParamBlockBuffer> mParamBuffer;
+
+		GpuParamTexture mInputTex;
+		GpuParamTexture mGradientTex;
+	};
+
 	const int MAX_BLUR_SAMPLES = 128;
 
 	BS_PARAM_BLOCK_BEGIN(GaussianBlurParamDef)
@@ -412,13 +474,6 @@ namespace bs { namespace ct
 	/** Shader that performs Gaussian blur filtering on the provided texture. */
 	class GaussianBlurMat : public RendererMaterial<GaussianBlurMat>
 	{
-		// Direction of the Gaussian filter pass
-		enum Direction
-		{
-			DirVertical,
-			DirHorizontal
-		};
-
 		RMAT_DEF_CUSTOMIZED("PPGaussianBlur.bsl");
 
 		/** Helper method used for initializing variations of this material. */
@@ -433,6 +488,13 @@ namespace bs { namespace ct
 			return variation;
 		}
 	public:
+		// Direction of the Gaussian filter pass
+		enum Direction
+		{
+			DirVertical,
+			DirHorizontal
+		};
+
 		GaussianBlurMat();
 
 		/** 
@@ -450,13 +512,24 @@ namespace bs { namespace ct
 			const Color& tint = Color::White, const SPtr<Texture>& additive = nullptr);
 
 		/** 
+		 * Populates the provided parameter buffer with parameters required for a shader including gaussian blur.
+		 *
+		 * @param[in]	buffer		Buffer to write the parameters to. Must be created using @p GaussianBlurParamDef.
+		 * @param[in]	direction	Direction in which to perform the separable blur.
+		 * @param[in]	source		Source texture that needs to be blurred.
+		 * @param[in]	filterSize	Size of the blurring filter, in percent of the source texture. In range [0, 1].
+		 * @param[in]	tint		Optional tint to apply all filtered pixels.
+		 */
+		static void populateBuffer(const SPtr<GpuParamBlockBuffer>& buffer, Direction direction, 
+			const SPtr<Texture>& source, float filterSize, const Color& tint = Color::White);
+
+		/** 
 		 * Returns the material variation matching the provided parameters. 
 		 * 
 		 * @param[in]	additive	If true the returned variation will support and additional input texture that will be
 		 *							added on top of the filtered output.
 		 */
 		static GaussianBlurMat* getVariation(bool additive);
-
 	private:
 		/** Calculates weights and offsets for the standard distribution of the specified filter size. */
 		static UINT32 calcStdDistribution(float filterRadius, std::array<float, MAX_BLUR_SAMPLES>& weights,
