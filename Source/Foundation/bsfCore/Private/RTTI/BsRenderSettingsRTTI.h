@@ -270,6 +270,7 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(haloThreshold, 11)
 			BS_RTTI_MEMBER_PLAIN(chromaticAberration, 12)
 			BS_RTTI_MEMBER_PLAIN(chromaticAberrationOffset, 13)
+			BS_RTTI_MEMBER_PLAIN(bicubicUpsampling, 14)
 		BS_END_RTTI_MEMBERS
 
 	public:

@@ -2735,6 +2735,9 @@ Whether or not an audio source is spatial is controlled by the assigned AudioCli
 		<property name="ChromaticAberrationOffset" type="float" getter="getchromaticAberrationOffset" setter="setchromaticAberrationOffset" static="false">
 			<doc>Determines the distance between pixels within which to sample different channels. The value is in  UV coordinates, range [0, 1].</doc>
 		</property>
+		<property name="BicubicUpsampling" type="bool" getter="getbicubicUpsampling" setter="setbicubicUpsampling" static="false">
+			<doc>Uses a higher quality upscaling when blending the lens flare features with scene color. Results in less blocky artifacts at a cost to performance.</doc>
+		</property>
 	</class>
 	<enum native="CollisionReportMode" script="CollisionReportMode">
 		<doc>Determines which collision events will be reported by physics objects.</doc>

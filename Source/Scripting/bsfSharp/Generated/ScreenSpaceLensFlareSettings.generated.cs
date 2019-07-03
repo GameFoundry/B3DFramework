@@ -189,6 +189,18 @@ namespace bs
 			set { Internal_setchromaticAberrationOffset(mCachedPtr, value); }
 		}
 
+		/// <summary>
+		/// Uses a higher quality upscaling when blending the lens flare features with scene color. Results in less blocky 
+		/// artifacts at a cost to performance.
+		/// </summary>
+		[ShowInInspector]
+		[NativeWrapper]
+		public bool BicubicUpsampling
+		{
+			get { return Internal_getbicubicUpsampling(mCachedPtr); }
+			set { Internal_setbicubicUpsampling(mCachedPtr, value); }
+		}
+
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_ScreenSpaceLensFlareSettings(ScreenSpaceLensFlareSettings managedInstance);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -247,6 +259,10 @@ namespace bs
 		private static extern float Internal_getchromaticAberrationOffset(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setchromaticAberrationOffset(IntPtr thisPtr, float value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern bool Internal_getbicubicUpsampling(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_setbicubicUpsampling(IntPtr thisPtr, bool value);
 	}
 
 	/** @} */

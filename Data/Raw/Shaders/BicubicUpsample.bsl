@@ -118,7 +118,8 @@ shader BicubicUpsample
     
 			float2 fractional = frac(pixel);
 			pixel = floor(pixel) / gTextureSize - gInvPixel/2.0f;
-			
+	
+			// Note: Investigate a version requiring less taps: http://vec3.ca/bicubic-filtering-in-fewer-taps/
 			float3 C00 = gSource.Sample(gSampler, pixel + float2(-gInvPixel.x    	, -gInvPixel.y)).rgb;
 			float3 C10 = gSource.Sample(gSampler, pixel + float2( 0.0f         		, -gInvPixel.y)).rgb;
 			float3 C20 = gSource.Sample(gSampler, pixel + float2( gInvPixel.x    	, -gInvPixel.y)).rgb;

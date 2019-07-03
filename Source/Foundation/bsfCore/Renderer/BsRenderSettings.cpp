@@ -189,6 +189,7 @@ namespace bs
 		p(haloAspectRatio);
 		p(chromaticAberration);
 		p(chromaticAberrationOffset);
+		p(bicubicUpsampling);
 	}
 
 	RTTITypeBase* ScreenSpaceLensFlareSettings::getRTTIStatic()

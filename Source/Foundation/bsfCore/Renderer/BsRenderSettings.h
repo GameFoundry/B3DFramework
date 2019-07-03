@@ -577,6 +577,12 @@ namespace bs
 		BS_SCRIPT_EXPORT(range:[0,1])
 		float chromaticAberrationOffset = 0.01f;
 
+		/**
+		 * Uses a higher quality upscaling when blending the lens flare features with scene color. Results in less blocky
+		 * artifacts at a cost to performance.
+		 */
+		BS_SCRIPT_EXPORT()
+		bool bicubicUpsampling = false;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

@@ -49,5 +49,7 @@ namespace bs
 		static void Internal_setchromaticAberration(ScriptScreenSpaceLensFlareSettings* thisPtr, bool value);
 		static float Internal_getchromaticAberrationOffset(ScriptScreenSpaceLensFlareSettings* thisPtr);
 		static void Internal_setchromaticAberrationOffset(ScriptScreenSpaceLensFlareSettings* thisPtr, float value);
+		static bool Internal_getbicubicUpsampling(ScriptScreenSpaceLensFlareSettings* thisPtr);
+		static void Internal_setbicubicUpsampling(ScriptScreenSpaceLensFlareSettings* thisPtr, bool value);
 	};
 }

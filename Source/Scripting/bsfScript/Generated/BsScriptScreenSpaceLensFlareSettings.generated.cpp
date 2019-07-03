@@ -43,6 +43,8 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_setchromaticAberration", (void*)&ScriptScreenSpaceLensFlareSettings::Internal_setchromaticAberration);
 		metaData.scriptClass->addInternalCall("Internal_getchromaticAberrationOffset", (void*)&ScriptScreenSpaceLensFlareSettings::Internal_getchromaticAberrationOffset);
 		metaData.scriptClass->addInternalCall("Internal_setchromaticAberrationOffset", (void*)&ScriptScreenSpaceLensFlareSettings::Internal_setchromaticAberrationOffset);
+		metaData.scriptClass->addInternalCall("Internal_getbicubicUpsampling", (void*)&ScriptScreenSpaceLensFlareSettings::Internal_getbicubicUpsampling);
+		metaData.scriptClass->addInternalCall("Internal_setbicubicUpsampling", (void*)&ScriptScreenSpaceLensFlareSettings::Internal_setbicubicUpsampling);
 
 	}
 
@@ -285,5 +287,21 @@ namespace bs
 	void ScriptScreenSpaceLensFlareSettings::Internal_setchromaticAberrationOffset(ScriptScreenSpaceLensFlareSettings* thisPtr, float value)
 	{
 		thisPtr->getInternal()->chromaticAberrationOffset = value;
+	}
+
+	bool ScriptScreenSpaceLensFlareSettings::Internal_getbicubicUpsampling(ScriptScreenSpaceLensFlareSettings* thisPtr)
+	{
+		bool tmp__output;
+		tmp__output = thisPtr->getInternal()->bicubicUpsampling;
+
+		bool __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	void ScriptScreenSpaceLensFlareSettings::Internal_setbicubicUpsampling(ScriptScreenSpaceLensFlareSettings* thisPtr, bool value)
+	{
+		thisPtr->getInternal()->bicubicUpsampling = value;
 	}
 }

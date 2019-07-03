@@ -2794,11 +2794,22 @@ namespace bs { namespace ct
 
 		auto* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[1]);
 
-		BicubicUpsampleMat* upsampleMat = BicubicUpsampleMat::getVariation(false);
-		upsampleMat->execute(
-			downsampledTex->texture,
-			sceneColorNode->renderTarget,
-			Color::White * lensFlareSettings.brightness);
+		if(lensFlareSettings.bicubicUpsampling)
+		{
+			BicubicUpsampleMat* upsampleMat = BicubicUpsampleMat::getVariation(false);
+			upsampleMat->execute(
+				downsampledTex->texture,
+				sceneColorNode->renderTarget,
+				Color::White * lensFlareSettings.brightness);
+		}
+		else
+		{
+			CompositeMat* upsampleMat = CompositeMat::get();
+			upsampleMat->execute(
+				downsampledTex->texture,
+				sceneColorNode->renderTarget,
+				Color::White * lensFlareSettings.brightness);
+		}
 	}
 
 	void RCNodeScreenSpaceLensFlare::clear()
