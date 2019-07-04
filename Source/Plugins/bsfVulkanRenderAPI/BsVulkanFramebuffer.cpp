@@ -8,34 +8,17 @@
 
 namespace bs { namespace ct
 {
-	VulkanFramebuffer::VariantKey::VariantKey(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, 
-		ClearMask clearMask)
-		:loadMask(loadMask), readMask(readMask), clearMask(clearMask)
-	{ }
-
-	size_t VulkanFramebuffer::VariantKey::HashFunction::operator()(const VariantKey& v) const
-	{
-		size_t hash = 0;
-		bs_hash_combine(hash, v.readMask);
-		bs_hash_combine(hash, v.loadMask);
-		bs_hash_combine(hash, v.clearMask);
-
-		return hash;
-	}
-
-	bool VulkanFramebuffer::VariantKey::EqualFunction::operator()(
-		const VariantKey& lhs, const VariantKey& rhs) const
-	{
-		return lhs.loadMask == rhs.loadMask && lhs.readMask == rhs.readMask && lhs.clearMask == rhs.clearMask;
-	}
-
 	UINT32 VulkanFramebuffer::sNextValidId = 1;
 
 	VulkanFramebuffer::VulkanFramebuffer(VulkanResourceManager* owner, VulkanRenderPass* renderPass, 
 		const VULKAN_FRAMEBUFFER_DESC& desc)
-		: VulkanResource(owner, false), mRenderPass(renderPass), mNumLayers(desc.layers)
+		: VulkanResource(owner, false), mRenderPass(renderPass), mWidth(desc.width), mHeight(desc.height)
+		, mNumLayers(desc.layers)
 	{
 		mId = sNextValidId++;
+
+		VkImageView attachmentViews[BS_MAX_MULTIPLE_RENDER_TARGETS + 1];
+		VkFramebufferCreateInfo framebufferCI;
 
 		UINT32 attachmentIdx = 0;
 		for(UINT32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
@@ -50,9 +33,9 @@ namespace bs { namespace ct
 			mColorAttachments[attachmentIdx].surface = desc.color[i].surface;
 
 			if (desc.color[i].surface.numMipLevels == 0)
-				mAttachmentViews[attachmentIdx] = desc.color[i].image->getView(true);
+				attachmentViews[attachmentIdx] = desc.color[i].image->getView(true);
 			else
-				mAttachmentViews[attachmentIdx] = desc.color[i].image->getView(desc.color[i].surface, true);
+				attachmentViews[attachmentIdx] = desc.color[i].image->getView(desc.color[i].surface, true);
 
 			attachmentIdx++;
 		}
@@ -66,64 +49,33 @@ namespace bs { namespace ct
 			mDepthStencilAttachment.surface = desc.depth.surface;
 
 			if (desc.depth.surface.numMipLevels == 0)
-				mAttachmentViews[attachmentIdx] = desc.depth.image->getView(true);
+				attachmentViews[attachmentIdx] = desc.depth.image->getView(true);
 			else
-				mAttachmentViews[attachmentIdx] = desc.depth.image->getView(desc.depth.surface, true);
+				attachmentViews[attachmentIdx] = desc.depth.image->getView(desc.depth.surface, true);
 
 			attachmentIdx++;
 		}
 
-		mFramebufferCI.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		mFramebufferCI.pNext = nullptr;
-		mFramebufferCI.flags = 0;
-		mFramebufferCI.renderPass = VK_NULL_HANDLE;
-		mFramebufferCI.attachmentCount = renderPass->getNumAttachments();
-		mFramebufferCI.pAttachments = mAttachmentViews;
-		mFramebufferCI.width = desc.width;
-		mFramebufferCI.height = desc.height;
-		mFramebufferCI.layers = desc.layers;
+		framebufferCI.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferCI.pNext = nullptr;
+		framebufferCI.flags = 0;
+		framebufferCI.attachmentCount = renderPass->getNumAttachments();
+		framebufferCI.pAttachments = attachmentViews;
+		framebufferCI.width = desc.width;
+		framebufferCI.height = desc.height;
+		framebufferCI.layers = desc.layers;
 
-		mDefault = createVariant(RT_NONE, RT_NONE, CLEAR_NONE);
+		// Relying on the fact that compatible render passes can be used, and don't need to match exactly
+		framebufferCI.renderPass = mRenderPass->getVkRenderPass(RT_NONE, RT_NONE, CLEAR_NONE);
+
+		VkDevice device = mOwner->getDevice().getLogical();
+		VkResult result = vkCreateFramebuffer(device, &framebufferCI, gVulkanAllocator, &mVkFramebuffer);
+		assert(result == VK_SUCCESS);
 	}
 
 	VulkanFramebuffer::~VulkanFramebuffer()
 	{
 		VkDevice device = mOwner->getDevice().getLogical();
-
-		vkDestroyFramebuffer(device, mDefault, gVulkanAllocator);
-
-		for(auto& entry : mVariants)
-			vkDestroyFramebuffer(device, entry.second, gVulkanAllocator);
-	}
-
-	VkFramebuffer VulkanFramebuffer::createVariant(RenderSurfaceMask loadMask, 
-		RenderSurfaceMask readMask, ClearMask clearMask) const
-	{
-		VkDevice device = mOwner->getDevice().getLogical();
-
-		mFramebufferCI.renderPass = mRenderPass->getVkRenderPass(loadMask, readMask, clearMask);
-
-		VkFramebuffer output;
-		VkResult result = vkCreateFramebuffer(device, &mFramebufferCI, gVulkanAllocator, &output);
-		assert(result == VK_SUCCESS);
-
-		return output;
-	}
-
-	VkFramebuffer VulkanFramebuffer::getVkFramebuffer(RenderSurfaceMask loadMask, RenderSurfaceMask readMask,
-		ClearMask clearMask) const
-	{
-		if (loadMask == RT_NONE && readMask == RT_NONE && clearMask == CLEAR_NONE)
-			return mDefault;
-
-		VariantKey key(loadMask, readMask, clearMask);
-		auto iterFind = mVariants.find(key);
-		if (iterFind != mVariants.end())
-			return iterFind->second;
-
-		VkFramebuffer newVariant = createVariant(loadMask, readMask, clearMask);
-		mVariants[key] = newVariant;
-
-		return newVariant;
+		vkDestroyFramebuffer(device, mVkFramebuffer, gVulkanAllocator);
 	}
 }}

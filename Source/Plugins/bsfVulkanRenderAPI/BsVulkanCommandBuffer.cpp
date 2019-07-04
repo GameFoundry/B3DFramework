@@ -361,7 +361,7 @@ namespace bs { namespace ct
 		VkRenderPassBeginInfo renderPassBeginInfo;
 		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassBeginInfo.pNext = nullptr;
-		renderPassBeginInfo.framebuffer = mFramebuffer->getVkFramebuffer(mRenderTargetLoadMask, readMask, mClearMask);
+		renderPassBeginInfo.framebuffer = mFramebuffer->getVkFramebuffer();
 		renderPassBeginInfo.renderPass = renderPass->getVkRenderPass(mRenderTargetLoadMask, readMask, mClearMask);
 		renderPassBeginInfo.renderArea.offset.x = 0;
 		renderPassBeginInfo.renderArea.offset.y = 0;
@@ -1619,7 +1619,7 @@ namespace bs { namespace ct
 		VkRenderPassBeginInfo renderPassBeginInfo;
 		renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassBeginInfo.pNext = nullptr;
-		renderPassBeginInfo.framebuffer = mFramebuffer->getVkFramebuffer(mRenderTargetLoadMask, RT_NONE, mClearMask);
+		renderPassBeginInfo.framebuffer = mFramebuffer->getVkFramebuffer();
 		renderPassBeginInfo.renderPass = renderPass->getVkRenderPass(mRenderTargetLoadMask, RT_NONE, mClearMask);
 		renderPassBeginInfo.renderArea.offset.x = mClearArea.x;
 		renderPassBeginInfo.renderArea.offset.y = mClearArea.y;

@@ -75,20 +75,13 @@ namespace bs { namespace ct
 		UINT32 getId() const { return mId; }
 
 		/** Returns the width of the framebuffer, in pixels. */
-		UINT32 getWidth() const { return mFramebufferCI.width; }
+		UINT32 getWidth() const { return mWidth; }
 
 		/** Returns the height of the framebuffer, in pixels. */
-		UINT32 getHeight() const { return mFramebufferCI.height; }
+		UINT32 getHeight() const { return mHeight; }
 
-		/**
-		 * Gets internal Vulkan framebuffer object.
-		 *
-		 * @param[in]	loadMask	Mask that control which render target surface contents should be preserved on load.
-		 * @param[in]	readMask	Mask that controls which render targets can be read by shaders while they're bound.
-		 * @param[in]	clearMask	Mask that controls which render targets should be cleared on render pass start. Target
-		 *							cannot have both load and clear bits set. If load bit is set, clear will be ignored.
-		 */
-		VkFramebuffer getVkFramebuffer(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, ClearMask clearMask) const;
+		/** Gets the internal Vulkan framebuffer object. */
+		VkFramebuffer getVkFramebuffer() const { return mVkFramebuffer; }
 
 		/** Returns the render pass that this framebuffer is tied to. */
 		VulkanRenderPass* getRenderPass() const { return mRenderPass; }
@@ -105,43 +98,15 @@ namespace bs { namespace ct
 		/** Returns information about a depth-stencil attachment. */
 		const VulkanFramebufferAttachment& getDepthStencilAttachment() const { return mDepthStencilAttachment; }
 	private:
-		/** Key used for identifying different types of frame-buffer variants. */
-		struct VariantKey
-		{
-			VariantKey(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, ClearMask clearMask);
-
-			class HashFunction
-			{
-			public:
-				size_t operator()(const VariantKey& key) const;
-			};
-
-			class EqualFunction
-			{
-			public:
-				bool operator()(const VariantKey& lhs, const VariantKey& rhs) const;
-			};
-
-			RenderSurfaceMask loadMask;
-			RenderSurfaceMask readMask;
-			ClearMask clearMask;
-		};
-
-		/** Creates a new variant of the framebuffer. */
-		VkFramebuffer createVariant(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, ClearMask clearMask) const;
-
 		UINT32 mId;
+		VkFramebuffer mVkFramebuffer;
 		VulkanRenderPass* mRenderPass;
 
-		VkFramebuffer mDefault;
-		mutable UnorderedMap<VariantKey, VkFramebuffer, VariantKey::HashFunction, VariantKey::EqualFunction> mVariants;
-
+		UINT32 mWidth;
+		UINT32 mHeight;
 		UINT32 mNumLayers;
 		VulkanFramebufferAttachment mColorAttachments[BS_MAX_MULTIPLE_RENDER_TARGETS] { };
 		VulkanFramebufferAttachment mDepthStencilAttachment;
-
-		mutable VkImageView mAttachmentViews[BS_MAX_MULTIPLE_RENDER_TARGETS + 1];
-		mutable VkFramebufferCreateInfo mFramebufferCI;
 
 		static UINT32 sNextValidId;
 	};
