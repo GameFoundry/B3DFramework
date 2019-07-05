@@ -128,7 +128,7 @@ namespace bs
 		using GpuProgramType = SPtr<CoreVariantType<GpuProgram, Core>>;
 		using GpuPipelineParamInfoType = typename TGpuPipelineStateTypes<Core>::GpuPipelineParamInfoType;
 
-		virtual ~TComputePipelineState() { }
+		virtual ~TComputePipelineState() = default;
 
 		const GpuProgramType& getProgram() const { return mProgram; }
 
@@ -157,7 +157,7 @@ namespace bs
 	class BS_CORE_EXPORT GraphicsPipelineState : public CoreObject, public TGraphicsPipelineState<false>
 	{
 	public:
-		virtual ~GraphicsPipelineState() { }
+		virtual ~GraphicsPipelineState() = default;
 
 		/**
 		 * Retrieves a core implementation of the pipeline object usable only from the core thread.
@@ -185,7 +185,7 @@ namespace bs
 	class BS_CORE_EXPORT ComputePipelineState : public CoreObject, public TComputePipelineState<false>
 	{
 	public:
-		virtual ~ComputePipelineState() { }
+		virtual ~ComputePipelineState() = default;
 
 		/**
 		 * Retrieves a core implementation of the pipeline object usable only from the core thread.
@@ -218,7 +218,7 @@ namespace bs
 	{
 	public:
 		GraphicsPipelineState(const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask);
-		virtual ~GraphicsPipelineState() { }
+		virtual ~GraphicsPipelineState() = default;
 
 		/** @copydoc CoreObject::initialize() */
 		void initialize() override;
@@ -236,7 +236,7 @@ namespace bs
 	{
 	public:
 		ComputePipelineState(const SPtr<GpuProgram>& program, GpuDeviceFlags deviceMask);
-		virtual ~ComputePipelineState() { }
+		virtual ~ComputePipelineState() = default;
 
 		/** @copydoc CoreObject::initialize() */
 		void initialize() override;

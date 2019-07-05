@@ -371,6 +371,7 @@ namespace bs { namespace ct
 		UINT32 mViewportWidth = 0; 
 		UINT32 mViewportHeight = 0;
 		bool mScissorEnabled = false;
+		bool mScissorRectDirty = false;
 
 		UINT32 mStencilReadMask = 0xFFFFFFFF;
 		UINT32 mStencilWriteMask = 0xFFFFFFFF;

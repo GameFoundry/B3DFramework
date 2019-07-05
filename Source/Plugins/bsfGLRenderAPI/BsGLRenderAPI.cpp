@@ -1289,6 +1289,9 @@ namespace bs { namespace ct
 			mScissorBottom = bottom;
 			mScissorLeft = left;
 			mScissorRight = right;
+
+			if(mScissorEnabled)
+				mScissorRectDirty = true;
 		};
 
 		if (commandBuffer == nullptr)
@@ -1781,6 +1784,7 @@ namespace bs { namespace ct
 		}
 
 		mScissorEnabled = enable;
+		mScissorRectDirty = false;
 	}
 
 	void GLRenderAPI::setMultisamplingEnable(bool enable)
@@ -2138,6 +2142,12 @@ namespace bs { namespace ct
 		{
 			BS_LOG(Warning, RenderBackend, "Cannot render without a set vertex declaration.");
 			return;
+		}
+
+		if(mScissorRectDirty)
+		{
+			assert(mScissorEnabled);
+			setScissorTestEnable(true);
 		}
 
 		const GLSLProgramPipeline* pipeline = mProgramPipelineManager->getPipeline(mCurrentVertexProgram.get(), 
