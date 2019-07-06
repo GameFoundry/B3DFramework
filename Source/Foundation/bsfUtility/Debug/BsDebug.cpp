@@ -328,7 +328,7 @@ table td
 			}
 			stream << R"(			<td>)" << toString(verbosity)<< R"(</td>)" << std::endl;
 
-			stream << R"(			<td>)" << bs_convert_timet_to_string(false, false, TimeToStringConversionType::Time, entry.getLocalTime())
+			stream << R"(			<td>)" << toString(entry.getLocalTime(), false, false, TimeToStringConversionType::Time)
 			       << "</td>" << std::endl;
 
 			String categoryName;
@@ -409,7 +409,7 @@ table td
 		for (auto& entry : entries)
 		{
 			String builtMsg;
-			builtMsg.append(bs_convert_timet_to_string(false, true, TimeToStringConversionType::Full, entry.getLocalTime()));
+			builtMsg.append(toString(entry.getLocalTime(), false, true, TimeToStringConversionType::Full));
 			builtMsg.append(" ");
 			
 			switch(entry.getVerbosity())

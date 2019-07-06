@@ -15,7 +15,15 @@ namespace bs
 	/** @addtogroup String
 	 *  @{
 	 */
-
+	
+	/** Defines what type of data should be written during the time_t to String conversion. */
+	enum class TimeToStringConversionType
+	{
+		Date = 0, /**< Only year, month and day */
+		Time = 1, /**< Only hours, minutes and seconds */
+		Full = 2 /**< Full date and time */
+	};
+	
 	/** Basic string that uses framework's memory allocators. */
 	template <typename T>
 	using BasicString = std::basic_string < T, std::char_traits<T>, StdAlloc<T> > ;
@@ -294,6 +302,29 @@ namespace bs
 
 	/** Converts a log verbosity to a string. */
 	BS_UTILITY_EXPORT String toString(const LogVerbosity& val);
+	
+	/**
+	 *  Converts the std::time_t structure containing time data to the string.
+	 *  
+	 *  @param[in]	val        Variable representing stored time
+	 *  @param[in]	isUTC      Outputs the date and time in Coordinated Universal Time, otherwise in local time.
+	 *  @param[in]	useISO8601 Outputs the date and time in ISO 8601 format, otherwise it uses a custom format.
+	 *  @param[in]	type       Type of the conversion applied.
+	 *  
+	 *  @return Converted time as a String.
+	 *  
+	 *  @note
+	 *  Available output formats:
+	 *	    1. When the ISO 8601 format is used
+	 *			- Date: [NumericalYear]-[NumericalMonth]-[NumericalDay]
+	 *			- Time: [HH]::[MM]::[SS]
+	 *			- Full: [NumericalYear]-[NumericalMonth]-[NumericalDay]T[HH]::[MM]::[SS]Z
+	 *		2. When the custom format is used
+	 *			- Date: [DayOfWeek], [Month] [NumericalDate], [NumericalYear]
+	 *			- Time: [HH]::[MM]::[SS]
+	 *			- Full: [DayOfWeek], [Month] [NumericalDate], [NumericalYear] [HH]::[MM]::[SS]
+	 */
+	BS_UTILITY_EXPORT String toString(const std::time_t time, bool isUTC, bool useISO8601, TimeToStringConversionType type);
 
 	/**
 	 * Converts a vector of strings into a single string where the substrings are delimited by spaces.

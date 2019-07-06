@@ -3,6 +3,7 @@
 #include "Utility/BsTime.h"
 #include "Utility/BsTimer.h"
 #include "Math/BsMath.h"
+#include "String/BsString.h"
 
 namespace bs
 {
@@ -108,49 +109,18 @@ namespace bs
 	String Time::getCurrentDateTimeString(bool isUTC)
 	{
 		std::time_t t = std::time(nullptr);
-		return bs_convert_timet_to_string(isUTC, false, TimeToStringConversionType::Full, t);
+		return toString(t, isUTC, false, TimeToStringConversionType::Full);
 	}
 
 	String Time::getCurrentTimeString(bool isUTC)
 	{
 		std::time_t t = std::time(nullptr);
-		return bs_convert_timet_to_string(isUTC, false, TimeToStringConversionType::Time, t);
+		return toString(t, isUTC, false, TimeToStringConversionType::Time);
 	}
 
 	String Time::getAppStartUpDateString(bool isUTC)
 	{
-		return bs_convert_timet_to_string(isUTC, false, TimeToStringConversionType::Full, mAppStartUpDate);
-	}
-	
-	String bs_convert_timet_to_string(bool isUTC, bool useISO8601, TimeToStringConversionType type, const std::time_t time)
-	{
-		char out[100];
-		String formatInput;
-		if (useISO8601)
-		{
-			if (type == TimeToStringConversionType::Date)
-				formatInput = "%F";
-			else if (type == TimeToStringConversionType::Time)
-				formatInput = "%T";
-			else
-				formatInput = "%FT%TZ";
-		}
-		else
-		{
-			if (type == TimeToStringConversionType::Date)
-				formatInput = "%A, %B %d, %Y";
-			else if (type == TimeToStringConversionType::Time)
-				formatInput = "%T";
-			else
-				formatInput = "%A, %B %d, %Y %T";
-		}
-		
-		if (isUTC)
-			std::strftime(out, sizeof(out), formatInput.c_str(), std::gmtime(&time));
-		else
-			std::strftime(out, sizeof(out), formatInput.c_str(), std::localtime(&time));
-		
-		return String(out);
+		return toString(mAppStartUpDate,isUTC, false, TimeToStringConversionType::Full);
 	}
 	
 	Time& gTime()

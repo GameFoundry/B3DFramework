@@ -11,14 +11,6 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Defines what type of data should be written during the time_t to String conversion. */
-	enum class TimeToStringConversionType
-	{
-		Date = 0, /**< Only year, month and day */
-		Time = 1, /**< Only hours, minutes and seconds */
-		Full = 2 /**< Full date and time */
-	};
-	
 	/**
 	 * Manages all time related functionality.
 	 * 			
@@ -186,29 +178,6 @@ namespace bs
 	
 	/** Easier way to access the Time module. */
 	BS_UTILITY_EXPORT Time& gTime();
-
-	/**
-	 *  Converts the std::time_t structure containing time data to the textual form.
-	 *  
-	 *  @param[in]	isUTC      Outputs the date and time in Coordinated Universal Time, otherwise in local time.
-	 *  @param[in]	useISO8601 Outputs the date and time in ISO 8601 format, otherwise it uses a custom format.
-	 *  @param[in]	type       Type of the conversion applied.
-	 *  @param[in]	time       Variable representing stored time
-	 *  
-	 *  @return Converted time as a String.
-	 *  
-	 *  @note
-	 *  Available output formats:
-	 *	    1. When the ISO 8601 format is used
-	 *			- Date: [NumericalYear]-[NumericalMonth]-[NumericalDay]
-	 *			- Time: [HH]::[MM]::[SS]
-	 *			- Full: [NumericalYear]-[NumericalMonth]-[NumericalDay]T[HH]::[MM]::[SS]Z
-	 *		2. When the custom format is used
-	 *			- Date: [DayOfWeek], [Month] [NumericalDate], [NumericalYear]
-	 *			- Time: [HH]::[MM]::[SS]
-	 *			- Full: [DayOfWeek], [Month] [NumericalDate], [NumericalYear] [HH]::[MM]::[SS]
-	 */
-	String bs_convert_timet_to_string(bool isUTC, bool useISO8601, TimeToStringConversionType type, const std::time_t time);
 
 	/** @} */
 }

@@ -605,7 +605,39 @@ namespace bs
 			return "Very verbose";
 		}
 	}
-
+	
+	String toString(const std::time_t val, bool isUTC, bool useISO8601, TimeToStringConversionType type)
+	{
+		char out[100];
+		String formatInput;
+		if (useISO8601)
+		{
+			if (type == TimeToStringConversionType::Date)
+				formatInput = "%F";
+			else if (type == TimeToStringConversionType::Time)
+				formatInput = "%T";
+			else
+				formatInput = "%FT%TZ";
+		}
+		else
+		{
+			if (type == TimeToStringConversionType::Date)
+				formatInput = "%A, %B %d, %Y";
+			else if (type == TimeToStringConversionType::Time)
+				formatInput = "%T";
+			else
+				formatInput = "%A, %B %d, %Y %T";
+		}
+		
+		if (isUTC)
+			std::strftime(out, sizeof(out), formatInput.c_str(), std::gmtime(&val));
+		else
+			std::strftime(out, sizeof(out), formatInput.c_str(), std::localtime(&val));
+		
+		return String(out);
+	}
+	
+	
 	float parseFloat(const String& val, float defaultValue)
 	{
 		// Use istringstream for direct correspondence with toString
