@@ -39,6 +39,12 @@ void logToIDEConsole(const bs::String& message, const char* channel)
 
 namespace bs
 {
+	BS_LOG_CATEGORY_IMPL(Uncategorized)
+	BS_LOG_CATEGORY_IMPL(FileSystem)
+	BS_LOG_CATEGORY_IMPL(RTTI)
+	BS_LOG_CATEGORY_IMPL(Generic)
+	BS_LOG_CATEGORY_IMPL(Platform)
+
 	void Debug::log(const String& message, LogVerbosity verbosity, UINT32 category)
 	{
 		mLog.logMsg(message, verbosity, category);

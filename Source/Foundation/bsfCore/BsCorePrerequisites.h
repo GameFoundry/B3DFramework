@@ -873,26 +873,26 @@ namespace bs
 		GameObjectHandle<ComponentType> mComponent;
 		SPtr<T> mActor;
 	};
-}
 
-BS_LOG_CATEGORY(CoreThread, 20)
-BS_LOG_CATEGORY(Renderer, 21)
-BS_LOG_CATEGORY(Scene, 22)
-BS_LOG_CATEGORY(Physics, 23)
-BS_LOG_CATEGORY(Audio, 24)
-BS_LOG_CATEGORY(RenderBackend, 25)
-BS_LOG_CATEGORY(BSLCompiler, 26)
-BS_LOG_CATEGORY(Particles, 27)
-BS_LOG_CATEGORY(Resources, 28)
-BS_LOG_CATEGORY(FBXImporter, 29)
-BS_LOG_CATEGORY(PixelUtility, 30)
-BS_LOG_CATEGORY(Texture, 31)
-BS_LOG_CATEGORY(Mesh, 32)
-BS_LOG_CATEGORY(GUI, 33)
-BS_LOG_CATEGORY(Profiler, 34)
-BS_LOG_CATEGORY(Material, 35)
-BS_LOG_CATEGORY(FreeImageImporter, 36)
-BS_LOG_CATEGORY(Script, 37)
-BS_LOG_CATEGORY(Importer, 38)
+	BS_LOG_CATEGORY(CoreThread, 20)
+	BS_LOG_CATEGORY(Renderer, 21)
+	BS_LOG_CATEGORY(Scene, 22)
+	BS_LOG_CATEGORY(Physics, 23)
+	BS_LOG_CATEGORY(Audio, 24)
+	BS_LOG_CATEGORY(RenderBackend, 25)
+	BS_LOG_CATEGORY(BSLCompiler, 26)
+	BS_LOG_CATEGORY(Particles, 27)
+	BS_LOG_CATEGORY(Resources, 28)
+	BS_LOG_CATEGORY(FBXImporter, 29)
+	BS_LOG_CATEGORY(PixelUtility, 30)
+	BS_LOG_CATEGORY(Texture, 31)
+	BS_LOG_CATEGORY(Mesh, 32)
+	BS_LOG_CATEGORY(GUI, 33)
+	BS_LOG_CATEGORY(Profiler, 34)
+	BS_LOG_CATEGORY(Material, 35)
+	BS_LOG_CATEGORY(FreeImageImporter, 36)
+	BS_LOG_CATEGORY(Script, 37)
+	BS_LOG_CATEGORY(Importer, 38)
+}
 
 #include "Utility/BsCommonTypes.h"

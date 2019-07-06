@@ -119,40 +119,41 @@ namespace bs
 		UINT64 getHash() const { return mHash; }
 		
 		/**
-		 *  Registers the new category as a pair of its ID and name as a String
-		 * 
-		 *  @param[in] id    Number representing the Category's ID.
-		 *  @param[in] name  Name of the Category.
-		 *  @return False if the ID is already taken, otherwise true.
-		 */
-		bool registerCategory(UINT32 id, String name);
-		
-		/**
-		 *  Unregisters the category based on its ID.
-		 *  
-		 *  @param[in] id   Number representing the Category's ID.
-		 */
-		void unregisterCategory(UINT32 id);
-		
-		/**
-		 * Checks, if the ID has the registered name.  
+		 * Checks if the category with the specified ID exists.
 		 *
-		 *  @param[in] id    Number representing the Category's ID.
-		 *  @return true if exists, otherwise false.
+		 *  @param[in] id	Number representing the category's ID.
+		 *  @return			True if exists, otherwise false.
 		 */
-		bool categoryExist(UINT32 id) const;
+		static bool categoryExists(UINT32 id);
 		
 		/** Returns the number of registered log categories. */
-		UINT32 getNumRegisteredLogCategories() const { return mNumCategories; };
+		static UINT32 getNumCategories() { return (UINT32)sCategories.size(); };
 		
 		/**
 		 *  Get the name of the category based on its ID.
 		 *  
-		 *  @param[in]	id	Number representing the Category's ID.
-		 *  @param[in]	name	Variable, in which the name will be written.
-		 *  @return If found will write the name and return true. Otherwise will write the name "Unknown" and return false.
+		 *  @param[in]	id		Number representing the category's ID.
+		 *  @param[in]	name	Variable in which the name will be written.
+		 *  @return				If found will write the name and return true. Otherwise will write the name "Unknown" 
+		 *						and return false.
 		 */
-		bool getCategoryName(UINT32 id, String& name) const;
+		static bool getCategoryName(UINT32 id, String& name);
+
+		/**
+		 * @name Internal
+		 * @{
+		 */
+
+		/**
+		 *  Registers the new category with the specified ID and name.
+		 * 
+		 *  @param[in] id		Number representing the category's ID.
+		 *  @param[in] name		Name of the category.
+		 *  @return				False if the ID is already taken, otherwise true.
+		 */
+		static bool _registerCategory(UINT32 id, const char* name);
+		
+		/** @} */
 		
 	private:
 		friend class Debug;
@@ -163,10 +164,10 @@ namespace bs
 		Vector<LogEntry> mEntries;
 		Queue<LogEntry> mUnreadEntries;
 		UINT64 mHash = 0;
-		UINT32 mNumCategories = 0;
-		Map<UINT32, String> mIdStringPairs;
 		
 		mutable RecursiveMutex mMutex;
+
+		static UnorderedMap<UINT32, String> sCategories;
 	};
 
 	/** @} */

@@ -48,42 +48,30 @@
 
 namespace bs
 {
-	void registerAllCoreLogCategories()
-	{
-		// Utility Layer
-		BS_LOG_REGISTER_CATEGORY_NAME(Uncategorized);
-		BS_LOG_REGISTER_CATEGORY_NAME(FileSystem);
-		BS_LOG_REGISTER_CATEGORY_NAME(RTTI);
-		BS_LOG_REGISTER_CATEGORY_NAME(Generic);
-		BS_LOG_REGISTER_CATEGORY_NAME(Platform);
-
-		// Core Layer
-		BS_LOG_REGISTER_CATEGORY_NAME(CoreThread)
-		BS_LOG_REGISTER_CATEGORY_NAME(Renderer)
-		BS_LOG_REGISTER_CATEGORY_NAME(Scene)
-		BS_LOG_REGISTER_CATEGORY_NAME(Physics)
-		BS_LOG_REGISTER_CATEGORY_NAME(Audio)
-		BS_LOG_REGISTER_CATEGORY_NAME(RenderBackend)
-		BS_LOG_REGISTER_CATEGORY_NAME(BSLCompiler)
-		BS_LOG_REGISTER_CATEGORY_NAME(Particles)
-		BS_LOG_REGISTER_CATEGORY_NAME(Resources)
-		BS_LOG_REGISTER_CATEGORY_NAME(FBXImporter)
-		BS_LOG_REGISTER_CATEGORY_NAME(PixelUtility)
-		BS_LOG_REGISTER_CATEGORY_NAME(Texture)
-		BS_LOG_REGISTER_CATEGORY_NAME(Mesh)
-		BS_LOG_REGISTER_CATEGORY_NAME(GUI)
-		BS_LOG_REGISTER_CATEGORY_NAME(Profiler)
-		BS_LOG_REGISTER_CATEGORY_NAME(Material)
-		BS_LOG_REGISTER_CATEGORY_NAME(FreeImageImporter)
-		BS_LOG_REGISTER_CATEGORY_NAME(Script)
-		BS_LOG_REGISTER_CATEGORY_NAME(Importer)
-	}
+	BS_LOG_CATEGORY_IMPL(CoreThread)
+	BS_LOG_CATEGORY_IMPL(Renderer)
+	BS_LOG_CATEGORY_IMPL(Scene)
+	BS_LOG_CATEGORY_IMPL(Physics)
+	BS_LOG_CATEGORY_IMPL(Audio)
+	BS_LOG_CATEGORY_IMPL(RenderBackend)
+	BS_LOG_CATEGORY_IMPL(BSLCompiler)
+	BS_LOG_CATEGORY_IMPL(Particles)
+	BS_LOG_CATEGORY_IMPL(Resources)
+	BS_LOG_CATEGORY_IMPL(FBXImporter)
+	BS_LOG_CATEGORY_IMPL(PixelUtility)
+	BS_LOG_CATEGORY_IMPL(Texture)
+	BS_LOG_CATEGORY_IMPL(Mesh)
+	BS_LOG_CATEGORY_IMPL(GUI)
+	BS_LOG_CATEGORY_IMPL(Profiler)
+	BS_LOG_CATEGORY_IMPL(Material)
+	BS_LOG_CATEGORY_IMPL(FreeImageImporter)
+	BS_LOG_CATEGORY_IMPL(Script)
+	BS_LOG_CATEGORY_IMPL(Importer)
 
 	CoreApplication::CoreApplication(START_UP_DESC desc)
 		: mPrimaryWindow(nullptr), mStartUpDesc(desc), mRendererPlugin(nullptr), mIsFrameRenderingFinished(true)
 		, mSimThreadId(BS_THREAD_CURRENT_ID), mRunMainLoop(false)
 	{
-		registerAllCoreLogCategories();
 		// Ensure all errors are reported properly
 		CrashHandler::startUp();
 	}

@@ -306,7 +306,7 @@ namespace bs
 	/**
 	 *  Converts the std::time_t structure containing time data to the string.
 	 *  
-	 *  @param[in]	val        Variable representing stored time
+	 *  @param[in]	time       Variable representing stored time
 	 *  @param[in]	isUTC      Outputs the date and time in Coordinated Universal Time, otherwise in local time.
 	 *  @param[in]	useISO8601 Outputs the date and time in ISO 8601 format, otherwise it uses a custom format.
 	 *  @param[in]	type       Type of the conversion applied.
@@ -325,7 +325,7 @@ namespace bs
 	 *			- Full: [DayOfWeek], [Month] [NumericalDate], [NumericalYear] [HH]::[MM]::[SS]
 	 *  By default will output the local hour in custom format.
 	 */
-	BS_UTILITY_EXPORT String toString(const std::time_t time, bool isUTC = false, bool useISO8601 = false,
+	BS_UTILITY_EXPORT String toString(std::time_t time, bool isUTC = false, bool useISO8601 = false,
 		TimeToStringConversionType type = TimeToStringConversionType::Time);
 
 	/**

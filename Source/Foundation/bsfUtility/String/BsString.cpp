@@ -606,7 +606,7 @@ namespace bs
 		}
 	}
 	
-	String toString(const std::time_t val, bool isUTC, bool useISO8601, TimeToStringConversionType type)
+	String toString(std::time_t val, bool isUTC, bool useISO8601, TimeToStringConversionType type)
 	{
 		char out[100];
 		String formatInput;

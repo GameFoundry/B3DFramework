@@ -5,6 +5,8 @@
 
 namespace bs
 {
+	UnorderedMap<UINT32, String> Log::sCategories;
+
 	Log::~Log()
 	{
 		clear();
@@ -93,50 +95,33 @@ namespace bs
 		return mEntries;
 	}
 	
-	bool Log::registerCategory(UINT32 id, String name)
+	bool Log::_registerCategory(UINT32 id, const char* name)
 	{
-		RecursiveLock lock(mMutex);
-		
-		if (!categoryExist (id))
+		if (!categoryExists(id))
 		{
-			mIdStringPairs.emplace(id, name);
-			mNumCategories++;
+			sCategories.emplace(id, name);
 			return true;
 		}
+
 		return false;
 	}
 	
-	void Log::unregisterCategory(UINT32 id)
+	bool Log::categoryExists(UINT32 id)
 	{
-		RecursiveLock lock(mMutex);
-		
-		if (categoryExist (id))
-		{
-			mIdStringPairs.erase(id);
-			mNumCategories--;
-		}
+		return sCategories.find(id) != sCategories.end();
 	}
 	
-	bool Log::categoryExist(UINT32 id) const
+	bool Log::getCategoryName(UINT32 id, String& name)
 	{
-		return mIdStringPairs.find(id) != mIdStringPairs.end();
-	}
-	
-	bool Log::getCategoryName(UINT32 id, String& name) const
-	{
-		RecursiveLock lock(mMutex);
-		
-		if (categoryExist(id))
+		auto search = sCategories.find(id);
+		if (search != sCategories.end())
 		{
-			auto search = mIdStringPairs.find(id);
 			name = search->second;
 			return true;
 		}
-		else
-		{
-			name = "Unknown";
-			return false;
-		}
+
+		name = "Unknown";
+		return false;
 	}
 	
 	Vector<LogEntry> Log::getAllEntries() const
@@ -155,6 +140,7 @@ namespace bs
 				unreadEntries.pop();
 			}
 		}
+
 		return entries;
 	}
 }
