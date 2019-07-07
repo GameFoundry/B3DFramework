@@ -16,7 +16,7 @@ set(PHYSICS_MODULE "PhysX" CACHE STRING "Physics backend to use.")
 set_property(CACHE PHYSICS_MODULE PROPERTY STRINGS "PhysX" "Null")
 
 # include imgui plugin will be default false.
-set(INCLUDE_IMGUI_PLUGIN "IncludeImguiPlugin" CACHE BOOL "Include BsfImgui submodule plugin")
+set(INCLUDE_IMGUI_PLUGIN OFF CACHE BOOL "Include BsfImgui submodule plugin")
 
 if(WIN32)
 	set(RENDER_API_MODULE "DirectX 11" CACHE STRING "Render API to use.")
