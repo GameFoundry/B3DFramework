@@ -15,6 +15,9 @@ set_property(CACHE AUDIO_MODULE PROPERTY STRINGS OpenAudio FMOD Null)
 set(PHYSICS_MODULE "PhysX" CACHE STRING "Physics backend to use.")
 set_property(CACHE PHYSICS_MODULE PROPERTY STRINGS "PhysX" "Null")
 
+# include imgui plugin will be default false.
+set(INCLUDE_IMGUI_PLUGIN "IncludeImguiPlugin" CACHE BOOL "Include BsfImgui submodule plugin")
+
 if(WIN32)
 	set(RENDER_API_MODULE "DirectX 11" CACHE STRING "Render API to use.")
 	set_property(CACHE RENDER_API_MODULE PROPERTY STRINGS "DirectX 11" "OpenGL" "Vulkan" "Null")
@@ -199,6 +202,14 @@ else() # Otherwise include only chosen ones
 		add_subdirectory(Scripting/bsfMono)
 		add_subdirectory(Scripting/bsfSharp)
 	endif()
+endif()
+
+if (INCLUDE_IMGUI_PLUGIN)
+	# if true, then git clone the imgui plugin (with recursive submodules). it
+	# will be cloned into the build directory where it will be configured as
+	# bsfImgui target. other targets can then set bsfImgui as their dependency
+	# in their respective cmake files.
+	include(CMake/Plugins/BsImgui.cmake)
 endif()
 
 add_subdirectory(Plugins/bsfFBXImporter)
