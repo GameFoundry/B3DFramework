@@ -166,6 +166,7 @@ namespace bs
 			{
 				SPtr<AnimationClip> clip = AnimationClip::_createPtr(entry.curves, entry.isAdditive, entry.sampleRate, 
 					entry.rootMotion);
+				clip->setName(entry.name);
 				
 				for(auto& eventsEntry : events)
 				{
