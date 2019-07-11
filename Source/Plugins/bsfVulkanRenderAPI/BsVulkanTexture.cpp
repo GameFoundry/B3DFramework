@@ -696,7 +696,16 @@ namespace bs { namespace ct
 		if((usage & TU_MUTABLEFORMAT) != 0)
 			mImageCI.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
 
-		mImageCI.extent = { props.getWidth(), props.getHeight(), props.getDepth() };
+		UINT32 width = mProperties.getWidth();
+		UINT32 height = mProperties.getHeight();
+		UINT32 depth = mProperties.getDepth();
+
+		// 0-sized textures aren't supported by the API
+		width = std::max(width, 1U);
+		height = std::max(height, 1U);
+		depth = std::max(depth, 1U);
+
+		mImageCI.extent = { width, height, depth };
 		mImageCI.mipLevels = props.getNumMipmaps() + 1;
 		mImageCI.arrayLayers = props.getNumFaces();
 		mImageCI.samples = VulkanUtility::getSampleFlags(props.getNumSamples());
@@ -1434,6 +1443,9 @@ namespace bs { namespace ct
 	void VulkanTexture::writeDataImpl(const PixelData& src, UINT32 mipLevel, UINT32 face, bool discardWholeBuffer,
 									  UINT32 queueIdx)
 	{
+		if(src.getSize() == 0)
+			return;
+
 		if (mProperties.getNumSamples() > 1)
 		{
 			BS_LOG(Error, RenderBackend, "Multisampled textures cannot be accessed from the CPU directly.");
