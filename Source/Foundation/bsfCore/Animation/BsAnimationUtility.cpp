@@ -93,14 +93,6 @@ namespace bs
 				Degree(angles.y),
 				Degree(angles.z), order);
 
-			// Flip quaternion in case rotation is over 180 degrees (use shortest path)
-			if (keyIdx > 0)
-			{
-				float dot = quat.dot(lastQuat);
-				if (dot < 0.0f)
-					quat = -quat;
-			}
-
 			return quat;
 		};
 
