@@ -71,15 +71,15 @@ namespace bs
 #define BS_RTTI_MEMBER_PLAIN_ARRAY_FULL(name, field, id, info)									\
 	META_Entry_##name;																			\
 																								\
-	std::common_type<decltype(OwnerType::field)>::type::value_type& get##name(OwnerType* obj, UINT32 idx) { return obj->field[idx]; }				\
-	void set##name(OwnerType* obj, UINT32 idx, std::common_type<decltype(OwnerType::field)>::type::value_type& val) { obj->field[idx] = val; }		\
-	UINT32 getSize##name(OwnerType* obj) { return (UINT32)obj->field.size(); }																		\
-	void setSize##name(OwnerType* obj, UINT32 val) { obj->field.resize(val); }																		\
+	std::common_type<decltype(OwnerType::field)>::type::value_type& get##name(OwnerType* obj, ::bs::UINT32 idx) { return obj->field[idx]; }				\
+	void set##name(OwnerType* obj, ::bs::UINT32 idx, std::common_type<decltype(OwnerType::field)>::type::value_type& val) { obj->field[idx] = val; }	\
+	::bs::UINT32 getSize##name(OwnerType* obj) { return (::bs::UINT32)obj->field.size(); }																\
+	void setSize##name(OwnerType* obj, ::bs::UINT32 val) { obj->field.resize(val); }																	\
 																								\
 	struct META_NextEntry_##name{};																\
 	void META_InitPrevEntry(META_NextEntry_##name typeId)										\
 	{																							\
-		addPlainArrayField(#name, id, &MyType::get##name, &MyType::getSize##name, &MyType::set##name, &MyType::setSize##name, info);				\
+		addPlainArrayField(#name, id, &MyType::get##name, &MyType::getSize##name, &MyType::set##name, &MyType::setSize##name, info);					\
 		META_InitPrevEntry(META_Entry_##name());												\
 	}																							\
 																								\
@@ -139,15 +139,15 @@ namespace bs
 #define BS_RTTI_MEMBER_REFL_ARRAY_FULL(name, field, id, info)									\
 	META_Entry_##name;																			\
 																								\
-	std::common_type<decltype(OwnerType::field)>::type::value_type& get##name(OwnerType* obj, UINT32 idx) { return obj->field[idx]; }				\
-	void set##name(OwnerType* obj, UINT32 idx, std::common_type<decltype(OwnerType::field)>::type::value_type& val) { obj->field[idx] = val; }		\
-	UINT32 getSize##name(OwnerType* obj) { return (UINT32)obj->field.size(); }					\
-	void setSize##name(OwnerType* obj, UINT32 val) { obj->field.resize(val); }					\
+	std::common_type<decltype(OwnerType::field)>::type::value_type& get##name(OwnerType* obj, ::bs::UINT32 idx) { return obj->field[idx]; }				\
+	void set##name(OwnerType* obj, ::bs::UINT32 idx, std::common_type<decltype(OwnerType::field)>::type::value_type& val) { obj->field[idx] = val; }	\
+	::bs::UINT32 getSize##name(OwnerType* obj) { return (::bs::UINT32)obj->field.size(); }		\
+	void setSize##name(OwnerType* obj, ::bs::UINT32 val) { obj->field.resize(val); }			\
 																								\
 	struct META_NextEntry_##name{};																\
 	void META_InitPrevEntry(META_NextEntry_##name typeId)										\
 	{																							\
-		addReflectableArrayField(#name, id, &MyType::get##name, &MyType::getSize##name, &MyType::set##name, &MyType::setSize##name, info);			\
+		addReflectableArrayField(#name, id, &MyType::get##name, &MyType::getSize##name, &MyType::set##name, &MyType::setSize##name, info);				\
 		META_InitPrevEntry(META_Entry_##name());												\
 	}																							\
 																								\
@@ -208,15 +208,15 @@ namespace bs
 #define BS_RTTI_MEMBER_REFLPTR_ARRAY_FULL(name, field, id, info)								\
 	META_Entry_##name;																			\
 																								\
-	std::common_type<decltype(OwnerType::field)>::type::value_type get##name(OwnerType* obj, UINT32 idx) { return obj->field[idx]; }				\
-	void set##name(OwnerType* obj, UINT32 idx, std::common_type<decltype(OwnerType::field)>::type::value_type val) { obj->field[idx] = val; }		\
-	UINT32 getSize##name(OwnerType* obj) { return (UINT32)obj->field.size(); }					\
-	void setSize##name(OwnerType* obj, UINT32 val) { obj->field.resize(val); }					\
+	std::common_type<decltype(OwnerType::field)>::type::value_type get##name(OwnerType* obj, ::bs::UINT32 idx) { return obj->field[idx]; }				\
+	void set##name(OwnerType* obj, ::bs::UINT32 idx, std::common_type<decltype(OwnerType::field)>::type::value_type val) { obj->field[idx] = val; }		\
+	::bs::UINT32 getSize##name(OwnerType* obj) { return (::bs::UINT32)obj->field.size(); }		\
+	void setSize##name(OwnerType* obj, ::bs::UINT32 val) { obj->field.resize(val); }			\
 																								\
 	struct META_NextEntry_##name{};																\
 	void META_InitPrevEntry(META_NextEntry_##name typeId)										\
 	{																							\
-		addReflectablePtrArrayField(#name, id, &MyType::get##name, &MyType::getSize##name, &MyType::set##name, &MyType::setSize##name, info);		\
+		addReflectablePtrArrayField(#name, id, &MyType::get##name, &MyType::getSize##name, &MyType::set##name, &MyType::setSize##name, info);			\
 		META_InitPrevEntry(META_Entry_##name());												\
 	}																							\
 																								\

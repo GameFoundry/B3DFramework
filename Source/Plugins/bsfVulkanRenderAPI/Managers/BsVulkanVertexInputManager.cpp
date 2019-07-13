@@ -162,7 +162,7 @@ namespace bs { namespace ct
 				{
 					BS_LOG(Error, RenderBackend, "Found multiple vertex attributes belonging to the same binding but with "
 						"different input rates. All attributes in a binding must have the same input rate. Ignoring "
-						"invalid input rates.")
+						"invalid input rates.");
 				}
 			}
 
