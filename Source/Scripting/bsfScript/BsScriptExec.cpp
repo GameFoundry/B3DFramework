@@ -25,7 +25,7 @@ int main(int __argc, char* __argv[])
 	// No assembly to run, or Mono directory not provided
 	if(__argc < 2)
 	{
-		BS_LOG(Error, Script, "No assembly provided")
+		BS_LOG(Error, Script, "No assembly provided");
 		return 0;
 	}
 

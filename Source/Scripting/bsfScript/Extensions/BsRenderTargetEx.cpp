@@ -73,7 +73,7 @@ namespace bs
 			depthStencilSurfaceDesc.numFaces = 1;
 
 			if (!depthStencilSurface.isLoaded())
-				BS_LOG(Error, RenderBackend, "Render texture must be created using a fully loaded texture.")
+				BS_LOG(Error, RenderBackend, "Render texture must be created using a fully loaded texture.");
 			else
 				depthStencilSurfaceDesc.texture = depthStencilSurface;
 		}
@@ -89,7 +89,7 @@ namespace bs
 			surfaceDesc.numFaces = 1;
 
 			if (!colorSurfaces[i].isLoaded())
-				BS_LOG(Error, RenderBackend, "Render texture must be created using a fully loaded texture.")
+				BS_LOG(Error, RenderBackend, "Render texture must be created using a fully loaded texture.");
 			else
 				surfaceDesc.texture = colorSurfaces[i];
 
