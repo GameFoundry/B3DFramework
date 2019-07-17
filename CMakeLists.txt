@@ -23,3 +23,9 @@ set(SCRIPT_API "None" CACHE STRING "Which scripting API/language to use, if any.
 set_property(CACHE SCRIPT_API PROPERTY STRINGS "None" "C#")
 
 set(SCRIPT_BINDING_GENERATION OFF CACHE BOOL "If true, script binding generation will be supported through a specialized build target. Enable this if you plan on modifying the scripting API. Requires the SBGen tool dependency. Only relevant if you have selected a SCRIPT_API other than \"None\".")
+
+set(BSF_STRIP_DEBUG_INFO ON CACHE BOOL "If true debug info will be stripped into a separate file in release builds.")
+
+set(BSF_ENABLE_EXCEPTIONS OFF CACHE BOOL "If true C++ exceptions will be enabled when compiling.")
+
+set(BSF_ENABLE_RTTI OFF CACHE BOOL "If true C++ RTTI will be enabled when compiling.")

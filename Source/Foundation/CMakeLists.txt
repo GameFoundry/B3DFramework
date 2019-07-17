@@ -73,16 +73,28 @@ target_compile_definitions(bsf PRIVATE
 	$<$<CONFIG:Release>:BS_CONFIG=BS_CONFIG_RELEASE>)
 
 if(MSVC)
-	target_compile_options(bsf PUBLIC
-		$<$<COMPILE_LANGUAGE:CXX>:/GR->)
+	if(NOT BSF_ENABLE_RTTI)
+		target_compile_options(bsf PUBLIC
+			$<$<COMPILE_LANGUAGE:CXX>:/GR->)
+	endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
-	target_compile_options(bsf PUBLIC
-		-fno-exceptions
-		$<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+	if(NOT BSF_ENABLE_EXCEPTIONS)
+		target_compile_options(bsf PUBLIC
+			-fno-exceptions)
+	endif()
+	if(NOT BSF_ENABLE_RTTI)
+		target_compile_options(bsf PUBLIC
+			$<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+	endif()
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-	target_compile_options(bsf PUBLIC
-		-fno-exceptions
-		$<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+	if(NOT BSF_ENABLE_EXCEPTIONS)
+		target_compile_options(bsf PUBLIC
+			-fno-exceptions)
+	endif()
+	if(NOT BSF_ENABLE_RTTI)
+		target_compile_options(bsf PUBLIC
+			$<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+	endif()
 else()
 # TODO_OTHER_COMPILERS_GO_HERE
 endif()

@@ -372,7 +372,7 @@ function(check_and_update_binary_deps DEP_PREFIX DEP_NAME DEP_FOLDER DEP_VERSION
 endfunction()
 
 function(strip_symbols targetName outputFilename)
-	if(UNIX)
+	if(UNIX AND BSF_STRIP_DEBUG_INFO)
 		if(CMAKE_BUILD_TYPE STREQUAL Release)
 			set(fileToStrip $<TARGET_FILE:${targetName}>)
 
