@@ -93,37 +93,93 @@ namespace bs
 				Degree(angles.y),
 				Degree(angles.z), order);
 
+			// Flip quaternion in case rotation is over 180 degrees (use shortest path)
+			if (keyIdx > 0)
+			{
+				float dot = quat.dot(lastQuat);
+				if (dot < 0.0f)
+					quat = -quat;
+			}
+
 			return quat;
 		};
 
 		INT32 numKeys = (INT32)eulerCurve->getNumKeyFrames();
-		Vector<TKeyframe<Quaternion>> quatKeyframes(numKeys);
+		Vector<TKeyframe<Quaternion>> quatKeyframes;
+		quatKeyframes.reserve(numKeys);
+
+		auto addKeyframe = [&quatKeyframes](float time, const Quaternion& quat)
+		{
+			quatKeyframes.emplace_back();
+			TKeyframe<Quaternion>& keyframe = quatKeyframes.back();
+
+			keyframe.time = time;
+			keyframe.value = quat;
+			keyframe.inTangent = Quaternion::ZERO;
+			keyframe.outTangent = Quaternion::ZERO;
+		};
 
 		// Calculate key values
 		Quaternion lastQuat(BsZero);
+		Vector3 lastAngles(BsZero);
+		float lastTime = 0.0f;
 		for (INT32 i = 0; i < numKeys; i++)
 		{
 			float time = eulerCurve->getKeyFrame(i).time;
 			Vector3 angles = eulerCurve->getKeyFrame(i).value;
-			Quaternion quat = eulerToQuaternion(i, angles, lastQuat);
 
-			quatKeyframes[i].time = time;
-			quatKeyframes[i].value = quat;
-			quatKeyframes[i].inTangent = Quaternion::ZERO;
-			quatKeyframes[i].outTangent = Quaternion::ZERO;
+			Vector3 diff = angles - lastAngles;
+			float maxAngle = Math::max(
+				Math::abs(diff.x),
+				Math::abs(diff.y),
+				Math::abs(diff.z)
+			);
 
-			lastQuat = quat;
+			// Is the angle greater than 180? In which case we need multiple keyframes to represent it via quaternions
+			if(i > 0 && maxAngle > 180.0f)
+			{
+				constexpr float SPLIT_INTERVAL = 175.0f; // Not exactly 180 to ensure no precision issues
+				INT32 numSplits = Math::floorToPosInt(maxAngle / SPLIT_INTERVAL) + 1;
+
+				Vector3 partAngles = diff / (float)numSplits;
+				float partTime = (time - lastTime) / numSplits;
+				for (INT32 j = 0; j < numSplits; j++)
+				{
+					Quaternion partQuat(
+						Degree(partAngles.x),
+						Degree(partAngles.y),
+						Degree(partAngles.z), order);
+
+					float curTime = (j == (numSplits - 1)) ? time : lastTime + partTime;
+					Quaternion curQuat = lastQuat * partQuat;
+
+					// Ensure rotation is not over 180 degrees
+					assert(curQuat.dot(lastQuat) >= 0.0f);
+
+					addKeyframe(curTime, curQuat);
+					lastTime = curTime;
+					lastQuat = curQuat;
+				}
+			}
+			else
+			{
+				Quaternion quat = eulerToQuaternion(i, angles, lastQuat);
+				addKeyframe(time, quat);
+				
+				lastTime = time;
+				lastQuat = quat;
+			}
+
+			lastAngles = angles;
 		}
 
 		// Calculate extra values between keys so we can approximate tangents. If we're sampling very close to the key
 		// the values should pretty much exactly match the tangent (assuming the curves are cubic hermite)
-		for (INT32 i = 0; i < numKeys - 1; i++)
+		INT32 numQuatKeys = (INT32)quatKeyframes.size();
+		for (INT32 i = 0; i < numQuatKeys - 1; i++)
 		{
 			TKeyframe<Quaternion>& currentKey = quatKeyframes[i];
 			TKeyframe<Quaternion>& nextKey = quatKeyframes[i + 1];
-
-			const TKeyframe<Vector3>& currentEulerKey = eulerCurve->getKeyFrame(i);
-			const TKeyframe<Vector3>& nextEulerKey = eulerCurve->getKeyFrame(i + 1);
 
 			float dt = nextKey.time - currentKey.time;
 			float startFitTime = currentKey.time + dt * FIT_TIME;
@@ -138,6 +194,8 @@ namespace bs
 			currentKey.outTangent = (startFitValue - currentKey.value) * invFitTime;
 			nextKey.inTangent = (nextKey.value - endFitValue) * invFitTime;
 
+			const TKeyframe<Vector3>& currentEulerKey = eulerCurve->evaluateKey(currentKey.time, false);
+			const TKeyframe<Vector3>& nextEulerKey = eulerCurve->evaluateKey(nextKey.time, false);
 			setStepTangent(currentEulerKey, nextEulerKey, currentKey, nextKey);
 		}
 
