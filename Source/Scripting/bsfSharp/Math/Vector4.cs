@@ -201,11 +201,11 @@ namespace bs
         /// <returns>Normalized copy of the vector.</returns>
         public static Vector4 Normalize(Vector4 value)
         {
-            float num = Magnitude(value);
-            if (num > 9.999999E-06)
-                return value / num;
+            float sqrdLen = value.SqrdLength;
+            if (sqrdLen > 1e-04f)
+                return value * MathEx.InvSqrt(sqrdLen);
 
-            return Zero;
+            return value;
         }
 
         /// <summary>
@@ -268,11 +268,9 @@ namespace bs
         /// </summary>
         public void Normalize()
         {
-            float num = Magnitude(this);
-            if (num > 9.999999e-06f)
-                this /= num;
-            else
-                this = Zero;
+            float sqrdLen = SqrdLength;
+            if (sqrdLen > 1e-04f)
+                this = this * MathEx.InvSqrt(sqrdLen);
         }
 
         /// <inheritdoc/>

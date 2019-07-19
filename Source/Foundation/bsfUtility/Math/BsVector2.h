@@ -251,18 +251,16 @@ namespace bs
 			return x * vec.x + y * vec.y;
 		}
 
-		/** Normalizes the vector. */
-		float normalize()
+		/** 
+		 * Normalizes this vector, and returns the previous length. If @p SAFE is true, checks if the magnitude is
+		 * above @p tolerance to avoid division by zero or precision issues. If false, no checks are made.
+		 */
+		template<bool SAFE = true>
+		float normalize(float tolerance = 1e-04f)
 		{
-			float len = Math::sqrt(x * x + y * y);
-
-			// Will also work for zero-sized vectors, but will change nothing
-			if (len > 1e-08f)
-			{
-				float invLen = 1.0f / len;
-				x *= invLen;
-				y *= invLen;
-			}
+			float len = length();
+			if (!SAFE || len > (tolerance * tolerance))
+				*this *= 1.0f / len;
 
 			return len;
 		}
@@ -297,10 +295,10 @@ namespace bs
 		}
 
 		/** Returns true if this vector is zero length. */
-		bool isZeroLength() const
+		bool isZeroLength(float tolerance = 1e-04f) const
 		{
-			float sqlen = (x * x) + (y * y);
-			return (sqlen < (1e-06f * 1e-06f));
+			float sqrdLen = x * x + y * y;
+			return sqrdLen < tolerance;
 		}
 
 		/** Calculates a reflection vector to the plane with the given normal. */
@@ -319,21 +317,18 @@ namespace bs
 			v.normalize();
 		}
 
-		/** Normalizes the provided vector and returns a new normalized instance. */
-		static Vector2 normalize(const Vector2& val)
+		/**
+		 * Normalizes the provided vector and returns the result. If @p SAFE is true, checks if the magnitude is
+		 * above @p tolerance to avoid division by zero or precision issues. If false, no checks are made.
+		 */
+		template<bool SAFE = true>
+		static Vector2 normalize(const Vector2& v, float tolerance = 1e-04f)
 		{
-			float len = Math::sqrt(val.x * val.x + val.y * val.y);
+			float sqrdLen = v.x * v.x + v.y * v.y;
+			if (!SAFE || sqrdLen > tolerance)
+				return v * Math::invSqrt(sqrdLen);
 
-			// Will also work for zero-sized vectors, but will change nothing
-			Vector2 normalizedVec = val;
-			if (len > 1e-08f)
-			{
-				float invLen = 1.0f / len;
-				normalizedVec.x *= invLen;
-				normalizedVec.y *= invLen;
-			}
-
-			return normalizedVec;
+			return v;
 		}
 
 		/** Checks are any of the vector components NaN. */

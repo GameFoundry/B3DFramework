@@ -282,12 +282,17 @@ namespace bs
 			return w * other.w + x * other.x + y * other.y + z * other.z;
 		}
 
-		/** Normalizes this quaternion, and returns the previous length. */
-		float normalize()
+		/** 
+		 * Normalizes this quaternion, and returns the previous length. If @p SAFE is true, checks if the magnitude is
+		 * above @p tolerance to avoid division by zero or precision issues. If false, no checks are made.
+		 */
+		template<bool SAFE = true>
+		float normalize(float tolerance = 1e-04f)
 		{
-			float len = w*w + x*x + y*y + z*z;
-			float factor = 1.0f / Math::sqrt(len);
-			*this = *this * factor;
+			float len = Math::sqrt(dot(*this, *this));
+			if(!SAFE || len > (tolerance * tolerance))
+				*this = *this * (1.0f / len);
+
 			return len;
 		}
 
@@ -329,13 +334,18 @@ namespace bs
 			return lhs.w * rhs.w + lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
 		}
 
-		/** Normalizes the provided quaternion. */
-		static Quaternion normalize(const Quaternion& q)
+		/**
+		 * Normalizes the provided quaternion and returns the result. If @p SAFE is true, checks if the magnitude is
+		 * above @p tolerance to avoid division by zero or precision issues. If false, no checks are made.
+		 */
+		template<bool SAFE = true>
+		static Quaternion normalize(const Quaternion& q, float tolerance = 1e-04f)
 		{
-			float len = dot(q, q);
-			float factor = 1.0f / Math::sqrt(len);
+			float sqrdLen = dot(q, q);
+			if(!SAFE || sqrdLen > tolerance)
+				return q * Math::invSqrt(sqrdLen);
 
-			return q * factor;
+			return q;
 		}
 
 		/**

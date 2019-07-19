@@ -324,13 +324,10 @@ namespace bs
         /// <returns>Length of the quaternion prior to normalization.</returns>
         public float Normalize()
         {
-            float len = w*w+x*x+y*y+z*z;
-            float factor = 1.0f / (float)MathEx.Sqrt(len);
+            float len = MathEx.Sqrt(w * w + x * x + y * y + z * z);
+            if (len > 1e-08f)
+                this = (1.0f / len) * this;
 
-            x *= factor;
-            y *= factor;
-            z *= factor;
-            w *= factor;
             return len;
         }
 

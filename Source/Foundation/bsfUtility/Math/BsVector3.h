@@ -6,6 +6,7 @@
 
 #include "Prerequisites/BsPrerequisitesUtil.h"
 #include "Math/BsRadian.h"
+#include "BsMath.h"
 
 namespace bs
 {
@@ -264,22 +265,19 @@ namespace bs
 			return x * vec.x + y * vec.y + z * vec.z;
 		}
 
-		/** Normalizes the vector. */
-		float normalize()
+		/** 
+		 * Normalizes this vector, and returns the previous length. If @p SAFE is true, checks if the magnitude is
+		 * above @p tolerance to avoid division by zero or precision issues. If false, no checks are made.
+		 */
+		template<bool SAFE = true>
+		float normalize(float tolerance = 1e-04f)
 		{
 			float len = length();
+			if (!SAFE || len > (tolerance * tolerance))
+				*this *= 1.0f / len;
 
-			// Will also work for zero-sized vectors, but will change nothing
-			if (len > 1e-08f)
-			{
-				float invLen = 1.0f / len;
-				x *= invLen;
-				y *= invLen;
-				z *= invLen;
-			}
 			return len;
 		}
-
 
 		/** Calculates the cross-product of 2 vectors, that is, the vector that lies perpendicular to them both. */
 		Vector3 cross(const Vector3& other) const
@@ -324,10 +322,10 @@ namespace bs
 		inline Radian angleBetween(const Vector3& dest) const;
 
 		/** Returns true if this vector is zero length. */
-		bool isZeroLength() const
+		bool isZeroLength(float tolerance = 1e-04f) const
 		{
-			float sqlen = (x * x) + (y * y) + (z * z);
-			return (sqlen < (1e-06f * 1e-06f));
+			float sqrdLen = x * x + y * y + z * z;
+			return sqrdLen < tolerance;
 		}
 
 		/** Calculates a reflection vector to the plane with the given normal. */
@@ -370,8 +368,19 @@ namespace bs
 			return a.x * b.x + a.y * b.y + a.z * b.z;
 		}
 
-		/** Normalizes the provided vector and returns a new normalized instance. */
-		static Vector3 normalize(const Vector3& val);
+		/**
+		 * Normalizes the provided vector and returns the result. If @p SAFE is true, checks if the magnitude is
+		 * above @p tolerance to avoid division by zero or precision issues. If false, no checks are made.
+		 */
+		template<bool SAFE = true>
+		static Vector3 normalize(const Vector3& v, float tolerance = 1e-04f)
+		{
+			float sqrdLen = dot(v, v);
+			if (!SAFE || sqrdLen > tolerance)
+				return v * Math::invSqrt(sqrdLen);
+
+			return v;
+		}
 
 		/** Calculates the cross-product of 2 vectors, that is, the vector that lies perpendicular to them both. */
 		static Vector3 cross(const Vector3& a, const Vector3& b)
