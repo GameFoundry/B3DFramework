@@ -184,6 +184,12 @@ namespace bs { namespace ct
 		{
 			if ((mProperties.getUsage() & TU_DYNAMIC) != 0)
 			{
+				if(flags == D3D11_MAP_WRITE)
+				{
+					BS_LOG(Error, RenderBackend, "Dynamic textures only support discard or no-overwrite writes. Falling back to no-overwrite.");
+					flags = D3D11_MAP_WRITE_DISCARD;
+				}
+
 				UINT8* data = (UINT8*)map(mTex, flags, face, mipLevel, rowPitch, slicePitch);
 				lockedArea.setExternalBuffer(data);
 				lockedArea.setRowPitch(rowPitch);
