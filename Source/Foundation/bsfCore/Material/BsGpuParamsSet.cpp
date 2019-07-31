@@ -1073,10 +1073,10 @@ namespace bs
 							Color value;
 							if (params->isAnimated(*materialParamInfo, i))
 							{
-								const ColorGradient& gradient = params->getColorGradientParam(*materialParamInfo, i);
+								const ColorGradientHDR& gradient = params->getColorGradientParam(*materialParamInfo, i);
 
 								const float wrappedT = Math::repeat(t, gradient.getDuration());
-								value = Color::fromRGBA(gradient.evaluate(wrappedT));
+								value = gradient.evaluate(wrappedT);
 							}
 							else
 								memcpy(&value, data + readOffset, paramSize);

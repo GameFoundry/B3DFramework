@@ -34,7 +34,8 @@ namespace bs
 		output.push_back(val.a);
 	}
 
-	LookupTable ColorDistribution::toLookupTable(UINT32 numSamples, bool ignoreRange) const
+	template<class T>
+	LookupTable TColorDistribution<T>::toLookupTable(UINT32 numSamples, bool ignoreRange) const
 	{
 		numSamples = std::max(1U, numSamples);
 
@@ -77,10 +78,10 @@ namespace bs
 				float t = minT;
 				for(UINT32 i = 0; i < numSamples; i++)
 				{
-					addToVector(Color::fromRGBA(mMinGradient.evaluate(t)), values);
+					addToVector(impl::TGradientHelper<typename T::ColorType>::fromInternalColor(mMinGradient.evaluate(t)), values);
 
 					if(useRange)
-						addToVector(Color::fromRGBA(mMaxGradient.evaluate(t)), values);
+						addToVector(impl::TGradientHelper<typename T::ColorType>::fromInternalColor(mMaxGradient.evaluate(t)), values);
 					
 					t += sampleInterval;
 				}
@@ -89,6 +90,9 @@ namespace bs
 
 		return LookupTable(std::move(values), minT, maxT, sizeof(Color) / sizeof(float));
 	}
+
+	template struct BS_CORE_EXPORT TColorDistribution<ColorGradient>;
+	template struct BS_CORE_EXPORT TColorDistribution<ColorGradientHDR>;
 
 	template <class T>
 	LookupTable TDistribution<T>::toLookupTable(UINT32 numSamples, bool ignoreRange) const

@@ -192,6 +192,7 @@ namespace bs
 		TID_ColorGradient = 71,
 		TID_SerializationContext = 72,
 		TID_List = 73,
-		TID_SmallVector = 74
+		TID_SmallVector = 74,
+		TID_ColorGradientHDR = 75,
 	};
 }

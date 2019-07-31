@@ -194,9 +194,9 @@ namespace bs
 		mAlloc.clear();
 	}
 
-	const ColorGradient& MaterialParamsBase::getColorGradientParam(const String& name, UINT32 arrayIdx) const
+	const ColorGradientHDR& MaterialParamsBase::getColorGradientParam(const String& name, UINT32 arrayIdx) const
 	{
-		static ColorGradient EMPTY_GRADIENT;
+		static ColorGradientHDR EMPTY_GRADIENT;
 
 		const ParamData* param = nullptr;
 		auto result = getParamData(name, ParamType::Data, GPDT_COLOR, arrayIdx, &param);
@@ -206,7 +206,7 @@ namespace bs
 		return getColorGradientParam(*param, arrayIdx);
 	}
 
-	void MaterialParamsBase::setColorGradientParam(const String& name, UINT32 arrayIdx, const ColorGradient& input) const
+	void MaterialParamsBase::setColorGradientParam(const String& name, UINT32 arrayIdx, const ColorGradientHDR& input) const
 	{
 		const ParamData* param = nullptr;
 		auto result = getParamData(name, ParamType::Data, GPDT_COLOR, arrayIdx, &param);
@@ -216,23 +216,23 @@ namespace bs
 		setColorGradientParam(*param, arrayIdx, input);
 	}
 
-	const ColorGradient& MaterialParamsBase::getColorGradientParam(const ParamData& param, UINT32 arrayIdx) const
+	const ColorGradientHDR& MaterialParamsBase::getColorGradientParam(const ParamData& param, UINT32 arrayIdx) const
 	{
 		const DataParamInfo& paramInfo = mDataParams[param.index + arrayIdx];
 		if (paramInfo.colorGradient)
 			return *paramInfo.colorGradient;
 
-		static ColorGradient EMPTY_GRADIENT;
+		static ColorGradientHDR EMPTY_GRADIENT;
 		return EMPTY_GRADIENT;
 	}
 
-	void MaterialParamsBase::setColorGradientParam(const ParamData& param, UINT32 arrayIdx, const ColorGradient& input) const
+	void MaterialParamsBase::setColorGradientParam(const ParamData& param, UINT32 arrayIdx, const ColorGradientHDR& input) const
 	{
 		DataParamInfo& paramInfo = mDataParams[param.index + arrayIdx];
 		if (paramInfo.colorGradient)
 			bs_pool_free(paramInfo.colorGradient);
 
-		paramInfo.colorGradient = bs_pool_new<ColorGradient>(input);
+		paramInfo.colorGradient = bs_pool_new<ColorGradientHDR>(input);
 
 		param.version = ++mParamVersion;
 	}
@@ -1171,7 +1171,7 @@ namespace bs
 								dstParamInfo.floatCurve = bs_pool_new<TAnimationCurve<float>>(*srcParamInfo.floatCurve);
 
 							if (srcParamInfo.colorGradient)
-								dstParamInfo.colorGradient = bs_pool_new<ColorGradient>(*srcParamInfo.colorGradient);
+								dstParamInfo.colorGradient = bs_pool_new<ColorGradientHDR>(*srcParamInfo.colorGradient);
 						}
 					}
 				}
@@ -1284,7 +1284,7 @@ namespace bs
 					if(arrParamInfo.colorGradient)
 						bs_pool_free(arrParamInfo.colorGradient);
 
-					arrParamInfo.colorGradient = bs_pool_new<ColorGradient>();
+					arrParamInfo.colorGradient = bs_pool_new<ColorGradientHDR>();
 					sourceData = rttiReadElem(*arrParamInfo.colorGradient, sourceData);
 				}
 			}

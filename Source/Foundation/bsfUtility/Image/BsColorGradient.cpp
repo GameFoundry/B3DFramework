@@ -7,22 +7,26 @@
 
 namespace bs
 {
-	constexpr UINT32 ColorGradient::MAX_KEYS;
+	template<class COLOR, class TIME>
+	constexpr UINT32 TColorGradient<COLOR, TIME>::MAX_KEYS;
 
-	ColorGradient::ColorGradient(const Color& color)
+	template<class COLOR, class TIME>
+	TColorGradient<COLOR, TIME>::TColorGradient(const Color& color)
 	{
 		setConstant(color);
 	}
 
-	ColorGradient::ColorGradient(const Vector<ColorGradientKey>& keys)
+	template<class COLOR, class TIME>
+	TColorGradient<COLOR, TIME>::TColorGradient(const Vector<ColorGradientKey>& keys)
 	{
 		setKeys(keys);
 	}
 
-	RGBA ColorGradient::evaluate(float t) const
+	template<class COLOR, class TIME>
+	COLOR TColorGradient<COLOR, TIME>::evaluate(float t) const
 	{
 		if(mNumKeys == 0)
-			return 0;
+			return COLOR();
 
 		if(mNumKeys == 1)
 			return mColors[0];
@@ -30,27 +34,28 @@ namespace bs
 		if(mDuration > 0.0f)
 			t = t / mDuration;
 
-		const uint32_t time = Bitwise::unormToUint<16>(Math::clamp01(t));
+		const auto time = impl::TGradientHelper<COLOR>::getInternalTime(Math::clamp01(t));
 
 		if(time < mTimes[0])
 			return mColors[0];
 
 		// Note: Add a version of evaluate that supports caching?
-		for(UINT32 i = 1; i < mNumKeys; i++)
+		for(uint32_t i = 1; i < mNumKeys; i++)
 		{
-			const uint32_t curKeyTime = mTimes[i];
+			const auto curKeyTime = mTimes[i];
 			if(time > curKeyTime)
 				continue;
 
-			const uint32_t prevKeyTime = mTimes[i - 1];
-			const uint32_t fracColor = Bitwise::invLerpWord(prevKeyTime, curKeyTime, time) >> 8;
+			const auto prevKeyTime = mTimes[i - 1];
+			const auto fracColor = impl::TGradientHelper<COLOR>::invLerp(prevKeyTime, curKeyTime, time);
 			return Color::lerp(fracColor, mColors[i - 1], mColors[i]);
 		}
 
 		return mColors[mNumKeys - 1];
 	}
 
-	void ColorGradient::setKeys(const Vector<ColorGradientKey>& keys, float duration)
+	template<class COLOR, class TIME>
+	void TColorGradient<COLOR, TIME>::setKeys(const Vector<ColorGradientKey>& keys, float duration)
 	{
 #if BS_DEBUG_MODE
 		// Ensure keys are sorted
@@ -79,59 +84,66 @@ namespace bs
 			if(mNumKeys >= MAX_KEYS)
 				break;
 
-			mColors[mNumKeys] = key.color.getAsRGBA();
-			mTimes[mNumKeys] = Bitwise::unormToUint<16>(Math::clamp01(key.time));
+			mColors[mNumKeys] = impl::TGradientHelper<COLOR>::toInternalColor(key.color);
+			mTimes[mNumKeys] = impl::TGradientHelper<COLOR>::getInternalTime(Math::clamp01(key.time));
 
 			mNumKeys++;
 		}
 	}
 
-	Vector<ColorGradientKey> ColorGradient::getKeys() const
+	template<class COLOR, class TIME>
+	Vector<ColorGradientKey> TColorGradient<COLOR, TIME>::getKeys() const
 	{
 		Vector<ColorGradientKey> output(mNumKeys);
 		for(UINT32 i = 0; i < mNumKeys; i++)
 		{
-			output[i].color = Color::fromRGBA(mColors[i]);
-			output[i].time = Bitwise::uintToUnorm<16>(mTimes[i]);
+			output[i].color = impl::TGradientHelper<COLOR>::fromInternalColor(mColors[i]);
+			output[i].time = impl::TGradientHelper<COLOR>::fromInternalTime(mTimes[i]);
 		}
 
 		return output;
 	}
 
-	ColorGradientKey ColorGradient::getKey(UINT32 idx) const
+	template<class COLOR, class TIME>
+	ColorGradientKey TColorGradient<COLOR, TIME>::getKey(UINT32 idx) const
 	{
 		if(idx >= mNumKeys)
 			return ColorGradientKey(Color::Black, 0.0f);
 
-		return ColorGradientKey(Color::fromRGBA(mColors[idx]), Bitwise::uintToUnorm<16>(mTimes[idx]));
+		return ColorGradientKey(
+			impl::TGradientHelper<COLOR>::fromInternalColor(mColors[idx]),
+			impl::TGradientHelper<COLOR>::fromInternalTime(mTimes[idx]));
 	}
 
-	void ColorGradient::setConstant(const Color& color)
+	template<class COLOR, class TIME>
+	void TColorGradient<COLOR, TIME>::setConstant(const Color& color)
 	{
-		mColors[0] = color.getAsRGBA();
+		mColors[0] = impl::TGradientHelper<COLOR>::toInternalColor(color);
 		mTimes[0] = 0;
 		mNumKeys = 1;
 		mDuration = 0.0f;
 	}
 
-	std::pair<float, float> ColorGradient::getTimeRange() const
+	template<class COLOR, class TIME>
+	std::pair<float, float> TColorGradient<COLOR, TIME>::getTimeRange() const
 	{
 		if(mNumKeys == 0)
 			return std::make_pair(0.0f, 0.0f);
 
 		if(mNumKeys == 1)
 		{
-			float time = Bitwise::uintToUnorm<16>(mTimes[0]);
+			float time = impl::TGradientHelper<COLOR>::fromInternalTime(mTimes[0]);
 			return std::make_pair(time, time);
 		}
 
 		return std::make_pair(
-			Bitwise::uintToUnorm<16>(mTimes[0]),
-			Bitwise::uintToUnorm<16>(mTimes[mNumKeys - 1])
+			impl::TGradientHelper<COLOR>::fromInternalTime(mTimes[0]),
+			impl::TGradientHelper<COLOR>::fromInternalTime(mTimes[mNumKeys - 1])
 		);
 	}
 
-	bool ColorGradient::operator== (const ColorGradient& rhs) const
+	template<class COLOR, class TIME>
+	bool TColorGradient<COLOR, TIME>::operator== (const TColorGradient<COLOR, TIME>& rhs) const
 	{
 		if (mNumKeys != rhs.mNumKeys || mDuration != rhs.mDuration)
 			return false;
@@ -144,4 +156,7 @@ namespace bs
 
 		return true;
 	}
+
+	template class TColorGradient<RGBA, uint16_t>;
+	template class TColorGradient<Color, float>;
 }

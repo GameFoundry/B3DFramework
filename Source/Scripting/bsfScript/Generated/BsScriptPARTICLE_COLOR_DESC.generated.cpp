@@ -5,7 +5,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
-#include "BsScriptColorDistribution.generated.h"
+#include "BsScriptTColorDistribution.generated.h"
 
 namespace bs
 {
@@ -29,9 +29,9 @@ namespace bs
 	PARTICLE_COLOR_DESC ScriptPARTICLE_COLOR_DESC::fromInterop(const __PARTICLE_COLOR_DESCInterop& value)
 	{
 		PARTICLE_COLOR_DESC output;
-		SPtr<ColorDistribution> tmpcolor;
-		ScriptColorDistribution* scriptcolor;
-		scriptcolor = ScriptColorDistribution::toNative(value.color);
+		SPtr<TColorDistribution<ColorGradient>> tmpcolor;
+		ScriptTColorDistributionColorGradient* scriptcolor;
+		scriptcolor = ScriptTColorDistributionColorGradient::toNative(value.color);
 		if(scriptcolor != nullptr)
 			tmpcolor = scriptcolor->getInternal();
 		if(tmpcolor != nullptr)
@@ -44,9 +44,9 @@ namespace bs
 	{
 		__PARTICLE_COLOR_DESCInterop output;
 		MonoObject* tmpcolor;
-		SPtr<ColorDistribution> tmpcolorcopy;
-		tmpcolorcopy = bs_shared_ptr_new<ColorDistribution>(value.color);
-		tmpcolor = ScriptColorDistribution::create(tmpcolorcopy);
+		SPtr<TColorDistribution<ColorGradient>> tmpcolorcopy;
+		tmpcolorcopy = bs_shared_ptr_new<TColorDistribution<ColorGradient>>(value.color);
+		tmpcolor = ScriptTColorDistributionColorGradient::create(tmpcolorcopy);
 		output.color = tmpcolor;
 
 		return output;

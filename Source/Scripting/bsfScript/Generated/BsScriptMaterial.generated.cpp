@@ -8,12 +8,12 @@
 #include "BsScriptResourceManager.h"
 #include "Wrappers/BsScriptRRefBase.h"
 #include "Wrappers/BsScriptVector.h"
-#include "BsScriptColorGradient.generated.h"
 #include "Wrappers/BsScriptColor.h"
 #include "../../../Foundation/bsfCore/Material/BsMaterial.h"
 #include "../../../Foundation/bsfCore/Material/BsShader.h"
 #include "BsScriptShaderVariation.generated.h"
 #include "Wrappers/BsScriptVector.h"
+#include "BsScriptColorGradientHDR.generated.h"
 #include "BsScriptTAnimationCurve.generated.h"
 #include "Wrappers/BsScriptVector.h"
 #include "../../../Foundation/bsfCore/Image/BsTexture.h"
@@ -168,9 +168,9 @@ namespace bs
 	{
 		String tmpname;
 		tmpname = MonoUtil::monoToString(name);
-		SPtr<ColorGradient> tmpvalue;
-		ScriptColorGradient* scriptvalue;
-		scriptvalue = ScriptColorGradient::toNative(value);
+		SPtr<ColorGradientHDR> tmpvalue;
+		ScriptColorGradientHDR* scriptvalue;
+		scriptvalue = ScriptColorGradientHDR::toNative(value);
 		if(scriptvalue != nullptr)
 			tmpvalue = scriptvalue->getInternal();
 		thisPtr->getHandle()->setColorGradient(tmpname, *tmpvalue, arrayIdx);
@@ -249,13 +249,13 @@ namespace bs
 
 	MonoObject* ScriptMaterial::Internal_getColorGradient(ScriptMaterial* thisPtr, MonoString* name, uint32_t arrayIdx)
 	{
-		SPtr<ColorGradient> tmp__output = bs_shared_ptr_new<ColorGradient>();
+		SPtr<ColorGradientHDR> tmp__output = bs_shared_ptr_new<ColorGradientHDR>();
 		String tmpname;
 		tmpname = MonoUtil::monoToString(name);
 		*tmp__output = thisPtr->getHandle()->getColorGradient(tmpname, arrayIdx);
 
 		MonoObject* __output;
-		__output = ScriptColorGradient::create(tmp__output);
+		__output = ScriptColorGradientHDR::create(tmp__output);
 
 		return __output;
 	}

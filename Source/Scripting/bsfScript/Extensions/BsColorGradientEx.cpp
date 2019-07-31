@@ -8,4 +8,9 @@ namespace bs
 	{
 		return Color::fromRGBA(thisPtr->evaluate(t));
 	}
+
+	Color ColorGradientHDREx::evaluate(const SPtr<ColorGradientHDR>& thisPtr, float t)
+	{
+		return thisPtr->evaluate(t);
+	}
 }

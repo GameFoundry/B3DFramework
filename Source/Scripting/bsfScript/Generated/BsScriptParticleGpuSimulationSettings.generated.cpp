@@ -6,9 +6,9 @@
 #include "BsMonoUtil.h"
 #include "BsScriptParticleDepthCollisionSettings.generated.h"
 #include "BsScriptParticleVectorFieldSettings.generated.h"
-#include "BsScriptColorDistribution.generated.h"
-#include "BsScriptTDistribution.generated.h"
 #include "Wrappers/BsScriptVector.h"
+#include "BsScriptTColorDistribution.generated.h"
+#include "BsScriptTDistribution.generated.h"
 
 namespace bs
 {
@@ -36,7 +36,7 @@ namespace bs
 
 	MonoObject* ScriptParticleGpuSimulationSettings::create(const SPtr<ParticleGpuSimulationSettings>& value)
 	{
-		if(value == nullptr) return nullptr;
+		if(value == nullptr) return nullptr; 
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
@@ -68,20 +68,20 @@ namespace bs
 
 	MonoObject* ScriptParticleGpuSimulationSettings::Internal_getcolorOverLifetime(ScriptParticleGpuSimulationSettings* thisPtr)
 	{
-		SPtr<ColorDistribution> tmp__output = bs_shared_ptr_new<ColorDistribution>();
+		SPtr<TColorDistribution<ColorGradient>> tmp__output = bs_shared_ptr_new<TColorDistribution<ColorGradient>>();
 		*tmp__output = thisPtr->getInternal()->colorOverLifetime;
 
 		MonoObject* __output;
-		__output = ScriptColorDistribution::create(tmp__output);
+		__output = ScriptTColorDistributionColorGradient::create(tmp__output);
 
 		return __output;
 	}
 
 	void ScriptParticleGpuSimulationSettings::Internal_setcolorOverLifetime(ScriptParticleGpuSimulationSettings* thisPtr, MonoObject* value)
 	{
-		SPtr<ColorDistribution> tmpvalue;
-		ScriptColorDistribution* scriptvalue;
-		scriptvalue = ScriptColorDistribution::toNative(value);
+		SPtr<TColorDistribution<ColorGradient>> tmpvalue;
+		ScriptTColorDistributionColorGradient* scriptvalue;
+		scriptvalue = ScriptTColorDistributionColorGradient::toNative(value);
 		if(scriptvalue != nullptr)
 			tmpvalue = scriptvalue->getInternal();
 		thisPtr->getInternal()->colorOverLifetime = *tmpvalue;

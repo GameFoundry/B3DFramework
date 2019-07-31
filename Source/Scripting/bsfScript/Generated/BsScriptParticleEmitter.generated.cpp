@@ -27,7 +27,7 @@
 #include "BsScriptTDistribution.generated.h"
 #include "BsScriptParticleBurst.generated.h"
 #include "BsScriptTDistribution.generated.h"
-#include "BsScriptColorDistribution.generated.h"
+#include "BsScriptTColorDistribution.generated.h"
 #include "BsScriptParticleEmitter.generated.h"
 
 namespace bs
@@ -75,7 +75,7 @@ namespace bs
 
 	MonoObject* ScriptParticleEmitter::create(const SPtr<ParticleEmitter>& value)
 	{
-		if(value == nullptr) return nullptr;
+		if(value == nullptr) return nullptr; 
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
@@ -342,9 +342,9 @@ namespace bs
 
 	void ScriptParticleEmitter::Internal_setInitialColor(ScriptParticleEmitter* thisPtr, MonoObject* value)
 	{
-		SPtr<ColorDistribution> tmpvalue;
-		ScriptColorDistribution* scriptvalue;
-		scriptvalue = ScriptColorDistribution::toNative(value);
+		SPtr<TColorDistribution<ColorGradient>> tmpvalue;
+		ScriptTColorDistributionColorGradient* scriptvalue;
+		scriptvalue = ScriptTColorDistributionColorGradient::toNative(value);
 		if(scriptvalue != nullptr)
 			tmpvalue = scriptvalue->getInternal();
 		thisPtr->getInternal()->setInitialColor(*tmpvalue);
@@ -352,11 +352,11 @@ namespace bs
 
 	MonoObject* ScriptParticleEmitter::Internal_getInitialColor(ScriptParticleEmitter* thisPtr)
 	{
-		SPtr<ColorDistribution> tmp__output = bs_shared_ptr_new<ColorDistribution>();
+		SPtr<TColorDistribution<ColorGradient>> tmp__output = bs_shared_ptr_new<TColorDistribution<ColorGradient>>();
 		*tmp__output = thisPtr->getInternal()->getInitialColor();
 
 		MonoObject* __output;
-		__output = ScriptColorDistribution::create(tmp__output);
+		__output = ScriptTColorDistributionColorGradient::create(tmp__output);
 
 		return __output;
 	}

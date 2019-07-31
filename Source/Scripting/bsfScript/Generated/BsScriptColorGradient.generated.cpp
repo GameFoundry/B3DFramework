@@ -32,7 +32,7 @@ namespace bs
 
 	MonoObject* ScriptColorGradient::create(const SPtr<ColorGradient>& value)
 	{
-		if(value == nullptr) return nullptr;
+		if(value == nullptr) return nullptr; 
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };

@@ -11,7 +11,7 @@ namespace bs
 {
 	template <class T>
 	class TAnimationCurve;
-	class ColorGradient;
+	class ColorGradientHDR;
 
 	/** @addtogroup Implementation
 	 *  @{
@@ -98,10 +98,10 @@ namespace bs
 		using TMaterialDataCommon<GPDT_COLOR, Core>::TMaterialDataCommon;
 
 		/** @copydoc TGpuDataParam::set */
-		void set(const ColorGradient& value, UINT32 arrayIdx = 0) const;
+		void set(const ColorGradientHDR& value, UINT32 arrayIdx = 0) const;
 
 		/** @copydoc TGpuDataParam::get */
-		const ColorGradient& get(UINT32 arrayIdx = 0) const;
+		const ColorGradientHDR& get(UINT32 arrayIdx = 0) const;
 	};
 
 	/** @copydoc TMaterialDataParam */

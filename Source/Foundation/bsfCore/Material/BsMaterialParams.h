@@ -13,7 +13,7 @@ namespace bs
 {
 	template<class T>
 	class TAnimationCurve;
-	class ColorGradient;
+	class ColorGradientHDR;
 
 	/** @addtogroup Material-Internal
 	 *  @{
@@ -69,7 +69,7 @@ namespace bs
 			UINT32 offset;
 
 			TAnimationCurve<float>* floatCurve;
-			ColorGradient* colorGradient;
+			ColorGradientHDR* colorGradient;
 			UINT32 spriteTextureIdx;
 		};
 
@@ -201,7 +201,7 @@ namespace bs
 		 * @param[in]	arrayIdx	If the parameter is an array, index of the entry to access.
 		 * @return					Color gradient assigned to the parameter.
 		 */
-		const ColorGradient& getColorGradientParam(const String& name, UINT32 arrayIdx) const;
+		const ColorGradientHDR& getColorGradientParam(const String& name, UINT32 arrayIdx) const;
 
 		/**
 		 * Sets a color gradient to a shader color parameter with the specified name at the specified array index. If the
@@ -211,7 +211,7 @@ namespace bs
 		 * @param[in]	arrayIdx	If the parameter is an array, index of the entry to access.
 		 * @param[in]	input		New value of the parameter.
 		 */
-		void setColorGradientParam(const String& name, UINT32 arrayIdx, const ColorGradient& input) const;
+		void setColorGradientParam(const String& name, UINT32 arrayIdx, const ColorGradientHDR& input) const;
 
 		/**
 		 * Returns an index of the parameter with the specified name. Index can be used in a call to getParamData(UINT32) to
@@ -374,14 +374,14 @@ namespace bs
 		 * directly, avoiding the name lookup. Caller must guarantee the parameter reference is valid and belongs to this
 		 * object.
 		 */
-		const ColorGradient& getColorGradientParam(const ParamData& param, UINT32 arrayIdx) const;
+		const ColorGradientHDR& getColorGradientParam(const ParamData& param, UINT32 arrayIdx) const;
 
 		/**
 		 * Equivalent to setColorGradientParam(const String&, UINT32, const ColorGradient&) except it uses the internal
 		 * parameter reference directly, avoiding the name lookup. Caller must guarantee the parameter reference is valid
 		 * and belongs to this object.
 		 */
-		void setColorGradientParam(const ParamData& param, UINT32 arrayIdx, const ColorGradient& input) const;
+		void setColorGradientParam(const ParamData& param, UINT32 arrayIdx, const ColorGradientHDR& input) const;
 
 		/** Returns pointer to the internal data buffer for a data parameter at the specified index. */
 		UINT8* getData(UINT32 index) const

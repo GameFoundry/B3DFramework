@@ -38,11 +38,12 @@ namespace bs
 	 */
 
 	/** Specifies a color as a distribution, which can include a constant color, random color range or a color gradient. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ColorDistribution
+	template<class T>
+	struct TColorDistribution
 	{
 		/** Creates a new empty distribution. */
 		BS_SCRIPT_EXPORT()
-		ColorDistribution()
+		TColorDistribution()
 			: mType(PDT_Constant)
 			, mMinGradient({ ColorGradientKey(Color::Black, 0.0f) })
 			, mMaxGradient({ ColorGradientKey(Color::Black, 0.0f) })
@@ -50,7 +51,7 @@ namespace bs
 
 		/** Creates a new distribution that returns a constant color. */
 		BS_SCRIPT_EXPORT()
-		ColorDistribution(const Color& color)
+		TColorDistribution(const Color& color)
 			: mType(PDT_Constant)
 			, mMinGradient({ ColorGradientKey(color, 0.0f) })
 			, mMaxGradient({ ColorGradientKey(color, 0.0f) })
@@ -58,7 +59,7 @@ namespace bs
 
 		/** Creates a new distribution that returns a random color in the specified range. */
 		BS_SCRIPT_EXPORT()
-		ColorDistribution(const Color& minColor, const Color& maxColor)
+		TColorDistribution(const Color& minColor, const Color& maxColor)
 			: mType(PDT_RandomRange)
 			, mMinGradient({ ColorGradientKey(minColor, 0.0f) })
 			, mMaxGradient({ ColorGradientKey(maxColor, 0.0f) })
@@ -66,26 +67,26 @@ namespace bs
 
 		/** Creates a new distribution that evaluates a color gradient. */
 		BS_SCRIPT_EXPORT()
-		ColorDistribution(const ColorGradient& gradient)
+		TColorDistribution(const T& gradient)
 			: mType(PDT_Curve), mMinGradient(gradient), mMaxGradient(gradient)
 		{
 			if(mMinGradient.getNumKeys() == 0)
-				mMinGradient = ColorGradient({ ColorGradientKey(Color::Black, 0.0f) });
+				mMinGradient = T({ ColorGradientKey(Color::Black, 0.0f) });
 
 			if(mMaxGradient.getNumKeys() == 0)
-				mMaxGradient = ColorGradient({ ColorGradientKey(Color::Black, 0.0f) });
+				mMaxGradient = T({ ColorGradientKey(Color::Black, 0.0f) });
 		}
 
 		/** Creates a new distribution that returns a random color in a range determined by two gradients. */
 		BS_SCRIPT_EXPORT()
-		ColorDistribution(const ColorGradient& minGradient, const ColorGradient& maxGradient)
+		TColorDistribution(const T& minGradient, const T& maxGradient)
 			: mType(PDT_RandomCurveRange), mMinGradient(minGradient), mMaxGradient(maxGradient)
 		{
 			if(mMinGradient.getNumKeys() == 0)
-				mMinGradient = ColorGradient({ ColorGradientKey(Color::Black, 0.0f) });
+				mMinGradient = T({ ColorGradientKey(Color::Black, 0.0f) });
 
 			if(mMaxGradient.getNumKeys() == 0)
-				mMaxGradient = ColorGradient({ ColorGradientKey(Color::Black, 0.0f) });
+				mMaxGradient = T({ ColorGradientKey(Color::Black, 0.0f) });
 		}
 
 		/** Returns the type of the represented distribution. */
@@ -110,14 +111,14 @@ namespace bs
 		 * Undefined if the distribution is represented by a constant or a non-gradient range.
 		 */
 		BS_SCRIPT_EXPORT()
-		const ColorGradient& getMinGradient() const { return mMinGradient; }
+		const T& getMinGradient() const { return mMinGradient; }
 
 		/**
 		 * Returns the curve representing the second gradient of a gradient range. Only defined if the distribution
 		 * represents a gradient range.
 		 */
 		BS_SCRIPT_EXPORT()
-		const ColorGradient& getMaxGradient() const { return mMaxGradient; }
+		const T& getMaxGradient() const { return mMaxGradient; }
 
 		/**
 		 * Evaluates the value of the distribution.
@@ -130,9 +131,9 @@ namespace bs
 		 * @return				Evaluated color.
 		 *
 		 */
-		RGBA evaluate(float t, float factor) const
+		typename T::ColorType evaluate(float t, float factor) const
 		{
-			const UINT32 byteFactor = Bitwise::unormToUint<8>(factor);
+			const auto lerpFactor = impl::TGradientHelper<typename T::ColorType>::toLerpFactor(factor);
 			switch(mType)
 			{
 			default:
@@ -140,19 +141,19 @@ namespace bs
 				return mMinGradient.evaluate(0.0f);
 			case PDT_RandomRange:
 				{
-					const RGBA minColor = mMinGradient.evaluate(0.0f);
-					const RGBA maxColor = mMaxGradient.evaluate(0.0f);
+					const auto minColor = mMinGradient.evaluate(0.0f);
+					const auto maxColor = mMaxGradient.evaluate(0.0f);
 
-					return Color::lerp(byteFactor, minColor, maxColor);
+					return Color::lerp(lerpFactor, minColor, maxColor);
 				}
 			case PDT_Curve:
 				return mMinGradient.evaluate(t);
 			case PDT_RandomCurveRange:
 				{
-					const RGBA minColor = mMinGradient.evaluate(t);
-					const RGBA maxColor = mMaxGradient.evaluate(t);
+					const auto minColor = mMinGradient.evaluate(t);
+					const auto maxColor = mMaxGradient.evaluate(t);
 
-					return Color::lerp(byteFactor, minColor, maxColor);
+					return Color::lerp(lerpFactor, minColor, maxColor);
 				}
 			}
 		}
@@ -167,7 +168,7 @@ namespace bs
 		 * @return				Evaluated color.
 		 *
 		 */
-		RGBA evaluate(float t, const Random& factor) const
+		typename T::ColorType evaluate(float t, const Random& factor) const
 		{
 			switch(mType)
 			{
@@ -176,21 +177,21 @@ namespace bs
 				return mMinGradient.evaluate(0.0f);
 			case PDT_RandomRange:
 			{
-				const RGBA minColor = mMinGradient.evaluate(0.0f);
-				const RGBA maxColor = mMaxGradient.evaluate(0.0f);
+				const auto minColor = mMinGradient.evaluate(0.0f);
+				const auto maxColor = mMaxGradient.evaluate(0.0f);
 
-				const UINT32 byteFactor = Bitwise::unormToUint<8>(factor.getUNorm());
-				return Color::lerp(byteFactor, minColor, maxColor);
+				const auto lerpFactor = impl::TGradientHelper<typename T::ColorType>::toLerpFactor(factor.getUNorm());
+				return Color::lerp(lerpFactor, minColor, maxColor);
 			}
 			case PDT_Curve:
 				return mMinGradient.evaluate(t);
 			case PDT_RandomCurveRange:
 				{
-					const RGBA minColor = mMinGradient.evaluate(t);
-					const RGBA maxColor = mMaxGradient.evaluate(t);
+					const auto minColor = mMinGradient.evaluate(t);
+					const auto maxColor = mMaxGradient.evaluate(t);
 
-					const UINT32 byteFactor = Bitwise::unormToUint<8>(factor.getUNorm());
-					return Color::lerp(byteFactor, minColor, maxColor);
+					const auto lerpFactor = impl::TGradientHelper<typename T::ColorType>::toLerpFactor(factor.getUNorm());
+					return Color::lerp(lerpFactor, minColor, maxColor);
 				}
 			}
 		}
@@ -209,7 +210,7 @@ namespace bs
 		 */
 		LookupTable toLookupTable(UINT32 numSamples = 128, bool ignoreRange = false) const;
 
-		bool operator== (const ColorDistribution& rhs) const
+		bool operator== (const TColorDistribution<T>& rhs) const
 		{
 			if(mType != rhs.mType)
 				return false;
@@ -220,14 +221,22 @@ namespace bs
 				return mMinGradient == rhs.mMinGradient && mMaxGradient == rhs.mMaxGradient;
 		}
 
-		bool operator!= (const ColorDistribution& rhs) const { return !operator==(rhs); }
+		bool operator!= (const TColorDistribution<T>& rhs) const { return !operator==(rhs); }
 	private:
-		friend struct RTTIPlainType<ColorDistribution>;
+		friend struct RTTIPlainType<TColorDistribution<T>>;
 
 		PropertyDistributionType mType;
-		ColorGradient mMinGradient;
-		ColorGradient mMaxGradient;
+		T mMinGradient;
+		T mMaxGradient;
 	};
+
+	using ColorDistribution = TColorDistribution<ColorGradient>;
+	using ColorHDRDistribution = TColorDistribution<ColorGradientHDR>;
+
+#ifdef BS_SBGEN
+	template struct BS_SCRIPT_EXPORT(m:Particles,n:ColorDistribution) TColorDistribution<ColorGradient>;
+	template struct BS_SCRIPT_EXPORT(m:Particles,n:ColorHDRDistribution) TColorDistribution<ColorGradientHDR>;
+#endif
 
 	/** Specifies a value as a distribution, which can include a constant value, random range or a curve. */
 	template<class T>

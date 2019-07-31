@@ -18,7 +18,7 @@ namespace bs
 		/// <summary>Collision events will be triggered when object enters and/or leaves collision.</summary>
 		Report = 1,
 		/// <summary>
-		/// Collision events will be triggered when object enters and/or leaves collision, but also every frame the object
+		/// Collision events will be triggered when object enters and/or leaves collision, but also every frame the object 
 		/// remains in collision.
 		/// </summary>
 		ReportPersistent = 2

@@ -246,7 +246,7 @@ namespace bs
 		 * Optionally if the parameter is an array you may provide an array index to assign the value to.
 		 */
 		BS_SCRIPT_EXPORT()
-		void setColorGradient(const String& name, const ColorGradient& value, UINT32 arrayIdx = 0)
+		void setColorGradient(const String& name, const ColorGradientHDR& value, UINT32 arrayIdx = 0)
 		{ return getParamColorGradient(name).set(value, arrayIdx); }
 
 		/**
@@ -370,7 +370,7 @@ namespace bs
 		 * Optionally if the parameter is an array you may provide an array index you which to retrieve.
 		 */
 		BS_SCRIPT_EXPORT()
-		const ColorGradient& getColorGradient(const String& name, UINT32 arrayIdx = 0) const
+		const ColorGradientHDR& getColorGradient(const String& name, UINT32 arrayIdx = 0) const
 		{ return getParamColorGradient(name).get(arrayIdx); }
 
 		/**

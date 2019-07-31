@@ -102,7 +102,7 @@ namespace bs
 	}
 
 	template<bool Core>
-	void TMaterialColorGradientParam<Core>::set(const ColorGradient& value, UINT32 arrayIdx) const
+	void TMaterialColorGradientParam<Core>::set(const ColorGradientHDR& value, UINT32 arrayIdx) const
 	{
 		if (this->mMaterial == nullptr)
 			return;
@@ -122,9 +122,9 @@ namespace bs
 	}
 
 	template<bool Core>
-	const ColorGradient& TMaterialColorGradientParam<Core>::get(UINT32 arrayIdx) const
+	const ColorGradientHDR& TMaterialColorGradientParam<Core>::get(UINT32 arrayIdx) const
 	{
-		static ColorGradient EMPTY_GRADIENT;
+		static ColorGradientHDR EMPTY_GRADIENT;
 
 		if (this->mMaterial == nullptr || arrayIdx >= this->mArraySize)
 			return EMPTY_GRADIENT;

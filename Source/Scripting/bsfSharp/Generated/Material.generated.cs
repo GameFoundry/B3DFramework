@@ -11,7 +11,7 @@ namespace bs
 	 */
 
 	/// <summary>
-	/// Material that controls how objects are rendered. It is represented by a shader and parameters used to set up that
+	/// Material that controls how objects are rendered. It is represented by a shader and parameters used to set up that 
 	/// shader. It provides a simple interface for manipulating the parameters.
 	/// </summary>
 	[ShowInInspector]
@@ -38,7 +38,7 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Sets a shader that will be used by the material. Material will be initialized using all compatible techniques from
+		/// Sets a shader that will be used by the material. Material will be initialized using all compatible techniques from 
 		/// the shader. Shader must be set before doing any other operations with the material.
 		/// </summary>
 		[ShowInInspector]
@@ -50,9 +50,9 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Set of parameters that determine which subset of techniques in the assigned shader should be used. Only the
-		/// techniques that have the provided parameters with the provided values will match. This will control which  technique
-		/// is considered the default technique and which subset of techniques are searched during a call to  findTechnique().
+		/// Set of parameters that determine which subset of techniques in the assigned shader should be used. Only the 
+		/// techniques that have the provided parameters with the provided values will match. This will control which technique 
+		/// is considered the default technique and which subset of techniques are searched during a call to findTechnique().
 		/// </summary>
 		[NotNull]
 		[PassByCopy]
@@ -104,12 +104,12 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Assigns a color gradient to the shader parameter with the specified name. The system will automatically evaluate the
+		/// Assigns a color gradient to the shader parameter with the specified name. The system will automatically evaluate the 
 		/// gradient with the passage of time and apply the evaluated value to the parameter.
 		///
 		/// Optionally if the parameter is an array you may provide an array index to assign the value to.
 		/// </summary>
-		public void SetColorGradient(string name, ColorGradient value, int arrayIdx = 0)
+		public void SetColorGradient(string name, ColorGradientHDR value, int arrayIdx = 0)
 		{
 			Internal_setColorGradient(mCachedPtr, name, value, arrayIdx);
 		}
@@ -165,7 +165,7 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Returns a float value assigned with the parameter with the specified name. If a curve is assigned to this parameter,
+		/// Returns a float value assigned with the parameter with the specified name. If a curve is assigned to this parameter, 
 		/// returns the curve value evaluated at time 0. Use getBoundParamType() to determine the type of the parameter.
 		///
 		/// Optionally if the parameter is an array you may provide an array index you which to retrieve.
@@ -176,8 +176,8 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Returns a curve value assigned to the parameter with the specified name. If the parameter has a constant value bound
-		/// instead of a curve then this method returns an empty curve. Use getBoundParamType() to determine the type of the
+		/// Returns a curve value assigned to the parameter with the specified name. If the parameter has a constant value bound 
+		/// instead of a curve then this method returns an empty curve. Use getBoundParamType() to determine the type of the 
 		/// parameter.
 		///
 		/// Optionally if the parameter is an array you may provide an array index you which to retrieve.
@@ -188,8 +188,8 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Returns a color assigned with the parameter with the specified name. If a color gradient is assigned to this
-		/// parameter, returns the gradient color evaluated at time 0. Use getBoundParamType() to determine the type of the
+		/// Returns a color assigned with the parameter with the specified name. If a color gradient is assigned to this 
+		/// parameter, returns the gradient color evaluated at time 0. Use getBoundParamType() to determine the type of the 
 		/// parameter.
 		///
 		/// Optionally if the parameter is an array you may provide an array index you which to retrieve.
@@ -202,13 +202,13 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Returns a color gradient assigned with the parameter with the specified name. If the parameter has a constant value
-		/// bound instead of a gradient then this method returns an empty gradient. Use getBoundParamType() to determine the type
+		/// Returns a color gradient assigned with the parameter with the specified name. If the parameter has a constant value 
+		/// bound instead of a gradient then this method returns an empty gradient. Use getBoundParamType() to determine the type 
 		/// of the parameter.
 		///
 		/// Optionally if the parameter is an array you may provide an array index you which to retrieve.
 		/// </summary>
-		public ColorGradient GetColorGradient(string name, int arrayIdx = 0)
+		public ColorGradientHDR GetColorGradient(string name, int arrayIdx = 0)
 		{
 			return Internal_getColorGradient(mCachedPtr, name, arrayIdx);
 		}
@@ -274,7 +274,7 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Checks does the data parameter with the specified name currently contains animated data. This could be  an animation
+		/// Checks does the data parameter with the specified name currently contains animated data. This could be an animation 
 		/// curve or a color gradient.
 		/// </summary>
 		public bool IsAnimated(string name, int arrayIdx = 0)
@@ -301,7 +301,7 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setColor(IntPtr thisPtr, string name, ref Color value, int arrayIdx);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setColorGradient(IntPtr thisPtr, string name, ColorGradient value, int arrayIdx);
+		private static extern void Internal_setColorGradient(IntPtr thisPtr, string name, ColorGradientHDR value, int arrayIdx);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setVec2(IntPtr thisPtr, string name, ref Vector2 value, int arrayIdx);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -319,7 +319,7 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_getColor(IntPtr thisPtr, string name, int arrayIdx, out Color __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern ColorGradient Internal_getColorGradient(IntPtr thisPtr, string name, int arrayIdx);
+		private static extern ColorGradientHDR Internal_getColorGradient(IntPtr thisPtr, string name, int arrayIdx);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_getVec2(IntPtr thisPtr, string name, int arrayIdx, out Vector2 __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]

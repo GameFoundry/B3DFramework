@@ -4,6 +4,7 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
+#include "BsScriptShaderImportOptions.generated.h"
 
 namespace bs
 {
@@ -22,12 +23,13 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_removeDefine", (void*)&ScriptShaderImportOptions::Internal_removeDefine);
 		metaData.scriptClass->addInternalCall("Internal_getlanguages", (void*)&ScriptShaderImportOptions::Internal_getlanguages);
 		metaData.scriptClass->addInternalCall("Internal_setlanguages", (void*)&ScriptShaderImportOptions::Internal_setlanguages);
+		metaData.scriptClass->addInternalCall("Internal_create", (void*)&ScriptShaderImportOptions::Internal_create);
 
 	}
 
 	MonoObject* ScriptShaderImportOptions::create(const SPtr<ShaderImportOptions>& value)
 	{
-		if(value == nullptr) return nullptr;
+		if(value == nullptr) return nullptr; 
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
@@ -80,6 +82,11 @@ namespace bs
 		thisPtr->getInternal()->removeDefine(tmpdefine);
 	}
 
+	void ScriptShaderImportOptions::Internal_create(MonoObject* managedInstance)
+	{
+		SPtr<ShaderImportOptions> instance = ShaderImportOptions::create();
+		new (bs_alloc<ScriptShaderImportOptions>())ScriptShaderImportOptions(managedInstance, instance);
+	}
 	ShadingLanguageFlag ScriptShaderImportOptions::Internal_getlanguages(ScriptShaderImportOptions* thisPtr)
 	{
 		Flags<ShadingLanguageFlag> tmp__output;

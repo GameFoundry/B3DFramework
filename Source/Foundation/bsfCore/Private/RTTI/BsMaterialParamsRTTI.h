@@ -330,7 +330,7 @@ namespace bs
 
 		static void toMemory(const MaterialParamsBase::DataParamInfo& data, char* memory)
 		{
-			static constexpr UINT32 VERSION = 0;
+			static constexpr UINT32 VERSION = 1;
 
 			const UINT32 size = getDynamicSize(data);
 			memory = rttiWriteElem(size, memory);
@@ -367,6 +367,7 @@ namespace bs
 			switch(version)
 			{
 			case 0:
+			case 1:
 			{
 				memory = rttiReadElem(data.offset, memory);
 				
@@ -384,8 +385,20 @@ namespace bs
 					memory = rttiReadElem(*data.floatCurve, memory);
 					break;
 				case 2:
-					data.colorGradient = bs_pool_new<ColorGradient>();
-					memory = rttiReadElem(*data.colorGradient, memory);
+					if(version == 0)
+					{
+						// Version 0 stores non-HDR gradients
+						ColorGradient temp;
+						memory = rttiReadElem(temp, memory);
+
+						data.colorGradient = bs_pool_new<ColorGradientHDR>(temp.getKeys());
+					}
+					else
+					{
+						data.colorGradient = bs_pool_new<ColorGradientHDR>();
+						memory = rttiReadElem(*data.colorGradient, memory);
+					}
+
 					break;
 				case 3:
 					memory = rttiReadElem(data.spriteTextureIdx, memory);

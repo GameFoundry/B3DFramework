@@ -16,11 +16,16 @@ namespace bs
 	public partial class ShaderImportOptions : ImportOptions
 	{
 		private ShaderImportOptions(bool __dummy0) { }
-		protected ShaderImportOptions() { }
+
+		/// <summary>Creates a new import options object that allows you to customize how are meshes imported.</summary>
+		public ShaderImportOptions()
+		{
+			Internal_create(this);
+		}
 
 		/// <summary>
-		/// Flags that control which shading languages should the BSL shader be converted into. This ultimately controls on
-		/// which render backends it will be able to run on.
+		/// Flags that control which shading languages should the BSL shader be converted into. This ultimately controls on which 
+		/// render backends it will be able to run on.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
@@ -76,6 +81,8 @@ namespace bs
 		private static extern ShadingLanguageFlags Internal_getlanguages(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setlanguages(IntPtr thisPtr, ShadingLanguageFlags value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_create(ShaderImportOptions managedInstance);
 	}
 
 	/** @} */

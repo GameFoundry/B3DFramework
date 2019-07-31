@@ -12,27 +12,26 @@ namespace bs
 
 	/// <summary>
 	/// Represents a range of color values over some parameters, similar to a curve. Internally represented as a set of keys 
-	/// that get interpolated between. Stores colors as 32-bit integers, and is therefor unable to represent a color range 
-	/// outside of [0, 1] - see ColorGradientHDR for an alternative.
+	/// that get interpolated between. Capable of representing HDR colors, unlike the normal ColorGradient.
 	/// </summary>
 	[ShowInInspector]
-	public partial class ColorGradient : ScriptObject
+	public partial class ColorGradientHDR : ScriptObject
 	{
-		private ColorGradient(bool __dummy0) { }
+		private ColorGradientHDR(bool __dummy0) { }
 
-		public ColorGradient()
+		public ColorGradientHDR()
 		{
-			Internal_ColorGradient(this);
+			Internal_ColorGradientHDR(this);
 		}
 
-		public ColorGradient(Color color)
+		public ColorGradientHDR(Color color)
 		{
-			Internal_ColorGradient0(this, ref color);
+			Internal_ColorGradientHDR0(this, ref color);
 		}
 
-		public ColorGradient(ColorGradientKey[] keys)
+		public ColorGradientHDR(ColorGradientKey[] keys)
 		{
-			Internal_ColorGradient1(this, keys);
+			Internal_ColorGradientHDR1(this, keys);
 		}
 
 		/// <summary>Returns the number of color keys in the gradient.</summary>
@@ -81,11 +80,11 @@ namespace bs
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_ColorGradient(ColorGradient managedInstance);
+		private static extern void Internal_ColorGradientHDR(ColorGradientHDR managedInstance);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_ColorGradient0(ColorGradient managedInstance, ref Color color);
+		private static extern void Internal_ColorGradientHDR0(ColorGradientHDR managedInstance, ref Color color);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_ColorGradient1(ColorGradient managedInstance, ColorGradientKey[] keys);
+		private static extern void Internal_ColorGradientHDR1(ColorGradientHDR managedInstance, ColorGradientKey[] keys);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setKeys(IntPtr thisPtr, ColorGradientKey[] keys, float duration);
 		[MethodImpl(MethodImplOptions.InternalCall)]
