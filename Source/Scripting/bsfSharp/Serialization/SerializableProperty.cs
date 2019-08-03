@@ -44,7 +44,8 @@ namespace bs
             Quaternion,
             Enum,
             Vector2Distribution,
-            Vector3Distribution
+            Vector3Distribution,
+            ColorGradientHDR
         }
 
         public delegate object Getter();
@@ -446,6 +447,8 @@ namespace bs
                     return FieldType.Color;
                 else if (internalType == typeof(ColorGradient))
                     return FieldType.ColorGradient;
+                else if (internalType == typeof(ColorGradientHDR))
+                    return FieldType.ColorGradientHDR;
                 else if (internalType == typeof(AnimationCurve))
                     return FieldType.Curve;
                 else if (internalType == typeof(FloatDistribution))
