@@ -50,6 +50,12 @@ namespace bs
 			materials[i].metaData->shaderPath = materials[i].shaderPath;
 			materials[i].metaData->shader = shaders[i];
 
+			if(!shaders[i])
+			{
+				BS_LOG(Error, Renderer, "Failed to load renderer material: {0}", materials[i].shaderPath);
+				continue;
+			}
+
 			// Note: Making the assumption here that all the techniques are generated due to shader variations
 			Vector<SPtr<ct::Technique>> techniques = shaders[i]->getCompatibleTechniques();
 			materials[i].metaData->instances.resize((UINT32)techniques.size());
