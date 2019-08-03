@@ -214,7 +214,7 @@
         },
         {
             "Path": "DepthOfFieldCommon.bslinc",
-            "UUID": "81ea09a7-4383-ed99-b180-4383a5ce4005"
+            "UUID": "54902d51-41df-28f2-a9ad-41dfa3f28758"
         }
     ],
     "Shaders": [
@@ -548,15 +548,15 @@
         },
         {
             "Path": "PPBokehDOF.bsl",
-            "UUID": "10a88b1c-4ed3-0a56-4386-4ed372eac135"
-        },
-        {
-            "Path": "PPBokehDOFPrepare.bsl",
-            "UUID": "dbeda0c8-4534-3191-899a-4534dd0ae316"
+            "UUID": "3c4f084d-4a50-502e-3cad-4a501d10d663"
         },
         {
             "Path": "PPBokehDOFCombine.bsl",
-            "UUID": "6f8b9c77-42b5-bc49-b7ba-42b56fdbabf8"
+            "UUID": "a0b378f9-491d-b2d8-359f-491de29726a9"
+        },
+        {
+            "Path": "PPBokehDOFPrepare.bsl",
+            "UUID": "0a6293a4-465b-7b01-e8ae-465be083fc8e"
         }
     ],
     "Skin": [
@@ -929,5 +929,10 @@
     "SplashScreen": null,
     "SpriteIcons": null,
     "SpriteIcons3D": null,
-    "Textures": null
+    "Textures": [
+        {
+            "Path": "BokehHex.png",
+            "UUID": "1f39006f-4092-f3c0-fe82-4092ec7b3957"
+        }
+    ]
 }

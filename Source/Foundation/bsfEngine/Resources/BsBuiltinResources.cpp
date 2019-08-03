@@ -374,6 +374,8 @@ namespace bs
 			break;
 		case BuiltinTexture::Normal:
 			texturePath.append(TEXTURE_NORMAL_FILE);
+		case BuiltinTexture::BokehFlare:
+			texturePath.append(u8"BokehHex.png.asset");
 			break;
 		}
 

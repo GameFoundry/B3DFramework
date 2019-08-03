@@ -15,6 +15,7 @@ namespace bs
 	namespace ct
 	{
 	class LightGrid;
+	struct LoadedRendererTextures;
 
 	/** @addtogroup RenderBeast
 	 *  @{
@@ -197,7 +198,7 @@ namespace bs
 		void renderOverlay(RendererView& view);
 
 		/**	Creates data used by the renderer on the core thread. */
-		void initializeCore();
+		void initializeCore(const LoadedRendererTextures& rendererTextures);
 
 		/**	Destroys data used by the renderer on the core thread. */
 		void destroyCore();

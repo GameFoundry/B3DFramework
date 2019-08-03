@@ -33,6 +33,7 @@
 #include "BsRenderBeastIBLUtility.h"
 #include "BsRenderCompositor.h"
 #include "Shading/BsGpuParticleSimulation.h"
+#include "Resources/BsBuiltinResources.h"
 
 using namespace std::placeholders;
 
@@ -53,7 +54,12 @@ namespace bs { namespace ct
 	{
 		Renderer::initialize();
 
-		gCoreThread().queueCommand(std::bind(&RenderBeast::initializeCore, this), CTQF_InternalQueue);
+		LoadedRendererTextures textures;
+		HTexture bokehFlare = gBuiltinResources().getTexture(BuiltinTexture::BokehFlare);
+		if(bokehFlare.isLoaded(false))
+			textures.bokehFlare = bokehFlare->getCore();
+
+		gCoreThread().queueCommand([this, textures]() { initializeCore(textures); }, CTQF_InternalQueue);
 	}
 
 	void RenderBeast::destroy()
@@ -64,7 +70,7 @@ namespace bs { namespace ct
 		gCoreThread().submit(true);
 	}
 
-	void RenderBeast::initializeCore()
+	void RenderBeast::initializeCore(const LoadedRendererTextures& rendererTextures)
 	{
 		const RenderAPICapabilities& caps = gCaps();
 
@@ -83,7 +89,7 @@ namespace bs { namespace ct
 		GpuSort::startUp();
 		GpuResourcePool::startUp();
 		IBLUtility::startUp<RenderBeastIBLUtility>();
-		RendererTextures::startUp();
+		RendererTextures::startUp(rendererTextures);
 
 		mCoreOptions = bs_shared_ptr_new<RenderBeastOptions>();
 		mScene = bs_shared_ptr_new<RendererScene>(mCoreOptions);

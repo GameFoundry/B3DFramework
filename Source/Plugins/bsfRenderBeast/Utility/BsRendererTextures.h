@@ -10,12 +10,19 @@ namespace bs { namespace ct
 	 *  @{
 	 */
 
+	/** Textures that get loaded on the sim thread and get passed to the renderer. */
+	struct LoadedRendererTextures
+	{
+		/** Default texture to use for Bokeh flare. */
+		SPtr<Texture> bokehFlare;
+	};
+
 	/** Contains static textures required for various render techniques. */
 	class RendererTextures
 	{
 	public:
 		/** Initializes the renderer textures. Must be called before using the textures. */
-		static void startUp();
+		static void startUp(const LoadedRendererTextures& textures);
 
 		/** Cleans up renderer textures. */
 		static void shutDown();
@@ -38,6 +45,9 @@ namespace bs { namespace ct
 
 		/** Texture used for coloring the lens flare effect depending on its distance from screen center. */
 		static SPtr<Texture> lensFlareGradient;
+
+		/** Default texture to use for Bokeh flare. */
+		static SPtr<Texture> bokehFlare;
 	};
 
 	/** @} */

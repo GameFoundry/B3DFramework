@@ -25,7 +25,7 @@ namespace bs
 	/**	Types of builtin textures that are always available. */
 	enum class BuiltinTexture
 	{
-		White, Black, Normal
+		White, Black, Normal, BokehFlare
 	};
 
 	/** Types of builtin shaders that are always available. */

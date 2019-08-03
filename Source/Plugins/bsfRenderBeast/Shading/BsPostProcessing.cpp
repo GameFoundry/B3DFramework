@@ -1258,8 +1258,10 @@ namespace bs { namespace ct
 		// TODO - The shader interpreting tile count might be wrong
 		mInputTexture.set(input);
 
-		// TODO - Use the default texture if there isn't a user-provided one
 		SPtr<Texture> bokehTexture = settings.bokehShape;
+		if(bokehTexture == nullptr)
+			bokehTexture = RendererTextures::bokehFlare;
+
 		mBokehTexture.set(bokehTexture);
 
 		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();

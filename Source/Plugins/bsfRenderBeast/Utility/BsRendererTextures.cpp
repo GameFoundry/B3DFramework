@@ -267,13 +267,15 @@ namespace bs { namespace ct
 	SPtr<Texture> RendererTextures::ssaoRandomization4x4;
 	SPtr<Texture> RendererTextures::defaultIndirect;
 	SPtr<Texture> RendererTextures::lensFlareGradient;
+	SPtr<Texture> RendererTextures::bokehFlare;
 
-	void RendererTextures::startUp()
+	void RendererTextures::startUp(const LoadedRendererTextures& textures)
 	{
 		preintegratedEnvGF = generatePreintegratedEnvBRDF();
 		ssaoRandomization4x4 = generate4x4RandomizationTexture();
 		defaultIndirect = generateDefaultIndirect();
 		lensFlareGradient = generateLensFlareGradientTint();
+		bokehFlare = textures.bokehFlare;
 	}
 
 	void RendererTextures::shutDown()
@@ -282,5 +284,6 @@ namespace bs { namespace ct
 		ssaoRandomization4x4 = nullptr;
 		defaultIndirect = nullptr;
 		lensFlareGradient = nullptr;
+		bokehFlare = nullptr;
 	}
 }}
