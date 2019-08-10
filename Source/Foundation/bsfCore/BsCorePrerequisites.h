@@ -835,7 +835,10 @@ namespace bs
 		 * Used when deserializing resources. Lets the system know not to discard any intermediate resource data that might
 		 * be required if the resource needs to be serialized.
 		 */
-		SF_KeepResourceSourceData = 1
+		SF_KeepResourceSourceData = 1 << 0,
+
+		/** Only serializes elements with network replication flag enabled. */
+		SF_ReplicableOnly = 1 << 1
 	};
 
 	/** Helper type that can contain either a component or scene actor version of an object. */
@@ -900,6 +903,7 @@ namespace bs
 	BS_LOG_CATEGORY(FreeImageImporter, 36)
 	BS_LOG_CATEGORY(Script, 37)
 	BS_LOG_CATEGORY(Importer, 38)
+	BS_LOG_CATEGORY(Network, 39)
 }
 
 #include "Utility/BsCommonTypes.h"

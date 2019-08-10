@@ -71,6 +71,19 @@ namespace bs
 		RTTITypeBase* getRTTI() const override;
 	};
 
+	/** Flags used for controlling the serialization process when encoding an IReflectable to a  SerializedObject. */
+	enum class SerializedObjectEncodeFlag
+	{
+		/** Pointers to other IReflectable objects will not be followed and they will not be serialized. */
+		Shallow,
+		
+		/** Only fields with the Replicable RTTI flag will be serialized. */
+		ReplicableOnly
+	};
+
+	using SerializedObjectEncodeFlags = Flags<SerializedObjectEncodeFlag>;
+	BS_FLAGS_OPERATORS(SerializedObjectEncodeFlag)
+
 	/**
 	 * Represents a serialized version of an IReflectable object. Data for all leaf fields will be serialized into raw
 	 * memory but complex objects, their references and fields are available as their own serialized objects and can be
@@ -98,16 +111,15 @@ namespace bs
 		 * Serializes the provided object and returns its SerializedObject representation.
 		 *
 		 * @param[in]	obj			Object to serialize;
-		 * @param[in]	shallow		If true then pointers to other IReflectable objects will not be followed. If false the
-		 *							entire hierarchy will be serialized.
+		 * @param[in]	flags		Flags used for controlling the serialization process.
 		 * @param[in]	context		Optional object that will be passed along to all deserialized objects through
 		 *							their deserialization callbacks. Can be used for controlling deserialization,
 		 *							maintaining state or sharing information between objects during
 		 *							deserialization.
 		 * @return					Serialized version of @p obj.
 		 */
-		static SPtr<SerializedObject> create(IReflectable& obj, bool shallow = false,
-			SerializationContext* context = nullptr);
+		static SPtr<SerializedObject> create(IReflectable& obj,
+			SerializedObjectEncodeFlags flags = SerializedObjectEncodeFlags(), SerializationContext* context = nullptr);
 
 		Vector<SerializedSubObject> subObjects;
 

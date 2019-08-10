@@ -14,7 +14,7 @@ namespace bs
 			IntermediateSerializer();
 
 			/** Encodes an IReflectable object into an intermediate representation. */
-			SPtr<SerializedObject> encode(IReflectable* object, bool shallow = false,
+			SPtr<SerializedObject> encode(IReflectable* object, SerializedObjectEncodeFlags flags,
 				SerializationContext* context = nullptr);
 
 			/** Decodes an intermediate representation of a serialized object into the actual object. */
@@ -38,7 +38,7 @@ namespace bs
 			void decodeEntry(const SPtr<IReflectable>& object, const SerializedObject* serializableObject);
 
 			/** Encodes a single IReflectable object. */
-			SPtr<SerializedObject> encodeEntry(IReflectable* object, bool shallow);
+			SPtr<SerializedObject> encodeEntry(IReflectable* object, SerializedObjectEncodeFlags flags);
 
 			UnorderedMap<const SerializedObject*, ObjectToDecode> mObjectMap;
 			SerializationContext* mContext = nullptr;
@@ -90,12 +90,12 @@ namespace bs
 			return output;
 		}
 
-		SPtr<SerializedObject> IntermediateSerializer::encode(IReflectable* object, bool shallow,
+		SPtr<SerializedObject> IntermediateSerializer::encode(IReflectable* object, SerializedObjectEncodeFlags flags,
 			SerializationContext* context)
 		{
 			mContext = context;
 
-			return encodeEntry(object, shallow);
+			return encodeEntry(object, flags);
 		}
 
 		void IntermediateSerializer::decodeEntry(const SPtr<IReflectable>& object, const SerializedObject* serializableObject)
@@ -340,7 +340,7 @@ namespace bs
 			}
 		}
 
-		SPtr<SerializedObject> IntermediateSerializer::encodeEntry(IReflectable* object, bool shallow)
+		SPtr<SerializedObject> IntermediateSerializer::encodeEntry(IReflectable* object, SerializedObjectEncodeFlags flags)
 		{
 			FrameStack<RTTITypeBase*> rttiInstances;
 			RTTITypeBase* rtti = object->getRTTI();
@@ -357,6 +357,8 @@ namespace bs
 				}
 			};
 
+			bool shallow = flags.isSet(SerializedObjectEncodeFlag::Shallow);
+			bool replicableOnly = flags.isSet(SerializedObjectEncodeFlag::ReplicableOnly);
 			SPtr<SerializedObject> output = bs_shared_ptr_new<SerializedObject>();
 
 			// If an object has base classes, we need to iterate through all of them
@@ -377,6 +379,13 @@ namespace bs
 					SPtr<SerializedInstance> serializedEntry;
 
 					RTTIField* curGenericField = rtti->getField(i);
+
+					if(replicableOnly)
+					{
+						if(!curGenericField->getInfo().flags.isSet(RTTIFieldFlag::Replicate))
+							continue;
+					}
+
 					if (curGenericField->mIsVectorType)
 					{
 						const UINT32 arrayNumElems = curGenericField->getArraySize(rttiInstance, object);
@@ -401,7 +410,7 @@ namespace bs
 									SPtr<IReflectable> childObject = curField->getArrayValue(rttiInstance, object, arrIdx);
 
 									if (childObject)
-										serializedChildObj = encodeEntry(childObject.get(), shallow);
+										serializedChildObj = encodeEntry(childObject.get(), flags);
 								}
 
 								SerializedArrayEntry arrayEntry;
@@ -421,7 +430,7 @@ namespace bs
 							{
 								IReflectable& childObject = curField->getArrayValue(rttiInstance, object, arrIdx);
 
-								const SPtr<SerializedObject> serializedChildObj = encodeEntry(&childObject, shallow);
+								const SPtr<SerializedObject> serializedChildObj = encodeEntry(&childObject, flags);
 
 								SerializedArrayEntry arrayEntry;
 								arrayEntry.serialized = serializedChildObj;
@@ -479,7 +488,7 @@ namespace bs
 								SPtr<IReflectable> childObject = curField->getValue(rttiInstance, object);
 
 								if (childObject)
-									serializedEntry = encodeEntry(childObject.get(), shallow);
+									serializedEntry = encodeEntry(childObject.get(), flags);
 							}
 
 							break;
@@ -489,7 +498,7 @@ namespace bs
 							auto curField = static_cast<RTTIReflectableFieldBase*>(curGenericField);
 							IReflectable& childObject = curField->getValue(rttiInstance, object);
 
-							serializedEntry = encodeEntry(&childObject, shallow);
+							serializedEntry = encodeEntry(&childObject, flags);
 
 							break;
 						}
@@ -559,10 +568,10 @@ namespace bs
 		}
 	}
 
-	SPtr<SerializedObject> SerializedObject::create(IReflectable& obj, bool shallow, SerializationContext* context)
+	SPtr<SerializedObject> SerializedObject::create(IReflectable& obj, SerializedObjectEncodeFlags flags, SerializationContext* context)
 	{
 		detail::IntermediateSerializer is;
-		return is.encode(&obj, shallow, context);
+		return is.encode(&obj, flags, context);
 		
 	}
 

@@ -44,7 +44,7 @@ namespace bs
 				coreContext->goState->registerObject(deserializationData.originalId, handle);
 			}
 
-			if(comp->mUUID.empty() || ((coreContext->flags & GODM_UseNewUUID) != 0))
+			if(comp->mUUID.empty() || coreContext->goState->getUseNewUUIDs())
 				comp->mUUID = UUIDGenerator::generateRandom();
 			
 			comp->mRTTIData = nullptr;

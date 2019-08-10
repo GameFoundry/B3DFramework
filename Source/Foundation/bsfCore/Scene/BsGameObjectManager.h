@@ -148,6 +148,9 @@ namespace bs
 		/** Resolves all registered handles and objects, and triggers end callbacks. */
 		void resolve();
 
+		/** Determines should new UUID's be generated for deserialized objects, or existing ones kept. */
+		bool getUseNewUUIDs() const { return (mOptions & GODM_UseNewUUID) != 0; }
+
 	private:
 		UnorderedMap<UINT64, UINT64> mIdMapping;
 		UnorderedMap<UINT64, SPtr<GameObjectHandleData>> mUnresolvedHandleData;

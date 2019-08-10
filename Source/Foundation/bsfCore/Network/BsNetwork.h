@@ -6,11 +6,29 @@
 
 namespace bs
 {
+	struct SerializationContext;
+	/** @addtogroup Network-Internal
+	 *  @{
+	 */
+
+	static constexpr UINT8 NETWORK_BACKEND_FIRST_FREE_ID = 134;
+
+	// TODO - Doc
+	enum NetworkMessageType
+	{
+		NWM_ReplicationSync = NETWORK_BACKEND_FIRST_FREE_ID,
+
+		NWM_User
+	};
+
+
+	/** @} */
+
 	/** @addtogroup Network
 	 *  @{
 	 */
 
-	static constexpr UINT8 NETWORK_USER_MESSAGE_ID = 134;
+	static constexpr UINT8 NETWORK_USER_MESSAGE_ID = NWM_User;
 
 	/** Supported versions of internet protocol (IP) and they're representative address formats. */
 	enum IPType
@@ -351,6 +369,169 @@ namespace bs
 	private:
 		struct Pimpl;
 		Pimpl* m;
+	};
+
+	/** Represents a particular state of a network object at a certain point in time. */
+	struct BS_CORE_EXPORT NetworkObjectState
+	{
+		SPtr<SerializedObject> state;
+	};
+
+	/** Base class for all objects that can be manipulated using the high-level networking system. */
+	class BS_CORE_EXPORT NetworkObject : public virtual IReflectable
+	{
+		enum State
+		{
+			NotReplicated,
+			Replicated,
+		};
+
+		// TODO - Doc
+		const UUID& getNetworkUUID() const { return mNetworkUUID; }
+
+		// TODO - Special case for spawning prefabs, to avoid syncing all their state
+		// (Probably not part of this class, but keeping the comment here so I don't forget)
+
+		/** 
+		 * Spawns the network object across all relevant clients. Only usable on the server. If the object is already
+		 * spawned, no change is made.
+		 */
+		void networkSpawn();
+
+		/**
+		 * Destroys the object across all clients it was spawned on. Only usable on the server. If the object is already
+		 * destroyed, or hasn't been spawned at all, no change is made.
+		 */
+		void networkDespawn();
+
+		/** Gets the current state of all replicable fields on an object. */
+		NetworkObjectState getNetworkState() const;
+		
+	public:
+		NetworkObject() = default;
+		~NetworkObject();
+
+	private:
+		friend class Network;
+
+		UUID mNetworkUUID;
+		State mState = NotReplicated;
+	};
+
+	// TODO - Refactor this class so it uses more optimal data layout and uses Bitstream, instead of just calling the
+	// generic BinarySerializer. When serializing entire state there is no need to write field information, as long as the
+	// peers keep their data scheme in sync.
+	// TODO - Doc
+	class NetworkEncoder
+	{
+		static constexpr const UINT32 WRITE_BUFFER_SIZE = 16384;
+
+		struct BufferPiece
+		{
+			UINT8* buffer = nullptr;
+			UINT32 size = 0;
+		};
+	public:
+		NetworkEncoder();
+		~NetworkEncoder();
+
+		void encode(UINT8 type, const UUID& uuid, IReflectable* object, SerializationContext* context = nullptr);
+		UINT8* getOutput(UINT32& size);
+		void clear();
+
+	private:
+		BufferPiece allocBufferPiece();
+
+		Vector<BufferPiece> mBufferPieces;
+		Vector<BufferPiece> mBufferPiecePool;
+
+		UINT8* mWriteBuffer = nullptr;
+		UINT32 mWriteBufferOffset = 0;
+
+		UINT32 mResultBufferSize = 0;
+		UINT8* mResultBuffer = nullptr;
+		UINT32 mBytesWritten = 0;
+	};
+
+	class NetworkDecoder
+	{
+	public:
+		NetworkDecoder(const SPtr<MemoryDataStream>& data);
+
+		SPtr<IReflectable> decode(UINT8& type, UUID& uuid, SerializationContext* context = nullptr);
+
+	private:
+		SPtr<MemoryDataStream> mInputStream;
+	};
+
+	/** 
+	 * High-level networking class that utilizes the low-level networking systems to easily host a server, connect to
+	 * a server, and handle high level concepts such as object data replication and remote procedure calls.
+	 */
+	class BS_CORE_EXPORT Network : public Module<Network>
+	{
+	public:
+		// TODO- Doc
+
+		bool isHost() const { return mState == NetworkState::Hosting; }
+		bool isClient() const { return mState == NetworkState::Connected || mState == NetworkState::Connecting; }
+
+		// TODO - Handle cases when network is already in host or client state when one of these is called again
+		void host(const SmallVector<NetworkAddress, 4>& listenAddresses, UINT32 tickRate = 30, UINT32 maxConnections = 64);
+		void connect(const char* host, UINT16 port);
+		void disconnect();
+
+		void update(float dt);
+
+		void _notifyNetworkObjectSpawned(NetworkObject* object);
+		void _notifyNetworkObjectDespawned(NetworkObject* object);
+		void _notifyNetworkObjectDestroyed(NetworkObject* object);
+
+	private:
+		enum ObjectActionType
+		{
+			Spawning,
+			Spawned,
+			Despawning
+		};
+
+		enum class NetworkState
+		{
+			Disconnected,
+			Connected,
+			Hosting,
+
+			// Intermediate states
+			Connecting,
+		};
+
+		struct ObjectAction
+		{
+			ObjectAction(const UUID& uuid, ObjectActionType type)
+				:uuid(uuid), type(type)
+			{ }
+
+			ObjectActionType type;
+			UUID uuid;
+		};
+
+		struct ObjectInfo
+		{
+			NetworkObject* obj;
+			NetworkObjectState state;
+		};
+
+		NetworkState mState = NetworkState::Disconnected;
+		UINT32 mTickRate = 30; // TODO - Allow different objects to have different tick rates (globally perhaps provide a multiplier? and a default rate?)
+
+		Vector<ObjectAction> mActions;
+		UnorderedMap<UUID, ObjectInfo> mNetworkObjects;
+
+		float mTimeAccumulator = 0.0f;
+		NetworkEncoder mEncoder;
+		NetworkDecoder mDecoder;
+
+		UPtr<NetworkPeer> mPeer;
 	};
 
 	/** @} */
