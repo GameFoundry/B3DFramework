@@ -15,6 +15,7 @@ namespace ct
 	class RenderCompositorNode;
 	struct PooledStorageBuffer;
 	struct FrameInfo;
+	class RCNodeLightAccumulation;
 
 	/** @addtogroup RenderBeast
 	 *  @{
@@ -246,6 +247,9 @@ namespace ct
 
 		/** Converts MSAA data from the texture array into the MSAA texture. */
 		void resolveMSAA();
+
+		/** Swaps the render textures between this node and the light accumulation nodes. */
+		void swap(RCNodeLightAccumulation* lightAccumNode);
 
 		static StringID getNodeId() { return "SceneColor"; }
 		static SmallVector<StringID, 4> getDependencies(const RendererView& view);

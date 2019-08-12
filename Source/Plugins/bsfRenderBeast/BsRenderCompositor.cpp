@@ -554,6 +554,13 @@ namespace bs { namespace ct
 		material->execute(sceneColorTexArray->texture, sceneColorTex->texture);
 	}
 
+	void RCNodeSceneColor::swap(RCNodeLightAccumulation* lightAccumNode)
+	{
+		lightAccumNode->lightAccumulationTex.swap(sceneColorTex);
+		lightAccumNode->lightAccumulationTexArray.swap(sceneColorTexArray);
+		lightAccumNode->renderTarget.swap(renderTarget);	
+	}
+
 	SmallVector<StringID, 4> RCNodeSceneColor::getDependencies(const RendererView& view)
 	{
 		return { RCNodeSceneDepth::getNodeId() };
@@ -1825,9 +1832,9 @@ namespace bs { namespace ct
 		const RenderSettings& settings = inputs.view.getRenderSettings();
 
 		auto* eyeAdaptationNode = static_cast<RCNodeEyeAdaptation*>(inputs.inputNodes[0]);
-		auto* sceneColorNode = static_cast<RCNodeLightAccumulation*>(inputs.inputNodes[1]);
+		auto* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[1]);
 		auto* postProcessNode = static_cast<RCNodePostProcess*>(inputs.inputNodes[3]);
-		const SPtr<Texture>& sceneColor = sceneColorNode->lightAccumulationTex->texture;
+		const SPtr<Texture>& sceneColor = sceneColorNode->sceneColorTex->texture;
 
 		const bool hdr = settings.enableHDR;
 		const bool msaa = viewProps.target.numSamples > 1;
@@ -1905,7 +1912,7 @@ namespace bs { namespace ct
 	{
 		SmallVector<StringID, 4> deps = {
 			RCNodeEyeAdaptation::getNodeId(),
-			RCNodeLightAccumulation::getNodeId(),
+			RCNodeSceneColor::getNodeId(),
 			RCNodeDepthOfField::getNodeId(),
 			RCNodePostProcess::getNodeId(),
 			RCNodeHalfSceneColor::getNodeId()
@@ -2043,6 +2050,8 @@ namespace bs { namespace ct
 		// Combine the unfocused and focused textures to form the final image
 		combineMat->execute(unfocusedTex->texture, sceneColorNode->sceneColorTex->texture, depth, inputs.view, settings,
 			lightAccumNode->lightAccumulationTex->renderTexture);
+
+		sceneColorNode->swap(lightAccumNode);
 	}
 
 	void RCNodeDepthOfField::clear()
