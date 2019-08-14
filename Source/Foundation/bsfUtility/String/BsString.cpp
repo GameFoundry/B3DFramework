@@ -365,7 +365,11 @@ namespace bs
 
 	String toString(const WString& source)
 	{
-		return String(source.begin(), source.end());
+		StringStream stream;
+		for (auto& entry : source)
+			stream << entry;
+
+		return stream.str();
 	}
 
 	String toString(const wchar_t* source)
