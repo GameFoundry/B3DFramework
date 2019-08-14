@@ -10,6 +10,11 @@ shader PPBokehDOFPrepare
 	mixin DepthInput;
 	mixin PerCameraData;
 	
+	variations
+	{
+		MSAA_COUNT = { 1, 2 };
+	};
+	
 	code
 	{
 		cbuffer Params
@@ -17,19 +22,30 @@ shader PPBokehDOFPrepare
 			float2 gInvInputSize;
 		};
 		
+		#if MSAA_COUNT > 1
+		Texture2DMS<float4> gInputTex;
+		#else
 		Texture2D gInputTex;
 		SamplerState gInputSampler 
 		{
 			Filter = MIN_MAG_MIP_POINT;
 		};
+		#endif
 	
 		float4 fsmain(VStoFS input) : SV_Target0
 		{
+			float2 uvScale;
+			#if MSAA_COUNT > 1
+				uvScale = float2(1.0f, 1.0f);
+			#else
+				uvScale = gInvInputSize;
+			#endif
+		
 			float2 uvs[4];
-			uvs[0] = input.uv0 + gInvInputSize * float2(-0.5f, -0.5f);
-			uvs[1] = input.uv0 + gInvInputSize * float2( 0.5f, -0.5f);
-			uvs[2] = input.uv0 + gInvInputSize * float2(-0.5f,  0.5f);
-			uvs[3] = input.uv0 + gInvInputSize * float2( 0.5f,  0.5f);
+			uvs[0] = input.uv0 + uvScale * float2(-0.5f, -0.5f);
+			uvs[1] = input.uv0 + uvScale * float2( 0.5f, -0.5f);
+			uvs[2] = input.uv0 + uvScale * float2(-0.5f,  0.5f);
+			uvs[3] = input.uv0 + uvScale * float2( 0.5f,  0.5f);
 
 			float4 samples[4];
 			float2 layers[4];
@@ -37,8 +53,14 @@ shader PPBokehDOFPrepare
 			[unroll]
 			for(uint i = 0; i < 4; ++i)
 			{
+				#if MSAA_COUNT > 1
+				samples[i].rgb = gInputTex.Load(uvs[i], 0).rgb;
+				samples[i].a = -convertFromDeviceZ(gDepthBufferTex.Load(uvs[i], 0).r);
+				#else
 				samples[i].rgb = gInputTex.Sample(gInputSampler, uvs[i]).rgb;
 				samples[i].a = -convertFromDeviceZ(gDepthBufferTex.SampleLevel(gDepthBufferSamp, uvs[i], 0).r);
+				#endif
+				
 				layers[i] = computeLayerContributions(samples[i].a);
 			}
 

@@ -1933,14 +1933,16 @@ namespace bs { namespace ct
 		if(!settings.enabled || settings.type != DepthOfFieldType::Bokeh)
 			return;
 
-		// TODO - Need to handle MSAA
+		const RendererViewProperties& viewProps = inputs.view.getProperties();
+		const bool msaa = viewProps.target.numSamples > 1;
+
 		RCNodeSceneColor* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[1]);
 		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[2]);
 		RCNodeLightAccumulation* lightAccumNode = static_cast<RCNodeLightAccumulation*>(inputs.inputNodes[3]);
 
-		BokehDOFPrepareMat* prepareMat = BokehDOFPrepareMat::get();
+		BokehDOFPrepareMat* prepareMat = BokehDOFPrepareMat::getVariation(msaa);
 		BokehDOFMat* renderMat = BokehDOFMat::get();
-		BokehDOFCombineMat* combineMat = BokehDOFCombineMat::get();
+		BokehDOFCombineMat* combineMat = BokehDOFCombineMat::getVariation(msaa ? MSAAMode::Full : MSAAMode::None);
 
 		SPtr<Texture> depth = sceneDepthNode->depthTex->texture;
 

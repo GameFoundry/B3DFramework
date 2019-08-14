@@ -1145,7 +1145,12 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(output);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+
+		bool MSAA = mVariation.getInt("MSAA_COUNT") > 1;
+		if (MSAA)
+			gRendererUtility().drawScreenQuad(Rect2(0.0f, 0.0f, (float)srcProps.getWidth(), (float)srcProps.getHeight()));
+		else
+			gRendererUtility().drawScreenQuad();
 	}
 
 	POOLED_RENDER_TEXTURE_DESC BokehDOFPrepareMat::getOutputDesc(const SPtr<Texture>& target)
@@ -1156,6 +1161,14 @@ namespace bs { namespace ct
 		UINT32 height = std::max(1U, Math::divideAndRoundUp(rtProps.getHeight(), 2U));
 
 		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width, height, TU_RENDERTARGET);
+	}
+
+	BokehDOFPrepareMat* BokehDOFPrepareMat::getVariation(bool msaa)
+	{
+		if (msaa)
+			return get(getVariation<true>());
+		else
+			return get(getVariation<false>());
 	}
 
 	BokehDOFParamDef gBokehDOFParamDef;
@@ -1349,7 +1362,9 @@ namespace bs { namespace ct
 		float uvOffset = (halfHeight + BokehDOFMat::NEAR_FAR_PADDING) / (float)unfocusedProps.getHeight();
 
 		Vector2 layerScaleOffset(uvScale, uvOffset);
+		Vector2 focusedImageSize((float)focusedProps.getWidth(), (float)focusedProps.getHeight());
 		gBokehDOFCombineParamDef.gLayerAndScaleOffset.set(mParamBuffer, layerScaleOffset);
+		gBokehDOFCombineParamDef.gFocusedImageSize.set(mParamBuffer, focusedImageSize);
 
 		BokehDOFMat::populateDOFCommonParams(mCommonParamBuffer, settings, view);
 
@@ -1367,6 +1382,19 @@ namespace bs { namespace ct
 		gRendererUtility().drawScreenQuad();
 	}
 
+	BokehDOFCombineMat* BokehDOFCombineMat::getVariation(MSAAMode msaaMode)
+	{
+		switch(msaaMode)
+		{
+		default:
+		case MSAAMode::None: 
+			return get(getVariation<MSAAMode::None>());
+		case MSAAMode::Single: 
+			return get(getVariation<MSAAMode::Single>());
+		case MSAAMode::Full: 
+			return get(getVariation<MSAAMode::Full>());
+		}
+	}
 
 	BuildHiZFParamDef gBuildHiZParamDef;
 

@@ -702,6 +702,17 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("PPBokehDOFPrepare.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<bool MSAA>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation(
+				{
+					ShaderVariation::Param("MSAA_COUNT", MSAA ? 2 : 1)
+				});
+
+			return variation;
+		}
 	public:
 		BokehDOFPrepareMat();
 
@@ -719,6 +730,9 @@ namespace bs { namespace ct
 
 		/** Returns the texture descriptor that can be used for initializing the output render target. */
 		static POOLED_RENDER_TEXTURE_DESC getOutputDesc(const SPtr<Texture>& target);
+
+		/** Returns the material variation matching the provided parameters. */
+		static BokehDOFPrepareMat* getVariation(bool msaa);
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		SPtr<GpuParamBlockBuffer> mCommonParamBuffer;
@@ -778,9 +792,9 @@ namespace bs { namespace ct
 		SPtr<VertexBuffer> mTileVertexBuffer;
 	};
 
-
 	BS_PARAM_BLOCK_BEGIN(BokehDOFCombineParamDef)
 		BS_PARAM_BLOCK_ENTRY(Vector2, gLayerAndScaleOffset)
+		BS_PARAM_BLOCK_ENTRY(Vector2, gFocusedImageSize)
 	BS_PARAM_BLOCK_END
 
 	/** Shader that combines the unfocused texture's near and far layers, together with the focused version. */
@@ -788,6 +802,17 @@ namespace bs { namespace ct
 	{
 		RMAT_DEF("PPBokehDOFCombine.bsl");
 
+		/** Helper method used for initializing variations of this material. */
+		template<MSAAMode MSAA_MODE>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation(
+			{
+				ShaderVariation::Param("MSAA_MODE", (INT32)MSAA_MODE)
+			});
+
+			return variation;
+		}
 	public:
 		BokehDOFCombineMat();
 
@@ -805,6 +830,9 @@ namespace bs { namespace ct
 		void execute(const SPtr<Texture>& unfocused, const SPtr<Texture>& focused, const SPtr<Texture>& depth,
 			const RendererView& view, const DepthOfFieldSettings& settings, const SPtr<RenderTarget>& output);
 
+
+		/** Returns the material variation matching the provided parameters. */
+		static BokehDOFCombineMat* getVariation(MSAAMode msaaMode);
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		SPtr<GpuParamBlockBuffer> mCommonParamBuffer;
