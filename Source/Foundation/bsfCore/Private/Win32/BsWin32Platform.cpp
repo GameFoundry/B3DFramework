@@ -524,10 +524,6 @@ namespace bs
 		mData->mRequiresShutDown = true;
 	}
 
-	bool isShiftPressed = false;
-	bool isCtrlPressed = false;
-	bool isAltPressed = false;
-
 	/**	Translate engine non client area to win32 non client area. */
 	LRESULT translateNonClientAreaType(NonClientAreaBorderType type)
 	{
@@ -592,6 +588,8 @@ namespace bs
 	 */
 	bool getCommand(unsigned int virtualKeyCode, InputCommandType& command)
 	{
+		bool isShiftPressed = GetAsyncKeyState(VK_SHIFT);
+		
 		switch (virtualKeyCode)
 		{
 		case VK_LEFT:
@@ -962,24 +960,6 @@ namespace bs
 		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN:
 			{
-				if(wParam == VK_SHIFT)
-				{
-					isShiftPressed = true;
-					break;
-				}
-
-				if(wParam == VK_CONTROL)
-				{
-					isCtrlPressed = true;
-					break;
-				}
-
-				if(wParam == VK_MENU)
-				{
-					isAltPressed = true;
-					break;
-				}
-
 				InputCommandType command = InputCommandType::Backspace;
 				if(getCommand((unsigned int)wParam, command))
 				{
@@ -993,18 +973,7 @@ namespace bs
 			}
 		case WM_SYSKEYUP:
 		case WM_KEYUP:
-			{
-				if(wParam == VK_SHIFT)
-					isShiftPressed = false;
-
-				if(wParam == VK_CONTROL)
-					isCtrlPressed = false;
-
-				if(wParam == VK_MENU)
-					isAltPressed = false;
-
-				return 0;
-			}
+			return 0;
 		case WM_CHAR:
 			{
 				// TODO - Not handling IME input
@@ -1015,7 +984,7 @@ namespace bs
 					break;
 
 				// Ignore shortcut key combinations
-				if(isCtrlPressed || isAltPressed)
+				if(GetAsyncKeyState(VK_CONTROL) != 0 || GetAsyncKeyState(VK_MENU) != 0)
 					break;
 
 				switch (wParam)
