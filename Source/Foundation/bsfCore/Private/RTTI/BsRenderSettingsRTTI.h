@@ -149,6 +149,8 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(apertureSize, 12)
 			BS_RTTI_MEMBER_PLAIN(focalLength, 13)
 			BS_RTTI_MEMBER_PLAIN(sensorSize, 14)
+			BS_RTTI_MEMBER_PLAIN(bokehOcclusion, 15)
+			BS_RTTI_MEMBER_PLAIN(occlusionDepthRange, 16)
 		BS_END_RTTI_MEMBERS
 
 	public:

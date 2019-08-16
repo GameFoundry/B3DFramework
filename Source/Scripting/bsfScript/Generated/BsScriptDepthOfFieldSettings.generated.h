@@ -53,5 +53,9 @@ namespace bs
 		static void Internal_setfocalLength(ScriptDepthOfFieldSettings* thisPtr, float value);
 		static void Internal_getsensorSize(ScriptDepthOfFieldSettings* thisPtr, Vector2* __output);
 		static void Internal_setsensorSize(ScriptDepthOfFieldSettings* thisPtr, Vector2* value);
+		static bool Internal_getbokehOcclusion(ScriptDepthOfFieldSettings* thisPtr);
+		static void Internal_setbokehOcclusion(ScriptDepthOfFieldSettings* thisPtr, bool value);
+		static float Internal_getocclusionDepthRange(ScriptDepthOfFieldSettings* thisPtr);
+		static void Internal_setocclusionDepthRange(ScriptDepthOfFieldSettings* thisPtr, float value);
 	};
 }

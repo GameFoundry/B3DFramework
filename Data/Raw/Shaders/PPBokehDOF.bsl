@@ -6,6 +6,11 @@ shader PPBokehDOF
 	mixin DepthOfFieldCommon;
 	mixin PerCameraData;
 
+	variations
+	{
+		DEPTH_OCCLUSION = { true, false };
+	};
+	
 	depth
 	{
 		write = false;
@@ -33,6 +38,7 @@ shader PPBokehDOF
 			float gAdaptiveThresholdCOC;
 			float2 gBokehSize;
 			uint gLayerPixelOffset;
+			float gInvDepthRange;
 		};
 		
 		Texture2D gInputTex;
@@ -48,6 +54,11 @@ shader PPBokehDOF
 			float4 position : SV_POSITION;
 			noperspective float2 uv0 : TEXCOORD0;
 			nointerpolation float4 color : TEXCOORD1;
+			
+			#if DEPTH_OCCLUSION
+			float2 screenUV : TEXCOORD2;
+			nointerpolation float depth : TEXCOORD3;
+			#endif
 		};
 
 		struct VertexInput
@@ -148,13 +159,19 @@ shader PPBokehDOF
 			uint vertexIdxInQuad = vid % 4;				
 			float2 localPos = float2(vertexIdxInQuad % 2, vertexIdxInQuad / 2);
 			
-			float2 uvPos = (blockPos + (localPos - 0.5f) * cocPixelSize + float2(0, vertOffset)) * gInvOutputSize;			
+			float2 screenPos = blockPos + (localPos - 0.5f) * cocPixelSize;
+			float2 uvPos = (screenPos + float2(0, vertOffset)) * gInvOutputSize;			
 			float2 ndcPos = UVToNDC(uvPos);
 			
 			VStoFS output;			
 			output.position = float4(ndcPos, 0, 1);
 			output.uv0 = input.uv0;
 			output.color = color;
+			
+			#if DEPTH_OCCLUSION
+			output.screenUV = screenPos * gInvInputSize;
+			output.depth = sceneDepth;
+			#endif
 
 			return output;
 		}			
@@ -164,7 +181,19 @@ shader PPBokehDOF
 		
 		float4 fsmain(VStoFS input) : SV_Target0
 		{
-			return gBokehTex.Sample(gBokehSampler, input.uv0).r * input.color;
+			float4 output = gBokehTex.Sample(gBokehSampler, input.uv0).r * input.color;
+			
+			#if DEPTH_OCCLUSION
+				float spriteDepth = input.depth;
+				float sceneDepth = gInputTex.SampleLevel(gInputSampler, input.screenUV, 0).a;
+				
+				float diff = spriteDepth - sceneDepth;
+				float fade = 1.0f - saturate(diff * gInvDepthRange);
+			
+				output *= fade;
+			#endif
+			
+			return output;
 		}	
 	};
 };

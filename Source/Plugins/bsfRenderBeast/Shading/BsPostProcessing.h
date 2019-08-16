@@ -748,6 +748,7 @@ namespace bs { namespace ct
 		BS_PARAM_BLOCK_ENTRY(float, gAdaptiveThresholdCOC)
 		BS_PARAM_BLOCK_ENTRY(Vector2, gBokehSize)
 		BS_PARAM_BLOCK_ENTRY(int, gLayerPixelOffset)
+		BS_PARAM_BLOCK_ENTRY(float, gInvDepthRange)
 	BS_PARAM_BLOCK_END
 
 	/** 
@@ -757,7 +758,18 @@ namespace bs { namespace ct
 	class BokehDOFMat : public RendererMaterial<BokehDOFMat>
 	{
 		RMAT_DEF_CUSTOMIZED("PPBokehDOF.bsl");
+		
+		/** Helper method used for initializing variations of this material. */
+		template<bool DEPTH_OCCLUSION>
+		static const ShaderVariation& getVariation()
+		{
+			static ShaderVariation variation = ShaderVariation(
+			{
+				ShaderVariation::Param("DEPTH_OCCLUSION", DEPTH_OCCLUSION)
+			});
 
+			return variation;
+		}
 	public:
 		static constexpr UINT32 NEAR_FAR_PADDING = 128;
 		static constexpr UINT32 QUADS_PER_TILE = 8;
@@ -781,11 +793,16 @@ namespace bs { namespace ct
 		/** Populates the common depth of field parameter buffers with values from the provided settings object. */
 		static void populateDOFCommonParams(const SPtr<GpuParamBlockBuffer>& buffer, const DepthOfFieldSettings& settings,
 			const RendererView& view);
+
+		/** Returns the material variation matching the provided parameters. */
+		static BokehDOFMat* getVariation(bool depthOcclusion);
 	private:
 		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		SPtr<GpuParamBlockBuffer> mCommonParamBuffer;
-		GpuParamTexture mInputTexture;
+		GpuParamTexture mInputTextureVS;
+		GpuParamTexture mInputTextureFS;
 		GpuParamTexture mBokehTexture;
+		GpuParamTexture mDepthTexture;
 
 		SPtr<VertexDeclaration> mTileVertexDecl;
 		SPtr<IndexBuffer> mTileIndexBuffer;

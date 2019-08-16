@@ -197,6 +197,32 @@ namespace bs
 			set { Internal_setsensorSize(mCachedPtr, ref value); }
 		}
 
+		/// <summary>
+		/// Set to true if Bokeh flare should use soft depth testing to ensure they don&apos;t render on top of foreground 
+		/// geometry. This can help reduce background bleeding into the foreground, which can be especially noticeable if the 
+		/// background is much brighter than the foreground. Use <see cref="occlusionDepthRange"/> to tweak the effect.
+		/// </summary>
+		[ShowInInspector]
+		[NativeWrapper]
+		public bool BokehOcclusion
+		{
+			get { return Internal_getbokehOcclusion(mCachedPtr); }
+			set { Internal_setbokehOcclusion(mCachedPtr, value); }
+		}
+
+		/// <summary>
+		/// Range in world units over which range to fade out Bokeh flare influence. Influence of the flare will be faded out as 
+		/// the depth difference between the flare&apos;s origin pixel and the destination pixel grows larger. Only relevant if 
+		/// <see cref="bokehOcclusion"/> is turned on.
+		/// </summary>
+		[ShowInInspector]
+		[NativeWrapper]
+		public float OcclusionDepthRange
+		{
+			get { return Internal_getocclusionDepthRange(mCachedPtr); }
+			set { Internal_setocclusionDepthRange(mCachedPtr, value); }
+		}
+
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_DepthOfFieldSettings(DepthOfFieldSettings managedInstance);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -259,5 +285,13 @@ namespace bs
 		private static extern void Internal_getsensorSize(IntPtr thisPtr, out Vector2 __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setsensorSize(IntPtr thisPtr, ref Vector2 value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern bool Internal_getbokehOcclusion(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_setbokehOcclusion(IntPtr thisPtr, bool value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern float Internal_getocclusionDepthRange(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_setocclusionDepthRange(IntPtr thisPtr, float value);
 	}
 }

@@ -1941,7 +1941,7 @@ namespace bs { namespace ct
 		RCNodeLightAccumulation* lightAccumNode = static_cast<RCNodeLightAccumulation*>(inputs.inputNodes[3]);
 
 		BokehDOFPrepareMat* prepareMat = BokehDOFPrepareMat::getVariation(msaa);
-		BokehDOFMat* renderMat = BokehDOFMat::get();
+		BokehDOFMat* renderMat = BokehDOFMat::getVariation(settings.bokehOcclusion);
 		BokehDOFCombineMat* combineMat = BokehDOFCombineMat::getVariation(msaa ? MSAAMode::Full : MSAAMode::None);
 
 		SPtr<Texture> depth = sceneDepthNode->depthTex->texture;

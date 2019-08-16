@@ -431,6 +431,23 @@ namespace bs
 		BS_SCRIPT_EXPORT()
 		Vector2 sensorSize = Vector2(22.2f, 14.8f);
 
+		/**
+		 * Set to true if Bokeh flare should use soft depth testing to ensure they don't render on top of foreground
+		 * geometry. This can help reduce background bleeding into the foreground, which can be especially noticeable
+		 * if the background is much brighter than the foreground. Use @p occlusionDepthRange to tweak the effect.
+		 *
+		 */
+		BS_SCRIPT_EXPORT()
+		bool bokehOcclusion = true;
+
+		/**
+		 * Range in world units over which range to fade out Bokeh flare influence. Influence of the flare will be
+		 * faded out as the depth difference between the flare's origin pixel and the destination pixel grows larger.
+		 * Only relevant if @p bokehOcclusion is turned on.
+		 */
+		BS_SCRIPT_EXPORT()
+		float occlusionDepthRange = 1.0f;
+		
 	protected:
 		~DepthOfFieldSettingsBase() = default;
 	};

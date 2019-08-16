@@ -49,6 +49,10 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_setfocalLength", (void*)&ScriptDepthOfFieldSettings::Internal_setfocalLength);
 		metaData.scriptClass->addInternalCall("Internal_getsensorSize", (void*)&ScriptDepthOfFieldSettings::Internal_getsensorSize);
 		metaData.scriptClass->addInternalCall("Internal_setsensorSize", (void*)&ScriptDepthOfFieldSettings::Internal_setsensorSize);
+		metaData.scriptClass->addInternalCall("Internal_getbokehOcclusion", (void*)&ScriptDepthOfFieldSettings::Internal_getbokehOcclusion);
+		metaData.scriptClass->addInternalCall("Internal_setbokehOcclusion", (void*)&ScriptDepthOfFieldSettings::Internal_setbokehOcclusion);
+		metaData.scriptClass->addInternalCall("Internal_getocclusionDepthRange", (void*)&ScriptDepthOfFieldSettings::Internal_getocclusionDepthRange);
+		metaData.scriptClass->addInternalCall("Internal_setocclusionDepthRange", (void*)&ScriptDepthOfFieldSettings::Internal_setocclusionDepthRange);
 
 	}
 
@@ -316,5 +320,37 @@ namespace bs
 	void ScriptDepthOfFieldSettings::Internal_setsensorSize(ScriptDepthOfFieldSettings* thisPtr, Vector2* value)
 	{
 		thisPtr->getInternal()->sensorSize = *value;
+	}
+
+	bool ScriptDepthOfFieldSettings::Internal_getbokehOcclusion(ScriptDepthOfFieldSettings* thisPtr)
+	{
+		bool tmp__output;
+		tmp__output = thisPtr->getInternal()->bokehOcclusion;
+
+		bool __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	void ScriptDepthOfFieldSettings::Internal_setbokehOcclusion(ScriptDepthOfFieldSettings* thisPtr, bool value)
+	{
+		thisPtr->getInternal()->bokehOcclusion = value;
+	}
+
+	float ScriptDepthOfFieldSettings::Internal_getocclusionDepthRange(ScriptDepthOfFieldSettings* thisPtr)
+	{
+		float tmp__output;
+		tmp__output = thisPtr->getInternal()->occlusionDepthRange;
+
+		float __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	void ScriptDepthOfFieldSettings::Internal_setocclusionDepthRange(ScriptDepthOfFieldSettings* thisPtr, float value)
+	{
+		thisPtr->getInternal()->occlusionDepthRange = value;
 	}
 }

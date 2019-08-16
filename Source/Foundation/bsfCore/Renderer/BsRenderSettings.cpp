@@ -130,6 +130,8 @@ namespace bs
 		p(focalLength);
 		p(apertureSize);
 		p(sensorSize);
+		p(bokehOcclusion);
+		p(occlusionDepthRange);
 	}
 
 	template struct TDepthOfFieldSettings<false>;

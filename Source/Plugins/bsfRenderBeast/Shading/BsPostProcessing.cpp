@@ -1183,7 +1183,8 @@ namespace bs { namespace ct
 
 		mParams->setParamBlockBuffer("Params", mParamBuffer);
 		mParams->setParamBlockBuffer("DepthOfFieldParams", mCommonParamBuffer);
-		mParams->getTextureParam(GPT_VERTEX_PROGRAM, "gInputTex", mInputTexture);
+		mParams->getTextureParam(GPT_VERTEX_PROGRAM, "gInputTex", mInputTextureVS);
+		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTextureFS);
 		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gBokehTex", mBokehTexture);
 
 		// Prepare vertex declaration for rendering tiles
@@ -1244,8 +1245,8 @@ namespace bs { namespace ct
 		defines.set("QUADS_PER_TILE", QUADS_PER_TILE);
 	}
 
-	void BokehDOFMat::execute(const SPtr<Texture>& input, const RendererView& view, const DepthOfFieldSettings& settings,
-		const SPtr<RenderTarget>& output)
+	void BokehDOFMat::execute(const SPtr<Texture>& input, const RendererView& view,
+		const DepthOfFieldSettings& settings, const SPtr<RenderTarget>& output)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
@@ -1259,6 +1260,7 @@ namespace bs { namespace ct
 		gBokehDOFParamDef.gAdaptiveThresholdCOC.set(mParamBuffer, settings.adaptiveRadiusThreshold);
 		gBokehDOFParamDef.gAdaptiveThresholdColor.set(mParamBuffer, settings.adaptiveColorThreshold);
 		gBokehDOFParamDef.gLayerPixelOffset.set(mParamBuffer, (INT32)srcProps.getHeight() + (INT32)NEAR_FAR_PADDING);
+		gBokehDOFParamDef.gInvDepthRange.set(mParamBuffer, 1.0f / settings.occlusionDepthRange);
 
 		float bokehSize = settings.maxBokehSize * srcProps.getWidth();
 		gBokehDOFParamDef.gBokehSize.set(mParamBuffer, Vector2(bokehSize, bokehSize));
@@ -1270,7 +1272,8 @@ namespace bs { namespace ct
 		gBokehDOFParamDef.gTileCount.set(mParamBuffer, tileCount);
 
 		populateDOFCommonParams(mCommonParamBuffer, settings, view);
-		mInputTexture.set(input);
+		mInputTextureVS.set(input);
+		mInputTextureFS.set(input);
 
 		SPtr<Texture> bokehTexture = settings.bokehShape;
 		if(bokehTexture == nullptr)
@@ -1282,7 +1285,7 @@ namespace bs { namespace ct
 		mParams->setParamBlockBuffer("PerCamera", perView);
 
 		RenderAPI& rapi = RenderAPI::instance();
-		rapi.setRenderTarget(output);
+		rapi.setRenderTarget(output, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
 		rapi.clearRenderTarget(FBT_COLOR, Color::ZERO);
 		rapi.setVertexDeclaration(mTileVertexDecl);
 
@@ -1331,6 +1334,14 @@ namespace bs { namespace ct
 		gDepthOfFieldCommonParamDef.gSensorSize.set(buffer, sensorSize);
 		gDepthOfFieldCommonParamDef.gImageSize.set(buffer, imageSize);
 		gDepthOfFieldCommonParamDef.gMaxBokehSize.set(buffer, Math::clamp01(settings.maxBokehSize) * imageSize);
+	}
+
+	BokehDOFMat* BokehDOFMat::getVariation(bool depthOcclusion)
+	{
+		if (depthOcclusion)
+			return get(getVariation<true>());
+		else
+			return get(getVariation<false>());
 	}
 
 	BokehDOFCombineParamDef gBokehDOFCombineParamDef;
