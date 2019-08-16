@@ -29,8 +29,10 @@ namespace bs
 				const SHADER_PARAM_ATTRIBUTE& attrib = attributes[attribIdx];
 				if (attrib.type == ShaderParamAttributeType::Name)
 					output.name = attrib.value;
-				else if(attrib.type == ShaderParamAttributeType::HideInInspector)
+				else if (attrib.type == ShaderParamAttributeType::HideInInspector)
 					output.flags |= ShaderParameterFlag::HideInInspector;
+				else if (attrib.type == ShaderParamAttributeType::HDR)
+					output.flags |= ShaderParameterFlag::HDR;
 
 				attribIdx = attrib.nextParamIdx;
 			}

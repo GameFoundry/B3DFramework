@@ -30,7 +30,10 @@ namespace bs
 		Internal = 1 << 0,
 
 		/** Parameter should not be displayed in the editor inspector. */
-		HideInInspector = 1 << 1
+		HideInInspector = 1 << 1,
+
+		/** Allows the color parameter to be edited using the HDR color picker. */
+		HDR = 1 << 2
 	};
 
 	using ShaderParameterFlags = Flags<ShaderParameterFlag>;

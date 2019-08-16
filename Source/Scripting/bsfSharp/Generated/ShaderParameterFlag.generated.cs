@@ -17,7 +17,9 @@ namespace bs
 		/// <summary>Parameter is for internal use by the renderer and isn&apos;t expected to be set by the user.</summary>
 		Internal = 1,
 		/// <summary>Parameter should not be displayed in the editor inspector.</summary>
-		HideInInspector = 2
+		HideInInspector = 2,
+		/// <summary>Allows the color parameter to be edited using the HDR color picker.</summary>
+		HDR = 4
 	}
 
 	/** @} */
