@@ -82,7 +82,7 @@ namespace bs
 				else
 				{
 					SPtr<MemoryDataStream> orgMemStream = std::static_pointer_cast<MemoryDataStream>(orgFieldData->stream);
-					orgStreamData = orgMemStream->getCurrentPtr();
+					orgStreamData = orgMemStream->cursor();
 				}
 
 				UINT8* newStreamData = nullptr;
@@ -95,7 +95,7 @@ namespace bs
 				else
 				{
 					SPtr<MemoryDataStream> newMemStream = std::static_pointer_cast<MemoryDataStream>(newFieldData->stream);
-					newStreamData = newMemStream->getCurrentPtr();
+					newStreamData = newMemStream->cursor();
 				}
 
 				isModified = memcmp(orgStreamData, newStreamData, newFieldData->size) != 0;

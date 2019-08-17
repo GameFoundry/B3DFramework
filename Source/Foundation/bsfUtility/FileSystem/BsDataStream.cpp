@@ -3,6 +3,7 @@
 #include "FileSystem/BsDataStream.h"
 #include "Debug/BsDebug.h"
 #include "String/BsUnicode.h"
+#include "Math/BsMath.h"
 
 namespace bs
 {
@@ -177,52 +178,49 @@ namespace bs
 		return UTF8::toWide(u8string);
 	}
 
-	MemoryDataStream::MemoryDataStream(size_t size)
-		: DataStream(READ | WRITE), mData(nullptr), mFreeOnClose(true)
+	MemoryDataStream::MemoryDataStream()
+		: DataStream(READ | WRITE)
 	{
-		mData = mPos = (UINT8*)bs_alloc((UINT32)size);
-		mSize = size;
-		mEnd = mData + mSize;
-
-		assert(mEnd >= mPos);
+		
 	}
 
-	MemoryDataStream::MemoryDataStream(void* memory, size_t inSize, bool freeOnClose)
-		: DataStream(READ | WRITE), mData(nullptr), mFreeOnClose(freeOnClose)
+	MemoryDataStream::MemoryDataStream(size_t capacity)
+		: DataStream(READ | WRITE)
 	{
-		mData = mPos = static_cast<UINT8*>(memory);
-		mSize = inSize;
-		mEnd = mData + mSize;
+		realloc(capacity);
+		mCursor = mEnd = mData;
+	}
 
-		assert(mEnd >= mPos);
+	MemoryDataStream::MemoryDataStream(void* memory, size_t size, bool freeOnClose)
+		: DataStream(READ | WRITE), mOwnsMemory(freeOnClose)
+	{
+		mData = mCursor = static_cast<uint8_t*>(memory);
+		mSize = size;
+		mEnd = mData + mSize;
 	}
 
 	MemoryDataStream::MemoryDataStream(DataStream& sourceStream)
-		: DataStream(READ | WRITE), mData(nullptr)
+		: DataStream(READ | WRITE)
 	{
 		// Copy data from incoming stream
 		mSize = sourceStream.size();
 
-		mData = (UINT8*)bs_alloc((UINT32)mSize);
-		mPos = mData;
+		mData = mCursor = static_cast<uint8_t*>(bs_alloc(mSize));
 		mEnd = mData + sourceStream.read(mData, mSize);
-		mFreeOnClose = true;
 
-		assert(mEnd >= mPos);
+		assert(mEnd >= mCursor);
 	}
 
 	MemoryDataStream::MemoryDataStream(const SPtr<DataStream>& sourceStream)
-		:DataStream(READ | WRITE), mData(nullptr)
+		: DataStream(READ | WRITE)
 	{
 		// Copy data from incoming stream
 		mSize = sourceStream->size();
 
-		mData = (UINT8*)bs_alloc((UINT32)mSize);
-		mPos = mData;
+		mData = mCursor = static_cast<uint8_t*>(bs_alloc(mSize));
 		mEnd = mData + sourceStream->read(mData, mSize);
-		mFreeOnClose = true;
 
-		assert(mEnd >= mPos);
+		assert(mEnd >= mCursor);
 	}
 
 	MemoryDataStream::~MemoryDataStream()
@@ -234,15 +232,16 @@ namespace bs
 	{
 		size_t cnt = count;
 
-		if (mPos + cnt > mEnd)
-			cnt = mEnd - mPos;
+		if (mCursor + cnt > mEnd)
+			cnt = mEnd - mCursor;
+		
 		if (cnt == 0)
 			return 0;
 
 		assert (cnt <= count);
 
-		memcpy(buf, mPos, cnt);
-		mPos += cnt;
+		memcpy(buf, mCursor, cnt);
+		mCursor += cnt;
 
 		return cnt;
 	}
@@ -254,40 +253,69 @@ namespace bs
 		{
 			written = count;
 
-			if (mPos + written > mEnd)
-				written = mEnd - mPos;
+			size_t numUsedBytes = (mCursor - mData);
+			size_t newSize = numUsedBytes + count;
+			if(newSize > mSize)
+			{
+				if (mOwnsMemory)
+					realloc(newSize);
+				else
+					written = mSize - numUsedBytes;
+			}
+
 			if (written == 0)
 				return 0;
 
-			memcpy(mPos, buf, written);
-			mPos += written;
+			memcpy(mCursor, buf, written);
+			mCursor += written;
+
+			mEnd = std::max(mCursor, mEnd);
 		}
 
 		return written;
 	}
 
+	size_t DataStream::readBits(uint8_t* data, uint32_t count)
+	{
+		uint32_t numBytes = Math::divideAndRoundUp(count, 8U);
+		return read(data, numBytes) * 8;
+	}
+
+	size_t DataStream::writeBits(const uint8_t* data, uint32_t count)
+	{
+		uint32_t numBytes = Math::divideAndRoundUp(count, 8U);
+		return write(data, numBytes) * 8;
+	}
+
 	void MemoryDataStream::skip(size_t count)
 	{
-		size_t newpos = (size_t)( (mPos - mData) + count );
-		assert(mData + newpos <= mEnd);
-
-		mPos = mData + newpos;
+		assert((mCursor + count) <= mEnd);
+		mCursor = std::min(mCursor + count, mEnd);
 	}
 
 	void MemoryDataStream::seek(size_t pos)
 	{
-		assert(mData + pos <= mEnd);
-		mPos = mData + pos;
+		assert((mData + pos) <= mEnd);
+		mCursor = std::min(mData + pos, mEnd);
+	}
+
+	void DataStream::align(uint32_t count)
+	{
+		if (count <= 1)
+			return;
+
+		UINT32 alignOffset = (count - (tell() & (count - 1))) & (count - 1);
+		skip(alignOffset);
 	}
 
 	size_t MemoryDataStream::tell() const
 	{
-		return mPos - mData;
+		return mCursor - mData;
 	}
 
 	bool MemoryDataStream::eof() const
 	{
-		return mPos >= mEnd;
+		return mCursor >= mEnd;
 	}
 
 	SPtr<DataStream> MemoryDataStream::clone(bool copyData) const
@@ -302,10 +330,29 @@ namespace bs
 	{
 		if (mData != nullptr)
 		{
-			if(mFreeOnClose)
+			if(mOwnsMemory)
 				bs_free(mData);
 
 			mData = nullptr;
+		}
+	}
+
+	void MemoryDataStream::realloc(size_t numBytes)
+	{
+		if (numBytes != mSize)
+		{
+			assert(numBytes > mSize);
+
+			// Note: Eventually add support for custom allocators
+			auto buffer = bs_allocN<uint8_t>(numBytes);
+			if (mData)
+			{
+				memcpy(buffer, mData, mSize);
+				bs_free(mData);
+			}
+
+			mData = buffer;
+			mSize = numBytes;
 		}
 	}
 

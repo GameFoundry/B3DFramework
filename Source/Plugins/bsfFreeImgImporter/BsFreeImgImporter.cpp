@@ -251,7 +251,7 @@ namespace bs
 		if(!memStream)
 			return nullptr;
 
-		FIMEMORY* fiMem = FreeImage_OpenMemory(memStream->getPtr(), static_cast<DWORD>(memStream->size()));
+		FIMEMORY* fiMem = FreeImage_OpenMemory(memStream->data(), static_cast<DWORD>(memStream->size()));
 
 		FIBITMAP* fiBitmap = FreeImage_LoadFromMemory(
 			(FREE_IMAGE_FORMAT)imageFormat, fiMem);

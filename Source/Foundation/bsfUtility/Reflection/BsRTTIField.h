@@ -72,7 +72,12 @@ namespace bs
 		 * Lets the replication system know that this field should be monitored for changes and replicated across the
 		 * network when changes are detected.
 		 */
-		Replicate = 1 << 2
+		Replicate = 1 << 2,
+		/**
+		 * If true, the integer will be encoded as a var-int during networking operations, in order to reduce its
+		 * size. Not relevant for non-integers.
+		 */
+		VarInt = 1 << 3
 	};
 
 	typedef Flags<RTTIFieldFlag> RTTIFieldFlags;

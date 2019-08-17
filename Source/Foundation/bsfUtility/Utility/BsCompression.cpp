@@ -42,7 +42,7 @@ namespace bs
 				SPtr<MemoryDataStream> memStream = std::static_pointer_cast<MemoryDataStream>(mStream);
 
 				*len = Available();
-				return (char*)memStream->getPtr() + mBufferOffset;
+				return (char*)memStream->data() + mBufferOffset;
 			}
 			else
 			{

@@ -768,7 +768,7 @@ namespace bs
 			}
 
 			stream.write((char*)&numBytes, sizeof(numBytes));
-			stream.write((char*)objStream->getPtr(), objStream->size());
+			stream.write((char*)objStream->data(), objStream->size());
 		}
 
 		stream.close();
