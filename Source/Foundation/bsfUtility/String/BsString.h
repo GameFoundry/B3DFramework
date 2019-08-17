@@ -3,8 +3,6 @@
 #pragma once
 
 #include "Allocators/BsMemoryAllocator.h"
-#include "Math/BsRadian.h"
-
 #include <string>
 
 namespace bs
@@ -78,12 +76,12 @@ namespace bs
 		std::ios::fmtflags flags = std::ios::fmtflags(0) );
 
 	/** Converts a Radian to a string. */
-	BS_UTILITY_EXPORT WString toWString(Radian val, unsigned short precision = 6,
+	BS_UTILITY_EXPORT WString toWString(const Radian& val, unsigned short precision = 6,
 		unsigned short width = 0, char fill = ' ',
 		std::ios::fmtflags flags = std::ios::fmtflags(0) );
 
 	/** Converts a Degree to a string. */
-	BS_UTILITY_EXPORT WString toWString(Degree val, unsigned short precision = 6,
+	BS_UTILITY_EXPORT WString toWString(const Degree& val, unsigned short precision = 6,
 		unsigned short width = 0, char fill = ' ',
 		std::ios::fmtflags flags = std::ios::fmtflags(0) );
 
@@ -201,12 +199,12 @@ namespace bs
 		std::ios::fmtflags flags = std::ios::fmtflags(0) );
 
 	/**	Converts a Radian to a string. */
-	BS_UTILITY_EXPORT String toString(Radian val, unsigned short precision = 6,
+	BS_UTILITY_EXPORT String toString(const Radian& val, unsigned short precision = 6,
 		unsigned short width = 0, char fill = ' ',
 		std::ios::fmtflags flags = std::ios::fmtflags(0) );
 
 	/**	Converts a Degree to a string. */
-	BS_UTILITY_EXPORT String toString(Degree val, unsigned short precision = 6,
+	BS_UTILITY_EXPORT String toString(const Degree& val, unsigned short precision = 6,
 		unsigned short width = 0, char fill = ' ',
 		std::ios::fmtflags flags = std::ios::fmtflags(0) );
 

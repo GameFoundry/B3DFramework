@@ -1,6 +1,5 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Prerequisites/BsPrerequisitesUtil.h"
 #include "Math/BsDegree.h"
 #include "Math/BsMath.h"
 

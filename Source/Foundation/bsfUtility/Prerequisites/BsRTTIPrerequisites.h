@@ -5,6 +5,7 @@
 #include "Allocators/BsMemoryAllocator.h"
 #include "Prerequisites/BsFwdDeclUtil.h"      // For TIDs
 #include "Prerequisites/BsTypes.h"            // For UINT32
+#include "Utility/BsBitstream.h"
 
 #include <limits>
 #include <type_traits>          // For std::is_pod
