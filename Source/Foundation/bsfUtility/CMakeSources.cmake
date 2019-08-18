@@ -18,7 +18,6 @@ set(BS_UTILITY_INC_PREREQUISITES
 	"bsfUtility/Prerequisites/BsPrerequisitesUtil.h"
 	"bsfUtility/Prerequisites/BsPlatformDefines.h"
 	"bsfUtility/Prerequisites/BsFwdDeclUtil.h"
-	"bsfUtility/Prerequisites/BsRTTIPrerequisites.h"
 )
 
 set(BS_UTILITY_INC_IMAGE
@@ -118,6 +117,7 @@ set(BS_UTILITY_SRC_REFLECTION
 	"bsfUtility/Reflection/BsIReflectable.cpp"
 	"bsfUtility/Reflection/BsRTTIField.cpp"
 	"bsfUtility/Reflection/BsRTTIType.cpp"
+	"bsfUtility/Reflection/BsRTTIPlain.h"
 )
 
 set(BS_UTILITY_SRC_DEBUG

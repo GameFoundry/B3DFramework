@@ -4,7 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsRTTIType.h"
-#include "Prerequisites/BsRTTIPrerequisites.h"
+#include "Reflection/BsRTTIPlain.h"
 #include "Private/RTTI/BsGpuProgramRTTI.h"
 #include "Private/RTTI/BsBlendStateRTTI.h"
 #include "Private/RTTI/BsRasterizerStateRTTI.h"

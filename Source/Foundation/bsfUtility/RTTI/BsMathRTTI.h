@@ -3,7 +3,7 @@
 #pragma once
 
 #include "Prerequisites/BsPrerequisitesUtil.h"
-#include "Prerequisites/BsRTTIPrerequisites.h"
+#include "Reflection/BsRTTIPlain.h"
 #include "Math/BsAABox.h"
 #include "Math/BsBounds.h"
 #include "Math/BsDegree.h"
