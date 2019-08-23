@@ -331,21 +331,21 @@ namespace bs
 			size += sizeof(UINT32) * numRemovedProbes;
 
 			buffer = allocator->alloc(size);
+			Bitstream stream(buffer, size);
 
-			char* dataPtr = (char*)buffer;
-			dataPtr = coreSyncWriteElem((SceneActor&)*this, dataPtr);
-			dataPtr = rttiWriteElem(numDirtyProbes, dataPtr);
-			dataPtr = rttiWriteElem(numRemovedProbes, dataPtr);
+			coreSyncWriteElem((SceneActor&)*this, stream);
+			rttiWriteElem(numDirtyProbes, stream);
+			rttiWriteElem(numRemovedProbes, stream);
 
 			for (auto& entry : dirtyProbes)
 			{
-				dataPtr = rttiWriteElem(entry.first, dataPtr);
-				dataPtr = rttiWriteElem(entry.second.position, dataPtr);
-				dataPtr = rttiWriteElem(entry.second.flags, dataPtr);
+				rttiWriteElem(entry.first, stream);
+				rttiWriteElem(entry.second.position, stream);
+				rttiWriteElem(entry.second.flags, stream);
 			}
 
 			for(auto& entry : removedProbes)
-				dataPtr = rttiWriteElem(entry, dataPtr);
+				rttiWriteElem(entry, stream);
 		}
 		bs_frame_clear();
 
@@ -487,26 +487,26 @@ namespace bs
 
 	void LightProbeVolume::syncToCore(const CoreSyncData& data)
 	{
-		char* dataPtr = (char*)data.getBuffer();
+		Bitstream stream(data.getBuffer(), data.getBufferSize());
 
 		bool oldIsActive = mActive;
 
-		dataPtr = coreSyncReadElem((SceneActor&)*this, dataPtr);
+		coreSyncReadElem((SceneActor&)*this, stream);
 
 		UINT32 numDirtyProbes, numRemovedProbes;
-		dataPtr = rttiReadElem(numDirtyProbes, dataPtr);
-		dataPtr = rttiReadElem(numRemovedProbes, dataPtr);
+		rttiReadElem(numDirtyProbes, stream);
+		rttiReadElem(numRemovedProbes, stream);
 
 		for (UINT32 i = 0; i < numDirtyProbes; ++i)
 		{
 			UINT32 handle;
-			dataPtr = rttiReadElem(handle, dataPtr);
+			rttiReadElem(handle, stream);
 
 			Vector3 position;
-			dataPtr = rttiReadElem(position, dataPtr);
+			rttiReadElem(position, stream);
 
 			LightProbeFlags flags;
-			dataPtr = rttiReadElem(flags, dataPtr);
+			rttiReadElem(flags, stream);
 
 			auto iterFind = mProbeMap.find(handle);
 			if(iterFind != mProbeMap.end())
@@ -567,7 +567,7 @@ namespace bs
 		for (UINT32 i = 0; i < numRemovedProbes; ++i)
 		{
 			UINT32 idx;
-			dataPtr = rttiReadElem(idx, dataPtr);
+			rttiReadElem(idx, stream);
 
 			auto iterFind = mProbeMap.find(idx);
 			if(iterFind != mProbeMap.end())

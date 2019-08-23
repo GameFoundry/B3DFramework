@@ -18,36 +18,37 @@ namespace bs
 		enum { id = TID_ColorDistribution }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static void toMemory(const ColorDistribution& data, char* memory)
+		static uint32_t toMemory(const ColorDistribution& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = sizeof(UINT32);
-			char* memoryStart = memory;
-			memory += sizeof(UINT32);
+			static constexpr uint32_t VERSION = 0; // In case the data structure changes
 
-			UINT32 version = 0; // In case the data structure changes
-			memory = rttiWriteElem(version, memory, size);
-			memory = rttiWriteElem(data.mType, memory, size);
-			memory = rttiWriteElem(data.mMinGradient, memory, size);
-			memory = rttiWriteElem(data.mMaxGradient, memory, size);
+			return rtti_write_with_size_header(stream, [&data, &stream]()
+			{
+				uint32_t size = 0;
+				size += rttiWriteElem(VERSION, stream);
+				size += rttiWriteElem(data.mType, stream);
+				size += rttiWriteElem(data.mMinGradient, stream);
+				size += rttiWriteElem(data.mMaxGradient, stream);
 
-			memcpy(memoryStart, &size, sizeof(UINT32));
+				return size;
+			});
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static UINT32 fromMemory(ColorDistribution& data, char* memory)
+		static uint32_t fromMemory(ColorDistribution& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = 0;
-			memory = rttiReadElem(size, memory);
+			uint32_t size = 0;
+			rttiReadElem(size, stream);
 
-			UINT32 version;
-			memory = rttiReadElem(version, memory);
+			uint32_t version;
+			rttiReadElem(version, stream);
 
 			switch(version)
 			{
 			case 0:
-				memory = rttiReadElem(data.mType, memory);
-				memory = rttiReadElem(data.mMinGradient, memory);
-				memory = rttiReadElem(data.mMaxGradient, memory);
+				rttiReadElem(data.mType, stream);
+				rttiReadElem(data.mMinGradient, stream);
+				rttiReadElem(data.mMaxGradient, stream);
 				break;
 			default:
 				BS_LOG(Error, RTTI, "Unknown version of TDistribution<T> data. Unable to deserialize.");
@@ -58,16 +59,16 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getDynamicSize */
-		static UINT32 getDynamicSize(const ColorDistribution& data)
+		static uint32_t getDynamicSize(const ColorDistribution& data)
 		{
-			UINT64 dataSize = sizeof(UINT32) + sizeof(UINT32);
+			uint64_t dataSize = sizeof(uint32_t) + sizeof(uint32_t);
 			dataSize += rttiGetElemSize(data.mType);
 			dataSize += rttiGetElemSize(data.mMinGradient);
 			dataSize += rttiGetElemSize(data.mMaxGradient);
 
-			assert(dataSize <= std::numeric_limits<UINT32>::max());
+			assert(dataSize <= std::numeric_limits<uint32_t>::max());
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 
@@ -76,36 +77,37 @@ namespace bs
 		enum { id = TID_TDistribution }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static void toMemory(const TDistribution<T>& data, char* memory)
+		static uint32_t toMemory(const TDistribution<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = sizeof(UINT32);
-			char* memoryStart = memory;
-			memory += sizeof(UINT32);
+			static constexpr uint32_t VERSION = 0; // In case the data structure changes
 
-			UINT32 version = 0; // In case the data structure changes
-			memory = rttiWriteElem(version, memory, size);
-			memory = rttiWriteElem(data.mType, memory, size);
-			memory = rttiWriteElem(data.mMinCurve, memory, size);
-			memory = rttiWriteElem(data.mMaxCurve, memory, size);
+			return rtti_write_with_size_header(stream, [&data, &stream]()
+			{
+				uint32_t size = 0;
+				size += rttiWriteElem(VERSION, stream);
+				size += rttiWriteElem(data.mType, stream);
+				size += rttiWriteElem(data.mMinCurve, stream);
+				size += rttiWriteElem(data.mMaxCurve, stream);
 
-			memcpy(memoryStart, &size, sizeof(UINT32));
+				return size;
+			});
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static UINT32 fromMemory(TDistribution<T>& data, char* memory)
+		static uint32_t fromMemory(TDistribution<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = 0;
-			memory = rttiReadElem(size, memory);
+			uint32_t size = 0;
+			rttiReadElem(size, stream);
 
-			UINT32 version;
-			memory = rttiReadElem(version, memory);
+			uint32_t version;
+			rttiReadElem(version, stream);
 
 			switch(version)
 			{
 			case 0:
-				memory = rttiReadElem(data.mType, memory);
-				memory = rttiReadElem(data.mMinCurve, memory);
-				memory = rttiReadElem(data.mMaxCurve, memory);
+				rttiReadElem(data.mType, stream);
+				rttiReadElem(data.mMinCurve, stream);
+				rttiReadElem(data.mMaxCurve, stream);
 				break;
 			default:
 				BS_LOG(Error, RTTI, "Unknown version of TDistribution<T> data. Unable to deserialize.");
@@ -116,16 +118,16 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getDynamicSize */
-		static UINT32 getDynamicSize(const TDistribution<T>& data)
+		static uint32_t getDynamicSize(const TDistribution<T>& data)
 		{
-			UINT64 dataSize = sizeof(UINT32) + sizeof(UINT32);
+			uint64_t dataSize = sizeof(uint32_t) + sizeof(uint32_t);
 			dataSize += rttiGetElemSize(data.mType);
 			dataSize += rttiGetElemSize(data.mMinCurve);
 			dataSize += rttiGetElemSize(data.mMaxCurve);
 
-			assert(dataSize <= std::numeric_limits<UINT32>::max());
+			assert(dataSize <= std::numeric_limits<uint32_t>::max());
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 

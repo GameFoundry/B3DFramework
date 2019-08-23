@@ -123,60 +123,59 @@ namespace bs
 	template<> struct RTTIPlainType<GpuParamDataDesc>
 	{
 		enum { id = TID_GpuParamDataDesc }; enum { hasDynamicSize = 1 };
-		static constexpr UINT32 VERSION = 1;
+		static constexpr uint32_t VERSION = 1;
 
-		static void toMemory(const GpuParamDataDesc& data, char* memory)
+		static uint32_t toMemory(const GpuParamDataDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = getDynamicSize(data);
+			return rtti_write_with_size_header(stream, [&data, &stream]()
+			{
+				uint32_t size = 0;
+				size += rttiWriteElem(VERSION, stream);
 
-			UINT32 curSize = sizeof(UINT32);
-			memcpy(memory, &size, curSize);
-			memory += curSize;
+				size += rttiWriteElem(data.name, stream);
+				size += rttiWriteElem(data.elementSize, stream);
+				size += rttiWriteElem(data.arraySize, stream);
+				size += rttiWriteElem(data.arrayElementStride, stream);
+				size += rttiWriteElem(data.type, stream);
 
-			memory = rttiWriteElem(VERSION, memory);
+				size += rttiWriteElem(data.paramBlockSlot, stream);
+				size += rttiWriteElem(data.paramBlockSet, stream);
+				size += rttiWriteElem(data.gpuMemOffset, stream);
+				size += rttiWriteElem(data.cpuMemOffset, stream);
 
-			memory = rttiWriteElem(data.name, memory);
-			memory = rttiWriteElem(data.elementSize, memory);
-			memory = rttiWriteElem(data.arraySize, memory);
-			memory = rttiWriteElem(data.arrayElementStride, memory);
-			memory = rttiWriteElem(data.type, memory);
-
-			memory = rttiWriteElem(data.paramBlockSlot, memory);
-			memory = rttiWriteElem(data.paramBlockSet, memory);
-			memory = rttiWriteElem(data.gpuMemOffset, memory);
-			rttiWriteElem(data.cpuMemOffset, memory);
+				return size;
+			});
 		}
 
-		static UINT32 fromMemory(GpuParamDataDesc& data, char* memory)
+		static uint32_t fromMemory(GpuParamDataDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size;
-			memcpy(&size, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			uint32_t size;
+			rttiReadElem(size, stream);
 
-			UINT32 version = 0;
-			memory = rttiReadElem(version, memory);
+			uint32_t version = 0;
+			rttiReadElem(version, stream);
 			assert(version == VERSION);
 
-			memory = rttiReadElem(data.name, memory);
-			memory = rttiReadElem(data.elementSize, memory);
-			memory = rttiReadElem(data.arraySize, memory);
-			memory = rttiReadElem(data.arrayElementStride, memory);
-			memory = rttiReadElem(data.type, memory);
+			rttiReadElem(data.name, stream);
+			rttiReadElem(data.elementSize, stream);
+			rttiReadElem(data.arraySize, stream);
+			rttiReadElem(data.arrayElementStride, stream);
+			rttiReadElem(data.type, stream);
 
-			memory = rttiReadElem(data.paramBlockSlot, memory);
-			memory = rttiReadElem(data.paramBlockSet, memory);
-			memory = rttiReadElem(data.gpuMemOffset, memory);
-			rttiReadElem(data.cpuMemOffset, memory);
+			rttiReadElem(data.paramBlockSlot, stream);
+			rttiReadElem(data.paramBlockSet, stream);
+			rttiReadElem(data.gpuMemOffset, stream);
+			rttiReadElem(data.cpuMemOffset, stream);
 
 			return size;
 		}
 
-		static UINT32 getDynamicSize(const GpuParamDataDesc& data)
+		static uint32_t getDynamicSize(const GpuParamDataDesc& data)
 		{
-			UINT32 dataSize = rttiGetElemSize(VERSION) + rttiGetElemSize(data.name) + rttiGetElemSize(data.elementSize) +
+			uint32_t dataSize = rttiGetElemSize(VERSION) + rttiGetElemSize(data.name) + rttiGetElemSize(data.elementSize) +
 				rttiGetElemSize(data.arraySize) + rttiGetElemSize(data.arrayElementStride) + rttiGetElemSize(data.type) +
 				rttiGetElemSize(data.paramBlockSlot) + rttiGetElemSize(data.paramBlockSet) +
-				rttiGetElemSize(data.gpuMemOffset) + rttiGetElemSize(data.cpuMemOffset) + sizeof(UINT32);
+				rttiGetElemSize(data.gpuMemOffset) + rttiGetElemSize(data.cpuMemOffset) + sizeof(uint32_t);
 
 			return dataSize;
 		}
@@ -185,49 +184,47 @@ namespace bs
 	template<> struct RTTIPlainType<GpuParamObjectDesc>
 	{
 		enum { id = TID_GpuParamObjectDesc }; enum { hasDynamicSize = 1 };
-		static constexpr UINT32 VERSION = 2;
+		static constexpr uint32_t VERSION = 2;
 
-		static void toMemory(const GpuParamObjectDesc& data, char* memory)
+		static uint32_t toMemory(const GpuParamObjectDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = getDynamicSize(data);
+			return rtti_write_with_size_header(stream, [&data, &stream]
+			{
+				uint32_t size = 0;
+				size += rttiWriteElem(VERSION, stream);
+				size += rttiWriteElem(data.name, stream);
+				size += rttiWriteElem(data.type, stream);
+				size += rttiWriteElem(data.slot, stream);
+				size += rttiWriteElem(data.set, stream);
+				size += rttiWriteElem(data.elementType, stream);
 
-			UINT32 curSize = sizeof(UINT32);
-			memcpy(memory, &size, curSize);
-			memory += curSize;
-
-			memory = rttiWriteElem(VERSION, memory);
-
-			memory = rttiWriteElem(data.name, memory);
-			memory = rttiWriteElem(data.type, memory);
-			memory = rttiWriteElem(data.slot, memory);
-			memory = rttiWriteElem(data.set, memory);
-			rttiWriteElem(data.elementType, memory);
+				return size;
+			});
 		}
 
-		static UINT32 fromMemory(GpuParamObjectDesc& data, char* memory)
+		static uint32_t fromMemory(GpuParamObjectDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size;
-			memcpy(&size, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			uint32_t size;
+			rttiReadElem(size, stream);
 
-			UINT32 version = 0;
-			memory = rttiReadElem(version, memory);
+			uint32_t version = 0;
+			rttiReadElem(version, stream);
 
-			memory = rttiReadElem(data.name, memory);
-			memory = rttiReadElem(data.type, memory);
-			memory = rttiReadElem(data.slot, memory);
-			memory = rttiReadElem(data.set, memory);
+			rttiReadElem(data.name, stream);
+			rttiReadElem(data.type, stream);
+			rttiReadElem(data.slot, stream);
+			rttiReadElem(data.set, stream);
 
 			if (version > 1)
-				rttiReadElem(data.elementType, memory);
+				rttiReadElem(data.elementType, stream);
 
 			return size;
 		}
 
-		static UINT32 getDynamicSize(const GpuParamObjectDesc& data)
+		static uint32_t getDynamicSize(const GpuParamObjectDesc& data)
 		{
-			UINT32 dataSize = rttiGetElemSize(VERSION) + rttiGetElemSize(data.name) + rttiGetElemSize(data.type) +
-				rttiGetElemSize(data.slot) + rttiGetElemSize(data.set) + rttiGetElemSize(data.elementType) + sizeof(UINT32);
+			uint32_t dataSize = rttiGetElemSize(VERSION) + rttiGetElemSize(data.name) + rttiGetElemSize(data.type) +
+				rttiGetElemSize(data.slot) + rttiGetElemSize(data.set) + rttiGetElemSize(data.elementType) + sizeof(uint32_t);
 
 			return dataSize;
 		}
@@ -236,49 +233,47 @@ namespace bs
 	template<> struct RTTIPlainType<GpuParamBlockDesc>
 	{
 		enum { id = TID_GpuParamBlockDesc }; enum { hasDynamicSize = 1 };
-		static constexpr UINT32 VERSION = 1;
+		static constexpr uint32_t VERSION = 1;
 
-		static void toMemory(const GpuParamBlockDesc& data, char* memory)
+		static uint32_t toMemory(const GpuParamBlockDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = getDynamicSize(data);
+			return rtti_write_with_size_header(stream, [&data, &stream]
+			{
+				uint32_t size = 0;
+				size += rttiWriteElem(VERSION, stream);
+				size += rttiWriteElem(data.name, stream);
+				size += rttiWriteElem(data.set, stream);
+				size += rttiWriteElem(data.slot, stream);
+				size += rttiWriteElem(data.blockSize, stream);
+				size += rttiWriteElem(data.isShareable, stream);
 
-			UINT32 curSize = sizeof(UINT32);
-			memcpy(memory, &size, curSize);
-			memory += curSize;
-
-			memory = rttiWriteElem(VERSION, memory);
-
-			memory = rttiWriteElem(data.name, memory);
-			memory = rttiWriteElem(data.set, memory);
-			memory = rttiWriteElem(data.slot, memory);
-			memory = rttiWriteElem(data.blockSize, memory);
-			rttiWriteElem(data.isShareable, memory);
+				return size;
+			});
 		}
 
-		static UINT32 fromMemory(GpuParamBlockDesc& data, char* memory)
+		static uint32_t fromMemory(GpuParamBlockDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size;
-			memcpy(&size, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			uint32_t size;
+			rttiReadElem(size, stream);
 
-			UINT32 version = 0;
-			memory = rttiReadElem(version, memory);
+			uint32_t version = 0;
+			rttiReadElem(version, stream);
 			assert(version == VERSION);
 
-			memory = rttiReadElem(data.name, memory);
-			memory = rttiReadElem(data.set, memory);
-			memory = rttiReadElem(data.slot, memory);
-			memory = rttiReadElem(data.blockSize, memory);
-			rttiReadElem(data.isShareable, memory);
+			rttiReadElem(data.name, stream);
+			rttiReadElem(data.set, stream);
+			rttiReadElem(data.slot, stream);
+			rttiReadElem(data.blockSize, stream);
+			rttiReadElem(data.isShareable, stream);
 
 			return size;
 		}
 
-		static UINT32 getDynamicSize(const GpuParamBlockDesc& data)
+		static uint32_t getDynamicSize(const GpuParamBlockDesc& data)
 		{
-			UINT32 dataSize = rttiGetElemSize(VERSION) + rttiGetElemSize(data.name) + rttiGetElemSize(data.set) +
+			uint32_t dataSize = rttiGetElemSize(VERSION) + rttiGetElemSize(data.name) + rttiGetElemSize(data.set) +
 				rttiGetElemSize(data.slot) + rttiGetElemSize(data.blockSize) + rttiGetElemSize(data.isShareable) +
-				sizeof(UINT32);
+				sizeof(uint32_t);
 
 			return dataSize;
 		}

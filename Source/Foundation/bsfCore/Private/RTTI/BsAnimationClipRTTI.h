@@ -22,46 +22,48 @@ namespace bs
 		enum { id = TID_AnimationEvent }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static void toMemory(const AnimationEvent& data, char* memory)
+		static uint32_t toMemory(const AnimationEvent& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = sizeof(UINT32);
-			char* memoryStart = memory;
-			memory += sizeof(UINT32);
+			return rtti_write_with_size_header(stream,
+				[&data, &stream]()
+				{
+					constexpr uint8_t VERSION = 0;
 
-			UINT8 version = 0;
-			memory = rttiWriteElem(version, memory, size);
-			memory = rttiWriteElem(data.time, memory, size);
-			rttiWriteElem(data.name, memory, size);
+					uint32_t size = 0;
+					size += rttiWriteElem(VERSION, stream);
+					size += rttiWriteElem(data.time, stream);
+					size += rttiWriteElem(data.name, stream);
 
-			memcpy(memoryStart, &size, sizeof(UINT32));
+					return size;
+				});
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static UINT32 fromMemory(AnimationEvent& data, char* memory)
+		static uint32_t fromMemory(AnimationEvent& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = 0;
-			memory = rttiReadElem(size, memory);
-
-			UINT8 version;
-			memory = rttiReadElem(version, memory);
+			uint32_t size = 0;
+			rttiReadElem(size, stream);
+			
+			uint8_t version;
+			rttiReadElem(version, stream);
 			assert(version == 0);
 
-			memory = rttiReadElem(data.time, memory);
-			rttiReadElem(data.name, memory);
+			rttiReadElem(data.time, stream);
+			rttiReadElem(data.name, stream);
 
 			return size;
 		}
 
 		/** @copydoc RTTIPlainType::getDynamicSize */
-		static UINT32 getDynamicSize(const AnimationEvent& data)
+		static uint32_t getDynamicSize(const AnimationEvent& data)
 		{
-			UINT64 dataSize = sizeof(UINT8) + sizeof(UINT32);
+			uint64_t dataSize = sizeof(uint8_t) + sizeof(uint32_t);
 			dataSize += rttiGetElemSize(data.time);
 			dataSize += rttiGetElemSize(data.name);
 
-			assert(dataSize <= std::numeric_limits<UINT32>::max());
+			assert(dataSize <= std::numeric_limits<uint32_t>::max());
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 

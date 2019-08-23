@@ -338,34 +338,34 @@ namespace bs
 
 
 		UINT8* data = allocator->alloc(size);
-		char* dataPtr = (char*)data;
+		Bitstream stream(data, size);
 
-		dataPtr = rttiWriteElem(dirtyFlags, dataPtr);
-		SceneActor::rttiEnumFields(RttiCoreSyncWriter(&dataPtr), (ActorDirtyFlags)dirtyFlags);
+		rttiWriteElem(dirtyFlags, stream);
+		SceneActor::rttiEnumFields(RttiCoreSyncWriter(stream), (ActorDirtyFlags)dirtyFlags);
 
 		if(dirtyFlags != (UINT32)ActorDirtyFlag::Transform)
 		{
-			dataPtr = rttiWriteElem(mLayer, dataPtr);
-			dataPtr = rttiWriteElem(mOverrideBounds, dataPtr);
-			dataPtr = rttiWriteElem(mUseOverrideBounds, dataPtr);
-			dataPtr = rttiWriteElem(numMaterials, dataPtr);
-			dataPtr = rttiWriteElem(animationId, dataPtr);
-			dataPtr = rttiWriteElem(mAnimType, dataPtr);
-			dataPtr = rttiWriteElem(mCullDistanceFactor, dataPtr);
+			rttiWriteElem(mLayer, stream);
+			rttiWriteElem(mOverrideBounds, stream);
+			rttiWriteElem(mUseOverrideBounds, stream);
+			rttiWriteElem(numMaterials, stream);
+			rttiWriteElem(animationId, stream);
+			rttiWriteElem(mAnimType, stream);
+			rttiWriteElem(mCullDistanceFactor, stream);
 
-			SPtr<ct::Mesh>* mesh = new (dataPtr) SPtr<ct::Mesh>();
+			SPtr<ct::Mesh>* mesh = new (stream.cursor()) SPtr<ct::Mesh>();
 			if (mMesh.isLoaded())
 				*mesh = mMesh->getCore();
 
-			dataPtr += sizeof(SPtr<ct::Mesh>);
+			stream.skipBytes(sizeof(SPtr<ct::Mesh>));
 
 			for (UINT32 i = 0; i < numMaterials; i++)
 			{
-				SPtr<ct::Material>* material = new (dataPtr)SPtr<ct::Material>();
+				SPtr<ct::Material>* material = new (stream.cursor())SPtr<ct::Material>();
 				if (mMaterials[i].isLoaded())
 					*material = mMaterials[i]->getCore();
 
-				dataPtr += sizeof(SPtr<ct::Material>);
+				stream.skipBytes(sizeof(SPtr<ct::Material>));
 			}
 		}
 
@@ -618,7 +618,7 @@ namespace bs
 
 	void Renderable::syncToCore(const CoreSyncData& data)
 	{
-		char* dataPtr = (char*)data.getBuffer();
+		Bitstream stream(data.getBuffer(), data.getBufferSize());
 
 		mMaterials.clear();
 
@@ -626,33 +626,33 @@ namespace bs
 		UINT32 dirtyFlags = 0;
 		bool oldIsActive = mActive;
 
-		dataPtr = rttiReadElem(dirtyFlags, dataPtr);
-		SceneActor::rttiEnumFields(RttiCoreSyncReader(&dataPtr), (ActorDirtyFlags)dirtyFlags);
+		rttiReadElem(dirtyFlags, stream);
+		SceneActor::rttiEnumFields(RttiCoreSyncReader(stream), (ActorDirtyFlags)dirtyFlags);
 
 		mTfrmMatrix = mTransform.getMatrix();
 		mTfrmMatrixNoScale = Matrix4::TRS(mTransform.getPosition(), mTransform.getRotation(), Vector3::ONE);
 
 		if(dirtyFlags != (UINT32)ActorDirtyFlag::Transform)
 		{
-			dataPtr = rttiReadElem(mLayer, dataPtr);
-			dataPtr = rttiReadElem(mOverrideBounds, dataPtr);
-			dataPtr = rttiReadElem(mUseOverrideBounds, dataPtr);
-			dataPtr = rttiReadElem(numMaterials, dataPtr);
-			dataPtr = rttiReadElem(mAnimationId, dataPtr);
-			dataPtr = rttiReadElem(mAnimType, dataPtr);
-			dataPtr = rttiReadElem(mCullDistanceFactor, dataPtr);
+			rttiReadElem(mLayer, stream);
+			rttiReadElem(mOverrideBounds, stream);
+			rttiReadElem(mUseOverrideBounds, stream);
+			rttiReadElem(numMaterials, stream);
+			rttiReadElem(mAnimationId, stream);
+			rttiReadElem(mAnimType, stream);
+			rttiReadElem(mCullDistanceFactor, stream);
 
-			SPtr<Mesh>* mesh = (SPtr<Mesh>*)dataPtr;
+			SPtr<Mesh>* mesh = (SPtr<Mesh>*)stream.cursor();
 			mMesh = *mesh;
 			mesh->~SPtr<Mesh>();
-			dataPtr += sizeof(SPtr<Mesh>);
+			stream.skipBytes(sizeof(SPtr<Mesh>));
 
 			for (UINT32 i = 0; i < numMaterials; i++)
 			{
-				SPtr<Material>* material = (SPtr<Material>*)dataPtr;
+				SPtr<Material>* material = (SPtr<Material>*)stream.cursor();
 				mMaterials.push_back(*material);
 				material->~SPtr<Material>();
-				dataPtr += sizeof(SPtr<Material>);
+				stream.skipBytes(sizeof(SPtr<Material>));
 			}
 		}
 

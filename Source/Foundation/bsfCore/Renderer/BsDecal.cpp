@@ -132,10 +132,10 @@ namespace bs
 
 		UINT8* buffer = allocator->alloc(size);
 
-		char* dataPtr = (char*)buffer;
-		dataPtr = rttiWriteElem(getCoreDirtyFlags(), dataPtr);
-		dataPtr = coreSyncWriteElem((SceneActor&)*this, dataPtr);
-		dataPtr = coreSyncWriteElem(*this, dataPtr);
+		Bitstream stream(buffer, size);
+		rttiWriteElem(getCoreDirtyFlags(), stream);
+		coreSyncWriteElem((SceneActor&)*this, stream);
+		coreSyncWriteElem(*this, stream);
 
 		return CoreSyncData(buffer, size);
 	}
@@ -179,14 +179,14 @@ namespace bs
 
 	void Decal::syncToCore(const CoreSyncData& data)
 	{
-		char* dataPtr = (char*)data.getBuffer();
+		Bitstream stream(data.getBuffer(), data.getBufferSize());
 
 		UINT32 dirtyFlags = 0;
 		bool oldIsActive = mActive;
 
-		dataPtr = rttiReadElem(dirtyFlags, dataPtr);
-		dataPtr = coreSyncReadElem((SceneActor&)*this, dataPtr);
-		dataPtr = coreSyncReadElem(*this, dataPtr);
+		rttiReadElem(dirtyFlags, stream);
+		coreSyncReadElem((SceneActor&)*this, stream);
+		coreSyncReadElem(*this, stream);
 
 		mTfrmMatrix = mTransform.getMatrix();
 		mTfrmMatrixNoScale = Matrix4::TRS(mTransform.getPosition(), mTransform.getRotation(), Vector3::ONE);

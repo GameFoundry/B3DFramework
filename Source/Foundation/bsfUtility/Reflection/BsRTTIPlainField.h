@@ -70,30 +70,30 @@ namespace bs
 		}
 
 		/**
-		 * Retrieves the value from the provided field of the provided object, and copies it into the buffer. It does not
-		 * check if buffer is large enough.
+		 * Retrieves the value from the provided field of the provided object, and copies it into the stream. It does not
+		 * check if stream buffer is large enough.
 		 */
-		virtual void toBuffer(RTTITypeBase* rtti, void* object, void* buffer) = 0;
+		virtual void toBuffer(RTTITypeBase* rtti, void* object, Bitstream& stream) = 0;
 
 		/**
 		 * Retrieves the value at the specified array index on the provided field of the provided object, and copies it into
-		 * the buffer. It does not check if buffer is large enough.
+		 * the stream. It does not check if stream buffer is large enough.
 		 */
-		virtual void arrayElemToBuffer(RTTITypeBase* rtti, void* object, int index, void* buffer) = 0;
+		virtual void arrayElemToBuffer(RTTITypeBase* rtti, void* object, int index, Bitstream& stream) = 0;
 
 		/**
-		 * Sets the value on the provided field of the provided object. Value is copied from the buffer. It does not check
-		 * the value in the buffer in any way. You must make sure buffer points to the proper location and contains the
-		 * proper type.
+		 * Sets the value on the provided field of the provided object. Value is copied from the stream. It does not check
+		 * the value in the stream buffer in any way. You must make sure the stream points to the proper location and contains
+		 * the proper type.
 		 */
-		virtual void fromBuffer(RTTITypeBase* rtti, void* object, void* buffer) = 0;
+		virtual void fromBuffer(RTTITypeBase* rtti, void* object, Bitstream& stream) = 0;
 
 		/**
 		 * Sets the value at the specified array index on the provided field of the provided object. Value is copied from
-		 * the buffer. It does not check the value in the buffer in any way. You must make sure buffer points to the proper
-		 * location and contains the proper type.
+		 * the stream. It does not check the value in the stream in any way. You must make sure the stream points to the
+		 * proper location and contains the proper type.
 		 */
-		virtual void arrayElemFromBuffer(RTTITypeBase* rtti, void* object, int index, void* buffer) = 0;
+		virtual void arrayElemFromBuffer(RTTITypeBase* rtti, void* object, int index, Bitstream& stream) = 0;
 	};
 
 	/** Represents a plain class field containing a specific type. */
@@ -233,7 +233,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainFieldBase::toBuffer */
-		void toBuffer(RTTITypeBase* rtti, void* object, void* buffer) override
+		void toBuffer(RTTITypeBase* rtti, void* object, Bitstream& stream) override
 		{
 			checkIsArray(false);
 			checkType<DataType>();
@@ -242,11 +242,11 @@ namespace bs
 			ObjectType* castObject = static_cast<ObjectType*>(object);
 			DataType value = (rttiObject->*getter)(castObject);
 
-			RTTIPlainType<DataType>::toMemory(value, (char*)buffer);
+			RTTIPlainType<DataType>::toMemory(value, stream, getInfo());
 		}
 
 		/** @copydoc RTTIPlainFieldBase::arrayElemToBuffer */
-		void arrayElemToBuffer(RTTITypeBase* rtti, void* object, int index, void* buffer) override
+		void arrayElemToBuffer(RTTITypeBase* rtti, void* object, int index, Bitstream& stream) override
 		{
 			checkIsArray(true);
 			checkType<DataType>();
@@ -255,11 +255,11 @@ namespace bs
 			ObjectType* castObject = static_cast<ObjectType*>(object);
 			DataType value = (rttiObject->*arrayGetter)(castObject, index);
 
-			RTTIPlainType<DataType>::toMemory(value, (char*)buffer);
+			RTTIPlainType<DataType>::toMemory(value, stream, getInfo());
 		}
 
 		/** @copydoc RTTIPlainFieldBase::fromBuffer */
-		void fromBuffer(RTTITypeBase* rtti, void* object, void* buffer) override
+		void fromBuffer(RTTITypeBase* rtti, void* object, Bitstream& stream) override
 		{
 			checkIsArray(false);
 			checkType<DataType>();
@@ -268,7 +268,7 @@ namespace bs
 			ObjectType* castObject = static_cast<ObjectType*>(object);
 
 			DataType value;
-			RTTIPlainType<DataType>::fromMemory(value, (char*)buffer);
+			RTTIPlainType<DataType>::fromMemory(value, stream, getInfo());
 
 			if(!setter)
 			{
@@ -280,7 +280,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainFieldBase::arrayElemFromBuffer */
-		void arrayElemFromBuffer(RTTITypeBase* rtti, void* object, int index, void* buffer) override
+		void arrayElemFromBuffer(RTTITypeBase* rtti, void* object, int index, Bitstream& stream) override
 		{
 			checkIsArray(true);
 			checkType<DataType>();
@@ -289,7 +289,7 @@ namespace bs
 			ObjectType* castObject = static_cast<ObjectType*>(object);
 
 			DataType value;
-			RTTIPlainType<DataType>::fromMemory(value, (char*)buffer);
+			RTTIPlainType<DataType>::fromMemory(value, stream, getInfo());
 
 			if(!arraySetter)
 			{

@@ -7,6 +7,8 @@
 
 namespace bs
 {
+	struct RTTIFieldInfo;
+	
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Utility
 	*  @{
@@ -22,64 +24,54 @@ namespace bs
 		enum { id = TID_Vector }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static void toMemory(const std::vector<T, StdAlloc<T>>& data, char* memory)
+		static uint32_t toMemory(const std::vector<T, StdAlloc<T>>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = sizeof(UINT32);
-			char* memoryStart = memory;
-			memory += sizeof(UINT32);
-
-			UINT32 numElements = (UINT32)data.size();
-			memcpy(memory, &numElements, sizeof(UINT32));
-			memory += sizeof(UINT32);
-			size += sizeof(UINT32);
-
-			for (const auto& item : data)
+			return rtti_write_with_size_header(stream, [&data, &stream]()
 			{
-				UINT32 elementSize = rttiGetElemSize(item);
-				RTTIPlainType<T>::toMemory(item, memory);
+				uint32_t size = 0;
 
-				memory += elementSize;
-				size += elementSize;
-			}
+				auto numElements = (uint32_t)data.size();
+				size += rttiWriteElem(numElements, stream);
 
-			memcpy(memoryStart, &size, sizeof(UINT32));
+				for (const auto& item : data)
+					size += rttiWriteElem(item, stream);
+
+				return size;
+			});
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static UINT32 fromMemory(std::vector<T, StdAlloc<T>>& data, char* memory)
+		static uint32_t fromMemory(std::vector<T, StdAlloc<T>>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = 0;
-			memcpy(&size, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			uint32_t size = 0;
+			rttiReadElem(size, stream);
 
-			UINT32 numElements;
-			memcpy(&numElements, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			uint32_t numElements;
+			rttiReadElem(numElements, stream);
 
 			data.clear();
-			for (UINT32 i = 0; i < numElements; i++)
+			for (uint32_t i = 0; i < numElements; i++)
 			{
 				T element;
-				UINT32 elementSize = RTTIPlainType<T>::fromMemory(element, memory);
-				data.push_back(element);
+				rttiReadElem(element, stream);
 
-				memory += elementSize;
+				data.push_back(element);
 			}
 
 			return size;
 		}
 
 		/** @copydoc RTTIPlainType::getDynamicSize */
-		static UINT32 getDynamicSize(const std::vector<T, StdAlloc<T>>& data)
+		static uint32_t getDynamicSize(const std::vector<T, StdAlloc<T>>& data)
 		{
-			UINT64 dataSize = sizeof(UINT32) * 2;
+			uint64_t dataSize = sizeof(uint32_t) * 2;
 
 			for (const auto& item : data)
 				dataSize += rttiGetElemSize(item);
 
-			assert(dataSize <= std::numeric_limits<UINT32>::max());
+			assert(dataSize <= std::numeric_limits<uint32_t>::max());
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 
@@ -93,63 +85,53 @@ namespace bs
 		enum { id = TID_List }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static void toMemory(const std::list<T, StdAlloc<T>>& data, char* memory)
+		static uint32_t toMemory(const std::list<T, StdAlloc<T>>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = sizeof(UINT32);
-			char* memoryStart = memory;
-			memory += sizeof(UINT32);
-
-			UINT32 numElements = (UINT32)data.size();
-			memcpy(memory, &numElements, sizeof(UINT32));
-			memory += sizeof(UINT32);
-			size += sizeof(UINT32);
-
-			for (const auto& item : data)
+			return rtti_write_with_size_header(stream, [&data, &stream]()
 			{
-				UINT32 elementSize = rttiGetElemSize(item);
-				RTTIPlainType<T>::toMemory(item, memory);
+				uint32_t size = 0;
 
-				memory += elementSize;
-				size += elementSize;
-			}
+				auto numElements = (uint32_t)data.size();
+				size += rttiWriteElem(numElements, stream);
 
-			memcpy(memoryStart, &size, sizeof(UINT32));
+				for (const auto& item : data)
+					size += rttiWriteElem(item, stream);
+
+				return size;
+			});
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static UINT32 fromMemory(std::list<T, StdAlloc<T>>& data, char* memory)
+		static uint32_t fromMemory(std::list<T, StdAlloc<T>>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = 0;
-			memcpy(&size, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			uint32_t size = 0;
+			rttiReadElem(size, stream);
 
-			UINT32 numElements;
-			memcpy(&numElements, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			uint32_t numElements;
+			rttiReadElem(numElements, stream);
 
-			for (UINT32 i = 0; i < numElements; i++)
+			for (uint32_t i = 0; i < numElements; i++)
 			{
 				T element;
-				UINT32 elementSize = RTTIPlainType<T>::fromMemory(element, memory);
-				data.push_back(element);
+				rttiReadElem(element, stream);
 
-				memory += elementSize;
+				data.push_back(element);
 			}
 
 			return size;
 		}
 
 		/** @copydoc RTTIPlainType::getDynamicSize */
-		static UINT32 getDynamicSize(const std::list<T, StdAlloc<T>>& data)
+		static uint32_t getDynamicSize(const std::list<T, StdAlloc<T>>& data)
 		{
-			UINT64 dataSize = sizeof(UINT32) * 2;
+			uint64_t dataSize = sizeof(uint32_t) * 2;
 
 			for (const auto& item : data)
 				dataSize += rttiGetElemSize(item);
 
-			assert(dataSize <= std::numeric_limits<UINT32>::max());
+			assert(dataSize <= std::numeric_limits<uint32_t>::max());
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 
@@ -163,63 +145,52 @@ namespace bs
 		enum { id = TID_Set }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static void toMemory(const std::set<T, std::less<T>, StdAlloc<T>>& data, char* memory)
+		static uint32_t toMemory(const std::set<T, std::less<T>, StdAlloc<T>>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = sizeof(UINT32);
-			char* memoryStart = memory;
-			memory += sizeof(UINT32);
-
-			UINT32 numElements = (UINT32)data.size();
-			memcpy(memory, &numElements, sizeof(UINT32));
-			memory += sizeof(UINT32);
-			size += sizeof(UINT32);
-
-			for (const auto& item : data)
+			return rtti_write_with_size_header(stream, [&data, &stream]()
 			{
-				UINT32 elementSize = rttiGetElemSize(item);
-				RTTIPlainType<T>::toMemory(item, memory);
+				uint32_t size = 0;
 
-				memory += elementSize;
-				size += elementSize;
-			}
+				auto numElements = (uint32_t)data.size();
+				size += rttiWriteElem(numElements, stream);
 
-			memcpy(memoryStart, &size, sizeof(UINT32));
+				for (const auto& item : data)
+					size += rttiWriteElem(item, stream);
+
+				return size;
+			});
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static UINT32 fromMemory(std::set<T, std::less<T>, StdAlloc<T>>& data, char* memory)
+		static uint32_t fromMemory(std::set<T, std::less<T>, StdAlloc<T>>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = 0;
-			memcpy(&size, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			uint32_t size = 0;
+			rttiReadElem(size, stream);
 
-			UINT32 numElements;
-			memcpy(&numElements, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			uint32_t numElements;
+			rttiReadElem(numElements, stream);
 
-			for (UINT32 i = 0; i < numElements; i++)
+			for (uint32_t i = 0; i < numElements; i++)
 			{
 				T element;
-				UINT32 elementSize = RTTIPlainType<T>::fromMemory(element, memory);
+				rttiReadElem(element, stream);
 				data.insert(element);
-
-				memory += elementSize;
 			}
 
 			return size;
 		}
 
 		/** @copydoc RTTIPlainType::getDynamicSize */
-		static UINT32 getDynamicSize(const std::set<T, std::less<T>, StdAlloc<T>>& data)
+		static uint32_t getDynamicSize(const std::set<T, std::less<T>, StdAlloc<T>>& data)
 		{
-			UINT64 dataSize = sizeof(UINT32) * 2;
+			uint64_t dataSize = sizeof(uint32_t) * 2;
 
 			for (const auto& item : data)
 				dataSize += rttiGetElemSize(item);
 
-			assert(dataSize <= std::numeric_limits<UINT32>::max());
+			assert(dataSize <= std::numeric_limits<uint32_t>::max());
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 
@@ -233,55 +204,41 @@ namespace bs
 		enum { id = TID_Map }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static void toMemory(const std::map<Key, Value, std::less<Key>, StdAlloc<std::pair<const Key, Value>>>& data, char* memory)
+		static uint32_t toMemory(const std::map<Key, Value, std::less<Key>, StdAlloc<std::pair<const Key, Value>>>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = sizeof(UINT32);
-			char* memoryStart = memory;
-			memory += sizeof(UINT32);
-
-			UINT32 numElements = (UINT32)data.size();
-			memcpy(memory, &numElements, sizeof(UINT32));
-			memory += sizeof(UINT32);
-			size += sizeof(UINT32);
-
-			for (const auto& item : data)
+			return rtti_write_with_size_header(stream, [&data, &stream]()
 			{
-				UINT32 keySize = rttiGetElemSize(item.first);
-				RTTIPlainType<Key>::toMemory(item.first, memory);
+				uint32_t size = 0;
 
-				memory += keySize;
-				size += keySize;
+				auto numElements = (uint32_t)data.size();
+				size += rttiWriteElem(numElements, stream);
 
-				UINT32 valueSize = rttiGetElemSize(item.second);
-				RTTIPlainType<Value>::toMemory(item.second, memory);
+				for (const auto& item : data)
+				{
+					size += rttiWriteElem(item.first, stream);
+					size += rttiWriteElem(item.second, stream);
+				}
 
-				memory += valueSize;
-				size += valueSize;
-			}
-
-			memcpy(memoryStart, &size, sizeof(UINT32));
+				return size;
+			});
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static UINT32 fromMemory(std::map<Key, Value, std::less<Key>, StdAlloc<std::pair<const Key, Value>>>& data, char* memory)
+		static uint32_t fromMemory(std::map<Key, Value, std::less<Key>, StdAlloc<std::pair<const Key, Value>>>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = 0;
-			memcpy(&size, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			uint32_t size = 0;
+			rttiReadElem(size, stream);
 
-			UINT32 numElements;
-			memcpy(&numElements, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			uint32_t numElements;
+			rttiReadElem(numElements, stream);
 
-			for (UINT32 i = 0; i < numElements; i++)
+			for (uint32_t i = 0; i < numElements; i++)
 			{
 				Key key;
-				UINT32 keySize = RTTIPlainType<Key>::fromMemory(key, memory);
-				memory += keySize;
+				rttiReadElem(key, stream);
 
 				Value value;
-				UINT32 valueSize = RTTIPlainType<Value>::fromMemory(value, memory);
-				memory += valueSize;
+				rttiReadElem(value, stream);
 
 				data[key] = value;
 			}
@@ -290,9 +247,9 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getDynamicSize */
-		static UINT32 getDynamicSize(const std::map<Key, Value, std::less<Key>, StdAlloc<std::pair<const Key, Value>>>& data)
+		static uint32_t getDynamicSize(const std::map<Key, Value, std::less<Key>, StdAlloc<std::pair<const Key, Value>>>& data)
 		{
-			UINT64 dataSize = sizeof(UINT32) * 2;
+			uint64_t dataSize = sizeof(uint32_t) * 2;
 
 			for (const auto& item : data)
 			{
@@ -300,9 +257,9 @@ namespace bs
 				dataSize += rttiGetElemSize(item.second);
 			}
 
-			assert(dataSize <= std::numeric_limits<UINT32>::max());
+			assert(dataSize <= std::numeric_limits<uint32_t>::max());
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 
@@ -319,55 +276,41 @@ namespace bs
 		typedef std::unordered_map<Key, Value, std::hash<Key>, std::equal_to<Key>, StdAlloc<std::pair<const Key, Value>>> MapType;
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static void toMemory(const MapType& data, char* memory)
+		static uint32_t toMemory(const MapType& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = sizeof(UINT32);
-			char* memoryStart = memory;
-			memory += sizeof(UINT32);
-
-			UINT32 numElements = (UINT32)data.size();
-			memcpy(memory, &numElements, sizeof(UINT32));
-			memory += sizeof(UINT32);
-			size += sizeof(UINT32);
-
-			for (const auto& item : data)
+			return rtti_write_with_size_header(stream, [&data, &stream]()
 			{
-				UINT32 keySize = rttiGetElemSize(item.first);
-				RTTIPlainType<Key>::toMemory(item.first, memory);
+				uint32_t size = 0;
 
-				memory += keySize;
-				size += keySize;
+				auto numElements = (uint32_t)data.size();
+				size += rttiWriteElem(numElements, stream);
 
-				UINT32 valueSize = rttiGetElemSize(item.second);
-				RTTIPlainType<Value>::toMemory(item.second, memory);
+				for (const auto& item : data)
+				{
+					size += rttiWriteElem(item.first, stream);
+					size += rttiWriteElem(item.second, stream);
+				}
 
-				memory += valueSize;
-				size += valueSize;
-			}
-
-			memcpy(memoryStart, &size, sizeof(UINT32));
+				return size;
+			});
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static UINT32 fromMemory(MapType& data, char* memory)
+		static uint32_t fromMemory(MapType& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = 0;
-			memcpy(&size, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			uint32_t size = 0;
+			rttiReadElem(size, stream);
 
-			UINT32 numElements;
-			memcpy(&numElements, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			uint32_t numElements;
+			rttiReadElem(numElements, stream);
 
-			for (UINT32 i = 0; i < numElements; i++)
+			for (uint32_t i = 0; i < numElements; i++)
 			{
 				Key key;
-				UINT32 keySize = RTTIPlainType<Key>::fromMemory(key, memory);
-				memory += keySize;
+				rttiReadElem(key, stream);
 
 				Value value;
-				UINT32 valueSize = RTTIPlainType<Value>::fromMemory(value, memory);
-				memory += valueSize;
+				rttiReadElem(value, stream);
 
 				data[key] = value;
 			}
@@ -376,9 +319,9 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getDynamicSize */
-		static UINT32 getDynamicSize(const MapType& data)
+		static uint32_t getDynamicSize(const MapType& data)
 		{
-			UINT64 dataSize = sizeof(UINT32) * 2;
+			uint64_t dataSize = sizeof(uint32_t) * 2;
 
 			for (const auto& item : data)
 			{
@@ -386,9 +329,9 @@ namespace bs
 				dataSize += RTTIPlainType<Value>::getDynamicSize(item.second);
 			}
 
-			assert(dataSize <= std::numeric_limits<UINT32>::max());
+			assert(dataSize <= std::numeric_limits<uint32_t>::max());
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 
@@ -405,45 +348,35 @@ namespace bs
 		typedef std::unordered_set<Key, std::hash<Key>, std::equal_to<Key>, StdAlloc<Key>> MapType;
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static void toMemory(const MapType& data, char* memory)
+		static uint32_t toMemory(const MapType& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = sizeof(UINT32);
-			char* memoryStart = memory;
-			memory += sizeof(UINT32);
-
-			UINT32 numElements = (UINT32)data.size();
-			memcpy(memory, &numElements, sizeof(UINT32));
-			memory += sizeof(UINT32);
-			size += sizeof(UINT32);
-
-			for (const auto& item : data)
+			return rtti_write_with_size_header(stream, [&data, &stream]()
 			{
-				UINT32 keySize = rttiGetElemSize(item);
-				RTTIPlainType<Key>::toMemory(item, memory);
+				uint32_t size = 0;
 
-				memory += keySize;
-				size += keySize;
-			}
+				auto numElements = (uint32_t)data.size();
+				size += rttiWriteElem(numElements, stream);
 
-			memcpy(memoryStart, &size, sizeof(UINT32));
+				for (const auto& item : data)
+					size += rttiWriteElem(item, stream);
+
+				return size;
+			});
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static UINT32 fromMemory(MapType& data, char* memory)
+		static uint32_t fromMemory(MapType& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = 0;
-			memcpy(&size, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			uint32_t size = 0;
+			rttiReadElem(size, stream);
 
-			UINT32 numElements;
-			memcpy(&numElements, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			uint32_t numElements;
+			rttiReadElem(numElements, stream);
 
-			for (UINT32 i = 0; i < numElements; i++)
+			for (uint32_t i = 0; i < numElements; i++)
 			{
 				Key key;
-				UINT32 keySize = RTTIPlainType<Key>::fromMemory(key, memory);
-				memory += keySize;
+				rttiReadElem(key, stream);
 
 				data.insert(key);
 			}
@@ -452,18 +385,18 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getDynamicSize */
-		static UINT32 getDynamicSize(const MapType& data)
+		static uint32_t getDynamicSize(const MapType& data)
 		{
-			UINT64 dataSize = sizeof(UINT32) * 2;
+			uint64_t dataSize = sizeof(uint32_t) * 2;
 
 			for (const auto& item : data)
 			{
 				dataSize += rttiGetElemSize(item);
 			}
 
-			assert(dataSize <= std::numeric_limits<UINT32>::max());
+			assert(dataSize <= std::numeric_limits<uint32_t>::max());
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 
@@ -477,53 +410,39 @@ namespace bs
 		enum { id = TID_Pair }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static void toMemory(const std::pair<A, B>& data, char* memory)
+		static uint32_t toMemory(const std::pair<A, B>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = sizeof(UINT32);
-			char* memoryStart = memory;
-			memory += sizeof(UINT32);
+			return rtti_write_with_size_header(stream, [&data, &stream]()
+			{
+				uint32_t size = 0;
+				size += rttiWriteElem(data.first, stream);
+				size += rttiWriteElem(data.second, stream);
 
-			UINT32 firstSize = rttiGetElemSize(data.first);
-			RTTIPlainType<A>::toMemory(data.first, memory);
-
-			memory += firstSize;
-			size += firstSize;
-
-			UINT32 secondSize = rttiGetElemSize(data.second);
-			RTTIPlainType<B>::toMemory(data.second, memory);
-
-			memory += secondSize;
-			size += secondSize;
-
-			memcpy(memoryStart, &size, sizeof(UINT32));
+				return size;
+			});
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static UINT32 fromMemory(std::pair<A, B>& data, char* memory)
+		static uint32_t fromMemory(std::pair<A, B>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = 0;
-			memcpy(&size, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
-
-			UINT32 firstSize = RTTIPlainType<A>::fromMemory(data.first, memory);
-			memory += firstSize;
-
-			UINT32 secondSize = RTTIPlainType<B>::fromMemory(data.second, memory);
-			memory += secondSize;
+			uint32_t size = 0;
+			rttiReadElem(size, stream);
+			rttiReadElem(data.first, stream);
+			rttiReadElem(data.second, stream);
 
 			return size;
 		}
 
 		/** @copydoc RTTIPlainType::getDynamicSize */
-		static UINT32 getDynamicSize(const std::pair<A, B>& data)
+		static uint32_t getDynamicSize(const std::pair<A, B>& data)
 		{
-			UINT64 dataSize = sizeof(UINT32);
+			uint64_t dataSize = sizeof(uint32_t);
 			dataSize += rttiGetElemSize(data.first);
 			dataSize += rttiGetElemSize(data.second);
 
-			assert(dataSize <= std::numeric_limits<UINT32>::max());
+			assert(dataSize <= std::numeric_limits<uint32_t>::max());
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 

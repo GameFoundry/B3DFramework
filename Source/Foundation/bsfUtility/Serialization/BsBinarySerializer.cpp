@@ -349,7 +349,9 @@ mTotalBytesRead -= size;												\
 								if ((*bytesWritten + typeSize) > bufferLength)
 								{
 									UINT8* tempBuffer = (UINT8*)bs_stack_alloc(typeSize);
-									curField->arrayElemToBuffer(rttiInstance, object, arrIdx, tempBuffer);
+									Bitstream tempStream(tempBuffer, typeSize);
+
+									curField->arrayElemToBuffer(rttiInstance, object, arrIdx, tempStream);
 
 									buffer = dataBlockToBuffer(tempBuffer, typeSize, buffer, bufferLength, bytesWritten, flushBufferCallback);
 									bs_stack_free(tempBuffer);
@@ -362,7 +364,9 @@ mTotalBytesRead -= size;												\
 								}
 								else
 								{
-									curField->arrayElemToBuffer(rttiInstance, object, arrIdx, buffer);
+									Bitstream tempStream(buffer, typeSize);
+
+									curField->arrayElemToBuffer(rttiInstance, object, arrIdx, tempStream);
 									buffer += typeSize;
 									*bytesWritten += typeSize;
 								}
@@ -420,8 +424,10 @@ mTotalBytesRead -= size;												\
 
 							if ((*bytesWritten + typeSize) > bufferLength)
 							{
-								UINT8* tempBuffer = (UINT8*)bs_stack_alloc(typeSize);
-								curField->toBuffer(rttiInstance, object, tempBuffer);
+								auto tempBuffer = (UINT8*)bs_stack_alloc(typeSize);
+								Bitstream tempStream(tempBuffer, typeSize);
+								
+								curField->toBuffer(rttiInstance, object, tempStream);
 								
 								buffer = dataBlockToBuffer(tempBuffer, typeSize, buffer, bufferLength, bytesWritten, flushBufferCallback);
 								bs_stack_free(tempBuffer);
@@ -434,7 +440,9 @@ mTotalBytesRead -= size;												\
 							}
 							else
 							{
-								curField->toBuffer(rttiInstance, object, buffer);
+								Bitstream tempStream(buffer, typeSize);
+
+								curField->toBuffer(rttiInstance, object, tempStream);
 								buffer += typeSize;
 								*bytesWritten += typeSize;
 							}
@@ -745,7 +753,8 @@ mTotalBytesRead -= size;												\
 							void* fieldValue = bs_stack_alloc(typeSize);
 							READ_FROM_BUFFER(fieldValue, typeSize)
 
-							curField->arrayElemFromBuffer(rttiInstance, output.get(), i, fieldValue);
+							Bitstream tempStream((uint8_t*)fieldValue, typeSize);
+							curField->arrayElemFromBuffer(rttiInstance, output.get(), i, tempStream);
 							bs_stack_free(fieldValue);
 						}
 						else
@@ -857,7 +866,8 @@ mTotalBytesRead -= size;												\
 						void* fieldValue = bs_stack_alloc(typeSize);
 						READ_FROM_BUFFER(fieldValue, typeSize)
 
-						curField->fromBuffer(rttiInstance, output.get(), fieldValue);
+						Bitstream tempStream((uint8_t*)fieldValue, typeSize);
+						curField->fromBuffer(rttiInstance, output.get(), tempStream);
 						bs_stack_free(fieldValue);
 					}
 					else

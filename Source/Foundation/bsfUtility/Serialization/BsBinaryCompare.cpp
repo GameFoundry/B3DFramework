@@ -168,8 +168,11 @@ namespace bs
 							auto dataA = bs_managed_stack_alloc(typeSizeA);
 							auto dataB = bs_managed_stack_alloc(typeSizeB);
 
-							curField->arrayElemToBuffer(rttiInstanceA, &a, arrIdx, dataA);
-							curField->arrayElemToBuffer(rttiInstanceB, &b, arrIdx, dataB);
+							Bitstream streamA((uint8_t*)static_cast<void*>(dataA), typeSizeA);
+							Bitstream streamB((uint8_t*)static_cast<void*>(dataB), typeSizeB);
+
+							curField->arrayElemToBuffer(rttiInstanceA, &a, arrIdx, streamA);
+							curField->arrayElemToBuffer(rttiInstanceB, &b, arrIdx, streamB);
 
 							if(memcmp(dataA, dataB, typeSizeA) != 0)
 								return false;
@@ -258,8 +261,11 @@ namespace bs
 						auto dataA = bs_managed_stack_alloc(typeSizeA);
 						auto dataB = bs_managed_stack_alloc(typeSizeB);
 
-						curField->toBuffer(rttiInstanceA, &a, dataA);
-						curField->toBuffer(rttiInstanceB, &b, dataB);
+						Bitstream streamA((uint8_t*)static_cast<void*>(dataA), typeSizeA);
+						Bitstream streamB((uint8_t*)static_cast<void*>(dataB), typeSizeB);
+
+						curField->toBuffer(rttiInstanceA, &a, streamA);
+						curField->toBuffer(rttiInstanceB, &b, streamB);
 
 						if (memcmp(dataA, dataB, typeSizeA) != 0)
 							return false;

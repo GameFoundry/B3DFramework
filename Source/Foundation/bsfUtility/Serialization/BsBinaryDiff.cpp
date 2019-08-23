@@ -231,7 +231,9 @@ namespace bs
 				case Diff_Plain:
 				{
 					RTTIPlainFieldBase* field = static_cast<RTTIPlainFieldBase*>(command.field);
-					field->arrayElemFromBuffer(rttiInstance, destObject, command.arrayIdx, command.value);
+
+					Bitstream tempStream(command.value, command.size);
+					field->arrayElemFromBuffer(rttiInstance, destObject, command.arrayIdx, tempStream);
 				}
 					break;
 				default:
@@ -257,7 +259,9 @@ namespace bs
 				case Diff_Plain:
 				{
 					RTTIPlainFieldBase* field = static_cast<RTTIPlainFieldBase*>(command.field);
-					field->fromBuffer(rttiInstance, destObject, command.value);
+
+					Bitstream tempStream(command.value, command.size);
+					field->fromBuffer(rttiInstance, destObject, tempStream);
 				}
 					break;
 				case Diff_DataBlock:

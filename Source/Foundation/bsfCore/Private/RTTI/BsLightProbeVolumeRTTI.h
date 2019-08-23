@@ -31,36 +31,36 @@ namespace bs
 	template<> struct RTTIPlainType<SavedLightProbeInfo>
 	{
 		enum { id = TID_SavedLightProbeInfo }; enum { hasDynamicSize = 1 };
+		static constexpr UINT32 VERSION = 0;
 
-		static void toMemory(const SavedLightProbeInfo& data, char* memory)
+		static uint32_t toMemory(const SavedLightProbeInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = getDynamicSize(data);
+			return rtti_write_with_size_header(stream, [&data, &stream]()
+			{
+				uint32_t size = 0;
 
-			UINT32 curSize = sizeof(UINT32);
-			memcpy(memory, &size, curSize);
-			memory += curSize;
+				uint32_t version;
+				size += rttiWriteElem(version, stream);
+				size += rttiWriteElem(data.positions, stream);
+				size += rttiWriteElem(data.coefficients, stream);
 
-			UINT32 version = 0;
-
-			memory = rttiWriteElem(version, memory);
-			memory = rttiWriteElem(data.positions, memory);
-			rttiWriteElem(data.coefficients, memory);
+				return size;
+			});
 		}
 
-		static UINT32 fromMemory(SavedLightProbeInfo& data, char* memory)
+		static uint32_t fromMemory(SavedLightProbeInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size;
-			memcpy(&size, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			uint32_t size;
+			rttiReadElem(size, stream);
 
-			UINT32 version;
-			memory = rttiReadElem(version, memory);
+			uint32_t version;
+			rttiReadElem(version, stream);
 
 			switch(version)
 			{
 			case 0:
-				memory = rttiReadElem(data.positions, memory);
-				memory = rttiReadElem(data.coefficients, memory);
+				rttiReadElem(data.positions, stream);
+				rttiReadElem(data.coefficients, stream);
 				break;
 			default:
 				BS_LOG(Error, RTTI, "Unknown version of SavedLightProbeInfo data. Unable to deserialize.");
@@ -70,18 +70,18 @@ namespace bs
 			return size;
 		}
 
-		static UINT32 getDynamicSize(const SavedLightProbeInfo& data)
+		static uint32_t getDynamicSize(const SavedLightProbeInfo& data)
 		{
-			UINT64 dataSize = rttiGetElemSize(data.positions) + rttiGetElemSize(data.coefficients) + sizeof(UINT32) * 2;
+			uint64_t dataSize = rttiGetElemSize(data.positions) + rttiGetElemSize(data.coefficients) + sizeof(uint32_t) * 2;
 
 #if BS_DEBUG_MODE
-			if(dataSize > std::numeric_limits<UINT32>::max())
+			if(dataSize > std::numeric_limits<uint32_t>::max())
 			{
 				BS_EXCEPT(InternalErrorException, "Data overflow! Size doesn't fit into 32 bits.");
 			}
 #endif
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 

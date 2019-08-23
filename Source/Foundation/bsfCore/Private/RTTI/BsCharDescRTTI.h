@@ -17,54 +17,53 @@ namespace bs
 	{
 		enum { id = TID_CHAR_DESC }; enum { hasDynamicSize = 1 };
 
-		static void toMemory(const CharDesc& data, char* memory)
+		static uint32_t toMemory(const CharDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = getDynamicSize(data);
+			return rtti_write_with_size_header(stream, [&data, &stream]()
+			{
+				uint32_t size = 0;
+				size += rttiWriteElem(data.charId, stream);
+				size += rttiWriteElem(data.page, stream);
+				size += rttiWriteElem(data.uvX, stream);
+				size += rttiWriteElem(data.uvY, stream);
+				size += rttiWriteElem(data.uvWidth, stream);
+				size += rttiWriteElem(data.uvHeight, stream);
+				size += rttiWriteElem(data.width, stream);
+				size += rttiWriteElem(data.height, stream);
+				size += rttiWriteElem(data.xOffset, stream);
+				size += rttiWriteElem(data.yOffset, stream);
+				size += rttiWriteElem(data.xAdvance, stream);
+				size += rttiWriteElem(data.yAdvance, stream);
+				size += rttiWriteElem(data.kerningPairs, stream);
 
-			memcpy(memory, &size, sizeof(UINT32));
-			memory += sizeof(UINT32);
-
-			memory = rttiWriteElem(data.charId, memory);
-			memory = rttiWriteElem(data.page, memory);
-			memory = rttiWriteElem(data.uvX, memory);
-			memory = rttiWriteElem(data.uvY, memory);
-			memory = rttiWriteElem(data.uvWidth, memory);
-			memory = rttiWriteElem(data.uvHeight, memory);
-			memory = rttiWriteElem(data.width, memory);
-			memory = rttiWriteElem(data.height, memory);
-			memory = rttiWriteElem(data.xOffset, memory);
-			memory = rttiWriteElem(data.yOffset, memory);
-			memory = rttiWriteElem(data.xAdvance, memory);
-			memory = rttiWriteElem(data.yAdvance, memory);
-			rttiWriteElem(data.kerningPairs, memory);
+				return size;
+			});
 		}
 
-		static UINT32 fromMemory(CharDesc& data, char* memory)
+		static uint32_t fromMemory(CharDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size;
-			memcpy(&size, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
-
-			memory = rttiReadElem(data.charId, memory);
-			memory = rttiReadElem(data.page, memory);
-			memory = rttiReadElem(data.uvX, memory);
-			memory = rttiReadElem(data.uvY, memory);
-			memory = rttiReadElem(data.uvWidth, memory);
-			memory = rttiReadElem(data.uvHeight, memory);
-			memory = rttiReadElem(data.width, memory);
-			memory = rttiReadElem(data.height, memory);
-			memory = rttiReadElem(data.xOffset, memory);
-			memory = rttiReadElem(data.yOffset, memory);
-			memory = rttiReadElem(data.xAdvance, memory);
-			memory = rttiReadElem(data.yAdvance, memory);
-			rttiReadElem(data.kerningPairs, memory);
+			uint32_t size;
+			rttiReadElem(size, stream);
+			rttiReadElem(data.charId, stream);
+			rttiReadElem(data.page, stream);
+			rttiReadElem(data.uvX, stream);
+			rttiReadElem(data.uvY, stream);
+			rttiReadElem(data.uvWidth, stream);
+			rttiReadElem(data.uvHeight, stream);
+			rttiReadElem(data.width, stream);
+			rttiReadElem(data.height, stream);
+			rttiReadElem(data.xOffset, stream);
+			rttiReadElem(data.yOffset, stream);
+			rttiReadElem(data.xAdvance, stream);
+			rttiReadElem(data.yAdvance, stream);
+			rttiReadElem(data.kerningPairs, stream);
 
 			return size;
 		}
 
-		static UINT32 getDynamicSize(const CharDesc& data)
+		static uint32_t getDynamicSize(const CharDesc& data)
 		{
-			UINT64 dataSize = sizeof(data.charId)
+			uint64_t dataSize = sizeof(data.charId)
 				+ sizeof(data.page)
 				+ sizeof(data.uvX)
 				+ sizeof(data.uvY)
@@ -78,9 +77,9 @@ namespace bs
 				+ sizeof(data.yAdvance)
 				+ RTTIPlainType<Vector<KerningPair>>::getDynamicSize(data.kerningPairs);
 
-			dataSize += sizeof(UINT32);
+			dataSize += sizeof(uint32_t);
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 

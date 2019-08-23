@@ -72,41 +72,42 @@ namespace bs
 		enum { id = TID_LanguageData }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static void toMemory(const LanguageData& data, char* memory)
+		static uint32_t toMemory(const LanguageData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = sizeof(UINT32);
-			char* memoryStart = memory;
-			memory += sizeof(UINT32);
-
-			UINT32 numElements = (UINT32)data.strings.size();
-			memory = rttiWriteElem(numElements, memory, size);
-
-			for (auto& entry : data.strings)
+			return rtti_write_with_size_header(stream, [&data, &stream]()
 			{
-				memory = rttiWriteElem(entry.first, memory, size);
-				memory = rttiWriteElem(*entry.second, memory, size);
-			}
-			
-			memcpy(memoryStart, &size, sizeof(UINT32));
+				uint32_t size = 0;
+
+				auto numElements = (uint32_t)data.strings.size();
+				size += rttiWriteElem(numElements, stream);
+
+				for (auto& entry : data.strings)
+				{
+					size += rttiWriteElem(entry.first, stream);
+					size += rttiWriteElem(*entry.second, stream);
+				}
+
+				return size;
+			});
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static UINT32 fromMemory(LanguageData& data, char* memory)
+		static uint32_t fromMemory(LanguageData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = 0;
-			memory = rttiReadElem(size, memory);
+			uint32_t size = 0;
+			rttiReadElem(size, stream);
 
-			UINT32 numElements = 0;
-			memory = rttiReadElem(numElements, memory);
+			uint32_t numElements = 0;
+			rttiReadElem(numElements, stream);
 
 			data.strings.clear();
-			for (UINT32 i = 0; i < numElements; i++)
+			for (uint32_t i = 0; i < numElements; i++)
 			{
 				String identifier;
-				memory = rttiReadElem(identifier, memory);
+				rttiReadElem(identifier, stream);
 
 				SPtr<LocalizedStringData> entryData = bs_shared_ptr_new<LocalizedStringData>();
-				memory = rttiReadElem(*entryData, memory);
+				rttiReadElem(*entryData, stream);
 
 				data.strings[identifier] = entryData;
 			}
@@ -115,9 +116,9 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getDynamicSize */
-		static UINT32 getDynamicSize(const LanguageData& data)
+		static uint32_t getDynamicSize(const LanguageData& data)
 		{
-			UINT64 dataSize = sizeof(UINT32) * 2;
+			uint64_t dataSize = sizeof(uint32_t) * 2;
 
 			for (auto& entry : data.strings)
 			{
@@ -125,9 +126,9 @@ namespace bs
 				dataSize += rttiGetElemSize(*entry.second);
 			}
 
-			assert(dataSize <= std::numeric_limits<UINT32>::max());
+			assert(dataSize <= std::numeric_limits<uint32_t>::max());
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}	
 	};
 
@@ -142,54 +143,55 @@ namespace bs
 		enum { id = TID_LocalizedStringData }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static void toMemory(const LocalizedStringData& data, char* memory)
+		static uint32_t toMemory(const LocalizedStringData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = sizeof(UINT32);
-			char* memoryStart = memory;
-			memory += sizeof(UINT32);
+			return rtti_write_with_size_header(stream, [&data, &stream]()
+			{
+				uint32_t size = 0;
 
-			memory = rttiWriteElem(data.string, memory, size);
-			memory = rttiWriteElem(data.numParameters, memory, size);
+				size += rttiWriteElem(data.string, stream);
+				size += rttiWriteElem(data.numParameters, stream);
 
-			for (UINT32 i = 0; i < data.numParameters; i++)
-				memory = rttiWriteElem(data.parameterOffsets[i], memory, size);
+				for (uint32_t i = 0; i < data.numParameters; i++)
+					size += rttiWriteElem(data.parameterOffsets[i], stream);
 
-			memcpy(memoryStart, &size, sizeof(UINT32));
+				return size;
+			});
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static UINT32 fromMemory(LocalizedStringData& data, char* memory)
+		static uint32_t fromMemory(LocalizedStringData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
 			if (data.parameterOffsets != nullptr)
 				bs_deleteN(data.parameterOffsets, data.numParameters);
 
-			UINT32 size = 0;
-			memory = rttiReadElem(size, memory);
+			uint32_t size = 0;
+			rttiReadElem(size, stream);
 
-			memory = rttiReadElem(data.string, memory);
-			memory = rttiReadElem(data.numParameters, memory);
+			rttiReadElem(data.string, stream);
+			rttiReadElem(data.numParameters, stream);
 
 			data.parameterOffsets = bs_newN<LocalizedStringData::ParamOffset>(data.numParameters);
-			for (UINT32 i = 0; i < data.numParameters; i++)
-				memory = rttiReadElem(data.parameterOffsets[i], memory);
+			for (uint32_t i = 0; i < data.numParameters; i++)
+				rttiReadElem(data.parameterOffsets[i], stream);
 
 			return size;
 		}
 
 		/** @copydoc RTTIPlainType::getDynamicSize */
-		static UINT32 getDynamicSize(const LocalizedStringData& data)
+		static uint32_t getDynamicSize(const LocalizedStringData& data)
 		{
-			UINT64 dataSize = sizeof(UINT32);
+			uint64_t dataSize = sizeof(uint32_t);
 
 			dataSize += rttiGetElemSize(data.string);
 			dataSize += rttiGetElemSize(data.numParameters);
 
-			for (UINT32 i = 0; i < data.numParameters; i++)
+			for (uint32_t i = 0; i < data.numParameters; i++)
 				dataSize = rttiGetElemSize(data.parameterOffsets[i]);
 
-			assert(dataSize <= std::numeric_limits<UINT32>::max());
+			assert(dataSize <= std::numeric_limits<uint32_t>::max());
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}	
 	};
 

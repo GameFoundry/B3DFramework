@@ -129,8 +129,8 @@ namespace bs
 	{
 		using MyType = RttiCoreSyncWriter;
 
-		RttiCoreSyncWriter(char** data)
-			:mWritePtr(data)
+		RttiCoreSyncWriter(Bitstream& stream)
+			:mStream(stream)
 		{}
 
 		/** If the type offers a rttiEnumFields method, recurse into it. */
@@ -152,7 +152,7 @@ namespace bs
 		void writeInternal(T&& value, std::enable_if_t<
 			!detail::is_shared_ptr<std::decay_t<T>>::value>* = 0)
 		{
-			(*mWritePtr) = rttiWriteElem(value, *mWritePtr);
+			rttiWriteElem(value, mStream);
 		}
 
 		template<class T>
@@ -161,13 +161,13 @@ namespace bs
 		{
 			using SPtrType = std::decay_t<T>;
 
-			SPtrType* sptrPtr = new (*mWritePtr) SPtrType;
+			SPtrType* sptrPtr = new (mStream.cursor()) SPtrType;
 			*sptrPtr = (value);
 
-			(*mWritePtr) += sizeof(SPtrType);
+			mStream.skipBytes(sizeof(SPtrType));
 		}
 
-		char** mWritePtr;
+		Bitstream& mStream;
 	};
 
 	/**
@@ -181,8 +181,8 @@ namespace bs
 	 */
 	struct RttiCoreSyncReader
 	{
-		RttiCoreSyncReader(char** data)
-			:mReadPtr(data)
+		RttiCoreSyncReader(Bitstream& stream)
+			:mStream(stream)
 		{}
 
 		/** If the type offers a rttiEnumFields method, recurse into it. */
@@ -204,7 +204,7 @@ namespace bs
 		void readInternal(T&& value, std::enable_if_t<
 			!detail::is_shared_ptr<std::decay_t<T>>::value>* = 0)
 		{
-			(*mReadPtr) = rttiReadElem(value, *mReadPtr);
+			rttiReadElem(value, mStream);
 		}
 
 		template<class T>
@@ -213,14 +213,14 @@ namespace bs
 		{
 			using SPtrType = std::decay_t<T>;
 
-			SPtrType* sptr = (SPtrType*)(*mReadPtr);
+			SPtrType* sptr = (SPtrType*)(mStream.cursor());
 			value = *sptr;
 			sptr->~SPtrType();
 
-			(*mReadPtr) += sizeof(SPtrType);
+			mStream.skipBytes(sizeof(SPtrType));
 		}
 
-		char** mReadPtr;
+		Bitstream& mStream;
 	};
 
 	/**
@@ -236,7 +236,7 @@ namespace bs
 	 */
 	struct RttiCoreSyncSize
 	{
-		RttiCoreSyncSize(UINT32& size)
+		RttiCoreSyncSize(uint32_t& size)
 			:mSize(size)
 		{ }
 
@@ -270,7 +270,7 @@ namespace bs
 			mSize += sizeof(SPtrType);
 		}
 
-		UINT32& mSize;
+		uint32_t& mSize;
 	};
 
 	/**
@@ -278,33 +278,31 @@ namespace bs
 	 * method implementation.
 	 */
 	template<class T>
-	UINT32 coreSyncGetElemSize(T& v)
+	uint32_t coreSyncGetElemSize(T& v)
 	{
-		UINT32 size = 0;
+		uint32_t size = 0;
 		v.rttiEnumFields(RttiCoreSyncSize(size));
 		return size;
 	}
 
 	/**
-	 * Writes the provided object into the provided memory location, using rules for core object syncing. Returns the
-	 * memory location after the end of the written object.
+	 * Writes the provided object into the provided memory location, using rules for core object syncing. Advances the
+	 * stream cursor by the number of bytes written.
 	 */
 	template<class T>
-	char* coreSyncWriteElem(T& v, char* memory)
+	void coreSyncWriteElem(T& v, Bitstream& stream)
 	{
-		v.rttiEnumFields(RttiCoreSyncWriter(&memory));
-		return memory;
+		v.rttiEnumFields(RttiCoreSyncWriter(stream));
 	}
 
 	/**
 	 * Decodes information from the provided memory buffer and writes it into the provided object, using rules for core
-	 * object syncing. Returns the memory location after the end of the read object.
+	 * object syncing. Advances the stream cursor by number of bytes read.
 	 */
 	template<class T>
-	char* coreSyncReadElem(T& v, char* memory)
+	void coreSyncReadElem(T& v, Bitstream& stream)
 	{
-		v.rttiEnumFields(RttiCoreSyncReader(&memory));
-		return memory;
+		v.rttiEnumFields(RttiCoreSyncReader(stream));
 	}
 
 	/** @} */

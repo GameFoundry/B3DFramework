@@ -450,12 +450,12 @@ namespace bs
 		size += rttiGetElemSize(mLayer);
 
 		UINT8* data = allocator->alloc(size);
-		char* dataPtr = (char*)data;
-		dataPtr = rttiWriteElem(getCoreDirtyFlags(), dataPtr);
-		dataPtr = coreSyncWriteElem((SceneActor&)*this, dataPtr);
-		dataPtr = coreSyncWriteElem(mSettings, dataPtr);
-		dataPtr = coreSyncWriteElem(mGpuSimulationSettings, dataPtr);
-		dataPtr = rttiWriteElem(mLayer, dataPtr);
+		Bitstream stream(data, size);
+		rttiWriteElem(getCoreDirtyFlags(), stream);
+		coreSyncWriteElem((SceneActor&)*this, stream);
+		coreSyncWriteElem(mSettings, stream);
+		coreSyncWriteElem(mGpuSimulationSettings, stream);
+		rttiWriteElem(mLayer, stream);
 
 		return CoreSyncData(data, size);
 	}
@@ -525,16 +525,16 @@ namespace bs
 
 		void ParticleSystem::syncToCore(const CoreSyncData& data)
 		{
-			char* dataPtr = (char*)data.getBuffer();
+			Bitstream stream((uint8_t*)data.getBuffer(), data.getBufferSize());
 
 			UINT32 dirtyFlags = 0;
 			const bool oldIsActive = mActive;
 
-			dataPtr = rttiReadElem(dirtyFlags, dataPtr);
-			dataPtr = coreSyncReadElem((SceneActor&)*this, dataPtr);
-			dataPtr = coreSyncReadElem(mSettings, dataPtr);
-			dataPtr = coreSyncReadElem(mGpuSimulationSettings, dataPtr);
-			dataPtr = rttiReadElem(mLayer, dataPtr);
+			rttiReadElem(dirtyFlags, stream);
+			coreSyncReadElem((SceneActor&)*this, stream);
+			coreSyncReadElem(mSettings, stream);
+			coreSyncReadElem(mGpuSimulationSettings, stream);
+			rttiReadElem(mLayer, stream);
 			
 			constexpr UINT32 updateEverythingFlag = (UINT32)ActorDirtyFlag::Everything
 				| (UINT32)ActorDirtyFlag::Active

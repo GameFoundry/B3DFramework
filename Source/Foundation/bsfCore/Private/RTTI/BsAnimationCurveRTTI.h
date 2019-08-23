@@ -20,27 +20,29 @@ namespace bs
 		enum { id = TID_KeyFrame }; enum { hasDynamicSize = 0 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static void toMemory(const TKeyframe<T>& data, char* memory)
+		static uint32_t toMemory(const TKeyframe<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			memory = rttiWriteElem(data.value, memory);
-			memory = rttiWriteElem(data.inTangent, memory);
-			memory = rttiWriteElem(data.outTangent, memory);
-			memory = rttiWriteElem(data.time, memory);
+			rttiWriteElem(data.value, stream);
+			rttiWriteElem(data.inTangent, stream);
+			rttiWriteElem(data.outTangent, stream);
+			rttiWriteElem(data.time, stream);
+
+			return sizeof(TKeyframe<T>);
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static UINT32 fromMemory(TKeyframe<T>& data, char* memory)
+		static uint32_t fromMemory(TKeyframe<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			memory = rttiReadElem(data.value, memory);
-			memory = rttiReadElem(data.inTangent, memory);
-			memory = rttiReadElem(data.outTangent, memory);
-			memory = rttiReadElem(data.time, memory);
+			rttiReadElem(data.value, stream);
+			rttiReadElem(data.inTangent, stream);
+			rttiReadElem(data.outTangent, stream);
+			rttiReadElem(data.time, stream);
 			
 			return sizeof(TKeyframe<T>);
 		}
 
 		/** @copydoc RTTIPlainType::getDynamicSize */
-		static UINT32 getDynamicSize(const TKeyframe<T>& data)
+		static uint32_t getDynamicSize(const TKeyframe<T>& data)
 		{
 			assert(false);
 			return sizeof(TKeyframe<T>);
@@ -52,51 +54,52 @@ namespace bs
 		enum { id = TID_AnimationCurve }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static void toMemory(const TAnimationCurve<T>& data, char* memory)
+		static uint32_t toMemory(const TAnimationCurve<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = sizeof(UINT32);
-			char* memoryStart = memory;
-			memory += sizeof(UINT32);
+			return rtti_write_with_size_header(stream, [&data, &stream]()
+			{
+				constexpr uint32_t VERSION = 0; // In case the data structure changes
 
-			UINT32 version = 0; // In case the data structure changes
-			memory = rttiWriteElem(version, memory, size);
-			memory = rttiWriteElem(data.mStart, memory, size);
-			memory = rttiWriteElem(data.mEnd, memory, size);
-			memory = rttiWriteElem(data.mLength, memory, size);
-			memory = rttiWriteElem(data.mKeyframes, memory, size);
+				uint32_t size = 0;
+				size += rttiWriteElem(VERSION, stream);
+				size += rttiWriteElem(data.mStart, stream);
+				size += rttiWriteElem(data.mEnd, stream);
+				size += rttiWriteElem(data.mLength, stream);
+				size += rttiWriteElem(data.mKeyframes, stream);
 
-			memcpy(memoryStart, &size, sizeof(UINT32));
+				return size;
+			});
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static UINT32 fromMemory(TAnimationCurve<T>& data, char* memory)
+		static uint32_t fromMemory(TAnimationCurve<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = 0;
-			memory = rttiReadElem(size, memory);
+			uint32_t size = 0;
+			rttiReadElem(size, stream);
 
-			UINT32 version;
-			memory = rttiReadElem(version, memory);
+			uint32_t version;
+			rttiReadElem(version, stream);
 
-			memory = rttiReadElem(data.mStart, memory);
-			memory = rttiReadElem(data.mEnd, memory);
-			memory = rttiReadElem(data.mLength, memory);
-			memory = rttiReadElem(data.mKeyframes, memory);
+			rttiReadElem(data.mStart, stream);
+			rttiReadElem(data.mEnd, stream);
+			rttiReadElem(data.mLength, stream);
+			rttiReadElem(data.mKeyframes, stream);
 
 			return size;
 		}
 
 		/** @copydoc RTTIPlainType::getDynamicSize */
-		static UINT32 getDynamicSize(const TAnimationCurve<T>& data)
+		static uint32_t getDynamicSize(const TAnimationCurve<T>& data)
 		{
-			UINT64 dataSize = sizeof(UINT32) + sizeof(UINT32);
+			uint64_t dataSize = sizeof(uint32_t) + sizeof(uint32_t);
 			dataSize += rttiGetElemSize(data.mStart);
 			dataSize += rttiGetElemSize(data.mEnd);
 			dataSize += rttiGetElemSize(data.mLength);
 			dataSize += rttiGetElemSize(data.mKeyframes);
 
-			assert(dataSize <= std::numeric_limits<UINT32>::max());
+			assert(dataSize <= std::numeric_limits<uint32_t>::max());
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 
@@ -105,43 +108,43 @@ namespace bs
 		enum { id = TID_NamedAnimationCurve }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static void toMemory(const TNamedAnimationCurve<T>& data, char* memory)
+		static uint32_t toMemory(const TNamedAnimationCurve<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = sizeof(UINT32);
-			char* memoryStart = memory;
-			memory += sizeof(UINT32);
+			return rtti_write_with_size_header(stream, [&data, &stream]()
+			{
+				uint32_t size = 0;
+				size += rttiWriteElem(data.name, stream);
+				size += rttiWriteElem(data.flags, stream);
+				size += rttiWriteElem(data.curve, stream);
 
-			memory = rttiWriteElem(data.name, memory, size);
-			memory = rttiWriteElem(data.flags, memory, size);
-			memory = rttiWriteElem(data.curve, memory, size);
-
-			memcpy(memoryStart, &size, sizeof(UINT32));
+				return size;
+			});
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static UINT32 fromMemory(TNamedAnimationCurve<T>& data, char* memory)
+		static uint32_t fromMemory(TNamedAnimationCurve<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
 			UINT32 size = 0;
-			memory = rttiReadElem(size, memory);
+			rttiReadElem(size, stream);
 
-			memory = rttiReadElem(data.name, memory);
-			memory = rttiReadElem(data.flags, memory);
-			memory = rttiReadElem(data.curve, memory);
+			rttiReadElem(data.name, stream);
+			rttiReadElem(data.flags, stream);
+			rttiReadElem(data.curve, stream);
 
 			return size;
 		}
 
 		/** @copydoc RTTIPlainType::getDynamicSize */
-		static UINT32 getDynamicSize(const TNamedAnimationCurve<T>& data)
+		static uint32_t getDynamicSize(const TNamedAnimationCurve<T>& data)
 		{
-			UINT64 dataSize = sizeof(UINT32);
+			uint64_t dataSize = sizeof(uint32_t);
 			dataSize += rttiGetElemSize(data.name);
 			dataSize += rttiGetElemSize(data.flags);
 			dataSize += rttiGetElemSize(data.curve);
 
-			assert(dataSize <= std::numeric_limits<UINT32>::max());
+			assert(dataSize <= std::numeric_limits<uint32_t>::max());
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 	

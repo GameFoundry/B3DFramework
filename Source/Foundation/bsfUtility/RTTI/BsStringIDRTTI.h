@@ -17,60 +17,60 @@ namespace bs
 	{
 		enum { id = TID_StringID }; enum { hasDynamicSize = 1 };
 
-		static void toMemory(const StringID& data, char* memory)
+		static uint32_t toMemory(const StringID& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = getDynamicSize(data);
-
-			UINT32 curSize = sizeof(UINT32);
-			memcpy(memory, &size, curSize);
-			memory += curSize;
-
-			bool isEmpty = data.empty();
-			memory = rttiWriteElem(isEmpty, memory);
-
-			if (!isEmpty)
+			return rtti_write_with_size_header(stream, [&data, &stream]()
 			{
-				UINT32 length = (UINT32)strlen(data.c_str());
-				memcpy(memory, data.c_str(), length * sizeof(char));
-			}
+				uint32_t size = 0;
+
+				bool isEmpty = data.empty();
+				size += rttiWriteElem(isEmpty, stream);
+
+				if (!isEmpty)
+				{
+					auto length = (uint32_t)strlen(data.c_str());
+					size += stream.writeBytes((uint8_t*)data.c_str(), length * sizeof(char));
+				}
+
+				return size;
+			});
 		}
 
-		static UINT32 fromMemory(StringID& data, char* memory)
+		static uint32_t fromMemory(StringID& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size;
-			memcpy(&size, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			uint32_t size;
+			rttiReadElem(size, stream);
 
 			bool empty = false;
-			memory = rttiReadElem(empty, memory);
+			rttiReadElem(empty, stream);
 
 			if (!empty)
 			{
 				UINT32 length = (size - sizeof(UINT32) - sizeof(bool)) / sizeof(char);
 
-				auto name = (char*)bs_stack_alloc(length + 1);
-				memcpy(name, memory, length);
+				auto name = (uint8_t*)bs_stack_alloc(length + 1);
+				stream.readBytes(name, length);
 				name[length] = '\0';
 
-				data = StringID(name);
+				data = StringID((char*)name);
 				bs_stack_free(name);
 			}
 
 			return size;
 		}
 
-		static UINT32 getDynamicSize(const StringID& data)
+		static uint32_t getDynamicSize(const StringID& data)
 		{
-			UINT32 dataSize = sizeof(bool) + sizeof(UINT32);
+			uint32_t dataSize = sizeof(bool) + sizeof(uint32_t);
 
 			bool isEmpty = data.empty();
 			if (!isEmpty)
 			{
-				UINT32 length = (UINT32)strlen(data.c_str());
+				auto length = (uint32_t)strlen(data.c_str());
 				dataSize += length * sizeof(char);
 			}
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 

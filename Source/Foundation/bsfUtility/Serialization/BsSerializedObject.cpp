@@ -220,7 +220,8 @@ namespace bs
 								SPtr<SerializedField> fieldData = std::static_pointer_cast<SerializedField>(arrayElem.second.serialized);
 								if (fieldData != nullptr)
 								{
-									curField->arrayElemFromBuffer(rttiInstance, object.get(), arrayElem.first, fieldData->value);
+									Bitstream tempStream(fieldData->value, fieldData->size);
+									curField->arrayElemFromBuffer(rttiInstance, object.get(), arrayElem.first, tempStream);
 								}
 							}
 						}
@@ -308,7 +309,8 @@ namespace bs
 							SPtr<SerializedField> fieldData = std::static_pointer_cast<SerializedField>(entryData);
 							if (fieldData != nullptr)
 							{
-								curField->fromBuffer(rttiInstance, object.get(), fieldData->value);
+								Bitstream tempStream(fieldData->value, fieldData->size);
+								curField->fromBuffer(rttiInstance, object.get(), tempStream);
 							}
 						}
 						break;
@@ -458,7 +460,8 @@ namespace bs
 								serializedField->ownsMemory = true;
 								serializedField->size = typeSize;
 
-								curField->arrayElemToBuffer(rttiInstance, object, arrIdx, serializedField->value);
+								Bitstream tempStream(serializedField->value, typeSize);
+								curField->arrayElemToBuffer(rttiInstance, object, arrIdx, tempStream);
 
 								SerializedArrayEntry arrayEntry;
 								arrayEntry.serialized = serializedField;
@@ -517,7 +520,8 @@ namespace bs
 							serializedField->ownsMemory = true;
 							serializedField->size = typeSize;
 
-							curField->toBuffer(rttiInstance, object, serializedField->value);
+							Bitstream tempStream(serializedField->value, typeSize);
+							curField->toBuffer(rttiInstance, object, tempStream);
 
 							serializedEntry = serializedField;
 

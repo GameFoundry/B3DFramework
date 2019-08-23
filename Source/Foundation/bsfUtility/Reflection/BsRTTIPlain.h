@@ -14,6 +14,8 @@
 
 namespace bs
 {
+	struct RTTIFieldInfo;
+	
 	/** @addtogroup Utility
 	 *  @{
 	 */
@@ -21,6 +23,60 @@ namespace bs
 	/** @addtogroup RTTI
 	 *  @{
 	 */
+
+	/** Various flags you can assign to RTTI fields. */
+	enum class RTTIFieldFlag
+	{
+		/**
+		 * This flag is only used on field types of ReflectablePtr type, and it is used
+		 * to solve circular references. Circular references cause an issue when deserializing,
+		 * as the algorithm doesn't know which object to deserialize first. By making one of
+		 * the references weak, you tell the algorithm that it doesn't have to guarantee
+		 * the object will be fully deserialized before being assigned to the field.
+		 *
+		 * In short: If you make a reference weak, when "set" method of that field is called,
+		 * it is not guaranteed the value provided is fully initialized, so you should not access any of its
+		 * data until deserialization is fully complete. You only need to use this flag if the RTTI system
+		 * complains that is has found a circular reference.
+		 */
+		WeakRef = 1 << 0,
+		/**
+		 * This flags signals various systems that the flagged field should not be searched when looking for
+		 * object references. This normally means the value of this field will no be retrieved during reference
+		 * searches but it will likely still be retrieved during other operations (for example serialization).
+		 * This is used as an optimization to avoid retrieving values of potentially very expensive fields that
+		 * would not contribute to the reference search anyway. Whether or not a field contributes to the reference
+		 * search depends on the search and should be handled on a case by case basis.
+		 */
+		SkipInReferenceSearch = 1 << 1,
+		/**
+		 * Lets the replication system know that this field should be monitored for changes and replicated across the
+		 * network when changes are detected.
+		 */
+		Replicate = 1 << 2,
+		/**
+		 * If true, the integer will be encoded as a var-int during networking operations, in order to reduce its
+		 * size. Not relevant for non-integers.
+		 */
+		VarInt = 1 << 3
+	};
+
+	typedef Flags<RTTIFieldFlag> RTTIFieldFlags;
+	BS_FLAGS_OPERATORS(RTTIFieldFlag)
+
+	/** Provides various optional information regarding a RTTI field. */
+	struct BS_UTILITY_EXPORT RTTIFieldInfo
+	{
+		RTTIFieldFlags flags;
+
+		RTTIFieldInfo() = default;
+
+		RTTIFieldInfo(RTTIFieldFlags flags)
+			:flags(flags)
+		{ }
+
+		static RTTIFieldInfo DEFAULT;
+	};
 
 	/**
 	 * Template that you may specialize with a class if you want to provide simple serialization for it.
@@ -61,7 +117,7 @@ namespace bs
 		}
 
 		/** Returns the size of the provided object. (Works for both static and dynamic size types) */
-		static UINT32 getDynamicSize(const T& data)
+		static uint32_t getDynamicSize(const T& data)
 		{
 			return sizeof(T);
 		}
@@ -76,7 +132,7 @@ namespace bs
 	 * otherwise sizeof() is used.
 	 */
 	template<class ElemType>
-	UINT32 rttiGetElemSize(const ElemType& data)
+	uint32_t rttiGetElemSize(const ElemType& data)
 	{
 		if(RTTIPlainType<ElemType>::hasDynamicSize == 1)
 			return RTTIPlainType<ElemType>::getDynamicSize(data);
@@ -99,9 +155,33 @@ namespace bs
 	 * read from the provided stream and its read cursor advanced.
 	 */
 	template<class ElemType>
-	char* rttiReadElem(ElemType& data, Bitstream& stream)
+	uint32_t rttiReadElem(ElemType& data, Bitstream& stream)
 	{
 		return RTTIPlainType<ElemType>::fromMemory(data, stream, RTTIFieldInfo());
+	}
+
+	/**
+	 * Writes a set of data to the stream through the user provided function @p t and then
+	 * writes the size of that data as a header. The size header is written as a 32-bit integer
+	 * right before the data written by @p t. The size value will include the size of the data
+	 * from @p t as well as the size of the header itself (32-bits). The size of the data is
+	 * determined by the return value from @p t. Returns the size written.
+	 */
+	template<class T>
+	uint32_t rtti_write_with_size_header(Bitstream& stream, T t)
+	{
+		uint32_t sizePos = stream.tell();
+
+		uint32_t size = 0;
+		stream.writeBytes(size);
+		
+		size = t() + sizeof(uint32_t);
+
+		stream.seek(sizePos);
+		stream.writeBytes(size);
+		stream.skipBytes(size - sizeof(uint32_t));
+
+		return size;
 	}
 
 	/** Helper for checking for existance of rttiEnumFields method on a class. */

@@ -21,49 +21,50 @@ namespace bs
 		enum { id = TID_ShaderVariationParam }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static void toMemory(const ShaderVariation::Param& data, char* memory)
+		static uint32_t toMemory(const ShaderVariation::Param& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = sizeof(UINT32);
-			char* memoryStart = memory;
-			memory += sizeof(UINT32);
+			static constexpr uint8_t VERSION = 0;
 
-			UINT8 version = 0;
-			memory = rttiWriteElem(version, memory, size);
-			memory = rttiWriteElem(data.name, memory, size);
-			memory = rttiWriteElem(data.type, memory, size);
-			memory = rttiWriteElem(data.i, memory, size);
+			return rtti_write_with_size_header(stream, [&data, &stream]()
+			{
+				uint32_t size = 0;
+				size += rttiWriteElem(VERSION, stream);
+				size += rttiWriteElem(data.name, stream);
+				size += rttiWriteElem(data.type, stream);
+				size += rttiWriteElem(data.i, stream);
 
-			memcpy(memoryStart, &size, sizeof(UINT32));
+				return size;
+			});
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static UINT32 fromMemory(ShaderVariation::Param& data, char* memory)
+		static uint32_t fromMemory(ShaderVariation::Param& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = 0;
-			memory = rttiReadElem(size, memory);
+			uint32_t size = 0;
+			rttiReadElem(size, stream);
 
-			UINT8 version;
-			memory = rttiReadElem(version, memory);
+			uint8_t version;
+			rttiReadElem(version, stream);
 			assert(version == 0);
 
-			memory = rttiReadElem(data.name, memory);
-			memory = rttiReadElem(data.type, memory);
-			memory = rttiReadElem(data.i, memory);
+			rttiReadElem(data.name, stream);
+			rttiReadElem(data.type, stream);
+			rttiReadElem(data.i, stream);
 
 			return size;
 		}
 
 		/** @copydoc RTTIPlainType::getDynamicSize */
-		static UINT32 getDynamicSize(const ShaderVariation::Param& data)
+		static uint32_t getDynamicSize(const ShaderVariation::Param& data)
 		{
-			UINT64 dataSize = sizeof(UINT8) + sizeof(UINT32);
+			uint64_t dataSize = sizeof(uint8_t) + sizeof(uint32_t);
 			dataSize += rttiGetElemSize(data.name);
 			dataSize += rttiGetElemSize(data.type);
 			dataSize += rttiGetElemSize(data.i);
 
-			assert(dataSize <= std::numeric_limits<UINT32>::max());
+			assert(dataSize <= std::numeric_limits<uint32_t>::max());
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 

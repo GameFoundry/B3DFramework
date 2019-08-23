@@ -18,47 +18,47 @@ namespace bs
 	{
 		enum { id = TID_Path }; enum { hasDynamicSize = 1 };
 
-		static void toMemory(const Path& data, char* memory)
+		static uint32_t toMemory(const Path& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = getDynamicSize(data);
-			memcpy(memory, &size, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			return rtti_write_with_size_header(stream, [&data, &stream]()
+			{
+				uint32_t size = 0;
+				size += rttiWriteElem(data.mDevice, stream);
+				size += rttiWriteElem(data.mNode, stream);
+				size += rttiWriteElem(data.mFilename, stream);
+				size += rttiWriteElem(data.mIsAbsolute, stream);
+				size += rttiWriteElem(data.mDirectories, stream);
 
-			memory = rttiWriteElem(data.mDevice, memory);
-			memory = rttiWriteElem(data.mNode, memory);
-			memory = rttiWriteElem(data.mFilename, memory);
-			memory = rttiWriteElem(data.mIsAbsolute, memory);
-			rttiWriteElem(data.mDirectories, memory);
+				return size;
+			});
 		}
 
-		static UINT32 fromMemory(Path& data, char* memory)
+		static uint32_t fromMemory(Path& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size;
-			memcpy(&size, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
-
-			memory = rttiReadElem(data.mDevice, memory);
-			memory = rttiReadElem(data.mNode, memory);
-			memory = rttiReadElem(data.mFilename, memory);
-			memory = rttiReadElem(data.mIsAbsolute, memory);
-			rttiReadElem(data.mDirectories, memory);
+			uint32_t size;
+			rttiReadElem(size, stream);
+			rttiReadElem(data.mDevice, stream);
+			rttiReadElem(data.mNode, stream);
+			rttiReadElem(data.mFilename, stream);
+			rttiReadElem(data.mIsAbsolute, stream);
+			rttiReadElem(data.mDirectories, stream);
 
 			return size;
 		}
 
-		static UINT32 getDynamicSize(const Path& data)
+		static uint32_t getDynamicSize(const Path& data)
 		{
-			UINT64 dataSize = (UINT64)rttiGetElemSize(data.mDevice) + (UINT64)rttiGetElemSize(data.mNode) + (UINT64)rttiGetElemSize(data.mFilename) +
-				(UINT64)rttiGetElemSize(data.mIsAbsolute) + (UINT64)rttiGetElemSize(data.mDirectories) + sizeof(UINT32);
+			uint64_t dataSize = (uint64_t)rttiGetElemSize(data.mDevice) + (uint64_t)rttiGetElemSize(data.mNode) + (uint64_t)rttiGetElemSize(data.mFilename) +
+				(uint64_t)rttiGetElemSize(data.mIsAbsolute) + (uint64_t)rttiGetElemSize(data.mDirectories) + sizeof(uint32_t);
 
 #if BS_DEBUG_MODE
-			if (dataSize > std::numeric_limits<UINT32>::max())
+			if (dataSize > std::numeric_limits<uint32_t>::max())
 			{
 				__string_throwDataOverflowException();
 			}
 #endif
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 

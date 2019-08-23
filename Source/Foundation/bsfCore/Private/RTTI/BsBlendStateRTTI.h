@@ -4,6 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsRTTIType.h"
+#include "Reflection/BsRTTIPlain.h"
 #include "RenderAPI/BsBlendState.h"
 #include "Managers/BsRenderStateManager.h"
 
@@ -53,40 +54,35 @@ namespace bs
 	{
 		enum { id = TID_BLEND_STATE_DESC }; enum { hasDynamicSize = 1 };
 
-		static void toMemory(const BLEND_STATE_DESC& data, char* memory)
+		static uint32_t toMemory(const BLEND_STATE_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = getDynamicSize(data);
-
-			memcpy(memory, &size, sizeof(UINT32));
-			memory += sizeof(UINT32);
-			size -= sizeof(UINT32);
-			memcpy(memory, &data, size);
+			return rtti_write_with_size_header(stream, [&data, &stream]()
+			{
+				return stream.writeBytes(data);
+			});
 		}
 
-		static UINT32 fromMemory(BLEND_STATE_DESC& data, char* memory)
+		static uint32_t fromMemory(BLEND_STATE_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size;
-			memcpy(&size, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
-
-			UINT32 dataSize = size - sizeof(UINT32);
-			memcpy((void*)& data, memory, dataSize);
+			uint32_t size;
+			rttiReadElem(size, stream);
+			stream.readBytes(data);
 
 			return size;
 		}
 
-		static UINT32 getDynamicSize(const BLEND_STATE_DESC& data)
+		static uint32_t getDynamicSize(const BLEND_STATE_DESC& data)
 		{
-			UINT64 dataSize = sizeof(data) + sizeof(UINT32);
+			uint64_t dataSize = sizeof(data) + sizeof(uint32_t);
 
 #if BS_DEBUG_MODE
-			if (dataSize > std::numeric_limits<UINT32>::max())
+			if (dataSize > std::numeric_limits<uint32_t>::max())
 			{
 				BS_EXCEPT(InternalErrorException, "Data overflow! Size doesn't fit into 32 bits.");
 			}
 #endif
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 

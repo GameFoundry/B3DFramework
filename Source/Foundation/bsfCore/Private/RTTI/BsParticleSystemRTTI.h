@@ -278,38 +278,39 @@ namespace bs
 		enum { id = TID_ParticleBurst }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static void toMemory(const ParticleBurst& data, char* memory)
+		static uint32_t toMemory(const ParticleBurst& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = sizeof(UINT32);
-			char* memoryStart = memory;
-			memory += sizeof(UINT32);
+			static constexpr uint32_t VERSION = 0; // In case the data structure changes
 
-			UINT32 version = 0; // In case the data structure changes
-			memory = rttiWriteElem(version, memory, size);
-			memory = rttiWriteElem(data.time, memory, size);
-			memory = rttiWriteElem(data.cycles, memory, size);
-			memory = rttiWriteElem(data.count, memory, size);
-			memory = rttiWriteElem(data.interval, memory, size);
+			return rtti_write_with_size_header(stream, [&data, &stream]()
+			{
+				uint32_t size = 0;
+				size += rttiWriteElem(VERSION, stream);
+				size += rttiWriteElem(data.time, stream);
+				size += rttiWriteElem(data.cycles, stream);
+				size += rttiWriteElem(data.count, stream);
+				size += rttiWriteElem(data.interval, stream);
 
-			memcpy(memoryStart, &size, sizeof(UINT32));
+				return size;
+			});
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static UINT32 fromMemory(ParticleBurst& data, char* memory)
+		static uint32_t fromMemory(ParticleBurst& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = 0;
-			memory = rttiReadElem(size, memory);
+			uint32_t size = 0;
+			rttiReadElem(size, stream);
 
-			UINT32 version;
-			memory = rttiReadElem(version, memory);
+			uint32_t version;
+			rttiReadElem(version, stream);
 
 			switch(version)
 			{
 			case 0:
-				memory = rttiReadElem(data.time, memory);
-				memory = rttiReadElem(data.cycles, memory);
-				memory = rttiReadElem(data.count, memory);
-				memory = rttiReadElem(data.interval, memory);
+				rttiReadElem(data.time, stream);
+				rttiReadElem(data.cycles, stream);
+				rttiReadElem(data.count, stream);
+				rttiReadElem(data.interval, stream);
 				break;
 			default:
 				BS_LOG(Error, RTTI, "Unknown version of ParticleBurst data. Unable to deserialize.");
@@ -320,20 +321,19 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getDynamicSize */
-		static UINT32 getDynamicSize(const ParticleBurst& data)
+		static uint32_t getDynamicSize(const ParticleBurst& data)
 		{
-			UINT64 dataSize = sizeof(UINT32) + sizeof(UINT32);
+			uint64_t dataSize = sizeof(uint32_t) + sizeof(uint32_t);
 			dataSize += rttiGetElemSize(data.time);
 			dataSize += rttiGetElemSize(data.cycles);
 			dataSize += rttiGetElemSize(data.count);
 			dataSize += rttiGetElemSize(data.interval);
 
-			assert(dataSize <= std::numeric_limits<UINT32>::max());
+			assert(dataSize <= std::numeric_limits<uint32_t>::max());
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
-
 
 	class BS_CORE_EXPORT ParticleEmitterRTTI : public RTTIType<ParticleEmitter, IReflectable, ParticleEmitterRTTI>
 	{

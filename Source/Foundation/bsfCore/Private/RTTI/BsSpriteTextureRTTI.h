@@ -54,36 +54,39 @@ namespace bs
 	{	
 		enum { id = TID_SpriteSheetGridAnimation }; enum { hasDynamicSize = 1 };
 
-		static void toMemory(const SpriteSheetGridAnimation& data, char* memory)
+		static uint32_t toMemory(const SpriteSheetGridAnimation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			static constexpr UINT32 VERSION = 0;
+			static constexpr uint32_t VERSION = 0;
 
-			const UINT32 size = getDynamicSize(data);
+			return rtti_write_with_size_header(stream, [&data, &stream]()
+			{
+				uint32_t size = 0;
+				size += rttiWriteElem(VERSION, stream);
+				size += rttiWriteElem(data.numRows, stream);
+				size += rttiWriteElem(data.numColumns, stream);
+				size += rttiWriteElem(data.count, stream);
+				size += rttiWriteElem(data.fps, stream);
 
-			memory = rttiWriteElem(size, memory);
-			memory = rttiWriteElem(VERSION, memory);
-			memory = rttiWriteElem(data.numRows, memory);
-			memory = rttiWriteElem(data.numColumns, memory);
-			memory = rttiWriteElem(data.count, memory);
-			memory = rttiWriteElem(data.fps, memory);
+				return size;
+			});
 		}
 
-		static UINT32 fromMemory(SpriteSheetGridAnimation& data, char* memory)
+		static uint32_t fromMemory(SpriteSheetGridAnimation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = 0;
-			memory = rttiReadElem(size, memory);
+			uint32_t size = 0;
+			rttiReadElem(size, stream);
 
-			UINT32 version = 0;
-			memory = rttiReadElem(version, memory);
+			uint32_t version = 0;
+			rttiReadElem(version, stream);
 
 			switch(version)
 			{
 			case 0:
 			{
-				memory = rttiReadElem(data.numRows, memory);
-				memory = rttiReadElem(data.numColumns, memory);
-				memory = rttiReadElem(data.count, memory);
-				memory = rttiReadElem(data.fps, memory);
+				rttiReadElem(data.numRows, stream);
+				rttiReadElem(data.numColumns, stream);
+				rttiReadElem(data.count, stream);
+				rttiReadElem(data.fps, stream);
 			}
 				break;
 			default:
@@ -94,9 +97,9 @@ namespace bs
 			return size;
 		}
 
-		static UINT32 getDynamicSize(const SpriteSheetGridAnimation& data)
+		static uint32_t getDynamicSize(const SpriteSheetGridAnimation& data)
 		{
-			UINT32 size = sizeof(UINT32) * 2 + rttiGetElemSize(data.numRows) + rttiGetElemSize(data.numColumns) +
+			uint32_t size = sizeof(uint32_t) * 2 + rttiGetElemSize(data.numRows) + rttiGetElemSize(data.numColumns) +
 				rttiGetElemSize(data.count) + rttiGetElemSize(data.fps);
 			return size;
 		}	

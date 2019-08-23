@@ -17,44 +17,42 @@ namespace bs
 	{
 		enum { id = TID_DataBlob }; enum { hasDynamicSize = 1 };
 
-		static void toMemory(const DataBlob& data, char* memory)
+		static uint32_t toMemory(const DataBlob& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = getDynamicSize(data);
-
-			memcpy(memory, &size, sizeof(UINT32));
-			memory += sizeof(UINT32);
-
-			memcpy(memory, data.data, data.size);
+			return rtti_write_with_size_header(stream, [&data, &stream]()
+			{
+				return stream.writeBytes(data.data, data.size);
+			});
 		}
 
-		static UINT32 fromMemory(DataBlob& data, char* memory)
+		static uint32_t fromMemory(DataBlob& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size;
-			memcpy(&size, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			uint32_t size;
+			rttiReadElem(size, stream);
 
 			if (data.data != nullptr)
 				bs_free(data.data);
 
-			data.size = size - sizeof(UINT32);
-			data.data = (UINT8*)bs_alloc(data.size);
-			memcpy(data.data, memory, data.size);
+			data.size = size - sizeof(uint32_t);
+			data.data = (uint8_t*)bs_alloc(data.size);
+
+			stream.readBytes(data.data, data.size);
 
 			return size;
 		}
 
-		static UINT32 getDynamicSize(const DataBlob& data)
+		static uint32_t getDynamicSize(const DataBlob& data)
 		{
-			UINT64 dataSize = data.size + sizeof(UINT32);
+			uint64_t dataSize = data.size + sizeof(uint32_t);
 
 #if BS_DEBUG_MODE
-			if (dataSize > std::numeric_limits<UINT32>::max())
+			if (dataSize > std::numeric_limits<uint32_t>::max())
 			{
 				BS_EXCEPT(InternalErrorException, "Data overflow! Size doesn't fit into 32 bits.");
 			}
 #endif
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 

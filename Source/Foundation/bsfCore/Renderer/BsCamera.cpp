@@ -771,13 +771,13 @@ namespace bs
 			size += coreSyncGetElemSize(*this);
 
 		UINT8* buffer = allocator->alloc(size);
+		Bitstream stream(buffer, size);
 
-		char* dataPtr = (char*)buffer;
-		dataPtr = rttiWriteElem(dirtyFlag, dataPtr);
-		dataPtr = coreSyncWriteElem((SceneActor&)*this, dataPtr);
+		rttiWriteElem(dirtyFlag, stream);
+		coreSyncWriteElem((SceneActor&)*this, stream);
 
 		if (dirtyFlag != (UINT32)ActorDirtyFlag::Transform)
-			dataPtr = coreSyncWriteElem(*this, dataPtr);
+			coreSyncWriteElem(*this, stream);
 
 		return CoreSyncData(buffer, size);
 	}
@@ -835,14 +835,14 @@ namespace bs
 
 	void Camera::syncToCore(const CoreSyncData& data)
 	{
-		char* dataPtr = (char*)data.getBuffer();
+		Bitstream stream(data.getBuffer(), data.getBufferSize());
 
 		UINT32 dirtyFlag;
-		dataPtr = rttiReadElem(dirtyFlag, dataPtr);
-		dataPtr = coreSyncReadElem((SceneActor&)*this, dataPtr);
+		rttiReadElem(dirtyFlag, stream);
+		coreSyncReadElem((SceneActor&)*this, stream);
 
 		if (dirtyFlag != (UINT32)ActorDirtyFlag::Transform)
-			dataPtr = coreSyncReadElem(*this, dataPtr);
+			coreSyncReadElem(*this, stream);
 
 		mRecalcFrustum = true;
 		mRecalcFrustumPlanes = true;

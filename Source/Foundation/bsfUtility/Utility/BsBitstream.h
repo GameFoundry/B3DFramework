@@ -52,7 +52,7 @@ namespace bs
 		 * @param[in]	data	Address of the external memory buffer. The user is responsible of keeping this memory alive
 		 *						for the lifetime of the bitstream, as well as releasing it. Must have enough capacity to
 		 *						store @p count bits.
-		 * @param[in]	count	Size of the provided data, in bits.
+		 * @param[in]	count	Size of the provided data, in bytes.
 		 */
 		Bitstream(QuantType* data, uint32_t count);
 
@@ -127,6 +127,24 @@ namespace bs
 		 */
 		template<class T>
 		uint32_t readBytes(T& value);
+
+		/**
+		 * Writes bytes from the provided buffer into the stream at the current cursor location and advances the cursor.
+		 *
+		 * @param[in]	data	Buffer to write the data from. Must have enough capacity to store @p count bytes.
+		 * @param[in]	count	Number of bytes to write.
+		 * @return				Number of bytes written.
+		 */
+		uint32_t writeBytes(const QuantType* data, uint32_t count);
+
+		/**
+		 * Reads bytes from the stream into the provided buffer from the current cursor location and advances the cursor.
+		 *
+		 * @param[out]	data	Buffer to read the data from. Must have enough capacity to store @p count bytes.
+		 * @param[in]	count	Number of bytes to read.
+		 * @return				Number of bytes read.
+		 */
+		uint32_t readBytes(QuantType* data, uint32_t count);
 
 		/**
 		 * Checks if the provided value differs from the last provided value, and if they are equivalent writes just a
@@ -325,6 +343,9 @@ namespace bs
 		 */
 		void skip(int32_t count);
 
+		/** Same as skip() except is uses number of bytes instead of number of bits as the parameter. */
+		void skipBytes(int32_t count) { return skip(count * 8); }
+
 		/**
 		 * Repositions the read/write cursor to the specified bit. Note the cursor can never skip past the capacity
 		 * of the buffer, and will be clamped.
@@ -352,6 +373,9 @@ namespace bs
 
 		/** Returns the internal data buffer. */
 		QuantType* data() const { return mData; }
+
+		/** Returns the byte the read/write cursor is currently positioned on. */
+		QuantType* cursor() const;
 
 	private:
 		static constexpr uint32_t BYTES_PER_QUANT = sizeof(QuantType);
@@ -384,7 +408,7 @@ namespace bs
 	}
 
 	inline Bitstream::Bitstream(QuantType* data, uint32_t count)
-		: mData(data), mMaxBits(count), mNumBits(count), mOwnsMemory(false) { }
+		: mData(data), mMaxBits(count * 8), mNumBits(count * 8), mOwnsMemory(false) { }
 
 	inline Bitstream::~Bitstream()
 	{
@@ -479,6 +503,7 @@ namespace bs
 		}
 
 		mCursor = newCursor;
+		return count;
 	}
 
 	template <class T>
@@ -564,6 +589,16 @@ namespace bs
 		assert((numBits % 8) == 0);
 
 		return numBits / 8;
+	}
+
+	inline uint32_t Bitstream::writeBytes(const QuantType* data, uint32_t count)
+	{
+		return writeBits(data, count * 8) / 8;
+	}
+
+	inline uint32_t Bitstream::readBytes(QuantType* data, uint32_t count)
+	{
+		return readBits(data, count * 8) / 8;
 	}
 
 	template <class T>
@@ -898,6 +933,11 @@ namespace bs
 
 		uint32_t bits = count * 8;
 		skip(bits - (((mCursor - 1) & (bits - 1)) + 1));
+	}
+
+	inline Bitstream::QuantType* Bitstream::cursor() const
+	{
+		return &mData[mCursor >> BITS_PER_QUANT_LOG2];
 	}
 
 	inline void Bitstream::reallocIfNeeded(uint32_t numBits)

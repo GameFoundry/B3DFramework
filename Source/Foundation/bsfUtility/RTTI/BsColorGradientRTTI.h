@@ -20,47 +20,47 @@ namespace bs
 	{
 		enum { id = TID_ColorGradient }; enum { hasDynamicSize = 1 };
 
-		static void toMemory(const ColorGradient& data, char* memory)
+		static uint32_t toMemory(const ColorGradient& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = getDynamicSize(data);
+			static constexpr uint32_t VERSION = 0;
 
-			const UINT32 curSize = sizeof(UINT32);
-			memcpy(memory, &size, curSize);
-			memory += curSize;
-
-			const UINT32 version = 0;
-			memory = rttiWriteElem(version, memory);
-
-			for(UINT32 i = 0; i < ColorGradient::MAX_KEYS; i++)
+			return rtti_write_with_size_header(stream, [&data, &stream]()
 			{
-				memory = rttiWriteElem(data.mColors[i], memory);
-				memory = rttiWriteElem(data.mTimes[i], memory);
-			}
+				uint32_t size = 0;
+				size += rttiWriteElem(VERSION, stream);
 
-			memory = rttiWriteElem(data.mNumKeys, memory);
-			memory = rttiWriteElem(data.mDuration, memory);
+				for (uint32_t i = 0; i < ColorGradient::MAX_KEYS; i++)
+				{
+					size += rttiWriteElem(data.mColors[i], stream);
+					size += rttiWriteElem(data.mTimes[i], stream);
+				}
+
+				size += rttiWriteElem(data.mNumKeys, stream);
+				size += rttiWriteElem(data.mDuration, stream);
+
+				return size;
+			});
 		}
 
-		static UINT32 fromMemory(ColorGradient& data, char* memory)
+		static uint32_t fromMemory(ColorGradient& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size;
-			memcpy(&size, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			uint32_t size;
+			rttiReadElem(size, stream);
 
-			UINT32 version;
-			memory = rttiReadElem(version, memory);
+			uint32_t version;
+			rttiReadElem(version, stream);
 
 			switch(version)
 			{
 			case 0:
-				for (UINT32 i = 0; i < ColorGradient::MAX_KEYS; i++)
+				for (uint32_t i = 0; i < ColorGradient::MAX_KEYS; i++)
 				{
-					memory = rttiReadElem(data.mColors[i], memory);
-					memory = rttiReadElem(data.mTimes[i], memory);
+					rttiReadElem(data.mColors[i], stream);
+					rttiReadElem(data.mTimes[i], stream);
 				}
 
-				memory = rttiReadElem(data.mNumKeys, memory);
-				memory = rttiReadElem(data.mDuration, memory);
+				rttiReadElem(data.mNumKeys, stream);
+				rttiReadElem(data.mDuration, stream);
 				break;
 			default:
 				BS_LOG(Error, RTTI, "Unknown version of ColorGradient data. Unable to deserialize.");
@@ -70,21 +70,21 @@ namespace bs
 			return size;
 		}
 
-		static UINT32 getDynamicSize(const ColorGradient& data)
+		static uint32_t getDynamicSize(const ColorGradient& data)
 		{
-			const UINT64 dataSize =
+			const uint64_t dataSize =
 				rttiGetElemSize(data.mColors[0]) * ColorGradient::MAX_KEYS +
 				rttiGetElemSize(data.mTimes[0]) * ColorGradient::MAX_KEYS +
-				rttiGetElemSize(data.mNumKeys) + rttiGetElemSize(data.mDuration) + sizeof(UINT32) * 2;
+				rttiGetElemSize(data.mNumKeys) + rttiGetElemSize(data.mDuration) + sizeof(uint32_t) * 2;
 
 #if BS_DEBUG_MODE
-			if(dataSize > std::numeric_limits<UINT32>::max())
+			if(dataSize > std::numeric_limits<uint32_t>::max())
 			{
 				BS_EXCEPT(InternalErrorException, "Data overflow! Size doesn't fit into 32 bits.");
 			}
 #endif
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 
@@ -92,47 +92,47 @@ namespace bs
 	{
 		enum { id = TID_ColorGradientHDR }; enum { hasDynamicSize = 1 };
 
-		static void toMemory(const ColorGradientHDR& data, char* memory)
+		static uint32_t toMemory(const ColorGradientHDR& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size = getDynamicSize(data);
+			static constexpr uint32_t VERSION = 0;
 
-			const UINT32 curSize = sizeof(UINT32);
-			memcpy(memory, &size, curSize);
-			memory += curSize;
-
-			const UINT32 version = 0;
-			memory = rttiWriteElem(version, memory);
-
-			for(UINT32 i = 0; i < ColorGradientHDR::MAX_KEYS; i++)
+			return rtti_write_with_size_header(stream, [&data, &stream]()
 			{
-				memory = rttiWriteElem(data.mColors[i], memory);
-				memory = rttiWriteElem(data.mTimes[i], memory);
-			}
+				uint32_t size = 0;
+				size += rttiWriteElem(VERSION, stream);
 
-			memory = rttiWriteElem(data.mNumKeys, memory);
-			memory = rttiWriteElem(data.mDuration, memory);
+				for(uint32_t i = 0; i < ColorGradientHDR::MAX_KEYS; i++)
+				{
+					size += rttiWriteElem(data.mColors[i], stream);
+					size += rttiWriteElem(data.mTimes[i], stream);
+				}
+
+				size += rttiWriteElem(data.mNumKeys, stream);
+				size += rttiWriteElem(data.mDuration, stream);
+
+				return size;
+			});
 		}
 
-		static UINT32 fromMemory(ColorGradientHDR& data, char* memory)
+		static uint32_t fromMemory(ColorGradientHDR& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			UINT32 size;
-			memcpy(&size, memory, sizeof(UINT32));
-			memory += sizeof(UINT32);
+			uint32_t size;
+			rttiReadElem(size, stream);
 
-			UINT32 version;
-			memory = rttiReadElem(version, memory);
+			uint32_t version;
+			rttiReadElem(version, stream);
 
 			switch(version)
 			{
 			case 0:
-				for (UINT32 i = 0; i < ColorGradientHDR::MAX_KEYS; i++)
+				for (uint32_t i = 0; i < ColorGradientHDR::MAX_KEYS; i++)
 				{
-					memory = rttiReadElem(data.mColors[i], memory);
-					memory = rttiReadElem(data.mTimes[i], memory);
+					rttiReadElem(data.mColors[i], stream);
+					rttiReadElem(data.mTimes[i], stream);
 				}
 
-				memory = rttiReadElem(data.mNumKeys, memory);
-				memory = rttiReadElem(data.mDuration, memory);
+				rttiReadElem(data.mNumKeys, stream);
+				rttiReadElem(data.mDuration, stream);
 				break;
 			default:
 				BS_LOG(Error, RTTI, "Unknown version of ColorGradientHDR data. Unable to deserialize.");
@@ -142,21 +142,21 @@ namespace bs
 			return size;
 		}
 
-		static UINT32 getDynamicSize(const ColorGradientHDR& data)
+		static uint32_t getDynamicSize(const ColorGradientHDR& data)
 		{
-			const UINT64 dataSize =
+			const uint64_t dataSize =
 				rttiGetElemSize(data.mColors[0]) * ColorGradientHDR::MAX_KEYS +
 				rttiGetElemSize(data.mTimes[0]) * ColorGradientHDR::MAX_KEYS +
-				rttiGetElemSize(data.mNumKeys) + rttiGetElemSize(data.mDuration) + sizeof(UINT32) * 2;
+				rttiGetElemSize(data.mNumKeys) + rttiGetElemSize(data.mDuration) + sizeof(uint32_t) * 2;
 
 #if BS_DEBUG_MODE
-			if(dataSize > std::numeric_limits<UINT32>::max())
+			if(dataSize > std::numeric_limits<uint32_t>::max())
 			{
 				BS_EXCEPT(InternalErrorException, "Data overflow! Size doesn't fit into 32 bits.");
 			}
 #endif
 
-			return (UINT32)dataSize;
+			return (uint32_t)dataSize;
 		}
 	};
 

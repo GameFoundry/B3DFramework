@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Prerequisites/BsPrerequisitesUtil.h"
+#include "Reflection/BsRTTIPlain.h"
 #include "Utility/BsAny.h"
 
 namespace bs
@@ -41,60 +42,6 @@ namespace bs
 		SerializableFT_DataBlock,
 		SerializableFT_Reflectable,
 		SerializableFT_ReflectablePtr
-	};
-
-	/** Various flags you can assign to RTTI fields. */
-	enum class RTTIFieldFlag
-	{
-		/**
-		 * This flag is only used on field types of ReflectablePtr type, and it is used
-		 * to solve circular references. Circular references cause an issue when deserializing,
-		 * as the algorithm doesn't know which object to deserialize first. By making one of
-		 * the references weak, you tell the algorithm that it doesn't have to guarantee
-		 * the object will be fully deserialized before being assigned to the field.
-		 *
-		 * In short: If you make a reference weak, when "set" method of that field is called,
-		 * it is not guaranteed the value provided is fully initialized, so you should not access any of its
-		 * data until deserialization is fully complete. You only need to use this flag if the RTTI system
-		 * complains that is has found a circular reference.
-		 */
-		WeakRef = 1 << 0,
-		/**
-		 * This flags signals various systems that the flagged field should not be searched when looking for
-		 * object references. This normally means the value of this field will no be retrieved during reference
-		 * searches but it will likely still be retrieved during other operations (for example serialization).
-		 * This is used as an optimization to avoid retrieving values of potentially very expensive fields that
-		 * would not contribute to the reference search anyway. Whether or not a field contributes to the reference
-		 * search depends on the search and should be handled on a case by case basis.
-		 */
-		SkipInReferenceSearch = 1 << 1,
-		/**
-		 * Lets the replication system know that this field should be monitored for changes and replicated across the
-		 * network when changes are detected.
-		 */
-		Replicate = 1 << 2,
-		/**
-		 * If true, the integer will be encoded as a var-int during networking operations, in order to reduce its
-		 * size. Not relevant for non-integers.
-		 */
-		VarInt = 1 << 3
-	};
-
-	typedef Flags<RTTIFieldFlag> RTTIFieldFlags;
-	BS_FLAGS_OPERATORS(RTTIFieldFlag)
-
-	/** Provides various optional information regarding a RTTI field. */
-	struct BS_UTILITY_EXPORT RTTIFieldInfo
-	{
-		RTTIFieldFlags flags;
-
-		RTTIFieldInfo() = default;
-
-		RTTIFieldInfo(RTTIFieldFlags flags)
-			:flags(flags)
-		{ }
-
-		static RTTIFieldInfo DEFAULT;
 	};
 
 	/**
