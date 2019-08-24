@@ -18,8 +18,10 @@ namespace bs
 
 		static uint32_t toMemory(const String& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			uint32_t stringBytes = (uint32_t)(data.size() * sizeof(String::value_type) + sizeof(uint32_t));
-			uint32_t size = stream.writeBytes(stringBytes) + stringBytes;
+			uint32_t stringBytes = (uint32_t)(data.size() * sizeof(String::value_type));
+			uint32_t size = stringBytes + sizeof(uint32_t);
+
+			stream.writeBytes(size);
 			stream.writeBytes((uint8_t*)data.data(), stringBytes);
 
 			return size;
@@ -62,8 +64,10 @@ namespace bs
 
 		static uint32_t toMemory(const WString& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
 		{
-			uint32_t stringBytes = (uint32_t)(data.size() * sizeof(WString::value_type) + sizeof(uint32_t));
-			uint32_t size = stream.writeBytes(stringBytes) + stringBytes;
+			uint32_t stringBytes = (uint32_t)(data.size() * sizeof(WString::value_type));
+			uint32_t size = stringBytes + sizeof(uint32_t);
+			
+			stream.writeBytes(size);
 			stream.writeBytes((uint8_t*)data.data(), stringBytes);
 
 			return size;
@@ -75,10 +79,12 @@ namespace bs
 			stream.readBytes(size);
 
 			uint32_t stringSize = size - sizeof(size);
-			uint8_t* buffer = (uint8_t*)bs_stack_alloc(stringSize + 1);
+			auto buffer = (WString::value_type*)bs_stack_alloc(stringSize + sizeof(WString::value_type));
 
-			stream.readBytes(buffer, stringSize);
-			buffer[stringSize] = '\0';
+			stream.readBytes((uint8_t*)buffer, stringSize);
+
+			UINT32 numChars = stringSize / sizeof(WString::value_type);
+			buffer[numChars] = L'\0';
 			data = WString((WString::value_type*)buffer);
 
 			bs_stack_free(buffer);
