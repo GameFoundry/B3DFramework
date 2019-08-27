@@ -88,23 +88,19 @@ namespace bs {	namespace ct
 			view->setRenderSettings(camera->getRenderSettings());
 
 			updateCameraRenderTargets(camera);
+			return;
 		}
-		else if((updateFlag & (UINT32)CameraDirtyFlag::RenderSettings) != 0)
-		{
-			view->setRenderSettings(camera->getRenderSettings());
-		}
-		else // Transform
-		{
-			view = mInfo.views[cameraId];
 
-			const Transform& tfrm = camera->getTransform();
-			view->setTransform(
-				tfrm.getPosition(),
-				tfrm.getForward(),
-				camera->getViewMatrix(),
-				camera->getProjectionMatrixRS(),
-				camera->getWorldFrustum());
-		}
+		if ((updateFlag & (UINT32)CameraDirtyFlag::RenderSettings) != 0)
+			view->setRenderSettings(camera->getRenderSettings());
+
+		const Transform& tfrm = camera->getTransform();
+		view->setTransform(
+			tfrm.getPosition(),
+			tfrm.getForward(),
+			camera->getViewMatrix(),
+			camera->getProjectionMatrixRS(),
+			camera->getWorldFrustum());
 
 		view->updatePerViewBuffer();
 	}
