@@ -884,10 +884,14 @@ namespace bs
 			Vector<Vector<UINT32>> indicesPerMaterial;
 			for (UINT32 i = 0; i < (UINT32)mesh->indices.size(); i++)
 			{
-				while ((UINT32)mesh->materials[i] >= (UINT32)indicesPerMaterial.size())
+				UINT32 materialIdx = 0;
+				if (i < (UINT32)mesh->materials.size())
+					materialIdx = (UINT32)mesh->materials[i];
+				
+				while (materialIdx >= (UINT32)indicesPerMaterial.size())
 					indicesPerMaterial.push_back(Vector<UINT32>());
 
-				indicesPerMaterial[mesh->materials[i]].push_back(mesh->indices[i]);
+				indicesPerMaterial[materialIdx].push_back(mesh->indices[i]);
 			}
 
 			UINT32* orderedIndices = (UINT32*)bs_alloc((UINT32)mesh->indices.size() * sizeof(UINT32));
