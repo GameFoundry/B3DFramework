@@ -553,7 +553,7 @@ namespace bs
 
 		/** Enables or disables the motion blur effect. */
 		BS_SCRIPT_EXPORT()
-		bool enabled = true;
+		bool enabled = false;
 
 		/** Determines which parts of the scene will trigger motion blur. */
 		BS_SCRIPT_EXPORT()
