@@ -134,7 +134,7 @@ namespace bs
 	SPtr<ct::CoreObject> Skybox::createCore() const
 	{
 		SPtr<ct::Texture> radiance;
-		if (mTexture)
+		if (mTexture.isLoaded(false))
 			radiance = mTexture->getCore();
 
 		SPtr<ct::Texture> filteredRadiance;
