@@ -1991,19 +1991,20 @@ namespace bs { namespace ct
 
 		// TODO - Account for settings such as filter type and domain by grabbing correct shader variations
 
-		const RendererViewProperties& viewProps = inputs.view.getProperties();
+		// TODO - WIP
+		//const RendererViewProperties& viewProps = inputs.view.getProperties();
 
-		RCNodeSceneColor* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[1]);
-		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[2]);
-		RCNodeLightAccumulation* lightAccumNode = static_cast<RCNodeLightAccumulation*>(inputs.inputNodes[3]);
+		//RCNodeSceneColor* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[1]);
+		//RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[2]);
+		//RCNodeLightAccumulation* lightAccumNode = static_cast<RCNodeLightAccumulation*>(inputs.inputNodes[3]);
 
-		MotionBlurMat* motionBlurMat = MotionBlurMat::get();
+		//MotionBlurMat* motionBlurMat = MotionBlurMat::get();
 
-		SPtr<Texture> depth = sceneDepthNode->depthTex->texture;
-		motionBlurMat->execute(sceneColorNode->sceneColorTex->texture, depth, inputs.view, settings,
-			lightAccumNode->lightAccumulationTex->renderTexture);
+		//SPtr<Texture> depth = sceneDepthNode->depthTex->texture;
+		//motionBlurMat->execute(sceneColorNode->sceneColorTex->texture, depth, inputs.view, settings,
+		//	lightAccumNode->lightAccumulationTex->renderTexture);
 
-		sceneColorNode->swap(lightAccumNode);
+		//sceneColorNode->swap(lightAccumNode);
 	}
 
 	void RCNodeMotionBlur::clear()
