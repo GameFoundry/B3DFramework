@@ -2733,7 +2733,7 @@ namespace bs { namespace ct
 		auto* sceneDownsamplesNode = static_cast<RCNodeSceneColorDownsamples*>(inputs.inputNodes[2]);
 
 		const UINT32 availableDownsamples = sceneDownsamplesNode->availableDownsamples;
-		const UINT32 numDownsamples = Math::min(settings.screenSpaceLensFlare.downsampleCount, availableDownsamples);
+		const UINT32 numDownsamples = Math::clamp(settings.screenSpaceLensFlare.downsampleCount, 1U, availableDownsamples);
 		assert(numDownsamples >= 1);
 
 		SPtr<PooledRenderTexture> downsampledTex = sceneDownsamplesNode->output[numDownsamples - 1];
