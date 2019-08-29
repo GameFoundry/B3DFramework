@@ -105,7 +105,7 @@ namespace bs
 		/** Makes the current audio clip active. Should be called whenever the audio clip changes. */
 		void applyClip();
 
-		/** @copydoc IResourceListener::onClipChanged */
+		/** @copydoc AudioSource::onClipChanged */
 		void onClipChanged() override;
 
 		Vector<UINT32> mSourceIDs;

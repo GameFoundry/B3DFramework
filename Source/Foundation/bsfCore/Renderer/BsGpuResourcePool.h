@@ -110,14 +110,16 @@ namespace bs { namespace ct
 		/**
 		 * Checks does the provided texture match the parameters.
 		 *
-		 * @param[in]	desc	Descriptor structure that describes what kind of texture to match.
-		 * @return				True if the texture matches the descriptor, false otherwise.
+		 * @param[in]	texture		Texture to check.
+		 * @param[in]	desc		Descriptor structure that describes what kind of texture to match.
+		 * @return					True if the texture matches the descriptor, false otherwise.
 		 */
 		static bool matches(const SPtr<Texture>& texture, const POOLED_RENDER_TEXTURE_DESC& desc);
 
 		/**
 		 * Checks does the provided buffer match the parameters.
 		 *
+		 * @param[in]	buffer	Buffer to check.
 		 * @param[in]	desc	Descriptor structure that describes what kind of buffer to match.
 		 * @return				True if the buffer matches the descriptor, false otherwise.
 		 */

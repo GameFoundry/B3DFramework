@@ -805,7 +805,7 @@ namespace bs
 			return encodeVarInt(temp, output);
 		}
 
-		/** @copydoc decodeVarInt(UINT32, UINT8*) */
+		/** @copydoc decodeVarInt(UINT32&, const UINT8*, UINT32) */
 		static UINT32 decodeVarInt(INT32& value, const UINT8* input, UINT32 size)
 		{
 			UINT32 temp;
@@ -954,7 +954,7 @@ namespace bs
 			return encodeVarInt(temp, output);
 		}
 
-		/** @copydoc decodeVarInt(UINT64, UINT8*) */
+		/** @copydoc decodeVarInt(UINT64&, const UINT8*, UINT32) */
 		static UINT32 decodeVarInt(INT64& value, const UINT8* input, UINT32 size)
 		{
 			UINT64 temp;

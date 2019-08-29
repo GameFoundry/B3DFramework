@@ -39,7 +39,7 @@ namespace bs
 		/** @copydoc ScriptObjectBase::_onManagedInstanceDeleted */
 		void _onManagedInstanceDeleted(bool assemblyRefresh) override;
 
-		/** @copydoc ScriptObjectBase::_createManagedInstance */
+		/** @copydoc ScriptObject::_createManagedInstance */
 		MonoObject* _createManagedInstance(bool construct) override;
 
 		/** @copydoc ScriptObjectBase::_clearManagedInstance */

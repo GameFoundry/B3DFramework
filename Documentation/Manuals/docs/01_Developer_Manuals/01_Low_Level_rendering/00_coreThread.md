@@ -180,22 +180,22 @@ Earlier we mentioned that aside from handling construction/destruction the core 
 
 Synchronization should happen whenever some property on the **CoreObject** changes, that you would wish to make available on the core thread (e.g. a radius of a light source). To synchronize implement the @bs::CoreObject::syncToCore(FrameAlloc*) method, which generates the data for synchronization, and @bs::ct::CoreObject::syncToCore which accepts it.
 
-The synchronized data is transfered between the objects in the form of raw bytes, within the @bs::CoreSyncData structure. For convenience you can use @bs::rttiGetElemSize and @bs::rttiWriteElem to encode fields into raw memory, and @bs::rttiReadElem to decode them. These are explained in more detail in the [advanced RTTI manual](../../User_Manuals/advancedRtti).
+The synchronized data is transfered between the objects in the form of raw bytes, within the @bs::CoreSyncData structure. For convenience you can use @bs::rtti_size and @bs::rtti_write to encode fields into raw memory, and @bs::rtti_read to decode them. These are explained in more detail in the [advanced RTTI manual](../../User_Manuals/advancedRtti).
 
 **CoreObject::syncToCore()** is provided an instance of @bs::FrameAlloc which should be used for allocating the serialization buffer. This is an allocator that is fast and doesn't require explicit memory deallocation making it perfect for synchronization. A simple synchronization example would look like so:
 ~~~~~~~~~~~~~{.cpp}
 // CoreObject (creates the synchronization data)
 CoreSyncData MyCoreObject::syncToCore(FrameAlloc* allocator) 
 {
-	UINT32 size = 0;
-	size += rttiGetElemSize(mField1);
-	size += rttiGetElemSize(mField2);
+	uint32_t size = 0;
+	size += rtti_size(mField1);
+	size += rtti_size(mField2);
 
-	UINT8* buffer = allocator->alloc(size);
+	uint8_t* buffer = allocator->alloc(size);
+	Bitstream stream(buffer, size);
 
-	char* dataPtr = (char*)buffer;
-	dataPtr = rttiWriteElem(mField1, dataPtr);
-	dataPtr = rttiWriteElem(mField2, dataPtr);
+	rtti_write(mField1, stream);
+	rtti_write(mField2, stream);
 
 	return CoreSyncData(buffer, size);
 }
@@ -203,10 +203,9 @@ CoreSyncData MyCoreObject::syncToCore(FrameAlloc* allocator)
 // ct::CoreObject (receives the synchronization data)
 void MyCoreObject::syncToCore(const CoreSyncData& data) 
 {
-	char* dataPtr = (char*)data.getBuffer();
-
-	dataPtr = rttiReadElem(mField1, dataPtr);
-	dataPtr = rttiReadElem(mField2, dataPtr); 
+	Bitstream stream(data.getBuffer(), data.getBufferSize());
+	rtti_read(mField1, stream);
+	rtti_read(mField2, stream); 
 	
 	// Potentially trigger something depending on new data
 }

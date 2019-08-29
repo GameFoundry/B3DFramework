@@ -125,7 +125,7 @@ namespace bs
 			 * @param[in]	placement		Determines how is the sub-menu positioned in the visible area.
 			 * @param[in]	availableBounds	Available bounds (in pixels) in which the sub-menu may be opened.
 			 * @param[in]	dropDownData	Data to use for initializing menu items of the sub-menu.
-			 * @param[in]	skin			Skin to use for sub-menu GUI elements.
+			 * @param[in]	type			Type of the drop down box to show.
 			 * @param[in]	depthOffset		How much to offset the sub-menu depth. We want deeper levels of the sub-menu
 			 *								hierarchy to be in front of lower levels, so you should increase this value for
 			 *								each level of the sub-menu hierarchy.
@@ -155,6 +155,7 @@ namespace bs
 			/**
 			 * Called when the user activates an element with the specified index.
 			 *
+			 * @param[in]	idx		Index of the activated element.
 			 * @param[in]	bounds	Bounds of the GUI element that is used as a visual representation of this drop down
 			 *						element.
 			 */
@@ -222,7 +223,7 @@ namespace bs
 		/**	Called when the drop down box loses focus (and should be closed). */
 		void dropDownFocusLost();
 
-		/** @copydoc GUIWidget::onDestroyed */
+		/** @copydoc CGUIWidget::onDestroyed */
 		void onDestroyed() override;
 
 	private:

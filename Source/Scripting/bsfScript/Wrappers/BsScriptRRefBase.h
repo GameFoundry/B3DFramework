@@ -61,7 +61,7 @@ namespace bs
 		void clearResource() { mScriptResource = nullptr; }
 
 		/** @copydoc create() */
-		static ScriptRRefBase* createInternal(const ResourceHandle<Resource>& handle, ::MonoClass* type = nullptr);
+		static ScriptRRefBase* createInternal(const ResourceHandle<Resource>& handle, ::MonoClass* rawType = nullptr);
 
 		ResourceHandle<Resource> mResource;
 		ScriptResourceBase* mScriptResource = nullptr;

@@ -48,6 +48,8 @@ namespace bs
 
 		virtual bool isReadable() const { return (mAccess & READ) != 0; }
 		virtual bool isWriteable() const { return (mAccess & WRITE) != 0; }
+
+		/** Checks whether the stream reads/writes from a file system. */
 		virtual bool isFile() const = 0;
 
 		/** Reads data from the buffer and copies it to the specified value. */

@@ -163,7 +163,7 @@ namespace bs
 		GUIScrollArea(ScrollBarType vertBarType, ScrollBarType horzBarType,
 			const String& scrollBarStyle, const String& scrollAreaStyle, const GUIDimensions& dimensions);
 
-		/** @copydoc GUIElementContainer::mouseEvent */
+		/** @copydoc GUIElementContainer::_mouseEvent */
 		bool _mouseEvent(const GUIMouseEvent& ev) override;
 
 		/**

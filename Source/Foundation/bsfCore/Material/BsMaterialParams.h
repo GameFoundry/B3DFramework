@@ -810,7 +810,7 @@ namespace bs
 	class BS_CORE_EXPORT MaterialParams : public IReflectable, public TMaterialParams<false>
 	{
 	public:
-		/** @copydoc TMaterialParams::TMaterialParams(const ShaderType&, UINT32) */
+		/** @copydoc TMaterialParams::TMaterialParams(const ShaderType&, UINT64) */
 		MaterialParams(const HShader& shader, UINT64 initialParamVersion = 1);
 
 		/**
@@ -857,7 +857,7 @@ namespace bs
 		/** Initializes the core thread version of MaterialParams from its sim thread counterpart. */
 		MaterialParams(const SPtr<Shader>& shader, const SPtr<bs::MaterialParams>& params);
 		
-		/** @copydoc TMaterialParams::TMaterialParams(const ShaderType&, UINT32) */
+		/** @copydoc TMaterialParams::TMaterialParams(const ShaderType&, UINT64) */
 		MaterialParams(const SPtr<Shader>& shader, UINT64 initialParamVersion = 1);
 
 		/**

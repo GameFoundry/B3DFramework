@@ -96,7 +96,7 @@ namespace bs
 		/** @copydoc Renderer::notifyCameraUpdated */
 		void notifyCameraUpdated(Camera* camera, UINT32 updateFlag) override;
 
-		/** @copydocRenderer::notifyCameraRemoved */
+		/** @copydoc Renderer::notifyCameraRemoved */
 		void notifyCameraRemoved(Camera* camera) override;
 
 		/** @copydoc Renderer::notifyLightAdded */

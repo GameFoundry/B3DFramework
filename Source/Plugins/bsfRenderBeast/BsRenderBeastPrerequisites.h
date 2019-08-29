@@ -16,6 +16,10 @@
 
 namespace bs { namespace ct
 {
+	/** @addtogroup RenderBeast
+	 *  @{
+	 */
+
 	/**
 	 * Determines the feature set to be used by RenderBeast. Feature sets control the quality and type of rendering
 	 * effects depending on available hardware (For example a desktop computer can handle higher end rendering than a
@@ -50,6 +54,8 @@ namespace bs { namespace ct
 		/** All MSAA samples will be resolved. */
 		Full,
 	};
+
+	/** @} */
 
 	struct RenderBeastOptions;
 	struct PooledRenderTexture;

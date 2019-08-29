@@ -161,7 +161,7 @@ namespace bs
 			 * Appends a new character to the line.
 			 *
 			 * @param[in]	charIdx		Sequential index of the character in the original string.
-			 * @param[in]	desc		Character description from the font.
+			 * @param[in]	charDesc	Character description from the font.
 			 */
 			void add(UINT32 charIdx, const CharDesc& charDesc);
 
