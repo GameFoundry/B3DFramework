@@ -39,9 +39,9 @@ namespace bs
 	}
 
 	CrashHandler::CrashHandler(const CrashHandlerSettings& settings) :
-		onBeforeReportCrash(settings.onBeforeReportCrash), onCrashPrintedToLog(settings.onCrashPrintedToLog)
+		mSettings(settings)
 	{
-		if(settings.disableCrashSignalHandler)
+		if(mSettings.disableCrashSignalHandler)
 			return;
 
 		struct sigaction action;
@@ -178,17 +178,17 @@ namespace bs
 								   const String& file,
 								   UINT32 line) const
 	{
-		if(onBeforeReportCrash)
+		if(mSettings.onBeforeReportCrash)
 		{
-			if(onBeforeReportCrash(type, description, function, file, line))
+			if(mSettings.onBeforeReportCrash(type, description, function, file, line))
 				return;
 		}
 
 		logErrorAndStackTrace(type, description, function, file, line);
 
-		if(onCrashPrintedToLog)
+		if(mSettings.onCrashPrintedToLog)
 		{
-			if(onCrashPrintedToLog())
+			if(mSettings.onCrashPrintedToLog())
 				return;
 		}
 

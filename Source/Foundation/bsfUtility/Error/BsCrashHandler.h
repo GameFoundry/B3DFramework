@@ -12,7 +12,7 @@ namespace bs
 	/** Struct for holding crash handler settings */
 	struct CrashHandlerSettings
 	{
-		/** Called at the start of a when a windows SEH exception is started to be handled. Return true to skip default action */
+		/** Called when reporting a crash begins. Return true to skip default action. */
 		std::function<bool(const String& type,
 			const String& description,
 			const String& function,
@@ -20,7 +20,7 @@ namespace bs
 			UINT32 line)> onBeforeReportCrash;
 
 #if BS_PLATFORM == BS_PLATFORM_WIN32
-		/** Called at the start when a windows SEH exception is started to be handled. Return true to skip default action */
+		/** Called when a windows SEH exception is started to be handled. Return true to skip default action */
 		std::function<bool(void* exceptionData)> onBeforeWindowsSEHReportCrash;
 #endif
 		/**
@@ -124,28 +124,15 @@ namespace bs
 		/** Returns a singleton instance of this module. */
 		static CrashHandler*& _instance() { static CrashHandler* inst = nullptr; return inst; }
 
+		/** Handling customization callbacks */
+		CrashHandlerSettings mSettings;
+
 		/** The name of the crash reports directory. */
 		static const String sCrashReportFolder;
 		/** The name of the HTML crash log file. */
 		static const String sCrashLogName;
 		/** Error message to display on program failure. */
 		static const String sFatalErrorMsg;
-
-		// Handling customization callbacks
-		/** @copydoc CrashHandlerSettings::onBeforeReportCrash */
-		std::function<bool(const String& type,
-			const String& description,
-			const String& function,
-			const String& file,
-			UINT32 line)> onBeforeReportCrash;
-
-#if BS_PLATFORM == BS_PLATFORM_WIN32
-		/** @copydoc CrashHandlerSettings::onBeforeWindowsSEHReportCrash */
-		std::function<bool(void* exceptionData)> onBeforeWindowsSEHReportCrash;
-#endif
-
-		/** @copydoc CrashHandlerSettings::onCrashPrintedToLog */
-		std::function<bool()> onCrashPrintedToLog;
 
 #if BS_PLATFORM == BS_PLATFORM_WIN32
 		struct Data;

@@ -18,9 +18,7 @@ static const char* sMiniDumpName = "minidump.dmp";
 namespace bs
 {
 	CrashHandler::CrashHandler(const CrashHandlerSettings& settings) :
-		onBeforeReportCrash(settings.onBeforeReportCrash),
-		onBeforeWindowsSEHReportCrash(settings.onBeforeWindowsSEHReportCrash),
-		onCrashPrintedToLog(settings.onCrashPrintedToLog)
+		mSettings(settings)
 	{
 		m = bs_new<Data>();
 	}
@@ -470,9 +468,9 @@ namespace bs
 	void CrashHandler::reportCrash(const String& type, const String& description, const String& function,
 		const String& file, UINT32 line) const
 	{
-		if(onBeforeReportCrash)
+		if(mSettings.onBeforeReportCrash)
 		{
-			if(onBeforeReportCrash(type, description, function, file, line))
+			if(mSettings.onBeforeReportCrash(type, description, function, file, line))
 				return;
 		}
 
@@ -481,9 +479,9 @@ namespace bs
 
 		logErrorAndStackTrace(type, description, function, file, line);
 
-		if(onCrashPrintedToLog)
+		if(mSettings.onCrashPrintedToLog)
 		{
-			if(onCrashPrintedToLog())
+			if(mSettings.onCrashPrintedToLog())
 				return;
 		}
 
@@ -499,9 +497,9 @@ namespace bs
 
 	int CrashHandler::reportCrash(void* exceptionDataPtr) const
 	{
-		if(onBeforeWindowsSEHReportCrash)
+		if(mSettings.onBeforeWindowsSEHReportCrash)
 		{
-			if(onBeforeWindowsSEHReportCrash(exceptionDataPtr))
+			if(mSettings.onBeforeWindowsSEHReportCrash(exceptionDataPtr))
 				return EXCEPTION_EXECUTE_HANDLER;
 		}
 
@@ -516,9 +514,9 @@ namespace bs
 		logErrorAndStackTrace(win32_getExceptionMessage(exceptionData->ExceptionRecord),
 			win32_getStackTrace(*exceptionData->ContextRecord, 0));
 
-		if(onCrashPrintedToLog)
+		if(mSettings.onCrashPrintedToLog)
 		{
-			if(onCrashPrintedToLog())
+			if(mSettings.onCrashPrintedToLog())
 				return EXCEPTION_EXECUTE_HANDLER;
 		}
 
