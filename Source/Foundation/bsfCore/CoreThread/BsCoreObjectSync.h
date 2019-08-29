@@ -116,7 +116,7 @@ namespace bs
 	 */
 
 	/**
-	 * Writes the provided values into the underlying buffer using rttiWriteElem(). Each write advances the buffer to the
+	 * Writes the provided values into the underlying buffer using rtti_write(). Each write advances the buffer to the
 	 * next write location. Caller is responsible for not writing out of range.
 	 *
 	 * As input accepts any trivially copyable types, types with RTTIPlainType specializations, any shared pointer, as well
@@ -171,7 +171,7 @@ namespace bs
 	};
 
 	/**
-	 * Reads values from the underlying buffer and writes them to the output object using rttiReadElem(). Each read advances
+	 * Reads values from the underlying buffer and writes them to the output object using rtti_read(). Each read advances
 	 * the buffer to the next value. Caller is responsible for not reading out of range.
 	 *
 	 * As output accepts any trivially copyable types, types with RTTIPlainType specializations and any shared pointers.
@@ -224,7 +224,7 @@ namespace bs
 	};
 
 	/**
-	 * Calculates size of provided values using rttiGetElemSize(). All sizes are accumulated in the location provided upon
+	 * Calculates size of provided values using rtti_size(). All sizes are accumulated in the location provided upon
 	 * construction.
 	 *
 	 * As input accepts any trivially copyable types, types with RTTIPlainType specializations, any shared pointers,
