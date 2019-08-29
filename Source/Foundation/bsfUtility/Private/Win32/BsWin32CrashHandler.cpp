@@ -502,7 +502,7 @@ namespace bs
 		if(onBeforeWindowsSEHReportCrash)
 		{
 			if(onBeforeWindowsSEHReportCrash(exceptionDataPtr))
-				return;
+				return EXCEPTION_EXECUTE_HANDLER;
 		}
 
 		EXCEPTION_POINTERS* exceptionData = (EXCEPTION_POINTERS*)exceptionDataPtr;
@@ -519,7 +519,7 @@ namespace bs
 		if(onCrashPrintedToLog)
 		{
 			if(onCrashPrintedToLog())
-				return;
+				return EXCEPTION_EXECUTE_HANDLER;
 		}
 
 		saveCrashLog();
