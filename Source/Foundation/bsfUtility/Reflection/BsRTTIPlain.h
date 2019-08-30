@@ -104,14 +104,22 @@ namespace bs
 		enum { id = 0 /**< Unique id for the serializable type. */ };
 		enum { hasDynamicSize = 0 /**< 0 (Object has static size less than 255 bytes, for example int) or 1 (Dynamic size with no size restriction, for example string) */ };
 
-		/** Serializes the provided object into the provided stream and advances the stream cursor. Returns the number of bytes written. */
-		static uint32_t toMemory(const T& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		/**
+		 * Serializes the provided object into the provided stream and advances the stream cursor. Returns the number of bytes written. If @p compress is true
+		 * the serialization system is allowed to compress the data into bits (e.g. a boolean can be represented via a single bit), otherwise it is guaranteed
+		 * the written data will be aligned to byte boundaries. @p fieldInfo can be used for providing additional data, such as wanted method of serialization
+		 * and compression.
+		 **/
+		static uint32_t toMemory(const T& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return stream.writeBytes(data);
 		}
 
-		/** Deserializes a previously allocated object from the provided stream and advances the stream cursor. Return the number of bytes read. */
-		static uint32_t fromMemory(T& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		/**
+		 * Deserializes a previously allocated object from the provided stream and advances the stream cursor. Return the number of bytes read. @p compress
+		 * and @p fieldInfo should match the values provided when it was originally encoded using toMemory(). See toMemory() for the description of those parameters.
+		 */
+		static uint32_t fromMemory(T& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return stream.readBytes(data);
 		}
@@ -145,9 +153,9 @@ namespace bs
 	 * written to the provided stream and its write cursor advanced.
 	 */
 	template<class ElemType>
-	uint32_t rtti_write(const ElemType& data, Bitstream& stream)
+	uint32_t rtti_write(const ElemType& data, Bitstream& stream, bool compress = false)
 	{
-		return RTTIPlainType<ElemType>::toMemory(data, stream, RTTIFieldInfo());
+		return RTTIPlainType<ElemType>::toMemory(data, stream, RTTIFieldInfo(), compress);
 	}
 
 	/**
@@ -155,9 +163,9 @@ namespace bs
 	 * read from the provided stream and its read cursor advanced.
 	 */
 	template<class ElemType>
-	uint32_t rtti_read(ElemType& data, Bitstream& stream)
+	uint32_t rtti_read(ElemType& data, Bitstream& stream, bool compress = false)
 	{
-		return RTTIPlainType<ElemType>::fromMemory(data, stream, RTTIFieldInfo());
+		return RTTIPlainType<ElemType>::fromMemory(data, stream, RTTIFieldInfo(), compress);
 	}
 
 	/**
@@ -212,9 +220,9 @@ namespace bs
 						#type " is not trivially copyable");											\
 	template<> struct RTTIPlainType<type>																\
 	{	enum { id=0 }; enum { hasDynamicSize = 0 };														\
-		static uint32_t toMemory(const type& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)	\
+		static uint32_t toMemory(const type& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)	\
 		{ return stream.writeBytes(data); }																\
-		static uint32_t fromMemory(type& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)		\
+		static uint32_t fromMemory(type& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)		\
 		{ return stream.readBytes(data); }																\
 		static UINT32 getDynamicSize(const type& data)													\
 		{ return sizeof(type); }																		\

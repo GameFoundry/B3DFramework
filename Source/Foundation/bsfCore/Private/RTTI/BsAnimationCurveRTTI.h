@@ -20,7 +20,7 @@ namespace bs
 		enum { id = TID_KeyFrame }; enum { hasDynamicSize = 0 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static uint32_t toMemory(const TKeyframe<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const TKeyframe<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			rtti_write(data.value, stream);
 			rtti_write(data.inTangent, stream);
@@ -31,7 +31,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static uint32_t fromMemory(TKeyframe<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(TKeyframe<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			rtti_read(data.value, stream);
 			rtti_read(data.inTangent, stream);
@@ -54,7 +54,7 @@ namespace bs
 		enum { id = TID_AnimationCurve }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static uint32_t toMemory(const TAnimationCurve<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const TAnimationCurve<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return rtti_write_with_size_header(stream, [&data, &stream]()
 			{
@@ -72,7 +72,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static uint32_t fromMemory(TAnimationCurve<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(TAnimationCurve<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size = 0;
 			rtti_read(size, stream);
@@ -108,7 +108,7 @@ namespace bs
 		enum { id = TID_NamedAnimationCurve }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static uint32_t toMemory(const TNamedAnimationCurve<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const TNamedAnimationCurve<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return rtti_write_with_size_header(stream, [&data, &stream]()
 			{
@@ -122,7 +122,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static uint32_t fromMemory(TNamedAnimationCurve<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(TNamedAnimationCurve<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			UINT32 size = 0;
 			rtti_read(size, stream);

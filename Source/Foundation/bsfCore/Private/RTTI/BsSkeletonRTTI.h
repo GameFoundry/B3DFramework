@@ -84,7 +84,7 @@ namespace bs
 		enum { id = TID_SkeletonBoneInfo }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static uint32_t toMemory(const SkeletonBoneInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const SkeletonBoneInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return rtti_write_with_size_header(stream, [&data, &stream]()
 			{
@@ -97,7 +97,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static uint32_t fromMemory(SkeletonBoneInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(SkeletonBoneInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size = 0;
 			rtti_read(size, stream);

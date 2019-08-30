@@ -23,7 +23,7 @@ namespace bs
 	{
 		enum { id = TID_SHADER_DATA_PARAM_DESC }; enum { hasDynamicSize = 1 };
 
-		static uint32_t toMemory(const SHADER_DATA_PARAM_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const SHADER_DATA_PARAM_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr UINT32 VERSION = 1;
 
@@ -45,7 +45,7 @@ namespace bs
 			});
 		}
 
-		static uint32_t fromMemory(SHADER_DATA_PARAM_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(SHADER_DATA_PARAM_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t sizeRead = 0;
 			uint32_t size;
@@ -99,7 +99,7 @@ namespace bs
 	{
 		enum { id = TID_SHADER_OBJECT_PARAM_DESC }; enum { hasDynamicSize = 1 };
 
-		static uint32_t toMemory(const SHADER_OBJECT_PARAM_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const SHADER_OBJECT_PARAM_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr uint32_t VERSION = 1;
 
@@ -115,7 +115,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t fromMemory(SHADER_OBJECT_PARAM_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(SHADER_OBJECT_PARAM_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size;
 			uint32_t sizeRead = rtti_read(size, stream);
@@ -167,7 +167,7 @@ namespace bs
 	{
 		enum { id = TID_SHADER_PARAM_BLOCK_DESC }; enum { hasDynamicSize = 1 };
 
-		static uint32_t toMemory(const SHADER_PARAM_BLOCK_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const SHADER_PARAM_BLOCK_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return rtti_write_with_size_header(stream, [&data, &stream]()
 			{
@@ -181,7 +181,7 @@ namespace bs
 			});
 		}
 
-		static uint32_t fromMemory(SHADER_PARAM_BLOCK_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(SHADER_PARAM_BLOCK_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size;
 			rtti_read(size, stream);
@@ -213,7 +213,7 @@ namespace bs
 	{
 		enum { id = TID_SHADER_PARAM_ATTRIBUTE }; enum { hasDynamicSize = 1 };
 
-		static uint32_t toMemory(const SHADER_PARAM_ATTRIBUTE& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const SHADER_PARAM_ATTRIBUTE& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr UINT32 VERSION = 0;
 
@@ -229,7 +229,7 @@ namespace bs
 			});
 		}
 
-		static uint32_t fromMemory(SHADER_PARAM_ATTRIBUTE& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(SHADER_PARAM_ATTRIBUTE& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size;
 			rtti_read(size, stream);
@@ -273,7 +273,7 @@ namespace bs
 		enum { id = TID_ShaderVariationParamValue }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static uint32_t toMemory(const ShaderVariationParamValue& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const ShaderVariationParamValue& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr uint8_t VERSION = 0;
 
@@ -289,7 +289,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static uint32_t fromMemory(ShaderVariationParamValue& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(ShaderVariationParamValue& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size = 0;
 			rtti_read(size, stream);
@@ -322,7 +322,7 @@ namespace bs
 		enum { id = TID_ShaderVariationParamInfo }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static uint32_t toMemory(const ShaderVariationParamInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const ShaderVariationParamInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr uint8_t VERSION = 0;
 
@@ -340,7 +340,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static uint32_t fromMemory(ShaderVariationParamInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(ShaderVariationParamInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size = 0;
 			rtti_read(size, stream);

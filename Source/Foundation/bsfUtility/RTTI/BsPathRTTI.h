@@ -18,7 +18,7 @@ namespace bs
 	{
 		enum { id = TID_Path }; enum { hasDynamicSize = 1 };
 
-		static uint32_t toMemory(const Path& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const Path& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return rtti_write_with_size_header(stream, [&data, &stream]()
 			{
@@ -33,7 +33,7 @@ namespace bs
 			});
 		}
 
-		static uint32_t fromMemory(Path& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(Path& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size;
 			rtti_read(size, stream);

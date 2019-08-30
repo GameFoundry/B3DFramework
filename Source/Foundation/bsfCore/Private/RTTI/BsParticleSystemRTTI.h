@@ -278,7 +278,7 @@ namespace bs
 		enum { id = TID_ParticleBurst }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static uint32_t toMemory(const ParticleBurst& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const ParticleBurst& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr uint32_t VERSION = 0; // In case the data structure changes
 
@@ -296,7 +296,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static uint32_t fromMemory(ParticleBurst& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(ParticleBurst& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size = 0;
 			rtti_read(size, stream);

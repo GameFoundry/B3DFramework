@@ -20,7 +20,7 @@ namespace bs
 	{
 		enum { id = TID_ColorGradient }; enum { hasDynamicSize = 1 };
 
-		static uint32_t toMemory(const ColorGradient& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const ColorGradient& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr uint32_t VERSION = 0;
 
@@ -42,7 +42,7 @@ namespace bs
 			});
 		}
 
-		static uint32_t fromMemory(ColorGradient& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(ColorGradient& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size;
 			rtti_read(size, stream);
@@ -92,7 +92,7 @@ namespace bs
 	{
 		enum { id = TID_ColorGradientHDR }; enum { hasDynamicSize = 1 };
 
-		static uint32_t toMemory(const ColorGradientHDR& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const ColorGradientHDR& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr uint32_t VERSION = 0;
 
@@ -114,7 +114,7 @@ namespace bs
 			});
 		}
 
-		static uint32_t fromMemory(ColorGradientHDR& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(ColorGradientHDR& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size;
 			rtti_read(size, stream);

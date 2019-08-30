@@ -16,7 +16,7 @@ namespace bs
 	{
 		enum { id = 20 }; enum { hasDynamicSize = 1 };
 
-		static uint32_t toMemory(const String& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const String& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t stringBytes = (uint32_t)(data.size() * sizeof(String::value_type));
 			uint32_t size = stringBytes + sizeof(uint32_t);
@@ -27,7 +27,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t fromMemory(String& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(String& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size;
 			stream.readBytes(size);
@@ -62,7 +62,7 @@ namespace bs
 	{
 		enum { id = TID_WString }; enum { hasDynamicSize = 1 };
 
-		static uint32_t toMemory(const WString& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const WString& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t stringBytes = (uint32_t)(data.size() * sizeof(WString::value_type));
 			uint32_t size = stringBytes + sizeof(uint32_t);
@@ -73,7 +73,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t fromMemory(WString& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(WString& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size;
 			stream.readBytes(size);

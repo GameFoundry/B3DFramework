@@ -125,7 +125,7 @@ namespace bs
 		enum { id = TID_GpuParamDataDesc }; enum { hasDynamicSize = 1 };
 		static constexpr uint32_t VERSION = 1;
 
-		static uint32_t toMemory(const GpuParamDataDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const GpuParamDataDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return rtti_write_with_size_header(stream, [&data, &stream]()
 			{
@@ -147,7 +147,7 @@ namespace bs
 			});
 		}
 
-		static uint32_t fromMemory(GpuParamDataDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(GpuParamDataDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size;
 			rtti_read(size, stream);
@@ -186,7 +186,7 @@ namespace bs
 		enum { id = TID_GpuParamObjectDesc }; enum { hasDynamicSize = 1 };
 		static constexpr uint32_t VERSION = 2;
 
-		static uint32_t toMemory(const GpuParamObjectDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const GpuParamObjectDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return rtti_write_with_size_header(stream, [&data, &stream]
 			{
@@ -202,7 +202,7 @@ namespace bs
 			});
 		}
 
-		static uint32_t fromMemory(GpuParamObjectDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(GpuParamObjectDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size;
 			rtti_read(size, stream);
@@ -235,7 +235,7 @@ namespace bs
 		enum { id = TID_GpuParamBlockDesc }; enum { hasDynamicSize = 1 };
 		static constexpr uint32_t VERSION = 1;
 
-		static uint32_t toMemory(const GpuParamBlockDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const GpuParamBlockDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return rtti_write_with_size_header(stream, [&data, &stream]
 			{
@@ -251,7 +251,7 @@ namespace bs
 			});
 		}
 
-		static uint32_t fromMemory(GpuParamBlockDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(GpuParamBlockDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size;
 			rtti_read(size, stream);

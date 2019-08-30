@@ -54,7 +54,7 @@ namespace bs
 	{	
 		enum { id = TID_SpriteSheetGridAnimation }; enum { hasDynamicSize = 1 };
 
-		static uint32_t toMemory(const SpriteSheetGridAnimation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const SpriteSheetGridAnimation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr uint32_t VERSION = 0;
 
@@ -71,7 +71,7 @@ namespace bs
 			});
 		}
 
-		static uint32_t fromMemory(SpriteSheetGridAnimation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(SpriteSheetGridAnimation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size = 0;
 			rtti_read(size, stream);

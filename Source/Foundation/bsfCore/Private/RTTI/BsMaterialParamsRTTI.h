@@ -300,7 +300,7 @@ namespace bs
 	{
 		enum { id = TID_MaterialParamData }; enum { hasDynamicSize = 0 };
 
-		static uint32_t toMemory(const MaterialParamsBase::ParamData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const MaterialParamsBase::ParamData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			rtti_write(data.type, stream);
 			rtti_write(data.dataType, stream);
@@ -311,7 +311,7 @@ namespace bs
 			return sizeof(MaterialParamsBase::ParamData);
 		}
 
-		static uint32_t fromMemory(MaterialParamsBase::ParamData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(MaterialParamsBase::ParamData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			rtti_read(data.type, stream);
 			rtti_read(data.dataType, stream);
@@ -335,7 +335,7 @@ namespace bs
 	{
 		enum { id = TID_DataParamInfo }; enum { hasDynamicSize = 1 };
 
-		static uint32_t toMemory(const MaterialParamsBase::DataParamInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const MaterialParamsBase::DataParamInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr uint32_t VERSION = 1;
 
@@ -366,7 +366,7 @@ namespace bs
 			});
 		}
 
-		static uint32_t fromMemory(MaterialParamsBase::DataParamInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(MaterialParamsBase::DataParamInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size = 0;
 			rtti_read(size, stream);
@@ -445,7 +445,7 @@ namespace bs
 	{	
 		enum { id = TID_MaterialRTTIParam }; enum { hasDynamicSize = 1 };
 
-		static uint32_t toMemory(const MaterialParamsRTTI::MaterialParam& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t toMemory(const MaterialParamsRTTI::MaterialParam& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr UINT32 VERSION = 1;
 
@@ -463,7 +463,7 @@ namespace bs
 			});
 		}
 
-		static uint32_t fromMemory(MaterialParamsRTTI::MaterialParam& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo)
+		static uint32_t fromMemory(MaterialParamsRTTI::MaterialParam& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size = 0;
 			uint32_t sizeRead = 0;
