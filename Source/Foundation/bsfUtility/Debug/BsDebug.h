@@ -105,7 +105,6 @@ namespace bs
 	private:
 		UINT64 mLogHash = 0;
 		Log mLog;
-		/** @copydoc START_UP_DESC::logCallback */
 		std::function<bool(const String& message, LogVerbosity verbosity, UINT32 category)> mCustomLogCallback;
 	};
 
