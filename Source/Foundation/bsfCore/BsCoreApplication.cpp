@@ -236,8 +236,7 @@ namespace bs
 			runMainLoopFrame();
 		}
 
-		// Wait until last core frame is finished before exiting
-		waitUntilFrameFinished();
+		endMainLoop();
 	}
 
 	void CoreApplication::beginMainLoop()
@@ -247,9 +246,6 @@ namespace bs
 
 	void CoreApplication::endMainLoop()
 	{
-		// One more frame needs to be rendered here to not crash if the outer main loop has done stuff since the last frame.
-		runMainLoopFrame();
-
 		waitUntilFrameFinished();
 	}
 
