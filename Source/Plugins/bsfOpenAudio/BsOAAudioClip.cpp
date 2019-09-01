@@ -36,10 +36,10 @@ namespace bs
 			{
 				mStreamData->seek(mStreamOffset);
 
-				UINT8* sampleBuffer = (UINT8*)bs_alloc(mStreamSize);
-				mStreamData->read(sampleBuffer, mStreamSize);
-
-				mSourceStreamData = bs_shared_ptr_new<MemoryDataStream>(sampleBuffer, mStreamSize);
+				auto memStream = bs_shared_ptr_new<MemoryDataStream>(mStreamSize);
+				mSourceStreamData = memStream;
+				
+				mStreamData->read(memStream->data(), mStreamSize);
 				mSourceStreamSize = mStreamSize;
 			}
 
@@ -99,12 +99,12 @@ namespace bs
 						mStreamData = mSourceStreamData;
 					else
 					{
-						UINT8* data = (UINT8*)bs_alloc(mStreamSize);
+						auto memStream = bs_shared_ptr_new<MemoryDataStream>(mStreamSize);
 
 						mStreamData->seek(mStreamOffset);
-						mStreamData->read(data, mStreamSize);
+						mStreamData->read(memStream->data(), mStreamSize);
 
-						mStreamData = bs_shared_ptr_new<MemoryDataStream>(data, mStreamSize);
+						mStreamData = memStream;
 					}
 
 					mStreamOffset = 0;

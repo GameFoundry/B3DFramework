@@ -171,8 +171,8 @@ namespace bs
 							Bitstream streamA((uint8_t*)static_cast<void*>(dataA), typeSizeA);
 							Bitstream streamB((uint8_t*)static_cast<void*>(dataB), typeSizeB);
 
-							curField->arrayElemToBuffer(rttiInstanceA, &a, arrIdx, streamA);
-							curField->arrayElemToBuffer(rttiInstanceB, &b, arrIdx, streamB);
+							curField->arrayElemToStream(rttiInstanceA, &a, arrIdx, streamA);
+							curField->arrayElemToStream(rttiInstanceB, &b, arrIdx, streamB);
 
 							if(memcmp(dataA, dataB, typeSizeA) != 0)
 								return false;
@@ -264,8 +264,8 @@ namespace bs
 						Bitstream streamA((uint8_t*)static_cast<void*>(dataA), typeSizeA);
 						Bitstream streamB((uint8_t*)static_cast<void*>(dataB), typeSizeB);
 
-						curField->toBuffer(rttiInstanceA, &a, streamA);
-						curField->toBuffer(rttiInstanceB, &b, streamB);
+						curField->toStream(rttiInstanceA, &a, streamA);
+						curField->toStream(rttiInstanceB, &b, streamB);
 
 						if (memcmp(dataA, dataB, typeSizeA) != 0)
 							return false;

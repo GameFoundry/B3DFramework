@@ -12,7 +12,6 @@
 #include "Utility/BsUtility.h"
 #include "Resources/BsSavedResourceData.h"
 #include "Managers/BsResourceListenerManager.h"
-#include "Serialization/BsMemorySerializer.h"
 #include "Utility/BsCompression.h"
 #include "FileSystem/BsDataStream.h"
 #include "Serialization/BsBinarySerializer.h"
@@ -737,42 +736,59 @@ namespace bs
 		
 		Lock fileLock = FileScheduler::getLock(filePath);
 
-		std::ofstream stream;
-		stream.open(savePath.toPlatformString().c_str(), std::ios::out | std::ios::binary);
-		if (stream.fail())
-			BS_LOG(Warning, Resources, "Failed to save file: \"{0}\". Error: {1}.", filePath, strerror(errno));
+		SPtr<DataStream> stream = FileSystem::createAndOpenFile(savePath);
 	
 		// Write meta-data
 		{
-			MemorySerializer ms;
-			UINT32 numBytes = 0;
-			UINT8* bytes = ms.encode(resourceData.get(), numBytes);
+			size_t sizePos = stream->tell();
+			stream->skip(sizeof(UINT32));
+
+			BinarySerializer bs;
+			bs.encode(resourceData.get(), stream);
 			
-			stream.write((char*)&numBytes, sizeof(numBytes));
-			stream.write((char*)bytes, numBytes);
-			
-			bs_free(bytes);
+			size_t curPos = stream->tell();
+			stream->seek(sizePos);
+
+			UINT32 size = (UINT32)(curPos - sizePos - sizeof(UINT32));
+			stream->write(&size, sizeof(size));
+			stream->seek(curPos);
 		}
 
 		// Write object data
 		{
-			MemorySerializer ms;
-			UINT32 numBytes = 0;
-			UINT8* bytes = ms.encode(resource.get(), numBytes);
+			size_t sizePos = stream->tell();
+			stream->skip(sizeof(UINT32));
 
-			SPtr<MemoryDataStream> objStream = bs_shared_ptr_new<MemoryDataStream>(bytes, numBytes);
+			BinarySerializer bs;
+			uint32_t size = 0;
 			if (compressionMethod != 0)
 			{
-				SPtr<DataStream> srcStream = std::static_pointer_cast<DataStream>(objStream);
-				objStream = Compression::compress(srcStream);
-			}
+				SPtr<MemoryDataStream> tempStream = bs_shared_ptr_new<MemoryDataStream>();
+				bs.encode(resource.get(), tempStream);
 
-			stream.write((char*)&numBytes, sizeof(numBytes));
-			stream.write((char*)objStream->data(), objStream->size());
+				size = (uint32_t)tempStream->size();
+				tempStream->seek(0);
+				
+				// Note: We should refactor Compression::compress() so it can write straight to the file stream
+				SPtr<DataStream> srcStream = std::static_pointer_cast<DataStream>(tempStream);
+				SPtr<MemoryDataStream> compressedStream = Compression::compress(srcStream);
+
+				stream->write(compressedStream->data(), compressedStream->size());
+			}
+			else
+			{
+				bs.encode(resource.get(), stream);
+				size = (uint32_t)(stream->tell() - sizePos - sizeof(UINT32));
+			}
+			
+			size_t curPos = stream->tell();
+			stream->seek(sizePos);
+			stream->write(&size, sizeof(size));
+			stream->seek(curPos);
 		}
 
-		stream.close();
-		stream.clear();
+		stream->close();
+		stream = nullptr;
 
 		if (fileExists)
 		{

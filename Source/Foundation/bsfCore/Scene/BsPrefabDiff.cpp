@@ -3,7 +3,6 @@
 #include "Scene/BsPrefabDiff.h"
 #include "Private/RTTI/BsPrefabDiffRTTI.h"
 #include "Scene/BsSceneObject.h"
-#include "Serialization/BsMemorySerializer.h"
 #include "Serialization/BsBinarySerializer.h"
 #include "Serialization/BsBinaryDiff.h"
 #include "Scene/BsSceneManager.h"

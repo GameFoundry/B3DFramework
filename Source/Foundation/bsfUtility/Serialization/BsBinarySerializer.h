@@ -5,6 +5,7 @@
 #include "Prerequisites/BsPrerequisitesUtil.h"
 #include "Serialization/BsSerializedObject.h"
 #include "Reflection/BsRTTIField.h"
+#include "Utility/BsBitstream.h"
 
 namespace bs
 {
@@ -13,6 +14,8 @@ namespace bs
 	 */
 
 	class IReflectable;
+	class BufferedBitstreamReader;
+	class BufferedBitstreamWriter;
 	struct RTTIReflectableFieldBase;
 	struct RTTIReflectablePtrFieldBase;
 	struct SerializationContext;
@@ -33,19 +36,12 @@ namespace bs
 		BinarySerializer();
 
 		/**
-		 * Encodes all serializable fields provided by @p object into a binary format. Data is written in chunks. Whenever a
-		 * chunk is filled a callback is triggered that gives the user opportunity to expand or empty the buffer (for
-		 * example write the chunk to disk)
-		 *
+		 * Encodes all serializable fields provided by @p object into a binary format.
+		 * 
 		 * @param[in]	object					Object to encode into binary format.
-		 * @param[out]	buffer					Preallocated buffer where the data will be stored.
-		 * @param[in]	bufferLength			Length of the buffer, in bytes.
-		 * @param[out]	bytesWritten			Length of the data that was actually written to the buffer, in bytes.
-		 * @param[in]	flushBufferCallback 	This callback will get called whenever the buffer gets full (Be careful to
-		 *										check the provided @p bytesRead variable, as buffer might not be full
-		 *										completely). User must then either create a new buffer or empty the existing
-		 *										one, and then return it by the callback. If the returned buffer address is
-		 *										NULL, encoding is aborted.
+		 * @param[in]	stream					Stream into which to output the encoded data. The stream must own its memory
+		 *										buffer so it may grow as required during encoding, or your must guarantee
+		 *										the stream is of adequate size otherwise.
 		 * @param[in]	shallow					Determines how to handle referenced objects. If true then references will
 		 *										not be encoded and will be set to null. If false then references will be
 		 *										encoded as well and restored upon decoding.
@@ -54,15 +50,13 @@ namespace bs
 		 *										maintaining state or sharing information between objects during
 		 *										serialization.
 		 */
-		void encode(IReflectable* object, UINT8* buffer, UINT32 bufferLength, UINT32* bytesWritten,
-			std::function<UINT8*(UINT8* buffer, UINT32 bytesWritten, UINT32& newBufferSize)> flushBufferCallback,
-			bool shallow = false, SerializationContext* context = nullptr);
+		void encode(IReflectable* object, const SPtr<DataStream>& stream, bool shallow = false, SerializationContext* context = nullptr);
 
 		/**
 		 * Decodes an object from binary data.
 		 *
-		 * @param[in]	data  		Binary data to decode.
-		 * @param[in]	dataLength	Length of the data in bytes.
+		 * @param[in]	stream  	Stream containing the binary data to decode.
+		 * @param[in]	dataLength	Length of the data in bytes. If zero, all the data from the stream will be read.
 		 * @param[in]	context		Optional object that will be passed along to all serialized objects through
 		 *							their deserialization callbacks. Can be used for controlling deserialization,
 		 *							maintaining state or sharing information between objects during deserialization.
@@ -72,11 +66,20 @@ namespace bs
 		 * @note
 		 * Child elements are guaranteed to be fully deserialized before their parents, except for fields marked with WeakRef flag.
 		 */
-		SPtr<IReflectable> decode(const SPtr<DataStream>& data, UINT32 dataLength, SerializationContext* context = nullptr,
+		SPtr<IReflectable> decode(const SPtr<DataStream>& stream, UINT32 dataLength, SerializationContext* context = nullptr,
 			std::function<void(float)> progress = nullptr);
 	private:
 		/** Determines how many bytes need to be read before the progress report callback is triggered. */
 		static constexpr UINT32 REPORT_AFTER_BYTES = 32768;
+
+		/** Determines the size of the temporary write buffer. Should be greater than FLUSH_AFTER_BYTES. */
+		static constexpr UINT32 WRITE_BUFFER_SIZE = 4096;
+
+		/** Determines how often to flush from the local buffer into the output stream, when writing. */
+		static constexpr UINT32 FLUSH_AFTER_BYTES = (UINT32)(WRITE_BUFFER_SIZE * 0.75f);
+
+		/** Determines the minimum amount of bytes to preload into the temporary buffer. */
+		static constexpr UINT32 PRELOAD_CHUNK_BYTES = (UINT32)(WRITE_BUFFER_SIZE * 0.25f);
 
 		struct ObjectMetaData
 		{
@@ -107,19 +110,13 @@ namespace bs
 		};
 
 		/** Encodes a single IReflectable object. */
-		UINT8* encodeEntry(IReflectable* object, UINT32 objectId, UINT8* buffer, UINT32& bufferLength, UINT32* bytesWritten,
-			std::function<UINT8*(UINT8* buffer, UINT32 bytesWritten, UINT32& newBufferSize)> flushBufferCallback, bool shallow);
+		bool encodeEntry(IReflectable* object, UINT32 objectId, BufferedBitstreamWriter& stream, bool shallow);
 
 		/**	Decodes a single IReflectable object. */
-		bool decodeEntry(const SPtr<DataStream>& data, size_t dataLength, const SPtr<IReflectable>& output);
+		bool decodeEntry(BufferedBitstreamReader& stream, size_t dataLength, const SPtr<IReflectable>& output);
 
-		/**	Helper method for encoding a complex object and copying its data to a buffer. */
-		UINT8* complexTypeToBuffer(IReflectable* object, UINT8* buffer, UINT32& bufferLength, UINT32* bytesWritten,
-			std::function<UINT8*(UINT8* buffer, UINT32 bytesWritten, UINT32& newBufferSize)> flushBufferCallback, bool shallow);
-
-		/**	Helper method for encoding a data block to a buffer. */
-		UINT8* dataBlockToBuffer(UINT8* data, UINT32 size, UINT8* buffer, UINT32& bufferLength, UINT32* bytesWritten,
-			std::function<UINT8*(UINT8* buffer, UINT32 bytesWritten, UINT32& newBufferSize)> flushBufferCallback);
+		/**	Helper method for encoding a complex object and writing its data to a stream. */
+		bool complexTypeToStream(IReflectable* object, BufferedBitstreamWriter& stream, bool shallow);
 
 		/**	Finds an existing, or creates a unique unique identifier for the specified object. */
 		UINT32 findOrCreatePersistentId(IReflectable* object);
@@ -159,19 +156,18 @@ namespace bs
 		Vector<ObjectToEncode> mObjectsToEncode;
 		UnorderedMap<void*, UINT32> mObjectAddrToId;
 		UINT32 mLastUsedObjectId = 1;
-		UINT32 mTotalBytesWritten;
-		UINT32 mTotalBytesRead = 0;
 		UINT32 mTotalBytesToRead = 0;
 		UINT32 mNextProgressReport = REPORT_AFTER_BYTES;
 		FrameAlloc* mAlloc = nullptr;
+		Bitstream mBuffer;
 
 		SerializationContext* mContext = nullptr;
 		std::function<void(float)> mReportProgress = nullptr;
 
-		static constexpr const int META_SIZE = 4; // Meta field size
-		static constexpr const int NUM_ELEM_FIELD_SIZE = 4; // Size of the field storing number of array elements
-		static constexpr const int COMPLEX_TYPE_FIELD_SIZE = 4; // Size of the field storing the size of a child complex type
-		static constexpr const int DATA_BLOCK_TYPE_FIELD_SIZE = 4;
+		static constexpr int META_SIZE = 4; // Meta field size
+		static constexpr int NUM_ELEM_FIELD_SIZE = 4; // Size of the field storing number of array elements
+		static constexpr int COMPLEX_TYPE_FIELD_SIZE = 4; // Size of the field storing the size of a child complex type
+		static constexpr int DATA_BLOCK_TYPE_FIELD_SIZE = 4;
 	};
 
 	// TODO - Potential improvements:

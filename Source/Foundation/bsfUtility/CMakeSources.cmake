@@ -82,6 +82,7 @@ set(BS_UTILITY_INC_UTILITY
 	"bsfUtility/Utility/BsBitfield.h"
 	"bsfUtility/Utility/BsBitwise.h"
 	"bsfUtility/Utility/BsBitstream.h"
+	"bsfUtility/Utility/BsBufferedBitstream.h"
 	"bsfUtility/Utility/BsDynLib.h"
 	"bsfUtility/Utility/BsDynLibManager.h"
 	"bsfUtility/Utility/BsEvent.h"
@@ -205,7 +206,6 @@ set(BS_UTILITY_SRC_TESTING
 )
 
 set(BS_UTILITY_SRC_SERIALIZATION
-	"bsfUtility/Serialization/BsMemorySerializer.cpp"
 	"bsfUtility/Serialization/BsFileSerializer.cpp"
 	"bsfUtility/Serialization/BsBinarySerializer.cpp"
 	"bsfUtility/Serialization/BsBinaryDiff.cpp"
@@ -253,7 +253,6 @@ set(BS_UTILITY_SRC_ERROR
 set(BS_UTILITY_INC_SERIALIZATION
 	"bsfUtility/Serialization/BsBinarySerializer.h"
 	"bsfUtility/Serialization/BsFileSerializer.h"
-	"bsfUtility/Serialization/BsMemorySerializer.h"
 	"bsfUtility/Serialization/BsBinaryDiff.h"
 	"bsfUtility/Serialization/BsSerializedObject.h"
 	"bsfUtility/Serialization/BsBinaryCloner.h"

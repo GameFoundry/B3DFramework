@@ -461,7 +461,7 @@ namespace bs
 								serializedField->size = typeSize;
 
 								Bitstream tempStream(serializedField->value, typeSize);
-								curField->arrayElemToBuffer(rttiInstance, object, arrIdx, tempStream);
+								curField->arrayElemToStream(rttiInstance, object, arrIdx, tempStream);
 
 								SerializedArrayEntry arrayEntry;
 								arrayEntry.serialized = serializedField;
@@ -521,7 +521,7 @@ namespace bs
 							serializedField->size = typeSize;
 
 							Bitstream tempStream(serializedField->value, typeSize);
-							curField->toBuffer(rttiInstance, object, tempStream);
+							curField->toStream(rttiInstance, object, tempStream);
 
 							serializedEntry = serializedField;
 
@@ -534,10 +534,8 @@ namespace bs
 							UINT32 dataBlockSize = 0;
 							SPtr<DataStream> blockStream = curField->getValue(rttiInstance, object, dataBlockSize);
 
-							auto dataBlockBuffer = (UINT8*)bs_alloc(dataBlockSize);
-							blockStream->read(dataBlockBuffer, dataBlockSize);
-
-							SPtr<DataStream> stream = bs_shared_ptr_new<MemoryDataStream>(dataBlockBuffer, dataBlockSize);
+							SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>(dataBlockSize);
+							blockStream->read(stream->data(), dataBlockSize);
 
 							SPtr<SerializedDataBlock> serializedDataBlock = bs_shared_ptr_new<SerializedDataBlock>();
 							serializedDataBlock->stream = stream;
@@ -644,10 +642,10 @@ namespace bs
 					"Cloning a file stream. Streaming is disabled and stream data will be loaded into memory.");
 			}
 
-			UINT8* data = (UINT8*)bs_alloc(size);
-			stream->read(data, size);
+			auto stream = bs_shared_ptr_new<MemoryDataStream>(size);
+			stream->read(stream->data(), size);
 
-			copy->stream = bs_shared_ptr_new<MemoryDataStream>(data, size);
+			copy->stream = stream;
 			copy->offset = 0;
 		}
 		else

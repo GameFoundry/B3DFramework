@@ -17,7 +17,6 @@
 #include "Serialization/BsManagedSerializableList.h"
 #include "Serialization/BsManagedSerializableDictionary.h"
 #include "Serialization/BsManagedSerializableField.h"
-#include "Serialization/BsMemorySerializer.h"
 
 namespace bs
 {

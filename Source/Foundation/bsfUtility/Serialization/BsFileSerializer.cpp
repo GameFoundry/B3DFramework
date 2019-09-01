@@ -16,25 +16,11 @@ namespace bs
 {
 	FileEncoder::FileEncoder(const Path& fileLocation)
 	{
-		mWriteBuffer = (UINT8*)bs_alloc(WRITE_BUFFER_SIZE);
-
 		Path parentDir = fileLocation.getDirectory();
 		if (!FileSystem::exists(parentDir))
 			FileSystem::createDir(parentDir);
 		
-		mOutputStream.open(fileLocation.toPlatformString().c_str(), std::ios::out | std::ios::binary);
-		if (mOutputStream.fail())
-		{
-			BS_LOG(Warning, FileSystem, "Failed to save file: \"" + fileLocation.toString() + "\". Error: " + strerror(errno) + ".");
-		}
-	}
-
-	FileEncoder::~FileEncoder()
-	{
-		bs_free(mWriteBuffer);
-
-		mOutputStream.close();
-		mOutputStream.clear();
+		mOutputStream = FileSystem::createAndOpenFile(fileLocation);
 	}
 
 	void FileEncoder::encode(IReflectable* object, SerializationContext* context)
@@ -42,24 +28,18 @@ namespace bs
 		if (object == nullptr)
 			return;
 
-		UINT64 curPos = (UINT64)mOutputStream.tellp();
-		mOutputStream.seekp(sizeof(UINT32), std::ios_base::cur);
+		size_t startPos = mOutputStream->tell();
+		mOutputStream->skip(sizeof(UINT32));
 
 		BinarySerializer bs;
-		UINT32 totalBytesWritten = 0;
-		bs.encode(object, mWriteBuffer, WRITE_BUFFER_SIZE, &totalBytesWritten,
-			std::bind(&FileEncoder::flushBuffer, this, _1, _2, _3), false, context);
+		bs.encode(object, mOutputStream, false, context);
 
-		mOutputStream.seekp(curPos);
-		mOutputStream.write((char*)&totalBytesWritten, sizeof(totalBytesWritten));
-		mOutputStream.seekp(totalBytesWritten, std::ios_base::cur);
-	}
-
-	UINT8* FileEncoder::flushBuffer(UINT8* bufferStart, UINT32 bytesWritten, UINT32& newBufferSize)
-	{
-		mOutputStream.write((const char*)bufferStart, bytesWritten);
-
-		return bufferStart;
+		size_t endPos = mOutputStream->tell();
+		auto size = (UINT32)(endPos - startPos - sizeof(UINT32));
+		
+		mOutputStream->seek(startPos);
+		mOutputStream->write((char*)&size, sizeof(size));
+		mOutputStream->skip(size);
 	}
 
 	FileDecoder::FileDecoder(const Path& fileLocation)

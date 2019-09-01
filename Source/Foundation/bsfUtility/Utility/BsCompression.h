@@ -18,14 +18,14 @@ namespace bs
 		 * Compresses the data from the provided data stream and outputs the new stream with compressed data. Accepts
 		 * an optional callback to be triggered during the process to report progress in range [0, 1].
 		 */
-		static SPtr<MemoryDataStream> compress(SPtr<DataStream>& input,
+		static SPtr<MemoryDataStream> compress(const SPtr<DataStream>& input,
 			std::function<void(float)> reportProgress = nullptr);
 
 		/**
 		 * Decompresses the data from the provided data stream and outputs the new stream with decompressed data. Accepts
 		 * an optional callback to be triggered during the process to report progress in range [0, 1].
 		 */
-		static SPtr<MemoryDataStream> decompress(SPtr<DataStream>& input,
+		static SPtr<MemoryDataStream> decompress(const SPtr<DataStream>& input,
 			std::function<void(float)> reportProgress = nullptr);
 	};
 

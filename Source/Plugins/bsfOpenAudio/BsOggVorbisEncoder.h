@@ -57,9 +57,9 @@ namespace bs
 		 * @param[in]	samples		Buffer containing samples in PCM format. All samples should be in signed integer format.
 		 * @param[in]	info		Meta-data describing the provided samples.
 		 * @param[out]	size		Number of bytes written to the output buffer.
-		 * @return					Buffer containing the encoded samples, allocated using the general allocator.
+		 * @return					Memory data stream containing the encoded samples.
 		 */
-		static UINT8* PCMToOggVorbis(UINT8* samples, const AudioDataInfo& info, UINT32& size);
+		static SPtr<MemoryDataStream> PCMToOggVorbis(UINT8* samples, const AudioDataInfo& info, UINT32& size);
 	private:
 		/** Writes Vorbis blocks into Ogg packets. */
 		void writeBlocks();

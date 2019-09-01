@@ -28,8 +28,12 @@ namespace bs
 	 */
 	class Bitstream
 	{
-		using QuantType = uint8_t;
 	public:
+		using QuantType = uint8_t;
+		static constexpr uint32_t BYTES_PER_QUANT = sizeof(QuantType);
+		static constexpr uint32_t BITS_PER_QUANT = BYTES_PER_QUANT * 8;
+		static constexpr uint32_t BITS_PER_QUANT_LOG2 = Bitwise::bitsLog2(BITS_PER_QUANT);
+
 		/**
 		 * Initializes an empty bitstream. As data is written the stream will grow its internal memory storage
 		 * automatically.
@@ -56,7 +60,12 @@ namespace bs
 		 */
 		Bitstream(QuantType* data, uint32_t count);
 
+		Bitstream(const Bitstream& other);
+		Bitstream(Bitstream&& other);
 		~Bitstream();
+		
+		Bitstream& operator= (const Bitstream& other);
+		Bitstream& operator= (Bitstream&& other);
 
 		/**
 		 * Writes bits from the provided buffer into the stream at the current cursor location and advances the cursor.
@@ -359,6 +368,15 @@ namespace bs
 		 */
 		void align(uint32_t count = 1);
 
+		/** Expands the capacity to the specified number of bytes, unless already equal or greater. */
+		void reserve(uint32_t count);
+		
+		/**
+		 * Expands the capacity and size to the specified number of bytes. Capacity will not be reduced if already
+		 * equal or larger.
+		 */
+		void resize(uint32_t count);
+
 		/** Returns the current read/write cursor position, in bits. */
 		uint32_t tell() const { return mCursor; }
 
@@ -378,10 +396,6 @@ namespace bs
 		QuantType* cursor() const;
 
 	private:
-		static constexpr uint32_t BYTES_PER_QUANT = sizeof(QuantType);
-		static constexpr uint32_t BITS_PER_QUANT = BYTES_PER_QUANT * 8;
-		static constexpr uint32_t BITS_PER_QUANT_LOG2 = Bitwise::bitsLog2(BITS_PER_QUANT);
-
 		/** Checks if the internal memory buffer needs to grow in order to accomodate @p numBits bits. */
 		void reallocIfNeeded(uint32_t numBits);
 
@@ -398,10 +412,6 @@ namespace bs
 
 	/** @} */
 
-	/** @addtogroup Implementation
-	 *  @{
-	 */
-
 	inline Bitstream::Bitstream(uint32_t capacity)
 	{
 		realloc(capacity * 8);
@@ -414,6 +424,68 @@ namespace bs
 	{
 		if (mData && mOwnsMemory)
 			bs_free(mData);
+	}
+
+	inline Bitstream::Bitstream(const Bitstream& other)
+	{
+		*this = other;
+	}
+
+	inline Bitstream::Bitstream(Bitstream&& other)
+	{
+		*this = std::move(other);
+	}
+
+	inline Bitstream& Bitstream::operator= (const Bitstream& other)
+	{
+		if (this == &other)
+			return *this;
+
+		this->mCursor = other.mCursor;
+		this->mNumBits = other.mNumBits;
+		
+		if(!other.mOwnsMemory)
+		{
+			this->mData = other.mData;
+			this->mMaxBits = other.mMaxBits;
+			this->mOwnsMemory = false;
+		}
+		else
+		{
+			if (mData && mOwnsMemory)
+				bs_free(mData);
+
+			mData = nullptr;
+			mMaxBits = 0;
+
+			this->mOwnsMemory = true;
+			realloc(other.mMaxBits);
+
+			if(mMaxBits > 0)
+			{
+				const uint32_t numBytes = Math::divideAndRoundUp(mMaxBits, BITS_PER_QUANT) * BYTES_PER_QUANT;
+				memcpy(mData, other.mData, numBytes);
+			}
+		}
+
+		return *this;
+	}
+
+	inline Bitstream& Bitstream::operator= (Bitstream&& other)
+	{
+		if (this == &other)
+			return *this;
+
+		if (mData && mOwnsMemory)
+			bs_free(mData);
+
+		this->mCursor = std::exchange(other.mCursor, 0);
+		this->mNumBits = std::exchange(other.mNumBits, 0);
+		this->mMaxBits = std::exchange(other.mMaxBits, 0);
+		this->mData = std::exchange(other.mData, nullptr);
+		this->mOwnsMemory = std::exchange(other.mOwnsMemory, false);
+
+		return *this;
 	}
 
 	inline uint32_t Bitstream::writeBits(const QuantType* data, uint32_t count)
@@ -933,6 +1005,18 @@ namespace bs
 
 		uint32_t bits = count * 8;
 		skip(bits - (((mCursor - 1) & (bits - 1)) + 1));
+	}
+
+	inline void Bitstream::reserve(uint32_t count)
+	{
+		if (capacity() < count)
+			realloc(count);
+	}
+
+	inline void Bitstream::resize(uint32_t count)
+	{
+		reserve(count);
+		mNumBits = count;
 	}
 
 	inline Bitstream::QuantType* Bitstream::cursor() const

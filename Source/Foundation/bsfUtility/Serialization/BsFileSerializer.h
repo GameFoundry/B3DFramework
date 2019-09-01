@@ -17,7 +17,6 @@ namespace bs
 	{
 	public:
 		FileEncoder(const Path& fileLocation);
-		~FileEncoder();
 
 		/**
 		 * Parses the provided object, serializes all of its data as specified by its RTTIType and saves the serialized
@@ -32,13 +31,7 @@ namespace bs
 		void encode(IReflectable* object, SerializationContext* context = nullptr);
 
 	private:
-		/** Called by the binary serializer whenever the buffer gets full. */
-		UINT8* flushBuffer(UINT8* bufferStart, UINT32 bytesWritten, UINT32& newBufferSize);
-
-		std::ofstream mOutputStream;
-		UINT8* mWriteBuffer = nullptr;
-
-		static const UINT32 WRITE_BUFFER_SIZE = 2048;
+		SPtr<DataStream> mOutputStream;
 	};
 
 	/** Decodes objects from the specified file using the RTTI system. */

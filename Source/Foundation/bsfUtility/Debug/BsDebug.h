@@ -148,6 +148,7 @@ namespace bs
   BS_LOG_CATEGORY(RTTI, 2)
   BS_LOG_CATEGORY(Generic, 3)
   BS_LOG_CATEGORY(Platform, 4)
+  BS_LOG_CATEGORY(Serialization, 5)
 
   /** @} */
 }

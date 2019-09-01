@@ -6,7 +6,8 @@
 #include "Error/BsException.h"
 #include "Debug/BsDebug.h"
 #include "Private/RTTI/BsSceneObjectRTTI.h"
-#include "Serialization/BsMemorySerializer.h"
+#include "Serialization/BsBinarySerializer.h"
+#include "FileSystem/BsDataStream.h"
 #include "Scene/BsGameObjectManager.h"
 #include "Scene/BsPrefabUtility.h"
 #include "Math/BsMatrix3.h"
@@ -762,10 +763,9 @@ namespace bs
 		else
 			_unsetFlags(SOF_DontInstantiate);
 
-		UINT32 bufferSize = 0;
-
-		MemorySerializer serializer;
-		UINT8* buffer = serializer.encode(this, bufferSize, (void*(*)(size_t))&bs_alloc);
+		SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>();
+		BinarySerializer serializer;
+		serializer.encode(this, stream);
 
 		int flags = GODM_RestoreExternal | GODM_UseNewIds;
 		if(!preserveUUIDs)
@@ -774,9 +774,9 @@ namespace bs
 		CoreSerializationContext serzContext;
 		serzContext.goState = bs_shared_ptr_new<GameObjectDeserializationState>(flags);
 
+		stream->seek(0);
 		SPtr<SceneObject> cloneObj = std::static_pointer_cast<SceneObject>(
-			serializer.decode(buffer, bufferSize, &serzContext));
-		bs_free(buffer);
+			serializer.decode(stream, (UINT32)stream->size(), &serzContext));
 
 		if(isInstantiated)
 			_unsetFlags(SOF_DontInstantiate);

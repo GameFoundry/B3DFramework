@@ -173,7 +173,7 @@ namespace bs
 		Vector<BufferPiece> mBufferPieces;
 	};
 
-	SPtr<MemoryDataStream> Compression::compress(SPtr<DataStream>& input, std::function<void(float)> reportProgress)
+	SPtr<MemoryDataStream> Compression::compress(const SPtr<DataStream>& input, std::function<void(float)> reportProgress)
 	{
 		DataStreamSource src(input, std::move(reportProgress));
 		DataStreamSink dst;
@@ -185,7 +185,7 @@ namespace bs
 		return output;
 	}
 
-	SPtr<MemoryDataStream> Compression::decompress(SPtr<DataStream>& input, std::function<void(float)> reportProgress)
+	SPtr<MemoryDataStream> Compression::decompress(const SPtr<DataStream>& input, std::function<void(float)> reportProgress)
 	{
 		DataStreamSource src(input, std::move(reportProgress));
 		DataStreamSink dst;

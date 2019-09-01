@@ -8,7 +8,8 @@
 #include "Reflection/BsRTTIReflectableField.h"
 #include "Reflection/BsRTTIReflectablePtrField.h"
 #include "Reflection/BsRTTIManagedDataBlockField.h"
-#include "Serialization/BsMemorySerializer.h"
+#include "Serialization/BsBinarySerializer.h"
+#include "FileSystem/BsDataStream.h"
 
 namespace bs
 {
@@ -27,12 +28,12 @@ namespace bs
 			alloc.clear();
 		}
 
-		std::function<void*(UINT32)> allocator = &MemoryAllocator<GenAlloc>::allocate;
+		SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>();
+		BinarySerializer bs;
+		bs.encode(object, stream, shallow);
 
-		MemorySerializer ms;
-		UINT32 dataSize = 0;
-		UINT8* data = ms.encode(object, dataSize, allocator, shallow);
-		SPtr<IReflectable> clonedObj = ms.decode(data, dataSize);
+		stream->seek(0);
+		SPtr<IReflectable> clonedObj = bs.decode(stream, (UINT32)stream->size());
 
 		if (shallow)
 		{
@@ -43,7 +44,6 @@ namespace bs
 			alloc.clear();
 		}
 
-		bs_free(data);
 		return clonedObj;
 	}
 

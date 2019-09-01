@@ -55,7 +55,7 @@ namespace bs
 		{
 			size = obj->dataSize;
 
-			return bs_shared_ptr_new<MemoryDataStream>(obj->data, obj->dataSize, false);
+			return bs_shared_ptr_new<MemoryDataStream>(obj->data, obj->dataSize);
 		}
 
 		void setDataBuffer(MaterialParamStructData* obj, const SPtr<DataStream>& value, UINT32 size)
@@ -132,7 +132,7 @@ namespace bs
 		{
 			size = obj->mDataSize;
 
-			return bs_shared_ptr_new<MemoryDataStream>(obj->mDataParamsBuffer, obj->mDataSize, false);
+			return bs_shared_ptr_new<MemoryDataStream>(obj->mDataParamsBuffer, obj->mDataSize);
 		}
 
 		void setDataBuffer(MaterialParams* obj, const SPtr<DataStream>& value, UINT32 size)
@@ -306,7 +306,7 @@ namespace bs
 			rtti_write(data.dataType, stream);
 			rtti_write(data.index, stream);
 			rtti_write(data.arraySize, stream);
-			rtti_write(0, stream);
+			rtti_write((UINT64)0, stream);
 
 			return sizeof(MaterialParamsBase::ParamData);
 		}

@@ -74,14 +74,14 @@ namespace bs
 		 * check if stream buffer is large enough. If @p compress is true then the value is allowed to be compressed into
 		 * less bytes than its raw type, and at sub-byte increments (e.g. one bit for a boolean).
 		 */
-		virtual void toBuffer(RTTITypeBase* rtti, void* object, Bitstream& stream, bool compress = false) = 0;
+		virtual void toStream(RTTITypeBase* rtti, void* object, Bitstream& stream, bool compress = false) = 0;
 
 		/**
 		 * Retrieves the value at the specified array index on the provided field of the provided object, and copies it into
 		 * the stream. It does not check if stream buffer is large enough. If @p compress is true then the value is allowed
 		 * to be compressed into less bytes than its raw type, and at sub-byte increments (e.g. one bit for a boolean).
 		 */
-		virtual void arrayElemToBuffer(RTTITypeBase* rtti, void* object, int index, Bitstream& stream, bool compress = false) = 0;
+		virtual void arrayElemToStream(RTTITypeBase* rtti, void* object, int index, Bitstream& stream, bool compress = false) = 0;
 
 		/**
 		 * Sets the value on the provided field of the provided object. Value is copied from the stream. It does not check
@@ -237,7 +237,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainFieldBase::toBuffer */
-		void toBuffer(RTTITypeBase* rtti, void* object, Bitstream& stream, bool compress) override
+		void toStream(RTTITypeBase* rtti, void* object, Bitstream& stream, bool compress) override
 		{
 			checkIsArray(false);
 			checkType<DataType>();
@@ -250,7 +250,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainFieldBase::arrayElemToBuffer */
-		void arrayElemToBuffer(RTTITypeBase* rtti, void* object, int index, Bitstream& stream, bool compress) override
+		void arrayElemToStream(RTTITypeBase* rtti, void* object, int index, Bitstream& stream, bool compress) override
 		{
 			checkIsArray(true);
 			checkType<DataType>();

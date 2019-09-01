@@ -205,7 +205,7 @@ namespace bs
 		mClosed = true;
 	}
 
-	UINT8* OggVorbisEncoder::PCMToOggVorbis(UINT8* samples, const AudioDataInfo& info, UINT32& size)
+	SPtr<MemoryDataStream> OggVorbisEncoder::PCMToOggVorbis(UINT8* samples, const AudioDataInfo& info, UINT32& size)
 	{
 		struct EncodedBlock
 		{
@@ -234,11 +234,11 @@ namespace bs
 		writer.write(samples, info.numSamples);
 		writer.close();
 
-		UINT8* outSampleBuffer = (UINT8*)bs_alloc(totalEncodedSize);
+		auto output = bs_shared_ptr_new<MemoryDataStream>(totalEncodedSize);
 		UINT32 offset = 0;
 		for (auto& block : blocks)
 		{
-			memcpy(outSampleBuffer + offset, block.data, block.size);
+			memcpy(output->data() + offset, block.data, block.size);
 			offset += block.size;
 
 			bs_frame_free(block.data);
@@ -247,7 +247,7 @@ namespace bs
 		bs_frame_clear();
 		
 		size = totalEncodedSize;
-		return outSampleBuffer;
+		return output;
 	}
 
 #undef WRITE_TO_BUFFER

@@ -65,7 +65,7 @@ namespace bs
 		 * 			
 		 * @note	Stream must be created with READ access mode.
 		 */
-		virtual size_t read(void* buf, size_t count) = 0;
+		virtual size_t read(void* buf, size_t count) const = 0;
 
 		/**
 		 * Write the requisite number of bytes to the stream and advance the write pointer.
@@ -207,27 +207,27 @@ namespace bs
 		 *
 		 * @param[in] 	memory		Memory to wrap the data stream around.
 		 * @param[in]	size		Size of the memory chunk in bytes.
-		 * @param[in]	freeOnClose	Should the memory buffer be freed when the data stream goes out of scope.
 		 */
-		MemoryDataStream(void* memory, size_t size, bool freeOnClose = true);
+		MemoryDataStream(void* memory, size_t size);
 
 		/**
 		 * Create a stream which pre-buffers the contents of another stream. Data from the other buffer will be entirely
 		 * read and stored in an internal buffer.
-		 *
-		 * @param[in]	sourceStream		Stream to read data from.
 		 */
-		MemoryDataStream(DataStream& sourceStream);
+		MemoryDataStream(const MemoryDataStream& other);
 		
 		/**
 		 * Create a stream which pre-buffers the contents of another stream. Data from the other buffer will be entirely
 		 * read and stored in an internal buffer.
-		 *
-		 * @param[in]	sourceStream		Stream to read data from.
 		 */
-		MemoryDataStream(const SPtr<DataStream>& sourceStream);
+		MemoryDataStream(const SPtr<DataStream>& other);
 
+		/** Inherits the data from the provided stream, invalidating the source stream. */
+		MemoryDataStream(MemoryDataStream&& other);
 		~MemoryDataStream();
+
+		MemoryDataStream& operator= (const MemoryDataStream& other);
+		MemoryDataStream& operator= (MemoryDataStream&& other);
 
 		/** @copydoc DataStream::isFile */
 		bool isFile() const override { return false; }
@@ -239,7 +239,7 @@ namespace bs
 		uint8_t* cursor() const { return mCursor; }
 		
 		/** @copydoc DataStream::read */
-		size_t read(void* buf, size_t count) override;
+		size_t read(void* buf, size_t count) const override;
 
 		/** @copydoc DataStream::write */
 		size_t write(const void* buf, size_t count) override;
@@ -262,12 +262,18 @@ namespace bs
 		/** @copydoc DataStream::close */
 		void close() override;
 
+		/**
+		 * Disowns the internal memory buffer, ensuring it wont be released when the stream goes out of scope.
+		 * The caller becomes responsible for freeing the internal data buffer.
+		 */
+		uint8_t* disownMemory() { mOwnsMemory = false; return mData;  }
+
 	protected:
 		/** Reallocates the internal buffer making enough room for @p numBytes. */
 		void realloc(size_t numBytes);
 		
 		uint8_t* mData = nullptr;
-		uint8_t* mCursor = nullptr;
+		mutable uint8_t* mCursor = nullptr;
 		uint8_t* mEnd = nullptr;
 
 		bool mOwnsMemory = true;
@@ -292,7 +298,7 @@ namespace bs
 		bool isFile() const override { return true; }
 
 		/** @copydoc DataStream::read */
-		size_t read(void* buf, size_t count) override;
+		size_t read(void* buf, size_t count) const override;
 
 		/** @copydoc DataStream::write */
 		size_t write(const void* buf, size_t count) override;

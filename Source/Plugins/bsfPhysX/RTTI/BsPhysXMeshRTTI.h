@@ -21,7 +21,7 @@ namespace bs
 		{
 			size = obj->mCookedDataSize;
 
-			return bs_shared_ptr_new<MemoryDataStream>(obj->mCookedData, obj->mCookedDataSize, false);
+			return bs_shared_ptr_new<MemoryDataStream>(obj->mCookedData, obj->mCookedDataSize);
 		}
 
 		void setCookedData(FPhysXMesh* obj, const SPtr<DataStream>& value, UINT32 size)

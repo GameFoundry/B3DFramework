@@ -6,7 +6,6 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "BsMonoMethod.h"
-#include "Serialization/BsMemorySerializer.h"
 #include "Serialization/BsManagedSerializableObject.h"
 #include "BsScriptGameObjectManager.h"
 #include "Serialization/BsScriptAssemblyManager.h"
@@ -14,6 +13,8 @@
 #include "BsMonoAssembly.h"
 #include "BsPlayInEditor.h"
 #include "Utility/BsUtility.h"
+#include "Serialization/BsBinarySerializer.h"
+#include "FileSystem/BsDataStream.h"
 
 namespace bs
 {
@@ -48,10 +49,13 @@ namespace bs
 			
 			if (serializableObject != nullptr)
 			{
-				MemorySerializer ms;
+				SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>();
+				BinarySerializer bs;
 
-				backupData.size = 0;
-				backupData.data = ms.encode(serializableObject.get(), backupData.size);
+				bs.encode(serializableObject.get(), stream);
+
+				backupData.size = (UINT32)stream->size();
+				backupData.data = stream->disownMemory();
 			}
 			else
 			{
@@ -61,14 +65,16 @@ namespace bs
 		}
 		else
 		{
-			MemorySerializer ms;
-
-			backupData.size = 0;
+				SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>();
 
 			if (mSerializedObjectData != nullptr)
-				backupData.data = ms.encode(mSerializedObjectData.get(), backupData.size);
-			else
-				backupData.data = nullptr;
+			{
+				BinarySerializer bs;
+				bs.encode(mSerializedObjectData.get(), stream);
+			}
+
+			backupData.size = (UINT32)stream->size();
+			backupData.data = stream->disownMemory();
 		}
 
 		if (clearExisting)
@@ -97,13 +103,13 @@ namespace bs
 		MonoObject* instance = mOwner->getManagedInstance();
 		if (instance != nullptr && data.data != nullptr)
 		{
-			MemorySerializer ms;
+			BinarySerializer bs;
 
 			CoreSerializationContext serzContext;
 			serzContext.goState = bs_shared_ptr_new<GameObjectDeserializationState>();
 
 			auto serializableObject = std::static_pointer_cast<ManagedSerializableObject>(
-				ms.decode(data.data, data.size, &serzContext));
+				bs.decode(bs_shared_ptr_new<MemoryDataStream>(data.data, data.size), data.size, &serzContext));
 
 			serzContext.goState->resolve();
 

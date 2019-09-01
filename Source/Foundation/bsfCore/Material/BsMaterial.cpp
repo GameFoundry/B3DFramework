@@ -10,12 +10,13 @@
 #include "Math/BsMatrixNxM.h"
 #include "Math/BsVector3I.h"
 #include "Math/BsVector4I.h"
-#include "Serialization/BsMemorySerializer.h"
 #include "Material/BsMaterialParams.h"
 #include "Material/BsGpuParamsSet.h"
 #include "Animation/BsAnimationCurve.h"
 #include "CoreThread/BsCoreObjectSync.h"
 #include "Private/RTTI/BsShaderVariationRTTI.h"
+#include "Serialization/BsBinarySerializer.h"
+#include "FileSystem/BsDataStream.h"
 
 namespace bs
 {
@@ -790,13 +791,12 @@ namespace bs
 
 	HMaterial Material::clone()
 	{
-		UINT32 bufferSize = 0;
+		SPtr<MemoryDataStream> outputStream = bs_shared_ptr_new<MemoryDataStream>();
+		BinarySerializer serializer;
 
-		MemorySerializer serializer;
-		UINT8* buffer = serializer.encode(this, bufferSize, (void*(*)(size_t))&bs_alloc);
-
-		SPtr<Material> cloneObj = std::static_pointer_cast<Material>(serializer.decode(buffer, bufferSize));
-		bs_free(buffer);
+		serializer.encode(this, outputStream);
+		outputStream->seek(0);
+		SPtr<Material> cloneObj = std::static_pointer_cast<Material>(serializer.decode(outputStream, (UINT32)outputStream->size()));
 
 		return static_resource_cast<Material>(gResources()._createResourceHandle(cloneObj));
 	}
