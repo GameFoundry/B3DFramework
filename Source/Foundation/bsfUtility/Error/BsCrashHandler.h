@@ -54,7 +54,7 @@ namespace bs
 		~CrashHandler();
 
 		/** Constructs and starts the module. */
-		static void startUp(const CrashHandlerSettings& settings)
+		static void startUp(const CrashHandlerSettings& settings = CrashHandlerSettings())
 		{
 			if(_instance() == nullptr)
 				_instance() = bs_new<CrashHandler>(settings);
