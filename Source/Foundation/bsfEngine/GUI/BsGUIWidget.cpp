@@ -64,7 +64,6 @@ namespace bs
 		for (UINT32 i = 0; i < numRenderElems; i++)
 		{
 			UINT32 elemDepth = element->_getRenderElementDepth(i);
-			Rect2I bounds = element->_getClippedBounds();
 
 			SpriteMaterial* spriteMaterial = nullptr;
 			element->_getMaterial(i, &spriteMaterial);
@@ -80,7 +79,11 @@ namespace bs
 				if (spriteMaterial->allowBatching())
 				{
 					group.cachedElements.push_back(GUIGroupElement(element, i));
+
+					Rect2I bounds = element->_getClippedBounds();
 					group.bounds.encapsulate(bounds);
+
+					// TODO - Technically, different render elements can end up in different draw groups, so this won't work
 					element->_setDrawGroupId(group.id);
 				}
 				else
@@ -155,13 +158,41 @@ namespace bs
 		{
 			if(entry.dirtyBounds)
 			{
-				updateBounds(entry);
+				Rect2I newBounds = calculateBounds(entry);
 				entry.dirtyBounds = false;
 
-				// TODO - Update texture if needed
+				if(entry.bounds.width != newBounds.width || entry.bounds.height != newBounds.height)
+				{
+					entry.outputTexture = nullptr;
+					
+					TEXTURE_DESC texDesc;
+					texDesc.width = newBounds.width;
+					texDesc.height = newBounds.height;
+					texDesc.format = PF_RGBA8;
+					texDesc.usage = TU_RENDERTARGET;
+					
+					HTexture texture = Texture::create(texDesc);
+					
+					RENDER_TEXTURE_DESC rtDesc;
+					rtDesc.colorSurfaces[0].texture = texture;
+
+					entry.outputTexture = RenderTexture::create(rtDesc);
+				}
+
+				entry.bounds = newBounds;
 			}
 		}
 		
+		// TODO
+	}
+
+	void GUIDrawGroups::notifyContentDirty(GUIElement* element)
+	{
+		// TODO
+	}
+
+	void GUIDrawGroups::notifyMeshDirty(GUIElement* element)
+	{
 		// TODO
 	}
 
@@ -418,6 +449,7 @@ namespace bs
 					UINT32 groupNumIndices = 0;
 					for (auto& matElement : group->elements)
 					{
+						// TODO - X/Y offset of the element should be relative to the draw group
 						matElement.element->_fillBuffer(
 							vertices[typeIdx], indices[typeIdx],
 							vertexOffset[typeIdx], indexOffset[typeIdx],
@@ -494,18 +526,20 @@ namespace bs
 		return mEntries[groupIdx + 1];
 	}
 
-	void GUIDrawGroups::updateBounds(GUIDrawGroup& group)
+	Rect2I GUIDrawGroups::calculateBounds(GUIDrawGroup& group)
 	{
-		group.bounds = Rect2I();
+		Rect2I bounds = Rect2I();
 
 		for(auto& entry : group.cachedElements)
 		{
 			if (!entry.element->_isVisible())
 				continue;
 			
-			Rect2I bounds = entry.element->_getClippedBounds();
-			group.bounds.encapsulate(bounds);
+			Rect2I elementBounds = entry.element->_getClippedBounds();
+			bounds.encapsulate(elementBounds);
 		}
+
+		return bounds;
 	}
 
 	GUIWidget::GUIWidget(const SPtr<Camera>& camera)
@@ -791,12 +825,20 @@ namespace bs
 	void GUIWidget::_markMeshDirty(GUIElementBase* elem)
 	{
 		mWidgetIsDirty = true;
+
+		if (elem->_getType() == GUIElementBase::Type::Element)
+			mDrawGroups.notifyMeshDirty(static_cast<GUIElement*>(elem));
 	}
 
 	void GUIWidget::_markContentDirty(GUIElementBase* elem)
 	{
 		if (elem->_getType() == GUIElementBase::Type::Element)
-			mDirtyContents.insert(static_cast<GUIElement*>(elem));
+		{
+			auto guiElement = static_cast<GUIElement*>(elem);
+			
+			mDirtyContents.insert(guiElement);
+			mDrawGroups.notifyContentDirty(guiElement);
+		}
 	}
 
 	void GUIWidget::setSkin(const HGUISkin& skin)

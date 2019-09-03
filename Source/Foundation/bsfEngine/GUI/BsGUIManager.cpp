@@ -42,32 +42,6 @@ using namespace std::placeholders;
 
 namespace bs
 {
-	struct GUIGroupElement
-	{
-		GUIGroupElement()
-		{ }
-
-		GUIGroupElement(GUIElement* _element, UINT32 _renderElement)
-			:element(_element), renderElement(_renderElement)
-		{ }
-
-		GUIElement* element;
-		UINT32 renderElement;
-	};
-
-	struct GUIMaterialGroup
-	{
-		SpriteMaterial* material;
-		SpriteMaterialInfo matInfo;
-		GUIMeshType meshType;
-		UINT32 numVertices;
-		UINT32 numIndices;
-		UINT32 depth;
-		UINT32 minDepth;
-		Rect2I bounds;
-		Vector<GUIGroupElement> elements;
-	};
-
 	const UINT32 GUIManager::DRAG_DISTANCE = 3;
 	const float GUIManager::TOOLTIP_HOVER_TIME = 1.0f;
 
@@ -96,13 +70,6 @@ namespace bs
 
 		GUIDropDownBoxManager::startUp();
 		GUITooltipManager::startUp();
-
-		mTriangleVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
-		mTriangleVertexDesc->addVertElem(VET_FLOAT2, VES_POSITION);
-		mTriangleVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD);
-
-		mLineVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
-		mLineVertexDesc->addVertElem(VET_FLOAT2, VES_POSITION);
 
 		// Need to defer this call because I want to make sure all managers are initialized first
 		deferredCall(std::bind(&GUIManager::updateCaretTexture, this));
@@ -218,6 +185,7 @@ namespace bs
 		if(renderData.widgets.size() == 0)
 		{
 			mCachedGUIData.erase(renderTarget);
+			// TODO - Clear the widget's draw groups on the renderer
 			mCoreDirty = true;
 		}
 		else
@@ -490,266 +458,7 @@ namespace bs
 
 			mCoreDirty = true;
 
-			bs_frame_mark();
-			{
-				// Make a list of all GUI elements, sorted from farthest to nearest (highest depth to lowest)
-				auto elemComp = [](const GUIGroupElement& a, const GUIGroupElement& b)
-				{
-					UINT32 aDepth = a.element->_getDepth() + a.element->getRenderElements()[a.renderElement].depth;
-					UINT32 bDepth = b.element->_getDepth() + b.element->getRenderElements()[b.renderElement].depth;
-
-					// Compare pointers just to differentiate between two elements with the same depth, their order doesn't really matter, but std::set
-					// requires all elements to be unique
-					return (aDepth > bDepth) ||
-						(aDepth == bDepth && a.element > b.element) ||
-						(aDepth == bDepth && a.element == b.element && a.renderElement > b.renderElement);
-				};
-
-				FrameSet<GUIGroupElement, std::function<bool(const GUIGroupElement&, const GUIGroupElement&)>> allElements(elemComp);
-
-				for (auto& widget : renderData.widgets)
-				{
-					const Vector<GUIElement*>& elements = widget->getElements();
-
-					for (auto& element : elements)
-					{
-						if (!element->_isVisible())
-							continue;
-
-						UINT32 numRenderElems = element->getRenderElements().size();
-						for (UINT32 i = 0; i < numRenderElems; i++)
-						{
-							allElements.insert(GUIGroupElement(element, i));
-						}
-					}
-				}
-
-				// Group the elements in such a way so that we end up with a smallest amount of
-				// meshes, without breaking back to front rendering order
-				FrameUnorderedMap<UINT64, FrameVector<GUIMaterialGroup>> materialGroups;
-				for (auto& elem : allElements)
-				{
-					GUIElement* guiElem = elem.element;
-					UINT32 renderElemIdx = elem.renderElement;
-					const GUIRenderElement& renderElem = guiElem->getRenderElements()[renderElemIdx];
-					
-					UINT32 elemDepth = guiElem->_getDepth() + renderElem.depth;
-
-					Rect2I tfrmedBounds = guiElem->_getClippedBounds();
-					tfrmedBounds.transform(guiElem->_getParentWidget()->getWorldTfrm());
-
-					SpriteMaterial* spriteMaterial = renderElem.material;
-					const SpriteMaterialInfo& matInfo = *renderElem.matInfo;
-					assert(spriteMaterial != nullptr);
-
-					UINT64 hash = spriteMaterial->getMergeHash(matInfo);
-					FrameVector<GUIMaterialGroup>& groupsPerMaterial = materialGroups[hash];
-					
-					// Try to find a group this material will fit in:
-					//  - Group that has a depth value same or one below elements depth will always be a match
-					//  - Otherwise, we search higher depth values as well, but we only use them if no elements in between those depth values
-					//    overlap the current elements bounds.
-					GUIMaterialGroup* foundGroup = nullptr;
-
-					if(spriteMaterial->allowBatching())
-					{
-						for (auto groupIter = groupsPerMaterial.rbegin(); groupIter != groupsPerMaterial.rend(); ++groupIter)
-						{
-							// If we separate meshes by widget, ignore any groups with widget parents other than mine
-							if (mSeparateMeshesByWidget)
-							{
-								if (groupIter->elements.size() > 0)
-								{
-									GUIElement* otherElem = groupIter->elements.begin()->element; // We only need to check the first element
-									if (otherElem->_getParentWidget() != guiElem->_getParentWidget())
-										continue;
-								}
-							}
-
-							GUIMaterialGroup& group = *groupIter;
-							if (group.depth == elemDepth)
-							{
-								foundGroup = &group;
-								break;
-							}
-							else
-							{
-								UINT32 startDepth = elemDepth;
-								UINT32 endDepth = group.depth;
-
-								Rect2I potentialGroupBounds = group.bounds;
-								potentialGroupBounds.encapsulate(tfrmedBounds);
-
-								bool foundOverlap = false;
-								for (auto& material : materialGroups)
-								{
-									for (auto& matGroup : material.second)
-									{
-										if (&matGroup == &group)
-											continue;
-
-										if ((matGroup.minDepth >= startDepth && matGroup.minDepth <= endDepth)
-											|| (matGroup.depth >= startDepth && matGroup.depth <= endDepth))
-										{
-											if (matGroup.bounds.overlaps(potentialGroupBounds))
-											{
-												foundOverlap = true;
-												break;
-											}
-										}
-									}
-								}
-
-								if (!foundOverlap)
-								{
-									foundGroup = &group;
-									break;
-								}
-							}
-						}
-					}
-
-					if (foundGroup == nullptr)
-					{
-						groupsPerMaterial.push_back(GUIMaterialGroup());
-						foundGroup = &groupsPerMaterial[groupsPerMaterial.size() - 1];
-
-						foundGroup->depth = elemDepth;
-						foundGroup->minDepth = elemDepth;
-						foundGroup->bounds = tfrmedBounds;
-						foundGroup->elements.push_back(GUIGroupElement(guiElem, renderElemIdx));
-						foundGroup->matInfo = matInfo.clone();
-						foundGroup->material = spriteMaterial;
-						foundGroup->numVertices = renderElem.numVertices;
-						foundGroup->numIndices = renderElem.numIndices;
-						foundGroup->meshType = renderElem.type;
-					}
-					else
-					{
-						foundGroup->bounds.encapsulate(tfrmedBounds);
-						foundGroup->elements.push_back(GUIGroupElement(guiElem, renderElemIdx));
-						foundGroup->minDepth = std::min(foundGroup->minDepth, elemDepth);
-
-						// It's expected that GUI element doesn't use same material for different mesh types so this should always be true
-						assert(renderElem.type == foundGroup->meshType); 
-
-						foundGroup->numVertices += renderElem.numVertices;
-						foundGroup->numIndices += renderElem.numIndices;
-
-						spriteMaterial->merge(foundGroup->matInfo, matInfo);
-					}
-				}
-
-				// Make a list of all GUI elements, sorted from farthest to nearest (highest depth to lowest)
-				auto groupComp = [](GUIMaterialGroup* a, GUIMaterialGroup* b)
-				{
-					return (a->depth > b->depth) || (a->depth == b->depth && a > b);
-					// Compare pointers just to differentiate between two elements with the same depth, their order doesn't really matter, but std::set
-					// requires all elements to be unique
-				};
-
-				UINT32 numMeshes = 0;
-				UINT32 numIndices[2] = { 0, 0 };
-				UINT32 numVertices[2] = { 0, 0 };
-
-				FrameSet<GUIMaterialGroup*, std::function<bool(GUIMaterialGroup*, GUIMaterialGroup*)>> sortedGroups(groupComp);
-				for(auto& material : materialGroups)
-				{
-					for(auto& group : material.second)
-					{
-						sortedGroups.insert(&group);
-
-						UINT32 typeIdx = (UINT32)group.meshType;
-						numIndices[typeIdx] += group.numIndices;
-						numVertices[typeIdx] += group.numVertices;
-
-						numMeshes++;
-					}
-				}
-
-				renderData.triangleMesh = nullptr;
-				renderData.lineMesh = nullptr;
-
-				renderData.cachedMeshes.resize(numMeshes);
-
-				SPtr<MeshData> meshData[2];
-				SPtr<VertexDataDesc> vertexDesc[2] = { mTriangleVertexDesc, mLineVertexDesc };
-
-				UINT8* vertices[2] = { nullptr, nullptr };
-				UINT32* indices[2] = { nullptr, nullptr };
-
-				for(UINT32 i = 0; i < 2; i++)
-				{
-					if(numVertices[i] > 0 && numIndices[i] > 0)
-					{
-						meshData[i] = MeshData::create(numVertices[i], numIndices[i], vertexDesc[i]);
-
-						vertices[i] = meshData[i]->getElementData(VES_POSITION);
-						indices[i] = meshData[i]->getIndices32();
-					}
-				}
-
-				// Fill buffers for each group and update their meshes
-				UINT32 meshIdx = 0;
-				UINT32 vertexOffset[2] = { 0, 0 };
-				UINT32 indexOffset[2] = { 0, 0 };
-
-				for(auto& group : sortedGroups)
-				{
-					GUIWidget* widget;
-
-					if (group->elements.size() == 0)
-						widget = nullptr;
-					else
-					{
-						GUIElement* elem = group->elements.begin()->element;
-						widget = elem->_getParentWidget();
-					}
-
-					GUIMeshData& guiMeshData = renderData.cachedMeshes[meshIdx];
-					guiMeshData.matInfo = group->matInfo;
-					guiMeshData.material = group->material;
-					guiMeshData.widget = widget;
-					guiMeshData.isLine = group->meshType == GUIMeshType::Line;
-
-					UINT32 typeIdx = (UINT32)group->meshType;
-					guiMeshData.indexOffset = indexOffset[typeIdx];
-
-					UINT32 groupNumIndices = 0;
-					for(auto& matElement : group->elements)
-					{
-						matElement.element->_fillBuffer(
-							vertices[typeIdx], indices[typeIdx],
-							vertexOffset[typeIdx], indexOffset[typeIdx],
-							numVertices[typeIdx], numIndices[typeIdx], matElement.renderElement);
-
-						const GUIRenderElement& renderElement = matElement.element->getRenderElements()[matElement.renderElement];
-						
-						UINT32 indexStart = indexOffset[typeIdx];
-						UINT32 indexEnd = indexStart + renderElement.numIndices;
-
-						for(UINT32 i = indexStart; i < indexEnd; i++)
-							indices[typeIdx][i] += vertexOffset[typeIdx];
-
-						indexOffset[typeIdx] += renderElement.numIndices;
-						vertexOffset[typeIdx] += renderElement.numVertices;
-
-						groupNumIndices += renderElement.numIndices;
-					}
-
-					guiMeshData.indexCount = groupNumIndices;
-
-					meshIdx++;
-				}
-
-				if(meshData[0])
-					renderData.triangleMesh = Mesh::_createPtr(meshData[0], MU_STATIC, DOT_TRIANGLE_LIST);
-
-				if(meshData[1])
-					renderData.lineMesh = Mesh::_createPtr(meshData[1], MU_STATIC, DOT_LINE_LIST);
-			}
-
-			bs_frame_clear();
+		TODO - Update meshes on GUIWidget
 		}
 	}
 
@@ -1959,47 +1668,70 @@ namespace bs
 
 	void GUIRenderer::render(const Camera& camera)
 	{
-		Vector<GUIManager::GUICoreRenderData>& renderData = mPerCameraData[&camera];
+		Vector<GUIWidgetRenderData>& widgetRenderData = mPerCameraData[&camera];
 
 		float invViewportWidth = 1.0f / (camera.getViewport()->getPixelArea().width * 0.5f);
 		float invViewportHeight = 1.0f / (camera.getViewport()->getPixelArea().height * 0.5f);
 		float viewflipYFlip = (gCaps().conventions.ndcYAxis == Conventions::Axis::Down) ? -1.0f : 1.0f;
 
-		for (auto& entry : renderData)
+		bool anyRedraws = false;
+		RenderAPI& rapi = RenderAPI::instance();
+		for (auto& widget : widgetRenderData)
 		{
-			SPtr<GpuParamBlockBuffer> buffer = mParamBlocks[entry.bufferIdx];
-
-			gGUISpriteParamBlockDef.gInvViewportWidth.set(buffer, invViewportWidth);
-			gGUISpriteParamBlockDef.gInvViewportHeight.set(buffer, invViewportHeight);
-			gGUISpriteParamBlockDef.gViewportYFlip.set(buffer, viewflipYFlip);
-
-			float t = std::max(0.0f, mTime - entry.animationStartTime);
-			if(entry.spriteTexture)
+			for(auto& drawGroup : widget.drawGroups)
 			{
-				UINT32 row;
-				UINT32 column;
-				entry.spriteTexture->getAnimationFrame(t, row, column);
+				if (!drawGroup.requiresRedraw)
+					continue;
+				
+				for(auto& entry : drawGroup.elements)
+				{
+					SPtr<GpuParamBlockBuffer> buffer = widget.paramBlocks[entry.bufferIdx];
 
-				float invWidth = 1.0f / entry.spriteTexture->getAnimation().numColumns;
-				float invHeight = 1.0f / entry.spriteTexture->getAnimation().numRows;
+					gGUISpriteParamBlockDef.gInvViewportWidth.set(buffer, invViewportWidth);
+					gGUISpriteParamBlockDef.gInvViewportHeight.set(buffer, invViewportHeight);
+					gGUISpriteParamBlockDef.gViewportYFlip.set(buffer, viewflipYFlip);
 
-				Vector4 sizeOffset(invWidth, invHeight, column * invWidth, row * invHeight);
-				gGUISpriteParamBlockDef.gUVSizeOffset.set(buffer, sizeOffset);
+					float t = std::max(0.0f, mTime - entry.animationStartTime);
+					if(entry.spriteTexture)
+					{
+						UINT32 row;
+						UINT32 column;
+						entry.spriteTexture->getAnimationFrame(t, row, column);
+
+						float invWidth = 1.0f / entry.spriteTexture->getAnimation().numColumns;
+						float invHeight = 1.0f / entry.spriteTexture->getAnimation().numRows;
+
+						Vector4 sizeOffset(invWidth, invHeight, column * invWidth, row * invHeight);
+						gGUISpriteParamBlockDef.gUVSizeOffset.set(buffer, sizeOffset);
+					}
+					else
+						gGUISpriteParamBlockDef.gUVSizeOffset.set(buffer, Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+
+					buffer->flushToGPU();
+				}
+
+				rapi.setRenderTarget(drawGroup.destination);
+
+				for (auto& entry : drawGroup.elements)
+				{
+					// TODO - I shouldn't be re-applying the entire material for each entry, instead just check which programs
+					// changed, and apply only those + the modified constant buffers and/or texture.
+
+					SPtr<GpuParamBlockBuffer> buffer = widget.paramBlocks[entry.bufferIdx];
+					entry.material->render(drawGroup.mesh, entry.subMesh, entry.texture, mSamplerState, buffer, entry.additionalData);
+				}
+
+				drawGroup.requiresRedraw = false;
+				anyRedraws = true;
 			}
-			else
-				gGUISpriteParamBlockDef.gUVSizeOffset.set(buffer, Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-
-			buffer->flushToGPU();
 		}
 
-		for (auto& entry : renderData)
+		// TODO - Avoid rendering to overlay if unnecessary. Ideally the renderer should not clear parts used by GUI (unless transparency is needed,
+		// but that could be a special flag on GUIWidget?)
+		//if(anyRedraws)
 		{
-			// TODO - I shouldn't be re-applying the entire material for each entry, instead just check which programs
-			// changed, and apply only those + the modified constant buffers and/or texture.
-
-			SPtr<GpuParamBlockBuffer> buffer = mParamBlocks[entry.bufferIdx];
-
-			entry.material->render(entry.mesh, entry.subMesh, entry.texture, mSamplerState, buffer, entry.additionalData);
+			// TODO - Need to restore original renderer's render target (might need to extend the renderer)
+			// TODO  - Draw the per-draw-group target into the final buffer
 		}
 	}
 
@@ -2008,42 +1740,50 @@ namespace bs
 		mTime = time;
 	}
 
-	void GUIRenderer::updateData(const UnorderedMap<SPtr<Camera>, Vector<GUIManager::GUICoreRenderData>>& newPerCameraData)
+	void GUIRenderer::updateDrawGroups(const SPtr<Camera>& camera, UINT64 widgetId, const GUIManager::GUIRenderUpdateData& data)
 	{
-		bs_frame_mark();
+		auto iterFind = mPerCameraData.find(camera.get());
+		if (iterFind == mPerCameraData.end())
+			mReferencedCameras.insert(camera);
 
+		Vector<GUIWidgetRenderData>& widgets = mPerCameraData[camera.get()];
+		GUIWidgetRenderData* widget;
+
+		auto iterFind2 = std::find_if(widgets.begin(), widgets.end(), [widgetId](auto& x) { return x.widgetId == widgetId; });
+		if (iterFind2 == widgets.end())
 		{
-			mPerCameraData.clear();
-			mReferencedCameras.clear();
+			widgets.push_back(GUIWidgetRenderData());
+			widget = &widgets.back();
 
-			for (auto& newCameraData : newPerCameraData)
-			{
-				SPtr<Camera> camera = newCameraData.first;
+			widget->widgetId = widgetId;
+		}
+		else
+			widget = &(*iterFind2);
 
-				mPerCameraData.insert(std::make_pair(camera.get(), newCameraData.second));
-				mReferencedCameras.insert(camera);
-			}
+		if(!data.newDrawGroups.empty())
+		{
+			widget->drawGroups = data.newDrawGroups;
 
 			// Allocate GPU buffers containing the material parameters
 			UINT32 numBuffers = 0;
-			for (auto& cameraData : mPerCameraData)
-				numBuffers += (UINT32)cameraData.second.size();
+			for (auto& drawGroup : widget->drawGroups)
+				numBuffers += (UINT32)drawGroup.elements.size();
 
-			UINT32 numAllocatedBuffers = (UINT32)mParamBlocks.size();
+			auto numAllocatedBuffers = (UINT32)widget->paramBlocks.size();
 			if (numBuffers > numAllocatedBuffers)
 			{
-				mParamBlocks.resize(numBuffers);
+				widget->paramBlocks.resize(numBuffers);
 
 				for (UINT32 i = numAllocatedBuffers; i < numBuffers; i++)
-					mParamBlocks[i] = gGUISpriteParamBlockDef.createBuffer();
+					widget->paramBlocks[i] = gGUISpriteParamBlockDef.createBuffer();
 			}
 
 			UINT32 curBufferIdx = 0;
-			for (auto& cameraData : mPerCameraData)
+			for (auto& drawGroup : widget->drawGroups)
 			{
-				for(auto& entry : cameraData.second)
+				for (auto& entry : drawGroup.elements)
 				{
-					SPtr<GpuParamBlockBuffer> buffer = mParamBlocks[curBufferIdx];
+					SPtr<GpuParamBlockBuffer> buffer = widget->paramBlocks[curBufferIdx];
 
 					gGUISpriteParamBlockDef.gTint.set(buffer, entry.tint);
 					gGUISpriteParamBlockDef.gWorldTransform.set(buffer, entry.worldTransform);
@@ -2054,7 +1794,33 @@ namespace bs
 			}
 		}
 
-		bs_frame_clear();
+		assert(data.groupDirtyState.size() == widget->drawGroups.size());
+
+		for(UINT32 i = 0; i < (UINT32)data.groupDirtyState.size(); i++)
+		{
+			if (data.groupDirtyState[i])
+				widget->drawGroups[i].requiresRedraw = true;
+		}
+	}
+
+	void GUIRenderer::clearDrawGroups(const SPtr<Camera>& camera, UINT64 widgetId)
+	{
+		auto iterFind = mPerCameraData.find(camera.get());
+		if (iterFind == mPerCameraData.end())
+			return;
+
+		Vector<GUIWidgetRenderData>& widgetData = iterFind->second;
+		auto iterFind2 = std::find_if(widgetData.begin(), widgetData.end(), [widgetId](auto& x) { return x.widgetId == widgetId; });
+		if (iterFind2 == widgetData.end())
+			return;
+
+		widgetData.erase(iterFind2);
+
+		if (widgetData.empty())
+		{
+			mPerCameraData.erase(iterFind);
+			mReferencedCameras.erase(camera);
+		}
 	}
 	}
 }

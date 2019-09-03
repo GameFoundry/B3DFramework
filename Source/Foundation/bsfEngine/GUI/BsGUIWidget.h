@@ -35,6 +35,12 @@ namespace bs
 
 		/** Rebuilds any dirty internal data. */
 		void rebuildDirty();
+
+		/** Notifies the system that element's contents were marked as dirty. */
+		void notifyContentDirty(GUIElement* element);
+
+		/** Notifies the system that element's mesh was marked as dirty. */
+		void notifyMeshDirty(GUIElement* element);
 		
 	private:
 		/** Single element in a GUIDrawGroup */
@@ -77,11 +83,11 @@ namespace bs
 		/** Splits the provided draw group at the specified depth. Returns the second half of the group. */
 		GUIDrawGroup& split(UINT32 groupIdx, UINT32 depth);
 
-		/** Fully rebuilds the bounds of the specified draw group. */
-		void updateBounds(GUIDrawGroup& group);
-
 		/** Rebuilds the GUI element meshes. */
 		void rebuildMeshes();
+
+		/** Calculates the bounds of all visible elements in the draw group. */
+		static Rect2I calculateBounds(GUIDrawGroup& group);
 
 		Vector<GUIDrawGroup> mEntries;
 		SPtr<Mesh> mTriangleMesh;

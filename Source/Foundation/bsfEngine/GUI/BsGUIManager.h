@@ -67,15 +67,13 @@ namespace bs
 				:isDirty(true)
 			{ }
 
-			Vector<GUIMeshData> cachedMeshes;
 			Vector<GUIWidget*> widgets;
 			bool isDirty;
 		};
 
 		/**	Render data for a single GUI group used for notifying the core GUI renderer. */
-		struct GUICoreRenderData
+		struct GUIElementRenderData
 		{
-			SPtr<ct::Mesh> mesh;
 			SubMesh subMesh;
 			SPtr<ct::Texture> texture;
 			SPtr<ct::SpriteTexture> spriteTexture;
@@ -85,6 +83,24 @@ namespace bs
 			Matrix4 worldTransform;
 			SPtr<SpriteMaterialExtraInfo> additionalData;
 			UINT32 bufferIdx;
+		};
+
+		/** Information required for rendering a single GUI draw group. */
+		struct GUIDrawGroupRenderData
+		{
+			UINT32 id = 0;
+			SPtr<ct::Mesh> mesh;
+			SPtr<ct::RenderTexture> destination;
+			bool requiresRedraw = true;
+
+			Vector<GUIElementRenderData> elements;
+		};
+
+		/** Contains a set of data required for updating the GUI rendering thread. */
+		struct GUIRenderUpdateData
+		{
+			Vector<GUIDrawGroupRenderData> newDrawGroups;
+			Vector<bool> groupDirtyState;
 		};
 
 		/**	Container for a GUI widget. */
@@ -368,10 +384,6 @@ namespace bs
 		UnorderedMap<const Viewport*, GUIRenderData> mCachedGUIData;
 
 		SPtr<ct::GUIRenderer> mRenderer;
-		bool mCoreDirty = false;
-
-		SPtr<VertexDataDesc> mTriangleVertexDesc;
-		SPtr<VertexDataDesc> mLineVertexDesc;
 
 		Stack<GUIElement*> mScheduledForDestruction;
 
@@ -472,16 +484,21 @@ namespace bs
 		/** Called every frame from the main thread with the time of the current frame. */
 		void update(float time);
 
-		/**
-		 * Updates the internal data that determines what will be rendered on the next render() call.
-		 *
-		 * @param[in]	perCameraData	GUI mesh/material per viewport.
-		 */
-		void updateData(const UnorderedMap<SPtr<Camera>, Vector<GUIManager::GUICoreRenderData>>& perCameraData);
+		/** Updates the data required for rendering draw groups on the specified widget. */
+		void updateDrawGroups(const SPtr<Camera>& camera, UINT64 widgetId, const GUIManager::GUIRenderUpdateData& data);
 
-		UnorderedMap<const Camera*, Vector<GUIManager::GUICoreRenderData>> mPerCameraData;
+		/** Clears all draw groups from the specified widget. */
+		void clearDrawGroups(const SPtr<Camera>& camera, UINT64 widgetId);
+		
+		struct GUIWidgetRenderData
+		{
+			UINT64 widgetId;
+			Vector<GUIManager::GUIDrawGroupRenderData> drawGroups;
+			Vector<SPtr<GpuParamBlockBuffer>> paramBlocks;
+		};
+		
+		UnorderedMap<const Camera*, Vector<GUIWidgetRenderData>> mPerCameraData;
 		Set<SPtr<Camera>> mReferencedCameras;
-		Vector<SPtr<GpuParamBlockBuffer>> mParamBlocks;
 		SPtr<SamplerState> mSamplerState;
 		float mTime = 0.0f;
 	};
