@@ -59,14 +59,14 @@ namespace bs
 
 	void GUIDrawGroups::add(GUIElement* element)
 	{
-		UINT32 numRenderElems = element->_getNumRenderElements();
+		const SmallVector<GUIRenderElement, 4> & renderElements = element->_getRenderElements();
 
-		for (UINT32 i = 0; i < numRenderElems; i++)
+		for (UINT32 i = 0; i < renderElements.size(); i++)
 		{
-			UINT32 elemDepth = element->_getRenderElementDepth(i);
+			const GUIRenderElement& renderElement = renderElements[i];
+			UINT32 elemDepth = element->_getDepth() + renderElement.depth;
 
-			SpriteMaterial* spriteMaterial = nullptr;
-			element->_getMaterial(i, &spriteMaterial);
+			SpriteMaterial* spriteMaterial = renderElement.material;
 			assert(spriteMaterial != nullptr);
 
 			// Groups are expected to be sorted by minDepth
@@ -227,8 +227,8 @@ namespace bs
 			// Make a list of all GUI elements, sorted from farthest to nearest (highest depth to lowest)
 			auto elemComp = [](const GUIGroupElement& a, const GUIGroupElement& b)
 			{
-				UINT32 aDepth = a.element->_getRenderElementDepth(a.renderElement);
-				UINT32 bDepth = b.element->_getRenderElementDepth(b.renderElement);
+				UINT32 aDepth = a.element->_getDepth() + a.element->_getRenderElements()[a.renderElement].depth;
+				UINT32 bDepth = b.element->_getDepth() + b.element->_getRenderElements()[b.renderElement].depth;
 
 				// Compare pointers just to differentiate between two elements with the same depth, their order doesn't really matter, but std::set
 				// requires all elements to be unique
@@ -268,11 +268,13 @@ namespace bs
 				{
 					GUIElement* guiElem = elem.element;
 					UINT32 renderElemIdx = elem.renderElement;
-					UINT32 elemDepth = guiElem->_getRenderElementDepth(renderElemIdx);
+					const GUIRenderElement& renderElem = elem.element->_getRenderElements()[renderElemIdx];
+
+					UINT32 elemDepth = guiElem->_getDepth() + renderElem.depth;
 					Rect2I bounds = guiElem->_getClippedBounds();
 
-					SpriteMaterial* spriteMaterial = nullptr;
-					const SpriteMaterialInfo& matInfo = guiElem->_getMaterial(renderElemIdx, &spriteMaterial);
+					SpriteMaterial* spriteMaterial = renderElem.material;
+					const SpriteMaterialInfo& matInfo = *renderElem.matInfo;
 					assert(spriteMaterial != nullptr);
 
 					UINT64 hash = spriteMaterial->getMergeHash(matInfo);
@@ -342,8 +344,9 @@ namespace bs
 						foundGroup->elements.push_back(GUIGroupElement(guiElem, renderElemIdx));
 						foundGroup->matInfo = matInfo.clone();
 						foundGroup->material = spriteMaterial;
-
-						guiElem->_getMeshInfo(renderElemIdx, foundGroup->numVertices, foundGroup->numIndices, foundGroup->meshType);
+						foundGroup->numVertices = renderElem.numVertices;
+						foundGroup->numIndices = renderElem.numIndices;
+						foundGroup->meshType = renderElem.type;
 					}
 					else
 					{
@@ -351,14 +354,11 @@ namespace bs
 						foundGroup->elements.push_back(GUIGroupElement(guiElem, renderElemIdx));
 						foundGroup->minDepth = std::min(foundGroup->minDepth, elemDepth);
 
-						UINT32 numVertices;
-						UINT32 numIndices;
-						GUIMeshType meshType;
-						guiElem->_getMeshInfo(renderElemIdx, numVertices, numIndices, meshType);
-						assert(meshType == foundGroup->meshType); // It's expected that GUI element doesn't use same material for different mesh types so this should always be true
+						// It's expected that GUI element doesn't use same material for different mesh types so this should always be true
+						assert(renderElem.type == foundGroup->meshType);
 
-						foundGroup->numVertices += numVertices;
-						foundGroup->numIndices += numIndices;
+						foundGroup->numVertices += renderElem.numVertices;
+						foundGroup->numIndices += renderElem.numIndices;
 
 						spriteMaterial->merge(foundGroup->matInfo, matInfo);
 					}
@@ -455,21 +455,18 @@ namespace bs
 							vertexOffset[typeIdx], indexOffset[typeIdx],
 							totalNumVertices[typeIdx], totalNumVertices[typeIdx], matElement.renderElement);
 
-						UINT32 elemNumVertices;
-						UINT32 elemNumIndices;
-						GUIMeshType meshType;
-						matElement.element->_getMeshInfo(matElement.renderElement, elemNumVertices, elemNumIndices, meshType);
+						const GUIRenderElement& renderElement = matElement.element->_getRenderElements()[matElement.renderElement];
 
 						UINT32 indexStart = indexOffset[typeIdx];
-						UINT32 indexEnd = indexStart + elemNumIndices;
+						UINT32 indexEnd = indexStart + renderElement.numIndices;
 
-						for (UINT32 j = indexStart; j < indexEnd; j++)
-							indices[typeIdx][j] += vertexOffset[typeIdx];
+						for (UINT32 i = indexStart; i < indexEnd; i++)
+							indices[typeIdx][i] += vertexOffset[typeIdx];
 
-						indexOffset[typeIdx] += elemNumIndices;
-						vertexOffset[typeIdx] += elemNumVertices;
+						indexOffset[typeIdx] += renderElement.numIndices;
+						vertexOffset[typeIdx] += renderElement.numVertices;
 
-						groupNumIndices += elemNumIndices;
+						groupNumIndices += renderElement.numIndices;
 					}
 
 					guiMesh.indexCount = groupNumIndices;
@@ -509,7 +506,7 @@ namespace bs
 		auto it = std::partition(group.cachedElements.begin(), group.cachedElements.end(),
 			[depth](const GUIGroupElement& x)
 		{
-				UINT32 elemDepth = x.element->_getRenderElementDepth(x.renderElement);
+				UINT32 elemDepth = x.element->_getDepth() + x.element->_getRenderElements()[x.renderElement].depth;
 				return elemDepth < depth;
 		});
 

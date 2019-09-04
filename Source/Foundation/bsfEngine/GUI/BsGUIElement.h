@@ -139,7 +139,7 @@ namespace bs
 		 * Returns information about all renderable elements in this GUI element, including their mesh, material and
 		 * general information.
 		 */
-		const SmallVector<GUIRenderElement, 4>& getRenderElements() const { return mRenderElements; }
+		const SmallVector<GUIRenderElement, 4>& _getRenderElements() const { return mRenderElements; }
 
 		/**
 		 * Fill the pre-allocated vertex, uv and index buffers with the mesh data for the specified render element.
@@ -206,17 +206,6 @@ namespace bs
 		void _changeParentWidget(GUIWidget* widget) override;
 
 		/**
-<<<<<<< HEAD
-=======
-		 * Returns depth for a specific render element. This contains a combination of widget depth (8 bit, area depth
-		 * (16 bit) and render element depth (8 bit).
-		 *
-		 * @see		_getNumRenderElements
-		 */
-		virtual UINT32 _getRenderElementDepth(UINT32 renderElementIdx) const { return _getDepth(); }
-
-		/**
->>>>>>> WIP: Initial work on GUI draw results caching
 		 * Returns the range of depths that the child elements can be rendered it.
 		 *
 		 * @note	
