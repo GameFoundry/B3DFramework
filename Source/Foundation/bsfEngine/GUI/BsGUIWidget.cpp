@@ -47,7 +47,6 @@ namespace bs
 		}
 	}
 
-	
 	GUIDrawGroups::GUIDrawGroups()
 	{
 		GUIDrawGroup mainDrawGroup;
@@ -55,37 +54,44 @@ namespace bs
 		mainDrawGroup.depthRange = std::numeric_limits<UINT32>::max();
 		mainDrawGroup.id = mNextDrawGroupId++;
 		
-		mEntries.push_back(mainDrawGroup);
+		mDrawGroups.push_back(mainDrawGroup);
 	}
 
 	void GUIDrawGroups::add(GUIElement* element)
 	{
 		const SmallVector<GUIRenderElement, 4> & renderElements = element->_getRenderElements();
 
+		GUIGroupElement& groupElement = mElements[element];
+		groupElement.element = element;
+		groupElement.bounds = element->_getClippedBounds();
+		groupElement.groups.resize(renderElements.size());
+
 		for (UINT32 i = 0; i < renderElements.size(); i++)
-			add(element, i);
+			add(groupElement, i);
 	}
 
-	void GUIDrawGroups::add(GUIElement* element, UINT32 renderElementIdx)
+	void GUIDrawGroups::add(GUIGroupElement& groupElement, UINT32 renderElementIdx)
 	{
+		GUIElement* element = groupElement.element;
 		const SmallVector<GUIRenderElement, 4> & renderElements = element->_getRenderElements();
 
 		const GUIRenderElement& renderElement = renderElements[renderElementIdx];
 		UINT32 elemDepth = element->_getDepth() + renderElement.depth;
 
 		// Groups are expected to be sorted by minDepth
-		for (UINT32 j = 0; j < (UINT32)mEntries.size(); j++)
+		for (UINT32 j = 0; j < (UINT32)mDrawGroups.size(); j++)
 		{
-			if (elemDepth < mEntries[j].minDepth)
+			if (elemDepth < mDrawGroups[j].minDepth)
 				continue;
 
-			add(element, renderElementIdx, j);
+			add(groupElement, renderElementIdx, j);
 			break;
 		}
 	}
 
-	void GUIDrawGroups::add(GUIElement* element, UINT32 renderElementIdx, UINT32 groupIdx)
+	void GUIDrawGroups::add(GUIGroupElement& groupElement, UINT32 renderElementIdx, UINT32 groupIdx)
 	{
+		GUIElement* element = groupElement.element;
 		const SmallVector<GUIRenderElement, 4> & renderElements = element->_getRenderElements();
 
 		const GUIRenderElement& renderElement = renderElements[renderElementIdx];
@@ -94,16 +100,17 @@ namespace bs
 		SpriteMaterial* spriteMaterial = renderElement.material;
 		assert(spriteMaterial != nullptr);
 
-		GUIDrawGroup& group = mEntries[groupIdx];
+		GUIDrawGroup& group = mDrawGroups[groupIdx];
 		if (spriteMaterial->allowBatching())
 		{
-			group.cachedElements.push_back(GUIGroupElement(element, renderElementIdx));
+			group.cachedElements.push_back(GUIGroupRenderElement(element, renderElementIdx));
 
 			Rect2I bounds = element->_getClippedBounds();
 			group.bounds.encapsulate(bounds);
 			group.needsRedraw = true;
 
-			renderElement.drawGroupId = group.id;
+			//renderElement.drawGroupId = group.id;
+			groupElement.groups[renderElementIdx] = group.id;
 		}
 		else
 		{
@@ -112,14 +119,18 @@ namespace bs
 			{
 				GUIDrawGroup& newGroup = split(groupIdx, elemDepth);
 
-				newGroup.nonCachedElements.push_back(GUIGroupElement(element, renderElementIdx));
-				renderElement.drawGroupId = newGroup.id;
+				group.nonCachedElements.push_back(GUIGroupRenderElement(element, renderElementIdx));
+
+				//renderElement.drawGroupId = newGroup.id;
+				groupElement.groups[renderElementIdx] = newGroup.id;
 				newGroup.needsRedraw = true;
 			}
 			else
 			{
-				group.nonCachedElements.push_back(GUIGroupElement(element, renderElementIdx));
-				renderElement.drawGroupId = group.id;
+				group.nonCachedElements.push_back(GUIGroupRenderElement(element, renderElementIdx));
+
+				//renderElement.drawGroupId = group.id;
+				groupElement.groups[renderElementIdx] = group.id;
 				group.needsRedraw = true;
 			}
 		}
@@ -127,37 +138,45 @@ namespace bs
 
 	void GUIDrawGroups::remove(GUIElement* element)
 	{
+		auto iterFind = mElements.find(element);
+		if (iterFind == mElements.end())
+			return;
+
 		const SmallVector<GUIRenderElement, 4>& renderElements = element->_getRenderElements();
 		for (UINT32 i = 0; i < renderElements.size(); i++)
-			remove(element, i);
+			remove(iterFind->second, i);
+
+		mElements.erase(element);
 	}
 
-	void GUIDrawGroups::remove(GUIElement* element, UINT32 renderElementIdx)
+	void GUIDrawGroups::remove(GUIGroupElement& groupElement, UINT32 renderElementIdx)
 	{
+		GUIElement* element = groupElement.element;
 		const SmallVector<GUIRenderElement, 4>& renderElements = element->_getRenderElements();
 
-		auto iterFind = std::find_if(mEntries.begin(), mEntries.end(),
-			[drawGroupId = renderElements[renderElementIdx].drawGroupId](const GUIDrawGroup& group) { return group.id == drawGroupId; });
+		auto iterFind = std::find_if(mDrawGroups.begin(), mDrawGroups.end(),
+			[drawGroupId = groupElement.groups[renderElementIdx]](const GUIDrawGroup& group) { return group.id == drawGroupId; });
 
-		assert(iterFind != mEntries.end());
-		if (iterFind != mEntries.end())
+		assert(iterFind != mDrawGroups.end());
+		if (iterFind != mDrawGroups.end())
 		{
-			UINT32 idx = (UINT32)(iterFind - mEntries.begin());
-			if(mEntries[idx].id == renderElements[renderElementIdx].drawGroupId)
-				remove(element, renderElementIdx, idx);
+			UINT32 idx = (UINT32)(iterFind - mDrawGroups.begin());
+			remove(groupElement, renderElementIdx, idx);
 		}
 	}
 
-	void GUIDrawGroups::remove(GUIElement* element, UINT32 renderElementIdx, UINT32 groupIdx)
+	void GUIDrawGroups::remove(GUIGroupElement& groupElement, UINT32 renderElementIdx, UINT32 groupIdx)
 	{
+		GUIElement* element = groupElement.element;
 		const SmallVector<GUIRenderElement, 4>& renderElements = element->_getRenderElements();
-		GUIDrawGroup& group = mEntries[groupIdx];
+		GUIDrawGroup& group = mDrawGroups[groupIdx];
 
 		for(auto iter = group.cachedElements.begin(); iter != group.cachedElements.end();)
 		{
-			if (iter->element == element && iter->renderElement == renderElementIdx)
+			if (iter->element == element && iter->renderElementIdx == renderElementIdx)
 			{
 				group.dirtyBounds = true;
+				
 				iter = group.cachedElements.erase(iter);
 			}
 			else
@@ -165,10 +184,15 @@ namespace bs
 		}
 		
 		group.nonCachedElements.erase(std::remove_if(group.nonCachedElements.begin(), group.nonCachedElements.end(),
-			[element, renderElementIdx](const GUIGroupElement& x) { return x.element == element && x.renderElement == renderElementIdx; }),
+			[element, renderElementIdx](const GUIGroupRenderElement& x)
+			{ return x.element == element && x.renderElementIdx == renderElementIdx; }),
 			group.nonCachedElements.end());
 
 		group.needsRedraw = true;
+
+		// Purposely not clearing draw group on the GUIRenderElement, as its indices could have changed and it might not
+		// match the current index. It's up to external code to handle that.
+		groupElement.groups[renderElementIdx] = -1;
 
 		// Attempt to merge with previous group
 		if(group.nonCachedElements.empty() && group.minDepth > 0)
@@ -176,14 +200,20 @@ namespace bs
 			assert(groupIdx > 0);
 
 			UINT32 prevGroupIdx = groupIdx - 1;
-			GUIDrawGroup& prevGroup = mEntries[prevGroupIdx];
+			GUIDrawGroup& prevGroup = mDrawGroups[prevGroupIdx];
 
 			prevGroup.depthRange += group.depthRange;
 
 			for (auto& entry : group.cachedElements)
 			{
-				const GUIRenderElement& renderElemToMerge = entry.element->_getRenderElements()[entry.renderElement];
-				renderElemToMerge.drawGroupId = prevGroup.id;
+				const GUIRenderElement& renderElemToMerge = entry.element->_getRenderElements()[entry.renderElementIdx];
+
+				//renderElemToMerge.drawGroupId = prevGroup.id;
+
+				auto iterFind = mElements.find(entry.element);
+				assert(iterFind != mElements.end());
+				if (iterFind != mElements.end())
+					iterFind->second.groups[renderElementIdx] = prevGroup.id;
 
 				prevGroup.dirtyBounds = true;
 			}
@@ -191,13 +221,13 @@ namespace bs
 			std::move(group.cachedElements.begin(), group.cachedElements.end(), std::back_inserter(prevGroup.cachedElements));
 			prevGroup.needsRedraw = true;
 			
-			mEntries.erase(mEntries.begin() + groupIdx);
+			mDrawGroups.erase(mDrawGroups.begin() + groupIdx);
 		}
 	}
 
 	void GUIDrawGroups::rebuildDirty()
 	{
-		for(auto& entry : mEntries)
+		for(auto& entry : mDrawGroups)
 		{
 			if(entry.dirtyBounds)
 			{
@@ -234,56 +264,92 @@ namespace bs
 		// TODO - Dirty elements should be cached, then only cause a rebuild when its needed. This is esp. needed because both
 		// mesh and content might get dirtied when content is dirtied
 
-		// TODO - How to handle the case when render elements are removed from a GUI element? They will remain the the draw
-		// group permanently
-		//  - Likely need to cache render elements and their draw groups
-		
-		
 		// We're looking for sprite material changes and bound changes, any other changes should not affect the draw group
+		auto iterFind = mElements.find(element);
+		assert(iterFind != mElements.end());
+		if (iterFind == mElements.end())
+			return;
+
 		const SmallVector<GUIRenderElement, 4>& renderElements = element->_getRenderElements();
+		GUIGroupElement& groupElement = iterFind->second;
+
+		bool renderElementsDirty = groupElement.groups.size() != renderElements.size();
+		//if(!renderElementsDirty)
+		//{
+		//	for(UINT32 i = 0; i < renderElements.size(); i++)
+		//	{
+		//		if(groupElement.groups[i] != renderElements[i].drawGroupId)
+		//		{
+		//			renderElementsDirty = true;
+		//			break;
+		//		}
+		//	}
+		//}
+
+		// If render element count changed, do a full rebuild of the draw group
+		if(renderElementsDirty)
+		{
+			remove(element);
+			add(element);
+
+			return;
+		}
+
+		// If bounds changed, rebuild the bounds of the draw groups
+		Rect2I bounds = element->_getClippedBounds();
+		bool dirtyBounds = false;
+		if(groupElement.bounds != bounds)
+		{
+			dirtyBounds = true;
+			groupElement.bounds = bounds;
+		}
+		
 		for (UINT32 i = 0; i < renderElements.size(); i++)
 		{
 			const GUIRenderElement& renderElement = renderElements[i];
+			INT32 drawGroupId = groupElement.groups[i];
 
 			// All render elements draw group IDs should be assigned at this point
-			assert(renderElement.drawGroupId != -1);
+			assert(drawGroupId != -1);
 
-			auto iterFind = std::find_if(mEntries.begin(), mEntries.end(),
-				[drawGroupId = renderElement.drawGroupId](const GUIDrawGroup& group) { return group.id == drawGroupId; });
+			auto iterFind2 = std::find_if(mDrawGroups.begin(), mDrawGroups.end(),
+				[drawGroupId](const GUIDrawGroup& group) { return group.id == drawGroupId; });
 
-			assert(iterFind != mEntries.end());
-			if (iterFind != mEntries.end())
+			assert(iterFind2 != mDrawGroups.end());
+			if (iterFind2 != mDrawGroups.end())
 			{
-				GUIDrawGroup& group = *iterFind;
-				UINT32 depth = element->_getDepth() + renderElement.depth;
+				GUIDrawGroup& group = *iterFind2;
 
-				// If same as min-depth, no group change is necessary in any case
-				if (depth != group.minDepth)
+				if (dirtyBounds)
+					group.dirtyBounds = dirtyBounds;
+
+				bool materialChanged = false;
+
+				if(renderElement.material->allowBatching())
 				{
-					bool needsGroupChange = false;
-					// If less than min-depth, group change is always necessary
-					if (depth < group.minDepth)
-						needsGroupChange = true;
-					// Non-batching elements must be at min-depth, so group change is necessary
-					else if (!renderElement.material->allowBatching())
-						needsGroupChange = true;
-					// Batching but outside of the group's depth range, group change is necessary
-					else if (depth >= (group.minDepth + group.depthRange))
-						needsGroupChange = true;
+					auto iterFind3 = std::find_if(group.cachedElements.begin(), group.cachedElements.end(), [element, i](auto& x)
+						{ return x.element == element && x.renderElementIdx == i; });
+					if (iterFind3 == group.cachedElements.end())
+						materialChanged = true;
+				}
+				else
+				{
+					auto iterFind3 = std::find_if(group.nonCachedElements.begin(), group.nonCachedElements.end(), [element, i](auto& x)
+						{ return x.element == element && x.renderElementIdx == i; });
+					if (iterFind3 == group.nonCachedElements.end())
+						materialChanged = true;
+				}
 
-					if (needsGroupChange)
-					{
-						UINT32 groupIdx = (UINT32)(iterFind - mEntries.begin());
-						remove(element, i, groupIdx);
-						add(element, i);
-					}
+				if(materialChanged)
+				{
+					UINT32 groupIdx = (UINT32)(iterFind2 - mDrawGroups.begin());
+					remove(groupElement, i, groupIdx);
+					add(groupElement, i);
 				}
 
 				group.needsRedraw = true;
 			}
 		}
-		
-		// TODO - Check for material changes
 	}
 
 	void GUIDrawGroups::notifyMeshDirty(GUIElement* element)
@@ -291,22 +357,30 @@ namespace bs
 		// TODO - Dirty elements should be cached, then only cause a rebuild when its needed. This is esp. needed because both
 		// mesh and content might get dirtied when content is dirtied
 
-		// Mesh should only be dirtied when element depth or active state changes, so we check for those states
+		auto iterFind = mElements.find(element);
+		assert(iterFind != mElements.end());
+		if (iterFind == mElements.end())
+			return;
+		
 		const SmallVector<GUIRenderElement, 4>& renderElements = element->_getRenderElements();
+		GUIGroupElement& groupElement = iterFind->second;
+		assert(groupElement.groups.size() == renderElements.size());
+
+		// Mesh should only be dirtied when element depth or active state changes, so we check for those states
 		for(UINT32 i = 0; i < renderElements.size(); i++)
 		{
 			const GUIRenderElement& renderElement = renderElements[i];
 			
 			// All render elements draw group IDs should be assigned at this point
-			assert(renderElement.drawGroupId != -1);
+			assert(groupElement.groups[i] != -1);
 
-			auto iterFind = std::find_if(mEntries.begin(), mEntries.end(),
-				[drawGroupId = renderElement.drawGroupId](const GUIDrawGroup& group) { return group.id == drawGroupId; });
+			auto iterFind2 = std::find_if(mDrawGroups.begin(), mDrawGroups.end(),
+				[drawGroupId = groupElement.groups[i]](const GUIDrawGroup& group) { return group.id == drawGroupId; });
 
-			assert(iterFind != mEntries.end());
-			if (iterFind != mEntries.end())
+			assert(iterFind2 != mDrawGroups.end());
+			if (iterFind2 != mDrawGroups.end())
 			{
-				GUIDrawGroup& group = *iterFind;
+				GUIDrawGroup& group = *iterFind2;
 				UINT32 depth = element->_getDepth() + renderElement.depth;
 
 				// If same as min-depth, no group change is necessary in any case
@@ -325,9 +399,9 @@ namespace bs
 
 					if(needsGroupChange)
 					{
-						UINT32 groupIdx = (UINT32)(iterFind - mEntries.begin());
-						remove(element, i, groupIdx);
-						add(element, i);
+						UINT32 groupIdx = (UINT32)(iterFind2 - mDrawGroups.begin());
+						remove(groupElement, i, groupIdx);
+						add(groupElement, i);
 					}
 				}
 
@@ -348,7 +422,7 @@ namespace bs
 			UINT32 depth;
 			UINT32 minDepth;
 			Rect2I bounds;
-			Vector<GUIGroupElement> elements;
+			Vector<GUIGroupRenderElement> elements;
 		};
 
 		struct GUIMaterialGroupSet
@@ -365,26 +439,26 @@ namespace bs
 		bs_frame_mark();
 		{
 			// Make a list of all GUI elements, sorted from farthest to nearest (highest depth to lowest)
-			auto elemComp = [](const GUIGroupElement& a, const GUIGroupElement& b)
+			auto elemComp = [](const GUIGroupRenderElement& a, const GUIGroupRenderElement& b)
 			{
-				UINT32 aDepth = a.element->_getDepth() + a.element->_getRenderElements()[a.renderElement].depth;
-				UINT32 bDepth = b.element->_getDepth() + b.element->_getRenderElements()[b.renderElement].depth;
+				UINT32 aDepth = a.element->_getDepth() + a.element->_getRenderElements()[a.renderElementIdx].depth;
+				UINT32 bDepth = b.element->_getDepth() + b.element->_getRenderElements()[b.renderElementIdx].depth;
 
 				// Compare pointers just to differentiate between two elements with the same depth, their order doesn't really matter, but std::set
 				// requires all elements to be unique
 				return (aDepth > bDepth) ||
 					(aDepth == bDepth && a.element > b.element) ||
-					(aDepth == bDepth && a.element == b.element && a.renderElement > b.renderElement);
+					(aDepth == bDepth && a.element == b.element && a.renderElementIdx > b.renderElementIdx);
 			};
 
 			FrameVector<GUIMaterialGroupSet> groupSets;
-			groupSets.reserve(mEntries.size());
+			groupSets.reserve(mDrawGroups.size());
 
-			for (auto& entry : mEntries)
+			for (auto& entry : mDrawGroups)
 			{
 				// Note: If we keep visible elements separate from invisible, plus provide sorting on insert, we could avoid this
 				// re-sorting and re-inserting step.
-				FrameSet<GUIGroupElement, std::function<bool(const GUIGroupElement&, const GUIGroupElement&)>> allElements(elemComp);
+				FrameSet<GUIGroupRenderElement, std::function<bool(const GUIGroupRenderElement&, const GUIGroupRenderElement&)>> allElements(elemComp);
 				for (auto& element : entry.cachedElements)
 				{
 					if (!element.element->_isVisible())
@@ -407,7 +481,7 @@ namespace bs
 				for (auto& elem : allElements)
 				{
 					GUIElement* guiElem = elem.element;
-					UINT32 renderElemIdx = elem.renderElement;
+					UINT32 renderElemIdx = elem.renderElementIdx;
 					const GUIRenderElement& renderElem = elem.element->_getRenderElements()[renderElemIdx];
 
 					UINT32 elemDepth = guiElem->_getDepth() + renderElem.depth;
@@ -481,7 +555,7 @@ namespace bs
 						foundGroup->depth = elemDepth;
 						foundGroup->minDepth = elemDepth;
 						foundGroup->bounds = bounds;
-						foundGroup->elements.push_back(GUIGroupElement(guiElem, renderElemIdx));
+						foundGroup->elements.push_back(GUIGroupRenderElement(guiElem, renderElemIdx));
 						foundGroup->matInfo = matInfo.clone();
 						foundGroup->material = spriteMaterial;
 						foundGroup->numVertices = renderElem.numVertices;
@@ -491,7 +565,7 @@ namespace bs
 					else
 					{
 						foundGroup->bounds.encapsulate(bounds);
-						foundGroup->elements.push_back(GUIGroupElement(guiElem, renderElemIdx));
+						foundGroup->elements.push_back(GUIGroupRenderElement(guiElem, renderElemIdx));
 						foundGroup->minDepth = std::min(foundGroup->minDepth, elemDepth);
 
 						// It's expected that GUI element doesn't use same material for different mesh types so this should always be true
@@ -537,10 +611,10 @@ namespace bs
 			UINT32 totalNumIndices[2] = { 0, 0 };
 			UINT32 totalNumVertices[2] = { 0, 0 };
 
-			for (UINT32 i = 0; i < (UINT32)mEntries.size(); i++)
+			for (UINT32 i = 0; i < (UINT32)mDrawGroups.size(); i++)
 			{
 				GUIMaterialGroupSet& set = groupSets[i];
-				mEntries[i].meshes.resize(set.numMeshes);
+				mDrawGroups[i].meshes.resize(set.numMeshes);
 
 				for (UINT32 j = 0; j < 2; j++)
 				{
@@ -569,7 +643,7 @@ namespace bs
 			UINT32 vertexOffset[2] = { 0, 0 };
 			UINT32 indexOffset[2] = { 0, 0 };
 
-			for (UINT32 i = 0; i < (UINT32)mEntries.size(); i++)
+			for (UINT32 i = 0; i < (UINT32)mDrawGroups.size(); i++)
 			{
 				GUIMaterialGroupSet& set = groupSets[i];
 
@@ -578,7 +652,7 @@ namespace bs
 
 				for (auto& group : set.sortedGroups)
 				{
-					GUIMesh& guiMesh = mEntries[i].meshes[meshIdx];
+					GUIMesh& guiMesh = mDrawGroups[i].meshes[meshIdx];
 					guiMesh.matInfo = group->matInfo;
 					guiMesh.material = group->material;
 					guiMesh.isLine = group->meshType == GUIMeshType::Line;
@@ -593,9 +667,9 @@ namespace bs
 						matElement.element->_fillBuffer(
 							vertices[typeIdx], indices[typeIdx],
 							vertexOffset[typeIdx], indexOffset[typeIdx],
-							totalNumVertices[typeIdx], totalNumVertices[typeIdx], matElement.renderElement);
+							totalNumVertices[typeIdx], totalNumVertices[typeIdx], matElement.renderElementIdx);
 
-						const GUIRenderElement& renderElement = matElement.element->_getRenderElements()[matElement.renderElement];
+						const GUIRenderElement& renderElement = matElement.element->_getRenderElements()[matElement.renderElementIdx];
 
 						UINT32 indexStart = indexOffset[typeIdx];
 						UINT32 indexEnd = indexStart + renderElement.numIndices;
@@ -627,7 +701,7 @@ namespace bs
 
 	GUIDrawGroups::GUIDrawGroup& GUIDrawGroups::split(UINT32 groupIdx, UINT32 depth)
 	{
-		GUIDrawGroup& group = mEntries[groupIdx];
+		GUIDrawGroup& group = mDrawGroups[groupIdx];
 		assert(depth > group.minDepth);
 		
 		UINT32 maxDepth = group.minDepth + group.depthRange;
@@ -639,9 +713,9 @@ namespace bs
 		newSplitGroup.id = mNextDrawGroupId++;
 
 		auto it = std::partition(group.cachedElements.begin(), group.cachedElements.end(),
-			[depth](const GUIGroupElement& x)
+			[depth](const GUIGroupRenderElement& x)
 		{
-				UINT32 elemDepth = x.element->_getDepth() + x.element->_getRenderElements()[x.renderElement].depth;
+				UINT32 elemDepth = x.element->_getDepth() + x.element->_getRenderElements()[x.renderElementIdx].depth;
 				return elemDepth < depth;
 		});
 
@@ -649,14 +723,21 @@ namespace bs
 		group.cachedElements.erase(it, group.cachedElements.end());
 
 		for (auto& entry : newSplitGroup.cachedElements)
-			entry.element->_getRenderElements()[entry.renderElement].drawGroupId = newSplitGroup.id;
+		{
+			//entry.element->_getRenderElements()[entry.renderElementIdx].drawGroupId = newSplitGroup.id;
+
+			auto iterFind = mElements.find(entry.element);
+			assert(iterFind != mElements.end());
+			if (iterFind != mElements.end())
+				iterFind->second.groups[entry.renderElementIdx] = newSplitGroup.id;
+		}
 
 		group.dirtyBounds = true;
 		group.needsRedraw = true;
 		newSplitGroup.dirtyBounds = true;
 
-		mEntries.insert(mEntries.begin() + groupIdx, std::move(newSplitGroup));
-		return mEntries[groupIdx + 1];
+		mDrawGroups.insert(mDrawGroups.begin() + groupIdx, std::move(newSplitGroup));
+		return mDrawGroups[groupIdx + 1];
 	}
 
 	Rect2I GUIDrawGroups::calculateBounds(GUIDrawGroup& group)

@@ -30,14 +30,8 @@ namespace bs
 		/** Iterates over all the render elements in the GUI elements and adds them to suitable draw groups. */
 		void add(GUIElement* element);
 
-		/** Adds a specific render element of a GUI element and adds it to a suitable draw group. */
-		void add(GUIElement* element, UINT32 renderElementIdx);
-
 		/** Removes all render elements in the provided GUI element from their current set of draw groups. */
 		void remove(GUIElement* element);
-
-		/** Removes a specific render element in the provided GUI element from their current draw group. */
-		void remove(GUIElement* element, UINT32 renderElementIdx);
 
 		/** Rebuilds any dirty internal data. */
 		void rebuildDirty();
@@ -61,6 +55,14 @@ namespace bs
 			UINT32 renderElementIdx = 0;
 		};
 
+		/** Contains information about all draw groups a GUI element is part of. */
+		struct GUIGroupElement
+		{
+			GUIElement* element = nullptr;
+			SmallVector<INT32, 4> groups;
+			Rect2I bounds;
+		};
+		
 		/** Data required for rendering a single GUI mesh. */
 		struct GUIMesh
 		{
@@ -96,19 +98,25 @@ namespace bs
 		 * Adds a specific render element of a GUI element to the specified draw group. Caller is responsible for
 		 * ensuring the element is a valid match for the group.
 		 */
-		void add(GUIElement* element, UINT32 renderElementIdx, UINT32 groupIdx);
+		void add(GUIGroupElement& element, UINT32 renderElementIdx, UINT32 groupIdx);
+
+		/** Adds a specific render element of a GUI element and adds it to a suitable draw group. */
+		void add(GUIGroupElement& element, UINT32 renderElementIdx);
 
 		/**
 		 * Removes a specific render element in the provided GUI element from the provided draw group. Caller is
 		 * responsible for ensuring the provided draw group is the element's current draw group.
 		 */
-		void remove(GUIElement* element, UINT32 renderElementIdx, UINT32 groupIdx);
+		void remove(GUIGroupElement& element, UINT32 renderElementIdx, UINT32 groupIdx);
+
+		/** Removes a specific render element in the provided GUI element from their current draw group. */
+		void remove(GUIGroupElement& element, UINT32 renderElementIdx);
 		
 		/** Calculates the bounds of all visible elements in the draw group. */
 		static Rect2I calculateBounds(GUIDrawGroup& group);
 
-		Vector<GUIDrawGroup> mEntries;
-
+		Vector<GUIDrawGroup> mDrawGroups;
+		UnorderedMap<GUIElement*, GUIGroupElement> mElements;
 		
 		SPtr<Mesh> mTriangleMesh;
 		SPtr<Mesh> mLineMesh;

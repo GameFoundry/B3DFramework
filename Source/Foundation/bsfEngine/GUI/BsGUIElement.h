@@ -42,8 +42,6 @@ namespace bs
 	{
 		GUIMeshType type = GUIMeshType::Triangle;
 		UINT32 depth = 0;
-
-		mutable INT32 drawGroupId = -1;
 	};
 
 	/**
