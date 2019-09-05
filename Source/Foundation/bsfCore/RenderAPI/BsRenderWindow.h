@@ -249,6 +249,13 @@ namespace bs
 		/** Notifies the window that a specific event occurred. Usually called by the platform specific main event loop. */
 		void _notifyWindowEvent(WindowEventType type);
 
+		// Methods to notify this window of external events that change the properties.
+		// These are useful when using "externalWindowHandle"
+		void _onExternalResize(UINT32 width, UINT32 height);
+		void _onExternalMove(INT32 top, INT32 left);
+		void _onExternalFocus(bool focused);
+		void _onExternalMaximized(bool maximized);
+
 		/** Method that triggers whenever the window changes size or position. */
 		virtual void _windowMovedOrResized() { }
 

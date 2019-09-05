@@ -364,6 +364,46 @@ namespace bs
 		}
 	}
 
+	void RenderWindow::_onExternalResize(UINT32 width, UINT32 height)
+	{
+		RenderWindowProperties& props = getMutableProperties();
+		props.width = width;
+		props.height = height;
+		_notifyWindowEvent(WindowEventType::Resized);
+	}
+
+	void RenderWindow::_onExternalMove(INT32 top, INT32 left)
+	{
+		RenderWindowProperties& props = getMutableProperties();
+		props.top = top;
+		props.left = left;
+		_notifyWindowEvent(WindowEventType::Moved);
+	}
+
+	void RenderWindow::_onExternalFocus(bool focused)
+	{
+		if(focused)
+		{
+			_notifyWindowEvent(WindowEventType::FocusReceived);
+		}
+		else
+		{
+			_notifyWindowEvent(WindowEventType::FocusLost);
+		}
+	}
+
+	void RenderWindow::_onExternalMaximized(bool maximized)
+	{
+		if(maximized)
+		{
+			_notifyWindowEvent(WindowEventType::Maximized);
+		}
+		else
+		{
+			_notifyWindowEvent(WindowEventType::Restored);
+		}
+	}
+
 	/************************************************************************/
 	/* 								SERIALIZATION                      		*/
 	/************************************************************************/
