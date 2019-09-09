@@ -15,7 +15,7 @@
 #include "Utility/BsEvent.h"
 #include "Material/BsMaterialParam.h"
 #include "Renderer/BsParamBlocks.h"
-#include "RenderAPI/BsSubMesh.h"
+#include "GUI/BsGUIWidget.h"
 
 namespace bs
 {
@@ -47,60 +47,6 @@ namespace bs
 			NoDrag,
 			HeldWithoutDrag,
 			Dragging
-		};
-
-		/** Data required for rendering a single GUI mesh. */
-		struct GUIMeshData
-		{
-			UINT32 indexOffset = 0;
-			UINT32 indexCount = 0;
-			SpriteMaterial* material;
-			SpriteMaterialInfo matInfo;
-			GUIWidget* widget;
-			bool isLine;
-		};
-
-		/**	GUI render data for a single viewport. */
-		struct GUIRenderData
-		{
-			GUIRenderData()
-				:isDirty(true)
-			{ }
-
-			Vector<GUIWidget*> widgets;
-			bool isDirty;
-		};
-
-		/**	Render data for a single GUI group used for notifying the core GUI renderer. */
-		struct GUIElementRenderData
-		{
-			SubMesh subMesh;
-			SPtr<ct::Texture> texture;
-			SPtr<ct::SpriteTexture> spriteTexture;
-			SpriteMaterial* material;
-			Color tint;
-			float animationStartTime;
-			Matrix4 worldTransform;
-			SPtr<SpriteMaterialExtraInfo> additionalData;
-			UINT32 bufferIdx;
-		};
-
-		/** Information required for rendering a single GUI draw group. */
-		struct GUIDrawGroupRenderData
-		{
-			UINT32 id = 0;
-			SPtr<ct::Mesh> mesh;
-			SPtr<ct::RenderTexture> destination;
-			bool requiresRedraw = true;
-
-			Vector<GUIElementRenderData> elements;
-		};
-
-		/** Contains a set of data required for updating the GUI rendering thread. */
-		struct GUIRenderUpdateData
-		{
-			Vector<GUIDrawGroupRenderData> newDrawGroups;
-			Vector<bool> groupDirtyState;
 		};
 
 		/**	Container for a GUI widget. */
@@ -257,9 +203,6 @@ namespace bs
 	private:
 		friend class ct::GUIRenderer;
 
-		/**	Recreates all dirty GUI meshes and makes them ready for rendering. */
-		void updateMeshes();
-
 		/**	Recreates the input caret texture. */
 		void updateCaretTexture();
 
@@ -381,8 +324,6 @@ namespace bs
 		static const UINT32 MESH_HEAP_INITIAL_NUM_INDICES;
 
 		Vector<WidgetInfo> mWidgets;
-		UnorderedMap<const Viewport*, GUIRenderData> mCachedGUIData;
-
 		SPtr<ct::GUIRenderer> mRenderer;
 
 		Stack<GUIElement*> mScheduledForDestruction;
@@ -485,7 +426,7 @@ namespace bs
 		void update(float time);
 
 		/** Updates the data required for rendering draw groups on the specified widget. */
-		void updateDrawGroups(const SPtr<Camera>& camera, UINT64 widgetId, const GUIManager::GUIRenderUpdateData& data);
+		void updateDrawGroups(const SPtr<Camera>& camera, UINT64 widgetId, const Matrix4& worldTransform, const GUIDrawGroupRenderDataUpdate& data);
 
 		/** Clears all draw groups from the specified widget. */
 		void clearDrawGroups(const SPtr<Camera>& camera, UINT64 widgetId);
@@ -493,8 +434,12 @@ namespace bs
 		struct GUIWidgetRenderData
 		{
 			UINT64 widgetId;
-			Vector<GUIManager::GUIDrawGroupRenderData> drawGroups;
+			Vector<GUIDrawGroupRenderData> drawGroups;
 			Vector<SPtr<GpuParamBlockBuffer>> paramBlocks;
+
+			SPtr<Mesh> triangleMesh;
+			SPtr<Mesh> lineMesh;
+			Matrix4 worldTransform = Matrix4::IDENTITY;
 		};
 		
 		UnorderedMap<const Camera*, Vector<GUIWidgetRenderData>> mPerCameraData;

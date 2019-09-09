@@ -69,11 +69,6 @@ namespace bs
 		return mInternal->getBounds();
 	}
 
-	bool CGUIWidget::isDirty(bool cleanIfDirty)
-	{
-		return mInternal->isDirty(cleanIfDirty);
-	}
-
 	Viewport* CGUIWidget::getTarget() const
 	{
 		return mInternal->getTarget();

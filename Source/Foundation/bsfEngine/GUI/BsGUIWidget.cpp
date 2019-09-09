@@ -13,6 +13,7 @@
 #include "Scene/BsSceneObject.h"
 #include "Resources/BsBuiltinResources.h"
 #include "RenderAPI/BsVertexDataDesc.h"
+#include "Image/BsSpriteTexture.h"
 
 namespace bs
 {
@@ -68,6 +69,8 @@ namespace bs
 
 		for (UINT32 i = 0; i < renderElements.size(); i++)
 			add(groupElement, i);
+
+		mGroupsCoreDirty = true;
 	}
 
 	void GUIDrawGroups::add(GUIGroupElement& groupElement, UINT32 renderElementIdx)
@@ -144,6 +147,8 @@ namespace bs
 			remove(iterFind->second, i);
 
 		mElements.erase(element);
+		mDirtyElements.erase(element);
+		mGroupsCoreDirty = true;
 	}
 
 	void GUIDrawGroups::remove(GUIGroupElement& groupElement, UINT32 renderElementIdx)
@@ -220,9 +225,10 @@ namespace bs
 		}
 	}
 
-	void GUIDrawGroups::rebuildDirty()
+	GUIDrawGroupRenderDataUpdate GUIDrawGroups::rebuildDirty(bool forceRebuildMeshes)
 	{
 		// Update dirty draw groups and mark them for redraw
+		bool shouldRebuildMeshes = forceRebuildMeshes;
 		for(auto& entry : mDirtyElements)
 		{
 			GUIElement* element = entry.first;
@@ -232,6 +238,8 @@ namespace bs
 			if (iterFind == mElements.end())
 				continue;
 
+			shouldRebuildMeshes = true;
+			
 			const SmallVector<GUIRenderElement, 4> & renderElements = element->_getRenderElements();
 			GUIGroupElement& groupElement = iterFind->second;
 
@@ -321,6 +329,8 @@ namespace bs
 						UINT32 groupIdx = (UINT32)(iterFind2 - mDrawGroups.begin());
 						remove(groupElement, i, groupIdx);
 						add(groupElement, i);
+
+						mGroupsCoreDirty = true;
 					}
 
 					group.needsRedraw = true;
@@ -359,8 +369,33 @@ namespace bs
 				entry.bounds = newBounds;
 			}
 		}
+
+		// Rebuild draw group meshes if needed
+		if (shouldRebuildMeshes)
+			rebuildMeshes();
+
+		// Return data required for updating the renderer
+		GUIDrawGroupRenderDataUpdate output;
+		output.triangleMesh = mTriangleMesh;
+		output.lineMesh = mLineMesh;
+
+		output.groupDirtyState.reserve(mDrawGroups.size());
+		for (auto& entry : mDrawGroups)
+		{
+			output.groupDirtyState.push_back(entry.needsRedraw);
+			entry.needsRedraw = false;
+		}
+
+		if(mGroupsCoreDirty)
+		{
+			output.newDrawGroups.reserve(mDrawGroups.size());
+			for (auto& entry : mDrawGroups)
+				output.newDrawGroups.push_back(getRenderData(entry));
+			
+		}
 		
-		// TODO
+		mGroupsCoreDirty = false;
+		return output;
 	}
 
 	void GUIDrawGroups::notifyContentDirty(GUIElement* element)
@@ -371,61 +406,6 @@ namespace bs
 	void GUIDrawGroups::notifyMeshDirty(GUIElement* element)
 	{
 		mDirtyElements[element] |= DirtyMesh;
-		
-		// TODO - Dirty elements should be cached, then only cause a rebuild when its needed. This is esp. needed because both
-		// mesh and content might get dirtied when content is dirtied
-
-		auto iterFind = mElements.find(element);
-		assert(iterFind != mElements.end());
-		if (iterFind == mElements.end())
-			return;
-		
-		const SmallVector<GUIRenderElement, 4>& renderElements = element->_getRenderElements();
-		GUIGroupElement& groupElement = iterFind->second;
-		assert(groupElement.groups.size() == renderElements.size());
-
-		// Mesh should only be dirtied when element depth or active state changes, so we check for those states
-		for(UINT32 i = 0; i < renderElements.size(); i++)
-		{
-			const GUIRenderElement& renderElement = renderElements[i];
-			
-			// All render elements draw group IDs should be assigned at this point
-			assert(groupElement.groups[i] != -1);
-
-			auto iterFind2 = std::find_if(mDrawGroups.begin(), mDrawGroups.end(),
-				[drawGroupId = groupElement.groups[i]](const GUIDrawGroup& group) { return group.id == drawGroupId; });
-
-			assert(iterFind2 != mDrawGroups.end());
-			if (iterFind2 != mDrawGroups.end())
-			{
-				GUIDrawGroup& group = *iterFind2;
-				UINT32 depth = element->_getDepth() + renderElement.depth;
-
-				// If same as min-depth, no group change is necessary in any case
-				if(depth != group.minDepth)
-				{
-					bool needsGroupChange = false;
-					// If less than min-depth, group change is always necessary
-					if (depth < group.minDepth)
-						needsGroupChange = true;
-					// Non-batching elements must be at min-depth, so group change is necessary
-					else if (!renderElement.material->allowBatching())
-						needsGroupChange = true;
-					// Batching but outside of the group's depth range, group change is necessary
-					else if (depth >= (group.minDepth + group.depthRange))
-						needsGroupChange = true;
-
-					if(needsGroupChange)
-					{
-						UINT32 groupIdx = (UINT32)(iterFind2 - mDrawGroups.begin());
-						remove(groupElement, i, groupIdx);
-						add(groupElement, i);
-					}
-				}
-
-				group.needsRedraw = true;
-			}
-		}
 	}
 
 	void GUIDrawGroups::rebuildMeshes()
@@ -756,6 +736,53 @@ namespace bs
 
 		mDrawGroups.insert(mDrawGroups.begin() + groupIdx, std::move(newSplitGroup));
 		return mDrawGroups[groupIdx + 1];
+	}
+
+	GUIMeshRenderData GUIDrawGroups::getRenderData(const GUIMesh& guiMesh)
+	{
+		SPtr<ct::Texture> textureCore;
+		if (guiMesh.matInfo.texture.isLoaded())
+			textureCore = guiMesh.matInfo.texture->getCore();
+		else
+			textureCore = nullptr;
+
+		SPtr<ct::SpriteTexture> spriteTextureCore;
+		if (guiMesh.matInfo.spriteTexture.isLoaded())
+			spriteTextureCore = guiMesh.matInfo.spriteTexture->getCore();
+		else
+			spriteTextureCore = nullptr;
+
+		GUIMeshRenderData output;
+		output.material = guiMesh.material;
+		output.texture = textureCore;
+		output.spriteTexture = spriteTextureCore;
+		output.tint = guiMesh.matInfo.tint;
+		output.isLine = guiMesh.isLine;
+		output.animationStartTime = guiMesh.matInfo.animationStartTime;
+		output.additionalData = guiMesh.matInfo.additionalData;
+		output.bufferIdx = 0;
+
+		output.subMesh.indexOffset = guiMesh.indexOffset;
+		output.subMesh.indexCount = guiMesh.indexCount;
+		output.subMesh.drawOp = guiMesh.isLine ? DOT_LINE_LIST : DOT_TRIANGLE_LIST;
+
+		return output;
+	}
+
+	GUIDrawGroupRenderData GUIDrawGroups::getRenderData(const GUIDrawGroup& drawGroup)
+	{
+		GUIDrawGroupRenderData output;
+		output.id = drawGroup.id;
+		output.destination = drawGroup.outputTexture->getCore();
+		output.requiresRedraw = true;
+		
+		auto numElements = (UINT32)drawGroup.meshes.size();
+		output.elements.resize(numElements);
+
+		for(UINT32 i = 0; i < numElements; i++)
+			output.elements[i] = getRenderData(drawGroup.meshes[i]);
+		
+		return output;
 	}
 
 	Rect2I GUIDrawGroups::calculateBounds(GUIDrawGroup& group)
@@ -1113,14 +1140,14 @@ namespace bs
 		mIsActive = active;
 	}
 
-	bool GUIWidget::isDirty(bool cleanIfDirty)
+	GUIDrawGroupRenderDataUpdate GUIWidget::rebuildDirtyRenderData()
 	{
 		if (!mIsActive)
-			return false;
+			return GUIDrawGroupRenderDataUpdate();
 
 		const bool dirty = mWidgetIsDirty || !mDirtyContents.empty();
 
-		if(cleanIfDirty && dirty)
+		if(dirty)
 		{
 			mWidgetIsDirty = false;
 
@@ -1137,8 +1164,8 @@ namespace bs
 
 			updateBounds();
 		}
-		
-		return dirty;
+
+		return mDrawGroups.rebuildDirty(dirty);
 	}
 
 	bool GUIWidget::inBounds(const Vector2I& position) const

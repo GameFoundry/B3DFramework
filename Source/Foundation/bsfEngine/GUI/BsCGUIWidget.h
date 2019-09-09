@@ -43,9 +43,6 @@ namespace bs
 		/** @copydoc GUIWidget::getBounds */
 		const Rect2I& getBounds() const;
 
-		/** @copydoc GUIWidget::isDirty */
-		bool isDirty(bool cleanIfDirty);
-
 		/** @copydoc GUIWidget::getTarget */
 		Viewport* getTarget() const;
 

@@ -110,8 +110,6 @@ namespace bs
 
 		bs_delete(mInputCaret);
 		bs_delete(mInputSelection);
-
-		assert(mCachedGUIData.size() == 0);
 	}
 
 	void GUIManager::destroyCore(ct::GUIRenderer* core)
@@ -126,14 +124,6 @@ namespace bs
 			return;
 
 		mWidgets.push_back(WidgetInfo(widget));
-		auto findIter = mCachedGUIData.find(renderTarget);
-
-		if(findIter == end(mCachedGUIData))
-			mCachedGUIData[renderTarget] = GUIRenderData();
-
-		GUIRenderData& windowData = mCachedGUIData[renderTarget];
-		windowData.widgets.push_back(widget);
-		windowData.isDirty = true;
 	}
 
 	void GUIManager::unregisterWidget(GUIWidget* widget)
@@ -172,24 +162,18 @@ namespace bs
 				entry.widget = nullptr;
 		}
 
-		const Viewport* renderTarget = widget->getTarget();
-		GUIRenderData& renderData = mCachedGUIData[renderTarget];
-
+		SPtr<Camera> camera = widget->getCamera();
+		if(camera != nullptr)
 		{
-			auto findIter = std::find(begin(renderData.widgets), end(renderData.widgets), widget);
-			
-			if(findIter != end(renderData.widgets))
-				renderData.widgets.erase(findIter);
+			auto widgetId = (UINT64)widget;
+			gCoreThread().queueCommand([
+				renderer = mRenderer.get(),
+				camera = camera->getCore(),
+				widgetId]()
+			{
+				renderer->clearDrawGroups(camera, widgetId);
+			});
 		}
-
-		if(renderData.widgets.size() == 0)
-		{
-			mCachedGUIData.erase(renderTarget);
-			// TODO - Clear the widget's draw groups on the renderer
-			mCoreDirty = true;
-		}
-		else
-			renderData.isDirty = true;
 	}
 
 	void GUIManager::update()
@@ -359,73 +343,30 @@ namespace bs
 			}
 		}
 
-		PROFILE_CALL(updateMeshes(), "UpdateMeshes");
-
-		// Send potentially updated meshes to core for rendering
-		if (mCoreDirty)
+		// Update dirty widget render data
+		for(auto& entry : mWidgets)
 		{
-			UnorderedMap<SPtr<ct::Camera>, Vector<GUICoreRenderData>> corePerCameraData;
+			GUIWidget* widget = entry.widget;
+			GUIDrawGroupRenderDataUpdate updateData = widget->rebuildDirtyRenderData();
 
-			for (auto& viewportData : mCachedGUIData)
+			SPtr<Camera> camera;
+			camera = widget->getCamera();
+			if (camera == nullptr)
+				continue;
+			
+			auto widgetId = (UINT64)widget;
+			gCoreThread().queueCommand([
+				renderer = mRenderer.get(),
+				updateData = std::move(updateData),
+				camera = camera->getCore(),
+				widgetId,
+				worldTransform = widget->getWorldTfrm()]()
 			{
-				const GUIRenderData& renderData = viewportData.second;
-
-				SPtr<Camera> camera;
-				for (auto& widget : viewportData.second.widgets)
-				{
-					camera = widget->getCamera();
-					if (camera != nullptr)
-						break;
-				}
-
-				if (camera == nullptr)
-					continue;
-
-				auto insertedData = corePerCameraData.insert(std::make_pair(camera->getCore(), Vector<GUICoreRenderData>()));
-				Vector<GUICoreRenderData>& cameraData = insertedData.first->second;
-
-				for (auto& entry : renderData.cachedMeshes)
-				{
-					const SPtr<Mesh>& mesh = entry.isLine ? renderData.lineMesh : renderData.triangleMesh;
-					if(!mesh)
-						continue;
-
-					cameraData.push_back(GUICoreRenderData());
-					GUICoreRenderData& newEntry = cameraData.back();
-
-					SPtr<ct::Texture> textureCore;
-					if (entry.matInfo.texture.isLoaded())
-						textureCore = entry.matInfo.texture->getCore();
-					else
-						textureCore = nullptr;
-
-					SPtr<ct::SpriteTexture> spriteTextureCore;
-					if (entry.matInfo.spriteTexture.isLoaded())
-						spriteTextureCore = entry.matInfo.spriteTexture->getCore();
-					else
-						spriteTextureCore = nullptr;
-
-					newEntry.material = entry.material;
-					newEntry.mesh = mesh->getCore();
-					newEntry.texture = textureCore;
-					newEntry.spriteTexture = spriteTextureCore;
-					newEntry.tint = entry.matInfo.tint;
-					newEntry.animationStartTime = entry.matInfo.animationStartTime;
-					newEntry.worldTransform = entry.widget->getWorldTfrm();
-					newEntry.additionalData = entry.matInfo.additionalData;
-
-					newEntry.subMesh.indexOffset = entry.indexOffset;
-					newEntry.subMesh.indexCount = entry.indexCount;
-					newEntry.subMesh.drawOp = entry.isLine ? DOT_LINE_LIST : DOT_TRIANGLE_LIST;
-				}
-			}
-
-			gCoreThread().queueCommand(std::bind(&ct::GUIRenderer::updateData, mRenderer.get(), corePerCameraData));
-
-			mCoreDirty = false;
+				renderer->updateDrawGroups(camera, widgetId, worldTransform, updateData);
+			});
 		}
 
-		gCoreThread().queueCommand(std::bind(&ct::GUIRenderer::update, mRenderer.get(), gTime().getTime()));
+		gCoreThread().queueCommand([renderer = mRenderer.get(), time = gTime().getTime()](){ renderer->update(time); });
 	}
 
 	void GUIManager::processDestroyQueue()
@@ -433,33 +374,6 @@ namespace bs
 		// Loop until everything empties
 		while (processDestroyQueueIteration())
 		{ }
-	}
-
-	void GUIManager::updateMeshes()
-	{
-		for(auto& cachedMeshData : mCachedGUIData)
-		{
-			GUIRenderData& renderData = cachedMeshData.second;
-
-			// Check if anything is dirty. If nothing is we can skip the update
-			bool isDirty = renderData.isDirty;
-			renderData.isDirty = false;
-
-			for(auto& widget : renderData.widgets)
-			{
-				if (widget->isDirty(true))
-				{
-					isDirty = true;
-				}
-			}
-
-			if(!isDirty)
-				continue;
-
-			mCoreDirty = true;
-
-		TODO - Update meshes on GUIWidget
-		}
 	}
 
 	void GUIManager::updateCaretTexture()
@@ -1687,6 +1601,8 @@ namespace bs
 				{
 					SPtr<GpuParamBlockBuffer> buffer = widget.paramBlocks[entry.bufferIdx];
 
+					gGUISpriteParamBlockDef.gTint.set(buffer, entry.tint);
+					gGUISpriteParamBlockDef.gWorldTransform.set(buffer, widget.worldTransform);
 					gGUISpriteParamBlockDef.gInvViewportWidth.set(buffer, invViewportWidth);
 					gGUISpriteParamBlockDef.gInvViewportHeight.set(buffer, invViewportHeight);
 					gGUISpriteParamBlockDef.gViewportYFlip.set(buffer, viewflipYFlip);
@@ -1718,7 +1634,7 @@ namespace bs
 					// changed, and apply only those + the modified constant buffers and/or texture.
 
 					SPtr<GpuParamBlockBuffer> buffer = widget.paramBlocks[entry.bufferIdx];
-					entry.material->render(drawGroup.mesh, entry.subMesh, entry.texture, mSamplerState, buffer, entry.additionalData);
+					entry.material->render(entry.isLine ? widget.lineMesh : widget.triangleMesh, entry.subMesh, entry.texture, mSamplerState, buffer, entry.additionalData);
 				}
 
 				drawGroup.requiresRedraw = false;
@@ -1740,7 +1656,7 @@ namespace bs
 		mTime = time;
 	}
 
-	void GUIRenderer::updateDrawGroups(const SPtr<Camera>& camera, UINT64 widgetId, const GUIManager::GUIRenderUpdateData& data)
+	void GUIRenderer::updateDrawGroups(const SPtr<Camera>& camera, UINT64 widgetId, const Matrix4& worldTransform, const GUIDrawGroupRenderDataUpdate& data)
 	{
 		auto iterFind = mPerCameraData.find(camera.get());
 		if (iterFind == mPerCameraData.end())
@@ -1782,15 +1698,7 @@ namespace bs
 			for (auto& drawGroup : widget->drawGroups)
 			{
 				for (auto& entry : drawGroup.elements)
-				{
-					SPtr<GpuParamBlockBuffer> buffer = widget->paramBlocks[curBufferIdx];
-
-					gGUISpriteParamBlockDef.gTint.set(buffer, entry.tint);
-					gGUISpriteParamBlockDef.gWorldTransform.set(buffer, entry.worldTransform);
-
-					entry.bufferIdx = curBufferIdx;
-					curBufferIdx++;
-				}
+					entry.bufferIdx = curBufferIdx++;
 			}
 		}
 
@@ -1801,6 +1709,10 @@ namespace bs
 			if (data.groupDirtyState[i])
 				widget->drawGroups[i].requiresRedraw = true;
 		}
+
+		widget->triangleMesh = data.triangleMesh;
+		widget->lineMesh = data.lineMesh;
+		widget->worldTransform = worldTransform;
 	}
 
 	void GUIRenderer::clearDrawGroups(const SPtr<Camera>& camera, UINT64 widgetId)

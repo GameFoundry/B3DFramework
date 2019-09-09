@@ -9,6 +9,7 @@
 #include "Math/BsMatrix4.h"
 #include "Utility/BsEvent.h"
 #include "2D/BsSpriteMaterial.h"
+#include "RenderAPI/BsSubMesh.h"
 
 namespace bs
 {
@@ -17,6 +18,42 @@ namespace bs
 	/** @addtogroup Implementation
 	 *  @{
 	 */
+
+	/**	Data required for rendering a single batch of GUI elements.  */
+	struct GUIMeshRenderData
+	{
+		SubMesh subMesh;
+		SPtr<ct::Texture> texture;
+		SPtr<ct::SpriteTexture> spriteTexture;
+		SpriteMaterial* material;
+		Color tint;
+		float animationStartTime;
+		SPtr<SpriteMaterialExtraInfo> additionalData;
+		bool isLine;
+		UINT32 bufferIdx;
+	};
+
+	/** Data required for rendering all the batches in a single GUI draw group. */
+	struct GUIDrawGroupRenderData
+	{
+		UINT32 id = 0;
+		SPtr<ct::RenderTexture> destination;
+		bool requiresRedraw = true;
+
+		Vector<GUIMeshRenderData> elements;
+	};
+
+	/**
+	 * Contains data about which draw group needs to be redrawn, as well as a set of new draw groups if
+	 * draw groups were updated.
+	 */
+	struct GUIDrawGroupRenderDataUpdate
+	{
+		Vector<GUIDrawGroupRenderData> newDrawGroups;
+		Vector<bool> groupDirtyState;
+		SPtr<ct::Mesh> triangleMesh;
+		SPtr<ct::Mesh> lineMesh;
+	};
 
 	/**
 	 * Organizes elements within a GUIWidget into groups that can be drawn together, as well as cached into the same
@@ -39,8 +76,8 @@ namespace bs
 		/** Removes all render elements in the provided GUI element from their current set of draw groups. */
 		void remove(GUIElement* element);
 
-		/** Rebuilds any dirty internal data. */
-		void rebuildDirty();
+		/** Rebuilds any dirty internal data and returns the data structure required for updating the GUI renderer. */
+		GUIDrawGroupRenderDataUpdate rebuildDirty(bool forceRebuildMeshes);
 
 		/** Notifies the system that element's contents were marked as dirty. */
 		void notifyContentDirty(GUIElement* element);
@@ -117,6 +154,12 @@ namespace bs
 
 		/** Removes a specific render element in the provided GUI element from their current draw group. */
 		void remove(GUIGroupElement& element, UINT32 renderElementIdx);
+
+		/** Builds a structure with information required for rendering the provided mesh. */
+		static GUIMeshRenderData getRenderData(const GUIMesh& guiMesh);
+
+		/** Builds a structure with information required for rendering the provided draw group. */
+		static GUIDrawGroupRenderData getRenderData(const GUIDrawGroup& drawGroup);
 		
 		/** Calculates the bounds of all visible elements in the draw group. */
 		static Rect2I calculateBounds(GUIDrawGroup& group);
@@ -124,6 +167,7 @@ namespace bs
 		Vector<GUIDrawGroup> mDrawGroups;
 		UnorderedMap<GUIElement*, GUIGroupElement> mElements;
 		UnorderedMap<GUIElement*, UINT32> mDirtyElements;
+		bool mGroupsCoreDirty = true;
 		
 		SPtr<Mesh> mTriangleMesh;
 		SPtr<Mesh> mLineMesh;
@@ -180,13 +224,10 @@ namespace bs
 		const Rect2I& getBounds() const { return mBounds; }
 
 		/**
-		 * Return true if widget or any of its elements are dirty.
-		 *
-		 * @param[in]	cleanIfDirty	If true, all dirty elements will be updated and widget will be marked as clean.
-		 * @return						True if dirty, false if not. If "cleanIfDirty" is true, the returned state is the
-		 *								one before cleaning.
+		 * Rebuilds any dirty data required for GUI element rendering and returns the data required for updating the GUI
+		 * renderer.
 		 */
-		bool isDirty(bool cleanIfDirty);
+		GUIDrawGroupRenderDataUpdate rebuildDirtyRenderData();
 
 		/**	Returns the viewport that this widget will be rendered on. */
 		Viewport* getTarget() const;
