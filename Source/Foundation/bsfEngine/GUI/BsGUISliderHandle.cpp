@@ -144,29 +144,36 @@ namespace bs
 		return Vector2I();
 	}
 
-	void GUISliderHandle::_fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
-		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const
+	void GUISliderHandle::_fillBuffer(
+		UINT8* vertices,
+		UINT32* indices,
+		UINT32 vertexOffset,
+		UINT32 indexOffset,
+		const Vector2I& offset,
+		UINT32 maxNumVerts,
+		UINT32 maxNumIndices,
+		UINT32 renderElementIdx) const
 	{
 		UINT8* uvs = vertices + sizeof(Vector2);
 		UINT32 vertexStride = sizeof(Vector2) * 2;
 		UINT32 indexStride = sizeof(UINT32);
 
-		Vector2I offset(mLayoutData.area.x, mLayoutData.area.y);
+		Vector2I layoutOffset = Vector2I(mLayoutData.area.x, mLayoutData.area.y) + offset;
 		Rect2I clipRect = mLayoutData.getLocalClipRect();
 
 		if (mFlags.isSet(GUISliderHandleFlag::Horizontal))
 		{
-			offset.x += getHandlePosPx();
+			layoutOffset.x += getHandlePosPx();
 			clipRect.x -= getHandlePosPx();
 		}
 		else
 		{
-			offset.y += getHandlePosPx();
+			layoutOffset.y += getHandlePosPx();
 			clipRect.y -= getHandlePosPx();
 		}
 
 		mImageSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
-			vertexStride, indexStride, renderElementIdx, offset, clipRect);
+			vertexStride, indexStride, renderElementIdx, layoutOffset, clipRect);
 	}
 
 	bool GUISliderHandle::_mouseEvent(const GUIMouseEvent& ev)

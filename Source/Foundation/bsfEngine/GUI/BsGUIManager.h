@@ -430,6 +430,10 @@ namespace bs
 
 		/** Clears all draw groups from the specified widget. */
 		void clearDrawGroups(const SPtr<Camera>& camera, UINT64 widgetId);
+
+		/** Updates the parameter block buffer for the specified mesh. */
+		void updateParamBlockBuffer(const SPtr<GpuParamBlockBuffer>& buffer, float invViewportWidth, float invViewportHeight, bool flipY,
+			const Matrix4& tfrm, GUIMeshRenderData& renderData) const;
 		
 		struct GUIWidgetRenderData
 		{
@@ -439,6 +443,7 @@ namespace bs
 
 			SPtr<Mesh> triangleMesh;
 			SPtr<Mesh> lineMesh;
+			SPtr<Mesh> drawGroupMesh;
 			Matrix4 worldTransform = Matrix4::IDENTITY;
 		};
 		

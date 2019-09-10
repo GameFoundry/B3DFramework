@@ -313,16 +313,23 @@ namespace bs
 		return Vector2I(10, 10);
 	}
 
-	void GUICanvas::_fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
-		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const
+	void GUICanvas::_fillBuffer(
+		UINT8* vertices,
+		UINT32* indices,
+		UINT32 vertexOffset,
+		UINT32 indexOffset,
+		const Vector2I& offset,
+		UINT32 maxNumVerts,
+		UINT32 maxNumIndices,
+		UINT32 renderElementIdx) const
 	{
 		UINT8* uvs = vertices + sizeof(Vector2);
 		UINT32 indexStride = sizeof(UINT32);
 
-		Vector2I offset(mLayoutData.area.x, mLayoutData.area.y);
+		Vector2I layoutOffset = Vector2I(mLayoutData.area.x, mLayoutData.area.y) + offset;
 		Rect2I clipRect = mLayoutData.getLocalClipRect();
 
-		Vector2 floatOffset((float)offset.x, (float)offset.y);
+		Vector2 floatOffset((float)layoutOffset.x, (float)layoutOffset.y);
 		buildAllTriangleElementsIfDirty(floatOffset, clipRect);
 
 		const CanvasElement& element = findElement(renderElementIdx);
@@ -335,25 +342,25 @@ namespace bs
 			UINT32 vertexStride = sizeof(Vector2) * 2;
 			const Rect2I& area = mImageData[element.dataId].area;
 
-			offset.x += area.x;
-			offset.y += area.y;
+			layoutOffset.x += area.x;
+			layoutOffset.y += area.y;
 			clipRect.x -= area.x;
 			clipRect.y -= area.y;
 
 			element.imageSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
-				vertexStride, indexStride, renderElementIdx, offset, clipRect);
+				vertexStride, indexStride, renderElementIdx, layoutOffset, clipRect);
 		}
 			break;
 		case CanvasElementType::Text:
 		{
 			UINT32 vertexStride = sizeof(Vector2) * 2;
 			const Vector2I& position = mTextData[element.dataId].position;
-			offset += position;
+			layoutOffset += position;
 			clipRect.x -= position.x;
 			clipRect.y -= position.y;
 
 			element.textSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
-				vertexStride, indexStride, renderElementIdx, offset, clipRect);
+				vertexStride, indexStride, renderElementIdx, layoutOffset, clipRect);
 		}
 			break;
 		case CanvasElementType::Triangle:

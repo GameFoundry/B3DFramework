@@ -20,8 +20,15 @@ namespace bs
 		mOptionFlags.set(GUIElementOption::ClickThrough);
 	}
 
-	void GUIElementContainer::_fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
-		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const
+	void GUIElementContainer::_fillBuffer(
+		UINT8* vertices,
+		UINT32* indices,
+		UINT32 vertexOffset,
+		UINT32 indexOffset,
+		const Vector2I& offset,
+		UINT32 maxNumVerts,
+		UINT32 maxNumIndices,
+		UINT32 renderElementIdx) const
 	{ }
 
 	Vector2I GUIElementContainer::_getOptimalSize() const

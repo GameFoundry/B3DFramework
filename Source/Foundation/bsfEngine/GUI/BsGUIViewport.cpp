@@ -47,8 +47,15 @@ namespace bs
 		return Vector2I(0, 0);
 	}
 
-	void GUIViewport::_fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
-		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const
+	void GUIViewport::_fillBuffer(
+		UINT8* vertices,
+		UINT32* indices,
+		UINT32 vertexOffset,
+		UINT32 indexOffset,
+		const Vector2I& offset,
+		UINT32 maxNumVerts,
+		UINT32 maxNumIndices,
+		UINT32 renderElementIdx) const
 	{
 
 	}

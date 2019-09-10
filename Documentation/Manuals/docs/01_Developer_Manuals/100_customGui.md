@@ -2,7 +2,7 @@
 title: Extending the GUI system
 ---
 
-Even though bs::f provides fully skinnable and very customizable GUI elements, sometimes the built-in ones are just not enough if you need some very specialized functionality or look. bs::f allows you to create brand new elements and fully customize the way how they are rendered and how the user interacts with such elements.
+Even though bsf provides fully skinnable and very customizable GUI elements, sometimes the built-in ones are just not enough if you need some very specialized functionality or look. The framework allows you to create brand new elements and fully customize the way how they are rendered and how the user interacts with such elements.
 
 You are expected to have read the user-facing GUI manuals before proceeding, and as such familiarized yourself with the basics.
 
@@ -78,61 +78,83 @@ In order for your GUI element to be visible you need to define its graphics. Thi
  - Creating a set of vertices and indices that represent your GUI element
  - Create the material to render the GUI element with, and bind required textures and other properties to it
 
-This is done by implementing the following methods:
+This is done by implementing @bs::GUIElement::updateRenderElementsInternal() and @bs::GUIElement::_fillBuffer() methods.
 
-@bs::GUIElement::_getNumRenderElements()
+### GUIElement::updateRenderElementsInternal()
 
-Returns the number of separate elements that your GUI element consists of. Each element corresponds to a mesh and a material to render the mesh with. For most GUI elements there will be only one element, but you will need multiple elements in case your GUI element uses multiple textures or materials.
+Called whenever the element's size or style changes. This is the method where you should rebuild the GUI element's mesh. Your main goal is to populate the `mRenderElements` array with information about your GUI element and its renderable elements. 
 
-~~~~~~~~~~~~~{.cpp}
-class GUITexture : public GUIElement
-{
-	// ... remaining GUITexture implementation
+Your GUI element can output multiple render elements. Each element corresponds to a mesh and a material to render the mesh with. For most GUI elements there will be only one element, but you will need multiple elements in case your GUI element uses multiple textures or materials.
 
-	UINT32 _getNumRenderElements() const override
-	{
-		// Our simple GUI element has just a single render element (a single quad to be exact)
-		return 1;
-	}
-};
-~~~~~~~~~~~~~
-
-@bs::GUIElement::_getMeshInfo()
-
-Takes a render element index as input and returns the number of vertices and indices for the mesh at the specified index. This allows external systems to know how big of a buffer to allocate for the element's mesh. It also returns the type of the mesh which lets external systems know how to render the provided vertices.
+Each entry in the `mRenderElements` array is of @bs::GUIRenderElement type and it contains:
+ - Information about the mesh. This includes number of mesh vertices and indices, as well as the mesh type (triangle or line).
+ - Material used, as well as material specific data such as texture and tint. You can grab built-in materials used by the GUI system from @bs::SpriteManager. We'll talk more about materials below.
+ - Depth of the render element. You can overlay different render elements and this controls which element gets shown on top/bottom. Elements with higher depth are shown below elements with lower depth.
 
 ~~~~~~~~~~~~~{.cpp}
 class GUITexture : public GUIElement
 {
-	// ... remaining GUITexture implementation
-
-	void _getMeshInfo(UINT32 renderElementIdx, UINT32& numVertices, UINT32& numIndices, GUIMeshType& type) const override
-	{
-		// Since we're rendering a single quad, we use 4 vertices, rendered as 2 triangles (6 indices)
-		numVertices = 4;
-		numIndices = 6;
-		type = GUIMeshType::Triangle;
+	void updateRenderElementsInternal()
+	{		
+		if(mRenderElements.size() < 1)
+			mRenderElements.resize(1);
+	
+		GUIRenderElement& element = mRenderElements[0];
+		
+		// Render element's mesh will use 4 vertices and 6 indices (a quad)
+		element.numVertices = 4;
+		element.numIndices = 6;
+		
+		// We'll use the built-in transparent image material
+		element.material = SpriteManager::instance().getImageMaterial(true);
+		
+		// Populate the material parameters (normally you want to populate this when properties change and just return it here)
+		element.matInfo = &mMatInfo;
+		
+		//// Use the normal texture as provided in GUIElementStyle
+		mMatInfo.texture = _getStyle().normal.texture;
+		
+		//// No tint
+		mMatInfo.tint = Color::White;
+		
+		GUIElement::updateRenderElementsInternal();
 	}
+	
+	private:
+		SpriteMaterialInfo mMatInfo;
 };
 ~~~~~~~~~~~~~
 
-@bs::GUIElement::_fillBuffer()
+#### Materials
+GUI materials are represented by the @bs::SpriteMaterial type and you can use @bs::SpriteManager to retrieve the built-in materials. You can also create your own sprite materials by implementing the **SpriteMaterial** class and registering them with the **SpriteManager** by calling @bs::SpriteManager::registerMaterial. 
 
-This is the primary method when it comes to **GUIElement** graphics. It allows you to provide the actual vertex and index data that will be used for rendering the GUI element. Note that number of vertices and indices provided must match the number returned by **GUIElement::_getMeshInfo()**.
+Material parameters are represented by the @bs::SpriteMaterialInfo structure, which contains the texture and color to render the element with. It also contains a `groupId` identifier which tells the external systems with which other GUI elements is this element allowed to be grouped with. Grouped elements are rendered together (batched) for better performance, but sometimes this is not wanted. Generally you want to provide the memory address of the parent **GUIWidget** for the `groupId` field, and don't need to worry about it further. You can retrieve the element's **GUIWidget** by calling @bs::GUIElement::_getParentWidget().
 
-The method receives pointers to the index and vertex memory that must be populated by the function, offsets at which memory location should the function output its data at, and external buffer sizes (used for overflow checking if needed).
+Textures used by the material parameter can be retrieved from the current **GUIElementStyle**, or provided directly to the GUI element by user-specified means. It is preferred to use the **GUIElementStyle** approach as this allows the user to customize the element look through **GUISkin**s, or by providing a custom style name. To retrieve the currently active style call @bs::GUIElement::_getStyle(). 
 
-The vertices are always in a specific format:
+### GUIElement::_fillBuffer()
+
+This method allows you to provide the actual vertex and index data that will be used for rendering the GUI element. Note that number of vertices and indices provided must match the number you specified in **updateRenderElementsInternal()**. The method will be called once for each present render element, with the render element index as one of the parameters.
+
+The method receives pointers to the index and vertex memory that must be populated by the function, offsets at which memory location should the function output its data at, offset to apply to vertex positions and external buffer sizes (used for overflow checking if needed).
+
+The vertices are always in a specific format depending on @bs::GUIMeshType set on **GUIRenderElement**:
+
+**bs::GUIMeshType::Triangle**
  - Each vertex contains a 2D position, followed by 2D texture coordinates
  - Vertex size is `sizeof(Vector2) * 2`
-
+ 
+**bs::GUIMeshType::Line**
+ - Each vertex contains only a 2D position
+ - Vertex size is `sizeof(Vector2)`
+ 
 ~~~~~~~~~~~~~{.cpp}
 class GUITexture : public GUIElement
 {
 	// ... remaining GUITexture implementation
 
 	void _fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
-		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const
+		const Vector2I& offset, UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const
 	{
 		UINT32 vertexStride = sizeof(Vector2) * 2;
 		UINT32 indexStride = sizeof(UINT32);
@@ -149,62 +171,9 @@ class GUITexture : public GUIElement
 };
 ~~~~~~~~~~~~~
 
-bs::f also provides a set of helper classes for generating required geometry in the form of @bs::ImageSprite and @bs::TextSprite classes. **ImageSprite** can easily generate image geometry of specified size, whether a simple quad or a scale-9-grid image (scalable image with fixed borders). And **TextSprite** will take a text string, font and additional options as input, and output a set of quads required for text rendering.
+The framework also provides a set of helper classes for generating required geometry in the form of @bs::ImageSprite and @bs::TextSprite classes. **ImageSprite** can easily generate image geometry of specified size, whether a simple quad or a scale-9-grid image (scalable image with fixed borders). And **TextSprite** will take a text string, font and additional options as input, and output a set of quads required for text rendering. It is suggested that you use these unless you require non-quad meshes.
 
-@bs::GUIElement::_getMaterial()
-
-Takes a render element index as input and returns a material to render the element with, as well material parameters. 
-
-GUI materials are represented by the @bs::SpriteMaterial type and you can use @bs::SpriteManager to retrieve the built-in materials. You can also create your own sprite materials by implementing the **SpriteMaterial** class and registering them with the **SpriteManager** by calling @bs::SpriteManager::registerMaterial. 
-
-Material parameters are represented by the @bs::SpriteMaterialInfo structure, which contains the texture and color to render the element with. It also contains a `groupId` identifier which tells the external systems with which other GUI elements is this element allowed to be grouped with. Grouped elements are rendered together (batched) for better performance, but sometimes this is not wanted. Generally you want to provide the memory address of the parent **GUIWidget** for the `groupId` field, and don't need to worry about it further. You can retrieve the element's **GUIWidget** by calling @bs::GUIElement::_getParentWidget().
-
-Textures used by the material parameter can be retrieved from the current **GUIElementStyle**, or provided directly to the GUI element by user-specified means. It is preferred to use the **GUIElementStyle** approach as this allows the user to customize the element look through **GUISkin**%s, or by providing a custom style name. To retrieve the currently active style call @bs::GUIElement::_getStyle(). 
-
-~~~~~~~~~~~~~{.cpp}
-class GUITexture : public GUIElement
-{
-	// ... remaining GUITexture implementation
-
-	const SpriteMaterialInfo& _getMaterial(UINT32 renderElementIdx, SpriteMaterial** material) const
-	{
-		// Get material for rendering opaque images
-		*material = SpriteManager::instance().getImageOpaqueMaterial();
-		
-		// Populate the material parameters (normally you want to populate this when properties change and just return it here)
-		//// Use the normal texture as provided in GUIElementStyle
-		mMatParams.texture = _getStyle().normal.texture;
-		
-		//// No tint
-		mMatParams.tint = Color::White;
-		
-		//// Ensures only the GUI elements sharing the same GUIWidget can be grouped
-		mMatParams.groupId = (UINT64)_getParentWidget();
-		
-		return mMatParams;
-	}
-	
-	SpriteMaterialInfo mMatParams;
-};
-~~~~~~~~~~~~~
-
-@bs::GUIElement::updateRenderElementsInternal()
-
-Called whenever the element's size or style changes. This is the method where you should rebuild the GUI element's mesh. While you could do it directly in **GUIElement::_fillBuffer()** it is better performance-wise to do it here, and instead just return the cached mesh when **GUIElement::_fillBuffer()** is called. This is because **GUIElement::_fillBuffer()** will get called even when mesh geometry didn't change, if the external systems deem it required.
-
-~~~~~~~~~~~~~{.cpp}
-class GUITexture : public GUIElement
-{
-	// ... remaining GUITexture implementation
-
-	void updateRenderElementsInternal()
-	{		
-		// Move the code for vertex/index generation here, cache the generate data and then just return the cached data when _fillBuffer() is called.
-		
-		GUIElement::updateRenderElementsInternal();
-	}
-};
-~~~~~~~~~~~~~
+Note that it is suggested that you generate the actual mesh geometry in **updateRenderElementsInternal()**, and then just return the generated data in **_fillBuffer()**. This is beneficial as the geometry only needs to change when render elements are updated, and **_fillBuffer()** will be called more often than **updateRenderElementsInternal()**.
 
 ## Layout
 In order for the GUI element to work well with the automatic positioning performed by GUI layouts, you must override the @bs::GUIElement::_getOptimalSize method. As the name implies the method should return the optimal size of your GUI element. For example if your element was displaying a texture 64x64 in size, then the optimal size should probably return 64x64. If you element is displaying text you can use @bs::GUIHelper to help you calculate the bounds of the text. If displaying something else then it's up to you to determine what constitutes an optimal size.

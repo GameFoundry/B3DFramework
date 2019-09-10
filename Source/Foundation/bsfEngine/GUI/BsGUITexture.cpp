@@ -238,16 +238,22 @@ namespace bs
 		return optimalSize;
 	}
 
-	void GUITexture::_fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
-		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const
+	void GUITexture::_fillBuffer(
+		UINT8* vertices,
+		UINT32* indices,
+		UINT32 vertexOffset,
+		UINT32 indexOffset,
+		const Vector2I& offset,
+		UINT32 maxNumVerts,
+		UINT32 maxNumIndices,
+		UINT32 renderElementIdx) const
 	{
 		UINT8* uvs = vertices + sizeof(Vector2);
 		UINT32 vertexStride = sizeof(Vector2) * 2;
 		UINT32 indexStride = sizeof(UINT32);
 
-		Vector2I offset(mLayoutData.area.x, mLayoutData.area.y);
-		offset += mImageSpriteOffset;
+		Vector2I layoutOffset = Vector2I(mLayoutData.area.x, mLayoutData.area.y) + mImageSpriteOffset + offset;
 		mImageSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
-			vertexStride, indexStride, renderElementIdx, offset, mLayoutData.getLocalClipRect());
+			vertexStride, indexStride, renderElementIdx, layoutOffset, mLayoutData.getLocalClipRect());
 	}
 }

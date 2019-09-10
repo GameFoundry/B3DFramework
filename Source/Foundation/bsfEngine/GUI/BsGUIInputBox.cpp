@@ -359,8 +359,15 @@ namespace bs
 		return false;
 	}
 
-	void GUIInputBox::_fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
-		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const
+	void GUIInputBox::_fillBuffer(
+		UINT8* vertices,
+		UINT32* indices,
+		UINT32 vertexOffset,
+		UINT32 indexOffset,
+		const Vector2I& offset,
+		UINT32 maxNumVerts,
+		UINT32 maxNumIndices,
+		UINT32 renderElementIdx) const
 	{
 		UINT8* uvs = vertices + sizeof(Vector2);
 		UINT32 vertexStride = sizeof(Vector2) * 2;
@@ -368,11 +375,11 @@ namespace bs
 
 		UINT32 localRenderElementIdx;
 		Sprite* sprite = renderElemToSprite(renderElementIdx, localRenderElementIdx);
-		Vector2I offset = renderElemToOffset(renderElementIdx);
+		Vector2I layoutOffset = renderElemToOffset(renderElementIdx) + offset;
 		Rect2I clipRect = renderElemToClipRect(renderElementIdx);
 
 		sprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride,
-			indexStride, localRenderElementIdx, offset, clipRect);
+			indexStride, localRenderElementIdx, layoutOffset, clipRect);
 	}
 
 	bool GUIInputBox::_mouseEvent(const GUIMouseEvent& ev)

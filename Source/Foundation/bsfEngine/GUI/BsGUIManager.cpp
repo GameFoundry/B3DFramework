@@ -37,6 +37,7 @@
 #include "RenderAPI/BsSamplerState.h"
 #include "Managers/BsRenderStateManager.h"
 #include "Resources/BsBuiltinResources.h"
+#include "2D/BsSpriteManager.h"
 
 using namespace std::placeholders;
 
@@ -1586,68 +1587,96 @@ namespace bs
 
 		float invViewportWidth = 1.0f / (camera.getViewport()->getPixelArea().width * 0.5f);
 		float invViewportHeight = 1.0f / (camera.getViewport()->getPixelArea().height * 0.5f);
-		float viewflipYFlip = (gCaps().conventions.ndcYAxis == Conventions::Axis::Down) ? -1.0f : 1.0f;
+		bool viewflipYFlip = gCaps().conventions.ndcYAxis == Conventions::Axis::Down;
 
-		bool anyRedraws = false;
+		bool needsRedraw = false;
 		RenderAPI& rapi = RenderAPI::instance();
 		for (auto& widget : widgetRenderData)
 		{
 			for(auto& drawGroup : widget.drawGroups)
 			{
+				if (!drawGroup.nonCachedElements.empty())
+					needsRedraw = true;
+				
 				if (!drawGroup.requiresRedraw)
 					continue;
-				
-				for(auto& entry : drawGroup.elements)
-				{
-					SPtr<GpuParamBlockBuffer> buffer = widget.paramBlocks[entry.bufferIdx];
 
-					gGUISpriteParamBlockDef.gTint.set(buffer, entry.tint);
+				float invDrawGroupWidth = 1.0f / (drawGroup.bounds.width * 0.5f);
+				float invDrawGroupHeight = 1.0f / (drawGroup.bounds.height * 0.5f);
+				
+				for(auto& entry : drawGroup.cachedElements)
+				{
+					const SPtr<GpuParamBlockBuffer>& buffer = widget.paramBlocks[entry.bufferIdx];
+					updateParamBlockBuffer(buffer, invDrawGroupWidth, invDrawGroupHeight,
+						viewflipYFlip, Matrix4::IDENTITY, entry);
+				}
+
+				for(auto& entry : drawGroup.nonCachedElements)
+				{
+					const SPtr<GpuParamBlockBuffer>& buffer = widget.paramBlocks[entry.bufferIdx];
+					updateParamBlockBuffer(buffer, invViewportWidth, invViewportHeight,
+						viewflipYFlip, widget.worldTransform, entry);
+				}
+
+				// Update draw group param buffer
+				{
+					const SPtr<GpuParamBlockBuffer>& buffer = widget.paramBlocks[drawGroup.bufferIdx];
+
+					gGUISpriteParamBlockDef.gTint.set(buffer, Color::White);
 					gGUISpriteParamBlockDef.gWorldTransform.set(buffer, widget.worldTransform);
 					gGUISpriteParamBlockDef.gInvViewportWidth.set(buffer, invViewportWidth);
 					gGUISpriteParamBlockDef.gInvViewportHeight.set(buffer, invViewportHeight);
-					gGUISpriteParamBlockDef.gViewportYFlip.set(buffer, viewflipYFlip);
-
-					float t = std::max(0.0f, mTime - entry.animationStartTime);
-					if(entry.spriteTexture)
-					{
-						UINT32 row;
-						UINT32 column;
-						entry.spriteTexture->getAnimationFrame(t, row, column);
-
-						float invWidth = 1.0f / entry.spriteTexture->getAnimation().numColumns;
-						float invHeight = 1.0f / entry.spriteTexture->getAnimation().numRows;
-
-						Vector4 sizeOffset(invWidth, invHeight, column * invWidth, row * invHeight);
-						gGUISpriteParamBlockDef.gUVSizeOffset.set(buffer, sizeOffset);
-					}
-					else
-						gGUISpriteParamBlockDef.gUVSizeOffset.set(buffer, Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+					gGUISpriteParamBlockDef.gViewportYFlip.set(buffer, viewflipYFlip ? -1.0f : 1.0f);
+					gGUISpriteParamBlockDef.gUVSizeOffset.set(buffer, Vector4(1.0f, 1.0f, 0.0f, 0.0f));
 
 					buffer->flushToGPU();
 				}
 
 				rapi.setRenderTarget(drawGroup.destination);
 
-				for (auto& entry : drawGroup.elements)
+				for (auto& entry : drawGroup.cachedElements)
 				{
 					// TODO - I shouldn't be re-applying the entire material for each entry, instead just check which programs
 					// changed, and apply only those + the modified constant buffers and/or texture.
 
-					SPtr<GpuParamBlockBuffer> buffer = widget.paramBlocks[entry.bufferIdx];
-					entry.material->render(entry.isLine ? widget.lineMesh : widget.triangleMesh, entry.subMesh, entry.texture, mSamplerState, buffer, entry.additionalData);
+					const SPtr<GpuParamBlockBuffer>& buffer = widget.paramBlocks[entry.bufferIdx];
+					entry.material->render(entry.isLine ? widget.lineMesh : widget.triangleMesh, entry.subMesh, entry.texture,
+						mSamplerState, buffer, entry.additionalData);
 				}
 
 				drawGroup.requiresRedraw = false;
-				anyRedraws = true;
+				needsRedraw = true;
 			}
 		}
 
 		// TODO - Avoid rendering to overlay if unnecessary. Ideally the renderer should not clear parts used by GUI (unless transparency is needed,
 		// but that could be a special flag on GUIWidget?)
-		//if(anyRedraws)
+		if(needsRedraw)
 		{
 			// TODO - Need to restore original renderer's render target (might need to extend the renderer)
-			// TODO  - Draw the per-draw-group target into the final buffer
+			for (auto& widget : widgetRenderData)
+			{
+				for (auto& drawGroup : widget.drawGroups)
+				{
+					// Draw non-cached elements
+					for (auto& entry : drawGroup.nonCachedElements)
+					{
+						// TODO - I shouldn't be re-applying the entire material for each entry, instead just check which programs
+						// changed, and apply only those + the modified constant buffers and/or texture.
+
+						const SPtr<GpuParamBlockBuffer>& buffer = widget.paramBlocks[entry.bufferIdx];
+						entry.material->render(entry.isLine ? widget.lineMesh : widget.triangleMesh, entry.subMesh, entry.texture,
+							mSamplerState, buffer, entry.additionalData);
+					}
+					
+					// Draw the group itself
+					const SPtr<GpuParamBlockBuffer>& buffer = widget.paramBlocks[drawGroup.bufferIdx];
+
+					SpriteMaterial* batchedMat = SpriteManager::instance().getImageMaterial(true, false);
+					batchedMat->render(widget.drawGroupMesh, drawGroup.subMesh, drawGroup.destination->getColorTexture(0),
+						mSamplerState, buffer, nullptr);
+				}
+			}
 		}
 	}
 
@@ -1681,9 +1710,9 @@ namespace bs
 			widget->drawGroups = data.newDrawGroups;
 
 			// Allocate GPU buffers containing the material parameters
-			UINT32 numBuffers = 0;
+			UINT32 numBuffers = (UINT32)widget->drawGroups.size();
 			for (auto& drawGroup : widget->drawGroups)
-				numBuffers += (UINT32)drawGroup.elements.size();
+				numBuffers += (UINT32)drawGroup.nonCachedElements.size() + (UINT32)drawGroup.cachedElements.size();
 
 			auto numAllocatedBuffers = (UINT32)widget->paramBlocks.size();
 			if (numBuffers > numAllocatedBuffers)
@@ -1697,9 +1726,73 @@ namespace bs
 			UINT32 curBufferIdx = 0;
 			for (auto& drawGroup : widget->drawGroups)
 			{
-				for (auto& entry : drawGroup.elements)
+				drawGroup.bufferIdx = curBufferIdx++;
+				
+				for (auto& entry : drawGroup.nonCachedElements)
+					entry.bufferIdx = curBufferIdx++;
+
+				for (auto& entry : drawGroup.cachedElements)
 					entry.bufferIdx = curBufferIdx++;
 			}
+
+			// Rebuild draw group mesh
+			auto numQuads = (UINT32)widget->drawGroups.size();
+			if (numQuads > 0)
+			{
+				UINT32 numVertices = numQuads * 4;
+				UINT32 numIndices = numQuads * 6;
+
+				SPtr<VertexDataDesc> vertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+				vertexDesc->addVertElem(VET_FLOAT2, VES_POSITION);
+				vertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD);
+
+				SPtr<MeshData> meshData = MeshData::create(numVertices, numIndices, vertexDesc);
+
+				auto vertexData = (Vector2*)meshData->getElementData(VES_POSITION);
+				UINT32* indices = meshData->getIndices32();
+
+				UINT32 quadIdx = 0;
+				for (auto& drawGroup : widget->drawGroups)
+				{
+					*vertexData = Vector2(0, 0);
+					vertexData++;
+					
+					*vertexData = Vector2(0, 0);
+					vertexData++;
+					
+					*vertexData = Vector2((float)drawGroup.bounds.width, 0.0f);
+					vertexData++;
+
+					*vertexData = Vector2(1.0f, 0.0f);
+					vertexData++;
+
+					*vertexData = Vector2(0.0f, (float)drawGroup.bounds.height);
+					vertexData++;
+
+					*vertexData = Vector2(0.0f, 1.0f);
+					vertexData++;
+
+					*vertexData = Vector2((float)drawGroup.bounds.width, (float)drawGroup.bounds.height);
+					vertexData++;
+
+					*vertexData = Vector2(1.0f, 1.0f);
+					vertexData++;
+
+					indices[quadIdx * 6 + 0] = quadIdx * 4 + 0;
+					indices[quadIdx * 6 + 1] = quadIdx * 4 + 1;
+					indices[quadIdx * 6 + 2] = quadIdx * 4 + 2;
+					indices[quadIdx * 6 + 3] = quadIdx * 4 + 1;
+					indices[quadIdx * 6 + 4] = quadIdx * 4 + 3;
+					indices[quadIdx * 6 + 5] = quadIdx * 4 + 2;
+					
+					drawGroup.subMesh = SubMesh(quadIdx * 6, 6, DOT_TRIANGLE_LIST);
+					quadIdx++;
+				}
+				
+				widget->drawGroupMesh = Mesh::create(meshData, MU_STATIC, DOT_TRIANGLE_LIST);
+			}
+			else
+				widget->drawGroupMesh = nullptr;
 		}
 
 		assert(data.groupDirtyState.size() == widget->drawGroups.size());
@@ -1733,6 +1826,34 @@ namespace bs
 			mPerCameraData.erase(iterFind);
 			mReferencedCameras.erase(camera);
 		}
+	}
+
+	void GUIRenderer::updateParamBlockBuffer(const SPtr<GpuParamBlockBuffer>& buffer, float invViewportWidth,
+		float invViewportHeight, bool flipY, const Matrix4& tfrm, GUIMeshRenderData& renderData) const
+	{
+		gGUISpriteParamBlockDef.gTint.set(buffer, renderData.tint);
+		gGUISpriteParamBlockDef.gWorldTransform.set(buffer, tfrm);
+		gGUISpriteParamBlockDef.gInvViewportWidth.set(buffer, invViewportWidth);
+		gGUISpriteParamBlockDef.gInvViewportHeight.set(buffer, invViewportHeight);
+		gGUISpriteParamBlockDef.gViewportYFlip.set(buffer, flipY ? -1.0f : 1.0f);
+
+		float t = std::max(0.0f, mTime - renderData.animationStartTime);
+		if(renderData.spriteTexture)
+		{
+			UINT32 row;
+			UINT32 column;
+			renderData.spriteTexture->getAnimationFrame(t, row, column);
+
+			float invWidth = 1.0f / renderData.spriteTexture->getAnimation().numColumns;
+			float invHeight = 1.0f / renderData.spriteTexture->getAnimation().numRows;
+
+			Vector4 sizeOffset(invWidth, invHeight, column * invWidth, row * invHeight);
+			gGUISpriteParamBlockDef.gUVSizeOffset.set(buffer, sizeOffset);
+		}
+		else
+			gGUISpriteParamBlockDef.gUVSizeOffset.set(buffer, Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+
+		buffer->flushToGPU();
 	}
 	}
 }

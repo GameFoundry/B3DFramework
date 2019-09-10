@@ -89,26 +89,33 @@ namespace bs
 		return GUIHelper::calcOptimalContentsSize(mContent, *_getStyle(), _getDimensions());
 	}
 
-	void GUILabel::_fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
-		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const
+	void GUILabel::_fillBuffer(
+		UINT8* vertices,
+		UINT32* indices,
+		UINT32 vertexOffset,
+		UINT32 indexOffset,
+		const Vector2I& offset,
+		UINT32 maxNumVerts,
+		UINT32 maxNumIndices,
+		UINT32 renderElementIdx) const
 	{
 		UINT8* uvs = vertices + sizeof(Vector2);
 		UINT32 vertexStride = sizeof(Vector2) * 2;
 		UINT32 indexStride = sizeof(UINT32);
-		Vector2I offset(mLayoutData.area.x, mLayoutData.area.y);
+		Vector2I layoutOffset = Vector2I(mLayoutData.area.x, mLayoutData.area.y) + offset;
 
 		UINT32 imageSpriteIdx = mTextSprite->getNumRenderElements();
 
 		if (renderElementIdx < imageSpriteIdx)
 		{
 			mTextSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride,
-				indexStride, renderElementIdx, offset, mLayoutData.getLocalClipRect());
+				indexStride, renderElementIdx, layoutOffset, mLayoutData.getLocalClipRect());
 
 			return;
 		}
 
 		mImageSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
-			vertexStride, indexStride, imageSpriteIdx - renderElementIdx, offset, mLayoutData.getLocalClipRect());
+			vertexStride, indexStride, imageSpriteIdx - renderElementIdx, layoutOffset, mLayoutData.getLocalClipRect());
 	}
 
 	void GUILabel::setContent(const GUIContent& content)

@@ -151,8 +151,15 @@ namespace bs
 		return 2;
 	}
 
-	void GUIButtonBase::_fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
-		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const
+	void GUIButtonBase::_fillBuffer(
+		UINT8* vertices,
+		UINT32* indices,
+		UINT32 vertexOffset,
+		UINT32 indexOffset,
+		const Vector2I& offset,
+		UINT32 maxNumVerts,
+		UINT32 maxNumIndices,
+		UINT32 renderElementIdx) const
 	{
 		UINT8* uvs = vertices + sizeof(Vector2);
 		UINT32 vertexStride = sizeof(Vector2) * 2;
@@ -163,10 +170,10 @@ namespace bs
 
 		if(renderElementIdx < textSpriteIdx)
 		{
-			Vector2I offset(mLayoutData.area.x, mLayoutData.area.y);
+			Vector2I imageOffset = Vector2I(mLayoutData.area.x, mLayoutData.area.y) + offset;
 
 			mImageSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
-				vertexStride, indexStride, renderElementIdx, offset, mLayoutData.getLocalClipRect());
+				vertexStride, indexStride, renderElementIdx, imageOffset, mLayoutData.getLocalClipRect());
 
 			return;
 		}
@@ -178,7 +185,7 @@ namespace bs
 		Vector2I textOffset;
 		Rect2I textClipRect;
 
-		Vector2I imageOffset;
+		Vector2I contentOffset;
 		Rect2I imageClipRect;
 		if(mContentImageSprite != nullptr)
 		{
@@ -202,7 +209,7 @@ namespace bs
 				textClipRect = contentClipRect;
 				textClipRect.width = std::min(contentBounds.width - imageReservedWidth, textClipRect.width);
 
-				imageOffset = Vector2I(contentBounds.x + textBounds.width + imageXOffset + textImageSpacing, contentBounds.y);
+				contentOffset = Vector2I(contentBounds.x + textBounds.width + imageXOffset + textImageSpacing, contentBounds.y) + offset;
 				imageClipRect = contentClipRect;
 				imageClipRect.x -= textBounds.width + imageXOffset;
 			}
@@ -210,7 +217,7 @@ namespace bs
 			{
 				INT32 imageReservedWidth = imageBounds.width + imageXOffset;
 
-				imageOffset = Vector2I(contentBounds.x + imageXOffset, contentBounds.y);
+				contentOffset = Vector2I(contentBounds.x + imageXOffset, contentBounds.y) + offset;
 				imageClipRect = contentClipRect;
 				imageClipRect.x -= imageXOffset;
 				imageClipRect.width = std::min(imageReservedWidth, (INT32)imageClipRect.width);
@@ -222,18 +229,18 @@ namespace bs
 
 			INT32 imageYOffset = (contentBounds.height - imageBounds.height) / 2;
 			imageClipRect.y -= imageYOffset;
-			imageOffset.y += imageYOffset;
+			contentOffset.y += imageYOffset;
 		}
 		else
 		{
-			textOffset = Vector2I(contentBounds.x, contentBounds.y);
+			textOffset = Vector2I(contentBounds.x, contentBounds.y) + offset;
 			textClipRect = contentClipRect;
 		}
 
 		if(renderElementIdx >= contentImgSpriteIdx)
 		{
 			mContentImageSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
-				vertexStride, indexStride, contentImgSpriteIdx - renderElementIdx, imageOffset, imageClipRect);
+				vertexStride, indexStride, contentImgSpriteIdx - renderElementIdx, contentOffset, imageClipRect);
 		}
 		else
 		{

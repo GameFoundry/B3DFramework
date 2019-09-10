@@ -150,6 +150,7 @@ namespace bs
 		 *									element.
 		 * @param[out]	indices				Previously allocated buffer where to store the indices.
 		 * @param[in]	vertexOffset		At which vertex should the method start filling the buffer.
+		 * @param[in]	offset				Offset that should be applied to all output vertex positions.
 		 * @param[in]	indexOffset			At which index should the method start filling the buffer.
 		 * @param[in]	maxNumVerts			Total number of vertices the buffers were allocated for. Used only for memory
 		 *									safety.
@@ -158,8 +159,15 @@ namespace bs
 		 * @param[in]	renderElementIdx	Zero-based index of the render element.
 		 *
 		 */
-		virtual void _fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
-			UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const = 0;
+		virtual void _fillBuffer(
+			UINT8* vertices,
+			UINT32* indices,
+			UINT32 vertexOffset,
+			UINT32 indexOffset,
+			const Vector2I& offset,
+			UINT32 maxNumVerts,
+			UINT32 maxNumIndices,
+			UINT32 renderElementIdx) const = 0;
 
 		/**
 		 * Recreates the internal render elements. Must be called before fillBuffer if element is dirty. Marks the element

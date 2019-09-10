@@ -38,9 +38,13 @@ namespace bs
 	{
 		UINT32 id = 0;
 		SPtr<ct::RenderTexture> destination;
+		Rect2I bounds;
+		SubMesh subMesh;
 		bool requiresRedraw = true;
+		UINT32 bufferIdx = 0;
 
-		Vector<GUIMeshRenderData> elements;
+		Vector<GUIMeshRenderData> cachedElements;
+		Vector<GUIMeshRenderData> nonCachedElements;
 	};
 
 	/**
@@ -128,7 +132,7 @@ namespace bs
 			Vector<GUIGroupRenderElement> cachedElements;
 			Vector<GUIGroupRenderElement> nonCachedElements;
 			Vector<GUIMesh> meshes;
-			SPtr<Texture> outputTexture;
+			SPtr<RenderTexture> outputTexture;
 		};
 
 		/** Splits the provided draw group at the specified depth. Returns the second half of the group. */

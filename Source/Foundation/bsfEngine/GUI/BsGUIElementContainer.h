@@ -26,8 +26,15 @@ namespace bs
 		virtual ~GUIElementContainer() = default;
 
 		/** @copydoc GUIElement::_fillBuffer */
-		void _fillBuffer(UINT8* vertices, UINT32* indices, UINT32 vertexOffset, UINT32 indexOffset,
-			UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 renderElementIdx) const override;
+		void _fillBuffer(
+			UINT8* vertices,
+			UINT32* indices,
+			UINT32 vertexOffset,
+			UINT32 indexOffset,
+			const Vector2I& offset,
+			UINT32 maxNumVerts,
+			UINT32 maxNumIndices,
+			UINT32 renderElementIdx) const override;
 
 		/** @copydoc GUIElement::_getOptimalSize */
 		Vector2I _getOptimalSize() const override;

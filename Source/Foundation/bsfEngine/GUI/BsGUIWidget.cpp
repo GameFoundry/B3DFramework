@@ -376,8 +376,8 @@ namespace bs
 
 		// Return data required for updating the renderer
 		GUIDrawGroupRenderDataUpdate output;
-		output.triangleMesh = mTriangleMesh;
-		output.lineMesh = mLineMesh;
+		output.triangleMesh = mTriangleMesh->getCore();
+		output.lineMesh = mLineMesh->getCore();
 
 		output.groupDirtyState.reserve(mDrawGroups.size());
 		for (auto& entry : mDrawGroups)
@@ -420,6 +420,7 @@ namespace bs
 			UINT32 depth;
 			UINT32 minDepth;
 			Rect2I bounds;
+			GUIDrawGroup* drawGroup;
 			Vector<GUIGroupRenderElement> elements;
 		};
 
@@ -559,6 +560,7 @@ namespace bs
 						foundGroup->numVertices = renderElem.numVertices;
 						foundGroup->numIndices = renderElem.numIndices;
 						foundGroup->meshType = renderElem.type;
+						foundGroup->drawGroup = &entry;
 					}
 					else
 					{
@@ -568,6 +570,9 @@ namespace bs
 
 						// It's expected that GUI element doesn't use same material for different mesh types so this should always be true
 						assert(renderElem.type == foundGroup->meshType);
+
+						// Draw groups are super-set of material groups, so a material group cannot cross a draw group boundary
+						assert(foundGroup->drawGroup == &entry);
 
 						foundGroup->numVertices += renderElem.numVertices;
 						foundGroup->numIndices += renderElem.numIndices;
@@ -658,22 +663,26 @@ namespace bs
 					auto typeIdx = (UINT32)group->meshType;
 					guiMesh.indexOffset = indexOffset[typeIdx];
 
+					Vector2I groupOffset(0, 0);
+					if(guiMesh.material->allowBatching())
+						groupOffset = Vector2I(-group->drawGroup->bounds.x, -group->drawGroup->bounds.y);
+					
 					UINT32 groupNumIndices = 0;
 					for (auto& matElement : group->elements)
 					{
-						// TODO - X/Y offset of the element should be relative to the draw group
 						matElement.element->_fillBuffer(
 							vertices[typeIdx], indices[typeIdx],
-							vertexOffset[typeIdx], indexOffset[typeIdx],
-							totalNumVertices[typeIdx], totalNumVertices[typeIdx], matElement.renderElementIdx);
+							vertexOffset[typeIdx], indexOffset[typeIdx], groupOffset,
+							totalNumVertices[typeIdx], totalNumVertices[typeIdx],
+							matElement.renderElementIdx);
 
 						const GUIRenderElement& renderElement = matElement.element->_getRenderElements()[matElement.renderElementIdx];
 
 						UINT32 indexStart = indexOffset[typeIdx];
 						UINT32 indexEnd = indexStart + renderElement.numIndices;
 
-						for (UINT32 i = indexStart; i < indexEnd; i++)
-							indices[typeIdx][i] += vertexOffset[typeIdx];
+						for (UINT32 j = indexStart; j < indexEnd; j++)
+							indices[typeIdx][j] += vertexOffset[typeIdx];
 
 						indexOffset[typeIdx] += renderElement.numIndices;
 						vertexOffset[typeIdx] += renderElement.numVertices;
@@ -774,13 +783,19 @@ namespace bs
 		GUIDrawGroupRenderData output;
 		output.id = drawGroup.id;
 		output.destination = drawGroup.outputTexture->getCore();
+		output.bounds = drawGroup.bounds;
 		output.requiresRedraw = true;
 		
 		auto numElements = (UINT32)drawGroup.meshes.size();
-		output.elements.resize(numElements);
-
 		for(UINT32 i = 0; i < numElements; i++)
-			output.elements[i] = getRenderData(drawGroup.meshes[i]);
+		{
+			GUIMeshRenderData meshData = getRenderData(drawGroup.meshes[i]);
+			
+			if (meshData.material->allowBatching())
+				output.cachedElements.push_back(std::move(meshData));
+			else
+				output.nonCachedElements.push_back(std::move(meshData));
+		}
 		
 		return output;
 	}
