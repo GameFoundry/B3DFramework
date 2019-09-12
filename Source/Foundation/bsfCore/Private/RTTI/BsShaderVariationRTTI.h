@@ -54,8 +54,8 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getDynamicSize */
-		static uint32_t getDynamicSize(const ShaderVariation::Param& data)
+		/** @copydoc RTTIPlainType::getSize */
+		static uint32_t getSize(const ShaderVariation::Param& data)
 		{
 			uint64_t dataSize = sizeof(uint8_t) + sizeof(uint32_t);
 			dataSize += rtti_size(data.name);

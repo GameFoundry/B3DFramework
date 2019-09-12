@@ -70,7 +70,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getDynamicSize(const SavedLightProbeInfo& data)
+		static uint32_t getSize(const SavedLightProbeInfo& data)
 		{
 			uint64_t dataSize = rtti_size(data.positions) + rtti_size(data.coefficients) + sizeof(uint32_t) * 2;
 

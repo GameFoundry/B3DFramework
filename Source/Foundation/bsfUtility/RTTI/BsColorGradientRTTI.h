@@ -70,7 +70,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getDynamicSize(const ColorGradient& data)
+		static uint32_t getSize(const ColorGradient& data)
 		{
 			const uint64_t dataSize =
 				rtti_size(data.mColors[0]) * ColorGradient::MAX_KEYS +
@@ -142,7 +142,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getDynamicSize(const ColorGradientHDR& data)
+		static uint32_t getSize(const ColorGradientHDR& data)
 		{
 			const uint64_t dataSize =
 				rtti_size(data.mColors[0]) * ColorGradientHDR::MAX_KEYS +

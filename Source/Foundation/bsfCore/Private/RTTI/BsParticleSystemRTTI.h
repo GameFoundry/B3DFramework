@@ -320,8 +320,8 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getDynamicSize */
-		static uint32_t getDynamicSize(const ParticleBurst& data)
+		/** @copydoc RTTIPlainType::getSize */
+		static uint32_t getSize(const ParticleBurst& data)
 		{
 			uint64_t dataSize = sizeof(uint32_t) + sizeof(uint32_t);
 			dataSize += rtti_size(data.time);

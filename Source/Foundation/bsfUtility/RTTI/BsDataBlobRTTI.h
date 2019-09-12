@@ -41,7 +41,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getDynamicSize(const DataBlob& data)
+		static uint32_t getSize(const DataBlob& data)
 		{
 			uint64_t dataSize = data.size + sizeof(uint32_t);
 

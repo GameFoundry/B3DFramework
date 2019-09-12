@@ -43,7 +43,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getDynamicSize(const String& data)
+		static uint32_t getSize(const String& data)
 		{
 			uint64_t dataSize = data.size() * sizeof(String::value_type) + sizeof(uint32_t);
 
@@ -91,7 +91,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getDynamicSize(const WString& data)
+		static uint32_t getSize(const WString& data)
 		{
 			uint64_t dataSize = data.size() * sizeof(WString::value_type) + sizeof(uint32_t);
 

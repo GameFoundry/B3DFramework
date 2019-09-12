@@ -59,7 +59,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getDynamicSize(const StringID& data)
+		static uint32_t getSize(const StringID& data)
 		{
 			uint32_t dataSize = sizeof(bool) + sizeof(uint32_t);
 

@@ -107,8 +107,8 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getDynamicSize */
-		static uint32_t getDynamicSize(const SkeletonBoneInfo& data)
+		/** @copydoc RTTIPlainType::getSize */
+		static uint32_t getSize(const SkeletonBoneInfo& data)
 		{
 			uint64_t dataSize = sizeof(uint32_t);
 			dataSize += rtti_size(data.name);

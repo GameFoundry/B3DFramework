@@ -78,7 +78,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getDynamicSize(const SHADER_DATA_PARAM_DESC& data)
+		static uint32_t getSize(const SHADER_DATA_PARAM_DESC& data)
 		{
 			uint64_t dataSize = rtti_size(data.arraySize) + rtti_size(data.rendererSemantic) + rtti_size(data.type) +
 				rtti_size(data.name) + rtti_size(data.gpuVariableName) + rtti_size(data.elementSize) +
@@ -149,7 +149,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getDynamicSize(const SHADER_OBJECT_PARAM_DESC& data)
+		static uint32_t getSize(const SHADER_OBJECT_PARAM_DESC& data)
 		{
 			uint64_t dataSize = rtti_size(data.rendererSemantic) + rtti_size(data.type) +
 				rtti_size(data.name) + rtti_size(data.gpuVariableNames) +
@@ -196,7 +196,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getDynamicSize(const SHADER_PARAM_BLOCK_DESC& data)
+		static uint32_t getSize(const SHADER_PARAM_BLOCK_DESC& data)
 		{
 			uint64_t dataSize = rtti_size(data.shared) + rtti_size(data.usage) +
 				rtti_size(data.name) + rtti_size(data.rendererSemantic) + sizeof(uint32_t);
@@ -255,7 +255,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getDynamicSize(const SHADER_PARAM_ATTRIBUTE& data)
+		static uint32_t getSize(const SHADER_PARAM_ATTRIBUTE& data)
 		{
 			uint64_t dataSize = rtti_size(data.type) + rtti_size(data.value) +
 				rtti_size(data.nextParamIdx) + sizeof(uint32_t) * 2;
@@ -307,8 +307,8 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getDynamicSize */
-		static uint32_t getDynamicSize(const ShaderVariationParamValue& data)
+		/** @copydoc RTTIPlainType::getSize */
+		static uint32_t getSize(const ShaderVariationParamValue& data)
 		{
 			uint64_t dataSize = sizeof(uint8_t) + sizeof(uint32_t);
 			dataSize += rtti_size(data.name);
@@ -360,8 +360,8 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getDynamicSize */
-		static uint32_t getDynamicSize(const ShaderVariationParamInfo& data)
+		/** @copydoc RTTIPlainType::getSize */
+		static uint32_t getSize(const ShaderVariationParamInfo& data)
 		{
 			uint64_t dataSize = sizeof(uint8_t) + sizeof(uint32_t);
 			dataSize += rtti_size(data.name);

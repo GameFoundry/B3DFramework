@@ -125,7 +125,7 @@ namespace bs
 		}
 
 		/** Returns the size of the provided object. (Works for both static and dynamic size types) */
-		static uint32_t getDynamicSize(const T& data)
+		static uint32_t getSize(const T& data)
 		{
 			return sizeof(T);
 		}
@@ -142,7 +142,7 @@ namespace bs
 	template<class ElemType>
 	uint32_t rtti_size(const ElemType& data)
 	{
-		return RTTIPlainType<ElemType>::getDynamicSize(data);
+		return RTTIPlainType<ElemType>::getSize(data);
 	}
 
 	/**
@@ -221,7 +221,7 @@ namespace bs
 		{ return stream.writeBytes(data); }																\
 		static uint32_t fromMemory(type& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)		\
 		{ return stream.readBytes(data); }																\
-		static UINT32 getDynamicSize(const type& data)													\
+		static UINT32 getSize(const type& data)													\
 		{ return sizeof(type); }																		\
 	};
 

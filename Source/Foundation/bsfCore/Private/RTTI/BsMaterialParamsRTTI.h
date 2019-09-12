@@ -324,7 +324,7 @@ namespace bs
 			return sizeof(MaterialParamsBase::ParamData);
 		}
 
-		static uint32_t getDynamicSize(const MaterialParamsBase::ParamData& data)
+		static uint32_t getSize(const MaterialParamsBase::ParamData& data)
 		{
 			return sizeof(MaterialParamsBase::ParamData);
 		}
@@ -425,7 +425,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getDynamicSize(const MaterialParamsBase::DataParamInfo& data)
+		static uint32_t getSize(const MaterialParamsBase::DataParamInfo& data)
 		{
 			uint32_t size = sizeof(uint32_t) * 3 + rtti_size(data.offset);
 
@@ -493,7 +493,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getDynamicSize(const MaterialParamsRTTI::MaterialParam& data)
+		static uint32_t getSize(const MaterialParamsRTTI::MaterialParam& data)
 		{
 			const uint64_t dataSize = rtti_size(data.name) + rtti_size(data.data) + rtti_size(data.index) +
 				sizeof(uint32_t) * 2;

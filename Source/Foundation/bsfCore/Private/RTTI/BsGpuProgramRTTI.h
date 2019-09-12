@@ -170,7 +170,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getDynamicSize(const GpuParamDataDesc& data)
+		static uint32_t getSize(const GpuParamDataDesc& data)
 		{
 			uint32_t dataSize = rtti_size(VERSION) + rtti_size(data.name) + rtti_size(data.elementSize) +
 				rtti_size(data.arraySize) + rtti_size(data.arrayElementStride) + rtti_size(data.type) +
@@ -221,7 +221,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getDynamicSize(const GpuParamObjectDesc& data)
+		static uint32_t getSize(const GpuParamObjectDesc& data)
 		{
 			uint32_t dataSize = rtti_size(VERSION) + rtti_size(data.name) + rtti_size(data.type) +
 				rtti_size(data.slot) + rtti_size(data.set) + rtti_size(data.elementType) + sizeof(uint32_t);
@@ -269,7 +269,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getDynamicSize(const GpuParamBlockDesc& data)
+		static uint32_t getSize(const GpuParamBlockDesc& data)
 		{
 			uint32_t dataSize = rtti_size(VERSION) + rtti_size(data.name) + rtti_size(data.set) +
 				rtti_size(data.slot) + rtti_size(data.blockSize) + rtti_size(data.isShareable) +

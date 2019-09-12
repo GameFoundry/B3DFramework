@@ -61,7 +61,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getDynamicSize(const CharDesc& data)
+		static uint32_t getSize(const CharDesc& data)
 		{
 			uint64_t dataSize = sizeof(data.charId)
 				+ sizeof(data.page)
@@ -75,7 +75,7 @@ namespace bs
 				+ sizeof(data.yOffset)
 				+ sizeof(data.xAdvance)
 				+ sizeof(data.yAdvance)
-				+ RTTIPlainType<Vector<KerningPair>>::getDynamicSize(data.kerningPairs);
+				+ RTTIPlainType<Vector<KerningPair>>::getSize(data.kerningPairs);
 
 			dataSize += sizeof(uint32_t);
 

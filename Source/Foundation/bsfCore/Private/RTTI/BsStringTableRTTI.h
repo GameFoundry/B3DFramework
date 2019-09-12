@@ -115,8 +115,8 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getDynamicSize */
-		static uint32_t getDynamicSize(const LanguageData& data)
+		/** @copydoc RTTIPlainType::getSize */
+		static uint32_t getSize(const LanguageData& data)
 		{
 			uint64_t dataSize = sizeof(uint32_t) * 2;
 
@@ -178,8 +178,8 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getDynamicSize */
-		static uint32_t getDynamicSize(const LocalizedStringData& data)
+		/** @copydoc RTTIPlainType::getSize */
+		static uint32_t getSize(const LocalizedStringData& data)
 		{
 			uint64_t dataSize = sizeof(uint32_t);
 

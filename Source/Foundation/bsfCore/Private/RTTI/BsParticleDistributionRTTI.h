@@ -58,8 +58,8 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getDynamicSize */
-		static uint32_t getDynamicSize(const ColorDistribution& data)
+		/** @copydoc RTTIPlainType::getSize */
+		static uint32_t getSize(const ColorDistribution& data)
 		{
 			uint64_t dataSize = sizeof(uint32_t) + sizeof(uint32_t);
 			dataSize += rtti_size(data.mType);
@@ -117,8 +117,8 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getDynamicSize */
-		static uint32_t getDynamicSize(const TDistribution<T>& data)
+		/** @copydoc RTTIPlainType::getSize */
+		static uint32_t getSize(const TDistribution<T>& data)
 		{
 			uint64_t dataSize = sizeof(uint32_t) + sizeof(uint32_t);
 			dataSize += rtti_size(data.mType);

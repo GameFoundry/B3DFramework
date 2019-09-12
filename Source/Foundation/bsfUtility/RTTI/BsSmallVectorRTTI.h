@@ -55,8 +55,8 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getDynamicSize */
-		static uint32_t getDynamicSize(const SmallVector<T, N>& data)
+		/** @copydoc RTTIPlainType::getSize */
+		static uint32_t getSize(const SmallVector<T, N>& data)
 		{
 			uint64_t dataSize = sizeof(uint32_t) * 2;
 

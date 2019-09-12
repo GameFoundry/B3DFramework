@@ -46,7 +46,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getDynamicSize(const Path& data)
+		static uint32_t getSize(const Path& data)
 		{
 			uint64_t dataSize = (uint64_t)rtti_size(data.mDevice) + (uint64_t)rtti_size(data.mNode) + (uint64_t)rtti_size(data.mFilename) +
 				(uint64_t)rtti_size(data.mIsAbsolute) + (uint64_t)rtti_size(data.mDirectories) + sizeof(uint32_t);

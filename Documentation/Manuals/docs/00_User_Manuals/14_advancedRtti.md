@@ -177,7 +177,7 @@ template<> struct RTTIPlainType<std::string>
 		return size;
 	}
 
-	static uint32_t getDynamicSize(const std::string& data)	
+	static uint32_t getSize(const std::string& data)	
 	{ 
 		return data.size() + sizeof(uint32_t);
 	}	
@@ -186,7 +186,7 @@ template<> struct RTTIPlainType<std::string>
 
 > Note: bs::f already provides many of such specializations, including ones for strings, vectors and maps.
 
-Each specialization must implement all three **toMemory()**, **fromMemory()** and **getDynamicSize()** methods. It must also provide a flag **hasDynamicSize** which determines whether or not it has dynamic size. Any structure whose size varies with each instance (like a string) must set this flag to true. You must also set it to true if the size is static but larger than 256 bytes.
+Each specialization must implement all three **toMemory()**, **fromMemory()** and **getSize()** methods. It must also provide a flag **hasDynamicSize** which determines whether or not it has dynamic size. Any structure whose size varies with each instance (like a string) must set this flag to true. You must also set it to true if the size is static but larger than 256 bytes.
 
 Both **toMemory()**, **fromMemory()** have a similar signature:
  - **data** - Object that is to be written (**toMemory()**) or object that will receive the results of a read (**fromMemory()**)
@@ -194,7 +194,7 @@ Both **toMemory()**, **fromMemory()** have a similar signature:
  - **info** - Additional optional information about the field being serialized
  - **return** - The total size of the data that was written or read, in bytes
  
-If your structure has dynamic size or is fixed size that is more than 256 bytes you must set the **hasDynamicSize** flag to 1, and return the dynamic size from the **getDynamicSize()** method. You must also encode the size as the first four bytes in a call to **fromMemory()**.
+If your structure has dynamic size or is fixed size that is more than 256 bytes you must set the **hasDynamicSize** flag to 1. The size of the structure should be returned from the **getSize()** method. If the size is dynamic you must also encode the size as the first four bytes in a call to **toMemory()**.
 
 After the specialization is implemented you will be able to use the type in getters/setters for plain fields as you would *int* or *float*. 
 

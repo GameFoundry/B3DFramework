@@ -121,15 +121,19 @@ namespace bs
 		{
 			static_assert(sizeof(RTTIPlainType<DataType>::id) > 0, "Type has no RTTI ID."); // Just making sure provided type has a type ID
 
-			static_assert((RTTIPlainType<DataType>::hasDynamicSize != 0 || (sizeof(DataType) <= 255)),
-				"Trying to create a plain RTTI field with size larger than 255. In order to use larger sizes for plain types please specialize " \
-				" RTTIPlainType, set hasDynamicSize to true.");
+			uint32_t size = RTTIPlainType<DataType>::getSize(DataType());
+			if (RTTIPlainType<DataType>::hasDynamicSize == 0 && size > 255)
+			{
+				assert(false);
+				BS_LOG(Error, RTTI, "Trying to create a plain RTTI field with size larger than 255. In order to use larger sizes for plain " \
+					"types please specialize RTTIPlainType, set hasDynamicSize to true.");
+			}
 
 			this->getter = getter;
 			this->setter = setter;
 
-			init(std::move(name), RTTIFieldSchema(uniqueId, false, RTTIPlainType<DataType>::hasDynamicSize,
-				RTTIPlainType<DataType>::getDynamicSize(), SerializableFT_Plain, info));
+			init(std::move(name), RTTIFieldSchema(uniqueId, false, RTTIPlainType<DataType>::hasDynamicSize, size,
+				SerializableFT_Plain, info));
 		}
 
 		/**
@@ -160,7 +164,7 @@ namespace bs
 			arraySetSize = setSize;
 
 			init(std::move(name), RTTIFieldSchema(uniqueId, true, RTTIPlainType<DataType>::hasDynamicSize,
-				RTTIPlainType<DataType>::getDynamicSize(), SerializableFT_Plain, info));
+				RTTIPlainType<DataType>::getSize(), SerializableFT_Plain, info));
 		}
 
 		/** @copydoc RTTIPlainFieldBase::getTypeId */
@@ -179,7 +183,7 @@ namespace bs
 			ObjectType* castObject = static_cast<ObjectType*>(object);
 			DataType value = (rttiObject->*getter)(castObject);
 
-			return RTTIPlainType<DataType>::getDynamicSize(value);
+			return RTTIPlainType<DataType>::getSize(value);
 		}
 
 		/** @copydoc RTTIPlainFieldBase::getArrayElemDynamicSize */
@@ -192,7 +196,7 @@ namespace bs
 			ObjectType* castObject = static_cast<ObjectType*>(object);
 			DataType value = (rttiObject->*arrayGetter)(castObject, index);
 
-			return RTTIPlainType<DataType>::getDynamicSize(value);
+			return RTTIPlainType<DataType>::getSize(value);
 		}
 
 		/** Returns the size of the array managed by the field. */

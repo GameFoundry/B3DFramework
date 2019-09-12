@@ -97,7 +97,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getDynamicSize(const SpriteSheetGridAnimation& data)
+		static uint32_t getSize(const SpriteSheetGridAnimation& data)
 		{
 			uint32_t size = sizeof(uint32_t) * 2 + rtti_size(data.numRows) + rtti_size(data.numColumns) +
 				rtti_size(data.count) + rtti_size(data.fps);

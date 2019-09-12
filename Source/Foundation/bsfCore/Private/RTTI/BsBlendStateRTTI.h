@@ -71,7 +71,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getDynamicSize(const BLEND_STATE_DESC& data)
+		static uint32_t getSize(const BLEND_STATE_DESC& data)
 		{
 			uint64_t dataSize = sizeof(data) + sizeof(uint32_t);
 

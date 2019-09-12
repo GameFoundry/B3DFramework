@@ -41,8 +41,8 @@ namespace bs
 			return sizeof(TKeyframe<T>);
 		}
 
-		/** @copydoc RTTIPlainType::getDynamicSize */
-		static uint32_t getDynamicSize(const TKeyframe<T>& data)
+		/** @copydoc RTTIPlainType::getSize */
+		static uint32_t getSize(const TKeyframe<T>& data)
 		{
 			return sizeof(TKeyframe<T>);
 		}
@@ -87,8 +87,8 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getDynamicSize */
-		static uint32_t getDynamicSize(const TAnimationCurve<T>& data)
+		/** @copydoc RTTIPlainType::getSize */
+		static uint32_t getSize(const TAnimationCurve<T>& data)
 		{
 			uint64_t dataSize = sizeof(uint32_t) + sizeof(uint32_t);
 			dataSize += rtti_size(data.mStart);
@@ -133,8 +133,8 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getDynamicSize */
-		static uint32_t getDynamicSize(const TNamedAnimationCurve<T>& data)
+		/** @copydoc RTTIPlainType::getSize */
+		static uint32_t getSize(const TNamedAnimationCurve<T>& data)
 		{
 			uint64_t dataSize = sizeof(uint32_t);
 			dataSize += rtti_size(data.name);

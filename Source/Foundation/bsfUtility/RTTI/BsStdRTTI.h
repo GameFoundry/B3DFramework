@@ -61,8 +61,8 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getDynamicSize */
-		static uint32_t getDynamicSize(const std::vector<T, StdAlloc<T>>& data)
+		/** @copydoc RTTIPlainType::getSize */
+		static uint32_t getSize(const std::vector<T, StdAlloc<T>>& data)
 		{
 			uint64_t dataSize = sizeof(uint32_t) * 2;
 
@@ -121,8 +121,8 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getDynamicSize */
-		static uint32_t getDynamicSize(const std::list<T, StdAlloc<T>>& data)
+		/** @copydoc RTTIPlainType::getSize */
+		static uint32_t getSize(const std::list<T, StdAlloc<T>>& data)
 		{
 			uint64_t dataSize = sizeof(uint32_t) * 2;
 
@@ -180,8 +180,8 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getDynamicSize */
-		static uint32_t getDynamicSize(const std::set<T, std::less<T>, StdAlloc<T>>& data)
+		/** @copydoc RTTIPlainType::getSize */
+		static uint32_t getSize(const std::set<T, std::less<T>, StdAlloc<T>>& data)
 		{
 			uint64_t dataSize = sizeof(uint32_t) * 2;
 
@@ -246,8 +246,8 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getDynamicSize */
-		static uint32_t getDynamicSize(const std::map<Key, Value, std::less<Key>, StdAlloc<std::pair<const Key, Value>>>& data)
+		/** @copydoc RTTIPlainType::getSize */
+		static uint32_t getSize(const std::map<Key, Value, std::less<Key>, StdAlloc<std::pair<const Key, Value>>>& data)
 		{
 			uint64_t dataSize = sizeof(uint32_t) * 2;
 
@@ -318,8 +318,8 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getDynamicSize */
-		static uint32_t getDynamicSize(const MapType& data)
+		/** @copydoc RTTIPlainType::getSize */
+		static uint32_t getSize(const MapType& data)
 		{
 			uint64_t dataSize = sizeof(uint32_t) * 2;
 
@@ -384,8 +384,8 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getDynamicSize */
-		static uint32_t getDynamicSize(const MapType& data)
+		/** @copydoc RTTIPlainType::getSize */
+		static uint32_t getSize(const MapType& data)
 		{
 			uint64_t dataSize = sizeof(uint32_t) * 2;
 
@@ -433,8 +433,8 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getDynamicSize */
-		static uint32_t getDynamicSize(const std::pair<A, B>& data)
+		/** @copydoc RTTIPlainType::getSize */
+		static uint32_t getSize(const std::pair<A, B>& data)
 		{
 			uint64_t dataSize = sizeof(uint32_t);
 			dataSize += rtti_size(data.first);
