@@ -32,7 +32,7 @@ namespace bs
 		mOutputStream->skip(sizeof(UINT32));
 
 		BinarySerializer bs;
-		bs.encode(object, mOutputStream, false, context);
+		bs.encode(object, mOutputStream, BinarySerializerFlag::None, context);
 
 		size_t endPos = mOutputStream->tell();
 		auto size = (UINT32)(endPos - startPos - sizeof(UINT32));

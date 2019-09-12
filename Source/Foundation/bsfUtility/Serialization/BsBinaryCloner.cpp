@@ -30,7 +30,7 @@ namespace bs
 
 		SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>();
 		BinarySerializer bs;
-		bs.encode(object, stream, shallow);
+		bs.encode(object, stream, shallow ? BinarySerializerFlag::Shallow : BinarySerializerFlag::None);
 
 		stream->seek(0);
 		SPtr<IReflectable> clonedObj = bs.decode(stream, (UINT32)stream->size());

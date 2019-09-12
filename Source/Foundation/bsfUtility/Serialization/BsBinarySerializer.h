@@ -20,6 +20,37 @@ namespace bs
 	struct RTTIReflectablePtrFieldBase;
 	struct SerializationContext;
 
+	/** Flags used for controlling BinarySerializer encoding and decoding. */
+	enum class BinarySerializerFlag
+	{
+		None = 0,
+		/**
+		 * Flag to be provided during encoding. Determines how to handle references objects. If set then
+		 * references will not be encoded and will be set to null. If not set then references will be encoded
+		 * as well as restored upon decoding.
+		 */
+		Shallow = 1 << 0,
+		/**
+		 * If set the encoder will use the specialized compression encoding/decoding strategy, suitable
+		 * for network transmission. In particular the 'compress' parameter for plain type serialization
+		 * will be set to true, allowing those types to be encoded in sub-byte representations that take
+		 * up less space (e.g. boolean as 1 bit, integer as var-int, etc.). Data that was encoded using
+		 * this strategy must be decoded using this strategy.
+		 */
+		Compress = 1 << 1,
+		/**
+		 * If true, no meta-data will be written. This saves on serialization size but it also means
+		 * the data can only be decoded if the RTTI types are identical to when the object was encoded
+		 * (e.g. no fields were added/removed from the types). Optionally you can also provide a previously
+		 * saved RTTI schema from which to read the meta-data from. Data encoded using this flag must also
+		 * be decoded with this flag provided.
+		 */
+		NoMeta = 1 << 2,
+	};
+
+	using BinarySerializerFlags = Flags<BinarySerializerFlag>;
+	BS_FLAGS_OPERATORS(BinarySerializerFlag)
+
 	/**
 	 * Encodes/decodes all the fields of the provided object into/from a binary format. Fields are encoded using their
 	 * unique IDs. Encoded data will remain compatible for decoding even if you modify the encoded class, as long as you
@@ -42,15 +73,14 @@ namespace bs
 		 * @param[in]	stream					Stream into which to output the encoded data. The stream must own its memory
 		 *										buffer so it may grow as required during encoding, or your must guarantee
 		 *										the stream is of adequate size otherwise.
-		 * @param[in]	shallow					Determines how to handle referenced objects. If true then references will
-		 *										not be encoded and will be set to null. If false then references will be
-		 *										encoded as well and restored upon decoding.
+		 * @param[in]	flags					Flags used for controlling serialization.
 		 * @param[in]	context					Optional object that will be passed along to all serialized objects through
 		 *										their serialization callbacks. Can be used for controlling serialization,
 		 *										maintaining state or sharing information between objects during
 		 *										serialization.
 		 */
-		void encode(IReflectable* object, const SPtr<DataStream>& stream, bool shallow = false, SerializationContext* context = nullptr);
+		void encode(IReflectable* object, const SPtr<DataStream>& stream, BinarySerializerFlags flags = BinarySerializerFlag::None,
+			SerializationContext* context = nullptr);
 
 		/**
 		 * Decodes an object from binary data.
@@ -66,8 +96,8 @@ namespace bs
 		 * @note
 		 * Child elements are guaranteed to be fully deserialized before their parents, except for fields marked with WeakRef flag.
 		 */
-		SPtr<IReflectable> decode(const SPtr<DataStream>& stream, UINT32 dataLength, SerializationContext* context = nullptr,
-			std::function<void(float)> progress = nullptr);
+		SPtr<IReflectable> decode(const SPtr<DataStream>& stream, UINT32 dataLength, BinarySerializerFlags flags = BinarySerializerFlag::None,
+			SerializationContext* context = nullptr, std::function<void(float)> progress = nullptr);
 	private:
 		/** Determines how many bytes need to be read before the progress report callback is triggered. */
 		static constexpr UINT32 REPORT_AFTER_BYTES = 32768;
@@ -110,13 +140,13 @@ namespace bs
 		};
 
 		/** Encodes a single IReflectable object. */
-		bool encodeEntry(IReflectable* object, UINT32 objectId, BufferedBitstreamWriter& stream, bool shallow);
+		bool encodeEntry(IReflectable* object, UINT32 objectId, BufferedBitstreamWriter& stream, BinarySerializerFlags flags);
 
 		/**	Decodes a single IReflectable object. */
-		bool decodeEntry(BufferedBitstreamReader& stream, size_t dataLength, const SPtr<IReflectable>& output);
+		bool decodeEntry(BufferedBitstreamReader& stream, size_t dataLength, BinarySerializerFlags flags, const SPtr<IReflectable>& output);
 
 		/**	Helper method for encoding a complex object and writing its data to a stream. */
-		bool complexTypeToStream(IReflectable* object, BufferedBitstreamWriter& stream, bool shallow);
+		bool complexTypeToStream(IReflectable* object, BufferedBitstreamWriter& stream, BinarySerializerFlags flags);
 
 		/**	Finds an existing, or creates a unique unique identifier for the specified object. */
 		UINT32 findOrCreatePersistentId(IReflectable* object);
@@ -127,6 +157,12 @@ namespace bs
 		 */
 		UINT32 registerObjectPtr(SPtr<IReflectable> object);
 
+		/**
+		 * Decodes object meta-data from the current location in the stream. Decoding accounts for the serializer flags to decode
+		 * using the correct format. Returns number of bits read.
+		 */
+		static UINT32 readObjectMetaData(BufferedBitstreamReader& stream, BinarySerializerFlags flags, UINT32& objId, UINT32& objTypeId, bool& isBaseType);
+		
 		/** Encodes data required for representing a serialized field, into 4 bytes. */
 		static UINT32 encodeFieldMetaData(UINT16 id, UINT8 size, bool array,
 			SerializableFieldType type, bool hasDynamicSize, bool terminator);
@@ -135,22 +171,39 @@ namespace bs
 		static void decodeFieldMetaData(UINT32 encodedData, UINT16& id, UINT8& size, bool& array,
 			SerializableFieldType& type, bool& hasDynamicSize, bool& terminator);
 
+		/** Encodes data representing a field terminator into 1 byte. */
+		static UINT8 encodeFieldTerminator();
+
+		/** Returns true if the data in the provided byte represents a field terminator as encoded with encodeFieldTerminator(). */
+		static bool isFieldTerminator(UINT8 data);
+
 		/**
-		 * Encodes data required for representing an object identifier, into 8 bytes.
+		 * Encodes an object identifier, its type and other meta-data into 8 bytes.
 		 *
-		 * @param[in]	objId	   	Unique ID of the object instance.
+		 * @param[in]	objId	   	Unique ID of the object instance. This can be a maximum of 30 bits, as two bits are reserved.
 		 * @param[in]	objTypeId  	Unique ID of the object type.
-		 * @param[in]	isBaseClass	true if this object is base class (that is, just a part of a larger object).
-		 *
-		 * @note		Id can be a maximum of 30 bits, as two bits are reserved.
+		 * @param[in]	isBaseClass	True if this object is base class (that is, just a part of a larger object).
+		 * @return		Encoded object id, type ID and other meta-data.
 		 */
 		static ObjectMetaData encodeObjectMetaData(UINT32 objId, UINT32 objTypeId, bool isBaseClass);
 
-		/** Decode meta field that was encoded using encodeObjectMetaData. */
+		/** Decode meta field that was encoded using encodeObjectMetaData(UINT32, UINT32, bool). */
 		static void decodeObjectMetaData(ObjectMetaData encodedData, UINT32& objId, UINT32& objTypeId, bool& isBaseClass);
 
 		/** Returns true if the provided encoded meta data represents object meta data. */
 		static bool isObjectMetaData(UINT32 encodedData);
+
+		/**
+		 * Encodes an object identifier and meta-data into 4 bytes. 
+		 *
+		 * @param[in]	objId	   	Unique ID of the object instance. This can be a maximum of 30 bits, as two bits are reserved.
+		 * @param[in]	isBaseClass	true if this object is base class (that is, just a part of a larger object).
+		 * @return		Encoded object id and other meta-data.
+		 */
+		static UINT32 encodeObjectMetaData(UINT32 objId,  bool isBaseClass);
+
+		/** Decode meta field that was encoded using encodeObjectMetaData(UINT32, bool). */
+		static void decodeObjectMetaData(UINT32 encodedData, UINT32& objId, bool& isBaseClass);
 
 		Map<UINT32, ObjectToDecode> mDecodeObjectMap;
 		Vector<ObjectToEncode> mObjectsToEncode;
@@ -163,11 +216,6 @@ namespace bs
 
 		SerializationContext* mContext = nullptr;
 		std::function<void(float)> mReportProgress = nullptr;
-
-		static constexpr int META_SIZE = 4; // Meta field size
-		static constexpr int NUM_ELEM_FIELD_SIZE = 4; // Size of the field storing number of array elements
-		static constexpr int COMPLEX_TYPE_FIELD_SIZE = 4; // Size of the field storing the size of a child complex type
-		static constexpr int DATA_BLOCK_TYPE_FIELD_SIZE = 4;
 	};
 
 	// TODO - Potential improvements:

@@ -25,7 +25,7 @@ namespace bs
 		:mAlloc(&gFrameAlloc())
 	{ }
 
-	void BinarySerializer::encode(IReflectable* object, const SPtr<DataStream>& stream, bool shallow, SerializationContext* context)
+	void BinarySerializer::encode(IReflectable* object, const SPtr<DataStream>& stream, BinarySerializerFlags flags, SerializationContext* context)
 	{
 		mObjectsToEncode.clear();
 		mObjectAddrToId.clear();
@@ -41,7 +41,7 @@ namespace bs
 		UINT32 objectId = findOrCreatePersistentId(object);
 		
 		// Encode primary object and its value types
-		if (!encodeEntry(object, objectId, bufferedStream, shallow))
+		if (!encodeEntry(object, objectId, bufferedStream, flags))
 		{
 			BS_LOG(Error, Serialization, "Destination buffer is null or not large enough.");
 			return;
@@ -64,7 +64,7 @@ namespace bs
 				serializedObjects.insert(curObjectid);
 				mObjectsToEncode.erase(iter);
 
-				if(!encodeEntry(curObject.get(), curObjectid, bufferedStream, shallow))
+				if(!encodeEntry(curObject.get(), curObjectid, bufferedStream, flags))
 				{
 					BS_LOG(Error, Serialization, "Destination buffer is null or not large enough.");
 					return;
@@ -95,7 +95,7 @@ namespace bs
 	}
 
 	SPtr<IReflectable> BinarySerializer::decode(const SPtr<DataStream>& stream, UINT32 dataLength,
-		SerializationContext* context, std::function<void(float)> progress)
+		BinarySerializerFlags flags, SerializationContext* context, std::function<void(float)> progress)
 	{
 		mContext = context;
 		mReportProgress = nullptr;
@@ -115,6 +115,9 @@ namespace bs
 		const size_t endBits = end * 8;
 		mDecodeObjectMap.clear();
 
+		bool hasMeta = !flags.isSet(BinarySerializerFlag::NoMeta);
+		bool compress = flags.isSet(BinarySerializerFlag::Compress);
+
 		BufferedBitstreamReader bufferedStream(&mBuffer, stream, PRELOAD_CHUNK_BYTES, FLUSH_AFTER_BYTES);
 
 		// Note: Ideally we can avoid iterating twice over the stream data
@@ -122,19 +125,12 @@ namespace bs
 		SPtr<IReflectable> rootObject = nullptr;
 		do
 		{
-			ObjectMetaData objectMetaData;
-			objectMetaData.objectMeta = 0;
-			objectMetaData.typeId = 0;
-
-			if(bufferedStream.readBytes(objectMetaData) != sizeof(ObjectMetaData))
-				BS_EXCEPT(InternalErrorException, "Error decoding data.");
-
-			bufferedStream.skipBytes(-(int32_t)sizeof(ObjectMetaData));
-
 			UINT32 objectId = 0;
 			UINT32 objectTypeId = 0;
 			bool objectIsBaseClass = false;
-			decodeObjectMetaData(objectMetaData, objectId, objectTypeId, objectIsBaseClass);
+
+			UINT32 bitsRead = readObjectMetaData(bufferedStream, flags, objectId, objectTypeId, objectIsBaseClass);
+			bufferedStream.skip(-(int32_t)bitsRead);
 
 			if (objectIsBaseClass)
 			{
@@ -142,13 +138,14 @@ namespace bs
 					"Base class objects are only supposed to be parts of a larger object.");
 			}
 
+			// TODO - Don't create object instance here as we might not know the type ID
 			SPtr<IReflectable> object = IReflectable::createInstanceFromTypeId(objectTypeId);
 			mDecodeObjectMap.insert(std::make_pair(objectId, ObjectToDecode(object, bufferedStream.tell())));
 
 			if(rootObject == nullptr)
 				rootObject = object;
 
-		} while (decodeEntry(bufferedStream, endBits, nullptr));
+		} while (decodeEntry(bufferedStream, endBits, flags, nullptr));
 
 		assert(bufferedStream.tell() == endBits);
 
@@ -167,7 +164,8 @@ namespace bs
 			bufferedStream.seek((uint32_t)objToDecode.offset);
 
 			objToDecode.decodeInProgress = true;
-			decodeEntry(bufferedStream, endBits, objToDecode.object);
+			// TODO - Assert if no object instance here (or just skip in case field was not found?)
+			decodeEntry(bufferedStream, endBits, flags, objToDecode.object);
 			objToDecode.decodeInProgress = false;
 			objToDecode.isDecoded = true;
 		}
@@ -184,8 +182,11 @@ namespace bs
 		return rootObject;
 	}
 
-	bool BinarySerializer::encodeEntry(IReflectable* object, UINT32 objectId, BufferedBitstreamWriter& stream, bool shallow)
+	bool BinarySerializer::encodeEntry(IReflectable* object, UINT32 objectId, BufferedBitstreamWriter& stream, BinarySerializerFlags flags)
 	{
+		const bool writeMeta = !flags.isSet(BinarySerializerFlag::NoMeta);
+		const bool compress = flags.isSet(BinarySerializerFlag::Compress);
+
 		RTTITypeBase* rtti = object->getRTTI();
 		bool isBaseClass = false;
 
@@ -211,29 +212,46 @@ namespace bs
 
 			rttiInstance->onSerializationStarted(object, mContext);
 
-			// Encode object ID & type
-			ObjectMetaData objectMetaData = encodeObjectMetaData(objectId, rtti->getRTTIId(), isBaseClass);
-			stream.writeBytes(objectMetaData);
+			if (writeMeta)
+			{
+				// Encode object ID & type
+				ObjectMetaData objectMetaData = encodeObjectMetaData(objectId, rtti->getRTTIId(), isBaseClass);
+				stream.writeBytes(objectMetaData);
+			}
+			else
+			{
+				// Encode object ID
+				UINT32 objectMetaData = encodeObjectMetaData(objectId, isBaseClass);
+
+				if (compress)
+					stream.writeVarInt(objectMetaData);
+				else
+					stream.writeBytes(objectMetaData);
+			}
 
 			const UINT32 numFields = rtti->getNumFields();
 			for(UINT32 i = 0; i < numFields; i++)
 			{
 				RTTIField* curGenericField = rtti->getField(i);
 
-				// Copy field ID & other meta-data like field size and type
-				int metaData = encodeFieldMetaData(curGenericField->mUniqueId, curGenericField->getTypeSize(),
-					curGenericField->mIsVectorType, curGenericField->mType, curGenericField->hasDynamicSize(), false);
+				if (writeMeta)
+				{
+					// Copy field ID & other meta-data like field size and type
+					int metaData = encodeFieldMetaData(curGenericField->mUniqueId, curGenericField->getTypeSize(),
+						curGenericField->mIsVectorType, curGenericField->mType, curGenericField->hasDynamicSize(), false);
 
-				stream.writeBytes(metaData);
-				static_assert(sizeof(metaData) == META_SIZE, "Size mismatch");
+					stream.writeBytes(metaData);
+				}
 
 				if(curGenericField->mIsVectorType)
 				{
 					UINT32 arrayNumElems = curGenericField->getArraySize(rttiInstance, object);
 
 					// Copy num vector elements
-					stream.writeBytes(arrayNumElems);
-					static_assert(sizeof(arrayNumElems) == NUM_ELEM_FIELD_SIZE, "Size mismatch");
+					if (compress)
+						stream.writeVarInt(arrayNumElems);
+					else
+						stream.writeBytes(arrayNumElems);
 
 					switch(curGenericField->mType)
 					{
@@ -245,11 +263,14 @@ namespace bs
 							{
 								SPtr<IReflectable> childObject;
 								
-								if (!shallow)
+								if (!flags.isSet(BinarySerializerFlag::Shallow))
 									childObject = curField->getArrayValue(rttiInstance, object, arrIdx);
 
 								UINT32 objId = registerObjectPtr(childObject);
-								stream.writeBytes(objId);
+								if (compress)
+									stream.writeVarInt(objId);
+								else
+									stream.writeBytes(objId);
 							}
 
 							break;
@@ -262,7 +283,7 @@ namespace bs
 							{
 								IReflectable& childObject = curField->getArrayValue(rttiInstance, object, arrIdx);
 
-								if(!complexTypeToStream(&childObject, stream, shallow))
+								if(!complexTypeToStream(&childObject, stream, flags))
 								{
 									cleanup();
 									return false;
@@ -276,7 +297,7 @@ namespace bs
 							RTTIPlainFieldBase* curField = static_cast<RTTIPlainFieldBase*>(curGenericField);
 
 							for(UINT32 arrIdx = 0; arrIdx < arrayNumElems; arrIdx++)
-								curField->arrayElemToStream(rttiInstance, object, arrIdx, stream.getBitstream());
+								curField->arrayElemToStream(rttiInstance, object, arrIdx, stream.getBitstream(), compress);
 
 							break;
 						}
@@ -295,11 +316,14 @@ namespace bs
 							RTTIReflectablePtrFieldBase* curField = static_cast<RTTIReflectablePtrFieldBase*>(curGenericField);
 							SPtr<IReflectable> childObject;
 							
-							if (!shallow)
+							if (!flags.isSet(BinarySerializerFlag::Shallow))
 								childObject = curField->getValue(rttiInstance, object);
 
 							UINT32 objId = registerObjectPtr(childObject);
-							stream.writeBytes(objId);
+							if (compress)
+								stream.writeVarInt(objId);
+							else
+								stream.writeBytes(objId);
 
 							break;
 						}
@@ -308,7 +332,7 @@ namespace bs
 							RTTIReflectableFieldBase* curField = static_cast<RTTIReflectableFieldBase*>(curGenericField);
 							IReflectable& childObject = curField->getValue(rttiInstance, object);
 
-							if(!complexTypeToStream(&childObject, stream, shallow))
+							if(!complexTypeToStream(&childObject, stream, flags))
 							{
 								cleanup();
 								return false;
@@ -319,7 +343,7 @@ namespace bs
 					case SerializableFT_Plain:
 						{
 							RTTIPlainFieldBase* curField = static_cast<RTTIPlainFieldBase*>(curGenericField);
-							curField->toStream(rttiInstance, object, stream.getBitstream());
+							curField->toStream(rttiInstance, object, stream.getBitstream(), compress);
 
 							break;
 						}
@@ -331,12 +355,16 @@ namespace bs
 							SPtr<DataStream> blockStream = curField->getValue(rttiInstance, object, dataBlockSize);
 
 							// Data block size
-							stream.writeBytes(dataBlockSize);
+							if (compress)
+								stream.writeVarInt(dataBlockSize);
+							else
+								stream.writeBytes(dataBlockSize);
 
 							// Data block data
 							auto dataToStore = (UINT8*)bs_stack_alloc(dataBlockSize);
 							blockStream->read(dataToStore, dataBlockSize);
 
+							stream.align();
 							stream.writeBytes(dataToStore, dataBlockSize);
 							bs_stack_free(dataToStore);
 
@@ -362,18 +390,16 @@ namespace bs
 		return true;
 	}
 
-	bool BinarySerializer::decodeEntry(BufferedBitstreamReader& stream, size_t dataEnd, const SPtr<IReflectable>& output)
+	bool BinarySerializer::decodeEntry(BufferedBitstreamReader& stream, size_t dataEnd, BinarySerializerFlags flags, const SPtr<IReflectable>& output)
 	{
-		ObjectMetaData objectMetaData;
-		objectMetaData.objectMeta = 0;
-		objectMetaData.typeId = 0;
-
-		stream.readBytes(objectMetaData);
+		const bool hasMeta = !flags.isSet(BinarySerializerFlag::NoMeta);
+		const bool compressed = flags.isSet(BinarySerializerFlag::Compress);
 
 		UINT32 objectId = 0;
 		UINT32 objectTypeId = 0;
 		bool objectIsBaseClass = false;
-		decodeObjectMetaData(objectMetaData, objectId, objectTypeId, objectIsBaseClass);
+
+		readObjectMetaData(stream, flags, objectId, objectTypeId, objectIsBaseClass);
 
 		if (objectIsBaseClass)
 		{
@@ -422,60 +448,72 @@ namespace bs
 
 		while (stream.tell() < dataEnd)
 		{
-			int metaData = -1;
-			stream.readBytes(metaData);
-
-			if (isObjectMetaData(metaData)) // We've reached a new object or a base class of the current one
-			{
-				ObjectMetaData objMetaData;
-				objMetaData.objectMeta = 0;
-				objMetaData.typeId = 0;
-
-				stream.skipBytes(-META_SIZE);
-				stream.readBytes(objMetaData);
-
-				UINT32 objId = 0;
-				UINT32 objTypeId = 0;
-				bool objIsBaseClass = false;
-				decodeObjectMetaData(objMetaData, objId, objTypeId, objIsBaseClass);
-
-				// If it's a base class, get base class RTTI and handle that
-				if (objIsBaseClass)
-				{
-					if (rtti != nullptr)
-						rtti = rtti->getBaseClass();
-
-					// Saved and current base classes don't match, so just skip over all that data
-					if (rtti == nullptr || rtti->getRTTIId() != objTypeId)
-						rtti = nullptr;
-
-					rttiInstance = nullptr;
-
-					if (rtti)
-					{
-						rttiInstance = rttiInstances[rttiInstanceIdx + 1];
-						rttiInstanceIdx++;
-					}
-
-					continue;
-				}
-				else
-				{
-					// Found new object, we're done
-					stream.skipBytes(-(int32_t)sizeof(ObjectMetaData));
-
-					finalizeObject(output.get());
-					return true;
-				}
-			}
-
 			bool isArray;
 			SerializableFieldType fieldType;
 			UINT16 fieldId;
 			UINT8 fieldSize;
 			bool hasDynamicSize;
 			bool terminator;
-			decodeFieldMetaData(metaData, fieldId, fieldSize, isArray, fieldType, hasDynamicSize, terminator);
+
+			if(hasMeta)
+			{
+				UINT8 metaDataHeader = 0;
+				stream.readBytes(metaDataHeader);
+				stream.skipBytes(-(int32_t)sizeof(metaDataHeader));
+
+				if (isObjectMetaData(metaDataHeader)) // We've reached a new object or a base class of the current one
+				{
+					UINT32 objId = 0;
+					UINT32 objTypeId = 0;
+					bool objIsBaseClass = false;
+					UINT32 readBits = readObjectMetaData(stream, flags, objId, objTypeId, objIsBaseClass);
+
+					// If it's a base class, get base class RTTI and handle that
+					if (objIsBaseClass)
+					{
+						if (rtti != nullptr)
+							rtti = rtti->getBaseClass();
+
+						// Saved and current base classes don't match, so just skip over all that data
+						if (rtti == nullptr || rtti->getRTTIId() != objTypeId)
+							rtti = nullptr;
+
+						rttiInstance = nullptr;
+
+						if (rtti)
+						{
+							rttiInstance = rttiInstances[rttiInstanceIdx + 1];
+							rttiInstanceIdx++;
+						}
+
+						continue;
+					}
+					else
+					{
+						// Found new object, we're done
+						stream.skip(-(int32_t)readBits);
+
+						finalizeObject(output.get());
+						return true;
+					}
+				}
+
+				if (compressed)
+					terminator = isFieldTerminator(metaDataHeader);
+				else
+					terminator = false;
+
+				if (!terminator)
+					decodeFieldMetaData(metaDataHeader, fieldId, fieldSize, isArray, fieldType, hasDynamicSize, terminator);
+			}
+			else
+			{
+				// TODO - Need to read all the information from the schema or the current RTTI type:
+				// - Check if we're reached a new base type and switch rtti
+				// - If reached a new field read field information
+				// - If reached terminator or end of object, finalize
+				TODO;
+			}
 
 			if (terminator)
 			{
@@ -516,7 +554,10 @@ namespace bs
 			int arrayNumElems = 1;
 			if (isArray)
 			{
-				stream.readBytes(arrayNumElems);
+				if (compressed)
+					stream.readVarInt(arrayNumElems);
+				else
+					stream.readBytes(arrayNumElems);
 
 				if(curGenericField != nullptr)
 					curGenericField->setArraySize(rttiInstance, output.get(), arrayNumElems);
@@ -530,7 +571,10 @@ namespace bs
 					for (int i = 0; i < arrayNumElems; i++)
 					{
 						int childObjectId = 0;
-						stream.readBytes(childObjectId);
+						if (compressed)
+							stream.readVarInt(childObjectId);
+						else
+							stream.readBytes(childObjectId);
 
 						if (curField != nullptr)
 						{
@@ -551,6 +595,7 @@ namespace bs
 								ObjectToDecode& objToDecode = findObj->second;
 
 								const bool needsDecoding = !curField->getInfo().flags.isSet(RTTIFieldFlag::WeakRef) && !objToDecode.isDecoded;
+								// TODO - Create objToDecode.object instance here, if not already created
 								if (needsDecoding)
 								{
 									if (objToDecode.decodeInProgress)
@@ -567,7 +612,7 @@ namespace bs
 
 										const uint32_t curOffset = stream.tell();
 										stream.seek((uint32_t)objToDecode.offset);
-										decodeEntry(stream, dataEnd, objToDecode.object);
+										decodeEntry(stream, dataEnd, flags, objToDecode.object);
 										stream.seek(curOffset);
 
 										objToDecode.decodeInProgress = false;
@@ -592,7 +637,7 @@ namespace bs
 						if(curField)
 							childObj = curField->newObject();
 
-						decodeEntry(stream, dataEnd, childObj);
+						decodeEntry(stream, dataEnd, flags, childObj);
 
 						if (curField != nullptr)
 						{
@@ -611,18 +656,27 @@ namespace bs
 						UINT32 typeSize = fieldSize;
 						if (hasDynamicSize)
 						{
-							stream.readBytes(typeSize);
-							stream.skipBytes(-(int32_t)sizeof(uint32_t));
+							if(compressed)
+							{
+								// TODO - Need to read size as BitLength encoded as var-int
+								TODO;
+							}
+							else
+							{
+								stream.readBytes(typeSize);
+								stream.skipBytes(-(int32_t)sizeof(uint32_t));
+							}
 						}
 
 						if (curField != nullptr)
 						{
 							stream.preload(typeSize);
-							curField->arrayElemFromBuffer(rttiInstance, output.get(), i, stream.getBitstream());
-							stream.skipBytes(typeSize);
+							curField->arrayElemFromBuffer(rttiInstance, output.get(), i, stream.getBitstream(), compressed);
+
+							stream.skipBytes(typeSize); // TODO - Need to skip actual number of bits read in case of compressed structures (e.g. bool, var-int)
 						}
 						else
-							stream.skipBytes(typeSize);
+							stream.skipBytes(typeSize); // TODO - Need to skip actual number of bits encoded in case of compressed structured (e.g. bool, var-int)
 					}
 					break;
 				}
@@ -641,12 +695,14 @@ namespace bs
 					RTTIReflectablePtrFieldBase* curField = static_cast<RTTIReflectablePtrFieldBase*>(curGenericField);
 
 					int childObjectId = 0;
-					stream.readBytes(childObjectId);
+					if (compressed)
+						stream.readVarInt(childObjectId);
+					else
+						stream.readBytes(childObjectId);
 
 					if (curField != nullptr)
 					{
 						auto findObj = mDecodeObjectMap.find(childObjectId);
-
 						if(findObj == mDecodeObjectMap.end())
 						{
 							if(childObjectId != 0)
@@ -662,6 +718,7 @@ namespace bs
 							ObjectToDecode& objToDecode = findObj->second;
 
 							const bool needsDecoding = !curField->getInfo().flags.isSet(RTTIFieldFlag::WeakRef) && !objToDecode.isDecoded;
+							// TODO - Create objToDecode.object instance here, if not already created
 							if (needsDecoding)
 							{
 								if (objToDecode.decodeInProgress)
@@ -678,7 +735,7 @@ namespace bs
 
 									const size_t curOffset = stream.tell();
 									stream.seek((uint32_t)objToDecode.offset);
-									decodeEntry(stream, dataEnd, objToDecode.object);
+									decodeEntry(stream, dataEnd, flags, objToDecode.object);
 									stream.seek((uint32_t)curOffset);
 
 									objToDecode.decodeInProgress = false;
@@ -701,7 +758,7 @@ namespace bs
 					if (curField)
 						childObj = curField->newObject();
 
-					decodeEntry(stream, dataEnd, childObj);
+					decodeEntry(stream, dataEnd, flags, childObj);
 
 					if (curField != nullptr)
 					{
@@ -718,8 +775,16 @@ namespace bs
 					UINT32 typeSize = fieldSize;
 					if (hasDynamicSize)
 					{
-						stream.readBytes(typeSize);
-						stream.skipBytes(-(int32_t)sizeof(UINT32));
+						if(compressed)
+						{
+							// TODO - Need to read size as BitLength encoded as var-int
+							TODO;
+						}
+						else
+						{
+							stream.readBytes(typeSize);
+							stream.skipBytes(-(int32_t)sizeof(UINT32));
+						}
 					}
 
 					if (curField != nullptr)
@@ -739,7 +804,12 @@ namespace bs
 
 					// Data block size
 					UINT32 dataBlockSize = 0;
-					stream.readBytes(dataBlockSize);
+					if (compressed)
+						stream.readVarInt(dataBlockSize);
+					else
+						stream.readBytes(dataBlockSize);
+
+					stream.align();
 
 					// Data block data
 					if (curField != nullptr)
@@ -749,7 +819,7 @@ namespace bs
 						{
 							size_t curOffset = stream.tell();
 
-							// Data blocks don't support sub-byte (compressed) data.
+							// Data blocks don't support data that isn't byte aligned, but encoder should take care of that
 							assert((curOffset % 8) == 0);
 							curOffset /= 8;
 							
@@ -794,19 +864,29 @@ namespace bs
 		return false;
 	}
 
-	bool BinarySerializer::complexTypeToStream(IReflectable* object, BufferedBitstreamWriter& stream, bool shallow)
+	bool BinarySerializer::complexTypeToStream(IReflectable* object, BufferedBitstreamWriter& stream, BinarySerializerFlags flags)
 	{
 		if (object != nullptr)
 		{
-			if (!encodeEntry(object, 0, stream, shallow))
+			if (!encodeEntry(object, 0, stream, flags))
 				return false;
 
-			// Encode terminator field
-			// Complex types require terminator fields because they can be embedded within other complex types and we need
-			// to know when their fields end and parent's resume
-			int metaData = encodeFieldMetaData(0, 0, false, SerializableFT_Plain, false, true);
-			stream.writeBytes(metaData);
-			static_assert(sizeof(metaData) == META_SIZE, "Size mismatch");
+			if (!flags.isSet(BinarySerializerFlag::NoMeta))
+			{
+				// Encode terminator field
+				// Complex types require terminator fields because they can be embedded within other complex types and we need
+				// to know when their fields end and parent's resume
+				if(flags.isSet(BinarySerializerFlag::Compress))
+				{
+					UINT8 metaData = encodeFieldTerminator();
+					stream.writeBytes(metaData);
+				}
+				else
+				{
+					int metaData = encodeFieldMetaData(0, 0, false, SerializableFT_Plain, false, true);
+					stream.writeBytes(metaData);
+				}
+			}
 		}
 
 		return true;
@@ -862,6 +942,23 @@ namespace bs
 		id = (UINT16)((encodedData >> 16) & 0xFFFF);
 	}
 
+	UINT8 BinarySerializer::encodeFieldTerminator()
+	{
+		// See the documentation for encodeFieldMetaData() on why we're using this format
+		return 0x40;
+	}
+
+	bool BinarySerializer::isFieldTerminator(UINT8 data)
+	{
+		if(isObjectMetaData(data))
+		{
+			BS_EXCEPT(InternalErrorException,
+				"Meta data represents an object description but is trying to be decoded as a field descriptor.");
+		}
+
+		return (data & 0x40) != 0;
+	}
+
 	BinarySerializer::ObjectMetaData BinarySerializer::encodeObjectMetaData(UINT32 objId, UINT32 objTypeId, bool isBaseClass)
 	{
 		// If O == 1 - Meta contains object instance information (Encoded using encodeObjectMetaData)
@@ -876,7 +973,7 @@ namespace bs
 		}
 
 		ObjectMetaData metaData;
-		metaData.objectMeta = (objId << 2) | (isBaseClass ? 0x02 : 0) | 0x01;
+		metaData.objectMeta = encodeObjectMetaData(objId, isBaseClass);
 		metaData.typeId = objTypeId;
 		return metaData;
 	}
@@ -889,14 +986,78 @@ namespace bs
 				"Meta data represents a field description but is trying to be decoded as an object descriptor.");
 		}
 
-		objId = (encodedData.objectMeta >> 2) & 0x3FFFFFFF;
-		isBaseClass = (encodedData.objectMeta & 0x02) != 0;
+		decodeObjectMetaData(encodedData.objectMeta, objId, isBaseClass);
 		objTypeId = encodedData.typeId;
+	}
+
+	UINT32 BinarySerializer::encodeObjectMetaData(UINT32 objId, bool isBaseClass)
+	{
+		// If O == 1 - Meta contains object instance information (Encoded using encodeObjectMetaData)
+		//// Encoding: SSSS SSSS SSSS SSSS xxxx xxxx xxxx xxBO
+		//// S - Size of the object identifier
+		//// O - Object descriptor
+		//// B - Base class indicator
+
+		if(objId > 1073741823)
+		{
+			BS_EXCEPT(InvalidParametersException, "Object ID is larger than we can store (max 30 bits): " + toString(objId));
+		}
+
+		return (objId << 2) | (isBaseClass ? 0x02 : 0) | 0x01;
+	}
+
+	void BinarySerializer::decodeObjectMetaData(UINT32 encodedData, UINT32& objId, bool& isBaseClass)
+	{
+		if(!isObjectMetaData(encodedData))
+		{
+			BS_EXCEPT(InternalErrorException,
+				"Meta data represents a field description but is trying to be decoded as an object descriptor.");
+		}
+
+		objId = (encodedData >> 2) & 0x3FFFFFFF;
+		isBaseClass = (encodedData & 0x02) != 0;
 	}
 
 	bool BinarySerializer::isObjectMetaData(UINT32 encodedData)
 	{
 		return ((encodedData & 0x01) != 0);
+	}
+
+	UINT32 BinarySerializer::readObjectMetaData(BufferedBitstreamReader& stream, BinarySerializerFlags flags, uint32_t& objId, uint32_t& objTypeId, bool& isBaseType)
+	{
+		if (!flags.isSet(BinarySerializerFlag::NoMeta))
+		{
+			ObjectMetaData objectMetaData;
+			objectMetaData.objectMeta = 0;
+			objectMetaData.typeId = 0;
+
+			if (stream.readBytes(objectMetaData) != sizeof(ObjectMetaData))
+				BS_EXCEPT(InternalErrorException, "Error decoding data.");
+
+			decodeObjectMetaData(objectMetaData, objId, objTypeId, isBaseType);
+			return sizeof(ObjectMetaData) * 8;
+		}
+		else
+		{
+			UINT32 objectMetaData = 0;
+
+			UINT32 bitsRead = 0;
+			if (flags.isSet(BinarySerializerFlag::Compress))
+				bitsRead = stream.readVarInt(objectMetaData);
+			else
+			{
+				if (stream.readBytes(objectMetaData) != sizeof(objectMetaData))
+					BS_EXCEPT(InternalErrorException, "Error decoding data.");
+
+				bitsRead = sizeof(objectMetaData) * 8;
+			}
+
+			decodeObjectMetaData(objectMetaData, objId, isBaseType);
+			// TODO - objTypeId needs to be retrieved here (either provided by user, from schema or from current RTTIType)
+			objTypeId = TODO;
+
+			return bitsRead;
+		}
 	}
 
 	UINT32 BinarySerializer::findOrCreatePersistentId(IReflectable* object)
