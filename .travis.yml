@@ -82,7 +82,7 @@ script:
   - mkdir Build && cd Build
   - |
     if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      CC=gcc CXX=g++ cmake -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ -DCMAKE_INSTALL_PREFIX:STRING=${INSTALL_DIR} -DBSF_PLUGIN_IMGUI=ON .. 
+      CC=gcc CXX=g++ cmake -D CMAKE_C_COMPILER=gcc -D CMAKE_CXX_COMPILER=g++ -DCMAKE_INSTALL_PREFIX:STRING=${INSTALL_DIR} .. 
     else
       cmake -DCMAKE_INSTALL_PREFIX:STRING=${INSTALL_DIR} ..
     fi
