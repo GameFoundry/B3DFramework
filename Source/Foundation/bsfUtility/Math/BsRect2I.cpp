@@ -64,8 +64,8 @@ namespace bs
 		int newLeft = std::max(x, clipRect.x);
 		int newTop = std::max(y, clipRect.y);
 
-		int newRight = std::min(x + (INT32)width, clipRect.x + (INT32)clipRect.width);
-		int newBottom = std::min(y + (INT32)height, clipRect.y + (INT32)clipRect.height);
+		int newRight = Math::clamp(x + (INT32)width, clipRect.x, clipRect.x + (INT32)clipRect.width);
+		int newBottom = Math::clamp(y + (INT32)height, clipRect.y, clipRect.y + (INT32)clipRect.height);
 
 		x = std::min(newLeft, newRight);
 		y = std::min(newTop, newBottom);
