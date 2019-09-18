@@ -25,6 +25,12 @@ namespace bs
 		invalidateFrustum();
 	}
 
+	void CameraBase::setFlags(CameraFlags flags)
+	{
+		mCameraFlags = flags;
+		_markCoreDirty();
+	}
+
 	void CameraBase::setHorzFOV(const Radian& fov)
 	{
 		mHorzFOV = fov;
@@ -32,21 +38,11 @@ namespace bs
 		_markCoreDirty();
 	}
 
-	const Radian& CameraBase::getHorzFOV() const
-	{
-		return mHorzFOV;
-	}
-
 	void CameraBase::setFarClipDistance(float farPlane)
 	{
 		mFarDist = farPlane;
 		invalidateFrustum();
 		_markCoreDirty();
-	}
-
-	float CameraBase::getFarClipDistance() const
-	{
-		return mFarDist;
 	}
 
 	void CameraBase::setNearClipDistance(float nearPlane)
@@ -60,11 +56,6 @@ namespace bs
 		mNearDist = nearPlane;
 		invalidateFrustum();
 		_markCoreDirty();
-	}
-
-	float CameraBase::getNearClipDistance() const
-	{
-		return mNearDist;
 	}
 
 	const Matrix4& CameraBase::getProjectionMatrix() const
@@ -694,6 +685,7 @@ namespace bs
 		p(mMSAA);
 		p(mMain);
 		p(*mRenderSettings);
+		p(mCameraFlags);
 	}
 
 	template class TCamera<false>;
@@ -765,19 +757,27 @@ namespace bs
 		UINT32 dirtyFlag = getCoreDirtyFlags();
 
 		UINT32 size = rtti_size(dirtyFlag);
-		size += coreSyncGetElemSize((SceneActor&)*this);
+		
+		if((dirtyFlag & ~(INT32)CameraDirtyFlag::Redraw) != 0)
+		{
+			size += csync_size((SceneActor&)*this);
 
-		if (dirtyFlag != (UINT32)ActorDirtyFlag::Transform)
-			size += coreSyncGetElemSize(*this);
+			if (dirtyFlag != (UINT32)ActorDirtyFlag::Transform)
+				size += csync_size(*this);
+		}
 
 		UINT8* buffer = allocator->alloc(size);
 		Bitstream stream(buffer, size);
 
 		rtti_write(dirtyFlag, stream);
-		coreSyncWriteElem((SceneActor&)*this, stream);
 
-		if (dirtyFlag != (UINT32)ActorDirtyFlag::Transform)
-			coreSyncWriteElem(*this, stream);
+		if ((dirtyFlag & ~(INT32)CameraDirtyFlag::Redraw) != 0)
+		{
+			csync_write((SceneActor&)* this, stream);
+
+			if (dirtyFlag != (UINT32)ActorDirtyFlag::Transform)
+				csync_write(*this, stream);
+		}
 
 		return CoreSyncData(buffer, size);
 	}
@@ -839,14 +839,18 @@ namespace bs
 
 		UINT32 dirtyFlag;
 		rtti_read(dirtyFlag, stream);
-		coreSyncReadElem((SceneActor&)*this, stream);
 
-		if (dirtyFlag != (UINT32)ActorDirtyFlag::Transform)
-			coreSyncReadElem(*this, stream);
+		if ((dirtyFlag & ~(INT32)CameraDirtyFlag::Redraw) != 0)
+		{
+			csync_read((SceneActor&)* this, stream);
 
-		mRecalcFrustum = true;
-		mRecalcFrustumPlanes = true;
-		mRecalcView = true;
+			if (dirtyFlag != (UINT32)ActorDirtyFlag::Transform)
+				csync_read(*this, stream);
+
+			mRecalcFrustum = true;
+			mRecalcFrustumPlanes = true;
+			mRecalcView = true;
+		}
 
 		RendererManager::instance().getActive()->notifyCameraUpdated(this, (UINT32)dirtyFlag);
 	}

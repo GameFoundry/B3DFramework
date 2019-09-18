@@ -679,7 +679,7 @@ namespace bs
 		UINT32 size = sizeof(bool) + sizeof(UINT32) * 2 + sizeof(SPtr<ct::Shader>) +
 			sizeof(SPtr<ct::Technique>) * numTechniques + paramsSize;
 
-		size += coreSyncGetElemSize(mVariation);
+		size += csync_size(mVariation);
 
 		UINT8* buffer = allocator->alloc(size);
 		Bitstream stream(buffer, size);
@@ -708,7 +708,7 @@ namespace bs
 			mParams->getSyncData(stream.cursor(), paramsSize, syncAllParams);
 
 		stream.skipBytes(paramsSize);
-		coreSyncWriteElem(mVariation, stream);
+		csync_write(mVariation, stream);
 
 		return CoreSyncData(buffer, size);
 	}
@@ -1093,7 +1093,7 @@ namespace bs
 		stream.skipBytes(paramsSize);
 
 		mVariation.clearParams();
-		coreSyncReadElem(mVariation, stream);
+		csync_read(mVariation, stream);
 	}
 
 	SPtr<Material> Material::create(const SPtr<Shader>& shader)

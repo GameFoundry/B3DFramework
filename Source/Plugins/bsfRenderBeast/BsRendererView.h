@@ -129,6 +129,9 @@ namespace bs { namespace ct
 		 */
 		bool encodeDepth : 1;
 
+		/** If true the view will only be rendered when requested, otherwise it will be rendered every frame. */
+		bool onDemand : 1;
+
 		/**
 		 * Controls at which position to start encoding depth, in view space. Only relevant with @p encodeDepth is enabled.
 		 * Depth will be linearly interpolated between this value and @p depthEncodeFar.
@@ -408,9 +411,15 @@ namespace bs { namespace ct
 		/** Returns an index of this view within the parent view group. */
 		UINT32 getViewIdx() const { return mViewIdx; }
 
+		/** Determines if a view should be rendered this frame. */
+		bool shouldDraw() const { return !mProperties.onDemand || mNeedsRedraw; }
+
 		/** Assigns a view index to the view. To be called by the parent view group when the view is added to it. */
 		void _setViewIdx(UINT32 viewIdx) { mViewIdx = viewIdx; }
 
+		/** Lets an on-demand view know that it should be redrawn this frame. */
+		void _notifyNeedsRedraw() { mNeedsRedraw = true; }
+		
 		/**
 		 * Notifies the view that the render target the compositor is rendering to has changed. Note that this does not
 		 * mean the final render target, rather the current intermediate target as set by the renderer during the
@@ -462,6 +471,7 @@ namespace bs { namespace ct
 		VisibilityInfo mVisibility;
 		LightGrid mLightGrid;
 		UINT32 mViewIdx;
+		bool mNeedsRedraw = false;
 	};
 
 	/** Contains one or multiple RendererView%s that are in some way related. */

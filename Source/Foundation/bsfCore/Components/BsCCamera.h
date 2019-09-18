@@ -23,6 +23,14 @@ namespace bs
 		CCamera(const HSceneObject& parent);
 		virtual ~CCamera() = default;
 
+		/** @copydoc Camera::setFlags */
+		BS_SCRIPT_EXPORT(n:Flags,pr:setter)
+		void setFlags(CameraFlags flags) { mInternal->setFlags(flags); }
+
+		/** @copydoc Camera::getFlags */
+		BS_SCRIPT_EXPORT(n:Flags,pr:getter)
+		CameraFlags getFlags() const { return mInternal->getFlags(); }
+		
 		/** @copydoc Camera::getViewport */
 		BS_SCRIPT_EXPORT(n:Viewport,pr:getter)
 		SPtr<Viewport> getViewport() const { return mInternal->getViewport(); }
@@ -171,6 +179,10 @@ namespace bs
 		BS_SCRIPT_EXPORT(n:RenderSettings,pr:getter,applyOnDirty)
 		const SPtr<RenderSettings>& getRenderSettings() const { return mInternal->getRenderSettings(); }
 
+		/** @copydoc Camera::notifyNeedsRedraw(); */
+		BS_SCRIPT_EXPORT()
+		void notifyNeedsRedraw() { mInternal->notifyNeedsRedraw(); }
+		
 		/** @copydoc Camera::worldToScreenPoint */
 		BS_SCRIPT_EXPORT()
 		Vector2I worldToScreenPoint(const Vector3& worldPoint) const { updateView(); return mInternal->worldToScreenPoint(worldPoint); }

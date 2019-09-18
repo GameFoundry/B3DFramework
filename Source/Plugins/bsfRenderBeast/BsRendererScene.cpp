@@ -76,6 +76,9 @@ namespace bs {	namespace ct
 		UINT32 cameraId = camera->getRendererId();
 		RendererView* view = mInfo.views[cameraId];
 
+		if ((updateFlag & (UINT32)CameraDirtyFlag::Redraw) != 0)
+			view->_notifyNeedsRedraw();
+
 		UINT32 updateEverythingFlag = (UINT32)ActorDirtyFlag::Everything
 			| (UINT32)ActorDirtyFlag::Active
 			| (UINT32)CameraDirtyFlag::Viewport;
@@ -1085,6 +1088,7 @@ namespace bs {	namespace ct
 		viewDesc.triggerCallbacks = true;
 		viewDesc.runPostProcessing = true;
 		viewDesc.capturingReflections = false;
+		viewDesc.onDemand = camera->getFlags().isSet(CameraFlag::OnDemand);
 
 		viewDesc.cullFrustum = camera->getWorldFrustum();
 		viewDesc.visibleLayers = camera->getLayers();

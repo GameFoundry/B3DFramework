@@ -1320,7 +1320,7 @@ namespace bs
 		return !mScheduledForDestruction.empty();
 	}
 
-	void GUIManager::setInputBridge(const RenderTexture* renderTex, const GUIElement* element)
+	void GUIManager::setInputBridge(const SPtr<RenderTexture>& renderTex, const GUIElement* element)
 	{
 		if(element == nullptr)
 			mInputBridge.erase(renderTex);
@@ -1366,7 +1366,7 @@ namespace bs
 		// This cast might not be valid (the render target could be a window), but we only really need to cast
 		// so that mInputBridge map allows us to search through it - we don't access anything unless the target is bridged
 		// (in which case we know it is a RenderTexture)
-		const RenderTexture* renderTexture = static_cast<const RenderTexture*>(target.get());
+		SPtr<const RenderTexture> renderTexture = std::static_pointer_cast<const RenderTexture>(target);
 		const RenderTargetProperties& rtProps = renderTexture->getProperties();
 
 		auto iterFind = mInputBridge.find(renderTexture);
@@ -1408,7 +1408,7 @@ namespace bs
 		// This cast might not be valid (the render target could be a window), but we only really need to cast
 		// so that mInputBridge map allows us to search through it - we don't access anything unless the target is bridged
 		// (in which case we know it is a RenderTexture)
-		const RenderTexture* renderTexture = static_cast<const RenderTexture*>(target.get());
+		SPtr<const RenderTexture> renderTexture = std::static_pointer_cast<const RenderTexture>(target);
 
 		auto iterFind = mInputBridge.find(renderTexture);
 		if(iterFind != mInputBridge.end())
@@ -1437,7 +1437,7 @@ namespace bs
 
 		while (true)
 		{
-			auto iterFind = mInputBridge.find(target.get());
+			auto iterFind = mInputBridge.find(target);
 			if (iterFind == mInputBridge.end())
 				return nullptr;
 
@@ -1575,10 +1575,27 @@ namespace bs
 		mSamplerState = RenderStateManager::instance().createSamplerState(ssDesc);
 	}
 
-	bool GUIRenderer::check(const Camera& camera)
+	RendererExtensionRequest GUIRenderer::check(const Camera& camera)
 	{
 		auto iterFind = mPerCameraData.find(&camera);
-		return iterFind != mPerCameraData.end();
+		if (iterFind == mPerCameraData.end())
+			return RendererExtensionRequest::DontRender;
+
+		Vector<GUIWidgetRenderData>& widgetRenderData = iterFind->second;
+		bool needsRedraw = false;
+		for (auto& widget : widgetRenderData)
+		{
+			for (auto& drawGroup : widget.drawGroups)
+			{
+				if (!drawGroup.nonCachedElements.empty() || drawGroup.requiresRedraw)
+				{
+					needsRedraw = true;
+					break;
+				}
+			}
+		}
+
+		return needsRedraw ? RendererExtensionRequest::ForceRender : RendererExtensionRequest::RenderIfTargetDirty;
 	}
 
 	void GUIRenderer::render(const Camera& camera, const RendererViewContext& viewContext)

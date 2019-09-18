@@ -6,6 +6,7 @@
 #include "Reflection/BsRTTIType.h"
 #include "Reflection/BsRTTIPlain.h"
 #include "RTTI/BsMathRTTI.h"
+#include "RTTI/BsFlagsRTTI.h"
 #include "Renderer/BsCamera.h"
 
 namespace bs
@@ -44,6 +45,7 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(mMSAA, 22)
 			BS_RTTI_MEMBER_REFLPTR(mRenderSettings, 23)
 			BS_RTTI_MEMBER_PLAIN(mMain, 24)
+			BS_RTTI_MEMBER_PLAIN(mCameraFlags, 25)
 		BS_END_RTTI_MEMBERS
 
 	public:

@@ -177,11 +177,11 @@ namespace bs
 		void renderAllCore(FrameTimings timings, PerFrameData perFrameData);
 
 		/**
-		 * Renders all views in the provided view group.
+		 * Renders all views in the provided view group. Returns true if anything has been draw to any of the views.
 		 *
 		 * @note	Core thread only.
 		 */
-		void renderViews(RendererViewGroup& viewGroup, const FrameInfo& frameInfo);
+		bool renderViews(RendererViewGroup& viewGroup, const FrameInfo& frameInfo);
 
 		/**
 		 * Renders all objects visible by the provided view.
@@ -191,11 +191,11 @@ namespace bs
 		void renderView(const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo);
 
 		/**
-		 * Renders all overlay callbacks of the provided view.
+		 * Renders all overlay callbacks of the provided view. Returns true if anything has been rendered in any of the views.
 		 * 					
 		 * @note	Core thread only.
 		 */
-		void renderOverlay(RendererView& view);
+		bool renderOverlay(RendererView& view);
 
 		/**	Creates data used by the renderer on the core thread. */
 		void initializeCore(const LoadedRendererTextures& rendererTextures);
@@ -220,6 +220,9 @@ namespace bs
 		// Sim thread only fields
 		SPtr<RenderBeastOptions> mOptions;
 		bool mOptionsDirty = true;
+
+		// Transient
+		Vector<RendererExtension*> mOverlayExtensions;
 	};
 
 	/**	Provides easy access to the RenderBeast renderer. */

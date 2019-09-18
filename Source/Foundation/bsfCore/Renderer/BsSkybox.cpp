@@ -156,15 +156,15 @@ namespace bs
 	{
 		UINT32 size = 0;
 		size += rtti_size(getCoreDirtyFlags());
-		size += coreSyncGetElemSize((SceneActor&)*this);
-		size += coreSyncGetElemSize(*this);
+		size += csync_size((SceneActor&)*this);
+		size += csync_size(*this);
 
 		UINT8* buffer = allocator->alloc(size);
 
 		Bitstream stream(buffer, size);
 		rtti_write(getCoreDirtyFlags(), stream);
-		coreSyncWriteElem((SceneActor&)*this, stream);
-		coreSyncWriteElem(*this, stream);
+		csync_write((SceneActor&)*this, stream);
+		csync_write(*this, stream);
 
 		return CoreSyncData(buffer, size);
 	}
@@ -212,8 +212,8 @@ namespace bs
 			bool oldIsActive = mActive;
 
 			rtti_read(dirtyFlags, stream);
-			coreSyncReadElem((SceneActor&)*this, stream);
-			coreSyncReadElem(*this, stream);
+			csync_read((SceneActor&)*this, stream);
+			csync_read(*this, stream);
 
 			if (oldIsActive != mActive)
 			{

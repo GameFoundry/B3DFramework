@@ -149,11 +149,11 @@ namespace bs
 
 	CoreSyncData Pass::syncToCore(FrameAlloc* allocator)
 	{
-		UINT32 size = coreSyncGetElemSize(*this);
+		UINT32 size = csync_size(*this);
 		UINT8* data = allocator->alloc(size);
 
 		Bitstream stream(data, size);
-		coreSyncWriteElem(*this, stream);
+		csync_write(*this, stream);
 
 		return CoreSyncData(data, size);
 	}
@@ -204,7 +204,7 @@ namespace bs
 	void Pass::syncToCore(const CoreSyncData& data)
 	{
 		Bitstream stream(data.getBuffer(), data.getBufferSize());
-		coreSyncReadElem(*this, stream);
+		csync_read(*this, stream);
 	}
 
 	SPtr<Pass> Pass::create(const PASS_DESC& desc)

@@ -226,7 +226,7 @@ namespace bs
 		void initialize(const Any& data) override;
 
 		/**	@copydoc RendererExtension::check */
-		bool check(const Camera& camera) override;
+		RendererExtensionRequest check(const ct::Camera& camera) override;
 
 		/**	@copydoc RendererExtension::render */
 		void render(const Camera& camera, const RendererViewContext& viewContext) override;

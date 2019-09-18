@@ -23,7 +23,7 @@ namespace bs
 	GUIRenderTexture::~GUIRenderTexture()
 	{
 		if (mSourceTexture != nullptr)
-			GUIManager::instance().setInputBridge(mSourceTexture.get(), nullptr);
+			GUIManager::instance().setInputBridge(mSourceTexture, nullptr);
 	}
 
 	GUIRenderTexture* GUIRenderTexture::create(const SPtr<RenderTexture>& texture, bool transparent, const String& styleName)
@@ -50,7 +50,7 @@ namespace bs
 	void GUIRenderTexture::setRenderTexture(const SPtr<RenderTexture>& texture)
 	{
 		if (mSourceTexture != nullptr)
-			GUIManager::instance().setInputBridge(mSourceTexture.get(), nullptr);
+			GUIManager::instance().setInputBridge(mSourceTexture, nullptr);
 
 		mSourceTexture = texture;
 
@@ -64,7 +64,7 @@ namespace bs
 
 			setTexture(SpriteTexture::create(texture->getColorTexture(0)));
 
-			GUIManager::instance().setInputBridge(mSourceTexture.get(), this);
+			GUIManager::instance().setInputBridge(mSourceTexture, this);
 		}
 		else
 		{

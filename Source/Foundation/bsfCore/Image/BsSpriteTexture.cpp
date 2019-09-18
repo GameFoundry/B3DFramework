@@ -152,11 +152,11 @@ namespace bs
 
 	CoreSyncData SpriteTexture::syncToCore(FrameAlloc* allocator)
 	{
-		UINT32 size = coreSyncGetElemSize(*this);
+		UINT32 size = csync_size(*this);
 
 		UINT8* buffer = allocator->alloc(size);
 		Bitstream stream(buffer, size);
-		coreSyncWriteElem(*this, stream);
+		csync_write(*this, stream);
 
 		return CoreSyncData(buffer, size);
 	}
@@ -241,7 +241,7 @@ namespace bs
 		void SpriteTexture::syncToCore(const CoreSyncData& data)
 		{
 			Bitstream stream(data.getBuffer(), data.getBufferSize());
-			coreSyncReadElem(*this, stream);
+			csync_read(*this, stream);
 		}
 	}
 }

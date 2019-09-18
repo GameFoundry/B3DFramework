@@ -278,7 +278,7 @@ namespace bs
 	 * method implementation.
 	 */
 	template<class T>
-	uint32_t coreSyncGetElemSize(T& v)
+	uint32_t csync_size(T& v)
 	{
 		uint32_t size = 0;
 		v.rttiEnumFields(RttiCoreSyncSize(size));
@@ -287,20 +287,21 @@ namespace bs
 
 	/**
 	 * Writes the provided object into the provided memory location, using rules for core object syncing. Advances the
-	 * stream cursor by the number of bytes written.
+	 * stream cursor by the number of bytes written. Object must have rttiEnumFields() method implementation.
 	 */
 	template<class T>
-	void coreSyncWriteElem(T& v, Bitstream& stream)
+	void csync_write(T& v, Bitstream& stream)
 	{
 		v.rttiEnumFields(RttiCoreSyncWriter(stream));
 	}
 
 	/**
 	 * Decodes information from the provided memory buffer and writes it into the provided object, using rules for core
-	 * object syncing. Advances the stream cursor by number of bytes read.
+	 * object syncing. Advances the stream cursor by number of bytes read. Object must have rttiEnumFields() method
+	 * implementation.  
 	 */
 	template<class T>
-	void coreSyncReadElem(T& v, Bitstream& stream)
+	void csync_read(T& v, Bitstream& stream)
 	{
 		v.rttiEnumFields(RttiCoreSyncReader(stream));
 	}

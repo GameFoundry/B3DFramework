@@ -324,7 +324,7 @@ namespace bs
 			UINT32 numDirtyProbes = (UINT32)dirtyProbes.size();
 			UINT32 numRemovedProbes = (UINT32)removedProbes.size();
 
-			size += coreSyncGetElemSize((SceneActor&)*this);
+			size += csync_size((SceneActor&)*this);
 			size += rtti_size(numDirtyProbes);
 			size += rtti_size(numRemovedProbes);
 			size += (sizeof(UINT32) + sizeof(Vector3) + sizeof(LightProbeFlags)) * numDirtyProbes;
@@ -333,7 +333,7 @@ namespace bs
 			buffer = allocator->alloc(size);
 			Bitstream stream(buffer, size);
 
-			coreSyncWriteElem((SceneActor&)*this, stream);
+			csync_write((SceneActor&)*this, stream);
 			rtti_write(numDirtyProbes, stream);
 			rtti_write(numRemovedProbes, stream);
 
@@ -491,7 +491,7 @@ namespace bs
 
 		bool oldIsActive = mActive;
 
-		coreSyncReadElem((SceneActor&)*this, stream);
+		csync_read((SceneActor&)*this, stream);
 
 		UINT32 numDirtyProbes, numRemovedProbes;
 		rtti_read(numDirtyProbes, stream);

@@ -189,9 +189,9 @@ namespace bs
 		mMeshes = meshes;
 	}
 
-	bool DebugDrawRenderer::check(const Camera& camera)
+	RendererExtensionRequest DebugDrawRenderer::check(const Camera& camera)
 	{
-		return true;
+		return mMeshes.empty() ? RendererExtensionRequest::RenderIfTargetDirty : RendererExtensionRequest::ForceRender;
 	}
 
 	void DebugDrawRenderer::render(const Camera& camera, const RendererViewContext& viewContext)

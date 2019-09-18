@@ -395,10 +395,7 @@ namespace bs { namespace ct
 		if (sceneCamera != nullptr)
 		{
 			for(auto& extension : inputs.extPrepare)
-			{
-				if (extension->check(*sceneCamera))
-					extension->render(*sceneCamera, inputs.view.getContext());
-			}
+				extension->render(*sceneCamera, inputs.view.getContext());
 		}
 
 		// Render base pass
@@ -417,10 +414,7 @@ namespace bs { namespace ct
 			inputs.view._notifyCompositorTargetChanged(renderTarget);
 
 			for(auto& extension : inputs.extPreBasePass)
-			{
-				if (extension->check(*sceneCamera))
-					extension->render(*sceneCamera, inputs.view.getContext());
-			}
+				extension->render(*sceneCamera, inputs.view.getContext());
 		}
 
 		// Render all visible opaque elements that use the deferred pipeline
@@ -459,10 +453,7 @@ namespace bs { namespace ct
 			inputs.view._notifyCompositorTargetChanged(renderTargetNoMask);
 
 			for(auto& extension : inputs.extPostBasePass)
-			{
-				if (extension->check(*sceneCamera))
-					extension->render(*sceneCamera, inputs.view.getContext());
-			}
+				extension->render(*sceneCamera, inputs.view.getContext());
 		}
 
 		// Make sure that any compute shaders are able to read g-buffer by unbinding it
@@ -1519,10 +1510,7 @@ namespace bs { namespace ct
 			inputs.view._notifyCompositorTargetChanged(renderTarget);
 
 			for(auto& extension : inputs.extPostLighting)
-			{
-				if (extension->check(*sceneCamera))
-					extension->render(*sceneCamera, inputs.view.getContext());
-			}
+				extension->render(*sceneCamera, inputs.view.getContext());
 		}
 	}
 
@@ -1632,10 +1620,7 @@ namespace bs { namespace ct
 			inputs.view._notifyCompositorTargetChanged(target);
 
 			for(auto& extension : inputs.extOverlay)
-			{
-				if (extension->check(*sceneCamera))
-					extension->render(*sceneCamera, inputs.view.getContext());
-			}
+				extension->render(*sceneCamera, inputs.view.getContext());
 		}
 
 		inputs.view._notifyCompositorTargetChanged(nullptr);

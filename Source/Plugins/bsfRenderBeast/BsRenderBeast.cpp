@@ -434,9 +434,9 @@ namespace bs { namespace ct
 			PROFILE_CALL(mMainViewGroup->determineVisibility(sceneInfo), "Determine visibility")
 
 			// Render everything
-			renderViews(*mMainViewGroup, frameInfo);
+			bool anythingDrawn = renderViews(*mMainViewGroup, frameInfo);
 
-			if(rtInfo.target->getProperties().isWindow)
+			if(rtInfo.target->getProperties().isWindow && anythingDrawn)
 				PROFILE_CALL(RenderAPI::instance().swapBuffers(rtInfo.target), "Swap buffers");
 		}
 
@@ -447,36 +447,64 @@ namespace bs { namespace ct
 		gProfilerCPU().endSample("Render");
 	}
 
-	void RenderBeast::renderViews(RendererViewGroup& viewGroup, const FrameInfo& frameInfo)
+	bool RenderBeast::renderViews(RendererViewGroup& viewGroup, const FrameInfo& frameInfo)
 	{
-		const SceneInfo& sceneInfo = mScene->getSceneInfo();
-		const VisibilityInfo& visibility = viewGroup.getVisibilityInfo();
-
-		// Render shadow maps
-		ShadowRendering& shadowRenderer = viewGroup.getShadowRenderer();
-		shadowRenderer.renderShadowMaps(*mScene, viewGroup, frameInfo);
-
-		// Update various buffers required by each renderable
-		UINT32 numRenderables = (UINT32)sceneInfo.renderables.size();
-		for (UINT32 i = 0; i < numRenderables; i++)
-		{
-			if (!visibility.renderables[i])
-				continue;
-
-			mScene->prepareRenderable(i, frameInfo);
-		}
-
+		bool needs3DRender = false;
 		UINT32 numViews = viewGroup.getNumViews();
 		for (UINT32 i = 0; i < numViews; i++)
 		{
 			RendererView* view = viewGroup.getView(i);
 			const RenderSettings& settings = view->getRenderSettings();
 
-			if (settings.overlayOnly)
-				renderOverlay(*view);
-			else
-				renderView(viewGroup, *view, frameInfo);
+			if (view->shouldDraw() && !settings.overlayOnly)
+			{
+				needs3DRender = true;
+				break;
+			}
 		}
+		
+		if (needs3DRender)
+		{
+			const SceneInfo& sceneInfo = mScene->getSceneInfo();
+			const VisibilityInfo& visibility = viewGroup.getVisibilityInfo();
+
+			// Render shadow maps
+			ShadowRendering& shadowRenderer = viewGroup.getShadowRenderer();
+			shadowRenderer.renderShadowMaps(*mScene, viewGroup, frameInfo);
+
+			// Update various buffers required by each renderable
+			UINT32 numRenderables = (UINT32)sceneInfo.renderables.size();
+			for (UINT32 i = 0; i < numRenderables; i++)
+			{
+				if (!visibility.renderables[i])
+					continue;
+
+				mScene->prepareRenderable(i, frameInfo);
+			}
+		}
+
+		bool anythingDrawn = false;
+		for (UINT32 i = 0; i < numViews; i++)
+		{
+			RendererView* view = viewGroup.getView(i);
+			if (!view->shouldDraw())
+				continue;
+			
+			const RenderSettings& settings = view->getRenderSettings();
+
+			if (settings.overlayOnly)
+			{
+				if (renderOverlay(*view))
+					anythingDrawn = true;
+			}
+			else
+			{
+				renderView(viewGroup, *view, frameInfo);
+				anythingDrawn = true;
+			}
+		}
+
+		return anythingDrawn;
 	}
 
 	void RenderBeast::renderView(const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo)
@@ -500,9 +528,19 @@ namespace bs { namespace ct
 		// Register callbacks
 		if (viewProps.triggerCallbacks)
 		{
+			const Camera* camera = view.getSceneCamera();
+
+			bool locationNeedsRedraw[(UINT32)RenderLocation::Count]{ false };
+
 			for(auto& extension : mCallbacks)
 			{
 				RenderLocation location = extension->getLocation();
+				RendererExtensionRequest request = extension->check(*camera);
+
+				if (request == RendererExtensionRequest::DontRender)
+					continue;
+
+				locationNeedsRedraw[(UINT32)location] = request == RendererExtensionRequest::ForceRender;
 				switch(location)
 				{
 				case RenderLocation::Prepare:
@@ -520,8 +558,25 @@ namespace bs { namespace ct
 				case RenderLocation::Overlay:
 					inputs.extOverlay.add(extension);
 					break;
+				default:
+					break;
 				}
 			}
+
+			if (!locationNeedsRedraw[(UINT32)RenderLocation::Prepare])
+				inputs.extPrepare.clear();
+
+			if (!locationNeedsRedraw[(UINT32)RenderLocation::PreBasePass])
+				inputs.extPreBasePass.clear();
+
+			if (!locationNeedsRedraw[(UINT32)RenderLocation::PostBasePass])
+				inputs.extPostBasePass.clear();
+
+			if (!locationNeedsRedraw[(UINT32)RenderLocation::PostLightPass])
+				inputs.extPostLighting.clear();
+
+			if (!locationNeedsRedraw[(UINT32)RenderLocation::Overlay])
+				inputs.extOverlay.clear();
 		}
 
 		const RenderCompositor& compositor = view.getCompositor();
@@ -532,7 +587,7 @@ namespace bs { namespace ct
 		gProfilerCPU().endSample("Render view");
 	}
 
-	void RenderBeast::renderOverlay(RendererView& view)
+	bool RenderBeast::renderOverlay(RendererView& view)
 	{
 		gProfilerCPU().beginSample("Render overlay");
 
@@ -568,30 +623,39 @@ namespace bs { namespace ct
 		rapi.setViewport(viewport->getArea());
 
 		// Trigger overlay callbacks
+		bool needsRedraw = false;
 		if(!mCallbacks.empty())
 		{
 			view._notifyCompositorTargetChanged(target);
 
-			auto iterRenderCallback = mCallbacks.begin();
-			while (iterRenderCallback != mCallbacks.end())
+			mOverlayExtensions.clear();
+
+			for(auto& entry : mCallbacks)
 			{
-				RendererExtension* extension = *iterRenderCallback;
-				if (extension->getLocation() != RenderLocation::Overlay)
-				{
-					++iterRenderCallback;
+				if (entry->getLocation() != RenderLocation::Overlay)
 					continue;
-				}
 
-				if (extension->check(*camera))
-					extension->render(*camera, view.getContext());
+				RendererExtensionRequest request = entry->check(*camera);
+				if (request == RendererExtensionRequest::DontRender)
+					continue;
 
-				++iterRenderCallback;
+				if (request == RendererExtensionRequest::ForceRender)
+					needsRedraw = true;
+
+				mOverlayExtensions.push_back(entry);
 			}
+
+			if (!needsRedraw)
+				mOverlayExtensions.clear();
+
+			for (auto& entry : mOverlayExtensions)
+				entry->render(*camera, view.getContext());
 		}
 
 		view.endFrame();
 
 		gProfilerCPU().endSample("Render overlay");
+		return needsRedraw;
 	}
 	
 	void RenderBeast::updateReflProbeArray()
@@ -707,6 +771,7 @@ namespace bs { namespace ct
 		viewDesc.triggerCallbacks = false;
 		viewDesc.runPostProcessing = false;
 		viewDesc.capturingReflections = true;
+		viewDesc.onDemand = false;
 		viewDesc.encodeDepth = settings.encodeDepth;
 		viewDesc.depthEncodeNear = settings.depthEncodeNear;
 		viewDesc.depthEncodeFar = settings.depthEncodeFar;

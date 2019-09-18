@@ -178,7 +178,7 @@ namespace bs
 		 * @note			
 		 * Bridged element needs to remove itself as the bridge when it is destroyed.
 		 */
-		void setInputBridge(const RenderTexture* renderTex, const GUIElement* element);
+		void setInputBridge(const SPtr<RenderTexture>& renderTex, const GUIElement* element);
 
 		/**
 		 * Converts window coordinates to coordinates relative to the specified bridged render target (target displayed
@@ -373,7 +373,7 @@ namespace bs
 		HSpriteTexture mTextSelectionTexture;
 		Color mTextSelectionColor { 0.0f, 114 / 255.0f, 188 / 255.0f };
 
-		Map<const RenderTexture*, const GUIElement*> mInputBridge;
+		Map<SPtr<const RenderTexture>, const GUIElement*> mInputBridge;
 
 		HEvent mOnPointerMovedConn;
 		HEvent mOnPointerPressedConn;
@@ -416,7 +416,7 @@ namespace bs
 		void initialize(const Any& data) override;
 
 		/**	@copydoc RendererExtension::check */
-		bool check(const Camera& camera) override;
+		RendererExtensionRequest check(const Camera& camera) override;
 
 		/**	@copydoc RendererExtension::render */
 		void render(const Camera& camera, const RendererViewContext& viewContext) override;

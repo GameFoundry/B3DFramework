@@ -177,6 +177,8 @@ namespace bs { namespace ct
 		mForwardOpaqueQueue->clear();
 		mTransparentQueue->clear();
 		mDecalQueue->clear();
+
+		mNeedsRedraw = false;
 	}
 
 	void RendererView::determineVisible(const Vector<RendererRenderable*>& renderables, const Vector<CullInfo>& cullInfos,
