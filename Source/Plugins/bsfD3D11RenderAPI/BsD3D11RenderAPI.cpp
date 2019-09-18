@@ -770,6 +770,8 @@ namespace bs { namespace ct
 			else
 				mDevice->getImmediateContext()->DrawInstanced(vertexCount, instanceCount, vertexOffset, 0);
 
+			notifyRenderTargetModified();
+			
 #if BS_DEBUG_MODE
 			if (mDevice->hasError())
 				BS_LOG(Warning, RenderBackend, mDevice->getErrorDescription());
@@ -811,6 +813,8 @@ namespace bs { namespace ct
 				mDevice->getImmediateContext()->DrawIndexed(indexCount, startIndex, vertexOffset);
 			else
 				mDevice->getImmediateContext()->DrawIndexedInstanced(indexCount, instanceCount, startIndex, vertexOffset, 0);
+
+			notifyRenderTargetModified();
 
 #if BS_DEBUG_MODE
 			if (mDevice->hasError())
@@ -941,6 +945,8 @@ namespace bs { namespace ct
 				// TODO - Ignoring targetMask here
 				D3D11RenderUtility::instance().drawClearQuad(buffers, color, depth, stencil);
 				BS_INC_RENDER_STAT(NumClears);
+
+				notifyRenderTargetModified();
 			}
 			else
 				clearRenderTarget(buffers, color, depth, stencil, targetMask);
@@ -1015,6 +1021,8 @@ namespace bs { namespace ct
 				if (depthStencilView != nullptr)
 					mDevice->getImmediateContext()->ClearDepthStencilView(depthStencilView, clearFlag, depth, (UINT8)stencil);
 			}
+
+			notifyRenderTargetModified();
 		};
 
 		if (commandBuffer == nullptr)
@@ -1038,6 +1046,7 @@ namespace bs { namespace ct
 			THROW_IF_NOT_CORE_THREAD;
 
 			mActiveRenderTarget = target;
+			mActiveRenderTargetModified = false;
 
 			UINT32 maxRenderTargets = mCurrentCapabilities[0].numMultiRenderTargets;
 			ID3D11RenderTargetView** views = bs_newN<ID3D11RenderTargetView*>(maxRenderTargets);
@@ -1136,6 +1145,15 @@ namespace bs { namespace ct
 		mViewport.MaxDepth = 1.0f;
 
 		mDevice->getImmediateContext()->RSSetViewports(1, &mViewport);
+	}
+
+	void D3D11RenderAPI::notifyRenderTargetModified()
+	{
+		if (mActiveRenderTarget == nullptr || mActiveRenderTargetModified)
+			return;
+
+		mActiveRenderTarget->_tickUpdateCount();
+		mActiveRenderTargetModified = true;
 	}
 
 	void D3D11RenderAPI::initCapabilites(IDXGIAdapter* adapter, RenderAPICapabilities& caps) const

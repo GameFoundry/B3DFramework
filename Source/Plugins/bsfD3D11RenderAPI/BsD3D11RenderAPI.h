@@ -145,6 +145,9 @@ namespace bs { namespace ct
 		 */
 		void applyViewport();
 
+		/** Notifies the active render target that a rendering command was queued that will potentially change its contents. */
+		void notifyRenderTargetModified();
+
 		/** Creates and populates a set of render system capabilities describing which functionality is available. */
 		void initCapabilites(IDXGIAdapter* adapter, RenderAPICapabilities& caps) const;
 

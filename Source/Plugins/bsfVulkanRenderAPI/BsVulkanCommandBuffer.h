@@ -566,6 +566,9 @@ namespace bs { namespace ct
 		/** Returns the read mask for the current framebuffer. */
 		RenderSurfaceMask getFBReadMask();
 
+		/** Notifies the active render target that a rendering command was queued that will potentially change its contents. */
+		void notifyRenderTargetModified();
+
 		UINT32 mId;
 		UINT32 mQueueFamily;
 		State mState = State::Ready;
@@ -634,6 +637,9 @@ namespace bs { namespace ct
 		Vector<VulkanEvent*> mQueuedEvents;
 		Vector<VulkanQuery*> mQueuedQueryResets;
 		UnorderedSet<VulkanSwapChain*> mActiveSwapChains;
+
+		SPtr<RenderTarget> mRenderTarget;
+		bool mRenderTargetModified = false;
 	};
 
 	/** CommandBuffer implementation for Vulkan. */

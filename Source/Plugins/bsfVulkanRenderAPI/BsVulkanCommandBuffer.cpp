@@ -885,6 +885,9 @@ namespace bs { namespace ct
 			newFB = nullptr;
 		}
 
+		mRenderTarget = rt;
+		mRenderTargetModified = false;
+
 		// Warn if invalid load mask
 		if (loadMask.isSet(RT_DEPTH) && !loadMask.isSet(RT_STENCIL))
 		{
@@ -1142,6 +1145,8 @@ namespace bs { namespace ct
 			mClearValues = clearValues;
 			mClearArea = area;
 		}
+
+		notifyRenderTargetModified();
 	}
 
 	void VulkanCmdBuffer::clearRenderTarget(UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask)
@@ -1679,6 +1684,7 @@ namespace bs { namespace ct
 			instanceCount = 1;
 
 		vkCmdDraw(mCmdBuffer, vertexCount, instanceCount, vertexOffset, 0);
+		notifyRenderTargetModified();
 	}
 
 	void VulkanCmdBuffer::drawIndexed(UINT32 startIndex, UINT32 indexCount, UINT32 vertexOffset, UINT32 instanceCount)
@@ -1724,6 +1730,7 @@ namespace bs { namespace ct
 			instanceCount = 1;
 
 		vkCmdDrawIndexed(mCmdBuffer, indexCount, instanceCount, startIndex, vertexOffset, 0);
+		notifyRenderTargetModified();
 	}
 
 	void VulkanCmdBuffer::dispatch(UINT32 numGroupsX, UINT32 numGroupsY, UINT32 numGroupsZ)
@@ -2612,6 +2619,15 @@ namespace bs { namespace ct
 			if (query->_isInProgress())
 				occlusion.push_back(query);
 		}
+	}
+
+	void VulkanCmdBuffer::notifyRenderTargetModified()
+	{
+		if (mRenderTarget == nullptr || mRenderTargetModified)
+			return;
+
+		mRenderTarget->_tickUpdateCount();
+		mRenderTargetModified = true;
 	}
 
 	VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice& device, GpuQueueType type, UINT32 deviceIdx,

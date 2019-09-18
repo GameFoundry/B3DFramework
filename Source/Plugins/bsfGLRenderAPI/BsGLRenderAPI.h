@@ -352,6 +352,9 @@ namespace bs { namespace ct
 		/** Convers the engine stencil operation in OpenGL representation. */
 		GLint convertStencilOp(StencilOperation op) const;
 
+		/** Notifies the active render target that a rendering command was queued that will potentially change its contents. */
+		void notifyRenderTargetModified();
+
 	private:
 		/** Information about a currently bound texture. */
 		struct TextureInfo

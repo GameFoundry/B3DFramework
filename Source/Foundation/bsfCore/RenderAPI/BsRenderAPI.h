@@ -531,6 +531,7 @@ namespace bs
 		friend class bs::RenderAPIManager;
 
 		SPtr<RenderTarget> mActiveRenderTarget;
+		bool mActiveRenderTargetModified = false;
 
 		RenderAPICapabilities* mCurrentCapabilities;
 		UINT32 mNumDevices;

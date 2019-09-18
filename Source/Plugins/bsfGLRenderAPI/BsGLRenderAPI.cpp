@@ -974,6 +974,7 @@ namespace bs { namespace ct
 
 			// This must happen after context switch to ensure previous context is still alive
 			mActiveRenderTarget = target;
+			mActiveRenderTargetModified = false;
 
 			GLFrameBufferObject* fbo = nullptr;
 
@@ -1578,6 +1579,7 @@ namespace bs { namespace ct
 			BS_CHECK_GL_ERROR();
 		}
 
+		notifyRenderTargetModified();
 		BS_INC_RENDER_STAT(NumClears);
 	}
 
@@ -2184,6 +2186,7 @@ namespace bs { namespace ct
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 #endif
 
+		notifyRenderTargetModified();
 		mDrawCallInProgress = false;
 	}
 
@@ -2715,6 +2718,15 @@ namespace bs { namespace ct
 			glScissor(mViewportLeft, mViewportTop, mViewportWidth, mViewportHeight);
 			BS_CHECK_GL_ERROR();
 		}
+	}
+
+	void GLRenderAPI::notifyRenderTargetModified()
+	{
+		if (mActiveRenderTarget == nullptr || mActiveRenderTargetModified)
+			return;
+
+		mActiveRenderTarget->_tickUpdateCount();
+		mActiveRenderTargetModified = true;
 	}
 
 	/************************************************************************/

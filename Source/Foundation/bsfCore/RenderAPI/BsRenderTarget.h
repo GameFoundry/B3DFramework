@@ -219,11 +219,29 @@ namespace bs
 		/**	Returns properties that describe the render target. */
 		const RenderTargetProperties& getProperties() const;
 
+		/**
+		 * Returns a number that increments each time the target is rendered to. External systems can use this to
+		 * determine when the target's contents changed.
+		 */
+		UINT32 getUpdateCount() const { return mUpdateCount; }
+
+		/**
+		 * @name Internal
+		 * @{
+		 */
+
+		/** Increments the update count, letting other code know that the contents of the render target changed. */
+		void _tickUpdateCount() { mUpdateCount++; }
+
+		/** @} */
 	protected:
 		friend class bs::RenderTarget;
 
 		/**	Returns properties that describe the render target. */
 		virtual const RenderTargetProperties& getPropertiesInternal() const = 0;
+
+	private:
+		UINT32 mUpdateCount = 0;
 	};
 
 	/** @} */
