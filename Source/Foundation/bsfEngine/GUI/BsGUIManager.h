@@ -426,7 +426,8 @@ namespace bs
 		void update(float time);
 
 		/** Updates the data required for rendering draw groups on the specified widget. */
-		void updateDrawGroups(const SPtr<Camera>& camera, UINT64 widgetId, const Matrix4& worldTransform, const GUIDrawGroupRenderDataUpdate& data);
+		void updateDrawGroups(const SPtr<Camera>& camera, UINT64 widgetId, UINT32 widgetDepth, const Matrix4& worldTransform, 
+			const GUIDrawGroupRenderDataUpdate& data);
 
 		/** Clears all draw groups from the specified widget. */
 		void clearDrawGroups(const SPtr<Camera>& camera, UINT64 widgetId);
@@ -438,6 +439,7 @@ namespace bs
 		struct GUIWidgetRenderData
 		{
 			UINT64 widgetId;
+			UINT32 widgetDepth = 0;
 			Vector<GUIDrawGroupRenderData> drawGroups;
 			Vector<SPtr<GpuParamBlockBuffer>> paramBlocks;
 

@@ -361,9 +361,10 @@ namespace bs
 				updateData = std::move(updateData),
 				camera = camera->getCore(),
 				widgetId,
+				widgetDepth = widget->getDepth(),
 				worldTransform = widget->getWorldTfrm()]()
 			{
-				renderer->updateDrawGroups(camera, widgetId, worldTransform, updateData);
+				renderer->updateDrawGroups(camera, widgetId, widgetDepth, worldTransform, updateData);
 			});
 		}
 
@@ -1606,7 +1607,6 @@ namespace bs
 		float invViewportHeight = 1.0f / (camera.getViewport()->getPixelArea().height * 0.5f);
 		bool viewflipYFlip = gCaps().conventions.ndcYAxis == Conventions::Axis::Down;
 
-		bool needsRedraw = false;
 		RenderAPI& rapi = RenderAPI::instance();
 		for (auto& widget : widgetRenderData)
 		{
@@ -1620,8 +1620,6 @@ namespace bs
 						updateParamBlockBuffer(buffer, invViewportWidth, invViewportHeight,
 							viewflipYFlip, widget.worldTransform, entry);
 					}
-
-					needsRedraw = true;
 				}
 				
 				if (!drawGroup.requiresRedraw)
@@ -1701,7 +1699,6 @@ namespace bs
 				}
 
 				drawGroup.requiresRedraw = false;
-				needsRedraw = true;
 			}
 		}
 
@@ -1710,30 +1707,27 @@ namespace bs
 
 		// TODO - Avoid rendering to overlay if unnecessary. Ideally the renderer should not clear parts used by GUI (unless transparency is needed,
 		// but that could be a special flag on GUIWidget?)
-		if(needsRedraw)
+		for (auto& widget : widgetRenderData)
 		{
-			for (auto& widget : widgetRenderData)
+			for (auto& drawGroup : widget.drawGroups)
 			{
-				for (auto& drawGroup : widget.drawGroups)
+				// Draw non-cached elements
+				for (auto& entry : drawGroup.nonCachedElements)
 				{
-					// Draw non-cached elements
-					for (auto& entry : drawGroup.nonCachedElements)
-					{
-						// TODO - I shouldn't be re-applying the entire material for each entry, instead just check which programs
-						// changed, and apply only those + the modified constant buffers and/or texture.
+					// TODO - I shouldn't be re-applying the entire material for each entry, instead just check which programs
+					// changed, and apply only those + the modified constant buffers and/or texture.
 
-						const SPtr<GpuParamBlockBuffer>& buffer = widget.paramBlocks[entry.bufferIdx];
-						entry.material->render(entry.isLine ? widget.lineMesh : widget.triangleMesh, entry.subMesh, entry.texture,
-							mSamplerState, buffer, entry.additionalData, false);
-					}
-					
-					// Draw the group itself
-					const SPtr<GpuParamBlockBuffer>& buffer = widget.paramBlocks[drawGroup.bufferIdx];
-
-					SpriteMaterial* batchedMat = SpriteManager::instance().getImageMaterial(SpriteMaterialTransparency::Premultiplied, false);
-					batchedMat->render(widget.drawGroupMesh, drawGroup.subMesh, drawGroup.destination->getColorTexture(0),
-						mSamplerState, buffer, nullptr, false);
+					const SPtr<GpuParamBlockBuffer>& buffer = widget.paramBlocks[entry.bufferIdx];
+					entry.material->render(entry.isLine ? widget.lineMesh : widget.triangleMesh, entry.subMesh, entry.texture,
+						mSamplerState, buffer, entry.additionalData, false);
 				}
+
+				// Draw the group itself
+				const SPtr<GpuParamBlockBuffer>& buffer = widget.paramBlocks[drawGroup.bufferIdx];
+
+				SpriteMaterial* batchedMat = SpriteManager::instance().getImageMaterial(SpriteMaterialTransparency::Premultiplied, false);
+				batchedMat->render(widget.drawGroupMesh, drawGroup.subMesh, drawGroup.destination->getColorTexture(0),
+					mSamplerState, buffer, nullptr, false);
 			}
 		}
 	}
@@ -1743,7 +1737,8 @@ namespace bs
 		mTime = time;
 	}
 
-	void GUIRenderer::updateDrawGroups(const SPtr<Camera>& camera, UINT64 widgetId, const Matrix4& worldTransform, const GUIDrawGroupRenderDataUpdate& data)
+	void GUIRenderer::updateDrawGroups(const SPtr<Camera>& camera, UINT64 widgetId, UINT32 widgetDepth, const Matrix4& worldTransform,
+		 const GUIDrawGroupRenderDataUpdate& data)
 	{
 		auto iterFind = mPerCameraData.find(camera.get());
 		if (iterFind == mPerCameraData.end())
@@ -1864,6 +1859,16 @@ namespace bs
 		widget->triangleMesh = data.triangleMesh;
 		widget->lineMesh = data.lineMesh;
 		widget->worldTransform = worldTransform;
+
+		if(widget->widgetDepth != widgetDepth)
+		{
+			widget->widgetDepth = widgetDepth;
+
+			std::sort(widgets.begin(), widgets.end(), [](auto& x, auto& y)
+			{
+					return x.widgetDepth >= y.widgetDepth;
+			});
+		}
 	}
 
 	void GUIRenderer::clearDrawGroups(const SPtr<Camera>& camera, UINT64 widgetId)
