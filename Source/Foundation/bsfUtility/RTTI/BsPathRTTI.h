@@ -22,7 +22,7 @@ namespace bs
 		{
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 				size += rtti_write(data.mDevice, stream);
 				size += rtti_write(data.mNode, stream);
 				size += rtti_write(data.mFilename, stream);
@@ -49,17 +49,8 @@ namespace bs
 
 		static BitLength getSize(const Path& data, bool compress)
 		{
-			uint64_t dataSize = (uint64_t)rtti_size(data.mDevice) + (uint64_t)rtti_size(data.mNode) + (uint64_t)rtti_size(data.mFilename) +
-				(uint64_t)rtti_size(data.mIsAbsolute) + (uint64_t)rtti_size(data.mDirectories) + sizeof(uint32_t);
-
-#if BS_DEBUG_MODE
-			if (dataSize > std::numeric_limits<uint32_t>::max())
-			{
-				__string_throwDataOverflowException();
-			}
-#endif
-
-			return (uint32_t)dataSize;
+			return rtti_size(data.mDevice) + rtti_size(data.mNode) + rtti_size(data.mFilename) +
+				rtti_size(data.mIsAbsolute) + rtti_size(data.mDirectories) + sizeof(uint32_t);
 		}
 	};
 

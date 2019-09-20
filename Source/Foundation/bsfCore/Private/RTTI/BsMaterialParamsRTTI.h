@@ -340,7 +340,7 @@ namespace bs
 
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
 				size += rtti_write(data.offset, stream);
 
@@ -427,7 +427,7 @@ namespace bs
 
 		static BitLength getSize(const MaterialParamsBase::DataParamInfo& data, bool compress)
 		{
-			uint32_t size = sizeof(uint32_t) * 3 + rtti_size(data.offset);
+			BitLength size = rtti_size(data.offset) + sizeof(uint32_t) * 3;
 
 			if(data.floatCurve)
 				size += rtti_size(*data.floatCurve);
@@ -450,7 +450,7 @@ namespace bs
 
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 				size += rtti_write(data.name, stream);
 				size += rtti_write(data.data, stream);
 
@@ -466,12 +466,12 @@ namespace bs
 		{
 			BitLength size;
 			
-			uint32_t sizeRead = rtti_read_size_header(stream, compress, size).bytes;
+			BitLength sizeRead = rtti_read_size_header(stream, compress, size);
 			sizeRead += rtti_read(data.name, stream);
 			sizeRead += rtti_read(data.data, stream);
 
 			// More fields means a newer version of the data format
-			if(size.bytes > sizeRead)
+			if(size > sizeRead)
 			{
 				uint32_t version = 0;
 				rtti_read(version, stream);
@@ -494,17 +494,8 @@ namespace bs
 
 		static BitLength getSize(const MaterialParamsRTTI::MaterialParam& data, bool compress)
 		{
-			const uint64_t dataSize = rtti_size(data.name) + rtti_size(data.data) + rtti_size(data.index) +
+			return rtti_size(data.name) + rtti_size(data.data) + rtti_size(data.index) +
 				sizeof(uint32_t) * 2;
-
-#if BS_DEBUG_MODE
-			if(dataSize > std::numeric_limits<uint32_t>::max())
-			{
-				__string_throwDataOverflowException();
-			}
-#endif
-
-			return (uint32_t)dataSize;
 		}	
 	};
 

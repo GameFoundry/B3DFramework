@@ -22,7 +22,7 @@ namespace bs
 		{
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 
 				auto numElements = (uint32_t)data.size();
 				size += rtti_write(numElements, stream);
@@ -58,14 +58,12 @@ namespace bs
 		/** @copydoc RTTIPlainType::getSize */
 		static BitLength getSize(const SmallVector<T, N>& data, bool compress)
 		{
-			uint64_t dataSize = sizeof(uint32_t) * 2;
+			BitLength dataSize = sizeof(uint32_t) * 2;
 
 			for (const auto& item : data)
 				dataSize += rtti_size(item);
 
-			assert(dataSize <= std::numeric_limits<uint32_t>::max());
-
-			return (uint32_t)dataSize;
+			return dataSize;
 		}
 	};
 

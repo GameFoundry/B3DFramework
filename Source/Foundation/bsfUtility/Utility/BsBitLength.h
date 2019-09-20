@@ -29,6 +29,26 @@ namespace bs
 			return (bytes != rhs.bytes || bits != rhs.bits);
 		}
 
+		bool operator< (const BitLength& rhs) const
+		{
+			return bytes < rhs.bytes || (bytes == rhs.bytes && bits < rhs.bits);
+		}
+		
+		bool operator<= (const BitLength& rhs) const
+		{
+			return bytes < rhs.bytes || (bytes == rhs.bytes && bits <= rhs.bits);
+		}
+
+		bool operator> (const BitLength& rhs) const
+		{
+			return bytes > rhs.bytes || (bytes == rhs.bytes && bits > rhs.bits);
+		}
+		
+		bool operator>= (const BitLength& rhs) const
+		{
+			return bytes > rhs.bytes || (bytes == rhs.bytes && bits >= rhs.bits);
+		}
+		
 		BitLength operator+ (const BitLength& rhs) const
 		{
 			uint8_t totalBits = bits + rhs.bits;

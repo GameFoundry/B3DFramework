@@ -59,7 +59,7 @@ namespace bs
 			{
 				constexpr uint32_t VERSION = 0; // In case the data structure changes
 
-				uint32_t size = 0;
+				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
 				size += rtti_write(data.mStart, stream);
 				size += rtti_write(data.mEnd, stream);
@@ -90,15 +90,13 @@ namespace bs
 		/** @copydoc RTTIPlainType::getSize */
 		static BitLength getSize(const TAnimationCurve<T>& data, bool compress)
 		{
-			uint64_t dataSize = sizeof(uint32_t) + sizeof(uint32_t);
+			BitLength dataSize = sizeof(uint32_t) + sizeof(uint32_t);
 			dataSize += rtti_size(data.mStart);
 			dataSize += rtti_size(data.mEnd);
 			dataSize += rtti_size(data.mLength);
 			dataSize += rtti_size(data.mKeyframes);
 
-			assert(dataSize <= std::numeric_limits<uint32_t>::max());
-
-			return (uint32_t)dataSize;
+			return dataSize;
 		}
 	};
 
@@ -111,7 +109,7 @@ namespace bs
 		{
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 				size += rtti_write(data.name, stream);
 				size += rtti_write(data.flags, stream);
 				size += rtti_write(data.curve, stream);
@@ -136,14 +134,12 @@ namespace bs
 		/** @copydoc RTTIPlainType::getSize */
 		static BitLength getSize(const TNamedAnimationCurve<T>& data, bool compress)
 		{
-			uint64_t dataSize = sizeof(uint32_t);
+			BitLength dataSize = sizeof(uint32_t);
 			dataSize += rtti_size(data.name);
 			dataSize += rtti_size(data.flags);
 			dataSize += rtti_size(data.curve);
 
-			assert(dataSize <= std::numeric_limits<uint32_t>::max());
-
-			return (uint32_t)dataSize;
+			return dataSize;
 		}
 	};
 	

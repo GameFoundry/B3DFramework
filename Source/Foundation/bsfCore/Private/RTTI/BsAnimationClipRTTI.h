@@ -28,7 +28,7 @@ namespace bs
 				{
 					constexpr uint8_t VERSION = 0;
 
-					uint32_t size = 0;
+					BitLength size = 0;
 					size += rtti_write(VERSION, stream);
 					size += rtti_write(data.time, stream);
 					size += rtti_write(data.name, stream);
@@ -56,13 +56,11 @@ namespace bs
 		/** @copydoc RTTIPlainType::getSize */
 		static BitLength getSize(const AnimationEvent& data, bool compress)
 		{
-			uint64_t dataSize = sizeof(uint8_t) + sizeof(uint32_t);
+			BitLength dataSize = sizeof(uint8_t) + sizeof(uint32_t);
 			dataSize += rtti_size(data.time);
 			dataSize += rtti_size(data.name);
 
-			assert(dataSize <= std::numeric_limits<uint32_t>::max());
-
-			return (uint32_t)dataSize;
+			return dataSize;
 		}
 	};
 

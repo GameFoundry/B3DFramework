@@ -29,7 +29,7 @@ namespace bs
 
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 
 				size += rtti_write(data.arraySize, stream);
 				size += rtti_write(data.rendererSemantic, stream);
@@ -48,7 +48,7 @@ namespace bs
 		static BitLength fromMemory(SHADER_DATA_PARAM_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			uint32_t sizeRead = rtti_read_size_header(stream, compress, size);
+			BitLength sizeRead = rtti_read_size_header(stream, compress, size);
 
 			sizeRead += rtti_read(data.arraySize, stream);
 			sizeRead += rtti_read(data.rendererSemantic, stream);
@@ -60,7 +60,7 @@ namespace bs
 
 			// There's more to read, meaning we're reading a newer version of the format
 			// (In the first version, version field is missing, so we check this way).
-			if(sizeRead < size.bytes)
+			if(sizeRead < size)
 			{
 				uint32_t version = 0;
 				rtti_read(version, stream);
@@ -80,18 +80,9 @@ namespace bs
 
 		static BitLength getSize(const SHADER_DATA_PARAM_DESC& data, bool compress)
 		{
-			uint64_t dataSize = rtti_size(data.arraySize) + rtti_size(data.rendererSemantic) + rtti_size(data.type) +
+			return rtti_size(data.arraySize) + rtti_size(data.rendererSemantic) + rtti_size(data.type) +
 				rtti_size(data.name) + rtti_size(data.gpuVariableName) + rtti_size(data.elementSize) +
 				rtti_size(data.defaultValueIdx) + rtti_size(data.attribIdx) + sizeof(uint32_t) * 2;
-
-#if BS_DEBUG_MODE
-			if(dataSize > std::numeric_limits<uint32_t>::max())
-			{
-				BS_EXCEPT(InternalErrorException, "Data overflow! Size doesn't fit into 32 bits.");
-			}
-#endif
-
-			return (uint32_t)dataSize;
 		}
 	};
 
@@ -105,7 +96,7 @@ namespace bs
 
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 				size += rtti_write(data.rendererSemantic, stream);
 				size += rtti_write(data.type, stream);
 				size += rtti_write(data.name, stream);
@@ -121,7 +112,7 @@ namespace bs
 		static BitLength fromMemory(SHADER_OBJECT_PARAM_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			uint32_t sizeRead = rtti_read_size_header(stream, compress, size);
+			BitLength sizeRead = rtti_read_size_header(stream, compress, size);
 
 			sizeRead += rtti_read(data.rendererSemantic, stream);
 			sizeRead += rtti_read(data.type, stream);
@@ -131,7 +122,7 @@ namespace bs
 
 			// There's more to read, meaning we're reading a newer version of the format
 			// (In the first version, version field is missing, so we check this way).
-			if(sizeRead < size.bytes)
+			if(sizeRead < size)
 			{
 				uint32_t version = 0;
 				rtti_read(version, stream);
@@ -151,18 +142,9 @@ namespace bs
 
 		static BitLength getSize(const SHADER_OBJECT_PARAM_DESC& data, bool compress)
 		{
-			uint64_t dataSize = rtti_size(data.rendererSemantic) + rtti_size(data.type) +
+			return rtti_size(data.rendererSemantic) + rtti_size(data.type) +
 				rtti_size(data.name) + rtti_size(data.gpuVariableNames) +
 				rtti_size(data.defaultValueIdx) + rtti_size(data.attribIdx) + sizeof(uint32_t) * 2;
-
-#if BS_DEBUG_MODE
-			if(dataSize > std::numeric_limits<uint32_t>::max())
-			{
-				BS_EXCEPT(InternalErrorException, "Data overflow! Size doesn't fit into 32 bits.");
-			}
-#endif
-
-			return (uint32_t)dataSize;
 		}
 	};
 
@@ -174,7 +156,7 @@ namespace bs
 		{
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 				size += rtti_write(data.shared, stream);
 				size += rtti_write(data.usage, stream);
 				size += rtti_write(data.name, stream);
@@ -199,17 +181,8 @@ namespace bs
 
 		static BitLength getSize(const SHADER_PARAM_BLOCK_DESC& data, bool compress)
 		{
-			uint64_t dataSize = rtti_size(data.shared) + rtti_size(data.usage) +
+			return rtti_size(data.shared) + rtti_size(data.usage) +
 				rtti_size(data.name) + rtti_size(data.rendererSemantic) + sizeof(uint32_t);
-
-#if BS_DEBUG_MODE
-			if(dataSize > std::numeric_limits<uint32_t>::max())
-			{
-				BS_EXCEPT(InternalErrorException, "Data overflow! Size doesn't fit into 32 bits.");
-			}
-#endif
-
-			return (uint32_t)dataSize;
 		}
 	};
 
@@ -223,7 +196,7 @@ namespace bs
 
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
 				size += rtti_write(data.type, stream);
 				size += rtti_write(data.value, stream);
@@ -258,17 +231,8 @@ namespace bs
 
 		static BitLength getSize(const SHADER_PARAM_ATTRIBUTE& data, bool compress)
 		{
-			uint64_t dataSize = rtti_size(data.type) + rtti_size(data.value) +
+			return rtti_size(data.type) + rtti_size(data.value) +
 				rtti_size(data.nextParamIdx) + sizeof(uint32_t) * 2;
-
-#if BS_DEBUG_MODE
-			if(dataSize > std::numeric_limits<uint32_t>::max())
-			{
-				BS_EXCEPT(InternalErrorException, "Data overflow! Size doesn't fit into 32 bits.");
-			}
-#endif
-
-			return (uint32_t)dataSize;
 		}
 	};
 
@@ -283,7 +247,7 @@ namespace bs
 
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
 				size += rtti_write(data.name, stream);
 				size += rtti_write(data.value, stream);
@@ -311,13 +275,11 @@ namespace bs
 		/** @copydoc RTTIPlainType::getSize */
 		static BitLength getSize(const ShaderVariationParamValue& data, bool compress)
 		{
-			uint64_t dataSize = sizeof(uint8_t) + sizeof(uint32_t);
+			BitLength dataSize = sizeof(uint8_t) + sizeof(uint32_t);
 			dataSize += rtti_size(data.name);
 			dataSize += rtti_size(data.value);
 
-			assert(dataSize <= std::numeric_limits<uint32_t>::max());
-
-			return (uint32_t)dataSize;
+			return dataSize;
 		}
 	};
 
@@ -332,7 +294,7 @@ namespace bs
 
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
 				size += rtti_write(data.name, stream);
 				size += rtti_write(data.identifier, stream);
@@ -364,15 +326,13 @@ namespace bs
 		/** @copydoc RTTIPlainType::getSize */
 		static BitLength getSize(const ShaderVariationParamInfo& data, bool compress)
 		{
-			uint64_t dataSize = sizeof(uint8_t) + sizeof(uint32_t);
+			BitLength dataSize = sizeof(uint8_t) + sizeof(uint32_t);
 			dataSize += rtti_size(data.name);
 			dataSize += rtti_size(data.identifier);
 			dataSize += rtti_size(data.isInternal);
 			dataSize += rtti_size(data.values);
 
-			assert(dataSize <= std::numeric_limits<uint32_t>::max());
-
-			return (uint32_t)dataSize;
+			return dataSize;
 		}
 	};
 

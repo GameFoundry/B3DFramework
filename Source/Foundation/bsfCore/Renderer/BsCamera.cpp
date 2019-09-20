@@ -756,7 +756,7 @@ namespace bs
 	{
 		UINT32 dirtyFlag = getCoreDirtyFlags();
 
-		UINT32 size = rtti_size(dirtyFlag);
+		UINT32 size = rtti_size(dirtyFlag).bytes;
 		
 		if((dirtyFlag & ~(INT32)CameraDirtyFlag::Redraw) != 0)
 		{

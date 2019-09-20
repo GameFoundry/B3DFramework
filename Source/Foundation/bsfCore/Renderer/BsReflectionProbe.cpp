@@ -198,7 +198,7 @@ namespace bs
 	CoreSyncData ReflectionProbe::syncToCore(FrameAlloc* allocator)
 	{
 		UINT32 size = 0;
-		size += rtti_size(getCoreDirtyFlags());
+		size += rtti_size(getCoreDirtyFlags()).bytes;
 		size += csync_size((SceneActor&)*this);
 		size += csync_size(*this);
 

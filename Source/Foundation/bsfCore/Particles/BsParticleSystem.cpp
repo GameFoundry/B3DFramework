@@ -443,11 +443,11 @@ namespace bs
 
 	CoreSyncData ParticleSystem::syncToCore(FrameAlloc* allocator)
 	{
-		UINT32 size = rtti_size(getCoreDirtyFlags());
+		UINT32 size = rtti_size(getCoreDirtyFlags()).bytes;
 		size += csync_size((SceneActor&)*this);
 		size += csync_size(mSettings);
 		size += csync_size(mGpuSimulationSettings);
-		size += rtti_size(mLayer);
+		size += rtti_size(mLayer).bytes;
 
 		UINT8* data = allocator->alloc(size);
 		Bitstream stream(data, size);

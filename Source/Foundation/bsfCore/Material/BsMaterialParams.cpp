@@ -855,7 +855,7 @@ namespace bs
 							dataParamSize += sizeof(UINT32);
 
 							// Curve data
-							dataParamSize += rtti_size(*paramInfo.floatCurve);
+							dataParamSize += rtti_size(*paramInfo.floatCurve).bytes;
 						}
 						else if (paramInfo.colorGradient && param.dataType == GPDT_COLOR)
 						{
@@ -863,7 +863,7 @@ namespace bs
 							dataParamSize += sizeof(UINT32);
 
 							// Curve data
-							dataParamSize += rtti_size(*paramInfo.colorGradient);
+							dataParamSize += rtti_size(*paramInfo.colorGradient).bytes;
 						}
 					}
 
@@ -940,7 +940,7 @@ namespace bs
 
 					// Param index
 					stream.seek((structParamsOffset + dirtyStructParamOffset) * 8);
-					dirtyStructParamOffset += rtti_write(i, stream);
+					dirtyStructParamOffset += rtti_write(i, stream).bytes;
 
 					// Param data
 					for (UINT32 j = 0; j < arraySize; j++)
@@ -959,7 +959,7 @@ namespace bs
 
 					// Param index
 					stream.seek((dataParamsOffset + dirtyDataParamOffset) * 8);
-					dirtyDataParamOffset += rtti_write(i, stream);
+					dirtyDataParamOffset += rtti_write(i, stream).bytes;
 
 					// Param data
 					// Note: This relies on the fact that all data params in the array are sequential
@@ -978,20 +978,20 @@ namespace bs
 						if (arrParamInfo.floatCurve && param.dataType == GPDT_FLOAT1)
 						{
 							// Array index
-							dirtyDataParamOffset += rtti_write(j, stream);
+							dirtyDataParamOffset += rtti_write(j, stream).bytes;
 
 							// Curve data
-							dirtyDataParamOffset += rtti_write(*arrParamInfo.floatCurve, stream);
+							dirtyDataParamOffset += rtti_write(*arrParamInfo.floatCurve, stream).bytes;
 
 							numDirtyCurves++;
 						}
 						else if (arrParamInfo.colorGradient && param.dataType == GPDT_COLOR)
 						{
 							// Array index
-							dirtyDataParamOffset += rtti_write(j, stream);
+							dirtyDataParamOffset += rtti_write(j, stream).bytes;
 
 							// Curve data
-							dirtyDataParamOffset += rtti_write(*arrParamInfo.colorGradient, stream);
+							dirtyDataParamOffset += rtti_write(*arrParamInfo.colorGradient, stream).bytes;
 
 							numDirtyCurves++;
 						}

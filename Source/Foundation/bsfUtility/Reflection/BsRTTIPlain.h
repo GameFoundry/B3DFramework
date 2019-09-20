@@ -141,9 +141,9 @@ namespace bs
 	 * otherwise sizeof() is used.
 	 */
 	template<class ElemType>
-	uint32_t rtti_size(const ElemType& data)
+	BitLength rtti_size(const ElemType& data, bool compress = false)
 	{
-		return RTTIPlainType<ElemType>::getSize(data);
+		return RTTIPlainType<ElemType>::getSize(data, compress);
 	}
 
 	/**
@@ -151,7 +151,7 @@ namespace bs
 	 * written to the provided stream and its write cursor advanced.
 	 */
 	template<class ElemType>
-	uint32_t rtti_write(const ElemType& data, Bitstream& stream, bool compress = false)
+	BitLength rtti_write(const ElemType& data, Bitstream& stream, bool compress = false)
 	{
 		return RTTIPlainType<ElemType>::toMemory(data, stream, RTTIFieldInfo(), compress);
 	}
@@ -161,7 +161,7 @@ namespace bs
 	 * read from the provided stream and its read cursor advanced.
 	 */
 	template<class ElemType>
-	uint32_t rtti_read(ElemType& data, Bitstream& stream, bool compress = false)
+	BitLength rtti_read(ElemType& data, Bitstream& stream, bool compress = false)
 	{
 		return RTTIPlainType<ElemType>::fromMemory(data, stream, RTTIFieldInfo(), compress);
 	}

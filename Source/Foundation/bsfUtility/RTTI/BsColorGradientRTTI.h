@@ -26,7 +26,7 @@ namespace bs
 
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
 
 				for (uint32_t i = 0; i < ColorGradient::MAX_KEYS; i++)
@@ -72,19 +72,12 @@ namespace bs
 
 		static BitLength getSize(const ColorGradient& data, bool compress)
 		{
-			const uint64_t dataSize =
+			const BitLength dataSize =
 				rtti_size(data.mColors[0]) * ColorGradient::MAX_KEYS +
 				rtti_size(data.mTimes[0]) * ColorGradient::MAX_KEYS +
 				rtti_size(data.mNumKeys) + rtti_size(data.mDuration) + sizeof(uint32_t) * 2;
 
-#if BS_DEBUG_MODE
-			if(dataSize > std::numeric_limits<uint32_t>::max())
-			{
-				BS_EXCEPT(InternalErrorException, "Data overflow! Size doesn't fit into 32 bits.");
-			}
-#endif
-
-			return (uint32_t)dataSize;
+			return dataSize;
 		}
 	};
 
@@ -98,7 +91,7 @@ namespace bs
 
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
 
 				for(uint32_t i = 0; i < ColorGradientHDR::MAX_KEYS; i++)
@@ -144,19 +137,12 @@ namespace bs
 
 		static BitLength getSize(const ColorGradientHDR& data, bool compress)
 		{
-			const uint64_t dataSize =
+			const BitLength dataSize =
 				rtti_size(data.mColors[0]) * ColorGradientHDR::MAX_KEYS +
 				rtti_size(data.mTimes[0]) * ColorGradientHDR::MAX_KEYS +
 				rtti_size(data.mNumKeys) + rtti_size(data.mDuration) + sizeof(uint32_t) * 2;
 
-#if BS_DEBUG_MODE
-			if(dataSize > std::numeric_limits<uint32_t>::max())
-			{
-				BS_EXCEPT(InternalErrorException, "Data overflow! Size doesn't fit into 32 bits.");
-			}
-#endif
-
-			return (uint32_t)dataSize;
+			return dataSize;
 		}
 	};
 

@@ -24,7 +24,7 @@ namespace bs
 
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
 				size += rtti_write(data.mType, stream);
 				size += rtti_write(data.mMinGradient, stream);
@@ -61,14 +61,12 @@ namespace bs
 		/** @copydoc RTTIPlainType::getSize */
 		static BitLength getSize(const ColorDistribution& data, bool compress)
 		{
-			uint64_t dataSize = sizeof(uint32_t) + sizeof(uint32_t);
+			BitLength dataSize = sizeof(uint32_t) + sizeof(uint32_t);
 			dataSize += rtti_size(data.mType);
 			dataSize += rtti_size(data.mMinGradient);
 			dataSize += rtti_size(data.mMaxGradient);
 
-			assert(dataSize <= std::numeric_limits<uint32_t>::max());
-
-			return (uint32_t)dataSize;
+			return dataSize;
 		}
 	};
 
@@ -83,7 +81,7 @@ namespace bs
 
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
 				size += rtti_write(data.mType, stream);
 				size += rtti_write(data.mMinCurve, stream);
@@ -120,14 +118,12 @@ namespace bs
 		/** @copydoc RTTIPlainType::getSize */
 		static BitLength getSize(const TDistribution<T>& data, bool compress)
 		{
-			uint64_t dataSize = sizeof(uint32_t) + sizeof(uint32_t);
+			BitLength dataSize = sizeof(uint32_t) + sizeof(uint32_t);
 			dataSize += rtti_size(data.mType);
 			dataSize += rtti_size(data.mMinCurve);
 			dataSize += rtti_size(data.mMaxCurve);
 
-			assert(dataSize <= std::numeric_limits<uint32_t>::max());
-
-			return (uint32_t)dataSize;
+			return dataSize;
 		}
 	};
 

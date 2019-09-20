@@ -325,8 +325,8 @@ namespace bs
 			UINT32 numRemovedProbes = (UINT32)removedProbes.size();
 
 			size += csync_size((SceneActor&)*this);
-			size += rtti_size(numDirtyProbes);
-			size += rtti_size(numRemovedProbes);
+			size += rtti_size(numDirtyProbes).bytes;
+			size += rtti_size(numRemovedProbes).bytes;
 			size += (sizeof(UINT32) + sizeof(Vector3) + sizeof(LightProbeFlags)) * numDirtyProbes;
 			size += sizeof(UINT32) * numRemovedProbes;
 

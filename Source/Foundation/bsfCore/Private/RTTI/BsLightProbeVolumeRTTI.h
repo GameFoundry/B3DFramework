@@ -37,7 +37,7 @@ namespace bs
 		{
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 
 				uint32_t version;
 				size += rtti_write(version, stream);
@@ -72,16 +72,7 @@ namespace bs
 
 		static BitLength getSize(const SavedLightProbeInfo& data, bool compress)
 		{
-			uint64_t dataSize = rtti_size(data.positions) + rtti_size(data.coefficients) + sizeof(uint32_t) * 2;
-
-#if BS_DEBUG_MODE
-			if(dataSize > std::numeric_limits<uint32_t>::max())
-			{
-				BS_EXCEPT(InternalErrorException, "Data overflow! Size doesn't fit into 32 bits.");
-			}
-#endif
-
-			return (uint32_t)dataSize;
+			return rtti_size(data.positions) + rtti_size(data.coefficients) + sizeof(uint32_t) * 2;
 		}
 	};
 

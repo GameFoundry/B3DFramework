@@ -129,7 +129,7 @@ namespace bs
 		{
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
 
 				size += rtti_write(data.name, stream);
@@ -172,7 +172,7 @@ namespace bs
 
 		static BitLength getSize(const GpuParamDataDesc& data, bool compress)
 		{
-			uint32_t dataSize = rtti_size(VERSION) + rtti_size(data.name) + rtti_size(data.elementSize) +
+			BitLength dataSize = rtti_size(VERSION) + rtti_size(data.name) + rtti_size(data.elementSize) +
 				rtti_size(data.arraySize) + rtti_size(data.arrayElementStride) + rtti_size(data.type) +
 				rtti_size(data.paramBlockSlot) + rtti_size(data.paramBlockSet) +
 				rtti_size(data.gpuMemOffset) + rtti_size(data.cpuMemOffset) + sizeof(uint32_t);
@@ -190,7 +190,7 @@ namespace bs
 		{
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
 				size += rtti_write(data.name, stream);
 				size += rtti_write(data.type, stream);
@@ -223,7 +223,7 @@ namespace bs
 
 		static BitLength getSize(const GpuParamObjectDesc& data, bool compress)
 		{
-			uint32_t dataSize = rtti_size(VERSION) + rtti_size(data.name) + rtti_size(data.type) +
+			BitLength dataSize = rtti_size(VERSION) + rtti_size(data.name) + rtti_size(data.type) +
 				rtti_size(data.slot) + rtti_size(data.set) + rtti_size(data.elementType) + sizeof(uint32_t);
 
 			return dataSize;
@@ -239,7 +239,7 @@ namespace bs
 		{
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
 				size += rtti_write(data.name, stream);
 				size += rtti_write(data.set, stream);
@@ -271,7 +271,7 @@ namespace bs
 
 		static BitLength getSize(const GpuParamBlockDesc& data, bool compress)
 		{
-			uint32_t dataSize = rtti_size(VERSION) + rtti_size(data.name) + rtti_size(data.set) +
+			BitLength dataSize = rtti_size(VERSION) + rtti_size(data.name) + rtti_size(data.set) +
 				rtti_size(data.slot) + rtti_size(data.blockSize) + rtti_size(data.isShareable) +
 				sizeof(uint32_t);
 

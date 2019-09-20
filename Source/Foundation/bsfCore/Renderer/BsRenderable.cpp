@@ -309,7 +309,7 @@ namespace bs
 	CoreSyncData Renderable::syncToCore(FrameAlloc* allocator)
 	{
 		const UINT32 dirtyFlags = getCoreDirtyFlags();
-		UINT32 size = rtti_size(dirtyFlags);
+		UINT32 size = rtti_size(dirtyFlags).bytes;
 		SceneActor::rttiEnumFields(RttiCoreSyncSize(size), (ActorDirtyFlags)dirtyFlags);
 
 		// The most common case if only the transform changed, so we sync only transform related options
@@ -325,13 +325,13 @@ namespace bs
 				animationId = (UINT64)-1;
 
 			size +=
-				rtti_size(mLayer) +
-				rtti_size(mOverrideBounds) +
-				rtti_size(mUseOverrideBounds) +
-				rtti_size(numMaterials) +
-				rtti_size(animationId) +
-				rtti_size(mAnimType) +
-				rtti_size(mCullDistanceFactor) +
+				rtti_size(mLayer).bytes +
+				rtti_size(mOverrideBounds).bytes +
+				rtti_size(mUseOverrideBounds).bytes +
+				rtti_size(numMaterials).bytes +
+				rtti_size(animationId).bytes +
+				rtti_size(mAnimType).bytes +
+				rtti_size(mCullDistanceFactor).bytes +
 				sizeof(SPtr<ct::Mesh>) +
 				numMaterials * sizeof(SPtr<ct::Material>);
 		}

@@ -88,7 +88,7 @@ namespace bs
 		{
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 				size += rtti_write(data.name, stream);
 				size += rtti_write(data.parent, stream);
 
@@ -111,13 +111,11 @@ namespace bs
 		/** @copydoc RTTIPlainType::getSize */
 		static BitLength getSize(const SkeletonBoneInfo& data, bool compress)
 		{
-			uint64_t dataSize = sizeof(uint32_t);
+			BitLength dataSize = sizeof(uint32_t);
 			dataSize += rtti_size(data.name);
 			dataSize += rtti_size(data.parent);
 
-			assert(dataSize <= std::numeric_limits<uint32_t>::max());
-
-			return (uint32_t)dataSize;
+			return dataSize;
 		}
 	};
 

@@ -21,7 +21,7 @@ namespace bs
 		{
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 
 				bool isEmpty = data.empty();
 				size += rtti_write(isEmpty, stream);

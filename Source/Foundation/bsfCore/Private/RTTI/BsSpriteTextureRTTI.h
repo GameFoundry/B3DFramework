@@ -60,7 +60,7 @@ namespace bs
 
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
 				size += rtti_write(data.numRows, stream);
 				size += rtti_write(data.numColumns, stream);
@@ -99,9 +99,8 @@ namespace bs
 
 		static BitLength getSize(const SpriteSheetGridAnimation& data, bool compress)
 		{
-			uint32_t size = sizeof(uint32_t) * 2 + rtti_size(data.numRows) + rtti_size(data.numColumns) +
-				rtti_size(data.count) + rtti_size(data.fps);
-			return size;
+			return rtti_size(data.numRows) + rtti_size(data.numColumns) +
+				rtti_size(data.count) + rtti_size(data.fps) + sizeof(uint32_t) * 2;
 		}	
 	};
 

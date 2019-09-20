@@ -28,7 +28,7 @@ namespace bs
 		{
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 
 				auto numElements = (uint32_t)data.size();
 				size += rtti_write(numElements, stream);
@@ -64,14 +64,12 @@ namespace bs
 		/** @copydoc RTTIPlainType::getSize */
 		static BitLength getSize(const std::vector<T, StdAlloc<T>>& data, bool compress)
 		{
-			uint64_t dataSize = sizeof(uint32_t) * 2;
+			BitLength dataSize = sizeof(uint32_t) * 2;
 
 			for (const auto& item : data)
 				dataSize += rtti_size(item);
 
-			assert(dataSize <= std::numeric_limits<uint32_t>::max());
-
-			return (uint32_t)dataSize;
+			return dataSize;
 		}
 	};
 
@@ -89,7 +87,7 @@ namespace bs
 		{
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 
 				auto numElements = (uint32_t)data.size();
 				size += rtti_write(numElements, stream);
@@ -124,14 +122,12 @@ namespace bs
 		/** @copydoc RTTIPlainType::getSize */
 		static BitLength getSize(const std::list<T, StdAlloc<T>>& data, bool compress)
 		{
-			uint64_t dataSize = sizeof(uint32_t) * 2;
+			BitLength dataSize = sizeof(uint32_t) * 2;
 
 			for (const auto& item : data)
 				dataSize += rtti_size(item);
 
-			assert(dataSize <= std::numeric_limits<uint32_t>::max());
-
-			return (uint32_t)dataSize;
+			return dataSize;
 		}
 	};
 
@@ -149,7 +145,7 @@ namespace bs
 		{
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 
 				auto numElements = (uint32_t)data.size();
 				size += rtti_write(numElements, stream);
@@ -183,14 +179,12 @@ namespace bs
 		/** @copydoc RTTIPlainType::getSize */
 		static BitLength getSize(const std::set<T, std::less<T>, StdAlloc<T>>& data, bool compress)
 		{
-			uint64_t dataSize = sizeof(uint32_t) * 2;
+			BitLength dataSize = sizeof(uint32_t) * 2;
 
 			for (const auto& item : data)
 				dataSize += rtti_size(item);
 
-			assert(dataSize <= std::numeric_limits<uint32_t>::max());
-
-			return (uint32_t)dataSize;
+			return dataSize;
 		}
 	};
 
@@ -208,7 +202,7 @@ namespace bs
 		{
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 
 				auto numElements = (uint32_t)data.size();
 				size += rtti_write(numElements, stream);
@@ -249,7 +243,7 @@ namespace bs
 		/** @copydoc RTTIPlainType::getSize */
 		static BitLength getSize(const std::map<Key, Value, std::less<Key>, StdAlloc<std::pair<const Key, Value>>>& data, bool compress)
 		{
-			uint64_t dataSize = sizeof(uint32_t) * 2;
+			BitLength dataSize = sizeof(uint32_t) * 2;
 
 			for (const auto& item : data)
 			{
@@ -257,9 +251,7 @@ namespace bs
 				dataSize += rtti_size(item.second);
 			}
 
-			assert(dataSize <= std::numeric_limits<uint32_t>::max());
-
-			return (uint32_t)dataSize;
+			return dataSize;
 		}
 	};
 
@@ -280,7 +272,7 @@ namespace bs
 		{
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 
 				auto numElements = (uint32_t)data.size();
 				size += rtti_write(numElements, stream);
@@ -321,7 +313,7 @@ namespace bs
 		/** @copydoc RTTIPlainType::getSize */
 		static BitLength getSize(const MapType& data, bool compress)
 		{
-			uint64_t dataSize = sizeof(uint32_t) * 2;
+			BitLength dataSize = sizeof(uint32_t) * 2;
 
 			for (const auto& item : data)
 			{
@@ -329,9 +321,7 @@ namespace bs
 				dataSize += rtti_size(item.second);
 			}
 
-			assert(dataSize <= std::numeric_limits<uint32_t>::max());
-
-			return (uint32_t)dataSize;
+			return dataSize;
 		}
 	};
 
@@ -352,7 +342,7 @@ namespace bs
 		{
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 
 				auto numElements = (uint32_t)data.size();
 				size += rtti_write(numElements, stream);
@@ -387,16 +377,14 @@ namespace bs
 		/** @copydoc RTTIPlainType::getSize */
 		static BitLength getSize(const MapType& data, bool compress)
 		{
-			uint64_t dataSize = sizeof(uint32_t) * 2;
+			BitLength dataSize = sizeof(uint32_t) * 2;
 
 			for (const auto& item : data)
 			{
 				dataSize += rtti_size(item);
 			}
 
-			assert(dataSize <= std::numeric_limits<uint32_t>::max());
-
-			return (uint32_t)dataSize;
+			return dataSize;
 		}
 	};
 
@@ -414,7 +402,7 @@ namespace bs
 		{
 			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
-				uint32_t size = 0;
+				BitLength size = 0;
 				size += rtti_write(data.first, stream);
 				size += rtti_write(data.second, stream);
 
@@ -437,13 +425,11 @@ namespace bs
 		/** @copydoc RTTIPlainType::getSize */
 		static BitLength getSize(const std::pair<A, B>& data, bool compress)
 		{
-			uint64_t dataSize = sizeof(uint32_t);
+			BitLength dataSize = sizeof(uint32_t);
 			dataSize += rtti_size(data.first);
 			dataSize += rtti_size(data.second);
 
-			assert(dataSize <= std::numeric_limits<uint32_t>::max());
-
-			return (uint32_t)dataSize;
+			return dataSize;
 		}
 	};
 
