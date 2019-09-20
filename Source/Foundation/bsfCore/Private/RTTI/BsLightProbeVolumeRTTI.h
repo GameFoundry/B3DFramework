@@ -33,9 +33,9 @@ namespace bs
 		enum { id = TID_SavedLightProbeInfo }; enum { hasDynamicSize = 1 };
 		static constexpr UINT32 VERSION = 0;
 
-		static uint32_t toMemory(const SavedLightProbeInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength toMemory(const SavedLightProbeInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, [&data, &stream]()
+			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
 				uint32_t size = 0;
 
@@ -48,10 +48,10 @@ namespace bs
 			});
 		}
 
-		static uint32_t fromMemory(SavedLightProbeInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength fromMemory(SavedLightProbeInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			uint32_t size;
-			rtti_read(size, stream);
+			BitLength size;
+			rtti_read_size_header(stream, compress, size);
 
 			uint32_t version;
 			rtti_read(version, stream);
@@ -70,7 +70,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getSize(const SavedLightProbeInfo& data)
+		static BitLength getSize(const SavedLightProbeInfo& data, bool compress)
 		{
 			uint64_t dataSize = rtti_size(data.positions) + rtti_size(data.coefficients) + sizeof(uint32_t) * 2;
 

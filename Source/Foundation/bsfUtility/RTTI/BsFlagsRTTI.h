@@ -18,14 +18,14 @@ namespace bs
 		enum { id = TID_Flags }; enum { hasDynamicSize = 0 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static uint32_t toMemory(const Flags<Enum, Storage>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength toMemory(const Flags<Enum, Storage>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			Storage storageData = (Storage)data;
 			return RTTIPlainType<Storage>::toMemory(storageData, stream, fieldInfo, compress);
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static uint32_t fromMemory(Flags<Enum, Storage>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength fromMemory(Flags<Enum, Storage>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			Storage storageData;
 			RTTIPlainType<Storage>::fromMemory(storageData, stream, fieldInfo, compress);
@@ -35,7 +35,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static uint32_t getSize(const Flags<Enum, Storage>& data)
+		static BitLength getSize(const Flags<Enum, Storage>& data, bool compress)
 		{
 			return sizeof(Flags<Enum, Storage>);
 		}

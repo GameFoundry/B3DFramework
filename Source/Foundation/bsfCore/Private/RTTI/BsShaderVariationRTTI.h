@@ -21,11 +21,11 @@ namespace bs
 		enum { id = TID_ShaderVariationParam }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static uint32_t toMemory(const ShaderVariation::Param& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength toMemory(const ShaderVariation::Param& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr uint8_t VERSION = 0;
 
-			return rtti_write_with_size_header(stream, [&data, &stream]()
+			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
 				uint32_t size = 0;
 				size += rtti_write(VERSION, stream);
@@ -38,10 +38,10 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static uint32_t fromMemory(ShaderVariation::Param& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength fromMemory(ShaderVariation::Param& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			uint32_t size = 0;
-			rtti_read(size, stream);
+			BitLength size;
+			rtti_read_size_header(stream, compress, size);
 
 			uint8_t version;
 			rtti_read(version, stream);
@@ -55,7 +55,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static uint32_t getSize(const ShaderVariation::Param& data)
+		static BitLength getSize(const ShaderVariation::Param& data, bool compress)
 		{
 			uint64_t dataSize = sizeof(uint8_t) + sizeof(uint32_t);
 			dataSize += rtti_size(data.name);

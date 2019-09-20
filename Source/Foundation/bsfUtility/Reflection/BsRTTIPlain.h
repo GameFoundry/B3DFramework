@@ -6,6 +6,7 @@
 #include "Prerequisites/BsFwdDeclUtil.h"      // For TIDs
 #include "Prerequisites/BsTypes.h"            // For UINT32
 #include "Utility/BsBitstream.h"
+#include "Utility/BsBitLength.h"
 
 #include <limits>
 #include <type_traits>          // For std::is_pod
@@ -110,7 +111,7 @@ namespace bs
 		 * the written data will be aligned to byte boundaries. @p fieldInfo can be used for providing additional data, such as wanted method of serialization
 		 * and compression.
 		 **/
-		static uint32_t toMemory(const T& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength toMemory(const T& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return stream.writeBytes(data);
 		}
@@ -119,13 +120,13 @@ namespace bs
 		 * Deserializes a previously allocated object from the provided stream and advances the stream cursor. Return the number of bytes read. @p compress
 		 * and @p fieldInfo should match the values provided when it was originally encoded using toMemory(). See toMemory() for the description of those parameters.
 		 */
-		static uint32_t fromMemory(T& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength fromMemory(T& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return stream.readBytes(data);
 		}
 
 		/** Returns the size of the provided object. (Works for both static and dynamic size types) */
-		static uint32_t getSize(const T& data)
+		static BitLength getSize(const T& data, bool compress)
 		{
 			return sizeof(T);
 		}
@@ -173,20 +174,61 @@ namespace bs
 	 * determined by the return value from @p t. Returns the size written.
 	 */
 	template<class T>
-	uint32_t rtti_write_with_size_header(Bitstream& stream, T t)
+	BitLength rtti_write_with_size_header(Bitstream& stream, bool compress, T t)
 	{
-		uint32_t sizePos = stream.tell();
+		if(compress)
+		{
+			BitLength size = rtti_size(t);
+			uint32_t headerSize = stream.writeVarInt(size.bytes);
+			headerSize += stream.writeBits(&size.bits, 3);
 
-		uint32_t size = 0;
-		stream.writeBytes(size);
-		
-		size = t() + sizeof(uint32_t);
+			size += BitLength::fromBits(headerSize);
+			size += t();
+			
+			return size;
+		}
+		else
+		{
+			uint32_t sizePos = stream.tell();
 
-		stream.seek(sizePos);
-		stream.writeBytes(size);
-		stream.skipBytes(size - sizeof(uint32_t));
+			BitLength size = 0;
+			stream.writeBytes(size.bytes);
+			
+			size = t() + sizeof(uint32_t);
+			assert(size.bits == 0);
 
-		return size;
+			stream.seek(sizePos);
+			stream.writeBytes(size.bytes);
+			stream.skipBytes(size.bytes - sizeof(uint32_t));
+
+			return size;
+		}
+	}
+
+	/**
+	 * Reads the size header that was encoded with rtti_write_with_size_header. @p will contain
+	 * the size value read from the stream, while the return value represents the number of bits
+	 * read from the header itself (e.g. 4 bytes for uncompressed size).
+	 */
+	inline BitLength rtti_read_size_header(Bitstream& stream, bool compress, BitLength& size)
+	{
+		if(compress)
+		{
+			uint32_t headerSizeBits = stream.readVarInt(size.bytes);
+			headerSizeBits += stream.readBits(&size.bits, 3);
+
+			BitLength headerSize = BitLength::fromBits(headerSizeBits);
+			size += headerSize;
+
+			return headerSize;
+		}
+		else
+		{
+			uint32_t sizeBytes = stream.readBytes(size.bytes);
+			size.bits = 0;
+			
+			return sizeBytes;
+		}
 	}
 
 	/** Helper for checking for existance of rttiEnumFields method on a class. */
@@ -217,11 +259,11 @@ namespace bs
 						#type " is not trivially copyable");											\
 	template<> struct RTTIPlainType<type>																\
 	{	enum { id=0 }; enum { hasDynamicSize = 0 };														\
-		static uint32_t toMemory(const type& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)	\
+		static BitLength toMemory(const type& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)	\
 		{ return stream.writeBytes(data); }																\
-		static uint32_t fromMemory(type& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)		\
+		static BitLength fromMemory(type& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)		\
 		{ return stream.readBytes(data); }																\
-		static UINT32 getSize(const type& data)													\
+		static BitLength getSize(const type& data, bool compress)													\
 		{ return sizeof(type); }																		\
 	};
 

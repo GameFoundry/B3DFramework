@@ -54,24 +54,24 @@ namespace bs
 	{
 		enum { id = TID_BLEND_STATE_DESC }; enum { hasDynamicSize = 1 };
 
-		static uint32_t toMemory(const BLEND_STATE_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength toMemory(const BLEND_STATE_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, [&data, &stream]()
+			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
 				return stream.writeBytes(data);
 			});
 		}
 
-		static uint32_t fromMemory(BLEND_STATE_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength fromMemory(BLEND_STATE_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			uint32_t size;
-			rtti_read(size, stream);
+			BitLength size;
+			rtti_read_size_header(stream, compress, size);
 			stream.readBytes(data);
 
 			return size;
 		}
 
-		static uint32_t getSize(const BLEND_STATE_DESC& data)
+		static BitLength getSize(const BLEND_STATE_DESC& data, bool compress)
 		{
 			uint64_t dataSize = sizeof(data) + sizeof(uint32_t);
 

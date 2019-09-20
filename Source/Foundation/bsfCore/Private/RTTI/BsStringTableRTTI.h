@@ -72,9 +72,9 @@ namespace bs
 		enum { id = TID_LanguageData }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static uint32_t toMemory(const LanguageData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength toMemory(const LanguageData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, [&data, &stream]()
+			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
 				uint32_t size = 0;
 
@@ -92,10 +92,10 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static uint32_t fromMemory(LanguageData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength fromMemory(LanguageData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			uint32_t size = 0;
-			rtti_read(size, stream);
+			BitLength size;
+			rtti_read_size_header(stream, compress, size);
 
 			uint32_t numElements = 0;
 			rtti_read(numElements, stream);
@@ -116,7 +116,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static uint32_t getSize(const LanguageData& data)
+		static BitLength getSize(const LanguageData& data, bool compress)
 		{
 			uint64_t dataSize = sizeof(uint32_t) * 2;
 
@@ -143,9 +143,9 @@ namespace bs
 		enum { id = TID_LocalizedStringData }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static uint32_t toMemory(const LocalizedStringData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength toMemory(const LocalizedStringData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, [&data, &stream]()
+			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
 				uint32_t size = 0;
 
@@ -160,13 +160,13 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static uint32_t fromMemory(LocalizedStringData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength fromMemory(LocalizedStringData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			if (data.parameterOffsets != nullptr)
 				bs_deleteN(data.parameterOffsets, data.numParameters);
 
-			uint32_t size = 0;
-			rtti_read(size, stream);
+			BitLength size;
+			rtti_read_size_header(stream, compress, size);
 
 			rtti_read(data.string, stream);
 			rtti_read(data.numParameters, stream);
@@ -179,7 +179,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static uint32_t getSize(const LocalizedStringData& data)
+		static BitLength getSize(const LocalizedStringData& data, bool compress)
 		{
 			uint64_t dataSize = sizeof(uint32_t);
 

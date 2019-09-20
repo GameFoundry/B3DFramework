@@ -18,9 +18,9 @@ namespace bs
 		enum { id = TID_SmallVector }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static uint32_t toMemory(const SmallVector<T, N>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength toMemory(const SmallVector<T, N>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, [&data, &stream]()
+			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
 				uint32_t size = 0;
 
@@ -35,10 +35,10 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static uint32_t fromMemory(SmallVector<T, N>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength fromMemory(SmallVector<T, N>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			uint32_t size = 0;
-			rtti_read(size, stream);
+			BitLength size;
+			rtti_read_size_header(stream, compress, size);
 
 			uint32_t numElements;
 			rtti_read(numElements, stream);
@@ -56,7 +56,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static uint32_t getSize(const SmallVector<T, N>& data)
+		static BitLength getSize(const SmallVector<T, N>& data, bool compress)
 		{
 			uint64_t dataSize = sizeof(uint32_t) * 2;
 

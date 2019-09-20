@@ -54,11 +54,11 @@ namespace bs
 	{	
 		enum { id = TID_SpriteSheetGridAnimation }; enum { hasDynamicSize = 1 };
 
-		static uint32_t toMemory(const SpriteSheetGridAnimation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength toMemory(const SpriteSheetGridAnimation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr uint32_t VERSION = 0;
 
-			return rtti_write_with_size_header(stream, [&data, &stream]()
+			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
 				uint32_t size = 0;
 				size += rtti_write(VERSION, stream);
@@ -71,10 +71,10 @@ namespace bs
 			});
 		}
 
-		static uint32_t fromMemory(SpriteSheetGridAnimation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength fromMemory(SpriteSheetGridAnimation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			uint32_t size = 0;
-			rtti_read(size, stream);
+			BitLength size;
+			rtti_read_size_header(stream, compress, size);
 
 			uint32_t version = 0;
 			rtti_read(version, stream);
@@ -97,7 +97,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getSize(const SpriteSheetGridAnimation& data)
+		static BitLength getSize(const SpriteSheetGridAnimation& data, bool compress)
 		{
 			uint32_t size = sizeof(uint32_t) * 2 + rtti_size(data.numRows) + rtti_size(data.numColumns) +
 				rtti_size(data.count) + rtti_size(data.fps);

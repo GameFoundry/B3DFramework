@@ -300,7 +300,7 @@ namespace bs
 	{
 		enum { id = TID_MaterialParamData }; enum { hasDynamicSize = 0 };
 
-		static uint32_t toMemory(const MaterialParamsBase::ParamData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength toMemory(const MaterialParamsBase::ParamData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			rtti_write(data.type, stream);
 			rtti_write(data.dataType, stream);
@@ -311,7 +311,7 @@ namespace bs
 			return sizeof(MaterialParamsBase::ParamData);
 		}
 
-		static uint32_t fromMemory(MaterialParamsBase::ParamData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength fromMemory(MaterialParamsBase::ParamData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			rtti_read(data.type, stream);
 			rtti_read(data.dataType, stream);
@@ -324,7 +324,7 @@ namespace bs
 			return sizeof(MaterialParamsBase::ParamData);
 		}
 
-		static uint32_t getSize(const MaterialParamsBase::ParamData& data)
+		static BitLength getSize(const MaterialParamsBase::ParamData& data, bool compress)
 		{
 			return sizeof(MaterialParamsBase::ParamData);
 		}
@@ -334,11 +334,11 @@ namespace bs
 	{
 		enum { id = TID_DataParamInfo }; enum { hasDynamicSize = 1 };
 
-		static uint32_t toMemory(const MaterialParamsBase::DataParamInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength toMemory(const MaterialParamsBase::DataParamInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr uint32_t VERSION = 1;
 
-			return rtti_write_with_size_header(stream, [&data, &stream]()
+			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
 				uint32_t size = 0;
 				size += rtti_write(VERSION, stream);
@@ -365,10 +365,10 @@ namespace bs
 			});
 		}
 
-		static uint32_t fromMemory(MaterialParamsBase::DataParamInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength fromMemory(MaterialParamsBase::DataParamInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			uint32_t size = 0;
-			rtti_read(size, stream);
+			BitLength size;
+			rtti_read_size_header(stream, compress, size);
 
 			uint32_t version = 0;
 			rtti_read(version, stream);
@@ -425,7 +425,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getSize(const MaterialParamsBase::DataParamInfo& data)
+		static BitLength getSize(const MaterialParamsBase::DataParamInfo& data, bool compress)
 		{
 			uint32_t size = sizeof(uint32_t) * 3 + rtti_size(data.offset);
 
@@ -444,11 +444,11 @@ namespace bs
 	{	
 		enum { id = TID_MaterialRTTIParam }; enum { hasDynamicSize = 1 };
 
-		static uint32_t toMemory(const MaterialParamsRTTI::MaterialParam& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength toMemory(const MaterialParamsRTTI::MaterialParam& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr UINT32 VERSION = 1;
 
-			return rtti_write_with_size_header(stream, [&data, &stream]()
+			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
 				uint32_t size = 0;
 				size += rtti_write(data.name, stream);
@@ -462,17 +462,16 @@ namespace bs
 			});
 		}
 
-		static uint32_t fromMemory(MaterialParamsRTTI::MaterialParam& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength fromMemory(MaterialParamsRTTI::MaterialParam& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			uint32_t size = 0;
-			uint32_t sizeRead = 0;
+			BitLength size;
 			
-			sizeRead += rtti_read(size, stream);
+			uint32_t sizeRead = rtti_read_size_header(stream, compress, size).bytes;
 			sizeRead += rtti_read(data.name, stream);
 			sizeRead += rtti_read(data.data, stream);
 
 			// More fields means a newer version of the data format
-			if(size > sizeRead)
+			if(size.bytes > sizeRead)
 			{
 				uint32_t version = 0;
 				rtti_read(version, stream);
@@ -493,7 +492,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getSize(const MaterialParamsRTTI::MaterialParam& data)
+		static BitLength getSize(const MaterialParamsRTTI::MaterialParam& data, bool compress)
 		{
 			const uint64_t dataSize = rtti_size(data.name) + rtti_size(data.data) + rtti_size(data.index) +
 				sizeof(uint32_t) * 2;

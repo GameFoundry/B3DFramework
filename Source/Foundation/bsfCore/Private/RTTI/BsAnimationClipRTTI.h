@@ -22,10 +22,9 @@ namespace bs
 		enum { id = TID_AnimationEvent }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static uint32_t toMemory(const AnimationEvent& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength toMemory(const AnimationEvent& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream,
-				[&data, &stream]()
+			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 				{
 					constexpr uint8_t VERSION = 0;
 
@@ -39,10 +38,10 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static uint32_t fromMemory(AnimationEvent& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength fromMemory(AnimationEvent& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			uint32_t size = 0;
-			rtti_read(size, stream);
+			BitLength size;
+			rtti_read_size_header(stream, compress, size);
 			
 			uint8_t version;
 			rtti_read(version, stream);
@@ -55,7 +54,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static uint32_t getSize(const AnimationEvent& data)
+		static BitLength getSize(const AnimationEvent& data, bool compress)
 		{
 			uint64_t dataSize = sizeof(uint8_t) + sizeof(uint32_t);
 			dataSize += rtti_size(data.time);

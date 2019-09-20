@@ -20,11 +20,11 @@ namespace bs
 	{
 		enum { id = TID_ColorGradient }; enum { hasDynamicSize = 1 };
 
-		static uint32_t toMemory(const ColorGradient& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength toMemory(const ColorGradient& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr uint32_t VERSION = 0;
 
-			return rtti_write_with_size_header(stream, [&data, &stream]()
+			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
 				uint32_t size = 0;
 				size += rtti_write(VERSION, stream);
@@ -42,10 +42,10 @@ namespace bs
 			});
 		}
 
-		static uint32_t fromMemory(ColorGradient& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength fromMemory(ColorGradient& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			uint32_t size;
-			rtti_read(size, stream);
+			BitLength size;
+			rtti_read_size_header(stream, compress, size);
 
 			uint32_t version;
 			rtti_read(version, stream);
@@ -70,7 +70,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getSize(const ColorGradient& data)
+		static BitLength getSize(const ColorGradient& data, bool compress)
 		{
 			const uint64_t dataSize =
 				rtti_size(data.mColors[0]) * ColorGradient::MAX_KEYS +
@@ -92,11 +92,11 @@ namespace bs
 	{
 		enum { id = TID_ColorGradientHDR }; enum { hasDynamicSize = 1 };
 
-		static uint32_t toMemory(const ColorGradientHDR& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength toMemory(const ColorGradientHDR& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr uint32_t VERSION = 0;
 
-			return rtti_write_with_size_header(stream, [&data, &stream]()
+			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
 				uint32_t size = 0;
 				size += rtti_write(VERSION, stream);
@@ -114,10 +114,10 @@ namespace bs
 			});
 		}
 
-		static uint32_t fromMemory(ColorGradientHDR& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength fromMemory(ColorGradientHDR& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			uint32_t size;
-			rtti_read(size, stream);
+			BitLength size;
+			rtti_read_size_header(stream, compress, size);
 
 			uint32_t version;
 			rtti_read(version, stream);
@@ -142,7 +142,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getSize(const ColorGradientHDR& data)
+		static BitLength getSize(const ColorGradientHDR& data, bool compress)
 		{
 			const uint64_t dataSize =
 				rtti_size(data.mColors[0]) * ColorGradientHDR::MAX_KEYS +

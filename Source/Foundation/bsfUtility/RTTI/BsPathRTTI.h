@@ -18,9 +18,9 @@ namespace bs
 	{
 		enum { id = TID_Path }; enum { hasDynamicSize = 1 };
 
-		static uint32_t toMemory(const Path& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength toMemory(const Path& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, [&data, &stream]()
+			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
 			{
 				uint32_t size = 0;
 				size += rtti_write(data.mDevice, stream);
@@ -33,10 +33,11 @@ namespace bs
 			});
 		}
 
-		static uint32_t fromMemory(Path& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength fromMemory(Path& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			uint32_t size;
-			rtti_read(size, stream);
+			BitLength size;
+			rtti_read_size_header(stream, compress, size);
+
 			rtti_read(data.mDevice, stream);
 			rtti_read(data.mNode, stream);
 			rtti_read(data.mFilename, stream);
@@ -46,7 +47,7 @@ namespace bs
 			return size;
 		}
 
-		static uint32_t getSize(const Path& data)
+		static BitLength getSize(const Path& data, bool compress)
 		{
 			uint64_t dataSize = (uint64_t)rtti_size(data.mDevice) + (uint64_t)rtti_size(data.mNode) + (uint64_t)rtti_size(data.mFilename) +
 				(uint64_t)rtti_size(data.mIsAbsolute) + (uint64_t)rtti_size(data.mDirectories) + sizeof(uint32_t);
