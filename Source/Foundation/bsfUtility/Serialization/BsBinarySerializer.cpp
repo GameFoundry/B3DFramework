@@ -492,8 +492,11 @@ namespace bs
 			bool isArray = false;
 			SerializableFieldType fieldType = SerializableFT_Plain;
 			UINT16 fieldId = 0;
-			UINT8 fieldSize = 0;
+			BitLength fieldSize = 0;
 			bool hasDynamicSize = false;
+			bool hasEncodedSize = false; // TODO - Need to read this from schema and/or meta data (also write it)
+										 // Use the extra bit in field meta-data. When set don't write the 8 bits for size,
+										 // instead use 4 bits to define built-in types such as bool and int, and other 4 bits unused for extensibility
 			SPtr<RTTISchema> fieldTypeSchema;
 			bool terminator = false;
 
@@ -598,7 +601,7 @@ namespace bs
 				{
 					BS_EXCEPT(InternalErrorException,
 						"Data type mismatch. Type size stored in file and actual type size don't match. ("
-						+ toString(curGenericField->schema.size) + " vs. " + toString(fieldSize) + ")");
+						+ toString(curGenericField->schema.size.bytes) + " vs. " + toString(fieldSize.bytes) + ")");
 				}
 
 				if (curGenericField->schema.isArray != isArray)
@@ -725,30 +728,41 @@ namespace bs
 
 					for (UINT32 i = 0; i < arrayNumElems; i++)
 					{
-						UINT32 typeSize = fieldSize;
+						uint64_t typeSizeBits = fieldSize.getBits();
 						if (hasDynamicSize)
 						{
 							if(compressed)
 							{
-								// TODO - Need to read size as BitLength encoded as var-int
-								TODO;
+								BitLength typeSize;
+								BitLength headerSize = rtti_read_size_header(stream, true, typeSize);
+								stream.skip(-(int32_t)headerSize.getBits());
+
+								typeSizeBits = typeSize.getBits();
 							}
 							else
 							{
+								uint32_t typeSize;
 								stream.readBytes(typeSize);
 								stream.skipBytes(-(int32_t)sizeof(uint32_t));
+
+								typeSizeBits = typeSize * 8;
 							}
 						}
 
 						if (curField != nullptr)
 						{
-							stream.preload(typeSize);
+							stream.preload((uint32_t)Math::divideAndRoundUp(typeSizeBits, (uint64_t)8));
 							curField->arrayElemFromBuffer(rttiInstance, output.get(), i, stream.getBitstream(), compressed);
 
-							stream.skipBytes(typeSize); // TODO - Need to skip actual number of bits read in case of compressed structures (e.g. bool, var-int)
+							stream.skip(typeSizeBits);
 						}
 						else
-							stream.skipBytes(typeSize); // TODO - Need to skip actual number of bits encoded in case of compressed structured (e.g. bool, var-int)
+						{
+							if (!hasEncodedSize)
+								stream.skip(typeSizeBits);
+							else
+								skipTypeWithEncodedSize(stream);
+						}
 					}
 					break;
 				}
@@ -854,29 +868,43 @@ namespace bs
 				{
 					auto* curField = static_cast<RTTIPlainFieldBase*>(curGenericField);
 
-					UINT32 typeSize = fieldSize;
+					uint64_t typeSizeBits = fieldSize.getBits();
 					if (hasDynamicSize)
 					{
-						if(compressed)
+						assert(!hasEncodedSize);
+						
+						if (compressed)
 						{
-							// TODO - Need to read size as BitLength encoded as var-int
-							TODO;
+							BitLength typeSize;
+							BitLength headerSize = rtti_read_size_header(stream, true, typeSize);
+							stream.skip(-(int32_t)headerSize.getBits());
+
+							typeSizeBits = typeSize.getBits();
 						}
 						else
 						{
+							uint32_t typeSize;
 							stream.readBytes(typeSize);
-							stream.skipBytes(-(int32_t)sizeof(UINT32));
+							stream.skipBytes(-(int32_t)sizeof(uint32_t));
+
+							typeSizeBits = typeSize * 8;
 						}
 					}
 
 					if (curField != nullptr)
 					{
-						stream.preload(typeSize);
-						curField->fromBuffer(rttiInstance, output.get(), stream.getBitstream());
-						stream.skipBytes(typeSize);// TODO - Need to skip actual number of bits read in case of compressed structures (e.g. bool, var-int)
+						stream.preload((uint32_t)Math::divideAndRoundUp(typeSizeBits, (uint64_t)8));
+						curField->fromBuffer(rttiInstance, output.get(), stream.getBitstream(), compressed);
+
+						stream.skip(typeSizeBits);
 					}
 					else
-						stream.skipBytes(typeSize);// TODO - Need to skip actual number of bits read in case of compressed structures (e.g. bool, var-int)
+					{
+						if (!hasEncodedSize)
+							stream.skip(typeSizeBits);
+						else
+							skipTypeWithEncodedSize(stream);
+					}
 
 					break;
 				}
@@ -988,7 +1016,7 @@ namespace bs
 		//// Y - Plain field has dynamic size
 		//// T - Terminator (last field in an object)
 
-		return (schema.id << 16 | schema.size << 8 |
+		return (schema.id << 16 | schema.size.bytes << 8 |
 			(schema.isArray ? 0x02 : 0) |
 			((schema.type == SerializableFT_DataBlock) ? 0x04 : 0) |
 			((schema.type == SerializableFT_Reflectable) ? 0x08 : 0) |
@@ -997,7 +1025,7 @@ namespace bs
 			(terminator ? 0x40 : 0)); // TODO - Low priority. Technically I could encode this much more tightly, and use var-ints for ID
 	}
 
-	void BinarySerializer::decodeFieldMetaData(UINT32 encodedData, UINT16& id, UINT8& size,
+	void BinarySerializer::decodeFieldMetaData(UINT32 encodedData, UINT16& id, BitLength& size,
 		bool& array, SerializableFieldType& type, bool& hasDynamicSize, bool& terminator)
 	{
 		if(isObjectMetaData(encodedData))

@@ -45,16 +45,7 @@ namespace bs
 
 		static BitLength getSize(const String& data, bool compress)
 		{
-			uint64_t dataSize = data.size() * sizeof(String::value_type) + sizeof(uint32_t);
-
-#if BS_DEBUG_MODE
-			if (dataSize > std::numeric_limits<uint32_t>::max())
-			{
-				__string_throwDataOverflowException();
-			}
-#endif
-
-			return (uint32_t)dataSize;
+			return BitLength((uint32_t)(data.size() * sizeof(String::value_type))) + sizeof(uint32_t);
 		}
 	};
 	
@@ -93,16 +84,7 @@ namespace bs
 
 		static BitLength getSize(const WString& data, bool compress)
 		{
-			uint64_t dataSize = data.size() * sizeof(WString::value_type) + sizeof(uint32_t);
-
-#if BS_DEBUG_MODE
-			if (dataSize > std::numeric_limits<uint32_t>::max())
-			{
-				__string_throwDataOverflowException();
-			}
-#endif
-
-			return (uint32_t)dataSize;
+			return BitLength((uint32_t)(data.size() * sizeof(WString::value_type))) + sizeof(uint32_t);
 		}
 	};
 

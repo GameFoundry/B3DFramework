@@ -35,6 +35,9 @@ namespace bs
 
 		// Note: Perhaps allow reads with no chunk preload (i.e. just the requested count)
 
+		/** @copydoc Bitstream::readBits(Bitstream::QuantType* data, uint32_t count) */
+		uint32_t readBits(Bitstream::QuantType* data, uint32_t count);
+		
 		/** @copydoc Bitstream::readBytes(T&) */
 		template<class T>
 		uint32_t readBytes(T& value);
@@ -106,6 +109,9 @@ namespace bs
 		 */
 		BufferedBitstreamWriter(Bitstream* bitstream, const SPtr<DataStream>& dataStream, uint32_t bufferSize, uint32_t flushAfter);
 
+		/** @copydoc Bitstream::writeBits(const Bitstream::QuantType*, uint32_t) */
+		uint32_t writeBits(const Bitstream::QuantType* data, uint32_t count);
+		
 		/** @copydoc Bitstream::writeBytes(T&) */
 		template<class T>
 		uint32_t writeBytes(T& value);
@@ -151,6 +157,13 @@ namespace bs
 			mBufferedRangeStart = 0;
 			mBufferedRangeEnd = mLength * 8;
 		}
+	}
+
+	inline uint32_t BufferedBitstreamReader::readBits(Bitstream::QuantType* data, uint32_t count)
+	{
+		preload(Math::divideAndRoundUp(count, 8U));
+		mCursor += count;
+		return mBitstream->readBits(data, count);
 	}
 
 	template <class T>
@@ -275,6 +288,11 @@ namespace bs
 	{
 		if (mBitstream->capacity() < bufferSize * 8)
 			mBitstream->reserve(bufferSize * 8);
+	}
+
+	inline uint32_t BufferedBitstreamWriter::writeBits(const Bitstream::QuantType* data, uint32_t count)
+	{
+		return mBitstream->writeBits(data, count);
 	}
 
 	template <class T>

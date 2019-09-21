@@ -121,8 +121,8 @@ namespace bs
 		{
 			static_assert(sizeof(RTTIPlainType<DataType>::id) > 0, "Type has no RTTI ID."); // Just making sure provided type has a type ID
 
-			uint32_t size = RTTIPlainType<DataType>::getSize(DataType());
-			if (RTTIPlainType<DataType>::hasDynamicSize == 0 && size > 255)
+			BitLength size = RTTIPlainType<DataType>::getSize(DataType());
+			if (RTTIPlainType<DataType>::hasDynamicSize == 0 && size.bytes > 255)
 			{
 				assert(false);
 				BS_LOG(Error, RTTI, "Trying to create a plain RTTI field with size larger than 255. In order to use larger sizes for plain " \
@@ -133,7 +133,7 @@ namespace bs
 			this->setter = setter;
 
 			init(std::move(name), RTTIFieldSchema(uniqueId, false, RTTIPlainType<DataType>::hasDynamicSize, size,
-				SerializableFT_Plain, nullptr, info));
+				SerializableFT_Plain, RTTIPlainType<DataType>::id, nullptr, info));
 		}
 
 		/**
@@ -154,17 +154,21 @@ namespace bs
 		{
 			static_assert((RTTIPlainType<DataType>::id != 0) || true, ""); // Just making sure provided type has a type ID
 
-			static_assert((RTTIPlainType<DataType>::hasDynamicSize != 0 || (sizeof(DataType) <= 255)),
-				"Trying to create a plain RTTI field with size larger than 255. In order to use larger sizes for plain types please specialize " \
-				" RTTIPlainType, set hasDynamicSize to true.");
+			BitLength size = RTTIPlainType<DataType>::getSize(DataType());
+			if (RTTIPlainType<DataType>::hasDynamicSize == 0 && size.bytes > 255)
+			{
+				assert(false);
+				BS_LOG(Error, RTTI, "Trying to create a plain RTTI field with size larger than 255. In order to use larger sizes for plain " \
+					"types please specialize RTTIPlainType, set hasDynamicSize to true.");
+			}
 
 			arrayGetter = getter;
 			arraySetter = setter;
 			arrayGetSize = getSize;
 			arraySetSize = setSize;
 
-			init(std::move(name), RTTIFieldSchema(uniqueId, true, RTTIPlainType<DataType>::hasDynamicSize,
-				RTTIPlainType<DataType>::getSize(), SerializableFT_Plain, nullptr, info));
+			init(std::move(name), RTTIFieldSchema(uniqueId, true, RTTIPlainType<DataType>::hasDynamicSize, size,
+				SerializableFT_Plain, RTTIPlainType<DataType>::id, nullptr, info));
 		}
 
 		/** @copydoc RTTIPlainFieldBase::getTypeId */

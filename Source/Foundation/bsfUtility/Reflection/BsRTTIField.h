@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+#include <utility>
 #include "Prerequisites/BsPrerequisitesUtil.h"
 #include "Reflection/BsRTTIPlain.h"
 #include "Reflection/BsIReflectable.h"
@@ -50,15 +51,18 @@ namespace bs
 	struct RTTIFieldSchema : IReflectable
 	{
 		RTTIFieldSchema() = default;
-		RTTIFieldSchema(INT16 id, bool isArray, bool hasDynamicSize, UINT8 size, SerializableFieldType type, SPtr<RTTISchema> fieldTypeSchema, const RTTIFieldInfo& info)
-			:id(id), isArray(isArray), hasDynamicSize(hasDynamicSize), size(size), type(type), fieldTypeSchema(fieldTypeSchema), info(info)
+		RTTIFieldSchema(INT16 id, bool isArray, bool hasDynamicSize, BitLength size, SerializableFieldType type,
+			UINT32 fieldTypeId, SPtr<RTTISchema> fieldTypeSchema, const RTTIFieldInfo& info)
+			: id(id), isArray(isArray), hasDynamicSize(hasDynamicSize), size(size), type(type)
+			, fieldTypeId(fieldTypeId), fieldTypeSchema(std::move(fieldTypeSchema)), info(info)
 		{ }
 		
 		UINT16 id = 0;
 		bool isArray = false;
 		bool hasDynamicSize = false;
-		UINT8 size = 0;
+		BitLength size = 0;
 		SerializableFieldType type = SerializableFT_Plain;
+		UINT32 fieldTypeId = 0;
 		SPtr<RTTISchema> fieldTypeSchema;
 		RTTIFieldInfo info;
 

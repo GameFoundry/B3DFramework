@@ -21,8 +21,9 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(isArray, 2)
 			BS_RTTI_MEMBER_PLAIN(hasDynamicSize, 3)
 			BS_RTTI_MEMBER_PLAIN(size, 4)
-			BS_RTTI_MEMBER_REFLPTR(fieldTypeSchema, 5)
-			BS_RTTI_MEMBER_PLAIN(info, 6)
+			BS_RTTI_MEMBER_PLAIN(fieldTypeId, 5)
+			BS_RTTI_MEMBER_REFLPTR(fieldTypeSchema, 6)
+			BS_RTTI_MEMBER_PLAIN(info, 7)
 		BS_END_RTTI_MEMBERS
 		
 	public:

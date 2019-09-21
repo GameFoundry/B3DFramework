@@ -61,7 +61,7 @@ namespace bs
 
 		static BitLength getSize(const StringID& data, bool compress)
 		{
-			uint32_t dataSize = sizeof(bool) + sizeof(uint32_t);
+			BitLength dataSize = sizeof(bool) + sizeof(uint32_t);
 
 			bool isEmpty = data.empty();
 			if (!isEmpty)
@@ -70,7 +70,7 @@ namespace bs
 				dataSize += length * sizeof(char);
 			}
 
-			return (uint32_t)dataSize;
+			return dataSize;
 		}
 	};
 

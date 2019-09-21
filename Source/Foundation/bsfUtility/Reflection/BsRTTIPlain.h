@@ -210,11 +210,13 @@ namespace bs
 	 * the size value read from the stream, while the return value represents the number of bits
 	 * read from the header itself (e.g. 4 bytes for uncompressed size).
 	 */
-	inline BitLength rtti_read_size_header(Bitstream& stream, bool compress, BitLength& size)
+	template<class T = Bitstream>
+	BitLength rtti_read_size_header(T& stream, bool compress, BitLength& size)
 	{
 		if(compress)
 		{
 			uint32_t headerSizeBits = stream.readVarInt(size.bytes);
+			size.bits = 0;
 			headerSizeBits += stream.readBits(&size.bits, 3);
 
 			BitLength headerSize = BitLength::fromBits(headerSizeBits);

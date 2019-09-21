@@ -175,7 +175,7 @@ namespace bs
 		static UINT32 encodeFieldMetaData(const RTTIFieldSchema& fieldSchema, bool terminator);
 
 		/** Decode meta field that was encoded using encodeFieldMetaData().*/
-		static void decodeFieldMetaData(UINT32 encodedData, UINT16& id, UINT8& size, bool& array,
+		static void decodeFieldMetaData(UINT32 encodedData, UINT16& id, BitLength& size, bool& array,
 			SerializableFieldType& type, bool& hasDynamicSize, bool& terminator);
 
 		/** Encodes data representing a field terminator into 1 byte. */

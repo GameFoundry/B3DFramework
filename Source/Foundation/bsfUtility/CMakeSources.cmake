@@ -145,6 +145,7 @@ set(BS_UTILITY_INC_RTTI
 	"bsfUtility/RTTI/BsColorRTTI.h"
 	"bsfUtility/RTTI/BsUUIDRTTI.h"
 	"bsfUtility/RTTI/BsRTTISchemaRTTI.h"
+	"bsfUtility/RTTI/BsBitLengthRTTI.h"
 )
 
 set(BS_UTILITY_INC_ALLOCATORS

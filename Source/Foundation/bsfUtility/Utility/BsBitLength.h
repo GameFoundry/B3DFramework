@@ -102,6 +102,9 @@ namespace bs
 			return *this;
 		}
 
+		/** Returns the encoded length in number of bits. */
+		uint64_t getBits() const { return ((uint64_t)bytes * 8) + bits; }
+
 		/** Constructs a new bit length object from a number of bits. */
 		static BitLength fromBits(uint64_t bits)
 		{
