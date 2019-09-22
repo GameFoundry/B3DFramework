@@ -65,7 +65,7 @@ namespace bs
 		mInputStream->read(&objectSize, sizeof(objectSize));
 
 		BinarySerializer bs;
-		SPtr<IReflectable> object = bs.decode(mInputStream, objectSize, context);
+		SPtr<IReflectable> object = bs.decode(mInputStream, objectSize, BinarySerializerFlag::None, context);
 
 		return object;
 	}

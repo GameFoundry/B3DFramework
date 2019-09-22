@@ -199,6 +199,7 @@ namespace bs
 		TID_ColorGradientHDR = 75,
 		TID_RTTISchema = 76,
 		TID_RTTIFieldSchema = 77,
-		TID_BitLength = 78
+		TID_BitLength = 78,
+		TID_RTTIFieldInfo = 79
 	};
 }

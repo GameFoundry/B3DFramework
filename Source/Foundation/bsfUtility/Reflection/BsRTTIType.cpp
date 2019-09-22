@@ -65,7 +65,10 @@ namespace bs
 			mSchema->baseTypeSchema = baseType->getSchema();
 		
 		for (auto& entry : mFields)
+		{
+			entry->initSchema();
 			mSchema->fieldSchemas.push_back(entry->schema);
+		}
 	}
 
 	RTTITypeBase* RTTISchema::getRTTIStatic()

@@ -35,7 +35,7 @@ namespace bs
 
 		static BitLength toMemory(const SavedLightProbeInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 
@@ -70,9 +70,12 @@ namespace bs
 			return size;
 		}
 
-		static BitLength getSize(const SavedLightProbeInfo& data, bool compress)
+		static BitLength getSize(const SavedLightProbeInfo& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_size(data.positions) + rtti_size(data.coefficients) + sizeof(uint32_t) * 2;
+			BitLength dataSize = rtti_size(data.positions) + rtti_size(data.coefficients) + sizeof(uint32_t);
+
+			rtti_add_header_size(dataSize, compress);
+			return dataSize;
 		}
 	};
 

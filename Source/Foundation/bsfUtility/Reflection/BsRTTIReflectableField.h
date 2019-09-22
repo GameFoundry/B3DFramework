@@ -88,10 +88,8 @@ namespace bs
 			this->getter = getter;
 			this->setter = setter;
 
-			const SPtr<RTTISchema>& fieldTypeSchema = DataType::getRTTIStatic()->getSchema();
-			UINT32 typeId = DataType::getRTTIStatic()->getRTTIId();
 			init(std::move(name), RTTIFieldSchema(uniqueId, false, true, 0, SerializableFT_Reflectable,
-				typeId, fieldTypeSchema, info));
+				0, nullptr, info));
 		}
 
 		/**
@@ -118,7 +116,16 @@ namespace bs
 			const SPtr<RTTISchema>& fieldTypeSchema = DataType::getRTTIStatic()->getSchema();;
 			UINT32 typeId = DataType::getRTTIStatic()->getRTTIId();
 			init(std::move(name), RTTIFieldSchema(uniqueId, true, true, 0, SerializableFT_Reflectable,
-				typeId, fieldTypeSchema, info));
+				0, nullptr, info));
+		}
+
+		/** @copydoc RTTIField::initSchema */
+		void initSchema() override
+		{
+			// This need to be initialized after the field itself, otherwise we get recursive static constructor
+			// calls due to one type calling getRTTIStatic() on one another
+			schema.fieldTypeSchema = DataType::getRTTIStatic()->getSchema();;
+			schema.fieldTypeId = DataType::getRTTIStatic()->getRTTIId();
 		}
 
 		/** @copydoc RTTIReflectableFieldBase::getValue */

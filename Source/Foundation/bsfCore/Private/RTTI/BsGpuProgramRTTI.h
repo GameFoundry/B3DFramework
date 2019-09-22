@@ -127,7 +127,7 @@ namespace bs
 
 		static BitLength toMemory(const GpuParamDataDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
@@ -170,13 +170,14 @@ namespace bs
 			return size;
 		}
 
-		static BitLength getSize(const GpuParamDataDesc& data, bool compress)
+		static BitLength getSize(const GpuParamDataDesc& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize = rtti_size(VERSION) + rtti_size(data.name) + rtti_size(data.elementSize) +
 				rtti_size(data.arraySize) + rtti_size(data.arrayElementStride) + rtti_size(data.type) +
 				rtti_size(data.paramBlockSlot) + rtti_size(data.paramBlockSet) +
-				rtti_size(data.gpuMemOffset) + rtti_size(data.cpuMemOffset) + sizeof(uint32_t);
+				rtti_size(data.gpuMemOffset) + rtti_size(data.cpuMemOffset);
 
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -188,7 +189,7 @@ namespace bs
 
 		static BitLength toMemory(const GpuParamObjectDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]
 			{
 				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
@@ -221,11 +222,12 @@ namespace bs
 			return size;
 		}
 
-		static BitLength getSize(const GpuParamObjectDesc& data, bool compress)
+		static BitLength getSize(const GpuParamObjectDesc& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize = rtti_size(VERSION) + rtti_size(data.name) + rtti_size(data.type) +
-				rtti_size(data.slot) + rtti_size(data.set) + rtti_size(data.elementType) + sizeof(uint32_t);
+				rtti_size(data.slot) + rtti_size(data.set) + rtti_size(data.elementType);
 
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -237,7 +239,7 @@ namespace bs
 
 		static BitLength toMemory(const GpuParamBlockDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]
 			{
 				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
@@ -269,12 +271,12 @@ namespace bs
 			return size;
 		}
 
-		static BitLength getSize(const GpuParamBlockDesc& data, bool compress)
+		static BitLength getSize(const GpuParamBlockDesc& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize = rtti_size(VERSION) + rtti_size(data.name) + rtti_size(data.set) +
-				rtti_size(data.slot) + rtti_size(data.blockSize) + rtti_size(data.isShareable) +
-				sizeof(uint32_t);
-
+				rtti_size(data.slot) + rtti_size(data.blockSize) + rtti_size(data.isShareable);
+			
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}
 	};

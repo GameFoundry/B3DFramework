@@ -11,8 +11,8 @@ namespace bs
 	
 	/** @cond RTTI */
 	/** @addtogroup RTTI-Impl-Utility
-	*  @{
-	*/
+	 *  @{
+	 */
 
 	/**
 	 * RTTIPlainType for std::vector.
@@ -24,9 +24,9 @@ namespace bs
 		enum { id = TID_Vector }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static BitLength toMemory(const std::vector<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength toMemory(const std::vector<T, StdAlloc<T>>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 
@@ -41,7 +41,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static BitLength fromMemory(std::vector<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength fromMemory(std::vector<T, StdAlloc<T>>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
 			rtti_read_size_header(stream, compress, size);
@@ -62,13 +62,14 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static BitLength getSize(const std::vector<T, StdAlloc<T>>& data, bool compress)
+		static BitLength getSize(const std::vector<T, StdAlloc<T>>& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = sizeof(uint32_t) * 2;
+			BitLength dataSize = sizeof(uint32_t);
 
 			for (const auto& item : data)
 				dataSize += rtti_size(item);
 
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -83,9 +84,9 @@ namespace bs
 		enum { id = TID_List }; enum { hasDynamicSize = 1 };
 
 		/** @copydoc RTTIPlainType::toMemory */
-		static BitLength toMemory(const std::list<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength toMemory(const std::list<T, StdAlloc<T>>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 
@@ -100,7 +101,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static BitLength fromMemory(std::list<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength fromMemory(std::list<T, StdAlloc<T>>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size = 0;
 			rtti_read(size, stream);
@@ -120,13 +121,14 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static BitLength getSize(const std::list<T, StdAlloc<T>>& data, bool compress)
+		static BitLength getSize(const std::list<T, StdAlloc<T>>& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = sizeof(uint32_t) * 2;
+			BitLength dataSize = sizeof(uint32_t);
 
 			for (const auto& item : data)
 				dataSize += rtti_size(item);
 
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -140,10 +142,12 @@ namespace bs
 	{
 		enum { id = TID_Set }; enum { hasDynamicSize = 1 };
 
+		typedef std::set<T, std::less<T>, StdAlloc<T>> SetType;
+
 		/** @copydoc RTTIPlainType::toMemory */
-		static BitLength toMemory(const std::set<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength toMemory(const SetType& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 
@@ -158,7 +162,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::fromMemory */
-		static BitLength fromMemory(std::set<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength fromMemory(SetType& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
 			rtti_read_size_header(stream, compress, size);
@@ -177,13 +181,14 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static BitLength getSize(const std::set<T, std::less<T>, StdAlloc<T>>& data, bool compress)
+		static BitLength getSize(const SetType& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = sizeof(uint32_t) * 2;
+			BitLength dataSize = sizeof(uint32_t);
 
 			for (const auto& item : data)
 				dataSize += rtti_size(item);
 
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -197,80 +202,12 @@ namespace bs
 	{
 		enum { id = TID_Map }; enum { hasDynamicSize = 1 };
 
-		/** @copydoc RTTIPlainType::toMemory */
-		static BitLength toMemory(const std::map<Key, Value>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
-		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
-			{
-				BitLength size = 0;
-
-				auto numElements = (uint32_t)data.size();
-				size += rtti_write(numElements, stream);
-
-				for (const auto& item : data)
-				{
-					size += rtti_write(item.first, stream);
-					size += rtti_write(item.second, stream);
-				}
-
-				return size;
-			});
-		}
-
-		/** @copydoc RTTIPlainType::fromMemory */
-		static BitLength fromMemory(std::map<Key, Value>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
-		{
-			BitLength size;
-			rtti_read_size_header(stream, compress, size);
-
-			uint32_t numElements;
-			rtti_read(numElements, stream);
-
-			for (uint32_t i = 0; i < numElements; i++)
-			{
-				Key key;
-				rtti_read(key, stream);
-
-				Value value;
-				rtti_read(value, stream);
-
-				data[key] = value;
-			}
-
-			return size;
-		}
-
-		/** @copydoc RTTIPlainType::getSize */
-		static BitLength getSize(const std::map<Key, Value, std::less<Key>, StdAlloc<std::pair<const Key, Value>>>& data, bool compress)
-		{
-			BitLength dataSize = sizeof(uint32_t) * 2;
-
-			for (const auto& item : data)
-			{
-				dataSize += rtti_size(item.first);
-				dataSize += rtti_size(item.second);
-			}
-
-			return dataSize;
-		}
-	};
-
-	/**
-	 * RTTIPlainType for std::unordered_map.
-	 *
-	 * @see		RTTIPlainType
-	 */
-	template<class Key, class Value>
-	struct RTTIPlainType<std::unordered_map<Key, Value, std::hash<Key>, std::equal_to<Key>, StdAlloc<std::pair<const Key, Value>>>>
-	{
-		enum { id = TID_UnorderedMap }; enum { hasDynamicSize = 1 };
-
-		typedef std::unordered_map<Key, Value, std::hash<Key>, std::equal_to<Key>, StdAlloc<std::pair<const Key, Value>>> MapType;
+		typedef std::map<Key, Value, std::less<Key>, StdAlloc<std::pair<const Key, Value>>> MapType;
 
 		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength toMemory(const MapType& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 
@@ -311,9 +248,9 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static BitLength getSize(const MapType& data, bool compress)
+		static BitLength getSize(const MapType& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = sizeof(uint32_t) * 2;
+			BitLength dataSize = sizeof(uint32_t);
 
 			for (const auto& item : data)
 			{
@@ -321,6 +258,78 @@ namespace bs
 				dataSize += rtti_size(item.second);
 			}
 
+			rtti_add_header_size(dataSize, compress);
+			return dataSize;
+		}
+	};
+
+	/**
+	 * RTTIPlainType for std::unordered_map.
+	 *
+	 * @see		RTTIPlainType
+	 */
+	template<class Key, class Value>
+	struct RTTIPlainType<std::unordered_map<Key, Value, std::hash<Key>, std::equal_to<Key>, StdAlloc<std::pair<const Key, Value>>>>
+	{
+		enum { id = TID_UnorderedMap }; enum { hasDynamicSize = 1 };
+
+		typedef std::unordered_map<Key, Value, std::hash<Key>, std::equal_to<Key>, StdAlloc<std::pair<const Key, Value>>> MapType;
+
+		/** @copydoc RTTIPlainType::toMemory */
+		static BitLength toMemory(const MapType& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		{
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			{
+				BitLength size = 0;
+
+				auto numElements = (uint32_t)data.size();
+				size += rtti_write(numElements, stream);
+
+				for (const auto& item : data)
+				{
+					size += rtti_write(item.first, stream);
+					size += rtti_write(item.second, stream);
+				}
+
+				return size;
+			});
+		}
+
+		/** @copydoc RTTIPlainType::fromMemory */
+		static BitLength fromMemory(MapType& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		{
+			BitLength size;
+			rtti_read_size_header(stream, compress, size);
+
+			uint32_t numElements;
+			rtti_read(numElements, stream);
+
+			for (uint32_t i = 0; i < numElements; i++)
+			{
+				Key key;
+				rtti_read(key, stream);
+
+				Value value;
+				rtti_read(value, stream);
+
+				data[key] = value;
+			}
+
+			return size;
+		}
+
+		/** @copydoc RTTIPlainType::getSize */
+		static BitLength getSize(const MapType& data, const RTTIFieldInfo& fieldInfo, bool compress)
+		{
+			BitLength dataSize = sizeof(uint32_t);
+
+			for (const auto& item : data)
+			{
+				dataSize += rtti_size(item.first);
+				dataSize += rtti_size(item.second);
+			}
+
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -340,7 +349,7 @@ namespace bs
 		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength toMemory(const MapType& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 
@@ -375,15 +384,14 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static BitLength getSize(const MapType& data, bool compress)
+		static BitLength getSize(const MapType& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = sizeof(uint32_t) * 2;
+			BitLength dataSize = sizeof(uint32_t);
 
 			for (const auto& item : data)
-			{
 				dataSize += rtti_size(item);
-			}
 
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -400,7 +408,7 @@ namespace bs
 		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength toMemory(const std::pair<A, B>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 				size += rtti_write(data.first, stream);
@@ -423,12 +431,13 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static BitLength getSize(const std::pair<A, B>& data, bool compress)
+		static BitLength getSize(const std::pair<A, B>& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = sizeof(uint32_t);
+			BitLength dataSize;
 			dataSize += rtti_size(data.first);
 			dataSize += rtti_size(data.second);
 
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}
 	};

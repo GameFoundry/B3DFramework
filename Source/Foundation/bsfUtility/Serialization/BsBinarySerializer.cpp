@@ -205,7 +205,7 @@ namespace bs
 		rootObjectToDecode.isDecoded = true;
 
 		mDecodeObjectMap.clear();
-		bufferedStream.seek(endBits);
+		bufferedStream.seek((uint32_t)endBits);
 		stream->seek(end);
 
 		assert(bufferedStream.tell() == endBits);
@@ -523,12 +523,19 @@ namespace bs
 						return true;
 					}
 				}
+				else
+				{
+					if (compressed)
+						terminator = isFieldTerminator(metaDataHeader);
 
-				if (compressed)
-					terminator = isFieldTerminator(metaDataHeader);
+					if (!terminator)
+					{
+						UINT32 fieldMetaData;
+						stream.readBytes(fieldMetaData);
 
-				if (!terminator)
-					decodeFieldMetaData(metaDataHeader, fieldId, fieldSize, isArray, fieldType, hasDynamicSize, terminator);
+						decodeFieldMetaData(fieldMetaData, fieldId, fieldSize, isArray, fieldType, hasDynamicSize, terminator);
+					}
+				}
 			}
 			else
 			{
@@ -754,14 +761,17 @@ namespace bs
 							stream.preload((uint32_t)Math::divideAndRoundUp(typeSizeBits, (uint64_t)8));
 							curField->arrayElemFromBuffer(rttiInstance, output.get(), i, stream.getBitstream(), compressed);
 
-							stream.skip(typeSizeBits);
+							stream.skip((uint32_t)typeSizeBits);
 						}
 						else
 						{
 							if (!hasEncodedSize)
-								stream.skip(typeSizeBits);
+								stream.skip((uint32_t)typeSizeBits);
 							else
-								skipTypeWithEncodedSize(stream);
+							{
+								// TODO
+								//skipTypeWithEncodedSize(stream);
+							}
 						}
 					}
 					break;
@@ -896,14 +906,17 @@ namespace bs
 						stream.preload((uint32_t)Math::divideAndRoundUp(typeSizeBits, (uint64_t)8));
 						curField->fromBuffer(rttiInstance, output.get(), stream.getBitstream(), compressed);
 
-						stream.skip(typeSizeBits);
+						stream.skip((uint32_t)typeSizeBits);
 					}
 					else
 					{
 						if (!hasEncodedSize)
-							stream.skip(typeSizeBits);
+							stream.skip((uint32_t)typeSizeBits);
 						else
-							skipTypeWithEncodedSize(stream);
+						{
+							// TODO
+							//skipTypeWithEncodedSize(stream);
+						}
 					}
 
 					break;

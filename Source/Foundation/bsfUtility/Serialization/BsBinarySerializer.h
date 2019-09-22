@@ -15,7 +15,7 @@ namespace bs
 	 */
 
 	class IReflectable;
-	class RTTISchema;
+	struct RTTISchema;
 	class BufferedBitstreamReader;
 	class BufferedBitstreamWriter;
 	struct RTTIReflectableFieldBase;
@@ -135,7 +135,7 @@ namespace bs
 
 		struct ObjectToDecode
 		{
-			ObjectToDecode(SPtr<IReflectable> object, size_t offset = 0, SPtr<RTTISchema> schema = nullptr)
+			ObjectToDecode(SPtr<IReflectable> object = nullptr, size_t offset = 0, SPtr<RTTISchema> schema = nullptr)
 				:object(std::move(object)), offset(offset), schema(std::move(schema))
 			{ }
 

@@ -450,7 +450,7 @@ namespace bs
 				stream->read(&objectSize, sizeof(objectSize));
 
 				BinarySerializer bs;
-				metaData = std::static_pointer_cast<SavedResourceData>(bs.decode(stream, objectSize, &serzContext));
+				metaData = std::static_pointer_cast<SavedResourceData>(bs.decode(stream, objectSize, BinarySerializerFlag::None, &serzContext));
 			}
 		}
 
@@ -470,7 +470,8 @@ namespace bs
 					});
 
 					BinarySerializer bs;
-					loadedData = bs.decode(stream, objectSize, &serzContext, [&progress](float val)
+					loadedData = bs.decode(stream, objectSize, BinarySerializerFlag::None, &serzContext,
+						[&progress](float val)
 					{
 						progress.exchange(0.9f + val * 0.1f, std::memory_order_relaxed);
 					});
@@ -478,7 +479,8 @@ namespace bs
 				else
 				{
 					BinarySerializer bs;
-					loadedData = bs.decode(stream, objectSize, &serzContext, [&progress](float val)
+					loadedData = bs.decode(stream, objectSize, BinarySerializerFlag::None, &serzContext,
+						[&progress](float val)
 					{
 						progress.exchange(val, std::memory_order_relaxed);
 					});

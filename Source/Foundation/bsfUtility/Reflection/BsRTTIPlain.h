@@ -126,7 +126,7 @@ namespace bs
 		}
 
 		/** Returns the size of the provided object. (Works for both static and dynamic size types) */
-		static BitLength getSize(const T& data, bool compress)
+		static BitLength getSize(const T& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return sizeof(T);
 		}
@@ -136,14 +136,12 @@ namespace bs
 	 * Helper method when serializing known data types that have valid
 	 * RTTIPlainType specialization.
 	 *
-	 * Returns the size of the element. If elements serializable type is
-	 * specialized with hasDynamicSize == true, the dynamic size is calculated,
-	 * otherwise sizeof() is used.
+	 * Returns the size of the element when serialized.
 	 */
 	template<class ElemType>
 	BitLength rtti_size(const ElemType& data, bool compress = false)
 	{
-		return RTTIPlainType<ElemType>::getSize(data, compress);
+		return RTTIPlainType<ElemType>::getSize(data, RTTIFieldInfo(), compress);
 	}
 
 	/**
@@ -173,17 +171,17 @@ namespace bs
 	 * from @p t as well as the size of the header itself (32-bits). The size of the data is
 	 * determined by the return value from @p t. Returns the size written.
 	 */
-	template<class T>
-	BitLength rtti_write_with_size_header(Bitstream& stream, bool compress, T t)
+	template<class T, class P>
+	BitLength rtti_write_with_size_header(Bitstream& stream, const T& data, bool compress, P p)
 	{
 		if(compress)
 		{
-			BitLength size = rtti_size(t);
+			BitLength size = rtti_size(data);
 			uint32_t headerSize = stream.writeVarInt(size.bytes);
 			headerSize += stream.writeBits(&size.bits, 3);
 
 			size += BitLength::fromBits(headerSize);
-			size += t();
+			p();
 			
 			return size;
 		}
@@ -194,7 +192,7 @@ namespace bs
 			BitLength size = 0;
 			stream.writeBytes(size.bytes);
 			
-			size = t() + sizeof(uint32_t);
+			size = p() + sizeof(uint32_t);
 			assert(size.bits == 0);
 
 			stream.seek(sizePos);
@@ -233,6 +231,20 @@ namespace bs
 		}
 	}
 
+	/** Increments the provided size with the required size of the header. */
+	inline void rtti_add_header_size(BitLength& size, bool compress)
+	{
+		if (compress)
+		{
+			uint8_t bytes[5];
+			uint32_t numBytes = Bitwise::encodeVarInt(size.bytes, bytes);
+
+			size += BitLength(numBytes, 3);
+		}
+		else
+			size += sizeof(size.bytes);
+	}
+
 	/** Helper for checking for existance of rttiEnumFields method on a class. */
 	template <class T>
 	struct has_rttiEnumFields
@@ -256,17 +268,17 @@ namespace bs
 	 *
 	 * @see		RTTIPlainType<T>
 	 */
-#define BS_ALLOW_MEMCPY_SERIALIZATION(type)																\
-	static_assert (std::is_trivially_copyable<type>()==true,											\
-						#type " is not trivially copyable");											\
-	template<> struct RTTIPlainType<type>																\
-	{	enum { id=0 }; enum { hasDynamicSize = 0 };														\
+#define BS_ALLOW_MEMCPY_SERIALIZATION(type)																				\
+	static_assert (std::is_trivially_copyable<type>()==true,															\
+						#type " is not trivially copyable");															\
+	template<> struct RTTIPlainType<type>																				\
+	{	enum { id=0 }; enum { hasDynamicSize = 0 };																		\
 		static BitLength toMemory(const type& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)	\
-		{ return stream.writeBytes(data); }																\
+		{ return stream.writeBytes(data); }																				\
 		static BitLength fromMemory(type& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)		\
-		{ return stream.readBytes(data); }																\
-		static BitLength getSize(const type& data, bool compress)													\
-		{ return sizeof(type); }																		\
+		{ return stream.readBytes(data); }																				\
+		static BitLength getSize(const type& data, const RTTIFieldInfo& fieldInfo, bool compress)						\
+		{ return sizeof(type); }																						\
 	};
 
 	/** @} */

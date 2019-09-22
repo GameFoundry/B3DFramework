@@ -20,7 +20,7 @@ namespace bs
 
 		static BitLength toMemory(const Path& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 				size += rtti_write(data.mDevice, stream);
@@ -47,10 +47,13 @@ namespace bs
 			return size;
 		}
 
-		static BitLength getSize(const Path& data, bool compress)
+		static BitLength getSize(const Path& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_size(data.mDevice) + rtti_size(data.mNode) + rtti_size(data.mFilename) +
-				rtti_size(data.mIsAbsolute) + rtti_size(data.mDirectories) + sizeof(uint32_t);
+			BitLength dataSize = rtti_size(data.mDevice) + rtti_size(data.mNode) +
+				rtti_size(data.mFilename) + rtti_size(data.mIsAbsolute) + rtti_size(data.mDirectories);
+
+			rtti_add_header_size(dataSize, compress);
+			return dataSize;
 		}
 	};
 

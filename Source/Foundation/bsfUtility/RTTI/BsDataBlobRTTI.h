@@ -19,7 +19,7 @@ namespace bs
 
 		static BitLength toMemory(const DataBlob& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				return stream.writeBytes(data.data, data.size);
 			});
@@ -41,18 +41,12 @@ namespace bs
 			return size;
 		}
 
-		static BitLength getSize(const DataBlob& data, bool compress)
+		static BitLength getSize(const DataBlob& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			uint64_t dataSize = data.size + sizeof(uint32_t);
+			BitLength dataSize = data.size;
 
-#if BS_DEBUG_MODE
-			if (dataSize > std::numeric_limits<uint32_t>::max())
-			{
-				BS_EXCEPT(InternalErrorException, "Data overflow! Size doesn't fit into 32 bits.");
-			}
-#endif
-
-			return (uint32_t)dataSize;
+			rtti_add_header_size(dataSize, compress);
+			return dataSize;
 		}
 	};
 

@@ -24,7 +24,7 @@ namespace bs
 		{
 			static constexpr uint32_t VERSION = 0;
 
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
@@ -70,13 +70,14 @@ namespace bs
 			return size;
 		}
 
-		static BitLength getSize(const ColorGradient& data, bool compress)
+		static BitLength getSize(const ColorGradient& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			const BitLength dataSize =
+			BitLength dataSize =
 				rtti_size(data.mColors[0]) * ColorGradient::MAX_KEYS +
 				rtti_size(data.mTimes[0]) * ColorGradient::MAX_KEYS +
-				rtti_size(data.mNumKeys) + rtti_size(data.mDuration) + sizeof(uint32_t) * 2;
+				rtti_size(data.mNumKeys) + rtti_size(data.mDuration) + sizeof(uint32_t);
 
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -89,7 +90,7 @@ namespace bs
 		{
 			static constexpr uint32_t VERSION = 0;
 
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
@@ -135,13 +136,14 @@ namespace bs
 			return size;
 		}
 
-		static BitLength getSize(const ColorGradientHDR& data, bool compress)
+		static BitLength getSize(const ColorGradientHDR& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			const BitLength dataSize =
+			BitLength dataSize =
 				rtti_size(data.mColors[0]) * ColorGradientHDR::MAX_KEYS +
 				rtti_size(data.mTimes[0]) * ColorGradientHDR::MAX_KEYS +
-				rtti_size(data.mNumKeys) + rtti_size(data.mDuration) + sizeof(uint32_t) * 2;
+				rtti_size(data.mNumKeys) + rtti_size(data.mDuration) + sizeof(uint32_t);
 
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}
 	};

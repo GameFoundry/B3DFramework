@@ -56,7 +56,7 @@ namespace bs
 
 		static BitLength toMemory(const BLEND_STATE_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				return stream.writeBytes(data);
 			});
@@ -71,18 +71,12 @@ namespace bs
 			return size;
 		}
 
-		static BitLength getSize(const BLEND_STATE_DESC& data, bool compress)
+		static BitLength getSize(const BLEND_STATE_DESC& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			uint64_t dataSize = sizeof(data) + sizeof(uint32_t);
+			BitLength dataSize = sizeof(data);
+			rtti_add_header_size(dataSize, compress);
 
-#if BS_DEBUG_MODE
-			if (dataSize > std::numeric_limits<uint32_t>::max())
-			{
-				BS_EXCEPT(InternalErrorException, "Data overflow! Size doesn't fit into 32 bits.");
-			}
-#endif
-
-			return (uint32_t)dataSize;
+			return dataSize;
 		}
 	};
 

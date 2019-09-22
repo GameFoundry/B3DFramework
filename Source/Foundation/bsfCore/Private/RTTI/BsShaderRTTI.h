@@ -27,7 +27,7 @@ namespace bs
 		{
 			static constexpr UINT32 VERSION = 1;
 
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 
@@ -78,11 +78,14 @@ namespace bs
 			return size;
 		}
 
-		static BitLength getSize(const SHADER_DATA_PARAM_DESC& data, bool compress)
+		static BitLength getSize(const SHADER_DATA_PARAM_DESC& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_size(data.arraySize) + rtti_size(data.rendererSemantic) + rtti_size(data.type) +
+			BitLength dataSize = rtti_size(data.arraySize) + rtti_size(data.rendererSemantic) + rtti_size(data.type) +
 				rtti_size(data.name) + rtti_size(data.gpuVariableName) + rtti_size(data.elementSize) +
-				rtti_size(data.defaultValueIdx) + rtti_size(data.attribIdx) + sizeof(uint32_t) * 2;
+				rtti_size(data.defaultValueIdx) + rtti_size(data.attribIdx) + sizeof(uint32_t);
+
+			rtti_add_header_size(dataSize, compress);
+			return dataSize;
 		}
 	};
 
@@ -94,7 +97,7 @@ namespace bs
 		{
 			static constexpr uint32_t VERSION = 1;
 
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 				size += rtti_write(data.rendererSemantic, stream);
@@ -140,11 +143,14 @@ namespace bs
 			return size;
 		}
 
-		static BitLength getSize(const SHADER_OBJECT_PARAM_DESC& data, bool compress)
+		static BitLength getSize(const SHADER_OBJECT_PARAM_DESC& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_size(data.rendererSemantic) + rtti_size(data.type) +
+			BitLength dataSize = rtti_size(data.rendererSemantic) + rtti_size(data.type) +
 				rtti_size(data.name) + rtti_size(data.gpuVariableNames) +
-				rtti_size(data.defaultValueIdx) + rtti_size(data.attribIdx) + sizeof(uint32_t) * 2;
+				rtti_size(data.defaultValueIdx) + rtti_size(data.attribIdx) + sizeof(uint32_t);
+
+			rtti_add_header_size(dataSize, compress);
+			return dataSize;
 		}
 	};
 
@@ -154,7 +160,7 @@ namespace bs
 
 		static BitLength toMemory(const SHADER_PARAM_BLOCK_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 				size += rtti_write(data.shared, stream);
@@ -179,10 +185,13 @@ namespace bs
 			return size;
 		}
 
-		static BitLength getSize(const SHADER_PARAM_BLOCK_DESC& data, bool compress)
+		static BitLength getSize(const SHADER_PARAM_BLOCK_DESC& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_size(data.shared) + rtti_size(data.usage) +
-				rtti_size(data.name) + rtti_size(data.rendererSemantic) + sizeof(uint32_t);
+			BitLength dataSize = rtti_size(data.shared) + rtti_size(data.usage) +
+				rtti_size(data.name) + rtti_size(data.rendererSemantic);
+
+			rtti_add_header_size(dataSize, compress);
+			return dataSize;
 		}
 	};
 
@@ -194,7 +203,7 @@ namespace bs
 		{
 			static constexpr UINT32 VERSION = 0;
 
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
@@ -229,10 +238,13 @@ namespace bs
 			return size;
 		}
 
-		static BitLength getSize(const SHADER_PARAM_ATTRIBUTE& data, bool compress)
+		static BitLength getSize(const SHADER_PARAM_ATTRIBUTE& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_size(data.type) + rtti_size(data.value) +
-				rtti_size(data.nextParamIdx) + sizeof(uint32_t) * 2;
+			BitLength dataSize = rtti_size(data.type) + rtti_size(data.value) +
+				rtti_size(data.nextParamIdx) + sizeof(uint32_t);
+
+			rtti_add_header_size(dataSize, compress);
+			return dataSize;
 		}
 	};
 
@@ -245,7 +257,7 @@ namespace bs
 		{
 			static constexpr uint8_t VERSION = 0;
 
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
@@ -273,12 +285,13 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static BitLength getSize(const ShaderVariationParamValue& data, bool compress)
+		static BitLength getSize(const ShaderVariationParamValue& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = sizeof(uint8_t) + sizeof(uint32_t);
+			BitLength dataSize = sizeof(uint8_t);
 			dataSize += rtti_size(data.name);
 			dataSize += rtti_size(data.value);
 
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -292,7 +305,7 @@ namespace bs
 		{
 			static constexpr uint8_t VERSION = 0;
 
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
@@ -324,14 +337,15 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static BitLength getSize(const ShaderVariationParamInfo& data, bool compress)
+		static BitLength getSize(const ShaderVariationParamInfo& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = sizeof(uint8_t) + sizeof(uint32_t);
+			BitLength dataSize = sizeof(uint8_t);
 			dataSize += rtti_size(data.name);
 			dataSize += rtti_size(data.identifier);
 			dataSize += rtti_size(data.isInternal);
 			dataSize += rtti_size(data.values);
 
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}
 	};

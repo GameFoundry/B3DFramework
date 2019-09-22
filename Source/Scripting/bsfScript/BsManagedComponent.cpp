@@ -109,7 +109,8 @@ namespace bs
 			serzContext.goState = bs_shared_ptr_new<GameObjectDeserializationState>();
 
 			auto serializableObject = std::static_pointer_cast<ManagedSerializableObject>(
-				bs.decode(bs_shared_ptr_new<MemoryDataStream>(data.data, data.size), data.size, &serzContext));
+				bs.decode(bs_shared_ptr_new<MemoryDataStream>(data.data, data.size), data.size,
+					BinarySerializerFlag::None, &serzContext));
 
 			serzContext.goState->resolve();
 

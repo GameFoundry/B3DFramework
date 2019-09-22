@@ -19,7 +19,7 @@ namespace bs
 
 		static BitLength toMemory(const StringID& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 
@@ -46,7 +46,7 @@ namespace bs
 
 			if (!empty)
 			{
-				UINT32 length = (size - sizeof(UINT32) - sizeof(bool)) / sizeof(char);
+				UINT32 length = (size.bytes - sizeof(UINT32) - sizeof(bool)) / sizeof(char);
 
 				auto name = (uint8_t*)bs_stack_alloc(length + 1);
 				stream.readBytes(name, length);
@@ -59,9 +59,9 @@ namespace bs
 			return size;
 		}
 
-		static BitLength getSize(const StringID& data, bool compress)
+		static BitLength getSize(const StringID& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = sizeof(bool) + sizeof(uint32_t);
+			BitLength dataSize = sizeof(bool);
 
 			bool isEmpty = data.empty();
 			if (!isEmpty)
@@ -70,6 +70,7 @@ namespace bs
 				dataSize += length * sizeof(char);
 			}
 
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}
 	};

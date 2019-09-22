@@ -155,11 +155,11 @@ namespace bs
 							UINT32 typeSizeB = 0;
 							if (curField->schema.hasDynamicSize)
 							{
-								typeSizeA = curField->getArrayElemDynamicSize(rttiInstanceA, &a, arrIdx);
-								typeSizeB = curField->getArrayElemDynamicSize(rttiInstanceB, &b, arrIdx);
+								typeSizeA = curField->getArrayElemDynamicSize(rttiInstanceA, &a, arrIdx, false).bytes;
+								typeSizeB = curField->getArrayElemDynamicSize(rttiInstanceB, &b, arrIdx, false).bytes;
 							}
 							else
-								typeSizeA = typeSizeB = curField->schema.size;
+								typeSizeA = typeSizeB = curField->schema.size.bytes;
 
 							if(typeSizeA != typeSizeB)
 								return false;
@@ -248,11 +248,11 @@ namespace bs
 						UINT32 typeSizeB = 0;
 						if (curField->schema.hasDynamicSize)
 						{
-							typeSizeA = curField->getDynamicSize(rttiInstanceA, &a);
-							typeSizeB = curField->getDynamicSize(rttiInstanceB, &b);
+							typeSizeA = curField->getDynamicSize(rttiInstanceA, &a, false).bytes;
+							typeSizeB = curField->getDynamicSize(rttiInstanceB, &b, false).bytes;
 						}
 						else
-							typeSizeA = typeSizeB = curField->schema.size;
+							typeSizeA = typeSizeB = curField->schema.size.bytes;
 
 						if (typeSizeA != typeSizeB)
 							return false;

@@ -19,7 +19,7 @@ namespace bs
 
 		static BitLength toMemory(const CharDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 				size += rtti_write(data.charId, stream);
@@ -61,25 +61,24 @@ namespace bs
 			return size;
 		}
 
-		static BitLength getSize(const CharDesc& data, bool compress)
+		static BitLength getSize(const CharDesc& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			uint64_t dataSize = sizeof(data.charId)
-				+ sizeof(data.page)
-				+ sizeof(data.uvX)
-				+ sizeof(data.uvY)
-				+ sizeof(data.uvWidth)
-				+ sizeof(data.uvHeight)
-				+ sizeof(data.width)
-				+ sizeof(data.height)
-				+ sizeof(data.xOffset)
-				+ sizeof(data.yOffset)
-				+ sizeof(data.xAdvance)
-				+ sizeof(data.yAdvance)
-				+ RTTIPlainType<Vector<KerningPair>>::getSize(data.kerningPairs);
+			BitLength dataSize = rtti_size(data.charId)
+				+ rtti_size(data.page)
+				+ rtti_size(data.uvX)
+				+ rtti_size(data.uvY)
+				+ rtti_size(data.uvWidth)
+				+ rtti_size(data.uvHeight)
+				+ rtti_size(data.width)
+				+ rtti_size(data.height)
+				+ rtti_size(data.xOffset)
+				+ rtti_size(data.yOffset)
+				+ rtti_size(data.xAdvance)
+				+ rtti_size(data.yAdvance)
+				+ rtti_size(data.kerningPairs);
 
-			dataSize += sizeof(uint32_t);
-
-			return (uint32_t)dataSize;
+			rtti_add_header_size(dataSize, compress);
+			return dataSize;
 		}
 	};
 

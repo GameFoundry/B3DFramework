@@ -11,7 +11,7 @@
 namespace bs
 {
 	class RTTITypeBase;
-	class RTTISchema;
+	struct RTTISchema;
 
 	/** @addtogroup Internal-Utility
 	 *  @{
@@ -48,7 +48,7 @@ namespace bs
 	};
 
 	/** Contains serializable meta-data about a single RTTI field. */
-	struct RTTIFieldSchema : IReflectable
+	struct BS_UTILITY_EXPORT RTTIFieldSchema : IReflectable
 	{
 		RTTIFieldSchema() = default;
 		RTTIFieldSchema(INT16 id, bool isArray, bool hasDynamicSize, BitLength size, SerializableFieldType type,
@@ -100,6 +100,9 @@ namespace bs
 		 */
 		virtual void setArraySize(RTTITypeBase* rtti, void* object, UINT32 size) = 0;
 
+		/** Initializes the field's RTTI schema. Should be called once after construction. */
+		virtual void initSchema() {}
+		
 		/**
 		 * Throws an exception depending if the field is or isn't an array.
 		 *

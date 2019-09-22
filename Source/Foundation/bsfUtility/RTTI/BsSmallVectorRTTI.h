@@ -20,7 +20,7 @@ namespace bs
 		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength toMemory(const SmallVector<T, N>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 
@@ -56,13 +56,14 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static BitLength getSize(const SmallVector<T, N>& data, bool compress)
+		static BitLength getSize(const SmallVector<T, N>& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = sizeof(uint32_t) * 2;
+			BitLength dataSize = sizeof(uint32_t);
 
 			for (const auto& item : data)
 				dataSize += rtti_size(item);
 
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}
 	};

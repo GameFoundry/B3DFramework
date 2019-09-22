@@ -324,7 +324,7 @@ namespace bs
 			return sizeof(MaterialParamsBase::ParamData);
 		}
 
-		static BitLength getSize(const MaterialParamsBase::ParamData& data, bool compress)
+		static BitLength getSize(const MaterialParamsBase::ParamData& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return sizeof(MaterialParamsBase::ParamData);
 		}
@@ -338,7 +338,7 @@ namespace bs
 		{
 			static constexpr uint32_t VERSION = 1;
 
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
@@ -425,9 +425,9 @@ namespace bs
 			return size;
 		}
 
-		static BitLength getSize(const MaterialParamsBase::DataParamInfo& data, bool compress)
+		static BitLength getSize(const MaterialParamsBase::DataParamInfo& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength size = rtti_size(data.offset) + sizeof(uint32_t) * 3;
+			BitLength size = rtti_size(data.offset) + sizeof(uint32_t) * 2;
 
 			if(data.floatCurve)
 				size += rtti_size(*data.floatCurve);
@@ -436,6 +436,7 @@ namespace bs
 			else if(data.spriteTextureIdx != (uint32_t)-1)
 				size += rtti_size(data.spriteTextureIdx);
 
+			rtti_add_header_size(size, compress);
 			return size;
 		}
 	};
@@ -448,7 +449,7 @@ namespace bs
 		{
 			static constexpr UINT32 VERSION = 1;
 
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 				size += rtti_write(data.name, stream);
@@ -492,10 +493,13 @@ namespace bs
 			return size;
 		}
 
-		static BitLength getSize(const MaterialParamsRTTI::MaterialParam& data, bool compress)
+		static BitLength getSize(const MaterialParamsRTTI::MaterialParam& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_size(data.name) + rtti_size(data.data) + rtti_size(data.index) +
-				sizeof(uint32_t) * 2;
+			BitLength size = rtti_size(data.name) + rtti_size(data.data) + rtti_size(data.index) +
+				sizeof(uint32_t) * 1;
+
+			rtti_add_header_size(size, compress);
+			return size;
 		}	
 	};
 

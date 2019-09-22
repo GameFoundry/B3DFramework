@@ -49,7 +49,7 @@ namespace bs
 		}
 
 		/** Gets the dynamic size of the object. If object has no dynamic size, static size of the object is returned. */
-		virtual UINT32 getDynamicSize(RTTITypeBase* rtti, void* object)
+		virtual BitLength getDynamicSize(RTTITypeBase* rtti, void* object, bool compress)
 		{
 			return 0;
 		}
@@ -58,7 +58,7 @@ namespace bs
 		 * Gets the dynamic size of an array element. If the element has no dynamic size, static size of the element
 		 * is returned.
 		 */
-		virtual UINT32 getArrayElemDynamicSize(RTTITypeBase* rtti, void* object, int index)
+		virtual BitLength getArrayElemDynamicSize(RTTITypeBase* rtti, void* object, int index, bool compress)
 		{
 			return 0;
 		}
@@ -121,7 +121,7 @@ namespace bs
 		{
 			static_assert(sizeof(RTTIPlainType<DataType>::id) > 0, "Type has no RTTI ID."); // Just making sure provided type has a type ID
 
-			BitLength size = RTTIPlainType<DataType>::getSize(DataType());
+			BitLength size = RTTIPlainType<DataType>::getSize(DataType(), info, false);
 			if (RTTIPlainType<DataType>::hasDynamicSize == 0 && size.bytes > 255)
 			{
 				assert(false);
@@ -154,7 +154,7 @@ namespace bs
 		{
 			static_assert((RTTIPlainType<DataType>::id != 0) || true, ""); // Just making sure provided type has a type ID
 
-			BitLength size = RTTIPlainType<DataType>::getSize(DataType());
+			BitLength size = RTTIPlainType<DataType>::getSize(DataType(), info, false);
 			if (RTTIPlainType<DataType>::hasDynamicSize == 0 && size.bytes > 255)
 			{
 				assert(false);
@@ -178,7 +178,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainFieldBase::getDynamicSize */
-		UINT32 getDynamicSize(RTTITypeBase* rtti, void* object) override
+		BitLength getDynamicSize(RTTITypeBase* rtti, void* object, bool compress) override
 		{
 			checkIsArray(false);
 			checkType<DataType>();
@@ -187,11 +187,11 @@ namespace bs
 			ObjectType* castObject = static_cast<ObjectType*>(object);
 			DataType value = (rttiObject->*getter)(castObject);
 
-			return RTTIPlainType<DataType>::getSize(value);
+			return RTTIPlainType<DataType>::getSize(value, schema.info, compress);
 		}
 
 		/** @copydoc RTTIPlainFieldBase::getArrayElemDynamicSize */
-		UINT32 getArrayElemDynamicSize(RTTITypeBase* rtti, void* object, int index) override
+		BitLength getArrayElemDynamicSize(RTTITypeBase* rtti, void* object, int index, bool compress) override
 		{
 			checkIsArray(true);
 			checkType<DataType>();
@@ -200,7 +200,7 @@ namespace bs
 			ObjectType* castObject = static_cast<ObjectType*>(object);
 			DataType value = (rttiObject->*arrayGetter)(castObject, index);
 
-			return RTTIPlainType<DataType>::getSize(value);
+			return RTTIPlainType<DataType>::getSize(value, schema.info, compress);
 		}
 
 		/** Returns the size of the array managed by the field. */

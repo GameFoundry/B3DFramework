@@ -18,7 +18,7 @@ namespace bs
 
 		static BitLength toMemory(const String& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				uint32_t size = (uint32_t)(data.size() * sizeof(String::value_type));
 				stream.writeBytes((uint8_t*)data.data(), size);
@@ -43,9 +43,12 @@ namespace bs
 			return size;
 		}
 
-		static BitLength getSize(const String& data, bool compress)
+		static BitLength getSize(const String& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return BitLength((uint32_t)(data.size() * sizeof(String::value_type))) + sizeof(uint32_t);
+			BitLength dataSize = (uint32_t)(data.size() * sizeof(String::value_type));
+
+			rtti_add_header_size(dataSize, compress);
+			return dataSize;
 		}
 	};
 	
@@ -55,9 +58,9 @@ namespace bs
 
 		static BitLength toMemory(const WString& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
-				uint32_t size = (uint32_t)(data.size() * sizeof(String::value_type));
+				uint32_t size = (uint32_t)(data.size() * sizeof(WString::value_type));
 				stream.writeBytes((uint8_t*)data.data(), size);
 
 				return size;
@@ -82,9 +85,12 @@ namespace bs
 			return size;
 		}
 
-		static BitLength getSize(const WString& data, bool compress)
+		static BitLength getSize(const WString& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return BitLength((uint32_t)(data.size() * sizeof(WString::value_type))) + sizeof(uint32_t);
+			BitLength dataSize = (uint32_t)(data.size() * sizeof(WString::value_type));
+
+			rtti_add_header_size(dataSize, compress);
+			return dataSize;
 		}
 	};
 

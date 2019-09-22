@@ -776,7 +776,7 @@ namespace bs
 
 		stream->seek(0);
 		SPtr<SceneObject> cloneObj = std::static_pointer_cast<SceneObject>(
-			serializer.decode(stream, (UINT32)stream->size(), &serzContext));
+			serializer.decode(stream, (UINT32)stream->size(), BinarySerializerFlag::None, &serzContext));
 
 		if(isInstantiated)
 			_unsetFlags(SOF_DontInstantiate);

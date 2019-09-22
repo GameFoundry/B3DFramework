@@ -86,7 +86,7 @@ namespace bs
 		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength toMemory(const SkeletonBoneInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 				size += rtti_write(data.name, stream);
@@ -109,12 +109,13 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static BitLength getSize(const SkeletonBoneInfo& data, bool compress)
+		static BitLength getSize(const SkeletonBoneInfo& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = sizeof(uint32_t);
+			BitLength dataSize;
 			dataSize += rtti_size(data.name);
 			dataSize += rtti_size(data.parent);
 
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}
 	};

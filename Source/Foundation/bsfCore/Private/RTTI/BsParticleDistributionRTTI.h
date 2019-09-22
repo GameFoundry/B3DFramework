@@ -22,7 +22,7 @@ namespace bs
 		{
 			static constexpr uint32_t VERSION = 0; // In case the data structure changes
 
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
@@ -59,13 +59,14 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static BitLength getSize(const ColorDistribution& data, bool compress)
+		static BitLength getSize(const ColorDistribution& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = sizeof(uint32_t) + sizeof(uint32_t);
+			BitLength dataSize = sizeof(uint32_t);
 			dataSize += rtti_size(data.mType);
 			dataSize += rtti_size(data.mMinGradient);
 			dataSize += rtti_size(data.mMaxGradient);
 
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -79,7 +80,7 @@ namespace bs
 		{
 			static constexpr uint32_t VERSION = 0; // In case the data structure changes
 
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
@@ -116,13 +117,14 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static BitLength getSize(const TDistribution<T>& data, bool compress)
+		static BitLength getSize(const TDistribution<T>& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = sizeof(uint32_t) + sizeof(uint32_t);
+			BitLength dataSize = sizeof(uint32_t);
 			dataSize += rtti_size(data.mType);
 			dataSize += rtti_size(data.mMinCurve);
 			dataSize += rtti_size(data.mMaxCurve);
 
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}
 	};

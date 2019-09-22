@@ -74,7 +74,7 @@ namespace bs
 		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength toMemory(const LanguageData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 
@@ -116,9 +116,9 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static BitLength getSize(const LanguageData& data, bool compress)
+		static BitLength getSize(const LanguageData& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = sizeof(uint32_t) * 2;
+			BitLength dataSize = sizeof(uint32_t);
 
 			for (auto& entry : data.strings)
 			{
@@ -126,6 +126,7 @@ namespace bs
 				dataSize += rtti_size(*entry.second);
 			}
 
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}	
 	};
@@ -143,7 +144,7 @@ namespace bs
 		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength toMemory(const LocalizedStringData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 
@@ -177,9 +178,9 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static BitLength getSize(const LocalizedStringData& data, bool compress)
+		static BitLength getSize(const LocalizedStringData& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = sizeof(uint32_t);
+			BitLength dataSize;
 
 			dataSize += rtti_size(data.string);
 			dataSize += rtti_size(data.numParameters);
@@ -187,6 +188,7 @@ namespace bs
 			for (uint32_t i = 0; i < data.numParameters; i++)
 				dataSize = rtti_size(data.parameterOffsets[i]);
 
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}	
 	};

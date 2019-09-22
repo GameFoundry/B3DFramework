@@ -24,7 +24,7 @@ namespace bs
 		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength toMemory(const AnimationEvent& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 				{
 					constexpr uint8_t VERSION = 0;
 
@@ -54,12 +54,14 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static BitLength getSize(const AnimationEvent& data, bool compress)
+		static BitLength getSize(const AnimationEvent& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = sizeof(uint8_t) + sizeof(uint32_t);
+			BitLength dataSize = sizeof(uint8_t);
 			dataSize += rtti_size(data.time);
 			dataSize += rtti_size(data.name);
 
+			rtti_add_header_size(dataSize, compress);
+			
 			return dataSize;
 		}
 	};

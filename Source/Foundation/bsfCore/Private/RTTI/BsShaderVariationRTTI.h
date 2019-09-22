@@ -25,7 +25,7 @@ namespace bs
 		{
 			static constexpr uint8_t VERSION = 0;
 
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
@@ -55,13 +55,14 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static BitLength getSize(const ShaderVariation::Param& data, bool compress)
+		static BitLength getSize(const ShaderVariation::Param& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = sizeof(uint8_t) + sizeof(uint32_t);
+			BitLength dataSize = sizeof(uint8_t);
 			dataSize += rtti_size(data.name);
 			dataSize += rtti_size(data.type);
 			dataSize += rtti_size(data.i);
 
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}
 	};

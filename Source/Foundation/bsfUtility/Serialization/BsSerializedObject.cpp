@@ -451,9 +451,9 @@ namespace bs
 							{
 								UINT32 typeSize = 0;
 								if (curField->schema.hasDynamicSize)
-									typeSize = curField->getArrayElemDynamicSize(rttiInstance, object, arrIdx);
+									typeSize = curField->getArrayElemDynamicSize(rttiInstance, object, arrIdx, false).bytes;
 								else
-									typeSize = curField->schema.size;
+									typeSize = curField->schema.size.bytes;
 
 								const auto serializedField = bs_shared_ptr_new<SerializedField>();
 								serializedField->value = (UINT8*)bs_alloc(typeSize);
@@ -511,9 +511,9 @@ namespace bs
 
 							UINT32 typeSize = 0;
 							if (curField->schema.hasDynamicSize)
-								typeSize = curField->getDynamicSize(rttiInstance, object);
+								typeSize = curField->getDynamicSize(rttiInstance, object, false).bytes;
 							else
-								typeSize = curField->schema.size;
+								typeSize = curField->schema.size.bytes;
 
 							const auto serializedField = bs_shared_ptr_new<SerializedField>();
 							serializedField->value = (UINT8*)bs_alloc(typeSize);

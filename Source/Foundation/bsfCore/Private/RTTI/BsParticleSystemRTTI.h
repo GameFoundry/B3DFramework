@@ -282,7 +282,7 @@ namespace bs
 		{
 			static constexpr uint32_t VERSION = 0; // In case the data structure changes
 
-			return rtti_write_with_size_header(stream, compress, [&data, &stream]()
+			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
 				BitLength size = 0;
 				size += rtti_write(VERSION, stream);
@@ -321,14 +321,15 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static BitLength getSize(const ParticleBurst& data, bool compress)
+		static BitLength getSize(const ParticleBurst& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = sizeof(uint32_t) + sizeof(uint32_t);
+			BitLength dataSize = sizeof(uint32_t);
 			dataSize += rtti_size(data.time);
 			dataSize += rtti_size(data.cycles);
 			dataSize += rtti_size(data.count);
 			dataSize += rtti_size(data.interval);
 
+			rtti_add_header_size(dataSize, compress);
 			return dataSize;
 		}
 	};

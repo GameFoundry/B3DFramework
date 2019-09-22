@@ -35,7 +35,7 @@ namespace bs
 		}
 
 		/** @copydoc RTTIPlainType::getSize */
-		static BitLength getSize(const Flags<Enum, Storage>& data, bool compress)
+		static BitLength getSize(const Flags<Enum, Storage>& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return sizeof(Flags<Enum, Storage>);
 		}

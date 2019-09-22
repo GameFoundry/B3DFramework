@@ -35,7 +35,7 @@ namespace bs
 			return size;
 		}
 
-		static BitLength getSize(const BitLength& data, bool compress)
+		static BitLength getSize(const BitLength& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return rtti_size(data.bytes) + rtti_size(data.bits);
 		}
