@@ -1866,7 +1866,7 @@ namespace bs
 
 			std::sort(widgets.begin(), widgets.end(), [](auto& x, auto& y)
 			{
-					return x.widgetDepth >= y.widgetDepth;
+					return x.widgetDepth > y.widgetDepth;
 			});
 		}
 	}
