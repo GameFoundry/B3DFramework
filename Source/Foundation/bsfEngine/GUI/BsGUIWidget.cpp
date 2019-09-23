@@ -1056,9 +1056,7 @@ namespace bs
 				GUIElementBase* currentElem = todo.top();
 				todo.pop();
 
-				if (currentElem->_getType() == GUIElementBase::Type::Element)
-					mDirtyContents.insert(static_cast<GUIElement*>(currentElem));
-
+				_markContentDirty(currentElem);
 				currentElem->_markAsClean();
 
 				UINT32 numChildren = currentElem->_getNumChildren();
