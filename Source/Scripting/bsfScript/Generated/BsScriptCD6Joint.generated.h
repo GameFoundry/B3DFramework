@@ -16,13 +16,12 @@
 #include "../../../Foundation/bsfCore/Physics/BsJoint.h"
 #include "Math/BsQuaternion.h"
 
+namespace bs { struct __LimitConeRangeInterop; }
+namespace bs { struct __LimitAngularRangeInterop; }
+namespace bs { class CD6Joint; }
+namespace bs { struct __LimitLinearInterop; }
 namespace bs
 {
-	struct __LimitLinearInterop;
-	class CD6Joint;
-	struct __LimitAngularRangeInterop;
-	struct __LimitConeRangeInterop;
-
 	class BS_SCR_BE_EXPORT ScriptCD6Joint : public TScriptComponent<ScriptCD6Joint, CD6Joint, ScriptCJointBase>
 	{
 	public:

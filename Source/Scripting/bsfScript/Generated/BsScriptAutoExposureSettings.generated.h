@@ -6,10 +6,9 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
+namespace bs { struct AutoExposureSettings; }
 namespace bs
 {
-	struct AutoExposureSettings;
-
 	class BS_SCR_BE_EXPORT ScriptAutoExposureSettings : public TScriptReflectable<ScriptAutoExposureSettings, AutoExposureSettings>
 	{
 	public:

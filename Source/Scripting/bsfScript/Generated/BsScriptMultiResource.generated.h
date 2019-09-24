@@ -5,11 +5,10 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObject.h"
 
+namespace bs { struct MultiResource; }
+namespace bs { struct __SubResourceInterop; }
 namespace bs
 {
-	struct MultiResource;
-	struct __SubResourceInterop;
-
 #if !BS_IS_BANSHEE3D
 	class BS_SCR_BE_EXPORT ScriptMultiResource : public ScriptObject<ScriptMultiResource>
 	{

@@ -8,10 +8,9 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 
+namespace bs { class ParticleEmitterSphereShape; }
 namespace bs
 {
-	class ParticleEmitterSphereShape;
-
 	class BS_SCR_BE_EXPORT ScriptParticleEmitterSphereShape : public TScriptReflectable<ScriptParticleEmitterSphereShape, ParticleEmitterSphereShape, ScriptParticleEmitterShapeBase>
 	{
 	public:

@@ -7,10 +7,9 @@
 #include "BsScriptCCollider.generated.h"
 #include "Math/BsVector3.h"
 
+namespace bs { class CPlaneCollider; }
 namespace bs
 {
-	class CPlaneCollider;
-
 	class BS_SCR_BE_EXPORT ScriptCPlaneCollider : public TScriptComponent<ScriptCPlaneCollider, CPlaneCollider, ScriptCColliderBase>
 	{
 	public:

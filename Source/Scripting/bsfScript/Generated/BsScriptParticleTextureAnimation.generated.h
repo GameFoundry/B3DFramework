@@ -8,10 +8,9 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
+namespace bs { class ParticleTextureAnimation; }
 namespace bs
 {
-	class ParticleTextureAnimation;
-
 	class BS_SCR_BE_EXPORT ScriptParticleTextureAnimation : public TScriptReflectable<ScriptParticleTextureAnimation, ParticleTextureAnimation, ScriptParticleEvolverBase>
 	{
 	public:

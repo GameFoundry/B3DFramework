@@ -14,11 +14,10 @@
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "Math/BsVector3.h"
 
+namespace bs { class Material; }
+namespace bs { class MaterialEx; }
 namespace bs
 {
-	class Material;
-	class MaterialEx;
-
 	class BS_SCR_BE_EXPORT ScriptMaterial : public TScriptResource<ScriptMaterial, Material>
 	{
 	public:

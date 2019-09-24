@@ -5,10 +5,9 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
 
+namespace bs { class CSkybox; }
 namespace bs
 {
-	class CSkybox;
-
 	class BS_SCR_BE_EXPORT ScriptCSkybox : public TScriptComponent<ScriptCSkybox, CSkybox>
 	{
 	public:

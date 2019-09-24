@@ -6,12 +6,11 @@
 #include "BsScriptObject.h"
 #include "Image/BsColor.h"
 
+namespace bs { class ColorGradientHDR; }
+namespace bs { class ColorGradientHDREx; }
+namespace bs { struct __ColorGradientKeyInterop; }
 namespace bs
 {
-	class ColorGradientHDR;
-	class ColorGradientHDREx;
-	struct __ColorGradientKeyInterop;
-
 	class BS_SCR_BE_EXPORT ScriptColorGradientHDR : public ScriptObject<ScriptColorGradientHDR>
 	{
 	public:

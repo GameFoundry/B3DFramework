@@ -5,10 +5,9 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObject.h"
 
+namespace bs { class Physics; }
 namespace bs
 {
-	class Physics;
-
 	class BS_SCR_BE_EXPORT ScriptPhysics : public ScriptObject<ScriptPhysics>
 	{
 	public:

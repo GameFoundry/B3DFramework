@@ -8,10 +8,9 @@
 #include "../../../Foundation/bsfCore/Physics/BsJoint.h"
 #include "../../../Foundation/bsfCore/Physics/BsDistanceJoint.h"
 
+namespace bs { class CDistanceJoint; }
 namespace bs
 {
-	class CDistanceJoint;
-
 	class BS_SCR_BE_EXPORT ScriptCDistanceJoint : public TScriptComponent<ScriptCDistanceJoint, CDistanceJoint, ScriptCJointBase>
 	{
 	public:

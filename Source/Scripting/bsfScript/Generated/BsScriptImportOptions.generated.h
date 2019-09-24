@@ -6,10 +6,9 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Importer/BsImportOptions.h"
 
+namespace bs { class ImportOptions; }
 namespace bs
 {
-	class ImportOptions;
-
 #if !BS_IS_BANSHEE3D
 	class BS_SCR_BE_EXPORT ScriptImportOptionsBase : public ScriptReflectableBase
 	{

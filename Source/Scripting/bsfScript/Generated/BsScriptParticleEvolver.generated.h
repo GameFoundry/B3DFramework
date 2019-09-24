@@ -6,10 +6,9 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
+namespace bs { class ParticleEvolver; }
 namespace bs
 {
-	class ParticleEvolver;
-
 	class BS_SCR_BE_EXPORT ScriptParticleEvolverBase : public ScriptReflectableBase
 	{
 	public:

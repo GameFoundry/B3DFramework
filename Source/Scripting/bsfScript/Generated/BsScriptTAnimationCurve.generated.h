@@ -19,13 +19,12 @@
 #include "Math/BsQuaternion.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 
+namespace bs { template<class T0> class TAnimationCurve; }
+namespace bs { struct __TKeyframeVector2Interop; }
+namespace bs { struct __TKeyframeVector3Interop; }
+namespace bs { struct __TKeyframeQuaternionInterop; }
 namespace bs
 {
-	struct __TKeyframeQuaternionInterop;
-	template<class T0> class TAnimationCurve;
-	struct __TKeyframeVector3Interop;
-	struct __TKeyframeVector2Interop;
-
 	class BS_SCR_BE_EXPORT ScriptTAnimationCurvefloat : public ScriptObject<ScriptTAnimationCurvefloat>
 	{
 	public:

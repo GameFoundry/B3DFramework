@@ -6,10 +6,9 @@
 #include "Wrappers/BsScriptComponent.h"
 #include "Math/BsBounds.h"
 
+namespace bs { class CRenderable; }
 namespace bs
 {
-	class CRenderable;
-
 	class BS_SCR_BE_EXPORT ScriptCRenderable : public TScriptComponent<ScriptCRenderable, CRenderable>
 	{
 	public:

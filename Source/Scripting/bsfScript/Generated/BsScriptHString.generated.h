@@ -5,10 +5,9 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObject.h"
 
+namespace bs { class HString; }
 namespace bs
 {
-	class HString;
-
 	class BS_SCR_BE_EXPORT ScriptHString : public ScriptObject<ScriptHString>
 	{
 	public:

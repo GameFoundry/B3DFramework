@@ -10,11 +10,10 @@
 #include "../../../Foundation/bsfCore/Physics/BsJoint.h"
 #include "../../../Foundation/bsfCore/Physics/BsHingeJoint.h"
 
+namespace bs { class CHingeJoint; }
+namespace bs { struct __LimitAngularRangeInterop; }
 namespace bs
 {
-	class CHingeJoint;
-	struct __LimitAngularRangeInterop;
-
 	class BS_SCR_BE_EXPORT ScriptCHingeJoint : public TScriptComponent<ScriptCHingeJoint, CHingeJoint, ScriptCJointBase>
 	{
 	public:

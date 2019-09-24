@@ -11,11 +11,10 @@
 #include "../../../Foundation/bsfCore/Physics/BsRigidbody.h"
 #include "../../../Foundation/bsfCore/Physics/BsRigidbody.h"
 
+namespace bs { class CRigidbody; }
+namespace bs { struct __CollisionDataInterop; }
 namespace bs
 {
-	class CRigidbody;
-	struct __CollisionDataInterop;
-
 	class BS_SCR_BE_EXPORT ScriptCRigidbody : public TScriptComponent<ScriptCRigidbody, CRigidbody>
 	{
 	public:

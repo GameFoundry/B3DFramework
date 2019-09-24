@@ -6,10 +6,9 @@
 #include "Wrappers/BsScriptComponent.h"
 #include "Math/BsVector2.h"
 
+namespace bs { class CDecal; }
 namespace bs
 {
-	class CDecal;
-
 	class BS_SCR_BE_EXPORT ScriptCDecal : public TScriptComponent<ScriptCDecal, CDecal>
 	{
 	public:

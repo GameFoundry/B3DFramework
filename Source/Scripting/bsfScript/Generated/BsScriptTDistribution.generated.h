@@ -17,10 +17,9 @@
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 
+namespace bs { template<class T0> struct TDistribution; }
 namespace bs
 {
-	template<class T0> struct TDistribution;
-
 	class BS_SCR_BE_EXPORT ScriptTDistributionfloat : public ScriptObject<ScriptTDistributionfloat>
 	{
 	public:

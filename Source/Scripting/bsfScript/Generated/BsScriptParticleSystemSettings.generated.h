@@ -12,10 +12,9 @@
 #include "Math/BsVector3.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 
+namespace bs { struct ParticleSystemSettings; }
 namespace bs
 {
-	struct ParticleSystemSettings;
-
 	class BS_SCR_BE_EXPORT ScriptParticleSystemSettings : public TScriptReflectable<ScriptParticleSystemSettings, ParticleSystemSettings>
 	{
 	public:

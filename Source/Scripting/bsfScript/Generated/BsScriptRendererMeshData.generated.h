@@ -12,11 +12,10 @@
 #include "Math/BsVector2.h"
 #include "Image/BsColor.h"
 
+namespace bs { class RendererMeshData; }
+namespace bs { class MeshDataEx; }
 namespace bs
 {
-	class RendererMeshData;
-	class MeshDataEx;
-
 	class BS_SCR_BE_EXPORT ScriptRendererMeshData : public ScriptObject<ScriptRendererMeshData>
 	{
 	public:

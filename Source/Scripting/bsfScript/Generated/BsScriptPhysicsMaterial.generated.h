@@ -5,10 +5,9 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptResource.h"
 
+namespace bs { class PhysicsMaterial; }
 namespace bs
 {
-	class PhysicsMaterial;
-
 	class BS_SCR_BE_EXPORT ScriptPhysicsMaterial : public TScriptResource<ScriptPhysicsMaterial, PhysicsMaterial>
 	{
 	public:

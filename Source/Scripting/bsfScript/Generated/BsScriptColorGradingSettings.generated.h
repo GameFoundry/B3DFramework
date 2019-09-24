@@ -7,10 +7,9 @@
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "Math/BsVector3.h"
 
+namespace bs { struct ColorGradingSettings; }
 namespace bs
 {
-	struct ColorGradingSettings;
-
 	class BS_SCR_BE_EXPORT ScriptColorGradingSettings : public TScriptReflectable<ScriptColorGradingSettings, ColorGradingSettings>
 	{
 	public:

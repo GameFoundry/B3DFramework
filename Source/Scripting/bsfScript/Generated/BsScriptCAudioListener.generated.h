@@ -5,10 +5,9 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
 
+namespace bs { class CAudioListener; }
 namespace bs
 {
-	class CAudioListener;
-
 	class BS_SCR_BE_EXPORT ScriptCAudioListener : public TScriptComponent<ScriptCAudioListener, CAudioListener>
 	{
 	public:

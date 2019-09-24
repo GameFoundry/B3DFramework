@@ -6,11 +6,10 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/RenderAPI/BsRenderTarget.h"
 
+namespace bs { class RenderTarget; }
+namespace bs { class RenderTargetEx; }
 namespace bs
 {
-	class RenderTarget;
-	class RenderTargetEx;
-
 	class BS_SCR_BE_EXPORT ScriptRenderTargetBase : public ScriptReflectableBase
 	{
 	public:

@@ -6,11 +6,10 @@
 #include "Wrappers/BsScriptResource.h"
 #include "Math/BsVector3.h"
 
+namespace bs { class VectorField; }
+namespace bs { struct __VECTOR_FIELD_DESCInterop; }
 namespace bs
 {
-	class VectorField;
-	struct __VECTOR_FIELD_DESCInterop;
-
 	class BS_SCR_BE_EXPORT ScriptVectorField : public TScriptResource<ScriptVectorField, VectorField>
 	{
 	public:

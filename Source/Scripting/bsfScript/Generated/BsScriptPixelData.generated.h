@@ -9,11 +9,10 @@
 #include "../../../Foundation/bsfCore/Image/BsPixelData.h"
 #include "../../../Foundation/bsfCore/Image/BsPixelVolume.h"
 
+namespace bs { class PixelData; }
+namespace bs { class PixelDataEx; }
 namespace bs
 {
-	class PixelData;
-	class PixelDataEx;
-
 	class BS_SCR_BE_EXPORT ScriptPixelData : public TScriptReflectable<ScriptPixelData, PixelData>
 	{
 	public:

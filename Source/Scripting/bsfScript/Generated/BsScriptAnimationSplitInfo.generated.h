@@ -6,10 +6,9 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Importer/BsMeshImportOptions.h"
 
+namespace bs { struct AnimationSplitInfo; }
 namespace bs
 {
-	struct AnimationSplitInfo;
-
 #if !BS_IS_BANSHEE3D
 	class BS_SCR_BE_EXPORT ScriptAnimationSplitInfo : public TScriptReflectable<ScriptAnimationSplitInfo, AnimationSplitInfo>
 	{

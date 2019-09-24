@@ -8,10 +8,9 @@
 #include "Math/BsVector3.h"
 #include "Math/BsQuaternion.h"
 
+namespace bs { class CJoint; }
 namespace bs
 {
-	class CJoint;
-
 	class BS_SCR_BE_EXPORT ScriptCJointBase : public ScriptComponentBase
 	{
 	public:

@@ -9,10 +9,9 @@
 #include "../../../Foundation/bsfCore/Text/BsFontImportOptions.h"
 #include "../../../Foundation/bsfCore/Text/BsFontImportOptions.h"
 
+namespace bs { class FontImportOptions; }
 namespace bs
 {
-	class FontImportOptions;
-
 #if !BS_IS_BANSHEE3D
 	class BS_SCR_BE_EXPORT ScriptFontImportOptions : public TScriptReflectable<ScriptFontImportOptions, FontImportOptions, ScriptImportOptionsBase>
 	{

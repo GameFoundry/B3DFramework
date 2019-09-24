@@ -7,10 +7,9 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 
+namespace bs { class CParticleSystem; }
 namespace bs
 {
-	class CParticleSystem;
-
 	class BS_SCR_BE_EXPORT ScriptCParticleSystem : public TScriptComponent<ScriptCParticleSystem, CParticleSystem>
 	{
 	public:

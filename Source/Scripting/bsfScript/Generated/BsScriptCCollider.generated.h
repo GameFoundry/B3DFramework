@@ -6,11 +6,10 @@
 #include "Wrappers/BsScriptComponent.h"
 #include "../../../Foundation/bsfCore/Physics/BsPhysicsCommon.h"
 
+namespace bs { struct __CollisionDataInterop; }
+namespace bs { class CCollider; }
 namespace bs
 {
-	class CCollider;
-	struct __CollisionDataInterop;
-
 	class BS_SCR_BE_EXPORT ScriptCColliderBase : public ScriptComponentBase
 	{
 	public:

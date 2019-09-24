@@ -7,11 +7,10 @@
 #include "BsScriptParticleEvolver.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
+namespace bs { class ParticleColor; }
+namespace bs { struct __PARTICLE_COLOR_DESCInterop; }
 namespace bs
 {
-	class ParticleColor;
-	struct __PARTICLE_COLOR_DESCInterop;
-
 	class BS_SCR_BE_EXPORT ScriptParticleColor : public TScriptReflectable<ScriptParticleColor, ParticleColor, ScriptParticleEvolverBase>
 	{
 	public:

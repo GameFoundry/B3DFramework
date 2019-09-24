@@ -6,10 +6,9 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 
+namespace bs { class ParticleEmitterShape; }
 namespace bs
 {
-	class ParticleEmitterShape;
-
 	class BS_SCR_BE_EXPORT ScriptParticleEmitterShapeBase : public ScriptReflectableBase
 	{
 	public:

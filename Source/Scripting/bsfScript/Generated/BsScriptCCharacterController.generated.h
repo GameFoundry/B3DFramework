@@ -10,12 +10,11 @@
 #include "../../../Foundation/bsfCore/Physics/BsCharacterController.h"
 #include "Math/BsRadian.h"
 
+namespace bs { class CCharacterController; }
+namespace bs { struct __ControllerColliderCollisionInterop; }
+namespace bs { struct __ControllerControllerCollisionInterop; }
 namespace bs
 {
-	class CCharacterController;
-	struct __ControllerControllerCollisionInterop;
-	struct __ControllerColliderCollisionInterop;
-
 	class BS_SCR_BE_EXPORT ScriptCCharacterController : public TScriptComponent<ScriptCCharacterController, CCharacterController>
 	{
 	public:

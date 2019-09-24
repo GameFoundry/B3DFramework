@@ -37,9 +37,11 @@ namespace bs
 		 *If specified Log will call this function whenever a new log message is added. If this returns true then
 		 * the default action of the log will be skipped.
 		 */
+		BS_SCRIPT_EXPORT(ex:true)
 		std::function<bool(const String& message, LogVerbosity verbosity, UINT32 category)> logCallback;
 
 		/** Crash handling customization */
+		BS_SCRIPT_EXPORT(ex:true)
 		CrashHandlerSettings crashHandling;
 	};
 

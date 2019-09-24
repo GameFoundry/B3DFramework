@@ -9,12 +9,11 @@
 #include "Math/BsVector2.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimation.h"
 
+namespace bs { struct __Blend2DInfoInterop; }
+namespace bs { class CAnimation; }
+namespace bs { struct __Blend1DInfoInterop; }
 namespace bs
 {
-	class CAnimation;
-	struct __Blend1DInfoInterop;
-	struct __Blend2DInfoInterop;
-
 	class BS_SCR_BE_EXPORT ScriptCAnimation : public TScriptComponent<ScriptCAnimation, CAnimation>
 	{
 	public:

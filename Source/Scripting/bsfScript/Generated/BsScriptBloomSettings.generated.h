@@ -7,10 +7,9 @@
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "Image/BsColor.h"
 
+namespace bs { struct BloomSettings; }
 namespace bs
 {
-	struct BloomSettings;
-
 	class BS_SCR_BE_EXPORT ScriptBloomSettings : public TScriptReflectable<ScriptBloomSettings, BloomSettings>
 	{
 	public:

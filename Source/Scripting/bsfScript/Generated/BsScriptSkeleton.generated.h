@@ -7,12 +7,11 @@
 #include "../../../Foundation/bsfCore/Animation/BsSkeleton.h"
 #include "../Extensions/BsSkeletonEx.h"
 
+namespace bs { class Skeleton; }
+namespace bs { class SkeletonEx; }
+namespace bs { struct __SkeletonBoneInfoExInterop; }
 namespace bs
 {
-	class Skeleton;
-	class SkeletonEx;
-	struct __SkeletonBoneInfoExInterop;
-
 	class BS_SCR_BE_EXPORT ScriptSkeleton : public TScriptReflectable<ScriptSkeleton, Skeleton>
 	{
 	public:

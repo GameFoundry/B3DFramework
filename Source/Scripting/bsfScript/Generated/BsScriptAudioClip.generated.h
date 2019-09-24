@@ -7,10 +7,9 @@
 #include "../../../Foundation/bsfCore/Audio/BsAudioClip.h"
 #include "../../../Foundation/bsfCore/Audio/BsAudioClip.h"
 
+namespace bs { class AudioClip; }
 namespace bs
 {
-	class AudioClip;
-
 	class BS_SCR_BE_EXPORT ScriptAudioClip : public TScriptResource<ScriptAudioClip, AudioClip>
 	{
 	public:

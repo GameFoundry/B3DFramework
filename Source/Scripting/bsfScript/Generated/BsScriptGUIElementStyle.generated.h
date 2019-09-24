@@ -11,11 +11,10 @@
 #include "../../../Foundation/bsfEngine/2D/BsTextSprite.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIElementStyle.h"
 
+namespace bs { struct GUIElementStyle; }
+namespace bs { struct __GUIElementStateStyleInterop; }
 namespace bs
 {
-	struct GUIElementStyle;
-	struct __GUIElementStateStyleInterop;
-
 	class BS_SCR_BE_EXPORT ScriptGUIElementStyle : public TScriptReflectable<ScriptGUIElementStyle, GUIElementStyle>
 	{
 	public:

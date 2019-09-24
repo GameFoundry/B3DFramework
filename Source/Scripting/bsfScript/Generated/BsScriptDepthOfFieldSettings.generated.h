@@ -8,10 +8,9 @@
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "Math/BsVector2.h"
 
+namespace bs { struct DepthOfFieldSettings; }
 namespace bs
 {
-	struct DepthOfFieldSettings;
-
 	class BS_SCR_BE_EXPORT ScriptDepthOfFieldSettings : public TScriptReflectable<ScriptDepthOfFieldSettings, DepthOfFieldSettings>
 	{
 	public:

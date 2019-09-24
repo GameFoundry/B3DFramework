@@ -6,10 +6,9 @@
 #include "Wrappers/BsScriptResource.h"
 #include "../../../Foundation/bsfCore/Localization/BsStringTable.h"
 
+namespace bs { class StringTable; }
 namespace bs
 {
-	class StringTable;
-
 	class BS_SCR_BE_EXPORT ScriptStringTable : public TScriptResource<ScriptStringTable, StringTable>
 	{
 	public:

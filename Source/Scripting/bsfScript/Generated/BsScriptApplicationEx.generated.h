@@ -6,12 +6,11 @@
 #include "BsScriptObject.h"
 #include "../../../Foundation/bsfCore/RenderAPI/BsVideoModeInfo.h"
 
+namespace bs { struct __START_UP_DESCInterop; }
+namespace bs { class ApplicationEx; }
+namespace bs { struct __VideoModeInterop; }
 namespace bs
 {
-	class ApplicationEx;
-	struct __VideoModeInterop;
-	struct __START_UP_DESCInterop;
-
 #if !BS_IS_BANSHEE3D
 	class BS_SCR_BE_EXPORT ScriptApplicationEx : public ScriptObject<ScriptApplicationEx>
 	{

@@ -6,10 +6,9 @@
 #include "Wrappers/BsScriptComponent.h"
 #include "BsScriptCJoint.generated.h"
 
+namespace bs { class CFixedJoint; }
 namespace bs
 {
-	class CFixedJoint;
-
 	class BS_SCR_BE_EXPORT ScriptCFixedJoint : public TScriptComponent<ScriptCFixedJoint, CFixedJoint, ScriptCJointBase>
 	{
 	public:

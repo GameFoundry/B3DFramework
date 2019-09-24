@@ -7,13 +7,12 @@
 #include "../../../Foundation/bsfCore/Material/BsShader.h"
 #include "../Extensions/BsShaderEx.h"
 
+namespace bs { class Shader; }
+namespace bs { class ShaderEx; }
+namespace bs { struct __ShaderVariationParamInfoInterop; }
+namespace bs { struct __ShaderParameterInterop; }
 namespace bs
 {
-	class Shader;
-	struct __ShaderVariationParamInfoInterop;
-	class ShaderEx;
-	struct __ShaderParameterInterop;
-
 	class BS_SCR_BE_EXPORT ScriptShader : public TScriptResource<ScriptShader, Shader>
 	{
 	public:

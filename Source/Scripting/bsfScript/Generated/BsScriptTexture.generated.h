@@ -9,11 +9,10 @@
 #include "../../../Foundation/bsfCore/Image/BsPixelData.h"
 #include "../../../Foundation/bsfCore/Image/BsTexture.h"
 
+namespace bs { class TextureEx; }
+namespace bs { class Texture; }
 namespace bs
 {
-	class Texture;
-	class TextureEx;
-
 	class BS_SCR_BE_EXPORT ScriptTexture : public TScriptResource<ScriptTexture, Texture>
 	{
 	public:

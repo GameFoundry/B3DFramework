@@ -7,11 +7,10 @@
 #include "BsScriptParticleEmitterShape.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 
+namespace bs { struct __PARTICLE_CIRCLE_SHAPE_DESCInterop; }
+namespace bs { class ParticleEmitterCircleShape; }
 namespace bs
 {
-	class ParticleEmitterCircleShape;
-	struct __PARTICLE_CIRCLE_SHAPE_DESCInterop;
-
 	class BS_SCR_BE_EXPORT ScriptParticleEmitterCircleShape : public TScriptReflectable<ScriptParticleEmitterCircleShape, ParticleEmitterCircleShape, ScriptParticleEmitterShapeBase>
 	{
 	public:

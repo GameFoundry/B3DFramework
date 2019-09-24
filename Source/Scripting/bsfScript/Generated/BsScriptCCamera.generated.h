@@ -4,18 +4,18 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
-#include "Math/BsVector3.h"
-#include "Math/BsVector2I.h"
 #include "Math/BsVector2.h"
 #include "Math/BsRadian.h"
 #include "../../../Foundation/bsfCore/Utility/BsCommonTypes.h"
 #include "Math/BsMatrix4.h"
+#include "../../../Foundation/bsfCore/Renderer/BsCamera.h"
+#include "Math/BsVector3.h"
+#include "Math/BsVector2I.h"
 #include "Math/BsRay.h"
 
+namespace bs { class CCamera; }
 namespace bs
 {
-	class CCamera;
-
 	class BS_SCR_BE_EXPORT ScriptCCamera : public TScriptComponent<ScriptCCamera, CCamera>
 	{
 	public:
@@ -24,6 +24,8 @@ namespace bs
 		ScriptCCamera(MonoObject* managedInstance, const GameObjectHandle<CCamera>& value);
 
 	private:
+		static void Internal_setFlags(ScriptCCamera* thisPtr, CameraFlag flags);
+		static CameraFlag Internal_getFlags(ScriptCCamera* thisPtr);
 		static MonoObject* Internal_getViewport(ScriptCCamera* thisPtr);
 		static void Internal_setHorzFOV(ScriptCCamera* thisPtr, Radian* fovy);
 		static void Internal_getHorzFOV(ScriptCCamera* thisPtr, Radian* __output);
@@ -49,6 +51,7 @@ namespace bs
 		static uint32_t Internal_getMSAACount(ScriptCCamera* thisPtr);
 		static void Internal_setRenderSettings(ScriptCCamera* thisPtr, MonoObject* settings);
 		static MonoObject* Internal_getRenderSettings(ScriptCCamera* thisPtr);
+		static void Internal_notifyNeedsRedraw(ScriptCCamera* thisPtr);
 		static void Internal_worldToScreenPoint(ScriptCCamera* thisPtr, Vector3* worldPoint, Vector2I* __output);
 		static void Internal_worldToNdcPoint(ScriptCCamera* thisPtr, Vector3* worldPoint, Vector2* __output);
 		static void Internal_worldToViewPoint(ScriptCCamera* thisPtr, Vector3* worldPoint, Vector3* __output);

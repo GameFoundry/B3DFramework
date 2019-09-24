@@ -8,10 +8,9 @@
 #include "../../../Foundation/bsfCore/Image/BsSpriteTexture.h"
 #include "../../../Foundation/bsfCore/Image/BsSpriteTexture.h"
 
+namespace bs { class SpriteTexture; }
 namespace bs
 {
-	class SpriteTexture;
-
 	class BS_SCR_BE_EXPORT ScriptSpriteTexture : public TScriptResource<ScriptSpriteTexture, SpriteTexture>
 	{
 	public:

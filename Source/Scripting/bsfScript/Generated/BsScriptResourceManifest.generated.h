@@ -7,10 +7,9 @@
 #include "../../../Foundation/bsfCore/Resources/BsResourceManifest.h"
 #include "Utility/BsUUID.h"
 
+namespace bs { class ResourceManifest; }
 namespace bs
 {
-	class ResourceManifest;
-
 #if !BS_IS_BANSHEE3D
 	class BS_SCR_BE_EXPORT ScriptResourceManifest : public TScriptReflectable<ScriptResourceManifest, ResourceManifest>
 	{

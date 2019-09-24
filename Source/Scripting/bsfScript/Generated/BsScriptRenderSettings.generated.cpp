@@ -13,6 +13,7 @@
 #include "BsScriptBloomSettings.generated.h"
 #include "BsScriptAmbientOcclusionSettings.generated.h"
 #include "BsScriptScreenSpaceLensFlareSettings.generated.h"
+#include "BsScriptMotionBlurSettings.generated.h"
 #include "BsScriptShadowSettings.generated.h"
 
 namespace bs
@@ -47,6 +48,8 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_setbloom", (void*)&ScriptRenderSettings::Internal_setbloom);
 		metaData.scriptClass->addInternalCall("Internal_getscreenSpaceLensFlare", (void*)&ScriptRenderSettings::Internal_getscreenSpaceLensFlare);
 		metaData.scriptClass->addInternalCall("Internal_setscreenSpaceLensFlare", (void*)&ScriptRenderSettings::Internal_setscreenSpaceLensFlare);
+		metaData.scriptClass->addInternalCall("Internal_getmotionBlur", (void*)&ScriptRenderSettings::Internal_getmotionBlur);
+		metaData.scriptClass->addInternalCall("Internal_setmotionBlur", (void*)&ScriptRenderSettings::Internal_setmotionBlur);
 		metaData.scriptClass->addInternalCall("Internal_getenableFXAA", (void*)&ScriptRenderSettings::Internal_getenableFXAA);
 		metaData.scriptClass->addInternalCall("Internal_setenableFXAA", (void*)&ScriptRenderSettings::Internal_setenableFXAA);
 		metaData.scriptClass->addInternalCall("Internal_getexposureScale", (void*)&ScriptRenderSettings::Internal_getexposureScale);
@@ -308,6 +311,27 @@ namespace bs
 		if(scriptvalue != nullptr)
 			tmpvalue = scriptvalue->getInternal();
 		thisPtr->getInternal()->screenSpaceLensFlare = *tmpvalue;
+	}
+
+	MonoObject* ScriptRenderSettings::Internal_getmotionBlur(ScriptRenderSettings* thisPtr)
+	{
+		SPtr<MotionBlurSettings> tmp__output = bs_shared_ptr_new<MotionBlurSettings>();
+		*tmp__output = thisPtr->getInternal()->motionBlur;
+
+		MonoObject* __output;
+		__output = ScriptMotionBlurSettings::create(tmp__output);
+
+		return __output;
+	}
+
+	void ScriptRenderSettings::Internal_setmotionBlur(ScriptRenderSettings* thisPtr, MonoObject* value)
+	{
+		SPtr<MotionBlurSettings> tmpvalue;
+		ScriptMotionBlurSettings* scriptvalue;
+		scriptvalue = ScriptMotionBlurSettings::toNative(value);
+		if(scriptvalue != nullptr)
+			tmpvalue = scriptvalue->getInternal();
+		thisPtr->getInternal()->motionBlur = *tmpvalue;
 	}
 
 	bool ScriptRenderSettings::Internal_getenableFXAA(ScriptRenderSettings* thisPtr)

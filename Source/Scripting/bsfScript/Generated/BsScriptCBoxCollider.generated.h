@@ -7,10 +7,9 @@
 #include "BsScriptCCollider.generated.h"
 #include "Math/BsVector3.h"
 
+namespace bs { class CBoxCollider; }
 namespace bs
 {
-	class CBoxCollider;
-
 	class BS_SCR_BE_EXPORT ScriptCBoxCollider : public TScriptComponent<ScriptCBoxCollider, CBoxCollider, ScriptCColliderBase>
 	{
 	public:

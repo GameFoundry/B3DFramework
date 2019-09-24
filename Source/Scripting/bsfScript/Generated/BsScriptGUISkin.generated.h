@@ -6,10 +6,9 @@
 #include "Wrappers/BsScriptResource.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIElementStyle.h"
 
+namespace bs { class GUISkin; }
 namespace bs
 {
-	class GUISkin;
-
 	class BS_SCR_BE_EXPORT ScriptGUISkin : public TScriptResource<ScriptGUISkin, GUISkin>
 	{
 	public:

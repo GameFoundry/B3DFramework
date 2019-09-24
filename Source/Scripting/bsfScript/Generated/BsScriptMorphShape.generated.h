@@ -6,10 +6,9 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Animation/BsMorphShapes.h"
 
+namespace bs { class MorphShape; }
 namespace bs
 {
-	class MorphShape;
-
 	class BS_SCR_BE_EXPORT ScriptMorphShape : public TScriptReflectable<ScriptMorphShape, MorphShape>
 	{
 	public:

@@ -9,10 +9,9 @@
 #include "Math/BsPlane.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
+namespace bs { class ParticleCollisions; }
 namespace bs
 {
-	class ParticleCollisions;
-
 	class BS_SCR_BE_EXPORT ScriptParticleCollisions : public TScriptReflectable<ScriptParticleCollisions, ParticleCollisions, ScriptParticleEvolverBase>
 	{
 	public:

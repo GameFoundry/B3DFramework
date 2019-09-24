@@ -7,11 +7,10 @@
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 
+namespace bs { struct RootMotion; }
+namespace bs { class RootMotionEx; }
 namespace bs
 {
-	struct RootMotion;
-	class RootMotionEx;
-
 	class BS_SCR_BE_EXPORT ScriptRootMotion : public ScriptObject<ScriptRootMotion>
 	{
 	public:

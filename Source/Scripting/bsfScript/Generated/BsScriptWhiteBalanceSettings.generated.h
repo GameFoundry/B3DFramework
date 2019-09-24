@@ -6,10 +6,9 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
+namespace bs { struct WhiteBalanceSettings; }
 namespace bs
 {
-	struct WhiteBalanceSettings;
-
 	class BS_SCR_BE_EXPORT ScriptWhiteBalanceSettings : public TScriptReflectable<ScriptWhiteBalanceSettings, WhiteBalanceSettings>
 	{
 	public:

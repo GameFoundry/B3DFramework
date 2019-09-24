@@ -11,11 +11,10 @@
 #include "Math/BsQuaternion.h"
 #include "Math/BsCapsule.h"
 
+namespace bs { struct __PhysicsQueryHitInterop; }
+namespace bs { class PhysicsScene; }
 namespace bs
 {
-	struct __PhysicsQueryHitInterop;
-	class PhysicsScene;
-
 	class BS_SCR_BE_EXPORT ScriptPhysicsScene : public ScriptObject<ScriptPhysicsScene>
 	{
 	public:

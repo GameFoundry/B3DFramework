@@ -6,10 +6,9 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Material/BsShaderVariation.h"
 
+namespace bs { class ShaderVariation; }
 namespace bs
 {
-	class ShaderVariation;
-
 	class BS_SCR_BE_EXPORT ScriptShaderVariation : public TScriptReflectable<ScriptShaderVariation, ShaderVariation>
 	{
 	public:

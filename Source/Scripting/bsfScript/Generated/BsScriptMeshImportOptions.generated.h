@@ -10,10 +10,9 @@
 #include "../../../Foundation/bsfCore/Importer/BsMeshImportOptions.h"
 #include "../../../Foundation/bsfCore/Importer/BsMeshImportOptions.h"
 
+namespace bs { class MeshImportOptions; }
 namespace bs
 {
-	class MeshImportOptions;
-
 #if !BS_IS_BANSHEE3D
 	class BS_SCR_BE_EXPORT ScriptMeshImportOptions : public TScriptReflectable<ScriptMeshImportOptions, MeshImportOptions, ScriptImportOptionsBase>
 	{

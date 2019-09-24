@@ -9,10 +9,9 @@
 #include "../../../Foundation/bsfCore/Audio/BsAudioClip.h"
 #include "../../../Foundation/bsfCore/Audio/BsAudioClip.h"
 
+namespace bs { class AudioClipImportOptions; }
 namespace bs
 {
-	class AudioClipImportOptions;
-
 #if !BS_IS_BANSHEE3D
 	class BS_SCR_BE_EXPORT ScriptAudioClipImportOptions : public TScriptReflectable<ScriptAudioClipImportOptions, AudioClipImportOptions, ScriptImportOptionsBase>
 	{

@@ -5,10 +5,9 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObject.h"
 
+namespace bs { class SceneInstance; }
 namespace bs
 {
-	class SceneInstance;
-
 	class BS_SCR_BE_EXPORT ScriptSceneInstance : public ScriptObject<ScriptSceneInstance>
 	{
 	public:

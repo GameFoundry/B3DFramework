@@ -6,10 +6,9 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
+namespace bs { struct ShadowSettings; }
 namespace bs
 {
-	struct ShadowSettings;
-
 	class BS_SCR_BE_EXPORT ScriptShadowSettings : public TScriptReflectable<ScriptShadowSettings, ShadowSettings>
 	{
 	public:

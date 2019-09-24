@@ -155,6 +155,17 @@ namespace bs
 			set { Internal_setscreenSpaceLensFlare(mCachedPtr, value); }
 		}
 
+		/// <summary>Parameters used for customizing the motion blur effect.</summary>
+		[ShowInInspector]
+		[NotNull]
+		[PassByCopy]
+		[NativeWrapper]
+		public MotionBlurSettings MotionBlur
+		{
+			get { return Internal_getmotionBlur(mCachedPtr); }
+			set { Internal_setmotionBlur(mCachedPtr, value); }
+		}
+
 		/// <summary>Enables the fast approximate anti-aliasing effect.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
@@ -328,6 +339,10 @@ namespace bs
 		private static extern ScreenSpaceLensFlareSettings Internal_getscreenSpaceLensFlare(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setscreenSpaceLensFlare(IntPtr thisPtr, ScreenSpaceLensFlareSettings value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern MotionBlurSettings Internal_getmotionBlur(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_setmotionBlur(IntPtr thisPtr, MotionBlurSettings value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_getenableFXAA(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

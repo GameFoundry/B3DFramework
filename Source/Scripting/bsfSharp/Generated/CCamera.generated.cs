@@ -20,6 +20,15 @@ namespace bs
 		private Camera(bool __dummy0) { }
 		protected Camera() { }
 
+		/// <summary>Determines flags used for controlling the camera behaviour.</summary>
+		[ShowInInspector]
+		[NativeWrapper]
+		public CameraFlag Flags
+		{
+			get { return Internal_getFlags(mCachedPtr); }
+			set { Internal_setFlags(mCachedPtr, value); }
+		}
+
 		/// <summary>Returns the viewport used by the camera.</summary>
 		[NativeWrapper]
 		public Viewport Viewport
@@ -199,6 +208,15 @@ namespace bs
 		{
 			get { return Internal_isMain(mCachedPtr); }
 			set { Internal_setMain(mCachedPtr, value); }
+		}
+
+		/// <summary>
+		/// Notifies a on-demand camera that it should re-draw its contents on the next frame. Ignored for a camera that 
+		/// isn&apos;t on-demand.
+		/// </summary>
+		public void NotifyNeedsRedraw()
+		{
+			Internal_notifyNeedsRedraw(mCachedPtr);
 		}
 
 		/// <summary>Converts a point in world space to screen coordinates.</summary>
@@ -383,6 +401,10 @@ namespace bs
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_setFlags(IntPtr thisPtr, CameraFlag flags);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern CameraFlag Internal_getFlags(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern Viewport Internal_getViewport(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setHorzFOV(IntPtr thisPtr, ref Radian fovy);
@@ -432,6 +454,8 @@ namespace bs
 		private static extern void Internal_setRenderSettings(IntPtr thisPtr, RenderSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern RenderSettings Internal_getRenderSettings(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_notifyNeedsRedraw(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_worldToScreenPoint(IntPtr thisPtr, ref Vector3 worldPoint, out Vector2I __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]

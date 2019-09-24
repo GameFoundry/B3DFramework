@@ -9,11 +9,10 @@
 #include "Math/BsAABox.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3I.h"
 
+namespace bs { class CLightProbeVolume; }
+namespace bs { struct __LightProbeInfoInterop; }
 namespace bs
 {
-	struct __LightProbeInfoInterop;
-	class CLightProbeVolume;
-
 	class BS_SCR_BE_EXPORT ScriptCLightProbeVolume : public TScriptComponent<ScriptCLightProbeVolume, CLightProbeVolume>
 	{
 	public:

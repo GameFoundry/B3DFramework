@@ -10,11 +10,10 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 
+namespace bs { class ParticleEmitter; }
+namespace bs { struct __ParticleBurstInterop; }
 namespace bs
 {
-	class ParticleEmitter;
-	struct __ParticleBurstInterop;
-
 	class BS_SCR_BE_EXPORT ScriptParticleEmitter : public TScriptReflectable<ScriptParticleEmitter, ParticleEmitter>
 	{
 	public:

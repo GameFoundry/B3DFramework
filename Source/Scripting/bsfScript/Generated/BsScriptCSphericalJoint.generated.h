@@ -8,11 +8,10 @@
 #include "../../../Foundation/bsfCore/Physics/BsJoint.h"
 #include "../../../Foundation/bsfCore/Physics/BsSphericalJoint.h"
 
+namespace bs { struct __LimitConeRangeInterop; }
+namespace bs { class CSphericalJoint; }
 namespace bs
 {
-	struct __LimitConeRangeInterop;
-	class CSphericalJoint;
-
 	class BS_SCR_BE_EXPORT ScriptCSphericalJoint : public TScriptComponent<ScriptCSphericalJoint, CSphericalJoint, ScriptCJointBase>
 	{
 	public:

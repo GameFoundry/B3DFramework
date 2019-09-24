@@ -5,11 +5,11 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfCore/Components/BsCCamera.h"
+#include "BsScriptRenderSettings.generated.h"
+#include "Wrappers/BsScriptVector.h"
 #include "BsScriptViewport.generated.h"
 #include "Wrappers/BsScriptVector.h"
 #include "Wrappers/BsScriptVector2I.h"
-#include "BsScriptRenderSettings.generated.h"
-#include "Wrappers/BsScriptVector.h"
 
 namespace bs
 {
@@ -20,6 +20,8 @@ namespace bs
 
 	void ScriptCCamera::initRuntimeData()
 	{
+		metaData.scriptClass->addInternalCall("Internal_setFlags", (void*)&ScriptCCamera::Internal_setFlags);
+		metaData.scriptClass->addInternalCall("Internal_getFlags", (void*)&ScriptCCamera::Internal_getFlags);
 		metaData.scriptClass->addInternalCall("Internal_getViewport", (void*)&ScriptCCamera::Internal_getViewport);
 		metaData.scriptClass->addInternalCall("Internal_setHorzFOV", (void*)&ScriptCCamera::Internal_setHorzFOV);
 		metaData.scriptClass->addInternalCall("Internal_getHorzFOV", (void*)&ScriptCCamera::Internal_getHorzFOV);
@@ -45,6 +47,7 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_getMSAACount", (void*)&ScriptCCamera::Internal_getMSAACount);
 		metaData.scriptClass->addInternalCall("Internal_setRenderSettings", (void*)&ScriptCCamera::Internal_setRenderSettings);
 		metaData.scriptClass->addInternalCall("Internal_getRenderSettings", (void*)&ScriptCCamera::Internal_getRenderSettings);
+		metaData.scriptClass->addInternalCall("Internal_notifyNeedsRedraw", (void*)&ScriptCCamera::Internal_notifyNeedsRedraw);
 		metaData.scriptClass->addInternalCall("Internal_worldToScreenPoint", (void*)&ScriptCCamera::Internal_worldToScreenPoint);
 		metaData.scriptClass->addInternalCall("Internal_worldToNdcPoint", (void*)&ScriptCCamera::Internal_worldToNdcPoint);
 		metaData.scriptClass->addInternalCall("Internal_worldToViewPoint", (void*)&ScriptCCamera::Internal_worldToViewPoint);
@@ -63,6 +66,22 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_setMain", (void*)&ScriptCCamera::Internal_setMain);
 		metaData.scriptClass->addInternalCall("Internal_isMain", (void*)&ScriptCCamera::Internal_isMain);
 
+	}
+
+	void ScriptCCamera::Internal_setFlags(ScriptCCamera* thisPtr, CameraFlag flags)
+	{
+		thisPtr->getHandle()->setFlags(flags);
+	}
+
+	CameraFlag ScriptCCamera::Internal_getFlags(ScriptCCamera* thisPtr)
+	{
+		Flags<CameraFlag> tmp__output;
+		tmp__output = thisPtr->getHandle()->getFlags();
+
+		CameraFlag __output;
+		__output = (CameraFlag)(uint32_t)tmp__output;
+
+		return __output;
 	}
 
 	MonoObject* ScriptCCamera::Internal_getViewport(ScriptCCamera* thisPtr)
@@ -268,6 +287,11 @@ namespace bs
 		__output = ScriptRenderSettings::create(tmp__output);
 
 		return __output;
+	}
+
+	void ScriptCCamera::Internal_notifyNeedsRedraw(ScriptCCamera* thisPtr)
+	{
+		thisPtr->getHandle()->notifyNeedsRedraw();
 	}
 
 	void ScriptCCamera::Internal_worldToScreenPoint(ScriptCCamera* thisPtr, Vector3* worldPoint, Vector2I* __output)

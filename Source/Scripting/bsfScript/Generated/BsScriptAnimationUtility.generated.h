@@ -6,10 +6,9 @@
 #include "BsScriptObject.h"
 #include "../../../Foundation/bsfUtility/Prerequisites/BsFwdDeclUtil.h"
 
+namespace bs { class AnimationUtility; }
 namespace bs
 {
-	class AnimationUtility;
-
 	class BS_SCR_BE_EXPORT ScriptAnimationUtility : public ScriptObject<ScriptAnimationUtility>
 	{
 	public:

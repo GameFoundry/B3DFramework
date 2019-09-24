@@ -7,11 +7,10 @@
 #include "../../../Foundation/bsfCore/Importer/BsMeshImportOptions.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationClip.h"
 
+namespace bs { struct ImportedAnimationEvents; }
+namespace bs { struct __AnimationEventInterop; }
 namespace bs
 {
-	struct ImportedAnimationEvents;
-	struct __AnimationEventInterop;
-
 #if !BS_IS_BANSHEE3D
 	class BS_SCR_BE_EXPORT ScriptImportedAnimationEvents : public TScriptReflectable<ScriptImportedAnimationEvents, ImportedAnimationEvents>
 	{

@@ -7,11 +7,10 @@
 #include "BsScriptParticleEvolver.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
+namespace bs { struct __PARTICLE_SIZE_DESCInterop; }
+namespace bs { class ParticleSize; }
 namespace bs
 {
-	class ParticleSize;
-	struct __PARTICLE_SIZE_DESCInterop;
-
 	class BS_SCR_BE_EXPORT ScriptParticleSize : public TScriptReflectable<ScriptParticleSize, ParticleSize, ScriptParticleEvolverBase>
 	{
 	public:

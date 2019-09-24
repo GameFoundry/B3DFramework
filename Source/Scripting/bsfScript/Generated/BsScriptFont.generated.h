@@ -5,10 +5,9 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptResource.h"
 
+namespace bs { class Font; }
 namespace bs
 {
-	class Font;
-
 	class BS_SCR_BE_EXPORT ScriptFont : public TScriptResource<ScriptFont, Font>
 	{
 	public:

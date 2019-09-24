@@ -9,10 +9,9 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 #include "Math/BsQuaternion.h"
 
+namespace bs { struct ParticleVectorFieldSettings; }
 namespace bs
 {
-	struct ParticleVectorFieldSettings;
-
 	class BS_SCR_BE_EXPORT ScriptParticleVectorFieldSettings : public TScriptReflectable<ScriptParticleVectorFieldSettings, ParticleVectorFieldSettings>
 	{
 	public:

@@ -178,6 +178,26 @@
 			<doc>Returns the total number of bones in the skeleton.</doc>
 		</property>
 	</class>
+	<class native="MotionBlurSettings" script="MotionBlurSettings">
+		<doc>Settings that control the motion blur effect.</doc>
+		<ctor>
+		</ctor>
+		<property name="Enabled" type="bool" getter="getenabled" setter="setenabled" static="false">
+			<doc>Enables or disables the motion blur effect.</doc>
+		</property>
+		<property name="Domain" type="MotionBlurDomain" getter="getdomain" setter="setdomain" static="false">
+			<doc>Determines which parts of the scene will trigger motion blur.</doc>
+		</property>
+		<property name="Filter" type="MotionBlurFilter" getter="getfilter" setter="setfilter" static="false">
+			<doc>Type of filter to use when filtering samples contributing to a blurred pixel.</doc>
+		</property>
+		<property name="Quality" type="MotionBlurQuality" getter="getquality" setter="setquality" static="false">
+			<doc>Determines the number of samples to take during motion blur filtering. Increasing this value will yield higher quality blur at the cost of the performance.</doc>
+		</property>
+		<property name="MaximumRadius" type="float" getter="getmaximumRadius" setter="setmaximumRadius" static="false">
+			<doc>Determines the maximum radius over which the blur samples are allowed to be taken, in percent of the screen width (e.g. with 1% radius, on 1920x1028 resolution the maximum radius in pixels will be 1920 * 0.01 = 20px). This clamps the maximum velocity that can affect the blur, as higher velocities require higher radius. Very high values can adversely affect performance as cache accesses become more random.</doc>
+		</property>
+	</class>
 	<struct native="START_UP_DESC" script="StartUpDesc">
 		<doc>Structure containing parameters for starting the application.</doc>
 		<ctor>
@@ -702,6 +722,9 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 	</class>
 	<class native="CCamera" script="Camera">
 		<doc>Camera determines how is world geometry projected onto a 2D surface. You may position and orient it in space, set options like aspect ratio and field or view and it outputs view and projection matrices required for rendering.</doc>
+		<method native="notifyNeedsRedraw" script="NotifyNeedsRedraw" static="false">
+			<doc>Notifies a on-demand camera that it should re-draw its contents on the next frame. Ignored for a camera that isn&apos;t on-demand.</doc>
+		</method>
 		<method native="worldToScreenPoint" script="WorldToScreenPoint" static="false">
 			<doc>Converts a point in world space to screen coordinates.</doc>
 			<param name="worldPoint" type="Vector3">
@@ -849,6 +872,9 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 				<doc>3D point relative to the camera&apos;s coordinate system.</doc>
 			</returns>
 		</method>
+		<property name="Flags" type="CameraFlag" getter="getFlags" setter="setFlags" static="false">
+			<doc>Determines flags used for controlling the camera behaviour.</doc>
+		</property>
 		<property name="Viewport" type="Viewport" getter="getViewport" setter="" static="false">
 			<doc>Returns the viewport used by the camera.</doc>
 		</property>
@@ -900,7 +926,7 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<ctor>
 		</ctor>
 		<property name="Enabled" type="bool" getter="getenabled" setter="setenabled" static="false">
-			<doc>Enables or disabled the screen space ambient occlusion effect.</doc>
+			<doc>Enables or disables the screen space ambient occlusion effect.</doc>
 		</property>
 		<property name="Radius" type="float" getter="getradius" setter="setradius" static="false">
 			<doc>Radius (in world space, in meters) over which occluders are searched for. Smaller radius ensures better sampling precision but can miss occluders. Larger radius ensures far away occluders are considered but can yield lower quality or noise because of low sampling precision. Usually best to keep at around a meter, valid range is roughly [0.05, 5.0].</doc>
@@ -1533,6 +1559,38 @@ Does not account for gravity, you must apply it manually.</doc>
 			<doc>Returns a list of all morph channels in the morph animation.</doc>
 		</property>
 	</class>
+	<enum native="ParticleRenderMode" script="ParticleRenderMode">
+		<doc>Determines how are particles represented on the screen.</doc>
+		<enumentry native="Billboard" script="Billboard">
+			<doc>Particle is represented using a 2D quad.</doc>
+		</enumentry>
+		<enumentry native="Mesh" script="Mesh">
+			<doc>Particle is represented using a 3D mesh.</doc>
+		</enumentry>
+	</enum>
+	<struct native="RectOffset" script="RectOffset">
+		<doc>Rectangle represented in the form of offsets from some parent rectangle.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="left" type="int">
+			</param>
+			<param name="right" type="int">
+			</param>
+			<param name="top" type="int">
+			</param>
+			<param name="bottom" type="int">
+			</param>
+		</ctor>
+		<field name="left" type="int">
+		</field>
+		<field name="right" type="int">
+		</field>
+		<field name="top" type="int">
+		</field>
+		<field name="bottom" type="int">
+		</field>
+	</struct>
 	<struct native="AnimationClipState" script="AnimationClipState">
 		<doc>Contains information about a currently playing animation clip.</doc>
 		<ctor>
@@ -3219,6 +3277,73 @@ In range [-1.0f, 1.0f].</doc>
 			<doc>Range in world units over which range to fade out Bokeh flare influence. Influence of the flare will be faded out as the depth difference between the flare&apos;s origin pixel and the destination pixel grows larger. Only relevant if <see cref="bokehOcclusion"/> is turned on.</doc>
 		</property>
 	</class>
+	<enum native="MotionBlurDomain" script="MotionBlurDomain">
+		<doc>Determines which parts of the scene will trigger motion blur.</doc>
+		<enumentry native="CameraOnly" script="CameraOnly">
+			<doc>Camera movement and rotation will result in full-screen motion blur.</doc>
+		</enumentry>
+		<enumentry native="ObjectOnly" script="ObjectOnly">
+			<doc>Object movement and rotation will result in blurring of the moving object. Can be significantly more expensive than just using camera blur due to the requirement to use a velocity buffer (unless some other effect also requires it, in which case it will be re-used).</doc>
+		</enumentry>
+		<enumentry native="CameraAndObject" script="CameraAndObject">
+			<doc>Both the camera movement and object movement will result in motion blur.</doc>
+		</enumentry>
+	</enum>
+	<struct native="SubMesh" script="SubMesh">
+		<doc>Data about a sub-mesh range and the type of primitives contained in the range.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="indexOffset" type="int">
+			</param>
+			<param name="indexCount" type="int">
+			</param>
+			<param name="drawOp" type="MeshTopology">
+			</param>
+		</ctor>
+		<field name="indexOffset" type="int">
+		</field>
+		<field name="indexCount" type="int">
+		</field>
+		<field name="drawOp" type="MeshTopology">
+		</field>
+	</struct>
+	<class native="ImportedAnimationEvents" script="ImportedAnimationEvents">
+		<doc>A set of animation events that will be added to an animation clip during animation import.</doc>
+		<ctor>
+		</ctor>
+		<property name="Name" type="string" getter="getname" setter="setname" static="false">
+		</property>
+		<property name="Events" type="AnimationEvent" getter="getevents" setter="setevents" static="false">
+		</property>
+	</class>
+	<enum native="MotionBlurFilter" script="MotionBlurFilter">
+		<doc>Type of filter to use when filtering samples contributing to a blurred pixel.</doc>
+		<enumentry native="Simple" script="Simple">
+			<doc>Samples will be simply averaged together to create the blurred pixel.</doc>
+		</enumentry>
+		<enumentry native="Reconstruction" script="Reconstruction">
+			<doc>A more advanced reconstruction filter will be used. This filter provides better blur quality at a performance cost. In particular the filter will improve blurring at object boundaries, allowing blur to extend beyond the object silhouette. It will also try to estimate blurred background and provide better weighting between background, center and foreground samples.</doc>
+		</enumentry>
+	</enum>
+	<enum native="MotionBlurQuality" script="MotionBlurQuality">
+		<doc>Determines the number of samples to take during motion blur filtering.</doc>
+		<enumentry native="VeryLow" script="VeryLow">
+			<doc>4 samples per pixel.</doc>
+		</enumentry>
+		<enumentry native="Low" script="Low">
+			<doc>6 samples per pixel.</doc>
+		</enumentry>
+		<enumentry native="Medium" script="Medium">
+			<doc>8 samples per pixel.</doc>
+		</enumentry>
+		<enumentry native="High" script="High">
+			<doc>12 samples per pixel.</doc>
+		</enumentry>
+		<enumentry native="Ultra" script="Ultra">
+			<doc>16 samples per pixel.</doc>
+		</enumentry>
+	</enum>
 	<class native="ScreenSpaceReflectionsSettings" script="ScreenSpaceReflectionsSettings">
 		<doc>Settings that control the screen space reflections effect. Screen space reflections provide high quality mirror-like reflections at low performance cost. They should be used together with reflection probes as the effects complement each other. As the name implies, the reflections are only limited to geometry drawn on the screen and the system will fall back to refl. probes when screen space data is unavailable. Similarly the system will fall back to refl. probes for rougher (more glossy rather than mirror-like) surfaces. Those surfaces require a higher number of samples to achieve the glossy look, so we instead fall back to refl. probes which are pre-filtered and can be quickly sampled.</doc>
 		<ctor>
@@ -3291,6 +3416,9 @@ If this is disabled, then color grading and white balancing will not be enabled 
 		<property name="ScreenSpaceLensFlare" type="ScreenSpaceLensFlareSettings" getter="getscreenSpaceLensFlare" setter="setscreenSpaceLensFlare" static="false">
 			<doc>Parameters used for customizing the screen space lens flare effect.</doc>
 		</property>
+		<property name="MotionBlur" type="MotionBlurSettings" getter="getmotionBlur" setter="setmotionBlur" static="false">
+			<doc>Parameters used for customizing the motion blur effect.</doc>
+		</property>
 		<property name="EnableFXAA" type="bool" getter="getenableFXAA" setter="setenableFXAA" static="false">
 			<doc>Enables the fast approximate anti-aliasing effect.</doc>
 		</property>
@@ -3325,6 +3453,12 @@ If this is disabled, then color grading and white balancing will not be enabled 
 			<doc>The absolute base cull-distance for objects rendered through this camera in world units. Objects will use this distance and apply their own factor to it to determine whether they should be visible.</doc>
 		</property>
 	</class>
+	<enum native="CameraFlag" script="CameraFlag">
+		<doc>Flags for controlling Camera options.</doc>
+		<enumentry native="OnDemand" script="OnDemand">
+			<doc>If set the camera will only render when requested by the user through Camera::notifyNeedsRedraw(). Otherwise the camera will render every frame (unless disabled).</doc>
+		</enumentry>
+	</enum>
 	<class native="CCapsuleCollider" script="CapsuleCollider">
 		<doc>Collider with a capsule geometry.</doc>
 		<property name="Normal" type="Vector3" getter="getNormal" setter="setNormal" static="false">
@@ -5272,38 +5406,6 @@ Resize will not change the positions of current light probes. If you wish to res
 			<doc>Sort by age, youngest to oldest.</doc>
 		</enumentry>
 	</enum>
-	<struct native="RectOffset" script="RectOffset">
-		<doc>Rectangle represented in the form of offsets from some parent rectangle.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="left" type="int">
-			</param>
-			<param name="right" type="int">
-			</param>
-			<param name="top" type="int">
-			</param>
-			<param name="bottom" type="int">
-			</param>
-		</ctor>
-		<field name="left" type="int">
-		</field>
-		<field name="right" type="int">
-		</field>
-		<field name="top" type="int">
-		</field>
-		<field name="bottom" type="int">
-		</field>
-	</struct>
-	<enum native="ParticleRenderMode" script="ParticleRenderMode">
-		<doc>Determines how are particles represented on the screen.</doc>
-		<enumentry native="Billboard" script="Billboard">
-			<doc>Particle is represented using a 2D quad.</doc>
-		</enumentry>
-		<enumentry native="Mesh" script="Mesh">
-			<doc>Particle is represented using a 3D mesh.</doc>
-		</enumentry>
-	</enum>
 	<class native="ParticleDepthCollisionSettings" script="ParticleDepthCollisionSettings">
 		<doc>Controls depth buffer collisions for GPU simulated particles.</doc>
 		<ctor>
@@ -5909,34 +6011,6 @@ The shape and mass of a rigidbody is governed by its colliders. You must attach 
 		<property name="EndFrame" type="int" getter="getendFrame" setter="setendFrame" static="false">
 		</property>
 		<property name="IsAdditive" type="bool" getter="getisAdditive" setter="setisAdditive" static="false">
-		</property>
-	</class>
-	<struct native="SubMesh" script="SubMesh">
-		<doc>Data about a sub-mesh range and the type of primitives contained in the range.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="indexOffset" type="int">
-			</param>
-			<param name="indexCount" type="int">
-			</param>
-			<param name="drawOp" type="MeshTopology">
-			</param>
-		</ctor>
-		<field name="indexOffset" type="int">
-		</field>
-		<field name="indexCount" type="int">
-		</field>
-		<field name="drawOp" type="MeshTopology">
-		</field>
-	</struct>
-	<class native="ImportedAnimationEvents" script="ImportedAnimationEvents">
-		<doc>A set of animation events that will be added to an animation clip during animation import.</doc>
-		<ctor>
-		</ctor>
-		<property name="Name" type="string" getter="getname" setter="setname" static="false">
-		</property>
-		<property name="Events" type="AnimationEvent" getter="getevents" setter="setevents" static="false">
 		</property>
 	</class>
 	<class native="MeshImportOptions" script="MeshImportOptions">

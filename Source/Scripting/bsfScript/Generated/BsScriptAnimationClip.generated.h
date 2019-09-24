@@ -5,11 +5,10 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptResource.h"
 
+namespace bs { class AnimationClip; }
+namespace bs { struct __AnimationEventInterop; }
 namespace bs
 {
-	class AnimationClip;
-	struct __AnimationEventInterop;
-
 	class BS_SCR_BE_EXPORT ScriptAnimationClip : public TScriptResource<ScriptAnimationClip, AnimationClip>
 	{
 	public:

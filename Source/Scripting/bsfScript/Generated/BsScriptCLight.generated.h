@@ -9,10 +9,9 @@
 #include "Image/BsColor.h"
 #include "Math/BsDegree.h"
 
+namespace bs { class CLight; }
 namespace bs
 {
-	class CLight;
-
 	class BS_SCR_BE_EXPORT ScriptCLight : public TScriptComponent<ScriptCLight, CLight>
 	{
 	public:

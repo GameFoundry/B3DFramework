@@ -21,7 +21,7 @@ namespace bs
 			Internal_AmbientOcclusionSettings(this);
 		}
 
-		/// <summary>Enables or disabled the screen space ambient occlusion effect.</summary>
+		/// <summary>Enables or disables the screen space ambient occlusion effect.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
 		public bool Enabled

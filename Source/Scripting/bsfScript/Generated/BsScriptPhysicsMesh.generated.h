@@ -6,11 +6,10 @@
 #include "Wrappers/BsScriptResource.h"
 #include "../../../Foundation/bsfCore/Utility/BsCommonTypes.h"
 
+namespace bs { class PhysicsMesh; }
+namespace bs { class PhysicsMeshEx; }
 namespace bs
 {
-	class PhysicsMesh;
-	class PhysicsMeshEx;
-
 	class BS_SCR_BE_EXPORT ScriptPhysicsMesh : public TScriptResource<ScriptPhysicsMesh, PhysicsMesh>
 	{
 	public:

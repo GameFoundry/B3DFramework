@@ -15,11 +15,11 @@
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
+#include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
+namespace bs { struct RenderSettings; }
 namespace bs
 {
-	struct RenderSettings;
-
 	class BS_SCR_BE_EXPORT ScriptRenderSettings : public TScriptReflectable<ScriptRenderSettings, RenderSettings>
 	{
 	public:
@@ -53,6 +53,8 @@ namespace bs
 		static void Internal_setbloom(ScriptRenderSettings* thisPtr, MonoObject* value);
 		static MonoObject* Internal_getscreenSpaceLensFlare(ScriptRenderSettings* thisPtr);
 		static void Internal_setscreenSpaceLensFlare(ScriptRenderSettings* thisPtr, MonoObject* value);
+		static MonoObject* Internal_getmotionBlur(ScriptRenderSettings* thisPtr);
+		static void Internal_setmotionBlur(ScriptRenderSettings* thisPtr, MonoObject* value);
 		static bool Internal_getenableFXAA(ScriptRenderSettings* thisPtr);
 		static void Internal_setenableFXAA(ScriptRenderSettings* thisPtr, bool value);
 		static float Internal_getexposureScale(ScriptRenderSettings* thisPtr);

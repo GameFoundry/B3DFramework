@@ -6,10 +6,9 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 
+namespace bs { struct ParticleDepthCollisionSettings; }
 namespace bs
 {
-	struct ParticleDepthCollisionSettings;
-
 	class BS_SCR_BE_EXPORT ScriptParticleDepthCollisionSettings : public TScriptReflectable<ScriptParticleDepthCollisionSettings, ParticleDepthCollisionSettings>
 	{
 	public:

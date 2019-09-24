@@ -6,10 +6,9 @@
 #include "BsScriptObject.h"
 #include "Utility/BsUUID.h"
 
+namespace bs { class Importer; }
 namespace bs
 {
-	class Importer;
-
 #if !BS_IS_BANSHEE3D
 	class BS_SCR_BE_EXPORT ScriptImporter : public ScriptObject<ScriptImporter>
 	{

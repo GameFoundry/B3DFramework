@@ -5,10 +5,9 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
 
+namespace bs { class CBone; }
 namespace bs
 {
-	class CBone;
-
 	class BS_SCR_BE_EXPORT ScriptCBone : public TScriptComponent<ScriptCBone, CBone>
 	{
 	public:

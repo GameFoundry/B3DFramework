@@ -8,10 +8,9 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
+namespace bs { class ParticleGravity; }
 namespace bs
 {
-	class ParticleGravity;
-
 	class BS_SCR_BE_EXPORT ScriptParticleGravity : public TScriptReflectable<ScriptParticleGravity, ParticleGravity, ScriptParticleEvolverBase>
 	{
 	public:

@@ -6,11 +6,10 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Text/BsFont.h"
 
+namespace bs { struct FontBitmap; }
+namespace bs { struct __CharDescInterop; }
 namespace bs
 {
-	struct __CharDescInterop;
-	struct FontBitmap;
-
 	class BS_SCR_BE_EXPORT ScriptFontBitmap : public TScriptReflectable<ScriptFontBitmap, FontBitmap>
 	{
 	public:

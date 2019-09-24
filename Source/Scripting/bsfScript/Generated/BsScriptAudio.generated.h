@@ -5,11 +5,10 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObject.h"
 
+namespace bs { class Audio; }
+namespace bs { struct __AudioDeviceInterop; }
 namespace bs
 {
-	class Audio;
-	struct __AudioDeviceInterop;
-
 	class BS_SCR_BE_EXPORT ScriptAudio : public ScriptObject<ScriptAudio>
 	{
 	public:

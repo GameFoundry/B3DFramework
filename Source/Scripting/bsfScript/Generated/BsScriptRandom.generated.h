@@ -8,10 +8,9 @@
 #include "Math/BsVector2.h"
 #include "Math/BsDegree.h"
 
+namespace bs { class Random; }
 namespace bs
 {
-	class Random;
-
 	class BS_SCR_BE_EXPORT ScriptRandom : public ScriptObject<ScriptRandom>
 	{
 	public:

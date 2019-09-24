@@ -8,11 +8,10 @@
 #include "../../../Foundation/bsfCore/Physics/BsSliderJoint.h"
 #include "../../../Foundation/bsfCore/Physics/BsJoint.h"
 
+namespace bs { struct __LimitLinearRangeInterop; }
+namespace bs { class CSliderJoint; }
 namespace bs
 {
-	struct __LimitLinearRangeInterop;
-	class CSliderJoint;
-
 	class BS_SCR_BE_EXPORT ScriptCSliderJoint : public TScriptComponent<ScriptCSliderJoint, CSliderJoint, ScriptCJointBase>
 	{
 	public:

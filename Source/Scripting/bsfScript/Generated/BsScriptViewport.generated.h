@@ -10,10 +10,9 @@
 #include "Math/BsRect2.h"
 #include "Math/BsRect2I.h"
 
+namespace bs { class Viewport; }
 namespace bs
 {
-	class Viewport;
-
 	class BS_SCR_BE_EXPORT ScriptViewport : public TScriptReflectable<ScriptViewport, Viewport>
 	{
 	public:

@@ -6,10 +6,9 @@
 #include "BsScriptObject.h"
 #include "../../../Foundation/bsfCore/Localization/BsStringTable.h"
 
+namespace bs { class StringTableManager; }
 namespace bs
 {
-	class StringTableManager;
-
 	class BS_SCR_BE_EXPORT ScriptStringTableManager : public ScriptObject<ScriptStringTableManager>
 	{
 	public:

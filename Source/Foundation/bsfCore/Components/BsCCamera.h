@@ -179,7 +179,7 @@ namespace bs
 		BS_SCRIPT_EXPORT(n:RenderSettings,pr:getter,applyOnDirty)
 		const SPtr<RenderSettings>& getRenderSettings() const { return mInternal->getRenderSettings(); }
 
-		/** @copydoc Camera::notifyNeedsRedraw(); */
+		/** @copydoc Camera::notifyNeedsRedraw() */
 		BS_SCRIPT_EXPORT()
 		void notifyNeedsRedraw() { mInternal->notifyNeedsRedraw(); }
 		

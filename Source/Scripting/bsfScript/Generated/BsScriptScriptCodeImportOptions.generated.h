@@ -7,10 +7,9 @@
 #include "BsScriptImportOptions.generated.h"
 #include "../../../Foundation/bsfEngine/Resources/BsScriptCodeImportOptions.h"
 
+namespace bs { class ScriptCodeImportOptions; }
 namespace bs
 {
-	class ScriptCodeImportOptions;
-
 #if !BS_IS_BANSHEE3D
 	class BS_SCR_BE_EXPORT ScriptScriptCodeImportOptions : public TScriptReflectable<ScriptScriptCodeImportOptions, ScriptCodeImportOptions, ScriptImportOptionsBase>
 	{

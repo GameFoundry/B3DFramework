@@ -6,10 +6,9 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
+namespace bs { struct ScreenSpaceReflectionsSettings; }
 namespace bs
 {
-	struct ScreenSpaceReflectionsSettings;
-
 	class BS_SCR_BE_EXPORT ScriptScreenSpaceReflectionsSettings : public TScriptReflectable<ScriptScreenSpaceReflectionsSettings, ScreenSpaceReflectionsSettings>
 	{
 	public:

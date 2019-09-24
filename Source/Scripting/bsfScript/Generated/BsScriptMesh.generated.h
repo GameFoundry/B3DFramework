@@ -12,11 +12,10 @@
 #include "../../../Foundation/bsfCore/Renderer/BsRendererMeshData.h"
 #include "Math/BsAABox.h"
 
+namespace bs { class Mesh; }
+namespace bs { class MeshEx; }
 namespace bs
 {
-	class Mesh;
-	class MeshEx;
-
 	class BS_SCR_BE_EXPORT ScriptMesh : public TScriptResource<ScriptMesh, Mesh>
 	{
 	public:

@@ -7,11 +7,10 @@
 #include "BsScriptParticleEvolver.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
+namespace bs { class ParticleOrbit; }
+namespace bs { struct __PARTICLE_ORBIT_DESCInterop; }
 namespace bs
 {
-	class ParticleOrbit;
-	struct __PARTICLE_ORBIT_DESCInterop;
-
 	class BS_SCR_BE_EXPORT ScriptParticleOrbit : public TScriptReflectable<ScriptParticleOrbit, ParticleOrbit, ScriptParticleEvolverBase>
 	{
 	public:

@@ -7,10 +7,9 @@
 #include "../../../Foundation/bsfCore/Resources/BsResources.h"
 #include "Utility/BsUUID.h"
 
+namespace bs { class Resources; }
 namespace bs
 {
-	class Resources;
-
 #if !BS_IS_BANSHEE3D
 	class BS_SCR_BE_EXPORT ScriptResources : public ScriptObject<ScriptResources>
 	{

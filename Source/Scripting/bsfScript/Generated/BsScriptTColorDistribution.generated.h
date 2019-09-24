@@ -12,10 +12,9 @@
 #include "../../../Foundation/bsfUtility/Image/BsColorGradient.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 
+namespace bs { template<class T0> struct TColorDistribution; }
 namespace bs
 {
-	template<class T0> struct TColorDistribution;
-
 	class BS_SCR_BE_EXPORT ScriptTColorDistributionColorGradient : public ScriptObject<ScriptTColorDistributionColorGradient>
 	{
 	public:
