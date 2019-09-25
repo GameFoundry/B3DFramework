@@ -825,6 +825,8 @@ namespace bs
 		for(UINT32 i = 0; i < numElements; i++)
 		{
 			GUIMeshRenderData meshData = getRenderData(drawGroup.meshes[i]);
+			if (meshData.subMesh.indexCount == 0)
+				continue;
 			
 			if (meshData.material->allowBatching())
 				output.cachedElements.push_back(std::move(meshData));
