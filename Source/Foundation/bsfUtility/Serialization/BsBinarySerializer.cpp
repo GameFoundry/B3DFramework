@@ -489,14 +489,7 @@ namespace bs
 		
 		while (stream.tell() < dataEnd)
 		{
-			bool isArray = false;
-			SerializableFieldType fieldType = SerializableFT_Plain;
-			UINT16 fieldId = 0;
-			BitLength fieldSize = 0;
-			bool hasDynamicSize = false;
-			bool hasEncodedSize = false; // TODO - Need to read this from schema and/or meta data (also write it)
-										 // Use the extra bit in field meta-data. When set don't write the 8 bits for size,
-										 // instead use 4 bits to define built-in types such as bool and int, and other 4 bits unused for extensibility
+			RTTIFieldSchema fieldSchema;
 			SPtr<RTTISchema> fieldTypeSchema;
 			bool terminator = false;
 
@@ -533,7 +526,7 @@ namespace bs
 						UINT32 fieldMetaData;
 						stream.readBytes(fieldMetaData);
 
-						decodeFieldMetaData(fieldMetaData, fieldId, fieldSize, isArray, fieldType, hasDynamicSize, terminator);
+						fieldSchema = decodeFieldMetaData(fieldMetaData, terminator);
 					}
 				}
 			}
@@ -555,13 +548,7 @@ namespace bs
 				}
 				else
 				{
-					const RTTIFieldSchema& fieldSchema = *fieldSchemaIter;
-					
-					isArray = fieldSchema.isArray;
-					fieldType = fieldSchema.type;
-					fieldId = fieldSchema.id;
-					fieldSize = fieldSchema.size;
-					hasDynamicSize = fieldSchema.hasDynamicSize;
+					fieldSchema = *fieldSchemaIter;
 					fieldTypeSchema = fieldSchema.fieldTypeSchema;
 
 					++fieldSchemaIter;
@@ -600,32 +587,32 @@ namespace bs
 			RTTIField* curGenericField = nullptr;
 
 			if (rtti != nullptr)
-				curGenericField = rtti->findField(fieldId);
+				curGenericField = rtti->findField(fieldSchema.id);
 
 			if (curGenericField != nullptr)
 			{
-				if (!hasDynamicSize && curGenericField->schema.size != fieldSize)
+				if (!fieldSchema.hasDynamicSize && curGenericField->schema.size != fieldSchema.size)
 				{
 					BS_EXCEPT(InternalErrorException,
 						"Data type mismatch. Type size stored in file and actual type size don't match. ("
-						+ toString(curGenericField->schema.size.bytes) + " vs. " + toString(fieldSize.bytes) + ")");
+						+ toString(curGenericField->schema.size.bytes) + " vs. " + toString(fieldSchema.size.bytes) + ")");
 				}
 
-				if (curGenericField->schema.isArray != isArray)
+				if (curGenericField->schema.isArray != fieldSchema.isArray)
 				{
 					BS_EXCEPT(InternalErrorException,
 						"Data type mismatch. One is array, other is a single type.");
 				}
 
-				if (curGenericField->schema.type != fieldType)
+				if (curGenericField->schema.type != fieldSchema.type)
 				{
 					BS_EXCEPT(InternalErrorException,
-						"Data type mismatch. Field types don't match. " + toString(UINT32(curGenericField->schema.type)) + " vs. " + toString(UINT32(fieldType)));
+						"Data type mismatch. Field types don't match. " + toString(UINT32(curGenericField->schema.type)) + " vs. " + toString(UINT32(fieldSchema.type)));
 				}
 			}
 
 			UINT32 arrayNumElems = 1;
-			if (isArray)
+			if (fieldSchema.isArray)
 			{
 				if (compressed)
 					stream.readVarInt(arrayNumElems);
@@ -635,7 +622,7 @@ namespace bs
 				if(curGenericField != nullptr)
 					curGenericField->setArraySize(rttiInstance, output.get(), arrayNumElems);
 
-				switch (fieldType)
+				switch (fieldSchema.type)
 				{
 				case SerializableFT_ReflectablePtr:
 				{
@@ -735,8 +722,8 @@ namespace bs
 
 					for (UINT32 i = 0; i < arrayNumElems; i++)
 					{
-						uint64_t typeSizeBits = fieldSize.getBits();
-						if (hasDynamicSize)
+						uint64_t typeSizeBits = fieldSchema.size.getBits();
+						if (fieldSchema.hasDynamicSize)
 						{
 							if(compressed)
 							{
@@ -765,26 +752,24 @@ namespace bs
 						}
 						else
 						{
-							if (!hasEncodedSize)
-								stream.skip((uint32_t)typeSizeBits);
+							bool builtin = fieldSchema.fieldTypeId < 16;
+							if (compressed && builtin)
+								skipBuiltinType(fieldSchema.fieldTypeId, stream, compressed);
 							else
-							{
-								// TODO
-								//skipTypeWithEncodedSize(stream);
-							}
+								stream.skip((uint32_t)typeSizeBits);
 						}
 					}
 					break;
 				}
 				default:
 					BS_EXCEPT(InternalErrorException,
-						"Error decoding data. Encountered a type I don't know how to decode. Type: " + toString(UINT32(fieldType)) +
-						", Is array: " + toString(isArray));
+						"Error decoding data. Encountered a type I don't know how to decode. Type: " + toString(UINT32(fieldSchema.type)) +
+						", Is array: " + toString(fieldSchema.isArray));
 				}
 			}
 			else
 			{
-				switch (fieldType)
+				switch (fieldSchema.type)
 				{
 				case SerializableFT_ReflectablePtr:
 				{
@@ -878,11 +863,9 @@ namespace bs
 				{
 					auto* curField = static_cast<RTTIPlainFieldBase*>(curGenericField);
 
-					uint64_t typeSizeBits = fieldSize.getBits();
-					if (hasDynamicSize)
+					uint64_t typeSizeBits = fieldSchema.size.getBits();
+					if (fieldSchema.hasDynamicSize)
 					{
-						assert(!hasEncodedSize);
-						
 						if (compressed)
 						{
 							BitLength typeSize;
@@ -910,13 +893,11 @@ namespace bs
 					}
 					else
 					{
-						if (!hasEncodedSize)
-							stream.skip((uint32_t)typeSizeBits);
+						bool builtin = fieldSchema.fieldTypeId < 16;
+						if (compressed && builtin)
+							skipBuiltinType(fieldSchema.fieldTypeId, stream, compressed);
 						else
-						{
-							// TODO
-							//skipTypeWithEncodedSize(stream);
-						}
+							stream.skip((uint32_t)typeSizeBits);
 					}
 
 					break;
@@ -966,8 +947,8 @@ namespace bs
 				}
 				default:
 					BS_EXCEPT(InternalErrorException,
-						"Error decoding data. Encountered a type I don't know how to decode. Type: " + toString(UINT32(fieldType)) +
-						", Is array: " + toString(isArray));
+						"Error decoding data. Encountered a type I don't know how to decode. Type: " + toString(UINT32(fieldSchema.type)) +
+						", Is array: " + toString(fieldSchema.isArray));
 				}
 
 				stream.clearBuffered(false);
@@ -1018,7 +999,8 @@ namespace bs
 	UINT32 BinarySerializer::encodeFieldMetaData(const RTTIFieldSchema& schema, bool terminator)
 	{
 		// If O == 0 - Meta contains field information (Encoded using this method)
-		//// Encoding: IIII IIII IIII IIII SSSS SSSS xTYP DCAO
+		//// Encoding if E = 0: IIII IIII IIII IIII SSSS SSSS ETYP DCAO
+		//// Encoding if E = 1: IIII IIII IIII IIII BBBB xxxx ETYP DCAO
 		//// I - Id
 		//// S - Size
 		//// C - Complex
@@ -1028,18 +1010,32 @@ namespace bs
 		//// O - Object descriptor
 		//// Y - Plain field has dynamic size
 		//// T - Terminator (last field in an object)
+		//// E - Extended (size is replaced with additional meta-data)
+		//// B - Built-in type ID
 
-		return (schema.id << 16 | schema.size.bytes << 8 |
-			(schema.isArray ? 0x02 : 0) |
-			((schema.type == SerializableFT_DataBlock) ? 0x04 : 0) |
-			((schema.type == SerializableFT_Reflectable) ? 0x08 : 0) |
-			((schema.type == SerializableFT_ReflectablePtr) ? 0x10 : 0) |
-			(schema.hasDynamicSize ? 0x20 : 0) |
-			(terminator ? 0x40 : 0)); // TODO - Low priority. Technically I could encode this much more tightly, and use var-ints for ID
+		bool isBuiltin = schema.getTypeId() < 16;
+
+		if(!isBuiltin)
+			return (schema.id << 16 | schema.size.bytes << 8 |
+				(schema.isArray ? 0x02 : 0) |
+				((schema.type == SerializableFT_DataBlock) ? 0x04 : 0) |
+				((schema.type == SerializableFT_Reflectable) ? 0x08 : 0) |
+				((schema.type == SerializableFT_ReflectablePtr) ? 0x10 : 0) |
+				(schema.hasDynamicSize ? 0x20 : 0) |
+				(terminator ? 0x40 : 0));
+		else
+			return (schema.id << 16 | (schema.getTypeId() & 0xF) << 12 |
+				(schema.isArray ? 0x02 : 0) |
+				((schema.type == SerializableFT_DataBlock) ? 0x04 : 0) |
+				((schema.type == SerializableFT_Reflectable) ? 0x08 : 0) |
+				((schema.type == SerializableFT_ReflectablePtr) ? 0x10 : 0) |
+				(schema.hasDynamicSize ? 0x20 : 0) |
+				(terminator ? 0x40 : 0)) |
+				0x80;
+
 	}
 
-	void BinarySerializer::decodeFieldMetaData(UINT32 encodedData, UINT16& id, BitLength& size,
-		bool& array, SerializableFieldType& type, bool& hasDynamicSize, bool& terminator)
+	RTTIFieldSchema BinarySerializer::decodeFieldMetaData(UINT32 encodedData, bool& terminator)
 	{
 		if(isObjectMetaData(encodedData))
 		{
@@ -1048,26 +1044,66 @@ namespace bs
 		}
 
 		terminator = (encodedData & 0x40) != 0;
-		hasDynamicSize = (encodedData & 0x20) != 0;
+
+		RTTIFieldSchema schema;
+		schema.hasDynamicSize = (encodedData & 0x20) != 0;
 
 		if((encodedData & 0x10) != 0)
-			type = SerializableFT_ReflectablePtr;
+			schema.type = SerializableFT_ReflectablePtr;
 		else if((encodedData & 0x08) != 0)
-			type = SerializableFT_Reflectable;
+			schema.type = SerializableFT_Reflectable;
 		else if((encodedData & 0x04) != 0)
-			type = SerializableFT_DataBlock;
+			schema.type = SerializableFT_DataBlock;
 		else
-			type = SerializableFT_Plain;
+			schema.type = SerializableFT_Plain;
 
-		array = (encodedData & 0x02) != 0;
-		size = (UINT8)((encodedData >> 8) & 0xFF);
-		id = (UINT16)((encodedData >> 16) & 0xFFFF);
+		schema.isArray = (encodedData & 0x02) != 0;
+		schema.id = (UINT16)((encodedData >> 16) & 0xFFFF);
+
+		bool extended = (encodedData & 0x80) != 0;
+		if (!extended)
+			schema.size = (UINT8)((encodedData >> 8) & 0xFF);
+		else
+			schema.fieldTypeId = (UINT8)((encodedData >> 12) & 0xF);
+
+		return schema;
 	}
 
 	UINT8 BinarySerializer::encodeFieldTerminator()
 	{
 		// See the documentation for encodeFieldMetaData() on why we're using this format
 		return 0x40;
+	}
+
+	void BinarySerializer::skipBuiltinType(UINT32 fieldType, BufferedBitstreamReader& stream, bool compressed)
+	{
+		switch(fieldType)
+		{
+		case TID_Bool:
+		{
+			bool data;
+			stream.preload(sizeof(data));
+			RTTIPlainType<bool>::fromMemory(data, stream.getBitstream(), RTTIFieldInfo(), compressed);
+			break;
+		}
+		case TID_Int32:
+		{
+			int32_t data;
+			stream.preload(sizeof(data));
+			RTTIPlainType<int32_t>::fromMemory(data, stream.getBitstream(), RTTIFieldInfo(), compressed);
+			break;
+		}
+		case TID_UInt32:
+		{
+			uint32_t data;
+			stream.preload(sizeof(data));
+			RTTIPlainType<uint32_t>::fromMemory(data, stream.getBitstream(), RTTIFieldInfo(), compressed);
+			break;
+		}
+		default:
+			assert(false);
+			break;
+		}
 	}
 
 	bool BinarySerializer::isFieldTerminator(UINT8 data)

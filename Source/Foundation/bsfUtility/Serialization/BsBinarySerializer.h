@@ -175,12 +175,14 @@ namespace bs
 		static UINT32 encodeFieldMetaData(const RTTIFieldSchema& fieldSchema, bool terminator);
 
 		/** Decode meta field that was encoded using encodeFieldMetaData().*/
-		static void decodeFieldMetaData(UINT32 encodedData, UINT16& id, BitLength& size, bool& array,
-			SerializableFieldType& type, bool& hasDynamicSize, bool& terminator);
+		static RTTIFieldSchema decodeFieldMetaData(UINT32 encodedData, bool& terminator);
 
 		/** Encodes data representing a field terminator into 1 byte. */
 		static UINT8 encodeFieldTerminator();
 
+		/** Skips the builtin type at the current location in the stream. */
+		static void skipBuiltinType(UINT32 fieldType, BufferedBitstreamReader& stream, bool compressed);
+		
 		/** Returns true if the data in the provided byte represents a field terminator as encoded with encodeFieldTerminator(). */
 		static bool isFieldTerminator(UINT8 data);
 

@@ -132,6 +132,116 @@ namespace bs
 		}
 	};
 
+	template<>
+	struct RTTIPlainType<bool>
+	{
+		enum { id = TID_Bool };
+		enum { hasDynamicSize = 0 };
+
+		static BitLength toMemory(const bool& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		{
+			if (!compress)
+				return stream.writeBytes(data);
+			else
+			{
+				uint8_t bit = data ? 1 : 0;
+				stream.writeBits(&bit, 1);
+
+				return BitLength(0, 1);
+			}
+		}
+
+		static BitLength fromMemory(bool& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		{
+			if (!compress)
+				return stream.readBytes(data);
+			else
+			{
+				uint8_t bit = 0;
+				stream.readBits(&bit, 1);
+
+				data = bit;
+				return BitLength(0, 1);
+			}
+		}
+
+		static BitLength getSize(const bool& data, const RTTIFieldInfo& fieldInfo, bool compress)
+		{
+			if (!compress)
+				return sizeof(bool);
+			else
+				return BitLength(0, 1);
+		}
+	};
+
+	template<>
+	struct RTTIPlainType<uint32_t>
+	{
+		enum { id = TID_UInt32 };
+		enum { hasDynamicSize = 0 };
+
+		static BitLength toMemory(const uint32_t& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		{
+			if (!compress)
+				return stream.writeBytes(data);
+			else
+				return stream.writeVarInt(data);
+		}
+
+		static BitLength fromMemory(uint32_t& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		{
+			if (!compress)
+				return stream.readBytes(data);
+			else
+				return stream.readVarInt(data);
+		}
+
+		static BitLength getSize(const uint32_t& data, const RTTIFieldInfo& fieldInfo, bool compress)
+		{
+			if (!compress)
+				return sizeof(bool);
+			else
+			{
+				UINT8 buffer[5];
+				return Bitwise::encodeVarInt(data, buffer);
+			}
+		}
+	};
+
+	template<>
+	struct RTTIPlainType<int32_t>
+	{
+		enum { id = TID_Int32 };
+		enum { hasDynamicSize = 0 };
+
+		static BitLength toMemory(const int32_t& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		{
+			if (!compress)
+				return stream.writeBytes(data);
+			else
+				return stream.writeVarInt(data);
+		}
+
+		static BitLength fromMemory(int32_t& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		{
+			if (!compress)
+				return stream.readBytes(data);
+			else
+				return stream.readVarInt(data);
+		}
+
+		static BitLength getSize(const int32_t& data, const RTTIFieldInfo& fieldInfo, bool compress)
+		{
+			if (!compress)
+				return sizeof(bool);
+			else
+			{
+				UINT8 buffer[5];
+				return Bitwise::encodeVarInt(data, buffer);
+			}
+		}
+	};
+
 	/**
 	 * Helper method when serializing known data types that have valid
 	 * RTTIPlainType specialization.
