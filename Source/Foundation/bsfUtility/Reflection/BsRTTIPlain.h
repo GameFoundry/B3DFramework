@@ -168,7 +168,7 @@ namespace bs
 		static BitLength getSize(const bool& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			if (!compress)
-				return sizeof(bool);
+				return sizeof(data);
 			else
 				return BitLength(0, 1);
 		}
@@ -199,7 +199,7 @@ namespace bs
 		static BitLength getSize(const uint32_t& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			if (!compress)
-				return sizeof(bool);
+				return sizeof(data);
 			else
 			{
 				UINT8 buffer[5];
@@ -233,7 +233,7 @@ namespace bs
 		static BitLength getSize(const int32_t& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			if (!compress)
-				return sizeof(bool);
+				return sizeof(data);
 			else
 			{
 				UINT8 buffer[5];
