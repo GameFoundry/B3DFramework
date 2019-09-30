@@ -248,7 +248,7 @@ namespace bs { namespace ct
 		Camera* getSceneCamera() const { return mCamera; }
 
 		/** Prepares render targets for rendering. When done call endFrame(). */
-		void beginFrame();
+		void beginFrame(const FrameInfo& frameInfo);
 
 		/** Ends rendering and frees any acquired resources. */
 		void endFrame();
@@ -412,7 +412,7 @@ namespace bs { namespace ct
 		UINT32 getViewIdx() const { return mViewIdx; }
 
 		/** Determines if a view should be rendered this frame. */
-		bool shouldDraw() const { return !mProperties.onDemand || mNeedsRedraw; }
+		bool shouldDraw() const;
 
 		/** Determines if view's 3D geometry should be rendered this frame. */
 		bool shouldDraw3D() const { return !mRenderSettings->overlayOnly && shouldDraw(); }
@@ -421,7 +421,7 @@ namespace bs { namespace ct
 		void _setViewIdx(UINT32 viewIdx) { mViewIdx = viewIdx; }
 
 		/** Lets an on-demand view know that it should be redrawn this frame. */
-		void _notifyNeedsRedraw() { mNeedsRedraw = true; }
+		void _notifyNeedsRedraw();
 		
 		/**
 		 * Notifies the view that the render target the compositor is rendering to has changed. Note that this does not
@@ -474,7 +474,14 @@ namespace bs { namespace ct
 		VisibilityInfo mVisibility;
 		LightGrid mLightGrid;
 		UINT32 mViewIdx;
-		bool mNeedsRedraw = false;
+
+		// On-demand drawing
+		float mRedrawForSeconds = 0.0f;
+		UINT32 mRedrawForFrames = 0;
+
+		// Current frame info
+		float mFrameDelta = 0.0f;
+		bool mAsyncAnim = false;
 	};
 
 	/** Contains one or multiple RendererView%s that are in some way related. */

@@ -10,7 +10,8 @@
 #include "BsRendererLight.h"
 #include "BsRendererScene.h"
 #include "BsRenderBeast.h"
-#include <BsRendererDecal.h>
+#include "BsRendererDecal.h"
+#include "Animation/BsAnimationManager.h"
 
 namespace bs { namespace ct
 {
@@ -125,7 +126,7 @@ namespace bs { namespace ct
 		setStateReductionMode(desc.stateReduction);
 	}
 
-	void RendererView::beginFrame()
+	void RendererView::beginFrame(const FrameInfo& frameInfo)
 	{
 		// Check if render target resized and update the view properties accordingly
 		// Note: Normally we rely on the renderer notify* methods to let us know of changes to camera/viewport, but since
@@ -162,6 +163,9 @@ namespace bs { namespace ct
 		Matrix4 NDCToPrevNDC = mProperties.prevViewProjTransform * invViewProj;
 		
 		gPerCameraParamDef.gNDCToPrevNDC.set(mParamBuffer, NDCToPrevNDC);
+
+		mFrameDelta = frameInfo.timeDelta;
+		mAsyncAnim = frameInfo.perFrameData.animation ? frameInfo.perFrameData.animation->async : false;
 	}
 
 	void RendererView::endFrame()
@@ -178,7 +182,38 @@ namespace bs { namespace ct
 		mTransparentQueue->clear();
 		mDecalQueue->clear();
 
-		mNeedsRedraw = false;
+		if (mRedrawForFrames > 0)
+			mRedrawForFrames--;
+
+		if (mRedrawForSeconds > 0.0f)
+			mRedrawForSeconds -= mFrameDelta;
+	}
+
+	void RendererView::_notifyNeedsRedraw()
+	{
+		// If doing async animation there is a one frame delay
+		mRedrawForFrames = mAsyncAnim ? 2 : 1;
+
+		// Account for auto-exposure taking multiple frames
+		if (mRenderSettings->enableAutoExposure)
+		{
+			AutoExposureSettings& aeSettings = mRenderSettings->autoExposure;
+			float maxSpeed = std::max(aeSettings.eyeAdaptationSpeedUp, aeSettings.eyeAdaptationSpeedDown);
+
+			// TODO - We should get feedback from the renderer on when the exposure stabilises, as this number will
+			// be too high for a large majority of cases
+			mRedrawForSeconds = maxSpeed;
+		}
+		else
+			mRedrawForSeconds = 0.0f;
+	}
+
+	bool RendererView::shouldDraw() const
+	{
+		if (!mProperties.onDemand)
+			return true;
+
+		return mRedrawForFrames > 0 || mRedrawForSeconds > 0.0f;
 	}
 
 	void RendererView::determineVisible(const Vector<RendererRenderable*>& renderables, const Vector<CullInfo>& cullInfos,
@@ -680,7 +715,7 @@ namespace bs { namespace ct
 		bool anyViewsNeed3DDrawing = false;
 		for (UINT32 i = 0; i < numViews; i++)
 		{
-			if (mViews[i]->shouldDraw())
+			if (mViews[i]->shouldDraw3D())
 			{
 				anyViewsNeed3DDrawing = true;
 				break;
@@ -710,7 +745,7 @@ namespace bs { namespace ct
 		// Generate render queues per camera
 		for (UINT32 i = 0; i < numViews; i++)
 		{
-			if(mViews[i]->shouldDraw())
+			if(mViews[i]->shouldDraw3D())
 				mViews[i]->queueRenderElements(sceneInfo);
 		}
 
@@ -725,7 +760,7 @@ namespace bs { namespace ct
 
 		for (UINT32 i = 0; i < numViews; i++)
 		{
-			if (!mViews[i]->shouldDraw())
+			if (!mViews[i]->shouldDraw3D())
 				continue;
 
 			mViews[i]->determineVisible(sceneInfo.radialLights, sceneInfo.radialLightWorldBounds, LightType::Radial,
@@ -765,7 +800,7 @@ namespace bs { namespace ct
 		{
 			for (UINT32 i = 0; i < numViews; i++)
 			{
-				if (!mViews[i]->shouldDraw())
+				if (!mViews[i]->shouldDraw3D())
 					continue;
 
 				mViews[i]->updateLightGrid(mVisibleLightData, mVisibleReflProbeData);

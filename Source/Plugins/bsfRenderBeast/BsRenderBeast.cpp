@@ -493,7 +493,7 @@ namespace bs { namespace ct
 
 			if (settings.overlayOnly)
 			{
-				if (renderOverlay(*view))
+				if (renderOverlay(*view, frameInfo))
 					anythingDrawn = true;
 			}
 			else
@@ -520,7 +520,7 @@ namespace bs { namespace ct
 		if(view.getRenderSettings().enableIndirectLighting)
 			mScene->updateLightProbes();
 
-		view.beginFrame();
+		view.beginFrame(frameInfo);
 
 		RenderCompositorNodeInputs inputs(viewGroup, view, sceneInfo, *mCoreOptions, frameInfo, mFeatureSet);
 
@@ -586,12 +586,12 @@ namespace bs { namespace ct
 		gProfilerCPU().endSample("Render view");
 	}
 
-	bool RenderBeast::renderOverlay(RendererView& view)
+	bool RenderBeast::renderOverlay(RendererView& view, const FrameInfo& frameInfo)
 	{
 		gProfilerCPU().beginSample("Render overlay");
 
 		view.getPerViewBuffer()->flushToGPU();
-		view.beginFrame();
+		view.beginFrame(frameInfo);
 
 		auto& viewProps = view.getProperties();
 		const Camera* camera = view.getSceneCamera();

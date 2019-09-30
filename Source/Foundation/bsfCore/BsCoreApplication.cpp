@@ -297,7 +297,7 @@ namespace bs
 
 		// Evaluate animation after scene and plugin updates because the renderer will just now be displaying the
 		// animation we sent on the previous frame, and we want the scene information to match to what is displayed.
-		perFrameData.animation = AnimationManager::instance().update();
+		perFrameData.animation = AnimationManager::instance().update(mStartUpDesc.asyncAnimation);
 		perFrameData.particles = ParticleManager::instance().update(*perFrameData.animation);
 
 		// Send out resource events in case any were loaded/destroyed/modified

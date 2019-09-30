@@ -29,6 +29,14 @@ namespace bs
 		 */
 		bool physicsCooking = true;
 
+		/**
+		 * True if animation should be evaluated at the same time while rendering is happening. This introduces a one
+		 * frame delay to all animations but can result in better performance. If false the animation will be forced
+		 * to finish evaluating before rendering starts, ensuring up-to-date frame but potentially blocking the rendering
+		 * thread from moving forward until the animation finishes.
+		 */
+		bool asyncAnimation = true;
+
 		RENDER_WINDOW_DESC primaryWindowDesc; /**< Describes the window to create during start-up. */
 
 		Vector<String> importers; /**< A list of importer plugins to load. */

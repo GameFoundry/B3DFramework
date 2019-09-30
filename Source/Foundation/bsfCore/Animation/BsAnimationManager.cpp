@@ -163,10 +163,14 @@ namespace bs
 
 		mSwapBuffers = true;
 
+		EvaluatedAnimationData* output;
 		if(!async)
-			return &mAnimData[mPoseWriteBufferIdx];
+			output = &mAnimData[mPoseWriteBufferIdx];
 		else
-			return &mAnimData[mPoseReadBufferIdx];
+			output = &mAnimData[mPoseReadBufferIdx];
+
+		output->async = async;
+		return output;
 	}
 
 	void AnimationManager::evaluateAnimation(AnimationProxy* anim, UINT32& curBoneIdx)

@@ -195,7 +195,7 @@ namespace bs
 		 * 					
 		 * @note	Core thread only.
 		 */
-		bool renderOverlay(RendererView& view);
+		bool renderOverlay(RendererView& view, const FrameInfo& frameInfo);
 
 		/**	Creates data used by the renderer on the core thread. */
 		void initializeCore(const LoadedRendererTextures& rendererTextures);

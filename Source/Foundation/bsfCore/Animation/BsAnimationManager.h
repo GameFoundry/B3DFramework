@@ -48,6 +48,9 @@ namespace bs
 
 		/** Global joint transforms for all skeletons in the scene. */
 		Vector<Matrix4> transforms;
+
+		/** True if the animation is being evaluated asynchronously along with rendering (delayed one frame). */
+		bool async = false;
 	};
 
 	/**
