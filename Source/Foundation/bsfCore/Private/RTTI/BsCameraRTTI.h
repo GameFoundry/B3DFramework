@@ -45,10 +45,25 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(mMSAA, 22)
 			BS_RTTI_MEMBER_REFLPTR(mRenderSettings, 23)
 			BS_RTTI_MEMBER_PLAIN(mMain, 24)
-			BS_RTTI_MEMBER_PLAIN(mCameraFlags, 25)
 		BS_END_RTTI_MEMBERS
+		
+		CameraFlags& getCameraFlags(Camera* obj)
+		{
+			mFlags = obj->getFlags();
 
+			// OnDemand flag is transient and shouldn't be saved
+			// (Primarily because we set it in editor on user's cameras and we don't want that to persist)
+			mFlags.unset(CameraFlag::OnDemand);
+			return mFlags;
+		}
+
+		void setCameraFlags(Camera* obj, CameraFlags& val) { obj->mCameraFlags = val; }
 	public:
+		CameraRTTI()
+		{
+			addPlainField("mCameraFlags", 25, &CameraRTTI::getCameraFlags, &CameraRTTI::setCameraFlags);
+		}
+
 		void onDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{
 			// Note: Since this is a CoreObject I should call initialize() right after deserialization,
@@ -72,6 +87,9 @@ namespace bs
 		{
 			return Camera::createEmpty();
 		}
+
+	private:
+		CameraFlags mFlags;
 	};
 
 	/** @} */
