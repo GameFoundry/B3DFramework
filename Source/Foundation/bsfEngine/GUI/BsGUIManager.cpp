@@ -1820,6 +1820,10 @@ namespace bs
 			auto numQuads = (UINT32)widget->drawGroups.size();
 			if (numQuads > 0)
 			{
+				bool flipUVY = gCaps().conventions.uvYAxis == Conventions::Axis::Up;
+				float uvTop = flipUVY ? 1.0f : 0.0f;
+				float uvBottom = flipUVY ? 0.0f : 1.0f;
+			
 				UINT32 numVertices = numQuads * 4;
 				UINT32 numIndices = numQuads * 6;
 
@@ -1835,28 +1839,33 @@ namespace bs
 				UINT32 quadIdx = 0;
 				for (auto& drawGroup : widget->drawGroups)
 				{
-					*vertexData = Vector2(0, 0);
+					float left = (float)drawGroup.bounds.x;
+					float top = (float)drawGroup.bounds.y;
+					float right = left + drawGroup.bounds.width;
+					float bottom = top + drawGroup.bounds.height;
+					
+					*vertexData = Vector2(left, top);
 					vertexData++;
 					
-					*vertexData = Vector2(0, 0);
+					*vertexData = Vector2(0, uvTop);
 					vertexData++;
 					
-					*vertexData = Vector2((float)drawGroup.bounds.width, 0.0f);
+					*vertexData = Vector2(right, top);
 					vertexData++;
 
-					*vertexData = Vector2(1.0f, 0.0f);
+					*vertexData = Vector2(1.0f, uvTop);
 					vertexData++;
 
-					*vertexData = Vector2(0.0f, (float)drawGroup.bounds.height);
+					*vertexData = Vector2(left, bottom);
 					vertexData++;
 
-					*vertexData = Vector2(0.0f, 1.0f);
+					*vertexData = Vector2(0.0f, uvBottom);
 					vertexData++;
 
-					*vertexData = Vector2((float)drawGroup.bounds.width, (float)drawGroup.bounds.height);
+					*vertexData = Vector2(right, bottom);
 					vertexData++;
 
-					*vertexData = Vector2(1.0f, 1.0f);
+					*vertexData = Vector2(1.0f, uvBottom);
 					vertexData++;
 
 					indices[quadIdx * 6 + 0] = quadIdx * 4 + 0;

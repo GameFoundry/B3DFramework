@@ -840,6 +840,7 @@ namespace bs
 	Rect2I GUIDrawGroups::calculateBounds(GUIDrawGroup& group)
 	{
 		Rect2I bounds = Rect2I();
+		bool boundsSet = false;
 
 		for(auto& entry : group.cachedElements)
 		{
@@ -847,7 +848,13 @@ namespace bs
 				continue;
 			
 			Rect2I elementBounds = entry.element->_getClippedBounds();
-			bounds.encapsulate(elementBounds);
+			if (!boundsSet)
+			{
+				bounds = elementBounds;
+				boundsSet = true;
+			}
+			else
+				bounds.encapsulate(elementBounds);
 		}
 
 		return bounds;
