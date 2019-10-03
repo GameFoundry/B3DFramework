@@ -603,7 +603,7 @@ namespace bs { namespace ct
 			gbuffer.depth = sceneDepthNode->depthTex->texture;
 
 			GpuParticleSimulation::instance().simulate(inputs.scene, inputs.frameInfo.perFrameData.particles,
-				inputs.view.getPerViewBuffer(), gbuffer, inputs.frameInfo.timeDelta);
+				inputs.view.getPerViewBuffer(), gbuffer, inputs.frameInfo.timings.timeDelta);
 		}
 
 		GpuParticleSimulation::instance().sort(inputs.view);
@@ -1742,7 +1742,7 @@ namespace bs { namespace ct
 				eyeAdaptationMat->execute(
 					reducedHistogram->texture,
 					output->renderTexture,
-					inputs.frameInfo.timeDelta,
+					inputs.frameInfo.timings.timeDelta,
 					settings.autoExposure,
 					settings.exposureScale);
 			}
@@ -1756,7 +1756,7 @@ namespace bs { namespace ct
 				setupMat->execute(
 					downsampledScene->texture,
 					luminanceTex->renderTexture,
-					inputs.frameInfo.timeDelta,
+					inputs.frameInfo.timings.timeDelta,
 					settings.autoExposure,
 					settings.exposureScale);
 
@@ -1786,10 +1786,16 @@ namespace bs { namespace ct
 					downsampleInput,
 					prevFrameEyeAdaptation,
 					output->renderTexture,
-					inputs.frameInfo.timeDelta,
+					inputs.frameInfo.timings.timeDelta,
 					settings.autoExposure,
 					settings.exposureScale);
 			}
+
+			const RendererView& view = inputs.view;
+
+			// Notify the view eye adaptation value will change
+			SPtr<CommandBuffer> cb = RenderAPI::instance().getMainCommandBuffer();
+			view._notifyLuminanceUpdated(inputs.frameInfo.timings.frameIdx, cb, output);
 		}
 		else
 		{

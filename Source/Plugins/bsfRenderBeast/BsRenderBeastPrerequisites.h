@@ -55,6 +55,14 @@ namespace bs { namespace ct
 		Full,
 	};
 
+	/** Information about current time and frame index. */
+	struct FrameTimings
+	{
+		float time = 0.0f;
+		float timeDelta = 0.0f;
+		UINT64 frameIdx = 0;
+	};
+
 	/** @} */
 
 	struct RenderBeastOptions;

@@ -12,6 +12,7 @@
 #include "BsRenderBeast.h"
 #include "BsRendererDecal.h"
 #include "Animation/BsAnimationManager.h"
+#include "RenderAPI/BsCommandBuffer.h"
 
 namespace bs { namespace ct
 {
@@ -164,8 +165,18 @@ namespace bs { namespace ct
 		
 		gPerCameraParamDef.gNDCToPrevNDC.set(mParamBuffer, NDCToPrevNDC);
 
-		mFrameDelta = frameInfo.timeDelta;
+		mFrameTimings = frameInfo.timings;
 		mAsyncAnim = frameInfo.perFrameData.animation ? frameInfo.perFrameData.animation->async : false;
+
+		// Account for auto-exposure taking multiple frames
+		if (mRedrawThisFrame)
+		{
+			// Note: Doing this here instead of _notifyNeedsRedraw because we need an up-to-date frame index
+			if (mRenderSettings->enableHDR && mRenderSettings->enableAutoExposure)
+				mWaitingOnAutoExposureFrame = mFrameTimings.frameIdx;
+			else
+				mWaitingOnAutoExposureFrame = std::numeric_limits<UINT64>::max();
+		}
 	}
 
 	void RendererView::endFrame()
@@ -186,26 +197,20 @@ namespace bs { namespace ct
 			mRedrawForFrames--;
 
 		if (mRedrawForSeconds > 0.0f)
-			mRedrawForSeconds -= mFrameDelta;
+			mRedrawForSeconds -= mFrameTimings.timeDelta;
+
+		mRedrawThisFrame = false;
 	}
 
 	void RendererView::_notifyNeedsRedraw()
 	{
+		mRedrawThisFrame = true;
+		
 		// If doing async animation there is a one frame delay
 		mRedrawForFrames = mAsyncAnim ? 2 : 1;
 
-		// Account for auto-exposure taking multiple frames
-		if (mRenderSettings->enableAutoExposure)
-		{
-			AutoExposureSettings& aeSettings = mRenderSettings->autoExposure;
-			float maxSpeed = std::max(aeSettings.eyeAdaptationSpeedUp, aeSettings.eyeAdaptationSpeedDown);
-
-			// TODO - We should get feedback from the renderer on when the exposure stabilises, as this number will
-			// be too high for a large majority of cases
-			mRedrawForSeconds = maxSpeed;
-		}
-		else
-			mRedrawForSeconds = 0.0f;
+		// This will be set once we get the new luminance data from the GPU
+		mRedrawForSeconds = 0.0f;
 	}
 
 	bool RendererView::shouldDraw() const
@@ -213,7 +218,69 @@ namespace bs { namespace ct
 		if (!mProperties.onDemand)
 			return true;
 
+		if(mRenderSettings->enableHDR && mRenderSettings->enableAutoExposure)
+		{
+			constexpr float AUTO_EXPOSURE_TOLERANCE = 0.01f;
+			
+			// The view was redrawn but we still haven't received the eye adaptation results from the GPU, so
+			// we keep redrawing until we do
+			if (mWaitingOnAutoExposureFrame != std::numeric_limits<UINT64>::max())
+				return true;
+			
+			// Need to render until the auto-exposure reaches the target exposure
+			float eyeAdaptationDiff = Math::abs(mCurrentEyeAdaptation - mPreviousEyeAdaptation);
+			if (eyeAdaptationDiff > AUTO_EXPOSURE_TOLERANCE)
+				return true;
+		}
+
 		return mRedrawForFrames > 0 || mRedrawForSeconds > 0.0f;
+	}
+
+	void RendererView::updateAsyncOperations()
+	{
+		// Find most recent available frame
+		auto lastFinishedIter = mLuminanceUpdates.end();
+		for(auto iter = mLuminanceUpdates.begin(); iter != mLuminanceUpdates.end(); ++iter)
+		{
+			if (iter->commandBuffer->getState() == CommandBufferState::Executing)
+				break;
+
+			lastFinishedIter = iter;
+		}
+
+		if (lastFinishedIter != mLuminanceUpdates.end())
+		{
+			// Get new luminance value
+			mPreviousEyeAdaptation = mCurrentEyeAdaptation;
+
+			PixelData data = lastFinishedIter->outputTexture->texture->lock(GBL_READ_ONLY);
+			mCurrentEyeAdaptation = data.getColorAt(0, 0).r;
+			lastFinishedIter->outputTexture->texture->unlock();
+
+			// We've received information about eye adaptation, use that to determine if redrawing
+			// is required (technically we're drawing a few frames extra, as this information is always
+			// a few frames too late).
+			if (lastFinishedIter->frameIdx == mWaitingOnAutoExposureFrame)
+				mWaitingOnAutoExposureFrame = std::numeric_limits<UINT64>::max();
+
+			mLuminanceUpdates.erase(mLuminanceUpdates.begin(), lastFinishedIter + 1);
+		}
+	}
+	
+	RendererViewRedrawReason RendererView::getRedrawReason() const
+	{
+		if (!mProperties.onDemand)
+			return RendererViewRedrawReason::PerFrame;
+
+		if (mRedrawThisFrame)
+			return RendererViewRedrawReason::OnDemandThisFrame;
+
+		return RendererViewRedrawReason::OnDemandLingering;
+	}
+
+	void RendererView::_notifyLuminanceUpdated(UINT64 frameIdx, SPtr<CommandBuffer> cb, SPtr<PooledRenderTexture> texture) const
+	{
+		mLuminanceUpdates.emplace_back(frameIdx, cb, texture);
 	}
 
 	void RendererView::determineVisible(const Vector<RendererRenderable*>& renderables, const Vector<CullInfo>& cullInfos,

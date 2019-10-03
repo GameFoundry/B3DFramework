@@ -486,6 +486,8 @@ namespace bs { namespace ct
 		for (UINT32 i = 0; i < numViews; i++)
 		{
 			RendererView* view = viewGroup.getView(i);
+			view->updateAsyncOperations();
+			
 			auto viewId = (UINT64)view;
 			const RendererViewTargetData& viewTarget = view->getProperties().target;
 			String title = StringUtil::format("({0} x {1})", viewTarget.targetWidth, viewTarget.targetHeight);

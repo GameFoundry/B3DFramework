@@ -21,23 +21,14 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Information about current time and frame index. */
-	struct FrameTimings
-	{
-		float time;
-		float timeDelta;
-		UINT64 frameIdx;
-	};
-
 	/** Contains information global to an entire frame. */
 	struct FrameInfo
 	{
 		FrameInfo(const FrameTimings& timings, PerFrameData perFrameData)
-			:timeDelta(timings.timeDelta), frameIdx(timings.frameIdx), perFrameData(perFrameData)
+			:timings(timings), perFrameData(perFrameData)
 		{ }
 
-		float timeDelta;
-		UINT64 frameIdx;
+		FrameTimings timings;
 		PerFrameData perFrameData;
 	};
 

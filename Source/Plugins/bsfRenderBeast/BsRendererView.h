@@ -10,7 +10,6 @@
 #include "Math/BsConvexVolume.h"
 #include "Shading/BsLightGrid.h"
 #include "Shading/BsShadowRendering.h"
-#include "BsRendererView.h"
 #include "BsRendererRenderable.h"
 #include "BsRenderCompositor.h"
 #include "BsRendererParticles.h"
@@ -221,6 +220,22 @@ namespace bs { namespace ct
 		Vector<Camera*> cameras;
 	};
 
+	/** Returns the reason why is a RendererView being redrawn. */
+	enum class RendererViewRedrawReason
+	{
+		/** This particular view isn't on-demand and is redrawn every frame. */
+		PerFrame,
+
+		/** Draws on demand and on-demand drawing was triggered this frame. */
+		OnDemandThisFrame,
+
+		/**
+		 * Draws on demand and on-demand drawing was triggered during an earlier frame but a multi-frame effect is
+		 * requiring the view to get redrawn in later frames.
+		 */
+		OnDemandLingering
+	};
+
 	/** Contains information about a single view into the scene, used by the renderer. */
 	class RendererView
 	{
@@ -275,7 +290,7 @@ namespace bs { namespace ct
 		
 		/** Returns the compositor in charge of rendering for this view. */
 		const RenderCompositor& getCompositor() const { return mCompositor; }
-
+		
 		/**
 		 * Populates view render queues by determining visible renderable objects.
 		 *
@@ -417,6 +432,18 @@ namespace bs { namespace ct
 		/** Determines if view's 3D geometry should be rendered this frame. */
 		bool shouldDraw3D() const { return !mRenderSettings->overlayOnly && shouldDraw(); }
 
+		/**
+		 * Determines if any async operations have completed executing and finalizes them. Should be called once
+		 * per frame.
+		 */
+		void updateAsyncOperations();
+
+		/**
+		 * Returns the reason that explains why is the view getting redrawn this frame. Only relevant if shouldDraw() returned
+		 * true previously during the frame.
+		 */
+		RendererViewRedrawReason getRedrawReason() const;
+
 		/** Assigns a view index to the view. To be called by the parent view group when the view is added to it. */
 		void _setViewIdx(UINT32 viewIdx) { mViewIdx = viewIdx; }
 
@@ -431,6 +458,12 @@ namespace bs { namespace ct
 		 */
 		void _notifyCompositorTargetChanged(const SPtr<RenderTarget>& target) const { mContext.currentTarget = target; }
 
+		/**
+		 * Notifies the view that a new average luminance is being calculated on the provided command buffer. The results
+		 * will be read from the provided texture when the command buffer finishes executing.
+		 */
+		void _notifyLuminanceUpdated(UINT64 frameIdx, SPtr<CommandBuffer> cb, SPtr<PooledRenderTexture> texture) const;
+		
 		/**
 		 * Extracts the necessary values from the projection matrix that allow you to transform device Z value (range [0, 1]
 		 * into view Z value.
@@ -457,6 +490,17 @@ namespace bs { namespace ct
 		 */
 		static Vector2 getNDCZToDeviceZ();
 	private:
+		struct LuminanceUpdate
+		{
+			LuminanceUpdate(UINT64 frameIdx, SPtr<CommandBuffer> commandBuffer, const SPtr<PooledRenderTexture>& outputTexture)
+				: frameIdx(frameIdx), commandBuffer(std::move(commandBuffer)), outputTexture(std::move(outputTexture))
+			{ }
+
+			UINT64 frameIdx;
+			SPtr<CommandBuffer> commandBuffer;
+			SPtr<PooledRenderTexture> outputTexture;
+		};
+		
 		RendererViewProperties mProperties;
 		mutable RendererViewContext mContext;
 		Camera* mCamera;
@@ -476,11 +520,18 @@ namespace bs { namespace ct
 		UINT32 mViewIdx;
 
 		// On-demand drawing
+		bool mRedrawThisFrame = false;
 		float mRedrawForSeconds = 0.0f;
 		UINT32 mRedrawForFrames = 0;
+		UINT64 mWaitingOnAutoExposureFrame = std::numeric_limits<UINT64>::max();
+		mutable Vector<LuminanceUpdate> mLuminanceUpdates;
+
+		// Exposure
+		float mPreviousEyeAdaptation = 0.0f;
+		float mCurrentEyeAdaptation = 0.0f;
 
 		// Current frame info
-		float mFrameDelta = 0.0f;
+		FrameTimings mFrameTimings;
 		bool mAsyncAnim = false;
 	};
 
