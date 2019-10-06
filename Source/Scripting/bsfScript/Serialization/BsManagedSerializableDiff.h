@@ -27,7 +27,7 @@ namespace bs
 		/**	A base class for all modifications recorded in a diff. */
 		struct Modification : IReflectable
 		{
-			virtual ~Modification();
+			virtual ~Modification() = default;
 
 			/************************************************************************/
 			/* 								RTTI		                     		*/
@@ -44,7 +44,7 @@ namespace bs
 		 */
 		struct ModifiedField : IReflectable
 		{
-			ModifiedField() { }
+			ModifiedField() = default;
 			ModifiedField(const SPtr<ManagedSerializableTypeInfo>& parentType,
 				const SPtr<ManagedSerializableMemberInfo>& fieldType, const SPtr<Modification>& modification);
 
@@ -64,7 +64,7 @@ namespace bs
 		/**	Represents a single modified array or list entry. */
 		struct ModifiedArrayEntry : IReflectable
 		{
-			ModifiedArrayEntry() { }
+			ModifiedArrayEntry() = default;
 			ModifiedArrayEntry(UINT32 idx, const SPtr<Modification>& modification);
 
 			UINT32 idx; /**< Index of the array/list entry that is modified. */
@@ -82,7 +82,7 @@ namespace bs
 		/**	Represents a single modified dictionary entry. */
 		struct ModifiedDictionaryEntry : IReflectable
 		{
-			ModifiedDictionaryEntry() { }
+			ModifiedDictionaryEntry() = default;
 			ModifiedDictionaryEntry(const SPtr<ManagedSerializableFieldData>& key, const SPtr<Modification>& modification);
 
 			SPtr<ManagedSerializableFieldData> key; /**< Serialized value of the key for the modified entry. */
@@ -156,7 +156,7 @@ namespace bs
 		/** Contains data about modification of a primitive field (field's new value). */
 		struct ModifiedEntry : Modification
 		{
-			ModifiedEntry() { }
+			ModifiedEntry() = default;
 			ModifiedEntry(const SPtr<ManagedSerializableFieldData>& value);
 
 			static SPtr<ModifiedEntry> create(const SPtr<ManagedSerializableFieldData>& value);
@@ -174,7 +174,7 @@ namespace bs
 
 	public:
 		ManagedSerializableDiff();
-		~ManagedSerializableDiff();
+		~ManagedSerializableDiff() = default;
 
 		/**
 		 * Generates a new managed diff object by comparing two objects of the same type. Callers must ensure both objects
@@ -185,7 +185,7 @@ namespace bs
 		 *						recorded in the diff.
 		 * @return				Returns null if objects are identical.
 		 */
-		static SPtr<ManagedSerializableDiff> create(const SPtr<ManagedSerializableObject>& oldObj, const SPtr<ManagedSerializableObject>& newObj);
+		static SPtr<ManagedSerializableDiff> create(const ManagedSerializableObject* oldObj, const ManagedSerializableObject* newObj);
 
 		/**
 		 * Applies the diff data stored in this object to the specified object, modifying all fields in the object to
@@ -197,7 +197,7 @@ namespace bs
 		/**
 		 * Recursively generates a diff between all fields of the specified objects. Returns null if objects are identical.
 		 */
-		SPtr<ModifiedObject> generateDiff(const SPtr<ManagedSerializableObject>& oldObj, const SPtr<ManagedSerializableObject>& newObj);
+		SPtr<ModifiedObject> generateDiff(const ManagedSerializableObject* oldObj, const ManagedSerializableObject* newObj);
 
 		/**
 		 * Generates a diff between two fields. Fields can be of any type and the system will generate the diff

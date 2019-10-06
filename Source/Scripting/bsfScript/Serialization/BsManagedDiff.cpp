@@ -10,18 +10,45 @@
 
 namespace bs
 {
-	SPtr<SerializedObject> ManagedDiff::generateDiff(const SPtr<SerializedObject>& orgSerzObj,
-		const SPtr<SerializedObject>& newSerzObj, ObjectMap& objectMap)
+	SPtr<SerializedObject> ManagedDiff::_generateDiff(IReflectable* orgObj,
+		IReflectable* newObj, ObjectMap& objectMap, bool reflectableOnly)
 	{
 		CoreSerializationContext context;
 		context.goState = bs_shared_ptr_new<GameObjectDeserializationState>(GODM_UseOriginalIds | GODM_RestoreExternal);
 
-		const auto orgObj = std::static_pointer_cast<ManagedSerializableObject>(orgSerzObj->decode(&context));
-		const auto newObj = std::static_pointer_cast<ManagedSerializableObject>(newSerzObj->decode(&context));
+		ManagedSerializableObject* orgManSerzObj;
+		SPtr<ManagedSerializableObject> orgDecodedObject;
+		if (orgObj->getTypeId() == TID_SerializedObject)
+		{
+			auto* orgSerzObj = static_cast<SerializedObject*>(orgObj);
+			orgDecodedObject = std::static_pointer_cast<ManagedSerializableObject>(orgSerzObj->decode(&context));
+
+			orgManSerzObj = orgDecodedObject.get();
+		}
+		else
+		{
+			assert(orgObj->getTypeId() == TID_ScriptSerializableObject);
+			orgManSerzObj = static_cast<ManagedSerializableObject*>(orgObj);
+		}
+
+		ManagedSerializableObject* newManSerzObj;
+		SPtr<ManagedSerializableObject> newDecodedObject;
+		if (newObj->getTypeId() == TID_SerializedObject)
+		{
+			auto* newSerzObj = static_cast<SerializedObject*>(newObj);
+			newDecodedObject = std::static_pointer_cast<ManagedSerializableObject>(newSerzObj->decode(&context));
+
+			newManSerzObj = newDecodedObject.get();
+		}
+		else
+		{
+			assert(newObj->getTypeId() == TID_ScriptSerializableObject);
+			newManSerzObj = static_cast<ManagedSerializableObject*>(newObj);
+		}
 
 		context.goState->resolve();
 
-		SPtr<ManagedSerializableDiff> diff = ManagedSerializableDiff::create(orgObj, newObj);
+		SPtr<ManagedSerializableDiff> diff = ManagedSerializableDiff::create(orgManSerzObj, newManSerzObj);
 		if (diff == nullptr)
 			return nullptr;
 

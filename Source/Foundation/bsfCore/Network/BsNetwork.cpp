@@ -7,7 +7,6 @@
 #include "Allocators/BsPoolAlloc.h"
 #include "Serialization/BsSerializedObject.h"
 #include "Serialization/BsBinarySerializer.h"
-#include "Serialization/BsMemorySerializer.h"
 #include "FileSystem/BsDataStream.h"
 #include "Math/BsMath.h"
 #include "Serialization/BsBinaryDiff.h"
@@ -670,8 +669,8 @@ namespace bs
 
 		char* data = (char*)mInputStream->getCurrentPtr();
 		UINT32 offset = 0;
-		data = rttiReadElem(type, data, offset);
-		data = rttiReadElem(uuid, data, offset);
+		data = rtti_read(type, data, offset);
+		data = rtti_read(uuid, data, offset);
 
 		mInputStream->skip(offset);
 

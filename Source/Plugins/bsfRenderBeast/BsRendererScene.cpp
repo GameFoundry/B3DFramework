@@ -1210,7 +1210,6 @@ namespace bs {	namespace ct
 					{
 						target.cameras.erase(iterCam);
 						rtChanged = 1;
-						
 					}
 					else
 					{
@@ -1218,7 +1217,6 @@ namespace bs {	namespace ct
 						{
 							target.cameras.erase(iterCam);
 							rtChanged = 2;
-
 						}
 						else
 							rtChanged = 1;

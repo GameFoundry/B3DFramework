@@ -215,6 +215,7 @@ set(BS_UTILITY_SRC_SERIALIZATION
 	"bsfUtility/Serialization/BsSerializedObject.cpp"
 	"bsfUtility/Serialization/BsBinaryCloner.cpp"
 	"bsfUtility/Serialization/BsBinaryCompare.cpp"
+	"bsfUtility/Serialization/BsIntermediateSerializer.cpp"
 )
 
 set(BS_UTILITY_INC_MATH
@@ -260,6 +261,7 @@ set(BS_UTILITY_INC_SERIALIZATION
 	"bsfUtility/Serialization/BsSerializedObject.h"
 	"bsfUtility/Serialization/BsBinaryCloner.h"
 	"bsfUtility/Serialization/BsBinaryCompare.h"
+	"bsfUtility/Serialization/BsIntermediateSerializer.h"
 )
 
 set(BS_UTILITY_SRC_STRING
