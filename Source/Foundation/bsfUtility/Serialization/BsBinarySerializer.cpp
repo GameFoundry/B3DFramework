@@ -1014,9 +1014,10 @@ namespace bs
 		//// B - Built-in type ID
 
 		bool isBuiltin = schema.getTypeId() < 16;
+		UINT32 sizeBytes = schema.hasDynamicSize ? 0 : schema.size.bytes;
 
 		if(!isBuiltin)
-			return (schema.id << 16 | schema.size.bytes << 8 |
+			return (schema.id << 16 | sizeBytes << 8 |
 				(schema.isArray ? 0x02 : 0) |
 				((schema.type == SerializableFT_DataBlock) ? 0x04 : 0) |
 				((schema.type == SerializableFT_Reflectable) ? 0x08 : 0) |
