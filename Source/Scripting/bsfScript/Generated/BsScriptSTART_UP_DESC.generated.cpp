@@ -46,6 +46,7 @@ namespace bs
 		tmpinput = MonoUtil::monoToString(value.input);
 		output.input = tmpinput;
 		output.physicsCooking = value.physicsCooking;
+		output.asyncAnimation = value.asyncAnimation;
 		RENDER_WINDOW_DESC tmpprimaryWindowDesc;
 		tmpprimaryWindowDesc = ScriptRENDER_WINDOW_DESC::fromInterop(value.primaryWindowDesc);
 		output.primaryWindowDesc = tmpprimaryWindowDesc;
@@ -83,6 +84,7 @@ namespace bs
 		tmpinput = MonoUtil::stringToMono(value.input);
 		output.input = tmpinput;
 		output.physicsCooking = value.physicsCooking;
+		output.asyncAnimation = value.asyncAnimation;
 		__RENDER_WINDOW_DESCInterop tmpprimaryWindowDesc;
 		tmpprimaryWindowDesc = ScriptRENDER_WINDOW_DESC::toInterop(value.primaryWindowDesc);
 		output.primaryWindowDesc = tmpprimaryWindowDesc;

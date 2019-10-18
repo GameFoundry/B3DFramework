@@ -30,6 +30,8 @@
 #include "BsScriptMorphShape.generated.h"
 #include "../../../Foundation/bsfCore/Animation/BsMorphShapes.h"
 #include "BsScriptMorphChannel.generated.h"
+#include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
+#include "BsScriptTemporalAASettings.generated.h"
 #if !BS_IS_BANSHEE3D
 #include "../../../Foundation/bsfCore/Audio/BsAudioClipImportOptions.h"
 #endif
@@ -68,6 +70,10 @@
 #include "BsScriptImportedAnimationEvents.generated.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "BsScriptScreenSpaceReflectionsSettings.generated.h"
+#include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
+#include "BsScriptChromaticAberrationSettings.generated.h"
+#include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
+#include "BsScriptFilmGrainSettings.generated.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "BsScriptShadowSettings.generated.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
@@ -158,6 +164,7 @@ namespace bs
 		ADD_ENTRY(FontBitmap, ScriptFontBitmap)
 		ADD_ENTRY(MorphShape, ScriptMorphShape)
 		ADD_ENTRY(MorphChannel, ScriptMorphChannel)
+		ADD_ENTRY(TemporalAASettings, ScriptTemporalAASettings)
 #if !BS_IS_BANSHEE3D
 		ADD_ENTRY(AudioClipImportOptions, ScriptAudioClipImportOptions)
 #endif
@@ -181,6 +188,8 @@ namespace bs
 		ADD_ENTRY(ImportedAnimationEvents, ScriptImportedAnimationEvents)
 #endif
 		ADD_ENTRY(ScreenSpaceReflectionsSettings, ScriptScreenSpaceReflectionsSettings)
+		ADD_ENTRY(ChromaticAberrationSettings, ScriptChromaticAberrationSettings)
+		ADD_ENTRY(FilmGrainSettings, ScriptFilmGrainSettings)
 		ADD_ENTRY(ShadowSettings, ScriptShadowSettings)
 		ADD_ENTRY(RenderSettings, ScriptRenderSettings)
 		ADD_ENTRY(ParticleForce, ScriptParticleForce)

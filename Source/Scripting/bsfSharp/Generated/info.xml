@@ -220,6 +220,9 @@
 		<field name="physicsCooking" type="bool">
 			<doc>True if physics cooking library should be loaded. Cooking is useful for creating collision meshes during development type, but might be unnecessary in the final application. When turned off you can save on space by not shipping the cooking library.</doc>
 		</field>
+		<field name="asyncAnimation" type="bool">
+			<doc>True if animation should be evaluated at the same time while rendering is happening. This introduces a one frame delay to all animations but can result in better performance. If false the animation will be forced to finish evaluating before rendering starts, ensuring up-to-date frame but potentially blocking the rendering thread from moving forward until the animation finishes.</doc>
+		</field>
 		<field name="primaryWindowDesc" type="RenderWindowDesc">
 			<doc>Describes the window to create during start-up.</doc>
 		</field>
@@ -334,6 +337,15 @@
 			<doc>Determines how will particle positions on the shape be generated.</doc>
 		</field>
 	</struct>
+	<enum native="ChromaticAberrationType" script="ChromaticAberrationType">
+		<doc>Types of available chromatic aberration effects.</doc>
+		<enumentry native="Simple" script="Simple">
+			<doc>Simple chromatic aberration effect that is fast to execute.</doc>
+		</enumentry>
+		<enumentry native="Complex" script="Complex">
+			<doc>More complex chromatic aberration effect that takes longer to execute but may yield more visually pleasing results than the simple variant.</doc>
+		</enumentry>
+	</enum>
 	<class native="HString" script="LocString">
 		<doc>String handle. Provides a wrapper around an Unicode string, primarily for localization purposes.
 Actual value for this string is looked up in a global string table based on the provided identifier string and currently active language. If such value doesn&apos;t exist then the identifier is used as is.
@@ -2196,6 +2208,14 @@ Does not account for gravity, you must apply it manually.</doc>
 			<doc>Audio will be slowly streamed from the disk, and decompressed if needed. Uses very little memory, and has either low or high CPU impact depending if the audio is in a compressed format. Since data is streamed from the disk, read speeds could also be a bottleneck.</doc>
 		</enumentry>
 	</enum>
+	<class native="TemporalAASettings" script="TemporalAASettings">
+		<doc>Settings that control temporal anti-aliasing.</doc>
+		<ctor>
+		</ctor>
+		<property name="Enabled" type="bool" getter="getenabled" setter="setenabled" static="false">
+			<doc>Enables or disables temporal anti-aliasing.</doc>
+		</property>
+	</class>
 	<class native="AudioClipImportOptions" script="AudioClipImportOptions">
 		<doc>Contains import options you may use to control how an audio clip is imported.</doc>
 		<ctor>
@@ -3361,6 +3381,66 @@ In range [-1.0f, 1.0f].</doc>
 			<doc>Roughness at which screen space reflections start fading out and become replaced with refl. probes. Valid range is [0, 1]. Default is 0.8.</doc>
 		</property>
 	</class>
+	<class native="CHingeJoint" script="HingeJoint">
+		<doc>Hinge joint removes all but a single rotation degree of freedom from its two attached bodies (for example a door hinge).</doc>
+		<method native="setFlag" script="SetFlag" static="false">
+			<doc>Enables or disables a flag that controls joint behaviour.</doc>
+			<param name="flag" type="HingeJointFlag">
+			</param>
+			<param name="enabled" type="bool">
+			</param>
+		</method>
+		<method native="hasFlag" script="HasFlag" static="false">
+			<doc>Checks is the specified option enabled.</doc>
+			<param name="flag" type="HingeJointFlag">
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<property name="Angle" type="Radian" getter="getAngle" setter="" static="false">
+			<doc>Returns the current angle between the two attached bodes.</doc>
+		</property>
+		<property name="Speed" type="float" getter="getSpeed" setter="" static="false">
+			<doc>Returns the current angular speed of the joint.</doc>
+		</property>
+		<property name="Limit" type="LimitAngularRange" getter="getLimit" setter="setLimit" static="false">
+			<doc>Determines the limit of the joint. Limit constrains the motion to the specified angle range. You must enable the limit flag on the joint in order for this to be recognized.</doc>
+		</property>
+		<property name="Drive" type="HingeJointDrive" getter="getDrive" setter="setDrive" static="false">
+			<doc>Determines the drive properties of the joint. It drives the joint&apos;s angular velocity towards a particular value. You must enable the drive flag on the joint in order for the drive to be active.</doc>
+		</property>
+	</class>
+	<class native="ChromaticAberrationSettings" script="ChromaticAberrationSettings">
+		<doc>Settings that control the chromatic aberration effect.</doc>
+		<ctor>
+		</ctor>
+		<property name="FringeTexture" type="RRef&lt;Texture&gt;" getter="getfringeTexture" setter="setfringeTexture" static="false">
+			<doc>Optional texture to apply to generate the channel shift fringe, allowing you to modulate the shifted colors. This texture should be 3x1 size, where the first pixel modules red, second green and third blue channel. If using the complex aberration effect you can use a larger texture, Nx1 size.</doc>
+		</property>
+		<property name="Enabled" type="bool" getter="getenabled" setter="setenabled" static="false">
+			<doc>Enables or disables the effect.</doc>
+		</property>
+		<property name="Type" type="ChromaticAberrationType" getter="gettype" setter="settype" static="false">
+			<doc>Type of algorithm to use for rendering the effect.</doc>
+		</property>
+		<property name="ShiftAmount" type="float" getter="getshiftAmount" setter="setshiftAmount" static="false">
+			<doc>Determines the brightness of the lens flare effect. Value of 1 means the lens flare will be displayed at the same intensity as the scene it was derived from. In range [0, 1], default being 0.05.</doc>
+		</property>
+	</class>
+	<class native="FilmGrainSettings" script="FilmGrainSettings">
+		<doc>Settings that control the film grain effect. Film grains adds a time-varying noise effect over the entire image.</doc>
+		<ctor>
+		</ctor>
+		<property name="Enabled" type="bool" getter="getenabled" setter="setenabled" static="false">
+			<doc>Enables or disables the effect.</doc>
+		</property>
+		<property name="Intensity" type="float" getter="getintensity" setter="setintensity" static="false">
+			<doc>Controls how intense are the displayed film grains.</doc>
+		</property>
+		<property name="Speed" type="float" getter="getspeed" setter="setspeed" static="false">
+			<doc>Controls at what speed do the film grains change.</doc>
+		</property>
+	</class>
 	<class native="ShadowSettings" script="ShadowSettings">
 		<doc>Various options that control shadow rendering for a specific view.</doc>
 		<ctor>
@@ -3384,6 +3464,9 @@ In range [-1.0f, 1.0f].</doc>
 		</ctor>
 		<property name="DepthOfField" type="DepthOfFieldSettings" getter="getdepthOfField" setter="setdepthOfField" static="false">
 			<doc>Parameters used for customizing the gaussian depth of field effect.</doc>
+		</property>
+		<property name="ChromaticAberration" type="ChromaticAberrationSettings" getter="getchromaticAberration" setter="setchromaticAberration" static="false">
+			<doc>Parameters used for customizing the chromatic aberration effect.</doc>
 		</property>
 		<property name="EnableAutoExposure" type="bool" getter="getenableAutoExposure" setter="setenableAutoExposure" static="false">
 			<doc>Determines should automatic exposure be applied to the HDR image. When turned on the average scene brightness will be calculated and used to automatically expose the image to the optimal range. Use the parameters provided by autoExposure to customize the automatic exposure effect. You may also use exposureScale to manually adjust the automatic exposure. When automatic exposure is turned off you can use exposureScale to manually set the exposure.</doc>
@@ -3416,8 +3499,14 @@ If this is disabled, then color grading and white balancing will not be enabled 
 		<property name="ScreenSpaceLensFlare" type="ScreenSpaceLensFlareSettings" getter="getscreenSpaceLensFlare" setter="setscreenSpaceLensFlare" static="false">
 			<doc>Parameters used for customizing the screen space lens flare effect.</doc>
 		</property>
+		<property name="FilmGrain" type="FilmGrainSettings" getter="getfilmGrain" setter="setfilmGrain" static="false">
+			<doc>Parameters used for customizing the film grain effect.</doc>
+		</property>
 		<property name="MotionBlur" type="MotionBlurSettings" getter="getmotionBlur" setter="setmotionBlur" static="false">
 			<doc>Parameters used for customizing the motion blur effect.</doc>
+		</property>
+		<property name="TemporalAA" type="TemporalAASettings" getter="gettemporalAA" setter="settemporalAA" static="false">
+			<doc>Parameters used for customizing the temporal anti-aliasing effect.</doc>
 		</property>
 		<property name="EnableFXAA" type="bool" getter="getenableFXAA" setter="setenableFXAA" static="false">
 			<doc>Enables the fast approximate anti-aliasing effect.</doc>
@@ -3436,6 +3525,9 @@ If this is disabled, then color grading and white balancing will not be enabled 
 		</property>
 		<property name="EnableShadows" type="bool" getter="getenableShadows" setter="setenableShadows" static="false">
 			<doc>Determines if shadows cast by lights should be rendered. Only relevant if lighting is turned on.</doc>
+		</property>
+		<property name="EnableVelocityBuffer" type="bool" getter="getenableVelocityBuffer" setter="setenableVelocityBuffer" static="false">
+			<doc>Determines if the G-Buffer should contain per-pixel velocity information. This can be useful if you are rendering an effect that requires this information. Note that effects such as motion blur or temporal anti-aliasing might force the velocity buffer to be enabled regardless of this setting.</doc>
 		</property>
 		<property name="ShadowSettings" type="ShadowSettings" getter="getshadowSettings" setter="setshadowSettings" static="false">
 			<doc>Parameters used for customizing shadow rendering.</doc>
@@ -4207,35 +4299,6 @@ Angular degrees of freedom are partitioned as twist (around X axis) and swing (a
 			<doc>If the joint is moving faster than the drive&apos;s target speed, the drive will try to break. If you don&apos;t want the breaking to happen set this to true.</doc>
 		</field>
 	</struct>
-	<class native="CHingeJoint" script="HingeJoint">
-		<doc>Hinge joint removes all but a single rotation degree of freedom from its two attached bodies (for example a door hinge).</doc>
-		<method native="setFlag" script="SetFlag" static="false">
-			<doc>Enables or disables a flag that controls joint behaviour.</doc>
-			<param name="flag" type="HingeJointFlag">
-			</param>
-			<param name="enabled" type="bool">
-			</param>
-		</method>
-		<method native="hasFlag" script="HasFlag" static="false">
-			<doc>Checks is the specified option enabled.</doc>
-			<param name="flag" type="HingeJointFlag">
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<property name="Angle" type="Radian" getter="getAngle" setter="" static="false">
-			<doc>Returns the current angle between the two attached bodes.</doc>
-		</property>
-		<property name="Speed" type="float" getter="getSpeed" setter="" static="false">
-			<doc>Returns the current angular speed of the joint.</doc>
-		</property>
-		<property name="Limit" type="LimitAngularRange" getter="getLimit" setter="setLimit" static="false">
-			<doc>Determines the limit of the joint. Limit constrains the motion to the specified angle range. You must enable the limit flag on the joint in order for this to be recognized.</doc>
-		</property>
-		<property name="Drive" type="HingeJointDrive" getter="getDrive" setter="setDrive" static="false">
-			<doc>Determines the drive properties of the joint. It drives the joint&apos;s angular velocity towards a particular value. You must enable the drive flag on the joint in order for the drive to be active.</doc>
-		</property>
-	</class>
 	<class native="CLight" script="Light">
 		<doc>Illuminates a portion of the scene covered by the light.</doc>
 		<property name="Type" type="LightType" getter="getType" setter="setType" static="false">
@@ -5601,6 +5664,9 @@ The particle system requires you to specify at least one ParticleEmitter, which 
 		<property name="CullDistance" type="float" getter="getCullDistanceFactor" setter="setCullDistanceFactor" static="false">
 			<doc>Factor to be applied to the cull distance set in the camera&apos;s render settings.</doc>
 		</property>
+		<property name="WriteVelocity" type="bool" getter="getWriteVelocity" setter="setWriteVelocity" static="false">
+			<doc>If enabled this renderable will write per-pixel velocity information when rendered. This is required for effects such as temporal anti-aliasing and motion blur, but comes with a minor performance overhead. If you are not using those effects you can disable this for a performance gain.</doc>
+		</property>
 		<property name="Layers" type="ulong" getter="getLayer" setter="setLayer" static="false">
 			<doc>Determines the layer bitfield that controls whether a renderable is considered visible in a specific camera. Renderable layer must match camera layer in order for the camera to render the component.</doc>
 		</property>
@@ -6703,6 +6769,13 @@ The shape and mass of a rigidbody is governed by its colliders. You must attach 
 			<doc>Removes a parameter with the specified name.</doc>
 			<param name="paramName" type="string">
 			</param>
+		</method>
+		<method native="hasParam" script="HasParam" static="false">
+			<doc>Checks if the variation has a parameter with the specified name.</doc>
+			<param name="paramName" type="string">
+			</param>
+			<returns type="bool">
+			</returns>
 		</method>
 		<method native="clearParams" script="ClearParams" static="false">
 			<doc>Removes all parameters.</doc>

@@ -24,6 +24,7 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_setFloat", (void*)&ScriptShaderVariation::Internal_setFloat);
 		metaData.scriptClass->addInternalCall("Internal_setBool", (void*)&ScriptShaderVariation::Internal_setBool);
 		metaData.scriptClass->addInternalCall("Internal_removeParam", (void*)&ScriptShaderVariation::Internal_removeParam);
+		metaData.scriptClass->addInternalCall("Internal_hasParam", (void*)&ScriptShaderVariation::Internal_hasParam);
 		metaData.scriptClass->addInternalCall("Internal_clearParams", (void*)&ScriptShaderVariation::Internal_clearParams);
 		metaData.scriptClass->addInternalCall("Internal_getParamNames", (void*)&ScriptShaderVariation::Internal_getParamNames);
 
@@ -131,6 +132,19 @@ namespace bs
 		String tmpparamName;
 		tmpparamName = MonoUtil::monoToString(paramName);
 		thisPtr->getInternal()->removeParam(tmpparamName);
+	}
+
+	bool ScriptShaderVariation::Internal_hasParam(ScriptShaderVariation* thisPtr, MonoString* paramName)
+	{
+		bool tmp__output;
+		String tmpparamName;
+		tmpparamName = MonoUtil::monoToString(paramName);
+		tmp__output = thisPtr->getInternal()->hasParam(tmpparamName);
+
+		bool __output;
+		__output = tmp__output;
+
+		return __output;
 	}
 
 	void ScriptShaderVariation::Internal_clearParams(ScriptShaderVariation* thisPtr)

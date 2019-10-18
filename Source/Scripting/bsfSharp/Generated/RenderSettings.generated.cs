@@ -32,6 +32,17 @@ namespace bs
 			set { Internal_setdepthOfField(mCachedPtr, value); }
 		}
 
+		/// <summary>Parameters used for customizing the chromatic aberration effect.</summary>
+		[ShowInInspector]
+		[NotNull]
+		[PassByCopy]
+		[NativeWrapper]
+		public ChromaticAberrationSettings ChromaticAberration
+		{
+			get { return Internal_getchromaticAberration(mCachedPtr); }
+			set { Internal_setchromaticAberration(mCachedPtr, value); }
+		}
+
 		/// <summary>
 		/// Determines should automatic exposure be applied to the HDR image. When turned on the average scene brightness will be 
 		/// calculated and used to automatically expose the image to the optimal range. Use the parameters provided by 
@@ -155,6 +166,17 @@ namespace bs
 			set { Internal_setscreenSpaceLensFlare(mCachedPtr, value); }
 		}
 
+		/// <summary>Parameters used for customizing the film grain effect.</summary>
+		[ShowInInspector]
+		[NotNull]
+		[PassByCopy]
+		[NativeWrapper]
+		public FilmGrainSettings FilmGrain
+		{
+			get { return Internal_getfilmGrain(mCachedPtr); }
+			set { Internal_setfilmGrain(mCachedPtr, value); }
+		}
+
 		/// <summary>Parameters used for customizing the motion blur effect.</summary>
 		[ShowInInspector]
 		[NotNull]
@@ -164,6 +186,17 @@ namespace bs
 		{
 			get { return Internal_getmotionBlur(mCachedPtr); }
 			set { Internal_setmotionBlur(mCachedPtr, value); }
+		}
+
+		/// <summary>Parameters used for customizing the temporal anti-aliasing effect.</summary>
+		[ShowInInspector]
+		[NotNull]
+		[PassByCopy]
+		[NativeWrapper]
+		public TemporalAASettings TemporalAA
+		{
+			get { return Internal_gettemporalAA(mCachedPtr); }
+			set { Internal_settemporalAA(mCachedPtr, value); }
 		}
 
 		/// <summary>Enables the fast approximate anti-aliasing effect.</summary>
@@ -236,6 +269,19 @@ namespace bs
 			set { Internal_setenableShadows(mCachedPtr, value); }
 		}
 
+		/// <summary>
+		/// Determines if the G-Buffer should contain per-pixel velocity information. This can be useful if you are rendering an 
+		/// effect that requires this information. Note that effects such as motion blur or temporal anti-aliasing might force 
+		/// the velocity buffer to be enabled regardless of this setting.
+		/// </summary>
+		[ShowInInspector]
+		[NativeWrapper]
+		public bool EnableVelocityBuffer
+		{
+			get { return Internal_getenableVelocityBuffer(mCachedPtr); }
+			set { Internal_setenableVelocityBuffer(mCachedPtr, value); }
+		}
+
 		/// <summary>Parameters used for customizing shadow rendering.</summary>
 		[ShowInInspector]
 		[NotNull]
@@ -300,6 +346,10 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setdepthOfField(IntPtr thisPtr, DepthOfFieldSettings value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern ChromaticAberrationSettings Internal_getchromaticAberration(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_setchromaticAberration(IntPtr thisPtr, ChromaticAberrationSettings value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_getenableAutoExposure(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setenableAutoExposure(IntPtr thisPtr, bool value);
@@ -340,9 +390,17 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setscreenSpaceLensFlare(IntPtr thisPtr, ScreenSpaceLensFlareSettings value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern FilmGrainSettings Internal_getfilmGrain(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_setfilmGrain(IntPtr thisPtr, FilmGrainSettings value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern MotionBlurSettings Internal_getmotionBlur(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setmotionBlur(IntPtr thisPtr, MotionBlurSettings value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern TemporalAASettings Internal_gettemporalAA(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_settemporalAA(IntPtr thisPtr, TemporalAASettings value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_getenableFXAA(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -367,6 +425,10 @@ namespace bs
 		private static extern bool Internal_getenableShadows(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setenableShadows(IntPtr thisPtr, bool value);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern bool Internal_getenableVelocityBuffer(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_setenableVelocityBuffer(IntPtr thisPtr, bool value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern ShadowSettings Internal_getshadowSettings(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

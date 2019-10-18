@@ -845,9 +845,8 @@ namespace bs
 	};
 
 	/** Base class used for both sim and core thread variants of ChromaticAberrationSettings. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) ChromaticAberrationSettingsBase
+	struct BS_CORE_EXPORT ChromaticAberrationSettingsBase
 	{
-		BS_SCRIPT_EXPORT()
 		ChromaticAberrationSettingsBase() = default;
 
 		/** Enables or disables the effect. */
@@ -913,7 +912,7 @@ namespace bs
 	namespace ct
 	{
 		/** Core thread variant of ChromaticAberrationSettings. */
-		struct BS_CORE_EXPORT BS_SCRIPT_EXPORT() ChromaticAberrationSettings : TChromaticAberrationSettings<true>
+		struct BS_CORE_EXPORT ChromaticAberrationSettings : TChromaticAberrationSettings<true>
 		{
 			ChromaticAberrationSettings() = default;
 		};

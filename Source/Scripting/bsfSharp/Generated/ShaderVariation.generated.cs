@@ -105,6 +105,12 @@ namespace bs
 			Internal_removeParam(mCachedPtr, paramName);
 		}
 
+		/// <summary>Checks if the variation has a parameter with the specified name.</summary>
+		public bool HasParam(string paramName)
+		{
+			return Internal_hasParam(mCachedPtr, paramName);
+		}
+
 		/// <summary>Removes all parameters.</summary>
 		public void ClearParams()
 		{
@@ -131,6 +137,8 @@ namespace bs
 		private static extern void Internal_setBool(IntPtr thisPtr, string name, bool value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_removeParam(IntPtr thisPtr, string paramName);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern bool Internal_hasParam(IntPtr thisPtr, string paramName);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_clearParams(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

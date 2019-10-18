@@ -29,6 +29,7 @@ namespace bs
 		static void Internal_setFloat(ScriptShaderVariation* thisPtr, MonoString* name, float value);
 		static void Internal_setBool(ScriptShaderVariation* thisPtr, MonoString* name, bool value);
 		static void Internal_removeParam(ScriptShaderVariation* thisPtr, MonoString* paramName);
+		static bool Internal_hasParam(ScriptShaderVariation* thisPtr, MonoString* paramName);
 		static void Internal_clearParams(ScriptShaderVariation* thisPtr);
 		static MonoArray* Internal_getParamNames(ScriptShaderVariation* thisPtr);
 	};

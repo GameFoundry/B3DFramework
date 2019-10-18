@@ -20,6 +20,8 @@
 #include "BsScriptCBone.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCCollider.h"
 #include "BsScriptCCollider.generated.h"
+#include "../../../Foundation/bsfCore/Components/BsCHingeJoint.h"
+#include "BsScriptCHingeJoint.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCCapsuleCollider.h"
 #include "BsScriptCCapsuleCollider.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCJoint.h"
@@ -32,8 +34,6 @@
 #include "BsScriptCDistanceJoint.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCFixedJoint.h"
 #include "BsScriptCFixedJoint.generated.h"
-#include "../../../Foundation/bsfCore/Components/BsCHingeJoint.h"
-#include "BsScriptCHingeJoint.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCLight.h"
 #include "BsScriptCLight.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCLightProbeVolume.h"
@@ -70,13 +70,13 @@ namespace bs
 		ADD_ENTRY(CAudioSource, ScriptCAudioSource)
 		ADD_ENTRY(CBone, ScriptCBone)
 		ADD_ENTRY(CCollider, ScriptCCollider)
+		ADD_ENTRY(CHingeJoint, ScriptCHingeJoint)
 		ADD_ENTRY(CCapsuleCollider, ScriptCCapsuleCollider)
 		ADD_ENTRY(CJoint, ScriptCJoint)
 		ADD_ENTRY(CD6Joint, ScriptCD6Joint)
 		ADD_ENTRY(CDecal, ScriptCDecal)
 		ADD_ENTRY(CDistanceJoint, ScriptCDistanceJoint)
 		ADD_ENTRY(CFixedJoint, ScriptCFixedJoint)
-		ADD_ENTRY(CHingeJoint, ScriptCHingeJoint)
 		ADD_ENTRY(CLight, ScriptCLight)
 		ADD_ENTRY(CLightProbeVolume, ScriptCLightProbeVolume)
 		ADD_ENTRY(CMeshCollider, ScriptCMeshCollider)

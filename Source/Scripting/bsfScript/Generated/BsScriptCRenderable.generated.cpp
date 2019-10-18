@@ -28,6 +28,8 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_getMaterials", (void*)&ScriptCRenderable::Internal_getMaterials);
 		metaData.scriptClass->addInternalCall("Internal_setCullDistanceFactor", (void*)&ScriptCRenderable::Internal_setCullDistanceFactor);
 		metaData.scriptClass->addInternalCall("Internal_getCullDistanceFactor", (void*)&ScriptCRenderable::Internal_getCullDistanceFactor);
+		metaData.scriptClass->addInternalCall("Internal_setWriteVelocity", (void*)&ScriptCRenderable::Internal_setWriteVelocity);
+		metaData.scriptClass->addInternalCall("Internal_getWriteVelocity", (void*)&ScriptCRenderable::Internal_getWriteVelocity);
 		metaData.scriptClass->addInternalCall("Internal_setLayer", (void*)&ScriptCRenderable::Internal_setLayer);
 		metaData.scriptClass->addInternalCall("Internal_getLayer", (void*)&ScriptCRenderable::Internal_getLayer);
 		metaData.scriptClass->addInternalCall("Internal_getBounds", (void*)&ScriptCRenderable::Internal_getBounds);
@@ -150,6 +152,22 @@ namespace bs
 		tmp__output = thisPtr->getHandle()->getCullDistanceFactor();
 
 		float __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	void ScriptCRenderable::Internal_setWriteVelocity(ScriptCRenderable* thisPtr, bool enable)
+	{
+		thisPtr->getHandle()->setWriteVelocity(enable);
+	}
+
+	bool ScriptCRenderable::Internal_getWriteVelocity(ScriptCRenderable* thisPtr)
+	{
+		bool tmp__output;
+		tmp__output = thisPtr->getHandle()->getWriteVelocity();
+
+		bool __output;
 		__output = tmp__output;
 
 		return __output;

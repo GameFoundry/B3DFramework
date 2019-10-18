@@ -19,6 +19,7 @@ namespace bs
 		MonoString* audio;
 		MonoString* input;
 		bool physicsCooking;
+		bool asyncAnimation;
 		__RENDER_WINDOW_DESCInterop primaryWindowDesc;
 		MonoArray* importers;
 	};
