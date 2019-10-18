@@ -329,6 +329,7 @@ namespace bs { namespace ct
 		VkResult result = vkEndCommandBuffer(mCmdBuffer);
 		assert(result == VK_SUCCESS);
 
+		mRenderTarget = nullptr;
 		mState = State::RecordingDone;
 	}
 
