@@ -838,6 +838,32 @@
             "Path": "SpriteCommon.bslinc"
         }
     ],
+    "TemporalFiltering.bsl": [
+        {
+            "Path": "PPBase.bslinc"
+        },
+        {
+            "Path": "TemporalResolve.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        },
+        {
+            "Path": "ColorSpace.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "GBufferInput.bslinc"
+        },
+        {
+            "Path": "PerCameraData.bslinc"
+        },
+        {
+            "Path": "SurfaceData.bslinc"
+        }
+    ],
     "TetrahedraRender.bsl": [
         {
             "Path": "PerCameraData.bslinc"

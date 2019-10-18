@@ -2145,18 +2145,22 @@ namespace bs { namespace ct
 	}
 
 	TemporalResolveParamDef gTemporalResolveParamDef;
-	SSRResolveParamDef gSSRResolveParamDef;
+	TemporalFilteringParamDef gTemporalFilteringParamDef;
 
-	SSRResolveMat::SSRResolveMat()
+	TemporalFilteringMat::TemporalFilteringMat()
 	{
-		mSSRParamBuffer = gSSRResolveParamDef.createBuffer();
+		mParamBuffer = gTemporalFilteringParamDef.createBuffer();
 		mTemporalParamBuffer = gTemporalResolveParamDef.createBuffer();
 
 		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSceneDepth", mSceneDepthTexture);
 		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSceneColor", mSceneColorTexture);
 		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gPrevColor", mPrevColorTexture);
 
-		mParams->setParamBlockBuffer(GPT_FRAGMENT_PROGRAM, "Input", mSSRParamBuffer);
+		mHasVelocityTexture = mVariation.getBool("PER_PIXEL_VELOCITY");
+		if(mHasVelocityTexture)
+			mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gVelocity", mVelocityTexture);
+
+		mParams->setParamBlockBuffer(GPT_FRAGMENT_PROGRAM, "Input", mParamBuffer);
 		mParams->setParamBlockBuffer(GPT_FRAGMENT_PROGRAM, "TemporalInput", mTemporalParamBuffer);
 
 		SAMPLER_STATE_DESC pointSampDesc;
@@ -2192,29 +2196,43 @@ namespace bs { namespace ct
 		}
 	}
 
-	void SSRResolveMat::execute(const RendererView& view, const SPtr<Texture>& prevFrame,
-		const SPtr<Texture>& curFrame, const SPtr<Texture>& sceneDepth, const SPtr<RenderTarget>& destination)
+	void TemporalFilteringMat::execute(const RendererView& view, const SPtr<Texture>& prevFrame,
+		const SPtr<Texture>& curFrame, const SPtr<Texture>& velocity, const SPtr<Texture>& sceneDepth,
+		const SPtr<RenderTarget>& destination)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
-		// Note: This shader should not be called when temporal AA is turned on
-		// Note: This shader doesn't have velocity texture enabled and will only account for camera movement (can be easily
-		//		 enabled when velocity texture is added)
-		//   - WHen added, velocity should use a 16-bit SNORM format
+		SPtr<Texture> velocityTex = velocity;
+		if (!velocityTex)
+			velocityTex = Texture::BLACK;
 
 		mPrevColorTexture.set(prevFrame);
 		mSceneColorTexture.set(curFrame);
 		mSceneDepthTexture.set(sceneDepth);
 
+		if(mHasVelocityTexture)
+			mVelocityTexture.set(velocityTex);
+
 		auto& colorProps = curFrame->getProperties(); // Assuming prev and current frame are the same size
 		auto& depthProps = sceneDepth->getProperties();
 
-		Vector2 colorPixelSize(1.0f / colorProps.getWidth(), 1.0f / colorProps.getHeight());
-		Vector2 depthPixelSize(1.0f / depthProps.getWidth(), 1.0f / depthProps.getHeight());
+		Vector4 colorPixelSize(1.0f / colorProps.getWidth(), 1.0f / colorProps.getHeight(),
+			(float)colorProps.getWidth(), (float)colorProps.getHeight());
+		Vector4 depthPixelSize(1.0f / depthProps.getWidth(), 1.0f / depthProps.getHeight(),
+			(float)depthProps.getWidth(), (float)depthProps.getHeight());
 
-		gSSRResolveParamDef.gSceneColorTexelSize.set(mSSRParamBuffer, colorPixelSize);
-		gSSRResolveParamDef.gSceneDepthTexelSize.set(mSSRParamBuffer, depthPixelSize);
-		gSSRResolveParamDef.gManualExposure.set(mSSRParamBuffer, 1.0f);
+		Vector4 velocityPixelSize(1.0f, 1.0f, 1.0f, 1.0f);
+		if(mHasVelocityTexture)
+		{
+			auto& velocityProps = velocityTex->getProperties();
+			velocityPixelSize = Vector4(1.0f / velocityProps.getWidth(), 1.0f / velocityProps.getHeight(),
+				(float)velocityProps.getWidth(), (float)velocityProps.getHeight());
+		}
+
+		gTemporalFilteringParamDef.gSceneColorTexelSize.set(mParamBuffer, colorPixelSize);
+		gTemporalFilteringParamDef.gSceneDepthTexelSize.set(mParamBuffer, depthPixelSize);
+		gTemporalFilteringParamDef.gVelocityTexelSize.set(mParamBuffer, velocityPixelSize);
+		gTemporalFilteringParamDef.gManualExposure.set(mParamBuffer, 1.0f);
 
 		// Generate samples
 		// Note: Move this code to a more general spot where it can be used by other temporal shaders.
@@ -2311,12 +2329,38 @@ namespace bs { namespace ct
 			gRendererUtility().drawScreenQuad();
 	}
 
-	SSRResolveMat* SSRResolveMat::getVariation(bool msaa)
+	TemporalFilteringMat* TemporalFilteringMat::getVariation(TemporalFilteringType type, bool velocity, bool msaa)
 	{
-		if (msaa)
-			return get(getVariation<true>());
-		else
-			return get(getVariation<false>());
+		switch(type)
+		{
+		default:
+		case TemporalFilteringType::FullScreenAA:
+			if(velocity)
+			{
+				if (msaa)
+					return get(getVariation<TemporalFilteringType::FullScreenAA, true, true>());
+
+				return get(getVariation<TemporalFilteringType::FullScreenAA, true, false>());
+			}
+
+			if (msaa)
+				return get(getVariation<TemporalFilteringType::FullScreenAA, false, true>());
+
+			return get(getVariation<TemporalFilteringType::FullScreenAA, false, false>());
+		case TemporalFilteringType::SSR:
+			if(velocity)
+			{
+				if (msaa)
+					return get(getVariation<TemporalFilteringType::SSR, true, true>());
+
+				return get(getVariation<TemporalFilteringType::SSR, true, false>());
+			}
+
+			if (msaa)
+				return get(getVariation<TemporalFilteringType::SSR, false, true>());
+
+			return get(getVariation<TemporalFilteringType::SSR, false, false>());
+		}
 	}
 
 	EncodeDepthParamDef gEncodeDepthParamDef;

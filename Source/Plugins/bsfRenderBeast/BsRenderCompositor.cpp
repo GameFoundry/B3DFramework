@@ -563,7 +563,7 @@ namespace bs { namespace ct
 		sceneColorTexArray = nullptr;
 	}
 
-	void RCNodeSceneColor::resolveMSAA()
+	void RCNodeSceneColor::msaaTexArrayToTexture()
 	{
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(renderTarget, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
@@ -573,6 +573,8 @@ namespace bs { namespace ct
 
 		TextureArrayToMSAATexture* material = TextureArrayToMSAATexture::get();
 		material->execute(sceneColorTexArray->texture, sceneColorTex->texture);
+
+		sceneColorTexArray = nullptr;
 	}
 
 	void RCNodeSceneColor::swap(RCNodeLightAccumulation* lightAccumNode)
@@ -580,6 +582,13 @@ namespace bs { namespace ct
 		lightAccumNode->lightAccumulationTex.swap(sceneColorTex);
 		lightAccumNode->lightAccumulationTexArray.swap(sceneColorTexArray);
 		lightAccumNode->renderTarget.swap(renderTarget);	
+	}
+
+	void RCNodeSceneColor::setExternalTexture(const SPtr<PooledRenderTexture>& texture)
+	{
+		assert(sceneColorTexArray == nullptr);
+		
+		sceneColorTex = texture;
 	}
 
 	SmallVector<StringID, 4> RCNodeSceneColor::getDependencies(const RendererView& view)
@@ -803,7 +812,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RCNodeLightAccumulation::resolveMSAA()
+	void RCNodeLightAccumulation::msaaTexArrayToTexture()
 	{
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(renderTarget, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
@@ -874,7 +883,7 @@ namespace bs { namespace ct
 				output->lightAccumulationTex->texture, lightAccumTexArray, msaaCoverage);
 
 			if (viewProps.target.numSamples > 1)
-				output->resolveMSAA();
+				output->msaaTexArrayToTexture();
 
 			// If shadows are disabled we handle all lights through tiled deferred so we can exit immediately
 			if (!inputs.view.getRenderSettings().enableShadows)
@@ -1131,7 +1140,7 @@ namespace bs { namespace ct
 			material->execute(inputs.view, inputs.scene, inputs.viewGroup.getVisibleReflProbeData(), iblInputs);
 
 			if(viewProps.target.numSamples > 1)
-				sceneColorNode->resolveMSAA();
+				sceneColorNode->msaaTexArrayToTexture();
 		}
 		else // Standard deferred
 		{
@@ -1864,7 +1873,7 @@ namespace bs { namespace ct
 		const SPtr<Texture>& sceneColor = sceneColorNode->sceneColorTex->texture;
 
 		const bool hdr = settings.enableHDR;
-		const bool msaa = viewProps.target.numSamples > 1;
+		const bool msaa = sceneColor->getProperties().getNumSamples() > 1;
 
 		const bool volumeLUT = inputs.featureSet == RenderBeastFeatureSet::Desktop;
 		bool gammaOnly;
@@ -1990,6 +1999,7 @@ namespace bs { namespace ct
 		combineMat->execute(unfocusedTex->texture, sceneColorNode->sceneColorTex->texture, depth, inputs.view, settings,
 			lightAccumNode->lightAccumulationTex->renderTexture);
 
+		// TODO - This might be incorrect when not supporting tiled deferred? As light accum is the same as scene color
 		sceneColorNode->swap(lightAccumNode);
 	}
 
@@ -2009,6 +2019,100 @@ namespace bs { namespace ct
 		};
 	}
 
+	RCNodeTemporalAA::~RCNodeTemporalAA()
+	{
+		deallocOutputs();
+	}
+
+	void RCNodeTemporalAA::render(const RenderCompositorNodeInputs& inputs)
+	{
+		auto* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[1]);
+		SPtr<PooledRenderTexture> sceneColor = sceneColorNode->sceneColorTex;
+
+		const TemporalAASettings& settings = inputs.view.getRenderSettings().temporalAA;
+		if (!settings.enabled)
+		{
+			deallocOutputs();
+
+			mPooledOutput = nullptr;
+			output = sceneColor->texture;
+			return;
+		}
+
+		RenderAPI& rapi = RenderAPI::instance();
+
+		// TODO - Resolve scene color MSAA (in a way that can be shared by multiple effects)
+
+		auto* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[2]);
+		auto* basePassNode = static_cast<RCNodeBasePass*>(inputs.inputNodes[3]);
+
+		GpuResourcePool& resPool = gGpuResourcePool();
+		const RendererViewProperties& viewProps = inputs.view.getProperties();
+
+		UINT32 width = viewProps.target.viewRect.width;
+		UINT32 height = viewProps.target.viewRect.height;
+
+		// Resolve multiple samples if MSAA is used
+		SPtr<PooledRenderTexture> resolvedSceneColor;
+		if (viewProps.target.numSamples > 1)
+		{
+			resolvedSceneColor = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width, height,
+				TU_RENDERTARGET));
+
+			rapi.setRenderTarget(resolvedSceneColor->renderTexture);
+			gRendererUtility().blit(sceneColor->texture);
+
+			sceneColor = resolvedSceneColor;
+		}
+
+		if (mPrevFrame)
+		{
+			mPooledOutput = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
+
+			rapi.setRenderTarget(mPooledOutput->renderTexture);
+			rapi.clearRenderTarget(FBT_COLOR);
+
+			SPtr<Texture> velocityTex;
+			if (basePassNode->velocityTex)
+				velocityTex = basePassNode->velocityTex->texture;
+
+			TemporalFilteringMat* temporalFilteringMat =
+				TemporalFilteringMat::getVariation(TemporalFilteringType::FullScreenAA, true, viewProps.target.numSamples > 1);
+			temporalFilteringMat->execute(inputs.view, mPrevFrame->texture, sceneColor->texture, velocityTex,
+				sceneDepthNode->depthTex->texture, mPooledOutput->renderTexture);
+
+			sceneColorNode->setExternalTexture(mPooledOutput);
+		}
+		else
+			mPooledOutput = sceneColor;
+
+		RenderAPI::instance().setRenderTarget(nullptr);
+		output = mPooledOutput->texture;
+	}
+
+	void RCNodeTemporalAA::clear()
+	{
+		mPrevFrame = mPooledOutput;
+		mPooledOutput = nullptr;
+		output = nullptr;
+	}
+
+	void RCNodeTemporalAA::deallocOutputs()
+	{
+		mPrevFrame = nullptr;
+		output = nullptr;
+	}
+
+	SmallVector<StringID, 4> RCNodeTemporalAA::getDependencies(const RendererView& view)
+	{
+		return
+		{
+			RCNodeBokehDOF::getNodeId(),
+			RCNodeSceneColor::getNodeId(),
+			RCNodeSceneDepth::getNodeId(),
+			RCNodeBasePass::getNodeId()
+		};
+	}
 
 	void RCNodeMotionBlur::render(const RenderCompositorNodeInputs& inputs)
 	{
@@ -2043,7 +2147,7 @@ namespace bs { namespace ct
 	{
 		return
 		{
-			RCNodeBokehDOF::getNodeId(),
+			RCNodeTemporalAA::getNodeId(),
 			RCNodeSceneColor::getNodeId(),
 			RCNodeSceneDepth::getNodeId(),
 			RCNodeLightAccumulation::getNodeId()
@@ -2666,16 +2770,18 @@ namespace bs { namespace ct
 
 		resolvedSceneColor = nullptr;
 
-		if (mPrevFrame)
+		mUsingTemporalAA = inputs.view.getRenderSettings().temporalAA.enabled;
+		if (mPrevFrame && !mUsingTemporalAA)
 		{
 			mPooledOutput = resPool.get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
 
 			rapi.setRenderTarget(mPooledOutput->renderTexture);
 			rapi.clearRenderTarget(FBT_COLOR);
 
-			SSRResolveMat* resolveMat = SSRResolveMat::getVariation(viewProps.target.numSamples > 1);
-			resolveMat->execute(inputs.view, mPrevFrame->texture, traceOutput->texture, sceneDepthNode->depthTex->texture,
-				mPooledOutput->renderTexture);
+			TemporalFilteringMat* temporalFilteringMat =
+				TemporalFilteringMat::getVariation(TemporalFilteringType::SSR, false, viewProps.target.numSamples > 1);
+			temporalFilteringMat->execute(inputs.view, mPrevFrame->texture, traceOutput->texture, nullptr,
+				sceneDepthNode->depthTex->texture, mPooledOutput->renderTexture);
 
 			traceOutput = nullptr;
 		}
@@ -2688,7 +2794,9 @@ namespace bs { namespace ct
 
 	void RCNodeSSR::clear()
 	{
-		mPrevFrame = mPooledOutput;
+		if(!mUsingTemporalAA)
+			mPrevFrame = mPooledOutput;
+
 		mPooledOutput = nullptr;
 		output = nullptr;
 	}

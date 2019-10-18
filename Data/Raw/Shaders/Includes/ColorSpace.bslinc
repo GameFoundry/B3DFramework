@@ -19,7 +19,7 @@ mixin ColorSpace
 		/**
 		 * Converts a color in YCoCg color space into RGB color space.
 		 */
-		float3 YCoCg(float3 input)
+		float3 YCoCgToRGB(float3 input)
 		{
 			float R = input.r + input.g - input.b;
 			float G = input.r + input.b;

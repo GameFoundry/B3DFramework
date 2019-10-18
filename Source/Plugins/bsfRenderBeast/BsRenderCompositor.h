@@ -247,7 +247,13 @@ namespace ct
 		SPtr<RenderTexture> renderTarget;
 
 		/** Converts MSAA data from the texture array into the MSAA texture. */
-		void resolveMSAA();
+		void msaaTexArrayToTexture();
+
+		/**
+		 * Updates the internal scene color texture with the provided texture. MSAA scene color texture array must have
+		 * been resolved before this call. This will not update the render target.
+		 */
+		void setExternalTexture(const SPtr<PooledRenderTexture>& texture);
 
 		/** Swaps the render textures between this node and the light accumulation nodes. */
 		void swap(RCNodeLightAccumulation* lightAccumNode);
@@ -339,7 +345,7 @@ namespace ct
 		SPtr<RenderTexture> renderTarget;
 
 		/** Converts MSAA data from the texture array into the MSAA texture. */
-		void resolveMSAA();
+		void msaaTexArrayToTexture();
 
 		static StringID getNodeId() { return "LightAccumulation"; }
 		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
@@ -701,6 +707,34 @@ namespace ct
 		~RCNodeSSR();
 
 		static StringID getNodeId() { return "SSR"; }
+		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
+	protected:
+		/** @copydoc RenderCompositorNode::render */
+		void render(const RenderCompositorNodeInputs& inputs) override;
+
+		/** @copydoc RenderCompositorNode::clear */
+		void clear() override;
+
+		/** Cleans up any outputs. */
+		void deallocOutputs();
+
+		SPtr<PooledRenderTexture> mPooledOutput;
+		SPtr<PooledRenderTexture> mPrevFrame;
+		bool mUsingTemporalAA = false;
+	};
+
+	/**
+	 * Performs temporal anti-aliasing, using a special filter to accumulate multiple frames and thus
+	 * improving image quality via temporal filtering.
+	 */
+	class RCNodeTemporalAA : public RenderCompositorNode
+	{
+	public:
+		SPtr<Texture> output;
+
+		~RCNodeTemporalAA();
+
+		static StringID getNodeId() { return "TemporalAA"; }
 		static SmallVector<StringID, 4> getDependencies(const RendererView& view);
 	protected:
 		/** @copydoc RenderCompositorNode::render */

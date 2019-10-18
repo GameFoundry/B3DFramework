@@ -54,6 +54,18 @@ mixin TemporalResolve
 			#define TEMPORAL_LOCAL_VELOCITY 1
 		#endif
 		
+		// If enabled the scene color value will be filtered from multiple pixels, instead of just taking the color
+		// of the center pixel. This can yield better results at the cost of more sampling.
+		#ifndef TEMPORAL_FILTER_COLOR
+			#define TEMPORAL_FILTER_COLOR 1
+		#endif
+		
+		// If enabled, the history pixel will be sampled using a catmull-rom curve. Otherwise a single history
+		// sample will be taken.
+		#ifndef TEMPORAL_BICUBIC_HISTORY
+			#define TEMPORAL_BICUBIC_HISTORY 0
+		#endif
+		
 		// When enabled, the resolve operation will be performed in YCoCg color space. This can yield better
 		// results, requires less color samples and no value clipping.
 		#ifndef TEMPORAL_YCOCG
@@ -119,7 +131,7 @@ mixin TemporalResolve
 				#define _TEXCOLOR(n) Texture2DMS<float4> n
 				#define _PTEXCOLOR(n) n
 			#else
-				#define _TEXCOLOR(n) Texture2D n, SamplerState n##SampState, float2 n##TexelSize
+				#define _TEXCOLOR(n) Texture2D n, SamplerState n##SampState, float4 n##TexelSize
 				#define _PTEXCOLOR(n) n, n##SampState, n##TexelSize
 			#endif
 			
@@ -135,14 +147,14 @@ mixin TemporalResolve
 			
 			#define _PIXSIZE(n) int2(1, 1)
 		#else
-			#define _TEX2D(n) Texture2D n, SamplerState n##SampState, float2 n##TexelSize
+			#define _TEX2D(n) Texture2D n, SamplerState n##SampState, float4 n##TexelSize
 			#define _TEXCOLOR(n) _TEX2D(n)
 			#define _PTEX2D(n) n, n##SampState, n##TexelSize
 			#define _PTEXCOLOR(n) n, n##SampState, n##TexelSize
 			#define _SAMPLE(n, uv) n.Sample(n##SampState, uv)
 			#define _SAMPLEOFF(n, uv, offset) n.Sample(n##SampState, uv, offset)
 			#define _SAMPLECOL(n, uv, offset) _SAMPLEOFF(n, uv, offset)
-			#define _PIXSIZE(n) n##TexelSize
+			#define _PIXSIZE(n) n##TexelSize.xy
 		#endif
 		
 		///////////////////////// HELPER FUNCTIONS ////////////////////////
@@ -215,6 +227,34 @@ mixin TemporalResolve
 			float3 tPos = (-extents - origin) * rDir;
 			
 			return saturate(max(max(min(tNeg.x, tPos.x), min(tNeg.y, tPos.y)), min(tNeg.z, tPos.z)));
+		}
+		
+		void catmullRom2D(float2 uv, float2 size, out float2 samples[3], out float2 weights[3])
+		{
+			uv *= size;
+
+			float2 pixelCenter = floor(uv - 0.5f) + 0.5f;
+			float2 f = uv - pixelCenter;
+			float2 f2 = f * f;
+			float2 f3 = f2 * f;
+
+			float2 w0 = f2 - 0.5f * (f3 + f);
+			float2 w1 = 1.5f * f3 - 2.5f * f2 + 1.0f;
+			float2 w3 = 0.5f * (f3 - f2);
+			float2 w2 = 1.0f - w0 - w1 - w3;
+
+			weights[0] = w0;
+			weights[1] = w1 + w2;
+			weights[2] = w3;
+
+			samples[0] = pixelCenter - 1.0f;
+			samples[1] = pixelCenter + w2 / weights[1];
+			samples[2] = pixelCenter + 2.0f;
+		 
+			float2 invSize = 1.0f / size;
+			samples[0] *= invSize;
+			samples[1] *= invSize;
+			samples[2] *= invSize;
 		}
 
 		////////////////////// HELPER TONEMAP/COLOR SPACE DEFINES /////////////////////
@@ -321,7 +361,7 @@ mixin TemporalResolve
 			
 			/////////////// GET FILTERED COLOR VALUE AND NEIGHBORHOOD MIN/MAX /////////////
 			#if MSAA && !MSAA_COLOR
-			float2 uvColor = uv * sceneColorTexelSize;
+			float2 uvColor = uv * sceneColorTexelSize.xy;
 			#else
 			float2 uvColor = uv;
 			#endif
@@ -335,12 +375,18 @@ mixin TemporalResolve
 			neighbor[3] = _SAMPLE_COLOR(sceneColor, uvColor, int2( 1,  0));
 			neighbor[4] = _SAMPLE_COLOR(sceneColor, uvColor, int2( 0,  1));
 			
+			float4 filtered = 0;
+			
+			#if TEMPORAL_FILTER_COLOR
 			// TODO - Do a border check? If offscreen just use the center sample, or
 			// do the border check per-sample
-			float4 filtered = 0;
+			
 			[unroll]
 			for(uint i = 0; i < 5; ++i)
 				filtered += neighbor[i] * gSampleWeights[i];
+			#else // TEMPORAL_FILTER_COLOR
+				filtered = neighbor[2];
+			#endif // TEMPORAL_FILTER_COLOR
 			
 			float4 filteredLow = filtered;
 			
@@ -362,22 +408,30 @@ mixin TemporalResolve
 			neighbor[7] = _SAMPLE_COLOR(sceneColor, uvColor, int2( 0,  1));
 			neighbor[8] = _SAMPLE_COLOR(sceneColor, uvColor, int2( 1,  1));
 			
+			float4 filtered = 0;
+			float4 filteredLow = 0;
+			
+			#if TEMPORAL_FILTER_COLOR
 			// TODO - Do a border check? If offscreen just use the center sample, or
 			// do the border check per-sample
-			float4 filtered = 0;
+			
 			[unroll]
 			for(uint i = 0; i < 9; ++i)
 				filtered += neighbor[i] * gSampleWeights[i];
-
+				
 			#if TEMPORAL_LOWPASS
-				float4 filteredLow = 0;
-				[unroll]
-				for(uint i = 0; i < 9; ++i)
-					filteredLow += neighbor[i] * gSampleWeightsLowpass[i];
-			#else
-				float4 filteredLow = filtered;
+			[unroll]
+			for(uint i = 0; i < 9; ++i)
+				filteredLow += neighbor[i] * gSampleWeightsLowpass[i];
+			#else // TEMPORAL_LOWPASS
+				filteredLow = filtered;
 			#endif // TEMPORAL_LOWPASS
-			
+				
+			#else // TEMPORAL_FILTER_COLOR
+				filtered = neighbor[4];
+				filteredLow = neighbor[4];
+			#endif // TEMPORAL_FILTER_COLOR
+
 			#if TEMPORAL_SMOOTH_NEIGHBORHOOD
 			// Calculate standard deviation and determine neighborhood min/max based on it
 			float4 mean = 0;
@@ -413,9 +467,28 @@ mixin TemporalResolve
 			#endif // TEMPORAL_YCOCG
 			
 			/////////////////// GET PREVIOUS FRAME COLOR ///////////////////////
-			// TODO - Do bicubic sample of history?
-			float4 prevColorVal = _SAMPLE_COLOR(prevColor, prevUV, int2(0, 0));
-			
+			#if TEMPORAL_BICUBIC_HISTORY && !MSAA_COLOR
+				float2 weights[3];
+				float2 samples[3];
+				catmullRom2D(prevUV.xy, prevColorTexelSize.zw, samples, weights);
+
+				float4 prevColorVal = 0.0f;
+				[unroll]
+				for(int y = 0; y < 3; y++)
+				{
+					[unroll]
+					for(int x = 0; x < 3; x++)
+					{
+						float2 sampleUV = float2(samples[x].x, samples[y].y);
+						float sampleWeight = weights[x].x * weights[y].y;
+					
+						prevColorVal += _SAMPLE_COLOR(prevColor, sampleUV, int2(0, 0)) * sampleWeight;
+					}
+				}
+			#else
+				float4 prevColorVal = _SAMPLE_COLOR(prevColor, prevUV, int2(0, 0));
+			#endif
+
 			///////////////////// CLAMP TO NEIGHBORHOOD ////////////////////////
 			// Clamping to neighborhood ensures we don't blend with values that are too
 			// different, which can happen when history data becomes invalid.

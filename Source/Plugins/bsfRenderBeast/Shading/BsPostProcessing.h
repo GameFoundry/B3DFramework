@@ -1351,62 +1351,80 @@ namespace bs { namespace ct
 
 	extern TemporalResolveParamDef gTemporalResolveParamDef;
 
-	BS_PARAM_BLOCK_BEGIN(SSRResolveParamDef)
-		BS_PARAM_BLOCK_ENTRY(Vector2, gSceneDepthTexelSize)
-		BS_PARAM_BLOCK_ENTRY(Vector2, gSceneColorTexelSize)
+	BS_PARAM_BLOCK_BEGIN(TemporalFilteringParamDef)
+		BS_PARAM_BLOCK_ENTRY(Vector4, gSceneDepthTexelSize)
+		BS_PARAM_BLOCK_ENTRY(Vector4, gSceneColorTexelSize)
+		BS_PARAM_BLOCK_ENTRY(Vector4, gVelocityTexelSize)
 		BS_PARAM_BLOCK_ENTRY(float, gManualExposure)
 	BS_PARAM_BLOCK_END
 
-	extern SSRResolveParamDef gSSRResolveParamDef;
+	extern TemporalFilteringParamDef gTemporalFilteringParamDef;
 
-	/** Shader used for combining SSR information from the previous frame, in order to yield better quality. */
-	class SSRResolveMat : public RendererMaterial<SSRResolveMat>
+	/** Supported filter types by TemporalFilteringMat. */
+	enum class TemporalFilteringType
 	{
-		RMAT_DEF("PPSSRResolve.bsl");
+		/** Temporal filter used for full screen anti-aliasing. */
+		FullScreenAA,
+
+		/** Temporal filter used for accumulating SSR samples over multiple frames. */
+		SSR
+	};
+
+	/** Shader used for combining multiple frames of information using a temporal filter, in order to yield better quality. */
+	class TemporalFilteringMat : public RendererMaterial<TemporalFilteringMat>
+	{
+		RMAT_DEF("TemporalFiltering.bsl");
 
 		/** Helper method used for initializing variations of this material. */
-		template<bool msaa>
+		template<TemporalFilteringType TYPE, bool PER_PIXEL_VELOCITY, bool MSAA>
 		static const ShaderVariation& getVariation()
 		{
 			static ShaderVariation variation = ShaderVariation(
 			{
-				ShaderVariation::Param("MSAA", msaa)
+				ShaderVariation::Param("TYPE", (int)TYPE),
+				ShaderVariation::Param("PER_PIXEL_VELOCITY", (int)PER_PIXEL_VELOCITY),
+				ShaderVariation::Param("MSAA", MSAA),
 			});
 
 			return variation;
 		}
 	public:
-		SSRResolveMat();
+		TemporalFilteringMat();
 
 		/**
 		 * Renders the effect with the provided parameters.
 		 *
 		 * @param[in]	view			Information about the view we're rendering from.
-		 * @param[in]	prevFrame		SSR data calculated previous frame.
-		 * @param[in]	curFrame		SSR data calculated this frame.
+		 * @param[in]	prevFrame		Frame data calculated previous frame.
+		 * @param[in]	curFrame		Frame data calculated this frame.
+		 * @param[in]	velocity		Optional texture containing per-pixel velocity;
 		 * @param[in]	sceneDepth		Buffer containing scene depth.
 		 * @param[in]	destination		Render target to which to write the results to.
 		 */
 		void execute(const RendererView& view, const SPtr<Texture>& prevFrame, const SPtr<Texture>& curFrame,
-			const SPtr<Texture>& sceneDepth, const SPtr<RenderTarget>& destination);
+			const SPtr<Texture>& velocity, const SPtr<Texture>& sceneDepth, const SPtr<RenderTarget>& destination);
 
 		/**
 		 * Returns the material variation matching the provided parameters.
 		 *
-		 * @param[in]	msaa				True if the shader will operate on a multisampled surface. Note that previous
-		 *									and current frame color textures must be non-MSAA, regardless of this parameter.
-		 * @return							Requested variation of the material.
+		 * @param[in]	type		Type of filter to use.
+		 * @param[in]	velocity	True if the filter will have access to a buffer containing per-pixel velocities.
+		 * @param[in]	msaa		True if the shader will operate on a multisampled surface. Note that previous
+		 *							and current frame color textures must be non-MSAA, regardless of this parameter.
+		 * @return					Requested variation of the material.
 		 */
-		static SSRResolveMat* getVariation(bool msaa);
+		static TemporalFilteringMat* getVariation(TemporalFilteringType type, bool velocity, bool msaa);
 
 	private:
-		SPtr<GpuParamBlockBuffer> mSSRParamBuffer;
+		SPtr<GpuParamBlockBuffer> mParamBuffer;
 		SPtr<GpuParamBlockBuffer> mTemporalParamBuffer;
 
 		GpuParamTexture mSceneColorTexture;
 		GpuParamTexture mPrevColorTexture;
 		GpuParamTexture mSceneDepthTexture;
-		GpuParamTexture mEyeAdaptationTexture;
+		GpuParamTexture mVelocityTexture;
+
+		bool mHasVelocityTexture = false;
 	};
 
 	BS_PARAM_BLOCK_BEGIN(EncodeDepthParamDef)

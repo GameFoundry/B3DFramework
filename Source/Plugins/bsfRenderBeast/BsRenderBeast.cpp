@@ -132,6 +132,7 @@ namespace bs { namespace ct
 		RenderCompositor::registerNodeType<RCNodeMotionBlur>();
 		RenderCompositor::registerNodeType<RCNodeChromaticAberration>();
 		RenderCompositor::registerNodeType<RCNodeFilmGrain>();
+		RenderCompositor::registerNodeType<RCNodeTemporalAA>();
 	}
 
 	void RenderBeast::destroyCore()

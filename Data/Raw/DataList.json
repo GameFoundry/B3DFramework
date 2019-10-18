@@ -395,10 +395,6 @@
             "UUID": "a9eb5ddf-1196-48d8-9403-a80a9595cde0"
         },
         {
-            "Path": "PPSSRResolve.bsl",
-            "UUID": "86b9699c-162d-4729-9985-c94e0f45bacb"
-        },
-        {
             "Path": "TetrahedraRender.bsl",
             "UUID": "5912b0ab-b2be-4c0e-a039-91fcc2d3e536"
         },
@@ -573,6 +569,10 @@
         {
             "Path": "PPFilmGrain.bsl",
             "UUID": "2c006eb5-4977-3f27-75aa-49770fb3abe6"
+        },
+        {
+            "Path": "TemporalFiltering.bsl",
+            "UUID": "2e904b94-43db-a066-d1ac-43db9b91d61e"
         }
     ],
     "Skin": [
