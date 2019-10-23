@@ -550,7 +550,6 @@ mixin TemporalResolve
 			
 			// Note: Potential improvements:
 			//  - Add a sharpen step
-			//  - Use filtering when sampling history
 			//  - Properly handle borders when sampling neighbors
 			//  - Better blend amount calculation? (Needs experimentation)
 			

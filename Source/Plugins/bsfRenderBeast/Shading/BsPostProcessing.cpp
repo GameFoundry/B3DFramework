@@ -2198,7 +2198,7 @@ namespace bs { namespace ct
 
 	void TemporalFilteringMat::execute(const RendererView& view, const SPtr<Texture>& prevFrame,
 		const SPtr<Texture>& curFrame, const SPtr<Texture>& velocity, const SPtr<Texture>& sceneDepth,
-		const Vector2& jitter, const SPtr<RenderTarget>& destination)
+		const Vector2& jitter, float exposure, const SPtr<RenderTarget>& destination)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
@@ -2232,7 +2232,7 @@ namespace bs { namespace ct
 		gTemporalFilteringParamDef.gSceneColorTexelSize.set(mParamBuffer, colorPixelSize);
 		gTemporalFilteringParamDef.gSceneDepthTexelSize.set(mParamBuffer, depthPixelSize);
 		gTemporalFilteringParamDef.gVelocityTexelSize.set(mParamBuffer, velocityPixelSize);
-		gTemporalFilteringParamDef.gManualExposure.set(mParamBuffer, 1.0f);
+		gTemporalFilteringParamDef.gManualExposure.set(mParamBuffer, 1.0f / exposure);
 
 		Vector2 jitterUV;
 		jitterUV.x = jitter.x * 0.5f;

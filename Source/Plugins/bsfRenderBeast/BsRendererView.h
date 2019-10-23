@@ -450,6 +450,12 @@ namespace bs { namespace ct
 		 */
 		RendererViewRedrawReason getRedrawReason() const;
 
+		/**
+		 * Gets the current exposure of the view, used for transforming scene light values from HDR in a range that can be
+		 * displayed on a display device.
+		 */
+		float getCurrentExposure() const;
+
 		/** Assigns a view index to the view. To be called by the parent view group when the view is added to it. */
 		void _setViewIdx(UINT32 viewIdx) { mViewIdx = viewIdx; }
 

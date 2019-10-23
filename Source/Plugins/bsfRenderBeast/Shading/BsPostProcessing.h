@@ -1400,11 +1400,12 @@ namespace bs { namespace ct
 		 * @param[in]	velocity		Optional texture containing per-pixel velocity;
 		 * @param[in]	sceneDepth		Buffer containing scene depth.
 		 * @param[in]	jitter			Sub-pixel jitter applied to the projection matrix.
+		 * @param[in]	exposure		Exposure to use when transforming from HDR to LDR image.
 		 * @param[in]	destination		Render target to which to write the results to.
 		 */
 		void execute(const RendererView& view, const SPtr<Texture>& prevFrame, const SPtr<Texture>& curFrame,
 			const SPtr<Texture>& velocity, const SPtr<Texture>& sceneDepth, const Vector2& jitter,
-			const SPtr<RenderTarget>& destination);
+			float exposure, const SPtr<RenderTarget>& destination);
 
 		/**
 		 * Returns the material variation matching the provided parameters.

@@ -339,6 +339,14 @@ namespace bs { namespace ct
 		return RendererViewRedrawReason::OnDemandLingering;
 	}
 
+	float RendererView::getCurrentExposure() const
+	{
+		if (mRenderSettings->enableAutoExposure)
+			return mPreviousEyeAdaptation;
+
+		return Math::pow(2.0f, mRenderSettings->exposureScale);
+	}
+
 	void RendererView::_notifyLuminanceUpdated(UINT64 frameIdx, SPtr<CommandBuffer> cb, SPtr<PooledRenderTexture> texture) const
 	{
 		mLuminanceUpdates.emplace_back(frameIdx, cb, texture);
