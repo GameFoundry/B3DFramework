@@ -135,14 +135,14 @@ namespace bs
 
 		struct ObjectToDecode
 		{
-			ObjectToDecode(SPtr<IReflectable> object = nullptr, size_t offset = 0, SPtr<RTTISchema> schema = nullptr)
+			ObjectToDecode(SPtr<IReflectable> object = nullptr, uint64_t offset = 0, SPtr<RTTISchema> schema = nullptr)
 				:object(std::move(object)), offset(offset), schema(std::move(schema))
 			{ }
 
 			SPtr<IReflectable> object;
 			bool isDecoded = false;
 			bool decodeInProgress = false; // Used for error reporting circular references
-			size_t offset;
+			uint64_t offset;
 			SPtr<RTTISchema> schema;
 		};
 

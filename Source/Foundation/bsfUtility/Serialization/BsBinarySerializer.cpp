@@ -146,7 +146,7 @@ namespace bs
 			bool objectIsBaseClass = false;
 
 			UINT32 bitsRead = readObjectMetaData(bufferedStream, flags, objectId, objectTypeId, objectIsBaseClass);
-			bufferedStream.skip(-(int32_t)bitsRead);
+			bufferedStream.skip(-(int64_t)bitsRead);
 
 			if (objectIsBaseClass)
 			{
@@ -193,7 +193,7 @@ namespace bs
 
 		// Don't set report callback until we actually do the reads
 		mReportProgress = std::move(progress);
-		bufferedStream.seek((uint32_t)start * 8);
+		bufferedStream.seek((uint64_t)start * 8);
 
 		// Now actually decode the objects
 		ObjectToDecode& rootObjectToDecode = mDecodeObjectMap[rootObjectId];
@@ -205,7 +205,7 @@ namespace bs
 		rootObjectToDecode.isDecoded = true;
 
 		mDecodeObjectMap.clear();
-		bufferedStream.seek((uint32_t)endBits);
+		bufferedStream.seek((uint64_t)endBits);
 		stream->seek(end);
 
 		assert(bufferedStream.tell() == endBits);
@@ -510,7 +510,7 @@ namespace bs
 					if (!objIsBaseClass)
 					{
 						// Found new object, we're done
-						stream.skip(-(int32_t)readBits);
+						stream.skip(-(int64_t)readBits);
 
 						finalizeObject(output.get());
 						return true;
@@ -679,8 +679,8 @@ namespace bs
 									{
 										objToDecode.decodeInProgress = true;
 
-										const uint32_t curOffset = stream.tell();
-										stream.seek((uint32_t)objToDecode.offset);
+										const uint64_t curOffset = stream.tell();
+										stream.seek(objToDecode.offset);
 										decodeEntry(stream, dataEnd, flags, objToDecode.object, fieldTypeSchema);
 										stream.seek(curOffset);
 
@@ -729,7 +729,7 @@ namespace bs
 							{
 								BitLength typeSize;
 								BitLength headerSize = rtti_read_size_header(stream, true, typeSize);
-								stream.skip(-(int32_t)headerSize.getBits());
+								stream.skip(-(int64_t)headerSize.getBits());
 
 								typeSizeBits = typeSize.getBits();
 							}
@@ -739,7 +739,7 @@ namespace bs
 								stream.readBytes(typeSize);
 								stream.skipBytes(-(int32_t)sizeof(uint32_t));
 
-								typeSizeBits = typeSize * 8;
+								typeSizeBits = (uint64_t)typeSize * 8;
 							}
 						}
 
@@ -748,7 +748,7 @@ namespace bs
 							stream.preload((uint32_t)Math::divideAndRoundUp(typeSizeBits, (uint64_t)8));
 							curField->arrayElemFromBuffer(rttiInstance, output.get(), i, stream.getBitstream(), compressed);
 
-							stream.skip((uint32_t)typeSizeBits);
+							stream.skip(typeSizeBits);
 						}
 						else
 						{
@@ -756,7 +756,7 @@ namespace bs
 							if (compressed && builtin)
 								skipBuiltinType(fieldSchema.fieldTypeId, stream, compressed);
 							else
-								stream.skip((uint32_t)typeSizeBits);
+								stream.skip(typeSizeBits);
 						}
 					}
 					break;
@@ -824,10 +824,10 @@ namespace bs
 								{
 									objToDecode.decodeInProgress = true;
 
-									const size_t curOffset = stream.tell();
-									stream.seek((uint32_t)objToDecode.offset);
+									const uint64_t curOffset = stream.tell();
+									stream.seek(objToDecode.offset);
 									decodeEntry(stream, dataEnd, flags, objToDecode.object, fieldTypeSchema);
-									stream.seek((uint32_t)curOffset);
+									stream.seek(curOffset);
 
 									objToDecode.decodeInProgress = false;
 									objToDecode.isDecoded = true;
@@ -870,7 +870,7 @@ namespace bs
 						{
 							BitLength typeSize;
 							BitLength headerSize = rtti_read_size_header(stream, true, typeSize);
-							stream.skip(-(int32_t)headerSize.getBits());
+							stream.skip(-(int64_t)headerSize.getBits());
 
 							typeSizeBits = typeSize.getBits();
 						}
@@ -880,7 +880,7 @@ namespace bs
 							stream.readBytes(typeSize);
 							stream.skipBytes(-(int32_t)sizeof(uint32_t));
 
-							typeSizeBits = typeSize * 8;
+							typeSizeBits = (uint64_t)typeSize * 8;
 						}
 					}
 
@@ -889,7 +889,7 @@ namespace bs
 						stream.preload((uint32_t)Math::divideAndRoundUp(typeSizeBits, (uint64_t)8));
 						curField->fromBuffer(rttiInstance, output.get(), stream.getBitstream(), compressed);
 
-						stream.skip((uint32_t)typeSizeBits);
+						stream.skip(typeSizeBits);
 					}
 					else
 					{
@@ -897,7 +897,7 @@ namespace bs
 						if (compressed && builtin)
 							skipBuiltinType(fieldSchema.fieldTypeId, stream, compressed);
 						else
-							stream.skip((uint32_t)typeSizeBits);
+							stream.skip(typeSizeBits);
 					}
 
 					break;
@@ -921,7 +921,7 @@ namespace bs
 						const SPtr<DataStream>& dataStream = stream.getDataStream();
 						if (dataStream->isFile()) // Allow streaming
 						{
-							size_t curOffset = stream.tell();
+							uint64_t curOffset = stream.tell();
 
 							// Data blocks don't support data that isn't byte aligned, but encoder should take care of that
 							assert((curOffset % 8) == 0);
@@ -954,7 +954,7 @@ namespace bs
 				stream.clearBuffered(false);
 			}
 
-			uint32_t bytesRead = Math::divideAndRoundUp(stream.tell(), 8U);
+			UINT32 bytesRead = (UINT32)Math::divideAndRoundUp(stream.tell(), (uint64_t)8);
 			if (mReportProgress && (bytesRead >= mNextProgressReport))
 			{
 				UINT32 lastReport = (bytesRead / REPORT_AFTER_BYTES) * REPORT_AFTER_BYTES;

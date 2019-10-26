@@ -883,17 +883,17 @@ namespace bs
 			}
 		}
 
-		const UINT32 textureEntrySize = sizeof(MaterialParamTextureDataCore) + sizeof(UINT32);
-		const UINT32 bufferEntrySize = sizeof(MaterialParamBufferDataCore) + sizeof(UINT32);
-		const UINT32 samplerStateEntrySize = sizeof(MaterialParamSamplerStateDataCore) + sizeof(UINT32);
+		const UINT64 textureEntrySize = sizeof(MaterialParamTextureDataCore) + sizeof(UINT32);
+		const UINT64 bufferEntrySize = sizeof(MaterialParamBufferDataCore) + sizeof(UINT32);
+		const UINT64 samplerStateEntrySize = sizeof(MaterialParamSamplerStateDataCore) + sizeof(UINT32);
 
-		const UINT32 dataParamsOffset = sizeof(UINT32) * 5;
-		const UINT32 textureParamsOffset = dataParamsOffset + dataParamSize;
-		const UINT32 bufferParamsOffset = textureParamsOffset + textureEntrySize * numDirtyTextureParams;
-		const UINT32 samplerStateParamsOffset = bufferParamsOffset + bufferEntrySize * numDirtyBufferParams;
-		const UINT32 structParamsOffset = samplerStateParamsOffset + samplerStateEntrySize * numDirtySamplerParams;
+		const UINT64 dataParamsOffset = sizeof(UINT32) * 5;
+		const UINT64 textureParamsOffset = dataParamsOffset + dataParamSize;
+		const UINT64 bufferParamsOffset = textureParamsOffset + textureEntrySize * numDirtyTextureParams;
+		const UINT64 samplerStateParamsOffset = bufferParamsOffset + bufferEntrySize * numDirtyBufferParams;
+		const UINT64 structParamsOffset = samplerStateParamsOffset + samplerStateEntrySize * numDirtySamplerParams;
 
-		const UINT32 totalSize = structParamsOffset + structParamSize;
+		const UINT32 totalSize = (UINT32)structParamsOffset + structParamSize;
 
 		if (buffer == nullptr)
 		{
@@ -916,11 +916,11 @@ namespace bs
 		rtti_write(numDirtySamplerParams, stream);
 		rtti_write(numDirtyStructParams, stream);
 
-		UINT32 dirtyDataParamOffset = 0;
-		UINT32 dirtyTextureParamIdx = 0;
-		UINT32 dirtyBufferParamIdx = 0;
-		UINT32 dirtySamplerParamIdx = 0;
-		UINT32 dirtyStructParamOffset = 0;
+		UINT64 dirtyDataParamOffset = 0;
+		UINT64 dirtyTextureParamIdx = 0;
+		UINT64 dirtyBufferParamIdx = 0;
+		UINT64 dirtySamplerParamIdx = 0;
+		UINT64 dirtyStructParamOffset = 0;
 
 		for(UINT32 i = 0; i < (UINT32)mParams.size(); i++)
 		{
@@ -967,7 +967,7 @@ namespace bs
 					dirtyDataParamOffset += dataSize;
 
 					// Param curves
-					UINT32 numDirtyCurvesWriteDst = stream.tell();
+					UINT64 numDirtyCurvesWriteDst = stream.tell();
 					stream.writeBytes(0);
 					dirtyDataParamOffset += sizeof(UINT32);
 

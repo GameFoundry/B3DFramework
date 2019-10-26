@@ -287,7 +287,7 @@ namespace bs
 		if(compress)
 		{
 			BitLength size = rtti_size(data);
-			uint32_t headerSize = stream.writeVarInt(size.bytes);
+			uint64_t headerSize = stream.writeVarInt(size.bytes);
 			headerSize += stream.writeBits(&size.bits, 3);
 
 			size += BitLength::fromBits(headerSize);
@@ -297,7 +297,7 @@ namespace bs
 		}
 		else
 		{
-			uint32_t sizePos = stream.tell();
+			uint64_t sizePos = stream.tell();
 
 			BitLength size = 0;
 			stream.writeBytes(size.bytes);
@@ -323,7 +323,7 @@ namespace bs
 	{
 		if(compress)
 		{
-			uint32_t headerSizeBits = stream.readVarInt(size.bytes);
+			uint64_t headerSizeBits = stream.readVarInt(size.bytes);
 			size.bits = 0;
 			headerSizeBits += stream.readBits(&size.bits, 3);
 
