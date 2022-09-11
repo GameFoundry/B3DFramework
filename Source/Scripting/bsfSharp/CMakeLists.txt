@@ -16,7 +16,7 @@ generate_csharp_project(${BSF_SOURCE_DIR}/Scripting/bsfSharp bsfSharp bs ${BS_CS
 # Include the CS project in the build
 set(BS_CS_PROJ "${BS_CS_ASSEMBLY_NAME}.csproj")
 
-if(MSVC)
+if(WIN32)
 	include_external_msproject(${BS_CS_ASSEMBLY_NAME} ${PROJECT_BINARY_DIR}/${BS_CS_PROJ})
 	set_property(TARGET ${BS_CS_ASSEMBLY_NAME} PROPERTY FOLDER Script)
 else()
