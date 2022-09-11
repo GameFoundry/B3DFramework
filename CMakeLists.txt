@@ -20,7 +20,7 @@ include(Source/CMake/HelperMethods.cmake)
 add_subdirectory(Source)
 
 if(BSF_BUILD_EXAMPLES)
-	add_subdirectory(../Examples)
+	add_subdirectory(Examples)
 endif()
 
 # Options
