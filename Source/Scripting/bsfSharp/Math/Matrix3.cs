@@ -16,7 +16,7 @@ namespace bs
     public struct Matrix3 // Note: Must match C++ class Matrix3
     {
         /// <summary>
-        /// Contains constant data that is used when calculating euler angles in a certain order.
+        /// Contains constant Data that is used when calculating euler angles in a certain order.
         /// </summary>
         private struct EulerAngleOrderData
         {

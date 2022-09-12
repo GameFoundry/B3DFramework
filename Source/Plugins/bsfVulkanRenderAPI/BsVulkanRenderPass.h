@@ -99,13 +99,13 @@ namespace bs { namespace ct
 			class HashFunction
 			{
 			public:
-				size_t Operator()(const VariantKey& key) const;
+				size_t operator()(const VariantKey& key) const;
 			};
 
 			class EqualFunction
 			{
 			public:
-				bool Operator()(const VariantKey& lhs, const VariantKey& rhs) const;
+				bool operator()(const VariantKey& lhs, const VariantKey& rhs) const;
 			};
 
 			RenderSurfaceMask loadMask;
@@ -161,13 +161,13 @@ namespace bs { namespace ct
 			class HashFunction
 			{
 			public:
-				size_t Operator()(const VariantKey& key) const;
+				size_t operator()(const VariantKey& key) const;
 			};
 
 			class EqualFunction
 			{
 			public:
-				bool Operator()(const VariantKey& lhs, const VariantKey& rhs) const;
+				bool operator()(const VariantKey& lhs, const VariantKey& rhs) const;
 			};
 
 			VkDevice device = VK_NULL_HANDLE;

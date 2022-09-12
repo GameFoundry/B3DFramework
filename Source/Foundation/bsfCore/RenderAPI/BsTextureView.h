@@ -54,13 +54,13 @@ namespace bs
 		class HashFunction
 		{
 		public:
-			size_t Operator()(const TEXTURE_VIEW_DESC &key) const;
+			size_t operator()(const TEXTURE_VIEW_DESC &key) const;
 		};
 
 		class EqualFunction
 		{
 		public:
-			bool Operator()(const TEXTURE_VIEW_DESC &a, const TEXTURE_VIEW_DESC &b) const;
+			bool operator()(const TEXTURE_VIEW_DESC &a, const TEXTURE_VIEW_DESC &b) const;
 		};
 
 		virtual ~TextureView() = default;

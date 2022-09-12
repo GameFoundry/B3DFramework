@@ -68,7 +68,7 @@ int main(int argc, char * argv[])
 	{
 		if(strcmp(argv[i], "--editor") == 0)
 			generateGenerated = false;
-		else If(strcmp(argv[i], "--force") == 0)
+		else if(strcmp(argv[i], "--force") == 0)
 			forceImport = true;
 	}
 

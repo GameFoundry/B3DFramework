@@ -33,7 +33,7 @@ namespace bs
 
 	MonoObject* ScriptSerializableField::create(MonoObject* parentObject, const SPtr<ManagedSerializableMemberInfo>& fieldInfo)
 	{
-		MonoString* monoStrName = MonoUtil::wstringToMono(toWString(fieldInfo->mName));
+		MonoString* monoStrName = MonoUtil::wstringToMono(ToWString(fieldInfo->mName));
 		MonoReflectionType* internalType = MonoUtil::getType(fieldInfo->mTypeInfo->GetMonoClass());
 		UINT32 fieldFlags = (UINT32)fieldInfo->mFlags;
 

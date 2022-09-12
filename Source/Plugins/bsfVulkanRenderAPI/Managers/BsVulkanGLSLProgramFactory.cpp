@@ -16,7 +16,7 @@ namespace bs { namespace ct
 	template<class T, class CB>
 	void IterateSorted(const Map<String, T>& entries, CB callback)
 	{
-		auto count = (UINT32)entries.Size();
+		auto count = (UINT32)entries.size();
 		auto sortedEntries = bs_managed_stack_alloc<const T*>(count);
 
 		UINT32 i = 0;
@@ -119,11 +119,11 @@ namespace bs { namespace ct
 			}
 
 			auto count
-				= msl->paramDesc->paramBlocks.Size()
-				+ msl->paramDesc->textures.Size()
-				+ msl->paramDesc->samplers.Size()
-				+ msl->paramDesc->loadStoreTextures.Size()
-				+ msl->paramDesc->buffers.Size();
+				= msl->paramDesc->paramBlocks.size()
+				+ msl->paramDesc->textures.size()
+				+ msl->paramDesc->samplers.size()
+				+ msl->paramDesc->loadStoreTextures.size()
+				+ msl->paramDesc->buffers.size();
 
 			auto sortedEntries = bs_managed_stack_alloc<spirv_cross::MSLResourceBinding>((UINT32)count);
 			size_t i = 0;
@@ -230,7 +230,7 @@ namespace bs { namespace ct
 		{
 			spirv_cross::SPIREntryPoint spvEP;
 			const auto& entryPoints = compiler.get_entry_points_and_stages();
-			if (!entryPoints.Empty())
+			if (!entryPoints.empty())
 			{
 				auto& ep = entryPoints[0];
 				spvEP = compiler.get_entry_point(ep.name, ep.execution_model);
@@ -245,7 +245,7 @@ namespace bs { namespace ct
 		if(msl->instructions.data)
 			bs_free(msl->instructions.data);
 
-		if(source.Empty())
+		if(source.empty())
 		{
 			msl->instructions = DataBlob();
 			return msl;
@@ -254,7 +254,7 @@ namespace bs { namespace ct
 		// Magic numbers as defined in vk_mvk_moltenvk.h
 		constexpr UINT32 MVK_MSL_Source = 0x19960412;
 
-		UINT32 size = (UINT32)source.Size() + sizeof(MVK_MSL_Source) + 1;
+		UINT32 size = (UINT32)source.size() + sizeof(MVK_MSL_Source) + 1;
 		if(desc.type == GPT_COMPUTE_PROGRAM)
 			size += sizeof(workgroupSize);
 

@@ -67,7 +67,7 @@ namespace bs
 		vec__output = MeshDataEx::getPositions(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptVector3>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -85,7 +85,7 @@ namespace bs
 		{
 			ScriptArray Arrayvalue(value);
 			vecvalue.Resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			for(int i = 0; i < (int)arrayvalue.size(); i++)
 			{
 				vecvalue[i] = arrayvalue.get<Vector3>(i);
 			}
@@ -99,7 +99,7 @@ namespace bs
 		vec__output = MeshDataEx::getNormals(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptVector3>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -117,7 +117,7 @@ namespace bs
 		{
 			ScriptArray Arrayvalue(value);
 			vecvalue.Resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			for(int i = 0; i < (int)arrayvalue.size(); i++)
 			{
 				vecvalue[i] = arrayvalue.get<Vector3>(i);
 			}
@@ -131,7 +131,7 @@ namespace bs
 		vec__output = MeshDataEx::getTangents(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptVector4>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -149,7 +149,7 @@ namespace bs
 		{
 			ScriptArray Arrayvalue(value);
 			vecvalue.Resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			for(int i = 0; i < (int)arrayvalue.size(); i++)
 			{
 				vecvalue[i] = arrayvalue.get<Vector4>(i);
 			}
@@ -163,7 +163,7 @@ namespace bs
 		vec__output = MeshDataEx::getColors(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptColor>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -181,7 +181,7 @@ namespace bs
 		{
 			ScriptArray Arrayvalue(value);
 			vecvalue.Resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			for(int i = 0; i < (int)arrayvalue.size(); i++)
 			{
 				vecvalue[i] = arrayvalue.get<Color>(i);
 			}
@@ -195,7 +195,7 @@ namespace bs
 		vec__output = MeshDataEx::getUV0(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptVector2>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -213,7 +213,7 @@ namespace bs
 		{
 			ScriptArray Arrayvalue(value);
 			vecvalue.Resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			for(int i = 0; i < (int)arrayvalue.size(); i++)
 			{
 				vecvalue[i] = arrayvalue.get<Vector2>(i);
 			}
@@ -227,7 +227,7 @@ namespace bs
 		vec__output = MeshDataEx::getUV1(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptVector2>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -245,7 +245,7 @@ namespace bs
 		{
 			ScriptArray Arrayvalue(value);
 			vecvalue.Resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			for(int i = 0; i < (int)arrayvalue.size(); i++)
 			{
 				vecvalue[i] = arrayvalue.get<Vector2>(i);
 			}
@@ -259,7 +259,7 @@ namespace bs
 		vec__output = MeshDataEx::getBoneWeights(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptBoneWeight>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -277,7 +277,7 @@ namespace bs
 		{
 			ScriptArray Arrayvalue(value);
 			vecvalue.Resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			for(int i = 0; i < (int)arrayvalue.size(); i++)
 			{
 				vecvalue[i] = arrayvalue.get<BoneWeight>(i);
 			}
@@ -291,7 +291,7 @@ namespace bs
 		vec__output = MeshDataEx::getIndices(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<uint32_t>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -309,7 +309,7 @@ namespace bs
 		{
 			ScriptArray Arrayvalue(value);
 			vecvalue.Resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			for(int i = 0; i < (int)arrayvalue.size(); i++)
 			{
 				vecvalue[i] = arrayvalue.get<uint32_t>(i);
 			}

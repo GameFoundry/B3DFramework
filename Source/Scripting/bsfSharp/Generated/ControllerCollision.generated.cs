@@ -10,7 +10,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/// <summary>Contains data about a collision of a character controller and another object.</summary>
+	/// <summary>Contains Data about a collision of a character controller and another object.</summary>
 	[StructLayout(LayoutKind.Sequential), SerializeObject]
 	public partial struct ControllerCollision
 	{

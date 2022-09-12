@@ -146,7 +146,7 @@ namespace std
 template<>
 struct hash<bs::StringID>
 {
-	size_t Operator()(const bs::StringID& value) const
+	size_t operator()(const bs::StringID& value) const
 	{
 		return (size_t)value.Id();
 	}

@@ -26,7 +26,7 @@ namespace bs
 		const Vector<Plane>& frustumPlanes = getFrustum().GetPlanes();
 		Matrix4 worldMatrix = SO()->GetWorldMatrix();
 
-		Vector<Plane> WorldPlanes(frustumPlanes.Size());
+		Vector<Plane> WorldPlanes(frustumPlanes.size());
 		UINT32 i = 0;
 		for (auto& plane : frustumPlanes)
 		{

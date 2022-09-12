@@ -92,7 +92,7 @@ namespace bs
         Inline				= 1 << 13,
 
         /// <summary>
-        /// Signifies that a <see cref="RRef{T}"/> should be loaded when assigned to field through the inspector.
+        /// Signifies that a <see cref="RRef{ToWString}"/> should be loaded when assigned to field through the inspector.
         /// </summary>
         LoadOnAssign        = 1 << 14,
 
@@ -135,7 +135,7 @@ namespace bs
         }
 
         /// <summary>
-        /// Returns the type of data contained in the field.
+        /// Returns the type of Data contained in the field.
         /// </summary>
         public SerializableProperty.FieldType Type
         {

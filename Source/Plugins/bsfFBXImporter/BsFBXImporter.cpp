@@ -84,7 +84,7 @@ namespace bs
 		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
 
-		return Find(mExtensions.Begin(), mExtensions.end(), lowerCaseExt) != mExtensions.end();
+		return Find(mExtensions.begin(), mExtensions.end(), lowerCaseExt) != mExtensions.end();
 	}
 
 	bool FBXImporter::IsMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
@@ -224,11 +224,11 @@ namespace bs
 
 		SPtr<RendererMeshData> rendererMeshData = generateMeshData(importedScene, fbxImportOptions, subMeshes);
 
-		skeleton = createSkeleton(importedScene, subMeshes.Size() > 1);
+		skeleton = createSkeleton(importedScene, subMeshes.size() > 1);
 		morphShapes = createMorphShapes(importedScene);
 
 		// Import animation clips
-		if (!importedScene.clips.Empty())
+		if (!importedScene.clips.empty())
 		{
 			const Vector<AnimationSplitInfo>& splits = meshImportOptions->animationSplits;
 			convertAnimations(importedScene.clips, splits, skeleton, meshImportOptions->importRootMotion, animation);
@@ -251,16 +251,16 @@ namespace bs
 			// Create bones
 			for (auto& fbxBone : mesh->bones)
 			{
-				UINT32 boneIdx = (UINT32)allBones.Size();
+				UINT32 boneIdx = (UINT32)allBones.size();
 
-				auto iterFind = boneMap.Find(fbxBone.node);
-				if(iterFind != boneMap.End())
+				auto iterFind = boneMap.find(fbxBone.node);
+				if(iterFind != boneMap.end())
 					continue; // Duplicate
 
 				boneMap[fbxBone.node] = boneIdx;
 
 				allBones.push_back(BONE_DESC());
-				BONE_DESC& bone = allBones.Back();
+				BONE_DESC& bone = allBones.back();
 
 				bone.name = fbxBone.node->name;
 				bone.localTfrm = fbxBone.localTfrm;
@@ -269,7 +269,7 @@ namespace bs
 		}
 
 		// Generate skeleton
-		if (allBones.Size() > 0)
+		if (allBones.size() > 0)
 		{
 			// Find bone parents
 			UINT32 numProcessedBones = 0;
@@ -278,10 +278,10 @@ namespace bs
 			UINT32 rootBoneIdx = (UINT32)-1;
 			if (sharedRoot)
 			{
-				rootBoneIdx = (UINT32)allBones.Size();
+				rootBoneIdx = (UINT32)allBones.size();
 
 				allBones.push_back(BONE_DESC());
-				BONE_DESC& bone = allBones.Back();
+				BONE_DESC& bone = allBones.back();
 
 				bone.name = "MultiMeshRoot";
 				bone.localTfrm = Transform();
@@ -294,16 +294,16 @@ namespace bs
 			Stack<std::pair<FBXImportNode*, UINT32>> todo;
 			todo.Push({ scene.rootNode, rootBoneIdx });
 
-			while (!todo.Empty())
+			while (!todo.empty())
 			{
 				auto entry = todo.Top();
-				todo.Pop();
+				todo.pop();
 
 				FBXImportNode* node = entry.first;
 				UINT32 parentBoneIdx = entry.second;
 
-				auto boneIter = boneMap.Find(node);
-				if (boneIter != boneMap.End())
+				auto boneIter = boneMap.find(node);
+				if (boneIter != boneMap.end())
 				{
 					UINT32 boneIdx = boneIter->second;
 					allBones[boneIdx].parent = parentBoneIdx;
@@ -315,10 +315,10 @@ namespace bs
 				{
 					// Node is not a bone, but it still needs to be part of the hierarchy. It wont be animated, nor will
 					// it directly influence any vertices, but its transform must be applied to any child bones.
-					UINT32 boneIdx = (UINT32)allBones.Size();
+					UINT32 boneIdx = (UINT32)allBones.size();
 
 					allBones.push_back(BONE_DESC());
-					BONE_DESC& bone = allBones.Back();
+					BONE_DESC& bone = allBones.back();
 
 					bone.name = node->name;
 					bone.localTfrm = node->localTransform;
@@ -333,7 +333,7 @@ namespace bs
 					todo.Push({ child, parentBoneIdx });
 			}
 
-			UINT32 numAllBones = (UINT32)allBones.Size();
+			UINT32 numAllBones = (UINT32)allBones.size();
 			if (numProcessedBones == numAllBones)
 				return Skeleton::Create(allBones.Data(), numAllBones);
 
@@ -359,8 +359,8 @@ namespace bs
 		// Note: Order in which we combine meshes must match the order in MeshData::combine
 		for (auto& mesh : scene.meshes)
 		{
-			UINT32 numVertices = (UINT32)mesh->positions.Size();
-			UINT32 numNormals = (UINT32)mesh->normals.Size();
+			UINT32 numVertices = (UINT32)mesh->positions.size();
+			UINT32 numNormals = (UINT32)mesh->normals.size();
 			bool hasNormals = numVertices == numNormals;
 
 			for (auto& node : mesh->referencedBy)
@@ -380,7 +380,7 @@ namespace bs
 						shape.name = blendFrame.name;
 						shape.weight = blendFrame.weight;
 
-						UINT32 frameNumVertices = (UINT32)blendFrame.positions.Size();
+						UINT32 frameNumVertices = (UINT32)blendFrame.positions.size();
 						if (frameNumVertices == numVertices)
 						{
 							for (UINT32 i = 0; i < numVertices; i++)
@@ -433,14 +433,14 @@ namespace bs
 				channelShapes.push_back(morphShape);
 			}
 
-			if(channelShapes.Size() > 0)
+			if(channelShapes.size() > 0)
 			{
 				SPtr<MorphChannel> morphChannel = MorphChannel::create(channel.first, channelShapes);
 				allChannels.push_back(morphChannel);
 			}
 		}
 
-		if (!allChannels.Empty())
+		if (!allChannels.empty())
 			return MorphShapes::Create(allChannels, totalNumVertices);
 
 		return morphShapes;
@@ -542,11 +542,11 @@ namespace bs
 		Stack<FbxNode*> todo;
 		todo.Push(scene->GetRootNode());
 
-		while(!todo.Empty())
+		while(!todo.empty())
 		{
 			FbxNode* curNode = todo.Top();
 			FBXImportNode* curImportNode = outputScene.nodeMap[curNode];
-			todo.Pop();
+			todo.pop();
 
 			FbxNodeAttribute* attrib = curNode->GetNodeAttribute();
 			if(attrib != nullptr)
@@ -762,7 +762,7 @@ namespace bs
 
 			// See if any splits are required. We only split the first clip as it is assumed if FBX has multiple clips the
 			// user has the ability to split them externally.
-			if(isFirstClip && !splits.Empty())
+			if(isFirstClip && !splits.empty())
 			{
 				float secondsPerFrame = 1.0f / clip.sampleRate;
 
@@ -773,7 +773,7 @@ namespace bs
 
 					auto splitCurves = [&](auto& inCurves, auto& outCurves)
 					{
-						UINT32 numCurves = (UINT32)inCurves.Size();
+						UINT32 numCurves = (UINT32)inCurves.size();
 						outCurves.Resize(numCurves);
 
 						for (UINT32 i = 0; i < numCurves; i++)
@@ -825,9 +825,9 @@ namespace bs
 					// Search for a unique name
 					String name = split.name;
 					UINT32 attemptIdx = 0;
-					while (names.Find(name) != names.end())
+					while (names.find(name) != names.end())
 					{
-						name = clip.name + "_" + toString(attemptIdx);
+						name = clip.name + "_" + ToString(attemptIdx);
 						attemptIdx++;
 					}
 
@@ -841,9 +841,9 @@ namespace bs
 				// Search for a unique name
 				String name = clip.name;
 				UINT32 attemptIdx = 0;
-				while(names.Find(name) != names.end())
+				while(names.find(name) != names.end())
 				{
-					name = clip.name + "_" + toString(attemptIdx);
+					name = clip.name + "_" + ToString(attemptIdx);
 					attemptIdx++;
 				}
 
@@ -869,10 +869,10 @@ namespace bs
 			// Create bones
 			for (auto& fbxBone : mesh->bones)
 			{
-				UINT32 boneIdx = (UINT32)boneMap.Size();
+				UINT32 boneIdx = (UINT32)boneMap.size();
 
-				auto iterFind = boneMap.Find(fbxBone.node);
-				if(iterFind != boneMap.End())
+				auto iterFind = boneMap.find(fbxBone.node);
+				if(iterFind != boneMap.end())
 					continue; // Duplicate
 
 				boneMap[fbxBone.node] = boneIdx;
@@ -882,25 +882,25 @@ namespace bs
 		for (auto& mesh : scene.meshes)
 		{
 			Vector<Vector<UINT32>> indicesPerMaterial;
-			for (UINT32 i = 0; i < (UINT32)mesh->indices.Size(); i++)
+			for (UINT32 i = 0; i < (UINT32)mesh->indices.size(); i++)
 			{
 				UINT32 materialIdx = 0;
-				if (i < (UINT32)mesh->materials.Size())
+				if (i < (UINT32)mesh->materials.size())
 					materialIdx = (UINT32)mesh->materials[i];
 				
-				while (materialIdx >= (UINT32)indicesPerMaterial.Size())
+				while (materialIdx >= (UINT32)indicesPerMaterial.size())
 					indicesPerMaterial.push_back(Vector<UINT32>());
 
 				indicesPerMaterial[materialIdx].push_back(mesh->indices[i]);
 			}
 
-			UINT32* orderedIndices = (UINT32*)bs_alloc((UINT32)mesh->indices.Size() * sizeof(UINT32));
+			UINT32* orderedIndices = (UINT32*)bs_alloc((UINT32)mesh->indices.size() * sizeof(UINT32));
 			Vector<SubMesh> subMeshes;
 			UINT32 currentIndex = 0;
 
 			for (auto& subMeshIndices : indicesPerMaterial)
 			{
-				UINT32 indexCount = (UINT32)subMeshIndices.Size();
+				UINT32 indexCount = (UINT32)subMeshIndices.size();
 				UINT32* dest = orderedIndices + currentIndex;
 				memcpy(dest, subMeshIndices.Data(), indexCount * sizeof(UINT32));
 
@@ -911,10 +911,10 @@ namespace bs
 
 			UINT32 vertexLayout = (UINT32)VertexLayout::Position;
 
-			size_t numVertices = mesh->positions.Size();
-			bool hasColors = mesh->colors.Size() == numVertices;
-			bool hasNormals = mesh->normals.Size() == numVertices;
-			bool hasBoneInfluences = mesh->boneInfluences.Size() == numVertices;
+			size_t numVertices = mesh->positions.size();
+			bool hasColors = mesh->colors.size() == numVertices;
+			bool hasNormals = mesh->normals.size() == numVertices;
+			bool hasBoneInfluences = mesh->boneInfluences.size() == numVertices;
 
 			if (hasColors)
 				vertexLayout |= (UINT32)VertexLayout::Color;
@@ -924,8 +924,8 @@ namespace bs
 			{
 				vertexLayout |= (UINT32)VertexLayout::Normal;
 
-				if (mesh->tangents.Size() == numVertices &&
-					mesh->bitangents.Size() == numVertices)
+				if (mesh->tangents.size() == numVertices &&
+					mesh->bitangents.size() == numVertices)
 				{
 					vertexLayout |= (UINT32)VertexLayout::Tangent;
 					hasTangents = true;
@@ -937,7 +937,7 @@ namespace bs
 
 			for (UINT32 i = 0; i < FBX_IMPORT_MAX_UV_LAYERS; i++)
 			{
-				if (mesh->UV[i].Size() == numVertices)
+				if (mesh->UV[i].size() == numVertices)
 				{
 					if (i == 0)
 						vertexLayout |= (UINT32)VertexLayout::UV0;
@@ -946,7 +946,7 @@ namespace bs
 				}
 			}
 
-			UINT32 numIndices = (UINT32)mesh->indices.Size();
+			UINT32 numIndices = (UINT32)mesh->indices.size();
 			for (auto& node : mesh->referencedBy)
 			{
 				Matrix4 worldTransform = node->worldTransform * node->geomTransform;
@@ -1036,7 +1036,7 @@ namespace bs
 				int writeUVIDx = 0;
 				for (auto& uvLayer : mesh->UV)
 				{
-					if (uvLayer.Size() == numVertices)
+					if (uvLayer.size() == numVertices)
 					{
 						UINT32 size = sizeof(Vector2) * (UINT32)numVertices;
 						Vector2* transformedUV = (Vector2*)bs_stack_alloc(size);
@@ -1078,8 +1078,8 @@ namespace bs
 							{
 								FBXImportNode* boneNode = mesh->bones[boneIdx].node;
 
-								auto iterFind = boneMap.Find(boneNode);
-								if(iterFind != boneMap.End())
+								auto iterFind = boneMap.find(boneNode);
+								if(iterFind != boneMap.end())
 									*indices[j] = iterFind->second;
 								else
 									*indices[j] = -1;
@@ -1101,15 +1101,15 @@ namespace bs
 
 			bs_free(orderedIndices);
 
-			UINT32 numBones = (UINT32)mesh->bones.Size();
+			UINT32 numBones = (UINT32)mesh->bones.size();
 			boneIndexOffset += numBones;
 		}
 
-		if (allMeshData.Size() > 1)
+		if (allMeshData.size() > 1)
 		{
 			return RendererMeshData::Create(MeshData::combine(allMeshData, allSubMeshes, outputSubMeshes));
 		}
-		else if (allMeshData.Size() == 1)
+		else if (allMeshData.size() == 1)
 		{
 			outputSubMeshes = allSubMeshes[0];
 			return RendererMeshData::Create(allMeshData[0]);
@@ -1194,7 +1194,7 @@ namespace bs
 
 		FbxLayerElement::EMappingMode mappingMode = layer.GetMappingMode();
 
-		UINT32 indexCount = (UINT32)indices.Size();
+		UINT32 indexCount = (UINT32)indices.size();
 		switch (mappingMode)
 		{
 		case FbxLayerElement::eByControlPoint:
@@ -1268,8 +1268,8 @@ namespace bs
 		// Register in global mesh array
 		FBXImportMesh* importMesh = nullptr;
 
-		auto iterFindMesh = outputScene.meshMap.Find(mesh);
-		if (iterFindMesh != outputScene.meshMap.End())
+		auto iterFindMesh = outputScene.meshMap.find(mesh);
+		if (iterFindMesh != outputScene.meshMap.end())
 		{
 			UINT32 meshIdx = iterFindMesh->second;
 			outputScene.meshes[meshIdx]->referencedBy.push_back(parentNode);
@@ -1284,7 +1284,7 @@ namespace bs
 			importMesh->referencedBy.push_back(parentNode);
 			importMesh->fbxMesh = mesh;
 
-			outputScene.meshMap[mesh] = (UINT32)outputScene.meshes.Size() - 1;
+			outputScene.meshMap[mesh] = (UINT32)outputScene.meshes.size() - 1;
 		}
 
 		// Import vertices
@@ -1319,16 +1319,16 @@ namespace bs
 
 				fbxUVLayers.push_back(uvLayer);
 
-				if (fbxUVLayers.Size() == FBX_IMPORT_MAX_UV_LAYERS)
+				if (fbxUVLayers.size() == FBX_IMPORT_MAX_UV_LAYERS)
 					break;
 			}
 
-			if (fbxUVLayers.Size() == FBX_IMPORT_MAX_UV_LAYERS)
+			if (fbxUVLayers.size() == FBX_IMPORT_MAX_UV_LAYERS)
 				break;
 		}
 
 		//// If there's room, search all others too
-		if (fbxUVLayers.Size() < FBX_IMPORT_MAX_UV_LAYERS)
+		if (fbxUVLayers.size() < FBX_IMPORT_MAX_UV_LAYERS)
 		{
 			UINT32 numLayers = mesh->GetLayerCount();
 			for (UINT32 i = 0; i < numLayers; i++)
@@ -1343,22 +1343,22 @@ namespace bs
 					if (uvLayer == nullptr)
 						continue;
 
-					auto iterFind = std::find(fbxUVLayers.Begin(), fbxUVLayers.end(), uvLayer);
-					if (iterFind != fbxUVLayers.End())
+					auto iterFind = std::find(fbxUVLayers.begin(), fbxUVLayers.end(), uvLayer);
+					if (iterFind != fbxUVLayers.end())
 						continue;
 
 					fbxUVLayers.push_back(uvLayer);
 
-					if (fbxUVLayers.Size() == FBX_IMPORT_MAX_UV_LAYERS)
+					if (fbxUVLayers.size() == FBX_IMPORT_MAX_UV_LAYERS)
 						break;
 				}
 
-				if (fbxUVLayers.Size() == FBX_IMPORT_MAX_UV_LAYERS)
+				if (fbxUVLayers.size() == FBX_IMPORT_MAX_UV_LAYERS)
 					break;
 			}
 		}
 
-		for (size_t i = 0; i < fbxUVLayers.Size(); i++)
+		for (size_t i = 0; i < fbxUVLayers.size(); i++)
 			readLayerData(*fbxUVLayers[i], importMesh->UV[i], importMesh->indices);
 
 		FbxLayer* mainLayer = mesh->GetLayer(0);
@@ -1387,7 +1387,7 @@ namespace bs
 
 						readLayerData(*smoothing, importMesh->smoothingGroups, importMesh->indices);
 
-						if (!importMesh->smoothingGroups.Empty())
+						if (!importMesh->smoothingGroups.empty())
 						{
 							FBXUtility::normalsFromSmoothing(importMesh->positions, importMesh->indices,
 								importMesh->smoothingGroups, importMesh->normals);
@@ -1405,7 +1405,7 @@ namespace bs
 
 				if (!hasTangents)
 				{
-					if (fbxUVLayers.Size() > 0)
+					if (fbxUVLayers.size() > 0)
 						hasTangents = mesh->GenerateTangentsData(0, false);
 				}
 
@@ -1425,12 +1425,12 @@ namespace bs
 
 				UnorderedMap<FbxSurfaceMaterial*, int> materialLookup;
 				int nextMaterialIdx = 0;
-				for (UINT32 i = 0; i < (UINT32)fbxMaterials.Size(); i++)
+				for (UINT32 i = 0; i < (UINT32)fbxMaterials.size(); i++)
 				{
-					auto iterFind = materialLookup.Find(fbxMaterials[i]);
+					auto iterFind = materialLookup.find(fbxMaterials[i]);
 
 					int materialIdx = 0;
-					if (iterFind != materialLookup.End())
+					if (iterFind != materialLookup.end())
 						materialIdx = iterFind->second;
 					else
 					{
@@ -1470,7 +1470,7 @@ namespace bs
 						continue;
 
 					mesh->blendShapes.push_back(FBXBlendShape());
-					FBXBlendShape& blendShape = mesh->blendShapes.Back();
+					FBXBlendShape& blendShape = mesh->blendShapes.back();
 					blendShape.name = channel->GetName();
 					blendShape.frames.Resize(frameCount);
 
@@ -1513,7 +1513,7 @@ namespace bs
 
 			if (!hasNormals)
 			{
-				if (!mesh.smoothingGroups.Empty())
+				if (!mesh.smoothingGroups.empty())
 				{
 					FBXUtility::normalsFromSmoothing(outFrame.positions, mesh.indices,
 						mesh.smoothingGroups, outFrame.normals);
@@ -1555,7 +1555,7 @@ namespace bs
 				if (boneCount == 1)
 				{
 					FbxCluster* cluster = deformer->GetCluster(0);
-					if (mesh->referencedBy.Size() == 1 && mesh->referencedBy[0]->fbxNode == cluster->GetLink())
+					if (mesh->referencedBy.size() == 1 && mesh->referencedBy[0]->fbxNode == cluster->GetLink())
 						continue;
 				}
 
@@ -1577,16 +1577,16 @@ namespace bs
 			FbxNode* link = cluster->GetLink();
 
 			// The bone node doesn't exist, skip it
-			auto iterFind = scene.nodeMap.Find(link);
-			if (iterFind == scene.nodeMap.End())
+			auto iterFind = scene.nodeMap.find(link);
+			if (iterFind == scene.nodeMap.end())
 				continue;
 
 			mesh.bones.push_back(FBXBone());
 
-			FBXBone& bone = mesh.bones.Back();
+			FBXBone& bone = mesh.bones.back();
 			bone.node = iterFind->second;
 
-			if(mesh.referencedBy.Size() > 1)
+			if(mesh.referencedBy.size() > 1)
 			{
 				// Note: If this becomes a relevant issue (unlikely), then I will have to duplicate skeleton bones for
 				// each such mesh, since they will all require their own bind poses. Animation curves will also need to be
@@ -1625,7 +1625,7 @@ namespace bs
 			double* weights = cluster->GetControlPointWeights();
 			INT32* indices = cluster->GetControlPointIndices();
 			UINT32 numIndices = (UINT32)cluster->GetControlPointIndicesCount();
-			INT32 numVertices = (INT32)influences.Size();
+			INT32 numVertices = (INT32)influences.size();
 
 			// Add new weights while keeping them in order and removing the smallest ones
 			// if number of influences exceeds the set maximum value
@@ -1655,10 +1655,10 @@ namespace bs
 			}
 		}
 		
-		if (mesh.bones.Empty())
+		if (mesh.bones.empty())
 			mesh.boneInfluences.Clear();
 
-		UINT32 numBones = (UINT32)mesh.bones.Size();
+		UINT32 numBones = (UINT32)mesh.bones.size();
 		if (numBones > 256)
 		{
 			BS_LOG(Warning, FBXImporter,
@@ -1666,7 +1666,7 @@ namespace bs
 		}
 
 		// Normalize weights
-		UINT32 numInfluences = (UINT32)mesh.boneInfluences.Size();
+		UINT32 numInfluences = (UINT32)mesh.boneInfluences.size();
 		for (UINT32 i = 0; i < numInfluences; i++)
 		{
 			float sum = 0.0f;
@@ -1683,43 +1683,45 @@ namespace bs
 	{
 		for (auto& mesh : scene.meshes)
 		{
-			UINT32 numVertices = (UINT32)mesh->positions.Size();
-			UINT32 numIndices = (UINT32)mesh->indices.Size();
+			UINT32 numVertices = (UINT32)mesh->positions.size();
+			UINT32 numIndices = (UINT32)mesh->indices.size();
 
-			if ((options.importNormals || options.importTangents) && mesh->normals.Empty())
+			if ((options.importNormals || options.importTangents) && mesh->normals.empty())
 			{
 				mesh->normals.Resize(numVertices);
 
-				MeshUtility::calculateNormals(mesh->positions.Data(), (UINT8*)mesh->indices.data(), numVertices, numIndices, mesh->normals.data());
+				MeshUtility::calculateNormals(mesh->positions.Data(), (UINT8*) mesh->indices.Data(), numVertices, numIndices,
+											  mesh->normals.Data());
 			}
 
-			if (options.importTangents && !mesh->UV[0].Empty() && (mesh->tangents.empty() || mesh->bitangents.empty()))
+			if (options.importTangents && !mesh->UV[0].empty() && (mesh->tangents.empty() || mesh->bitangents.empty()))
 			{
 				mesh->tangents.Resize(numVertices);
 				mesh->bitangents.Resize(numVertices);
 
-				MeshUtility::calculateTangents(mesh->positions.Data(), mesh->normals.data(), mesh->UV[0].data(), (UINT8*)mesh->indices.data(),
-					numVertices, numIndices, mesh->tangents.Data(), mesh->bitangents.data());
+				MeshUtility::calculateTangents(mesh->positions.Data(), mesh->normals.Data(), mesh->UV[0].Data(), (UINT8*) mesh->indices.Data(),
+											   numVertices, numIndices, mesh->tangents.Data(), mesh->bitangents.Data());
 			}
 
 			for (auto& shape : mesh->blendShapes)
 			{
 				for (auto& frame : shape.frames)
 				{
-					if ((options.importNormals || options.importTangents) && frame.normals.Empty())
+					if ((options.importNormals || options.importTangents) && frame.normals.empty())
 					{
 						frame.normals.Resize(numVertices);
 
-						MeshUtility::calculateNormals(mesh->positions.Data(), (UINT8*)mesh->indices.data(), numVertices, numIndices, frame.normals.data());
+						MeshUtility::calculateNormals(mesh->positions.Data(), (UINT8*) mesh->indices.Data(), numVertices, numIndices,
+													  frame.normals.Data());
 					}
 
-					if (options.importTangents && !mesh->UV[0].Empty() && (frame.tangents.empty() || frame.bitangents.empty()))
+					if (options.importTangents && !mesh->UV[0].empty() && (frame.tangents.empty() || frame.bitangents.empty()))
 					{
 						frame.tangents.Resize(numVertices);
 						frame.bitangents.Resize(numVertices);
 
-						MeshUtility::calculateTangents(mesh->positions.Data(), frame.normals.data(), mesh->UV[0].data(), (UINT8*)mesh->indices.data(),
-							numVertices, numIndices, frame.tangents.Data(), frame.bitangents.data());
+						MeshUtility::calculateTangents(mesh->positions.Data(), frame.normals.Data(), mesh->UV[0].Data(), (UINT8*) mesh->indices.Data(),
+													   numVertices, numIndices, frame.tangents.Data(), frame.bitangents.Data());
 					}
 				}
 			}
@@ -1736,7 +1738,7 @@ namespace bs
 			FbxAnimStack* animStack = scene->GetSrcObject<FbxAnimStack>(i);
 
 			importScene.clips.push_back(FBXAnimationClip());
-			FBXAnimationClip& clip = importScene.clips.Back();
+			FBXAnimationClip& clip = importScene.clips.back();
 			clip.name = animStack->GetName();
 
 			FbxTimeSpan timeSpan = animStack->GetLocalTimeSpan();
@@ -1818,7 +1820,7 @@ namespace bs
 		if (hasBoneAnimation)
 		{
 			clip.boneAnimations.push_back(FBXBoneAnimation());
-			FBXBoneAnimation& boneAnim = clip.boneAnimations.Back();
+			FBXBoneAnimation& boneAnim = clip.boneAnimations.back();
 			boneAnim.node = importScene.nodeMap[node];
 
 			if (hasCurveValues(translation))
@@ -1903,7 +1905,7 @@ namespace bs
 						if (curve != nullptr && curve->KeyGetCount() > 0)
 						{
 							clip.blendShapeAnimations.push_back(FBXBlendShapeAnimation());
-							FBXBlendShapeAnimation& blendShapeAnim = clip.blendShapeAnimations.Back();
+							FBXBlendShapeAnimation& blendShapeAnim = clip.blendShapeAnimations.back();
 							blendShapeAnim.blendShape = channel->GetName();
 
 							// Get name without invalid characters
@@ -1944,10 +1946,10 @@ namespace bs
 			FrameStack<FbxNode*> todo;
 			todo.Push(scene->GetRootNode());
 
-			while(todo.Size() > 0)
+			while(todo.size() > 0)
 			{
 				FbxNode* node = todo.Top();
-				todo.Pop();
+				todo.pop();
 
 				FbxVector4 Zero(0, 0, 0);
 				FbxVector4 One(1, 1, 1);
@@ -2001,7 +2003,7 @@ namespace bs
 			const TKeyframe<Vector3>& curKey = curve.GetKeyFrame(i);
 			if (i > 0)
 			{
-				TKeyframe<Vector3>& prevKey = newKeyframes.Back();
+				TKeyframe<Vector3>& prevKey = newKeyframes.back();
 
 				isEqual = Math::approxEquals(prevKey.value, curKey.value) &&
 					Math::approxEquals(prevKey.outTangent, curKey.inTangent) && isEqual;
@@ -2012,7 +2014,7 @@ namespace bs
 			// More than two keys in a row are equal, remove previous key by replacing it with this one
 			if (lastWasEqual && isEqual)
 			{
-				TKeyframe<Vector3>& prevKey = newKeyframes.Back();
+				TKeyframe<Vector3>& prevKey = newKeyframes.back();
 
 				// Other properties are guaranteed unchanged
 				prevKey.time = curKey.time;
@@ -2105,7 +2107,7 @@ namespace bs
 			if(curveStart > clipStart)
 			{
 				keyframes.push_back(TKeyframe<T>());
-				TKeyframe<T>& keyFrame = keyframes.Back();
+				TKeyframe<T>& keyFrame = keyframes.back();
 
 				keyFrame.time = clipStart;
 
@@ -2146,7 +2148,7 @@ namespace bs
 					continue;
 
 				keyframes.push_back(TKeyframe<T>());
-				TKeyframe<T>& keyFrame = keyframes.Back();
+				TKeyframe<T>& keyFrame = keyframes.back();
 
 				keyFrame.time = time;
 
@@ -2163,7 +2165,7 @@ namespace bs
 			if(curveEnd < clipEnd)
 			{
 				keyframes.push_back(TKeyframe<T>());
-				TKeyframe<T>& keyFrame = keyframes.Back();
+				TKeyframe<T>& keyFrame = keyframes.back();
 
 				keyFrame.time = clipEnd;
 

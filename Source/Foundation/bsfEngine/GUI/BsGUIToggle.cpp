@@ -115,7 +115,7 @@ namespace bs
 
 		if(triggerEvent)
 		{
-			if (!onToggled.Empty())
+			if (!onToggled.empty())
 				onToggled(mIsToggled);
 		}
 
@@ -161,7 +161,7 @@ namespace bs
 
 			if(triggerEvent)
 			{
-				if (!onToggled.Empty())
+				if (!onToggled.empty())
 					onToggled(mIsToggled);
 			}
 

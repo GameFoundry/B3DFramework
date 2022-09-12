@@ -15,7 +15,7 @@ namespace bs
 		if (path.IsEmpty())
 			return HShaderInclude();
 
-		if (name.Size() >= 8)
+		if (name.size() >= 8)
 		{
 			if (name.Substr(0, 8) == "$ENGINE$" || name.substr(0, 8) == "$EDITOR$")
 				return static_resource_cast<ShaderInclude>(Resources::instance().Load(path));
@@ -41,7 +41,7 @@ namespace bs
 	{
 		if (name.Substr(0, 8) == "$ENGINE$")
 		{
-			if (name.Size() > 8)
+			if (name.size() > 8)
 			{
 				Path fullPath = BuiltinResources::getShaderIncludeFolder();
 				Path includePath = name.Substr(9, name.size() - 9);
@@ -55,7 +55,7 @@ namespace bs
 #ifdef BS_IS_ASSET_TOOL
 		else if (name.Substr(0, 8) == "$EDITOR$")
 		{
-			if (name.Size() > 8)
+			if (name.size() > 8)
 			{
 				Path fullPath = BuiltinResources::getEditorShaderIncludeFolder();
 				Path includePath = name.Substr(9, name.size() - 9);

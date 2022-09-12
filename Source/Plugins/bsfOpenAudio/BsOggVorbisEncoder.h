@@ -55,7 +55,7 @@ namespace bs
 		 * Helper method that allows you to quickly convert PCM to Ogg Vorbis data.
 		 *
 		 * @param[in]	samples		Buffer containing samples in PCM format. All samples should be in signed integer format.
-		 * @param[in]	info		Meta-data describing the provided samples.
+		 * @param[in]	info		Meta-Data describing the provided samples.
 		 * @param[out]	size		Number of bytes written to the output buffer.
 		 * @return					Memory data stream containing the encoded samples.
 		 */

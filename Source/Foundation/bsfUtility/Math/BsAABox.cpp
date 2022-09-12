@@ -229,7 +229,7 @@ namespace bs
 				s = center[i] - min[i];
 				d += s * s;
 			}
-			else If(center[i] > max[i])
+			else if(center[i] > max[i])
 			{
 				s = center[i] - max[i];
 				d += s * s;

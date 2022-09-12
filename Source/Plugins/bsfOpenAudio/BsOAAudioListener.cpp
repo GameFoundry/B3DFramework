@@ -24,7 +24,7 @@ namespace bs
 		std::array<float, 6> orientation = getOrientation();
 		auto& contexts = gOAAudio()._getContexts();
 
-		if (contexts.Size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+		if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
 		{
 			auto context = gOAAudio()._getContext(this);
 			alcMakeContextCurrent(context);
@@ -39,7 +39,7 @@ namespace bs
 		AudioListener::setVelocity(velocity);
 
 		auto& contexts = gOAAudio()._getContexts();
-		if (contexts.Size() > 1)
+		if (contexts.size() > 1)
 		{
 			auto context = gOAAudio()._getContext(this);
 			alcMakeContextCurrent(context);
@@ -55,7 +55,7 @@ namespace bs
 		float globalVolume = gAudio().GetVolume();
 		std::array<float, 6> orientation = getOrientation();
 
-		if (contexts.Size() > 1)
+		if (contexts.size() > 1)
 		{
 			auto context = gOAAudio()._getContext(this);
 			alcMakeContextCurrent(context);

@@ -57,7 +57,7 @@ namespace bs
 
 			// It's possible we're just accessing the game object fields, in which case the process below is not needed
 			// (it's only required for new game objects).
-			if (gameObject->mRTTIData.Empty())
+			if (gameObject->mRTTIData.empty())
 				return;
 
 			SPtr<GameObject> gameObjectPtr = any_cast<SPtr<GameObject>>(gameObject->mRTTIData);

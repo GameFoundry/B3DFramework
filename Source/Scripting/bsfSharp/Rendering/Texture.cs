@@ -43,7 +43,7 @@ namespace bs
         /// <param name="depth">Depth of the texture in pixels.</param>
         /// <param name="format">Format of the pixels.</param>
         /// <param name="usage">Describes planned texture use.</param>
-        /// <param name="hasMipmaps">Should the texture allocate memory for the entire mip-map chain or only the top level.
+        /// <param name="hasMipmaps">Should the texture Allocate memory for the entire mip-map chain or only the top level.
         ///                          </param>
         public static Texture Create3D(int width, int height, int depth, PixelFormat format = PixelFormat.RGBA8,
             TextureUsage usage = TextureUsage.Default, bool hasMipmaps = false)
@@ -61,9 +61,9 @@ namespace bs
         /// <param name="size">Width & height of a single cubemap face in pixels.</param>
         /// <param name="format">Format of the pixels.</param>
         /// <param name="usage">Describes planned texture use.</param>
-        /// <param name="hasMipmaps">Should the texture allocate memory for the entire mip-map chain or only the top level.
+        /// <param name="hasMipmaps">Should the texture Allocate memory for the entire mip-map chain or only the top level.
         ///                          </param>
-        /// <param name="gammaCorrection">If true the texture data is assumed to have be gamma corrected and will be
+        /// <param name="gammaCorrection">If true the texture Data is assumed to have be gamma corrected and will be
         ///                               converted back to linear space when sampled on GPU, and converted to gamma space
         ///                               before being written by the GPU.</param>
         public static Texture CreateCube(int size, PixelFormat format = PixelFormat.RGBA8,

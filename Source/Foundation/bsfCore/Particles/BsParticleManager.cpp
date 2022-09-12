@@ -88,7 +88,7 @@ namespace bs
 				Lock Lock(mMutex);
 
 				BuffersPerSize& buffers = mBillboardBufferList[size];
-				if (buffers.nextFreeIdx < (UINT32)buffers.buffers.Size())
+				if (buffers.nextFreeIdx < (UINT32)buffers.buffers.size())
 				{
 					output = static_cast<ParticleBillboardRenderData*>(buffers.buffers[buffers.nextFreeIdx]);
 					buffers.nextFreeIdx++;
@@ -155,7 +155,7 @@ namespace bs
 				Lock Lock(mMutex);
 
 				BuffersPerSize& buffers = mMeshBufferList[size];
-				if (buffers.nextFreeIdx < (UINT32)buffers.buffers.Size())
+				if (buffers.nextFreeIdx < (UINT32)buffers.buffers.size())
 				{
 					output = static_cast<ParticleMeshRenderData*>(buffers.buffers[buffers.nextFreeIdx]);
 					buffers.nextFreeIdx++;
@@ -226,7 +226,7 @@ namespace bs
 			{
 				Lock Lock(mMutex);
 
-				if (mNextFreeGPUBuffer < (UINT32)mGPUBufferList.Size())
+				if (mNextFreeGPUBuffer < (UINT32)mGPUBufferList.size())
 				{
 					output = mGPUBufferList[mNextFreeGPUBuffer];
 					mNextFreeGPUBuffer++;
@@ -285,7 +285,7 @@ namespace bs
 		/** Allocates a new set of CPU buffers used for billboard rendering of the provided @p size width and height. */
 		ParticleBillboardRenderData* createNewBillboardBuffersCPU(UINT32 size)
 		{
-			auto output = mBillboardAlloc.construct<ParticleBillboardRenderData>();
+			auto output = mBillboardAlloc.Construct<ParticleBillboardRenderData>();
 
 			output->positionAndRotation = PixelData(size, size, 1, PF_RGBA32F);
 			output->color = PixelData(size, size, 1, PF_RGBA8);
@@ -302,7 +302,7 @@ namespace bs
 		/** Allocates a new set of CPU buffers used for mesh rendering of the provided @p size width and height. */
 		ParticleMeshRenderData* createNewMeshBuffersCPU(UINT32 size)
 		{
-			auto output = mMeshAlloc.construct<ParticleMeshRenderData>();
+			auto output = mMeshAlloc.Construct<ParticleMeshRenderData>();
 
 			output->position = PixelData(size, size, 1, PF_RGBA32F);
 			output->color = PixelData(size, size, 1, PF_RGBA8);
@@ -321,7 +321,7 @@ namespace bs
 		/** Allocates a new set of GPU buffers of the provided @p size width and height. */
 		ParticleGPUSimulationData* createNewBuffersGPU()
 		{
-			return mGPUAlloc.construct<ParticleGPUSimulationData>();
+			return mGPUAlloc.Construct<ParticleGPUSimulationData>();
 		}
 
 		UnorderedMap<UINT32, BuffersPerSize> mBillboardBufferList;
@@ -378,7 +378,7 @@ namespace bs
 		// Queue evaluation tasks
 		{
 			Lock Lock(mMutex);
-			mNumActiveWorkers = (UINT32)mSystems.Size();
+			mNumActiveWorkers = (UINT32)mSystems.size();
 		}
 
 		float timeDelta = gTime().GetFrameDelta();
@@ -442,7 +442,7 @@ namespace bs
 
 					if(simulationDataCPU)
 						simulationData.cpuData[system->mId] = simulationDataCPU;
-					else If(simulationDataGPU)
+					else if(simulationDataGPU)
 						simulationData.gpuData[system->mId] = simulationDataGPU;
 				}
 
@@ -517,7 +517,7 @@ namespace bs
 				break;
 			}
 
-			std::sort(sortData.Begin(), sortData.end(),
+			std::sort(sortData.begin(), sortData.end(),
 				[](const ParticleSortData& lhs, const ParticleSortData& rhs)
 			{
 				return rhs.key < lhs.key;
@@ -538,6 +538,6 @@ namespace bs
 
 	void ParticleManager::UnregisterParticleSystem(ParticleSystem* system)
 	{
-		mSystems.Erase(system);
+		mSystems.erase(system);
 	}
 }

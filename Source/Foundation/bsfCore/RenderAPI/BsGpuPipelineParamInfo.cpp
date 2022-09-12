@@ -96,7 +96,7 @@ namespace bs
 
 		mAlloc.Init();
 
-		mSetInfos = mAlloc.alloc<SetInfo>(mNumSets);
+		mSetInfos = mAlloc.Allocate<SetInfo>(mNumSets);
 
 		if(mSetInfos != nullptr)
 			bs_zero_out(mSetInfos, mNumSets);
@@ -108,18 +108,18 @@ namespace bs
 
 		for(UINT32 i = 0; i < mNumSets; i++)
 		{
-			mSetInfos[i].slotIndices = mAlloc.alloc<UINT32>(mSetInfos[i].numSlots);
+			mSetInfos[i].slotIndices = mAlloc.Allocate<UINT32>(mSetInfos[i].numSlots);
 			memset(mSetInfos[i].slotIndices, -1, sizeof(UINT32) * mSetInfos[i].numSlots);
 
-			mSetInfos[i].slotTypes = mAlloc.alloc<ParamType>(mSetInfos[i].numSlots);
+			mSetInfos[i].slotTypes = mAlloc.Allocate<ParamType>(mSetInfos[i].numSlots);
 
-			mSetInfos[i].slotSamplers = mAlloc.alloc<UINT32>(mSetInfos[i].numSlots);
+			mSetInfos[i].slotSamplers = mAlloc.Allocate<UINT32>(mSetInfos[i].numSlots);
 			memset(mSetInfos[i].slotSamplers, -1, sizeof(UINT32) * mSetInfos[i].numSlots);
 		}
 
 		for (UINT32 i = 0; i < (UINT32)ParamType::Count; i++)
 		{
-			mResourceInfos[i] = mAlloc.alloc<ResourceInfo>(mNumElementsPerType[i]);
+			mResourceInfos[i] = mAlloc.Allocate<ResourceInfo>(mNumElementsPerType[i]);
 			mNumElementsPerType[i] = 0;
 		}
 
@@ -256,8 +256,8 @@ namespace bs
 	{
 		auto findBinding = [](auto& paramMap, const String& name, GpuParamBinding& binding)
 		{
-			auto iterFind = paramMap.Find(name);
-			if (iterFind != paramMap.End())
+			auto iterFind = paramMap.find(name);
+			if (iterFind != paramMap.end())
 			{
 				binding.set = iterFind->second.set;
 				binding.slot = iterFind->second.slot;

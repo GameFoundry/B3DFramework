@@ -12,7 +12,7 @@ namespace bs
 		if(_isTypeIdDuplicate(rttiType->GetRTTIId()))
 		{
 			BS_EXCEPT(InternalErrorException, "RTTI type \"" + rttiType->GetRTTIName() +
-				"\" has a duplicate ID: " + toString(rttiType->GetRTTIId()));
+											  "\" has a duplicate ID: " + ToString(rttiType->GetRTTIId()));
 		}
 
 		getAllRTTITypes()[rttiType->GetRTTIId()] = rttiType;
@@ -31,8 +31,8 @@ namespace bs
 
 	RTTITypeBase* IReflectable::_getRTTIfromTypeId(UINT32 rttiTypeId)
 	{
-		const auto iterFind = getAllRTTITypes().Find(rttiTypeId);
-		if(iterFind != getAllRTTITypes().End())
+		const auto iterFind = getAllRTTITypes().find(rttiTypeId);
+		if(iterFind != getAllRTTITypes().end())
 			return iterFind->second;
 
 		return nullptr;

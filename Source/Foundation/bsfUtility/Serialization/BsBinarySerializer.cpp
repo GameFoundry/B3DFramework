@@ -51,18 +51,18 @@ namespace bs
 		UnorderedSet<UINT32> serializedObjects;
 		while(true)
 		{
-			auto iter = mObjectsToEncode.Begin();
+			auto iter = mObjectsToEncode.begin();
 			bool foundObjectToProcess = false;
-			for(; iter != mObjectsToEncode.End(); ++iter)
+			for(; iter != mObjectsToEncode.end(); ++iter)
 			{
-				auto foundExisting = serializedObjects.Find(iter->objectId);
-				if(foundExisting != serializedObjects.End())
+				auto foundExisting = serializedObjects.find(iter->objectId);
+				if(foundExisting != serializedObjects.end())
 					continue; // Already processed
 
 				SPtr<IReflectable> curObject = iter->object;
 				UINT32 curObjectid = iter->objectId;
 				serializedObjects.Insert(curObjectid);
-				mObjectsToEncode.Erase(iter);
+				mObjectsToEncode.erase(iter);
 
 				if(!encodeEntry(curObject.Get(), curObjectid, bufferedStream, flags))
 				{
@@ -173,8 +173,8 @@ namespace bs
 				{
 					// If no meta, it's expected the pass over the root object has populated mDecodeObjectMap with object instances
 					// as well as references to the schema
-					auto iterFind = mDecodeObjectMap.Find(objectId);
-					assert(iterFind != mDecodeObjectMap.End());
+					auto iterFind = mDecodeObjectMap.find(objectId);
+					assert(iterFind != mDecodeObjectMap.end());
 
 					ObjectToDecode& objectToDecode = iterFind->second;
 					objectToDecode.offset = bufferedStream.Tell();
@@ -228,13 +228,13 @@ namespace bs
 
 		const auto cleanup = [&]()
 		{
-			while (!rttiInstances.Empty())
+			while (!rttiInstances.empty())
 			{
 				RTTITypeBase* rttiInstance = rttiInstances.Top();
 				rttiInstance->OnSerializationEnded(object, mContext);
 				mAlloc->Destruct(rttiInstance);
 
-				rttiInstances.Pop();
+				rttiInstances.pop();
 			}
 		};
 
@@ -480,12 +480,12 @@ namespace bs
 
 		RTTITypeBase* rttiInstance = nullptr;
 		UINT32 rttiInstanceIdx = 0;
-		if(!rttiInstances.Empty())
+		if(!rttiInstances.empty())
 			rttiInstance = rttiInstances[0];
 
 		Vector<RTTIFieldSchema>::iterator fieldSchemaIter;
 		if (schema)
-			fieldSchemaIter = schema->fieldSchemas.Begin();
+			fieldSchemaIter = schema->fieldSchemas.begin();
 		
 		while (stream.Tell() < dataEnd)
 		{
@@ -532,13 +532,13 @@ namespace bs
 			}
 			else
 			{
-				if(fieldSchemaIter == schema->fieldSchemas.End())
+				if(fieldSchemaIter == schema->fieldSchemas.end())
 				{
 					// No more fields, move to base type if one exists
 					if (schema->baseTypeSchema)
 					{
 						schema = schema->baseTypeSchema;
-						fieldSchemaIter = schema->fieldSchemas.Begin();
+						fieldSchemaIter = schema->fieldSchemas.begin();
 						
 						baseObjTypeId = schema->typeId;
 						objIsBaseClass = true;
@@ -594,8 +594,9 @@ namespace bs
 				if (!fieldSchema.hasDynamicSize && curGenericField->schema.size != fieldSchema.size)
 				{
 					BS_EXCEPT(InternalErrorException,
-						"Data type mismatch. Type size stored in file and actual type size don't match. ("
-						+ toString(curGenericField->schema.size.bytes) + " vs. " + toString(fieldSchema.size.bytes) + ")");
+							  "Data type mismatch. Type size stored in file and actual type size don't match. ("
+							  + ToString(curGenericField->schema.size.bytes) + " vs. " +
+							  ToString(fieldSchema.size.bytes) + ")");
 				}
 
 				if (curGenericField->schema.isArray != fieldSchema.isArray)
@@ -607,7 +608,9 @@ namespace bs
 				if (curGenericField->schema.type != fieldSchema.type)
 				{
 					BS_EXCEPT(InternalErrorException,
-						"Data type mismatch. Field types don't match. " + toString(UINT32(curGenericField->schema.type)) + " vs. " + toString(UINT32(fieldSchema.type)));
+							  "Data type mismatch. Field types don't match. " +
+									  ToString(UINT32(curGenericField->schema.type)) + " vs. " +
+							  ToString(UINT32(fieldSchema.type)));
 				}
 			}
 
@@ -636,12 +639,12 @@ namespace bs
 						else
 							stream.ReadBytes(childObjectId);
 
-						auto findObj = mDecodeObjectMap.Find(childObjectId);
+						auto findObj = mDecodeObjectMap.find(childObjectId);
 
 						// If reading from schema we need to create object here as we don't know its type during the normal pass
 						if (schema)
 						{
-							if (findObj == mDecodeObjectMap.End())
+							if (findObj == mDecodeObjectMap.end())
 							{
 								SPtr<IReflectable> childObj = IReflectable::createInstanceFromTypeId(fieldTypeSchema->typeId);
 								mDecodeObjectMap.Insert(std::make_pair(objectId, ObjectToDecode(childObj, (UINT32)-1, fieldTypeSchema)));
@@ -650,7 +653,7 @@ namespace bs
 						
 						if (curField != nullptr)
 						{
-							if(findObj == mDecodeObjectMap.End())
+							if(findObj == mDecodeObjectMap.end())
 							{
 								if(childObjectId != 0)
 								{
@@ -763,8 +766,9 @@ namespace bs
 				}
 				default:
 					BS_EXCEPT(InternalErrorException,
-						"Error decoding data. Encountered a type I don't know how to decode. Type: " + toString(UINT32(fieldSchema.type)) +
-						", Is array: " + toString(fieldSchema.isArray));
+							  "Error decoding data. Encountered a type I don't know how to decode. Type: " +
+									  ToString(UINT32(fieldSchema.type)) +
+							  ", Is array: " + ToString(fieldSchema.isArray));
 				}
 			}
 			else
@@ -781,12 +785,12 @@ namespace bs
 					else
 						stream.ReadBytes(childObjectId);
 
-					auto findObj = mDecodeObjectMap.Find(childObjectId);
+					auto findObj = mDecodeObjectMap.find(childObjectId);
 
 					// If reading from schema we need to create object here as we don't know its type during the normal pass
 					if (schema)
 					{
-						if (findObj == mDecodeObjectMap.End())
+						if (findObj == mDecodeObjectMap.end())
 						{
 							SPtr<IReflectable> childObj = IReflectable::createInstanceFromTypeId(fieldTypeSchema->typeId);
 							mDecodeObjectMap.Insert(std::make_pair(objectId, ObjectToDecode(childObj, (UINT32)-1, fieldTypeSchema)));
@@ -795,7 +799,7 @@ namespace bs
 						
 					if (curField != nullptr)
 					{
-						if(findObj == mDecodeObjectMap.End())
+						if(findObj == mDecodeObjectMap.end())
 						{
 							if(childObjectId != 0)
 							{
@@ -947,8 +951,9 @@ namespace bs
 				}
 				default:
 					BS_EXCEPT(InternalErrorException,
-						"Error decoding data. Encountered a type I don't know how to decode. Type: " + toString(UINT32(fieldSchema.type)) +
-						", Is array: " + toString(fieldSchema.isArray));
+							  "Error decoding data. Encountered a type I don't know how to decode. Type: " +
+									  ToString(UINT32(fieldSchema.type)) +
+							  ", Is array: " + ToString(fieldSchema.isArray));
 				}
 
 				stream.ClearBuffered(false);
@@ -1010,7 +1015,7 @@ namespace bs
 		//// O - Object descriptor
 		//// Y - Plain field has dynamic size
 		//// T - Terminator (last field in an object)
-		//// E - Extended (size is replaced with additional meta-data)
+		//// E - Extended (size is replaced with additional meta-Data)
 		//// B - Built-in type ID
 
 		bool isBuiltin = schema.GetTypeId() < 16;
@@ -1051,9 +1056,9 @@ namespace bs
 
 		if((encodedData & 0x10) != 0)
 			schema.type = SerializableFT_ReflectablePtr;
-		else If((encodedData & 0x08) != 0)
+		else if((encodedData & 0x08) != 0)
 			schema.type = SerializableFT_Reflectable;
-		else If((encodedData & 0x04) != 0)
+		else if((encodedData & 0x04) != 0)
 			schema.type = SerializableFT_DataBlock;
 		else
 			schema.type = SerializableFT_Plain;
@@ -1128,7 +1133,8 @@ namespace bs
 
 		if(objId > 1073741823)
 		{
-			BS_EXCEPT(InvalidParametersException, "Object ID is larger than we can store (max 30 bits): " + toString(objId));
+			BS_EXCEPT(InvalidParametersException, "Object ID is larger than we can store (max 30 bits): " +
+					ToString(objId));
 		}
 
 		ObjectMetaData metaData;
@@ -1159,7 +1165,8 @@ namespace bs
 
 		if(objId > 1073741823)
 		{
-			BS_EXCEPT(InvalidParametersException, "Object ID is larger than we can store (max 30 bits): " + toString(objId));
+			BS_EXCEPT(InvalidParametersException, "Object ID is larger than we can store (max 30 bits): " +
+					ToString(objId));
 		}
 
 		return (objId << 2) | (isBaseClass ? 0x02 : 0) | 0x01;
@@ -1222,8 +1229,8 @@ namespace bs
 	{
 		void* ptrAddress = (void*)object;
 
-		auto findIter = mObjectAddrToId.Find(ptrAddress);
-		if(findIter != mObjectAddrToId.End())
+		auto findIter = mObjectAddrToId.find(ptrAddress);
+		if(findIter != mObjectAddrToId.end())
 			return findIter->second;
 
 		UINT32 objId = mLastUsedObjectId++;
@@ -1239,8 +1246,8 @@ namespace bs
 
 		void* ptrAddress = (void*)object.Get();
 
-		auto iterFind = mObjectAddrToId.Find(ptrAddress);
-		if(iterFind == mObjectAddrToId.End())
+		auto iterFind = mObjectAddrToId.find(ptrAddress);
+		if(iterFind == mObjectAddrToId.end())
 		{
 			UINT32 objId = findOrCreatePersistentId(object.Get());
 

@@ -49,7 +49,7 @@ namespace bs
 		{
 			ScriptArray Arrayplanes(planes);
 			vecplanes.Resize(arrayplanes.size());
-			for(int i = 0; i < (int)arrayplanes.Size(); i++)
+			for(int i = 0; i < (int)arrayplanes.size(); i++)
 			{
 				vecplanes[i] = arrayplanes.get<Plane>(i);
 			}
@@ -63,7 +63,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->getPlanes();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptPlane>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -81,7 +81,7 @@ namespace bs
 		{
 			ScriptArray Arrayobjects(objects);
 			vecobjects.Resize(arrayobjects.size());
-			for(int i = 0; i < (int)arrayobjects.Size(); i++)
+			for(int i = 0; i < (int)arrayobjects.size(); i++)
 			{
 				ScriptSceneObject* scriptobjects;
 				scriptobjects = ScriptSceneObject::toNative(arrayobjects.get<MonoObject*>(i));
@@ -101,7 +101,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->getPlaneObjects();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptSceneObject>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{

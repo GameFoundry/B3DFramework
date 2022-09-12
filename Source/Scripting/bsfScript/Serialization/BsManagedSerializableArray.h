@@ -25,7 +25,7 @@ namespace bs
 	 *					this state will operate only on the cached internal data.
 	 *					
 	 * You can transfer an object in linked state to serialized state by calling serialize(). If an object is in serialized
-	 * state you can call deserialize() to populated a managed object from the cached data. 	
+	 * state you can call deserialize() to populated a managed object from the cached data.
 	 *	
 	 */
 	class BS_SCR_BE_EXPORT ManagedSerializableArray : public IReflectable
@@ -64,7 +64,7 @@ namespace bs
 
 		/**
 		 * Returns the sizes of a all dimensions of the array. Operates on managed object if in linked state, or on cached
-		 * data otherwise.
+		 * Data otherwise.
 		 */
 		Vector<UINT32> GetLengths() const { return mNumElements; }
 

@@ -34,7 +34,7 @@ namespace bs
 		{
 			ScriptArray Arrayclips(value.clips);
 			vecclips.Resize(arrayclips.size());
-			for(int i = 0; i < (int)arrayclips.Size(); i++)
+			for(int i = 0; i < (int)arrayclips.size(); i++)
 			{
 				vecclips[i] = ScriptBlendClipInfo::fromInterop(arrayclips.get<__BlendClipInfoInterop>(i));
 			}
@@ -47,7 +47,7 @@ namespace bs
 	__Blend1DInfoInterop ScriptBlend1DInfo::ToInterop(const Blend1DInfo& value)
 	{
 		__Blend1DInfoInterop output;
-		int arraySizeclips = (int)value.clips.Size();
+		int arraySizeclips = (int)value.clips.size();
 		MonoArray* vecclips;
 		ScriptArray arrayclips = ScriptArray::create<ScriptBlendClipInfo>(arraySizeclips);
 		for(int i = 0; i < arraySizeclips; i++)

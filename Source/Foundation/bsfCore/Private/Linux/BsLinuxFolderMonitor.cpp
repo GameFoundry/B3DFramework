@@ -78,20 +78,20 @@ namespace bs
 
 	void FolderMonitor::FolderWatchInfo::removePath(const Path& path)
 	{
-		auto iterFind = pathToHandle.Find(path);
-		if(iterFind != pathToHandle.End())
+		auto iterFind = pathToHandle.find(path);
+		if(iterFind != pathToHandle.end())
 		{
 			INT32 watchHandle = iterFind->second;
-			pathToHandle.Erase(iterFind);
+			pathToHandle.erase(iterFind);
 
-			handleToPath.Erase(watchHandle);
+			handleToPath.erase(watchHandle);
 		}
 	}
 
 	Path FolderMonitor::FolderWatchInfo::getPath(INT32 handle)
 	{
-		auto iterFind = handleToPath.Find(handle);
-		if(iterFind != handleToPath.End())
+		auto iterFind = handleToPath.find(handle);
+		if(iterFind != handleToPath.end())
 			return iterFind->second;
 
 		return Path::BLANK;
@@ -113,7 +113,7 @@ namespace bs
 	{
 		static FileAction* createAdded(const String& fileName)
 		{
-			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.Size() + 1) * sizeof(String::value_type)));
+			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(String::value_type)));
 
 			FileAction* action = (FileAction*)bytes;
 			bytes += sizeof(FileAction);
@@ -123,7 +123,7 @@ namespace bs
 			action->type = FileActionType::Added;
 
 			memcpy(action->newName, fileName.Data(), fileName.size() * sizeof(String::value_type));
-			action->newName[fileName.Size()] = L'\0';
+			action->newName[fileName.size()] = L'\0';
 			action->lastSize = 0;
 			action->checkForWriteStarted = false;
 
@@ -132,7 +132,7 @@ namespace bs
 
 		static FileAction* createRemoved(const String& fileName)
 		{
-			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.Size() + 1) * sizeof(String::value_type)));
+			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(String::value_type)));
 
 			FileAction* action = (FileAction*)bytes;
 			bytes += sizeof(FileAction);
@@ -142,7 +142,7 @@ namespace bs
 			action->type = FileActionType::Removed;
 
 			memcpy(action->newName, fileName.Data(), fileName.size() * sizeof(String::value_type));
-			action->newName[fileName.Size()] = L'\0';
+			action->newName[fileName.size()] = L'\0';
 			action->lastSize = 0;
 			action->checkForWriteStarted = false;
 
@@ -151,7 +151,7 @@ namespace bs
 
 		static FileAction* createModified(const String& fileName)
 		{
-			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.Size() + 1) * sizeof(String::value_type)));
+			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(String::value_type)));
 
 			FileAction* action = (FileAction*)bytes;
 			bytes += sizeof(FileAction);
@@ -161,7 +161,7 @@ namespace bs
 			action->type = FileActionType::Modified;
 
 			memcpy(action->newName, fileName.Data(), fileName.size() * sizeof(String::value_type));
-			action->newName[fileName.Size()] = L'\0';
+			action->newName[fileName.size()] = L'\0';
 			action->lastSize = 0;
 			action->checkForWriteStarted = false;
 
@@ -171,22 +171,22 @@ namespace bs
 		static FileAction* createRenamed(const String& oldFilename, const String& newfileName)
 		{
 			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) +
-				(oldFilename.Size() + newfileName.size() + 2) * sizeof(String::value_type)));
+				(oldFilename.size() + newfileName.size() + 2) * sizeof(String::value_type)));
 
 			FileAction* action = (FileAction*)bytes;
 			bytes += sizeof(FileAction);
 
 			action->oldName = (String::value_type*)bytes;
-			bytes += (oldFilename.Size() + 1) * sizeof(String::value_type);
+			bytes += (oldFilename.size() + 1) * sizeof(String::value_type);
 
 			action->newName = (String::value_type*)bytes;
 			action->type = FileActionType::Modified;
 
 			memcpy(action->oldName, oldFilename.Data(), oldFilename.size() * sizeof(String::value_type));
-			action->oldName[oldFilename.Size()] = L'\0';
+			action->oldName[oldFilename.size()] = L'\0';
 
 			memcpy(action->newName, newfileName.Data(), newfileName.size() * sizeof(String::value_type));
-			action->newName[newfileName.Size()] = L'\0';
+			action->newName[newfileName.size()] = L'\0';
 			action->lastSize = 0;
 			action->checkForWriteStarted = false;
 
@@ -302,13 +302,13 @@ namespace bs
 
 	void FolderMonitor::StopMonitor(const Path& folderPath)
 	{
-		auto findIter = std::find_if(m->monitors.Begin(), m->monitors.end(),
+		auto findIter = std::find_if(m->monitors.begin(), m->monitors.end(),
 			[&](const FolderWatchInfo* x) { return x->folderToMonitor == folderPath; });
 
-		if(findIter != m->monitors.End())
+		if(findIter != m->monitors.end())
 		{
 			// Special case if this is the last monitor
-			if(m->monitors.Size() == 1)
+			if(m->monitors.size() == 1)
 				stopMonitorAll();
 			else
 			{
@@ -318,7 +318,7 @@ namespace bs
 				watchInfo->StopMonitor();
 				bs_delete(watchInfo);
 
-				m->monitors.Erase(findIter);
+				m->monitors.erase(findIter);
 			}
 		}
 	}
@@ -425,7 +425,7 @@ namespace bs
 
 							if(added)
 								monitor->AddPath(path);
-							else If(removed)
+							else if(removed)
 								monitor->RemovePath(path);
 						}
 
@@ -499,19 +499,19 @@ namespace bs
 			switch (action->type)
 			{
 			case FileActionType::Added:
-				if (!onAdded.Empty())
+				if (!onAdded.empty())
 					onAdded(Path(action->newName));
 				break;
 			case FileActionType::Removed:
-				if (!onRemoved.Empty())
+				if (!onRemoved.empty())
 					onRemoved(Path(action->newName));
 				break;
 			case FileActionType::Modified:
-				if (!onModified.Empty())
+				if (!onModified.empty())
 					onModified(Path(action->newName));
 				break;
 			case FileActionType::Renamed:
-				if (!onRenamed.Empty())
+				if (!onRenamed.empty())
 					onRenamed(Path(action->oldName), Path(action->newName));
 				break;
 			}

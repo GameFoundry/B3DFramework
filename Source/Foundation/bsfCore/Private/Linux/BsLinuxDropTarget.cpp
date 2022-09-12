@@ -123,9 +123,9 @@ namespace bs
 					char offset = '\0';
 					if(isn)
 						offset = 0 - '0';
-					else If(isa)
+					else if(isa)
 						offset = 10 - 'a';
-					else If(isA)
+					else if(isA)
 						offset = 10 - 'A';
 
 					decodedChar |= (uri[i] + offset) << ((2 - decodeState) * 4);
@@ -273,33 +273,33 @@ namespace bs
 					break;
 				case DropAreaOpType::Unregister:
 					// Remove any operations queued for this target
-					for(auto iter = sQueuedOperations.Begin(); iter !=sQueuedOperations.end();)
+					for(auto iter = sQueuedOperations.begin(); iter !=sQueuedOperations.end();)
 					{
 						if(iter->target == entry.target)
-							iter = sQueuedOperations.Erase(iter);
+							iter = sQueuedOperations.erase(iter);
 						else
 							++iter;
 					}
 
 					// Remove the area
 					{
-						auto iterFind = std::find_if(sDropAreas.Begin(), sDropAreas.end(), [&](const DropArea& area)
+						auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(), [&](const DropArea& area)
 						{
 							return area.target == entry.target;
 						});
 
-						sDropAreas.Erase(iterFind);
+						sDropAreas.erase(iterFind);
 					}
 
 					break;
 				case DropAreaOpType::Update:
 				{
-					auto iterFind = std::find_if(sDropAreas.Begin(), sDropAreas.end(), [&](const DropArea& area)
+					auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(), [&](const DropArea& area)
 					{
 						return area.target == entry.target;
 					});
 
-					if (iterFind != sDropAreas.End())
+					if (iterFind != sDropAreas.end())
 						iterFind->area = entry.area;
 				}
 					break;
@@ -368,7 +368,7 @@ namespace bs
 			sDragActive = foundSupportedType;
 		}
 		// Cursor moved while drag is active (also includes the initial cursor activity when drag entered)
-		else If(event.message_type == sXdndPosition)
+		else if(event.message_type == sXdndPosition)
 		{
 			::Window source = (::Window)event.data.l[0];
 
@@ -442,7 +442,7 @@ namespace bs
 			XFlush(sXDisplay);
 		}
 		// Cursor left the target window, or the drop was rejected
-		else If(event.message_type == sXdndLeave)
+		else if(event.message_type == sXdndLeave)
 		{
 			for(auto& dropArea : sDropAreas)
 			{
@@ -459,7 +459,7 @@ namespace bs
 
 			sDragActive = false;
 		}
-		else If(event.message_type == sXdndDrop)
+		else if(event.message_type == sXdndDrop)
 		{
 			::Window source = (::Window)event.data.l[0];
 			bool dropAccepted = false;

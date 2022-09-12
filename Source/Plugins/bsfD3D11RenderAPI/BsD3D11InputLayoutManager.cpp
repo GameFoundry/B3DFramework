@@ -36,14 +36,14 @@ namespace bs { namespace ct
 
 	D3D11InputLayoutManager::~D3D11InputLayoutManager()
 	{
-		while(mInputLayoutMap.Begin() != mInputLayoutMap.end())
+		while(mInputLayoutMap.begin() != mInputLayoutMap.end())
 		{
-			auto firstElem = mInputLayoutMap.Begin();
+			auto firstElem = mInputLayoutMap.begin();
 
 			SAFE_RELEASE(firstElem->second->inputLayout);
 			bs_delete(firstElem->second);
 
-			mInputLayoutMap.Erase(firstElem);
+			mInputLayoutMap.erase(firstElem);
 			BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_InputLayout);
 		}
 	}
@@ -55,17 +55,17 @@ namespace bs { namespace ct
 		pair.vertxDeclId = vertexBufferDecl->GetId();
 		pair.vertexProgramId = vertexProgram.GetProgramId();
 
-		auto iterFind = mInputLayoutMap.Find(pair);
-		if(iterFind == mInputLayoutMap.End())
+		auto iterFind = mInputLayoutMap.find(pair);
+		if(iterFind == mInputLayoutMap.end())
 		{
-			if(mInputLayoutMap.Size() >= DECLARATION_BUFFER_SIZE)
+			if(mInputLayoutMap.size() >= DECLARATION_BUFFER_SIZE)
 				removeLeastUsed(); // Prune so the buffer doesn't just infinitely grow
 
 			addNewInputLayout(vertexShaderDecl, vertexBufferDecl, vertexProgram);
 
-			iterFind = mInputLayoutMap.Find(pair);
+			iterFind = mInputLayoutMap.find(pair);
 
-			if(iterFind == mInputLayoutMap.End()) // We failed to create input layout
+			if(iterFind == mInputLayoutMap.end()) // We failed to create input layout
 				return nullptr;
 		}
 
@@ -85,10 +85,10 @@ namespace bs { namespace ct
 		const Vector<VertexElement>& shaderElems = shaderDeclProps.GetElements();
 
 		INT32 maxStreamIdx = -1;
-		for (auto iter = bufferElems.Begin(); iter != bufferElems.end(); ++iter)
+		for (auto iter = bufferElems.begin(); iter != bufferElems.end(); ++iter)
 		{
 			declElements.push_back(D3D11_INPUT_ELEMENT_DESC());
-			D3D11_INPUT_ELEMENT_DESC& elementDesc = declElements.Back();
+			D3D11_INPUT_ELEMENT_DESC& elementDesc = declElements.back();
 
 			elementDesc.SemanticName = D3D11Mappings::get(iter->GetSemantic());
 			elementDesc.SemanticIndex = iter->GetSemanticIdx();
@@ -111,10 +111,10 @@ namespace bs { namespace ct
 		}
 
 		// Find elements missing in buffer and add a dummy stream for them
-		for (auto shaderIter = shaderElems.Begin(); shaderIter != shaderElems.end(); ++shaderIter)
+		for (auto shaderIter = shaderElems.begin(); shaderIter != shaderElems.end(); ++shaderIter)
 		{
 			bool foundElement = false;
-			for (auto bufferIter = bufferElems.Begin(); bufferIter != bufferElems.end(); ++bufferIter)
+			for (auto bufferIter = bufferElems.begin(); bufferIter != bufferElems.end(); ++bufferIter)
 			{
 				if (shaderIter->GetSemantic() == bufferIter->getSemantic() && shaderIter->getSemanticIdx() == bufferIter->getSemanticIdx())
 				{
@@ -126,7 +126,7 @@ namespace bs { namespace ct
 			if (!foundElement)
 			{
 				declElements.push_back(D3D11_INPUT_ELEMENT_DESC());
-				D3D11_INPUT_ELEMENT_DESC& elementDesc = declElements.Back();
+				D3D11_INPUT_ELEMENT_DESC& elementDesc = declElements.back();
 
 				elementDesc.SemanticName = D3D11Mappings::get(shaderIter->GetSemantic());
 				elementDesc.SemanticIndex = shaderIter->GetSemanticIdx();
@@ -148,7 +148,7 @@ namespace bs { namespace ct
 		newEntry->inputLayout = nullptr;
 		HRESULT hr = device.GetD3D11Device()->CreateInputLayout(
 			&declElements[0],
-			(UINT32)declElements.Size(),
+			(UINT32)declElements.size(),
 			microcode.data,
 			microcode.size,
 			&newEntry->inputLayout);
@@ -180,18 +180,18 @@ namespace bs { namespace ct
 
 		Map<UINT32, VertexDeclarationKey> leastFrequentlyUsedMap;
 
-		for(auto iter = mInputLayoutMap.Begin(); iter != mInputLayoutMap.end(); ++iter)
+		for(auto iter = mInputLayoutMap.begin(); iter != mInputLayoutMap.end(); ++iter)
 			leastFrequentlyUsedMap[iter->second->lastUsedIdx] = iter->first;
 
 		UINT32 elemsRemoved = 0;
-		for(auto iter = leastFrequentlyUsedMap.Begin(); iter != leastFrequentlyUsedMap.end(); ++iter)
+		for(auto iter = leastFrequentlyUsedMap.begin(); iter != leastFrequentlyUsedMap.end(); ++iter)
 		{
-			auto inputLayoutIter = mInputLayoutMap.Find(iter->second);
+			auto inputLayoutIter = mInputLayoutMap.find(iter->second);
 
 			SAFE_RELEASE(inputLayoutIter->second->inputLayout);
 			bs_delete(inputLayoutIter->second);
 
-			mInputLayoutMap.Erase(inputLayoutIter);
+			mInputLayoutMap.erase(inputLayoutIter);
 			BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_InputLayout);
 
 			elemsRemoved++;

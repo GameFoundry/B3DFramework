@@ -49,7 +49,7 @@ namespace bs
 	{
 		if(const auto primitiveTypeInfo = rtti_cast<ManagedSerializableTypeInfoPrimitive>(typeInfo.Get()))
 			return primitiveTypeInfo->mType == underlyingType;
-		else If(const auto enumTypeInfo = rtti_cast<ManagedSerializableTypeInfoEnum>(typeInfo.Get()))
+		else if(const auto enumTypeInfo = rtti_cast<ManagedSerializableTypeInfoEnum>(typeInfo.Get()))
 			return enumTypeInfo->mUnderlyingType == underlyingType;
 
 		return false;
@@ -92,7 +92,7 @@ namespace bs
 
 			if(auto primitiveTypeInfo = rtti_cast<ManagedSerializableTypeInfoPrimitive>(typeInfo.Get()))
 				primitiveType = primitiveTypeInfo->mType;
-			else If(auto enumTypeInfo = rtti_cast<ManagedSerializableTypeInfoEnum>(typeInfo.Get()))
+			else if(auto enumTypeInfo = rtti_cast<ManagedSerializableTypeInfoEnum>(typeInfo.Get()))
 				primitiveType = enumTypeInfo->mUnderlyingType;
 
 			switch (primitiveType)
@@ -306,7 +306,7 @@ namespace bs
 				break;
 			}
 		}
-		else If(typeInfo->GetTypeId() == TID_SerializableTypeInfoRRef)
+		else if(typeInfo->GetTypeId() == TID_SerializableTypeInfoRRef)
 		{
 			auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataResourceRef>();
 
@@ -318,7 +318,7 @@ namespace bs
 
 			return fieldData;
 		}
-		else If(typeInfo->GetTypeId() == TID_SerializableTypeInfoObject)
+		else if(typeInfo->GetTypeId() == TID_SerializableTypeInfoObject)
 		{
 			auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataObject>();
 			if (value != nullptr)
@@ -328,7 +328,7 @@ namespace bs
 
 			return fieldData;
 		}
-		else If(typeInfo->GetTypeId() == TID_SerializableTypeInfoArray)
+		else if(typeInfo->GetTypeId() == TID_SerializableTypeInfoArray)
 		{
 			SPtr<ManagedSerializableTypeInfoArray> arrayTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoArray>(typeInfo);
 
@@ -343,7 +343,7 @@ namespace bs
 
 			return fieldData;
 		}
-		else If(typeInfo->GetTypeId() == TID_SerializableTypeInfoList)
+		else if(typeInfo->GetTypeId() == TID_SerializableTypeInfoList)
 		{
 			SPtr<ManagedSerializableTypeInfoList> listTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoList>(typeInfo);
 
@@ -355,7 +355,7 @@ namespace bs
 
 			return fieldData;
 		}
-		else If(typeInfo->GetTypeId() == TID_SerializableTypeInfoDictionary)
+		else if(typeInfo->GetTypeId() == TID_SerializableTypeInfoDictionary)
 		{
 			SPtr<ManagedSerializableTypeInfoDictionary> dictTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoDictionary>(typeInfo);
 
@@ -530,7 +530,7 @@ namespace bs
 				return scriptResource->GetManagedInstance();
 			}
 		}
-		else If(typeInfo->GetTypeId() == TID_SerializableTypeInfoRRef)
+		else if(typeInfo->GetTypeId() == TID_SerializableTypeInfoRRef)
 		{
 			const auto refTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoRRef>(typeInfo);
 

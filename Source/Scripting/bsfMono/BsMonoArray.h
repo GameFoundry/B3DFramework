@@ -34,7 +34,7 @@ namespace bs
 
 		/**
 		 * Assigns some data represented as raw memory to the array at the specified index. User must provide the size of
-		 * the data, and it must match the element size expected by the array. Multiple array elements can be provided
+		 * the Data, and it must match the element size expected by the array. Multiple array elements can be provided
 		 * sequentially by setting the @p count parameter.
 		 */
 		void SetRaw(UINT32 idx, const UINT8* value, UINT32 size, UINT32 count = 1);

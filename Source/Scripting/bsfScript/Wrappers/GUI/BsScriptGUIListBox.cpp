@@ -47,12 +47,12 @@ namespace bs
 		GUIOptions options;
 
 		ScriptArray ScriptArray(guiOptions);
-		UINT32 arrayLen = scriptArray.Size();
+		UINT32 arrayLen = scriptArray.size();
 		for (UINT32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.get<GUIOption>(i));
 
 		ScriptArray ElemsArray(elements);
-		UINT32 elementsArrayLen = elemsArray.Size();
+		UINT32 elementsArrayLen = elemsArray.size();
 		Vector<HString> nativeElements;
 		for(UINT32 i = 0; i < elementsArrayLen; i++)
 		{
@@ -77,7 +77,7 @@ namespace bs
 	void ScriptGUIListBox::internal_setElements(ScriptGUIListBox* nativeInstance, MonoArray* elements)
 	{
 		ScriptArray ElemsArray(elements);
-		UINT32 elementsArrayLen = elemsArray.Size();
+		UINT32 elementsArrayLen = elemsArray.size();
 		Vector<HString> nativeElements;
 		for(UINT32 i = 0; i < elementsArrayLen; i++)
 		{
@@ -119,7 +119,7 @@ namespace bs
 		GUIListBox* listBox = (GUIListBox*)nativeInstance->GetGUIElement();
 		const Vector<bool>& states = listBox->GetElementStates();
 
-		UINT32 numElements = (UINT32)states.Size();
+		UINT32 numElements = (UINT32)states.size();
 		ScriptArray outStates = ScriptArray::create<bool>(numElements);
 
 		for (UINT32 i = 0; i < numElements; i++)
@@ -134,7 +134,7 @@ namespace bs
 			return;
 
 		ScriptArray InStates(monoStates);
-		UINT32 numElements = inStates.Size();
+		UINT32 numElements = inStates.size();
 
 		Vector<bool> States(numElements);
 		for (UINT32 i = 0; i < numElements; i++)

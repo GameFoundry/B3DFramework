@@ -338,7 +338,7 @@ namespace bs
 		tmpdir.Append("/bsf-XXXXXX");
 		
 		// null terminated, modifiable tmpdir name template
-		Vector<char> NameTemplate(tmpdir.c_str(), tmpdir.c_str() + tmpdir.Size() + 1);
+		Vector<char> NameTemplate(tmpdir.c_str(), tmpdir.c_str() + tmpdir.size() + 1);
 		char *directoryName = mkdtemp(nameTemplate.Data());
 
 		if (directoryName == nullptr)

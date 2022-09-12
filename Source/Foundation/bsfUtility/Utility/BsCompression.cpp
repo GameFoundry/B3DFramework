@@ -100,7 +100,7 @@ namespace bs
 
 		void Append(const char* data, size_t n) override
 		{
-			if(mBufferPieces.Empty() || mBufferPieces.back().buffer != data)
+			if(mBufferPieces.empty() || mBufferPieces.back().buffer != data)
 			{
 				BufferPiece piece;
 				piece.buffer = (char*)bs_alloc((UINT32)n);
@@ -111,7 +111,7 @@ namespace bs
 			}
 			else
 			{
-				BufferPiece& piece = mBufferPieces.Back();
+				BufferPiece& piece = mBufferPieces.back();
 				assert(piece.buffer == data);
 
 				piece.size = n;
@@ -144,7 +144,7 @@ namespace bs
 		void AppendAndTakeOwnership(char* bytes, size_t n, void(*deleter)(void*, const char*, size_t),
 			void *deleter_arg) override
 		{
-			BufferPiece& piece = mBufferPieces.Back();
+			BufferPiece& piece = mBufferPieces.back();
 
 			if (piece.buffer != bytes)
 			{

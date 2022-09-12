@@ -36,20 +36,20 @@ namespace bs
 
 			auto iterFind = std::find(begin(mMovedOrResizedWindows), end(mMovedOrResizedWindows), window);
 
-			if(iterFind != mMovedOrResizedWindows.End())
-				mMovedOrResizedWindows.Erase(iterFind);
+			if(iterFind != mMovedOrResizedWindows.end())
+				mMovedOrResizedWindows.erase(iterFind);
 
 			if (mNewWindowInFocus == window)
 				mNewWindowInFocus = nullptr;
 
-			mWindows.Erase(window->mWindowId);
-			mDirtyProperties.Erase(window);
+			mWindows.erase(window->mWindowId);
+			mDirtyProperties.erase(window);
 		}
 
 		{
 			auto iterFind = std::find(begin(mModalWindowStack), end(mModalWindowStack), window);
-			if(iterFind != mModalWindowStack.End())
-				mModalWindowStack.Erase(iterFind);
+			if(iterFind != mModalWindowStack.end())
+				mModalWindowStack.erase(iterFind);
 		}
 	}
 
@@ -149,7 +149,7 @@ namespace bs
 		for (auto& window : movedOrResizedWindows)
 			window->OnResized();
 
-		if (!onMouseLeftWindow.Empty())
+		if (!onMouseLeftWindow.empty())
 		{
 			for (auto& window : mouseLeftWindows)
 				onMouseLeftWindow(*window);
@@ -182,17 +182,17 @@ namespace bs
 
 	RenderWindow* RenderWindowManager::getTopMostModal() const
 	{
-		if (mModalWindowStack.Empty())
+		if (mModalWindowStack.empty())
 			return nullptr;
 		
-		return mModalWindowStack.Back();
+		return mModalWindowStack.back();
 	}
 
 	RenderWindow* RenderWindowManager::getNonCore(const ct::RenderWindow* window) const
 	{
-		auto iterFind = mWindows.Find(window->mWindowId);
+		auto iterFind = mWindows.find(window->mWindowId);
 
-		if (iterFind != mWindows.End())
+		if (iterFind != mWindows.end())
 			return iterFind->second;
 
 		return nullptr;
@@ -230,11 +230,11 @@ namespace bs
 
 			auto iterFind = std::find(begin(mCreatedWindows), end(mCreatedWindows), window);
 
-			if (iterFind == mCreatedWindows.End())
+			if (iterFind == mCreatedWindows.end())
 				BS_EXCEPT(InternalErrorException, "Trying to destroy a window that is not in the created windows list.");
 
-			mCreatedWindows.Erase(iterFind);
-			mDirtyProperties.Erase(window);
+			mCreatedWindows.erase(iterFind);
+			mDirtyProperties.erase(window);
 		}
 	}
 

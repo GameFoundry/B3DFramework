@@ -52,7 +52,7 @@ namespace bs
 
 	Vector<HCollider> RawToComponent(const Vector<Collider*>& raw)
 	{
-		if (raw.Empty())
+		if (raw.empty())
 			return Vector<HCollider>(0);
 
 		Vector<HCollider> output;

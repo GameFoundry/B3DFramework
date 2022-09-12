@@ -24,7 +24,7 @@ namespace bs
 
 	void ShortcutManager::RemoveShortcut(const ShortcutKey& key)
 	{
-		mShortcuts.Erase(key);
+		mShortcuts.erase(key);
 	}
 
 	void ShortcutManager::OnButtonDown(const ButtonEvent& event)
@@ -41,8 +41,8 @@ namespace bs
 
 		ShortcutKey SearchKey((ButtonModifier)modifiers, event.buttonCode);
 
-		auto iterFind = mShortcuts.Find(searchKey);
-		if (iterFind != mShortcuts.End())
+		auto iterFind = mShortcuts.find(searchKey);
+		if (iterFind != mShortcuts.end())
 		{
 			if (iterFind->second != nullptr)
 				iterFind->Second();

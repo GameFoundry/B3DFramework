@@ -142,7 +142,7 @@ namespace bs
 			return;
 
 		const Vector<SPtr<MorphChannel>>& channels = morphShapes->GetChannels();
-		for (UINT32 i = 0; i < (UINT32)channels.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)channels.size(); i++)
 		{
 			if (channels[i]->GetName() == name)
 			{
@@ -429,14 +429,14 @@ namespace bs
 	void CAnimation::_removeBone(const HBone& bone)
 	{
 		HSceneObject newSO;
-		for (UINT32 i = 0; i < (UINT32)mMappingInfos.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mMappingInfos.size(); i++)
 		{
 			if (mMappingInfos[i].bone == bone)
 			{
 				if(mInternal)
 					mInternal->UnmapSceneObject(mMappingInfos[i].sceneObject);
 
-				mMappingInfos.Erase(mMappingInfos.begin() + i);
+				mMappingInfos.erase(mMappingInfos.begin() + i);
 				i--;
 			}
 		}
@@ -447,7 +447,7 @@ namespace bs
 		if (mInternal == nullptr)
 			return;
 
-		for (UINT32 i = 0; i < (UINT32)mMappingInfos.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mMappingInfos.size(); i++)
 		{
 			if (mMappingInfos[i].bone == bone)
 			{
@@ -547,7 +547,7 @@ namespace bs
 				HSceneObject currentSO = root->FindPath(name);
 
 				bool found = false;
-				for (UINT32 i = 0; i < (UINT32)newMappingInfos.Size(); i++)
+				for (UINT32 i = 0; i < (UINT32)newMappingInfos.size(); i++)
 				{
 					if (newMappingInfos[i].sceneObject == currentSO)
 					{
@@ -597,10 +597,10 @@ namespace bs
 		todo.Push(SO());
 
 		Vector<HBone> bones;
-		while (todo.Size() > 0)
+		while (todo.size() > 0)
 		{
 			HSceneObject currentSO = todo.Top();
-			todo.Pop();
+			todo.pop();
 
 			HBone bone = currentSO->getComponent<CBone>();
 			if (bone != nullptr)

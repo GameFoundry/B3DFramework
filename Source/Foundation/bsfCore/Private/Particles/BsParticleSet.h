@@ -94,17 +94,17 @@ namespace bs
 				reserve<UINT32>(capacity).
 				init();
 
-			prevPosition = alloc.alloc<Vector3>(capacity);
-			position = alloc.alloc<Vector3>(capacity);
-			velocity = alloc.alloc<Vector3>(capacity);
-			size = alloc.alloc<Vector3>(capacity);
-			rotation = alloc.alloc<Vector3>(capacity);
-			lifetime = alloc.alloc<float>(capacity);
-			initialLifetime = alloc.alloc<float>(capacity);
-			color = alloc.alloc<RGBA>(capacity);
-			seed = alloc.alloc<UINT32>(capacity);
-			frame = alloc.alloc<float>(capacity);
-			indices = alloc.alloc<UINT32>(capacity);
+			prevPosition = alloc.Allocate<Vector3>(capacity);
+			position = alloc.Allocate<Vector3>(capacity);
+			velocity = alloc.Allocate<Vector3>(capacity);
+			size = alloc.Allocate<Vector3>(capacity);
+			rotation = alloc.Allocate<Vector3>(capacity);
+			lifetime = alloc.Allocate<float>(capacity);
+			initialLifetime = alloc.Allocate<float>(capacity);
+			color = alloc.Allocate<RGBA>(capacity);
+			seed = alloc.Allocate<UINT32>(capacity);
+			frame = alloc.Allocate<float>(capacity);
+			indices = alloc.Allocate<UINT32>(capacity);
 		}
 
 		/** Frees the internal buffers. */
@@ -165,7 +165,7 @@ namespace bs
 		GroupAlloc alloc;
 	};
 
-	/** Provides a simple and fast way to allocate and deallocate particles. */
+	/** Provides a simple and fast way to Allocate and deallocate particles. */
 	class ParticleSet : public INonCopyable
 	{
 		/** Determines how much to increase capacity once the cap is reached, in percent. */

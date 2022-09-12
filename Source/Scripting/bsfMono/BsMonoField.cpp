@@ -85,13 +85,13 @@ namespace bs
 
 		if(flags == MONO_FIELD_ATTR_PRIVATE)
 			return MonoMemberVisibility::Private;
-		else If(flags == MONO_FIELD_ATTR_FAM_AND_ASSEM)
+		else if(flags == MONO_FIELD_ATTR_FAM_AND_ASSEM)
 			return MonoMemberVisibility::ProtectedInternal;
-		else If(flags == MONO_FIELD_ATTR_ASSEMBLY)
+		else if(flags == MONO_FIELD_ATTR_ASSEMBLY)
 			return MonoMemberVisibility::Internal;
-		else If(flags == MONO_FIELD_ATTR_FAMILY)
+		else if(flags == MONO_FIELD_ATTR_FAMILY)
 			return MonoMemberVisibility::Protected;
-		else If(flags == MONO_FIELD_ATTR_PUBLIC)
+		else if(flags == MONO_FIELD_ATTR_PUBLIC)
 			return MonoMemberVisibility::Public;
 
 		assert(false);

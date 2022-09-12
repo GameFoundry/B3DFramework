@@ -71,8 +71,8 @@ namespace bs
 				{
 				case EV_KEY:
 				{
-					auto findIter = m->info.buttonMap.Find(events[i].code);
-					if(findIter == m->info.buttonMap.End())
+					auto findIter = m->info.buttonMap.find(events[i].code);
+					if(findIter == m->info.buttonMap.end())
 						continue;
 
 					if(events[i].value)
@@ -105,7 +105,7 @@ namespace bs
 							axisState[axisInfo.axisIdx].value = Gamepad::MIN_AXIS + (INT32)(normalizedValue * range);
 						}
 					}
-					else If(events[i].code <= ABS_HAT3Y) // POV
+					else if(events[i].code <= ABS_HAT3Y) // POV
 					{
 						// Note: We only support a single POV and report events from all POVs as if they were from the
 						// same source
@@ -116,14 +116,14 @@ namespace bs
 						{
 							if(events[i].value == -1)
 								povButton = BC_GAMEPAD_DPAD_LEFT;
-							else If(events[i].value == 1)
+							else if(events[i].value == 1)
 								povButton = BC_GAMEPAD_DPAD_RIGHT;
 						}
 						else // Odd, y axis
 						{
 							if(events[i].value == -1)
 								povButton = BC_GAMEPAD_DPAD_UP;
-							else If(events[i].value == 1)
+							else if(events[i].value == 1)
 								povButton = BC_GAMEPAD_DPAD_DOWN;
 						}
 

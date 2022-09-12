@@ -38,9 +38,9 @@ namespace bs { namespace ct
 				assert(result == MaterialParams::GetParamResult::Success);
 				const MaterialParamsBase::ParamData* materialParamData = params->GetParamData(paramIdx);
 
-				UINT32 overrideIdx = (UINT32)overrides.Size();
+				UINT32 overrideIdx = (UINT32)overrides.size();
 				overrides.push_back(SamplerOverride());
-				SamplerOverride& override = overrides.Back();
+				SamplerOverride& override = overrides.back();
 
 				SPtr<SamplerState> samplerState;
 				params->GetSamplerState(*materialParamData, samplerState);
@@ -80,7 +80,7 @@ namespace bs { namespace ct
 					if (paramDesc == nullptr)
 						continue;
 
-					for (auto iter = paramDesc->samplers.Begin(); iter != paramDesc->samplers.end(); ++iter)
+					for (auto iter = paramDesc->samplers.begin(); iter != paramDesc->samplers.end(); ++iter)
 					{
 						UINT32 set = iter->second.set;
 						maxSamplerSet = std::max(maxSamplerSet, set + 1);
@@ -106,7 +106,7 @@ namespace bs { namespace ct
 					if (paramDesc == nullptr)
 						continue;
 
-					for (auto iter = paramDesc->samplers.Begin(); iter != paramDesc->samplers.end(); ++iter)
+					for (auto iter = paramDesc->samplers.begin(); iter != paramDesc->samplers.end(); ++iter)
 					{
 						UINT32 set = iter->second.set;
 						UINT32 slot = iter->second.slot;
@@ -124,7 +124,7 @@ namespace bs { namespace ct
 				numPasses * sizeof(PassSamplerOverrides) +
 				totalNumSets * sizeof(UINT32*) +
 				totalNumSamplerStates * sizeof(UINT32) +
-				(UINT32)overrides.Size() * sizeof(SamplerOverride);
+				(UINT32)overrides.size() * sizeof(SamplerOverride);
 
 			UINT8* outputData = (UINT8*)bs_alloc(outputSize);
 			output = (MaterialSamplerOverrides*)outputData;
@@ -160,7 +160,7 @@ namespace bs { namespace ct
 						continue;
 
 					UINT32 numStates = 0;
-					for (auto iter = paramDesc->samplers.Begin(); iter != paramDesc->samplers.end(); ++iter)
+					for (auto iter = paramDesc->samplers.begin(); iter != paramDesc->samplers.end(); ++iter)
 					{
 						UINT32 set = iter->second.set;
 						UINT32 slot = iter->second.slot;
@@ -172,8 +172,8 @@ namespace bs { namespace ct
 
 						numStates = std::max(numStates, slot + 1);
 
-						auto iterFind = overrideLookup.Find(iter->first);
-						if (iterFind != overrideLookup.End())
+						auto iterFind = overrideLookup.find(iter->first);
+						if (iterFind != overrideLookup.end())
 							passOverrides.stateOverrides[set][slot] = iterFind->second;
 						else
 							passOverrides.stateOverrides[set][slot] = (UINT32)-1;
@@ -183,7 +183,7 @@ namespace bs { namespace ct
 				slotsPerSetIter += passOverrides.numSets;
 			}
 
-			output->numOverrides = (UINT32)overrides.Size();
+			output->numOverrides = (UINT32)overrides.size();
 			output->overrides = (SamplerOverride*)outputData;
 
 			for(UINT32 i = 0; i < output->numOverrides; i++)

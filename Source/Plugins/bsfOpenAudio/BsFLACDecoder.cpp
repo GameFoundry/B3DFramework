@@ -197,7 +197,7 @@ namespace bs
 
 	UINT32 FLACDecoder::Read(UINT8* samples, UINT32 numSamples)
 	{
-		UINT32 overflowSize = (UINT32)mData.overflow.Size();
+		UINT32 overflowSize = (UINT32)mData.overflow.size();
 		UINT32 overflowNumSamples = 0;
 		
 		UINT32 bytesPerSample = mData.info.bitDepth / 8;
@@ -206,13 +206,13 @@ namespace bs
 			UINT32 sampleSize = numSamples * bytesPerSample;
 			if (overflowSize > sampleSize)
 			{
-				std::copy(mData.overflow.Begin(), mData.overflow.begin() + sampleSize, samples);
-				mData.overflow.Erase(mData.overflow.begin(), mData.overflow.begin() + sampleSize);
+				std::copy(mData.overflow.begin(), mData.overflow.begin() + sampleSize, samples);
+				mData.overflow.erase(mData.overflow.begin(), mData.overflow.begin() + sampleSize);
 
 				return numSamples;
 			}
 			else
-				std::copy(mData.overflow.Begin(), mData.overflow.end(), samples);
+				std::copy(mData.overflow.begin(), mData.overflow.end(), samples);
 
 			overflowNumSamples = overflowSize / bytesPerSample;
 		}

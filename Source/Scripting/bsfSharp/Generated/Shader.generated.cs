@@ -28,7 +28,7 @@ namespace bs
 
 		/// <summary>
 		/// Returns the list of all variation parameters supported by this shader, possible values of each parameter and other 
-		/// meta-data.
+		/// meta-Data.
 		/// </summary>
 		[NativeWrapper]
 		public ShaderVariationParamInfo[] VariationParams

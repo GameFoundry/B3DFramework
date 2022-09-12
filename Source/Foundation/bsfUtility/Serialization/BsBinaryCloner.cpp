@@ -87,12 +87,12 @@ namespace bs
 								if (subObjectData == nullptr)
 								{
 									referenceData.subObjectData.push_back(SubObjectReferenceData());
-									subObjectData = &referenceData.subObjectData[referenceData.subObjectData.Size() - 1];
+									subObjectData = &referenceData.subObjectData[referenceData.subObjectData.size() - 1];
 									subObjectData->rtti = rtti;
 								}
 
 								subObjectData->references.push_back(ObjectReference());
-								ObjectReference& reference = subObjectData->references.Back();
+								ObjectReference& reference = subObjectData->references.back();
 								reference.fieldId = fieldId;
 								reference.object = childObj;
 							}
@@ -105,12 +105,12 @@ namespace bs
 							if (subObjectData == nullptr)
 							{
 								referenceData.subObjectData.push_back(SubObjectReferenceData());
-								subObjectData = &referenceData.subObjectData[referenceData.subObjectData.Size() - 1];
+								subObjectData = &referenceData.subObjectData[referenceData.subObjectData.size() - 1];
 								subObjectData->rtti = rtti;
 							}
 
 							subObjectData->children.push_back(ObjectReferenceData());
-							ObjectReferenceData& childData = subObjectData->children.Back();
+							ObjectReferenceData& childData = subObjectData->children.back();
 							childData.fieldId = fieldId;
 
 							gatherReferences(childObj, alloc, childData);
@@ -129,12 +129,12 @@ namespace bs
 							if (subObjectData == nullptr)
 							{
 								referenceData.subObjectData.push_back(SubObjectReferenceData());
-								subObjectData = &referenceData.subObjectData[referenceData.subObjectData.Size() - 1];
+								subObjectData = &referenceData.subObjectData[referenceData.subObjectData.size() - 1];
 								subObjectData->rtti = rtti;
 							}
 
 							subObjectData->references.push_back(ObjectReference());
-							ObjectReference& reference = subObjectData->references.Back();
+							ObjectReference& reference = subObjectData->references.back();
 							reference.fieldId = fieldId;
 							reference.object = childObj;
 						}
@@ -147,12 +147,12 @@ namespace bs
 						if (subObjectData == nullptr)
 						{
 							referenceData.subObjectData.push_back(SubObjectReferenceData());
-							subObjectData = &referenceData.subObjectData[referenceData.subObjectData.Size() - 1];
+							subObjectData = &referenceData.subObjectData[referenceData.subObjectData.size() - 1];
 							subObjectData->rtti = rtti;
 						}
 
 						subObjectData->children.push_back(ObjectReferenceData());
-						ObjectReferenceData& childData = subObjectData->children.Back();
+						ObjectReferenceData& childData = subObjectData->children.back();
 						childData.fieldId = fieldId;
 
 						gatherReferences(childObj, alloc, childData);
@@ -164,10 +164,10 @@ namespace bs
 			rtti = rtti->GetBaseClass();
 		}
 
-		while (!rttiInstances.Empty())
+		while (!rttiInstances.empty())
 		{
 			RTTITypeBase* rttiInstance = rttiInstances.Top();
-			rttiInstances.Pop();
+			rttiInstances.pop();
 
 			rttiInstance->OnSerializationEnded(object, nullptr);
 			alloc.Destruct(rttiInstance);
@@ -180,7 +180,7 @@ namespace bs
 		{
 			const SubObjectReferenceData& subObject = *iter;
 
-			if (!subObject.references.Empty())
+			if (!subObject.references.empty())
 			{
 				RTTITypeBase* rttiInstance = subObject.rtti->_clone(alloc);
 				rttiInstance->OnDeserializationStarted(object, nullptr);
@@ -202,7 +202,7 @@ namespace bs
 
 		for (auto& subObject : referenceData.subObjectData)
 		{
-			if (!subObject.children.Empty())
+			if (!subObject.children.empty())
 			{
 				RTTITypeBase* rttiInstance = subObject.rtti->_clone(alloc);
 				rttiInstance->OnSerializationStarted(object, nullptr);

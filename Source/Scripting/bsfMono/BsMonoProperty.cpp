@@ -139,7 +139,7 @@ namespace bs
 			UINT32 numParams = mono_signature_get_param_count(signature);
 			mIsIndexed = numParams == 1;
 		}
-		else If(mSetMethod != nullptr)
+		else if(mSetMethod != nullptr)
 		{
 			MonoMethodSignature* signature = mono_method_signature(mSetMethod);
 

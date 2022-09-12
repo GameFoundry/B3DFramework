@@ -238,8 +238,8 @@ namespace bs { namespace ct
 			return mDefault;
 
 		VariantKey Key(loadMask, readMask, clearMask);
-		auto iterFind = mVariants.Find(key);
-		if (iterFind != mVariants.End())
+		auto iterFind = mVariants.find(key);
+		if (iterFind != mVariants.end())
 			return iterFind->second;
 
 		VkRenderPass newVariant = createVariant(loadMask, readMask, clearMask);
@@ -285,8 +285,8 @@ namespace bs { namespace ct
 		{
 			Lock Lock(mMutex);
 
-			auto iterFind = mVariants.Find(key);
-			if (iterFind != mVariants.End())
+			auto iterFind = mVariants.find(key);
+			if (iterFind != mVariants.end())
 				return iterFind->second;
 
 			pass = bs_new<VulkanRenderPass>(device, desc);

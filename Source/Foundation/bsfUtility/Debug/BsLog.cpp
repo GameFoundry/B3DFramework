@@ -9,24 +9,24 @@ namespace bs
 
 	Log::~Log()
 	{
-		clear();
+		Clear();
 	}
 
 	void Log::LogMsg(const String& message, LogVerbosity verbosity, UINT32 category)
 	{
 		RecursiveLock Lock(mMutex);
 
-		mUnreadEntries.Push(LogEntry(message, verbosity, category));
+		mUnreadEntries.push(LogEntry(message, verbosity, category));
 	}
 
 	void Log::Clear()
 	{
 		RecursiveLock Lock(mMutex);
 
-		mEntries.Clear();
+		mEntries.clear();
 
-		while (!mUnreadEntries.Empty())
-			mUnreadEntries.Pop();
+		while (!mUnreadEntries.empty())
+			mUnreadEntries.pop();
 
 		mHash++;
 	}
@@ -48,16 +48,16 @@ namespace bs
 		mEntries = newEntries;
 
 		Queue<LogEntry> newUnreadEntries;
-		while (!mUnreadEntries.Empty())
+		while (!mUnreadEntries.empty())
 		{
-			LogEntry entry = mUnreadEntries.Front();
-			mUnreadEntries.Pop();
+			LogEntry entry = mUnreadEntries.front();
+			mUnreadEntries.pop();
 
 			if (((verbosity == LogVerbosity::Any) || entry.GetVerbosity() == verbosity) &&
 				(category == (UINT32)-1 || entry.GetCategory() == category))
 				continue;
 
-			newUnreadEntries.Push(entry);
+			newUnreadEntries.push(entry);
 		}
 
 		mUnreadEntries = newUnreadEntries;
@@ -68,11 +68,11 @@ namespace bs
 	{
 		RecursiveLock Lock(mMutex);
 
-		if (mUnreadEntries.Empty())
+		if (mUnreadEntries.empty())
 			return false;
 
-		entry = mUnreadEntries.Front();
-		mUnreadEntries.Pop();
+		entry = mUnreadEntries.front();
+		mUnreadEntries.pop();
 		mEntries.push_back(entry);
 		mHash++;
 
@@ -81,10 +81,10 @@ namespace bs
 
 	bool Log::GetLastEntry(LogEntry& entry)
 	{
-		if (mEntries.Size() == 0)
+		if (mEntries.size() == 0)
 			return false;
 
-		entry = mEntries.Back();
+		entry = mEntries.back();
 		return true;
 	}
 
@@ -97,9 +97,9 @@ namespace bs
 	
 	bool Log::_registerCategory(UINT32 id, const char* name)
 	{
-		if (!categoryExists(id))
+		if (!CategoryExists(id))
 		{
-			sCategories.Emplace(id, name);
+			sCategories.emplace(id, name);
 			return true;
 		}
 
@@ -108,13 +108,13 @@ namespace bs
 	
 	bool Log::CategoryExists(UINT32 id)
 	{
-		return sCategories.Find(id) != sCategories.end();
+		return sCategories.find(id) != sCategories.end();
 	}
 	
 	bool Log::GetCategoryName(UINT32 id, String& name)
 	{
-		auto search = sCategories.Find(id);
-		if (search != sCategories.End())
+		auto search = sCategories.find(id);
+		if (search != sCategories.end())
 		{
 			name = search->second;
 			return true;
@@ -134,10 +134,10 @@ namespace bs
 				entries.push_back(entry);
 
 			Queue<LogEntry> unreadEntries = mUnreadEntries;
-			while (!unreadEntries.Empty())
+			while (!unreadEntries.empty())
 			{
-				entries.push_back(unreadEntries.Front());
-				unreadEntries.Pop();
+				entries.push_back(unreadEntries.front());
+				unreadEntries.pop();
 			}
 		}
 

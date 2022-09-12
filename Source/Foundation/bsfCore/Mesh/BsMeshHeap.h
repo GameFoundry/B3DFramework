@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/**
-	 * Mesh heap allows you to quickly allocate and deallocate a large amounts of temporary meshes without the large
+	 * Mesh heap allows you to quickly Allocate and deallocate a large amounts of temporary meshes without the large
 	 * overhead of normal Mesh creation. Only requirement is that meshes share the same vertex description and index type.
 	 * 			
 	 * @note	
@@ -21,7 +21,7 @@ namespace bs
 	 * example every frame) and you are not able to discard entire mesh contents on each update. Not using discard flag on
 	 * normal meshes may introduce GPU-CPU sync points which may severely limit performance. Primary purpose of this class
 	 * is to avoid those sync points by not forcing you to discard contents.
-	 * Downside is that this class may allocate 2-3x (or more) memory than it is actually needed for your data.
+	 * Downside is that this class may Allocate 2-3x (or more) memory than it is actually needed for your data.
 	 * @note
 	 * Sim thread only
 	 */

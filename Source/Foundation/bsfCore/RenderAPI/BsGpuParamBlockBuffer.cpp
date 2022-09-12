@@ -29,8 +29,8 @@ namespace bs
 		if ((offset + size) > mSize)
 		{
 			BS_EXCEPT(InvalidParametersException, "Wanted range is out of buffer bounds. " \
-				"Available range: 0 .. " + toString(mSize) + ". " \
-				"Wanted range: " + toString(offset) + " .. " + toString(offset + size) + ".");
+				"Available range: 0 .. " + ToString(mSize) + ". " \
+				"Wanted range: " + ToString(offset) + " .. " + ToString(offset + size) + ".");
 		}
 #endif
 
@@ -44,8 +44,8 @@ namespace bs
 		if ((offset + size) > mSize)
 		{
 			BS_EXCEPT(InvalidParametersException, "Wanted range is out of buffer bounds. " \
-				"Available range: 0 .. " + toString(mSize) + ". " \
-				"Wanted range: " + toString(offset) + " .. " + toString(offset + size) + ".");
+				"Available range: 0 .. " + ToString(mSize) + ". " \
+				"Wanted range: " + ToString(offset) + " .. " + ToString(offset + size) + ".");
 		}
 #endif
 
@@ -58,8 +58,8 @@ namespace bs
 		if ((offset + size) > mSize)
 		{
 			BS_EXCEPT(InvalidParametersException, "Wanted range is out of buffer bounds. " \
-				"Available range: 0 .. " + toString(mSize) + ". " \
-				"Wanted range: " + toString(offset) + " .. " + toString(offset + size) + ".");
+				"Available range: 0 .. " + ToString(mSize) + ". " \
+				"Wanted range: " + ToString(offset) + " .. " + ToString(offset + size) + ".");
 		}
 #endif
 
@@ -123,8 +123,8 @@ namespace bs
 		if ((offset + size) > mSize)
 		{
 			BS_EXCEPT(InvalidParametersException, "Wanted range is out of buffer bounds. " \
-				"Available range: 0 .. " + toString(mSize) + ". " \
-				"Wanted range: " + toString(offset) + " .. " + toString(offset + size) + ".");
+				"Available range: 0 .. " + ToString(mSize) + ". " \
+				"Wanted range: " + ToString(offset) + " .. " + ToString(offset + size) + ".");
 		}
 #endif
 
@@ -138,8 +138,8 @@ namespace bs
 		if ((offset + size) > mSize)
 		{
 			BS_EXCEPT(InvalidParametersException, "Wanted range is out of buffer bounds. " \
-				"Available range: 0 .. " + toString(mSize) + ". " \
-				"Wanted range: " + toString(offset) + " .. " + toString(offset + size) + ".");
+				"Available range: 0 .. " + ToString(mSize) + ". " \
+				"Wanted range: " + ToString(offset) + " .. " + ToString(offset + size) + ".");
 		}
 #endif
 
@@ -152,8 +152,8 @@ namespace bs
 		if ((offset + size) > mSize)
 		{
 			BS_EXCEPT(InvalidParametersException, "Wanted range is out of buffer bounds. " \
-				"Available range: 0 .. " + toString(mSize) + ". " \
-				"Wanted range: " + toString(offset) + " .. " + toString(offset + size) + ".");
+				"Available range: 0 .. " + ToString(mSize) + ". " \
+				"Wanted range: " + ToString(offset) + " .. " + ToString(offset + size) + ".");
 		}
 #endif
 

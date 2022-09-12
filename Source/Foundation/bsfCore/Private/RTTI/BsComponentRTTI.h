@@ -24,7 +24,7 @@ namespace bs
 
 			// It's possible we're just accessing the game object fields, in which case the process below is not needed
 			// (it's only required for new components).
-			if (comp->mRTTIData.Empty())
+			if (comp->mRTTIData.empty())
 				return;
 
 			BS_ASSERT(context != nullptr && rtti_is_of_type<CoreSerializationContext>(context));
@@ -44,7 +44,7 @@ namespace bs
 				coreContext->goState->RegisterObject(deserializationData.originalId, handle);
 			}
 
-			if(comp->mUUID.Empty() || coreContext->goState->GetUseNewUUIDs())
+			if(comp->mUUID.empty() || coreContext->goState->GetUseNewUUIDs())
 				comp->mUUID = UUIDGenerator::generateRandom();
 			
 			comp->mRTTIData = nullptr;

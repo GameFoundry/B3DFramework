@@ -117,7 +117,7 @@ namespace bs
 		}
 
 		// Get OS version
-		output.osName = "Windows " + toString((UINT32)GetRealOSVersion().dwMajorVersion);
+		output.osName = "Windows " + ToString((UINT32) GetRealOSVersion().dwMajorVersion);
 
 		// Get GPU info
 		output.gpuInfo = sGPUInfo;
@@ -141,7 +141,7 @@ namespace bs
 
 	String PlatformUtility::ConvertCaseUTF8(const String& input, bool toUpper)
 	{
-		if(input.Empty())
+		if(input.empty())
 			return "";
 
 		WString wideString = UTF8::toWide(input);

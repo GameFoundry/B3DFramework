@@ -63,8 +63,8 @@ namespace bs { namespace ct
 			std::function<bool(const StringID&)> registerNode = [&](const StringID& nodeId)
 			{
 				// Find node type
-				auto iterFind = mNodeTypes.Find(nodeId);
-				if (iterFind == mNodeTypes.End())
+				auto iterFind = mNodeTypes.find(nodeId);
+				if (iterFind == mNodeTypes.end())
 				{
 					BS_LOG(Error, Renderer, "Cannot find render compositor node of type \"{0}\".", String(nodeId.c_str()));
 					return false;
@@ -73,10 +73,10 @@ namespace bs { namespace ct
 				NodeType* nodeType = iterFind->second;
 
 				// Register current node
-				auto iterFind2 = processedNodes.Find(nodeId);
+				auto iterFind2 = processedNodes.find(nodeId);
 
 				// New node
-				if (iterFind2 == processedNodes.End())
+				if (iterFind2 == processedNodes.end())
 				{
 					// Mark it as invalid for now
 					processedNodes[nodeId] = -1;
@@ -94,22 +94,22 @@ namespace bs { namespace ct
 				UINT32 curIdx;
 
 				// New node, properly populate its index
-				if (iterFind2 == processedNodes.End())
+				if (iterFind2 == processedNodes.end())
 				{
-					iterFind2 = processedNodes.Find(nodeId);
+					iterFind2 = processedNodes.find(nodeId);
 
-					curIdx = (UINT32)mNodeInfos.Size();
+					curIdx = (UINT32)mNodeInfos.size();
 					mNodeInfos.push_back(NodeInfo());
 					processedNodes[nodeId] = curIdx;
 
-					NodeInfo& nodeInfo = mNodeInfos.Back();
+					NodeInfo& nodeInfo = mNodeInfos.back();
 					nodeInfo.node = nodeType->Create();
 					nodeInfo.nodeType = nodeType;
 					nodeInfo.lastUseIdx = -1;
 
 					for (auto& depId : depIds)
 					{
-						iterFind2 = processedNodes.Find(depId);
+						iterFind2 = processedNodes.find(depId);
 
 						NodeInfo& depNodeInfo = mNodeInfos[iterFind2->second];
 						nodeInfo.inputs.Add(depNodeInfo.node);
@@ -132,7 +132,7 @@ namespace bs { namespace ct
 				// Update dependency last use counters
 				for (auto& dep : depIds)
 				{
-					iterFind2 = processedNodes.Find(dep);
+					iterFind2 = processedNodes.find(dep);
 
 					NodeInfo& depNodeInfo = mNodeInfos[iterFind2->second];
 					if (depNodeInfo.lastUseIdx == (UINT32)-1)
@@ -181,7 +181,7 @@ namespace bs { namespace ct
 
 				activeNodes.push_back(&entry);
 
-				for (UINT32 i = 0; i < (UINT32)activeNodes.Size(); ++i)
+				for (UINT32 i = 0; i < (UINT32)activeNodes.size(); ++i)
 				{
 					if (activeNodes[i] == nullptr)
 						continue;
@@ -198,8 +198,8 @@ namespace bs { namespace ct
 		}
 		bs_frame_clear();
 
-		if (!mNodeInfos.Empty())
-			mNodeInfos.Back().node->Clear();
+		if (!mNodeInfos.empty())
+			mNodeInfos.back().node->Clear();
 	}
 
 	void RenderCompositor::Clear()
@@ -337,7 +337,7 @@ namespace bs { namespace ct
 		// Prepare all visible objects. Note that this also prepares non-opaque objects.
 		//// Prepare normal renderables
 		const VisibilityInfo& visibility = inputs.view.GetVisibilityMasks();
-		const auto numRenderables = (UINT32)inputs.scene.renderables.Size();
+		const auto numRenderables = (UINT32)inputs.scene.renderables.size();
 		for (UINT32 i = 0; i < numRenderables; i++)
 		{
 			if (!visibility.renderables[i])
@@ -362,7 +362,7 @@ namespace bs { namespace ct
 		const ParticlePerFrameData* particleData = inputs.frameInfo.perFrameData.particles;
 		if(particleData)
 		{
-			const auto numParticleSystems = (UINT32)inputs.scene.particleSystems.Size();
+			const auto numParticleSystems = (UINT32)inputs.scene.particleSystems.size();
 
 			const GpuParticleResources& gpuSimResources = GpuParticleSimulation::instance().GetResources();
 			for (UINT32 i = 0; i < numParticleSystems; i++)
@@ -379,20 +379,20 @@ namespace bs { namespace ct
 				ParticleSystem* particleSystem = rendererParticles.particleSystem;
 
 				// Bind textures/buffers from CPU simulation
-				const auto iterFind = particleData->cpuData.Find(particleSystem->GetId());
-				if (iterFind != particleData->cpuData.End())
+				const auto iterFind = particleData->cpuData.find(particleSystem->GetId());
+				if (iterFind != particleData->cpuData.end())
 				{
 					ParticleRenderData* renderData = iterFind->second;
 					rendererParticles.BindCPUSimulatedInputs(renderData, inputs.view);
 				}
 				// Bind textures/buffers from GPU simulation
-				else If(rendererParticles.gpuParticleSystem)
+				else if(rendererParticles.gpuParticleSystem)
 					rendererParticles.BindGPUSimulatedInputs(gpuSimResources, inputs.view);
 			}
 		}
 
 		//// Prepare decals
-		const auto numDecals = (UINT32)inputs.scene.decals.Size();
+		const auto numDecals = (UINT32)inputs.scene.decals.size();
 		for (UINT32 i = 0; i < numDecals; i++)
 		{
 			if (!visibility.decals[i])
@@ -662,7 +662,7 @@ namespace bs { namespace ct
 
 		const RendererViewProperties& viewProps = inputs.view.GetProperties();
 		const VisibilityInfo& visibility = inputs.view.GetVisibilityMasks();
-		const auto numParticleSystems = (UINT32)inputs.scene.particleSystems.Size();
+		const auto numParticleSystems = (UINT32)inputs.scene.particleSystems.size();
 
 		// Sort particles
 		bs_frame_mark();
@@ -682,8 +682,8 @@ namespace bs { namespace ct
 				const RendererParticles& rendererParticles = inputs.scene.particleSystems[i];
 
 				ParticleSystem* particleSystem = rendererParticles.particleSystem;
-				const auto iterFind = particleData->cpuData.Find(particleSystem->GetId());
-				if (iterFind == particleData->cpuData.End())
+				const auto iterFind = particleData->cpuData.find(particleSystem->GetId());
+				if (iterFind == particleData->cpuData.end())
 					continue;
 
 				ParticleRenderData* simulationData = iterFind->second;
@@ -716,7 +716,7 @@ namespace bs { namespace ct
 				}
 			};
 
-			SPtr<TaskGroup> sortTask = TaskGroup::create("ParticleSort", worker, (UINT32)systemsToSort.Size());
+			SPtr<TaskGroup> sortTask = TaskGroup::create("ParticleSort", worker, (UINT32)systemsToSort.size());
 
 			TaskScheduler::instance().AddTaskGroup(sortTask);
 			sortTask->Wait();
@@ -1446,7 +1446,7 @@ namespace bs { namespace ct
 		// Prepare objects for rendering by binding forward lighting data
 		//// Normal renderables
 		const VisibilityInfo& visibility = inputs.view.GetVisibilityMasks();
-		const auto numRenderables = (UINT32)sceneInfo.renderables.Size();
+		const auto numRenderables = (UINT32)sceneInfo.renderables.size();
 		for (UINT32 i = 0; i < numRenderables; i++)
 		{
 			if (!visibility.renderables[i])
@@ -1480,7 +1480,7 @@ namespace bs { namespace ct
 		const ParticlePerFrameData* particleData = inputs.frameInfo.perFrameData.particles;
 		if(particleData)
 		{
-			const auto numParticleSystems = (UINT32)inputs.scene.particleSystems.Size();
+			const auto numParticleSystems = (UINT32)inputs.scene.particleSystems.size();
 
 			for (UINT32 i = 0; i < numParticleSystems; i++)
 			{

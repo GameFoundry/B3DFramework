@@ -112,8 +112,8 @@ namespace bs
 
 	ScriptManagedComponent* ScriptGameObjectManager::getManagedScriptComponent(const HManagedComponent& component) const
 	{
-		auto findIter = mScriptComponents.Find(component.getInstanceId());
-		if (findIter != mScriptComponents.End())
+		auto findIter = mScriptComponents.find(component.getInstanceId());
+		if (findIter != mScriptComponents.end())
 			return static_cast<ScriptManagedComponent*>(findIter->second);
 
 		return nullptr;
@@ -121,8 +121,8 @@ namespace bs
 
 	ScriptComponentBase* ScriptGameObjectManager::getScriptComponent(UINT64 instanceId) const
 	{
-		auto findIter = mScriptComponents.Find(instanceId);
-		if (findIter != mScriptComponents.End())
+		auto findIter = mScriptComponents.find(instanceId);
+		if (findIter != mScriptComponents.end())
 			return findIter->second;
 
 		return nullptr;
@@ -130,8 +130,8 @@ namespace bs
 
 	ScriptSceneObject* ScriptGameObjectManager::getScriptSceneObject(const HSceneObject& sceneObject) const
 	{
-		auto findIter = mScriptSceneObjects.Find(sceneObject.getInstanceId());
-		if (findIter != mScriptSceneObjects.End())
+		auto findIter = mScriptSceneObjects.find(sceneObject.getInstanceId());
+		if (findIter != mScriptSceneObjects.end())
 			return findIter->second;
 
 		return nullptr;
@@ -139,8 +139,8 @@ namespace bs
 
 	ScriptSceneObject* ScriptGameObjectManager::getScriptSceneObject(UINT64 instanceId) const
 	{
-		auto findIter = mScriptSceneObjects.Find(instanceId);
-		if (findIter != mScriptSceneObjects.End())
+		auto findIter = mScriptSceneObjects.find(instanceId);
+		if (findIter != mScriptSceneObjects.end())
 			return findIter->second;
 
 		return nullptr;
@@ -148,12 +148,12 @@ namespace bs
 
 	ScriptGameObjectBase* ScriptGameObjectManager::getScriptGameObject(UINT64 instanceId) const
 	{
-		auto findIter = mScriptSceneObjects.Find(instanceId);
-		if (findIter != mScriptSceneObjects.End())
+		auto findIter = mScriptSceneObjects.find(instanceId);
+		if (findIter != mScriptSceneObjects.end())
 			return findIter->second;
 
-		auto findIter2 = mScriptComponents.Find(instanceId);
-		if (findIter2 != mScriptComponents.End())
+		auto findIter2 = mScriptComponents.find(instanceId);
+		if (findIter2 != mScriptComponents.end())
 			return findIter2->second;
 
 		return nullptr;
@@ -162,7 +162,7 @@ namespace bs
 	void ScriptGameObjectManager::DestroyScriptSceneObject(ScriptSceneObject* sceneObject)
 	{
 		UINT64 instanceId = sceneObject->GetNativeHandle().GetInstanceId();
-		mScriptSceneObjects.Erase(instanceId);
+		mScriptSceneObjects.erase(instanceId);
 
 		bs_delete(sceneObject);
 	}
@@ -170,7 +170,7 @@ namespace bs
 	void ScriptGameObjectManager::DestroyScriptComponent(ScriptComponentBase* component)
 	{
 		UINT64 instanceId = component->GetNativeHandle().GetInstanceId();
-		mScriptComponents.Erase(instanceId);
+		mScriptComponents.erase(instanceId);
 
 		bs_delete(component);
 	}
@@ -199,14 +199,14 @@ namespace bs
 		if (so != nullptr)
 		{
 			so->_notifyDestroyed();
-			mScriptSceneObjects.Erase(instanceId);
+			mScriptSceneObjects.erase(instanceId);
 		}
 
 		ScriptComponentBase* component = getScriptComponent(instanceId);
 		if(component != nullptr)
 		{
 			component->_notifyDestroyed();
-			mScriptComponents.Erase(instanceId);
+			mScriptComponents.erase(instanceId);
 		}
 	}
 }

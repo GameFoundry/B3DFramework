@@ -364,7 +364,7 @@ namespace bs { namespace ct
 			if (!StringUtil::startsWith(name, mName, false))
 				return -1;
 
-			UINT32 length = (UINT32)mName.Size();
+			UINT32 length = (UINT32)mName.size();
 			return ParseINT32(name.Substr(length));
 		}
 
@@ -713,8 +713,8 @@ namespace bs { namespace ct
 						stride = VulkanUtility::calcInterfaceBlockElementSizeAndOffset(paramType, arraySize, bufferOffset);
 
 					bool unusedMember = false;
-					auto findIter = uniforms.Find(paramName);
-					if(findIter != uniforms.End()) // Likely unused and was optimized out
+					auto findIter = uniforms.find(paramName);
+					if(findIter != uniforms.end()) // Likely unused and was optimized out
 					{
 						// Ensure our calculation matches the glslang provided one. We don't use glslang directly because
 						// for some cases offset is not provided (e.g. structs that have members optimized out).
@@ -842,7 +842,7 @@ namespace bs { namespace ct
 				goto cleanup;
 		}
 
-		bytecode->instructions.size = (UINT32)spirv.Size() * sizeof(UINT32);
+		bytecode->instructions.size = (UINT32)spirv.size() * sizeof(UINT32);
 		bytecode->instructions.data = (UINT8*)bs_alloc(bytecode->instructions.size);
 
 		memcpy(bytecode->instructions.data, spirv.Data(), bytecode->instructions.size);

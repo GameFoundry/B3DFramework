@@ -30,8 +30,8 @@ namespace bs { namespace ct
 
 	void ParamBlockManager::UnregisterBlock(ParamBlock* paramBlock)
 	{
-		auto iterFind = std::find(sToInitialize.Begin(), sToInitialize.end(), paramBlock);
-		if (iterFind != sToInitialize.End())
-			sToInitialize.Erase(iterFind);
+		auto iterFind = std::find(sToInitialize.begin(), sToInitialize.end(), paramBlock);
+		if (iterFind != sToInitialize.end())
+			sToInitialize.erase(iterFind);
 	}
 }}

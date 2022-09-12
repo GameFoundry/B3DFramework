@@ -140,7 +140,7 @@ namespace bs
 		vec__output = PixelDataEx::getPixels(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptColor>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -158,7 +158,7 @@ namespace bs
 		{
 			ScriptArray Arrayvalue(value);
 			vecvalue.Resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			for(int i = 0; i < (int)arrayvalue.size(); i++)
 			{
 				vecvalue[i] = arrayvalue.get<Color>(i);
 			}
@@ -172,7 +172,7 @@ namespace bs
 		vec__output = PixelDataEx::getRawPixels(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<char>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -190,7 +190,7 @@ namespace bs
 		{
 			ScriptArray Arrayvalue(value);
 			vecvalue.Resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			for(int i = 0; i < (int)arrayvalue.size(); i++)
 			{
 				vecvalue[i] = arrayvalue.get<char>(i);
 			}

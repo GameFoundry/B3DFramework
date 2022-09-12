@@ -20,12 +20,12 @@ namespace bs
 		{
 			struct Hash
 			{
-				size_t Operator()(const ClassId& v) const;
+				size_t operator()(const ClassId& v) const;
 			};
 
 			struct Equals
 			{
-				bool Operator()(const ClassId &a, const ClassId &b) const;
+				bool operator()(const ClassId &a, const ClassId &b) const;
 			};
 
 			ClassId(const String& namespaceName, String name, ::MonoClass* genericInstance = nullptr);

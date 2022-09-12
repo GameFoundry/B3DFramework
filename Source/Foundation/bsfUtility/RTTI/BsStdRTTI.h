@@ -30,7 +30,7 @@ namespace bs
 			{
 				BitLength size = 0;
 
-				auto numElements = (uint32_t)data.Size();
+				auto numElements = (uint32_t)data.size();
 				size += rtti_write(numElements, stream);
 
 				for (const auto& item : data)
@@ -90,7 +90,7 @@ namespace bs
 			{
 				BitLength size = 0;
 
-				auto numElements = (uint32_t)data.Size();
+				auto numElements = (uint32_t)data.size();
 				size += rtti_write(numElements, stream);
 
 				for (const auto& item : data)
@@ -151,7 +151,7 @@ namespace bs
 			{
 				BitLength size = 0;
 
-				auto numElements = (uint32_t)data.Size();
+				auto numElements = (uint32_t)data.size();
 				size += rtti_write(numElements, stream);
 
 				for (const auto& item : data)
@@ -211,7 +211,7 @@ namespace bs
 			{
 				BitLength size = 0;
 
-				auto numElements = (uint32_t)data.Size();
+				auto numElements = (uint32_t)data.size();
 				size += rtti_write(numElements, stream);
 
 				for (const auto& item : data)
@@ -282,7 +282,7 @@ namespace bs
 			{
 				BitLength size = 0;
 
-				auto numElements = (uint32_t)data.Size();
+				auto numElements = (uint32_t)data.size();
 				size += rtti_write(numElements, stream);
 
 				for (const auto& item : data)
@@ -353,7 +353,7 @@ namespace bs
 			{
 				BitLength size = 0;
 
-				auto numElements = (uint32_t)data.Size();
+				auto numElements = (uint32_t)data.size();
 				size += rtti_write(numElements, stream);
 
 				for (const auto& item : data)

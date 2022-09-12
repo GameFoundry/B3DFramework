@@ -66,7 +66,7 @@ namespace bs
 	template<bool Core>
 	void TRenderable<Core>::setMaterial(UINT32 idx, const MaterialType& material)
 	{
-		if (idx >= (UINT32)mMaterials.Size())
+		if (idx >= (UINT32)mMaterials.size())
 			return;
 
 		mMaterials[idx] = material;
@@ -79,8 +79,8 @@ namespace bs
 	template<bool Core>
 	void TRenderable<Core>::setMaterials(const Vector<MaterialType>& materials)
 	{
-		UINT32 numMaterials = (UINT32)mMaterials.Size();
-		UINT32 min = std::min(numMaterials, (UINT32)materials.Size());
+		UINT32 numMaterials = (UINT32)mMaterials.size();
+		UINT32 min = std::min(numMaterials, (UINT32)materials.size());
 
 		for (UINT32 i = 0; i < min; i++)
 			mMaterials[i] = materials[i];
@@ -102,7 +102,7 @@ namespace bs
 	template <bool Core>
 	typename TRenderable<Core>::MaterialType TRenderable<Core>::getMaterial(UINT32 idx) const
 	{
-		if(idx >= (UINT32)mMaterials.Size())
+		if(idx >= (UINT32)mMaterials.size())
 			return nullptr;
 
 		return mMaterials[idx];
@@ -327,7 +327,7 @@ namespace bs
 		UINT64 animationId = 0;
 		if(dirtyFlags != (UINT32)ActorDirtyFlag::Transform)
 		{
-			numMaterials = (UINT32)mMaterials.Size();
+			numMaterials = (UINT32)mMaterials.size();
 
 			if (mAnimation != nullptr)
 				animationId = mAnimation->_getId();
@@ -605,8 +605,8 @@ namespace bs
 
 		const EvaluatedAnimationData::AnimInfo* animInfo = nullptr;
 
-		auto iterFind = animData.infos.Find(mAnimationId);
-		if (iterFind != animData.infos.End())
+		auto iterFind = animData.infos.find(mAnimationId);
+		if (iterFind != animData.infos.end())
 			animInfo = &iterFind->second;
 
 		if (animInfo == nullptr)
@@ -733,7 +733,7 @@ namespace bs
 				gRenderer()->NotifyRenderableAdded(this);
 			}
 		}
-		else If((dirtyFlags & (UINT32)ActorDirtyFlag::Mobility) != 0)
+		else if((dirtyFlags & (UINT32)ActorDirtyFlag::Mobility) != 0)
 		{
 				gRenderer()->NotifyRenderableRemoved(this);
 				gRenderer()->NotifyRenderableAdded(this);

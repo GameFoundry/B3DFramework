@@ -39,7 +39,7 @@ namespace bs
 
 		~BasicRowFiller()
 		{
-			UINT32 excessEntries = (UINT32)rows.Size() - curIdx;
+			UINT32 excessEntries = (UINT32)rows.size() - curIdx;
 			for(UINT32 i = 0; i < excessEntries; i++)
 			{
 				ProfilerOverlay::BasicRow& row = rows[curIdx + i];
@@ -58,11 +58,11 @@ namespace bs
 		void addData(UINT32 depth, const String& name, float pctOfParent, UINT32 numCalls, UINT64 numAllocs,
 			UINT64 numFrees, double avgTime, double totalTime, double avgSelfTime, double totalSelfTime)
 		{
-			if(curIdx >= rows.Size())
+			if(curIdx >= rows.size())
 			{
 				rows.push_back(ProfilerOverlay::BasicRow());
 
-				ProfilerOverlay::BasicRow& newRow = rows.Back();
+				ProfilerOverlay::BasicRow& newRow = rows.back();
 
 				newRow.disabled = false;
 				newRow.name = HEString(u8"{0}");
@@ -95,14 +95,14 @@ namespace bs
 
 			row.labelSpace->SetSize(depth * 20);
 			row.name.SetParameter(0, name);
-			row.pctOfParent.SetParameter(0, toString(pctOfParent * 100.0f, 2, 0, ' ', std::ios::fixed));
-			row.numCalls.SetParameter(0, toString(numCalls));
-			row.numAllocs.SetParameter(0, toString(numAllocs));
-			row.numFrees.SetParameter(0, toString(numFrees));
-			row.avgTime.SetParameter(0, toString(avgTime, 2, 0, ' ', std::ios::fixed));
-			row.totalTime.SetParameter(0, toString(totalTime, 2, 0, ' ', std::ios::fixed));
-			row.avgTimeSelf.SetParameter(0, toString(avgSelfTime, 2, 0, ' ', std::ios::fixed));
-			row.totalTimeSelf.SetParameter(0, toString(totalSelfTime, 2, 0, ' ', std::ios::fixed));
+			row.pctOfParent.SetParameter(0, ToString(pctOfParent * 100.0f, 2, 0, ' ', std::ios::fixed));
+			row.numCalls.SetParameter(0, ToString(numCalls));
+			row.numAllocs.SetParameter(0, ToString(numAllocs));
+			row.numFrees.SetParameter(0, ToString(numFrees));
+			row.avgTime.SetParameter(0, ToString(avgTime, 2, 0, ' ', std::ios::fixed));
+			row.totalTime.SetParameter(0, ToString(totalTime, 2, 0, ' ', std::ios::fixed));
+			row.avgTimeSelf.SetParameter(0, ToString(avgSelfTime, 2, 0, ' ', std::ios::fixed));
+			row.totalTimeSelf.SetParameter(0, ToString(totalSelfTime, 2, 0, ' ', std::ios::fixed));
 
 			row.guiName->SetContent(row.name);
 			row.guiPctOfParent->SetContent(row.pctOfParent);
@@ -140,7 +140,7 @@ namespace bs
 
 		~PreciseRowFiller()
 		{
-			UINT32 excessEntries = (UINT32)rows.Size() - curIdx;
+			UINT32 excessEntries = (UINT32)rows.size() - curIdx;
 			for(UINT32 i = 0; i < excessEntries; i++)
 			{
 				ProfilerOverlay::PreciseRow& row = rows[curIdx + i];
@@ -159,11 +159,11 @@ namespace bs
 		void addData(UINT32 depth, const String& name, float pctOfParent, UINT32 numCalls, UINT64 numAllocs,
 			UINT64 numFrees, UINT64 avgCycles, UINT64 totalCycles, UINT64 avgSelfCycles, UINT64 totalSelfCycles)
 		{
-			if(curIdx >= rows.Size())
+			if(curIdx >= rows.size())
 			{
 				rows.push_back(ProfilerOverlay::PreciseRow());
 
-				ProfilerOverlay::PreciseRow& newRow = rows.Back();
+				ProfilerOverlay::PreciseRow& newRow = rows.back();
 
 				newRow.disabled = false;
 				newRow.name = HEString(u8"{0}");
@@ -196,14 +196,14 @@ namespace bs
 
 			row.labelSpace->SetSize(depth * 20);
 			row.name.SetParameter(0, name);
-			row.pctOfParent.SetParameter(0, toString(pctOfParent * 100.0f, 2, 0, ' ', std::ios::fixed));
-			row.numCalls.SetParameter(0, toString(numCalls));
-			row.numAllocs.SetParameter(0, toString(numAllocs));
-			row.numFrees.SetParameter(0, toString(numFrees));
-			row.avgCycles.SetParameter(0, toString(avgCycles));
-			row.totalCycles.SetParameter(0, toString(totalCycles));
-			row.avgCyclesSelf.SetParameter(0, toString(avgSelfCycles));
-			row.totalCyclesSelf.SetParameter(0, toString(totalSelfCycles));
+			row.pctOfParent.SetParameter(0, ToString(pctOfParent * 100.0f, 2, 0, ' ', std::ios::fixed));
+			row.numCalls.SetParameter(0, ToString(numCalls));
+			row.numAllocs.SetParameter(0, ToString(numAllocs));
+			row.numFrees.SetParameter(0, ToString(numFrees));
+			row.avgCycles.SetParameter(0, ToString(avgCycles));
+			row.totalCycles.SetParameter(0, ToString(totalCycles));
+			row.avgCyclesSelf.SetParameter(0, ToString(avgSelfCycles));
+			row.totalCyclesSelf.SetParameter(0, ToString(totalSelfCycles));
 
 			row.guiName->SetContent(row.name);
 			row.guiPctOfParent->SetContent(row.pctOfParent);
@@ -242,7 +242,7 @@ namespace bs
 
 		~GPUSampleRowFiller()
 		{
-			UINT32 excessEntries = (UINT32)rows.Size() - curIdx;
+			UINT32 excessEntries = (UINT32)rows.size() - curIdx;
 			for (UINT32 i = 0; i < excessEntries; i++)
 			{
 				ProfilerOverlay::GPUSampleRow& row = rows[curIdx + i];
@@ -260,11 +260,11 @@ namespace bs
 
 		void AddData(UINT32 depth, const String& name, float timeMs)
 		{
-			if (curIdx >= rows.Size())
+			if (curIdx >= rows.size())
 			{
 				rows.push_back(ProfilerOverlay::GPUSampleRow());
 
-				ProfilerOverlay::GPUSampleRow& newRow = rows.Back();
+				ProfilerOverlay::GPUSampleRow& newRow = rows.back();
 
 				newRow.disabled = false;
 				newRow.name = HEString(u8"{1}");
@@ -283,7 +283,7 @@ namespace bs
 
 			row.labelSpace->SetSize(depth * 20);
 			row.name.SetParameter(0, name);
-			row.time.SetParameter(0, toString(timeMs));
+			row.time.SetParameter(0, ToString(timeMs));
 
 			row.guiName->SetContent(row.name);
 			row.guiTime->SetContent(row.time);
@@ -541,7 +541,7 @@ namespace bs
 			GPUProfilerReport report = ProfilerGPU::instance().GetNextReport();
 
 			// TODO - Currently displaying just the first view. I need to add a way to toggle between views
-			if(!report.viewSamples.Empty())
+			if(!report.viewSamples.empty())
 				updateGPUSampleContents(report.viewSamples[0]);
 		}
 	}
@@ -659,10 +659,10 @@ namespace bs
 		{
 			todoBasic.Push(TodoBasic(*basicRootEntries[i], 0));
 
-			while(!todoBasic.Empty())
+			while(!todoBasic.empty())
 			{
 				TodoBasic curEntry = todoBasic.Top();
-				todoBasic.Pop();
+				todoBasic.pop();
 
 				const CPUProfilerBasicSamplingEntry::Data& data = curEntry.entry.data;
 				basicRowFiller.addData(curEntry.depth, data.name, data.pctOfParent, data.numCalls, data.memAllocs, data.memFrees,
@@ -689,10 +689,10 @@ namespace bs
 		{
 			todoPrecise.Push(TodoPrecise(*preciseRootEntries[i], 0));
 
-			while(!todoBasic.Empty())
+			while(!todoBasic.empty())
 			{
 				TodoPrecise curEntry = todoPrecise.Top();
-				todoPrecise.Pop();
+				todoPrecise.pop();
 
 				const CPUProfilerPreciseSamplingEntry::Data& data = curEntry.entry.data;
 				preciseRowFiller.addData(curEntry.depth, data.name, data.pctOfParent, data.numCalls, data.memAllocs, data.memFrees,
@@ -711,24 +711,24 @@ namespace bs
 
 	void ProfilerOverlay::UpdateGPUSampleContents(const GPUProfileSample& frameSample)
 	{
-		mGPUFrameNumStr.SetParameter(0, toString((UINT64)gTime().getFrameIdx()));
-		mGPUTimeStr.SetParameter(0, toString(frameSample.timeMs));
-		mGPUDrawCallsStr.SetParameter(0, toString(frameSample.numDrawCalls));
-		mGPURenTargetChangesStr.SetParameter(0, toString(frameSample.numRenderTargetChanges));
-		mGPUPresentsStr.SetParameter(0, toString(frameSample.numPresents));
-		mGPUClearsStr.SetParameter(0, toString(frameSample.numClears));
-		mGPUVerticesStr.SetParameter(0, toString(frameSample.numVertices));
-		mGPUPrimitivesStr.SetParameter(0, toString(frameSample.numPrimitives));
-		mGPUSamplesStr.SetParameter(0, toString(frameSample.numDrawnSamples));
-		mGPUPipelineStateChangesStr.SetParameter(0, toString(frameSample.numPipelineStateChanges));
+		mGPUFrameNumStr.SetParameter(0, ToString((UINT64) gTime().getFrameIdx()));
+		mGPUTimeStr.SetParameter(0, ToString(frameSample.timeMs));
+		mGPUDrawCallsStr.SetParameter(0, ToString(frameSample.numDrawCalls));
+		mGPURenTargetChangesStr.SetParameter(0, ToString(frameSample.numRenderTargetChanges));
+		mGPUPresentsStr.SetParameter(0, ToString(frameSample.numPresents));
+		mGPUClearsStr.SetParameter(0, ToString(frameSample.numClears));
+		mGPUVerticesStr.SetParameter(0, ToString(frameSample.numVertices));
+		mGPUPrimitivesStr.SetParameter(0, ToString(frameSample.numPrimitives));
+		mGPUSamplesStr.SetParameter(0, ToString(frameSample.numDrawnSamples));
+		mGPUPipelineStateChangesStr.SetParameter(0, ToString(frameSample.numPipelineStateChanges));
 
-		mGPUObjectsCreatedStr.SetParameter(0, toString(frameSample.numObjectsCreated));
-		mGPUObjectsDestroyedStr.SetParameter(0, toString(frameSample.numObjectsDestroyed));
-		mGPUResourceWritesStr.SetParameter(0, toString(frameSample.numResourceWrites));
-		mGPUResourceReadsStr.SetParameter(0, toString(frameSample.numResourceReads));
-		mGPUParamBindsStr.SetParameter(0, toString(frameSample.numGpuParamBinds));
-		mGPUVertexBufferBindsStr.SetParameter(0, toString(frameSample.numVertexBufferBinds));
-		mGPUIndexBufferBindsStr.SetParameter(0, toString(frameSample.numIndexBufferBinds));
+		mGPUObjectsCreatedStr.SetParameter(0, ToString(frameSample.numObjectsCreated));
+		mGPUObjectsDestroyedStr.SetParameter(0, ToString(frameSample.numObjectsDestroyed));
+		mGPUResourceWritesStr.SetParameter(0, ToString(frameSample.numResourceWrites));
+		mGPUResourceReadsStr.SetParameter(0, ToString(frameSample.numResourceReads));
+		mGPUParamBindsStr.SetParameter(0, ToString(frameSample.numGpuParamBinds));
+		mGPUVertexBufferBindsStr.SetParameter(0, ToString(frameSample.numVertexBufferBinds));
+		mGPUIndexBufferBindsStr.SetParameter(0, ToString(frameSample.numIndexBufferBinds));
 
 		mGPUFrameNumLbl->SetContent(mGPUFrameNumStr);
 		mGPUTimeLbl->SetContent(mGPUTimeStr);
@@ -772,10 +772,10 @@ namespace bs
 		Stack<Todo> todo;
 		todo.Push(Todo(frameSample, 0));
 
-		while (!todo.Empty())
+		while (!todo.empty())
 		{
 			Todo curEntry = todo.Top();
-			todo.Pop();
+			todo.pop();
 
 			const GPUProfileSample& data = curEntry.entry;
 

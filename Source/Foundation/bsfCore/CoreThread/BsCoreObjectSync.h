@@ -135,14 +135,14 @@ namespace bs
 
 		/** If the type offers a rttiEnumFields method, recurse into it. */
 		template<class T>
-		void Operator()(T&& value, std::enable_if_t<has_rttiEnumFields<T>::value>* = 0)
+		void operator()(T&& value, std::enable_if_t<has_rttiEnumFields<T>::value>* = 0)
 		{
 			value.RttiEnumFields(*this);
 		}
 
 		/** If the type doesn't offer a rttiEnumFields method, perform the write using plain serialization. */
 		template<class T>
-		void Operator()(T&& value, std::enable_if_t<!has_rttiEnumFields<T>::value>* = 0)
+		void operator()(T&& value, std::enable_if_t<!has_rttiEnumFields<T>::value>* = 0)
 		{
 			writeInternal(detail::get_core_object(detail::remove_handle(std::forward<T>(value))));
 		}
@@ -187,14 +187,14 @@ namespace bs
 
 		/** If the type offers a rttiEnumFields method, recurse into it. */
 		template<class T>
-		void Operator()(T&& value, std::enable_if_t<has_rttiEnumFields<T>::value>* = 0)
+		void operator()(T&& value, std::enable_if_t<has_rttiEnumFields<T>::value>* = 0)
 		{
 			value.RttiEnumFields(*this);
 		}
 
 		/** If the type doesn't offer a rttiEnumFields method, perform the read using plain serialization. */
 		template<class T>
-		void Operator()(T&& value, std::enable_if_t<!has_rttiEnumFields<T>::value>* = 0)
+		void operator()(T&& value, std::enable_if_t<!has_rttiEnumFields<T>::value>* = 0)
 		{
 			readInternal(std::forward<T>(value));
 		}
@@ -242,14 +242,14 @@ namespace bs
 
 		/** If the type offers a rttiEnumFields method, recurse into it. */
 		template<class T>
-		void Operator()(T&& value, std::enable_if_t<has_rttiEnumFields<T>::value>* = 0)
+		void operator()(T&& value, std::enable_if_t<has_rttiEnumFields<T>::value>* = 0)
 		{
 			value.RttiEnumFields(*this);
 		}
 
 		/** If the type doesn't offer a rttiEnumFields method, perform the read using plain serialization. */
 		template<class T>
-		void Operator()(T&& value, std::enable_if_t<!has_rttiEnumFields<T>::value>* = 0)
+		void operator()(T&& value, std::enable_if_t<!has_rttiEnumFields<T>::value>* = 0)
 		{
 			getSizeInternal(detail::get_core_object(detail::remove_handle(std::forward<T>(value))));
 		}

@@ -84,10 +84,10 @@ namespace bs { namespace ct
 	{
 		for (auto& query : mDeletedEventQueries)
 		{
-			auto iterFind = std::find(mEventQueries.Begin(), mEventQueries.end(), query);
+			auto iterFind = std::find(mEventQueries.begin(), mEventQueries.end(), query);
 
-			if (iterFind != mEventQueries.End())
-				mEventQueries.Erase(iterFind);
+			if (iterFind != mEventQueries.end())
+				mEventQueries.erase(iterFind);
 
 			bs_delete(query);
 		}
@@ -96,10 +96,10 @@ namespace bs { namespace ct
 
 		for (auto& query : mDeletedTimerQueries)
 		{
-			auto iterFind = std::find(mTimerQueries.Begin(), mTimerQueries.end(), query);
+			auto iterFind = std::find(mTimerQueries.begin(), mTimerQueries.end(), query);
 
-			if (iterFind != mTimerQueries.End())
-				mTimerQueries.Erase(iterFind);
+			if (iterFind != mTimerQueries.end())
+				mTimerQueries.erase(iterFind);
 
 			bs_delete(query);
 		}
@@ -108,10 +108,10 @@ namespace bs { namespace ct
 
 		for (auto& query : mDeletedOcclusionQueries)
 		{
-			auto iterFind = std::find(mOcclusionQueries.Begin(), mOcclusionQueries.end(), query);
+			auto iterFind = std::find(mOcclusionQueries.begin(), mOcclusionQueries.end(), query);
 
-			if (iterFind != mOcclusionQueries.End())
-				mOcclusionQueries.Erase(iterFind);
+			if (iterFind != mOcclusionQueries.end())
+				mOcclusionQueries.erase(iterFind);
 
 			bs_delete(query);
 		}

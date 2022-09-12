@@ -99,7 +99,7 @@ namespace bs
 	struct EnumClassHash
 	{
 		template <typename T>
-		constexpr std::size_t Operator()(T t) const
+		constexpr std::size_t operator()(T t) const
 		{
 			return static_cast<std::size_t>(t);
 		}

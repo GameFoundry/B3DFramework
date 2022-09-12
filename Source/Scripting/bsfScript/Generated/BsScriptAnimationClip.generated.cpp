@@ -76,7 +76,7 @@ namespace bs
 		vec__output = thisPtr->GetHandle()->getEvents();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptAnimationEvent>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -94,7 +94,7 @@ namespace bs
 		{
 			ScriptArray Arrayevents(events);
 			vecevents.Resize(arrayevents.size());
-			for(int i = 0; i < (int)arrayevents.Size(); i++)
+			for(int i = 0; i < (int)arrayevents.size(); i++)
 			{
 				vecevents[i] = ScriptAnimationEvent::fromInterop(arrayevents.get<__AnimationEventInterop>(i));
 			}

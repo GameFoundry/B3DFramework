@@ -98,7 +98,7 @@ namespace bs
 		auto addKeyframe = [&quatKeyframes](float time, const Quaternion& quat)
 		{
 			quatKeyframes.emplace_back();
-			TKeyframe<Quaternion>& keyframe = quatKeyframes.Back();
+			TKeyframe<Quaternion>& keyframe = quatKeyframes.back();
 
 			keyframe.time = time;
 			keyframe.value = quat;
@@ -162,7 +162,7 @@ namespace bs
 
 		// Calculate extra values between keys so we can approximate tangents. If we're sampling very close to the key
 		// the values should pretty much exactly match the tangent (assuming the curves are cubic hermite)
-		INT32 numQuatKeys = (INT32)quatKeyframes.Size();
+		INT32 numQuatKeys = (INT32)quatKeyframes.size();
 		for (INT32 i = 0; i < numQuatKeys - 1; i++)
 		{
 			TKeyframe<Quaternion>& currentKey = quatKeyframes[i];
@@ -281,7 +281,7 @@ namespace bs
 				bool addNew = true;
 				if (i > 0)
 				{
-					const TKeyframe<float>& prevKey = keyFrames[j].Back();
+					const TKeyframe<float>& prevKey = keyFrames[j].back();
 
 					bool isEqual = Math::approxEquals(prevKey.value, TCurveProperties<T>::getComponent(key.value, j)) &&
 						Math::approxEquals(prevKey.outTangent, TCurveProperties<T>::getComponent(key.inTangent, j));
@@ -317,8 +317,8 @@ namespace bs
 			{
 				const TKeyframe<float>& keyFrame = curveComponents[i]->GetKeyFrame(j);
 
-				auto iterFind = keyFrames.Find(keyFrame.time);
-				if (iterFind == keyFrames.End())
+				auto iterFind = keyFrames.find(keyFrame.time);
+				if (iterFind == keyFrames.end())
 				{
 					TKeyframe<T> newKeyFrame;
 					newKeyFrame.time = keyFrame.time;
@@ -365,7 +365,7 @@ namespace bs
 	SPtr<TAnimationCurve<Vector3>> AnimationUtility::CombineCurve3D(const Vector<SPtr<TAnimationCurve<float>>>& curveComponents)
 	{
 		Vector<TKeyframe<Vector3>> keyFrames;
-		if(curveComponents.Size() >= 3)
+		if(curveComponents.size() >= 3)
 		{
 			const TAnimationCurve<float>* curves[] =
 				{ curveComponents[0].Get(), curveComponents[1].get(), curveComponents[2].get() };
@@ -393,7 +393,7 @@ namespace bs
 	SPtr<TAnimationCurve<Vector2>> AnimationUtility::CombineCurve2D(const Vector<SPtr<TAnimationCurve<float>>>& curveComponents)
 	{
 		Vector<TKeyframe<Vector2>> keyFrames;
-		if(curveComponents.Size() >= 2)
+		if(curveComponents.size() >= 2)
 		{
 			const TAnimationCurve<float>* curves[] =
 				{ curveComponents[0].Get(), curveComponents[1].get() };
@@ -538,10 +538,10 @@ namespace bs
 	void AnimationUtility::CalculateTangents(Vector<TKeyframe<T>>& keyframes)
 	{
 		using Keyframe = TKeyframe<T>;
-		if (keyframes.Empty())
+		if (keyframes.empty())
 			return;
 
-		if (keyframes.Size() == 1)
+		if (keyframes.size() == 1)
 		{
 			keyframes[0].inTangent = TCurveProperties<T>::getZero();
 			keyframes[0].outTangent = TCurveProperties<T>::getZero();
@@ -569,7 +569,7 @@ namespace bs
 		}
 
 		// Inner keyframes
-		for (UINT32 i = 1; i < (UINT32)keyframes.Size() - 1; i++)
+		for (UINT32 i = 1; i < (UINT32)keyframes.size() - 1; i++)
 		{
 			const Keyframe& keyPrev = keyframes[i - 1];
 			Keyframe& keyThis = keyframes[i];
@@ -581,8 +581,8 @@ namespace bs
 
 		// Last keyframe
 		{
-			Keyframe& keyThis = keyframes[keyframes.Size() - 1];
-			const Keyframe& keyPrev = keyframes[keyframes.Size() - 2];
+			Keyframe& keyThis = keyframes[keyframes.size() - 1];
+			const Keyframe& keyPrev = keyframes[keyframes.size() - 2];
 
 			keyThis.outTangent = TCurveProperties<T>::getZero();
 			keyThis.inTangent = calcTangent(keyPrev, keyThis);

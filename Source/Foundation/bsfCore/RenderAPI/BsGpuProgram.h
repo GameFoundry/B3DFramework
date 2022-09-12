@@ -108,7 +108,7 @@ namespace bs
 	};
 
 	/**
-	 * A GPU program compiled to an intermediate bytecode format, as well as any relevant meta-data that could be
+	 * A GPU program compiled to an intermediate bytecode format, as well as any relevant meta-Data that could be
 	 * extracted from that format.
 	 */
 	struct BS_CORE_EXPORT GpuProgramBytecode : IReflectable

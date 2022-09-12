@@ -129,13 +129,13 @@ namespace bs
 
 	void SceneManager::_unbindActor(const SPtr<SceneActor>& actor)
 	{
-		mBoundActors.Erase(actor.get());
+		mBoundActors.erase(actor.get());
 	}
 
 	HSceneObject SceneManager::_getActorSO(const SPtr<SceneActor>& actor) const
 	{
-		auto iterFind = mBoundActors.Find(actor.get());
-		if (iterFind != mBoundActors.End())
+		auto iterFind = mBoundActors.find(actor.get());
+		if (iterFind != mBoundActors.end())
 			return iterFind->second.so;
 
 		return HSceneObject();		
@@ -148,21 +148,21 @@ namespace bs
 
 	void SceneManager::_unregisterCamera(const SPtr<Camera>& camera)
 	{
-		mCameras.Erase(camera.get());
+		mCameras.erase(camera.get());
 
-		auto iterFind = std::find_if(mMainCameras.Begin(), mMainCameras.end(),
+		auto iterFind = std::find_if(mMainCameras.begin(), mMainCameras.end(),
 			[&](const SPtr<Camera>& x)
 		{
 			return x == camera;
 		});
 
-		if (iterFind != mMainCameras.End())
-			mMainCameras.Erase(iterFind);
+		if (iterFind != mMainCameras.end())
+			mMainCameras.erase(iterFind);
 	}
 
 	void SceneManager::_notifyMainCameraStateChanged(const SPtr<Camera>& camera)
 	{
-		auto iterFind = std::find_if(mMainCameras.Begin(), mMainCameras.end(),
+		auto iterFind = std::find_if(mMainCameras.begin(), mMainCameras.end(),
 			[&](const SPtr<Camera>& entry)
 		{
 			return entry == camera;
@@ -171,15 +171,15 @@ namespace bs
 		SPtr<Viewport> viewport = camera->GetViewport();
 		if (camera->IsMain())
 		{
-			if (iterFind == mMainCameras.End())
+			if (iterFind == mMainCameras.end())
 				mMainCameras.push_back(mCameras[camera.Get()]);
 
 			viewport->SetTarget(mMainRT);
 		}
 		else
 		{
-			if (iterFind != mMainCameras.End())
-				mMainCameras.Erase(iterFind);
+			if (iterFind != mMainCameras.end())
+				mMainCameras.erase(iterFind);
 
 			if (viewport->GetTarget() == mMainRT)
 				viewport->SetTarget(nullptr);
@@ -194,7 +194,7 @@ namespace bs
 
 	SPtr<Camera> SceneManager::GetMainCamera() const
 	{
-		if (mMainCameras.Size() > 0)
+		if (mMainCameras.size() > 0)
 			return mMainCameras[0];
 
 		return nullptr;
@@ -319,7 +319,7 @@ namespace bs
 			}
 
 			// Move from active to inactive list
-			for (INT32 i = 0; i < (INT32)mActiveComponents.Size(); i++)
+			for (INT32 i = 0; i < (INT32)mActiveComponents.size(); i++)
 			{
 				// Note: Purposely not a reference since the list changes in the add/remove methods below
 				const HComponent component = mActiveComponents[i];
@@ -435,7 +435,7 @@ namespace bs
 
 		Vector<HComponent>& list = *mComponentsPerState[listType - 1];
 
-		const auto idx = (UINT32)list.Size();
+		const auto idx = (UINT32)list.size();
 		list.push_back(component);
 
 		component->SetSceneManagerId(encodeComponentId(idx, listType));
@@ -453,7 +453,7 @@ namespace bs
 		Vector<HComponent>& list = *mComponentsPerState[listType - 1];
 
 		UINT32 lastIdx;
-		decodeComponentId(list.Back()->GetSceneManagerId(), lastIdx, listType);
+		decodeComponentId(list.back()->GetSceneManagerId(), lastIdx, listType);
 
 		assert(list[idx] == component);
 
@@ -463,7 +463,7 @@ namespace bs
 			list[idx]->SetSceneManagerId(encodeComponentId(idx, listType));
 		}
 
-		list.Erase(list.end() - 1);
+		list.erase(list.end() - 1);
 	}
 
 	void SceneManager::ProcessStateChanges()

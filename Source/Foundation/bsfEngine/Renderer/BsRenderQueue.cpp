@@ -54,11 +54,11 @@ namespace bs { namespace ct
 
 		for (UINT32 i = 0; i < numPasses; i++)
 		{
-			UINT32 idx = (UINT32)mSortableElementIdx.Size();
+			UINT32 idx = (UINT32)mSortableElementIdx.size();
 			mSortableElementIdx.push_back(idx);
 
 			mSortableElements.push_back(SortableElement());
-			SortableElement& sortableElem = mSortableElements.Back();
+			SortableElement& sortableElem = mSortableElements.back();
 
 			sortableElem.seqIdx = idx;
 			sortableElem.priority = queuePriority;
@@ -89,12 +89,12 @@ namespace bs { namespace ct
 		}
 
 		// Sort only indices since we generate an entirely new data set anyway, it doesn't make sense to move sortable elements
-		std::sort(mSortableElementIdx.Begin(), mSortableElementIdx.end(), std::bind(sortMethod, _1, _2, mSortableElements));
+		std::sort(mSortableElementIdx.begin(), mSortableElementIdx.end(), std::bind(sortMethod, _1, _2, mSortableElements));
 
 		UINT32 prevShaderId = (UINT32)-1;
 		UINT32 prevTechniqueIdx = (UINT32)-1;
 		UINT32 prevPassIdx = (UINT32)-1;
-		for (UINT32 i = 0; i < (UINT32)mSortableElementIdx.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mSortableElementIdx.size(); i++)
 		{
 			const UINT32 idx = mSortableElementIdx[i];
 			const SortableElement& elem = mSortableElements[idx];
@@ -106,7 +106,7 @@ namespace bs { namespace ct
 			{
 				mSortedRenderElements.push_back(RenderQueueElement());
 
-				RenderQueueElement& sortedElem = mSortedRenderElements.Back();
+				RenderQueueElement& sortedElem = mSortedRenderElements.back();
 				sortedElem.renderElem = renderElem;
 				sortedElem.techniqueIdx = elem.techniqueIdx;
 				sortedElem.passIdx = elem.passIdx;
@@ -128,7 +128,7 @@ namespace bs { namespace ct
 				{
 					mSortedRenderElements.push_back(RenderQueueElement());
 
-					RenderQueueElement& sortedElem = mSortedRenderElements.Back();
+					RenderQueueElement& sortedElem = mSortedRenderElements.back();
 					sortedElem.renderElem = renderElem;
 					sortedElem.techniqueIdx = elem.techniqueIdx;
 					sortedElem.passIdx = j;

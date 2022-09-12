@@ -166,7 +166,7 @@ namespace bs
 
 	void TriangleClipperBase::AddEdgesAndFaces()
 	{
-		UINT32 numTris = (UINT32)mesh.verts.Size() / 3;
+		UINT32 numTris = (UINT32)mesh.verts.size() / 3;
 
 		UINT32 numEdges = numTris * 3;
 		mesh.edges.Resize(numEdges);
@@ -229,7 +229,7 @@ namespace bs
 
 		// Compute signed distances from vertices to plane
 		int positive = 0, negative = 0;
-		for (UINT32 i = 0; i < (UINT32)mesh.verts.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mesh.verts.size(); i++)
 		{
 			ClipVert& vertex = mesh.verts[i];
 
@@ -268,7 +268,7 @@ namespace bs
 
 	void TriangleClipperBase::ProcessEdges()
 	{
-		for (UINT32 i = 0; i < (UINT32)mesh.edges.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mesh.edges.size(); i++)
 		{
 			ClipEdge& edge = mesh.edges[i];
 
@@ -283,16 +283,16 @@ namespace bs
 				if (d0 <= 0 && d1 <= 0)
 				{
 					// Edge is culled, remove edge from faces sharing it
-					for (UINT32 j = 0; j < (UINT32)edge.faces.Size(); j++)
+					for (UINT32 j = 0; j < (UINT32)edge.faces.size(); j++)
 					{
 						ClipFace& face = mesh.faces[edge.faces[j]];
 
-						auto iterFind = std::find(face.edges.Begin(), face.edges.end(), i);
-						if (iterFind != face.edges.End())
+						auto iterFind = std::find(face.edges.begin(), face.edges.end(), i);
+						if (iterFind != face.edges.end())
 						{
-							face.edges.Erase(iterFind);
+							face.edges.erase(iterFind);
 
-							if (face.edges.Empty())
+							if (face.edges.empty())
 								face.visible = false;
 						}
 					}
@@ -314,10 +314,10 @@ namespace bs
 				Vector3 intersectPt = (1 - t)*v0.point + t*v1.point;
 				Vector2 intersectUv = (1 - t)*v0.uv + t*v1.uv;
 
-				UINT32 newVertIdx = (UINT32)mesh.verts.Size();
+				UINT32 newVertIdx = (UINT32)mesh.verts.size();
 				mesh.verts.push_back(ClipVert());
 
-				ClipVert& newVert = mesh.verts.Back();
+				ClipVert& newVert = mesh.verts.back();
 				newVert.point = intersectPt;
 				newVert.uv = intersectUv;
 
@@ -331,7 +331,7 @@ namespace bs
 
 	void TriangleClipperBase::ProcessFaces()
 	{
-		for (UINT32 i = 0; i < (UINT32)mesh.faces.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mesh.faces.size(); i++)
 		{
 			ClipFace& face = mesh.faces[i];
 
@@ -341,7 +341,7 @@ namespace bs
 				// plane, it is possible that a visible triangle shares it.
 				// The edge will be re-added during the face loop.
 
-				for (UINT32 j = 0; j < (UINT32)face.edges.Size(); j++)
+				for (UINT32 j = 0; j < (UINT32)face.edges.size(); j++)
 				{
 					ClipEdge& edge = mesh.edges[face.edges[j]];
 					ClipVert& v0 = mesh.verts[edge.verts[0]];
@@ -356,9 +356,9 @@ namespace bs
 			if (getOpenPolyline(mesh.faces[i], start, end))
 			{
 				// Polyline is open, close it
-				UINT32 closeEdgeIdx = (UINT32)mesh.edges.Size();
+				UINT32 closeEdgeIdx = (UINT32)mesh.edges.size();
 				mesh.edges.push_back(ClipEdge());
-				ClipEdge& closeEdge = mesh.edges.Back();
+				ClipEdge& closeEdge = mesh.edges.back();
 
 				closeEdge.verts[0] = start;
 				closeEdge.verts[1] = end;
@@ -373,7 +373,7 @@ namespace bs
 	{
 		// Count the number of occurrences of each vertex in the polyline. The
 		// resulting "occurs" values must be 1 or 2.
-		for (UINT32 i = 0; i < (UINT32)face.edges.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)face.edges.size(); i++)
 		{
 			ClipEdge& edge = mesh.edges[face.edges[i]];
 
@@ -390,7 +390,7 @@ namespace bs
 		// Determine if the polyline is open
 		bool gotStart = false;
 		bool gotEnd = false;
-		for (UINT32 i = 0; i < (UINT32)face.edges.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)face.edges.size(); i++)
 		{
 			const ClipEdge& edge = mesh.edges[face.edges[i]];
 
@@ -431,7 +431,7 @@ namespace bs
 
 	void TriangleClipperBase::GetOrderedFaces(FrameVector<FrameVector<UINT32>>& sortedFaces)
 	{
-		for (UINT32 i = 0; i < (UINT32)mesh.faces.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mesh.faces.size(); i++)
 		{
 			const ClipFace& face = mesh.faces[i];
 
@@ -440,7 +440,7 @@ namespace bs
 				// Get the ordered vertices of the face. The first and last
 				// element of the array are the same since the polyline is
 				// closed.
-				UINT32 numSortedVerts = (UINT32)face.edges.Size() + 1;
+				UINT32 numSortedVerts = (UINT32)face.edges.size() + 1;
 				UINT32* sortedVerts = (UINT32*)bs_stack_alloc(sizeof(UINT32) * numSortedVerts);
 
 				getOrderedVertices(face, sortedVerts);
@@ -473,7 +473,7 @@ namespace bs
 
 	void TriangleClipperBase::GetOrderedVertices(const ClipFace& face, UINT32* sortedVerts)
 	{
-		UINT32 numEdges = (UINT32)face.edges.Size();
+		UINT32 numEdges = (UINT32)face.edges.size();
 		UINT32* sortedEdges = (UINT32*)bs_stack_alloc(sizeof(UINT32) * numEdges);
 		for (UINT32 i = 0; i < numEdges; i++)
 			sortedEdges[i] = face.edges[i];
@@ -594,7 +594,7 @@ namespace bs
 			assert(BUFFER_SIZE % 3 == 0);
 			for (auto& face : allFaces)
 			{
-				for (UINT32 i = 0; i < (UINT32)face.Size() - 2; i++)
+				for (UINT32 i = 0; i < (UINT32)face.size() - 2; i++)
 				{
 					const Vector3& v0 = mesh.verts[face[0]].point;
 					const Vector3& v1 = mesh.verts[face[i + 1]].point;
@@ -695,7 +695,7 @@ namespace bs
 			assert(BUFFER_SIZE % 3 == 0);
 			for (auto& face : allFaces)
 			{
-				for (UINT32 i = 0; i < (UINT32)face.Size() - 2; i++)
+				for (UINT32 i = 0; i < (UINT32)face.size() - 2; i++)
 				{
 					vertexBuffer[numWritten] = mesh.verts[face[0]].point;
 					uvBuffer[numWritten] = mesh.verts[face[0]].uv;

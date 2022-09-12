@@ -25,13 +25,13 @@ namespace bs
 		 */
 		static T& Instance()
 		{
-			if (!isStartedUp())
+			if (!IsStartedUp())
 			{
 				BS_EXCEPT(InternalErrorException,
 					"Trying to access a module but it hasn't been started up yet.");
 			}
 
-			if (isDestroyed())
+			if (IsDestroyed())
 			{
 				BS_EXCEPT(InternalErrorException,
 					"Trying to access a destroyed module.");
@@ -46,13 +46,13 @@ namespace bs
 		 */
 		static T* instancePtr()
 		{
-			if (!isStartedUp())
+			if (!IsStartedUp())
 			{
 				BS_EXCEPT(InternalErrorException,
 					"Trying to access a module but it hasn't been started up yet.");
 			}
 
-			if (isDestroyed())
+			if (IsDestroyed())
 			{
 				BS_EXCEPT(InternalErrorException,
 					"Trying to access a destroyed module.");
@@ -65,11 +65,11 @@ namespace bs
 		template<class ...Args>
 		static void StartUp(Args &&...args)
 		{
-			if (isStartedUp())
+			if (IsStartedUp())
 				BS_EXCEPT(InternalErrorException, "Trying to start an already started module.");
 
 			_instance() = bs_new<T>(std::forward<Args>(args)...);
-			isStartedUp() = true;
+			IsStartedUp() = true;
 
 			((Module*)_instance())->OnStartUp();
 		}
@@ -83,11 +83,11 @@ namespace bs
 		{
 			static_assert(std::is_base_of<T, SubType>::value, "Provided type is not derived from type the Module is initialized with.");
 
-			if (isStartedUp())
+			if (IsStartedUp())
 				BS_EXCEPT(InternalErrorException, "Trying to start an already started module.");
 
 			_instance() = bs_new<SubType>(std::forward<Args>(args)...);
-			isStartedUp() = true;
+			IsStartedUp() = true;
 
 			((Module*)_instance())->OnStartUp();
 		}
@@ -95,13 +95,13 @@ namespace bs
 		/** Shuts down this module and frees any resources it is using. */
 		static void ShutDown()
 		{
-			if (isDestroyed())
+			if (IsDestroyed())
 			{
 				BS_EXCEPT(InternalErrorException,
 					"Trying to shut down an already shut down module.");
 			}
 
-			if (!isStartedUp())
+			if (!IsStartedUp())
 			{
 				BS_EXCEPT(InternalErrorException,
 					"Trying to shut down a module which was never started.");
@@ -110,13 +110,13 @@ namespace bs
 			((Module*)_instance())->OnShutDown();
 
 			bs_delete(_instance());
-			isDestroyed() = true;
+			IsDestroyed() = true;
 		}
 
 		/** Query if the module has been started. */
 		static bool IsStarted()
 		{
-			return IsStartedUp() && !isDestroyed();
+			return IsStartedUp() && !IsDestroyed();
 		}
 
 	protected:

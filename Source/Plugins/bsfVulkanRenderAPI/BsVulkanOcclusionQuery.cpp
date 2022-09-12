@@ -54,7 +54,7 @@ namespace bs { namespace ct
 
 	void VulkanOcclusionQuery::End(const SPtr<CommandBuffer>& cb)
 	{
-		if(mQueries.Empty())
+		if(mQueries.empty())
 		{
 			BS_LOG(Error, RenderBackend, "end() called but query was never started.");
 			return;
@@ -80,12 +80,12 @@ namespace bs { namespace ct
 
 	bool VulkanOcclusionQuery::_isInProgress() const
 	{
-		return !mQueries.Empty() && !mQueryEndCalled;
+		return !mQueries.empty() && !mQueryEndCalled;
 	}
 
 	void VulkanOcclusionQuery::_interrupt(VulkanCmdBuffer& cb)
 	{
-		assert(!mQueries.Empty() && !mQueryEndCalled);
+		assert(!mQueries.empty() && !mQueryEndCalled);
 
 		mQueryEndCalled = true;
 		mQueryFinalized = false;

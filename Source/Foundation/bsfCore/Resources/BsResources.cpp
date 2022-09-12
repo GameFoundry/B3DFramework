@@ -102,8 +102,8 @@ namespace bs
 			Lock InProgressLock(mInProgressResourcesMutex);
 			Lock LoadedLock(mLoadedResourceMutex);
 
-			auto iterFind2 = mInProgressResources.Find(uuid);
-			if (iterFind2 != mInProgressResources.End())
+			auto iterFind2 = mInProgressResources.find(uuid);
+			if (iterFind2 != mInProgressResources.end())
 			{
 				LoadedResourceData& resData = iterFind2->second->resData;
 				output.resource = resData.resource.Lock();
@@ -122,8 +122,8 @@ namespace bs
 			}
 
 			// Check if the resource is already loaded
-			auto iterFind = mLoadedResources.Find(uuid);
-			if (iterFind != mLoadedResources.End())
+			auto iterFind = mLoadedResources.find(uuid);
+			if (iterFind != mLoadedResources.end())
 			{
 				LoadedResourceData& resData = iterFind->second;
 				output.resource = resData.resource.Lock();
@@ -146,8 +146,8 @@ namespace bs
 				output.state = LoadInfo::Loading;
 				output.size = 0;
 
-				auto iterFind = mHandles.Find(uuid);
-				if (iterFind != mHandles.End())
+				auto iterFind = mHandles.find(uuid);
+				if (iterFind != mHandles.end())
 					output.resource = iterFind->second.Lock();
 				else
 				{
@@ -222,10 +222,10 @@ namespace bs
 					}
 				}
 				// The resource is already being loaded, or is loaded, but we might still need to load some dependencies
-				else If(loadDependencies && savedResourceData != nullptr)
+				else if(loadDependencies && savedResourceData != nullptr)
 				{
 					const Vector<UUID>& dependencies = savedResourceData->GetDependencies();
-					if (!dependencies.Empty())
+					if (!dependencies.empty())
 					{
 						ResourceLoadData* loadData = nullptr;
 
@@ -249,22 +249,22 @@ namespace bs
 							{
 								bool registerDependency = false;
 
-								auto iterFind3 = mLoadedResources.Find(dependency);
-								if(iterFind3 == mLoadedResources.End())
+								auto iterFind3 = mLoadedResources.find(dependency);
+								if(iterFind3 == mLoadedResources.end())
 								{
 									registerDependency = true;
 
-									auto iterFind2 = mDependantLoads.Find(dependency);
-									if (iterFind2 != mDependantLoads.End())
+									auto iterFind2 = mDependantLoads.find(dependency);
+									if (iterFind2 != mDependantLoads.end())
 									{
 										Vector<ResourceLoadData*>& dependantData = iterFind2->second;
-										auto iterFind3 = std::find_if(dependantData.Begin(), dependantData.end(),
+										auto iterFind3 = std::find_if(dependantData.begin(), dependantData.end(),
 											[&](ResourceLoadData* x)
 										{
 											return x->resData.resource.GetUUID() == output.resource.getUUID();
 										});
 
-										registerDependency = iterFind3 == dependantData.End();
+										registerDependency = iterFind3 == dependantData.end();
 									}
 								}
 
@@ -279,7 +279,7 @@ namespace bs
 
 						if(!loadInProgress)
 						{
-							if(!dependenciesToLoad.Empty())
+							if(!dependenciesToLoad.empty())
 								mInProgressResources[uuid] = loadData;
 							else
 								bs_delete(loadData);
@@ -306,7 +306,7 @@ namespace bs
 		}
 
 		// Load dependencies (before the main resource)
-		const auto numDependencies = (UINT32)dependenciesToLoad.Size();
+		const auto numDependencies = (UINT32)dependenciesToLoad.size();
 		if(numDependencies > 0)
 		{
 			ResourceLoadFlags depLoadFlags = ResourceLoadFlag::LoadDependencies;
@@ -343,8 +343,8 @@ namespace bs
 				// If we're doing a dependency-only load (main resource itself was previously loaded), then the in-progress
 				// operation could have already finished when the last dependency was loaded (this will always be true for
 				// synchronous loads), and no need to register dependencies.
-				const auto iterFind = mInProgressResources.Find(uuid);
-				if(iterFind != mInProgressResources.End())
+				const auto iterFind = mInProgressResources.find(uuid);
+				if(iterFind != mInProgressResources.end())
 				{
 					iterFind->second->dependencySize = dependencySize;
 					iterFind->second->dependencies = dependencies;
@@ -359,8 +359,8 @@ namespace bs
 		{
 			Lock InProgressLock(mInProgressResourcesMutex);
 
-			const auto iterFind = mInProgressResources.Find(uuid);
-			if (iterFind != mInProgressResources.End())
+			const auto iterFind = mInProgressResources.find(uuid);
+			if (iterFind != mInProgressResources.end())
 			{
 				if (iterFind->second->loadStarted)
 				{
@@ -402,8 +402,8 @@ namespace bs
 				{
 					Lock InProgressLock(mInProgressResourcesMutex);
 
-					const auto iterFind = mInProgressResources.Find(uuid);
-					if (iterFind != mInProgressResources.End())
+					const auto iterFind = mInProgressResources.find(uuid);
+					if (iterFind != mInProgressResources.end())
 						iterFind->second->task = task;
 
 					TaskScheduler::instance().AddTask(task);
@@ -509,8 +509,8 @@ namespace bs
 
 			{
 				Lock InProgressLock(mInProgressResourcesMutex);
-				auto iterFind2 = mInProgressResources.Find(uuid);
-				if (iterFind2 != mInProgressResources.End())
+				auto iterFind2 = mInProgressResources.find(uuid);
+				if (iterFind2 != mInProgressResources.end())
 					loadInProgress = true;
 			}
 
@@ -524,8 +524,8 @@ namespace bs
 			bool lostLastRef = false;
 			{
 				Lock LoadedLock(mLoadedResourceMutex);
-				auto iterFind = mLoadedResources.Find(uuid);
-				if (iterFind != mLoadedResources.End())
+				auto iterFind = mLoadedResources.find(uuid);
+				if (iterFind != mLoadedResources.end())
 				{
 					LoadedResourceData& resData = iterFind->second;
 
@@ -549,7 +549,7 @@ namespace bs
 
 		{
 			Lock Lock(mLoadedResourceMutex);
-			for(auto iter = mLoadedResources.Begin(); iter != mLoadedResources.end(); ++iter)
+			for(auto iter = mLoadedResources.begin(); iter != mLoadedResources.end(); ++iter)
 			{
 				const LoadedResourceData& resData = iter->second;
 
@@ -564,7 +564,7 @@ namespace bs
 		// Note: When unloading multiple resources it's possible that unloading one will also unload
 		// another resource in "resourcesToUnload". This is fine because "unload" deals with invalid
 		// handles gracefully.
-		for(auto iter = resourcesToUnload.Begin(); iter != resourcesToUnload.end(); ++iter)
+		for(auto iter = resourcesToUnload.begin(); iter != resourcesToUnload.end(); ++iter)
 		{
 			release(*iter);
 		}
@@ -598,8 +598,8 @@ namespace bs
 			bool loadInProgress = false;
 			{
 				Lock Lock(mInProgressResourcesMutex);
-				auto iterFind2 = mInProgressResources.Find(uuid);
-				if (iterFind2 != mInProgressResources.End())
+				auto iterFind2 = mInProgressResources.find(uuid);
+				if (iterFind2 != mInProgressResources.end())
 					loadInProgress = true;
 			}
 
@@ -618,8 +618,8 @@ namespace bs
 
 		{
 			Lock Lock(mLoadedResourceMutex);
-			auto iterFind = mLoadedResources.Find(uuid);
-			if (iterFind != mLoadedResources.End())
+			auto iterFind = mLoadedResources.find(uuid);
+			if (iterFind != mLoadedResources.end())
 			{
 				LoadedResourceData& resData = iterFind->second;
 				while (resData.numInternalRefs > 0)
@@ -628,7 +628,7 @@ namespace bs
 					resData.resource.RemoveInternalRef();
 				}
 
-				mLoadedResources.Erase(iterFind);
+				mLoadedResources.erase(iterFind);
 			}
 			else
 			{
@@ -649,8 +649,8 @@ namespace bs
 			bool loadInProgress = false;
 			{
 				Lock Lock(mInProgressResourcesMutex);
-				auto iterFind2 = mInProgressResources.Find(resource.getUUID());
-				if (iterFind2 != mInProgressResources.End())
+				auto iterFind2 = mInProgressResources.find(resource.getUUID());
+				if (iterFind2 != mInProgressResources.end())
 					loadInProgress = true;
 			}
 
@@ -694,8 +694,8 @@ namespace bs
 		}
 
 		Vector<ResourceDependency> dependencyList = Utility::findResourceDependencies(*resource);
-		Vector<UUID> DependencyUUIDs(dependencyList.Size());
-		for (UINT32 i = 0; i < (UINT32)dependencyList.Size(); i++)
+		Vector<UUID> DependencyUUIDs(dependencyList.size());
+		for (UINT32 i = 0; i < (UINT32)dependencyList.size(); i++)
 			dependencyUUIDs[i] = dependencyList[i].resource.GetUUID();
 
 		UINT32 compressionMethod = (compress && resource->IsCompressible()) ? 1 : 0;
@@ -716,7 +716,7 @@ namespace bs
 			// TODO: Temp directory should always be on this drive, as files moved from one drive to another will in fact
 			// be copied
 			savePath = FileSystem::getTempDirectoryPath();
-			savePath.SetFilename(UUIDGenerator::generateRandom().toString());
+			savePath.SetFilename(UUIDGenerator::generateRandom().ToString());
 
 			UINT32 safetyCounter = 0;
 			while(FileSystem::exists(savePath))
@@ -728,7 +728,7 @@ namespace bs
 					return;
 				}
 
-				savePath.SetFilename(UUIDGenerator::generateRandom().toString());
+				savePath.SetFilename(UUIDGenerator::generateRandom().ToString());
 				safetyCounter++;
 			}
 
@@ -808,8 +808,8 @@ namespace bs
 		if(resource)
 		{
 			Lock Lock(mLoadedResourceMutex);
-			auto iterFind = mLoadedResources.Find(uuid);
-			if (iterFind == mLoadedResources.End())
+			auto iterFind = mLoadedResources.find(uuid);
+			if (iterFind == mLoadedResources.end())
 			{
 				LoadedResourceData& resData = mLoadedResources[uuid];
 				resData.resource = handle.GetWeak();
@@ -836,8 +836,8 @@ namespace bs
 
 	void Resources::RegisterResourceManifest(const SPtr<ResourceManifest>& manifest)
 	{
-		auto findIter = std::find(mResourceManifests.Begin(), mResourceManifests.end(), manifest);
-		if(findIter == mResourceManifests.End())
+		auto findIter = std::find(mResourceManifests.begin(), mResourceManifests.end(), manifest);
+		if(findIter == mResourceManifests.end())
 			mResourceManifests.push_back(manifest);
 		else
 			*findIter = manifest;
@@ -848,9 +848,9 @@ namespace bs
 		if (manifest->GetName() == "Default")
 			return;
 
-		auto findIter = std::find(mResourceManifests.Begin(), mResourceManifests.end(), manifest);
-		if (findIter != mResourceManifests.End())
-			mResourceManifests.Erase(findIter);
+		auto findIter = std::find(mResourceManifests.begin(), mResourceManifests.end(), manifest);
+		if (findIter != mResourceManifests.end())
+			mResourceManifests.erase(findIter);
 	}
 
 	SPtr<ResourceManifest> Resources::GetResourceManifest(const String& name) const
@@ -869,8 +869,8 @@ namespace bs
 		if (checkInProgress)
 		{
 			Lock InProgressLock(mInProgressResourcesMutex);
-			auto iterFind2 = mInProgressResources.Find(uuid);
-			if (iterFind2 != mInProgressResources.End())
+			auto iterFind2 = mInProgressResources.find(uuid);
+			if (iterFind2 != mInProgressResources.end())
 			{
 				return true;
 			}
@@ -878,8 +878,8 @@ namespace bs
 
 		{
 			Lock LoadedLock(mLoadedResourceMutex);
-			auto iterFind = mLoadedResources.Find(uuid);
-			if (iterFind != mLoadedResources.End())
+			auto iterFind = mLoadedResources.find(uuid);
+			if (iterFind != mLoadedResources.end())
 			{
 				return true;
 			}
@@ -891,20 +891,20 @@ namespace bs
 	float Resources::GetLoadProgress(const HResource& resource, bool includeDependencies)
 	{
 		const UUID& uuid = resource.GetUUID();
-		if(uuid.Empty())
+		if(uuid.empty())
 			return 0.0f;
 
 		Lock InProgressLock(mInProgressResourcesMutex);
 		Lock LoadedLock(mLoadedResourceMutex);
 
 		// Fully loaded
-		auto iterFind = mLoadedResources.Find(uuid);
-		if (iterFind != mLoadedResources.End())
+		auto iterFind = mLoadedResources.find(uuid);
+		if (iterFind != mLoadedResources.end())
 			return 1.0f;
 
 		// Not loaded nor being loaded
-		auto iterFind2 = mInProgressResources.Find(uuid);
-		if (iterFind2 == mInProgressResources.End())
+		auto iterFind2 = mInProgressResources.find(uuid);
+		if (iterFind2 == mInProgressResources.end())
 			return 0.0f;
 
 		ResourceLoadData* loadData = iterFind2->second;
@@ -918,8 +918,8 @@ namespace bs
 		float totalBytesLoaded = (float)loadData->dependencyLoadedAmount;
 		for(auto& entry : loadData->dependencies)
 		{
-			auto iterFind3 = mInProgressResources.Find(entry.getUUID());
-			if (iterFind3 == mInProgressResources.End())
+			auto iterFind3 = mInProgressResources.find(entry.getUUID());
+			if (iterFind3 == mInProgressResources.end())
 				continue;
 
 			ResourceLoadData* dependencyLoadData = iterFind3->second;
@@ -962,8 +962,8 @@ namespace bs
 	HResource Resources::_getResourceHandle(const UUID& uuid)
 	{
 		Lock Lock(mLoadedResourceMutex);
-		auto iterFind3 = mHandles.Find(uuid);
-		if (iterFind3 != mHandles.End()) // Not loaded, but handle does exist
+		auto iterFind3 = mHandles.find(uuid);
+		if (iterFind3 != mHandles.end()) // Not loaded, but handle does exist
 		{
 			return iterFind3->second.Lock();
 		}
@@ -1013,24 +1013,24 @@ namespace bs
 		{
 			Lock InProgresslock(mInProgressResourcesMutex);
 
-			auto iterFind = mInProgressResources.Find(uuid);
-			if (iterFind != mInProgressResources.End())
+			auto iterFind = mInProgressResources.find(uuid);
+			if (iterFind != mInProgressResources.end())
 			{
 				myLoadData = iterFind->second;
 				finishLoad = myLoadData->remainingDependencies == 0;
 
 				if (finishLoad)
-					mInProgressResources.Erase(iterFind);
+					mInProgressResources.erase(iterFind);
 			}
 
-			auto iterFind2 = mDependantLoads.Find(uuid);
+			auto iterFind2 = mDependantLoads.find(uuid);
 
-			if (iterFind2 != mDependantLoads.End())
+			if (iterFind2 != mDependantLoads.end())
 				dependantLoads = iterFind2->second;
 
 			if (finishLoad)
 			{
-				mDependantLoads.Erase(uuid);
+				mDependantLoads.erase(uuid);
 
 				// If loadedData is null then we're probably completing load on an already loaded resource, triggered
 				// by its dependencies.

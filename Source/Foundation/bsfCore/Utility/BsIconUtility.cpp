@@ -336,8 +336,8 @@ namespace bs
 		UINT32 width = iconHeader->width;
 		UINT32 height = iconHeader->height / 2;
 
-		auto iterFind = pixelsPerSize.Find(width);
-		if (iterFind == pixelsPerSize.End() || iterFind->second->GetWidth() != width
+		auto iterFind = pixelsPerSize.find(width);
+		if (iterFind == pixelsPerSize.end() || iterFind->second->GetWidth() != width
 			|| iterFind->second->GetHeight() != height)
 		{
 			// No icon of this size provided

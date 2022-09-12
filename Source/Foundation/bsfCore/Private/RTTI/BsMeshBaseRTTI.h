@@ -21,7 +21,7 @@ namespace bs
 	{
 		SubMesh& GetSubMesh(MeshBase* obj, UINT32 arrayIdx) { return obj->mProperties.mSubMeshes[arrayIdx]; }
 		void SetSubMesh(MeshBase* obj, UINT32 arrayIdx, SubMesh& value) { obj->mProperties.mSubMeshes[arrayIdx] = value; }
-		UINT32 GetNumSubmeshes(MeshBase* obj) { return (UINT32)obj->mProperties.mSubMeshes.Size(); }
+		UINT32 GetNumSubmeshes(MeshBase* obj) { return (UINT32)obj->mProperties.mSubMeshes.size(); }
 		void SetNumSubmeshes(MeshBase* obj, UINT32 numElements) { obj->mProperties.mSubMeshes.Resize(numElements); }
 
 		UINT32& GetNumVertices(MeshBase* obj) { return obj->mProperties.mNumVertices; }

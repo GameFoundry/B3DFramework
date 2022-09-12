@@ -28,8 +28,8 @@ namespace bs
 
 	HResource StandaloneResourceLoader::Load(const Path& path, ResourceLoadFlags flags, bool async) const
 	{
-		auto iterFind = mMapping.Find(path);
-		if(iterFind != mMapping.End())
+		auto iterFind = mMapping.find(path);
+		if(iterFind != mMapping.end())
 		{
 			if(!async)
 				return GResources().Load(iterFind->second, flags);

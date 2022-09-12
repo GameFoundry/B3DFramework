@@ -98,7 +98,7 @@ namespace bs
         /// Updates the look of a specific cursor icon.
         /// </summary>
         /// <param name="type">One of the built-in cursor types.</param>
-        /// <param name="iconData">Pixel data specifying the new look.</param>
+        /// <param name="iconData">Pixel Data specifying the new look.</param>
         /// <param name="hotspot">Offset into the icon image that determines where the cursor point is.</param>
         public static void SetCursorIcon(CursorType type, PixelData iconData, Vector2I hotspot)
         {

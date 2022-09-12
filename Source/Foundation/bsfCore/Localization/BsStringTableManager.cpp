@@ -17,8 +17,8 @@ namespace bs
 
 	HStringTable StringTableManager::GetTable(UINT32 id)
 	{
-		auto iterFind = mTables.Find(id);
-		if (iterFind != mTables.End())
+		auto iterFind = mTables.find(id);
+		if (iterFind != mTables.end())
 			return iterFind->second;
 
 		HStringTable newTable = StringTable::create();
@@ -29,7 +29,7 @@ namespace bs
 
 	void StringTableManager::RemoveTable(UINT32 id)
 	{
-		mTables.Erase(id);
+		mTables.erase(id);
 	}
 
 	void StringTableManager::SetTable(UINT32 id, const HStringTable& table)

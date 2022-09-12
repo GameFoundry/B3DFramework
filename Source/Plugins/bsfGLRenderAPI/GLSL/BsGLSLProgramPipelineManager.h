@@ -51,14 +51,14 @@ namespace bs { namespace ct
 		class ProgramPipelineKeyHashFunction
 		{
 		public:
-			::std::size_t Operator()(const ProgramPipelineKey &key) const;
+			::std::size_t operator()(const ProgramPipelineKey &key) const;
 		};
 
 		/**	Used for comparing two pipeline objects for equality. */
 		class ProgramPipelineKeyEqual
 		{
 		public:
-			bool Operator()(const ProgramPipelineKey &a, const ProgramPipelineKey &b) const;
+			bool operator()(const ProgramPipelineKey &a, const ProgramPipelineKey &b) const;
 		};
 
 		typedef UnorderedMap<ProgramPipelineKey, GLSLProgramPipeline, ProgramPipelineKeyHashFunction, ProgramPipelineKeyEqual> ProgramPipelineMap;

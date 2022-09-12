@@ -21,9 +21,9 @@ namespace bs
 	 * and sim thread will be allowed to access it when the operation ends. Caller can track AsyncOp%s regarding the
 	 * read/write operation to be notified when it is complete.
 	 * @note
-	 * If you allocate an internal buffer to store the resource data, the ownership of the buffer will always remain with
+	 * If you Allocate an internal buffer to store the resource Data, the ownership of the buffer will always remain with
 	 * the initial instance of the class. If that initial instance is deleted, any potential copies will point to garbage
-	 * data.
+	 * Data.
 	 */
 	class BS_CORE_EXPORT GpuResourceData : public IReflectable
 	{

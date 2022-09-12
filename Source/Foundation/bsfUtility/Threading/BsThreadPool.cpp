@@ -134,7 +134,7 @@ namespace bs
 		__try {
 			function();
 		} __except(gCrashHandler().ReportCrash(GetExceptionInformation())) {
-			PlatformUtility::terminate(true);
+			PlatformUtility::Terminate(true);
 		}
 	}
 #endif
@@ -223,7 +223,7 @@ namespace bs
 		Lock Lock(mMutex);
 		mAge = 0;
 
-		if(mThreads.Size() <= mDefaultCapacity)
+		if(mThreads.size() <= mDefaultCapacity)
 			return;
 
 		Vector<PooledThread*> idleThreads;
@@ -248,7 +248,7 @@ namespace bs
 		}
 
 		idleThreads.Insert(idleThreads.end(), expiredThreads.begin(), expiredThreads.end());
-		UINT32 limit = std::min((UINT32)idleThreads.Size(), mDefaultCapacity);
+		UINT32 limit = std::min((UINT32)idleThreads.size(), mDefaultCapacity);
 
 		UINT32 i = 0;
 		mThreads.Clear();
@@ -295,7 +295,7 @@ namespace bs
 			}
 		}
 
-		if(mThreads.Size() >= mMaxCapacity)
+		if(mThreads.size() >= mMaxCapacity)
 			BS_EXCEPT(InvalidStateException, "Unable to create a new thread in the pool because maximum capacity has been reached.");
 
 		PooledThread* newThread = createThread(name);
@@ -336,6 +336,6 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		return (UINT32)mThreads.Size();
+		return (UINT32)mThreads.size();
 	}
 }

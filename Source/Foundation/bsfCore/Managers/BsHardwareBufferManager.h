@@ -151,13 +151,13 @@ namespace bs
 			class HashFunction
 			{
 			public:
-				size_t Operator()(const VertexDeclarationKey& key) const;
+				size_t operator()(const VertexDeclarationKey& key) const;
 			};
 
 			class EqualFunction
 			{
 			public:
-				bool Operator()(const VertexDeclarationKey& lhs, const VertexDeclarationKey& rhs) const;
+				bool operator()(const VertexDeclarationKey& lhs, const VertexDeclarationKey& rhs) const;
 			};
 
 			Vector<VertexElement> elements;

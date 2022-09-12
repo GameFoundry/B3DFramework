@@ -238,10 +238,10 @@ namespace bs
 		UINT32 offset = 0;
 		for (auto& block : blocks)
 		{
-			memcpy(output->Data() + offset, block.data, block.size);
+			memcpy(output->Data() + offset, block.Data, block.size);
 			offset += block.size;
 
-			bs_frame_free(block.data);
+			bs_frame_free(block.Data);
 		}
 
 		bs_frame_clear();

@@ -311,7 +311,7 @@ namespace bs
         public MipMapWrapMode wrapMode;
 
         /// <summary>
-        /// Determines does the input data represent a normal map.
+        /// Determines does the input Data represent a normal map.
         /// </summary>
         public bool isNormalMap;
 

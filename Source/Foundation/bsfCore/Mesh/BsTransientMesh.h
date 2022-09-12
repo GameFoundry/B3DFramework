@@ -33,7 +33,7 @@ namespace bs
 		/**
 		 * Constructs a new transient mesh.
 		 *
-		 * @see		MeshHeap::alloc
+		 * @see		MeshHeap::Allocate
 		 */
 		TransientMesh(const SPtr<MeshHeap>& parentHeap, UINT32 id, UINT32 numVertices,
 			UINT32 numIndices, DrawOperationType drawOp = DOT_TRIANGLE_LIST);

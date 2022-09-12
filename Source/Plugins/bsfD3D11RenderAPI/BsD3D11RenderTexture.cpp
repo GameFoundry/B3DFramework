@@ -33,7 +33,7 @@ namespace bs
 				rtvs[i] = textureView->GetRTV();
 			}
 		}
-		else If(name == "DSV")
+		else if(name == "DSV")
 		{
 			if (mDepthStencilSurface == nullptr)
 				return;

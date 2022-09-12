@@ -17,7 +17,7 @@ namespace bs
 	 * @note	
 	 * Any class implementing this interface must implement the getRTTI() method, as well as a static getRTTIStatic()
 	 * method, returning the same value as getRTTI(). Object returned by those methods is used for retrieving actual RTTI
-	 * data about the class.
+	 * Data about the class.
 	 */
 	class BS_UTILITY_EXPORT IReflectable
 	{

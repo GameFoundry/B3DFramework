@@ -168,7 +168,7 @@ namespace bs { namespace ct
 	{
 #if BS_DEBUG_MODE
 		Lock Lock(mMutex);
-		assert(mResources.Empty() && "Resource manager shutting down but not all resources were released.");
+		assert(mResources.empty() && "Resource manager shutting down but not all resources were released.");
 #endif
 	}
 
@@ -177,7 +177,7 @@ namespace bs { namespace ct
 #if BS_DEBUG_MODE
 		{
 			Lock Lock(mMutex);
-			mResources.Erase(resource);
+			mResources.erase(resource);
 		}
 #endif
 

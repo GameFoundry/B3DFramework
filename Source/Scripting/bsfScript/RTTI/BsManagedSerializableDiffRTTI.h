@@ -206,7 +206,7 @@ namespace bs
 
 		UINT32 GetNumFieldEntries(ManagedSerializableDiff::ModifiedObject* obj)
 		{
-			return (UINT32)obj->entries.Size();
+			return (UINT32)obj->entries.size();
 		}
 
 		void SetNumFieldEntries(ManagedSerializableDiff::ModifiedObject* obj, UINT32 numEntries)
@@ -274,7 +274,7 @@ namespace bs
 
 		UINT32 GetNumFieldEntries(ManagedSerializableDiff::ModifiedArray* obj)
 		{
-			return (UINT32)obj->entries.Size();
+			return (UINT32)obj->entries.size();
 		}
 
 		void SetNumFieldEntries(ManagedSerializableDiff::ModifiedArray* obj, UINT32 numEntries)
@@ -324,7 +324,7 @@ namespace bs
 
 		UINT32 GetNumRemovedEntries(ManagedSerializableDiff::ModifiedDictionary* obj)
 		{
-			return (UINT32)obj->removed.Size();
+			return (UINT32)obj->removed.size();
 		}
 
 		void SetNumRemovedEntries(ManagedSerializableDiff::ModifiedDictionary* obj, UINT32 numEntries)
@@ -344,7 +344,7 @@ namespace bs
 
 		UINT32 GetNumFieldEntries(ManagedSerializableDiff::ModifiedDictionary* obj)
 		{
-			return (UINT32)obj->entries.Size();
+			return (UINT32)obj->entries.size();
 		}
 
 		void SetNumFieldEntries(ManagedSerializableDiff::ModifiedDictionary* obj, UINT32 numEntries)

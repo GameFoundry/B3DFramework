@@ -29,6 +29,6 @@ namespace bs
 
 	void ManagedResourceManager::UnregisterManagedResource(const WeakResourceHandle<ManagedResource>& resource)
 	{
-		mResources.Erase(resource.getUUID());
+		mResources.erase(resource.getUUID());
 	}
 }

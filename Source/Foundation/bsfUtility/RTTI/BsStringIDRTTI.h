@@ -23,7 +23,7 @@ namespace bs
 			{
 				BitLength size = 0;
 
-				bool isEmpty = data.Empty();
+				bool isEmpty = data.empty();
 				size += rtti_write(isEmpty, stream);
 
 				if (!isEmpty)
@@ -63,7 +63,7 @@ namespace bs
 		{
 			BitLength dataSize = sizeof(bool);
 
-			bool isEmpty = data.Empty();
+			bool isEmpty = data.empty();
 			if (!isEmpty)
 			{
 				auto length = (uint32_t)strlen(data.c_str());

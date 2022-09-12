@@ -229,7 +229,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->animationSplits;
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptAnimationSplitInfo>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -251,7 +251,7 @@ namespace bs
 		{
 			ScriptArray Arrayvalue(value);
 			vecvalue.Resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			for(int i = 0; i < (int)arrayvalue.size(); i++)
 			{
 				ScriptAnimationSplitInfo* scriptvalue;
 				scriptvalue = ScriptAnimationSplitInfo::toNative(arrayvalue.get<MonoObject*>(i));
@@ -273,7 +273,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->animationEvents;
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptImportedAnimationEvents>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -295,7 +295,7 @@ namespace bs
 		{
 			ScriptArray Arrayvalue(value);
 			vecvalue.Resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			for(int i = 0; i < (int)arrayvalue.size(); i++)
 			{
 				ScriptImportedAnimationEvents* scriptvalue;
 				scriptvalue = ScriptImportedAnimationEvents::toNative(arrayvalue.get<MonoObject*>(i));

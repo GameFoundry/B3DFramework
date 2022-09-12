@@ -80,11 +80,11 @@ namespace bs { namespace ct
 		message << ": [" << pLayerPrefix << "] Code " << msgCode << ": " << pMsg << std::endl;
 
 		if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
-			BS_EXCEPT(RenderingAPIException, message.Str())
+			BS_EXCEPT(RenderingAPIException, message.str())
 		else if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT || flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
-			BS_LOG(Warning, RenderBackend, message.Str());
+			BS_LOG(Warning, RenderBackend, message.str());
 		else
-			BS_LOG(Info, RenderBackend, message.Str());
+			BS_LOG(Info, RenderBackend, message.str());
 
 		// Don't abort calls that caused a validation message
 		return VK_FALSE;
@@ -245,7 +245,7 @@ namespace bs { namespace ct
 			}
 		}
 
-		if (mPrimaryDevices.Size() == 0)
+		if (mPrimaryDevices.size() == 0)
 		{
 			mDevices[0]->SetIsPrimary();
 			mPrimaryDevices.push_back(mDevices[0]);
@@ -350,7 +350,7 @@ namespace bs { namespace ct
 		mMainCommandBuffer = nullptr;
 
 		// Make sure everything finishes and all resources get freed
-		for (UINT32 i = 0; i < (UINT32)mDevices.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mDevices.size(); i++)
 			mDevices[i]->WaitIdle();
 
 		CommandBufferManager::shutDown();
@@ -404,7 +404,7 @@ namespace bs { namespace ct
 				continue;
 
 			// Flush all param block buffers
-			for (auto iter = paramDesc->paramBlocks.Begin(); iter != paramDesc->paramBlocks.end(); ++iter)
+			for (auto iter = paramDesc->paramBlocks.begin(); iter != paramDesc->paramBlocks.end(); ++iter)
 			{
 				SPtr<GpuParamBlockBuffer> buffer = gpuParams->GetParamBlockBuffer(iter->second.set, iter->second.slot);
 
@@ -564,7 +564,7 @@ namespace bs { namespace ct
 		target->SwapBuffers(syncMask);
 
 		// See if any command buffers finished executing
-		for (UINT32 i = 0; i < (UINT32)mDevices.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mDevices.size(); i++)
 			mDevices[i]->RefreshStates();
 
 		BS_INC_RENDER_STAT(NumPresents);
@@ -649,7 +649,7 @@ namespace bs { namespace ct
 
 	void VulkanRenderAPI::InitCapabilites()
 	{
-		mNumDevices = (UINT32)mDevices.Size();
+		mNumDevices = (UINT32)mDevices.size();
 		mCurrentCapabilities = bs_newN<RenderAPICapabilities>(mNumDevices);
 
 		UINT32 deviceIdx = 0;

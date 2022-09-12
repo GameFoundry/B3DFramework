@@ -250,7 +250,7 @@ namespace bs
 		{
 			auto freeId = (UINT32)-1;
 
-			auto numDevices = (UINT32)data->devices.Size();
+			auto numDevices = (UINT32)data->devices.size();
 			for(UINT32 i = 0; i < numDevices; i++)
 			{
 				bool validId = true;
@@ -300,13 +300,13 @@ namespace bs
 	{
 		auto data = (HIDData*)context;
 
-		auto iterFind = std::find_if(data->devices.Begin(), data->devices.end(),
+		auto iterFind = std::find_if(data->devices.begin(), data->devices.end(),
 				[&device](const HIDDevice& v)
 				{
 					return v.ref == device;
 				});
 
-		if(iterFind != data->devices.End())
+		if(iterFind != data->devices.end())
 		{
 			IOHIDQueueStop(iterFind->queueRef);
 			CFRelease(iterFind->queueRef);
@@ -318,18 +318,18 @@ namespace bs
 
 				UINT32 deviceId = iterFind->id;
 				auto iterFind2 = std::find_if(
-					pvtData->gamepadInfos.Begin(),
-					pvtData->gamepadInfos.End(),
+					pvtData->gamepadInfos.begin(),
+					pvtData->gamepadInfos.end(),
 					[deviceId](const GamepadInfo& info)
 					{
 						return info.id == deviceId;
 					});
 
-				if(iterFind2 != pvtData->gamepadInfos.End())
-					pvtData->gamepadInfos.Erase(iterFind2);
+				if(iterFind2 != pvtData->gamepadInfos.end())
+					pvtData->gamepadInfos.erase(iterFind2);
 			}
 
-			data->devices.Erase(iterFind);
+			data->devices.erase(iterFind);
 		}
 	}
 
@@ -780,14 +780,14 @@ namespace bs
 						}
 					}
 				}
-				else If(usagePage == kHIDPage_Button)
+				else if(usagePage == kHIDPage_Button)
 				{
 					if(mData.type == HIDType::Mouse)
 					{
 						if (usage > 0 && usage <= BC_NumMouse)
 							button = (ButtonCode) ((UINT32) BC_MOUSE_LEFT + usage - 1);
 					}
-					else If(mData.type == HIDType::Gamepad)
+					else if(mData.type == HIDType::Gamepad)
 					{
 						// These are based on the xbox controller:
 						switch(usage)
@@ -818,7 +818,7 @@ namespace bs
 						}
 					}
 				}
-				else If(usagePage == kHIDPage_KeyboardOrKeypad)
+				else if(usagePage == kHIDPage_KeyboardOrKeypad)
 				{
 					// Usage -1 and 1 are special signals that happen along with every button press/release and should be
 					// ignored
@@ -884,7 +884,7 @@ namespace bs
 		{
 		case InputDevice::Keyboard: return 1;
 		case InputDevice::Mouse: return 1;
-		case InputDevice::Gamepad: return (UINT32)mPlatformData->gamepadInfos.Size();
+		case InputDevice::Gamepad: return (UINT32)mPlatformData->gamepadInfos.size();
 		case InputDevice::Count: return 0;
 		}
 

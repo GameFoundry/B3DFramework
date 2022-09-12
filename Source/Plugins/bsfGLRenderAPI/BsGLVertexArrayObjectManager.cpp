@@ -68,7 +68,7 @@ namespace bs { namespace ct
 
 	GLVertexArrayObjectManager::~GLVertexArrayObjectManager()
 	{
-		assert(mVAObjects.Size() == 0 && "VertexArrayObjectManager getting shut down but not all VA objects were released.");
+		assert(mVAObjects.size() == 0 && "VertexArrayObjectManager getting shut down but not all VA objects were released.");
 	}
 
 	const GLVertexArrayObject& GLVertexArrayObjectManager::getVAO(const SPtr<GLSLGpuProgram>& vertexProgram,
@@ -82,9 +82,9 @@ namespace bs { namespace ct
 		UINT32 numStreams = maxStreamIdx + 1;
 		UINT32 numUsedBuffers = 0;
 		INT32* streamToSeqIdx = bs_stack_alloc<INT32>(numStreams);
-		GLVertexBuffer** usedBuffers = bs_stack_alloc<GLVertexBuffer*>((UINT32)boundBuffers.Size());
+		GLVertexBuffer** usedBuffers = bs_stack_alloc<GLVertexBuffer*>((UINT32)boundBuffers.size());
 		
-		memset(usedBuffers, 0, (UINT32)boundBuffers.Size() * sizeof(GLVertexBuffer*));
+		memset(usedBuffers, 0, (UINT32)boundBuffers.size() * sizeof(GLVertexBuffer*));
 
 		for (UINT32 i = 0; i < numStreams; i++)
 			streamToSeqIdx[i] = -1;
@@ -92,7 +92,7 @@ namespace bs { namespace ct
 		for (auto& elem : decl)
 		{
 			UINT16 streamIdx = elem.GetStreamIdx();
-			if (streamIdx >= (UINT32)boundBuffers.Size())
+			if (streamIdx >= (UINT32)boundBuffers.size())
 				continue;
 
 			if (streamToSeqIdx[streamIdx] != -1) // Already visited
@@ -111,8 +111,8 @@ namespace bs { namespace ct
 		
 		GLVertexArrayObject WantedVAO(0, vertexProgram->GetGLHandle(), usedBuffers, numUsedBuffers);
 
-		auto findIter = mVAObjects.Find(wantedVAO);
-		if (findIter != mVAObjects.End())
+		auto findIter = mVAObjects.find(wantedVAO);
+		if (findIter != mVAObjects.end())
 		{
 			bs_stack_free(usedBuffers);
 			bs_stack_free(streamToSeqIdx);
@@ -139,7 +139,7 @@ namespace bs { namespace ct
 
 			bool foundSemantic = false;
 			GLint attribLocation = 0;
-			for (auto iter = inputAttributes.Begin(); iter != inputAttributes.end(); ++iter)
+			for (auto iter = inputAttributes.begin(); iter != inputAttributes.end(); ++iter)
 			{
 				if (iter->GetSemantic() == elem.GetSemantic() && iter->getSemanticIdx() == elem.getSemanticIdx())
 				{
@@ -219,7 +219,7 @@ namespace bs { namespace ct
 	// Note: This must receieve a copy and not a ref because original will be destroyed
 	void GLVertexArrayObjectManager::NotifyBufferDestroyed(GLVertexArrayObject vao)
 	{
-		mVAObjects.Erase(vao);
+		mVAObjects.erase(vao);
 
 		for (UINT32 i = 0; i < vao.mNumBuffers; i++)
 		{

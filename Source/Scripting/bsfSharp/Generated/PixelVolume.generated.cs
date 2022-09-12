@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace bs
 {
-	/// <summary>Represents a 3D region of pixels used for referencing pixel data.</summary>
+	/// <summary>Represents a 3D region of pixels used for referencing pixel Data.</summary>
 	[StructLayout(LayoutKind.Sequential), SerializeObject]
 	public partial struct PixelVolume
 	{

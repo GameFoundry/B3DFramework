@@ -59,7 +59,7 @@ namespace bs
 		 *
 		 * @note	Thread safe, but only counts sim thread frames.
 		 */
-		UINT64 GetFrameIdx() const { return mCurrentFrame.Load(); }
+		UINT64 GetFrameIdx() const { return mCurrentFrame.load(); }
 
 		/**
 		 * Returns the precise time since application start, in microseconds. Unlike other time methods this is not only

@@ -92,8 +92,8 @@ namespace bs
 			SpriteMaterial* newMaterial = bs_new<T>(std::forward<Args>(args)...);
 			
 			UINT32 id = newMaterial->GetId();
-			auto iterFind = mMaterials.Find(id);
-			if (iterFind != mMaterials.End())
+			auto iterFind = mMaterials.find(id);
+			if (iterFind != mMaterials.end())
 			{
 				// Already exists
 				BS_LOG(Warning, Generic, "Attempting to register a sprite material that already exists, ignoring request.");

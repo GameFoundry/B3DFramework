@@ -313,7 +313,7 @@ namespace bs { namespace ct
 		for(UINT32 i = 0; i < NUM_INPUT_KEYS; i++)
 			inputKeys.push_back(random.GetRange(0, 15) << 4 | std::min(NUM_DIGITS - 1, (i / (NUM_INPUT_KEYS / 16))));
 
-		const auto count = (UINT32)inputKeys.Size();
+		const auto count = (UINT32)inputKeys.size();
 		UINT32 bitOffset = 4;
 		UINT32 bitMask = (1 << RADIX_NUM_BITS) - 1;
 
@@ -462,7 +462,7 @@ namespace bs { namespace ct
 		Vector<UINT32> BufferCounts(helperBufferLength);
 		helperBuffers[0]->ReadData(0, helperBufferLength * sizeof(UINT32), bufferCounts.Data());
 
-		for(UINT32 i = 0; i < (UINT32)counts.Size(); i++)
+		for(UINT32 i = 0; i < (UINT32)counts.size(); i++)
 			assert(bufferCounts[i] == counts[i]);
 
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -558,7 +558,7 @@ namespace bs { namespace ct
 		Vector<UINT32> BufferOffsets(helperBufferLength);
 		helperBuffers[1]->ReadData(0, helperBufferLength * sizeof(UINT32), bufferOffsets.Data());
 
-		for(UINT32 i = 0; i < (UINT32)offsets.Size(); i++)
+		for(UINT32 i = 0; i < (UINT32)offsets.size(); i++)
 			assert(bufferOffsets[i] == offsets[i]);
 
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -567,7 +567,7 @@ namespace bs { namespace ct
 
 		// SERIAL:
 		// Reorder within each tile
-		Vector<UINT32> SortedKeys(inputKeys.Size());
+		Vector<UINT32> SortedKeys(inputKeys.size());
 		UINT32 sGroupOffsets[NUM_DIGITS];
 		UINT32 sLocalScratch[NUM_DIGITS * NUM_THREADS];
 		UINT32 sTileTotals[NUM_DIGITS];
@@ -793,6 +793,6 @@ namespace bs { namespace ct
 			assert(bufferSortedKeys[i] == sortedKeys[i]);
 
 		// Ensure everything is actually sorted
-		assert(std::is_sorted(sortedKeys.Begin(), sortedKeys.end()));
+		assert(std::is_sorted(sortedKeys.begin(), sortedKeys.end()));
 	}
 }}

@@ -137,14 +137,14 @@ namespace bs
 		DenseMap(const DenseMap<Key, Value>& other)
 		{
 			mCount = 0;
-			if (!other.Empty())
+			if (!other.empty())
 				copy(other);
 		}
 
 		DenseMap(DenseMap<Key, Value>&& other)
 		{
 			mCount = 0;
-			if (!other.Empty())
+			if (!other.empty())
 				copy(std::move(other));
 		}
 
@@ -182,8 +182,8 @@ namespace bs
 
 		bool operator== (const DenseMap<Key, Value>& other) const
 		{
-			if (this->Size() != other.Size()) return false;
-			return std::Equal(this->Begin(), this->end(), other.Begin());
+			if (this->Size() != other.size()) return false;
+			return std::Equal(this->Begin(), this->end(), other.begin());
 		}
 
 		bool operator!= (const DenseMap<Key, Value>& other) const
@@ -353,7 +353,7 @@ namespace bs
 				}
 			}
 
-			mEntries = other.Size();
+			mEntries = other.size();
 			mTombstones = other.GetTombstones();
 
 			if (getCount())

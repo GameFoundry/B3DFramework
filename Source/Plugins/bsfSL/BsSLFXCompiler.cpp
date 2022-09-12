@@ -53,13 +53,13 @@ namespace bs
 			switch (odt)
 			{
 			case ODT_Bool:
-				value = toString(node->options->entries[i].value.intValue != 0);
+				value = ToString(node->options->entries[i].value.intValue != 0);
 				break;
 			case ODT_Int:
-				value = toString(node->options->entries[i].value.intValue);
+				value = ToString(node->options->entries[i].value.intValue);
 				break;
 			case ODT_Float:
-				value = toString(node->options->entries[i].value.floatValue);
+				value = ToString(node->options->entries[i].value.floatValue);
 				break;
 			case ODT_String:
 				value = node->options->entries[i].value.strValue;
@@ -67,7 +67,7 @@ namespace bs
 			case ODT_Matrix:
 			{
 				Matrix4 mat4 = *(Matrix4*)(node->options->entries[i].value.matrixValue);
-				value = toString(mat4);
+				value = ToString(mat4);
 			}
 				break;
 			default:
@@ -100,8 +100,8 @@ namespace bs
 		void GetMessages(StringStream& output)
 		{
 			printAndClearReports(output, mInfos);
-			printAndClearReports(output, mWarnings, (mWarnings.Size() == 1 ? "WARNING" : "WARNINGS"));
-			printAndClearReports(output, mErrors, (mErrors.Size() == 1 ? "ERROR" : "ERRORS"));
+			printAndClearReports(output, mWarnings, (mWarnings.size() == 1 ? "WARNING" : "WARNINGS"));
+			printAndClearReports(output, mErrors, (mErrors.size() == 1 ? "ERROR" : "ERRORS"));
 		}
 
 	private:
@@ -114,7 +114,7 @@ namespace bs
 		static void PrintMultiLineString(StringStream& output, const std::string& str, const std::string& indent)
 		{
 			// Determine at which position the actual text begins (excluding the "error (X:Y) : " or the like)
-			auto textStartPos = str.Find(" : ");
+			auto textStartPos = str.find(" : ");
 			if (textStartPos != std::string::npos)
 				textStartPos += 3;
 			else
@@ -124,7 +124,7 @@ namespace bs
 
 			size_t start = 0;
 			bool useNewLineIndent = false;
-			while (start < str.Size())
+			while (start < str.size())
 			{
 				output << indent;
 
@@ -132,7 +132,7 @@ namespace bs
 					output << newLineIndent;
 
 				// Print next line
-				auto end = str.Find('\n', start);
+				auto end = str.find('\n', start);
 
 				if (end != std::string::npos)
 				{
@@ -153,7 +153,7 @@ namespace bs
 		void PrintReport(StringStream& output, const IndentReport& r)
 		{
 			// Print optional context description
-			if (!r.report.Context().Empty())
+			if (!r.report.Context().empty())
 				printMultiLineString(output, r.report.Context(), r.indent);
 
 			// Print report message
@@ -180,13 +180,13 @@ namespace bs
 
 		void PrintAndClearReports(StringStream& output, Vector<IndentReport>& reports, const String& headline = "")
 		{
-			if (!reports.Empty())
+			if (!reports.empty())
 			{
-				if (!headline.Empty())
+				if (!headline.empty())
 				{
-					String s = toString((UINT32)reports.Size()) + " " + headline;
+					String s = ToString((UINT32) reports.size()) + " " + headline;
 					output << s << std::endl;
-					output << String(s.Size(), '-') << std::endl;
+					output << String(s.size(), '-') << std::endl;
 				}
 
 				for (const auto& r : reports)
@@ -288,7 +288,7 @@ namespace bs
 
 	UINT32 GetStructSize(INT32 structIdx, const std::vector<Xsc::Reflection::Struct>& structLookup)
 	{
-		if(structIdx < 0 || structIdx >= (INT32)structLookup.Size())
+		if(structIdx < 0 || structIdx >= (INT32)structLookup.size())
 			return 0;
 
 		UINT32 size = 0;
@@ -307,7 +307,7 @@ namespace bs
 				size += typeInfo.numColumns * typeInfo.numRows * typeInfo.baseTypeSize * entry.arraySize;
 
 			}
-			else If(entry.type == Xsc::Reflection::VariableType::Struct)
+			else if(entry.type == Xsc::Reflection::VariableType::Struct)
 				size += getStructSize(entry.baseType, structLookup);
 		}
 
@@ -447,7 +447,7 @@ namespace bs
 			String ident = entry.ident.c_str();
 			auto parseCommonAttributes = [&entry, &ident, &desc]()
 			{
-				if (!entry.readableName.Empty())
+				if (!entry.readableName.empty())
 				{
 					SHADER_PARAM_ATTRIBUTE attribute;
 					attribute.value.Assign(entry.readableName.data(), entry.readableName.size());
@@ -488,7 +488,7 @@ namespace bs
 					{
 						// Ignore parameters that were already registered in some previous variation. Note that this implies
 						// you cannot have same names for different parameters in different variations.
-						if (desc.textureParams.Find(ident) != desc.textureParams.end())
+						if (desc.textureParams.find(ident) != desc.textureParams.end())
 							continue;
 
 						if (entry.defaultValue == -1)
@@ -506,7 +506,7 @@ namespace bs
 					{
 						// Ignore parameters that were already registered in some previous variation. Note that this implies
 						// you cannot have same names for different parameters in different variations.
-						if (desc.bufferParams.Find(ident) != desc.bufferParams.end())
+						if (desc.bufferParams.find(ident) != desc.bufferParams.end())
 							continue;
 
 						objType = ReflTypeToBufferType((Xsc::Reflection::BufferType)entry.baseType);
@@ -518,12 +518,12 @@ namespace bs
 				break;
 			case Xsc::Reflection::VariableType::Sampler:
 			{
-				auto findIter = reflData.samplerStates.Find(entry.ident);
-				if (findIter != reflData.samplerStates.End())
+				auto findIter = reflData.samplerStates.find(entry.ident);
+				if (findIter != reflData.samplerStates.end())
 				{
 					// Ignore parameters that were already registered in some previous variation. Note that this implies
 					// you cannot have same names for different parameters in different variations.
-					if(desc.samplerParams.Find(ident) != desc.samplerParams.end())
+					if(desc.samplerParams.find(ident) != desc.samplerParams.end())
 						continue;
 
 					String alias = findIter->second.alias.c_str();
@@ -533,14 +533,14 @@ namespace bs
 						SPtr<SamplerState> defaultVal = parseSamplerState(findIter->second);
 						desc.AddParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, GPOT_SAMPLER2D), defaultVal);
 
-						if (!alias.Empty())
+						if (!alias.empty())
 							desc.AddParameter(SHADER_OBJECT_PARAM_DESC(ident, alias, GPOT_SAMPLER2D), defaultVal);
 					}
 					else
 					{
 						desc.AddParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, GPOT_SAMPLER2D));
 
-						if (!alias.Empty())
+						if (!alias.empty())
 							desc.AddParameter(SHADER_OBJECT_PARAM_DESC(ident, alias, GPOT_SAMPLER2D));
 					}
 				}
@@ -587,7 +587,7 @@ namespace bs
 							(UINT8*)defVal.matrix);
 					}
 
-					if(!entry.spriteUVRef.Empty() && (type == GPDT_FLOAT4))
+					if(!entry.spriteUVRef.empty() && (type == GPDT_FLOAT4))
 					{
 						SHADER_PARAM_ATTRIBUTE attribute;
 						attribute.value.Assign(entry.spriteUVRef.data(), entry.spriteUVRef.size());
@@ -740,7 +740,7 @@ namespace bs
 				StringStream logOutput;
 				log.GetMessages(logOutput);
 
-				BS_LOG(Error, BSLCompiler, "Shader cross compilation failed. Log: \n\n{0}", logOutput.Str());
+				BS_LOG(Error, BSLCompiler, "Shader cross compilation failed. Log: \n\n{0}", logOutput.str());
 				return "";
 			}
 		}
@@ -778,7 +778,7 @@ namespace bs
 				StringStream logOutput;
 				log.GetMessages(logOutput);
 
-				BS_LOG(Error, BSLCompiler, "Shader cross compilation failed. Log: \n\n{0}", logOutput.Str());
+				BS_LOG(Error, BSLCompiler, "Shader cross compilation failed. Log: \n\n{0}", logOutput.str());
 				return "";
 			}
 		}
@@ -786,7 +786,7 @@ namespace bs
 		if (shaderDesc != nullptr)
 			parseParameters(reflectionData, *shaderDesc);
 
-		return output.Str();
+		return output.str();
 	}
 
 	String CrossCompile(const String& hlsl, GpuProgramType type, CrossCompileOutput outputType, UINT32& startBindingSlot)
@@ -820,12 +820,12 @@ namespace bs
 	{
 		for(auto& define : defines)
 		{
-			if (define.first.Size() == 0)
+			if (define.first.size() == 0)
 				continue;
 
 			addDefine(parseState, define.first.c_str());
 
-			if(define.second.Size() > 0)
+			if(define.second.size() > 0)
 				addDefineExpr(parseState, define.second.c_str());
 		}
 
@@ -861,7 +861,7 @@ namespace bs
 
 			goto cleanup;
 		}
-		else If(parsingFailed)
+		else if(parsingFailed)
 		{
 			output.errorMessage = "Internal error: Parsing failed.";
 			goto cleanup;
@@ -1000,7 +1000,7 @@ cleanup:
 				{
 					if (entry.first == OT_AttrName)
 						variationData.name = entry.second;
-					else If(entry.first == OT_AttrShow)
+					else if(entry.first == OT_AttrShow)
 						variationData.internal = false;
 				}
 				}
@@ -1009,7 +1009,7 @@ cleanup:
 			}
 		}
 
-		if (!variationData.identifier.Empty())
+		if (!variationData.identifier.empty())
 			metaData.variations.push_back(variationData);
 	}
 
@@ -1407,7 +1407,7 @@ cleanup:
 		// Parse targets in reverse as their order matters and we want to visit them in the top-down order as defined in
 		// the source code
 		UINT32 index = 0;
-		for(auto iter = targets.Rbegin(); iter != targets.rend(); ++iter)
+		for(auto iter = targets.ReverseBegin(); iter != targets.rend(); ++iter)
 			parseRenderTargetBlendState(desc.blendDesc, *iter, index);
 
 		return !isDefault;
@@ -1557,7 +1557,7 @@ cleanup:
 				index = codeNode->options->entries[j].value.intValue;
 		}
 
-		if (index != (UINT32)-1 && index < (UINT32)codeBlocks.Size())
+		if (index != (UINT32)-1 && index < (UINT32)codeBlocks.size())
 		{
 			passData.code += codeBlocks[index];
 		}
@@ -1601,10 +1601,10 @@ cleanup:
 			return;
 
 		// There must always be at least one pass
-		if(shaderData.passes.Empty())
+		if(shaderData.passes.empty())
 		{
 			shaderData.passes.push_back(PassData());
-			shaderData.passes.Back().seqIdx = 0;
+			shaderData.passes.back().seqIdx = 0;
 		}
 
 		PassData combinedCommonPassData;
@@ -1630,7 +1630,7 @@ cleanup:
 				if (passData == nullptr)
 				{
 					shaderData.passes.push_back(PassData());
-					passData = &shaderData.passes.Back();
+					passData = &shaderData.passes.back();
 
 					passData->seqIdx = passIdx;
 				}
@@ -1751,7 +1751,7 @@ cleanup:
 		BSLFXCompileResult output;
 
 		// Inherit variations from mixins
-		bool* mixinWasParsed = bs_stack_alloc<bool>((UINT32)shaderMetaData.Size());
+		bool* mixinWasParsed = bs_stack_alloc<bool>((UINT32)shaderMetaData.size());
 
 		std::function<bool(const ShaderMetaData&, ShaderMetaData&)> parseInherited =
 			[&](const ShaderMetaData& metaData, ShaderMetaData& combinedMetaData)
@@ -1761,7 +1761,7 @@ cleanup:
 				const String& include = *riter;
 
 				UINT32 baseIdx = -1;
-				for (UINT32 i = 0; i < (UINT32)shaderMetaData.Size(); i++)
+				for (UINT32 i = 0; i < (UINT32)shaderMetaData.size(); i++)
 				{
 					auto& entry = shaderMetaData[i];
 					if (!entry.second.isMixin)
@@ -1810,7 +1810,7 @@ cleanup:
 			if (metaData.isMixin)
 				continue;
 
-			bs_zero_out(mixinWasParsed, shaderMetaData.Size());
+			bs_zero_out(mixinWasParsed, shaderMetaData.size());
 			ShaderMetaData combinedMetaData = metaData;
 			if (!parseInherited(metaData, combinedMetaData))
 			{
@@ -1866,24 +1866,24 @@ cleanup:
 			// Generate a list of variations
 			Vector<ShaderVariation> variations;
 
-			if (metaData.variations.Empty())
+			if (metaData.variations.empty())
 				variations.push_back(ShaderVariation());
 			else
 			{
 				Vector<const VariationData*> todo;
-				for (UINT32 i = 0; i < (UINT32)metaData.variations.Size(); i++)
+				for (UINT32 i = 0; i < (UINT32)metaData.variations.size(); i++)
 					todo.push_back(&metaData.variations[i]);
 
-				while (!todo.Empty())
+				while (!todo.empty())
 				{
-					const VariationData* current = todo.Back();
-					todo.Erase(todo.end() - 1);
+					const VariationData* current = todo.back();
+					todo.erase(todo.end() - 1);
 
 					// Variation parameter that's either defined or isn't
-					if (current->values.Empty())
+					if (current->values.empty())
 					{
 						// This is the first variation parameter, register new variations
-						if (variations.Empty())
+						if (variations.empty())
 						{
 							ShaderVariation a;
 							ShaderVariation b;
@@ -1895,7 +1895,7 @@ cleanup:
 						}
 						else // Duplicate existing variations, and add the parameter
 						{
-							UINT32 numVariations = (UINT32)variations.Size();
+							UINT32 numVariations = (UINT32)variations.size();
 							for (UINT32 i = 0; i < numVariations; i++)
 							{
 								// Make a copy
@@ -1909,9 +1909,9 @@ cleanup:
 					else // Variation parameter with multiple values
 					{
 						// This is the first variation parameter, register new variations
-						if (variations.Empty())
+						if (variations.empty())
 						{
-							for (UINT32 i = 0; i < (UINT32)current->values.Size(); i++)
+							for (UINT32 i = 0; i < (UINT32)current->values.size(); i++)
 							{
 								ShaderVariation variation;
 								variation.AddParam(ShaderVariation::Param(current->identifier, current->values[i].value));
@@ -1921,10 +1921,10 @@ cleanup:
 						}
 						else // Duplicate existing variations, and add the parameter
 						{
-							UINT32 numVariations = (UINT32)variations.Size();
+							UINT32 numVariations = (UINT32)variations.size();
 							for (UINT32 i = 0; i < numVariations; i++)
 							{
-								for (UINT32 j = 1; j < (UINT32)current->values.Size(); j++)
+								for (UINT32 j = 1; j < (UINT32)current->values.size(); j++)
 								{
 									ShaderVariation copy = variations[i];
 									copy.AddParam(ShaderVariation::Param(current->identifier, current->values[j].value));
@@ -1951,7 +1951,7 @@ cleanup:
 				ParseState* variationParseState = parseStateCreate();
 				output = parseFX(variationParseState, source.c_str(), globalDefines);
 
-				if (!output.errorMessage.Empty())
+				if (!output.errorMessage.empty())
 					parseStateDelete(variationParseState);
 				else
 				{
@@ -1959,7 +1959,7 @@ cleanup:
 					RawCode* rawCode = variationParseState->rawCodeBlock[RCT_CodeBlock];
 					while (rawCode != nullptr)
 					{
-						while ((INT32)codeBlocks.Size() <= rawCode->index)
+						while ((INT32)codeBlocks.size() <= rawCode->index)
 							codeBlocks.push_back(String());
 
 						codeBlocks[rawCode->index] = String(rawCode->code, rawCode->size);
@@ -1969,7 +1969,7 @@ cleanup:
 					output = compileTechniques(variationParseState, entry.second.name, codeBlocks, variation, languages,
 						includeSet, shaderDesc);
 
-					if (!output.errorMessage.Empty())
+					if (!output.errorMessage.empty())
 						return output;
 				}
 			}
@@ -2026,7 +2026,7 @@ cleanup:
 
 		if (hasError)
 		{
-			output.errorMessage = "Failed compiling GPU program(s): " + gpuProgError.Str();
+			output.errorMessage = "Failed compiling GPU program(s): " + gpuProgError.str();
 			output.errorLine = 0;
 			output.errorColumn = 0;
 		}
@@ -2043,7 +2043,7 @@ cleanup:
 		ParseState* parseState = parseStateCreate();
 		BSLFXCompileResult output = parseFX(parseState, source.c_str(), defines);
 
-		if (!output.errorMessage.Empty())
+		if (!output.errorMessage.empty())
 		{
 			parseStateDelete(parseState);
 			return output;
@@ -2055,7 +2055,7 @@ cleanup:
 
 		output = parseMetaDataAndOptions(parseState->rootNode, shaderMetaData, subShaderData, shaderDesc);
 
-		if (!output.errorMessage.Empty())
+		if (!output.errorMessage.empty())
 		{
 			parseStateDelete(parseState);
 			return output;
@@ -2066,7 +2066,7 @@ cleanup:
 		RawCode* rawCode = parseState->rawCodeBlock[RCT_SubShaderBlock];
 		while (rawCode != nullptr)
 		{
-			while ((INT32)subShaderCodeBlocks.Size() <= rawCode->index)
+			while ((INT32)subShaderCodeBlocks.size() <= rawCode->index)
 				subShaderCodeBlocks.push_back(String());
 
 			subShaderCodeBlocks[rawCode->index] = String(rawCode->code, rawCode->size);
@@ -2077,7 +2077,7 @@ cleanup:
 
 		output = populateVariations(shaderMetaData);
 
-		if (!output.errorMessage.Empty())
+		if (!output.errorMessage.empty())
 			return output;
 
 		// Note: Must be called after populateVariations, to ensure variations from mixins are inherited
@@ -2091,13 +2091,13 @@ cleanup:
 
 		output = compileTechniques(shaderMetaData, source, defines, languages, shaderDesc, includes);
 
-		if (!output.errorMessage.Empty())
+		if (!output.errorMessage.empty())
 			return output;
 
 		// Parse sub-shaders
 		for (auto& entry : subShaderData)
 		{
-			if(entry.codeBlockIndex > (UINT32)subShaderCodeBlocks.Size())
+			if(entry.codeBlockIndex > (UINT32)subShaderCodeBlocks.size())
 				continue;
 
 			const String& subShaderCode = subShaderCodeBlocks[entry.codeBlockIndex];
@@ -2124,10 +2124,10 @@ cleanup:
 
 				SHADER_DESC subShaderDesc;
 				Vector<String> subShaderIncludes;
-				BSLFXCompileResult subShaderOutput = compileShader(subShaderSource.Str(), subShaderDefines, languages,
+				BSLFXCompileResult subShaderOutput = compileShader(subShaderSource.str(), subShaderDefines, languages,
 					subShaderDesc, subShaderIncludes);
 
-				if (!subShaderOutput.errorMessage.Empty())
+				if (!subShaderOutput.errorMessage.empty())
 					return subShaderOutput;
 
 				// Clear the sub-shader descriptor of any data other than techniques
@@ -2179,7 +2179,7 @@ cleanup:
 					continue;
 
 				shaderData.push_back(std::make_pair(option->value.nodePtr, ShaderData()));
-				ShaderData& data = shaderData.Back().second;
+				ShaderData& data = shaderData.back().second;
 				data.metaData = metaData;
 
 				break;
@@ -2189,7 +2189,7 @@ cleanup:
 			}
 		}
 
-		bool* mixinWasParsed = bs_stack_alloc<bool>((UINT32)shaderData.Size());
+		bool* mixinWasParsed = bs_stack_alloc<bool>((UINT32)shaderData.size());
 		std::function<bool(const ShaderMetaData&, ShaderData&)> parseInherited =
 			[&](const ShaderMetaData& metaData, ShaderData& outShader)
 		{
@@ -2198,7 +2198,7 @@ cleanup:
 				const String& includes = *riter;
 
 				UINT32 baseIdx = -1;
-				for(UINT32 i = 0; i < (UINT32)shaderData.Size(); i++)
+				for(UINT32 i = 0; i < (UINT32)shaderData.size(); i++)
 				{
 					auto& entry = shaderData[i];
 					if (!entry.second.metaData.isMixin)
@@ -2249,7 +2249,7 @@ cleanup:
 			if (metaData.isMixin)
 				continue;
 
-			bs_zero_out(mixinWasParsed, shaderData.Size());
+			bs_zero_out(mixinWasParsed, shaderData.size());
 			if (!parseInherited(metaData, entry.second))
 			{
 				parseStateDelete(parseState);
@@ -2267,8 +2267,8 @@ cleanup:
 		{
 			String includeFilename = includeLink->data->filename;
 
-			auto iterFind = std::find(includes.Begin(), includes.end(), includeFilename);
-			if (iterFind == includes.End())
+			auto iterFind = std::find(includes.begin(), includes.end(), includeFilename);
+			if (iterFind == includes.end())
 				includes.Insert(includeFilename);
 
 			includeLink = includeLink->next;
@@ -2277,7 +2277,7 @@ cleanup:
 		parseStateDelete(parseState);
 
 		// Parse extended HLSL code and generate per-program code, also convert to GLSL/VKSL/MSL
-		const auto end = (UINT32)shaderData.Size();
+		const auto end = (UINT32)shaderData.size();
 		Vector<pair<ASTFXNode*, ShaderData>> outputShaderData;
 		for(UINT32 i = 0; i < end; i++)
 		{
@@ -2306,7 +2306,7 @@ cleanup:
 			ShaderData mvksl = shaderData[i].second;
 			mvksl.metaData.language = "mvksl";
 
-			const auto numPasses = (UINT32)shaderDataEntry.passes.Size();
+			const auto numPasses = (UINT32)shaderDataEntry.passes.size();
 			for(UINT32 j = 0; j < numPasses; j++)
 			{
 				PassData& passData = shaderDataEntry.passes[j];
@@ -2499,7 +2499,7 @@ cleanup:
 			for (auto& KVP : passes)
 				orderedPasses.push_back(KVP.second);
 
-			if (!orderedPasses.Empty())
+			if (!orderedPasses.empty())
 			{
 				SPtr<Technique> technique = Technique::create(metaData.language, metaData.tags, variation, orderedPasses);
 				shaderDesc.techniques.push_back(technique);

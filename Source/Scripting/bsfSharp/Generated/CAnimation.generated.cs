@@ -13,7 +13,7 @@ namespace bs
 	/// <summary>
 	/// Handles animation playback. Takes one or multiple animation clips as input and evaluates them every animation update 
 	/// tick depending on set properties. The evaluated data is used by the core thread for skeletal animation, by the sim 
-	/// thread for updating attached scene objects and bones (if skeleton is attached), or the data is made available for 
+	/// thread for updating attached scene objects and bones (if skeleton is attached), or the Data is made available for
 	/// manual queries in the case of generic animation.
 	/// </summary>
 	[ShowInInspector]

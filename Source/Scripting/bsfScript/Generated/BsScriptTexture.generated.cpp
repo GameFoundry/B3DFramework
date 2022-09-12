@@ -204,7 +204,7 @@ namespace bs
 		{
 			ScriptArray Arraycolors(colors);
 			veccolors.Resize(arraycolors.size());
-			for(int i = 0; i < (int)arraycolors.Size(); i++)
+			for(int i = 0; i < (int)arraycolors.size(); i++)
 			{
 				veccolors[i] = arraycolors.get<Color>(i);
 			}

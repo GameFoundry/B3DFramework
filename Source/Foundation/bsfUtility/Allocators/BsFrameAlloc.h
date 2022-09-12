@@ -24,7 +24,7 @@ namespace bs
 	 * Frame allocator. Performs very fast allocations but can only free all of its memory at once. Perfect for allocations
 	 * that last just a single frame.
 	 *
-	 * @note	Not thread safe with an exception. alloc() and clear() methods need to be called from the same thread.
+	 * @note	Not thread safe with an exception. Allocate() and clear() methods need to be called from the same thread.
 	 * 			dealloc() is thread safe and can be called from any thread.
 	 */
 	class BS_UTILITY_EXPORT FrameAlloc
@@ -35,11 +35,10 @@ namespace bs
 		{
 		public:
 			MemBlock(UINT32 size) :mSize(size) { }
-
 			~MemBlock() = default;
 
 			/** Allocates a piece of memory within the block. Caller must ensure the block has enough empty space. */
-			UINT8* alloc(UINT32 amount);
+			UINT8* Allocate(UINT32 amount);
 
 			/** Releases all allocations within a block but doesn't actually free the memory. */
 			void Clear();
@@ -56,22 +55,22 @@ namespace bs
 		/**
 		 * Allocates a new block of memory of the specified size.
 		 *
-		 * @param[in]	amount	Amount of memory to allocate, in bytes.
+		 * @param[in]	amount	Amount of memory to Allocate, in bytes.
 		 *
 		 * @note	Not thread safe.
 		 */
-		UINT8* alloc(UINT32 amount);
+		UINT8* Allocate(UINT32 amount);
 
 		/**
 		 * Allocates a new block of memory of the specified size aligned to the specified boundary. If the aligment is less
 		 * or equal to 16 it is more efficient to use the allocAligned16() alternative of this method.
 		 *
-		 * @param[in]	amount		Amount of memory to allocate, in bytes.
+		 * @param[in]	amount		Amount of memory to Allocate, in bytes.
 		 * @param[in]	alignment	Alignment of the allocated memory. Must be power of two.
 		 *
 		 * @note	Not thread safe.
 		 */
-		UINT8* allocAligned(UINT32 amount, UINT32 alignment);
+		UINT8* AllocateAligned(UINT32 amount, UINT32 alignment);
 
 		/**
 		 * Allocates and constructs a new object.
@@ -79,9 +78,9 @@ namespace bs
 		 * @note	Not thread safe.
 		 */
 		template<class T, class... Args>
-		T* construct(Args &&...args)
+		T* Construct(Args &&...args)
 		{
-			return new ((T*)alloc(sizeof(T))) T(std::forward<Args>(args)...);
+			return new ((T*) Allocate(sizeof(T))) T(std::forward<Args>(args)...);
 		}
 
 		/**
@@ -158,10 +157,10 @@ namespace bs
 		 * Allocates a dynamic block of memory of the wanted size. The exact allocation size might be slightly higher in
 		 * order to store block meta data.
 		 */
-		MemBlock* allocBlock(UINT32 wantedSize);
+		MemBlock* AllocateBlock(UINT32 wantedSize);
 
 		/** Frees a memory block. */
-		void DeallocBlock(MemBlock* block);
+		void DeallocateBlock(MemBlock* block);
 	};
 
 	/**
@@ -204,7 +203,7 @@ namespace bs
 		template<class U> class rebind { public: typedef StdFrameAlloc<U> other; };
 
 		/** Allocate but don't initialize number elements of type T.*/
-		T* allocate(const size_t num) const
+		T* Allocate(const size_t num) const
 		{
 			if (num == 0)
 				return nullptr;
@@ -212,7 +211,7 @@ namespace bs
 			if (num > static_cast<size_t>(-1) / sizeof(T))
 				return nullptr; // Error
 
-			void* const pv = mFrameAlloc->Alloc((UINT32)(num * sizeof(T)));
+			void* const pv = mFrameAlloc->Allocate((UINT32)(num * sizeof(T)));
 			if (!pv)
 				return nullptr; // Error
 
@@ -260,12 +259,12 @@ namespace bs
 	 *
 	 * @note	Thread safe.
 	 */
-	BS_UTILITY_EXPORT FrameAlloc& GFrameAlloc();
+	BS_UTILITY_EXPORT FrameAlloc& gFrameAlloc();
 
 	/**
 	 * Allocates some memory using the global frame allocator.
 	 *
-	 * @param[in]	numBytes	Number of bytes to allocate.
+	 * @param[in]	numBytes	Number of bytes to Allocate.
 	 */
 	BS_UTILITY_EXPORT UINT8* bs_frame_alloc(UINT32 numBytes);
 
@@ -291,7 +290,7 @@ namespace bs
 
 	/**
 	 * Allocates enough memory to hold the object of specified type using the global frame allocator, but does not
-	 * construct the object.
+	 * Construct the object.
 	 */
 	template<class T>
 	T* bs_frame_alloc()
@@ -301,7 +300,7 @@ namespace bs
 
 	/**
 	 * Allocates enough memory to hold N objects of specified type using the global frame allocator, but does not
-	 * construct the object.
+	 * Construct the object.
 	 */
 	template<class T>
 	T* bs_frame_alloc(UINT32 count)
@@ -424,27 +423,27 @@ namespace bs
 	class MemoryAllocator<FrameAlloc> : public MemoryAllocatorBase
 	{
 	public:
-		/** @copydoc MemoryAllocator::allocate */
-		static void* allocate(size_t bytes)
+		/** @copydoc MemoryAllocator::Allocate */
+		static void* Allocate(size_t bytes)
 		{
 			return bs_frame_alloc((UINT32)bytes);
 		}
 
-		/** @copydoc MemoryAllocator::allocateAligned */
-		static void* allocateAligned(size_t bytes, size_t alignment)
+		/** @copydoc MemoryAllocator::AllocateAligned */
+		static void* AllocateAligned(size_t bytes, size_t alignment)
 		{
 #if BS_PROFILING_ENABLED
-			incAllocCount();
+			IncAllocCount();
 #endif
 
 			return bs_frame_alloc_aligned((UINT32)bytes, (UINT32)alignment);
 		}
 
-		/** @copydoc MemoryAllocator::allocateAligned16 */
-		static void* allocateAligned16(size_t bytes)
+		/** @copydoc MemoryAllocator::AllocateAligned16 */
+		static void* AllocateAligned16(size_t bytes)
 		{
 #if BS_PROFILING_ENABLED
-			incAllocCount();
+			IncAllocCount();
 #endif
 
 			return bs_frame_alloc_aligned((UINT32)bytes, 16);
@@ -460,7 +459,7 @@ namespace bs
 		static void FreeAligned(void* ptr)
 		{
 #if BS_PROFILING_ENABLED
-			incFreeCount();
+			IncFreeCount();
 #endif
 
 			bs_frame_free_aligned(ptr);
@@ -470,7 +469,7 @@ namespace bs
 		static void FreeAligned16(void* ptr)
 		{
 #if BS_PROFILING_ENABLED
-			incFreeCount();
+			IncFreeCount();
 #endif
 
 			bs_frame_free_aligned(ptr);

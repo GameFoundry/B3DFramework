@@ -29,7 +29,7 @@ namespace bs
 		/** @copydoc AudioDecoder::isValid */
 		bool IsValid(const SPtr<DataStream>& stream, UINT32 offset = 0) override;
 	private:
-		/** Parses the WAVE header and output audio file meta-data. Returns false if the header is not valid. */
+		/** Parses the WAVE header and output audio file meta-Data. Returns false if the header is not valid. */
 		bool ParseHeader(AudioDataInfo& info);
 
 		SPtr<DataStream> mStream;

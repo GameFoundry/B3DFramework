@@ -36,8 +36,8 @@ namespace bs
 
 	SpriteMaterial* SpriteManager::getMaterial(UINT32 id) const
 	{
-		auto iterFind = mMaterials.Find(id);
-		if (iterFind != mMaterials.End())
+		auto iterFind = mMaterials.find(id);
+		if (iterFind != mMaterials.end())
 			return iterFind->second;
 
 		return nullptr;

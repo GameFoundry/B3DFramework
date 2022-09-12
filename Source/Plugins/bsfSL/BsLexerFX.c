@@ -2849,7 +2849,7 @@ static void yy_load_buffer_state  (yyscan_t yyscanner)
 }
 
 /** Pushes the new state onto the stack. The new state becomes
- *  the current state. This function will allocate the stack
+ *  the current state. This function will Allocate the stack
  *  if necessary.
  *  @param new_buffer The new state.
  *  @param yyscanner The scanner object.
@@ -3064,7 +3064,7 @@ static void yy_fatal_error (yyconst char* msg , yyscan_t yyscanner)
 
 /* Accessor  methods (get/set functions) to struct members. */
 
-/** Get the user-defined data for this scanner.
+/** Get the user-defined Data for this scanner.
  * @param yyscanner The scanner object.
  */
 YY_EXTRA_TYPE yyget_extra  (yyscan_t yyscanner)
@@ -3136,8 +3136,8 @@ char *yyget_text  (yyscan_t yyscanner)
     return yytext;
 }
 
-/** Set the user-defined data. This data is never touched by the scanner.
- * @param user_defined The data to be associated with this scanner.
+/** Set the user-defined data. This Data is never touched by the scanner.
+ * @param user_defined The Data to be associated with this scanner.
  * @param yyscanner The scanner object.
  */
 void yyset_extra (YY_EXTRA_TYPE  user_defined , yyscan_t yyscanner)

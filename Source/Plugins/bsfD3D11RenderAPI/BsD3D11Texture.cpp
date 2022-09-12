@@ -277,7 +277,8 @@ namespace bs { namespace ct
 		}
 		else
 		{
-			BS_EXCEPT(RenderingAPIException, "Trying to write into a buffer with unsupported usage: " + toString(mProperties.GetUsage()));
+			BS_EXCEPT(RenderingAPIException, "Trying to write into a buffer with unsupported usage: " +
+					ToString(mProperties.GetUsage()));
 		}
 	}
 
@@ -379,7 +380,7 @@ namespace bs { namespace ct
 		if(numMips != (desc.MipLevels - 1))
 		{
 			BS_EXCEPT(RenderingAPIException, "Driver returned different number of mip maps than requested. " \
-				"Requested: " + toString(numMips) + ". Got: " + toString(desc.MipLevels - 1) + ".");
+				"Requested: " + ToString(numMips) + ". Got: " + ToString(desc.MipLevels - 1) + ".");
 		}
 
 		mDXGIFormat = desc.Format;
@@ -450,7 +451,7 @@ namespace bs { namespace ct
 			rs->DetermineMultisampleSettings(sampleCount, d3dPF, &sampleDesc);
 			desc.SampleDesc		= sampleDesc;
 		}
-		else If((usage & TU_DEPTHSTENCIL) != 0)
+		else if((usage & TU_DEPTHSTENCIL) != 0)
 		{
 			desc.Usage			= D3D11_USAGE_DEFAULT;
 			desc.CPUAccessFlags = 0;
@@ -523,7 +524,7 @@ namespace bs { namespace ct
 		if(numMips != (desc.MipLevels - 1))
 		{
 			BS_EXCEPT(RenderingAPIException, "Driver returned different number of mip maps than requested. " \
-				"Requested: " + toString(numMips) + ". Got: " + toString(desc.MipLevels - 1) + ".");
+				"Requested: " + ToString(numMips) + ". Got: " + ToString(desc.MipLevels - 1) + ".");
 		}
 
 		mDXGIFormat = desc.Format;
@@ -642,7 +643,7 @@ namespace bs { namespace ct
 		if (mProperties.GetNumMipmaps() != (desc.MipLevels - 1))
 		{
 			BS_EXCEPT(RenderingAPIException, "Driver returned different number of mip maps than requested. " \
-				"Requested: " + toString(mProperties.GetNumMipmaps()) + ". Got: " + toString(desc.MipLevels - 1) + ".");
+				"Requested: " + ToString(mProperties.GetNumMipmaps()) + ". Got: " + ToString(desc.MipLevels - 1) + ".");
 		}
 
 		mDXGIFormat = desc.Format;

@@ -29,7 +29,7 @@ namespace bs
 		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
 
-		return Find(mExtensions.Begin(), mExtensions.end(), lowerCaseExt) != mExtensions.end();
+		return Find(mExtensions.begin(), mExtensions.end(), lowerCaseExt) != mExtensions.end();
 	}
 
 	bool FontImporter::IsMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
@@ -96,7 +96,7 @@ namespace bs
 		FT_Render_Mode renderMode = FT_LOAD_TARGET_MODE(loadFlags);
 
 		Vector<SPtr<FontBitmap>> dataPerSize;
-		for(size_t i = 0; i < fontSizes.Size(); i++)
+		for(size_t i = 0; i < fontSizes.size(); i++)
 		{
 			// Note: Disabled as its not working and I have bigger issues to handle than to figure this out atm
 			//FT_Matrix m;
@@ -124,7 +124,7 @@ namespace bs
 			// Get all char sizes so we can generate texture layout
 			Vector<TextureAtlasUtility::Element> atlasElements;
 			Map<UINT32, UINT32> seqIdxToCharIdx;
-			for(auto iter = charIndexRanges.Begin(); iter != charIndexRanges.end(); ++iter)
+			for(auto iter = charIndexRanges.begin(); iter != charIndexRanges.end(); ++iter)
 			{
 				for(UINT32 charIdx = iter->start; charIdx <= iter->end; charIdx++)
 				{
@@ -145,7 +145,7 @@ namespace bs
 					atlasElement.input.height = slot->bitmap.rows;
 
 					atlasElements.push_back(atlasElement);
-					seqIdxToCharIdx[(UINT32)atlasElements.Size() - 1] = charIdx;
+					seqIdxToCharIdx[(UINT32)atlasElements.size() - 1] = charIdx;
 				}
 			}
 
@@ -179,7 +179,7 @@ namespace bs
 
 			// Create char bitmap atlas textures and load character information
 			UINT32 pageIdx = 0;
-			for(auto pageIter = pages.Begin(); pageIter != pages.end(); ++pageIter)
+			for(auto pageIter = pages.begin(); pageIter != pages.end(); ++pageIter)
 			{
 				UINT32 bufferSize = pageIter->width * pageIter->height * 2;
 
@@ -190,7 +190,7 @@ namespace bs
 				UINT8* pixelBuffer = pixelData->GetData();
 				memset(pixelBuffer, 0, bufferSize);
 
-				for(size_t i = 0; i < atlasElements.Size(); i++)
+				for(size_t i = 0; i < atlasElements.size(); i++)
 				{
 					// Copy character bitmap
 					if(atlasElements[i].output.page != (INT32)pageIdx)
@@ -199,7 +199,7 @@ namespace bs
 					TextureAtlasUtility::Element curElement = atlasElements[i];
 					UINT32 elementIdx = curElement.output.idx;
 					
-					bool isMissingGlypth = elementIdx == (atlasElements.Size() - 1); // It's always the last element
+					bool isMissingGlypth = elementIdx == (atlasElements.size() - 1); // It's always the last element
 
 					UINT32 charIdx = 0;
 					if(!isMissingGlypth)
@@ -243,7 +243,7 @@ namespace bs
 							sourceBuffer += slot->bitmap.pitch;
 						}
 					}
-					else If(slot->bitmap.pixel_mode == ft_pixel_mode_mono)
+					else if(slot->bitmap.pixel_mode == ft_pixel_mode_mono)
 					{
 						// 8 pixels are packed into a byte, so do some unpacking
 						for(INT32 bitmapRow = 0; bitmapRow < slot->bitmap.rows; bitmapRow++)
@@ -290,7 +290,7 @@ namespace bs
 					if(!isMissingGlypth)
 					{
 						FT_Vector resultKerning;
-						for(auto kerningIter = charIndexRanges.Begin(); kerningIter != charIndexRanges.end(); ++kerningIter)
+						for(auto kerningIter = charIndexRanges.begin(); kerningIter != charIndexRanges.end(); ++kerningIter)
 						{
 							for(UINT32 kerningCharIdx = kerningIter->start; kerningCharIdx <= kerningIter->end; kerningCharIdx++)
 							{
@@ -300,7 +300,8 @@ namespace bs
 								error = FT_Get_Kerning(face, charIdx, kerningCharIdx, FT_KERNING_DEFAULT, &resultKerning);
 
 								if(error)
-									BS_EXCEPT(InternalErrorException, "Failed to get kerning information for character: " + toString(charIdx));
+									BS_EXCEPT(InternalErrorException, "Failed to get kerning information for character: " +
+											ToString(charIdx));
 
 								INT32 kerningX = (INT32)(resultKerning.x >> 6); // Y kerning is ignored because it is so rare
 								if(kerningX == 0) // We don't store 0 kerning, this is assumed default
@@ -342,7 +343,7 @@ namespace bs
 					newTex->WriteData(pixelData);
 				}
 
-				newTex->SetName(u8"FontPage" + toString((UINT32)fontData->texturePages.Size()));
+				newTex->SetName(u8"FontPage" + ToString((UINT32) fontData->texturePages.size()));
 
 				fontData->texturePages.push_back(newTex);
 				pageIdx++;

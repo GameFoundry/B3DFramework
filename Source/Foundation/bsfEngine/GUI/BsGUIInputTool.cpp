@@ -265,7 +265,7 @@ namespace bs
 		// something went wrong when creating the line descs, therefore it is
 		// not valid and no text is displayed.
 		if(mNumChars > 0)
-			return !mLineDescs.Empty();
+			return !mLineDescs.empty();
 
 		return true;
 	}

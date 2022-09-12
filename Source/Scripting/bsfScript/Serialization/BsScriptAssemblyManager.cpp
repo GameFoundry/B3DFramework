@@ -453,7 +453,7 @@ namespace bs
 
 				return typeInfo;
 			}
-			else If(monoClass == ScriptRRefBase::getMetaData()->scriptClass) // Resource reference
+			else if(monoClass == ScriptRRefBase::getMetaData()->scriptClass) // Resource reference
 				return bs_shared_ptr_new<ManagedSerializableTypeInfoRRef>();
 			else if (monoClass->IsSubClassOf(mBuiltin.sceneObjectClass) || monoClass->isSubClassOf(mBuiltin.componentClass)) // Game object
 			{
@@ -537,7 +537,7 @@ namespace bs
 
 				return typeInfo;
 			}
-			else If(monoClass->GetFullName() == mBuiltin.systemGenericDictionaryClass->getFullName())
+			else if(monoClass->GetFullName() == mBuiltin.systemGenericDictionaryClass->getFullName())
 			{
 				SPtr<ManagedSerializableTypeInfoDictionary> typeInfo = bs_shared_ptr_new<ManagedSerializableTypeInfoDictionary>();
 
@@ -563,7 +563,7 @@ namespace bs
 
 				return typeInfo;
 			}
-			else If(monoClass->GetFullName() == mBuiltin.genericRRefClass->getFullName())
+			else if(monoClass->GetFullName() == mBuiltin.genericRRefClass->getFullName())
 			{
 				SPtr<ManagedSerializableTypeInfoRRef> typeInfo = bs_shared_ptr_new<ManagedSerializableTypeInfoRRef>();
 				
@@ -780,8 +780,8 @@ namespace bs
 
 	BuiltinComponentInfo* ScriptAssemblyManager::getBuiltinComponentInfo(::MonoReflectionType* type)
 	{
-		auto iterFind = mBuiltinComponentInfos.Find(type);
-		if (iterFind == mBuiltinComponentInfos.End())
+		auto iterFind = mBuiltinComponentInfos.find(type);
+		if (iterFind == mBuiltinComponentInfos.end())
 			return nullptr;
 
 		return &(iterFind->second);
@@ -789,8 +789,8 @@ namespace bs
 
 	BuiltinComponentInfo* ScriptAssemblyManager::getBuiltinComponentInfo(UINT32 rttiTypeId)
 	{
-		auto iterFind = mBuiltinComponentInfosByTID.Find(rttiTypeId);
-		if (iterFind == mBuiltinComponentInfosByTID.End())
+		auto iterFind = mBuiltinComponentInfosByTID.find(rttiTypeId);
+		if (iterFind == mBuiltinComponentInfosByTID.end())
 			return nullptr;
 
 		return &(iterFind->second);
@@ -798,8 +798,8 @@ namespace bs
 
 	BuiltinResourceInfo* ScriptAssemblyManager::getBuiltinResourceInfo(::MonoReflectionType* type)
 	{
-		auto iterFind = mBuiltinResourceInfos.Find(type);
-		if (iterFind == mBuiltinResourceInfos.End())
+		auto iterFind = mBuiltinResourceInfos.find(type);
+		if (iterFind == mBuiltinResourceInfos.end())
 			return nullptr;
 
 		return &(iterFind->second);
@@ -807,8 +807,8 @@ namespace bs
 
 	BuiltinResourceInfo* ScriptAssemblyManager::getBuiltinResourceInfo(UINT32 rttiTypeId)
 	{
-		auto iterFind = mBuiltinResourceInfosByTID.Find(rttiTypeId);
-		if (iterFind == mBuiltinResourceInfosByTID.End())
+		auto iterFind = mBuiltinResourceInfosByTID.find(rttiTypeId);
+		if (iterFind == mBuiltinResourceInfosByTID.end())
 			return nullptr;
 
 		return &(iterFind->second);
@@ -816,8 +816,8 @@ namespace bs
 
 	BuiltinResourceInfo* ScriptAssemblyManager::getBuiltinResourceInfo(ScriptResourceType type)
 	{
-		auto iterFind = mBuiltinResourceInfosByType.Find((UINT32)type);
-		if (iterFind == mBuiltinResourceInfosByType.End())
+		auto iterFind = mBuiltinResourceInfosByType.find((UINT32)type);
+		if (iterFind == mBuiltinResourceInfosByType.end())
 			return nullptr;
 
 		return &(iterFind->second);
@@ -825,8 +825,8 @@ namespace bs
 
 	ReflectableTypeInfo* ScriptAssemblyManager::getReflectableTypeInfo(::MonoReflectionType* type)
 	{
-		auto iterFind = mReflectableTypeInfos.Find(type);
-		if (iterFind == mReflectableTypeInfos.End())
+		auto iterFind = mReflectableTypeInfos.find(type);
+		if (iterFind == mReflectableTypeInfos.end())
 			return nullptr;
 
 		return &(iterFind->second);
@@ -834,8 +834,8 @@ namespace bs
 
 	ReflectableTypeInfo* ScriptAssemblyManager::getReflectableTypeInfo(uint32_t rttiTypeId)
 	{
-		auto iterFind = mReflectableTypeInfosByTID.Find(rttiTypeId);
-		if (iterFind == mReflectableTypeInfosByTID.End())
+		auto iterFind = mReflectableTypeInfosByTID.find(rttiTypeId);
+		if (iterFind == mReflectableTypeInfosByTID.end())
 			return nullptr;
 
 		return &(iterFind->second);
@@ -849,8 +849,8 @@ namespace bs
 			if (curAssembly.second == nullptr)
 				continue;
 
-			auto iterFind = curAssembly.second->mTypeNameToId.Find(fullName);
-			if(iterFind != curAssembly.second->mTypeNameToId.End())
+			auto iterFind = curAssembly.second->mTypeNameToId.find(fullName);
+			if(iterFind != curAssembly.second->mTypeNameToId.end())
 			{
 				outInfo = curAssembly.second->mObjectInfos[iterFind->second];
 
@@ -866,8 +866,8 @@ namespace bs
 		String fullName = ns + "." + typeName;
 		for(auto& curAssembly : mAssemblyInfos)
 		{
-			auto iterFind = curAssembly.second->mTypeNameToId.Find(fullName);
-			if(iterFind != curAssembly.second->mTypeNameToId.End())
+			auto iterFind = curAssembly.second->mTypeNameToId.find(fullName);
+			if(iterFind != curAssembly.second->mTypeNameToId.end())
 				return true;
 		}
 
@@ -997,7 +997,7 @@ namespace bs
 			SPtr<ManagedSerializableObjectInfo> objInfo;
 			if (!instance().GetSerializableObjectInfo(elementNs, elementTypeName, objInfo))
 			{
-				BS_LOG(Error, Script, "Object has no serialization meta-data.");
+				BS_LOG(Error, Script, "Object has no serialization meta-Data.");
 				return nullptr;
 			}
 

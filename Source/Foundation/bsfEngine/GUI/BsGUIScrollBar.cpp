@@ -155,7 +155,7 @@ namespace bs
 
 	void GUIScrollBar::HandleMoved(float handlePct, float sizePct)
 	{
-		if(!onScrollOrResize.Empty())
+		if(!onScrollOrResize.empty())
 			onScrollOrResize(handlePct, sizePct);
 	}
 
@@ -192,7 +192,7 @@ namespace bs
 		{
 			mHandleBtn->_markLayoutAsDirty();
 
-			if (!onScrollOrResize.Empty())
+			if (!onScrollOrResize.empty())
 				onScrollOrResize(newHandlePos, mHandleBtn->_getHandleSizePct());
 		}
 	}

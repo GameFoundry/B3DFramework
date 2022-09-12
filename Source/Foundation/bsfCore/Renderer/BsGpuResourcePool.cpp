@@ -130,7 +130,7 @@ namespace bs { namespace ct
 
 	void GpuResourcePool::Prune(UINT32 age)
 	{
-		for(auto iter = mTextures.Begin(); iter != mTextures.end();)
+		for(auto iter = mTextures.begin(); iter != mTextures.end();)
 		{
 			auto& entry = *iter;
 
@@ -148,7 +148,7 @@ namespace bs { namespace ct
 				++iter;
 		}
 
-		for(auto iter = mBuffers.Begin(); iter != mBuffers.end();)
+		for(auto iter = mBuffers.begin(); iter != mBuffers.end();)
 		{
 			auto& entry = *iter;
 

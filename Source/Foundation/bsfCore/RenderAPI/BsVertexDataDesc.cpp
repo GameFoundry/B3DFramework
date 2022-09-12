@@ -14,7 +14,7 @@ namespace bs
 		VertexElement NewElement(streamIdx, 0, type, semantic, semanticIdx, instanceStepRate);
 
 		// Insert it so it is sorted by stream
-		UINT32 insertToIndex = (UINT32)mVertexElements.Size();
+		UINT32 insertToIndex = (UINT32)mVertexElements.size();
 		UINT32 idx = 0;
 		for(auto& elem : mVertexElements)
 		{
@@ -58,7 +58,7 @@ namespace bs
 	UINT32 VertexDataDesc::GetMaxStreamIdx() const
 	{
 		UINT32 maxStreamIdx = 0;
-		UINT32 numElems = (UINT32)mVertexElements.Size();
+		UINT32 numElems = (UINT32)mVertexElements.size();
 		for(UINT32 i = 0; i < numElems; i++)
 		{
 			for(auto& vertElem : mVertexElements)
@@ -83,13 +83,13 @@ namespace bs
 
 	bool VertexDataDesc::HasElement(VertexElementSemantic semantic, UINT32 semanticIdx, UINT32 streamIdx) const
 	{
-		auto findIter = std::find_if(mVertexElements.Begin(), mVertexElements.end(),
+		auto findIter = std::find_if(mVertexElements.begin(), mVertexElements.end(),
 			[semantic, semanticIdx, streamIdx] (const VertexElement& x)
 		{
 			return x.GetSemantic() == semantic && x.getSemanticIdx() == semanticIdx && x.getStreamIdx() == streamIdx;
 		});
 
-		if(findIter != mVertexElements.End())
+		if(findIter != mVertexElements.end())
 		{
 			return true;
 		}
@@ -164,13 +164,13 @@ namespace bs
 
 	const VertexElement* VertexDataDesc::getElement(VertexElementSemantic semantic, UINT32 semanticIdx, UINT32 streamIdx) const
 	{
-		auto findIter = std::find_if(mVertexElements.Begin(), mVertexElements.end(),
+		auto findIter = std::find_if(mVertexElements.begin(), mVertexElements.end(),
 									 [semantic, semanticIdx, streamIdx](const VertexElement& x)
 		{
 			return x.GetSemantic() == semantic && x.getSemanticIdx() == semanticIdx && x.getStreamIdx() == streamIdx;
 		});
 
-		if (findIter != mVertexElements.End())
+		if (findIter != mVertexElements.end())
 			return &(*findIter);
 
 		return nullptr;
@@ -178,15 +178,15 @@ namespace bs
 
 	void VertexDataDesc::ClearIfItExists(VertexElementType type, VertexElementSemantic semantic, UINT32 semanticIdx, UINT32 streamIdx)
 	{
-		auto findIter = std::find_if(mVertexElements.Begin(), mVertexElements.end(),
+		auto findIter = std::find_if(mVertexElements.begin(), mVertexElements.end(),
 			[semantic, semanticIdx, streamIdx] (const VertexElement& x)
 		{
 			return x.GetSemantic() == semantic && x.getSemanticIdx() == semanticIdx && x.getStreamIdx() == streamIdx;
 		});
 
-		if(findIter != mVertexElements.End())
+		if(findIter != mVertexElements.end())
 		{
-			mVertexElements.Erase(findIter);
+			mVertexElements.erase(findIter);
 		}
 	}
 

@@ -75,22 +75,22 @@ namespace bs
 					break;
 				case DropAreaOpType::Unregister:
 					// Remove any operations queued for this target
-					for(auto iter = sQueuedOperations.Begin(); iter !=sQueuedOperations.end();)
+					for(auto iter = sQueuedOperations.begin(); iter !=sQueuedOperations.end();)
 					{
 						if(iter->target == entry.target)
-							iter = sQueuedOperations.Erase(iter);
+							iter = sQueuedOperations.erase(iter);
 						else
 							++iter;
 					}
 
 					// Remove the area
 					{
-						auto iterFind = std::find_if(sDropAreas.Begin(), sDropAreas.end(), [&](const DropArea& area)
+						auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(), [&](const DropArea& area)
 						{
 							return area.target == entry.target;
 						});
 
-						sDropAreas.Erase(iterFind);
+						sDropAreas.erase(iterFind);
 					}
 
 					areaWindow->_unregisterForDragAndDrop();
@@ -98,12 +98,12 @@ namespace bs
 					break;
 				case DropAreaOpType::Update:
 				{
-					auto iterFind = std::find_if(sDropAreas.Begin(), sDropAreas.end(), [&](const DropArea& area)
+					auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(), [&](const DropArea& area)
 					{
 						return area.target == entry.target;
 					});
 
-					if (iterFind != sDropAreas.End())
+					if (iterFind != sDropAreas.end())
 						iterFind->area = entry.area;
 				}
 					break;

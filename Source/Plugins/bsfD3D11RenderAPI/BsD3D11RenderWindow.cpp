@@ -147,12 +147,12 @@ namespace bs
 		windowDesc.module = GetModuleHandle("bsfD3D11RenderAPI.dll");
 #endif
 
-		auto opt = mDesc.platformSpecific.Find("parentWindowHandle");
-		if (opt != mDesc.platformSpecific.End())
+		auto opt = mDesc.platformSpecific.find("parentWindowHandle");
+		if (opt != mDesc.platformSpecific.end())
 			windowDesc.parent = (HWND)parseUINT64(opt->second);
 
-		opt = mDesc.platformSpecific.Find("externalWindowHandle");
-		if (opt != mDesc.platformSpecific.End())
+		opt = mDesc.platformSpecific.find("externalWindowHandle");
+		if (opt != mDesc.platformSpecific.end())
 			windowDesc.external = (HWND)parseUINT64(opt->second);
 
 		mIsChild = windowDesc.parent != nullptr;
@@ -494,7 +494,7 @@ namespace bs
 			*static_cast<ID3D11RenderTargetView**>(pData) = mRenderTargetView;
 			return;
 		}
-		else If(name == "DSV")
+		else if(name == "DSV")
 		{
 			if (mDepthStencilView != nullptr)
 			{
@@ -704,7 +704,7 @@ namespace bs
 		SAFE_RELEASE(pDXGIDevice);
 
 		if (FAILED(hr))
-			BS_EXCEPT(RenderingAPIException, "Unable to create swap chain. Error code: " + toString(hr));
+			BS_EXCEPT(RenderingAPIException, "Unable to create swap chain. Error code: " + ToString(hr));
 
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_SwapChain);
 	}

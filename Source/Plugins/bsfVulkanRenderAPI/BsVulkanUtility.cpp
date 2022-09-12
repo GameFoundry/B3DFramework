@@ -66,7 +66,7 @@ namespace bs { namespace ct
 
 				if (bitDepths[0] == 16) // 16-bit format, fall back to 4-channel 16-bit, guaranteed to be supported
 					format = PF_RGBA16F;
-				else If(format == PF_BC6H) // Fall back to uncompressed alternative
+				else if(format == PF_BC6H) // Fall back to uncompressed alternative
 					format = PF_RGBA16F;
 				else // Must be 8-bit per channel format, compressed format or some uneven format
 					format = PF_RGBA8;

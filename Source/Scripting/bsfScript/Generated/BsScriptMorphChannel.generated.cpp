@@ -48,7 +48,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->getShapes();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptMorphShape>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{

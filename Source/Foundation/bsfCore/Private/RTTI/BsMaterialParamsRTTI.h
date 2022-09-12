@@ -111,7 +111,7 @@ namespace bs
 			if(paramIdx == (UINT32)-1)
 				paramIdx = mNextParamIdx++;
 
-			if (obj->mParams.Size() <= (size_t)paramIdx)
+			if (obj->mParams.size() <= (size_t)paramIdx)
 				obj->mParams.Resize((size_t)paramIdx + 1);
 			
 			obj->mParams[paramIdx] = param.data;
@@ -120,7 +120,7 @@ namespace bs
 
 		UINT32 GetParamDataArraySize(MaterialParams* obj)
 		{
-			return (UINT32)mMatParams.Size();
+			return (UINT32)mMatParams.size();
 		}
 
 		void SetParamDataArraySize(MaterialParams* obj, UINT32 size)
@@ -431,9 +431,9 @@ namespace bs
 
 			if(data.floatCurve)
 				size += rtti_size(*data.floatCurve);
-			else If(data.colorGradient)
+			else if(data.colorGradient)
 				size += rtti_size(*data.colorGradient);
-			else If(data.spriteTextureIdx != (uint32_t)-1)
+			else if(data.spriteTextureIdx != (uint32_t)-1)
 				size += rtti_size(data.spriteTextureIdx);
 
 			rtti_add_header_size(size, compress);

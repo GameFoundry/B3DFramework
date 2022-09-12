@@ -52,12 +52,12 @@ namespace bs
 
 	void MeshHeap::Dealloc(const SPtr<TransientMesh>& mesh)
 	{
-		auto iterFind = mMeshes.Find(mesh->mId);
-		if(iterFind == mMeshes.End())
+		auto iterFind = mMeshes.find(mesh->mId);
+		if(iterFind == mMeshes.end())
 			return;
 
 		mesh->MarkAsDestroyed();
-		mMeshes.Erase(iterFind);
+		mMeshes.erase(iterFind);
 
 		queueGpuCommand(getCore(), std::bind(&ct::MeshHeap::dealloc, getCore().Get(), mesh->GetCore()));
 	}
@@ -187,7 +187,7 @@ namespace bs
 		UINT32 freeVertChunkIdx = 0;
 		UINT32 freeIdxChunkIdx = 0;
 
-		auto freeVertIter = mFreeVertChunks.Begin();
+		auto freeVertIter = mFreeVertChunks.begin();
 		freeVertChunkIdx = (*freeVertIter);
 		for (UINT32 i = 0; i < smallestVertFitIdx; i++)
 		{
@@ -195,9 +195,9 @@ namespace bs
 			freeVertChunkIdx = (*freeVertIter);
 		}
 
-		mFreeVertChunks.Erase(freeVertIter);
+		mFreeVertChunks.erase(freeVertIter);
 
-		auto freeIdxIter = mFreeIdxChunks.Begin();
+		auto freeIdxIter = mFreeIdxChunks.begin();
 		freeIdxChunkIdx = (*freeIdxIter);
 		for (UINT32 i = 0; i < smallestIdxFitIdx; i++)
 		{
@@ -205,7 +205,7 @@ namespace bs
 			freeIdxChunkIdx = (*freeIdxIter);
 		}
 
-		mFreeIdxChunks.Erase(freeIdxIter);
+		mFreeIdxChunks.erase(freeIdxIter);
 
 		ChunkData& vertChunk = mVertChunks[freeVertChunkIdx];
 		ChunkData& idxChunk = mIdxChunks[freeIdxChunkIdx];
@@ -221,11 +221,11 @@ namespace bs
 
 		if (remainingNumVerts > 0)
 		{
-			if (!mEmptyVertChunks.Empty())
+			if (!mEmptyVertChunks.empty())
 			{
 				UINT32 emptyChunkIdx = mEmptyVertChunks.Top();
 				ChunkData& emptyChunk = mVertChunks[emptyChunkIdx];
-				mEmptyVertChunks.Pop();
+				mEmptyVertChunks.pop();
 
 				emptyChunk.start = vertChunkStart + meshData->GetNumVertices();
 				emptyChunk.size = remainingNumVerts;
@@ -237,17 +237,17 @@ namespace bs
 				newChunk.start = vertChunkStart + meshData->GetNumVertices();
 
 				mVertChunks.push_back(newChunk);
-				mFreeVertChunks.push_back((UINT32)(mVertChunks.Size() - 1));
+				mFreeVertChunks.push_back((UINT32)(mVertChunks.size() - 1));
 			}
 		}
 
 		if (remainingNumIdx > 0)
 		{
-			if (!mEmptyIdxChunks.Empty())
+			if (!mEmptyIdxChunks.empty())
 			{
 				UINT32 emptyChunkIdx = mEmptyIdxChunks.Top();
 				ChunkData& emptyChunk = mIdxChunks[emptyChunkIdx];
-				mEmptyIdxChunks.Pop();
+				mEmptyIdxChunks.pop();
 
 				emptyChunk.start = idxChunkStart + meshData->GetNumIndices();
 				emptyChunk.size = remainingNumIdx;
@@ -259,7 +259,7 @@ namespace bs
 				newChunk.start = idxChunkStart + meshData->GetNumIndices();
 
 				mIdxChunks.push_back(newChunk);
-				mFreeIdxChunks.push_back((UINT32)(mIdxChunks.Size() - 1));
+				mFreeIdxChunks.push_back((UINT32)(mIdxChunks.size() - 1));
 			}
 		}
 
@@ -286,8 +286,8 @@ namespace bs
 			UINT32 otherVertSize = meshData->GetVertexDesc()->getVertexStride(i);
 			if (otherVertSize != vertSize)
 			{
-				BS_EXCEPT(InvalidParametersException, "Provided vertex size for stream " + toString(i) + " doesn't match meshes vertex size. Needed: " +
-					toString(vertSize) + ". Got: " + toString(otherVertSize));
+				BS_EXCEPT(InvalidParametersException, "Provided vertex size for stream " + ToString(i) + " doesn't match meshes vertex size. Needed: " +
+													  ToString(vertSize) + ". Got: " + ToString(otherVertSize));
 			}
 
 			SPtr<VertexBuffer> vertexBuffer = mVertexData->GetBuffer(i);
@@ -306,7 +306,8 @@ namespace bs
 		if (meshData->GetIndexElementSize() != idxSize)
 		{
 			BS_EXCEPT(InvalidParametersException, "Provided index size doesn't match meshes index size. Needed: " +
-				toString(idxSize) + ". Got: " + toString(meshData->GetIndexElementSize()));
+					ToString(idxSize) + ". Got: " +
+												  ToString(meshData->GetIndexElementSize()));
 		}
 
 		UINT8* idxDest = mCPUIndexData + idxChunkStart * idxSize;
@@ -316,8 +317,8 @@ namespace bs
 
 	void MeshHeap::Dealloc(SPtr<TransientMesh> mesh)
 	{
-		auto findIter = mMeshAllocData.Find(mesh->GetMeshHeapId());
-		assert(findIter != mMeshAllocData.End());
+		auto findIter = mMeshAllocData.find(mesh->GetMeshHeapId());
+		assert(findIter != mMeshAllocData.end());
 
 		AllocatedData& allocData = findIter->second;
 		if (allocData.useFlags == UseFlags::GPUFree)
@@ -330,7 +331,7 @@ namespace bs
 
 			mergeWithNearbyChunks(allocData.vertChunkIdx, allocData.idxChunkIdx);
 
-			mMeshAllocData.Erase(findIter);
+			mMeshAllocData.erase(findIter);
 		}
 		else if (allocData.useFlags == UseFlags::Used)
 			allocData.useFlags = UseFlags::CPUFree;
@@ -399,7 +400,7 @@ namespace bs
 			newChunk.start = destOffset;
 			newChunk.size = oldChunk.size;
 
-			allocData.second.vertChunkIdx = (UINT32)newVertChunks.Size();
+			allocData.second.vertChunkIdx = (UINT32)newVertChunks.size();
 			newVertChunks.push_back(newChunk);
 
 			destOffset += oldChunk.size;
@@ -413,14 +414,14 @@ namespace bs
 			newChunk.size = mNumVertices - destOffset;
 
 			newVertChunks.push_back(newChunk);
-			freeVertChunks.push_back((UINT32)(newVertChunks.Size() - 1));
+			freeVertChunks.push_back((UINT32)(newVertChunks.size() - 1));
 		}
 
 		mVertChunks = newVertChunks;
 		mFreeVertChunks = freeVertChunks;
 
-		while (!mEmptyVertChunks.Empty())
-			mEmptyVertChunks.Pop();
+		while (!mEmptyVertChunks.empty())
+			mEmptyVertChunks.pop();
 	}
 
 	void MeshHeap::GrowIndexBuffer(UINT32 numIndices)
@@ -476,7 +477,7 @@ namespace bs
 			newChunk.start = destOffset;
 			newChunk.size = oldChunk.size;
 
-			allocData.second.idxChunkIdx = (UINT32)newIdxChunks.Size();
+			allocData.second.idxChunkIdx = (UINT32)newIdxChunks.size();
 			newIdxChunks.push_back(newChunk);
 
 			destOffset += oldChunk.size;
@@ -490,23 +491,23 @@ namespace bs
 			newChunk.size = mNumIndices - destOffset;
 
 			newIdxChunks.push_back(newChunk);
-			freeIdxChunks.push_back((UINT32)(newIdxChunks.Size() - 1));
+			freeIdxChunks.push_back((UINT32)(newIdxChunks.size() - 1));
 		}
 
 		mIdxChunks = newIdxChunks;
 		mFreeIdxChunks = freeIdxChunks;
 
-		while (!mEmptyIdxChunks.Empty())
-			mEmptyIdxChunks.Pop();
+		while (!mEmptyIdxChunks.empty())
+			mEmptyIdxChunks.pop();
 	}
 
 	UINT32 MeshHeap::CreateEventQuery()
 	{
 		UINT32 idx = 0;
-		if (mFreeEventQueries.Size() > 0)
+		if (mFreeEventQueries.size() > 0)
 		{
 			idx = mFreeEventQueries.Top();
-			mFreeEventQueries.Pop();
+			mFreeEventQueries.pop();
 		}
 		else
 		{
@@ -515,7 +516,7 @@ namespace bs
 			newQuery.queryId = 0;
 
 			mEventQueries.push_back(newQuery);
-			idx = (UINT32)(mEventQueries.Size() - 1);
+			idx = (UINT32)(mEventQueries.size() - 1);
 		}
 
 		return idx;
@@ -545,8 +546,8 @@ namespace bs
 
 	UINT32 MeshHeap::GetVertexOffset(UINT32 meshId) const
 	{
-		auto findIter = mMeshAllocData.Find(meshId);
-		assert(findIter != mMeshAllocData.End());
+		auto findIter = mMeshAllocData.find(meshId);
+		assert(findIter != mMeshAllocData.end());
 
 		UINT32 chunkIdx = findIter->second.vertChunkIdx;
 		return mVertChunks[chunkIdx].start;
@@ -554,8 +555,8 @@ namespace bs
 
 	UINT32 MeshHeap::GetIndexOffset(UINT32 meshId) const
 	{
-		auto findIter = mMeshAllocData.Find(meshId);
-		assert(findIter != mMeshAllocData.End());
+		auto findIter = mMeshAllocData.find(meshId);
+		assert(findIter != mMeshAllocData.end());
 
 		UINT32 chunkIdx = findIter->second.idxChunkIdx;
 		return mIdxChunks[chunkIdx].start;
@@ -563,8 +564,8 @@ namespace bs
 
 	void MeshHeap::NotifyUsedOnGPU(UINT32 meshId)
 	{
-		auto findIter = mMeshAllocData.Find(meshId);
-		assert(findIter != mMeshAllocData.End());
+		auto findIter = mMeshAllocData.find(meshId);
+		assert(findIter != mMeshAllocData.end());
 
 		AllocatedData& allocData = findIter->second;
 		assert(allocData.useFlags != UseFlags::Free);
@@ -584,8 +585,8 @@ namespace bs
 	// Note: Need to use a shared ptr here to ensure MeshHeap doesn't get deallocated sometime during this callback
 	void MeshHeap::QueryTriggered(SPtr<MeshHeap> thisPtr, UINT32 meshId, UINT32 queryId)
 	{
-		auto findIter = thisPtr->mMeshAllocData.Find(meshId);
-		assert(findIter != thisPtr->mMeshAllocData.End());
+		auto findIter = thisPtr->mMeshAllocData.find(meshId);
+		assert(findIter != thisPtr->mMeshAllocData.end());
 
 		AllocatedData& allocData = findIter->second;
 
@@ -606,7 +607,7 @@ namespace bs
 
 				thisPtr->MergeWithNearbyChunks(allocData.vertChunkIdx, allocData.idxChunkIdx);
 
-				thisPtr->mMeshAllocData.Erase(findIter);
+				thisPtr->mMeshAllocData.erase(findIter);
 			}
 			else
 				allocData.useFlags = UseFlags::GPUFree;

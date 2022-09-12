@@ -87,12 +87,12 @@ namespace bs
 	{
 		struct Comp
 		{
-			bool Operator()(float a, const TriangleWeight& b) const
+			bool operator()(float a, const TriangleWeight& b) const
 			{
 				return a < b.cumulativeWeight;
 			}
 
-			bool Operator()(const TriangleWeight& a, float b) const
+			bool operator()(const TriangleWeight& a, float b) const
 			{
 				return a.cumulativeWeight < b;
 			}
@@ -100,8 +100,8 @@ namespace bs
 
 		const float val = random.GetUNorm();
 
-		const auto findIter = std::lower_bound(mWeights.Begin(), mWeights.end(), val, Comp());
-		if(findIter != mWeights.End())
+		const auto findIter = std::lower_bound(mWeights.begin(), mWeights.end(), val, Comp());
+		if(findIter != mWeights.end())
 			memcpy(indices.Data(), findIter->indices, sizeof(indices));
 		else
 			bs_zero_out(indices);
@@ -842,7 +842,7 @@ namespace bs
 				mNormals = mMeshData->GetElementData(VES_NORMAL);
 				m32BitNormals = true;
 			}
-			else If(normalElement->GetType() == VET_FLOAT3)
+			else if(normalElement->GetType() == VET_FLOAT3)
 			{
 				mNormals = mMeshData->GetElementData(VES_NORMAL);
 				m32BitNormals = false;
@@ -1099,7 +1099,7 @@ namespace bs
 		:mInfo(desc)
 	{
 		HMesh mesh;
-		if(!desc.renderable.Empty())
+		if(!desc.renderable.empty())
 			mesh = desc.renderable.GetActor()->GetMesh();
 
 		mIsValid = mMeshEmissionHelper.Initialize(mesh, desc.type == ParticleEmitterMeshType::Vertex, false);
@@ -1110,7 +1110,7 @@ namespace bs
 		mInfo = options;
 
 		HMesh mesh;
-		if(!options.renderable.Empty())
+		if(!options.renderable.empty())
 			mesh = options.renderable.GetActor()->GetMesh();
 
 		mIsValid = mMeshEmissionHelper.Initialize(mesh, options.type == ParticleEmitterMeshType::Vertex, false);
@@ -1124,7 +1124,7 @@ namespace bs
 
 		const Matrix4* bones = nullptr;
 
-		if(!mInfo.renderable.Empty())
+		if(!mInfo.renderable.empty())
 		{
 			const SPtr<Renderable>& renderable = mInfo.renderable.GetActor();
 			const SPtr<Animation>& animation = renderable->GetAnimation();;
@@ -1134,8 +1134,8 @@ namespace bs
 
 				if(state.animData)
 				{
-					const auto iterFind = state.animData->infos.Find(animId);
-					if(iterFind != state.animData->infos.End())
+					const auto iterFind = state.animData->infos.find(animId);
+					if(iterFind != state.animData->infos.end())
 						bones = &state.animData->transforms[iterFind->second.poseInfo.startIdx];
 				}
 			}
@@ -1222,7 +1222,7 @@ namespace bs
 
 	void ParticleEmitterSkinnedMeshShape::CalcBounds(AABox& shape, AABox& velocity) const
 	{
-		if(!mInfo.renderable.Empty())
+		if(!mInfo.renderable.empty())
 		{
 			const SPtr<Renderable>& renderable = mInfo.renderable.GetActor();
 			const SPtr<Animation>& anim = renderable->GetAnimation();
@@ -1300,7 +1300,7 @@ namespace bs
 			constexpr float MIN_BURST_INTERVAL = 0.01f;
 
 			UINT32 numBurst = 0;
-			for (UINT32 i = 0; i < (UINT32)mBursts.Size(); i++)
+			for (UINT32 i = 0; i < (UINT32)mBursts.size(); i++)
 			{
 				const ParticleBurst& burst = mBursts[i];
 

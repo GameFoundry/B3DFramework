@@ -49,7 +49,7 @@ namespace bs
 		if (prevDesc != nullptr)
 		{
 			UINT32 kerning = 0;
-			for (size_t j = 0; j < prevDesc->kerningPairs.Size(); j++)
+			for (size_t j = 0; j < prevDesc->kerningPairs.size(); j++)
 			{
 				if (prevDesc->kerningPairs[j].otherCharId == desc.charId)
 				{
@@ -236,7 +236,7 @@ namespace bs
 					numQuads++;
 
 					if(offset > size)
-						BS_EXCEPT(InternalErrorException, "Out of buffer bounds. Buffer size: " + toString(size));
+						BS_EXCEPT(InternalErrorException, "Out of buffer bounds. Buffer size: " + ToString(size));
 				}
 
 				penX += word.GetWidth();
@@ -258,7 +258,7 @@ namespace bs
 					if((j + 1) <= word.GetCharsEnd())
 					{
 						const CharDesc& nextChar = mTextData->GetChar(j + 1);
-						for(size_t j = 0; j < curChar.kerningPairs.Size(); j++)
+						for(size_t j = 0; j < curChar.kerningPairs.size(); j++)
 						{
 							if(curChar.kerningPairs[j].otherCharId == nextChar.charId)
 							{
@@ -301,7 +301,7 @@ namespace bs
 					numQuads++;
 
 					if(offset > size)
-						BS_EXCEPT(InternalErrorException, "Out of buffer bounds. Buffer size: " + toString(size));
+						BS_EXCEPT(InternalErrorException, "Out of buffer bounds. Buffer size: " + ToString(size));
 				}
 			}
 		}
@@ -359,7 +359,7 @@ namespace bs
 			mFontData = font->GetBitmap(nearestSize);
 		}
 
-		if(mFontData == nullptr || mFontData->texturePages.Size() == 0)
+		if(mFontData == nullptr || mFontData->texturePages.size() == 0)
 			return;
 
 		if(mFontData->size != fontSize)
@@ -377,7 +377,7 @@ namespace bs
 
 		while(true)
 		{
-			if(charIdx >= text.Size())
+			if(charIdx >= text.size())
 				break;
 
 			UINT32 charId = text[charIdx];
@@ -397,7 +397,7 @@ namespace bs
 				charIdx++;
 
 				// Check for \r\n
-				if (text[charIdx - 1] == '\r' && charIdx < text.Size())
+				if (text[charIdx - 1] == '\r' && charIdx < text.size())
 				{
 					if (text[charIdx] == '\n')
 						charIdx++;
@@ -499,7 +499,7 @@ namespace bs
 		MemBuffer->LineBuffer[curLineIdx].Finalize(true);
 
 		// Now that we have all the data we need, allocate the permanent buffers and copy the data
-		mNumChars = (UINT32)text.Size();
+		mNumChars = (UINT32)text.size();
 		mNumWords = MemBuffer->NextFreeWord;
 		mNumLines = MemBuffer->NextFreeLine;
 		mNumPageInfos = MemBuffer->NextFreePageInfo;

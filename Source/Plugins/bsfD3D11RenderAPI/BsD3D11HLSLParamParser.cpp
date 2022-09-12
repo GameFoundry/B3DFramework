@@ -45,7 +45,7 @@ namespace bs { namespace ct
 				hr = shaderReflection->GetInputParameterDesc(i, &inputParamDesc);
 
 				if (FAILED(hr))
-					BS_EXCEPT(RenderingAPIException, "Cannot get input param desc with index: " + toString(i));
+					BS_EXCEPT(RenderingAPIException, "Cannot get input param desc with index: " + ToString(i));
 
 				// We don't care about system value semantics
 				if (StringUtil::startsWith(String(inputParamDesc.SemanticName), "sv_"))
@@ -62,7 +62,7 @@ namespace bs { namespace ct
 			hr = shaderReflection->GetResourceBindingDesc(i, &bindingDesc);
 
 			if (FAILED(hr))
-				BS_EXCEPT(RenderingAPIException, "Cannot get resource binding desc with index: " + toString(i));
+				BS_EXCEPT(RenderingAPIException, "Cannot get resource binding desc with index: " + ToString(i));
 
 			parseResource(bindingDesc, type, desc);
 		}

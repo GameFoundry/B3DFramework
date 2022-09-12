@@ -71,7 +71,7 @@ namespace bs
 		}
 
 		void SetStyle(GUISkin* obj, UINT32 idx, GUISkinEntry& val) { obj->mStyles[val.name] = val.style; }
-		UINT32 GetStyleArraySize(GUISkin* obj) { return (UINT32)obj->mStyles.Size(); }
+		UINT32 GetStyleArraySize(GUISkin* obj) { return (UINT32)obj->mStyles.size(); }
 		void SetStyleArraySize(GUISkin* obj, UINT32 size) { /* Do nothing */ }
 
 	public:

@@ -86,7 +86,7 @@ namespace bs
 		{
 			Lock ActiveTaskLock(mReadyMutex);
 
-			while (mActiveTasks.Size() > 0)
+			while (mActiveTasks.size() > 0)
 			{
 				SPtr<Task> task = mActiveTasks[0];
 				activeTaskLock.Unlock();
@@ -176,7 +176,7 @@ namespace bs
 		{
 			Lock Lock(mReadyMutex);
 
-			while((!mCheckTasks || (UINT32)mActiveTasks.Size() >= mMaxActiveTasks) && !mShutdown)
+			while((!mCheckTasks || (UINT32)mActiveTasks.size() >= mMaxActiveTasks) && !mShutdown)
 				mTaskReadyCond.Wait(lock);
 
 			mCheckTasks = false;
@@ -184,16 +184,16 @@ namespace bs
 			if(mShutdown)
 				break;
 
-			for(auto iter = mTaskQueue.Begin(); iter != mTaskQueue.end();)
+			for(auto iter = mTaskQueue.begin(); iter != mTaskQueue.end();)
 			{
-				if ((UINT32)mActiveTasks.Size() >= mMaxActiveTasks)
+				if ((UINT32)mActiveTasks.size() >= mMaxActiveTasks)
 					break;	
 
 				SPtr<Task> curTask = *iter;
 
 				if(curTask->IsCanceled())
 				{
-					iter = mTaskQueue.Erase(iter);
+					iter = mTaskQueue.erase(iter);
 					continue;
 				}
 
@@ -213,7 +213,7 @@ namespace bs
 					break;
 				}
 
-				iter = mTaskQueue.Erase(iter);
+				iter = mTaskQueue.erase(iter);
 
 				curTask->mState.Store(1);
 				mActiveTasks.push_back(curTask);
@@ -230,9 +230,9 @@ namespace bs
 		{
 			Lock Lock(mReadyMutex);
 
-			auto findIter = std::find(mActiveTasks.Begin(), mActiveTasks.end(), task);
-			if (findIter != mActiveTasks.End())
-				mActiveTasks.Erase(findIter);
+			auto findIter = std::find(mActiveTasks.begin(), mActiveTasks.end(), task);
+			if (findIter != mActiveTasks.end())
+				mActiveTasks.erase(findIter);
 		}
 
 		{
@@ -266,13 +266,13 @@ namespace bs
 
 			if(!task->HasStarted())
 			{
-				auto iterFind = std::find_if(mTaskQueue.Begin(), mTaskQueue.end(),
+				auto iterFind = std::find_if(mTaskQueue.begin(), mTaskQueue.end(),
 					[task](const SPtr<Task>& x) { return x.Get() == task; });
 
-				assert(iterFind != mTaskQueue.End());
+				assert(iterFind != mTaskQueue.end());
 
 				queuedTask = *iterFind;
-				mTaskQueue.Erase(iterFind);
+				mTaskQueue.erase(iterFind);
 
 				queuedTask->mState.Store(1);
 			}

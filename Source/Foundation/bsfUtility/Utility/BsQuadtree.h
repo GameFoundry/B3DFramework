@@ -397,14 +397,14 @@ namespace bs
 			 */
 			bool MoveNext()
 			{
-				if (mNodeStack.Empty())
+				if (mNodeStack.empty())
 				{
 					mCurrentNode = HNode();
 					return false;
 				}
 
-				mCurrentNode = mNodeStack.Back();
-				mNodeStack.Erase(mNodeStack.end() - 1);
+				mCurrentNode = mNodeStack.back();
+				mNodeStack.erase(mNodeStack.end() - 1);
 
 				return true;
 			}
@@ -602,10 +602,10 @@ namespace bs
 					FrameStack<Node*> todo;
 					todo.Push(node);
 
-					while (!todo.Empty())
+					while (!todo.empty())
 					{
 						Node* curNode = todo.Top();
-						todo.Pop();
+						todo.pop();
 
 						for (UINT32 i = 0; i < 4; i++)
 						{

@@ -20,7 +20,7 @@ namespace bs
 		VertexElement& GetVertexElementData(VertexDataDesc* obj, UINT32 arrayIdx) { return obj->mVertexElements[arrayIdx]; }
 		void SetVertexElementData(VertexDataDesc* obj, UINT32 arrayIdx, VertexElement& value) { obj->mVertexElements[arrayIdx] = value; }
 
-		UINT32 GetNumVertexElementData(VertexDataDesc* obj) { return (UINT32)obj->mVertexElements.Size(); }
+		UINT32 GetNumVertexElementData(VertexDataDesc* obj) { return (UINT32)obj->mVertexElements.size(); }
 		void SetNumVertexElementData(VertexDataDesc* obj, UINT32 numElements) { obj->mVertexElements.Resize(numElements); }
 
 	public:

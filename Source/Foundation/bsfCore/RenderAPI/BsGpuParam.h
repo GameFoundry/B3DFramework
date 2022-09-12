@@ -99,7 +99,7 @@ namespace bs
 		 */
 		T Get(UINT32 arrayIdx = 0) const;
 
-		/** Returns meta-data about the parameter. */
+		/** Returns meta-Data about the parameter. */
 		const GpuParamDataDesc& GetDesc() const { return *mParamDesc; }
 
 		/** Checks if param is initialized. */
@@ -133,7 +133,7 @@ namespace bs
 		/**	Returns the size of the struct in bytes. */
 		UINT32 GetElementSize() const;
 
-		/** Returns meta-data about the parameter. */
+		/** Returns meta-Data about the parameter. */
 		const GpuParamDataDesc& GetDesc() const { return *mParamDesc; }
 
 		/**	Checks if param is initialized. */

@@ -30,7 +30,7 @@ namespace bs { namespace ct
 		~TextureRowAllocator();
 
 		/**
-		 * Attempts to allocate a new region of size @p length pixels. Returned allocation will have the same size as the
+		 * Attempts to Allocate a new region of size @p length pixels. Returned allocation will have the same size as the
 		 * requested size if sucessful.
 		 */
 		TextureRowAllocation Alloc(uint32_t length);
@@ -56,7 +56,7 @@ namespace bs { namespace ct
 	TextureRowAllocator<WIDTH, HEIGHT>::TextureRowAllocator()
 	{
 		for(uint32_t i = 0; i < HEIGHT; i++)
-			mFreeRegions[i] = mAlloc.template construct<RowRegion>();
+			mFreeRegions[i] = mAlloc.template Construct<RowRegion>();
 	}
 
 	template <uint32_t WIDTH, uint32_t HEIGHT>

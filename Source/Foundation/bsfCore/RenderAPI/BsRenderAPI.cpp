@@ -37,8 +37,8 @@ namespace bs
 
 	void RenderAPI::SetVertexBuffers(UINT32 index, const Vector<SPtr<VertexBuffer>>& buffers)
 	{
-		Vector<SPtr<ct::VertexBuffer>> CoreBuffers(buffers.Size());
-		for (UINT32 i = 0; i < (UINT32)buffers.Size(); i++)
+		Vector<SPtr<ct::VertexBuffer>> CoreBuffers(buffers.size());
+		for (UINT32 i = 0; i < (UINT32)buffers.size(); i++)
 			coreBuffers[i] = buffers[i] != nullptr ? buffers[i]->GetCore() : nullptr;
 
 		std::function<void(ct::RenderAPI*, UINT32, const Vector<SPtr<ct::VertexBuffer>>&)> resizeFunc =

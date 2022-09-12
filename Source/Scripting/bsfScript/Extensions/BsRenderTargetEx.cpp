@@ -78,7 +78,7 @@ namespace bs
 				depthStencilSurfaceDesc.texture = depthStencilSurface;
 		}
 
-		UINT32 numSurfaces = std::min((UINT32)colorSurfaces.Size(), (UINT32)BS_MAX_MULTIPLE_RENDER_TARGETS);
+		UINT32 numSurfaces = std::min((UINT32)colorSurfaces.size(), (UINT32)BS_MAX_MULTIPLE_RENDER_TARGETS);
 
 		RENDER_TEXTURE_DESC desc;
 		for (UINT32 i = 0; i < numSurfaces; i++)

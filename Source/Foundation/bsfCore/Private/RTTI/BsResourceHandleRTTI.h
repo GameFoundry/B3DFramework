@@ -32,7 +32,7 @@ namespace bs
 		{
 			TResourceHandleBase<false>* resourceHandle = static_cast<TResourceHandleBase<false>*>(obj);
 
-			if(resourceHandle->mData && !resourceHandle->mData->mUUID.Empty())
+			if(resourceHandle->mData && !resourceHandle->mData->mUUID.empty())
 			{
 				HResource loadedResource = gResources()._getResourceHandle(resourceHandle->mData->mUUID);
 
@@ -80,7 +80,7 @@ namespace bs
 		{
 			TResourceHandleBase<true>* resourceHandle = static_cast<TResourceHandleBase<true>*>(obj);
 
-			if (resourceHandle->mData && !resourceHandle->mData->mUUID.Empty())
+			if (resourceHandle->mData && !resourceHandle->mData->mUUID.empty())
 			{
 				HResource loadedResource = gResources()._getResourceHandle(resourceHandle->mData->mUUID);
 				resourceHandle->mData = loadedResource.mData;

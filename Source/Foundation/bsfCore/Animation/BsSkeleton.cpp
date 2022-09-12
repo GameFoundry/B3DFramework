@@ -119,9 +119,9 @@ namespace bs
 			state.weight = 1.0f;
 			state.time = time;
 
-			FrameVector<TCurveCache<Vector3>> PositionCache(state.curves->position.Size());
-			FrameVector<TCurveCache<Quaternion>> RotationCache(state.curves->rotation.Size());
-			FrameVector<TCurveCache<Vector3>> ScaleCache(state.curves->scale.Size());
+			FrameVector<TCurveCache<Vector3>> PositionCache(state.curves->position.size());
+			FrameVector<TCurveCache<Quaternion>> RotationCache(state.curves->rotation.size());
+			FrameVector<TCurveCache<Vector3>> ScaleCache(state.curves->scale.size());
 
 			state.positionCaches = positionCache.Data();
 			state.rotationCaches = rotationCache.Data();

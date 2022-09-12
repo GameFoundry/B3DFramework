@@ -21,7 +21,7 @@ namespace bs
 	SPtr<SerializedInstance> SerializedObject::Clone(bool cloneData)
 	{
 		SPtr<SerializedObject> copy = bs_shared_ptr_new<SerializedObject>();
-		copy->subObjects = Vector<SerializedSubObject>(subObjects.Size());
+		copy->subObjects = Vector<SerializedSubObject>(subObjects.size());
 
 		UINT32 i = 0;
 		for (auto& subObject : subObjects)
@@ -140,7 +140,7 @@ namespace bs
 
 	UINT32 SerializedObject::GetRootTypeId() const
 	{
-		if(subObjects.Size() > 0)
+		if(subObjects.size() > 0)
 			return subObjects[0].typeId;
 
 		return 0;

@@ -78,7 +78,7 @@ namespace bs
 			{
 				BitLength size = 0;
 
-				auto numElements = (uint32_t)data.strings.Size();
+				auto numElements = (uint32_t)data.strings.size();
 				size += rtti_write(numElements, stream);
 
 				for (auto& entry : data.strings)

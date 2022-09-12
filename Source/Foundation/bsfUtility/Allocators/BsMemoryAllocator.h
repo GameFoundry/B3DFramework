@@ -26,7 +26,7 @@ namespace bs
 	 */
 
 #if BS_PLATFORM == BS_PLATFORM_WIN32
-	inline void* platformAlignedAlloc16(size_t size)
+	inline void* PlatformAlignedAlloc16(size_t size)
 	{
 		return _aligned_malloc(size, 16);
 	}
@@ -36,7 +36,7 @@ namespace bs
 		_aligned_free(ptr);
 	}
 
-	inline void* platformAlignedAlloc(size_t size, size_t alignment)
+	inline void* PlatformAlignedAlloc(size_t size, size_t alignment)
 	{
 		return _aligned_malloc(size, alignment);
 	}
@@ -128,8 +128,8 @@ namespace bs
 	class MemoryAllocatorBase
 	{
 	protected:
-		static void IncAllocCount() { MemoryCounter::incAllocCount(); }
-		static void IncFreeCount() { MemoryCounter::incFreeCount(); }
+		static void IncAllocCount() { MemoryCounter::IncAllocCount(); }
+		static void IncFreeCount() { MemoryCounter::IncFreeCount(); }
 	};
 
 	/**
@@ -143,33 +143,33 @@ namespace bs
 	{
 	public:
 		/** Allocates @p bytes bytes. */
-		static void* allocate(size_t bytes)
+		static void* Allocate(size_t bytes)
 		{
 #if BS_PROFILING_ENABLED
-			incAllocCount();
+			IncAllocCount();
 #endif
 
-			return Malloc(bytes);
+			return malloc(bytes);
 		}
 
 		/**
 		 * Allocates @p bytes and aligns them to the specified boundary (in bytes). If the aligment is less or equal to
-		 * 16 it is more efficient to use the allocateAligned16() alternative of this method. Alignment must be power of two.
+		 * 16 it is more efficient to use the AllocateAligned16() alternative of this method. Alignment must be power of two.
 		 */
-		static void* allocateAligned(size_t bytes, size_t alignment)
+		static void* AllocateAligned(size_t bytes, size_t alignment)
 		{
 #if BS_PROFILING_ENABLED
-			incAllocCount();
+			IncAllocCount();
 #endif
 
 			return PlatformAlignedAlloc(bytes, alignment);
 		}
 
 		/** Allocates @p bytes and aligns them to a 16 byte boundary. */
-		static void* allocateAligned16(size_t bytes)
+		static void* AllocateAligned16(size_t bytes)
 		{
 #if BS_PROFILING_ENABLED
-			incAllocCount();
+			IncAllocCount();
 #endif
 
 			return PlatformAlignedAlloc16(bytes);
@@ -179,30 +179,30 @@ namespace bs
 		static void Free(void* ptr)
 		{
 #if BS_PROFILING_ENABLED
-			incFreeCount();
+			IncFreeCount();
 #endif
 
 			::free(ptr);
 		}
 
-		/** Frees memory allocated with allocateAligned() */
+		/** Frees memory allocated with AllocateAligned() */
 		static void FreeAligned(void* ptr)
 		{
 #if BS_PROFILING_ENABLED
-			incFreeCount();
+			IncFreeCount();
 #endif
 
-			platformAlignedFree(ptr);
+			PlatformAlignedFree(ptr);
 		}
 
-		/** Frees memory allocated with allocateAligned16() */
+		/** Frees memory allocated with AllocateAligned16() */
 		static void FreeAligned16(void* ptr)
 		{
 #if BS_PROFILING_ENABLED
-			incFreeCount();
+			IncFreeCount();
 #endif
 
-			platformAlignedFree16(ptr);
+			PlatformAlignedFree16(ptr);
 		}
 	};
 
@@ -224,21 +224,21 @@ namespace bs
 	template<class Alloc>
 	void* bs_alloc(size_t count)
 	{
-		return MemoryAllocator<Alloc>::allocate(count);
+		return MemoryAllocator<Alloc>::Allocate(count);
 	}
 
-	/** Allocates enough bytes to hold the specified type, but doesn't construct it. */
+	/** Allocates enough bytes to hold the specified type, but doesn't Construct it. */
 	template<class T, class Alloc>
 	T* bs_alloc()
 	{
-		return (T*)MemoryAllocator<Alloc>::allocate(sizeof(T));
+		return (T*) MemoryAllocator<Alloc>::Allocate(sizeof(T));
 	}
 
 	/** Creates and constructs an array of @p count elements. */
 	template<class T, class Alloc>
 	T* bs_newN(size_t count)
 	{
-		T* ptr = (T*)MemoryAllocator<Alloc>::allocate(sizeof(T) * count);
+		T* ptr = (T*) MemoryAllocator<Alloc>::Allocate(sizeof(T) * count);
 
 		for(size_t i = 0; i < count; ++i)
 			new (&ptr[i]) T;
@@ -257,7 +257,7 @@ namespace bs
 	template<class Alloc>
 	void bs_free(void* ptr)
 	{
-		MemoryAllocator<Alloc>::free(ptr);
+		MemoryAllocator<Alloc>::Free(ptr);
 	}
 
 	/** Destructs and frees the specified object. */
@@ -266,7 +266,7 @@ namespace bs
 	{
 		(ptr)->~T();
 
-		MemoryAllocator<Alloc>::free(ptr);
+		MemoryAllocator<Alloc>::Free(ptr);
 	}
 
 	/** Callable struct that acts as a proxy for bs_delete */
@@ -279,7 +279,7 @@ namespace bs
 		template <class T2, std::enable_if_t<std::is_convertible<T2*, T*>::value, int> = 0>
 		constexpr Deleter(const Deleter<T2, Alloc>& other) noexcept { }
 
-		void Operator()(T* ptr) const
+		void operator()(T* ptr) const
 		{
 			bs_delete<T, Alloc>(ptr);
 		}
@@ -292,7 +292,7 @@ namespace bs
 		for(size_t i = 0; i < count; ++i)
 			ptr[i].~T();
 
-		MemoryAllocator<Alloc>::free(ptr);
+		MemoryAllocator<Alloc>::Free(ptr);
 	}
 
 	/*****************************************************************************/
@@ -302,14 +302,14 @@ namespace bs
 	/** Allocates the specified number of bytes. */
 	inline void* bs_alloc(size_t count)
 	{
-		return MemoryAllocator<GenAlloc>::allocate(count);
+		return MemoryAllocator<GenAlloc>::Allocate(count);
 	}
 
-	/** Allocates enough bytes to hold the specified type, but doesn't construct it. */
+	/** Allocates enough bytes to hold the specified type, but doesn't Construct it. */
 	template<class T>
 	T* bs_alloc()
 	{
-		return (T*)MemoryAllocator<GenAlloc>::allocate(sizeof(T));
+		return (T*) MemoryAllocator<GenAlloc>::Allocate(sizeof(T));
 	}
 
 	/**
@@ -318,28 +318,28 @@ namespace bs
 	 */
 	inline void* bs_alloc_aligned(size_t count, size_t align)
 	{
-		return MemoryAllocator<GenAlloc>::allocateAligned(count, align);
+		return MemoryAllocator<GenAlloc>::AllocateAligned(count, align);
 	}
 
 
 	/** Allocates the specified number of bytes aligned to a 16 bytes boundary. */
 	inline void* bs_alloc_aligned16(size_t count)
 	{
-		return MemoryAllocator<GenAlloc>::allocateAligned16(count);
+		return MemoryAllocator<GenAlloc>::AllocateAligned16(count);
 	}
 
-	/** Allocates enough bytes to hold an array of @p count elements the specified type, but doesn't construct them. */
+	/** Allocates enough bytes to hold an array of @p count elements the specified type, but doesn't Construct them. */
 	template<class T>
 	T* bs_allocN(size_t count)
 	{
-		return (T*)MemoryAllocator<GenAlloc>::allocate(count * sizeof(T));
+		return (T*) MemoryAllocator<GenAlloc>::Allocate(count * sizeof(T));
 	}
 
 	/** Creates and constructs an array of @p count elements. */
 	template<class T>
 	T* bs_newN(size_t count)
 	{
-		T* ptr = (T*)MemoryAllocator<GenAlloc>::allocate(count * sizeof(T));
+		T* ptr = (T*) MemoryAllocator<GenAlloc>::Allocate(count * sizeof(T));
 
 		for(size_t i = 0; i < count; ++i)
 			new (&ptr[i]) T;
@@ -357,19 +357,19 @@ namespace bs
 	/** Frees all the bytes allocated at the specified location. */
 	inline void bs_free(void* ptr)
 	{
-		MemoryAllocator<GenAlloc>::free(ptr);
+		MemoryAllocator<GenAlloc>::Free(ptr);
 	}
 
 	/** Frees memory previously allocated with bs_alloc_aligned(). */
 	inline void bs_free_aligned(void* ptr)
 	{
-		MemoryAllocator<GenAlloc>::freeAligned(ptr);
+		MemoryAllocator<GenAlloc>::FreeAligned(ptr);
 	}
 
 	/** Frees memory previously allocated with bs_alloc_aligned16(). */
 	inline void bs_free_aligned16(void* ptr)
 	{
-		MemoryAllocator<GenAlloc>::freeAligned16(ptr);
+		MemoryAllocator<GenAlloc>::FreeAligned16(ptr);
 	}
 
 /************************************************************************/
@@ -434,16 +434,16 @@ namespace bs
 		}
 
 		/** Deallocate storage p of deleted elements. */
-		static void Deallocate(pointer p, size_type)
+		static void deallocate(pointer p, size_type)
 		{
 			bs_free<Alloc>(p);
 		}
 
 		static constexpr size_t max_size() { return std::numeric_limits<size_type>::max() / sizeof(T); }
-		static constexpr void Destroy(pointer p) { p->~T(); }
+		static constexpr void destroy(pointer p) { p->~T(); }
 
 		template<class... Args>
-		static void Construct(pointer p, Args&&... args) { new(p) T(std::forward<Args>(args)...); }
+		static void construct(pointer p, Args&&... args) { new(p) T(std::forward<Args>(args)...); }
 	};
 
 	/** @} */

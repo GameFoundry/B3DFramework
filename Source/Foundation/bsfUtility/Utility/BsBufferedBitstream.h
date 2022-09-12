@@ -35,7 +35,7 @@ namespace bs
 
 		// Note: Perhaps allow reads with no chunk preload (i.e. just the requested count)
 
-		/** @copydoc Bitstream::readBits(Bitstream::QuantType* data, uint32_t count) */
+		/** @copydoc Bitstream::readBits(Bitstream::QuantType* Data, uint32_t count) */
 		uint64_t ReadBits(Bitstream::QuantType* data, uint64_t count);
 		
 		/** @copydoc Bitstream::readBytes(T&) */
@@ -94,7 +94,7 @@ namespace bs
 
 	/**
 	 * Wraps a Bitstream and a DataStream. Buffers the written data in the bitstream and then on request flushes the
-	 * data into the data stream.
+	 * Data into the data stream.
 	 */
 	class BufferedBitstreamWriter
 	{
@@ -102,7 +102,7 @@ namespace bs
 		/**
 		 * Constructs a new instance of the object.
 		 *
-		 * @param[in]	bitstream		Bitstream into which the buffered data will be written. 
+		 * @param[in]	bitstream		Bitstream into which the buffered data will be written.
 		 * @param[in]	dataStream		Data stream from which to read the data.
 		 * @param[in]	bufferSize		Initial size of the write buffer, in bytes.
 		 * @param[in]	flushAfter		Number of bytes after which the write buffer will be flushed to the data stream.

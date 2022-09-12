@@ -361,10 +361,10 @@ namespace bs
 
 	void ShapeMeshes3D::PixelLineList(const Vector<Vector3>& linePoints, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
-		assert(linePoints.Size() % 2 == 0);
+		assert(linePoints.size() % 2 == 0);
 
-		assert((vertexOffset + linePoints.Size()) <= meshData->GetNumVertices());
-		assert((indexOffset + linePoints.Size()) <= meshData->GetNumIndices());
+		assert((vertexOffset + linePoints.size()) <= meshData->GetNumVertices());
+		assert((indexOffset + linePoints.size()) <= meshData->GetNumIndices());
 
 		UINT32 curVertOffset = vertexOffset;
 		UINT32 curIdxOffset = indexOffset;
@@ -372,7 +372,7 @@ namespace bs
 		UINT32* indexData = meshData->GetIndices32();
 		UINT8* positionData = meshData->GetElementData(VES_POSITION);
 
-		UINT32 numPoints = (UINT32)linePoints.Size();
+		UINT32 numPoints = (UINT32)linePoints.size();
 		for (UINT32 i = 0; i < numPoints; i += 2)
 		{
 			pixelLine(linePoints[i], linePoints[i + 1], positionData, curVertOffset, meshData->GetVertexDesc()->getVertexStride(), indexData, curIdxOffset);
@@ -398,10 +398,10 @@ namespace bs
 	void ShapeMeshes3D::antialiasedLineList(const Vector<Vector3>& linePoints, const Vector3& up, float width, float borderWidth,
 		const Color& color, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
-		assert(linePoints.Size() % 2 == 0);
+		assert(linePoints.size() % 2 == 0);
 
-		assert((vertexOffset + linePoints.Size() * 4) <= meshData->GetNumVertices());
-		assert((indexOffset + linePoints.Size() * 15) <= meshData->GetNumIndices());
+		assert((vertexOffset + linePoints.size() * 4) <= meshData->GetNumVertices());
+		assert((indexOffset + linePoints.size() * 15) <= meshData->GetNumIndices());
 
 		UINT32 curVertOffset = vertexOffset;
 		UINT32 curIdxOffset = indexOffset;
@@ -410,7 +410,7 @@ namespace bs
 		UINT8* positionData = meshData->GetElementData(VES_POSITION);
 		UINT8* colorData = meshData->GetElementData(VES_COLOR);
 
-		UINT32 numPoints = (UINT32)linePoints.Size();
+		UINT32 numPoints = (UINT32)linePoints.size();
 		for (UINT32 i = 0; i < numPoints; i += 2)
 		{
 			antialiasedLine(linePoints[i], linePoints[i + 1], up, width, borderWidth, color, positionData, colorData, curVertOffset, meshData->GetVertexDesc()->getVertexStride(), indexData, curIdxOffset);
@@ -797,7 +797,7 @@ namespace bs
 
 					}
 				}
-				else If(fabs(uv1.x - uv0.x) > 0.5f)
+				else if(fabs(uv1.x - uv0.x) > 0.5f)
 				{
 					if(uv0.x < 0.5f)
 					{
@@ -830,7 +830,7 @@ namespace bs
 						}
 					}
 				}
-				else If(fabs(uv1.x - uv2.x) > 0.5f)
+				else if(fabs(uv1.x - uv2.x) > 0.5f)
 				{
 					if(uv2.x < 0.5f)
 					{
@@ -883,7 +883,7 @@ namespace bs
 					// Index 0 maps to vertex 2, index 1 to vertex 1, index 2 to vertex 0
 					if(indexToSplit == 0)
 						indexToSplit = 2;
-					else If(indexToSplit == 2)
+					else if(indexToSplit == 2)
 						indexToSplit = 0;
 
 					outIndices[i + indexToSplit] = vertexOffset + numIndices + extraVertIdx;
@@ -1654,7 +1654,7 @@ namespace bs
 		}
 
 		outIndices += indexOffset;
-		INT32 numPoints = (INT32)points.Size();
+		INT32 numPoints = (INT32)points.size();
 		UINT32 idxCnt = 0;
 		for (int i = 2; i < numPoints; i++)
 		{
@@ -1667,7 +1667,7 @@ namespace bs
 	void ShapeMeshes3D::pixelWirePolygon(const Vector<Vector3>& points, UINT8* outVertices,
 		UINT32 vertexOffset, UINT32 vertexStride, UINT32* outIndices, UINT32 indexOffset)
 	{
-		INT32 numPoints = (INT32)points.Size();
+		INT32 numPoints = (INT32)points.size();
 		UINT32 curVertOffset = vertexOffset;
 		UINT32 curIdxOffset = indexOffset;
 		for (INT32 i = 0, j = numPoints - 1; i < numPoints; j = i++)
@@ -1681,7 +1681,7 @@ namespace bs
 	void ShapeMeshes3D::antialiasedPolygon(const Vector<Vector3>& points, const Vector3& up, float borderWidth, const Color& color, UINT8* outVertices, UINT8* outColors,
 		UINT32 vertexOffset, UINT32 vertexStride, UINT32* outIndices, UINT32 indexOffset)
 	{
-		UINT32 numCoords = (UINT32)points.Size();
+		UINT32 numCoords = (UINT32)points.size();
 
 		outVertices += vertexOffset * vertexStride;
 		outColors += vertexOffset * vertexStride;

@@ -96,7 +96,7 @@ namespace std
 template<>
 struct hash<bs::UUID>
 {
-	size_t Operator()(const bs::UUID& value) const
+	size_t operator()(const bs::UUID& value) const
 	{
 		size_t hash = 0;
 		bs::bs_hash_combine(hash, value.mData[0]);

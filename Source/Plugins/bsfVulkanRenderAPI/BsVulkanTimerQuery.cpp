@@ -68,7 +68,7 @@ namespace bs { namespace ct
 
 	void VulkanTimerQuery::End(const SPtr<CommandBuffer>& cb)
 	{
-		if (mQueries.Empty())
+		if (mQueries.empty())
 		{
 			BS_LOG(Error, RenderBackend, "end() called but query was never started.");
 			return;
@@ -88,17 +88,17 @@ namespace bs { namespace ct
 		VulkanQuery* endQuery = queryPool.BeginTimerQuery(internalCB);
 		internalCB->RegisterQuery(this);
 
-		mQueries.Back().second = endQuery;
+		mQueries.back().second = endQuery;
 	}
 
 	bool VulkanTimerQuery::_isInProgress() const
 	{
-		return !mQueries.Empty() && !mQueryEndCalled;
+		return !mQueries.empty() && !mQueryEndCalled;
 	}
 
 	void VulkanTimerQuery::_interrupt(VulkanCmdBuffer& cb)
 	{
-		assert(!mQueries.Empty() && !mQueryEndCalled);
+		assert(!mQueries.empty() && !mQueryEndCalled);
 
 		mQueryEndCalled = true;
 		mQueryFinalized = false;
@@ -107,7 +107,7 @@ namespace bs { namespace ct
 		VulkanQuery* endQuery = queryPool.BeginTimerQuery(&cb);
 		cb.RegisterQuery(this);
 
-		mQueries.Back().second = endQuery;
+		mQueries.back().second = endQuery;
 	}
 
 	bool VulkanTimerQuery::IsReady() const

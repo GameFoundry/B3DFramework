@@ -35,7 +35,7 @@ namespace bs
 		GUIOptions options;
 
 		ScriptArray ScriptArray(guiOptions);
-		UINT32 arrayLen = scriptArray.Size();
+		UINT32 arrayLen = scriptArray.size();
 		for (UINT32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.get<GUIOption>(i));
 
@@ -57,7 +57,7 @@ namespace bs
 		GUICanvas* canvas = (GUICanvas*)nativeInstance->GetGUIElement();
 
 		ScriptArray VerticesArray(vertices);
-		UINT32 size = verticesArray.Size();
+		UINT32 size = verticesArray.size();
 
 		Vector<Vector2I> NativeVertices(size);
 		memcpy(nativeVertices.Data(), verticesArray.getRaw<Vector2I>(), sizeof(Vector2I) * size);
@@ -83,7 +83,7 @@ namespace bs
 		GUICanvas* canvas = (GUICanvas*)nativeInstance->GetGUIElement();
 
 		ScriptArray VerticesArray(vertices);
-		UINT32 size = verticesArray.Size();
+		UINT32 size = verticesArray.size();
 
 		Vector<Vector2I> NativeVertices(size);
 		memcpy(nativeVertices.Data(), verticesArray.getRaw<Vector2I>(), sizeof(Vector2I) * size);
@@ -97,7 +97,7 @@ namespace bs
 		GUICanvas* canvas = (GUICanvas*)nativeInstance->GetGUIElement();
 
 		ScriptArray VerticesArray(vertices);
-		UINT32 size = verticesArray.Size();
+		UINT32 size = verticesArray.size();
 
 		Vector<Vector2I> NativeVertices(size);
 		memcpy(nativeVertices.Data(), verticesArray.getRaw<Vector2I>(), sizeof(Vector2I) * size);

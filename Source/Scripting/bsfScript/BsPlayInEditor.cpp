@@ -142,10 +142,10 @@ namespace bs
 		Stack<HSceneObject> todo;
 		todo.Push(mSavedScene);
 
-		while (!todo.Empty())
+		while (!todo.empty())
 		{
 			HSceneObject current = todo.Top();
-			todo.Pop();
+			todo.pop();
 
 			if (current->HasFlag(SOF_DontSave))
 				current->Destroy();

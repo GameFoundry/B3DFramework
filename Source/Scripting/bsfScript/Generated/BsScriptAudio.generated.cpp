@@ -92,7 +92,7 @@ namespace bs
 		vec__output = Audio::instance().GetAllDevices();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptAudioDevice>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{

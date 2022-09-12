@@ -81,23 +81,23 @@ namespace bs
 	{
 		if (immediate)
 		{
-			for (auto iter = mChildren.Begin(); iter != mChildren.end(); ++iter)
+			for (auto iter = mChildren.begin(); iter != mChildren.end(); ++iter)
 				(*iter)->DestroyInternal(*iter, true);
 
 			mChildren.Clear();
 
 			// It's important to remove the elements from the array as soon as they're destroyed, as OnDestroy callbacks
 			// for components might query the SO's components, and we want to only return live ones
-			while (!mComponents.Empty())
+			while (!mComponents.empty())
 			{
-				HComponent component = mComponents.Back();
+				HComponent component = mComponents.back();
 				component->_setIsDestroyed();
 
 				if (isInstantiated())
 					gSceneManager()._notifyComponentDestroyed(component, immediate);
 
 				component->DestroyInternal(component, true);
-				mComponents.Erase(mComponents.end() - 1);
+				mComponents.erase(mComponents.end() - 1);
 			}
 
 			GameObjectManager::instance().UnregisterObject(handle);
@@ -121,7 +121,7 @@ namespace bs
 
 		while (curObj != nullptr)
 		{
-			if (!curObj->mPrefabLinkUUID.Empty())
+			if (!curObj->mPrefabLinkUUID.empty())
 				return curObj->mPrefabLinkUUID;
 
 			if (curObj->mParent != nullptr && !onlyDirect)
@@ -139,7 +139,7 @@ namespace bs
 
 		while (curObj != nullptr)
 		{
-			if (!curObj->mPrefabLinkUUID.Empty())
+			if (!curObj->mPrefabLinkUUID.empty())
 				return curObj;
 
 			if (curObj->mParent != nullptr)
@@ -157,7 +157,7 @@ namespace bs
 
 		while (rootObj != nullptr)
 		{
-			if (!rootObj->mPrefabLinkUUID.Empty())
+			if (!rootObj->mPrefabLinkUUID.empty())
 				break;
 
 			if (rootObj->mParent != nullptr)
@@ -209,7 +209,7 @@ namespace bs
 
 			for (auto& child : obj->mChildren)
 			{
-				if(!prefabOnly || child->mPrefabLinkUUID.Empty())
+				if(!prefabOnly || child->mPrefabLinkUUID.empty())
 					instantiateRecursive(child.Get());
 			}
 		};
@@ -221,7 +221,7 @@ namespace bs
 
 			for (auto& child : obj->mChildren)
 			{
-				if (!prefabOnly || child->mPrefabLinkUUID.Empty())
+				if (!prefabOnly || child->mPrefabLinkUUID.empty())
 					triggerEventsRecursive(child.Get());
 			}
 		};
@@ -577,7 +577,7 @@ namespace bs
 
 	HSceneObject SceneObject::GetChild(UINT32 idx) const
 	{
-		if(idx >= mChildren.Size())
+		if(idx >= mChildren.size())
 		{
 			BS_EXCEPT(InternalErrorException, "Child index out of range.");
 		}
@@ -587,7 +587,7 @@ namespace bs
 
 	int SceneObject::IndexOfChild(const HSceneObject& child) const
 	{
-		for(int i = 0; i < (int)mChildren.Size(); i++)
+		for(int i = 0; i < (int)mChildren.size(); i++)
 		{
 			if(mChildren[i] == child)
 				return i;
@@ -605,10 +605,10 @@ namespace bs
 
 	void SceneObject::RemoveChild(const HSceneObject& object)
 	{
-		auto result = find(mChildren.Begin(), mChildren.end(), object);
+		auto result = find(mChildren.begin(), mChildren.end(), object);
 
-		if(result != mChildren.End())
-			mChildren.Erase(result);
+		if(result != mChildren.end())
+			mChildren.erase(result);
 		else
 		{
 			BS_EXCEPT(InternalErrorException,
@@ -618,7 +618,7 @@ namespace bs
 
 	HSceneObject SceneObject::FindPath(const String& path) const
 	{
-		if (path.Empty())
+		if (path.empty())
 			return HSceneObject();
 		
 		String trimmedPath = path;
@@ -629,11 +629,11 @@ namespace bs
 		// Find scene object referenced by the path
 		HSceneObject so = getHandle();
 		UINT32 pathIdx = 0;
-		for (; pathIdx < (UINT32)entries.Size(); pathIdx++)
+		for (; pathIdx < (UINT32)entries.size(); pathIdx++)
 		{
 			String entry = entries[pathIdx];
 
-			if (entry.Empty())
+			if (entry.empty())
 				continue;
 
 			// This character signifies not-a-scene-object. This is allowed to support
@@ -808,9 +808,9 @@ namespace bs
 			return;
 		}
 
-		auto iter = std::find(mComponents.Begin(), mComponents.end(), component);
+		auto iter = std::find(mComponents.begin(), mComponents.end(), component);
 
-		if(iter != mComponents.End())
+		if(iter != mComponents.end())
 		{
 			(*iter)->_setIsDestroyed();
 
@@ -818,7 +818,7 @@ namespace bs
 				gSceneManager()._notifyComponentDestroyed(*iter, immediate);
 			
 			(*iter)->DestroyInternal(*iter, immediate);
-			mComponents.Erase(iter);
+			mComponents.erase(iter);
 		}
 		else
 			BS_LOG(Warning, Scene, "Trying to remove a component that doesn't exist on this SceneObject.");
@@ -826,7 +826,7 @@ namespace bs
 
 	void SceneObject::DestroyComponent(Component* component, bool immediate)
 	{
-		auto iterFind = std::find_if(mComponents.Begin(), mComponents.end(),
+		auto iterFind = std::find_if(mComponents.begin(), mComponents.end(),
 			[component](const HComponent& x)
 		{
 			if(x.IsDestroyed())
@@ -835,7 +835,7 @@ namespace bs
 			return x._getHandleData()->mPtr->object.Get() == component; }
 		);
 
-		if(iterFind != mComponents.End())
+		if(iterFind != mComponents.end())
 		{
 			destroyComponent(*iterFind, immediate);
 		}
@@ -877,7 +877,7 @@ namespace bs
 	{
 		component->mThisHandle = component;
 
-		if(component->mUUID.Empty())
+		if(component->mUUID.empty())
 			component->mUUID = UUIDGenerator::generateRandom();
 
 		mComponents.push_back(component);

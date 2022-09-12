@@ -331,8 +331,8 @@ namespace bs { namespace ct
 		GpuPipelineKey Key(renderPass->GetId(), vertexInput->getId(), readOnlyFlags, drawOp);
 
 		PerDeviceData& perDeviceData = mPerDeviceData[deviceIdx];
-		auto iterFind = perDeviceData.pipelines.Find(key);
-		if (iterFind != perDeviceData.pipelines.End())
+		auto iterFind = perDeviceData.pipelines.find(key);
+		if (iterFind != perDeviceData.pipelines.end())
 			return iterFind->second;
 
 		VulkanPipeline* newPipeline = createPipeline(deviceIdx, renderPass, readOnlyFlags, drawOp, vertexInput);

@@ -260,8 +260,8 @@ namespace bs
 
 		auto backInserter = std::back_inserter(output);
 
-		auto iter = input.Begin();
-		while(iter != input.End())
+		auto iter = input.begin();
+		while(iter != input.end())
 		{
 			char32_t u32char = ANSIToUTF32(*iter, locale);
 			UTF32To8(u32char, backInserter, 4);
@@ -276,11 +276,11 @@ namespace bs
 	{
 		String output;
 
-		auto iter = input.Begin();
-		while(iter != input.End())
+		auto iter = input.begin();
+		while(iter != input.end())
 		{
 			char32_t u32char;
-			iter = UTF8To32(iter, input.End(), u32char, invalidChar);
+			iter = UTF8To32(iter, input.end(), u32char, invalidChar);
 
 			output.push_back(UTF32ToANSI(u32char, invalidChar, locale));
 		}
@@ -295,11 +295,11 @@ namespace bs
 
 		auto backInserter = std::back_inserter(output);
 
-		auto iter = input.Begin();
-		while(iter != input.End())
+		auto iter = input.begin();
+		while(iter != input.end())
 		{
 			char32_t u32char;
-			iter = wideToUTF32(iter, input.End(), u32char);
+			iter = wideToUTF32(iter, input.end(), u32char);
 			UTF32To8(u32char, backInserter, 4);
 		}
 
@@ -311,11 +311,11 @@ namespace bs
 		WString output;
 		auto backInserter = std::back_inserter(output);
 
-		auto iter = input.Begin();
-		while(iter != input.End())
+		auto iter = input.begin();
+		while(iter != input.end())
 		{
 			char32_t u32char;
-			iter = UTF8To32(iter, input.End(), u32char);
+			iter = UTF8To32(iter, input.end(), u32char);
 
 			UTF32ToWide(u32char, backInserter, 2);
 		}
@@ -330,11 +330,11 @@ namespace bs
 
 		auto backInserter = std::back_inserter(output);
 
-		auto iter = input.Begin();
-		while(iter != input.End())
+		auto iter = input.begin();
+		while(iter != input.end())
 		{
 			char32_t u32char = 0;
-			iter = UTF16To32(iter, input.End(), u32char);
+			iter = UTF16To32(iter, input.end(), u32char);
 			UTF32To8(u32char, backInserter, 4);
 		}
 
@@ -346,11 +346,11 @@ namespace bs
 		U16String output;
 		auto backInserter = std::back_inserter(output);
 
-		auto iter = input.Begin();
-		while(iter != input.End())
+		auto iter = input.begin();
+		while(iter != input.end())
 		{
 			char32_t u32char;
-			iter = UTF8To32(iter, input.End(), u32char);
+			iter = UTF8To32(iter, input.end(), u32char);
 
 			UTF32To16(u32char, backInserter, 2);
 		}
@@ -365,8 +365,8 @@ namespace bs
 
 		auto backInserter = std::back_inserter(output);
 
-		auto iter = input.Begin();
-		while(iter != input.End())
+		auto iter = input.begin();
+		while(iter != input.end())
 		{
 			UTF32To8(*iter, backInserter, 4);
 
@@ -380,11 +380,11 @@ namespace bs
 	{
 		U32String output;
 
-		auto iter = input.Begin();
-		while(iter != input.End())
+		auto iter = input.begin();
+		while(iter != input.end())
 		{
 			char32_t u32char;
-			iter = UTF8To32(iter, input.End(), u32char);
+			iter = UTF8To32(iter, input.end(), u32char);
 
 			output.push_back(u32char);
 		}
@@ -422,7 +422,7 @@ namespace bs
 			curByte++;
 		}
 
-		return (UINT32)input.Size();
+		return (UINT32)input.size();
 	}
 
 	UINT32 UTF8::CharByteCount(const String& input, UINT32 charIdx)
@@ -430,7 +430,7 @@ namespace bs
 		const UINT32 byteIdx = charToByteIndex(input, charIdx);
 
 		UINT32 count = 1;
-		for(auto i = (size_t)byteIdx + 1; i < input.Size(); i++)
+		for(auto i = (size_t)byteIdx + 1; i < input.size(); i++)
 		{
 			if((i & 0xc0) != 0x80)
 				break;

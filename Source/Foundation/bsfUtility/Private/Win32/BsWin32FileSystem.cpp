@@ -83,7 +83,7 @@ namespace bs
 			if (n > 0 && n <= len)
 			{
 				WString Result(buffer);
-				if (result[result.Size() - 1] != L'\\')
+				if (result[result.size() - 1] != L'\\')
 					result.Append(L"\\");
 
 				bs_free(buffer);
@@ -107,7 +107,7 @@ namespace bs
 			if (n > 0 && n <= len)
 			{
 				WString Result(buffer);
-				if (result[result.Size() - 1] != L'\\')
+				if (result[result.size() - 1] != L'\\')
 					result.Append(L"\\");
 
 				bs_free(buffer);

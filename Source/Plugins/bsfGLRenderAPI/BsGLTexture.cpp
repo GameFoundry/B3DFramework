@@ -195,7 +195,7 @@ namespace bs { namespace ct
 						BS_CHECK_GL_ERROR();
 					}
 				}
-				else If(texType == TEX_TYPE_CUBE_MAP)
+				else if(texType == TEX_TYPE_CUBE_MAP)
 				{
 					if (numFaces <= 6)
 					{
@@ -535,7 +535,7 @@ namespace bs { namespace ct
 			BS_EXCEPT(InvalidParametersException, "Mipmap index out of range");
 
 		unsigned int idx = face * (mProperties.GetNumMipmaps() + 1) + mipmap;
-		assert(idx < mSurfaceList.Size());
+		assert(idx < mSurfaceList.size());
 		return mSurfaceList[idx];
 	}
 

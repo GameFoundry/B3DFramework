@@ -53,7 +53,7 @@ namespace bs
 
 		UINT32 GetNumElementsNumEntries(ManagedSerializableArray* obj)
 		{
-			return (UINT32)obj->mNumElements.Size();
+			return (UINT32)obj->mNumElements.size();
 		}
 
 		void SetNumElementsNumEntries(ManagedSerializableArray* obj, UINT32 numEntries)

@@ -125,7 +125,7 @@ namespace bs
 			IMAGEHLP_LINE64	lineData;
 			lineData.SizeOfStruct = sizeof(lineData);
 
-			String addressString = toString(funcAddress, 0, ' ', std::ios::hex);
+			String addressString = ToString(funcAddress, 0, ' ', std::ios::hex);
 
 			DWORD column;
 			if (SymGetLineFromAddr64(hProcess, funcAddress, &column, &lineData))
@@ -154,7 +154,7 @@ namespace bs
 
 		bs_free(buffer);
 
-		return outputStream.Str();
+		return outputStream.str();
 	}
 
 	typedef Bool(WINAPI *EnumProcessModulesType)(HANDLE hProcess, HMODULE* lphModule, DWORD cb, LPDWORD lpcbNeeded);
@@ -282,7 +282,7 @@ namespace bs
 	/**	Converts an exception record into a human readable error message. */
 	String win32_getExceptionMessage(EXCEPTION_RECORD* record)
 	{
-		String exceptionAddress = toString((UINT64)record->ExceptionAddress, 0, ' ', std::ios::hex);
+		String exceptionAddress = ToString((UINT64) record->ExceptionAddress, 0, ' ', std::ios::hex);
 
 		String format;
 		switch (record->ExceptionCode)
@@ -304,7 +304,7 @@ namespace bs
 				else
 					format = "Unhandled exception at 0x{0}. Access violation.";
 
-				String violatedAddressStr = toString((UINT64)violatedAddress, 0, ' ', std::ios::hex);
+				String violatedAddressStr = ToString((UINT64) violatedAddress, 0, ' ', std::ios::hex);
 				return StringUtil::Format(format, exceptionAddress, violatedAddressStr);
 			}
 		case EXCEPTION_IN_PAGE_ERROR:
@@ -326,8 +326,8 @@ namespace bs
 			else
 				format = "Unhandled exception at 0x{0}. Page fault.";
 
-			String violatedAddressStr = toString((UINT64)violatedAddress, 0, ' ', std::ios::hex);
-			String codeStr = toString((UINT64)code, 0, ' ', std::ios::hex);
+			String violatedAddressStr = ToString((UINT64) violatedAddress, 0, ' ', std::ios::hex);
+			String codeStr = ToString((UINT64) code, 0, ' ', std::ios::hex);
 			return StringUtil::Format(format, exceptionAddress, violatedAddressStr, codeStr);
 		}
 		case STATUS_ARRAY_BOUNDS_EXCEEDED:
@@ -399,7 +399,7 @@ namespace bs
 		{
 			format = "Unhandled exception at 0x{0}. Code 0x{1}.";
 
-			String exceptionCode = toString((UINT32)record->ExceptionCode, 0, ' ', std::ios::hex);
+			String exceptionCode = ToString((UINT32) record->ExceptionCode, 0, ' ', std::ios::hex);
 			return StringUtil::Format(format, exceptionAddress, exceptionCode);
 		}
 		}
@@ -465,8 +465,8 @@ namespace bs
 #endif
 
 	}
-	void CrashHandler::reportCrash(const String& type, const String& description, const String& function,
-		const String& file, UINT32 line) const
+	void CrashHandler::ReportCrash(const String& type, const String& description, const String& function,
+								   const String& file, UINT32 line) const
 	{
 		if(mSettings.onBeforeReportCrash)
 		{
@@ -477,7 +477,7 @@ namespace bs
 		// Win32 debug methods are not thread safe
 		Lock Lock(m->mutex);
 
-		logErrorAndStackTrace(type, description, function, file, line);
+		LogErrorAndStackTrace(type, description, function, file, line);
 
 		if(mSettings.onCrashPrintedToLog)
 		{
@@ -488,7 +488,7 @@ namespace bs
 		saveCrashLog();
 
 		win32_writeMiniDump(getCrashFolder() + String(sMiniDumpName), nullptr);
-		win32_popupErrorMessageBox(toWString(sFatalErrorMsg), getCrashFolder());
+		win32_popupErrorMessageBox(ToWString(sFatalErrorMsg), getCrashFolder());
 
 		DebugBreak();
 
@@ -511,8 +511,8 @@ namespace bs
 		win32_initPSAPI();
 		win32_loadSymbols();
 
-		logErrorAndStackTrace(win32_getExceptionMessage(exceptionData->ExceptionRecord),
-			win32_getStackTrace(*exceptionData->ContextRecord, 0));
+		LogErrorAndStackTrace(win32_getExceptionMessage(exceptionData->ExceptionRecord),
+							  win32_getStackTrace(*exceptionData->ContextRecord, 0));
 
 		if(mSettings.onCrashPrintedToLog)
 		{
@@ -523,7 +523,7 @@ namespace bs
 		saveCrashLog();
 
 		win32_writeMiniDump(getCrashFolder() + String(sMiniDumpName), exceptionData);
-		win32_popupErrorMessageBox(toWString(sFatalErrorMsg), getCrashFolder());
+		win32_popupErrorMessageBox(ToWString(sFatalErrorMsg), getCrashFolder());
 
 		DebugBreak();
 
@@ -538,11 +538,11 @@ namespace bs
 		GetLocalTime(&systemTime);
 
 		String timeStamp = "{0}{1}{2}_{3}{4}";
-		String strYear = toString(systemTime.wYear, 4, '0');
-		String strMonth = toString(systemTime.wMonth, 2, '0');
-		String strDay = toString(systemTime.wDay, 2, '0');
-		String strHour = toString(systemTime.wHour, 2, '0');
-		String strMinute = toString(systemTime.wMinute, 2, '0');
+		String strYear = ToString(systemTime.wYear, 4, '0');
+		String strMonth = ToString(systemTime.wMonth, 2, '0');
+		String strDay = ToString(systemTime.wDay, 2, '0');
+		String strHour = ToString(systemTime.wHour, 2, '0');
+		String strMinute = ToString(systemTime.wMinute, 2, '0');
 		return StringUtil::Format(timeStamp, strYear, strMonth, strDay, strHour, strMinute);
 	}
 

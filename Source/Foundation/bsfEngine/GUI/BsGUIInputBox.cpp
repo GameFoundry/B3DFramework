@@ -155,7 +155,7 @@ namespace bs
 					for (UINT32 i = 0; i < entry->GetNumRenderElements(); i++)
 					{
 						mRenderElements.Add(GUIRenderElement());
-						GUIRenderElement& renderElement = mRenderElements.Back();
+						GUIRenderElement& renderElement = mRenderElements.back();
 
 						entry->GetRenderElementInfo(i, renderElement);
 
@@ -405,7 +405,7 @@ namespace bs
 
 			return true;
 		}
-		else If(ev.GetType() == GUIMouseEventType::MouseOut)
+		else if(ev.GetType() == GUIMouseEventType::MouseOut)
 		{
 			if (!_isDisabled())
 			{
@@ -426,7 +426,7 @@ namespace bs
 
 			return true;
 		}
-		else If(ev.GetType() == GUIMouseEventType::MouseDoubleClick && ev.getButton() == GUIMouseButton::Left)
+		else if(ev.GetType() == GUIMouseEventType::MouseDoubleClick && ev.getButton() == GUIMouseButton::Left)
 		{
 			if (!_isDisabled())
 			{
@@ -438,7 +438,7 @@ namespace bs
 
 			return true;
 		}
-		else If(ev.GetType() == GUIMouseEventType::MouseDown && ev.getButton() == GUIMouseButton::Left)
+		else if(ev.GetType() == GUIMouseEventType::MouseDown && ev.getButton() == GUIMouseButton::Left)
 		{
 			if (!_isDisabled())
 			{
@@ -472,7 +472,7 @@ namespace bs
 
 			return true;
 		}
-		else If(ev.GetType() == GUIMouseEventType::MouseDragStart)
+		else if(ev.GetType() == GUIMouseEventType::MouseDragStart)
 		{
 			if (!_isDisabled())
 			{
@@ -489,7 +489,7 @@ namespace bs
 				}
 			}
 		}
-		else If(ev.GetType() == GUIMouseEventType::MouseDragEnd)
+		else if(ev.GetType() == GUIMouseEventType::MouseDragEnd)
 		{
 			if (!_isDisabled())
 			{
@@ -503,7 +503,7 @@ namespace bs
 				}
 			}
 		}
-		else If(ev.GetType() == GUIMouseEventType::MouseDrag)
+		else if(ev.GetType() == GUIMouseEventType::MouseDrag)
 		{
 			if (!_isDisabled())
 			{
@@ -556,7 +556,7 @@ namespace bs
 			gGUIManager().GetInputCaretTool()->MoveCaretToChar(charIdx, CARET_AFTER);
 			scrollTextToCaret();
 
-			if(!onValueChanged.Empty())
+			if(!onValueChanged.empty())
 				onValueChanged(mText);
 		}
 
@@ -642,7 +642,7 @@ namespace bs
 							String newText = mText;
 							UINT32 byteIdx = UTF8::charToByteIndex(mText, charIdx);
 							UINT32 byteCount = UTF8::charByteCount(mText, charIdx);
-							newText.Erase(byteIdx, byteCount);
+							newText.erase(byteIdx, byteCount);
 
 							filterOkay = mFilter(newText);
 						}
@@ -662,7 +662,7 @@ namespace bs
 
 							scrollTextToCaret();
 
-							if(!onValueChanged.Empty())
+							if(!onValueChanged.empty())
 								onValueChanged(mText);
 						}
 					}
@@ -698,7 +698,7 @@ namespace bs
 							String newText = mText;
 							UINT32 byteIdx = UTF8::charToByteIndex(mText, charIdx);
 							UINT32 byteCount = UTF8::charByteCount(mText, charIdx);
-							newText.Erase(byteIdx, byteCount);
+							newText.erase(byteIdx, byteCount);
 
 							filterOkay = mFilter(newText);
 						}
@@ -714,7 +714,7 @@ namespace bs
 
 							scrollTextToCaret();
 
-							if(!onValueChanged.Empty())
+							if(!onValueChanged.empty())
 								onValueChanged(mText);
 						}
 					}
@@ -886,7 +886,7 @@ namespace bs
 					gGUIManager().GetInputCaretTool()->MoveCaretRight();
 					scrollTextToCaret();
 
-					if (!onValueChanged.Empty())
+					if (!onValueChanged.empty())
 						onValueChanged(mText);
 				}
 
@@ -920,18 +920,18 @@ namespace bs
 
 			return true;
 		}
-		else If(ev.GetButton() == mCopyVB)
+		else if(ev.GetButton() == mCopyVB)
 		{
 			copyText();
 
 			return true;
 		}
-		else If(ev.GetButton() == mPasteVB)
+		else if(ev.GetButton() == mPasteVB)
 		{
 			pasteText();
 			return true;
 		}
-		else If(ev.GetButton() == mSelectAllVB)
+		else if(ev.GetButton() == mSelectAllVB)
 		{
 			showSelection(0);
 			gGUIManager().GetInputSelectionTool()->SelectAll();
@@ -997,7 +997,7 @@ namespace bs
 		{
 			offset.x = left - caretPos.x;
 		}
-		else If(caretRight > right)
+		else if(caretRight > right)
 		{
 			offset.x = -(caretRight - right);
 		}
@@ -1006,7 +1006,7 @@ namespace bs
 		{
 			offset.y = top - caretPos.y;
 		}
-		else If(caretBottom > bottom)
+		else if(caretBottom > bottom)
 		{
 			offset.y = -(caretBottom - bottom);
 		}
@@ -1068,7 +1068,7 @@ namespace bs
 		UINT32 byteIdx = UTF8::charToByteIndex(mText, charIdx);
 		UINT32 byteCount = UTF8::charByteCount(mText, charIdx);
 
-		mText.Erase(byteIdx, byteCount);
+		mText.erase(byteIdx, byteCount);
 		mNumChars = UTF8::count(mText);
 
 		TEXT_SPRITE_DESC textDesc = getTextDesc();
@@ -1089,7 +1089,7 @@ namespace bs
 		if (!internal && mFilter != nullptr)
 		{
 			String newText = mText;
-			newText.Erase(newText.begin() + byteStart, newText.begin() + byteEnd);
+			newText.erase(newText.begin() + byteStart, newText.begin() + byteEnd);
 
 			filterOkay = mFilter(newText);
 		}
@@ -1099,7 +1099,7 @@ namespace bs
 
 		if(filterOkay)
 		{
-			mText.Erase(mText.begin() + byteStart, mText.begin() + byteEnd);
+			mText.erase(mText.begin() + byteStart, mText.begin() + byteEnd);
 			mNumChars = UTF8::count(mText);
 
 			TEXT_SPRITE_DESC textDesc = getTextDesc();
@@ -1273,7 +1273,7 @@ namespace bs
 			else
 				_markContentAsDirty();
 
-			if(!onValueChanged.Empty())
+			if(!onValueChanged.empty())
 				onValueChanged(mText);
 		}
 	}

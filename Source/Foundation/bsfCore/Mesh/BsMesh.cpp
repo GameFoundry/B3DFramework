@@ -469,7 +469,7 @@ namespace bs
 			auto vertexBuffers = mVertexData->GetBuffers();
 
 			UINT32 streamIdx = 0;
-			for (auto iter = vertexBuffers.Begin(); iter != vertexBuffers.end(); ++iter)
+			for (auto iter = vertexBuffers.begin(); iter != vertexBuffers.end(); ++iter)
 			{
 				if (!meshData.GetVertexDesc()->HasStream(streamIdx))
 					continue;

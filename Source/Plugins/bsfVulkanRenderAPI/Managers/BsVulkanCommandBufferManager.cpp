@@ -56,10 +56,10 @@ namespace bs { namespace ct
 	{
 		image->GetBarriers(range, mBarriersTemp);
 
-		if (mBarriersTemp.Size() == 0)
+		if (mBarriersTemp.size() == 0)
 			return;
 
-		INT32 count = (INT32)mBarriersTemp.Size();
+		INT32 count = (INT32)mBarriersTemp.size();
 		for(INT32 i = 0; i < count; i++)
 		{
 			VkImageMemoryBarrier& barrier = mBarriersTemp[i];
@@ -70,7 +70,7 @@ namespace bs { namespace ct
 				if(i < (count - 1))
 					std::swap(mBarriersTemp[i], mBarriersTemp[count - 1]);
 
-				mBarriersTemp.Erase(mBarriersTemp.begin() + count - 1);
+				mBarriersTemp.erase(mBarriersTemp.begin() + count - 1);
 				count--;
 				i--;
 			}
@@ -87,7 +87,7 @@ namespace bs { namespace ct
 							 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
 							 0, 0, nullptr,
 							 0, nullptr,
-							 (UINT32)mBarriersTemp.Size(), mBarriersTemp.data());
+							 (UINT32)mBarriersTemp.size(), mBarriersTemp.data());
 
 		mBarriersTemp.Clear();
 	}

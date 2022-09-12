@@ -57,7 +57,7 @@ namespace bs
 	public:
 		SerializedFieldRTTI()
 		{
-			addDataBlockField("data", 0, &SerializedFieldRTTI::getData, &SerializedFieldRTTI::setData);
+			addDataBlockField("Data", 0, &SerializedFieldRTTI::getData, &SerializedFieldRTTI::setData);
 		}
 
 		const String& GetRTTIName() override
@@ -100,7 +100,7 @@ namespace bs
 	public:
 		SerializedDataBlockRTTI()
 		{
-			addDataBlockField("data", 0, &SerializedDataBlockRTTI::getData, &SerializedDataBlockRTTI::setData);
+			addDataBlockField("Data", 0, &SerializedDataBlockRTTI::getData, &SerializedDataBlockRTTI::setData);
 		}
 
 		const String& GetRTTIName() override
@@ -135,7 +135,7 @@ namespace bs
 
 		UINT32 GetNumEntries(SerializedObject* obj)
 		{
-			return (UINT32)obj->subObjects.Size();
+			return (UINT32)obj->subObjects.size();
 		}
 
 		void SetNumEntries(SerializedObject* obj, UINT32 numEntries)
@@ -191,7 +191,7 @@ namespace bs
 
 		UINT32 GetNumEntries(SerializedArray* obj)
 		{
-			return (UINT32)mSequentialEntries.Size();
+			return (UINT32)mSequentialEntries.size();
 		}
 
 		void SetNumEntries(SerializedArray* obj, UINT32 numEntries)
@@ -259,7 +259,7 @@ namespace bs
 
 		UINT32 GetNumEntries(SerializedSubObject* obj)
 		{
-			return (UINT32)mSequentialEntries.Size();
+			return (UINT32)mSequentialEntries.size();
 		}
 
 		void SetNumEntries(SerializedSubObject* obj, UINT32 numEntries)

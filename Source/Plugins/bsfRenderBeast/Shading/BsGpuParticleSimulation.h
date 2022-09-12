@@ -41,7 +41,7 @@ namespace bs { namespace ct
 		ParticleSystem* getParent() const { return mParent; }
 
 		/**
-		 * Attempts to allocate room for a set of particles. Particles will attempt to be inserted into an existing tile if
+		 * Attempts to Allocate room for a set of particles. Particles will attempt to be inserted into an existing tile if
 		 * there's room, or new tiles will be allocated otherwise. If the particle texture is full the allocation will
 		 * silently fail.
 		 *
@@ -63,7 +63,7 @@ namespace bs { namespace ct
 		/** Releases any tiles that were marked as inactive so they may be re-used by some other particle system. */
 		bool FreeInactiveTiles(GpuParticleResources& resources);
 
-		/** Returns a buffer containing UV coordinates to which each of the allocate tiles map to. */
+		/** Returns a buffer containing UV coordinates to which each of the Allocate tiles map to. */
 		SPtr<GpuBuffer> GetTileUVs() const { return mTileUVs; }
 
 		/** Returns a buffer containing per-particle indices used for locating particle data in the particle textures. */
@@ -73,7 +73,7 @@ namespace bs { namespace ct
 		 * Returns the total number of tiles used by this particle system. This may include inactive tiles unless you have
 		 * freed them using freeInactiveTiles earlier.
 		 */
-		UINT32 GetNumTiles() const { return (UINT32)mTiles.Size(); }
+		UINT32 GetNumTiles() const { return (UINT32)mTiles.size(); }
 
 		/** Rebuilds ths internal buffers that contain tile UVs and per-particle UVs. */
 		void UpdateGpuBuffers();
@@ -219,7 +219,7 @@ namespace bs { namespace ct
 
 		/**
 		 * Injects all the newly added pixels into the curve texture (since the last call to this method). Should be
-		 * called after alloc() has been called for all new entries, but before the texture is used for reading.
+		 * called after Allocate() has been called for all new entries, but before the texture is used for reading.
 		 */
 		void ApplyChanges();
 
@@ -306,7 +306,7 @@ namespace bs { namespace ct
 		const SPtr<GpuBuffer>& GetSortedIndices() const;
 
 		/**
-		 * Attempts to allocate a new tile in particle textures. Returns index of the tile if successful or -1 if no more
+		 * Attempts to Allocate a new tile in particle textures. Returns index of the tile if successful or -1 if no more
 		 * room.
 		 */
 		UINT32 AllocTile();

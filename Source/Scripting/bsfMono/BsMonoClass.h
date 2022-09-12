@@ -20,12 +20,12 @@ namespace bs
 		{
 			struct Hash
 			{
-				size_t Operator()(const MethodId& v) const;
+				size_t operator()(const MethodId& v) const;
 			};
 			
 			struct Equals
 			{
-				bool Operator()(const MethodId& a, const MethodId& b) const;
+				bool operator()(const MethodId& a, const MethodId& b) const;
 			};
 
 			MethodId(const String& name, UINT32 numParams);
@@ -157,7 +157,7 @@ namespace bs
 		void AddInternalCall(const String& name, const void* method);
 
 		/**
-		 * Creates a new instance of this class and optionally constructs it. If you don't construct the instance then you
+		 * Creates a new instance of this class and optionally constructs it. If you don't Construct the instance then you
 		 * should invoke the ".ctor" method manually afterwards.
 		 */
 		MonoObject* createInstance(bool construct = true) const;

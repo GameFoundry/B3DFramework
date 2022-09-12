@@ -172,7 +172,7 @@ namespace bs { namespace ct
 		ID3DBlob* errors = nullptr;
 
 		// Compile pixel shader
-		hr = D3DCompile(psShaderCode.c_str(), psShaderCode.Size(), nullptr, nullptr, nullptr, "main", "ps_4_0",
+		hr = D3DCompile(psShaderCode.c_str(), psShaderCode.size(), nullptr, nullptr, nullptr, "main", "ps_4_0",
 			D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR, 0, &microcode, &errors);
 
 		if (FAILED(hr))
@@ -196,7 +196,7 @@ namespace bs { namespace ct
 		}
 
 		// Compile vertex shader
-		hr = D3DCompile(vsShaderCode.c_str(), vsShaderCode.Size(), nullptr, nullptr, nullptr, "main", "vs_4_0",
+		hr = D3DCompile(vsShaderCode.c_str(), vsShaderCode.size(), nullptr, nullptr, nullptr, "main", "vs_4_0",
 			D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR, 0, &microcode, &errors);
 
 		if (FAILED(hr))

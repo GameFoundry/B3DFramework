@@ -255,7 +255,7 @@ namespace std
 template<>
 struct hash<bs::BLEND_STATE_DESC>
 {
-	size_t Operator()(const bs::BLEND_STATE_DESC& value) const
+	size_t operator()(const bs::BLEND_STATE_DESC& value) const
 	{
 		return (size_t)bs::BlendState::generateHash(value);
 	}

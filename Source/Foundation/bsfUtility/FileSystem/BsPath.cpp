@@ -11,34 +11,34 @@ namespace bs
 
 	Path::Path(const String& pathStr, PathType type)
 	{
-		assign(pathStr, type);
+		Assign(pathStr, type);
 	}
 
 	Path::Path(const char* pathStr, PathType type)
 	{
-		assign(pathStr);
+		Assign(pathStr);
 	}
 
 	Path::Path(const Path& other)
 	{
-		assign(other);
+		Assign(other);
 	}
 
 	Path& Path::operator= (const Path& path)
 	{
-		assign(path);
+		Assign(path);
 		return *this;
 	}
 
 	Path& Path::operator= (const String& pathStr)
 	{
-		assign(pathStr);
+		Assign(pathStr);
 		return *this;
 	}
 
 	Path& Path::operator= (const char* pathStr)
 	{
-		assign(pathStr);
+		Assign(pathStr);
 		return *this;
 	}
 
@@ -62,12 +62,12 @@ namespace bs
 
 	void Path::Assign(const String& pathStr, PathType type)
 	{
-		assign(pathStr.Data(), (UINT32)pathStr.length(), type);
+		Assign(pathStr.data(), (UINT32)pathStr.length(), type);
 	}
 
 	void Path::Assign(const char* pathStr, PathType type)
 	{
-		assign(pathStr, (UINT32)strlen(pathStr), type);
+		Assign(pathStr, (UINT32)strlen(pathStr), type);
 	}
 
 	void Path::Assign(const char* pathStr, UINT32 numChars, PathType type)
@@ -75,16 +75,16 @@ namespace bs
 		switch (type)
 		{
 		case PathType::Windows:
-			parseWindows(pathStr, numChars);
+			ParseWindowsPath(pathStr, numChars);
 			break;
 		case PathType::Unix:
-			parseUnix(pathStr, numChars);
+			ParseUnixPath(pathStr, numChars);
 			break;
 		default:
 #if BS_PLATFORM == BS_PLATFORM_WIN32
-			parseWindows(pathStr, numChars);
+			ParseWindowsPath(pathStr, numChars);
 #elif BS_PLATFORM == BS_PLATFORM_OSX || BS_PLATFORM == BS_PLATFORM_LINUX
-			parseUnix(pathStr, numChars);
+			ParseUnixPath(pathStr, numChars);
 #else
 			static_assert(false, "Unsupported platform for path.");
 #endif
@@ -95,7 +95,7 @@ namespace bs
 #if BS_PLATFORM == BS_PLATFORM_WIN32
 	WString Path::ToPlatformString() const
 	{
-		return UTF8::ToWide(toString());
+		return UTF8::ToWide(ToString());
 	}
 #endif
 
@@ -146,23 +146,23 @@ namespace bs
 	Path Path::GetDirectory() const
 	{
 		Path copy = *this;
-		copy.mFilename.Clear();
+		copy.mFilename.clear();
 
 		return copy;
 	}
 
 	Path& Path::MakeParent()
 	{
-		if (mFilename.Empty())
+		if (mFilename.empty())
 		{
-			if (mDirectories.Empty())
+			if (mDirectories.empty())
 			{
 				if (!mIsAbsolute)
 					mDirectories.push_back("..");
 			}
 			else
 			{
-				if (mDirectories.Back() == "..")
+				if (mDirectories.back() == "..")
 					mDirectories.push_back("..");
 				else
 					mDirectories.pop_back();
@@ -170,7 +170,7 @@ namespace bs
 		}
 		else
 		{
-			mFilename.Clear();
+			mFilename.clear();
 		}
 
 		return *this;
@@ -199,14 +199,14 @@ namespace bs
 		if (!base.Includes(*this))
 			return *this;
 
-		mDirectories.Erase(mDirectories.begin(), mDirectories.begin() + base.mDirectories.size());
+		mDirectories.erase(mDirectories.begin(), mDirectories.begin() + base.mDirectories.size());
 
 		// Sometimes a directory name can be interpreted as a file and we're okay with that. Check for that
 		// special case.
 		if (base.IsFile())
 		{
-			if (mDirectories.Size() > 0)
-				mDirectories.Erase(mDirectories.begin());
+			if (mDirectories.size() > 0)
+				mDirectories.erase(mDirectories.begin());
 			else
 				mFilename = "";
 		}
@@ -226,31 +226,31 @@ namespace bs
 		if (mNode != child.mNode)
 			return false;
 
-		auto iterParent = mDirectories.Begin();
-		auto iterChild = child.mDirectories.Begin();
+		auto iterParent = mDirectories.begin();
+		auto iterChild = child.mDirectories.begin();
 
-		for (; iterParent != mDirectories.End(); ++iterChild, ++iterParent)
+		for (; iterParent != mDirectories.end(); ++iterChild, ++iterParent)
 		{
-			if (iterChild == child.mDirectories.End())
+			if (iterChild == child.mDirectories.end())
 				return false;
 
-			if (!comparePathElem(*iterChild, *iterParent))
+			if (!ComparePathElement(*iterChild, *iterParent))
 				return false;
 		}
 
-		if (!mFilename.Empty())
+		if (!mFilename.empty())
 		{
-			if (iterChild == child.mDirectories.End())
+			if (iterChild == child.mDirectories.end())
 			{
-				if (child.mFilename.Empty())
+				if (child.mFilename.empty())
 					return false;
 
-				if (!comparePathElem(child.mFilename, mFilename))
+				if (!ComparePathElement(child.mFilename, mFilename))
 					return false;
 			}
 			else
 			{
-				if (!comparePathElem(*iterChild, mFilename))
+				if (!ComparePathElement(*iterChild, mFilename))
 					return false;
 			}			
 		}
@@ -265,20 +265,20 @@ namespace bs
 
 		if (mIsAbsolute)
 		{
-			if (!comparePathElem(mDevice, other.mDevice))
+			if (!ComparePathElement(mDevice, other.mDevice))
 				return false;
 		}
 
-		if (!comparePathElem(mNode, other.mNode))
+		if (!ComparePathElement(mNode, other.mNode))
 			return false;
 
-		UINT32 myNumElements = (UINT32)mDirectories.Size();
-		UINT32 otherNumElements = (UINT32)other.mDirectories.Size();
+		UINT32 myNumElements = (UINT32)mDirectories.size();
+		UINT32 otherNumElements = (UINT32)other.mDirectories.size();
 
-		if (!mFilename.Empty())
+		if (!mFilename.empty())
 			myNumElements++;
 
-		if (!other.mFilename.Empty())
+		if (!other.mFilename.empty())
 			otherNumElements++;
 
 		if (myNumElements != otherNumElements)
@@ -286,38 +286,38 @@ namespace bs
 
 		if(myNumElements > 0)
 		{
-			auto iterMe = mDirectories.Begin();
-			auto iterOther = other.mDirectories.Begin();
+			auto iterMe = mDirectories.begin();
+			auto iterOther = other.mDirectories.begin();
 
 			for(UINT32 i = 0; i < (myNumElements - 1); i++, ++iterMe, ++iterOther)
 			{
-				if (!comparePathElem(*iterMe, *iterOther))
+				if (!ComparePathElement(*iterMe, *iterOther))
 					return false;
 			}
 
-			if (!mFilename.Empty())
+			if (!mFilename.empty())
 			{
-				if (!other.mFilename.Empty())
+				if (!other.mFilename.empty())
 				{
-					if (!comparePathElem(mFilename, other.mFilename))
+					if (!ComparePathElement(mFilename, other.mFilename))
 						return false;
 				}
 				else
 				{
-					if (!comparePathElem(mFilename, *iterOther))
+					if (!ComparePathElement(mFilename, *iterOther))
 						return false;
 				}
 			}
 			else
 			{
-				if (!other.mFilename.Empty())
+				if (!other.mFilename.empty())
 				{
-					if (!comparePathElem(*iterMe, other.mFilename))
+					if (!ComparePathElement(*iterMe, other.mFilename))
 						return false;
 				}
 				else
 				{
-					if (!comparePathElem(*iterMe, *iterOther))
+					if (!ComparePathElement(*iterMe, *iterOther))
 						return false;
 				}
 			}
@@ -328,11 +328,11 @@ namespace bs
 
 	Path& Path::Append(const Path& path)
 	{
-		if (!mFilename.Empty())
-			pushDirectory(mFilename);
+		if (!mFilename.empty())
+			PushDirectory(mFilename);
 
 		for (auto& dir : path.mDirectories)
-			pushDirectory(dir);
+			PushDirectory(dir);
 
 		mFilename = path.mFilename;
 
@@ -341,7 +341,7 @@ namespace bs
 
 	void Path::SetBasename(const String& basename)
 	{
-		mFilename = basename + getExtension();
+		mFilename = basename + GetExtension();
 	}
 
 	void Path::SetExtension(const String& extension)
@@ -350,7 +350,7 @@ namespace bs
 		stream << GetFilename(false);
 		stream << extension;
 
-		mFilename = stream.Str();
+		mFilename = stream.str();
 	}
 
 	String Path::GetFilename(bool extension) const
@@ -359,9 +359,9 @@ namespace bs
 			return mFilename;
 		else
 		{
-			String::size_type pos = mFilename.Rfind('.');
+			String::size_type pos = mFilename.rfind('.');
 			if (pos != String::npos)
-				return mFilename.Substr(0, pos);
+				return mFilename.substr(0, pos);
 			else
 				return mFilename;
 		}
@@ -369,19 +369,19 @@ namespace bs
 
 	String Path::GetExtension() const
 	{
-		String::size_type pos = mFilename.Rfind('.');
+		String::size_type pos = mFilename.rfind('.');
 		if (pos != String::npos)
-			return mFilename.Substr(pos);
+			return mFilename.substr(pos);
 		else
 			return String();
 	}
 
 	const String& Path::GetDirectory(UINT32 idx) const
 	{
-		if (idx >= (UINT32)mDirectories.Size())
+		if (idx >= (UINT32)mDirectories.size())
 		{
-			BS_EXCEPT(InvalidParametersException, "Index out of range: " + bs::toString(idx) + ". Valid range: [0, " +
-					bs::toString((UINT32)mDirectories.Size() - 1) + "]");
+			BS_EXCEPT(InvalidParametersException, "Index out of range: " + bs::ToString(idx) + ". Valid range: [0, " +
+												  bs::ToString((UINT32) mDirectories.size() - 1) + "]");
 		}
 
 		return mDirectories[idx];
@@ -389,20 +389,20 @@ namespace bs
 
 	const String& Path::GetTail() const
 	{
-		if (isFile())
+		if (IsFile())
 			return mFilename;
-		else if (mDirectories.Size() > 0)
-			return mDirectories.Back();
+		else if (mDirectories.size() > 0)
+			return mDirectories.back();
 		else
 			return StringUtil::BLANK;
 	}
 
 	void Path::Clear()
 	{
-		mDirectories.Clear();
-		mDevice.Clear();
-		mFilename.Clear();
-		mNode.Clear();
+		mDirectories.clear();
+		mDevice.clear();
+		mFilename.clear();
+		mNode.clear();
 		mIsAbsolute = false;
 	}
 
@@ -414,13 +414,13 @@ namespace bs
 	String Path::BuildWindows() const
 	{
 		StringStream result;
-		if (!mNode.Empty())
+		if (!mNode.empty())
 		{
 			result << "\\\\";
 			result << mNode;
 			result << "\\";
 		}
-		else if (!mDevice.Empty())
+		else if (!mDevice.empty())
 		{
 			result << mDevice;
 			result << ":\\";
@@ -437,15 +437,15 @@ namespace bs
 		}
 
 		result << mFilename;
-		return result.Str();
+		return result.str();
 	}
 
 	String Path::BuildUnix() const
 	{
 		StringStream result;
-		auto dirIter = mDirectories.Begin();
+		auto dirIter = mDirectories.begin();
 
-		if (!mDevice.Empty())
+		if (!mDevice.empty())
 		{
 			result << "/";
 			result << mDevice;
@@ -453,7 +453,7 @@ namespace bs
 		}
 		else if (mIsAbsolute)
 		{
-			if (dirIter != mDirectories.End() && *dirIter == "~")
+			if (dirIter != mDirectories.end() && *dirIter == "~")
 			{
 				result << "~";
 				dirIter++;
@@ -462,14 +462,14 @@ namespace bs
 			result << "/";
 		}
 
-		for (; dirIter != mDirectories.End(); ++dirIter)
+		for (; dirIter != mDirectories.end(); ++dirIter)
 		{
 			result << *dirIter;
 			result << "/";
 		}
 
 		result << mFilename;
-		return result.Str();
+		return result.str();
 	}
 
 	Path Path::operator+ (const Path& rhs) const
@@ -482,13 +482,13 @@ namespace bs
 		return Append(rhs);
 	}
 
-	bool Path::ComparePathElem(const String& left, const String& right)
+	bool Path::ComparePathElement(const String& left, const String& right)
 	{
 		// Note: Might be more efficient to perform toLower character by character, and return as soon as comparison
 		// fails. Instead of this way where we're allocating two temporary strings with dynamic memory. Although that
 		// approach is problematic as well because UTF8 case conversion requires external library calls which might not
 		// support single character conversion, so it might end up being less efficient.
-		return UTF8::ToLower(left) == UTF8::toLower(right);
+		return UTF8::ToLower(left) == UTF8::ToLower(right);
 	}
 
 	Path Path::Combine(const Path& left, const Path& right)
@@ -503,18 +503,18 @@ namespace bs
 
 		for(auto& entry : path)
 		{
-			if(illegalChars.Find(entry) != String::npos)
+			if(illegalChars.find(entry) != String::npos)
 				entry = ' ';
 		}
 	}
 
 	void Path::PushDirectory(const String& dir)
 	{
-		if (!dir.Empty() && dir != ".")
+		if (!dir.empty() && dir != ".")
 		{
 			if (dir == "..")
 			{
-				if (!mDirectories.Empty() && mDirectories.back() != "..")
+				if (!mDirectories.empty() && mDirectories.back() != "..")
 					mDirectories.pop_back();
 				else
 					mDirectories.push_back(dir);

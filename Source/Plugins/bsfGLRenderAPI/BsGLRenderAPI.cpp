@@ -65,7 +65,7 @@ namespace bs { namespace ct
 				errorCode = glGetError();
 			}
 
-			BS_LOG(Warning, RenderBackend, errorOutput.Str());
+			BS_LOG(Warning, RenderBackend, errorOutput.str());
 		}
 	}
 
@@ -406,13 +406,13 @@ namespace bs { namespace ct
 
 				auto getTexUnit = [&](UINT32 binding)
 				{
-					for(UINT32 i = 0; i < (UINT32)textureUnits.Size(); i++)
+					for(UINT32 i = 0; i < (UINT32)textureUnits.size(); i++)
 					{
 						if (textureUnits[i] == binding)
 							return i;
 					}
 
-					UINT32 unit = (UINT32)textureUnits.Size();
+					UINT32 unit = (UINT32)textureUnits.size();
 					textureUnits.push_back(binding);
 
 					return unit;
@@ -733,7 +733,7 @@ namespace bs { namespace ct
 							UINT8* uniformBufferData = (UINT8*)bs_stack_alloc(buffer->GetSize());
 							buffer->Read(0, uniformBufferData, buffer->getSize());
 
-							for (auto iter = paramDesc->params.Begin(); iter != paramDesc->params.end(); ++iter)
+							for (auto iter = paramDesc->params.begin(); iter != paramDesc->params.end(); ++iter)
 							{
 								const GpuParamDataDesc& param = iter->second;
 
@@ -2388,12 +2388,12 @@ namespace bs { namespace ct
 		Vector<String> tokens = StringUtil::split(mGLSupport->GetGLVersion(), ".");
 
 		DriverVersion driverVersion;
-		if (!tokens.Empty())
+		if (!tokens.empty())
 		{
 			driverVersion.major = parseINT32(tokens[0]);
-			if (tokens.Size() > 1)
+			if (tokens.size() > 1)
 				driverVersion.minor = parseINT32(tokens[1]);
-			if (tokens.Size() > 2)
+			if (tokens.size() > 2)
 				driverVersion.release = parseINT32(tokens[2]);
 		}
 		driverVersion.build = 0;

@@ -264,7 +264,7 @@ namespace bs
 		 */
 		operator int Bool_struct<T>::*() const
 		{
-			return ((this->mData != nullptr && !this->mData->mUUID.Empty()) ? &Bool_struct<T>::_Member : 0);
+			return ((this->mData != nullptr && !this->mData->mUUID.empty()) ? &Bool_struct<T>::_Member : 0);
 		}
 
 		/**

@@ -75,7 +75,7 @@ namespace bs
 
 	void Rect2I::Cut(const Rect2I& cutRect, Vector<Rect2I>& pieces)
 	{
-		UINT32 initialPieces = (UINT32)pieces.Size();
+		UINT32 initialPieces = (UINT32)pieces.size();
 
 		// Cut horizontal
 		if (cutRect.x > x && cutRect.x < (x + (INT32)width))
@@ -130,7 +130,7 @@ namespace bs
 		}
 
 		// No cut
-		if (initialPieces == (UINT32)pieces.Size())
+		if (initialPieces == (UINT32)pieces.size())
 		{
 			if (cutRect.x <= x && (cutRect.x + (INT32)cutRect.width) >= (x + (INT32)width) &&
 				cutRect.y <= y && (cutRect.y + (INT32)cutRect.height) >= (y + (INT32)height))

@@ -60,7 +60,7 @@ namespace bs
 						}
 					}
 				}
-				else If(i == EV_REL)
+				else if(i == EV_REL)
 				{
 					UINT8 relAxisBits[1 + REL_MAX/8];
 					bs_zero_out(relAxisBits);
@@ -77,7 +77,7 @@ namespace bs
 							eventInfo.relAxes.push_back(j);
 					}
 				}
-				else If(i == EV_KEY)
+				else if(i == EV_KEY)
 				{
 					UINT8 keyBits[1 + KEY_MAX/8];
 					bs_zero_out(keyBits);
@@ -257,7 +257,7 @@ namespace bs
 			GamepadInfo info;
 			if(parseGamepadInfo(file, i, info))
 			{
-				info.id = (UINT32)mPlatformData->gamepadInfos.Size();
+				info.id = (UINT32)mPlatformData->gamepadInfos.size();
 				mPlatformData->gamepadInfos.push_back(info);
 			}
 
@@ -292,7 +292,7 @@ namespace bs
 		{
 		case InputDevice::Keyboard: return 1;
 		case InputDevice::Mouse: return 1;
-		case InputDevice::Gamepad: return (UINT32)mPlatformData->gamepadInfos.Size();
+		case InputDevice::Gamepad: return (UINT32)mPlatformData->gamepadInfos.size();
 		case InputDevice::Count: return 0;
 		}
 

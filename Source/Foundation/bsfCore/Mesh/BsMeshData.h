@@ -109,7 +109,7 @@ namespace bs
 		 * Copies data from @p data parameter into the internal buffer for the specified semantic.
 		 *
 		 * @param[in]	semantic   		Semantic that allows the engine to connect the data to a shader input slot.
-		 * @param[in]	data			Vertex data, containing at least @p size bytes.
+		 * @param[in]	data			Vertex Data, containing at least @p size bytes.
 		 * @param[in]	size			The size of the data. Must be the size of the vertex element type * number of
 		 *								vertices.
 		 * @param[in]	semanticIdx 	(optional) If there are multiple semantics with the same name, use different index
@@ -123,7 +123,7 @@ namespace bs
 		 * Copies data from the internal buffer to the pre-allocated buffer for the specified semantic.
 		 *
 		 * @param[in]	semantic   		Semantic that allows the engine to connect the data to a shader input slot.
-		 * @param[in]	data			Buffer that will receive vertex data, of at least @p size bytes.
+		 * @param[in]	data			Buffer that will receive vertex Data, of at least @p size bytes.
 		 * @param[in]	size			The size of the data. Must be the size of the vertex element type * number of
 		 *								vertices.
 		 * @param[in]	semanticIdx 	(optional) If there are multiple semantics with the same name, use different index

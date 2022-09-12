@@ -59,7 +59,7 @@ namespace bs
 	void DrawHelper::Cube(const Vector3& position, const Vector3& extents)
 	{
 		mSolidCubeData.push_back(CubeData());
-		CubeData& cubeData = mSolidCubeData.Back();
+		CubeData& cubeData = mSolidCubeData.back();
 
 		cubeData.position = position;
 		cubeData.extents = extents;
@@ -72,7 +72,7 @@ namespace bs
 	void DrawHelper::Sphere(const Vector3& position, float radius, UINT32 quality)
 	{
 		mSolidSphereData.push_back(SphereData());
-		SphereData& sphereData = mSolidSphereData.Back();
+		SphereData& sphereData = mSolidSphereData.back();
 
 		sphereData.position = position;
 		sphereData.radius = radius;
@@ -86,7 +86,7 @@ namespace bs
 	void DrawHelper::WireCube(const Vector3& position, const Vector3& extents)
 	{
 		mWireCubeData.push_back(CubeData());
-		CubeData& cubeData = mWireCubeData.Back();
+		CubeData& cubeData = mWireCubeData.back();
 
 		cubeData.position = position;
 		cubeData.extents = extents;
@@ -99,7 +99,7 @@ namespace bs
 	void DrawHelper::WireSphere(const Vector3& position, float radius, UINT32 quality)
 	{
 		mWireSphereData.push_back(SphereData());
-		SphereData& sphereData = mWireSphereData.Back();
+		SphereData& sphereData = mWireSphereData.back();
 
 		sphereData.position = position;
 		sphereData.radius = radius;
@@ -113,7 +113,7 @@ namespace bs
 	void DrawHelper::WireHemisphere(const Vector3& position, float radius, UINT32 quality)
 	{
 		mWireHemisphereData.push_back(SphereData());
-		SphereData& sphereData = mWireHemisphereData.Back();
+		SphereData& sphereData = mWireHemisphereData.back();
 
 		sphereData.position = position;
 		sphereData.radius = radius;
@@ -127,7 +127,7 @@ namespace bs
 	void DrawHelper::Line(const Vector3& start, const Vector3& end)
 	{
 		mLineData.push_back(LineData());
-		LineData& lineData = mLineData.Back();
+		LineData& lineData = mLineData.back();
 
 		lineData.start = start;
 		lineData.end = end;
@@ -139,11 +139,11 @@ namespace bs
 
 	void DrawHelper::LineList(const Vector<Vector3>& lines)
 	{
-		if (lines.Size() < 2)
+		if (lines.size() < 2)
 			return;
 
 		mLineListData.push_back(LineListData());
-		LineListData& lineListData = mLineListData.Back();
+		LineListData& lineListData = mLineListData.back();
 
 		Vector3 Center(BsZero);
 		for (auto& point : lines)
@@ -153,13 +153,13 @@ namespace bs
 		lineListData.color = mColor;
 		lineListData.transform = mTransform;
 		lineListData.layer = mLayer;
-		lineListData.center = center / (float)lines.Size();;
+		lineListData.center = center / (float)lines.size();;
 	}
 
 	void DrawHelper::Frustum(const Vector3& position, float aspect, Degree FOV, float near, float far)
 	{
 		mFrustumData.push_back(FrustumData());
-		FrustumData& frustumData = mFrustumData.Back();
+		FrustumData& frustumData = mFrustumData.back();
 
 		frustumData.position = position;
 		frustumData.aspect = aspect;
@@ -176,7 +176,7 @@ namespace bs
 		UINT32 quality)
 	{
 		mConeData.push_back(ConeData());
-		ConeData& coneData = mConeData.Back();
+		ConeData& coneData = mConeData.back();
 
 		coneData.base = base;
 		coneData.normal = normal;
@@ -194,7 +194,7 @@ namespace bs
 		UINT32 quality)
 	{
 		mWireConeData.push_back(ConeData());
-		ConeData& coneData = mWireConeData.Back();
+		ConeData& coneData = mWireConeData.back();
 
 		coneData.base = base;
 		coneData.normal = normal;
@@ -211,7 +211,7 @@ namespace bs
 	void DrawHelper::Disc(const Vector3& position, const Vector3& normal, float radius, UINT32 quality)
 	{
 		mDiscData.push_back(DiscData());
-		DiscData& discData = mDiscData.Back();
+		DiscData& discData = mDiscData.back();
 
 		discData.position = position;
 		discData.normal = normal;
@@ -226,7 +226,7 @@ namespace bs
 	void DrawHelper::WireDisc(const Vector3& position, const Vector3& normal, float radius, UINT32 quality)
 	{
 		mWireDiscData.push_back(DiscData());
-		DiscData& discData = mWireDiscData.Back();
+		DiscData& discData = mWireDiscData.back();
 
 		discData.position = position;
 		discData.normal = normal;
@@ -242,7 +242,7 @@ namespace bs
 		Degree startAngle, Degree amountAngle, UINT32 quality)
 	{
 		mArcData.push_back(ArcData());
-		ArcData& arcData = mArcData.Back();
+		ArcData& arcData = mArcData.back();
 
 		arcData.position = position;
 		arcData.normal = normal;
@@ -260,7 +260,7 @@ namespace bs
 		Degree startAngle, Degree amountAngle, UINT32 quality)
 	{
 		mWireArcData.push_back(ArcData());
-		ArcData& arcData = mWireArcData.Back();
+		ArcData& arcData = mWireArcData.back();
 
 		arcData.position = position;
 		arcData.normal = normal;
@@ -277,7 +277,7 @@ namespace bs
 	void DrawHelper::Rectangle(const Rect3& area)
 	{
 		mRect3Data.push_back(Rect3Data());
-		Rect3Data& rectData = mRect3Data.Back();
+		Rect3Data& rectData = mRect3Data.back();
 
 		rectData.area = area;
 		rectData.color = mColor;
@@ -292,7 +292,7 @@ namespace bs
 			return;
 
 		mText2DData.push_back(Text2DData());
-		Text2DData& textData = mText2DData.Back();
+		Text2DData& textData = mText2DData.back();
 
 		textData.position = position;
 		textData.color = mColor;
@@ -310,7 +310,7 @@ namespace bs
 			return;
 
 		mWireMeshData.push_back(WireMeshData());
-		WireMeshData& wireMeshData = mWireMeshData.Back();
+		WireMeshData& wireMeshData = mWireMeshData.back();
 
 		wireMeshData.meshData = meshData;
 		wireMeshData.color = mColor;
@@ -382,7 +382,7 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.Back();
+			RawData& rawData = allShapes.back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
@@ -403,7 +403,7 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.Back();
+			RawData& rawData = allShapes.back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
@@ -425,7 +425,7 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.Back();
+			RawData& rawData = allShapes.back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
@@ -447,7 +447,7 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.Back();
+			RawData& rawData = allShapes.back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
@@ -469,7 +469,7 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.Back();
+			RawData& rawData = allShapes.back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
@@ -491,7 +491,7 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.Back();
+			RawData& rawData = allShapes.back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
@@ -512,7 +512,7 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.Back();
+			RawData& rawData = allShapes.back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
@@ -533,7 +533,7 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.Back();
+			RawData& rawData = allShapes.back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
@@ -555,7 +555,7 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.Back();
+			RawData& rawData = allShapes.back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
@@ -577,7 +577,7 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.Back();
+			RawData& rawData = allShapes.back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
@@ -599,7 +599,7 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.Back();
+			RawData& rawData = allShapes.back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
@@ -620,9 +620,9 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.Back();
+			RawData& rawData = allShapes.back();
 
-			UINT32 numLines = (UINT32)shapeData.lines.Size() / 2;
+			UINT32 numLines = (UINT32)shapeData.lines.size() / 2;
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
 			rawData.meshType = MeshType::Line;
@@ -642,7 +642,7 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.Back();
+			RawData& rawData = allShapes.back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
@@ -663,7 +663,7 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.Back();
+			RawData& rawData = allShapes.back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
@@ -685,7 +685,7 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.Back();
+			RawData& rawData = allShapes.back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
@@ -707,7 +707,7 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.Back();
+			RawData& rawData = allShapes.back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
@@ -745,7 +745,7 @@ namespace bs
 				UINT32 numQuads = textData->GetNumQuadsForPage(j);
 
 				allShapes.push_back(RawData());
-				RawData& rawData = allShapes.Back();
+				RawData& rawData = allShapes.back();
 
 				rawData.idx = localIdx;
 				rawData.textIdx = textIdx;
@@ -796,7 +796,7 @@ namespace bs
 			UINT32 numIndices;
 		};
 
-		UINT32 numShapes = (UINT32)allShapes.Size();
+		UINT32 numShapes = (UINT32)allShapes.size();
 
 		Vector<Batch> batches;
 		if (numShapes > 0)
@@ -804,7 +804,7 @@ namespace bs
 			batches.push_back(Batch());
 
 			{
-				Batch& currentBatch = batches.Back();
+				Batch& currentBatch = batches.back();
 				currentBatch.startIdx = 0;
 				currentBatch.type = allShapes[0].meshType;
 				currentBatch.numVertices = allShapes[0].numVertices;
@@ -819,7 +819,7 @@ namespace bs
 
 			for (UINT32 i = 1; i < numShapes; i++)
 			{
-				Batch& currentBatch = batches.Back();
+				Batch& currentBatch = batches.back();
 
 				HTexture texture;
 				if (allShapes[i].meshType == MeshType::Text)
@@ -835,7 +835,7 @@ namespace bs
 
 					batches.push_back(Batch());
 
-					Batch& newBatch = batches.Back();
+					Batch& newBatch = batches.back();
 					newBatch.startIdx = i;
 					newBatch.type = allShapes[i].meshType;
 					newBatch.numVertices = allShapes[i].numVertices;
@@ -851,7 +851,7 @@ namespace bs
 			}
 
 			{
-				Batch& currentBatch = batches.Back();
+				Batch& currentBatch = batches.back();
 				currentBatch.endIdx = numShapes - 1;
 			}
 		}
@@ -909,7 +909,7 @@ namespace bs
 			if (batch.type == MeshType::Solid)
 			{
 				meshInfos.push_back(ShapeMeshData());
-				ShapeMeshData& newMesh = meshInfos.Back();
+				ShapeMeshData& newMesh = meshInfos.back();
 				newMesh.subMesh.indexOffset = indexOffset[typeIdx];
 				newMesh.subMesh.indexCount = batch.numIndices;
 				newMesh.subMesh.drawOp = DOT_TRIANGLE_LIST;
@@ -1008,7 +1008,7 @@ namespace bs
 			else if (batch.type == MeshType::Wire)
 			{
 				meshInfos.push_back(ShapeMeshData());
-				ShapeMeshData& newMesh = meshInfos.Back();
+				ShapeMeshData& newMesh = meshInfos.back();
 				newMesh.subMesh.indexOffset = indexOffset[typeIdx];
 				newMesh.subMesh.indexCount = batch.numIndices;
 				newMesh.subMesh.drawOp = DOT_TRIANGLE_LIST;
@@ -1056,10 +1056,10 @@ namespace bs
 					}
 				}
 			}
-			else If(batch.type == MeshType::Line)
+			else if(batch.type == MeshType::Line)
 			{
 				meshInfos.push_back(ShapeMeshData());
-				ShapeMeshData& newMesh = meshInfos.Back();
+				ShapeMeshData& newMesh = meshInfos.back();
 				newMesh.subMesh.indexOffset = indexOffset[typeIdx];
 				newMesh.subMesh.indexCount = batch.numIndices;
 				newMesh.subMesh.drawOp = DOT_LINE_LIST;
@@ -1199,7 +1199,7 @@ namespace bs
 					continue;
 
 				meshInfos.push_back(ShapeMeshData());
-				ShapeMeshData& newMesh = meshInfos.Back();
+				ShapeMeshData& newMesh = meshInfos.back();
 				newMesh.subMesh.indexOffset = indexOffset[typeIdx];
 				newMesh.subMesh.indexCount = batch.numIndices;
 				newMesh.subMesh.drawOp = DOT_TRIANGLE_LIST;

@@ -165,12 +165,12 @@ namespace bs
 
 		if(clippedX < 0)
 			clippedX = 0;
-		else If(clippedX >= (INT32)data->cursorClipRect.width)
+		else if(clippedX >= (INT32)data->cursorClipRect.width)
 			clippedX = data->cursorClipRect.width > 0 ? data->cursorClipRect.width - 1 : 0;
 
 		if(clippedY < 0)
 			clippedY = 0;
-		else If(clippedY >= (INT32)data->cursorClipRect.height)
+		else if(clippedY >= (INT32)data->cursorClipRect.height)
 			clippedY = data->cursorClipRect.height > 0 ? data->cursorClipRect.height - 1 : 0;
 
 		clippedX += data->cursorClipRect.x;
@@ -404,8 +404,8 @@ namespace bs
 		if(!mData->mainXWindow)
 			return;
 
-		auto iterFind = mData->windowMap.Find(mData->mainXWindow);
-		if(iterFind == mData->windowMap.End())
+		auto iterFind = mData->windowMap.find(mData->mainXWindow);
+		if(iterFind == mData->windowMap.end())
 			return;
 
 		LinuxWindow* mainLinuxWindow = iterFind->second;
@@ -416,7 +416,7 @@ namespace bs
 
 	void Platform::SetCaptionNonClientAreas(const ct::RenderWindow& window, const Vector<Rect2I>& nonClientAreas)
 	{
-		if(nonClientAreas.Size() == 0)
+		if(nonClientAreas.size() == 0)
 			return;
 
 		Lock Lock(mData->lock);
@@ -686,8 +686,8 @@ namespace bs
 			return "";
 		}
 
-		auto iterFind = mData->keyNameMap.Find(String(keyName));
-		if(iterFind == mData->keyNameMap.End())
+		auto iterFind = mData->keyNameMap.find(String(keyName));
+		if(iterFind == mData->keyNameMap.end())
 		{
 			// Cannot find mapping, although this shouldn't really happen
 			return "";
@@ -722,7 +722,7 @@ namespace bs
 
 		const char* commandPattern = "xdg-open '%s'";
 
-		char* commandStr = (char*)bs_stack_alloc((UINT32)pathString.Size() + (UINT32)strlen(commandPattern) + 1);
+		char* commandStr = (char*)bs_stack_alloc((UINT32)pathString.size() + (UINT32)strlen(commandPattern) + 1);
 		sprintf(commandStr, commandPattern, pathString.c_str());
 
 		if(system(commandStr)){};
@@ -776,8 +776,8 @@ namespace bs
 	/** Returns a LinuxWindow from a native X11 window handle. */
 	LinuxWindow* getLinuxWindow(LinuxPlatform::Pimpl* data, ::Window xWindow)
 	{
-		auto iterFind = data->windowMap.Find(xWindow);
-		if (iterFind != data->windowMap.End())
+		auto iterFind = data->windowMap.find(xWindow);
+		if (iterFind != data->windowMap.end())
 		{
 			LinuxWindow* window = iterFind->second;
 			return window;
@@ -923,7 +923,7 @@ namespace bs
 				// Send an input command event
 				if(isInputCommand)
 				{
-					if(!onInputCommand.Empty())
+					if(!onInputCommand.empty())
 						onInputCommand(command);
 				}
 			}
@@ -1169,7 +1169,7 @@ namespace bs
 
 					response.xselection.property = selReq.property;
 				}
-				else If(selReq.target == targetsAtom)
+				else if(selReq.target == targetsAtom)
 				{
 					Atom data[2];
 					data[0] = utf8StringAtom;
@@ -1347,8 +1347,8 @@ namespace bs
 			if (keyNameCStr != nullptr)
 			{
 				String keyName = String(keyNameCStr);
-				auto iterFind = mData->keyNameMap.Find(keyName);
-				if (iterFind != mData->keyNameMap.End())
+				auto iterFind = mData->keyNameMap.find(keyName);
+				if (iterFind != mData->keyNameMap.end())
 				{
 					KeyCode keyCode = iterFind->second;
 					mData->keyCodeMap[keyCode] = buttonCode;
@@ -1447,13 +1447,13 @@ namespace bs
 
 	void LinuxPlatform::_unregisterWindow(::Window xWindow)
 	{
-		auto iterFind = mData->windowMap.Find(xWindow);
-		if(iterFind != mData->windowMap.End())
+		auto iterFind = mData->windowMap.find(xWindow);
+		if(iterFind != mData->windowMap.end())
 		{
 			if(mData->cursorClipEnabled && mData->cursorClipWindow == iterFind->second)
 				bs::clipCursorDisable(mData);
 
-			mData->windowMap.Erase(iterFind);
+			mData->windowMap.erase(iterFind);
 		}
 
 		if(mData->mainXWindow == xWindow)

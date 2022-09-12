@@ -91,16 +91,16 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		auto iter = mFactories.Find(language);
-		if (iter != mFactories.End())
-			mFactories.Erase(iter);
+		auto iter = mFactories.find(language);
+		if (iter != mFactories.end())
+			mFactories.erase(iter);
 	}
 
 	GpuProgramFactory* GpuProgramManager::getFactory(const String& language)
 	{
-		auto iter = mFactories.Find(language);
-		if (iter == mFactories.End())
-			iter = mFactories.Find(sNullLang);
+		auto iter = mFactories.find(language);
+		if (iter == mFactories.end())
+			iter = mFactories.find(sNullLang);
 
 		return iter->second;
 	}
@@ -109,8 +109,8 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		auto iter = mFactories.Find(lang);
-		return iter != mFactories.End();
+		auto iter = mFactories.find(lang);
+		return iter != mFactories.end();
 	}
 
 	SPtr<GpuProgram> GpuProgramManager::Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)

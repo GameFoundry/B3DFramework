@@ -274,7 +274,7 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Checks does the data parameter with the specified name currently contains animated data. This could be an animation 
+		/// Checks does the data parameter with the specified name currently contains animated Data. This could be an animation
 		/// curve or a color gradient.
 		/// </summary>
 		public bool IsAnimated(string name, int arrayIdx = 0)

@@ -162,8 +162,8 @@ namespace bs
 				BS_EXCEPT(InternalErrorException, "Cannot set script app domain.");
 		}
 
-		auto iterFind = mAssemblies.Find(name);
-		if(iterFind != mAssemblies.End())
+		auto iterFind = mAssemblies.find(name);
+		if(iterFind != mAssemblies.end())
 		{
 			assembly = iterFind->second;
 		}
@@ -229,9 +229,9 @@ namespace bs
 
 	MonoAssembly* MonoManager::getAssembly(const String& name) const
 	{
-		auto iterFind = mAssemblies.Find(name);
+		auto iterFind = mAssemblies.find(name);
 
-		if(iterFind != mAssemblies.End())
+		if(iterFind != mAssemblies.end())
 			return iterFind->second;
 
 		return nullptr;

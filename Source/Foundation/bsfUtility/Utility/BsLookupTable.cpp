@@ -8,7 +8,7 @@ namespace bs
 	LookupTable::LookupTable(Vector<float> values, float startTime, float endTime, uint32_t sampleSize)
 		: MValues(std::move(values))
 		, MSampleSize(std::max(sampleSize, 1U))
-		, MNumSamples((uint32_t)mValues.Size() / mSampleSize)
+		, MNumSamples((uint32_t)mValues.size() / mSampleSize)
 		, MTimeStart(startTime)
 	{
 		if(endTime < startTime)

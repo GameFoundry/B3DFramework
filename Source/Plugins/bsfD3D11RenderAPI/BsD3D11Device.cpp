@@ -131,9 +131,9 @@ namespace bs { namespace ct
 			break;
 		}
 
-		if (severityList.Size() > 0)
+		if (severityList.size() > 0)
 		{
-			filter.AllowList.NumSeverities = (UINT)severityList.Size();
+			filter.AllowList.NumSeverities = (UINT)severityList.size();
 			filter.AllowList.pSeverityList = &severityList[0];
 		}
 

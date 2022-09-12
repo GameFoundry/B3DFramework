@@ -47,9 +47,9 @@ namespace bs { namespace ct
 		key.hullProgKey = hullProgram != nullptr ? hullProgram->GetProgramID() : 0;
 		key.domainProgKey = domainProgram != nullptr ? domainProgram->GetProgramID() : 0;
 
-		auto iterFind = mPipelines.Find(key);
+		auto iterFind = mPipelines.find(key);
 
-		if(iterFind == mPipelines.End())
+		if(iterFind == mPipelines.end())
 		{
 			GLSLProgramPipeline newPipeline;
 

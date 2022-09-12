@@ -242,7 +242,7 @@ namespace bs
 		UINT32 GetRendererId() const { return mRendererId; }
 
 		/** Returns the number of light probes that are active. */
-		UINT32 GetNumActiveProbes() const { return (UINT32)mProbeMap.Size(); }
+		UINT32 GetNumActiveProbes() const { return (UINT32)mProbeMap.size(); }
 
 		/** Returns a list of positions for all light probes. Only the first getNumActiveProbes() entries are active. */
 		const Vector<Vector3>& GetLightProbePositions() const { return mProbePositions; }

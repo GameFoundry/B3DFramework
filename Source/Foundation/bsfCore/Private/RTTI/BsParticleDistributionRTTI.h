@@ -109,7 +109,7 @@ namespace bs
 				rtti_read(data.mMaxCurve, stream);
 				break;
 			default:
-				BS_LOG(Error, RTTI, "Unknown version of TDistribution<T> data. Unable to deserialize.");
+				BS_LOG(Error, RTTI, "Unknown version of TDistribution<T> Data. Unable to deserialize.");
 				break;
 			}
 

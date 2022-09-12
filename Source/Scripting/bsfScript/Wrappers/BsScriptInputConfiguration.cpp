@@ -40,8 +40,8 @@ namespace bs
 	{
 		UINT64 configId = (UINT64)inputConfig.Get();
 
-		auto iterFind = ScriptInputConfigurations.Find(configId);
-		if (iterFind != ScriptInputConfigurations.End())
+		auto iterFind = ScriptInputConfigurations.find(configId);
+		if (iterFind != ScriptInputConfigurations.end())
 			return iterFind->second;
 
 		return nullptr;
@@ -111,7 +111,7 @@ namespace bs
 	void ScriptInputConfiguration::_onManagedInstanceDeleted(bool assemblyRefresh)
 	{
 		UINT64 configId = (UINT64)mInputConfig.Get();
-		ScriptInputConfigurations.Erase(configId);
+		ScriptInputConfigurations.erase(configId);
 
 		ScriptObject::_onManagedInstanceDeleted(assemblyRefresh);
 	}

@@ -46,10 +46,10 @@ namespace bs { namespace ct
 	{
 		Lock Lock(mMutex);
 
-		while (mVertexInputMap.Begin() != mVertexInputMap.end())
+		while (mVertexInputMap.begin() != mVertexInputMap.end())
 		{
-			auto firstElem = mVertexInputMap.Begin();
-			mVertexInputMap.Erase(firstElem);
+			auto firstElem = mVertexInputMap.begin();
+			mVertexInputMap.erase(firstElem);
 		}
 	}
 
@@ -62,15 +62,15 @@ namespace bs { namespace ct
 		pair.bufferDeclId = vbDecl->GetId();
 		pair.shaderDeclId = shaderDecl->GetId();
 
-		auto iterFind = mVertexInputMap.Find(pair);
-		if (iterFind == mVertexInputMap.End())
+		auto iterFind = mVertexInputMap.find(pair);
+		if (iterFind == mVertexInputMap.end())
 		{
-			if (mVertexInputMap.Size() >= DECLARATION_BUFFER_SIZE)
+			if (mVertexInputMap.size() >= DECLARATION_BUFFER_SIZE)
 				removeLeastUsed(); // Prune so the buffer doesn't just infinitely grow
 
 			addNew(vbDecl, shaderDecl);
 
-			iterFind = mVertexInputMap.Find(pair);
+			iterFind = mVertexInputMap.find(pair);
 		}
 
 		iterFind->second.lastUsedIdx = ++mLastUsedCounter;
@@ -207,14 +207,14 @@ namespace bs { namespace ct
 
 		Map<UINT32, VertexDeclarationKey> leastFrequentlyUsedMap;
 
-		for (auto iter = mVertexInputMap.Begin(); iter != mVertexInputMap.end(); ++iter)
+		for (auto iter = mVertexInputMap.begin(); iter != mVertexInputMap.end(); ++iter)
 			leastFrequentlyUsedMap[iter->second.lastUsedIdx] = iter->first;
 
 		UINT32 elemsRemoved = 0;
-		for (auto iter = leastFrequentlyUsedMap.Begin(); iter != leastFrequentlyUsedMap.end(); ++iter)
+		for (auto iter = leastFrequentlyUsedMap.begin(); iter != leastFrequentlyUsedMap.end(); ++iter)
 		{
-			auto inputLayoutIter = mVertexInputMap.Find(iter->second);
-			mVertexInputMap.Erase(inputLayoutIter);
+			auto inputLayoutIter = mVertexInputMap.find(iter->second);
+			mVertexInputMap.erase(inputLayoutIter);
 
 			elemsRemoved++;
 			if (elemsRemoved >= NUM_ELEMENTS_TO_PRUNE)

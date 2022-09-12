@@ -433,7 +433,7 @@ namespace bs
 	void GUIElementBase::_getElementAreas(const Rect2I& layoutArea, Rect2I* elementAreas, UINT32 numElements,
 		const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const
 	{
-		assert(mChildren.Size() == 0);
+		assert(mChildren.size() == 0);
 	}
 
 	void GUIElementBase::_setParent(GUIElementBase* parent)
@@ -477,7 +477,7 @@ namespace bs
 	void GUIElementBase::_unregisterChildElement(GUIElementBase* element)
 	{
 		bool foundElem = false;
-		for(auto iter = mChildren.Begin(); iter != mChildren.end(); ++iter)
+		for(auto iter = mChildren.begin(); iter != mChildren.end(); ++iter)
 		{
 			GUIElementBase* child = *iter;
 
@@ -485,7 +485,7 @@ namespace bs
 			{
 				element->_markLayoutAsDirty();
 
-				mChildren.Erase(iter);
+				mChildren.erase(iter);
 				element->_setParent(nullptr);
 				foundElem = true;
 
@@ -524,7 +524,7 @@ namespace bs
 			}
 		}
 
-		assert(mChildren.Empty());
+		assert(mChildren.empty());
 	}
 
 	void GUIElementBase::_changeParentWidget(GUIWidget* widget)

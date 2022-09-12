@@ -194,11 +194,11 @@ namespace bs { namespace ct
 			mVisibleLights[i].Clear();
 
 		// Generate a list of lights and their GPU buffers
-		UINT32 numDirLights = (UINT32)sceneInfo.directionalLights.Size();
+		UINT32 numDirLights = (UINT32)sceneInfo.directionalLights.size();
 		for (UINT32 i = 0; i < numDirLights; i++)
 			mVisibleLights[(UINT32)LightType::Directional].push_back(&sceneInfo.directionalLights[i]);
 
-		UINT32 numRadialLights = (UINT32)sceneInfo.radialLights.Size();
+		UINT32 numRadialLights = (UINT32)sceneInfo.radialLights.size();
 		for(UINT32 i = 0; i < numRadialLights; i++)
 		{
 			if (!visibility.radialLights[i])
@@ -207,7 +207,7 @@ namespace bs { namespace ct
 			mVisibleLights[(UINT32)LightType::Radial].push_back(&sceneInfo.radialLights[i]);
 		}
 
-		UINT32 numSpotLights = (UINT32)sceneInfo.spotLights.Size();
+		UINT32 numSpotLights = (UINT32)sceneInfo.spotLights.size();
 		for (UINT32 i = 0; i < numSpotLights; i++)
 		{
 			if (!visibility.spotLights[i])
@@ -217,14 +217,14 @@ namespace bs { namespace ct
 		}
 
 		for (UINT32 i = 0; i < (UINT32)LightType::Count; i++)
-			mNumLights[i] = (UINT32)mVisibleLights[i].Size();
+			mNumLights[i] = (UINT32)mVisibleLights[i].size();
 
 		// Partition all visible lights so that unshadowed ones come first
 		auto partition = [](Vector<const RendererLight*>& entries)
 		{
 			UINT32 numUnshadowed = 0;
 			int first = -1;
-			for (UINT32 i = 0; i < (UINT32)entries.Size(); ++i)
+			for (UINT32 i = 0; i < (UINT32)entries.size(); ++i)
 			{
 				if(entries[i]->internal->GetCastsShadow())
 				{
@@ -237,7 +237,7 @@ namespace bs { namespace ct
 
 			if(first != -1)
 			{
-				for(UINT32 i = first + 1; i < (UINT32)entries.Size(); ++i)
+				for(UINT32 i = first + 1; i < (UINT32)entries.size(); ++i)
 				{
 					if(!entries[i]->internal->GetCastsShadow())
 					{
@@ -260,14 +260,14 @@ namespace bs { namespace ct
 			for(auto& entry : lightsPerType)
 			{
 				mVisibleLightData.push_back(LightData());
-				entry->GetParameters(mVisibleLightData.Back());
+				entry->GetParameters(mVisibleLightData.back());
 			}
 		}
 
 		bool supportsStructuredBuffers = gRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 		if(supportsStructuredBuffers)
 		{
-			UINT32 size = (UINT32) mVisibleLightData.Size() * sizeof(LightData);
+			UINT32 size = (UINT32) mVisibleLightData.size() * sizeof(LightData);
 			UINT32 curBufferSize;
 
 			if (mLightBuffer != nullptr)
@@ -317,7 +317,7 @@ namespace bs { namespace ct
 			distances[i] = std::numeric_limits<float>::max();
 
 		// Note: This is an ad-hoc way of evaluating light influence, a better way might be wanted
-		UINT32 numLights = (UINT32)mVisibleLightData.Size();
+		UINT32 numLights = (UINT32)mVisibleLightData.size();
 		UINT32 furthestLightIdx = (UINT32)-1;
 		float furthestDistance = 0.0f;
 		for (UINT32 j = numDirLights; j < numLights; j++)

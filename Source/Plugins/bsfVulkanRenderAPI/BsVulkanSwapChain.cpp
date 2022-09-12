@@ -193,7 +193,7 @@ namespace bs { namespace ct
 		VulkanRenderPass* renderPass = VulkanRenderPasses::instance().Get(mDevice, rpDesc);
 
 		// Create a framebuffer for each swap chain buffer
-		UINT32 numFramebuffers = (UINT32)mSurfaces.Size();
+		UINT32 numFramebuffers = (UINT32)mSurfaces.size();
 		for (UINT32 i = 0; i < numFramebuffers; i++)
 		{
 			VULKAN_FRAMEBUFFER_DESC& desc = mSurfaces[i].framebufferDesc;
@@ -257,7 +257,7 @@ namespace bs { namespace ct
 		if(imageIndex != mCurrentSemaphoreIdx)
 			std::swap(mSurfaces[mCurrentSemaphoreIdx].sync, mSurfaces[imageIndex].sync);
 
-		mCurrentSemaphoreIdx = (mCurrentSemaphoreIdx + 1) % mSurfaces.Size();
+		mCurrentSemaphoreIdx = (mCurrentSemaphoreIdx + 1) % mSurfaces.size();
 
 		assert(!mSurfaces[imageIndex].acquired && "Same swap chain surface being acquired twice in a row without present().");
 		mSurfaces[imageIndex].acquired = true;

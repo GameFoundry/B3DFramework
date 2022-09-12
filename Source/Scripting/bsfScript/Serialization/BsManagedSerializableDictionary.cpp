@@ -59,7 +59,7 @@ namespace bs
 			valuesArray = values.GetInternal();
 		}
 		else
-			mNumEntries = (UINT32)parent->mCachedEntries.Size();
+			mNumEntries = (UINT32)parent->mCachedEntries.size();
 
 		// Note: Handle needed since Enumerator will be on the stack? meaning the GC should be able to find the references.
 		if(keysArray && valuesArray)
@@ -208,13 +208,13 @@ namespace bs
 		{
 			if (!mIteratorInitialized)
 			{
-				mCachedIter = mParent->mCachedEntries.Begin();
+				mCachedIter = mParent->mCachedEntries.begin();
 				mIteratorInitialized = true;
 			}
 			else
 				++mCachedIter;
 
-			return mCachedIter != mParent->mCachedEntries.End();
+			return mCachedIter != mParent->mCachedEntries.end();
 		}
 	}
 
@@ -416,9 +416,9 @@ namespace bs
 		}
 		else
 		{
-			auto findIter = mCachedEntries.Find(key);
-			if (findIter != mCachedEntries.End())
-				mCachedEntries.Erase(findIter);
+			auto findIter = mCachedEntries.find(key);
+			if (findIter != mCachedEntries.end())
+				mCachedEntries.erase(findIter);
 		}
 	}
 
@@ -434,7 +434,7 @@ namespace bs
 			return *(bool*)MonoUtil::unbox(returnVal);
 		}
 		else
-			return mCachedEntries.Find(key) != mCachedEntries.end();
+			return mCachedEntries.find(key) != mCachedEntries.end();
 	}
 
 	ManagedSerializableDictionary::Enumerator ManagedSerializableDictionary::GetEnumerator() const

@@ -67,8 +67,8 @@ namespace bs
 	MonoMethod* MonoClass::getMethod(const String& name, UINT32 numParams) const
 	{
 		MethodId MehodId(name, numParams);
-		auto iterFind = mMethods.Find(mehodId);
-		if(iterFind != mMethods.End())
+		auto iterFind = mMethods.find(mehodId);
+		if(iterFind != mMethods.end())
 			return iterFind->second;
 
 		::MonoMethod* method = mono_class_get_method_from_name(mClass, name.c_str(), (int)numParams);
@@ -84,8 +84,8 @@ namespace bs
 	MonoMethod* MonoClass::getMethodExact(const String& name, const String& signature) const
 	{
 		MethodId MehodId(name + "(" + signature + ")", 0);
-		auto iterFind = mMethods.Find(mehodId);
-		if(iterFind != mMethods.End())
+		auto iterFind = mMethods.find(mehodId);
+		if(iterFind != mMethods.end())
 			return iterFind->second;
 
 		::MonoMethod* method;
@@ -128,8 +128,8 @@ namespace bs
 
 	MonoField* MonoClass::getField(const String& name) const
 	{
-		auto iterFind = mFields.Find(name);
-		if(iterFind != mFields.End())
+		auto iterFind = mFields.find(name);
+		if(iterFind != mFields.end())
 			return iterFind->second;
 
 		MonoClassField* field = mono_class_get_field_from_name(mClass, name.c_str());
@@ -144,8 +144,8 @@ namespace bs
 
 	MonoProperty* MonoClass::getProperty(const String& name) const
 	{
-		auto iterFind = mProperties.Find(name);
-		if(iterFind != mProperties.End())
+		auto iterFind = mProperties.find(name);
+		if(iterFind != mProperties.end())
 			return iterFind->second;
 
 		::MonoProperty* property = mono_class_get_property_from_name(mClass, name.c_str());

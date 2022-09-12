@@ -23,7 +23,7 @@ namespace bs
 		{
 			UINT64 hWnd;
 			parentWindow->GetCustomAttribute("WINDOW", &hWnd);
-			desc.platformSpecific["parentWindowHandle"] = toString(hWnd);
+			desc.platformSpecific["parentWindowHandle"] = ToString(hWnd);
 		}
 
 		// Create the window

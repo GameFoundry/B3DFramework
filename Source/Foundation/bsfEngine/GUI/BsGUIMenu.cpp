@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	bool GUIMenuItemComparer::Operator() (const GUIMenuItem* const& a, const GUIMenuItem* const& b) const
+	bool GUIMenuItemComparer::operator() (const GUIMenuItem* const& a, const GUIMenuItem* const& b) const
 	{
 		return a->mPriority > b->mPriority || (a->mPriority == b->mPriority && a->mSeqIdx < b->mSeqIdx);
 	}
@@ -34,7 +34,7 @@ namespace bs
 	{
 		auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&] (GUIMenuItem* x) { return x->GetName() == name; });
 
-		if(iterFind != mChildren.End())
+		if(iterFind != mChildren.end())
 			return *iterFind;
 
 		return nullptr;
@@ -44,7 +44,7 @@ namespace bs
 	{
 		auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&] (GUIMenuItem* x) { return x->GetName() == name; });
 
-		if(iterFind != mChildren.End())
+		if(iterFind != mChildren.end())
 			return *iterFind;
 
 		return nullptr;
@@ -54,10 +54,10 @@ namespace bs
 	{
 		auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&] (GUIMenuItem* x) { return x->GetName() == name; });
 
-		if(iterFind != mChildren.End())
+		if(iterFind != mChildren.end())
 		{
 			bs_delete(*iterFind);
-			mChildren.Erase(iterFind);
+			mChildren.erase(iterFind);
 		}
 	}
 
@@ -65,10 +65,10 @@ namespace bs
 	{
 		auto iterFind = std::find(begin(mChildren), end(mChildren), item);
 
-		if (iterFind != mChildren.End())
+		if (iterFind != mChildren.end())
 		{
 			bs_delete(*iterFind);
-			mChildren.Erase(iterFind);
+			mChildren.erase(iterFind);
 		}
 	}
 
@@ -99,17 +99,17 @@ namespace bs
 		Vector<String> pathElements = StringUtil::split(path, "/");
 
 		GUIMenuItem* curSubMenu = &mRootElement;
-		for(UINT32 i = 0; i < (UINT32)pathElements.Size(); i++)
+		for(UINT32 i = 0; i < (UINT32)pathElements.size(); i++)
 		{
 			if(pathElements[i] == "")
 				continue;
 
-			const String& pathElem = *(pathElements.Begin() + i);
+			const String& pathElem = *(pathElements.begin() + i);
 			GUIMenuItem* existingItem = curSubMenu->FindChild(pathElem);
 
 			if(existingItem == nullptr)
 			{
-				bool isLastElem = i == (UINT32)(pathElements.Size() - 1);
+				bool isLastElem = i == (UINT32)(pathElements.size() - 1);
 
 				if(isLastElem)
 					existingItem = bs_new<GUIMenuItem>(curSubMenu, pathElem, callback, priority, mNextIdx++, key);
@@ -141,9 +141,9 @@ namespace bs
 		Vector<String> pathElements = StringUtil::split(path, "/");
 
 		GUIMenuItem* curSubMenu = &mRootElement;
-		for(UINT32 i = 0; i < (UINT32)pathElements.Size(); i++)
+		for(UINT32 i = 0; i < (UINT32)pathElements.size(); i++)
 		{
-			const String& pathElem = *(pathElements.Begin() + i);
+			const String& pathElem = *(pathElements.begin() + i);
 			GUIMenuItem* existingItem = curSubMenu->FindChild(pathElem);
 
 			if(existingItem == nullptr || existingItem->IsSeparator())

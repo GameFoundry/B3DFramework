@@ -34,8 +34,8 @@ namespace bs
 
 	void LightProbeVolume::RemoveProbe(UINT32 handle)
 	{
-		auto iterFind = mProbes.Find(handle);
-		if (iterFind != mProbes.End() && mProbes.size() > 4)
+		auto iterFind = mProbes.find(handle);
+		if (iterFind != mProbes.end() && mProbes.size() > 4)
 		{
 			iterFind->second.flags = LightProbeFlags::Removed;
 			_markCoreDirty();
@@ -44,8 +44,8 @@ namespace bs
 
 	void LightProbeVolume::SetProbePosition(UINT32 handle, const Vector3& position)
 	{
-		auto iterFind = mProbes.Find(handle);
-		if (iterFind != mProbes.End())
+		auto iterFind = mProbes.find(handle);
+		if (iterFind != mProbes.end())
 		{
 			iterFind->second.position = position;
 			_markCoreDirty();
@@ -54,8 +54,8 @@ namespace bs
 
 	Vector3 LightProbeVolume::GetProbePosition(UINT32 handle) const
 	{
-		auto iterFind = mProbes.Find(handle);
-		if (iterFind != mProbes.End())
+		auto iterFind = mProbes.find(handle);
+		if (iterFind != mProbes.end())
 			return iterFind->second.position;
 		
 		return Vector3::ZERO;
@@ -122,7 +122,7 @@ namespace bs
 		UINT32 numProbes = numProbesX * numProbesY * numProbesZ;
 
 		// Make sure there are adequate number of probes to fill the volume
-		while((UINT32)mProbes.Size() < numProbes)
+		while((UINT32)mProbes.size() < numProbes)
 			addProbe(Vector3::ZERO);
 
 		UINT32 idx = 0;
@@ -131,8 +131,8 @@ namespace bs
 
 		Vector3 size = mVolume.GetSize();
 
-		auto iter = mProbes.Begin();
-		while (iter != mProbes.End())
+		auto iter = mProbes.begin();
+		while (iter != mProbes.end())
 		{
 			UINT32 x = idx % numProbesX;
 			UINT32 y = (idx / rowPitch) % numProbesY;
@@ -154,7 +154,7 @@ namespace bs
 		}
 
 		// Set remaining probes to removed state
-		while(iter != mProbes.End())
+		while(iter != mProbes.end())
 		{
 			iter->second.flags = LightProbeFlags::Removed;
 			++iter;
@@ -176,8 +176,8 @@ namespace bs
 
 	void LightProbeVolume::RenderProbe(UINT32 handle)
 	{
-		auto iterFind = mProbes.Find(handle);
-		if (iterFind != mProbes.End())
+		auto iterFind = mProbes.find(handle);
+		if (iterFind != mProbes.end())
 		{
 			if (iterFind->second.flags == LightProbeFlags::Clean)
 			{
@@ -254,8 +254,8 @@ namespace bs
 
 		for(auto& entry : coeffInfo)
 		{
-			auto iterFind = mProbes.Find(entry.handle);
-			if (iterFind == mProbes.End())
+			auto iterFind = mProbes.find(entry.handle);
+			if (iterFind == mProbes.end())
 				continue;
 
 			iterFind->second.coefficients = entry.coefficients;
@@ -319,10 +319,10 @@ namespace bs
 			}
 
 			for (auto& probe : removedProbes)
-				mProbes.Erase(probe);
+				mProbes.erase(probe);
 
-			UINT32 numDirtyProbes = (UINT32)dirtyProbes.Size();
-			UINT32 numRemovedProbes = (UINT32)removedProbes.Size();
+			UINT32 numDirtyProbes = (UINT32)dirtyProbes.size();
+			UINT32 numRemovedProbes = (UINT32)removedProbes.size();
 
 			size += csync_size((SceneActor&)*this);
 			size += rtti_size(numDirtyProbes).bytes;
@@ -401,8 +401,8 @@ namespace bs
 	void LightProbeVolume::Initialize()
 	{
 		// Set SH coefficients loaded from the file
-		UINT32 numCoefficients = (UINT32)mInitCoefficients.Size();
-		assert(mInitCoefficients.Size() == mProbeMap.size());
+		UINT32 numCoefficients = (UINT32)mInitCoefficients.size();
+		assert(mInitCoefficients.size() == mProbeMap.size());
 
 		resizeCoefficientTexture(std::max(32U, numCoefficients));
 
@@ -442,12 +442,12 @@ namespace bs
 	bool LightProbeVolume::RenderProbes(UINT32 maxProbes)
 	{
 		// Probe map only contains active probes
-		UINT32 numUsedProbes = (UINT32)mProbeMap.Size();
+		UINT32 numUsedProbes = (UINT32)mProbeMap.size();
 		if(numUsedProbes > mCoeffBufferSize)
 			resizeCoefficientTexture(std::max(32U, numUsedProbes * 2));
 
 		UINT32 numProbeUpdates = 0;
-		for (; mFirstDirtyProbe < (UINT32)mProbeInfos.Size(); ++mFirstDirtyProbe)
+		for (; mFirstDirtyProbe < (UINT32)mProbeInfos.size(); ++mFirstDirtyProbe)
 		{
 			LightProbeInfo& probeInfo = mProbeInfos[mFirstDirtyProbe];
 
@@ -482,7 +482,7 @@ namespace bs
 
 		gRenderer()->NotifyLightProbeVolumeUpdated(this);
 
-		return mFirstDirtyProbe == (UINT32)mProbeInfos.Size();
+		return mFirstDirtyProbe == (UINT32)mProbeInfos.size();
 	}
 
 	void LightProbeVolume::SyncToCore(const CoreSyncData& data)
@@ -508,8 +508,8 @@ namespace bs
 			LightProbeFlags flags;
 			rtti_read(flags, stream);
 
-			auto iterFind = mProbeMap.Find(handle);
-			if(iterFind != mProbeMap.End())
+			auto iterFind = mProbeMap.find(handle);
+			if(iterFind != mProbeMap.end())
 			{
 				// Update existing probe information
 				UINT32 compactIdx = iterFind->second;
@@ -522,8 +522,8 @@ namespace bs
 			else // Add a new probe
 			{
 				// Empty slots always start at a specific index because we always move them to the back of the array
-				UINT32 emptyProbeStartIdx = (UINT32)mProbeMap.Size();
-				UINT32 numProbes = (UINT32)mProbeInfos.Size();
+				UINT32 emptyProbeStartIdx = (UINT32)mProbeMap.size();
+				UINT32 numProbes = (UINT32)mProbeInfos.size();
 
 				// Find an empty slot to place the probe information at
 				UINT32 compactIdx = -1;
@@ -539,7 +539,7 @@ namespace bs
 				// Found an empty slot
 				if (compactIdx == (UINT32)-1)
 				{
-					compactIdx = (UINT32)mProbeInfos.Size();
+					compactIdx = (UINT32)mProbeInfos.size();
 
 					LightProbeInfo info;
 					info.flags = LightProbeFlags::Dirty;
@@ -569,8 +569,8 @@ namespace bs
 			UINT32 idx;
 			rtti_read(idx, stream);
 
-			auto iterFind = mProbeMap.Find(idx);
-			if(iterFind != mProbeMap.End())
+			auto iterFind = mProbeMap.find(idx);
+			if(iterFind != mProbeMap.end())
 			{
 				UINT32 compactIdx = iterFind->second;
 				
@@ -579,7 +579,7 @@ namespace bs
 
 				// Move the empty info to the back of the array so all non-empty probes are contiguous
 				// Search from back to current index, and find first non-empty probe to switch switch
-				UINT32 lastSearchIdx = (UINT32)mProbeInfos.Size() - 1;
+				UINT32 lastSearchIdx = (UINT32)mProbeInfos.size() - 1;
 				while (lastSearchIdx >= (UINT32)compactIdx)
 				{
 					LightProbeFlags flags = mProbeInfos[lastSearchIdx].flags;
@@ -595,7 +595,7 @@ namespace bs
 					lastSearchIdx--;
 				}
 				
-				mProbeMap.Erase(iterFind);
+				mProbeMap.erase(iterFind);
 			}
 		}
 
@@ -610,7 +610,7 @@ namespace bs
 
 	void LightProbeVolume::GetProbeCoefficients(Vector<LightProbeCoefficientInfo>& output) const
 	{
-		UINT32 numActiveProbes = (UINT32)mProbeMap.Size();
+		UINT32 numActiveProbes = (UINT32)mProbeMap.size();
 		if (numActiveProbes == 0)
 			return;
 

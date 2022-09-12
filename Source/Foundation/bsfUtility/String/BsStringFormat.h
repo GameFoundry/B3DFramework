@@ -153,7 +153,7 @@ namespace bs
 
 			memcpy(outputBuffer + copyDestIdx, source + copySourceIdx, (finalStringSize - copyDestIdx) * sizeof(T));
 
-			BasicString<T> OutputStr(outputBuffer, finalStringSize);
+			BasicString<T> outputStr(outputBuffer, finalStringSize);
 			bs_free(outputBuffer);
 
 			for (UINT32 i = 0; i < MAX_PARAMS; i++)
@@ -191,7 +191,7 @@ namespace bs
 		}
 
 		/**	Helper method for converting any data type to a narrow string. */
-		template<class T> static String ToString(const T& param) { return bs::toString(param); }
+		template<class T> static String ToString(const T& param) { return bs::ToString(param); }
 
 		/**	Helper method that "converts" a narrow string to a narrow string (simply a pass through). */
 		static String ToString(const String& param) { return param; }
@@ -222,7 +222,7 @@ namespace bs
 		}
 
 		/**	Helper method for converting any data type to a wide string. */
-		template<class T> static WString ToWString(const T& param) { return bs::toWString(param); }
+		template<class T> static WString ToWString(const T& param) { return bs::ToWString(param); }
 
 		/**	Helper method that "converts" a wide string to a wide string (simply a pass through). */
 		static WString ToWString(const WString& param) { return param; }
@@ -261,11 +261,11 @@ namespace bs
 			if (idx >= MAX_PARAMS)
 				return;
 
-			BasicString<char> sourceParam = toString(param);
-			parameters[idx].buffer = (char*)bs_alloc((UINT32)sourceParam.Size() * sizeof(char));
-			parameters[idx].size = (UINT32)sourceParam.Size();
+			BasicString<char> sourceParam = ToString(param);
+			parameters[idx].buffer = (char*)bs_alloc((UINT32)sourceParam.size() * sizeof(char));
+			parameters[idx].size = (UINT32)sourceParam.size();
 
-			sourceParam.Copy(parameters[idx].buffer, parameters[idx].size, 0);
+			sourceParam.copy(parameters[idx].buffer, parameters[idx].size, 0);
 			
 			getParams(parameters, idx + 1, std::forward<Args>(args)...);
 		}
@@ -279,11 +279,11 @@ namespace bs
 			if (idx >= MAX_PARAMS)
 				return;
 
-			BasicString<wchar_t> sourceParam = toWString(param);
-			parameters[idx].buffer = (wchar_t*)bs_alloc((UINT32)sourceParam.Size() * sizeof(wchar_t));
-			parameters[idx].size = (UINT32)sourceParam.Size();
+			BasicString<wchar_t> sourceParam = ToWString(param);
+			parameters[idx].buffer = (wchar_t*)bs_alloc((UINT32)sourceParam.size() * sizeof(wchar_t));
+			parameters[idx].size = (UINT32)sourceParam.size();
 			
-			sourceParam.Copy(parameters[idx].buffer, parameters[idx].size, 0);
+			sourceParam.copy(parameters[idx].buffer, parameters[idx].size, 0);
 
 			getParams(parameters, idx + 1, std::forward<Args>(args)...);
 		}

@@ -23,7 +23,7 @@ namespace bs
         private List<Action> callbacks = new List<Action>();
 
         /// <summary>
-        /// Creates a new empty context menu data.
+        /// Creates a new empty context menu Data.
         /// </summary>
         public ContextMenu()
         {

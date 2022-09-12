@@ -56,7 +56,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->fontSizes;
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<uint32_t>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -74,7 +74,7 @@ namespace bs
 		{
 			ScriptArray Arrayvalue(value);
 			vecvalue.Resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			for(int i = 0; i < (int)arrayvalue.size(); i++)
 			{
 				vecvalue[i] = arrayvalue.get<uint32_t>(i);
 			}
@@ -89,7 +89,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->charIndexRanges;
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptCharRange>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -107,7 +107,7 @@ namespace bs
 		{
 			ScriptArray Arrayvalue(value);
 			vecvalue.Resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			for(int i = 0; i < (int)arrayvalue.size(); i++)
 			{
 				vecvalue[i] = arrayvalue.get<CharRange>(i);
 			}

@@ -38,10 +38,10 @@ namespace bs
 		if (result.shader != nullptr)
 			result.shader->SetName(shaderName);
 		
-		if(!result.errorMessage.Empty())
+		if(!result.errorMessage.empty())
 		{
 			String file;
-			if (result.errorFile.Empty())
+			if (result.errorFile.empty())
 				file = filePath.ToString();
 			else
 				file = result.errorFile;

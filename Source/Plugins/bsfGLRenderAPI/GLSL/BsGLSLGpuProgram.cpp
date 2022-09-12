@@ -47,7 +47,7 @@ namespace bs { namespace ct
 			}
 		}
 
-		outErrorMsg = stream.Str();
+		outErrorMsg = stream.str();
 		return !linkCompileSuccess;
 	}
 	
@@ -129,7 +129,7 @@ namespace bs { namespace ct
 
 		// Add preprocessor extras and main source
 		const String& source = mSource;
-		if (!source.Empty())
+		if (!source.empty())
 		{
 			Vector<GLchar*> lines;
 
@@ -138,7 +138,7 @@ namespace bs { namespace ct
 
 			UINT32 lineLength = 0;
 			INT32 versionLineNum = -1;
-			for (UINT32 i = 0; i < source.Size(); i++)
+			for (UINT32 i = 0; i < source.size(); i++)
 			{
 				if (source[i] == '\n' || source[i] == '\r')
 				{
@@ -163,7 +163,7 @@ namespace bs { namespace ct
 						}
 
 						if (isEqual)
-							versionLineNum = (INT32)lines.Size();
+							versionLineNum = (INT32)lines.size();
 					}
 
 					lines.push_back(lineData);
@@ -177,11 +177,11 @@ namespace bs { namespace ct
 
 			if (lineLength > 0)
 			{
-				UINT32 end = (UINT32)source.Size() - 1;
+				UINT32 end = (UINT32)source.size() - 1;
 				assert(sizeof(source[end]) == sizeof(GLchar));
 
 				GLchar* lineData = (GLchar*)bs_stack_alloc(sizeof(GLchar) * (lineLength + 1));
-				memcpy(lineData, &source[source.Size() - lineLength], sizeof(GLchar) * lineLength);
+				memcpy(lineData, &source[source.size() - lineLength], sizeof(GLchar) * lineLength);
 				lineData[lineLength] = '\0';
 
 				lines.push_back(lineData);
@@ -237,12 +237,12 @@ namespace bs { namespace ct
 				bs_stack_free(lines[extraLineOffset + i]);
 
 			if (numInsertedLines > 0)
-				lines.Erase(lines.begin() + extraLineOffset, lines.begin() + extraLineOffset + numInsertedLines);
+				lines.erase(lines.begin() + extraLineOffset, lines.begin() + extraLineOffset + numInsertedLines);
 
 			for (auto iter = lines.Rbegin(); iter != lines.rend(); ++iter)
 				bs_stack_free(*iter);
 
-			String code = codeStream.Str();
+			String code = codeStream.str();
 			const char* codeRaw = code.c_str();
 			mGLHandle = glCreateShaderProgramv(shaderType, 1, (const GLchar**)&codeRaw);
 			BS_CHECK_GL_ERROR();

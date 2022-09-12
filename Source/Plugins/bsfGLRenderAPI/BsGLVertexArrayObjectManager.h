@@ -22,14 +22,14 @@ namespace bs { namespace ct
 		class Hash
 		{
 		public:
-			::std::size_t Operator()(const GLVertexArrayObject& vao) const;
+			::std::size_t operator()(const GLVertexArrayObject& vao) const;
 		};
 
 		/**	Checks if two VAO objects are equal. */
 		class Equal
 		{
 		public:
-			bool Operator()(const GLVertexArrayObject &a, const GLVertexArrayObject &b) const;
+			bool operator()(const GLVertexArrayObject &a, const GLVertexArrayObject &b) const;
 		};
 
 	public:

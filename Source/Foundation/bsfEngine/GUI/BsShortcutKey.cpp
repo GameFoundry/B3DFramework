@@ -74,8 +74,8 @@ namespace bs
 
 		String charStr;
 
-		auto iterFind = FUNCTION_KEY_TO_NAME.Find(button);
-		if (iterFind != FUNCTION_KEY_TO_NAME.End())
+		auto iterFind = FUNCTION_KEY_TO_NAME.find(button);
+		if (iterFind != FUNCTION_KEY_TO_NAME.end())
 		{
 			charStr = ((HString)iterFind->second);
 		}

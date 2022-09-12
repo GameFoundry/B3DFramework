@@ -28,7 +28,7 @@ char* includePush(ParseState* state, const char* filename, int line, int column,
 	{
 		String includeSource = include->GetString();
 
-		*size = (int)includeSource.Size() + 2;
+		*size = (int)includeSource.size() + 2;
 		char* output = (char*)mmalloc(state->memContext, *size);
 
 		memcpy(output, includeSource.Data(), *size - 2);

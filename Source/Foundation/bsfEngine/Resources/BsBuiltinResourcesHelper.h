@@ -35,7 +35,7 @@ namespace bs
 		 * in the corresponding folder. Also registers the imported files in the provided manifest.
 		 *
 		 * @param[in]	entries			JSON array containing the entries to parse, with each entry containing
-		 *								data determine by set ImportMode.
+		 *								Data determine by set ImportMode.
 		 * @param[in]	importFlags		A set of import flags (one for each entry) that specify which entries need to be
 		 *								imported.
 		 * @param[in]	inputFolder		Folder in which to look for the input files.

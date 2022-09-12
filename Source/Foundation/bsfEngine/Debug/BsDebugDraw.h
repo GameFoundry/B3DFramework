@@ -149,7 +149,7 @@ namespace bs
 	private:
 		friend class ct::DebugDrawRenderer;
 
-		/** Data about a mesh rendered by the draw manager. */
+		/** data about a mesh rendered by the draw manager. */
 		struct MeshRenderData
 		{
 			MeshRenderData(const SPtr<ct::Mesh>& mesh, const SubMesh& subMesh, DebugDrawMaterial type)

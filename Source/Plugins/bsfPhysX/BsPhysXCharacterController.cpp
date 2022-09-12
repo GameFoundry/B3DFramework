@@ -220,7 +220,7 @@ namespace bs
 
 	void PhysXCharacterController::OnShapeHit(const PxControllerShapeHit& hit)
 	{
-		if (onColliderHit.Empty())
+		if (onColliderHit.empty())
 			return;
 
 		ControllerColliderCollision collision;
@@ -236,7 +236,7 @@ namespace bs
 
 	void PhysXCharacterController::OnControllerHit(const PxControllersHit& hit)
 	{
-		if (CharacterController::onControllerHit.Empty())
+		if (CharacterController::onControllerHit.empty())
 			return;
 
 		ControllerControllerCollision collision;

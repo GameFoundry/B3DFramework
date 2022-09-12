@@ -31,7 +31,7 @@ namespace bs
 		/// <summary>Creates an animation clip with specified curves.</summary>
 		/// <param name="curves">Curves to initialize the animation with.</param>
 		/// <param name="isAdditive">
-		/// Determines does the clip contain additive curve data. This will change the behaviour how is the clip blended with 
+		/// Determines does the clip contain additive curve Data. This will change the behaviour how is the clip blended with
 		/// other animations.
 		/// </param>
 		/// <param name="sampleRate">

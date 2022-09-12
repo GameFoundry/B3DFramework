@@ -141,7 +141,7 @@ namespace bs
 		vec__output = AnimationCurvesEx::getPositionCurves(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptTNamedAnimationCurveVector3>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -159,7 +159,7 @@ namespace bs
 		{
 			ScriptArray Arrayvalue(value);
 			vecvalue.Resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			for(int i = 0; i < (int)arrayvalue.size(); i++)
 			{
 				vecvalue[i] = ScriptTNamedAnimationCurveVector3::fromInterop(arrayvalue.get<__TNamedAnimationCurveVector3Interop>(i));
 			}
@@ -173,7 +173,7 @@ namespace bs
 		vec__output = AnimationCurvesEx::getRotationCurves(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptTNamedAnimationCurveQuaternion>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -191,7 +191,7 @@ namespace bs
 		{
 			ScriptArray Arrayvalue(value);
 			vecvalue.Resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			for(int i = 0; i < (int)arrayvalue.size(); i++)
 			{
 				vecvalue[i] = ScriptTNamedAnimationCurveQuaternion::fromInterop(arrayvalue.get<__TNamedAnimationCurveQuaternionInterop>(i));
 			}
@@ -205,7 +205,7 @@ namespace bs
 		vec__output = AnimationCurvesEx::getScaleCurves(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptTNamedAnimationCurveVector3>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -223,7 +223,7 @@ namespace bs
 		{
 			ScriptArray Arrayvalue(value);
 			vecvalue.Resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			for(int i = 0; i < (int)arrayvalue.size(); i++)
 			{
 				vecvalue[i] = ScriptTNamedAnimationCurveVector3::fromInterop(arrayvalue.get<__TNamedAnimationCurveVector3Interop>(i));
 			}
@@ -237,7 +237,7 @@ namespace bs
 		vec__output = AnimationCurvesEx::getGenericCurves(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptTNamedAnimationCurvefloat>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -255,7 +255,7 @@ namespace bs
 		{
 			ScriptArray Arrayvalue(value);
 			vecvalue.Resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			for(int i = 0; i < (int)arrayvalue.size(); i++)
 			{
 				vecvalue[i] = ScriptTNamedAnimationCurvefloat::fromInterop(arrayvalue.get<__TNamedAnimationCurvefloatInterop>(i));
 			}

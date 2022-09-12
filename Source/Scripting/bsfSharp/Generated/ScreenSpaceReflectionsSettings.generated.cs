@@ -14,7 +14,7 @@ namespace bs
 	/// Settings that control the screen space reflections effect. Screen space reflections provide high quality mirror-like 
 	/// reflections at low performance cost. They should be used together with reflection probes as the effects complement 
 	/// each other. As the name implies, the reflections are only limited to geometry drawn on the screen and the system will 
-	/// fall back to refl. probes when screen space data is unavailable. Similarly the system will fall back to refl. probes 
+	/// fall back to refl. probes when screen space Data is unavailable. Similarly the system will fall back to refl. probes
 	/// for rougher (more glossy rather than mirror-like) surfaces. Those surfaces require a higher number of samples to 
 	/// achieve the glossy look, so we instead fall back to refl. probes which are pre-filtered and can be quickly sampled.
 	/// </summary>

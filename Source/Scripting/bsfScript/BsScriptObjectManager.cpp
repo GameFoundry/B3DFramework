@@ -21,7 +21,7 @@ namespace bs
 
 	void ScriptObjectManager::UnregisterScriptObject(ScriptObjectBase* instance)
 	{
-		mScriptObjects.Erase(instance);
+		mScriptObjects.erase(instance);
 	}
 
 	void ScriptObjectManager::RefreshAssemblies(const Vector<AssemblyRefreshInfo>& assemblies)
@@ -59,7 +59,7 @@ namespace bs
 			ScriptAssemblyManager::instance().LoadAssemblyInfo(entry.name, *entry.typeMapping);
 		}
 
-		Vector<ScriptObjectBase*> scriptObjCopy(mScriptObjects.Size()); // Store originals as we could add new objects during the next iteration
+		Vector<ScriptObjectBase*> scriptObjCopy(mScriptObjects.size()); // Store originals as we could add new objects during the next iteration
 		UINT32 idx = 0;
 		for (auto& scriptObject : mScriptObjects)
 			scriptObjCopy[idx++] = scriptObject;

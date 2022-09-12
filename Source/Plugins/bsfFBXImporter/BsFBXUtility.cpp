@@ -38,7 +38,7 @@ namespace bs
 		{
 			bool found = false;
 
-			for (size_t i = 0; i < normals.Size(); i++)
+			for (size_t i = 0; i < normals.size(); i++)
 			{
 				if ((normals[i].group & group) != 0)
 				{
@@ -46,12 +46,12 @@ namespace bs
 
 					if (otherGroups)
 					{
-						for (size_t j = i + 1; j < normals.Size(); j++)
+						for (size_t j = i + 1; j < normals.size(); j++)
 						{
 							if ((normals[j].group & group) != 0)
 							{
 								normals[i].AddNormal(normals[j]);
-								normals.Erase(normals.begin() + j);
+								normals.erase(normals.begin() + j);
 								--j;
 							}
 						}
@@ -75,7 +75,7 @@ namespace bs
 
 		Vector3 GetNormal(int group) const
 		{
-			for (size_t i = 0; i < normals.Size(); i++)
+			for (size_t i = 0; i < normals.size(); i++)
 			{
 				if (normals[i].group & group)
 					return normals[i].normal;
@@ -86,7 +86,7 @@ namespace bs
 
 		void Normalize()
 		{
-			for (size_t i = 0; i < normals.Size(); ++i)
+			for (size_t i = 0; i < normals.size(); ++i)
 				normals[i].Normalize();
 		}
 	};
@@ -99,7 +99,7 @@ namespace bs
 
 		normals.Resize(indices.size(), Vector3::ZERO);
 
-		UINT32 numPolygons = (UINT32)(indices.Size() / 3);
+		UINT32 numPolygons = (UINT32)(indices.size() / 3);
 
 		int idx = 0;
 		for (UINT32 i = 0; i < numPolygons; i++)
@@ -124,7 +124,7 @@ namespace bs
 			idx += 3;
 		}
 
-		for (size_t i = 0; i < smoothNormals.Size(); ++i)
+		for (size_t i = 0; i < smoothNormals.size(); ++i)
 			smoothNormals[i].Normalize();
 
 		idx = 0;
@@ -153,33 +153,33 @@ namespace bs
 		dest.boneInfluences = source.boneInfluences;
 
 		// Make room for minimal set of vertices
-		UINT32 vertexCount = (UINT32)source.positions.Size();
-		if (!source.normals.Empty())
+		UINT32 vertexCount = (UINT32)source.positions.size();
+		if (!source.normals.empty())
 			dest.normals.Resize(vertexCount);
 
-		if (!source.tangents.Empty())
+		if (!source.tangents.empty())
 			dest.tangents.Resize(vertexCount);
 
-		if (!source.bitangents.Empty())
+		if (!source.bitangents.empty())
 			dest.bitangents.Resize(vertexCount);
 
-		if (!source.colors.Empty())
+		if (!source.colors.empty())
 			dest.colors.Resize(vertexCount);
 
 		for (UINT32 i = 0; i < FBX_IMPORT_MAX_UV_LAYERS; i++)
 		{
-			if (!source.UV[i].Empty())
+			if (!source.UV[i].empty())
 				dest.UV[i].Resize(vertexCount);
 		}
 
-		UINT32 numBlendShapes = (UINT32)source.blendShapes.Size();
+		UINT32 numBlendShapes = (UINT32)source.blendShapes.size();
 		dest.blendShapes.Resize(numBlendShapes);
 		for (UINT32 i = 0; i < numBlendShapes; i++)
 		{
 			const FBXBlendShape& sourceShape = source.blendShapes[i];
 			FBXBlendShape& destShape = dest.blendShapes[i];
 
-			UINT32 numFrames = (UINT32)sourceShape.frames.Size();
+			UINT32 numFrames = (UINT32)sourceShape.frames.size();
 			destShape.frames.Resize(numFrames);
 			destShape.name = sourceShape.name;
 
@@ -192,13 +192,13 @@ namespace bs
 				destFrame.weight = sourceFrame.weight;
 				destFrame.positions = sourceFrame.positions;
 
-				if (!sourceFrame.normals.Empty())
+				if (!sourceFrame.normals.empty())
 					destFrame.normals.Resize(vertexCount);
 
-				if (!sourceFrame.tangents.Empty())
+				if (!sourceFrame.tangents.empty())
 					destFrame.tangents.Resize(vertexCount);
 
-				if (!sourceFrame.bitangents.Empty())
+				if (!sourceFrame.bitangents.empty())
 					destFrame.bitangents.Resize(vertexCount);
 			}
 		}
@@ -207,7 +207,7 @@ namespace bs
 		splitsPerVertex.Resize(source.positions.size());
 
 		Vector<int>& indices = dest.indices;
-		int indexCount = (int)dest.indices.Size();
+		int indexCount = (int)dest.indices.size();
 		for (int i = 0; i < indexCount; i++)
 		{
 			int srcVertIdx = indices[i];
@@ -226,14 +226,14 @@ namespace bs
 			if (dstVertIdx == -1)
 			{
 				// First time we visited this vertex, so just copy over attributes
-				if (splits.Empty())
+				if (splits.empty())
 				{
 					dstVertIdx = srcVertIdx;
 					copyVertexAttributes(source, i, dest, dstVertIdx);
 				}
 				else // Split occurred, add a brand new vertex
 				{
-					dstVertIdx = (int)dest.positions.Size();
+					dstVertIdx = (int)dest.positions.size();
 					addVertex(source, i, srcVertIdx, dest);
 				}
 
@@ -246,12 +246,12 @@ namespace bs
 
 	void FBXUtility::FlipWindingOrder(FBXImportMesh& input)
 	{
-		for (UINT32 i = 0; i < (UINT32)input.materials.Size(); i += 3)
+		for (UINT32 i = 0; i < (UINT32)input.materials.size(); i += 3)
 		{
 			std::swap(input.materials[i + 1], input.materials[i + 2]);
 		}
 
-		for (UINT32 i = 0; i < (UINT32)input.indices.Size(); i += 3)
+		for (UINT32 i = 0; i < (UINT32)input.indices.size(); i += 3)
 		{
 			std::swap(input.indices[i + 1], input.indices[i + 2]);
 		}
@@ -259,43 +259,43 @@ namespace bs
 
 	void FBXUtility::CopyVertexAttributes(const FBXImportMesh& srcMesh, int srcIdx, FBXImportMesh& destMesh, int dstIdx)
 	{
-		if (!srcMesh.normals.Empty())
+		if (!srcMesh.normals.empty())
 			destMesh.normals[dstIdx] = srcMesh.normals[srcIdx];
 
-		if (!srcMesh.tangents.Empty())
+		if (!srcMesh.tangents.empty())
 			destMesh.tangents[dstIdx] = srcMesh.tangents[srcIdx];
 
-		if (!srcMesh.bitangents.Empty())
+		if (!srcMesh.bitangents.empty())
 			destMesh.bitangents[dstIdx] = srcMesh.bitangents[srcIdx];
 
-		if (!srcMesh.colors.Empty())
+		if (!srcMesh.colors.empty())
 			destMesh.colors[dstIdx] = srcMesh.colors[srcIdx];
 
 		for (UINT32 i = 0; i < FBX_IMPORT_MAX_UV_LAYERS; i++)
 		{
-			if (!srcMesh.UV[i].Empty())
+			if (!srcMesh.UV[i].empty())
 				destMesh.UV[i][dstIdx] = srcMesh.UV[i][srcIdx];
 		}
 
-		UINT32 numBlendShapes = (UINT32)srcMesh.blendShapes.Size();
+		UINT32 numBlendShapes = (UINT32)srcMesh.blendShapes.size();
 		for (UINT32 i = 0; i < numBlendShapes; i++)
 		{
 			const FBXBlendShape& sourceShape = srcMesh.blendShapes[i];
 			FBXBlendShape& destShape = destMesh.blendShapes[i];
 
-			UINT32 numFrames = (UINT32)sourceShape.frames.Size();
+			UINT32 numFrames = (UINT32)sourceShape.frames.size();
 			for (UINT32 j = 0; j < numFrames; j++)
 			{
 				const FBXBlendShapeFrame& sourceFrame = sourceShape.frames[j];
 				FBXBlendShapeFrame& destFrame = destShape.frames[j];
 
-				if (!sourceFrame.normals.Empty())
+				if (!sourceFrame.normals.empty())
 					destFrame.normals[dstIdx] = sourceFrame.normals[srcIdx];
 
-				if (!sourceFrame.tangents.Empty())
+				if (!sourceFrame.tangents.empty())
 					destFrame.tangents[dstIdx] = sourceFrame.tangents[srcIdx];
 
-				if (!sourceFrame.bitangents.Empty())
+				if (!sourceFrame.bitangents.empty())
 					destFrame.bitangents[dstIdx] = sourceFrame.bitangents[srcIdx];
 			}
 		}
@@ -305,34 +305,34 @@ namespace bs
 	{
 		destMesh.positions.push_back(srcMesh.positions[srcVertex]);
 
-		if (!srcMesh.boneInfluences.Empty())
+		if (!srcMesh.boneInfluences.empty())
 			destMesh.boneInfluences.push_back(srcMesh.boneInfluences[srcVertex]);
 
-		if (!srcMesh.normals.Empty())
+		if (!srcMesh.normals.empty())
 			destMesh.normals.push_back(srcMesh.normals[srcIdx]);
 
-		if (!srcMesh.tangents.Empty())
+		if (!srcMesh.tangents.empty())
 			destMesh.tangents.push_back(srcMesh.tangents[srcIdx]);
 
-		if (!srcMesh.bitangents.Empty())
+		if (!srcMesh.bitangents.empty())
 			destMesh.bitangents.push_back(srcMesh.bitangents[srcIdx]);
 
-		if (!srcMesh.colors.Empty())
+		if (!srcMesh.colors.empty())
 			destMesh.colors.push_back(srcMesh.colors[srcIdx]);
 
 		for (UINT32 i = 0; i < FBX_IMPORT_MAX_UV_LAYERS; i++)
 		{
-			if (!srcMesh.UV[i].Empty())
+			if (!srcMesh.UV[i].empty())
 				destMesh.UV[i].push_back(srcMesh.UV[i][srcIdx]);
 		}
 
-		UINT32 numBlendShapes = (UINT32)srcMesh.blendShapes.Size();
+		UINT32 numBlendShapes = (UINT32)srcMesh.blendShapes.size();
 		for (UINT32 i = 0; i < numBlendShapes; i++)
 		{
 			const FBXBlendShape& sourceShape = srcMesh.blendShapes[i];
 			FBXBlendShape& destShape = destMesh.blendShapes[i];
 
-			UINT32 numFrames = (UINT32)sourceShape.frames.Size();
+			UINT32 numFrames = (UINT32)sourceShape.frames.size();
 			for (UINT32 j = 0; j < numFrames; j++)
 			{
 				const FBXBlendShapeFrame& sourceFrame = sourceShape.frames[j];
@@ -340,13 +340,13 @@ namespace bs
 
 				destFrame.positions.push_back(sourceFrame.positions[srcVertex]);
 
-				if (!sourceFrame.normals.Empty())
+				if (!sourceFrame.normals.empty())
 					destFrame.normals.push_back(sourceFrame.normals[srcIdx]);
 
-				if (!sourceFrame.tangents.Empty())
+				if (!sourceFrame.tangents.empty())
 					destFrame.tangents.push_back(sourceFrame.tangents[srcIdx]);
 
-				if (!sourceFrame.bitangents.Empty())
+				if (!sourceFrame.bitangents.empty())
 					destFrame.bitangents.push_back(sourceFrame.bitangents[srcIdx]);
 			}
 		}
@@ -357,27 +357,27 @@ namespace bs
 		static const float SplitAngleCosine = Math::cos(Degree(1.0f));
 		static const float UVEpsilon = 0.001f;
 
-		if (!meshA.colors.Empty())
+		if (!meshA.colors.empty())
 		{
 			if (meshA.colors[idxA] != meshB.colors[idxB])
 				return true;
 		}
 
-		if (!meshA.normals.Empty())
+		if (!meshA.normals.empty())
 		{
 			float angleCosine = meshA.normals[idxA].Dot(meshB.normals[idxB]);
 			if (angleCosine < SplitAngleCosine)
 				return true;
 		}
 
-		if (!meshA.tangents.Empty())
+		if (!meshA.tangents.empty())
 		{
 			float angleCosine = meshA.tangents[idxA].Dot(meshB.tangents[idxB]);
 			if (angleCosine < SplitAngleCosine)
 				return true;
 		}
 
-		if (!meshA.bitangents.Empty())
+		if (!meshA.bitangents.empty())
 		{
 			float angleCosine = meshA.bitangents[idxA].Dot(meshB.bitangents[idxB]);
 			if (angleCosine < SplitAngleCosine)
@@ -386,40 +386,40 @@ namespace bs
 
 		for (UINT32 i = 0; i < FBX_IMPORT_MAX_UV_LAYERS; i++)
 		{
-			if (!meshA.UV[i].Empty())
+			if (!meshA.UV[i].empty())
 			{
 				if (!Math::approxEquals(meshA.UV[i][idxA], meshB.UV[i][idxB], UVEpsilon))
 					return true;
 			}
 		}
 
-		UINT32 numBlendShapes = (UINT32)meshA.blendShapes.Size();
+		UINT32 numBlendShapes = (UINT32)meshA.blendShapes.size();
 		for (UINT32 i = 0; i < numBlendShapes; i++)
 		{
 			const FBXBlendShape& shapeA = meshA.blendShapes[i];
 			const FBXBlendShape& shapeB = meshB.blendShapes[i];
 
-			UINT32 numFrames = (UINT32)shapeA.frames.Size();
+			UINT32 numFrames = (UINT32)shapeA.frames.size();
 			for (UINT32 j = 0; j < numFrames; j++)
 			{
 				const FBXBlendShapeFrame& frameA = shapeA.frames[j];
 				const FBXBlendShapeFrame& frameB = shapeB.frames[j];
 
-				if (!frameA.normals.Empty())
+				if (!frameA.normals.empty())
 				{
 					float angleCosine = frameA.normals[idxA].Dot(frameB.normals[idxB]);
 					if (angleCosine < SplitAngleCosine)
 						return true;
 				}
 
-				if (!frameA.tangents.Empty())
+				if (!frameA.tangents.empty())
 				{
 					float angleCosine = frameA.tangents[idxA].Dot(frameB.tangents[idxB]);
 					if (angleCosine < SplitAngleCosine)
 						return true;
 				}
 
-				if (!frameA.bitangents.Empty())
+				if (!frameA.bitangents.empty())
 				{
 					float angleCosine = frameA.bitangents[idxA].Dot(frameB.bitangents[idxB]);
 					if (angleCosine < SplitAngleCosine)

@@ -106,7 +106,7 @@ namespace bs
 		void Apply(const HSceneObject& object);
 
 	private:
-		/** A reference to a renamed game object instance data, and its original ID so it may be restored later. */
+		/** A reference to a renamed game object instance Data, and its original ID so it may be restored later. */
 		struct RenamedGameObject
 		{
 			GameObjectInstanceDataPtr instanceData;

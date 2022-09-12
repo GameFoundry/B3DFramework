@@ -20,7 +20,7 @@ namespace bs
 #if BS_DEBUG_MODE
 		Lock Lock(mObjectsMutex);
 
-		if(mObjects.Size() > 0)
+		if(mObjects.size() > 0)
 		{
 			// All objects MUST be destroyed at this point, otherwise there might be memory corruption.
 			// (Reason: This is called on application shutdown and at that point we also unload any dynamic libraries,
@@ -57,7 +57,7 @@ namespace bs
 		// If dirty, we generate sync data before it is destroyed
 		{
 			Lock Lock(mObjectsMutex);
-			bool isDirty = object->IsCoreDirty() || (mDirtyObjects.Find(internalId) != mDirtyObjects.end());
+			bool isDirty = object->IsCoreDirty() || (mDirtyObjects.find(internalId) != mDirtyObjects.end());
 
 			if (isDirty)
 			{
@@ -69,7 +69,7 @@ namespace bs
 					mDestroyedSyncData.push_back(CoreStoredSyncObjData(coreObject, internalId, objSyncData));
 
 					DirtyObjectData& dirtyObjData = mDirtyObjects[internalId];
-					dirtyObjData.syncDataId = (INT32)mDestroyedSyncData.Size() - 1;
+					dirtyObjData.syncDataId = (INT32)mDestroyedSyncData.size() - 1;
 					dirtyObjData.object = nullptr;
 				}
 				else
@@ -80,7 +80,7 @@ namespace bs
 				}
 			}
 
-			mObjects.Erase(internalId);
+			mObjects.erase(internalId);
 		}
 
 		updateDependencies(object, nullptr);
@@ -89,30 +89,30 @@ namespace bs
 		{
 			Lock Lock(mObjectsMutex);
 
-			auto iterFind = mDependants.Find(internalId);
-			if (iterFind != mDependants.End())
+			auto iterFind = mDependants.find(internalId);
+			if (iterFind != mDependants.end())
 			{
 				Vector<CoreObject*>& dependants = iterFind->second;
 				for (auto& entry : dependants)
 				{
-					auto iterFind2 = mDependencies.Find(entry->GetInternalID());
-					if (iterFind2 != mDependencies.End())
+					auto iterFind2 = mDependencies.find(entry->GetInternalID());
+					if (iterFind2 != mDependencies.end())
 					{
 						Vector<CoreObject*>& dependencies = iterFind2->second;
-						auto iterFind3 = std::find(dependencies.Begin(), dependencies.end(), object);
+						auto iterFind3 = std::find(dependencies.begin(), dependencies.end(), object);
 
-						if (iterFind3 != dependencies.End())
-							dependencies.Erase(iterFind3);
+						if (iterFind3 != dependencies.end())
+							dependencies.erase(iterFind3);
 
-						if (dependencies.Size() == 0)
-							mDependencies.Erase(iterFind2);
+						if (dependencies.size() == 0)
+							mDependencies.erase(iterFind2);
 					}
 				}
 
-				mDependants.Erase(iterFind);
+				mDependants.erase(iterFind);
 			}
 
-			mDependencies.Erase(internalId);
+			mDependencies.erase(internalId);
 		}
 	}
 
@@ -149,18 +149,18 @@ namespace bs
 				if (dependencies != nullptr)
 					std::sort(dependencies->Begin(), dependencies->end());
 
-				auto iterFind = mDependencies.Find(id);
-				if (iterFind != mDependencies.End())
+				auto iterFind = mDependencies.find(id);
+				if (iterFind != mDependencies.end())
 				{
 					const Vector<CoreObject*>& oldDependencies = iterFind->second;
 
 					if (dependencies != nullptr)
 					{
-						std::set_difference(oldDependencies.Begin(), oldDependencies.end(),
-							dependencies->Begin(), dependencies->end(), std::inserter(toRemove, toRemove.Begin()));
+						std::set_difference(oldDependencies.begin(), oldDependencies.end(),
+							dependencies->Begin(), dependencies->end(), std::inserter(toRemove, toRemove.begin()));
 
 						std::set_difference(dependencies->Begin(), dependencies->end(),
-							oldDependencies.Begin(), oldDependencies.end(), std::inserter(toAdd, toAdd.begin()));
+							oldDependencies.begin(), oldDependencies.end(), std::inserter(toAdd, toAdd.begin()));
 					}
 					else
 					{
@@ -171,23 +171,23 @@ namespace bs
 					for (auto& dependency : toRemove)
 					{
 						UINT64 dependencyId = dependency->GetInternalID();
-						auto iterFind2 = mDependants.Find(dependencyId);
+						auto iterFind2 = mDependants.find(dependencyId);
 
-						if (iterFind2 != mDependants.End())
+						if (iterFind2 != mDependants.end())
 						{
 							Vector<CoreObject*>& dependants = iterFind2->second;
-							auto findIter3 = std::find(dependants.Begin(), dependants.end(), object);
-							dependants.Erase(findIter3);
+							auto findIter3 = std::find(dependants.begin(), dependants.end(), object);
+							dependants.erase(findIter3);
 
-							if (dependants.Size() == 0)
-								mDependants.Erase(iterFind2);
+							if (dependants.size() == 0)
+								mDependants.erase(iterFind2);
 						}
 					}
 
 					if (dependencies != nullptr && dependencies->Size() > 0)
 						mDependencies[id] = *dependencies;
 					else
-						mDependencies.Erase(id);
+						mDependencies.erase(id);
 				}
 				else
 				{
@@ -244,9 +244,9 @@ namespace bs
 			// are dependent on one another.
 
 			UINT64 id = curObj->GetInternalID();
-			auto iterFind = mDependencies.Find(id);
+			auto iterFind = mDependencies.find(id);
 
-			if (iterFind != mDependencies.End())
+			if (iterFind != mDependencies.end())
 			{
 				const Vector<CoreObject*>& dependencies = iterFind->second;
 				for (auto& dependency : dependencies)
@@ -257,18 +257,18 @@ namespace bs
 			if (objectCore == nullptr)
 			{
 				curObj->MarkCoreClean();
-				mDirtyObjects.Erase(id);
+				mDirtyObjects.erase(id);
 				return;
 			}
 
 			syncData.push_back(IndividualCoreSyncData());
-			IndividualCoreSyncData& data = syncData.Back();
+			IndividualCoreSyncData& data = syncData.back();
 			data.allocator = allocator;
 			data.destination = objectCore;
 			data.syncData = curObj->SyncToCore(allocator);
 
 			curObj->MarkCoreClean();
-			mDirtyObjects.Erase(id);
+			mDirtyObjects.erase(id);
 		};
 
 		syncObject(object);
@@ -289,7 +289,7 @@ namespace bs
 			}
 		};
 
-		if (syncData.Size() > 0)
+		if (syncData.size() > 0)
 			gCoreThread().QueueCommand(std::bind(callback, syncData));
 	}
 
@@ -298,7 +298,7 @@ namespace bs
 		Lock Lock(mObjectsMutex);
 
 		mCoreSyncData.push_back(CoreStoredSyncData());
-		CoreStoredSyncData& syncData = mCoreSyncData.Back();
+		CoreStoredSyncData& syncData = mCoreSyncData.back();
 
 		syncData.alloc = allocator;
 		
@@ -308,8 +308,8 @@ namespace bs
 			FrameSet<CoreObject*> dirtyDependants;
 			for (auto& objectData : mDirtyObjects)
 			{
-				auto iterFind = mDependants.Find(objectData.first);
-				if (iterFind != mDependants.End())
+				auto iterFind = mDependants.find(objectData.first);
+				if (iterFind != mDependants.end())
 				{
 					const Vector<CoreObject*>& dependants = iterFind->second;
 					for (auto& dependant : dependants)
@@ -350,9 +350,9 @@ namespace bs
 				// are dependent on one another.
 				
 				UINT64 id = curObj->GetInternalID();
-				auto iterFind = mDependencies.Find(id);
+				auto iterFind = mDependencies.find(id);
 
-				if (iterFind != mDependencies.End())
+				if (iterFind != mDependencies.end())
 				{
 					const Vector<CoreObject*>& dependencies = iterFind->second;
 					for (auto& dependency : dependencies)
@@ -397,10 +397,10 @@ namespace bs
 	{
 		Lock Lock(mObjectsMutex);
 
-		if (mCoreSyncData.Size() == 0)
+		if (mCoreSyncData.size() == 0)
 			return;
 
-		CoreStoredSyncData& syncData = mCoreSyncData.Front();
+		CoreStoredSyncData& syncData = mCoreSyncData.front();
 
 		for (auto& objSyncData : syncData.entries)
 		{

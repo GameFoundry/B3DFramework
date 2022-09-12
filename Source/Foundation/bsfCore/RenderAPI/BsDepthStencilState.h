@@ -247,7 +247,7 @@ namespace std
 template<>
 struct hash<bs::DEPTH_STENCIL_STATE_DESC>
 {
-	size_t Operator()(const bs::DEPTH_STENCIL_STATE_DESC& value) const
+	size_t operator()(const bs::DEPTH_STENCIL_STATE_DESC& value) const
 	{
 		return (size_t)bs::DepthStencilState::generateHash(value);
 	}

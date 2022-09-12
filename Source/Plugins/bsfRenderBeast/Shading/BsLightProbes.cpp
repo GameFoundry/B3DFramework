@@ -32,7 +32,7 @@ namespace bs { namespace ct
 
 		if(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferSamp"))
 			mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferSamp", pointSampState);
-		else If(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex"))
+		else if(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex"))
 			mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", pointSampState);
 
 		mParamBuffer = gTetrahedraRenderParamDef.CreateBuffer();
@@ -194,7 +194,7 @@ namespace bs { namespace ct
 	/** Hash value generator for std::pair<INT32, INT32>. */
 	struct pair_hash
 	{
-		size_t Operator()(const std::pair<INT32, INT32>& key) const
+		size_t operator()(const std::pair<INT32, INT32>& key) const
 		{
 			size_t hash = 0;
 			bs::bs_hash_combine(hash, key.first);
@@ -227,7 +227,7 @@ namespace bs { namespace ct
 
 	void LightProbes::NotifyAdded(LightProbeVolume* volume)
 	{
-		UINT32 handle = (UINT32)mVolumes.Size();
+		UINT32 handle = (UINT32)mVolumes.size();
 
 		VolumeInfo info;
 		info.volume = volume;
@@ -251,7 +251,7 @@ namespace bs { namespace ct
 	{
 		UINT32 handle = volume->GetRendererId();
 
-		LightProbeVolume* lastVolume = mVolumes.Back().volume;
+		LightProbeVolume* lastVolume = mVolumes.back().volume;
 		UINT32 lastHandle = lastVolume->GetRendererId();
 		
 		if (handle != lastHandle)
@@ -262,7 +262,7 @@ namespace bs { namespace ct
 		}
 		
 		// Erase last (empty) element
-		mVolumes.Erase(mVolumes.end() - 1);
+		mVolumes.erase(mVolumes.end() - 1);
 
 		mTetrahedronVolumeDirty = true;
 	}
@@ -326,7 +326,7 @@ namespace bs { namespace ct
 
 			SPtr<Texture> localTexture = entry.volume->GetCoefficientsTexture();
 			rowIdx += localTexture->GetProperties().GetHeight();
-			bufferOffset += (UINT32)positions.Size();
+			bufferOffset += (UINT32)positions.size();
 		}
 
 		mTetrahedronInfos.Clear();
@@ -335,11 +335,11 @@ namespace bs { namespace ct
 		generateTetrahedronData(mTempTetrahedronPositions, mTetrahedronInfos, outerFaces, true);
 
 		// Find valid tetrahedrons
-		UINT32 numTetrahedra = (UINT32)mTetrahedronInfos.Size();
+		UINT32 numTetrahedra = (UINT32)mTetrahedronInfos.size();
 
 		bool* validTets = (bool*)bs_stack_alloc(sizeof(bool) * numTetrahedra);
 		mNumValidTetrahedra = 0;
-		for (UINT32 i = 0; i < (UINT32)mTetrahedronInfos.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mTetrahedronInfos.size(); i++)
 		{
 			const TetrahedronData& entry = mTetrahedronInfos[i];
 
@@ -385,7 +385,7 @@ namespace bs { namespace ct
 
 		// Insert inner tetrahedron triangles
 		UINT32 tetIdx = 0;
-		for (UINT32 i = 0; i < (UINT32)mTetrahedronInfos.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mTetrahedronInfos.size(); i++)
 		{
 			if (!validTets[i])
 				continue;
@@ -447,7 +447,7 @@ namespace bs { namespace ct
 		};
 
 		FrameUnorderedMap<std::pair<INT32, INT32>, Edge, pair_hash> edgeMap;
-		for(UINT32 i = 0; i < (UINT32)outerFaces.Size(); i++)
+		for(UINT32 i = 0; i < (UINT32)outerFaces.size(); i++)
 		{
 			if (!validTets[outerFaces[i].tetrahedron])
 				continue;
@@ -461,8 +461,8 @@ namespace bs { namespace ct
 				if (v0 > v1)
 					std::swap(v0, v1);
 
-				auto iterFind = edgeMap.Find(std::make_pair((INT32)v0, (INT32)v1));
-				if (iterFind != edgeMap.End())
+				auto iterFind = edgeMap.find(std::make_pair((INT32)v0, (INT32)v1));
+				if (iterFind != edgeMap.end())
 				{
 					iterFind->second.face[1] = i;
 				}
@@ -483,7 +483,7 @@ namespace bs { namespace ct
 
 		// Generate front and back triangles for extruded outer faces
 		UINT32 faceIdx = 0;
-		for(UINT32 i = 0; i < (UINT32)outerFaces.Size(); i++)
+		for(UINT32 i = 0; i < (UINT32)outerFaces.size(); i++)
 		{
 			if (!validTets[outerFaces[i].tetrahedron])
 				continue;
@@ -604,7 +604,7 @@ namespace bs { namespace ct
 
 		// Generate "caps" on the end of the extruded volume
 		UINT32 capIdx = 0;
-		for(UINT32 i = 0; i < (UINT32)outerFaces.Size(); i++)
+		for(UINT32 i = 0; i < (UINT32)outerFaces.size(); i++)
 		{
 			if (!validTets[outerFaces[i].tetrahedron])
 				continue;
@@ -660,7 +660,7 @@ namespace bs { namespace ct
 			GBL_WRITE_ONLY_DISCARD);
 
 		// Write inner tetrahedron data
-		for (UINT32 i = 0; i < (UINT32)mTetrahedronInfos.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mTetrahedronInfos.size(); i++)
 		{
 			if (!validTets[i])
 				continue;
@@ -682,7 +682,7 @@ namespace bs { namespace ct
 		}
 
 		// Write extruded face data
-		for (UINT32 i = 0; i < (UINT32)outerFaces.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)outerFaces.size(); i++)
 		{
 			if (!validTets[outerFaces[i].tetrahedron])
 				continue;
@@ -718,7 +718,7 @@ namespace bs { namespace ct
 		TetrahedronFaceDataGPU* faceDst = (TetrahedronFaceDataGPU*)mTetrahedronFaceInfosGPU->lock(0,
 			mTetrahedronFaceInfosGPU->GetSize(), GBL_WRITE_ONLY_DISCARD);
 
-		for (UINT32 i = 0; i < (UINT32)outerFaces.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)outerFaces.size(); i++)
 		{
 			if (!validTets[outerFaces[i].tetrahedron])
 				continue;
@@ -825,7 +825,7 @@ namespace bs { namespace ct
 			{
 				// Add geometry so we can handle the case when the interpolation position falls outside of the tetrahedra
 				// volume. We use this geometry to project the position to the nearest face.
-				UINT32 numOuterFaces = (UINT32)volume.outerFaces.Size();
+				UINT32 numOuterFaces = (UINT32)volume.outerFaces.size();
 
 				// Calculate face normals for outer faces
 				//// Make an edge map
@@ -847,8 +847,8 @@ namespace bs { namespace ct
 						if (v0 > v1)
 							std::swap(v0, v1);
 
-						auto iterFind = edgeMap.Find(std::make_pair(v0, v1));
-						if (iterFind != edgeMap.End())
+						auto iterFind = edgeMap.find(std::make_pair(v0, v1));
+						if (iterFind != edgeMap.end())
 						{
 							iterFind->second.faces[1] = i;
 							iterFind->second.oppositeVerts[1] = (j + 2) % 3;
@@ -871,8 +871,8 @@ namespace bs { namespace ct
 					UINT32 outerIdx = -1;
 				};
 
-				FrameVector<Vector3> FaceNormals(volume.outerFaces.Size());
-				for (UINT32 i = 0; i < (UINT32)volume.outerFaces.Size(); ++i)
+				FrameVector<Vector3> FaceNormals(volume.outerFaces.size());
+				for (UINT32 i = 0; i < (UINT32)volume.outerFaces.size(); ++i)
 				{
 					const Vector3& v0 = positions[volume.outerFaces[i].vertices[0]];
 					const Vector3& v1 = positions[volume.outerFaces[i].vertices[1]];
@@ -941,7 +941,7 @@ namespace bs { namespace ct
 				static const float ExtrapolationDistance = 5.0f;
 				for(auto& entry : faceVertices)
 				{
-					entry.second.outerIdx = (UINT32)positions.Size();
+					entry.second.outerIdx = (UINT32)positions.size();
 
 					Vector3 outerPos = positions[entry.first] + entry.second.normal * ExtrapolationDistance;
 					positions.push_back(outerPos);
@@ -972,7 +972,7 @@ namespace bs { namespace ct
 						{
 							// Note: Not searching for opposite neighbor here. If tet. has multiple free faces then we
 							// can't just pick the first one
-							innerTet.neighbors[j] = (UINT32)volume.tetrahedra.Size() + (UINT32)faces.size();
+							innerTet.neighbors[j] = (UINT32)volume.tetrahedra.size() + (UINT32)faces.size();
 							break;
 						}
 					}
@@ -1120,7 +1120,7 @@ namespace bs { namespace ct
 			}
 			else
 			{
-				for (UINT32 i = 0; i < (UINT32)volume.outerFaces.Size(); ++i)
+				for (UINT32 i = 0; i < (UINT32)volume.outerFaces.size(); ++i)
 				{
 					const TetrahedronFace& face = volume.outerFaces[i];
 					TetrahedronFaceData faceData;
@@ -1141,7 +1141,7 @@ namespace bs { namespace ct
 			}
 
 			// Generate matrices
-			UINT32 numOutputTets = (UINT32)volume.tetrahedra.Size();
+			UINT32 numOutputTets = (UINT32)volume.tetrahedra.size();
 			tetrahedra.Reserve(numOutputTets);
 
 			//// For inner tetrahedrons

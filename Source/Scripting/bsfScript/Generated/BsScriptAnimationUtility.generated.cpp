@@ -83,7 +83,7 @@ namespace bs
 		vec__output = AnimationUtility::splitCurve3D(tmpcompoundCurve);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptTAnimationCurvefloat>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -105,7 +105,7 @@ namespace bs
 		{
 			ScriptArray ArraycurveComponents(curveComponents);
 			veccurveComponents.Resize(arraycurveComponents.size());
-			for(int i = 0; i < (int)arraycurveComponents.Size(); i++)
+			for(int i = 0; i < (int)arraycurveComponents.size(); i++)
 			{
 				ScriptTAnimationCurvefloat* scriptcurveComponents;
 				scriptcurveComponents = ScriptTAnimationCurvefloat::toNative(arraycurveComponents.get<MonoObject*>(i));
@@ -135,7 +135,7 @@ namespace bs
 		vec__output = AnimationUtility::splitCurve2D(tmpcompoundCurve);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptTAnimationCurvefloat>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -157,7 +157,7 @@ namespace bs
 		{
 			ScriptArray ArraycurveComponents(curveComponents);
 			veccurveComponents.Resize(arraycurveComponents.size());
-			for(int i = 0; i < (int)arraycurveComponents.Size(); i++)
+			for(int i = 0; i < (int)arraycurveComponents.size(); i++)
 			{
 				ScriptTAnimationCurvefloat* scriptcurveComponents;
 				scriptcurveComponents = ScriptTAnimationCurvefloat::toNative(arraycurveComponents.get<MonoObject*>(i));
@@ -183,7 +183,7 @@ namespace bs
 		{
 			ScriptArray Arraycurves(curves);
 			veccurves.Resize(arraycurves.size());
-			for(int i = 0; i < (int)arraycurves.Size(); i++)
+			for(int i = 0; i < (int)arraycurves.size(); i++)
 			{
 				ScriptTAnimationCurvefloat* scriptcurves;
 				scriptcurves = ScriptTAnimationCurvefloat::toNative(arraycurves.get<MonoObject*>(i));

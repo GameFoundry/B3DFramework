@@ -191,7 +191,7 @@ namespace bs
 
 	RendererExtensionRequest DebugDrawRenderer::Check(const Camera& camera)
 	{
-		return mMeshes.Empty() ? RendererExtensionRequest::RenderIfTargetDirty : RendererExtensionRequest::ForceRender;
+		return mMeshes.empty() ? RendererExtensionRequest::RenderIfTargetDirty : RendererExtensionRequest::ForceRender;
 	}
 
 	void DebugDrawRenderer::Render(const Camera& camera, const RendererViewContext& viewContext)

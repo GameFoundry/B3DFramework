@@ -16,11 +16,11 @@
 #include <windows.h>
 #include <iostream>
 
-void logToIDEConsole(const bs::String& message, const char* channel)
+void LogToIDEConsole(const bs::String& message, const char* channel)
 {
 	static bs::Mutex mutex;
 
-	bs::Lock Lock(mutex);
+	bs::Lock lock(mutex);
 	OutputDebugString("[");
 	OutputDebugString(channel);
 	OutputDebugString("] ");
@@ -31,7 +31,7 @@ void logToIDEConsole(const bs::String& message, const char* channel)
 	std::cout << "[" << channel << "] " << message << std::endl;
 }
 #else
-void logToIDEConsole(const bs::String& message, const char* channel)
+void LogToIDEConsole(const bs::String& message, const char* channel)
 {
 	std::cout << "[" << channel << "] " << message << std::endl;
 }
@@ -60,46 +60,40 @@ namespace bs
 		{
 			switch(verbosity)
 			{
-			case LogVerbosity::Fatal:
-				logToIDEConsole(message, "FATAL");
+			case LogVerbosity::Fatal: LogToIDEConsole(message, "FATAL");
 				break;
-			case LogVerbosity::Error:
-				logToIDEConsole(message, "ERROR");
+			case LogVerbosity::Error: LogToIDEConsole(message, "ERROR");
 				break;
-			case LogVerbosity::Warning:
-				logToIDEConsole(message, "WARNING");
+			case LogVerbosity::Warning: LogToIDEConsole(message, "WARNING");
 				break;
 			default:
-			case LogVerbosity::Info:
-				logToIDEConsole(message, "INFO");
+			case LogVerbosity::Info: LogToIDEConsole(message, "INFO");
 				break;
-			case LogVerbosity::Verbose:
-				logToIDEConsole(message, "VERBOSE");
+			case LogVerbosity::Verbose: LogToIDEConsole(message, "VERBOSE");
 				break;
-			case LogVerbosity::VeryVerbose:
-				logToIDEConsole(message, "VERY_VERBOSE");
+			case LogVerbosity::VeryVerbose: LogToIDEConsole(message, "VERY_VERBOSE");
 				break;
 			}
 		}
 	}
 
-	void Debug::writeAsBMP(UINT8* rawPixels, UINT32 bytesPerPixel, UINT32 width, UINT32 height, const Path& filePath,
-		bool overwrite) const
+	void Debug::WriteAsBMP(UINT8* rawPixels, UINT32 bytesPerPixel, UINT32 width, UINT32 height, const Path& filePath,
+						   bool overwrite) const
 	{
-		if(FileSystem::isFile(filePath))
+		if(FileSystem::IsFile(filePath))
 		{
 			if(overwrite)
-				FileSystem::remove(filePath);
+				FileSystem::Remove(filePath);
 			else
 				BS_EXCEPT(FileNotFoundException, "File already exists at specified location: " + filePath.ToString());
 		}
 
-		SPtr<DataStream> ds = FileSystem::createAndOpenFile(filePath);
+		SPtr<DataStream> ds = FileSystem::CreateAndOpenFile(filePath);
 
-		UINT32 bmpDataSize = BitmapWriter::getBMPSize(width, height, bytesPerPixel);
+		UINT32 bmpDataSize = BitmapWriter::GetBMPSize(width, height, bytesPerPixel);
 		UINT8* bmpBuffer = bs_newN<UINT8>(bmpDataSize);
 
-		BitmapWriter::rawPixelsToBMP(rawPixels, bmpBuffer, width, height, bytesPerPixel);
+		BitmapWriter::RawPixelsToBMP(rawPixels, bmpBuffer, width, height, bytesPerPixel);
 
 		ds->Write(bmpBuffer, bmpDataSize);
 		ds->Close();
@@ -129,10 +123,10 @@ namespace bs
 		{
 		default:
 		case SavedLogType::HTML:
-			saveHtmlLog(path);
+			SaveHtmlLog(path);
 			break;
 		case SavedLogType::Textual:
-			saveTextLog(path);
+			SaveTextLog(path);
 			break;
 		}
 	}
@@ -281,10 +275,10 @@ table td
 		// Write header information
 		stream << "<p>bs::framework version: " << BS_VERSION_MAJOR << "." << BS_VERSION_MINOR <<"." << BS_VERSION_PATCH << "</p>\n";
 
-		if(Time::isStarted())
+		if(Time::IsStarted())
 			stream << "<p>Started on: " << gTime().GetAppStartUpDateString(false) << "</p>\n";
 
-		SystemInfo systemInfo = PlatformUtility::getSystemInfo();
+		SystemInfo systemInfo = PlatformUtility::GetSystemInfo();
 		stream << "<p>OS version: " << systemInfo.osName << " " << (systemInfo.osIs64Bit ? "64-bit" : "32-bit") << "</p>\n";
 		stream << "<h3>CPU information:</h3>\n";
 		stream << "<p>CPU vendor: " << systemInfo.cpuManufacturer << "</p>\n";
@@ -338,16 +332,16 @@ table td
 					stream << R"(		<tr class="debug-alt-row">)" << std::endl;
 				break;
 			}
-			stream << R"(			<td>)" << toString(verbosity)<< R"(</td>)" << std::endl;
+			stream << R"(			<td>)" << ToString(verbosity)<< R"(</td>)" << std::endl;
 
-			stream << R"(			<td>)" << toString(entry.GetLocalTime(), false, false, TimeToStringConversionType::Time)
+			stream << R"(			<td>)" << ToString(entry.GetLocalTime(), false, false, TimeToStringConversionType::Time)
 			       << "</td>" << std::endl;
 
 			String categoryName;
-			mLog.GetCategoryName(entry.getCategory(), categoryName);
+			mLog.GetCategoryName(entry.GetCategory(), categoryName);
 			stream << R"(			<td>)" << categoryName << "</td>" << std::endl;
 
-			String parsedMessage = StringUtil::replaceAll(entry.GetMessage(), "\n", "<br>\n");
+			String parsedMessage = StringUtil::ReplaceAll(entry.GetMessage(), "\n", "<br>\n");
 
 			stream << R"(			<td>)" << parsedMessage << "</td>" << std::endl;
 			stream << R"(		</tr>)" << std::endl;
@@ -357,8 +351,8 @@ table td
 
 		stream << htmlFooter;
 
-		SPtr<DataStream> fileStream = FileSystem::createAndOpenFile(path);
-		fileStream->WriteString(stream.Str());
+		SPtr<DataStream> fileStream = FileSystem::CreateAndOpenFile(path);
+		fileStream->WriteString(stream.str());
 	}
 	
 	/* Internal function to get the given number of spaces, so that the log looks properly indented */
@@ -366,7 +360,7 @@ table td
 	{
 		String tmp;
 		for (UINT8 i = 0; i < numSpaces; i++)
-			tmp.Append(" ");
+			tmp.append(" ");
 		return tmp;
 	}
 
@@ -386,14 +380,14 @@ table td
 		#else
 		stream << bsfOnlyHeader << BS_VERSION_MAJOR << "." << BS_VERSION_MINOR <<"." << BS_VERSION_PATCH << "\n";
 		#endif
-		if (Time::isStarted())
+		if (Time::IsStarted())
 			stream << "Started on: " << gTime().GetAppStartUpDateString(false) << "\n";
 		
 		stream << "\n";
 		stream << "System information:\n" <<
 				  "================================================================================\n";
 		
-		SystemInfo systemInfo = PlatformUtility::getSystemInfo();
+		SystemInfo systemInfo = PlatformUtility::GetSystemInfo();
 		stream << "OS version: " << systemInfo.osName << " " << (systemInfo.osIs64Bit ? "64-bit" : "32-bit") << "\n";
 		stream << "CPU information:\n";
 		stream << "CPU vendor: " << systemInfo.cpuManufacturer << "\n";
@@ -421,54 +415,54 @@ table td
 		for (auto& entry : entries)
 		{
 			String builtMsg;
-			builtMsg.Append(toString(entry.getLocalTime(), false, true, TimeToStringConversionType::Full));
-			builtMsg.Append(" ");
+			builtMsg.append(ToString(entry.GetLocalTime(), false, true, TimeToStringConversionType::Full));
+			builtMsg.append(" ");
 			
 			switch(entry.GetVerbosity())
 			{
 			case LogVerbosity::Fatal:
-				builtMsg.Append("[FATAL]");
+				builtMsg.append("[FATAL]");
 				break;
 			case LogVerbosity::Error:
-				builtMsg.Append("[ERROR]");
+				builtMsg.append("[ERROR]");
 				break;
 			case LogVerbosity::Warning:
-				builtMsg.Append("[WARNING]");
+				builtMsg.append("[WARNING]");
 				break;
 			case LogVerbosity::Info:
-				builtMsg.Append("[INFO]");
+				builtMsg.append("[INFO]");
 				break;
 			case LogVerbosity::Log:
-				builtMsg.Append("[LOG]");
+				builtMsg.append("[LOG]");
 				break;
 			case LogVerbosity::Verbose:
-				builtMsg.Append("[VERBOSE]");
+				builtMsg.append("[VERBOSE]");
 				break;
 			case LogVerbosity::VeryVerbose:
-				builtMsg.Append("[VERY_VERBOSE]");
+				builtMsg.append("[VERY_VERBOSE]");
 				break;
 			}
 			
 			String categoryName;
-			mLog.GetCategoryName(entry.getCategory(), categoryName);
-			builtMsg.Append(" <" + categoryName + ">");
+			mLog.GetCategoryName(entry.GetCategory(), categoryName);
+			builtMsg.append(" <" + categoryName + ">");
 
-			builtMsg.Append(" | ");
+			builtMsg.append(" | ");
 			
-			String tmpSpaces = _getSpacesIndentation(builtMsg.Length());
+			String tmpSpaces = _getSpacesIndentation(builtMsg.length());
 			
-			String parsedMessage = StringUtil::replaceAll(entry.GetMessage(), "\n\t\t", "\n" + tmpSpaces);
-			builtMsg.Append(parsedMessage);
+			String parsedMessage = StringUtil::ReplaceAll(entry.GetMessage(), "\n\t\t", "\n" + tmpSpaces);
+			builtMsg.append(parsedMessage);
 			
 			stream << builtMsg << "\n";
 		}
 		
-		SPtr<DataStream> fileStream = FileSystem::createAndOpenFile(path);
-		fileStream->WriteString(stream.Str());
+		SPtr<DataStream> fileStream = FileSystem::CreateAndOpenFile(path);
+		fileStream->WriteString(stream.str());
 		
 	}
 	
-	BS_UTILITY_EXPORT Debug& GDebug()
+	BS_UTILITY_EXPORT Debug& gDebug()
 	{
 		static Debug debug;
 		return debug;

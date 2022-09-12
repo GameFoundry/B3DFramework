@@ -172,7 +172,7 @@ namespace bs
 		/**
 		 * Creates a new Skeleton.
 		 *
-		 * @param[in]	bones		An array of bones to initialize the skeleton with. Data will be copied.
+		 * @param[in]	bones		An array of bones to initialize the skeleton with. data will be copied.
 		 * @param[in]	numBones	Number of bones in the @p bones array.
 		 */
 		static SPtr<Skeleton> Create(BONE_DESC* bones, UINT32 numBones);

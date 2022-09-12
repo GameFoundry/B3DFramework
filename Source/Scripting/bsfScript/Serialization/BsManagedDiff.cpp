@@ -55,7 +55,7 @@ namespace bs
 		SPtr<SerializedObject> output = bs_shared_ptr_new<SerializedObject>();
 		output->subObjects.push_back(SerializedSubObject());
 
-		SerializedSubObject& subObject = output->subObjects.Back();
+		SerializedSubObject& subObject = output->subObjects.back();
 		subObject.typeId = ManagedSerializableObject::getRTTIStatic()->GetRTTIId();
 
 		SerializedEntry entry;

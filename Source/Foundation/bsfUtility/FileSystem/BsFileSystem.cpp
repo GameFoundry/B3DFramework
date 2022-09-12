@@ -10,10 +10,10 @@ namespace bs
 		Stack<std::tuple<Path, Path>> todo;
 		todo.Push(std::make_tuple(oldPath, newPath));
 
-		while (!todo.Empty())
+		while (!todo.empty())
 		{
 			auto current = todo.Top();
-			todo.Pop();
+			todo.pop();
 
 			Path sourcePath = std::get<0>(current);
 			if (!FileSystem::exists(sourcePath))

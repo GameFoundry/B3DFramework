@@ -262,7 +262,7 @@ namespace bs
 		const ParamData* getParamData(UINT32 index) const { return &mParams[index]; }
 
 		/** Returns the total number of parameters managed by this object. */
-		UINT32 GetNumParams() const { return (UINT32)mParams.Size(); }
+		UINT32 GetNumParams() const { return (UINT32)mParams.size(); }
 
 		/**
 		 * Logs an error that was reported by getParamData().

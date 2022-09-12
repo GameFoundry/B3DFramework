@@ -131,7 +131,7 @@ namespace bs
 		for (uint32_t j = 0; j < 32; j++)
 			bitfield.Add(false);
 
-		BS_TEST_ASSERT(bitfield.Size() == curCount);
+		BS_TEST_ASSERT(bitfield.size() == curCount);
 
 		BS_TEST_ASSERT(bitfield[COUNT + 0] == false);
 		BS_TEST_ASSERT(bitfield[COUNT + 1] == false);
@@ -169,11 +169,11 @@ namespace bs
 		BS_TEST_ASSERT(bitfield[5] == false);
 		BS_TEST_ASSERT(bitfield[6] == false);
 
-		BS_TEST_ASSERT(bitfield.Size() == curCount);
+		BS_TEST_ASSERT(bitfield.size() == curCount);
 
 		// Find
-		BS_TEST_ASSERT(bitfield.Find(true) == 0);
-		BS_TEST_ASSERT(bitfield.Find(false) == 5);
+		BS_TEST_ASSERT(bitfield.find(true) == 0);
+		BS_TEST_ASSERT(bitfield.find(false) == 5);
 	}
 
 	void UtilityTestSuite::TestOctree()
@@ -217,7 +217,7 @@ namespace bs
 				DebugOctreeElem elem;
 				elem.box = AABox(position - extents, position + extents);
 
-				UINT32 elemIdx = (UINT32)octreeData.elements.Size();
+				UINT32 elemIdx = (UINT32)octreeData.elements.size();
 				octreeData.elements.push_back(elem);
 				octree.AddElement(elemIdx);
 			}
@@ -231,7 +231,7 @@ namespace bs
 		
 		for(UINT32 i = 0; i < 3; i++)
 		{
-			UINT32 elemIdx = (UINT32)octreeData.elements.Size();
+			UINT32 elemIdx = (UINT32)octreeData.elements.size();
 			octreeData.elements.push_back(manualElems[i]);
 			octree.AddElement(elemIdx);
 		}
@@ -255,8 +255,8 @@ namespace bs
 		{
 			if(entry.box.Intersects(queryBounds))
 			{
-				auto iterFind = std::find(overlapElements.Begin(), overlapElements.end(), elemIdx);
-				BS_TEST_ASSERT(iterFind != overlapElements.End());
+				auto iterFind = std::find(overlapElements.begin(), overlapElements.end(), elemIdx);
+				BS_TEST_ASSERT(iterFind != overlapElements.end());
 			}
 
 			elemIdx++;
@@ -277,7 +277,7 @@ namespace bs
 
 		// Make sure initial construction works
 		SmallVector<SomeElem, 4> V(4);
-		BS_TEST_ASSERT(v.Size() == 4);
+		BS_TEST_ASSERT(v.size() == 4);
 		BS_TEST_ASSERT(v.Capacity() == 4);
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[3].a == 10);
@@ -285,7 +285,7 @@ namespace bs
 
 		// Making the vector dynamic
 		v.Add({3, 4});
-		BS_TEST_ASSERT(v.Size() == 5);
+		BS_TEST_ASSERT(v.size() == 5);
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[3].a == 10);
 		BS_TEST_ASSERT(v[3].b == 0);
@@ -294,7 +294,7 @@ namespace bs
 
 		// Make a copy
 		SmallVector<SomeElem, 4> v2 = v;
-		BS_TEST_ASSERT(v2.Size() == 5);
+		BS_TEST_ASSERT(v2.size() == 5);
 		BS_TEST_ASSERT(v2[0].a == 10);
 		BS_TEST_ASSERT(v2[3].a == 10);
 		BS_TEST_ASSERT(v2[3].b == 0);
@@ -302,15 +302,15 @@ namespace bs
 		BS_TEST_ASSERT(v2[4].b == 4);
 
 		// Pop an element
-		v2.Pop();
-		BS_TEST_ASSERT(v2.Size() == 4);
+		v2.pop();
+		BS_TEST_ASSERT(v2.size() == 4);
 		BS_TEST_ASSERT(v2[0].a == 10);
 		BS_TEST_ASSERT(v2[3].a == 10);
 		BS_TEST_ASSERT(v2[3].b == 0);
 
 		// Make a static only copy
 		SmallVector<SomeElem, 4> v3 = v2;
-		BS_TEST_ASSERT(v3.Size() == 4);
+		BS_TEST_ASSERT(v3.size() == 4);
 		BS_TEST_ASSERT(v3.Capacity() == 4);
 		BS_TEST_ASSERT(v3[0].a == 10);
 		BS_TEST_ASSERT(v3[3].a == 10);
@@ -318,7 +318,7 @@ namespace bs
 
 		// Remove an element
 		v.Remove(2);
-		BS_TEST_ASSERT(v.Size() == 4);
+		BS_TEST_ASSERT(v.size() == 4);
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[2].a == 10);
 		BS_TEST_ASSERT(v[3].a == 3);
@@ -326,8 +326,8 @@ namespace bs
 
 		// Move a static vector
 		SmallVector<SomeElem, 4> v4 = std::move(v3);
-		BS_TEST_ASSERT(v3.Size() == 0);
-		BS_TEST_ASSERT(v4.Size() == 4);
+		BS_TEST_ASSERT(v3.size() == 0);
+		BS_TEST_ASSERT(v4.size() == 4);
 		BS_TEST_ASSERT(v4.Capacity() == 4);
 		BS_TEST_ASSERT(v4[0].a == 10);
 		BS_TEST_ASSERT(v4[3].a == 10);
@@ -335,8 +335,8 @@ namespace bs
 
 		// Move a dynamic vector
 		SmallVector<SomeElem, 4> v5 = std::move(v2);
-		BS_TEST_ASSERT(v2.Size() == 0);
-		BS_TEST_ASSERT(v5.Size() == 4);
+		BS_TEST_ASSERT(v2.size() == 0);
+		BS_TEST_ASSERT(v5.size() == 4);
 		BS_TEST_ASSERT(v5[0].a == 10);
 		BS_TEST_ASSERT(v5[3].a == 10);
 		BS_TEST_ASSERT(v5[3].b == 0);
@@ -344,8 +344,8 @@ namespace bs
 		// Move a dynamic vector into a dynamic vector
 		v.Add({33, 44});
 		SmallVector<SomeElem, 4> v6 = std::move(v);
-		BS_TEST_ASSERT(v.Size() == 0);
-		BS_TEST_ASSERT(v6.Size() == 5);
+		BS_TEST_ASSERT(v.size() == 0);
+		BS_TEST_ASSERT(v6.size() == 5);
 		BS_TEST_ASSERT(v6[0].a == 10);
 		BS_TEST_ASSERT(v6[3].a == 3);
 		BS_TEST_ASSERT(v6[3].b == 4);
@@ -363,7 +363,7 @@ namespace bs
 
 		// Make sure initial construction works
 		DynArray<SomeElem> V(4);
-		BS_TEST_ASSERT(v.Size() == 4);
+		BS_TEST_ASSERT(v.size() == 4);
 		BS_TEST_ASSERT(v.Capacity() == 4);
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[3].a == 10);
@@ -371,7 +371,7 @@ namespace bs
 
 		// Add an element
 		v.Add({3, 4});
-		BS_TEST_ASSERT(v.Size() == 5);
+		BS_TEST_ASSERT(v.size() == 5);
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[3].a == 10);
 		BS_TEST_ASSERT(v[3].b == 0);
@@ -380,7 +380,7 @@ namespace bs
 
 		// Make a copy
 		DynArray<SomeElem> v2 = v;
-		BS_TEST_ASSERT(v2.Size() == 5);
+		BS_TEST_ASSERT(v2.size() == 5);
 		BS_TEST_ASSERT(v2[0].a == 10);
 		BS_TEST_ASSERT(v2[3].a == 10);
 		BS_TEST_ASSERT(v2[3].b == 0);
@@ -388,15 +388,15 @@ namespace bs
 		BS_TEST_ASSERT(v2[4].b == 4);
 
 		// Pop an element
-		v2.Pop();
-		BS_TEST_ASSERT(v2.Size() == 4);
+		v2.pop();
+		BS_TEST_ASSERT(v2.size() == 4);
 		BS_TEST_ASSERT(v2[0].a == 10);
 		BS_TEST_ASSERT(v2[3].a == 10);
 		BS_TEST_ASSERT(v2[3].b == 0);
 
 		// Remove an element
 		v.Remove(2);
-		BS_TEST_ASSERT(v.Size() == 4);
+		BS_TEST_ASSERT(v.size() == 4);
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[2].a == 10);
 		BS_TEST_ASSERT(v[3].a == 3);
@@ -404,7 +404,7 @@ namespace bs
 
 		// Insert an element
 		v.Insert(v.begin() + 2, { 99, 100 });
-		BS_TEST_ASSERT(v.Size() == 5);
+		BS_TEST_ASSERT(v.size() == 5);
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[2].a == 99);
 		BS_TEST_ASSERT(v[3].a == 10);
@@ -413,7 +413,7 @@ namespace bs
 
 		// Insert a list
 		v.Insert(v.begin() + 1, {{ 55, 100 }, { 56, 100 }, { 57, 100 }});
-		BS_TEST_ASSERT(v.Size() == 8);
+		BS_TEST_ASSERT(v.size() == 8);
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[1].a == 55);
 		BS_TEST_ASSERT(v[2].a == 56);
@@ -425,8 +425,8 @@ namespace bs
 		BS_TEST_ASSERT(v[7].b == 4);
 
 		// Erase a range of elements
-		v.Erase(v.begin() + 2, v.begin() + 5);
-		BS_TEST_ASSERT(v.Size() == 5);
+		v.erase(v.begin() + 2, v.begin() + 5);
+		BS_TEST_ASSERT(v.size() == 5);
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[1].a == 55);
 		BS_TEST_ASSERT(v[2].a == 99);
@@ -436,7 +436,7 @@ namespace bs
 
 		// Insert a range
 		v.Insert(v.begin() + 1, v2.begin() + 1, v2.begin() + 3);
-		BS_TEST_ASSERT(v.Size() == 7);
+		BS_TEST_ASSERT(v.size() == 7);
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[1].a == 10);
 		BS_TEST_ASSERT(v[2].a == 10);
@@ -448,7 +448,7 @@ namespace bs
 
 		// Shrink capacity
 		v.Shrink();
-		BS_TEST_ASSERT(v.Size() == v.capacity());
+		BS_TEST_ASSERT(v.size() == v.capacity());
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[1].a == 10);
 		BS_TEST_ASSERT(v[2].a == 10);
@@ -460,8 +460,8 @@ namespace bs
 
 		// Move it
 		DynArray<SomeElem> v3 = std::move(v2);
-		BS_TEST_ASSERT(v2.Size() == 0);
-		BS_TEST_ASSERT(v3.Size() == 4);
+		BS_TEST_ASSERT(v2.size() == 0);
+		BS_TEST_ASSERT(v3.size() == 4);
 		BS_TEST_ASSERT(v3[0].a == 10);
 		BS_TEST_ASSERT(v3[3].a == 10);
 		BS_TEST_ASSERT(v3[3].b == 0);
@@ -568,14 +568,14 @@ namespace bs
 		BS_TEST_ASSERT(m[0].key.a == 4);
 		BS_TEST_ASSERT(m[0].key.b == 5);
 		BS_TEST_ASSERT(m[0].value == 10);
-		BS_TEST_ASSERT(m.Size() == 1);
+		BS_TEST_ASSERT(m.size() == 1);
 
 		int v = 11;
 		m.Insert(elements, v);
 		BS_TEST_ASSERT(m[1].key.a == 4);
 		BS_TEST_ASSERT(m[1].key.b == 5);
 		BS_TEST_ASSERT(m[1].value == 11);
-		BS_TEST_ASSERT(m.Size() == 2);
+		BS_TEST_ASSERT(m.size() == 2);
 
 		SomeElem minKey;
 		int minValue;
@@ -585,8 +585,8 @@ namespace bs
 		BS_TEST_ASSERT(minKey.b == 5);
 		BS_TEST_ASSERT(minValue == 10);
 
-		m.Erase(elements, v);
-		BS_TEST_ASSERT(m.Size() == 1);
+		m.erase(elements, v);
+		BS_TEST_ASSERT(m.size() == 1);
 	}
 
 	void UtilityTestSuite::TestQuadtree()
@@ -628,7 +628,7 @@ namespace bs
 				DebugQuadtreeElem elem;
 				elem.box = Rect2(position - extents, extents);
 
-				UINT32 elemIdx = (UINT32)quadtreeData.elements.Size();
+				UINT32 elemIdx = (UINT32)quadtreeData.elements.size();
 				quadtreeData.elements.push_back(elem);
 				quadtree.AddElement(elemIdx);
 			}
@@ -642,7 +642,7 @@ namespace bs
 
 		for (UINT32 i = 0; i < 3; i++)
 		{
-			UINT32 elemIdx = (UINT32)quadtreeData.elements.Size();
+			UINT32 elemIdx = (UINT32)quadtreeData.elements.size();
 			quadtreeData.elements.push_back(manualElems[i]);
 			quadtree.AddElement(elemIdx);
 		}
@@ -666,8 +666,8 @@ namespace bs
 		{
 			if (entry.box.Overlaps(queryBounds))
 			{
-				auto iterFind = std::find(overlapElements.Begin(), overlapElements.end(), elemIdx);
-				assert(iterFind != overlapElements.End());
+				auto iterFind = std::find(overlapElements.begin(), overlapElements.end(), elemIdx);
+				assert(iterFind != overlapElements.end());
 			}
 
 			elemIdx++;
@@ -787,7 +787,7 @@ namespace bs
 		bs.Align(); // 352
 		bs.Write(v11); // 352 - 416
 
-		BS_TEST_ASSERT(bs.Size() == 416);
+		BS_TEST_ASSERT(bs.size() == 416);
 
 		uint32_t uv;
 		uint64_t ulv;

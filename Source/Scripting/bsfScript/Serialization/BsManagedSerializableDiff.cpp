@@ -476,7 +476,7 @@ namespace bs
 	{
 		bool needsResize = false;
 
-		for (UINT32 i = 0; i < (UINT32)mod->newSizes.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mod->newSizes.size(); i++)
 		{
 			if (mod->newSizes[i] != obj->GetLength(i))
 			{

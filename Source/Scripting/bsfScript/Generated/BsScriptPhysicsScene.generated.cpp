@@ -169,7 +169,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->rayCastAll(*ray, layer, max);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptPhysicsQueryHit>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -186,7 +186,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->rayCastAll(*origin, *unitDir, layer, max);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptPhysicsQueryHit>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -203,7 +203,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->boxCastAll(*box, *rotation, *unitDir, layer, max);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptPhysicsQueryHit>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -220,7 +220,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->sphereCastAll(*sphere, *unitDir, layer, max);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptPhysicsQueryHit>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -237,7 +237,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->capsuleCastAll(*capsule, *rotation, *unitDir, layer, max);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptPhysicsQueryHit>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -259,7 +259,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->convexCastAll(tmpmesh, *position, *rotation, *unitDir, layer, max);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptPhysicsQueryHit>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -347,7 +347,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->boxOverlap(*box, *rotation, layer);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptCCollider>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -370,7 +370,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->sphereOverlap(*sphere, layer);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptCCollider>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -393,7 +393,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->capsuleOverlap(*capsule, *rotation, layer);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptCCollider>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -421,7 +421,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->convexOverlap(tmpmesh, *position, *rotation, layer);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptCCollider>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{

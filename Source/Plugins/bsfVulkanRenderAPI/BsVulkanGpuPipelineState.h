@@ -118,14 +118,14 @@ namespace bs { namespace ct
 		class HashFunc
 		{
 		public:
-			::std::size_t Operator()(const GpuPipelineKey& key) const;
+			::std::size_t operator()(const GpuPipelineKey& key) const;
 		};
 
 		/**	Compares two GPU pipeline keys. */
 		class EqualFunc
 		{
 		public:
-			bool Operator()(const GpuPipelineKey& a, const GpuPipelineKey& b) const;
+			bool operator()(const GpuPipelineKey& a, const GpuPipelineKey& b) const;
 		};
 
 		/** Contains pipeline data specific to a single Vulkan device. */

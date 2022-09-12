@@ -230,9 +230,9 @@ namespace bs
 
 				if (m->isModal)
 				{
-					if (!sModalWindowStack.Empty())
+					if (!sModalWindowStack.empty())
 					{
-						Win32Window* curModalWindow = sModalWindowStack.Back();
+						Win32Window* curModalWindow = sModalWindowStack.back();
 						windowsToDisable.push_back(curModalWindow->m->hWnd);
 					}
 					else
@@ -247,7 +247,7 @@ namespace bs
 				{
 					// A non-modal window was opened while another modal one is open,
 					// immediately deactivate it and make sure the modal windows stay on top.
-					if (!sModalWindowStack.Empty())
+					if (!sModalWindowStack.empty())
 					{
 						shouldFocus = false;
 						windowsToDisable.push_back(m->hWnd);
@@ -288,7 +288,7 @@ namespace bs
 					// Hidden dependency: All windows must be re-enabled before a window is destroyed, otherwise the incorrect
 					// window in the z order will be activated.
 					bool reenableWindows = false;
-					if (!sModalWindowStack.Empty())
+					if (!sModalWindowStack.empty())
 					{
 						// Start from back because the most common case is closing the top-most modal window
 						for (auto iter = sModalWindowStack.Rbegin(); iter != sModalWindowStack.rend(); ++iter)
@@ -297,14 +297,14 @@ namespace bs
 							{
 								auto iterFwd = std::next(iter).Base(); // erase doesn't accept reverse iter, so convert
 
-								sModalWindowStack.Erase(iterFwd);
+								sModalWindowStack.erase(iterFwd);
 								break;
 							}
 						}
 
-						if (!sModalWindowStack.Empty()) // Enable next modal window
+						if (!sModalWindowStack.empty()) // Enable next modal window
 						{
-							Win32Window* curModalWindow = sModalWindowStack.Back();
+							Win32Window* curModalWindow = sModalWindowStack.back();
 							windowsToEnable.push_back(curModalWindow->m->hWnd);
 						}
 						else
@@ -329,8 +329,8 @@ namespace bs
 		{
 			Lock Lock(sWindowsMutex);
 
-			auto iterFind = std::find(sAllWindows.Begin(), sAllWindows.end(), this);
-			sAllWindows.Erase(iterFind);
+			auto iterFind = std::find(sAllWindows.begin(), sAllWindows.end(), this);
+			sAllWindows.erase(iterFind);
 		}
 
 		bs_delete(m);
@@ -519,9 +519,9 @@ namespace bs
 		{
 			Lock Lock(sWindowsMutex);
 
-			if (!sModalWindowStack.Empty())
+			if (!sModalWindowStack.empty())
 			{
-				Win32Window* curModalWindow = sModalWindowStack.Back();
+				Win32Window* curModalWindow = sModalWindowStack.back();
 				bringToFrontHwnd = curModalWindow->m->hWnd;
 
 				for (auto& window : sAllWindows)

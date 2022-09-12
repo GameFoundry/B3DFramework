@@ -17,7 +17,7 @@ namespace bs
 	/** Used for comparing GUI menu items in order to determine the order in which they are presented. */
 	struct GUIMenuItemComparer
 	{
-		bool Operator() (const GUIMenuItem* const& a, const GUIMenuItem* const& b) const;
+		bool operator() (const GUIMenuItem* const& a, const GUIMenuItem* const& b) const;
 	};
 
 	/** Holds information about a single element in a GUI menu. */
@@ -53,7 +53,7 @@ namespace bs
 		void AddChild(GUIMenuItem* child) { mChildren.Insert(child); }
 
 		/**	Returns number of child menu items. */
-		UINT32 GetNumChildren() const { return (UINT32)mChildren.Size(); }
+		UINT32 GetNumChildren() const { return (UINT32)mChildren.size(); }
 
 		/**	Returns the parent menu item, or null if none. */
 		GUIMenuItem* getParent() const { return mParent; }

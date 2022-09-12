@@ -32,17 +32,17 @@ namespace bs
 	void StringUtil::Trim(String& str, const String& delims, bool left, bool right)
 	{
 		if(right)
-			str.Erase(str.find_last_not_of(delims)+1); // trim right
+			str.erase(str.find_last_not_of(delims)+1); // trim right
 		if(left)
-			str.Erase(0, str.find_first_not_of(delims)); // trim left
+			str.erase(0, str.find_first_not_of(delims)); // trim left
 	}
 
 	void StringUtil::Trim(WString& str, const WString& delims, bool left, bool right)
 	{
 		if(right)
-			str.Erase(str.find_last_not_of(delims)+1); // trim right
+			str.erase(str.find_last_not_of(delims)+1); // trim right
 		if(left)
-			str.Erase(0, str.find_first_not_of(delims)); // trim left
+			str.erase(0, str.find_first_not_of(delims)); // trim left
 	}
 
 	Vector<String> StringUtil::Split(const String& str, const String& delims, unsigned int maxSplits)
@@ -57,32 +57,32 @@ namespace bs
 
 	Vector<String> StringUtil::Tokenise(const String& str, const String& singleDelims, const String& doubleDelims, unsigned int maxSplits)
 	{
-		return tokeniseInternal<char>(str, singleDelims, doubleDelims, maxSplits);
+		return TokeniseInternal<char>(str, singleDelims, doubleDelims, maxSplits);
 	}
 
 	Vector<WString> StringUtil::Tokenise(const WString& str, const WString& singleDelims, const WString& doubleDelims, unsigned int maxSplits)
 	{
-		return tokeniseInternal<wchar_t>(str, singleDelims, doubleDelims, maxSplits);
+		return TokeniseInternal<wchar_t>(str, singleDelims, doubleDelims, maxSplits);
 	}
 
 	void StringUtil::ToLowerCase(String& str)
 	{
-		std::transform(str.Begin(), str.end(), str.begin(), tolower);
+		std::transform(str.begin(), str.end(), str.begin(), tolower);
 	}
 
 	void StringUtil::ToLowerCase(WString& str)
 	{
-		std::transform(str.Begin(), str.end(), str.begin(), tolower);
+		std::transform(str.begin(), str.end(), str.begin(), tolower);
 	}
 
 	void StringUtil::ToUpperCase(String& str)
 	{
-		std::transform(str.Begin(), str.end(), str.begin(), toupper);
+		std::transform(str.begin(), str.end(), str.begin(), toupper);
 	}
 
 	void StringUtil::ToUpperCase(WString& str)
 	{
-		std::transform(str.Begin(), str.end(), str.begin(), toupper);
+		std::transform(str.begin(), str.end(), str.begin(), toupper);
 	}
 
 	bool StringUtil::StartsWith(const String& str, const String& pattern, bool lowerCase)
@@ -117,12 +117,12 @@ namespace bs
 
 	const String StringUtil::ReplaceAll(const String& source, const String& replaceWhat, const String& replaceWithWhat)
 	{
-		return replaceAllInternal<char>(source, replaceWhat, replaceWithWhat);
+		return ReplaceAllInternal<char>(source, replaceWhat, replaceWithWhat);
 	}
 
 	const WString StringUtil::ReplaceAll(const WString& source, const WString& replaceWhat, const WString& replaceWithWhat)
 	{
-		return replaceAllInternal<wchar_t>(source, replaceWhat, replaceWithWhat);
+		return ReplaceAllInternal<wchar_t>(source, replaceWhat, replaceWithWhat);
 	}
 
 	/************************************************************************/
@@ -131,7 +131,7 @@ namespace bs
 
 	WString ToWString(const String& source)
 	{
-		return WString(source.Begin(), source.end());
+		return WString(source.begin(), source.end());
 	}
 
 	WString ToWString(const char* source)
@@ -139,8 +139,8 @@ namespace bs
 		return ToWString(String(source));
 	}
 
-	WString toWString(float val, unsigned short precision,
-		unsigned short width, char fill, std::ios::fmtflags flags)
+	WString ToWString(float val, unsigned short precision,
+					  unsigned short width, char fill, std::ios::fmtflags flags)
 	{
 		WStringStream stream;
 		stream.Precision(precision);
@@ -149,11 +149,11 @@ namespace bs
 		if (flags)
 			stream.Setf(flags);
 		stream << val;
-		return stream.Str();
+		return stream.str();
 	}
 
-	WString toWString(double val, unsigned short precision,
-		unsigned short width, char fill, std::ios::fmtflags flags)
+	WString ToWString(double val, unsigned short precision,
+					  unsigned short width, char fill, std::ios::fmtflags flags)
 	{
 		WStringStream stream;
 		stream.Precision(precision);
@@ -162,23 +162,23 @@ namespace bs
 		if (flags)
 			stream.Setf(flags);
 		stream << val;
-		return stream.Str();
+		return stream.str();
 	}
 
-	WString toWString(const Radian& val, unsigned short precision,
-		unsigned short width, char fill, std::ios::fmtflags flags)
+	WString ToWString(const Radian& val, unsigned short precision,
+					  unsigned short width, char fill, std::ios::fmtflags flags)
 	{
 		return ToWString(val.ValueRadians(), precision, width, fill, flags);
 	}
 
-	WString toWString(const Degree& val, unsigned short precision,
-		unsigned short width, char fill, std::ios::fmtflags flags)
+	WString ToWString(const Degree& val, unsigned short precision,
+					  unsigned short width, char fill, std::ios::fmtflags flags)
 	{
 		return ToWString(val.ValueDegrees(), precision, width, fill, flags);
 	}
 
-	WString toWString(int val,
-		unsigned short width, char fill, std::ios::fmtflags flags)
+	WString ToWString(int val,
+					  unsigned short width, char fill, std::ios::fmtflags flags)
 	{
 		WStringStream stream;
 		stream.Width(width);
@@ -186,7 +186,7 @@ namespace bs
 		if (flags)
 			stream.Setf(flags);
 		stream << val;
-		return stream.Str();
+		return stream.str();
 	}
 
 	WString ToWString(unsigned int val, unsigned short width, char fill, std::ios::fmtflags flags)
@@ -197,7 +197,7 @@ namespace bs
 		if (flags)
 			stream.Setf(flags);
 		stream << val;
-		return stream.Str();
+		return stream.str();
 	}
 
 	WString ToWString(INT64 val, unsigned short width, char fill, std::ios::fmtflags flags)
@@ -208,7 +208,7 @@ namespace bs
 		if (flags)
 			stream.Setf(flags);
 		stream << val;
-		return stream.Str();
+		return stream.str();
 	}
 
 	WString ToWString(UINT64 val, unsigned short width, char fill, std::ios::fmtflags flags)
@@ -219,7 +219,7 @@ namespace bs
 		if (flags)
 			stream.Setf(flags);
 		stream << val;
-		return stream.Str();
+		return stream.str();
 	}
 
 	WString ToWString(char val, unsigned short width, char fill, std::ios::fmtflags flags)
@@ -230,7 +230,7 @@ namespace bs
 		if (flags)
 			stream.Setf(flags);
 		stream << val;
-		return stream.Str();
+		return stream.str();
 	}
 
 	WString ToWString(wchar_t val, unsigned short width, char fill, std::ios::fmtflags flags)
@@ -241,35 +241,35 @@ namespace bs
 		if (flags)
 			stream.Setf(flags);
 		stream << val;
-		return stream.Str();
+		return stream.str();
 	}
 
 	WString ToWString(const Vector2& val)
 	{
 		WStringStream stream;
 		stream << val.x << L" " << val.y;
-		return stream.Str();
+		return stream.str();
 	}
 
 	WString ToWString(const Vector2I& val)
 	{
 		WStringStream stream;
 		stream << val.x << L" " << val.y;
-		return stream.Str();
+		return stream.str();
 	}
 
 	WString ToWString(const Vector3& val)
 	{
 		WStringStream stream;
 		stream << val.x << L" " << val.y << L" " << val.z;
-		return stream.Str();
+		return stream.str();
 	}
 
 	WString ToWString(const Vector4& val)
 	{
 		WStringStream stream;
 		stream << val.x << L" " << val.y << L" " << val.z << L" " << val.w;
-		return stream.Str();
+		return stream.str();
 	}
 
 	WString ToWString(const Matrix3& val)
@@ -284,7 +284,7 @@ namespace bs
 			<< val[2][0] << L" "
 			<< val[2][1] << L" "
 			<< val[2][2];
-		return stream.Str();
+		return stream.str();
 	}
 
 	WString ToWString(bool val, bool yesNo)
@@ -330,29 +330,29 @@ namespace bs
 			<< val[3][1] << L" "
 			<< val[3][2] << L" "
 			<< val[3][3];
-		return stream.Str();
+		return stream.str();
 	}
 
 	WString ToWString(const Quaternion& val)
 	{
 		WStringStream stream;
 		stream  << val.w << L" " << val.x << L" " << val.y << L" " << val.z;
-		return stream.Str();
+		return stream.str();
 	}
 
 	WString ToWString(const Color& val)
 	{
 		WStringStream stream;
 		stream << val.r << L" " << val.g << L" " << val.b << L" " << val.a;
-		return stream.Str();
+		return stream.str();
 	}
 
 	WString ToWString(const Vector<bs::WString>& val)
 	{
 		WStringStream stream;
 		Vector<bs::WString>::const_iterator i, iend, ibegin;
-		ibegin = val.Begin();
-		iend = val.End();
+		ibegin = val.begin();
+		iend = val.end();
 		for (i = ibegin; i != iend; ++i)
 		{
 			if (i != ibegin)
@@ -360,7 +360,7 @@ namespace bs
 
 			stream << *i;
 		}
-		return stream.Str();
+		return stream.str();
 	}
 
 	String ToString(const WString& source)
@@ -369,7 +369,7 @@ namespace bs
 		for (auto& entry : source)
 			stream << entry;
 
-		return stream.Str();
+		return stream.str();
 	}
 
 	String ToString(const wchar_t* source)
@@ -377,8 +377,8 @@ namespace bs
 		return ToString(WString(source));
 	}
 
-	String toString(float val, unsigned short precision,
-		unsigned short width, char fill, std::ios::fmtflags flags)
+	String ToString(float val, unsigned short precision,
+					unsigned short width, char fill, std::ios::fmtflags flags)
 	{
 		StringStream stream;
 		stream.Precision(precision);
@@ -387,11 +387,11 @@ namespace bs
 		if (flags)
 			stream.Setf(flags);
 		stream << val;
-		return stream.Str();
+		return stream.str();
 	}
 
-	String toString(double val, unsigned short precision,
-		unsigned short width, char fill, std::ios::fmtflags flags)
+	String ToString(double val, unsigned short precision,
+					unsigned short width, char fill, std::ios::fmtflags flags)
 	{
 		StringStream stream;
 		stream.Precision(precision);
@@ -400,23 +400,23 @@ namespace bs
 		if (flags)
 			stream.Setf(flags);
 		stream << val;
-		return stream.Str();
+		return stream.str();
 	}
 
-	String toString(const Radian& val, unsigned short precision,
-		unsigned short width, char fill, std::ios::fmtflags flags)
+	String ToString(const Radian& val, unsigned short precision,
+					unsigned short width, char fill, std::ios::fmtflags flags)
 	{
 		return ToString(val.ValueRadians(), precision, width, fill, flags);
 	}
 
-	String toString(const Degree& val, unsigned short precision,
-		unsigned short width, char fill, std::ios::fmtflags flags)
+	String ToString(const Degree& val, unsigned short precision,
+					unsigned short width, char fill, std::ios::fmtflags flags)
 	{
 		return ToString(val.ValueDegrees(), precision, width, fill, flags);
 	}
 
-	String toString(int val,
-		unsigned short width, char fill, std::ios::fmtflags flags)
+	String ToString(int val,
+					unsigned short width, char fill, std::ios::fmtflags flags)
 	{
 		StringStream stream;
 		stream.Width(width);
@@ -424,7 +424,7 @@ namespace bs
 		if (flags)
 			stream.Setf(flags);
 		stream << val;
-		return stream.Str();
+		return stream.str();
 	}
 
 	String ToString(unsigned int val, unsigned short width, char fill, std::ios::fmtflags flags)
@@ -435,11 +435,11 @@ namespace bs
 		if (flags)
 			stream.Setf(flags);
 		stream << val;
-		return stream.Str();
+		return stream.str();
 	}
 
-	String toString(INT64 val,
-		unsigned short width, char fill, std::ios::fmtflags flags)
+	String ToString(INT64 val,
+					unsigned short width, char fill, std::ios::fmtflags flags)
 	{
 		StringStream stream;
 		stream.Width(width);
@@ -447,7 +447,7 @@ namespace bs
 		if (flags)
 			stream.Setf(flags);
 		stream << val;
-		return stream.Str();
+		return stream.str();
 	}
 
 	String ToString(UINT64 val, unsigned short width, char fill, std::ios::fmtflags flags)
@@ -458,35 +458,35 @@ namespace bs
 		if (flags)
 			stream.Setf(flags);
 		stream << val;
-		return stream.Str();
+		return stream.str();
 	}
 
 	String ToString(const Vector2& val)
 	{
 		StringStream stream;
 		stream << val.x << " " << val.y;
-		return stream.Str();
+		return stream.str();
 	}
 
 	String ToString(const Vector2I& val)
 	{
 		StringStream stream;
 		stream << val.x << " " << val.y;
-		return stream.Str();
+		return stream.str();
 	}
 
 	String ToString(const Vector3& val)
 	{
 		StringStream stream;
 		stream << val.x << " " << val.y << " " << val.z;
-		return stream.Str();
+		return stream.str();
 	}
 
 	String ToString(const Vector4& val)
 	{
 		StringStream stream;
 		stream << val.x << " " << val.y << " " << val.z << " " << val.w;
-		return stream.Str();
+		return stream.str();
 	}
 
 	String ToString(const Matrix3& val)
@@ -501,7 +501,7 @@ namespace bs
 			<< val[2][0] << " "
 			<< val[2][1] << " "
 			<< val[2][2];
-		return stream.Str();
+		return stream.str();
 	}
 
 	String ToString(bool val, bool yesNo)
@@ -547,21 +547,21 @@ namespace bs
 			<< val[3][1] << " "
 			<< val[3][2] << " "
 			<< val[3][3];
-		return stream.Str();
+		return stream.str();
 	}
 
 	String ToString(const Quaternion& val)
 	{
 		StringStream stream;
 		stream  << val.w << " " << val.x << " " << val.y << " " << val.z;
-		return stream.Str();
+		return stream.str();
 	}
 
 	String ToString(const Color& val)
 	{
 		StringStream stream;
 		stream << val.r << " " << val.g << " " << val.b << " " << val.a;
-		return stream.Str();
+		return stream.str();
 	}
 
 	String ToString(const UUID& val)
@@ -578,8 +578,8 @@ namespace bs
 	{
 		StringStream stream;
 		Vector<bs::String>::const_iterator i, iend, ibegin;
-		ibegin = val.Begin();
-		iend = val.End();
+		ibegin = val.begin();
+		iend = val.end();
 		for (i = ibegin; i != iend; ++i)
 		{
 			if (i != ibegin)
@@ -587,7 +587,7 @@ namespace bs
 
 			stream << *i;
 		}
-		return stream.Str();
+		return stream.str();
 	}
 
 	String ToString(const LogVerbosity& val)

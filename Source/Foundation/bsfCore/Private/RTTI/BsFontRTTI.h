@@ -51,10 +51,11 @@ namespace bs
 	private:
 		FontBitmap& GetBitmap(Font* obj, UINT32 idx)
 		{
-			if(idx >= obj->mFontDataPerSize.Size())
-				BS_EXCEPT(InternalErrorException, "Index out of range: " + toString(idx) + ". Valid range: 0 .. " + toString((int)obj->mFontDataPerSize.Size()));
+			if(idx >= obj->mFontDataPerSize.size())
+				BS_EXCEPT(InternalErrorException, "Index out of range: " + ToString(idx) + ". Valid range: 0 .. " +
+												  ToString((int) obj->mFontDataPerSize.size()));
 
-			auto iter = obj->mFontDataPerSize.Begin();
+			auto iter = obj->mFontDataPerSize.begin();
 			for(UINT32 i = 0; i < idx; i++, ++iter)
 			{ }
 
@@ -69,7 +70,7 @@ namespace bs
 
 		UINT32 GetNumBitmaps(Font* obj)
 		{
-			return (UINT32)obj->mFontDataPerSize.Size();
+			return (UINT32)obj->mFontDataPerSize.size();
 		}
 
 		void SetNumBitmaps(Font* obj, UINT32 size)

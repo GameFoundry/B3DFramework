@@ -75,7 +75,7 @@ namespace bs
 		// Update all children first, otherwise we can't determine our own optimal size
 		GUIElementBase::_updateOptimalLayoutSizes();
 
-		if (mChildren.Size() != mChildSizeRanges.size())
+		if (mChildren.size() != mChildSizeRanges.size())
 			mChildSizeRanges.Resize(mChildren.size());
 
 		UINT32 childIdx = 0;
@@ -102,7 +102,7 @@ namespace bs
 	void GUIScrollArea::_getElementAreas(const Rect2I& layoutArea, Rect2I* elementAreas, UINT32 numElements,
 		const Vector<LayoutSizeRange>& sizeRanges, Vector2I& visibleSize, Vector2I& contentSize) const
 	{
-		assert(mChildren.Size() == numElements && numElements == 3);
+		assert(mChildren.size() == numElements && numElements == 3);
 
 		UINT32 layoutIdx = 0;
 		UINT32 horzScrollIdx = 0;
@@ -233,7 +233,7 @@ namespace bs
 
 	void GUIScrollArea::_updateLayoutInternal(const GUILayoutData& data)
 	{
-		UINT32 numElements = (UINT32)mChildren.Size();
+		UINT32 numElements = (UINT32)mChildren.size();
 		Rect2I* elementAreas = nullptr;
 
 		if (numElements > 0)

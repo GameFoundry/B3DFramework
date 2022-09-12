@@ -35,10 +35,10 @@ namespace bs
 		AudioSource::setTransform(transform);
 
 		auto& contexts = gOAAudio()._getContexts();
-		UINT32 numContexts = (UINT32)contexts.Size();
+		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.Size() > 1)
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			if (is3D())
@@ -56,10 +56,10 @@ namespace bs
 		AudioSource::setVelocity(velocity);
 
 		auto& contexts = gOAAudio()._getContexts();
-		UINT32 numContexts = (UINT32)contexts.Size();
+		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.Size() > 1)
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			if (is3D())
@@ -74,10 +74,10 @@ namespace bs
 		AudioSource::setVolume(volume);
 
 		auto& contexts = gOAAudio()._getContexts();
-		UINT32 numContexts = (UINT32)contexts.Size();
+		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.Size() > 1)
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcef(mSourceIDs[i], AL_GAIN, mVolume);
@@ -89,10 +89,10 @@ namespace bs
 		AudioSource::setPitch(pitch);
 
 		auto& contexts = gOAAudio()._getContexts();
-		UINT32 numContexts = (UINT32)contexts.Size();
+		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.Size() > 1)
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcef(mSourceIDs[i], AL_PITCH, pitch);
@@ -108,10 +108,10 @@ namespace bs
 			loop = false;
 
 		auto& contexts = gOAAudio()._getContexts();
-		UINT32 numContexts = (UINT32)contexts.Size();
+		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.Size() > 1)
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcei(mSourceIDs[i], AL_LOOPING, loop);
@@ -130,10 +130,10 @@ namespace bs
 		AudioSource::setMinDistance(distance);
 
 		auto& contexts = gOAAudio()._getContexts();
-		UINT32 numContexts = (UINT32)contexts.Size();
+		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.Size() > 1)
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcef(mSourceIDs[i], AL_REFERENCE_DISTANCE, distance);
@@ -145,10 +145,10 @@ namespace bs
 		AudioSource::setAttenuation(attenuation);
 
 		auto& contexts = gOAAudio()._getContexts();
-		UINT32 numContexts = (UINT32)contexts.Size();
+		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.Size() > 1)
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcef(mSourceIDs[i], AL_ROLLOFF_FACTOR, attenuation);
@@ -172,10 +172,10 @@ namespace bs
 		}
 		
 		auto& contexts = gOAAudio()._getContexts();
-		UINT32 numContexts = (UINT32)contexts.Size();
+		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.Size() > 1)
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcePlay(mSourceIDs[i]);
@@ -192,10 +192,10 @@ namespace bs
 	void OAAudioSource::Pause()
 	{
 		auto& contexts = gOAAudio()._getContexts();
-		UINT32 numContexts = (UINT32)contexts.Size();
+		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.Size() > 1)
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcePause(mSourceIDs[i]);
@@ -205,10 +205,10 @@ namespace bs
 	void OAAudioSource::Stop()
 	{
 		auto& contexts = gOAAudio()._getContexts();
-		UINT32 numContexts = (UINT32)contexts.Size();
+		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.Size() > 1)
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourceStop(mSourceIDs[i]);
@@ -238,10 +238,10 @@ namespace bs
 			if (pause)
 			{
 				auto& contexts = gOAAudio()._getContexts();
-				UINT32 numContexts = (UINT32)contexts.Size();
+				UINT32 numContexts = (UINT32)contexts.size();
 				for (UINT32 i = 0; i < numContexts; i++)
 				{
-					if (contexts.Size() > 1)
+					if (contexts.size() > 1)
 						alcMakeContextCurrent(contexts[i]);
 
 					alSourcePause(mSourceIDs[i]);
@@ -282,10 +282,10 @@ namespace bs
 		}
 
 		auto& contexts = gOAAudio()._getContexts();
-		UINT32 numContexts = (UINT32)contexts.Size();
+		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.Size() > 1)
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcef(mSourceIDs[i], AL_SEC_OFFSET, clipTime);
@@ -304,7 +304,7 @@ namespace bs
 
 		auto& contexts = gOAAudio()._getContexts();
 
-		if (contexts.Size() > 1)
+		if (contexts.size() > 1)
 			alcMakeContextCurrent(contexts[0]);
 
 		bool needsStreaming = requiresStreaming();
@@ -351,12 +351,12 @@ namespace bs
 		stop();
 		
 		auto& contexts = gOAAudio()._getContexts();
-		UINT32 numContexts = (UINT32)contexts.Size();
+		UINT32 numContexts = (UINT32)contexts.size();
 		
 		Lock Lock(mMutex);
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.Size() > 1)
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcei(mSourceIDs[i], AL_BUFFER, 0);
@@ -369,14 +369,14 @@ namespace bs
 	void OAAudioSource::Rebuild()
 	{
 		auto& contexts = gOAAudio()._getContexts();
-		UINT32 numContexts = (UINT32)contexts.Size();
+		UINT32 numContexts = (UINT32)contexts.size();
 
 		{
 			Lock Lock(mMutex);
 
 			for (UINT32 i = 0; i < numContexts; i++)
 			{
-				if (contexts.Size() > 1)
+				if (contexts.size() > 1)
 					alcMakeContextCurrent(contexts[i]);
 
 				UINT32 source = 0;
@@ -388,7 +388,7 @@ namespace bs
 
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.Size() > 1)
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcef(mSourceIDs[i], AL_PITCH, mPitch);
@@ -460,10 +460,10 @@ namespace bs
 		gOAAudio().StopStreaming(this);
 
 		auto& contexts = gOAAudio()._getContexts();
-		UINT32 numContexts = (UINT32)contexts.Size();
+		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.Size() > 1)
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			INT32 numQueuedBuffers;
@@ -497,10 +497,10 @@ namespace bs
 		// Note: It is safe to access contexts here only because it is guaranteed by the OAAudio manager that it will always
 		// stop all streaming before changing contexts. Otherwise a mutex lock would be needed for every context access.
 		auto& contexts = gOAAudio()._getContexts();
-		UINT32 numContexts = (UINT32)contexts.Size();
+		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.Size() > 1)
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			INT32 numProcessedBuffers = 0;
@@ -614,10 +614,10 @@ namespace bs
 	void OAAudioSource::ApplyClip()
 	{
 		auto& contexts = gOAAudio()._getContexts();
-		UINT32 numContexts = (UINT32)contexts.Size();
+		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
-			if (contexts.Size() > 1)
+			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
 			alSourcei(mSourceIDs[i], AL_SOURCE_RELATIVE, !is3D());

@@ -26,13 +26,13 @@ namespace bs
 		mDesc.countZ = std::max(1U, mDesc.countZ);
 
 		const UINT32 count = mDesc.countX * mDesc.countY * mDesc.countZ;
-		if(count != (UINT32)values.Size())
+		if(count != (UINT32)values.size())
 		{
 			BS_LOG(Warning, Particles, "Number of values provided to the vector field does not match the expected number. "
-				"Expected: {0}. Got: {1}.", count, (UINT32)values.Size());
+				"Expected: {0}. Got: {1}.", count, (UINT32)values.size());
 		}
 
-		const UINT32 valuesToCopy = std::min(count, (UINT32)values.Size());
+		const UINT32 valuesToCopy = std::min(count, (UINT32)values.size());
 
 		const SPtr<PixelData> pixelData = PixelData::create(mDesc.countX, mDesc.countY, mDesc.countZ, PF_RGBA16F);
 
@@ -155,9 +155,9 @@ namespace bs
 			data = stream->GetAsString();
 		}
 
-		auto chars = bs_managed_stack_alloc<char>((UINT32)data.Size() + 1);
+		auto chars = bs_managed_stack_alloc<char>((UINT32)data.size() + 1);
 		memcpy(chars, data.Data(), data.size());
-		chars[data.Size()] = '\0';
+		chars[data.size()] = '\0';
 
 		const auto parseInt = [](char* input, INT32& output)
 		{

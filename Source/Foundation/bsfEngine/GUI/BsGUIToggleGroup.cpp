@@ -42,6 +42,6 @@ namespace bs
 			return;
 
 		(*iterFind)->_setToggleGroup(nullptr);
-		mButtons.Erase(iterFind);
+		mButtons.erase(iterFind);
 	}
 }

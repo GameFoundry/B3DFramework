@@ -125,7 +125,7 @@ namespace bs
 	void ProfilerCPU::ProfileData::resumeLastSample()
 	{
 		timer.Start();
-		samples.Erase(samples.end() - 1);
+		samples.erase(samples.end() - 1);
 	}
 
 	ProfilerCPU::PreciseProfileData::PreciseProfileData(FrameAlloc* alloc)
@@ -154,7 +154,7 @@ namespace bs
 	void ProfilerCPU::PreciseProfileData::resumeLastSample()
 	{
 		timer.Start();
-		samples.Erase(samples.end() - 1);
+		samples.erase(samples.end() - 1);
 	}
 
 	BS_THREADLOCAL ProfilerCPU::ThreadInfo* ProfilerCPU::ThreadInfo::activeThread = nullptr;
@@ -178,7 +178,7 @@ namespace bs
 
 		activeBlock = ActiveBlock(ActiveSamplingType::Basic, rootBlock);
 		if (activeBlocks == nullptr)
-			activeBlocks = frameAlloc.construct<Stack<ActiveBlock, StdFrameAlloc<ActiveBlock>>>
+			activeBlocks = frameAlloc.Construct<Stack<ActiveBlock, StdFrameAlloc<ActiveBlock>>>
 					(StdFrameAlloc<ActiveBlock>(&frameAlloc));
 
 		activeBlocks->Push(activeBlock);
@@ -237,7 +237,7 @@ namespace bs
 
 	ProfilerCPU::ProfiledBlock* ProfilerCPU::ThreadInfo::getBlock(const char* name)
 	{
-		ProfiledBlock* block = frameAlloc.construct<ProfiledBlock>(&frameAlloc);
+		ProfiledBlock* block = frameAlloc.Construct<ProfiledBlock>(&frameAlloc);
 		block->name = (char*)frameAlloc.Alloc(((UINT32)strlen(name) + 1) * sizeof(char));
 		strcpy(block->name, name);
 
@@ -496,12 +496,12 @@ namespace bs
 		flatHierarchy.push_back(TempEntry(thread->rootBlock, entryIdx));
 
 		entryIdx++;
-		while(!todo.Empty())
+		while(!todo.empty())
 		{
 			UINT32 curDataIdx = todo.Top();
 			ProfiledBlock* curBlock = flatHierarchy[curDataIdx].parentBlock;
 
-			todo.Pop();
+			todo.pop();
 
 			for(auto& child : curBlock->children)
 			{
@@ -541,7 +541,7 @@ namespace bs
 				entryBasic->data.memFrees += sample.numFrees;
 			}
 
-			entryBasic->data.numCalls = (UINT32)curBlock->basic.samples.Size();
+			entryBasic->data.numCalls = (UINT32)curBlock->basic.samples.size();
 
 			if(entryBasic->data.numCalls > 0)
 				entryBasic->data.avgTimeMs = entryBasic->data.totalTimeMs / entryBasic->data.numCalls;
@@ -556,8 +556,8 @@ namespace bs
 				entryBasic->data.estimatedOverheadMs += childEntry->data.estimatedOverheadMs;
 			}
 
-			entryBasic->data.estimatedOverheadMs += curBlock->basic.samples.Size() * mBasicSamplingOverheadMs;
-			entryBasic->data.estimatedOverheadMs += curBlock->precise.samples.Size() * mPreciseSamplingOverheadMs;
+			entryBasic->data.estimatedOverheadMs += curBlock->basic.samples.size() * mBasicSamplingOverheadMs;
+			entryBasic->data.estimatedOverheadMs += curBlock->precise.samples.size() * mPreciseSamplingOverheadMs;
 
 			entryBasic->data.totalSelfTimeMs = entryBasic->data.totalTimeMs - totalChildTime;
 
@@ -581,7 +581,7 @@ namespace bs
 				entryPrecise->data.memFrees += sample.numFrees;
 			}
 
-			entryPrecise->data.numCalls = (UINT32)curBlock->precise.samples.Size();
+			entryPrecise->data.numCalls = (UINT32)curBlock->precise.samples.size();
 
 			if(entryPrecise->data.numCalls > 0)
 				entryPrecise->data.avgCycles = entryPrecise->data.totalCycles / entryPrecise->data.numCalls;
@@ -596,8 +596,8 @@ namespace bs
 				entryPrecise->data.estimatedOverhead += childEntry->data.estimatedOverhead;
 			}
 
-			entryPrecise->data.estimatedOverhead += curBlock->precise.samples.Size() * mPreciseSamplingOverheadCycles;
-			entryPrecise->data.estimatedOverhead += curBlock->basic.samples.Size() * mBasicSamplingOverheadCycles;
+			entryPrecise->data.estimatedOverhead += curBlock->precise.samples.size() * mPreciseSamplingOverheadCycles;
+			entryPrecise->data.estimatedOverhead += curBlock->basic.samples.size() * mBasicSamplingOverheadCycles;
 
 			entryPrecise->data.totalSelfCycles = entryPrecise->data.totalCycles - totalChildCycles;
 
@@ -620,14 +620,14 @@ namespace bs
 
 		entryIdx++;
 
-		while(!finalBasicHierarchyTodo.Empty())
+		while(!finalBasicHierarchyTodo.empty())
 		{
 			UINT32 parentEntryIdx = parentBasicEntryIndexes.Top();
-			parentBasicEntryIndexes.Pop();
+			parentBasicEntryIndexes.pop();
 
 			UINT32 curEntryIdx = finalBasicHierarchyTodo.Top();
 			TempEntry& curEntry = flatHierarchy[curEntryIdx];
-			finalBasicHierarchyTodo.Pop();
+			finalBasicHierarchyTodo.pop();
 
 			for(auto& childIdx : curEntry.childIndexes)
 			{
@@ -648,7 +648,7 @@ namespace bs
 			}
 		}
 
-		if(newBasicEntries.Size() > 0)
+		if(newBasicEntries.size() > 0)
 		{
 			ProfilerVector<CPUProfilerBasicSamplingEntry*> finalBasicEntries;
 
@@ -657,10 +657,10 @@ namespace bs
 
 			finalBasicHierarchyTodo.Push(0);
 
-			while(!finalBasicHierarchyTodo.Empty())
+			while(!finalBasicHierarchyTodo.empty())
 			{
 				UINT32 curEntryIdx = finalBasicHierarchyTodo.Top();
-				finalBasicHierarchyTodo.Pop();
+				finalBasicHierarchyTodo.pop();
 
 				TempEntry& curEntry = newBasicEntries[curEntryIdx];
 
@@ -694,14 +694,14 @@ namespace bs
 
 		entryIdx++;
 
-		while(!finalPreciseHierarchyTodo.Empty())
+		while(!finalPreciseHierarchyTodo.empty())
 		{
 			UINT32 parentEntryIdx = parentPreciseEntryIndexes.Top();
-			parentPreciseEntryIndexes.Pop();
+			parentPreciseEntryIndexes.pop();
 
 			UINT32 curEntryIdx = finalPreciseHierarchyTodo.Top();
 			TempEntry& curEntry = flatHierarchy[curEntryIdx];
-			finalPreciseHierarchyTodo.Pop();
+			finalPreciseHierarchyTodo.pop();
 
 			for(auto& childIdx : curEntry.childIndexes)
 			{
@@ -722,7 +722,7 @@ namespace bs
 			}
 		}
 
-		if(newPreciseEntries.Size() > 0)
+		if(newPreciseEntries.size() > 0)
 		{
 			ProfilerVector<CPUProfilerPreciseSamplingEntry*> finalPreciseEntries;
 
@@ -731,10 +731,10 @@ namespace bs
 
 			finalPreciseHierarchyTodo.Push(0);
 
-			while(!finalPreciseHierarchyTodo.Empty())
+			while(!finalPreciseHierarchyTodo.empty())
 			{
 				UINT32 curEntryIdx = finalPreciseHierarchyTodo.Top();
-				finalPreciseHierarchyTodo.Pop();
+				finalPreciseHierarchyTodo.pop();
 
 				TempEntry& curEntry = newPreciseEntries[curEntryIdx];
 
@@ -748,7 +748,7 @@ namespace bs
 					TempEntry& childEntry = newPreciseEntries[childIdx];
 					preciseEntry->childEntries[idx] = preciseEntries[childEntry.entryIdx];
 
-					finalPreciseEntries.push_back(&preciseEntry->childEntries.Back());
+					finalPreciseEntries.push_back(&preciseEntry->childEntries.back());
 					finalPreciseHierarchyTodo.Push(childIdx);
 					idx++;
 				}
@@ -833,8 +833,8 @@ namespace bs
 
 			for (UINT32 i = 0; i < sampleReps * 5; i++)
 			{
-				beginSample(("TestAvg#" + toString(i)).c_str());
-				endSample(("TestAvg#" + toString(i)).c_str());
+				beginSample(("TestAvg#" + ToString(i)).c_str());
+				endSample(("TestAvg#" + ToString(i)).c_str());
 			}
 
 			endThread();
@@ -884,8 +884,8 @@ namespace bs
 
 			for (UINT32 i = 0; i < sampleReps * 5; i++)
 			{
-				beginSample(("TestAvg#" + toString(i)).c_str());
-				endSample(("TestAvg#" + toString(i)).c_str());
+				beginSample(("TestAvg#" + ToString(i)).c_str());
+				endSample(("TestAvg#" + ToString(i)).c_str());
 			}
 
 			endThread();
@@ -933,8 +933,8 @@ namespace bs
 
 			for (UINT32 i = 0; i < sampleReps * 5; i++)
 			{
-				beginSamplePrecise(("TestAvg#" + toString(i)).c_str());
-				endSamplePrecise(("TestAvg#" + toString(i)).c_str());
+				beginSamplePrecise(("TestAvg#" + ToString(i)).c_str());
+				endSamplePrecise(("TestAvg#" + ToString(i)).c_str());
 			}
 
 			endThread();
@@ -982,8 +982,8 @@ namespace bs
 
 			for (UINT32 i = 0; i < sampleReps * 5; i++)
 			{
-				beginSamplePrecise(("TestAvg#" + toString(i)).c_str());
-				endSamplePrecise(("TestAvg#" + toString(i)).c_str());
+				beginSamplePrecise(("TestAvg#" + ToString(i)).c_str());
+				endSamplePrecise(("TestAvg#" + ToString(i)).c_str());
 			}
 
 			endThread();

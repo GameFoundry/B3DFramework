@@ -102,7 +102,7 @@ namespace bs
 			{
 				texProps.mDesc.format = validFormat;
 
-				for (size_t i = 0; i < mPixelData.Size(); i++)
+				for (size_t i = 0; i < mPixelData.size(); i++)
 				{
 					SPtr<PixelData> origData = mPixelData[i];
 					SPtr<PixelData> newData = PixelData::create(origData->GetWidth(), origData->getHeight(), origData->getDepth(), validFormat);
@@ -116,7 +116,7 @@ namespace bs
 			// in mRTTIData.
 			texture->Initialize();
 
-			for(size_t i = 0; i < mPixelData.Size(); i++)
+			for(size_t i = 0; i < mPixelData.size(); i++)
 			{
 				UINT32 face = (size_t)Math::floor(i / (float)(texProps.GetNumMipmaps() + 1));
 				UINT32 mipmap = i % (texProps.GetNumMipmaps() + 1);

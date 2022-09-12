@@ -11,7 +11,7 @@ namespace bs
 
 	void DeferredCallManager::_update()
 	{
-		while(!mCallbacks.Empty())
+		while(!mCallbacks.empty())
 		{
 			// Copy because callbacks can be queued within callbacks
 			Vector<std::function<void()>> callbackCopy = mCallbacks;

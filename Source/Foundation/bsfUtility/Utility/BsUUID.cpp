@@ -40,7 +40,7 @@ namespace bs
 	{
 		memset(mData, 0, sizeof(mData));
 
-		if (uuid.Size() < 36)
+		if (uuid.size() < 36)
 			return;
 
 		UINT32 idx = 0;

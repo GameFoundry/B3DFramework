@@ -2032,7 +2032,7 @@ namespace bs { namespace ct
 		SPtr<SamplerState> hiZSamplerState = SamplerState::create(desc);
 		if (mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZSamp"))
 			mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZSamp", hiZSamplerState);
-		else If(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZ"))
+		else if(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZ"))
 			mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZ", hiZSamplerState);
 	}
 

@@ -41,10 +41,10 @@ namespace bs
 		 */
 		Compress = 1 << 1,
 		/**
-		 * If true, no meta-data will be written. This saves on serialization size but it also means
+		 * If true, no meta-Data will be written. This saves on serialization size but it also means
 		 * the data can only be decoded if the RTTI types are identical to when the object was encoded
 		 * (e.g. no fields were added/removed from the types). Optionally you can also provide a previously
-		 * saved RTTI schema from which to read the meta-data from. Data encoded using this flag must also
+		 * saved RTTI schema from which to read the meta-Data from. Data encoded using this flag must also
 		 * be decoded with this flag provided.
 		 */
 		NoMeta = 1 << 2,
@@ -96,7 +96,7 @@ namespace bs
 		 *							of the operation. The reported value is in range [0, 1].
 		 * @param[in]	schema		RTTI schema that contains information about types as they were when the data was
 		 *							originally serialized. Schema is only used (and required) if BinarySerializerFlag::NoMeta
-		 *							is set,	otherwise this information is read directly	from the encoded data. 
+		 *							is set,	otherwise this information is read directly	from the encoded data.
 		 *
 		 * @note
 		 * Child elements are guaranteed to be fully deserialized before their parents, except for fields marked with WeakRef flag.
@@ -166,7 +166,7 @@ namespace bs
 		UINT32 RegisterObjectPtr(SPtr<IReflectable> object);
 
 		/**
-		 * Decodes object meta-data from the current location in the stream. Decoding accounts for the serializer flags to decode
+		 * Decodes object meta-Data from the current location in the stream. Decoding accounts for the serializer flags to decode
 		 * using the correct format. Returns number of bits read.
 		 */
 		static UINT32 ReadObjectMetaData(BufferedBitstreamReader& stream, BinarySerializerFlags flags, UINT32& objId, UINT32& objTypeId, bool& isBaseType);
@@ -187,12 +187,12 @@ namespace bs
 		static bool IsFieldTerminator(UINT8 data);
 
 		/**
-		 * Encodes an object identifier, its type and other meta-data into 8 bytes.
+		 * Encodes an object identifier, its type and other meta-Data into 8 bytes.
 		 *
 		 * @param[in]	objId	   	Unique ID of the object instance. This can be a maximum of 30 bits, as two bits are reserved.
 		 * @param[in]	objTypeId  	Unique ID of the object type.
 		 * @param[in]	isBaseClass	True if this object is base class (that is, just a part of a larger object).
-		 * @return		Encoded object id, type ID and other meta-data.
+		 * @return		Encoded object id, type ID and other meta-Data.
 		 */
 		static ObjectMetaData EncodeObjectMetaData(UINT32 objId, UINT32 objTypeId, bool isBaseClass);
 
@@ -203,11 +203,11 @@ namespace bs
 		static bool IsObjectMetaData(UINT32 encodedData);
 
 		/**
-		 * Encodes an object identifier and meta-data into 4 bytes. 
+		 * Encodes an object identifier and meta-Data into 4 bytes.
 		 *
 		 * @param[in]	objId	   	Unique ID of the object instance. This can be a maximum of 30 bits, as two bits are reserved.
 		 * @param[in]	isBaseClass	true if this object is base class (that is, just a part of a larger object).
-		 * @return		Encoded object id and other meta-data.
+		 * @return		Encoded object id and other meta-Data.
 		 */
 		static UINT32 EncodeObjectMetaData(UINT32 objId,  bool isBaseClass);
 

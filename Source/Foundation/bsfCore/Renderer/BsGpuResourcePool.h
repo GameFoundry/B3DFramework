@@ -71,7 +71,7 @@ namespace bs { namespace ct
 		 *
 		 * @param[in, out]	texture		Existing reference to a pooled texture that you would prefer to reuse. If it
 		 *								matches the provided descriptor the system will return the unchanged texture,
-		 *								otherwise it will try to find another unused texture, or allocate a new one. New
+		 *								otherwise it will try to find another unused texture, or Allocate a new one. New
 		 *								value will be output through this parameter.
 		 * @param[in]		desc		Descriptor structure that describes what kind of texture to retrieve.
 		 */
@@ -92,7 +92,7 @@ namespace bs { namespace ct
 		 *
 		 * @param[in, out]	buffer		Existing reference to a pooled buffer that you would prefer to reuse. If it
 		 *								matches the provided descriptor the system will return the unchanged buffer,
-		 *								otherwise it will try to find another unused buffer, or allocate a new one. New
+		 *								otherwise it will try to find another unused buffer, or Allocate a new one. New
 		 *								value will be output through this parameter.
 		 * @param[in]	desc			Descriptor structure that describes what kind of buffer to retrieve.
 		 */

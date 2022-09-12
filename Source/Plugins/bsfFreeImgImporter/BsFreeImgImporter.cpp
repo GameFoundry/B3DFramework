@@ -55,11 +55,11 @@ namespace bs
 
 			// Pull off individual formats (separated by comma by FI)
 			Vector<String> extsVector = StringUtil::split(exts, u8",");
-			for (auto v = extsVector.Begin(); v != extsVector.end(); ++v)
+			for (auto v = extsVector.begin(); v != extsVector.end(); ++v)
 			{
-				auto findIter = std::find(mExtensions.Begin(), mExtensions.end(), *v);
+				auto findIter = std::find(mExtensions.begin(), mExtensions.end(), *v);
 
-				if(findIter == mExtensions.End())
+				if(findIter == mExtensions.end())
 				{
 					String ext = *v;
 					StringUtil::toLowerCase(ext);
@@ -84,7 +84,7 @@ namespace bs
 		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
 
-		return Find(mExtensions.Begin(), mExtensions.end(), lowerCaseExt) != mExtensions.end();
+		return Find(mExtensions.begin(), mExtensions.end(), lowerCaseExt) != mExtensions.end();
 	}
 
 	bool FreeImgImporter::IsMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
@@ -184,7 +184,7 @@ namespace bs
 
 		SPtr<Texture> newTexture = Texture::_createPtr(texDesc);
 
-		UINT32 numFaces = (UINT32)faceData.Size();
+		UINT32 numFaces = (UINT32)faceData.size();
 		for (UINT32 i = 0; i < numFaces; i++)
 		{
 			Vector<SPtr<PixelData>> mipLevels;
@@ -198,7 +198,7 @@ namespace bs
 			else
 				mipLevels.push_back(faceData[i]);
 
-			for (UINT32 mip = 0; mip < (UINT32)mipLevels.Size(); ++mip)
+			for (UINT32 mip = 0; mip < (UINT32)mipLevels.size(); ++mip)
 			{
 				SPtr<PixelData> dst = newTexture->GetProperties().AllocBuffer(0, mip);
 
@@ -232,8 +232,8 @@ namespace bs
 			fileData->Seek(0);
 
 			String fileExtension = magicNumToExtension(magicBuf, magicLen);
-			auto findFormat = mExtensionToFID.Find(fileExtension);
-			if (findFormat == mExtensionToFID.End())
+			auto findFormat = mExtensionToFID.find(fileExtension);
+			if (findFormat == mExtensionToFID.end())
 			{
 				BS_EXCEPT(InvalidParametersException, "Type of the file provided is not supported by this importer. File type: " + fileExtension);
 			}
@@ -617,19 +617,19 @@ namespace bs
 					faceSize.x = source->GetWidth() / 6;
 					faceSize.y = source->GetHeight();
 				}
-				else If(Math::approxEquals(aspect, 1.0f / 6.0f)) // Vertical list
+				else if(Math::approxEquals(aspect, 1.0f / 6.0f)) // Vertical list
 				{
 					faceSize.x = source->GetWidth();
 					faceSize.y = source->GetHeight() / 6;
 					vertical = true;
 				}
-				else If(Math::approxEquals(aspect, 4.0f / 3.0f)) // Horizontal cross
+				else if(Math::approxEquals(aspect, 4.0f / 3.0f)) // Horizontal cross
 				{
 					faceSize.x = source->GetWidth() / 4;
 					faceSize.y = source->GetHeight() / 3;
 					cross = true;
 				}
-				else If(Math::approxEquals(aspect, 3.0f / 4.0f)) // Vertical cross
+				else if(Math::approxEquals(aspect, 3.0f / 4.0f)) // Vertical cross
 				{
 					faceSize.x = source->GetWidth() / 3;
 					faceSize.y = source->GetHeight() / 4;

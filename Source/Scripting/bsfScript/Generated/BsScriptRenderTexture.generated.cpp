@@ -81,7 +81,7 @@ namespace bs
 		{
 			ScriptArray ArraycolorSurface(colorSurface);
 			veccolorSurface.Resize(arraycolorSurface.size());
-			for(int i = 0; i < (int)arraycolorSurface.Size(); i++)
+			for(int i = 0; i < (int)arraycolorSurface.size(); i++)
 			{
 				ScriptTexture* scriptcolorSurface;
 				scriptcolorSurface = ScriptTexture::toNative(arraycolorSurface.get<MonoObject*>(i));
@@ -103,7 +103,7 @@ namespace bs
 		{
 			ScriptArray ArraycolorSurface(colorSurface);
 			veccolorSurface.Resize(arraycolorSurface.size());
-			for(int i = 0; i < (int)arraycolorSurface.Size(); i++)
+			for(int i = 0; i < (int)arraycolorSurface.size(); i++)
 			{
 				ScriptTexture* scriptcolorSurface;
 				scriptcolorSurface = ScriptTexture::toNative(arraycolorSurface.get<MonoObject*>(i));
@@ -146,7 +146,7 @@ namespace bs
 		vec__output = RenderTextureEx::getColorSurfaces(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptTexture>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{

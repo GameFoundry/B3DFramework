@@ -253,7 +253,7 @@ namespace bs
 			UINT32 GetPlainSize() const;
 
 			/**
-			 * Writes the data contained in the field into @p buffer. Caller must allocate the buffer and ensure it is of
+			 * Writes the data contained in the field into @p buffer. Caller must Allocate the buffer and ensure it is of
 			 * adequate size. Buffer size in bytes must be provided as @p bufferSize. Only valid if the field holds a plain
 			 * type.
 			 */
@@ -383,7 +383,7 @@ namespace bs
 
 		bool RTTISubObjectWrapperIterator<false>::moveNext()
 		{
-			UINT32 numFields = (UINT32)mObj->subObjects.Size();
+			UINT32 numFields = (UINT32)mObj->subObjects.size();
 
 			if (mBaseTypeIdx == (UINT32)-1)
 			{
@@ -643,13 +643,13 @@ namespace bs
 
 			if (!mIterSet)
 			{
-				mFieldIter = mObj->subObjects[mSubObjectIdx].entries.Begin();
+				mFieldIter = mObj->subObjects[mSubObjectIdx].entries.begin();
 				mIterSet = true;
 			}
 			else
 				++mFieldIter;
 
-			return mFieldIter != mObj->subObjects[mSubObjectIdx].entries.End();
+			return mFieldIter != mObj->subObjects[mSubObjectIdx].entries.end();
 		}
 
 		RTTIFieldWrapper<false> RTTIFieldWrapperIterator<false>::value() const
@@ -711,8 +711,8 @@ namespace bs
 				RTTIObjectWrapper<REFL_ORG> orgObjData = orgField.GetObject();
 				RTTIObjectWrapper<REFL_NEW> newObjData = newField.GetObject();
 
-				auto iterFind = objectMap.Find(newObjData.getObjectPtr());
-				if (iterFind != objectMap.End())
+				auto iterFind = objectMap.find(newObjData.getObjectPtr());
+				if (iterFind != objectMap.end())
 					modification = iterFind->second;
 				else
 				{
@@ -979,7 +979,7 @@ namespace bs
 						if (diffSubObject == nullptr)
 						{
 							output->subObjects.push_back(SerializedSubObject());
-							diffSubObject = &output->subObjects.Back();
+							diffSubObject = &output->subObjects.back();
 							diffSubObject->typeId = rtti->GetRTTIId();
 						}
 
@@ -1043,7 +1043,7 @@ namespace bs
 				}
 
 				// Call base class first, followed by derived classes
-				while(!rttiTypes.Empty())
+				while(!rttiTypes.empty())
 				{
 					RTTITypeBase* curRtti = rttiTypes.Top();
 					RTTITypeBase* rttiInstance = curRtti->_clone(alloc);
@@ -1051,7 +1051,7 @@ namespace bs
 					rttiInstances.push_back(std::make_pair(rttiInstance, destObject));
 					rttiInstance->OnDeserializationStarted(destObject, context);
 
-					rttiTypes.Pop();
+					rttiTypes.pop();
 				}
 			}
 				break;
@@ -1073,22 +1073,22 @@ namespace bs
 				break;
 			case Diff_ObjectEnd:
 			{
-				while (!rttiInstances.Empty())
+				while (!rttiInstances.empty())
 				{
-					if(rttiInstances.Back().second != destObject)
+					if(rttiInstances.back().second != destObject)
 						break;
 
-					RTTITypeBase* rttiInstance = rttiInstances.Back().first;
+					RTTITypeBase* rttiInstance = rttiInstances.back().first;
 
 					rttiInstance->OnDeserializationEnded(destObject, context);
 					alloc.Destruct(rttiInstance);
 
-					rttiInstances.Erase(rttiInstances.end() - 1);
+					rttiInstances.erase(rttiInstances.end() - 1);
 				}
 
-				objectStack.Pop();
+				objectStack.pop();
 
-				if (!objectStack.Empty())
+				if (!objectStack.empty())
 					destObject = objectStack.Top();
 				else
 					destObject = nullptr;
@@ -1299,8 +1299,8 @@ namespace bs
 									RTTITypeBase* childRtti = IReflectable::_getRTTIfromTypeId(arrayElemData->GetRootTypeId());
 									if (childRtti != nullptr)
 									{
-										auto findObj = objectMap.Find(arrayElemData);
-										if (findObj == objectMap.End())
+										auto findObj = objectMap.find(arrayElemData);
+										if (findObj == objectMap.end())
 										{
 											SPtr<IReflectable> newObject = childRtti->NewRTTIObject();
 											findObj = objectMap.Insert(std::make_pair(arrayElemData, newObject)).first;
@@ -1417,8 +1417,8 @@ namespace bs
 								RTTITypeBase* childRtti = IReflectable::_getRTTIfromTypeId(fieldObjectData->GetRootTypeId());
 								if (childRtti != nullptr)
 								{
-									auto findObj = objectMap.Find(fieldObjectData);
-									if (findObj == objectMap.End())
+									auto findObj = objectMap.find(fieldObjectData);
+									if (findObj == objectMap.end())
 									{
 										SPtr<IReflectable> newObject = childRtti->NewRTTIObject();
 										findObj = objectMap.Insert(std::make_pair(fieldObjectData, newObject)).first;
@@ -1518,13 +1518,13 @@ namespace bs
 
 		diffCommands.push_back(objEndCommand);
 
-		while (!rttiInstances.Empty())
+		while (!rttiInstances.empty())
 		{
 			RTTITypeBase* rttiInstance = rttiInstances.Top();
 			rttiInstance->OnSerializationEnded(object.Get(), nullptr);
 			alloc.Destruct(rttiInstance);
 
-			rttiInstances.Pop();
+			rttiInstances.pop();
 		}
 	}
 }

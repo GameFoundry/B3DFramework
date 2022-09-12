@@ -124,15 +124,15 @@ namespace bs
 		windowDesc.screen = mDesc.videoMode.outputIdx;
 		windowDesc.hidden = mDesc.hideUntilSwap || mDesc.hidden;
 
-		auto opt = mDesc.platformSpecific.Find("parentWindowHandle");
-		if (opt != mDesc.platformSpecific.End())
+		auto opt = mDesc.platformSpecific.find("parentWindowHandle");
+		if (opt != mDesc.platformSpecific.end())
 			windowDesc.parent = (::Window)parseUINT64(opt->second);
 		else
 			windowDesc.parent = 0;
 
 		// TODO: add passing the XDisplay here as well. Right now the default display is assumed
-		opt = mDesc.platformSpecific.Find("externalWindowHandle");
-		if (opt != mDesc.platformSpecific.End())
+		opt = mDesc.platformSpecific.find("externalWindowHandle");
+		if (opt != mDesc.platformSpecific.end())
 			windowDesc.external = (::Window)parseUINT64(opt->second);
 		else
 			windowDesc.external = 0;
@@ -505,9 +505,9 @@ namespace bs
 
 		if(glXSwapIntervalEXT != nullptr)
 			glXSwapIntervalEXT(LinuxPlatform::getXDisplay(), mWindow->_getXWindow(), interval);
-		else If(glXSwapIntervalMESA != nullptr)
+		else if(glXSwapIntervalMESA != nullptr)
 			glXSwapIntervalMESA(interval);
-		else If(glXSwapIntervalSGI != nullptr)
+		else if(glXSwapIntervalSGI != nullptr)
 			glXSwapIntervalSGI(interval);
 
 		LinuxPlatform::unlockX();
@@ -598,13 +598,13 @@ namespace bs
 			*contextPtr = mContext;
 			return;
 		}
-		else If(name == "LINUX_WINDOW")
+		else if(name == "LINUX_WINDOW")
 		{
 			LinuxWindow** window = (LinuxWindow**)data;
 			*window = mWindow;
 			return;
 		}
-		else If(name == "WINDOW")
+		else if(name == "WINDOW")
 		{
 			::Window* window = (::Window*)data;
 			*window = mWindow->_getXWindow();

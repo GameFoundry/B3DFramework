@@ -97,8 +97,8 @@ namespace bs { namespace ct
 	{
 		VulkanLayoutKey Key(bindings, numBindings);
 
-		auto iterFind = mLayouts.Find(key);
-		if (iterFind != mLayouts.End())
+		auto iterFind = mLayouts.find(key);
+		if (iterFind != mLayouts.end())
 			return iterFind->layout;
 
 		// Create new
@@ -122,7 +122,7 @@ namespace bs { namespace ct
 		VkDescriptorSetAllocateInfo allocateInfo;
 		allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 		allocateInfo.pNext = nullptr;
-		allocateInfo.descriptorPool = mPools.Back()->GetHandle();
+		allocateInfo.descriptorPool = mPools.back()->GetHandle();
 		allocateInfo.descriptorSetCount = 1;
 		allocateInfo.pSetLayouts = &setLayout;
 
@@ -131,7 +131,7 @@ namespace bs { namespace ct
 		if(result < 0) // Possible fragmentation, try in a new pool
 		{
 			mPools.push_back(bs_new<VulkanDescriptorPool>(mDevice));
-			allocateInfo.descriptorPool = mPools.Back()->GetHandle();
+			allocateInfo.descriptorPool = mPools.back()->GetHandle();
 
 			result = vkAllocateDescriptorSets(mDevice.GetLogical(), &allocateInfo, &set);
 			assert(result == VK_SUCCESS);
@@ -144,8 +144,8 @@ namespace bs { namespace ct
 	{
 		VulkanPipelineLayoutKey Key(layouts, numLayouts);
 
-		auto iterFind = mPipelineLayouts.Find(key);
-		if (iterFind != mPipelineLayouts.End())
+		auto iterFind = mPipelineLayouts.find(key);
+		if (iterFind != mPipelineLayouts.end())
 			return iterFind->second;
 
 		// Create new

@@ -94,7 +94,7 @@ namespace bs
 		{
 			obj->UpdateCoefficients();
 
-			UINT32 numProbes = (UINT32)obj->mProbes.Size();
+			UINT32 numProbes = (UINT32)obj->mProbes.size();
 			mSavedLightProbeInfo.coefficients.Resize(numProbes);
 			mSavedLightProbeInfo.positions.Resize(numProbes);
 
@@ -114,7 +114,7 @@ namespace bs
 		{
 			obj->mProbes.Clear();
 
-			UINT32 numProbes = (UINT32)data.positions.Size();
+			UINT32 numProbes = (UINT32)data.positions.size();
 			for(UINT32 i = 0; i < numProbes; ++i)
 			{
 				UINT32 handle = obj->mNextProbeId++;

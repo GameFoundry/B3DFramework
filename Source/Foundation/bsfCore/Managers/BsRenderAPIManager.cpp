@@ -33,7 +33,7 @@ namespace bs
 			name = getPluginNameFunc();
 		}
 
-		for(auto iter = mAvailableFactories.Begin(); iter != mAvailableFactories.end(); ++iter)
+		for(auto iter = mAvailableFactories.begin(); iter != mAvailableFactories.end(); ++iter)
 		{
 			if(strcmp((*iter)->Name(), name) == 0)
 			{

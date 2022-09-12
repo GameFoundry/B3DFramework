@@ -30,7 +30,7 @@ namespace bs
         }
 
         /// <summary>
-        /// Textual data contained in the resource.
+        /// Textual Data contained in the resource.
         /// </summary>
         public string Text
         {

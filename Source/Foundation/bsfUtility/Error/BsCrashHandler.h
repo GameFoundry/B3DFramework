@@ -82,8 +82,8 @@ namespace bs
 		 * @param[in]	file		Optional name of the source code file in which the code that crashed the program exists.
 		 * @param[in]	line		Optional source code line at which the crash was triggered at.
 		 */
-		void reportCrash(const String& type, const String& description, const String& function = StringUtil::BLANK,
-			const String& file = StringUtil::BLANK, UINT32 line = 0) const;
+		void ReportCrash(const String& type, const String& description, const String& function = StringUtil::BLANK,
+						 const String& file = StringUtil::BLANK, UINT32 line = 0) const;
 
 #if BS_PLATFORM == BS_PLATFORM_WIN32
 		/**
@@ -105,15 +105,15 @@ namespace bs
 		 */
 		static String GetStackTrace();
 	private:
-		/** Does what it says. Internal utility function used by reportCrash(). */
+		/** Does what it says. Internal utility function used by ReportCrash(). */
 		void LogErrorAndStackTrace(const String& message, const String& stackTrace) const;
-		/** Does what it says. Internal utility function used by reportCrash(). */
-		void logErrorAndStackTrace(const String& type,
-		                           const String& description,
-		                           const String& function,
-		                           const String& file,
-		                           UINT32 line) const;
-		/** Does what it says. Internal utility function used by reportCrash(). */
+		/** Does what it says. Internal utility function used by ReportCrash(). */
+		void LogErrorAndStackTrace(const String& type,
+								   const String& description,
+								   const String& function,
+								   const String& file,
+								   UINT32 line) const;
+		/** Does what it says. Internal utility function used by ReportCrash(). */
 		void SaveCrashLog() const;
 		/** Creates the crash report directory and returns its path. */
 		static const Path& GetCrashFolder();
@@ -141,7 +141,7 @@ namespace bs
 	};
 
 	/** Easier way of accessing the CrashHandler. */
-	BS_UTILITY_EXPORT CrashHandler& GCrashHandler();
+	BS_UTILITY_EXPORT CrashHandler& gCrashHandler();
 
 	/** @} */
 	/** @} */

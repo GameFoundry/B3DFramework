@@ -34,7 +34,7 @@ namespace bs
 			mAlloc.Clear();
 
 			// Resize cached mesh array to needed size
-			if (mCachedRenderElements.Size() != numPages)
+			if (mCachedRenderElements.size() != numPages)
 				mCachedRenderElements.Resize(numPages);
 
 			// Actually generate a mesh

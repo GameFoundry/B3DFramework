@@ -84,12 +84,12 @@ namespace bs { namespace ct
 		{
 			Lock Lock(mTaskMutex);
 
-			for(UINT32 i = 0; i < (UINT32)mQueuedTasks.Size();)
+			for(UINT32 i = 0; i < (UINT32)mQueuedTasks.size();)
 			{
 				if(mQueuedTasks[i].frameIdx <= upToFrame)
 				{
 					mRunningTasks.push_back(mQueuedTasks[i].task);
-					bs_swap_and_erase(mQueuedTasks, mQueuedTasks.Begin() + i);
+					bs_swap_and_erase(mQueuedTasks, mQueuedTasks.begin() + i);
 					
 					continue;
 				}
@@ -121,7 +121,7 @@ namespace bs { namespace ct
 
 			mRunningTasks.Clear();
 			std::swap(mRemainingTasks, mRunningTasks);
-		} while (forceAll && !mRunningTasks.Empty());
+		} while (forceAll && !mRunningTasks.empty());
 	}
 
 	void Renderer::ProcessTask(RendererTask& task, bool forceAll)
@@ -130,12 +130,12 @@ namespace bs { namespace ct
 		{
 			Lock Lock(mTaskMutex);
 
-			for(UINT32 i = 0; i < (UINT32)mQueuedTasks.Size(); i++)
+			for(UINT32 i = 0; i < (UINT32)mQueuedTasks.size(); i++)
 			{
 				if(mQueuedTasks[i].task.Get() == &task)
 				{
 					mRunningTasks.push_back(mQueuedTasks[i].task);
-					bs_swap_and_erase(mQueuedTasks, mQueuedTasks.Begin() + i);
+					bs_swap_and_erase(mQueuedTasks, mQueuedTasks.begin() + i);
 
 					break;
 				}

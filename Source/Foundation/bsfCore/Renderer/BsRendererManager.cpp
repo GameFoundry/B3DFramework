@@ -15,7 +15,7 @@ namespace bs
 
 	void RendererManager::SetActive(const String& name)
 	{
-		for(auto iter = mAvailableFactories.Begin(); iter != mAvailableFactories.end(); ++iter)
+		for(auto iter = mAvailableFactories.begin(); iter != mAvailableFactories.end(); ++iter)
 		{
 			if((*iter)->Name() == name)
 			{

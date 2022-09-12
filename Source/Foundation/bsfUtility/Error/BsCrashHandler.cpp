@@ -10,22 +10,21 @@ namespace bs
 	const String CrashHandler::sCrashReportFolder = "CrashReports";
 	const String CrashHandler::sCrashLogName = u8"log.html";
 	const String CrashHandler::sFatalErrorMsg =
-		"A fatal error occurred and the program has to terminate!";
+		"A fatal error occurred and the program has to Terminate!";
 
-	CrashHandler& GCrashHandler()
+	CrashHandler& gCrashHandler()
 	{
 		return CrashHandler::Instance();
 	}
 
 	const Path& CrashHandler::GetCrashFolder()
 	{
-		static const Path path = FileSystem::getWorkingDirectoryPath() + sCrashReportFolder +
-			getCrashTimestamp();
+		static const Path path = FileSystem::GetWorkingDirectoryPath() + sCrashReportFolder + GetCrashTimestamp();
 		
 		static bool first = true;
 		if (first)
 		{
-			FileSystem::createDir(path);
+			FileSystem::CreateDir(path);
 			first = false;
 		}
 
@@ -43,19 +42,19 @@ namespace bs
 		gDebug().Log(errorMessage.str(), LogVerbosity::Fatal);
 	}
 
-	void CrashHandler::logErrorAndStackTrace(const String& type, const String& description, const String& function,
-		const String& file, UINT32 line) const
+	void CrashHandler::LogErrorAndStackTrace(const String& type, const String& description, const String& function,
+											 const String& file, UINT32 line) const
 	{
 		StringStream errorMessage;
 		errorMessage << "  - Error: " << type << std::endl;
 		errorMessage << "  - Description: " << description << std::endl;
 		errorMessage << "  - In function: " << function << std::endl;
 		errorMessage << "  - In file: " << file << ":" << line;
-		logErrorAndStackTrace(errorMessage.Str(), getStackTrace());
+		LogErrorAndStackTrace(errorMessage.str(), GetStackTrace());
 	}
 
 	void CrashHandler::SaveCrashLog() const
 	{
-		gDebug().SaveLog(getCrashFolder() + sCrashLogName, SavedLogType::HTML);
+		gDebug().SaveLog(GetCrashFolder() + sCrashLogName, SavedLogType::HTML);
 	}
 }

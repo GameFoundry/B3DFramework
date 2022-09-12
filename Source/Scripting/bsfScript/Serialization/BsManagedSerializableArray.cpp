@@ -73,8 +73,8 @@ namespace bs
 
 		MonoMethod* createInstance = arrayClass->GetMethodExact("CreateInstance", "Type,int[]");
 
-		ScriptArray LengthArray(MonoUtil::getINT32Class(), (UINT32)sizes.Size());
-		for (UINT32 i = 0; i < (UINT32)sizes.Size(); i++)
+		ScriptArray LengthArray(MonoUtil::getINT32Class(), (UINT32)sizes.size());
+		for (UINT32 i = 0; i < (UINT32)sizes.size(); i++)
 			lengthArray.Set(i, sizes[i]);
 
 		void* params[2] = { MonoUtil::getType(typeInfo->mElementType->GetMonoClass()), lengthArray.GetInternal() };
@@ -120,7 +120,7 @@ namespace bs
 			MonoArray* array = (MonoArray*)MonoUtil::getObjectFromGCHandle(mGCHandle);
 			ScriptArray ScriptArray(array);
 
-			UINT32 numElems = scriptArray.Size();
+			UINT32 numElems = scriptArray.size();
 			assert(arrayIdx < numElems);
 
 			void* arrayValue = scriptArray.GetRaw(arrayIdx, mElemSize);
@@ -193,7 +193,7 @@ namespace bs
 	void ManagedSerializableArray::SetValueInternal(MonoArray* obj, UINT32 arrayIdx, void* val)
 	{
 		ScriptArray ScriptArray(obj);
-		UINT32 numElems = (UINT32)scriptArray.Size();
+		UINT32 numElems = (UINT32)scriptArray.size();
 		assert(arrayIdx < numElems);
 	
 		scriptArray.SetRaw(arrayIdx, (UINT8*)val, mElemSize);
@@ -209,12 +209,12 @@ namespace bs
 
 	UINT32 ManagedSerializableArray::ToSequentialIdx(const Vector<UINT32>& idx) const
 	{
-		UINT32 mNumDims = (UINT32)mNumElements.Size();
+		UINT32 mNumDims = (UINT32)mNumElements.size();
 
-		if(idx.Size() != mNumDims)
+		if(idx.size() != mNumDims)
 			BS_EXCEPT(InvalidParametersException, "Provided index doesn't have the correct number of dimensions");
 
-		if(mNumElements.Size() == 0)
+		if(mNumElements.size() == 0)
 			return 0;
 
 		UINT32 curIdx = 0;
@@ -234,7 +234,7 @@ namespace bs
 	{
 		if (mGCHandle != 0)
 		{
-			assert(mArrayTypeInfo->mRank == (UINT32)newSizes.Size());
+			assert(mArrayTypeInfo->mRank == (UINT32)newSizes.size());
 
 			UINT32 srcCount = 1;
 			for (auto& numElems : mNumElements)

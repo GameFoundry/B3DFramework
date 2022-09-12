@@ -332,7 +332,7 @@ namespace bs
 				gRenderer()->NotifyLightAdded(this);
 			}
 		}
-		else If((dirtyFlags & (UINT32)ActorDirtyFlag::Mobility) != 0)
+		else if((dirtyFlags & (UINT32)ActorDirtyFlag::Mobility) != 0)
 		{
 			gRenderer()->NotifyLightRemoved(this);
 			gRenderer()->NotifyLightAdded(this);

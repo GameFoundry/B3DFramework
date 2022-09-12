@@ -339,9 +339,9 @@ namespace bs { namespace ct
 		{
 			if (name == "TiledDeferredDirectLighting")
 				TiledDeferredLightingMat::setOverride(shaderCore);
-			else If(name == "StandardDeferredPointDirectLighting")
+			else if(name == "StandardDeferredPointDirectLighting")
 				DeferredPointLightMat::setOverride(shaderCore);
-			else If(name == "StandardDeferredDirDirectLighting")
+			else if(name == "StandardDeferredDirDirectLighting")
 				DeferredDirectionalLightMat::setOverride(shaderCore);
 		};
 	
@@ -400,13 +400,13 @@ namespace bs { namespace ct
 		updateReflProbeArray();
 
 		// Update per-frame data for all renderable objects
-		for (UINT32 i = 0; i < sceneInfo.renderables.Size(); i++)
+		for (UINT32 i = 0; i < sceneInfo.renderables.size(); i++)
 			mScene->PrepareRenderable(i, frameInfo);
 
-		for (UINT32 i = 0; i < sceneInfo.particleSystems.Size(); i++)
+		for (UINT32 i = 0; i < sceneInfo.particleSystems.size(); i++)
 			mScene->PrepareParticleSystem(i, frameInfo);
 
-		for (UINT32 i = 0; i < sceneInfo.decals.Size(); i++)
+		for (UINT32 i = 0; i < sceneInfo.decals.size(); i++)
 			mScene->PrepareDecal(i, frameInfo);
 
 		// Gather all views
@@ -416,7 +416,7 @@ namespace bs { namespace ct
 			SPtr<RenderTarget> target = rtInfo.target;
 			const Vector<Camera*>& cameras = rtInfo.cameras;
 
-			UINT32 numCameras = (UINT32)cameras.Size();
+			UINT32 numCameras = (UINT32)cameras.size();
 			for (UINT32 i = 0; i < numCameras; i++)
 			{
 				UINT32 viewIdx = sceneInfo.cameraToView.At(cameras[i]);
@@ -466,7 +466,7 @@ namespace bs { namespace ct
 			shadowRenderer.RenderShadowMaps(*mScene, viewGroup, frameInfo);
 
 			// Update various buffers required by each renderable
-			UINT32 numRenderables = (UINT32)sceneInfo.renderables.Size();
+			UINT32 numRenderables = (UINT32)sceneInfo.renderables.size();
 			for (UINT32 i = 0; i < numRenderables; i++)
 			{
 				if (!visibility.renderables[i])
@@ -609,7 +609,7 @@ namespace bs { namespace ct
 
 		// Trigger overlay callbacks
 		bool needsRedraw = false;
-		if(!mCallbacks.Empty())
+		if(!mCallbacks.empty())
 		{
 			view._notifyCompositorTargetChanged(target);
 
@@ -646,7 +646,7 @@ namespace bs { namespace ct
 	void RenderBeast::UpdateReflProbeArray()
 	{
 		SceneInfo& sceneInfo = mScene->_getSceneInfo();
-		UINT32 numProbes = (UINT32)sceneInfo.reflProbes.Size();
+		UINT32 numProbes = (UINT32)sceneInfo.reflProbes.size();
 
 		bs_frame_mark();
 		{		
@@ -830,7 +830,7 @@ namespace bs { namespace ct
 			const Vector<Plane>& frustumPlanes = localFrustum.GetPlanes();
 			Matrix4 worldMatrix = viewDesc.viewTransform.Transpose();
 
-			Vector<Plane> WorldPlanes(frustumPlanes.Size());
+			Vector<Plane> WorldPlanes(frustumPlanes.size());
 			UINT32 j = 0;
 			for (auto& plane : frustumPlanes)
 			{

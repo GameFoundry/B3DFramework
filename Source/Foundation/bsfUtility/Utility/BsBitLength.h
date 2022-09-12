@@ -59,7 +59,7 @@ namespace bs
 		{
 			if (rhs.bytes > bytes)
 				return BitLength();
-			else If(rhs.bytes == bytes)
+			else if(rhs.bytes == bytes)
 			{
 				if (rhs.bits >= bits)
 					return BitLength();

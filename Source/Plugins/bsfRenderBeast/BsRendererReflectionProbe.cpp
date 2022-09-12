@@ -21,7 +21,7 @@ namespace bs { namespace ct
 		const VisibilityInfo& visibility = viewGroup.GetVisibilityInfo();
 
 		// Generate refl. probe data for the visible ones
-		UINT32 numProbes = (UINT32)sceneInfo.reflProbes.Size();
+		UINT32 numProbes = (UINT32)sceneInfo.reflProbes.size();
 		for(UINT32 i = 0; i < numProbes; i++)
 		{
 			if (!visibility.reflProbes[i])
@@ -38,9 +38,9 @@ namespace bs { namespace ct
 			return rhs.radius < lhs.radius;
 		};
 
-		std::sort(mReflProbeData.Begin(), mReflProbeData.end(), sorter);
+		std::sort(mReflProbeData.begin(), mReflProbeData.end(), sorter);
 
-		mNumProbes = (UINT32)mReflProbeData.Size();
+		mNumProbes = (UINT32)mReflProbeData.size();
 
 		// Move refl. probe data into a GPU buffer
 		bool supportsStructuredBuffers = gRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;

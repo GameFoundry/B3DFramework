@@ -102,7 +102,8 @@ namespace bs { namespace ct
 		IDXGIOutput* output = nullptr;
 		if(mDXGIAdapter->EnumOutputs(adapterOutputIdx, &output) == DXGI_ERROR_NOT_FOUND)
 		{
-			BS_EXCEPT(InvalidParametersException, "Cannot find output with the specified index: " + toString(adapterOutputIdx));
+			BS_EXCEPT(InvalidParametersException, "Cannot find output with the specified index: " +
+					ToString(adapterOutputIdx));
 		}
 
 		output->GetDesc(&desc);

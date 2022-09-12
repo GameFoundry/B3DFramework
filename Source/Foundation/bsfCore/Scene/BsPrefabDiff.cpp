@@ -138,7 +138,7 @@ namespace bs
 				if (componentDiff->id == (INT32)component->GetLinkId())
 				{
 					IDiff& diffHandler = component->GetRTTI()->getDiffHandler();
-					diffHandler.ApplyDiff(component.getInternalPtr(), componentDiff->data, context);
+					diffHandler.ApplyDiff(component.getInternalPtr(), componentDiff->Data, context);
 					break;
 				}
 			}
@@ -226,7 +226,7 @@ namespace bs
 
 				if (prefabChild->GetLinkId() == instanceChild->getLinkId())
 				{
-					if (instanceChild->mPrefabLinkUUID.Empty())
+					if (instanceChild->mPrefabLinkUUID.empty())
 						childDiff = generateDiff(prefabChild, instanceChild);
 
 					foundMatching = true;
@@ -290,8 +290,8 @@ namespace bs
 		const Vector<HComponent>& prefabComponents = prefab->GetComponents();
 		const Vector<HComponent>& instanceComponents = instance->GetComponents();
 
-		UINT32 prefabComponentCount = (UINT32)prefabComponents.Size();
-		UINT32 instanceComponentCount = (UINT32)instanceComponents.Size();
+		UINT32 prefabComponentCount = (UINT32)prefabComponents.size();
+		UINT32 instanceComponentCount = (UINT32)instanceComponents.size();
 
 		// Find modified and removed components
 		for (UINT32 i = 0; i < prefabComponentCount; i++)
@@ -396,13 +396,13 @@ namespace bs
 		Stack<StackEntry> todo;
 		todo.Push({ instance, UUID::EMPTY });
 
-		while (!todo.Empty())
+		while (!todo.empty())
 		{
 			StackEntry current = todo.Top();
-			todo.Pop();
+			todo.pop();
 
 			UUID childParentUUID;
-			if (current.so->mPrefabLinkUUID.Empty())
+			if (current.so->mPrefabLinkUUID.empty())
 				childParentUUID = current.uuid;
 			else
 				childParentUUID = current.so->mPrefabLinkUUID;
@@ -431,7 +431,7 @@ namespace bs
 		// Root has link ID from its parent so we handle it separately
 		{
 			output.push_back(RenamedGameObject());
-			RenamedGameObject& renamedGO = output.Back();
+			RenamedGameObject& renamedGO = output.back();
 			renamedGO.instanceData = instance->mInstanceData;
 			renamedGO.originalId = instance->GetInstanceId();
 
@@ -439,30 +439,30 @@ namespace bs
 		}
 
 		todo.Push({ prefab, UUID::EMPTY });
-		while (!todo.Empty())
+		while (!todo.empty())
 		{
 			StackEntry current = todo.Top();
-			todo.Pop();
+			todo.pop();
 
 			UUID childParentUUID;
-			if (current.so->mPrefabLinkUUID.Empty())
+			if (current.so->mPrefabLinkUUID.empty())
 				childParentUUID = current.uuid;
 			else
 				childParentUUID = current.so->mPrefabLinkUUID;
 
-			auto iterFind = linkToInstanceId.Find(childParentUUID);
-			if (iterFind != linkToInstanceId.End())
+			auto iterFind = linkToInstanceId.find(childParentUUID);
+			if (iterFind != linkToInstanceId.end())
 			{
 				UnorderedMap<UINT32, UINT64>& idMap = iterFind->second;
 
 				const Vector<HComponent>& components = current.so->GetComponents();
 				for (auto& component : components)
 				{
-					auto iterFind2 = idMap.Find(component->GetLinkId());
-					if (iterFind2 != idMap.End())
+					auto iterFind2 = idMap.find(component->GetLinkId());
+					if (iterFind2 != idMap.end())
 					{
 						output.push_back(RenamedGameObject());
-						RenamedGameObject& renamedGO = output.Back();
+						RenamedGameObject& renamedGO = output.back();
 						renamedGO.instanceData = component->mInstanceData;
 						renamedGO.originalId = component->GetInstanceId();
 
@@ -476,17 +476,17 @@ namespace bs
 			{
 				HSceneObject child = current.so->GetChild(i);
 
-				if (iterFind != linkToInstanceId.End())
+				if (iterFind != linkToInstanceId.end())
 				{
 					if (child->GetLinkId() != (UINT32)-1)
 					{
 						UnorderedMap<UINT32, UINT64>& idMap = iterFind->second;
 
-						auto iterFind2 = idMap.Find(child->GetLinkId());
-						if (iterFind2 != idMap.End())
+						auto iterFind2 = idMap.find(child->GetLinkId());
+						if (iterFind2 != idMap.end())
 						{
 							output.push_back(RenamedGameObject());
-							RenamedGameObject& renamedGO = output.Back();
+							RenamedGameObject& renamedGO = output.back();
 							renamedGO.instanceData = child->mInstanceData;
 							renamedGO.originalId = child->GetInstanceId();
 

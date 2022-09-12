@@ -34,7 +34,8 @@ namespace bs { namespace ct
 			if (arrayIdx >= mParamDesc.arraySize)
 			{
 				BS_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " +
-					toString(mParamDesc.arraySize) + ". Requested size: " + toString(arrayIdx));
+						ToString(mParamDesc.arraySize) + ". Requested size: " +
+													  ToString(arrayIdx));
 			}
 #endif
 
@@ -163,7 +164,7 @@ namespace bs { namespace ct
 			META_GetPrevEntries(params, META_Entry_##Name());																\
 																															\
 			params.push_back(GpuParamDataDesc());																			\
-			GpuParamDataDesc& newEntry = params.Back();																		\
+			GpuParamDataDesc& newEntry = params.back();																		\
 			newEntry.name = #Name;																							\
 			newEntry.type = (GpuParamDataType)TGpuDataParamInfo<Type>::TypeId;												\
 			newEntry.arraySize = NumElements;																				\
@@ -200,7 +201,7 @@ namespace bs { namespace ct
 																															\
 		void InitEntries()																									\
 		{																													\
-			META_InitPrevEntry(mParams, (UINT32)mParams.Size() - 1, META_LastEntry());										\
+			META_InitPrevEntry(mParams, (UINT32)mParams.size() - 1, META_LastEntry());										\
 		}																													\
 																															\
 		Vector<GpuParamDataDesc> mParams;																					\

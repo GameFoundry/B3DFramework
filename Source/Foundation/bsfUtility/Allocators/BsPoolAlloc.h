@@ -53,7 +53,7 @@ namespace bs
 			 * Returns the first free address and increments the free pointer. Caller needs to ensure the remaining block
 			 * size is adequate before calling.
 			 */
-			UINT8* alloc()
+			UINT8* Allocate()
 			{
 				UINT8* freeEntry = &blockData[freePtr];
 				freePtr = *(UINT32*)freeEntry;
@@ -63,7 +63,7 @@ namespace bs
 			}
 
 			/** Deallocates the provided pointer. */
-			void Dealloc(void* data)
+			void Deallocate(void* data)
 			{
 				UINT32* entryPtr = (UINT32*)data;
 				*entryPtr = freePtr;
@@ -88,7 +88,7 @@ namespace bs
 
 		~PoolAlloc()
 		{
-			ScopedLock<Lock> Lock(mLockPolicy);
+			ScopedLock<Lock> lock(mLockPolicy);
 
 			MemBlock* curBlock = mFreeBlock;
 			while (curBlock != nullptr)
@@ -101,12 +101,12 @@ namespace bs
 		}
 
 		/** Allocates enough memory for a single element in the pool. */
-		UINT8* alloc()
+		UINT8* Allocate()
 		{
-			ScopedLock<Lock> Lock(mLockPolicy);
+			ScopedLock<Lock> lock(mLockPolicy);
 
 			if(mFreeBlock == nullptr || mFreeBlock->freeElems == 0)
-				allocBlock();
+				AllocateBlock();
 
 			mTotalNumElems++;
 			UINT8* output = mFreeBlock->Alloc();
@@ -117,7 +117,7 @@ namespace bs
 		/** Deallocates an element from the pool. */
 		void Free(void* data)
 		{
-			ScopedLock<Lock> Lock(mLockPolicy);
+			ScopedLock<Lock> lock(mLockPolicy);
 
 			MemBlock* curBlock = mFreeBlock;
 			while(curBlock)
@@ -125,7 +125,7 @@ namespace bs
 				constexpr UINT32 blockDataSize = ActualElemSize * ElemsPerBlock;
 				if(data >= curBlock->blockData && data < (curBlock->blockData + blockDataSize))
 				{
-					curBlock->Dealloc(data);
+					curBlock->Deallocate(data);
 					mTotalNumElems--;
 
 					if(curBlock->freeElems == 0 && curBlock->nextBlock)
@@ -152,9 +152,9 @@ namespace bs
 
 		/** Allocates and constructs a single pool element. */
 		template<class T, class... Args>
-		T* construct(Args &&...args)
+		T* Construct(Args &&...args)
 		{
-			T* data = (T*)alloc();
+			T* data = (T*) Allocate();
 			new ((void*)data) T(std::forward<Args>(args)...);
 
 			return data;
@@ -170,7 +170,7 @@ namespace bs
 
 	private:
 		/** Allocates a new block of memory using a heap allocator. */
-		MemBlock* allocBlock()
+		MemBlock* AllocateBlock()
 		{
 			MemBlock* newBlock = nullptr;
 			MemBlock* curBlock = mFreeBlock;
@@ -213,7 +213,7 @@ namespace bs
 		}
 
 		/** Deallocates a block of memory. */
-		void DeallocBlock(MemBlock* block)
+		void DeallocateBlock(MemBlock* block)
 		{
 			block->~MemBlock();
 			bs_free(block);
@@ -265,7 +265,7 @@ namespace bs
 	template<class T>
 	T* bs_pool_alloc()
 	{
-		return (T*)GlobalPoolAlloc<T>::m.Alloc();
+		return (T*) GlobalPoolAlloc<T>::m.Allocate();
 	}
 
 	/** Allocates and constructs a new object of type T using the global pool allocator. */

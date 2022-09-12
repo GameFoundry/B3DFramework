@@ -46,7 +46,7 @@ namespace bs
 		{
 			ScriptArray Arrayvalues(values);
 			vecvalues.Resize(arrayvalues.size());
-			for(int i = 0; i < (int)arrayvalues.Size(); i++)
+			for(int i = 0; i < (int)arrayvalues.size(); i++)
 			{
 				vecvalues[i] = arrayvalues.get<Vector3>(i);
 			}

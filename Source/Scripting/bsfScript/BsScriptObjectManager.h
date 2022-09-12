@@ -40,7 +40,7 @@ namespace bs
 
 		/**
 		 * Refreshes the list of active assemblies. Unloads all current assemblies and loads the newly provided set. This
-		 * involves backup up managed object data, destroying all managed objects and restoring the objects after reload.
+		 * involves backup up managed object Data, destroying all managed objects and restoring the objects after reload.
 		 *
 		 * @param[in]	assemblies	A list of assembly names and paths to load. First value represents the assembly name,
 		 *							and second a path its the assembly .dll. Assemblies will be loaded in order specified.

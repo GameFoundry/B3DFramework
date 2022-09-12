@@ -85,12 +85,12 @@ namespace bs
 	bool HardwareBufferManager::VertexDeclarationKey::EqualFunction::operator()(const VertexDeclarationKey& lhs,
 		const VertexDeclarationKey& rhs) const
 	{
-		if (lhs.elements.Size() != rhs.elements.size())
+		if (lhs.elements.size() != rhs.elements.size())
 			return false;
 
-		size_t numElements = lhs.elements.Size();
-		auto iterLeft = lhs.elements.Begin();
-		auto iterRight = rhs.elements.Begin();
+		size_t numElements = lhs.elements.size();
+		auto iterLeft = lhs.elements.begin();
+		auto iterRight = rhs.elements.begin();
 		for(size_t i = 0; i < numElements; i++)
 		{
 			if (*iterLeft != *iterRight)
@@ -142,8 +142,8 @@ namespace bs
 	{
 		VertexDeclarationKey Key(elements);
 
-		auto iterFind = mCachedDeclarations.Find(key);
-		if (iterFind != mCachedDeclarations.End())
+		auto iterFind = mCachedDeclarations.find(key);
+		if (iterFind != mCachedDeclarations.end())
 			return iterFind->second;
 
 		SPtr<VertexDeclaration> declPtr = createVertexDeclarationInternal(elements, deviceMask);

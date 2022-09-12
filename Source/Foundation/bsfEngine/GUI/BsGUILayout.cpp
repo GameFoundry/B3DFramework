@@ -35,8 +35,9 @@ namespace bs
 
 	void GUILayout::InsertElement(UINT32 idx, GUIElementBase* element)
 	{
-		if(idx > (UINT32)mChildren.Size())
-			BS_EXCEPT(InvalidParametersException, "Index out of range: " + toString(idx) + ". Valid range: 0 .. " + toString((UINT32)mChildren.Size()));
+		if(idx > (UINT32)mChildren.size())
+			BS_EXCEPT(InvalidParametersException, "Index out of range: " + ToString(idx) + ". Valid range: 0 .. " +
+												  ToString((UINT32) mChildren.size()));
 
 		if (element->_isDestroyed())
 			return;
@@ -64,11 +65,12 @@ namespace bs
 
 	void GUILayout::RemoveElementAt(UINT32 idx)
 	{
-		if(idx >= (UINT32)mChildren.Size())
-			BS_EXCEPT(InvalidParametersException, "Index out of range: " + toString(idx) + ". Valid range: 0 .. " + toString((UINT32)mChildren.Size()));
+		if(idx >= (UINT32)mChildren.size())
+			BS_EXCEPT(InvalidParametersException, "Index out of range: " + ToString(idx) + ". Valid range: 0 .. " +
+												  ToString((UINT32) mChildren.size()));
 
 		GUIElementBase* child = mChildren[idx];
-		mChildren.Erase(mChildren.begin() + idx);
+		mChildren.erase(mChildren.begin() + idx);
 
 		child->_setParent(nullptr);
 

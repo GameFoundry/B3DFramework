@@ -25,7 +25,7 @@ namespace bs
 		/**	Sets the name of the resource.  */
 		void SetName(const String& name);
 
-		/**	Retrieves meta-data containing various information describing a resource. */
+		/**	Retrieves meta-Data containing various information describing a resource. */
 		SPtr<ResourceMetaData> GetMetaData() const { return mMetaData; }
 
 		/**	Returns whether or not this resource is allowed to be asynchronously loaded. */

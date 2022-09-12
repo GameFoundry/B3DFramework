@@ -86,7 +86,7 @@ namespace bs
 			mPlanes.push_back(plane);
 		}
 
-		for (UINT32 i = 0; i < (UINT32)mPlanes.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mPlanes.size(); i++)
 		{
 			float length = mPlanes[i].normal.Normalize();
 			mPlanes[i].d /= -length;
@@ -143,7 +143,7 @@ namespace bs
 
 	const Plane& ConvexVolume::GetPlane(FrustumPlane whichPlane) const
 	{
-		if(whichPlane >= mPlanes.Size())
+		if(whichPlane >= mPlanes.size())
 		{
 			BS_EXCEPT(InvalidParametersException, "Requested plane does not exist in this volume.");
 		}

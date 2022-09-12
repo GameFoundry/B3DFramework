@@ -308,7 +308,7 @@ namespace bs
 	{
 		if(isMaximized())
 			maximize(false);
-		else If(isMinimized())
+		else if(isMinimized())
 			minimize(false);
 	}
 

@@ -195,7 +195,7 @@ namespace bs { namespace ct
 		case VK_IMAGE_VIEW_TYPE_CUBE:
 			if(numFaces == 1)
 				mImageViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			else If(numFaces % 6 == 0)
+			else if(numFaces % 6 == 0)
 			{
 				if(mNumFaces > 6)
 					mImageViewCI.viewType = VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
@@ -466,7 +466,7 @@ namespace bs { namespace ct
 		auto addNewBarrier = [&](VulkanImageSubresource* subresource, UINT32 face, UINT32 mip)
 		{
 			barriers.push_back(defaultBarrier);
-			VkImageMemoryBarrier* barrier = &barriers.Back();
+			VkImageMemoryBarrier* barrier = &barriers.back();
 
 			barrier->subresourceRange.baseArrayLayer = face;
 			barrier->subresourceRange.baseMipLevel = mip;
@@ -489,7 +489,7 @@ namespace bs { namespace ct
 			while (numSubresources > 0)
 			{
 				// Try to expand the barrier as much as possible
-				VkImageMemoryBarrier* barrier = &barriers.Back();
+				VkImageMemoryBarrier* barrier = &barriers.back();
 
 				while (true)
 				{

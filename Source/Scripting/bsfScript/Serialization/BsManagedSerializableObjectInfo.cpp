@@ -33,11 +33,11 @@ namespace bs
 		{
 			if (objInfo->mTypeInfo->Matches(fieldTypeInfo))
 			{
-				auto iterFind = objInfo->mFieldNameToId.Find(fieldInfo->mName);
-				if (iterFind != objInfo->mFieldNameToId.End())
+				auto iterFind = objInfo->mFieldNameToId.find(fieldInfo->mName);
+				if (iterFind != objInfo->mFieldNameToId.end())
 				{
-					auto iterFind2 = objInfo->mFields.Find(iterFind->second);
-					if (iterFind2 != objInfo->mFields.End())
+					auto iterFind2 = objInfo->mFields.find(iterFind->second);
+					if (iterFind2 != objInfo->mFields.end())
 					{
 						SPtr<ManagedSerializableMemberInfo> foundField = iterFind2->second;
 						if (foundField->IsSerializable())

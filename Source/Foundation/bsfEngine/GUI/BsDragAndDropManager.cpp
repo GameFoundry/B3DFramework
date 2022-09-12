@@ -80,7 +80,7 @@ namespace bs
 		if(!mIsDragInProgress)
 			return;
 
-		if(!onDragEnded.Empty())
+		if(!onDragEnded.empty())
 		{
 			DragCallbackInfo info;
 			onDragEnded(event, info);

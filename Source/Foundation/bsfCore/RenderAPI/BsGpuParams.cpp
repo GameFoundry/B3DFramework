@@ -49,8 +49,8 @@ namespace bs
 		if (paramDesc == nullptr)
 			return false;
 
-		auto paramIter = paramDesc->textures.Find(name);
-		if(paramIter != paramDesc->textures.End())
+		auto paramIter = paramDesc->textures.find(name);
+		if(paramIter != paramDesc->textures.end())
 			return true;
 
 		return false;
@@ -62,8 +62,8 @@ namespace bs
 		if (paramDesc == nullptr)
 			return false;
 
-		auto paramIter = paramDesc->buffers.Find(name);
-		if (paramIter != paramDesc->buffers.End())
+		auto paramIter = paramDesc->buffers.find(name);
+		if (paramIter != paramDesc->buffers.end())
 			return true;
 
 		return false;
@@ -75,8 +75,8 @@ namespace bs
 		if (paramDesc == nullptr)
 			return false;
 
-		auto paramIter = paramDesc->loadStoreTextures.Find(name);
-		if (paramIter != paramDesc->loadStoreTextures.End())
+		auto paramIter = paramDesc->loadStoreTextures.find(name);
+		if (paramIter != paramDesc->loadStoreTextures.end())
 			return true;
 
 		return false;
@@ -88,8 +88,8 @@ namespace bs
 		if (paramDesc == nullptr)
 			return false;
 
-		auto paramIter = paramDesc->samplers.Find(name);
-		if(paramIter != paramDesc->samplers.End())
+		auto paramIter = paramDesc->samplers.find(name);
+		if(paramIter != paramDesc->samplers.end())
 			return true;
 
 		return false;
@@ -101,8 +101,8 @@ namespace bs
 		if (paramDesc == nullptr)
 			return false;
 
-		auto paramBlockIter = paramDesc->paramBlocks.Find(name);
-		if(paramBlockIter != paramDesc->paramBlocks.End())
+		auto paramBlockIter = paramDesc->paramBlocks.find(name);
+		if(paramBlockIter != paramDesc->paramBlocks.end())
 			return true;
 
 		return false;
@@ -114,8 +114,8 @@ namespace bs
 		if (paramDesc == nullptr)
 			return nullptr;
 
-		auto paramIter = paramDesc->params.Find(name);
-		if (paramIter != paramDesc->params.End())
+		auto paramIter = paramDesc->params.find(name);
+		if (paramIter != paramDesc->params.end())
 			return &paramIter->second;
 
 		return nullptr;
@@ -127,8 +127,8 @@ namespace bs
 		if (paramDesc == nullptr)
 			return nullptr;
 
-		auto paramBlockIter = paramDesc->paramBlocks.Find(name);
-		if (paramBlockIter != paramDesc->paramBlocks.End())
+		auto paramBlockIter = paramDesc->paramBlocks.find(name);
+		if (paramBlockIter != paramDesc->paramBlocks.end())
 			return &paramBlockIter->second;
 
 		return nullptr;
@@ -242,8 +242,8 @@ namespace bs
 			return;
 		}
 
-		auto iterFind = paramDescs->paramBlocks.Find(name);
-		if (iterFind == paramDescs->paramBlocks.End())
+		auto iterFind = paramDescs->paramBlocks.find(name);
+		if (iterFind == paramDescs->paramBlocks.end())
 		{
 			BS_LOG(Warning, RenderBackend, "Cannot find parameter block with the name: '{0}'", name);
 			return;
@@ -261,8 +261,8 @@ namespace bs
 			if (paramDescs == nullptr)
 				continue;
 
-			auto iterFind = paramDescs->paramBlocks.Find(name);
-			if (iterFind == paramDescs->paramBlocks.End())
+			auto iterFind = paramDescs->paramBlocks.find(name);
+			if (iterFind == paramDescs->paramBlocks.end())
 				continue;
 
 			setParamBlockBuffer(iterFind->second.set, iterFind->second.slot, paramBlockBuffer);
@@ -281,8 +281,8 @@ namespace bs
 			return;
 		}
 
-		auto iterFind = paramDescs->params.Find(name);
-		if (iterFind == paramDescs->params.End())
+		auto iterFind = paramDescs->params.find(name);
+		if (iterFind == paramDescs->params.end())
 		{
 			output = TGpuDataParam<T, Core>(nullptr, nullptr);
 			BS_LOG(Warning, RenderBackend, "Cannot find parameter with the name: '{0}'", name);
@@ -302,8 +302,8 @@ namespace bs
 			return;
 		}
 
-		auto iterFind = paramDescs->params.Find(name);
-		if (iterFind == paramDescs->params.End() || iterFind->second.type != GPDT_STRUCT)
+		auto iterFind = paramDescs->params.find(name);
+		if (iterFind == paramDescs->params.end() || iterFind->second.type != GPDT_STRUCT)
 		{
 			output = TGpuParamStruct<Core>(nullptr, nullptr);
 			BS_LOG(Warning, RenderBackend, "Cannot find struct parameter with the name: '{0}'", name);
@@ -323,8 +323,8 @@ namespace bs
 			return;
 		}
 
-		auto iterFind = paramDescs->textures.Find(name);
-		if (iterFind == paramDescs->textures.End())
+		auto iterFind = paramDescs->textures.find(name);
+		if (iterFind == paramDescs->textures.end())
 		{
 			output = TGpuParamTexture<Core>(nullptr, nullptr);
 			BS_LOG(Warning, RenderBackend, "Cannot find texture parameter with the name: '{0}'", name);
@@ -344,8 +344,8 @@ namespace bs
 			return;
 		}
 
-		auto iterFind = paramDescs->loadStoreTextures.Find(name);
-		if (iterFind == paramDescs->loadStoreTextures.End())
+		auto iterFind = paramDescs->loadStoreTextures.find(name);
+		if (iterFind == paramDescs->loadStoreTextures.end())
 		{
 			output = TGpuParamLoadStoreTexture<Core>(nullptr, nullptr);
 			BS_LOG(Warning, RenderBackend, "Cannot find load-store parameter with the name: '{0}'", name);
@@ -365,8 +365,8 @@ namespace bs
 			return;
 		}
 
-		auto iterFind = paramDescs->buffers.Find(name);
-		if (iterFind == paramDescs->buffers.End())
+		auto iterFind = paramDescs->buffers.find(name);
+		if (iterFind == paramDescs->buffers.end())
 		{
 			output = TGpuParamBuffer<Core>(nullptr, nullptr);
 			BS_LOG(Warning, RenderBackend, "Cannot find buffer parameter with the name: '{0}'", name);
@@ -386,8 +386,8 @@ namespace bs
 			return;
 		}
 
-		auto iterFind = paramDescs->samplers.Find(name);
-		if (iterFind == paramDescs->samplers.End())
+		auto iterFind = paramDescs->samplers.find(name);
+		if (iterFind == paramDescs->samplers.end())
 		{
 			output = TGpuParamSampState<Core>(nullptr, nullptr);
 			BS_LOG(Warning, RenderBackend, "Cannot find sampler state parameter with the name: '{0}'", name);

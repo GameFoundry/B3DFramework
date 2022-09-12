@@ -192,9 +192,9 @@ namespace bs
 			BS_EXCEPT(InvalidStateException, "Trying to use an unloaded assembly.");
 
 		MonoAssembly::ClassId ClassId(namespaceName, name);
-		auto iterFind = mClasses.Find(classId);
+		auto iterFind = mClasses.find(classId);
 
-		if(iterFind != mClasses.End())
+		if(iterFind != mClasses.end())
 			return iterFind->second;
 
 		::MonoClass* monoClass = mono_class_from_name(mMonoImage, namespaceName.c_str(), name.c_str());
@@ -216,9 +216,9 @@ namespace bs
 		if(rawMonoClass == nullptr)
 			return nullptr;
 
-		auto iterFind = mClassesByRaw.Find(rawMonoClass);
+		auto iterFind = mClassesByRaw.find(rawMonoClass);
 
-		if(iterFind != mClassesByRaw.End())
+		if(iterFind != mClassesByRaw.end())
 			return iterFind->second;
 
 		String ns;
@@ -247,9 +247,9 @@ namespace bs
 		if (rawMonoClass == nullptr)
 			return nullptr;
 
-		auto iterFind = mClassesByRaw.Find(rawMonoClass);
+		auto iterFind = mClassesByRaw.find(rawMonoClass);
 
-		if (iterFind != mClassesByRaw.End())
+		if (iterFind != mClassesByRaw.end())
 			return iterFind->second;
 
 
@@ -297,10 +297,10 @@ namespace bs
 
 				// Get nested types if it has any
 				todo.Push(curClass);
-				while (!todo.Empty())
+				while (!todo.empty())
 				{
 					MonoClass* curNestedClass = todo.Top();
-					todo.Pop();
+					todo.pop();
 
 					void* iter = nullptr;
 					do

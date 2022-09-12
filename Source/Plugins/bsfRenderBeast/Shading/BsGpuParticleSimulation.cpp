@@ -508,7 +508,7 @@ namespace bs { namespace ct
 		Vector2 tileUV = GpuParticleResources::getTileCoords(cachedTile.id);
 
 		bool newTilesAdded = false;
-		for (UINT32 i = 0; i < (UINT32)newParticles.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)newParticles.size(); i++)
 		{
 			UINT32 tileIdx;
 
@@ -518,9 +518,9 @@ namespace bs { namespace ct
 			else
 			{
 				// Otherwise try to find an inactive tile
-				if (mNumActiveTiles < (UINT32)mTiles.Size())
+				if (mNumActiveTiles < (UINT32)mTiles.size())
 				{
-					tileIdx = mActiveTiles.Find(false);
+					tileIdx = mActiveTiles.find(false);
 					mActiveTiles[tileIdx] = true;
 				}
 				// And finally just allocate a new tile if no room elsewhere
@@ -534,7 +534,7 @@ namespace bs { namespace ct
 					newTile.id = tileId;
 					newTile.lifetime = 0.0f;
 
-					tileIdx = (UINT32)mTiles.Size();
+					tileIdx = (UINT32)mTiles.size();
 					newTiles.push_back(newTile.id);
 					mTiles.push_back(newTile);
 					mActiveTiles.Add(true);
@@ -568,7 +568,7 @@ namespace bs { namespace ct
 	void GpuParticleSystem::DetectInactiveTiles()
 	{
 		mNumActiveTiles = 0;
-		for (UINT32 i = 0; i < (UINT32)mTiles.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mTiles.size(); i++)
 		{
 			if (mTiles[i].lifetime >= mTime)
 			{
@@ -585,13 +585,13 @@ namespace bs { namespace ct
 
 	bool GpuParticleSystem::FreeInactiveTiles(GpuParticleResources& resources)
 	{
-		const UINT32 numFreeTiles = (UINT32)mTiles.Size() - mNumActiveTiles;
+		const UINT32 numFreeTiles = (UINT32)mTiles.size() - mNumActiveTiles;
 		for(UINT32 i = 0; i < numFreeTiles; i++)
 		{
-			const UINT32 freeIdx = mActiveTiles.Find(false);
+			const UINT32 freeIdx = mActiveTiles.find(false);
 			assert(freeIdx != (UINT32)-1);
 
-			const UINT32 lastIdx = (UINT32)mTiles.Size() - 1;
+			const UINT32 lastIdx = (UINT32)mTiles.size() - 1;
 
 			if (freeIdx != lastIdx)
 			{
@@ -601,7 +601,7 @@ namespace bs { namespace ct
 
 			resources.FreeTile(mTiles[lastIdx].id);
 
-			mTiles.Erase(mTiles.end() - 1);
+			mTiles.erase(mTiles.end() - 1);
 			mActiveTiles.Remove(lastIdx);
 		}
 
@@ -614,7 +614,7 @@ namespace bs { namespace ct
 
 	void GpuParticleSystem::UpdateGpuBuffers()
 	{
-		const auto numTiles = (UINT32)mTiles.Size();
+		const auto numTiles = (UINT32)mTiles.size();
 		const UINT32 numTilesToAllocates = Math::divideAndRoundUp(numTiles, TILES_PER_INSTANCE) * TILES_PER_INSTANCE;
 
 		// Tile offsets buffer
@@ -718,7 +718,7 @@ namespace bs { namespace ct
 
 	void GpuParticleSimulation::RemoveSystem(GpuParticleSystem* system)
 	{
-		m->systems.Erase(system);
+		m->systems.erase(system);
 	}
 
 	void GpuParticleSimulation::simulate(const SceneInfo& sceneInfo, const ParticlePerFrameData* simData,
@@ -734,8 +734,8 @@ namespace bs { namespace ct
 			entry->DetectInactiveTiles();
 
 			bool tilesDirty = false;
-			const auto iterFind = simData->gpuData.Find(entry->GetParent()->getId());
-			if(iterFind != simData->gpuData.End())
+			const auto iterFind = simData->gpuData.find(entry->GetParent()->getId());
+			if(iterFind != simData->gpuData.end())
 			{
 				Vector<GpuParticle>& newParticles = iterFind->second->particles;
 				tilesDirty = entry->AllocateTiles(m->resources, newParticles, newTiles);
@@ -952,7 +952,7 @@ namespace bs { namespace ct
 
 	void GpuParticleSimulation::ClearTiles(const Vector<UINT32>& tiles)
 	{
-		const auto numTiles = (UINT32)tiles.Size();
+		const auto numTiles = (UINT32)tiles.size();
 		if(numTiles == 0)
 			return;
 
@@ -996,7 +996,7 @@ namespace bs { namespace ct
 
 	void GpuParticleSimulation::InjectParticles(const Vector<GpuParticle>& particles)
 	{
-		const auto numParticles = (UINT32)particles.Size();
+		const auto numParticles = (UINT32)particles.size();
 		const UINT32 numIterations = Math::divideAndRoundUp(numParticles, GpuParticleHelperBuffers::NUM_SCRATCH_PARTICLES);
 
 		GpuParticleInjectMat* injectMat = GpuParticleInjectMat::get();
@@ -1437,7 +1437,7 @@ namespace bs { namespace ct
 
 	void GpuParticleCurves::ApplyChanges()
 	{
-		const auto numCurves = (UINT32)mPendingAllocations.Size();
+		const auto numCurves = (UINT32)mPendingAllocations.size();
 		if(numCurves == 0)
 			return;
 

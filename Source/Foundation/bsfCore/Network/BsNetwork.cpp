@@ -185,7 +185,7 @@ namespace bs
 		/** Maps a network ID into a RakNet system address. Returns null if the ID is not valid. */
 		const SystemAddress* getSystemAddress(const NetworkId& id)
 		{
-			if(id.id < 0 || id.id >= (INT32)networkIdMapping.Size())
+			if(id.id < 0 || id.id >= (INT32)networkIdMapping.size())
 				return nullptr;
 
 			return &networkIdMapping[id.id].systemAddress;
@@ -194,7 +194,7 @@ namespace bs
 		/** Maps a network ID into a RakNet GUID. Returns null if the ID is not valid. */
 		const RakNetGUID* getGUID(const NetworkId& id)
 		{
-			if(id.id < 0 || id.id >= (INT32)networkIdMapping.Size())
+			if(id.id < 0 || id.id >= (INT32)networkIdMapping.size())
 				return nullptr;
 
 			return &networkIdMapping[id.id].guid;
@@ -207,7 +207,7 @@ namespace bs
 		NetworkId GetOrRegisterNetworkId(const SystemAddress& address, const RakNetGUID& guid)
 		{
 			INT32 systemIndex = address.systemIndex;
-			assert(systemIndex >= 0 && systemIndex < (INT32)networkIdMapping.Size());
+			assert(systemIndex >= 0 && systemIndex < (INT32)networkIdMapping.size());
 
 			NetworkConnection& connection = networkIdMapping[systemIndex];
 			if(connection.systemAddress != address || connection.guid != guid)
@@ -276,10 +276,10 @@ namespace bs
 		m->peer = RakPeerInterface::GetInstance();
 		m->networkIdMapping.Resize(desc.maxNumConnections);
 
-		for(INT32 i = 0; i < (INT32)m->networkIdMapping.Size(); i++)
+		for(INT32 i = 0; i < (INT32)m->networkIdMapping.size(); i++)
 			m->networkIdMapping[i].id = NetworkId(i);
 
-		UINT32 numDescriptors = (UINT32)desc.listenAddresses.Size();
+		UINT32 numDescriptors = (UINT32)desc.listenAddresses.size();
 		SocketDescriptor* descriptors = bs_stack_alloc<SocketDescriptor>(numDescriptors);
 
 		for(UINT32 i = 0; i < numDescriptors; i++)
@@ -513,7 +513,7 @@ namespace bs
 
 	NetworkEncoder::~NetworkEncoder()
 	{
-		assert(mBufferPieces.Empty());
+		assert(mBufferPieces.empty());
 
 		for (auto& entry : mBufferPiecePool)
 			bs_free(entry.buffer);
@@ -530,22 +530,22 @@ namespace bs
 		
 		auto flushToBuffer = [this](UINT8* bufferStart, UINT32 bytesWritten, UINT32& newBufferSize)
 		{
-			if(mBufferPieces.Empty())
+			if(mBufferPieces.empty())
 				allocBufferPiece();
 
 			assert(bytesWritten <= WRITE_BUFFER_SIZE);
 
-			UINT32 bufferSize = WRITE_BUFFER_SIZE - mBufferPieces.Back().size;
+			UINT32 bufferSize = WRITE_BUFFER_SIZE - mBufferPieces.back().size;
 
 			UINT32 amountToCopy = std::min(bufferSize, bytesWritten);
-			memcpy(mBufferPieces.Back().buffer + mBufferPieces.back().size, bufferStart, amountToCopy);
-			mBufferPieces.Back().size += amountToCopy;
+			memcpy(mBufferPieces.back().buffer + mBufferPieces.back().size, bufferStart, amountToCopy);
+			mBufferPieces.back().size += amountToCopy;
 
 			if(bufferSize < bytesWritten)
 			{
 				allocBufferPiece();
-				memcpy(mBufferPieces.Back().buffer, bufferStart + bufferSize, bytesWritten - bufferSize);
-				mBufferPieces.Back().size = bytesWritten - bufferSize;
+				memcpy(mBufferPieces.back().buffer, bufferStart + bufferSize, bytesWritten - bufferSize);
+				mBufferPieces.back().size = bytesWritten - bufferSize;
 			}
 
 			mWriteBufferOffset = 0;
@@ -616,7 +616,7 @@ namespace bs
 		}
 
 		UINT32 offset = 1; // First byte reserved for message type, set externally
-		for(auto iter = mBufferPieces.Begin(); iter != mBufferPieces.end(); ++iter)
+		for(auto iter = mBufferPieces.begin(); iter != mBufferPieces.end(); ++iter)
 		{
 			if(iter->size > 0)
 			{
@@ -643,9 +643,9 @@ namespace bs
 	NetworkEncoder::BufferPiece NetworkEncoder::AllocBufferPiece()
 	{
 		BufferPiece piece;
-		if (!mBufferPiecePool.Empty())
+		if (!mBufferPiecePool.empty())
 		{
-			piece = mBufferPiecePool.Back();
+			piece = mBufferPiecePool.back();
 			mBufferPiecePool.pop_back();
 		}
 		else
@@ -824,8 +824,8 @@ namespace bs
 			{
 				for (auto& entry : mActions)
 				{
-					auto iterFind = mNetworkObjects.Find(entry.uuid);
-					assert(iterFind != mNetworkObjects.End());
+					auto iterFind = mNetworkObjects.find(entry.uuid);
+					assert(iterFind != mNetworkObjects.end());
 
 					ObjectInfo& objInfo = iterFind->second;
 
@@ -839,7 +839,7 @@ namespace bs
 						break;
 					case Despawning:
 						mEncoder.Encode((UINT32)NetworkActionType::Despawn, entry.uuid, nullptr);
-						mNetworkObjects.Erase(iterFind);
+						mNetworkObjects.erase(iterFind);
 						break;
 					default:
 						break;

@@ -47,23 +47,23 @@ namespace bs
 
 	void GUICanvas::DrawPolyLine(const Vector<Vector2I>& vertices, const Color& color, UINT8 depth)
 	{
-		if(vertices.Size() < 2)
+		if(vertices.size() < 2)
 			return;
 
 		mElements.push_back(CanvasElement());
-		CanvasElement& element = mElements.Back();
+		CanvasElement& element = mElements.back();
 
 		element.type = CanvasElementType::Line;
 		element.color = color;
-		element.dataId = (UINT32)mTriangleElementData.Size();
-		element.vertexStart = (UINT32)mVertexData.Size();
-		element.numVertices = (UINT32)vertices.Size();
+		element.dataId = (UINT32)mTriangleElementData.size();
+		element.vertexStart = (UINT32)mVertexData.size();
+		element.numVertices = (UINT32)vertices.size();
 		element.depth = depth;
 
 		mDepthRange = std::max(mDepthRange, (UINT8)(depth + 1));
 
 		mTriangleElementData.push_back(TriangleElementData());
-		TriangleElementData& elemData = mTriangleElementData.Back();
+		TriangleElementData& elemData = mTriangleElementData.back();
 		elemData.matInfo.groupId = 0;
 		elemData.matInfo.tint = color;
 
@@ -83,11 +83,11 @@ namespace bs
 		const Color& color, UINT8 depth)
 	{
 		mElements.push_back(CanvasElement());
-		CanvasElement& element = mElements.Back();
+		CanvasElement& element = mElements.back();
 
 		element.type = CanvasElementType::Image;
 		element.color = color;
-		element.dataId = (UINT32)mImageData.Size();
+		element.dataId = (UINT32)mImageData.size();
 		element.scaleMode = scaleMode;
 		element.imageSprite = bs_new<ImageSprite>();
 		element.depth = depth;
@@ -100,26 +100,26 @@ namespace bs
 
 	void GUICanvas::DrawTriangleStrip(const Vector<Vector2I>& vertices, const Color& color, UINT8 depth)
 	{
-		if (vertices.Size() < 3)
+		if (vertices.size() < 3)
 		{
 			BS_LOG(Warning, GUI, "Invalid number of vertices. Ignoring call.");
 			return;
 		}
 
 		mElements.push_back(CanvasElement());
-		CanvasElement& element = mElements.Back();
+		CanvasElement& element = mElements.back();
 
 		element.type = CanvasElementType::Triangle;
 		element.color = color;
-		element.dataId = (UINT32)mTriangleElementData.Size();
-		element.vertexStart = (UINT32)mVertexData.Size();
-		element.numVertices = (UINT32)(vertices.Size() - 2) * 3;
+		element.dataId = (UINT32)mTriangleElementData.size();
+		element.vertexStart = (UINT32)mVertexData.size();
+		element.numVertices = (UINT32)(vertices.size() - 2) * 3;
 		element.depth = depth;
 
 		mDepthRange = std::max(mDepthRange, (UINT8)(depth + 1));
 
 		// Convert strip to list
-		for(UINT32 i = 2; i < (UINT32)vertices.Size(); i++)
+		for(UINT32 i = 2; i < (UINT32)vertices.size(); i++)
 		{
 			if (i % 2 == 0)
 			{
@@ -136,7 +136,7 @@ namespace bs
 		}
 
 		mTriangleElementData.push_back(TriangleElementData());
-		TriangleElementData& elemData = mTriangleElementData.Back();
+		TriangleElementData& elemData = mTriangleElementData.back();
 		elemData.matInfo.groupId = 0;
 		elemData.matInfo.tint = color;
 
@@ -146,20 +146,20 @@ namespace bs
 
 	void GUICanvas::DrawTriangleList(const Vector<Vector2I>& vertices, const Color& color, UINT8 depth)
 	{
-		if (vertices.Size() < 3 || vertices.size() % 3 != 0)
+		if (vertices.size() < 3 || vertices.size() % 3 != 0)
 		{
 			BS_LOG(Warning, GUI, "Invalid number of vertices. Ignoring call.");
 			return;
 		}
 
 		mElements.push_back(CanvasElement());
-		CanvasElement& element = mElements.Back();
+		CanvasElement& element = mElements.back();
 
 		element.type = CanvasElementType::Triangle;
 		element.color = color;
-		element.dataId = (UINT32)mTriangleElementData.Size();
-		element.vertexStart = (UINT32)mVertexData.Size();
-		element.numVertices = (UINT32)vertices.Size();
+		element.dataId = (UINT32)mTriangleElementData.size();
+		element.vertexStart = (UINT32)mVertexData.size();
+		element.numVertices = (UINT32)vertices.size();
 		element.depth = depth;
 
 		mDepthRange = std::max(mDepthRange, (UINT8)(depth + 1));
@@ -168,7 +168,7 @@ namespace bs
 			mVertexData.push_back(Vector2((float)vertex.x + 0.5f, (float)vertex.y + 0.5f));
 
 		mTriangleElementData.push_back(TriangleElementData());
-		TriangleElementData& elemData = mTriangleElementData.Back();
+		TriangleElementData& elemData = mTriangleElementData.back();
 		elemData.matInfo.groupId = 0;
 		elemData.matInfo.tint = color;
 
@@ -180,11 +180,11 @@ namespace bs
 		const Color& color, UINT8 depth)
 	{
 		mElements.push_back(CanvasElement());
-		CanvasElement& element = mElements.Back();
+		CanvasElement& element = mElements.back();
 
 		element.type = CanvasElementType::Text;
 		element.color = color;
-		element.dataId = (UINT32)mTextData.Size();
+		element.dataId = (UINT32)mTextData.size();
 		element.size = size;
 		element.textSprite = bs_new<TextSprite>();
 		element.depth = depth;
@@ -228,7 +228,7 @@ namespace bs
 		mRenderElements.Clear();
 		for(auto& element : mElements)
 		{
-			element.renderElemStart = mRenderElements.Size();
+			element.renderElemStart = mRenderElements.size();
 			
 			switch(element.type)
 			{
@@ -238,7 +238,7 @@ namespace bs
 				for(UINT32 i = 0; i < element.imageSprite->GetNumRenderElements(); i++)
 				{
 					mRenderElements.Add(GUIRenderElement());
-					GUIRenderElement& renderElement = mRenderElements.Back();
+					GUIRenderElement& renderElement = mRenderElements.back();
 
 					element.imageSprite->GetRenderElementInfo(i, renderElement);
 
@@ -253,7 +253,7 @@ namespace bs
 				for(UINT32 i = 0; i < element.textSprite->GetNumRenderElements(); i++)
 				{
 					mRenderElements.Add(GUIRenderElement());
-					GUIRenderElement& renderElement = mRenderElements.Back();
+					GUIRenderElement& renderElement = mRenderElements.back();
 
 					element.textSprite->GetRenderElementInfo(i, renderElement);
 
@@ -264,7 +264,7 @@ namespace bs
 			case CanvasElementType::Line:
 				{
 					mRenderElements.Add(GUIRenderElement());
-					GUIRenderElement& renderElement = mRenderElements.Back();
+					GUIRenderElement& renderElement = mRenderElements.back();
 
 					renderElement.numVertices = element.clippedNumVertices;
 					renderElement.numIndices = element.clippedNumVertices;
@@ -284,7 +284,7 @@ namespace bs
 			case CanvasElementType::Triangle:
 				{
 					mRenderElements.Add(GUIRenderElement());
-					GUIRenderElement& renderElement = mRenderElements.Back();
+					GUIRenderElement& renderElement = mRenderElements.back();
 
 					renderElement.numVertices = element.clippedNumVertices;
 					renderElement.numIndices = element.clippedNumVertices;
@@ -302,7 +302,7 @@ namespace bs
 				}
 			}
 
-			element.renderElemEnd = mRenderElements.Size();
+			element.renderElemEnd = mRenderElements.size();
 		}
 
 		GUIElement::updateRenderElementsInternal();
@@ -487,7 +487,7 @@ namespace bs
 				element.clippedNumVertices += count;
 			};
 
-			element.clippedVertexStart = (UINT32)mClippedVertices.Size();
+			element.clippedVertexStart = (UINT32)mClippedVertices.size();
 			element.clippedNumVertices = 0;
 
 			ImageSprite::clipTrianglesToRect(verticesToClip, nullptr, trianglesToClip, sizeof(Vector2), clipRect,
@@ -516,7 +516,7 @@ namespace bs
 				Plane2D(Vector2(0.0f, -1.0f), (float)-(clipRect.y + (INT32)clipRect.height))
 			}};
 
-			element.clippedVertexStart = (UINT32)mClippedLineVertices.Size();
+			element.clippedVertexStart = (UINT32)mClippedLineVertices.size();
 			element.clippedNumVertices = 0;
 
 			for (UINT32 i = 0; i < numLines; i++)
@@ -525,7 +525,7 @@ namespace bs
 				Vector2 b = linePoints[i + 1];
 
 				bool isVisible = true;
-				for(UINT32 j = 0; j < (UINT32)clipPlanes.Size(); j++)
+				for(UINT32 j = 0; j < (UINT32)clipPlanes.size(); j++)
 				{
 					const Plane2D& plane = clipPlanes[j];
 					float d0 = plane.normal.Dot(a) - plane.d;
@@ -588,7 +588,7 @@ namespace bs
 	const GUICanvas::CanvasElement& GUICanvas::FindElement(UINT32 renderElementIdx) const
 	{
 		INT32 start = 0;
-		INT32 end = (INT32)(mElements.Size() - 1);
+		INT32 end = (INT32)(mElements.size() - 1);
 
 		while (start <= end)
 		{

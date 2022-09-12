@@ -116,7 +116,7 @@ namespace bs
 		// Queue animation evaluation tasks
 		{
 			Lock Lock(mMutex);
-			mNumActiveWorkers = (UINT32)mProxies.Size();
+			mNumActiveWorkers = (UINT32)mProxies.size();
 		}
 
 		UINT32 curBoneIdx = 0;
@@ -313,7 +313,7 @@ namespace bs
 			const AnimationState& state = anim->layers[0].states[0];
 			if (!state.disabled)
 			{
-				UINT32 numCurves = (UINT32)state.curves->generic.Size();
+				UINT32 numCurves = (UINT32)state.curves->generic.size();
 				for (UINT32 i = 0; i < numCurves; i++)
 				{
 					const TAnimationCurve<float>& curve = state.curves->generic[i].curve;
@@ -325,8 +325,8 @@ namespace bs
 		// Update morph shapes
 		if (anim->numMorphShapes > 0)
 		{
-			auto iterFind = prevRenderData.infos.Find(anim->id);
-			if (iterFind != prevRenderData.infos.End())
+			auto iterFind = prevRenderData.infos.find(anim->id);
+			if (iterFind != prevRenderData.infos.end())
 				animInfo.morphShapeInfo = iterFind->second.morphShapeInfo;
 			else
 				animInfo.morphShapeInfo.version = 1; // 0 is considered invalid version
@@ -468,7 +468,7 @@ namespace bs
 						continue;
 
 					const Vector<MorphVertex>& morphVertices = info.shape->GetVertices();
-					UINT32 numVertices = (UINT32)morphVertices.Size();
+					UINT32 numVertices = (UINT32)morphVertices.size();
 					for (UINT32 j = 0; j < numVertices; j++)
 					{
 						const MorphVertex& vertex = morphVertices[j];
@@ -527,7 +527,7 @@ namespace bs
 
 	void AnimationManager::UnregisterAnimation(UINT64 animId)
 	{
-		mAnimations.Erase(animId);
+		mAnimations.erase(animId);
 	}
 
 	AnimationManager& GAnimation()

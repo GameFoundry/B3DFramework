@@ -59,7 +59,7 @@ namespace bs
 		bool HasBlending() const;
 
 		/** Returns true if the pass executes a compute program. */
-		bool IsCompute() const { return !mData.computeProgramDesc.source.Empty(); }
+		bool IsCompute() const { return !mData.computeProgramDesc.source.empty(); }
 
 		/** Gets the stencil reference value that is used when performing operations using the stencil buffer. */
 		UINT32 GetStencilRefValue() const { return mData.stencilRefValue; }

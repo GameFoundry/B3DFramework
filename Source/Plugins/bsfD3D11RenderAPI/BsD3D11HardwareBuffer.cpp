@@ -126,7 +126,8 @@ namespace bs { namespace ct
 	void* D3D11HardwareBuffer::map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		if (length > mSize)
-			BS_EXCEPT(RenderingAPIException, "Provided length " + toString(length) + " larger than the buffer " + toString(mSize) + ".");		
+			BS_EXCEPT(RenderingAPIException, "Provided length " + ToString(length) + " larger than the buffer " +
+											 ToString(mSize) + ".");
 
 		// Use direct (and faster) Map/Unmap if dynamic write, or a staging read/write
 		if((mDesc.Usage == D3D11_USAGE_DYNAMIC && options != GBL_READ_ONLY) || mDesc.Usage == D3D11_USAGE_STAGING)
@@ -157,7 +158,7 @@ namespace bs { namespace ct
 
 					if(mBufferType == BT_CONSTANT && featureOptions.MapNoOverwriteOnDynamicConstantBuffer)
 						mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
-					else If(featureOptions.MapNoOverwriteOnDynamicBufferSRV)
+					else if(featureOptions.MapNoOverwriteOnDynamicBufferSRV)
 						mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
 					else
 						mapType = D3D11_MAP_WRITE;
@@ -172,7 +173,7 @@ namespace bs { namespace ct
 				{
 					mapType = D3D11_MAP_READ_WRITE;
 				}
-				else If(mDesc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE)
+				else if(mDesc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE)
 				{
 					mapType = D3D11_MAP_WRITE;
 				}
@@ -315,14 +316,14 @@ namespace bs { namespace ct
 			GpuLockOptions lockOption = GBL_WRITE_ONLY;
 			if(writeFlags == BWT_DISCARD)
 				lockOption = GBL_WRITE_ONLY_DISCARD;
-			else If(writeFlags == BTW_NO_OVERWRITE)
+			else if(writeFlags == BTW_NO_OVERWRITE)
 				lockOption = GBL_WRITE_ONLY_NO_OVERWRITE;
 
 			void* pDst = this->Lock(offset, length, lockOption);
 			memcpy(pDst, pSource, length);
 			this->Unlock();
 		}
-		else If(mDesc.Usage == D3D11_USAGE_DEFAULT)
+		else if(mDesc.Usage == D3D11_USAGE_DEFAULT)
 		{
 			if (mBufferType == BT_CONSTANT)
 			{

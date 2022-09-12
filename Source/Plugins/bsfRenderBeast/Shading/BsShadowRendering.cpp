@@ -255,9 +255,9 @@ namespace bs { namespace ct
 
 		if(quality <= 1)
 			BIND_MAT(1)
-		else If(quality == 2)
+		else if(quality == 2)
 			BIND_MAT(2)
-		else If(quality == 3)
+		else if(quality == 3)
 			BIND_MAT(3)
 		else // 4 or higher
 			BIND_MAT(4)
@@ -327,9 +327,9 @@ namespace bs { namespace ct
 
 		if(quality <= 1)
 			BIND_MAT(1)
-		else If(quality == 2)
+		else if(quality == 2)
 			BIND_MAT(2)
-		else If(quality == 3)
+		else if(quality == 3)
 			BIND_MAT(3)
 		else // 4 or higher
 			BIND_MAT(4)
@@ -472,7 +472,7 @@ namespace bs { namespace ct
 				FrameVector<Command> commands[4];
 
 				// Make a list of relevant renderables and prepare them for rendering
-				for (UINT32 i = 0; i < sceneInfo.renderables.Size(); i++)
+				for (UINT32 i = 0; i < sceneInfo.renderables.size(); i++)
 				{
 					const Sphere& bounds = sceneInfo.renderableCullInfos[i].bounds.GetSphere();
 					if (!opt.Intersects(bounds))
@@ -807,7 +807,7 @@ namespace bs { namespace ct
 
 		// Determine shadow map sizes and sort them
 		UINT32 shadowInfoCount = 0;
-		for (UINT32 i = 0; i < (UINT32)sceneInfo.spotLights.Size(); ++i)
+		for (UINT32 i = 0; i < (UINT32)sceneInfo.spotLights.size(); ++i)
 		{
 			const RendererLight& light = sceneInfo.spotLights[i];
 			mSpotLightShadows[i].startIdx = shadowInfoCount;
@@ -832,7 +832,7 @@ namespace bs { namespace ct
 			shadowInfoCount++; // For now, always a single fully dynamic shadow for a single light, but that may change
 		}
 
-		for (UINT32 i = 0; i < (UINT32)sceneInfo.radialLights.Size(); ++i)
+		for (UINT32 i = 0; i < (UINT32)sceneInfo.radialLights.size(); ++i)
 		{
 			const RendererLight& light = sceneInfo.radialLights[i];
 			mRadialLightShadows[i].startIdx = shadowInfoCount;
@@ -859,41 +859,41 @@ namespace bs { namespace ct
 		}
 
 		// Sort spot lights by size so they fit neatly in the texture atlas
-		std::sort(mSpotLightShadowOptions.Begin(), mSpotLightShadowOptions.end(),
+		std::sort(mSpotLightShadowOptions.begin(), mSpotLightShadowOptions.end(),
 			[](const ShadowMapOptions& a, const ShadowMapOptions& b) { return a.mapSize > b.mapSize; } );
 
 		// Reserve space for shadow infos
 		mShadowInfos.Resize(shadowInfoCount);
 
 		// Deallocate unused textures (must be done before rendering shadows, in order to ensure indices don't change)
-		for(auto iter = mDynamicShadowMaps.Begin(); iter != mDynamicShadowMaps.end(); ++iter)
+		for(auto iter = mDynamicShadowMaps.begin(); iter != mDynamicShadowMaps.end(); ++iter)
 		{
 			if(iter->GetLastUsedCounter() >= MAX_UNUSED_FRAMES)
 			{
 				// These are always populated in order, so we can assume all following atlases are also empty
-				mDynamicShadowMaps.Erase(iter, mDynamicShadowMaps.end());
+				mDynamicShadowMaps.erase(iter, mDynamicShadowMaps.end());
 				break;
 			}
 		}
 
-		for(auto iter = mCascadedShadowMaps.Begin(); iter != mCascadedShadowMaps.end();)
+		for(auto iter = mCascadedShadowMaps.begin(); iter != mCascadedShadowMaps.end();)
 		{
 			if (iter->GetLastUsedCounter() >= MAX_UNUSED_FRAMES)
-				iter = mCascadedShadowMaps.Erase(iter);
+				iter = mCascadedShadowMaps.erase(iter);
 			else
 				++iter;
 		}
 		
-		for(auto iter = mShadowCubemaps.Begin(); iter != mShadowCubemaps.end();)
+		for(auto iter = mShadowCubemaps.begin(); iter != mShadowCubemaps.end();)
 		{
 			if (iter->GetLastUsedCounter() >= MAX_UNUSED_FRAMES)
-				iter = mShadowCubemaps.Erase(iter);
+				iter = mShadowCubemaps.erase(iter);
 			else
 				++iter;
 		}
 
 		// Render shadow maps
-		for (UINT32 i = 0; i < (UINT32)sceneInfo.directionalLights.Size(); ++i)
+		for (UINT32 i = 0; i < (UINT32)sceneInfo.directionalLights.size(); ++i)
 		{
 			const RendererLight& light = sceneInfo.directionalLights[i];
 
@@ -943,7 +943,7 @@ namespace bs { namespace ct
 			Vector3(1, 1 * flipY, caps.maxDepth)
 		);
 
-		for(size_t i = 0; i < output.Size(); i++)
+		for(size_t i = 0; i < output.size(); i++)
 		{
 			Vector3 corner = frustumCube.GetCorner((AABox::Corner)i);
 			output[i] = invVP.Multiply(corner);
@@ -1241,7 +1241,7 @@ namespace bs { namespace ct
 		shadowInfo.UpdateNormArea(mapSize);
 
 		UINT32 numCascades = view.GetRenderSettings().shadowSettings.numCascades;
-		for (UINT32 i = 0; i < (UINT32)mCascadedShadowMaps.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mCascadedShadowMaps.size(); i++)
 		{
 			ShadowCascadedMap& shadowMap = mCascadedShadowMaps[i];
 
@@ -1256,10 +1256,10 @@ namespace bs { namespace ct
 
 		if (shadowInfo.textureIdx == (UINT32)-1)
 		{
-			shadowInfo.textureIdx = (UINT32)mCascadedShadowMaps.Size();
+			shadowInfo.textureIdx = (UINT32)mCascadedShadowMaps.size();
 			mCascadedShadowMaps.push_back(ShadowCascadedMap(mapSize, numCascades));
 
-			ShadowCascadedMap& shadowMap = mCascadedShadowMaps.Back();
+			ShadowCascadedMap& shadowMap = mCascadedShadowMaps.back();
 			shadowMap.MarkAsUsed();
 		}
 
@@ -1361,7 +1361,7 @@ namespace bs { namespace ct
 		mapInfo.cascadeIdx = -1;
 
 		bool foundSpace = false;
-		for (UINT32 i = 0; i < (UINT32)mDynamicShadowMaps.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mDynamicShadowMaps.size(); i++)
 		{
 			ShadowMapAtlas& atlas = mDynamicShadowMaps[i];
 
@@ -1376,10 +1376,10 @@ namespace bs { namespace ct
 
 		if (!foundSpace)
 		{
-			mapInfo.textureIdx = (UINT32)mDynamicShadowMaps.Size();
+			mapInfo.textureIdx = (UINT32)mDynamicShadowMaps.size();
 			mDynamicShadowMaps.push_back(ShadowMapAtlas(MAX_ATLAS_SIZE));
 
-			ShadowMapAtlas& atlas = mDynamicShadowMaps.Back();
+			ShadowMapAtlas& atlas = mDynamicShadowMaps.back();
 			atlas.AddMap(options.mapSize, mapInfo.area, SHADOW_MAP_BORDER);
 		}
 
@@ -1419,7 +1419,7 @@ namespace bs { namespace ct
 		const Vector<Plane>& frustumPlanes = localFrustum.GetPlanes();
 		Matrix4 worldMatrix = view.InverseAffine();
 
-		Vector<Plane> WorldPlanes(frustumPlanes.Size());
+		Vector<Plane> WorldPlanes(frustumPlanes.size());
 		UINT32 j = 0;
 		for (auto& plane : frustumPlanes)
 		{
@@ -1460,7 +1460,7 @@ namespace bs { namespace ct
 		mapInfo.area = Rect2I(0, 0, options.mapSize, options.mapSize);
 		mapInfo.UpdateNormArea(options.mapSize);
 
-		for (UINT32 i = 0; i < (UINT32)mShadowCubemaps.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mShadowCubemaps.size(); i++)
 		{
 			ShadowCubemap& cubemap = mShadowCubemaps[i];
 
@@ -1475,10 +1475,10 @@ namespace bs { namespace ct
 
 		if (mapInfo.textureIdx == (UINT32)-1)
 		{
-			mapInfo.textureIdx = (UINT32)mShadowCubemaps.Size();
+			mapInfo.textureIdx = (UINT32)mShadowCubemaps.size();
 			mShadowCubemaps.push_back(ShadowCubemap(options.mapSize));
 
-			ShadowCubemap& cubemap = mShadowCubemaps.Back();
+			ShadowCubemap& cubemap = mShadowCubemaps.back();
 			cubemap.MarkAsUsed();
 		}
 
@@ -1580,7 +1580,7 @@ namespace bs { namespace ct
 
 			Matrix4 worldMatrix = Matrix4::translation(lightPos) * Matrix4(viewRotationMat);
 
-			Vector<Plane> WorldPlanes(frustumPlanes.Size());
+			Vector<Plane> WorldPlanes(frustumPlanes.size());
 			UINT32 j = 0;
 			for (auto& plane : frustumPlanes)
 			{

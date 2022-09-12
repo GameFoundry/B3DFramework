@@ -119,7 +119,7 @@ namespace bs
 
 		Flags<Enum, Storage> operator| (Enum rhs) const
 		{
-			Flags<Enum, Storage> Out(*this);
+			Flags<Enum, Storage> out(*this);
 			out |= rhs;
 
 			return out;
@@ -127,7 +127,7 @@ namespace bs
 
 		Flags<Enum, Storage> operator| (const Flags<Enum, Storage>& rhs) const
 		{
-			Flags<Enum, Storage> Out(*this);
+			Flags<Enum, Storage> out(*this);
 			out |= rhs;
 
 			return out;
@@ -201,7 +201,7 @@ namespace bs
 			return out;
 		}
 
-		operator Bool() const
+		operator bool() const
 		{
 			return mBits ? true : false;
 		}
@@ -252,7 +252,7 @@ namespace std
 	template<class Enum, class Storage>
 	struct hash<bs::Flags<Enum, Storage>>
 	{
-		size_t Operator()(const bs::Flags<Enum, Storage>& key) const
+		size_t operator()(const bs::Flags<Enum, Storage>& key) const
 		{
 			return (Storage)key;
 		}

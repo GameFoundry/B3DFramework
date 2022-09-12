@@ -295,26 +295,26 @@ namespace bs { namespace ct
 
 			bool inStruct = false;
 			String structName;
-			if (nameElements.Size() > 1)
+			if (nameElements.size() > 1)
 			{
-				auto uniformBlockFind = blockNames.Find(nameElements[0]);
+				auto uniformBlockFind = blockNames.find(nameElements[0]);
 
 				// Check if the name is not a struct, and instead a Uniform block namespace
-				if (uniformBlockFind != blockNames.End())
+				if (uniformBlockFind != blockNames.end())
 				{
 					// Possibly it's a struct inside a named uniform block
-					if (nameElements.Size() > 2)
+					if (nameElements.size() > 2)
 					{
 						inStruct = true;
 						structName = nameElements[1];
-						paramName = nameElements.Back();
+						paramName = nameElements.back();
 					}
 				}
 				else
 				{
 					inStruct = true;
 					structName = nameElements[0];
-					paramName = nameElements.Back();
+					paramName = nameElements.back();
 				}
 			}
 
@@ -326,8 +326,8 @@ namespace bs { namespace ct
 			if (inStruct)
 			{
 				// If the uniform name has a "[" in it then its an array element uniform.
-				String::size_type arrayStart = structName.Find("[");
-				String::size_type arrayEnd = structName.Find("]");
+				String::size_type arrayStart = structName.find("[");
+				String::size_type arrayEnd = structName.find("]");
 				if (arrayStart != String::npos)
 				{
 					String strArrIdx = structName.Substr(arrayStart + 1, arrayEnd - (arrayStart + 1));
@@ -340,8 +340,8 @@ namespace bs { namespace ct
 
 			{
 				// If the uniform name has a "[" in it then its an array element uniform.
-				String::size_type arrayStart = cleanParamName.Find("[");
-				String::size_type arrayEnd = cleanParamName.Find("]");
+				String::size_type arrayStart = cleanParamName.find("[");
+				String::size_type arrayEnd = cleanParamName.find("]");
 				if (arrayStart != String::npos)
 				{
 					String strArrIdx = cleanParamName.Substr(arrayStart + 1, arrayEnd - (arrayStart + 1));
@@ -366,8 +366,8 @@ namespace bs { namespace ct
 				if (inStruct)
 					nameToSearch = structName;
 
-				auto arrayIndexFind = foundFirstArrayIndex.Find(nameToSearch);
-				if (arrayIndexFind == foundFirstArrayIndex.End())
+				auto arrayIndexFind = foundFirstArrayIndex.find(nameToSearch);
+				if (arrayIndexFind == foundFirstArrayIndex.end())
 				{
 					foundFirstArrayIndex[nameToSearch] = arrayIdx;
 				}
@@ -557,7 +557,7 @@ namespace bs { namespace ct
 
 				BS_CHECK_GL_ERROR();
 			}
-			else If(isRWBuffer)
+			else if(isRWBuffer)
 			{
 				GpuParamObjectDesc bufferParam;
 				bufferParam.name = paramName;
@@ -629,10 +629,10 @@ namespace bs { namespace ct
 				}
 
 				// If the parameter is part of a struct, then we need to update the struct definition
-				auto findExistingStruct = foundStructs.Find(structName);
+				auto findExistingStruct = foundStructs.find(structName);
 
 				// Create new definition if one doesn't exist
-				if (findExistingStruct == foundStructs.End())
+				if (findExistingStruct == foundStructs.end())
 				{
 					foundStructs[structName] = GpuParamDataDesc();
 					GpuParamDataDesc& structDesc = foundStructs[structName];
@@ -672,7 +672,7 @@ namespace bs { namespace ct
 		}
 
 		// Param blocks always need to be a multiple of 4, so make it so
-		for (auto iter = returnParamDesc.paramBlocks.Begin(); iter != returnParamDesc.paramBlocks.end(); ++iter)
+		for (auto iter = returnParamDesc.paramBlocks.begin(); iter != returnParamDesc.paramBlocks.end(); ++iter)
 		{
 			GpuParamBlockDesc& blockDesc = iter->second;
 
@@ -682,7 +682,7 @@ namespace bs { namespace ct
 
 #if BS_DEBUG_MODE
 		// Check if manually calculated and OpenGL buffer sizes match
-		for (auto iter = returnParamDesc.paramBlocks.Begin(); iter != returnParamDesc.paramBlocks.end(); ++iter)
+		for (auto iter = returnParamDesc.paramBlocks.begin(); iter != returnParamDesc.paramBlocks.end(); ++iter)
 		{
 			if (iter->second.slot == 0)
 				continue;

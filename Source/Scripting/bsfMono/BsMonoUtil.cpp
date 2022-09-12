@@ -275,7 +275,7 @@ namespace bs
 		{
 			ScriptArray ScriptArray(array);
 
-			numParams = scriptArray.Size();
+			numParams = scriptArray.size();
 
 			if(params)
 			{

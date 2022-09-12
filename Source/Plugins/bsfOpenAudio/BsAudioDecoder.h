@@ -20,7 +20,7 @@ namespace bs
 		 * Attempts to open audio data from the provided stream. Must be called before any reads or seeks.
 		 *
 		 * @param[in]	stream	Data stream audio data is stored in.
-		 * @param[out]	info	Output information describing meta-data of the audio in the stream.
+		 * @param[out]	info	Output information describing meta-Data of the audio in the stream.
 		 * @param[in]	offset	Offset at which audio data in the stream begins, in bytes.
 		 * @return				True if the data is valid, false otherwise.
 		 */

@@ -45,7 +45,7 @@ namespace bs
     }
 
     /// <summary>
-    /// Type you may use to check on the results of an asynchronous operation. Contains uninitialized data until
+    /// Type you may use to check on the results of an asynchronous operation. Contains uninitialized Data until
     /// <see cref="AsyncOpBase.IsComplete"/> returns true.
     /// </summary>
     public class AsyncOp<T> : AsyncOpBase where T: class
@@ -57,7 +57,7 @@ namespace bs
         /// <returns>Return value of the async operation.</returns>
         public T Value
         {
-            get { return GenericValue as T; }
+            get { return GenericValue as ToWString; }
         }
     }
 

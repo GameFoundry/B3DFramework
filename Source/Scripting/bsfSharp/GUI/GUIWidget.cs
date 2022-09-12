@@ -90,7 +90,7 @@ namespace bs
         }
 
         /// <summary>
-        /// Holds all data the GUIWidget component needs to persist through serialization.
+        /// Holds all Data the GUIWidget component needs to persist through serialization.
         /// </summary>
         [SerializeObject]
         private class SerializableData

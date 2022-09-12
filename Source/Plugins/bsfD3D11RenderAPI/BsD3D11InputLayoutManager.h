@@ -26,14 +26,14 @@ namespace bs { namespace ct
 		class HashFunc
 		{
 		public:
-			::std::size_t Operator()(const VertexDeclarationKey &key) const;
+			::std::size_t operator()(const VertexDeclarationKey &key) const;
 		};
 
 		/**	Compares two vertex declaration keys. */
 		class EqualFunc
 		{
 		public:
-			bool Operator()(const VertexDeclarationKey &a, const VertexDeclarationKey &b) const;
+			bool operator()(const VertexDeclarationKey &a, const VertexDeclarationKey &b) const;
 		};
 
 		/**	Contains data about a single instance of DX11 input layout object. */

@@ -53,31 +53,31 @@ namespace bs { namespace ct
 				{
 					if(mipFilter == FO_POINT || mipFilter == FO_NONE)
 						samplerState.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-					else If(mipFilter == FO_LINEAR)
+					else if(mipFilter == FO_LINEAR)
 						samplerState.Filter = D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR;
 				}
-				else If(magFilter == FO_LINEAR)
+				else if(magFilter == FO_LINEAR)
 				{
 					if(mipFilter == FO_POINT || mipFilter == FO_NONE)
 						samplerState.Filter = D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
-					else If(mipFilter == FO_LINEAR)
+					else if(mipFilter == FO_LINEAR)
 						samplerState.Filter = D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR;
 				}
 			}
-			else If(minFilter == FO_LINEAR)
+			else if(minFilter == FO_LINEAR)
 			{
 				if(magFilter == FO_POINT || magFilter == FO_NONE)
 				{
 					if(mipFilter == FO_POINT || mipFilter == FO_NONE)
 						samplerState.Filter = D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT;
-					else If(mipFilter == FO_LINEAR)
+					else if(mipFilter == FO_LINEAR)
 						samplerState.Filter = D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
 				}
-				else If(magFilter == FO_LINEAR)
+				else if(magFilter == FO_LINEAR)
 				{
 					if(mipFilter == FO_POINT || mipFilter == FO_NONE)
 						samplerState.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-					else If(mipFilter == FO_LINEAR)
+					else if(mipFilter == FO_LINEAR)
 						samplerState.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 				}
 			}

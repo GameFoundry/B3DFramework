@@ -79,7 +79,7 @@ namespace bs
 
 		UINT32 GetNumEntries(ManagedSerializableDictionary* obj)
 		{
-			return (UINT32)mSequentialData.Size();
+			return (UINT32)mSequentialData.size();
 		}
 
 		void SetNumEntries(ManagedSerializableDictionary* obj, UINT32 numEntries)

@@ -276,11 +276,13 @@ namespace bs
 				curMsCount != firstMsCount ||
 				curNumSlices != firstNumSlices)
 			{
-				String errorInfo = "\nWidth: " + toString(curTexProps.GetWidth()) + "/" + toString(firstTexProps.getWidth());
-				errorInfo += "\nHeight: " + toString(curTexProps.GetHeight()) + "/" + toString(firstTexProps.getHeight());
-				errorInfo += "\nDepth: " + toString(curTexProps.GetDepth()) + "/" + toString(firstTexProps.getDepth());
-				errorInfo += "\nNum. slices: " + toString(curNumSlices) + "/" + toString(firstNumSlices);
-				errorInfo += "\nMultisample Count: " + toString(curMsCount) + "/" + toString(firstMsCount);
+				String errorInfo = "\nWidth: " + ToString(curTexProps.GetWidth()) + "/" +
+								   ToString(firstTexProps.getWidth());
+				errorInfo += "\nHeight: " + ToString(curTexProps.GetHeight()) + "/" +
+							 ToString(firstTexProps.getHeight());
+				errorInfo += "\nDepth: " + ToString(curTexProps.GetDepth()) + "/" + ToString(firstTexProps.getDepth());
+				errorInfo += "\nNum. slices: " + ToString(curNumSlices) + "/" + ToString(firstNumSlices);
+				errorInfo += "\nMultisample Count: " + ToString(curMsCount) + "/" + ToString(firstMsCount);
 
 				BS_EXCEPT(InvalidParametersException, "Provided color textures don't match!" + errorInfo);
 			}
@@ -300,13 +302,15 @@ namespace bs
 			if ((firstSurfaceView->GetFirstArraySlice() + firstSurfaceView->getNumArraySlices()) > numSlices)
 			{
 				BS_EXCEPT(InvalidParametersException, "Provided number of faces is out of range. Face: " +
-					toString(firstSurfaceView->GetFirstArraySlice() + firstSurfaceView->getNumArraySlices()) + ". Max num faces: " + toString(numSlices));
+													  ToString(firstSurfaceView->GetFirstArraySlice() + firstSurfaceView->getNumArraySlices()) + ". Max num faces: " +
+						ToString(numSlices));
 			}
 
 			if (firstSurfaceView->GetMostDetailedMip() > firstTexProps.GetNumMipmaps())
 			{
 				BS_EXCEPT(InvalidParametersException, "Provided number of mip maps is out of range. Mip level: " +
-					toString(firstSurfaceView->GetMostDetailedMip()) + ". Max num mipmaps: " + toString(firstTexProps.GetNumMipmaps()));
+						ToString(firstSurfaceView->GetMostDetailedMip()) + ". Max num mipmaps: " +
+													  ToString(firstTexProps.GetNumMipmaps()));
 			}
 
 			if (mDepthStencilSurface == nullptr)
@@ -326,9 +330,11 @@ namespace bs
 				depthTexProps.GetHeight() != firstTexProps.getHeight() ||
 				depthMsCount != colorMsCount)
 			{
-				String errorInfo = "\nWidth: " + toString(depthTexProps.GetWidth()) + "/" + toString(firstTexProps.getWidth());
-				errorInfo += "\nHeight: " + toString(depthTexProps.GetHeight()) + "/" + toString(firstTexProps.getHeight());
-				errorInfo += "\nMultisample Count: " + toString(depthMsCount) + "/" + toString(colorMsCount);
+				String errorInfo = "\nWidth: " + ToString(depthTexProps.GetWidth()) + "/" +
+								   ToString(firstTexProps.getWidth());
+				errorInfo += "\nHeight: " + ToString(depthTexProps.GetHeight()) + "/" +
+							 ToString(firstTexProps.getHeight());
+				errorInfo += "\nMultisample Count: " + ToString(depthMsCount) + "/" + ToString(colorMsCount);
 
 				BS_EXCEPT(InvalidParametersException, "Provided texture and depth stencil buffer don't match!" + errorInfo);
 			}

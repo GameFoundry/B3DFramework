@@ -131,7 +131,7 @@ namespace bs
         /// </summary>
         /// <param name="index">Sequential index at which to insert the entry. </param>
         /// <param name="data">Data of the entry to insert.</param>
-        public void InsertEntry(int index, TData data)
+        public void InsertEntry(int index, TData Data)
         {
             if (index >= 0 && index <= entries.Count)
                 entries.Insert(index, data);

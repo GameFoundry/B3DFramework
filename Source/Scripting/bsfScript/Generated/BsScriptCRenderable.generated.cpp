@@ -105,7 +105,7 @@ namespace bs
 		{
 			ScriptArray Arraymaterials(materials);
 			vecmaterials.Resize(arraymaterials.size());
-			for(int i = 0; i < (int)arraymaterials.Size(); i++)
+			for(int i = 0; i < (int)arraymaterials.size(); i++)
 			{
 				ScriptRRefBase* scriptmaterials;
 				scriptmaterials = ScriptRRefBase::toNative(arraymaterials.get<MonoObject*>(i));
@@ -125,7 +125,7 @@ namespace bs
 		vec__output = thisPtr->GetHandle()->getMaterials();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptRRefBase>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{

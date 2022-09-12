@@ -92,7 +92,8 @@ namespace bs { namespace ct
 		}
 
 		if(FAILED(hr))
-			BS_EXCEPT(RenderingAPIException, "Failed to create Direct3D11 object. D3D11CreateDeviceN returned this error code: " + toString(hr));
+			BS_EXCEPT(RenderingAPIException, "Failed to create Direct3D11 object. D3D11CreateDeviceN returned this error code: " +
+					ToString(hr));
 
 		mDevice = bs_new<D3D11Device>(device);
 		
@@ -373,14 +374,14 @@ namespace bs { namespace ct
 					if (paramDesc == nullptr)
 						return;
 
-					for (auto iter = paramDesc->textures.Begin(); iter != paramDesc->textures.end(); ++iter)
+					for (auto iter = paramDesc->textures.begin(); iter != paramDesc->textures.end(); ++iter)
 					{
 						UINT32 slot = iter->second.slot;
 
 						SPtr<Texture> texture = gpuParams->GetTexture(iter->second.set, slot);
 						const TextureSurface& surface = gpuParams->GetTextureSurface(iter->second.set, slot);
 
-						while (slot >= (UINT32)srvs.Size())
+						while (slot >= (UINT32)srvs.size())
 							srvs.push_back(nullptr);
 
 						if (texture != nullptr)
@@ -393,7 +394,7 @@ namespace bs { namespace ct
 						}
 					}
 
-					for (auto iter = paramDesc->buffers.Begin(); iter != paramDesc->buffers.end(); ++iter)
+					for (auto iter = paramDesc->buffers.begin(); iter != paramDesc->buffers.end(); ++iter)
 					{
 						UINT32 slot = iter->second.slot;
 						SPtr<GpuBuffer> buffer = gpuParams->GetBuffer(iter->second.set, slot);
@@ -403,7 +404,7 @@ namespace bs { namespace ct
 
 						if (!isLoadStore)
 						{
-							while (slot >= (UINT32)srvs.Size())
+							while (slot >= (UINT32)srvs.size())
 								srvs.push_back(nullptr);
 
 							if (buffer != nullptr)
@@ -414,7 +415,7 @@ namespace bs { namespace ct
 						}
 						else
 						{
-							while (slot >= (UINT32)uavs.Size())
+							while (slot >= (UINT32)uavs.size())
 								uavs.push_back(nullptr);
 
 							if (buffer != nullptr)
@@ -425,14 +426,14 @@ namespace bs { namespace ct
 						}
 					}
 
-					for (auto iter = paramDesc->loadStoreTextures.Begin(); iter != paramDesc->loadStoreTextures.end(); ++iter)
+					for (auto iter = paramDesc->loadStoreTextures.begin(); iter != paramDesc->loadStoreTextures.end(); ++iter)
 					{
 						UINT32 slot = iter->second.slot;
 
 						SPtr<Texture> texture = gpuParams->GetLoadStoreTexture(iter->second.set, slot);
 						const TextureSurface& surface = gpuParams->GetLoadStoreSurface(iter->second.set, slot);
 
-						while (slot >= (UINT32)uavs.Size())
+						while (slot >= (UINT32)uavs.size())
 							uavs.push_back(nullptr);
 
 						if (texture != nullptr)
@@ -449,12 +450,12 @@ namespace bs { namespace ct
 						}
 					}
 
-					for (auto iter = paramDesc->samplers.Begin(); iter != paramDesc->samplers.end(); ++iter)
+					for (auto iter = paramDesc->samplers.begin(); iter != paramDesc->samplers.end(); ++iter)
 					{
 						UINT32 slot = iter->second.slot;
 						SPtr<SamplerState> samplerState = gpuParams->GetSamplerState(iter->second.set, slot);
 
-						while (slot >= (UINT32)samplers.Size())
+						while (slot >= (UINT32)samplers.size())
 							samplers.push_back(nullptr);
 
 						if (samplerState == nullptr)
@@ -465,12 +466,12 @@ namespace bs { namespace ct
 						samplers[slot] = d3d11SamplerState->GetInternal();
 					}
 
-					for (auto iter = paramDesc->paramBlocks.Begin(); iter != paramDesc->paramBlocks.end(); ++iter)
+					for (auto iter = paramDesc->paramBlocks.begin(); iter != paramDesc->paramBlocks.end(); ++iter)
 					{
 						UINT32 slot = iter->second.slot;
 						SPtr<GpuParamBlockBuffer> buffer = gpuParams->GetParamBlockBuffer(iter->second.set, slot);
 
-						while (slot >= (UINT32)constBuffers.Size())
+						while (slot >= (UINT32)constBuffers.size())
 							constBuffers.push_back(nullptr);
 
 						if (buffer != nullptr)
@@ -490,9 +491,9 @@ namespace bs { namespace ct
 				UINT32 numSamplers = 0;
 
 				populateViews(GPT_VERTEX_PROGRAM);
-				numSRVs = (UINT32)srvs.Size();
-				numConstBuffers = (UINT32)constBuffers.Size();
-				numSamplers = (UINT32)samplers.Size();
+				numSRVs = (UINT32)srvs.size();
+				numConstBuffers = (UINT32)constBuffers.size();
+				numSamplers = (UINT32)samplers.size();
 
 				if(numSRVs > 0)
 					context->VSSetShaderResources(0, numSRVs, srvs.Data());
@@ -504,10 +505,10 @@ namespace bs { namespace ct
 					context->VSSetSamplers(0, numSamplers, samplers.Data());
 
 				populateViews(GPT_FRAGMENT_PROGRAM);
-				numSRVs = (UINT32)srvs.Size();
-				numUAVs = (UINT32)uavs.Size();
-				numConstBuffers = (UINT32)constBuffers.Size();
-				numSamplers = (UINT32)samplers.Size();
+				numSRVs = (UINT32)srvs.size();
+				numUAVs = (UINT32)uavs.size();
+				numConstBuffers = (UINT32)constBuffers.size();
+				numSamplers = (UINT32)samplers.size();
 
 				if (numSRVs > 0)
 					context->PSSetShaderResources(0, numSRVs, srvs.Data());
@@ -526,9 +527,9 @@ namespace bs { namespace ct
 					context->PSSetSamplers(0, numSamplers, samplers.Data());
 
 				populateViews(GPT_GEOMETRY_PROGRAM);
-				numSRVs = (UINT32)srvs.Size();
-				numConstBuffers = (UINT32)constBuffers.Size();
-				numSamplers = (UINT32)samplers.Size();
+				numSRVs = (UINT32)srvs.size();
+				numConstBuffers = (UINT32)constBuffers.size();
+				numSamplers = (UINT32)samplers.size();
 
 				if (numSRVs > 0)
 					context->GSSetShaderResources(0, numSRVs, srvs.Data());
@@ -540,9 +541,9 @@ namespace bs { namespace ct
 					context->GSSetSamplers(0, numSamplers, samplers.Data());
 
 				populateViews(GPT_HULL_PROGRAM);
-				numSRVs = (UINT32)srvs.Size();
-				numConstBuffers = (UINT32)constBuffers.Size();
-				numSamplers = (UINT32)samplers.Size();
+				numSRVs = (UINT32)srvs.size();
+				numConstBuffers = (UINT32)constBuffers.size();
+				numSamplers = (UINT32)samplers.size();
 
 				if (numSRVs > 0)
 					context->HSSetShaderResources(0, numSRVs, srvs.Data());
@@ -554,9 +555,9 @@ namespace bs { namespace ct
 					context->HSSetSamplers(0, numSamplers, samplers.Data());
 
 				populateViews(GPT_DOMAIN_PROGRAM);
-				numSRVs = (UINT32)srvs.Size();
-				numConstBuffers = (UINT32)constBuffers.Size();
-				numSamplers = (UINT32)samplers.Size();
+				numSRVs = (UINT32)srvs.size();
+				numConstBuffers = (UINT32)constBuffers.size();
+				numSamplers = (UINT32)samplers.size();
 
 				if (numSRVs > 0)
 					context->DSSetShaderResources(0, numSRVs, srvs.Data());
@@ -568,10 +569,10 @@ namespace bs { namespace ct
 					context->DSSetSamplers(0, numSamplers, samplers.Data());
 
 				populateViews(GPT_COMPUTE_PROGRAM);
-				numSRVs = (UINT32)srvs.Size();
-				numUAVs = (UINT32)uavs.Size();
-				numConstBuffers = (UINT32)constBuffers.Size();
-				numSamplers = (UINT32)samplers.Size();
+				numSRVs = (UINT32)srvs.size();
+				numUAVs = (UINT32)uavs.size();
+				numConstBuffers = (UINT32)constBuffers.size();
+				numSamplers = (UINT32)samplers.size();
 
 				if (numSRVs > 0)
 					context->CSSetShaderResources(0, numSRVs, srvs.Data());
@@ -629,8 +630,8 @@ namespace bs { namespace ct
 			UINT32 maxBoundVertexBuffers = mCurrentCapabilities[0].maxBoundVertexBuffers;
 			if (index < 0 || (index + numBuffers) >= maxBoundVertexBuffers)
 			{
-				BS_EXCEPT(InvalidParametersException, "Invalid vertex index: " + toString(index) +
-					". Valid range is 0 .. " + toString(maxBoundVertexBuffers - 1));
+				BS_EXCEPT(InvalidParametersException, "Invalid vertex index: " + ToString(index) +
+													  ". Valid range is 0 .. " + ToString(maxBoundVertexBuffers - 1));
 			}
 
 			ID3D11Buffer* dx11buffers[BS_MAX_BOUND_VERTEX_BUFFERS];
@@ -678,7 +679,8 @@ namespace bs { namespace ct
 			else if (indexBuffer->GetProperties().GetType() == IT_32BIT)
 				indexFormat = DXGI_FORMAT_R32_UINT;
 			else
-				BS_EXCEPT(InternalErrorException, "Unsupported index format: " + toString(indexBuffer->GetProperties().GetType()));
+				BS_EXCEPT(InternalErrorException, "Unsupported index format: " +
+						ToString(indexBuffer->GetProperties().GetType()));
 
 			mDevice->GetImmediateContext()->IASetIndexBuffer(indexBuffer->getD3DIndexBuffer(), indexFormat, 0);
 		};

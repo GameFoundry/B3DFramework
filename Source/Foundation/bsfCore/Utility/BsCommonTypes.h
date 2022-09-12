@@ -152,7 +152,7 @@ namespace bs
 		GBL_READ_WRITE,
 		/**
 		 * Allows you to write to the buffer. Tells the driver to completely discard the contents of the buffer you are
-		 * writing to. The driver will (most likely) internally allocate another buffer with same specifications (which is
+		 * writing to. The driver will (most likely) internally Allocate another buffer with same specifications (which is
 		 * fairly fast) and you will avoid CPU-GPU stalls.
 		 */
 		GBL_WRITE_ONLY_DISCARD,
@@ -455,7 +455,7 @@ namespace bs
 		BWT_NORMAL,
 		/**
 		 * Tells the driver to completely discard the contents of the buffer you are writing to. The driver will (most
-		 * likely) internally allocate another buffer with same specifications (which is fairly fast) and you will avoid
+		 * likely) internally Allocate another buffer with same specifications (which is fairly fast) and you will avoid
 		 * CPU-GPU stalls.
 		 */
 		BWT_DISCARD,
@@ -632,7 +632,7 @@ namespace bs
 		static BS_CORE_EXPORT const TextureSurface COMPLETE;
 	};
 
-	/** Meta-data describing a chunk of audio. */
+	/** Meta-Data describing a chunk of audio. */
 	struct AudioDataInfo
 	{
 		UINT32 numSamples; /**< Total number of audio samples in the audio data (includes all channels). */

@@ -46,7 +46,7 @@ namespace bs
 	template<bool Core>
 	SPtr<typename TMaterial<Core>::GpuParamsSetType> TMaterial<Core>::createParamsSet(UINT32 techniqueIdx)
 	{
-		if (techniqueIdx >= (UINT32)mTechniques.Size())
+		if (techniqueIdx >= (UINT32)mTechniques.size())
 			return nullptr;
 
 		SPtr<TechniqueType> technique = mTechniques[techniqueIdx];
@@ -65,7 +65,7 @@ namespace bs
 		UINT32 bestTechniqueIdx = (UINT32)-1;
 		UINT32 bestTechniqueScore = std::numeric_limits<UINT32>::max();
 
-		for(UINT32 i = 0; i < (UINT32)mTechniques.Size(); i++)
+		for(UINT32 i = 0; i < (UINT32)mTechniques.size(); i++)
 		{
 			// Make sure tags match
 			bool foundMatch = true;
@@ -101,14 +101,14 @@ namespace bs
 				if(desc.variation)
 				{
 					const auto& searchVarParams = desc.variation->GetParams();
-					const auto findSearch = searchVarParams.Find(param.first);
-					if(findSearch != searchVarParams.End())
+					const auto findSearch = searchVarParams.find(param.first);
+					if(findSearch != searchVarParams.end())
 						matchesSearch = findSearch->second.i == param.second.i ? Matching : NotMatching;
 				}
 
 				SearchResult matchesInternal = NoParam;
-				const auto findInternal = internalVarParams.Find(param.first);
-				if (findInternal != internalVarParams.End())
+				const auto findInternal = internalVarParams.find(param.first);
+				if (findInternal != internalVarParams.end())
 					matchesInternal = findInternal->second.i == param.second.i ? Matching : NotMatching;
 
 				switch(matchesSearch)
@@ -186,11 +186,11 @@ namespace bs
 			if(desc.variation)
 			{
 				const auto& searchVarParams = desc.variation->GetParams();
-				if(numMatchedSearchParams != (UINT32)searchVarParams.Size())
+				if(numMatchedSearchParams != (UINT32)searchVarParams.size())
 					continue;
 			}
 
-			if(numMatchedInternalParams != (UINT32)internalVarParams.Size())
+			if(numMatchedInternalParams != (UINT32)internalVarParams.size())
 				continue;
 
 			if (currentScore < bestTechniqueScore)
@@ -209,7 +209,7 @@ namespace bs
 		UINT32 bestTechniqueIdx = 0;
 		UINT32 bestTechniqueScore = std::numeric_limits<UINT32>::max();
 
-		for (UINT32 i = 0; i < (UINT32)mTechniques.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mTechniques.size(); i++)
 		{
 			if (mTechniques[i]->HasTags())
 				continue;
@@ -231,8 +231,8 @@ namespace bs
 				};
 
 				SearchResult matches = NoParam;
-				const auto findInternal = internalVarParams.Find(param.first);
-				if (findInternal != internalVarParams.End())
+				const auto findInternal = internalVarParams.find(param.first);
+				if (findInternal != internalVarParams.end())
 					matches = findInternal->second.i == param.second.i ? Matching : NotMatching;
 
 				switch(matches)
@@ -257,7 +257,7 @@ namespace bs
 			if (!foundMatch)
 				continue;
 
-			if(numMatchedParams != (UINT32)internalVarParams.Size())
+			if(numMatchedParams != (UINT32)internalVarParams.size())
 				continue;
 
 			if (currentScore < bestTechniqueScore)
@@ -276,7 +276,7 @@ namespace bs
 		if (mShader == nullptr)
 			return 0;
 
-		if (techniqueIdx >= (UINT32)mTechniques.Size())
+		if (techniqueIdx >= (UINT32)mTechniques.size())
 			return 0;
 
 		return mTechniques[techniqueIdx]->GetNumPasses();
@@ -288,7 +288,7 @@ namespace bs
 		if (mShader == nullptr)
 			return nullptr;
 
-		if (techniqueIdx >= (UINT32)mTechniques.Size())
+		if (techniqueIdx >= (UINT32)mTechniques.size())
 			return nullptr;
 
 		if (passIdx < 0 || passIdx >= mTechniques[techniqueIdx]->GetNumPasses())
@@ -377,7 +377,7 @@ namespace bs
 			mParams = bs_shared_ptr_new<MaterialParamsType>(mShader);
 			mTechniques = mShader->GetCompatibleTechniques();
 
-			if (mTechniques.Empty())
+			if (mTechniques.empty())
 				return;
 
 			initDefaultParameters();
@@ -526,7 +526,7 @@ namespace bs
 		if (mShader == nullptr)
 			BS_EXCEPT(InternalErrorException, "Material does not have shader set.");
 
-		if (mTechniques.Empty())
+		if (mTechniques.empty())
 			BS_EXCEPT(InternalErrorException, "Shader does not contain a supported technique.");
 	}
 
@@ -647,8 +647,8 @@ namespace bs
 		{
 			shader = mShader->GetCore();
 
-			Vector<SPtr<ct::Technique>> Techniques(mTechniques.Size());
-			for (UINT32 i = 0; i < (UINT32)mTechniques.Size(); i++)
+			Vector<SPtr<ct::Technique>> Techniques(mTechniques.size());
+			for (UINT32 i = 0; i < (UINT32)mTechniques.size(); i++)
 				techniques[i] = mTechniques[i]->GetCore();
 			
 			SPtr<ct::MaterialParams> materialParams = bs_shared_ptr_new<ct::MaterialParams>(shader, mParams);
@@ -674,7 +674,7 @@ namespace bs
 		if (mParams != nullptr)
 			mParams->GetSyncData(nullptr, paramsSize, syncAllParams);
 
-		UINT32 numTechniques = (UINT32)mTechniques.Size();
+		UINT32 numTechniques = (UINT32)mTechniques.size();
 		UINT32 size = sizeof(bool) + sizeof(UINT32) * 2 + sizeof(SPtr<ct::Shader>) +
 			sizeof(SPtr<ct::Technique>) * numTechniques + paramsSize;
 
@@ -744,7 +744,7 @@ namespace bs
 				initializeTechniques();
 				markCoreDirty();
 
-				if (mTechniques.Empty()) // Wasn't initialized
+				if (mTechniques.empty()) // Wasn't initialized
 					return;
 
 				if(oldParams)
@@ -897,7 +897,7 @@ namespace bs
 					TMaterialCurveParam<float, false> curParam = getParamFloatCurve(param.first);
 					curParam.Set(params->getCurveParam<float>(*paramData, i), i);
 				}
-				else If(param.second.type == GPDT_COLOR)
+				else if(param.second.type == GPDT_COLOR)
 				{
 					TMaterialColorGradientParam<false> curParam = getParamColorGradient(param.first);
 					curParam.Set(params->GetColorGradientParam(*paramData, i), i);

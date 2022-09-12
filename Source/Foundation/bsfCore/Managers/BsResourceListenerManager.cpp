@@ -30,7 +30,7 @@ namespace bs
 
 	ResourceListenerManager::~ResourceListenerManager()
 	{
-		assert(mResourceToListenerMap.Empty() && "Not all resource listeners had their resources unregistered properly.");
+		assert(mResourceToListenerMap.empty() && "Not all resource listeners had their resources unregistered properly.");
 
 		mResourceLoadedConn.Disconnect();
 		mResourceModifiedConn.Disconnect();
@@ -49,13 +49,13 @@ namespace bs
 #if BS_DEBUG_MODE
 		{
 			RecursiveLock Lock(mMutex);
-			mActiveListeners.Erase(listener);
+			mActiveListeners.erase(listener);
 		}
 #endif
 		
 		{
 			RecursiveLock Lock(mMutex);
-			mDirtyListeners.Erase(listener);
+			mDirtyListeners.erase(listener);
 		}
 
 		clearDependencies(listener);
@@ -116,11 +116,11 @@ namespace bs
 		{
 			RecursiveLock Lock(mMutex);
 
-			const auto iterFind = mLoadedResources.Find(resourceUUID);
-			if (iterFind != mLoadedResources.End())
+			const auto iterFind = mLoadedResources.find(resourceUUID);
+			if (iterFind != mLoadedResources.end())
 			{
 				loadedResource = std::move(iterFind->second);
-				mLoadedResources.Erase(iterFind);
+				mLoadedResources.erase(iterFind);
 			}
 		}
 
@@ -131,11 +131,11 @@ namespace bs
 		{
 			RecursiveLock Lock(mMutex);
 
-			const auto iterFind = mModifiedResources.Find(resourceUUID);
-			if (iterFind != mModifiedResources.End())
+			const auto iterFind = mModifiedResources.find(resourceUUID);
+			if (iterFind != mModifiedResources.end())
 			{
 				modifiedResource = std::move(iterFind->second);
-				mModifiedResources.Erase(iterFind);
+				mModifiedResources.erase(iterFind);
 			}
 		}
 
@@ -161,15 +161,15 @@ namespace bs
 	{
 		UINT64 handleId = (UINT64)resource.GetHandleData().get();
 
-		auto iterFind = mResourceToListenerMap.Find(handleId);
-		if (iterFind == mResourceToListenerMap.End())
+		auto iterFind = mResourceToListenerMap.find(handleId);
+		if (iterFind == mResourceToListenerMap.end())
 			return;
 
 		const Vector<IResourceListener*> relevantListeners = iterFind->second;
 		for (auto& listener : relevantListeners)
 		{
 #if BS_DEBUG_MODE
-			assert(mActiveListeners.Find(listener) != mActiveListeners.end() && "Attempting to notify a destroyed IResourceListener");
+			assert(mActiveListeners.find(listener) != mActiveListeners.end() && "Attempting to notify a destroyed IResourceListener");
 #endif
 
 			listener->NotifyResourceLoaded(resource);
@@ -180,15 +180,15 @@ namespace bs
 	{
 		UINT64 handleId = (UINT64)resource.GetHandleData().get();
 
-		auto iterFind = mResourceToListenerMap.Find(handleId);
-		if (iterFind == mResourceToListenerMap.End())
+		auto iterFind = mResourceToListenerMap.find(handleId);
+		if (iterFind == mResourceToListenerMap.end())
 			return;
 
 		const Vector<IResourceListener*> relevantListeners = iterFind->second;
 		for (auto& listener : relevantListeners)
 		{
 #if BS_DEBUG_MODE
-			assert(mActiveListeners.Find(listener) != mActiveListeners.end() && "Attempting to notify a destroyed IResourceListener");
+			assert(mActiveListeners.find(listener) != mActiveListeners.end() && "Attempting to notify a destroyed IResourceListener");
 #endif
 
 			listener->NotifyResourceChanged(resource);
@@ -197,37 +197,37 @@ namespace bs
 
 	void ResourceListenerManager::ClearDependencies(IResourceListener* listener)
 	{
-		auto iterFind = mListenerToResourceMap.Find(listener);
-		if (iterFind == mListenerToResourceMap.End())
+		auto iterFind = mListenerToResourceMap.find(listener);
+		if (iterFind == mListenerToResourceMap.end())
 			return;
 
 		const Vector<UINT64>& dependantResources = iterFind->second;
 		for (auto& resourceHandleId : dependantResources)
 		{
-			auto iterFind2 = mResourceToListenerMap.Find(resourceHandleId);
-			if (iterFind2 != mResourceToListenerMap.End())
+			auto iterFind2 = mResourceToListenerMap.find(resourceHandleId);
+			if (iterFind2 != mResourceToListenerMap.end())
 			{
 				Vector<IResourceListener*>& listeners = iterFind2->second;
-				auto iterFind3 = std::find(listeners.Begin(), listeners.end(), listener);
+				auto iterFind3 = std::find(listeners.begin(), listeners.end(), listener);
 
-				if (iterFind3 != listeners.End())
-					listeners.Erase(iterFind3);
+				if (iterFind3 != listeners.end())
+					listeners.erase(iterFind3);
 
-				if (listeners.Size() == 0)
-					mResourceToListenerMap.Erase(iterFind2);
+				if (listeners.size() == 0)
+					mResourceToListenerMap.erase(iterFind2);
 			}
 		}
 
-		mListenerToResourceMap.Erase(iterFind);
+		mListenerToResourceMap.erase(iterFind);
 	}
 
 	void ResourceListenerManager::AddDependencies(IResourceListener* listener)
 	{
 		listener->GetListenerResources(mTempResourceBuffer);
 
-		if (mTempResourceBuffer.Size() > 0)
+		if (mTempResourceBuffer.size() > 0)
 		{
-			Vector<UINT64> ResourceHandleIds(mTempResourceBuffer.Size());
+			Vector<UINT64> ResourceHandleIds(mTempResourceBuffer.size());
 			UINT32 idx = 0;
 			for (auto& resource : mTempResourceBuffer)
 			{

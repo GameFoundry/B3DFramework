@@ -101,7 +101,7 @@ namespace std
 	template<>
 	struct hash<bs::ct::SamplerOverrideKey>
 	{
-		size_t Operator()(const bs::ct::SamplerOverrideKey& key) const
+		size_t operator()(const bs::ct::SamplerOverrideKey& key) const
 		{
 			size_t hash = 0;
 			bs::bs_hash_combine(hash, key.material);

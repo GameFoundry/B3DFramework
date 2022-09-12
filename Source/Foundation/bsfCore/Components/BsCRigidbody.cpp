@@ -281,10 +281,10 @@ namespace bs
 		Stack<HSceneObject> todo;
 		todo.Push(SO());
 
-		while(!todo.Empty())
+		while(!todo.empty())
 		{
 			HSceneObject currentSO = todo.Top();
-			todo.Pop();
+			todo.pop();
 
 			if(currentSO->hasComponent<CCollider>())
 			{
@@ -345,12 +345,12 @@ namespace bs
 		if (mInternal == nullptr)
 			return;
 
-		auto iterFind = std::find(mChildren.Begin(), mChildren.end(), collider);
+		auto iterFind = std::find(mChildren.begin(), mChildren.end(), collider);
 
-		if(iterFind != mChildren.End())
+		if(iterFind != mChildren.end())
 		{
 			mInternal->RemoveCollider(collider->_getInternal());
-			mChildren.Erase(iterFind);
+			mChildren.erase(iterFind);
 		}
 	}
 

@@ -26,7 +26,7 @@ namespace bs
 		};
 
 		template <typename ValueType>
-		class Data : public DataBase
+		class data : public DataBase
 		{
 		public:
 			Data(const ValueType& value)

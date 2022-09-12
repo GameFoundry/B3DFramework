@@ -18,16 +18,16 @@ namespace bs
 	{
 		mSelectionRects = getSelectionRects();
 
-		INT32 diff = (INT32)(mSprites.Size() - mSelectionRects.size());
+		INT32 diff = (INT32)(mSprites.size() - mSelectionRects.size());
 
 		if(diff > 0)
 		{
-			for(UINT32 i = (UINT32)mSelectionRects.Size(); i < (UINT32)mSprites.size(); i++)
+			for(UINT32 i = (UINT32)mSelectionRects.size(); i < (UINT32)mSprites.size(); i++)
 				bs_delete(mSprites[i]);
 
-			mSprites.Erase(mSprites.begin() + mSelectionRects.size(), mSprites.end());
+			mSprites.erase(mSprites.begin() + mSelectionRects.size(), mSprites.end());
 		}
-		else If(diff < 0)
+		else if(diff < 0)
 		{
 			for(INT32 i = diff; i < 0; i++)
 			{

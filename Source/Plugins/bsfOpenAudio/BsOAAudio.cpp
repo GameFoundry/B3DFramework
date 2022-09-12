@@ -26,7 +26,7 @@ namespace bs
 			{
 				if(*devices == 0)
 				{
-					if (deviceName.Empty())
+					if (deviceName.empty())
 						break;
 
 					// Clean up the name to get the actual hardware name
@@ -70,7 +70,7 @@ namespace bs
 	{
 		stopManualSources();
 
-		assert(mListeners.Empty() && mSources.empty()); // Everything should be destroyed at this point
+		assert(mListeners.empty() && mSources.empty()); // Everything should be destroyed at this point
 		clearContexts();
 
 		if(mDevice != nullptr)
@@ -117,7 +117,7 @@ namespace bs
 
 	void OAAudio::SetActiveDevice(const AudioDevice& device)
 	{
-		if (mAllDevices.Size() == 1)
+		if (mAllDevices.size() == 1)
 			return; // No devices to change to, keep the active device as is
 
 		clearContexts();
@@ -155,9 +155,9 @@ namespace bs
 
 	void OAAudio::_unregisterListener(OAAudioListener* listener)
 	{
-		auto iterFind = std::find(mListeners.Begin(), mListeners.end(), listener);
-		if (iterFind != mListeners.End())
-			mListeners.Erase(iterFind);
+		auto iterFind = std::find(mListeners.begin(), mListeners.end(), listener);
+		if (iterFind != mListeners.end())
+			mListeners.erase(iterFind);
 
 		rebuildContexts();
 	}
@@ -169,7 +169,7 @@ namespace bs
 
 	void OAAudio::_unregisterSource(OAAudioSource* source)
 	{
-		mSources.Erase(source);
+		mSources.erase(source);
 	}
 
 	void OAAudio::StartStreaming(OAAudioSource* source)
@@ -177,7 +177,7 @@ namespace bs
 		Lock Lock(mMutex);
 
 		mStreamingCommandQueue.push_back({ StreamingCommandType::Start, source });
-		mDestroyedSources.Erase(source);
+		mDestroyedSources.erase(source);
 	}
 
 	void OAAudio::StopStreaming(OAAudioSource* source)
@@ -190,11 +190,11 @@ namespace bs
 
 	ALCcontext* OAAudio::_getContext(const OAAudioListener* listener) const
 	{
-		if (mListeners.Size() > 0)
+		if (mListeners.size() > 0)
 		{
-			assert(mListeners.Size() == mContexts.size());
+			assert(mListeners.size() == mContexts.size());
 
-			UINT32 numContexts = (UINT32)mContexts.Size();
+			UINT32 numContexts = (UINT32)mContexts.size();
 			for(UINT32 i = 0; i < numContexts; i++)
 			{
 				if (mListeners[i] == listener)
@@ -234,7 +234,7 @@ namespace bs
 		if (mDevice == nullptr)
 			return;
 
-		UINT32 numListeners = (UINT32)mListeners.Size();
+		UINT32 numListeners = (UINT32)mListeners.size();
 		UINT32 numContexts = numListeners > 1 ? numListeners : 1;
 
 		for(UINT32 i = 0; i < numContexts; i++)
@@ -277,7 +277,7 @@ namespace bs
 					mStreamingSources.Insert(command.source);
 					break;
 				case StreamingCommandType::Stop:
-					mStreamingSources.Erase(command.source);
+					mStreamingSources.erase(command.source);
 					break;
 				default:
 					break;
@@ -294,8 +294,8 @@ namespace bs
 			{
 				Lock Lock(mMutex);
 
-				auto iterFind = mDestroyedSources.Find(source);
-				if (iterFind != mDestroyedSources.End())
+				auto iterFind = mDestroyedSources.find(source);
+				if (iterFind != mDestroyedSources.end())
 					continue;
 			}
 
@@ -392,7 +392,7 @@ namespace bs
 					bs_stack_free(sampleBuffer16);
 				}
 			}
-			else If(info.bitDepth == 8)
+			else if(info.bitDepth == 8)
 			{
 				// OpenAL expects unsigned 8-bit data, but engine stores it as signed, so convert
 				UINT32 bufferSize = info.numSamples * (info.bitDepth / 8);

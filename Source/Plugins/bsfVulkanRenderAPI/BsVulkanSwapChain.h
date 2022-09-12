@@ -72,7 +72,7 @@ namespace bs { namespace ct
 		const SwapChainSurface& GetBackBuffer() { return mSurfaces[mCurrentBackBufferIdx]; }
 
 		/** Returns the number of available color surfaces. */
-		UINT32 GetNumColorSurfaces() const { return (UINT32)mSurfaces.Size(); }
+		UINT32 GetNumColorSurfaces() const { return (UINT32)mSurfaces.size(); }
 
 		/** Returns the internal swap chain handle. */
 		VkSwapchainKHR GetHandle() const { return mSwapChain; }

@@ -37,7 +37,7 @@ namespace bs { namespace ct
 		{
 			queueCreateInfos.push_back(VkDeviceQueueCreateInfo());
 
-			VkDeviceQueueCreateInfo& createInfo = queueCreateInfos.Back();
+			VkDeviceQueueCreateInfo& createInfo = queueCreateInfos.back();
 			createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 			createInfo.pNext = nullptr;
 			createInfo.flags = 0;
@@ -50,7 +50,7 @@ namespace bs { namespace ct
 		};
 
 		// Look for dedicated compute queues
-		for (UINT32 i = 0; i < (UINT32)queueFamilyProperties.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)queueFamilyProperties.size(); i++)
 		{
 			if ((queueFamilyProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT) && (queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0)
 			{
@@ -60,7 +60,7 @@ namespace bs { namespace ct
 		}
 
 		// Look for dedicated upload queues
-		for (UINT32 i = 0; i < (UINT32)queueFamilyProperties.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)queueFamilyProperties.size(); i++)
 		{
 			if ((queueFamilyProperties[i].queueFlags & VK_QUEUE_TRANSFER_BIT) &&
 				((queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) &&
@@ -72,7 +72,7 @@ namespace bs { namespace ct
 		}
 
 		// Looks for graphics queues
-		for (UINT32 i = 0; i < (UINT32)queueFamilyProperties.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)queueFamilyProperties.size(); i++)
 		{
 			if (queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
 			{
@@ -107,7 +107,7 @@ namespace bs { namespace ct
 						extensions[numExtensions++] = VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME;
 						dedicatedAllocExt = true;
 					}
-					else If(entry == VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME)
+					else if(entry == VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME)
 					{
 						extensions[numExtensions++] = VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME;
 						getMemReqExt = true;
@@ -120,7 +120,7 @@ namespace bs { namespace ct
 		deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		deviceInfo.pNext = nullptr;
 		deviceInfo.flags = 0;
-		deviceInfo.queueCreateInfoCount = (uint32_t)queueCreateInfos.Size();
+		deviceInfo.queueCreateInfoCount = (uint32_t)queueCreateInfos.size();
 		deviceInfo.pQueueCreateInfos = queueCreateInfos.Data();
 		deviceInfo.pEnabledFeatures = &mDeviceFeatures;
 		deviceInfo.enabledExtensionCount = numExtensions;
@@ -134,7 +134,7 @@ namespace bs { namespace ct
 		// Retrieve queues
 		for(UINT32 i = 0; i < GQT_COUNT; i++)
 		{
-			UINT32 numQueues = (UINT32)mQueueInfos[i].queues.Size();
+			UINT32 numQueues = (UINT32)mQueueInfos[i].queues.size();
 			for (UINT32 j = 0; j < numQueues; j++)
 			{
 				VkQueue queue;
@@ -169,7 +169,7 @@ namespace bs { namespace ct
 
 		for (UINT32 i = 0; i < GQT_COUNT; i++)
 		{
-			UINT32 numQueues = (UINT32)mQueueInfos[i].queues.Size();
+			UINT32 numQueues = (UINT32)mQueueInfos[i].queues.size();
 			for (UINT32 j = 0; j < numQueues; j++)
 			{
 				mQueueInfos[i].queues[j]->RefreshStates(true, true);

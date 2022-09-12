@@ -37,7 +37,7 @@ namespace bs
 				attribIdx = attrib.nextParamIdx;
 			}
 
-			if(output.name.Empty())
+			if(output.name.empty())
 				output.name = output.identifier;
 
 			paramInfos.push_back(output);
@@ -49,7 +49,7 @@ namespace bs
 		{
 			ShaderParameterType type;
 			bool isValidType = false;
-			bool isInternal = !param.second.rendererSemantic.Empty();
+			bool isInternal = !param.second.rendererSemantic.empty();
 			switch (param.second.type)
 			{
 			case GPDT_FLOAT1:
@@ -92,7 +92,7 @@ namespace bs
 		{
 			ShaderParameterType type;
 			bool isValidType = false;
-			bool isInternal = !param.second.rendererSemantic.Empty();
+			bool isInternal = !param.second.rendererSemantic.empty();
 			switch (param.second.type)
 			{
 			case GPOT_TEXTURE2D:
@@ -119,7 +119,7 @@ namespace bs
 		for (auto& param : samplerParams)
 		{
 			ShaderParameterType type = ShaderParameterType::Sampler;
-			bool isInternal = !param.second.rendererSemantic.Empty();
+			bool isInternal = !param.second.rendererSemantic.empty();
 
 			parseParam(param.first, type, isInternal, param.second.attribIdx);
 		}

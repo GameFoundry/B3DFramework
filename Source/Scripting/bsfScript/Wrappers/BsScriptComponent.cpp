@@ -179,8 +179,8 @@ namespace bs
 			}
 		}
 
-		ScriptArray ScriptArray(metaData.scriptClass->_getInternalClass(), (UINT32)managedComponents.Size());
-		for (UINT32 i = 0; i < (UINT32)managedComponents.Size(); i++)
+		ScriptArray ScriptArray(metaData.scriptClass->_getInternalClass(), (UINT32)managedComponents.size());
+		for (UINT32 i = 0; i < (UINT32)managedComponents.size(); i++)
 			scriptArray.Set(i, managedComponents[i]);
 
 		return scriptArray.GetInternal();
@@ -213,8 +213,8 @@ namespace bs
 			}
 		}
 
-		ScriptArray ScriptArray(metaData.scriptClass->_getInternalClass(), (UINT32)managedComponents.Size());
-		for(UINT32 i = 0; i < (UINT32)managedComponents.Size(); i++)
+		ScriptArray ScriptArray(metaData.scriptClass->_getInternalClass(), (UINT32)managedComponents.size());
+		for(UINT32 i = 0; i < (UINT32)managedComponents.size(); i++)
 			scriptArray.Set(i, managedComponents[i]);
 
 		return scriptArray.GetInternal();

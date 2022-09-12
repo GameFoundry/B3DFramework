@@ -32,7 +32,7 @@ namespace bs
         /// <returns>New instance of the specified type, or null if the type is not serializable.</returns>
         public static T Create<T>()
         {
-            return (T)Internal_Create(typeof(T));
+            return (T)Internal_Create(typeof(ToWString));
         }
 
         /// <summary>

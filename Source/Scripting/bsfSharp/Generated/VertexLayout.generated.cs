@@ -11,7 +11,7 @@ namespace bs
 	 */
 
 	/// <summary>
-	/// Available vertex layouts that specify what data is provided per-vertex in a mesh. Combinations other than those 
+	/// Available vertex layouts that specify what Data is provided per-vertex in a mesh. Combinations other than those
 	/// provided are allowed.
 	/// </summary>
 	public enum VertexLayout

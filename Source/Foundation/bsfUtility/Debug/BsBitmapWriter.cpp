@@ -78,7 +78,7 @@ namespace bs
 				input += widthBytes;
 			}
 		}
-		else If(bmpBytesPerPixel < bytesPerPixel) // More bytes in source than supported in BMP, just truncate excess data
+		else if(bmpBytesPerPixel < bytesPerPixel) // More bytes in source than supported in BMP, just truncate excess data
 		{
 			for(INT32 y = height - 1; y >= 0 ; y--)
 			{

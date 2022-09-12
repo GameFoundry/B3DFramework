@@ -45,7 +45,7 @@ namespace bs
 		 *
 		 * @param[in]	force	True if the process should be forcefully terminated with no cleanup.
 		 */
-		[[noreturn]] static void terminate(bool force = false);
+		[[noreturn]] static void Terminate(bool force = false);
 
 		/** Returns information about the underlying hardware. */
 		static SystemInfo GetSystemInfo();

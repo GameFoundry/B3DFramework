@@ -50,8 +50,8 @@ namespace bs
 	template<bool Core>
 	SPtr<typename TTechnique<Core>::PassType> TTechnique<Core>::getPass(UINT32 idx) const
 	{
-		if (idx < 0 || idx >= (UINT32)mPasses.Size())
-			BS_EXCEPT(InvalidParametersException, "Index out of range: " + toString(idx));
+		if (idx < 0 || idx >= (UINT32)mPasses.size())
+			BS_EXCEPT(InvalidParametersException, "Index out of range: " + ToString(idx));
 
 		return mPasses[idx];
 	}

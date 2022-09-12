@@ -27,7 +27,7 @@ namespace bs
 		/// <summary>
 		/// Determines if the loaded resource keeps original data loaded. Sometime resources will process loaded data and discard 
 		/// the original (e.g. uncompressing audio on load). This flag can prevent the resource from discarding the original 
-		/// data. The original data might be required for saving the resource (via Resources::save), but will use up extra 
+		/// data. The original Data might be required for saving the resource (via Resources::save), but will use up extra
 		/// memory. Normally you want to keep this enabled if you plan on saving the resource to disk.
 		/// </summary>
 		KeepSourceData = 4,

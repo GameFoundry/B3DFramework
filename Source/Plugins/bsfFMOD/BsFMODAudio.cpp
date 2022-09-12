@@ -83,7 +83,7 @@ namespace bs
 	{
 		stopManualSources();
 
-		assert(mListeners.Empty() && mSources.empty()); // Everything should be destroyed at this point
+		assert(mListeners.empty() && mSources.empty()); // Everything should be destroyed at this point
 		mFMOD->Release();
 	}
 
@@ -118,7 +118,7 @@ namespace bs
 
 	void FMODAudio::SetActiveDevice(const AudioDevice& device)
 	{
-		for(UINT32 i = 0; i < (UINT32)mAllDevices.Size(); i++)
+		for(UINT32 i = 0; i < (UINT32)mAllDevices.size(); i++)
 		{
 			if(device.name == mAllDevices[i].name)
 			{
@@ -155,16 +155,16 @@ namespace bs
 
 	void FMODAudio::_unregisterListener(FMODAudioListener* listener)
 	{
-		auto iterFind = std::find(mListeners.Begin(), mListeners.end(), listener);
-		if (iterFind != mListeners.End())
-			mListeners.Erase(iterFind);
+		auto iterFind = std::find(mListeners.begin(), mListeners.end(), listener);
+		if (iterFind != mListeners.end())
+			mListeners.erase(iterFind);
 
 		rebuildListeners();
 	}
 
 	void FMODAudio::RebuildListeners()
 	{
-		INT32 numListeners = (INT32)mListeners.Size();
+		INT32 numListeners = (INT32)mListeners.size();
 		if (numListeners > 0)
 		{
 			mFMOD->Set3DNumListeners(numListeners);
@@ -189,7 +189,7 @@ namespace bs
 
 	void FMODAudio::_unregisterSource(FMODAudioSource* source)
 	{
-		mSources.Erase(source);
+		mSources.erase(source);
 	}
 
 	FMODAudio& GFMODAudio()

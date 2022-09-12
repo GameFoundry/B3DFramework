@@ -82,19 +82,19 @@ namespace bs
 
 		void Lock()
 		{
-			mLock.Lock();
+			mLock.lock();
 		};
 
 		void Unlock()
 		{
-			mLock.Unlock();
+			mLock.unlock();
 		}
 
 	private:
 		friend class ScopedLock<true>;
 
 		Mutex mMutex;
-		Lock mLock;
+		bs::Lock mLock;
 	};
 
 	/** Scoped lock that performs no locking internally. Can only be used with a LockingPolicy. */

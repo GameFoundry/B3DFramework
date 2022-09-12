@@ -47,7 +47,7 @@ namespace bs
 
 		UINT32 GetNumFieldEntries(ManagedSerializableObject* obj)
 		{
-			return (UINT32)mSequentialFields.Size();
+			return (UINT32)mSequentialFields.size();
 		}
 
 		void SetNumFieldEntries(ManagedSerializableObject* obj, UINT32 numEntries)

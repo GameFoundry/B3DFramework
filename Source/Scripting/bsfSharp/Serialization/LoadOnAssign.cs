@@ -9,7 +9,7 @@ namespace bs
      */
 
     /// <summary>
-    /// Attribute that signifies that a <see cref="RRef{T}"/> should be loaded when assigned to field or a property
+    /// Attribute that signifies that a <see cref="RRef{ToWString}"/> should be loaded when assigned to field or a property
     /// through the inspector.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]

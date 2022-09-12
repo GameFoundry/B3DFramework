@@ -1227,7 +1227,7 @@ namespace bs
 
 		void BeginImage(int size, int width, int height, int depth, int face, int miplevel) override
 		{
-			assert(miplevel >= 0 && miplevel < (int)buffers.Size());
+			assert(miplevel >= 0 && miplevel < (int)buffers.size());
 			assert((UINT32)size == buffers[miplevel]->GetConsecutiveSize());
 
 			activeBuffer = buffers[miplevel];
@@ -1849,7 +1849,7 @@ namespace bs
 					*outputs[i] = (float)((value & masks[i]) >> shifts[i]);
 				}
 			}
-			else If(des.flags & PFF_FLOAT)
+			else if(des.flags & PFF_FLOAT)
 			{
 				// Note: Not handling unsigned floats
 
@@ -2107,7 +2107,7 @@ namespace bs
 		if (pfd.componentCount < 3)
 			compData[2].shift = 0xFF;
 
-		std::sort(compData.Begin(), compData.end(),
+		std::sort(compData.begin(), compData.end(),
 			[&](const CompData& lhs, const CompData& rhs) { return lhs.shift < rhs.shift; }
 		);
 
@@ -2134,7 +2134,7 @@ namespace bs
 
 						memcpy(dataPtr, &output, pixelSize);
 					}
-					else If(pfd.componentCount == 3)
+					else if(pfd.componentCount == 3)
 					{
 						UINT64 pixelData = 0;
 						memcpy(&pixelData, dataPtr, pixelSize);
@@ -2145,7 +2145,7 @@ namespace bs
 
 						memcpy(dataPtr, &output, pixelSize);
 					}
-					else If(pfd.componentCount == 4)
+					else if(pfd.componentCount == 4)
 					{
 						UINT64 pixelData = 0;
 						memcpy(&pixelData, dataPtr, pixelSize);
@@ -2607,7 +2607,7 @@ namespace bs
 		for (UINT32 i = 0; i < numMips; i++)
 		{
 			rgbaMipBuffers.push_back(bs_shared_ptr_new<PixelData>(curWidth, curHeight, 1, interimFormat));
-			rgbaMipBuffers.Back()->AllocateInternalBuffer();
+			rgbaMipBuffers.back()->AllocateInternalBuffer();
 
 			if (curWidth > 1)
 				curWidth = curWidth / 2;
@@ -2617,7 +2617,7 @@ namespace bs
 		}
 
 		rgbaMipBuffers.push_back(bs_shared_ptr_new<PixelData>(curWidth, curHeight, 1, interimFormat));
-		rgbaMipBuffers.Back()->AllocateInternalBuffer();
+		rgbaMipBuffers.back()->AllocateInternalBuffer();
 
 		NVTTMipmapOutputHandler OutputHandler(rgbaMipBuffers);
 
@@ -2634,7 +2634,7 @@ namespace bs
 
 		interimData.FreeInternalBuffer();
 
-		for (UINT32 i = 0; i < (UINT32)rgbaMipBuffers.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)rgbaMipBuffers.size(); i++)
 		{
 			SPtr<PixelData> argbBuffer = rgbaMipBuffers[i];
 			SPtr<PixelData> outputBuffer = bs_shared_ptr_new<PixelData>(argbBuffer->GetWidth(), argbBuffer->getHeight(), 1, src.GetFormat());

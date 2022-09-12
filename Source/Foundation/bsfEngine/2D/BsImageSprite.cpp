@@ -21,7 +21,7 @@ namespace bs
 		}
 
 		// Actually generate a mesh
-		if(mCachedRenderElements.Size() < 1)
+		if(mCachedRenderElements.size() < 1)
 			mCachedRenderElements.Resize(1);
 
 		bool useScale9Grid = desc.borderLeft > 0 || desc.borderRight > 0 ||

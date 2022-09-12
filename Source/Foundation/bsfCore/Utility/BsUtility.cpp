@@ -151,7 +151,7 @@ namespace bs
 
 		gFrameAlloc().Clear();
 
-		Vector<ResourceDependency> DependencyList(dependencies.Size());
+		Vector<ResourceDependency> DependencyList(dependencies.size());
 		UINT32 i = 0;
 		for (auto& entry : dependencies)
 		{
@@ -183,10 +183,10 @@ namespace bs
 		Stack<HSceneObject> todo;
 		todo.Push(object);
 
-		while(!todo.Empty())
+		while(!todo.empty())
 		{
 			HSceneObject curSO = todo.Top();
-			todo.Pop();
+			todo.pop();
 
 			const Vector<HComponent>& components = curSO->GetComponents();
 			for(auto& entry : components)

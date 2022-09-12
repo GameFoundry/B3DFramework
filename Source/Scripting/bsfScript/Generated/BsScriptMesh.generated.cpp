@@ -85,7 +85,7 @@ namespace bs
 		{
 			ScriptArray ArraysubMeshes(subMeshes);
 			vecsubMeshes.Resize(arraysubMeshes.size());
-			for(int i = 0; i < (int)arraysubMeshes.Size(); i++)
+			for(int i = 0; i < (int)arraysubMeshes.size(); i++)
 			{
 				vecsubMeshes[i] = arraysubMeshes.get<SubMesh>(i);
 			}
@@ -118,7 +118,7 @@ namespace bs
 		{
 			ScriptArray ArraysubMeshes(subMeshes);
 			vecsubMeshes.Resize(arraysubMeshes.size());
-			for(int i = 0; i < (int)arraysubMeshes.Size(); i++)
+			for(int i = 0; i < (int)arraysubMeshes.size(); i++)
 			{
 				vecsubMeshes[i] = arraysubMeshes.get<SubMesh>(i);
 			}
@@ -134,7 +134,7 @@ namespace bs
 		vec__output = MeshEx::getSubMeshes(thisPtr->GetHandle());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptSubMesh>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{

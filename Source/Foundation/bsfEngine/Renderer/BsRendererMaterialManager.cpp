@@ -45,7 +45,7 @@ namespace bs
 		Lock Lock(getMutex());
 
 		Vector<RendererMaterialData>& materials = getMaterials();
-		for (UINT32 i = 0; i < materials.Size(); i++)
+		for (UINT32 i = 0; i < materials.size(); i++)
 		{
 			materials[i].metaData->shaderPath = materials[i].shaderPath;
 			materials[i].metaData->shader = shaders[i];
@@ -90,7 +90,7 @@ namespace bs
 		Lock Lock(getMutex());
 
 		Vector<RendererMaterialData>& materials = getMaterials();
-		for (UINT32 i = 0; i < materials.Size(); i++)
+		for (UINT32 i = 0; i < materials.size(); i++)
 		{
 			materials[i].metaData->shader = nullptr;
 			materials[i].metaData->overrideShader = nullptr;

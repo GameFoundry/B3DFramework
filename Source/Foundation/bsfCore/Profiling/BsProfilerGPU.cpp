@@ -17,12 +17,12 @@ namespace bs
 
 	ProfilerGPU::~ProfilerGPU()
 	{
-		while (!mUnresolvedFrames.Empty())
+		while (!mUnresolvedFrames.empty())
 		{
-			ProfiledFrame& frame = mUnresolvedFrames.Front();
+			ProfiledFrame& frame = mUnresolvedFrames.front();
 
 			freeFrame(frame);
-			mUnresolvedFrames.Pop();
+			mUnresolvedFrames.pop();
 		}
 
 		bs_deleteN(mReadyReports, MAX_QUEUE_ELEMENTS);
@@ -43,7 +43,7 @@ namespace bs
 
 	void ProfilerGPU::EndFrame(bool discard)
 	{
-		if (!mActiveSamples.Empty())
+		if (!mActiveSamples.empty())
 		{
 			BS_LOG(Error, Profiler, "Attempting to end a frame while a sample is active.");
 			return;
@@ -80,7 +80,7 @@ namespace bs
 			return;
 		}
 
-		auto sample = mViewSamplePool.construct<ProfiledViewSample>();
+		auto sample = mViewSamplePool.Construct<ProfiledViewSample>();
 		sample->viewId = id;
 
 		mActiveFrame.viewSamples.push_back(sample);
@@ -91,7 +91,7 @@ namespace bs
 
 	void ProfilerGPU::EndView()
 	{
-		if (!mActiveSamples.Empty())
+		if (!mActiveSamples.empty())
 		{
 			BS_LOG(Error, Profiler, "Attempting to end a view while a sample is active.");
 			return;
@@ -100,7 +100,7 @@ namespace bs
 		if (!mIsViewActive)
 			return;
 
-		endSampleInternal(*mActiveFrame.viewSamples.Back());
+		endSampleInternal(*mActiveFrame.viewSamples.back());
 		mIsViewActive = false;
 	}
 
@@ -112,14 +112,14 @@ namespace bs
 			return;
 		}
 
-		auto sample = mSamplePool.construct<ProfiledSample>();
+		auto sample = mSamplePool.Construct<ProfiledSample>();
 		sample->name = std::move(name);
 		beginSampleInternal(*sample, false);
 
-		if (mActiveSamples.Empty())
+		if (mActiveSamples.empty())
 		{
 			if (mIsViewActive)
-				mActiveFrame.viewSamples.Back()->children.push_back(sample);
+				mActiveFrame.viewSamples.back()->children.push_back(sample);
 			else
 				mActiveFrame.uncategorizedSamples.push_back(sample);
 		}
@@ -134,7 +134,7 @@ namespace bs
 
 	void ProfilerGPU::EndSample(const ProfilerString& name)
 	{
-		if (mActiveSamples.Empty())
+		if (mActiveSamples.empty())
 			return;
 
 		ProfiledSample* lastSample = mActiveSamples.Top();
@@ -146,7 +146,7 @@ namespace bs
 		}
 
 		endSampleInternal(*lastSample);
-		mActiveSamples.Pop();
+		mActiveSamples.pop();
 	}
 
 	UINT32 ProfilerGPU::GetNumAvailableReports()
@@ -176,9 +176,9 @@ namespace bs
 
 	void ProfilerGPU::_update()
 	{
-		while (!mUnresolvedFrames.Empty())
+		while (!mUnresolvedFrames.empty())
 		{
-			ProfiledFrame& frame = mUnresolvedFrames.Front();
+			ProfiledFrame& frame = mUnresolvedFrames.front();
 
 			// Make sure all the top-level queries have finished. If they have that implies
 			// all their children have finished as well
@@ -208,14 +208,14 @@ namespace bs
 			report.viewSamples.Resize(frame.viewSamples.size());
 			report.uncategorizedSamples.Resize(frame.uncategorizedSamples.size());
 			
-			for (size_t i = 0; i < frame.viewSamples.Size(); i++)
+			for (size_t i = 0; i < frame.viewSamples.size(); i++)
 				resolveSample(*frame.viewSamples[i], report.viewSamples[i]);
 				
-			for (size_t i = 0; i < frame.uncategorizedSamples.Size(); i++)
+			for (size_t i = 0; i < frame.uncategorizedSamples.size(); i++)
 				resolveSample(*frame.uncategorizedSamples[i], report.uncategorizedSamples[i]);
 				
 			freeFrame(frame);
-			mUnresolvedFrames.Pop();
+			mUnresolvedFrames.pop();
 
 			{
 				Lock Lock(mMutex);
@@ -246,13 +246,13 @@ namespace bs
 
 	void ProfilerGPU::FreeFrame(ProfiledFrame& frame)
 	{
-		for (size_t i = 0; i < frame.viewSamples.Size(); i++)
+		for (size_t i = 0; i < frame.viewSamples.size(); i++)
 		{
 			freeSample(*frame.viewSamples[i]);
 			mViewSamplePool.Destruct(frame.viewSamples[i]);
 		}
 			
-		for (size_t i = 0; i < frame.uncategorizedSamples.Size(); i++)
+		for (size_t i = 0; i < frame.uncategorizedSamples.size(); i++)
 		{
 			freeSample(*frame.uncategorizedSamples[i]);
 			mSamplePool.Destruct(frame.uncategorizedSamples[i]);
@@ -295,7 +295,7 @@ namespace bs
 		for(auto& entry : sample.children)
 		{
 			reportSample.children.push_back(GPUProfileSample());
-			resolveSample(*entry, reportSample.children.Back());
+			resolveSample(*entry, reportSample.children.back());
 		}
 	}
 
@@ -324,10 +324,10 @@ namespace bs
 
 	SPtr<ct::TimerQuery> ProfilerGPU::GetTimerQuery() const
 	{
-		if (!mFreeTimerQueries.Empty())
+		if (!mFreeTimerQueries.empty())
 		{
 			SPtr<ct::TimerQuery> timerQuery = mFreeTimerQueries.Top();
-			mFreeTimerQueries.Pop();
+			mFreeTimerQueries.pop();
 
 			return timerQuery;
 		}
@@ -337,10 +337,10 @@ namespace bs
 
 	SPtr<ct::OcclusionQuery> ProfilerGPU::GetOcclusionQuery() const
 	{
-		if (!mFreeOcclusionQueries.Empty())
+		if (!mFreeOcclusionQueries.empty())
 		{
 			SPtr<ct::OcclusionQuery> occlusionQuery = mFreeOcclusionQueries.Top();
-			mFreeOcclusionQueries.Pop();
+			mFreeOcclusionQueries.pop();
 
 			return occlusionQuery;
 		}

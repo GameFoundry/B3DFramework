@@ -59,10 +59,10 @@ namespace bs
 	{
 #if BS_DEBUG_MODE
 		// Ensure keys are sorted
-		if(!keys.Empty())
+		if(!keys.empty())
 		{
 			float time = keys[0].time;
-			for (UINT32 i = 1; i < (UINT32)keys.Size(); i++)
+			for (UINT32 i = 1; i < (UINT32)keys.size(); i++)
 			{
 				assert(keys[i].time >= time);
 				time = keys[i].time;
@@ -70,7 +70,7 @@ namespace bs
 		}
 #endif
 
-		if(keys.Size() > MAX_KEYS)
+		if(keys.size() > MAX_KEYS)
 		{
 			BS_LOG(Warning, Generic, "Number of keys in ColorGradient exceeds the support number ({0}). "
 				"Keys will be ignored.", MAX_KEYS);

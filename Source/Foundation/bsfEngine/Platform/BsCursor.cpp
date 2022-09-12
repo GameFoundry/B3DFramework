@@ -61,8 +61,8 @@ namespace bs
 
 	void Cursor::SetCursor(const String& name)
 	{
-		auto iterFind = mCustomIconNameToId.Find(name);
-		if(iterFind == mCustomIconNameToId.End())
+		auto iterFind = mCustomIconNameToId.find(name);
+		if(iterFind == mCustomIconNameToId.end())
 		{
 			BS_LOG(Warning, Platform, "Cannot find cursor icon with name: " + name);
 			return;
@@ -78,8 +78,8 @@ namespace bs
 
 	void Cursor::SetCursorIcon(const String& name, const PixelData& pixelData, const Vector2I& hotSpot)
 	{
-		auto iterFind = mCustomIconNameToId.Find(name);
-		if(iterFind != mCustomIconNameToId.End())
+		auto iterFind = mCustomIconNameToId.find(name);
+		if(iterFind != mCustomIconNameToId.end())
 		{
 			UINT32 id = iterFind->second;
 			mCustomIcons[id] = CustomIcon(pixelData, hotSpot);
@@ -108,12 +108,12 @@ namespace bs
 
 	void Cursor::ClearCursorIcon(const String& name)
 	{
-		auto iterFind = mCustomIconNameToId.Find(name);
-		if(iterFind == mCustomIconNameToId.End())
+		auto iterFind = mCustomIconNameToId.find(name);
+		if(iterFind == mCustomIconNameToId.end())
 			return;
 
-		mCustomIcons.Erase(iterFind->second);
-		mCustomIconNameToId.Erase(iterFind);
+		mCustomIcons.erase(iterFind->second);
+		mCustomIconNameToId.erase(iterFind);
 	}
 
 	void Cursor::ClearCursorIcon(CursorType type)
@@ -165,7 +165,7 @@ namespace bs
 			break;
 		}
 
-		BS_EXCEPT(InvalidParametersException, "Invalid cursor type: " + toString((UINT32)type));
+		BS_EXCEPT(InvalidParametersException, "Invalid cursor type: " + ToString((UINT32) type));
 	}
 
 	void Cursor::UpdateCursorImage()

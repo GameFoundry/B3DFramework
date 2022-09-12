@@ -35,7 +35,8 @@ namespace bs
 		if (arrayIdx >= mParamDesc->arraySize)
 		{
 			BS_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " +
-				toString(mParamDesc->arraySize) + ". Requested size: " + toString(arrayIdx));
+					ToString(mParamDesc->arraySize) + ". Requested size: " +
+												  ToString(arrayIdx));
 		}
 #endif
 
@@ -75,7 +76,8 @@ namespace bs
 		if (arrayIdx >= mParamDesc->arraySize)
 		{
 			BS_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " +
-				toString(mParamDesc->arraySize) + ". Requested size: " + toString(arrayIdx));
+					ToString(mParamDesc->arraySize) + ". Requested size: " +
+												  ToString(arrayIdx));
 		}
 #endif
 
@@ -120,7 +122,8 @@ namespace bs
 		if (arrayIdx >= mParamDesc->arraySize)
 		{
 			BS_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " +
-				toString(mParamDesc->arraySize) + ". Requested size: " + toString(arrayIdx));
+					ToString(mParamDesc->arraySize) + ". Requested size: " +
+												  ToString(arrayIdx));
 		}
 #endif
 
@@ -160,7 +163,8 @@ namespace bs
 		if (arrayIdx >= mParamDesc->arraySize)
 		{
 			BS_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " +
-				toString(mParamDesc->arraySize) + ". Requested size: " + toString(arrayIdx));
+					ToString(mParamDesc->arraySize) + ". Requested size: " +
+												  ToString(arrayIdx));
 		}
 #endif
 		sizeBytes = std::min(elementSizeBytes, sizeBytes);

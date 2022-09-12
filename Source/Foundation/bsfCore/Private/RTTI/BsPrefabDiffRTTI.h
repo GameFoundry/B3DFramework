@@ -128,10 +128,10 @@ namespace bs
 
 			UnorderedSet<SPtr<SerializedObject>> handleObjects;
 
-			while (!todo.Empty())
+			while (!todo.empty())
 			{
 				SPtr<PrefabObjectDiff> current = todo.Top();
-				todo.Pop();
+				todo.pop();
 
 				for (auto& component : current->addedComponents)
 					findGameObjectHandles(component, handleObjects);
@@ -140,13 +140,13 @@ namespace bs
 					findGameObjectHandles(child, handleObjects);
 
 				for (auto& component : current->componentDiffs)
-					findGameObjectHandles(component->data, handleObjects);
+					findGameObjectHandles(component->Data, handleObjects);
 
 				for (auto& child : current->childDiffs)
 					todo.Push(child);
 			}
 
-			Vector<SerializedHandle> HandleData(handleObjects.Size());
+			Vector<SerializedHandle> HandleData(handleObjects.size());
 
 			UINT32 idx = 0;
 			for (auto& handleObject : handleObjects)
@@ -218,7 +218,7 @@ namespace bs
 							}
 						}
 					}
-					else If(rtti_is_of_type<SerializedObject>(entryData))
+					else if(rtti_is_of_type<SerializedObject>(entryData))
 					{
 						SPtr<SerializedObject> fieldObjectData = std::static_pointer_cast<SerializedObject>(entryData);
 						findGameObjectHandles(fieldObjectData, handleObjects);

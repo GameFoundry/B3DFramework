@@ -270,7 +270,7 @@ namespace bs
 
 		/** Returns a total number of strings in the table. */
 		BS_SCRIPT_EXPORT(n:NumStrings,pr:getter)
-		UINT32 GetNumStrings() const { return (UINT32)mIdentifiers.Size(); }
+		UINT32 GetNumStrings() const { return (UINT32)mIdentifiers.size(); }
 
 		/** Returns all identifiers that the string table contains localized strings for. */
 		BS_SCRIPT_EXPORT(n:Identifiers,pr:getter)

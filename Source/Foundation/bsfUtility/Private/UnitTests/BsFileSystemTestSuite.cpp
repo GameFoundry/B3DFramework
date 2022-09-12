@@ -255,7 +255,7 @@ namespace bs
 	}
 
 
-#define CONTAINS(v, e) (std::find(v.Begin(), v.end(), e) != v.end())
+#define CONTAINS(v, e) (std::find(v.begin(), v.end(), e) != v.end())
 
 	void FileSystemTestSuite::TestGetChildren()
 	{
@@ -270,12 +270,12 @@ namespace bs
 		createEmptyFile(path + "meu");
 		Vector<Path> files, directories;
 		FileSystem::getChildren(path, files, directories);
-		BS_TEST_ASSERT(files.Size() == 4);
+		BS_TEST_ASSERT(files.size() == 4);
 		BS_TEST_ASSERT(CONTAINS(files, path + "ga"));
 		BS_TEST_ASSERT(CONTAINS(files, path + "bu"));
 		BS_TEST_ASSERT(CONTAINS(files, path + "zo"));
 		BS_TEST_ASSERT(CONTAINS(files, path + "meu"));
-		BS_TEST_ASSERT(directories.Size() == 3);
+		BS_TEST_ASSERT(directories.size() == 3);
 		BS_TEST_ASSERT(CONTAINS(directories, path + "foo"));
 		BS_TEST_ASSERT(CONTAINS(directories, path + "bar"));
 		BS_TEST_ASSERT(CONTAINS(directories, path + "baz"));

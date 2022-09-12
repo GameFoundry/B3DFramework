@@ -77,7 +77,7 @@ namespace bs { namespace ct
 
 	void WriteIndices(GpuBuffer* buffer, const Vector<UINT32>& input, UINT32 texSize)
 	{
-		const auto numParticles = (UINT32)input.Size();
+		const auto numParticles = (UINT32)input.size();
 		if (numParticles == 0)
 			return;
 
@@ -231,7 +231,7 @@ namespace bs { namespace ct
 
 		const ParticleBillboardTextures* output = nullptr;
 		BillboardBuffersPerSize& buffers = mBillboardBufferList[size];
-		if (buffers.nextFreeIdx < (UINT32)buffers.buffers.Size())
+		if (buffers.nextFreeIdx < (UINT32)buffers.buffers.size())
 		{
 			output = buffers.buffers[buffers.nextFreeIdx];
 			buffers.nextFreeIdx++;
@@ -260,7 +260,7 @@ namespace bs { namespace ct
 
 		const ParticleMeshTextures* output = nullptr;
 		MeshBuffersPerSize& buffers = mMeshBufferList[size];
-		if (buffers.nextFreeIdx < (UINT32)buffers.buffers.Size())
+		if (buffers.nextFreeIdx < (UINT32)buffers.buffers.size())
 		{
 			output = buffers.buffers[buffers.nextFreeIdx];
 			buffers.nextFreeIdx++;
@@ -295,7 +295,7 @@ namespace bs { namespace ct
 
 	ParticleBillboardTextures* ParticleTexturePool::createNewBillboardTextures(UINT32 size)
 	{
-		ParticleBillboardTextures* output = mBillboardAlloc.construct<ParticleBillboardTextures>();
+		ParticleBillboardTextures* output = mBillboardAlloc.Construct<ParticleBillboardTextures>();
 
 		TEXTURE_DESC texDesc;
 		texDesc.type = TEX_TYPE_2D;
@@ -325,7 +325,7 @@ namespace bs { namespace ct
 
 	ParticleMeshTextures* ParticleTexturePool::createNewMeshTextures(UINT32 size)
 	{
-		ParticleMeshTextures* output = mMeshAlloc.construct<ParticleMeshTextures>();
+		ParticleMeshTextures* output = mMeshAlloc.Construct<ParticleMeshTextures>();
 
 		TEXTURE_DESC texDesc;
 		texDesc.type = TEX_TYPE_2D;
@@ -467,7 +467,7 @@ namespace bs { namespace ct
 				}
 			}
 
-			std::sort(sortData.Begin(), sortData.end(),
+			std::sort(sortData.begin(), sortData.end(),
 				[](const ParticleSortData& lhs, const ParticleSortData& rhs)
 			{
 				return rhs.key < lhs.key;

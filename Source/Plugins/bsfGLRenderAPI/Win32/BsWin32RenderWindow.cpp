@@ -154,12 +154,12 @@ namespace bs
 		windowDesc.module = GetModuleHandle(MODULE_NAME);
 #endif
 
-		auto opt = mDesc.platformSpecific.Find("parentWindowHandle");
-		if (opt != mDesc.platformSpecific.End())
+		auto opt = mDesc.platformSpecific.find("parentWindowHandle");
+		if (opt != mDesc.platformSpecific.end())
 			windowDesc.parent = (HWND)parseUINT64(opt->second);
 
-		opt = mDesc.platformSpecific.Find("externalWindowHandle");
-		if (opt != mDesc.platformSpecific.End())
+		opt = mDesc.platformSpecific.find("externalWindowHandle");
+		if (opt != mDesc.platformSpecific.end())
 			windowDesc.external = (HWND)parseUINT64(opt->second);
 		
 		const Win32VideoModeInfo& videoModeInfo = static_cast<const Win32VideoModeInfo&>(RenderAPI::instance().GetVideoModeInfo());
@@ -562,7 +562,7 @@ namespace bs
 			*contextPtr = mContext;
 			return;
 		}
-		else If(name == "WINDOW")
+		else if(name == "WINDOW")
 		{
 			UINT64 *pHwnd = (UINT64*)pData;
 			*pHwnd = (UINT64)_getHWnd();

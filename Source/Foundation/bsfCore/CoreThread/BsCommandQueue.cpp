@@ -34,10 +34,10 @@ namespace bs
 		if(mCommands != nullptr)
 			bs_delete(mCommands);
 
-		while(!mEmptyCommandQueues.Empty())
+		while(!mEmptyCommandQueues.empty())
 		{
 			bs_delete(mEmptyCommandQueues.Top());
-			mEmptyCommandQueues.Pop();
+			mEmptyCommandQueues.pop();
 		}
 	}
 
@@ -84,10 +84,10 @@ namespace bs
 		bs::Queue<QueuedCommand>* oldCommands = mCommands;
 
 		Lock Lock(mEmptyCommandQueueMutex);
-		if(!mEmptyCommandQueues.Empty())
+		if(!mEmptyCommandQueues.empty())
 		{
 			mCommands = mEmptyCommandQueues.Top();
-			mEmptyCommandQueues.Pop();
+			mEmptyCommandQueues.pop();
 		}
 		else
 		{
@@ -199,9 +199,9 @@ namespace bs
 	{
 		// I purposely don't use a mutex here, as this gets called very often. Generally breakpoints
 		// will only be added at the start of the application, so race conditions should not occur.
-		auto iterFind = SetBreakpoints.Find(QueueBreakpoint(queueIdx, commandIdx));
+		auto iterFind = SetBreakpoints.find(QueueBreakpoint(queueIdx, commandIdx));
 
-		if(iterFind != SetBreakpoints.End())
+		if(iterFind != SetBreakpoints.end())
 		{
 			assert(false && "Command queue breakpoint triggered!");
 		}

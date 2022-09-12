@@ -570,10 +570,10 @@ namespace bs
 	{
 #if BS_DEBUG_MODE
 		// Ensure keyframes are sorted
-		if(!keyframes.Empty())
+		if(!keyframes.empty())
 		{
 			float time = keyframes[0].time;
-			for (UINT32 i = 1; i < (UINT32)keyframes.Size(); i++)
+			for (UINT32 i = 1; i < (UINT32)keyframes.size(); i++)
 			{
 				assert(keyframes[i].time >= time);
 				time = keyframes[i].time;
@@ -581,8 +581,8 @@ namespace bs
 		}
 #endif
 
-		if (!keyframes.Empty())
-			mEnd = keyframes.Back().time;
+		if (!keyframes.empty())
+			mEnd = keyframes.back().time;
 		else
 			mEnd = 0.0f;
 
@@ -593,7 +593,7 @@ namespace bs
 	template <class T>
 	T TAnimationCurve<T>::evaluate(float time, const TCurveCache<T>& cache, bool loop) const
 	{
-		if (mKeyframes.Empty())
+		if (mKeyframes.empty())
 			return impl::getZero<T>();
 
 		if (Math::approxEquals(mLength, 0.0f))
@@ -628,7 +628,7 @@ namespace bs
 		
 		if(time >= mEnd) // Clamp to end, cache constant of the final key and return
 		{
-			UINT32 lastKey = (UINT32)mKeyframes.Size() - 1;
+			UINT32 lastKey = (UINT32)mKeyframes.size() - 1;
 
 			cache.cachedCurveStart = mEnd;
 			cache.cachedCurveEnd = std::numeric_limits<float>::infinity();
@@ -660,7 +660,7 @@ namespace bs
 	template <class T>
 	T TAnimationCurve<T>::evaluate(float time, bool loop) const
 	{
-		if (mKeyframes.Empty())
+		if (mKeyframes.empty())
 			return impl::getZero<T>();
 
 		AnimationUtility::wrapTime(time, mStart, mEnd, loop);
@@ -683,7 +683,7 @@ namespace bs
 	template <class T>
 	T TAnimationCurve<T>::evaluateIntegrated(float time, const TCurveIntegrationCache<T>& integrationCache) const
 	{
-		const auto numKeyframes = (UINT32)mKeyframes.Size();
+		const auto numKeyframes = (UINT32)mKeyframes.size();
 		if (numKeyframes == 0)
 			return impl::getZero<T>();
 
@@ -715,7 +715,7 @@ namespace bs
 	template <class T>
 	T TAnimationCurve<T>::evaluateIntegratedDouble(float time, const TCurveIntegrationCache<T>& integrationCache) const
 	{
-		const auto numKeyframes = (UINT32)mKeyframes.Size();
+		const auto numKeyframes = (UINT32)mKeyframes.size();
 		if (numKeyframes == 0)
 			return impl::getZero<T>();
 
@@ -751,7 +751,7 @@ namespace bs
 	template <class T>
 	TKeyframe<T> TAnimationCurve<T>::evaluateKey(float time, bool loop) const
 	{
-		if (mKeyframes.Empty())
+		if (mKeyframes.empty())
 			return TKeyframe<T>();
 
 		AnimationUtility::wrapTime(time, mStart, mEnd, loop);
@@ -779,7 +779,7 @@ namespace bs
 			const KeyFrame& curKey = mKeyframes[animInstance.cachedKey];
 			if (time >= curKey.time)
 			{
-				const UINT32 end = std::min((UINT32)mKeyframes.Size(), animInstance.cachedKey + CACHE_LOOKAHEAD + 1);
+				const UINT32 end = std::min((UINT32)mKeyframes.size(), animInstance.cachedKey + CACHE_LOOKAHEAD + 1);
 				for (UINT32 i = animInstance.cachedKey + 1; i < end; i++)
 				{
 					const KeyFrame& nextKey = mKeyframes[i];
@@ -822,7 +822,7 @@ namespace bs
 	void TAnimationCurve<T>::findKeys(float time, UINT32& leftKey, UINT32& rightKey) const
 	{
 		INT32 start = 0;
-		auto searchLength = (INT32)mKeyframes.Size();
+		auto searchLength = (INT32)mKeyframes.size();
 		
 		while(searchLength > 0)
 		{
@@ -841,7 +841,7 @@ namespace bs
 		}
 
 		leftKey = std::max(0, start - 1);
-		rightKey = std::min(start, (INT32)mKeyframes.Size() - 1);
+		rightKey = std::min(start, (INT32)mKeyframes.size() - 1);
 	}
 
 	template <class T>
@@ -886,7 +886,7 @@ namespace bs
 		{
 			if(start > startKey.time)
 			{
-				if (mKeyframes.Size() > (startKeyIdx + 1))
+				if (mKeyframes.size() > (startKeyIdx + 1))
 					keyFrames.push_back(evaluateKey(startKey, mKeyframes[startKeyIdx + 1], start));
 				else
 				{
@@ -925,7 +925,7 @@ namespace bs
 			{
 				if(end > endKey.time)
 				{
-					if (mKeyframes.Size() > (endKeyIdx + 1))
+					if (mKeyframes.size() > (endKeyIdx + 1))
 						keyFrames.push_back(evaluateKey(endKey, mKeyframes[endKeyIdx + 1], end));
 					else
 					{
@@ -952,7 +952,7 @@ namespace bs
 				}
 			}
 
-			if (startKeyIdx < (UINT32)mKeyframes.Size() && endKeyIdx > startKeyIdx)
+			if (startKeyIdx < (UINT32)mKeyframes.size() && endKeyIdx > startKeyIdx)
 				keyFrames.Insert(keyFrames.begin() + 1, mKeyframes.begin() + startKeyIdx, mKeyframes.begin() + endKeyIdx + 1);
 		}
 
@@ -965,11 +965,11 @@ namespace bs
 	template <class T>
 	void TAnimationCurve<T>::makeAdditive()
 	{
-		if (mKeyframes.Size() < 2)
+		if (mKeyframes.size() < 2)
 			return;
 
 		const KeyFrame& refKey = mKeyframes[0];
-		const auto numKeys = (UINT32)mKeyframes.Size();
+		const auto numKeys = (UINT32)mKeyframes.size();
 
 		for(UINT32 i = 1; i < numKeys; i++)
 			mKeyframes[i].value = impl::getDiff(mKeyframes[i].value, refKey.value);
@@ -978,19 +978,19 @@ namespace bs
 	template <class T>
 	std::pair<float, float> TAnimationCurve<T>::getTimeRange() const
 	{
-		if(mKeyframes.Empty())
+		if(mKeyframes.empty())
 			return std::make_pair(0.0f, 0.0f);
 
-		if(mKeyframes.Size() == 1)
+		if(mKeyframes.size() == 1)
 			return std::make_pair(mKeyframes[0].time, mKeyframes[0].time);
 
-		return std::make_pair(mKeyframes[0].time, mKeyframes[mKeyframes.Size() - 1].time);
+		return std::make_pair(mKeyframes[0].time, mKeyframes[mKeyframes.size() - 1].time);
 	}
 
 	template <class T>
 	std::pair<T, T> TAnimationCurve<T>::calculateRange() const
 	{
-		const auto numKeys = (UINT32)mKeyframes.Size();
+		const auto numKeys = (UINT32)mKeyframes.size();
 		if(numKeys == 0)
 			return std::make_pair(impl::getZero<T>(), impl::getZero<T>());
 
@@ -1018,7 +1018,7 @@ namespace bs
 	{
 		std::pair<T, T> output = std::make_pair(impl::getZero<T>(), impl::getZero<T>());
 
-		const auto numKeys = (UINT32)mKeyframes.Size();
+		const auto numKeys = (UINT32)mKeyframes.size();
 		if(numKeys == 0)
 			return output;
 
@@ -1046,7 +1046,7 @@ namespace bs
 	{
 		std::pair<T, T> output = std::make_pair(impl::getZero<T>(), impl::getZero<T>());
 
-		const auto numKeys = (UINT32)mKeyframes.Size();
+		const auto numKeys = (UINT32)mKeyframes.size();
 		if(numKeys == 0)
 			return output;
 
@@ -1076,7 +1076,7 @@ namespace bs
 	{
 		assert(!cache.segmentSums);
 
-		const auto numKeyframes = (UINT32)mKeyframes.Size();
+		const auto numKeyframes = (UINT32)mKeyframes.size();
 		if(numKeyframes <= 1)
 			return;
 
@@ -1105,7 +1105,7 @@ namespace bs
 	{
 		assert(!cache.segmentSums);
 
-		const auto numKeyframes = (UINT32)mKeyframes.Size();
+		const auto numKeyframes = (UINT32)mKeyframes.size();
 		if(numKeyframes <= 1)
 			return;
 

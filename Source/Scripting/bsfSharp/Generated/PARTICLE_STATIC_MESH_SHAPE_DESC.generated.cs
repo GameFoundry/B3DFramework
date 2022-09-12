@@ -33,7 +33,7 @@ namespace bs
 		/// </summary>
 		public bool sequential;
 		/// <summary>
-		/// Mesh to spawn particles on. Must at least contain per-vertex position data encoded as 3D float vectors. Can 
+		/// Mesh to spawn particles on. Must at least contain per-vertex position Data encoded as 3D float vectors. Can
 		/// optionally contain per-vertex normals encoded as 3D float vectors or as 4-byte unsigned-normalized format.
 		/// </summary>
 		public RRef<Mesh> mesh;

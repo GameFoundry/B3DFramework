@@ -199,7 +199,8 @@ namespace bs
 
 		if(totalSize != size)
 		{
-			BS_EXCEPT(InvalidParametersException, "Buffer sizes don't match. Expected: " + toString(totalSize) + ". Got: " + toString(size));
+			BS_EXCEPT(InvalidParametersException, "Buffer sizes don't match. Expected: " + ToString(totalSize) + ". Got: " +
+												  ToString(size));
 		}
 
 		UINT32 indexBufferOffset = getIndexBufferSize();
@@ -233,7 +234,8 @@ namespace bs
 
 		if (totalSize != size)
 		{
-			BS_EXCEPT(InvalidParametersException, "Buffer sizes don't match. Expected: " + toString(totalSize) + ". Got: " + toString(size));
+			BS_EXCEPT(InvalidParametersException, "Buffer sizes don't match. Expected: " + ToString(totalSize) + ". Got: " +
+												  ToString(size));
 		}
 
 		UINT32 indexBufferOffset = getIndexBufferSize();
@@ -291,8 +293,9 @@ namespace bs
 	{
 		if(!mVertexData->HasElement(semantic, semanticIdx, streamIdx))
 		{
-			BS_EXCEPT(InvalidParametersException, "MeshData doesn't contain an element of specified type: Semantic: " + toString(semantic) + ", Semantic index: "
-				+ toString(semanticIdx) + ", Stream index: " + toString(streamIdx));
+			BS_EXCEPT(InvalidParametersException, "MeshData doesn't contain an element of specified type: Semantic: " +
+												  ToString(semantic) + ", Semantic index: "
+												  + ToString(semanticIdx) + ", Stream index: " + ToString(streamIdx));
 		}
 
 		UINT32 indexBufferOffset = getIndexBufferSize();

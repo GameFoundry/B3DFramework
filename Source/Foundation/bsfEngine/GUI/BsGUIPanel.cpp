@@ -85,7 +85,7 @@ namespace bs
 		// Update all children first, otherwise we can't determine our own optimal size
 		GUIElementBase::_updateOptimalLayoutSizes();
 
-		if (mChildren.Size() != mChildSizeRanges.size())
+		if (mChildren.size() != mChildSizeRanges.size())
 			mChildSizeRanges.Resize(mChildren.size());
 
 		Vector2I optimalSize;
@@ -130,7 +130,7 @@ namespace bs
 	void GUIPanel::_getElementAreas(const Rect2I& layoutArea, Rect2I* elementAreas, UINT32 numElements,
 		const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const
 	{
-		assert(mChildren.Size() == numElements);
+		assert(mChildren.size() == numElements);
 
 		// Panel always uses optimal sizes and explicit positions
 		UINT32 childIdx = 0;
@@ -225,7 +225,7 @@ namespace bs
 		GUILayoutData childData = data;
 		_updateDepthRange(childData);
 
-		UINT32 numElements = (UINT32)mChildren.Size();
+		UINT32 numElements = (UINT32)mChildren.size();
 		Rect2I* elementAreas = nullptr;
 
 		if (numElements > 0)

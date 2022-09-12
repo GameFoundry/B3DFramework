@@ -90,7 +90,7 @@ namespace bs
 				bs_stack_free(sampleBuffer);
 			}
 			// Load compressed data for streaming from memory
-			else If(mDesc.readMode == AudioReadMode::LoadCompressed)
+			else if(mDesc.readMode == AudioReadMode::LoadCompressed)
 			{
 				// If reading from file, make a copy of data in memory, otherwise just take ownership of the existing buffer
 				if (mStreamData->IsFile())

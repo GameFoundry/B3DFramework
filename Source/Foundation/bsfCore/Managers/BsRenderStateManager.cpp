@@ -409,15 +409,15 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		mCachedSamplerStates.Erase(desc);
+		mCachedSamplerStates.erase(desc);
 	}
 
 	SPtr<SamplerState> RenderStateManager::FindCachedState(const SAMPLER_STATE_DESC& desc) const
 	{
 		Lock Lock(mMutex);
 
-		auto iterFind = mCachedSamplerStates.Find(desc);
-		if (iterFind != mCachedSamplerStates.End())
+		auto iterFind = mCachedSamplerStates.find(desc);
+		if (iterFind != mCachedSamplerStates.end())
 			return iterFind->second.Lock();
 
 		return nullptr;
@@ -427,8 +427,8 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		auto iterFind = mCachedBlendStates.Find(desc);
-		if (iterFind != mCachedBlendStates.End())
+		auto iterFind = mCachedBlendStates.find(desc);
+		if (iterFind != mCachedBlendStates.end())
 		{
 			id = iterFind->second.id;
 
@@ -448,8 +448,8 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		auto iterFind = mCachedRasterizerStates.Find(desc);
-		if (iterFind != mCachedRasterizerStates.End())
+		auto iterFind = mCachedRasterizerStates.find(desc);
+		if (iterFind != mCachedRasterizerStates.end())
 		{
 			id = iterFind->second.id;
 
@@ -469,8 +469,8 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		auto iterFind = mCachedDepthStencilStates.Find(desc);
-		if (iterFind != mCachedDepthStencilStates.End())
+		auto iterFind = mCachedDepthStencilStates.find(desc);
+		if (iterFind != mCachedDepthStencilStates.end())
 		{
 			id = iterFind->second.id;
 

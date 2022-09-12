@@ -27,7 +27,7 @@ namespace bs
 		/// All mesh data will also be cached in CPU memory, making it available for fast read access from the CPU.
 		/// </summary>
 		CPUCached = 4096,
-		/// <summary>Allows the CPU to directly read the texture data buffers from the GPU.</summary>
+		/// <summary>Allows the CPU to directly read the texture Data buffers from the GPU.</summary>
 		CPUReadable = 8192,
 		/// <summary>
 		/// Allows you to retrieve views of the texture using a format different from one specified on creation.

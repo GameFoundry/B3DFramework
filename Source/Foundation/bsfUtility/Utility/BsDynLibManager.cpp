@@ -36,7 +36,7 @@ namespace bs
 			filename.Insert(0, DynLib::PREFIX);
 
 		const auto& iterFind = mLoadedLibraries.lower_bound(filename);
-		if(iterFind != mLoadedLibraries.End() && (*iterFind)->GetName() == filename)
+		if(iterFind != mLoadedLibraries.end() && (*iterFind)->GetName() == filename)
 		{
 			return iterFind->Get();
 		}
@@ -51,9 +51,9 @@ namespace bs
 
 	void DynLibManager::Unload(DynLib* lib)
 	{
-		const auto& iterFind = mLoadedLibraries.Find(lib->GetName());
-		if(iterFind != mLoadedLibraries.End())
-			mLoadedLibraries.Erase(iterFind);
+		const auto& iterFind = mLoadedLibraries.find(lib->GetName());
+		if(iterFind != mLoadedLibraries.end())
+			mLoadedLibraries.erase(iterFind);
 		else
 			bs_delete(lib);
 	}

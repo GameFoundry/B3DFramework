@@ -150,11 +150,11 @@ namespace bs
 
 		/** Removes a parameter with the specified name. */
 		BS_SCRIPT_EXPORT()
-		void RemoveParam(const StringID& paramName) { mParams.Erase(paramName); }
+		void RemoveParam(const StringID& paramName) { mParams.erase(paramName); }
 
 		/** Checks if the variation has a parameter with the specified name. */
 		BS_SCRIPT_EXPORT()
-		bool HasParam(const StringID& paramName) { return mParams.Find(paramName) != mParams.end(); }
+		bool HasParam(const StringID& paramName) { return mParams.find(paramName) != mParams.end(); }
 
 		/** Removes all parameters. */
 		BS_SCRIPT_EXPORT()

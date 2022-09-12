@@ -153,7 +153,7 @@ namespace bs
 		const ShaderVariation& GetVariation() const { return mVariation; }
 
 		/** Returns the total number of techniques supported by this material. */
-		UINT32 GetNumTechniques() const { return (UINT32)mTechniques.Size(); }
+		UINT32 GetNumTechniques() const { return (UINT32)mTechniques.size(); }
 
 		/** Returns the technique at the specified index. */
 		const SPtr<TechniqueType>& GetTechnique(UINT32 idx) const { return mTechniques[idx]; }
@@ -443,7 +443,7 @@ namespace bs
 			TMaterialParamStruct<Core> structParam = getParamStruct(name);
 
 			MaterialBase::StructData Data(structParam.GetElementSize());
-			structParam.Get(data.data.get(), structParam.getElementSize(), arrayIdx);
+			structParam.Get(data.Data.get(), structParam.getElementSize(), arrayIdx);
 
 			return data;
 		}

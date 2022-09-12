@@ -31,21 +31,21 @@ namespace bs
 
 		if(m->hasInputFocus)
 		{
-			while (!LinuxPlatform::buttonEvents.Empty())
+			while (!LinuxPlatform::buttonEvents.empty())
 			{
-				LinuxButtonEvent& event = LinuxPlatform::buttonEvents.Front();
+				LinuxButtonEvent& event = LinuxPlatform::buttonEvents.front();
 				if(event.pressed)
 					mOwner->_notifyButtonPressed(0, event.button, event.timestamp);
 				else
 					mOwner->_notifyButtonReleased(0, event.button, event.timestamp);
-				LinuxPlatform::buttonEvents.Pop();
+				LinuxPlatform::buttonEvents.pop();
 			}
 		}
 		else
 		{
 			// Discard queued data
-			while (!LinuxPlatform::buttonEvents.Empty())
-				LinuxPlatform::buttonEvents.Pop();
+			while (!LinuxPlatform::buttonEvents.empty())
+				LinuxPlatform::buttonEvents.pop();
 		}
 	}
 

@@ -38,7 +38,7 @@ namespace bs
 		GUIOptions options;
 
 		ScriptArray ScriptArray(guiOptions);
-		UINT32 arrayLen = scriptArray.Size();
+		UINT32 arrayLen = scriptArray.size();
 		for (UINT32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.get<GUIOption>(i));
 

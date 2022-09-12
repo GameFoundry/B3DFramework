@@ -117,7 +117,7 @@ namespace bs
 		Matrix4 worldMatrix;
 		worldMatrix.SetTRS(tfrm.getPosition(), tfrm.getRotation(), Vector3::ONE);
 
-		Vector<Plane> WorldPlanes(frustumPlanes.Size());
+		Vector<Plane> WorldPlanes(frustumPlanes.size());
 		UINT32 i = 0;
 		for (auto& plane : frustumPlanes)
 		{

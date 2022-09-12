@@ -11,7 +11,7 @@ namespace bs
 
 	bool SkeletonMask::IsEnabled(UINT32 boneIdx) const
 	{
-		if (boneIdx >= (UINT32)mIsDisabled.Size())
+		if (boneIdx >= (UINT32)mIsDisabled.size())
 			return true;
 
 		return !mIsDisabled[boneIdx];

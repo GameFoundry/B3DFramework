@@ -48,7 +48,7 @@ namespace std
 	template<>
 	struct hash<bs::ct::VulkanLayoutKey>
 	{
-		size_t Operator()(const bs::ct::VulkanLayoutKey& value) const
+		size_t operator()(const bs::ct::VulkanLayoutKey& value) const
 		{
 			if (value.layout != nullptr)
 				return value.layout->GetHash();
@@ -61,7 +61,7 @@ namespace std
 	template<>
 	struct hash<bs::ct::VulkanPipelineLayoutKey>
 	{
-		size_t Operator()(const bs::ct::VulkanPipelineLayoutKey& value) const
+		size_t operator()(const bs::ct::VulkanPipelineLayoutKey& value) const
 		{
 			return value.CalculateHash();
 		}

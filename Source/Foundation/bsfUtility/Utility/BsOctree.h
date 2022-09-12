@@ -216,7 +216,7 @@ namespace bs
 
 		/**
 		 * Contains bounds for a specific node. This is necessary since the nodes themselves do not store bounds
-		 * information. Instead we construct it on-the-fly as we traverse the tree, using this class.
+		 * information. Instead we Construct it on-the-fly as we traverse the tree, using this class.
 		 */
 		class NodeBounds
 		{
@@ -405,14 +405,14 @@ namespace bs
 			 */
 			bool MoveNext()
 			{
-				if(mNodeStack.Empty())
+				if(mNodeStack.empty())
 				{
 					mCurrentNode = HNode();
 					return false;
 				}
 
-				mCurrentNode = mNodeStack.Back();
-				mNodeStack.Erase(mNodeStack.end() - 1);
+				mCurrentNode = mNodeStack.back();
+				mNodeStack.erase(mNodeStack.end() - 1);
 
 				return true;
 			}
@@ -610,10 +610,10 @@ namespace bs
 					FrameStack<Node*> todo;
 					todo.Push(node);
 
-					while(!todo.Empty())
+					while(!todo.empty())
 					{
 						Node* curNode = todo.Top();
-						todo.Pop();
+						todo.pop();
 
 						for(UINT32 i = 0; i < 8; i++)
 						{
@@ -702,7 +702,7 @@ namespace bs
 				{
 					// Create the child node if needed, and add the element to it
 					if (!node->mChildren[child.index])
-						node->mChildren[child.index] = mNodeAlloc.template construct<Node>(node);
+						node->mChildren[child.index] = mNodeAlloc.template Construct<Node>(node);
 
 					addElementToNode(elem, node->mChildren[child.index], nodeBounds.GetChild(child));
 				}
@@ -732,8 +732,8 @@ namespace bs
 			UINT32 freeIdx = elements.count % Options::MaxElementsPerNode;
 			if(freeIdx == 0) // New group needed
 			{
-				ElementGroup* elementGroup = (ElementGroup*)mElemAlloc.template construct<ElementGroup>();
-				ElementBoundGroup* boundGroup = (ElementBoundGroup*)mElemBoundsAlloc.template construct<ElementBoundGroup>();
+				ElementGroup* elementGroup = (ElementGroup*) mElemAlloc.template Construct<ElementGroup>();
+				ElementBoundGroup* boundGroup = (ElementBoundGroup*) mElemBoundsAlloc.template Construct<ElementBoundGroup>();
 
 				elementGroup->next = elements.values;
 				boundGroup->next = elements.bounds;

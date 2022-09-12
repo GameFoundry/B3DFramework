@@ -50,7 +50,7 @@ namespace bs
 	public:
 		PixelDataRTTI()
 		{
-			addDataBlockField("data", 9, &PixelDataRTTI::getData, &PixelDataRTTI::setData);
+			addDataBlockField("Data", 9, &PixelDataRTTI::getData, &PixelDataRTTI::setData);
 			addPlainField("version", 10, &PixelDataRTTI::getVersion, &PixelDataRTTI::setVersion);
 		}
 

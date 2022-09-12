@@ -10,7 +10,7 @@ namespace bs
 	void MemStack::BeginThread()
 	{
 		if(ThreadMemStack != nullptr)
-			endThread();
+			EndThread();
 
 		ThreadMemStack = bs_new<MemStackInternal<1024 * 1024>>();
 	}
@@ -24,17 +24,17 @@ namespace bs
 		}
 	}
 
-	UINT8* MemStack::alloc(UINT32 numBytes)
+	UINT8* MemStack::Allocate(UINT32 amount)
 	{
 		assert(ThreadMemStack != nullptr && "Stack allocation failed. Did you call beginThread?");
 
-		return ThreadMemStack->Alloc(numBytes);
+		return ThreadMemStack->Allocate(amount);
 	}
 
-	void MemStack::DeallocLast(UINT8* data)
+	void MemStack::DeallocateLast(UINT8* data)
 	{
 		assert(ThreadMemStack != nullptr && "Stack deallocation failed. Did you call beginThread?");
 
-		ThreadMemStack->Dealloc(data);
+		ThreadMemStack->Deallocate(data);
 	}
 }

@@ -75,7 +75,7 @@ namespace bs
 		/**
 		 * Allocates a new piece of memory of the specified size.
 		 *
-		 * @param[in]	amount	Amount of memory to allocate, in bytes.
+		 * @param[in]	amount	Amount of memory to Allocate, in bytes.
 		 */
 		UINT8* alloc(UINT32 amount)
 		{
@@ -90,7 +90,7 @@ namespace bs
 			
 			UINT8* data;
 			if (amount > freeMem)
-				data = mDynamicAlloc.Alloc(amount);
+				data = mDynamicAlloc.Allocate(amount);
 			else
 			{
 				data = &mStaticData[mFreePtr];
@@ -255,7 +255,7 @@ namespace bs
 		}
 
 		/** Deallocate storage p of deleted elements. */
-		void Deallocate(T* p, size_t num) const noexcept
+		void deallocate(T* p, size_t num) const noexcept
 		{
 			mStaticAlloc->Free((UINT8*)p, (UINT32)num);
 		}
@@ -263,10 +263,10 @@ namespace bs
 		StaticAlloc<BlockSize, FreeAlloc>* mStaticAlloc = nullptr;
 
 		size_t max_size() const { return std::numeric_limits<UINT32>::max() / sizeof(T); }
-		void Construct(pointer p, const_reference t) { new (p) T(t); }
-		void Destroy(pointer p) { p->~T(); }
+		void construct(pointer p, const_reference t) { new (p) T(t); }
+		void destroy(pointer p) { p->~T(); }
 		template<class U, class... Args>
-		void Construct(U* p, Args&&... args) { new(p) U(std::forward<Args>(args)...); }
+		void construct(U* p, Args&&... args) { new(p) U(std::forward<Args>(args)...); }
 
 		template <class T1, int N1, class T2, int N2>
 		friend bool operator== (const StdStaticAlloc<N1, T1>& a, const StdStaticAlloc<N2, T2>& b) throw();

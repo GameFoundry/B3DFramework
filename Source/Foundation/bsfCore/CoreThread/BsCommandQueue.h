@@ -245,13 +245,13 @@ namespace bs
 			class HashFunction
 			{
 			public:
-				size_t Operator()(const QueueBreakpoint &key) const;
+				size_t operator()(const QueueBreakpoint &key) const;
 			};
 
 			class EqualFunction
 			{
 			public:
-				bool Operator()(const QueueBreakpoint &a, const QueueBreakpoint &b) const;
+				bool operator()(const QueueBreakpoint &a, const QueueBreakpoint &b) const;
 			};
 
 			QueueBreakpoint(UINT32 _queueIdx, UINT32 _commandIdx)
@@ -261,7 +261,7 @@ namespace bs
 			UINT32 queueIdx;
 			UINT32 commandIdx;
 
-			inline size_t Operator()(const QueueBreakpoint& v) const;
+			inline size_t operator()(const QueueBreakpoint& v) const;
 		};
 
 		UINT32 mMaxDebugIdx;

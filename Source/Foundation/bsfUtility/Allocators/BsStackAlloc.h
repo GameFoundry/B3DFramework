@@ -46,7 +46,7 @@ namespace bs
 			 * Returns the first free address and increments the free pointer. Caller needs to ensure the remaining block
 			 * size is adequate before calling.
 			 */
-			UINT8* alloc(UINT32 amount)
+			UINT8* Allocate(UINT32 amount)
 			{
 				UINT8* freePtr = &mData[mFreePtr];
 				mFreePtr += amount;
@@ -61,7 +61,7 @@ namespace bs
 			 * @note	Pointer to @p data isn't actually needed, but is provided for debug purposes in order to more
 			 * 			easily track out-of-order deallocations.
 			 */
-			void Dealloc(UINT8* data, UINT32 amount)
+			void Deallocate(UINT8* data, UINT32 amount)
 			{
 				mFreePtr -= amount;
 				assert((&mData[mFreePtr]) == data && "Out of order stack deallocation detected. Deallocations need to happen in order opposite of allocations.");
@@ -77,7 +77,7 @@ namespace bs
 	public:
 		MemStackInternal()
 		{
-			mFreeBlock = allocBlock(BlockCapacity);
+			mFreeBlock = AllocateBlock(BlockCapacity);
 		}
 
 		~MemStackInternal()
@@ -97,7 +97,7 @@ namespace bs
 		/**
 		 * Allocates the given amount of memory on the stack.
 		 *
-		 * @param[in]	amount	The amount to allocate in bytes.
+		 * @param[in]	amount	The amount to Allocate in bytes.
 		 *
 		 * @note
 		 * Allocates the memory in the currently active block if it is large enough, otherwise a new block is allocated.
@@ -106,13 +106,13 @@ namespace bs
 		 * @note
 		 * Each allocation comes with a 4 byte overhead.
 		 */
-		UINT8* alloc(UINT32 amount)
+		UINT8* Allocate(UINT32 amount)
 		{
 			amount += sizeof(UINT32);
 
 			UINT32 freeMem = mFreeBlock->mSize - mFreeBlock->mFreePtr;
 			if(amount > freeMem)
-				allocBlock(amount);
+				AllocateBlock(amount);
 
 			UINT8* data = mFreeBlock->Alloc(amount);
 
@@ -123,12 +123,12 @@ namespace bs
 		}
 
 		/** Deallocates the given memory. Data must be deallocated in opposite order then when it was allocated. */
-		void Dealloc(UINT8* data)
+		void Deallocate(UINT8* data)
 		{
 			data -= sizeof(UINT32);
 
 			UINT32* storedSize = reinterpret_cast<UINT32*>(data);
-			mFreeBlock->Dealloc(data, *storedSize);
+			mFreeBlock->Deallocate(data, *storedSize);
 
 			if (mFreeBlock->mFreePtr == 0)
 			{
@@ -150,7 +150,7 @@ namespace bs
 					deallocBlock(emptyBlock->mNextBlock);
 					deallocBlock(emptyBlock);
 
-					allocBlock(totalSize);
+					AllocateBlock(totalSize);
 				}
 			}
 		}
@@ -162,7 +162,7 @@ namespace bs
 		 * Allocates a new block of memory using a heap allocator. Block will never be smaller than BlockCapacity no matter
 		 * the @p wantedSize.
 		 */
-		MemBlock* allocBlock(UINT32 wantedSize)
+		MemBlock* AllocateBlock(UINT32 wantedSize)
 		{
 			UINT32 blockSize = BlockCapacity;
 			if(wantedSize > blockSize)
@@ -207,7 +207,7 @@ namespace bs
 		}
 
 		/** Deallocates a block of memory. */
-		void DeallocBlock(MemBlock* block)
+		void DeallocateBlock(MemBlock* block)
 		{
 			block->~MemBlock();
 			bs_free(block);
@@ -219,12 +219,12 @@ namespace bs
 	 * allocations.
 	 *
 	 * @note
-	 * It's mostly useful when you need to allocate something temporarily on the heap, usually something that gets
+	 * It's mostly useful when you need to Allocate something temporarily on the heap, usually something that gets
 	 * allocated and freed within the same method.
 	 * @note
 	 * Each allocation comes with a pretty hefty 4 byte memory overhead, so don't use it for small allocations.
 	 * @note
-	 * Thread safe. But you cannot allocate on one thread and deallocate on another. Threads will keep
+	 * Thread safe. But you cannot Allocate on one thread and deallocate on another. Threads will keep
 	 * separate stacks internally. Make sure to call beginThread()/endThread() for any thread this stack is used on.
 	 */
 	class MemStack
@@ -242,11 +242,11 @@ namespace bs
 		 */
 		static BS_UTILITY_EXPORT void EndThread();
 
-		/** @copydoc MemStackInternal::alloc() */
-		static BS_UTILITY_EXPORT UINT8* alloc(UINT32 amount);
+		/** @copydoc MemStackInternal::Allocate() */
+		static BS_UTILITY_EXPORT UINT8* Allocate(UINT32 amount);
 
-		/** @copydoc MemStackInternal::dealloc() */
-		static BS_UTILITY_EXPORT void DeallocLast(UINT8* data);
+		/** @copydoc MemStackInternal::Deallocate() */
+		static BS_UTILITY_EXPORT void DeallocateLast(UINT8* data);
 
 	private:
 		static BS_THREADLOCAL MemStackInternal<1024 * 1024>* ThreadMemStack;
@@ -259,40 +259,40 @@ namespace bs
 	 *  @{
 	 */
 
-	/** @copydoc MemStackInternal::alloc() */
+	/** @copydoc MemStackInternal::Allocate() */
 	inline void* bs_stack_alloc(UINT32 amount)
 	{
-		return (void*)MemStack::alloc(amount);
+		return (void*) MemStack::Allocate(amount);
 	}
 
 	/**
 	 * Allocates enough memory to hold the specified type, on the stack, but does not initialize the object.
 	 *
-	 * @see	MemStackInternal::alloc()
+	 * @see	MemStackInternal::Allocate()
 	 */
 	template<class T>
 	T* bs_stack_alloc()
 	{
-		return (T*)MemStack::alloc(sizeof(T));
+		return (T*) MemStack::Allocate(sizeof(T));
 	}
 
 	/**
 	 * Allocates enough memory to hold N objects of the specified type, on the stack, but does not initialize the objects.
 	 *
-	 * @param[in]	amount	Number of entries of the requested type to allocate.
+	 * @param[in]	amount	Number of entries of the requested type to Allocate.
 	 *
-	 * @see	MemStackInternal::alloc()
+	 * @see	MemStackInternal::Allocate()
 	 */
 	template<class T>
 	T* bs_stack_alloc(UINT32 amount)
 	{
-		return (T*)MemStack::alloc(sizeof(T) * amount);
+		return (T*) MemStack::Allocate(sizeof(T) * amount);
 	}
 
 	/**
 	 * Allocates enough memory to hold the specified type, on the stack, and constructs the object.
 	 *
-	 * @see	MemStackInternal::alloc()
+	 * @see	MemStackInternal::Allocate()
 	 */
 	template<class T>
 	T* bs_stack_new(UINT32 count = 0)
@@ -308,7 +308,7 @@ namespace bs
 	/**
 	 * Allocates enough memory to hold the specified type, on the stack, and constructs the object.
 	 *
-	 * @see MemStackInternal::alloc()
+	 * @see MemStackInternal::Allocate()
 	 */
 	template<class T, class... Args>
 	T* bs_stack_new(Args &&...args, UINT32 count = 0)
@@ -331,7 +331,7 @@ namespace bs
 	{
 		data->~T();
 
-		MemStack::deallocLast((UINT8*)data);
+		MemStack::DeallocateLast((UINT8*)data);
 	}
 
 	/**
@@ -345,18 +345,18 @@ namespace bs
 		for(unsigned int i = 0; i < count; i++)
 			data[i].~T();
 
-		MemStack::deallocLast((UINT8*)data);
+		MemStack::DeallocateLast((UINT8*)data);
 	}
 
 	inline void bs_stack_delete(void* data, UINT32 count)
 	{
-		MemStack::deallocLast((UINT8*)data);
+		MemStack::DeallocateLast((UINT8*)data);
 	}
 
 	/** @copydoc MemStackInternal::dealloc() */
 	inline void bs_stack_free(void* data)
 	{
-		return MemStack::DeallocLast((UINT8*)data);
+		return MemStack::DeallocateLast((UINT8 *) data);
 	}
 
 	/**
@@ -384,13 +384,13 @@ namespace bs
 		constexpr operator T*() const && noexcept = delete;
 
 		explicit constexpr StackMemory(T* p, size_t count = 1)
-		 : MPtr(p), mCount(count)
+		 : mPtr(p), mCount(count)
 		{ }
 
 		/** Needed until c++17 */
 		StackMemory(StackMemory && other)
-		 : MPtr(std::exchange(other.mPtr, nullptr))
-		 , MCount(std::exchange(other.mCount, 0))
+		 : mPtr(std::exchange(other.mPtr, nullptr))
+		 , mCount(std::exchange(other.mCount, 0))
 		{ }
 
 		StackMemory(StackMemory const&) = delete;
@@ -490,7 +490,7 @@ namespace bs
 	class MemoryAllocator<StackAlloc> : public MemoryAllocatorBase
 	{
 	public:
-		static void* allocate(size_t bytes)
+		static void* Allocate(size_t bytes)
 		{
 			return bs_stack_alloc((UINT32)bytes);
 		}

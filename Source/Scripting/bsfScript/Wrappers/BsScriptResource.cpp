@@ -62,7 +62,7 @@ namespace bs
 	{
 		if(rttiId == Resource::getRTTIStatic()->GetRTTIId())
 			return ScriptResource::GetMetaData()->scriptClass->_getInternalClass();
-		else If(rttiId == ManagedResource::getRTTIStatic()->GetRTTIId())
+		else if(rttiId == ManagedResource::getRTTIStatic()->GetRTTIId())
 			return ScriptResource::GetMetaData()->scriptClass->_getInternalClass();
 		else
 		{

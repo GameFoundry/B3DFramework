@@ -56,11 +56,11 @@ namespace bs { namespace ct
 
 	void VulkanQueue::SubmitQueued()
 	{
-		UINT32 numCBs = (UINT32)mQueuedBuffers.Size();
+		UINT32 numCBs = (UINT32)mQueuedBuffers.size();
 		if (numCBs == 0)
 			return;
 
-		UINT32 totalNumWaitSemaphores = (UINT32)mQueuedSemaphores.Size() + numCBs;
+		UINT32 totalNumWaitSemaphores = (UINT32)mQueuedSemaphores.size() + numCBs;
 		UINT32 signalSemaphoresPerCB = (BS_MAX_VULKAN_CB_DEPENDENCIES + 1);
 
 		UINT8* data = (UINT8*)bs_stack_alloc((sizeof(VkSubmitInfo) + sizeof(VkCommandBuffer)) *
@@ -189,8 +189,8 @@ namespace bs { namespace ct
 	{
 		UINT32 lastFinishedSubmission = 0;
 
-		auto iter = mActiveSubmissions.Begin();
-		while (iter != mActiveSubmissions.End())
+		auto iter = mActiveSubmissions.begin();
+		while (iter != mActiveSubmissions.end())
 		{
 			VulkanCmdBuffer* cmdBuffer = iter->cmdBuffer;
 			if (cmdBuffer == nullptr)
@@ -215,29 +215,29 @@ namespace bs { namespace ct
 		if (queueEmpty)
 			lastFinishedSubmission = mNextSubmitIdx - 1;
 
-		iter = mActiveSubmissions.Begin();
-		while (iter != mActiveSubmissions.End())
+		iter = mActiveSubmissions.begin();
+		while (iter != mActiveSubmissions.end())
 		{
 			if (iter->submitIdx > lastFinishedSubmission)
 				break;
 
 			for (UINT32 i = 0; i < iter->numSemaphores; i++)
 			{
-				VulkanSemaphore* semaphore = mActiveSemaphores.Front();
-				mActiveSemaphores.Pop();
+				VulkanSemaphore* semaphore = mActiveSemaphores.front();
+				mActiveSemaphores.pop();
 
 				semaphore->NotifyDone(0, VulkanAccessFlag::Read | VulkanAccessFlag::Write);
 			}
 
 			for(UINT32 i = 0; i < iter->numCommandBuffers; i++)
 			{
-				VulkanCmdBuffer* cb = mActiveBuffers.Front();
-				mActiveBuffers.Pop();
+				VulkanCmdBuffer* cb = mActiveBuffers.front();
+				mActiveBuffers.pop();
 
 				cb->Reset();
 			}
 
-			iter = mActiveSubmissions.Erase(iter);
+			iter = mActiveSubmissions.erase(iter);
 		}
 	}
 

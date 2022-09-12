@@ -360,7 +360,7 @@ namespace bs
 		 *
 		 * @note	Core thread.
 		 */
-		void RemovePlugin(RendererExtension* plugin) { mCallbacks.Erase(plugin); }
+		void RemovePlugin(RendererExtension* plugin) { mCallbacks.erase(plugin); }
 
 		/**
 		 * Registers a new task for execution on the core thread.

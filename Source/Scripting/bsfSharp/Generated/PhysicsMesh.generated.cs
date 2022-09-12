@@ -24,7 +24,7 @@ namespace bs
 		/// <param name="meshData">Index and vertices of the mesh data.</param>
 		/// <param name="type">
 		/// Type of the mesh. If convex the provided mesh geometry will be converted into a convex mesh (that might not be the 
-		/// same as the provided mesh data).
+		/// same as the provided mesh Data).
 		/// </param>
 		public PhysicsMesh(MeshData meshData, PhysicsMeshType type = PhysicsMeshType.Convex)
 		{

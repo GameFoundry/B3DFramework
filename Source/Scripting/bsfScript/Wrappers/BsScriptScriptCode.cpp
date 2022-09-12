@@ -87,11 +87,11 @@ namespace bs
 		for (auto& type : types)
 		{
 			SPtr<ManagedSerializableObjectInfo> objInfo;
-			if (ScriptAssemblyManager::instance().GetSerializableObjectInfo(toString(type.first), toString(type.second), objInfo))
+			if (ScriptAssemblyManager::instance().GetSerializableObjectInfo(ToString(type.first), ToString(type.second), objInfo))
 				validTypes.push_back(MonoUtil::getType(objInfo->mTypeInfo->GetMonoClass()));
 		}
 
-		UINT32 numValidTypes = (UINT32)validTypes.Size();
+		UINT32 numValidTypes = (UINT32)validTypes.size();
 		MonoClass* typeClass = ScriptAssemblyManager::instance().GetBuiltinClasses().systemTypeClass;
 
 		ScriptArray ScriptArray(typeClass->_getInternalClass(), numValidTypes);
@@ -128,24 +128,24 @@ namespace bs
 
 		UINT32 idx = 0;
 		INT32 bracketIdx = 0;
-		for (auto iter = code.Begin(); iter != code.end(); ++iter)
+		for (auto iter = code.begin(); iter != code.end(); ++iter)
 		{
 			wchar_t ch = *iter;
 			
 			if (code.Compare(idx, classToken.size(), classToken) == 0)
 			{
 				std::match_results<WString::const_iterator> results;
-				if (std::regex_search(iter + classToken.Size(), code.end(), results, identifierRegex))
+				if (std::regex_search(iter + classToken.size(), code.end(), results, identifierRegex))
 				{
 					WString ns = L"";
-					if (!namespaces.Empty())
+					if (!namespaces.empty())
 						ns = namespaces.Top().ns;
 
 					std::wstring tempStr = results[0];
 					WString typeName = tempStr.c_str();
 
 					output.push_back(FullTypeName());
-					FullTypeName& nsTypePair = output.Back();
+					FullTypeName& nsTypePair = output.back();
 					nsTypePair.first = ns;
 					nsTypePair.second = typeName;
 				}
@@ -153,7 +153,7 @@ namespace bs
 			else if (code.Compare(idx, nsToken.size(), nsToken) == 0)
 			{
 				std::match_results<WString::const_iterator> results;
-				if (std::regex_search(iter + nsToken.Size(), code.end(), results, identifierRegex))
+				if (std::regex_search(iter + nsToken.size(), code.end(), results, identifierRegex))
 				{
 					std::wstring tempStr = results[0];
 					WString ns = tempStr.c_str();

@@ -19,7 +19,7 @@ namespace bs
 
 		/// <summary>
 		/// Determines an environment map to use for sampling skybox radiance. Must be a cube-map texture, and should ideally 
-		/// contain HDR data.
+		/// contain HDR Data.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]

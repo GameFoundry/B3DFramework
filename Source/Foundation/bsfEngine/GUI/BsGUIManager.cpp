@@ -132,8 +132,8 @@ namespace bs
 		{
 			auto findIter = std::find_if(begin(mWidgets), end(mWidgets), [=] (const WidgetInfo& x) { return x.widget == widget; } );
 
-			if(findIter != mWidgets.End())
-				mWidgets.Erase(findIter);
+			if(findIter != mWidgets.end())
+				mWidgets.erase(findIter);
 		}
 
 		for(auto& entry : mElementsInFocus)
@@ -192,7 +192,7 @@ namespace bs
 					const String& tooltipText = entry.element->_getTooltip();
 					GUIWidget* parentWidget = entry.element->_getParentWidget();
 
-					if (!tooltipText.Empty() && parentWidget != nullptr)
+					if (!tooltipText.empty() && parentWidget != nullptr)
 					{
 						const RenderWindow* window = getWidgetWindow(*parentWidget);
 						if (window != nullptr)
@@ -265,7 +265,7 @@ namespace bs
 				// Clear focus on all elements that aren't part of the forced focus list (in case they are already in focus)
 				mCommandEvent.SetType(GUICommandEventType::FocusLost);
 
-				for (auto iter = mElementsInFocus.Begin(); iter != mElementsInFocus.end();)
+				for (auto iter = mElementsInFocus.begin(); iter != mElementsInFocus.end();)
 				{
 					const ElementFocusInfo& elementInfo = *iter;
 
@@ -275,10 +275,10 @@ namespace bs
 						return x.focus && x.element == elementInfo.element;
 					});
 
-					if (iterFind == mForcedFocusElements.End())
+					if (iterFind == mForcedFocusElements.end())
 					{
 						sendCommandEvent(elementInfo.element, mCommandEvent);
-						iter = mElementsInFocus.Erase(iter);
+						iter = mElementsInFocus.erase(iter);
 					}
 					else
 						++iter;
@@ -292,13 +292,13 @@ namespace bs
 				if (focusElementInfo.element->_isDestroyed())
 					continue;
 
-				const auto iterFind = std::find_if(mElementsInFocus.Begin(), mElementsInFocus.end(),
+				const auto iterFind = std::find_if(mElementsInFocus.begin(), mElementsInFocus.end(),
 					[&](const ElementFocusInfo& x) { return x.element == focusElementInfo.element; });
 
 				if (focusElementInfo.focus)
 				{
 					// Gain focus unless already in focus
-					if (iterFind == mElementsInFocus.End())
+					if (iterFind == mElementsInFocus.end())
 					{
 						mElementsInFocus.push_back(ElementFocusInfo(focusElementInfo.element,
 							focusElementInfo.element->_getParentWidget(), false));
@@ -312,7 +312,7 @@ namespace bs
 				else
 				{
 					// Force clear focus
-					if(iterFind != mElementsInFocus.End())
+					if(iterFind != mElementsInFocus.end())
 					{
 						mCommandEvent = GUICommandEvent();
 						mCommandEvent.SetType(GUICommandEventType::FocusLost);
@@ -632,10 +632,10 @@ namespace bs
 		{
 			for(auto& elementInfo : mElementsUnderPointer)
 			{
-				auto iterFind2 = std::find_if(mActiveElements.Begin(), mActiveElements.end(),
+				auto iterFind2 = std::find_if(mActiveElements.begin(), mActiveElements.end(),
 					[&](const ElementInfo& x) { return x.element == elementInfo.element; });
 
-				if(iterFind2 != mActiveElements.End())
+				if(iterFind2 != mActiveElements.end())
 				{
 					Vector2I localPos = getWidgetRelativePos(elementInfo.widget, event.screenPos);
 					mMouseEvent.SetMouseUpData(localPos, guiButton);
@@ -707,7 +707,7 @@ namespace bs
 			auto iterFind = std::find_if(begin(mElementsInFocus), end(mElementsInFocus),
 				[=](const ElementFocusInfo& x) { return x.element == elementInfo.element; });
 
-			if (iterFind == mElementsInFocus.End())
+			if (iterFind == mElementsInFocus.end())
 			{
 				bool processed = !elementInfo.element->GetOptionFlags().IsSet(GUIElementOption::ClickThrough);
 				mNewElementsInFocus.push_back(ElementFocusInfo(elementInfo.element, elementInfo.widget, processed));
@@ -735,7 +735,7 @@ namespace bs
 			auto iterFind = std::find_if(begin(mNewElementsInFocus), end(mNewElementsInFocus),
 				[=](const ElementFocusInfo& x) { return x.element == elementInfo.element; });
 
-			if (iterFind == mNewElementsInFocus.End())
+			if (iterFind == mNewElementsInFocus.end())
 				sendCommandEvent(elementInfo.element, mCommandEvent);
 		}
 
@@ -747,7 +747,7 @@ namespace bs
 			auto iterFind = std::find_if(begin(mElementsInFocus), end(mElementsInFocus),
 				[=](const ElementFocusInfo& x) { return x.element == elementInfo.element; });
 
-			if (iterFind == mElementsInFocus.End())
+			if (iterFind == mElementsInFocus.end())
 				sendCommandEvent(elementInfo.element, mCommandEvent);
 		}
 
@@ -758,7 +758,7 @@ namespace bs
 		GUIMouseButton guiButton = buttonToGUIButton(event.button);
 
 		// We only check for mouse down if mouse isn't already being held down, and we are hovering over an element
-		if(mActiveElements.Size() == 0)
+		if(mActiveElements.size() == 0)
 		{
 			mNewActiveElements.Clear();
 			for(auto& elementInfo : mElementsUnderPointer)
@@ -843,7 +843,7 @@ namespace bs
 
 	void GUIManager::OnInputCommandEntered(InputCommandType commandType)
 	{
-		if(mElementsInFocus.Empty())
+		if(mElementsInFocus.empty())
 			return;
 
 		hideTooltip();
@@ -936,7 +936,7 @@ namespace bs
 
 			auto iterFind = std::find(begin(activeWindows), end(activeWindows), window);
 
-			if(iterFind == activeWindows.End())
+			if(iterFind == activeWindows.end())
 			{
 				BS_EXCEPT(InternalErrorException, "GUI manager has a reference to a window that doesn't exist. \
 												  Please detach all GUIWidgets from windows before destroying a window.");
@@ -991,7 +991,7 @@ namespace bs
 					Vector2I localPos = getWidgetRelativePos(widget, pointerScreenPos);
 
 					// Elements with lowest depth (most to the front) get handled first
-					for(auto iter = elements.Begin(); iter != elements.end(); ++iter)
+					for(auto iter = elements.begin(); iter != elements.end(); ++iter)
 					{
 						GUIElement* element = *iter;
 
@@ -999,10 +999,10 @@ namespace bs
 						{
 							ElementInfoUnderPointer ElementInfo(element, widget);
 
-							auto iterFind = std::find_if(mElementsUnderPointer.Begin(), mElementsUnderPointer.end(),
+							auto iterFind = std::find_if(mElementsUnderPointer.begin(), mElementsUnderPointer.end(),
 								[=](const ElementInfoUnderPointer& x) { return x.element == element; });
 
-							if (iterFind != mElementsUnderPointer.End())
+							if (iterFind != mElementsUnderPointer.end())
 							{
 								elementInfo.usesMouseOver = iterFind->usesMouseOver;
 								elementInfo.receivedMouseOver = iterFind->receivedMouseOver;
@@ -1017,7 +1017,7 @@ namespace bs
 			}
 		}
 
-		std::sort(mNewElementsUnderPointer.Begin(), mNewElementsUnderPointer.end(),
+		std::sort(mNewElementsUnderPointer.begin(), mNewElementsUnderPointer.end(),
 			[](const ElementInfoUnderPointer& a, const ElementInfoUnderPointer& b)
 		{
 			return a.element->_getDepth() < b.element->_getDepth();
@@ -1040,11 +1040,11 @@ namespace bs
 				continue;
 			}
 
-			auto iterFind = std::find_if(mActiveElements.Begin(), mActiveElements.end(),
+			auto iterFind = std::find_if(mActiveElements.begin(), mActiveElements.end(),
 				[&](const ElementInfo& x) { return x.element == element; });
 
 			// Send MouseOver event
-			if (mActiveElements.Size() == 0 || iterFind != mActiveElements.end())
+			if (mActiveElements.size() == 0 || iterFind != mActiveElements.end())
 			{
 				Vector2I localPos = getWidgetRelativePos(widget, pointerScreenPos);
 
@@ -1068,10 +1068,10 @@ namespace bs
 		{
 			for (auto& elementInfo : mElementsUnderPointer)
 			{
-				auto iterFind = std::find_if(mNewElementsUnderPointer.Begin(), mNewElementsUnderPointer.end(),
+				auto iterFind = std::find_if(mNewElementsUnderPointer.begin(), mNewElementsUnderPointer.end(),
 					[=](const ElementInfoUnderPointer& x) { return x.element == elementInfo.element; });
 
-				if (iterFind == mNewElementsUnderPointer.End())
+				if (iterFind == mNewElementsUnderPointer.end())
 				{
 					Vector2I localPos = getWidgetRelativePos(elementInfo.widget, pointerScreenPos);
 
@@ -1090,19 +1090,19 @@ namespace bs
 			GUIElement* element = elementInfo.element;
 			GUIWidget* widget = elementInfo.widget;
 
-			auto iterFind = std::find_if(mNewElementsUnderPointer.Begin(), mNewElementsUnderPointer.end(),
+			auto iterFind = std::find_if(mNewElementsUnderPointer.begin(), mNewElementsUnderPointer.end(),
 				[=](const ElementInfoUnderPointer& x) { return x.element == element; });
 
 			if (!elementInfo.receivedMouseOver)
 				continue;
 
-			if (iterFind == mNewElementsUnderPointer.End() || !iterFind->isHovering)
+			if (iterFind == mNewElementsUnderPointer.end() || !iterFind->isHovering)
 			{
-				auto iterFind2 = std::find_if(mActiveElements.Begin(), mActiveElements.end(),
+				auto iterFind2 = std::find_if(mActiveElements.begin(), mActiveElements.end(),
 					[=](const ElementInfo& x) { return x.element == element; });
 
 				// Send MouseOut event
-				if(mActiveElements.Size() == 0 || iterFind2 != mActiveElements.end())
+				if(mActiveElements.size() == 0 || iterFind2 != mActiveElements.end())
 				{
 					Vector2I localPos = getWidgetRelativePos(widget, pointerScreenPos);
 
@@ -1120,7 +1120,7 @@ namespace bs
 
 		// Tooltip
 		hideTooltip();
-		if (mElementsUnderPointer.Size() > 0)
+		if (mElementsUnderPointer.size() > 0)
 			mShowTooltip = true;
 
 		mTooltipElementHoverStart = gTime().GetTime();
@@ -1149,8 +1149,8 @@ namespace bs
 				widget->OwnerWindowFocusChanged();
 		}
 
-		auto iterFind = mSavedFocusElements.Find(&win);
-		if(iterFind != mSavedFocusElements.End())
+		auto iterFind = mSavedFocusElements.find(&win);
+		if(iterFind != mSavedFocusElements.end())
 		{
 			Vector<ElementFocusInfo>& savedFocusedElements = iterFind->second;
 			
@@ -1160,13 +1160,13 @@ namespace bs
 				if (focusedElement.element->_isDestroyed())
 					continue;
 
-				auto iterFind2 = std::find_if(savedFocusedElements.Begin(), savedFocusedElements.end(),
+				auto iterFind2 = std::find_if(savedFocusedElements.begin(), savedFocusedElements.end(),
 					[&focusedElement](const ElementFocusInfo& x)
 					{
 						return x.element == focusedElement.element;
 					});
 
-				if(iterFind2 == savedFocusedElements.End())
+				if(iterFind2 == savedFocusedElements.end())
 				{
 					mCommandEvent = GUICommandEvent();
 					mCommandEvent.SetType(GUICommandEventType::FocusLost);
@@ -1185,13 +1185,13 @@ namespace bs
 				if (entry.element->_isDestroyed())
 					continue;
 
-				auto iterFind2 = std::find_if(mElementsInFocus.Begin(), mElementsInFocus.end(),
+				auto iterFind2 = std::find_if(mElementsInFocus.begin(), mElementsInFocus.end(),
 					[&entry](const ElementFocusInfo& x)
 					{
 						return x.element == entry.element;
 					});
 
-				if (iterFind2 == mElementsInFocus.End())
+				if (iterFind2 == mElementsInFocus.end())
 				{
 					mCommandEvent = GUICommandEvent();
 					mCommandEvent.SetType(GUICommandEventType::FocusGained);
@@ -1201,7 +1201,7 @@ namespace bs
 				}
 			}
 
-			mSavedFocusElements.Erase(iterFind);
+			mSavedFocusElements.erase(iterFind);
 		}
 	}
 
@@ -1255,11 +1255,11 @@ namespace bs
 				continue;
 			}
 
-			auto iterFind = std::find_if(mActiveElements.Begin(), mActiveElements.end(),
+			auto iterFind = std::find_if(mActiveElements.begin(), mActiveElements.end(),
 				[&](const ElementInfo& x) { return x.element == element; });
 
 			// Send MouseOut event
-			if(mActiveElements.Size() == 0 || iterFind != mActiveElements.end())
+			if(mActiveElements.size() == 0 || iterFind != mActiveElements.end())
 			{
 				Vector2I localPos = getWidgetRelativePos(widget, Vector2I());
 
@@ -1312,19 +1312,19 @@ namespace bs
 		Stack<GUIElement*> toDestroy = mScheduledForDestruction;
 		mScheduledForDestruction = Stack<GUIElement*>();
 
-		while (!toDestroy.Empty())
+		while (!toDestroy.empty())
 		{
 			bs_delete(toDestroy.Top());
-			toDestroy.Pop();
+			toDestroy.pop();
 		}
 
-		return !mScheduledForDestruction.Empty();
+		return !mScheduledForDestruction.empty();
 	}
 
 	void GUIManager::SetInputBridge(const SPtr<RenderTexture>& renderTex, const GUIElement* element)
 	{
 		if (element == nullptr)
-			mInputBridge.Erase(renderTex);
+			mInputBridge.erase(renderTex);
 		else
 			mInputBridge[renderTex] = element;
 	}
@@ -1333,9 +1333,9 @@ namespace bs
 	{
 		if(pointerButton == PointerEventButton::Left)
 			return GUIMouseButton::Left;
-		else If(pointerButton == PointerEventButton::Middle)
+		else if(pointerButton == PointerEventButton::Middle)
 			return GUIMouseButton::Middle;
-		else If(pointerButton == PointerEventButton::Right)
+		else if(pointerButton == PointerEventButton::Right)
 			return GUIMouseButton::Right;
 
 		BS_EXCEPT(InvalidParametersException, "Provided button is not a GUI supported mouse button.");
@@ -1370,8 +1370,8 @@ namespace bs
 		SPtr<const RenderTexture> renderTexture = std::static_pointer_cast<const RenderTexture>(target);
 		const RenderTargetProperties& rtProps = renderTexture->GetProperties();
 
-		auto iterFind = mInputBridge.Find(renderTexture);
-		if(iterFind != mInputBridge.End()) // Widget input is bridged, which means we need to transform the coordinates
+		auto iterFind = mInputBridge.find(renderTexture);
+		if(iterFind != mInputBridge.end()) // Widget input is bridged, which means we need to transform the coordinates
 		{
 			const GUIElement* bridgeElement = iterFind->second;
 			const GUIWidget* parentWidget = bridgeElement->_getParentWidget();
@@ -1411,8 +1411,8 @@ namespace bs
 		// (in which case we know it is a RenderTexture)
 		SPtr<const RenderTexture> renderTexture = std::static_pointer_cast<const RenderTexture>(target);
 
-		auto iterFind = mInputBridge.Find(renderTexture);
-		if(iterFind != mInputBridge.End())
+		auto iterFind = mInputBridge.find(renderTexture);
+		if(iterFind != mInputBridge.end())
 		{
 			GUIWidget* parentWidget = iterFind->second->_getParentWidget();
 			if (parentWidget == nullptr)
@@ -1424,8 +1424,8 @@ namespace bs
 
 		Vector<RenderWindow*> renderWindows = RenderWindowManager::instance().GetRenderWindows();
 
-		auto iterFindWin = std::find(renderWindows.Begin(), renderWindows.end(), target.get());
-		if(iterFindWin != renderWindows.End())
+		auto iterFindWin = std::find(renderWindows.begin(), renderWindows.end(), target.get());
+		if(iterFindWin != renderWindows.end())
 			return static_cast<RenderWindow*>(target.Get());
 
 		return nullptr;
@@ -1438,8 +1438,8 @@ namespace bs
 
 		while (true)
 		{
-			auto iterFind = mInputBridge.Find(target);
-			if (iterFind == mInputBridge.End())
+			auto iterFind = mInputBridge.find(target);
+			if (iterFind == mInputBridge.end())
 				return nullptr;
 
 			GUIWidget* parentWidget = iterFind->second->_getParentWidget();
@@ -1593,8 +1593,8 @@ namespace bs
 
 	RendererExtensionRequest GUIRenderer::Check(const Camera& camera)
 	{
-		auto iterFind = mPerCameraData.Find(&camera);
-		if (iterFind == mPerCameraData.End())
+		auto iterFind = mPerCameraData.find(&camera);
+		if (iterFind == mPerCameraData.end())
 			return RendererExtensionRequest::DontRender;
 
 		Vector<GUIWidgetRenderData>& widgetRenderData = iterFind->second;
@@ -1603,7 +1603,7 @@ namespace bs
 		{
 			for (auto& drawGroup : widget.drawGroups)
 			{
-				if (!drawGroup.nonCachedElements.Empty() || drawGroup.requiresRedraw)
+				if (!drawGroup.nonCachedElements.empty() || drawGroup.requiresRedraw)
 				{
 					needsRedraw = true;
 					break;
@@ -1768,34 +1768,34 @@ namespace bs
 	void GUIRenderer::updateDrawGroups(const SPtr<Camera>& camera, UINT64 widgetId, UINT32 widgetDepth, const Matrix4& worldTransform,
 		 const GUIDrawGroupRenderDataUpdate& data)
 	{
-		auto iterFind = mPerCameraData.Find(camera.get());
-		if (iterFind == mPerCameraData.End())
+		auto iterFind = mPerCameraData.find(camera.get());
+		if (iterFind == mPerCameraData.end())
 			mReferencedCameras.Insert(camera);
 
 		Vector<GUIWidgetRenderData>& widgets = mPerCameraData[camera.Get()];
 		GUIWidgetRenderData* widget;
 
-		auto iterFind2 = std::find_if(widgets.Begin(), widgets.end(), [widgetId](auto& x) { return x.widgetId == widgetId; });
-		if (iterFind2 == widgets.End())
+		auto iterFind2 = std::find_if(widgets.begin(), widgets.end(), [widgetId](auto& x) { return x.widgetId == widgetId; });
+		if (iterFind2 == widgets.end())
 		{
 			widgets.push_back(GUIWidgetRenderData());
-			widget = &widgets.Back();
+			widget = &widgets.back();
 
 			widget->widgetId = widgetId;
 		}
 		else
 			widget = &(*iterFind2);
 
-		if(!data.newDrawGroups.Empty())
+		if(!data.newDrawGroups.empty())
 		{
 			widget->drawGroups = data.newDrawGroups;
 
 			// Allocate GPU buffers containing the material parameters
-			UINT32 numBuffers = (UINT32)widget->drawGroups.Size();
+			UINT32 numBuffers = (UINT32)widget->drawGroups.size();
 			for (auto& drawGroup : widget->drawGroups)
-				numBuffers += (UINT32)drawGroup.nonCachedElements.Size() + (UINT32)drawGroup.cachedElements.size();
+				numBuffers += (UINT32)drawGroup.nonCachedElements.size() + (UINT32)drawGroup.cachedElements.size();
 
-			auto numAllocatedBuffers = (UINT32)widget->paramBlocks.Size();
+			auto numAllocatedBuffers = (UINT32)widget->paramBlocks.size();
 			if (numBuffers > numAllocatedBuffers)
 			{
 				widget->paramBlocks.Resize(numBuffers);
@@ -1817,7 +1817,7 @@ namespace bs
 			}
 
 			// Rebuild draw group mesh
-			auto numQuads = (UINT32)widget->drawGroups.Size();
+			auto numQuads = (UINT32)widget->drawGroups.size();
 			if (numQuads > 0)
 			{
 				bool flipUVY = gCaps().conventions.uvYAxis == Conventions::Axis::Up;
@@ -1885,9 +1885,9 @@ namespace bs
 				widget->drawGroupMesh = nullptr;
 		}
 
-		assert(data.groupDirtyState.Size() == widget->drawGroups.size());
+		assert(data.groupDirtyState.size() == widget->drawGroups.size());
 
-		for(UINT32 i = 0; i < (UINT32)data.groupDirtyState.Size(); i++)
+		for(UINT32 i = 0; i < (UINT32)data.groupDirtyState.size(); i++)
 		{
 			if (data.groupDirtyState[i])
 				widget->drawGroups[i].requiresRedraw = true;
@@ -1901,7 +1901,7 @@ namespace bs
 		{
 			widget->widgetDepth = widgetDepth;
 
-			std::sort(widgets.Begin(), widgets.end(), [](auto& x, auto& y)
+			std::sort(widgets.begin(), widgets.end(), [](auto& x, auto& y)
 			{
 					return x.widgetDepth > y.widgetDepth;
 			});
@@ -1910,21 +1910,21 @@ namespace bs
 
 	void GUIRenderer::ClearDrawGroups(const SPtr<Camera>& camera, UINT64 widgetId)
 	{
-		auto iterFind = mPerCameraData.Find(camera.get());
-		if (iterFind == mPerCameraData.End())
+		auto iterFind = mPerCameraData.find(camera.get());
+		if (iterFind == mPerCameraData.end())
 			return;
 
 		Vector<GUIWidgetRenderData>& widgetData = iterFind->second;
-		auto iterFind2 = std::find_if(widgetData.Begin(), widgetData.end(), [widgetId](auto& x) { return x.widgetId == widgetId; });
-		if (iterFind2 == widgetData.End())
+		auto iterFind2 = std::find_if(widgetData.begin(), widgetData.end(), [widgetId](auto& x) { return x.widgetId == widgetId; });
+		if (iterFind2 == widgetData.end())
 			return;
 
-		widgetData.Erase(iterFind2);
+		widgetData.erase(iterFind2);
 
-		if (widgetData.Empty())
+		if (widgetData.empty())
 		{
-			mPerCameraData.Erase(iterFind);
-			mReferencedCameras.Erase(camera);
+			mPerCameraData.erase(iterFind);
+			mReferencedCameras.erase(camera);
 		}
 	}
 

@@ -36,7 +36,7 @@ namespace bs
 		if(value.collider != nullptr)
 		{
 			ScriptArray Arraycollider(value.collider);
-			for(int i = 0; i < (int)arraycollider.Size(); i++)
+			for(int i = 0; i < (int)arraycollider.size(); i++)
 			{
 				ScriptCColliderBase* scriptcollider;
 				scriptcollider = (ScriptCColliderBase*)ScriptCCollider::toNative(arraycollider.get<MonoObject*>(i));
@@ -55,7 +55,7 @@ namespace bs
 		{
 			ScriptArray ArraycontactPoints(value.contactPoints);
 			veccontactPoints.Resize(arraycontactPoints.size());
-			for(int i = 0; i < (int)arraycontactPoints.Size(); i++)
+			for(int i = 0; i < (int)arraycontactPoints.size(); i++)
 			{
 				veccontactPoints[i] = ScriptContactPoint::fromInterop(arraycontactPoints.get<__ContactPointInterop>(i));
 			}
@@ -83,7 +83,7 @@ namespace bs
 		}
 		veccollider = arraycollider.GetInternal();
 		output.collider = veccollider;
-		int arraySizecontactPoints = (int)value.contactPoints.Size();
+		int arraySizecontactPoints = (int)value.contactPoints.size();
 		MonoArray* veccontactPoints;
 		ScriptArray arraycontactPoints = ScriptArray::create<ScriptContactPoint>(arraySizecontactPoints);
 		for(int i = 0; i < arraySizecontactPoints; i++)

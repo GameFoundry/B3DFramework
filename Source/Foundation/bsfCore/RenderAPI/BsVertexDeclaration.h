@@ -131,7 +131,7 @@ namespace bs
 		bool operator!= (const VertexDeclarationProperties& rhs) const;
 
 		/**	Get the number of elements in the declaration. */
-		UINT32 GetElementCount() const { return (UINT32)mElementList.Size(); }
+		UINT32 GetElementCount() const { return (UINT32)mElementList.size(); }
 		
 		/**	Returns a list of vertex elements in the declaration. */
 		const Vector<VertexElement>& GetElements() const { return mElementList; }

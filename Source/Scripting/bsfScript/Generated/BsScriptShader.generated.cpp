@@ -42,7 +42,7 @@ namespace bs
 		vec__output = thisPtr->GetHandle()->getVariationParams();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptShaderVariationParamInfo>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -59,7 +59,7 @@ namespace bs
 		vec__output = ShaderEx::getParameters(thisPtr->GetHandle());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptShaderParameter>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{

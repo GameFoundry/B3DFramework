@@ -109,15 +109,15 @@ namespace bs
 			{
 			case 0:
 				ss << "PhysX info (" << errorCode << "): " << message << " at " << file << ":" << line;
-				BS_LOG(Info, Physics, ss.Str());
+				BS_LOG(Info, Physics, ss.str());
 				break;
 			case 1:
 				ss << "PhysX warning (" << errorCode << "): " << message << " at " << file << ":" << line;
-				BS_LOG(Warning, Physics, ss.Str());
+				BS_LOG(Warning, Physics, ss.str());
 				break;
 			case 2:
 				ss << "PhysX error (" << errorCode << "): " << message << " at " << file << ":" << line;
-				BS_LOG(Error, Physics, ss.Str());
+				BS_LOG(Error, Physics, ss.str());
 				BS_ASSERT(false); // Halt execution on debug builds when error occurs
 				break;
 			}
@@ -429,7 +429,7 @@ namespace bs
 			for (PxU32 i = 0; i < nbHits; i++)
 			{
 				data.push_back(PhysicsQueryHit());
-				parseHit(buffer[i], data.Back());
+				parseHit(buffer[i], data.back());
 			}
 
 			return true;
@@ -452,7 +452,7 @@ namespace bs
 			for (PxU32 i = 0; i < nbHits; i++)
 			{
 				data.push_back(PhysicsQueryHit());
-				parseHit(buffer[i], data.Back());
+				parseHit(buffer[i], data.back());
 			}
 
 			return true;
@@ -513,7 +513,7 @@ namespace bs
 
 	PhysX::~PhysX()
 	{
-		assert(mScenes.Empty() && "All scenes must be freed before physics system shutdown");
+		assert(mScenes.empty() && "All scenes must be freed before physics system shutdown");
 
 		if (mCooking != nullptr)
 			mCooking->Release();
@@ -718,10 +718,10 @@ namespace bs
 
 	void PhysX::_notifySceneDestroyed(PhysXScene* scene)
 	{
-		auto iterFind = std::find(mScenes.Begin(), mScenes.end(), scene);
-		assert(iterFind != mScenes.End());
+		auto iterFind = std::find(mScenes.begin(), mScenes.end(), scene);
+		assert(iterFind != mScenes.end());
 
-		mScenes.Erase(iterFind);
+		mScenes.erase(iterFind);
 	}
 
 	void PhysX::SetPaused(bool paused)
@@ -1214,12 +1214,12 @@ namespace bs
 
 	void PhysXScene::RemoveBroadPhaseRegion(UINT32 regionId)
 	{
-		auto iterFind = mBroadPhaseRegionHandles.Find(regionId);
-		if (iterFind == mBroadPhaseRegionHandles.End())
+		auto iterFind = mBroadPhaseRegionHandles.find(regionId);
+		if (iterFind == mBroadPhaseRegionHandles.end())
 			return;
 
 		mScene->RemoveBroadPhaseRegion(iterFind->second);
-		mBroadPhaseRegionHandles.Erase(iterFind);
+		mBroadPhaseRegionHandles.erase(iterFind);
 	}
 
 	void PhysXScene::ClearBroadPhaseRegions()

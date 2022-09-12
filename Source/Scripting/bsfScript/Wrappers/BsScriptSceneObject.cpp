@@ -220,7 +220,7 @@ namespace bs
 		String nativeName = MonoUtil::monoToString(name);
 		Vector<HSceneObject> children = nativeInstance->GetHandle()->findChildren(nativeName, recursive);
 
-		UINT32 numChildren = (UINT32)children.Size();
+		UINT32 numChildren = (UINT32)children.size();
 		ScriptArray output = ScriptArray::create<ScriptSceneObject>(numChildren);
 
 		for (UINT32 i = 0; i < numChildren; i++)

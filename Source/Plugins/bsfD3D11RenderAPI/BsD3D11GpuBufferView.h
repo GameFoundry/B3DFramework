@@ -35,13 +35,13 @@ namespace bs { namespace ct
 		class HashFunction
 		{
 		public:
-			size_t Operator()(const GPU_BUFFER_VIEW_DESC& key) const;
+			size_t operator()(const GPU_BUFFER_VIEW_DESC& key) const;
 		};
 
 		class EqualFunction
 		{
 		public:
-			bool Operator()(const GPU_BUFFER_VIEW_DESC& a, const GPU_BUFFER_VIEW_DESC& b) const;
+			bool operator()(const GPU_BUFFER_VIEW_DESC& a, const GPU_BUFFER_VIEW_DESC& b) const;
 		};
 
 		GpuBufferView() = default;

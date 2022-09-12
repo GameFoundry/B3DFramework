@@ -11,7 +11,7 @@ namespace bs
 	 */
 
 	/// <summary>
-	/// Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh.
+	/// Contains mesh vertex and index data used for initializing, updating and reading mesh Data from Mesh.
 	/// </summary>
 	[ShowInInspector]
 	public partial class MeshData : ScriptObject

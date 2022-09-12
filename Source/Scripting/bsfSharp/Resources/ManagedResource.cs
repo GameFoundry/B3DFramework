@@ -27,7 +27,7 @@ namespace bs
         /// <returns>A new instance of a managed resource with default values.</returns>
         static public T Create<T>() where T : ManagedResource, new()
         {
-            T newResource = new T();
+            T newResource = new ToWString();
             Internal_CreateInstance(newResource);
 
             return newResource;

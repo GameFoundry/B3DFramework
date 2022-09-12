@@ -72,7 +72,7 @@ namespace bs
 		 * @{
 		 */
 
-		/** Returns private data, for use by internal helper classes and methods. */
+		/** Returns private Data, for use by internal helper classes and methods. */
 		Pimpl* _getPrivateData() const { return m; }
 
 		/** @} */

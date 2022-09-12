@@ -21,7 +21,7 @@ namespace bs
 		/// <summary>Specify for a mesh that is often updated from the CPU.</summary>
 		Dynamic = 2,
 		/// <summary>
-		/// All mesh data will also be cached in CPU memory, making it available for fast read access from the CPU. Can be 
+		/// All mesh Data will also be cached in CPU memory, making it available for fast read access from the CPU. Can be
 		/// combined with other usage flags.
 		/// </summary>
 		CPUCached = 4096

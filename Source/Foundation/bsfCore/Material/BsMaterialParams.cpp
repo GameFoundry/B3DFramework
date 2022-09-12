@@ -61,9 +61,9 @@ namespace bs
 			}
 		}
 
-		mNumTextureParams = (UINT32)textureParams.Size();
-		mNumBufferParams = (UINT32)bufferParams.Size();
-		mNumSamplerParams = (UINT32)samplerParams.Size();
+		mNumTextureParams = (UINT32)textureParams.size();
+		mNumBufferParams = (UINT32)bufferParams.size();
+		mNumSamplerParams = (UINT32)samplerParams.size();
 
 		mDataParamsBuffer = mAlloc.Alloc(mDataSize);
 		memset(mDataParamsBuffer, 0, mDataSize);
@@ -80,11 +80,11 @@ namespace bs
 			if(entry.second.type == GPDT_UNKNOWN)
 				continue;
 
-			const auto paramIdx = (UINT32)mParams.Size();
+			const auto paramIdx = (UINT32)mParams.size();
 			mParams.push_back(ParamData());
 			mParamLookup[entry.first] = paramIdx;
 
-			ParamData& dataParam = mParams.Back();
+			ParamData& dataParam = mParams.back();
 
 			const UINT32 arraySize = entry.second.arraySize > 1 ? entry.second.arraySize : 1;
 			dataParam.arraySize = arraySize;
@@ -117,11 +117,11 @@ namespace bs
 		UINT32 textureIdx = 0;
 		for (auto& entry : textureParams)
 		{
-			UINT32 paramIdx = (UINT32)mParams.Size();
+			UINT32 paramIdx = (UINT32)mParams.size();
 			mParams.push_back(ParamData());
 			mParamLookup[entry.first] = paramIdx;
 
-			ParamData& dataParam = mParams.Back();
+			ParamData& dataParam = mParams.back();
 
 			dataParam.arraySize = 1;
 			dataParam.type = ParamType::Texture;
@@ -135,11 +135,11 @@ namespace bs
 		UINT32 bufferIdx = 0;
 		for (auto& entry : bufferParams)
 		{
-			UINT32 paramIdx = (UINT32)mParams.Size();
+			UINT32 paramIdx = (UINT32)mParams.size();
 			mParams.push_back(ParamData());
 			mParamLookup[entry.first] = paramIdx;
 
-			ParamData& dataParam = mParams.Back();
+			ParamData& dataParam = mParams.back();
 
 			dataParam.arraySize = 1;
 			dataParam.type = ParamType::Buffer;
@@ -153,11 +153,11 @@ namespace bs
 		UINT32 samplerIdx = 0;
 		for (auto& entry : samplerParams)
 		{
-			UINT32 paramIdx = (UINT32)mParams.Size();
+			UINT32 paramIdx = (UINT32)mParams.size();
 			mParams.push_back(ParamData());
 			mParamLookup[entry.first] = paramIdx;
 
-			ParamData& dataParam = mParams.Back();
+			ParamData& dataParam = mParams.back();
 
 			dataParam.arraySize = 1;
 			dataParam.type = ParamType::Sampler;
@@ -239,8 +239,8 @@ namespace bs
 
 	UINT32 MaterialParamsBase::GetParamIndex(const String& name) const
 	{
-		auto iterFind = mParamLookup.Find(name);
-		if (iterFind == mParamLookup.End())
+		auto iterFind = mParamLookup.find(name);
+		if (iterFind == mParamLookup.end())
 			return (UINT32)-1;
 
 		return iterFind->second;
@@ -249,8 +249,8 @@ namespace bs
 	MaterialParamsBase::GetParamResult MaterialParamsBase::getParamIndex(const String& name, ParamType type,
 		GpuParamDataType dataType, UINT32 arrayIdx, UINT32& output) const
 	{
-		auto iterFind = mParamLookup.Find(name);
-		if (iterFind == mParamLookup.End())
+		auto iterFind = mParamLookup.find(name);
+		if (iterFind == mParamLookup.end())
 			return GetParamResult::NotFound;
 
 		UINT32 index = iterFind->second;
@@ -269,8 +269,8 @@ namespace bs
 	MaterialParamsBase::GetParamResult MaterialParamsBase::getParamData(const String& name, ParamType type,
 		GpuParamDataType dataType, UINT32 arrayIdx, const ParamData** output) const
 	{
-		auto iterFind = mParamLookup.Find(name);
-		if (iterFind == mParamLookup.End())
+		auto iterFind = mParamLookup.find(name);
+		if (iterFind == mParamLookup.end())
 			return GetParamResult::NotFound;
 
 		UINT32 index = iterFind->second;
@@ -377,7 +377,7 @@ namespace bs
 				{
 					ParamStructDataType& param = mStructParams[structIdx];
 					param.dataSize = entry.second.elementSize;
-					param.data = mAlloc.Alloc(param.dataSize);
+					param.Data = mAlloc.Alloc(param.dataSize);
 
 					structIdx++;
 				}
@@ -392,9 +392,9 @@ namespace bs
 					if (attrib.type == ShaderParamAttributeType::SpriteUV)
 					{
 						// Find referenced texture
-						const auto findIterTex = mParamLookup.Find(attrib.value);
-						const auto findIterParam = mParamLookup.Find(entry.first);
-						if (findIterTex != mParamLookup.End() && findIterParam != mParamLookup.end())
+						const auto findIterTex = mParamLookup.find(attrib.value);
+						const auto findIterParam = mParamLookup.find(entry.first);
+						if (findIterTex != mParamLookup.end() && findIterParam != mParamLookup.end())
 						{
 							ParamData& paramData = mParams[findIterParam->second];
 
@@ -415,7 +415,7 @@ namespace bs
 		if (mStructParams != nullptr)
 		{
 			for (UINT32 i = 0; i < mNumStructParams; i++)
-				mAlloc.Free(mStructParams[i].data);
+				mAlloc.Free(mStructParams[i].Data);
 		}
 
 		mAlloc.Destruct(mStructParams, mNumStructParams);
@@ -601,8 +601,8 @@ namespace bs
 	template<bool Core>
 	bool TMaterialParams<Core>::isAnimated(const String& name, UINT32 arrayIdx)
 	{
-		auto iterFind = mParamLookup.Find(name);
-		if (iterFind == mParamLookup.End())
+		auto iterFind = mParamLookup.find(name);
+		if (iterFind == mParamLookup.end())
 			return false;
 
 		UINT32 index = iterFind->second;
@@ -628,7 +628,7 @@ namespace bs
 			return;
 		}
 
-		memcpy(value, structParam.data, structParam.dataSize);
+		memcpy(value, structParam.Data, structParam.dataSize);
 	}
 
 	template<bool Core>
@@ -642,7 +642,7 @@ namespace bs
 			return;
 		}
 
-		memcpy(structParam.data, value, structParam.dataSize);
+		memcpy(structParam.Data, value, structParam.dataSize);
 		param.version = ++mParamVersion;
 	}
 
@@ -660,7 +660,7 @@ namespace bs
 
 		if(textureParam.texture)
 			value = textureParam.texture;
-		else If(textureParam.spriteTexture)
+		else if(textureParam.spriteTexture)
 			value = impl::getSpriteTextureAtlas(textureParam.spriteTexture);
 
 		surface = textureParam.surface;
@@ -922,7 +922,7 @@ namespace bs
 		UINT64 dirtySamplerParamIdx = 0;
 		UINT64 dirtyStructParamOffset = 0;
 
-		for(UINT32 i = 0; i < (UINT32)mParams.Size(); i++)
+		for(UINT32 i = 0; i < (UINT32)mParams.size(); i++)
 		{
 			ParamData& param = mParams[i];
 			if (param.version <= mLastSyncVersion && !forceAll)
@@ -1061,7 +1061,7 @@ namespace bs
 
 	void MaterialParams::GetResourceDependencies(Vector<HResource>& resources)
 	{
-		for (UINT32 i = 0; i < (UINT32)mParams.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mParams.size(); i++)
 		{
 			ParamData& param = mParams[i];
 			if (param.type != ParamType::Texture)
@@ -1078,7 +1078,7 @@ namespace bs
 
 	void MaterialParams::GetCoreObjectDependencies(Vector<CoreObject*>& coreObjects)
 	{
-		for (UINT32 i = 0; i < (UINT32)mParams.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mParams.size(); i++)
 		{
 			ParamData& param = mParams[i];
 

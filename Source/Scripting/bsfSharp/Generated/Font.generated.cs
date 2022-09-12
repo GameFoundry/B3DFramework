@@ -11,7 +11,7 @@ namespace bs
 	 */
 
 	/// <summary>
-	/// Font resource containing data about textual characters and how to render text. Contains one or multiple font bitmaps, 
+	/// Font resource containing Data about textual characters and how to render text. Contains one or multiple font bitmaps,
 	/// each for a specific size.
 	/// </summary>
 	[ShowInInspector]

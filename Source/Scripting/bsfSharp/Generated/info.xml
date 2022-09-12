@@ -13,7 +13,7 @@
 				<doc>Curves to initialize the animation with.</doc>
 			</param>
 			<param name="isAdditive" type="bool">
-				<doc>Determines does the clip contain additive curve data. This will change the behaviour how is the clip blended with other animations.</doc>
+				<doc>Determines does the clip contain additive curve Data. This will change the behaviour how is the clip blended with other animations.</doc>
 			</param>
 			<param name="sampleRate" type="int">
 				<doc>If animation uses evenly spaced keyframes, number of samples per second. Not relevant if keyframes are unevenly spaced.</doc>
@@ -1010,7 +1010,7 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<doc>Represents a listener that hears audio sources. For spatial audio the volume and pitch of played audio is determined by the distance, orientation and velocity differences between the source and the listener.</doc>
 	</class>
 	<class native="Mesh" script="Mesh">
-		<doc>Primary class for holding geometry. Stores data in the form of vertex buffers and optionally an index buffer, which may be bound to the pipeline for drawing. May contain multiple sub-meshes.</doc>
+		<doc>Primary class for holding geometry. Stores Data in the form of vertex buffers and optionally an index buffer, which may be bound to the pipeline for drawing. May contain multiple sub-meshes.</doc>
 		<ctor>
 			<doc>Creates a new mesh with enough space to hold the a number of primitives using the specified layout. All indices will be part of a single sub-mesh.</doc>
 			<param name="numVertices" type="int">
@@ -1026,10 +1026,10 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 				<doc>Optimizes performance depending on planned usage of the mesh.</doc>
 			</param>
 			<param name="vertex" type="VertexLayout">
-				<doc>Controls how are vertices organized in the vertex buffer and what data they contain.</doc>
+				<doc>Controls how are vertices organized in the vertex buffer and what Data they contain.</doc>
 			</param>
 			<param name="index" type="IndexType">
-				<doc>Size of indices, use smaller size for better performance, however be careful not to go over the number of vertices limited by the data type size.</doc>
+				<doc>Size of indices, use smaller size for better performance, however be careful not to go over the number of vertices limited by the Data type size.</doc>
 			</param>
 		</ctor>
 		<ctor>
@@ -1047,16 +1047,16 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 				<doc>Optimizes performance depending on planned usage of the mesh.</doc>
 			</param>
 			<param name="vertex" type="VertexLayout">
-				<doc>Controls how are vertices organized in the vertex buffer and what data they contain.</doc>
+				<doc>Controls how are vertices organized in the vertex buffer and what Data they contain.</doc>
 			</param>
 			<param name="index" type="IndexType">
-				<doc>Size of indices, use smaller size for better performance, however be careful not to go over the number of vertices limited by the data type size.</doc>
+				<doc>Size of indices, use smaller size for better performance, however be careful not to go over the number of vertices limited by the Data type size.</doc>
 			</param>
 		</ctor>
 		<ctor>
-			<doc>Creates a new mesh from an existing mesh data. Created mesh will match the vertex and index buffers described by the mesh data exactly. Mesh will have no sub-meshes.</doc>
-			<param name="data" type="MeshData">
-				<doc>Vertex and index data to initialize the mesh with.</doc>
+			<doc>Creates a new mesh from an existing mesh Data. Created mesh will match the vertex and index buffers described by the mesh Data exactly. Mesh will have no sub-meshes.</doc>
+			<param name="Data" type="MeshData">
+				<doc>Vertex and index Data to initialize the mesh with.</doc>
 			</param>
 			<param name="topology" type="MeshTopology">
 				<doc>Determines how should the provided indices be interpreted by the pipeline. Default option is a triangle list, where three indices represent a single triangle.</doc>
@@ -1067,8 +1067,8 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		</ctor>
 		<ctor>
 			<doc>Creates a new mesh with enough space to hold the a number of primitives using the specified layout. Indices can be referenced by multiple sub-meshes.</doc>
-			<param name="data" type="MeshData">
-				<doc>Vertex and index data to initialize the mesh with.</doc>
+			<param name="Data" type="MeshData">
+				<doc>Vertex and index Data to initialize the mesh with.</doc>
 			</param>
 			<param name="subMeshes" type="SubMesh">
 				<doc>Defines how are indices separated into sub-meshes, and how are those sub-meshes rendered. Sub-meshes may be rendered independently, each with a different material.</doc>
@@ -1090,7 +1090,7 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Returns the number of sub-meshes contained in this mesh.</doc>
 		</property>
 		<property name="MeshData" type="MeshData" getter="getMeshData" setter="setMeshData" static="false">
-			<doc>Accesses the vertex and index data of the mesh. If reading, mesh must have been created with the MeshUsage::CPUCached flag. If writing the caller must ensure the data matches mesh&apos;s vertex/index counts, vertex layout and index format.</doc>
+			<doc>Accesses the vertex and index Data of the mesh. If reading, mesh must have been created with the MeshUsage::CPUCached flag. If writing the caller must ensure the Data matches mesh&apos;s vertex/index counts, vertex layout and index format.</doc>
 		</property>
 	</class>
 	<class native="ParticleEvolver" script="ParticleEvolver">
@@ -1136,41 +1136,41 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<ctor>
 			<doc>Creates a new 2D render texture using an existing color texture, and no depth-stencil texture.</doc>
 			<param name="colorSurface" type="Texture">
-				<doc>Color texture to render color data to.</doc>
+				<doc>Color texture to render color Data to.</doc>
 			</param>
 		</ctor>
 		<ctor>
 			<doc>Creates a new 2D render texture using existing textures as render destinations.</doc>
 			<param name="colorSurface" type="Texture">
-				<doc>Color texture to render color data to.</doc>
+				<doc>Color texture to render color Data to.</doc>
 			</param>
 			<param name="depthStencilSurface" type="Texture">
-				<doc>Optional depth/stencil texture to render depth/stencil data to.</doc>
+				<doc>Optional depth/stencil texture to render depth/stencil Data to.</doc>
 			</param>
 		</ctor>
 		<ctor>
 			<doc>Creates a new 2D render texture using one or multiple color textures and no depth-stencil texture.</doc>
 			<param name="colorSurface" type="Texture">
-				<doc>Color texture(s) to render color data to.</doc>
+				<doc>Color texture(s) to render color Data to.</doc>
 			</param>
 		</ctor>
 		<ctor>
 			<doc>Creates a new 2D render texture using one or multiple color textures and a depth/stencil texture.</doc>
 			<param name="colorSurface" type="Texture">
-				<doc>Color texture(s) to render color data to.</doc>
+				<doc>Color texture(s) to render color Data to.</doc>
 			</param>
 			<param name="depthStencilSurface" type="Texture">
-				<doc>Optional depth/stencil texture to render depth/stencil data to.</doc>
+				<doc>Optional depth/stencil texture to render depth/stencil Data to.</doc>
 			</param>
 		</ctor>
 		<property name="ColorSurface" type="Texture" getter="getColorSurface" setter="" static="false">
-			<doc>Returns the primary color surface that contains rendered color data.</doc>
+			<doc>Returns the primary color surface that contains rendered color Data.</doc>
 		</property>
 		<property name="ColorSurfaces" type="Texture" getter="getColorSurfaces" setter="" static="false">
 			<doc>Returns all the color surfaces.</doc>
 		</property>
 		<property name="DepthStencilSurface" type="Texture" getter="getDepthStencilSurface" setter="" static="false">
-			<doc>Returns the depth/stencil surface that contains rendered depth and stencil data.</doc>
+			<doc>Returns the depth/stencil surface that contains rendered depth and stencil Data.</doc>
 		</property>
 	</class>
 	<enum native="TextureType" script="TextureType">
@@ -1222,7 +1222,7 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		</enumentry>
 	</enum>
 	<class native="ImportOptions" script="ImportOptions">
-		<doc>Base class for creating import options from. Import options are specific for each importer and control how is data imported.</doc>
+		<doc>Base class for creating import options from. Import options are specific for each importer and control how is Data imported.</doc>
 	</class>
 	<class native="ParticleEmitterStaticMeshShape" script="ParticleEmitterStaticMeshShape">
 		<doc>Particle emitter shape that emits particles from a surface of a static (non-animated) mesh. Particles can be emitted from mesh vertices, edges or triangles. If information about normals exists, particles will also inherit the normals.</doc>
@@ -1239,7 +1239,7 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		</property>
 	</class>
 	<struct native="PixelVolume" script="PixelVolume">
-		<doc>Represents a 3D region of pixels used for referencing pixel data.</doc>
+		<doc>Represents a 3D region of pixels used for referencing pixel Data.</doc>
 		<ctor>
 		</ctor>
 		<ctor>
@@ -1650,7 +1650,7 @@ Does not account for gravity, you must apply it manually.</doc>
 		</field>
 	</struct>
 	<class native="FontBitmap" script="FontBitmap">
-		<doc>Contains textures and data about every character for a bitmap font of a specific size.</doc>
+		<doc>Contains textures and Data about every character for a bitmap font of a specific size.</doc>
 		<method native="getCharDesc" script="GetCharDesc" static="false">
 			<doc>Returns a character description for the character with the specified Unicode key.</doc>
 			<param name="charId" type="int">
@@ -1659,7 +1659,7 @@ Does not account for gravity, you must apply it manually.</doc>
 			</returns>
 		</method>
 		<property name="Size" type="int" getter="getsize" setter="setsize" static="false">
-			<doc>Font size for which the data is contained.</doc>
+			<doc>Font size for which the Data is contained.</doc>
 		</property>
 		<property name="BaselineOffset" type="int" getter="getbaselineOffset" setter="setbaselineOffset" static="false">
 			<doc>Y offset to the baseline on which the characters are placed, in pixels.</doc>
@@ -1668,7 +1668,7 @@ Does not account for gravity, you must apply it manually.</doc>
 			<doc>Height of a single line of the font, in pixels.</doc>
 		</property>
 		<property name="MissingGlyph" type="CharDesc" getter="getmissingGlyph" setter="setmissingGlyph" static="false">
-			<doc>Character to use when data for a character is missing.</doc>
+			<doc>Character to use when Data for a character is missing.</doc>
 		</property>
 		<property name="SpaceWidth" type="int" getter="getspaceWidth" setter="setspaceWidth" static="false">
 			<doc>Width of a space in pixels.</doc>
@@ -1780,7 +1780,7 @@ Does not account for gravity, you must apply it manually.</doc>
 				<doc>Name of the curve.</doc>
 			</param>
 			<param name="curve" type="AnimationCurve">
-				<doc>Curve containing the animation data.</doc>
+				<doc>Curve containing the animation Data.</doc>
 			</param>
 		</ctor>
 		<ctor>
@@ -1792,7 +1792,7 @@ Does not account for gravity, you must apply it manually.</doc>
 				<doc>Flags that describe the animation curve.</doc>
 			</param>
 			<param name="curve" type="AnimationCurve">
-				<doc>Curve containing the animation data.</doc>
+				<doc>Curve containing the animation Data.</doc>
 			</param>
 		</ctor>
 		<field name="name" type="string">
@@ -1802,7 +1802,7 @@ Does not account for gravity, you must apply it manually.</doc>
 			<doc>Flags that describe the animation curve.</doc>
 		</field>
 		<field name="curve" type="AnimationCurve">
-			<doc>Actual curve containing animation data.</doc>
+			<doc>Actual curve containing animation Data.</doc>
 		</field>
 	</struct>
 	<struct native="TNamedAnimationCurve&lt;Vector3&gt;" script="NamedVector3Curve">
@@ -1815,7 +1815,7 @@ Does not account for gravity, you must apply it manually.</doc>
 				<doc>Name of the curve.</doc>
 			</param>
 			<param name="curve" type="Vector3Curve">
-				<doc>Curve containing the animation data.</doc>
+				<doc>Curve containing the animation Data.</doc>
 			</param>
 		</ctor>
 		<ctor>
@@ -1827,7 +1827,7 @@ Does not account for gravity, you must apply it manually.</doc>
 				<doc>Flags that describe the animation curve.</doc>
 			</param>
 			<param name="curve" type="Vector3Curve">
-				<doc>Curve containing the animation data.</doc>
+				<doc>Curve containing the animation Data.</doc>
 			</param>
 		</ctor>
 		<field name="name" type="string">
@@ -1837,7 +1837,7 @@ Does not account for gravity, you must apply it manually.</doc>
 			<doc>Flags that describe the animation curve.</doc>
 		</field>
 		<field name="curve" type="Vector3Curve">
-			<doc>Actual curve containing animation data.</doc>
+			<doc>Actual curve containing animation Data.</doc>
 		</field>
 	</struct>
 	<struct native="TNamedAnimationCurve&lt;Vector2&gt;" script="NamedVector2Curve">
@@ -1850,7 +1850,7 @@ Does not account for gravity, you must apply it manually.</doc>
 				<doc>Name of the curve.</doc>
 			</param>
 			<param name="curve" type="Vector2Curve">
-				<doc>Curve containing the animation data.</doc>
+				<doc>Curve containing the animation Data.</doc>
 			</param>
 		</ctor>
 		<ctor>
@@ -1862,7 +1862,7 @@ Does not account for gravity, you must apply it manually.</doc>
 				<doc>Flags that describe the animation curve.</doc>
 			</param>
 			<param name="curve" type="Vector2Curve">
-				<doc>Curve containing the animation data.</doc>
+				<doc>Curve containing the animation Data.</doc>
 			</param>
 		</ctor>
 		<field name="name" type="string">
@@ -1872,7 +1872,7 @@ Does not account for gravity, you must apply it manually.</doc>
 			<doc>Flags that describe the animation curve.</doc>
 		</field>
 		<field name="curve" type="Vector2Curve">
-			<doc>Actual curve containing animation data.</doc>
+			<doc>Actual curve containing animation Data.</doc>
 		</field>
 	</struct>
 	<struct native="TNamedAnimationCurve&lt;Quaternion&gt;" script="NamedQuaternionCurve">
@@ -1885,7 +1885,7 @@ Does not account for gravity, you must apply it manually.</doc>
 				<doc>Name of the curve.</doc>
 			</param>
 			<param name="curve" type="QuaternionCurve">
-				<doc>Curve containing the animation data.</doc>
+				<doc>Curve containing the animation Data.</doc>
 			</param>
 		</ctor>
 		<ctor>
@@ -1897,7 +1897,7 @@ Does not account for gravity, you must apply it manually.</doc>
 				<doc>Flags that describe the animation curve.</doc>
 			</param>
 			<param name="curve" type="QuaternionCurve">
-				<doc>Curve containing the animation data.</doc>
+				<doc>Curve containing the animation Data.</doc>
 			</param>
 		</ctor>
 		<field name="name" type="string">
@@ -1907,7 +1907,7 @@ Does not account for gravity, you must apply it manually.</doc>
 			<doc>Flags that describe the animation curve.</doc>
 		</field>
 		<field name="curve" type="QuaternionCurve">
-			<doc>Actual curve containing animation data.</doc>
+			<doc>Actual curve containing animation Data.</doc>
 		</field>
 	</struct>
 	<struct native="TNamedAnimationCurve&lt;int32_t&gt;" script="NamedIntegerCurve">
@@ -1920,7 +1920,7 @@ Does not account for gravity, you must apply it manually.</doc>
 				<doc>Name of the curve.</doc>
 			</param>
 			<param name="curve" type="IntegerCurve">
-				<doc>Curve containing the animation data.</doc>
+				<doc>Curve containing the animation Data.</doc>
 			</param>
 		</ctor>
 		<ctor>
@@ -1932,7 +1932,7 @@ Does not account for gravity, you must apply it manually.</doc>
 				<doc>Flags that describe the animation curve.</doc>
 			</param>
 			<param name="curve" type="IntegerCurve">
-				<doc>Curve containing the animation data.</doc>
+				<doc>Curve containing the animation Data.</doc>
 			</param>
 		</ctor>
 		<field name="name" type="string">
@@ -1942,7 +1942,7 @@ Does not account for gravity, you must apply it manually.</doc>
 			<doc>Flags that describe the animation curve.</doc>
 		</field>
 		<field name="curve" type="IntegerCurve">
-			<doc>Actual curve containing animation data.</doc>
+			<doc>Actual curve containing animation Data.</doc>
 		</field>
 	</struct>
 	<class native="AnimationCurves" script="AnimationCurves">
@@ -2019,7 +2019,7 @@ Does not account for gravity, you must apply it manually.</doc>
 		</property>
 	</class>
 	<class native="AudioClip" script="AudioClip">
-		<doc>Audio clip stores audio data in a compressed or uncompressed format. Clips can be provided to audio sources or other audio methods to be played.</doc>
+		<doc>Audio clip stores audio Data in a compressed or uncompressed format. Clips can be provided to audio sources or other audio methods to be played.</doc>
 		<property name="BitDepth" type="int" getter="getBitDepth" setter="" static="false">
 			<doc>Returns the size of a single sample, in bits.</doc>
 		</property>
@@ -2030,10 +2030,10 @@ Does not account for gravity, you must apply it manually.</doc>
 			<doc>Returns the number of channels provided by the clip.</doc>
 		</property>
 		<property name="Format" type="AudioFormat" getter="getFormat" setter="" static="false">
-			<doc>Returns in which format is audio data stored in.</doc>
+			<doc>Returns in which format is audio Data stored in.</doc>
 		</property>
 		<property name="ReadMode" type="AudioReadMode" getter="getReadMode" setter="" static="false">
-			<doc>Returns how is the audio data read/decoded.</doc>
+			<doc>Returns how is the audio Data read/decoded.</doc>
 		</property>
 		<property name="Duration" type="float" getter="getLength" setter="" static="false">
 			<doc>Returns the length of the audio clip, in seconds.</doc>
@@ -2197,7 +2197,7 @@ Does not account for gravity, you must apply it manually.</doc>
 		</enumentry>
 	</enum>
 	<enum native="AudioReadMode" script="AudioReadMode">
-		<doc>Modes that determine how and when is audio data read.</doc>
+		<doc>Modes that determine how and when is audio Data read.</doc>
 		<enumentry native="LoadDecompressed" script="LoadDecompressed">
 			<doc>Entire audio clip will be loaded and decompressed. Uses most memory but has lowest CPU impact.</doc>
 		</enumentry>
@@ -2205,7 +2205,7 @@ Does not account for gravity, you must apply it manually.</doc>
 			<doc>Entire audio clip will be loaded, but will be decompressed while playing. Uses medium amount of memory and has the highest CPU impact.</doc>
 		</enumentry>
 		<enumentry native="Stream" script="Stream">
-			<doc>Audio will be slowly streamed from the disk, and decompressed if needed. Uses very little memory, and has either low or high CPU impact depending if the audio is in a compressed format. Since data is streamed from the disk, read speeds could also be a bottleneck.</doc>
+			<doc>Audio will be slowly streamed from the disk, and decompressed if needed. Uses very little memory, and has either low or high CPU impact depending if the audio is in a compressed format. Since Data is streamed from the disk, read speeds could also be a bottleneck.</doc>
 		</enumentry>
 	</enum>
 	<class native="TemporalAASettings" script="TemporalAASettings">
@@ -2225,7 +2225,7 @@ Does not account for gravity, you must apply it manually.</doc>
 			<doc>Audio format to import the audio clip as.</doc>
 		</property>
 		<property name="ReadMode" type="AudioReadMode" getter="getreadMode" setter="setreadMode" static="false">
-			<doc>Determines how is audio data loaded into memory.</doc>
+			<doc>Determines how is audio Data loaded into memory.</doc>
 		</property>
 		<property name="Is3D" type="bool" getter="getis3D" setter="setis3D" static="false">
 			<doc>Determines should the clip be played as spatial (3D) audio or as normal audio. 3D clips will be converted to mono on import.</doc>
@@ -2581,7 +2581,7 @@ Does not account for gravity, you must apply it manually.</doc>
 		</field>
 	</struct>
 	<class native="CAnimation" script="Animation">
-		<doc>Handles animation playback. Takes one or multiple animation clips as input and evaluates them every animation update tick depending on set properties. The evaluated data is used by the core thread for skeletal animation, by the sim thread for updating attached scene objects and bones (if skeleton is attached), or the data is made available for manual queries in the case of generic animation.</doc>
+		<doc>Handles animation playback. Takes one or multiple animation clips as input and evaluates them every animation update tick depending on set properties. The evaluated Data is used by the core thread for skeletal animation, by the sim thread for updating attached scene objects and bones (if skeleton is attached), or the Data is made available for manual queries in the case of generic animation.</doc>
 		<method native="play" script="Play" static="false">
 			<doc>Plays the specified animation clip.</doc>
 			<param name="clip" type="RRef&lt;AnimationClip&gt;">
@@ -2988,10 +2988,10 @@ Also see setContactOffset().</doc>
 			<doc>Texture that allows load/store operations from the GPU program.</doc>
 		</enumentry>
 		<enumentry native="TU_CPUCACHED" script="CPUCached">
-			<doc>All mesh data will also be cached in CPU memory, making it available for fast read access from the CPU.</doc>
+			<doc>All mesh Data will also be cached in CPU memory, making it available for fast read access from the CPU.</doc>
 		</enumentry>
 		<enumentry native="TU_CPUREADABLE" script="CPUReadable">
-			<doc>Allows the CPU to directly read the texture data buffers from the GPU.</doc>
+			<doc>Allows the CPU to directly read the texture Data buffers from the GPU.</doc>
 		</enumentry>
 		<enumentry native="TU_MUTABLEFORMAT" script="MutableFormat">
 			<doc>Allows you to retrieve views of the texture using a format different from one specified on creation.</doc>
@@ -3000,7 +3000,7 @@ Also see setContactOffset().</doc>
 	<class native="Texture" script="Texture">
 		<doc>Abstract class representing a texture. Specific render systems have their own Texture implementations. Internally represented as one or more surfaces with pixels in a certain number of dimensions, backed by a hardware buffer.</doc>
 		<method native="readData" script="GetGPUPixels" static="false">
-			<doc>Reads internal texture data into a newly allocated buffer.</doc>
+			<doc>Reads internal texture Data into a newly allocated buffer.</doc>
 			<param name="face" type="int">
 				<doc>Texture face to read from.</doc>
 			</param>
@@ -3008,7 +3008,7 @@ Also see setContactOffset().</doc>
 				<doc>Mipmap level to read from.</doc>
 			</param>
 			<returns type="AsyncOp&lt;PixelData&gt;">
-				<doc>Async operation object that will contain the buffer with the data once the operation completes.</doc>
+				<doc>Async operation object that will contain the buffer with the Data once the operation completes.</doc>
 			</returns>
 		</method>
 		<ctor>
@@ -3045,8 +3045,8 @@ Also see setContactOffset().</doc>
 		</method>
 		<method native="setPixels" script="SetPixels" static="false">
 			<doc>Sets pixels for the specified mip level and face.</doc>
-			<param name="data" type="PixelData">
-				<doc>Pixels to assign to the specified mip level. Pixel data must match the mip level size and texture pixel format.</doc>
+			<param name="Data" type="PixelData">
+				<doc>Pixels to assign to the specified mip level. Pixel Data must match the mip level size and texture pixel format.</doc>
 			</param>
 			<param name="face" type="int">
 				<doc>Face to write the pixels to. Cubemap textures have six faces whose face indices are as specified in the CubeFace enum. Array textures can have an arbitrary number of faces (if it&apos;s a cubemap array it has to be a multiple of 6).</doc>
@@ -3086,7 +3086,7 @@ Also see setContactOffset().</doc>
 			<doc>Returns the depth of the texture (only applicable for 3D textures).</doc>
 		</property>
 		<property name="GammaSpace" type="bool" getter="getGammaCorrection" setter="" static="false">
-			<doc>Determines does the texture contain gamma corrected data. If true then the GPU will automatically convert the pixels to linear space before reading from the texture, and convert them to gamma space when writing to the texture.</doc>
+			<doc>Determines does the texture contain gamma corrected Data. If true then the GPU will automatically convert the pixels to linear space before reading from the texture, and convert them to gamma space when writing to the texture.</doc>
 		</property>
 		<property name="SampleCount" type="int" getter="getSampleCount" setter="" static="false">
 			<doc>Gets the number of samples used for multisampling (0 or 1 if multisampling is not used).</doc>
@@ -3365,7 +3365,7 @@ In range [-1.0f, 1.0f].</doc>
 		</enumentry>
 	</enum>
 	<class native="ScreenSpaceReflectionsSettings" script="ScreenSpaceReflectionsSettings">
-		<doc>Settings that control the screen space reflections effect. Screen space reflections provide high quality mirror-like reflections at low performance cost. They should be used together with reflection probes as the effects complement each other. As the name implies, the reflections are only limited to geometry drawn on the screen and the system will fall back to refl. probes when screen space data is unavailable. Similarly the system will fall back to refl. probes for rougher (more glossy rather than mirror-like) surfaces. Those surfaces require a higher number of samples to achieve the glossy look, so we instead fall back to refl. probes which are pre-filtered and can be quickly sampled.</doc>
+		<doc>Settings that control the screen space reflections effect. Screen space reflections provide high quality mirror-like reflections at low performance cost. They should be used together with reflection probes as the effects complement each other. As the name implies, the reflections are only limited to geometry drawn on the screen and the system will fall back to refl. probes when screen space Data is unavailable. Similarly the system will fall back to refl. probes for rougher (more glossy rather than mirror-like) surfaces. Those surfaces require a higher number of samples to achieve the glossy look, so we instead fall back to refl. probes which are pre-filtered and can be quickly sampled.</doc>
 		<ctor>
 		</ctor>
 		<property name="Enabled" type="bool" getter="getenabled" setter="setenabled" static="false">
@@ -3636,7 +3636,7 @@ If this is disabled, then color grading and white balancing will not be enabled 
 		</field>
 	</struct>
 	<struct native="ControllerCollision" script="ControllerCollision">
-		<doc>Contains data about a collision of a character controller and another object.</doc>
+		<doc>Contains Data about a collision of a character controller and another object.</doc>
 		<field name="position" type="Vector3">
 			<doc>Contact position.</doc>
 		</field>
@@ -3651,7 +3651,7 @@ If this is disabled, then color grading and white balancing will not be enabled 
 		</field>
 	</struct>
 	<struct native="ControllerColliderCollision" script="ControllerColliderCollision">
-		<doc>Contains data about a collision of a character controller and a collider.</doc>
+		<doc>Contains Data about a collision of a character controller and a collider.</doc>
 		<field name="collider" type="Collider">
 			<doc>Component of the controller that was touched. Can be null if the controller has no component parent, in which case check #colliderRaw.</doc>
 		</field>
@@ -3672,7 +3672,7 @@ If this is disabled, then color grading and white balancing will not be enabled 
 		</field>
 	</struct>
 	<class native="RendererMeshData" script="MeshData">
-		<doc>Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh.</doc>
+		<doc>Contains mesh vertex and index Data used for initializing, updating and reading mesh Data from Mesh.</doc>
 		<ctor>
 			<param name="numVertices" type="int">
 			</param>
@@ -3730,7 +3730,7 @@ If this is disabled, then color grading and white balancing will not be enabled 
 		</enumentry>
 	</enum>
 	<struct native="ControllerControllerCollision" script="ControllerControllerCollision">
-		<doc>Contains data about a collision between two character controllers.</doc>
+		<doc>Contains Data about a collision between two character controllers.</doc>
 		<field name="controller" type="CharacterController">
 			<doc>Component of the controller that was touched. Can be null if the controller has no component parent, in which case check #controllerRaw.</doc>
 		</field>
@@ -4978,10 +4978,10 @@ Resize will not change the positions of current light probes. If you wish to res
 		<ctor>
 			<doc>Creates a new physics mesh.</doc>
 			<param name="meshData" type="MeshData">
-				<doc>Index and vertices of the mesh data.</doc>
+				<doc>Index and vertices of the mesh Data.</doc>
 			</param>
 			<param name="type" type="PhysicsMeshType">
-				<doc>Type of the mesh. If convex the provided mesh geometry will be converted into a convex mesh (that might not be the same as the provided mesh data).</doc>
+				<doc>Type of the mesh. If convex the provided mesh geometry will be converted into a convex mesh (that might not be the same as the provided mesh Data).</doc>
 			</param>
 		</ctor>
 		<property name="Type" type="PhysicsMeshType" getter="getType" setter="" static="false">
@@ -5084,7 +5084,7 @@ Resize will not change the positions of current light probes. If you wish to res
 		</property>
 	</class>
 	<enum native="VertexLayout" script="VertexLayout">
-		<doc>Available vertex layouts that specify what data is provided per-vertex in a mesh. Combinations other than those provided are allowed.</doc>
+		<doc>Available vertex layouts that specify what Data is provided per-vertex in a mesh. Combinations other than those provided are allowed.</doc>
 		<enumentry native="PU" script="PU">
 		</enumentry>
 		<enumentry native="Position" script="Position">
@@ -5213,7 +5213,7 @@ Resize will not change the positions of current light probes. If you wish to res
 	<class native="Shader" script="Shader">
 		<doc>Contains definitions of GPU programs used for rendering, as well as a set of global parameters to control those programs.</doc>
 		<property name="VariationParams" type="ShaderVariationParamInfo" getter="getVariationParams" setter="" static="false">
-			<doc>Returns the list of all variation parameters supported by this shader, possible values of each parameter and other meta-data.</doc>
+			<doc>Returns the list of all variation parameters supported by this shader, possible values of each parameter and other meta-Data.</doc>
 		</property>
 		<property name="Parameters" type="ShaderParameter" getter="getParameters" setter="" static="false">
 			<doc>Returns information about all parameters available in the shader.</doc>
@@ -5324,7 +5324,7 @@ Resize will not change the positions of current light probes. If you wish to res
 			<doc>When enabled the particles will be emitted sequentially from mesh vertices in the order they are defined. Only relevant for the Vertex emit mode.</doc>
 		</field>
 		<field name="mesh" type="RRef&lt;Mesh&gt;">
-			<doc>Mesh to spawn particles on. Must at least contain per-vertex position data encoded as 3D float vectors. Can optionally contain per-vertex normals encoded as 3D float vectors or as 4-byte unsigned-normalized format.</doc>
+			<doc>Mesh to spawn particles on. Must at least contain per-vertex position Data encoded as 3D float vectors. Can optionally contain per-vertex normals encoded as 3D float vectors or as 4-byte unsigned-normalized format.</doc>
 		</field>
 	</struct>
 	<struct native="PARTICLE_SKINNED_MESH_SHAPE_DESC" script="ParticleSkinnedMeshShapeOptions">
@@ -5338,7 +5338,7 @@ Resize will not change the positions of current light probes. If you wish to res
 			<doc>When enabled the particles will be emitted sequentially from mesh vertices in the order they are defined. Only relevant for the Vertex emit mode.</doc>
 		</field>
 		<field name="renderable" type="Renderable">
-			<doc>Renderable object containing a mesh to spawn particles on, as well as the attached Animation object resposible for performing skinned animation. Mesh must at least contain per-vertex position data encoded as 3D float vectors, blend indices encoded in 4-byte format, and blend weights encoded a 4D float vectors. Can optionally contain per-vertex normals encoded as 3D float vectors or as 4-byte unsigned-normalized format.</doc>
+			<doc>Renderable object containing a mesh to spawn particles on, as well as the attached Animation object resposible for performing skinned animation. Mesh must at least contain per-vertex position Data encoded as 3D float vectors, blend indices encoded in 4-byte format, and blend weights encoded a 4D float vectors. Can optionally contain per-vertex normals encoded as 3D float vectors or as 4-byte unsigned-normalized format.</doc>
 		</field>
 	</struct>
 	<class native="ParticleEmitterSkinnedMeshShape" script="ParticleEmitterSkinnedMeshShape">
@@ -5817,7 +5817,7 @@ The shape and mass of a rigidbody is governed by its colliders. You must attach 
 	<class native="CSkybox" script="Skybox">
 		<doc>Allows you to specify an environment map to use for sampling radiance of the sky.</doc>
 		<property name="Texture" type="RRef&lt;Texture&gt;" getter="getTexture" setter="setTexture" static="false">
-			<doc>Determines an environment map to use for sampling skybox radiance. Must be a cube-map texture, and should ideally contain HDR data.</doc>
+			<doc>Determines an environment map to use for sampling skybox radiance. Must be a cube-map texture, and should ideally contain HDR Data.</doc>
 		</property>
 		<property name="Brightness" type="float" getter="getBrightness" setter="setBrightness" static="false">
 			<doc>Brightness multiplier that will be applied to skybox values before they&apos;re being used. Allows you to make the skybox more or less bright. Equal to one by default.</doc>
@@ -5920,7 +5920,7 @@ The shape and mass of a rigidbody is governed by its colliders. You must attach 
 	<class native="Importer" script="Importer">
 		<doc>Module responsible for importing various asset types and converting them to types usable by the engine.</doc>
 		<method native="import" script="Import" static="false">
-			<doc>Imports a resource at the specified location, and returns the loaded data. If file contains more than one resource only the primary resource is imported (for example an FBX a mesh would be imported, but animations ignored).</doc>
+			<doc>Imports a resource at the specified location, and returns the loaded Data. If file contains more than one resource only the primary resource is imported (for example an FBX a mesh would be imported, but animations ignored).</doc>
 			<param name="inputFilePath" type="string">
 				<doc>Pathname of the input file.</doc>
 			</param>
@@ -5946,7 +5946,7 @@ The shape and mass of a rigidbody is governed by its colliders. You must attach 
 			</returns>
 		</method>
 		<method native="importAll" script="ImportAll" static="false">
-			<doc>Imports a resource at the specified location, and returns the loaded data. This method returns all imported resources, which is relevant for files that can contain multiple resources (for example an FBX which may contain both a mesh and animations).</doc>
+			<doc>Imports a resource at the specified location, and returns the loaded Data. This method returns all imported resources, which is relevant for files that can contain multiple resources (for example an FBX which may contain both a mesh and animations).</doc>
 			<param name="inputFilePath" type="string">
 				<doc>Pathname of the input file.</doc>
 			</param>
@@ -5975,7 +5975,7 @@ The shape and mass of a rigidbody is governed by its colliders. You must attach 
 			</returns>
 		</method>
 		<method native="import" script="Import" static="false">
-			<doc>Imports a resource at the specified location, and returns the loaded data. If file contains more than one resource only the primary resource is imported (for example an FBX a mesh would be imported, but animations ignored).</doc>
+			<doc>Imports a resource at the specified location, and returns the loaded Data. If file contains more than one resource only the primary resource is imported (for example an FBX a mesh would be imported, but animations ignored).</doc>
 			<param name="inputFilePath" type="string">
 				<doc>Pathname of the input file.</doc>
 			</param>
@@ -5989,7 +5989,7 @@ The shape and mass of a rigidbody is governed by its colliders. You must attach 
 			</returns>
 		</method>
 		<method native="import" script="Import" static="false">
-			<doc>Imports a resource at the specified location, and returns the loaded data. If file contains more than one resource only the primary resource is imported (for example an FBX a mesh would be imported, but animations ignored).</doc>
+			<doc>Imports a resource at the specified location, and returns the loaded Data. If file contains more than one resource only the primary resource is imported (for example an FBX a mesh would be imported, but animations ignored).</doc>
 			<param name="inputFilePath" type="string">
 				<doc>Pathname of the input file.</doc>
 			</param>
@@ -6024,7 +6024,7 @@ The shape and mass of a rigidbody is governed by its colliders. You must attach 
 			</returns>
 		</method>
 		<method native="importAll" script="ImportAll" static="false">
-			<doc>Imports a resource at the specified location, and returns the loaded data. This method returns all imported resources, which is relevant for files that can contain multiple resources (for example an FBX which may contain both a mesh and animations).</doc>
+			<doc>Imports a resource at the specified location, and returns the loaded Data. This method returns all imported resources, which is relevant for files that can contain multiple resources (for example an FBX which may contain both a mesh and animations).</doc>
 			<param name="inputFilePath" type="string">
 				<doc>Pathname of the input file.</doc>
 			</param>
@@ -6085,7 +6085,7 @@ The shape and mass of a rigidbody is governed by its colliders. You must attach 
 			<doc>Creates a new import options object that allows you to customize how are meshes imported.</doc>
 		</ctor>
 		<property name="CpuCached" type="bool" getter="getcpuCached" setter="setcpuCached" static="false">
-			<doc>Determines whether the texture data is also stored in CPU memory.</doc>
+			<doc>Determines whether the texture Data is also stored in CPU memory.</doc>
 		</property>
 		<property name="ImportNormals" type="bool" getter="getimportNormals" setter="setimportNormals" static="false">
 			<doc>Determines should mesh normals be imported if available.</doc>
@@ -6097,7 +6097,7 @@ The shape and mass of a rigidbody is governed by its colliders. You must attach 
 			<doc>Determines should mesh blend shapes be imported if available.</doc>
 		</property>
 		<property name="ImportSkin" type="bool" getter="getimportSkin" setter="setimportSkin" static="false">
-			<doc>Determines should mesh skin data like bone weights, indices and bind poses be imported if available.</doc>
+			<doc>Determines should mesh skin Data like bone weights, indices and bind poses be imported if available.</doc>
 		</property>
 		<property name="ImportAnimation" type="bool" getter="getimportAnimation" setter="setimportAnimation" static="false">
 			<doc>Determines should animation clips be imported if available.</doc>
@@ -6115,7 +6115,7 @@ The shape and mass of a rigidbody is governed by its colliders. You must attach 
 			<doc>Determines what type (if any) of collision mesh should be imported. If enabled the collision mesh will be available as a sub-resource returned by the importer (along with the normal mesh).</doc>
 		</property>
 		<property name="AnimationSplits" type="AnimationSplitInfo" getter="getanimationSplits" setter="setanimationSplits" static="false">
-			<doc>Animation split infos that determine how will the source animation clip be split. If no splits are present the data will be imported as one clip, but if splits are present the data will be split according to the split infos. Split infos only affect the primary animation clip, other clips will not be split.</doc>
+			<doc>Animation split infos that determine how will the source animation clip be split. If no splits are present the Data will be imported as one clip, but if splits are present the Data will be split according to the split infos. Split infos only affect the primary animation clip, other clips will not be split.</doc>
 		</property>
 		<property name="AnimationEvents" type="ImportedAnimationEvents" getter="getanimationEvents" setter="setanimationEvents" static="false">
 			<doc>Set of events that will be added to the animation clip, if animation import is enabled.</doc>
@@ -6232,10 +6232,10 @@ The shape and mass of a rigidbody is governed by its colliders. You must attach 
 			<doc>Maximum mip level to generate when generating mipmaps. If 0 then maximum amount of mip levels will be generated.</doc>
 		</property>
 		<property name="CpuCached" type="bool" getter="getcpuCached" setter="setcpuCached" static="false">
-			<doc>Determines whether the texture data is also stored in main memory, available for fast CPU access.</doc>
+			<doc>Determines whether the texture Data is also stored in main memory, available for fast CPU access.</doc>
 		</property>
 		<property name="SRGB" type="bool" getter="getsRGB" setter="setsRGB" static="false">
-			<doc>Determines whether the texture data should be treated as if its in sRGB (gamma) space. Such texture will be converted by hardware to linear space before use on the GPU.</doc>
+			<doc>Determines whether the texture Data should be treated as if its in sRGB (gamma) space. Such texture will be converted by hardware to linear space before use on the GPU.</doc>
 		</property>
 		<property name="Cubemap" type="bool" getter="getcubemap" setter="setcubemap" static="false">
 			<doc>Determines should the texture be imported as a cubemap. See setCubemapSource to choose how will the source texture be converted to a cubemap.</doc>
@@ -6702,7 +6702,7 @@ The shape and mass of a rigidbody is governed by its colliders. You must attach 
 			<doc>Specify for a mesh that is often updated from the CPU.</doc>
 		</enumentry>
 		<enumentry native="MU_CPUCACHED" script="CPUCached">
-			<doc>All mesh data will also be cached in CPU memory, making it available for fast read access from the CPU. Can be combined with other usage flags.</doc>
+			<doc>All mesh Data will also be cached in CPU memory, making it available for fast read access from the CPU. Can be combined with other usage flags.</doc>
 		</enumentry>
 	</enum>
 	<class native="ShaderVariation" script="ShaderVariation">
@@ -6970,7 +6970,7 @@ Optionally if the parameter is an array you may provide an array index you which
 			</returns>
 		</method>
 		<method native="isAnimated" script="IsAnimated" static="false">
-			<doc>Checks does the data parameter with the specified name currently contains animated data. This could be an animation curve or a color gradient.</doc>
+			<doc>Checks does the Data parameter with the specified name currently contains animated Data. This could be an animation curve or a color gradient.</doc>
 			<param name="name" type="string">
 			</param>
 			<param name="arrayIdx" type="int">
@@ -7591,7 +7591,7 @@ Optionally if the parameter is an array you may provide an array index you which
 			<doc>If enabled the resource system will keep an internal reference to the resource so it doesn&apos;t get destroyed when it goes out of scope. You can call Resources::release() to release the internal reference. Each call to load will create a new internal reference and therefore must be followed by the same number of release calls. If dependencies are being loaded, they will not have internal references created regardless of this parameter.</doc>
 		</enumentry>
 		<enumentry native="KeepSourceData" script="KeepSourceData">
-			<doc>Determines if the loaded resource keeps original data loaded. Sometime resources will process loaded data and discard the original (e.g. uncompressing audio on load). This flag can prevent the resource from discarding the original data. The original data might be required for saving the resource (via Resources::save), but will use up extra memory. Normally you want to keep this enabled if you plan on saving the resource to disk.</doc>
+			<doc>Determines if the loaded resource keeps original Data loaded. Sometime resources will process loaded Data and discard the original (e.g. uncompressing audio on load). This flag can prevent the resource from discarding the original Data. The original Data might be required for saving the resource (via Resources::save), but will use up extra memory. Normally you want to keep this enabled if you plan on saving the resource to disk.</doc>
 		</enumentry>
 		<enumentry native="Default" script="Default">
 			<doc>Default set of flags used for resource loading.</doc>
@@ -7611,7 +7611,7 @@ Optionally if the parameter is an array you may provide an array index you which
 			</returns>
 		</method>
 		<method native="loadAsync" script="LoadAsync" static="false">
-			<doc>Loads the resource asynchronously. Initially returned resource handle will be invalid until resource loading is done. Use ResourceHandle&lt;T&gt;::isLoaded to check if resource has been loaded, or ResourceHandle&lt;T&gt;::blockUntilLoaded to wait until load completes.</doc>
+			<doc>Loads the resource asynchronously. Initially returned resource handle will be invalid until resource loading is done. Use ResourceHandle&lt;ToWString&gt;::isLoaded to check if resource has been loaded, or ResourceHandle&lt;ToWString&gt;::blockUntilLoaded to wait until load completes.</doc>
 			<param name="filePath" type="string">
 				<doc>Full pathname of the file.</doc>
 			</param>
@@ -7660,7 +7660,7 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 				<doc>If true, any existing resource at the specified location will be overwritten.</doc>
 			</param>
 			<param name="compress" type="bool">
-				<doc>Should the resource be compressed before saving. Some resources have data that is already compressed and this option will be ignored for such resources.</doc>
+				<doc>Should the resource be compressed before saving. Some resources have Data that is already compressed and this option will be ignored for such resources.</doc>
 			</param>
 		</method>
 		<method native="save" script="Save" static="false">
@@ -7669,7 +7669,7 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 				<doc>Handle to the resource.</doc>
 			</param>
 			<param name="compress" type="bool">
-				<doc>Should the resource be compressed before saving. Some resources have data that is already compressed and this option will be ignored for such resources.</doc>
+				<doc>Should the resource be compressed before saving. Some resources have Data that is already compressed and this option will be ignored for such resources.</doc>
 			</param>
 		</method>
 		<method native="getDependencies" script="GetDependencies" static="false">
@@ -7806,7 +7806,7 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 		</field>
 	</struct>
 	<class native="Font" script="Font">
-		<doc>Font resource containing data about textual characters and how to render text. Contains one or multiple font bitmaps, each for a specific size.</doc>
+		<doc>Font resource containing Data about textual characters and how to render text. Contains one or multiple font bitmaps, each for a specific size.</doc>
 		<method native="getBitmap" script="GetBitmap" static="false">
 			<doc>Returns font bitmap for a specific font size.</doc>
 			<param name="size" type="int">
@@ -7917,7 +7917,7 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 		</enumentry>
 	</enum>
 	<struct native="GUIContent" script="GUIContent">
-		<doc>Holds data used for displaying content in a GUIElement. Content can consist of a string, image, a tooltip or none of those.</doc>
+		<doc>Holds Data used for displaying content in a GUIElement. Content can consist of a string, image, a tooltip or none of those.</doc>
 		<ctor>
 			<doc>Constructs an empty content.</doc>
 		</ctor>

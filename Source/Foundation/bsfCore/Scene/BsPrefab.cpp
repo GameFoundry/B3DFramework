@@ -54,17 +54,17 @@ namespace bs
 		Stack<HSceneObject> todo;
 		todo.Push(sceneObject);
 
-		while (!todo.Empty())
+		while (!todo.empty())
 		{
 			HSceneObject current = todo.Top();
-			todo.Pop();
+			todo.pop();
 
 			UINT32 childCount = current->GetNumChildren();
 			for (UINT32 i = 0; i < childCount; i++)
 			{
 				HSceneObject child = current->GetChild(i);
 
-				if (!child->mPrefabLinkUUID.Empty())
+				if (!child->mPrefabLinkUUID.empty())
 					PrefabUtility::recordPrefabDiff(child);
 				else
 					todo.Push(child);
@@ -82,10 +82,10 @@ namespace bs
 		// Remove objects with "dont save" flag
 		todo.Push(mRoot);
 
-		while (!todo.Empty())
+		while (!todo.empty())
 		{
 			HSceneObject current = todo.Top();
-			todo.Pop();
+			todo.pop();
 
 			if (current->HasFlag(SOF_DontSave))
 				current->Destroy();
@@ -112,17 +112,17 @@ namespace bs
 		Stack<HSceneObject> todo;
 		todo.Push(mRoot);
 
-		while (!todo.Empty())
+		while (!todo.empty())
 		{
 			HSceneObject current = todo.Top();
-			todo.Pop();
+			todo.pop();
 
 			UINT32 childCount = current->GetNumChildren();
 			for (UINT32 i = 0; i < childCount; i++)
 			{
 				HSceneObject child = current->GetChild(i);
 
-				if (!child->mPrefabLinkUUID.Empty())
+				if (!child->mPrefabLinkUUID.empty())
 					PrefabUtility::updateFromPrefab(child);
 				else
 					todo.Push(child);

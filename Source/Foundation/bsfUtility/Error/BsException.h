@@ -23,11 +23,11 @@ namespace bs
 		{ }
 
 		Exception(const char* type, const String& description, const String& source, const char* file, long line)
-			: MLine(line), mTypeName(type), mDescription(description), mSource(source), mFile(file)
+			: mLine(line), mTypeName(type), mDescription(description), mSource(source), mFile(file)
 		{ }
 
 		Exception(const Exception& rhs)
-			: MLine(rhs.mLine), mTypeName(rhs.mTypeName), mDescription(rhs.mDescription),
+			: mLine(rhs.mLine), mTypeName(rhs.mTypeName), mDescription(rhs.mDescription),
 			mSource(rhs.mSource), mFile(rhs.mFile)
 		{ }
 
@@ -51,7 +51,7 @@ namespace bs
 		 */
 		virtual const String& GetFullDescription() const
 		{
-			if (mFullDesc.Empty())
+			if (mFullDesc.empty())
 			{
 				StringStream desc;
 
@@ -64,7 +64,7 @@ namespace bs
 					desc << " at " << mFile << " (line " << mLine << ")";
 				}
 
-				mFullDesc = desc.Str();
+				mFullDesc = desc.str();
 			}
 
 			return mFullDesc;
@@ -83,7 +83,7 @@ namespace bs
 		virtual const String& GetDescription(void) const { return mDescription; }
 
 		/** Overriden std::exception::what. Returns the same value as getFullDescription(). */
-		const char* what() const noexcept override { return getFullDescription().c_str(); }
+		const char* what() const noexcept override { return GetFullDescription().c_str(); }
 
 	protected:
 		long mLine = 0;
@@ -176,7 +176,7 @@ namespace bs
 			"Invalid exception type (" #type ") for BS_EXCEPT macro."						\
 			" It needs to derive from bs::Exception.");										\
 		gCrashHandler().ReportCrash(#type, desc, __PRETTY_FUNCTION__, __FILE__, __LINE__);	\
-		PlatformUtility::terminate(true);													\
+		PlatformUtility::Terminate(true);													\
 	}
 #endif
 

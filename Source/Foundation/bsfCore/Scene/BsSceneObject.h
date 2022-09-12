@@ -374,7 +374,7 @@ namespace bs
 		int IndexOfChild(const HSceneObject& child) const;
 
 		/**	Gets the number of all child GameObjects. */
-		UINT32 GetNumChildren() const { return (UINT32)mChildren.Size(); }
+		UINT32 GetNumChildren() const { return (UINT32)mChildren.size(); }
 
 		/** Returns the scene this object is part of. Can be null if scene object hasn't been instantiated. */
 		const SPtr<SceneInstance>& GetScene() const;

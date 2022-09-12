@@ -80,7 +80,7 @@ namespace bs
 			get { return Internal_getColorSurfaces(mCachedPtr); }
 		}
 
-		/// <summary>Returns the depth/stencil surface that contains rendered depth and stencil data.</summary>
+		/// <summary>Returns the depth/stencil surface that contains rendered depth and stencil Data.</summary>
 		[NativeWrapper]
 		public Texture DepthStencilSurface
 		{

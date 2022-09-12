@@ -73,7 +73,7 @@ namespace bs
 																								\
 	std::common_type<decltype(OwnerType::field)>::type::value_type& get##name(OwnerType* obj, ::bs::UINT32 idx) { return obj->field[idx]; }				\
 	void set##name(OwnerType* obj, ::bs::UINT32 idx, std::common_type<decltype(OwnerType::field)>::type::value_type& val) { obj->field[idx] = val; }	\
-	::bs::UINT32 getSize##name(OwnerType* obj) { return (::bs::UINT32)obj->field.Size(); }																\
+	::bs::UINT32 getSize##name(OwnerType* obj) { return (::bs::UINT32)obj->field.size(); }																\
 	void setSize##name(OwnerType* obj, ::bs::UINT32 val) { obj->field.Resize(val); }																	\
 																								\
 	struct META_NextEntry_##name{};																\
@@ -141,7 +141,7 @@ namespace bs
 																								\
 	std::common_type<decltype(OwnerType::field)>::type::value_type& get##name(OwnerType* obj, ::bs::UINT32 idx) { return obj->field[idx]; }				\
 	void set##name(OwnerType* obj, ::bs::UINT32 idx, std::common_type<decltype(OwnerType::field)>::type::value_type& val) { obj->field[idx] = val; }	\
-	::bs::UINT32 getSize##name(OwnerType* obj) { return (::bs::UINT32)obj->field.Size(); }		\
+	::bs::UINT32 getSize##name(OwnerType* obj) { return (::bs::UINT32)obj->field.size(); }		\
 	void setSize##name(OwnerType* obj, ::bs::UINT32 val) { obj->field.Resize(val); }			\
 																								\
 	struct META_NextEntry_##name{};																\
@@ -210,7 +210,7 @@ namespace bs
 																								\
 	std::common_type<decltype(OwnerType::field)>::type::value_type get##name(OwnerType* obj, ::bs::UINT32 idx) { return obj->field[idx]; }				\
 	void set##name(OwnerType* obj, ::bs::UINT32 idx, std::common_type<decltype(OwnerType::field)>::type::value_type val) { obj->field[idx] = val; }		\
-	::bs::UINT32 getSize##name(OwnerType* obj) { return (::bs::UINT32)obj->field.Size(); }		\
+	::bs::UINT32 getSize##name(OwnerType* obj) { return (::bs::UINT32)obj->field.size(); }		\
 	void setSize##name(OwnerType* obj, ::bs::UINT32 val) { obj->field.Resize(val); }			\
 																								\
 	struct META_NextEntry_##name{};																\
@@ -319,7 +319,7 @@ namespace bs
 
 		/**
 		 * Called by the serializers when serialization for this object has started. Use this to do any preprocessing on
-		 * data you might need during serialization itself.
+		 * Data you might need during serialization itself.
 		 */
 		virtual void OnSerializationStarted(IReflectable* obj, SerializationContext* context) {}
 
@@ -363,7 +363,7 @@ namespace bs
 		}
 
 		/** Returns the total number of fields in this RTTI type. */
-		UINT32 GetNumFields() const { return (UINT32)mFields.Size(); }
+		UINT32 GetNumFields() const { return (UINT32)mFields.size(); }
 
 		/** Returns a field based on the field index. Use getNumFields() to get total number of fields available. */
 		RTTIField* getField(UINT32 idx) { return mFields.At(idx); }
@@ -537,10 +537,10 @@ namespace bs
 			Stack<RTTITypeBase*> todo;
 			todo.Push(base);
 
-			while (!todo.Empty())
+			while (!todo.empty())
 			{
 				RTTITypeBase* currentType = todo.Top();
-				todo.Pop();
+				todo.pop();
 
 				if (currentType->GetRTTIId() == getRTTIId())
 					return true;
@@ -561,7 +561,7 @@ namespace bs
 		/** @copydoc RTTITypeBase::_clone */
 		RTTITypeBase* _clone(FrameAlloc& alloc) override
 		{
-			return alloc.construct<MyRTTIType>();
+			return alloc.Construct<MyRTTIType>();
 		}
 
 	protected:

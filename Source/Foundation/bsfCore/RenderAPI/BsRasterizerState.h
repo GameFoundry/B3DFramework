@@ -228,7 +228,7 @@ namespace std
 template<>
 struct hash<bs::RASTERIZER_STATE_DESC>
 {
-	size_t Operator()(const bs::RASTERIZER_STATE_DESC& value) const
+	size_t operator()(const bs::RASTERIZER_STATE_DESC& value) const
 	{
 		return (size_t)bs::RasterizerState::generateHash(value);
 	}

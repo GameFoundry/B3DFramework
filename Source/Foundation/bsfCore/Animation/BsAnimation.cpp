@@ -37,25 +37,25 @@ namespace bs
 				if(state.curves != nullptr)
 				{
 					{
-						UINT32 numCurves = (UINT32)state.curves->position.Size();
+						UINT32 numCurves = (UINT32)state.curves->position.size();
 						for (UINT32 k = 0; k < numCurves; k++)
 							state.positionCaches[k].~TCurveCache();
 					}
 
 					{
-						UINT32 numCurves = (UINT32)state.curves->rotation.Size();
+						UINT32 numCurves = (UINT32)state.curves->rotation.size();
 						for (UINT32 k = 0; k < numCurves; k++)
 							state.rotationCaches[k].~TCurveCache();
 					}
 
 					{
-						UINT32 numCurves = (UINT32)state.curves->scale.Size();
+						UINT32 numCurves = (UINT32)state.curves->scale.size();
 						for (UINT32 k = 0; k < numCurves; k++)
 							state.scaleCaches[k].~TCurveCache();
 					}
 
 					{
-						UINT32 numCurves = (UINT32)state.curves->generic.Size();
+						UINT32 numCurves = (UINT32)state.curves->generic.size();
 						for (UINT32 k = 0; k < numCurves; k++)
 							state.genericCaches[k].~TCurveCache();
 					}
@@ -108,7 +108,7 @@ namespace bs
 		if (skeleton != nullptr)
 			skeletonPose = LocalSkeletonPose(skeleton->GetNumBones());
 
-		numSceneObjects = (UINT32)sceneObjects.Size();
+		numSceneObjects = (UINT32)sceneObjects.size();
 		if (numSceneObjects > 0)
 			sceneObjectPose = LocalSkeletonPose(numSceneObjects, true);
 		else
@@ -124,7 +124,7 @@ namespace bs
 
 		bs_frame_mark();
 		{
-			FrameVector<bool> ClipLoadState(clipInfos.Size());
+			FrameVector<bool> ClipLoadState(clipInfos.size());
 			FrameVector<AnimationStateLayer> tempLayers;
 			UINT32 clipIdx = 0;
 			for (auto& clipInfo : clipInfos)
@@ -135,7 +135,7 @@ namespace bs
 				else
 					layer += 1;
 
-				auto iterFind = std::find_if(tempLayers.Begin(), tempLayers.end(),
+				auto iterFind = std::find_if(tempLayers.begin(), tempLayers.end(),
 					[&](auto& x)
 				{
 					return x.index == layer;
@@ -144,10 +144,10 @@ namespace bs
 				bool isLoaded = clipInfo.clip.IsLoaded();
 				clipLoadState[clipIdx] = isLoaded;
 
-				if (iterFind == tempLayers.End())
+				if (iterFind == tempLayers.end())
 				{
 					tempLayers.push_back(AnimationStateLayer());
-					AnimationStateLayer& newLayer = tempLayers.Back();
+					AnimationStateLayer& newLayer = tempLayers.back();
 
 					newLayer.index = layer;
 					newLayer.additive = isLoaded && clipInfo.clip->IsAdditive();
@@ -156,14 +156,14 @@ namespace bs
 				clipIdx++;
 			}
 
-			std::sort(tempLayers.Begin(), tempLayers.end(),
+			std::sort(tempLayers.begin(), tempLayers.end(),
 				[&](auto& x, auto& y)
 			{
 				return x.index < y.index;
 			});
 
-			numLayers = (UINT32)tempLayers.Size();
-			UINT32 numClips = (UINT32)clipInfos.Size();
+			numLayers = (UINT32)tempLayers.size();
+			UINT32 numClips = (UINT32)clipInfos.size();
 			UINT32 numBones;
 
 			if (skeleton != nullptr)
@@ -183,16 +183,16 @@ namespace bs
 					continue;
 
 				SPtr<AnimationCurves> curves = clipInfo.clip->GetCurves();
-				numPosCurves += (UINT32)curves->position.Size();
-				numRotCurves += (UINT32)curves->rotation.Size();
-				numScaleCurves += (UINT32)curves->scale.Size();
+				numPosCurves += (UINT32)curves->position.size();
+				numRotCurves += (UINT32)curves->rotation.size();
+				numScaleCurves += (UINT32)curves->scale.size();
 			}
 
 			numGenericCurves = 0;
-			if(clipInfos.Size() > 0 && clipLoadState[0])
+			if(clipInfos.size() > 0 && clipLoadState[0])
 			{
 				SPtr<AnimationCurves> curves = clipInfos[0].clip->GetCurves();
-				numGenericCurves = (UINT32)curves->generic.Size();
+				numGenericCurves = (UINT32)curves->generic.size();
 			}
 
 			UINT32* mappedBoneIndices = (UINT32*)bs_frame_alloc(sizeof(UINT32) * numSceneObjects);
@@ -208,7 +208,7 @@ namespace bs
 						continue;
 
 					// Empty string always means root bone
-					if (sceneObjects[i].curveName.Empty())
+					if (sceneObjects[i].curveName.empty())
 					{
 						UINT32 rootBoneIdx = skeleton->GetRootBoneIndex();
 						if (rootBoneIdx != (UINT32)-1)
@@ -356,7 +356,7 @@ namespace bs
 				}
 
 				// Find any curves affecting morph shape animation
-				if (!clipInfos.Empty())
+				if (!clipInfos.empty())
 				{
 					bool isClipValid = clipLoadState[0];
 					if (isClipValid)
@@ -390,7 +390,7 @@ namespace bs
 				layer.numStates = 0;
 
 				UINT32 localStateIdx = 0;
-				for(UINT32 j = 0; j < (UINT32)clipInfos.Size(); j++)
+				for(UINT32 j = 0; j < (UINT32)clipInfos.size(); j++)
 				{
 					AnimationClipInfo& clipInfo = clipInfos[j];
 
@@ -415,7 +415,7 @@ namespace bs
 						float t = clipInfo.fadeTime / clipInfo.fadeLength;
 						weight *= (1.0f - t);
 					}
-					else If(clipInfo.fadeDirection > 0.0f)
+					else if(clipInfo.fadeDirection > 0.0f)
 					{
 						float t = clipInfo.fadeTime / clipInfo.fadeLength;
 						weight *= t;
@@ -446,16 +446,16 @@ namespace bs
 						state.time = clipInfo.state.time;
 
 					state.positionCaches = posCache;
-					posCache += state.curves->position.Size();
+					posCache += state.curves->position.size();
 
 					state.rotationCaches = rotCache;
-					rotCache += state.curves->rotation.Size();
+					rotCache += state.curves->rotation.size();
 
 					state.scaleCaches = scaleCache;
-					scaleCache += state.curves->scale.Size();
+					scaleCache += state.curves->scale.size();
 
 					state.genericCaches = genCache;
-					genCache += state.curves->generic.Size();
+					genCache += state.curves->generic.size();
 
 					clipInfo.layerIdx = curLayerIdx;
 					clipInfo.stateIdx = localStateIdx;
@@ -497,7 +497,7 @@ namespace bs
 			Matrix4 InvRootTransform(BsIdentity);
 			for (UINT32 i = 0; i < numSceneObjects; i++)
 			{
-				if(sceneObjects[i].curveName.Empty())
+				if(sceneObjects[i].curveName.empty())
 				{
 					HSceneObject so = sceneObjects[i].so;
 					if (!so.IsDestroyed(true))
@@ -531,7 +531,7 @@ namespace bs
 
 					if (isSOValid)
 					{
-						for (UINT32 j = 0; j < (UINT32)clipInfos.Size(); j++)
+						for (UINT32 j = 0; j < (UINT32)clipInfos.size(); j++)
 						{
 							AnimationClipInfo& clipInfo = clipInfos[j];
 
@@ -584,7 +584,7 @@ namespace bs
 
 	void AnimationProxy::UpdateMorphChannelWeights(const Vector<float>& weights)
 	{
-		UINT32 numWeights = (UINT32)weights.Size();
+		UINT32 numWeights = (UINT32)weights.size();
 		for(UINT32 i = 0; i < numMorphChannels; i++)
 		{
 			if (i < numWeights)
@@ -601,7 +601,7 @@ namespace bs
 		Matrix4 InvRootTransform(BsIdentity);
 		for (UINT32 i = 0; i < numSceneObjects; i++)
 		{
-			if (sceneObjects[i].curveName.Empty())
+			if (sceneObjects[i].curveName.empty())
 			{
 				HSceneObject so = sceneObjects[i].so;
 				if (!so.IsDestroyed(true))
@@ -685,7 +685,7 @@ namespace bs
 
 	void Animation::SetMorphChannelWeight(UINT32 idx, float weight)
 	{
-		UINT32 numShapes = (UINT32)mMorphChannelWeights.Size();
+		UINT32 numShapes = (UINT32)mMorphChannelWeights.size();
 		if (idx >= numShapes)
 			return;
 
@@ -792,21 +792,21 @@ namespace bs
 
 	void Animation::Blend1D(const Blend1DInfo& info, float t)
 	{
-		if (info.clips.Size() == 0)
+		if (info.clips.size() == 0)
 			return;
 
 		// Find valid range
 		float startPos = 0.0f;
 		float endPos = 0.0f;
 
-		for (UINT32 i = 0; i < (UINT32)info.clips.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)info.clips.size(); i++)
 		{
 			startPos = std::min(startPos, info.clips[i].position);
 			endPos = std::min(endPos, info.clips[i].position);
 		}
 
 		float length = endPos - startPos;
-		if(Math::approxEquals(length, 0.0f) || info.clips.Size() < 2)
+		if(Math::approxEquals(length, 0.0f) || info.clips.size() < 2)
 		{
 			play(info.clips[0].clip);
 			return;
@@ -835,7 +835,7 @@ namespace bs
 		UINT32 rightKey = 0;
 
 		INT32 start = 0;
-		INT32 searchLength = (INT32)info.clips.Size();
+		INT32 searchLength = (INT32)info.clips.size();
 
 		while (searchLength > 0)
 		{
@@ -854,13 +854,13 @@ namespace bs
 		}
 
 		leftKey = std::max(0, start - 1);
-		rightKey = std::min(start, (INT32)info.clips.Size() - 1);
+		rightKey = std::min(start, (INT32)info.clips.size() - 1);
 
 		float interpLength = info.clips[rightKey].position - info.clips[leftKey].position;
 		t = (t - info.clips[leftKey].position) / interpLength;
 
 		// Add clips and set weights
-		for(UINT32 i = 0; i < (UINT32)info.clips.Size(); i++)
+		for(UINT32 i = 0; i < (UINT32)info.clips.size(); i++)
 		{
 			AnimationClipInfo* clipInfo = addClip(info.clips[i].clip, (UINT32)-1, i == 0);
 			if (clipInfo != nullptr)
@@ -1018,7 +1018,7 @@ namespace bs
 			}
 
 			mClipInfos.Resize(newClips.size());
-			for(UINT32 i = 0; i < (UINT32)newClips.Size(); i++)
+			for(UINT32 i = 0; i < (UINT32)newClips.size(); i++)
 				mClipInfos[i] = newClips[i];
 		}
 		bs_frame_clear();
@@ -1065,7 +1065,7 @@ namespace bs
 					newClips.push_back(AnimationClipInfo());
 
 				mClipInfos.Resize(newClips.size());
-				for(UINT32 i = 0; i < (UINT32)newClips.Size(); i++)
+				for(UINT32 i = 0; i < (UINT32)newClips.size(); i++)
 					mClipInfos[i] = newClips[i];
 
 				mDirty |= AnimDirtyStateFlag::Layout;
@@ -1076,7 +1076,7 @@ namespace bs
 		// If new clip was added, get its address
 		if (output == nullptr && clip != nullptr)
 		{
-			AnimationClipInfo& newInfo = mClipInfos.Back();
+			AnimationClipInfo& newInfo = mClipInfos.back();
 			newInfo.clip = clip;
 			newInfo.state.layer = layer;
 
@@ -1203,12 +1203,12 @@ namespace bs
 
 	UINT32 Animation::GetNumClips() const
 	{
-		return (UINT32)mClipInfos.Size();
+		return (UINT32)mClipInfos.size();
 	}
 
 	HAnimationClip Animation::GetClip(UINT32 idx) const
 	{
-		if (idx >= (UINT32)mClipInfos.Size())
+		if (idx >= (UINT32)mClipInfos.size())
 			return HAnimationClip();
 
 		return mClipInfos[idx].clip;
@@ -1274,14 +1274,14 @@ namespace bs
 
 	void Animation::UnmapSceneObject(const HSceneObject& so)
 	{
-		mSceneObjects.Erase(so.getInstanceId());
+		mSceneObjects.erase(so.getInstanceId());
 
 		mDirty |= AnimDirtyStateFlag::All;
 	}
 
 	bool Animation::GetGenericCurveValue(UINT32 curveIdx, float& value)
 	{
-		if (!mGenericCurveValuesValid || curveIdx >= (UINT32)mGenericCurveOutputs.Size())
+		if (!mGenericCurveValuesValid || curveIdx >= (UINT32)mGenericCurveOutputs.size())
 			return false;
 
 		value = mGenericCurveOutputs[curveIdx];
@@ -1320,7 +1320,7 @@ namespace bs
 
 		if(mSampleStep == AnimSampleStep::None)
 			mAnimProxy->sampleStep = AnimSampleStep::None;
-		else If(mSampleStep == AnimSampleStep::Frame)
+		else if(mSampleStep == AnimSampleStep::Frame)
 		{
 			if(mAnimProxy->sampleStep == AnimSampleStep::None)
 				mAnimProxy->sampleStep = AnimSampleStep::Frame;
@@ -1338,7 +1338,7 @@ namespace bs
 
 		auto getAnimatedSOList = [&]()
 		{
-			Vector<AnimatedSceneObject> AnimatedSO(mSceneObjects.Size());
+			Vector<AnimatedSceneObject> AnimatedSO(mSceneObjects.size());
 			UINT32 idx = 0;
 			for (auto& entry : mSceneObjects)
 				animatedSO[idx++] = entry.second;
@@ -1367,7 +1367,7 @@ namespace bs
 				mAnimProxy->Rebuild(mClipInfos, animatedSOs, mMorphShapes);
 				didFullRebuild = true;
 			}
-			else If(mDirty.IsSet(AnimDirtyStateFlag::Value))
+			else if(mDirty.IsSet(AnimDirtyStateFlag::Value))
 				mAnimProxy->UpdateClipInfos(mClipInfos);
 
 			if (mDirty.IsSet(AnimDirtyStateFlag::MorphWeights) || didFullRebuild)
@@ -1381,8 +1381,8 @@ namespace bs
 			{
 				AnimatedSceneObjectInfo& soInfo = mAnimProxy->sceneObjectInfos[i];
 
-				auto iterFind = mSceneObjects.Find(soInfo.id);
-				if (iterFind == mSceneObjects.End())
+				auto iterFind = mSceneObjects.find(soInfo.id);
+				if (iterFind == mSceneObjects.end())
 				{
 					assert(false); // Should never happen
 					continue;
@@ -1427,12 +1427,12 @@ namespace bs
 		{
 			AnimatedSceneObjectInfo& soInfo = mAnimProxy->sceneObjectInfos[i];
 
-			auto iterFind = mSceneObjects.Find(soInfo.id);
-			if (iterFind == mSceneObjects.End())
+			auto iterFind = mSceneObjects.find(soInfo.id);
+			if (iterFind == mSceneObjects.end())
 				continue;
 
 			HSceneObject so = iterFind->second.so;
-			if (iterFind->second.curveName.Empty())
+			if (iterFind->second.curveName.empty())
 				rootSO = so;
 
 			if (so.IsDestroyed(true))
@@ -1480,7 +1480,7 @@ namespace bs
 					{
 						for(auto& entry : mSceneObjects)
 						{
-							if (entry.second.curveName.Empty())
+							if (entry.second.curveName.empty())
 								rootSO = entry.second.so;
 						}
 					}
@@ -1532,7 +1532,7 @@ namespace bs
 		{
 			const AnimationState& state = mAnimProxy->layers[0].states[0];
 
-			if(!state.disabled && mClipInfos.Size() > 0)
+			if(!state.disabled && mClipInfos.size() > 0)
 			{
 				const AnimationClipInfo& clipInfo = mClipInfos[0];
 
@@ -1540,7 +1540,7 @@ namespace bs
 				{
 					if (clipInfo.clip.IsLoaded() && clipInfo.curveVersion == clipInfo.clip->GetVersion())
 					{
-						UINT32 numGenericCurves = (UINT32)clipInfo.clip->GetCurves()->generic.Size();
+						UINT32 numGenericCurves = (UINT32)clipInfo.clip->GetCurves()->generic.size();
 						mGenericCurveValuesValid = numGenericCurves == mAnimProxy->numGenericCurves;
 					}
 				}

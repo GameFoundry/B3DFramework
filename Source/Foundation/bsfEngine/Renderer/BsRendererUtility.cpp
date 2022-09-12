@@ -201,13 +201,13 @@ namespace bs { namespace ct
 		rapi.SetVertexDeclaration(mesh->GetVertexData()->vertexDeclaration);
 
 		auto& vertexBuffers = vertexData->GetBuffers();
-		if (vertexBuffers.Size() > 0)
+		if (vertexBuffers.size() > 0)
 		{
 			SPtr<VertexBuffer> buffers[BS_MAX_BOUND_VERTEX_BUFFERS];
 
 			UINT32 endSlot = 0;
 			UINT32 startSlot = BS_MAX_BOUND_VERTEX_BUFFERS;
-			for (auto iter = vertexBuffers.Begin(); iter != vertexBuffers.end(); ++iter)
+			for (auto iter = vertexBuffers.begin(); iter != vertexBuffers.end(); ++iter)
 			{
 				if (iter->first >= BS_MAX_BOUND_VERTEX_BUFFERS)
 					BS_EXCEPT(InvalidParametersException, "Buffer index out of range");
@@ -216,7 +216,7 @@ namespace bs { namespace ct
 				endSlot = std::max(iter->first, endSlot);
 			}
 
-			for (auto iter = vertexBuffers.Begin(); iter != vertexBuffers.end(); ++iter)
+			for (auto iter = vertexBuffers.begin(); iter != vertexBuffers.end(); ++iter)
 			{
 				buffers[iter->first - startSlot] = iter->second;
 			}
@@ -250,7 +250,7 @@ namespace bs { namespace ct
 
 		UINT32 endSlot = 0;
 		UINT32 startSlot = BS_MAX_BOUND_VERTEX_BUFFERS;
-		for (auto iter = meshBuffers.Begin(); iter != meshBuffers.end(); ++iter)
+		for (auto iter = meshBuffers.begin(); iter != meshBuffers.end(); ++iter)
 		{
 			if (iter->first >= BS_MAX_BOUND_VERTEX_BUFFERS)
 				BS_EXCEPT(InvalidParametersException, "Buffer index out of range");
@@ -262,7 +262,7 @@ namespace bs { namespace ct
 		startSlot = std::min(1U, startSlot);
 		endSlot = std::max(1U, endSlot);
 
-		for (auto iter = meshBuffers.Begin(); iter != meshBuffers.end(); ++iter)
+		for (auto iter = meshBuffers.begin(); iter != meshBuffers.end(); ++iter)
 			allBuffers[iter->first - startSlot] = iter->second;
 
 		allBuffers[1] = morphVertices;

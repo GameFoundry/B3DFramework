@@ -22,7 +22,7 @@ namespace bs
 	public:
 		SpinLock()
 		{
-			mLock.Clear(std::memory_order_relaxed);
+			mLock.clear(std::memory_order_relaxed);
 		}
 
 		/** Lock any following operations with the spin lock, not allowing any other thread to access them. */
@@ -35,7 +35,7 @@ namespace bs
 		/**	Release the lock and allow other threads to acquire the lock. */
 		void Unlock()
 		{
-			mLock.Clear(std::memory_order_release);
+			mLock.clear(std::memory_order_release);
 		}
 
 	private:

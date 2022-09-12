@@ -121,10 +121,10 @@ namespace bs { namespace ct
 
 	VkBufferView VulkanBuffer::GetView(VkFormat format)
 	{
-		const auto iterFind = std::find_if(mViews.Begin(), mViews.end(),
+		const auto iterFind = std::find_if(mViews.begin(), mViews.end(),
 			[format](const ViewInfo& x) { return x.format == format; });
 
-		if(iterFind != mViews.End())
+		if(iterFind != mViews.end())
 		{
 			iterFind->useCount++;
 			return iterFind->view;
@@ -149,10 +149,10 @@ namespace bs { namespace ct
 
 	void VulkanBuffer::FreeView(VkBufferView view)
 	{
-		const auto iterFind = std::find_if(mViews.Begin(), mViews.end(),
+		const auto iterFind = std::find_if(mViews.begin(), mViews.end(),
 			[view](const ViewInfo& x) { return x.view == view; });
 
-		if(iterFind != mViews.End())
+		if(iterFind != mViews.end())
 		{
 			assert(iterFind->useCount > 0);
 			iterFind->useCount--;
@@ -165,12 +165,12 @@ namespace bs { namespace ct
 	
 	void VulkanBuffer::DestroyUnusedViews()
 	{
-		for(auto iter = mViews.Begin(); iter != mViews.end();)
+		for(auto iter = mViews.begin(); iter != mViews.end();)
 		{
 			if(iter->useCount == 0)
 			{
 				vkDestroyBufferView(getDevice().GetLogical(), iter->view, gVulkanAllocator);
-				iter = mViews.Erase(iter);
+				iter = mViews.erase(iter);
 			}
 			else
 				++iter;
@@ -260,7 +260,7 @@ namespace bs { namespace ct
 			if (readable)
 				mBufferCI.usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 		}
-		else If(readable) // Non-staging readable
+		else if(readable) // Non-staging readable
 			mBufferCI.usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 
 		mBufferCI.size = size;

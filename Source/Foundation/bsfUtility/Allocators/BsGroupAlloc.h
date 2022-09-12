@@ -17,7 +17,7 @@ namespace bs
 	/**
 	 * Provides an easy way to group multiple allocations under a single (actual) allocation. Requires the user to first
 	 * call reserve() methods for all requested data elements, followed by init(), after which allocation/deallocation
-	 * can follow using construct/destruct or alloc/free methods.
+	 * can follow using Construct/destruct or Allocate/free methods.
 	 */
 	class GroupAlloc : INonCopyable
 	{
@@ -25,7 +25,7 @@ namespace bs
 		GroupAlloc() = default;
 
 		GroupAlloc(GroupAlloc&& other) noexcept
-			: MData(std::exchange(other.mData, nullptr)), mDataPtr(std::exchange(other.mDataPtr, nullptr)),
+			: mData(std::exchange(other.mData, nullptr)), mDataPtr(std::exchange(other.mDataPtr, nullptr)),
 				 mNumBytes(std::exchange(other.mNumBytes, 0))
 		{
 		}
@@ -53,7 +53,7 @@ namespace bs
 
 		/**
 		 * Allocates internal memory as reserved by previous calls to reserve(). Must be called before any calls to
-		 * construct or alloc.
+		 * Construct or Allocate.
 		 */
 		void Init()
 		{
@@ -66,8 +66,8 @@ namespace bs
 		}
 
 		/**
-		 * Reserves the specified amount of bytes to allocate. Multiple calls to reserve() are cumulative. After all needed
-		 * memory is reserved, call init(), followed by actual allocation via construct() or alloc() methods.
+		 * Reserves the specified amount of bytes to Allocate. Multiple calls to reserve() are cumulative. After all needed
+		 * memory is reserved, call init(), followed by actual allocation via Construct() or Allocate() methods.
 		 */
 		GroupAlloc& Reserve(UINT32 amount)
 		{
@@ -78,10 +78,10 @@ namespace bs
 		}
 
 		/**
-		 * Reserves the specified amount of bytes to allocate. Multiple calls to reserve() are cumulative. After all needed
-		 * memory is reserved, call init(), followed by actual allocation via construct() or alloc() methods. If you need
+		 * Reserves the specified amount of bytes to Allocate. Multiple calls to reserve() are cumulative. After all needed
+		 * memory is reserved, call init(), followed by actual allocation via Construct() or Allocate() methods. If you need
 		 * to change the size of your allocation, free your memory by using free(), followed by a call to clear(). Then
-		 * reserve(), init() and alloc() again.
+		 * reserve(), init() and Allocate() again.
 		 */
 		template<class T>
 		GroupAlloc& Reserve(UINT32 count = 1)
@@ -95,9 +95,9 @@ namespace bs
 		/**
 		 * Allocates a new piece of memory of the specified size.
 		 *
-		 * @param[in]	amount	Amount of memory to allocate, in bytes.
+		 * @param[in]	amount	Amount of memory to Allocate, in bytes.
 		 */
-		UINT8* alloc(UINT32 amount)
+		UINT8* Allocate(UINT32 amount)
 		{
 			assert(mDataPtr + amount <= (mData + mNumBytes));
 
@@ -110,12 +110,12 @@ namespace bs
 		/**
 		 * Allocates enough memory to hold @p count elements of the specified type.
 		 *
-		 * @param[in]	count	Number of elements to allocate.
+		 * @param[in]	amount	Number of elements to Allocate.
 		 */
 		template<class T>
-		T* alloc(UINT32 count = 1)
+		T* Allocate(UINT32 amount = 1)
 		{
-			return (T*)alloc(sizeof(T) * count);
+			return (T*) Allocate(sizeof(T) * amount);
 		}
 
 		/** Deallocates a previously allocated piece of memory. */
@@ -140,9 +140,9 @@ namespace bs
 		 * Allocates enough memory to hold the object(s) of specified type using the static allocator, and constructs them.
 		 */
 		template<class T>
-		T* construct(UINT32 count = 1)
+		T* Construct(UINT32 count = 1)
 		{
-			T* data = (T*)alloc(sizeof(T) * count);
+			T* data = (T*) Allocate(sizeof(T) * count);
 
 			for(unsigned int i = 0; i < count; i++)
 				new ((void*)&data[i]) T;
@@ -154,9 +154,9 @@ namespace bs
 		 * Allocates enough memory to hold the object(s) of specified type using the static allocator, and constructs them.
 		 */
 		template<class T, class... Args>
-		T* construct(Args &&...args, UINT32 count = 1)
+		T* Construct(Args &&...args, UINT32 count = 1)
 		{
-			T* data = (T*)alloc(sizeof(T) * count);
+			T* data = (T*) Allocate(sizeof(T) * count);
 
 			for(unsigned int i = 0; i < count; i++)
 				new ((void*)&data[i]) T(std::forward<Args>(args)...);

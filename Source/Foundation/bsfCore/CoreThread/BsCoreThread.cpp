@@ -347,12 +347,12 @@ namespace bs
 			Lock Lock(mCommandNotifyMutex);
 
 			// Check if our command id is in the completed list
-			auto iter = mCommandsCompleted.Begin();
-			for(; iter != mCommandsCompleted.End(); ++iter)
+			auto iter = mCommandsCompleted.begin();
+			for(; iter != mCommandsCompleted.end(); ++iter)
 			{
 				if(*iter == commandId)
 				{
-					mCommandsCompleted.Erase(iter);
+					mCommandsCompleted.erase(iter);
 					return;
 				}
 			}

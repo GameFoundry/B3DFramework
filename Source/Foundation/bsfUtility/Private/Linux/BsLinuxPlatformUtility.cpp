@@ -88,7 +88,7 @@ namespace bs
 							output.cpuManufacturer = vendorId.c_str();
 					}
 				}
-				else If(token == "model")
+				else if(token == "model")
 				{
 					if(lineStream >> token && token == "name")
 					{
@@ -103,11 +103,11 @@ namespace bs
 									modelName << " " << token;
 							}
 
-							output.cpuModel = modelName.Str().c_str();
+							output.cpuModel = modelName.str().c_str();
 						}
 					}
 				}
-				else If(token == "cpu")
+				else if(token == "cpu")
 				{
 					if(lineStream >> token)
 					{
@@ -177,7 +177,7 @@ namespace bs
 	{
 		UErrorCode errorCode = U_ZERO_ERROR;
 
-		auto inputLen = (int32_t)input.Size();
+		auto inputLen = (int32_t)input.size();
 		int32_t bufferLen = 0;
 		u_strFromUTF8(nullptr, 0, &bufferLen, input.Data(), inputLen, &errorCode);
 

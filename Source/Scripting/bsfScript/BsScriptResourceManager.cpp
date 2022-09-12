@@ -67,7 +67,7 @@ namespace bs
 	{
 		const UUID& uuid = resource.GetUUID();
 
-		if (uuid.Empty())
+		if (uuid.empty())
 			return nullptr;
 
 		ScriptResourceBase* output = getScriptResource(uuid);
@@ -80,11 +80,11 @@ namespace bs
 
 	ScriptResourceBase* ScriptResourceManager::getScriptResource(const UUID& uuid)
 	{
-		if (uuid.Empty())
+		if (uuid.empty())
 			return nullptr;
 
-		auto findIter = mScriptResources.Find(uuid);
-		if(findIter != mScriptResources.End())
+		auto findIter = mScriptResources.find(uuid);
+		if(findIter != mScriptResources.end())
 			return findIter->second;
 
 		return nullptr;
@@ -93,8 +93,8 @@ namespace bs
 	ScriptRRefBase* ScriptResourceManager::getScriptRRef(const HResource& resource, ::MonoClass* rrefClass)
 	{
 		UnorderedMap<UUID, ScriptRRefBase*>& rrefs = mScriptRRefsPerType[rrefClass];
-		const auto iterFind = rrefs.Find(resource.getUUID());
-		if (iterFind != rrefs.End())
+		const auto iterFind = rrefs.find(resource.getUUID());
+		if (iterFind != rrefs.end())
 			return iterFind->second;
 
 		ScriptRRefBase* newRRef = ScriptRRefBase::create(resource, rrefClass);
@@ -108,7 +108,7 @@ namespace bs
 		HResource resourceHandle = resource->GetGenericHandle();
 		const UUID& uuid = resourceHandle.GetUUID();
 
-		if(uuid.Empty())
+		if(uuid.empty())
 			BS_EXCEPT(InvalidParametersException, "Provided resource handle has an undefined resource UUID.");
 
 #if BS_DEBUG_MODE
@@ -119,15 +119,15 @@ namespace bs
 			// No handles should exist at this point because we only manually free the ScriptResourceBase object if the
 			// native resource is destroyed, which we handle in onResourceDestroyed. And only other destruction should
 			// happen during assembly refresh, which we handled in clearRRefs().
-			const auto iterFind = rrefs.Find(uuid);
-			assert(iterFind == rrefs.End());
+			const auto iterFind = rrefs.find(uuid);
+			assert(iterFind == rrefs.end());
 		}
 #endif
 
 		(resource)->~ScriptResourceBase();
 		MemoryAllocator<GenAlloc>::free(resource);
 
-		mScriptResources.Erase(uuid);
+		mScriptResources.erase(uuid);
 	}
 
 	void ScriptResourceManager::OnResourceDestroyed(const UUID& uuid)
@@ -136,16 +136,16 @@ namespace bs
 		{
 			UnorderedMap<UUID, ScriptRRefBase*>& rrefs = kvp.second;
 
-			const auto iterFind = rrefs.Find(uuid);
-			if (iterFind != rrefs.End())
+			const auto iterFind = rrefs.find(uuid);
+			if (iterFind != rrefs.end())
 				iterFind->second->ClearResource();
 		}
 
-		auto findIter = mScriptResources.Find(uuid);
-		if (findIter != mScriptResources.End())
+		auto findIter = mScriptResources.find(uuid);
+		if (findIter != mScriptResources.end())
 		{
 			findIter->second->NotifyResourceDestroyed();
-			mScriptResources.Erase(findIter);
+			mScriptResources.erase(findIter);
 		}
 	}
 
@@ -156,11 +156,11 @@ namespace bs
 
 	void ScriptResourceManager::_throwExceptionIfInvalidOrDuplicate(const UUID& uuid) const
 	{
-		if(uuid.Empty())
+		if(uuid.empty())
 			BS_EXCEPT(InvalidParametersException, "Provided resource handle has an undefined resource UUID.");
 
-		auto findIter = mScriptResources.Find(uuid);
-		if(findIter != mScriptResources.End())
+		auto findIter = mScriptResources.find(uuid);
+		if(findIter != mScriptResources.end())
 		{
 			BS_EXCEPT(InvalidStateException, "Provided resource handle already has a script resource. \
 											 Retrieve the existing instance instead of creating a new one.");

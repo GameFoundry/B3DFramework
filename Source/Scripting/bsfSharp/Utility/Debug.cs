@@ -230,7 +230,7 @@ namespace bs
         }
 
         /// <summary>
-        /// Parses a managed exception message and outputs a data object with a separate message and callstack entries.
+        /// Parses a managed exception message and outputs a Data object with a separate message and callstack entries.
         /// </summary>
         /// <param name="message">Message to parse.</param>
         /// <returns>Parsed log message.</returns>

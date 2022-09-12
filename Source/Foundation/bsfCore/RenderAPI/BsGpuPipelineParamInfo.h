@@ -108,7 +108,7 @@ namespace bs
 		GroupAlloc mAlloc;
 	};
 
-	/** Holds meta-data about a set of GPU parameters used by a single pipeline state. */
+	/** Holds meta-Data about a set of GPU parameters used by a single pipeline state. */
 	class BS_CORE_EXPORT GpuPipelineParamInfo : public CoreObject, public GpuPipelineParamInfoBase
 	{
 	public:

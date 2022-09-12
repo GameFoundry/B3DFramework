@@ -19,7 +19,7 @@ namespace bs
 		:GUIButtonBase(styleName, GUIContent(HString("")), dimensions), mElements(elements), mIsMultiselect(isMultiselect)
 	{
 		mElementStates.Resize(elements.size(), false);
-		if (!mIsMultiselect && mElementStates.Size() > 0)
+		if (!mIsMultiselect && mElementStates.size() > 0)
 			mElementStates[0] = true;
 
 		updateContents();
@@ -56,7 +56,7 @@ namespace bs
 
 		mElementStates.Clear();
 		mElementStates.Resize(mElements.size(), false);
-		if (!mIsMultiselect && mElementStates.Size() > 0)
+		if (!mIsMultiselect && mElementStates.size() > 0)
 			mElementStates[0] = true;
 
 		updateContents();
@@ -67,7 +67,7 @@ namespace bs
 
 	void GUIListBox::SelectElement(UINT32 idx)
 	{
-		if (idx >= (UINT32)mElements.Size())
+		if (idx >= (UINT32)mElements.size())
 			return;
 
 		if (mElementStates[idx] != true)
@@ -76,7 +76,7 @@ namespace bs
 
 	void GUIListBox::DeselectElement(UINT32 idx)
 	{
-		if (!mIsMultiselect || idx >= (UINT32)mElements.Size())
+		if (!mIsMultiselect || idx >= (UINT32)mElements.size())
 			return;
 
 		if (mElementStates[idx] != false)
@@ -85,8 +85,8 @@ namespace bs
 
 	void GUIListBox::SetElementStates(const Vector<bool>& states)
 	{
-		UINT32 numElements = (UINT32)mElementStates.Size();
-		UINT32 min = std::min(numElements, (UINT32)states.Size());
+		UINT32 numElements = (UINT32)mElementStates.size();
+		UINT32 min = std::min(numElements, (UINT32)states.size());
 
 		bool anythingModified = min != numElements;
 		if (!anythingModified)
@@ -170,7 +170,7 @@ namespace bs
 
 	void GUIListBox::ElementSelected(UINT32 idx)
 	{
-		if (idx >= (UINT32)mElements.Size())
+		if (idx >= (UINT32)mElements.size())
 			return;
 
 		if (mIsMultiselect)
@@ -178,17 +178,17 @@ namespace bs
 			bool selected = mElementStates[idx];
 			mElementStates[idx] = !selected;
 
-			if (!onSelectionToggled.Empty())
+			if (!onSelectionToggled.empty())
 				onSelectionToggled(idx, !selected);
 		}
 		else
 		{
-			for (UINT32 i = 0; i < (UINT32)mElementStates.Size(); i++)
+			for (UINT32 i = 0; i < (UINT32)mElementStates.size(); i++)
 				mElementStates[i] = false;
 
 			mElementStates[idx] = true;
 
-			if (!onSelectionToggled.Empty())
+			if (!onSelectionToggled.empty())
 				onSelectionToggled(idx, true);
 
 			closeListBox();
@@ -206,7 +206,7 @@ namespace bs
 		UINT32 i = 0;
 		for(auto& elem : mElements)
 		{
-			String identifier = toString(i);
+			String identifier = ToString(i);
 			desc.dropDownData.entries.push_back(GUIDropDownDataEntry::button(identifier, std::bind(&GUIListBox::elementSelected, this, i)));
 			desc.dropDownData.localizedNames[identifier] = elem;
 			i++;
@@ -246,7 +246,7 @@ namespace bs
 	{
 		UINT32 selectedIdx = 0;
 		UINT32 numSelected = 0;
-		for (UINT32 i = 0; i < (UINT32)mElementStates.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mElementStates.size(); i++)
 		{
 			if (mElementStates[i])
 			{
@@ -266,7 +266,7 @@ namespace bs
 		}
 		else
 		{
-			if(!mElements.Empty())
+			if(!mElements.empty())
 				setContent(GUIContent(mElements[selectedIdx]));
 			else
 				setContent(GUIContent(HEString("None")));

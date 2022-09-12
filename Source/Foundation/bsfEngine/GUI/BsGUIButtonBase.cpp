@@ -265,7 +265,7 @@ namespace bs
 
 			return !mOptionFlags.IsSet(GUIElementOption::ClickThrough);
 		}
-		else If(ev.GetType() == GUIMouseEventType::MouseOut)
+		else if(ev.GetType() == GUIMouseEventType::MouseOut)
 		{
 			if (!_isDisabled())
 			{
@@ -279,14 +279,14 @@ namespace bs
 
 			return !mOptionFlags.IsSet(GUIElementOption::ClickThrough);
 		}
-		else If(ev.GetType() == GUIMouseEventType::MouseDown)
+		else if(ev.GetType() == GUIMouseEventType::MouseDown)
 		{
 			if (!_isDisabled())
 				_setState(_isOn() ? GUIElementState::ActiveOn : GUIElementState::Active);
 
 			return !mOptionFlags.IsSet(GUIElementOption::ClickThrough);
 		}
-		else If(ev.GetType() == GUIMouseEventType::MouseUp)
+		else if(ev.GetType() == GUIMouseEventType::MouseUp)
 		{
 			if (!_isDisabled())
 			{
@@ -324,13 +324,13 @@ namespace bs
 			{
 				if(state == GUIElementState::Normal)
 					_setState(_isOn() ? GUIElementState::FocusedOn : GUIElementState::Focused);
-				else If(state == GUIElementState::Hover)
+				else if(state == GUIElementState::Hover)
 					_setState(_isOn() ? GUIElementState::FocusedHoverOn : GUIElementState::FocusedHover);
 			}
 
 			return true;
 		}
-		else If(ev.GetType() == GUICommandEventType::FocusLost)
+		else if(ev.GetType() == GUICommandEventType::FocusLost)
 		{
 			mHasFocus = false;
 

@@ -241,7 +241,7 @@ namespace bs
 
 	void PixelData::SetColors(const Vector<Color>& colors)
 	{
-		setColorsInternal(colors, (UINT32)colors.Size());
+		setColorsInternal(colors, (UINT32)colors.size());
 	}
 
 	void PixelData::SetColors(Color* colors, UINT32 numElements)

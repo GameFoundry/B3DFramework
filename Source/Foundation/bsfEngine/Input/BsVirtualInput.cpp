@@ -34,13 +34,13 @@ namespace bs
 
 	bool VirtualInput::IsButtonDown(const VirtualButton& button, UINT32 deviceIdx) const
 	{
-		if (deviceIdx >= (UINT32)mDevices.Size())
+		if (deviceIdx >= (UINT32)mDevices.size())
 			return false;
 
 		const Map<UINT32, ButtonData>& cachedStates = mDevices[deviceIdx].cachedStates;
-		auto iterFind = cachedStates.Find(button.buttonIdentifier);
+		auto iterFind = cachedStates.find(button.buttonIdentifier);
 
-		if (iterFind != cachedStates.End())
+		if (iterFind != cachedStates.end())
 			return iterFind->second.state == ButtonState::ToggledOn;
 		
 		return false;
@@ -48,13 +48,13 @@ namespace bs
 
 	bool VirtualInput::IsButtonUp(const VirtualButton& button, UINT32 deviceIdx) const
 	{
-		if (deviceIdx >= (UINT32)mDevices.Size())
+		if (deviceIdx >= (UINT32)mDevices.size())
 			return false;
 
 		const Map<UINT32, ButtonData>& cachedStates = mDevices[deviceIdx].cachedStates;
-		auto iterFind = cachedStates.Find(button.buttonIdentifier);
+		auto iterFind = cachedStates.find(button.buttonIdentifier);
 
-		if (iterFind != cachedStates.End())
+		if (iterFind != cachedStates.end())
 			return iterFind->second.state == ButtonState::ToggledOff;
 
 		return false;
@@ -62,13 +62,13 @@ namespace bs
 
 	bool VirtualInput::IsButtonHeld(const VirtualButton& button, UINT32 deviceIdx) const
 	{
-		if (deviceIdx >= (UINT32)mDevices.Size())
+		if (deviceIdx >= (UINT32)mDevices.size())
 			return false;
 
 		const Map<UINT32, ButtonData>& cachedStates = mDevices[deviceIdx].cachedStates;
-		auto iterFind = cachedStates.Find(button.buttonIdentifier);
+		auto iterFind = cachedStates.find(button.buttonIdentifier);
 
-		if (iterFind != cachedStates.End())
+		if (iterFind != cachedStates.end())
 			return iterFind->second.state == ButtonState::On || iterFind->second.state == ButtonState::ToggledOn;
 
 		return false;
@@ -141,22 +141,22 @@ namespace bs
 		// Trigger all events
 		while(hasEvents)
 		{
-			while(!mEvents.Empty())
+			while(!mEvents.empty())
 			{
-				VirtualButtonEvent& event = mEvents.Front();
+				VirtualButtonEvent& event = mEvents.front();
 
 				if(event.state == ButtonState::On)
 				{
-					if(!onButtonDown.Empty())
+					if(!onButtonDown.empty())
 						onButtonDown(event.button, event.deviceIdx);
 				}
-				else If(event.state == ButtonState::Off)
+				else if(event.state == ButtonState::Off)
 				{
-					if(!onButtonUp.Empty())
+					if(!onButtonUp.empty())
 						onButtonUp(event.button, event.deviceIdx);
 				}
 
-				mEvents.Pop();
+				mEvents.pop();
 			}
 
 			// Queue up any repeatable events
@@ -212,9 +212,9 @@ namespace bs
 	{
 		if(event.buttonCode == BC_LSHIFT || event.buttonCode == BC_RSHIFT)
 			mActiveModifiers |= (UINT32)ButtonModifier::Shift;
-		else If(event.buttonCode == BC_LCONTROL || event.buttonCode == BC_RCONTROL)
+		else if(event.buttonCode == BC_LCONTROL || event.buttonCode == BC_RCONTROL)
 			mActiveModifiers |= (UINT32)ButtonModifier::Ctrl;
-		else If(event.buttonCode == BC_LMENU || event.buttonCode == BC_RMENU)
+		else if(event.buttonCode == BC_LMENU || event.buttonCode == BC_RMENU)
 			mActiveModifiers |= (UINT32)ButtonModifier::Alt;
 
 		tempButtons.Clear();
@@ -222,13 +222,13 @@ namespace bs
 
 		if (mInputConfiguration->_getButtons(event.buttonCode, mActiveModifiers, tempButtons, tempBtnDescs))
 		{
-			while (event.deviceIdx >= (UINT32)mDevices.Size())
+			while (event.deviceIdx >= (UINT32)mDevices.size())
 				mDevices.push_back(DeviceData());
 
 			Map<UINT32, ButtonData>& cachedStates = mDevices[event.deviceIdx].cachedStates;
 			DynArray<UINT32>& heldButtons = mDevices[event.deviceIdx].heldButtons;
 
-			UINT32 numButtons = (UINT32)tempButtons.Size();
+			UINT32 numButtons = (UINT32)tempButtons.size();
 			for (UINT32 i = 0; i < numButtons; i++)
 			{
 				const VirtualButton& btn = tempButtons[i];
@@ -257,9 +257,9 @@ namespace bs
 	{
 		if(event.buttonCode == BC_LSHIFT || event.buttonCode == BC_RSHIFT)
 			mActiveModifiers &= ~(UINT32)ButtonModifier::Shift;
-		else If(event.buttonCode == BC_LCONTROL || event.buttonCode == BC_RCONTROL)
+		else if(event.buttonCode == BC_LCONTROL || event.buttonCode == BC_RCONTROL)
 			mActiveModifiers &= ~(UINT32)ButtonModifier::Ctrl;
-		else If(event.buttonCode == BC_LMENU || event.buttonCode == BC_RMENU)
+		else if(event.buttonCode == BC_LMENU || event.buttonCode == BC_RMENU)
 			mActiveModifiers &= ~(UINT32)ButtonModifier::Alt;
 
 		tempButtons.Clear();
@@ -267,13 +267,13 @@ namespace bs
 
 		if (mInputConfiguration->_getButtons(event.buttonCode, mActiveModifiers, tempButtons, tempBtnDescs))
 		{
-			while (event.deviceIdx >= (UINT32)mDevices.Size())
+			while (event.deviceIdx >= (UINT32)mDevices.size())
 				mDevices.push_back(DeviceData());
 
 			Map<UINT32, ButtonData>& cachedStates = mDevices[event.deviceIdx].cachedStates;
 			DynArray<UINT32>& heldButtons = mDevices[event.deviceIdx].heldButtons;
 
-			UINT32 numButtons = (UINT32)tempButtons.Size();
+			UINT32 numButtons = (UINT32)tempButtons.size();
 			for (UINT32 i = 0; i < numButtons; i++)
 			{
 				const VirtualButton& btn = tempButtons[i];
@@ -294,8 +294,8 @@ namespace bs
 
 				mEvents.Push(virtualEvent);
 
-				auto iterFind = std::find(heldButtons.Begin(), heldButtons.end(), btn.buttonIdentifier);
-				if(iterFind != heldButtons.End())
+				auto iterFind = std::find(heldButtons.begin(), heldButtons.end(), btn.buttonIdentifier);
+				if(iterFind != heldButtons.end())
 					heldButtons.SwapAndErase(iterFind);
 			}
 		}

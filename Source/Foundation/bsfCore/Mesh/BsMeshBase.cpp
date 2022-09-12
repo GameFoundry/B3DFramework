@@ -26,10 +26,11 @@ namespace bs
 
 	const SubMesh& MeshProperties::GetSubMesh(UINT32 subMeshIdx) const
 	{
-		if (subMeshIdx >= mSubMeshes.Size())
+		if (subMeshIdx >= mSubMeshes.size())
 		{
 			BS_EXCEPT(InvalidParametersException, "Invalid sub-mesh index ("
-				+ toString(subMeshIdx) + "). Number of sub-meshes available: " + toString((int)mSubMeshes.Size()));
+												  + ToString(subMeshIdx) + "). Number of sub-meshes available: " +
+												  ToString((int) mSubMeshes.size()));
 		}
 
 		return mSubMeshes[subMeshIdx];
@@ -37,7 +38,7 @@ namespace bs
 
 	UINT32 MeshProperties::GetNumSubMeshes() const
 	{
-		return (UINT32)mSubMeshes.Size();
+		return (UINT32)mSubMeshes.size();
 	}
 
 	MeshBase::MeshBase(UINT32 numVertices, UINT32 numIndices, DrawOperationType drawOp)

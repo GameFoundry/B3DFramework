@@ -40,11 +40,10 @@ namespace bs
 		void Log(const String& message, LogVerbosity verbosity, UINT32 category = 0);
 
 		/** Retrieves the Log used by the Debug instance. */
-		Log& GetLog() { return mLog; }
+		bs::Log& GetLog() { return mLog; }
 
 		/** Converts raw pixels into a BMP image and saves it as a file */
-		void writeAsBMP(UINT8* rawPixels, UINT32 bytesPerPixel, UINT32 width, UINT32 height, const Path& filePath,
-			bool overwrite = true) const;
+		void WriteAsBMP(UINT8* rawPixels, UINT32 bytesPerPixel, UINT32 width, UINT32 height, const Path& filePath, bool overwrite = true) const;
 
 		/**
 		 * Saves a log about the current state of the application to the specified location.
@@ -83,7 +82,7 @@ namespace bs
 		Event<void()> onLogModified;
 
 		/** This allows setting a log callback that can override the default action in log */
-		void setLogCallback(
+		void SetLogCallback(
 			std::function<bool(const String& message, LogVerbosity verbosity, UINT32 category)> callback)
 		{
 			mCustomLogCallback = callback;
@@ -104,12 +103,12 @@ namespace bs
 		/** @} */
 	private:
 		UINT64 mLogHash = 0;
-		Log mLog;
+		bs::Log mLog;
 		std::function<bool(const String& message, LogVerbosity verbosity, UINT32 category)> mCustomLogCallback;
 	};
 
 	/** A simpler way of accessing the Debug module. */
-	BS_UTILITY_EXPORT Debug& GDebug();
+	BS_UTILITY_EXPORT Debug& gDebug();
 
 #ifndef BS_LOG_VERBOSITY
 	#if BS_DEBUG_MODE

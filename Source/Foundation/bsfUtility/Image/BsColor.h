@@ -270,7 +270,7 @@ namespace std
 template<>
 struct hash<bs::Color>
 {
-	size_t Operator()(const bs::Color& color) const
+	size_t operator()(const bs::Color& color) const
 	{
 		size_t hash = 0;
 		bs::bs_hash_combine(hash, color.r);

@@ -51,11 +51,11 @@ namespace bs
 	{
 		mClippedBounds = Rect2I();
 
-		if (mBounds.Size() > 0)
+		if (mBounds.size() > 0)
 		{
 			mClippedBounds = mBounds[0];
 
-			for (UINT32 i = 1; i < (UINT32)mBounds.Size(); i++)
+			for (UINT32 i = 1; i < (UINT32)mBounds.size(); i++)
 				mClippedBounds.Encapsulate(mBounds[i]);
 		}
 	}
@@ -66,14 +66,14 @@ namespace bs
 
 		if(ev.GetType() == GUICommandEventType::FocusGained)
 		{
-			if(!onFocusGained.Empty())
+			if(!onFocusGained.empty())
 				onFocusGained();
 
 			return false;
 		}
-		else If(ev.GetType() == GUICommandEventType::FocusLost)
+		else if(ev.GetType() == GUICommandEventType::FocusLost)
 		{
-			if(!onFocusLost.Empty())
+			if(!onFocusLost.empty())
 				onFocusLost();
 
 			return false;

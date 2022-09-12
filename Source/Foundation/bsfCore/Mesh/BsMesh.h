@@ -88,7 +88,7 @@ namespace bs
 		 * the operation completes.
 		 *
 		 * @param[out]	data			Pre-allocated buffer of proper vertex/index format and size where data will be read
-		 *								to. You can use allocBuffer() to allocate a buffer of a correct format and size.
+		 *								to. You can use allocBuffer() to Allocate a buffer of a correct format and size.
 		 * @return						Async operation object you can use to track operation completion.
 		 *
 		 * @note	This is an @ref asyncMethod "asynchronous method".
@@ -314,7 +314,7 @@ namespace bs
 		 * Reads the current mesh data into the provided @p data parameter. Data buffer needs to be pre-allocated.
 		 *
 		 * @param[out]	data				Pre-allocated buffer of proper vertex/index format and size where data will be
-		 *									read to. You can use Mesh::allocBuffer() to allocate a buffer of a correct
+		 *									read to. You can use Mesh::allocBuffer() to Allocate a buffer of a correct
 		 *									format and size.
 		 * @param[in]	deviceIdx			Index of the device whose memory to read. If the buffer doesn't exist on this
 		 *									device, no data will be read.

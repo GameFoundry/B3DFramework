@@ -37,7 +37,7 @@ namespace bs
 		 *
 		 * In short: If you make a reference weak, when "set" method of that field is called,
 		 * it is not guaranteed the value provided is fully initialized, so you should not access any of its
-		 * data until deserialization is fully complete. You only need to use this flag if the RTTI system
+		 * Data until deserialization is fully complete. You only need to use this flag if the RTTI system
 		 * complains that is has found a circular reference.
 		 */
 		WeakRef = 1 << 0,
@@ -99,7 +99,7 @@ namespace bs
 	struct RTTIPlainType
 	{
 		static_assert(std::is_pod<T>::value,
-			"Provided type isn't plain-old-data. You need to specialize RTTIPlainType template in order to serialize this type. "\
+			"Provided type isn't plain-old-Data. You need to specialize RTTIPlainType template in order to serialize this type. "\
 			" (Or call BS_ALLOW_MEMCPY_SERIALIZATION(type) macro if you are sure the type can be properly serialized using just memcpy.)");
 
 		enum { id = 0 /**< Unique id for the serializable type. */ };
@@ -108,7 +108,7 @@ namespace bs
 		/**
 		 * Serializes the provided object into the provided stream and advances the stream cursor. Returns the number of bytes written. If @p compress is true
 		 * the serialization system is allowed to compress the data into bits (e.g. a boolean can be represented via a single bit), otherwise it is guaranteed
-		 * the written data will be aligned to byte boundaries. @p fieldInfo can be used for providing additional data, such as wanted method of serialization
+		 * the written data will be aligned to byte boundaries. @p fieldInfo can be used for providing additional Data, such as wanted method of serialization
 		 * and compression.
 		 **/
 		static BitLength ToMemory(const T& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)

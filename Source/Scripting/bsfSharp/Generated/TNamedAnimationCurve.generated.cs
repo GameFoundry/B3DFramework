@@ -150,7 +150,7 @@ namespace bs
 		public string name;
 		/// <summary>Flags that describe the animation curve.</summary>
 		public AnimationCurveFlags flags;
-		/// <summary>Actual curve containing animation data.</summary>
+		/// <summary>Actual curve containing animation Data.</summary>
 		public Vector2Curve curve;
 	}
 

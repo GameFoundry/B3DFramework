@@ -103,9 +103,9 @@ namespace bs
 			ScreenToClient(mHWnd, (POINT *)&pt);
 			mQueuedDropOps.push_back(DropTargetOp(DropOpType::DragOver, Vector2I((int)pt.x, (int)pt.y)));
 
-			DropTargetOp& op = mQueuedDropOps.Back();
+			DropTargetOp& op = mQueuedDropOps.back();
 			op.dataType = DropOpDataType::FileList;
-			op.mFileList = mFileLists.Back();
+			op.mFileList = mFileLists.back();
 		}
 
 		return S_OK;
@@ -124,9 +124,9 @@ namespace bs
 			ScreenToClient(mHWnd, (POINT *)&pt);
 			mQueuedDropOps.push_back(DropTargetOp(DropOpType::DragOver, Vector2I((int)pt.x, (int)pt.y)));
 
-			DropTargetOp& op = mQueuedDropOps.Back();
+			DropTargetOp& op = mQueuedDropOps.back();
 			op.dataType = DropOpDataType::FileList;
-			op.mFileList = mFileLists.Back();
+			op.mFileList = mFileLists.back();
 		}
 
 		return S_OK;
@@ -139,9 +139,9 @@ namespace bs
 
 			mQueuedDropOps.push_back(DropTargetOp(DropOpType::Leave, Vector2I()));
 
-			DropTargetOp& op = mQueuedDropOps.Back();
+			DropTargetOp& op = mQueuedDropOps.back();
 			op.dataType = DropOpDataType::FileList;
-			op.mFileList = mFileLists.Back();
+			op.mFileList = mFileLists.back();
 		}
 
 		return S_OK;
@@ -163,9 +163,9 @@ namespace bs
 			ScreenToClient(mHWnd, (POINT *)&pt);
 			mQueuedDropOps.push_back(DropTargetOp(DropOpType::Drop, Vector2I((int)pt.x, (int)pt.y)));
 
-			DropTargetOp& op = mQueuedDropOps.Back();
+			DropTargetOp& op = mQueuedDropOps.back();
 			op.dataType = DropOpDataType::FileList;
-			op.mFileList = mFileLists.Back();
+			op.mFileList = mFileLists.back();
 		}
 
 		return S_OK;
@@ -179,13 +179,13 @@ namespace bs
 	void Win32DropTarget::UnregisterDropTarget(DropTarget* dropTarget)
 	{
 		auto findIter = std::find(begin(mDropTargets), end(mDropTargets), dropTarget);
-		if(findIter != mDropTargets.End())
-			mDropTargets.Erase(findIter);
+		if(findIter != mDropTargets.end())
+			mDropTargets.erase(findIter);
 	}
 
 	unsigned int Win32DropTarget::GetNumDropTargets() const
 	{
-		return (unsigned int)mDropTargets.Size();
+		return (unsigned int)mDropTargets.size();
 	}
 
 	void Win32DropTarget::Update()
@@ -209,7 +209,7 @@ namespace bs
 
 						if(op.type == DropOpType::DragOver)
 							target->OnDragOver(op.position.x, op.position.y);
-						else If(op.type == DropOpType::Drop)
+						else if(op.type == DropOpType::Drop)
 						{
 							target->_setFileList(*op.mFileList);
 							target->OnDrop(op.position.x, op.position.y);
@@ -238,12 +238,12 @@ namespace bs
 
 			if(op.type == DropOpType::Leave || op.type == DropOpType::Drop)
 			{
-				while (!mFileLists.Empty())
+				while (!mFileLists.empty())
 				{
 					bool done = mFileLists[0] == op.mFileList;
 
 					bs_delete(mFileLists[0]);
-					mFileLists.Erase(mFileLists.begin());
+					mFileLists.erase(mFileLists.begin());
 
 					if (done)
 						break;

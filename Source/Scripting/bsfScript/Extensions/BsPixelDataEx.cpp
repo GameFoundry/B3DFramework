@@ -67,7 +67,7 @@ namespace bs
 		if (!checkIsLocked(thisPtr))
 			return;
 
-		UINT32 arrayLen = (UINT32)value.Size();
+		UINT32 arrayLen = (UINT32)value.size();
 		if (thisPtr->GetSize() != arrayLen)
 		{
 			BS_LOG(Warning, Texture, "Unable to set colors, invalid array size.");

@@ -85,7 +85,7 @@ namespace bs
 		/// Creates a new mesh with enough space to hold the a number of primitives using the specified layout. Indices can be 
 		/// referenced by multiple sub-meshes.
 		/// </summary>
-		/// <param name="data">Vertex and index data to initialize the mesh with.</param>
+		/// <param name="Data">Vertex and index data to initialize the mesh with.</param>
 		/// <param name="subMeshes">
 		/// Defines how are indices separated into sub-meshes, and how are those sub-meshes rendered. Sub-meshes may be rendered 
 		/// independently, each with a different material.

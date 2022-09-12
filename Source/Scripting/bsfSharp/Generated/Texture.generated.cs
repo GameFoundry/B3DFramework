@@ -193,7 +193,7 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern PixelData Internal_getPixels(IntPtr thisPtr, int face, int mipLevel);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_setPixels(IntPtr thisPtr, PixelData data, int face, int mipLevel);
+		private static extern void Internal_setPixels(IntPtr thisPtr, PixelData Data, int face, int mipLevel);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_setPixelsArray(IntPtr thisPtr, Color[] colors, int face, int mipLevel);
 	}

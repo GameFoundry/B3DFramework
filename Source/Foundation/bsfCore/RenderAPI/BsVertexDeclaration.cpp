@@ -178,13 +178,13 @@ namespace bs
 
 	bool VertexDeclarationProperties::operator== (const VertexDeclarationProperties& rhs) const
 	{
-		if (mElementList.Size() != rhs.mElementList.size())
+		if (mElementList.size() != rhs.mElementList.size())
 			return false;
 
-		auto myIter = mElementList.Begin();
-		auto theirIter = rhs.mElementList.Begin();
+		auto myIter = mElementList.begin();
+		auto theirIter = rhs.mElementList.begin();
 
-		for (; myIter != mElementList.End() && theirIter != rhs.mElementList.end(); ++myIter, ++theirIter)
+		for (; myIter != mElementList.end() && theirIter != rhs.mElementList.end(); ++myIter, ++theirIter)
 		{
 			if (!(*myIter == *theirIter))
 				return false;
@@ -200,9 +200,9 @@ namespace bs
 
 	const VertexElement* VertexDeclarationProperties::getElement(UINT16 index) const
 	{
-		assert(index < mElementList.Size() && "Index out of bounds");
+		assert(index < mElementList.size() && "Index out of bounds");
 
-		auto iter = mElementList.Begin();
+		auto iter = mElementList.begin();
 		for (UINT16 i = 0; i < index; ++i)
 			++iter;
 
@@ -339,10 +339,10 @@ namespace bs
 		const Vector<VertexElement>& shaderElems = shaderDecl->GetProperties().GetElements();
 		const Vector<VertexElement>& bufferElems = getProperties().GetElements();
 
-		for (auto shaderIter = shaderElems.Begin(); shaderIter != shaderElems.end(); ++shaderIter)
+		for (auto shaderIter = shaderElems.begin(); shaderIter != shaderElems.end(); ++shaderIter)
 		{
 			const VertexElement* foundElement = nullptr;
-			for (auto bufferIter = bufferElems.Begin(); bufferIter != bufferElems.end(); ++bufferIter)
+			for (auto bufferIter = bufferElems.begin(); bufferIter != bufferElems.end(); ++bufferIter)
 			{
 				if (shaderIter->GetSemantic() == bufferIter->getSemantic() && shaderIter->getSemanticIdx() == bufferIter->getSemanticIdx())
 				{
@@ -365,10 +365,10 @@ namespace bs
 		const Vector<VertexElement>& shaderElems = shaderDecl->GetProperties().GetElements();
 		const Vector<VertexElement>& bufferElems = getProperties().GetElements();
 
-		for (auto shaderIter = shaderElems.Begin(); shaderIter != shaderElems.end(); ++shaderIter)
+		for (auto shaderIter = shaderElems.begin(); shaderIter != shaderElems.end(); ++shaderIter)
 		{
 			const VertexElement* foundElement = nullptr;
-			for (auto bufferIter = bufferElems.Begin(); bufferIter != bufferElems.end(); ++bufferIter)
+			for (auto bufferIter = bufferElems.begin(); bufferIter != bufferElems.end(); ++bufferIter)
 			{
 				if (shaderIter->GetSemantic() == bufferIter->getSemantic() && shaderIter->getSemanticIdx() == bufferIter->getSemanticIdx())
 				{

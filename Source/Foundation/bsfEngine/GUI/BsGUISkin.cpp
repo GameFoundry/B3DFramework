@@ -20,9 +20,9 @@ namespace bs
 
 	bool GUISkin::HasStyle(const String& name) const
 	{
-		auto iterFind = mStyles.Find(name);
+		auto iterFind = mStyles.find(name);
 
-		if (iterFind != mStyles.End())
+		if (iterFind != mStyles.end())
 			return true;
 
 		return false;
@@ -30,9 +30,9 @@ namespace bs
 
 	const GUIElementStyle* GUISkin::getStyle(const String& guiElemType) const
 	{
-		auto iterFind = mStyles.Find(guiElemType);
+		auto iterFind = mStyles.find(guiElemType);
 
-		if(iterFind != mStyles.End())
+		if(iterFind != mStyles.end())
 			return &iterFind->second;
 
 		BS_LOG(Warning, GUI, "Cannot find GUI style with name: {0}. Returning default style.", guiElemType);
@@ -47,7 +47,7 @@ namespace bs
 
 	void GUISkin::RemoveStyle(const String& guiElemType)
 	{
-		mStyles.Erase(guiElemType);
+		mStyles.erase(guiElemType);
 	}
 
 	Vector<String> GUISkin::GetStyleNames() const

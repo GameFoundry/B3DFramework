@@ -95,8 +95,8 @@ namespace bs { namespace ct
 
 	VulkanCmdBuffer* VulkanCmdBufferPool::getBuffer(UINT32 queueFamily, bool secondary)
 	{
-		auto iterFind = mPools.Find(queueFamily);
-		if (iterFind == mPools.End())
+		auto iterFind = mPools.find(queueFamily);
+		if (iterFind == mPools.end())
 			return nullptr;
 
 		VulkanCmdBuffer** buffers = iterFind->second.buffers;
@@ -125,8 +125,8 @@ namespace bs { namespace ct
 
 	VulkanCmdBuffer* VulkanCmdBufferPool::createBuffer(UINT32 queueFamily, bool secondary)
 	{
-		auto iterFind = mPools.Find(queueFamily);
-		if (iterFind == mPools.End())
+		auto iterFind = mPools.find(queueFamily);
+		if (iterFind == mPools.end())
 			return nullptr;
 
 		const PoolInfo& poolInfo = iterFind->second;
@@ -242,7 +242,7 @@ namespace bs { namespace ct
 			// Resources have been marked as used, make sure to notify them we're done with them
 			reset();
 		}
-		else If(mState != State::Ready)
+		else if(mState != State::Ready)
 		{
 			// Notify any resources that they are no longer bound
 			for (auto& entry : mResources)
@@ -448,7 +448,7 @@ namespace bs { namespace ct
 
 		// If there are any query resets needed, execute those first
 		VulkanDevice& device = queue->GetDevice();
-		if(!mQueuedQueryResets.Empty())
+		if(!mQueuedQueryResets.empty())
 		{
 			VulkanCmdBuffer* cmdBuffer = device.GetCmdBufferPool().getBuffer(mQueueFamily, false);
 			VkCommandBuffer vkCmdBuffer = cmdBuffer->GetHandle();
@@ -476,7 +476,7 @@ namespace bs { namespace ct
 				Vector<VkBufferMemoryBarrier>& barriers = mTransitionInfoTemp[currentQueueFamily].bufferBarriers;
 
 				barriers.push_back(VkBufferMemoryBarrier());
-				VkBufferMemoryBarrier& barrier = barriers.Back();
+				VkBufferMemoryBarrier& barrier = barriers.back();
 				barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 				barrier.pNext = nullptr;
 				barrier.srcAccessMask = 0;
@@ -509,10 +509,10 @@ namespace bs { namespace ct
 				{
 					ImageSubresourceInfo& subresourceInfo = subresourceInfos[i];
 
-					UINT32 startIdx = (UINT32)barriers.Size();
+					UINT32 startIdx = (UINT32)barriers.size();
 					resource->GetBarriers(subresourceInfo.range, barriers);
 
-					for(UINT32 j = startIdx; j < (UINT32)barriers.Size(); j++)
+					for(UINT32 j = startIdx; j < (UINT32)barriers.size(); j++)
 					{
 						VkImageMemoryBarrier& barrier = barriers[j];
 
@@ -554,10 +554,10 @@ namespace bs { namespace ct
 
 					if (layoutMismatch)
 					{
-						UINT32 startIdx = (UINT32)localBarriers.Size();
+						UINT32 startIdx = (UINT32)localBarriers.size();
 						resource->GetBarriers(subresourceInfo.range, localBarriers);
 
-						for (UINT32 j = startIdx; j < (UINT32)localBarriers.Size(); j++)
+						for (UINT32 j = startIdx; j < (UINT32)localBarriers.size(); j++)
 						{
 							VkImageMemoryBarrier& barrier = localBarriers[j];
 
@@ -580,7 +580,7 @@ namespace bs { namespace ct
 
 		for (auto& entry : mTransitionInfoTemp)
 		{
-			bool empty = entry.second.imageBarriers.Empty() && entry.second.bufferBarriers.empty();
+			bool empty = entry.second.imageBarriers.empty() && entry.second.bufferBarriers.empty();
 			if (empty)
 				continue;
 
@@ -594,8 +594,8 @@ namespace bs { namespace ct
 			VkCommandBuffer vkCmdBuffer = cmdBuffer->GetHandle();
 
 			TransitionInfo& barriers = entry.second;
-			UINT32 numImgBarriers = (UINT32)barriers.imageBarriers.Size();
-			UINT32 numBufferBarriers = (UINT32)barriers.bufferBarriers.Size();
+			UINT32 numImgBarriers = (UINT32)barriers.imageBarriers.size();
+			UINT32 numBufferBarriers = (UINT32)barriers.bufferBarriers.size();
 
 			VkPipelineStageFlags srcStage = 0;
 			VkPipelineStageFlags dstStage = 0;
@@ -661,7 +661,7 @@ namespace bs { namespace ct
 			{
 				VulkanSemaphore* semaphore = entry->GetBackBuffer().sync;
 
-				if (numSemaphores >= (UINT32)mSemaphoresTemp.Size())
+				if (numSemaphores >= (UINT32)mSemaphoresTemp.size())
 					mSemaphoresTemp.push_back(semaphore);
 				else
 					mSemaphoresTemp[numSemaphores] = semaphore;
@@ -675,7 +675,7 @@ namespace bs { namespace ct
 		// Issue second part of transition pipeline barriers (on this queue)
 		for (auto& entry : mTransitionInfoTemp)
 		{
-			bool empty = entry.second.imageBarriers.Size() == 0 && entry.second.bufferBarriers.size() == 0;
+			bool empty = entry.second.imageBarriers.size() == 0 && entry.second.bufferBarriers.size() == 0;
 			if (empty)
 				continue;
 
@@ -683,8 +683,8 @@ namespace bs { namespace ct
 			VkCommandBuffer vkCmdBuffer = cmdBuffer->GetHandle();
 
 			TransitionInfo& barriers = entry.second;
-			UINT32 numImgBarriers = (UINT32)barriers.imageBarriers.Size();
-			UINT32 numBufferBarriers = (UINT32)barriers.bufferBarriers.Size();
+			UINT32 numImgBarriers = (UINT32)barriers.imageBarriers.size();
+			UINT32 numBufferBarriers = (UINT32)barriers.bufferBarriers.size();
 
 			VkPipelineStageFlags srcStage = 0;
 			VkPipelineStageFlags dstStage = 0;
@@ -1246,7 +1246,7 @@ namespace bs { namespace ct
 			return;
 
 		UINT32 endIdx = index + numBuffers;
-		if(mVertexBuffers.Size() < endIdx)
+		if(mVertexBuffers.size() < endIdx)
 			mVertexBuffers.Resize(endIdx);
 
 		for(UINT32 i = index; i < endIdx; i++)
@@ -1381,7 +1381,7 @@ namespace bs { namespace ct
 
 	void VulkanCmdBuffer::BindVertexInputs()
 	{
-		if (!mVertexBuffers.Empty())
+		if (!mVertexBuffers.empty())
 		{
 			UINT32 lastValidIdx = (UINT32)-1;
 			UINT32 curIdx = 0;
@@ -1485,7 +1485,7 @@ namespace bs { namespace ct
 					!subresourceInfo.shaderUse.access.IsSet(VulkanAccessFlag::Write);
 
 				mLayoutTransitionBarriersTemp.push_back(VkImageMemoryBarrier());
-				VkImageMemoryBarrier& barrier = mLayoutTransitionBarriersTemp.Back();
+				VkImageMemoryBarrier& barrier = mLayoutTransitionBarriersTemp.back();
 				barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 				barrier.pNext = nullptr;
 				barrier.srcAccessMask = 0; // Not relevant for layout transition
@@ -1516,14 +1516,14 @@ namespace bs { namespace ct
 		VkPipelineStageFlags dstStage = 0;
 		getPipelineStageFlags(mLayoutTransitionBarriersTemp, srcStage, dstStage);
 
-		if(!mLayoutTransitionBarriersTemp.Empty())
+		if(!mLayoutTransitionBarriersTemp.empty())
 		{
 			vkCmdPipelineBarrier(
 				mCmdBuffer,
 				srcStage, dstStage,
 				0, 0, nullptr,
 				0, nullptr,
-				(UINT32) mLayoutTransitionBarriersTemp.Size(), mLayoutTransitionBarriersTemp.data());
+				(UINT32) mLayoutTransitionBarriersTemp.size(), mLayoutTransitionBarriersTemp.data());
 		}
 
 		mQueuedLayoutTransitions.Clear();
@@ -1867,8 +1867,8 @@ namespace bs { namespace ct
 		// by registerResource(), or by external code (in the case of transfers). So we only check the first subresource.
 		VulkanImageSubresource* subresource = image->GetSubresource(face, mip);
 
-		auto iterFind = mImages.Find(image);
-		if (iterFind == mImages.End())
+		auto iterFind = mImages.find(image);
+		if (iterFind == mImages.end())
 			return subresource->GetLayout();
 
 		UINT32 imageInfoIdx = iterFind->second;
@@ -1981,11 +1981,11 @@ namespace bs { namespace ct
 		// if the resource has been used previously then it calculates the overlapping subresource sets and calls a relevant
 		// function and further determines if any layout transitions and/or memory/execution barriers are necessary.
 
-		UINT32 nextImageInfoIdx = (UINT32)mImageInfos.Size();
+		UINT32 nextImageInfoIdx = (UINT32)mImageInfos.size();
 		auto registerSubresourceInfo = [&](const VkImageSubresourceRange& subresourceRange)
 		{
 			mSubresourceInfoStorage.push_back(ImageSubresourceInfo());
-			ImageSubresourceInfo& subresourceInfo = mSubresourceInfoStorage.Back();
+			ImageSubresourceInfo& subresourceInfo = mSubresourceInfoStorage.back();
 			subresourceInfo.currentLayout = layout;
 			subresourceInfo.initialLayout = layout;
 			subresourceInfo.initialReadOnly = !access.IsSet(VulkanAccessFlag::Write);
@@ -2025,7 +2025,7 @@ namespace bs { namespace ct
 			mImageInfos.push_back(ImageInfo());
 
 			ImageInfo& imageInfo = mImageInfos[imageInfoIdx];
-			imageInfo.subresourceInfoIdx = (UINT32)mSubresourceInfoStorage.Size();
+			imageInfo.subresourceInfoIdx = (UINT32)mSubresourceInfoStorage.size();
 			imageInfo.numSubresourceInfos = 1;
 
 			imageInfo.useHandle.used = false;
@@ -2094,7 +2094,7 @@ namespace bs { namespace ct
 				bs_frame_mark();
 				{
 					// We orphan previously allocated memory (we reset it after submit() anyway)
-					UINT32 newSubresourceIdx = (UINT32)mSubresourceInfoStorage.Size();
+					UINT32 newSubresourceIdx = (UINT32)mSubresourceInfoStorage.size();
 
 					FrameVector<UINT32> cutOverlappingRanges;
 					for (UINT32 i = 0; i < imageInfo.numSubresourceInfos; i++)
@@ -2140,7 +2140,7 @@ namespace bs { namespace ct
 									}
 
 									// Keep track of the overlapping ranges for later
-									cutOverlappingRanges.push_back((UINT32)mSubresourceInfoStorage.Size());
+									cutOverlappingRanges.push_back((UINT32)mSubresourceInfoStorage.size());
 								}
 
 								mSubresourceInfoStorage.push_back(newInfo);
@@ -2152,7 +2152,7 @@ namespace bs { namespace ct
 					}
 
 					// Our range doesn't overlap with any existing ranges, so just add it
-					if(cutOverlappingRanges.Empty())
+					if(cutOverlappingRanges.empty())
 					{
 						registerSubresourceInfo(range);
 					}
@@ -2165,11 +2165,11 @@ namespace bs { namespace ct
 						{
 							VkImageSubresourceRange& overlappingRange = mSubresourceInfoStorage[entry].range;
 
-							UINT32 numSourceRanges = (UINT32)sourceRanges.Size();
+							UINT32 numSourceRanges = (UINT32)sourceRanges.size();
 							for(UINT32 i = 0; i < numSourceRanges; i++)
 							{
-								VkImageSubresourceRange sourceRange = sourceRanges.Front();
-								sourceRanges.Pop();
+								VkImageSubresourceRange sourceRange = sourceRanges.front();
+								sourceRanges.pop();
 
 								UINT32 numCutRanges;
 								VulkanUtility::cutRange(sourceRange, overlappingRange, tempCutRanges, numCutRanges);
@@ -2184,15 +2184,15 @@ namespace bs { namespace ct
 						}
 
 						// Any remaining range hasn't been covered yet
-						while(!sourceRanges.Empty())
+						while(!sourceRanges.empty())
 						{
-							registerSubresourceInfo(sourceRanges.Front());
-							sourceRanges.Pop();
+							registerSubresourceInfo(sourceRanges.front());
+							sourceRanges.pop();
 						}
 					}
 
 					imageInfo.subresourceInfoIdx = newSubresourceIdx;
-					imageInfo.numSubresourceInfos = (UINT32)mSubresourceInfoStorage.Size() - newSubresourceIdx;
+					imageInfo.numSubresourceInfos = (UINT32)mSubresourceInfoStorage.size() - newSubresourceIdx;
 				}
 				bs_frame_clear();
 			}
@@ -2722,11 +2722,11 @@ namespace bs { namespace ct
 		Vector<VulkanOcclusionQuery*> occlusionQueries;
 		mBuffer->GetInProgressQueries(timerQueries, occlusionQueries);
 
-		if(!timerQueries.Empty() || !occlusionQueries.empty())
+		if(!timerQueries.empty() || !occlusionQueries.empty())
 		{
 			BS_LOG(Warning, RenderBackend, "Submitting a command buffer with {0} timer queries "
 				"and {1} occlusion queries that are still open. The queries will be closed automatically.",
-				timerQueries.Size(), occlusionQueries.size());
+				timerQueries.size(), occlusionQueries.size());
 
 			for (auto& query : timerQueries)
 				query->_interrupt(*mBuffer);

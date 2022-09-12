@@ -22,7 +22,7 @@ namespace bs
 		 * Performs a deep clone of this object any any potential child objects.
 		 * 			
 		 * @param[in]	cloneData	If true the data contained by the objects will be cloned as well, instead of just
-		 *							meta-data. If false then both the original and the cloned instances will point to the
+		 *							meta-Data. If false then both the original and the cloned instances will point to the
 		 *							same instances of data. The original will retain data ownership and it will go out of
 		 *							scope when the original does.
 		 */

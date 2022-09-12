@@ -9,9 +9,9 @@ namespace bs
 
 	MessageId::MessageId(const String& name)
 	{
-		auto findIter = UniqueMessageIds.Find(name);
+		auto findIter = UniqueMessageIds.find(name);
 
-		if (findIter != UniqueMessageIds.End())
+		if (findIter != UniqueMessageIds.end())
 			mMsgIdentifier = findIter->second;
 		else
 		{
@@ -32,8 +32,8 @@ namespace bs
 
 	void MessageHandler::Send(MessageId message)
 	{
-		auto iterFind = mMessageHandlers.Find(message.mMsgIdentifier);
-		if (iterFind != mMessageHandlers.End())
+		auto iterFind = mMessageHandlers.find(message.mMsgIdentifier);
+		if (iterFind != mMessageHandlers.end())
 		{
 			for (auto& handlerData : iterFind->second)
 			{
@@ -60,21 +60,21 @@ namespace bs
 	{
 		UINT32 msgId = mHandlerIdToMessageMap[handleId];
 
-		auto iterFind = mMessageHandlers.Find(msgId);
-		if (iterFind != mMessageHandlers.End())
+		auto iterFind = mMessageHandlers.find(msgId);
+		if (iterFind != mMessageHandlers.end())
 		{
 			Vector<MessageHandlerData>& handlerData = iterFind->second;
 
 			handlerData.erase(
-				std::remove_if(handlerData.Begin(), handlerData.end(),
+				std::remove_if(handlerData.begin(), handlerData.end(),
 				[&](MessageHandlerData& x)
 				{
 					return x.id == handleId;
 				}),
-				handlerData.End());
+				handlerData.end());
 		}
 
-		mHandlerIdToMessageMap.Erase(handleId);
+		mHandlerIdToMessageMap.erase(handleId);
 	}
 
 	void SendMessage(MessageId message)

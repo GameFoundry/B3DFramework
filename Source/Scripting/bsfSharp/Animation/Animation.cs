@@ -36,7 +36,7 @@ namespace bs
         /// you have no control over clip properties, and features like blending, cross fade or animation events are not
         /// supported.
         ///
-        /// Caller will need to manually call <see cref="UpdateFloatProperties"/> in order to apply evaluated animation data
+        /// Caller will need to manually call <see cref="UpdateFloatProperties"/> in order to apply evaluated animation Data
         /// to relevant float properties (if required).
         ///
         /// Caller will also need to manually call <see cref="RefreshClipMappings"/> whenever the curves internal to the

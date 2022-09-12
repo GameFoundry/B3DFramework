@@ -16,9 +16,9 @@ namespace bs { namespace ct
 {
 	template<class C> void remove_duplicates(C& c)
 	{
-		std::sort(c.Begin(), c.end());
-		typename C::iterator p = std::unique(c.Begin(), c.end());
-		c.Erase(p, c.end());
+		std::sort(c.begin(), c.end());
+		typename C::iterator p = std::unique(c.begin(), c.end());
+		c.erase(p, c.end());
 	}
 
 	Win32GLSupport::Win32GLSupport()

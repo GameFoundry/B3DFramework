@@ -66,7 +66,7 @@ namespace bs
 
 		HeapNode<K, V>* insert(const K& key, const V& value)
 		{
-			if (mSize == mNode.Size())
+			if (mSize == mNode.size())
 				return nullptr;
 
 			int child = mSize++;

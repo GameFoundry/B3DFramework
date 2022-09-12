@@ -156,9 +156,9 @@ namespace bs
 		};
 
 		Vector<IconData> iconsToGenerate;
-		while(!queuedOps.Empty())
+		while(!queuedOps.empty())
 		{
-			for(auto iter = queuedOps.Begin(); iter != queuedOps.end();)
+			for(auto iter = queuedOps.begin(); iter != queuedOps.end();)
 			{
 				QueuedImportOp& importOp = *iter;
 				if(!importOp.op.HasCompleted())
@@ -179,16 +179,16 @@ namespace bs
 
 					bool isIcon = false;
 					if (mode == AssetType::Normal)
-						isIcon = entry.Find("UUID16") != entry.end();
+						isIcon = entry.find("UUID16") != entry.end();
 					else if (mode == AssetType::Sprite)
-						isIcon = entry.Find("TextureUUID16") != entry.end();
+						isIcon = entry.find("TextureUUID16") != entry.end();
 
 					if (rtti_is_of_type<Shader>(outputRes.Get()))
 					{
 						HShader shader = static_resource_cast<Shader>(outputRes);
 						if (!verifyAndReportShader(shader))
 						{
-							iter = queuedOps.Erase(iter);
+							iter = queuedOps.erase(iter);
 							continue;
 						}
 
@@ -197,14 +197,14 @@ namespace bs
 							SPtr<ShaderMetaData> shaderMetaData = std::static_pointer_cast<ShaderMetaData>(shader->GetMetaData());
 
 							nlohmann::json dependencyEntries;
-							if (shaderMetaData != nullptr && shaderMetaData->includes.Size() > 0)
+							if (shaderMetaData != nullptr && shaderMetaData->includes.size() > 0)
 							{
 								for (auto& include : shaderMetaData->includes)
 								{
 									Path includePath = include.c_str();
 									if (include.Substr(0, 8) == "$ENGINE$" || include.substr(0, 8) == "$EDITOR$")
 									{
-										if (include.Size() > 8)
+										if (include.size() > 8)
 											includePath = include.Substr(9, include.size() - 9);
 									}
 
@@ -226,7 +226,7 @@ namespace bs
 						HTexture tex = static_resource_cast<Texture>(outputRes);
 						std::string spriteUUID = entry["SpriteUUID"];
 
-						bool isAnimated = entry.Find("Animation") != entry.end();
+						bool isAnimated = entry.find("Animation") != entry.end();
 						if(isAnimated)
 						{
 							auto& jsonAnimation = entry["Animation"];
@@ -272,11 +272,11 @@ namespace bs
 					}
 				}
 
-				iter = queuedOps.Erase(iter);
+				iter = queuedOps.erase(iter);
 			}
 		}
 
-		for(UINT32 i = 0; i < (UINT32)iconsToGenerate.Size(); i++)
+		for(UINT32 i = 0; i < (UINT32)iconsToGenerate.size(); i++)
 		{
 			IconData& data = iconsToGenerate[i];
 
@@ -297,7 +297,7 @@ namespace bs
 			return static_resource_cast<Texture>(texture);
 		};
 
-		for (UINT32 i = 0; i < (UINT32)iconsToGenerate.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)iconsToGenerate.size(); i++)
 		{
 			SPtr<PixelData> src = iconsToGenerate[i].srcData;
 
@@ -360,8 +360,8 @@ namespace bs
 			UINT32 pageIdx = 0;
 			for (auto tex : fontData->texturePages)
 			{
-				texPageOutputPath.SetFilename(fontName + u8"_" + toString(size) + u8"_texpage_" +
-					toString(pageIdx) + u8".asset");
+				texPageOutputPath.SetFilename(fontName + u8"_" + ToString(size) + u8"_texpage_" +
+													  ToString(pageIdx) + u8".asset");
 
 				Resources::instance().Save(tex, texPageOutputPath, true);
 				manifest->RegisterResource(tex.GetUUID(), texPageOutputPath);
@@ -374,7 +374,7 @@ namespace bs
 	Vector<bool> BuiltinResourcesHelper::generateImportFlags(const nlohmann::json& entries, const Path& inputFolder,
 		time_t lastUpdateTime, bool forceImport, const nlohmann::json* dependencies, const Path& dependencyFolder)
 	{
-		Vector<bool> Output(entries.Size());
+		Vector<bool> Output(entries.size());
 		UINT32 idx = 0;
 		for (auto& entry : entries)
 		{
@@ -438,8 +438,8 @@ namespace bs
 		{
 			Path relativePath = filePath.GetRelative(folder);
 
-			auto iterFind = existingEntries.Find(relativePath);
-			if(iterFind == existingEntries.End())
+			auto iterFind = existingEntries.find(relativePath);
+			if(iterFind == existingEntries.end())
 			{
 				if(type == AssetType::Normal)
 				{
@@ -475,8 +475,8 @@ namespace bs
 		FileSystem::iterate(folder, checkForChanges, nullptr, false);
 
 		// Prune deleted entries
-		auto iter = entries.Begin();
-		while(iter != entries.End())
+		auto iter = entries.begin();
+		while(iter != entries.end())
 		{
 			std::string strPath = (*iter)["Path"];
 			Path path = strPath.c_str();
@@ -484,7 +484,7 @@ namespace bs
 
 			if (!FileSystem::exists(path))
 			{
-				iter = entries.Erase(iter);
+				iter = entries.erase(iter);
 				foundChanges = true;
 			}
 			else
@@ -506,12 +506,12 @@ namespace bs
 			if (type == AssetType::Normal)
 			{
 				uuid = entry["UUID"].get<std::string>();
-				isIcon = entry.Find("UUID16") != entry.end();
+				isIcon = entry.find("UUID16") != entry.end();
 			}
 			else if (type == AssetType::Sprite)
 			{
 				uuid = entry["TextureUUID"].get<std::string>();
-				isIcon = entry.Find("TextureUUID16") != entry.end();
+				isIcon = entry.find("TextureUUID16") != entry.end();
 			}
 
 			Path path = folder + name.c_str();
@@ -702,7 +702,7 @@ namespace bs
 				for (UINT32 j = 0; j < GPT_COUNT; j++)
 				{
 					const GPU_PROGRAM_DESC& desc = pass->GetProgramDesc((GpuProgramType)j);
-					if (desc.source.Empty())
+					if (desc.source.empty())
 						continue;
 
 					if (!desc.bytecode)

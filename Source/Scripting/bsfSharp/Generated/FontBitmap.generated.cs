@@ -44,7 +44,7 @@ namespace bs
 			set { Internal_setlineHeight(mCachedPtr, value); }
 		}
 
-		/// <summary>Character to use when data for a character is missing.</summary>
+		/// <summary>Character to use when Data for a character is missing.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
 		public CharDesc MissingGlyph

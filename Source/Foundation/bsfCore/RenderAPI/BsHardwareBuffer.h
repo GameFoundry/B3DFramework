@@ -76,7 +76,7 @@ namespace bs
 		 * @param[in]	dest		Destination buffer large enough to store the read data. Data is written from the start
 		 *							of the buffer (@p offset is only applied to the source).
 		 * @param[in]	deviceIdx	Index of the device whose memory to read. If the buffer doesn't exist on this device,
-		 *							no data will be read.		
+		 *							no data will be read.
 		 * @param[in]	queueIdx	Device queue to perform the read operation on. See @ref queuesDoc.
 		 */
 		virtual void ReadData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx = 0, UINT32 queueIdx = 0) = 0;

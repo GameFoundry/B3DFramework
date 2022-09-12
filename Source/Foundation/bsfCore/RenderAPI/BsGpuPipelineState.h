@@ -106,7 +106,7 @@ namespace bs
 		const GpuProgramType& GetHullProgram() const { return mData.hullProgram; }
 		const GpuProgramType& GetDomainProgram() const { return mData.domainProgram; }
 
-		/** Returns an object containing meta-data for parameters of all GPU programs used in this pipeline state. */
+		/** Returns an object containing meta-Data for parameters of all GPU programs used in this pipeline state. */
 		const SPtr<GpuPipelineParamInfoType>& GetParamInfo() const { return mParamInfo; }
 
 	protected:
@@ -132,7 +132,7 @@ namespace bs
 
 		const GpuProgramType& GetProgram() const { return mProgram; }
 
-		/** Returns an object containing meta-data for parameters of the GPU program used in this pipeline state. */
+		/** Returns an object containing meta-Data for parameters of the GPU program used in this pipeline state. */
 		const SPtr<GpuPipelineParamInfoType>& GetParamInfo() const { return mParamInfo; }
 
 	protected:

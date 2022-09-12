@@ -465,7 +465,7 @@ namespace bs
 		if(unloadPluginFunc != nullptr)
 			unloadPluginFunc();
 
-		mPluginUpdateFunctions.Erase(library);
+		mPluginUpdateFunctions.erase(library);
 		gDynLibManager().Unload(library);
 	}
 

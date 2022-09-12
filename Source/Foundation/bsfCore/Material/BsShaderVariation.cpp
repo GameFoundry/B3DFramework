@@ -7,17 +7,17 @@ namespace bs
 {
 	void ShaderDefines::Set(const String& name, float value)
 	{
-		mDefines[name] = toString(value);
+		mDefines[name] = ToString(value);
 	}
 
 	void ShaderDefines::Set(const String& name, INT32 value)
 	{
-		mDefines[name] = toString(value);
+		mDefines[name] = ToString(value);
 	}
 
 	void ShaderDefines::Set(const String& name, UINT32 value)
 	{
-		mDefines[name] = toString(value);
+		mDefines[name] = ToString(value);
 	}
 
 	void ShaderDefines::Set(const String& name, const String& value)
@@ -35,8 +35,8 @@ namespace bs
 
 	INT32 ShaderVariation::GetInt(const StringID& name)
 	{
-		auto iterFind = mParams.Find(name);
-		if (iterFind == mParams.End())
+		auto iterFind = mParams.find(name);
+		if (iterFind == mParams.end())
 			return 0;
 		else
 			return iterFind->second.i;
@@ -44,8 +44,8 @@ namespace bs
 
 	UINT32 ShaderVariation::GetUInt(const StringID& name)
 	{
-		auto iterFind = mParams.Find(name);
-		if (iterFind == mParams.End())
+		auto iterFind = mParams.find(name);
+		if (iterFind == mParams.end())
 			return 0;
 		else
 			return iterFind->second.ui;
@@ -53,8 +53,8 @@ namespace bs
 
 	float ShaderVariation::GetFloat(const StringID& name)
 	{
-		auto iterFind = mParams.Find(name);
-		if (iterFind == mParams.End())
+		auto iterFind = mParams.find(name);
+		if (iterFind == mParams.end())
 			return 0.0f;
 		else
 			return iterFind->second.f;
@@ -62,8 +62,8 @@ namespace bs
 
 	bool ShaderVariation::GetBool(const StringID& name)
 	{
-		auto iterFind = mParams.Find(name);
-		if (iterFind == mParams.End())
+		auto iterFind = mParams.find(name);
+		if (iterFind == mParams.end())
 			return false;
 		else
 			return iterFind->second.i > 0 ? true : false;
@@ -127,8 +127,8 @@ namespace bs
 	{
 		for(auto& entry : other.mParams)
 		{
-			const auto iterFind = mParams.Find(entry.first);
-			if(iterFind == mParams.End())
+			const auto iterFind = mParams.find(entry.first);
+			if(iterFind == mParams.end())
 				return false;
 
 			if(entry.second.i != iterFind->second.i)
@@ -139,8 +139,8 @@ namespace bs
 		{
 			for (auto& entry : mParams)
 			{
-				const auto iterFind = other.mParams.Find(entry.first);
-				if (iterFind == other.mParams.End())
+				const auto iterFind = other.mParams.find(entry.first);
+				if (iterFind == other.mParams.end())
 					return false;
 
 				if (entry.second.i != iterFind->second.i)

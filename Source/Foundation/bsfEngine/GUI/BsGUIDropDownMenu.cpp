@@ -221,7 +221,7 @@ namespace bs
 		UINT32 dropDownBoxWidth = DROP_DOWN_BOX_WIDTH + sideBarStyle->width;
 
 		UINT32 maxNeededHeight = backgroundStyle->margins.top + backgroundStyle->margins.bottom;
-		UINT32 numElements = (UINT32)dropDownData.entries.Size();
+		UINT32 numElements = (UINT32)dropDownData.entries.size();
 		for (UINT32 i = 0; i < numElements; i++)
 			maxNeededHeight += mContent->GetElementHeight(i);
 
@@ -270,7 +270,7 @@ namespace bs
 	{
 		const GUIElementStyle* backgroundStyle = mOwner->GetSkin().GetStyle(mOwner->mBackgroundStyle);
 
-		INT32 numElements = (INT32)mData.entries.Size();
+		INT32 numElements = (INT32)mData.entries.size();
 
 		PageInfo curPageInfo;
 		curPageInfo.start = 0;
@@ -331,7 +331,7 @@ namespace bs
 
 		UINT32 pageStart = 0, pageEnd = 0;
 		UINT32 pageHeight = 0;
-		UINT32 pageCount = (UINT32)pageInfos.Size();
+		UINT32 pageCount = (UINT32)pageInfos.size();
 		if (pageCount > mPage)
 		{
 			pageStart = pageInfos[mPage].start;
@@ -346,7 +346,7 @@ namespace bs
 
 		// Add sidebar if needed
 		UINT32 contentOffset = 0;
-		if (pageInfos.Size() > 1)
+		if (pageInfos.size() > 1)
 		{
 			UINT32 sidebarHeight = pageHeight - 2;
 			contentOffset = sideBarStyle->width;
@@ -428,7 +428,7 @@ namespace bs
 	void GUIDropDownMenu::DropDownSubMenu::scrollDown()
 	{
 		mPage++;
-		if (mPage == (UINT32)getPageInfos().Size())
+		if (mPage == (UINT32)getPageInfos().size())
 			mPage = 0;
 
 		updateGUIElements();
@@ -441,7 +441,7 @@ namespace bs
 		if (mPage > 0)
 			mPage--;
 		else
-			mPage = (UINT32)getPageInfos().Size() - 1;
+			mPage = (UINT32)getPageInfos().size() - 1;
 
 		updateGUIElements();
 		closeSubMenu();
@@ -457,7 +457,7 @@ namespace bs
 
 	void GUIDropDownMenu::DropDownSubMenu::scrollToBottom()
 	{
-		mPage = (UINT32)(getPageInfos().Size() - 1);
+		mPage = (UINT32)(getPageInfos().size() - 1);
 		updateGUIElements();
 
 		closeSubMenu();

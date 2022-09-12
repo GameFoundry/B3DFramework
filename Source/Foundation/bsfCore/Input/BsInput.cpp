@@ -90,7 +90,7 @@ namespace bs
 					deviceData.keyStates[i] = ButtonState::On;
 			}
 
-			UINT32 numAxes = (UINT32)deviceData.axes.Size();
+			UINT32 numAxes = (UINT32)deviceData.axes.size();
 			for (UINT32 i = 0; i < numAxes; i++)
 				deviceData.axes[i] = 0.0f;
 		}
@@ -210,7 +210,7 @@ namespace bs
 			{
 				const ButtonEvent& eventData = mButtonUpEvents[1][event.idx];
 
-				while (eventData.deviceIdx >= (UINT32)mDevices.Size())
+				while (eventData.deviceIdx >= (UINT32)mDevices.size())
 					mDevices.push_back(DeviceData());
 
 				if (mDevices[eventData.deviceIdx].keyStates[eventData.buttonCode & 0x0000FFFF] == ButtonState::ToggledOn)
@@ -340,7 +340,7 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		while (deviceIdx >= (UINT32)mDevices.Size())
+		while (deviceIdx >= (UINT32)mDevices.size())
 			mDevices.push_back(DeviceData());
 
 		ButtonEvent btnEvent;
@@ -348,7 +348,7 @@ namespace bs
 		btnEvent.timestamp = timestamp;
 		btnEvent.deviceIdx = deviceIdx;
 
-		mQueuedEvents[0].push_back(QueuedEvent(EventType::ButtonDown, (UINT32)mButtonDownEvents[0].Size()));
+		mQueuedEvents[0].push_back(QueuedEvent(EventType::ButtonDown, (UINT32)mButtonDownEvents[0].size()));
 		mButtonDownEvents[0].push_back(btnEvent);
 	}
 
@@ -361,18 +361,18 @@ namespace bs
 		btnEvent.timestamp = timestamp;
 		btnEvent.deviceIdx = deviceIdx;
 
-		mQueuedEvents[0].push_back(QueuedEvent(EventType::ButtonUp, (UINT32)mButtonUpEvents[0].Size()));
+		mQueuedEvents[0].push_back(QueuedEvent(EventType::ButtonUp, (UINT32)mButtonUpEvents[0].size()));
 		mButtonUpEvents[0].push_back(btnEvent);
 	}
 
 	void Input::AxisMoved(UINT32 deviceIdx, float value, UINT32 axis)
 	{
 		// Note: This method must only ever be called from the main thread, as we don't lock access to axis data
-		while (deviceIdx >= (UINT32)mDevices.Size())
+		while (deviceIdx >= (UINT32)mDevices.size())
 			mDevices.push_back(DeviceData());
 
 		Vector<float>& axes = mDevices[deviceIdx].axes;
-		while (axis >= (UINT32)axes.Size())
+		while (axis >= (UINT32)axes.size())
 			axes.push_back(0.0f);
 
 		mDevices[deviceIdx].axes[axis] = value;
@@ -416,7 +416,7 @@ namespace bs
 		event.screenPos = cursorPos;
 		event.type = PointerEventType::ButtonPressed;
 
-		mQueuedEvents[0].push_back(QueuedEvent(EventType::PointerDown, (UINT32)mPointerPressedEvents[0].Size()));
+		mQueuedEvents[0].push_back(QueuedEvent(EventType::PointerDown, (UINT32)mPointerPressedEvents[0].size()));
 		mPointerPressedEvents[0].push_back(event);
 	}
 
@@ -450,7 +450,7 @@ namespace bs
 		event.screenPos = cursorPos;
 		event.type = PointerEventType::ButtonReleased;
 
-		mQueuedEvents[0].push_back(QueuedEvent(EventType::PointerUp, (UINT32)mPointerReleasedEvents[0].Size()));
+		mQueuedEvents[0].push_back(QueuedEvent(EventType::PointerUp, (UINT32)mPointerReleasedEvents[0].size()));
 		mPointerReleasedEvents[0].push_back(event);
 	}
 
@@ -469,7 +469,7 @@ namespace bs
 		event.screenPos = cursorPos;
 		event.type = PointerEventType::DoubleClick;
 
-		mQueuedEvents[0].push_back(QueuedEvent(EventType::PointerDoubleClick, (UINT32)mPointerDoubleClickEvents[0].Size()));
+		mQueuedEvents[0].push_back(QueuedEvent(EventType::PointerDoubleClick, (UINT32)mPointerDoubleClickEvents[0].size()));
 		mPointerDoubleClickEvents[0].push_back(event);
 	}
 
@@ -477,7 +477,7 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		mQueuedEvents[0].push_back(QueuedEvent(EventType::Command, (UINT32)mCommandEvents[0].Size()));
+		mQueuedEvents[0].push_back(QueuedEvent(EventType::Command, (UINT32)mCommandEvents[0].size()));
 		mCommandEvents[0].push_back(commandType);
 	}
 
@@ -495,17 +495,17 @@ namespace bs
 		TextInputEvent textInputEvent;
 		textInputEvent.textChar = chr;
 
-		mQueuedEvents[0].push_back(QueuedEvent(EventType::TextInput, (UINT32)mTextInputEvents[0].Size()));
+		mQueuedEvents[0].push_back(QueuedEvent(EventType::TextInput, (UINT32)mTextInputEvents[0].size()));
 		mTextInputEvents[0].push_back(textInputEvent);
 	}
 
 	float Input::GetAxisValue(UINT32 type, UINT32 deviceIdx) const
 	{
-		if (deviceIdx >= (UINT32)mDevices.Size())
+		if (deviceIdx >= (UINT32)mDevices.size())
 			return 0.0f;
 
 		const Vector<float>& axes = mDevices[deviceIdx].axes;
-		if (type >= (UINT32)axes.Size())
+		if (type >= (UINT32)axes.size())
 			return 0.0f;
 
 		return axes[type];
@@ -513,7 +513,7 @@ namespace bs
 
 	bool Input::IsButtonHeld(ButtonCode button, UINT32 deviceIdx) const
 	{
-		if (deviceIdx >= (UINT32)mDevices.Size())
+		if (deviceIdx >= (UINT32)mDevices.size())
 			return false;
 
 		return mDevices[deviceIdx].keyStates[button & 0x0000FFFF] == ButtonState::On ||
@@ -523,7 +523,7 @@ namespace bs
 
 	bool Input::IsButtonUp(ButtonCode button, UINT32 deviceIdx) const
 	{
-		if (deviceIdx >= (UINT32)mDevices.Size())
+		if (deviceIdx >= (UINT32)mDevices.size())
 			return false;
 
 		return mDevices[deviceIdx].keyStates[button & 0x0000FFFF] == ButtonState::ToggledOff ||
@@ -532,7 +532,7 @@ namespace bs
 
 	bool Input::IsButtonDown(ButtonCode button, UINT32 deviceIdx) const
 	{
-		if (deviceIdx >= (UINT32)mDevices.Size())
+		if (deviceIdx >= (UINT32)mDevices.size())
 			return false;
 
 		return mDevices[deviceIdx].keyStates[button & 0x0000FFFF] == ButtonState::ToggledOn ||
@@ -583,7 +583,7 @@ namespace bs
 
 			return StringUtil::BLANK;
 		case InputDevice::Gamepad:
-			if (idx < (UINT32)mGamepads.Size())
+			if (idx < (UINT32)mGamepads.size())
 				return mGamepads[idx]->GetName();
 			
 			return StringUtil::BLANK;

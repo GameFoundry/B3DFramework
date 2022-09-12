@@ -44,7 +44,7 @@ namespace bs
 		 * Initializes a bitstream with some initial capacity. If more bytes than capacity is written, the bitstream will
 		 * grow its internal memory storage.
 		 *
-		 * @param[in]	capacity	Number of bytes to initially allocate for the internal memory storage.
+		 * @param[in]	capacity	Number of bytes to initially Allocate for the internal memory storage.
 		 */
 		Bitstream(uint32_t capacity);
 
@@ -56,7 +56,7 @@ namespace bs
 		 * @param[in]	data	Address of the external memory buffer. The user is responsible of keeping this memory alive
 		 *						for the lifetime of the bitstream, as well as releasing it. Must have enough capacity to
 		 *						store @p count bits.
-		 * @param[in]	count	Size of the provided data, in bytes.
+		 * @param[in]	count	Size of the provided Data, in bytes.
 		 */
 		Bitstream(QuantType* data, uint32_t count);
 
@@ -390,7 +390,7 @@ namespace bs
 		/** Returns the total number of bits available in the stream. */
 		uint64_t Size() const { return mNumBits; }
 
-		/** Returns the total number of bits the stream can store without needing to allocate more memory. */
+		/** Returns the total number of bits the stream can store without needing to Allocate more memory. */
 		uint64_t Capacity() const { return mMaxBits; }
 
 		/** Returns the internal data buffer. */
@@ -628,7 +628,7 @@ namespace bs
 
 	inline uint64_t Bitstream::Write(const String& value)
 	{
-		uint32_t length = (uint32_t)value.Size();
+		uint32_t length = (uint32_t)value.size();
 		uint64_t written = writeVarInt(length);
 		written += writeBits((QuantType*)value.Data(), (uint64_t)length * 8);
 

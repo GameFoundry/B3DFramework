@@ -112,7 +112,7 @@ namespace bs
 		for (UINT32 i = start; i < end; i++)
 		{
 			mVisibleElements.push_back(VisibleElement());
-			VisibleElement& visElem = mVisibleElements.Back();
+			VisibleElement& visElem = mVisibleElements.back();
 			visElem.idx = i;
 			GUIDropDownDataEntry& element = mDropDownData.entries[i];
 
@@ -145,7 +145,7 @@ namespace bs
 				_registerChildElement(visElem.button);
 
 				const String& shortcutTag = element.GetShortcutTag();
-				if (!shortcutTag.Empty())
+				if (!shortcutTag.empty())
 				{
 					visElem.shortcutLabel = GUILabel::create(HString(shortcutTag), "RightAlignedLabel");
 					_registerChildElement(visElem.shortcutLabel);
@@ -180,8 +180,8 @@ namespace bs
 	{
 		const String& label = mDropDownData.entries[idx].GetLabel();
 
-		auto findLocalizedName = mDropDownData.localizedNames.Find(label);
-		if (findLocalizedName != mDropDownData.localizedNames.End())
+		auto findLocalizedName = mDropDownData.localizedNames.find(label);
+		if (findLocalizedName != mDropDownData.localizedNames.end())
 			return findLocalizedName->second;
 		else
 			return HString(label);
@@ -284,7 +284,7 @@ namespace bs
 
 	void GUIDropDownContent::SelectNext(UINT32 startIdx)
 	{
-		UINT32 numElements = (UINT32)mDropDownData.entries.Size();
+		UINT32 numElements = (UINT32)mDropDownData.entries.size();
 
 		bool gotNextIndex = false;
 		UINT32 nextIdx = startIdx;
@@ -324,7 +324,7 @@ namespace bs
 
 	void GUIDropDownContent::SelectPrevious(UINT32 startIdx)
 	{
-		UINT32 numElements = (UINT32)mDropDownData.entries.Size();
+		UINT32 numElements = (UINT32)mDropDownData.entries.size();
 
 		bool gotNextIndex = false;
 		INT32 prevIdx = (INT32)startIdx;

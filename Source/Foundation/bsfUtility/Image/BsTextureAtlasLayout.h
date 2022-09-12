@@ -65,7 +65,7 @@ namespace bs
 		void Clear();
 
 		/** Checks have any elements been added to the layout. */
-		bool IsEmpty() const { return mNodes.Size() == 1; }
+		bool IsEmpty() const { return mNodes.size() == 1; }
 
 		/** Returns the width of the atlas texture, in pixels. */
 		UINT32 GetWidth() const { return mWidth; }

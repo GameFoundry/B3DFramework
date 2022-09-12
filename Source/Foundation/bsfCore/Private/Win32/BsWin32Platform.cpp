@@ -306,10 +306,10 @@ namespace bs
 	{
 		Lock Lock(mData->mSync);
 
-		auto iterFind = mData->mNonClientAreas.Find(&window);
+		auto iterFind = mData->mNonClientAreas.find(&window);
 
 		if (iterFind != end(mData->mNonClientAreas))
-			mData->mNonClientAreas.Erase(iterFind);
+			mData->mNonClientAreas.erase(iterFind);
 	}
 
 	void Platform::Sleep(UINT32 duration)
@@ -322,8 +322,8 @@ namespace bs
 		const RenderWindow* window = target->_getOwnerWindow();
 
 		Win32DropTarget* win32DropTarget = nullptr;
-		auto iterFind = mData->mDropTargets.dropTargetsPerWindow.Find(window);
-		if (iterFind == mData->mDropTargets.dropTargetsPerWindow.End())
+		auto iterFind = mData->mDropTargets.dropTargetsPerWindow.find(window);
+		if (iterFind == mData->mDropTargets.dropTargetsPerWindow.end())
 		{
 			UINT64 hwnd;
 			window->GetCustomAttribute("WINDOW", &hwnd);
@@ -344,8 +344,8 @@ namespace bs
 
 	void Win32Platform::UnregisterDropTarget(DropTarget* target)
 	{
-		auto iterFind = mData->mDropTargets.dropTargetsPerWindow.Find(target->_getOwnerWindow());
-		if (iterFind == mData->mDropTargets.dropTargetsPerWindow.End())
+		auto iterFind = mData->mDropTargets.dropTargetsPerWindow.find(target->_getOwnerWindow());
+		if (iterFind == mData->mDropTargets.dropTargetsPerWindow.end())
 		{
 			BS_LOG(Warning, Platform, "Attempting to destroy a drop target but cannot find its parent window.");
 		}
@@ -356,7 +356,7 @@ namespace bs
 
 			if(win32DropTarget->GetNumDropTargets() == 0)
 			{
-				mData->mDropTargets.dropTargetsPerWindow.Erase(iterFind);
+				mData->mDropTargets.dropTargetsPerWindow.erase(iterFind);
 
 				{
 					Lock Lock(mData->mSync);
@@ -370,11 +370,11 @@ namespace bs
 	{
 		WString wideString = UTF8::toWide(string);
 
-		HANDLE hData = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, (wideString.Size() + 1) * sizeof(WString::value_type));
+		HANDLE hData = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, (wideString.size() + 1) * sizeof(WString::value_type));
 		WString::value_type* buffer = (WString::value_type*)GlobalLock(hData);
 
 		wideString.Copy(buffer, wideString.size());
-		buffer[wideString.Size()] = '\0';
+		buffer[wideString.size()] = '\0';
 
 		GlobalUnlock(hData);
 
@@ -774,8 +774,8 @@ namespace bs
 			}
 		case WM_NCHITTEST:
 			{
-				auto iterFind = mData->mNonClientAreas.Find(win);
-				if (iterFind == mData->mNonClientAreas.End())
+				auto iterFind = mData->mNonClientAreas.find(win);
+				if (iterFind == mData->mNonClientAreas.end())
 					break;
 
 				POINT mousePos;
@@ -839,7 +839,7 @@ namespace bs
 
 				getMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-				if(!onCursorButtonReleased.Empty())
+				if(!onCursorButtonReleased.empty())
 					onCursorButtonReleased(intMousePos, OSMouseButton::Left, btnStates);
 
 				return 0;
@@ -853,7 +853,7 @@ namespace bs
 
 				getMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-				if(!onCursorButtonReleased.Empty())
+				if(!onCursorButtonReleased.empty())
 					onCursorButtonReleased(intMousePos, OSMouseButton::Middle, btnStates);
 
 				return 0;
@@ -867,7 +867,7 @@ namespace bs
 
 				getMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-				if(!onCursorButtonReleased.Empty())
+				if(!onCursorButtonReleased.empty())
 					onCursorButtonReleased(intMousePos, OSMouseButton::Right, btnStates);
 
 				return 0;
@@ -881,7 +881,7 @@ namespace bs
 
 				getMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-				if(!onCursorButtonPressed.Empty())
+				if(!onCursorButtonPressed.empty())
 					onCursorButtonPressed(intMousePos, OSMouseButton::Left, btnStates);
 			}
 			return 0;
@@ -894,7 +894,7 @@ namespace bs
 
 				getMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-				if(!onCursorButtonPressed.Empty())
+				if(!onCursorButtonPressed.empty())
 					onCursorButtonPressed(intMousePos, OSMouseButton::Middle, btnStates);
 			}
 			return 0;
@@ -907,7 +907,7 @@ namespace bs
 
 				getMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-				if(!onCursorButtonPressed.Empty())
+				if(!onCursorButtonPressed.empty())
 					onCursorButtonPressed(intMousePos, OSMouseButton::Right, btnStates);
 			}
 			return 0;
@@ -918,7 +918,7 @@ namespace bs
 
 				getMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-				if(!onCursorDoubleClick.Empty())
+				if(!onCursorDoubleClick.empty())
 					onCursorDoubleClick(intMousePos, btnStates);
 			}
 			return 0;
@@ -942,7 +942,7 @@ namespace bs
 				
 				getMouseData(hWnd, wParam, lParam, uMsg == WM_NCMOUSEMOVE, intMousePos, btnStates);
 
-				if(!onCursorMoved.Empty())
+				if(!onCursorMoved.empty())
 					onCursorMoved(intMousePos, btnStates);
 
 				return 0;
@@ -952,7 +952,7 @@ namespace bs
 				INT16 wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
 
 				float wheelDeltaFlt = wheelDelta / (float)WHEEL_DELTA;
-				if(!onMouseWheelScrolled.Empty())
+				if(!onMouseWheelScrolled.empty())
 					onMouseWheelScrolled(wheelDeltaFlt);
 
 				return true;
@@ -963,7 +963,7 @@ namespace bs
 				InputCommandType command = InputCommandType::Backspace;
 				if(getCommand((unsigned int)wParam, command))
 				{
-					if(!onInputCommand.Empty())
+					if(!onInputCommand.empty())
 						onInputCommand(command);
 
 					return 0;
@@ -995,7 +995,7 @@ namespace bs
 					{
 						UINT32 finalChar = (UINT32)wParam;
 
-						if(!onCharInput.Empty())
+						if(!onCharInput.empty())
 							onCharInput(finalChar);
 
 						return 0;
@@ -1011,7 +1011,7 @@ namespace bs
 			ReleaseCapture();
 			break;
 		case WM_CAPTURECHANGED:
-			if(!onMouseCaptureChanged.Empty())
+			if(!onMouseCaptureChanged.empty())
 				onMouseCaptureChanged();
 			return 0;
 		}

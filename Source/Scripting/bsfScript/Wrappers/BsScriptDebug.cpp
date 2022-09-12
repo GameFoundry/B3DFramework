@@ -83,7 +83,7 @@ namespace bs
 	{
 		Vector<LogEntry> entries = gDebug().GetLog().getEntries();
 
-		UINT32 numEntries = (UINT32)entries.Size();
+		UINT32 numEntries = (UINT32)entries.size();
 		ScriptArray output = ScriptArray::create<ScriptLogEntry>(numEntries);
 		for (UINT32 i = 0; i < numEntries; i++)
 		{

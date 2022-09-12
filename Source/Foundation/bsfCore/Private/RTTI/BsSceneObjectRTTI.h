@@ -36,13 +36,13 @@ namespace bs
 		{
 			// It's important that child indices remain the same after deserialization, as some systems (like SO
 			// record/restore) depend on it
-			if(idx >= mChildren.Size())
+			if(idx >= mChildren.size())
 				mChildren.Resize(idx + 1);
 
 			mChildren[idx] = param;
 		}
 
-		UINT32 GetNumChildren(SceneObject* obj) { return (UINT32)obj->mChildren.Size(); }
+		UINT32 GetNumChildren(SceneObject* obj) { return (UINT32)obj->mChildren.size(); }
 		void SetNumChildren(SceneObject* obj, UINT32 size) { /* DO NOTHING */ }
 
 		// NOTE - These can only be set sequentially, specific array index is ignored
@@ -51,12 +51,12 @@ namespace bs
 		{
 			// It's important that child indices remain the same after deserialization, as some systems (like SO
 			// record/restore) depend on it
-			if(idx >= mComponents.Size())
+			if(idx >= mComponents.size())
 				mComponents.Resize(idx + 1);
 
 			mComponents[idx] = param;
 		}
-		UINT32 GetNumComponents(SceneObject* obj) { return (UINT32)obj->mComponents.Size(); }
+		UINT32 GetNumComponents(SceneObject* obj) { return (UINT32)obj->mComponents.size(); }
 		void SetNumComponents(SceneObject* obj, UINT32 size) { /* DO NOTHING */ }
 
 		UUID& GetPrefabLink(SceneObject* obj) { return obj->mPrefabLinkUUID; }
@@ -99,7 +99,7 @@ namespace bs
 
 			// It's possible we're just accessing the game object fields, in which case the process below is not needed
 			// (it's only required for new scene objects).
-			if (so->mRTTIData.Empty())
+			if (so->mRTTIData.empty())
 				return;
 
 			if(context == nullptr || !rtti_is_of_type<CoreSerializationContext>(context))
@@ -122,7 +122,7 @@ namespace bs
 
 			// It's possible we're just accessing the game object fields, in which case the process below is not needed
 			// (it's only required for new scene objects).
-			if (so->mRTTIData.Empty())
+			if (so->mRTTIData.empty())
 				return;
 
 			BS_ASSERT(context != nullptr && rtti_is_of_type<CoreSerializationContext>(context));
@@ -148,7 +148,7 @@ namespace bs
 					child->_setParent(so->mThisHandle, false);
 			}
 
-			if(so->mUUID.Empty() || coreContext->goState->GetUseNewUUIDs())
+			if(so->mUUID.empty() || coreContext->goState->GetUseNewUUIDs())
 				so->mUUID = UUIDGenerator::generateRandom();
 
 			// If this is the deserialization parent, end deserialization (which resolves all game object handles, if we

@@ -126,7 +126,7 @@ namespace bs
         /// Finalizes construction of the serializable property. Must be called after creation.
         /// </summary>
         /// <param name="type">Type of data the property contains.</param>
-        /// <param name="internalType">Type of data the property contains, as C# type.</param>
+        /// <param name="internalType">Type of Data the property contains, as C# type.</param>
         /// <param name="getter">Method that allows you to retrieve contents of the property.</param>
         /// <param name="setter">Method that allows you to set contents of the property</param>
         /// <param name="applyOnChildChanges">
@@ -282,7 +282,7 @@ namespace bs
             if (type != FieldType.Object)
                 throw new Exception("Attempting to retrieve object information from a field that doesn't contain an object.");
 
-            return (T)Internal_CreateManagedObjectInstance(mCachedPtr);
+            return (ToWString)Internal_CreateManagedObjectInstance(mCachedPtr);
         }
 
         /// <summary>

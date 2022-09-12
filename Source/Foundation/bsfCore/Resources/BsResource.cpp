@@ -66,8 +66,8 @@ namespace bs
 	void Resource::RemoveResourceDependency(const HResource& resource)
 	{
 		Lock Lock(mDependenciesMutex);
-		mDependencies.Erase(std::remove(mDependencies.begin(), mDependencies.end(), resource.getWeak()),
-			mDependencies.End());
+		mDependencies.erase(std::remove(mDependencies.begin(), mDependencies.end(), resource.getWeak()),
+			mDependencies.end());
 	}
 
 	RTTITypeBase* Resource::getRTTIStatic()

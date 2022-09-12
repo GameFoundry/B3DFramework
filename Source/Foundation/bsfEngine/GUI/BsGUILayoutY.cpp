@@ -49,7 +49,7 @@ namespace bs
 		// Update all children first, otherwise we can't determine our own optimal size
 		GUIElementBase::_updateOptimalLayoutSizes();
 
-		if(mChildren.Size() != mChildSizeRanges.size())
+		if(mChildren.size() != mChildSizeRanges.size())
 			mChildSizeRanges.Resize(mChildren.size());
 
 		Vector2I optimalSize;
@@ -92,7 +92,7 @@ namespace bs
 	void GUILayoutY::_getElementAreas(const Rect2I& layoutArea, Rect2I* elementAreas, UINT32 numElements,
 		const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const
 	{
-		assert(mChildren.Size() == numElements);
+		assert(mChildren.size() == numElements);
 
 		UINT32 totalOptimalSize = mySizeRange.optimal.y;
 		UINT32 totalNonClampedSize = 0;
@@ -102,13 +102,13 @@ namespace bs
 		bool* processedElements = nullptr;
 		float* elementScaleWeights = nullptr;
 
-		if (mChildren.Size() > 0)
+		if (mChildren.size() > 0)
 		{
-			processedElements = bs_stack_alloc<bool>((UINT32)mChildren.Size());
-			memset(processedElements, 0, mChildren.Size() * sizeof(bool));
+			processedElements = bs_stack_alloc<bool>((UINT32)mChildren.size());
+			memset(processedElements, 0, mChildren.size() * sizeof(bool));
 
-			elementScaleWeights = bs_stack_alloc<float>((UINT32)mChildren.Size());
-			memset(elementScaleWeights, 0, mChildren.Size() * sizeof(float));
+			elementScaleWeights = bs_stack_alloc<float>((UINT32)mChildren.size());
+			memset(elementScaleWeights, 0, mChildren.size() * sizeof(float));
 		}
 
 		// Set initial sizes, count number of children per type and mark fixed elements as already processed
@@ -196,7 +196,7 @@ namespace bs
 		// Weight is to ensure all elements are scaled fairly, so elements that are large will get effected more than smaller elements.
 		childIdx = 0;
 		float invOptimalSize = 1.0f / totalNonClampedSize;
-		UINT32 childCount = (UINT32)mChildren.Size();
+		UINT32 childCount = (UINT32)mChildren.size();
 		for (UINT32 i = 0; i < childCount; i++)
 		{
 			if (processedElements[childIdx])
@@ -394,7 +394,7 @@ namespace bs
 
 	void GUILayoutY::_updateLayoutInternal(const GUILayoutData& data)
 	{
-		UINT32 numElements = (UINT32)mChildren.Size();
+		UINT32 numElements = (UINT32)mChildren.size();
 		Rect2I* elementAreas = nullptr;
 		
 		if (numElements > 0)

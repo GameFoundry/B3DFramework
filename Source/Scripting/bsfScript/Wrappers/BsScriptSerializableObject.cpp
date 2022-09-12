@@ -85,14 +85,14 @@ namespace bs
 			}
 		}
 
-		std::sort(sortedFields.Begin(), sortedFields.end(),
+		std::sort(sortedFields.begin(), sortedFields.end(),
 			[&](const SPtr<ManagedSerializableMemberInfo>& x, const SPtr<ManagedSerializableMemberInfo>& y)
 		{
 			return x->mFieldId < y->mFieldId;
 		});
 
 		::MonoClass* serializableFieldClass = ScriptSerializableField::getMetaData()->scriptClass->_getInternalClass();
-		ScriptArray ScriptArray(serializableFieldClass, (UINT32)sortedFields.Size());
+		ScriptArray ScriptArray(serializableFieldClass, (UINT32)sortedFields.size());
 
 		UINT32 i = 0;
 		for (auto& field : sortedFields)

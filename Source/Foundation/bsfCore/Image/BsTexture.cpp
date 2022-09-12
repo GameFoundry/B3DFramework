@@ -178,10 +178,10 @@ namespace bs
 		if ((mProperties.GetUsage() & TU_CPUCACHED) == 0)
 			return;
 
-		if (subresourceIdx >= (UINT32)mCPUSubresourceData.Size())
+		if (subresourceIdx >= (UINT32)mCPUSubresourceData.size())
 		{
 			BS_LOG(Error, Texture, "Invalid subresource index: {0}. Supported range: 0 .. {1}",
-				subresourceIdx, (UINT32)mCPUSubresourceData.Size());
+				subresourceIdx, (UINT32)mCPUSubresourceData.size());
 			return;
 		}
 
@@ -229,10 +229,10 @@ namespace bs
 		}
 
 		UINT32 subresourceIdx = mProperties.MapToSubresourceIdx(face, mipLevel);
-		if (subresourceIdx >= (UINT32)mCPUSubresourceData.Size())
+		if (subresourceIdx >= (UINT32)mCPUSubresourceData.size())
 		{
 			BS_LOG(Error, Texture, "Invalid subresource index: {0}. Supported range: 0 .. {1}",
-				subresourceIdx, (UINT32)mCPUSubresourceData.Size());
+				subresourceIdx, (UINT32)mCPUSubresourceData.size());
 			return;
 		}
 
@@ -587,12 +587,12 @@ namespace bs
 		key.numArraySlices = numArraySlices == 0 ? texProps.GetNumFaces() : numArraySlices;
 		key.usage = usage;
 
-		auto iterFind = mTextureViews.Find(key);
-		if (iterFind == mTextureViews.End())
+		auto iterFind = mTextureViews.find(key);
+		if (iterFind == mTextureViews.end())
 		{
 			mTextureViews[key] = createView(key);
 
-			iterFind = mTextureViews.Find(key);
+			iterFind = mTextureViews.find(key);
 		}
 
 		return iterFind->second;

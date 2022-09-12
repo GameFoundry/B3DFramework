@@ -25,7 +25,7 @@ namespace bs
 
 	Importer::~Importer()
 	{
-		for(auto i = mAssetImporters.Begin(); i != mAssetImporters.end(); ++i)
+		for(auto i = mAssetImporters.begin(); i != mAssetImporters.end(); ++i)
 		{
 			if((*i) != nullptr)
 				bs_delete(*i);
@@ -36,7 +36,7 @@ namespace bs
 
 	bool Importer::SupportsFileType(const String& extension) const
 	{
-		for(auto iter = mAssetImporters.Begin(); iter != mAssetImporters.end(); ++iter)
+		for(auto iter = mAssetImporters.begin(); iter != mAssetImporters.end(); ++iter)
 		{
 			if(*iter != nullptr && (*iter)->IsExtensionSupported(extension))
 				return true;
@@ -47,7 +47,7 @@ namespace bs
 
 	bool Importer::SupportsFileType(const UINT8* magicNumber, UINT32 magicNumSize) const
 	{
-		for(auto iter = mAssetImporters.Begin(); iter != mAssetImporters.end(); ++iter)
+		for(auto iter = mAssetImporters.begin(); iter != mAssetImporters.end(); ++iter)
 		{
 			if(*iter != nullptr && (*iter)->IsMagicNumberSupported(magicNumber, magicNumSize))
 				return true;
@@ -60,7 +60,7 @@ namespace bs
 	{
 		SPtr<Resource> importedResource = _import(inputFilePath, importOptions);
 
-		if(UUID.Empty())
+		if(UUID.empty())
 			return GResources()._createResourceHandle(importedResource);
 
 		return GResources()._createResourceHandle(importedResource, UUID);
@@ -124,11 +124,11 @@ namespace bs
 		if(importer->GetAsyncMode() == ImporterAsyncMode::Single)
 		{
 			Lock Lock(mLastTaskMutex);
-			auto iterFind = mLastQueuedTask.Find(importer);
-			if (iterFind != mLastQueuedTask.End())
+			auto iterFind = mLastQueuedTask.find(importer);
+			if (iterFind != mLastQueuedTask.end())
 			{
 				if (iterFind->second.id == taskId)
-					mLastQueuedTask.Erase(iterFind);
+					mLastQueuedTask.erase(iterFind);
 
 				mTaskCompleted.notify_one();
 			}
@@ -149,11 +149,11 @@ namespace bs
 		if(importer->GetAsyncMode() == ImporterAsyncMode::Single)
 		{
 			Lock Lock(mLastTaskMutex);
-			auto iterFind = mLastQueuedTask.Find(importer);
-			if (iterFind != mLastQueuedTask.End())
+			auto iterFind = mLastQueuedTask.find(importer);
+			if (iterFind != mLastQueuedTask.end())
 			{
 				if (iterFind->second.id == taskId)
-					mLastQueuedTask.Erase(iterFind);
+					mLastQueuedTask.erase(iterFind);
 
 				mTaskCompleted.notify_one();
 			}
@@ -200,8 +200,8 @@ namespace bs
 			// Wait for any existing async tasks to complete
 			while(true)
 			{
-				const auto iterFind = mLastQueuedTask.Find(importer);
-				if (iterFind != mLastQueuedTask.End())
+				const auto iterFind = mLastQueuedTask.find(importer);
+				if (iterFind != mLastQueuedTask.end())
 					mTaskCompleted.Wait(lock);
 				else
 					break;
@@ -229,7 +229,7 @@ namespace bs
 		SPtr<Resource> resourcePtr = importer->Import(filePath, importOptions);
 
 		HResource resource;
-		if (uuid.Empty())
+		if (uuid.empty())
 			resource = gResources()._createResourceHandle(resourcePtr);
 		else
 			resource = gResources()._createResourceHandle(resourcePtr, uuid);
@@ -268,8 +268,8 @@ namespace bs
 			mLastTaskMutex.Lock();
 			taskId = mTaskId++;
 
-			auto iterFind = mLastQueuedTask.Find(importer);
-			if(iterFind != mLastQueuedTask.End())
+			auto iterFind = mLastQueuedTask.find(importer);
+			if(iterFind != mLastQueuedTask.end())
 				dependency = iterFind->second.task;
 		}
 
@@ -281,11 +281,11 @@ namespace bs
 			// Clear itself from the task list so we don't unnecessarily keep a reference. But first make sure we are the
 			// last task by comparing the ids.
 			Lock Lock(mLastTaskMutex);
-			auto iterFind = mLastQueuedTask.Find(importer);
-			if(iterFind != mLastQueuedTask.End())
+			auto iterFind = mLastQueuedTask.find(importer);
+			if(iterFind != mLastQueuedTask.end())
 			{
 				if(iterFind->second.id == taskId)
-					mLastQueuedTask.Erase(iterFind);
+					mLastQueuedTask.erase(iterFind);
 
 				mTaskCompleted.notify_one();
 			}
@@ -336,7 +336,7 @@ namespace bs
 	SpecificImporter* Importer::getImporterForFile(const Path& inputFilePath) const
 	{
 		String ext = inputFilePath.GetExtension();
-		if (ext.Empty())
+		if (ext.empty())
 			return nullptr;
 
 		ext = ext.Substr(1, ext.size() - 1); // Remove the .
@@ -346,7 +346,7 @@ namespace bs
 			return nullptr;
 		}
 
-		for(auto iter = mAssetImporters.Begin(); iter != mAssetImporters.end(); ++iter)
+		for(auto iter = mAssetImporters.begin(); iter != mAssetImporters.end(); ++iter)
 		{
 			if(*iter != nullptr && (*iter)->IsExtensionSupported(ext))
 			{

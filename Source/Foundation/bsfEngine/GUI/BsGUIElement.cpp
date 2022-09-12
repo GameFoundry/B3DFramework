@@ -267,7 +267,7 @@ namespace bs
 	void GUIElement::_refreshStyle()
 	{
 		const GUIElementStyle* newStyle = nullptr;
-		if(_getParentWidget() != nullptr && !mStyleName.Empty())
+		if(_getParentWidget() != nullptr && !mStyleName.empty())
 			newStyle = _getParentWidget()->GetSkin().GetStyle(mStyleName);
 		else
 			newStyle = &GUISkin::DefaultStyle;
@@ -291,9 +291,9 @@ namespace bs
 
 	const String& GUIElement::GetSubStyleName(const String& subStyleTypeName) const
 	{
-		auto iterFind = mStyle->subStyles.Find(subStyleTypeName);
+		auto iterFind = mStyle->subStyles.find(subStyleTypeName);
 
-		if (iterFind != mStyle->subStyles.End())
+		if (iterFind != mStyle->subStyles.end())
 			return iterFind->second;
 		else
 			return StringUtil::BLANK;

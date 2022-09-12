@@ -46,7 +46,7 @@ namespace bs
 		{
 			ScriptArray Arraykeyframes(keyframes);
 			veckeyframes.Resize(arraykeyframes.size());
-			for(int i = 0; i < (int)arraykeyframes.Size(); i++)
+			for(int i = 0; i < (int)arraykeyframes.size(); i++)
 			{
 				veckeyframes[i] = arraykeyframes.get<TKeyframe<float>>(i);
 			}
@@ -72,7 +72,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->getKeyFrames();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptTKeyframefloat>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -114,7 +114,7 @@ namespace bs
 		{
 			ScriptArray Arraykeyframes(keyframes);
 			veckeyframes.Resize(arraykeyframes.size());
-			for(int i = 0; i < (int)arraykeyframes.Size(); i++)
+			for(int i = 0; i < (int)arraykeyframes.size(); i++)
 			{
 				veckeyframes[i] = ScriptTKeyframeVector3::fromInterop(arraykeyframes.get<__TKeyframeVector3Interop>(i));
 			}
@@ -137,7 +137,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->getKeyFrames();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptTKeyframeVector3>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -179,7 +179,7 @@ namespace bs
 		{
 			ScriptArray Arraykeyframes(keyframes);
 			veckeyframes.Resize(arraykeyframes.size());
-			for(int i = 0; i < (int)arraykeyframes.Size(); i++)
+			for(int i = 0; i < (int)arraykeyframes.size(); i++)
 			{
 				veckeyframes[i] = ScriptTKeyframeVector2::fromInterop(arraykeyframes.get<__TKeyframeVector2Interop>(i));
 			}
@@ -202,7 +202,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->getKeyFrames();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptTKeyframeVector2>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -244,7 +244,7 @@ namespace bs
 		{
 			ScriptArray Arraykeyframes(keyframes);
 			veckeyframes.Resize(arraykeyframes.size());
-			for(int i = 0; i < (int)arraykeyframes.Size(); i++)
+			for(int i = 0; i < (int)arraykeyframes.size(); i++)
 			{
 				veckeyframes[i] = ScriptTKeyframeQuaternion::fromInterop(arraykeyframes.get<__TKeyframeQuaternionInterop>(i));
 			}
@@ -267,7 +267,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->getKeyFrames();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptTKeyframeQuaternion>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
@@ -309,7 +309,7 @@ namespace bs
 		{
 			ScriptArray Arraykeyframes(keyframes);
 			veckeyframes.Resize(arraykeyframes.size());
-			for(int i = 0; i < (int)arraykeyframes.Size(); i++)
+			for(int i = 0; i < (int)arraykeyframes.size(); i++)
 			{
 				veckeyframes[i] = arraykeyframes.get<TKeyframe<int32_t>>(i);
 			}
@@ -335,7 +335,7 @@ namespace bs
 		vec__output = thisPtr->GetInternal()->getKeyFrames();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.Size();
+		int arraySize__output = (int)vec__output.size();
 		ScriptArray array__output = ScriptArray::create<ScriptTKeyframeint32_t>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{

@@ -53,7 +53,7 @@ namespace bs
 		FrameStack<RTTIPair> rttiInstances;
 		auto cleanup = impl::make_scope_guard([&]()
 		{
-			while (!rttiInstances.Empty())
+			while (!rttiInstances.empty())
 			{
 				RTTIPair rttiPair = rttiInstances.Top();
 				rttiPair.rttiA->OnSerializationEnded(&a, mContext);
@@ -61,7 +61,7 @@ namespace bs
 				mAlloc->Destruct(rttiPair.rttiA);
 				mAlloc->Destruct(rttiPair.rttiB);
 
-				rttiInstances.Pop();
+				rttiInstances.pop();
 			}
 		});
 
@@ -182,8 +182,9 @@ namespace bs
 					}
 					default:
 						BS_EXCEPT(InternalErrorException,
-							"Error encoding data. Encountered a type I don't know how to encode. Type: " + toString(UINT32(curGenericField->schema.type)) +
-							", Is array: " + toString(curGenericField->schema.isArray));
+								  "Error encoding data. Encountered a type I don't know how to encode. Type: " +
+										  ToString(UINT32(curGenericField->schema.type)) +
+								  ", Is array: " + ToString(curGenericField->schema.isArray));
 					}
 				}
 				else
@@ -296,8 +297,9 @@ namespace bs
 					}
 					default:
 						BS_EXCEPT(InternalErrorException,
-							"Error encoding data. Encountered a type I don't know how to encode. Type: " + toString(UINT32(curGenericField->schema.type)) +
-							", Is array: " + toString(curGenericField->schema.isArray));
+								  "Error encoding data. Encountered a type I don't know how to encode. Type: " +
+										  ToString(UINT32(curGenericField->schema.type)) +
+								  ", Is array: " + ToString(curGenericField->schema.isArray));
 					}
 				}
 			}

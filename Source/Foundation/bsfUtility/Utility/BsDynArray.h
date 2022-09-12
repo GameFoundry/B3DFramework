@@ -40,13 +40,13 @@ namespace bs
 
 		DynArray(const DynArray<ValueType>& other)
 		{
-			if (!other.Empty())
+			if (!other.empty())
 				*this = other;
 		}
 
 		DynArray(DynArray<ValueType>&& other)
 		{
-			if (!other.Empty())
+			if (!other.empty())
 				*this = std::move(other);
 		}
 
@@ -64,14 +64,14 @@ namespace bs
 				return *this;
 
 			UINT32 mySize = size();
-			const UINT32 otherSize = other.Size();
+			const UINT32 otherSize = other.size();
 
 			// Use assignment copy if we have more elements than the other array, and destroy any excess elements
 			if(mySize > otherSize)
 			{
 				Iterator newEnd;
 				if(otherSize > 0)
-					newEnd = std::copy(other.Begin(), other.end(), begin());
+					newEnd = std::copy(other.begin(), other.end(), begin());
 				else
 					newEnd = begin();
 
@@ -91,9 +91,9 @@ namespace bs
 					realloc(otherSize);
 				}
 				else if (mySize > 0)
-					std::copy(other.Begin(), other.begin() + mySize, begin());
+					std::copy(other.begin(), other.begin() + mySize, begin());
 
-				std::uninitialized_copy(other.Begin() + mySize, other.end(), begin() + mySize);
+				std::uninitialized_copy(other.begin() + mySize, other.end(), begin() + mySize);
 			}
 
 			mSize = otherSize;
@@ -121,14 +121,14 @@ namespace bs
 		DynArray<ValueType>& operator= (std::initializer_list<ValueType> list)
 		{
 			UINT32 mySize = size();
-			const UINT32 otherSize = (UINT32)list.Size();
+			const UINT32 otherSize = (UINT32)list.size();
 
 			// Use assignment copy if we have more elements than the list, and destroy any excess elements
 			if(mySize > otherSize)
 			{
 				Iterator newEnd;
 				if(otherSize > 0)
-					newEnd = std::copy(list.Begin(), list.end(), begin());
+					newEnd = std::copy(list.begin(), list.end(), begin());
 				else
 					newEnd = begin();
 
@@ -148,9 +148,9 @@ namespace bs
 					realloc(otherSize);
 				}
 				else if (mySize > 0)
-					std::copy(list.Begin(), list.begin() + mySize, begin());
+					std::copy(list.begin(), list.begin() + mySize, begin());
 
-				std::uninitialized_copy(list.Begin() + mySize, list.end(), begin() + mySize);
+				std::uninitialized_copy(list.begin() + mySize, list.end(), begin() + mySize);
 			}
 
 			mSize = otherSize;
@@ -159,8 +159,8 @@ namespace bs
 
 		bool operator== (const DynArray<ValueType>& other) const
 		{
-			if (this->Size() != other.Size()) return false;
-			return std::Equal(this->Begin(), this->end(), other.Begin());
+			if (this->Size() != other.size()) return false;
+			return std::Equal(this->Begin(), this->end(), other.begin());
 		}
 
 		bool operator!= (const DynArray<ValueType>& other) const
@@ -170,7 +170,7 @@ namespace bs
 
 		bool operator< (const DynArray<ValueType>& other) const
 		{
-			return std::lexicographical_compare(begin(), end(), other.Begin(), other.end());
+			return std::lexicographical_compare(begin(), end(), other.begin(), other.end());
 		}
 
 		bool operator> (const DynArray<ValueType>& other) const
@@ -363,7 +363,7 @@ namespace bs
 
 		void Append(std::initializer_list<Type> list)
 		{
-			append(list.Begin(), list.end());
+			append(list.begin(), list.end());
 		}
 
 		void Swap(DynArray<ValueType>& other)
@@ -372,7 +372,7 @@ namespace bs
 			const UINT32 tmpCapacity = capacity();
 			Type* tmp = data();
 
-			mSize = other.Size();
+			mSize = other.size();
 			mCapacity = other.Capacity();
 			mElements = other.Data();
 
@@ -493,7 +493,7 @@ namespace bs
 			Iterator iterc = const_cast<Iterator>(it);
 			DifferenceType offset = iterc - begin();
 			Iterator iter = &mElements[offset];
-			UINT32 n = (UINT32)list.Size();
+			UINT32 n = (UINT32)list.size();
 
 			if (!n)
 				return iter;

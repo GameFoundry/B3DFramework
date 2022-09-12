@@ -39,7 +39,7 @@ namespace bs
 			if (mParent != nullptr)
 				mParent->RemoveChild(this);
 
-			while (mChildren.Size() > 0)
+			while (mChildren.size() > 0)
 			{
 				ChildInfo childInfo = mChildren[0];
 				childInfo.element->Destroy();
@@ -75,20 +75,20 @@ namespace bs
 
 	void ScriptGUILayout::RemoveChild(ScriptGUIElementBaseTBase* element)
 	{
-		auto iterFind = std::find_if(mChildren.Begin(), mChildren.end(),
+		auto iterFind = std::find_if(mChildren.begin(), mChildren.end(),
 			[&](const ChildInfo& x)
 		{
 			return x.element == element;
 		});
 
-		if (iterFind != mChildren.End())
+		if (iterFind != mChildren.end())
 		{
 			assert(iterFind->gcHandle != 0);
 
 			MonoUtil::freeGCHandle(iterFind->gcHandle);
 			iterFind->gcHandle = 0;
 
-			mChildren.Erase(iterFind);
+			mChildren.erase(iterFind);
 		}
 	}
 
@@ -97,7 +97,7 @@ namespace bs
 		GUIOptions options;
 
 		ScriptArray ScriptArray(guiOptions);
-		UINT32 arrayLen = scriptArray.Size();
+		UINT32 arrayLen = scriptArray.size();
 		for (UINT32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.get<GUIOption>(i));
 
@@ -111,7 +111,7 @@ namespace bs
 		GUIOptions options;
 
 		ScriptArray ScriptArray(guiOptions);
-		UINT32 arrayLen = scriptArray.Size();
+		UINT32 arrayLen = scriptArray.size();
 		for (UINT32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.get<GUIOption>(i));
 
@@ -125,7 +125,7 @@ namespace bs
 		GUIOptions options;
 
 		ScriptArray ScriptArray(guiOptions);
-		UINT32 arrayLen = scriptArray.Size();
+		UINT32 arrayLen = scriptArray.size();
 		for (UINT32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.get<GUIOption>(i));
 
@@ -186,7 +186,7 @@ namespace bs
 
 	MonoObject* ScriptGUILayout::internal_getChild(ScriptGUILayout* instance, UINT32 index)
 	{
-		if (instance->IsDestroyed() || index >= instance->mChildren.Size())
+		if (instance->IsDestroyed() || index >= instance->mChildren.size())
 			return nullptr;
 
 		return instance->mChildren[index].element->GetManagedInstance();
@@ -240,7 +240,7 @@ namespace bs
 			if (mParentScrollArea != nullptr)
 				mParentScrollArea->NotifyLayoutDestroyed();
 
-			while (mChildren.Size() > 0)
+			while (mChildren.size() > 0)
 			{
 				ChildInfo childInfo = mChildren[0];
 				childInfo.element->Destroy();

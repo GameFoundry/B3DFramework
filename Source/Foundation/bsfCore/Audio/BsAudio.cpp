@@ -29,7 +29,7 @@ namespace bs
 
 	void Audio::_update()
 	{
-		const UINT32 numSources = (UINT32)mManualSources.Size();
+		const UINT32 numSources = (UINT32)mManualSources.size();
 		for(UINT32 i = 0; i < numSources; i++)
 		{
 			if (mManualSources[i]->GetState() != AudioSourceState::Stopped)

@@ -566,7 +566,7 @@ namespace bs
 		}
 
 		Vector<Collider*> hitColliders = physicsScene._boxOverlap(groupBounds, Quaternion::IDENTITY, layer);
-		if(hitColliders.Empty())
+		if(hitColliders.empty())
 			return 0;
 
 		UINT32 numHits = 0;
@@ -631,9 +631,9 @@ namespace bs
 			// Extract planes from scene objects
 			Plane* objPlanes = nullptr;
 			
-			if(!mCollisionPlaneObjects.Empty())
+			if(!mCollisionPlaneObjects.empty())
 			{
-				objPlanes = bs_stack_alloc<Plane>((UINT32)mCollisionPlaneObjects.Size());
+				objPlanes = bs_stack_alloc<Plane>((UINT32)mCollisionPlaneObjects.size());
 				for (auto& entry : mCollisionPlaneObjects)
 				{
 					if(entry.IsDestroyed())
@@ -658,15 +658,15 @@ namespace bs
 			else
 			{
 				const Matrix4& worldToLocal = state.worldToLocal;
-				localPlanes = bs_stack_alloc<Plane>((UINT32)mCollisionPlanes.Size());
+				localPlanes = bs_stack_alloc<Plane>((UINT32)mCollisionPlanes.size());
 
-				for (UINT32 i = 0; i < (UINT32)mCollisionPlanes.Size(); i++)
+				for (UINT32 i = 0; i < (UINT32)mCollisionPlanes.size(); i++)
 					localPlanes[i] = worldToLocal.MultiplyAffine(mCollisionPlanes[i]);
 
 				planes[1] = localPlanes;
 			}
 
-			numPlanes[1] = (UINT32)mCollisionPlanes.Size();
+			numPlanes[1] = (UINT32)mCollisionPlanes.size();
 
 			for(UINT32 i = startIdx; i < endIdx; i++)
 			{

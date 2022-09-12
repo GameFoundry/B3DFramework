@@ -146,25 +146,25 @@ namespace bs {	namespace ct
 				// If using morph shapes ignore POSITION1 and NORMAL1 missing since we assign them from within the renderer
 				if (animType == RenderableAnimType::Morph || animType == RenderableAnimType::SkinnedMorph)
 				{
-					auto removeIter = std::remove_if(missingElements.Begin(), missingElements.end(), [](const VertexElement& x)
+					auto removeIter = std::remove_if(missingElements.begin(), missingElements.end(), [](const VertexElement& x)
 						{
 							return (x.GetSemantic() == VES_POSITION && x.getSemanticIdx() == 1) ||
 								(x.GetSemantic() == VES_NORMAL && x.getSemanticIdx() == 1);
 						});
 
-					missingElements.Erase(removeIter, missingElements.end());
+					missingElements.erase(removeIter, missingElements.end());
 				}
 
-				if (!missingElements.Empty())
+				if (!missingElements.empty())
 				{
 					StringStream wrnStream;
 					wrnStream << "Provided mesh is missing required vertex attributes to render with the \
 									provided shader. Missing elements: " << std::endl;
 
 					for (auto& entry : missingElements)
-						wrnStream << "\t" << toString(entry.GetSemantic()) << entry.getSemanticIdx() << std::endl;
+						wrnStream << "\t" << ToString(entry.GetSemantic()) << entry.getSemanticIdx() << std::endl;
 
-					BS_LOG(Warning, Renderer, wrnStream.Str());
+					BS_LOG(Warning, Renderer, wrnStream.str());
 					break;
 				}
 			}
@@ -185,7 +185,7 @@ namespace bs {	namespace ct
 		for (auto& entry : mInfo.views)
 			bs_delete(entry);
 
-		assert(mSamplerOverrides.Empty());
+		assert(mSamplerOverrides.empty());
 	}
 
 	void RendererScene::RegisterCamera(Camera* camera)
@@ -196,7 +196,7 @@ namespace bs {	namespace ct
 		view->SetRenderSettings(camera->getRenderSettings());
 		view->UpdatePerViewBuffer();
 
-		UINT32 viewIdx = (UINT32)mInfo.views.Size();
+		UINT32 viewIdx = (UINT32)mInfo.views.size();
 		mInfo.views.push_back(view);
 
 		mInfo.cameraToView[camera] = viewIdx;
@@ -246,7 +246,7 @@ namespace bs {	namespace ct
 	{
 		UINT32 cameraId = camera->GetRendererId();
 
-		Camera* lastCamera = mInfo.views.Back()->GetSceneCamera();
+		Camera* lastCamera = mInfo.views.back()->GetSceneCamera();
 		UINT32 lastCameraId = lastCamera->GetRendererId();
 		
 		if (cameraId != lastCameraId)
@@ -259,14 +259,14 @@ namespace bs {	namespace ct
 		}
 		
 		// Last element is the one we want to erase
-		RendererView* view = mInfo.views[mInfo.views.Size() - 1];
+		RendererView* view = mInfo.views[mInfo.views.size() - 1];
 		bs_delete(view);
 
-		mInfo.views.Erase(mInfo.views.end() - 1);
+		mInfo.views.erase(mInfo.views.end() - 1);
 
-		auto iterFind = mInfo.cameraToView.Find(camera);
-		if(iterFind != mInfo.cameraToView.End())
-			mInfo.cameraToView.Erase(iterFind);
+		auto iterFind = mInfo.cameraToView.find(camera);
+		if(iterFind != mInfo.cameraToView.end())
+			mInfo.cameraToView.erase(iterFind);
 
 		updateCameraRenderTargets(camera, true);
 	}
@@ -275,7 +275,7 @@ namespace bs {	namespace ct
 	{
 		if (light->GetType() == LightType::Directional)
 		{
-			UINT32 lightId = (UINT32)mInfo.directionalLights.Size();
+			UINT32 lightId = (UINT32)mInfo.directionalLights.size();
 			light->SetRendererId(lightId);
 
 			mInfo.directionalLights.push_back(RendererLight(light));
@@ -284,7 +284,7 @@ namespace bs {	namespace ct
 		{
 			if (light->GetType() == LightType::Radial)
 			{
-				UINT32 lightId = (UINT32)mInfo.radialLights.Size();
+				UINT32 lightId = (UINT32)mInfo.radialLights.size();
 				light->SetRendererId(lightId);
 
 				mInfo.radialLights.push_back(RendererLight(light));
@@ -292,7 +292,7 @@ namespace bs {	namespace ct
 			}
 			else // Spot
 			{
-				UINT32 lightId = (UINT32)mInfo.spotLights.Size();
+				UINT32 lightId = (UINT32)mInfo.spotLights.size();
 				light->SetRendererId(lightId);
 
 				mInfo.spotLights.push_back(RendererLight(light));
@@ -307,7 +307,7 @@ namespace bs {	namespace ct
 
 		if (light->GetType() == LightType::Radial)
 			mInfo.radialLightWorldBounds[lightId] = light->GetBounds();
-		else If(light->GetType() == LightType::Spot)
+		else if(light->GetType() == LightType::Spot)
 			mInfo.spotLightWorldBounds[lightId] = light->GetBounds();
 	}
 
@@ -316,7 +316,7 @@ namespace bs {	namespace ct
 		UINT32 lightId = light->GetRendererId();
 		if (light->GetType() == LightType::Directional)
 		{
-			Light* lastLight = mInfo.directionalLights.Back().internal;
+			Light* lastLight = mInfo.directionalLights.back().internal;
 			UINT32 lastLightId = lastLight->GetRendererId();
 
 			if (lightId != lastLightId)
@@ -327,13 +327,13 @@ namespace bs {	namespace ct
 			}
 
 			// Last element is the one we want to erase
-			mInfo.directionalLights.Erase(mInfo.directionalLights.end() - 1);
+			mInfo.directionalLights.erase(mInfo.directionalLights.end() - 1);
 		}
 		else
 		{
 			if (light->GetType() == LightType::Radial)
 			{
-				Light* lastLight = mInfo.radialLights.Back().internal;
+				Light* lastLight = mInfo.radialLights.back().internal;
 				UINT32 lastLightId = lastLight->GetRendererId();
 
 				if (lightId != lastLightId)
@@ -346,12 +346,12 @@ namespace bs {	namespace ct
 				}
 
 				// Last element is the one we want to erase
-				mInfo.radialLights.Erase(mInfo.radialLights.end() - 1);
-				mInfo.radialLightWorldBounds.Erase(mInfo.radialLightWorldBounds.end() - 1);
+				mInfo.radialLights.erase(mInfo.radialLights.end() - 1);
+				mInfo.radialLightWorldBounds.erase(mInfo.radialLightWorldBounds.end() - 1);
 			}
 			else // Spot
 			{
-				Light* lastLight = mInfo.spotLights.Back().internal;
+				Light* lastLight = mInfo.spotLights.back().internal;
 				UINT32 lastLightId = lastLight->GetRendererId();
 
 				if (lightId != lastLightId)
@@ -364,22 +364,22 @@ namespace bs {	namespace ct
 				}
 
 				// Last element is the one we want to erase
-				mInfo.spotLights.Erase(mInfo.spotLights.end() - 1);
-				mInfo.spotLightWorldBounds.Erase(mInfo.spotLightWorldBounds.end() - 1);
+				mInfo.spotLights.erase(mInfo.spotLights.end() - 1);
+				mInfo.spotLightWorldBounds.erase(mInfo.spotLightWorldBounds.end() - 1);
 			}
 		}
 	}
 
 	void RendererScene::RegisterRenderable(Renderable* renderable)
 	{
-		UINT32 renderableId = (UINT32)mInfo.renderables.Size();
+		UINT32 renderableId = (UINT32)mInfo.renderables.size();
 
 		renderable->SetRendererId(renderableId);
 
 		mInfo.renderables.push_back(bs_new<RendererRenderable>());
 		mInfo.renderableCullInfos.push_back(CullInfo(renderable->GetBounds(), renderable->getLayer(), renderable->getCullDistanceFactor()));
 
-		RendererRenderable* rendererRenderable = mInfo.renderables.Back();
+		RendererRenderable* rendererRenderable = mInfo.renderables.back();
 		rendererRenderable->renderable = renderable;
 		rendererRenderable->worldTfrm = renderable->GetMatrix();
 		rendererRenderable->prevWorldTfrm = rendererRenderable->worldTfrm;
@@ -395,7 +395,7 @@ namespace bs {	namespace ct
 			for (UINT32 i = 0; i < meshProps.GetNumSubMeshes(); i++)
 			{
 				rendererRenderable->elements.push_back(RenderableElement());
-				RenderableElement& renElement = rendererRenderable->elements.Back();
+				RenderableElement& renElement = rendererRenderable->elements.back();
 
 				renElement.type = (UINT32)RenderElementType::Renderable;
 				renElement.mesh = mesh;
@@ -428,8 +428,8 @@ namespace bs {	namespace ct
 				bool supportsClusteredForward = gRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 
 				const Vector<ShaderVariationParamInfo>& variationParams = shader->GetVariationParams();
-				const bool shaderCanWriteVelocity = std::find_if(variationParams.Begin(), variationParams.end(),
-					[](const ShaderVariationParamInfo& x) { return x.identifier == "WRITE_VELOCITY"; }) != variationParams.End();
+				const bool shaderCanWriteVelocity = std::find_if(variationParams.begin(), variationParams.end(),
+					[](const ShaderVariationParamInfo& x) { return x.identifier == "WRITE_VELOCITY"; }) != variationParams.end();
 				
 				const bool writeVelocity = shaderCanWriteVelocity && renderable->GetWriteVelocity();
 				
@@ -529,7 +529,7 @@ namespace bs {	namespace ct
 	void RendererScene::UnregisterRenderable(Renderable* renderable)
 	{
 		UINT32 renderableId = renderable->GetRendererId();
-		Renderable* lastRenerable = mInfo.renderables.Back()->renderable;
+		Renderable* lastRenerable = mInfo.renderables.back()->renderable;
 		UINT32 lastRenderableId = lastRenerable->GetRendererId();
 
 		RendererRenderable* rendererRenderable = mInfo.renderables[renderableId];
@@ -550,24 +550,24 @@ namespace bs {	namespace ct
 		}
 
 		// Last element is the one we want to erase
-		mInfo.renderables.Erase(mInfo.renderables.end() - 1);
-		mInfo.renderableCullInfos.Erase(mInfo.renderableCullInfos.end() - 1);
+		mInfo.renderables.erase(mInfo.renderables.end() - 1);
+		mInfo.renderableCullInfos.erase(mInfo.renderableCullInfos.end() - 1);
 
 		bs_delete(rendererRenderable);
 	}
 
 	void RendererScene::RegisterReflectionProbe(ReflectionProbe* probe)
 	{
-		UINT32 probeId = (UINT32)mInfo.reflProbes.Size();
+		UINT32 probeId = (UINT32)mInfo.reflProbes.size();
 		probe->SetRendererId(probeId);
 
 		mInfo.reflProbes.push_back(RendererReflectionProbe(probe));
-		RendererReflectionProbe& probeInfo = mInfo.reflProbes.Back();
+		RendererReflectionProbe& probeInfo = mInfo.reflProbes.back();
 
 		mInfo.reflProbeWorldBounds.push_back(probe->GetBounds());
 
 		// Find a spot in cubemap array
-		UINT32 numArrayEntries = (UINT32)mInfo.reflProbeCubemapArrayUsedSlots.Size();
+		UINT32 numArrayEntries = (UINT32)mInfo.reflProbeCubemapArrayUsedSlots.size();
 		for(UINT32 i = 0; i < numArrayEntries; i++)
 		{
 			if(!mInfo.reflProbeCubemapArrayUsedSlots[i])
@@ -613,7 +613,7 @@ namespace bs {	namespace ct
 		if (arrayIdx != (UINT32)-1)
 			mInfo.reflProbeCubemapArrayUsedSlots[arrayIdx] = false;
 
-		ReflectionProbe* lastProbe = mInfo.reflProbes.Back().probe;
+		ReflectionProbe* lastProbe = mInfo.reflProbes.back().probe;
 		UINT32 lastProbeId = lastProbe->GetRendererId();
 
 		if (probeId != lastProbeId)
@@ -626,8 +626,8 @@ namespace bs {	namespace ct
 		}
 
 		// Last element is the one we want to erase
-		mInfo.reflProbes.Erase(mInfo.reflProbes.end() - 1);
-		mInfo.reflProbeWorldBounds.Erase(mInfo.reflProbeWorldBounds.end() - 1);
+		mInfo.reflProbes.erase(mInfo.reflProbes.end() - 1);
+		mInfo.reflProbeWorldBounds.erase(mInfo.reflProbeWorldBounds.end() - 1);
 	}
 
 	void RendererScene::SetReflectionProbeArrayIndex(UINT32 probeIdx, UINT32 arrayIdx, bool markAsClean)
@@ -672,13 +672,13 @@ namespace bs {	namespace ct
 
 	void RendererScene::RegisterParticleSystem(ParticleSystem* particleSystem)
 	{
-		const auto rendererId = (UINT32)mInfo.particleSystems.Size();
+		const auto rendererId = (UINT32)mInfo.particleSystems.size();
 		particleSystem->SetRendererId(rendererId);
 
 		mInfo.particleSystems.push_back(RendererParticles());
 		mInfo.particleSystemCullInfos.push_back(CullInfo(Bounds(), particleSystem->GetLayer()));
 
-		RendererParticles& rendererParticles = mInfo.particleSystems.Back();
+		RendererParticles& rendererParticles = mInfo.particleSystems.back();
 		rendererParticles.particleSystem = particleSystem;
 
 		updateParticleSystem(particleSystem, false);
@@ -992,7 +992,7 @@ namespace bs {	namespace ct
 			rendererParticles.gpuParticleSystem = nullptr;
 		}
 
-		ParticleSystem* lastSystem = mInfo.particleSystems.Back().particleSystem;
+		ParticleSystem* lastSystem = mInfo.particleSystems.back().particleSystem;
 		const UINT32 lastRendererId = lastSystem->GetRendererId();
 
 		if (rendererId != lastRendererId)
@@ -1005,19 +1005,19 @@ namespace bs {	namespace ct
 		}
 
 		// Last element is the one we want to erase
-		mInfo.particleSystems.Erase(mInfo.particleSystems.end() - 1);
-		mInfo.particleSystemCullInfos.Erase(mInfo.particleSystemCullInfos.end() - 1);
+		mInfo.particleSystems.erase(mInfo.particleSystems.end() - 1);
+		mInfo.particleSystemCullInfos.erase(mInfo.particleSystemCullInfos.end() - 1);
 	}
 
 	void RendererScene::RegisterDecal(Decal* decal)
 	{
-		const auto renderableId = (UINT32)mInfo.decals.Size();
+		const auto renderableId = (UINT32)mInfo.decals.size();
 		decal->SetRendererId(renderableId);
 
 		mInfo.decals.emplace_back();
 		mInfo.decalCullInfos.push_back(CullInfo(decal->GetBounds(), decal->getLayer()));
 
-		RendererDecal& rendererDecal = mInfo.decals.Back();
+		RendererDecal& rendererDecal = mInfo.decals.back();
 		rendererDecal.decal = decal;
 		rendererDecal.UpdatePerObjectBuffer();
 
@@ -1099,7 +1099,7 @@ namespace bs {	namespace ct
 	void RendererScene::UnregisterDecal(Decal* decal)
 	{
 		const UINT32 rendererId = decal->GetRendererId();
-		Decal* lastDecal = mInfo.decals.Back().decal;
+		Decal* lastDecal = mInfo.decals.back().decal;
 		const UINT32 lastDecalId = lastDecal->GetRendererId();
 
 		RendererDecal& rendererDecal = mInfo.decals[rendererId];
@@ -1119,8 +1119,8 @@ namespace bs {	namespace ct
 		}
 
 		// Last element is the one we want to erase
-		mInfo.decals.Erase(mInfo.decals.end() - 1);
-		mInfo.decalCullInfos.Erase(mInfo.decalCullInfos.end() - 1);
+		mInfo.decals.erase(mInfo.decals.end() - 1);
+		mInfo.decalCullInfos.erase(mInfo.decalCullInfos.end() - 1);
 	}
 
 	void RendererScene::SetOptions(const SPtr<RenderBeastOptions>& options)
@@ -1199,23 +1199,23 @@ namespace bs {	namespace ct
 
 		// Remove from render target list
 		int rtChanged = 0; // 0 - No RT, 1 - RT found, 2 - RT changed
-		for (auto iterTarget = mInfo.renderTargets.Begin(); iterTarget != mInfo.renderTargets.end(); ++iterTarget)
+		for (auto iterTarget = mInfo.renderTargets.begin(); iterTarget != mInfo.renderTargets.end(); ++iterTarget)
 		{
 			RendererRenderTarget& target = *iterTarget;
-			for (auto iterCam = target.cameras.Begin(); iterCam != target.cameras.end(); ++iterCam)
+			for (auto iterCam = target.cameras.begin(); iterCam != target.cameras.end(); ++iterCam)
 			{
 				if (camera == *iterCam)
 				{
 					if(remove)
 					{
-						target.cameras.Erase(iterCam);
+						target.cameras.erase(iterCam);
 						rtChanged = 1;
 					}
 					else
 					{
 						if (renderTarget != target.target)
 						{
-							target.cameras.Erase(iterCam);
+							target.cameras.erase(iterCam);
 							rtChanged = 2;
 						}
 						else
@@ -1226,9 +1226,9 @@ namespace bs {	namespace ct
 				}
 			}
 
-			if (target.cameras.Empty())
+			if (target.cameras.empty())
 			{
-				mInfo.renderTargets.Erase(iterTarget);
+				mInfo.renderTargets.erase(iterTarget);
 				break;
 			}
 		}
@@ -1236,17 +1236,17 @@ namespace bs {	namespace ct
 		// Register in render target list
 		if (renderTarget != nullptr && !remove && (rtChanged == 0 || rtChanged == 2))
 		{
-			auto findIter = std::find_if(mInfo.renderTargets.Begin(), mInfo.renderTargets.end(),
+			auto findIter = std::find_if(mInfo.renderTargets.begin(), mInfo.renderTargets.end(),
 				[&](const RendererRenderTarget& x) { return x.target == renderTarget; });
 
-			if (findIter != mInfo.renderTargets.End())
+			if (findIter != mInfo.renderTargets.end())
 			{
 				findIter->cameras.push_back(camera);
 			}
 			else
 			{
 				mInfo.renderTargets.push_back(RendererRenderTarget());
-				RendererRenderTarget& renderTargetData = mInfo.renderTargets.Back();
+				RendererRenderTarget& renderTargetData = mInfo.renderTargets.back();
 
 				renderTargetData.target = renderTarget;
 				renderTargetData.cameras.push_back(camera);
@@ -1308,7 +1308,7 @@ namespace bs {	namespace ct
 		if (!anyDirty)
 			return;
 
-		UINT32 numRenderables = (UINT32)mInfo.renderables.Size();
+		UINT32 numRenderables = (UINT32)mInfo.renderables.size();
 		for (UINT32 i = 0; i < numRenderables; i++)
 		{
 			for(auto& element : mInfo.renderables[i]->elements)
@@ -1440,10 +1440,10 @@ namespace bs {	namespace ct
 			const UINT32 rendererId = entry.particleSystem->GetRendererId();
 
 			AABox worldAABox = AABox::INF_BOX;
-			const auto iterFind = particleRenderData->cpuData.Find(entry.particleSystem->GetId());
-			if(iterFind != particleRenderData->cpuData.End())
+			const auto iterFind = particleRenderData->cpuData.find(entry.particleSystem->GetId());
+			if(iterFind != particleRenderData->cpuData.end())
 				worldAABox = iterFind->second->bounds;
-			else If(entry.gpuParticleSystem)
+			else if(entry.gpuParticleSystem)
 				worldAABox = entry.gpuParticleSystem->GetBounds();
 
 			const ParticleSystemSettings& settings = entry.particleSystem->GetSettings();
@@ -1458,8 +1458,8 @@ namespace bs {	namespace ct
 	MaterialSamplerOverrides* RendererScene::allocSamplerStateOverrides(RenderElement& elem)
 	{
 		SamplerOverrideKey SamplerKey(elem.material, elem.defaultTechniqueIdx);
-		auto iterFind = mSamplerOverrides.Find(samplerKey);
-		if (iterFind != mSamplerOverrides.End())
+		auto iterFind = mSamplerOverrides.find(samplerKey);
+		if (iterFind != mSamplerOverrides.end())
 		{
 			iterFind->second->refCount++;
 			return iterFind->second;
@@ -1481,15 +1481,15 @@ namespace bs {	namespace ct
 	{
 		SamplerOverrideKey SamplerKey(elem.material, elem.defaultTechniqueIdx);
 
-		auto iterFind = mSamplerOverrides.Find(samplerKey);
-		assert(iterFind != mSamplerOverrides.End());
+		auto iterFind = mSamplerOverrides.find(samplerKey);
+		assert(iterFind != mSamplerOverrides.end());
 
 		MaterialSamplerOverrides* samplerOverrides = iterFind->second;
 		samplerOverrides->refCount--;
 		if (samplerOverrides->refCount == 0)
 		{
 			SamplerOverrideUtility::destroySamplerOverrides(samplerOverrides);
-			mSamplerOverrides.Erase(iterFind);
+			mSamplerOverrides.erase(iterFind);
 		}
 	}
 }}

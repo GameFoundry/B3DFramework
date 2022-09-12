@@ -197,7 +197,7 @@ namespace bs
 	{
 		mEvolvers = evolvers;
 
-		std::sort(mEvolvers.Begin(), mEvolvers.end(),
+		std::sort(mEvolvers.begin(), mEvolvers.end(),
 			[](const SPtr<ParticleEvolver>& a, const SPtr<ParticleEvolver>& b)
 		{
 			INT32 priorityA = a ? a->GetProperties().priority : 0;

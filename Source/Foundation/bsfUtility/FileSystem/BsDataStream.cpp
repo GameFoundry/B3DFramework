@@ -144,7 +144,7 @@ namespace bs
 
 		bs_stack_free(tempBuffer);
 
-		std::string string = result.Str();
+		std::string string = result.str();
 
 		switch(dataOffset)
 		{
@@ -204,7 +204,7 @@ namespace bs
 		: DataStream(READ | WRITE)
 	{
 		// Copy data from incoming stream
-		mSize = sourceStream.Size();
+		mSize = sourceStream.size();
 
 		mData = mCursor = static_cast<uint8_t*>(bs_alloc(mSize));
 		mEnd = mData + sourceStream.Read(mData, mSize);

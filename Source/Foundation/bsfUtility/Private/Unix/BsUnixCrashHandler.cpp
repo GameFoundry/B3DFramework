@@ -169,10 +169,10 @@ namespace bs
 
 		free(messages);
 
-		return stackTrace.Str();
+		return stackTrace.str();
 	}
 
-	void CrashHandler::reportCrash(const String& type,
+	void CrashHandler::ReportCrash(const String& type,
 								   const String& description,
 								   const String& function,
 								   const String& file,

@@ -87,7 +87,7 @@ namespace bs
 		}
 
 		/**
-		 * Disconnects the connection with the specified data, ensuring the event doesn't call its callback again.
+		 * Disconnects the connection with the specified Data, ensuring the event doesn't call its callback again.
 		 *
 		 * @note	Only call this once.
 		 */
@@ -272,7 +272,7 @@ namespace bs
 			{
 				func = nullptr;
 
-				BaseConnectionData::deactivate();
+				BaseConnectionData::Deactivate();
 			}
 
 			std::function<RetType(Args...)> func;
@@ -285,7 +285,7 @@ namespace bs
 
 		~TEvent()
 		{
-			clear();
+			Clear();
 		}
 
 		/** Register a new callback that will get notified once the event is triggered. */
@@ -330,7 +330,7 @@ namespace bs
 		}
 
 		/** Trigger the event, notifying all register callback methods. */
-		void Operator() (Args... args)
+		void operator() (Args... args)
 		{
 			// Increase ref count to ensure this event data isn't destroyed if one of the callbacks
 			// deletes the event itself.

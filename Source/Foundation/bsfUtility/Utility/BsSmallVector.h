@@ -25,13 +25,13 @@ namespace bs
 		SmallVector() = default;
 		SmallVector(const SmallVector<ValueType, N>& other)
 		{
-			if(!other.Empty())
+			if(!other.empty())
 				*this = other;
 		}
 
 		SmallVector(SmallVector<ValueType, N>&& other)
 		{
-			if(!other.Empty())
+			if(!other.empty())
 				*this = std::move(other);
 		}
 
@@ -50,7 +50,7 @@ namespace bs
 			for (auto& entry : *this)
 				entry.~Type();
 
-			if(!isSmall())
+			if(!IsSmall())
 				bs_free(mElements);
 		}
 
@@ -59,19 +59,19 @@ namespace bs
 			if(this == &other)
 				return *this;
 
-			UINT32 mySize = size();
-			const UINT32 otherSize = other.Size();
+			UINT32 mySize = Size();
+			const UINT32 otherSize = other.size();
 
 			// Use assignment copy if we have more elements than the other array, and destroy any excess elements
 			if(mySize > otherSize)
 			{
 				Iterator newEnd;
 				if(otherSize > 0)
-					newEnd = std::copy(other.Begin(), other.end(), begin());
+					newEnd = std::copy(other.begin(), other.end(), Begin());
 				else
-					newEnd = begin();
+					newEnd = Begin();
 
-				for(;newEnd != end(); ++newEnd)
+				for(;newEnd != End(); ++newEnd)
 					(*newEnd).~Type();
 
 			}
@@ -81,15 +81,15 @@ namespace bs
 			{
 				if (otherSize > mCapacity)
 				{
-					clear();
+					Clear();
 					mySize = 0;
 
-					grow(otherSize);
+					Grow(otherSize);
 				}
 				else if (mySize > 0)
-					std::copy(other.Begin(), other.begin() + mySize, begin());
+					std::copy(other.begin(), other.begin() + mySize, Begin());
 
-				std::uninitialized_copy(other.Begin() + mySize, other.end(), begin() + mySize);
+				std::uninitialized_copy(other.begin() + mySize, other.end(), Begin() + mySize);
 			}
 
 			mSize = otherSize;
@@ -107,7 +107,7 @@ namespace bs
 				for(auto& entry : *this)
 					entry.~Type();
 
-				if(!isSmall())
+				if(!IsSmall())
 					bs_free(mElements);
 
 				mElements = other.mElements;
@@ -119,37 +119,37 @@ namespace bs
 			// vector
 			else
 			{
-				UINT32 mySize = size();
-				const UINT32 otherSize = other.Size();
+				UINT32 mySize = Size();
+				const UINT32 otherSize = other.size();
 
 				// Use assignment copy if we have more elements than the other array, and destroy any excess elements
 				if(mySize > otherSize)
 				{
 					Iterator newEnd;
 					if(otherSize > 0)
-						newEnd = std::move(other.Begin(), other.end(), begin());
+						newEnd = std::move(other.begin(), other.end(), Begin());
 					else
-						newEnd = begin();
+						newEnd = Begin();
 
-					for(;newEnd != end(); ++newEnd)
+					for(;newEnd != End(); ++newEnd)
 						(*newEnd).~Type();
 				}	
 				else
 				{
 					if (otherSize > mCapacity)
 					{
-						clear();
+						Clear();
 						mySize = 0;
 
-						grow(otherSize);
+						Grow(otherSize);
 					}
 					else if (mySize > 0)
-						std::move(other.Begin(), other.begin() + mySize, begin());
+						std::move(other.begin(), other.begin() + mySize, Begin());
 
 					std::uninitialized_copy(
-						std::make_move_iterator(other.Begin() + mySize),
-						std::make_move_iterator(other.End()),
-						begin() + mySize);
+						std::make_move_iterator(other.begin() + mySize),
+						std::make_move_iterator(other.end()),
+						Begin() + mySize);
 				}
 
 				mSize = otherSize;
@@ -161,19 +161,19 @@ namespace bs
 
 		SmallVector<ValueType, N>& operator=(std::initializer_list<Type> list)
 		{
-			UINT32 mySize = size();
-			const UINT32 otherSize = (UINT32)list.Size();
+			UINT32 mySize = Size();
+			const UINT32 otherSize = (UINT32)list.size();
 
 			// Use assignment copy if we have more elements than the list, and destroy any excess elements
 			if(mySize > otherSize)
 			{
 				Iterator newEnd;
 				if(otherSize > 0)
-					newEnd = std::copy(list.Begin(), list.end(), begin());
+					newEnd = std::copy(list.begin(), list.end(), Begin());
 				else
-					newEnd = begin();
+					newEnd = Begin();
 
-				for(;newEnd != end(); ++newEnd)
+				for(;newEnd != End(); ++newEnd)
 					(*newEnd).~Type();
 
 			}
@@ -183,15 +183,15 @@ namespace bs
 			{
 				if (otherSize > mCapacity)
 				{
-					clear();
+					Clear();
 					mySize = 0;
 
-					grow(otherSize);
+					Grow(otherSize);
 				}
 				else if (mySize > 0)
-					std::copy(list.Begin(), list.begin() + mySize, begin());
+					std::copy(list.begin(), list.begin() + mySize, Begin());
 
-				std::uninitialized_copy(list.Begin() + mySize, list.end(), begin() + mySize);
+				std::uninitialized_copy(list.begin() + mySize, list.end(), Begin() + mySize);
 			}
 
 			mSize = otherSize;
@@ -200,8 +200,8 @@ namespace bs
 
 		bool operator== (const SmallVector<ValueType, N>& other)
 		{
-			if (this->Size() != other.Size()) return false;
-			return std::Equal(this->Begin(), this->end(), other.Begin());
+			if (this->Size() != other.size()) return false;
+			return std::equal(this->Begin(), this->End(), other.Begin());
 		}
 
 		bool operator!= (const SmallVector<ValueType, N>& other)
@@ -211,7 +211,7 @@ namespace bs
 
 		bool operator< (const SmallVector<ValueType, N>& other) const
 		{
-			return std::lexicographical_compare(begin(), end(), other.Begin(), other.end());
+			return std::lexicographical_compare(Begin(), End(), other.Begin(), other.End());
 		}
 
 		bool operator> (const SmallVector<ValueType, N>& other) const
@@ -251,52 +251,52 @@ namespace bs
 		ConstIterator Begin() const { return mElements; }
 		ConstIterator End() const { return mElements + mSize; }
 
-		ConstIterator Cbegin() const { return mElements; }
-		ConstIterator Cend() const { return mElements + mSize; }
+		ConstIterator ConstBegin() const { return mElements; }
+		ConstIterator ConstEnd() const { return mElements + mSize; }
 
-		ReverseIterator Rbegin() { return ReverseIterator(end()); }
-		ReverseIterator Rend() { return ReverseIterator(begin()); }
+		ReverseIterator ReverseBegin() { return ReverseIterator(End()); }
+		ReverseIterator ReverseEnd() { return ReverseIterator(Begin()); }
 
-		ConstReverseIterator Rbegin() const { return ConstReverseIterator(end()); }
-		ConstReverseIterator Rend() const { return ConstReverseIterator(begin()); }
+		ConstReverseIterator ReverseBegin() const { return ConstReverseIterator(End()); }
+		ConstReverseIterator ReverseEnd() const { return ConstReverseIterator(Begin()); }
 
-		ConstReverseIterator Crbegin() const { return ConstReverseIterator(end()); }
-		ConstReverseIterator Crend() const { return ConstReverseIterator(begin()); }
+		ConstReverseIterator ConstReverseBegin() const { return ConstReverseIterator(End()); }
+		ConstReverseIterator ConstReverseEnd() const { return ConstReverseIterator(Begin()); }
 
 		UINT32 Size() const { return mSize; }
 		UINT32 Capacity() const { return mCapacity; }
 
-		Type* data() { return mElements; }
-		const Type* data() const { return mElements; }
+		Type* Data() { return mElements; }
+		const Type* Data() const { return mElements; }
 
 		Type& Front()
 		{
-			assert(!empty());
+			assert(!Empty());
 			return mElements[0];
 		}
 
 		Type& Back()
 		{
-			assert(!empty());
+			assert(!Empty());
 			return mElements[mSize - 1];
 		}
 
 		const Type& Front() const
 		{
-			assert(!empty());
+			assert(!Empty());
 			return mElements[0];
 		}
 
 		const Type& Back() const
 		{
-			assert(!empty());
+			assert(!Empty());
 			return mElements[mSize - 1];
 		}
 
 		void Add(const Type& element)
 		{
 			if (mSize == mCapacity)
-				grow(mCapacity << 1);
+				Grow(mCapacity << 1);
 
 			new (&mElements[mSize++]) Type(element);
 		}
@@ -304,7 +304,7 @@ namespace bs
 		void Add(Type&& element)
 		{
 			if (mSize == mCapacity)
-				grow(mCapacity << 1);
+				Grow(mCapacity << 1);
 
 			new (&mElements[mSize++]) Type(std::move(element));
 		}
@@ -313,8 +313,8 @@ namespace bs
 		{
 			const UINT32 count = (UINT32)std::distance(start, end);
 
-			if ((size() + count) > capacity())
-				this->Grow(size() + count);
+			if ((Size() + count) > Capacity())
+				this->Grow(Size() + count);
 
 			std::uninitialized_copy(start, end, this->End());
 			mSize += count;
@@ -322,16 +322,16 @@ namespace bs
 
 		void Append(UINT32 count, const Type& element)
 		{
-			if ((size() + count) > capacity())
-				this->Grow(size() + count);
+			if ((Size() + count) > Capacity())
+				this->Grow(Size() + count);
 
-			std::uninitialized_fill_n(end(), count, element);
+			std::uninitialized_fill_n(End(), count, element);
 			mSize += count;
 		}
 
 		void Append(std::initializer_list<Type> list)
 		{
-			append(list.Begin(), list.end());
+			append(list.begin(), list.end());
 		}
 
 		void Pop()
@@ -343,19 +343,19 @@ namespace bs
 
 		Iterator Erase(ConstIterator iter)
 		{
-			assert(iter >= begin() && "Iterator to erase is out of bounds.");
-			assert(iter < end() && "Erasing at past-the-end iterator.");
+			assert(iter >= Begin() && "Iterator to erase is out of bounds.");
+			assert(iter < End() && "Erasing at past-the-end iterator.");
 
 			Iterator toErase = const_cast<Iterator>(iter);
-			std::move(toErase + 1, end(), toErase);
-			pop();
+			std::move(toErase + 1, End(), toErase);
+			Pop();
 
 			return toErase;
 		}
 
 		void Remove(UINT32 index)
 		{
-			erase(begin() + index);
+			erase(Begin() + index);
 		}
 
 		bool Contains(const Type& element)
@@ -375,7 +375,7 @@ namespace bs
 			{
 				if (mElements[i] == element)
 				{
-					remove(i);
+					Remove(i);
 					break;
 				}
 			}
@@ -392,13 +392,13 @@ namespace bs
 		void Reserve(UINT32 capacity)
 		{
 			if (capacity > mCapacity)
-				grow(capacity);
+				Grow(capacity);
 		}
 
 		void Resize(UINT32 size, const Type& value = Type())
 		{
 			if(size > mCapacity)
-				grow(size);
+				Grow(size);
 
 			if(size > mSize)
 			{
@@ -428,8 +428,8 @@ namespace bs
 
 			// Move any existing elements
 			std::uninitialized_copy(
-				std::make_move_iterator(begin()), 
-				std::make_move_iterator(end()),
+				std::make_move_iterator(Begin()),
+				std::make_move_iterator(End()),
 				buffer);
 
 			// Destoy existing elements in old memory
@@ -437,7 +437,7 @@ namespace bs
 				entry.~Type();
 
 			// If the current buffer is dynamically allocated, free it
-			if(!isSmall())
+			if(!IsSmall())
 				bs_free(mElements);
 
 			mElements = buffer;

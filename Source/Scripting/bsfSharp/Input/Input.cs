@@ -9,7 +9,7 @@ namespace bs
      */
 
     /// <summary>
-    /// Contains data about a button input event.
+    /// Contains Data about a button input event.
     /// </summary>
 	public struct ButtonEvent
 	{
@@ -526,7 +526,7 @@ namespace bs
         W = 0x11,
         E = 0x12,
         R = 0x13,
-        T = 0x14,
+        ToWString = 0x14,
         Y = 0x15,
         U = 0x16,
         I = 0x17,

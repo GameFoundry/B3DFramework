@@ -41,7 +41,7 @@ namespace bs { namespace ct
 
 	bool GLSupport::CheckExtension(const String& ext) const
 	{
-		if(extensionList.Find(ext) == extensionList.end())
+		if(extensionList.find(ext) == extensionList.end())
 			return false;
 
 		return true;

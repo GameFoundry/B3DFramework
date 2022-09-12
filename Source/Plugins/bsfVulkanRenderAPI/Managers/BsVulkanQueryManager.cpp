@@ -57,7 +57,7 @@ namespace bs { namespace ct
 		assert(result == VK_SUCCESS);
 
 		Vector<PoolInfo>& poolInfos = type == VK_QUERY_TYPE_TIMESTAMP ? mTimerPools : mOcclusionPools;
-		poolInfo.startIdx = (UINT32)poolInfos.Size() * NUM_QUERIES_PER_POOL;
+		poolInfo.startIdx = (UINT32)poolInfos.size() * NUM_QUERIES_PER_POOL;
 
 		poolInfos.push_back(poolInfo);
 
@@ -65,7 +65,7 @@ namespace bs { namespace ct
 		for (UINT32 i = 0; i < NUM_QUERIES_PER_POOL; i++)
 			queries.push_back(nullptr);
 
-		return poolInfos.Back();
+		return poolInfos.back();
 	}
 
 	VulkanQuery* VulkanQueryPool::getQuery(VkQueryType type)
@@ -73,7 +73,7 @@ namespace bs { namespace ct
 		Vector<VulkanQuery*>& queries = type == VK_QUERY_TYPE_TIMESTAMP ? mTimerQueries : mOcclusionQueries;
 		Vector<PoolInfo>& poolInfos = type == VK_QUERY_TYPE_TIMESTAMP ? mTimerPools : mOcclusionPools;
 
-		for (UINT32 i = 0; i < (UINT32)queries.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)queries.size(); i++)
 		{
 			VulkanQuery* curQuery = queries[i];
 			if (curQuery == nullptr)

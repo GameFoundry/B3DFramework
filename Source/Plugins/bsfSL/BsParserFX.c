@@ -2758,7 +2758,7 @@ static YYRESULTTAG yyresolveValue (yyGLRState* yys,
 /** Resolve the previous N states starting at and including state S.  If result
  *  != yyok, some states may have been left unresolved possibly with empty
  *  semantic option chains.  Regardless of whether result = yyok, each state
- *  has been left with consistent data so that yydestroyGLRState can be invoked
+ *  has been left with consistent Data so that yydestroyGLRState can be invoked
  *  if necessary.  */
 static YYRESULTTAG
 yyresolveStates (yyGLRState* yys, int yyn,
@@ -2943,7 +2943,7 @@ yyresolveLocations (yyGLRState* yys1, int yyn1,
  *  actions, and set the semantic value of S.  If result != yyok, the chain of
  *  semantic options in S has been cleared instead or it has been left
  *  unmodified except that redundant options may have been removed.  Regardless
- *  of whether result = yyok, S has been left with consistent data so that
+ *  of whether result = yyok, S has been left with consistent Data so that
  *  yydestroyGLRState can be invoked if necessary.  */
 static YYRESULTTAG
 yyresolveValue (yyGLRState* yys, yyGLRStack* yystackp, ParseState* parse_state, yyscan_t scanner)

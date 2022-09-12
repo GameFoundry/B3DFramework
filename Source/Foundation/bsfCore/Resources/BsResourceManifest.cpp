@@ -30,13 +30,13 @@ namespace bs
 
 	void ResourceManifest::RegisterResource(const UUID& uuid, const Path& filePath)
 	{
-		auto iterFind = mUUIDToFilePath.Find(uuid);
+		auto iterFind = mUUIDToFilePath.find(uuid);
 
-		if(iterFind != mUUIDToFilePath.End())
+		if(iterFind != mUUIDToFilePath.end())
 		{
 			if (iterFind->second != filePath)
 			{
-				mFilePathToUUID.Erase(iterFind->second);
+				mFilePathToUUID.erase(iterFind->second);
 
 				mUUIDToFilePath[uuid] = filePath;
 				mFilePathToUUID[filePath] = uuid;
@@ -44,9 +44,9 @@ namespace bs
 		}
 		else
 		{
-			auto iterFind2 = mFilePathToUUID.Find(filePath);
-			if (iterFind2 != mFilePathToUUID.End())
-				mUUIDToFilePath.Erase(iterFind2->second);
+			auto iterFind2 = mFilePathToUUID.find(filePath);
+			if (iterFind2 != mFilePathToUUID.end())
+				mUUIDToFilePath.erase(iterFind2->second);
 
 			mUUIDToFilePath[uuid] = filePath;
 			mFilePathToUUID[filePath] = uuid;
@@ -55,20 +55,20 @@ namespace bs
 
 	void ResourceManifest::UnregisterResource(const UUID& uuid)
 	{
-		auto iterFind = mUUIDToFilePath.Find(uuid);
+		auto iterFind = mUUIDToFilePath.find(uuid);
 
-		if(iterFind != mUUIDToFilePath.End())
+		if(iterFind != mUUIDToFilePath.end())
 		{
-			mFilePathToUUID.Erase(iterFind->second);
-			mUUIDToFilePath.Erase(uuid);
+			mFilePathToUUID.erase(iterFind->second);
+			mUUIDToFilePath.erase(uuid);
 		}
 	}
 
 	bool ResourceManifest::UuidToFilePath(const UUID& uuid, Path& filePath) const
 	{
-		auto iterFind = mUUIDToFilePath.Find(uuid);
+		auto iterFind = mUUIDToFilePath.find(uuid);
 
-		if(iterFind != mUUIDToFilePath.End())
+		if(iterFind != mUUIDToFilePath.end())
 		{
 			filePath = iterFind->second;
 			return true;
@@ -82,9 +82,9 @@ namespace bs
 
 	bool ResourceManifest::FilePathToUUID(const Path& filePath, UUID& outUUID) const
 	{
-		auto iterFind = mFilePathToUUID.Find(filePath);
+		auto iterFind = mFilePathToUUID.find(filePath);
 
-		if(iterFind != mFilePathToUUID.End())
+		if(iterFind != mFilePathToUUID.end())
 		{
 			outUUID = iterFind->second;
 			return true;
@@ -98,16 +98,16 @@ namespace bs
 
 	bool ResourceManifest::UuidExists(const UUID& uuid) const
 	{
-		auto iterFind = mUUIDToFilePath.Find(uuid);
+		auto iterFind = mUUIDToFilePath.find(uuid);
 
-		return iterFind != mUUIDToFilePath.End();
+		return iterFind != mUUIDToFilePath.end();
 	}
 
 	bool ResourceManifest::FilePathExists(const Path& filePath) const
 	{
-		auto iterFind = mFilePathToUUID.Find(filePath);
+		auto iterFind = mFilePathToUUID.find(filePath);
 
-		return iterFind != mFilePathToUUID.End();
+		return iterFind != mFilePathToUUID.end();
 	}
 
 	void ResourceManifest::Save(const SPtr<ResourceManifest>& manifest, const Path& path, const Path& relativePath)

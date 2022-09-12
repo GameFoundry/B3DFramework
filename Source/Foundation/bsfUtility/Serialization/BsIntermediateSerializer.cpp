@@ -33,7 +33,7 @@ namespace bs
 		}
 
 		// Go through the remaining objects (should be only ones with weak refs)
-		for (auto iter = mObjectMap.Begin(); iter != mObjectMap.end(); ++iter)
+		for (auto iter = mObjectMap.begin(); iter != mObjectMap.end(); ++iter)
 		{
 			ObjectToDecode& objToDecode = iter->second;
 
@@ -62,7 +62,7 @@ namespace bs
 
 	void IntermediateSerializer::DecodeEntry(const SPtr<IReflectable>& object, const SerializedObject* serializableObject)
 	{
-		UINT32 numSubObjects = (UINT32)serializableObject->subObjects.Size();
+		UINT32 numSubObjects = (UINT32)serializableObject->subObjects.size();
 		if (numSubObjects == 0)
 			return;
 
@@ -84,8 +84,8 @@ namespace bs
 			{
 				RTTIField* curGenericField = rtti->GetField(fieldIdx);
 
-				auto iterFindFieldData = subObject.entries.Find(curGenericField->schema.id);
-				if (iterFindFieldData == subObject.entries.End())
+				auto iterFindFieldData = subObject.entries.find(curGenericField->schema.id);
+				if (iterFindFieldData == subObject.entries.end())
 					continue;
 
 				SPtr<SerializedInstance> entryData = iterFindFieldData->second.serialized;
@@ -112,8 +112,8 @@ namespace bs
 
 							if (childRtti != nullptr)
 							{
-								auto findObj = mObjectMap.Find(arrayElemData.get());
-								if (findObj == mObjectMap.End())
+								auto findObj = mObjectMap.find(arrayElemData.get());
+								if (findObj == mObjectMap.end())
 								{
 									SPtr<IReflectable> newObject = childRtti->NewRTTIObject();
 									findObj = mObjectMap.Insert(std::make_pair(arrayElemData.get(),
@@ -208,8 +208,8 @@ namespace bs
 
 						if (childRtti != nullptr)
 						{
-							auto findObj = mObjectMap.Find(fieldObjectData.get());
-							if (findObj == mObjectMap.End())
+							auto findObj = mObjectMap.find(fieldObjectData.get());
+							if (findObj == mObjectMap.end())
 							{
 								SPtr<IReflectable> newObject = childRtti->NewRTTIObject();
 								findObj = mObjectMap.Insert(std::make_pair(fieldObjectData.get(),
@@ -294,13 +294,13 @@ namespace bs
 			}
 		}
 
-		while (!rttiInstances.Empty())
+		while (!rttiInstances.empty())
 		{
 			RTTITypeBase* rttiInstance = rttiInstances.Top();
 			rttiInstance->OnDeserializationEnded(object.Get(), mContext);
 			mAlloc->Destruct(rttiInstance);
 
-			rttiInstances.Pop();
+			rttiInstances.pop();
 		}
 	}
 
@@ -312,13 +312,13 @@ namespace bs
 
 		const auto cleanup = [&]()
 		{
-			while (!rttiInstances.Empty())
+			while (!rttiInstances.empty())
 			{
 				RTTITypeBase* rttiInstance = rttiInstances.Top();
 				rttiInstance->OnSerializationEnded(object, context);
 				alloc->Destruct(rttiInstance);
 
-				rttiInstances.Pop();
+				rttiInstances.pop();
 			}
 		};
 
@@ -334,7 +334,7 @@ namespace bs
 			rttiInstance->OnSerializationStarted(object, context);
 
 			output->subObjects.push_back(SerializedSubObject());
-			SerializedSubObject& subObject = output->subObjects.Back();
+			SerializedSubObject& subObject = output->subObjects.back();
 			subObject.typeId = rtti->GetRTTIId();
 
 			const UINT32 numFields = rtti->GetNumFields();
@@ -488,8 +488,9 @@ namespace bs
 			}
 			default:
 				BS_EXCEPT(InternalErrorException,
-					"Error encoding data. Encountered a type I don't know how to encode. Type: " + toString(UINT32(field->schema.type)) +
-					", Is array: " + toString(field->schema.isArray));
+						  "Error encoding data. Encountered a type I don't know how to encode. Type: " +
+								  ToString(UINT32(field->schema.type)) +
+						  ", Is array: " + ToString(field->schema.isArray));
 			}
 		}
 		else
@@ -562,8 +563,9 @@ namespace bs
 			}
 			default:
 				BS_EXCEPT(InternalErrorException,
-					"Error encoding data. Encountered a type I don't know how to encode. Type: " + toString(UINT32(field->schema.type)) +
-					", Is array: " + toString(field->schema.isArray));
+						  "Error encoding data. Encountered a type I don't know how to encode. Type: " +
+								  ToString(UINT32(field->schema.type)) +
+						  ", Is array: " + ToString(field->schema.isArray));
 			}
 		}
 

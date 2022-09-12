@@ -54,7 +54,7 @@ namespace bs
 			get { return Internal_getFormat(mCachedPtr); }
 		}
 
-		/// <summary>Returns how is the audio data read/decoded.</summary>
+		/// <summary>Returns how is the audio Data read/decoded.</summary>
 		[NativeWrapper]
 		public AudioReadMode ReadMode
 		{

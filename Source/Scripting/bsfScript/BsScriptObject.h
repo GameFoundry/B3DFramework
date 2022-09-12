@@ -101,7 +101,7 @@ namespace bs
 		void MakeSureIAmInstantiated() { }
 	};
 
-	/**	Template version of ScriptObjectBase populates the object meta-data on library load. */
+	/**	Template version of ScriptObjectBase populates the object meta-Data on library load. */
 	template <class Type, class Base = ScriptObjectBase>
 	class ScriptObject : public Base
 	{
@@ -151,11 +151,11 @@ namespace bs
 			return nativeInstance;
 		}
 
-		/** Returns the meta-data containing class and method information for the managed type. */
+		/** Returns the meta-Data containing class and method information for the managed type. */
 		static const ScriptMeta* getMetaData() { return &metaData; }
 
 		/**
-		 * Initializes the meta-data containing class and method information for the managed type. Called on library load
+		 * Initializes the meta-Data containing class and method information for the managed type. Called on library load
 		 * and on assembly reload.
 		 */
 		static void _initMetaData()

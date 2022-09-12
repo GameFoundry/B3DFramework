@@ -27,7 +27,7 @@ namespace bs
 	 *					this state will operate only on the cached internal data.
 	 *					
 	 * You can transfer an object in linked state to serialized state by calling serialize(). If an object is in serialized
-	 * state you can call deserialize() to populated a managed object from the cached data. 	
+	 * state you can call deserialize() to populated a managed object from the cached data.
 	 */
 	class BS_SCR_BE_EXPORT ManagedSerializableObject : public IReflectable
 	{
@@ -37,13 +37,13 @@ namespace bs
 		/**	Generates a hash value for field key data identifying a single field in the object. */
 		struct BS_SCR_BE_EXPORT Hash
 		{
-			size_t Operator()(const ManagedSerializableFieldKey& x) const;
+			size_t operator()(const ManagedSerializableFieldKey& x) const;
 		};
 
 		/**	Compares two field key objects. */
 		struct BS_SCR_BE_EXPORT Equals
 		{
-			bool Operator()(const ManagedSerializableFieldKey& a, const ManagedSerializableFieldKey& b) const;
+			bool operator()(const ManagedSerializableFieldKey& a, const ManagedSerializableFieldKey& b) const;
 		};
 
 	public:

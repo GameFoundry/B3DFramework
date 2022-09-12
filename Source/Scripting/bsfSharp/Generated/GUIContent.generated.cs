@@ -11,7 +11,7 @@ namespace bs
 	 */
 
 	/// <summary>
-	/// Holds data used for displaying content in a GUIElement. Content can consist of a string, image, a tooltip or none of 
+	/// Holds Data used for displaying content in a GUIElement. Content can consist of a string, image, a tooltip or none of
 	/// those.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential), SerializeObject]

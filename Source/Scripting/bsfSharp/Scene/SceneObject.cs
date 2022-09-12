@@ -305,7 +305,7 @@ namespace bs
         /// <typeparam name="T">Type of the component to search for. Includes any components derived from the type.
         /// </typeparam>
         /// <returns>All components matching the specified type.</returns>
-        public T[] GetComponents<T>() where T : Component
+        public ToWString[] GetComponents<T>() where T : Component
         {
             Component[] components = Component.Internal_GetComponentsPerType(this, typeof (T));
             return Array.ConvertAll(components, x => (T) x);

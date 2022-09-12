@@ -95,7 +95,7 @@ namespace bs
 
 	void TextureEx::SetPixelsArray(const HTexture& thisPtr, const Vector<Color>& colors, UINT32 face, UINT32 mipLevel)
 	{
-		UINT32 numElements = (UINT32)colors.Size();
+		UINT32 numElements = (UINT32)colors.size();
 
 		const TextureProperties& props = thisPtr->GetProperties();
 		UINT32 texNumElements = props.GetWidth() * props.getHeight() * props.getDepth();

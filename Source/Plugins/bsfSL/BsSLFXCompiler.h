@@ -62,7 +62,7 @@ namespace bs
 			String computeCode;
 		};
 
-		/** A set of attributes describing a BSL construct. */
+		/** A set of attributes describing a BSL Construct. */
 		struct AttributeData
 		{
 			Vector<std::pair<INT32, String>> attributes;

@@ -243,9 +243,9 @@ namespace bs
 		else
 		{
 			ManagedSerializableFieldKey Key(fieldInfo->mParentTypeId, fieldInfo->mFieldId);
-			auto iterFind = mCachedData.Find(key);
+			auto iterFind = mCachedData.find(key);
 
-			if (iterFind != mCachedData.End())
+			if (iterFind != mCachedData.end())
 				return iterFind->second;
 
 			return nullptr;

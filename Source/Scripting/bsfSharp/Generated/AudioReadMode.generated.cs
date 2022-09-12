@@ -22,7 +22,7 @@ namespace bs
 		LoadCompressed = 1,
 		/// <summary>
 		/// Audio will be slowly streamed from the disk, and decompressed if needed. Uses very little memory, and has either low 
-		/// or high CPU impact depending if the audio is in a compressed format. Since data is streamed from the disk, read 
+		/// or high CPU impact depending if the audio is in a compressed format. Since Data is streamed from the disk, read
 		/// speeds could also be a bottleneck.
 		/// </summary>
 		Stream = 2

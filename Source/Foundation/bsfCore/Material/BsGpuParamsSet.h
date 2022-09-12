@@ -153,12 +153,12 @@ namespace bs
 		void SetParamBlockBuffer(const String& name, const ParamBlockPtrType& paramBlock, bool ignoreInUpdate = false);
 
 		/** Returns the number of passes the set contains the parameters for. */
-		UINT32 GetNumPasses() const { return (UINT32)mPassParams.Size(); }
+		UINT32 GetNumPasses() const { return (UINT32)mPassParams.size(); }
 
 		/**
 		 * Updates parameter data in this object from the provided material parameters object.
 		 *
-		 * @param[in]	params			Object containing the parameter data to update from. Layout of the object must match
+		 * @param[in]	params			Object containing the parameter datato update from. Layout of the object must match
 		 *								the object used for creating this object (be created for the same shader).
 		 * @param[in]	t				Time to evaluate animated parameters at (if any).
 		 * @param[in]	updateAll		Normally the system will track dirty parameters since the last call to this method,

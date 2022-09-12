@@ -80,7 +80,7 @@ namespace bs
 
 		/**
 		 * Reads bits from the stream into the provided buffer from the current cursor location and advances the cursor.
-		 * If the stream doesn't support per-bit reads, data size will be rounded up to nearest byte.
+		 * If the stream doesn't support per-bit reads, Data size will be rounded up to nearest byte.
 		 *
 		 * @param[out]	data	Buffer to read the data from. Must have enough capacity to store @p count bits.
 		 * @param[in]	count	Number of bits to read.
@@ -92,7 +92,7 @@ namespace bs
 
 		/**
 		 * Writes bits from the provided buffer into the stream at the current cursor location and advances the cursor.
-		 * If the stream doesn't support per-bit writes, data size will be rounded up to nearest byte.
+		 * If the stream doesn't support per-bit writes, Data size will be rounded up to nearest byte.
 		 *
 		 * @param[in]	data	Buffer to write the data from. Must have enough capacity to store @p count bits.
 		 * @param[in]	count	Number of bits to write.
@@ -198,7 +198,7 @@ namespace bs
 		 * Initializes a stream with some initial capacity. If more bytes than capacity is written, the stream will
 		 * grow its internal memory storage.
 		 *
-		 * @param[in]	capacity	Number of bytes to initially allocate for the internal memory storage.
+		 * @param[in]	capacity	Number of bytes to initially Allocate for the internal memory storage.
 		 */
 		MemoryDataStream(size_t capacity);
 

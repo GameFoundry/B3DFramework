@@ -13,11 +13,11 @@ namespace bs
 
 	void GUINavGroup::FocusFirst()
 	{
-		if(mOrderedElements.Empty())
+		if(mOrderedElements.empty())
 			return;
 
 		// Find first element with an explicit index, if one exists
-		auto iterStart = mOrderedElements.Begin();
+		auto iterStart = mOrderedElements.begin();
 		if(iterStart->first != 0)
 		{
 			iterStart->second->SetFocus(true, true);
@@ -49,7 +49,7 @@ namespace bs
 			++iterFind;
 
 			// Reached the end, wrap around
-			if(iterFind == mOrderedElements.End())
+			if(iterFind == mOrderedElements.end())
 				return FocusFirst();
 
 			// If a next element with an explicit index exists, select it
@@ -79,7 +79,7 @@ namespace bs
 			{
 				struct YCompare
 				{
-					bool Operator()(const GUIElement* lhs, const GUIElement* rhs) const
+					bool operator()(const GUIElement* lhs, const GUIElement* rhs) const
 					{
 						const Rect2I boundsLHS = lhs->_getClippedBounds();
 						const Rect2I boundsRHS = rhs->_getClippedBounds();
@@ -110,17 +110,17 @@ namespace bs
 				}
 
 				// Find the row the currently selected element is part of
-				auto iterElem = elements.Begin();
+				auto iterElem = elements.begin();
 				auto iterRowStart = iterElem;
 
 				INT32 firstRowY = 0;
 				INT32 rowY = 0;
-				for(; iterElem != elements.End(); ++iterElem)
+				for(; iterElem != elements.end(); ++iterElem)
 				{
 					GUIElement* element = *iterElem;
 
 					const Rect2I elemBounds = element->_getClippedBounds();
-					if(iterElem == elements.Begin())
+					if(iterElem == elements.begin())
 					{
 						firstRowY = elemBounds.y;
 						rowY = elemBounds.y;
@@ -141,7 +141,7 @@ namespace bs
 						break;
 				}
 
-				const bool foundRow = iterElem != elements.End();
+				const bool foundRow = iterElem != elements.end();
 				if(!foundRow)
 					rowY = firstRowY;
 
@@ -149,7 +149,7 @@ namespace bs
 				GUIElement* nextElement = nullptr;
 				INT32 nearestX = std::numeric_limits<INT32>::max();
 				iterElem = iterRowStart;
-				for(; iterElem != elements.End(); ++iterElem)
+				for(; iterElem != elements.end(); ++iterElem)
 				{
 					GUIElement* element = *iterElem;
 					if(element == anchor)
@@ -183,7 +183,7 @@ namespace bs
 				if(!nextElement)
 				{
 					nearestX = std::numeric_limits<INT32>::max();
-					for (; iterElem != elements.End(); ++iterElem)
+					for (; iterElem != elements.end(); ++iterElem)
 					{
 						GUIElement* element = *iterElem;
 
@@ -213,7 +213,7 @@ namespace bs
 
 			// No more elements with no tab index. Check elements with positive tab index
 			const auto iterAfterUnindexed = unindexedRange.second;
-			if(iterAfterUnindexed != mOrderedElements.End())
+			if(iterAfterUnindexed != mOrderedElements.end())
 			{
 				iterAfterUnindexed->second->SetFocus(true, true);
 				return;
@@ -267,8 +267,8 @@ namespace bs
 
 	void GUINavGroup::SetIndex(GUIElement* element, INT32 tabIdx)
 	{
-		const auto iterFind = mElements.Find(element);
-		assert(iterFind != mElements.End());
+		const auto iterFind = mElements.find(element);
+		assert(iterFind != mElements.end());
 
 		const INT32 existingTabIdx = iterFind->second;
 		mElements[element] = tabIdx;
@@ -278,7 +278,7 @@ namespace bs
 		{
 			if(iter->second == element)
 			{
-				mOrderedElements.Erase(iter);
+				mOrderedElements.erase(iter);
 				break;
 			}
 		}
@@ -288,8 +288,8 @@ namespace bs
 
 	void GUINavGroup::UnregisterElement(GUIElement* element)
 	{
-		const auto iterFind = mElements.Find(element);
-		if(iterFind == mElements.End())
+		const auto iterFind = mElements.find(element);
+		if(iterFind == mElements.end())
 			return;
 
 		const INT32 existingTabIdx = iterFind->second;
@@ -298,11 +298,11 @@ namespace bs
 		{
 			if(iter->second == element)
 			{
-				mOrderedElements.Erase(iter);
+				mOrderedElements.erase(iter);
 				break;
 			}
 		}
 
-		mElements.Erase(element);
+		mElements.erase(element);
 	}
 }

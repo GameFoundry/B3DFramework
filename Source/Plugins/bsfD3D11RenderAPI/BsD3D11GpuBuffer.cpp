@@ -54,7 +54,7 @@ namespace bs { namespace ct
 				bufferType = D3D11HardwareBuffer::BT_INDIRECTARGUMENT;
 				break;
 			default:
-				BS_EXCEPT(InvalidParametersException, "Unsupported buffer type " + toString(props.GetType()));
+				BS_EXCEPT(InvalidParametersException, "Unsupported buffer type " + ToString(props.GetType()));
 			}
 
 			mBuffer = bs_pool_new<D3D11HardwareBuffer>(bufferType, props.GetUsage(), props.getElementCount(),
@@ -91,14 +91,14 @@ namespace bs { namespace ct
 		key.format = props.GetFormat();
 		key.useCounter = false;
 
-		auto iterFind = buffer->mBufferViews.Find(key);
-		if (iterFind == buffer->mBufferViews.End())
+		auto iterFind = buffer->mBufferViews.find(key);
+		if (iterFind == buffer->mBufferViews.end())
 		{
 			GpuBufferView* newView = bs_new<GpuBufferView>();
 			newView->Initialize(buffer, key);
 			buffer->mBufferViews[key] = bs_new<GpuBufferReference>(newView);
 
-			iterFind = buffer->mBufferViews.Find(key);
+			iterFind = buffer->mBufferViews.find(key);
 		}
 
 		iterFind->second->refCount++;
@@ -109,8 +109,8 @@ namespace bs { namespace ct
 	{
 		D3D11GpuBuffer* buffer = view->GetBuffer();
 
-		auto iterFind = buffer->mBufferViews.Find(view->GetDesc());
-		if (iterFind == buffer->mBufferViews.End())
+		auto iterFind = buffer->mBufferViews.find(view->GetDesc());
+		if (iterFind == buffer->mBufferViews.end())
 		{
 			BS_EXCEPT(InternalErrorException, "Trying to release a buffer view that doesn't exist!");
 		}
@@ -121,7 +121,7 @@ namespace bs { namespace ct
 		{
 			GpuBufferReference* toRemove = iterFind->second;
 
-			buffer->mBufferViews.Erase(iterFind);
+			buffer->mBufferViews.erase(iterFind);
 
 			if (toRemove->view != nullptr)
 				bs_delete(toRemove->view);
@@ -132,7 +132,7 @@ namespace bs { namespace ct
 
 	void D3D11GpuBuffer::ClearBufferViews()
 	{
-		for (auto iter = mBufferViews.Begin(); iter != mBufferViews.end(); ++iter)
+		for (auto iter = mBufferViews.begin(); iter != mBufferViews.end(); ++iter)
 		{
 			if (iter->second->view != nullptr)
 				bs_delete(iter->second->view);

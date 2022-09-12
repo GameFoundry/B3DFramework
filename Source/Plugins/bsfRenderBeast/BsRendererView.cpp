@@ -300,8 +300,8 @@ namespace bs { namespace ct
 	void RendererView::UpdateAsyncOperations()
 	{
 		// Find most recent available frame
-		auto lastFinishedIter = mLuminanceUpdates.End();
-		for(auto iter = mLuminanceUpdates.Begin(); iter != mLuminanceUpdates.end(); ++iter)
+		auto lastFinishedIter = mLuminanceUpdates.end();
+		for(auto iter = mLuminanceUpdates.begin(); iter != mLuminanceUpdates.end(); ++iter)
 		{
 			if (iter->commandBuffer->GetState() == CommandBufferState::Executing)
 				break;
@@ -309,7 +309,7 @@ namespace bs { namespace ct
 			lastFinishedIter = iter;
 		}
 
-		if (lastFinishedIter != mLuminanceUpdates.End())
+		if (lastFinishedIter != mLuminanceUpdates.end())
 		{
 			// Get new luminance value
 			mPreviousEyeAdaptation = mCurrentEyeAdaptation;
@@ -324,7 +324,7 @@ namespace bs { namespace ct
 			if (lastFinishedIter->frameIdx == mWaitingOnAutoExposureFrame)
 				mWaitingOnAutoExposureFrame = std::numeric_limits<UINT64>::max();
 
-			mLuminanceUpdates.Erase(mLuminanceUpdates.begin(), lastFinishedIter + 1);
+			mLuminanceUpdates.erase(mLuminanceUpdates.begin(), lastFinishedIter + 1);
 		}
 	}
 	
@@ -365,7 +365,7 @@ namespace bs { namespace ct
 
 		if(visibility != nullptr)
 		{
-			for (UINT32 i = 0; i < (UINT32)renderables.Size(); i++)
+			for (UINT32 i = 0; i < (UINT32)renderables.size(); i++)
 			{
 				bool visible = (*visibility)[i];
 
@@ -387,7 +387,7 @@ namespace bs { namespace ct
 
 		if(visibility != nullptr)
 		{
-			for (UINT32 i = 0; i < (UINT32)particleSystems.Size(); i++)
+			for (UINT32 i = 0; i < (UINT32)particleSystems.size(); i++)
 			{
 				bool visible = (*visibility)[i];
 
@@ -409,7 +409,7 @@ namespace bs { namespace ct
 
 		if(visibility != nullptr)
 		{
-			for (UINT32 i = 0; i < (UINT32)decals.Size(); i++)
+			for (UINT32 i = 0; i < (UINT32)decals.size(); i++)
 			{
 				bool visible = (*visibility)[i];
 
@@ -425,7 +425,7 @@ namespace bs { namespace ct
 		if(lightType == LightType::Directional)
 		{
 			if (visibility)
-				visibility->Assign(lights.Size(), true);
+				visibility->Assign(lights.size(), true);
 
 			return;
 		}
@@ -453,7 +453,7 @@ namespace bs { namespace ct
 
 		if(visibility != nullptr)
 		{
-			for (UINT32 i = 0; i < (UINT32)lights.Size(); i++)
+			for (UINT32 i = 0; i < (UINT32)lights.size(); i++)
 			{
 				bool visible = (*visibility)[i];
 
@@ -469,7 +469,7 @@ namespace bs { namespace ct
 		const Vector3& worldCameraPosition = mProperties.viewOrigin;
 		float baseCullDistance = mRenderSettings->cullDistance;
 
-		for (UINT32 i = 0; i < (UINT32)cullInfos.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)cullInfos.size(); i++)
 		{
 			if ((cullInfos[i].layer & cameraLayers) == 0)
 				continue;
@@ -503,7 +503,7 @@ namespace bs { namespace ct
 	{
 		const ConvexVolume& worldFrustum = mProperties.cullFrustum;
 
-		for (UINT32 i = 0; i < (UINT32)bounds.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)bounds.size(); i++)
 		{
 			if (worldFrustum.Intersects(bounds[i]))
 				visibility[i] = true;
@@ -514,7 +514,7 @@ namespace bs { namespace ct
 	{
 		const ConvexVolume& worldFrustum = mProperties.cullFrustum;
 
-		for (UINT32 i = 0; i < (UINT32)bounds.Size(); i++)
+		for (UINT32 i = 0; i < (UINT32)bounds.size(); i++)
 		{
 			if (worldFrustum.Intersects(bounds[i]))
 				visibility[i] = true;
@@ -524,7 +524,7 @@ namespace bs { namespace ct
 	void RendererView::QueueRenderElements(const SceneInfo& sceneInfo)
 	{
 		// Queue renderables
-		for(UINT32 i = 0; i < (UINT32)sceneInfo.renderables.Size(); i++)
+		for(UINT32 i = 0; i < (UINT32)sceneInfo.renderables.size(); i++)
 		{
 			if (!mVisibility.renderables[i])
 				continue;
@@ -558,7 +558,7 @@ namespace bs { namespace ct
 		}
 
 		// Queue particle systems
-		for(UINT32 i = 0; i < (UINT32)sceneInfo.particleSystems.Size(); i++)
+		for(UINT32 i = 0; i < (UINT32)sceneInfo.particleSystems.size(); i++)
 		{
 			if (!mVisibility.particleSystems[i])
 				continue;
@@ -582,7 +582,7 @@ namespace bs { namespace ct
 
 		// Queue decals
 		const bool isMSAA = mProperties.target.numSamples > 1;
-		for(UINT32 i = 0; i < (UINT32)sceneInfo.decals.Size(); i++)
+		for(UINT32 i = 0; i < (UINT32)sceneInfo.decals.size(); i++)
 		{
 			if (!mVisibility.decals[i])
 				continue;
@@ -857,7 +857,7 @@ namespace bs { namespace ct
 
 	void RendererViewGroup::DetermineVisibility(const SceneInfo& sceneInfo)
 	{
-		const auto numViews = (UINT32)mViews.Size();
+		const auto numViews = (UINT32)mViews.size();
 
 		// Early exit if no views render scene geometry
 		bool anyViewsNeed3DDrawing = false;
@@ -898,11 +898,11 @@ namespace bs { namespace ct
 		}
 
 		// Calculate light visibility for all views
-		const auto numRadialLights = (UINT32)sceneInfo.radialLights.Size();
+		const auto numRadialLights = (UINT32)sceneInfo.radialLights.size();
 		mVisibility.radialLights.Resize(numRadialLights, false);
 		mVisibility.radialLights.Assign(numRadialLights, false);
 
-		const auto numSpotLights = (UINT32)sceneInfo.spotLights.Size();
+		const auto numSpotLights = (UINT32)sceneInfo.spotLights.size();
 		mVisibility.spotLights.Resize(numSpotLights, false);
 		mVisibility.spotLights.Assign(numSpotLights, false);
 
@@ -919,7 +919,7 @@ namespace bs { namespace ct
 		}
 
 		// Calculate refl. probe visibility for all views
-		const auto numProbes = (UINT32)sceneInfo.reflProbes.Size();
+		const auto numProbes = (UINT32)sceneInfo.reflProbes.size();
 		mVisibility.reflProbes.Resize(numProbes, false);
 		mVisibility.reflProbes.Assign(numProbes, false);
 

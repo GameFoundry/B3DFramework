@@ -94,21 +94,21 @@ namespace bs
 		{
 			StringStream str;
 			str << major << "." << minor << "." << release << "." << build;
-			return str.Str();
+			return str.str();
 		}
 
 		/** Parses a string in the major.minor.release.build format and stores the version numbers. */
 		void FromString(const String& versionString)
 		{
 			Vector<bs::String> tokens = StringUtil::split(versionString, ".");
-			if(!tokens.Empty())
+			if(!tokens.empty())
 			{
 				major = parseINT32(tokens[0]);
-				if (tokens.Size() > 1)
+				if (tokens.size() > 1)
 					minor = parseINT32(tokens[1]);
-				if (tokens.Size() > 2)
+				if (tokens.size() > 2)
 					release = parseINT32(tokens[2]);
-				if (tokens.Size() > 3)
+				if (tokens.size() > 3)
 					build = parseINT32(tokens[3]);
 			}
 
@@ -222,7 +222,7 @@ namespace bs
 		/**	Returns true if the provided profile is supported. */
 		bool IsShaderProfileSupported(const String& profile) const
 		{
-			return (mSupportedShaderProfiles.End() != mSupportedShaderProfiles.find(profile));
+			return (mSupportedShaderProfiles.end() != mSupportedShaderProfiles.find(profile));
 		}
 
 		/**	Returns a set of all supported shader profiles. */

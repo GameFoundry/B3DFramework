@@ -125,7 +125,7 @@ namespace bs
     /// Provides a handle to a <see cref="Resource"/>. The underlying resource might or might not be loaded.
     /// </summary>
     /// <typeparam name="T">Resource type that the handle references</typeparam>
-    public class RRef<T> : RRefBase where T : Resource
+    public class RRef<ToWString> : RRefBase where T : Resource
     {
         /// <summary>
         /// Returns the referenced resource. If the resource hasn't been loaded it will be loaded as if calling

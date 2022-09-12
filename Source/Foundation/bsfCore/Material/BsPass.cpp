@@ -80,19 +80,19 @@ namespace bs
 		{
 			PipelineStateDescType desc;
 
-			if(!mData.vertexProgramDesc.source.Empty())
+			if(!mData.vertexProgramDesc.source.empty())
 				desc.vertexProgram = GpuProgramType::create(mData.vertexProgramDesc);
 
-			if(!mData.fragmentProgramDesc.source.Empty())
+			if(!mData.fragmentProgramDesc.source.empty())
 				desc.fragmentProgram = GpuProgramType::create(mData.fragmentProgramDesc);
 
-			if(!mData.geometryProgramDesc.source.Empty())
+			if(!mData.geometryProgramDesc.source.empty())
 				desc.geometryProgram = GpuProgramType::create(mData.geometryProgramDesc);
 
-			if(!mData.hullProgramDesc.source.Empty())
+			if(!mData.hullProgramDesc.source.empty())
 				desc.hullProgram = GpuProgramType::create(mData.hullProgramDesc);
 
-			if(!mData.domainProgramDesc.source.Empty())
+			if(!mData.domainProgramDesc.source.empty())
 				desc.domainProgram = GpuProgramType::create(mData.domainProgramDesc);
 
 			desc.blendState = BlendStateType::create(mData.blendStateDesc);
