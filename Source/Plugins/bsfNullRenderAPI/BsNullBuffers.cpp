@@ -69,7 +69,7 @@ namespace bs { namespace ct
 
 		// Create a new buffer if not wrapping an external one
 		if(!mBuffer)
-			mBuffer = bs_pool_new<NullHardwareBuffer>(props.getUsage(), props.getElementCount(), props.getElementSize());
+			mBuffer = bs_pool_new<NullHardwareBuffer>(props.GetUsage(), props.getElementCount(), props.getElementSize());
 
 		GpuBuffer::initialize();
 	}

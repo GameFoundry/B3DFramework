@@ -42,7 +42,7 @@ namespace bs
 		{
 			for (auto& dependency : mDependencies)
 			{
-				if (dependency != nullptr && !dependency.isLoaded())
+				if (dependency != nullptr && !dependency.IsLoaded())
 				{
 					areLoaded = false;
 					break;
@@ -60,14 +60,14 @@ namespace bs
 			return;
 
 		Lock Lock(mDependenciesMutex);
-		mDependencies.push_back(resource.getWeak());
+		mDependencies.push_back(resource.GetWeak());
 	}
 
 	void Resource::RemoveResourceDependency(const HResource& resource)
 	{
 		Lock Lock(mDependenciesMutex);
-		mDependencies.erase(std::remove(mDependencies.begin(), mDependencies.end(), resource.getWeak()),
-			mDependencies.end());
+		mDependencies.Erase(std::remove(mDependencies.begin(), mDependencies.end(), resource.getWeak()),
+			mDependencies.End());
 	}
 
 	RTTITypeBase* Resource::getRTTIStatic()

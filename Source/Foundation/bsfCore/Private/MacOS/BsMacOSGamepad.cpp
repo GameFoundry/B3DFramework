@@ -29,7 +29,7 @@ namespace bs
 
 	void Gamepad::Capture()
 	{
-		m->hid->capture(m->ref, !m->hasInputFocus);
+		m->hid->Capture(m->ref, !m->hasInputFocus);
 	}
 
 	void Gamepad::ChangeCaptureContext(UINT64 windowHandle)

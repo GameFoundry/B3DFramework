@@ -376,7 +376,7 @@ namespace bs
 		constexpr UINT32 HEIGHT = 128;
 
 		PixelData ResizedData(WIDTH, HEIGHT, 1, PF_RGBA8);
-		resizedData.allocateInternalBuffer();
+		resizedData.AllocateInternalBuffer();
 
 		PixelUtil::scale(data, resizedData);
 
@@ -403,12 +403,12 @@ namespace bs
 		wmIconData[1] = HEIGHT;
 		for (UINT32 y = 0; y < HEIGHT; y++)
 			for (UINT32 x = 0; x < WIDTH; x++)
-				wmIconData[y * WIDTH + x + 2] = resizedData.getColorAt(x, y).getAsBGRA();
+				wmIconData[y * WIDTH + x + 2] = resizedData.GetColorAt(x, y).getAsBGRA();
 
 		Atom iconAtom = XInternAtom(display, "_NET_WM_ICON", False);
 		Atom cardinalAtom = XInternAtom(display, "CARDINAL", False);
 		XChangeProperty(display, m->xWindow, iconAtom, cardinalAtom, 32, PropModeReplace,
-				(const unsigned char*) wmIconData.data(), wmIconData.size());
+				(const unsigned char*) wmIconData.Data(), wmIconData.size());
 
 		XFlush(display);
 	}
@@ -448,7 +448,7 @@ namespace bs
 			if (entry.width == 0 || entry.height == 0)
 				continue;
 
-			if(entry.contains(Vector2I(event.x, event.y)))
+			if(entry.Contains(Vector2I(event.x, event.y)))
 			{
 				XUngrabPointer(LinuxPlatform::getXDisplay(), 0L);
 				XFlush(LinuxPlatform::getXDisplay());

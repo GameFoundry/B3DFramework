@@ -9,19 +9,19 @@ namespace bs
 {
 	std::pair<bool, float> Torus::Intersects(const Ray& ray) const
 	{
-		const Vector3& org = ray.getOrigin();
-		const Vector3& dir = ray.getDirection();
+		const Vector3& org = ray.GetOrigin();
+		const Vector3& dir = ray.GetDirection();
 
-		float u = normal.dot(org);
-		float v = normal.dot(dir);
+		float u = normal.Dot(org);
+		float v = normal.Dot(dir);
 
-		float a = dir.dot(dir) - v * v;
-		float b = 2 * (org.dot(dir) - u * v);
-		float c = org.dot(org) - u * u;
-		float d = org.dot(org) + outerRadius*outerRadius - innerRadius*innerRadius;
+		float a = dir.Dot(dir) - v * v;
+		float b = 2 * (org.Dot(dir) - u * v);
+		float c = org.Dot(org) - u * u;
+		float d = org.Dot(org) + outerRadius*outerRadius - innerRadius*innerRadius;
 
 		float A = 1.0f;
-		float B = 4 * org.dot(dir);
+		float B = 4 * org.Dot(dir);
 		float C = 2 * d + 0.25f * B * B - 4 * outerRadius * outerRadius * a;
 		float D = B * d - 4 * outerRadius * outerRadius * b;
 		float E = d * d - 4 * outerRadius * outerRadius * c;

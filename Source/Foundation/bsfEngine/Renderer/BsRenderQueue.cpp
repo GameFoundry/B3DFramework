@@ -19,22 +19,22 @@ namespace bs { namespace ct
 
 	void RenderQueue::Clear()
 	{
-		mSortableElements.clear();
-		mSortableElementIdx.clear();
-		mElements.clear();
+		mSortableElements.Clear();
+		mSortableElementIdx.Clear();
+		mElements.Clear();
 
-		mSortedRenderElements.clear();
+		mSortedRenderElements.Clear();
 	}
 
 	void RenderQueue::Add(const RenderElement* element, float distFromCamera, UINT32 techniqueIdx)
 	{
 		SPtr<Material> material = element->material;
-		SPtr<Shader> shader = material->getShader();
+		SPtr<Shader> shader = material->GetShader();
 		
-		UINT32 queuePriority = shader->getQueuePriority();
-		QueueSortType sortType = shader->getQueueSortType();
-		UINT32 shaderId = shader->getId();
-		bool separablePasses = shader->getAllowSeparablePasses();
+		UINT32 queuePriority = shader->GetQueuePriority();
+		QueueSortType sortType = shader->GetQueueSortType();
+		UINT32 shaderId = shader->GetId();
+		bool separablePasses = shader->GetAllowSeparablePasses();
 
 		switch (sortType)
 		{
@@ -48,17 +48,17 @@ namespace bs { namespace ct
 			break;
 		}
 
-		UINT32 numPasses = material->getNumPasses(techniqueIdx);
+		UINT32 numPasses = material->GetNumPasses(techniqueIdx);
 		if (!separablePasses)
 			numPasses = std::min(1U, numPasses);
 
 		for (UINT32 i = 0; i < numPasses; i++)
 		{
-			UINT32 idx = (UINT32)mSortableElementIdx.size();
+			UINT32 idx = (UINT32)mSortableElementIdx.Size();
 			mSortableElementIdx.push_back(idx);
 
 			mSortableElements.push_back(SortableElement());
-			SortableElement& sortableElem = mSortableElements.back();
+			SortableElement& sortableElem = mSortableElements.Back();
 
 			sortableElem.seqIdx = idx;
 			sortableElem.priority = queuePriority;
@@ -89,24 +89,24 @@ namespace bs { namespace ct
 		}
 
 		// Sort only indices since we generate an entirely new data set anyway, it doesn't make sense to move sortable elements
-		std::sort(mSortableElementIdx.begin(), mSortableElementIdx.end(), std::bind(sortMethod, _1, _2, mSortableElements));
+		std::sort(mSortableElementIdx.Begin(), mSortableElementIdx.end(), std::bind(sortMethod, _1, _2, mSortableElements));
 
 		UINT32 prevShaderId = (UINT32)-1;
 		UINT32 prevTechniqueIdx = (UINT32)-1;
 		UINT32 prevPassIdx = (UINT32)-1;
-		for (UINT32 i = 0; i < (UINT32)mSortableElementIdx.size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mSortableElementIdx.Size(); i++)
 		{
 			const UINT32 idx = mSortableElementIdx[i];
 			const SortableElement& elem = mSortableElements[idx];
 			const RenderElement* renderElem = mElements[idx];
 
-			const bool separablePasses = renderElem->material->getShader()->getAllowSeparablePasses();
+			const bool separablePasses = renderElem->material->GetShader()->getAllowSeparablePasses();
 
 			if (separablePasses)
 			{
 				mSortedRenderElements.push_back(RenderQueueElement());
 
-				RenderQueueElement& sortedElem = mSortedRenderElements.back();
+				RenderQueueElement& sortedElem = mSortedRenderElements.Back();
 				sortedElem.renderElem = renderElem;
 				sortedElem.techniqueIdx = elem.techniqueIdx;
 				sortedElem.passIdx = elem.passIdx;
@@ -123,12 +123,12 @@ namespace bs { namespace ct
 			}
 			else
 			{
-				const UINT32 numPasses = renderElem->material->getNumPasses(elem.techniqueIdx);
+				const UINT32 numPasses = renderElem->material->GetNumPasses(elem.techniqueIdx);
 				for (UINT32 j = 0; j < numPasses; j++)
 				{
 					mSortedRenderElements.push_back(RenderQueueElement());
 
-					RenderQueueElement& sortedElem = mSortedRenderElements.back();
+					RenderQueueElement& sortedElem = mSortedRenderElements.Back();
 					sortedElem.renderElem = renderElem;
 					sortedElem.techniqueIdx = elem.techniqueIdx;
 					sortedElem.passIdx = j;

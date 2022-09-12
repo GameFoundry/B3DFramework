@@ -29,10 +29,10 @@ namespace bs
 
 	void ScriptGUIProgressBar::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptGUIProgressBar::internal_createInstance);
-		metaData.scriptClass->addInternalCall("Internal_SetPercent", (void*)&ScriptGUIProgressBar::internal_setPercent);
-		metaData.scriptClass->addInternalCall("Internal_GetPercent", (void*)&ScriptGUIProgressBar::internal_getPercent);
-		metaData.scriptClass->addInternalCall("Internal_SetTint", (void*)&ScriptGUIProgressBar::internal_setTint);
+		metaData.scriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptGUIProgressBar::internal_createInstance);
+		metaData.scriptClass->AddInternalCall("Internal_SetPercent", (void*)&ScriptGUIProgressBar::internal_setPercent);
+		metaData.scriptClass->AddInternalCall("Internal_GetPercent", (void*)&ScriptGUIProgressBar::internal_getPercent);
+		metaData.scriptClass->AddInternalCall("Internal_SetTint", (void*)&ScriptGUIProgressBar::internal_setTint);
 	}
 
 	void ScriptGUIProgressBar::internal_createInstance(MonoObject* instance, MonoString* style, MonoArray* guiOptions)
@@ -40,9 +40,9 @@ namespace bs
 		GUIOptions options;
 
 		ScriptArray ScriptArray(guiOptions);
-		UINT32 arrayLen = scriptArray.size();
+		UINT32 arrayLen = scriptArray.Size();
 		for (UINT32 i = 0; i < arrayLen; i++)
-			options.addOption(scriptArray.get<GUIOption>(i));
+			options.AddOption(scriptArray.get<GUIOption>(i));
 
 		GUIProgressBar* progressBar = GUIProgressBar::create(options, MonoUtil::monoToString(style));
 		new (bs_alloc<ScriptGUIProgressBar>()) ScriptGUIProgressBar(instance, progressBar);
@@ -50,19 +50,19 @@ namespace bs
 
 	void ScriptGUIProgressBar::internal_setPercent(ScriptGUIProgressBar* nativeInstance, float percent)
 	{
-		GUIProgressBar* progressBar = (GUIProgressBar*)nativeInstance->getGUIElement();
-		progressBar->setPercent(percent);
+		GUIProgressBar* progressBar = (GUIProgressBar*)nativeInstance->GetGUIElement();
+		progressBar->SetPercent(percent);
 	}
 
 	float ScriptGUIProgressBar::internal_getPercent(ScriptGUIProgressBar* nativeInstance)
 	{
-		GUIProgressBar* progressBar = (GUIProgressBar*)nativeInstance->getGUIElement();
-		return progressBar->getPercent();
+		GUIProgressBar* progressBar = (GUIProgressBar*)nativeInstance->GetGUIElement();
+		return progressBar->GetPercent();
 	}
 
 	void ScriptGUIProgressBar::internal_setTint(ScriptGUIProgressBar* nativeInstance, Color* color)
 	{
-		GUIProgressBar* progressBar = (GUIProgressBar*)nativeInstance->getGUIElement();
-		progressBar->setTint(*color);
+		GUIProgressBar* progressBar = (GUIProgressBar*)nativeInstance->GetGUIElement();
+		progressBar->SetTint(*color);
 	}
 }

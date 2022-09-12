@@ -49,7 +49,7 @@ namespace bs
 			
 			// Look for bsf library to find the right path
 			Path anchorFile = path;
-			anchorFile.setFilename("bsf." + String(DynLib::EXTENSION));
+			anchorFile.SetFilename("bsf." + String(DynLib::EXTENSION));
 
 			if (!FileSystem::exists(anchorFile))
 			{
@@ -119,12 +119,12 @@ namespace bs
 		Path output = path;
 		if (FileSystem::exists(path))
 		{
-			output.makeAbsolute(FileSystem::getWorkingDirectoryPath());
+			output.MakeAbsolute(FileSystem::getWorkingDirectoryPath());
 			return output;
 		}
 
 		// Then, check the build directory itself, in case we're running directly from it (during development)
-		output.makeAbsolute(BUILD_APP_ROOT);
+		output.MakeAbsolute(BUILD_APP_ROOT);
 		if (FileSystem::exists(output))
 			return output;
 

@@ -28,21 +28,21 @@ namespace bs
 			Lock fileLock = FileScheduler::getLock(filePath);
 
 			SPtr<DataStream> stream = FileSystem::openFile(filePath);
-			source = stream->getAsString();
+			source = stream->GetAsString();
 		}
 
 		SPtr<const ShaderImportOptions> io = std::static_pointer_cast<const ShaderImportOptions>(importOptions);
-		String shaderName = filePath.getFilename(false);
-		BSLFXCompileResult result = BSLFXCompiler::compile(shaderName, source, io->getDefines(), io->languages);
+		String shaderName = filePath.GetFilename(false);
+		BSLFXCompileResult result = BSLFXCompiler::compile(shaderName, source, io->GetDefines(), io->languages);
 
 		if (result.shader != nullptr)
-			result.shader->setName(shaderName);
+			result.shader->SetName(shaderName);
 		
-		if(!result.errorMessage.empty())
+		if(!result.errorMessage.Empty())
 		{
 			String file;
-			if (result.errorFile.empty())
-				file = filePath.toString();
+			if (result.errorFile.Empty())
+				file = filePath.ToString();
 			else
 				file = result.errorFile;
 

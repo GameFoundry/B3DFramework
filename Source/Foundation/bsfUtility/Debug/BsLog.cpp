@@ -16,17 +16,17 @@ namespace bs
 	{
 		RecursiveLock Lock(mMutex);
 
-		mUnreadEntries.push(LogEntry(message, verbosity, category));
+		mUnreadEntries.Push(LogEntry(message, verbosity, category));
 	}
 
 	void Log::Clear()
 	{
 		RecursiveLock Lock(mMutex);
 
-		mEntries.clear();
+		mEntries.Clear();
 
-		while (!mUnreadEntries.empty())
-			mUnreadEntries.pop();
+		while (!mUnreadEntries.Empty())
+			mUnreadEntries.Pop();
 
 		mHash++;
 	}
@@ -38,8 +38,8 @@ namespace bs
 		Vector<LogEntry> newEntries;
 		for(auto& entry : mEntries)
 		{
-			if (((verbosity == LogVerbosity::Any) || entry.getVerbosity() == verbosity) &&
-				(category == (UINT32)-1 || entry.getCategory() == category))
+			if (((verbosity == LogVerbosity::Any) || entry.GetVerbosity() == verbosity) &&
+				(category == (UINT32)-1 || entry.GetCategory() == category))
 				continue;
 
 			newEntries.push_back(entry);
@@ -48,16 +48,16 @@ namespace bs
 		mEntries = newEntries;
 
 		Queue<LogEntry> newUnreadEntries;
-		while (!mUnreadEntries.empty())
+		while (!mUnreadEntries.Empty())
 		{
-			LogEntry entry = mUnreadEntries.front();
-			mUnreadEntries.pop();
+			LogEntry entry = mUnreadEntries.Front();
+			mUnreadEntries.Pop();
 
-			if (((verbosity == LogVerbosity::Any) || entry.getVerbosity() == verbosity) &&
-				(category == (UINT32)-1 || entry.getCategory() == category))
+			if (((verbosity == LogVerbosity::Any) || entry.GetVerbosity() == verbosity) &&
+				(category == (UINT32)-1 || entry.GetCategory() == category))
 				continue;
 
-			newUnreadEntries.push(entry);
+			newUnreadEntries.Push(entry);
 		}
 
 		mUnreadEntries = newUnreadEntries;
@@ -68,11 +68,11 @@ namespace bs
 	{
 		RecursiveLock Lock(mMutex);
 
-		if (mUnreadEntries.empty())
+		if (mUnreadEntries.Empty())
 			return false;
 
-		entry = mUnreadEntries.front();
-		mUnreadEntries.pop();
+		entry = mUnreadEntries.Front();
+		mUnreadEntries.Pop();
 		mEntries.push_back(entry);
 		mHash++;
 
@@ -81,10 +81,10 @@ namespace bs
 
 	bool Log::GetLastEntry(LogEntry& entry)
 	{
-		if (mEntries.size() == 0)
+		if (mEntries.Size() == 0)
 			return false;
 
-		entry = mEntries.back();
+		entry = mEntries.Back();
 		return true;
 	}
 
@@ -99,7 +99,7 @@ namespace bs
 	{
 		if (!categoryExists(id))
 		{
-			sCategories.emplace(id, name);
+			sCategories.Emplace(id, name);
 			return true;
 		}
 
@@ -108,13 +108,13 @@ namespace bs
 	
 	bool Log::CategoryExists(UINT32 id)
 	{
-		return sCategories.find(id) != sCategories.end();
+		return sCategories.Find(id) != sCategories.end();
 	}
 	
 	bool Log::GetCategoryName(UINT32 id, String& name)
 	{
-		auto search = sCategories.find(id);
-		if (search != sCategories.end())
+		auto search = sCategories.Find(id);
+		if (search != sCategories.End())
 		{
 			name = search->second;
 			return true;
@@ -134,10 +134,10 @@ namespace bs
 				entries.push_back(entry);
 
 			Queue<LogEntry> unreadEntries = mUnreadEntries;
-			while (!unreadEntries.empty())
+			while (!unreadEntries.Empty())
 			{
-				entries.push_back(unreadEntries.front());
-				unreadEntries.pop();
+				entries.push_back(unreadEntries.Front());
+				unreadEntries.Pop();
 			}
 		}
 

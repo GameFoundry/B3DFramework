@@ -13,12 +13,12 @@ namespace bs { namespace ct
 
 	D3D11DriverList::~D3D11DriverList(void)
 	{
-		for(size_t i = 0; i < mDriverList.size(); i++)
+		for(size_t i = 0; i < mDriverList.Size(); i++)
 		{
 			bs_delete(mDriverList[i]);
 		}
 
-		mDriverList.clear();
+		mDriverList.Clear();
 	}
 
 	void D3D11DriverList::Enumerate(IDXGIFactory1* dxgiFactory)
@@ -44,19 +44,19 @@ namespace bs { namespace ct
 
 	UINT32 D3D11DriverList::Count() const
 	{
-		return (UINT32)mDriverList.size();
+		return (UINT32)mDriverList.Size();
 	}
 
 	D3D11Driver* D3D11DriverList::item(UINT32 idx) const
 	{
-		return mDriverList.at(idx);
+		return mDriverList.At(idx);
 	}
 
 	D3D11Driver* D3D11DriverList::item(const String &name) const
 	{
-		for (auto it = mDriverList.begin(); it != mDriverList.end(); ++it)
+		for (auto it = mDriverList.Begin(); it != mDriverList.end(); ++it)
 		{
-			if ((*it)->getDriverDescription() == name)
+			if ((*it)->GetDriverDescription() == name)
 				return (*it);
 		}
 

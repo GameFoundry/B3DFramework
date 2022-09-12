@@ -110,18 +110,18 @@ namespace bs
 
 	ConvexVolume CameraBase::GetWorldFrustum() const
 	{
-		const Vector<Plane>& frustumPlanes = getFrustum().getPlanes();
+		const Vector<Plane>& frustumPlanes = getFrustum().GetPlanes();
 
 		const Transform& tfrm = getTransform();
 
 		Matrix4 worldMatrix;
-		worldMatrix.setTRS(tfrm.getPosition(), tfrm.getRotation(), Vector3::ONE);
+		worldMatrix.SetTRS(tfrm.getPosition(), tfrm.getRotation(), Vector3::ONE);
 
-		Vector<Plane> WorldPlanes(frustumPlanes.size());
+		Vector<Plane> WorldPlanes(frustumPlanes.Size());
 		UINT32 i = 0;
 		for (auto& plane : frustumPlanes)
 		{
-			worldPlanes[i] = worldMatrix.multiplyAffine(plane);
+			worldPlanes[i] = worldMatrix.MultiplyAffine(plane);
 			i++;
 		}
 
@@ -133,12 +133,12 @@ namespace bs
 		if (mCustomProjMatrix)
 		{
 			// Convert clipspace corners to camera space
-			Matrix4 invProj = mProjMatrix.inverse();
+			Matrix4 invProj = mProjMatrix.Inverse();
 			Vector3 TopLeft(-0.5f, 0.5f, 0.0f);
 			Vector3 BottomRight(0.5f, -0.5f, 0.0f);
 
-			topLeft = invProj.multiply(topLeft);
-			bottomRight = invProj.multiply(bottomRight);
+			topLeft = invProj.Multiply(topLeft);
+			bottomRight = invProj.Multiply(bottomRight);
 
 			left = topLeft.x;
 			top = topLeft.y;
@@ -266,9 +266,9 @@ namespace bs
 			}
 
 			ct::RenderAPI* renderAPI = ct::RenderAPI::instancePtr();
-			renderAPI->convertProjectionMatrix(mProjMatrix, mProjMatrixRS);
-			mProjMatrixInv = mProjMatrix.inverse();
-			mProjMatrixRSInv = mProjMatrixRS.inverse();
+			renderAPI->ConvertProjectionMatrix(mProjMatrix, mProjMatrixRS);
+			mProjMatrixInv = mProjMatrix.Inverse();
+			mProjMatrixRSInv = mProjMatrixRS.Inverse();
 
 			// Calculate bounding box (local)
 			// Box is from 0, down -Z, max dimensions as determined from far plane
@@ -284,19 +284,19 @@ namespace bs
 				// Some custom projection matrices can have unusual inverted settings
 				// So make sure the AABB is the right way around to start with
 				Vector3 tmp = min;
-				min.min(max);
-				max.max(tmp);
+				min.Min(max);
+				max.Max(tmp);
 			}
 
 			if (mProjType == PT_PERSPECTIVE)
 			{
 				// Merge with far plane bounds
 				float radio = farDist / mNearDist;
-				min.min(Vector3(left * radio, bottom * radio, -farDist));
-				max.max(Vector3(right * radio, top * radio, 0));
+				min.Min(Vector3(left * radio, bottom * radio, -farDist));
+				max.Max(Vector3(right * radio, top * radio, 0));
 			}
 
-			mBoundingBox.setExtents(min, max);
+			mBoundingBox.SetExtents(min, max);
 
 			mRecalcFrustum = false;
 			mRecalcFrustumPlanes = true;
@@ -312,8 +312,8 @@ namespace bs
 	{
 		if (!mCustomViewMatrix && mRecalcView)
 		{
-			mViewMatrix.makeView(mTransform.getPosition(), mTransform.getRotation());
-			mViewMatrixInv = mViewMatrix.inverseAffine();
+			mViewMatrix.MakeView(mTransform.getPosition(), mTransform.getRotation());
+			mViewMatrixInv = mViewMatrix.InverseAffine();
 			mRecalcView = false;
 		}
 	}
@@ -366,7 +366,7 @@ namespace bs
 		if (enable)
 		{
 			mViewMatrix = viewMatrix;
-			mViewMatrixInv = mViewMatrix.inverseAffine();
+			mViewMatrixInv = mViewMatrix.InverseAffine();
 		}
 
 		_markCoreDirty();
@@ -475,7 +475,7 @@ namespace bs
 
 	Vector3 CameraBase::WorldToViewPoint(const Vector3& worldPoint) const
 	{
-		return GetViewMatrix().multiplyAffine(worldPoint);
+		return GetViewMatrix().MultiplyAffine(worldPoint);
 	}
 
 	Vector3 CameraBase::ScreenToWorldPoint(const Vector2I& screenPoint, float depth) const
@@ -488,7 +488,7 @@ namespace bs
 	{
 		Vector2 ndcPoint = screenToNdcPoint(screenPoint);
 		Vector4 WorldPoint(ndcPoint.x, ndcPoint.y, deviceDepth, 1.0f);
-		worldPoint = getProjectionMatrixRS().inverse().multiply(worldPoint);
+		worldPoint = getProjectionMatrixRS().Inverse().multiply(worldPoint);
 
 		Vector3 worldPoint3D;
 		if (Math::abs(worldPoint.w) > 1e-7f)
@@ -527,7 +527,7 @@ namespace bs
 
 	Vector3 CameraBase::ViewToWorldPoint(const Vector3& viewPoint) const
 	{
-		return GetViewMatrix().inverseAffine().multiplyAffine(viewPoint);
+		return GetViewMatrix().InverseAffine().multiplyAffine(viewPoint);
 	}
 
 	Vector2I CameraBase::ViewToScreenPoint(const Vector3& viewPoint) const
@@ -578,7 +578,7 @@ namespace bs
 		Vector3 far = unprojectPoint(Vector3(ndcPoint.x, ndcPoint.y, mNearDist + 1.0f));
 
 		Ray Ray(near, Vector3::normalize(far - near));
-		ray.transformAffine(getViewMatrix().inverseAffine());
+		ray.TransformAffine(getViewMatrix().inverseAffine());
 
 		return ray;
 	}
@@ -586,7 +586,7 @@ namespace bs
 	Vector3 CameraBase::ProjectPoint(const Vector3& point) const
 	{
 		Vector4 ProjPoint4(point.x, point.y, point.z, 1.0f);
-		projPoint4 = getProjectionMatrixRS().multiply(projPoint4);
+		projPoint4 = getProjectionMatrixRS().Multiply(projPoint4);
 
 		if (Math::abs(projPoint4.w) > 1e-7f)
 		{
@@ -612,7 +612,7 @@ namespace bs
 
 		// Get world position for a point near the far plane (0.95f)
 		Vector4 FarAwayPoint(point.x, point.y, 0.95f, 1.0f);
-		farAwayPoint = getProjectionMatrixRS().inverse().multiply(farAwayPoint);
+		farAwayPoint = getProjectionMatrixRS().Inverse().multiply(farAwayPoint);
 
 		// Can't proceed if w is too small
 		if (Math::abs(farAwayPoint.w) > 1e-7f)
@@ -626,7 +626,7 @@ namespace bs
 			farAwayPoint3D.z = farAwayPoint.z * invW;
 
 			// Find the distance to the far point along the camera's viewing axis
-			float distAlongZ = farAwayPoint3D.dot(-Vector3::UNIT_Z);
+			float distAlongZ = farAwayPoint3D.Dot(-Vector3::UNIT_Z);
 
 			// Do nothing if point is behind the camera
 			if (distAlongZ >= 0.0f)
@@ -701,7 +701,7 @@ namespace bs
 		Camera* handler = new (bs_alloc<Camera>()) Camera();
 		SPtr<Camera> handlerPtr = bs_core_ptr<Camera>(handler);
 		handlerPtr->_setThisPtr(handlerPtr);
-		handlerPtr->initialize();
+		handlerPtr->Initialize();
 
 		return handlerPtr;
 	}
@@ -717,7 +717,7 @@ namespace bs
 
 	SPtr<ct::CoreObject> Camera::CreateCore() const
 	{
-		ct::Camera* handler = new (bs_alloc<ct::Camera>()) ct::Camera(mViewport->getCore());
+		ct::Camera* handler = new (bs_alloc<ct::Camera>()) ct::Camera(mViewport->GetCore());
 		SPtr<ct::Camera> handlerPtr = bs_shared_ptr<ct::Camera>(handler);
 		handlerPtr->_setThisPtr(handlerPtr);
 
@@ -749,7 +749,7 @@ namespace bs
 
 	Rect2I Camera::GetViewportRect() const
 	{
-		return mViewport->getPixelArea();
+		return mViewport->GetPixelArea();
 	}
 
 	CoreSyncData Camera::SyncToCore(FrameAlloc* allocator)
@@ -766,7 +766,7 @@ namespace bs
 				size += csync_size(*this);
 		}
 
-		UINT8* buffer = allocator->alloc(size);
+		UINT8* buffer = allocator->Alloc(size);
 		Bitstream Stream(buffer, size);
 
 		rtti_write(dirtyFlag, stream);
@@ -784,7 +784,7 @@ namespace bs
 
 	void Camera::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 	{
-		dependencies.push_back(mViewport.get());
+		dependencies.push_back(mViewport.Get());
 	}
 
 	void Camera::_markCoreDirty(ActorDirtyFlag flag)
@@ -806,7 +806,7 @@ namespace bs
 	{
 	Camera::~Camera()
 	{
-		RendererManager::instance().getActive()->notifyCameraRemoved(this);
+		RendererManager::instance().GetActive()->NotifyCameraRemoved(this);
 	}
 
 	Camera::Camera(SPtr<RenderTarget> target, float left, float top, float width, float height)
@@ -823,19 +823,19 @@ namespace bs
 
 	void Camera::Initialize()
 	{
-		RendererManager::instance().getActive()->notifyCameraAdded(this);
+		RendererManager::instance().GetActive()->NotifyCameraAdded(this);
 
 		CoreObject::initialize();
 	}
 
 	Rect2I Camera::GetViewportRect() const
 	{
-		return mViewport->getPixelArea();
+		return mViewport->GetPixelArea();
 	}
 
 	void Camera::SyncToCore(const CoreSyncData& data)
 	{
-		Bitstream Stream(data.getBuffer(), data.getBufferSize());
+		Bitstream Stream(data.GetBuffer(), data.getBufferSize());
 
 		UINT32 dirtyFlag;
 		rtti_read(dirtyFlag, stream);
@@ -852,7 +852,7 @@ namespace bs
 			mRecalcView = true;
 		}
 
-		RendererManager::instance().getActive()->notifyCameraUpdated(this, (UINT32)dirtyFlag);
+		RendererManager::instance().GetActive()->NotifyCameraUpdated(this, (UINT32)dirtyFlag);
 	}
 	}
 }

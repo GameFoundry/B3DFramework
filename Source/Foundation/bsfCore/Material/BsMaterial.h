@@ -94,7 +94,7 @@ namespace bs
 			 */
 			void Write(void* _data)
 			{
-				memcpy(data.get(), _data, size);
+				memcpy(data.Get(), _data, size);
 			}
 
 			SPtr<void> data;
@@ -153,7 +153,7 @@ namespace bs
 		const ShaderVariation& GetVariation() const { return mVariation; }
 
 		/** Returns the total number of techniques supported by this material. */
-		UINT32 GetNumTechniques() const { return (UINT32)mTechniques.size(); }
+		UINT32 GetNumTechniques() const { return (UINT32)mTechniques.Size(); }
 
 		/** Returns the technique at the specified index. */
 		const SPtr<TechniqueType>& GetTechnique(UINT32 idx) const { return mTechniques[idx]; }
@@ -219,7 +219,7 @@ namespace bs
 		 * Optionally if the parameter is an array you may provide an array index to assign the value to.
 		 */
 		BS_SCRIPT_EXPORT()
-		void SetFloat(const String& name, float value, UINT32 arrayIdx = 0)	{ return getParamFloat(name).set(value, arrayIdx); }
+		void SetFloat(const String& name, float value, UINT32 arrayIdx = 0)	{ return getParamFloat(name).Set(value, arrayIdx); }
 
 		/*
 		 * Assigns a curve to the the float shader parameter with the specified name. The system will automatically
@@ -229,7 +229,7 @@ namespace bs
 		 */
 		BS_SCRIPT_EXPORT()
 		void SetFloatCurve(const String& name, TAnimationCurve<float> value, UINT32 arrayIdx = 0)
-		{ return getParamFloatCurve(name).set(std::move(value), arrayIdx); }
+		{ return getParamFloatCurve(name).Set(std::move(value), arrayIdx); }
 
 		/**
 		 * Assigns a color to the shader parameter with the specified name.
@@ -237,7 +237,7 @@ namespace bs
 		 * Optionally if the parameter is an array you may provide an array index to assign the value to.
 		 */
 		BS_SCRIPT_EXPORT()
-		void SetColor(const String& name, const Color& value, UINT32 arrayIdx = 0) { return getParamColor(name).set(value, arrayIdx); }
+		void SetColor(const String& name, const Color& value, UINT32 arrayIdx = 0) { return getParamColor(name).Set(value, arrayIdx); }
 
 		/**
 		 * Assigns a color gradient to the shader parameter with the specified name. The system will automatically
@@ -247,7 +247,7 @@ namespace bs
 		 */
 		BS_SCRIPT_EXPORT()
 		void SetColorGradient(const String& name, const ColorGradientHDR& value, UINT32 arrayIdx = 0)
-		{ return getParamColorGradient(name).set(value, arrayIdx); }
+		{ return getParamColorGradient(name).Set(value, arrayIdx); }
 
 		/**
 		 * Assigns a 2D vector to the shader parameter with the specified name.
@@ -255,7 +255,7 @@ namespace bs
 		 * Optionally if the parameter is an array you may provide an array index to assign the value to.
 		 */
 		BS_SCRIPT_EXPORT(n:SetVector2)
-		void SetVec2(const String& name, const Vector2& value, UINT32 arrayIdx = 0)	{ return getParamVec2(name).set(value, arrayIdx); }
+		void SetVec2(const String& name, const Vector2& value, UINT32 arrayIdx = 0)	{ return getParamVec2(name).Set(value, arrayIdx); }
 
 		/**
 		 * Assigns a 3D vector to the shader parameter with the specified name.
@@ -263,7 +263,7 @@ namespace bs
 		 * Optionally if the parameter is an array you may provide an array index to assign the value to.
 		 */
 		BS_SCRIPT_EXPORT(n:SetVector3)
-		void SetVec3(const String& name, const Vector3& value, UINT32 arrayIdx = 0)	{ return getParamVec3(name).set(value, arrayIdx); }
+		void SetVec3(const String& name, const Vector3& value, UINT32 arrayIdx = 0)	{ return getParamVec3(name).Set(value, arrayIdx); }
 
 		/**
 		 * Assigns a 4D vector to the shader parameter with the specified name.
@@ -271,7 +271,7 @@ namespace bs
 		 * Optionally if the parameter is an array you may provide an array index to assign the value to.
 		 */
 		BS_SCRIPT_EXPORT(n:SetVector4)
-		void SetVec4(const String& name, const Vector4& value, UINT32 arrayIdx = 0)	{ return getParamVec4(name).set(value, arrayIdx); }
+		void SetVec4(const String& name, const Vector4& value, UINT32 arrayIdx = 0)	{ return getParamVec4(name).Set(value, arrayIdx); }
 
 		/**
 		 * Assigns a 3x3 matrix to the shader parameter with the specified name.
@@ -279,7 +279,7 @@ namespace bs
 		 * Optionally if the parameter is an array you may provide an array index to assign the value to.
 		 */
 		BS_SCRIPT_EXPORT(n:SetMatrix3)
-		void SetMat3(const String& name, const Matrix3& value, UINT32 arrayIdx = 0)	{ return getParamMat3(name).set(value, arrayIdx); }
+		void SetMat3(const String& name, const Matrix3& value, UINT32 arrayIdx = 0)	{ return getParamMat3(name).Set(value, arrayIdx); }
 
 		/**
 		 * Assigns a 4x4 matrix to the shader parameter with the specified name.
@@ -287,7 +287,7 @@ namespace bs
 		 * Optionally if the parameter is an array you may provide an array index to assign the value to.
 		 */
 		BS_SCRIPT_EXPORT(n:SetMatrix4)
-		void SetMat4(const String& name, const Matrix4& value, UINT32 arrayIdx = 0)	{ return getParamMat4(name).set(value, arrayIdx); }
+		void SetMat4(const String& name, const Matrix4& value, UINT32 arrayIdx = 0)	{ return getParamMat4(name).Set(value, arrayIdx); }
 
 		/**
 		 * Assigns a structure to the shader parameter with the specified name.
@@ -296,12 +296,12 @@ namespace bs
 		 *
 		 * Optionally if the parameter is an array you may provide an array index to assign the value to.
 		 */
-		void SetStructData(const String& name, void* value, UINT32 size, UINT32 arrayIdx = 0) { return getParamStruct(name).set(value, size, arrayIdx); }
+		void SetStructData(const String& name, void* value, UINT32 size, UINT32 arrayIdx = 0) { return getParamStruct(name).Set(value, size, arrayIdx); }
 
 		/** Assigns a texture to the shader parameter with the specified name. */
 		void SetTexture(const String& name, const TextureType& value, const TextureSurface& surface = TextureSurface::COMPLETE)
 		{
-			return GetParamTexture(name).set(value, surface);
+			return GetParamTexture(name).Set(value, surface);
 		}
 
 		/**
@@ -316,20 +316,20 @@ namespace bs
 		 */
 		void SetSpriteTexture(const String& name, const SpriteTextureType& value)
 		{
-			return GetParamSpriteTexture(name).set(value);
+			return GetParamSpriteTexture(name).Set(value);
 		}
 
 		/** Assigns a texture to be used for random load/store operations to the shader parameter with the specified name. */
 		void SetLoadStoreTexture(const String& name, const TextureType& value, const TextureSurface& surface)
 		{
-			return GetParamLoadStoreTexture(name).set(value, surface);
+			return GetParamLoadStoreTexture(name).Set(value, surface);
 		}
 
 		/** Assigns a buffer to the shader parameter with the specified name. */
-		void SetBuffer(const String& name, const BufferType& value) { return getParamBuffer(name).set(value); }
+		void SetBuffer(const String& name, const BufferType& value) { return getParamBuffer(name).Set(value); }
 
 		/** Assigns a sampler state to the shader parameter with the specified name. */
-		void SetSamplerState(const String& name, const SamplerStateType& value) { return getParamSamplerState(name).set(value); }
+		void SetSamplerState(const String& name, const SamplerStateType& value) { return getParamSamplerState(name).Set(value); }
 
 		/**
 		 * Returns a float value assigned with the parameter with the specified name. If a curve is assigned to this
@@ -339,7 +339,7 @@ namespace bs
 		 * Optionally if the parameter is an array you may provide an array index you which to retrieve.
 		 */
 		BS_SCRIPT_EXPORT()
-		float GetFloat(const String& name, UINT32 arrayIdx = 0) const { return getParamFloat(name).get(arrayIdx); }
+		float GetFloat(const String& name, UINT32 arrayIdx = 0) const { return getParamFloat(name).Get(arrayIdx); }
 
 		/**
 		 * Returns a curve value assigned to the parameter with the specified name. If the parameter has a constant
@@ -350,7 +350,7 @@ namespace bs
 		 */
 		BS_SCRIPT_EXPORT()
 		const TAnimationCurve<float>& GetFloatCurve(const String& name, UINT32 arrayIdx = 0) const
-		{ return getParamFloatCurve(name).get(arrayIdx); }
+		{ return getParamFloatCurve(name).Get(arrayIdx); }
 
 		/**
 		 * Returns a color assigned with the parameter with the specified name. If a color gradient is assigned to this
@@ -360,7 +360,7 @@ namespace bs
 		 * Optionally if the parameter is an array you may provide an array index you which to retrieve.
 		 */
 		BS_SCRIPT_EXPORT()
-		Color GetColor(const String& name, UINT32 arrayIdx = 0) const { return getParamColor(name).get(arrayIdx); }
+		Color GetColor(const String& name, UINT32 arrayIdx = 0) const { return getParamColor(name).Get(arrayIdx); }
 
 		/**
 		 * Returns a color gradient assigned with the parameter with the specified name. If the parameter has a constant
@@ -371,7 +371,7 @@ namespace bs
 		 */
 		BS_SCRIPT_EXPORT()
 		const ColorGradientHDR& GetColorGradient(const String& name, UINT32 arrayIdx = 0) const
-		{ return getParamColorGradient(name).get(arrayIdx); }
+		{ return getParamColorGradient(name).Get(arrayIdx); }
 
 		/**
 		 * Returns a 2D vector assigned with the parameter with the specified name.
@@ -379,7 +379,7 @@ namespace bs
 		 * Optionally if the parameter is an array you may provide an array index you which to retrieve.
 		 */
 		BS_SCRIPT_EXPORT(n:GetVector2)
-		Vector2 GetVec2(const String& name, UINT32 arrayIdx = 0) const { return getParamVec2(name).get(arrayIdx); }
+		Vector2 GetVec2(const String& name, UINT32 arrayIdx = 0) const { return getParamVec2(name).Get(arrayIdx); }
 
 		/**
 		 * Returns a 3D vector assigned with the parameter with the specified name.
@@ -387,7 +387,7 @@ namespace bs
 		 * Optionally if the parameter is an array you may provide an array index you which to retrieve.
 		 */
 		BS_SCRIPT_EXPORT(n:GetVector3)
-		Vector3 GetVec3(const String& name, UINT32 arrayIdx = 0) const { return getParamVec3(name).get(arrayIdx); }
+		Vector3 GetVec3(const String& name, UINT32 arrayIdx = 0) const { return getParamVec3(name).Get(arrayIdx); }
 
 		/**
 		 * Returns a 4D vector assigned with the parameter with the specified name.
@@ -395,7 +395,7 @@ namespace bs
 		 * Optionally if the parameter is an array you may provide an array index you which to retrieve.
 		 */
 		BS_SCRIPT_EXPORT(n:GetVector4)
-		Vector4 GetVec4(const String& name, UINT32 arrayIdx = 0) const { return getParamVec4(name).get(arrayIdx); }
+		Vector4 GetVec4(const String& name, UINT32 arrayIdx = 0) const { return getParamVec4(name).Get(arrayIdx); }
 
 		/**
 		 * Returns a 3x3 matrix assigned with the parameter with the specified name.
@@ -403,7 +403,7 @@ namespace bs
 		 * Optionally if the parameter is an array you may provide an array index you which to retrieve.
 		 */
 		BS_SCRIPT_EXPORT(n:GetMatrix3)
-		Matrix3 GetMat3(const String& name, UINT32 arrayIdx = 0) const { return getParamMat3(name).get(arrayIdx); }
+		Matrix3 GetMat3(const String& name, UINT32 arrayIdx = 0) const { return getParamMat3(name).Get(arrayIdx); }
 
 		/**
 		 * Returns a 4x4 matrix assigned with the parameter with the specified name.
@@ -411,7 +411,7 @@ namespace bs
 		 * Optionally if the parameter is an array you may provide an array index you which to retrieve.
 		 */
 		BS_SCRIPT_EXPORT(n:GetMatrix4)
-		Matrix4 GetMat4(const String& name, UINT32 arrayIdx = 0) const { return getParamMat4(name).get(arrayIdx); }
+		Matrix4 GetMat4(const String& name, UINT32 arrayIdx = 0) const { return getParamMat4(name).Get(arrayIdx); }
 
 		/**
 		 * Checks does the data parameter with the specified name currently contains animated data. This could be
@@ -421,17 +421,17 @@ namespace bs
 		bool IsAnimated(const String& name, UINT32 arrayIdx = 0);
 
 		/** Returns a texture assigned with the parameter with the specified name. */
-		TextureType GetTexture(const String& name) const { return getParamTexture(name).get(); }
+		TextureType GetTexture(const String& name) const { return getParamTexture(name).Get(); }
 
 		/**
 		 * Returns a sprite texture assigned to the parameter with the specified name. If the parameter has a regular
 		 * texture attached instead of a sprite texture, null will be returned. Use getBoundParamType() to determine
 		 * the type of the parameter.
 		 */
-		SpriteTextureType GetSpriteTexture(const String& name) const { return getParamSpriteTexture(name).get(); }
+		SpriteTextureType GetSpriteTexture(const String& name) const { return getParamSpriteTexture(name).Get(); }
 
 		/** Returns a sampler state assigned with the parameter with the specified name. */
-		SamplerStateType GetSamplerState(const String& name) const	{ return getParamSamplerState(name).get(); }
+		SamplerStateType GetSamplerState(const String& name) const	{ return getParamSamplerState(name).Get(); }
 
 		/**
 		 * Returns a buffer representing a structure assigned to the parameter with the specified name.
@@ -442,8 +442,8 @@ namespace bs
 		{
 			TMaterialParamStruct<Core> structParam = getParamStruct(name);
 
-			MaterialBase::StructData Data(structParam.getElementSize());
-			structParam.get(data.data.get(), structParam.getElementSize(), arrayIdx);
+			MaterialBase::StructData Data(structParam.GetElementSize());
+			structParam.Get(data.data.get(), structParam.getElementSize(), arrayIdx);
 
 			return data;
 		}

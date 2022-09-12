@@ -97,7 +97,7 @@ namespace bs
 				output.x = getSNorm();
 				output.y = getSNorm();
 				output.z = getSNorm();
-				sqrdSize = output.squaredLength();
+				sqrdSize = output.SquaredLength();
 				
 			} while (sqrdSize > 1.0f || sqrdSize < 0.001f);
 
@@ -118,7 +118,7 @@ namespace bs
 			{
 				output.x = getSNorm();
 				output.y = getSNorm();
-				sqrdSize = output.squaredLength();
+				sqrdSize = output.SquaredLength();
 				
 			} while (sqrdSize > 1.0f || sqrdSize < 0.001f);
 
@@ -175,7 +175,7 @@ namespace bs
 		BS_SCRIPT_EXPORT()
 		Vector2 GetPointInArc(Degree angle) const
 		{
-			float val = getUNorm() * angle.valueRadians();
+			float val = getUNorm() * angle.ValueRadians();
 			return Vector2(Math::cos(val), Math::sin(val));
 		}
 
@@ -190,7 +190,7 @@ namespace bs
 		{
 			const float minRadius = 1.0f - thickness;
 
-			const float val = getUNorm() * angle.valueRadians();
+			const float val = getUNorm() * angle.ValueRadians();
 			const Vector2 Dir(Math::cos(val), Math::sin(val));
 
 			return dir * (minRadius + thickness * std::pow(getUNorm(), 1.0f / 2.0f));

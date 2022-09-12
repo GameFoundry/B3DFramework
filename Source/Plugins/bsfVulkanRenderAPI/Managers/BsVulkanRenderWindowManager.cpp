@@ -17,7 +17,7 @@ namespace bs
 		if(parentWindow != nullptr)
 		{
 			UINT64 hWnd;
-			parentWindow->getCustomAttribute("WINDOW", &hWnd);
+			parentWindow->GetCustomAttribute("WINDOW", &hWnd);
 			desc.platformSpecific["parentWindowHandle"] = toString(hWnd);
 		}
 

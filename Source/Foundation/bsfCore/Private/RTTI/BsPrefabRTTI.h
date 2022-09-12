@@ -26,8 +26,8 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(mIsScene, 4)
 		BS_END_RTTI_MEMBERS
 
-		SPtr<SceneObject> GetSceneObject(Prefab* obj) { return obj->mRoot.getInternalPtr(); }
-		void SetSceneObject(Prefab* obj, SPtr<SceneObject> value) { obj->mRoot = value->getHandle(); }
+		SPtr<SceneObject> GetSceneObject(Prefab* obj) { return obj->mRoot.GetInternalPtr(); }
+		void SetSceneObject(Prefab* obj, SPtr<SceneObject> value) { obj->mRoot = value->GetHandle(); }
 
 	public:
 		PrefabRTTI()

@@ -7,10 +7,10 @@ namespace bs { namespace ct {
 	GLTextureView::GLTextureView(const GLTexture* texture, const TEXTURE_VIEW_DESC& desc)
 		:TextureView(desc)
 	{
-		const TextureProperties& props = texture->getProperties();
+		const TextureProperties& props = texture->GetProperties();
 
 		GLenum target;
-		switch (props.getTextureType())
+		switch (props.GetTextureType())
 		{
 		case TEX_TYPE_1D:
 		{
@@ -23,7 +23,7 @@ namespace bs { namespace ct {
 		default:
 		case TEX_TYPE_2D:
 		{
-			if(props.getNumSamples() <= 1)
+			if(props.GetNumSamples() <= 1)
 			{
 				if (desc.numArraySlices <= 1)
 					target = GL_TEXTURE_2D;
@@ -63,7 +63,7 @@ namespace bs { namespace ct {
 		}
 
 #if BS_OPENGL_4_3 || BS_OPENGLES_3_1
-		GLuint originalTexture = texture->getGLID();
+		GLuint originalTexture = texture->GetGLID();
 
 		glGenTextures(1, &mViewID);
 		BS_CHECK_GL_ERROR();
@@ -72,7 +72,7 @@ namespace bs { namespace ct {
 			mViewID,
 			target,
 			originalTexture,
-			texture->getGLFormat(),
+			texture->GetGLFormat(),
 			desc.mostDetailMip,
 			desc.numMips,
 			desc.firstArraySlice,
@@ -80,7 +80,7 @@ namespace bs { namespace ct {
 		BS_CHECK_GL_ERROR();
 #endif
 
-		mTarget = GLTexture::getGLTextureTarget(props.getTextureType(), props.getNumSamples(), desc.numArraySlices);
+		mTarget = GLTexture::getGLTextureTarget(props.GetTextureType(), props.getNumSamples(), desc.numArraySlices);
 	}
 
 	GLTextureView::~GLTextureView()

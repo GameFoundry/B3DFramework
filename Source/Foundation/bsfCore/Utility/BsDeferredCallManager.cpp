@@ -11,11 +11,11 @@ namespace bs
 
 	void DeferredCallManager::_update()
 	{
-		while(!mCallbacks.empty())
+		while(!mCallbacks.Empty())
 		{
 			// Copy because callbacks can be queued within callbacks
 			Vector<std::function<void()>> callbackCopy = mCallbacks;
-			mCallbacks.clear();
+			mCallbacks.Clear();
 
 			for(auto& call : callbackCopy)
 			{
@@ -27,6 +27,6 @@ namespace bs
 	// Declared in BsPrerequisites.h
 	void DeferredCall(std::function<void()> callback)
 	{
-		DeferredCallManager::instance().queueDeferredCall(callback);
+		DeferredCallManager::instance().QueueDeferredCall(callback);
 	}
 }

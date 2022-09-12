@@ -28,83 +28,83 @@ namespace bs
 
 		/** @copydoc Light::setType */
 		BS_SCRIPT_EXPORT(n:Type,pr:setter)
-		void SetType(LightType type) { mInternal->setType(type); }
+		void SetType(LightType type) { mInternal->SetType(type); }
 
 		/** @copydoc Light::getType */
 		BS_SCRIPT_EXPORT(n:Type,pr:getter)
-		LightType GetType() const { return mInternal->getType(); }
+		LightType GetType() const { return mInternal->GetType(); }
 
 		/** @copydoc Light::setColor */
 		BS_SCRIPT_EXPORT(n:Color,pr:setter)
-		void SetColor(const Color& color) { mInternal->setColor(color); }
+		void SetColor(const Color& color) { mInternal->SetColor(color); }
 
 		/** @copydoc Light::getColor */
 		BS_SCRIPT_EXPORT(n:Color,pr:getter)
-		Color GetColor() const { return mInternal->getColor(); }
+		Color GetColor() const { return mInternal->GetColor(); }
 
 		/** @copydoc Light::setIntensity */
 		BS_SCRIPT_EXPORT(n:Intensity,pr:setter)
-		void SetIntensity(float intensity) { mInternal->setIntensity(intensity); }
+		void SetIntensity(float intensity) { mInternal->SetIntensity(intensity); }
 
 		/** @copydoc Light::getIntensity */
 		BS_SCRIPT_EXPORT(n:Intensity,pr:getter)
-		float GetIntensity() const { return mInternal->getIntensity(); }
+		float GetIntensity() const { return mInternal->GetIntensity(); }
 
 		/**  @copydoc Light::setUseAutoAttenuation */
 		BS_SCRIPT_EXPORT(n:UseAutoAttenuation,pr:setter)
-		void SetUseAutoAttenuation(bool enabled) { mInternal->setUseAutoAttenuation(enabled); }
+		void SetUseAutoAttenuation(bool enabled) { mInternal->SetUseAutoAttenuation(enabled); }
 
 		/** @copydoc Light::getUseAutoAttenuation */
 		BS_SCRIPT_EXPORT(n:UseAutoAttenuation,pr:getter)
-		bool GetUseAutoAttenuation() const { return mInternal->getUseAutoAttenuation(); }
+		bool GetUseAutoAttenuation() const { return mInternal->GetUseAutoAttenuation(); }
 
 		/** @copydoc Light::setAttenuationRadius */
 		BS_SCRIPT_EXPORT(n:AttenuationRadius,pr:setter)
-		void SetAttenuationRadius(float radius) { mInternal->setAttenuationRadius(radius); }
+		void SetAttenuationRadius(float radius) { mInternal->SetAttenuationRadius(radius); }
 
 		/** @copydoc Light::getAttenuationRadius */
 		BS_SCRIPT_EXPORT(n:AttenuationRadius,pr:getter)
-		float GetAttenuationRadius() const { return mInternal->getAttenuationRadius(); }
+		float GetAttenuationRadius() const { return mInternal->GetAttenuationRadius(); }
 
 		/** @copydoc Light::setSourceRadius */
 		BS_SCRIPT_EXPORT(n:SourceRadius,pr:setter)
-		void SetSourceRadius(float radius) { mInternal->setSourceRadius(radius); }
+		void SetSourceRadius(float radius) { mInternal->SetSourceRadius(radius); }
 
 		/** @copydoc Light::getSourceRadius */
 		BS_SCRIPT_EXPORT(n:SourceRadius,pr:getter)
-		float GetSourceRadius() const { return mInternal->getSourceRadius(); }
+		float GetSourceRadius() const { return mInternal->GetSourceRadius(); }
 
 		/** @copydoc Light::setSpotAngle */
 		BS_SCRIPT_EXPORT(n:SpotAngle,pr:setter,range:[1,180],slider)
-		void SetSpotAngle(const Degree& spotAngle) { mInternal->setSpotAngle(spotAngle); }
+		void SetSpotAngle(const Degree& spotAngle) { mInternal->SetSpotAngle(spotAngle); }
 
 		/** @copydoc Light::getSpotAngle */
 		BS_SCRIPT_EXPORT(n:SpotAngle,pr:getter)
-		Degree GetSpotAngle() const { return mInternal->getSpotAngle(); }
+		Degree GetSpotAngle() const { return mInternal->GetSpotAngle(); }
 
 		/** @copydoc Light::setSpotFalloffAngle */
 		BS_SCRIPT_EXPORT(n:SpotAngleFalloff,pr:setter,range:[1,180],slider)
-		void SetSpotFalloffAngle(const Degree& spotAngle) { mInternal->setSpotFalloffAngle(spotAngle); }
+		void SetSpotFalloffAngle(const Degree& spotAngle) { mInternal->SetSpotFalloffAngle(spotAngle); }
 
 		/** @copydoc Light::getSpotFalloffAngle */
 		BS_SCRIPT_EXPORT(n:SpotAngleFalloff,pr:getter)
-		Degree GetSpotFalloffAngle() const { return mInternal->getSpotFalloffAngle(); }
+		Degree GetSpotFalloffAngle() const { return mInternal->GetSpotFalloffAngle(); }
 
 		/** @copydoc Light::setCastsShadow */
 		BS_SCRIPT_EXPORT(n:CastsShadow,pr:setter)
-		void SetCastsShadow(bool castsShadow) { mInternal->setCastsShadow(castsShadow); }
+		void SetCastsShadow(bool castsShadow) { mInternal->SetCastsShadow(castsShadow); }
 
 		/** @copydoc Light::getCastsShadow */
 		BS_SCRIPT_EXPORT(n:CastsShadow,pr:getter)
-		bool GetCastsShadow() const { return mInternal->getCastsShadow(); }
+		bool GetCastsShadow() const { return mInternal->GetCastsShadow(); }
 
 		/** @copydoc Light::setShadowBias */
 		BS_SCRIPT_EXPORT(n:ShadowBias,pr:setter,range:[-1,1],slider)
-		void SetShadowBias(float bias) { mInternal->setShadowBias(bias); }
+		void SetShadowBias(float bias) { mInternal->SetShadowBias(bias); }
 
 		/** @copydoc Light::setShadowBias() */
 		BS_SCRIPT_EXPORT(n:ShadowBias,pr:getter)
-		float GetShadowBias() const { return mInternal->getShadowBias(); }
+		float GetShadowBias() const { return mInternal->GetShadowBias(); }
 
 		/** @copydoc Light::getBounds */
 		BS_SCRIPT_EXPORT(n:Bounds,pr:getter)

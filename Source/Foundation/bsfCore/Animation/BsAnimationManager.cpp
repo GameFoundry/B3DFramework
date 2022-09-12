@@ -16,8 +16,8 @@ namespace bs
 	AnimationManager::AnimationManager()
 	{
 		mBlendShapeVertexDesc = VertexDataDesc::create();
-		mBlendShapeVertexDesc->addVertElem(VET_FLOAT3, VES_POSITION, 1, 1);
-		mBlendShapeVertexDesc->addVertElem(VET_UBYTE4_NORM, VES_NORMAL, 1, 1);
+		mBlendShapeVertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION, 1, 1);
+		mBlendShapeVertexDesc->AddVertElem(VET_UBYTE4_NORM, VES_NORMAL, 1, 1);
 	}
 
 	void AnimationManager::SetPaused(bool paused)
@@ -40,7 +40,7 @@ namespace bs
 			Lock Lock(mMutex);
 
 			while (mNumActiveWorkers > 0)
-				mWorkerDoneSignal.wait(lock);
+				mWorkerDoneSignal.Wait(lock);
 
 			// Advance the buffers (last write buffer becomes read buffer)
 			if(mSwapBuffers)
@@ -55,7 +55,7 @@ namespace bs
 		if(mPaused)
 			return &mAnimData[mPoseReadBufferIdx];
 
-		mAnimationTime += gTime().getFrameDelta();
+		mAnimationTime += gTime().GetFrameDelta();
 		if (mAnimationTime < mNextAnimationUpdateTime)
 			return &mAnimData[mPoseReadBufferIdx];
 
@@ -69,35 +69,35 @@ namespace bs
 		{
 			for (auto& anim : mAnimations)
 			{
-				anim.second->updateFromProxy();
-				anim.second->triggerEvents(mLastAnimationDeltaTime);
+				anim.second->UpdateFromProxy();
+				anim.second->TriggerEvents(mLastAnimationDeltaTime);
 			}
 		}
 
 		mLastAnimationDeltaTime = timeDelta;
 
 		// Update animation proxies from the latest data
-		mProxies.clear();
+		mProxies.Clear();
 		for (auto& anim : mAnimations)
 		{
-			anim.second->updateAnimProxy(timeDelta);
+			anim.second->UpdateAnimProxy(timeDelta);
 			mProxies.push_back(anim.second->mAnimProxy);
 		}
 
 		// Build frustums for culling
-		mCullFrustums.clear();
+		mCullFrustums.Clear();
 
-		auto& allCameras = gSceneManager().getAllCameras();
+		auto& allCameras = gSceneManager().GetAllCameras();
 		for(auto& entry : allCameras)
 		{
 			// Note: This should also check on-demand cameras as there's no point in updating them if they wont render this frame
-			bool isOverlayCamera = entry.second->getRenderSettings()->overlayOnly;
+			bool isOverlayCamera = entry.second->GetRenderSettings()->overlayOnly;
 			if (isOverlayCamera)
 				continue;
 
 			// TODO: Not checking if camera and animation renderable's layers match. If we checked more animations could
 			// be culled.
-			mCullFrustums.push_back(entry.second->getWorldFrustum());
+			mCullFrustums.push_back(entry.second->GetWorldFrustum());
 		}
 
 		// Prepare the write buffer
@@ -105,18 +105,18 @@ namespace bs
 		for (auto& anim : mProxies)
 		{
 			if (anim->skeleton != nullptr)
-				totalNumBones += anim->skeleton->getNumBones();
+				totalNumBones += anim->skeleton->GetNumBones();
 		}
 
 		// Prepare the write buffer
 		EvaluatedAnimationData& renderData = mAnimData[mPoseWriteBufferIdx];
-		renderData.transforms.resize(totalNumBones);
-		renderData.infos.clear();
+		renderData.transforms.Resize(totalNumBones);
+		renderData.infos.Clear();
 
 		// Queue animation evaluation tasks
 		{
 			Lock Lock(mMutex);
-			mNumActiveWorkers = (UINT32)mProxies.size();
+			mNumActiveWorkers = (UINT32)mProxies.Size();
 		}
 
 		UINT32 curBoneIdx = 0;
@@ -125,7 +125,7 @@ namespace bs
 			auto evaluateAnimWorker = [this, anim, curBoneIdx]()
 			{
 				UINT32 boneIdx = curBoneIdx;
-				evaluateAnimation(anim.get(), boneIdx);
+				evaluateAnimation(anim.Get(), boneIdx);
 
 				Lock Lock(mMutex);
 				{
@@ -137,10 +137,10 @@ namespace bs
 			};
 
 			SPtr<Task> task = Task::create("AnimWorker", evaluateAnimWorker);
-			TaskScheduler::instance().addTask(task);
+			TaskScheduler::instance().AddTask(task);
 
 			if (anim->skeleton != nullptr)
-				curBoneIdx += anim->skeleton->getNumBones();
+				curBoneIdx += anim->skeleton->GetNumBones();
 		}
 
 		// Wait for tasks to complete
@@ -150,14 +150,14 @@ namespace bs
 				Lock Lock(mMutex);
 
 				while (mNumActiveWorkers > 0)
-					mWorkerDoneSignal.wait(lock);
+					mWorkerDoneSignal.Wait(lock);
 			}
 
 			// Trigger events and update attachments (for the data we just evaluated)
 			for (auto& anim : mAnimations)
 			{
-				anim.second->updateFromProxy();
-				anim.second->triggerEvents(timeDelta);
+				anim.second->UpdateFromProxy();
+				anim.second->TriggerEvents(timeDelta);
 			}
 		}
 
@@ -181,7 +181,7 @@ namespace bs
 			bool isVisible = false;
 			for (auto& frustum : mCullFrustums)
 			{
-				if (frustum.intersects(anim->mBounds))
+				if (frustum.Intersects(anim->mBounds))
 				{
 					isVisible = true;
 					break;
@@ -209,7 +209,7 @@ namespace bs
 		// Evaluate skeletal animation
 		if (anim->skeleton != nullptr)
 		{
-			UINT32 numBones = anim->skeleton->getNumBones();
+			UINT32 numBones = anim->skeleton->GetNumBones();
 
 			EvaluatedAnimationData::PoseInfo& poseInfo = animInfo.poseInfo;
 			poseInfo.animId = anim->id;
@@ -217,7 +217,7 @@ namespace bs
 			poseInfo.numBones = numBones;
 
 			memset(anim->skeletonPose.hasOverride, 0, sizeof(bool) * anim->skeletonPose.numBones);
-			Matrix4* boneDst = renderData.transforms.data() + curBoneIdx;
+			Matrix4* boneDst = renderData.transforms.Data() + curBoneIdx;
 
 			// Copy transforms from mapped scene objects
 			UINT32 boneTfrmIdx = 0;
@@ -234,7 +234,7 @@ namespace bs
 			}
 
 			// Animate bones
-			anim->skeleton->getPose(boneDst, anim->skeletonPose, anim->skeletonMask, anim->layers, anim->numLayers);
+			anim->skeleton->GetPose(boneDst, anim->skeletonPose, anim->skeletonMask, anim->layers, anim->numLayers);
 
 			curBoneIdx += numBones;
 			hasAnimInfo = true;
@@ -279,7 +279,7 @@ namespace bs
 				if (curveIdx != (UINT32)-1)
 				{
 					const TAnimationCurve<Vector3>& curve = state.curves->position[curveIdx].curve;
-					anim->sceneObjectPose.positions[curveIdx] = curve.evaluate(state.time, state.positionCaches[curveIdx], false);
+					anim->sceneObjectPose.positions[curveIdx] = curve.Evaluate(state.time, state.positionCaches[curveIdx], false);
 					anim->sceneObjectPose.hasOverride[i * 3 + 0] = false;
 				}
 			}
@@ -289,8 +289,8 @@ namespace bs
 				if (curveIdx != (UINT32)-1)
 				{
 					const TAnimationCurve<Quaternion>& curve = state.curves->rotation[curveIdx].curve;
-					anim->sceneObjectPose.rotations[curveIdx] = curve.evaluate(state.time, state.rotationCaches[curveIdx], false);
-					anim->sceneObjectPose.rotations[curveIdx].normalize();
+					anim->sceneObjectPose.rotations[curveIdx] = curve.Evaluate(state.time, state.rotationCaches[curveIdx], false);
+					anim->sceneObjectPose.rotations[curveIdx].Normalize();
 					anim->sceneObjectPose.hasOverride[i * 3 + 1] = false;
 				}
 			}
@@ -300,7 +300,7 @@ namespace bs
 				if (curveIdx != (UINT32)-1)
 				{
 					const TAnimationCurve<Vector3>& curve = state.curves->scale[curveIdx].curve;
-					anim->sceneObjectPose.scales[curveIdx] = curve.evaluate(state.time, state.scaleCaches[curveIdx], false);
+					anim->sceneObjectPose.scales[curveIdx] = curve.Evaluate(state.time, state.scaleCaches[curveIdx], false);
 					anim->sceneObjectPose.hasOverride[i * 3 + 2] = false;
 				}
 			}
@@ -313,11 +313,11 @@ namespace bs
 			const AnimationState& state = anim->layers[0].states[0];
 			if (!state.disabled)
 			{
-				UINT32 numCurves = (UINT32)state.curves->generic.size();
+				UINT32 numCurves = (UINT32)state.curves->generic.Size();
 				for (UINT32 i = 0; i < numCurves; i++)
 				{
 					const TAnimationCurve<float>& curve = state.curves->generic[i].curve;
-					anim->genericCurveOutputs[i] = curve.evaluate(state.time, state.genericCaches[i], false);
+					anim->genericCurveOutputs[i] = curve.Evaluate(state.time, state.genericCaches[i], false);
 				}
 			}
 		}
@@ -325,8 +325,8 @@ namespace bs
 		// Update morph shapes
 		if (anim->numMorphShapes > 0)
 		{
-			auto iterFind = prevRenderData.infos.find(anim->id);
-			if (iterFind != prevRenderData.infos.end())
+			auto iterFind = prevRenderData.infos.Find(anim->id);
+			if (iterFind != prevRenderData.infos.End())
 				animInfo.morphShapeInfo = iterFind->second.morphShapeInfo;
 			else
 				animInfo.morphShapeInfo.version = 1; // 0 is considered invalid version
@@ -444,8 +444,8 @@ namespace bs
 			{
 				SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(anim->numMorphVertices, 0, mBlendShapeVertexDesc);
 
-				UINT8* bufferData = meshData->getData();
-				memset(bufferData, 0, meshData->getSize());
+				UINT8* bufferData = meshData->GetData();
+				memset(bufferData, 0, meshData->GetSize());
 
 				UINT32 tempDataSize = (sizeof(Vector3) + sizeof(float)) * anim->numMorphVertices;
 				UINT8* tempData = (UINT8*)bs_stack_alloc(tempDataSize);
@@ -454,10 +454,10 @@ namespace bs
 				Vector3* tempNormals = (Vector3*)tempData;
 				float* accumulatedWeight = (float*)(tempData + sizeof(Vector3) * anim->numMorphVertices);
 
-				UINT8* positions = meshData->getElementData(VES_POSITION, 1, 1);
-				UINT8* normals = meshData->getElementData(VES_NORMAL, 1, 1);
+				UINT8* positions = meshData->GetElementData(VES_POSITION, 1, 1);
+				UINT8* normals = meshData->GetElementData(VES_NORMAL, 1, 1);
 
-				UINT32 stride = mBlendShapeVertexDesc->getVertexStride(1);
+				UINT32 stride = mBlendShapeVertexDesc->GetVertexStride(1);
 
 				for (UINT32 i = 0; i < anim->numMorphShapes; i++)
 				{
@@ -467,8 +467,8 @@ namespace bs
 					if (absWeight < 0.0001f)
 						continue;
 
-					const Vector<MorphVertex>& morphVertices = info.shape->getVertices();
-					UINT32 numVertices = (UINT32)morphVertices.size();
+					const Vector<MorphVertex>& morphVertices = info.shape->GetVertices();
+					UINT32 numVertices = (UINT32)morphVertices.Size();
 					for (UINT32 j = 0; j < numVertices; j++)
 					{
 						const MorphVertex& vertex = morphVertices[j];
@@ -527,7 +527,7 @@ namespace bs
 
 	void AnimationManager::UnregisterAnimation(UINT64 animId)
 	{
-		mAnimations.erase(animId);
+		mAnimations.Erase(animId);
 	}
 
 	AnimationManager& GAnimation()

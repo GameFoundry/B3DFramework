@@ -37,22 +37,22 @@ namespace bs
 
 	bool PhysicsScene::RayCast(const Ray& ray, PhysicsQueryHit& hit, UINT64 layer, float max) const
 	{
-		return RayCast(ray.getOrigin(), ray.getDirection(), hit, layer, max);
+		return RayCast(ray.GetOrigin(), ray.getDirection(), hit, layer, max);
 	}
 
 	Vector<PhysicsQueryHit> PhysicsScene::RayCastAll(const Ray& ray, UINT64 layer, float max) const
 	{
-		return RayCastAll(ray.getOrigin(), ray.getDirection(), layer, max);
+		return RayCastAll(ray.GetOrigin(), ray.getDirection(), layer, max);
 	}
 
 	bool PhysicsScene::RayCastAny(const Ray& ray, UINT64 layer, float max) const
 	{
-		return RayCastAny(ray.getOrigin(), ray.getDirection(), layer, max);
+		return RayCastAny(ray.GetOrigin(), ray.getDirection(), layer, max);
 	}
 
 	Vector<HCollider> RawToComponent(const Vector<Collider*>& raw)
 	{
-		if (raw.empty())
+		if (raw.Empty())
 			return Vector<HCollider>(0);
 
 		Vector<HCollider> output;
@@ -65,7 +65,7 @@ namespace bs
 			if (component == nullptr)
 				continue;
 
-			output.push_back(static_object_cast<CCollider>(component->getHandle()));
+			output.push_back(static_object_cast<CCollider>(component->GetHandle()));
 		}
 
 		return output;

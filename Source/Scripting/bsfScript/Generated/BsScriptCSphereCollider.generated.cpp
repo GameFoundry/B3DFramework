@@ -16,22 +16,22 @@ namespace bs
 
 	void ScriptCSphereCollider::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_setRadius", (void*)&ScriptCSphereCollider::Internal_setRadius);
-		metaData.scriptClass->addInternalCall("Internal_getRadius", (void*)&ScriptCSphereCollider::Internal_getRadius);
-		metaData.scriptClass->addInternalCall("Internal_setCenter", (void*)&ScriptCSphereCollider::Internal_setCenter);
-		metaData.scriptClass->addInternalCall("Internal_getCenter", (void*)&ScriptCSphereCollider::Internal_getCenter);
+		metaData.scriptClass->AddInternalCall("Internal_setRadius", (void*)&ScriptCSphereCollider::Internal_setRadius);
+		metaData.scriptClass->AddInternalCall("Internal_getRadius", (void*)&ScriptCSphereCollider::Internal_getRadius);
+		metaData.scriptClass->AddInternalCall("Internal_setCenter", (void*)&ScriptCSphereCollider::Internal_setCenter);
+		metaData.scriptClass->AddInternalCall("Internal_getCenter", (void*)&ScriptCSphereCollider::Internal_getCenter);
 
 	}
 
 	void ScriptCSphereCollider::Internal_setRadius(ScriptCSphereCollider* thisPtr, float radius)
 	{
-		thisPtr->getHandle()->setRadius(radius);
+		thisPtr->GetHandle()->setRadius(radius);
 	}
 
 	float ScriptCSphereCollider::Internal_getRadius(ScriptCSphereCollider* thisPtr)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->getHandle()->getRadius();
+		tmp__output = thisPtr->GetHandle()->getRadius();
 
 		float __output;
 		__output = tmp__output;
@@ -41,13 +41,13 @@ namespace bs
 
 	void ScriptCSphereCollider::Internal_setCenter(ScriptCSphereCollider* thisPtr, Vector3* center)
 	{
-		thisPtr->getHandle()->setCenter(*center);
+		thisPtr->GetHandle()->setCenter(*center);
 	}
 
 	void ScriptCSphereCollider::Internal_getCenter(ScriptCSphereCollider* thisPtr, Vector3* __output)
 	{
 		Vector3 tmp__output;
-		tmp__output = thisPtr->getHandle()->getCenter();
+		tmp__output = thisPtr->GetHandle()->getCenter();
 
 		*__output = tmp__output;
 	}

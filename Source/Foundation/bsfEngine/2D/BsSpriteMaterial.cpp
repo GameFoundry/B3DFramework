@@ -14,55 +14,55 @@ namespace bs
 	SpriteMaterial::SpriteMaterial(UINT32 id, const HMaterial& material, ShaderVariation variation, bool allowBatching)
 		:mId(id), mAllowBatching(allowBatching), mMaterialStored(false), mParamBufferIdx(-1)
 	{
-		mMaterial = material->getCore();
+		mMaterial = material->GetCore();
 
 		FIND_TECHNIQUE_DESC findTechniqueDesc;
 		findTechniqueDesc.variation = &variation;
 
-		variation.setBool("ALPHA", false);
-		mTechnique = mMaterial->findTechnique(findTechniqueDesc);
+		variation.SetBool("ALPHA", false);
+		mTechnique = mMaterial->FindTechnique(findTechniqueDesc);
 
-		variation.setBool("ALPHA", true);
-		mAlphaTechnique = mMaterial->findTechnique(findTechniqueDesc);
+		variation.SetBool("ALPHA", true);
+		mAlphaTechnique = mMaterial->FindTechnique(findTechniqueDesc);
 
-		mMaterialStored.store(true, std::memory_order_release);
+		mMaterialStored.Store(true, std::memory_order_release);
 
-		gCoreThread().queueCommand(std::bind(&SpriteMaterial::initialize, this));
+		gCoreThread().QueueCommand(std::bind(&SpriteMaterial::initialize, this));
 	}
 
 	SpriteMaterial::~SpriteMaterial()
 	{
-		gCoreThread().queueCommand(std::bind(&SpriteMaterial::destroy, mMaterial, mParams, mAlphaParams));
+		gCoreThread().QueueCommand(std::bind(&SpriteMaterial::destroy, mMaterial, mParams, mAlphaParams));
 	}
 
 	void SpriteMaterial::Initialize()
 	{
 		// Make sure that mMaterial assignment completes on the previous thread before continuing
-		const bool materialStored = mMaterialStored.load(std::memory_order_acquire);
+		const bool materialStored = mMaterialStored.Load(std::memory_order_acquire);
 		assert(materialStored == true);
 
-		const SPtr<ct::Pass>& pass = mMaterial->getPass(0, mTechnique);
+		const SPtr<ct::Pass>& pass = mMaterial->GetPass(0, mTechnique);
 
 		if(pass)
-			pass->compile();
+			pass->Compile();
 
-		const SPtr<ct::Pass>& alphaPass = mMaterial->getPass(0, mAlphaTechnique);
+		const SPtr<ct::Pass>& alphaPass = mMaterial->GetPass(0, mAlphaTechnique);
 
 		if(alphaPass)
-			alphaPass->compile();
+			alphaPass->Compile();
 
-		mParams = mMaterial->createParamsSet(mTechnique);
-		mAlphaParams = mMaterial->createParamsSet(mAlphaTechnique);
+		mParams = mMaterial->CreateParamsSet(mTechnique);
+		mAlphaParams = mMaterial->CreateParamsSet(mAlphaTechnique);
 
-		SPtr<ct::Shader> shader = mMaterial->getShader();
-		if(shader->hasTextureParam("gMainTexture"))
+		SPtr<ct::Shader> shader = mMaterial->GetShader();
+		if(shader->HasTextureParam("gMainTexture"))
 		{
-			mTextureParam = mMaterial->getParamTexture("gMainTexture");
-			mSamplerParam = mMaterial->getParamSamplerState("gMainTexSamp");
+			mTextureParam = mMaterial->GetParamTexture("gMainTexture");
+			mSamplerParam = mMaterial->GetParamSamplerState("gMainTexSamp");
 		}
 
-		mParamBufferIdx = mParams->getParamBlockBufferIndex("GUIParams");
-		mAlphaParamBufferIdx = mAlphaParams->getParamBlockBufferIndex("GUIParams");
+		mParamBufferIdx = mParams->GetParamBlockBufferIndex("GUIParams");
+		mAlphaParamBufferIdx = mAlphaParams->GetParamBlockBufferIndex("GUIParams");
 
 		if(mParamBufferIdx == (UINT32)-1 || mAlphaParamBufferIdx == (UINT32)-1)
 			BS_LOG(Error, GUI, "Sprite material shader missing \"GUIParams\" block.");
@@ -76,8 +76,8 @@ namespace bs
 	UINT64 SpriteMaterial::GetMergeHash(const SpriteMaterialInfo& info) const
 	{
 		UINT64 textureId = 0;
-		if (info.texture.isLoaded())
-			textureId = info.texture->getInternalID();
+		if (info.texture.IsLoaded())
+			textureId = info.texture->GetInternalID();
 
 		size_t hash = 0;
 		bs_hash_combine(hash, info.groupId);
@@ -98,28 +98,28 @@ namespace bs
 		else
 			spriteTexture = ct::Texture::WHITE;
 
-		mTextureParam.set(spriteTexture);
-		mSamplerParam.set(sampler);
+		mTextureParam.Set(spriteTexture);
+		mSamplerParam.Set(sampler);
 
 		if(!alphaOnly)
 		{
 			if(mParamBufferIdx != (UINT32)-1)
-				mParams->setParamBlockBuffer(mParamBufferIdx, paramBuffer, true);
+				mParams->SetParamBlockBuffer(mParamBufferIdx, paramBuffer, true);
 
-			mMaterial->updateParamsSet(mParams);
-			ct::gRendererUtility().setPass(mMaterial, 0, mTechnique);
-			ct::gRendererUtility().setPassParams(mParams);
+			mMaterial->UpdateParamsSet(mParams);
+			ct::gRendererUtility().SetPass(mMaterial, 0, mTechnique);
+			ct::gRendererUtility().SetPassParams(mParams);
 		}
 		else
 		{
 			if(mAlphaParamBufferIdx != (UINT32)-1)
-				mAlphaParams->setParamBlockBuffer(mAlphaParamBufferIdx, paramBuffer, true);
+				mAlphaParams->SetParamBlockBuffer(mAlphaParamBufferIdx, paramBuffer, true);
 
-			mMaterial->updateParamsSet(mAlphaParams);
-			ct::gRendererUtility().setPass(mMaterial, 0, mAlphaTechnique);
-			ct::gRendererUtility().setPassParams(mAlphaParams);
+			mMaterial->UpdateParamsSet(mAlphaParams);
+			ct::gRendererUtility().SetPass(mMaterial, 0, mAlphaTechnique);
+			ct::gRendererUtility().SetPassParams(mAlphaParams);
 		}
 
-		ct::gRendererUtility().draw(mesh, subMesh);
+		ct::gRendererUtility().Draw(mesh, subMesh);
 	}
 }

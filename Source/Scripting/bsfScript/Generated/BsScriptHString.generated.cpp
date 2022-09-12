@@ -15,12 +15,12 @@ namespace bs
 
 	void ScriptHString::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_HString", (void*)&ScriptHString::Internal_HString);
-		metaData.scriptClass->addInternalCall("Internal_HString0", (void*)&ScriptHString::Internal_HString0);
-		metaData.scriptClass->addInternalCall("Internal_HString1", (void*)&ScriptHString::Internal_HString1);
-		metaData.scriptClass->addInternalCall("Internal_HString2", (void*)&ScriptHString::Internal_HString2);
-		metaData.scriptClass->addInternalCall("Internal_getValue", (void*)&ScriptHString::Internal_getValue);
-		metaData.scriptClass->addInternalCall("Internal_setParameter", (void*)&ScriptHString::Internal_setParameter);
+		metaData.scriptClass->AddInternalCall("Internal_HString", (void*)&ScriptHString::Internal_HString);
+		metaData.scriptClass->AddInternalCall("Internal_HString0", (void*)&ScriptHString::Internal_HString0);
+		metaData.scriptClass->AddInternalCall("Internal_HString1", (void*)&ScriptHString::Internal_HString1);
+		metaData.scriptClass->AddInternalCall("Internal_HString2", (void*)&ScriptHString::Internal_HString2);
+		metaData.scriptClass->AddInternalCall("Internal_getValue", (void*)&ScriptHString::Internal_getValue);
+		metaData.scriptClass->AddInternalCall("Internal_setParameter", (void*)&ScriptHString::Internal_setParameter);
 
 	}
 
@@ -31,7 +31,7 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.scriptClass->createInstance("bool", ctorParams);
+		MonoObject* managedInstance = metaData.scriptClass->CreateInstance("bool", ctorParams);
 		new (bs_alloc<ScriptHString>()) ScriptHString(managedInstance, value);
 		return managedInstance;
 	}
@@ -68,7 +68,7 @@ namespace bs
 	MonoString* ScriptHString::Internal_getValue(ScriptHString* thisPtr)
 	{
 		String tmp__output;
-		tmp__output = thisPtr->getInternal()->getValue();
+		tmp__output = thisPtr->GetInternal()->getValue();
 
 		MonoString* __output;
 		__output = MonoUtil::stringToMono(tmp__output);
@@ -80,6 +80,6 @@ namespace bs
 	{
 		String tmpvalue;
 		tmpvalue = MonoUtil::monoToString(value);
-		thisPtr->getInternal()->setParameter(idx, tmpvalue);
+		thisPtr->GetInternal()->setParameter(idx, tmpvalue);
 	}
 }

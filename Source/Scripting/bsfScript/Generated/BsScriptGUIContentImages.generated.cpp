@@ -34,49 +34,49 @@ namespace bs
 		ScriptSpriteTexture* scriptnormal;
 		scriptnormal = ScriptSpriteTexture::toNative(value.normal);
 		if(scriptnormal != nullptr)
-			tmpnormal = scriptnormal->getHandle();
+			tmpnormal = scriptnormal->GetHandle();
 		output.normal = tmpnormal;
 		ResourceHandle<SpriteTexture> tmphover;
 		ScriptSpriteTexture* scripthover;
 		scripthover = ScriptSpriteTexture::toNative(value.hover);
 		if(scripthover != nullptr)
-			tmphover = scripthover->getHandle();
+			tmphover = scripthover->GetHandle();
 		output.hover = tmphover;
 		ResourceHandle<SpriteTexture> tmpactive;
 		ScriptSpriteTexture* scriptactive;
 		scriptactive = ScriptSpriteTexture::toNative(value.active);
 		if(scriptactive != nullptr)
-			tmpactive = scriptactive->getHandle();
+			tmpactive = scriptactive->GetHandle();
 		output.active = tmpactive;
 		ResourceHandle<SpriteTexture> tmpfocused;
 		ScriptSpriteTexture* scriptfocused;
 		scriptfocused = ScriptSpriteTexture::toNative(value.focused);
 		if(scriptfocused != nullptr)
-			tmpfocused = scriptfocused->getHandle();
+			tmpfocused = scriptfocused->GetHandle();
 		output.focused = tmpfocused;
 		ResourceHandle<SpriteTexture> tmpnormalOn;
 		ScriptSpriteTexture* scriptnormalOn;
 		scriptnormalOn = ScriptSpriteTexture::toNative(value.normalOn);
 		if(scriptnormalOn != nullptr)
-			tmpnormalOn = scriptnormalOn->getHandle();
+			tmpnormalOn = scriptnormalOn->GetHandle();
 		output.normalOn = tmpnormalOn;
 		ResourceHandle<SpriteTexture> tmphoverOn;
 		ScriptSpriteTexture* scripthoverOn;
 		scripthoverOn = ScriptSpriteTexture::toNative(value.hoverOn);
 		if(scripthoverOn != nullptr)
-			tmphoverOn = scripthoverOn->getHandle();
+			tmphoverOn = scripthoverOn->GetHandle();
 		output.hoverOn = tmphoverOn;
 		ResourceHandle<SpriteTexture> tmpactiveOn;
 		ScriptSpriteTexture* scriptactiveOn;
 		scriptactiveOn = ScriptSpriteTexture::toNative(value.activeOn);
 		if(scriptactiveOn != nullptr)
-			tmpactiveOn = scriptactiveOn->getHandle();
+			tmpactiveOn = scriptactiveOn->GetHandle();
 		output.activeOn = tmpactiveOn;
 		ResourceHandle<SpriteTexture> tmpfocusedOn;
 		ScriptSpriteTexture* scriptfocusedOn;
 		scriptfocusedOn = ScriptSpriteTexture::toNative(value.focusedOn);
 		if(scriptfocusedOn != nullptr)
-			tmpfocusedOn = scriptfocusedOn->getHandle();
+			tmpfocusedOn = scriptfocusedOn->GetHandle();
 		output.focusedOn = tmpfocusedOn;
 
 		return output;
@@ -86,66 +86,66 @@ namespace bs
 	{
 		__GUIContentImagesInterop output;
 		ScriptResourceBase* scriptnormal;
-		scriptnormal = ScriptResourceManager::instance().getScriptResource(value.normal, true);
+		scriptnormal = ScriptResourceManager::instance().GetScriptResource(value.normal, true);
 		MonoObject* tmpnormal;
 		if(scriptnormal != nullptr)
-			tmpnormal = scriptnormal->getManagedInstance();
+			tmpnormal = scriptnormal->GetManagedInstance();
 		else
 			tmpnormal = nullptr;
 		output.normal = tmpnormal;
 		ScriptResourceBase* scripthover;
-		scripthover = ScriptResourceManager::instance().getScriptResource(value.hover, true);
+		scripthover = ScriptResourceManager::instance().GetScriptResource(value.hover, true);
 		MonoObject* tmphover;
 		if(scripthover != nullptr)
-			tmphover = scripthover->getManagedInstance();
+			tmphover = scripthover->GetManagedInstance();
 		else
 			tmphover = nullptr;
 		output.hover = tmphover;
 		ScriptResourceBase* scriptactive;
-		scriptactive = ScriptResourceManager::instance().getScriptResource(value.active, true);
+		scriptactive = ScriptResourceManager::instance().GetScriptResource(value.active, true);
 		MonoObject* tmpactive;
 		if(scriptactive != nullptr)
-			tmpactive = scriptactive->getManagedInstance();
+			tmpactive = scriptactive->GetManagedInstance();
 		else
 			tmpactive = nullptr;
 		output.active = tmpactive;
 		ScriptResourceBase* scriptfocused;
-		scriptfocused = ScriptResourceManager::instance().getScriptResource(value.focused, true);
+		scriptfocused = ScriptResourceManager::instance().GetScriptResource(value.focused, true);
 		MonoObject* tmpfocused;
 		if(scriptfocused != nullptr)
-			tmpfocused = scriptfocused->getManagedInstance();
+			tmpfocused = scriptfocused->GetManagedInstance();
 		else
 			tmpfocused = nullptr;
 		output.focused = tmpfocused;
 		ScriptResourceBase* scriptnormalOn;
-		scriptnormalOn = ScriptResourceManager::instance().getScriptResource(value.normalOn, true);
+		scriptnormalOn = ScriptResourceManager::instance().GetScriptResource(value.normalOn, true);
 		MonoObject* tmpnormalOn;
 		if(scriptnormalOn != nullptr)
-			tmpnormalOn = scriptnormalOn->getManagedInstance();
+			tmpnormalOn = scriptnormalOn->GetManagedInstance();
 		else
 			tmpnormalOn = nullptr;
 		output.normalOn = tmpnormalOn;
 		ScriptResourceBase* scripthoverOn;
-		scripthoverOn = ScriptResourceManager::instance().getScriptResource(value.hoverOn, true);
+		scripthoverOn = ScriptResourceManager::instance().GetScriptResource(value.hoverOn, true);
 		MonoObject* tmphoverOn;
 		if(scripthoverOn != nullptr)
-			tmphoverOn = scripthoverOn->getManagedInstance();
+			tmphoverOn = scripthoverOn->GetManagedInstance();
 		else
 			tmphoverOn = nullptr;
 		output.hoverOn = tmphoverOn;
 		ScriptResourceBase* scriptactiveOn;
-		scriptactiveOn = ScriptResourceManager::instance().getScriptResource(value.activeOn, true);
+		scriptactiveOn = ScriptResourceManager::instance().GetScriptResource(value.activeOn, true);
 		MonoObject* tmpactiveOn;
 		if(scriptactiveOn != nullptr)
-			tmpactiveOn = scriptactiveOn->getManagedInstance();
+			tmpactiveOn = scriptactiveOn->GetManagedInstance();
 		else
 			tmpactiveOn = nullptr;
 		output.activeOn = tmpactiveOn;
 		ScriptResourceBase* scriptfocusedOn;
-		scriptfocusedOn = ScriptResourceManager::instance().getScriptResource(value.focusedOn, true);
+		scriptfocusedOn = ScriptResourceManager::instance().GetScriptResource(value.focusedOn, true);
 		MonoObject* tmpfocusedOn;
 		if(scriptfocusedOn != nullptr)
-			tmpfocusedOn = scriptfocusedOn->getManagedInstance();
+			tmpfocusedOn = scriptfocusedOn->GetManagedInstance();
 		else
 			tmpfocusedOn = nullptr;
 		output.focusedOn = tmpfocusedOn;

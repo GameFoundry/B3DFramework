@@ -91,7 +91,7 @@ namespace bs
 		const String& GetName() const { return mName; }
 
 		/** Returns the number of available morph shapes. */
-		UINT32 GetNumShapes() const { return (UINT32)mShapes.size(); }
+		UINT32 GetNumShapes() const { return (UINT32)mShapes.Size(); }
 
 		/** Returns the morph shape at the specified index. */
 		SPtr<MorphShape> GetShape(UINT32 idx) const { return mShapes[idx]; }
@@ -135,7 +135,7 @@ namespace bs
 	{
 	public:
 		/** Returns the number of available morph channels. */
-		UINT32 GetNumChannels() const { return (UINT32)mChannels.size(); }
+		UINT32 GetNumChannels() const { return (UINT32)mChannels.Size(); }
 
 		/** Returns the morph channel at the specified index. */
 		SPtr<MorphChannel> GetChannel(UINT32 idx) const { return mChannels[idx]; }

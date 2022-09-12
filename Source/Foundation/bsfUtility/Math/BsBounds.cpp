@@ -19,26 +19,26 @@ namespace bs
 
 	void Bounds::Merge(const Bounds& rhs)
 	{
-		mBox.merge(rhs.mBox);
-		mSphere.merge(rhs.mSphere);
+		mBox.Merge(rhs.mBox);
+		mSphere.Merge(rhs.mSphere);
 	}
 
 	void Bounds::Merge(const Vector3& point)
 	{
-		mBox.merge(point);
-		mSphere.merge(point);
+		mBox.Merge(point);
+		mSphere.Merge(point);
 	}
 
 	void Bounds::Transform(const Matrix4& matrix)
 	{
-		mBox.transform(matrix);
-		mSphere.transform(matrix);
+		mBox.Transform(matrix);
+		mSphere.Transform(matrix);
 	}
 
 	void Bounds::TransformAffine(const Matrix4& matrix)
 	{
-		mBox.transformAffine(matrix);
-		mSphere.transform(matrix);
+		mBox.TransformAffine(matrix);
+		mSphere.Transform(matrix);
 	}
 }
 

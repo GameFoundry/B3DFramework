@@ -39,16 +39,16 @@ namespace bs
 		void OnSerializationStarted(IReflectable* obj, SerializationContext* context) override
 		{
 			ManagedResource* mr = static_cast<ManagedResource*>(obj);
-			mSerializableObject = ManagedSerializableObject::createFromExisting(mr->getManagedInstance());
+			mSerializableObject = ManagedSerializableObject::createFromExisting(mr->GetManagedInstance());
 		}
 
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{
 			ManagedResource* mr = static_cast<ManagedResource*>(obj);
 
-			SPtr<Resource> mrPtr = std::static_pointer_cast<Resource>(mr->getThisPtr());
+			SPtr<Resource> mrPtr = std::static_pointer_cast<Resource>(mr->GetThisPtr());
 			HManagedResource handle = static_resource_cast<ManagedResource>(gResources()._createResourceHandle(mrPtr));
-			mr->setHandle(mSerializableObject->deserialize(), handle);
+			mr->SetHandle(mSerializableObject->deserialize(), handle);
 		}
 
 		const String& GetRTTIName() override

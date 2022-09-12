@@ -10,12 +10,12 @@ namespace bs
 {
 	ScriptObjectBase::ScriptObjectBase(MonoObject* instance)
 	{	
-		ScriptObjectManager::instance().registerScriptObject(this);
+		ScriptObjectManager::instance().RegisterScriptObject(this);
 	}
 
 	ScriptObjectBase::~ScriptObjectBase()
 	{
-		ScriptObjectManager::instance().unregisterScriptObject(this);
+		ScriptObjectManager::instance().UnregisterScriptObject(this);
 	}
 
 	ScriptObjectBackup ScriptObjectBase::BeginRefresh()
@@ -45,13 +45,13 @@ namespace bs
 
 	void ScriptObjectImpl::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_ManagedInstanceDeleted", (void*)&ScriptObjectImpl::internal_managedInstanceDeleted);
+		metaData.scriptClass->AddInternalCall("Internal_ManagedInstanceDeleted", (void*)&ScriptObjectImpl::internal_managedInstanceDeleted);
 	}
 
 	void ScriptObjectImpl::internal_managedInstanceDeleted(ScriptObjectBase* instance)
 	{
 		// This method gets called on the finalizer thread, but so that we don't need to deal
 		// with multi-threading issues we just delay it and execute it on the sim thread.
-		ScriptObjectManager::instance().notifyObjectFinalized(instance);
+		ScriptObjectManager::instance().NotifyObjectFinalized(instance);
 	}
 }

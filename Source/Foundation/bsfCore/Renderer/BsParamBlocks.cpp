@@ -15,23 +15,23 @@ namespace bs { namespace ct
 	ParamBlockManager::ParamBlockManager()
 	{
 		for (auto& entry : sToInitialize)
-			entry->initialize();
+			entry->Initialize();
 
-		sToInitialize.clear();
+		sToInitialize.Clear();
 	}
 
 	void ParamBlockManager::RegisterBlock(ParamBlock* paramBlock)
 	{
 		if (isStarted())
-			paramBlock->initialize();
+			paramBlock->Initialize();
 		else
 			sToInitialize.push_back(paramBlock);
 	}
 
 	void ParamBlockManager::UnregisterBlock(ParamBlock* paramBlock)
 	{
-		auto iterFind = std::find(sToInitialize.begin(), sToInitialize.end(), paramBlock);
-		if (iterFind != sToInitialize.end())
-			sToInitialize.erase(iterFind);
+		auto iterFind = std::find(sToInitialize.Begin(), sToInitialize.end(), paramBlock);
+		if (iterFind != sToInitialize.End())
+			sToInitialize.Erase(iterFind);
 	}
 }}

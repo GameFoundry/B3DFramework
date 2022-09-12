@@ -125,7 +125,7 @@ namespace bs
 	MonoReflectionType* MonoUtil::getType(::MonoClass* klass)
 	{
 		MonoType* monoType = mono_class_get_type(klass);
-		return mono_type_get_object(MonoManager::instance().getDomain(), monoType);
+		return mono_type_get_object(MonoManager::instance().GetDomain(), monoType);
 	}
 
 	UINT32 MonoUtil::NewGCHandle(MonoObject* object, bool pinned)
@@ -152,7 +152,7 @@ namespace bs
 
 	MonoObject* MonoUtil::box(::MonoClass* klass, void* value)
 	{
-		return mono_value_box(MonoManager::instance().getDomain(), klass, value);
+		return mono_value_box(MonoManager::instance().GetDomain(), klass, value);
 	}
 
 	void* MonoUtil::unbox(MonoObject* object)
@@ -256,26 +256,26 @@ namespace bs
 	void MonoUtil::GetGenericParameters(::MonoClass* klass, ::MonoClass** params, UINT32& numParams)
 	{
 		MonoType* monoType = mono_class_get_type(klass);
-		getGenericParameters(mono_type_get_object(MonoManager::instance().getDomain(), monoType), params, numParams);
+		getGenericParameters(mono_type_get_object(MonoManager::instance().GetDomain(), monoType), params, numParams);
 	}
 
 	void MonoUtil::GetGenericParameters(::MonoReflectionType* type, ::MonoClass** params, UINT32& numParams)
 	{
 		if(!sGenericHelpersInitialized)
 		{
-			MonoAssembly* corlib = MonoManager::instance().getAssembly("corlib");
-			MonoClass* type = corlib->getClass("System", "Type");
-			sGenericParamsProp = type->getProperty("GenericTypeArguments");
+			MonoAssembly* corlib = MonoManager::instance().GetAssembly("corlib");
+			MonoClass* type = corlib->GetClass("System", "Type");
+			sGenericParamsProp = type->GetProperty("GenericTypeArguments");
 
 			sGenericHelpersInitialized = true;
 		}
 
-		MonoArray* array = (MonoArray*)sGenericParamsProp->get((MonoObject*)type);
+		MonoArray* array = (MonoArray*)sGenericParamsProp->Get((MonoObject*)type);
 		if(array)
 		{
 			ScriptArray ScriptArray(array);
 
-			numParams = scriptArray.size();
+			numParams = scriptArray.Size();
 
 			if(params)
 			{

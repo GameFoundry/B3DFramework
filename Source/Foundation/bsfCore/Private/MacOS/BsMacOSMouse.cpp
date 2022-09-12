@@ -30,7 +30,7 @@ namespace bs
 
 	void Mouse::Capture()
 	{
-		m->hid.capture(nullptr, !m->hasInputFocus);
+		m->hid.Capture(nullptr, !m->hasInputFocus);
 	}
 
 	void Mouse::ChangeCaptureContext(UINT64 windowHandle)

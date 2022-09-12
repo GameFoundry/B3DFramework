@@ -24,7 +24,7 @@ namespace bs
 			{
 				BitLength size = 0;
 
-				auto numElements = (uint32_t)data.size();
+				auto numElements = (uint32_t)data.Size();
 				size += rtti_write(numElements, stream);
 
 				for (const auto& item : data)
@@ -43,13 +43,13 @@ namespace bs
 			uint32_t numElements;
 			rtti_read(numElements, stream);
 
-			data.clear();
+			data.Clear();
 			for (uint32_t i = 0; i < numElements; i++)
 			{
 				T element;
 				rtti_read(element, stream);
 
-				data.add(element);
+				data.Add(element);
 			}
 
 			return size;

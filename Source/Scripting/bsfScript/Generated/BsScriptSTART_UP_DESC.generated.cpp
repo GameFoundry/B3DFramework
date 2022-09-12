@@ -54,8 +54,8 @@ namespace bs
 		if(value.importers != nullptr)
 		{
 			ScriptArray Arrayimporters(value.importers);
-			vecimporters.resize(arrayimporters.size());
-			for(int i = 0; i < (int)arrayimporters.size(); i++)
+			vecimporters.Resize(arrayimporters.size());
+			for(int i = 0; i < (int)arrayimporters.Size(); i++)
 			{
 				vecimporters[i] = arrayimporters.get<String>(i);
 			}
@@ -88,14 +88,14 @@ namespace bs
 		__RENDER_WINDOW_DESCInterop tmpprimaryWindowDesc;
 		tmpprimaryWindowDesc = ScriptRENDER_WINDOW_DESC::toInterop(value.primaryWindowDesc);
 		output.primaryWindowDesc = tmpprimaryWindowDesc;
-		int arraySizeimporters = (int)value.importers.size();
+		int arraySizeimporters = (int)value.importers.Size();
 		MonoArray* vecimporters;
 		ScriptArray arrayimporters = ScriptArray::create<String>(arraySizeimporters);
 		for(int i = 0; i < arraySizeimporters; i++)
 		{
-			arrayimporters.set(i, value.importers[i]);
+			arrayimporters.Set(i, value.importers[i]);
 		}
-		vecimporters = arrayimporters.getInternal();
+		vecimporters = arrayimporters.GetInternal();
 		output.importers = vecimporters;
 
 		return output;

@@ -68,10 +68,10 @@ namespace bs
 		const String& GetName() const { return mName; }
 
 		/**	Number of available video modes for this output. */
-		UINT32 GetNumVideoModes() const { return (UINT32)mVideoModes.size(); }
+		UINT32 GetNumVideoModes() const { return (UINT32)mVideoModes.Size(); }
 
 		/**	Returns video mode at the specified index. */
-		const VideoMode& GetVideoMode(UINT32 idx) const { return *mVideoModes.at(idx); }
+		const VideoMode& GetVideoMode(UINT32 idx) const { return *mVideoModes.At(idx); }
 
 		/**	Returns the video mode currently used by the desktop. */
 		const VideoMode& GetDesktopVideoMode() const { return *mDesktopVideoMode; }
@@ -93,7 +93,7 @@ namespace bs
 		VideoModeInfo& operator=(const VideoModeInfo&) = delete; // Make non-copyable
 
 		/**	Returns the number of available output devices. */
-		UINT32 GetNumOutputs() const { return (UINT32)mOutputs.size(); }
+		UINT32 GetNumOutputs() const { return (UINT32)mOutputs.Size(); }
 
 		/**
 		 * Returns video mode information about a specific output device. 0th index always represents the primary device

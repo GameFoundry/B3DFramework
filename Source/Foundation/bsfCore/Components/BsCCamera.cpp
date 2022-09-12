@@ -23,14 +23,14 @@ namespace bs
 
 	ConvexVolume CCamera::GetWorldFrustum() const
 	{
-		const Vector<Plane>& frustumPlanes = getFrustum().getPlanes();
-		Matrix4 worldMatrix = SO()->getWorldMatrix();
+		const Vector<Plane>& frustumPlanes = getFrustum().GetPlanes();
+		Matrix4 worldMatrix = SO()->GetWorldMatrix();
 
-		Vector<Plane> WorldPlanes(frustumPlanes.size());
+		Vector<Plane> WorldPlanes(frustumPlanes.Size());
 		UINT32 i = 0;
 		for (auto& plane : frustumPlanes)
 		{
-			worldPlanes[i] = worldMatrix.multiplyAffine(plane);
+			worldPlanes[i] = worldMatrix.MultiplyAffine(plane);
 			i++;
 		}
 
@@ -44,7 +44,7 @@ namespace bs
 
 	void CCamera::SetMain(bool main)
 	{
-		mInternal->setMain(main);
+		mInternal->SetMain(main);
 	}
 
 	void CCamera::_instantiate()
@@ -52,7 +52,7 @@ namespace bs
 		// If mInternal already exists this means this object was deserialized,
 		// so all we need to do is initialize it.
 		if (mInternal != nullptr)
-			mInternal->initialize();
+			mInternal->Initialize();
 		else
 			mInternal = Camera::create();
 	}
@@ -69,7 +69,7 @@ namespace bs
 	{
 		gSceneManager()._unbindActor(mInternal);
 
-		mInternal->destroy();
+		mInternal->Destroy();
 	}
 
 	RTTITypeBase* CCamera::getRTTIStatic()

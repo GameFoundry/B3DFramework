@@ -35,7 +35,7 @@ namespace bs
 		ScriptHString* scripttext;
 		scripttext = ScriptHString::toNative(value.text);
 		if(scripttext != nullptr)
-			tmptext = scripttext->getInternal();
+			tmptext = scripttext->GetInternal();
 		if(tmptext != nullptr)
 		output.text = *tmptext;
 		GUIContentImages tmpimages;
@@ -45,7 +45,7 @@ namespace bs
 		ScriptHString* scripttooltip;
 		scripttooltip = ScriptHString::toNative(value.tooltip);
 		if(scripttooltip != nullptr)
-			tmptooltip = scripttooltip->getInternal();
+			tmptooltip = scripttooltip->GetInternal();
 		if(tmptooltip != nullptr)
 		output.tooltip = *tmptooltip;
 

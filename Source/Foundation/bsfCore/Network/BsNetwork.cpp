@@ -185,7 +185,7 @@ namespace bs
 		/** Maps a network ID into a RakNet system address. Returns null if the ID is not valid. */
 		const SystemAddress* getSystemAddress(const NetworkId& id)
 		{
-			if(id.id < 0 || id.id >= (INT32)networkIdMapping.size())
+			if(id.id < 0 || id.id >= (INT32)networkIdMapping.Size())
 				return nullptr;
 
 			return &networkIdMapping[id.id].systemAddress;
@@ -194,7 +194,7 @@ namespace bs
 		/** Maps a network ID into a RakNet GUID. Returns null if the ID is not valid. */
 		const RakNetGUID* getGUID(const NetworkId& id)
 		{
-			if(id.id < 0 || id.id >= (INT32)networkIdMapping.size())
+			if(id.id < 0 || id.id >= (INT32)networkIdMapping.Size())
 				return nullptr;
 
 			return &networkIdMapping[id.id].guid;
@@ -207,7 +207,7 @@ namespace bs
 		NetworkId GetOrRegisterNetworkId(const SystemAddress& address, const RakNetGUID& guid)
 		{
 			INT32 systemIndex = address.systemIndex;
-			assert(systemIndex >= 0 && systemIndex < (INT32)networkIdMapping.size());
+			assert(systemIndex >= 0 && systemIndex < (INT32)networkIdMapping.Size());
 
 			NetworkConnection& connection = networkIdMapping[systemIndex];
 			if(connection.systemAddress != address || connection.guid != guid)
@@ -266,7 +266,7 @@ namespace bs
 			Packet* packet = (Packet*)event->_backendData;
 
 			peer->DeallocatePacket(packet);
-			eventPool.free(event);
+			eventPool.Free(event);
 		}
 	};
 
@@ -274,19 +274,19 @@ namespace bs
 		:m(bs_new<Pimpl>())
 	{
 		m->peer = RakPeerInterface::GetInstance();
-		m->networkIdMapping.resize(desc.maxNumConnections);
+		m->networkIdMapping.Resize(desc.maxNumConnections);
 
-		for(INT32 i = 0; i < (INT32)m->networkIdMapping.size(); i++)
+		for(INT32 i = 0; i < (INT32)m->networkIdMapping.Size(); i++)
 			m->networkIdMapping[i].id = NetworkId(i);
 
-		UINT32 numDescriptors = (UINT32)desc.listenAddresses.size();
+		UINT32 numDescriptors = (UINT32)desc.listenAddresses.Size();
 		SocketDescriptor* descriptors = bs_stack_alloc<SocketDescriptor>(numDescriptors);
 
 		for(UINT32 i = 0; i < numDescriptors; i++)
 		{
 			const NetworkAddress& address = desc.listenAddresses[i];
 
-			if(address.compareIP(NetworkAddress::UNASSIGNED))
+			if(address.CompareIP(NetworkAddress::UNASSIGNED))
 			{
 				if(address.port == 0)
 					descriptors[i] = SocketDescriptor();
@@ -302,7 +302,7 @@ namespace bs
 				}
 				else // IPV4
 				{
-					String addressStr = address.toString();
+					String addressStr = address.ToString();
 					descriptors[i] = SocketDescriptor(address.port, addressStr.c_str());
 				}
 			}
@@ -402,7 +402,7 @@ namespace bs
 
 	void NetworkPeer::Disconnect(const NetworkId& id, bool silent)
 	{
-		const RakNetGUID* guid = m->getGUID(id);
+		const RakNetGUID* guid = m->GetGUID(id);
 		if(!guid)
 		{
 			BS_LOG(Error, Network, "Cannot disconnect from {0}, invalid network ID provided.", id.id);
@@ -418,7 +418,7 @@ namespace bs
 		if(!packet || packet->length == 0)
 			return nullptr;
 
-		return m->allocNetworkEvent(packet);
+		return m->AllocNetworkEvent(packet);
 	}
 
 	void NetworkPeer::Free(NetworkEvent* event)
@@ -426,7 +426,7 @@ namespace bs
 		if(!event)
 			return;
 
-		m->freeNetworkEvent(event);
+		m->FreeNetworkEvent(event);
 	}
 
 	void NetworkPeer::Send(const PacketData& data, const NetworkAddress& address, const PacketChannel& channel)
@@ -442,7 +442,7 @@ namespace bs
 
 	void NetworkPeer::Send(const PacketData& data, const NetworkId& id, const PacketChannel& channel)
 	{
-		const RakNetGUID* guid = m->getGUID(id);
+		const RakNetGUID* guid = m->GetGUID(id);
 		if(!guid)
 		{
 			BS_LOG(Error, Network, "Cannot send to {0}, invalid network ID provided.", id.id);
@@ -488,7 +488,7 @@ namespace bs
 
 	void NetworkObject::NetworkSpawn()
 	{
-		if(mState != NotReplicated || !Network::instance().isHost())
+		if(mState != NotReplicated || !Network::instance().IsHost())
 			return;
 
 		Network::instance()._notifyNetworkObjectSpawned(this);
@@ -498,7 +498,7 @@ namespace bs
 
 	void NetworkObject::NetworkDespawn()
 	{
-		if(mState != Replicated || !Network::instance().isHost())
+		if(mState != Replicated || !Network::instance().IsHost())
 			return;
 
 		Network::instance()._notifyNetworkObjectDespawned(this);
@@ -513,7 +513,7 @@ namespace bs
 
 	NetworkEncoder::~NetworkEncoder()
 	{
-		assert(mBufferPieces.empty());
+		assert(mBufferPieces.Empty());
 
 		for (auto& entry : mBufferPiecePool)
 			bs_free(entry.buffer);
@@ -530,22 +530,22 @@ namespace bs
 		
 		auto flushToBuffer = [this](UINT8* bufferStart, UINT32 bytesWritten, UINT32& newBufferSize)
 		{
-			if(mBufferPieces.empty())
+			if(mBufferPieces.Empty())
 				allocBufferPiece();
 
 			assert(bytesWritten <= WRITE_BUFFER_SIZE);
 
-			UINT32 bufferSize = WRITE_BUFFER_SIZE - mBufferPieces.back().size;
+			UINT32 bufferSize = WRITE_BUFFER_SIZE - mBufferPieces.Back().size;
 
 			UINT32 amountToCopy = std::min(bufferSize, bytesWritten);
-			memcpy(mBufferPieces.back().buffer + mBufferPieces.back().size, bufferStart, amountToCopy);
-			mBufferPieces.back().size += amountToCopy;
+			memcpy(mBufferPieces.Back().buffer + mBufferPieces.back().size, bufferStart, amountToCopy);
+			mBufferPieces.Back().size += amountToCopy;
 
 			if(bufferSize < bytesWritten)
 			{
 				allocBufferPiece();
-				memcpy(mBufferPieces.back().buffer, bufferStart + bufferSize, bytesWritten - bufferSize);
-				mBufferPieces.back().size = bytesWritten - bufferSize;
+				memcpy(mBufferPieces.Back().buffer, bufferStart + bufferSize, bytesWritten - bufferSize);
+				mBufferPieces.Back().size = bytesWritten - bufferSize;
 			}
 
 			mWriteBufferOffset = 0;
@@ -593,7 +593,7 @@ namespace bs
 			UINT8* writeStart = mWriteBuffer + mWriteBufferOffset;
 			UINT32 remainingBufferSize = WRITE_BUFFER_SIZE - mWriteBufferOffset;
 			UINT32 objBytesWritten = 0;
-			bs.encode(object, writeStart, remainingBufferSize, &objBytesWritten, flushToBuffer, false, context);
+			bs.Encode(object, writeStart, remainingBufferSize, &objBytesWritten, flushToBuffer, false, context);
 			mBytesWritten += objBytesWritten;
 
 			writeToOffset(sizeWriteOffset, objBytesWritten);
@@ -616,7 +616,7 @@ namespace bs
 		}
 
 		UINT32 offset = 1; // First byte reserved for message type, set externally
-		for(auto iter = mBufferPieces.begin(); iter != mBufferPieces.end(); ++iter)
+		for(auto iter = mBufferPieces.Begin(); iter != mBufferPieces.end(); ++iter)
 		{
 			if(iter->size > 0)
 			{
@@ -625,10 +625,10 @@ namespace bs
 			}
 		}
 
-		for(auto iter = mBufferPieces.rbegin(); iter != mBufferPieces.rend(); ++iter)
+		for(auto iter = mBufferPieces.Rbegin(); iter != mBufferPieces.rend(); ++iter)
 			mBufferPiecePool.push_back(*iter);
 
-		mBufferPieces.clear();
+		mBufferPieces.Clear();
 
 		size = bytesRequired;
 		return mResultBuffer;
@@ -643,9 +643,9 @@ namespace bs
 	NetworkEncoder::BufferPiece NetworkEncoder::AllocBufferPiece()
 	{
 		BufferPiece piece;
-		if (!mBufferPiecePool.empty())
+		if (!mBufferPiecePool.Empty())
 		{
-			piece = mBufferPiecePool.back();
+			piece = mBufferPiecePool.Back();
 			mBufferPiecePool.pop_back();
 		}
 		else
@@ -659,28 +659,28 @@ namespace bs
 	NetworkDecoder::NetworkDecoder(const SPtr<MemoryDataStream>& data)
 		:mInputStream(data)
 	{
-		mInputStream->skip(1); // Skip the network message type byte
+		mInputStream->Skip(1); // Skip the network message type byte
 	}
 
 	SPtr<IReflectable> NetworkDecoder::Decode(UINT8& type, UUID& uuid, SerializationContext* context)
 	{
-		if (mInputStream->eof())
+		if (mInputStream->Eof())
 			return nullptr;
 
-		char* data = (char*)mInputStream->getCurrentPtr();
+		char* data = (char*)mInputStream->GetCurrentPtr();
 		UINT32 offset = 0;
 		data = rtti_read(type, data, offset);
 		data = rtti_read(uuid, data, offset);
 
-		mInputStream->skip(offset);
+		mInputStream->Skip(offset);
 
 		UINT32 objectSize = 0;
-		mInputStream->read(&objectSize, sizeof(objectSize));
+		mInputStream->Read(&objectSize, sizeof(objectSize));
 
 		if(objectSize > 0)
 		{
 			BinarySerializer bs;
-			SPtr<IReflectable> object = bs.decode(mInputStream, objectSize, context);
+			SPtr<IReflectable> object = bs.Decode(mInputStream, objectSize, context);
 
 			return object;
 		}
@@ -698,7 +698,7 @@ namespace bs
 
 		ObjectInfo objInfo;
 		objInfo.obj = object;
-		objInfo.state = object->getNetworkState();
+		objInfo.state = object->GetNetworkState();
 
 		mNetworkObjects[object->mNetworkUUID] = objInfo;
 
@@ -762,7 +762,7 @@ namespace bs
 		desc.maxNumConnections = 1;
 
 		mPeer = bs_unique_ptr_new<NetworkPeer>(desc);
-		mPeer->connect(host, port);
+		mPeer->Connect(host, port);
 		mState = NetworkState::Connecting;
 	}
 
@@ -776,7 +776,7 @@ namespace bs
 	{
 		if(mPeer)
 		{
-			NetworkEvent* event = mPeer->receive();
+			NetworkEvent* event = mPeer->Receive();
 			
 			while(event)
 			{
@@ -812,8 +812,8 @@ namespace bs
 					break;
 				}
 
-				mPeer->free(event);
-				event = mPeer->receive();
+				mPeer->Free(event);
+				event = mPeer->Receive();
 			}
 		}
 
@@ -824,37 +824,37 @@ namespace bs
 			{
 				for (auto& entry : mActions)
 				{
-					auto iterFind = mNetworkObjects.find(entry.uuid);
-					assert(iterFind != mNetworkObjects.end());
+					auto iterFind = mNetworkObjects.Find(entry.uuid);
+					assert(iterFind != mNetworkObjects.End());
 
 					ObjectInfo& objInfo = iterFind->second;
 
 					switch (entry.type)
 					{
 					case Spawning:
-						mEncoder.encode((UINT32)NetworkActionType::Spawn, entry.uuid, objInfo.state.state.get());
+						mEncoder.Encode((UINT32)NetworkActionType::Spawn, entry.uuid, objInfo.state.state.get());
 						break;
 					case Spawned:
 						// TODO - No purpose. Remove this?
 						break;
 					case Despawning:
-						mEncoder.encode((UINT32)NetworkActionType::Despawn, entry.uuid, nullptr);
-						mNetworkObjects.erase(iterFind);
+						mEncoder.Encode((UINT32)NetworkActionType::Despawn, entry.uuid, nullptr);
+						mNetworkObjects.Erase(iterFind);
 						break;
 					default:
 						break;
 					}
 				}
 
-				mActions.clear();
+				mActions.Clear();
 
 				{
 					PacketData data;
-					data.bytes = mEncoder.getOutput(data.length);
+					data.bytes = mEncoder.GetOutput(data.length);
 					data.bytes[0] = NWM_ReplicationSync;
 
-					mPeer->broadcast(data, CHANNEL_RELIABLE_ORDERED);
-					mEncoder.clear();
+					mPeer->Broadcast(data, CHANNEL_RELIABLE_ORDERED);
+					mEncoder.Clear();
 				}
 
 				for (auto& entry : mNetworkObjects)
@@ -869,29 +869,29 @@ namespace bs
 					SPtr<SerializedObject> newState = SerializedObject::create(*entry.second.obj,
 						SerializedObjectEncodeFlag::Shallow | SerializedObjectEncodeFlag::ReplicableOnly);
 
-					IDiff& diffHandler = entry.second.obj->getRTTI()->getDiffHandler();
-					SPtr<SerializedObject> diff = diffHandler.generateDiff(entry.second.state.state, newState);
+					IDiff& diffHandler = entry.second.obj->GetRTTI()->getDiffHandler();
+					SPtr<SerializedObject> diff = diffHandler.GenerateDiff(entry.second.state.state, newState);
 					if (diff == nullptr)
 						continue;
 
 					entry.second.state.state = newState;
 
-					mEncoder.encode((UINT32)NetworkActionType::Sync, entry.first, diff.get());
+					mEncoder.Encode((UINT32)NetworkActionType::Sync, entry.first, diff.get());
 				}
 
 				// TODO - Perhaps allow an object to force sync to be reliable?
 				{
 					PacketData data;
-					data.bytes = mEncoder.getOutput(data.length);
+					data.bytes = mEncoder.GetOutput(data.length);
 					data.bytes[0] = NWM_ReplicationSync;
 
-					mPeer->broadcast(data, CHANNEL_UNRELIABLE_ORDERED);
-					mEncoder.clear();
+					mPeer->Broadcast(data, CHANNEL_UNRELIABLE_ORDERED);
+					mEncoder.Clear();
 				}
 
 				// TODO - Add relevant sets. Don't send all messages to every connected client
 
-				mEncoder.clear();
+				mEncoder.Clear();
 
 				float tickLength = 1.0f / mTickRate;
 				mTimeAccumulator = Math::repeat(mTimeAccumulator, tickLength) - tickLength;

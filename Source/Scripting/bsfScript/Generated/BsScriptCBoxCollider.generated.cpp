@@ -16,35 +16,35 @@ namespace bs
 
 	void ScriptCBoxCollider::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_setExtents", (void*)&ScriptCBoxCollider::Internal_setExtents);
-		metaData.scriptClass->addInternalCall("Internal_getExtents", (void*)&ScriptCBoxCollider::Internal_getExtents);
-		metaData.scriptClass->addInternalCall("Internal_setCenter", (void*)&ScriptCBoxCollider::Internal_setCenter);
-		metaData.scriptClass->addInternalCall("Internal_getCenter", (void*)&ScriptCBoxCollider::Internal_getCenter);
+		metaData.scriptClass->AddInternalCall("Internal_setExtents", (void*)&ScriptCBoxCollider::Internal_setExtents);
+		metaData.scriptClass->AddInternalCall("Internal_getExtents", (void*)&ScriptCBoxCollider::Internal_getExtents);
+		metaData.scriptClass->AddInternalCall("Internal_setCenter", (void*)&ScriptCBoxCollider::Internal_setCenter);
+		metaData.scriptClass->AddInternalCall("Internal_getCenter", (void*)&ScriptCBoxCollider::Internal_getCenter);
 
 	}
 
 	void ScriptCBoxCollider::Internal_setExtents(ScriptCBoxCollider* thisPtr, Vector3* extents)
 	{
-		thisPtr->getHandle()->setExtents(*extents);
+		thisPtr->GetHandle()->setExtents(*extents);
 	}
 
 	void ScriptCBoxCollider::Internal_getExtents(ScriptCBoxCollider* thisPtr, Vector3* __output)
 	{
 		Vector3 tmp__output;
-		tmp__output = thisPtr->getHandle()->getExtents();
+		tmp__output = thisPtr->GetHandle()->getExtents();
 
 		*__output = tmp__output;
 	}
 
 	void ScriptCBoxCollider::Internal_setCenter(ScriptCBoxCollider* thisPtr, Vector3* center)
 	{
-		thisPtr->getHandle()->setCenter(*center);
+		thisPtr->GetHandle()->setCenter(*center);
 	}
 
 	void ScriptCBoxCollider::Internal_getCenter(ScriptCBoxCollider* thisPtr, Vector3* __output)
 	{
 		Vector3 tmp__output;
-		tmp__output = thisPtr->getHandle()->getCenter();
+		tmp__output = thisPtr->GetHandle()->getCenter();
 
 		*__output = tmp__output;
 	}

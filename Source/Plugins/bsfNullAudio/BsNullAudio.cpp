@@ -38,10 +38,10 @@ namespace bs
 		// If we need to keep source data, read everything into memory and keep a copy
 		if (mKeepSourceData)
 		{
-			mStreamData->seek(mStreamOffset);
+			mStreamData->Seek(mStreamOffset);
 
 			UINT8* sampleBuffer = (UINT8*)bs_alloc(mStreamSize);
-			mStreamData->read(sampleBuffer, mStreamSize);
+			mStreamData->Read(sampleBuffer, mStreamSize);
 
 			mSourceStreamData = bs_shared_ptr_new<MemoryDataStream>(sampleBuffer, mStreamSize);
 			mSourceStreamSize = mStreamSize;
@@ -53,7 +53,7 @@ namespace bs
 	SPtr<DataStream> NullAudioClip::GetSourceStream(UINT32& size)
 	{
 		size = mSourceStreamSize;
-		mSourceStreamData->seek(0);
+		mSourceStreamData->Seek(0);
 
 		return mSourceStreamData;
 	}

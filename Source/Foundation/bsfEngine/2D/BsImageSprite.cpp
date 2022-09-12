@@ -9,20 +9,20 @@ namespace bs
 {
 	ImageSprite::~ImageSprite()
 	{
-		clearMesh();
+		ClearMesh();
 	}
 
 	void ImageSprite::Update(const IMAGE_SPRITE_DESC& desc, UINT64 groupId)
 	{
-		if(!SpriteTexture::checkIsLoaded(desc.texture))
+		if(!SpriteTexture::CheckIsLoaded(desc.texture))
 		{
-			clearMesh();
+			ClearMesh();
 			return;
 		}
 
 		// Actually generate a mesh
-		if(mCachedRenderElements.size() < 1)
-			mCachedRenderElements.resize(1);
+		if(mCachedRenderElements.Size() < 1)
+			mCachedRenderElements.Resize(1);
 
 		bool useScale9Grid = desc.borderLeft > 0 || desc.borderRight > 0 ||
 			desc.borderTop > 0 || desc.borderBottom > 0;
@@ -49,7 +49,7 @@ namespace bs
 				renderElem.numQuads = newNumQuads;
 			}
 
-			const HTexture& tex = desc.texture->getTexture();
+			const HTexture& tex = desc.texture->GetTexture();
 
 			SpriteMaterialInfo& matInfo = renderElem.matInfo;
 			matInfo.groupId = groupId;
@@ -57,7 +57,7 @@ namespace bs
 			matInfo.tint = desc.color;
 			matInfo.animationStartTime = desc.animationStartTime;
 
-			bool animated = desc.texture->getAnimation().count > 1;
+			bool animated = desc.texture->GetAnimation().count > 1;
 			if(animated)
 				matInfo.spriteTexture = desc.texture;
 
@@ -149,8 +149,8 @@ namespace bs
 			renderElem.vertices[34] = Vector2(topRightStart, bottomStart + bottomBorder);
 			renderElem.vertices[35] = Vector2(topRightStart + rightBorder, bottomStart + bottomBorder);
 
-			float invWidth = 1.0f / (float)desc.texture->getTexture()->getProperties().getWidth();
-			float invHeight = 1.0f / (float)desc.texture->getTexture()->getProperties().getHeight();
+			float invWidth = 1.0f / (float)desc.texture->GetTexture()->getProperties().GetWidth();
+			float invHeight = 1.0f / (float)desc.texture->GetTexture()->getProperties().GetHeight();
 
 			float uvLeftBorder = desc.borderLeft * invWidth;
 			float uvRightBorder = desc.borderRight * invWidth;
@@ -167,58 +167,58 @@ namespace bs
 			float uvBottomStart = uvMiddleStart + uvCenterHeight;
 
 			// UV - Top left
-			renderElem.uvs[0] = desc.texture->transformUV(Vector2(uvOffset.x, uvOffset.y));
-			renderElem.uvs[1] = desc.texture->transformUV(Vector2(uvOffset.x + uvLeftBorder, uvOffset.y));
-			renderElem.uvs[2] = desc.texture->transformUV(Vector2(uvOffset.x, uvOffset.y + uvTopBorder));
-			renderElem.uvs[3] = desc.texture->transformUV(Vector2(uvOffset.x + uvLeftBorder, uvOffset.y + uvTopBorder));
+			renderElem.uvs[0] = desc.texture->TransformUV(Vector2(uvOffset.x, uvOffset.y));
+			renderElem.uvs[1] = desc.texture->TransformUV(Vector2(uvOffset.x + uvLeftBorder, uvOffset.y));
+			renderElem.uvs[2] = desc.texture->TransformUV(Vector2(uvOffset.x, uvOffset.y + uvTopBorder));
+			renderElem.uvs[3] = desc.texture->TransformUV(Vector2(uvOffset.x + uvLeftBorder, uvOffset.y + uvTopBorder));
 
 			// UV - Top center
-			renderElem.uvs[4] = desc.texture->transformUV(Vector2(uvTopCenterStart, uvOffset.y));
-			renderElem.uvs[5] = desc.texture->transformUV(Vector2(uvTopCenterStart + uvCenterWidth, uvOffset.y));
-			renderElem.uvs[6] = desc.texture->transformUV(Vector2(uvTopCenterStart, uvOffset.y + uvTopBorder));
-			renderElem.uvs[7] = desc.texture->transformUV(Vector2(uvTopCenterStart + uvCenterWidth, uvOffset.y + uvTopBorder));
+			renderElem.uvs[4] = desc.texture->TransformUV(Vector2(uvTopCenterStart, uvOffset.y));
+			renderElem.uvs[5] = desc.texture->TransformUV(Vector2(uvTopCenterStart + uvCenterWidth, uvOffset.y));
+			renderElem.uvs[6] = desc.texture->TransformUV(Vector2(uvTopCenterStart, uvOffset.y + uvTopBorder));
+			renderElem.uvs[7] = desc.texture->TransformUV(Vector2(uvTopCenterStart + uvCenterWidth, uvOffset.y + uvTopBorder));
 
 			// UV - Top right
-			renderElem.uvs[8] = desc.texture->transformUV(Vector2(uvTopRightStart, uvOffset.y));
-			renderElem.uvs[9] = desc.texture->transformUV(Vector2(uvTopRightStart + uvRightBorder, uvOffset.y));
-			renderElem.uvs[10] = desc.texture->transformUV(Vector2(uvTopRightStart, uvOffset.y + uvTopBorder));
-			renderElem.uvs[11] = desc.texture->transformUV(Vector2(uvTopRightStart + uvRightBorder, uvOffset.y + uvTopBorder));
+			renderElem.uvs[8] = desc.texture->TransformUV(Vector2(uvTopRightStart, uvOffset.y));
+			renderElem.uvs[9] = desc.texture->TransformUV(Vector2(uvTopRightStart + uvRightBorder, uvOffset.y));
+			renderElem.uvs[10] = desc.texture->TransformUV(Vector2(uvTopRightStart, uvOffset.y + uvTopBorder));
+			renderElem.uvs[11] = desc.texture->TransformUV(Vector2(uvTopRightStart + uvRightBorder, uvOffset.y + uvTopBorder));
 
 			// UV - Middle left
-			renderElem.uvs[12] = desc.texture->transformUV(Vector2(uvOffset.x, uvMiddleStart));
-			renderElem.uvs[13] = desc.texture->transformUV(Vector2(uvOffset.x + uvLeftBorder, uvMiddleStart));
-			renderElem.uvs[14] = desc.texture->transformUV(Vector2(uvOffset.x, uvMiddleStart + uvCenterHeight));
-			renderElem.uvs[15] = desc.texture->transformUV(Vector2(uvOffset.x + uvLeftBorder, uvMiddleStart + uvCenterHeight));
+			renderElem.uvs[12] = desc.texture->TransformUV(Vector2(uvOffset.x, uvMiddleStart));
+			renderElem.uvs[13] = desc.texture->TransformUV(Vector2(uvOffset.x + uvLeftBorder, uvMiddleStart));
+			renderElem.uvs[14] = desc.texture->TransformUV(Vector2(uvOffset.x, uvMiddleStart + uvCenterHeight));
+			renderElem.uvs[15] = desc.texture->TransformUV(Vector2(uvOffset.x + uvLeftBorder, uvMiddleStart + uvCenterHeight));
 
 			// UV - Middle center
-			renderElem.uvs[16] = desc.texture->transformUV(Vector2(uvTopCenterStart, uvMiddleStart));
-			renderElem.uvs[17] = desc.texture->transformUV(Vector2(uvTopCenterStart + uvCenterWidth, uvMiddleStart));
-			renderElem.uvs[18] = desc.texture->transformUV(Vector2(uvTopCenterStart, uvMiddleStart + uvCenterHeight));
-			renderElem.uvs[19] = desc.texture->transformUV(Vector2(uvTopCenterStart + uvCenterWidth, uvMiddleStart + uvCenterHeight));
+			renderElem.uvs[16] = desc.texture->TransformUV(Vector2(uvTopCenterStart, uvMiddleStart));
+			renderElem.uvs[17] = desc.texture->TransformUV(Vector2(uvTopCenterStart + uvCenterWidth, uvMiddleStart));
+			renderElem.uvs[18] = desc.texture->TransformUV(Vector2(uvTopCenterStart, uvMiddleStart + uvCenterHeight));
+			renderElem.uvs[19] = desc.texture->TransformUV(Vector2(uvTopCenterStart + uvCenterWidth, uvMiddleStart + uvCenterHeight));
 
 			// UV - Middle right
-			renderElem.uvs[20] = desc.texture->transformUV(Vector2(uvTopRightStart, uvMiddleStart));
-			renderElem.uvs[21] = desc.texture->transformUV(Vector2(uvTopRightStart + uvRightBorder, uvMiddleStart));
-			renderElem.uvs[22] = desc.texture->transformUV(Vector2(uvTopRightStart, uvMiddleStart + uvCenterHeight));
-			renderElem.uvs[23] = desc.texture->transformUV(Vector2(uvTopRightStart + uvRightBorder, uvMiddleStart + uvCenterHeight));
+			renderElem.uvs[20] = desc.texture->TransformUV(Vector2(uvTopRightStart, uvMiddleStart));
+			renderElem.uvs[21] = desc.texture->TransformUV(Vector2(uvTopRightStart + uvRightBorder, uvMiddleStart));
+			renderElem.uvs[22] = desc.texture->TransformUV(Vector2(uvTopRightStart, uvMiddleStart + uvCenterHeight));
+			renderElem.uvs[23] = desc.texture->TransformUV(Vector2(uvTopRightStart + uvRightBorder, uvMiddleStart + uvCenterHeight));
 
 			// UV - Bottom left
-			renderElem.uvs[24] = desc.texture->transformUV(Vector2(uvOffset.x, uvBottomStart));
-			renderElem.uvs[25] = desc.texture->transformUV(Vector2(uvOffset.x + uvLeftBorder, uvBottomStart));
-			renderElem.uvs[26] = desc.texture->transformUV(Vector2(uvOffset.x, uvBottomStart + uvBottomBorder));
-			renderElem.uvs[27] = desc.texture->transformUV(Vector2(uvOffset.x + uvLeftBorder, uvBottomStart + uvBottomBorder));
+			renderElem.uvs[24] = desc.texture->TransformUV(Vector2(uvOffset.x, uvBottomStart));
+			renderElem.uvs[25] = desc.texture->TransformUV(Vector2(uvOffset.x + uvLeftBorder, uvBottomStart));
+			renderElem.uvs[26] = desc.texture->TransformUV(Vector2(uvOffset.x, uvBottomStart + uvBottomBorder));
+			renderElem.uvs[27] = desc.texture->TransformUV(Vector2(uvOffset.x + uvLeftBorder, uvBottomStart + uvBottomBorder));
 
 			// UV - Bottom center
-			renderElem.uvs[28] = desc.texture->transformUV(Vector2(uvTopCenterStart, uvBottomStart));
-			renderElem.uvs[29] = desc.texture->transformUV(Vector2(uvTopCenterStart + uvCenterWidth, uvBottomStart));
-			renderElem.uvs[30] = desc.texture->transformUV(Vector2(uvTopCenterStart, uvBottomStart + uvBottomBorder));
-			renderElem.uvs[31] = desc.texture->transformUV(Vector2(uvTopCenterStart + uvCenterWidth, uvBottomStart + uvBottomBorder));
+			renderElem.uvs[28] = desc.texture->TransformUV(Vector2(uvTopCenterStart, uvBottomStart));
+			renderElem.uvs[29] = desc.texture->TransformUV(Vector2(uvTopCenterStart + uvCenterWidth, uvBottomStart));
+			renderElem.uvs[30] = desc.texture->TransformUV(Vector2(uvTopCenterStart, uvBottomStart + uvBottomBorder));
+			renderElem.uvs[31] = desc.texture->TransformUV(Vector2(uvTopCenterStart + uvCenterWidth, uvBottomStart + uvBottomBorder));
 
 			// UV - Bottom right
-			renderElem.uvs[32] = desc.texture->transformUV(Vector2(uvTopRightStart, uvBottomStart));
-			renderElem.uvs[33] = desc.texture->transformUV(Vector2(uvTopRightStart + uvRightBorder, uvBottomStart));
-			renderElem.uvs[34] = desc.texture->transformUV(Vector2(uvTopRightStart, uvBottomStart + uvBottomBorder));
-			renderElem.uvs[35] = desc.texture->transformUV(Vector2(uvTopRightStart + uvRightBorder, uvBottomStart + uvBottomBorder));
+			renderElem.uvs[32] = desc.texture->TransformUV(Vector2(uvTopRightStart, uvBottomStart));
+			renderElem.uvs[33] = desc.texture->TransformUV(Vector2(uvTopRightStart + uvRightBorder, uvBottomStart));
+			renderElem.uvs[34] = desc.texture->TransformUV(Vector2(uvTopRightStart, uvBottomStart + uvBottomBorder));
+			renderElem.uvs[35] = desc.texture->TransformUV(Vector2(uvTopRightStart + uvRightBorder, uvBottomStart + uvBottomBorder));
 		}
 		else
 		{
@@ -227,10 +227,10 @@ namespace bs
 			renderElem.vertices[2] = Vector2((float)offset.x, (float)offset.y + desc.height);
 			renderElem.vertices[3] = Vector2((float)offset.x + desc.width, (float)offset.y + desc.height);
 
-			renderElem.uvs[0] = desc.texture->transformUV(Vector2(uvOffset.x, uvOffset.y));
-			renderElem.uvs[1] = desc.texture->transformUV(Vector2(uvOffset.x + uvScale.x, uvOffset.y));
-			renderElem.uvs[2] = desc.texture->transformUV(Vector2(uvOffset.x, uvOffset.y + uvScale.y));
-			renderElem.uvs[3] = desc.texture->transformUV(Vector2(uvOffset.x + uvScale.x, uvOffset.y + uvScale.y));
+			renderElem.uvs[0] = desc.texture->TransformUV(Vector2(uvOffset.x, uvOffset.y));
+			renderElem.uvs[1] = desc.texture->TransformUV(Vector2(uvOffset.x + uvScale.x, uvOffset.y));
+			renderElem.uvs[2] = desc.texture->TransformUV(Vector2(uvOffset.x, uvOffset.y + uvScale.y));
+			renderElem.uvs[3] = desc.texture->TransformUV(Vector2(uvOffset.x + uvScale.x, uvOffset.y + uvScale.y));
 		}
 
 		updateBounds();
@@ -262,7 +262,7 @@ namespace bs
 			}
 		}
 
-		mCachedRenderElements.clear();
+		mCachedRenderElements.Clear();
 		updateBounds();
 	}
 

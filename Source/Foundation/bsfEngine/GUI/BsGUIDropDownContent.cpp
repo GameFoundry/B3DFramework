@@ -25,7 +25,7 @@ namespace bs
 		const String& style, const GUIDimensions& dimensions)
 		: GUIElementContainer(dimensions, style), mDropDownData(dropDownData), mStates(dropDownData.states)
 		, MSelectedIdx(UINT_MAX), mRangeStart(0), mRangeEnd(0), mParent(parent), mKeyboardFocus(true)
-		, MIsToggle(parent->getType() == GUIDropDownType::MultiListBox)
+		, MIsToggle(parent->GetType() == GUIDropDownType::MultiListBox)
 	{
 
 	}
@@ -57,16 +57,16 @@ namespace bs
 		{
 			GUIDropDownDataEntry& element = mDropDownData.entries[visElem.idx];
 
-			if (element.isSeparator())
-				visElem.separator->setStyle(getSubStyleName(SEPARATOR_STYLE_TYPE));
-			else if (element.isSubMenu())
-				visElem.button->setStyle(getSubStyleName(ENTRY_EXP_STYLE_TYPE));
+			if (element.IsSeparator())
+				visElem.separator->SetStyle(getSubStyleName(SEPARATOR_STYLE_TYPE));
+			else if (element.IsSubMenu())
+				visElem.button->SetStyle(getSubStyleName(ENTRY_EXP_STYLE_TYPE));
 			else
 			{
 				if (mIsToggle)
-					visElem.button->setStyle(getSubStyleName(ENTRY_TOGGLE_STYLE_TYPE));
+					visElem.button->SetStyle(getSubStyleName(ENTRY_TOGGLE_STYLE_TYPE));
 				else
-					visElem.button->setStyle(getSubStyleName(ENTRY_STYLE_TYPE));
+					visElem.button->SetStyle(getSubStyleName(ENTRY_STYLE_TYPE));
 			}
 		}
 	}
@@ -77,7 +77,7 @@ namespace bs
 			[&](UINT32 idx, UINT32 visIdx)
 		{
 			setSelected(visIdx);
-			mParent->elementSelected(idx);
+			mParent->ElementSelected(idx);
 		};
 
 		std::function<void(UINT32, UINT32)> onClick =
@@ -88,7 +88,7 @@ namespace bs
 			if (mIsToggle)
 				mStates[idx] = !mStates[idx];
 
-			mParent->elementActivated(idx, mVisibleElements[visIdx].button->_getLayoutData().area);
+			mParent->ElementActivated(idx, mVisibleElements[visIdx].button->_getLayoutData().area);
 		};
 
 		// Remove all elements
@@ -107,24 +107,24 @@ namespace bs
 		if (mSelectedIdx != UINT_MAX && mSelectedIdx >= range)
 			mSelectedIdx = UINT_MAX;
 
-		mVisibleElements.clear();
+		mVisibleElements.Clear();
 		UINT32 curVisIdx = 0;
 		for (UINT32 i = start; i < end; i++)
 		{
 			mVisibleElements.push_back(VisibleElement());
-			VisibleElement& visElem = mVisibleElements.back();
+			VisibleElement& visElem = mVisibleElements.Back();
 			visElem.idx = i;
 			GUIDropDownDataEntry& element = mDropDownData.entries[i];
 
-			if (element.isSeparator())
+			if (element.IsSeparator())
 			{
 				visElem.separator = GUITexture::create(TextureScaleMode::StretchToFit, getSubStyleName(SEPARATOR_STYLE_TYPE));
 				_registerChildElement(visElem.separator);
 			}
-			else if (element.isSubMenu())
+			else if (element.IsSubMenu())
 			{
 				visElem.button = GUIButton::create(getElementLocalizedName(i), getSubStyleName(ENTRY_EXP_STYLE_TYPE));
-				visElem.button->onHover.connect(std::bind(onClick, i, curVisIdx));
+				visElem.button->onHover.Connect(std::bind(onClick, i, curVisIdx));
 				_registerChildElement(visElem.button);
 			}
 			else
@@ -133,19 +133,19 @@ namespace bs
 				{
 					GUIToggle* toggle = GUIToggle::create(getElementLocalizedName(i), getSubStyleName(ENTRY_TOGGLE_STYLE_TYPE));
 					if (mStates[i])
-						toggle->toggleOn();
+						toggle->ToggleOn();
 
 					visElem.button = toggle;					
 				}
 				else
 					visElem.button = GUIButton::create(getElementLocalizedName(i), getSubStyleName(ENTRY_STYLE_TYPE));
 
-				visElem.button->onHover.connect(std::bind(onHover, i, curVisIdx));
-				visElem.button->onClick.connect(std::bind(onClick, i, curVisIdx));
+				visElem.button->onHover.Connect(std::bind(onHover, i, curVisIdx));
+				visElem.button->onClick.Connect(std::bind(onClick, i, curVisIdx));
 				_registerChildElement(visElem.button);
 
-				const String& shortcutTag = element.getShortcutTag();
-				if (!shortcutTag.empty())
+				const String& shortcutTag = element.GetShortcutTag();
+				if (!shortcutTag.Empty())
 				{
 					visElem.shortcutLabel = GUILabel::create(HString(shortcutTag), "RightAlignedLabel");
 					_registerChildElement(visElem.shortcutLabel);
@@ -163,25 +163,25 @@ namespace bs
 		if (_getParentWidget() == nullptr)
 			return 14; // Arbitrary
 
-		if (mDropDownData.entries[idx].isSeparator())
-			return _getParentWidget()->getSkin().getStyle(getSubStyleName(SEPARATOR_STYLE_TYPE))->height;
-		else if (mDropDownData.entries[idx].isSubMenu())
-			return _getParentWidget()->getSkin().getStyle(getSubStyleName(ENTRY_EXP_STYLE_TYPE))->height;
+		if (mDropDownData.entries[idx].IsSeparator())
+			return _getParentWidget()->GetSkin().GetStyle(getSubStyleName(SEPARATOR_STYLE_TYPE))->height;
+		else if (mDropDownData.entries[idx].IsSubMenu())
+			return _getParentWidget()->GetSkin().GetStyle(getSubStyleName(ENTRY_EXP_STYLE_TYPE))->height;
 		else
 		{
 			if (mIsToggle)
-				return _getParentWidget()->getSkin().getStyle(getSubStyleName(ENTRY_TOGGLE_STYLE_TYPE))->height;
+				return _getParentWidget()->GetSkin().GetStyle(getSubStyleName(ENTRY_TOGGLE_STYLE_TYPE))->height;
 			else
-				return _getParentWidget()->getSkin().getStyle(getSubStyleName(ENTRY_STYLE_TYPE))->height;
+				return _getParentWidget()->GetSkin().GetStyle(getSubStyleName(ENTRY_STYLE_TYPE))->height;
 		}
 	}
 
 	HString GUIDropDownContent::GetElementLocalizedName(UINT32 idx) const
 	{
-		const String& label = mDropDownData.entries[idx].getLabel();
+		const String& label = mDropDownData.entries[idx].GetLabel();
 
-		auto findLocalizedName = mDropDownData.localizedNames.find(label);
-		if (findLocalizedName != mDropDownData.localizedNames.end())
+		auto findLocalizedName = mDropDownData.localizedNames.Find(label);
+		if (findLocalizedName != mDropDownData.localizedNames.End())
 			return findLocalizedName->second;
 		else
 			return HString(label);
@@ -200,7 +200,7 @@ namespace bs
 		if (!mKeyboardFocus)
 			return baseReturn;
 
-		switch (ev.getType())
+		switch (ev.GetType())
 		{
 		case GUICommandEventType::MoveDown:
 			if (mSelectedIdx == UINT_MAX)
@@ -216,7 +216,7 @@ namespace bs
 			return true;
 		case GUICommandEventType::Escape:
 		case GUICommandEventType::MoveLeft:
-			mParent->close();
+			mParent->Close();
 			return true;
 		case GUICommandEventType::MoveRight:
 		{
@@ -225,8 +225,8 @@ namespace bs
 			else
 			{
 				GUIDropDownDataEntry& entry = mDropDownData.entries[mVisibleElements[mSelectedIdx].idx];
-				if (entry.isSubMenu())
-					mParent->elementActivated(mVisibleElements[mSelectedIdx].idx, mVisibleElements[mSelectedIdx].button->_getLayoutData().area);
+				if (entry.IsSubMenu())
+					mParent->ElementActivated(mVisibleElements[mSelectedIdx].idx, mVisibleElements[mSelectedIdx].button->_getLayoutData().area);
 			}
 		}
 			return true;
@@ -238,7 +238,7 @@ namespace bs
 				if (mIsToggle)
 					mVisibleElements[mSelectedIdx].button->_setOn(!mVisibleElements[mSelectedIdx].button->_isOn());
 
-				mParent->elementActivated(mVisibleElements[mSelectedIdx].idx, mVisibleElements[mSelectedIdx].button->_getLayoutData().area);
+				mParent->ElementActivated(mVisibleElements[mSelectedIdx].idx, mVisibleElements[mSelectedIdx].button->_getLayoutData().area);
 			}
 			return true;
 		default:
@@ -250,12 +250,12 @@ namespace bs
 
 	bool GUIDropDownContent::_mouseEvent(const GUIMouseEvent& ev)
 	{
-		if (ev.getType() == GUIMouseEventType::MouseWheelScroll)
+		if (ev.GetType() == GUIMouseEventType::MouseWheelScroll)
 		{
-			if (ev.getWheelScrollAmount() < 0)
-				mParent->scrollDown();
+			if (ev.GetWheelScrollAmount() < 0)
+				mParent->ScrollDown();
 			else
-				mParent->scrollUp();
+				mParent->ScrollUp();
 
 			return true;
 		}
@@ -279,12 +279,12 @@ namespace bs
 		else
 			mVisibleElements[mSelectedIdx].button->_setState(GUIElementState::Hover);
 
-		mParent->elementSelected(mVisibleElements[mSelectedIdx].idx);
+		mParent->ElementSelected(mVisibleElements[mSelectedIdx].idx);
 	}
 
 	void GUIDropDownContent::SelectNext(UINT32 startIdx)
 	{
-		UINT32 numElements = (UINT32)mDropDownData.entries.size();
+		UINT32 numElements = (UINT32)mDropDownData.entries.Size();
 
 		bool gotNextIndex = false;
 		UINT32 nextIdx = startIdx;
@@ -294,7 +294,7 @@ namespace bs
 				nextIdx = 0; // Wrap around
 
 			GUIDropDownDataEntry& entry = mDropDownData.entries[nextIdx];
-			if (!entry.isSeparator())
+			if (!entry.IsSeparator())
 			{
 				gotNextIndex = true;
 				break;
@@ -306,7 +306,7 @@ namespace bs
 		if (gotNextIndex)
 		{
 			while (nextIdx < mRangeStart || nextIdx >= mRangeEnd)
-				mParent->scrollDown();
+				mParent->ScrollDown();
 
 			UINT32 visIdx = 0;
 			for (auto& visElem : mVisibleElements)
@@ -324,7 +324,7 @@ namespace bs
 
 	void GUIDropDownContent::SelectPrevious(UINT32 startIdx)
 	{
-		UINT32 numElements = (UINT32)mDropDownData.entries.size();
+		UINT32 numElements = (UINT32)mDropDownData.entries.Size();
 
 		bool gotNextIndex = false;
 		INT32 prevIdx = (INT32)startIdx;
@@ -335,7 +335,7 @@ namespace bs
 				prevIdx = numElements - 1; // Wrap around
 
 			GUIDropDownDataEntry& entry = mDropDownData.entries[prevIdx];
-			if (!entry.isSeparator())
+			if (!entry.IsSeparator())
 			{
 				gotNextIndex = true;
 				break;
@@ -347,7 +347,7 @@ namespace bs
 		if (gotNextIndex)
 		{
 			while (prevIdx < (INT32)mRangeStart || prevIdx >= (INT32)mRangeEnd)
-				mParent->scrollUp();
+				mParent->ScrollUp();
 
 			UINT32 visIdx = 0;
 			for (auto& visElem : mVisibleElements)
@@ -372,7 +372,7 @@ namespace bs
 
 			optimalSize.y += (INT32)getElementHeight(visElem.idx);
 
-			if (element.isSeparator())
+			if (element.IsSeparator())
 				optimalSize.x = std::max(optimalSize.x, visElem.separator->_getOptimalSize().x);
 			else
 				optimalSize.x = std::max(optimalSize.x, visElem.button->_getOptimalSize().x);
@@ -391,7 +391,7 @@ namespace bs
 			const GUIDropDownDataEntry& element = mDropDownData.entries[visElem.idx];
 
 			GUIElement* guiMainElement = nullptr;
-			if (element.isSeparator())
+			if (element.IsSeparator())
 				guiMainElement = visElem.separator;
 			else
 				guiMainElement = visElem.button;

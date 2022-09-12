@@ -17,19 +17,19 @@ namespace bs
 			SPtr<MaterialParamsType> params = material->_getInternalParams();
 
 			UINT32 paramIndex;
-			auto result = params->getParamIndex(name, MaterialParams::ParamType::Data, (GpuParamDataType)DATA_TYPE, 0,
+			auto result = params->GetParamIndex(name, MaterialParams::ParamType::Data, (GpuParamDataType)DATA_TYPE, 0,
 				paramIndex);
 
 			if (result == MaterialParams::GetParamResult::Success)
 			{
-				const MaterialParams::ParamData* data = params->getParamData(paramIndex);
+				const MaterialParams::ParamData* data = params->GetParamData(paramIndex);
 
 				mMaterial = material;
 				mParamIndex = paramIndex;
 				mArraySize = data->arraySize;
 			}
 			else
-				params->reportGetParamError(result, name, 0);
+				params->ReportGetParamError(result, name, 0);
 		}
 	}
 
@@ -47,9 +47,9 @@ namespace bs
 		}
 
 		SPtr<typename Base::MaterialParamsType> params = this->mMaterial->_getInternalParams();
-		const MaterialParams::ParamData* data = params->getParamData(this->mParamIndex);
+		const MaterialParams::ParamData* data = params->GetParamData(this->mParamIndex);
 
-		params->setDataParam(*data, arrayIdx, value);
+		params->SetDataParam(*data, arrayIdx, value);
 		this->mMaterial->_markCoreDirty();
 	}
 
@@ -61,9 +61,9 @@ namespace bs
 			return output;
 
 		SPtr<typename Base::MaterialParamsType> params = this->mMaterial->_getInternalParams();
-		const MaterialParams::ParamData* data = params->getParamData(this->mParamIndex);
+		const MaterialParams::ParamData* data = params->GetParamData(this->mParamIndex);
 
-		params->getDataParam(*data, arrayIdx, output);
+		params->GetDataParam(*data, arrayIdx, output);
 		return output;
 	}
 
@@ -81,9 +81,9 @@ namespace bs
 		}
 
 		SPtr<typename Base::MaterialParamsType> params = this->mMaterial->_getInternalParams();
-		const MaterialParams::ParamData* data = params->getParamData(this->mParamIndex);
+		const MaterialParams::ParamData* data = params->GetParamData(this->mParamIndex);
 
-		params->setCurveParam(*data, arrayIdx, std::move(value));
+		params->SetCurveParam(*data, arrayIdx, std::move(value));
 		this->mMaterial->_markCoreDirty();
 	}
 
@@ -96,7 +96,7 @@ namespace bs
 			return EMPTY_CURVE;
 
 		SPtr<typename Base::MaterialParamsType> params = this->mMaterial->_getInternalParams();
-		const MaterialParams::ParamData* data = params->getParamData(this->mParamIndex);
+		const MaterialParams::ParamData* data = params->GetParamData(this->mParamIndex);
 
 		return params->template getCurveParam<T>(*data, arrayIdx);
 	}
@@ -115,9 +115,9 @@ namespace bs
 		}
 
 		SPtr<typename Base::MaterialParamsType> params = this->mMaterial->_getInternalParams();
-		const MaterialParams::ParamData* data = params->getParamData(this->mParamIndex);
+		const MaterialParams::ParamData* data = params->GetParamData(this->mParamIndex);
 
-		params->setColorGradientParam(*data, arrayIdx, value);
+		params->SetColorGradientParam(*data, arrayIdx, value);
 		this->mMaterial->_markCoreDirty();
 	}
 
@@ -130,9 +130,9 @@ namespace bs
 			return EMPTY_GRADIENT;
 
 		SPtr<typename Base::MaterialParamsType> params = this->mMaterial->_getInternalParams();
-		const MaterialParams::ParamData* data = params->getParamData(this->mParamIndex);
+		const MaterialParams::ParamData* data = params->GetParamData(this->mParamIndex);
 
-		return params->getColorGradientParam(*data, arrayIdx);
+		return params->GetColorGradientParam(*data, arrayIdx);
 	}
 
 	template<bool Core>
@@ -149,9 +149,9 @@ namespace bs
 		}
 
 		SPtr<typename Base::MaterialParamsType> params = this->mMaterial->_getInternalParams();
-		const MaterialParams::ParamData* data = params->getParamData(this->mParamIndex);
+		const MaterialParams::ParamData* data = params->GetParamData(this->mParamIndex);
 
-		params->setStructData(*data, value, sizeBytes, arrayIdx);
+		params->SetStructData(*data, value, sizeBytes, arrayIdx);
 		this->mMaterial->_markCoreDirty();
 	}
 
@@ -162,9 +162,9 @@ namespace bs
 			return;
 
 		SPtr<typename Base::MaterialParamsType> params = this->mMaterial->_getInternalParams();
-		const MaterialParams::ParamData* data = params->getParamData(this->mParamIndex);
+		const MaterialParams::ParamData* data = params->GetParamData(this->mParamIndex);
 
-		params->getStructData(*data, value, sizeBytes, arrayIdx);
+		params->GetStructData(*data, value, sizeBytes, arrayIdx);
 	}
 
 	template<bool Core>
@@ -174,9 +174,9 @@ namespace bs
 			return 0;
 
 		SPtr<typename Base::MaterialParamsType> params = this->mMaterial->_getInternalParams();
-		const MaterialParams::ParamData* data = params->getParamData(this->mParamIndex);
+		const MaterialParams::ParamData* data = params->GetParamData(this->mParamIndex);
 
-		return params->getStructSize(*data);
+		return params->GetStructSize(*data);
 	}
 
 	template<bool Core>
@@ -188,7 +188,7 @@ namespace bs
 			SPtr<MaterialParamsType> params = material->_getInternalParams();
 
 			UINT32 paramIndex;
-			auto result = params->getParamIndex(name, MaterialParams::ParamType::Texture, GPDT_UNKNOWN, 0, paramIndex);
+			auto result = params->GetParamIndex(name, MaterialParams::ParamType::Texture, GPDT_UNKNOWN, 0, paramIndex);
 
 			if (result == MaterialParams::GetParamResult::Success)
 			{
@@ -196,7 +196,7 @@ namespace bs
 				mParamIndex = paramIndex;
 			}
 			else
-				params->reportGetParamError(result, name, 0);
+				params->ReportGetParamError(result, name, 0);
 		}
 	}
 
@@ -207,14 +207,14 @@ namespace bs
 			return;
 
 		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
-		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+		const MaterialParams::ParamData* data = params->GetParamData(mParamIndex);
 
 		// If there is a default value, assign that instead of null
 		TextureType newValue = texture;
 		if (newValue == nullptr)
-			params->getDefaultTexture(*data, newValue);
+			params->GetDefaultTexture(*data, newValue);
 
-		params->setTexture(*data, newValue, surface);
+		params->SetTexture(*data, newValue, surface);
 		mMaterial->_markCoreDirty();
 		mMaterial->_markDependenciesDirty();
 		mMaterial->_markResourcesDirty();
@@ -230,9 +230,9 @@ namespace bs
 		TextureSurface surface;
 
 		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
-		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+		const MaterialParams::ParamData* data = params->GetParamData(mParamIndex);
 
-		params->getTexture(*data, texture, surface);
+		params->GetTexture(*data, texture, surface);
 		return texture;
 	}
 	
@@ -245,7 +245,7 @@ namespace bs
 			SPtr<MaterialParamsType> params = material->_getInternalParams();
 
 			UINT32 paramIndex;
-			auto result = params->getParamIndex(name, MaterialParams::ParamType::Texture, GPDT_UNKNOWN, 0, paramIndex);
+			auto result = params->GetParamIndex(name, MaterialParams::ParamType::Texture, GPDT_UNKNOWN, 0, paramIndex);
 
 			if (result == MaterialParams::GetParamResult::Success)
 			{
@@ -253,7 +253,7 @@ namespace bs
 				mParamIndex = paramIndex;
 			}
 			else
-				params->reportGetParamError(result, name, 0);
+				params->ReportGetParamError(result, name, 0);
 		}
 	}
 
@@ -264,17 +264,17 @@ namespace bs
 			return;
 
 		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
-		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+		const MaterialParams::ParamData* data = params->GetParamData(mParamIndex);
 
 		if(texture == nullptr)
 		{
 			// If there is a default value, assign that instead of null
 			TextureType newValue;
-			params->getDefaultTexture(*data, newValue);
-			params->setTexture(*data, newValue, TextureSurface::COMPLETE);
+			params->GetDefaultTexture(*data, newValue);
+			params->SetTexture(*data, newValue, TextureSurface::COMPLETE);
 		}
 		else
-			params->setSpriteTexture(*data, texture);
+			params->SetSpriteTexture(*data, texture);
 		
 		mMaterial->_markCoreDirty();
 		mMaterial->_markDependenciesDirty();
@@ -289,9 +289,9 @@ namespace bs
 			return texture;
 
 		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
-		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+		const MaterialParams::ParamData* data = params->GetParamData(mParamIndex);
 
-		params->getSpriteTexture(*data, texture);
+		params->GetSpriteTexture(*data, texture);
 		return texture;
 	}
 
@@ -305,7 +305,7 @@ namespace bs
 			SPtr<MaterialParamsType> params = material->_getInternalParams();
 
 			UINT32 paramIndex;
-			auto result = params->getParamIndex(name, MaterialParams::ParamType::Texture, GPDT_UNKNOWN, 0, paramIndex);
+			auto result = params->GetParamIndex(name, MaterialParams::ParamType::Texture, GPDT_UNKNOWN, 0, paramIndex);
 
 			if (result == MaterialParams::GetParamResult::Success)
 			{
@@ -313,7 +313,7 @@ namespace bs
 				mParamIndex = paramIndex;
 			}
 			else
-				params->reportGetParamError(result, name, 0);
+				params->ReportGetParamError(result, name, 0);
 		}
 	}
 
@@ -324,9 +324,9 @@ namespace bs
 			return;
 
 		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
-		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+		const MaterialParams::ParamData* data = params->GetParamData(mParamIndex);
 
-		params->setLoadStoreTexture(*data, texture, surface);
+		params->SetLoadStoreTexture(*data, texture, surface);
 		mMaterial->_markCoreDirty();
 		mMaterial->_markDependenciesDirty();
 		mMaterial->_markResourcesDirty();
@@ -342,9 +342,9 @@ namespace bs
 		TextureSurface surface;
 
 		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
-		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+		const MaterialParams::ParamData* data = params->GetParamData(mParamIndex);
 
-		params->getLoadStoreTexture(*data, texture, surface);
+		params->GetLoadStoreTexture(*data, texture, surface);
 
 		return texture;
 	}
@@ -358,7 +358,7 @@ namespace bs
 			SPtr<MaterialParamsType> params = material->_getInternalParams();
 
 			UINT32 paramIndex;
-			auto result = params->getParamIndex(name, MaterialParams::ParamType::Buffer, GPDT_UNKNOWN, 0, paramIndex);
+			auto result = params->GetParamIndex(name, MaterialParams::ParamType::Buffer, GPDT_UNKNOWN, 0, paramIndex);
 
 			if (result == MaterialParams::GetParamResult::Success)
 			{
@@ -366,7 +366,7 @@ namespace bs
 				mParamIndex = paramIndex;
 			}
 			else
-				params->reportGetParamError(result, name, 0);
+				params->ReportGetParamError(result, name, 0);
 		}
 	}
 
@@ -377,9 +377,9 @@ namespace bs
 			return;
 
 		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
-		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+		const MaterialParams::ParamData* data = params->GetParamData(mParamIndex);
 
-		params->setBuffer(*data, buffer);
+		params->SetBuffer(*data, buffer);
 		mMaterial->_markCoreDirty();
 		mMaterial->_markDependenciesDirty();
 	}
@@ -392,8 +392,8 @@ namespace bs
 			return buffer;
 
 		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
-		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
-		params->getBuffer(*data, buffer);
+		const MaterialParams::ParamData* data = params->GetParamData(mParamIndex);
+		params->GetBuffer(*data, buffer);
 
 		return buffer;
 	}
@@ -407,7 +407,7 @@ namespace bs
 			SPtr<MaterialParamsType> params = material->_getInternalParams();
 
 			UINT32 paramIndex;
-			auto result = params->getParamIndex(name, MaterialParams::ParamType::Sampler, GPDT_UNKNOWN, 0, paramIndex);
+			auto result = params->GetParamIndex(name, MaterialParams::ParamType::Sampler, GPDT_UNKNOWN, 0, paramIndex);
 
 			if (result == MaterialParams::GetParamResult::Success)
 			{
@@ -415,7 +415,7 @@ namespace bs
 				mParamIndex = paramIndex;
 			}
 			else
-				params->reportGetParamError(result, name, 0);
+				params->ReportGetParamError(result, name, 0);
 		}
 	}
 
@@ -426,14 +426,14 @@ namespace bs
 			return;
 
 		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
-		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+		const MaterialParams::ParamData* data = params->GetParamData(mParamIndex);
 
 		// If there is a default value, assign that instead of null
 		SamplerStateType newValue = sampState;
 		if (newValue == nullptr)
-			params->getDefaultSamplerState(*data, newValue);
+			params->GetDefaultSamplerState(*data, newValue);
 
-		params->setSamplerState(*data, newValue);
+		params->SetSamplerState(*data, newValue);
 		mMaterial->_markCoreDirty();
 		mMaterial->_markDependenciesDirty();
 	}
@@ -446,9 +446,9 @@ namespace bs
 			return samplerState;
 
 		SPtr<MaterialParamsType> params = mMaterial->_getInternalParams();
-		const MaterialParams::ParamData* data = params->getParamData(mParamIndex);
+		const MaterialParams::ParamData* data = params->GetParamData(mParamIndex);
 
-		params->getSamplerState(*data, samplerState);
+		params->GetSamplerState(*data, samplerState);
 		return samplerState;
 	}
 

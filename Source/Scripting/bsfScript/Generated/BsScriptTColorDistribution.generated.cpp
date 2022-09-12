@@ -17,16 +17,16 @@ namespace bs
 
 	void ScriptTColorDistributionColorGradient::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_TColorDistribution", (void*)&ScriptTColorDistributionColorGradient::Internal_TColorDistribution);
-		metaData.scriptClass->addInternalCall("Internal_TColorDistribution0", (void*)&ScriptTColorDistributionColorGradient::Internal_TColorDistribution0);
-		metaData.scriptClass->addInternalCall("Internal_TColorDistribution1", (void*)&ScriptTColorDistributionColorGradient::Internal_TColorDistribution1);
-		metaData.scriptClass->addInternalCall("Internal_TColorDistribution2", (void*)&ScriptTColorDistributionColorGradient::Internal_TColorDistribution2);
-		metaData.scriptClass->addInternalCall("Internal_TColorDistribution3", (void*)&ScriptTColorDistributionColorGradient::Internal_TColorDistribution3);
-		metaData.scriptClass->addInternalCall("Internal_getType", (void*)&ScriptTColorDistributionColorGradient::Internal_getType);
-		metaData.scriptClass->addInternalCall("Internal_getMinConstant", (void*)&ScriptTColorDistributionColorGradient::Internal_getMinConstant);
-		metaData.scriptClass->addInternalCall("Internal_getMaxConstant", (void*)&ScriptTColorDistributionColorGradient::Internal_getMaxConstant);
-		metaData.scriptClass->addInternalCall("Internal_getMinGradient", (void*)&ScriptTColorDistributionColorGradient::Internal_getMinGradient);
-		metaData.scriptClass->addInternalCall("Internal_getMaxGradient", (void*)&ScriptTColorDistributionColorGradient::Internal_getMaxGradient);
+		metaData.scriptClass->AddInternalCall("Internal_TColorDistribution", (void*)&ScriptTColorDistributionColorGradient::Internal_TColorDistribution);
+		metaData.scriptClass->AddInternalCall("Internal_TColorDistribution0", (void*)&ScriptTColorDistributionColorGradient::Internal_TColorDistribution0);
+		metaData.scriptClass->AddInternalCall("Internal_TColorDistribution1", (void*)&ScriptTColorDistributionColorGradient::Internal_TColorDistribution1);
+		metaData.scriptClass->AddInternalCall("Internal_TColorDistribution2", (void*)&ScriptTColorDistributionColorGradient::Internal_TColorDistribution2);
+		metaData.scriptClass->AddInternalCall("Internal_TColorDistribution3", (void*)&ScriptTColorDistributionColorGradient::Internal_TColorDistribution3);
+		metaData.scriptClass->AddInternalCall("Internal_getType", (void*)&ScriptTColorDistributionColorGradient::Internal_getType);
+		metaData.scriptClass->AddInternalCall("Internal_getMinConstant", (void*)&ScriptTColorDistributionColorGradient::Internal_getMinConstant);
+		metaData.scriptClass->AddInternalCall("Internal_getMaxConstant", (void*)&ScriptTColorDistributionColorGradient::Internal_getMaxConstant);
+		metaData.scriptClass->AddInternalCall("Internal_getMinGradient", (void*)&ScriptTColorDistributionColorGradient::Internal_getMinGradient);
+		metaData.scriptClass->AddInternalCall("Internal_getMaxGradient", (void*)&ScriptTColorDistributionColorGradient::Internal_getMaxGradient);
 
 	}
 
@@ -37,7 +37,7 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.scriptClass->createInstance("bool", ctorParams);
+		MonoObject* managedInstance = metaData.scriptClass->CreateInstance("bool", ctorParams);
 		new (bs_alloc<ScriptTColorDistributionColorGradient>()) ScriptTColorDistributionColorGradient(managedInstance, value);
 		return managedInstance;
 	}
@@ -65,7 +65,7 @@ namespace bs
 		ScriptColorGradient* scriptgradient;
 		scriptgradient = ScriptColorGradient::toNative(gradient);
 		if(scriptgradient != nullptr)
-			tmpgradient = scriptgradient->getInternal();
+			tmpgradient = scriptgradient->GetInternal();
 		SPtr<TColorDistribution<ColorGradient>> instance = bs_shared_ptr_new<TColorDistribution<ColorGradient>>(*tmpgradient);
 		new (bs_alloc<ScriptTColorDistributionColorGradient>())ScriptTColorDistributionColorGradient(managedInstance, instance);
 	}
@@ -76,12 +76,12 @@ namespace bs
 		ScriptColorGradient* scriptminGradient;
 		scriptminGradient = ScriptColorGradient::toNative(minGradient);
 		if(scriptminGradient != nullptr)
-			tmpminGradient = scriptminGradient->getInternal();
+			tmpminGradient = scriptminGradient->GetInternal();
 		SPtr<ColorGradient> tmpmaxGradient;
 		ScriptColorGradient* scriptmaxGradient;
 		scriptmaxGradient = ScriptColorGradient::toNative(maxGradient);
 		if(scriptmaxGradient != nullptr)
-			tmpmaxGradient = scriptmaxGradient->getInternal();
+			tmpmaxGradient = scriptmaxGradient->GetInternal();
 		SPtr<TColorDistribution<ColorGradient>> instance = bs_shared_ptr_new<TColorDistribution<ColorGradient>>(*tmpminGradient, *tmpmaxGradient);
 		new (bs_alloc<ScriptTColorDistributionColorGradient>())ScriptTColorDistributionColorGradient(managedInstance, instance);
 	}
@@ -89,7 +89,7 @@ namespace bs
 	PropertyDistributionType ScriptTColorDistributionColorGradient::Internal_getType(ScriptTColorDistributionColorGradient* thisPtr)
 	{
 		PropertyDistributionType tmp__output;
-		tmp__output = thisPtr->getInternal()->getType();
+		tmp__output = thisPtr->GetInternal()->getType();
 
 		PropertyDistributionType __output;
 		__output = tmp__output;
@@ -100,7 +100,7 @@ namespace bs
 	void ScriptTColorDistributionColorGradient::Internal_getMinConstant(ScriptTColorDistributionColorGradient* thisPtr, Color* __output)
 	{
 		Color tmp__output;
-		tmp__output = thisPtr->getInternal()->getMinConstant();
+		tmp__output = thisPtr->GetInternal()->getMinConstant();
 
 		*__output = tmp__output;
 	}
@@ -108,7 +108,7 @@ namespace bs
 	void ScriptTColorDistributionColorGradient::Internal_getMaxConstant(ScriptTColorDistributionColorGradient* thisPtr, Color* __output)
 	{
 		Color tmp__output;
-		tmp__output = thisPtr->getInternal()->getMaxConstant();
+		tmp__output = thisPtr->GetInternal()->getMaxConstant();
 
 		*__output = tmp__output;
 	}
@@ -116,7 +116,7 @@ namespace bs
 	MonoObject* ScriptTColorDistributionColorGradient::Internal_getMinGradient(ScriptTColorDistributionColorGradient* thisPtr)
 	{
 		SPtr<ColorGradient> tmp__output = bs_shared_ptr_new<ColorGradient>();
-		*tmp__output = thisPtr->getInternal()->getMinGradient();
+		*tmp__output = thisPtr->GetInternal()->getMinGradient();
 
 		MonoObject* __output;
 		__output = ScriptColorGradient::create(tmp__output);
@@ -127,7 +127,7 @@ namespace bs
 	MonoObject* ScriptTColorDistributionColorGradient::Internal_getMaxGradient(ScriptTColorDistributionColorGradient* thisPtr)
 	{
 		SPtr<ColorGradient> tmp__output = bs_shared_ptr_new<ColorGradient>();
-		*tmp__output = thisPtr->getInternal()->getMaxGradient();
+		*tmp__output = thisPtr->GetInternal()->getMaxGradient();
 
 		MonoObject* __output;
 		__output = ScriptColorGradient::create(tmp__output);
@@ -142,16 +142,16 @@ namespace bs
 
 	void ScriptTColorDistributionColorGradientHDR::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_TColorDistribution", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_TColorDistribution);
-		metaData.scriptClass->addInternalCall("Internal_TColorDistribution0", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_TColorDistribution0);
-		metaData.scriptClass->addInternalCall("Internal_TColorDistribution1", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_TColorDistribution1);
-		metaData.scriptClass->addInternalCall("Internal_TColorDistribution2", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_TColorDistribution2);
-		metaData.scriptClass->addInternalCall("Internal_TColorDistribution3", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_TColorDistribution3);
-		metaData.scriptClass->addInternalCall("Internal_getType", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_getType);
-		metaData.scriptClass->addInternalCall("Internal_getMinConstant", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_getMinConstant);
-		metaData.scriptClass->addInternalCall("Internal_getMaxConstant", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_getMaxConstant);
-		metaData.scriptClass->addInternalCall("Internal_getMinGradient", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_getMinGradient);
-		metaData.scriptClass->addInternalCall("Internal_getMaxGradient", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_getMaxGradient);
+		metaData.scriptClass->AddInternalCall("Internal_TColorDistribution", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_TColorDistribution);
+		metaData.scriptClass->AddInternalCall("Internal_TColorDistribution0", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_TColorDistribution0);
+		metaData.scriptClass->AddInternalCall("Internal_TColorDistribution1", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_TColorDistribution1);
+		metaData.scriptClass->AddInternalCall("Internal_TColorDistribution2", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_TColorDistribution2);
+		metaData.scriptClass->AddInternalCall("Internal_TColorDistribution3", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_TColorDistribution3);
+		metaData.scriptClass->AddInternalCall("Internal_getType", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_getType);
+		metaData.scriptClass->AddInternalCall("Internal_getMinConstant", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_getMinConstant);
+		metaData.scriptClass->AddInternalCall("Internal_getMaxConstant", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_getMaxConstant);
+		metaData.scriptClass->AddInternalCall("Internal_getMinGradient", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_getMinGradient);
+		metaData.scriptClass->AddInternalCall("Internal_getMaxGradient", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_getMaxGradient);
 
 	}
 
@@ -162,7 +162,7 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.scriptClass->createInstance("bool", ctorParams);
+		MonoObject* managedInstance = metaData.scriptClass->CreateInstance("bool", ctorParams);
 		new (bs_alloc<ScriptTColorDistributionColorGradientHDR>()) ScriptTColorDistributionColorGradientHDR(managedInstance, value);
 		return managedInstance;
 	}
@@ -190,7 +190,7 @@ namespace bs
 		ScriptColorGradientHDR* scriptgradient;
 		scriptgradient = ScriptColorGradientHDR::toNative(gradient);
 		if(scriptgradient != nullptr)
-			tmpgradient = scriptgradient->getInternal();
+			tmpgradient = scriptgradient->GetInternal();
 		SPtr<TColorDistribution<ColorGradientHDR>> instance = bs_shared_ptr_new<TColorDistribution<ColorGradientHDR>>(*tmpgradient);
 		new (bs_alloc<ScriptTColorDistributionColorGradientHDR>())ScriptTColorDistributionColorGradientHDR(managedInstance, instance);
 	}
@@ -201,12 +201,12 @@ namespace bs
 		ScriptColorGradientHDR* scriptminGradient;
 		scriptminGradient = ScriptColorGradientHDR::toNative(minGradient);
 		if(scriptminGradient != nullptr)
-			tmpminGradient = scriptminGradient->getInternal();
+			tmpminGradient = scriptminGradient->GetInternal();
 		SPtr<ColorGradientHDR> tmpmaxGradient;
 		ScriptColorGradientHDR* scriptmaxGradient;
 		scriptmaxGradient = ScriptColorGradientHDR::toNative(maxGradient);
 		if(scriptmaxGradient != nullptr)
-			tmpmaxGradient = scriptmaxGradient->getInternal();
+			tmpmaxGradient = scriptmaxGradient->GetInternal();
 		SPtr<TColorDistribution<ColorGradientHDR>> instance = bs_shared_ptr_new<TColorDistribution<ColorGradientHDR>>(*tmpminGradient, *tmpmaxGradient);
 		new (bs_alloc<ScriptTColorDistributionColorGradientHDR>())ScriptTColorDistributionColorGradientHDR(managedInstance, instance);
 	}
@@ -214,7 +214,7 @@ namespace bs
 	PropertyDistributionType ScriptTColorDistributionColorGradientHDR::Internal_getType(ScriptTColorDistributionColorGradientHDR* thisPtr)
 	{
 		PropertyDistributionType tmp__output;
-		tmp__output = thisPtr->getInternal()->getType();
+		tmp__output = thisPtr->GetInternal()->getType();
 
 		PropertyDistributionType __output;
 		__output = tmp__output;
@@ -225,7 +225,7 @@ namespace bs
 	void ScriptTColorDistributionColorGradientHDR::Internal_getMinConstant(ScriptTColorDistributionColorGradientHDR* thisPtr, Color* __output)
 	{
 		Color tmp__output;
-		tmp__output = thisPtr->getInternal()->getMinConstant();
+		tmp__output = thisPtr->GetInternal()->getMinConstant();
 
 		*__output = tmp__output;
 	}
@@ -233,7 +233,7 @@ namespace bs
 	void ScriptTColorDistributionColorGradientHDR::Internal_getMaxConstant(ScriptTColorDistributionColorGradientHDR* thisPtr, Color* __output)
 	{
 		Color tmp__output;
-		tmp__output = thisPtr->getInternal()->getMaxConstant();
+		tmp__output = thisPtr->GetInternal()->getMaxConstant();
 
 		*__output = tmp__output;
 	}
@@ -241,7 +241,7 @@ namespace bs
 	MonoObject* ScriptTColorDistributionColorGradientHDR::Internal_getMinGradient(ScriptTColorDistributionColorGradientHDR* thisPtr)
 	{
 		SPtr<ColorGradientHDR> tmp__output = bs_shared_ptr_new<ColorGradientHDR>();
-		*tmp__output = thisPtr->getInternal()->getMinGradient();
+		*tmp__output = thisPtr->GetInternal()->getMinGradient();
 
 		MonoObject* __output;
 		__output = ScriptColorGradientHDR::create(tmp__output);
@@ -252,7 +252,7 @@ namespace bs
 	MonoObject* ScriptTColorDistributionColorGradientHDR::Internal_getMaxGradient(ScriptTColorDistributionColorGradientHDR* thisPtr)
 	{
 		SPtr<ColorGradientHDR> tmp__output = bs_shared_ptr_new<ColorGradientHDR>();
-		*tmp__output = thisPtr->getInternal()->getMaxGradient();
+		*tmp__output = thisPtr->GetInternal()->getMaxGradient();
 
 		MonoObject* __output;
 		__output = ScriptColorGradientHDR::create(tmp__output);

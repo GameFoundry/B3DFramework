@@ -39,12 +39,12 @@ namespace bs
 
 		SPtr<ManagedSerializableFieldData> GetListEntry(ManagedSerializableList* obj, UINT32 arrayIdx)
 		{
-			return obj->getFieldData(arrayIdx);
+			return obj->GetFieldData(arrayIdx);
 		}
 
 		void SetListEntry(ManagedSerializableList* obj, UINT32 arrayIdx, SPtr<ManagedSerializableFieldData> val)
 		{
-			obj->setFieldData(arrayIdx, val);
+			obj->SetFieldData(arrayIdx, val);
 		}
 
 		UINT32 GetNumListEntries(ManagedSerializableList* obj)

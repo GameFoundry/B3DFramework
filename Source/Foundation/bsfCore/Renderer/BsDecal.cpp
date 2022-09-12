@@ -41,8 +41,8 @@ namespace bs
 			return;
 
 		mTransform = transform;
-		mTfrmMatrix = transform.getMatrix();
-		mTfrmMatrixNoScale = Matrix4::TRS(transform.getPosition(), transform.getRotation(), Vector3::ONE);
+		mTfrmMatrix = transform.GetMatrix();
+		mTfrmMatrixNoScale = Matrix4::TRS(transform.GetPosition(), transform.getRotation(), Vector3::ONE);
 
 		_markCoreDirty(ActorDirtyFlag::Transform);
 	}
@@ -56,9 +56,9 @@ namespace bs
 			Vector3(extents.x, extents.y, 0.0f)
 		);
 
-		localAABB.transformAffine(mTfrmMatrix);
+		localAABB.TransformAffine(mTfrmMatrix);
 
-		mBounds = Bounds(localAABB, Sphere(localAABB.getCenter(), localAABB.getRadius()));
+		mBounds = Bounds(localAABB, Sphere(localAABB.GetCenter(), localAABB.getRadius()));
 	}
 
 	template <bool Core>
@@ -90,7 +90,7 @@ namespace bs
 		Decal* decal = new (bs_alloc<Decal>()) Decal(material, size, maxDistance);
 		SPtr<Decal> decalPtr = bs_core_ptr<Decal>(decal);
 		decalPtr->_setThisPtr(decalPtr);
-		decalPtr->initialize();
+		decalPtr->Initialize();
 
 		return decalPtr;
 	}
@@ -107,8 +107,8 @@ namespace bs
 	SPtr<ct::CoreObject> Decal::CreateCore() const
 	{
 		SPtr<ct::Material> material;
-		if(mMaterial.isLoaded(false))
-			material = mMaterial->getCore();
+		if(mMaterial.IsLoaded(false))
+			material = mMaterial->GetCore();
 
 		ct::Decal* decal = new (bs_alloc<ct::Decal>()) ct::Decal(material, mSize, mMaxDistance);
 		SPtr<ct::Decal> decalPtr = bs_shared_ptr<ct::Decal>(decal);
@@ -119,8 +119,8 @@ namespace bs
 
 	void Decal::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 	{
-		if (mMaterial.isLoaded())
-			dependencies.push_back(mMaterial.get());
+		if (mMaterial.IsLoaded())
+			dependencies.push_back(mMaterial.Get());
 	}
 
 	CoreSyncData Decal::SyncToCore(FrameAlloc* allocator)
@@ -130,7 +130,7 @@ namespace bs
 		size += csync_size((SceneActor&)*this);
 		size += csync_size(*this);
 
-		UINT8* buffer = allocator->alloc(size);
+		UINT8* buffer = allocator->Alloc(size);
 
 		Bitstream Stream(buffer, size);
 		rtti_write(getCoreDirtyFlags(), stream);
@@ -166,20 +166,20 @@ namespace bs
 
 	Decal::~Decal()
 	{
-		gRenderer()->notifyDecalRemoved(this);
+		gRenderer()->NotifyDecalRemoved(this);
 	}
 
 	void Decal::Initialize()
 	{
 		updateBounds();
-		gRenderer()->notifyDecalAdded(this);
+		gRenderer()->NotifyDecalAdded(this);
 
 		CoreObject::initialize();
 	}
 
 	void Decal::SyncToCore(const CoreSyncData& data)
 	{
-		Bitstream Stream(data.getBuffer(), data.getBufferSize());
+		Bitstream Stream(data.GetBuffer(), data.getBufferSize());
 
 		UINT32 dirtyFlags = 0;
 		bool oldIsActive = mActive;
@@ -188,29 +188,29 @@ namespace bs
 		csync_read((SceneActor&)*this, stream);
 		csync_read(*this, stream);
 
-		mTfrmMatrix = mTransform.getMatrix();
-		mTfrmMatrixNoScale = Matrix4::TRS(mTransform.getPosition(), mTransform.getRotation(), Vector3::ONE);
+		mTfrmMatrix = mTransform.GetMatrix();
+		mTfrmMatrixNoScale = Matrix4::TRS(mTransform.GetPosition(), mTransform.getRotation(), Vector3::ONE);
 
 		updateBounds();
 
 		if (dirtyFlags == (UINT32)ActorDirtyFlag::Transform)
 		{
 			if (mActive)
-				gRenderer()->notifyDecalUpdated(this);
+				gRenderer()->NotifyDecalUpdated(this);
 		}
 		else
 		{
 			if (oldIsActive != mActive)
 			{
 				if (mActive)
-					gRenderer()->notifyDecalAdded(this);
+					gRenderer()->NotifyDecalAdded(this);
 				else
-					gRenderer()->notifyDecalRemoved(this);
+					gRenderer()->NotifyDecalRemoved(this);
 			}
 			else
 			{
-				gRenderer()->notifyDecalRemoved(this);
-				gRenderer()->notifyDecalAdded(this);
+				gRenderer()->NotifyDecalRemoved(this);
+				gRenderer()->NotifyDecalAdded(this);
 			}
 		}
 	}

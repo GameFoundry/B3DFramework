@@ -12,7 +12,7 @@ namespace bs
 	{
 		if(mRenderAPIInitialized)
 		{
-			ct::RenderAPI::instance().destroy();
+			ct::RenderAPI::instance().Destroy();
 			ct::RenderAPI::shutDown();
 		}
 	}
@@ -22,24 +22,24 @@ namespace bs
 		if(mRenderAPIInitialized)
 			return nullptr;
 
-		DynLib* loadedLibrary = gDynLibManager().load(pluginFilename);
+		DynLib* loadedLibrary = gDynLibManager().Load(pluginFilename);
 		const char* name = "";
 
 		if(loadedLibrary != nullptr)
 		{
 			typedef const char* (*GetPluginNameFunc)();
 
-			GetPluginNameFunc getPluginNameFunc = (GetPluginNameFunc)loadedLibrary->getSymbol("getPluginName");
+			GetPluginNameFunc getPluginNameFunc = (GetPluginNameFunc)loadedLibrary->GetSymbol("getPluginName");
 			name = getPluginNameFunc();
 		}
 
-		for(auto iter = mAvailableFactories.begin(); iter != mAvailableFactories.end(); ++iter)
+		for(auto iter = mAvailableFactories.Begin(); iter != mAvailableFactories.end(); ++iter)
 		{
-			if(strcmp((*iter)->name(), name) == 0)
+			if(strcmp((*iter)->Name(), name) == 0)
 			{
-				(*iter)->create();		
+				(*iter)->Create();
 				mRenderAPIInitialized = true;
-				return ct::RenderAPI::instance().initialize(primaryWindowDesc);
+				return ct::RenderAPI::instance().Initialize(primaryWindowDesc);
 			}
 		}
 

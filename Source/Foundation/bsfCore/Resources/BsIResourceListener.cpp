@@ -7,16 +7,16 @@ namespace bs
 {
 	IResourceListener::IResourceListener()
 	{
-		ResourceListenerManager::instance().registerListener(this);
+		ResourceListenerManager::instance().RegisterListener(this);
 	}
 
 	IResourceListener::~IResourceListener()
 	{
-		ResourceListenerManager::instance().unregisterListener(this);
+		ResourceListenerManager::instance().UnregisterListener(this);
 	}
 
 	void IResourceListener::MarkListenerResourcesDirty()
 	{
-		ResourceListenerManager::instance().markListenerDirty(this);
+		ResourceListenerManager::instance().MarkListenerDirty(this);
 	}
 }

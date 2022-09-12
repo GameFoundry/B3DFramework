@@ -147,7 +147,7 @@ namespace bs
 		{
 			::MonoClass* returnClass = mono_class_from_mono_type(returnType);
 			if (returnClass != nullptr)
-				mCachedReturnType = MonoManager::instance().findClass(returnClass);
+				mCachedReturnType = MonoManager::instance().FindClass(returnClass);
 		}
 
 		mCachedNumParameters = (UINT32)mono_signature_get_param_count(methodSignature);
@@ -166,7 +166,7 @@ namespace bs
 			{
 				MonoType* curParamType = mono_signature_get_params(methodSignature, &iter);
 				::MonoClass* rawClass = mono_class_from_mono_type(curParamType);
-				mCachedParameters[i] = MonoManager::instance().findClass(rawClass);
+				mCachedParameters[i] = MonoManager::instance().FindClass(rawClass);
 			}
 		}
 

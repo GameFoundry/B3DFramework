@@ -137,14 +137,14 @@ namespace bs
 		DenseMap(const DenseMap<Key, Value>& other)
 		{
 			mCount = 0;
-			if (!other.empty())
+			if (!other.Empty())
 				copy(other);
 		}
 
 		DenseMap(DenseMap<Key, Value>&& other)
 		{
 			mCount = 0;
-			if (!other.empty())
+			if (!other.Empty())
 				copy(std::move(other));
 		}
 
@@ -182,8 +182,8 @@ namespace bs
 
 		bool operator== (const DenseMap<Key, Value>& other) const
 		{
-			if (this->size() != other.size()) return false;
-			return std::Equal(this->begin(), this->end(), other.begin());
+			if (this->Size() != other.Size()) return false;
+			return std::Equal(this->Begin(), this->end(), other.Begin());
 		}
 
 		bool operator!= (const DenseMap<Key, Value>& other) const
@@ -353,18 +353,18 @@ namespace bs
 				}
 			}
 
-			mEntries = other.size();
-			mTombstones = other.getTombstones();
+			mEntries = other.Size();
+			mTombstones = other.GetTombstones();
 
 			if (getCount())
 				bs_free(mBuckets);
 
-			mBuckets = bs_allocN<DensePair>(other.getCount());
+			mBuckets = bs_allocN<DensePair>(other.GetCount());
 
 			if (std::is_pod<Key>() && std::is_pod<Value>())
-				memcpy(getBuckets(), other.getBuckets(), other.getCount() * sizeof(DensePair));
+				memcpy(getBuckets(), other.GetBuckets(), other.getCount() * sizeof(DensePair));
 			else
-				for (UINT32 i = 0; i < other.getCount(); ++i)
+				for (UINT32 i = 0; i < other.GetCount(); ++i)
 				{
 					new (&mBuckets[i].first) Key(other.mBuckets[i].first);
 
@@ -372,7 +372,7 @@ namespace bs
 						new (&mBuckets[i].second) Value(other.mBuckets[i].second);
 				}
 
-			mCount = other.getCount();
+			mCount = other.GetCount();
 		}
 
 		DensePair* insertBucket(const Key& key, const Value& value, DensePair* temp)
@@ -383,7 +383,7 @@ namespace bs
 			// table is completely filled with tombstones, no lookup would ever succeed, making init loops in lookup.
 			if (size() * 4 >= getCount() * 3 || getCount() - (size() + getTombstones()) < getCount() / 8)
 			{
-				this->grow(getCount() * 2);
+				this->Grow(getCount() * 2);
 				lookup(key, temp);
 			}
 

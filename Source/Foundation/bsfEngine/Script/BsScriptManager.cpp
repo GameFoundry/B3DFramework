@@ -9,24 +9,24 @@ namespace bs
 	ScriptManager::ScriptManager()
 	{
 		if (sScriptLibrary)
-			sScriptLibrary->initialize();
+			sScriptLibrary->Initialize();
 	}
 
 	ScriptManager::~ScriptManager()
 	{
 		if (sScriptLibrary)
-			sScriptLibrary->destroy();
+			sScriptLibrary->Destroy();
 	}
 
 	void ScriptManager::Update()
 	{
 		if(sScriptLibrary)
-			sScriptLibrary->update();
+			sScriptLibrary->Update();
 	}
 
 	void ScriptManager::Reload()
 	{
 		if (sScriptLibrary)
-			sScriptLibrary->reload();
+			sScriptLibrary->Reload();
 	}
 }

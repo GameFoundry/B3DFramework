@@ -103,7 +103,7 @@ namespace bs
 									modelName << " " << token;
 							}
 
-							output.cpuModel = modelName.str().c_str();
+							output.cpuModel = modelName.Str().c_str();
 						}
 					}
 				}
@@ -151,7 +151,7 @@ namespace bs
 				}
 
 				// Ignore the rest of the line
-				file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+				file.Ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 			}
 		}
 
@@ -177,14 +177,14 @@ namespace bs
 	{
 		UErrorCode errorCode = U_ZERO_ERROR;
 
-		auto inputLen = (int32_t)input.size();
+		auto inputLen = (int32_t)input.Size();
 		int32_t bufferLen = 0;
-		u_strFromUTF8(nullptr, 0, &bufferLen, input.data(), inputLen, &errorCode);
+		u_strFromUTF8(nullptr, 0, &bufferLen, input.Data(), inputLen, &errorCode);
 
 		auto uStr = bs_stack_alloc<UChar>((UINT32)bufferLen);
 		int32_t uStrLen = 0;
 		errorCode = U_ZERO_ERROR;
-		u_strFromUTF8(uStr, bufferLen * sizeof(UChar), &uStrLen, input.data(), inputLen, &errorCode);
+		u_strFromUTF8(uStr, bufferLen * sizeof(UChar), &uStrLen, input.Data(), inputLen, &errorCode);
 
 		errorCode = U_ZERO_ERROR;
 		if(toUpper)

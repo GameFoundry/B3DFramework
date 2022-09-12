@@ -73,7 +73,7 @@ namespace bs { namespace ct
 		 * Returns the total number of tiles used by this particle system. This may include inactive tiles unless you have
 		 * freed them using freeInactiveTiles earlier.
 		 */
-		UINT32 GetNumTiles() const { return (UINT32)mTiles.size(); }
+		UINT32 GetNumTiles() const { return (UINT32)mTiles.Size(); }
 
 		/** Rebuilds ths internal buffers that contain tile UVs and per-particle UVs. */
 		void UpdateGpuBuffers();

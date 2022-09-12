@@ -33,7 +33,7 @@ namespace bs
 
 #if BS_IS_BANSHEE3D
 		MonoManager::startUp();
-		MonoAssembly& engineAssembly = MonoManager::instance().loadAssembly(engineAssemblyPath.toString(), ENGINE_ASSEMBLY);
+		MonoAssembly& engineAssembly = MonoManager::instance().LoadAssembly(engineAssemblyPath.toString(), ENGINE_ASSEMBLY);
 #endif
 
 		PlayInEditor::startUp();
@@ -53,18 +53,18 @@ namespace bs
 		mEngineTypeMappings.components = BuiltinComponent::getEntries();
 		mEngineTypeMappings.reflectableObjects = BuiltinReflectableTypes::getEntries();
 
-		ScriptAssemblyManager::instance().loadAssemblyInfo(ENGINE_ASSEMBLY, mEngineTypeMappings);
+		ScriptAssemblyManager::instance().LoadAssemblyInfo(ENGINE_ASSEMBLY, mEngineTypeMappings);
 
 #if BS_IS_BANSHEE3D
-		engineAssembly.invoke(ASSEMBLY_ENTRY_POINT);
+		engineAssembly.Invoke(ASSEMBLY_ENTRY_POINT);
 #endif
 	}
 
 	void EngineScriptLibrary::Update()
 	{
 		ScriptScene::update();
-		PlayInEditor::instance().update();
-		ScriptObjectManager::instance().update();
+		PlayInEditor::instance().Update();
+		ScriptObjectManager::instance().Update();
 		ScriptGUI::update();
 	}
 
@@ -83,15 +83,15 @@ namespace bs
 			if (FileSystem::exists(gameAssemblyPath))
 				assemblies.push_back(AssemblyRefreshInfo(SCRIPT_GAME_ASSEMBLY, &gameAssemblyPath, &BuiltinTypeMappings::EMPTY));
 
-			ScriptObjectManager::instance().refreshAssemblies(assemblies);
+			ScriptObjectManager::instance().RefreshAssemblies(assemblies);
 		}
 		else // Otherwise just additively load them
 		{
 			Path gameAssemblyPath = getGameAssemblyPath();
 			if (FileSystem::exists(gameAssemblyPath))
 			{
-				MonoManager::instance().loadAssembly(gameAssemblyPath.toString(), SCRIPT_GAME_ASSEMBLY);
-				ScriptAssemblyManager::instance().loadAssemblyInfo(SCRIPT_GAME_ASSEMBLY, BuiltinTypeMappings());
+				MonoManager::instance().LoadAssembly(gameAssemblyPath.toString(), SCRIPT_GAME_ASSEMBLY);
+				ScriptAssemblyManager::instance().LoadAssemblyInfo(SCRIPT_GAME_ASSEMBLY, BuiltinTypeMappings());
 			}
 
 			mScriptAssembliesLoaded = true;
@@ -107,9 +107,9 @@ namespace bs
 
 	void EngineScriptLibrary::UnloadAssemblies()
 	{
-		ManagedResourceManager::instance().clear();
-		MonoManager::instance().unloadScriptDomain();
-		ScriptObjectManager::instance().processFinalizedObjects();
+		ManagedResourceManager::instance().Clear();
+		MonoManager::instance().UnloadScriptDomain();
+		ScriptObjectManager::instance().ProcessFinalizedObjects();
 	}
 
 	void EngineScriptLibrary::ShutdownModules()
@@ -123,7 +123,7 @@ namespace bs
 #if BS_IS_BANSHEE3D
 		MonoManager::shutDown();
 #else
-		MonoManager::instance().unloadAll();
+		MonoManager::instance().UnloadAll();
 #endif
 
 		ScriptGameObjectManager::shutDown();
@@ -135,13 +135,13 @@ namespace bs
 		PlayInEditor::shutDown();
 
 		// Make sure all GUI elements are actually destroyed
-		GUIManager::instance().processDestroyQueue();
+		GUIManager::instance().ProcessDestroyQueue();
 	}
 
 	Path EngineScriptLibrary::GetEngineAssemblyPath() const
 	{
 		Path assemblyPath = getBuiltinAssemblyFolder();
-		assemblyPath.append(String(ENGINE_ASSEMBLY) + ".dll");
+		assemblyPath.Append(String(ENGINE_ASSEMBLY) + ".dll");
 
 		return assemblyPath;
 	}
@@ -150,7 +150,7 @@ namespace bs
 	Path EngineScriptLibrary::GetGameAssemblyPath() const
 	{
 		Path assemblyPath = getScriptAssemblyFolder();
-		assemblyPath.append(String(SCRIPT_GAME_ASSEMBLY) + ".dll");
+		assemblyPath.Append(String(SCRIPT_GAME_ASSEMBLY) + ".dll");
 
 		return assemblyPath;
 	}

@@ -11,9 +11,9 @@ namespace
 	{
 		using namespace bs;
 #if !BS_FORCE_SINGLETHREADED_RENDERING
-		if(data->isLocked())
+		if(data->IsLocked())
 		{
-			if(BS_THREAD_CURRENT_ID != CoreThread::instance().getCoreThreadId())
+			if(BS_THREAD_CURRENT_ID != CoreThread::instance().GetCoreThreadId())
 				BS_EXCEPT(InternalErrorException, "You are not allowed to access buffer data from non-core thread when the buffer is locked.");
 		}
 #endif
@@ -55,7 +55,7 @@ namespace bs
 
 		freeInternalBuffer();
 
-		mData = data.release();
+		mData = data.Release();
 		mOwnsData = true;
 	}
 

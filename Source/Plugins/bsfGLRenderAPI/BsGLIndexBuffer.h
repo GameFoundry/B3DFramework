@@ -19,7 +19,7 @@ namespace bs { namespace ct
 		GLIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/**	Returns internal OpenGL index buffer handle. */
-		GLuint GetGLBufferId() const { return static_cast<GLHardwareBuffer*>(mBuffer)->getGLBufferId(); }
+		GLuint GetGLBufferId() const { return static_cast<GLHardwareBuffer*>(mBuffer)->GetGLBufferId(); }
 
 	protected:
 		/** @copydoc IndexBuffer::initialize */

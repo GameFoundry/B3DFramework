@@ -8,7 +8,7 @@ namespace bs
 {
 	HString::HString()
 	{
-		mStringData = StringTableManager::instance().getTable(0)->getStringData(u8"");
+		mStringData = StringTableManager::instance().GetTable(0)->GetStringData(u8"");
 
 		if (mStringData->numParameters > 0)
 			mParameters = bs_newN<String>(mStringData->numParameters);
@@ -16,7 +16,7 @@ namespace bs
 
 	HString::HString(UINT32 stringTableId)
 	{
-		mStringData = StringTableManager::instance().getTable(stringTableId)->getStringData(u8"");
+		mStringData = StringTableManager::instance().GetTable(stringTableId)->GetStringData(u8"");
 
 		if (mStringData->numParameters > 0)
 			mParameters = bs_newN<String>(mStringData->numParameters);
@@ -24,7 +24,7 @@ namespace bs
 
 	HString::HString(const String& identifierString, UINT32 stringTableId)
 	{
-		mStringData = StringTableManager::instance().getTable(stringTableId)->getStringData(identifierString);
+		mStringData = StringTableManager::instance().GetTable(stringTableId)->GetStringData(identifierString);
 
 		if (mStringData->numParameters > 0)
 			mParameters = bs_newN<String>(mStringData->numParameters);
@@ -32,10 +32,10 @@ namespace bs
 
 	HString::HString(const String& identifierString, const String& defaultString, UINT32 stringTableId)
 	{
-		HStringTable table = StringTableManager::instance().getTable(stringTableId);
-		table->setString(identifierString, StringTable::DEFAULT_LANGUAGE, defaultString);
+		HStringTable table = StringTableManager::instance().GetTable(stringTableId);
+		table->SetString(identifierString, StringTable::DEFAULT_LANGUAGE, defaultString);
 
-		mStringData = table->getStringData(identifierString);
+		mStringData = table->GetStringData(identifierString);
 
 		if (mStringData->numParameters > 0)
 			mParameters = bs_newN<String>(mStringData->numParameters);
@@ -114,7 +114,7 @@ namespace bs
 		{
 			if (mParameters != nullptr)
 			{
-				mStringData->concatenateString(mCachedString, mParameters, mStringData->numParameters);
+				mStringData->ConcatenateString(mCachedString, mParameters, mStringData->numParameters);
 				mStringPtr = &mCachedString;
 			}
 			else

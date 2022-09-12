@@ -14,9 +14,9 @@ namespace bs
 
 	void ScriptTemporalAASettings::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_TemporalAASettings", (void*)&ScriptTemporalAASettings::Internal_TemporalAASettings);
-		metaData.scriptClass->addInternalCall("Internal_getenabled", (void*)&ScriptTemporalAASettings::Internal_getenabled);
-		metaData.scriptClass->addInternalCall("Internal_setenabled", (void*)&ScriptTemporalAASettings::Internal_setenabled);
+		metaData.scriptClass->AddInternalCall("Internal_TemporalAASettings", (void*)&ScriptTemporalAASettings::Internal_TemporalAASettings);
+		metaData.scriptClass->AddInternalCall("Internal_getenabled", (void*)&ScriptTemporalAASettings::Internal_getenabled);
+		metaData.scriptClass->AddInternalCall("Internal_setenabled", (void*)&ScriptTemporalAASettings::Internal_setenabled);
 
 	}
 
@@ -27,7 +27,7 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.scriptClass->createInstance("bool", ctorParams);
+		MonoObject* managedInstance = metaData.scriptClass->CreateInstance("bool", ctorParams);
 		new (bs_alloc<ScriptTemporalAASettings>()) ScriptTemporalAASettings(managedInstance, value);
 		return managedInstance;
 	}
@@ -40,7 +40,7 @@ namespace bs
 	bool ScriptTemporalAASettings::Internal_getenabled(ScriptTemporalAASettings* thisPtr)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->getInternal()->enabled;
+		tmp__output = thisPtr->GetInternal()->enabled;
 
 		bool __output;
 		__output = tmp__output;
@@ -50,6 +50,6 @@ namespace bs
 
 	void ScriptTemporalAASettings::Internal_setenabled(ScriptTemporalAASettings* thisPtr, bool value)
 	{
-		thisPtr->getInternal()->enabled = value;
+		thisPtr->GetInternal()->enabled = value;
 	}
 }

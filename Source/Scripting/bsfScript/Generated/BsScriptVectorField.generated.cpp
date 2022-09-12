@@ -20,8 +20,8 @@ namespace bs
 
 	void ScriptVectorField::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_GetRef", (void*)&ScriptVectorField::Internal_getRef);
-		metaData.scriptClass->addInternalCall("Internal_create", (void*)&ScriptVectorField::Internal_create);
+		metaData.scriptClass->AddInternalCall("Internal_GetRef", (void*)&ScriptVectorField::Internal_getRef);
+		metaData.scriptClass->AddInternalCall("Internal_create", (void*)&ScriptVectorField::Internal_create);
 
 	}
 
@@ -30,11 +30,11 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		return metaData.scriptClass->createInstance("bool", ctorParams);
+		return metaData.scriptClass->CreateInstance("bool", ctorParams);
 	}
 	MonoObject* ScriptVectorField::Internal_getRef(ScriptVectorField* thisPtr)
 	{
-		return thisPtr->getRRef();
+		return thisPtr->GetRRef();
 	}
 
 	void ScriptVectorField::Internal_create(MonoObject* managedInstance, __VECTOR_FIELD_DESCInterop* desc, MonoArray* values)
@@ -45,13 +45,13 @@ namespace bs
 		if(values != nullptr)
 		{
 			ScriptArray Arrayvalues(values);
-			vecvalues.resize(arrayvalues.size());
-			for(int i = 0; i < (int)arrayvalues.size(); i++)
+			vecvalues.Resize(arrayvalues.size());
+			for(int i = 0; i < (int)arrayvalues.Size(); i++)
 			{
 				vecvalues[i] = arrayvalues.get<Vector3>(i);
 			}
 		}
 		ResourceHandle<VectorField> instance = VectorField::create(tmpdesc, vecvalues);
-		ScriptResourceManager::instance().createBuiltinScriptResource(instance, managedInstance);
+		ScriptResourceManager::instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 }

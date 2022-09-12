@@ -45,7 +45,7 @@ namespace bs
 		template<>
 		void ScriptArray_set<Path>(MonoArray* array, UINT32 idx, const Path& value)
 		{
-			MonoString* monoString = MonoUtil::stringToMono(value.toString());
+			MonoString* monoString = MonoUtil::stringToMono(value.ToString());
 			mono_array_setref(array, idx, monoString);
 		}
 
@@ -65,13 +65,13 @@ namespace bs
 	ScriptArray::ScriptArray(MonoClass& klass, UINT32 size)
 		: MInternal(nullptr)
 	{
-		mInternal = mono_array_new(MonoManager::instance().getDomain(), klass._getInternalClass(), size);
+		mInternal = mono_array_new(MonoManager::instance().GetDomain(), klass._getInternalClass(), size);
 	}
 
 	ScriptArray::ScriptArray(::MonoClass* klass, UINT32 size)
 		: MInternal(nullptr)
 	{
-		mInternal = mono_array_new(MonoManager::instance().getDomain(), klass, size);
+		mInternal = mono_array_new(MonoManager::instance().GetDomain(), klass, size);
 	}
 
 	UINT32 ScriptArray::Size() const

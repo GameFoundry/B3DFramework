@@ -35,12 +35,12 @@ int main(int __argc, char* __argv[])
 	SPtr<EngineScriptLibrary> library = bs_shared_ptr_new<EngineScriptLibrary>();
 	ScriptManager::_setScriptLibrary(library);
 
-	Path engineAssemblyPath = library->getEngineAssemblyPath();
+	Path engineAssemblyPath = library->GetEngineAssemblyPath();
 
 	auto& monoManager = MonoManager::instance();
-	bs::MonoAssembly& bsfAssembly = monoManager.loadAssembly(engineAssemblyPath, ENGINE_ASSEMBLY);
-	bs::MonoAssembly& gameAssembly = monoManager.loadAssembly(Path(__argv[1]), __argv[1]);
-	gameAssembly.invoke("Program::Start");
+	bs::MonoAssembly& bsfAssembly = monoManager.LoadAssembly(engineAssemblyPath, ENGINE_ASSEMBLY);
+	bs::MonoAssembly& gameAssembly = monoManager.LoadAssembly(Path(__argv[1]), __argv[1]);
+	gameAssembly.Invoke("Program::Start");
 
 	MonoManager::shutDown();
 	MemStack::endThread();

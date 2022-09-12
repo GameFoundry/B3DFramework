@@ -37,7 +37,7 @@ namespace bs
 		void SetCharIndexRangesOld(FontImportOptions* obj, Vector<std::pair<UINT32, UINT32>>& value)
 		{
 			// If already set it's assumed the new version already populated it
-			if(!obj->charIndexRanges.empty())
+			if(!obj->charIndexRanges.Empty())
 				return;
 
 			for(auto& entry : value)

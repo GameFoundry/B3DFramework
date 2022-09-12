@@ -7,6 +7,6 @@ namespace bs
 {
 	SPtr<PlaneCollider> PlaneCollider::Create(PhysicsScene& scene, const Vector3& position, const Quaternion& rotation)
 	{
-		return scene.createPlaneCollider(position, rotation);
+		return scene.CreatePlaneCollider(position, rotation);
 	}
 }

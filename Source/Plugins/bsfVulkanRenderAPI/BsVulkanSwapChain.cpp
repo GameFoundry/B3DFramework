@@ -14,11 +14,11 @@ namespace bs { namespace ct
 		VulkanSwapChain* oldSwapChain)
 		: VulkanResource(owner, false)
 	{
-		VulkanDevice& device = owner->getDevice();
-		mDevice = device.getLogical();
+		VulkanDevice& device = owner->GetDevice();
+		mDevice = device.GetLogical();
 
 		VkResult result;
-		VkPhysicalDevice physicalDevice = device.getPhysical();
+		VkPhysicalDevice physicalDevice = device.GetPhysical();
 
 		// Determine swap chain dimensions
 		VkSurfaceCapabilitiesKHR surfaceCaps;
@@ -130,7 +130,7 @@ namespace bs { namespace ct
 		imageDesc.numMipLevels = 1;
 		imageDesc.allocation = VK_NULL_HANDLE;
 
-		mSurfaces.resize(numImages);
+		mSurfaces.Resize(numImages);
 		for (UINT32 i = 0; i < numImages; i++)
 		{
 			imageDesc.image = images[i];
@@ -170,7 +170,7 @@ namespace bs { namespace ct
 			imageDesc.image = depthStencilImage;
 			imageDesc.usage = TU_DEPTHSTENCIL;
 			imageDesc.format = depthFormat;
-			imageDesc.allocation = device.allocateMemory(depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+			imageDesc.allocation = device.AllocateMemory(depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 			mDepthStencilImage = owner->create<VulkanImage>(imageDesc, true);
 		}
@@ -190,10 +190,10 @@ namespace bs { namespace ct
 			rpDesc.depth.enabled = true;
 		}
 
-		VulkanRenderPass* renderPass = VulkanRenderPasses::instance().get(mDevice, rpDesc);
+		VulkanRenderPass* renderPass = VulkanRenderPasses::instance().Get(mDevice, rpDesc);
 
 		// Create a framebuffer for each swap chain buffer
-		UINT32 numFramebuffers = (UINT32)mSurfaces.size();
+		UINT32 numFramebuffers = (UINT32)mSurfaces.Size();
 		for (UINT32 i = 0; i < numFramebuffers; i++)
 		{
 			VULKAN_FRAMEBUFFER_DESC& desc = mSurfaces[i].framebufferDesc;
@@ -219,16 +219,16 @@ namespace bs { namespace ct
 			{
 				// Swap chain images only live as long as the swap chain, so its invalid if they are being used somewhere,
 				// and same goes for the framebuffer since it depends on those images.
-				assert(!surface.image->isBound());
-				assert(!surface.framebuffer->isBound());
+				assert(!surface.image->IsBound());
+				assert(!surface.framebuffer->IsBound());
 
-				surface.framebuffer->destroy();
+				surface.framebuffer->Destroy();
 				surface.framebuffer = nullptr;
 
-				surface.image->destroy();
+				surface.image->Destroy();
 				surface.image = nullptr;
 
-				surface.sync->destroy();
+				surface.sync->Destroy();
 				surface.sync = nullptr;
 			}
 
@@ -237,7 +237,7 @@ namespace bs { namespace ct
 
 		if (mDepthStencilImage != nullptr)
 		{
-			mDepthStencilImage->destroy();
+			mDepthStencilImage->Destroy();
 			mDepthStencilImage = nullptr;
 		}
 	}
@@ -247,7 +247,7 @@ namespace bs { namespace ct
 		uint32_t imageIndex;
 
 		VkResult result = vkAcquireNextImageKHR(mDevice, mSwapChain, UINT64_MAX,
-			mSurfaces[mCurrentSemaphoreIdx].sync->getHandle(), VK_NULL_HANDLE, &imageIndex);
+			mSurfaces[mCurrentSemaphoreIdx].sync->GetHandle(), VK_NULL_HANDLE, &imageIndex);
 
 		if(result != VK_SUCCESS)
 			return result;
@@ -257,7 +257,7 @@ namespace bs { namespace ct
 		if(imageIndex != mCurrentSemaphoreIdx)
 			std::swap(mSurfaces[mCurrentSemaphoreIdx].sync, mSurfaces[imageIndex].sync);
 
-		mCurrentSemaphoreIdx = (mCurrentSemaphoreIdx + 1) % mSurfaces.size();
+		mCurrentSemaphoreIdx = (mCurrentSemaphoreIdx + 1) % mSurfaces.Size();
 
 		assert(!mSurfaces[imageIndex].acquired && "Same swap chain surface being acquired twice in a row without present().");
 		mSurfaces[imageIndex].acquired = true;

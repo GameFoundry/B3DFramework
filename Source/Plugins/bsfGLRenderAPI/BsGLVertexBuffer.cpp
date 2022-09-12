@@ -21,8 +21,8 @@ namespace bs { namespace ct
 
 	GLVertexBuffer::~GLVertexBuffer()
 	{
-		while (!mVAObjects.empty())
-			GLVertexArrayObjectManager::instance().notifyBufferDestroyed(mVAObjects[0]);
+		while (!mVAObjects.Empty())
+			GLVertexArrayObjectManager::instance().NotifyBufferDestroyed(mVAObjects[0]);
 	}
 
 	void GLVertexBuffer::Initialize()
@@ -40,9 +40,9 @@ namespace bs { namespace ct
 
 	void GLVertexBuffer::UnregisterVAO(const GLVertexArrayObject& vao)
 	{
-		const auto iterFind = std::find(mVAObjects.begin(), mVAObjects.end(), vao);
+		const auto iterFind = std::find(mVAObjects.Begin(), mVAObjects.end(), vao);
 
-		if (iterFind != mVAObjects.end())
-			mVAObjects.erase(iterFind);
+		if (iterFind != mVAObjects.End())
+			mVAObjects.Erase(iterFind);
 	}
 }}

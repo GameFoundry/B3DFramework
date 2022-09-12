@@ -47,14 +47,14 @@ namespace bs
 	SPtr<ct::CoreObject> DepthStencilState::CreateCore() const
 	{
 		SPtr<ct::DepthStencilState> core = ct::RenderStateManager::instance()._createDepthStencilState(mProperties.mData);
-		mId = core->getId(); // Accessing core from sim thread is okay here since core ID is immutable
+		mId = core->GetId(); // Accessing core from sim thread is okay here since core ID is immutable
 
 		return core;
 	}
 
 	const SPtr<DepthStencilState>& DepthStencilState::GetDefault()
 	{
-		return RenderStateManager::Instance().getDefaultDepthStencilState();
+		return RenderStateManager::Instance().GetDefaultDepthStencilState();
 	}
 
 	const DepthStencilProperties& DepthStencilState::GetProperties() const
@@ -64,7 +64,7 @@ namespace bs
 
 	SPtr<DepthStencilState> DepthStencilState::Create(const DEPTH_STENCIL_STATE_DESC& desc)
 	{
-		return RenderStateManager::Instance().createDepthStencilState(desc);
+		return RenderStateManager::Instance().CreateDepthStencilState(desc);
 	}
 
 	UINT64 DepthStencilState::GenerateHash(const DEPTH_STENCIL_STATE_DESC& desc)
@@ -133,12 +133,12 @@ namespace bs
 
 	SPtr<DepthStencilState> DepthStencilState::Create(const DEPTH_STENCIL_STATE_DESC& desc)
 	{
-		return RenderStateManager::Instance().createDepthStencilState(desc);
+		return RenderStateManager::Instance().CreateDepthStencilState(desc);
 	}
 
 	const SPtr<DepthStencilState>& DepthStencilState::GetDefault()
 	{
-		return RenderStateManager::Instance().getDefaultDepthStencilState();
+		return RenderStateManager::Instance().GetDefaultDepthStencilState();
 	}
 	}
 }

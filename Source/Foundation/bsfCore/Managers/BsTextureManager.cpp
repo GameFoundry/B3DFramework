@@ -13,7 +13,7 @@ namespace bs
 		SPtr<Texture> ret = bs_core_ptr<Texture>(tex);
 
 		ret->_setThisPtr(ret);
-		ret->initialize();
+		ret->Initialize();
 
 		return ret;
 	}
@@ -24,7 +24,7 @@ namespace bs
 		SPtr<Texture> ret = bs_core_ptr<Texture>(tex);
 
 		ret->_setThisPtr(ret);
-		ret->initialize();
+		ret->Initialize();
 
 		return ret;
 	}
@@ -77,7 +77,7 @@ namespace bs
 	{
 		SPtr<RenderTexture> newRT = createRenderTextureImpl(desc);
 		newRT->_setThisPtr(newRT);
-		newRT->initialize();
+		newRT->Initialize();
 
 		return newRT;
 	}
@@ -97,24 +97,24 @@ namespace bs
 		SPtr<Texture> whiteTexture = createTexture(desc);
 
 		SPtr<PixelData> whitePixelData = PixelData::create(2, 2, 1, PF_RGBA8);
-		whitePixelData->setColorAt(Color::White, 0, 0);
-		whitePixelData->setColorAt(Color::White, 0, 1);
-		whitePixelData->setColorAt(Color::White, 1, 0);
-		whitePixelData->setColorAt(Color::White, 1, 1);
+		whitePixelData->SetColorAt(Color::White, 0, 0);
+		whitePixelData->SetColorAt(Color::White, 0, 1);
+		whitePixelData->SetColorAt(Color::White, 1, 0);
+		whitePixelData->SetColorAt(Color::White, 1, 1);
 
-		whiteTexture->writeData(*whitePixelData);
+		whiteTexture->WriteData(*whitePixelData);
 		Texture::WHITE = whiteTexture;
 
 		// Black built-in texture
 		SPtr<Texture> blackTexture = createTexture(desc);
 
 		SPtr<PixelData> blackPixelData = PixelData::create(2, 2, 1, PF_RGBA8);
-		blackPixelData->setColorAt(Color::ZERO, 0, 0);
-		blackPixelData->setColorAt(Color::ZERO, 0, 1);
-		blackPixelData->setColorAt(Color::ZERO, 1, 0);
-		blackPixelData->setColorAt(Color::ZERO, 1, 1);
+		blackPixelData->SetColorAt(Color::ZERO, 0, 0);
+		blackPixelData->SetColorAt(Color::ZERO, 0, 1);
+		blackPixelData->SetColorAt(Color::ZERO, 1, 0);
+		blackPixelData->SetColorAt(Color::ZERO, 1, 1);
 
-		blackTexture->writeData(*blackPixelData);
+		blackTexture->WriteData(*blackPixelData);
 		Texture::BLACK = blackTexture;
 
 		// Normal (Y = Up) built-in texture
@@ -122,12 +122,12 @@ namespace bs
 		SPtr<PixelData> normalPixelData = PixelData::create(2, 2, 1, PF_RGBA8);
 
 		Color EncodedNormal(0.5f, 0.5f, 1.0f);
-		normalPixelData->setColorAt(encodedNormal, 0, 0);
-		normalPixelData->setColorAt(encodedNormal, 0, 1);
-		normalPixelData->setColorAt(encodedNormal, 1, 0);
-		normalPixelData->setColorAt(encodedNormal, 1, 1);
+		normalPixelData->SetColorAt(encodedNormal, 0, 0);
+		normalPixelData->SetColorAt(encodedNormal, 0, 1);
+		normalPixelData->SetColorAt(encodedNormal, 1, 0);
+		normalPixelData->SetColorAt(encodedNormal, 1, 1);
 
-		normalTexture->writeData(*normalPixelData);
+		normalTexture->WriteData(*normalPixelData);
 		Texture::NORMAL = normalTexture;
 	}
 
@@ -142,7 +142,7 @@ namespace bs
 	SPtr<Texture> TextureManager::CreateTexture(const TEXTURE_DESC& desc, GpuDeviceFlags deviceMask)
 	{
 		SPtr<Texture> newTex = createTextureInternal(desc, nullptr, deviceMask);
-		newTex->initialize();
+		newTex->Initialize();
 
 		return newTex;
 	}
@@ -151,7 +151,7 @@ namespace bs
 																	UINT32 deviceIdx)
 	{
 		SPtr<RenderTexture> newRT = createRenderTextureInternal(desc, deviceIdx);
-		newRT->initialize();
+		newRT->Initialize();
 
 		return newRT;
 	}

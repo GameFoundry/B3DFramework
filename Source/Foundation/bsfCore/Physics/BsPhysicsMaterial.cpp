@@ -16,9 +16,9 @@ namespace bs
 
 	SPtr<PhysicsMaterial> PhysicsMaterial::_createPtr(float staticFriction, float dynamicFriction, float restitution)
 	{
-		SPtr<PhysicsMaterial> newMaterial = gPhysics().createMaterial(staticFriction, dynamicFriction, restitution);
+		SPtr<PhysicsMaterial> newMaterial = gPhysics().CreateMaterial(staticFriction, dynamicFriction, restitution);
 		newMaterial->_setThisPtr(newMaterial);
-		newMaterial->initialize();
+		newMaterial->Initialize();
 
 		return newMaterial;
 	}

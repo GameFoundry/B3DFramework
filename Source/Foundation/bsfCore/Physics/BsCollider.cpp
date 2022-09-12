@@ -10,17 +10,17 @@ namespace bs
 {
 	Vector3 Collider::GetPosition() const
 	{
-		return mInternal->getPosition();
+		return mInternal->GetPosition();
 	}
 
 	Quaternion Collider::GetRotation() const
 	{
-		return mInternal->getRotation();
+		return mInternal->GetRotation();
 	}
 
 	void Collider::SetTransform(const Vector3& pos, const Quaternion& rot)
 	{
-		mInternal->setTransform(pos, rot);
+		mInternal->SetTransform(pos, rot);
 	}
 
 	void Collider::SetScale(const Vector3& scale)
@@ -35,84 +35,84 @@ namespace bs
 
 	void Collider::SetIsTrigger(bool value)
 	{
-		mInternal->setIsTrigger(value);
+		mInternal->SetIsTrigger(value);
 	}
 
 	bool Collider::GetIsTrigger() const
 	{
-		return mInternal->getIsTrigger();
+		return mInternal->GetIsTrigger();
 	}
 
 	void Collider::SetRigidbody(Rigidbody* value)
 	{
-		mInternal->setIsStatic(value == nullptr);
+		mInternal->SetIsStatic(value == nullptr);
 
 		mRigidbody = value;
 	}
 
 	void Collider::SetMass(float mass)
 	{
-		mInternal->setMass(mass);
+		mInternal->SetMass(mass);
 	}
 
 	float Collider::GetMass() const
 	{
-		return mInternal->getMass();
+		return mInternal->GetMass();
 	}
 
 	void Collider::SetMaterial(const HPhysicsMaterial& material)
 	{
-		mInternal->setMaterial(material);
+		mInternal->SetMaterial(material);
 	}
 
 	HPhysicsMaterial Collider::GetMaterial() const
 	{
-		return mInternal->getMaterial();
+		return mInternal->GetMaterial();
 	}
 
 	void Collider::SetContactOffset(float value)
 	{
-		mInternal->setContactOffset(value);
+		mInternal->SetContactOffset(value);
 	}
 
 	float Collider::GetContactOffset()
 	{
-		return mInternal->getContactOffset();
+		return mInternal->GetContactOffset();
 	}
 
 	void Collider::SetRestOffset(float value)
 	{
-		mInternal->setRestOffset(value);
+		mInternal->SetRestOffset(value);
 	}
 
 	float Collider::GetRestOffset()
 	{
-		return mInternal->getRestOffset();
+		return mInternal->GetRestOffset();
 	}
 
 	void Collider::SetLayer(UINT64 layer)
 	{
-		mInternal->setLayer(layer);
+		mInternal->SetLayer(layer);
 	}
 
 	UINT64 Collider::GetLayer() const
 	{
-		return mInternal->getLayer();
+		return mInternal->GetLayer();
 	}
 
 	void Collider::SetCollisionReportMode(CollisionReportMode mode)
 	{
-		mInternal->setCollisionReportMode(mode);
+		mInternal->SetCollisionReportMode(mode);
 	}
 
 	CollisionReportMode Collider::GetCollisionReportMode() const
 	{
-		return mInternal->getCollisionReportMode();
+		return mInternal->GetCollisionReportMode();
 	}
 
 	bool Collider::RayCast(const Ray& ray, PhysicsQueryHit& hit, float maxDist) const
 	{
-		return GPhysics()._rayCast(ray.getOrigin(), ray.getDirection(), *this, hit, maxDist);
+		return GPhysics()._rayCast(ray.GetOrigin(), ray.getDirection(), *this, hit, maxDist);
 	}
 
 	bool Collider::RayCast(const Vector3& origin, const Vector3& unitDir, PhysicsQueryHit& hit, float maxDist) const

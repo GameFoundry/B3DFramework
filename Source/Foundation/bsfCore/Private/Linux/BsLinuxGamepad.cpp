@@ -71,8 +71,8 @@ namespace bs
 				{
 				case EV_KEY:
 				{
-					auto findIter = m->info.buttonMap.find(events[i].code);
-					if(findIter == m->info.buttonMap.end())
+					auto findIter = m->info.buttonMap.Find(events[i].code);
+					if(findIter == m->info.buttonMap.End())
 						continue;
 
 					if(events[i].value)

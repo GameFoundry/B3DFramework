@@ -81,7 +81,7 @@ namespace bs
 		template<class T>
 		ScriptRRefBase* getScriptRRef(const ResourceHandle<T>& resource)
 		{
-			::MonoClass* rrefClass = ScriptResourceBase::getRRefClass(T::getRTTIStatic()->getRTTIId());
+			::MonoClass* rrefClass = ScriptResourceBase::getRRefClass(T::getRTTIStatic()->GetRTTIId());
 			return GetScriptRRef(resource, rrefClass);
 		}
 

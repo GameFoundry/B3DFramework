@@ -16,12 +16,12 @@ namespace bs
 
 	void ScriptObjectManager::RegisterScriptObject(ScriptObjectBase* instance)
 	{
-		mScriptObjects.insert(instance);
+		mScriptObjects.Insert(instance);
 	}
 
 	void ScriptObjectManager::UnregisterScriptObject(ScriptObjectBase* instance)
 	{
-		mScriptObjects.erase(instance);
+		mScriptObjects.Erase(instance);
 	}
 
 	void ScriptObjectManager::RefreshAssemblies(const Vector<AssemblyRefreshInfo>& assemblies)
@@ -31,35 +31,35 @@ namespace bs
 		onRefreshStarted();
 
 		// Make sure any managed game objects are properly destroyed so their OnDestroy callbacks fire before unloading the domain
-		GameObjectManager::instance().destroyQueuedObjects();
+		GameObjectManager::instance().DestroyQueuedObjects();
 
 		// Make sure all objects that are finalized due to reasons other than assembly refreshed are destroyed
 		processFinalizedObjects(false);
 
 		for (auto& scriptObject : mScriptObjects)
-			backupData[scriptObject] = scriptObject->beginRefresh();
+			backupData[scriptObject] = scriptObject->BeginRefresh();
 
 		for (auto& scriptObject : mScriptObjects)
 			scriptObject->_clearManagedInstance();
 
-		MonoManager::instance().unloadScriptDomain();
+		MonoManager::instance().UnloadScriptDomain();
 
 		// Unload script domain should trigger finalizers on everything, but since we usually delay
 		// their processing we need to manually trigger it here.
 		processFinalizedObjects(true);
 
 		for (auto& scriptObject : mScriptObjects)
-			assert(scriptObject->isPersistent() && "Non-persistent ScriptObject alive after domain unload.");
+			assert(scriptObject->IsPersistent() && "Non-persistent ScriptObject alive after domain unload.");
 
-		ScriptAssemblyManager::instance().clearAssemblyInfo();
+		ScriptAssemblyManager::instance().ClearAssemblyInfo();
 
 		for (auto& entry : assemblies)
 		{
-			MonoManager::instance().loadAssembly(*entry.path, entry.name);
-			ScriptAssemblyManager::instance().loadAssemblyInfo(entry.name, *entry.typeMapping);
+			MonoManager::instance().LoadAssembly(*entry.path, entry.name);
+			ScriptAssemblyManager::instance().LoadAssemblyInfo(entry.name, *entry.typeMapping);
 		}
 
-		Vector<ScriptObjectBase*> scriptObjCopy(mScriptObjects.size()); // Store originals as we could add new objects during the next iteration
+		Vector<ScriptObjectBase*> scriptObjCopy(mScriptObjects.Size()); // Store originals as we could add new objects during the next iteration
 		UINT32 idx = 0;
 		for (auto& scriptObject : mScriptObjects)
 			scriptObjCopy[idx++] = scriptObject;
@@ -70,7 +70,7 @@ namespace bs
 			scriptObject->_restoreManagedInstance();
 
 		for (auto& scriptObject : scriptObjCopy)
-			scriptObject->endRefresh(backupData[scriptObject]);
+			scriptObject->EndRefresh(backupData[scriptObject]);
 
 		onRefreshComplete();
 	}
@@ -100,6 +100,6 @@ namespace bs
 		for (auto& finalizedObj : mFinalizedObjects[readQueueIdx])
 			finalizedObj->_onManagedInstanceDeleted(assemblyRefresh);
 
-		mFinalizedObjects[readQueueIdx].clear();
+		mFinalizedObjects[readQueueIdx].Clear();
 	}
 }

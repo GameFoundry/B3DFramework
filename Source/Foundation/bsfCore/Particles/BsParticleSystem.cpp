@@ -118,7 +118,7 @@ namespace bs
 
 	ParticleSystem::ParticleSystem()
 	{
-		mId = ParticleManager::instance().registerParticleSystem(this);
+		mId = ParticleManager::instance().RegisterParticleSystem(this);
 		mSeed = rand();
 
 		auto emitter = bs_shared_ptr_new<ParticleEmitter>();
@@ -126,14 +126,14 @@ namespace bs
 		PARTICLE_SPHERE_SHAPE_DESC desc;
 		desc.radius = 0.05f;
 
-		emitter->setShape(ParticleEmitterSphereShape::create(desc));
+		emitter->SetShape(ParticleEmitterSphereShape::create(desc));
 
 		mEmitters = { emitter };
 	}
 
 	ParticleSystem::~ParticleSystem()
 	{
-		ParticleManager::instance().unregisterParticleSystem(this);
+		ParticleManager::instance().UnregisterParticleSystem(this);
 
 		if(mParticleSet)
 			bs_delete(mParticleSet);
@@ -148,19 +148,19 @@ namespace bs
 			else
 				mSeed = settings.manualSeed;
 
-			mRandom.setSeed(mSeed);
+			mRandom.SetSeed(mSeed);
 		}
 		else
 		{
 			if(!settings.useAutomaticSeed)
 			{
 				mSeed = settings.manualSeed;
-				mRandom.setSeed(mSeed);
+				mRandom.SetSeed(mSeed);
 			}
 		}
 
 		if(settings.maxParticles < mSettings.maxParticles)
-			mParticleSet->clear(settings.maxParticles);
+			mParticleSet->Clear(settings.maxParticles);
 
 		mSettings = settings;
 		_markCoreDirty();
@@ -197,11 +197,11 @@ namespace bs
 	{
 		mEvolvers = evolvers;
 
-		std::sort(mEvolvers.begin(), mEvolvers.end(),
+		std::sort(mEvolvers.Begin(), mEvolvers.end(),
 			[](const SPtr<ParticleEvolver>& a, const SPtr<ParticleEvolver>& b)
 		{
-			INT32 priorityA = a ? a->getProperties().priority : 0;
-			INT32 priorityB = b ? b->getProperties().priority : 0;
+			INT32 priorityA = a ? a->GetProperties().priority : 0;
+			INT32 priorityB = b ? b->GetProperties().priority : 0;
 
 			if (priorityA == priorityB)
 				return a > b; // Use address, at this point it doesn't matter, but sorting requires us to differentiate
@@ -225,7 +225,7 @@ namespace bs
 
 		mState = State::Playing;
 		mTime = 0.0f;
-		mRandom.setSeed(mSeed);
+		mRandom.SetSeed(mSeed);
 	}
 
 	void ParticleSystem::Pause()
@@ -240,7 +240,7 @@ namespace bs
 			return;
 
 		mState = State::Stopped;
-		mParticleSet->clear();
+		mParticleSet->Clear();
 	}
 
 	void ParticleSystem::_simulate(float timeDelta, const EvaluatedAnimationData* animData)
@@ -265,27 +265,27 @@ namespace bs
 		state.maxParticles = mSettings.maxParticles;
 		state.worldSpace = mSettings.simulationSpace == ParticleSimulationSpace::World;
 		state.gpuSimulated = mSettings.gpuSimulation;
-		state.localToWorld = mTransform.getMatrix();
-		state.worldToLocal = state.localToWorld.inverseAffine();
+		state.localToWorld = mTransform.GetMatrix();
+		state.worldToLocal = state.localToWorld.InverseAffine();
 		state.system = this;
-		state.scene = (mScene && mScene->isActive()) ? mScene.get() : gSceneManager().getMainScene().get();
+		state.scene = (mScene && mScene->IsActive()) ? mScene.Get() : gSceneManager().getMainScene().get();
 		state.animData = animData;
 
 		// For GPU simulation we only care about newly spawned particles, so clear old ones
 		if(mSettings.gpuSimulation)
-			mParticleSet->clear();
+			mParticleSet->Clear();
 
 		// Spawn new particles
 		for(auto& emitter : mEmitters)
 		{
 			if(emitter)
-				emitter->spawn(mRandom, state, *mParticleSet);
+				emitter->Spawn(mRandom, state, *mParticleSet);
 		}
 
 		// Simulate if running on CPU, otherwise just pass the spawned particles off to the core thread
 		if(!mSettings.gpuSimulation)
 		{
-			const UINT32 numParticles = mParticleSet->getParticleCount();
+			const UINT32 numParticles = mParticleSet->GetParticleCount();
 
 			preSimulate(state, 0, numParticles, false, 0.0f);
 			simulate(state, 0, numParticles, false, 0.0f);
@@ -298,7 +298,7 @@ namespace bs
 	void ParticleSystem::preSimulate(const ParticleSystemState& state, UINT32 startIdx, UINT32 count, bool spacing,
 		float spacingOffset)
 	{
-		const ParticleSetData& particles = mParticleSet->getParticles();
+		const ParticleSetData& particles = mParticleSet->GetParticles();
 		const float subFrameSpacing = (spacing && count > 0) ? 1.0f / count : 1.0f;
 		const UINT32 endIdx = startIdx + count;
 
@@ -324,7 +324,7 @@ namespace bs
 			const UINT32 particleIdx = startIdx + i;
 			if (particles.lifetime[particleIdx] <= 0.0f)
 			{
-				mParticleSet->freeParticle(particleIdx);
+				mParticleSet->FreeParticle(particleIdx);
 				numParticles--;
 			}
 			else
@@ -341,18 +341,18 @@ namespace bs
 			if(!evolver)
 				continue;
 
-			const ParticleEvolverProperties& props = evolver->getProperties();
+			const ParticleEvolverProperties& props = evolver->GetProperties();
 			if (props.priority < 0)
 				break;
 
-			evolver->evolve(mRandom, state, *mParticleSet, startIdx, count, spacing, spacingOffset);
+			evolver->Evolve(mRandom, state, *mParticleSet, startIdx, count, spacing, spacingOffset);
 		}
 	}
 
 	void ParticleSystem::simulate(const ParticleSystemState& state, UINT32 startIdx, UINT32 count, bool spacing,
 		float spacingOffset)
 	{
-		const ParticleSetData& particles = mParticleSet->getParticles();
+		const ParticleSetData& particles = mParticleSet->GetParticles();
 		const float subFrameSpacing = (spacing && count > 0) ? 1.0f / count : 1.0f;
 		const UINT32 endIdx = startIdx + count;
 
@@ -379,11 +379,11 @@ namespace bs
 			if(!evolver)
 				continue;
 
-			const ParticleEvolverProperties& props = evolver->getProperties();
+			const ParticleEvolverProperties& props = evolver->GetProperties();
 			if(props.priority >= 0)
 				continue;
 
-			evolver->evolve(mRandom, state, *mParticleSet, startIdx, count, spacing, spacingOffset);
+			evolver->Evolve(mRandom, state, *mParticleSet, startIdx, count, spacing, spacingOffset);
 		}
 	}
 
@@ -392,14 +392,14 @@ namespace bs
 		// TODO - If evolvers are deterministic (as well as their properties), calculate the maximinal bounds in an
 		// analytical way
 
-		const UINT32 particleCount = mParticleSet->getParticleCount();
+		const UINT32 particleCount = mParticleSet->GetParticleCount();
 		if(particleCount == 0)
 			return AABox::BOX_EMPTY;
 
-		const ParticleSetData& particles = mParticleSet->getParticles();
+		const ParticleSetData& particles = mParticleSet->GetParticles();
 		AABox Bounds(Vector3::INF, -Vector3::INF);
 		for(UINT32 i = 0; i < particleCount; i++)
-			bounds.merge(particles.position[i]);
+			bounds.Merge(particles.position[i]);
 
 		return bounds;
 	}
@@ -449,7 +449,7 @@ namespace bs
 		size += csync_size(mGpuSimulationSettings);
 		size += rtti_size(mLayer).bytes;
 
-		UINT8* data = allocator->alloc(size);
+		UINT8* data = allocator->Alloc(size);
 		Bitstream Stream(data, size);
 		rtti_write(getCoreDirtyFlags(), stream);
 		csync_write((SceneActor&)*this, stream);
@@ -462,17 +462,17 @@ namespace bs
 
 	void ParticleSystem::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 	{
-		if (mSettings.mesh.isLoaded())
-			dependencies.push_back(mSettings.mesh.get());
+		if (mSettings.mesh.IsLoaded())
+			dependencies.push_back(mSettings.mesh.Get());
 
-		if (mSettings.material.isLoaded())
-			dependencies.push_back(mSettings.material.get());
+		if (mSettings.material.IsLoaded())
+			dependencies.push_back(mSettings.material.Get());
 	}
 
 	SPtr<ParticleSystem> ParticleSystem::Create()
 	{
 		SPtr<ParticleSystem> ptr = createEmpty();
-		ptr->initialize();
+		ptr->Initialize();
 
 		return ptr;
 	}
@@ -501,12 +501,12 @@ namespace bs
 		ParticleSystem::~ParticleSystem()
 		{
 			if(mActive)
-				gRenderer()->notifyParticleSystemRemoved(this);
+				gRenderer()->NotifyParticleSystemRemoved(this);
 		}
 
 		void ParticleSystem::Initialize()
 		{
-			gRenderer()->notifyParticleSystemAdded(this);
+			gRenderer()->NotifyParticleSystemAdded(this);
 		}
 
 		void ParticleSystem::SetLayer(UINT64 layer)
@@ -525,7 +525,7 @@ namespace bs
 
 		void ParticleSystem::SyncToCore(const CoreSyncData& data)
 		{
-			Bitstream Stream((uint8_t*)data.getBuffer(), data.getBufferSize());
+			Bitstream Stream((uint8_t*)data.GetBuffer(), data.getBufferSize());
 
 			UINT32 dirtyFlags = 0;
 			const bool oldIsActive = mActive;
@@ -545,18 +545,18 @@ namespace bs
 				if (oldIsActive != mActive)
 				{
 					if (mActive)
-						gRenderer()->notifyParticleSystemAdded(this);
+						gRenderer()->NotifyParticleSystemAdded(this);
 					else
-						gRenderer()->notifyParticleSystemRemoved(this);
+						gRenderer()->NotifyParticleSystemRemoved(this);
 				}
 				else
 				{
 					if(mActive)
-						gRenderer()->notifyParticleSystemUpdated(this, false);
+						gRenderer()->NotifyParticleSystemUpdated(this, false);
 				}
 			}
 			else if ((dirtyFlags & ((UINT32)ActorDirtyFlag::Mobility | (UINT32)ActorDirtyFlag::Transform)) != 0)
-				gRenderer()->notifyParticleSystemUpdated(this, true);
+				gRenderer()->NotifyParticleSystemUpdated(this, true);
 		}
 	}
 }

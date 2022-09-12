@@ -11,7 +11,7 @@ namespace bs { namespace ct
 
 	VulkanDescriptorSet::~VulkanDescriptorSet()
 	{
-		VkResult result = vkFreeDescriptorSets(mOwner->getDevice().getLogical(), mPool, 1, &mSet);
+		VkResult result = vkFreeDescriptorSets(mOwner->GetDevice().GetLogical(), mPool, 1, &mSet);
 		assert(result == VK_SUCCESS);
 	}
 
@@ -20,6 +20,6 @@ namespace bs { namespace ct
 		for (UINT32 i = 0; i < count; i++)
 			entries[i].dstSet = mSet;
 
-		vkUpdateDescriptorSets(mOwner->getDevice().getLogical(), count, entries, 0, nullptr);
+		vkUpdateDescriptorSets(mOwner->GetDevice().GetLogical(), count, entries, 0, nullptr);
 	}
 }}

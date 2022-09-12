@@ -26,20 +26,20 @@ namespace bs { namespace ct
 		for (auto& entry : mTimerQueries)
 		{
 			if(entry != nullptr)
-				entry->destroy();
+				entry->Destroy();
 		}
 
 		for (auto& entry : mOcclusionQueries)
 		{
 			if(entry != nullptr)
-				entry->destroy();
+				entry->Destroy();
 		}
 
 		for (auto& entry : mTimerPools)
-			vkDestroyQueryPool(mDevice.getLogical(), entry.pool, gVulkanAllocator);
+			vkDestroyQueryPool(mDevice.GetLogical(), entry.pool, gVulkanAllocator);
 
 		for (auto& entry : mOcclusionPools)
-			vkDestroyQueryPool(mDevice.getLogical(), entry.pool, gVulkanAllocator);
+			vkDestroyQueryPool(mDevice.GetLogical(), entry.pool, gVulkanAllocator);
 	}
 
 	VulkanQueryPool::PoolInfo& VulkanQueryPool::AllocatePool(VkQueryType type)
@@ -53,11 +53,11 @@ namespace bs { namespace ct
 		queryPoolCI.queryType = type;
 
 		PoolInfo poolInfo;
-		VkResult result = vkCreateQueryPool(mDevice.getLogical(), &queryPoolCI, gVulkanAllocator, &poolInfo.pool);
+		VkResult result = vkCreateQueryPool(mDevice.GetLogical(), &queryPoolCI, gVulkanAllocator, &poolInfo.pool);
 		assert(result == VK_SUCCESS);
 
 		Vector<PoolInfo>& poolInfos = type == VK_QUERY_TYPE_TIMESTAMP ? mTimerPools : mOcclusionPools;
-		poolInfo.startIdx = (UINT32)poolInfos.size() * NUM_QUERIES_PER_POOL;
+		poolInfo.startIdx = (UINT32)poolInfos.Size() * NUM_QUERIES_PER_POOL;
 
 		poolInfos.push_back(poolInfo);
 
@@ -65,7 +65,7 @@ namespace bs { namespace ct
 		for (UINT32 i = 0; i < NUM_QUERIES_PER_POOL; i++)
 			queries.push_back(nullptr);
 
-		return poolInfos.back();
+		return poolInfos.Back();
 	}
 
 	VulkanQuery* VulkanQueryPool::getQuery(VkQueryType type)
@@ -73,7 +73,7 @@ namespace bs { namespace ct
 		Vector<VulkanQuery*>& queries = type == VK_QUERY_TYPE_TIMESTAMP ? mTimerQueries : mOcclusionQueries;
 		Vector<PoolInfo>& poolInfos = type == VK_QUERY_TYPE_TIMESTAMP ? mTimerPools : mOcclusionPools;
 
-		for (UINT32 i = 0; i < (UINT32)queries.size(); i++)
+		for (UINT32 i = 0; i < (UINT32)queries.Size(); i++)
 		{
 			VulkanQuery* curQuery = queries[i];
 			if (curQuery == nullptr)
@@ -82,19 +82,19 @@ namespace bs { namespace ct
 				UINT32 poolIdx = (UINT32)divResult.quot;
 				UINT32 queryIdx = (UINT32)divResult.rem;
 
-				curQuery = mDevice.getResourceManager().create<VulkanQuery>(poolInfos[poolIdx].pool, queryIdx);
+				curQuery = mDevice.GetResourceManager().create<VulkanQuery>(poolInfos[poolIdx].pool, queryIdx);
 				queries[i] = curQuery;
 
 				return curQuery;
 			}
-			else if (!curQuery->isBound() && curQuery->mFree)
+			else if (!curQuery->IsBound() && curQuery->mFree)
 				return curQuery;
 		}
 
 		PoolInfo& poolInfo = allocatePool(type);
 		UINT32 queryIdx = poolInfo.startIdx % NUM_QUERIES_PER_POOL;
 
-		VulkanQuery* query = mDevice.getResourceManager().create<VulkanQuery>(poolInfo.pool, queryIdx);
+		VulkanQuery* query = mDevice.GetResourceManager().create<VulkanQuery>(poolInfo.pool, queryIdx);
 		queries[poolInfo.startIdx] = query;
 
 		return query;
@@ -107,12 +107,12 @@ namespace bs { namespace ct
 		VulkanQuery* query = getQuery(VK_QUERY_TYPE_TIMESTAMP);
 		query->mFree = false;
 
-		VkCommandBuffer vkCmdBuf = cb->getHandle();
-		cb->resetQuery(query);
+		VkCommandBuffer vkCmdBuf = cb->GetHandle();
+		cb->ResetQuery(query);
 		vkCmdWriteTimestamp(vkCmdBuf, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, query->mPool, query->mQueryIdx);
 
 		// Note: Must happen only here because we need to check VulkanResource::isBound under the same mutex
-		cb->registerResource(query, VulkanAccessFlag::Write);
+		cb->RegisterResource(query, VulkanAccessFlag::Write);
 
 		return query;
 	}
@@ -124,12 +124,12 @@ namespace bs { namespace ct
 		VulkanQuery* query = getQuery(VK_QUERY_TYPE_OCCLUSION);
 		query->mFree = false;
 
-		VkCommandBuffer vkCmdBuf = cb->getHandle();
-		cb->resetQuery(query);
+		VkCommandBuffer vkCmdBuf = cb->GetHandle();
+		cb->ResetQuery(query);
 		vkCmdBeginQuery(vkCmdBuf, query->mPool, query->mQueryIdx, precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
 
 		// Note: Must happen only here because we need to check VulkanResource::isBound under the same mutex
-		cb->registerResource(query, VulkanAccessFlag::Write);
+		cb->RegisterResource(query, VulkanAccessFlag::Write);
 
 		return query;
 	}
@@ -138,7 +138,7 @@ namespace bs { namespace ct
 	{
 		Lock Lock(mMutex);
 
-		VkCommandBuffer vkCmdBuf = cb->getHandle();
+		VkCommandBuffer vkCmdBuf = cb->GetHandle();
 		vkCmdEndQuery(vkCmdBuf, query->mPool, query->mQueryIdx);
 	}
 
@@ -159,7 +159,7 @@ namespace bs { namespace ct
 
 		SPtr<EventQuery> query = SPtr<VulkanEventQuery>(bs_new<VulkanEventQuery>(*device),
 			&QueryManager::deleteEventQuery, StdAlloc<VulkanEventQuery>());
-		mEventQueries.push_back(query.get());
+		mEventQueries.push_back(query.Get());
 
 		return query;
 	}
@@ -170,7 +170,7 @@ namespace bs { namespace ct
 
 		SPtr<TimerQuery> query = SPtr<VulkanTimerQuery>(bs_new<VulkanTimerQuery>(*device),
 			&QueryManager::deleteTimerQuery, StdAlloc<VulkanTimerQuery>());
-		mTimerQueries.push_back(query.get());
+		mTimerQueries.push_back(query.Get());
 
 		return query;
 	}
@@ -181,7 +181,7 @@ namespace bs { namespace ct
 
 		SPtr<OcclusionQuery> query = SPtr<VulkanOcclusionQuery>(bs_new<VulkanOcclusionQuery>(*device, binary),
 			&QueryManager::deleteOcclusionQuery, StdAlloc<VulkanOcclusionQuery>());
-		mOcclusionQueries.push_back(query.get());
+		mOcclusionQueries.push_back(query.Get());
 
 		return query;
 	}
@@ -197,7 +197,7 @@ namespace bs { namespace ct
 		// to a command buffer upon use. Then when CB finishes executing we perform vkGetQueryPoolResults on all queries
 		// in the pool at once.
 
-		VkDevice vkDevice = mOwner->getDevice().getLogical();
+		VkDevice vkDevice = mOwner->GetDevice().GetLogical();
 		VkResult vkResult = vkGetQueryPoolResults(vkDevice, mPool, mQueryIdx, 1, sizeof(result), &result, sizeof(result),
 												  VK_QUERY_RESULT_64_BIT);
 		assert(vkResult == VK_SUCCESS || vkResult == VK_NOT_READY);

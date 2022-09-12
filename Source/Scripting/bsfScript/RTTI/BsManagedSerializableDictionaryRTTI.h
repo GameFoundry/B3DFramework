@@ -74,12 +74,12 @@ namespace bs
 
 		void SetEntry(ManagedSerializableDictionary* obj, UINT32 arrayIdx, ManagedSerializableDictionaryKeyValue& val)
 		{
-			obj->setFieldData(val.key, val.value);
+			obj->SetFieldData(val.key, val.value);
 		}
 
 		UINT32 GetNumEntries(ManagedSerializableDictionary* obj)
 		{
-			return (UINT32)mSequentialData.size();
+			return (UINT32)mSequentialData.Size();
 		}
 
 		void SetNumEntries(ManagedSerializableDictionary* obj, UINT32 numEntries)
@@ -99,9 +99,9 @@ namespace bs
 		{
 			ManagedSerializableDictionary* serializableObject = static_cast<ManagedSerializableDictionary*>(obj);
 
-			auto enumerator = serializableObject->getEnumerator();
-			while (enumerator.moveNext())
-				mSequentialData.push_back(ManagedSerializableDictionaryKeyValue(enumerator.getKey(), enumerator.getValue()));
+			auto enumerator = serializableObject->GetEnumerator();
+			while (enumerator.MoveNext())
+				mSequentialData.push_back(ManagedSerializableDictionaryKeyValue(enumerator.GetKey(), enumerator.getValue()));
 		}
 
 		const String& GetRTTIName() override

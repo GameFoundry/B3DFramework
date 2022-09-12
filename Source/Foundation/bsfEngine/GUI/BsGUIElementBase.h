@@ -181,7 +181,7 @@ namespace bs
 		void _setParent(GUIElementBase* parent);
 
 		/**	Returns number of child elements. */
-		UINT32 _getNumChildren() const { return (UINT32)mChildren.size(); }
+		UINT32 _getNumChildren() const { return (UINT32)mChildren.Size(); }
 
 		/**	Return the child element at the specified index.*/
 		GUIElementBase* _getChild(UINT32 idx) const { return mChildren[idx]; }

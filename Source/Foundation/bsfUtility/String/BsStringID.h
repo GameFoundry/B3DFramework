@@ -148,7 +148,7 @@ struct hash<bs::StringID>
 {
 	size_t Operator()(const bs::StringID& value) const
 	{
-		return (size_t)value.id();
+		return (size_t)value.Id();
 	}
 };
 }

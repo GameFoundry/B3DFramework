@@ -385,7 +385,7 @@ namespace bs
 		virtual ~TShader();
 	
 		/** Returns the total number of techniques in this shader. */
-		UINT32 GetNumTechniques() const { return (UINT32)mDesc.techniques.size(); }
+		UINT32 GetNumTechniques() const { return (UINT32)mDesc.techniques.Size(); }
 
 		/** Returns the list of all supported techniques based on current render API and renderer. */
 		Vector<SPtr<TechniqueType>> GetCompatibleTechniques() const;

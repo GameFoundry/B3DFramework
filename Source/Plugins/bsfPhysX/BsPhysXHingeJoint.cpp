@@ -48,7 +48,7 @@ namespace bs
 		if (((UINT32)desc.flag & (UINT32)HingeJointFlag::Drive) != 0)
 			flags |= PxRevoluteJointFlag::eDRIVE_ENABLED;
 
-		joint->setRevoluteJointFlags(flags);
+		joint->SetRevoluteJointFlags(flags);
 
 		// Must be set after global flags, as it will append to them.
 		// Calls to virtual methods are okay here.
@@ -63,17 +63,17 @@ namespace bs
 
 	Radian PhysXHingeJoint::GetAngle() const
 	{
-		return Radian(getInternal()->getAngle());
+		return Radian(getInternal()->GetAngle());
 	}
 
 	float PhysXHingeJoint::GetSpeed() const
 	{
-		return GetInternal()->getVelocity();
+		return GetInternal()->GetVelocity();
 	}
 
 	LimitAngularRange PhysXHingeJoint::GetLimit() const
 	{
-		PxJointAngularLimitPair pxLimit = getInternal()->getLimit();
+		PxJointAngularLimitPair pxLimit = getInternal()->GetLimit();
 
 		LimitAngularRange limit;
 		limit.lower = pxLimit.lower;
@@ -88,41 +88,41 @@ namespace bs
 
 	void PhysXHingeJoint::SetLimit(const LimitAngularRange& limit)
 	{
-		PxJointAngularLimitPair PxLimit(limit.lower.valueRadians(), limit.upper.valueRadians(), limit.contactDist);
+		PxJointAngularLimitPair PxLimit(limit.lower.ValueRadians(), limit.upper.valueRadians(), limit.contactDist);
 		pxLimit.stiffness = limit.spring.stiffness;
 		pxLimit.damping = limit.spring.damping;
 		pxLimit.restitution = limit.restitution;
 
-		getInternal()->setLimit(pxLimit);
+		getInternal()->SetLimit(pxLimit);
 	}
 
 	HingeJointDrive PhysXHingeJoint::GetDrive() const
 	{
 		HingeJointDrive drive;
-		drive.speed = getInternal()->getDriveVelocity();
-		drive.forceLimit = getInternal()->getDriveForceLimit();
-		drive.gearRatio = getInternal()->getDriveGearRatio();
-		drive.freeSpin = getInternal()->getRevoluteJointFlags() & PxRevoluteJointFlag::eDRIVE_FREESPIN;
+		drive.speed = getInternal()->GetDriveVelocity();
+		drive.forceLimit = getInternal()->GetDriveForceLimit();
+		drive.gearRatio = getInternal()->GetDriveGearRatio();
+		drive.freeSpin = getInternal()->GetRevoluteJointFlags() & PxRevoluteJointFlag::eDRIVE_FREESPIN;
 
 		return drive;
 	}
 
 	void PhysXHingeJoint::SetDrive(const HingeJointDrive& drive)
 	{
-		getInternal()->setDriveVelocity(drive.speed);
-		getInternal()->setDriveForceLimit(drive.forceLimit);
-		getInternal()->setDriveGearRatio(drive.gearRatio);
-		getInternal()->setRevoluteJointFlag(PxRevoluteJointFlag::eDRIVE_FREESPIN, drive.freeSpin);
+		getInternal()->SetDriveVelocity(drive.speed);
+		getInternal()->SetDriveForceLimit(drive.forceLimit);
+		getInternal()->SetDriveGearRatio(drive.gearRatio);
+		getInternal()->SetRevoluteJointFlag(PxRevoluteJointFlag::eDRIVE_FREESPIN, drive.freeSpin);
 	}
 
 	void PhysXHingeJoint::SetFlag(HingeJointFlag flag, bool enabled)
 	{
-		getInternal()->setRevoluteJointFlag(toPxFlag(flag), enabled);
+		getInternal()->SetRevoluteJointFlag(toPxFlag(flag), enabled);
 	}
 
 	bool PhysXHingeJoint::HasFlag(HingeJointFlag flag) const
 	{
-		return GetInternal()->getRevoluteJointFlags() & toPxFlag(flag);
+		return GetInternal()->GetRevoluteJointFlags() & toPxFlag(flag);
 	}
 
 	PxRevoluteJoint* PhysXHingeJoint::getInternal() const

@@ -37,11 +37,11 @@ namespace bs
 	{
 		SPtr<MeshData> meshData;
 		if (data != nullptr)
-			meshData = data->getData();
+			meshData = data->GetData();
 
 		UINT32 numIndices = 0;
 		if (meshData != nullptr)
-			numIndices = meshData->getNumIndices();
+			numIndices = meshData->GetNumIndices();
 
 		MESH_DESC desc;
 		desc.subMeshes = { SubMesh(0, numIndices, topology) };
@@ -54,7 +54,7 @@ namespace bs
 	{
 		SPtr<MeshData> meshData;
 		if (data != nullptr)
-			meshData = data->getData();
+			meshData = data->GetData();
 
 		MESH_DESC desc;
 		desc.subMeshes = subMeshes;
@@ -65,29 +65,29 @@ namespace bs
 
 	Vector<SubMesh> MeshEx::GetSubMeshes(const HMesh& thisPtr)
 	{
-		UINT32 numSubMeshes = thisPtr->getProperties().getNumSubMeshes();
+		UINT32 numSubMeshes = thisPtr->GetProperties().GetNumSubMeshes();
 		Vector<SubMesh> Output(numSubMeshes);
 		for (UINT32 i = 0; i < numSubMeshes; i++)
-			output[i] = thisPtr->getProperties().getSubMesh(i);
+			output[i] = thisPtr->GetProperties().GetSubMesh(i);
 
 		return output;
 	}
 
 	UINT32 MeshEx::GetSubMeshCount(const HMesh& thisPtr)
 	{
-		return thisPtr->getProperties().getNumSubMeshes();
+		return thisPtr->GetProperties().GetNumSubMeshes();
 	}
 
 	void MeshEx::GetBounds(const HMesh& thisPtr, AABox* box, Sphere* sphere)
 	{
-		Bounds bounds = thisPtr->getProperties().getBounds();
-		*box = bounds.getBox();
-		*sphere = bounds.getSphere();
+		Bounds bounds = thisPtr->GetProperties().GetBounds();
+		*box = bounds.GetBox();
+		*sphere = bounds.GetSphere();
 	}
 
 	SPtr<RendererMeshData> MeshEx::GetMeshData(const HMesh& thisPtr)
 	{
-		const SPtr<MeshData>& meshData = thisPtr->getCachedData();
+		const SPtr<MeshData>& meshData = thisPtr->GetCachedData();
 		return RendererMeshData::Create(meshData);
 	}
 
@@ -95,8 +95,8 @@ namespace bs
 	{
 		if (value != nullptr)
 		{
-			SPtr<MeshData> meshData = value->getData();
-			thisPtr->writeData(meshData, true);
+			SPtr<MeshData> meshData = value->GetData();
+			thisPtr->WriteData(meshData, true);
 		}
 	}
 }

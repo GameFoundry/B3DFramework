@@ -27,13 +27,13 @@ namespace bs
 			Lock fileLock = FileScheduler::getLock(filePath);
 
 			SPtr<DataStream> stream = FileSystem::openFile(filePath);
-			includeString = stream->getAsString();
+			includeString = stream->GetAsString();
 		}
 
 		SPtr<ShaderInclude> gpuInclude = ShaderInclude::_createPtr(includeString);
 
-		const String fileName = filePath.getFilename(false);
-		gpuInclude->setName(fileName);
+		const String fileName = filePath.GetFilename(false);
+		gpuInclude->SetName(fileName);
 
 		return gpuInclude;
 	}

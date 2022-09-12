@@ -58,12 +58,12 @@ namespace bs
 		for(auto& entry : pathToHandle)
 			inotify_rm_watch(dirHandle, entry.second);
 
-		pathToHandle.clear();
+		pathToHandle.Clear();
 	}
 
 	void FolderMonitor::FolderWatchInfo::addPath(const Path& path)
 	{
-		String pathString = path.toString();
+		String pathString = path.ToString();
 
 		INT32 watchHandle = inotify_add_watch(dirHandle, pathString.c_str(), IN_ALL_EVENTS);
 		if(watchHandle == -1)
@@ -78,20 +78,20 @@ namespace bs
 
 	void FolderMonitor::FolderWatchInfo::removePath(const Path& path)
 	{
-		auto iterFind = pathToHandle.find(path);
-		if(iterFind != pathToHandle.end())
+		auto iterFind = pathToHandle.Find(path);
+		if(iterFind != pathToHandle.End())
 		{
 			INT32 watchHandle = iterFind->second;
-			pathToHandle.erase(iterFind);
+			pathToHandle.Erase(iterFind);
 
-			handleToPath.erase(watchHandle);
+			handleToPath.Erase(watchHandle);
 		}
 	}
 
 	Path FolderMonitor::FolderWatchInfo::getPath(INT32 handle)
 	{
-		auto iterFind = handleToPath.find(handle);
-		if(iterFind != handleToPath.end())
+		auto iterFind = handleToPath.Find(handle);
+		if(iterFind != handleToPath.End())
 			return iterFind->second;
 
 		return Path::BLANK;
@@ -113,7 +113,7 @@ namespace bs
 	{
 		static FileAction* createAdded(const String& fileName)
 		{
-			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(String::value_type)));
+			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.Size() + 1) * sizeof(String::value_type)));
 
 			FileAction* action = (FileAction*)bytes;
 			bytes += sizeof(FileAction);
@@ -122,8 +122,8 @@ namespace bs
 			action->newName = (String::value_type*)bytes;
 			action->type = FileActionType::Added;
 
-			memcpy(action->newName, fileName.data(), fileName.size() * sizeof(String::value_type));
-			action->newName[fileName.size()] = L'\0';
+			memcpy(action->newName, fileName.Data(), fileName.size() * sizeof(String::value_type));
+			action->newName[fileName.Size()] = L'\0';
 			action->lastSize = 0;
 			action->checkForWriteStarted = false;
 
@@ -132,7 +132,7 @@ namespace bs
 
 		static FileAction* createRemoved(const String& fileName)
 		{
-			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(String::value_type)));
+			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.Size() + 1) * sizeof(String::value_type)));
 
 			FileAction* action = (FileAction*)bytes;
 			bytes += sizeof(FileAction);
@@ -141,8 +141,8 @@ namespace bs
 			action->newName = (String::value_type*)bytes;
 			action->type = FileActionType::Removed;
 
-			memcpy(action->newName, fileName.data(), fileName.size() * sizeof(String::value_type));
-			action->newName[fileName.size()] = L'\0';
+			memcpy(action->newName, fileName.Data(), fileName.size() * sizeof(String::value_type));
+			action->newName[fileName.Size()] = L'\0';
 			action->lastSize = 0;
 			action->checkForWriteStarted = false;
 
@@ -151,7 +151,7 @@ namespace bs
 
 		static FileAction* createModified(const String& fileName)
 		{
-			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(String::value_type)));
+			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) + (fileName.Size() + 1) * sizeof(String::value_type)));
 
 			FileAction* action = (FileAction*)bytes;
 			bytes += sizeof(FileAction);
@@ -160,8 +160,8 @@ namespace bs
 			action->newName = (String::value_type*)bytes;
 			action->type = FileActionType::Modified;
 
-			memcpy(action->newName, fileName.data(), fileName.size() * sizeof(String::value_type));
-			action->newName[fileName.size()] = L'\0';
+			memcpy(action->newName, fileName.Data(), fileName.size() * sizeof(String::value_type));
+			action->newName[fileName.Size()] = L'\0';
 			action->lastSize = 0;
 			action->checkForWriteStarted = false;
 
@@ -171,22 +171,22 @@ namespace bs
 		static FileAction* createRenamed(const String& oldFilename, const String& newfileName)
 		{
 			UINT8* bytes = (UINT8*)bs_alloc((UINT32)(sizeof(FileAction) +
-				(oldFilename.size() + newfileName.size() + 2) * sizeof(String::value_type)));
+				(oldFilename.Size() + newfileName.size() + 2) * sizeof(String::value_type)));
 
 			FileAction* action = (FileAction*)bytes;
 			bytes += sizeof(FileAction);
 
 			action->oldName = (String::value_type*)bytes;
-			bytes += (oldFilename.size() + 1) * sizeof(String::value_type);
+			bytes += (oldFilename.Size() + 1) * sizeof(String::value_type);
 
 			action->newName = (String::value_type*)bytes;
 			action->type = FileActionType::Modified;
 
-			memcpy(action->oldName, oldFilename.data(), oldFilename.size() * sizeof(String::value_type));
-			action->oldName[oldFilename.size()] = L'\0';
+			memcpy(action->oldName, oldFilename.Data(), oldFilename.size() * sizeof(String::value_type));
+			action->oldName[oldFilename.Size()] = L'\0';
 
-			memcpy(action->newName, newfileName.data(), newfileName.size() * sizeof(String::value_type));
-			action->newName[newfileName.size()] = L'\0';
+			memcpy(action->newName, newfileName.Data(), newfileName.size() * sizeof(String::value_type));
+			action->newName[newfileName.Size()] = L'\0';
 			action->lastSize = 0;
 			action->checkForWriteStarted = false;
 
@@ -250,21 +250,21 @@ namespace bs
 		for(auto& monitor : m->monitors)
 		{
 			// Identical monitor exists
-			if(monitor->folderToMonitor.equals(folderPath))
+			if(monitor->folderToMonitor.Equals(folderPath))
 			{
 				BS_LOG(Warning, Platform, "Folder is already monitored, cannot monitor it again.");
 				return;
 			}
 
 			// This directory is part of a directory that's being monitored
-			if(monitor->monitorSubdirectories && folderPath.includes(monitor->folderToMonitor))
+			if(monitor->monitorSubdirectories && folderPath.Includes(monitor->folderToMonitor))
 			{
 				BS_LOG(Warning, Platform, "Folder is already monitored, cannot monitor it again.");
 				return;
 			}
 
 			// This directory would include a directory of another monitor
-			if(subdirectories && monitor->folderToMonitor.includes(folderPath))
+			if(subdirectories && monitor->folderToMonitor.Includes(folderPath))
 			{
 				BS_LOG(Warning, Platform, "Cannot add a recursive monitor as it conflicts with a previously monitored path");
 				return;
@@ -287,7 +287,7 @@ namespace bs
 			Lock Lock(m->mainMutex);
 
 			m->monitors.push_back(watchInfo);
-			watchInfo->startMonitor();
+			watchInfo->StartMonitor();
 		}
 
 		// Start the worker thread if it isn't already
@@ -302,23 +302,23 @@ namespace bs
 
 	void FolderMonitor::StopMonitor(const Path& folderPath)
 	{
-		auto findIter = std::find_if(m->monitors.begin(), m->monitors.end(),
+		auto findIter = std::find_if(m->monitors.Begin(), m->monitors.end(),
 			[&](const FolderWatchInfo* x) { return x->folderToMonitor == folderPath; });
 
-		if(findIter != m->monitors.end())
+		if(findIter != m->monitors.End())
 		{
 			// Special case if this is the last monitor
-			if(m->monitors.size() == 1)
+			if(m->monitors.Size() == 1)
 				stopMonitorAll();
 			else
 			{
 				Lock Lock(m->mainMutex);
 				FolderWatchInfo* watchInfo = *findIter;
 
-				watchInfo->stopMonitor();
+				watchInfo->StopMonitor();
 				bs_delete(watchInfo);
 
-				m->monitors.erase(findIter);
+				m->monitors.Erase(findIter);
 			}
 		}
 	}
@@ -336,17 +336,17 @@ namespace bs
 			// the thread won't wake up (we ensure that elsewhere).
 			for (auto& watchInfo : m->monitors)
 			{
-				watchInfo->stopMonitor();
+				watchInfo->StopMonitor();
 				bs_delete(watchInfo);
 			}
 
-			m->monitors.clear();
+			m->monitors.Clear();
 		}
 
 		// Wait for the thread to shutdown
 		if(m->workerThread != nullptr)
 		{
-			m->workerThread->join();
+			m->workerThread->Join();
 			bs_delete(m->workerThread);
 			m->workerThread = nullptr;
 		}
@@ -403,10 +403,10 @@ namespace bs
 						FolderWatchInfo* monitor = nullptr;
 						for (auto& entry : m->monitors)
 						{
-							path = entry->getPath(event->wd);
-							if (!path.isEmpty())
+							path = entry->GetPath(event->wd);
+							if (!path.IsEmpty())
 							{
-								path.append(event->name);
+								path.Append(event->name);
 								monitor = entry;
 								break;
 							}
@@ -424,9 +424,9 @@ namespace bs
 							bool removed = (event->mask & (IN_DELETE | IN_MOVED_FROM)) != 0;
 
 							if(added)
-								monitor->addPath(path);
+								monitor->AddPath(path);
 							else If(removed)
-								monitor->removePath(path);
+								monitor->RemovePath(path);
 						}
 
 						// Actually trigger the events
@@ -436,13 +436,13 @@ namespace bs
 						{
 							if (isDirectory)
 							{
-								if (monitor->filter.isSet(FolderChangeBit::DirName))
-									m->fileActions.push_back(FileAction::createAdded(path.toString()));
+								if (monitor->filter.IsSet(FolderChangeBit::DirName))
+									m->fileActions.push_back(FileAction::createAdded(path.ToString()));
 							}
 							else
 							{
-								if (monitor->filter.isSet(FolderChangeBit::FileName))
-									m->fileActions.push_back(FileAction::createAdded(path.toString()));
+								if (monitor->filter.IsSet(FolderChangeBit::FileName))
+									m->fileActions.push_back(FileAction::createAdded(path.ToString()));
 							}
 						}
 
@@ -451,20 +451,20 @@ namespace bs
 						{
 							if(isDirectory)
 							{
-								if(monitor->filter.isSet(FolderChangeBit::DirName))
-									m->fileActions.push_back(FileAction::createRemoved(path.toString()));
+								if(monitor->filter.IsSet(FolderChangeBit::DirName))
+									m->fileActions.push_back(FileAction::createRemoved(path.ToString()));
 							}
 							else
 							{
-								if(monitor->filter.isSet(FolderChangeBit::FileName))
-									m->fileActions.push_back(FileAction::createRemoved(path.toString()));
+								if(monitor->filter.IsSet(FolderChangeBit::FileName))
+									m->fileActions.push_back(FileAction::createRemoved(path.ToString()));
 							}
 						}
 
 						// File was modified
-						if(((event->mask & IN_CLOSE_WRITE) != 0) && monitor->filter.isSet(FolderChangeBit::FileWrite))
+						if(((event->mask & IN_CLOSE_WRITE) != 0) && monitor->filter.IsSet(FolderChangeBit::FileWrite))
 						{
-							m->fileActions.push_back(FileAction::createModified(path.toString()));
+							m->fileActions.push_back(FileAction::createModified(path.ToString()));
 						}
 
 						// Note: Not reporting renames, instead a remove + add event is created. To support renames I'd need
@@ -499,19 +499,19 @@ namespace bs
 			switch (action->type)
 			{
 			case FileActionType::Added:
-				if (!onAdded.empty())
+				if (!onAdded.Empty())
 					onAdded(Path(action->newName));
 				break;
 			case FileActionType::Removed:
-				if (!onRemoved.empty())
+				if (!onRemoved.Empty())
 					onRemoved(Path(action->newName));
 				break;
 			case FileActionType::Modified:
-				if (!onModified.empty())
+				if (!onModified.Empty())
 					onModified(Path(action->newName));
 				break;
 			case FileActionType::Renamed:
-				if (!onRenamed.empty())
+				if (!onRenamed.Empty())
 					onRenamed(Path(action->oldName), Path(action->newName));
 				break;
 			}
@@ -519,6 +519,6 @@ namespace bs
 			FileAction::destroy(action);
 		}
 
-		m->activeFileActions.clear();
+		m->activeFileActions.Clear();
 	}
 }

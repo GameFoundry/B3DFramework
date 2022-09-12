@@ -564,16 +564,16 @@ namespace bs
 		static int Compare(const BasicString<T>& lhs, const BasicString<T>& rhs, bool caseSensitive = true)
 		{
 			if (caseSensitive)
-				return (int)lhs.compare(rhs);
+				return (int)lhs.Compare(rhs);
 
-			int size = (int)std::min(lhs.size(), rhs.size());
+			int size = (int)std::min(lhs.Size(), rhs.size());
 			for (int i = 0; i < size; i++)
 			{
 				if (toupper(lhs[i]) < toupper(rhs[i])) return -1;
 				if (toupper(lhs[i]) > toupper(rhs[i])) return 1;
 			}
 
-			return (lhs.size() < rhs.size() ? -1 : (lhs.size() == rhs.size() ? 0 : 1));
+			return (lhs.Size() < rhs.size() ? -1 : (lhs.size() == rhs.size() ? 0 : 1));
 		}
 
 		/** @copydoc StringFormat::format */
@@ -602,7 +602,7 @@ namespace bs
 		{
 			Vector<BasicString<T>> ret;
 			// Pre-allocate some space for performance
-			ret.reserve(maxSplits ? maxSplits+1 : 10);    // 10 is guessed capacity for most case
+			ret.Reserve(maxSplits ? maxSplits+1 : 10);    // 10 is guessed capacity for most case
 
 			unsigned int numSplits = 0;
 
@@ -620,13 +620,13 @@ namespace bs
 				else if (pos == BasicString<T>::npos || (maxSplits && numSplits == maxSplits))
 				{
 					// Copy the rest of the string
-					ret.push_back(str.substr(start));
+					ret.push_back(str.Substr(start));
 					break;
 				}
 				else
 				{
 					// Copy up to delimiter
-					ret.push_back(str.substr(start, pos - start));
+					ret.push_back(str.Substr(start, pos - start));
 					start = pos + 1;
 				}
 				// parse up to next real data
@@ -644,7 +644,7 @@ namespace bs
 		{
 			Vector<BasicString<T>> ret;
 			// Pre-allocate some space for performance
-			ret.reserve(maxSplits ? maxSplits + 1 : 10);    // 10 is guessed capacity for most case
+			ret.Reserve(maxSplits ? maxSplits + 1 : 10);    // 10 is guessed capacity for most case
 
 			unsigned int numSplits = 0;
 			BasicString<T> delims = singleDelims + doubleDelims;
@@ -657,7 +657,7 @@ namespace bs
 			{
 				if (curDoubleDelim != 0)
 				{
-					pos = str.find(curDoubleDelim, start);
+					pos = str.Find(curDoubleDelim, start);
 				}
 				else
 				{
@@ -666,7 +666,7 @@ namespace bs
 
 				if (pos == start)
 				{
-					T curDelim = str.at(pos);
+					T curDelim = str.At(pos);
 					if (doubleDelims.find_first_of(curDelim) != BasicString<T>::npos)
 					{
 						curDoubleDelim = curDelim;
@@ -681,7 +681,7 @@ namespace bs
 						//Missing closer. Warn or throw exception?
 					}
 					// Copy the rest of the string
-					ret.push_back( str.substr(start) );
+					ret.push_back( str.Substr(start) );
 					break;
 				}
 				else
@@ -692,7 +692,7 @@ namespace bs
 					}
 
 					// Copy up to delimiter
-					ret.push_back( str.substr(start, pos - start) );
+					ret.push_back( str.Substr(start, pos - start) );
 					start = pos + 1;
 				}
 				if (curDoubleDelim == 0)
@@ -711,12 +711,12 @@ namespace bs
 		template <class T>
 		static bool StartsWithInternal(const BasicString<T>& str, const BasicString<T>& pattern, bool lowerCase)
 		{
-			size_t thisLen = str.length();
-			size_t patternLen = pattern.length();
+			size_t thisLen = str.Length();
+			size_t patternLen = pattern.Length();
 			if (thisLen < patternLen || patternLen == 0)
 				return false;
 
-			BasicString<T> startOfThis = str.substr(0, patternLen);
+			BasicString<T> startOfThis = str.Substr(0, patternLen);
 			if (lowerCase)
 				StringUtil::toLowerCase(startOfThis);
 
@@ -726,12 +726,12 @@ namespace bs
 		template <class T>
 		static bool EndsWithInternal(const BasicString<T>& str, const BasicString<T>& pattern, bool lowerCase)
 		{
-			size_t thisLen = str.length();
-			size_t patternLen = pattern.length();
+			size_t thisLen = str.Length();
+			size_t patternLen = pattern.Length();
 			if (thisLen < patternLen || patternLen == 0)
 				return false;
 
-			BasicString<T> endOfThis = str.substr(thisLen - patternLen, patternLen);
+			BasicString<T> endOfThis = str.Substr(thisLen - patternLen, patternLen);
 			if (lowerCase)
 				StringUtil::toLowerCase(endOfThis);
 
@@ -749,25 +749,25 @@ namespace bs
 				StringUtil::toLowerCase(tmpPattern);
 			}
 
-			typename BasicString<T>::const_iterator strIt = tmpStr.begin();
-			typename BasicString<T>::const_iterator patIt = tmpPattern.begin();
-			typename BasicString<T>::const_iterator lastWildCardIt = tmpPattern.end();
-			while (strIt != tmpStr.end() && patIt != tmpPattern.end())
+			typename BasicString<T>::const_iterator strIt = tmpStr.Begin();
+			typename BasicString<T>::const_iterator patIt = tmpPattern.Begin();
+			typename BasicString<T>::const_iterator lastWildCardIt = tmpPattern.End();
+			while (strIt != tmpStr.End() && patIt != tmpPattern.end())
 			{
 				if (*patIt == '*')
 				{
 					lastWildCardIt = patIt;
 					// Skip over looking for next character
 					++patIt;
-					if (patIt == tmpPattern.end())
+					if (patIt == tmpPattern.End())
 					{
 						// Skip right to the end since * matches the entire rest of the string
-						strIt = tmpStr.end();
+						strIt = tmpStr.End();
 					}
 					else
 					{
 						// scan until we find next pattern character
-						while(strIt != tmpStr.end() && *strIt != *patIt)
+						while(strIt != tmpStr.End() && *strIt != *patIt)
 							++strIt;
 					}
 				}
@@ -775,12 +775,12 @@ namespace bs
 				{
 					if (*patIt != *strIt)
 					{
-						if (lastWildCardIt != tmpPattern.end())
+						if (lastWildCardIt != tmpPattern.End())
 						{
 							// The last wildcard can match this incorrect sequence
 							// rewind pattern to wildcard and keep searching
 							patIt = lastWildCardIt;
-							lastWildCardIt = tmpPattern.end();
+							lastWildCardIt = tmpPattern.End();
 						}
 						else
 						{
@@ -798,7 +798,7 @@ namespace bs
 			}
 
 			// If we reached the end of both the pattern and the string, we succeeded
-			if (patIt == tmpPattern.end() && strIt == tmpStr.end())
+			if (patIt == tmpPattern.End() && strIt == tmpStr.end())
 				return true;
 			else
 				return false;
@@ -812,10 +812,10 @@ namespace bs
 			typename BasicString<T>::size_type pos = 0;
 			while(1)
 			{
-				pos = result.find(replaceWhat,pos);
+				pos = result.Find(replaceWhat,pos);
 				if (pos == BasicString<T>::npos) break;
-				result.replace(pos,replaceWhat.size(), replaceWithWhat);
-				pos += replaceWithWhat.size();
+				result.Replace(pos,replaceWhat.size(), replaceWithWhat);
+				pos += replaceWithWhat.Size();
 			}
 			return result;
 		}
@@ -843,7 +843,7 @@ struct hash<bs::String>
 	size_t Operator()(const bs::String& string) const
 	{
 		size_t hash = 0;
-		for(size_t i = 0; i < string.size(); i++)
+		for(size_t i = 0; i < string.Size(); i++)
 			hash = 65599 * hash + string[i];
 		return hash ^ (hash >> 16);
 	}
@@ -856,7 +856,7 @@ struct hash<bs::WString>
 	size_t Operator()(const bs::WString& string) const
 	{
 		size_t hash = 0;
-		for(size_t i = 0; i < string.size(); i++)
+		for(size_t i = 0; i < string.Size(); i++)
 			hash = 65599 * hash + string[i];
 		return hash ^ (hash >> 16);
 	}

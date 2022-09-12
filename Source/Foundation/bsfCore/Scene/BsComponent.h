@@ -154,10 +154,10 @@ namespace bs
 		bool SupportsNotify(TransformChangedFlags flags) const { return (mNotifyFlags & flags) != 0; }
 
 		/** Enables or disabled a flag controlling component's behaviour. */
-		void SetFlag(ComponentFlag flag, bool enabled) { if (enabled) mFlags.set(flag); else mFlags.unset(flag); }
+		void SetFlag(ComponentFlag flag, bool enabled) { if (enabled) mFlags.Set(flag); else mFlags.unset(flag); }
 
 		/** Checks if the component has a certain flag enabled. */
-		bool HasFlag(ComponentFlag flag) const { return mFlags.isSet(flag); }
+		bool HasFlag(ComponentFlag flag) const { return mFlags.IsSet(flag); }
 
 		/** Sets an index that uniquely identifies a component with the SceneManager. */
 		void SetSceneManagerId(UINT32 id) { mSceneManagerId = id; }

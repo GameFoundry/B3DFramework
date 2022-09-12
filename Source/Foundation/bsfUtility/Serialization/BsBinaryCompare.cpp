@@ -29,19 +29,19 @@ namespace bs
 
 	bool BinaryCompare::Run(IReflectable& a, IReflectable& b)
 	{
-		mAlloc->markFrame();
+		mAlloc->MarkFrame();
 		bool output = compare(a, b);
-		mObjectMap.clear();
-		mAlloc->clear();
+		mObjectMap.Clear();
+		mAlloc->Clear();
 
 		return output;
 	}
 
 	bool BinaryCompare::Compare(IReflectable& a, IReflectable& b)
 	{
-		RTTITypeBase* rtti = a.getRTTI();
+		RTTITypeBase* rtti = a.GetRTTI();
 
-		if(rtti != b.getRTTI())
+		if(rtti != b.GetRTTI())
 			return false;
 
 		struct RTTIPair
@@ -53,15 +53,15 @@ namespace bs
 		FrameStack<RTTIPair> rttiInstances;
 		auto cleanup = impl::make_scope_guard([&]()
 		{
-			while (!rttiInstances.empty())
+			while (!rttiInstances.Empty())
 			{
-				RTTIPair rttiPair = rttiInstances.top();
-				rttiPair.rttiA->onSerializationEnded(&a, mContext);
-				rttiPair.rttiB->onSerializationEnded(&b, mContext);
-				mAlloc->destruct(rttiPair.rttiA);
-				mAlloc->destruct(rttiPair.rttiB);
+				RTTIPair rttiPair = rttiInstances.Top();
+				rttiPair.rttiA->OnSerializationEnded(&a, mContext);
+				rttiPair.rttiB->OnSerializationEnded(&b, mContext);
+				mAlloc->Destruct(rttiPair.rttiA);
+				mAlloc->Destruct(rttiPair.rttiB);
 
-				rttiInstances.pop();
+				rttiInstances.Pop();
 			}
 		});
 
@@ -70,19 +70,19 @@ namespace bs
 		{
 			RTTITypeBase* rttiInstanceA = rtti->_clone(*mAlloc);
 			RTTITypeBase* rttiInstanceB = rtti->_clone(*mAlloc);
-			rttiInstances.push({ rttiInstanceA, rttiInstanceB });
+			rttiInstances.Push({ rttiInstanceA, rttiInstanceB });
 
-			rttiInstanceA->onSerializationStarted(&a, mContext);
-			rttiInstanceB->onSerializationStarted(&b, mContext);
+			rttiInstanceA->OnSerializationStarted(&a, mContext);
+			rttiInstanceB->OnSerializationStarted(&b, mContext);
 
-			const UINT32 numFields = rtti->getNumFields();
+			const UINT32 numFields = rtti->GetNumFields();
 			for (UINT32 i = 0; i < numFields; i++)
 			{
-				RTTIField* curGenericField = rtti->getField(i);
+				RTTIField* curGenericField = rtti->GetField(i);
 				if (curGenericField->schema.isArray)
 				{
-					const UINT32 arrayNumElemsA = curGenericField->getArraySize(rttiInstanceA, &a);
-					const UINT32 arrayNumElemsB = curGenericField->getArraySize(rttiInstanceB, &b);
+					const UINT32 arrayNumElemsA = curGenericField->GetArraySize(rttiInstanceA, &a);
+					const UINT32 arrayNumElemsB = curGenericField->GetArraySize(rttiInstanceB, &b);
 
 					if(arrayNumElemsA != arrayNumElemsB)
 						return false;
@@ -95,8 +95,8 @@ namespace bs
 
 						for (UINT32 arrIdx = 0; arrIdx < arrayNumElemsA; arrIdx++)
 						{
-							SPtr<IReflectable> childObjectA = curField->getArrayValue(rttiInstanceA, &a, arrIdx);
-							SPtr<IReflectable> childObjectB = curField->getArrayValue(rttiInstanceB, &b, arrIdx);
+							SPtr<IReflectable> childObjectA = curField->GetArrayValue(rttiInstanceA, &a, arrIdx);
+							SPtr<IReflectable> childObjectB = curField->GetArrayValue(rttiInstanceB, &b, arrIdx);
 
 							if (childObjectA != childObjectB)
 							{
@@ -104,13 +104,13 @@ namespace bs
 									return false;
 
 								RTTITypeBase* childRtti = nullptr;
-								if (childObjectA->getRTTI() == childObjectB->getRTTI())
-									childRtti = childObjectA->getRTTI();
+								if (childObjectA->GetRTTI() == childObjectB->getRTTI())
+									childRtti = childObjectA->GetRTTI();
 
 								if (childRtti != nullptr)
 								{
-									ICompare& handler = childRtti->getCompareHandler();
-									if (!handler.run(*childObjectA, *childObjectB))
+									ICompare& handler = childRtti->GetCompareHandler();
+									if (!handler.Run(*childObjectA, *childObjectB))
 										return false;
 								}
 								else
@@ -126,17 +126,17 @@ namespace bs
 
 						for (UINT32 arrIdx = 0; arrIdx < arrayNumElemsA; arrIdx++)
 						{
-							IReflectable& childObjectA = curField->getArrayValue(rttiInstanceA, &a, arrIdx);
-							IReflectable& childObjectB = curField->getArrayValue(rttiInstanceB, &b, arrIdx);
+							IReflectable& childObjectA = curField->GetArrayValue(rttiInstanceA, &a, arrIdx);
+							IReflectable& childObjectB = curField->GetArrayValue(rttiInstanceB, &b, arrIdx);
 
 							RTTITypeBase* childRtti = nullptr;
-							if (childObjectA.getRTTI() == childObjectB.getRTTI())
-								childRtti = childObjectA.getRTTI();
+							if (childObjectA.GetRTTI() == childObjectB.getRTTI())
+								childRtti = childObjectA.GetRTTI();
 
 							if (childRtti != nullptr)
 							{
-								ICompare& handler = childRtti->getCompareHandler();
-								if (!handler.run(childObjectA, childObjectB))
+								ICompare& handler = childRtti->GetCompareHandler();
+								if (!handler.Run(childObjectA, childObjectB))
 									return false;
 							}
 							else
@@ -155,8 +155,8 @@ namespace bs
 							UINT32 typeSizeB = 0;
 							if (curField->schema.hasDynamicSize)
 							{
-								typeSizeA = curField->getArrayElemDynamicSize(rttiInstanceA, &a, arrIdx, false).bytes;
-								typeSizeB = curField->getArrayElemDynamicSize(rttiInstanceB, &b, arrIdx, false).bytes;
+								typeSizeA = curField->GetArrayElemDynamicSize(rttiInstanceA, &a, arrIdx, false).bytes;
+								typeSizeB = curField->GetArrayElemDynamicSize(rttiInstanceB, &b, arrIdx, false).bytes;
 							}
 							else
 								typeSizeA = typeSizeB = curField->schema.size.bytes;
@@ -171,8 +171,8 @@ namespace bs
 							Bitstream StreamA((uint8_t*)static_cast<void*>(dataA), typeSizeA);
 							Bitstream StreamB((uint8_t*)static_cast<void*>(dataB), typeSizeB);
 
-							curField->arrayElemToStream(rttiInstanceA, &a, arrIdx, streamA);
-							curField->arrayElemToStream(rttiInstanceB, &b, arrIdx, streamB);
+							curField->ArrayElemToStream(rttiInstanceA, &a, arrIdx, streamA);
+							curField->ArrayElemToStream(rttiInstanceB, &b, arrIdx, streamB);
 
 							if(memcmp(dataA, dataB, typeSizeA) != 0)
 								return false;
@@ -194,8 +194,8 @@ namespace bs
 					{
 						auto curField = static_cast<RTTIReflectablePtrFieldBase*>(curGenericField);
 
-						SPtr<IReflectable> childObjectA = curField->getValue(rttiInstanceA, &a);
-						SPtr<IReflectable> childObjectB = curField->getValue(rttiInstanceB, &b);
+						SPtr<IReflectable> childObjectA = curField->GetValue(rttiInstanceA, &a);
+						SPtr<IReflectable> childObjectB = curField->GetValue(rttiInstanceB, &b);
 
 						if (childObjectA != childObjectB)
 						{
@@ -203,13 +203,13 @@ namespace bs
 								return false;
 
 							RTTITypeBase* childRtti = nullptr;
-							if (childObjectA->getRTTI() == childObjectB->getRTTI())
-								childRtti = childObjectA->getRTTI();
+							if (childObjectA->GetRTTI() == childObjectB->getRTTI())
+								childRtti = childObjectA->GetRTTI();
 
 							if (childRtti != nullptr)
 							{
-								ICompare& handler = childRtti->getCompareHandler();
-								if (!handler.run(*childObjectA, *childObjectB))
+								ICompare& handler = childRtti->GetCompareHandler();
+								if (!handler.Run(*childObjectA, *childObjectB))
 									return false;
 							}
 							else
@@ -222,17 +222,17 @@ namespace bs
 					{
 						auto curField = static_cast<RTTIReflectableFieldBase*>(curGenericField);
 
-						IReflectable& childObjectA = curField->getValue(rttiInstanceA, &a);
-						IReflectable& childObjectB = curField->getValue(rttiInstanceB, &b);
+						IReflectable& childObjectA = curField->GetValue(rttiInstanceA, &a);
+						IReflectable& childObjectB = curField->GetValue(rttiInstanceB, &b);
 
 						RTTITypeBase* childRtti = nullptr;
-						if (childObjectA.getRTTI() == childObjectB.getRTTI())
-							childRtti = childObjectA.getRTTI();
+						if (childObjectA.GetRTTI() == childObjectB.getRTTI())
+							childRtti = childObjectA.GetRTTI();
 
 						if (childRtti != nullptr)
 						{
-							ICompare& handler = childRtti->getCompareHandler();
-							if(!handler.run(childObjectA, childObjectB))
+							ICompare& handler = childRtti->GetCompareHandler();
+							if(!handler.Run(childObjectA, childObjectB))
 								return false;
 						}
 						else
@@ -248,8 +248,8 @@ namespace bs
 						UINT32 typeSizeB = 0;
 						if (curField->schema.hasDynamicSize)
 						{
-							typeSizeA = curField->getDynamicSize(rttiInstanceA, &a, false).bytes;
-							typeSizeB = curField->getDynamicSize(rttiInstanceB, &b, false).bytes;
+							typeSizeA = curField->GetDynamicSize(rttiInstanceA, &a, false).bytes;
+							typeSizeB = curField->GetDynamicSize(rttiInstanceB, &b, false).bytes;
 						}
 						else
 							typeSizeA = typeSizeB = curField->schema.size.bytes;
@@ -264,8 +264,8 @@ namespace bs
 						Bitstream StreamA((uint8_t*)static_cast<void*>(dataA), typeSizeA);
 						Bitstream StreamB((uint8_t*)static_cast<void*>(dataB), typeSizeB);
 
-						curField->toStream(rttiInstanceA, &a, streamA);
-						curField->toStream(rttiInstanceB, &b, streamB);
+						curField->ToStream(rttiInstanceA, &a, streamA);
+						curField->ToStream(rttiInstanceB, &b, streamB);
 
 						if (memcmp(dataA, dataB, typeSizeA) != 0)
 							return false;
@@ -277,8 +277,8 @@ namespace bs
 						auto curField = static_cast<RTTIManagedDataBlockFieldBase*>(curGenericField);
 
 						UINT32 dataBlockSizeA = 0, dataBlockSizeB = 0;
-						SPtr<DataStream> blockStreamA = curField->getValue(rttiInstanceA, &a, dataBlockSizeA);
-						SPtr<DataStream> blockStreamB = curField->getValue(rttiInstanceB, &b, dataBlockSizeB);
+						SPtr<DataStream> blockStreamA = curField->GetValue(rttiInstanceA, &a, dataBlockSizeA);
+						SPtr<DataStream> blockStreamB = curField->GetValue(rttiInstanceB, &b, dataBlockSizeB);
 
 						if(dataBlockSizeA != dataBlockSizeB)
 							return false;
@@ -286,8 +286,8 @@ namespace bs
 						auto dataA = bs_managed_stack_alloc(dataBlockSizeA);
 						auto dataB = bs_managed_stack_alloc(dataBlockSizeB);
 
-						blockStreamA->read(dataA, dataBlockSizeA);
-						blockStreamB->read(dataB, dataBlockSizeB);
+						blockStreamA->Read(dataA, dataBlockSizeA);
+						blockStreamB->Read(dataB, dataBlockSizeB);
 
 						if(memcmp(dataA, dataB, dataBlockSizeA) != 0)
 							return false;
@@ -302,7 +302,7 @@ namespace bs
 				}
 			}
 
-			rtti = rtti->getBaseClass();
+			rtti = rtti->GetBaseClass();
 
 		} while (rtti != nullptr); // Repeat until we reach the top of the inheritance hierarchy
 

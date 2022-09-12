@@ -106,7 +106,7 @@ namespace bs
 		if (mResourceManifest == nullptr)
 			mResourceManifest = ResourceManifest::create("BuiltinResources");
 
-		gResources().registerResourceManifest(mResourceManifest);
+		gResources().RegisterResourceManifest(mResourceManifest);
 
 		// Load basic resources
 		mShaderSpriteText = getShader(ShaderSpriteTextFile);
@@ -121,10 +121,10 @@ namespace bs
 
 		SPtr<PixelData> dummyPixelData = PixelData::create(2, 2, 1, PF_RGBA8);
 
-		dummyPixelData->setColorAt(Color::Red, 0, 0);
-		dummyPixelData->setColorAt(Color::Red, 0, 1);
-		dummyPixelData->setColorAt(Color::Red, 1, 0);
-		dummyPixelData->setColorAt(Color::Red, 1, 1);
+		dummyPixelData->SetColorAt(Color::Red, 0, 0);
+		dummyPixelData->SetColorAt(Color::Red, 0, 1);
+		dummyPixelData->SetColorAt(Color::Red, 1, 0);
+		dummyPixelData->SetColorAt(Color::Red, 1, 1);
 
 		mDummyTexture = Texture::create(dummyPixelData);
 
@@ -150,55 +150,55 @@ namespace bs
 		HTexture cursorSizeNWSETex = getCursorTexture(CursorSizeNWSETex);
 		HTexture cursorSizeWETex = getCursorTexture(CursorSizeWETex);
 
-		mCursorArrow = cursorArrowTex->getProperties().allocBuffer(0, 0);
-		cursorArrowTex->readData(mCursorArrow);
+		mCursorArrow = cursorArrowTex->GetProperties().AllocBuffer(0, 0);
+		cursorArrowTex->ReadData(mCursorArrow);
 
-		mCursorArrowDrag = cursorArrowDragTex->getProperties().allocBuffer(0, 0);
-		cursorArrowDragTex->readData(mCursorArrowDrag);
+		mCursorArrowDrag = cursorArrowDragTex->GetProperties().AllocBuffer(0, 0);
+		cursorArrowDragTex->ReadData(mCursorArrowDrag);
 
-		mCursorArrowLeftRight = cursorArrowLeftRightTex->getProperties().allocBuffer(0, 0);
-		cursorArrowLeftRightTex->readData(mCursorArrowLeftRight);
+		mCursorArrowLeftRight = cursorArrowLeftRightTex->GetProperties().AllocBuffer(0, 0);
+		cursorArrowLeftRightTex->ReadData(mCursorArrowLeftRight);
 
-		mCursorIBeam = cursorIBeamTex->getProperties().allocBuffer(0, 0);
-		cursorIBeamTex->readData(mCursorIBeam);
+		mCursorIBeam = cursorIBeamTex->GetProperties().AllocBuffer(0, 0);
+		cursorIBeamTex->ReadData(mCursorIBeam);
 
-		mCursorDeny = cursorDenyTex->getProperties().allocBuffer(0, 0);
-		cursorDenyTex->readData(mCursorDeny);
+		mCursorDeny = cursorDenyTex->GetProperties().AllocBuffer(0, 0);
+		cursorDenyTex->ReadData(mCursorDeny);
 
-		mCursorWait = cursorWaitTex->getProperties().allocBuffer(0, 0);
-		cursorWaitTex->readData(mCursorWait);
+		mCursorWait = cursorWaitTex->GetProperties().AllocBuffer(0, 0);
+		cursorWaitTex->ReadData(mCursorWait);
 
-		mCursorSizeNESW = cursorSizeNESWTex->getProperties().allocBuffer(0, 0);
-		cursorSizeNESWTex->readData(mCursorSizeNESW);
+		mCursorSizeNESW = cursorSizeNESWTex->GetProperties().AllocBuffer(0, 0);
+		cursorSizeNESWTex->ReadData(mCursorSizeNESW);
 
-		mCursorSizeNS = cursorSizeNSTex->getProperties().allocBuffer(0, 0);
-		cursorSizeNSTex->readData(mCursorSizeNS);
+		mCursorSizeNS = cursorSizeNSTex->GetProperties().AllocBuffer(0, 0);
+		cursorSizeNSTex->ReadData(mCursorSizeNS);
 
-		mCursorSizeNWSE = cursorSizeNWSETex->getProperties().allocBuffer(0, 0);
-		cursorSizeNWSETex->readData(mCursorSizeNWSE);
+		mCursorSizeNWSE = cursorSizeNWSETex->GetProperties().AllocBuffer(0, 0);
+		cursorSizeNWSETex->ReadData(mCursorSizeNWSE);
 
-		mCursorSizeWE = cursorSizeWETex->getProperties().allocBuffer(0, 0);
-		cursorSizeWETex->readData(mCursorSizeWE);
+		mCursorSizeWE = cursorSizeWETex->GetProperties().AllocBuffer(0, 0);
+		cursorSizeWETex->ReadData(mCursorSizeWE);
 
 		/************************************************************************/
 		/* 								ICON		                     		*/
 		/************************************************************************/
 
 		Path iconPath = mBuiltinDataFolder + ICON_FOLDER;
-		iconPath.append(String(IconTextureName) + u8".asset");
+		iconPath.Append(String(IconTextureName) + u8".asset");
 
 		HTexture iconTex = gResources().load<Texture>(iconPath);
 
-		mFrameworkIcon = iconTex->getProperties().allocBuffer(0, 0);
-		iconTex->readData(mFrameworkIcon);
+		mFrameworkIcon = iconTex->GetProperties().AllocBuffer(0, 0);
+		iconTex->ReadData(mFrameworkIcon);
 
-		gCoreThread().submit(true);
+		gCoreThread().Submit(true);
 	}
 
 	HSpriteTexture BuiltinResources::GetSkinTexture(const String& name) const
 	{
 		Path texturePath = mEngineSkinSpritesFolder;
-		texturePath.append(u8"sprite_" + name + u8".asset");
+		texturePath.Append(u8"sprite_" + name + u8".asset");
 
 		return GResources().load<SpriteTexture>(texturePath);
 	}
@@ -206,8 +206,8 @@ namespace bs
 	HShader BuiltinResources::GetShader(const Path& path) const
 	{
 		Path programPath = mEngineShaderFolder;
-		programPath.append(path);
-		programPath.setExtension(programPath.getExtension() + ".asset");
+		programPath.Append(path);
+		programPath.SetExtension(programPath.getExtension() + ".asset");
 
 		return GResources().load<Shader>(programPath);
 	}
@@ -215,7 +215,7 @@ namespace bs
 	HTexture BuiltinResources::GetCursorTexture(const String& name) const
 	{
 		Path cursorPath = mEngineCursorFolder;
-		cursorPath.append(name + u8".asset");
+		cursorPath.Append(name + u8".asset");
 
 		return GResources().load<Texture>(cursorPath);
 	}
@@ -223,66 +223,66 @@ namespace bs
 	const PixelData& BuiltinResources::GetCursorArrow(Vector2I& hotSpot)
 	{
 		hotSpot = CursorArrowHotspot;
-		return *mCursorArrow.get();
+		return *mCursorArrow.Get();
 	}
 
 	const PixelData& BuiltinResources::GetCursorArrowDrag(Vector2I& hotSpot)
 	{
 		hotSpot = CursorArrowDragHotspot;
-		return *mCursorArrowDrag.get();
+		return *mCursorArrowDrag.Get();
 	}
 
 	const PixelData& BuiltinResources::GetCursorWait(Vector2I& hotSpot)
 	{
 		hotSpot = CursorWaitHotspot;
-		return *mCursorWait.get();
+		return *mCursorWait.Get();
 	}
 
 	const PixelData& BuiltinResources::GetCursorIBeam(Vector2I& hotSpot)
 	{
 		hotSpot = CursorIBeamHotspot;
-		return *mCursorIBeam.get();
+		return *mCursorIBeam.Get();
 	}
 
 	const PixelData& BuiltinResources::GetCursorSizeNESW(Vector2I& hotSpot)
 	{
 		hotSpot = CursorSizeNESWHotspot;
-		return *mCursorSizeNESW.get();
+		return *mCursorSizeNESW.Get();
 	}
 
 	const PixelData& BuiltinResources::GetCursorSizeNS(Vector2I& hotSpot)
 	{
 		hotSpot = CursorSizeNSHotspot;
-		return *mCursorSizeNS.get();
+		return *mCursorSizeNS.Get();
 	}
 
 	const PixelData& BuiltinResources::GetCursorSizeNWSE(Vector2I& hotSpot)
 	{
 		hotSpot = CursorSizeNWSEHotspot;
-		return *mCursorSizeNWSE.get();
+		return *mCursorSizeNWSE.Get();
 	}
 
 	const PixelData& BuiltinResources::GetCursorSizeWE(Vector2I& hotSpot)
 	{
 		hotSpot = CursorSizeWEHotspot;
-		return *mCursorSizeWE.get();
+		return *mCursorSizeWE.Get();
 	}
 
 	const PixelData& BuiltinResources::GetCursorDeny(Vector2I& hotSpot)
 	{
 		hotSpot = CursorDenyHotspot;
-		return *mCursorDeny.get();
+		return *mCursorDeny.Get();
 	}
 
 	const PixelData& BuiltinResources::GetCursorMoveLeftRight(Vector2I& hotSpot)
 	{
 		hotSpot = CursorArrowLeftRightHotspot;
-		return *mCursorArrowLeftRight.get();
+		return *mCursorArrowLeftRight.Get();
 	}
 
 	const PixelData& BuiltinResources::GetFrameworkIcon()
 	{
-		return *mFrameworkIcon.get();
+		return *mFrameworkIcon.Get();
 	}
 
 	Path BuiltinResources::GetRawShaderFolder()
@@ -314,22 +314,22 @@ namespace bs
 		switch (mesh)
 		{
 		case BuiltinMesh::Box:
-			meshPath.append(MESH_BOX_FILE);
+			meshPath.Append(MESH_BOX_FILE);
 			break;
 		case BuiltinMesh::Sphere:
-			meshPath.append(MESH_SPHERE_FILE);
+			meshPath.Append(MESH_SPHERE_FILE);
 			break;
 		case BuiltinMesh::Cone:
-			meshPath.append(MESH_CONE_FILE);
+			meshPath.Append(MESH_CONE_FILE);
 			break;
 		case BuiltinMesh::Cylinder:
-			meshPath.append(MESH_CYLINDER_FILE);
+			meshPath.Append(MESH_CYLINDER_FILE);
 			break;
 		case BuiltinMesh::Quad:
-			meshPath.append(MESH_QUAD_FILE);
+			meshPath.Append(MESH_QUAD_FILE);
 			break;
 		case BuiltinMesh::Disc:
-			meshPath.append(MESH_DISC_FILE);
+			meshPath.Append(MESH_DISC_FILE);
 			break;
 		}
 
@@ -362,21 +362,21 @@ namespace bs
 	HTexture BuiltinResources::GetTexture(BuiltinTexture type)
 	{
 		Path texturePath = Paths::getDataPath();
-		texturePath.append(TEXTURE_FOLDER);
+		texturePath.Append(TEXTURE_FOLDER);
 
 		switch (type)
 		{
 		case BuiltinTexture::Black:
-			texturePath.append(TEXTURE_BLACK_FILE);
+			texturePath.Append(TEXTURE_BLACK_FILE);
 			break;
 		case BuiltinTexture::White:
-			texturePath.append(TEXTURE_WHITE_FILE);
+			texturePath.Append(TEXTURE_WHITE_FILE);
 			break;
 		case BuiltinTexture::Normal:
-			texturePath.append(TEXTURE_NORMAL_FILE);
+			texturePath.Append(TEXTURE_NORMAL_FILE);
 			break;
 		case BuiltinTexture::BokehFlare:
-			texturePath.append(u8"BokehHex.png.asset");
+			texturePath.Append(u8"BokehHex.png.asset");
 			break;
 		}
 

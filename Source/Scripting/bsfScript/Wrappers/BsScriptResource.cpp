@@ -30,11 +30,11 @@ namespace bs
 		if(!rrefClass)
 			return nullptr;
 
-		ScriptRRefBase* rref = ScriptResourceManager::instance().getScriptRRef(resource, rrefClass);
+		ScriptRRefBase* rref = ScriptResourceManager::instance().GetScriptRRef(resource, rrefClass);
 		if(!rref)
 			return nullptr;
 
-		return rref->getManagedInstance();
+		return rref->GetManagedInstance();
 	}
 
 	void ScriptResourceBase::SetManagedInstance(::MonoObject* instance)
@@ -55,18 +55,18 @@ namespace bs
 
 	void ScriptResourceBase::Destroy()
 	{
-		ScriptResourceManager::instance().destroyScriptResource(this);
+		ScriptResourceManager::instance().DestroyScriptResource(this);
 	}
 
 	::MonoClass* ScriptResourceBase::getManagedResourceClass(UINT32 rttiId)
 	{
-		if(rttiId == Resource::getRTTIStatic()->getRTTIId())
+		if(rttiId == Resource::getRTTIStatic()->GetRTTIId())
 			return ScriptResource::GetMetaData()->scriptClass->_getInternalClass();
-		else If(rttiId == ManagedResource::getRTTIStatic()->getRTTIId())
+		else If(rttiId == ManagedResource::getRTTIStatic()->GetRTTIId())
 			return ScriptResource::GetMetaData()->scriptClass->_getInternalClass();
 		else
 		{
-			BuiltinResourceInfo* info = ScriptAssemblyManager::instance().getBuiltinResourceInfo(rttiId);
+			BuiltinResourceInfo* info = ScriptAssemblyManager::instance().GetBuiltinResourceInfo(rttiId);
 
 			if (info == nullptr)
 				return nullptr;
@@ -86,24 +86,24 @@ namespace bs
 
 	void ScriptResource::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_GetName", (void*)&ScriptResource::internal_getName);
-		metaData.scriptClass->addInternalCall("Internal_GetUUID", (void*)&ScriptResource::internal_getUUID);
-		metaData.scriptClass->addInternalCall("Internal_Release", (void*)&ScriptResource::internal_release);
+		metaData.scriptClass->AddInternalCall("Internal_GetName", (void*)&ScriptResource::internal_getName);
+		metaData.scriptClass->AddInternalCall("Internal_GetUUID", (void*)&ScriptResource::internal_getUUID);
+		metaData.scriptClass->AddInternalCall("Internal_Release", (void*)&ScriptResource::internal_release);
 	}
 
 	MonoString* ScriptResource::internal_getName(ScriptResourceBase* nativeInstance)
 	{
-		return MonoUtil::StringToMono(nativeInstance->getGenericHandle()->getName());
+		return MonoUtil::StringToMono(nativeInstance->GetGenericHandle()->getName());
 	}
 
 	void ScriptResource::internal_getUUID(ScriptResourceBase* nativeInstance, UUID* uuid)
 	{
-		*uuid = nativeInstance->getGenericHandle().getUUID();
+		*uuid = nativeInstance->GetGenericHandle().GetUUID();
 	}
 
 	void ScriptResource::internal_release(ScriptResourceBase* nativeInstance)
 	{
-		nativeInstance->getGenericHandle().release();
+		nativeInstance->GetGenericHandle().Release();
 	}
 
 	ScriptUUID::ScriptUUID(MonoObject* instance)

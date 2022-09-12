@@ -30,7 +30,7 @@ namespace bs
 
 		if (mInternal != nullptr)
 		{
-			_getInternal()->setExtents(clampedExtents);
+			_getInternal()->SetExtents(clampedExtents);
 
 			if (mParent != nullptr)
 				mParent->_updateMassDistribution();
@@ -50,11 +50,11 @@ namespace bs
 
 	SPtr<Collider> CBoxCollider::CreateInternal()
 	{
-		const SPtr<SceneInstance>& scene = SO()->getScene();
-		const Transform& tfrm = SO()->getTransform();
+		const SPtr<SceneInstance>& scene = SO()->GetScene();
+		const Transform& tfrm = SO()->GetTransform();
 
-		SPtr<Collider> collider = BoxCollider::create(*scene->getPhysicsScene(), mExtents, tfrm.getPosition(),
-			tfrm.getRotation());
+		SPtr<Collider> collider = BoxCollider::create(*scene->GetPhysicsScene(), mExtents, tfrm.GetPosition(),
+			tfrm.GetRotation());
 		collider->_setOwner(PhysicsOwnerType::Component, this);
 
 		return collider;

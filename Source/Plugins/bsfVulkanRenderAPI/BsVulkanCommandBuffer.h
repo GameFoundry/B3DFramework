@@ -268,10 +268,10 @@ namespace bs { namespace ct
 		void RegisterResource(VulkanSwapChain* res);
 
 		/** Notifies the command buffer that the provided query has been queued on it. */
-		void RegisterQuery(VulkanOcclusionQuery* query) { mOcclusionQueries.insert(query); }
+		void RegisterQuery(VulkanOcclusionQuery* query) { mOcclusionQueries.Insert(query); }
 
 		/** Notifies the command buffer that the provided query has been queued on it. */
-		void RegisterQuery(VulkanTimerQuery* query) { mTimerQueries.insert(query); }
+		void RegisterQuery(VulkanTimerQuery* query) { mTimerQueries.Insert(query); }
 
 		/************************************************************************/
 		/* 								COMMANDS	                     		*/

@@ -9,17 +9,17 @@ namespace bs
 	PhysicsManager::PhysicsManager(const String& pluginName, bool cooking)
 		:mPlugin(nullptr), mFactory(nullptr)
 	{
-		mPlugin = DynLibManager::instance().load(pluginName);
+		mPlugin = DynLibManager::instance().Load(pluginName);
 
 		if(mPlugin != nullptr)
 		{
 			typedef PhysicsFactory* (*LoadPluginFunc)();
 
-			LoadPluginFunc loadPluginFunc = (LoadPluginFunc)mPlugin->getSymbol("loadPlugin");
+			LoadPluginFunc loadPluginFunc = (LoadPluginFunc)mPlugin->GetSymbol("loadPlugin");
 			mFactory = loadPluginFunc();
 
 			if (mFactory != nullptr)
-				mFactory->startUp(cooking);
+				mFactory->StartUp(cooking);
 		}
 	}
 
@@ -31,13 +31,13 @@ namespace bs
 			{
 				typedef void (*UnloadPluginFunc)(PhysicsFactory*);
 
-				UnloadPluginFunc unloadPluginFunc = (UnloadPluginFunc)mPlugin->getSymbol("unloadPlugin");
+				UnloadPluginFunc unloadPluginFunc = (UnloadPluginFunc)mPlugin->GetSymbol("unloadPlugin");
 
-				mFactory->shutDown();
+				mFactory->ShutDown();
 				unloadPluginFunc(mFactory);
 			}
 
-			DynLibManager::instance().unload(mPlugin);
+			DynLibManager::instance().Unload(mPlugin);
 		}
 	}
 }

@@ -212,7 +212,7 @@ namespace bs
 			if (num > static_cast<size_t>(-1) / sizeof(T))
 				return nullptr; // Error
 
-			void* const pv = mFrameAlloc->alloc((UINT32)(num * sizeof(T)));
+			void* const pv = mFrameAlloc->Alloc((UINT32)(num * sizeof(T)));
 			if (!pv)
 				return nullptr; // Error
 
@@ -222,7 +222,7 @@ namespace bs
 		/** Deallocate storage p of deleted elements. */
 		void Deallocate(T* p, size_t num) const noexcept
 		{
-			mFrameAlloc->free((UINT8*)p);
+			mFrameAlloc->Free((UINT8*)p);
 		}
 
 		FrameAlloc* mFrameAlloc = nullptr;

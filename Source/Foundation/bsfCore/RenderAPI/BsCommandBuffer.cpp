@@ -10,7 +10,7 @@ namespace bs { namespace ct
 		if (buffer == nullptr)
 			return;
 
-		mMask |= getGlobalQueueMask(buffer->getType(), buffer->getQueueIdx());
+		mMask |= getGlobalQueueMask(buffer->GetType(), buffer->getQueueIdx());
 	}
 
 	UINT32 CommandSyncMask::GetGlobalQueueMask(GpuQueueType type, UINT32 queueIdx)
@@ -73,6 +73,6 @@ namespace bs { namespace ct
 	SPtr<CommandBuffer> CommandBuffer::create(GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx,
 		bool secondary)
 	{
-		return CommandBufferManager::Instance().create(type, deviceIdx, queueIdx, secondary);
+		return CommandBufferManager::Instance().Create(type, deviceIdx, queueIdx, secondary);
 	}
 }}

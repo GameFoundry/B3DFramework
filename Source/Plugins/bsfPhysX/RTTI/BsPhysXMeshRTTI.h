@@ -29,7 +29,7 @@ namespace bs
 			obj->mCookedData = (UINT8*)bs_alloc(size);
 			obj->mCookedDataSize = size;
 
-			value->read(obj->mCookedData, size);
+			value->Read(obj->mCookedData, size);
 		}
 
 	public:
@@ -41,7 +41,7 @@ namespace bs
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{
 			FPhysXMesh* mesh = static_cast<FPhysXMesh*>(obj);
-			mesh->initialize();
+			mesh->Initialize();
 		}
 
 		const String& GetRTTIName() override

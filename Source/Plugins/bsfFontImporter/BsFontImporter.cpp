@@ -29,7 +29,7 @@ namespace bs
 		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
 
-		return Find(mExtensions.begin(), mExtensions.end(), lowerCaseExt) != mExtensions.end();
+		return Find(mExtensions.Begin(), mExtensions.end(), lowerCaseExt) != mExtensions.end();
 	}
 
 	bool FontImporter::IsMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
@@ -45,7 +45,7 @@ namespace bs
 
 	SPtr<Resource> FontImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
-		const FontImportOptions* fontImportOptions = static_cast<const FontImportOptions*>(importOptions.get());
+		const FontImportOptions* fontImportOptions = static_cast<const FontImportOptions*>(importOptions.Get());
 
 		FT_Library library;
 
@@ -57,16 +57,16 @@ namespace bs
 
 		{
 			Lock fileLock = FileScheduler::getLock(filePath);
-			error = FT_New_Face(library, filePath.toString().c_str(), 0, &face);
+			error = FT_New_Face(library, filePath.ToString().c_str(), 0, &face);
 		}
 
 		if (error == FT_Err_Unknown_File_Format)
 		{
-			BS_EXCEPT(InternalErrorException, "Failed to load font file: " + filePath.toString() + ". Unsupported file format.");
+			BS_EXCEPT(InternalErrorException, "Failed to load font file: " + filePath.ToString() + ". Unsupported file format.");
 		}
 		else if (error)
 		{
-			BS_EXCEPT(InternalErrorException, "Failed to load font file: " + filePath.toString() + ". Unknown error.");
+			BS_EXCEPT(InternalErrorException, "Failed to load font file: " + filePath.ToString() + ". Unknown error.");
 		}
 
 		Vector<CharRange> charIndexRanges = fontImportOptions->charIndexRanges;
@@ -96,16 +96,16 @@ namespace bs
 		FT_Render_Mode renderMode = FT_LOAD_TARGET_MODE(loadFlags);
 
 		Vector<SPtr<FontBitmap>> dataPerSize;
-		for(size_t i = 0; i < fontSizes.size(); i++)
+		for(size_t i = 0; i < fontSizes.Size(); i++)
 		{
 			// Note: Disabled as its not working and I have bigger issues to handle than to figure this out atm
 			//FT_Matrix m;
-			//if (fontImportOptions->getBold())
+			//if (fontImportOptions->GetBold())
 			//	m.xx = (long)(1.25f * (1 << 16));
 			//else
 			//	m.xx = (long)(1 * (1 << 16));
 
-			//if (fontImportOptions->getItalic())
+			//if (fontImportOptions->GetItalic())
 			//	m.xy = (long)(0.25f * (1 << 16));
 			//else
 			//	m.xy = (long)(0 * (1 << 16));
@@ -124,7 +124,7 @@ namespace bs
 			// Get all char sizes so we can generate texture layout
 			Vector<TextureAtlasUtility::Element> atlasElements;
 			Map<UINT32, UINT32> seqIdxToCharIdx;
-			for(auto iter = charIndexRanges.begin(); iter != charIndexRanges.end(); ++iter)
+			for(auto iter = charIndexRanges.Begin(); iter != charIndexRanges.end(); ++iter)
 			{
 				for(UINT32 charIdx = iter->start; charIdx <= iter->end; charIdx++)
 				{
@@ -145,7 +145,7 @@ namespace bs
 					atlasElement.input.height = slot->bitmap.rows;
 
 					atlasElements.push_back(atlasElement);
-					seqIdxToCharIdx[(UINT32)atlasElements.size() - 1] = charIdx;
+					seqIdxToCharIdx[(UINT32)atlasElements.Size() - 1] = charIdx;
 				}
 			}
 
@@ -179,18 +179,18 @@ namespace bs
 
 			// Create char bitmap atlas textures and load character information
 			UINT32 pageIdx = 0;
-			for(auto pageIter = pages.begin(); pageIter != pages.end(); ++pageIter)
+			for(auto pageIter = pages.Begin(); pageIter != pages.end(); ++pageIter)
 			{
 				UINT32 bufferSize = pageIter->width * pageIter->height * 2;
 
 				// TODO - I don't actually need a 2 channel texture
 				SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(pageIter->width, pageIter->height, 1, PF_RG8);
 
-				pixelData->allocateInternalBuffer();
-				UINT8* pixelBuffer = pixelData->getData();
+				pixelData->AllocateInternalBuffer();
+				UINT8* pixelBuffer = pixelData->GetData();
 				memset(pixelBuffer, 0, bufferSize);
 
-				for(size_t i = 0; i < atlasElements.size(); i++)
+				for(size_t i = 0; i < atlasElements.Size(); i++)
 				{
 					// Copy character bitmap
 					if(atlasElements[i].output.page != (INT32)pageIdx)
@@ -199,7 +199,7 @@ namespace bs
 					TextureAtlasUtility::Element curElement = atlasElements[i];
 					UINT32 elementIdx = curElement.output.idx;
 					
-					bool isMissingGlypth = elementIdx == (atlasElements.size() - 1); // It's always the last element
+					bool isMissingGlypth = elementIdx == (atlasElements.Size() - 1); // It's always the last element
 
 					UINT32 charIdx = 0;
 					if(!isMissingGlypth)
@@ -290,7 +290,7 @@ namespace bs
 					if(!isMissingGlypth)
 					{
 						FT_Vector resultKerning;
-						for(auto kerningIter = charIndexRanges.begin(); kerningIter != charIndexRanges.end(); ++kerningIter)
+						for(auto kerningIter = charIndexRanges.Begin(); kerningIter != charIndexRanges.end(); ++kerningIter)
 						{
 							for(UINT32 kerningCharIdx = kerningIter->start; kerningCharIdx <= kerningIter->end; kerningCharIdx++)
 							{
@@ -330,19 +330,19 @@ namespace bs
 				HTexture newTex = Texture::create(texDesc);
 
 				// It's possible the formats no longer match
-				if (newTex->getProperties().getFormat() != pixelData->getFormat())
+				if (newTex->GetProperties().GetFormat() != pixelData->getFormat())
 				{
-					SPtr<PixelData> temp = newTex->getProperties().allocBuffer(0, 0);
+					SPtr<PixelData> temp = newTex->GetProperties().AllocBuffer(0, 0);
 					PixelUtil::bulkPixelConversion(*pixelData, *temp);
 
-					newTex->writeData(temp);
+					newTex->WriteData(temp);
 				}
 				else
 				{
-					newTex->writeData(pixelData);
+					newTex->WriteData(pixelData);
 				}
 
-				newTex->setName(u8"FontPage" + toString((UINT32)fontData->texturePages.size()));
+				newTex->SetName(u8"FontPage" + toString((UINT32)fontData->texturePages.Size()));
 
 				fontData->texturePages.push_back(newTex);
 				pageIdx++;
@@ -367,8 +367,8 @@ namespace bs
 
 		FT_Done_FreeType(library);
 
-		const String fileName = filePath.getFilename(false);
-		newFont->setName(fileName);
+		const String fileName = filePath.GetFilename(false);
+		newFont->SetName(fileName);
 
 		return newFont;
 	}

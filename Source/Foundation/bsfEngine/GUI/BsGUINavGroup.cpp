@@ -13,14 +13,14 @@ namespace bs
 
 	void GUINavGroup::FocusFirst()
 	{
-		if(mOrderedElements.empty())
+		if(mOrderedElements.Empty())
 			return;
 
 		// Find first element with an explicit index, if one exists
-		auto iterStart = mOrderedElements.begin();
+		auto iterStart = mOrderedElements.Begin();
 		if(iterStart->first != 0)
 		{
-			iterStart->second->setFocus(true, true);
+			iterStart->second->SetFocus(true, true);
 			return;
 		}
 
@@ -49,13 +49,13 @@ namespace bs
 			++iterFind;
 
 			// Reached the end, wrap around
-			if(iterFind == mOrderedElements.end())
+			if(iterFind == mOrderedElements.End())
 				return FocusFirst();
 
 			// If a next element with an explicit index exists, select it
 			if(iterFind->first != 0)
 			{
-				iterFind->second->setFocus(true, true);
+				iterFind->second->SetFocus(true, true);
 				return;
 			}
 
@@ -96,7 +96,7 @@ namespace bs
 				for (auto iter = unindexedRange.first; iter != unindexedRange.second; ++iter)
 				{
 					GUIElement* element = iter->second;
-					const bool acceptsKeyFocus = element->getOptionFlags().isSet(GUIElementOption::AcceptsKeyFocus);
+					const bool acceptsKeyFocus = element->GetOptionFlags().IsSet(GUIElementOption::AcceptsKeyFocus);
 					if (!acceptsKeyFocus || !element->_isVisible() || element->_isDisabled())
 						continue;
 
@@ -106,21 +106,21 @@ namespace bs
 					if (isFullyClipped)
 						continue;
 
-					elements.insert(element);
+					elements.Insert(element);
 				}
 
 				// Find the row the currently selected element is part of
-				auto iterElem = elements.begin();
+				auto iterElem = elements.Begin();
 				auto iterRowStart = iterElem;
 
 				INT32 firstRowY = 0;
 				INT32 rowY = 0;
-				for(; iterElem != elements.end(); ++iterElem)
+				for(; iterElem != elements.End(); ++iterElem)
 				{
 					GUIElement* element = *iterElem;
 
 					const Rect2I elemBounds = element->_getClippedBounds();
-					if(iterElem == elements.begin())
+					if(iterElem == elements.Begin())
 					{
 						firstRowY = elemBounds.y;
 						rowY = elemBounds.y;
@@ -141,7 +141,7 @@ namespace bs
 						break;
 				}
 
-				const bool foundRow = iterElem != elements.end();
+				const bool foundRow = iterElem != elements.End();
 				if(!foundRow)
 					rowY = firstRowY;
 
@@ -149,7 +149,7 @@ namespace bs
 				GUIElement* nextElement = nullptr;
 				INT32 nearestX = std::numeric_limits<INT32>::max();
 				iterElem = iterRowStart;
-				for(; iterElem != elements.end(); ++iterElem)
+				for(; iterElem != elements.End(); ++iterElem)
 				{
 					GUIElement* element = *iterElem;
 					if(element == anchor)
@@ -183,7 +183,7 @@ namespace bs
 				if(!nextElement)
 				{
 					nearestX = std::numeric_limits<INT32>::max();
-					for (; iterElem != elements.end(); ++iterElem)
+					for (; iterElem != elements.End(); ++iterElem)
 					{
 						GUIElement* element = *iterElem;
 
@@ -204,7 +204,7 @@ namespace bs
 
 				if (nextElement)
 				{
-					nextElement->setFocus(true, true);
+					nextElement->SetFocus(true, true);
 					return;
 				}
 
@@ -213,9 +213,9 @@ namespace bs
 
 			// No more elements with no tab index. Check elements with positive tab index
 			const auto iterAfterUnindexed = unindexedRange.second;
-			if(iterAfterUnindexed != mOrderedElements.end())
+			if(iterAfterUnindexed != mOrderedElements.End())
 			{
-				iterAfterUnindexed->second->setFocus(true, true);
+				iterAfterUnindexed->second->SetFocus(true, true);
 				return;
 			}
 
@@ -236,7 +236,7 @@ namespace bs
 			GUIElement* element = iter->second;
 
 			// Ignore elements that are hidden, disabled or just don't accept input focus
-			const bool acceptsKeyFocus = element->getOptionFlags().isSet(GUIElementOption::AcceptsKeyFocus);
+			const bool acceptsKeyFocus = element->GetOptionFlags().IsSet(GUIElementOption::AcceptsKeyFocus);
 			if(!acceptsKeyFocus || !element->_isVisible() || element->_isDisabled())
 				continue;
 
@@ -247,7 +247,7 @@ namespace bs
 
 			Vector2I ElementPos(elemBounds.x, elemBounds.y);
 
-			const UINT32 dist = elementPos.squaredLength();
+			const UINT32 dist = elementPos.SquaredLength();
 			if (dist < lowestDist)
 			{
 				lowestDist = dist;
@@ -256,19 +256,19 @@ namespace bs
 		}
 
 		if (topLeftElement)
-			topLeftElement->setFocus(true, true);
+			topLeftElement->SetFocus(true, true);
 	}
 	
 	void GUINavGroup::RegisterElement(GUIElement* element, INT32 tabIdx)
 	{
 		mElements[element] = tabIdx;
-		mOrderedElements.insert(std::make_pair(tabIdx, element));
+		mOrderedElements.Insert(std::make_pair(tabIdx, element));
 	}
 
 	void GUINavGroup::SetIndex(GUIElement* element, INT32 tabIdx)
 	{
-		const auto iterFind = mElements.find(element);
-		assert(iterFind != mElements.end());
+		const auto iterFind = mElements.Find(element);
+		assert(iterFind != mElements.End());
 
 		const INT32 existingTabIdx = iterFind->second;
 		mElements[element] = tabIdx;
@@ -278,18 +278,18 @@ namespace bs
 		{
 			if(iter->second == element)
 			{
-				mOrderedElements.erase(iter);
+				mOrderedElements.Erase(iter);
 				break;
 			}
 		}
 
-		mOrderedElements.insert(std::make_pair(tabIdx, element));
+		mOrderedElements.Insert(std::make_pair(tabIdx, element));
 	}
 
 	void GUINavGroup::UnregisterElement(GUIElement* element)
 	{
-		const auto iterFind = mElements.find(element);
-		if(iterFind == mElements.end())
+		const auto iterFind = mElements.Find(element);
+		if(iterFind == mElements.End())
 			return;
 
 		const INT32 existingTabIdx = iterFind->second;
@@ -298,11 +298,11 @@ namespace bs
 		{
 			if(iter->second == element)
 			{
-				mOrderedElements.erase(iter);
+				mOrderedElements.Erase(iter);
 				break;
 			}
 		}
 
-		mElements.erase(element);
+		mElements.Erase(element);
 	}
 }

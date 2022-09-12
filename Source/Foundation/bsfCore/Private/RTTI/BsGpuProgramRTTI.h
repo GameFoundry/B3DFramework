@@ -94,13 +94,13 @@ namespace bs
 		{
 			// Need to ensure the core thread object is initialized
 			GpuProgram* gpuProgram = static_cast<GpuProgram*>(obj);
-			gpuProgram->blockUntilCoreInitialized();
+			gpuProgram->BlockUntilCoreInitialized();
 		}
 
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{
 			GpuProgram* gpuProgram = static_cast<GpuProgram*>(obj);
-			gpuProgram->initialize();
+			gpuProgram->Initialize();
 		}
 
 		const String& GetRTTIName() override
@@ -116,7 +116,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return GpuProgramManager::Instance().createEmpty("", GPT_VERTEX_PROGRAM); // Params don't matter, they'll get overwritten
+			return GpuProgramManager::Instance().CreateEmpty("", GPT_VERTEX_PROGRAM); // Params don't matter, they'll get overwritten
 		}
 	};
 

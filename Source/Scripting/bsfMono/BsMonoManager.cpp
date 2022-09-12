@@ -94,8 +94,8 @@ namespace bs
 		Path etcDir = getMonoEtcFolder();
 		Path assembliesDir = getFrameworkAssembliesFolder();
 
-		mono_set_dirs(libDir.toString().c_str(), etcDir.toString().c_str());
-		mono_set_assemblies_path(assembliesDir.toString().c_str());
+		mono_set_dirs(libDir.ToString().c_str(), etcDir.toString().c_str());
+		mono_set_assemblies_path(assembliesDir.ToString().c_str());
 
 #if BS_DEBUG_MODE
 		// Note: For proper debugging experience make sure to open a console window to display stdout and stderr, as Mono
@@ -136,7 +136,7 @@ namespace bs
 
 		// Load corlib
 		mCorlibAssembly = new (bs_alloc<MonoAssembly>()) MonoAssembly("", "corlib");
-		mCorlibAssembly->loadFromImage(mono_get_corlib());
+		mCorlibAssembly->LoadFromImage(mono_get_corlib());
 
 		mAssemblies["corlib"] = mCorlibAssembly;
 	}
@@ -162,8 +162,8 @@ namespace bs
 				BS_EXCEPT(InternalErrorException, "Cannot set script app domain.");
 		}
 
-		auto iterFind = mAssemblies.find(name);
-		if(iterFind != mAssemblies.end())
+		auto iterFind = mAssemblies.Find(name);
+		if(iterFind != mAssemblies.End())
 		{
 			assembly = iterFind->second;
 		}
@@ -175,7 +175,7 @@ namespace bs
 		
 		if (!assembly->mIsLoaded)
 		{
-			assembly->load();
+			assembly->Load();
 			initializeScriptTypes(*assembly);
 		}
 
@@ -191,19 +191,19 @@ namespace bs
 			ScriptMeta* meta = entry.metaData;
 			*meta = entry.localMetaData;
 
-			meta->scriptClass = assembly.getClass(meta->ns, meta->name);
+			meta->scriptClass = assembly.GetClass(meta->ns, meta->name);
 			if (meta->scriptClass == nullptr)
 			{
 				BS_EXCEPT(InvalidParametersException,
 					"Unable to find class of type: \"" + meta->ns + "::" + meta->name + "\"");
 			}
 
-			if (meta->scriptClass->hasField("mCachedPtr"))
-				meta->thisPtrField = meta->scriptClass->getField("mCachedPtr");
+			if (meta->scriptClass->HasField("mCachedPtr"))
+				meta->thisPtrField = meta->scriptClass->GetField("mCachedPtr");
 			else
 				meta->thisPtrField = nullptr;
 
-			meta->initCallback();
+			meta->InitCallback();
 		}
 	}
 
@@ -212,7 +212,7 @@ namespace bs
 		for (auto& entry : mAssemblies)
 			bs_delete(entry.second);
 
-		mAssemblies.clear();
+		mAssemblies.Clear();
 
 		unloadScriptDomain();
 
@@ -224,14 +224,14 @@ namespace bs
 
 		// Make sure to explicitly clear this meta-data, as it contains structures allocated from other dynamic libraries,
 		// which will likely get unloaded right after shutdown
-		getScriptMetaData().clear();
+		getScriptMetaData().Clear();
 	}
 
 	MonoAssembly* MonoManager::getAssembly(const String& name) const
 	{
-		auto iterFind = mAssemblies.find(name);
+		auto iterFind = mAssemblies.Find(name);
 
-		if(iterFind != mAssemblies.end())
+		if(iterFind != mAssemblies.End())
 			return iterFind->second;
 
 		return nullptr;
@@ -248,7 +248,7 @@ namespace bs
 		MonoClass* monoClass = nullptr;
 		for(auto& assembly : mAssemblies)
 		{
-			monoClass = assembly.second->getClass(ns, typeName);
+			monoClass = assembly.second->GetClass(ns, typeName);
 			if(monoClass != nullptr)
 				return monoClass;
 		}
@@ -261,7 +261,7 @@ namespace bs
 		MonoClass* monoClass = nullptr;
 		for(auto& assembly : mAssemblies)
 		{
-			monoClass = assembly.second->getClass(rawMonoClass);
+			monoClass = assembly.second->GetClass(rawMonoClass);
 			if(monoClass != nullptr)
 				return monoClass;
 		}
@@ -288,7 +288,7 @@ namespace bs
 
 		for (auto& assemblyEntry : mAssemblies)
 		{
-			assemblyEntry.second->unload();
+			assemblyEntry.second->Unload();
 
 			// "corlib" assembly persists domain unload since it's in the root domain. However we make sure to clear its
 			// class list as it could contain generic instances that use types from other assemblies.
@@ -304,7 +304,7 @@ namespace bs
 			}
 		}
 
-		mAssemblies.clear();
+		mAssemblies.Clear();
 		mAssemblies["corlib"] = mCorlibAssembly;
 	}
 
@@ -321,7 +321,7 @@ namespace bs
 	Path MonoManager::GetCompilerPath() const
 	{
 		Path compilerPath = Paths::findPath(MONO_COMPILER_DIR);
-		compilerPath.append("mcs.exe");
+		compilerPath.Append("mcs.exe");
 		return compilerPath;
 	}
 
@@ -330,9 +330,9 @@ namespace bs
 		Path path = Paths::getBinariesPath();
 
 #if BS_PLATFORM == BS_PLATFORM_WIN32
-		path.append("MonoExec.exe");
+		path.Append("MonoExec.exe");
 #else
-		path.append("MonoExec");
+		path.Append("MonoExec");
 #endif
 
 		return path;

@@ -32,13 +32,13 @@ namespace bs
 	template<bool dir>
 	Vector3 ApplyTransform(const Matrix4& tfrm, const Vector3& input)
 	{
-		return tfrm.multiplyAffine(input);		
+		return tfrm.MultiplyAffine(input);
 	}
 
 	template<>
 	Vector3 applyTransform<true>(const Matrix4& tfrm, const Vector3& input)
 	{
-		return tfrm.multiplyDirection(input);
+		return tfrm.MultiplyDirection(input);
 	}
 
 	/**
@@ -51,7 +51,7 @@ namespace bs
 	Vector3 evaluateTransformed(const Vector3Distribution& distribution, const ParticleSystemState& state, float t,
 		const Random& factor, bool inWorldSpace)
 	{
-		const Vector3 output = distribution.evaluate(t, factor);
+		const Vector3 output = distribution.Evaluate(t, factor);
 
 		if(state.worldSpace == inWorldSpace)
 			return output;
@@ -70,32 +70,32 @@ namespace bs
 		UINT32 startIdx, UINT32 count, bool spacing, float spacingOffset) const
 	{
 		const UINT32 endIdx = startIdx + count;
-		ParticleSetData& particles = set.getParticles();
+		ParticleSetData& particles = set.GetParticles();
 
 		SpriteTexture* texture = nullptr;
-		const HMaterial& material = state.system->getSettings().material;
-		if (material.isLoaded(false))
+		const HMaterial& material = state.system->GetSettings().material;
+		if (material.IsLoaded(false))
 		{
-			const HShader& shader = material->getShader();
-			if(shader->hasTextureParam("gTexture"))
+			const HShader& shader = material->GetShader();
+			if(shader->HasTextureParam("gTexture"))
 			{
-				const HSpriteTexture& spriteTex = material->getSpriteTexture("gTexture");
-				if (spriteTex.isLoaded(true))
-					texture = spriteTex.get();
+				const HSpriteTexture& spriteTex = material->GetSpriteTexture("gTexture");
+				if (spriteTex.IsLoaded(true))
+					texture = spriteTex.Get();
 			}
 
-			if(shader->hasTextureParam("gAlbedoTex"))
+			if(shader->HasTextureParam("gAlbedoTex"))
 			{
-				const HSpriteTexture& spriteTex = material->getSpriteTexture("gAlbedoTex");
-				if (spriteTex.isLoaded(true))
-					texture = spriteTex.get();
+				const HSpriteTexture& spriteTex = material->GetSpriteTexture("gAlbedoTex");
+				if (spriteTex.IsLoaded(true))
+					texture = spriteTex.Get();
 			}
 		}
 
 		bool hasValidAnimation = texture != nullptr;
 		if(hasValidAnimation)
 		{
-			const SpriteSheetGridAnimation& gridAnim = texture->getAnimation();
+			const SpriteSheetGridAnimation& gridAnim = texture->GetAnimation();
 			hasValidAnimation = gridAnim.numRows > 0 && gridAnim.numColumns > 0 && gridAnim.count > 0;
 		}
 
@@ -107,7 +107,7 @@ namespace bs
 			return;
 		}
 		
-		const SpriteSheetGridAnimation& gridAnim = texture->getAnimation();
+		const SpriteSheetGridAnimation& gridAnim = texture->GetAnimation();
 
 		for (UINT32 i = startIdx; i < endIdx; i++)
 		{
@@ -116,7 +116,7 @@ namespace bs
 			if (mDesc.randomizeRow)
 			{
 				const UINT32 rowSeed = particles.seed[i] + PARTICLE_ROW_VARIATION;
-				const UINT32 row = Random(rowSeed).getRange(0, gridAnim.numRows);
+				const UINT32 row = Random(rowSeed).GetRange(0, gridAnim.numRows);
 
 				frameOffset = row * gridAnim.numColumns;
 				numFrames = gridAnim.numColumns;
@@ -163,7 +163,7 @@ namespace bs
 		UINT32 startIdx, UINT32 count, bool spacing, float spacingOffset) const
 	{
 		const UINT32 endIdx = startIdx + count;
-		ParticleSetData& particles = set.getParticles();
+		ParticleSetData& particles = set.GetParticles();
 
 		const Vector3 center = evaluateTransformed(mDesc.center, state, state.nrmTimeEnd, random, mDesc.worldSpace);
 		const float subFrameSpacing = (spacing && count > 0) ? 1.0f / count : 1.0f;
@@ -191,12 +191,12 @@ namespace bs
 			const Matrix3 Rotation(Radian(orbitVelocity.x), Radian(orbitVelocity.y), Radian(orbitVelocity.z));
 
 			const Vector3 point = particles.position[i] - center;
-			const Vector3 newPoint = rotation.multiply(point);
+			const Vector3 newPoint = rotation.Multiply(point);
 
 			Vector3 velocity = newPoint - point;
 
 			const UINT32 radialSeed = particles.seed[i] + PARTICLE_ORBIT_RADIAL;
-			const float radial = mDesc.radial.evaluate(particleT, Random(radialSeed).getUNorm());
+			const float radial = mDesc.radial.Evaluate(particleT, Random(radialSeed).getUNorm());
 			if(radial != 0.0f)
 				velocity += Vector3::normalize(point) * radial * timeStep;
 
@@ -232,7 +232,7 @@ namespace bs
 		UINT32 startIdx, UINT32 count, bool spacing, float spacingOffset) const
 	{
 		const UINT32 endIdx = startIdx + count;
-		ParticleSetData& particles = set.getParticles();
+		ParticleSetData& particles = set.GetParticles();
 
 		const float subFrameSpacing = (spacing && count > 0) ? 1.0f / count : 1.0f;
 		for (UINT32 i = startIdx; i < endIdx; i++)
@@ -283,7 +283,7 @@ namespace bs
 		UINT32 startIdx, UINT32 count, bool spacing, float spacingOffset) const
 	{
 		const UINT32 endIdx = startIdx + count;
-		ParticleSetData& particles = set.getParticles();
+		ParticleSetData& particles = set.GetParticles();
 
 		const float subFrameSpacing = (spacing && count > 0) ? 1.0f / count : 1.0f;
 		for (UINT32 i = startIdx; i < endIdx; i++)
@@ -333,13 +333,13 @@ namespace bs
 	void ParticleGravity::evolve(Random& random, const ParticleSystemState& state, ParticleSet& set,
 		UINT32 startIdx, UINT32 count, bool spacing, float spacingOffset) const
 	{
-		Vector3 gravity = state.scene->getPhysicsScene()->getGravity() * mDesc.scale;
+		Vector3 gravity = state.scene->GetPhysicsScene()->getGravity() * mDesc.scale;
 
 		if (!state.worldSpace)
-			gravity = state.worldToLocal.multiplyDirection(gravity);
+			gravity = state.worldToLocal.MultiplyDirection(gravity);
 
 		const UINT32 endIdx = startIdx + count;
-		ParticleSetData& particles = set.getParticles();
+		ParticleSetData& particles = set.GetParticles();
 
 		const float subFrameSpacing = (spacing && count > 0) ? 1.0f / count : 1.0f;
 		for (UINT32 i = startIdx; i < endIdx; i++)
@@ -384,14 +384,14 @@ namespace bs
 		UINT32 startIdx, UINT32 count, bool spacing, float spacingOffset) const
 	{
 		const UINT32 endIdx = startIdx + count;
-		ParticleSetData& particles = set.getParticles();
+		ParticleSetData& particles = set.GetParticles();
 
 		for (UINT32 i = startIdx; i < endIdx; i++)
 		{
 			const UINT32 colorSeed = particles.seed[i] + PARTICLE_COLOR;
 			const float particleT = (particles.initialLifetime[i] - particles.lifetime[i]) / particles.initialLifetime[i];
 
-			particles.color[i] = mDesc.color.evaluate(particleT, Random(colorSeed));
+			particles.color[i] = mDesc.color.Evaluate(particleT, Random(colorSeed));
 		}
 	}
 
@@ -423,7 +423,7 @@ namespace bs
 		UINT32 startIdx, UINT32 count, bool spacing, float spacingOffset) const
 	{
 		const UINT32 endIdx = startIdx + count;
-		ParticleSetData& particles = set.getParticles();
+		ParticleSetData& particles = set.GetParticles();
 
 		if(!mDesc.use3DSize)
 		{
@@ -432,7 +432,7 @@ namespace bs
 				const UINT32 sizeSeed = particles.seed[i] + PARTICLE_SIZE;
 				const float particleT = (particles.initialLifetime[i] - particles.lifetime[i]) / particles.initialLifetime[i];
 
-				const float size = mDesc.size.evaluate(particleT, Random(sizeSeed));
+				const float size = mDesc.size.Evaluate(particleT, Random(sizeSeed));
 				particles.size[i] = Vector3(size, size, size);
 			}
 		}
@@ -443,7 +443,7 @@ namespace bs
 				const UINT32 sizeSeed = particles.seed[i] + PARTICLE_SIZE;
 				const float particleT = (particles.initialLifetime[i] - particles.lifetime[i]) / particles.initialLifetime[i];
 
-				particles.size[i] = mDesc.size3D.evaluate(particleT, Random(sizeSeed));
+				particles.size[i] = mDesc.size3D.Evaluate(particleT, Random(sizeSeed));
 			}
 		}
 	}
@@ -476,7 +476,7 @@ namespace bs
 		UINT32 startIdx, UINT32 count, bool spacing, float spacingOffset) const
 	{
 		const UINT32 endIdx = startIdx + count;
-		ParticleSetData& particles = set.getParticles();
+		ParticleSetData& particles = set.GetParticles();
 
 		if(!mDesc.use3DRotation)
 		{
@@ -485,7 +485,7 @@ namespace bs
 				const UINT32 rotationSeed = particles.seed[i] + PARTICLE_ROTATION;
 				const float particleT = (particles.initialLifetime[i] - particles.lifetime[i]) / particles.initialLifetime[i];
 
-				const float rotation = mDesc.rotation.evaluate(particleT, Random(rotationSeed));
+				const float rotation = mDesc.rotation.Evaluate(particleT, Random(rotationSeed));
 				particles.rotation[i] = Vector3(rotation, 0.0f, 0.0f);
 			}
 		}
@@ -496,7 +496,7 @@ namespace bs
 				const UINT32 rotationSeed = particles.seed[i] + PARTICLE_ROTATION;
 				const float particleT = (particles.initialLifetime[i] - particles.lifetime[i]) / particles.initialLifetime[i];
 
-				particles.rotation[i] = mDesc.rotation3D.evaluate(particleT, Random(rotationSeed));
+				particles.rotation[i] = mDesc.rotation3D.Evaluate(particleT, Random(rotationSeed));
 			}
 		}
 	}
@@ -538,14 +538,14 @@ namespace bs
 		// Reflect & dampen
 		const float dampenFactor = 1.0f - desc.dampening;
 
-		Vector3 reflectedPos = diff.reflect(hitInfo.normal) * dampenFactor;
-		Vector3 reflectedVel = velocity.reflect(hitInfo.normal) * dampenFactor;
+		Vector3 reflectedPos = diff.Reflect(hitInfo.normal) * dampenFactor;
+		Vector3 reflectedVel = velocity.Reflect(hitInfo.normal) * dampenFactor;
 
 		// Bounce
 		const float restitutionFactor = 1.0f - desc.restitution;
 
-		reflectedPos -= hitInfo.normal * reflectedPos.dot(hitInfo.normal) * restitutionFactor;
-		reflectedVel -= hitInfo.normal * reflectedVel.dot(hitInfo.normal) * restitutionFactor;
+		reflectedPos -= hitInfo.normal * reflectedPos.Dot(hitInfo.normal) * restitutionFactor;
+		reflectedVel -= hitInfo.normal * reflectedVel.Dot(hitInfo.normal) * restitutionFactor;
 
 		position = hitInfo.position + reflectedPos;
 		velocity = reflectedVel;
@@ -561,12 +561,12 @@ namespace bs
 		AABox groupBounds = AABox::INF_BOX;
 		for(UINT32 i = 0; i < numRays; i++)
 		{
-			groupBounds.merge(segments[i].start);
-			groupBounds.merge(segments[i].end);
+			groupBounds.Merge(segments[i].start);
+			groupBounds.Merge(segments[i].end);
 		}
 
 		Vector<Collider*> hitColliders = physicsScene._boxOverlap(groupBounds, Quaternion::IDENTITY, layer);
-		if(hitColliders.empty())
+		if(hitColliders.Empty())
 			return 0;
 
 		UINT32 numHits = 0;
@@ -577,19 +577,19 @@ namespace bs
 			hitInfo.idx = i;
 
 			Vector3 diff = segments[i].end - segments[i].start;
-			const float length = diff.length();
+			const float length = diff.Length();
 
 			if(Math::approxEquals(length, 0.0f))
 				continue;
 
 			Ray ray;
-			ray.setOrigin(segments[i].start);
-			ray.setDirection(diff / length);
+			ray.SetOrigin(segments[i].start);
+			ray.SetDirection(diff / length);
 
 			for(auto& collider : hitColliders)
 			{
 				PhysicsQueryHit queryHit;
-				if(collider->rayCast(ray, queryHit, length))
+				if(collider->RayCast(ray, queryHit, length))
 				{
 					if(queryHit.distance < nearestHit)
 					{
@@ -621,7 +621,7 @@ namespace bs
 		UINT32 startIdx, UINT32 count, bool spacing, float spacingOffset) const
 	{
 		const UINT32 endIdx = startIdx + count;
-		ParticleSetData& particles = set.getParticles();
+		ParticleSetData& particles = set.GetParticles();
 
 		if(mDesc.mode == ParticleCollisionMode::Plane)
 		{
@@ -631,19 +631,19 @@ namespace bs
 			// Extract planes from scene objects
 			Plane* objPlanes = nullptr;
 			
-			if(!mCollisionPlaneObjects.empty())
+			if(!mCollisionPlaneObjects.Empty())
 			{
-				objPlanes = bs_stack_alloc<Plane>((UINT32)mCollisionPlaneObjects.size());
+				objPlanes = bs_stack_alloc<Plane>((UINT32)mCollisionPlaneObjects.Size());
 				for (auto& entry : mCollisionPlaneObjects)
 				{
-					if(entry.isDestroyed())
+					if(entry.IsDestroyed())
 						continue;
 
-					const Transform& tfrm = entry->getTransform();
-					Plane plane = Plane(tfrm.getForward(), tfrm.getPosition());
+					const Transform& tfrm = entry->GetTransform();
+					Plane plane = Plane(tfrm.GetForward(), tfrm.getPosition());
 
 					if(!state.worldSpace)
-						plane = state.worldToLocal.multiplyAffine(plane);
+						plane = state.worldToLocal.MultiplyAffine(plane);
 						
 					objPlanes[numPlanes[0]++] = plane;
 				}
@@ -654,19 +654,19 @@ namespace bs
 			// If particles are in world space, we can just use collision planes as is
 			Plane* localPlanes = nullptr;
 			if (state.worldSpace)
-				planes[1] = (Plane*)mCollisionPlanes.data();
+				planes[1] = (Plane*)mCollisionPlanes.Data();
 			else
 			{
 				const Matrix4& worldToLocal = state.worldToLocal;
-				localPlanes = bs_stack_alloc<Plane>((UINT32)mCollisionPlanes.size());
+				localPlanes = bs_stack_alloc<Plane>((UINT32)mCollisionPlanes.Size());
 
-				for (UINT32 i = 0; i < (UINT32)mCollisionPlanes.size(); i++)
-					localPlanes[i] = worldToLocal.multiplyAffine(mCollisionPlanes[i]);
+				for (UINT32 i = 0; i < (UINT32)mCollisionPlanes.Size(); i++)
+					localPlanes[i] = worldToLocal.MultiplyAffine(mCollisionPlanes[i]);
 
 				planes[1] = localPlanes;
 			}
 
-			numPlanes[1] = (UINT32)mCollisionPlanes.size();
+			numPlanes[1] = (UINT32)mCollisionPlanes.Size();
 
 			for(UINT32 i = startIdx; i < endIdx; i++)
 			{
@@ -679,11 +679,11 @@ namespace bs
 					{
 						const Plane& plane = planes[j][k];
 
-						const float dist = plane.getDistance(position);
+						const float dist = plane.GetDistance(position);
 						if (dist > mDesc.radius)
 							continue;
 
-						const float distToTravelAlongNormal = plane.normal.dot(velocity);
+						const float distToTravelAlongNormal = plane.normal.Dot(velocity);
 
 						// Ignore movement parallel to the plane
 						if (Math::approxEquals(distToTravelAlongNormal, 0.0f))
@@ -732,20 +732,20 @@ namespace bs
 			{
 				for (UINT32 i = 0; i < numRays; i++)
 				{
-					segments[i].start = state.localToWorld.multiplyAffine(segments[i].start);
-					segments[i].end = state.localToWorld.multiplyAffine(segments[i].end);
+					segments[i].start = state.localToWorld.MultiplyAffine(segments[i].start);
+					segments[i].end = state.localToWorld.MultiplyAffine(segments[i].end);
 				}
 			}
 
-			const PhysicsScene& physicsScene = *state.scene->getPhysicsScene();
+			const PhysicsScene& physicsScene = *state.scene->GetPhysicsScene();
 			const UINT32 numHits = groupRaycast(physicsScene, segments, hits, numRays, mDesc.layer);
 
 			if(!state.worldSpace)
 			{
 				for (UINT32 i = 0; i < numHits; i++)
 				{
-					hits[i].position = state.worldToLocal.multiplyAffine(hits[i].position);
-					hits[i].normal = state.worldToLocal.multiplyDirection(hits[i].normal);
+					hits[i].position = state.worldToLocal.MultiplyAffine(hits[i].position);
+					hits[i].normal = state.worldToLocal.MultiplyDirection(hits[i].normal);
 				}
 			}
 

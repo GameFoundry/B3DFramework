@@ -8,15 +8,15 @@ namespace bs
 	void MaterialRTTI::OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
 	{
 		Material* material = static_cast<Material*>(obj);
-		material->initialize();
+		material->Initialize();
 
 		if(!mMatParams)
 			return;
 
-		material->initializeTechniques();
+		material->InitializeTechniques();
 
-		if (material->getNumTechniques() > 0)
-			material->setParams(mMatParams);
+		if (material->GetNumTechniques() > 0)
+			material->SetParams(mMatParams);
 	}
 
 	SPtr<IReflectable> MaterialRTTI::NewRTTIObject()

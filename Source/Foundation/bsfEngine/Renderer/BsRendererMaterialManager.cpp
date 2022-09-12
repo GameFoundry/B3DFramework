@@ -17,19 +17,19 @@ namespace bs
 		Vector<SPtr<ct::Shader>> shaders;
 		for (auto& material : materials)
 		{
-			HShader shader = br.getShader(material.shaderPath);
-			if (shader.isLoaded())
-				shaders.push_back(shader->getCore());
+			HShader shader = br.GetShader(material.shaderPath);
+			if (shader.IsLoaded())
+				shaders.push_back(shader->GetCore());
 			else
 				shaders.push_back(nullptr);
 		}
 
-		gCoreThread().queueCommand(std::bind(&RendererMaterialManager::initOnCore, shaders), CTQF_InternalQueue);
+		gCoreThread().QueueCommand(std::bind(&RendererMaterialManager::initOnCore, shaders), CTQF_InternalQueue);
 	}
 
 	RendererMaterialManager::~RendererMaterialManager()
 	{
-		gCoreThread().queueCommand(std::bind(&RendererMaterialManager::destroyOnCore));
+		gCoreThread().QueueCommand(std::bind(&RendererMaterialManager::destroyOnCore));
 	}
 
 	void RendererMaterialManager::_registerMaterial(ct::RendererMaterialMetaData* metaData, const char* shaderPath)
@@ -45,7 +45,7 @@ namespace bs
 		Lock Lock(getMutex());
 
 		Vector<RendererMaterialData>& materials = getMaterials();
-		for (UINT32 i = 0; i < materials.size(); i++)
+		for (UINT32 i = 0; i < materials.Size(); i++)
 		{
 			materials[i].metaData->shaderPath = materials[i].shaderPath;
 			materials[i].metaData->shader = shaders[i];
@@ -57,16 +57,16 @@ namespace bs
 			}
 
 			// Note: Making the assumption here that all the techniques are generated due to shader variations
-			Vector<SPtr<ct::Technique>> techniques = shaders[i]->getCompatibleTechniques();
-			materials[i].metaData->instances.resize((UINT32)techniques.size());
+			Vector<SPtr<ct::Technique>> techniques = shaders[i]->GetCompatibleTechniques();
+			materials[i].metaData->instances.Resize((UINT32)techniques.size());
 
 			for(auto& entry : techniques)
-				materials[i].metaData->variations.add(entry->getVariation());
+				materials[i].metaData->variations.Add(entry->GetVariation());
 
 #if BS_PROFILING_ENABLED
-			const String& filename = materials[i].shaderPath.getFilename(false);
+			const String& filename = materials[i].shaderPath.GetFilename(false);
 			materials[i].metaData->profilerSampleName = ProfilerString("RM: ") +
-				ProfilerString(filename.data(), filename.size());
+				ProfilerString(filename.Data(), filename.size());
 #endif
 		}
 	}
@@ -90,7 +90,7 @@ namespace bs
 		Lock Lock(getMutex());
 
 		Vector<RendererMaterialData>& materials = getMaterials();
-		for (UINT32 i = 0; i < materials.size(); i++)
+		for (UINT32 i = 0; i < materials.Size(); i++)
 		{
 			materials[i].metaData->shader = nullptr;
 			materials[i].metaData->overrideShader = nullptr;
@@ -101,7 +101,7 @@ namespace bs
 					bs_delete(entry);
 			}
 
-			materials[i].metaData->instances.clear();
+			materials[i].metaData->instances.Clear();
 		}
 	}
 

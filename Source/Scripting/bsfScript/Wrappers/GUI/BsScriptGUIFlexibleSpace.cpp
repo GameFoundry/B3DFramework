@@ -21,7 +21,7 @@ namespace bs
 
 	void ScriptGUIFlexibleSpace::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptGUIFlexibleSpace::internal_createInstance);
+		metaData.scriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptGUIFlexibleSpace::internal_createInstance);
 	}
 
 	void ScriptGUIFlexibleSpace::Destroy()
@@ -29,7 +29,7 @@ namespace bs
 		if(!mIsDestroyed)
 		{
 			if (mParent != nullptr)
-				mParent->removeChild(this);
+				mParent->RemoveChild(this);
 
 			GUIFlexibleSpace::destroy(mFlexibleSpace);
 

@@ -67,8 +67,8 @@ namespace bs
 
 	void GUIProgressBar::StyleUpdated()
 	{
-		mBar->setStyle(getSubStyleName(getBarStyleType()));
-		mBackground->setStyle(getSubStyleName(getBackgroundStyleType()));
+		mBar->SetStyle(getSubStyleName(getBarStyleType()));
+		mBackground->SetStyle(getSubStyleName(getBackgroundStyleType()));
 	}
 
 	void GUIProgressBar::SetPercent(float pct)
@@ -79,8 +79,8 @@ namespace bs
 
 	void GUIProgressBar::SetTint(const Color& color)
 	{
-		mBar->setTint(color);
-		mBackground->setTint(color);
+		mBar->SetTint(color);
+		mBackground->SetTint(color);
 	}
 
 	GUIProgressBar* GUIProgressBar::create(const String& styleName)

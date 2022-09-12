@@ -18,12 +18,12 @@ namespace bs { namespace ct
 		VULKAN_IMAGE_DESC desc;
 		desc.image = image;
 		desc.allocation = allocation;
-		desc.type = props.getTextureType();
+		desc.type = props.GetTextureType();
 		desc.format = actualFormat;
-		desc.numFaces = props.getNumFaces();
-		desc.numMipLevels = props.getNumMipmaps() + 1;
+		desc.numFaces = props.GetNumFaces();
+		desc.numMipLevels = props.GetNumMipmaps() + 1;
 		desc.layout = layout;
-		desc.usage = (UINT32)props.getUsage();
+		desc.usage = (UINT32)props.GetUsage();
 
 		return desc;
 	}
@@ -103,15 +103,15 @@ namespace bs { namespace ct
 
 	VulkanImage::~VulkanImage()
 	{
-		VulkanDevice& device = mOwner->getDevice();
-		VkDevice vkDevice = device.getLogical();
+		VulkanDevice& device = mOwner->GetDevice();
+		VkDevice vkDevice = device.GetLogical();
 
 		UINT32 numSubresources = mNumFaces * mNumMipLevels;
 		for (UINT32 i = 0; i < numSubresources; i++)
 		{
-			assert(!mSubresources[i]->isBound()); // Image beeing freed but its subresources are still bound somewhere
+			assert(!mSubresources[i]->IsBound()); // Image beeing freed but its subresources are still bound somewhere
 
-			mSubresources[i]->destroy();
+			mSubresources[i]->Destroy();
 		}
 
 		for(auto& entry : mImageInfos)
@@ -120,7 +120,7 @@ namespace bs { namespace ct
 		if (mOwnsImage)
 		{
 			vkDestroyImage(vkDevice, mImage, gVulkanAllocator);
-			device.freeMemory(mAllocation);
+			device.FreeMemory(mAllocation);
 		}
 	}
 
@@ -224,7 +224,7 @@ namespace bs { namespace ct
 		mImageViewCI.format = format;
 
 		VkImageView view;
-		VkResult result = vkCreateImageView(mOwner->getDevice().getLogical(), &mImageViewCI, gVulkanAllocator, &view);
+		VkResult result = vkCreateImageView(mOwner->GetDevice().GetLogical(), &mImageViewCI, gVulkanAllocator, &view);
 		assert(result == VK_SUCCESS);
 
 		mImageViewCI.viewType = oldViewType;
@@ -300,7 +300,7 @@ namespace bs { namespace ct
 
 	void VulkanImage::Map(UINT32 face, UINT32 mipLevel, PixelData& output) const
 	{
-		VulkanDevice& device = mOwner->getDevice();
+		VulkanDevice& device = mOwner->GetDevice();
 
 		VkImageSubresource range;
 		range.mipLevel = mipLevel;
@@ -312,32 +312,32 @@ namespace bs { namespace ct
 			range.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 
 		VkSubresourceLayout layout;
-		vkGetImageSubresourceLayout(device.getLogical(), mImage, &range, &layout);
+		vkGetImageSubresourceLayout(device.GetLogical(), mImage, &range, &layout);
 
-		output.setRowPitch((UINT32)layout.rowPitch);
-		output.setSlicePitch((UINT32)layout.depthPitch);
+		output.SetRowPitch((UINT32)layout.rowPitch);
+		output.SetSlicePitch((UINT32)layout.depthPitch);
 
 		VkDeviceMemory memory;
 		VkDeviceSize memoryOffset;
-		device.getAllocationInfo(mAllocation, memory, memoryOffset);
+		device.GetAllocationInfo(mAllocation, memory, memoryOffset);
 
 		UINT8* data;
-		VkResult result = vkMapMemory(device.getLogical(), memory, memoryOffset + layout.offset, layout.size, 0, (void**)&data);
+		VkResult result = vkMapMemory(device.GetLogical(), memory, memoryOffset + layout.offset, layout.size, 0, (void**)&data);
 		assert(result == VK_SUCCESS);
 
-		output.setExternalBuffer(data);
+		output.SetExternalBuffer(data);
 	}
 
 	UINT8* VulkanImage::map(UINT32 offset, UINT32 size) const
 	{
-		VulkanDevice& device = mOwner->getDevice();
+		VulkanDevice& device = mOwner->GetDevice();
 
 		VkDeviceMemory memory;
 		VkDeviceSize memoryOffset;
-		device.getAllocationInfo(mAllocation, memory, memoryOffset);
+		device.GetAllocationInfo(mAllocation, memory, memoryOffset);
 
 		UINT8* data;
-		VkResult result = vkMapMemory(device.getLogical(), memory, memoryOffset + offset, size, 0, (void**)&data);
+		VkResult result = vkMapMemory(device.GetLogical(), memory, memoryOffset + offset, size, 0, (void**)&data);
 		assert(result == VK_SUCCESS);
 
 		return data;
@@ -345,21 +345,21 @@ namespace bs { namespace ct
 
 	void VulkanImage::Unmap()
 	{
-		VulkanDevice& device = mOwner->getDevice();
+		VulkanDevice& device = mOwner->GetDevice();
 
 		VkDeviceMemory memory;
 		VkDeviceSize memoryOffset;
-		device.getAllocationInfo(mAllocation, memory, memoryOffset);
+		device.GetAllocationInfo(mAllocation, memory, memoryOffset);
 
-		vkUnmapMemory(device.getLogical(), memory);
+		vkUnmapMemory(device.GetLogical(), memory);
 	}
 
 	void VulkanImage::copy(VulkanTransferBuffer* cb, VulkanBuffer* destination, const VkExtent3D& extent,
 						   const VkImageSubresourceLayers& range, VkImageLayout layout)
 	{
 		VkBufferImageCopy region;
-		region.bufferRowLength = destination->getRowPitch();
-		region.bufferImageHeight = destination->getSliceHeight();
+		region.bufferRowLength = destination->GetRowPitch();
+		region.bufferImageHeight = destination->GetSliceHeight();
 		region.bufferOffset = 0;
 		region.imageOffset.x = 0;
 		region.imageOffset.y = 0;
@@ -367,7 +367,7 @@ namespace bs { namespace ct
 		region.imageExtent = extent;
 		region.imageSubresource = range;
 
-		vkCmdCopyImageToBuffer(cb->getCB()->getHandle(), mImage, layout, destination->getHandle(), 1, &region);
+		vkCmdCopyImageToBuffer(cb->GetCB()->getHandle(), mImage, layout, destination->getHandle(), 1, &region);
 	}
 
 	VkAccessFlags VulkanImage::GetAccessFlags(VkImageLayout layout, bool readOnly)
@@ -466,12 +466,12 @@ namespace bs { namespace ct
 		auto addNewBarrier = [&](VulkanImageSubresource* subresource, UINT32 face, UINT32 mip)
 		{
 			barriers.push_back(defaultBarrier);
-			VkImageMemoryBarrier* barrier = &barriers.back();
+			VkImageMemoryBarrier* barrier = &barriers.Back();
 
 			barrier->subresourceRange.baseArrayLayer = face;
 			barrier->subresourceRange.baseMipLevel = mip;
-			barrier->srcAccessMask = getAccessFlags(subresource->getLayout());
-			barrier->oldLayout = subresource->getLayout();
+			barrier->srcAccessMask = getAccessFlags(subresource->GetLayout());
+			barrier->oldLayout = subresource->GetLayout();
 
 			return barrier;
 		};
@@ -489,7 +489,7 @@ namespace bs { namespace ct
 			while (numSubresources > 0)
 			{
 				// Try to expand the barrier as much as possible
-				VkImageMemoryBarrier* barrier = &barriers.back();
+				VkImageMemoryBarrier* barrier = &barriers.Back();
 
 				while (true)
 				{
@@ -501,7 +501,7 @@ namespace bs { namespace ct
 						{
 							UINT32 curMip = barrier->subresourceRange.baseMipLevel + i;
 							VulkanImageSubresource* subresource = getSubresource(face + 1, curMip);
-							if (barrier->oldLayout != subresource->getLayout())
+							if (barrier->oldLayout != subresource->GetLayout())
 							{
 								expandedFace = false;
 								break;
@@ -533,7 +533,7 @@ namespace bs { namespace ct
 						{
 							UINT32 curFace = barrier->subresourceRange.baseArrayLayer + i;
 							VulkanImageSubresource* subresource = getSubresource(curFace, mip + 1);
-							if (barrier->oldLayout != subresource->getLayout())
+							if (barrier->oldLayout != subresource->GetLayout())
 							{
 								expandedMip = false;
 								break;
@@ -614,7 +614,7 @@ namespace bs { namespace ct
 			if (mImages[i] == nullptr)
 				return;
 
-			mImages[i]->destroy();
+			mImages[i]->Destroy();
 		}
 
 		assert(mStagingBuffer == nullptr);
@@ -632,7 +632,7 @@ namespace bs { namespace ct
 		mImageCI.pNext = nullptr;
 		mImageCI.flags = 0;
 
-		TextureType texType = props.getTextureType();
+		TextureType texType = props.GetTextureType();
 		switch(texType)
 		{
 		case TEX_TYPE_1D:
@@ -655,7 +655,7 @@ namespace bs { namespace ct
 		
 		mImageCI.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
-		int usage = props.getUsage();
+		int usage = props.GetUsage();
 		if ((usage & TU_RENDERTARGET) != 0)
 		{
 			mImageCI.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
@@ -680,8 +680,8 @@ namespace bs { namespace ct
 			// Only support 2D textures, with one sample and one mip level, only used for shader reads
 			// (Optionally check vkGetPhysicalDeviceFormatProperties & vkGetPhysicalDeviceImageFormatProperties for
 			// additional supported configs, but right now there doesn't seem to be any additional support)
-			if(texType == TEX_TYPE_2D && props.getNumSamples() <= 1 && props.getNumMipmaps() == 0 &&
-				props.getNumFaces() == 1 && (mImageCI.usage & VK_IMAGE_USAGE_SAMPLED_BIT) != 0)
+			if(texType == TEX_TYPE_2D && props.GetNumSamples() <= 1 && props.getNumMipmaps() == 0 &&
+				props.GetNumFaces() == 1 && (mImageCI.usage & VK_IMAGE_USAGE_SAMPLED_BIT) != 0)
 			{
 				// Also, only support normal textures, not render targets or storage textures
 				if (!mSupportsGPUWrites)
@@ -696,9 +696,9 @@ namespace bs { namespace ct
 		if((usage & TU_MUTABLEFORMAT) != 0)
 			mImageCI.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
 
-		UINT32 width = mProperties.getWidth();
-		UINT32 height = mProperties.getHeight();
-		UINT32 depth = mProperties.getDepth();
+		UINT32 width = mProperties.GetWidth();
+		UINT32 height = mProperties.GetHeight();
+		UINT32 depth = mProperties.GetDepth();
 
 		// 0-sized textures aren't supported by the API
 		width = std::max(width, 1U);
@@ -706,9 +706,9 @@ namespace bs { namespace ct
 		depth = std::max(depth, 1U);
 
 		mImageCI.extent = { width, height, depth };
-		mImageCI.mipLevels = props.getNumMipmaps() + 1;
-		mImageCI.arrayLayers = props.getNumFaces();
-		mImageCI.samples = VulkanUtility::getSampleFlags(props.getNumSamples());
+		mImageCI.mipLevels = props.GetNumMipmaps() + 1;
+		mImageCI.arrayLayers = props.GetNumFaces();
+		mImageCI.samples = VulkanUtility::getSampleFlags(props.GetNumSamples());
 		mImageCI.tiling = tiling;
 		mImageCI.initialLayout = layout;
 		mImageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -728,8 +728,8 @@ namespace bs { namespace ct
 			bool optimalTiling = tiling == VK_IMAGE_TILING_OPTIMAL;
 
 			mInternalFormats[i] = VulkanUtility::getClosestSupportedPixelFormat(
-				*devices[i], props.getFormat(), props.getTextureType(), props.getUsage(), optimalTiling,
-				props.isHardwareGammaEnabled());
+				*devices[i], props.GetFormat(), props.getTextureType(), props.getUsage(), optimalTiling,
+				props.IsHardwareGammaEnabled());
 
 			mImages[i] = createImage(*devices[i], mInternalFormats[i]);
 			
@@ -746,16 +746,16 @@ namespace bs { namespace ct
 			(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) : // Note: Try using cached memory
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-		VkDevice vkDevice = device.getLogical();
+		VkDevice vkDevice = device.GetLogical();
 
-		mImageCI.format = VulkanUtility::getPixelFormat(format, mProperties.isHardwareGammaEnabled());;
+		mImageCI.format = VulkanUtility::getPixelFormat(format, mProperties.IsHardwareGammaEnabled());;
 
 		VkImage image;
 		VkResult result = vkCreateImage(vkDevice, &mImageCI, gVulkanAllocator, &image);
 		assert(result == VK_SUCCESS);
 
-		VmaAllocation allocation = device.allocateMemory(image, flags);
-		return device.getResourceManager().create<VulkanImage>(image, allocation, mImageCI.initialLayout, mImageCI.format,
+		VmaAllocation allocation = device.AllocateMemory(image, flags);
+		return device.GetResourceManager().create<VulkanImage>(image, allocation, mImageCI.initialLayout, mImageCI.format,
 			getProperties());
 	}
 
@@ -765,7 +765,7 @@ namespace bs { namespace ct
 		bufferCI.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		bufferCI.pNext = nullptr;
 		bufferCI.flags = 0;
-		bufferCI.size = pixelData.getSize();
+		bufferCI.size = pixelData.GetSize();
 		bufferCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		bufferCI.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 		bufferCI.queueFamilyIndexCount = 0;
@@ -774,43 +774,43 @@ namespace bs { namespace ct
 		if (readable)
 			bufferCI.usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
-		VkDevice vkDevice = device.getLogical();
+		VkDevice vkDevice = device.GetLogical();
 
 		VkBuffer buffer;
 		VkResult result = vkCreateBuffer(vkDevice, &bufferCI, gVulkanAllocator, &buffer);
 		assert(result == VK_SUCCESS);
 
 		VkMemoryPropertyFlags flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-		VmaAllocation allocation = device.allocateMemory(buffer, flags);
+		VmaAllocation allocation = device.AllocateMemory(buffer, flags);
 
-		UINT32 blockSize = PixelUtil::getBlockSize(pixelData.getFormat());
+		UINT32 blockSize = PixelUtil::getBlockSize(pixelData.GetFormat());
 
-		assert(pixelData.getRowPitch() % blockSize == 0);
-		assert(pixelData.getSlicePitch() % blockSize == 0);
+		assert(pixelData.GetRowPitch() % blockSize == 0);
+		assert(pixelData.GetSlicePitch() % blockSize == 0);
 
-		UINT32 rowPitchInPixels = pixelData.getRowPitch() / blockSize;
-		UINT32 slicePitchInPixels = pixelData.getSlicePitch() / blockSize;
+		UINT32 rowPitchInPixels = pixelData.GetRowPitch() / blockSize;
+		UINT32 slicePitchInPixels = pixelData.GetSlicePitch() / blockSize;
 
-		if(PixelUtil::isCompressed(pixelData.getFormat()))
+		if(PixelUtil::isCompressed(pixelData.GetFormat()))
 		{
-			Vector2I blockDim = PixelUtil::getBlockDimensions(pixelData.getFormat());
+			Vector2I blockDim = PixelUtil::getBlockDimensions(pixelData.GetFormat());
 			rowPitchInPixels *= blockDim.x;
 			slicePitchInPixels *= blockDim.x * blockDim.y;
 		}
 
-		return device.getResourceManager().create<VulkanBuffer>(buffer, allocation,
+		return device.GetResourceManager().create<VulkanBuffer>(buffer, allocation,
 			rowPitchInPixels, slicePitchInPixels);
 	}
 
 	void VulkanTexture::copyImage(VulkanTransferBuffer* cb, VulkanImage* srcImage, VulkanImage* dstImage,
 									  VkImageLayout srcFinalLayout, VkImageLayout dstFinalLayout)
 	{
-		UINT32 numFaces = mProperties.getNumFaces();
-		UINT32 numMipmaps = mProperties.getNumMipmaps() + 1;
+		UINT32 numFaces = mProperties.GetNumFaces();
+		UINT32 numMipmaps = mProperties.GetNumMipmaps() + 1;
 
-		UINT32 mipWidth = mProperties.getWidth();
-		UINT32 mipHeight = mProperties.getHeight();
-		UINT32 mipDepth = mProperties.getDepth();
+		UINT32 mipWidth = mProperties.GetWidth();
+		UINT32 mipHeight = mProperties.GetHeight();
+		UINT32 mipDepth = mProperties.GetDepth();
 
 		VkImageCopy* imageRegions = bs_stack_alloc<VkImageCopy>(numMipmaps);
 
@@ -855,23 +855,23 @@ namespace bs { namespace ct
 		}
 
 		// Transfer textures to a valid layout
-		cb->setLayout(srcImage, range, VK_ACCESS_TRANSFER_READ_BIT, transferSrcLayout);
-		cb->setLayout(dstImage, range, VK_ACCESS_TRANSFER_WRITE_BIT, transferDstLayout);
+		cb->SetLayout(srcImage, range, VK_ACCESS_TRANSFER_READ_BIT, transferSrcLayout);
+		cb->SetLayout(dstImage, range, VK_ACCESS_TRANSFER_WRITE_BIT, transferDstLayout);
 
-		vkCmdCopyImage(cb->getCB()->getHandle(), srcImage->getHandle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-						dstImage->getHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, numMipmaps, imageRegions);
+		vkCmdCopyImage(cb->GetCB()->getHandle(), srcImage->getHandle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+						dstImage->GetHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, numMipmaps, imageRegions);
 
 		// Transfer back to final layouts
-		VkAccessFlags srcAccessMask = srcImage->getAccessFlags(srcFinalLayout);
-		cb->setLayout(srcImage->getHandle(), VK_ACCESS_TRANSFER_READ_BIT, srcAccessMask,
+		VkAccessFlags srcAccessMask = srcImage->GetAccessFlags(srcFinalLayout);
+		cb->SetLayout(srcImage->getHandle(), VK_ACCESS_TRANSFER_READ_BIT, srcAccessMask,
 							  transferSrcLayout, srcFinalLayout, range);
 
-		VkAccessFlags dstAccessMask = dstImage->getAccessFlags(dstFinalLayout);
-		cb->setLayout(dstImage->getHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, dstAccessMask,
+		VkAccessFlags dstAccessMask = dstImage->GetAccessFlags(dstFinalLayout);
+		cb->SetLayout(dstImage->getHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, dstAccessMask,
 							  transferDstLayout, dstFinalLayout, range);
 
-		cb->getCB()->registerImageTransfer(srcImage, range, srcFinalLayout, VulkanAccessFlag::Read);
-		cb->getCB()->registerImageTransfer(dstImage, range, dstFinalLayout, VulkanAccessFlag::Write);
+		cb->GetCB()->registerImageTransfer(srcImage, range, srcFinalLayout, VulkanAccessFlag::Read);
+		cb->GetCB()->registerImageTransfer(dstImage, range, dstFinalLayout, VulkanAccessFlag::Write);
 
 		bs_stack_free(imageRegions);
 	}
@@ -879,15 +879,15 @@ namespace bs { namespace ct
 	void VulkanTexture::copyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc,
 			const SPtr<CommandBuffer>& commandBuffer)
 	{
-		VulkanTexture* other = static_cast<VulkanTexture*>(target.get());
+		VulkanTexture* other = static_cast<VulkanTexture*>(target.Get());
 
 		const TextureProperties& srcProps = mProperties;
-		const TextureProperties& dstProps = other->getProperties();
+		const TextureProperties& dstProps = other->GetProperties();
 
-		bool srcHasMultisample = srcProps.getNumSamples() > 1;
-		bool destHasMultisample = dstProps.getNumSamples() > 1;
+		bool srcHasMultisample = srcProps.GetNumSamples() > 1;
+		bool destHasMultisample = dstProps.GetNumSamples() > 1;
 
-		if ((srcProps.getUsage() & TU_DEPTHSTENCIL) != 0 || (dstProps.getUsage() & TU_DEPTHSTENCIL) != 0)
+		if ((srcProps.GetUsage() & TU_DEPTHSTENCIL) != 0 || (dstProps.getUsage() & TU_DEPTHSTENCIL) != 0)
 		{
 			BS_LOG(Error, RenderBackend, "Texture copy/resolve isn't supported for depth-stencil textures.");
 			return;
@@ -897,7 +897,7 @@ namespace bs { namespace ct
 		bool isMSCopy = srcHasMultisample || destHasMultisample;
 		if (!needsResolve && isMSCopy)
 		{
-			if (srcProps.getNumSamples() != dstProps.getNumSamples())
+			if (srcProps.GetNumSamples() != dstProps.getNumSamples())
 			{
 				BS_LOG(Error, RenderBackend, "When copying textures their multisample counts must match. Ignoring copy.");
 				return;
@@ -909,16 +909,16 @@ namespace bs { namespace ct
 
 		UINT32 mipWidth, mipHeight, mipDepth;
 
-		bool copyEntireSurface = desc.srcVolume.getWidth() == 0 ||
-			desc.srcVolume.getHeight() == 0 ||
-			desc.srcVolume.getDepth() == 0;
+		bool copyEntireSurface = desc.srcVolume.GetWidth() == 0 ||
+			desc.srcVolume.GetHeight() == 0 ||
+			desc.srcVolume.GetDepth() == 0;
 
 		if(copyEntireSurface)
 		{
 			PixelUtil::getSizeForMipLevel(
-				srcProps.getWidth(),
-				srcProps.getHeight(),
-				srcProps.getDepth(),
+				srcProps.GetWidth(),
+				srcProps.GetHeight(),
+				srcProps.GetDepth(),
 				desc.srcMip,
 				mipWidth,
 				mipHeight,
@@ -926,9 +926,9 @@ namespace bs { namespace ct
 		}
 		else
 		{
-			mipWidth = desc.srcVolume.getWidth();
-			mipHeight = desc.srcVolume.getHeight();
-			mipDepth = desc.srcVolume.getDepth();
+			mipWidth = desc.srcVolume.GetWidth();
+			mipHeight = desc.srcVolume.GetHeight();
+			mipDepth = desc.srcVolume.GetDepth();
 		}
 
 		VkImageResolve resolveRegion;
@@ -975,50 +975,50 @@ namespace bs { namespace ct
 
 		VulkanCmdBuffer* vkCB;
 		if (commandBuffer != nullptr)
-			vkCB = static_cast<VulkanCommandBuffer*>(commandBuffer.get())->getInternal();
+			vkCB = static_cast<VulkanCommandBuffer*>(commandBuffer.Get())->GetInternal();
 		else
-			vkCB = rapi._getMainCommandBuffer()->getInternal();
+			vkCB = rapi._getMainCommandBuffer()->GetInternal();
 
-		UINT32 deviceIdx = vkCB->getDeviceIdx();
+		UINT32 deviceIdx = vkCB->GetDeviceIdx();
 
 		VulkanImage* srcImage = mImages[deviceIdx];
-		VulkanImage* dstImage = other->getResource(deviceIdx);
+		VulkanImage* dstImage = other->GetResource(deviceIdx);
 
 		if (srcImage == nullptr || dstImage == nullptr)
 			return;
 
-		VkImageLayout srcLayout = vkCB->getCurrentLayout(srcImage, srcRange, false);
-		VkImageLayout dstLayout = vkCB->getCurrentLayout(dstImage, dstRange, false);
+		VkImageLayout srcLayout = vkCB->GetCurrentLayout(srcImage, srcRange, false);
+		VkImageLayout dstLayout = vkCB->GetCurrentLayout(dstImage, dstRange, false);
 
-		VkCommandBuffer vkCmdBuf = vkCB->getHandle();
+		VkCommandBuffer vkCmdBuf = vkCB->GetHandle();
 
-		VkAccessFlags srcAccessMask = srcImage->getAccessFlags(srcLayout);
-		VkAccessFlags dstAccessMask = dstImage->getAccessFlags(dstLayout);
+		VkAccessFlags srcAccessMask = srcImage->GetAccessFlags(srcLayout);
+		VkAccessFlags dstAccessMask = dstImage->GetAccessFlags(dstLayout);
 
-		if (vkCB->isInRenderPass())
-			vkCB->endRenderPass();
+		if (vkCB->IsInRenderPass())
+			vkCB->EndRenderPass();
 
 		// Transfer textures to a valid layout
-		vkCB->setLayout(srcImage->getHandle(), srcAccessMask, VK_ACCESS_TRANSFER_READ_BIT, srcLayout,
+		vkCB->SetLayout(srcImage->getHandle(), srcAccessMask, VK_ACCESS_TRANSFER_READ_BIT, srcLayout,
 								transferSrcLayout, srcRange);
 
-		vkCB->setLayout(dstImage->getHandle(), dstAccessMask, VK_ACCESS_TRANSFER_WRITE_BIT,
+		vkCB->SetLayout(dstImage->getHandle(), dstAccessMask, VK_ACCESS_TRANSFER_WRITE_BIT,
 								dstLayout, transferDstLayout, dstRange);
 
 		if (srcHasMultisample && !destHasMultisample) // Resolving from MS to non-MS texture
 		{
-			vkCmdResolveImage(vkCmdBuf, srcImage->getHandle(), transferSrcLayout, dstImage->getHandle(), transferDstLayout,
+			vkCmdResolveImage(vkCmdBuf, srcImage->GetHandle(), transferSrcLayout, dstImage->getHandle(), transferDstLayout,
 				1, &resolveRegion);
 		}
 		else // Just a normal copy
 		{
-			vkCmdCopyImage(vkCmdBuf, srcImage->getHandle(), transferSrcLayout, dstImage->getHandle(), transferDstLayout,
+			vkCmdCopyImage(vkCmdBuf, srcImage->GetHandle(), transferSrcLayout, dstImage->getHandle(), transferDstLayout,
 				1, &imageRegion);
 		}
 
 		// Notify the command buffer that these resources are being used on it
-		vkCB->registerImageTransfer(srcImage, srcRange, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VulkanAccessFlag::Read);
-		vkCB->registerImageTransfer(dstImage, dstRange, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VulkanAccessFlag::Write);
+		vkCB->RegisterImageTransfer(srcImage, srcRange, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VulkanAccessFlag::Read);
+		vkCB->RegisterImageTransfer(dstImage, dstRange, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VulkanAccessFlag::Write);
 	}
 
 	PixelData VulkanTexture::lockImpl(GpuLockOptions options, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx,
@@ -1026,7 +1026,7 @@ namespace bs { namespace ct
 	{
 		const TextureProperties& props = getProperties();
 
-		if (props.getNumSamples() > 1)
+		if (props.GetNumSamples() > 1)
 		{
 			BS_LOG(Error, RenderBackend, "Multisampled textures cannot be accessed from the CPU directly.");
 			return PixelData();
@@ -1044,9 +1044,9 @@ namespace bs { namespace ct
 		}
 #endif
 
-		UINT32 mipWidth = std::max(1u, props.getWidth() >> mipLevel);
-		UINT32 mipHeight = std::max(1u, props.getHeight() >> mipLevel);
-		UINT32 mipDepth = std::max(1u, props.getDepth() >> mipLevel);
+		UINT32 mipWidth = std::max(1u, props.GetWidth() >> mipLevel);
+		UINT32 mipHeight = std::max(1u, props.GetHeight() >> mipLevel);
+		UINT32 mipDepth = std::max(1u, props.GetDepth() >> mipLevel);
 
 		PixelData LockedArea(mipWidth, mipHeight, mipDepth, mInternalFormats[deviceIdx]);
 
@@ -1069,22 +1069,22 @@ namespace bs { namespace ct
 		GpuQueueType queueType;
 		UINT32 localQueueIdx = CommandSyncMask::getQueueIdxAndType(queueIdx, queueType);
 
-		VulkanImageSubresource* subresource = image->getSubresource(face, mipLevel);
+		VulkanImageSubresource* subresource = image->GetSubresource(face, mipLevel);
 
 		// If memory is host visible try mapping it directly
 		if (mDirectlyMappable)
 		{
 			// Initially the texture will be in preinitialized layout, and it will transition to general layout on first
 			// use in shader. No further transitions are allowed for directly mappable textures.
-			assert(subresource->getLayout() == VK_IMAGE_LAYOUT_PREINITIALIZED ||
-				   subresource->getLayout() == VK_IMAGE_LAYOUT_GENERAL);
+			assert(subresource->GetLayout() == VK_IMAGE_LAYOUT_PREINITIALIZED ||
+				   subresource->GetLayout() == VK_IMAGE_LAYOUT_GENERAL);
 
 			// GPU should never be allowed to write to a directly mappable texture, since only linear tiling is supported
 			// for direct mapping, and we don't support using it with either storage textures or render targets.
 			assert(!mSupportsGPUWrites);
 
 			// Check is the GPU currently reading from the image
-			UINT32 useMask = subresource->getUseInfo(VulkanAccessFlag::Read);
+			UINT32 useMask = subresource->GetUseInfo(VulkanAccessFlag::Read);
 			bool isUsedOnGPU = useMask != 0;
 
 			// We're safe to map directly since GPU isn't using the subresource
@@ -1092,7 +1092,7 @@ namespace bs { namespace ct
 			{
 				// If some CB has an operation queued that will be using the current contents of the image, create a new
 				// image so we don't modify the previous use of the image
-				if (subresource->isBound())
+				if (subresource->IsBound())
 				{
 					VulkanImage* newImage = createImage(device, mInternalFormats[deviceIdx]);
 
@@ -1101,23 +1101,23 @@ namespace bs { namespace ct
 					if (options != GBL_WRITE_ONLY_DISCARD)
 					{
 						VkMemoryRequirements memReqs;
-						vkGetImageMemoryRequirements(device.getLogical(), image->getHandle(), &memReqs);
+						vkGetImageMemoryRequirements(device.GetLogical(), image->GetHandle(), &memReqs);
 
-						UINT8* src = image->map(0, (UINT32)memReqs.size);
-						UINT8* dst = newImage->map(0, (UINT32)memReqs.size);
+						UINT8* src = image->Map(0, (UINT32)memReqs.size);
+						UINT8* dst = newImage->Map(0, (UINT32)memReqs.size);
 
 						memcpy(dst, src, memReqs.size);
 
-						image->unmap();
-						newImage->unmap();
+						image->Unmap();
+						newImage->Unmap();
 					}
 
-					image->destroy();
+					image->Destroy();
 					image = newImage;
 					mImages[deviceIdx] = image;
 				}
 
-				image->map(face, mipLevel, lockedArea);
+				image->Map(face, mipLevel, lockedArea);
 				return lockedArea;
 			}
 
@@ -1125,7 +1125,7 @@ namespace bs { namespace ct
 			// subresource
 			if (options == GBL_WRITE_ONLY_NO_OVERWRITE)
 			{
-				image->map(face, mipLevel, lockedArea);
+				image->Map(face, mipLevel, lockedArea);
 				return lockedArea;
 			}
 
@@ -1133,55 +1133,55 @@ namespace bs { namespace ct
 			if (options == GBL_WRITE_ONLY_DISCARD)
 			{
 				// We need to discard the entire image, even though we're only writing to a single sub-resource
-				image->destroy();
+				image->Destroy();
 
 				image = createImage(device, mInternalFormats[deviceIdx]);
 				mImages[deviceIdx] = image;
 
-				image->map(face, mipLevel, lockedArea);
+				image->Map(face, mipLevel, lockedArea);
 				return lockedArea;
 			}
 
 			// We need to read the buffer contents
 			if (options == GBL_READ_ONLY || options == GBL_READ_WRITE)
 			{
-				VulkanTransferBuffer* transferCB = cbManager.getTransferBuffer(deviceIdx, queueType, localQueueIdx);
+				VulkanTransferBuffer* transferCB = cbManager.GetTransferBuffer(deviceIdx, queueType, localQueueIdx);
 
 				// Ensure flush() will wait for all queues currently using to the texture (if any) to finish
 				// If only reading, wait for all writes to complete, otherwise wait on both writes and reads
 				if (options == GBL_READ_ONLY)
-					useMask = subresource->getUseInfo(VulkanAccessFlag::Write);
+					useMask = subresource->GetUseInfo(VulkanAccessFlag::Write);
 				else
-					useMask = subresource->getUseInfo(VulkanAccessFlag::Read | VulkanAccessFlag::Write);
+					useMask = subresource->GetUseInfo(VulkanAccessFlag::Read | VulkanAccessFlag::Write);
 
-				transferCB->appendMask(useMask);
+				transferCB->AppendMask(useMask);
 
 				// Submit the command buffer and wait until it finishes
-				transferCB->flush(true);
+				transferCB->Flush(true);
 
 				// If writing and some CB has an operation queued that will be using the current contents of the image,
 				// create a new image so we don't modify the previous use of the image
-				if (options == GBL_READ_WRITE && subresource->isBound())
+				if (options == GBL_READ_WRITE && subresource->IsBound())
 				{
 					VulkanImage* newImage = createImage(device, mInternalFormats[deviceIdx]);
 
 					VkMemoryRequirements memReqs;
-					vkGetImageMemoryRequirements(device.getLogical(), image->getHandle(), &memReqs);
+					vkGetImageMemoryRequirements(device.GetLogical(), image->GetHandle(), &memReqs);
 
-					UINT8* src = image->map(0, (UINT32)memReqs.size);
-					UINT8* dst = newImage->map(0, (UINT32)memReqs.size);
+					UINT8* src = image->Map(0, (UINT32)memReqs.size);
+					UINT8* dst = newImage->Map(0, (UINT32)memReqs.size);
 
 					memcpy(dst, src, memReqs.size);
 
-					image->unmap();
-					newImage->unmap();
+					image->Unmap();
+					newImage->Unmap();
 
-					image->destroy();
+					image->Destroy();
 					image = newImage;
 					mImages[deviceIdx] = image;
 				}
 
-				image->map(face, mipLevel, lockedArea);
+				image->Map(face, mipLevel, lockedArea);
 				return lockedArea;
 			}
 
@@ -1203,27 +1203,27 @@ namespace bs { namespace ct
 
 		if (needRead) // If reading, we need to copy the current contents of the image to the staging buffer
 		{
-			VulkanTransferBuffer* transferCB = cbManager.getTransferBuffer(deviceIdx, queueType, localQueueIdx);
+			VulkanTransferBuffer* transferCB = cbManager.GetTransferBuffer(deviceIdx, queueType, localQueueIdx);
 
 			// Similar to above, if image supports GPU writes or is currently being written to, we need to wait on any
 			// potential writes to complete
-			UINT32 writeUseMask = subresource->getUseInfo(VulkanAccessFlag::Write);
+			UINT32 writeUseMask = subresource->GetUseInfo(VulkanAccessFlag::Write);
 
 			if (mSupportsGPUWrites || writeUseMask != 0)
 			{
 				// Ensure flush() will wait for all queues currently writing to the image (if any) to finish
-				transferCB->appendMask(writeUseMask);
+				transferCB->AppendMask(writeUseMask);
 			}
 
 			VkImageSubresourceRange range;
-			range.aspectMask = image->getAspectFlags();
+			range.aspectMask = image->GetAspectFlags();
 			range.baseArrayLayer = face;
 			range.layerCount = 1;
 			range.baseMipLevel = mipLevel;
 			range.levelCount = 1;
 
 			VkImageSubresourceLayers rangeLayers;
-			if ((props.getUsage() & TU_DEPTHSTENCIL) != 0)
+			if ((props.GetUsage() & TU_DEPTHSTENCIL) != 0)
 				rangeLayers.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 			else
 				rangeLayers.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -1233,24 +1233,24 @@ namespace bs { namespace ct
 			rangeLayers.mipLevel = range.baseMipLevel;
 
 			VkExtent3D extent;
-			PixelUtil::getSizeForMipLevel(props.getWidth(), props.getHeight(), props.getDepth(), mMappedMip,
+			PixelUtil::getSizeForMipLevel(props.GetWidth(), props.getHeight(), props.getDepth(), mMappedMip,
 										  extent.width, extent.height, extent.depth);
 
 			// Transfer texture to a valid layout
-			VkAccessFlags currentAccessMask = image->getAccessFlags(subresource->getLayout());
-			transferCB->setLayout(image->getHandle(), currentAccessMask, VK_ACCESS_TRANSFER_READ_BIT, subresource->getLayout(),
+			VkAccessFlags currentAccessMask = image->GetAccessFlags(subresource->getLayout());
+			transferCB->SetLayout(image->getHandle(), currentAccessMask, VK_ACCESS_TRANSFER_READ_BIT, subresource->getLayout(),
 								  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, range);
 
 			// Queue copy command
-			image->copy(transferCB, mStagingBuffer, extent, rangeLayers, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+			image->Copy(transferCB, mStagingBuffer, extent, rangeLayers, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
 			// Transfer back to original layout
-			VkImageLayout dstLayout = image->getOptimalLayout();
-			currentAccessMask = image->getAccessFlags(dstLayout);
+			VkImageLayout dstLayout = image->GetOptimalLayout();
+			currentAccessMask = image->GetAccessFlags(dstLayout);
 
-			transferCB->setLayout(image->getHandle(), VK_ACCESS_TRANSFER_READ_BIT, currentAccessMask,
+			transferCB->SetLayout(image->getHandle(), VK_ACCESS_TRANSFER_READ_BIT, currentAccessMask,
 								  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dstLayout, range);
-			transferCB->getCB()->registerImageTransfer(image, range, dstLayout, VulkanAccessFlag::Read);
+			transferCB->GetCB()->registerImageTransfer(image, range, dstLayout, VulkanAccessFlag::Read);
 
 			// Ensure data written to the staging buffer is visible
 			VkAccessFlags stagingAccessFlags;
@@ -1259,18 +1259,18 @@ namespace bs { namespace ct
 			else // Must be read/write
 				stagingAccessFlags = VK_ACCESS_HOST_READ_BIT | VK_ACCESS_HOST_WRITE_BIT;
 
-			transferCB->memoryBarrier(mStagingBuffer->getHandle(),
+			transferCB->MemoryBarrier(mStagingBuffer->getHandle(),
 									  VK_ACCESS_TRANSFER_WRITE_BIT,
 									  stagingAccessFlags,
 									  VK_PIPELINE_STAGE_TRANSFER_BIT,
 									  VK_PIPELINE_STAGE_HOST_BIT);
 
 			// Submit the command buffer and wait until it finishes
-			transferCB->flush(true);
+			transferCB->Flush(true);
 		}
 
-		UINT8* data = mStagingBuffer->map(0, lockedArea.getSize());
-		lockedArea.setExternalBuffer(data);
+		UINT8* data = mStagingBuffer->Map(0, lockedArea.GetSize());
+		lockedArea.SetExternalBuffer(data);
 
 		return lockedArea;
 	}
@@ -1285,10 +1285,10 @@ namespace bs { namespace ct
 		// a pipeline barrier because (as per spec) host writes are implicitly visible to the device.
 
 		if (mStagingBuffer == nullptr)
-			mImages[mMappedDeviceIdx]->unmap();
+			mImages[mMappedDeviceIdx]->Unmap();
 		else
 		{
-			mStagingBuffer->unmap();
+			mStagingBuffer->Unmap();
 
 			bool isWrite = mMappedLockOptions != GBL_READ_ONLY;
 
@@ -1303,14 +1303,14 @@ namespace bs { namespace ct
 				UINT32 localQueueIdx = CommandSyncMask::getQueueIdxAndType(mMappedGlobalQueueIdx, queueType);
 
 				VulkanImage* image = mImages[mMappedDeviceIdx];
-				VulkanTransferBuffer* transferCB = cbManager.getTransferBuffer(mMappedDeviceIdx, queueType, localQueueIdx);
+				VulkanTransferBuffer* transferCB = cbManager.GetTransferBuffer(mMappedDeviceIdx, queueType, localQueueIdx);
 
-				VulkanImageSubresource* subresource = image->getSubresource(mMappedFace, mMappedMip);
-				VkImageLayout curLayout = subresource->getLayout();
+				VulkanImageSubresource* subresource = image->GetSubresource(mMappedFace, mMappedMip);
+				VkImageLayout curLayout = subresource->GetLayout();
 
 				// If the subresource is used in any way on the GPU, we need to wait for that use to finish before
 				// we issue our copy
-				UINT32 useMask = subresource->getUseInfo(VulkanAccessFlag::Read | VulkanAccessFlag::Write);
+				UINT32 useMask = subresource->GetUseInfo(VulkanAccessFlag::Read | VulkanAccessFlag::Write);
 				bool isNormalWrite = false;
 				if (useMask != 0) // Subresource is currently used on the GPU
 				{
@@ -1325,16 +1325,16 @@ namespace bs { namespace ct
 					else if (mMappedLockOptions == GBL_WRITE_ONLY_DISCARD)
 					{
 						// We need to discard the entire image, even though we're only writing to a single sub-resource
-						image->destroy();
+						image->Destroy();
 
 						image = createImage(device, mInternalFormats[mMappedDeviceIdx]);
 						mImages[mMappedDeviceIdx] = image;
 
-						subresource = image->getSubresource(mMappedFace, mMappedMip);
+						subresource = image->GetSubresource(mMappedFace, mMappedMip);
 					}
 					else // Otherwise we have no choice but to issue a dependency between the queues
 					{
-						transferCB->appendMask(useMask);
+						transferCB->AppendMask(useMask);
 						isNormalWrite = true;
 					}
 				}
@@ -1346,8 +1346,8 @@ namespace bs { namespace ct
 				// Check if the subresource will still be bound somewhere after the CBs using it finish
 				if (isNormalWrite)
 				{
-					UINT32 useCount = subresource->getUseCount();
-					UINT32 boundCount = subresource->getBoundCount();
+					UINT32 useCount = subresource->GetUseCount();
+					UINT32 boundCount = subresource->GetBoundCount();
 
 					bool isBoundWithoutUse = boundCount > useCount;
 
@@ -1358,22 +1358,22 @@ namespace bs { namespace ct
 						VulkanImage* newImage = createImage(device, mInternalFormats[mMappedDeviceIdx]);
 
 						// Avoid copying original contents if the image only has one sub-resource, which we'll overwrite anyway
-						if (props.getNumMipmaps() > 0 || props.getNumFaces() > 1)
+						if (props.GetNumMipmaps() > 0 || props.getNumFaces() > 1)
 						{
-							VkImageLayout oldImgLayout = image->getOptimalLayout();
+							VkImageLayout oldImgLayout = image->GetOptimalLayout();
 
-							curLayout = newImage->getOptimalLayout();
+							curLayout = newImage->GetOptimalLayout();
 							copyImage(transferCB, image, newImage, oldImgLayout, curLayout);
 						}
 
-						image->destroy();
+						image->Destroy();
 						image = newImage;
 						mImages[mMappedDeviceIdx] = image;
 					}
 				}
 
 				VkImageSubresourceRange range;
-				range.aspectMask = image->getAspectFlags();
+				range.aspectMask = image->GetAspectFlags();
 				range.baseArrayLayer = mMappedFace;
 				range.layerCount = 1;
 				range.baseMipLevel = mMappedMip;
@@ -1386,7 +1386,7 @@ namespace bs { namespace ct
 				rangeLayers.mipLevel = range.baseMipLevel;
 
 				VkExtent3D extent;
-				PixelUtil::getSizeForMipLevel(props.getWidth(), props.getHeight(), props.getDepth(), mMappedMip,
+				PixelUtil::getSizeForMipLevel(props.GetWidth(), props.getHeight(), props.getDepth(), mMappedMip,
 											  extent.width, extent.height, extent.depth);
 
 				VkImageLayout transferLayout;
@@ -1396,29 +1396,29 @@ namespace bs { namespace ct
 					transferLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
 				// Transfer texture to a valid layout
-				VkAccessFlags currentAccessMask = image->getAccessFlags(curLayout);
-				transferCB->setLayout(image->getHandle(), currentAccessMask, VK_ACCESS_TRANSFER_WRITE_BIT,
+				VkAccessFlags currentAccessMask = image->GetAccessFlags(curLayout);
+				transferCB->SetLayout(image->getHandle(), currentAccessMask, VK_ACCESS_TRANSFER_WRITE_BIT,
 									  curLayout, transferLayout, range);
 
 				// Queue copy command
-				mStagingBuffer->copy(transferCB->getCB(), image, extent, rangeLayers, transferLayout);
+				mStagingBuffer->Copy(transferCB->getCB(), image, extent, rangeLayers, transferLayout);
 
 				// Transfer back to original  (or optimal if initial layout was undefined/preinitialized)
-				VkImageLayout dstLayout = image->getOptimalLayout();
+				VkImageLayout dstLayout = image->GetOptimalLayout();
 
-				currentAccessMask = image->getAccessFlags(dstLayout);
-				transferCB->setLayout(image->getHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, currentAccessMask,
+				currentAccessMask = image->GetAccessFlags(dstLayout);
+				transferCB->SetLayout(image->getHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, currentAccessMask,
 									  transferLayout, dstLayout, range);
 
 				// Notify the command buffer that these resources are being used on it
-				transferCB->getCB()->registerBuffer(mStagingBuffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
-				transferCB->getCB()->registerImageTransfer(image, range, dstLayout, VulkanAccessFlag::Write);
+				transferCB->GetCB()->registerBuffer(mStagingBuffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
+				transferCB->GetCB()->registerImageTransfer(image, range, dstLayout, VulkanAccessFlag::Write);
 
 				// We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead
 				// done automatically before next "normal" command buffer submission.
 			}
 
-			mStagingBuffer->destroy();
+			mStagingBuffer->Destroy();
 			mStagingBuffer = nullptr;
 		}
 
@@ -1427,7 +1427,7 @@ namespace bs { namespace ct
 
 	void VulkanTexture::ReadDataImpl(PixelData& dest, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
 	{
-		if (mProperties.getNumSamples() > 1)
+		if (mProperties.GetNumSamples() > 1)
 		{
 			BS_LOG(Error, RenderBackend, "Multisampled textures cannot be accessed from the CPU directly.");
 			return;
@@ -1443,19 +1443,19 @@ namespace bs { namespace ct
 	void VulkanTexture::writeDataImpl(const PixelData& src, UINT32 mipLevel, UINT32 face, bool discardWholeBuffer,
 									  UINT32 queueIdx)
 	{
-		if(src.getSize() == 0)
+		if(src.GetSize() == 0)
 			return;
 
-		if (mProperties.getNumSamples() > 1)
+		if (mProperties.GetNumSamples() > 1)
 		{
 			BS_LOG(Error, RenderBackend, "Multisampled textures cannot be accessed from the CPU directly.");
 			return;
 		}
 
-		mipLevel = Math::clamp(mipLevel, (UINT32)mipLevel, mProperties.getNumMipmaps());
-		face = Math::clamp(face, (UINT32)0, mProperties.getNumFaces() - 1);
+		mipLevel = Math::clamp(mipLevel, (UINT32)mipLevel, mProperties.GetNumMipmaps());
+		face = Math::clamp(face, (UINT32)0, mProperties.GetNumFaces() - 1);
 
-		if (face > 0 && mProperties.getTextureType() == TEX_TYPE_3D)
+		if (face > 0 && mProperties.GetTextureType() == TEX_TYPE_3D)
 		{
 			BS_LOG(Error, RenderBackend, "3D texture arrays are not supported.");
 			return;

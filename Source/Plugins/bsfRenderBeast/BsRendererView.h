@@ -566,7 +566,7 @@ namespace bs { namespace ct
 		RendererView* getView(UINT32 idx) const { return mViews[idx]; }
 
 		/** Returns the total number of views in the group. */
-		UINT32 GetNumViews() const { return (UINT32)mViews.size(); }
+		UINT32 GetNumViews() const { return (UINT32)mViews.Size(); }
 
 		/** Determines is this the primary rendering pass for this frame. There can only be one primary pass per frame. */
 		bool IsMainPass() const { return mIsMainPass; }

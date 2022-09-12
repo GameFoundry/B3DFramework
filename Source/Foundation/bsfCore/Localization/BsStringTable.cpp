@@ -26,14 +26,14 @@ namespace bs
 			UINT32 prevIdx = 0;
 			for(UINT32 i = 0; i < actualNumParameters; i++)
 			{
-				totalNumChars += (parameterOffsets[i].location - prevIdx) + (UINT32)parameters[parameterOffsets[i].paramIdx].size();;
+				totalNumChars += (parameterOffsets[i].location - prevIdx) + (UINT32)parameters[parameterOffsets[i].paramIdx].Size();;
 
 				prevIdx = parameterOffsets[i].location;
 			}
 
-			totalNumChars += (UINT32)string.size() - prevIdx;
+			totalNumChars += (UINT32)string.Size() - prevIdx;
 
-			outputString.resize(totalNumChars);
+			outputString.Resize(totalNumChars);
 			char* strData = &outputString[0]; // String contiguity required by C++11, but this should work elsewhere as well
 
 			prevIdx = 0;
@@ -44,20 +44,20 @@ namespace bs
 				strData += strSize;
 
 				String& param = parameters[parameterOffsets[i].paramIdx];
-				memcpy(strData, &param[0], param.size() * sizeof(char));
-				strData += param.size();
+				memcpy(strData, &param[0], param.Size() * sizeof(char));
+				strData += param.Size();
 
 				prevIdx = parameterOffsets[i].location;
 			}
 
-			memcpy(strData, &string[prevIdx], (string.size() - prevIdx) * sizeof(char));
+			memcpy(strData, &string[prevIdx], (string.Size() - prevIdx) * sizeof(char));
 		}
 		else
 		{
-			outputString.resize(string.size());
+			outputString.Resize(string.size());
 			char* strData = &outputString[0]; // String contiguity required by C++11, but this should work elsewhere as well
 
-			memcpy(strData, &string[0], string.size() * sizeof(char));
+			memcpy(strData, &string[0], string.Size() * sizeof(char));
 		}
 	}
 
@@ -73,7 +73,7 @@ namespace bs
 		StringStream cleanString;
 		bool escaped = false;
 		UINT32 numRemovedChars = 0;
-		for(UINT32 i = 0; i < (UINT32)_string.size(); i++)
+		for(UINT32 i = 0; i < (UINT32)_string.Size(); i++)
 		{
 			if(_string[i] == '^' && !escaped)
 			{
@@ -97,12 +97,12 @@ namespace bs
 				else
 				{
 					// If current char is non-escaped closing bracket end parameter definition
-					UINT32 numParamChars = (UINT32)bracketChars.tellp();
+					UINT32 numParamChars = (UINT32)bracketChars.Tellp();
 					if(_string[i] == '}' && numParamChars > 0 && !escaped)
 					{
 						numRemovedChars += numParamChars + 2; // +2 for open and closed brackets
 
-						UINT32 paramIdx = parseUINT32(bracketChars.str());
+						UINT32 paramIdx = parseUINT32(bracketChars.Str());
 						paramOffsets.push_back(ParamOffset(paramIdx, i + 1 - numRemovedChars));
 					}
 					else
@@ -114,22 +114,22 @@ namespace bs
 
 					lastBracket = -1;
 
-					bracketChars.str(u8"");
-					bracketChars.clear();
+					bracketChars.Str(u8"");
+					bracketChars.Clear();
 				}
 			}
 
 			escaped = false;
 		}
 
-		string = cleanString.str();
-		numParameters = (UINT32)paramOffsets.size();
+		string = cleanString.Str();
+		numParameters = (UINT32)paramOffsets.Size();
 
 		// Try to find out of order param offsets and fix them
 		std::sort(begin(paramOffsets), end(paramOffsets),
 			[&] (const ParamOffset& a, const ParamOffset& b) { return a.paramIdx < b.paramIdx; } );
 
-		if(paramOffsets.size() > 0)
+		if(paramOffsets.Size() > 0)
 		{
 			UINT32 sequentialIdx = 0;
 			UINT32 lastParamIdx = paramOffsets[0].paramIdx;
@@ -183,7 +183,7 @@ namespace bs
 
 	bool StringTable::Contains(const String& identifier)
 	{
-		return mIdentifiers.find(identifier) == mIdentifiers.end();
+		return mIdentifiers.Find(identifier) == mIdentifiers.end();
 	}
 
 	Vector<String> StringTable::GetIdentifiers() const
@@ -199,10 +199,10 @@ namespace bs
 	{
 		LanguageData* curLanguage = &(mAllLanguages[(UINT32)language]);
 
-		auto iterFind = curLanguage->strings.find(identifier);
+		auto iterFind = curLanguage->strings.Find(identifier);
 
 		SPtr<LocalizedStringData> stringData;
-		if(iterFind == curLanguage->strings.end())
+		if(iterFind == curLanguage->strings.End())
 		{
 			stringData = bs_shared_ptr_new<LocalizedStringData>();
 			curLanguage->strings[identifier] = stringData;
@@ -212,16 +212,16 @@ namespace bs
 			stringData = iterFind->second;
 		}
 
-		mIdentifiers.insert(identifier);
-		stringData->updateString(value);
+		mIdentifiers.Insert(identifier);
+		stringData->UpdateString(value);
 	}
 
 	String StringTable::GetString(const String& identifier, Language language)
 	{
 		LanguageData* curLanguage = &(mAllLanguages[(UINT32)language]);
 
-		auto iterFind = curLanguage->strings.find(identifier);
-		if (iterFind != curLanguage->strings.end())
+		auto iterFind = curLanguage->strings.Find(identifier);
+		if (iterFind != curLanguage->strings.End())
 			return iterFind->second->string;
 			
 		return identifier;
@@ -231,10 +231,10 @@ namespace bs
 	{
 		for(UINT32 i = 0; i < (UINT32)Language::Count; i++)
 		{
-			mAllLanguages[i].strings.erase(identifier);
+			mAllLanguages[i].strings.Erase(identifier);
 		}
 
-		mIdentifiers.erase(identifier);
+		mIdentifiers.Erase(identifier);
 	}
 
 	SPtr<LocalizedStringData> StringTable::GetStringData(const String& identifier, bool insertIfNonExisting)
@@ -246,20 +246,20 @@ namespace bs
 	{
 		LanguageData* curLanguage = &(mAllLanguages[(UINT32)language]);
 
-		auto iterFind = curLanguage->strings.find(identifier);
-		if(iterFind != curLanguage->strings.end())
+		auto iterFind = curLanguage->strings.Find(identifier);
+		if(iterFind != curLanguage->strings.End())
 			return iterFind->second;
 
-		auto defaultIterFind = mDefaultLanguageData->strings.find(identifier);
-		if(defaultIterFind != mDefaultLanguageData->strings.end())
+		auto defaultIterFind = mDefaultLanguageData->strings.Find(identifier);
+		if(defaultIterFind != mDefaultLanguageData->strings.End())
 			return defaultIterFind->second;
 
 		if(insertIfNonExisting)
 		{
 			setString(identifier, DEFAULT_LANGUAGE, identifier);
 
-			auto defaultIterFind = mDefaultLanguageData->strings.find(identifier);
-			if(defaultIterFind != mDefaultLanguageData->strings.end())
+			auto defaultIterFind = mDefaultLanguageData->strings.Find(identifier);
+			if(defaultIterFind != mDefaultLanguageData->strings.End())
 				return defaultIterFind->second;
 		}
 
@@ -277,7 +277,7 @@ namespace bs
 		SPtr<StringTable> scriptCodePtr = bs_core_ptr<StringTable>(
 			new (bs_alloc<StringTable>()) StringTable());
 		scriptCodePtr->_setThisPtr(scriptCodePtr);
-		scriptCodePtr->initialize();
+		scriptCodePtr->Initialize();
 
 		return scriptCodePtr;
 	}

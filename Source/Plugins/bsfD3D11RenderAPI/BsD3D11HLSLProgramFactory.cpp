@@ -99,7 +99,7 @@ namespace bs { namespace ct
 		std::cmatch results;
 		if (std::regex_search(message, results, regex))
 		{
-			std::string result = results[1].str();
+			std::string result = results[1].Str();
 
 			return Strtol(result.c_str(), nullptr, 10) - 1;
 		}
@@ -156,7 +156,7 @@ namespace bs { namespace ct
 
 		HRESULT hr = D3DCompile(
 			source.c_str(),		// [in] Pointer to the shader in memory.
-			source.size(),		// [in] Size of the shader in memory.
+			source.Size(),		// [in] Size of the shader in memory.
 			nullptr,			// [in] The name of the file that contains the shader code.
 			defines,			// [in] Optional. Pointer to a NULL-terminated array of macro definitions.
 								//		See D3D_SHADER_MACRO. If not used, set this to NULL.
@@ -181,7 +181,7 @@ namespace bs { namespace ct
 
 			Vector<String> sourceLines = StringUtil::split(source, "\n");
 			String sourceLine;
-			if (lineIdx < sourceLines.size())
+			if (lineIdx < sourceLines.Size())
 				sourceLine = sourceLines[lineIdx];
 
 			compileMessage =
@@ -213,9 +213,9 @@ namespace bs { namespace ct
 			bytecode->paramDesc = bs_shared_ptr_new<GpuParamDesc>();
 
 			if (desc.type == GPT_VERTEX_PROGRAM)
-				parser.parse(microcode, desc.type, *bytecode->paramDesc, &bytecode->vertexInput);
+				parser.Parse(microcode, desc.type, *bytecode->paramDesc, &bytecode->vertexInput);
 			else
-				parser.parse(microcode, desc.type, *bytecode->paramDesc, nullptr);
+				parser.Parse(microcode, desc.type, *bytecode->paramDesc, nullptr);
 		}
 		
 		SAFE_RELEASE(microcode);

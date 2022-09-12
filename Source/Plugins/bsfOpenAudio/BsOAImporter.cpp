@@ -47,7 +47,7 @@ namespace bs
 			Lock fileLock = FileScheduler::getLock(filePath);
 			SPtr<DataStream> stream = FileSystem::openFile(filePath);
 
-			String extension = filePath.getExtension();
+			String extension = filePath.GetExtension();
 			StringUtil::toLowerCase(extension);
 
 			UPtr<AudioDecoder> reader;
@@ -61,17 +61,17 @@ namespace bs
 			if (reader == nullptr)
 				return nullptr;
 
-			if (!reader->isValid(stream))
+			if (!reader->IsValid(stream))
 				return nullptr;
 
-			if (!reader->open(stream, info))
+			if (!reader->Open(stream, info))
 				return nullptr;
 
 			bytesPerSample = info.bitDepth / 8;
 			bufferSize = info.numSamples * bytesPerSample;
 
 			sampleStream = bs_shared_ptr_new<MemoryDataStream>(bufferSize);
-			reader->read(sampleStream->data(), info.numSamples);
+			reader->Read(sampleStream->data(), info.numSamples);
 		}
 
 		SPtr<const AudioClipImportOptions> clipIO = std::static_pointer_cast<const AudioClipImportOptions>(importOptions);
@@ -84,7 +84,7 @@ namespace bs
 			UINT32 monoBufferSize = numSamplesPerChannel * bytesPerSample;
 			auto monoStream = bs_shared_ptr_new<MemoryDataStream>(monoBufferSize);
 
-			AudioUtility::convertToMono(sampleStream->data(), monoStream->data(), info.bitDepth, numSamplesPerChannel, info.numChannels);
+			AudioUtility::convertToMono(sampleStream->Data(), monoStream->data(), info.bitDepth, numSamplesPerChannel, info.numChannels);
 
 			info.numSamples = numSamplesPerChannel;
 			info.numChannels = 1;
@@ -99,7 +99,7 @@ namespace bs
 			UINT32 outBufferSize = info.numSamples * (clipIO->bitDepth / 8);
 			auto outStream = bs_shared_ptr_new<MemoryDataStream>(outBufferSize);
 
-			AudioUtility::convertBitDepth(sampleStream->data(), info.bitDepth, outStream->data(), clipIO->bitDepth, info.numSamples);
+			AudioUtility::convertBitDepth(sampleStream->Data(), info.bitDepth, outStream->data(), clipIO->bitDepth, info.numSamples);
 
 			info.bitDepth = clipIO->bitDepth;
 
@@ -113,7 +113,7 @@ namespace bs
 			// Note: If the original source was in Ogg Vorbis we could just copy it here, but instead we decode to PCM and
 			// then re-encode which is redundant. If later we decide to copy be aware that the engine encodes Ogg in a
 			// specific quality, and the the import source might have lower or higher bitrate/quality.
-			sampleStream = OggVorbisEncoder::PCMToOggVorbis(sampleStream->data(), info, bufferSize);
+			sampleStream = OggVorbisEncoder::PCMToOggVorbis(sampleStream->Data(), info, bufferSize);
 		}
 
 		AUDIO_CLIP_DESC clipDesc;
@@ -126,8 +126,8 @@ namespace bs
 
 		SPtr<AudioClip> clip = AudioClip::_createPtr(sampleStream, bufferSize, info.numSamples, clipDesc);
 
-		const String fileName = filePath.getFilename(false);
-		clip->setName(fileName);
+		const String fileName = filePath.GetFilename(false);
+		clip->SetName(fileName);
 
 		return clip;
 	}

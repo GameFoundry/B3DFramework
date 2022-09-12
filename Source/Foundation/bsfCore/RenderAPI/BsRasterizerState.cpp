@@ -44,7 +44,7 @@ namespace bs
 	SPtr<ct::CoreObject> RasterizerState::CreateCore() const
 	{
 		SPtr<ct::RasterizerState> core = ct::RenderStateManager::instance()._createRasterizerState(mProperties.mData);
-		mId = core->getId(); // Accessing core from sim thread is okay here since core ID is immutable
+		mId = core->GetId(); // Accessing core from sim thread is okay here since core ID is immutable
 
 		return core;
 	}
@@ -56,12 +56,12 @@ namespace bs
 
 	const SPtr<RasterizerState>& RasterizerState::GetDefault()
 	{
-		return RenderStateManager::Instance().getDefaultRasterizerState();
+		return RenderStateManager::Instance().GetDefaultRasterizerState();
 	}
 
 	SPtr<RasterizerState> RasterizerState::Create(const RASTERIZER_STATE_DESC& desc)
 	{
-		return RenderStateManager::Instance().createRasterizerState(desc);
+		return RenderStateManager::Instance().CreateRasterizerState(desc);
 	}
 
 	UINT64 RasterizerState::GenerateHash(const RASTERIZER_STATE_DESC& desc)
@@ -125,12 +125,12 @@ namespace bs
 
 	SPtr<RasterizerState> RasterizerState::Create(const RASTERIZER_STATE_DESC& desc)
 	{
-		return RenderStateManager::Instance().createRasterizerState(desc);
+		return RenderStateManager::Instance().CreateRasterizerState(desc);
 	}
 
 	const SPtr<RasterizerState>& RasterizerState::GetDefault()
 	{
-		return RenderStateManager::Instance().getDefaultRasterizerState();
+		return RenderStateManager::Instance().GetDefaultRasterizerState();
 	}
 	}
 }

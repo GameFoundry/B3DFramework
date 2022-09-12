@@ -32,7 +32,7 @@ namespace bs
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{
 			RasterizerState* rasterizerState = static_cast<RasterizerState*>(obj);
-			rasterizerState->initialize();
+			rasterizerState->Initialize();
 		}
 
 		const String& GetRTTIName() override

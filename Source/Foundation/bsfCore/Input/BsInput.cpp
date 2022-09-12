@@ -27,21 +27,21 @@ namespace bs
 
 	Input::Input()
 	{
-		SPtr<RenderWindow> primaryWindow = gCoreApplication().getPrimaryWindow();
-		primaryWindow->getCustomAttribute("WINDOW", &mWindowHandle);
+		SPtr<RenderWindow> primaryWindow = gCoreApplication().GetPrimaryWindow();
+		primaryWindow->GetCustomAttribute("WINDOW", &mWindowHandle);
 
 		// Subscribe to events
-		mCharInputConn = Platform::onCharInput.connect(std::bind(&Input::charInput, this, _1));
-		mCursorMovedConn = Platform::onCursorMoved.connect(std::bind(&Input::cursorMoved, this, _1, _2));
-		mCursorPressedConn = Platform::onCursorButtonPressed.connect(std::bind(&Input::cursorPressed, this, _1, _2, _3));
-		mCursorReleasedConn = Platform::onCursorButtonReleased.connect(std::bind(&Input::cursorReleased, this, _1, _2, _3));
-		mCursorDoubleClickConn = Platform::onCursorDoubleClick.connect(std::bind(&Input::cursorDoubleClick, this, _1, _2));
-		mInputCommandConn = Platform::onInputCommand.connect(std::bind(&Input::inputCommandEntered, this, _1));
+		mCharInputConn = Platform::onCharInput.Connect(std::bind(&Input::charInput, this, _1));
+		mCursorMovedConn = Platform::onCursorMoved.Connect(std::bind(&Input::cursorMoved, this, _1, _2));
+		mCursorPressedConn = Platform::onCursorButtonPressed.Connect(std::bind(&Input::cursorPressed, this, _1, _2, _3));
+		mCursorReleasedConn = Platform::onCursorButtonReleased.Connect(std::bind(&Input::cursorReleased, this, _1, _2, _3));
+		mCursorDoubleClickConn = Platform::onCursorDoubleClick.Connect(std::bind(&Input::cursorDoubleClick, this, _1, _2));
+		mInputCommandConn = Platform::onInputCommand.Connect(std::bind(&Input::inputCommandEntered, this, _1));
 
-		mMouseWheelScrolledConn  = Platform::onMouseWheelScrolled.connect(std::bind(&Input::mouseWheelScrolled, this, _1));
+		mMouseWheelScrolledConn  = Platform::onMouseWheelScrolled.Connect(std::bind(&Input::mouseWheelScrolled, this, _1));
 
-		RenderWindowManager::instance().onFocusGained.connect(std::bind(&Input::inputWindowChanged, this, _1));
-		RenderWindowManager::instance().onFocusLost.connect(std::bind(&Input::inputFocusLost, this));
+		RenderWindowManager::instance().onFocusGained.Connect(std::bind(&Input::inputWindowChanged, this, _1));
+		RenderWindowManager::instance().onFocusLost.Connect(std::bind(&Input::inputFocusLost, this));
 
 		for (int i = 0; i < 3; i++)
 			mPointerButtonStates[i] = ButtonState::Off;
@@ -66,13 +66,13 @@ namespace bs
 	{
 		cleanUpRawInput();
 
-		mCharInputConn.disconnect();
-		mCursorMovedConn.disconnect();
-		mCursorPressedConn.disconnect();
-		mCursorReleasedConn.disconnect();
-		mCursorDoubleClickConn.disconnect();
-		mInputCommandConn.disconnect();
-		mMouseWheelScrolledConn.disconnect();
+		mCharInputConn.Disconnect();
+		mCursorMovedConn.Disconnect();
+		mCursorPressedConn.Disconnect();
+		mCursorReleasedConn.Disconnect();
+		mCursorDoubleClickConn.Disconnect();
+		mInputCommandConn.Disconnect();
+		mMouseWheelScrolledConn.Disconnect();
 	}
 
 	void Input::_update()
@@ -90,7 +90,7 @@ namespace bs
 					deviceData.keyStates[i] = ButtonState::On;
 			}
 
-			UINT32 numAxes = (UINT32)deviceData.axes.size();
+			UINT32 numAxes = (UINT32)deviceData.axes.Size();
 			for (UINT32 i = 0; i < numAxes; i++)
 				deviceData.axes[i] = 0.0f;
 		}
@@ -108,13 +108,13 @@ namespace bs
 
 		// Capture raw input
 		if (mMouse != nullptr)
-			mMouse->capture();
+			mMouse->Capture();
 
 		if (mKeyboard != nullptr)
-			mKeyboard->capture();
+			mKeyboard->Capture();
 
 		for (auto& gamepad : mGamepads)
-			gamepad->capture();
+			gamepad->Capture();
 
 		float rawXValue = 0.0f;
 		float rawYValue = 0.0f;
@@ -210,7 +210,7 @@ namespace bs
 			{
 				const ButtonEvent& eventData = mButtonUpEvents[1][event.idx];
 
-				while (eventData.deviceIdx >= (UINT32)mDevices.size())
+				while (eventData.deviceIdx >= (UINT32)mDevices.Size())
 					mDevices.push_back(DeviceData());
 
 				if (mDevices[eventData.deviceIdx].keyStates[eventData.buttonCode & 0x0000FFFF] == ButtonState::ToggledOn)
@@ -256,41 +256,41 @@ namespace bs
 			}
 		}
 
-		mQueuedEvents[1].clear();
-		mButtonDownEvents[1].clear();
-		mButtonUpEvents[1].clear();
-		mPointerPressedEvents[1].clear();
-		mPointerReleasedEvents[1].clear();
-		mPointerDoubleClickEvents[1].clear();
-		mTextInputEvents[1].clear();
-		mCommandEvents[1].clear();
+		mQueuedEvents[1].Clear();
+		mButtonDownEvents[1].Clear();
+		mButtonUpEvents[1].Clear();
+		mPointerPressedEvents[1].Clear();
+		mPointerReleasedEvents[1].Clear();
+		mPointerDoubleClickEvents[1].Clear();
+		mTextInputEvents[1].Clear();
+		mCommandEvents[1].Clear();
 	}
 
 	void Input::InputWindowChanged(RenderWindow& win)
 	{
 		UINT64 hWnd = 0;
-		win.getCustomAttribute("WINDOW", &hWnd);
+		win.GetCustomAttribute("WINDOW", &hWnd);
 
 		if(mKeyboard != nullptr)
-			mKeyboard->changeCaptureContext(hWnd);
+			mKeyboard->ChangeCaptureContext(hWnd);
 
 		if(mMouse != nullptr)
-			mMouse->changeCaptureContext(hWnd);
+			mMouse->ChangeCaptureContext(hWnd);
 
 		for (auto& gamepad : mGamepads)
-			gamepad->changeCaptureContext(hWnd);
+			gamepad->ChangeCaptureContext(hWnd);
 	}
 
 	void Input::InputFocusLost()
 	{
 		if(mKeyboard != nullptr)
-			mKeyboard->changeCaptureContext((UINT64)-1);
+			mKeyboard->ChangeCaptureContext((UINT64)-1);
 
 		if(mMouse != nullptr)
-			mMouse->changeCaptureContext((UINT64)-1);
+			mMouse->ChangeCaptureContext((UINT64)-1);
 
 		for (auto& gamepad : mGamepads)
-			gamepad->changeCaptureContext((UINT64)-1);
+			gamepad->ChangeCaptureContext((UINT64)-1);
 	}
 
 	void Input::_notifyMouseMoved(INT32 relX, INT32 relY, INT32 relZ)
@@ -303,15 +303,15 @@ namespace bs
 
 		// Update sample times used for determining sampling rate. But only if something was
 		// actually sampled, and only if this isn't the first non-zero sample.
-		if (mLastMouseUpdateFrame != gTime().getFrameIdx())
+		if (mLastMouseUpdateFrame != gTime().GetFrameIdx())
 		{
 			if (relX != 0 && !Math::approxEquals(mMouseSmoothedAxis[0], 0.0f))
-				mTotalMouseSamplingTime[0] += gTime().getFrameDelta();
+				mTotalMouseSamplingTime[0] += gTime().GetFrameDelta();
 
 			if (relY != 0 && !Math::approxEquals(mMouseSmoothedAxis[1], 0.0f))
-				mTotalMouseSamplingTime[1] += gTime().getFrameDelta();
+				mTotalMouseSamplingTime[1] += gTime().GetFrameDelta();
 
-			mLastMouseUpdateFrame = gTime().getFrameIdx();
+			mLastMouseUpdateFrame = gTime().GetFrameIdx();
 		}
 
 		axisMoved(0, (float)relZ, (UINT32)InputAxis::MouseZ);
@@ -340,7 +340,7 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		while (deviceIdx >= (UINT32)mDevices.size())
+		while (deviceIdx >= (UINT32)mDevices.Size())
 			mDevices.push_back(DeviceData());
 
 		ButtonEvent btnEvent;
@@ -348,7 +348,7 @@ namespace bs
 		btnEvent.timestamp = timestamp;
 		btnEvent.deviceIdx = deviceIdx;
 
-		mQueuedEvents[0].push_back(QueuedEvent(EventType::ButtonDown, (UINT32)mButtonDownEvents[0].size()));
+		mQueuedEvents[0].push_back(QueuedEvent(EventType::ButtonDown, (UINT32)mButtonDownEvents[0].Size()));
 		mButtonDownEvents[0].push_back(btnEvent);
 	}
 
@@ -361,18 +361,18 @@ namespace bs
 		btnEvent.timestamp = timestamp;
 		btnEvent.deviceIdx = deviceIdx;
 
-		mQueuedEvents[0].push_back(QueuedEvent(EventType::ButtonUp, (UINT32)mButtonUpEvents[0].size()));
+		mQueuedEvents[0].push_back(QueuedEvent(EventType::ButtonUp, (UINT32)mButtonUpEvents[0].Size()));
 		mButtonUpEvents[0].push_back(btnEvent);
 	}
 
 	void Input::AxisMoved(UINT32 deviceIdx, float value, UINT32 axis)
 	{
 		// Note: This method must only ever be called from the main thread, as we don't lock access to axis data
-		while (deviceIdx >= (UINT32)mDevices.size())
+		while (deviceIdx >= (UINT32)mDevices.Size())
 			mDevices.push_back(DeviceData());
 
 		Vector<float>& axes = mDevices[deviceIdx].axes;
-		while (axis >= (UINT32)axes.size())
+		while (axis >= (UINT32)axes.Size())
 			axes.push_back(0.0f);
 
 		mDevices[deviceIdx].axes[axis] = value;
@@ -416,7 +416,7 @@ namespace bs
 		event.screenPos = cursorPos;
 		event.type = PointerEventType::ButtonPressed;
 
-		mQueuedEvents[0].push_back(QueuedEvent(EventType::PointerDown, (UINT32)mPointerPressedEvents[0].size()));
+		mQueuedEvents[0].push_back(QueuedEvent(EventType::PointerDown, (UINT32)mPointerPressedEvents[0].Size()));
 		mPointerPressedEvents[0].push_back(event);
 	}
 
@@ -450,7 +450,7 @@ namespace bs
 		event.screenPos = cursorPos;
 		event.type = PointerEventType::ButtonReleased;
 
-		mQueuedEvents[0].push_back(QueuedEvent(EventType::PointerUp, (UINT32)mPointerReleasedEvents[0].size()));
+		mQueuedEvents[0].push_back(QueuedEvent(EventType::PointerUp, (UINT32)mPointerReleasedEvents[0].Size()));
 		mPointerReleasedEvents[0].push_back(event);
 	}
 
@@ -469,7 +469,7 @@ namespace bs
 		event.screenPos = cursorPos;
 		event.type = PointerEventType::DoubleClick;
 
-		mQueuedEvents[0].push_back(QueuedEvent(EventType::PointerDoubleClick, (UINT32)mPointerDoubleClickEvents[0].size()));
+		mQueuedEvents[0].push_back(QueuedEvent(EventType::PointerDoubleClick, (UINT32)mPointerDoubleClickEvents[0].Size()));
 		mPointerDoubleClickEvents[0].push_back(event);
 	}
 
@@ -477,7 +477,7 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		mQueuedEvents[0].push_back(QueuedEvent(EventType::Command, (UINT32)mCommandEvents[0].size()));
+		mQueuedEvents[0].push_back(QueuedEvent(EventType::Command, (UINT32)mCommandEvents[0].Size()));
 		mCommandEvents[0].push_back(commandType);
 	}
 
@@ -495,17 +495,17 @@ namespace bs
 		TextInputEvent textInputEvent;
 		textInputEvent.textChar = chr;
 
-		mQueuedEvents[0].push_back(QueuedEvent(EventType::TextInput, (UINT32)mTextInputEvents[0].size()));
+		mQueuedEvents[0].push_back(QueuedEvent(EventType::TextInput, (UINT32)mTextInputEvents[0].Size()));
 		mTextInputEvents[0].push_back(textInputEvent);
 	}
 
 	float Input::GetAxisValue(UINT32 type, UINT32 deviceIdx) const
 	{
-		if (deviceIdx >= (UINT32)mDevices.size())
+		if (deviceIdx >= (UINT32)mDevices.Size())
 			return 0.0f;
 
 		const Vector<float>& axes = mDevices[deviceIdx].axes;
-		if (type >= (UINT32)axes.size())
+		if (type >= (UINT32)axes.Size())
 			return 0.0f;
 
 		return axes[type];
@@ -513,7 +513,7 @@ namespace bs
 
 	bool Input::IsButtonHeld(ButtonCode button, UINT32 deviceIdx) const
 	{
-		if (deviceIdx >= (UINT32)mDevices.size())
+		if (deviceIdx >= (UINT32)mDevices.Size())
 			return false;
 
 		return mDevices[deviceIdx].keyStates[button & 0x0000FFFF] == ButtonState::On ||
@@ -523,7 +523,7 @@ namespace bs
 
 	bool Input::IsButtonUp(ButtonCode button, UINT32 deviceIdx) const
 	{
-		if (deviceIdx >= (UINT32)mDevices.size())
+		if (deviceIdx >= (UINT32)mDevices.Size())
 			return false;
 
 		return mDevices[deviceIdx].keyStates[button & 0x0000FFFF] == ButtonState::ToggledOff ||
@@ -532,7 +532,7 @@ namespace bs
 
 	bool Input::IsButtonDown(ButtonCode button, UINT32 deviceIdx) const
 	{
-		if (deviceIdx >= (UINT32)mDevices.size())
+		if (deviceIdx >= (UINT32)mDevices.Size())
 			return false;
 
 		return mDevices[deviceIdx].keyStates[button & 0x0000FFFF] == ButtonState::ToggledOn ||
@@ -574,17 +574,17 @@ namespace bs
 		{
 		case InputDevice::Keyboard:
 			if (mKeyboard != nullptr && idx == 0)
-				return mKeyboard->getName();
+				return mKeyboard->GetName();
 
 			return StringUtil::BLANK;
 		case InputDevice::Mouse:
 			if (mMouse != nullptr && idx == 0)
-				return mMouse->getName();
+				return mMouse->GetName();
 
 			return StringUtil::BLANK;
 		case InputDevice::Gamepad:
-			if (idx < (UINT32)mGamepads.size())
-				return mGamepads[idx]->getName();
+			if (idx < (UINT32)mGamepads.Size())
+				return mGamepads[idx]->GetName();
 			
 			return StringUtil::BLANK;
 		default:
@@ -601,7 +601,7 @@ namespace bs
 	{
 		UINT32 sampleCount = 1;
 
-		float deltaTime = gTime().getFrameDelta();
+		float deltaTime = gTime().GetFrameDelta();
 		if (deltaTime < 0.25f)
 		{
 			float secondsPerSample = mTotalMouseSamplingTime[idx] / mTotalMouseNumSamples[idx];

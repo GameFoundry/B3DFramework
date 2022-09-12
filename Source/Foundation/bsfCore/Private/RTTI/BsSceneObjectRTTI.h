@@ -31,32 +31,32 @@ namespace bs
 		bool& GetActive(SceneObject* obj) { return obj->mActiveSelf; }
 		void SetActive(SceneObject* obj, bool& value) { obj->mActiveSelf = value; }
 
-		SPtr<SceneObject> GetChild(SceneObject* obj, UINT32 idx) { return obj->mChildren[idx].getInternalPtr(); }
+		SPtr<SceneObject> GetChild(SceneObject* obj, UINT32 idx) { return obj->mChildren[idx].GetInternalPtr(); }
 		void SetChild(SceneObject* obj, UINT32 idx, SPtr<SceneObject> param)
 		{
 			// It's important that child indices remain the same after deserialization, as some systems (like SO
 			// record/restore) depend on it
-			if(idx >= mChildren.size())
-				mChildren.resize(idx + 1);
+			if(idx >= mChildren.Size())
+				mChildren.Resize(idx + 1);
 
 			mChildren[idx] = param;
 		}
 
-		UINT32 GetNumChildren(SceneObject* obj) { return (UINT32)obj->mChildren.size(); }
+		UINT32 GetNumChildren(SceneObject* obj) { return (UINT32)obj->mChildren.Size(); }
 		void SetNumChildren(SceneObject* obj, UINT32 size) { /* DO NOTHING */ }
 
 		// NOTE - These can only be set sequentially, specific array index is ignored
-		SPtr<Component> GetComponent(SceneObject* obj, UINT32 idx) { return obj->mComponents[idx].getInternalPtr(); }
+		SPtr<Component> GetComponent(SceneObject* obj, UINT32 idx) { return obj->mComponents[idx].GetInternalPtr(); }
 		void SetComponent(SceneObject* obj, UINT32 idx, SPtr<Component> param)
 		{
 			// It's important that child indices remain the same after deserialization, as some systems (like SO
 			// record/restore) depend on it
-			if(idx >= mComponents.size())
-				mComponents.resize(idx + 1);
+			if(idx >= mComponents.Size())
+				mComponents.Resize(idx + 1);
 
 			mComponents[idx] = param;
 		}
-		UINT32 GetNumComponents(SceneObject* obj) { return (UINT32)obj->mComponents.size(); }
+		UINT32 GetNumComponents(SceneObject* obj) { return (UINT32)obj->mComponents.Size(); }
 		void SetNumComponents(SceneObject* obj, UINT32 size) { /* DO NOTHING */ }
 
 		UUID& GetPrefabLink(SceneObject* obj) { return obj->mPrefabLinkUUID; }
@@ -99,7 +99,7 @@ namespace bs
 
 			// It's possible we're just accessing the game object fields, in which case the process below is not needed
 			// (it's only required for new scene objects).
-			if (so->mRTTIData.empty())
+			if (so->mRTTIData.Empty())
 				return;
 
 			if(context == nullptr || !rtti_is_of_type<CoreSerializationContext>(context))
@@ -122,7 +122,7 @@ namespace bs
 
 			// It's possible we're just accessing the game object fields, in which case the process below is not needed
 			// (it's only required for new scene objects).
-			if (so->mRTTIData.empty())
+			if (so->mRTTIData.Empty())
 				return;
 
 			BS_ASSERT(context != nullptr && rtti_is_of_type<CoreSerializationContext>(context));
@@ -135,12 +135,12 @@ namespace bs
 			SPtr<SceneObject> soPtr = std::static_pointer_cast<SceneObject>(goDeserializationData.ptr);
 
 			HSceneObject soHandle = SceneObject::createInternal(soPtr);
-			coreContext->goState->registerObject(goDeserializationData.originalId, soHandle);
+			coreContext->goState->RegisterObject(goDeserializationData.originalId, soHandle);
 
 			// We stored all components and children in a temporary structure because they rely on the SceneObject being
 			// initialized with the GameObjectManager. Now that it is, we add them.
 			for (auto& component : mComponents)
-				so->addComponentInternal(component);
+				so->AddComponentInternal(component);
 
 			for (auto& child : mChildren)
 			{
@@ -148,21 +148,21 @@ namespace bs
 					child->_setParent(so->mThisHandle, false);
 			}
 
-			if(so->mUUID.empty() || coreContext->goState->getUseNewUUIDs())
+			if(so->mUUID.Empty() || coreContext->goState->GetUseNewUUIDs())
 				so->mUUID = UUIDGenerator::generateRandom();
 
 			// If this is the deserialization parent, end deserialization (which resolves all game object handles, if we
 			// provided valid IDs), and instantiate (i.e. activate) the deserialized hierarchy.
 			if (mIsDeserializationParent)
 			{
-				coreContext->goState->resolve();
+				coreContext->goState->Resolve();
 				coreContext->goDeserializationActive = false;
 
 				bool parentActive = true;
-				if (so->getParent() != nullptr)
-					parentActive = so->getParent()->getActive();
+				if (so->GetParent() != nullptr)
+					parentActive = so->GetParent()->getActive();
 
-				so->setActiveHierarchy(parentActive, false);
+				so->SetActiveHierarchy(parentActive, false);
 
 				if ((so->mFlags & SOF_DontInstantiate) == 0)
 					so->_instantiate();

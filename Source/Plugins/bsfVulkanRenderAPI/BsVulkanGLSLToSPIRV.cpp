@@ -126,11 +126,11 @@ namespace bs { namespace ct
 
 	VertexElementType MapGLSLangToVertexElemType(const glslang::TType& type)
 	{
-		if (type.isVector())
+		if (type.IsVector())
 		{
-			UINT32 vectorSize = type.getVectorSize();
+			UINT32 vectorSize = type.GetVectorSize();
 
-			switch (type.getBasicType())
+			switch (type.GetBasicType())
 			{
 			case glslang::EbtFloat:
 				switch(vectorSize)
@@ -161,9 +161,9 @@ namespace bs { namespace ct
 			}
 		}
 
-		if (type.getVectorSize() == 1)
+		if (type.GetVectorSize() == 1)
 		{
-			switch (type.getBasicType())
+			switch (type.GetBasicType())
 			{
 				case glslang::EbtFloat:      return VET_FLOAT1;
 				case glslang::EbtInt:        return VET_INT1;
@@ -177,14 +177,14 @@ namespace bs { namespace ct
 
 	GpuParamDataType MapGLSLangToGpuParamDataType(const glslang::TType& type)
 	{
-		if (type.getBasicType() == glslang::EbtStruct)
+		if (type.GetBasicType() == glslang::EbtStruct)
 			return GPDT_STRUCT;
 
-		if (type.isVector())
+		if (type.IsVector())
 		{
-			UINT32 vectorSize = type.getVectorSize();
+			UINT32 vectorSize = type.GetVectorSize();
 
-			switch (type.getBasicType())
+			switch (type.GetBasicType())
 			{
 			case glslang::EbtFloat:
 				switch (vectorSize)
@@ -215,15 +215,15 @@ namespace bs { namespace ct
 			}
 		}
 
-		if (type.isMatrix())
+		if (type.IsMatrix())
 		{
-			switch (type.getBasicType())
+			switch (type.GetBasicType())
 			{
 			case glslang::EbtFloat:
-				switch (type.getMatrixCols())
+				switch (type.GetMatrixCols())
 				{
 				case 2:
-					switch (type.getMatrixRows())
+					switch (type.GetMatrixRows())
 					{
 						case 2:    return GPDT_MATRIX_2X2;
 						case 3:    return GPDT_MATRIX_3X2;
@@ -231,7 +231,7 @@ namespace bs { namespace ct
 						default:   return GPDT_UNKNOWN;
 					}
 				case 3:
-					switch (type.getMatrixRows())
+					switch (type.GetMatrixRows())
 					{
 						case 2:    return GPDT_MATRIX_2X3;
 						case 3:    return GPDT_MATRIX_3X3;
@@ -239,7 +239,7 @@ namespace bs { namespace ct
 						default:   return GPDT_UNKNOWN;
 					}
 				case 4:
-					switch (type.getMatrixRows())
+					switch (type.GetMatrixRows())
 					{
 						case 2:    return GPDT_MATRIX_2X4;
 						case 3:    return GPDT_MATRIX_3X4;
@@ -254,9 +254,9 @@ namespace bs { namespace ct
 			}
 		}
 
-		if (type.getVectorSize() == 1)
+		if (type.GetVectorSize() == 1)
 		{
-			switch (type.getBasicType())
+			switch (type.GetBasicType())
 			{
 			case glslang::EbtFloat:     return GPDT_FLOAT1;
 			case glslang::EbtInt:       return GPDT_INT1;
@@ -364,8 +364,8 @@ namespace bs { namespace ct
 			if (!StringUtil::startsWith(name, mName, false))
 				return -1;
 
-			UINT32 length = (UINT32)mName.size();
-			return ParseINT32(name.substr(length));
+			UINT32 length = (UINT32)mName.Size();
+			return ParseINT32(name.Substr(length));
 		}
 
 		/**	Returns the semantic of this attribute. */
@@ -402,11 +402,11 @@ namespace bs { namespace ct
 
 		for (UINT32 i = 0; i < numAttribs; i++)
 		{
-			INT32 attribIndex = attributes[i].matchesName(name);
+			INT32 attribIndex = attributes[i].MatchesName(name);
 			if (attribIndex != -1)
 			{
 				index = attribIndex;
-				semantic = attributes[i].getSemantic();
+				semantic = attributes[i].GetSemantic();
 				return true;
 			}
 		}
@@ -416,11 +416,11 @@ namespace bs { namespace ct
 
 	bool ParseVertexAttributes(const glslang::TProgram* program, Vector<VertexElement>& elementList, String& log)
 	{
-		int numAttributes = program->getNumLiveAttributes();
+		int numAttributes = program->GetNumLiveAttributes();
 		for (int i = 0; i < numAttributes; i++)
 		{
-			const glslang::TType* ttype = program->getAttributeTType(i);
-			UINT32 location = ttype->getQualifier().layoutLocation;
+			const glslang::TType* ttype = program->GetAttributeTType(i);
+			UINT32 location = ttype->GetQualifier().layoutLocation;
 
 			if (location == (UINT32)-1)
 			{
@@ -430,7 +430,7 @@ namespace bs { namespace ct
 				return false;
 			}
 
-			const char* attribName = program->getAttributeName(i);
+			const char* attribName = program->GetAttributeName(i);
 
 			VertexElementSemantic semantic = VES_POSITION;
 			UINT16 index = 0;
@@ -459,20 +459,20 @@ namespace bs { namespace ct
 
 	void ParseStruct(const glslang::TTypeList* typeList, UINT32& size)
 	{
-		for (auto iter = typeList->begin(); iter != typeList->end(); ++iter)
+		for (auto iter = typeList->Begin(); iter != typeList->end(); ++iter)
 		{
 			const glslang::TType* ttype = iter->type;
 
-			if (ttype->getBasicType() == glslang::EbtStruct)
+			if (ttype->GetBasicType() == glslang::EbtStruct)
 			{
-				const glslang::TTypeList* childTypeList = ttype->getStruct();
+				const glslang::TTypeList* childTypeList = ttype->GetStruct();
 				parseStruct(childTypeList, size);
 			}
 			else
 			{
 				UINT32 arraySize = 1;
-				if (ttype->isArray())
-					arraySize = (UINT32)ttype->getCumulativeArraySize();
+				if (ttype->IsArray())
+					arraySize = (UINT32)ttype->GetCumulativeArraySize();
 
 				GpuParamDataType paramType = mapGLSLangToGpuParamDataType(*ttype);
 				if (paramType == GPDT_UNKNOWN)
@@ -498,19 +498,19 @@ namespace bs { namespace ct
 
 		UnorderedMap<String, UniformInfo> uniforms;
 
-		int numUniforms = program->getNumLiveUniformVariables();
+		int numUniforms = program->GetNumLiveUniformVariables();
 		for (int i = 0; i < numUniforms; i++)
 		{
-			const glslang::TType* ttype = program->getUniformTType(i);
-			const glslang::TQualifier& qualifier = ttype->getQualifier();
-			const char* name = program->getUniformName(i);
+			const glslang::TType* ttype = program->GetUniformTType(i);
+			const glslang::TQualifier& qualifier = ttype->GetQualifier();
+			const char* name = program->GetUniformName(i);
 
-			if (ttype->getBasicType() == glslang::EbtSampler) // Object type
+			if (ttype->GetBasicType() == glslang::EbtSampler) // Object type
 			{
 				// Note: Even though the type is named EbtSampler, all object types are categorized under it (including non
 				// sampled images and buffers)
 
-				if (!qualifier.hasBinding())
+				if (!qualifier.HasBinding())
 				{
 					log = "Uniform parsing error: Found an uniform without a binding qualifier. Each uniform must have an "
 						"explicitly defined binding number.";
@@ -518,7 +518,7 @@ namespace bs { namespace ct
 					return false;
 				}
 
-				const glslang::TSampler& sampler = ttype->getSampler();
+				const glslang::TSampler& sampler = ttype->GetSampler();
 
 				GpuParamObjectDesc param;
 				param.name = name;
@@ -530,16 +530,16 @@ namespace bs { namespace ct
 				if (param.set == glslang::TQualifier::layoutSetEnd)
 					param.set = 0;
 
-				if (sampler.isImage())
+				if (sampler.IsImage())
 				{
 					switch (sampler.dim)
 					{
-					case glslang::Esd1D:		param.type = sampler.isArrayed() ? GPOT_RWTEXTURE1DARRAY : GPOT_RWTEXTURE1D; break;
+					case glslang::Esd1D:		param.type = sampler.IsArrayed() ? GPOT_RWTEXTURE1DARRAY : GPOT_RWTEXTURE1D; break;
 					case glslang::Esd2D:
-						if(sampler.isArrayed())
-							param.type = sampler.isMultiSample() ? GPOT_RWTEXTURE2DMSARRAY : GPOT_RWTEXTURE2DARRAY;
+						if(sampler.IsArrayed())
+							param.type = sampler.IsMultiSample() ? GPOT_RWTEXTURE2DMSARRAY : GPOT_RWTEXTURE2DARRAY;
 						else
-							param.type = sampler.isMultiSample() ? GPOT_RWTEXTURE2DMS : GPOT_RWTEXTURE2D;
+							param.type = sampler.IsMultiSample() ? GPOT_RWTEXTURE2DMS : GPOT_RWTEXTURE2D;
 						break;
 					case glslang::Esd3D:		param.type = GPOT_RWTEXTURE3D; break;
 					case glslang::EsdBuffer:	param.type = GPOT_RWBYTE_BUFFER; break;
@@ -554,13 +554,13 @@ namespace bs { namespace ct
 				}
 				else
 				{
-					if(sampler.isPureSampler() || sampler.isCombined())
+					if(sampler.IsPureSampler() || sampler.isCombined())
 					{
 						switch (sampler.dim)
 						{
 						case glslang::Esd1D:		param.type = GPOT_SAMPLER1D; break;
 						default:
-						case glslang::Esd2D:		param.type = sampler.isMultiSample() ? GPOT_SAMPLER2DMS : GPOT_SAMPLER2D; break;
+						case glslang::Esd2D:		param.type = sampler.IsMultiSample() ? GPOT_SAMPLER2DMS : GPOT_SAMPLER2D; break;
 						case glslang::Esd3D:		param.type = GPOT_SAMPLER3D; break;
 						case glslang::EsdCube:		param.type = GPOT_SAMPLERCUBE; break;
 						}
@@ -568,19 +568,19 @@ namespace bs { namespace ct
 						desc.samplers[name] = param;
 					}
 
-					if (!sampler.isPureSampler())
+					if (!sampler.IsPureSampler())
 					{
 						switch (sampler.dim)
 						{
-						case glslang::Esd1D:		param.type = sampler.isArrayed() ? GPOT_TEXTURE1DARRAY : GPOT_TEXTURE1D; break;
+						case glslang::Esd1D:		param.type = sampler.IsArrayed() ? GPOT_TEXTURE1DARRAY : GPOT_TEXTURE1D; break;
 						case glslang::Esd2D:
-							if(sampler.isArrayed())
-								param.type = sampler.isMultiSample() ? GPOT_TEXTURE2DMSARRAY : GPOT_TEXTURE2DARRAY;
+							if(sampler.IsArrayed())
+								param.type = sampler.IsMultiSample() ? GPOT_TEXTURE2DMSARRAY : GPOT_TEXTURE2DARRAY;
 							else
-								param.type = sampler.isMultiSample() ? GPOT_TEXTURE2DMS : GPOT_TEXTURE2D;
+								param.type = sampler.IsMultiSample() ? GPOT_TEXTURE2DMS : GPOT_TEXTURE2D;
 							break;
 						case glslang::Esd3D:		param.type = GPOT_TEXTURE3D; break;
-						case glslang::EsdCube:		param.type = sampler.isArrayed() ? GPOT_TEXTURECUBEARRAY : GPOT_TEXTURECUBE; break;
+						case glslang::EsdCube:		param.type = sampler.IsArrayed() ? GPOT_TEXTURECUBEARRAY : GPOT_TEXTURECUBE; break;
 						case glslang::EsdBuffer:	param.type = GPOT_BYTE_BUFFER; break;
 						default:
 							break;
@@ -601,8 +601,8 @@ namespace bs { namespace ct
 				if(qualifier.storage == glslang::EvqUniform || qualifier.storage == glslang::EvqGlobal)
 				{
 					UniformInfo info;
-					info.arraySize = program->getUniformArraySize(i);
-					info.bufferOffset = program->getUniformBufferOffset(i);
+					info.arraySize = program->GetUniformArraySize(i);
+					info.bufferOffset = program->GetUniformBufferOffset(i);
 
 					uniforms[String(name)] = info;
 				}
@@ -610,14 +610,14 @@ namespace bs { namespace ct
 		}
 
 		// Parse uniform blocks
-		int numBlocks = program->getNumLiveUniformBlocks();
+		int numBlocks = program->GetNumLiveUniformBlocks();
 		for (int i = 0; i < numBlocks; i++)
 		{
-			const glslang::TType* ttype = program->getUniformBlockTType(i);
-			const glslang::TQualifier& qualifier = ttype->getQualifier();
-			const char* name = program->getUniformBlockName(i);
+			const glslang::TType* ttype = program->GetUniformBlockTType(i);
+			const glslang::TQualifier& qualifier = ttype->GetQualifier();
+			const char* name = program->GetUniformBlockName(i);
 
-			if (!qualifier.hasBinding())
+			if (!qualifier.HasBinding())
 			{
 				log = "Uniform parsing error: Found a uniform block without a binding qualifier. Each uniform block must "
 					" have an explicitly defined binding number.";
@@ -640,7 +640,7 @@ namespace bs { namespace ct
 			}
 			else // Uniform buffer
 			{
-				int size = Math::divideAndRoundUp(program->getUniformBlockSize(i), 16) * 16;
+				int size = Math::divideAndRoundUp(program->GetUniformBlockSize(i), 16) * 16;
 
 				GpuParamBlockDesc blockDesc;
 				blockDesc.name = name;
@@ -655,24 +655,24 @@ namespace bs { namespace ct
 				desc.paramBlocks[name] = blockDesc;
 
 				// Parse members of the uniform buffer
-				const glslang::TTypeList* typeList = ttype->getStruct();
+				const glslang::TTypeList* typeList = ttype->GetStruct();
 				if(typeList == nullptr)
 					continue;
 
 				UINT32 bufferOffset = 0;
-				for (auto iter = typeList->begin(); iter != typeList->end(); ++iter)
+				for (auto iter = typeList->Begin(); iter != typeList->end(); ++iter)
 				{
 					const glslang::TType* paramTType = iter->type;
-					String paramName = paramTType->getFieldName().c_str();
+					String paramName = paramTType->GetFieldName().c_str();
 
 					GpuParamDataType paramType;
 					UINT32 elementSize = 0;
 					UINT32 arrayStride = 0;
-					if (paramTType->getBasicType() == glslang::EbtStruct)
+					if (paramTType->GetBasicType() == glslang::EbtStruct)
 					{
 						paramType = GPDT_STRUCT;
 
-						const glslang::TTypeList* paramTypeList = paramTType->getStruct();
+						const glslang::TTypeList* paramTypeList = paramTType->GetStruct();
 						parseStruct(paramTypeList, elementSize);
 
 						// Struct alignment always a multiple of vec4
@@ -689,7 +689,7 @@ namespace bs { namespace ct
 						continue;
 					}
 
-					UINT32 arraySize = paramTType->isArray() ? paramTType->getCumulativeArraySize() : 1;
+					UINT32 arraySize = paramTType->IsArray() ? paramTType->getCumulativeArraySize() : 1;
 					if (paramType != GPDT_STRUCT)
 					{
 						const GpuParamDataTypeInfo& typeInfo = bs::GpuParams::PARAM_SIZES.lookup[paramType];
@@ -703,7 +703,7 @@ namespace bs { namespace ct
 					}
 
 					UINT32 stride;
-					if (paramTType->getBasicType() == glslang::EbtStruct)
+					if (paramTType->GetBasicType() == glslang::EbtStruct)
 					{
 						// Structs are always aligned and rounded up to vec4
 						stride = Math::divideAndRoundUp(elementSize, 16U) * 4;
@@ -713,8 +713,8 @@ namespace bs { namespace ct
 						stride = VulkanUtility::calcInterfaceBlockElementSizeAndOffset(paramType, arraySize, bufferOffset);
 
 					bool unusedMember = false;
-					auto findIter = uniforms.find(paramName);
-					if(findIter != uniforms.end()) // Likely unused and was optimized out
+					auto findIter = uniforms.Find(paramName);
+					if(findIter != uniforms.End()) // Likely unused and was optimized out
 					{
 						// Ensure our calculation matches the glslang provided one. We don't use glslang directly because
 						// for some cases offset is not provided (e.g. structs that have members optimized out).
@@ -801,34 +801,34 @@ namespace bs { namespace ct
 		const char* sourceBytes = source.c_str();
 
 		glslang::TShader* shader = bs_new<glslang::TShader>(glslType);
-		shader->setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_3);
-		shader->setStrings(&sourceBytes, 1);
-		shader->setEntryPoint("main");
+		shader->SetEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_3);
+		shader->SetStrings(&sourceBytes, 1);
+		shader->SetEntryPoint("main");
 
 		SPtr<GpuProgramBytecode> bytecode = bs_shared_ptr_new<GpuProgramBytecode>();
 		bytecode->compilerId = VULKAN_COMPILER_ID;
 		bytecode->compilerVersion = VULKAN_COMPILER_VERSION;
 
 		EShMessages messages = (EShMessages)((int)EShMsgSpvRules | (int)EShMsgVulkanRules);
-		if (!shader->parse(&resources, 450, false, messages))
+		if (!shader->Parse(&resources, 450, false, messages))
 		{
-			bytecode->messages = "Compile error: " + String(shader->getInfoLog());
+			bytecode->messages = "Compile error: " + String(shader->GetInfoLog());
 			goto cleanup;
 		}
 
-		program->addShader(shader);
+		program->AddShader(shader);
 
-		if (!program->link(messages))
+		if (!program->Link(messages))
 		{
-			bytecode->messages = "Link error: " + String(program->getInfoLog());
+			bytecode->messages = "Link error: " + String(program->GetInfoLog());
 			goto cleanup;
 		}
 
-		program->mapIO();
-		program->buildReflection();
+		program->MapIO();
+		program->BuildReflection();
 
 		// Compile to SPIR-V
-		GlslangToSpv(*program->getIntermediate(glslType), spirv, &logger);
+		GlslangToSpv(*program->GetIntermediate(glslType), spirv, &logger);
 
 		// Parse uniforms
 		bytecode->paramDesc = bs_shared_ptr_new<GpuParamDesc>();
@@ -842,10 +842,10 @@ namespace bs { namespace ct
 				goto cleanup;
 		}
 
-		bytecode->instructions.size = (UINT32)spirv.size() * sizeof(UINT32);
+		bytecode->instructions.size = (UINT32)spirv.Size() * sizeof(UINT32);
 		bytecode->instructions.data = (UINT8*)bs_alloc(bytecode->instructions.size);
 
-		memcpy(bytecode->instructions.data, spirv.data(), bytecode->instructions.size);
+		memcpy(bytecode->instructions.data, spirv.Data(), bytecode->instructions.size);
 
 cleanup:
 		bs_delete(program);

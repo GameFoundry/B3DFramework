@@ -77,11 +77,11 @@ namespace bs { namespace ct
 
 	void WriteIndices(GpuBuffer* buffer, const Vector<UINT32>& input, UINT32 texSize)
 	{
-		const auto numParticles = (UINT32)input.size();
+		const auto numParticles = (UINT32)input.Size();
 		if (numParticles == 0)
 			return;
 
-		auto* const indices = (UINT32*)buffer->lock(GBL_WRITE_ONLY_DISCARD);
+		auto* const indices = (UINT32*)buffer->Lock(GBL_WRITE_ONLY_DISCARD);
 
 		UINT32 idx = 0;
 		for(auto& entry : input)
@@ -92,7 +92,7 @@ namespace bs { namespace ct
 			indices[idx++] = (x & 0xFFFF) | (y << 16);
 		}
 
-		buffer->unlock();
+		buffer->Unlock();
 	}
 
 	void ParticlesRenderElement::Draw() const
@@ -100,21 +100,21 @@ namespace bs { namespace ct
 		if (numParticles > 0)
 		{
 			if (is3D)
-				gRendererUtility().draw(mesh, numParticles);
+				gRendererUtility().Draw(mesh, numParticles);
 			else
-				ParticleRenderer::instance().drawBillboards(numParticles);
+				ParticleRenderer::instance().DrawBillboards(numParticles);
 		}
 	}
 
 	void RendererParticles::UpdatePerObjectBuffer()
 	{
-		const ParticleSystemSettings& settings = particleSystem->getSettings();
-		const UINT32 layer = Bitwise::mostSignificantBit(particleSystem->getLayer());
+		const ParticleSystemSettings& settings = particleSystem->GetSettings();
+		const UINT32 layer = Bitwise::mostSignificantBit(particleSystem->GetLayer());
 		Matrix4 localToWorldNoScale;
 		if (settings.simulationSpace == ParticleSimulationSpace::Local)
 		{
-			const Transform& tfrm = particleSystem->getTransform();
-			localToWorldNoScale = Matrix4::TRS(tfrm.getPosition(), tfrm.getRotation(), Vector3::ONE);
+			const Transform& tfrm = particleSystem->GetTransform();
+			localToWorldNoScale = Matrix4::TRS(tfrm.GetPosition(), tfrm.getRotation(), Vector3::ONE);
 		}
 		else
 			localToWorldNoScale = Matrix4::IDENTITY;
@@ -124,9 +124,9 @@ namespace bs { namespace ct
 
 	void RendererParticles::BindCPUSimulatedInputs(const ParticleRenderData* renderData, const RendererView& view) const
 	{
-		ParticleTexturePool& particlesTexPool = ParticleRenderer::instance().getTexturePool();
+		ParticleTexturePool& particlesTexPool = ParticleRenderer::instance().GetTexturePool();
 
-		const ParticleSystemSettings& settings = particleSystem->getSettings();
+		const ParticleSystemSettings& settings = particleSystem->GetSettings();
 		UINT32 texSize;
 		switch (settings.renderMode)
 		{
@@ -134,79 +134,79 @@ namespace bs { namespace ct
 		case ParticleRenderMode::Billboard:
 		{
 			const auto billboardRenderData = static_cast<const ParticleBillboardRenderData*>(renderData);
-			const ParticleBillboardTextures* textures = particlesTexPool.alloc(*billboardRenderData);
+			const ParticleBillboardTextures* textures = particlesTexPool.Alloc(*billboardRenderData);
 
-			renderElement.paramsCPUBillboard.positionAndRotTexture.set(textures->positionAndRotation);
-			renderElement.paramsCPUBillboard.colorTexture.set(textures->color);
-			renderElement.paramsCPUBillboard.sizeAndFrameIdxTexture.set(textures->sizeAndFrameIdx);
+			renderElement.paramsCPUBillboard.positionAndRotTexture.Set(textures->positionAndRotation);
+			renderElement.paramsCPUBillboard.colorTexture.Set(textures->color);
+			renderElement.paramsCPUBillboard.sizeAndFrameIdxTexture.Set(textures->sizeAndFrameIdx);
 
-			renderElement.indicesBuffer.set(textures->indices);
-			texSize = textures->positionAndRotation->getProperties().getWidth();
+			renderElement.indicesBuffer.Set(textures->indices);
+			texSize = textures->positionAndRotation->GetProperties().GetWidth();
 		}
 		break;
 		case ParticleRenderMode::Mesh:
 		{
 			const auto meshRenderData = static_cast<const ParticleMeshRenderData*>(renderData);
-			const ParticleMeshTextures* textures = particlesTexPool.alloc(*meshRenderData);
+			const ParticleMeshTextures* textures = particlesTexPool.Alloc(*meshRenderData);
 
-			renderElement.paramsCPUMesh.positionTexture.set(textures->position);
-			renderElement.paramsCPUMesh.colorTexture.set(textures->color);
-			renderElement.paramsCPUMesh.rotationTexture.set(textures->rotation);
-			renderElement.paramsCPUMesh.sizeTexture.set(textures->size);
+			renderElement.paramsCPUMesh.positionTexture.Set(textures->position);
+			renderElement.paramsCPUMesh.colorTexture.Set(textures->color);
+			renderElement.paramsCPUMesh.rotationTexture.Set(textures->rotation);
+			renderElement.paramsCPUMesh.sizeTexture.Set(textures->size);
 
-			renderElement.indicesBuffer.set(textures->indices);
-			texSize = textures->position->getProperties().getWidth();
+			renderElement.indicesBuffer.Set(textures->indices);
+			texSize = textures->position->GetProperties().GetWidth();
 		}
 		break;
 		}
 
 		renderElement.numParticles = renderData->numParticles;
 
-		gParticlesParamDef.gTexSize.set(particlesParamBuffer, texSize);
-		gParticlesParamDef.gBufferOffset.set(particlesParamBuffer, 0);
+		gParticlesParamDef.gTexSize.Set(particlesParamBuffer, texSize);
+		gParticlesParamDef.gBufferOffset.Set(particlesParamBuffer, 0);
 
-		SPtr<GpuParams> gpuParams = renderElement.params->getGpuParams();
+		SPtr<GpuParams> gpuParams = renderElement.params->GetGpuParams();
 		for (UINT32 j = 0; j < GPT_COUNT; j++)
 		{
 			const GpuParamBinding& binding = renderElement.perCameraBindings[j];
 			if (binding.slot != (UINT32)-1)
-				gpuParams->setParamBlockBuffer(binding.set, binding.slot, view.getPerViewBuffer());
+				gpuParams->SetParamBlockBuffer(binding.set, binding.slot, view.GetPerViewBuffer());
 		}
 	}
 
 	void RendererParticles::BindGPUSimulatedInputs(const GpuParticleResources& gpuSimResources, const RendererView& view) const
 	{
-		const GpuParticleStateTextures& gpuSimStateTextures = gpuSimResources.getCurrentState();
-		const GpuParticleStaticTextures& gpuSimStaticTextures = gpuSimResources.getStaticTextures();
-		const GpuParticleCurves& gpuCurves = gpuSimResources.getCurveTexture();
-		const SPtr<GpuBuffer>& sortedIndices = gpuSimResources.getSortedIndices();
+		const GpuParticleStateTextures& gpuSimStateTextures = gpuSimResources.GetCurrentState();
+		const GpuParticleStaticTextures& gpuSimStaticTextures = gpuSimResources.GetStaticTextures();
+		const GpuParticleCurves& gpuCurves = gpuSimResources.GetCurveTexture();
+		const SPtr<GpuBuffer>& sortedIndices = gpuSimResources.GetSortedIndices();
 
-		renderElement.paramsGPU.positionTimeTexture.set(gpuSimStateTextures.positionAndTimeTex);
-		renderElement.paramsGPU.sizeRotationTexture.set(gpuSimStaticTextures.sizeAndRotationTex);
-		renderElement.paramsGPU.curvesTexture.set(gpuCurves.getTexture());
-		renderElement.numParticles = gpuParticleSystem->getNumTiles() * GpuParticleResources::PARTICLES_PER_TILE;
+		renderElement.paramsGPU.positionTimeTexture.Set(gpuSimStateTextures.positionAndTimeTex);
+		renderElement.paramsGPU.sizeRotationTexture.Set(gpuSimStaticTextures.sizeAndRotationTex);
+		renderElement.paramsGPU.curvesTexture.Set(gpuCurves.getTexture());
+		renderElement.numParticles = gpuParticleSystem->GetNumTiles() * GpuParticleResources::PARTICLES_PER_TILE;
 
-		if (gpuParticleSystem->hasSortInfo())
+		if (gpuParticleSystem->HasSortInfo())
 		{
-			renderElement.indicesBuffer.set(sortedIndices);
+			renderElement.indicesBuffer.Set(sortedIndices);
 			gParticlesParamDef.gBufferOffset.set(particlesParamBuffer,
-				gpuParticleSystem->getSortOffset());
+				gpuParticleSystem->GetSortOffset());
 		}
 		else
 		{
-			renderElement.indicesBuffer.set(gpuParticleSystem->getParticleIndices());
-			gParticlesParamDef.gBufferOffset.set(particlesParamBuffer, 0);
+			renderElement.indicesBuffer.Set(gpuParticleSystem->GetParticleIndices());
+			gParticlesParamDef.gBufferOffset.Set(particlesParamBuffer, 0);
 		}
 
 		const UINT32 texSize = GpuParticleResources::TEX_SIZE;
-		gParticlesParamDef.gTexSize.set(particlesParamBuffer, texSize);
+		gParticlesParamDef.gTexSize.Set(particlesParamBuffer, texSize);
 
-		SPtr<GpuParams> gpuParams = renderElement.params->getGpuParams();
+		SPtr<GpuParams> gpuParams = renderElement.params->GetGpuParams();
 		for (UINT32 j = 0; j < GPT_COUNT; j++)
 		{
 			const GpuParamBinding& binding = renderElement.perCameraBindings[j];
 			if (binding.slot != (UINT32)-1)
-				gpuParams->setParamBlockBuffer(binding.set, binding.slot, view.getPerViewBuffer());
+				gpuParams->SetParamBlockBuffer(binding.set, binding.slot, view.GetPerViewBuffer());
 		}
 	}
 
@@ -215,23 +215,23 @@ namespace bs { namespace ct
 		for (auto& sizeEntry : mBillboardBufferList)
 		{
 			for (auto& entry : sizeEntry.second.buffers)
-				mBillboardAlloc.destruct(entry);
+				mBillboardAlloc.Destruct(entry);
 		}
 
 		for (auto& sizeEntry : mMeshBufferList)
 		{
 			for (auto& entry : sizeEntry.second.buffers)
-				mMeshAlloc.destruct(entry);
+				mMeshAlloc.Destruct(entry);
 		}
 	}
 
 	const ParticleBillboardTextures* ParticleTexturePool::alloc(const ParticleBillboardRenderData& simulationData)
 	{
-		const UINT32 size = simulationData.color.getWidth();
+		const UINT32 size = simulationData.color.GetWidth();
 
 		const ParticleBillboardTextures* output = nullptr;
 		BillboardBuffersPerSize& buffers = mBillboardBufferList[size];
-		if (buffers.nextFreeIdx < (UINT32)buffers.buffers.size())
+		if (buffers.nextFreeIdx < (UINT32)buffers.buffers.Size())
 		{
 			output = buffers.buffers[buffers.nextFreeIdx];
 			buffers.nextFreeIdx++;
@@ -246,21 +246,21 @@ namespace bs { namespace ct
 		// Populate texture contents
 		// Note: Perhaps instead of using write-discard here, we should track which frame has finished rendering and then
 		// just use no-overwrite? write-discard will very likely allocate memory under the hood.
-		output->positionAndRotation->writeData(simulationData.positionAndRotation, 0, 0, true);
-		output->color->writeData(simulationData.color, 0, 0, true);
-		output->sizeAndFrameIdx->writeData(simulationData.sizeAndFrameIdx, 0, 0, true);
+		output->positionAndRotation->WriteData(simulationData.positionAndRotation, 0, 0, true);
+		output->color->WriteData(simulationData.color, 0, 0, true);
+		output->sizeAndFrameIdx->WriteData(simulationData.sizeAndFrameIdx, 0, 0, true);
 
-		writeIndices(output->indices.get(), simulationData.indices, size);
+		writeIndices(output->indices.Get(), simulationData.indices, size);
 		return output;
 	}
 
 	const ParticleMeshTextures* ParticleTexturePool::alloc(const ParticleMeshRenderData& simulationData)
 	{
-		const UINT32 size = simulationData.color.getWidth();
+		const UINT32 size = simulationData.color.GetWidth();
 
 		const ParticleMeshTextures* output = nullptr;
 		MeshBuffersPerSize& buffers = mMeshBufferList[size];
-		if (buffers.nextFreeIdx < (UINT32)buffers.buffers.size())
+		if (buffers.nextFreeIdx < (UINT32)buffers.buffers.Size())
 		{
 			output = buffers.buffers[buffers.nextFreeIdx];
 			buffers.nextFreeIdx++;
@@ -275,12 +275,12 @@ namespace bs { namespace ct
 		// Populate texture contents
 		// Note: Perhaps instead of using write-discard here, we should track which frame has finished rendering and then
 		// just use no-overwrite? write-discard will very likely allocate memory under the hood.
-		output->position->writeData(simulationData.position, 0, 0, true);
-		output->color->writeData(simulationData.color, 0, 0, true);
-		output->size->writeData(simulationData.size, 0, 0, true);
-		output->rotation->writeData(simulationData.rotation, 0, 0, true);
+		output->position->WriteData(simulationData.position, 0, 0, true);
+		output->color->WriteData(simulationData.color, 0, 0, true);
+		output->size->WriteData(simulationData.size, 0, 0, true);
+		output->rotation->WriteData(simulationData.rotation, 0, 0, true);
 
-		writeIndices(output->indices.get(), simulationData.indices, size);
+		writeIndices(output->indices.Get(), simulationData.indices, size);
 		return output;
 	}
 
@@ -365,51 +365,51 @@ namespace bs { namespace ct
 		:m(bs_new<Members>())
 	{
 		SPtr<VertexDataDesc> vertexDesc = bs_shared_ptr_new<VertexDataDesc>();
-		vertexDesc->addVertElem(VET_FLOAT3, VES_POSITION);
-		vertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD);
-		vertexDesc->addVertElem(VET_UBYTE4_NORM, VES_NORMAL);
-		vertexDesc->addVertElem(VET_UBYTE4_NORM, VES_TANGENT);
+		vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
+		vertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD);
+		vertexDesc->AddVertElem(VET_UBYTE4_NORM, VES_NORMAL);
+		vertexDesc->AddVertElem(VET_UBYTE4_NORM, VES_TANGENT);
 
 		m->billboardVD = VertexDeclaration::create(vertexDesc);
 
 		VERTEX_BUFFER_DESC vbDesc;
 		vbDesc.numVerts = 4;
-		vbDesc.vertexSize = m->billboardVD->getProperties().getVertexSize(0);
+		vbDesc.vertexSize = m->billboardVD->GetProperties().GetVertexSize(0);
 		m->billboardVB = VertexBuffer::create(vbDesc);
 
 		MeshData MeshData(4, 0, vertexDesc);
-		auto vecIter = meshData.getVec3DataIter(VES_POSITION);
-		vecIter.addValue(Vector3(-0.5f, -0.5f, 0.0f));
-		vecIter.addValue(Vector3(-0.5f, 0.5f, 0.0f));
-		vecIter.addValue(Vector3(0.5f, -0.5f, 0.0f));
-		vecIter.addValue(Vector3(0.5f, 0.5f, 0.0f));
+		auto vecIter = meshData.GetVec3DataIter(VES_POSITION);
+		vecIter.AddValue(Vector3(-0.5f, -0.5f, 0.0f));
+		vecIter.AddValue(Vector3(-0.5f, 0.5f, 0.0f));
+		vecIter.AddValue(Vector3(0.5f, -0.5f, 0.0f));
+		vecIter.AddValue(Vector3(0.5f, 0.5f, 0.0f));
 
-		auto uvIter = meshData.getVec2DataIter(VES_TEXCOORD);
-		uvIter.addValue(Vector2(0.0f, 1.0f));
-		uvIter.addValue(Vector2(0.0f, 0.0f));
-		uvIter.addValue(Vector2(1.0f, 1.0f));
-		uvIter.addValue(Vector2(1.0f, 0.0f));
+		auto uvIter = meshData.GetVec2DataIter(VES_TEXCOORD);
+		uvIter.AddValue(Vector2(0.0f, 1.0f));
+		uvIter.AddValue(Vector2(0.0f, 0.0f));
+		uvIter.AddValue(Vector2(1.0f, 1.0f));
+		uvIter.AddValue(Vector2(1.0f, 0.0f));
 
-		UINT32 stride = meshData.getVertexDesc()->getVertexStride(0);
+		UINT32 stride = meshData.GetVertexDesc()->GetVertexStride(0);
 
 		Vector3 normal = Vector3::UNIT_Y;
 		Vector4 Tangent(1.0f, 0.0f, 0.0f, 1.0f);
 
-		UINT8* normalDst = meshData.getElementData(VES_NORMAL);
+		UINT8* normalDst = meshData.GetElementData(VES_NORMAL);
 		for(UINT32 i = 0; i < 4; i++)
 		{
 			MeshUtility::packNormals(&normal, normalDst, 1, sizeof(Vector3), stride);
 			normalDst += stride;
 		}
 
-		UINT8* tangentDst = meshData.getElementData(VES_TANGENT);
+		UINT8* tangentDst = meshData.GetElementData(VES_TANGENT);
 		for(UINT32 i = 0; i < 4; i++)
 		{
 			MeshUtility::packNormals(&tangent, tangentDst, 1, sizeof(Vector4), stride);
 			tangentDst += stride;
 		}
 
-		m->billboardVB->writeData(0, meshData.getStreamSize(0), meshData.getStreamData(0), BWT_DISCARD);
+		m->billboardVB->WriteData(0, meshData.GetStreamSize(0), meshData.getStreamData(0), BWT_DISCARD);
 	}
 
 	ParticleRenderer::~ParticleRenderer()
@@ -422,10 +422,10 @@ namespace bs { namespace ct
 		SPtr<VertexBuffer> vertexBuffers[] = { m->billboardVB };
 
 		RenderAPI& rapi = RenderAPI::instance();
-		rapi.setVertexDeclaration(m->billboardVD);
-		rapi.setVertexBuffers(0, vertexBuffers, 1);
-		rapi.setDrawOperation(DOT_TRIANGLE_STRIP);
-		rapi.draw(0, 4, count);
+		rapi.SetVertexDeclaration(m->billboardVD);
+		rapi.SetVertexBuffers(0, vertexBuffers, 1);
+		rapi.SetDrawOperation(DOT_TRIANGLE_STRIP);
+		rapi.Draw(0, 4, count);
 	}
 
 	void ParticleRenderer::sortByDistance(const Vector3& refPoint, const PixelData& positions, UINT32 numParticles,
@@ -441,20 +441,20 @@ namespace bs { namespace ct
 			UINT32 idx;
 		};
 
-		const UINT32 size = positions.getWidth();
-		UINT8* positionPtr = positions.getData();
+		const UINT32 size = positions.GetWidth();
+		UINT8* positionPtr = positions.GetData();
 
 		bs_frame_mark();
 		{
 			FrameVector<ParticleSortData> sortData;
-			sortData.reserve(numParticles);
+			sortData.Reserve(numParticles);
 
 			UINT32 x = 0;
 			for (UINT32 i = 0; i < numParticles; i++)
 			{
 				const Vector3& position = *(Vector3*)positionPtr;
 
-				float distance = refPoint.squaredDistance(position);
+				float distance = refPoint.SquaredDistance(position);
 				sortData.emplace_back(distance, i);
 
 				positionPtr += sizeof(float) * stride;
@@ -463,11 +463,11 @@ namespace bs { namespace ct
 				if (x >= size)
 				{
 					x = 0;
-					positionPtr += positions.getRowSkip();
+					positionPtr += positions.GetRowSkip();
 				}
 			}
 
-			std::sort(sortData.begin(), sortData.end(),
+			std::sort(sortData.Begin(), sortData.end(),
 				[](const ParticleSortData& lhs, const ParticleSortData& rhs)
 			{
 				return rhs.key < lhs.key;

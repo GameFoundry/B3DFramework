@@ -262,10 +262,10 @@ namespace bs
 				return;
 
 			BasicString<char> sourceParam = toString(param);
-			parameters[idx].buffer = (char*)bs_alloc((UINT32)sourceParam.size() * sizeof(char));
-			parameters[idx].size = (UINT32)sourceParam.size();
+			parameters[idx].buffer = (char*)bs_alloc((UINT32)sourceParam.Size() * sizeof(char));
+			parameters[idx].size = (UINT32)sourceParam.Size();
 
-			sourceParam.copy(parameters[idx].buffer, parameters[idx].size, 0);
+			sourceParam.Copy(parameters[idx].buffer, parameters[idx].size, 0);
 			
 			getParams(parameters, idx + 1, std::forward<Args>(args)...);
 		}
@@ -280,10 +280,10 @@ namespace bs
 				return;
 
 			BasicString<wchar_t> sourceParam = toWString(param);
-			parameters[idx].buffer = (wchar_t*)bs_alloc((UINT32)sourceParam.size() * sizeof(wchar_t));
-			parameters[idx].size = (UINT32)sourceParam.size();
+			parameters[idx].buffer = (wchar_t*)bs_alloc((UINT32)sourceParam.Size() * sizeof(wchar_t));
+			parameters[idx].size = (UINT32)sourceParam.Size();
 			
-			sourceParam.copy(parameters[idx].buffer, parameters[idx].size, 0);
+			sourceParam.Copy(parameters[idx].buffer, parameters[idx].size, 0);
 
 			getParams(parameters, idx + 1, std::forward<Args>(args)...);
 		}

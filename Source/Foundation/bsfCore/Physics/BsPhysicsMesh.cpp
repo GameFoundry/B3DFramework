@@ -20,7 +20,7 @@ namespace bs
 
 	SPtr<MeshData> PhysicsMesh::GetMeshData() const
 	{
-		return mInternal->getMeshData();
+		return mInternal->GetMeshData();
 	}
 
 	HPhysicsMesh PhysicsMesh::Create(const SPtr<MeshData>& meshData, PhysicsMeshType type)
@@ -32,9 +32,9 @@ namespace bs
 
 	SPtr<PhysicsMesh> PhysicsMesh::_createPtr(const SPtr<MeshData>& meshData, PhysicsMeshType type)
 	{
-		SPtr<PhysicsMesh> newMesh = gPhysics().createMesh(meshData, type);
+		SPtr<PhysicsMesh> newMesh = gPhysics().CreateMesh(meshData, type);
 		newMesh->_setThisPtr(newMesh);
-		newMesh->initialize();
+		newMesh->Initialize();
 
 		return newMesh;
 	}

@@ -71,7 +71,7 @@ namespace bs
 		 */
 
 		/**	Returns the distance joint that this component wraps. */
-		DistanceJoint* _getInternal() const { return static_cast<DistanceJoint*>(mInternal.get()); }
+		DistanceJoint* _getInternal() const { return static_cast<DistanceJoint*>(mInternal.Get()); }
 
 		/** @} */
 

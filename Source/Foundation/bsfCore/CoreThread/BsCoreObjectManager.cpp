@@ -20,7 +20,7 @@ namespace bs
 #if BS_DEBUG_MODE
 		Lock Lock(mObjectsMutex);
 
-		if(mObjects.size() > 0)
+		if(mObjects.Size() > 0)
 		{
 			// All objects MUST be destroyed at this point, otherwise there might be memory corruption.
 			// (Reason: This is called on application shutdown and at that point we also unload any dynamic libraries,
@@ -43,33 +43,33 @@ namespace bs
 	{
 		Lock Lock(mObjectsMutex);
 
-		UINT64 objId = object->getInternalID();
+		UINT64 objId = object->GetInternalID();
 		mObjects[objId] = object;
 		mDirtyObjects[objId] = { object, -1 };
 	}
 
 	void CoreObjectManager::UnregisterObject(CoreObject* object)
 	{
-		assert(object != nullptr && !object->isDestroyed());
+		assert(object != nullptr && !object->IsDestroyed());
 
-		UINT64 internalId = object->getInternalID();
+		UINT64 internalId = object->GetInternalID();
 
 		// If dirty, we generate sync data before it is destroyed
 		{
 			Lock Lock(mObjectsMutex);
-			bool isDirty = object->isCoreDirty() || (mDirtyObjects.find(internalId) != mDirtyObjects.end());
+			bool isDirty = object->IsCoreDirty() || (mDirtyObjects.Find(internalId) != mDirtyObjects.end());
 
 			if (isDirty)
 			{
-				SPtr<ct::CoreObject> coreObject = object->getCore();
+				SPtr<ct::CoreObject> coreObject = object->GetCore();
 				if (coreObject != nullptr)
 				{
-					CoreSyncData objSyncData = object->syncToCore(gCoreThread().getFrameAlloc());
+					CoreSyncData objSyncData = object->SyncToCore(gCoreThread().GetFrameAlloc());
 				
 					mDestroyedSyncData.push_back(CoreStoredSyncObjData(coreObject, internalId, objSyncData));
 
 					DirtyObjectData& dirtyObjData = mDirtyObjects[internalId];
-					dirtyObjData.syncDataId = (INT32)mDestroyedSyncData.size() - 1;
+					dirtyObjData.syncDataId = (INT32)mDestroyedSyncData.Size() - 1;
 					dirtyObjData.object = nullptr;
 				}
 				else
@@ -80,7 +80,7 @@ namespace bs
 				}
 			}
 
-			mObjects.erase(internalId);
+			mObjects.Erase(internalId);
 		}
 
 		updateDependencies(object, nullptr);
@@ -89,36 +89,36 @@ namespace bs
 		{
 			Lock Lock(mObjectsMutex);
 
-			auto iterFind = mDependants.find(internalId);
-			if (iterFind != mDependants.end())
+			auto iterFind = mDependants.Find(internalId);
+			if (iterFind != mDependants.End())
 			{
 				Vector<CoreObject*>& dependants = iterFind->second;
 				for (auto& entry : dependants)
 				{
-					auto iterFind2 = mDependencies.find(entry->getInternalID());
-					if (iterFind2 != mDependencies.end())
+					auto iterFind2 = mDependencies.Find(entry->GetInternalID());
+					if (iterFind2 != mDependencies.End())
 					{
 						Vector<CoreObject*>& dependencies = iterFind2->second;
-						auto iterFind3 = std::find(dependencies.begin(), dependencies.end(), object);
+						auto iterFind3 = std::find(dependencies.Begin(), dependencies.end(), object);
 
-						if (iterFind3 != dependencies.end())
-							dependencies.erase(iterFind3);
+						if (iterFind3 != dependencies.End())
+							dependencies.Erase(iterFind3);
 
-						if (dependencies.size() == 0)
-							mDependencies.erase(iterFind2);
+						if (dependencies.Size() == 0)
+							mDependencies.Erase(iterFind2);
 					}
 				}
 
-				mDependants.erase(iterFind);
+				mDependants.Erase(iterFind);
 			}
 
-			mDependencies.erase(internalId);
+			mDependencies.Erase(internalId);
 		}
 	}
 
 	void CoreObjectManager::NotifyCoreDirty(CoreObject* object)
 	{
-		UINT64 id = object->getInternalID();
+		UINT64 id = object->GetInternalID();
 
 		Lock Lock(mObjectsMutex);
 
@@ -128,14 +128,14 @@ namespace bs
 	void CoreObjectManager::NotifyDependenciesDirty(CoreObject* object)
 	{
 		Vector<CoreObject*> dependencies;
-		object->getCoreDependencies(dependencies);
+		object->GetCoreDependencies(dependencies);
 
 		updateDependencies(object, &dependencies);
 	}
 
 	void CoreObjectManager::UpdateDependencies(CoreObject* object, Vector<CoreObject*>* dependencies)
 	{
-		UINT64 id = object->getInternalID();
+		UINT64 id = object->GetInternalID();
 
 		bs_frame_mark();
 		{
@@ -147,20 +147,20 @@ namespace bs
 			// Add dependencies and clear old dependencies from dependants
 			{
 				if (dependencies != nullptr)
-					std::sort(dependencies->begin(), dependencies->end());
+					std::sort(dependencies->Begin(), dependencies->end());
 
-				auto iterFind = mDependencies.find(id);
-				if (iterFind != mDependencies.end())
+				auto iterFind = mDependencies.Find(id);
+				if (iterFind != mDependencies.End())
 				{
 					const Vector<CoreObject*>& oldDependencies = iterFind->second;
 
 					if (dependencies != nullptr)
 					{
-						std::set_difference(oldDependencies.begin(), oldDependencies.end(),
-							dependencies->begin(), dependencies->end(), std::inserter(toRemove, toRemove.begin()));
+						std::set_difference(oldDependencies.Begin(), oldDependencies.end(),
+							dependencies->Begin(), dependencies->end(), std::inserter(toRemove, toRemove.Begin()));
 
-						std::set_difference(dependencies->begin(), dependencies->end(),
-							oldDependencies.begin(), oldDependencies.end(), std::inserter(toAdd, toAdd.begin()));
+						std::set_difference(dependencies->Begin(), dependencies->end(),
+							oldDependencies.Begin(), oldDependencies.end(), std::inserter(toAdd, toAdd.begin()));
 					}
 					else
 					{
@@ -170,28 +170,28 @@ namespace bs
 
 					for (auto& dependency : toRemove)
 					{
-						UINT64 dependencyId = dependency->getInternalID();
-						auto iterFind2 = mDependants.find(dependencyId);
+						UINT64 dependencyId = dependency->GetInternalID();
+						auto iterFind2 = mDependants.Find(dependencyId);
 
-						if (iterFind2 != mDependants.end())
+						if (iterFind2 != mDependants.End())
 						{
 							Vector<CoreObject*>& dependants = iterFind2->second;
-							auto findIter3 = std::find(dependants.begin(), dependants.end(), object);
-							dependants.erase(findIter3);
+							auto findIter3 = std::find(dependants.Begin(), dependants.end(), object);
+							dependants.Erase(findIter3);
 
-							if (dependants.size() == 0)
-								mDependants.erase(iterFind2);
+							if (dependants.Size() == 0)
+								mDependants.Erase(iterFind2);
 						}
 					}
 
-					if (dependencies != nullptr && dependencies->size() > 0)
+					if (dependencies != nullptr && dependencies->Size() > 0)
 						mDependencies[id] = *dependencies;
 					else
-						mDependencies.erase(id);
+						mDependencies.Erase(id);
 				}
 				else
 				{
-					if (dependencies != nullptr && dependencies->size() > 0)
+					if (dependencies != nullptr && dependencies->Size() > 0)
 					{
 						for (auto& dependency : *dependencies)
 							toAdd.push_back(dependency);
@@ -205,7 +205,7 @@ namespace bs
 			{
 				for (auto& dependency : toAdd)
 				{
-					UINT64 dependencyId = dependency->getInternalID();
+					UINT64 dependencyId = dependency->GetInternalID();
 					Vector<CoreObject*>& dependants = mDependants[dependencyId];
 					dependants.push_back(object);
 				}
@@ -216,8 +216,8 @@ namespace bs
 
 	void CoreObjectManager::SyncToCore()
 	{
-		syncDownload(gCoreThread().getFrameAlloc());
-		gCoreThread().queueCommand(std::bind(&CoreObjectManager::syncUpload, this));
+		syncDownload(gCoreThread().GetFrameAlloc());
+		gCoreThread().QueueCommand(std::bind(&CoreObjectManager::syncUpload, this));
 	}
 
 	void CoreObjectManager::SyncToCore(CoreObject* object)
@@ -231,44 +231,44 @@ namespace bs
 
 		Lock Lock(mObjectsMutex);
 
-		FrameAlloc* allocator = gCoreThread().getFrameAlloc();
+		FrameAlloc* allocator = gCoreThread().GetFrameAlloc();
 		Vector<IndividualCoreSyncData> syncData;
 
 		std::function<void(CoreObject*)> syncObject = [&](CoreObject* curObj)
 		{
-			if (!curObj->isCoreDirty())
+			if (!curObj->IsCoreDirty())
 				return; // We already processed it as some other object's dependency
 
 			// Sync dependencies before dependants
 			// Note: I don't check for recursion. Possible infinite loop if two objects
 			// are dependent on one another.
 
-			UINT64 id = curObj->getInternalID();
-			auto iterFind = mDependencies.find(id);
+			UINT64 id = curObj->GetInternalID();
+			auto iterFind = mDependencies.Find(id);
 
-			if (iterFind != mDependencies.end())
+			if (iterFind != mDependencies.End())
 			{
 				const Vector<CoreObject*>& dependencies = iterFind->second;
 				for (auto& dependency : dependencies)
 					syncObject(dependency);
 			}
 
-			SPtr<ct::CoreObject> objectCore = curObj->getCore();
+			SPtr<ct::CoreObject> objectCore = curObj->GetCore();
 			if (objectCore == nullptr)
 			{
-				curObj->markCoreClean();
-				mDirtyObjects.erase(id);
+				curObj->MarkCoreClean();
+				mDirtyObjects.Erase(id);
 				return;
 			}
 
 			syncData.push_back(IndividualCoreSyncData());
-			IndividualCoreSyncData& data = syncData.back();
+			IndividualCoreSyncData& data = syncData.Back();
 			data.allocator = allocator;
 			data.destination = objectCore;
-			data.syncData = curObj->syncToCore(allocator);
+			data.syncData = curObj->SyncToCore(allocator);
 
-			curObj->markCoreClean();
-			mDirtyObjects.erase(id);
+			curObj->MarkCoreClean();
+			mDirtyObjects.Erase(id);
 		};
 
 		syncObject(object);
@@ -277,20 +277,20 @@ namespace bs
 			[](const Vector<IndividualCoreSyncData>& data)
 		{
 			// Traverse in reverse to sync dependencies before dependants
-			for (auto riter = data.rbegin(); riter != data.rend(); ++riter)
+			for (auto riter = data.Rbegin(); riter != data.rend(); ++riter)
 			{
 				const IndividualCoreSyncData& entry = *riter;
-				entry.destination->syncToCore(entry.syncData);
+				entry.destination->SyncToCore(entry.syncData);
 
-				UINT8* dataPtr = entry.syncData.getBuffer();
+				UINT8* dataPtr = entry.syncData.GetBuffer();
 
 				if (dataPtr != nullptr)
-					entry.allocator->free(dataPtr);
+					entry.allocator->Free(dataPtr);
 			}
 		};
 
-		if (syncData.size() > 0)
-			gCoreThread().queueCommand(std::bind(callback, syncData));
+		if (syncData.Size() > 0)
+			gCoreThread().QueueCommand(std::bind(callback, syncData));
 	}
 
 	void CoreObjectManager::SyncDownload(FrameAlloc* allocator)
@@ -298,7 +298,7 @@ namespace bs
 		Lock Lock(mObjectsMutex);
 
 		mCoreSyncData.push_back(CoreStoredSyncData());
-		CoreStoredSyncData& syncData = mCoreSyncData.back();
+		CoreStoredSyncData& syncData = mCoreSyncData.Back();
 
 		syncData.alloc = allocator;
 		
@@ -308,27 +308,27 @@ namespace bs
 			FrameSet<CoreObject*> dirtyDependants;
 			for (auto& objectData : mDirtyObjects)
 			{
-				auto iterFind = mDependants.find(objectData.first);
-				if (iterFind != mDependants.end())
+				auto iterFind = mDependants.Find(objectData.first);
+				if (iterFind != mDependants.End())
 				{
 					const Vector<CoreObject*>& dependants = iterFind->second;
 					for (auto& dependant : dependants)
 					{
-						const bool wasDirty = dependant->isCoreDirty();
+						const bool wasDirty = dependant->IsCoreDirty();
 
 						// Let the dependant objects know their dependency changed
 						CoreObject* dependency = objectData.second.object;
-						dependant->onDependencyDirty(dependency, dependency->getCoreDirtyFlags());
+						dependant->OnDependencyDirty(dependency, dependency->getCoreDirtyFlags());
 
-						if (!wasDirty && dependant->isCoreDirty())
-							dirtyDependants.insert(dependant);
+						if (!wasDirty && dependant->IsCoreDirty())
+							dirtyDependants.Insert(dependant);
 					}
 				}
 			}
 
 			for (auto& dirtyDependant : dirtyDependants)
 			{
-				UINT64 id = dirtyDependant->getInternalID();
+				UINT64 id = dirtyDependant->GetInternalID();
 
 				mDirtyObjects[id] = { dirtyDependant, -1 };
 			}
@@ -342,35 +342,35 @@ namespace bs
 		{
 			std::function<void(CoreObject*)> syncObject = [&](CoreObject* curObj)
 			{
-				if (!curObj->isCoreDirty())
+				if (!curObj->IsCoreDirty())
 					return; // We already processed it as some other object's dependency
 
 				// Sync dependencies before dependants
 				// Note: I don't check for recursion. Possible infinite loop if two objects
 				// are dependent on one another.
 				
-				UINT64 id = curObj->getInternalID();
-				auto iterFind = mDependencies.find(id);
+				UINT64 id = curObj->GetInternalID();
+				auto iterFind = mDependencies.Find(id);
 
-				if (iterFind != mDependencies.end())
+				if (iterFind != mDependencies.End())
 				{
 					const Vector<CoreObject*>& dependencies = iterFind->second;
 					for (auto& dependency : dependencies)
 						syncObject(dependency);
 				}
 
-				SPtr<ct::CoreObject> objectCore = curObj->getCore();
+				SPtr<ct::CoreObject> objectCore = curObj->GetCore();
 				if (objectCore == nullptr)
 				{
-					curObj->markCoreClean();
+					curObj->MarkCoreClean();
 					return;
 				}
 
-				CoreSyncData objSyncData = curObj->syncToCore(allocator);
-				curObj->markCoreClean();
+				CoreSyncData objSyncData = curObj->SyncToCore(allocator);
+				curObj->MarkCoreClean();
 
 				syncData.entries.push_back(CoreStoredSyncObjData(objectCore,
-					curObj->getInternalID(), objSyncData));
+					curObj->GetInternalID(), objSyncData));
 			};
 
 			CoreObject* object = objectData.second.object;
@@ -389,33 +389,33 @@ namespace bs
 			}
 		}
 
-		mDirtyObjects.clear();
-		mDestroyedSyncData.clear();
+		mDirtyObjects.Clear();
+		mDestroyedSyncData.Clear();
 	}
 
 	void CoreObjectManager::SyncUpload()
 	{
 		Lock Lock(mObjectsMutex);
 
-		if (mCoreSyncData.size() == 0)
+		if (mCoreSyncData.Size() == 0)
 			return;
 
-		CoreStoredSyncData& syncData = mCoreSyncData.front();
+		CoreStoredSyncData& syncData = mCoreSyncData.Front();
 
 		for (auto& objSyncData : syncData.entries)
 		{
 			SPtr<ct::CoreObject> destinationObj = objSyncData.destinationObj;
 			if (destinationObj != nullptr)
-				destinationObj->syncToCore(objSyncData.syncData);
+				destinationObj->SyncToCore(objSyncData.syncData);
 
-			UINT8* data = objSyncData.syncData.getBuffer();
+			UINT8* data = objSyncData.syncData.GetBuffer();
 
 			if (data != nullptr)
-				syncData.alloc->free(data);
+				syncData.alloc->Free(data);
 		}
 
-		syncData.destroyedObjects.clear();
-		syncData.entries.clear();
+		syncData.destroyedObjects.Clear();
+		syncData.entries.Clear();
 		mCoreSyncData.pop_front();
 	}
 }

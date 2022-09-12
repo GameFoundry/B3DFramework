@@ -34,10 +34,10 @@ namespace bs
 		if(mCommands != nullptr)
 			bs_delete(mCommands);
 
-		while(!mEmptyCommandQueues.empty())
+		while(!mEmptyCommandQueues.Empty())
 		{
-			bs_delete(mEmptyCommandQueues.top());
-			mEmptyCommandQueues.pop();
+			bs_delete(mEmptyCommandQueues.Top());
+			mEmptyCommandQueues.Pop();
 		}
 	}
 
@@ -51,7 +51,7 @@ namespace bs
 		QueuedCommand NewCommand(commandCallback, mAsyncOpSyncData, _notifyWhenComplete, _callbackId);
 #endif
 
-		mCommands->push(newCommand);
+		mCommands->Push(newCommand);
 
 #if BS_FORCE_SINGLETHREADED_RENDERING
 		Queue<QueuedCommand>* commands = flush();
@@ -71,7 +71,7 @@ namespace bs
 		QueuedCommand NewCommand(commandCallback, _notifyWhenComplete, _callbackId);
 #endif
 
-		mCommands->push(newCommand);
+		mCommands->Push(newCommand);
 
 #if BS_FORCE_SINGLETHREADED_RENDERING
 		Queue<QueuedCommand>* commands = flush();
@@ -84,10 +84,10 @@ namespace bs
 		bs::Queue<QueuedCommand>* oldCommands = mCommands;
 
 		Lock Lock(mEmptyCommandQueueMutex);
-		if(!mEmptyCommandQueues.empty())
+		if(!mEmptyCommandQueues.Empty())
 		{
-			mCommands = mEmptyCommandQueues.top();
-			mEmptyCommandQueues.pop();
+			mCommands = mEmptyCommandQueues.Top();
+			mEmptyCommandQueues.Pop();
 		}
 		else
 		{
@@ -104,16 +104,16 @@ namespace bs
 		if(commands == nullptr)
 			return;
 
-		while(!commands->empty())
+		while(!commands->Empty())
 		{
-			QueuedCommand& command = commands->front();
+			QueuedCommand& command = commands->Front();
 
 			if(command.returnsValue)
 			{
 				AsyncOp& op = command.asyncOp;
-				command.callbackWithReturnValue(op);
+				command.CallbackWithReturnValue(op);
 
-				if(!command.asyncOp.hasCompleted())
+				if(!command.asyncOp.HasCompleted())
 				{
 					BS_LOG(Warning, CoreThread,
 						"Async operation return value wasn't resolved properly. Resolving automatically to nullptr. " \
@@ -123,7 +123,7 @@ namespace bs
 			}
 			else
 			{
-				command.callback();
+				command.Callback();
 			}
 
 			if(command.notifyWhenComplete && notifyCallback != nullptr)
@@ -131,11 +131,11 @@ namespace bs
 				notifyCallback(command.callbackId);
 			}
 
-			commands->pop();
+			commands->Pop();
 		}
 
 		Lock Lock(mEmptyCommandQueueMutex);
-		mEmptyCommandQueues.push(commands);
+		mEmptyCommandQueues.Push(commands);
 	}
 
 	void CommandQueueBase::Playback(bs::Queue<QueuedCommand>* commands)
@@ -147,16 +147,16 @@ namespace bs
 	{
 		bs::Queue<QueuedCommand>* commands = flush();
 
-		while(!commands->empty())
-			commands->pop();
+		while(!commands->Empty())
+			commands->Pop();
 
 		Lock Lock(mEmptyCommandQueueMutex);
-		mEmptyCommandQueues.push(commands);
+		mEmptyCommandQueues.Push(commands);
 	}
 
 	bool CommandQueueBase::IsEmpty()
 	{
-		if(mCommands != nullptr && mCommands->size() > 0)
+		if(mCommands != nullptr && mCommands->Size() > 0)
 			return false;
 
 		return true;
@@ -192,16 +192,16 @@ namespace bs
 	{
 		Lock Lock(CommandQueueBreakpointMutex);
 
-		SetBreakpoints.insert(QueueBreakpoint(queueIdx, commandIdx));
+		SetBreakpoints.Insert(QueueBreakpoint(queueIdx, commandIdx));
 	}
 
 	void CommandQueueBase::BreakIfNeeded(UINT32 queueIdx, UINT32 commandIdx)
 	{
 		// I purposely don't use a mutex here, as this gets called very often. Generally breakpoints
 		// will only be added at the start of the application, so race conditions should not occur.
-		auto iterFind = SetBreakpoints.find(QueueBreakpoint(queueIdx, commandIdx));
+		auto iterFind = SetBreakpoints.Find(QueueBreakpoint(queueIdx, commandIdx));
 
-		if(iterFind != SetBreakpoints.end())
+		if(iterFind != SetBreakpoints.End())
 		{
 			assert(false && "Command queue breakpoint triggered!");
 		}

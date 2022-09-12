@@ -23,12 +23,12 @@ namespace bs
 
 	void ScriptScriptCode::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptScriptCode::internal_createInstance);
-		metaData.scriptClass->addInternalCall("Internal_GetText", (void*)&ScriptScriptCode::internal_getText);
-		metaData.scriptClass->addInternalCall("Internal_SetText", (void*)&ScriptScriptCode::internal_setText);
-		metaData.scriptClass->addInternalCall("Internal_IsEditorScript", (void*)&ScriptScriptCode::internal_isEditorScript);
-		metaData.scriptClass->addInternalCall("Internal_SetEditorScript", (void*)&ScriptScriptCode::internal_setEditorScript);
-		metaData.scriptClass->addInternalCall("Internal_GetTypes", (void*)&ScriptScriptCode::internal_getTypes);
+		metaData.scriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptScriptCode::internal_createInstance);
+		metaData.scriptClass->AddInternalCall("Internal_GetText", (void*)&ScriptScriptCode::internal_getText);
+		metaData.scriptClass->AddInternalCall("Internal_SetText", (void*)&ScriptScriptCode::internal_setText);
+		metaData.scriptClass->AddInternalCall("Internal_IsEditorScript", (void*)&ScriptScriptCode::internal_isEditorScript);
+		metaData.scriptClass->AddInternalCall("Internal_SetEditorScript", (void*)&ScriptScriptCode::internal_setEditorScript);
+		metaData.scriptClass->AddInternalCall("Internal_GetTypes", (void*)&ScriptScriptCode::internal_getTypes);
 	}
 
 	void ScriptScriptCode::internal_createInstance(MonoObject* instance, MonoString* text)
@@ -36,74 +36,74 @@ namespace bs
 		WString strText = MonoUtil::monoToWString(text);
 		HScriptCode scriptCode = ScriptCode::create(strText);
 
-		ScriptResourceManager::instance().createBuiltinScriptResource(scriptCode, instance);
+		ScriptResourceManager::instance().CreateBuiltinScriptResource(scriptCode, instance);
 	}
 
 	MonoString* ScriptScriptCode::internal_getText(ScriptScriptCode* thisPtr)
 	{
-		HScriptCode scriptCode = thisPtr->getHandle();
-		if (!scriptCode.isLoaded())
+		HScriptCode scriptCode = thisPtr->GetHandle();
+		if (!scriptCode.IsLoaded())
 			MonoUtil::wstringToMono(L"");
 
-		return MonoUtil::WstringToMono(scriptCode->getString());
+		return MonoUtil::WstringToMono(scriptCode->GetString());
 	}
 
 	void ScriptScriptCode::internal_setText(ScriptScriptCode* thisPtr, MonoString* text)
 	{
-		HScriptCode scriptCode = thisPtr->getHandle();
-		if (!scriptCode.isLoaded())
+		HScriptCode scriptCode = thisPtr->GetHandle();
+		if (!scriptCode.IsLoaded())
 			return;
 
-		scriptCode->setString(MonoUtil::monoToWString(text));
+		scriptCode->SetString(MonoUtil::monoToWString(text));
 	}
 
 	bool ScriptScriptCode::internal_isEditorScript(ScriptScriptCode* thisPtr)
 	{
-		HScriptCode scriptCode = thisPtr->getHandle();
-		if (!scriptCode.isLoaded())
+		HScriptCode scriptCode = thisPtr->GetHandle();
+		if (!scriptCode.IsLoaded())
 			return false;
 
-		return scriptCode->getIsEditorScript();
+		return scriptCode->GetIsEditorScript();
 	}
 
 	void ScriptScriptCode::internal_setEditorScript(ScriptScriptCode* thisPtr, bool value)
 	{
-		HScriptCode scriptCode = thisPtr->getHandle();
-		if (!scriptCode.isLoaded())
+		HScriptCode scriptCode = thisPtr->GetHandle();
+		if (!scriptCode.IsLoaded())
 			return;
 
-		scriptCode->setIsEditorScript(value);
+		scriptCode->SetIsEditorScript(value);
 	}
 	
 	MonoArray* ScriptScriptCode::internal_getTypes(ScriptScriptCode* thisPtr)
 	{
-		HScriptCode scriptCode = thisPtr->getHandle();
+		HScriptCode scriptCode = thisPtr->GetHandle();
 
 		Vector<FullTypeName> types;
-		if (scriptCode.isLoaded())
-			types = parseTypes(scriptCode->getString());
+		if (scriptCode.IsLoaded())
+			types = parseTypes(scriptCode->GetString());
 
 		Vector<MonoReflectionType*> validTypes;
 		for (auto& type : types)
 		{
 			SPtr<ManagedSerializableObjectInfo> objInfo;
-			if (ScriptAssemblyManager::instance().getSerializableObjectInfo(toString(type.first), toString(type.second), objInfo))
-				validTypes.push_back(MonoUtil::getType(objInfo->mTypeInfo->getMonoClass()));
+			if (ScriptAssemblyManager::instance().GetSerializableObjectInfo(toString(type.first), toString(type.second), objInfo))
+				validTypes.push_back(MonoUtil::getType(objInfo->mTypeInfo->GetMonoClass()));
 		}
 
-		UINT32 numValidTypes = (UINT32)validTypes.size();
-		MonoClass* typeClass = ScriptAssemblyManager::instance().getBuiltinClasses().systemTypeClass;
+		UINT32 numValidTypes = (UINT32)validTypes.Size();
+		MonoClass* typeClass = ScriptAssemblyManager::instance().GetBuiltinClasses().systemTypeClass;
 
 		ScriptArray ScriptArray(typeClass->_getInternalClass(), numValidTypes);
 		for (UINT32 i = 0; i < numValidTypes; i++)
-			scriptArray.set(i, validTypes[i]);
+			scriptArray.Set(i, validTypes[i]);
 
-		return scriptArray.getInternal();
+		return scriptArray.GetInternal();
 	}
 
 	MonoObject* ScriptScriptCode::createInstance()
 	{
-		return metaData.scriptClass->createInstance();
+		return metaData.scriptClass->CreateInstance();
 	}
 
 	Vector<ScriptScriptCode::FullTypeName> ScriptScriptCode::ParseTypes(const WString& code)
@@ -128,37 +128,37 @@ namespace bs
 
 		UINT32 idx = 0;
 		INT32 bracketIdx = 0;
-		for (auto iter = code.begin(); iter != code.end(); ++iter)
+		for (auto iter = code.Begin(); iter != code.end(); ++iter)
 		{
 			wchar_t ch = *iter;
 			
-			if (code.compare(idx, classToken.size(), classToken) == 0)
+			if (code.Compare(idx, classToken.size(), classToken) == 0)
 			{
 				std::match_results<WString::const_iterator> results;
-				if (std::regex_search(iter + classToken.size(), code.end(), results, identifierRegex))
+				if (std::regex_search(iter + classToken.Size(), code.end(), results, identifierRegex))
 				{
 					WString ns = L"";
-					if (!namespaces.empty())
-						ns = namespaces.top().ns;
+					if (!namespaces.Empty())
+						ns = namespaces.Top().ns;
 
 					std::wstring tempStr = results[0];
 					WString typeName = tempStr.c_str();
 
 					output.push_back(FullTypeName());
-					FullTypeName& nsTypePair = output.back();
+					FullTypeName& nsTypePair = output.Back();
 					nsTypePair.first = ns;
 					nsTypePair.second = typeName;
 				}
 			}
-			else if (code.compare(idx, nsToken.size(), nsToken) == 0)
+			else if (code.Compare(idx, nsToken.size(), nsToken) == 0)
 			{
 				std::match_results<WString::const_iterator> results;
-				if (std::regex_search(iter + nsToken.size(), code.end(), results, identifierRegex))
+				if (std::regex_search(iter + nsToken.Size(), code.end(), results, identifierRegex))
 				{
 					std::wstring tempStr = results[0];
 					WString ns = tempStr.c_str();
 
-					namespaces.push({ ns, bracketIdx + 1 });
+					namespaces.Push({ ns, bracketIdx + 1 });
 				}
 			}
 			else if (ch == '{')

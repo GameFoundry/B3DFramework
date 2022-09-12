@@ -61,7 +61,7 @@ namespace bs
 		void SetDataBuffer(MaterialParamStructData* obj, const SPtr<DataStream>& value, UINT32 size)
 		{
 			obj->data = (UINT8*)bs_alloc(size);
-			value->read(obj->data, size);
+			value->Read(obj->data, size);
 
 			obj->dataSize = size;
 		}
@@ -111,8 +111,8 @@ namespace bs
 			if(paramIdx == (UINT32)-1)
 				paramIdx = mNextParamIdx++;
 
-			if (obj->mParams.size() <= (size_t)paramIdx)
-				obj->mParams.resize((size_t)paramIdx + 1);
+			if (obj->mParams.Size() <= (size_t)paramIdx)
+				obj->mParams.Resize((size_t)paramIdx + 1);
 			
 			obj->mParams[paramIdx] = param.data;
 			obj->mParamLookup[param.name] = paramIdx;
@@ -120,12 +120,12 @@ namespace bs
 
 		UINT32 GetParamDataArraySize(MaterialParams* obj)
 		{
-			return (UINT32)mMatParams.size();
+			return (UINT32)mMatParams.Size();
 		}
 
 		void SetParamDataArraySize(MaterialParams* obj, UINT32 size)
 		{
-			obj->mParams.resize(size);
+			obj->mParams.Resize(size);
 		}
 
 		SPtr<DataStream> GetDataBuffer(MaterialParams* obj, UINT32& size)
@@ -137,8 +137,8 @@ namespace bs
 
 		void SetDataBuffer(MaterialParams* obj, const SPtr<DataStream>& value, UINT32 size)
 		{
-			obj->mDataParamsBuffer = obj->mAlloc.alloc(size);
-			value->read(obj->mDataParamsBuffer, size);
+			obj->mDataParamsBuffer = obj->mAlloc.Alloc(size);
+			value->Read(obj->mDataParamsBuffer, size);
 
 			obj->mDataSize = size;
 		}
@@ -147,7 +147,7 @@ namespace bs
 		void SetStructParam(MaterialParams* obj, UINT32 idx, MaterialParamStructData& param)
 		{
 			MaterialParamStructData& newStructParam = obj->mStructParams[idx];
-			newStructParam.data = (UINT8*)obj->mAlloc.alloc(param.dataSize);
+			newStructParam.data = (UINT8*)obj->mAlloc.Alloc(param.dataSize);
 			memcpy(newStructParam.data, param.data, param.dataSize);
 			newStructParam.dataSize = param.dataSize;
 
@@ -400,7 +400,7 @@ namespace bs
 						ColorGradient temp;
 						rtti_read(temp, stream);
 
-						data.colorGradient = bs_pool_new<ColorGradientHDR>(temp.getKeys());
+						data.colorGradient = bs_pool_new<ColorGradientHDR>(temp.GetKeys());
 					}
 					else
 					{

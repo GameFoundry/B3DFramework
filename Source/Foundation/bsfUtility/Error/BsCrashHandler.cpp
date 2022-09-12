@@ -40,7 +40,7 @@ namespace bs
 		errorMessage << "\n\nStack trace: \n";
 		errorMessage << stackTrace;
 
-		gDebug().log(errorMessage.str(), LogVerbosity::Fatal);
+		gDebug().Log(errorMessage.str(), LogVerbosity::Fatal);
 	}
 
 	void CrashHandler::logErrorAndStackTrace(const String& type, const String& description, const String& function,
@@ -51,11 +51,11 @@ namespace bs
 		errorMessage << "  - Description: " << description << std::endl;
 		errorMessage << "  - In function: " << function << std::endl;
 		errorMessage << "  - In file: " << file << ":" << line;
-		logErrorAndStackTrace(errorMessage.str(), getStackTrace());
+		logErrorAndStackTrace(errorMessage.Str(), getStackTrace());
 	}
 
 	void CrashHandler::SaveCrashLog() const
 	{
-		gDebug().saveLog(getCrashFolder() + sCrashLogName, SavedLogType::HTML);
+		gDebug().SaveLog(getCrashFolder() + sCrashLogName, SavedLogType::HTML);
 	}
 }

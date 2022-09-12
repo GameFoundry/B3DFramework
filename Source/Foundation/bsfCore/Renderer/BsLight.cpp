@@ -139,10 +139,10 @@ namespace bs
 		switch (mType)
 		{
 		case LightType::Directional:
-			mBounds = Sphere(tfrm.getPosition(), std::numeric_limits<float>::infinity());
+			mBounds = Sphere(tfrm.GetPosition(), std::numeric_limits<float>::infinity());
 			break;
 		case LightType::Radial:
-			mBounds = Sphere(tfrm.getPosition(), mAttRadius);
+			mBounds = Sphere(tfrm.GetPosition(), mAttRadius);
 			break;
 		case LightType::Spot:
 		{
@@ -157,9 +157,9 @@ namespace bs
 
 			// Distance between the "corner" of the cone and our center, must be the radius (provided the center is at
 			// the middle of the range)
-			float radius = (offset - coneDir).length();
+			float radius = (offset - coneDir).Length();
 
-			Vector3 center = tfrm.getPosition() - tfrm.getRotation().rotate(offset);
+			Vector3 center = tfrm.GetPosition() - tfrm.getRotation().rotate(offset);
 			mBounds = Sphere(center, radius);
 		}
 			break;
@@ -213,7 +213,7 @@ namespace bs
 			Light(type, color, intensity, attRadius, 0.0f, castsShadows, spotAngle, spotFalloffAngle);
 		SPtr<Light> handlerPtr = bs_core_ptr<Light>(handler);
 		handlerPtr->_setThisPtr(handlerPtr);
-		handlerPtr->initialize();
+		handlerPtr->Initialize();
 
 		return handlerPtr;
 	}
@@ -244,7 +244,7 @@ namespace bs
 		size += csync_size((SceneActor&)*this);
 		size += csync_size(*this);
 
-		UINT8* buffer = allocator->alloc(size);
+		UINT8* buffer = allocator->Alloc(size);
 
 		Bitstream Stream(buffer, size);
 		rtti_write(getCoreDirtyFlags(), stream);
@@ -283,20 +283,20 @@ namespace bs
 
 	Light::~Light()
 	{
-		gRenderer()->notifyLightRemoved(this);
+		gRenderer()->NotifyLightRemoved(this);
 	}
 
 	void Light::Initialize()
 	{
 		updateBounds();
-		gRenderer()->notifyLightAdded(this);
+		gRenderer()->NotifyLightAdded(this);
 
 		CoreObject::initialize();
 	}
 
 	void Light::SyncToCore(const CoreSyncData& data)
 	{
-		Bitstream Stream(data.getBuffer(), data.getBufferSize());
+		Bitstream Stream(data.GetBuffer(), data.getBufferSize());
 
 		UINT32 dirtyFlags = 0;
 		bool oldIsActive = mActive;
@@ -313,12 +313,12 @@ namespace bs
 			if (oldIsActive != mActive)
 			{
 				if (mActive)
-					gRenderer()->notifyLightAdded(this);
+					gRenderer()->NotifyLightAdded(this);
 				else
 				{
 					LightType newType = mType;
 					mType = oldType;
-					gRenderer()->notifyLightRemoved(this);
+					gRenderer()->NotifyLightRemoved(this);
 					mType = newType;
 				}
 			}
@@ -326,21 +326,21 @@ namespace bs
 			{
 				LightType newType = mType;
 				mType = oldType;
-				gRenderer()->notifyLightRemoved(this);
+				gRenderer()->NotifyLightRemoved(this);
 				mType = newType;
 
-				gRenderer()->notifyLightAdded(this);
+				gRenderer()->NotifyLightAdded(this);
 			}
 		}
 		else If((dirtyFlags & (UINT32)ActorDirtyFlag::Mobility) != 0)
 		{
-			gRenderer()->notifyLightRemoved(this);
-			gRenderer()->notifyLightAdded(this);
+			gRenderer()->NotifyLightRemoved(this);
+			gRenderer()->NotifyLightAdded(this);
 		}
 		else if ((dirtyFlags & (UINT32)ActorDirtyFlag::Transform) != 0)
 		{
 			if (mActive)
-				gRenderer()->notifyLightUpdated(this);
+				gRenderer()->NotifyLightUpdated(this);
 		}
 	}
 }}

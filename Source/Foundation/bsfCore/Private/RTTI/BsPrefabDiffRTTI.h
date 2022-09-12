@@ -124,14 +124,14 @@ namespace bs
 			Stack<SPtr<PrefabObjectDiff>> todo;
 
 			if (prefabDiff->mRoot != nullptr)
-				todo.push(prefabDiff->mRoot);
+				todo.Push(prefabDiff->mRoot);
 
 			UnorderedSet<SPtr<SerializedObject>> handleObjects;
 
-			while (!todo.empty())
+			while (!todo.Empty())
 			{
-				SPtr<PrefabObjectDiff> current = todo.top();
-				todo.pop();
+				SPtr<PrefabObjectDiff> current = todo.Top();
+				todo.Pop();
 
 				for (auto& component : current->addedComponents)
 					findGameObjectHandles(component, handleObjects);
@@ -143,10 +143,10 @@ namespace bs
 					findGameObjectHandles(component->data, handleObjects);
 
 				for (auto& child : current->childDiffs)
-					todo.push(child);
+					todo.Push(child);
 			}
 
-			Vector<SerializedHandle> HandleData(handleObjects.size());
+			Vector<SerializedHandle> HandleData(handleObjects.Size());
 
 			UINT32 idx = 0;
 			for (auto& handleObject : handleObjects)
@@ -154,7 +154,7 @@ namespace bs
 				SerializedHandle& handle = handleData[idx];
 
 				handle.object = handleObject;
-				handle.handle = std::static_pointer_cast<GameObjectHandleBase>(handleObject->decode(context));
+				handle.handle = std::static_pointer_cast<GameObjectHandleBase>(handleObject->Decode(context));
 
 				idx++;
 			}
@@ -189,15 +189,15 @@ namespace bs
 				if (rtti == nullptr)
 					continue;
 
-				if (rtti->getRTTIId() == TID_GameObjectHandleBase)
+				if (rtti->GetRTTIId() == TID_GameObjectHandleBase)
 				{
-					handleObjects.insert(serializedObject);
+					handleObjects.Insert(serializedObject);
 					return;
 				}
 
 				for (auto& child : subObject.entries)
 				{
-					RTTIField* curGenericField = rtti->findField(child.second.fieldId);
+					RTTIField* curGenericField = rtti->FindField(child.second.fieldId);
 					if (curGenericField == nullptr)
 						continue;
 

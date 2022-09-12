@@ -75,7 +75,7 @@ namespace bs
 
 	void Rect2I::Cut(const Rect2I& cutRect, Vector<Rect2I>& pieces)
 	{
-		UINT32 initialPieces = (UINT32)pieces.size();
+		UINT32 initialPieces = (UINT32)pieces.Size();
 
 		// Cut horizontal
 		if (cutRect.x > x && cutRect.x < (x + (INT32)width))
@@ -130,7 +130,7 @@ namespace bs
 		}
 
 		// No cut
-		if (initialPieces == (UINT32)pieces.size())
+		if (initialPieces == (UINT32)pieces.Size())
 		{
 			if (cutRect.x <= x && (cutRect.x + (INT32)cutRect.width) >= (x + (INT32)width) &&
 				cutRect.y <= y && (cutRect.y + (INT32)cutRect.height) >= (y + (INT32)height))
@@ -154,10 +154,10 @@ namespace bs
 			UINT32 currentBufferIdx = bufferIdx;
 
 			bufferIdx = (bufferIdx + 1) % 2;
-			tempPieces[bufferIdx].clear();
+			tempPieces[bufferIdx].Clear();
 
 			for (auto& rect : tempPieces[currentBufferIdx])
-				rect.cut(cutRect, tempPieces[bufferIdx]);
+				rect.Cut(cutRect, tempPieces[bufferIdx]);
 		}
 
 		pieces = tempPieces[bufferIdx];
@@ -172,7 +172,7 @@ namespace bs
 		verts[3] = Vector4((float)x + width, (float)y + height, 0.0f, 1.0f);
 
 		for(UINT32 i = 0; i < 4; i++)
-			verts[i] = matrix.multiply(verts[i]);
+			verts[i] = matrix.Multiply(verts[i]);
 
 		float minX = std::numeric_limits<float>::max();
 		float maxX = std::numeric_limits<float>::min();

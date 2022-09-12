@@ -109,7 +109,7 @@ namespace bs
 				allocBlock();
 
 			mTotalNumElems++;
-			UINT8* output = mFreeBlock->alloc();
+			UINT8* output = mFreeBlock->Alloc();
 
 			return output;
 		}
@@ -125,7 +125,7 @@ namespace bs
 				constexpr UINT32 blockDataSize = ActualElemSize * ElemsPerBlock;
 				if(data >= curBlock->blockData && data < (curBlock->blockData + blockDataSize))
 				{
-					curBlock->dealloc(data);
+					curBlock->Dealloc(data);
 					mTotalNumElems--;
 
 					if(curBlock->freeElems == 0 && curBlock->nextBlock)
@@ -265,7 +265,7 @@ namespace bs
 	template<class T>
 	T* bs_pool_alloc()
 	{
-		return (T*)GlobalPoolAlloc<T>::m.alloc();
+		return (T*)GlobalPoolAlloc<T>::m.Alloc();
 	}
 
 	/** Allocates and constructs a new object of type T using the global pool allocator. */
@@ -282,7 +282,7 @@ namespace bs
 	template<class T>
 	void bs_pool_free(T* ptr)
 	{
-		GlobalPoolAlloc<T>::m.free(ptr);
+		GlobalPoolAlloc<T>::m.Free(ptr);
 	}
 
 	/** Frees and destructs the provided object using its global pool allocator. */

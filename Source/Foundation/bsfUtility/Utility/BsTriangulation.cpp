@@ -11,13 +11,13 @@ namespace bs
 	TetrahedronVolume Triangulation::Tetrahedralize(const Vector<Vector3>& points)
 	{
 		TetrahedronVolume volume;
-		if (points.size() < 4)
+		if (points.Size() < 4)
 			return volume;
 
 		tetgenio input;
-		input.numberofpoints = (int)points.size();
+		input.numberofpoints = (int)points.Size();
 		input.pointlist = new REAL[input.numberofpoints * 3]; // Must be allocated with "new" because TetGen deallocates it using "delete"
-		for(UINT32 i = 0; i < (UINT32)points.size(); ++i)
+		for(UINT32 i = 0; i < (UINT32)points.Size(); ++i)
 		{
 			input.pointlist[i * 3 + 0] = points[i].x;
 			input.pointlist[i * 3 + 1] = points[i].y;
@@ -33,7 +33,7 @@ namespace bs
 		::tetrahedralize(&options, &input, &output);
 
 		UINT32 numTetrahedra = (UINT32)output.numberoftetrahedra;
-		volume.tetrahedra.resize(numTetrahedra);
+		volume.tetrahedra.Resize(numTetrahedra);
 
 		for (UINT32 i = 0; i < numTetrahedra; ++i)
 		{
@@ -54,7 +54,7 @@ namespace bs
 				continue;
 
 			volume.outerFaces.push_back(TetrahedronFace());
-			TetrahedronFace& face = volume.outerFaces.back();
+			TetrahedronFace& face = volume.outerFaces.Back();
 
 			memcpy(face.vertices, &output.trifacelist[i * 3], sizeof(INT32) * 3);
 			face.tetrahedron = tetIdx;

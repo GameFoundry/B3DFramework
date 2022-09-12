@@ -174,7 +174,7 @@ namespace bs
 		float GetLength() const { return mEnd; }
 
 		/** Returns the total number of key-frames in the curve. */
-		UINT32 GetNumKeyFrames() const { return (UINT32)mKeyframes.size(); }
+		UINT32 GetNumKeyFrames() const { return (UINT32)mKeyframes.Size(); }
 
 		/** Returns a keyframe at the specified index. */
 		const TKeyframe<T>& GetKeyFrame(UINT32 idx) const { return mKeyframes[idx]; }

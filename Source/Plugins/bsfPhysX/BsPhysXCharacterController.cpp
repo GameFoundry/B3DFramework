@@ -55,7 +55,7 @@ namespace bs
 		output.nonWalkableMode = toPxEnum(desc.nonWalkableMode);
 		output.contactOffset = desc.contactOffset;
 		output.stepOffset = desc.stepOffset;
-		output.slopeLimit = desc.slopeLimit.valueRadians();
+		output.slopeLimit = desc.slopeLimit.ValueRadians();
 		output.height = desc.height;
 		output.radius = desc.radius;
 		output.upDirection = toPxVector(desc.up);
@@ -69,17 +69,17 @@ namespace bs
 	{
 		PxCapsuleControllerDesc pxDesc = toPxDesc(desc);
 		pxDesc.reportCallback = this;
-		pxDesc.material = gPhysX().getDefaultMaterial();
+		pxDesc.material = gPhysX().GetDefaultMaterial();
 		pxDesc.height = pxDesc.height <= 0 ? 0.01f : pxDesc.height;
 
-		mController = static_cast<PxCapsuleController*>(manager->createController(pxDesc));
-		mController->setUserData(this);
+		mController = static_cast<PxCapsuleController*>(manager->CreateController(pxDesc));
+		mController->SetUserData(this);
 	}
 
 	PhysXCharacterController::~PhysXCharacterController()
 	{
-		mController->setUserData(nullptr);
-		mController->release();
+		mController->SetUserData(nullptr);
+		mController->Release();
 	}
 
 	CharacterCollisionFlags PhysXCharacterController::Move(const Vector3& displacement)
@@ -89,93 +89,93 @@ namespace bs
 		filters.mFilterFlags = PxQueryFlag::eANY_HIT | PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER;
 		filters.mCCTFilterCallback = this;
 
-		float curTime = gTime().getTime();
+		float curTime = gTime().GetTime();
 		float delta = curTime - mLastMoveCall;
 		mLastMoveCall = curTime;
 
-		PxControllerCollisionFlags collisionFlag = mController->move(toPxVector(displacement), mMinMoveDistance, delta, filters);
+		PxControllerCollisionFlags collisionFlag = mController->Move(toPxVector(displacement), mMinMoveDistance, delta, filters);
 
 		CharacterCollisionFlags output;
-		if (collisionFlag.isSet(PxControllerCollisionFlag::eCOLLISION_DOWN))
-			output.set(CharacterCollisionFlag::Down);
+		if (collisionFlag.IsSet(PxControllerCollisionFlag::eCOLLISION_DOWN))
+			output.Set(CharacterCollisionFlag::Down);
 
-		if (collisionFlag.isSet(PxControllerCollisionFlag::eCOLLISION_UP))
-			output.set(CharacterCollisionFlag::Up);
+		if (collisionFlag.IsSet(PxControllerCollisionFlag::eCOLLISION_UP))
+			output.Set(CharacterCollisionFlag::Up);
 
-		if (collisionFlag.isSet(PxControllerCollisionFlag::eCOLLISION_SIDES))
-			output.set(CharacterCollisionFlag::Sides);
+		if (collisionFlag.IsSet(PxControllerCollisionFlag::eCOLLISION_SIDES))
+			output.Set(CharacterCollisionFlag::Sides);
 
 		return output;
 	}
 
 	Vector3 PhysXCharacterController::GetPosition() const
 	{
-		return FromPxExtVector(mController->getPosition());
+		return FromPxExtVector(mController->GetPosition());
 	}
 
 	void PhysXCharacterController::SetPosition(const Vector3& position)
 	{
-		mController->setPosition(toPxExtVector(position));
+		mController->SetPosition(toPxExtVector(position));
 	}
 
 	Vector3 PhysXCharacterController::GetFootPosition() const
 	{
-		return FromPxExtVector(mController->getFootPosition());
+		return FromPxExtVector(mController->GetFootPosition());
 	}
 
 	void PhysXCharacterController::SetFootPosition(const Vector3& position)
 	{
-		mController->setFootPosition(toPxExtVector(position));
+		mController->SetFootPosition(toPxExtVector(position));
 	}
 
 	float PhysXCharacterController::GetRadius() const
 	{
-		return mController->getRadius();
+		return mController->GetRadius();
 	}
 
 	void PhysXCharacterController::SetRadius(float radius)
 	{
-		mController->setRadius(radius);
+		mController->SetRadius(radius);
 	}
 
 	float PhysXCharacterController::GetHeight() const
 	{
-		return mController->getHeight();
+		return mController->GetHeight();
 	}
 
 	void PhysXCharacterController::SetHeight(float height)
 	{
-		mController->setHeight(height);
+		mController->SetHeight(height);
 	}
 
 	Vector3 PhysXCharacterController::GetUp() const
 	{
-		return FromPxVector(mController->getUpDirection());
+		return FromPxVector(mController->GetUpDirection());
 	}
 
 	void PhysXCharacterController::SetUp(const Vector3& up)
 	{
-		mController->setUpDirection(toPxVector(up));
+		mController->SetUpDirection(toPxVector(up));
 	}
 
 	CharacterClimbingMode PhysXCharacterController::GetClimbingMode() const
 	{
-		return FromPxEnum(mController->getClimbingMode());
+		return FromPxEnum(mController->GetClimbingMode());
 	}
 
 	void PhysXCharacterController::SetClimbingMode(CharacterClimbingMode mode)
 	{
-		mController->setClimbingMode(toPxEnum(mode));
+		mController->SetClimbingMode(toPxEnum(mode));
 	}
 
 	CharacterNonWalkableMode PhysXCharacterController::GetNonWalkableMode() const
 	{
-		return FromPxEnum(mController->getNonWalkableMode());
+		return FromPxEnum(mController->GetNonWalkableMode());
 	}
 
 	void PhysXCharacterController::SetNonWalkableMode(CharacterNonWalkableMode mode)
 	{
-		mController->setNonWalkableMode(toPxEnum(mode));
+		mController->SetNonWalkableMode(toPxEnum(mode));
 	}
 
 	float PhysXCharacterController::GetMinMoveDistance() const
@@ -190,37 +190,37 @@ namespace bs
 
 	float PhysXCharacterController::GetContactOffset() const
 	{
-		return mController->getContactOffset();
+		return mController->GetContactOffset();
 	}
 
 	void PhysXCharacterController::SetContactOffset(float value)
 	{
-		mController->setContactOffset(value);
+		mController->SetContactOffset(value);
 	}
 
 	float PhysXCharacterController::GetStepOffset() const
 	{
-		return mController->getStepOffset();
+		return mController->GetStepOffset();
 	}
 
 	void PhysXCharacterController::SetStepOffset(float value)
 	{
-		mController->setStepOffset(value);
+		mController->SetStepOffset(value);
 	}
 
 	Radian PhysXCharacterController::GetSlopeLimit() const
 	{
-		return Radian(mController->getSlopeLimit());
+		return Radian(mController->GetSlopeLimit());
 	}
 
 	void PhysXCharacterController::SetSlopeLimit(Radian value)
 	{
-		mController->setSlopeLimit(value.valueRadians());
+		mController->SetSlopeLimit(value.ValueRadians());
 	}
 
 	void PhysXCharacterController::OnShapeHit(const PxControllerShapeHit& hit)
 	{
-		if (onColliderHit.empty())
+		if (onColliderHit.Empty())
 			return;
 
 		ControllerColliderCollision collision;
@@ -236,7 +236,7 @@ namespace bs
 
 	void PhysXCharacterController::OnControllerHit(const PxControllersHit& hit)
 	{
-		if (CharacterController::onControllerHit.empty())
+		if (CharacterController::onControllerHit.Empty())
 			return;
 
 		ControllerControllerCollision collision;
@@ -244,7 +244,7 @@ namespace bs
 		collision.normal = fromPxVector(hit.worldNormal);
 		collision.motionDir = fromPxVector(hit.dir);
 		collision.motionAmount = hit.length;
-		collision.controllerRaw = (CharacterController*)hit.controller->getUserData();
+		collision.controllerRaw = (CharacterController*)hit.controller->GetUserData();
 
 		CharacterController::onControllerHit(collision);
 	}
@@ -252,10 +252,10 @@ namespace bs
 	PxQueryHitType::Enum PhysXCharacterController::preFilter(const PxFilterData& filterData, const PxShape* shape,
 		const PxRigidActor* actor, PxHitFlags& queryFlags)
 	{
-		PxFilterData colliderFilterData = shape->getSimulationFilterData();
+		PxFilterData colliderFilterData = shape->GetSimulationFilterData();
 		UINT64 colliderLayer = *(UINT64*)&colliderFilterData.word0;
 
-		bool canCollide = gPhysics().isCollisionEnabled(colliderLayer, getLayer());
+		bool canCollide = gPhysics().IsCollisionEnabled(colliderLayer, getLayer());
 
 		if(canCollide)
 			return PxSceneQueryHitType::eBLOCK;
@@ -271,10 +271,10 @@ namespace bs
 
 	bool PhysXCharacterController::Filter(const PxController& a, const PxController& b)
 	{
-		CharacterController* controllerA = (CharacterController*)a.getUserData();
-		CharacterController* controllerB = (CharacterController*)b.getUserData();
+		CharacterController* controllerA = (CharacterController*)a.GetUserData();
+		CharacterController* controllerB = (CharacterController*)b.GetUserData();
 
-		bool canCollide = gPhysics().isCollisionEnabled(controllerA->getLayer(), controllerB->getLayer());
+		bool canCollide = gPhysics().IsCollisionEnabled(controllerA->GetLayer(), controllerB->getLayer());
 		return canCollide;
 	}
 }

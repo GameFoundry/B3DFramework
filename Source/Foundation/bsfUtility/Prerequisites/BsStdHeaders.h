@@ -258,37 +258,37 @@ namespace bs
 	template<typename L_T, typename R_T>
 	constexpr bool operator< (const NPtr<L_T>& lhs, const NPtr<R_T>& rhs)
 	{
-		 return lhs.get() < rhs.get();
+		 return lhs.Get() < rhs.get();
 	}
 
 	template<typename L_T, typename R_T>
 	constexpr bool operator> (const NPtr<L_T>& lhs, const NPtr<R_T>& rhs)
 	{
-		 return lhs.get() > rhs.get();
+		 return lhs.Get() > rhs.get();
 	}
 
 	template<typename L_T, typename R_T>
 	constexpr bool operator<= (const NPtr<L_T>& lhs, const NPtr<R_T>& rhs)
 	{
-		 return lhs.get() <= rhs.get();
+		 return lhs.Get() <= rhs.get();
 	}
 
 	template<typename L_T, typename R_T>
 	constexpr bool operator>= (const NPtr<L_T>& lhs, const NPtr<R_T>& rhs)
 	{
-		 return lhs.get() >= rhs.get();
+		 return lhs.Get() >= rhs.get();
 	}
 
 	template<typename L_T, typename R_T>
 	constexpr bool operator== (const NPtr<L_T>& lhs, const NPtr<R_T>& rhs)
 	{
-		 return lhs.get() == rhs.get();
+		 return lhs.Get() == rhs.get();
 	}
 
 	template<typename L_T, typename R_T>
 	constexpr bool operator!= (const NPtr<L_T>& lhs, const NPtr<R_T>& rhs)
 	{
-		 return lhs.get() != rhs.get();
+		 return lhs.Get() != rhs.get();
 	}
 
 	/** @} */

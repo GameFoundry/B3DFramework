@@ -40,7 +40,7 @@ namespace bs
 	{
 		const bool processed = GUIButtonBase::_commandEvent(ev);
 
-		if(ev.getType() == GUICommandEventType::Confirm)
+		if(ev.GetType() == GUICommandEventType::Confirm)
 		{
 			if(!_isDisabled())
 			{

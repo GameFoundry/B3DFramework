@@ -405,14 +405,14 @@ namespace bs
 			 */
 			bool MoveNext()
 			{
-				if(mNodeStack.empty())
+				if(mNodeStack.Empty())
 				{
 					mCurrentNode = HNode();
 					return false;
 				}
 
-				mCurrentNode = mNodeStack.back();
-				mNodeStack.erase(mNodeStack.end() - 1);
+				mCurrentNode = mNodeStack.Back();
+				mNodeStack.Erase(mNodeStack.end() - 1);
 
 				return true;
 			}
@@ -420,8 +420,8 @@ namespace bs
 			/** Inserts a child of the current node to be iterated over. */
 			void PushChild(const HChildNode& child)
 			{
-				Node* childNode = mCurrentNode.getNode()->getChild(child);
-				NodeBounds childBounds = mCurrentNode.getBounds().getChild(child);
+				Node* childNode = mCurrentNode.GetNode()->GetChild(child);
+				NodeBounds childBounds = mCurrentNode.GetBounds().getChild(child);
 
 				mNodeStack.emplace_back(childNode, childBounds);
 			}
@@ -511,7 +511,7 @@ namespace bs
 			 */
 			const ElemType& GetElement() const
 			{
-				return mElemIter.getCurrentElem();
+				return mElemIter.GetCurrentElem();
 			}
 
 			/**
@@ -524,26 +524,26 @@ namespace bs
 				while(true)
 				{
 					// First check elements of the current node (if any)
-					while (mElemIter.moveNext())
+					while (mElemIter.MoveNext())
 					{
-						const simd::AABox& bounds = mElemIter.getCurrentBounds();
-						if (bounds.intersects(mBounds))
+						const simd::AABox& bounds = mElemIter.GetCurrentBounds();
+						if (bounds.Intersects(mBounds))
 							return true;
 					}
 
 					// No more elements in this node, move to the next one
-					if(!mNodeIter.moveNext())
+					if(!mNodeIter.MoveNext())
 						return false; // No more nodes to check
 
-					const HNode& nodeRef = mNodeIter.getCurrent();
-					mElemIter = ElementIterator(nodeRef.getNode());
+					const HNode& nodeRef = mNodeIter.GetCurrent();
+					mElemIter = ElementIterator(nodeRef.GetNode());
 
 					// Add all intersecting child nodes to the iterator
-					NodeChildRange childRange = nodeRef.getBounds().findIntersectingChildren(mBounds);
+					NodeChildRange childRange = nodeRef.GetBounds().findIntersectingChildren(mBounds);
 					for(UINT32 i = 0; i < 8; i++)
 					{
-						if(childRange.contains(i) && nodeRef.getNode()->hasChild(i))
-							mNodeIter.pushChild(i);
+						if(childRange.Contains(i) && nodeRef.getNode()->HasChild(i))
+							mNodeIter.PushChild(i);
 					}
 				}
 
@@ -608,24 +608,24 @@ namespace bs
 				bs_frame_mark();
 				{
 					FrameStack<Node*> todo;
-					todo.push(node);
+					todo.Push(node);
 
-					while(!todo.empty())
+					while(!todo.Empty())
 					{
-						Node* curNode = todo.top();
-						todo.pop();
+						Node* curNode = todo.Top();
+						todo.Pop();
 
 						for(UINT32 i = 0; i < 8; i++)
 						{
-							if(curNode->hasChild(i))
+							if(curNode->HasChild(i))
 							{
-								Node* childNode = curNode->getChild(i);
+								Node* childNode = curNode->GetChild(i);
 
 								ElementIterator ElemIter(childNode);
-								while(elemIter.moveNext())
-									pushElement(node, elemIter.getCurrentElem(), elemIter.getCurrentBounds());
+								while(elemIter.MoveNext())
+									pushElement(node, elemIter.GetCurrentElem(), elemIter.getCurrentBounds());
 
-								todo.push(childNode);
+								todo.Push(childNode);
 							}
 						}
 					}
@@ -641,7 +641,7 @@ namespace bs
 					{
 						destroyNode(node->mChildren[i]);
 
-						mNodeAlloc.destruct(node->mChildren[i]);
+						mNodeAlloc.Destruct(node->mChildren[i]);
 						node->mChildren[i] = nullptr;
 					}
 				}
@@ -657,7 +657,7 @@ namespace bs
 			++node->mTotalNumElements;
 			if (node->mIsLeaf)
 			{
-				const simd::AABox& bounds = nodeBounds.getBounds();
+				const simd::AABox& bounds = nodeBounds.GetBounds();
 
 				// Check if the node has too many elements and should be broken up
 				if ((node->mElements.count + 1) > Options::MaxElementsPerNode && bounds.extents.x > mMinNodeExtent)
@@ -673,8 +673,8 @@ namespace bs
 					node->mTotalNumElements = 0;
 
 					// Re-insert all previous elements into this node (likely creating child nodes)
-					while(elemIter.moveNext())
-						addElementToNode(elemIter.getCurrentElem(), node, nodeBounds);
+					while(elemIter.MoveNext())
+						addElementToNode(elemIter.GetCurrentElem(), node, nodeBounds);
 
 					// Free the element and bound groups from this node
 					freeElements(elements);
@@ -691,7 +691,7 @@ namespace bs
 			else
 			{
 				// Attempt to find a child the element fits into
-				HChildNode child = nodeBounds.findContainingChild(elemBounds);
+				HChildNode child = nodeBounds.FindContainingChild(elemBounds);
 
 				if (child.empty)
 				{
@@ -704,7 +704,7 @@ namespace bs
 					if (!node->mChildren[child.index])
 						node->mChildren[child.index] = mNodeAlloc.template construct<Node>(node);
 
-					addElementToNode(elem, node->mChildren[child.index], nodeBounds.getChild(child));
+					addElementToNode(elem, node->mChildren[child.index], nodeBounds.GetChild(child));
 				}
 			}
 		}
@@ -719,7 +719,7 @@ namespace bs
 				if (entry != nullptr)
 				{
 					destroyNode(entry);
-					mNodeAlloc.destruct(entry);
+					mNodeAlloc.Destruct(entry);
 				}
 			}
 		}
@@ -758,11 +758,11 @@ namespace bs
 
 			ElementGroup* elemGroup;
 			ElementBoundGroup* boundGroup;
-			elementIdx = node->mapToGroup(elementIdx, &elemGroup, &boundGroup);
+			elementIdx = node->MapToGroup(elementIdx, &elemGroup, &boundGroup);
 
 			ElementGroup* lastElemGroup;
 			ElementBoundGroup* lastBoundGroup;
-			UINT32 lastElementIdx = node->mapToGroup(elements.count - 1, &lastElemGroup, &lastBoundGroup);
+			UINT32 lastElementIdx = node->MapToGroup(elements.count - 1, &lastElemGroup, &lastBoundGroup);
 
 			if(elements.count > 1)
 			{
@@ -777,8 +777,8 @@ namespace bs
 				elements.values = lastElemGroup->next;
 				elements.bounds = lastBoundGroup->next;
 
-				mElemAlloc.destruct(lastElemGroup);
-				mElemBoundsAlloc.destruct(lastBoundGroup);
+				mElemAlloc.Destruct(lastElemGroup);
+				mElemBoundsAlloc.Destruct(lastBoundGroup);
 			}
 			
 			--elements.count;
@@ -794,7 +794,7 @@ namespace bs
 				ElementGroup* toDelete = curElemGroup;
 				curElemGroup = curElemGroup->next;
 
-				mElemAlloc.destruct(toDelete);
+				mElemAlloc.Destruct(toDelete);
 			}
 
 			ElementBoundGroup* curBoundGroup = elements.bounds;
@@ -803,7 +803,7 @@ namespace bs
 				ElementBoundGroup* toDelete = curBoundGroup;
 				curBoundGroup = curBoundGroup->next;
 
-				mElemBoundsAlloc.destruct(toDelete);
+				mElemBoundsAlloc.Destruct(toDelete);
 			}
 
 			elements.values = nullptr;

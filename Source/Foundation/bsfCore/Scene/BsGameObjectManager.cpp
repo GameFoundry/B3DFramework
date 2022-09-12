@@ -14,8 +14,8 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		const auto iterFind = mObjects.find(id);
-		if (iterFind != mObjects.end())
+		const auto iterFind = mObjects.Find(id);
+		if (iterFind != mObjects.End())
 			return iterFind->second;
 
 		return nullptr;
@@ -25,8 +25,8 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		const auto iterFind = mObjects.find(id);
-		if (iterFind != mObjects.end())
+		const auto iterFind = mObjects.Find(id);
+		if (iterFind != mObjects.End())
 		{
 			object = iterFind->second;
 			return true;
@@ -39,7 +39,7 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		return mObjects.find(id) != mObjects.end();
+		return mObjects.Find(id) != mObjects.end();
 	}
 
 	void GameObjectManager::RemapId(UINT64 oldId, UINT64 newId)
@@ -49,7 +49,7 @@ namespace bs
 
 		Lock Lock(mMutex);
 		mObjects[newId] = mObjects[oldId];
-		mObjects.erase(oldId);
+		mObjects.Erase(oldId);
 	}
 
 	UINT64 GameObjectManager::ReserveId()
@@ -59,25 +59,25 @@ namespace bs
 
 	void GameObjectManager::QueueForDestroy(const GameObjectHandleBase& object)
 	{
-		if (object.isDestroyed())
+		if (object.IsDestroyed())
 			return;
 
-		const UINT64 instanceId = object->getInstanceId();
+		const UINT64 instanceId = object->GetInstanceId();
 		mQueuedForDestroy[instanceId] = object;
 	}
 
 	void GameObjectManager::DestroyQueuedObjects()
 	{
 		for (auto& objPair : mQueuedForDestroy)
-			objPair.second->destroyInternal(objPair.second, true);
+			objPair.second->DestroyInternal(objPair.second, true);
 
-		mQueuedForDestroy.clear();
+		mQueuedForDestroy.Clear();
 	}
 
 	GameObjectHandleBase GameObjectManager::RegisterObject(const SPtr<GameObject>& object)
 	{
 		const UINT64 id = mNextAvailableID.fetch_add(1, std::memory_order_relaxed);
-		object->initialize(object, id);
+		object->Initialize(object, id);
 
 		GameObjectHandleBase Handle(object);
 		{
@@ -92,11 +92,11 @@ namespace bs
 	{
 		{
 			Lock Lock(mMutex);
-			mObjects.erase(object->getInstanceId());
+			mObjects.Erase(object->GetInstanceId());
 		}
 
 		onDestroyed(static_object_cast<GameObject>(object));
-		object.destroy();
+		object.Destroy();
 	}
 
 	GameObjectDeserializationState::GameObjectDeserializationState(UINT32 options)
@@ -105,8 +105,8 @@ namespace bs
 
 	GameObjectDeserializationState::~GameObjectDeserializationState()
 	{
-		BS_ASSERT(mUnresolvedHandles.empty() && "Deserialization state being destroyed before all handles are resolved.");
-		BS_ASSERT(mDeserializedObjects.empty() && "Deserialization state being destroyed before all objects are resolved.");
+		BS_ASSERT(mUnresolvedHandles.Empty() && "Deserialization state being destroyed before all handles are resolved.");
+		BS_ASSERT(mDeserializedObjects.Empty() && "Deserialization state being destroyed before all objects are resolved.");
 	}
 
 	void GameObjectDeserializationState::Resolve()
@@ -117,8 +117,8 @@ namespace bs
 
 			bool isInternalReference = false;
 
-			const auto findIter = mIdMapping.find(instanceId);
-			if (findIter != mIdMapping.end())
+			const auto findIter = mIdMapping.Find(instanceId);
+			if (findIter != mIdMapping.End())
 			{
 				if ((mOptions & GODM_UseNewIds) != 0)
 					instanceId = findIter->second;
@@ -128,9 +128,9 @@ namespace bs
 
 			if (isInternalReference)
 			{
-				const auto findIterObj = mDeserializedObjects.find(instanceId);
+				const auto findIterObj = mDeserializedObjects.Find(instanceId);
 
-				if (findIterObj != mDeserializedObjects.end())
+				if (findIterObj != mDeserializedObjects.End())
 					entry.handle._resolve(findIterObj->second);
 				else
 				{
@@ -141,7 +141,7 @@ namespace bs
 			else if (!isInternalReference && (mOptions & GODM_RestoreExternal) != 0)
 			{
 				HGameObject obj;
-				if(GameObjectManager::instance().tryGetObject(instanceId, obj))
+				if(GameObjectManager::instance().TryGetObject(instanceId, obj))
 					entry.handle._resolve(obj);
 				else
 				{
@@ -156,16 +156,16 @@ namespace bs
 			}
 		}
 
-		for (auto iter = mEndCallbacks.rbegin(); iter != mEndCallbacks.rend(); ++iter)
+		for (auto iter = mEndCallbacks.Rbegin(); iter != mEndCallbacks.rend(); ++iter)
 		{
 			(*iter)();
 		}
 
-		mIdMapping.clear();
-		mUnresolvedHandles.clear();
-		mEndCallbacks.clear();
-		mUnresolvedHandleData.clear();
-		mDeserializedObjects.clear();
+		mIdMapping.Clear();
+		mUnresolvedHandles.Clear();
+		mEndCallbacks.Clear();
+		mUnresolvedHandleData.Clear();
+		mDeserializedObjects.Clear();
 	}
 
 	void GameObjectDeserializationState::RegisterUnresolvedHandle(UINT64 originalId, GameObjectHandleBase& object)
@@ -179,11 +179,11 @@ namespace bs
 		bool foundHandleData = false;
 
 		// Search object that are currently being deserialized
-		const auto iterFind = mIdMapping.find(originalId);
-		if (iterFind != mIdMapping.end())
+		const auto iterFind = mIdMapping.Find(originalId);
+		if (iterFind != mIdMapping.End())
 		{
-			const auto iterFind2 = mDeserializedObjects.find(iterFind->second);
-			if (iterFind2 != mDeserializedObjects.end())
+			const auto iterFind2 = mDeserializedObjects.Find(iterFind->second);
+			if (iterFind2 != mDeserializedObjects.End())
 			{
 				object.mData = iterFind2->second.mData;
 				foundHandleData = true;
@@ -193,8 +193,8 @@ namespace bs
 		// Search previously deserialized handles
 		if (!foundHandleData)
 		{
-			auto iterFind = mUnresolvedHandleData.find(originalId);
-			if (iterFind != mUnresolvedHandleData.end())
+			auto iterFind = mUnresolvedHandleData.Find(originalId);
+			if (iterFind != mUnresolvedHandleData.End())
 			{
 				object.mData = iterFind->second;
 				foundHandleData = true;
@@ -212,16 +212,16 @@ namespace bs
 	{
 		assert(originalId != 0 && "Invalid game object ID.");
 
-		const auto iterFind = mUnresolvedHandleData.find(originalId);
-		if (iterFind != mUnresolvedHandleData.end())
+		const auto iterFind = mUnresolvedHandleData.Find(originalId);
+		if (iterFind != mUnresolvedHandleData.End())
 		{
-			SPtr<GameObject> ptr = object.getInternalPtr();
+			SPtr<GameObject> ptr = object.GetInternalPtr();
 
 			object.mData = iterFind->second;
 			object._setHandleData(ptr);
 		}
 
-		const UINT64 newId = object->getInstanceId();
+		const UINT64 newId = object->GetInstanceId();
 		mIdMapping[originalId] = newId;
 		mDeserializedObjects[newId] = object;
 	}

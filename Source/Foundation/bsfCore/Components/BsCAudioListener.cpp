@@ -46,7 +46,7 @@ namespace bs
 
 	void CAudioListener::OnTransformChanged(TransformChangedFlags flags)
 	{
-		if (!SO()->getActive())
+		if (!SO()->GetActive())
 			return;
 
 		if ((flags & (TCF_Parent | TCF_Transform)) != 0)
@@ -55,9 +55,9 @@ namespace bs
 
 	void CAudioListener::Update()
 	{
-		const Vector3 worldPos = SO()->getTransform().getPosition();
+		const Vector3 worldPos = SO()->GetTransform().GetPosition();
 
-		const float frameDelta = gTime().getFrameDelta();
+		const float frameDelta = gTime().GetFrameDelta();
 		if(frameDelta > 0.0f)
 			mVelocity = (worldPos - mLastPosition) / frameDelta;
 		else
@@ -82,10 +82,10 @@ namespace bs
 	
 	void CAudioListener::UpdateTransform()
 	{
-		const Transform& tfrm = SO()->getTransform();
+		const Transform& tfrm = SO()->GetTransform();
 
-		mInternal->setTransform(tfrm);
-		mInternal->setVelocity(mVelocity);
+		mInternal->SetTransform(tfrm);
+		mInternal->SetVelocity(mVelocity);
 	}
 	
 	RTTITypeBase* CAudioListener::getRTTIStatic()

@@ -48,7 +48,7 @@ namespace bs { namespace ct
 #endif
 		
 		mFence = bs_shared_ptr_new<D3D11EventQuery>(mDeviceIdx);
-		mFence->begin();
+		mFence->Begin();
 		mIsSubmitted = true;
 	}
 
@@ -68,6 +68,6 @@ namespace bs { namespace ct
 
 	bool D3D11CommandBuffer::IsComplete() const
 	{
-		return mFence && mFence->isReady();
+		return mFence && mFence->IsReady();
 	}
 }}

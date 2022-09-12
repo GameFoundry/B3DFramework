@@ -90,7 +90,7 @@ namespace bs
 			
 			UINT8* data;
 			if (amount > freeMem)
-				data = mDynamicAlloc.alloc(amount);
+				data = mDynamicAlloc.Alloc(amount);
 			else
 			{
 				data = &mStaticData[mFreePtr];
@@ -129,7 +129,7 @@ namespace bs
 					mFreePtr -= allocSize;
 			}
 			else
-				mDynamicAlloc.free(dataPtr);
+				mDynamicAlloc.Free(dataPtr);
 		}
 
 		/** Deallocates a previously allocated piece of memory. */
@@ -146,7 +146,7 @@ namespace bs
 			mTotalAllocBytes -= *storedSize;
 #endif
 			if(data < mStaticData || data >= (mStaticData + BlockSize))
-				mDynamicAlloc.free(dataPtr);
+				mDynamicAlloc.Free(dataPtr);
 		}
 
 		/**
@@ -202,7 +202,7 @@ namespace bs
 			assert(mTotalAllocBytes == 0);
 
 			mFreePtr = 0;
-			mDynamicAlloc.clear();
+			mDynamicAlloc.Clear();
 		}
 
 	private:
@@ -247,7 +247,7 @@ namespace bs
 			if (num > static_cast<size_t>(-1) / sizeof(T))
 				return nullptr; // Error
 
-			void* const pv = mStaticAlloc->alloc((UINT32)(num * sizeof(T)));
+			void* const pv = mStaticAlloc->Alloc((UINT32)(num * sizeof(T)));
 			if (!pv)
 				return nullptr; // Error
 
@@ -257,7 +257,7 @@ namespace bs
 		/** Deallocate storage p of deleted elements. */
 		void Deallocate(T* p, size_t num) const noexcept
 		{
-			mStaticAlloc->free((UINT8*)p, (UINT32)num);
+			mStaticAlloc->Free((UINT8*)p, (UINT32)num);
 		}
 
 		StaticAlloc<BlockSize, FreeAlloc>* mStaticAlloc = nullptr;

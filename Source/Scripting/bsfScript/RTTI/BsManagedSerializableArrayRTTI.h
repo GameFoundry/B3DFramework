@@ -53,27 +53,27 @@ namespace bs
 
 		UINT32 GetNumElementsNumEntries(ManagedSerializableArray* obj)
 		{
-			return (UINT32)obj->mNumElements.size();
+			return (UINT32)obj->mNumElements.Size();
 		}
 
 		void SetNumElementsNumEntries(ManagedSerializableArray* obj, UINT32 numEntries)
 		{
-			obj->mNumElements.resize(numEntries);
+			obj->mNumElements.Resize(numEntries);
 		}
 
 		SPtr<ManagedSerializableFieldData> GetArrayEntry(ManagedSerializableArray* obj, UINT32 arrayIdx)
 		{
-			return obj->getFieldData(arrayIdx);
+			return obj->GetFieldData(arrayIdx);
 		}
 
 		void SetArrayEntry(ManagedSerializableArray* obj, UINT32 arrayIdx, SPtr<ManagedSerializableFieldData> val)
 		{
-			obj->setFieldData(arrayIdx, val);
+			obj->SetFieldData(arrayIdx, val);
 		}
 
 		UINT32 GetNumArrayEntries(ManagedSerializableArray* obj)
 		{
-			return obj->getTotalLength();
+			return obj->GetTotalLength();
 		}
 
 		void SetNumArrayEntries(ManagedSerializableArray* obj, UINT32 numEntries)

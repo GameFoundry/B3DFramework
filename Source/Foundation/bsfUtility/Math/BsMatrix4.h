@@ -353,11 +353,11 @@ namespace bs
 			Vector4 localPoint = localNormal * p.d;
 			localPoint.w = 1.0f;
 
-			Matrix4 itMat = inverse().transpose();
-			Vector4 worldNormal = itMat.multiplyAffine(localNormal);
+			Matrix4 itMat = inverse().Transpose();
+			Vector4 worldNormal = itMat.MultiplyAffine(localNormal);
 			Vector4 worldPoint = multiplyAffine(localPoint);
 
-			float d = worldNormal.dot(worldPoint);
+			float d = worldNormal.Dot(worldPoint);
 
 			return Plane(worldNormal.x, worldNormal.y, worldNormal.z, d);
 		}

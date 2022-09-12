@@ -46,10 +46,10 @@ namespace bs { namespace ct
 	{
 		Lock Lock(mMutex);
 
-		while (mVertexInputMap.begin() != mVertexInputMap.end())
+		while (mVertexInputMap.Begin() != mVertexInputMap.end())
 		{
-			auto firstElem = mVertexInputMap.begin();
-			mVertexInputMap.erase(firstElem);
+			auto firstElem = mVertexInputMap.Begin();
+			mVertexInputMap.Erase(firstElem);
 		}
 	}
 
@@ -59,18 +59,18 @@ namespace bs { namespace ct
 		Lock Lock(mMutex);
 
 		VertexDeclarationKey pair;
-		pair.bufferDeclId = vbDecl->getId();
-		pair.shaderDeclId = shaderDecl->getId();
+		pair.bufferDeclId = vbDecl->GetId();
+		pair.shaderDeclId = shaderDecl->GetId();
 
-		auto iterFind = mVertexInputMap.find(pair);
-		if (iterFind == mVertexInputMap.end())
+		auto iterFind = mVertexInputMap.Find(pair);
+		if (iterFind == mVertexInputMap.End())
 		{
-			if (mVertexInputMap.size() >= DECLARATION_BUFFER_SIZE)
+			if (mVertexInputMap.Size() >= DECLARATION_BUFFER_SIZE)
 				removeLeastUsed(); // Prune so the buffer doesn't just infinitely grow
 
 			addNew(vbDecl, shaderDecl);
 
-			iterFind = mVertexInputMap.find(pair);
+			iterFind = mVertexInputMap.Find(pair);
 		}
 
 		iterFind->second.lastUsedIdx = ++mLastUsedCounter;
@@ -80,8 +80,8 @@ namespace bs { namespace ct
 	void VulkanVertexInputManager::addNew(const SPtr<VertexDeclaration>& vbDecl,
 		const SPtr<VertexDeclaration>& shaderInputDecl)
 	{
-		const Vector<VertexElement>& vbElements = vbDecl->getProperties().getElements();
-		const Vector<VertexElement>& inputElements = shaderInputDecl->getProperties().getElements();
+		const Vector<VertexElement>& vbElements = vbDecl->GetProperties().GetElements();
+		const Vector<VertexElement>& inputElements = shaderInputDecl->GetProperties().GetElements();
 
 		UINT32 numAttributes = 0;
 		UINT32 numBindings = 0;
@@ -91,7 +91,7 @@ namespace bs { namespace ct
 			bool foundSemantic = false;
 			for (auto& inputElem : inputElements)
 			{
-				if (inputElem.getSemantic() == vbElem.getSemantic() && inputElem.getSemanticIdx() == vbElem.getSemanticIdx())
+				if (inputElem.GetSemantic() == vbElem.getSemantic() && inputElem.getSemanticIdx() == vbElem.getSemanticIdx())
 				{
 					foundSemantic = true;
 					break;
@@ -102,7 +102,7 @@ namespace bs { namespace ct
 				continue;
 
 			numAttributes++;
-			numBindings = std::max(numBindings, (UINT32)vbElem.getStreamIdx() + 1);
+			numBindings = std::max(numBindings, (UINT32)vbElem.GetStreamIdx() + 1);
 		}
 
 		VertexInputEntry newEntry;
@@ -110,7 +110,7 @@ namespace bs { namespace ct
 
 		alloc.reserve<VkVertexInputAttributeDescription>(numAttributes)
 			 .reserve<VkVertexInputBindingDescription>(numBindings)
-			 .init();
+			 .Init();
 
 		newEntry.attributes = alloc.alloc<VkVertexInputAttributeDescription>(numAttributes);
 		newEntry.bindings = alloc.alloc<VkVertexInputBindingDescription>(numBindings);
@@ -120,7 +120,7 @@ namespace bs { namespace ct
 			VkVertexInputBindingDescription& binding = newEntry.bindings[i];
 			binding.binding = i;
 			binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-			binding.stride = vbDecl->getProperties().getVertexSize(i);
+			binding.stride = vbDecl->GetProperties().GetVertexSize(i);
 		}
 
 		UINT32 attribIdx = 0;
@@ -132,10 +132,10 @@ namespace bs { namespace ct
 			bool foundSemantic = false;
 			for (auto& inputElem : inputElements)
 			{
-				if (inputElem.getSemantic() == vbElem.getSemantic() && inputElem.getSemanticIdx() == vbElem.getSemanticIdx())
+				if (inputElem.GetSemantic() == vbElem.getSemantic() && inputElem.getSemanticIdx() == vbElem.getSemanticIdx())
 				{
 					foundSemantic = true;
-					attribute.location = inputElem.getOffset();
+					attribute.location = inputElem.GetOffset();
 					break;
 				}
 			}
@@ -143,13 +143,13 @@ namespace bs { namespace ct
 			if (!foundSemantic) // Shader needs to have a matching input attribute, otherwise we skip it
 				continue;
 
-			attribute.binding = vbElem.getStreamIdx();
-			attribute.format = VulkanUtility::getVertexType(vbElem.getType());
-			attribute.offset = vbElem.getOffset();
+			attribute.binding = vbElem.GetStreamIdx();
+			attribute.format = VulkanUtility::getVertexType(vbElem.GetType());
+			attribute.offset = vbElem.GetOffset();
 
 			VkVertexInputBindingDescription& binding = newEntry.bindings[attribute.binding];
 
-			bool isPerVertex = vbElem.getInstanceStepRate() == 0;
+			bool isPerVertex = vbElem.GetInstanceStepRate() == 0;
 			if (isFirstInBinding)
 			{
 				binding.inputRate = isPerVertex ? VK_VERTEX_INPUT_RATE_VERTEX : VK_VERTEX_INPUT_RATE_INSTANCE;
@@ -182,8 +182,8 @@ namespace bs { namespace ct
 
 		// Create key and add to the layout map
 		VertexDeclarationKey pair;
-		pair.bufferDeclId = vbDecl->getId();
-		pair.shaderDeclId = shaderInputDecl->getId();
+		pair.bufferDeclId = vbDecl->GetId();
+		pair.shaderDeclId = shaderInputDecl->GetId();
 
 		newEntry.vertexInput = bs_shared_ptr_new<VulkanVertexInput>(mNextId++, vertexInputCI);
 		newEntry.lastUsedIdx = ++mLastUsedCounter;
@@ -207,14 +207,14 @@ namespace bs { namespace ct
 
 		Map<UINT32, VertexDeclarationKey> leastFrequentlyUsedMap;
 
-		for (auto iter = mVertexInputMap.begin(); iter != mVertexInputMap.end(); ++iter)
+		for (auto iter = mVertexInputMap.Begin(); iter != mVertexInputMap.end(); ++iter)
 			leastFrequentlyUsedMap[iter->second.lastUsedIdx] = iter->first;
 
 		UINT32 elemsRemoved = 0;
-		for (auto iter = leastFrequentlyUsedMap.begin(); iter != leastFrequentlyUsedMap.end(); ++iter)
+		for (auto iter = leastFrequentlyUsedMap.Begin(); iter != leastFrequentlyUsedMap.end(); ++iter)
 		{
-			auto inputLayoutIter = mVertexInputMap.find(iter->second);
-			mVertexInputMap.erase(inputLayoutIter);
+			auto inputLayoutIter = mVertexInputMap.Find(iter->second);
+			mVertexInputMap.Erase(inputLayoutIter);
 
 			elemsRemoved++;
 			if (elemsRemoved >= NUM_ELEMENTS_TO_PRUNE)

@@ -99,7 +99,7 @@ namespace bs { namespace ct
 
 	void LinuxContext::SetCurrent(const RenderWindow& window)
 	{
-		window.getCustomAttribute("WINDOW", &mCurrentWindow);
+		window.GetCustomAttribute("WINDOW", &mCurrentWindow);
 
 		LinuxPlatform::lockX();
 		glXMakeCurrent(mDisplay, mCurrentWindow, mContext);

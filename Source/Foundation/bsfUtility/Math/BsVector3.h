@@ -250,13 +250,13 @@ namespace bs
 		/**	Returns the distance to another vector. */
 		float Distance(const Vector3& rhs) const
 		{
-			return (*this - rhs).length();
+			return (*this - rhs).Length();
 		}
 
 		/** Returns the square of the distance to another vector. */
 		float SquaredDistance(const Vector3& rhs) const
 		{
-			return (*this - rhs).squaredLength();
+			return (*this - rhs).SquaredLength();
 		}
 
 		/** Calculates the dot (scalar) product of this vector with another. */
@@ -309,12 +309,12 @@ namespace bs
 		{
 			static const float squareZero = (float)(1e-06 * 1e-06);
 
-			Vector3 perp = this->cross(Vector3::UNIT_X);
+			Vector3 perp = this->Cross(Vector3::UNIT_X);
 
-			if (perp.squaredLength() < squareZero)
-				perp = this->cross(Vector3::UNIT_Y);
+			if (perp.SquaredLength() < squareZero)
+				perp = this->Cross(Vector3::UNIT_Y);
 
-			perp.normalize();
+			perp.Normalize();
 			return perp;
 		}
 
@@ -331,7 +331,7 @@ namespace bs
 		/** Calculates a reflection vector to the plane with the given normal. */
 		Vector3 Reflect(const Vector3& normal) const
 		{
-			return Vector3(*this - (2 * this->dot(normal) * normal));
+			return Vector3(*this - (2 * this->Dot(normal) * normal));
 		}
 
 		/** Calculates two vectors orthonormal to the current vector, and normalizes the current vector if not already. */
@@ -350,16 +350,16 @@ namespace bs
 		/** Performs Gram-Schmidt orthonormalization. */
 		static void Orthonormalize(Vector3& vec0, Vector3& vec1, Vector3& vec2)
 		{
-			vec0.normalize();
+			vec0.Normalize();
 
-			float dot0 = vec0.dot(vec1);
+			float dot0 = vec0.Dot(vec1);
 			vec1 -= dot0*vec0;
-			vec1.normalize();
+			vec1.Normalize();
 
-			float dot1 = vec1.dot(vec2);
-			dot0 = vec0.dot(vec2);
+			float dot1 = vec1.Dot(vec2);
+			dot0 = vec0.Dot(vec2);
 			vec2 -= dot0*vec0 + dot1*vec1;
-			vec2.normalize();
+			vec2.Normalize();
 		}
 
 		/** Calculates the dot (scalar) product of two vectors. */

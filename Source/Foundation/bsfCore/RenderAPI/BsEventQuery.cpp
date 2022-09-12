@@ -7,6 +7,6 @@ namespace bs { namespace ct
 {
 	SPtr<EventQuery> EventQuery::Create(UINT32 deviceIdx)
 	{
-		return QueryManager::Instance().createEventQuery(deviceIdx);
+		return QueryManager::Instance().CreateEventQuery(deviceIdx);
 	}
 }}

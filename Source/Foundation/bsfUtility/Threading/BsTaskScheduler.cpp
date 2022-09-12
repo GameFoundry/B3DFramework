@@ -38,7 +38,7 @@ namespace bs
 	void Task::Wait()
 	{
 		if(mParent != nullptr)
-			mParent->waitUntilComplete(this);
+			mParent->WaitUntilComplete(this);
 	}
 
 	void Task::Cancel()
@@ -69,7 +69,7 @@ namespace bs
 	void TaskGroup::Wait()
 	{
 		if(mParent != nullptr)
-			mParent->waitUntilComplete(this);
+			mParent->WaitUntilComplete(this);
 	}
 
 	TaskScheduler::TaskScheduler()
@@ -77,7 +77,7 @@ namespace bs
 	{
 		mMaxActiveTasks = BS_THREAD_HARDWARE_CONCURRENCY;
 
-		mTaskSchedulerThread = ThreadPool::instance().run("TaskScheduler", std::bind(&TaskScheduler::runMain, this));
+		mTaskSchedulerThread = ThreadPool::instance().Run("TaskScheduler", std::bind(&TaskScheduler::runMain, this));
 	}
 
 	TaskScheduler::~TaskScheduler()
@@ -86,13 +86,13 @@ namespace bs
 		{
 			Lock ActiveTaskLock(mReadyMutex);
 
-			while (mActiveTasks.size() > 0)
+			while (mActiveTasks.Size() > 0)
 			{
 				SPtr<Task> task = mActiveTasks[0];
-				activeTaskLock.unlock();
+				activeTaskLock.Unlock();
 
-				task->wait();
-				activeTaskLock.lock();
+				task->Wait();
+				activeTaskLock.Lock();
 			}
 		}
 
@@ -105,7 +105,7 @@ namespace bs
 
 		mTaskReadyCond.notify_one();
 
-		mTaskSchedulerThread.blockUntilComplete();
+		mTaskSchedulerThread.BlockUntilComplete();
 	}
 
 	void TaskScheduler::AddTask(SPtr<Task> task)
@@ -116,10 +116,10 @@ namespace bs
 
 		task->mParent = this;
 		task->mTaskId = mNextTaskId++;
-		task->mState.store(0); // Reset state in case the task is getting re-queued
+		task->mState.Store(0); // Reset state in case the task is getting re-queued
 
 		mCheckTasks = true;
-		mTaskQueue.insert(std::move(task));
+		mTaskQueue.Insert(std::move(task));
 
 		// Wake main scheduler thread
 		mTaskReadyCond.notify_one();
@@ -133,17 +133,17 @@ namespace bs
 		{
 			const auto worker = [i, taskGroup]
 			{
-				taskGroup->mTaskWorker(i);
+				taskGroup->MTaskWorker(i);
 				--taskGroup->mNumRemainingTasks;
 			};
 
 			SPtr<Task> task = Task::create(taskGroup->mName, worker, taskGroup->mPriority, taskGroup->mTaskDependency);
 			task->mParent = this;
 			task->mTaskId = mNextTaskId++;
-			task->mState.store(0); // Reset state in case the task is getting re-queued
+			task->mState.Store(0); // Reset state in case the task is getting re-queued
 
 			mCheckTasks = true;
-			mTaskQueue.insert(std::move(task));
+			mTaskQueue.Insert(std::move(task));
 		}
 
 		taskGroup->mParent = this;
@@ -176,28 +176,28 @@ namespace bs
 		{
 			Lock Lock(mReadyMutex);
 
-			while((!mCheckTasks || (UINT32)mActiveTasks.size() >= mMaxActiveTasks) && !mShutdown)
-				mTaskReadyCond.wait(lock);
+			while((!mCheckTasks || (UINT32)mActiveTasks.Size() >= mMaxActiveTasks) && !mShutdown)
+				mTaskReadyCond.Wait(lock);
 
 			mCheckTasks = false;
 
 			if(mShutdown)
 				break;
 
-			for(auto iter = mTaskQueue.begin(); iter != mTaskQueue.end();)
+			for(auto iter = mTaskQueue.Begin(); iter != mTaskQueue.end();)
 			{
-				if ((UINT32)mActiveTasks.size() >= mMaxActiveTasks)
+				if ((UINT32)mActiveTasks.Size() >= mMaxActiveTasks)
 					break;	
 
 				SPtr<Task> curTask = *iter;
 
-				if(curTask->isCanceled())
+				if(curTask->IsCanceled())
 				{
-					iter = mTaskQueue.erase(iter);
+					iter = mTaskQueue.Erase(iter);
 					continue;
 				}
 
-				if(curTask->mTaskDependency != nullptr && !curTask->mTaskDependency->isComplete())
+				if(curTask->mTaskDependency != nullptr && !curTask->mTaskDependency->IsComplete())
 				{
 					++iter;
 					continue;
@@ -207,37 +207,37 @@ namespace bs
 				// ThreadPool's thread idle count aren't synced, so while the task manager thinks it's free to run new
 				// tasks, the ThreadPool might still have those threads as running, meaning their allocation will fail.
 				// So we just spin here for a bit, in that rare case.
-				if(ThreadPool::instance().getNumAvailable() == 0)
+				if(ThreadPool::instance().GetNumAvailable() == 0)
 				{
 					mCheckTasks = true;
 					break;
 				}
 
-				iter = mTaskQueue.erase(iter);
+				iter = mTaskQueue.Erase(iter);
 
-				curTask->mState.store(1);
+				curTask->mState.Store(1);
 				mActiveTasks.push_back(curTask);
 
-				ThreadPool::instance().run(curTask->mName, std::bind(&TaskScheduler::runTask, this, curTask));
+				ThreadPool::instance().Run(curTask->mName, std::bind(&TaskScheduler::runTask, this, curTask));
 			}
 		}
 	}
 
 	void TaskScheduler::RunTask(SPtr<Task> task)
 	{
-		task->mTaskWorker();
+		task->MTaskWorker();
 
 		{
 			Lock Lock(mReadyMutex);
 
-			auto findIter = std::find(mActiveTasks.begin(), mActiveTasks.end(), task);
-			if (findIter != mActiveTasks.end())
-				mActiveTasks.erase(findIter);
+			auto findIter = std::find(mActiveTasks.Begin(), mActiveTasks.end(), task);
+			if (findIter != mActiveTasks.End())
+				mActiveTasks.Erase(findIter);
 		}
 
 		{
 			Lock Lock(mCompleteMutex);
-			task->mState.store(2);
+			task->mState.Store(2);
 
 			mTaskCompleteCond.notify_all();
 		}
@@ -253,28 +253,28 @@ namespace bs
 
 	void TaskScheduler::WaitUntilComplete(const Task* task)
 	{
-		if(task->isCanceled())
+		if(task->IsCanceled())
 			return;
 
 		if(task->mTaskDependency)
-			task->mTaskDependency->wait();
+			task->mTaskDependency->Wait();
 
 		// If we haven't started executing the task yet, just execute it right here
 		SPtr<Task> queuedTask;
 		{
 			Lock Lock(mReadyMutex);
 
-			if(!task->hasStarted())
+			if(!task->HasStarted())
 			{
-				auto iterFind = std::find_if(mTaskQueue.begin(), mTaskQueue.end(),
-					[task](const SPtr<Task>& x) { return x.get() == task; });
+				auto iterFind = std::find_if(mTaskQueue.Begin(), mTaskQueue.end(),
+					[task](const SPtr<Task>& x) { return x.Get() == task; });
 
-				assert(iterFind != mTaskQueue.end());
+				assert(iterFind != mTaskQueue.End());
 
 				queuedTask = *iterFind;
-				mTaskQueue.erase(iterFind);
+				mTaskQueue.Erase(iterFind);
 
-				queuedTask->mState.store(1);
+				queuedTask->mState.Store(1);
 			}
 		}
 
@@ -288,10 +288,10 @@ namespace bs
 		{
 			Lock Lock(mCompleteMutex);
 
-			while(!task->isComplete())
+			while(!task->IsComplete())
 			{
 				addWorker();
-				mTaskCompleteCond.wait(lock);
+				mTaskCompleteCond.Wait(lock);
 				removeWorker();
 			}
 		}
@@ -304,7 +304,7 @@ namespace bs
 		while (taskGroup->mNumRemainingTasks > 0)
 		{
 			addWorker();
-			mTaskCompleteCond.wait(lock);
+			mTaskCompleteCond.Wait(lock);
 			removeWorker();
 		}
 	}

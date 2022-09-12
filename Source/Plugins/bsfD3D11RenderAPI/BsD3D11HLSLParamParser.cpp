@@ -96,7 +96,7 @@ namespace bs { namespace ct
 				else
 					blockDesc.isShareable = true;
 
-				desc.paramBlocks.insert(std::make_pair(blockDesc.name, blockDesc));
+				desc.paramBlocks.Insert(std::make_pair(blockDesc.name, blockDesc));
 			}
 			else
 			{
@@ -111,7 +111,7 @@ namespace bs { namespace ct
 					memberDesc.type = GPOT_SAMPLER2D; // Actual dimension of the sampler doesn't matter
 					memberDesc.set = mapParameterToSet(type, ParamType::Sampler);
 
-					desc.samplers.insert(std::make_pair(memberDesc.name, memberDesc));
+					desc.samplers.Insert(std::make_pair(memberDesc.name, memberDesc));
 					break;
 				case D3D_SIT_TEXTURE:
 				{
@@ -159,9 +159,9 @@ namespace bs { namespace ct
 						memberDesc.set = mapParameterToSet(type, ParamType::Texture);
 
 						if (isTexture)
-							desc.textures.insert(std::make_pair(memberDesc.name, memberDesc));
+							desc.textures.Insert(std::make_pair(memberDesc.name, memberDesc));
 						else
-							desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
+							desc.buffers.Insert(std::make_pair(memberDesc.name, memberDesc));
 					}
 				}
 					break;
@@ -169,13 +169,13 @@ namespace bs { namespace ct
 					memberDesc.type = GPOT_STRUCTURED_BUFFER;
 					memberDesc.set = mapParameterToSet(type, ParamType::Texture);
 
-					desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
+					desc.buffers.Insert(std::make_pair(memberDesc.name, memberDesc));
 					break;
 				case D3D_SIT_BYTEADDRESS:
 					memberDesc.type = GPOT_BYTE_BUFFER;
 					memberDesc.set = mapParameterToSet(type, ParamType::Texture);
 
-					desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
+					desc.buffers.Insert(std::make_pair(memberDesc.name, memberDesc));
 					break;
 				case D3D11_SIT_UAV_RWTYPED:
 				{
@@ -185,35 +185,35 @@ namespace bs { namespace ct
 					{
 					case D3D_SRV_DIMENSION_TEXTURE1D:
 						memberDesc.type = GPOT_RWTEXTURE1D;
-						desc.loadStoreTextures.insert(std::make_pair(memberDesc.name, memberDesc));
+						desc.loadStoreTextures.Insert(std::make_pair(memberDesc.name, memberDesc));
 						break;
 					case D3D_SRV_DIMENSION_TEXTURE1DARRAY:
 						memberDesc.type = GPOT_RWTEXTURE1DARRAY;
-						desc.loadStoreTextures.insert(std::make_pair(memberDesc.name, memberDesc));
+						desc.loadStoreTextures.Insert(std::make_pair(memberDesc.name, memberDesc));
 						break;
 					case D3D_SRV_DIMENSION_TEXTURE2D:
 						memberDesc.type = GPOT_RWTEXTURE2D;
-						desc.loadStoreTextures.insert(std::make_pair(memberDesc.name, memberDesc));
+						desc.loadStoreTextures.Insert(std::make_pair(memberDesc.name, memberDesc));
 						break;
 					case D3D_SRV_DIMENSION_TEXTURE2DARRAY:
 						memberDesc.type = GPOT_RWTEXTURE2DARRAY;
-						desc.loadStoreTextures.insert(std::make_pair(memberDesc.name, memberDesc));
+						desc.loadStoreTextures.Insert(std::make_pair(memberDesc.name, memberDesc));
 						break;
 					case D3D_SRV_DIMENSION_TEXTURE3D:
 						memberDesc.type = GPOT_RWTEXTURE3D;
-						desc.loadStoreTextures.insert(std::make_pair(memberDesc.name, memberDesc));
+						desc.loadStoreTextures.Insert(std::make_pair(memberDesc.name, memberDesc));
 						break;
 					case D3D_SRV_DIMENSION_TEXTURE2DMS:
 						memberDesc.type = GPOT_RWTEXTURE2DMS;
-						desc.loadStoreTextures.insert(std::make_pair(memberDesc.name, memberDesc));
+						desc.loadStoreTextures.Insert(std::make_pair(memberDesc.name, memberDesc));
 						break;
 					case D3D_SRV_DIMENSION_TEXTURE2DMSARRAY:
 						memberDesc.type = GPOT_RWTEXTURE2DMSARRAY;
-						desc.loadStoreTextures.insert(std::make_pair(memberDesc.name, memberDesc));
+						desc.loadStoreTextures.Insert(std::make_pair(memberDesc.name, memberDesc));
 						break;
 					case D3D_SRV_DIMENSION_BUFFER:
 						memberDesc.type = GPOT_RWTYPED_BUFFER;
-						desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
+						desc.buffers.Insert(std::make_pair(memberDesc.name, memberDesc));
 						break;
 					default:
 						BS_LOG(Warning, RenderBackend, "Skipping typed UAV because it has unsupported dimension: {0}",
@@ -226,31 +226,31 @@ namespace bs { namespace ct
 					memberDesc.type = GPOT_RWSTRUCTURED_BUFFER;
 					memberDesc.set = mapParameterToSet(type, ParamType::UAV);
 
-					desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
+					desc.buffers.Insert(std::make_pair(memberDesc.name, memberDesc));
 					break;
 				case D3D11_SIT_UAV_RWBYTEADDRESS:
 					memberDesc.type = GPOT_RWBYTE_BUFFER;
 					memberDesc.set = mapParameterToSet(type, ParamType::UAV);
 
-					desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
+					desc.buffers.Insert(std::make_pair(memberDesc.name, memberDesc));
 					break;
 				case D3D_SIT_UAV_APPEND_STRUCTURED:
 					memberDesc.type = GPOT_RWAPPEND_BUFFER;
 					memberDesc.set = mapParameterToSet(type, ParamType::UAV);
 
-					desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
+					desc.buffers.Insert(std::make_pair(memberDesc.name, memberDesc));
 					break;
 				case D3D_SIT_UAV_CONSUME_STRUCTURED:
 					memberDesc.type = GPOT_RWCONSUME_BUFFER;
 					memberDesc.set = mapParameterToSet(type, ParamType::UAV);
 
-					desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
+					desc.buffers.Insert(std::make_pair(memberDesc.name, memberDesc));
 					break;
 				case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
 					memberDesc.type = GPOT_RWSTRUCTURED_BUFFER_WITH_COUNTER;
 					memberDesc.set = mapParameterToSet(type, ParamType::UAV);
 
-					desc.buffers.insert(std::make_pair(memberDesc.name, memberDesc));
+					desc.buffers.Insert(std::make_pair(memberDesc.name, memberDesc));
 					break;
 				default:
 					BS_LOG(Warning, RenderBackend, "Skipping resource because it has unsupported type: {0}",
@@ -449,7 +449,7 @@ namespace bs { namespace ct
 			BS_LOG(Warning, RenderBackend, "Skipping variable because it has unsupported class: {0}", varTypeDesc.Class);
 		}
 
-		desc.params.insert(std::make_pair(memberDesc.name, memberDesc));
+		desc.params.Insert(std::make_pair(memberDesc.name, memberDesc));
 	}
 
 	UINT32 D3D11HLSLParamParser::MapParameterToSet(GpuProgramType progType, ParamType paramType)

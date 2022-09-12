@@ -18,8 +18,8 @@ namespace bs
 
 	void ScriptSerializableUtility::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_Clone", (void*)&ScriptSerializableUtility::internal_Clone);
-		metaData.scriptClass->addInternalCall("Internal_Create", (void*)&ScriptSerializableUtility::internal_Create);
+		metaData.scriptClass->AddInternalCall("Internal_Clone", (void*)&ScriptSerializableUtility::internal_Clone);
+		metaData.scriptClass->AddInternalCall("Internal_Create", (void*)&ScriptSerializableUtility::internal_Create);
 	}
 
 	MonoObject* ScriptSerializableUtility::internal_Clone(MonoObject* original)
@@ -28,13 +28,13 @@ namespace bs
 			return nullptr;
 
 		::MonoClass* monoClass = MonoUtil::getClass(original);
-		MonoClass* engineClass = MonoManager::instance().findClass(monoClass);
+		MonoClass* engineClass = MonoManager::instance().FindClass(monoClass);
 
-		SPtr<ManagedSerializableTypeInfo> typeInfo = ScriptAssemblyManager::instance().getTypeInfo(engineClass);
+		SPtr<ManagedSerializableTypeInfo> typeInfo = ScriptAssemblyManager::instance().GetTypeInfo(engineClass);
 		if (typeInfo == nullptr)
 		{
 			BS_LOG(Warning, Script, "Cannot clone an instance of type \"{0}\", it is not marked as serializable.",
-				engineClass->getFullName());
+				engineClass->GetFullName());
 			return nullptr;
 		}
 
@@ -44,13 +44,13 @@ namespace bs
 		// Note: This code unnecessarily encodes to binary and decodes from it. I could have added a specialized clone method that does it directly,
 		// but didn't feel the extra code was justified.
 		SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>();
-		bs.encode(data.get(), stream);
+		bs.Encode(data.get(), stream);
 
-		stream->seek(0);
-		SPtr<ManagedSerializableFieldData> clonedData = std::static_pointer_cast<ManagedSerializableFieldData>(bs.decode(stream, (UINT32)stream->size()));
-		clonedData->deserialize();
+		stream->Seek(0);
+		SPtr<ManagedSerializableFieldData> clonedData = std::static_pointer_cast<ManagedSerializableFieldData>(bs.Decode(stream, (UINT32)stream->Size()));
+		clonedData->Deserialize();
 
-		return clonedData->getValueBoxed(typeInfo);
+		return clonedData->GetValueBoxed(typeInfo);
 	}
 
 	MonoObject* ScriptSerializableUtility::internal_Create(MonoReflectionType* reflType)
@@ -59,13 +59,13 @@ namespace bs
 			return nullptr;
 
 		::MonoClass* monoClass = MonoUtil::getClass(reflType);
-		MonoClass* engineClass = MonoManager::instance().findClass(monoClass);
+		MonoClass* engineClass = MonoManager::instance().FindClass(monoClass);
 
-		SPtr<ManagedSerializableTypeInfo> typeInfo = ScriptAssemblyManager::instance().getTypeInfo(engineClass);
+		SPtr<ManagedSerializableTypeInfo> typeInfo = ScriptAssemblyManager::instance().GetTypeInfo(engineClass);
 		if (typeInfo == nullptr)
 		{
 			BS_LOG(Warning, Script, "Cannot create an instance of type \"{0}\", it is not marked as serializable.",
-				engineClass->getFullName());
+				engineClass->GetFullName());
 			return nullptr;
 		}
 			
@@ -75,12 +75,12 @@ namespace bs
 		// Note: This code unnecessarily encodes to binary and decodes from it. I could have added a specialized create method that does it directly,
 		// but didn't feel the extra code was justified.
 		SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>();
-		bs.encode(data.get(), stream);
+		bs.Encode(data.get(), stream);
 
-		stream->seek(0);
-		SPtr<ManagedSerializableFieldData> createdData = std::static_pointer_cast<ManagedSerializableFieldData>(bs.decode(stream, (UINT32)stream->size()));
-		createdData->deserialize();
+		stream->Seek(0);
+		SPtr<ManagedSerializableFieldData> createdData = std::static_pointer_cast<ManagedSerializableFieldData>(bs.Decode(stream, (UINT32)stream->Size()));
+		createdData->Deserialize();
 
-		return createdData->getValueBoxed(typeInfo);
+		return createdData->GetValueBoxed(typeInfo);
 	}
 }

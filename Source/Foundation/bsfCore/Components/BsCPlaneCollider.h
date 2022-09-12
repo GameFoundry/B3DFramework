@@ -43,7 +43,7 @@ namespace bs
 		 */
 
 		/**	Returns the plane collider that this component wraps. */
-		PlaneCollider* _getInternal() const { return static_cast<PlaneCollider*>(mInternal.get()); }
+		PlaneCollider* _getInternal() const { return static_cast<PlaneCollider*>(mInternal.Get()); }
 
 		/** @} */
 

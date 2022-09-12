@@ -15,11 +15,11 @@ namespace bs
 
 	void ShapeMeshes2D::SolidQuad(const Rect2& area, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
-		UINT32* indexData = meshData->getIndices32();
-		UINT8* positionData = meshData->getElementData(VES_POSITION);
+		UINT32* indexData = meshData->GetIndices32();
+		UINT8* positionData = meshData->GetElementData(VES_POSITION);
 
-		assert((vertexOffset + 4) <= meshData->getNumVertices());
-		assert((indexOffset + 6) <= meshData->getNumIndices());
+		assert((vertexOffset + 4) <= meshData->GetNumVertices());
+		assert((indexOffset + 6) <= meshData->GetNumIndices());
 
 		Vector<Vector2> points;
 		points.push_back(Vector2(area.x, area.y));
@@ -27,18 +27,18 @@ namespace bs
 		points.push_back(Vector2(area.x + area.width, area.y + area.height));
 		points.push_back(Vector2(area.x, area.y + area.height));	
 
-		pixelSolidPolygon(points, positionData, vertexOffset, meshData->getVertexDesc()->getVertexStride(), indexData, indexOffset);
+		pixelSolidPolygon(points, positionData, vertexOffset, meshData->GetVertexDesc()->getVertexStride(), indexData, indexOffset);
 	}
 
 	void ShapeMeshes2D::PixelLine(const Vector2& a, const Vector2& b, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
-		UINT32* indexData = meshData->getIndices32();
-		UINT8* positionData = meshData->getElementData(VES_POSITION);
+		UINT32* indexData = meshData->GetIndices32();
+		UINT8* positionData = meshData->GetElementData(VES_POSITION);
 
-		assert((vertexOffset + 2) <= meshData->getNumVertices());
-		assert((indexOffset + 2) <= meshData->getNumIndices());
+		assert((vertexOffset + 2) <= meshData->GetNumVertices());
+		assert((indexOffset + 2) <= meshData->GetNumIndices());
 
-		pixelLine(a, b, positionData, vertexOffset, meshData->getVertexDesc()->getVertexStride(), indexData, indexOffset);
+		pixelLine(a, b, positionData, vertexOffset, meshData->GetVertexDesc()->getVertexStride(), indexData, indexOffset);
 	}
 
 	void ShapeMeshes2D::quadLine(const Vector2& a, const Vector2& b, float width, float border, const Color& color,
@@ -50,21 +50,21 @@ namespace bs
 
 	void ShapeMeshes2D::PixelLineList(const Vector<Vector2>& linePoints, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
-		assert(linePoints.size() % 2 == 0);
+		assert(linePoints.Size() % 2 == 0);
 
-		assert((vertexOffset + linePoints.size() * 2) <= meshData->getNumVertices());
-		assert((indexOffset + linePoints.size() * 2) <= meshData->getNumIndices());
+		assert((vertexOffset + linePoints.Size() * 2) <= meshData->GetNumVertices());
+		assert((indexOffset + linePoints.Size() * 2) <= meshData->GetNumIndices());
 
 		UINT32 curVertOffset = vertexOffset;
 		UINT32 curIdxOffset = indexOffset;
 
-		UINT32* indexData = meshData->getIndices32();
-		UINT8* positionData = meshData->getElementData(VES_POSITION);
+		UINT32* indexData = meshData->GetIndices32();
+		UINT8* positionData = meshData->GetElementData(VES_POSITION);
 
-		UINT32 numPoints = (UINT32)linePoints.size();
+		UINT32 numPoints = (UINT32)linePoints.Size();
 		for(UINT32 i = 0; i < numPoints; i += 2)
 		{
-			pixelLine(linePoints[i], linePoints[i + 1], positionData, curVertOffset, meshData->getVertexDesc()->getVertexStride(), indexData, curIdxOffset);
+			pixelLine(linePoints[i], linePoints[i + 1], positionData, curVertOffset, meshData->GetVertexDesc()->getVertexStride(), indexData, curIdxOffset);
 
 			curVertOffset += 2;
 			curIdxOffset += 2;
@@ -74,21 +74,21 @@ namespace bs
 	void ShapeMeshes2D::quadLineList(const Vector<Vector2>& linePoints, float width, float border, const Color& color,
 		const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
-		UINT32 numPoints = (UINT32)linePoints.size();
+		UINT32 numPoints = (UINT32)linePoints.Size();
 		assert(numPoints >= 2);
 
-		UINT32 numLines = (UINT32)linePoints.size() - 1;
-		assert((vertexOffset + (numLines * 2 + 2)) <= meshData->getNumVertices());
-		assert((indexOffset + (numLines * 6)) <= meshData->getNumIndices());
+		UINT32 numLines = (UINT32)linePoints.Size() - 1;
+		assert((vertexOffset + (numLines * 2 + 2)) <= meshData->GetNumVertices());
+		assert((indexOffset + (numLines * 6)) <= meshData->GetNumIndices());
 
-		UINT32* outIndices = indexOffset + meshData->getIndices32();
-		UINT8* outVertices = vertexOffset + meshData->getElementData(VES_POSITION);
-		UINT8* outColors = vertexOffset + meshData->getElementData(VES_COLOR);
+		UINT32* outIndices = indexOffset + meshData->GetIndices32();
+		UINT8* outVertices = vertexOffset + meshData->GetElementData(VES_POSITION);
+		UINT8* outColors = vertexOffset + meshData->GetElementData(VES_COLOR);
 
-		UINT32 vertexStride = meshData->getVertexDesc()->getVertexStride();
+		UINT32 vertexStride = meshData->GetVertexDesc()->getVertexStride();
 		quadLineList(&linePoints[0], numPoints, width, border, outVertices, vertexStride, true);
 
-		RGBA colorValue = color.getAsRGBA();
+		RGBA colorValue = color.GetAsRGBA();
 
 		// Colors and indices
 		for(UINT32 i = 0; i < numLines; i++)
@@ -132,7 +132,7 @@ namespace bs
 			Vector2 b = linePoints[1];
 
 			Vector2 diff = b - a;
-			diff.normalize();
+			diff.Normalize();
 
 			// Flip 90 degrees
 			Vector2 Normal(diff.y, -diff.x);
@@ -156,10 +156,10 @@ namespace bs
 				Vector2 c = linePoints[i + 1];
 
 				Vector2 diffPrev = b - a;
-				diffPrev.normalize();
+				diffPrev.Normalize();
 
 				Vector2 diffNext = c - b;
-				diffNext.normalize();
+				diffNext.Normalize();
 
 				// Flip 90 degrees
 				Vector2 NormalPrev(diffPrev.y, -diffPrev.x);
@@ -176,9 +176,9 @@ namespace bs
 					Vector2 lineNextPoint = b + normalNext * width * sign[j];
 					Line2 LineNext(lineNextPoint, diffNext);
 
-					auto intersect = linePrev.intersects(lineNext);
+					auto intersect = linePrev.Intersects(lineNext);
 					if (intersect.second != 0.0f) // Not parallel
-						curPoints[j] = linePrev.getPoint(intersect.second);
+						curPoints[j] = linePrev.GetPoint(intersect.second);
 					else
 						curPoints[j] = lineNextPoint;
 
@@ -212,7 +212,7 @@ namespace bs
 			Vector2 b = linePoints[numPoints - 1];
 
 			Vector2 diff = b - a;
-			diff.normalize();
+			diff.Normalize();
 
 			// Flip 90 degrees
 			Vector2 Normal(diff.y, -diff.x);
@@ -252,7 +252,7 @@ namespace bs
 		}
 
 		outIndices += indexOffset;
-		INT32 numPoints = (INT32)points.size();
+		INT32 numPoints = (INT32)points.Size();
 		UINT32 idxCnt = 0;
 		for (int i = 2; i < numPoints; i++)
 		{

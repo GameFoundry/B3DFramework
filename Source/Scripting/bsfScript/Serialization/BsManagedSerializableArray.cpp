@@ -24,11 +24,11 @@ namespace bs
 		mGCHandle = MonoUtil::newGCHandle(managedInstance, false);
 
 		ScriptArray ScriptArray((MonoArray*)managedInstance);
-		mElemSize = scriptArray.elementSize();
+		mElemSize = scriptArray.ElementSize();
 
 		initMonoObjects();
 
-		mNumElements.resize(typeInfo->mRank);
+		mNumElements.Resize(typeInfo->mRank);
 		for(UINT32 i = 0; i < typeInfo->mRank; i++)
 			mNumElements[i] = getLengthInternal(i);
 	}
@@ -48,7 +48,7 @@ namespace bs
 		if(managedInstance == nullptr)
 			return nullptr;
 
-		if(!ScriptAssemblyManager::instance().getBuiltinClasses().systemArrayClass->isInstanceOfType(managedInstance))
+		if(!ScriptAssemblyManager::instance().GetBuiltinClasses().systemArrayClass->IsInstanceOfType(managedInstance))
 			return nullptr;
 
 		return bs_shared_ptr_new<ManagedSerializableArray>(ConstructPrivately(), typeInfo, managedInstance);
@@ -66,19 +66,19 @@ namespace bs
 
 	MonoObject* ManagedSerializableArray::createManagedInstance(const SPtr<ManagedSerializableTypeInfoArray>& typeInfo, const Vector<UINT32>& sizes)
 	{
-		if (!typeInfo->isTypeLoaded())
+		if (!typeInfo->IsTypeLoaded())
 			return nullptr;
 
-		MonoClass* arrayClass = ScriptAssemblyManager::instance().getBuiltinClasses().systemArrayClass;
+		MonoClass* arrayClass = ScriptAssemblyManager::instance().GetBuiltinClasses().systemArrayClass;
 
-		MonoMethod* createInstance = arrayClass->getMethodExact("CreateInstance", "Type,int[]");
+		MonoMethod* createInstance = arrayClass->GetMethodExact("CreateInstance", "Type,int[]");
 
-		ScriptArray LengthArray(MonoUtil::getINT32Class(), (UINT32)sizes.size());
-		for (UINT32 i = 0; i < (UINT32)sizes.size(); i++)
-			lengthArray.set(i, sizes[i]);
+		ScriptArray LengthArray(MonoUtil::getINT32Class(), (UINT32)sizes.Size());
+		for (UINT32 i = 0; i < (UINT32)sizes.Size(); i++)
+			lengthArray.Set(i, sizes[i]);
 
-		void* params[2] = { MonoUtil::getType(typeInfo->mElementType->getMonoClass()), lengthArray.getInternal() };
-		return createInstance->invoke(nullptr, params);
+		void* params[2] = { MonoUtil::getType(typeInfo->mElementType->GetMonoClass()), lengthArray.GetInternal() };
+		return createInstance->Invoke(nullptr, params);
 	}
 
 	MonoObject* ManagedSerializableArray::getManagedInstance() const
@@ -105,10 +105,10 @@ namespace bs
 	void ManagedSerializableArray::SetFieldData(MonoArray* obj, UINT32 arrayIdx, const SPtr<ManagedSerializableFieldData>& val)
 	{
 		if (MonoUtil::isValueType(mElementMonoClass))
-			setValueInternal(obj, arrayIdx, val->getValue(mArrayTypeInfo->mElementType));
+			setValueInternal(obj, arrayIdx, val->GetValue(mArrayTypeInfo->mElementType));
 		else
 		{
-			MonoObject* ptrToObj = (MonoObject*)val->getValue(mArrayTypeInfo->mElementType);
+			MonoObject* ptrToObj = (MonoObject*)val->GetValue(mArrayTypeInfo->mElementType);
 			setValueInternal(obj, arrayIdx, &ptrToObj);
 		}
 	}
@@ -120,10 +120,10 @@ namespace bs
 			MonoArray* array = (MonoArray*)MonoUtil::getObjectFromGCHandle(mGCHandle);
 			ScriptArray ScriptArray(array);
 
-			UINT32 numElems = scriptArray.size();
+			UINT32 numElems = scriptArray.Size();
 			assert(arrayIdx < numElems);
 
-			void* arrayValue = scriptArray.getRaw(arrayIdx, mElemSize);
+			void* arrayValue = scriptArray.GetRaw(arrayIdx, mElemSize);
 
 			if (MonoUtil::isValueType(mElementMonoClass))
 			{
@@ -146,7 +146,7 @@ namespace bs
 		if(mGCHandle == 0)
 			return;
 
-		mNumElements.resize(mArrayTypeInfo->mRank);
+		mNumElements.Resize(mArrayTypeInfo->mRank);
 		for (UINT32 i = 0; i < mArrayTypeInfo->mRank; i++)
 			mNumElements[i] = getLengthInternal(i);
 
@@ -158,7 +158,7 @@ namespace bs
 
 		// Serialize children
 		for (auto& fieldEntry : mCachedEntries)
-			fieldEntry->serialize();
+			fieldEntry->Serialize();
 
 		MonoUtil::freeGCHandle(mGCHandle);
 		mGCHandle = 0;
@@ -172,13 +172,13 @@ namespace bs
 			return nullptr;
 
 		ScriptArray ScriptArray((MonoArray*)managedInstance);
-		mElemSize = scriptArray.elementSize();
+		mElemSize = scriptArray.ElementSize();
 
 		initMonoObjects();
 
 		// Deserialize children
 		for (auto& fieldEntry : mCachedEntries)
-			fieldEntry->deserialize();
+			fieldEntry->Deserialize();
 
 		UINT32 idx = 0;
 		for (auto& arrayEntry : mCachedEntries)
@@ -193,28 +193,28 @@ namespace bs
 	void ManagedSerializableArray::SetValueInternal(MonoArray* obj, UINT32 arrayIdx, void* val)
 	{
 		ScriptArray ScriptArray(obj);
-		UINT32 numElems = (UINT32)scriptArray.size();
+		UINT32 numElems = (UINT32)scriptArray.Size();
 		assert(arrayIdx < numElems);
 	
-		scriptArray.setRaw(arrayIdx, (UINT8*)val, mElemSize);
+		scriptArray.SetRaw(arrayIdx, (UINT8*)val, mElemSize);
 	}
 
 	void ManagedSerializableArray::InitMonoObjects()
 	{
-		mElementMonoClass = mArrayTypeInfo->mElementType->getMonoClass();
+		mElementMonoClass = mArrayTypeInfo->mElementType->GetMonoClass();
 
-		MonoClass* arrayClass = ScriptAssemblyManager::instance().getBuiltinClasses().systemArrayClass;
-		mCopyMethod = arrayClass->getMethodExact("Copy", "Array,Array,int");
+		MonoClass* arrayClass = ScriptAssemblyManager::instance().GetBuiltinClasses().systemArrayClass;
+		mCopyMethod = arrayClass->GetMethodExact("Copy", "Array,Array,int");
 	}
 
 	UINT32 ManagedSerializableArray::ToSequentialIdx(const Vector<UINT32>& idx) const
 	{
-		UINT32 mNumDims = (UINT32)mNumElements.size();
+		UINT32 mNumDims = (UINT32)mNumElements.Size();
 
-		if(idx.size() != mNumDims)
+		if(idx.Size() != mNumDims)
 			BS_EXCEPT(InvalidParametersException, "Provided index doesn't have the correct number of dimensions");
 
-		if(mNumElements.size() == 0)
+		if(mNumElements.Size() == 0)
 			return 0;
 
 		UINT32 curIdx = 0;
@@ -234,7 +234,7 @@ namespace bs
 	{
 		if (mGCHandle != 0)
 		{
-			assert(mArrayTypeInfo->mRank == (UINT32)newSizes.size());
+			assert(mArrayTypeInfo->mRank == (UINT32)newSizes.Size());
 
 			UINT32 srcCount = 1;
 			for (auto& numElems : mNumElements)
@@ -253,7 +253,7 @@ namespace bs
 			params[1] = newArray;
 			params[2] = &copyCount;
 
-			mCopyMethod->invoke(nullptr, params);
+			mCopyMethod->Invoke(nullptr, params);
 
 			MonoUtil::freeGCHandle(mGCHandle);
 			mGCHandle = MonoUtil::newGCHandle(newArray, false);
@@ -263,7 +263,7 @@ namespace bs
 		else
 		{
 			mNumElements = newSizes;
-			mCachedEntries.resize(getTotalLength());
+			mCachedEntries.Resize(getTotalLength());
 		}
 	}
 
@@ -271,11 +271,11 @@ namespace bs
 	{
 		MonoObject* managedInstace = MonoUtil::getObjectFromGCHandle(mGCHandle);
 
-		MonoClass* systemArray = ScriptAssemblyManager::instance().getBuiltinClasses().systemArrayClass;
-		MonoMethod* getLength = systemArray->getMethod("GetLength", 1);
+		MonoClass* systemArray = ScriptAssemblyManager::instance().GetBuiltinClasses().systemArrayClass;
+		MonoMethod* getLength = systemArray->GetMethod("GetLength", 1);
 
 		void* params[1] = { &dimension };
-		MonoObject* returnObj = getLength->invoke(managedInstace, params);
+		MonoObject* returnObj = getLength->Invoke(managedInstace, params);
 
 		return *(UINT32*)MonoUtil::unbox(returnObj);
 	}

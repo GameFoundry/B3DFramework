@@ -15,8 +15,8 @@ namespace bs
 	Time::Time()
 	{
 		mTimer = bs_new<Timer>();
-		mAppStartTime = mTimer->getStartMs();
-		mLastFrameTime = mTimer->getMicroseconds();
+		mAppStartTime = mTimer->GetStartMs();
+		mLastFrameTime = mTimer->GetMicroseconds();
 		mAppStartUpDate = std::time(nullptr);
 	}
 
@@ -27,7 +27,7 @@ namespace bs
 
 	void Time::_update()
 	{
-		UINT64 currentFrameTime = mTimer->getMicroseconds();
+		UINT64 currentFrameTime = mTimer->GetMicroseconds();
 
 		if(!mFirstFrame)
 			mFrameDelta = (float)((currentFrameTime - mLastFrameTime) * MICROSEC_TO_SEC);
@@ -103,7 +103,7 @@ namespace bs
 
 	UINT64 Time::GetTimePrecise() const
 	{
-		return mTimer->getMicroseconds();
+		return mTimer->GetMicroseconds();
 	}
 
 	String Time::GetCurrentDateTimeString(bool isUTC)

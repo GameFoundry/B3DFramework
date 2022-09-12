@@ -13,12 +13,12 @@ namespace bs
 
 	HShaderInclude ShaderManager::FindInclude(const String& name) const
 	{
-		return mIncludeHandler->findInclude(name);
+		return mIncludeHandler->FindInclude(name);
 	}
 
 	void ShaderManager::AddSearchPath(const Path& path)
 	{
 		if(mIncludeHandler)
-			mIncludeHandler->addSearchPath(path);
+			mIncludeHandler->AddSearchPath(path);
 	}
 }

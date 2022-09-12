@@ -11,14 +11,14 @@ namespace bs
 			mActiveLanguage = language;
 
 			for (auto& tablePair : mTables)
-				tablePair.second->setActiveLanguage(language);
+				tablePair.second->SetActiveLanguage(language);
 		}
 	}
 
 	HStringTable StringTableManager::GetTable(UINT32 id)
 	{
-		auto iterFind = mTables.find(id);
-		if (iterFind != mTables.end())
+		auto iterFind = mTables.Find(id);
+		if (iterFind != mTables.End())
 			return iterFind->second;
 
 		HStringTable newTable = StringTable::create();
@@ -29,7 +29,7 @@ namespace bs
 
 	void StringTableManager::RemoveTable(UINT32 id)
 	{
-		mTables.erase(id);
+		mTables.Erase(id);
 	}
 
 	void StringTableManager::SetTable(UINT32 id, const HStringTable& table)
@@ -37,7 +37,7 @@ namespace bs
 		mTables[id] = table;
 
 		if (table != nullptr)
-			table->setActiveLanguage(mActiveLanguage);
+			table->SetActiveLanguage(mActiveLanguage);
 	}
 
 	StringTableManager& GStringTableManager()

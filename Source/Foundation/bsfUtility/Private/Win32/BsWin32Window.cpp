@@ -230,9 +230,9 @@ namespace bs
 
 				if (m->isModal)
 				{
-					if (!sModalWindowStack.empty())
+					if (!sModalWindowStack.Empty())
 					{
-						Win32Window* curModalWindow = sModalWindowStack.back();
+						Win32Window* curModalWindow = sModalWindowStack.Back();
 						windowsToDisable.push_back(curModalWindow->m->hWnd);
 					}
 					else
@@ -247,7 +247,7 @@ namespace bs
 				{
 					// A non-modal window was opened while another modal one is open,
 					// immediately deactivate it and make sure the modal windows stay on top.
-					if (!sModalWindowStack.empty())
+					if (!sModalWindowStack.Empty())
 					{
 						shouldFocus = false;
 						windowsToDisable.push_back(m->hWnd);
@@ -288,23 +288,23 @@ namespace bs
 					// Hidden dependency: All windows must be re-enabled before a window is destroyed, otherwise the incorrect
 					// window in the z order will be activated.
 					bool reenableWindows = false;
-					if (!sModalWindowStack.empty())
+					if (!sModalWindowStack.Empty())
 					{
 						// Start from back because the most common case is closing the top-most modal window
-						for (auto iter = sModalWindowStack.rbegin(); iter != sModalWindowStack.rend(); ++iter)
+						for (auto iter = sModalWindowStack.Rbegin(); iter != sModalWindowStack.rend(); ++iter)
 						{
 							if (*iter == this)
 							{
-								auto iterFwd = std::next(iter).base(); // erase doesn't accept reverse iter, so convert
+								auto iterFwd = std::next(iter).Base(); // erase doesn't accept reverse iter, so convert
 
-								sModalWindowStack.erase(iterFwd);
+								sModalWindowStack.Erase(iterFwd);
 								break;
 							}
 						}
 
-						if (!sModalWindowStack.empty()) // Enable next modal window
+						if (!sModalWindowStack.Empty()) // Enable next modal window
 						{
-							Win32Window* curModalWindow = sModalWindowStack.back();
+							Win32Window* curModalWindow = sModalWindowStack.Back();
 							windowsToEnable.push_back(curModalWindow->m->hWnd);
 						}
 						else
@@ -329,8 +329,8 @@ namespace bs
 		{
 			Lock Lock(sWindowsMutex);
 
-			auto iterFind = std::find(sAllWindows.begin(), sAllWindows.end(), this);
-			sAllWindows.erase(iterFind);
+			auto iterFind = std::find(sAllWindows.Begin(), sAllWindows.end(), this);
+			sAllWindows.Erase(iterFind);
 		}
 
 		bs_delete(m);
@@ -519,9 +519,9 @@ namespace bs
 		{
 			Lock Lock(sWindowsMutex);
 
-			if (!sModalWindowStack.empty())
+			if (!sModalWindowStack.Empty())
 			{
-				Win32Window* curModalWindow = sModalWindowStack.back();
+				Win32Window* curModalWindow = sModalWindowStack.Back();
 				bringToFrontHwnd = curModalWindow->m->hWnd;
 
 				for (auto& window : sAllWindows)

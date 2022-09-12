@@ -47,8 +47,8 @@ namespace bs
 		{
 			Lock fileLock = FileScheduler::getLock(filePath);
 
-			String pathStr = filePath.toString();
-			if (gFMODAudio()._getFMOD()->createSound(pathStr.c_str(), FMOD_CREATESAMPLE, nullptr, &sound) != FMOD_OK)
+			String pathStr = filePath.ToString();
+			if (gFMODAudio()._getFMOD()->CreateSound(pathStr.c_str(), FMOD_CREATESAMPLE, nullptr, &sound) != FMOD_OK)
 			{
 				BS_LOG(Error, Audio, "Failed importing audio file: {0}", pathStr);
 				return nullptr;
@@ -59,7 +59,7 @@ namespace bs
 		INT32 numChannels = 0;
 		INT32 numBits = 0;
 
-		sound->getFormat(nullptr, &format, &numChannels, &numBits);
+		sound->GetFormat(nullptr, &format, &numChannels, &numBits);
 
 		if(format != FMOD_SOUND_FORMAT_PCM8 && format != FMOD_SOUND_FORMAT_PCM16 && format != FMOD_SOUND_FORMAT_PCM24
 			&& format != FMOD_SOUND_FORMAT_PCM32 && format != FMOD_SOUND_FORMAT_PCMFLOAT)
@@ -69,10 +69,10 @@ namespace bs
 		}
 
 		float frequency = 0.0f;
-		sound->getDefaults(&frequency, nullptr);
+		sound->GetDefaults(&frequency, nullptr);
 
 		UINT32 size;
-		sound->getLength(&size, FMOD_TIMEUNIT_PCMBYTES);
+		sound->GetLength(&size, FMOD_TIMEUNIT_PCMBYTES);
 		
 		info.bitDepth = numBits;
 		info.numChannels = numChannels;
@@ -88,7 +88,7 @@ namespace bs
 		UINT8* endData = nullptr;
 		UINT32 startSize = 0;
 		UINT32 endSize = 0;
-		sound->lock(0, size, (void**)&startData, (void**)&endData, &startSize, &endSize);
+		sound->Lock(0, size, (void**)&startData, (void**)&endData, &startSize, &endSize);
 
 		if(format == FMOD_SOUND_FORMAT_PCMFLOAT)
 		{
@@ -107,8 +107,8 @@ namespace bs
 			memcpy(sampleBuffer, startData, bufferSize);
 		}
 
-		sound->unlock((void**)&startData, (void**)&endData, startSize, endSize);
-		sound->release();
+		sound->Unlock((void**)&startData, (void**)&endData, startSize, endSize);
+		sound->Release();
 
 		SPtr<const AudioClipImportOptions> clipIO = std::static_pointer_cast<const AudioClipImportOptions>(importOptions);
 
@@ -171,8 +171,8 @@ namespace bs
 
 		SPtr<AudioClip> clip = AudioClip::_createPtr(sampleStream, bufferSize, info.numSamples, clipDesc);
 
-		const String fileName = filePath.getFilename(false);
-		clip->setName(fileName);
+		const String fileName = filePath.GetFilename(false);
+		clip->SetName(fileName);
 
 		return clip;
 	}

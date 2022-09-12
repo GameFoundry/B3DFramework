@@ -39,7 +39,7 @@ namespace bs
 	void CocoaDragAndDrop::RegisterDropTarget(DropTarget* target)
 	{
 		Lock Lock(sMutex);
-		sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Register, target->getArea()));
+		sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Register, target->GetArea()));
 	}
 
 	void CocoaDragAndDrop::UnregisterDropTarget(DropTarget* target)
@@ -51,7 +51,7 @@ namespace bs
 	void CocoaDragAndDrop::UpdateDropTarget(DropTarget* target)
 	{
 		Lock Lock(sMutex);
-		sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Update, target->getArea()));
+		sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Update, target->GetArea()));
 	}
 
 	void CocoaDragAndDrop::Update()
@@ -65,7 +65,7 @@ namespace bs
 			for(auto& entry : sQueuedAreaOperations)
 			{
 				CocoaWindow* areaWindow;
-				entry.target->_getOwnerWindow()->getCustomAttribute("COCOA_WINDOW", &areaWindow);
+				entry.target->_getOwnerWindow()->GetCustomAttribute("COCOA_WINDOW", &areaWindow);
 
 				switch(entry.type)
 				{
@@ -75,22 +75,22 @@ namespace bs
 					break;
 				case DropAreaOpType::Unregister:
 					// Remove any operations queued for this target
-					for(auto iter = sQueuedOperations.begin(); iter !=sQueuedOperations.end();)
+					for(auto iter = sQueuedOperations.Begin(); iter !=sQueuedOperations.end();)
 					{
 						if(iter->target == entry.target)
-							iter = sQueuedOperations.erase(iter);
+							iter = sQueuedOperations.Erase(iter);
 						else
 							++iter;
 					}
 
 					// Remove the area
 					{
-						auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(), [&](const DropArea& area)
+						auto iterFind = std::find_if(sDropAreas.Begin(), sDropAreas.end(), [&](const DropArea& area)
 						{
 							return area.target == entry.target;
 						});
 
-						sDropAreas.erase(iterFind);
+						sDropAreas.Erase(iterFind);
 					}
 
 					areaWindow->_unregisterForDragAndDrop();
@@ -98,19 +98,19 @@ namespace bs
 					break;
 				case DropAreaOpType::Update:
 				{
-					auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(), [&](const DropArea& area)
+					auto iterFind = std::find_if(sDropAreas.Begin(), sDropAreas.end(), [&](const DropArea& area)
 					{
 						return area.target == entry.target;
 					});
 
-					if (iterFind != sDropAreas.end())
+					if (iterFind != sDropAreas.End())
 						iterFind->area = entry.area;
 				}
 					break;
 				}
 			}
 
-			sQueuedAreaOperations.clear();
+			sQueuedAreaOperations.Clear();
 		}
 
 		// Actually trigger events
@@ -126,18 +126,18 @@ namespace bs
 			switch(op.type)
 			{
 				case DragAndDropOpType::Enter:
-					op.target->onEnter(op.position.x, op.position.y);
+					op.target->OnEnter(op.position.x, op.position.y);
 					break;
 				case DragAndDropOpType::DragOver:
-					op.target->onDragOver(op.position.x, op.position.y);
+					op.target->OnDragOver(op.position.x, op.position.y);
 					break;
 				case DragAndDropOpType::Drop:
 					op.target->_setFileList(op.fileList);
-					op.target->onDrop(op.position.x, op.position.y);
+					op.target->OnDrop(op.position.x, op.position.y);
 					break;
 				case DragAndDropOpType::Leave:
 					op.target->_clear();
-					op.target->onLeave();
+					op.target->OnLeave();
 					break;
 			}
 		}
@@ -151,11 +151,11 @@ namespace bs
 		for(auto& entry : sDropAreas)
 		{
 			UINT32 areaWindowId = 0;
-			entry.target->_getOwnerWindow()->getCustomAttribute("WINDOW_ID", &areaWindowId);
+			entry.target->_getOwnerWindow()->GetCustomAttribute("WINDOW_ID", &areaWindowId);
 			if(areaWindowId != windowId)
 				continue;
 
-			if(entry.area.contains(position))
+			if(entry.area.Contains(position))
 			{
 				if(!entry.target->_isActive())
 				{
@@ -181,11 +181,11 @@ namespace bs
 		for(auto& entry : sDropAreas)
 		{
 			UINT32 areaWindowId = 0;
-			entry.target->_getOwnerWindow()->getCustomAttribute("WINDOW_ID", &areaWindowId);
+			entry.target->_getOwnerWindow()->GetCustomAttribute("WINDOW_ID", &areaWindowId);
 			if(areaWindowId != windowId)
 				continue;
 
-			if (entry.area.contains(position))
+			if (entry.area.Contains(position))
 			{
 				if (entry.target->_isActive())
 				{
@@ -225,7 +225,7 @@ namespace bs
 		for(auto& entry : sDropAreas)
 		{
 			UINT32 areaWindowId = 0;
-			entry.target->_getOwnerWindow()->getCustomAttribute("WINDOW_ID", &areaWindowId);
+			entry.target->_getOwnerWindow()->GetCustomAttribute("WINDOW_ID", &areaWindowId);
 			if(areaWindowId != windowId)
 				continue;
 
@@ -249,7 +249,7 @@ namespace bs
 		for(auto& entry : sDropAreas)
 		{
 			UINT32 areaWindowId = 0;
-			entry.target->_getOwnerWindow()->getCustomAttribute("WINDOW_ID", &areaWindowId);
+			entry.target->_getOwnerWindow()->GetCustomAttribute("WINDOW_ID", &areaWindowId);
 			if(areaWindowId != windowId)
 				continue;
 

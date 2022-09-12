@@ -23,7 +23,7 @@ namespace bs
 	{
 		if (mTooltipSO != nullptr)
 		{
-			mTooltipSO->destroy();
+			mTooltipSO->Destroy();
 			mTooltipSO = nullptr;
 		}
 	}

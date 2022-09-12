@@ -133,61 +133,61 @@ namespace bs
 	template<class T, class U> 
 	bool operator==(const USPtr<T>& lhs, const USPtr<U>& rhs)
 	{
-		return lhs.get() == rhs.get();
+		return lhs.Get() == rhs.get();
 	}
 
 	template<class T, class U> 
 	bool operator!=(const USPtr<T>& lhs, const USPtr<U>& rhs)
 	{
-		return lhs.get() != rhs.get();
+		return lhs.Get() != rhs.get();
 	}
 
 	template<class T, class U> 
 	bool operator<=(const USPtr<T>& lhs, const USPtr<U>& rhs)
 	{
-		return lhs.get() <= rhs.get();
+		return lhs.Get() <= rhs.get();
 	}
 
 	template<class T, class U> 
 	bool operator<(const USPtr<T>& lhs, const USPtr<U>& rhs)
 	{
-		return lhs.get() < rhs.get();
+		return lhs.Get() < rhs.get();
 	}
 
 	template<class T, class U> 
 	bool operator>=(const USPtr<T>& lhs, const USPtr<U>& rhs)
 	{
-		return lhs.get() >= rhs.get();
+		return lhs.Get() >= rhs.get();
 	}
 
 	template<class T, class U> 
 	bool operator>(const USPtr<T>& lhs, const USPtr<U>& rhs)
 	{
-		return lhs.get() > rhs.get();
+		return lhs.Get() > rhs.get();
 	}
 
 	template<class T> 
 	bool operator==(nullptr_t, const USPtr<T>& rhs)
 	{
-		return nullptr == rhs.get();
+		return nullptr == rhs.Get();
 	}
 
 	template<class T> 
 	bool operator==(const USPtr<T>& lhs, nullptr_t)
 	{
-		return lhs.get() == nullptr;
+		return lhs.Get() == nullptr;
 	}
 
 	template<class T> 
 	bool operator!=(nullptr_t, const USPtr<T>& rhs)
 	{
-		return nullptr != rhs.get();
+		return nullptr != rhs.Get();
 	}
 
 	template<class T> 
 	bool operator!=(const USPtr<T>& lhs, nullptr_t)
 	{
-		return lhs.get() != nullptr;
+		return lhs.Get() != nullptr;
 	}
 
 	/** Cast an unsafe shared pointer from one type to another. */

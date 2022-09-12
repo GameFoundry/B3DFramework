@@ -43,7 +43,7 @@ namespace bs
 		 */
 
 		/**	Returns the sphere collider that this component wraps. */
-		SphereCollider* _getInternal() const { return static_cast<SphereCollider*>(mInternal.get()); }
+		SphereCollider* _getInternal() const { return static_cast<SphereCollider*>(mInternal.Get()); }
 
 		/** @} */
 

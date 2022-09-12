@@ -25,7 +25,7 @@ namespace bs { namespace ct
 
 	VulkanShaderModule::~VulkanShaderModule()
 	{
-		vkDestroyShaderModule(mOwner->getDevice().getLogical(), mModule, gVulkanAllocator);
+		vkDestroyShaderModule(mOwner->GetDevice().GetLogical(), mModule, gVulkanAllocator);
 	}
 
 	VulkanGpuProgram::VulkanGpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
@@ -39,7 +39,7 @@ namespace bs { namespace ct
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
 			if (mModules[i] != nullptr)
-				mModules[i]->destroy();
+				mModules[i]->Destroy();
 		}
 
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuProgram);
@@ -113,8 +113,8 @@ namespace bs { namespace ct
 			{
 				if (devices[i] != nullptr)
 				{
-					VkDevice vkDevice = devices[i]->getLogical();
-					VulkanResourceManager& rescManager = devices[i]->getResourceManager();
+					VkDevice vkDevice = devices[i]->GetLogical();
+					VulkanResourceManager& rescManager = devices[i]->GetResourceManager();
 
 					VkShaderModule shaderModule;
 					VkResult result = vkCreateShaderModule(vkDevice, &moduleCI, gVulkanAllocator, &shaderModule);

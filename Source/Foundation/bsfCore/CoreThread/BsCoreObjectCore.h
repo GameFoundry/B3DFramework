@@ -37,7 +37,7 @@ namespace bs
 		virtual void Initialize();
 
 		/** Returns a shared_ptr version of "this" pointer. */
-		SPtr<CoreObject> GetThisPtr() const { return mThis.lock(); }
+		SPtr<CoreObject> GetThisPtr() const { return mThis.Lock(); }
 
 	public: // ***** INTERNAL ******
 		/** @name Internal

@@ -87,7 +87,7 @@ namespace bs { namespace ct
 		if(parentWindow != nullptr)
 		{
 			::Window x11window;
-			parentWindow->getCustomAttribute("WINDOW", &x11window);
+			parentWindow->GetCustomAttribute("WINDOW", &x11window);
 			desc.platformSpecific["parentWindowHandle"] = toString((UINT64)x11window);
 		}
 
@@ -121,14 +121,14 @@ namespace bs { namespace ct
 					if(gExtensionMap[i].status != nullptr)
 					{
 						if (gExtensionMap[i].func != nullptr)
-							*gExtensionMap[i].status = gExtensionMap[i].func();
+							*gExtensionMap[i].status = gExtensionMap[i].Func();
 						else
 							*gExtensionMap[i].status = true;
 					}
 					else
 					{
 						if (gExtensionMap[i].func != nullptr)
-							gExtensionMap[i].func();
+							gExtensionMap[i].Func();
 					}
 				}
 

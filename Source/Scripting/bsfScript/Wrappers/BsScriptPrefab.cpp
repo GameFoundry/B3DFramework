@@ -17,35 +17,35 @@ namespace bs
 
 	void ScriptPrefab::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptPrefab::internal_CreateInstance);
-		metaData.scriptClass->addInternalCall("Internal_Instantiate", (void*)&ScriptPrefab::internal_Instantiate);
-		metaData.scriptClass->addInternalCall("Internal_IsScene", (void*)&ScriptPrefab::internal_IsScene);
+		metaData.scriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptPrefab::internal_CreateInstance);
+		metaData.scriptClass->AddInternalCall("Internal_Instantiate", (void*)&ScriptPrefab::internal_Instantiate);
+		metaData.scriptClass->AddInternalCall("Internal_IsScene", (void*)&ScriptPrefab::internal_IsScene);
 	}
 
 	void ScriptPrefab::internal_CreateInstance(MonoObject* instance, ScriptSceneObject* so, bool isScene)
 	{
-		HPrefab prefab = Prefab::create(so->getHandle(), isScene);
-		ScriptResourceManager::instance().createBuiltinScriptResource(prefab, instance);
+		HPrefab prefab = Prefab::create(so->GetHandle(), isScene);
+		ScriptResourceManager::instance().CreateBuiltinScriptResource(prefab, instance);
 	}
 
 	MonoObject* ScriptPrefab::internal_Instantiate(ScriptPrefab* thisPtr)
 	{
-		HPrefab prefab = thisPtr->getHandle();
+		HPrefab prefab = thisPtr->GetHandle();
 
-		HSceneObject instance = prefab->instantiate();
-		ScriptSceneObject* scriptInstance = ScriptGameObjectManager::instance().getOrCreateScriptSceneObject(instance);
+		HSceneObject instance = prefab->Instantiate();
+		ScriptSceneObject* scriptInstance = ScriptGameObjectManager::instance().GetOrCreateScriptSceneObject(instance);
 
-		return scriptInstance->getManagedInstance();
+		return scriptInstance->GetManagedInstance();
 	}
 
 	bool ScriptPrefab::internal_IsScene(ScriptPrefab* thisPtr)
 	{
-		HPrefab prefab = thisPtr->getHandle();
-		return prefab->isScene();
+		HPrefab prefab = thisPtr->GetHandle();
+		return prefab->IsScene();
 	}
 
 	MonoObject* ScriptPrefab::createInstance()
 	{
-		return metaData.scriptClass->createInstance();
+		return metaData.scriptClass->CreateInstance();
 	}
 }

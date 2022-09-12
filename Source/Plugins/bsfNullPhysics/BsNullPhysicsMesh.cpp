@@ -39,7 +39,7 @@ namespace bs
 	SPtr<MeshData> FNullPhysicsMesh::GetMeshData() const
 	{
 		SPtr<VertexDataDesc> vertexDesc = VertexDataDesc::create();
-		vertexDesc->addVertElem(VET_FLOAT3, VES_POSITION);
+		vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
 
 		return MeshData::Create(0, 0, vertexDesc);
 	}

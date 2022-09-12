@@ -24,7 +24,7 @@ namespace bs
 		std::array<float, 6> orientation = getOrientation();
 		auto& contexts = gOAAudio()._getContexts();
 
-		if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+		if (contexts.Size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
 		{
 			auto context = gOAAudio()._getContext(this);
 			alcMakeContextCurrent(context);
@@ -39,7 +39,7 @@ namespace bs
 		AudioListener::setVelocity(velocity);
 
 		auto& contexts = gOAAudio()._getContexts();
-		if (contexts.size() > 1)
+		if (contexts.Size() > 1)
 		{
 			auto context = gOAAudio()._getContext(this);
 			alcMakeContextCurrent(context);
@@ -52,10 +52,10 @@ namespace bs
 	{
 		auto contexts = gOAAudio()._getContexts();
 		
-		float globalVolume = gAudio().getVolume();
+		float globalVolume = gAudio().GetVolume();
 		std::array<float, 6> orientation = getOrientation();
 
-		if (contexts.size() > 1)
+		if (contexts.Size() > 1)
 		{
 			auto context = gOAAudio()._getContext(this);
 			alcMakeContextCurrent(context);
@@ -69,8 +69,8 @@ namespace bs
 
 	std::array<float, 6> OAAudioListener::GetOrientation() const
 	{
-		Vector3 direction = getTransform().getForward();
-		Vector3 up = getTransform().getUp();
+		Vector3 direction = getTransform().GetForward();
+		Vector3 up = getTransform().GetUp();
 
 		return
 		{{
@@ -85,14 +85,14 @@ namespace bs
 
 	void OAAudioListener::UpdatePosition()
 	{
-		Vector3 position = getTransform().getPosition();
+		Vector3 position = getTransform().GetPosition();
 
 		alListener3f(AL_POSITION, position.x, position.y, position.z);
 	}
 
 	void OAAudioListener::UpdateOrientation(const std::array<float, 6>& orientation)
 	{
-		alListenerfv(AL_ORIENTATION, orientation.data());
+		alListenerfv(AL_ORIENTATION, orientation.Data());
 	}
 
 	void OAAudioListener::UpdateVelocity()

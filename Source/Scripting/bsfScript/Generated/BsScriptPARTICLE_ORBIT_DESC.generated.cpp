@@ -35,21 +35,21 @@ namespace bs
 		ScriptTDistributionVector3* scriptcenter;
 		scriptcenter = ScriptTDistributionVector3::toNative(value.center);
 		if(scriptcenter != nullptr)
-			tmpcenter = scriptcenter->getInternal();
+			tmpcenter = scriptcenter->GetInternal();
 		if(tmpcenter != nullptr)
 		output.center = *tmpcenter;
 		SPtr<TDistribution<Vector3>> tmpvelocity;
 		ScriptTDistributionVector3* scriptvelocity;
 		scriptvelocity = ScriptTDistributionVector3::toNative(value.velocity);
 		if(scriptvelocity != nullptr)
-			tmpvelocity = scriptvelocity->getInternal();
+			tmpvelocity = scriptvelocity->GetInternal();
 		if(tmpvelocity != nullptr)
 		output.velocity = *tmpvelocity;
 		SPtr<TDistribution<float>> tmpradial;
 		ScriptTDistributionfloat* scriptradial;
 		scriptradial = ScriptTDistributionfloat::toNative(value.radial);
 		if(scriptradial != nullptr)
-			tmpradial = scriptradial->getInternal();
+			tmpradial = scriptradial->GetInternal();
 		if(tmpradial != nullptr)
 		output.radial = *tmpradial;
 		output.worldSpace = value.worldSpace;

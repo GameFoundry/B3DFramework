@@ -25,19 +25,19 @@ namespace bs
 
 		/** @copydoc Skybox::getTexture */
 		BS_SCRIPT_EXPORT(n:Texture,pr:getter)
-		HTexture GetTexture() const { return mInternal->getTexture(); }
+		HTexture GetTexture() const { return mInternal->GetTexture(); }
 
 		/** @copydoc Skybox::setTexture */
 		BS_SCRIPT_EXPORT(n:Texture,pr:setter)
-		void SetTexture(const HTexture& texture) { mInternal->setTexture(texture); }
+		void SetTexture(const HTexture& texture) { mInternal->SetTexture(texture); }
 
 		/** @copydoc Skybox::setBrightness */
 		BS_SCRIPT_EXPORT(n:Brightness,pr:setter)
-		void SetBrightness(float brightness) { mInternal->setBrightness(brightness); }
+		void SetBrightness(float brightness) { mInternal->SetBrightness(brightness); }
 
 		/** @copydoc Skybox::getBrightness */
 		BS_SCRIPT_EXPORT(n:Brightness,pr:getter)
-		float GetBrightness() const { return mInternal->getBrightness(); }
+		float GetBrightness() const { return mInternal->GetBrightness(); }
 
 		/** @name Internal
 		 *  @{

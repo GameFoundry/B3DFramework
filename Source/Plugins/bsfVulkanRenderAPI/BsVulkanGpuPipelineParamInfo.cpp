@@ -37,7 +37,7 @@ namespace bs { namespace ct
 			.reserve<VulkanDescriptorLayout*>(mNumSets * numDevices)
 			.reserve<SetExtraInfo>(mNumSets)
 			.reserve<UINT32>(totalNumSlots)
-			.init();
+			.Init();
 
 		mLayoutInfos = mAlloc.alloc<LayoutInfo>(mNumSets);
 		VkDescriptorSetLayoutBinding* bindings = mAlloc.alloc<VkDescriptorSetLayoutBinding>(mNumElements);
@@ -210,9 +210,9 @@ namespace bs { namespace ct
 			if (mLayouts[i] == nullptr)
 				continue;
 
-			VulkanDescriptorManager& descManager = devices[i]->getDescriptorManager();
+			VulkanDescriptorManager& descManager = devices[i]->GetDescriptorManager();
 			for (UINT32 j = 0; j < mNumSets; j++)
-				mLayouts[i][j] = descManager.getLayout(mLayoutInfos[j].bindings, mLayoutInfos[j].numBindings);
+				mLayouts[i][j] = descManager.GetLayout(mLayoutInfos[j].bindings, mLayoutInfos[j].numBindings);
 		}
 	}
 

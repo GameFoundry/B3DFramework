@@ -116,32 +116,32 @@ namespace bs
 
 	void Platform::CaptureMouse(const RenderWindow& window)
 	{
-		SPtr<RenderWindow> primaryWindow = gCoreApplication().getPrimaryWindow();
+		SPtr<RenderWindow> primaryWindow = gCoreApplication().GetPrimaryWindow();
 		UINT64 hwnd;
-		primaryWindow->getCustomAttribute("WINDOW", &hwnd);
+		primaryWindow->GetCustomAttribute("WINDOW", &hwnd);
 		
 		PostMessage((HWND)hwnd, WM_BS_SETCAPTURE, WPARAM((HWND)hwnd), 0);
 	}
 
 	void Platform::ReleaseMouseCapture()
 	{
-		SPtr<RenderWindow> primaryWindow = gCoreApplication().getPrimaryWindow();
+		SPtr<RenderWindow> primaryWindow = gCoreApplication().GetPrimaryWindow();
 		UINT64 hwnd;
-		primaryWindow->getCustomAttribute("WINDOW", &hwnd);
+		primaryWindow->GetCustomAttribute("WINDOW", &hwnd);
 
 		PostMessage((HWND)hwnd, WM_BS_RELEASECAPTURE, WPARAM((HWND)hwnd), 0);
 	}
 
 	bool Platform::IsPointOverWindow(const RenderWindow& window, const Vector2I& screenPos)
 	{
-		SPtr<RenderWindow> primaryWindow = gCoreApplication().getPrimaryWindow();
+		SPtr<RenderWindow> primaryWindow = gCoreApplication().GetPrimaryWindow();
 
 		POINT point;
 		point.x = screenPos.x;
 		point.y = screenPos.y;
 
 		UINT64 hwndToCheck;
-		window.getCustomAttribute("WINDOW", &hwndToCheck);
+		window.GetCustomAttribute("WINDOW", &hwndToCheck);
 
 		HWND hwndUnderPos = WindowFromPoint(point);
 		return hwndUnderPos == (HWND)hwndToCheck;
@@ -157,9 +157,9 @@ namespace bs
 		// ShowCursor(FALSE) doesn't work. Presumably because we're in the wrong thread, and using
 		// WM_SETCURSOR in message loop to hide the cursor is smarter solution anyway.
 
-		SPtr<RenderWindow> primaryWindow = gCoreApplication().getPrimaryWindow();
+		SPtr<RenderWindow> primaryWindow = gCoreApplication().GetPrimaryWindow();
 		UINT64 hwnd;
-		primaryWindow->getCustomAttribute("WINDOW", &hwnd);
+		primaryWindow->GetCustomAttribute("WINDOW", &hwnd);
 
 		PostMessage((HWND)hwnd, WM_SETCURSOR, WPARAM((HWND)hwnd), (LPARAM)MAKELONG(HTCLIENT, WM_MOUSEMOVE));
 	}
@@ -174,9 +174,9 @@ namespace bs
 		// ShowCursor(FALSE) doesn't work. Presumably because we're in the wrong thread, and using
 		// WM_SETCURSOR in message loop to hide the cursor is smarter solution anyway.
 
-		SPtr<RenderWindow> primaryWindow = gCoreApplication().getPrimaryWindow();
+		SPtr<RenderWindow> primaryWindow = gCoreApplication().GetPrimaryWindow();
 		UINT64 hwnd;
-		primaryWindow->getCustomAttribute("WINDOW", &hwnd);
+		primaryWindow->GetCustomAttribute("WINDOW", &hwnd);
 
 		PostMessage((HWND)hwnd, WM_SETCURSOR, WPARAM((HWND)hwnd), (LPARAM)MAKELONG(HTCLIENT, WM_MOUSEMOVE));
 	}
@@ -189,7 +189,7 @@ namespace bs
 	void Platform::ClipCursorToWindow(const RenderWindow& window)
 	{
 		UINT64 hwnd;
-		window.getCustomAttribute("WINDOW", &hwnd);
+		window.GetCustomAttribute("WINDOW", &hwnd);
 
 		mData->mCursorClipping = true;
 		mData->mClipWindow = (HWND)hwnd;
@@ -232,11 +232,11 @@ namespace bs
 
 		mData->mUsingCustomCursor = true;
 
-		Vector<Color> pixels = pixelData.getColors();
-		UINT32 width = pixelData.getWidth();
-		UINT32 height = pixelData.getHeight();
+		Vector<Color> pixels = pixelData.GetColors();
+		UINT32 width = pixelData.GetWidth();
+		UINT32 height = pixelData.GetHeight();
 
-		HBITMAP hBitmap = Win32PlatformUtility::createBitmap((Color*)pixels.data(), width, height, false);
+		HBITMAP hBitmap = Win32PlatformUtility::createBitmap((Color*)pixels.Data(), width, height, false);
 		HBITMAP hMonoBitmap = CreateBitmap(width, height, 1, 1, nullptr);
 
 		ICONINFO iconinfo = {0};
@@ -252,20 +252,20 @@ namespace bs
 		DeleteObject(hMonoBitmap);
 
 		// Make sure we notify the message loop to perform the actual cursor update
-		SPtr<RenderWindow> primaryWindow = gCoreApplication().getPrimaryWindow();
+		SPtr<RenderWindow> primaryWindow = gCoreApplication().GetPrimaryWindow();
 		UINT64 hwnd;
-		primaryWindow->getCustomAttribute("WINDOW", &hwnd);
+		primaryWindow->GetCustomAttribute("WINDOW", &hwnd);
 
 		PostMessage((HWND)hwnd, WM_SETCURSOR, WPARAM((HWND)hwnd), (LPARAM)MAKELONG(HTCLIENT, WM_MOUSEMOVE));
 	}
 
 	void Platform::SetIcon(const PixelData& pixelData)
 	{
-		Vector<Color> pixels = pixelData.getColors();
-		UINT32 width = pixelData.getWidth();
-		UINT32 height = pixelData.getHeight();
+		Vector<Color> pixels = pixelData.GetColors();
+		UINT32 width = pixelData.GetWidth();
+		UINT32 height = pixelData.GetHeight();
 
-		HBITMAP hBitmap = Win32PlatformUtility::createBitmap((Color*)pixels.data(), width, height, false);
+		HBITMAP hBitmap = Win32PlatformUtility::createBitmap((Color*)pixels.Data(), width, height, false);
 		HBITMAP hMonoBitmap = CreateBitmap(width, height, 1, 1, nullptr);
 
 		ICONINFO iconinfo = { 0 };
@@ -281,9 +281,9 @@ namespace bs
 		DeleteObject(hMonoBitmap);
 
 		// Make sure we notify the message loop to perform the actual cursor update
-		SPtr<RenderWindow> primaryWindow = gCoreApplication().getPrimaryWindow();
+		SPtr<RenderWindow> primaryWindow = gCoreApplication().GetPrimaryWindow();
 		UINT64 hwnd;
-		primaryWindow->getCustomAttribute("WINDOW", &hwnd);
+		primaryWindow->GetCustomAttribute("WINDOW", &hwnd);
 		
 		PostMessage((HWND)hwnd, WM_SETICON, WPARAM(ICON_BIG), (LPARAM)icon);
 	}
@@ -306,10 +306,10 @@ namespace bs
 	{
 		Lock Lock(mData->mSync);
 
-		auto iterFind = mData->mNonClientAreas.find(&window);
+		auto iterFind = mData->mNonClientAreas.Find(&window);
 
 		if (iterFind != end(mData->mNonClientAreas))
-			mData->mNonClientAreas.erase(iterFind);
+			mData->mNonClientAreas.Erase(iterFind);
 	}
 
 	void Platform::Sleep(UINT32 duration)
@@ -322,11 +322,11 @@ namespace bs
 		const RenderWindow* window = target->_getOwnerWindow();
 
 		Win32DropTarget* win32DropTarget = nullptr;
-		auto iterFind = mData->mDropTargets.dropTargetsPerWindow.find(window);
-		if (iterFind == mData->mDropTargets.dropTargetsPerWindow.end())
+		auto iterFind = mData->mDropTargets.dropTargetsPerWindow.Find(window);
+		if (iterFind == mData->mDropTargets.dropTargetsPerWindow.End())
 		{
 			UINT64 hwnd;
-			window->getCustomAttribute("WINDOW", &hwnd);
+			window->GetCustomAttribute("WINDOW", &hwnd);
 
 			win32DropTarget = bs_new<Win32DropTarget>((HWND)hwnd);
 			mData->mDropTargets.dropTargetsPerWindow[window] = win32DropTarget;
@@ -339,24 +339,24 @@ namespace bs
 		else
 			win32DropTarget = iterFind->second;
 
-		win32DropTarget->registerDropTarget(target);
+		win32DropTarget->RegisterDropTarget(target);
 	}
 
 	void Win32Platform::UnregisterDropTarget(DropTarget* target)
 	{
-		auto iterFind = mData->mDropTargets.dropTargetsPerWindow.find(target->_getOwnerWindow());
-		if (iterFind == mData->mDropTargets.dropTargetsPerWindow.end())
+		auto iterFind = mData->mDropTargets.dropTargetsPerWindow.Find(target->_getOwnerWindow());
+		if (iterFind == mData->mDropTargets.dropTargetsPerWindow.End())
 		{
 			BS_LOG(Warning, Platform, "Attempting to destroy a drop target but cannot find its parent window.");
 		}
 		else
 		{
 			Win32DropTarget* win32DropTarget = iterFind->second;
-			win32DropTarget->unregisterDropTarget(target);
+			win32DropTarget->UnregisterDropTarget(target);
 
-			if(win32DropTarget->getNumDropTargets() == 0)
+			if(win32DropTarget->GetNumDropTargets() == 0)
 			{
-				mData->mDropTargets.dropTargetsPerWindow.erase(iterFind);
+				mData->mDropTargets.dropTargetsPerWindow.Erase(iterFind);
 
 				{
 					Lock Lock(mData->mSync);
@@ -370,11 +370,11 @@ namespace bs
 	{
 		WString wideString = UTF8::toWide(string);
 
-		HANDLE hData = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, (wideString.size() + 1) * sizeof(WString::value_type));
+		HANDLE hData = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, (wideString.Size() + 1) * sizeof(WString::value_type));
 		WString::value_type* buffer = (WString::value_type*)GlobalLock(hData);
 
-		wideString.copy(buffer, wideString.size());
-		buffer[wideString.size()] = '\0';
+		wideString.Copy(buffer, wideString.size());
+		buffer[wideString.Size()] = '\0';
 
 		GlobalUnlock(hData);
 
@@ -435,7 +435,7 @@ namespace bs
 
 	void Platform::OpenFolder(const Path& path)
 	{
-		WString pathString = UTF8::toWide(path.toString());
+		WString pathString = UTF8::toWide(path.ToString());
 
 		ShellExecuteW(nullptr, L"open", pathString.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 	}
@@ -467,7 +467,7 @@ namespace bs
 	{
 		for (auto& dropTarget : mData->mDropTargets.dropTargetsPerWindow)
 		{
-			dropTarget.second->update();
+			dropTarget.second->Update();
 		}
 	}
 
@@ -487,21 +487,21 @@ namespace bs
 			Lock Lock(mData->mSync);
 			for (auto& dropTargetToDestroy : mData->mDropTargets.dropTargetsToDestroy)
 			{
-				dropTargetToDestroy->unregisterWithOS();
+				dropTargetToDestroy->UnregisterWithOS();
 				dropTargetToDestroy->Release();
 			}
 
-			mData->mDropTargets.dropTargetsToDestroy.clear();
+			mData->mDropTargets.dropTargetsToDestroy.Clear();
 		}
 
 		{
 			Lock Lock(mData->mSync);
 			for (auto& dropTargetToInit : mData->mDropTargets.dropTargetsToInitialize)
 			{
-				dropTargetToInit->registerWithOS();
+				dropTargetToInit->RegisterWithOS();
 			}
 
-			mData->mDropTargets.dropTargetsToInitialize.clear();
+			mData->mDropTargets.dropTargetsToInitialize.Clear();
 		}
 
 		_messagePump();
@@ -633,7 +633,7 @@ namespace bs
 			ct::RenderWindow* newWindow = (ct::RenderWindow*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 			if (newWindow != nullptr)
 			{
-				const RenderWindowProperties& props = newWindow->getProperties();
+				const RenderWindowProperties& props = newWindow->GetProperties();
 				if (!props.isHidden)
 					ShowWindow(hWnd, SW_SHOWNORMAL);
 			}
@@ -678,14 +678,14 @@ namespace bs
 			}
 		case WM_SETFOCUS:
 			{
-				if (!win->getProperties().hasFocus)
+				if (!win->GetProperties().hasFocus)
 					win->_notifyWindowEvent(WindowEventType::FocusReceived);
 
 				return 0;
 			}
 		case WM_KILLFOCUS:
 			{
-				if (win->getProperties().hasFocus)
+				if (win->GetProperties().hasFocus)
 					win->_notifyWindowEvent(WindowEventType::FocusLost);
 
 				return 0;
@@ -774,8 +774,8 @@ namespace bs
 			}
 		case WM_NCHITTEST:
 			{
-				auto iterFind = mData->mNonClientAreas.find(win);
-				if (iterFind == mData->mNonClientAreas.end())
+				auto iterFind = mData->mNonClientAreas.Find(win);
+				if (iterFind == mData->mNonClientAreas.End())
 					break;
 
 				POINT mousePos;
@@ -791,14 +791,14 @@ namespace bs
 				Vector<NonClientResizeArea>& resizeAreasPerWindow = iterFind->second.resizeAreas;
 				for(auto area : resizeAreasPerWindow)
 				{
-					if (area.area.contains(mousePosInt))
+					if (area.area.Contains(mousePosInt))
 						return TranslateNonClientAreaType(area.type);
 				}
 
 				Vector<Rect2I>& moveAreasPerWindow = iterFind->second.moveAreas;
 				for(auto area : moveAreasPerWindow)
 				{
-					if(area.contains(mousePosInt))
+					if(area.Contains(mousePosInt))
 						return HTCAPTION;
 				}
 
@@ -839,7 +839,7 @@ namespace bs
 
 				getMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-				if(!onCursorButtonReleased.empty())
+				if(!onCursorButtonReleased.Empty())
 					onCursorButtonReleased(intMousePos, OSMouseButton::Left, btnStates);
 
 				return 0;
@@ -853,7 +853,7 @@ namespace bs
 
 				getMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-				if(!onCursorButtonReleased.empty())
+				if(!onCursorButtonReleased.Empty())
 					onCursorButtonReleased(intMousePos, OSMouseButton::Middle, btnStates);
 
 				return 0;
@@ -867,7 +867,7 @@ namespace bs
 
 				getMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-				if(!onCursorButtonReleased.empty())
+				if(!onCursorButtonReleased.Empty())
 					onCursorButtonReleased(intMousePos, OSMouseButton::Right, btnStates);
 
 				return 0;
@@ -881,7 +881,7 @@ namespace bs
 
 				getMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-				if(!onCursorButtonPressed.empty())
+				if(!onCursorButtonPressed.Empty())
 					onCursorButtonPressed(intMousePos, OSMouseButton::Left, btnStates);
 			}
 			return 0;
@@ -894,7 +894,7 @@ namespace bs
 
 				getMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-				if(!onCursorButtonPressed.empty())
+				if(!onCursorButtonPressed.Empty())
 					onCursorButtonPressed(intMousePos, OSMouseButton::Middle, btnStates);
 			}
 			return 0;
@@ -907,7 +907,7 @@ namespace bs
 
 				getMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-				if(!onCursorButtonPressed.empty())
+				if(!onCursorButtonPressed.Empty())
 					onCursorButtonPressed(intMousePos, OSMouseButton::Right, btnStates);
 			}
 			return 0;
@@ -918,7 +918,7 @@ namespace bs
 
 				getMouseData(hWnd, wParam, lParam, false, intMousePos, btnStates);
 
-				if(!onCursorDoubleClick.empty())
+				if(!onCursorDoubleClick.Empty())
 					onCursorDoubleClick(intMousePos, btnStates);
 			}
 			return 0;
@@ -942,7 +942,7 @@ namespace bs
 				
 				getMouseData(hWnd, wParam, lParam, uMsg == WM_NCMOUSEMOVE, intMousePos, btnStates);
 
-				if(!onCursorMoved.empty())
+				if(!onCursorMoved.Empty())
 					onCursorMoved(intMousePos, btnStates);
 
 				return 0;
@@ -952,7 +952,7 @@ namespace bs
 				INT16 wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
 
 				float wheelDeltaFlt = wheelDelta / (float)WHEEL_DELTA;
-				if(!onMouseWheelScrolled.empty())
+				if(!onMouseWheelScrolled.Empty())
 					onMouseWheelScrolled(wheelDeltaFlt);
 
 				return true;
@@ -963,7 +963,7 @@ namespace bs
 				InputCommandType command = InputCommandType::Backspace;
 				if(getCommand((unsigned int)wParam, command))
 				{
-					if(!onInputCommand.empty())
+					if(!onInputCommand.Empty())
 						onInputCommand(command);
 
 					return 0;
@@ -995,7 +995,7 @@ namespace bs
 					{
 						UINT32 finalChar = (UINT32)wParam;
 
-						if(!onCharInput.empty())
+						if(!onCharInput.Empty())
 							onCharInput(finalChar);
 
 						return 0;
@@ -1011,7 +1011,7 @@ namespace bs
 			ReleaseCapture();
 			break;
 		case WM_CAPTURECHANGED:
-			if(!onMouseCaptureChanged.empty())
+			if(!onMouseCaptureChanged.Empty())
 				onMouseCaptureChanged();
 			return 0;
 		}

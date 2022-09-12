@@ -15,7 +15,7 @@ namespace bs
 
 	void ScriptMorphShapes::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_getChannels", (void*)&ScriptMorphShapes::Internal_getChannels);
+		metaData.scriptClass->AddInternalCall("Internal_getChannels", (void*)&ScriptMorphShapes::Internal_getChannels);
 
 	}
 
@@ -26,26 +26,26 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.scriptClass->createInstance("bool", ctorParams);
+		MonoObject* managedInstance = metaData.scriptClass->CreateInstance("bool", ctorParams);
 		new (bs_alloc<ScriptMorphShapes>()) ScriptMorphShapes(managedInstance, value);
 		return managedInstance;
 	}
 	MonoArray* ScriptMorphShapes::Internal_getChannels(ScriptMorphShapes* thisPtr)
 	{
 		Vector<SPtr<MorphChannel>> vec__output;
-		vec__output = thisPtr->getInternal()->getChannels();
+		vec__output = thisPtr->GetInternal()->getChannels();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
+		int arraySize__output = (int)vec__output.Size();
 		ScriptArray array__output = ScriptArray::create<ScriptMorphChannel>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
 			SPtr<MorphChannel> arrayElemPtr__output = vec__output[i];
 			MonoObject* arrayElem__output;
 			arrayElem__output = ScriptMorphChannel::create(arrayElemPtr__output);
-			array__output.set(i, arrayElem__output);
+			array__output.Set(i, arrayElem__output);
 		}
-		__output = array__output.getInternal();
+		__output = array__output.GetInternal();
 
 		return __output;
 	}

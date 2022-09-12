@@ -54,7 +54,7 @@ namespace bs
 		{ }
 
 		Any(const Any& other)
-			:mData(other.mData != nullptr ? other.mData->clone() : nullptr)
+			:mData(other.mData != nullptr ? other.mData->Clone() : nullptr)
 		{ }
 
 		~Any()
@@ -73,13 +73,13 @@ namespace bs
 		template <typename ValueType>
 		Any& operator= (const ValueType& rhs)
 		{
-			Any(rhs).swap(*this);
+			Any(rhs).Swap(*this);
 			return *this;
 		}
 
 		Any& operator= (const Any& rhs)
 		{
-			Any(rhs).swap(*this);
+			Any(rhs).Swap(*this);
 			return *this;
 		}
 

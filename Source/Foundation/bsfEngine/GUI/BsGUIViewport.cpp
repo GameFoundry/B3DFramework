@@ -22,7 +22,7 @@ namespace bs
 		:GUIElement(styleName, dimensions), mCamera(camera), mAspectRatio(aspectRatio),
 		mFieldOfView(fieldOfView)
 	{
-		mVerticalFOV = 2.0f * Math::atan(Math::tan(mFieldOfView.valueRadians() * 0.5f) * (1.0f / mAspectRatio));
+		mVerticalFOV = 2.0f * Math::atan(Math::tan(mFieldOfView.ValueRadians() * 0.5f) * (1.0f / mAspectRatio));
 	}
 
 	GUIViewport* GUIViewport::create(const HCamera& camera, float aspectRatio, Degree fieldOfView, const String& styleName)
@@ -39,7 +39,7 @@ namespace bs
 	void GUIViewport::UpdateClippedBounds()
 	{
 		mClippedBounds = mLayoutData.area;
-		mClippedBounds.clip(mLayoutData.clipRect);
+		mClippedBounds.Clip(mLayoutData.clipRect);
 	}
 
 	Vector2I GUIViewport::_getOptimalSize() const
@@ -66,18 +66,18 @@ namespace bs
 		float currentAspect = mLayoutData.area.width / (float)mLayoutData.area.height;
 		Radian currentFOV = 2.0f * Math::atan(Math::tan(mVerticalFOV * 0.5f) * currentAspect);
 
-		mCamera->setHorzFOV(currentFOV);
+		mCamera->SetHorzFOV(currentFOV);
 
-		SPtr<Viewport> viewport = mCamera->getViewport();
-		SPtr<RenderTarget> renderTarget = viewport->getTarget();
-		const RenderTargetProperties& rtProps = renderTarget->getProperties();
+		SPtr<Viewport> viewport = mCamera->GetViewport();
+		SPtr<RenderTarget> renderTarget = viewport->GetTarget();
+		const RenderTargetProperties& rtProps = renderTarget->GetProperties();
 
 		float x = mLayoutData.area.x / (float)rtProps.width;
 		float y = mLayoutData.area.y / (float)rtProps.height;
 		float width = mLayoutData.area.width / (float)rtProps.width;
 		float height = mLayoutData.area.height / (float)rtProps.height;
 
-		viewport->setArea(Rect2(x, y, width, height));
+		viewport->SetArea(Rect2(x, y, width, height));
 	}
 
 	void GUIViewport::_changeParentWidget(GUIWidget* widget)
@@ -86,8 +86,8 @@ namespace bs
 
 		if(widget != nullptr)
 		{
-			SPtr<RenderTarget> guiRenderTarget = widget->getTarget()->getTarget();
-			SPtr<RenderTarget> cameraRenderTarget = mCamera->getViewport()->getTarget();
+			SPtr<RenderTarget> guiRenderTarget = widget->GetTarget()->getTarget();
+			SPtr<RenderTarget> cameraRenderTarget = mCamera->GetViewport()->getTarget();
 
 			if(guiRenderTarget != cameraRenderTarget)
 				BS_EXCEPT(InvalidParametersException, "Camera provided to GUIViewport must use the same render target as the GUIWidget this element is located on.")

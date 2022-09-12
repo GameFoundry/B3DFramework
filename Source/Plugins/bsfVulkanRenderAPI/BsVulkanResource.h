@@ -177,7 +177,7 @@ namespace bs { namespace ct
 
 #if BS_DEBUG_MODE
 			Lock Lock(mMutex);
-			mResources.insert(resource);
+			mResources.Insert(resource);
 #endif
 
 			return resource;

@@ -35,15 +35,15 @@ namespace bs
 
 		SPtr<DataStream> GetData(MeshData* obj, UINT32& size)
 		{
-			size = obj->getInternalBufferSize();
+			size = obj->GetInternalBufferSize();
 
-			return bs_shared_ptr_new<MemoryDataStream>(obj->getData(), size);
+			return bs_shared_ptr_new<MemoryDataStream>(obj->GetData(), size);
 		}
 
 		void SetData(MeshData* obj, const SPtr<DataStream>& value, UINT32 size)
 		{
-			obj->allocateInternalBuffer(size);
-			value->read(obj->getData(), size);
+			obj->AllocateInternalBuffer(size);
+			value->Read(obj->getData(), size);
 		}
 
 	public:

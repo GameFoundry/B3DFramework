@@ -26,15 +26,15 @@ namespace bs
 			{
 				if(*devices == 0)
 				{
-					if (deviceName.empty())
+					if (deviceName.Empty())
 						break;
 
 					// Clean up the name to get the actual hardware name
-					String FixedName(deviceName.data(), deviceName.size());
+					String FixedName(deviceName.Data(), deviceName.size());
 					fixedName = StringUtil::replaceAll(fixedName, u8"OpenAL Soft on ", u8"");
 
 					mAllDevices.push_back({ fixedName });
-					deviceName.clear();
+					deviceName.Clear();
 
 					devices++;
 					continue;
@@ -70,7 +70,7 @@ namespace bs
 	{
 		stopManualSources();
 
-		assert(mListeners.empty() && mSources.empty()); // Everything should be destroyed at this point
+		assert(mListeners.Empty() && mSources.empty()); // Everything should be destroyed at this point
 		clearContexts();
 
 		if(mDevice != nullptr)
@@ -82,7 +82,7 @@ namespace bs
 		mVolume = Math::clamp01(volume);
 		
 		for (auto& listener : mListeners)
-			listener->rebuild();
+			listener->Rebuild();
 	}
 
 	float OAAudio::GetVolume() const
@@ -98,7 +98,7 @@ namespace bs
 		mIsPaused = paused;
 
 		for (auto& source : mSources)
-			source->setGlobalPause(paused);
+			source->SetGlobalPause(paused);
 	}
 
 	void OAAudio::_update()
@@ -106,18 +106,18 @@ namespace bs
 		auto worker = [this]() { updateStreaming(); };
 
 		// If previous task still hasn't completed, just skip streaming this frame, queuing more tasks won't help
-		if (mStreamingTask != nullptr && !mStreamingTask->isComplete())
+		if (mStreamingTask != nullptr && !mStreamingTask->IsComplete())
 			return;
 
 		mStreamingTask = Task::create("AudioStream", worker, TaskPriority::VeryHigh);
-		TaskScheduler::instance().addTask(mStreamingTask);
+		TaskScheduler::instance().AddTask(mStreamingTask);
 
 		Audio::_update();
 	}
 
 	void OAAudio::SetActiveDevice(const AudioDevice& device)
 	{
-		if (mAllDevices.size() == 1)
+		if (mAllDevices.Size() == 1)
 			return; // No devices to change to, keep the active device as is
 
 		clearContexts();
@@ -140,7 +140,7 @@ namespace bs
 		if (mDevice == nullptr)
 			return false;
 
-		if ((extension.length() > 2) && (extension.substr(0, 3) == "ALC"))
+		if ((extension.Length() > 2) && (extension.substr(0, 3) == "ALC"))
 			return AlcIsExtensionPresent(mDevice, extension.c_str()) != AL_FALSE;
 		else
 			return AlIsExtensionPresent(extension.c_str()) != AL_FALSE;
@@ -155,21 +155,21 @@ namespace bs
 
 	void OAAudio::_unregisterListener(OAAudioListener* listener)
 	{
-		auto iterFind = std::find(mListeners.begin(), mListeners.end(), listener);
-		if (iterFind != mListeners.end())
-			mListeners.erase(iterFind);
+		auto iterFind = std::find(mListeners.Begin(), mListeners.end(), listener);
+		if (iterFind != mListeners.End())
+			mListeners.Erase(iterFind);
 
 		rebuildContexts();
 	}
 
 	void OAAudio::_registerSource(OAAudioSource* source)
 	{
-		mSources.insert(source);
+		mSources.Insert(source);
 	}
 
 	void OAAudio::_unregisterSource(OAAudioSource* source)
 	{
-		mSources.erase(source);
+		mSources.Erase(source);
 	}
 
 	void OAAudio::StartStreaming(OAAudioSource* source)
@@ -177,7 +177,7 @@ namespace bs
 		Lock Lock(mMutex);
 
 		mStreamingCommandQueue.push_back({ StreamingCommandType::Start, source });
-		mDestroyedSources.erase(source);
+		mDestroyedSources.Erase(source);
 	}
 
 	void OAAudio::StopStreaming(OAAudioSource* source)
@@ -185,16 +185,16 @@ namespace bs
 		Lock Lock(mMutex);
 
 		mStreamingCommandQueue.push_back({ StreamingCommandType::Stop, source });
-		mDestroyedSources.insert(source);
+		mDestroyedSources.Insert(source);
 	}
 
 	ALCcontext* OAAudio::_getContext(const OAAudioListener* listener) const
 	{
-		if (mListeners.size() > 0)
+		if (mListeners.Size() > 0)
 		{
-			assert(mListeners.size() == mContexts.size());
+			assert(mListeners.Size() == mContexts.size());
 
-			UINT32 numContexts = (UINT32)mContexts.size();
+			UINT32 numContexts = (UINT32)mContexts.Size();
 			for(UINT32 i = 0; i < numContexts; i++)
 			{
 				if (mListeners[i] == listener)
@@ -227,14 +227,14 @@ namespace bs
 	void OAAudio::RebuildContexts()
 	{
 		for (auto& source : mSources)
-			source->clear();
+			source->Clear();
 
 		clearContexts();
 
 		if (mDevice == nullptr)
 			return;
 
-		UINT32 numListeners = (UINT32)mListeners.size();
+		UINT32 numListeners = (UINT32)mListeners.Size();
 		UINT32 numContexts = numListeners > 1 ? numListeners : 1;
 
 		for(UINT32 i = 0; i < numContexts; i++)
@@ -248,10 +248,10 @@ namespace bs
 		alcMakeContextCurrent(mContexts[0]);
 
 		for (auto& listener : mListeners)
-			listener->rebuild();
+			listener->Rebuild();
 
 		for (auto& source : mSources)
-			source->rebuild();
+			source->Rebuild();
 	}
 
 	void OAAudio::ClearContexts()
@@ -261,7 +261,7 @@ namespace bs
 		for (auto& context : mContexts)
 			alcDestroyContext(context);
 
-		mContexts.clear();
+		mContexts.Clear();
 	}
 
 	void OAAudio::UpdateStreaming()
@@ -274,18 +274,18 @@ namespace bs
 				switch(command.type)
 				{
 				case StreamingCommandType::Start:
-					mStreamingSources.insert(command.source);
+					mStreamingSources.Insert(command.source);
 					break;
 				case StreamingCommandType::Stop:
-					mStreamingSources.erase(command.source);
+					mStreamingSources.Erase(command.source);
 					break;
 				default:
 					break;
 				}
 			}
 
-			mStreamingCommandQueue.clear();
-			mDestroyedSources.clear();
+			mStreamingCommandQueue.Clear();
+			mDestroyedSources.Clear();
 		}
 
 		for (auto& source : mStreamingSources)
@@ -294,12 +294,12 @@ namespace bs
 			{
 				Lock Lock(mMutex);
 
-				auto iterFind = mDestroyedSources.find(source);
-				if (iterFind != mDestroyedSources.end())
+				auto iterFind = mDestroyedSources.Find(source);
+				if (iterFind != mDestroyedSources.End())
 					continue;
 			}
 
-			source->stream();
+			source->Stream();
 		}
 	}
 

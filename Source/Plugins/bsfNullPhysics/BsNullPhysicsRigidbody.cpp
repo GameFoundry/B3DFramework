@@ -12,8 +12,8 @@ namespace bs
 	NullPhysicsRigidbody::NullPhysicsRigidbody(const HSceneObject& linkedSO)
 		:Rigidbody(linkedSO)
 	{
-		mPosition = linkedSO->getTransform().getPosition();
-		mRotation = linkedSO->getTransform().getRotation();
+		mPosition = linkedSO->GetTransform().GetPosition();
+		mRotation = linkedSO->GetTransform().GetRotation();
 	}
 
 	void NullPhysicsRigidbody::Move(const Vector3& position)

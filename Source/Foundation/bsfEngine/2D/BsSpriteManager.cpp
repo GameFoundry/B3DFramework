@@ -17,14 +17,14 @@ namespace bs
 		SpriteMaterial* textMat = registerMaterial<SpriteTextMaterial>();
 		SpriteMaterial* lineMat = registerMaterial<SpriteLineMaterial>();
 
-		builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::ImageOpaque] = imageOpaqueMat->getId();
-		builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::ImageTransparentAlpha] = imageAlphaMat->getId();
-		builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::ImageTransparentPremultiplied] = imagePremultipliedMat->getId();
-		builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::ImageOpaqueAnimated] = imageOpaqueAnimMat->getId();
-		builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::ImageTransparentAlphaAnimated] = imageAlphaAnimMat->getId();
-		builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::ImageTransparentPremultipliedAnimated] = imagePremultipliedAnimMat->getId();
-		builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::Text] = textMat->getId();
-		builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::Line] = lineMat->getId();
+		builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::ImageOpaque] = imageOpaqueMat->GetId();
+		builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::ImageTransparentAlpha] = imageAlphaMat->GetId();
+		builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::ImageTransparentPremultiplied] = imagePremultipliedMat->GetId();
+		builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::ImageOpaqueAnimated] = imageOpaqueAnimMat->GetId();
+		builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::ImageTransparentAlphaAnimated] = imageAlphaAnimMat->GetId();
+		builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::ImageTransparentPremultipliedAnimated] = imagePremultipliedAnimMat->GetId();
+		builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::Text] = textMat->GetId();
+		builtinMaterialIds[(UINT32)BuiltinSpriteMaterialType::Line] = lineMat->GetId();
 #endif
 	}
 
@@ -36,8 +36,8 @@ namespace bs
 
 	SpriteMaterial* SpriteManager::getMaterial(UINT32 id) const
 	{
-		auto iterFind = mMaterials.find(id);
-		if (iterFind != mMaterials.end())
+		auto iterFind = mMaterials.Find(id);
+		if (iterFind != mMaterials.End())
 			return iterFind->second;
 
 		return nullptr;

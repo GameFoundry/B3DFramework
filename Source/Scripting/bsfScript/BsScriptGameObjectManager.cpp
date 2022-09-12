@@ -36,8 +36,8 @@ namespace bs
 
 	ScriptGameObjectManager::~ScriptGameObjectManager()
 	{
-		mOnAssemblyReloadDoneConn.disconnect();
-		onGameObjectDestroyedConn.disconnect();
+		mOnAssemblyReloadDoneConn.Disconnect();
+		onGameObjectDestroyedConn.Disconnect();
 	}
 
 	ScriptSceneObject* ScriptGameObjectManager::getOrCreateScriptSceneObject(const HSceneObject& sceneObject)
@@ -51,8 +51,8 @@ namespace bs
 
 	ScriptSceneObject* ScriptGameObjectManager::createScriptSceneObject(const HSceneObject& sceneObject)
 	{
-		MonoClass* sceneObjectClass = ScriptAssemblyManager::instance().getBuiltinClasses().sceneObjectClass;
-		MonoObject* instance = sceneObjectClass->createInstance();
+		MonoClass* sceneObjectClass = ScriptAssemblyManager::instance().GetBuiltinClasses().sceneObjectClass;
+		MonoObject* instance = sceneObjectClass->CreateInstance();
 
 		return CreateScriptSceneObject(instance, sceneObject);
 	}
@@ -64,7 +64,7 @@ namespace bs
 			BS_EXCEPT(InvalidStateException, "Script object for this SceneObject already exists.");
 
 		ScriptSceneObject* nativeInstance = new (bs_alloc<ScriptSceneObject>()) ScriptSceneObject(existingInstance, sceneObject);
-		mScriptSceneObjects[sceneObject.getInstanceId()] = nativeInstance;
+		mScriptSceneObjects[sceneObject.GetInstanceId()] = nativeInstance;
 
 		return nativeInstance;
 	}
@@ -75,7 +75,7 @@ namespace bs
 		ScriptManagedComponent* nativeInstance = new (bs_alloc<ScriptManagedComponent>())
 			ScriptManagedComponent(existingInstance, component);
 
-		UINT64 instanceId = component->getInstanceId();
+		UINT64 instanceId = component->GetInstanceId();
 		mScriptComponents[instanceId] = nativeInstance;
 
 		return nativeInstance;
@@ -83,16 +83,16 @@ namespace bs
 
 	ScriptComponentBase* ScriptGameObjectManager::createBuiltinScriptComponent(const HComponent& component)
 	{
-		UINT32 rttiId = component->getRTTI()->getRTTIId();
-		BuiltinComponentInfo* info = ScriptAssemblyManager::instance().getBuiltinComponentInfo(rttiId);
+		UINT32 rttiId = component->GetRTTI()->getRTTIId();
+		BuiltinComponentInfo* info = ScriptAssemblyManager::instance().GetBuiltinComponentInfo(rttiId);
 
 		if (info == nullptr)
 			return nullptr;
 
-		ScriptComponentBase* nativeInstance = info->createCallback(component);
-		nativeInstance->setNativeHandle(static_object_cast<GameObject>(component));
+		ScriptComponentBase* nativeInstance = info->CreateCallback(component);
+		nativeInstance->SetNativeHandle(static_object_cast<GameObject>(component));
 
-		UINT64 instanceId = component->getInstanceId();
+		UINT64 instanceId = component->GetInstanceId();
 		mScriptComponents[instanceId] = nativeInstance;
 
 		return nativeInstance;
@@ -100,7 +100,7 @@ namespace bs
 
 	ScriptComponentBase* ScriptGameObjectManager::getBuiltinScriptComponent(const HComponent& component, bool createNonExisting)
 	{
-		ScriptComponentBase* scriptComponent = getScriptComponent(component.getInstanceId());
+		ScriptComponentBase* scriptComponent = getScriptComponent(component.GetInstanceId());
 		if (scriptComponent != nullptr)
 			return scriptComponent;
 
@@ -112,8 +112,8 @@ namespace bs
 
 	ScriptManagedComponent* ScriptGameObjectManager::getManagedScriptComponent(const HManagedComponent& component) const
 	{
-		auto findIter = mScriptComponents.find(component.getInstanceId());
-		if (findIter != mScriptComponents.end())
+		auto findIter = mScriptComponents.Find(component.getInstanceId());
+		if (findIter != mScriptComponents.End())
 			return static_cast<ScriptManagedComponent*>(findIter->second);
 
 		return nullptr;
@@ -121,8 +121,8 @@ namespace bs
 
 	ScriptComponentBase* ScriptGameObjectManager::getScriptComponent(UINT64 instanceId) const
 	{
-		auto findIter = mScriptComponents.find(instanceId);
-		if (findIter != mScriptComponents.end())
+		auto findIter = mScriptComponents.Find(instanceId);
+		if (findIter != mScriptComponents.End())
 			return findIter->second;
 
 		return nullptr;
@@ -130,8 +130,8 @@ namespace bs
 
 	ScriptSceneObject* ScriptGameObjectManager::getScriptSceneObject(const HSceneObject& sceneObject) const
 	{
-		auto findIter = mScriptSceneObjects.find(sceneObject.getInstanceId());
-		if (findIter != mScriptSceneObjects.end())
+		auto findIter = mScriptSceneObjects.Find(sceneObject.getInstanceId());
+		if (findIter != mScriptSceneObjects.End())
 			return findIter->second;
 
 		return nullptr;
@@ -139,8 +139,8 @@ namespace bs
 
 	ScriptSceneObject* ScriptGameObjectManager::getScriptSceneObject(UINT64 instanceId) const
 	{
-		auto findIter = mScriptSceneObjects.find(instanceId);
-		if (findIter != mScriptSceneObjects.end())
+		auto findIter = mScriptSceneObjects.Find(instanceId);
+		if (findIter != mScriptSceneObjects.End())
 			return findIter->second;
 
 		return nullptr;
@@ -148,12 +148,12 @@ namespace bs
 
 	ScriptGameObjectBase* ScriptGameObjectManager::getScriptGameObject(UINT64 instanceId) const
 	{
-		auto findIter = mScriptSceneObjects.find(instanceId);
-		if (findIter != mScriptSceneObjects.end())
+		auto findIter = mScriptSceneObjects.Find(instanceId);
+		if (findIter != mScriptSceneObjects.End())
 			return findIter->second;
 
-		auto findIter2 = mScriptComponents.find(instanceId);
-		if (findIter2 != mScriptComponents.end())
+		auto findIter2 = mScriptComponents.Find(instanceId);
+		if (findIter2 != mScriptComponents.End())
 			return findIter2->second;
 
 		return nullptr;
@@ -161,16 +161,16 @@ namespace bs
 
 	void ScriptGameObjectManager::DestroyScriptSceneObject(ScriptSceneObject* sceneObject)
 	{
-		UINT64 instanceId = sceneObject->getNativeHandle().getInstanceId();
-		mScriptSceneObjects.erase(instanceId);
+		UINT64 instanceId = sceneObject->GetNativeHandle().GetInstanceId();
+		mScriptSceneObjects.Erase(instanceId);
 
 		bs_delete(sceneObject);
 	}
 
 	void ScriptGameObjectManager::DestroyScriptComponent(ScriptComponentBase* component)
 	{
-		UINT64 instanceId = component->getNativeHandle().getInstanceId();
-		mScriptComponents.erase(instanceId);
+		UINT64 instanceId = component->GetNativeHandle().GetInstanceId();
+		mScriptComponents.Erase(instanceId);
 
 		bs_delete(component);
 	}
@@ -180,33 +180,33 @@ namespace bs
 		for (auto& scriptObjectEntry : mScriptComponents)
 		{
 			ScriptComponentBase* scriptComponent = scriptObjectEntry.second;
-			HComponent component = scriptComponent->getComponent();
+			HComponent component = scriptComponent->GetComponent();
 
-			if (component->getRTTI()->getRTTIId() == TID_ManagedComponent)
+			if (component->GetRTTI()->getRTTIId() == TID_ManagedComponent)
 			{
 				HManagedComponent managedComponent = static_object_cast<ManagedComponent>(component);
-				if (!managedComponent.isDestroyed())
-					managedComponent->triggerOnReset();
+				if (!managedComponent.IsDestroyed())
+					managedComponent->TriggerOnReset();
 			}
 		}
 	}
 
 	void ScriptGameObjectManager::OnGameObjectDestroyed(const HGameObject& go)
 	{
-		UINT64 instanceId = go.getInstanceId();
+		UINT64 instanceId = go.GetInstanceId();
 
 		ScriptSceneObject* so = getScriptSceneObject(instanceId);
 		if (so != nullptr)
 		{
 			so->_notifyDestroyed();
-			mScriptSceneObjects.erase(instanceId);
+			mScriptSceneObjects.Erase(instanceId);
 		}
 
 		ScriptComponentBase* component = getScriptComponent(instanceId);
 		if(component != nullptr)
 		{
 			component->_notifyDestroyed();
-			mScriptComponents.erase(instanceId);
+			mScriptComponents.Erase(instanceId);
 		}
 	}
 }

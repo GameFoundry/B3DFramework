@@ -40,7 +40,7 @@ namespace bs
 		localParentCliprect.y += mElement->_getTextInputOffset().y + clipRect.y;
 
 		// Clip our rectangle so its not larger then the parent
-		clipRect.clip(localParentCliprect);
+		clipRect.Clip(localParentCliprect);
 
 		// Increase clip size by 1, so we can fit the caret in case it is fully at the end of the text
 		clipRect.width += 1;
@@ -53,13 +53,13 @@ namespace bs
 		IMAGE_SPRITE_DESC mCaretDesc;
 		mCaretDesc.width = 1;
 		mCaretDesc.height = getCaretHeight();
-		mCaretDesc.texture = GUIManager::instance().getCaretTexture();
+		mCaretDesc.texture = GUIManager::instance().GetCaretTexture();
 
 		GUIWidget* widget = nullptr;
 		if (mElement != nullptr)
 			widget = mElement->_getParentWidget();
 
-		mCaretSprite->update(mCaretDesc, (UINT64)widget);
+		mCaretSprite->Update(mCaretDesc, (UINT64)widget);
 	}
 
 	void GUIInputCaret::MoveCaretToStart()
@@ -94,7 +94,7 @@ namespace bs
 		const GUIInputLineDesc& desc = getLineDesc(lineIdx);
 		// If char is a newline, I want that to count as being on the next line because that's
 		// how user sees it
-		if(desc.isNewline(charIdx))
+		if(desc.IsNewline(charIdx))
 			lineIdx++;	
 
 		if(lineIdx == 0)
@@ -119,7 +119,7 @@ namespace bs
 		const GUIInputLineDesc& desc = getLineDesc(lineIdx);
 		// If char is a newline, I want that to count as being on the next line because that's
 		// how user sees it
-		if(desc.isNewline(charIdx))
+		if(desc.IsNewline(charIdx))
 			lineIdx++;					
 
 		if(lineIdx == (getNumLines() - 1))
@@ -163,20 +163,20 @@ namespace bs
 			{
 				const GUIInputLineDesc& line = getLineDesc(i);
 
-				INT32 lineStart = line.getLineYStart() + getTextOffset().y;
-				if(pos.y >= lineStart && pos.y < (lineStart + (INT32)line.getLineHeight()))
+				INT32 lineStart = line.GetLineYStart() + getTextOffset().y;
+				if(pos.y >= lineStart && pos.y < (lineStart + (INT32)line.GetLineHeight()))
 				{
 					mCaretPos = curPos;
 					return;
 				}
 
-				UINT32 numChars = line.getEndChar(false) - line.getStartChar() + 1; // +1 For extra line start position
+				UINT32 numChars = line.GetEndChar(false) - line.getStartChar() + 1; // +1 For extra line start position
 				curPos += numChars;
 			}
 
 			{
 				const GUIInputLineDesc& firstLine = getLineDesc(0);
-				INT32 lineStart = firstLine.getLineYStart() + getTextOffset().y;
+				INT32 lineStart = firstLine.GetLineYStart() + getTextOffset().y;
 
 				if(pos.y < lineStart) // Before first line
 					mCaretPos = 0;
@@ -203,8 +203,8 @@ namespace bs
 		
 			curPos++; // Move past line start position
 
-			UINT32 numChars = lineDesc.getEndChar() - lineDesc.getStartChar();
-			UINT32 numCaretPositions = lineDesc.getEndChar(false) - lineDesc.getStartChar();
+			UINT32 numChars = lineDesc.GetEndChar() - lineDesc.getStartChar();
+			UINT32 numCaretPositions = lineDesc.GetEndChar(false) - lineDesc.getStartChar();
 			if(charIdx >= (curCharIdx + numChars))
 			{
 				curCharIdx += numChars;
@@ -244,10 +244,10 @@ namespace bs
 				if(mCaretPos == curPos)
 				{
 					// Caret is on line start
-					return Vector2I(offset.x, lineDesc.getLineYStart() + getTextOffset().y);
+					return Vector2I(offset.x, lineDesc.GetLineYStart() + getTextOffset().y);
 				}
 
-				curPos += lineDesc.getEndChar(false) - lineDesc.getStartChar() + 1; // + 1 for special line start position
+				curPos += lineDesc.GetEndChar(false) - lineDesc.getStartChar() + 1; // + 1 for special line start position
 			}
 
 			UINT32 charIdx = getCharIdxAtCaretPos();
@@ -258,7 +258,7 @@ namespace bs
 
 			Rect2I charRect = getCharRect(charIdx);
 			UINT32 lineIdx = getLineForChar(charIdx);
-			UINT32 yOffset = getLineDesc(lineIdx).getLineYStart() + getTextOffset().y;
+			UINT32 yOffset = getLineDesc(lineIdx).GetLineYStart() + getTextOffset().y;
 
 			return Vector2I(charRect.x + charRect.width, yOffset);
 		}
@@ -275,14 +275,14 @@ namespace bs
 		if(charIdx < mNumChars && isDescValid())
 		{
 			UINT32 lineIdx = getLineForChar(charIdx);
-			return GetLineDesc(lineIdx).getLineHeight();
+			return GetLineDesc(lineIdx).GetLineHeight();
 		}
 		else
 		{
 			if(mTextDesc.font != nullptr)
 			{
-				UINT32 nearestSize = mTextDesc.font->getClosestSize(mTextDesc.fontSize);
-				SPtr<const FontBitmap> fontData = mTextDesc.font->getBitmap(nearestSize);
+				UINT32 nearestSize = mTextDesc.font->GetClosestSize(mTextDesc.fontSize);
+				SPtr<const FontBitmap> fontData = mTextDesc.font->GetBitmap(nearestSize);
 
 				if(fontData != nullptr)
 					return fontData->lineHeight;
@@ -308,7 +308,7 @@ namespace bs
 		{
 			const GUIInputLineDesc& lineDesc = getLineDesc(i);
 
-			UINT32 numChars = lineDesc.getEndChar(false) - lineDesc.getStartChar() + 1; // + 1 for special line start position
+			UINT32 numChars = lineDesc.GetEndChar(false) - lineDesc.getStartChar() + 1; // + 1 for special line start position
 			maxPos += numChars;
 		}
 

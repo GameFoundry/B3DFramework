@@ -67,10 +67,10 @@ namespace bs { namespace ct
 		D3D11_SHADER_RESOURCE_VIEW_DESC desc;
 		ZeroMemory(&desc, sizeof(desc));
 
-		const TextureProperties& texProps = texture->getProperties();
-		UINT32 numFaces = texProps.getNumFaces();
+		const TextureProperties& texProps = texture->GetProperties();
+		UINT32 numFaces = texProps.GetNumFaces();
 
-		switch (texProps.getTextureType())
+		switch (texProps.GetTextureType())
 		{
 		case TEX_TYPE_1D:
 			if (numFaces <= 1)
@@ -89,7 +89,7 @@ namespace bs { namespace ct
 			}
 			break;
 		case TEX_TYPE_2D:
-			if (texProps.getNumSamples() > 1)
+			if (texProps.GetNumSamples() > 1)
 			{
 				if (numFaces <= 1)
 				{
@@ -157,16 +157,16 @@ namespace bs { namespace ct
 			BS_EXCEPT(InvalidParametersException, "Invalid texture type for this view type.");
 		}
 
-		desc.Format = texture->getColorFormat();
+		desc.Format = texture->GetColorFormat();
 
 		ID3D11ShaderResourceView* srv = nullptr;
 
 		D3D11RenderAPI* d3d11rs = static_cast<D3D11RenderAPI*>(D3D11RenderAPI::instancePtr());
-		HRESULT hr = d3d11rs->getPrimaryDevice().getD3D11Device()->CreateShaderResourceView(texture->getDX11Resource(), &desc, &srv);
+		HRESULT hr = d3d11rs->GetPrimaryDevice().GetD3D11Device()->CreateShaderResourceView(texture->getDX11Resource(), &desc, &srv);
 
-		if (FAILED(hr) || d3d11rs->getPrimaryDevice().hasError())
+		if (FAILED(hr) || d3d11rs->GetPrimaryDevice().HasError())
 		{
-			String msg = d3d11rs->getPrimaryDevice().getErrorDescription();
+			String msg = d3d11rs->GetPrimaryDevice().GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Cannot create ShaderResourceView: " + msg);
 		}
 
@@ -179,10 +179,10 @@ namespace bs { namespace ct
 		D3D11_RENDER_TARGET_VIEW_DESC desc;
 		ZeroMemory(&desc, sizeof(desc));
 
-		const TextureProperties& texProps = texture->getProperties();
-		UINT32 numFaces = texProps.getNumFaces();
+		const TextureProperties& texProps = texture->GetProperties();
+		UINT32 numFaces = texProps.GetNumFaces();
 
-		switch (texProps.getTextureType())
+		switch (texProps.GetTextureType())
 		{
 		case TEX_TYPE_1D:
 			if (numFaces <= 1)
@@ -199,7 +199,7 @@ namespace bs { namespace ct
 			}
 			break;
 		case TEX_TYPE_2D:
-			if (texProps.getNumSamples() > 1)
+			if (texProps.GetNumSamples() > 1)
 			{
 				if (numFaces <= 1)
 				{
@@ -232,7 +232,7 @@ namespace bs { namespace ct
 			desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE3D;
 			desc.Texture3D.MipSlice = mipSlice;
 			desc.Texture3D.FirstWSlice = 0;
-			desc.Texture3D.WSize = texProps.getDepth();
+			desc.Texture3D.WSize = texProps.GetDepth();
 			break;
 		case TEX_TYPE_CUBE_MAP:
 			desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
@@ -244,16 +244,16 @@ namespace bs { namespace ct
 			BS_EXCEPT(InvalidParametersException, "Invalid texture type for this view type.");
 		}
 
-		desc.Format = texture->getColorFormat();
+		desc.Format = texture->GetColorFormat();
 
 		ID3D11RenderTargetView* rtv = nullptr;
 
 		D3D11RenderAPI* d3d11rs = static_cast<D3D11RenderAPI*>(D3D11RenderAPI::instancePtr());
-		HRESULT hr = d3d11rs->getPrimaryDevice().getD3D11Device()->CreateRenderTargetView(texture->getDX11Resource(), &desc, &rtv);
+		HRESULT hr = d3d11rs->GetPrimaryDevice().GetD3D11Device()->CreateRenderTargetView(texture->getDX11Resource(), &desc, &rtv);
 
-		if (FAILED(hr) || d3d11rs->getPrimaryDevice().hasError())
+		if (FAILED(hr) || d3d11rs->GetPrimaryDevice().HasError())
 		{
-			String msg = d3d11rs->getPrimaryDevice().getErrorDescription();
+			String msg = d3d11rs->GetPrimaryDevice().GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Cannot create RenderTargetView: " + msg);
 		}
 
@@ -266,10 +266,10 @@ namespace bs { namespace ct
 		D3D11_UNORDERED_ACCESS_VIEW_DESC desc;
 		ZeroMemory(&desc, sizeof(desc));
 
-		const TextureProperties& texProps = texture->getProperties();
-		UINT32 numFaces = texProps.getNumFaces();
+		const TextureProperties& texProps = texture->GetProperties();
+		UINT32 numFaces = texProps.GetNumFaces();
 
-		switch (texProps.getTextureType())
+		switch (texProps.GetTextureType())
 		{
 		case TEX_TYPE_1D:
 			if (numFaces <= 1)
@@ -303,7 +303,7 @@ namespace bs { namespace ct
 			desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE3D;
 			desc.Texture3D.MipSlice = mipSlice;
 			desc.Texture3D.FirstWSlice = 0;
-			desc.Texture3D.WSize = texProps.getDepth();
+			desc.Texture3D.WSize = texProps.GetDepth();
 			break;
 		case TEX_TYPE_CUBE_MAP:
 			desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
@@ -315,16 +315,16 @@ namespace bs { namespace ct
 			BS_EXCEPT(InvalidParametersException, "Invalid texture type for this view type.");
 		}
 
-		desc.Format = texture->getDXGIFormat();
+		desc.Format = texture->GetDXGIFormat();
 
 		ID3D11UnorderedAccessView* uav = nullptr;
 
 		D3D11RenderAPI* d3d11rs = static_cast<D3D11RenderAPI*>(D3D11RenderAPI::instancePtr());
-		HRESULT hr = d3d11rs->getPrimaryDevice().getD3D11Device()->CreateUnorderedAccessView(texture->getDX11Resource(), &desc, &uav);
+		HRESULT hr = d3d11rs->GetPrimaryDevice().GetD3D11Device()->CreateUnorderedAccessView(texture->getDX11Resource(), &desc, &uav);
 
-		if (FAILED(hr) || d3d11rs->getPrimaryDevice().hasError())
+		if (FAILED(hr) || d3d11rs->GetPrimaryDevice().HasError())
 		{
-			String msg = d3d11rs->getPrimaryDevice().getErrorDescription();
+			String msg = d3d11rs->GetPrimaryDevice().GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Cannot create UnorderedAccessView: " + msg);
 		}
 
@@ -337,10 +337,10 @@ namespace bs { namespace ct
 		D3D11_DEPTH_STENCIL_VIEW_DESC desc;
 		ZeroMemory(&desc, sizeof(desc));
 
-		const TextureProperties& texProps = texture->getProperties();
-		UINT32 numFaces = texProps.getNumFaces();
+		const TextureProperties& texProps = texture->GetProperties();
+		UINT32 numFaces = texProps.GetNumFaces();
 
-		switch (texProps.getTextureType())
+		switch (texProps.GetTextureType())
 		{
 		case TEX_TYPE_1D:
 			if (numFaces <= 1)
@@ -357,7 +357,7 @@ namespace bs { namespace ct
 			}
 			break;
 		case TEX_TYPE_2D:
-			if (texProps.getNumSamples() > 1)
+			if (texProps.GetNumSamples() > 1)
 			{
 				if (numFaces <= 1)
 				{
@@ -389,7 +389,7 @@ namespace bs { namespace ct
 		case TEX_TYPE_3D:
 			desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
 			desc.Texture2DArray.FirstArraySlice = 0;
-			desc.Texture2DArray.ArraySize = texProps.getDepth();
+			desc.Texture2DArray.ArraySize = texProps.GetDepth();
 			desc.Texture2DArray.MipSlice = mipSlice;
 			break;
 		case TEX_TYPE_CUBE_MAP:
@@ -402,7 +402,7 @@ namespace bs { namespace ct
 			BS_EXCEPT(InvalidParametersException, "Invalid texture type for this view type.");
 		}
 
-		desc.Format = texture->getDepthStencilFormat();
+		desc.Format = texture->GetDepthStencilFormat();
 
 		if (readOnlyDepth)
 			desc.Flags = D3D11_DSV_READ_ONLY_DEPTH;
@@ -416,11 +416,11 @@ namespace bs { namespace ct
 		ID3D11DepthStencilView* dsv = nullptr;
 
 		D3D11RenderAPI* d3d11rs = static_cast<D3D11RenderAPI*>(D3D11RenderAPI::instancePtr());
-		HRESULT hr = d3d11rs->getPrimaryDevice().getD3D11Device()->CreateDepthStencilView(texture->getDX11Resource(), &desc, &dsv);
+		HRESULT hr = d3d11rs->GetPrimaryDevice().GetD3D11Device()->CreateDepthStencilView(texture->getDX11Resource(), &desc, &dsv);
 
-		if (FAILED(hr) || d3d11rs->getPrimaryDevice().hasError())
+		if (FAILED(hr) || d3d11rs->GetPrimaryDevice().HasError())
 		{
-			String msg = d3d11rs->getPrimaryDevice().getErrorDescription();
+			String msg = d3d11rs->GetPrimaryDevice().GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Cannot create DepthStencilView: " + msg);
 		}
 

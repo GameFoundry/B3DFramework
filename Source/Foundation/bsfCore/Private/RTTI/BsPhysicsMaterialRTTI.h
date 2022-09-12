@@ -22,21 +22,21 @@ namespace bs
 			return mStaticFriction;
 		}
 
-		void SetStaticFriction(PhysicsMaterial* obj, float& size) { obj->setStaticFriction(size); }
+		void SetStaticFriction(PhysicsMaterial* obj, float& size) { obj->SetStaticFriction(size); }
 
 		float& GetDynamicFriction(PhysicsMaterial* obj)
 		{
 			return mDynamicFriction;
 		}
 
-		void SetDynamicFriction(PhysicsMaterial* obj, float& size) { obj->setDynamicFriction(size); }
+		void SetDynamicFriction(PhysicsMaterial* obj, float& size) { obj->SetDynamicFriction(size); }
 
 		float& GetRestitutionCoefficient(PhysicsMaterial* obj)
 		{
 			return mRestitutionCoefficient;
 		}
 
-		void SetRestitutionCoefficient(PhysicsMaterial* obj, float& size) { obj->setRestitutionCoefficient(size); }
+		void SetRestitutionCoefficient(PhysicsMaterial* obj, float& size) { obj->SetRestitutionCoefficient(size); }
 
 	public:
 		PhysicsMaterialRTTI()
@@ -50,9 +50,9 @@ namespace bs
 		{
 			PhysicsMaterial* material = static_cast<PhysicsMaterial*>(obj);
 
-			mStaticFriction = material->getStaticFriction();
-			mDynamicFriction = material->getDynamicFriction();
-			mRestitutionCoefficient = material->getRestitutionCoefficient();
+			mStaticFriction = material->GetStaticFriction();
+			mDynamicFriction = material->GetDynamicFriction();
+			mRestitutionCoefficient = material->GetRestitutionCoefficient();
 		}
 
 		const String& GetRTTIName() override

@@ -28,7 +28,7 @@ namespace bs { namespace ct
 		VkFormatProperties props;
 		auto isSupported = [&](VkFormat vkFmt)
 		{
-			vkGetPhysicalDeviceFormatProperties(device.getPhysical(), vkFmt, &props);
+			vkGetPhysicalDeviceFormatProperties(device.GetPhysical(), vkFmt, &props);
 			VkFormatFeatureFlags featureFlags = optimalTiling ? props.optimalTilingFeatures : props.linearTilingFeatures;
 
 			return (featureFlags & wantedFeatureFlags) != 0;
@@ -599,7 +599,7 @@ namespace bs { namespace ct
 				continue;
 			}
 
-			VulkanDevice* device = rapi._getDevice(i).get();
+			VulkanDevice* device = rapi._getDevice(i).Get();
 
 			if (isDeviceIdxSet(rapi, i, flags))
 				devices[i] = device;
@@ -635,9 +635,9 @@ namespace bs { namespace ct
 
 	bool VulkanUtility::IsDeviceIdxSet(const VulkanRenderAPI& rapi, UINT32 idx, GpuDeviceFlags flags)
 	{
-		VulkanDevice* device = rapi._getDevice(idx).get();
+		VulkanDevice* device = rapi._getDevice(idx).Get();
 
-		return ((flags & (1 << idx)) != 0 || (flags == GDF_DEFAULT && device->isPrimary()));
+		return ((flags & (1 << idx)) != 0 || (flags == GDF_DEFAULT && device->IsPrimary()));
 	}
 
 	void cutHorizontal(const VkImageSubresourceRange& toCut, const VkImageSubresourceRange& cutWith,
@@ -748,7 +748,7 @@ namespace bs { namespace ct
 		// Cut horizontally
 		UINT32 numHorzCuts = 0;
 		std::array<VkImageSubresourceRange, 3> horzCuts;
-		cutHorizontal(toCut, cutWith, horzCuts.data(), numHorzCuts);
+		cutHorizontal(toCut, cutWith, horzCuts.Data(), numHorzCuts);
 
 		// Cut vertically
 		for (UINT32 i = 0; i < numHorzCuts; i++)
@@ -759,7 +759,7 @@ namespace bs { namespace ct
 				(range.baseArrayLayer + range.layerCount) <= (cutWith.baseArrayLayer + cutWith.layerCount))
 			{
 				UINT32 numVertCuts = 0;
-				cutVertical(range, cutWith, output.data() + numAreas, numVertCuts);
+				cutVertical(range, cutWith, output.Data() + numAreas, numVertCuts);
 
 				numAreas += numVertCuts;
 			}

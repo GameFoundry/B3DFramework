@@ -11,6 +11,6 @@ namespace bs { namespace ct
 
 	SPtr<OcclusionQuery> OcclusionQuery::Create(bool binary, UINT32 deviceIdx)
 	{
-		return QueryManager::Instance().createOcclusionQuery(binary, deviceIdx);
+		return QueryManager::Instance().CreateOcclusionQuery(binary, deviceIdx);
 	}
 }}

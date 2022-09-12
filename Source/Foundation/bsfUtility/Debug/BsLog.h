@@ -127,7 +127,7 @@ namespace bs
 		static bool CategoryExists(UINT32 id);
 		
 		/** Returns the number of registered log categories. */
-		static UINT32 GetNumCategories() { return (UINT32)sCategories.size(); };
+		static UINT32 GetNumCategories() { return (UINT32)sCategories.Size(); };
 		
 		/**
 		 *  Get the name of the category based on its ID.

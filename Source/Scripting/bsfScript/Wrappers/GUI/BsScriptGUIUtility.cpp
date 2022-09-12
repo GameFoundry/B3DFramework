@@ -23,35 +23,35 @@ namespace bs
 
 	void ScriptGUILayoutUtility::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_CalculateOptimalSize", (void*)&ScriptGUILayoutUtility::internal_CalculateOptimalSize);
-		metaData.scriptClass->addInternalCall("Internal_CalculateBounds", (void*)&ScriptGUILayoutUtility::internal_CalculateBounds);
-		metaData.scriptClass->addInternalCall("Internal_CalculateTextBounds", (void*)&ScriptGUILayoutUtility::internal_CalculateTextBounds);
+		metaData.scriptClass->AddInternalCall("Internal_CalculateOptimalSize", (void*)&ScriptGUILayoutUtility::internal_CalculateOptimalSize);
+		metaData.scriptClass->AddInternalCall("Internal_CalculateBounds", (void*)&ScriptGUILayoutUtility::internal_CalculateBounds);
+		metaData.scriptClass->AddInternalCall("Internal_CalculateTextBounds", (void*)&ScriptGUILayoutUtility::internal_CalculateTextBounds);
 	}
 
 	void ScriptGUILayoutUtility::internal_CalculateOptimalSize(ScriptGUIElementBaseTBase* guiElement, Vector2I* output)
 	{
-		*output = GUILayoutUtility::calcOptimalSize(guiElement->getGUIElement());;
+		*output = GUILayoutUtility::calcOptimalSize(guiElement->GetGUIElement());;
 	}
 
 	void ScriptGUILayoutUtility::internal_CalculateBounds(ScriptGUIElementBaseTBase* guiElement, ScriptGUILayout* relativeTo, Rect2I* output)
 	{
-		if (guiElement->isDestroyed())
+		if (guiElement->IsDestroyed())
 		{
 			*output = Rect2I();
 			return;
 		}
 
 		GUIPanel* relativeToPanel = nullptr;
-		if (relativeTo != nullptr && !relativeTo->isDestroyed())
-			relativeToPanel = static_cast<GUIPanel*>(relativeTo->getGUIElement());
+		if (relativeTo != nullptr && !relativeTo->IsDestroyed())
+			relativeToPanel = static_cast<GUIPanel*>(relativeTo->GetGUIElement());
 
-		*output = guiElement->getGUIElement()->getBounds(relativeToPanel);
+		*output = guiElement->GetGUIElement()->getBounds(relativeToPanel);
 	}
 
 	void ScriptGUILayoutUtility::internal_CalculateTextBounds(MonoString* text, ScriptFont* fontPtr, int fontSize, Vector2I* output)
 	{
 		String nativeText = MonoUtil::monoToString(text);
-		HFont nativeFont = fontPtr->getHandle();
+		HFont nativeFont = fontPtr->GetHandle();
 
 		*output = GUIHelper::calcTextSize(nativeText, nativeFont, fontSize);
 	}

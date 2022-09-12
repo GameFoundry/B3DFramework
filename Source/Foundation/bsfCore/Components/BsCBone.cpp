@@ -59,7 +59,7 @@ namespace bs
 
 	void CBone::OnTransformChanged(TransformChangedFlags flags)
 	{
-		if (!SO()->getActive())
+		if (!SO()->GetActive())
 			return;
 
 		if ((flags & TCF_Parent) != 0)
@@ -74,7 +74,7 @@ namespace bs
 			HAnimation parent = currentSO->getComponent<CAnimation>();
 			if (parent != nullptr)
 			{
-				if (currentSO->getActive())
+				if (currentSO->GetActive())
 					_setParent(parent);
 				else
 					_setParent(HAnimation());
@@ -82,7 +82,7 @@ namespace bs
 				return;
 			}
 
-			currentSO = currentSO->getParent();
+			currentSO = currentSO->GetParent();
 		}
 
 		_setParent(HAnimation());

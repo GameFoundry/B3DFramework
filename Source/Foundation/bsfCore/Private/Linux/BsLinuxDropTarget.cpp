@@ -243,7 +243,7 @@ namespace bs
 	void LinuxDragAndDrop::RegisterDropTarget(DropTarget* target)
 	{
 		Lock Lock(sMutex);
-		sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Register, target->getArea()));
+		sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Register, target->GetArea()));
 	}
 
 	void LinuxDragAndDrop::UnregisterDropTarget(DropTarget* target)
@@ -255,7 +255,7 @@ namespace bs
 	void LinuxDragAndDrop::UpdateDropTarget(DropTarget* target)
 	{
 		Lock Lock(sMutex);
-		sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Update, target->getArea()));
+		sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Update, target->GetArea()));
 	}
 
 	bool LinuxDragAndDrop::HandleClientMessage(XClientMessageEvent& event)
@@ -273,40 +273,40 @@ namespace bs
 					break;
 				case DropAreaOpType::Unregister:
 					// Remove any operations queued for this target
-					for(auto iter = sQueuedOperations.begin(); iter !=sQueuedOperations.end();)
+					for(auto iter = sQueuedOperations.Begin(); iter !=sQueuedOperations.end();)
 					{
 						if(iter->target == entry.target)
-							iter = sQueuedOperations.erase(iter);
+							iter = sQueuedOperations.Erase(iter);
 						else
 							++iter;
 					}
 
 					// Remove the area
 					{
-						auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(), [&](const DropArea& area)
+						auto iterFind = std::find_if(sDropAreas.Begin(), sDropAreas.end(), [&](const DropArea& area)
 						{
 							return area.target == entry.target;
 						});
 
-						sDropAreas.erase(iterFind);
+						sDropAreas.Erase(iterFind);
 					}
 
 					break;
 				case DropAreaOpType::Update:
 				{
-					auto iterFind = std::find_if(sDropAreas.begin(), sDropAreas.end(), [&](const DropArea& area)
+					auto iterFind = std::find_if(sDropAreas.Begin(), sDropAreas.end(), [&](const DropArea& area)
 					{
 						return area.target == entry.target;
 					});
 
-					if (iterFind != sDropAreas.end())
+					if (iterFind != sDropAreas.End())
 						iterFind->area = entry.area;
 				}
 					break;
 				}
 			}
 
-			sQueuedAreaOperations.clear();
+			sQueuedAreaOperations.Clear();
 		}
 
 		// Source window notifies us a drag has just entered our window area
@@ -395,13 +395,13 @@ namespace bs
 				for(auto& dropArea : sDropAreas)
 				{
 					LinuxWindow* linuxWindow;
-					dropArea.target->_getOwnerWindow()->getCustomAttribute("LINUX_WINDOW", &linuxWindow);
+					dropArea.target->_getOwnerWindow()->GetCustomAttribute("LINUX_WINDOW", &linuxWindow);
 					::Window xWindow = linuxWindow->_getXWindow();
 
 					if(xWindow == event.window)
 					{
-						Vector2I windowPos = linuxWindow->screenToWindowPos(sDragPosition);
-						if(dropArea.area.contains(windowPos))
+						Vector2I windowPos = linuxWindow->ScreenToWindowPos(sDragPosition);
+						if(dropArea.area.Contains(windowPos))
 						{
 							// Accept drop
 							response.data.l[1] = 1;
@@ -545,9 +545,9 @@ namespace bs
 					continue;
 
 				LinuxWindow* linuxWindow;
-				dropArea.target->_getOwnerWindow()->getCustomAttribute("LINUX_WINDOW", &linuxWindow);
+				dropArea.target->_getOwnerWindow()->GetCustomAttribute("LINUX_WINDOW", &linuxWindow);
 
-				Vector2I windowPos = linuxWindow->screenToWindowPos(sDragPosition);
+				Vector2I windowPos = linuxWindow->ScreenToWindowPos(sDragPosition);
 
 				Lock Lock(sMutex);
 				sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Drop, dropArea.target, windowPos, filePaths));
@@ -595,18 +595,18 @@ namespace bs
 			switch(op.type)
 			{
 			case DragAndDropOpType::Enter:
-				op.target->onEnter(op.position.x, op.position.y);
+				op.target->OnEnter(op.position.x, op.position.y);
 				break;
 			case DragAndDropOpType::DragOver:
-				op.target->onDragOver(op.position.x, op.position.y);
+				op.target->OnDragOver(op.position.x, op.position.y);
 				break;
 			case DragAndDropOpType::Drop:
 				op.target->_setFileList(op.fileList);
-				op.target->onDrop(op.position.x, op.position.y);
+				op.target->OnDrop(op.position.x, op.position.y);
 				break;
 			case DragAndDropOpType::Leave:
 				op.target->_clear();
-				op.target->onLeave();
+				op.target->OnLeave();
 				break;
 			}
 		}

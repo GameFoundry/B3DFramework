@@ -19,41 +19,41 @@ namespace bs
 
 	void ScriptBuiltin::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_GetWhiteTexture", (void*)&ScriptBuiltin::internal_GetWhiteTexture);
-		metaData.scriptClass->addInternalCall("Internal_GetBuiltinShader", (void*)&ScriptBuiltin::internal_GetBuiltinShader);
-		metaData.scriptClass->addInternalCall("Internal_GetMesh", (void*)&ScriptBuiltin::internal_GetMesh);
-		metaData.scriptClass->addInternalCall("Internal_GetDefaultFont", (void*)&ScriptBuiltin::internal_GetDefaultFont);
+		metaData.scriptClass->AddInternalCall("Internal_GetWhiteTexture", (void*)&ScriptBuiltin::internal_GetWhiteTexture);
+		metaData.scriptClass->AddInternalCall("Internal_GetBuiltinShader", (void*)&ScriptBuiltin::internal_GetBuiltinShader);
+		metaData.scriptClass->AddInternalCall("Internal_GetMesh", (void*)&ScriptBuiltin::internal_GetMesh);
+		metaData.scriptClass->AddInternalCall("Internal_GetDefaultFont", (void*)&ScriptBuiltin::internal_GetDefaultFont);
 	}
 
 	MonoObject* ScriptBuiltin::internal_GetWhiteTexture()
 	{
-		HSpriteTexture whiteTexture = BuiltinResources::instance().getWhiteSpriteTexture();
+		HSpriteTexture whiteTexture = BuiltinResources::instance().GetWhiteSpriteTexture();
 
-		ScriptResourceBase* scriptSpriteTex = ScriptResourceManager::instance().getScriptResource(whiteTexture, true);
-		return scriptSpriteTex->getManagedInstance();
+		ScriptResourceBase* scriptSpriteTex = ScriptResourceManager::instance().GetScriptResource(whiteTexture, true);
+		return scriptSpriteTex->GetManagedInstance();
 	}
 
 	MonoObject* ScriptBuiltin::internal_GetBuiltinShader(BuiltinShader type)
 	{
-		HShader diffuseShader = BuiltinResources::instance().getBuiltinShader(type);
+		HShader diffuseShader = BuiltinResources::instance().GetBuiltinShader(type);
 
-		ScriptResourceBase* scriptShader = ScriptResourceManager::instance().getScriptResource(diffuseShader, true);
-		return scriptShader->getManagedInstance();
+		ScriptResourceBase* scriptShader = ScriptResourceManager::instance().GetScriptResource(diffuseShader, true);
+		return scriptShader->GetManagedInstance();
 	}
 
 	MonoObject* ScriptBuiltin::internal_GetMesh(BuiltinMesh meshType)
 	{
-		HMesh mesh = BuiltinResources::instance().getMesh(meshType);
+		HMesh mesh = BuiltinResources::instance().GetMesh(meshType);
 
-		ScriptResourceBase* scriptMesh = ScriptResourceManager::instance().getScriptResource(mesh, true);
-		return scriptMesh->getManagedInstance();
+		ScriptResourceBase* scriptMesh = ScriptResourceManager::instance().GetScriptResource(mesh, true);
+		return scriptMesh->GetManagedInstance();
 	}
 
 	MonoObject* ScriptBuiltin::internal_GetDefaultFont()
 	{
-		HFont font = BuiltinResources::instance().getDefaultFont();
+		HFont font = BuiltinResources::instance().GetDefaultFont();
 
-		ScriptResourceBase* scriptFont = ScriptResourceManager::instance().getScriptResource(font, true);
-		return scriptFont->getManagedInstance();
+		ScriptResourceBase* scriptFont = ScriptResourceManager::instance().GetScriptResource(font, true);
+		return scriptFont->GetManagedInstance();
 	}
 }

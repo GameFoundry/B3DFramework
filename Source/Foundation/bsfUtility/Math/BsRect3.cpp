@@ -9,8 +9,8 @@ namespace bs
 {
 	std::pair<std::array<Vector3, 2>, float> Rect3::GetNearestPoint(const Ray& ray) const
 	{
-		const Vector3& org = ray.getOrigin();
-		const Vector3& dir = ray.getDirection();
+		const Vector3& org = ray.GetOrigin();
+		const Vector3& dir = ray.GetDirection();
 
 		bool foundNearest = false;
 		float t = 0.0f;
@@ -47,7 +47,7 @@ namespace bs
 					Vector3 segEnd = segCenter + scaledAxes[1 - i];
 
 					LineSegment3 Segment(segStart, segEnd);
-					auto segResult = segment.getNearestPoint(ray);
+					auto segResult = segment.GetNearestPoint(ray);
 
 					if (segResult.second < distance)
 					{
@@ -78,10 +78,10 @@ namespace bs
 	std::pair<Vector3, float> Rect3::GetNearestPoint(const Vector3& point) const
 	{
 		Vector3 diff = mCenter - point;
-		float b0 = diff.dot(mAxisHorz);
-		float b1 = diff.dot(mAxisVert);
+		float b0 = diff.Dot(mAxisHorz);
+		float b1 = diff.Dot(mAxisVert);
 		float s0 = -b0, s1 = -b1;
-		float sqrDistance = diff.dot(diff);
+		float sqrDistance = diff.Dot(diff);
 
 		if (s0 < -mExtentHorz)
 			s0 = -mExtentHorz;
@@ -108,25 +108,25 @@ namespace bs
 
 	std::pair<bool, float> Rect3::Intersects(const Ray& ray) const
 	{
-		const Vector3& org = ray.getOrigin();
-		const Vector3& dir = ray.getDirection();
+		const Vector3& org = ray.GetOrigin();
+		const Vector3& dir = ray.GetDirection();
 
-		Vector3 normal = mAxisHorz.cross(mAxisVert);
-		float NdotD = normal.dot(dir);
+		Vector3 normal = mAxisHorz.Cross(mAxisVert);
+		float NdotD = normal.Dot(dir);
 		if (fabs(NdotD) > 0.0f)
 		{
 			Vector3 diff = org - mCenter;
 			Vector3 basis[3];
 
 			basis[0] = dir;
-			basis[0].orthogonalComplement(basis[1], basis[2]);
+			basis[0].OrthogonalComplement(basis[1], basis[2]);
 
-			float UdD0 = basis[1].dot(mAxisHorz);
-			float UdD1 = basis[1].dot(mAxisVert);
-			float UdPmC = basis[1].dot(diff);
-			float VdD0 = basis[2].dot(mAxisHorz);
-			float VdD1 = basis[2].dot(mAxisVert);
-			float VdPmC = basis[2].dot(diff);
+			float UdD0 = basis[1].Dot(mAxisHorz);
+			float UdD1 = basis[1].Dot(mAxisVert);
+			float UdPmC = basis[1].Dot(diff);
+			float VdD0 = basis[2].Dot(mAxisHorz);
+			float VdD1 = basis[2].Dot(mAxisVert);
+			float VdPmC = basis[2].Dot(diff);
 			float invDet = 1.0f / (UdD0*VdD1 - UdD1*VdD0);
 
 			float s0 = (VdD1*UdPmC - UdD1*VdPmC)*invDet;
@@ -134,9 +134,9 @@ namespace bs
 
 			if (fabs(s0) <= mExtentHorz && fabs(s1) <= mExtentVert)
 			{
-				float DdD0 = dir.dot(mAxisHorz);
-				float DdD1 = dir.dot(mAxisVert);
-				float DdDiff = dir.dot(diff);
+				float DdD0 = dir.Dot(mAxisHorz);
+				float DdD1 = dir.Dot(mAxisVert);
+				float DdDiff = dir.Dot(diff);
 
 				float t = s0 * DdD0 + s1 * DdD1 - DdDiff;
 

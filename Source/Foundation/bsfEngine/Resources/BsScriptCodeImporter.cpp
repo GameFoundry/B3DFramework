@@ -28,7 +28,7 @@ namespace bs
 			Lock fileLock = FileScheduler::getLock(filePath);
 
 			SPtr<DataStream> stream = FileSystem::openFile(filePath);
-			textData = stream->getAsWString();
+			textData = stream->GetAsWString();
 		}
 
 		bool editorScript = false;
@@ -40,8 +40,8 @@ namespace bs
 			
 		SPtr<ScriptCode> scriptCode = ScriptCode::_createPtr(textData, editorScript);
 
-		const String fileName = filePath.getFilename(false);
-		scriptCode->setName(fileName);
+		const String fileName = filePath.GetFilename(false);
+		scriptCode->SetName(fileName);
 
 		return scriptCode;
 	}

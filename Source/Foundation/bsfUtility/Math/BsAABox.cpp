@@ -103,16 +103,16 @@ namespace bs
 	{
 		Vector3 min = mMinimum;
 		Vector3 max = mMaximum;
-		max.max(rhs.mMaximum);
-		min.min(rhs.mMinimum);
+		max.Max(rhs.mMaximum);
+		min.Min(rhs.mMinimum);
 
 		setExtents(min, max);
 	}
 
 	void AABox::Merge(const Vector3& point)
 	{
-		mMaximum.max(point);
-		mMinimum.min(point);
+		mMaximum.Max(point);
+		mMinimum.Min(point);
 	}
 
 	void AABox::Transform(const Matrix4& matrix)
@@ -132,41 +132,41 @@ namespace bs
 		// First corner
 		// min min min
 		currentCorner = oldMin;
-		merge(matrix.multiplyAffine(currentCorner));
+		merge(matrix.MultiplyAffine(currentCorner));
 
 		// min,min,max
 		currentCorner.z = oldMax.z;
-		merge(matrix.multiplyAffine(currentCorner));
+		merge(matrix.MultiplyAffine(currentCorner));
 
 		// min max max
 		currentCorner.y = oldMax.y;
-		merge(matrix.multiplyAffine(currentCorner));
+		merge(matrix.MultiplyAffine(currentCorner));
 
 		// min max min
 		currentCorner.z = oldMin.z;
-		merge(matrix.multiplyAffine(currentCorner));
+		merge(matrix.MultiplyAffine(currentCorner));
 
 		// max max min
 		currentCorner.x = oldMax.x;
-		merge(matrix.multiplyAffine(currentCorner));
+		merge(matrix.MultiplyAffine(currentCorner));
 
 		// max max max
 		currentCorner.z = oldMax.z;
-		merge(matrix.multiplyAffine(currentCorner));
+		merge(matrix.MultiplyAffine(currentCorner));
 
 		// max min max
 		currentCorner.y = oldMin.y;
-		merge(matrix.multiplyAffine(currentCorner));
+		merge(matrix.MultiplyAffine(currentCorner));
 
 		// max min min
 		currentCorner.z = oldMin.z;
-		merge(matrix.multiplyAffine(currentCorner));
+		merge(matrix.MultiplyAffine(currentCorner));
 	}
 
 	void AABox::TransformAffine(const Matrix4& m)
 	{
-		Vector3 min = m.getTranslation();
-		Vector3 max = m.getTranslation();
+		Vector3 min = m.GetTranslation();
+		Vector3 max = m.GetTranslation();
 		for(UINT32 i = 0; i < 3; i++)
 		{
 			for(UINT32 j = 0; j < 3; j++)
@@ -215,8 +215,8 @@ namespace bs
 	bool AABox::Intersects(const Sphere& sphere) const
 	{
 		// Use splitting planes
-		const Vector3& center = sphere.getCenter();
-		float radius = sphere.getRadius();
+		const Vector3& center = sphere.GetCenter();
+		float radius = sphere.GetRadius();
 		const Vector3& min = getMin();
 		const Vector3& max = getMax();
 
@@ -240,7 +240,7 @@ namespace bs
 
 	bool AABox::Intersects(const Plane& p) const
 	{
-		return (p.getSide(*this) == Plane::BOTH_SIDE);
+		return (p.GetSide(*this) == Plane::BOTH_SIDE);
 	}
 
 	std::pair<bool, float> AABox::Intersects(const Ray& ray) const
@@ -251,8 +251,8 @@ namespace bs
 		Vector3 Hitpoint(BsZero);
 		const Vector3& min = getMin();
 		const Vector3& max = getMax();
-		const Vector3& rayorig = ray.getOrigin();
-		const Vector3& raydir = ray.getDirection();
+		const Vector3& rayorig = ray.GetOrigin();
+		const Vector3& raydir = ray.GetDirection();
 
 		// Check origin inside first
 		if ((rayorig.x > min.x && rayorig.y > min.y && rayorig.z > min.z) && (rayorig.x < max.x && rayorig.y < max.y && rayorig.z < max.z))
@@ -372,8 +372,8 @@ namespace bs
 	{
 		const Vector3& min = getMin();
 		const Vector3& max = getMax();
-		const Vector3& rayorig = ray.getOrigin();
-		const Vector3& raydir = ray.getDirection();
+		const Vector3& rayorig = ray.GetOrigin();
+		const Vector3& raydir = ray.GetDirection();
 
 		Vector3 absDir;
 		absDir[0] = Math::abs(raydir[0]);
@@ -465,7 +465,7 @@ namespace bs
 
 	float AABox::GetRadius() const
 	{
-		return ((mMaximum - mMinimum) * 0.5).length();
+		return ((mMaximum - mMinimum) * 0.5).Length();
 	}
 
 	float AABox::GetVolume() const

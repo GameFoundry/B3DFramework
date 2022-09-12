@@ -64,7 +64,7 @@ namespace bs { namespace ct
 	{
 		size_t hash = 0;
 		for (UINT32 i = 0; i < numLayouts; i++)
-			bs_hash_combine(hash, layouts[i]->getHash());
+			bs_hash_combine(hash, layouts[i]->GetHash());
 
 		return hash;
 	}
@@ -86,7 +86,7 @@ namespace bs { namespace ct
 		for (auto& entry : mPipelineLayouts)
 		{
 			bs_free(entry.first.layouts);
-			vkDestroyPipelineLayout(mDevice.getLogical(), entry.second, gVulkanAllocator);
+			vkDestroyPipelineLayout(mDevice.GetLogical(), entry.second, gVulkanAllocator);
 		}
 
 		for (auto& entry : mPools)
@@ -97,8 +97,8 @@ namespace bs { namespace ct
 	{
 		VulkanLayoutKey Key(bindings, numBindings);
 
-		auto iterFind = mLayouts.find(key);
-		if (iterFind != mLayouts.end())
+		auto iterFind = mLayouts.Find(key);
+		if (iterFind != mLayouts.End())
 			return iterFind->layout;
 
 		// Create new
@@ -106,7 +106,7 @@ namespace bs { namespace ct
 		memcpy(key.bindings, bindings, numBindings * sizeof(VkDescriptorSetLayoutBinding));
 
 		key.layout = bs_new<VulkanDescriptorLayout>(mDevice, key.bindings, numBindings);
-		mLayouts.insert(key);
+		mLayouts.Insert(key);
 		
 		return key.layout;
 	}
@@ -117,41 +117,41 @@ namespace bs { namespace ct
 		// that requires additional tracking. Since the assumption is that the first pool will be large enough for all
 		// descriptors, and the only reason to create a second pool is fragmentation, this approach should not result in
 		// a major resource waste.
-		VkDescriptorSetLayout setLayout = layout->getHandle();
+		VkDescriptorSetLayout setLayout = layout->GetHandle();
 
 		VkDescriptorSetAllocateInfo allocateInfo;
 		allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 		allocateInfo.pNext = nullptr;
-		allocateInfo.descriptorPool = mPools.back()->getHandle();
+		allocateInfo.descriptorPool = mPools.Back()->GetHandle();
 		allocateInfo.descriptorSetCount = 1;
 		allocateInfo.pSetLayouts = &setLayout;
 
 		VkDescriptorSet set;
-		VkResult result = vkAllocateDescriptorSets(mDevice.getLogical(), &allocateInfo, &set);
+		VkResult result = vkAllocateDescriptorSets(mDevice.GetLogical(), &allocateInfo, &set);
 		if(result < 0) // Possible fragmentation, try in a new pool
 		{
 			mPools.push_back(bs_new<VulkanDescriptorPool>(mDevice));
-			allocateInfo.descriptorPool = mPools.back()->getHandle();
+			allocateInfo.descriptorPool = mPools.Back()->GetHandle();
 
-			result = vkAllocateDescriptorSets(mDevice.getLogical(), &allocateInfo, &set);
+			result = vkAllocateDescriptorSets(mDevice.GetLogical(), &allocateInfo, &set);
 			assert(result == VK_SUCCESS);
 		}
 
-		return mDevice.getResourceManager().create<VulkanDescriptorSet>(set, allocateInfo.descriptorPool);
+		return mDevice.GetResourceManager().create<VulkanDescriptorSet>(set, allocateInfo.descriptorPool);
 	}
 
 	VkPipelineLayout VulkanDescriptorManager::GetPipelineLayout(VulkanDescriptorLayout** layouts, UINT32 numLayouts)
 	{
 		VulkanPipelineLayoutKey Key(layouts, numLayouts);
 
-		auto iterFind = mPipelineLayouts.find(key);
-		if (iterFind != mPipelineLayouts.end())
+		auto iterFind = mPipelineLayouts.Find(key);
+		if (iterFind != mPipelineLayouts.End())
 			return iterFind->second;
 
 		// Create new
 		VkDescriptorSetLayout* setLayouts = (VkDescriptorSetLayout*)bs_stack_alloc(sizeof(VkDescriptorSetLayout) * numLayouts);
 		for(UINT32 i = 0; i < numLayouts; i++)
-			setLayouts[i] = layouts[i]->getHandle();
+			setLayouts[i] = layouts[i]->GetHandle();
 
 		VkPipelineLayoutCreateInfo layoutCI;
 		layoutCI.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -163,7 +163,7 @@ namespace bs { namespace ct
 		layoutCI.pSetLayouts = setLayouts;
 
 		VkPipelineLayout pipelineLayout;
-		VkResult result = vkCreatePipelineLayout(mDevice.getLogical(), &layoutCI, gVulkanAllocator, &pipelineLayout);
+		VkResult result = vkCreatePipelineLayout(mDevice.GetLogical(), &layoutCI, gVulkanAllocator, &pipelineLayout);
 		assert(result == VK_SUCCESS);
 
 		bs_stack_free(setLayouts);
@@ -171,7 +171,7 @@ namespace bs { namespace ct
 		key.layouts = (VulkanDescriptorLayout**)bs_alloc(sizeof(VulkanDescriptorLayout*) * numLayouts);
 		memcpy(key.layouts, layouts, sizeof(VulkanDescriptorLayout*) * numLayouts);
 
-		mPipelineLayouts.insert(std::make_pair(key, pipelineLayout));
+		mPipelineLayouts.Insert(std::make_pair(key, pipelineLayout));
 		return pipelineLayout;
 	}
 }}

@@ -18,7 +18,7 @@ namespace bs { namespace ct
 
 	TetrahedraRenderMat::TetrahedraRenderMat()
 	{
-		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", mDepthBufferTex);
+		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", mDepthBufferTex);
 
 		SAMPLER_STATE_DESC pointSampDesc;
 		pointSampDesc.minFilter = FO_POINT;
@@ -30,13 +30,13 @@ namespace bs { namespace ct
 
 		SPtr<SamplerState> pointSampState = SamplerState::create(pointSampDesc);
 
-		if(mParams->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferSamp"))
-			mParams->setSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferSamp", pointSampState);
-		else If(mParams->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex"))
-			mParams->setSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", pointSampState);
+		if(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferSamp"))
+			mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferSamp", pointSampState);
+		else If(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex"))
+			mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", pointSampState);
 
-		mParamBuffer = gTetrahedraRenderParamDef.createBuffer();
-		mParams->setParamBlockBuffer("Params", mParamBuffer);
+		mParamBuffer = gTetrahedraRenderParamDef.CreateBuffer();
+		mParams->SetParamBlockBuffer("Params", mParamBuffer);
 	}
 
 	void TetrahedraRenderMat::execute(const RendererView& view, const SPtr<Texture>& sceneDepth, const SPtr<Mesh>& mesh,
@@ -44,25 +44,25 @@ namespace bs { namespace ct
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
-		const TextureProperties& texProps = sceneDepth->getProperties();
+		const TextureProperties& texProps = sceneDepth->GetProperties();
 
-		Vector2I TexSize(texProps.getWidth(), texProps.getHeight());
-		gTetrahedraRenderParamDef.gDepthTexSize.set(mParamBuffer, texSize);
+		Vector2I TexSize(texProps.GetWidth(), texProps.getHeight());
+		gTetrahedraRenderParamDef.gDepthTexSize.Set(mParamBuffer, texSize);
 
-		mDepthBufferTex.set(sceneDepth);
-		mParams->setParamBlockBuffer("PerCamera", view.getPerViewBuffer());
+		mDepthBufferTex.Set(sceneDepth);
+		mParams->SetParamBlockBuffer("PerCamera", view.GetPerViewBuffer());
 
 		RenderAPI& rapi = RenderAPI::instance();
-		rapi.setRenderTarget(output);
+		rapi.SetRenderTarget(output);
 
 		bind();
-		gRendererUtility().draw(mesh);
+		gRendererUtility().Draw(mesh);
 	}
 
 	void TetrahedraRenderMat::getOutputDesc(const RendererView& view, POOLED_RENDER_TEXTURE_DESC& colorDesc,
 		POOLED_RENDER_TEXTURE_DESC& depthDesc)
 	{
-		const RendererViewProperties& viewProps = view.getProperties();
+		const RendererViewProperties& viewProps = view.GetProperties();
 		UINT32 width = viewProps.target.viewRect.width;
 		UINT32 height = viewProps.target.viewRect.height;
 		UINT32 numSamples = viewProps.target.numSamples;
@@ -89,21 +89,21 @@ namespace bs { namespace ct
 	IrradianceEvaluateMat::IrradianceEvaluateMat()
 		:mGBufferParams(GPT_FRAGMENT_PROGRAM, mParams)
 	{
-		mSkyOnly = mVariation.getBool("SKY_ONLY");
+		mSkyOnly = mVariation.GetBool("SKY_ONLY");
 
-		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSkyIrradianceTex", mParamSkyIrradianceTex);
-		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gAmbientOcclusionTex", mParamAmbientOcclusionTex);
+		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gSkyIrradianceTex", mParamSkyIrradianceTex);
+		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gAmbientOcclusionTex", mParamAmbientOcclusionTex);
 
 		if(!mSkyOnly)
 		{
-			mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mParamInputTex);
-			mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSHCoeffs", mParamSHCoeffsTexture);
-			mParams->getBufferParam(GPT_FRAGMENT_PROGRAM, "gTetrahedra", mParamTetrahedraBuffer);
-			mParams->getBufferParam(GPT_FRAGMENT_PROGRAM, "gTetFaces", mParamTetFacesBuffer);
+			mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mParamInputTex);
+			mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gSHCoeffs", mParamSHCoeffsTexture);
+			mParams->GetBufferParam(GPT_FRAGMENT_PROGRAM, "gTetrahedra", mParamTetrahedraBuffer);
+			mParams->GetBufferParam(GPT_FRAGMENT_PROGRAM, "gTetFaces", mParamTetFacesBuffer);
 		}
 
-		mParamBuffer = gIrradianceEvaluateParamDef.createBuffer();
-		mParams->setParamBlockBuffer("Params", mParamBuffer);
+		mParamBuffer = gIrradianceEvaluateParamDef.CreateBuffer();
+		mParams->SetParamBlockBuffer("Params", mParamBuffer);
 	}
 
 	void IrradianceEvaluateMat::execute(const RendererView& view, const GBufferTextures& gbuffer,
@@ -112,31 +112,31 @@ namespace bs { namespace ct
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
-		const RendererViewProperties& viewProps = view.getProperties();
+		const RendererViewProperties& viewProps = view.GetProperties();
 
-		mGBufferParams.bind(gbuffer);
+		mGBufferParams.Bind(gbuffer);
 
 		float skyBrightness = 1.0f;
 		SPtr<Texture> skyIrradiance;
 		if (skybox != nullptr)
 		{
-			skyIrradiance = skybox->getIrradiance();
-			skyBrightness = skybox->getBrightness();
+			skyIrradiance = skybox->GetIrradiance();
+			skyBrightness = skybox->GetBrightness();
 		}
 
 		if(skyIrradiance == nullptr)
 			skyIrradiance = RendererTextures::defaultIndirect;
 
-		mParamSkyIrradianceTex.set(skyIrradiance);
-		mParamAmbientOcclusionTex.set(ambientOcclusion);
+		mParamSkyIrradianceTex.Set(skyIrradiance);
+		mParamAmbientOcclusionTex.Set(ambientOcclusion);
 
 		RenderSurfaceMask loadMask = RT_COLOR0;
 		if(!mSkyOnly)
 		{
-			mParamInputTex.set(lightProbeIndices);
-			mParamSHCoeffsTexture.set(lightProbesInfo.shCoefficients);
-			mParamTetrahedraBuffer.set(lightProbesInfo.tetrahedra);
-			mParamTetFacesBuffer.set(lightProbesInfo.faces);
+			mParamInputTex.Set(lightProbeIndices);
+			mParamSHCoeffsTexture.Set(lightProbesInfo.shCoefficients);
+			mParamTetrahedraBuffer.Set(lightProbesInfo.tetrahedra);
+			mParamTetFacesBuffer.Set(lightProbesInfo.faces);
 		}
 		else
 		{
@@ -145,22 +145,22 @@ namespace bs { namespace ct
 			loadMask |= RT_DEPTH_STENCIL;
 		}
 
-		gIrradianceEvaluateParamDef.gSkyBrightness.set(mParamBuffer, skyBrightness);
-		gIrradianceEvaluateParamDef.gNumTetrahedra.set(mParamBuffer, lightProbesInfo.numTetrahedra);
-		mParamBuffer->flushToGPU();
+		gIrradianceEvaluateParamDef.gSkyBrightness.Set(mParamBuffer, skyBrightness);
+		gIrradianceEvaluateParamDef.gNumTetrahedra.Set(mParamBuffer, lightProbesInfo.numTetrahedra);
+		mParamBuffer->FlushToGPU();
 
-		mParams->setParamBlockBuffer("PerCamera", view.getPerViewBuffer());
+		mParams->SetParamBlockBuffer("PerCamera", view.GetPerViewBuffer());
 
 		// Render
 		RenderAPI& rapi = RenderAPI::instance();
-		rapi.setRenderTarget(output, FBT_DEPTH | FBT_STENCIL, loadMask);
+		rapi.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL, loadMask);
 
 		bind();
 
-		gRendererUtility().drawScreenQuad(Rect2(0.0f, 0.0f, (float)viewProps.target.viewRect.width,
+		gRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)viewProps.target.viewRect.width,
 			(float)viewProps.target.viewRect.height));
 
-		rapi.setRenderTarget(nullptr);
+		rapi.SetRenderTarget(nullptr);
 	}
 
 	IrradianceEvaluateMat* IrradianceEvaluateMat::getVariation(bool msaa, bool singleSampleMSAA, bool skyOnly)
@@ -227,21 +227,21 @@ namespace bs { namespace ct
 
 	void LightProbes::NotifyAdded(LightProbeVolume* volume)
 	{
-		UINT32 handle = (UINT32)mVolumes.size();
+		UINT32 handle = (UINT32)mVolumes.Size();
 
 		VolumeInfo info;
 		info.volume = volume;
 		info.isDirty = true;
 
 		mVolumes.push_back(info);
-		volume->setRendererId(handle);
+		volume->SetRendererId(handle);
 
 		notifyDirty(volume);
 	}
 
 	void LightProbes::NotifyDirty(LightProbeVolume* volume)
 	{
-		UINT32 handle = volume->getRendererId();
+		UINT32 handle = volume->GetRendererId();
 		mVolumes[handle].isDirty = true;
 
 		mTetrahedronVolumeDirty = true;
@@ -249,20 +249,20 @@ namespace bs { namespace ct
 
 	void LightProbes::NotifyRemoved(LightProbeVolume* volume)
 	{
-		UINT32 handle = volume->getRendererId();
+		UINT32 handle = volume->GetRendererId();
 
-		LightProbeVolume* lastVolume = mVolumes.back().volume;
-		UINT32 lastHandle = lastVolume->getRendererId();
+		LightProbeVolume* lastVolume = mVolumes.Back().volume;
+		UINT32 lastHandle = lastVolume->GetRendererId();
 		
 		if (handle != lastHandle)
 		{
 			// Swap current last element with the one we want to erase
 			std::swap(mVolumes[handle], mVolumes[lastHandle]);
-			lastVolume->setRendererId(handle);
+			lastVolume->SetRendererId(handle);
 		}
 		
 		// Erase last (empty) element
-		mVolumes.erase(mVolumes.end() - 1);
+		mVolumes.Erase(mVolumes.end() - 1);
 
 		mTetrahedronVolumeDirty = true;
 	}
@@ -276,8 +276,8 @@ namespace bs { namespace ct
 		UINT32 numRows = 0;
 		for(auto& entry : mVolumes)
 		{
-			SPtr<Texture> localTexture = entry.volume->getCoefficientsTexture();
-			numRows += localTexture->getProperties().getHeight();
+			SPtr<Texture> localTexture = entry.volume->GetCoefficientsTexture();
+			numRows += localTexture->GetProperties().GetHeight();
 		}
 
 		if(numRows > mMaxCoefficientRows)
@@ -289,10 +289,10 @@ namespace bs { namespace ct
 			TEXTURE_COPY_DESC copyDesc;
 			copyDesc.dstPosition = Vector3I(0, rowIdx, 0);
 
-			SPtr<Texture> localTexture = entry.volume->getCoefficientsTexture();
-			localTexture->copy(mProbeCoefficientsGPU, copyDesc);
+			SPtr<Texture> localTexture = entry.volume->GetCoefficientsTexture();
+			localTexture->Copy(mProbeCoefficientsGPU, copyDesc);
 			
-			rowIdx += localTexture->getProperties().getHeight();
+			rowIdx += localTexture->GetProperties().GetHeight();
 		}
 
 		// Gather all positions
@@ -300,22 +300,22 @@ namespace bs { namespace ct
 		rowIdx = 0;
 		for(auto& entry : mVolumes)
 		{
-			const Vector<LightProbeInfo>& infos = entry.volume->getLightProbeInfos();
-			const Vector<Vector3>& positions = entry.volume->getLightProbePositions();
+			const Vector<LightProbeInfo>& infos = entry.volume->GetLightProbeInfos();
+			const Vector<Vector3>& positions = entry.volume->GetLightProbePositions();
 
-			UINT32 numProbes = entry.volume->getNumActiveProbes();
+			UINT32 numProbes = entry.volume->GetNumActiveProbes();
 
 			if (numProbes == 0)
 				continue;
 
-			const Transform& tfrm = entry.volume->getTransform();
-			Vector3 offset = tfrm.getPosition();
-			Quaternion rotation = tfrm.getRotation();
+			const Transform& tfrm = entry.volume->GetTransform();
+			Vector3 offset = tfrm.GetPosition();
+			Quaternion rotation = tfrm.GetRotation();
 
 			for (UINT32 i = 0; i < numProbes; i++)
 			{
 				Vector3 localPos = positions[i];
-				Vector3 transformedPos = rotation.rotate(localPos) + offset;
+				Vector3 transformedPos = rotation.Rotate(localPos) + offset;
 				mTempTetrahedronPositions.push_back(transformedPos);
 
 				mTempTetrahedronBufferIndices.push_back(bufferOffset + infos[i].bufferIdx);
@@ -324,22 +324,22 @@ namespace bs { namespace ct
 				mTempTetrahedronBufferOffsets.push_back(offset);
 			}
 
-			SPtr<Texture> localTexture = entry.volume->getCoefficientsTexture();
-			rowIdx += localTexture->getProperties().getHeight();
-			bufferOffset += (UINT32)positions.size();
+			SPtr<Texture> localTexture = entry.volume->GetCoefficientsTexture();
+			rowIdx += localTexture->GetProperties().GetHeight();
+			bufferOffset += (UINT32)positions.Size();
 		}
 
-		mTetrahedronInfos.clear();
+		mTetrahedronInfos.Clear();
 
 		Vector<TetrahedronFaceData> outerFaces;
 		generateTetrahedronData(mTempTetrahedronPositions, mTetrahedronInfos, outerFaces, true);
 
 		// Find valid tetrahedrons
-		UINT32 numTetrahedra = (UINT32)mTetrahedronInfos.size();
+		UINT32 numTetrahedra = (UINT32)mTetrahedronInfos.Size();
 
 		bool* validTets = (bool*)bs_stack_alloc(sizeof(bool) * numTetrahedra);
 		mNumValidTetrahedra = 0;
-		for (UINT32 i = 0; i < (UINT32)mTetrahedronInfos.size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mTetrahedronInfos.Size(); i++)
 		{
 			const TetrahedronData& entry = mTetrahedronInfos[i];
 
@@ -375,17 +375,17 @@ namespace bs { namespace ct
 		UINT32 numVertices = mNumValidTetrahedra * 4 * 3 + numValidFaces * 9 * 3;
 
 		SPtr<VertexDataDesc> vertexDesc = bs_shared_ptr_new<VertexDataDesc>();
-		vertexDesc->addVertElem(VET_FLOAT3, VES_POSITION);
-		vertexDesc->addVertElem(VET_UINT1, VES_TEXCOORD);
+		vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
+		vertexDesc->AddVertElem(VET_UINT1, VES_TEXCOORD);
 
 		SPtr<MeshData> meshData = MeshData::create(numVertices, numVertices, vertexDesc);
-		auto posIter = meshData->getVec3DataIter(VES_POSITION);
-		auto idIter = meshData->getDWORDDataIter(VES_TEXCOORD);
-		UINT32* indices = meshData->getIndices32();
+		auto posIter = meshData->GetVec3DataIter(VES_POSITION);
+		auto idIter = meshData->GetDWORDDataIter(VES_TEXCOORD);
+		UINT32* indices = meshData->GetIndices32();
 
 		// Insert inner tetrahedron triangles
 		UINT32 tetIdx = 0;
-		for (UINT32 i = 0; i < (UINT32)mTetrahedronInfos.size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mTetrahedronInfos.Size(); i++)
 		{
 			if (!validTets[i])
 				continue;
@@ -416,17 +416,17 @@ namespace bs { namespace ct
 				Vector3 e0 = A - C;
 				Vector3 e1 = B - C;
 
-				Vector3 normal = e0.cross(e1);
-				if (normal.dot(A - center) > 0.0f)
+				Vector3 normal = e0.Cross(e1);
+				if (normal.Dot(A - center) > 0.0f)
 					std::swap(B, C);
 
-				posIter.addValue(A);
-				posIter.addValue(B);
-				posIter.addValue(C);
+				posIter.AddValue(A);
+				posIter.AddValue(B);
+				posIter.AddValue(C);
 
-				idIter.addValue(tetIdx);
-				idIter.addValue(tetIdx);
-				idIter.addValue(tetIdx);
+				idIter.AddValue(tetIdx);
+				idIter.AddValue(tetIdx);
+				idIter.AddValue(tetIdx);
 
 				indices[0] = tetIdx * 4 * 3 + j * 3 + 0;
 				indices[1] = tetIdx * 4 * 3 + j * 3 + 1;
@@ -447,7 +447,7 @@ namespace bs { namespace ct
 		};
 
 		FrameUnorderedMap<std::pair<INT32, INT32>, Edge, pair_hash> edgeMap;
-		for(UINT32 i = 0; i < (UINT32)outerFaces.size(); i++)
+		for(UINT32 i = 0; i < (UINT32)outerFaces.Size(); i++)
 		{
 			if (!validTets[outerFaces[i].tetrahedron])
 				continue;
@@ -461,8 +461,8 @@ namespace bs { namespace ct
 				if (v0 > v1)
 					std::swap(v0, v1);
 
-				auto iterFind = edgeMap.find(std::make_pair((INT32)v0, (INT32)v1));
-				if (iterFind != edgeMap.end())
+				auto iterFind = edgeMap.Find(std::make_pair((INT32)v0, (INT32)v1));
+				if (iterFind != edgeMap.End())
 				{
 					iterFind->second.face[1] = i;
 				}
@@ -476,14 +476,14 @@ namespace bs { namespace ct
 					edge.face[0] = i;
 					edge.face[1] = -1;
 
-					edgeMap.insert(std::make_pair(std::make_pair((INT32)v0, (INT32)v1), edge));
+					edgeMap.Insert(std::make_pair(std::make_pair((INT32)v0, (INT32)v1), edge));
 				}
 			}
 		}
 
 		// Generate front and back triangles for extruded outer faces
 		UINT32 faceIdx = 0;
-		for(UINT32 i = 0; i < (UINT32)outerFaces.size(); i++)
+		for(UINT32 i = 0; i < (UINT32)outerFaces.Size(); i++)
 		{
 			if (!validTets[outerFaces[i].tetrahedron])
 				continue;
@@ -519,17 +519,17 @@ namespace bs { namespace ct
 				Vector3 e0 = A - C;
 				Vector3 e1 = B - C;
 
-				Vector3 normal = e0.cross(e1);
-				if (normal.dot(A - center) > 0.0f)
+				Vector3 normal = e0.Cross(e1);
+				if (normal.Dot(A - center) > 0.0f)
 					std::swap(A, B);
 
-				posIter.addValue(A);
-				posIter.addValue(B);
-				posIter.addValue(C);
+				posIter.AddValue(A);
+				posIter.AddValue(B);
+				posIter.AddValue(C);
 
-				idIter.addValue(tetIdx + faceIdx);
-				idIter.addValue(tetIdx + faceIdx);
-				idIter.addValue(tetIdx + faceIdx);
+				idIter.AddValue(tetIdx + faceIdx);
+				idIter.AddValue(tetIdx + faceIdx);
+				idIter.AddValue(tetIdx + faceIdx);
 
 				indices[0] = tetIdx * 4 * 3 + faceIdx * 2 * 3 + j * 3 + 0;
 				indices[1] = tetIdx * 4 * 3 + faceIdx * 2 * 3 + j * 3 + 1;
@@ -579,17 +579,17 @@ namespace bs { namespace ct
 					Vector3 e0 = A - C;
 					Vector3 e1 = B - C;
 
-					Vector3 normal = e0.cross(e1);
-					if (normal.dot(A - center) > 0.0f)
+					Vector3 normal = e0.Cross(e1);
+					if (normal.Dot(A - center) > 0.0f)
 						std::swap(A, B);
 
-					posIter.addValue(A);
-					posIter.addValue(B);
-					posIter.addValue(C);
+					posIter.AddValue(A);
+					posIter.AddValue(B);
+					posIter.AddValue(C);
 
-					idIter.addValue(tetIdx + edge.face[i]);
-					idIter.addValue(tetIdx + edge.face[i]);
-					idIter.addValue(tetIdx + edge.face[i]);
+					idIter.AddValue(tetIdx + edge.face[i]);
+					idIter.AddValue(tetIdx + edge.face[i]);
+					idIter.AddValue(tetIdx + edge.face[i]);
 
 					indices[0] = tetIdx * 4 * 3 + faceIdx * 2 * 3 + sideIdx * 2 * 3 + j * 3 + 0;
 					indices[1] = tetIdx * 4 * 3 + faceIdx * 2 * 3 + sideIdx * 2 * 3 + j * 3 + 1;
@@ -604,7 +604,7 @@ namespace bs { namespace ct
 
 		// Generate "caps" on the end of the extruded volume
 		UINT32 capIdx = 0;
-		for(UINT32 i = 0; i < (UINT32)outerFaces.size(); i++)
+		for(UINT32 i = 0; i < (UINT32)outerFaces.Size(); i++)
 		{
 			if (!validTets[outerFaces[i].tetrahedron])
 				continue;
@@ -627,17 +627,17 @@ namespace bs { namespace ct
 			Vector3 e0 = A - C;
 			Vector3 e1 = B - C;
 
-			Vector3 normal = e0.cross(e1);
-			if (normal.dot(A - center) < 0.0f)
+			Vector3 normal = e0.Cross(e1);
+			if (normal.Dot(A - center) < 0.0f)
 				std::swap(B, C);
 
-			posIter.addValue(A);
-			posIter.addValue(B);
-			posIter.addValue(C);
+			posIter.AddValue(A);
+			posIter.AddValue(B);
+			posIter.AddValue(C);
 
-			idIter.addValue(-1);
-			idIter.addValue(-1);
-			idIter.addValue(-1);
+			idIter.AddValue(-1);
+			idIter.AddValue(-1);
+			idIter.AddValue(-1);
 
 			indices[0] = tetIdx * 4 * 3 + faceIdx * 8 * 3 + capIdx * 3 + 0;
 			indices[1] = tetIdx * 4 * 3 + faceIdx * 8 * 3 + capIdx * 3 + 1;
@@ -656,11 +656,11 @@ namespace bs { namespace ct
 			resizeTetrahedronBuffer(newSize);
 		}
 
-		TetrahedronDataGPU* dst = (TetrahedronDataGPU*)mTetrahedronInfosGPU->lock(0, mTetrahedronInfosGPU->getSize(),
+		TetrahedronDataGPU* dst = (TetrahedronDataGPU*)mTetrahedronInfosGPU->Lock(0, mTetrahedronInfosGPU->getSize(),
 			GBL_WRITE_ONLY_DISCARD);
 
 		// Write inner tetrahedron data
-		for (UINT32 i = 0; i < (UINT32)mTetrahedronInfos.size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mTetrahedronInfos.Size(); i++)
 		{
 			if (!validTets[i])
 				continue;
@@ -682,7 +682,7 @@ namespace bs { namespace ct
 		}
 
 		// Write extruded face data
-		for (UINT32 i = 0; i < (UINT32)outerFaces.size(); i++)
+		for (UINT32 i = 0; i < (UINT32)outerFaces.Size(); i++)
 		{
 			if (!validTets[outerFaces[i].tetrahedron])
 				continue;
@@ -706,7 +706,7 @@ namespace bs { namespace ct
 			dst++;
 		}
 
-		mTetrahedronInfosGPU->unlock();
+		mTetrahedronInfosGPU->Unlock();
 
 		// Write data specific to faces
 		if (numValidFaces > mMaxFaces)
@@ -716,9 +716,9 @@ namespace bs { namespace ct
 		}
 
 		TetrahedronFaceDataGPU* faceDst = (TetrahedronFaceDataGPU*)mTetrahedronFaceInfosGPU->lock(0,
-			mTetrahedronFaceInfosGPU->getSize(), GBL_WRITE_ONLY_DISCARD);
+			mTetrahedronFaceInfosGPU->GetSize(), GBL_WRITE_ONLY_DISCARD);
 
-		for (UINT32 i = 0; i < (UINT32)outerFaces.size(); i++)
+		for (UINT32 i = 0; i < (UINT32)outerFaces.Size(); i++)
 		{
 			if (!validTets[outerFaces[i].tetrahedron])
 				continue;
@@ -735,12 +735,12 @@ namespace bs { namespace ct
 			faceDst++;
 		}
 
-		mTetrahedronFaceInfosGPU->unlock();
+		mTetrahedronFaceInfosGPU->Unlock();
 
 		bs_stack_free(validTets);
 
-		mTempTetrahedronPositions.clear();
-		mTempTetrahedronBufferIndices.clear();
+		mTempTetrahedronPositions.Clear();
+		mTempTetrahedronBufferIndices.Clear();
 		mTetrahedronVolumeDirty = false;
 	}
 
@@ -748,7 +748,7 @@ namespace bs { namespace ct
 	{
 		for(auto& entry : mVolumes)
 		{
-			UINT32 numProbes = entry.volume->getNumActiveProbes();
+			UINT32 numProbes = entry.volume->GetNumActiveProbes();
 			if (numProbes > 0)
 				return true;
 		}
@@ -808,7 +808,7 @@ namespace bs { namespace ct
 
 		SPtr<Texture> newTexture = Texture::create(desc);
 		if (mProbeCoefficientsGPU)
-			mProbeCoefficientsGPU->copy(newTexture);
+			mProbeCoefficientsGPU->Copy(newTexture);
 
 		mProbeCoefficientsGPU = newTexture;
 		mMaxCoefficientRows = numRows;
@@ -825,7 +825,7 @@ namespace bs { namespace ct
 			{
 				// Add geometry so we can handle the case when the interpolation position falls outside of the tetrahedra
 				// volume. We use this geometry to project the position to the nearest face.
-				UINT32 numOuterFaces = (UINT32)volume.outerFaces.size();
+				UINT32 numOuterFaces = (UINT32)volume.outerFaces.Size();
 
 				// Calculate face normals for outer faces
 				//// Make an edge map
@@ -847,8 +847,8 @@ namespace bs { namespace ct
 						if (v0 > v1)
 							std::swap(v0, v1);
 
-						auto iterFind = edgeMap.find(std::make_pair(v0, v1));
-						if (iterFind != edgeMap.end())
+						auto iterFind = edgeMap.Find(std::make_pair(v0, v1));
+						if (iterFind != edgeMap.End())
 						{
 							iterFind->second.faces[1] = i;
 							iterFind->second.oppositeVerts[1] = (j + 2) % 3;
@@ -859,7 +859,7 @@ namespace bs { namespace ct
 							edge.faces[0] = i;
 							edge.oppositeVerts[0] = (j + 2) % 3;
 
-							edgeMap.insert(std::make_pair(std::make_pair(v0, v1), edge));
+							edgeMap.Insert(std::make_pair(std::make_pair(v0, v1), edge));
 						}
 					}
 				}
@@ -871,8 +871,8 @@ namespace bs { namespace ct
 					UINT32 outerIdx = -1;
 				};
 
-				FrameVector<Vector3> FaceNormals(volume.outerFaces.size());
-				for (UINT32 i = 0; i < (UINT32)volume.outerFaces.size(); ++i)
+				FrameVector<Vector3> FaceNormals(volume.outerFaces.Size());
+				for (UINT32 i = 0; i < (UINT32)volume.outerFaces.Size(); ++i)
 				{
 					const Vector3& v0 = positions[volume.outerFaces[i].vertices[0]];
 					const Vector3& v1 = positions[volume.outerFaces[i].vertices[1]];
@@ -890,8 +890,8 @@ namespace bs { namespace ct
 
 					center /= 4.0f;
 
-					Vector3 normal = Vector3::normalize(e0.cross(e1));
-					if (normal.dot(v0 - center) < 0.0f)
+					Vector3 normal = Vector3::normalize(e0.Cross(e1));
+					if (normal.Dot(v0 - center) < 0.0f)
 						normal = -normal;
 
 					faceNormals[i] = normal;
@@ -905,7 +905,7 @@ namespace bs { namespace ct
 
 					auto accumulateNormalForEdgeVertex = [&](UINT32 v0Idx, UINT32 v1Idx)
 					{
-						auto iter = faceVertices.insert(std::make_pair(v0Idx, FaceVertex()));
+						auto iter = faceVertices.Insert(std::make_pair(v0Idx, FaceVertex()));
 
 						FaceVertex& accum = iter.first->second;
 						const Vector3& v0 = positions[v0Idx];
@@ -922,7 +922,7 @@ namespace bs { namespace ct
 							Vector3 e0 = Vector3::normalize(v1 - v0);
 							Vector3 e1 = Vector3::normalize(v2 - v0);
 
-							float weight = acos(e0.dot(e1));
+							float weight = acos(e0.Dot(e1));
 							accum.normal += weight * faceNormals[faceIdx];
 						};
 
@@ -935,13 +935,13 @@ namespace bs { namespace ct
 				}
 
 				for (auto& entry : faceVertices)
-					entry.second.normal.normalize();
+					entry.second.normal.Normalize();
 
 				// For each face vertex, generate an outer vertex along its normal
 				static const float ExtrapolationDistance = 5.0f;
 				for(auto& entry : faceVertices)
 				{
-					entry.second.outerIdx = (UINT32)positions.size();
+					entry.second.outerIdx = (UINT32)positions.Size();
 
 					Vector3 outerPos = positions[entry.first] + entry.second.normal * ExtrapolationDistance;
 					positions.push_back(outerPos);
@@ -972,7 +972,7 @@ namespace bs { namespace ct
 						{
 							// Note: Not searching for opposite neighbor here. If tet. has multiple free faces then we
 							// can't just pick the first one
-							innerTet.neighbors[j] = (UINT32)volume.tetrahedra.size() + (UINT32)faces.size();
+							innerTet.neighbors[j] = (UINT32)volume.tetrahedra.Size() + (UINT32)faces.size();
 							break;
 						}
 					}
@@ -1120,7 +1120,7 @@ namespace bs { namespace ct
 			}
 			else
 			{
-				for (UINT32 i = 0; i < (UINT32)volume.outerFaces.size(); ++i)
+				for (UINT32 i = 0; i < (UINT32)volume.outerFaces.Size(); ++i)
 				{
 					const TetrahedronFace& face = volume.outerFaces[i];
 					TetrahedronFaceData faceData;
@@ -1141,8 +1141,8 @@ namespace bs { namespace ct
 			}
 
 			// Generate matrices
-			UINT32 numOutputTets = (UINT32)volume.tetrahedra.size();
-			tetrahedra.reserve(numOutputTets);
+			UINT32 numOutputTets = (UINT32)volume.tetrahedra.Size();
+			tetrahedra.Reserve(numOutputTets);
 
 			//// For inner tetrahedrons
 			for(UINT32 i = 0; i < (UINT32)numOutputTets; ++i)
@@ -1185,12 +1185,12 @@ namespace bs { namespace ct
 				Vector3 E3 = P3 - P4;
 
 				Matrix4 mat;
-				mat.setColumn(0, Vector4(E1, 0.0f));
-				mat.setColumn(1, Vector4(E2, 0.0f));
-				mat.setColumn(2, Vector4(E3, 0.0f));
-				mat.setColumn(3, Vector4(P4, 1.0f));
+				mat.SetColumn(0, Vector4(E1, 0.0f));
+				mat.SetColumn(1, Vector4(E2, 0.0f));
+				mat.SetColumn(2, Vector4(E3, 0.0f));
+				mat.SetColumn(3, Vector4(P4, 1.0f));
 
-				entry.transform = mat.inverse();
+				entry.transform = mat.Inverse();
 
 				tetrahedra.push_back(entry);
 			}

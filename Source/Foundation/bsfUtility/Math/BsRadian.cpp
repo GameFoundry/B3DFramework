@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	Radian::Radian (const Degree& d) : mRad(d.valueRadians())
+	Radian::Radian (const Degree& d) : mRad(d.ValueRadians())
 	{ }
 
 	Radian Radian::Wrap()
@@ -20,29 +20,29 @@ namespace bs
 
 	Radian& Radian::operator= (const Degree& d)
 	{
-		mRad = d.valueRadians();
+		mRad = d.ValueRadians();
 		return *this;
 	}
 
 	Radian Radian::operator+ (const Degree& d) const
 	{
-		return Radian (mRad + d.valueRadians());
+		return Radian (mRad + d.ValueRadians());
 	}
 
 	Radian& Radian::operator+= (const Degree& d)
 	{
-		mRad += d.valueRadians();
+		mRad += d.ValueRadians();
 		return *this;
 	}
 
 	Radian Radian::operator- (const Degree& d) const
 	{
-		return Radian (mRad - d.valueRadians());
+		return Radian (mRad - d.ValueRadians());
 	}
 
 	Radian& Radian::operator-= (const Degree& d)
 	{
-		mRad -= d.valueRadians();
+		mRad -= d.ValueRadians();
 		return *this;
 	}
 

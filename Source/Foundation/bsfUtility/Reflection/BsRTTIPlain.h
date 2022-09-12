@@ -113,7 +113,7 @@ namespace bs
 		 **/
 		static BitLength ToMemory(const T& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return stream.writeBytes(data);
+			return stream.WriteBytes(data);
 		}
 
 		/**
@@ -122,7 +122,7 @@ namespace bs
 		 */
 		static BitLength FromMemory(T& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return stream.readBytes(data);
+			return stream.ReadBytes(data);
 		}
 
 		/** Returns the size of the provided object. (Works for both static and dynamic size types) */
@@ -141,11 +141,11 @@ namespace bs
 		static BitLength ToMemory(const bool& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			if (!compress)
-				return stream.writeBytes(data);
+				return stream.WriteBytes(data);
 			else
 			{
 				uint8_t bit = data ? 1 : 0;
-				stream.writeBits(&bit, 1);
+				stream.WriteBits(&bit, 1);
 
 				return BitLength(0, 1);
 			}
@@ -154,11 +154,11 @@ namespace bs
 		static BitLength FromMemory(bool& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			if (!compress)
-				return stream.readBytes(data);
+				return stream.ReadBytes(data);
 			else
 			{
 				uint8_t bit = 0;
-				stream.readBits(&bit, 1);
+				stream.ReadBits(&bit, 1);
 
 				data = bit;
 				return BitLength(0, 1);
@@ -183,17 +183,17 @@ namespace bs
 		static BitLength ToMemory(const uint32_t& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			if (!compress)
-				return stream.writeBytes(data);
+				return stream.WriteBytes(data);
 			else
-				return stream.writeVarInt(data);
+				return stream.WriteVarInt(data);
 		}
 
 		static BitLength FromMemory(uint32_t& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			if (!compress)
-				return stream.readBytes(data);
+				return stream.ReadBytes(data);
 			else
-				return stream.readVarInt(data);
+				return stream.ReadVarInt(data);
 		}
 
 		static BitLength GetSize(const uint32_t& data, const RTTIFieldInfo& fieldInfo, bool compress)
@@ -217,17 +217,17 @@ namespace bs
 		static BitLength ToMemory(const int32_t& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			if (!compress)
-				return stream.writeBytes(data);
+				return stream.WriteBytes(data);
 			else
-				return stream.writeVarInt(data);
+				return stream.WriteVarInt(data);
 		}
 
 		static BitLength FromMemory(int32_t& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			if (!compress)
-				return stream.readBytes(data);
+				return stream.ReadBytes(data);
 			else
-				return stream.readVarInt(data);
+				return stream.ReadVarInt(data);
 		}
 
 		static BitLength GetSize(const int32_t& data, const RTTIFieldInfo& fieldInfo, bool compress)
@@ -287,8 +287,8 @@ namespace bs
 		if(compress)
 		{
 			BitLength size = rtti_size(data);
-			uint64_t headerSize = stream.writeVarInt(size.bytes);
-			headerSize += stream.writeBits(&size.bits, 3);
+			uint64_t headerSize = stream.WriteVarInt(size.bytes);
+			headerSize += stream.WriteBits(&size.bits, 3);
 
 			size += BitLength::fromBits(headerSize);
 			p();
@@ -297,17 +297,17 @@ namespace bs
 		}
 		else
 		{
-			uint64_t sizePos = stream.tell();
+			uint64_t sizePos = stream.Tell();
 
 			BitLength size = 0;
-			stream.writeBytes(size.bytes);
+			stream.WriteBytes(size.bytes);
 			
 			size = p() + sizeof(uint32_t);
 			assert(size.bits == 0);
 
-			stream.seek(sizePos);
-			stream.writeBytes(size.bytes);
-			stream.skipBytes(size.bytes - sizeof(uint32_t));
+			stream.Seek(sizePos);
+			stream.WriteBytes(size.bytes);
+			stream.SkipBytes(size.bytes - sizeof(uint32_t));
 
 			return size;
 		}
@@ -323,9 +323,9 @@ namespace bs
 	{
 		if(compress)
 		{
-			uint64_t headerSizeBits = stream.readVarInt(size.bytes);
+			uint64_t headerSizeBits = stream.ReadVarInt(size.bytes);
 			size.bits = 0;
-			headerSizeBits += stream.readBits(&size.bits, 3);
+			headerSizeBits += stream.ReadBits(&size.bits, 3);
 
 			BitLength headerSize = BitLength::fromBits(headerSizeBits);
 			size += headerSize;
@@ -334,7 +334,7 @@ namespace bs
 		}
 		else
 		{
-			uint32_t sizeBytes = stream.readBytes(size.bytes);
+			uint32_t sizeBytes = stream.ReadBytes(size.bytes);
 			size.bits = 0;
 			
 			return sizeBytes;
@@ -362,7 +362,7 @@ namespace bs
 		struct dummy {};
 
 		template <typename C, typename P>
-		static auto Test(P* p) -> decltype(std::declval<C>().rttiEnumFields(*p), std::true_type());
+		static auto Test(P* p) -> decltype(std::declval<C>().RttiEnumFields(*p), std::true_type());
 
 		template <typename, typename>
 		static std::false_type Test(...);
@@ -384,9 +384,9 @@ namespace bs
 	template<> struct RTTIPlainType<type>																				\
 	{	enum { id=0 }; enum { hasDynamicSize = 0 };																		\
 		static BitLength ToMemory(const type& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)	\
-		{ return stream.writeBytes(data); }																				\
+		{ return stream.WriteBytes(data); }																				\
 		static BitLength FromMemory(type& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)		\
-		{ return stream.readBytes(data); }																				\
+		{ return stream.ReadBytes(data); }																				\
 		static BitLength GetSize(const type& data, const RTTIFieldInfo& fieldInfo, bool compress)						\
 		{ return sizeof(type); }																						\
 	};

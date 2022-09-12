@@ -55,19 +55,19 @@ namespace bs { namespace ct
 		Renderer::initialize();
 
 		LoadedRendererTextures textures;
-		HTexture bokehFlare = gBuiltinResources().getTexture(BuiltinTexture::BokehFlare);
-		if(bokehFlare.isLoaded(false))
-			textures.bokehFlare = bokehFlare->getCore();
+		HTexture bokehFlare = gBuiltinResources().GetTexture(BuiltinTexture::BokehFlare);
+		if(bokehFlare.IsLoaded(false))
+			textures.bokehFlare = bokehFlare->GetCore();
 
-		gCoreThread().queueCommand([this, textures]() { initializeCore(textures); }, CTQF_InternalQueue);
+		gCoreThread().QueueCommand([this, textures]() { initializeCore(textures); }, CTQF_InternalQueue);
 	}
 
 	void RenderBeast::Destroy()
 	{
 		Renderer::destroy();
 
-		gCoreThread().queueCommand(std::bind(&RenderBeast::destroyCore, this));
-		gCoreThread().submit(true);
+		gCoreThread().QueueCommand(std::bind(&RenderBeast::destroyCore, this));
+		gCoreThread().Submit(true);
 	}
 
 	void RenderBeast::InitializeCore(const LoadedRendererTextures& rendererTextures)
@@ -75,15 +75,15 @@ namespace bs { namespace ct
 		const RenderAPICapabilities& caps = gCaps();
 
 		if(
-			!caps.hasCapability(RSC_COMPUTE_PROGRAM) ||
-			!caps.hasCapability(RSC_LOAD_STORE) ||
-			!caps.hasCapability(RSC_TEXTURE_VIEWS))
+			!caps.HasCapability(RSC_COMPUTE_PROGRAM) ||
+			!caps.HasCapability(RSC_LOAD_STORE) ||
+			!caps.HasCapability(RSC_TEXTURE_VIEWS))
 		{
 			mFeatureSet = RenderBeastFeatureSet::DesktopMacOS;
 		}
 
 		// Ensure profiler methods can be called from start-up methods
-		gProfilerGPU().beginFrame();
+		gProfilerGPU().BeginFrame();
 
 		RendererUtility::startUp();
 		GpuSort::startUp();
@@ -100,7 +100,7 @@ namespace bs { namespace ct
 		ParticleRenderer::startUp();
 		GpuParticleSimulation::startUp();
 
-		gProfilerGPU().endFrame(true);
+		gProfilerGPU().EndFrame(true);
 
 		RenderCompositor::registerNodeType<RCNodeSceneDepth>();
 		RenderCompositor::registerNodeType<RCNodeBasePass>();
@@ -159,117 +159,117 @@ namespace bs { namespace ct
 
 	void RenderBeast::NotifyRenderableAdded(Renderable* renderable)
 	{
-		mScene->registerRenderable(renderable);
+		mScene->RegisterRenderable(renderable);
 	}
 
 	void RenderBeast::NotifyRenderableRemoved(Renderable* renderable)
 	{
-		mScene->unregisterRenderable(renderable);
+		mScene->UnregisterRenderable(renderable);
 	}
 
 	void RenderBeast::NotifyRenderableUpdated(Renderable* renderable)
 	{
-		mScene->updateRenderable(renderable);
+		mScene->UpdateRenderable(renderable);
 	}
 
 	void RenderBeast::NotifyLightAdded(Light* light)
 	{
-		mScene->registerLight(light);
+		mScene->RegisterLight(light);
 	}
 
 	void RenderBeast::NotifyLightUpdated(Light* light)
 	{
-		mScene->updateLight(light);
+		mScene->UpdateLight(light);
 	}
 
 	void RenderBeast::NotifyLightRemoved(Light* light)
 	{
-		mScene->unregisterLight(light);
+		mScene->UnregisterLight(light);
 	}
 
 	void RenderBeast::NotifyCameraAdded(Camera* camera)
 	{
-		mScene->registerCamera(camera);
+		mScene->RegisterCamera(camera);
 	}
 
 	void RenderBeast::NotifyCameraUpdated(Camera* camera, UINT32 updateFlag)
 	{
-		mScene->updateCamera(camera, updateFlag);
+		mScene->UpdateCamera(camera, updateFlag);
 	}
 
 	void RenderBeast::NotifyCameraRemoved(Camera* camera)
 	{
-		mScene->unregisterCamera(camera);
+		mScene->UnregisterCamera(camera);
 	}
 
 	void RenderBeast::NotifyReflectionProbeAdded(ReflectionProbe* probe)
 	{
-		mScene->registerReflectionProbe(probe);
+		mScene->RegisterReflectionProbe(probe);
 	}
 
 	void RenderBeast::NotifyReflectionProbeUpdated(ReflectionProbe* probe, bool texture)
 	{
-		mScene->updateReflectionProbe(probe, texture);
+		mScene->UpdateReflectionProbe(probe, texture);
 	}
 
 	void RenderBeast::NotifyReflectionProbeRemoved(ReflectionProbe* probe)
 	{
-		mScene->unregisterReflectionProbe(probe);
+		mScene->UnregisterReflectionProbe(probe);
 	}
 
 	void RenderBeast::NotifyLightProbeVolumeAdded(LightProbeVolume* volume)
 	{
-		mScene->registerLightProbeVolume(volume);
+		mScene->RegisterLightProbeVolume(volume);
 	}
 
 	void RenderBeast::NotifyLightProbeVolumeUpdated(LightProbeVolume* volume)
 	{
-		mScene->updateLightProbeVolume(volume);
+		mScene->UpdateLightProbeVolume(volume);
 	}
 
 	void RenderBeast::NotifyLightProbeVolumeRemoved(LightProbeVolume* volume)
 	{
-		mScene->unregisterLightProbeVolume(volume);
+		mScene->UnregisterLightProbeVolume(volume);
 	}
 
 	void RenderBeast::NotifySkyboxAdded(Skybox* skybox)
 	{
-		mScene->registerSkybox(skybox);
+		mScene->RegisterSkybox(skybox);
 	}
 
 	void RenderBeast::NotifySkyboxRemoved(Skybox* skybox)
 	{
-		mScene->unregisterSkybox(skybox);
+		mScene->UnregisterSkybox(skybox);
 	}
 
 	void RenderBeast::NotifyParticleSystemAdded(ParticleSystem* particleSystem)
 	{
-		mScene->registerParticleSystem(particleSystem);
+		mScene->RegisterParticleSystem(particleSystem);
 	}
 
 	void RenderBeast::NotifyParticleSystemUpdated(ParticleSystem* particleSystem, bool tfrmOnly)
 	{
-		mScene->updateParticleSystem(particleSystem, tfrmOnly);
+		mScene->UpdateParticleSystem(particleSystem, tfrmOnly);
 	}
 
 	void RenderBeast::NotifyParticleSystemRemoved(ParticleSystem* particleSystem)
 	{
-		mScene->unregisterParticleSystem(particleSystem);
+		mScene->UnregisterParticleSystem(particleSystem);
 	}
 
 	void RenderBeast::NotifyDecalAdded(Decal* decal)
 	{
-		mScene->registerDecal(decal);
+		mScene->RegisterDecal(decal);
 	}
 
 	void RenderBeast::NotifyDecalRemoved(Decal* decal)
 	{
-		mScene->unregisterDecal(decal);
+		mScene->UnregisterDecal(decal);
 	}
 
 	void RenderBeast::NotifyDecalUpdated(Decal* decal)
 	{
-		mScene->updateDecal(decal);
+		mScene->UpdateDecal(decal);
 	}
 	void RenderBeast::SetOptions(const SPtr<RendererOptions>& options)
 	{
@@ -289,14 +289,14 @@ namespace bs { namespace ct
 			filteringChanged |= mCoreOptions->anisotropyMax != options.anisotropyMax;
 
 		if (filteringChanged)
-			mScene->refreshSamplerOverrides(true);
+			mScene->RefreshSamplerOverrides(true);
 
 		*mCoreOptions = options;
 
-		mScene->setOptions(mCoreOptions);
+		mScene->SetOptions(mCoreOptions);
 
-		ShadowRendering& shadowRenderer = mMainViewGroup->getShadowRenderer();
-		shadowRenderer.setShadowMapSize(mCoreOptions->shadowMapSize);
+		ShadowRendering& shadowRenderer = mMainViewGroup->GetShadowRenderer();
+		shadowRenderer.SetShadowMapSize(mCoreOptions->shadowMapSize);
 	}
 
 	ShaderExtensionPointInfo RenderBeast::GetShaderExtensionPointInfo(const String& name)
@@ -333,7 +333,7 @@ namespace bs { namespace ct
 	{
 		SPtr<ct::Shader> shaderCore;
 		if(shader)
-			shaderCore = shader->getCore();
+			shaderCore = shader->GetCore();
 
 		auto setShaderOverride = [name, shaderCore]()
 		{
@@ -345,51 +345,51 @@ namespace bs { namespace ct
 				DeferredDirectionalLightMat::setOverride(shaderCore);
 		};
 	
-		gCoreThread().queueCommand(setShaderOverride);
+		gCoreThread().QueueCommand(setShaderOverride);
 	}
 
 	void RenderBeast::RenderAll(PerFrameData perFrameData)
 	{
 		// Sync all dirty sim thread CoreObject data to core thread
-		PROFILE_CALL(CoreObjectManager::instance().syncToCore(), "Sync to core")
+		PROFILE_CALL(CoreObjectManager::instance().SyncToCore(), "Sync to core")
 
 		if (mOptionsDirty)
 		{
-			gCoreThread().queueCommand(std::bind(&RenderBeast::syncOptions, this, *mOptions));
+			gCoreThread().QueueCommand(std::bind(&RenderBeast::syncOptions, this, *mOptions));
 			mOptionsDirty = false;
 		}
 
 		FrameTimings timings;
-		timings.time = gTime().getTime();
-		timings.timeDelta = gTime().getFrameDelta();
-		timings.frameIdx = gTime().getFrameIdx();
+		timings.time = gTime().GetTime();
+		timings.timeDelta = gTime().GetFrameDelta();
+		timings.frameIdx = gTime().GetFrameIdx();
 		
-		gCoreThread().queueCommand(std::bind(&RenderBeast::renderAllCore, this, timings, perFrameData));
+		gCoreThread().QueueCommand(std::bind(&RenderBeast::renderAllCore, this, timings, perFrameData));
 	}
 
 	void RenderBeast::RenderAllCore(FrameTimings timings, PerFrameData perFrameData)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		gProfilerGPU().beginFrame();
-		gProfilerCPU().beginSample("Render");
+		gProfilerGPU().BeginFrame();
+		gProfilerCPU().BeginSample("Render");
 
-		const SceneInfo& sceneInfo = mScene->getSceneInfo();
+		const SceneInfo& sceneInfo = mScene->GetSceneInfo();
 
 		// Note: I'm iterating over all sampler states every frame. If this ends up being a performance
 		// issue consider handling this internally in ct::Material which can only do it when sampler states
 		// are actually modified after sync
-		mScene->refreshSamplerOverrides();
+		mScene->RefreshSamplerOverrides();
 
 		// Update global per-frame hardware buffers
-		mScene->setParamFrameParams(timings.time);
+		mScene->SetParamFrameParams(timings.time);
 
 		// Update bounds for all particle systems
 		if(perFrameData.particles)
-			PROFILE_CALL(mScene->updateParticleSystemBounds(perFrameData.particles), "Particle bounds")
+			PROFILE_CALL(mScene->UpdateParticleSystemBounds(perFrameData.particles), "Particle bounds")
 
-		sceneInfo.renderableReady.resize(sceneInfo.renderables.size(), false);
-		sceneInfo.renderableReady.assign(sceneInfo.renderables.size(), false);
+		sceneInfo.renderableReady.Resize(sceneInfo.renderables.size(), false);
+		sceneInfo.renderableReady.Assign(sceneInfo.renderables.size(), false);
 		
 		FrameInfo FrameInfo(timings, perFrameData);
 
@@ -400,14 +400,14 @@ namespace bs { namespace ct
 		updateReflProbeArray();
 
 		// Update per-frame data for all renderable objects
-		for (UINT32 i = 0; i < sceneInfo.renderables.size(); i++)
-			mScene->prepareRenderable(i, frameInfo);
+		for (UINT32 i = 0; i < sceneInfo.renderables.Size(); i++)
+			mScene->PrepareRenderable(i, frameInfo);
 
-		for (UINT32 i = 0; i < sceneInfo.particleSystems.size(); i++)
-			mScene->prepareParticleSystem(i, frameInfo);
+		for (UINT32 i = 0; i < sceneInfo.particleSystems.Size(); i++)
+			mScene->PrepareParticleSystem(i, frameInfo);
 
-		for (UINT32 i = 0; i < sceneInfo.decals.size(); i++)
-			mScene->prepareDecal(i, frameInfo);
+		for (UINT32 i = 0; i < sceneInfo.decals.Size(); i++)
+			mScene->PrepareDecal(i, frameInfo);
 
 		// Gather all views
 		for (auto& rtInfo : sceneInfo.renderTargets)
@@ -416,40 +416,40 @@ namespace bs { namespace ct
 			SPtr<RenderTarget> target = rtInfo.target;
 			const Vector<Camera*>& cameras = rtInfo.cameras;
 
-			UINT32 numCameras = (UINT32)cameras.size();
+			UINT32 numCameras = (UINT32)cameras.Size();
 			for (UINT32 i = 0; i < numCameras; i++)
 			{
-				UINT32 viewIdx = sceneInfo.cameraToView.at(cameras[i]);
+				UINT32 viewIdx = sceneInfo.cameraToView.At(cameras[i]);
 				RendererView* viewInfo = sceneInfo.views[viewIdx];
 				views.push_back(viewInfo);
 			}
 
-			mMainViewGroup->setViews(views.data(), (UINT32)views.size());
-			PROFILE_CALL(mMainViewGroup->determineVisibility(sceneInfo), "Determine visibility")
+			mMainViewGroup->SetViews(views.Data(), (UINT32)views.size());
+			PROFILE_CALL(mMainViewGroup->DetermineVisibility(sceneInfo), "Determine visibility")
 
 			// Render everything
 			bool anythingDrawn = renderViews(*mMainViewGroup, frameInfo);
 
-			if(rtInfo.target->getProperties().isWindow && anythingDrawn)
-				PROFILE_CALL(RenderAPI::instance().swapBuffers(rtInfo.target), "Swap buffers");
+			if(rtInfo.target->GetProperties().isWindow && anythingDrawn)
+				PROFILE_CALL(RenderAPI::instance().SwapBuffers(rtInfo.target), "Swap buffers");
 		}
 
 		// Tick pool frame
-		GpuResourcePool::instance().update();
+		GpuResourcePool::instance().Update();
 
-		gProfilerGPU().endFrame();
-		gProfilerCPU().endSample("Render");
+		gProfilerGPU().EndFrame();
+		gProfilerCPU().EndSample("Render");
 	}
 
 	bool RenderBeast::RenderViews(RendererViewGroup& viewGroup, const FrameInfo& frameInfo)
 	{
 		bool needs3DRender = false;
-		UINT32 numViews = viewGroup.getNumViews();
+		UINT32 numViews = viewGroup.GetNumViews();
 		for (UINT32 i = 0; i < numViews; i++)
 		{
-			RendererView* view = viewGroup.getView(i);
+			RendererView* view = viewGroup.GetView(i);
 
-			if (view->shouldDraw3D())
+			if (view->ShouldDraw3D())
 			{
 				needs3DRender = true;
 				break;
@@ -458,42 +458,42 @@ namespace bs { namespace ct
 		
 		if (needs3DRender)
 		{
-			const SceneInfo& sceneInfo = mScene->getSceneInfo();
-			const VisibilityInfo& visibility = viewGroup.getVisibilityInfo();
+			const SceneInfo& sceneInfo = mScene->GetSceneInfo();
+			const VisibilityInfo& visibility = viewGroup.GetVisibilityInfo();
 
 			// Render shadow maps
-			ShadowRendering& shadowRenderer = viewGroup.getShadowRenderer();
-			shadowRenderer.renderShadowMaps(*mScene, viewGroup, frameInfo);
+			ShadowRendering& shadowRenderer = viewGroup.GetShadowRenderer();
+			shadowRenderer.RenderShadowMaps(*mScene, viewGroup, frameInfo);
 
 			// Update various buffers required by each renderable
-			UINT32 numRenderables = (UINT32)sceneInfo.renderables.size();
+			UINT32 numRenderables = (UINT32)sceneInfo.renderables.Size();
 			for (UINT32 i = 0; i < numRenderables; i++)
 			{
 				if (!visibility.renderables[i])
 					continue;
 
-				mScene->prepareVisibleRenderable(i, frameInfo);
+				mScene->PrepareVisibleRenderable(i, frameInfo);
 			}
 		}
 
 		bool anythingDrawn = false;
 		for (UINT32 i = 0; i < numViews; i++)
 		{
-			RendererView* view = viewGroup.getView(i);
-			view->updateAsyncOperations();
+			RendererView* view = viewGroup.GetView(i);
+			view->UpdateAsyncOperations();
 			
 			auto viewId = (UINT64)view;
-			const RendererViewTargetData& viewTarget = view->getProperties().target;
+			const RendererViewTargetData& viewTarget = view->GetProperties().target;
 			String title = StringUtil::format("({0} x {1})", viewTarget.targetWidth, viewTarget.targetHeight);
-			gProfilerGPU().beginView(viewId, ProfilerString(title.data(), title.size()));
+			gProfilerGPU().BeginView(viewId, ProfilerString(title.data(), title.size()));
 			
-			if (!view->shouldDraw())
+			if (!view->ShouldDraw())
 			{
-				gProfilerGPU().endView();
+				gProfilerGPU().EndView();
 				continue;
 			}
 			
-			const RenderSettings& settings = view->getRenderSettings();
+			const RenderSettings& settings = view->GetRenderSettings();
 			if (settings.overlayOnly)
 			{
 				if (renderOverlay(*view, frameInfo))
@@ -505,7 +505,7 @@ namespace bs { namespace ct
 				anythingDrawn = true;
 			}
 
-			gProfilerGPU().endView();
+			gProfilerGPU().EndView();
 		}
 
 		return anythingDrawn;
@@ -513,30 +513,30 @@ namespace bs { namespace ct
 
 	void RenderBeast::RenderView(const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo)
 	{
-		gProfilerCPU().beginSample("Render view");
+		gProfilerCPU().BeginSample("Render view");
 
-		const SceneInfo& sceneInfo = mScene->getSceneInfo();
-		auto& viewProps = view.getProperties();
+		const SceneInfo& sceneInfo = mScene->GetSceneInfo();
+		auto& viewProps = view.GetProperties();
 
-		SPtr<GpuParamBlockBuffer> perCameraBuffer = view.getPerViewBuffer();
-		perCameraBuffer->flushToGPU();
+		SPtr<GpuParamBlockBuffer> perCameraBuffer = view.GetPerViewBuffer();
+		perCameraBuffer->FlushToGPU();
 
 		// Make sure light probe data is up to date
-		if(view.getRenderSettings().enableIndirectLighting)
-			mScene->updateLightProbes();
+		if(view.GetRenderSettings().enableIndirectLighting)
+			mScene->UpdateLightProbes();
 
-		view.beginFrame(frameInfo);
+		view.BeginFrame(frameInfo);
 
 		RenderCompositorNodeInputs Inputs(viewGroup, view, sceneInfo, *mCoreOptions, frameInfo, mFeatureSet);
 
 		// Register callbacks
 		if (viewProps.triggerCallbacks)
 		{
-			const Camera* camera = view.getSceneCamera();
+			const Camera* camera = view.GetSceneCamera();
 			for (auto& extension : mCallbacks)
 			{
-				RenderLocation location = extension->getLocation();
-				RendererExtensionRequest request = extension->check(*camera);
+				RenderLocation location = extension->GetLocation();
+				RendererExtensionRequest request = extension->Check(*camera);
 
 				if (request == RendererExtensionRequest::DontRender)
 					continue;
@@ -544,19 +544,19 @@ namespace bs { namespace ct
 				switch(location)
 				{
 				case RenderLocation::Prepare:
-					inputs.extPrepare.add(extension);
+					inputs.extPrepare.Add(extension);
 					break;
 				case RenderLocation::PreBasePass:
-					inputs.extPreBasePass.add(extension);
+					inputs.extPreBasePass.Add(extension);
 					break;
 				case RenderLocation::PostBasePass:
-					inputs.extPostBasePass.add(extension);
+					inputs.extPostBasePass.Add(extension);
 					break;
 				case RenderLocation::PostLightPass:
-					inputs.extPostLighting.add(extension);
+					inputs.extPostLighting.Add(extension);
 					break;
 				case RenderLocation::Overlay:
-					inputs.extOverlay.add(extension);
+					inputs.extOverlay.Add(extension);
 					break;
 				default:
 					break;
@@ -564,63 +564,63 @@ namespace bs { namespace ct
 			}
 		}
 
-		const RenderCompositor& compositor = view.getCompositor();
-		PROFILE_CALL(compositor.execute(inputs), "Compositor")
+		const RenderCompositor& compositor = view.GetCompositor();
+		PROFILE_CALL(compositor.Execute(inputs), "Compositor")
 
-		view.endFrame();
+		view.EndFrame();
 
-		gProfilerCPU().endSample("Render view");
+		gProfilerCPU().EndSample("Render view");
 	}
 
 	bool RenderBeast::RenderOverlay(RendererView& view, const FrameInfo& frameInfo)
 	{
-		gProfilerCPU().beginSample("Render overlay");
+		gProfilerCPU().BeginSample("Render overlay");
 
-		view.getPerViewBuffer()->flushToGPU();
-		view.beginFrame(frameInfo);
+		view.GetPerViewBuffer()->FlushToGPU();
+		view.BeginFrame(frameInfo);
 
-		auto& viewProps = view.getProperties();
-		const Camera* camera = view.getSceneCamera();
+		auto& viewProps = view.GetProperties();
+		const Camera* camera = view.GetSceneCamera();
 		SPtr<RenderTarget> target = viewProps.target.target;
-		SPtr<Viewport> viewport = camera->getViewport();
+		SPtr<Viewport> viewport = camera->GetViewport();
 
-		ClearFlags clearFlags = viewport->getClearFlags();
+		ClearFlags clearFlags = viewport->GetClearFlags();
 		UINT32 clearBuffers = 0;
-		if (clearFlags.isSet(ClearFlagBits::Color))
+		if (clearFlags.IsSet(ClearFlagBits::Color))
 			clearBuffers |= FBT_COLOR;
 
-		if (clearFlags.isSet(ClearFlagBits::Depth))
+		if (clearFlags.IsSet(ClearFlagBits::Depth))
 			clearBuffers |= FBT_DEPTH;
 
-		if (clearFlags.isSet(ClearFlagBits::Stencil))
+		if (clearFlags.IsSet(ClearFlagBits::Stencil))
 			clearBuffers |= FBT_STENCIL;
 
 		RenderAPI& rapi = RenderAPI::instance();
 		if (clearBuffers != 0)
 		{
-			rapi.setRenderTarget(target);
-			rapi.clearViewport(clearBuffers, viewport->getClearColorValue(),
-				viewport->getClearDepthValue(), viewport->getClearStencilValue());
+			rapi.SetRenderTarget(target);
+			rapi.ClearViewport(clearBuffers, viewport->GetClearColorValue(),
+				viewport->GetClearDepthValue(), viewport->getClearStencilValue());
 		}
 		else
-			rapi.setRenderTarget(target, 0, RT_COLOR0);
+			rapi.SetRenderTarget(target, 0, RT_COLOR0);
 
-		rapi.setViewport(viewport->getArea());
+		rapi.SetViewport(viewport->GetArea());
 
 		// Trigger overlay callbacks
 		bool needsRedraw = false;
-		if(!mCallbacks.empty())
+		if(!mCallbacks.Empty())
 		{
 			view._notifyCompositorTargetChanged(target);
 
-			mOverlayExtensions.clear();
+			mOverlayExtensions.Clear();
 
 			for(auto& entry : mCallbacks)
 			{
-				if (entry->getLocation() != RenderLocation::Overlay)
+				if (entry->GetLocation() != RenderLocation::Overlay)
 					continue;
 
-				RendererExtensionRequest request = entry->check(*camera);
+				RendererExtensionRequest request = entry->Check(*camera);
 				if (request == RendererExtensionRequest::DontRender)
 					continue;
 
@@ -631,29 +631,29 @@ namespace bs { namespace ct
 			}
 
 			if (!needsRedraw)
-				mOverlayExtensions.clear();
+				mOverlayExtensions.Clear();
 
 			for (auto& entry : mOverlayExtensions)
-				entry->render(*camera, view.getContext());
+				entry->Render(*camera, view.GetContext());
 		}
 
-		view.endFrame();
+		view.EndFrame();
 
-		gProfilerCPU().endSample("Render overlay");
+		gProfilerCPU().EndSample("Render overlay");
 		return needsRedraw;
 	}
 	
 	void RenderBeast::UpdateReflProbeArray()
 	{
 		SceneInfo& sceneInfo = mScene->_getSceneInfo();
-		UINT32 numProbes = (UINT32)sceneInfo.reflProbes.size();
+		UINT32 numProbes = (UINT32)sceneInfo.reflProbes.Size();
 
 		bs_frame_mark();
 		{		
 			UINT32 currentCubeArraySize = 0;
 
 			if(sceneInfo.reflProbeCubemapsTex != nullptr)
-				currentCubeArraySize = sceneInfo.reflProbeCubemapsTex->getProperties().getNumArraySlices();
+				currentCubeArraySize = sceneInfo.reflProbeCubemapsTex->GetProperties().GetNumArraySlices();
 
 			bool forceArrayUpdate = false;
 			if(sceneInfo.reflProbeCubemapsTex == nullptr || (currentCubeArraySize < numProbes && currentCubeArraySize != MaxReflectionCubemaps))
@@ -671,7 +671,7 @@ namespace bs { namespace ct
 				forceArrayUpdate = true;
 			}
 
-			auto& cubemapArrayProps = sceneInfo.reflProbeCubemapsTex->getProperties();
+			auto& cubemapArrayProps = sceneInfo.reflProbeCubemapsTex->GetProperties();
 
 			FrameQueue<UINT32> emptySlots;
 			for (UINT32 i = 0; i < numProbes; i++)
@@ -683,15 +683,15 @@ namespace bs { namespace ct
 
 				if(probeInfo.arrayDirty || forceArrayUpdate)
 				{
-					SPtr<Texture> texture = probeInfo.probe->getFilteredTexture();
+					SPtr<Texture> texture = probeInfo.probe->GetFilteredTexture();
 					if (texture == nullptr)
 						continue;
 
-					auto& srcProps = texture->getProperties();
-					bool isValid = srcProps.getWidth() == IBLUtility::REFLECTION_CUBEMAP_SIZE &&
-						srcProps.getHeight() == IBLUtility::REFLECTION_CUBEMAP_SIZE &&
-						srcProps.getNumMipmaps() == cubemapArrayProps.getNumMipmaps() &&
-						srcProps.getTextureType() == TEX_TYPE_CUBE_MAP;
+					auto& srcProps = texture->GetProperties();
+					bool isValid = srcProps.GetWidth() == IBLUtility::REFLECTION_CUBEMAP_SIZE &&
+						srcProps.GetHeight() == IBLUtility::REFLECTION_CUBEMAP_SIZE &&
+						srcProps.GetNumMipmaps() == cubemapArrayProps.getNumMipmaps() &&
+						srcProps.GetTextureType() == TEX_TYPE_CUBE_MAP;
 
 					if(!isValid)
 					{
@@ -708,7 +708,7 @@ namespace bs { namespace ct
 					{
 						for(UINT32 face = 0; face < 6; face++)
 						{
-							for(UINT32 mip = 0; mip <= srcProps.getNumMipmaps(); mip++)
+							for(UINT32 mip = 0; mip <= srcProps.GetNumMipmaps(); mip++)
 							{
 								TEXTURE_COPY_DESC copyDesc;
 								copyDesc.srcFace = face;
@@ -716,12 +716,12 @@ namespace bs { namespace ct
 								copyDesc.dstFace = probeInfo.arrayIdx * 6 + face;
 								copyDesc.dstMip = mip;
 
-								texture->copy(sceneInfo.reflProbeCubemapsTex, copyDesc);
+								texture->Copy(sceneInfo.reflProbeCubemapsTex, copyDesc);
 							}
 						}
 					}
 
-					mScene->setReflectionProbeArrayIndex(i, probeInfo.arrayIdx, true);
+					mScene->SetReflectionProbeArrayIndex(i, probeInfo.arrayIdx, true);
 				}
 
 				// Note: Consider pruning the reflection cubemap array if empty slot count becomes too high
@@ -733,12 +733,12 @@ namespace bs { namespace ct
 	void RenderBeast::captureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector3& position,
 		const CaptureSettings& settings)
 	{
-		const SceneInfo& sceneInfo = mScene->getSceneInfo();
-		auto& texProps = cubemap->getProperties();
+		const SceneInfo& sceneInfo = mScene->GetSceneInfo();
+		auto& texProps = cubemap->GetProperties();
 
 		Matrix4 projTransform = Matrix4::projectionPerspective(Degree(90.0f), 1.0f, 0.05f, 1000.0f);
 		ConvexVolume LocalFrustum(projTransform);
-		RenderAPI::instance().convertProjectionMatrix(projTransform, projTransform);
+		RenderAPI::instance().ConvertProjectionMatrix(projTransform, projTransform);
 
 		RENDERER_VIEW_DESC viewDesc;
 		viewDesc.target.clearFlags = FBT_COLOR | FBT_DEPTH;
@@ -747,9 +747,9 @@ namespace bs { namespace ct
 		viewDesc.target.clearStencilValue = 0;
 
 		viewDesc.target.nrmViewRect = Rect2(0, 0, 1.0f, 1.0f);
-		viewDesc.target.viewRect = Rect2I(0, 0, texProps.getWidth(), texProps.getHeight());
-		viewDesc.target.targetWidth = texProps.getWidth();
-		viewDesc.target.targetHeight = texProps.getHeight();
+		viewDesc.target.viewRect = Rect2I(0, 0, texProps.GetWidth(), texProps.getHeight());
+		viewDesc.target.targetWidth = texProps.GetWidth();
+		viewDesc.target.targetHeight = texProps.GetHeight();
 		viewDesc.target.numSamples = 1;
 
 		viewDesc.mainView = false;
@@ -827,14 +827,14 @@ namespace bs { namespace ct
 			viewDesc.viewTransform = Matrix4(viewRotationMat) * viewOffsetMat;
 
 			// Calculate world frustum for culling
-			const Vector<Plane>& frustumPlanes = localFrustum.getPlanes();
-			Matrix4 worldMatrix = viewDesc.viewTransform.transpose();
+			const Vector<Plane>& frustumPlanes = localFrustum.GetPlanes();
+			Matrix4 worldMatrix = viewDesc.viewTransform.Transpose();
 
-			Vector<Plane> WorldPlanes(frustumPlanes.size());
+			Vector<Plane> WorldPlanes(frustumPlanes.Size());
 			UINT32 j = 0;
 			for (auto& plane : frustumPlanes)
 			{
-				worldPlanes[j] = worldMatrix.multiplyAffine(plane);
+				worldPlanes[j] = worldMatrix.MultiplyAffine(plane);
 				j++;
 			}
 
@@ -848,25 +848,25 @@ namespace bs { namespace ct
 			
 			viewDesc.target.target = RenderTexture::create(cubeFaceRTDesc);
 
-			views[i].setView(viewDesc);
-			views[i].setRenderSettings(renderSettings);
-			views[i].updatePerViewBuffer();
+			views[i].SetView(viewDesc);
+			views[i].SetRenderSettings(renderSettings);
+			views[i].UpdatePerViewBuffer();
 		}
 
 		RendererView* viewPtrs[] = { &views[0], &views[1], &views[2], &views[3], &views[4], &views[5] };
 
 		RendererViewGroup ViewGroup(viewPtrs, 6, false, mCoreOptions->shadowMapSize);
-		viewGroup.determineVisibility(sceneInfo);
+		viewGroup.DetermineVisibility(sceneInfo);
 
 		FrameInfo FrameInfo({ 0.0f, 1.0f / 60.0f, 0 }, PerFrameData());
 		renderViews(viewGroup, frameInfo);
 
 		// Make sure the render texture is available for reads
-		RenderAPI::instance().setRenderTarget(nullptr);
+		RenderAPI::instance().SetRenderTarget(nullptr);
 	}
 
 	SPtr<RenderBeast> GRenderBeast()
 	{
-		return std::static_pointer_cast<RenderBeast>(RendererManager::instance().getActive());
+		return std::static_pointer_cast<RenderBeast>(RendererManager::instance().GetActive());
 	}
 }}

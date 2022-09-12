@@ -36,13 +36,13 @@ namespace bs
 		if(value.collider != nullptr)
 		{
 			ScriptArray Arraycollider(value.collider);
-			for(int i = 0; i < (int)arraycollider.size(); i++)
+			for(int i = 0; i < (int)arraycollider.Size(); i++)
 			{
 				ScriptCColliderBase* scriptcollider;
 				scriptcollider = (ScriptCColliderBase*)ScriptCCollider::toNative(arraycollider.get<MonoObject*>(i));
 				if(scriptcollider != nullptr)
 				{
-					GameObjectHandle<CCollider> arrayElemPtrcollider = static_object_cast<CCollider>(scriptcollider->getComponent());
+					GameObjectHandle<CCollider> arrayElemPtrcollider = static_object_cast<CCollider>(scriptcollider->GetComponent());
 					veccollider[i] = arrayElemPtrcollider;
 				}
 			}
@@ -54,8 +54,8 @@ namespace bs
 		if(value.contactPoints != nullptr)
 		{
 			ScriptArray ArraycontactPoints(value.contactPoints);
-			veccontactPoints.resize(arraycontactPoints.size());
-			for(int i = 0; i < (int)arraycontactPoints.size(); i++)
+			veccontactPoints.Resize(arraycontactPoints.size());
+			for(int i = 0; i < (int)arraycontactPoints.Size(); i++)
 			{
 				veccontactPoints[i] = ScriptContactPoint::fromInterop(arraycontactPoints.get<__ContactPointInterop>(i));
 			}
@@ -75,22 +75,22 @@ namespace bs
 		{
 			ScriptComponentBase* scriptcollider = nullptr;
 			if(value.collider[i])
-				scriptcollider = ScriptGameObjectManager::instance().getBuiltinScriptComponent(static_object_cast<Component>(value.collider[i]));
+				scriptcollider = ScriptGameObjectManager::instance().GetBuiltinScriptComponent(static_object_cast<Component>(value.collider[i]));
 				if(scriptcollider != nullptr)
-				arraycollider.set(i, scriptcollider->getManagedInstance());
+				arraycollider.Set(i, scriptcollider->GetManagedInstance());
 			else
-				arraycollider.set(i, nullptr);
+				arraycollider.Set(i, nullptr);
 		}
-		veccollider = arraycollider.getInternal();
+		veccollider = arraycollider.GetInternal();
 		output.collider = veccollider;
-		int arraySizecontactPoints = (int)value.contactPoints.size();
+		int arraySizecontactPoints = (int)value.contactPoints.Size();
 		MonoArray* veccontactPoints;
 		ScriptArray arraycontactPoints = ScriptArray::create<ScriptContactPoint>(arraySizecontactPoints);
 		for(int i = 0; i < arraySizecontactPoints; i++)
 		{
-			arraycontactPoints.set(i, ScriptContactPoint::toInterop(value.contactPoints[i]));
+			arraycontactPoints.Set(i, ScriptContactPoint::toInterop(value.contactPoints[i]));
 		}
-		veccontactPoints = arraycontactPoints.getInternal();
+		veccontactPoints = arraycontactPoints.GetInternal();
 		output.contactPoints = veccontactPoints;
 
 		return output;

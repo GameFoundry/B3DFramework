@@ -103,7 +103,7 @@ namespace bs
 		inline MonoObject* async_op_create(const TAsyncOp<T>& op, const std::function<MonoObject*(const Any&)>& convertCallback)
 		{
 			return ScriptAsyncOpBase::_create(op, convertCallback,
-					TAsyncOp<T>::ReturnValueType::getRTTIStatic() ->getRTTIId());
+					TAsyncOp<T>::ReturnValueType::getRTTIStatic() ->GetRTTIId());
 		}
 
 		template<>

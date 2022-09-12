@@ -23,13 +23,13 @@ namespace bs
 			{
 				BitLength size = 0;
 
-				bool isEmpty = data.empty();
+				bool isEmpty = data.Empty();
 				size += rtti_write(isEmpty, stream);
 
 				if (!isEmpty)
 				{
 					auto length = (uint32_t)strlen(data.c_str());
-					size += stream.writeBytes((uint8_t*)data.c_str(), length * sizeof(char));
+					size += stream.WriteBytes((uint8_t*)data.c_str(), length * sizeof(char));
 				}
 
 				return size;
@@ -49,7 +49,7 @@ namespace bs
 				UINT32 length = (size.bytes - sizeof(UINT32) - sizeof(bool)) / sizeof(char);
 
 				auto name = (uint8_t*)bs_stack_alloc(length + 1);
-				stream.readBytes(name, length);
+				stream.ReadBytes(name, length);
 				name[length] = '\0';
 
 				data = StringID((char*)name);
@@ -63,7 +63,7 @@ namespace bs
 		{
 			BitLength dataSize = sizeof(bool);
 
-			bool isEmpty = data.empty();
+			bool isEmpty = data.Empty();
 			if (!isEmpty)
 			{
 				auto length = (uint32_t)strlen(data.c_str());

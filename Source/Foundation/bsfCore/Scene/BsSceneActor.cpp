@@ -28,18 +28,18 @@ namespace bs
 
 	void SceneActor::_updateState(const SceneObject& so, bool force)
 	{
-		UINT32 curHash = so.getTransformHash();
+		UINT32 curHash = so.GetTransformHash();
 		if (curHash != mHash || force)
 		{
-			setTransform(so.getTransform());
+			setTransform(so.GetTransform());
 
 			mHash = curHash;
 		}
 
-		if (so.getActive() != mActive || force)
-			setActive(so.getActive());
+		if (so.GetActive() != mActive || force)
+			setActive(so.GetActive());
 
-		if (so.getMobility() != mMobility || force)
-			setMobility(so.getMobility());
+		if (so.GetMobility() != mMobility || force)
+			setMobility(so.GetMobility());
 	}
 }

@@ -109,12 +109,12 @@ namespace bs
 		ScriptObject(MonoObject* instance)
 			:Base(instance)
 		{
-			initOnStart.makeSureIAmInstantiated();
+			initOnStart.MakeSureIAmInstantiated();
 
 			Type* param = (Type*)(Base*)this; // Needed due to multiple inheritance. Safe since Type must point to an class derived from this one.
 
 			if(metaData.thisPtrField != nullptr)
-				metaData.thisPtrField->set(instance, &param);
+				metaData.thisPtrField->Set(instance, &param);
 		}
 
 		virtual ~ScriptObject()
@@ -128,13 +128,13 @@ namespace bs
 			Type* param = (Type*)(Base*)this; // Needed due to multiple inheritance. Safe since Type must point to an class derived from this one.
 
 			if (metaData.thisPtrField != nullptr && instance != nullptr)
-				metaData.thisPtrField->set(instance, &param);
+				metaData.thisPtrField->Set(instance, &param);
 		}
 
 		/**	Creates a new managed instance of the type wrapped by this interop object. */
 		virtual MonoObject* _createManagedInstance(bool construct)
 		{
-			return metaData.scriptClass->createInstance(construct);
+			return metaData.scriptClass->CreateInstance(construct);
 		}
 
 		/**
@@ -146,7 +146,7 @@ namespace bs
 			Type* nativeInstance = nullptr;
 
 			if (metaData.thisPtrField != nullptr && managedInstance != nullptr)
-				metaData.thisPtrField->get(managedInstance, &nativeInstance);
+				metaData.thisPtrField->Get(managedInstance, &nativeInstance);
 
 			return nativeInstance;
 		}

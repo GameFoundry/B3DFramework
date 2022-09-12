@@ -58,7 +58,7 @@ namespace bs
 		void SetRadius(float radius) { mRadius = radius; _markCoreDirty(); updateBounds(); }
 
 		/** Returns the extents of a box reflection probe. */
-		Vector3 GetExtents() const { return mExtents * mTransform.getScale(); }
+		Vector3 GetExtents() const { return mExtents * mTransform.GetScale(); }
 
 		/** Sets the extents of a box reflection probe. Determines range of influence. */
 		void SetExtents(const Vector3& extents) { mExtents = extents; _markCoreDirty(); updateBounds(); }

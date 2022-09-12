@@ -416,9 +416,9 @@ namespace bs
 	/** Shortcut for profiling a single function call. */
 #define PROFILE_CALL(call, name)					\
 	{												\
-		bs::gProfilerCPU().beginSample(name);		\
+		bs::gProfilerCPU().BeginSample(name);		\
 		call;										\
-		bs::gProfilerCPU().endSample(name);			\
+		bs::gProfilerCPU().EndSample(name);			\
 	}
 
 	/** @} */

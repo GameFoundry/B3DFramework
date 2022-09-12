@@ -16,9 +16,9 @@ namespace bs
 	void CreateFile(Path path, String content)
 	{
 		std::ofstream fs;
-		fs.open(path.toPlatformString().c_str());
+		fs.Open(path.toPlatformString().c_str());
 		fs << content;
-		fs.close();
+		fs.Close();
 	}
 
 	void CreateEmptyFile(Path path)
@@ -30,9 +30,9 @@ namespace bs
 	{
 		String content;
 		std::ifstream fs;
-		fs.open(path.toPlatformString().c_str());
+		fs.Open(path.toPlatformString().c_str());
 		fs >> content;
-		fs.close();
+		fs.Close();
 		return content;
 	}
 
@@ -57,7 +57,7 @@ namespace bs
 		FileSystem::remove(mTestDirectory, true);
 		if (FileSystem::exists(mTestDirectory))
 		{
-			LOGERR("FileSystemTestSuite failed to delete '" + mTestDirectory.toString()
+			LOGERR("FileSystemTestSuite failed to delete '" + mTestDirectory.ToString()
 				   + "', you should remove it manually.");
 		}
 	}
@@ -255,7 +255,7 @@ namespace bs
 	}
 
 
-#define CONTAINS(v, e) (std::find(v.begin(), v.end(), e) != v.end())
+#define CONTAINS(v, e) (std::find(v.Begin(), v.end(), e) != v.end())
 
 	void FileSystemTestSuite::TestGetChildren()
 	{
@@ -270,12 +270,12 @@ namespace bs
 		createEmptyFile(path + "meu");
 		Vector<Path> files, directories;
 		FileSystem::getChildren(path, files, directories);
-		BS_TEST_ASSERT(files.size() == 4);
+		BS_TEST_ASSERT(files.Size() == 4);
 		BS_TEST_ASSERT(CONTAINS(files, path + "ga"));
 		BS_TEST_ASSERT(CONTAINS(files, path + "bu"));
 		BS_TEST_ASSERT(CONTAINS(files, path + "zo"));
 		BS_TEST_ASSERT(CONTAINS(files, path + "meu"));
-		BS_TEST_ASSERT(directories.size() == 3);
+		BS_TEST_ASSERT(directories.Size() == 3);
 		BS_TEST_ASSERT(CONTAINS(directories, path + "foo"));
 		BS_TEST_ASSERT(CONTAINS(directories, path + "bar"));
 		BS_TEST_ASSERT(CONTAINS(directories, path + "baz"));
@@ -297,6 +297,6 @@ namespace bs
 	{
 		Path path = FileSystem::getTempDirectoryPath();
 		/* No judging. */
-		BS_TEST_ASSERT(!path.toString().empty());
+		BS_TEST_ASSERT(!path.ToString().empty());
 	}
 }

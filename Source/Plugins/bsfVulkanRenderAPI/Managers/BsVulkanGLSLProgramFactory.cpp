@@ -16,7 +16,7 @@ namespace bs { namespace ct
 	template<class T, class CB>
 	void IterateSorted(const Map<String, T>& entries, CB callback)
 	{
-		auto count = (UINT32)entries.size();
+		auto count = (UINT32)entries.Size();
 		auto sortedEntries = bs_managed_stack_alloc<const T*>(count);
 
 		UINT32 i = 0;
@@ -69,7 +69,7 @@ namespace bs { namespace ct
 
 	SPtr<GpuProgramBytecode> VulkanGLSLProgramFactory::CompileBytecode(const GPU_PROGRAM_DESC& desc)
 	{
-		SPtr<GpuProgramBytecode> spirv = GLSLToSPIRV::instance().convert(desc);
+		SPtr<GpuProgramBytecode> spirv = GLSLToSPIRV::instance().Convert(desc);
 
 #if BS_PLATFORM == BS_PLATFORM_OSX
 		// We'll just re-purpose the existing data structure
@@ -119,11 +119,11 @@ namespace bs { namespace ct
 			}
 
 			auto count
-				= msl->paramDesc->paramBlocks.size()
-				+ msl->paramDesc->textures.size()
-				+ msl->paramDesc->samplers.size()
-				+ msl->paramDesc->loadStoreTextures.size()
-				+ msl->paramDesc->buffers.size();
+				= msl->paramDesc->paramBlocks.Size()
+				+ msl->paramDesc->textures.Size()
+				+ msl->paramDesc->samplers.Size()
+				+ msl->paramDesc->loadStoreTextures.Size()
+				+ msl->paramDesc->buffers.Size();
 
 			auto sortedEntries = bs_managed_stack_alloc<spirv_cross::MSLResourceBinding>((UINT32)count);
 			size_t i = 0;
@@ -222,7 +222,7 @@ namespace bs { namespace ct
 		glslOptions.vertex.flip_vert_y = true;
 
 		compiler.set_common_options(glslOptions);
-		std::string source = compiler.compile();
+		std::string source = compiler.Compile();
 
 		// Parse workgroup size for compute shaders
 		UINT32 workgroupSize[3] = { 1, 1, 1 };
@@ -230,7 +230,7 @@ namespace bs { namespace ct
 		{
 			spirv_cross::SPIREntryPoint spvEP;
 			const auto& entryPoints = compiler.get_entry_points_and_stages();
-			if (!entryPoints.empty())
+			if (!entryPoints.Empty())
 			{
 				auto& ep = entryPoints[0];
 				spvEP = compiler.get_entry_point(ep.name, ep.execution_model);
@@ -245,7 +245,7 @@ namespace bs { namespace ct
 		if(msl->instructions.data)
 			bs_free(msl->instructions.data);
 
-		if(source.empty())
+		if(source.Empty())
 		{
 			msl->instructions = DataBlob();
 			return msl;
@@ -254,7 +254,7 @@ namespace bs { namespace ct
 		// Magic numbers as defined in vk_mvk_moltenvk.h
 		constexpr UINT32 MVK_MSL_Source = 0x19960412;
 
-		UINT32 size = (UINT32)source.size() + sizeof(MVK_MSL_Source) + 1;
+		UINT32 size = (UINT32)source.Size() + sizeof(MVK_MSL_Source) + 1;
 		if(desc.type == GPT_COMPUTE_PROGRAM)
 			size += sizeof(workgroupSize);
 
@@ -272,7 +272,7 @@ namespace bs { namespace ct
 		memcpy(dst, &MVK_MSL_Source, sizeof(MVK_MSL_Source));
 		dst += sizeof(MVK_MSL_Source);
 
-		memcpy(dst, source.data(), source.size());
+		memcpy(dst, source.Data(), source.size());
 
 		for(UINT32 i = size - 1; i < wordSize * 4; i++)
 			buffer[i] = '\0';

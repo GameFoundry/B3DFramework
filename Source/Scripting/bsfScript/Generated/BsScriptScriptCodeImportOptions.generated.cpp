@@ -17,9 +17,9 @@ namespace bs
 
 	void ScriptScriptCodeImportOptions::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_geteditorScript", (void*)&ScriptScriptCodeImportOptions::Internal_geteditorScript);
-		metaData.scriptClass->addInternalCall("Internal_seteditorScript", (void*)&ScriptScriptCodeImportOptions::Internal_seteditorScript);
-		metaData.scriptClass->addInternalCall("Internal_create", (void*)&ScriptScriptCodeImportOptions::Internal_create);
+		metaData.scriptClass->AddInternalCall("Internal_geteditorScript", (void*)&ScriptScriptCodeImportOptions::Internal_geteditorScript);
+		metaData.scriptClass->AddInternalCall("Internal_seteditorScript", (void*)&ScriptScriptCodeImportOptions::Internal_seteditorScript);
+		metaData.scriptClass->AddInternalCall("Internal_create", (void*)&ScriptScriptCodeImportOptions::Internal_create);
 
 	}
 
@@ -30,7 +30,7 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.scriptClass->createInstance("bool", ctorParams);
+		MonoObject* managedInstance = metaData.scriptClass->CreateInstance("bool", ctorParams);
 		new (bs_alloc<ScriptScriptCodeImportOptions>()) ScriptScriptCodeImportOptions(managedInstance, value);
 		return managedInstance;
 	}
@@ -42,7 +42,7 @@ namespace bs
 	bool ScriptScriptCodeImportOptions::Internal_geteditorScript(ScriptScriptCodeImportOptions* thisPtr)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->getInternal()->editorScript;
+		tmp__output = thisPtr->GetInternal()->editorScript;
 
 		bool __output;
 		__output = tmp__output;
@@ -52,7 +52,7 @@ namespace bs
 
 	void ScriptScriptCodeImportOptions::Internal_seteditorScript(ScriptScriptCodeImportOptions* thisPtr, bool value)
 	{
-		thisPtr->getInternal()->editorScript = value;
+		thisPtr->GetInternal()->editorScript = value;
 	}
 #endif
 }

@@ -18,13 +18,13 @@ namespace bs
 		{
 			Lock Lock(mWindowMutex);
 
-			mWindows[renderWindow->mWindowId] = renderWindow.get();
+			mWindows[renderWindow->mWindowId] = renderWindow.Get();
 		}
 
-		if (renderWindow->getProperties().isModal)
-			mModalWindowStack.push_back(renderWindow.get());
+		if (renderWindow->GetProperties().isModal)
+			mModalWindowStack.push_back(renderWindow.Get());
 
-		renderWindow->initialize();
+		renderWindow->Initialize();
 		
 		return renderWindow;
 	}
@@ -36,20 +36,20 @@ namespace bs
 
 			auto iterFind = std::find(begin(mMovedOrResizedWindows), end(mMovedOrResizedWindows), window);
 
-			if(iterFind != mMovedOrResizedWindows.end())
-				mMovedOrResizedWindows.erase(iterFind);
+			if(iterFind != mMovedOrResizedWindows.End())
+				mMovedOrResizedWindows.Erase(iterFind);
 
 			if (mNewWindowInFocus == window)
 				mNewWindowInFocus = nullptr;
 
-			mWindows.erase(window->mWindowId);
-			mDirtyProperties.erase(window);
+			mWindows.Erase(window->mWindowId);
+			mDirtyProperties.Erase(window);
 		}
 
 		{
 			auto iterFind = std::find(begin(mModalWindowStack), end(mModalWindowStack), window);
-			if(iterFind != mModalWindowStack.end())
-				mModalWindowStack.erase(iterFind);
+			if(iterFind != mModalWindowStack.End())
+				mModalWindowStack.Erase(iterFind);
 		}
 	}
 
@@ -110,7 +110,7 @@ namespace bs
 		RenderWindow* window = getNonCore(coreWindow);
 
 		if (window != nullptr)
-			mDirtyProperties.insert(window);
+			mDirtyProperties.Insert(window);
 	}
 
 	void RenderWindowManager::_update()
@@ -128,9 +128,9 @@ namespace bs
 			std::swap(mMouseLeftWindows, mouseLeftWindows);
 
 			for (auto& dirtyPropertyWindow : mDirtyProperties)
-				dirtyPropertyWindow->syncProperties();
+				dirtyPropertyWindow->SyncProperties();
 
-			mDirtyProperties.clear();
+			mDirtyProperties.Clear();
 
 			std::swap(mCloseRequestedWindows, closeRequestedWindows);
 		}
@@ -147,25 +147,25 @@ namespace bs
 		}
 
 		for (auto& window : movedOrResizedWindows)
-			window->onResized();
+			window->OnResized();
 
-		if (!onMouseLeftWindow.empty())
+		if (!onMouseLeftWindow.Empty())
 		{
 			for (auto& window : mouseLeftWindows)
 				onMouseLeftWindow(*window);
 		}
 
-		SPtr<RenderWindow> primaryWindow = gCoreApplication().getPrimaryWindow();
+		SPtr<RenderWindow> primaryWindow = gCoreApplication().GetPrimaryWindow();
 		for(auto& entry : closeRequestedWindows)
 		{
 			// Default behaviour for primary window is to quit the app on close
-			if(entry == primaryWindow.get() && entry->onCloseRequested.empty())
+			if(entry == primaryWindow.Get() && entry->onCloseRequested.empty())
 			{
-				gCoreApplication().quitRequested();
+				gCoreApplication().QuitRequested();
 				continue;
 			}
 
-			entry->onCloseRequested();
+			entry->OnCloseRequested();
 		}
 	}
 
@@ -182,17 +182,17 @@ namespace bs
 
 	RenderWindow* RenderWindowManager::getTopMostModal() const
 	{
-		if (mModalWindowStack.empty())
+		if (mModalWindowStack.Empty())
 			return nullptr;
 		
-		return mModalWindowStack.back();
+		return mModalWindowStack.Back();
 	}
 
 	RenderWindow* RenderWindowManager::getNonCore(const ct::RenderWindow* window) const
 	{
-		auto iterFind = mWindows.find(window->mWindowId);
+		auto iterFind = mWindows.Find(window->mWindowId);
 
-		if (iterFind != mWindows.end())
+		if (iterFind != mWindows.End())
 			return iterFind->second;
 
 		return nullptr;
@@ -211,9 +211,9 @@ namespace bs
 		Lock Lock(mWindowMutex);
 
 		for (auto& dirtyPropertyWindow : mDirtyProperties)
-			dirtyPropertyWindow->syncProperties();
+			dirtyPropertyWindow->SyncProperties();
 
-		mDirtyProperties.clear();
+		mDirtyProperties.Clear();
 	}
 
 	void RenderWindowManager::WindowCreated(RenderWindow* window)
@@ -230,11 +230,11 @@ namespace bs
 
 			auto iterFind = std::find(begin(mCreatedWindows), end(mCreatedWindows), window);
 
-			if (iterFind == mCreatedWindows.end())
+			if (iterFind == mCreatedWindows.End())
 				BS_EXCEPT(InternalErrorException, "Trying to destroy a window that is not in the created windows list.");
 
-			mCreatedWindows.erase(iterFind);
-			mDirtyProperties.erase(window);
+			mCreatedWindows.Erase(iterFind);
+			mDirtyProperties.Erase(window);
 		}
 	}
 
@@ -249,7 +249,7 @@ namespace bs
 	{
 		Lock Lock(mWindowMutex);
 
-		mDirtyProperties.insert(window);
+		mDirtyProperties.Insert(window);
 	}
 	}
 }

@@ -61,8 +61,8 @@ namespace bs
 
 	void Cursor::SetCursor(const String& name)
 	{
-		auto iterFind = mCustomIconNameToId.find(name);
-		if(iterFind == mCustomIconNameToId.end())
+		auto iterFind = mCustomIconNameToId.Find(name);
+		if(iterFind == mCustomIconNameToId.End())
 		{
 			BS_LOG(Warning, Platform, "Cannot find cursor icon with name: " + name);
 			return;
@@ -78,8 +78,8 @@ namespace bs
 
 	void Cursor::SetCursorIcon(const String& name, const PixelData& pixelData, const Vector2I& hotSpot)
 	{
-		auto iterFind = mCustomIconNameToId.find(name);
-		if(iterFind != mCustomIconNameToId.end())
+		auto iterFind = mCustomIconNameToId.Find(name);
+		if(iterFind != mCustomIconNameToId.End())
 		{
 			UINT32 id = iterFind->second;
 			mCustomIcons[id] = CustomIcon(pixelData, hotSpot);
@@ -108,12 +108,12 @@ namespace bs
 
 	void Cursor::ClearCursorIcon(const String& name)
 	{
-		auto iterFind = mCustomIconNameToId.find(name);
-		if(iterFind == mCustomIconNameToId.end())
+		auto iterFind = mCustomIconNameToId.Find(name);
+		if(iterFind == mCustomIconNameToId.End())
 			return;
 
-		mCustomIcons.erase(iterFind->second);
-		mCustomIconNameToId.erase(iterFind);
+		mCustomIcons.Erase(iterFind->second);
+		mCustomIconNameToId.Erase(iterFind);
 	}
 
 	void Cursor::ClearCursorIcon(CursorType type)
@@ -132,34 +132,34 @@ namespace bs
 		switch (type)
 		{
 		case CursorType::Arrow:
-			mCustomIcons[id].pixelData = BuiltinResources::instance().getCursorArrow(mCustomIcons[id].hotSpot);
+			mCustomIcons[id].pixelData = BuiltinResources::instance().GetCursorArrow(mCustomIcons[id].hotSpot);
 			return;
 		case CursorType::Wait:
-			mCustomIcons[id].pixelData = BuiltinResources::instance().getCursorWait(mCustomIcons[id].hotSpot);
+			mCustomIcons[id].pixelData = BuiltinResources::instance().GetCursorWait(mCustomIcons[id].hotSpot);
 			return;
 		case CursorType::IBeam:
-			mCustomIcons[id].pixelData = BuiltinResources::instance().getCursorIBeam(mCustomIcons[id].hotSpot);
+			mCustomIcons[id].pixelData = BuiltinResources::instance().GetCursorIBeam(mCustomIcons[id].hotSpot);
 			return;
 		case CursorType::ArrowDrag:
-			mCustomIcons[id].pixelData = BuiltinResources::instance().getCursorArrowDrag(mCustomIcons[id].hotSpot);
+			mCustomIcons[id].pixelData = BuiltinResources::instance().GetCursorArrowDrag(mCustomIcons[id].hotSpot);
 			return;
 		case CursorType::SizeNESW:
-			mCustomIcons[id].pixelData = BuiltinResources::instance().getCursorSizeNESW(mCustomIcons[id].hotSpot);
+			mCustomIcons[id].pixelData = BuiltinResources::instance().GetCursorSizeNESW(mCustomIcons[id].hotSpot);
 			return;
 		case CursorType::SizeNS:
-			mCustomIcons[id].pixelData = BuiltinResources::instance().getCursorSizeNS(mCustomIcons[id].hotSpot);
+			mCustomIcons[id].pixelData = BuiltinResources::instance().GetCursorSizeNS(mCustomIcons[id].hotSpot);
 			return;
 		case CursorType::SizeNWSE:
-			mCustomIcons[id].pixelData = BuiltinResources::instance().getCursorSizeNWSE(mCustomIcons[id].hotSpot);
+			mCustomIcons[id].pixelData = BuiltinResources::instance().GetCursorSizeNWSE(mCustomIcons[id].hotSpot);
 			return;
 		case CursorType::SizeWE:
-			mCustomIcons[id].pixelData = BuiltinResources::instance().getCursorSizeWE(mCustomIcons[id].hotSpot);
+			mCustomIcons[id].pixelData = BuiltinResources::instance().GetCursorSizeWE(mCustomIcons[id].hotSpot);
 			return;
 		case CursorType::Deny:
-			mCustomIcons[id].pixelData = BuiltinResources::instance().getCursorDeny(mCustomIcons[id].hotSpot);
+			mCustomIcons[id].pixelData = BuiltinResources::instance().GetCursorDeny(mCustomIcons[id].hotSpot);
 			return;
 		case CursorType::ArrowLeftRight:
-			mCustomIcons[id].pixelData = BuiltinResources::instance().getCursorMoveLeftRight(mCustomIcons[id].hotSpot);
+			mCustomIcons[id].pixelData = BuiltinResources::instance().GetCursorMoveLeftRight(mCustomIcons[id].hotSpot);
 			return;
 		default:
 			break;

@@ -17,10 +17,10 @@ namespace bs
 
 	void ScriptParticleEmitterHemisphereShape::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_setOptions", (void*)&ScriptParticleEmitterHemisphereShape::Internal_setOptions);
-		metaData.scriptClass->addInternalCall("Internal_getOptions", (void*)&ScriptParticleEmitterHemisphereShape::Internal_getOptions);
-		metaData.scriptClass->addInternalCall("Internal_create", (void*)&ScriptParticleEmitterHemisphereShape::Internal_create);
-		metaData.scriptClass->addInternalCall("Internal_create0", (void*)&ScriptParticleEmitterHemisphereShape::Internal_create0);
+		metaData.scriptClass->AddInternalCall("Internal_setOptions", (void*)&ScriptParticleEmitterHemisphereShape::Internal_setOptions);
+		metaData.scriptClass->AddInternalCall("Internal_getOptions", (void*)&ScriptParticleEmitterHemisphereShape::Internal_getOptions);
+		metaData.scriptClass->AddInternalCall("Internal_create", (void*)&ScriptParticleEmitterHemisphereShape::Internal_create);
+		metaData.scriptClass->AddInternalCall("Internal_create0", (void*)&ScriptParticleEmitterHemisphereShape::Internal_create0);
 
 	}
 
@@ -31,19 +31,19 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.scriptClass->createInstance("bool", ctorParams);
+		MonoObject* managedInstance = metaData.scriptClass->CreateInstance("bool", ctorParams);
 		new (bs_alloc<ScriptParticleEmitterHemisphereShape>()) ScriptParticleEmitterHemisphereShape(managedInstance, value);
 		return managedInstance;
 	}
 	void ScriptParticleEmitterHemisphereShape::Internal_setOptions(ScriptParticleEmitterHemisphereShape* thisPtr, PARTICLE_HEMISPHERE_SHAPE_DESC* options)
 	{
-		thisPtr->getInternal()->setOptions(*options);
+		thisPtr->GetInternal()->setOptions(*options);
 	}
 
 	void ScriptParticleEmitterHemisphereShape::Internal_getOptions(ScriptParticleEmitterHemisphereShape* thisPtr, PARTICLE_HEMISPHERE_SHAPE_DESC* __output)
 	{
 		PARTICLE_HEMISPHERE_SHAPE_DESC tmp__output;
-		tmp__output = thisPtr->getInternal()->getOptions();
+		tmp__output = thisPtr->GetInternal()->getOptions();
 
 		*__output = tmp__output;
 	}

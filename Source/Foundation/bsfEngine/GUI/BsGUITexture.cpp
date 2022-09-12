@@ -19,7 +19,7 @@ namespace bs
 		:GUIElement(styleName, dimensions), mScaleMode(scale), mTransparent(transparent), mUsingStyleTexture(false)
 	{
 		mImageSprite = bs_new<ImageSprite>();
-		mDesc.animationStartTime = gTime().getTime();
+		mDesc.animationStartTime = gTime().GetTime();
 
 		if(texture != nullptr)
 		{
@@ -33,8 +33,8 @@ namespace bs
 		}
 
 		bool isTexLoaded = SpriteTexture::checkIsLoaded(mActiveTexture);
-		mActiveTextureWidth = isTexLoaded ? mActiveTexture->getFrameWidth() : 0;
-		mActiveTextureHeight = isTexLoaded ? mActiveTexture->getFrameHeight() : 0;
+		mActiveTextureWidth = isTexLoaded ? mActiveTexture->GetFrameWidth() : 0;
+		mActiveTextureHeight = isTexLoaded ? mActiveTexture->GetFrameHeight() : 0;
 	}
 
 	GUITexture::~GUITexture()
@@ -109,18 +109,18 @@ namespace bs
 
 	void GUITexture::SetTexture(const HSpriteTexture& texture)
 	{
-		Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+		Vector2I origSize = mDimensions.CalculateSizeRange(_getOptimalSize()).optimal;
 
 		mActiveTexture = texture;
 
 		bool isTexLoaded = SpriteTexture::checkIsLoaded(mActiveTexture);
-		mActiveTextureWidth = isTexLoaded ? mActiveTexture->getFrameWidth() : 0;
-		mActiveTextureHeight = isTexLoaded ? mActiveTexture->getFrameHeight() : 0;
+		mActiveTextureWidth = isTexLoaded ? mActiveTexture->GetFrameWidth() : 0;
+		mActiveTextureHeight = isTexLoaded ? mActiveTexture->GetFrameHeight() : 0;
 
 		mUsingStyleTexture = false;
-		mDesc.animationStartTime = gTime().getTime();
+		mDesc.animationStartTime = gTime().GetTime();
 
-		Vector2I newSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+		Vector2I newSize = mDimensions.CalculateSizeRange(_getOptimalSize()).optimal;
 		if (origSize != newSize)
 			_markLayoutAsDirty();
 		else
@@ -133,8 +133,8 @@ namespace bs
 		if (SpriteTexture::checkIsLoaded(mActiveTexture))
 		{
 			mDesc.texture = mActiveTexture;
-			textureSize.x = mDesc.texture->getFrameWidth();
-			textureSize.y = mDesc.texture->getFrameHeight();
+			textureSize.x = mDesc.texture->GetFrameWidth();
+			textureSize.y = mDesc.texture->GetFrameHeight();
 		}
 		Vector2I DestSize(mLayoutData.area.width, mLayoutData.area.height);
 
@@ -182,7 +182,7 @@ namespace bs
 		else
 			mDesc.uvScale = Vector2::ONE;
 		
-		mImageSprite->update(mDesc, (UINT64)_getParentWidget());
+		mImageSprite->Update(mDesc, (UINT64)_getParentWidget());
 
 		// Populate GUI render elements from the sprites
 		{
@@ -198,11 +198,11 @@ namespace bs
 		if (mUsingStyleTexture)
 		{
 			mActiveTexture = _getStyle()->normal.texture;
-			mDesc.animationStartTime = gTime().getTime();
+			mDesc.animationStartTime = gTime().GetTime();
 
 			bool isTexLoaded = SpriteTexture::checkIsLoaded(mActiveTexture);
-			mActiveTextureWidth = isTexLoaded ? mActiveTexture->getFrameWidth() : 0;
-			mActiveTextureHeight = isTexLoaded ? mActiveTexture->getFrameHeight() : 0;
+			mActiveTextureWidth = isTexLoaded ? mActiveTexture->GetFrameWidth() : 0;
+			mActiveTextureHeight = isTexLoaded ? mActiveTexture->GetFrameHeight() : 0;
 		}
 	}
 
@@ -215,7 +215,7 @@ namespace bs
 		// needed (size change is detected). Sprite texture could change without us knowing and by storing the size we can
 		// safely detect this. (In short, don't do mActiveTexture->getFrameWidth/Height() here)
 		
-		if(_getDimensions().fixedWidth())
+		if(_getDimensions().FixedWidth())
 			optimalSize.x = _getDimensions().minWidth;
 		else
 		{
@@ -225,7 +225,7 @@ namespace bs
 				optimalSize.x = _getDimensions().maxWidth;
 		}
 
-		if(_getDimensions().fixedHeight())
+		if(_getDimensions().FixedHeight())
 			optimalSize.y = _getDimensions().minHeight;
 		else
 		{
@@ -254,6 +254,6 @@ namespace bs
 
 		Vector2I layoutOffset = Vector2I(mLayoutData.area.x, mLayoutData.area.y) + mImageSpriteOffset + offset;
 		mImageSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
-			vertexStride, indexStride, renderElementIdx, layoutOffset, mLayoutData.getLocalClipRect());
+			vertexStride, indexStride, renderElementIdx, layoutOffset, mLayoutData.GetLocalClipRect());
 	}
 }

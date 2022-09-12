@@ -178,13 +178,13 @@ namespace bs
 			element.min = element.detectedMin = (INT32)IOHIDElementGetLogicalMin(elemRef);
 			element.max = element.detectedMax = (INT32)IOHIDElementGetLogicalMax(elemRef);
 
-			auto iterFind = std::find_if(elements->begin(), elements->end(),
+			auto iterFind = std::find_if(elements->Begin(), elements->end(),
 					[&element](const HIDElement& v)
 					{
 						return v.cookie == element.cookie;
 					});
 
-			if(iterFind == elements->end())
+			if(iterFind == elements->End())
 				elements->push_back(element);
 		}
 	}
@@ -250,7 +250,7 @@ namespace bs
 		{
 			auto freeId = (UINT32)-1;
 
-			auto numDevices = (UINT32)data->devices.size();
+			auto numDevices = (UINT32)data->devices.Size();
 			for(UINT32 i = 0; i < numDevices; i++)
 			{
 				bool validId = true;
@@ -300,13 +300,13 @@ namespace bs
 	{
 		auto data = (HIDData*)context;
 
-		auto iterFind = std::find_if(data->devices.begin(), data->devices.end(),
+		auto iterFind = std::find_if(data->devices.Begin(), data->devices.end(),
 				[&device](const HIDDevice& v)
 				{
 					return v.ref == device;
 				});
 
-		if(iterFind != data->devices.end())
+		if(iterFind != data->devices.End())
 		{
 			IOHIDQueueStop(iterFind->queueRef);
 			CFRelease(iterFind->queueRef);
@@ -318,18 +318,18 @@ namespace bs
 
 				UINT32 deviceId = iterFind->id;
 				auto iterFind2 = std::find_if(
-					pvtData->gamepadInfos.begin(),
-					pvtData->gamepadInfos.end(),
+					pvtData->gamepadInfos.Begin(),
+					pvtData->gamepadInfos.End(),
 					[deviceId](const GamepadInfo& info)
 					{
 						return info.id == deviceId;
 					});
 
-				if(iterFind2 != pvtData->gamepadInfos.end())
-					pvtData->gamepadInfos.erase(iterFind2);
+				if(iterFind2 != pvtData->gamepadInfos.End())
+					pvtData->gamepadInfos.Erase(iterFind2);
 			}
 
-			data->devices.erase(iterFind);
+			data->devices.Erase(iterFind);
 		}
 	}
 
@@ -884,7 +884,7 @@ namespace bs
 		{
 		case InputDevice::Keyboard: return 1;
 		case InputDevice::Mouse: return 1;
-		case InputDevice::Gamepad: return (UINT32)mPlatformData->gamepadInfos.size();
+		case InputDevice::Gamepad: return (UINT32)mPlatformData->gamepadInfos.Size();
 		case InputDevice::Count: return 0;
 		}
 

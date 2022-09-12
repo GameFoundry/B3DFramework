@@ -18,35 +18,35 @@ namespace bs
 
 		ManagedSerializableObject* orgManSerzObj;
 		SPtr<ManagedSerializableObject> orgDecodedObject;
-		if (orgObj->getTypeId() == TID_SerializedObject)
+		if (orgObj->GetTypeId() == TID_SerializedObject)
 		{
 			auto* orgSerzObj = static_cast<SerializedObject*>(orgObj);
-			orgDecodedObject = std::static_pointer_cast<ManagedSerializableObject>(orgSerzObj->decode(&context));
+			orgDecodedObject = std::static_pointer_cast<ManagedSerializableObject>(orgSerzObj->Decode(&context));
 
-			orgManSerzObj = orgDecodedObject.get();
+			orgManSerzObj = orgDecodedObject.Get();
 		}
 		else
 		{
-			assert(orgObj->getTypeId() == TID_ScriptSerializableObject);
+			assert(orgObj->GetTypeId() == TID_ScriptSerializableObject);
 			orgManSerzObj = static_cast<ManagedSerializableObject*>(orgObj);
 		}
 
 		ManagedSerializableObject* newManSerzObj;
 		SPtr<ManagedSerializableObject> newDecodedObject;
-		if (newObj->getTypeId() == TID_SerializedObject)
+		if (newObj->GetTypeId() == TID_SerializedObject)
 		{
 			auto* newSerzObj = static_cast<SerializedObject*>(newObj);
-			newDecodedObject = std::static_pointer_cast<ManagedSerializableObject>(newSerzObj->decode(&context));
+			newDecodedObject = std::static_pointer_cast<ManagedSerializableObject>(newSerzObj->Decode(&context));
 
-			newManSerzObj = newDecodedObject.get();
+			newManSerzObj = newDecodedObject.Get();
 		}
 		else
 		{
-			assert(newObj->getTypeId() == TID_ScriptSerializableObject);
+			assert(newObj->GetTypeId() == TID_ScriptSerializableObject);
 			newManSerzObj = static_cast<ManagedSerializableObject*>(newObj);
 		}
 
-		context.goState->resolve();
+		context.goState->Resolve();
 
 		SPtr<ManagedSerializableDiff> diff = ManagedSerializableDiff::create(orgManSerzObj, newManSerzObj);
 		if (diff == nullptr)
@@ -55,8 +55,8 @@ namespace bs
 		SPtr<SerializedObject> output = bs_shared_ptr_new<SerializedObject>();
 		output->subObjects.push_back(SerializedSubObject());
 
-		SerializedSubObject& subObject = output->subObjects.back();
-		subObject.typeId = ManagedSerializableObject::getRTTIStatic()->getRTTIId();
+		SerializedSubObject& subObject = output->subObjects.Back();
+		subObject.typeId = ManagedSerializableObject::getRTTIStatic()->GetRTTIId();
 
 		SerializedEntry entry;
 		entry.fieldId = 0;
@@ -72,12 +72,12 @@ namespace bs
 	{
 		SPtr<SerializedObject> diffObj = std::static_pointer_cast<SerializedObject>(serzDiff->subObjects[0].entries[0].serialized);
 
-		SPtr<ManagedSerializableDiff> diff = std::static_pointer_cast<ManagedSerializableDiff>(diffObj->decode(context));
+		SPtr<ManagedSerializableDiff> diff = std::static_pointer_cast<ManagedSerializableDiff>(diffObj->Decode(context));
 		
 		if (diff != nullptr)
 		{
 			SPtr<ManagedSerializableObject> managedObj = std::static_pointer_cast<ManagedSerializableObject>(object);
-			diff->apply(managedObj);
+			diff->Apply(managedObj);
 		}
 	}
 }

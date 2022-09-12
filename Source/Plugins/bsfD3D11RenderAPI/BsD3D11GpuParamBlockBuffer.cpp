@@ -23,7 +23,7 @@ namespace bs { namespace ct
 	void D3D11GpuParamBlockBuffer::Initialize()
 	{
 		D3D11RenderAPI* d3d11rs = static_cast<D3D11RenderAPI*>(RenderAPI::instancePtr());
-		D3D11Device& device = d3d11rs->getPrimaryDevice();
+		D3D11Device& device = d3d11rs->GetPrimaryDevice();
 
 		mBuffer = bs_pool_new<D3D11HardwareBuffer>(D3D11HardwareBuffer::BT_CONSTANT, mUsage, 1, mSize, device);
 		GpuParamBlockBuffer::initialize();
@@ -31,6 +31,6 @@ namespace bs { namespace ct
 
 	ID3D11Buffer* D3D11GpuParamBlockBuffer::getD3D11Buffer() const
 	{
-		return static_cast<D3D11HardwareBuffer*>(mBuffer)->getD3DBuffer();
+		return static_cast<D3D11HardwareBuffer*>(mBuffer)->GetD3DBuffer();
 	}
 }}

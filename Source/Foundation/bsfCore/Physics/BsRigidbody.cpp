@@ -15,13 +15,13 @@ namespace bs
 
 	void Rigidbody::_setTransform(const Vector3& position, const Quaternion& rotation)
 	{
-		mLinkedSO->setWorldPosition(position);
-		mLinkedSO->setWorldRotation(rotation);
+		mLinkedSO->SetWorldPosition(position);
+		mLinkedSO->SetWorldRotation(rotation);
 	}
 
 	SPtr<Rigidbody> Rigidbody::Create(const HSceneObject& linkedSO)
 	{
-		const SPtr<SceneInstance>& scene = linkedSO->getScene();
+		const SPtr<SceneInstance>& scene = linkedSO->GetScene();
 
 		if(!scene)
 		{
@@ -29,6 +29,6 @@ namespace bs
 			return nullptr;
 		}
 
-		return scene->getPhysicsScene()->createRigidbody(linkedSO);
+		return scene->GetPhysicsScene()->createRigidbody(linkedSO);
 	}
 }

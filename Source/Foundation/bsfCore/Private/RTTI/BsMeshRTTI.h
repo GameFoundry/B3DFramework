@@ -30,10 +30,10 @@ namespace bs
 
 		SPtr<MeshData> GetMeshData(Mesh* obj)
 		{
-			SPtr<MeshData> meshData = obj->allocBuffer();
+			SPtr<MeshData> meshData = obj->AllocBuffer();
 
-			obj->readData(meshData);
-			gCoreThread().submitAll(true);
+			obj->ReadData(meshData);
+			gCoreThread().SubmitAll(true);
 
 			return meshData;
 		}
@@ -52,7 +52,7 @@ namespace bs
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{
 			Mesh* mesh = static_cast<Mesh*>(obj);
-			mesh->initialize();
+			mesh->Initialize();
 		}
 
 		SPtr<IReflectable> NewRTTIObject() override

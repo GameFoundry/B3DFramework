@@ -62,12 +62,12 @@ namespace bs
 
 	SPtr<SamplerState> SamplerState::Create(const SAMPLER_STATE_DESC& desc)
 	{
-		return RenderStateManager::Instance().createSamplerState(desc);
+		return RenderStateManager::Instance().CreateSamplerState(desc);
 	}
 
 	const SPtr<SamplerState>& SamplerState::GetDefault()
 	{
-		return RenderStateManager::Instance().getDefaultSamplerState();
+		return RenderStateManager::Instance().GetDefaultSamplerState();
 	}
 
 	UINT64 SamplerState::GenerateHash(const SAMPLER_STATE_DESC& desc)
@@ -119,7 +119,7 @@ namespace bs
 
 	SamplerState::~SamplerState()
 	{
-		RenderStateManager::instance().notifySamplerStateDestroyed(mProperties.mData);
+		RenderStateManager::instance().NotifySamplerStateDestroyed(mProperties.mData);
 	}
 
 	void SamplerState::Initialize()
@@ -140,12 +140,12 @@ namespace bs
 
 	SPtr<SamplerState> SamplerState::Create(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		return RenderStateManager::Instance().createSamplerState(desc, deviceMask);
+		return RenderStateManager::Instance().CreateSamplerState(desc, deviceMask);
 	}
 
 	const SPtr<SamplerState>& SamplerState::GetDefault()
 	{
-		return RenderStateManager::Instance().getDefaultSamplerState();
+		return RenderStateManager::Instance().GetDefaultSamplerState();
 	}
 
 	}

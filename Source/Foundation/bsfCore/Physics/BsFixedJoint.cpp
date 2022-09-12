@@ -7,6 +7,6 @@ namespace bs
 {
 	SPtr<FixedJoint> FixedJoint::Create(PhysicsScene& scene, const FIXED_JOINT_DESC& desc)
 	{
-		return scene.createFixedJoint(desc);
+		return scene.CreateFixedJoint(desc);
 	}
 }

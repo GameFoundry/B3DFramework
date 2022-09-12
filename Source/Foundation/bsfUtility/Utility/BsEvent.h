@@ -95,7 +95,7 @@ namespace bs
 		{
 			RecursiveLock Lock(mMutex);
 
-			conn->deactivate();
+			conn->Deactivate();
 			conn->handleLinks--;
 
 			if (conn->handleLinks == 0)
@@ -111,7 +111,7 @@ namespace bs
 			while (conn != nullptr)
 			{
 				BaseConnectionData* next = conn->next;
-				conn->deactivate();
+				conn->Deactivate();
 
 				if (conn->handleLinks == 0)
 					free(conn);
@@ -194,7 +194,7 @@ namespace bs
 		~HEvent()
 		{
 			if (mConnection != nullptr)
-				mEventData->freeHandle(mConnection);
+				mEventData->FreeHandle(mConnection);
 		}
 
 		/** Disconnect from the event you are subscribed to. */
@@ -202,7 +202,7 @@ namespace bs
 		{
 			if (mConnection != nullptr)
 			{
-				mEventData->disconnect(mConnection);
+				mEventData->Disconnect(mConnection);
 				mConnection = nullptr;
 				mEventData = nullptr;
 			}
@@ -321,7 +321,7 @@ namespace bs
 			}
 			else
 			{
-				mInternalData->connect(connData);
+				mInternalData->Connect(connData);
 			}
 
 			connData->func = func;
@@ -346,7 +346,7 @@ namespace bs
 				ConnectionData* next = static_cast<ConnectionData*>(conn->next);
 				
 				if (conn->func != nullptr)
-					conn->func(std::forward<Args>(args)...);
+					conn->Func(std::forward<Args>(args)...);
 
 				conn = next;
 			}
@@ -367,7 +367,7 @@ namespace bs
 					currentConnection->next = nullptr;
 					currentConnection->prev = nullptr;
 
-					mInternalData->connect(currentConnection);
+					mInternalData->Connect(currentConnection);
 					currentConnection = prevConnection;
 				}
 
@@ -378,7 +378,7 @@ namespace bs
 		/** Clear all callbacks from the event. */
 		void Clear()
 		{
-			mInternalData->clear();
+			mInternalData->Clear();
 		}
 
 		/**

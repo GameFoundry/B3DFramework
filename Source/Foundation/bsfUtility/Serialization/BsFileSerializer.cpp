@@ -16,7 +16,7 @@ namespace bs
 {
 	FileEncoder::FileEncoder(const Path& fileLocation)
 	{
-		Path parentDir = fileLocation.getDirectory();
+		Path parentDir = fileLocation.GetDirectory();
 		if (!FileSystem::exists(parentDir))
 			FileSystem::createDir(parentDir);
 		
@@ -28,18 +28,18 @@ namespace bs
 		if (object == nullptr)
 			return;
 
-		size_t startPos = mOutputStream->tell();
-		mOutputStream->skip(sizeof(UINT32));
+		size_t startPos = mOutputStream->Tell();
+		mOutputStream->Skip(sizeof(UINT32));
 
 		BinarySerializer bs;
-		bs.encode(object, mOutputStream, BinarySerializerFlag::None, context);
+		bs.Encode(object, mOutputStream, BinarySerializerFlag::None, context);
 
-		size_t endPos = mOutputStream->tell();
+		size_t endPos = mOutputStream->Tell();
 		auto size = (UINT32)(endPos - startPos - sizeof(UINT32));
 		
-		mOutputStream->seek(startPos);
-		mOutputStream->write((char*)&size, sizeof(size));
-		mOutputStream->skip(size);
+		mOutputStream->Seek(startPos);
+		mOutputStream->Write((char*)&size, sizeof(size));
+		mOutputStream->Skip(size);
 	}
 
 	FileDecoder::FileDecoder(const Path& fileLocation)
@@ -49,7 +49,7 @@ namespace bs
 		if (mInputStream == nullptr)
 			return;
 
-		if (mInputStream->size() > std::numeric_limits<UINT32>::max())
+		if (mInputStream->Size() > std::numeric_limits<UINT32>::max())
 		{
 			BS_EXCEPT(InternalErrorException,
 				"File size is larger that UINT32 can hold. Ask a programmer to use a bigger data type.");
@@ -58,37 +58,37 @@ namespace bs
 
 	SPtr<IReflectable> FileDecoder::Decode(SerializationContext* context)
 	{
-		if (mInputStream->eof())
+		if (mInputStream->Eof())
 			return nullptr;
 
 		UINT32 objectSize = 0;
-		mInputStream->read(&objectSize, sizeof(objectSize));
+		mInputStream->Read(&objectSize, sizeof(objectSize));
 
 		BinarySerializer bs;
-		SPtr<IReflectable> object = bs.decode(mInputStream, objectSize, BinarySerializerFlag::None, context);
+		SPtr<IReflectable> object = bs.Decode(mInputStream, objectSize, BinarySerializerFlag::None, context);
 
 		return object;
 	}
 
 	UINT32 FileDecoder::GetSize() const
 	{
-		if (mInputStream->eof())
+		if (mInputStream->Eof())
 			return 0;
 
 		UINT32 objectSize = 0;
-		mInputStream->read(&objectSize, sizeof(objectSize));
-		mInputStream->seek(mInputStream->tell() - sizeof(objectSize));
+		mInputStream->Read(&objectSize, sizeof(objectSize));
+		mInputStream->Seek(mInputStream->tell() - sizeof(objectSize));
 
 		return objectSize;
 	}
 
 	void FileDecoder::Skip()
 	{
-		if (mInputStream->eof())
+		if (mInputStream->Eof())
 			return;
 
 		UINT32 objectSize = 0;
-		mInputStream->read(&objectSize, sizeof(objectSize));
-		mInputStream->skip(objectSize);
+		mInputStream->Read(&objectSize, sizeof(objectSize));
+		mInputStream->Skip(objectSize);
 	}
 }

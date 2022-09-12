@@ -18,7 +18,7 @@ namespace bs
 		if (!mIsDestroyed)
 		{
 			SPtr<TransientMesh> meshPtr = std::static_pointer_cast<TransientMesh>(getThisPtr());
-			mParentHeap->dealloc(meshPtr);
+			mParentHeap->Dealloc(meshPtr);
 		}
 	}
 
@@ -30,7 +30,7 @@ namespace bs
 	SPtr<ct::CoreObject> TransientMesh::CreateCore() const
 	{
 		ct::TransientMesh* core = new (bs_alloc<ct::TransientMesh>()) ct::TransientMesh(
-			mParentHeap->getCore(), mId, mProperties.mNumVertices, mProperties.mNumIndices, mProperties.mSubMeshes);
+			mParentHeap->GetCore(), mId, mProperties.mNumVertices, mProperties.mNumIndices, mProperties.mSubMeshes);
 
 		SPtr<ct::CoreObject> meshCore = bs_shared_ptr<ct::TransientMesh>(core);
 		meshCore->_setThisPtr(meshCore);
@@ -49,32 +49,32 @@ namespace bs
 
 	SPtr<VertexData> TransientMesh::GetVertexData() const
 	{
-		return mParentHeap->getVertexData();
+		return mParentHeap->GetVertexData();
 	}
 
 	SPtr<IndexBuffer> TransientMesh::GetIndexBuffer() const
 	{
-		return mParentHeap->getIndexBuffer();
+		return mParentHeap->GetIndexBuffer();
 	}
 
 	UINT32 TransientMesh::GetVertexOffset() const
 	{
-		return mParentHeap->getVertexOffset(mId);
+		return mParentHeap->GetVertexOffset(mId);
 	}
 
 	UINT32 TransientMesh::GetIndexOffset() const
 	{
-		return mParentHeap->getIndexOffset(mId);
+		return mParentHeap->GetIndexOffset(mId);
 	}
 
 	SPtr<VertexDataDesc> TransientMesh::GetVertexDesc() const
 	{
-		return mParentHeap->getVertexDesc();
+		return mParentHeap->GetVertexDesc();
 	}
 
 	void TransientMesh::_notifyUsedOnGPU()
 	{
-		mParentHeap->notifyUsedOnGPU(mId);
+		mParentHeap->NotifyUsedOnGPU(mId);
 	}
 	}
 }

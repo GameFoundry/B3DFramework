@@ -72,7 +72,7 @@ namespace bs
 		UINT64 GetInternalID() const { return mInternalID; }
 
 		/** Returns a shared_ptr version of "this" pointer. */
-		SPtr<CoreObject> GetThisPtr() const { return mThis.lock(); }
+		SPtr<CoreObject> GetThisPtr() const { return mThis.Lock(); }
 
 		/**
 		 * Returns an object that contains a core thread specific implementation of this CoreObject. Null is a valid return
@@ -108,8 +108,8 @@ namespace bs
 		template<class T, class MemAlloc>
 		static void _delete(CoreObject* obj)
 		{
-			if (!obj->isDestroyed())
-				obj->destroy();
+			if (!obj->IsDestroyed())
+				obj->Destroy();
 
 			bs_delete<T, MemAlloc>((T*)obj);
 		}

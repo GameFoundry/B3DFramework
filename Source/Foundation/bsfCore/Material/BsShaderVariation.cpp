@@ -35,8 +35,8 @@ namespace bs
 
 	INT32 ShaderVariation::GetInt(const StringID& name)
 	{
-		auto iterFind = mParams.find(name);
-		if (iterFind == mParams.end())
+		auto iterFind = mParams.Find(name);
+		if (iterFind == mParams.End())
 			return 0;
 		else
 			return iterFind->second.i;
@@ -44,8 +44,8 @@ namespace bs
 
 	UINT32 ShaderVariation::GetUInt(const StringID& name)
 	{
-		auto iterFind = mParams.find(name);
-		if (iterFind == mParams.end())
+		auto iterFind = mParams.Find(name);
+		if (iterFind == mParams.End())
 			return 0;
 		else
 			return iterFind->second.ui;
@@ -53,8 +53,8 @@ namespace bs
 
 	float ShaderVariation::GetFloat(const StringID& name)
 	{
-		auto iterFind = mParams.find(name);
-		if (iterFind == mParams.end())
+		auto iterFind = mParams.Find(name);
+		if (iterFind == mParams.End())
 			return 0.0f;
 		else
 			return iterFind->second.f;
@@ -62,8 +62,8 @@ namespace bs
 
 	bool ShaderVariation::GetBool(const StringID& name)
 	{
-		auto iterFind = mParams.find(name);
-		if (iterFind == mParams.end())
+		auto iterFind = mParams.Find(name);
+		if (iterFind == mParams.End())
 			return false;
 		else
 			return iterFind->second.i > 0 ? true : false;
@@ -92,7 +92,7 @@ namespace bs
 	Vector<String> ShaderVariation::GetParamNames() const
 	{
 		Vector<String> params;
-		params.reserve(mParams.size());
+		params.Reserve(mParams.size());
 
 		for(auto& entry : mParams)
 			params.push_back(entry.first);
@@ -109,13 +109,13 @@ namespace bs
 			{
 			case Int:
 			case Bool:
-				defines.set(entry.first.c_str(), entry.second.i);
+				defines.Set(entry.first.c_str(), entry.second.i);
 				break;
 			case UInt:
-				defines.set(entry.first.c_str(), entry.second.ui);
+				defines.Set(entry.first.c_str(), entry.second.ui);
 				break;
 			case Float:
-				defines.set(entry.first.c_str(), entry.second.f);
+				defines.Set(entry.first.c_str(), entry.second.f);
 				break;
 			}
 		}
@@ -127,8 +127,8 @@ namespace bs
 	{
 		for(auto& entry : other.mParams)
 		{
-			const auto iterFind = mParams.find(entry.first);
-			if(iterFind == mParams.end())
+			const auto iterFind = mParams.Find(entry.first);
+			if(iterFind == mParams.End())
 				return false;
 
 			if(entry.second.i != iterFind->second.i)
@@ -139,8 +139,8 @@ namespace bs
 		{
 			for (auto& entry : mParams)
 			{
-				const auto iterFind = other.mParams.find(entry.first);
-				if (iterFind == other.mParams.end())
+				const auto iterFind = other.mParams.Find(entry.first);
+				if (iterFind == other.mParams.End())
 					return false;
 
 				if (entry.second.i != iterFind->second.i)
@@ -160,7 +160,7 @@ namespace bs
 	{
 		variation.mIdx = mNextIdx++;
 
-		mVariations.add(variation);
+		mVariations.Add(variation);
 	}
 	
 	UINT32 ShaderVariations::Find(const ShaderVariation& variation) const

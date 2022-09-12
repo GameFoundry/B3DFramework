@@ -12,7 +12,7 @@ namespace bs
 		Rect2I bounds = mBounds;
 
 		if(clipRect.width > 0 && clipRect.height > 0)
-			bounds.clip(clipRect);
+			bounds.Clip(clipRect);
 
 		bounds.x += offset.x;
 		bounds.y += offset.y;
@@ -24,7 +24,7 @@ namespace bs
 		UINT32 maxNumVerts, UINT32 maxNumIndices, UINT32 vertexStride, UINT32 indexStride, UINT32 renderElementIdx,
 		const Vector2I& offset, const Rect2I& clipRect, bool clip) const
 	{
-		const auto& renderElem = mCachedRenderElements.at(renderElementIdx);
+		const auto& renderElem = mCachedRenderElements.At(renderElementIdx);
 
 		UINT32 startVert = vertexOffset;
 		UINT32 startIndex = indexOffset;

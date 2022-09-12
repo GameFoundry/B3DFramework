@@ -662,7 +662,7 @@ namespace bs
 				axis.x = m[2][1]-m[1][2];
 				axis.y = m[0][2]-m[2][0];
 				axis.z = m[1][0]-m[0][1];
-				axis.normalize();
+				axis.Normalize();
 			}
 			else
 			{
@@ -748,12 +748,12 @@ namespace bs
 
 	void Matrix3::ToQuaternion(Quaternion& quat) const
 	{
-		quat.fromRotationMatrix(*this);
+		quat.FromRotationMatrix(*this);
 	}
 
 	void Matrix3::FromQuaternion(const Quaternion& quat)
 	{
-		quat.toRotationMatrix(*this);
+		quat.ToRotationMatrix(*this);
 	}
 
 	bool Matrix3::ToEulerAngles(Radian& xAngle, Radian& yAngle, Radian& zAngle) const
@@ -994,7 +994,7 @@ namespace bs
 	{
 		Matrix3 mat = *this;
 		float subDiag[3];
-		mat.tridiagonal(eigenValues, subDiag);
+		mat.Tridiagonal(eigenValues, subDiag);
 		mat.QLAlgorithm(eigenValues, subDiag);
 
 		for (UINT32 i = 0; i < 3; i++)
@@ -1005,8 +1005,8 @@ namespace bs
 		}
 
 		// Make eigenvectors form a right--handed system
-		Vector3 cross = eigenVectors[1].cross(eigenVectors[2]);
-		float det = eigenVectors[0].dot(cross);
+		Vector3 cross = eigenVectors[1].Cross(eigenVectors[2]);
+		float det = eigenVectors[0].Dot(cross);
 		if (det < 0.0f)
 		{
 			eigenVectors[2][0] = -eigenVectors[2][0];

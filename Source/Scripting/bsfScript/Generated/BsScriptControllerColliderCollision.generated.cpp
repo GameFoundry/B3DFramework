@@ -36,7 +36,7 @@ namespace bs
 		ScriptCColliderBase* scriptcollider;
 		scriptcollider = (ScriptCColliderBase*)ScriptCCollider::toNative(value.collider);
 		if(scriptcollider != nullptr)
-			tmpcollider = static_object_cast<CCollider>(scriptcollider->getComponent());
+			tmpcollider = static_object_cast<CCollider>(scriptcollider->GetComponent());
 		output.collider = tmpcollider;
 		output.triangleIndex = value.triangleIndex;
 		output.position = value.position;
@@ -52,10 +52,10 @@ namespace bs
 		__ControllerColliderCollisionInterop output;
 		ScriptComponentBase* scriptcollider = nullptr;
 		if(value.collider)
-			scriptcollider = ScriptGameObjectManager::instance().getBuiltinScriptComponent(static_object_cast<Component>(value.collider));
+			scriptcollider = ScriptGameObjectManager::instance().GetBuiltinScriptComponent(static_object_cast<Component>(value.collider));
 		MonoObject* tmpcollider;
 		if(scriptcollider != nullptr)
-			tmpcollider = scriptcollider->getManagedInstance();
+			tmpcollider = scriptcollider->GetManagedInstance();
 		else
 			tmpcollider = nullptr;
 		output.collider = tmpcollider;

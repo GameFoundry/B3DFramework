@@ -18,8 +18,8 @@ namespace bs
 
 	void ScriptCMeshCollider::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_setMesh", (void*)&ScriptCMeshCollider::Internal_setMesh);
-		metaData.scriptClass->addInternalCall("Internal_getMesh", (void*)&ScriptCMeshCollider::Internal_getMesh);
+		metaData.scriptClass->AddInternalCall("Internal_setMesh", (void*)&ScriptCMeshCollider::Internal_setMesh);
+		metaData.scriptClass->AddInternalCall("Internal_getMesh", (void*)&ScriptCMeshCollider::Internal_getMesh);
 
 	}
 
@@ -29,20 +29,20 @@ namespace bs
 		ScriptRRefBase* scriptmesh;
 		scriptmesh = ScriptRRefBase::toNative(mesh);
 		if(scriptmesh != nullptr)
-			tmpmesh = static_resource_cast<PhysicsMesh>(scriptmesh->getHandle());
-		thisPtr->getHandle()->setMesh(tmpmesh);
+			tmpmesh = static_resource_cast<PhysicsMesh>(scriptmesh->GetHandle());
+		thisPtr->GetHandle()->setMesh(tmpmesh);
 	}
 
 	MonoObject* ScriptCMeshCollider::Internal_getMesh(ScriptCMeshCollider* thisPtr)
 	{
 		ResourceHandle<PhysicsMesh> tmp__output;
-		tmp__output = thisPtr->getHandle()->getMesh();
+		tmp__output = thisPtr->GetHandle()->getMesh();
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;
-		script__output = ScriptResourceManager::instance().getScriptRRef(tmp__output);
+		script__output = ScriptResourceManager::instance().GetScriptRRef(tmp__output);
 		if(script__output != nullptr)
-			__output = script__output->getManagedInstance();
+			__output = script__output->GetManagedInstance();
 		else
 			__output = nullptr;
 

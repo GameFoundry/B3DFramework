@@ -68,7 +68,7 @@ namespace bs
 		/** Returns true if the async operation has completed. */
 		bool HasCompleted() const
 		{
-			return mData->mIsCompleted.load(std::memory_order_acquire);
+			return mData->mIsCompleted.Load(std::memory_order_acquire);
 		}
 
 		/**
@@ -88,7 +88,7 @@ namespace bs
 
 			Lock Lock(mSyncData->mMutex);
 			while (!hasCompleted())
-				mSyncData->mCondition.wait(lock);
+				mSyncData->mCondition.Wait(lock);
 		}
 
 		/**
@@ -156,7 +156,7 @@ namespace bs
 		/** Mark the async operation as completed, without setting a return value. */
 		void _completeOperation()
 		{
-			mData->mIsCompleted.store(true, std::memory_order_release);
+			mData->mIsCompleted.Store(true, std::memory_order_release);
 
 			if (mSyncData != nullptr)
 				mSyncData->mCondition.notify_all();

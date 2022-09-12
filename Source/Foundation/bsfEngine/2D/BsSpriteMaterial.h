@@ -58,7 +58,7 @@ namespace bs
 			info.animationStartTime = animationStartTime;
 
 			if(additionalData != nullptr)
-				info.additionalData = additionalData->clone();
+				info.additionalData = additionalData->Clone();
 
 			return info;
 		}

@@ -94,7 +94,7 @@ namespace bs
 		/** Returns a reference wrapper for this resource. */
 		MonoObject* getRRef() const
 		{
-			return ScriptResourceBase::GetRRef(mResource, ResType::getRTTIStatic()->getRTTIId());
+			return ScriptResourceBase::GetRRef(mResource, ResType::getRTTIStatic()->GetRTTIId());
 		}
 
 	protected:
@@ -103,7 +103,7 @@ namespace bs
 		TScriptResource(MonoObject* instance, const ResourceHandle<ResType>& resource)
 			:ScriptObject<ScriptClass, BaseType>(instance), mResource(resource)
 		{
-			this->setManagedInstance(instance);
+			this->SetManagedInstance(instance);
 		}
 
 		virtual ~TScriptResource() {}
@@ -111,8 +111,8 @@ namespace bs
 		/** @copydoc ScriptObject::_createManagedInstance */
 		MonoObject* _createManagedInstance(bool construct) override
 		{
-			MonoObject* managedInstance = ScriptClass::metaData.scriptClass->createInstance(construct);
-			this->setManagedInstance(managedInstance);
+			MonoObject* managedInstance = ScriptClass::metaData.scriptClass->CreateInstance(construct);
+			this->SetManagedInstance(managedInstance);
 
 			return managedInstance;
 		}
@@ -120,7 +120,7 @@ namespace bs
 		/** @copydoc ScriptObjectBase::_clearManagedInstance */
 		void _clearManagedInstance() override
 		{
-			this->freeManagedInstance();
+			this->FreeManagedInstance();
 		}
 
 		/**	
@@ -128,14 +128,14 @@ namespace bs
 		 */
 		void NotifyResourceDestroyed() override
 		{
-			this->freeManagedInstance();
+			this->FreeManagedInstance();
 		}
 
 		/**	Called when the managed instance gets finalized by the CLR. */
 		void _onManagedInstanceDeleted(bool assemblyRefresh) override
 		{
-			this->freeManagedInstance();
-			this->destroy();
+			this->FreeManagedInstance();
+			this->Destroy();
 		}
 
 		ResourceHandle<ResType> mResource;

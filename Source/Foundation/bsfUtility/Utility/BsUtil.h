@@ -85,9 +85,9 @@ namespace bs
 	template <class T, class A = StdAlloc<T>>
 	bool bs_swap_and_erase(Vector<T, A>& container, const typename Vector<T, A>::iterator iter)
 	{
-		assert(!container.empty());
+		assert(!container.Empty());
 
-		auto iterLast = container.end() - 1;
+		auto iterLast = container.End() - 1;
 
 		bool swapped = false;
 		if(iter != iterLast)

@@ -51,7 +51,7 @@ namespace bs
 		 */
 
 		/**	Returns the slider joint that this component wraps. */
-		SliderJoint* _getInternal() const { return static_cast<SliderJoint*>(mInternal.get()); }
+		SliderJoint* _getInternal() const { return static_cast<SliderJoint*>(mInternal.Get()); }
 
 		/** @} */
 

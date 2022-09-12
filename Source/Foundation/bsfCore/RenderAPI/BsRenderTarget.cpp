@@ -20,10 +20,10 @@ namespace bs
 		std::function<void(SPtr<ct::RenderTarget>, INT32)> windowedFunc =
 			[](SPtr<ct::RenderTarget> renderTarget, INT32 priority)
 		{
-			renderTarget->setPriority(priority);
+			renderTarget->SetPriority(priority);
 		};
 
-		gCoreThread().queueCommand(std::bind(windowedFunc, getCore(), priority));
+		gCoreThread().QueueCommand(std::bind(windowedFunc, getCore(), priority));
 	}
 
 	SPtr<ct::RenderTarget> RenderTarget::GetCore() const

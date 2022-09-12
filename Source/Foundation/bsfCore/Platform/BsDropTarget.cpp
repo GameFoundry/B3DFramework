@@ -6,12 +6,12 @@ namespace bs
 {
 	void DropTarget::_clear()
 	{
-		mFileList.clear();
+		mFileList.Clear();
 	}
 
 	bool DropTarget::_isInside(const Vector2I& pos) const
 	{
-		return mArea.contains(pos);
+		return mArea.Contains(pos);
 	}
 
 	void DropTarget::_setFileList(const Vector<Path>& fileList)

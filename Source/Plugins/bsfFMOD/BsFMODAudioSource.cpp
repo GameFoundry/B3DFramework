@@ -19,7 +19,7 @@ namespace bs
 			FMODAudioClip::releaseStreamingSound(mStreamingSound);
 
 		if (mChannel != nullptr)
-			mChannel->stop();
+			mChannel->Stop();
 	}
 
 	void FMODAudioSource::SetClip(const HAudioClip& clip)
@@ -35,10 +35,10 @@ namespace bs
 
 		if(mChannel != nullptr)
 		{
-			Vector3 position = transform.getPosition();
+			Vector3 position = transform.GetPosition();
 
 			FMOD_VECTOR fmodPosition = { position.x, position.y, position.z };
-			mChannel->set3DAttributes(&fmodPosition, nullptr);
+			mChannel->Set3DAttributes(&fmodPosition, nullptr);
 		}
 	}
 
@@ -49,7 +49,7 @@ namespace bs
 		if (mChannel != nullptr)
 		{
 			FMOD_VECTOR fmodVelocity = { velocity.x, velocity.y, velocity.z };
-			mChannel->set3DAttributes(nullptr, &fmodVelocity);
+			mChannel->Set3DAttributes(nullptr, &fmodVelocity);
 		}
 	}
 
@@ -58,7 +58,7 @@ namespace bs
 		AudioSource::setVolume(volume);
 
 		if (mChannel != nullptr)
-			mChannel->setVolume(mVolume);
+			mChannel->SetVolume(mVolume);
 	}
 
 	void FMODAudioSource::SetPitch(float pitch)
@@ -66,7 +66,7 @@ namespace bs
 		AudioSource::setPitch(pitch);
 
 		if (mChannel != nullptr)
-			mChannel->setPitch(mPitch);
+			mChannel->SetPitch(mPitch);
 	}
 
 	void FMODAudioSource::SetIsLooping(bool loop)
@@ -74,7 +74,7 @@ namespace bs
 		AudioSource::setIsLooping(loop);
 
 		if (mChannel != nullptr)
-			mChannel->setMode(loop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF);
+			mChannel->SetMode(loop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF);
 	}
 
 	void FMODAudioSource::SetPriority(INT32 priority)
@@ -82,7 +82,7 @@ namespace bs
 		AudioSource::setPriority(priority);
 
 		if (mChannel != nullptr)
-			mChannel->setPriority(priority);
+			mChannel->SetPriority(priority);
 	}
 
 	void FMODAudioSource::Play()
@@ -92,7 +92,7 @@ namespace bs
 		if (mGloballyPaused)
 			return;
 
-		if (!mAudioClip.isLoaded())
+		if (!mAudioClip.IsLoaded())
 			return;
 
 		if (mChannel == nullptr)
@@ -101,19 +101,19 @@ namespace bs
 
 			FMOD::System* fmod = gFMODAudio()._getFMOD();
 			
-			FMODAudioClip* fmodClip = static_cast<FMODAudioClip*>(mAudioClip.get());
+			FMODAudioClip* fmodClip = static_cast<FMODAudioClip*>(mAudioClip.Get());
 			FMOD::Sound* sound;
-			if(fmodClip->requiresStreaming())
+			if(fmodClip->RequiresStreaming())
 			{
-				mStreamingSound = fmodClip->createStreamingSound();
+				mStreamingSound = fmodClip->CreateStreamingSound();
 				sound = mStreamingSound;
 			}
 			else
 			{
-				sound = fmodClip->getSound();
+				sound = fmodClip->GetSound();
 			}
 			
-			if(fmod->playSound(sound, nullptr, true, &mChannel) != FMOD_OK)
+			if(fmod->PlaySound(sound, nullptr, true, &mChannel) != FMOD_OK)
 			{
 				BS_LOG(Error, Audio, "Failed playing sound.");
 
@@ -126,21 +126,21 @@ namespace bs
 				return;
 			}
 
-			mChannel->setUserData(this);
-			mChannel->setVolume(mVolume);
-			mChannel->setPitch(mVolume);
-			mChannel->setMode(mLoop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF);
-			mChannel->setPriority(mPriority);
-			mChannel->setPosition((UINT32)(mTime * 1000.0f), FMOD_TIMEUNIT_MS);
+			mChannel->SetUserData(this);
+			mChannel->SetVolume(mVolume);
+			mChannel->SetPitch(mVolume);
+			mChannel->SetMode(mLoop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF);
+			mChannel->SetPriority(mPriority);
+			mChannel->SetPosition((UINT32)(mTime * 1000.0f), FMOD_TIMEUNIT_MS);
 
-			Vector3 position = getTransform().getPosition();
+			Vector3 position = getTransform().GetPosition();
 
 			FMOD_VECTOR fmodPosition = { position.x, position.y, position.z };
 			FMOD_VECTOR fmodVelocity = { mVelocity.x, mVelocity.y, mVelocity.z };
-			mChannel->set3DAttributes(&fmodPosition, &fmodVelocity);
+			mChannel->Set3DAttributes(&fmodPosition, &fmodVelocity);
 		}
 			
-		mChannel->setPaused(false);
+		mChannel->SetPaused(false);
 	}
 
 	void FMODAudioSource::Pause()
@@ -148,7 +148,7 @@ namespace bs
 		mGlobalUnpauseState = AudioSourceState::Paused;
 
 		if (mChannel != nullptr)
-			mChannel->setPaused(true);
+			mChannel->SetPaused(true);
 	}
 
 	void FMODAudioSource::Stop()
@@ -157,7 +157,7 @@ namespace bs
 
 		if (mChannel != nullptr)
 		{
-			mChannel->stop();
+			mChannel->Stop();
 			mChannel = nullptr;
 		}
 
@@ -199,13 +199,13 @@ namespace bs
 			return AudioSourceState::Stopped;
 
 		bool isPlaying = false;
-		mChannel->isPlaying(&isPlaying);
+		mChannel->IsPlaying(&isPlaying);
 
 		if (isPlaying)
 			return AudioSourceState::Playing;
 
 		bool isPaused = false;
-		mChannel->getPaused(&isPaused);
+		mChannel->GetPaused(&isPaused);
 		if (isPaused)
 			return AudioSourceState::Paused;
 
@@ -215,7 +215,7 @@ namespace bs
 	void FMODAudioSource::SetTime(float time)
 	{
 		if (mChannel != nullptr)
-			mChannel->setPosition((UINT32)(time * 1000.0f), FMOD_TIMEUNIT_MS);
+			mChannel->SetPosition((UINT32)(time * 1000.0f), FMOD_TIMEUNIT_MS);
 		else
 			mTime = time;
 	}
@@ -225,7 +225,7 @@ namespace bs
 		if(mChannel != nullptr)
 		{
 			UINT32 position = 0;
-			mChannel->getPosition(&position, FMOD_TIMEUNIT_MS);
+			mChannel->GetPosition(&position, FMOD_TIMEUNIT_MS);
 
 			return position / 1000.0f;
 		}

@@ -8,41 +8,41 @@ namespace bs
 	PhysXMaterial::PhysXMaterial(physx::PxPhysics* physx, float staFric, float dynFriction, float restitution)
 		:mInternal(nullptr)
 	{
-		mInternal = physx->createMaterial(staFric, dynFriction, restitution);
+		mInternal = physx->CreateMaterial(staFric, dynFriction, restitution);
 	}
 
 	PhysXMaterial::~PhysXMaterial()
 	{
-		mInternal->release();
+		mInternal->Release();
 	}
 
 	void PhysXMaterial::SetStaticFriction(float value)
 	{
-		mInternal->setStaticFriction(value);
+		mInternal->SetStaticFriction(value);
 	}
 
 	float PhysXMaterial::GetStaticFriction() const
 	{
-		return mInternal->getStaticFriction();
+		return mInternal->GetStaticFriction();
 	}
 
 	void PhysXMaterial::SetDynamicFriction(float value)
 	{
-		mInternal->setDynamicFriction(value);
+		mInternal->SetDynamicFriction(value);
 	}
 
 	float PhysXMaterial::GetDynamicFriction() const
 	{
-		return mInternal->getDynamicFriction();
+		return mInternal->GetDynamicFriction();
 	}
 
 	void PhysXMaterial::SetRestitutionCoefficient(float value)
 	{
-		mInternal->setRestitution(value);
+		mInternal->SetRestitution(value);
 	}
 
 	float PhysXMaterial::GetRestitutionCoefficient() const
 	{
-		return mInternal->getRestitution();
+		return mInternal->GetRestitution();
 	}
 }

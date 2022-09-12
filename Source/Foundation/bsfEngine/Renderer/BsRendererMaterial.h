@@ -147,10 +147,10 @@ namespace bs { namespace ct
 		/** Retrieves an instance of a particular variation of this renderer material. */
 		static T* get(const ShaderVariation& variation)
 		{
-			if(variation.getIdx() == (UINT32)-1)
-				variation.setIdx(mMetaData.variations.find(variation));
+			if(variation.GetIdx() == (UINT32)-1)
+				variation.SetIdx(mMetaData.variations.find(variation));
 
-			UINT32 varIdx = variation.getIdx();
+			UINT32 varIdx = variation.GetIdx();
 			if(mMetaData.instances[varIdx] == nullptr)
 			{
 				RendererMaterialBase* mat = bs_alloc<T>();
@@ -173,7 +173,7 @@ namespace bs { namespace ct
 			if(mMetaData.overrideShader == shader)
 				return;
 
-			for(UINT32 i = 0; i < mMetaData.instances.size(); i++)
+			for(UINT32 i = 0; i < mMetaData.instances.Size(); i++)
 			{
 				if (mMetaData.instances[i] != nullptr)
 					bs_delete(mMetaData.instances[i]);
@@ -201,57 +201,57 @@ namespace bs { namespace ct
 
 			if(mGfxPipeline)
 			{
-				rapi.setGraphicsPipeline(mGfxPipeline);
-				rapi.setStencilRef(mStencilRef);
+				rapi.SetGraphicsPipeline(mGfxPipeline);
+				rapi.SetStencilRef(mStencilRef);
 			}
 			else
-				rapi.setComputePipeline(mComputePipeline);
+				rapi.SetComputePipeline(mComputePipeline);
 
 			if(bindParams)
-				rapi.setGpuParams(mParams);
+				rapi.SetGpuParams(mParams);
 		}
 
 		/** Binds the material parameters to the pipeline. */
 		void BindParams() const
 		{
 			RenderAPI& rapi = RenderAPI::instance();
-			rapi.setGpuParams(mParams);
+			rapi.SetGpuParams(mParams);
 		}
 
 	protected:
 		RendererMaterial()
 		{
-			mInitOnStart.instantiate();
+			mInitOnStart.Instantiate();
 
 			if(mMetaData.overrideShader)
 				mShader = mMetaData.overrideShader;
 			else
 				mShader = mMetaData.shader;
 
-			mVariation = mMetaData.variations.get(_varIdx);
+			mVariation = mMetaData.variations.Get(_varIdx);
 
-			const Vector<SPtr<Technique>>& techniques = mShader->getTechniques();
+			const Vector<SPtr<Technique>>& techniques = mShader->GetTechniques();
 			for(auto& entry : techniques)
 			{
-				if(!entry->isSupported())
+				if(!entry->IsSupported())
 					continue;
 
-				if(entry->getVariation() == mVariation)
+				if(entry->GetVariation() == mVariation)
 				{
-					SPtr<Pass> pass = entry->getPass(0);
-					pass->compile();
+					SPtr<Pass> pass = entry->GetPass(0);
+					pass->Compile();
 
-					mGfxPipeline = pass->getGraphicsPipelineState();
+					mGfxPipeline = pass->GetGraphicsPipelineState();
 					if (mGfxPipeline != nullptr)
 						mParams = GpuParams::create(mGfxPipeline);
 					else
 					{
-						mComputePipeline = pass->getComputePipelineState();
+						mComputePipeline = pass->GetComputePipelineState();
 						mParams = GpuParams::create(mComputePipeline);
 					}
 
 					// Assign default values from the shader
-					const auto& textureParams = mShader->getTextureParams();
+					const auto& textureParams = mShader->GetTextureParams();
 					for(auto& param : textureParams)
 					{
 						UINT32 defaultValueIdx = param.second.defaultValueIdx;
@@ -264,16 +264,16 @@ namespace bs { namespace ct
 
 							for(auto& varName : param.second.gpuVariableNames)
 							{
-								if(mParams->hasTexture(progType, varName))
+								if(mParams->HasTexture(progType, varName))
 								{
-									SPtr<Texture> texture = mShader->getDefaultTexture(defaultValueIdx);
-									mParams->setTexture(progType, varName, texture);
+									SPtr<Texture> texture = mShader->GetDefaultTexture(defaultValueIdx);
+									mParams->SetTexture(progType, varName, texture);
 								}
 							}
 						}
 					}
 
-					const auto& samplerParams = mShader->getSamplerParams();
+					const auto& samplerParams = mShader->GetSamplerParams();
 					for(auto& param : samplerParams)
 					{
 						UINT32 defaultValueIdx = param.second.defaultValueIdx;
@@ -286,16 +286,16 @@ namespace bs { namespace ct
 
 							for(auto& varName : param.second.gpuVariableNames)
 							{
-								if(mParams->hasSamplerState(progType, varName))
+								if(mParams->HasSamplerState(progType, varName))
 								{
-									SPtr<SamplerState> samplerState = mShader->getDefaultSampler(defaultValueIdx);
-									mParams->setSamplerState(progType, varName, samplerState);
+									SPtr<SamplerState> samplerState = mShader->GetDefaultSampler(defaultValueIdx);
+									mParams->SetSamplerState(progType, varName, samplerState);
 								}
 							}
 						}
 					}
 
-					mStencilRef = pass->getStencilRefValue();
+					mStencilRef = pass->GetStencilRefValue();
 				}
 			}
 		}

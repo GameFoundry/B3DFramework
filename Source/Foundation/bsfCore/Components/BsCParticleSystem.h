@@ -76,7 +76,7 @@ namespace bs
 		bool _togglePreviewMode(bool enabled);
 
 		/** Returns the ParticleSystem implementation wrapped by this component. */
-		ParticleSystem* _getInternal() const { return mInternal.get(); }
+		ParticleSystem* _getInternal() const { return mInternal.Get(); }
 
 		/** @} */
 

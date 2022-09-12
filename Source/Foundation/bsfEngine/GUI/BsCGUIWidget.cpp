@@ -31,80 +31,80 @@ namespace bs
 
 	void CGUIWidget::SetSkin(const HGUISkin& skin)
 	{
-		mInternal->setSkin(skin);
+		mInternal->SetSkin(skin);
 	}
 
 	const GUISkin& CGUIWidget::GetSkin() const
 	{
-		return mInternal->getSkin();
+		return mInternal->GetSkin();
 	}
 
 	const HGUISkin& CGUIWidget::GetSkinResource() const
 	{
-		return mInternal->getSkinResource();
+		return mInternal->GetSkinResource();
 	}
 
 	GUIPanel* CGUIWidget::getPanel() const
 	{
-		return mInternal->getPanel();
+		return mInternal->GetPanel();
 	}
 
 	UINT8 CGUIWidget::GetDepth() const
 	{
-		return mInternal->getDepth();
+		return mInternal->GetDepth();
 	}
 
 	void CGUIWidget::SetDepth(UINT8 depth)
 	{
-		mInternal->setDepth(depth);
+		mInternal->SetDepth(depth);
 	}
 
 	bool CGUIWidget::InBounds(const Vector2I& position) const
 	{
-		return mInternal->inBounds(position);
+		return mInternal->InBounds(position);
 	}
 
 	const Rect2I& CGUIWidget::GetBounds() const
 	{
-		return mInternal->getBounds();
+		return mInternal->GetBounds();
 	}
 
 	Viewport* CGUIWidget::getTarget() const
 	{
-		return mInternal->getTarget();
+		return mInternal->GetTarget();
 	}
 
 	SPtr<Camera> CGUIWidget::GetCamera() const
 	{
-		return mInternal->getCamera();
+		return mInternal->GetCamera();
 	}
 
 	const Vector<GUIElement*>& CGUIWidget::getElements() const
 	{
-		return mInternal->getElements();
+		return mInternal->GetElements();
 	}
 
 	void CGUIWidget::Update()
 	{
 		HSceneObject parent = SO();
 
-		UINT32 curHash = parent->getTransformHash();
+		UINT32 curHash = parent->GetTransformHash();
 		if (curHash != mParentHash)
 		{
 			mInternal->_updateTransform(parent);
 			mParentHash = curHash;
 		}
 
-		if (parent->getActive() != mInternal->getIsActive())
-			mInternal->setIsActive(parent->getActive());
+		if (parent->GetActive() != mInternal->getIsActive())
+			mInternal->SetIsActive(parent->getActive());
 
 		mInternal->_updateRT();
 	}
 
 	void CGUIWidget::OnDestroyed()
 	{
-		mOwnerTargetResizedConn.disconnect();
-		mOwnerWindowFocusChangedConn.disconnect();
+		mOwnerTargetResizedConn.Disconnect();
+		mOwnerWindowFocusChangedConn.Disconnect();
 		mInternal = nullptr;
 	}
 

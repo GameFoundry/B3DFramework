@@ -137,7 +137,7 @@ namespace bs
 
 		Rect2I anchorBounds;
 		if (relativeTo != nullptr)
-			anchorBounds = relativeTo->getGlobalBounds();
+			anchorBounds = relativeTo->GetGlobalBounds();
 
 		if (mUpdateParent != nullptr && mUpdateParent->_isDirty() && mParentWidget != nullptr)
 			mParentWidget->_updateLayout(mUpdateParent);
@@ -172,16 +172,16 @@ namespace bs
 		Rect2I area = mLayoutData.area;
 		if(mParentWidget)
 		{
-			const Matrix4& widgetTfrm = mParentWidget->getWorldTfrm();
+			const Matrix4& widgetTfrm = mParentWidget->GetWorldTfrm();
 			Vector2I LocalPos(area.x, area.y);
 
-			const Vector4 widgetPosFlt = widgetTfrm.multiplyAffine(Vector4((float)localPos.x, (float)localPos.y, 0.0f, 1.0f));
+			const Vector4 widgetPosFlt = widgetTfrm.MultiplyAffine(Vector4((float)localPos.x, (float)localPos.y, 0.0f, 1.0f));
 			const Vector2I WidgetPos(Math::roundToInt(widgetPosFlt.x), Math::roundToInt(widgetPosFlt.y));
 
-			const RenderWindow* parentWindow = GUIManager::instance().getWidgetWindow(*mParentWidget);
+			const RenderWindow* parentWindow = GUIManager::instance().GetWidgetWindow(*mParentWidget);
 			if(parentWindow)
 			{
-				const Vector2I windowPos = parentWindow->windowToScreenPos(widgetPos);
+				const Vector2I windowPos = parentWindow->WindowToScreenPos(widgetPos);
 				area.x = windowPos.x;
 				area.y = windowPos.y;
 			}
@@ -422,7 +422,7 @@ namespace bs
 	LayoutSizeRange GUIElementBase::_calculateLayoutSizeRange() const
 	{
 		const GUIDimensions& dimensions = _getDimensions();
-		return dimensions.calculateSizeRange(_getOptimalSize());
+		return dimensions.CalculateSizeRange(_getOptimalSize());
 	}
 
 	LayoutSizeRange GUIElementBase::_getLayoutSizeRange() const
@@ -433,7 +433,7 @@ namespace bs
 	void GUIElementBase::_getElementAreas(const Rect2I& layoutArea, Rect2I* elementAreas, UINT32 numElements,
 		const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const
 	{
-		assert(mChildren.size() == 0);
+		assert(mChildren.Size() == 0);
 	}
 
 	void GUIElementBase::_setParent(GUIElementBase* parent)
@@ -477,7 +477,7 @@ namespace bs
 	void GUIElementBase::_unregisterChildElement(GUIElementBase* element)
 	{
 		bool foundElem = false;
-		for(auto iter = mChildren.begin(); iter != mChildren.end(); ++iter)
+		for(auto iter = mChildren.Begin(); iter != mChildren.end(); ++iter)
 		{
 			GUIElementBase* child = *iter;
 
@@ -485,7 +485,7 @@ namespace bs
 			{
 				element->_markLayoutAsDirty();
 
-				mChildren.erase(iter);
+				mChildren.Erase(iter);
 				element->_setParent(nullptr);
 				foundElem = true;
 
@@ -524,7 +524,7 @@ namespace bs
 			}
 		}
 
-		assert(mChildren.empty());
+		assert(mChildren.Empty());
 	}
 
 	void GUIElementBase::_changeParentWidget(GUIWidget* widget)
@@ -555,7 +555,7 @@ namespace bs
 		GUIElementBase* updateParent = nullptr;
 		if (mParentElement != nullptr)
 		{
-			updateParent = mParentElement->findUpdateParent();
+			updateParent = mParentElement->FindUpdateParent();
 
 			// If parent is a panel then we can do an optimization and only update
 			// one child instead of all of them, so change parent to that child.
@@ -592,7 +592,7 @@ namespace bs
 		while (currentElement != nullptr)
 		{
 			const GUIDimensions& parentDimensions = currentElement->_getDimensions();
-			bool boundsDependOnChildren = !parentDimensions.fixedHeight() || !parentDimensions.fixedWidth();
+			bool boundsDependOnChildren = !parentDimensions.FixedHeight() || !parentDimensions.fixedWidth();
 
 			if (!boundsDependOnChildren)
 				return currentElement;
@@ -622,7 +622,7 @@ namespace bs
 				childUpdateParent = optimizedUpdateParent;
 			}
 
-			child->setUpdateParent(childUpdateParent);
+			child->SetUpdateParent(childUpdateParent);
 		}
 	}
 
@@ -634,7 +634,7 @@ namespace bs
 			return;
 
 		for (auto& child : mChildren)
-			child->setAnchorParent(anchorParent);
+			child->SetAnchorParent(anchorParent);
 	}
 
 	void GUIElementBase::SetUpdateParent(GUIElementBase* updateParent)
@@ -642,12 +642,12 @@ namespace bs
 		mUpdateParent = updateParent;
 
 		const GUIDimensions& dimensions = _getDimensions();
-		bool boundsDependOnChildren = !dimensions.fixedHeight() || !dimensions.fixedWidth();
+		bool boundsDependOnChildren = !dimensions.FixedHeight() || !dimensions.fixedWidth();
 
 		if (!boundsDependOnChildren)
 			return;
 
 		for (auto& child : mChildren)
-			child->setUpdateParent(updateParent);
+			child->SetUpdateParent(updateParent);
 	}
 }

@@ -12,8 +12,8 @@ namespace bs
 	{
 		Vector3 end = getPoint(1.0f);
 
-		mOrigin = matrix.multiply(mOrigin);
-		end = matrix.multiply(end);
+		mOrigin = matrix.Multiply(mOrigin);
+		end = matrix.Multiply(end);
 
 		mDirection = Vector3::normalize(end - mOrigin);
 	}
@@ -22,25 +22,25 @@ namespace bs
 	{
 		Vector3 end = getPoint(1.0f);
 
-		mOrigin = matrix.multiplyAffine(mOrigin);
-		end = matrix.multiplyAffine(end);
+		mOrigin = matrix.MultiplyAffine(mOrigin);
+		end = matrix.MultiplyAffine(end);
 
 		mDirection = Vector3::normalize(end - mOrigin);
 	}
 
 	std::pair<bool, float> Ray::Intersects(const Plane& p) const
 	{
-		return p.intersects(*this);
+		return p.Intersects(*this);
 	}
 
 	std::pair<bool, float> Ray::Intersects(const Sphere& s) const
 	{
-		return s.intersects(*this);
+		return s.Intersects(*this);
 	}
 
 	std::pair<bool, float> Ray::Intersects(const AABox& box) const
 	{
-		return box.intersects(*this);
+		return box.Intersects(*this);
 	}
 
 	std::pair<bool, float> Ray::intersects(const Vector3& a,
@@ -50,7 +50,7 @@ namespace bs
 		// Calculate intersection with plane.
 		float t;
 		{
-			float denom = normal.dot(getDirection());
+			float denom = normal.Dot(getDirection());
 
 			// Check intersect side
 			if (denom > + std::numeric_limits<float>::epsilon())
@@ -70,7 +70,7 @@ namespace bs
 				return std::pair<bool, float>(false, 0.0f);
 			}
 
-			t = normal.dot(a - getOrigin()) / denom;
+			t = normal.Dot(a - getOrigin()) / denom;
 
 			if (t < 0)
 			{

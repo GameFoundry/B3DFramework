@@ -14,8 +14,8 @@ namespace bs
 	void GUIContextMenu::Open(const Vector2I& position, GUIWidget& widget)
 	{
 		DROP_DOWN_BOX_DESC desc;
-		desc.camera = widget.getCamera();
-		desc.skin = widget.getSkinResource();
+		desc.camera = widget.GetCamera();
+		desc.skin = widget.GetSkinResource();
 		desc.placement = DropDownAreaPlacement::aroundPosition(position);
 		desc.dropDownData = getDropDownData();
 
@@ -29,7 +29,7 @@ namespace bs
 	{
 		if(mContextMenuOpen)
 		{
-			GUIDropDownBoxManager::instance().closeDropDownBox();
+			GUIDropDownBoxManager::instance().CloseDropDownBox();
 			mContextMenuOpen = false;
 		}
 	}

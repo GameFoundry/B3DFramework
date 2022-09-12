@@ -17,13 +17,13 @@ namespace bs
 
 	void ScriptShaderImportOptions::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_setDefine", (void*)&ScriptShaderImportOptions::Internal_setDefine);
-		metaData.scriptClass->addInternalCall("Internal_getDefine", (void*)&ScriptShaderImportOptions::Internal_getDefine);
-		metaData.scriptClass->addInternalCall("Internal_hasDefine", (void*)&ScriptShaderImportOptions::Internal_hasDefine);
-		metaData.scriptClass->addInternalCall("Internal_removeDefine", (void*)&ScriptShaderImportOptions::Internal_removeDefine);
-		metaData.scriptClass->addInternalCall("Internal_getlanguages", (void*)&ScriptShaderImportOptions::Internal_getlanguages);
-		metaData.scriptClass->addInternalCall("Internal_setlanguages", (void*)&ScriptShaderImportOptions::Internal_setlanguages);
-		metaData.scriptClass->addInternalCall("Internal_create", (void*)&ScriptShaderImportOptions::Internal_create);
+		metaData.scriptClass->AddInternalCall("Internal_setDefine", (void*)&ScriptShaderImportOptions::Internal_setDefine);
+		metaData.scriptClass->AddInternalCall("Internal_getDefine", (void*)&ScriptShaderImportOptions::Internal_getDefine);
+		metaData.scriptClass->AddInternalCall("Internal_hasDefine", (void*)&ScriptShaderImportOptions::Internal_hasDefine);
+		metaData.scriptClass->AddInternalCall("Internal_removeDefine", (void*)&ScriptShaderImportOptions::Internal_removeDefine);
+		metaData.scriptClass->AddInternalCall("Internal_getlanguages", (void*)&ScriptShaderImportOptions::Internal_getlanguages);
+		metaData.scriptClass->AddInternalCall("Internal_setlanguages", (void*)&ScriptShaderImportOptions::Internal_setlanguages);
+		metaData.scriptClass->AddInternalCall("Internal_create", (void*)&ScriptShaderImportOptions::Internal_create);
 
 	}
 
@@ -34,7 +34,7 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.scriptClass->createInstance("bool", ctorParams);
+		MonoObject* managedInstance = metaData.scriptClass->CreateInstance("bool", ctorParams);
 		new (bs_alloc<ScriptShaderImportOptions>()) ScriptShaderImportOptions(managedInstance, value);
 		return managedInstance;
 	}
@@ -44,7 +44,7 @@ namespace bs
 		tmpdefine = MonoUtil::monoToString(define);
 		String tmpvalue;
 		tmpvalue = MonoUtil::monoToString(value);
-		thisPtr->getInternal()->setDefine(tmpdefine, tmpvalue);
+		thisPtr->GetInternal()->setDefine(tmpdefine, tmpvalue);
 	}
 
 	bool ScriptShaderImportOptions::Internal_getDefine(ScriptShaderImportOptions* thisPtr, MonoString* define, MonoString** value)
@@ -53,7 +53,7 @@ namespace bs
 		String tmpdefine;
 		tmpdefine = MonoUtil::monoToString(define);
 		String tmpvalue;
-		tmp__output = thisPtr->getInternal()->getDefine(tmpdefine, tmpvalue);
+		tmp__output = thisPtr->GetInternal()->getDefine(tmpdefine, tmpvalue);
 
 		bool __output;
 		__output = tmp__output;
@@ -67,7 +67,7 @@ namespace bs
 		bool tmp__output;
 		String tmpdefine;
 		tmpdefine = MonoUtil::monoToString(define);
-		tmp__output = thisPtr->getInternal()->hasDefine(tmpdefine);
+		tmp__output = thisPtr->GetInternal()->hasDefine(tmpdefine);
 
 		bool __output;
 		__output = tmp__output;
@@ -79,7 +79,7 @@ namespace bs
 	{
 		String tmpdefine;
 		tmpdefine = MonoUtil::monoToString(define);
-		thisPtr->getInternal()->removeDefine(tmpdefine);
+		thisPtr->GetInternal()->removeDefine(tmpdefine);
 	}
 
 	void ScriptShaderImportOptions::Internal_create(MonoObject* managedInstance)
@@ -90,7 +90,7 @@ namespace bs
 	ShadingLanguageFlag ScriptShaderImportOptions::Internal_getlanguages(ScriptShaderImportOptions* thisPtr)
 	{
 		Flags<ShadingLanguageFlag> tmp__output;
-		tmp__output = thisPtr->getInternal()->languages;
+		tmp__output = thisPtr->GetInternal()->languages;
 
 		ShadingLanguageFlag __output;
 		__output = (ShadingLanguageFlag)(uint32_t)tmp__output;
@@ -100,7 +100,7 @@ namespace bs
 
 	void ScriptShaderImportOptions::Internal_setlanguages(ScriptShaderImportOptions* thisPtr, ShadingLanguageFlag value)
 	{
-		thisPtr->getInternal()->languages = value;
+		thisPtr->GetInternal()->languages = value;
 	}
 #endif
 }

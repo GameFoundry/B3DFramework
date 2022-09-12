@@ -55,8 +55,8 @@ namespace bs
 		BS_SCRIPT_EXPORT()
 		bool GetDefine(const String& define, String& value) const
 		{
-			auto iterFind = mDefines.find(define);
-			if(iterFind != mDefines.end())
+			auto iterFind = mDefines.Find(define);
+			if(iterFind != mDefines.End())
 			{
 				value = iterFind->second;
 				return true;
@@ -74,8 +74,8 @@ namespace bs
 		BS_SCRIPT_EXPORT()
 		bool HasDefine(const String& define) const
 		{
-			auto iterFind = mDefines.find(define);
-			return iterFind != mDefines.end();
+			auto iterFind = mDefines.Find(define);
+			return iterFind != mDefines.End();
 		}
 
 		/**
@@ -86,7 +86,7 @@ namespace bs
 		BS_SCRIPT_EXPORT()
 		void RemoveDefine(const String& define)
 		{
-			mDefines.erase(define);
+			mDefines.Erase(define);
 		}
 
 		/** Returns all the set defines and their values. */

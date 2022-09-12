@@ -12,22 +12,22 @@ namespace bs { namespace ct
 	VulkanTransferBuffer::VulkanTransferBuffer(VulkanDevice* device, GpuQueueType type, UINT32 queueIdx)
 		:mDevice(device), mType(type), mQueueIdx(queueIdx)
 	{
-		UINT32 numQueues = device->getNumQueues(mType);
+		UINT32 numQueues = device->GetNumQueues(mType);
 		if (numQueues == 0)
 		{
 			mType = GQT_GRAPHICS;
-			numQueues = device->getNumQueues(GQT_GRAPHICS);
+			numQueues = device->GetNumQueues(GQT_GRAPHICS);
 		}
 
 		UINT32 physicalQueueIdx = queueIdx % numQueues;
-		mQueue = device->getQueue(mType, physicalQueueIdx);
-		mQueueMask = device->getQueueMask(mType, queueIdx);
+		mQueue = device->GetQueue(mType, physicalQueueIdx);
+		mQueueMask = device->GetQueueMask(mType, queueIdx);
 	}
 
 	VulkanTransferBuffer::~VulkanTransferBuffer()
 	{
 		if (mCB != nullptr)
-			mCB->end();
+			mCB->End();
 	}
 
 	void VulkanTransferBuffer::Allocate()
@@ -35,31 +35,31 @@ namespace bs { namespace ct
 		if (mCB != nullptr)
 			return;
 
-		UINT32 queueFamily = mDevice->getQueueFamily(mType);
-		mCB = mDevice->getCmdBufferPool().getBuffer(queueFamily, false);
+		UINT32 queueFamily = mDevice->GetQueueFamily(mType);
+		mCB = mDevice->GetCmdBufferPool().GetBuffer(queueFamily, false);
 	}
 
 	void VulkanTransferBuffer::memoryBarrier(VkBuffer buffer, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags,
 					   VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage)
 	{
-		mCB->memoryBarrier(buffer, srcAccessFlags, dstAccessFlags, srcStage, dstStage);
+		mCB->MemoryBarrier(buffer, srcAccessFlags, dstAccessFlags, srcStage, dstStage);
 	}
 
 	void VulkanTransferBuffer::setLayout(VkImage image, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags,
 		VkImageLayout oldLayout, VkImageLayout newLayout, const VkImageSubresourceRange& range)
 	{
-		mCB->setLayout(image, srcAccessFlags, dstAccessFlags, oldLayout, newLayout, range);
+		mCB->SetLayout(image, srcAccessFlags, dstAccessFlags, oldLayout, newLayout, range);
 	}
 
 	void VulkanTransferBuffer::setLayout(VulkanImage* image, const VkImageSubresourceRange& range,
 										 VkAccessFlags newAccessMask, VkImageLayout newLayout)
 	{
-		image->getBarriers(range, mBarriersTemp);
+		image->GetBarriers(range, mBarriersTemp);
 
-		if (mBarriersTemp.size() == 0)
+		if (mBarriersTemp.Size() == 0)
 			return;
 
-		INT32 count = (INT32)mBarriersTemp.size();
+		INT32 count = (INT32)mBarriersTemp.Size();
 		for(INT32 i = 0; i < count; i++)
 		{
 			VkImageMemoryBarrier& barrier = mBarriersTemp[i];
@@ -70,7 +70,7 @@ namespace bs { namespace ct
 				if(i < (count - 1))
 					std::swap(mBarriersTemp[i], mBarriersTemp[count - 1]);
 
-				mBarriersTemp.erase(mBarriersTemp.begin() + count - 1);
+				mBarriersTemp.Erase(mBarriersTemp.begin() + count - 1);
 				count--;
 				i--;
 			}
@@ -82,14 +82,14 @@ namespace bs { namespace ct
 			entry.newLayout = newLayout;
 		}
 
-		vkCmdPipelineBarrier(mCB->getHandle(),
+		vkCmdPipelineBarrier(mCB->GetHandle(),
 							 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
 							 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
 							 0, 0, nullptr,
 							 0, nullptr,
-							 (UINT32)mBarriersTemp.size(), mBarriersTemp.data());
+							 (UINT32)mBarriersTemp.Size(), mBarriersTemp.data());
 
-		mBarriersTemp.clear();		
+		mBarriersTemp.Clear();
 	}
 
 	void VulkanTransferBuffer::Flush(bool wait)
@@ -99,22 +99,22 @@ namespace bs { namespace ct
 
 		UINT32 syncMask = mSyncMask & ~mQueueMask; // Don't sync with itself
 
-		mCB->end();
-		mCB->submit(mQueue, mQueueIdx, syncMask);
+		mCB->End();
+		mCB->Submit(mQueue, mQueueIdx, syncMask);
 
 		if (wait)
 		{
-			mQueue->waitIdle();
-			mDevice->refreshStates(true);
+			mQueue->WaitIdle();
+			mDevice->RefreshStates(true);
 
-			assert(!mCB->isSubmitted());
+			assert(!mCB->IsSubmitted());
 		}
 
 		mCB = nullptr;
 	}
 
 	VulkanCommandBufferManager::VulkanCommandBufferManager(const VulkanRenderAPI& rapi)
-		:mRapi(rapi), mDeviceData(nullptr), mNumDevices(rapi.getNumDevices())
+		:mRapi(rapi), mDeviceData(nullptr), mNumDevices(rapi.GetNumDevices())
 	{
 		mDeviceData = bs_newN<PerDeviceData>(mNumDevices);
 		for (UINT32 i = 0; i < mNumDevices; i++)
@@ -126,7 +126,7 @@ namespace bs { namespace ct
 				GpuQueueType queueType = (GpuQueueType)j;
 
 				for (UINT32 k = 0; k < BS_MAX_QUEUES_PER_TYPE; k++)
-					mDeviceData[i].transferBuffers[j][k] = VulkanTransferBuffer(device.get(), queueType, k);
+					mDeviceData[i].transferBuffers[j][k] = VulkanTransferBuffer(device.Get(), queueType, k);
 			}
 		}
 	}
@@ -167,22 +167,22 @@ namespace bs { namespace ct
 		{
 			GpuQueueType queueType = (GpuQueueType)i;
 
-			UINT32 numQueues = device->getNumQueues(queueType);
+			UINT32 numQueues = device->GetNumQueues(queueType);
 			for (UINT32 j = 0; j < numQueues; j++)
 			{
-				VulkanQueue* queue = device->getQueue(queueType, j);
-				VulkanCmdBuffer* lastCB = queue->getLastCommandBuffer();
+				VulkanQueue* queue = device->GetQueue(queueType, j);
+				VulkanCmdBuffer* lastCB = queue->GetLastCommandBuffer();
 
 				// Check if a buffer is currently executing on the queue
-				if (lastCB == nullptr || !lastCB->isSubmitted())
+				if (lastCB == nullptr || !lastCB->IsSubmitted())
 					continue;
 
 				// Check if we care about this specific queue
-				UINT32 queueMask = device->getQueueMask(queueType, j);
+				UINT32 queueMask = device->GetQueueMask(queueType, j);
 				if ((syncMask & queueMask) == 0)
 					continue;
 
-				VulkanSemaphore* semaphore = lastCB->requestInterQueueSemaphore();
+				VulkanSemaphore* semaphore = lastCB->RequestInterQueueSemaphore();
 				if (semaphore == nullptr)
 				{
 					semaphoreRequestFailed = true;
@@ -212,7 +212,7 @@ namespace bs { namespace ct
 		PerDeviceData& deviceData = mDeviceData[deviceIdx];
 
 		VulkanTransferBuffer* transferBuffer = &deviceData.transferBuffers[type][queueIdx];
-		transferBuffer->allocate();
+		transferBuffer->Allocate();
 		return transferBuffer;
 	}
 
@@ -224,7 +224,7 @@ namespace bs { namespace ct
 		for (UINT32 i = 0; i < GQT_COUNT; i++)
 		{
 			for (UINT32 j = 0; j < BS_MAX_QUEUES_PER_TYPE; j++)
-				deviceData.transferBuffers[i][j].flush(false);
+				deviceData.transferBuffers[i][j].Flush(false);
 		}
 	}
 

@@ -133,7 +133,7 @@ namespace bs
 				Path filePath = lineData.FileName;
 
 				outputStream << StringUtil::Format("0x{0} File[{1}:{2} ({3})]", addressString,
-					filePath.getFilename(), (UINT32)lineData.LineNumber, (UINT32)column);
+					filePath.GetFilename(), (UINT32)lineData.LineNumber, (UINT32)column);
 			}
 			else
 			{
@@ -148,13 +148,13 @@ namespace bs
 			{
 				Path filePath = moduleData.ImageName;
 
-				outputStream << StringUtil::Format(" Module[{0}]", filePath.getFilename());
+				outputStream << StringUtil::Format(" Module[{0}]", filePath.GetFilename());
 			}
 		}
 
 		bs_free(buffer);
 
-		return outputStream.str();
+		return outputStream.Str();
 	}
 
 	typedef Bool(WINAPI *EnumProcessModulesType)(HANDLE hProcess, HMODULE* lphModule, DWORD cb, LPDWORD lpcbNeeded);
@@ -176,10 +176,10 @@ namespace bs
 			return;
 
 		gPSAPILib = bs_new<DynLib>("PSAPI.dll");
-		gEnumProcessModules = (EnumProcessModulesType)gPSAPILib->getSymbol("EnumProcessModules");
-		gGetModuleBaseName = (GetModuleBaseNameType)gPSAPILib->getSymbol("GetModuleFileNameExA");
-		gGetModuleFileNameEx = (GetModuleFileNameExType)gPSAPILib->getSymbol("GetModuleBaseNameA");
-		gGetModuleInformation = (GetModuleInformationType)gPSAPILib->getSymbol("GetModuleInformation");
+		gEnumProcessModules = (EnumProcessModulesType)gPSAPILib->GetSymbol("EnumProcessModules");
+		gGetModuleBaseName = (GetModuleBaseNameType)gPSAPILib->GetSymbol("GetModuleFileNameExA");
+		gGetModuleFileNameEx = (GetModuleFileNameExType)gPSAPILib->GetSymbol("GetModuleBaseNameA");
+		gGetModuleInformation = (GetModuleInformationType)gPSAPILib->GetSymbol("GetModuleInformation");
 	}
 
 	/**	Unloads the PSAPI.dll if is loaded. */
@@ -188,7 +188,7 @@ namespace bs
 		if (gPSAPILib == nullptr)
 			return;
 
-		gPSAPILib->unload();
+		gPSAPILib->Unload();
 		bs_delete(gPSAPILib);
 		gPSAPILib = nullptr;
 	}
@@ -415,7 +415,7 @@ namespace bs
 	{
 		MiniDumpParams* params = (MiniDumpParams*)data;
 
-		WString pathString = UTF8::toWide(params->filePath.toString());
+		WString pathString = UTF8::toWide(params->filePath.ToString());
 		HANDLE hFile = CreateFileW(pathString.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL,
 			nullptr);
 
@@ -456,7 +456,7 @@ namespace bs
 	{
 		WString simpleErrorMessage = msg
 			+ L"\n\nFor more information check the crash report located at:\n "
-			+ UTF8::toWide(folder.toString());
+			+ UTF8::toWide(folder.ToString());
 
 #if BS_IS_BANSHEE3D
 		MessageBoxW(nullptr, simpleErrorMessage.c_str(), L"Banshee fatal error!", MB_OK);
@@ -470,7 +470,7 @@ namespace bs
 	{
 		if(mSettings.onBeforeReportCrash)
 		{
-			if(mSettings.onBeforeReportCrash(type, description, function, file, line))
+			if(mSettings.OnBeforeReportCrash(type, description, function, file, line))
 				return;
 		}
 
@@ -481,7 +481,7 @@ namespace bs
 
 		if(mSettings.onCrashPrintedToLog)
 		{
-			if(mSettings.onCrashPrintedToLog())
+			if(mSettings.OnCrashPrintedToLog())
 				return;
 		}
 
@@ -499,7 +499,7 @@ namespace bs
 	{
 		if(mSettings.onBeforeWindowsSEHReportCrash)
 		{
-			if(mSettings.onBeforeWindowsSEHReportCrash(exceptionDataPtr))
+			if(mSettings.OnBeforeWindowsSEHReportCrash(exceptionDataPtr))
 				return EXCEPTION_EXECUTE_HANDLER;
 		}
 
@@ -516,7 +516,7 @@ namespace bs
 
 		if(mSettings.onCrashPrintedToLog)
 		{
-			if(mSettings.onCrashPrintedToLog())
+			if(mSettings.OnCrashPrintedToLog())
 				return EXCEPTION_EXECUTE_HANDLER;
 		}
 

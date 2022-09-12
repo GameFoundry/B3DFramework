@@ -30,7 +30,7 @@ namespace bs
 
 	void Keyboard::Capture()
 	{
-		m->hid.capture(nullptr, !m->hasInputFocus);
+		m->hid.Capture(nullptr, !m->hasInputFocus);
 	}
 
 	void Keyboard::ChangeCaptureContext(UINT64 windowHandle)

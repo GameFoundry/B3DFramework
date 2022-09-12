@@ -21,7 +21,7 @@ namespace bs
 
 	CDecal::~CDecal()
 	{
-		mInternal->destroy();
+		mInternal->Destroy();
 	}
 
 	void CDecal::OnInitialized()
@@ -29,7 +29,7 @@ namespace bs
 		// If mInternal already exists this means this object was deserialized,
 		// so all we need to do is initialize it.
 		if (mInternal != nullptr)
-			mInternal->initialize();
+			mInternal->Initialize();
 		else
 			mInternal = Decal::create(HMaterial());
 

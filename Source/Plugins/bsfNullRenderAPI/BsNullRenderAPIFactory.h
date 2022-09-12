@@ -34,7 +34,7 @@ namespace bs { namespace ct
 				if(newFactory == nullptr)
 				{
 					newFactory = bs_shared_ptr_new<NullRenderAPIFactory>();
-					RenderAPIManager::instance().registerFactory(newFactory);
+					RenderAPIManager::instance().RegisterFactory(newFactory);
 				}
 			}
 		};

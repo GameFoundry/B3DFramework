@@ -158,12 +158,12 @@ namespace bs { namespace ct
 			VkAttachmentReference& attachmentRef = mColorReferences[i];
 			UINT32 index = mIndices[i];
 
-			if (loadMask.isSet((RenderSurfaceMaskBits)(1 << index)))
+			if (loadMask.IsSet((RenderSurfaceMaskBits)(1 << index)))
 			{
 				attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 				attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			}
-			else if (clearMask.isSet((ClearMaskBits)(1 << index)))
+			else if (clearMask.IsSet((ClearMaskBits)(1 << index)))
 			{
 				attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 				attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -174,7 +174,7 @@ namespace bs { namespace ct
 				attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 			}
 
-			if(readMask.isSet((RenderSurfaceMaskBits)(1 << index)))
+			if(readMask.IsSet((RenderSurfaceMaskBits)(1 << index)))
 				attachmentRef.layout = VK_IMAGE_LAYOUT_GENERAL;
 			else
 				attachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -185,7 +185,7 @@ namespace bs { namespace ct
 			VkAttachmentDescription& attachmentDesc = mAttachments[mNumColorAttachments];
 			VkAttachmentReference& attachmentRef = mDepthReference;
 
-			if (loadMask.isSet(RT_DEPTH) || loadMask.isSet(RT_STENCIL))
+			if (loadMask.IsSet(RT_DEPTH) || loadMask.isSet(RT_STENCIL))
 			{
 				attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 				attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
@@ -193,12 +193,12 @@ namespace bs { namespace ct
 			}
 			else
 			{
-				if(clearMask.isSet(CLEAR_DEPTH))
+				if(clearMask.IsSet(CLEAR_DEPTH))
 					attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 				else
 					attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 
-				if(clearMask.isSet(CLEAR_STENCIL))
+				if(clearMask.IsSet(CLEAR_STENCIL))
 					attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 				else
 					attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -208,16 +208,16 @@ namespace bs { namespace ct
 
 			// When depth-stencil is readable it's up to the caller to ensure he doesn't try to write to it as well, so we
 			// just assume a read-only layout.
-			if (readMask.isSet(RT_DEPTH))
+			if (readMask.IsSet(RT_DEPTH))
 			{
-				if (readMask.isSet(RT_STENCIL))
+				if (readMask.IsSet(RT_STENCIL))
 					attachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 				else // Depth readable but stencil isn't
 					attachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR;
 			}
 			else
 			{
-				if (readMask.isSet(RT_STENCIL)) // Stencil readable but depth isn't
+				if (readMask.IsSet(RT_STENCIL)) // Stencil readable but depth isn't
 					attachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL_KHR;
 				else
 					attachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
@@ -238,8 +238,8 @@ namespace bs { namespace ct
 			return mDefault;
 
 		VariantKey Key(loadMask, readMask, clearMask);
-		auto iterFind = mVariants.find(key);
-		if (iterFind != mVariants.end())
+		auto iterFind = mVariants.Find(key);
+		if (iterFind != mVariants.End())
 			return iterFind->second;
 
 		VkRenderPass newVariant = createVariant(loadMask, readMask, clearMask);
@@ -285,8 +285,8 @@ namespace bs { namespace ct
 		{
 			Lock Lock(mMutex);
 
-			auto iterFind = mVariants.find(key);
-			if (iterFind != mVariants.end())
+			auto iterFind = mVariants.Find(key);
+			if (iterFind != mVariants.End())
 				return iterFind->second;
 
 			pass = bs_new<VulkanRenderPass>(device, desc);

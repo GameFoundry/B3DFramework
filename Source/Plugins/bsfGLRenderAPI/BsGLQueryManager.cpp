@@ -11,7 +11,7 @@ namespace bs { namespace ct
 	{
 		SPtr<EventQuery> query = SPtr<GLEventQuery>(bs_new<GLEventQuery>(deviceIdx),
 			&QueryManager::deleteEventQuery, StdAlloc<GLEventQuery>());
-		mEventQueries.push_back(query.get());
+		mEventQueries.push_back(query.Get());
 
 		return query;
 	}
@@ -20,7 +20,7 @@ namespace bs { namespace ct
 	{
 		SPtr<TimerQuery> query = SPtr<GLTimerQuery>(bs_new<GLTimerQuery>(deviceIdx),
 			&QueryManager::deleteTimerQuery, StdAlloc<GLTimerQuery>());
-		mTimerQueries.push_back(query.get());
+		mTimerQueries.push_back(query.Get());
 
 		return query;
 	}
@@ -29,7 +29,7 @@ namespace bs { namespace ct
 	{
 		SPtr<OcclusionQuery> query = SPtr<GLOcclusionQuery>(bs_new<GLOcclusionQuery>(binary, deviceIdx),
 			&QueryManager::deleteOcclusionQuery, StdAlloc<GLOcclusionQuery>());
-		mOcclusionQueries.push_back(query.get());
+		mOcclusionQueries.push_back(query.Get());
 
 		return query;
 	}

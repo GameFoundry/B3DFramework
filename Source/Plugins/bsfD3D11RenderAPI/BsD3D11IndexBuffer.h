@@ -19,7 +19,7 @@ namespace bs { namespace ct
 		D3D11IndexBuffer(D3D11Device& device, const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/**	Gets the internal DX11 index buffer object. */
-		ID3D11Buffer* getD3DIndexBuffer() const { return static_cast<D3D11HardwareBuffer*>(mBuffer)->getD3DBuffer(); }
+		ID3D11Buffer* getD3DIndexBuffer() const { return static_cast<D3D11HardwareBuffer*>(mBuffer)->GetD3DBuffer(); }
 
 	protected:
 		/** @copydoc IndexBuffer::initialize */

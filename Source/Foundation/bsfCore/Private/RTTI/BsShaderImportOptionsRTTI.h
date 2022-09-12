@@ -33,7 +33,7 @@ namespace bs
 			obj->mDefines[val.first] = val.second;
 		}
 
-		UINT32 GetNumDefines(ShaderImportOptions* obj) { return (UINT32)obj->mDefines.size(); }
+		UINT32 GetNumDefines(ShaderImportOptions* obj) { return (UINT32)obj->mDefines.Size(); }
 		void SetNumDefines(ShaderImportOptions* obj, UINT32 val) { /* Do nothing */ }
 
 	public:

@@ -46,7 +46,7 @@ namespace bs
 		void OnSerializationStarted(IReflectable* obj, SerializationContext* context) override
 		{
 			ManagedComponent* mc = static_cast<ManagedComponent*>(obj);
-			MonoObject* managedInstance = mc->getManagedInstance();
+			MonoObject* managedInstance = mc->GetManagedInstance();
 
 			if (managedInstance != nullptr)
 				mSerializedObjectData = ManagedSerializableObject::createFromExisting(managedInstance);

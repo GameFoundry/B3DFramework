@@ -9,7 +9,7 @@ namespace bs
 	MeshProperties::MeshProperties()
 		:mNumVertices(0), mNumIndices(0)
 	{
-		mSubMeshes.reserve(10);
+		mSubMeshes.Reserve(10);
 	}
 
 	MeshProperties::MeshProperties(UINT32 numVertices, UINT32 numIndices, DrawOperationType drawOp)
@@ -26,10 +26,10 @@ namespace bs
 
 	const SubMesh& MeshProperties::GetSubMesh(UINT32 subMeshIdx) const
 	{
-		if (subMeshIdx >= mSubMeshes.size())
+		if (subMeshIdx >= mSubMeshes.Size())
 		{
 			BS_EXCEPT(InvalidParametersException, "Invalid sub-mesh index ("
-				+ toString(subMeshIdx) + "). Number of sub-meshes available: " + toString((int)mSubMeshes.size()));
+				+ toString(subMeshIdx) + "). Number of sub-meshes available: " + toString((int)mSubMeshes.Size()));
 		}
 
 		return mSubMeshes[subMeshIdx];
@@ -37,7 +37,7 @@ namespace bs
 
 	UINT32 MeshProperties::GetNumSubMeshes() const
 	{
-		return (UINT32)mSubMeshes.size();
+		return (UINT32)mSubMeshes.Size();
 	}
 
 	MeshBase::MeshBase(UINT32 numVertices, UINT32 numIndices, DrawOperationType drawOp)
@@ -54,7 +54,7 @@ namespace bs
 	CoreSyncData MeshBase::SyncToCore(FrameAlloc* allocator)
 	{
 		UINT32 size = sizeof(Bounds);
-		UINT8* buffer = allocator->alloc(size);
+		UINT8* buffer = allocator->Alloc(size);
 
 		memcpy(buffer, &mProperties.mBounds, size);
 		return CoreSyncData(buffer, size);

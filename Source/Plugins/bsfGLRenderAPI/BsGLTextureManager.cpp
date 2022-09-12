@@ -24,7 +24,7 @@ namespace bs
 	{
 		// Check if this is a valid rendertarget format
 		if(usage & TU_RENDERTARGET)
-			return ct::GLRTTManager::instance().getSupportedAlternative(format);
+			return ct::GLRTTManager::instance().GetSupportedAlternative(format);
 
 		return ct::GLPixelUtil::getClosestSupportedPF(format, ttype, usage);
 	}

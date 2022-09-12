@@ -27,13 +27,13 @@ namespace bs
 			Lock fileLock = FileScheduler::getLock(filePath);
 
 			SPtr<DataStream> stream = FileSystem::openFile(filePath);
-			textData = stream->getAsWString();
+			textData = stream->GetAsWString();
 		}
 
 		SPtr<PlainText> plainText = PlainText::_createPtr(textData);
 
-		String fileName = filePath.getFilename(false);
-		plainText->setName(fileName);
+		String fileName = filePath.GetFilename(false);
+		plainText->SetName(fileName);
 
 		return plainText;
 	}

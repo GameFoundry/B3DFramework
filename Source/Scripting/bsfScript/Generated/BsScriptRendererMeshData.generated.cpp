@@ -22,25 +22,25 @@ namespace bs
 
 	void ScriptRendererMeshData::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_create", (void*)&ScriptRendererMeshData::Internal_create);
-		metaData.scriptClass->addInternalCall("Internal_getPositions", (void*)&ScriptRendererMeshData::Internal_getPositions);
-		metaData.scriptClass->addInternalCall("Internal_setPositions", (void*)&ScriptRendererMeshData::Internal_setPositions);
-		metaData.scriptClass->addInternalCall("Internal_getNormals", (void*)&ScriptRendererMeshData::Internal_getNormals);
-		metaData.scriptClass->addInternalCall("Internal_setNormals", (void*)&ScriptRendererMeshData::Internal_setNormals);
-		metaData.scriptClass->addInternalCall("Internal_getTangents", (void*)&ScriptRendererMeshData::Internal_getTangents);
-		metaData.scriptClass->addInternalCall("Internal_setTangents", (void*)&ScriptRendererMeshData::Internal_setTangents);
-		metaData.scriptClass->addInternalCall("Internal_getColors", (void*)&ScriptRendererMeshData::Internal_getColors);
-		metaData.scriptClass->addInternalCall("Internal_setColors", (void*)&ScriptRendererMeshData::Internal_setColors);
-		metaData.scriptClass->addInternalCall("Internal_getUV0", (void*)&ScriptRendererMeshData::Internal_getUV0);
-		metaData.scriptClass->addInternalCall("Internal_setUV0", (void*)&ScriptRendererMeshData::Internal_setUV0);
-		metaData.scriptClass->addInternalCall("Internal_getUV1", (void*)&ScriptRendererMeshData::Internal_getUV1);
-		metaData.scriptClass->addInternalCall("Internal_setUV1", (void*)&ScriptRendererMeshData::Internal_setUV1);
-		metaData.scriptClass->addInternalCall("Internal_getBoneWeights", (void*)&ScriptRendererMeshData::Internal_getBoneWeights);
-		metaData.scriptClass->addInternalCall("Internal_setBoneWeights", (void*)&ScriptRendererMeshData::Internal_setBoneWeights);
-		metaData.scriptClass->addInternalCall("Internal_getIndices", (void*)&ScriptRendererMeshData::Internal_getIndices);
-		metaData.scriptClass->addInternalCall("Internal_setIndices", (void*)&ScriptRendererMeshData::Internal_setIndices);
-		metaData.scriptClass->addInternalCall("Internal_getVertexCount", (void*)&ScriptRendererMeshData::Internal_getVertexCount);
-		metaData.scriptClass->addInternalCall("Internal_getIndexCount", (void*)&ScriptRendererMeshData::Internal_getIndexCount);
+		metaData.scriptClass->AddInternalCall("Internal_create", (void*)&ScriptRendererMeshData::Internal_create);
+		metaData.scriptClass->AddInternalCall("Internal_getPositions", (void*)&ScriptRendererMeshData::Internal_getPositions);
+		metaData.scriptClass->AddInternalCall("Internal_setPositions", (void*)&ScriptRendererMeshData::Internal_setPositions);
+		metaData.scriptClass->AddInternalCall("Internal_getNormals", (void*)&ScriptRendererMeshData::Internal_getNormals);
+		metaData.scriptClass->AddInternalCall("Internal_setNormals", (void*)&ScriptRendererMeshData::Internal_setNormals);
+		metaData.scriptClass->AddInternalCall("Internal_getTangents", (void*)&ScriptRendererMeshData::Internal_getTangents);
+		metaData.scriptClass->AddInternalCall("Internal_setTangents", (void*)&ScriptRendererMeshData::Internal_setTangents);
+		metaData.scriptClass->AddInternalCall("Internal_getColors", (void*)&ScriptRendererMeshData::Internal_getColors);
+		metaData.scriptClass->AddInternalCall("Internal_setColors", (void*)&ScriptRendererMeshData::Internal_setColors);
+		metaData.scriptClass->AddInternalCall("Internal_getUV0", (void*)&ScriptRendererMeshData::Internal_getUV0);
+		metaData.scriptClass->AddInternalCall("Internal_setUV0", (void*)&ScriptRendererMeshData::Internal_setUV0);
+		metaData.scriptClass->AddInternalCall("Internal_getUV1", (void*)&ScriptRendererMeshData::Internal_getUV1);
+		metaData.scriptClass->AddInternalCall("Internal_setUV1", (void*)&ScriptRendererMeshData::Internal_setUV1);
+		metaData.scriptClass->AddInternalCall("Internal_getBoneWeights", (void*)&ScriptRendererMeshData::Internal_getBoneWeights);
+		metaData.scriptClass->AddInternalCall("Internal_setBoneWeights", (void*)&ScriptRendererMeshData::Internal_setBoneWeights);
+		metaData.scriptClass->AddInternalCall("Internal_getIndices", (void*)&ScriptRendererMeshData::Internal_getIndices);
+		metaData.scriptClass->AddInternalCall("Internal_setIndices", (void*)&ScriptRendererMeshData::Internal_setIndices);
+		metaData.scriptClass->AddInternalCall("Internal_getVertexCount", (void*)&ScriptRendererMeshData::Internal_getVertexCount);
+		metaData.scriptClass->AddInternalCall("Internal_getIndexCount", (void*)&ScriptRendererMeshData::Internal_getIndexCount);
 
 	}
 
@@ -51,7 +51,7 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.scriptClass->createInstance("bool", ctorParams);
+		MonoObject* managedInstance = metaData.scriptClass->CreateInstance("bool", ctorParams);
 		new (bs_alloc<ScriptRendererMeshData>()) ScriptRendererMeshData(managedInstance, value);
 		return managedInstance;
 	}
@@ -64,16 +64,16 @@ namespace bs
 	MonoArray* ScriptRendererMeshData::Internal_getPositions(ScriptRendererMeshData* thisPtr)
 	{
 		Vector<Vector3> vec__output;
-		vec__output = MeshDataEx::getPositions(thisPtr->getInternal());
+		vec__output = MeshDataEx::getPositions(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
+		int arraySize__output = (int)vec__output.Size();
 		ScriptArray array__output = ScriptArray::create<ScriptVector3>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
-			array__output.set(i, vec__output[i]);
+			array__output.Set(i, vec__output[i]);
 		}
-		__output = array__output.getInternal();
+		__output = array__output.GetInternal();
 
 		return __output;
 	}
@@ -84,28 +84,28 @@ namespace bs
 		if(value != nullptr)
 		{
 			ScriptArray Arrayvalue(value);
-			vecvalue.resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.size(); i++)
+			vecvalue.Resize(arrayvalue.size());
+			for(int i = 0; i < (int)arrayvalue.Size(); i++)
 			{
 				vecvalue[i] = arrayvalue.get<Vector3>(i);
 			}
 		}
-		MeshDataEx::setPositions(thisPtr->getInternal(), vecvalue);
+		MeshDataEx::setPositions(thisPtr->GetInternal(), vecvalue);
 	}
 
 	MonoArray* ScriptRendererMeshData::Internal_getNormals(ScriptRendererMeshData* thisPtr)
 	{
 		Vector<Vector3> vec__output;
-		vec__output = MeshDataEx::getNormals(thisPtr->getInternal());
+		vec__output = MeshDataEx::getNormals(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
+		int arraySize__output = (int)vec__output.Size();
 		ScriptArray array__output = ScriptArray::create<ScriptVector3>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
-			array__output.set(i, vec__output[i]);
+			array__output.Set(i, vec__output[i]);
 		}
-		__output = array__output.getInternal();
+		__output = array__output.GetInternal();
 
 		return __output;
 	}
@@ -116,28 +116,28 @@ namespace bs
 		if(value != nullptr)
 		{
 			ScriptArray Arrayvalue(value);
-			vecvalue.resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.size(); i++)
+			vecvalue.Resize(arrayvalue.size());
+			for(int i = 0; i < (int)arrayvalue.Size(); i++)
 			{
 				vecvalue[i] = arrayvalue.get<Vector3>(i);
 			}
 		}
-		MeshDataEx::setNormals(thisPtr->getInternal(), vecvalue);
+		MeshDataEx::setNormals(thisPtr->GetInternal(), vecvalue);
 	}
 
 	MonoArray* ScriptRendererMeshData::Internal_getTangents(ScriptRendererMeshData* thisPtr)
 	{
 		Vector<Vector4> vec__output;
-		vec__output = MeshDataEx::getTangents(thisPtr->getInternal());
+		vec__output = MeshDataEx::getTangents(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
+		int arraySize__output = (int)vec__output.Size();
 		ScriptArray array__output = ScriptArray::create<ScriptVector4>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
-			array__output.set(i, vec__output[i]);
+			array__output.Set(i, vec__output[i]);
 		}
-		__output = array__output.getInternal();
+		__output = array__output.GetInternal();
 
 		return __output;
 	}
@@ -148,28 +148,28 @@ namespace bs
 		if(value != nullptr)
 		{
 			ScriptArray Arrayvalue(value);
-			vecvalue.resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.size(); i++)
+			vecvalue.Resize(arrayvalue.size());
+			for(int i = 0; i < (int)arrayvalue.Size(); i++)
 			{
 				vecvalue[i] = arrayvalue.get<Vector4>(i);
 			}
 		}
-		MeshDataEx::setTangents(thisPtr->getInternal(), vecvalue);
+		MeshDataEx::setTangents(thisPtr->GetInternal(), vecvalue);
 	}
 
 	MonoArray* ScriptRendererMeshData::Internal_getColors(ScriptRendererMeshData* thisPtr)
 	{
 		Vector<Color> vec__output;
-		vec__output = MeshDataEx::getColors(thisPtr->getInternal());
+		vec__output = MeshDataEx::getColors(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
+		int arraySize__output = (int)vec__output.Size();
 		ScriptArray array__output = ScriptArray::create<ScriptColor>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
-			array__output.set(i, vec__output[i]);
+			array__output.Set(i, vec__output[i]);
 		}
-		__output = array__output.getInternal();
+		__output = array__output.GetInternal();
 
 		return __output;
 	}
@@ -180,28 +180,28 @@ namespace bs
 		if(value != nullptr)
 		{
 			ScriptArray Arrayvalue(value);
-			vecvalue.resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.size(); i++)
+			vecvalue.Resize(arrayvalue.size());
+			for(int i = 0; i < (int)arrayvalue.Size(); i++)
 			{
 				vecvalue[i] = arrayvalue.get<Color>(i);
 			}
 		}
-		MeshDataEx::setColors(thisPtr->getInternal(), vecvalue);
+		MeshDataEx::setColors(thisPtr->GetInternal(), vecvalue);
 	}
 
 	MonoArray* ScriptRendererMeshData::Internal_getUV0(ScriptRendererMeshData* thisPtr)
 	{
 		Vector<Vector2> vec__output;
-		vec__output = MeshDataEx::getUV0(thisPtr->getInternal());
+		vec__output = MeshDataEx::getUV0(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
+		int arraySize__output = (int)vec__output.Size();
 		ScriptArray array__output = ScriptArray::create<ScriptVector2>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
-			array__output.set(i, vec__output[i]);
+			array__output.Set(i, vec__output[i]);
 		}
-		__output = array__output.getInternal();
+		__output = array__output.GetInternal();
 
 		return __output;
 	}
@@ -212,28 +212,28 @@ namespace bs
 		if(value != nullptr)
 		{
 			ScriptArray Arrayvalue(value);
-			vecvalue.resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.size(); i++)
+			vecvalue.Resize(arrayvalue.size());
+			for(int i = 0; i < (int)arrayvalue.Size(); i++)
 			{
 				vecvalue[i] = arrayvalue.get<Vector2>(i);
 			}
 		}
-		MeshDataEx::setUV0(thisPtr->getInternal(), vecvalue);
+		MeshDataEx::setUV0(thisPtr->GetInternal(), vecvalue);
 	}
 
 	MonoArray* ScriptRendererMeshData::Internal_getUV1(ScriptRendererMeshData* thisPtr)
 	{
 		Vector<Vector2> vec__output;
-		vec__output = MeshDataEx::getUV1(thisPtr->getInternal());
+		vec__output = MeshDataEx::getUV1(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
+		int arraySize__output = (int)vec__output.Size();
 		ScriptArray array__output = ScriptArray::create<ScriptVector2>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
-			array__output.set(i, vec__output[i]);
+			array__output.Set(i, vec__output[i]);
 		}
-		__output = array__output.getInternal();
+		__output = array__output.GetInternal();
 
 		return __output;
 	}
@@ -244,28 +244,28 @@ namespace bs
 		if(value != nullptr)
 		{
 			ScriptArray Arrayvalue(value);
-			vecvalue.resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.size(); i++)
+			vecvalue.Resize(arrayvalue.size());
+			for(int i = 0; i < (int)arrayvalue.Size(); i++)
 			{
 				vecvalue[i] = arrayvalue.get<Vector2>(i);
 			}
 		}
-		MeshDataEx::setUV1(thisPtr->getInternal(), vecvalue);
+		MeshDataEx::setUV1(thisPtr->GetInternal(), vecvalue);
 	}
 
 	MonoArray* ScriptRendererMeshData::Internal_getBoneWeights(ScriptRendererMeshData* thisPtr)
 	{
 		Vector<BoneWeight> vec__output;
-		vec__output = MeshDataEx::getBoneWeights(thisPtr->getInternal());
+		vec__output = MeshDataEx::getBoneWeights(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
+		int arraySize__output = (int)vec__output.Size();
 		ScriptArray array__output = ScriptArray::create<ScriptBoneWeight>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
-			array__output.set(i, vec__output[i]);
+			array__output.Set(i, vec__output[i]);
 		}
-		__output = array__output.getInternal();
+		__output = array__output.GetInternal();
 
 		return __output;
 	}
@@ -276,28 +276,28 @@ namespace bs
 		if(value != nullptr)
 		{
 			ScriptArray Arrayvalue(value);
-			vecvalue.resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.size(); i++)
+			vecvalue.Resize(arrayvalue.size());
+			for(int i = 0; i < (int)arrayvalue.Size(); i++)
 			{
 				vecvalue[i] = arrayvalue.get<BoneWeight>(i);
 			}
 		}
-		MeshDataEx::setBoneWeights(thisPtr->getInternal(), vecvalue);
+		MeshDataEx::setBoneWeights(thisPtr->GetInternal(), vecvalue);
 	}
 
 	MonoArray* ScriptRendererMeshData::Internal_getIndices(ScriptRendererMeshData* thisPtr)
 	{
 		Vector<uint32_t> vec__output;
-		vec__output = MeshDataEx::getIndices(thisPtr->getInternal());
+		vec__output = MeshDataEx::getIndices(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
+		int arraySize__output = (int)vec__output.Size();
 		ScriptArray array__output = ScriptArray::create<uint32_t>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
-			array__output.set(i, vec__output[i]);
+			array__output.Set(i, vec__output[i]);
 		}
-		__output = array__output.getInternal();
+		__output = array__output.GetInternal();
 
 		return __output;
 	}
@@ -308,19 +308,19 @@ namespace bs
 		if(value != nullptr)
 		{
 			ScriptArray Arrayvalue(value);
-			vecvalue.resize(arrayvalue.size());
-			for(int i = 0; i < (int)arrayvalue.size(); i++)
+			vecvalue.Resize(arrayvalue.size());
+			for(int i = 0; i < (int)arrayvalue.Size(); i++)
 			{
 				vecvalue[i] = arrayvalue.get<uint32_t>(i);
 			}
 		}
-		MeshDataEx::setIndices(thisPtr->getInternal(), vecvalue);
+		MeshDataEx::setIndices(thisPtr->GetInternal(), vecvalue);
 	}
 
 	int32_t ScriptRendererMeshData::Internal_getVertexCount(ScriptRendererMeshData* thisPtr)
 	{
 		int32_t tmp__output;
-		tmp__output = MeshDataEx::getVertexCount(thisPtr->getInternal());
+		tmp__output = MeshDataEx::getVertexCount(thisPtr->GetInternal());
 
 		int32_t __output;
 		__output = tmp__output;
@@ -331,7 +331,7 @@ namespace bs
 	int32_t ScriptRendererMeshData::Internal_getIndexCount(ScriptRendererMeshData* thisPtr)
 	{
 		int32_t tmp__output;
-		tmp__output = MeshDataEx::getIndexCount(thisPtr->getInternal());
+		tmp__output = MeshDataEx::getIndexCount(thisPtr->GetInternal());
 
 		int32_t __output;
 		__output = tmp__output;

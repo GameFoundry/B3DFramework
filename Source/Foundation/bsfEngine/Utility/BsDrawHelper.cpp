@@ -23,22 +23,22 @@ namespace bs
 		mTransform = Matrix4::IDENTITY;
 
 		mSolidVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
-		mSolidVertexDesc->addVertElem(VET_FLOAT3, VES_POSITION);
-		mSolidVertexDesc->addVertElem(VET_FLOAT3, VES_NORMAL);
-		mSolidVertexDesc->addVertElem(VET_COLOR, VES_COLOR);
+		mSolidVertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
+		mSolidVertexDesc->AddVertElem(VET_FLOAT3, VES_NORMAL);
+		mSolidVertexDesc->AddVertElem(VET_COLOR, VES_COLOR);
 
 		mWireVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
-		mWireVertexDesc->addVertElem(VET_FLOAT3, VES_POSITION);
-		mWireVertexDesc->addVertElem(VET_COLOR, VES_COLOR);
+		mWireVertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
+		mWireVertexDesc->AddVertElem(VET_COLOR, VES_COLOR);
 
 		mLineVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
-		mLineVertexDesc->addVertElem(VET_FLOAT3, VES_POSITION);
-		mLineVertexDesc->addVertElem(VET_COLOR, VES_COLOR);
+		mLineVertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
+		mLineVertexDesc->AddVertElem(VET_COLOR, VES_COLOR);
 
 		mTextVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
-		mTextVertexDesc->addVertElem(VET_FLOAT3, VES_POSITION);
-		mTextVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD);
-		mTextVertexDesc->addVertElem(VET_COLOR, VES_COLOR);
+		mTextVertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
+		mTextVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD);
+		mTextVertexDesc->AddVertElem(VET_COLOR, VES_COLOR);
 	}
 
 	void DrawHelper::SetColor(const Color& color)
@@ -59,20 +59,20 @@ namespace bs
 	void DrawHelper::Cube(const Vector3& position, const Vector3& extents)
 	{
 		mSolidCubeData.push_back(CubeData());
-		CubeData& cubeData = mSolidCubeData.back();
+		CubeData& cubeData = mSolidCubeData.Back();
 
 		cubeData.position = position;
 		cubeData.extents = extents;
 		cubeData.color = mColor;
 		cubeData.transform = mTransform;
 		cubeData.layer = mLayer;
-		cubeData.center = mTransform.multiplyAffine(position);
+		cubeData.center = mTransform.MultiplyAffine(position);
 	}
 
 	void DrawHelper::Sphere(const Vector3& position, float radius, UINT32 quality)
 	{
 		mSolidSphereData.push_back(SphereData());
-		SphereData& sphereData = mSolidSphereData.back();
+		SphereData& sphereData = mSolidSphereData.Back();
 
 		sphereData.position = position;
 		sphereData.radius = radius;
@@ -80,26 +80,26 @@ namespace bs
 		sphereData.color = mColor;
 		sphereData.transform = mTransform;
 		sphereData.layer = mLayer;
-		sphereData.center = mTransform.multiplyAffine(position);
+		sphereData.center = mTransform.MultiplyAffine(position);
 	}
 
 	void DrawHelper::WireCube(const Vector3& position, const Vector3& extents)
 	{
 		mWireCubeData.push_back(CubeData());
-		CubeData& cubeData = mWireCubeData.back();
+		CubeData& cubeData = mWireCubeData.Back();
 
 		cubeData.position = position;
 		cubeData.extents = extents;
 		cubeData.color = mColor;
 		cubeData.transform = mTransform;
 		cubeData.layer = mLayer;
-		cubeData.center = mTransform.multiplyAffine(position);
+		cubeData.center = mTransform.MultiplyAffine(position);
 	}
 
 	void DrawHelper::WireSphere(const Vector3& position, float radius, UINT32 quality)
 	{
 		mWireSphereData.push_back(SphereData());
-		SphereData& sphereData = mWireSphereData.back();
+		SphereData& sphereData = mWireSphereData.Back();
 
 		sphereData.position = position;
 		sphereData.radius = radius;
@@ -107,13 +107,13 @@ namespace bs
 		sphereData.color = mColor;
 		sphereData.transform = mTransform;
 		sphereData.layer = mLayer;
-		sphereData.center = mTransform.multiplyAffine(position);
+		sphereData.center = mTransform.MultiplyAffine(position);
 	}
 
 	void DrawHelper::WireHemisphere(const Vector3& position, float radius, UINT32 quality)
 	{
 		mWireHemisphereData.push_back(SphereData());
-		SphereData& sphereData = mWireHemisphereData.back();
+		SphereData& sphereData = mWireHemisphereData.Back();
 
 		sphereData.position = position;
 		sphereData.radius = radius;
@@ -121,29 +121,29 @@ namespace bs
 		sphereData.color = mColor;
 		sphereData.transform = mTransform;
 		sphereData.layer = mLayer;
-		sphereData.center = mTransform.multiplyAffine(position);
+		sphereData.center = mTransform.MultiplyAffine(position);
 	}
 
 	void DrawHelper::Line(const Vector3& start, const Vector3& end)
 	{
 		mLineData.push_back(LineData());
-		LineData& lineData = mLineData.back();
+		LineData& lineData = mLineData.Back();
 
 		lineData.start = start;
 		lineData.end = end;
 		lineData.color = mColor;
 		lineData.transform = mTransform;
 		lineData.layer = mLayer;
-		lineData.center = mTransform.multiplyAffine((start + end) * 0.5f);
+		lineData.center = mTransform.MultiplyAffine((start + end) * 0.5f);
 	}
 
 	void DrawHelper::LineList(const Vector<Vector3>& lines)
 	{
-		if (lines.size() < 2)
+		if (lines.Size() < 2)
 			return;
 
 		mLineListData.push_back(LineListData());
-		LineListData& lineListData = mLineListData.back();
+		LineListData& lineListData = mLineListData.Back();
 
 		Vector3 Center(BsZero);
 		for (auto& point : lines)
@@ -153,13 +153,13 @@ namespace bs
 		lineListData.color = mColor;
 		lineListData.transform = mTransform;
 		lineListData.layer = mLayer;
-		lineListData.center = center / (float)lines.size();;
+		lineListData.center = center / (float)lines.Size();;
 	}
 
 	void DrawHelper::Frustum(const Vector3& position, float aspect, Degree FOV, float near, float far)
 	{
 		mFrustumData.push_back(FrustumData());
-		FrustumData& frustumData = mFrustumData.back();
+		FrustumData& frustumData = mFrustumData.Back();
 
 		frustumData.position = position;
 		frustumData.aspect = aspect;
@@ -169,14 +169,14 @@ namespace bs
 		frustumData.color = mColor;
 		frustumData.transform = mTransform;
 		frustumData.layer = mLayer;
-		frustumData.center = mTransform.multiplyAffine(position);
+		frustumData.center = mTransform.MultiplyAffine(position);
 	}
 
 	void DrawHelper::cone(const Vector3& base, const Vector3& normal, float height, float radius, const Vector2& scale,
 		UINT32 quality)
 	{
 		mConeData.push_back(ConeData());
-		ConeData& coneData = mConeData.back();
+		ConeData& coneData = mConeData.Back();
 
 		coneData.base = base;
 		coneData.normal = normal;
@@ -187,14 +187,14 @@ namespace bs
 		coneData.color = mColor;
 		coneData.transform = mTransform;
 		coneData.layer = mLayer;
-		coneData.center = mTransform.multiplyAffine(base + normal * height * 0.5f);
+		coneData.center = mTransform.MultiplyAffine(base + normal * height * 0.5f);
 	}
 
 	void DrawHelper::wireCone(const Vector3& base, const Vector3& normal, float height, float radius, const Vector2& scale,
 		UINT32 quality)
 	{
 		mWireConeData.push_back(ConeData());
-		ConeData& coneData = mWireConeData.back();
+		ConeData& coneData = mWireConeData.Back();
 
 		coneData.base = base;
 		coneData.normal = normal;
@@ -205,13 +205,13 @@ namespace bs
 		coneData.color = mColor;
 		coneData.transform = mTransform;
 		coneData.layer = mLayer;
-		coneData.center = mTransform.multiplyAffine(base + normal * height * 0.5f);
+		coneData.center = mTransform.MultiplyAffine(base + normal * height * 0.5f);
 	}
 
 	void DrawHelper::Disc(const Vector3& position, const Vector3& normal, float radius, UINT32 quality)
 	{
 		mDiscData.push_back(DiscData());
-		DiscData& discData = mDiscData.back();
+		DiscData& discData = mDiscData.Back();
 
 		discData.position = position;
 		discData.normal = normal;
@@ -220,13 +220,13 @@ namespace bs
 		discData.color = mColor;
 		discData.transform = mTransform;
 		discData.layer = mLayer;
-		discData.center = mTransform.multiplyAffine(position);
+		discData.center = mTransform.MultiplyAffine(position);
 	}
 
 	void DrawHelper::WireDisc(const Vector3& position, const Vector3& normal, float radius, UINT32 quality)
 	{
 		mWireDiscData.push_back(DiscData());
-		DiscData& discData = mWireDiscData.back();
+		DiscData& discData = mWireDiscData.Back();
 
 		discData.position = position;
 		discData.normal = normal;
@@ -235,14 +235,14 @@ namespace bs
 		discData.color = mColor;
 		discData.transform = mTransform;
 		discData.layer = mLayer;
-		discData.center = mTransform.multiplyAffine(position);
+		discData.center = mTransform.MultiplyAffine(position);
 	}
 
 	void DrawHelper::arc(const Vector3& position, const Vector3& normal, float radius,
 		Degree startAngle, Degree amountAngle, UINT32 quality)
 	{
 		mArcData.push_back(ArcData());
-		ArcData& arcData = mArcData.back();
+		ArcData& arcData = mArcData.Back();
 
 		arcData.position = position;
 		arcData.normal = normal;
@@ -253,14 +253,14 @@ namespace bs
 		arcData.color = mColor;
 		arcData.transform = mTransform;
 		arcData.layer = mLayer;
-		arcData.center = mTransform.multiplyAffine(position);
+		arcData.center = mTransform.MultiplyAffine(position);
 	}
 
 	void DrawHelper::wireArc(const Vector3& position, const Vector3& normal, float radius,
 		Degree startAngle, Degree amountAngle, UINT32 quality)
 	{
 		mWireArcData.push_back(ArcData());
-		ArcData& arcData = mWireArcData.back();
+		ArcData& arcData = mWireArcData.Back();
 
 		arcData.position = position;
 		arcData.normal = normal;
@@ -271,34 +271,34 @@ namespace bs
 		arcData.color = mColor;
 		arcData.transform = mTransform;
 		arcData.layer = mLayer;
-		arcData.center = mTransform.multiplyAffine(position);
+		arcData.center = mTransform.MultiplyAffine(position);
 	}
 
 	void DrawHelper::Rectangle(const Rect3& area)
 	{
 		mRect3Data.push_back(Rect3Data());
-		Rect3Data& rectData = mRect3Data.back();
+		Rect3Data& rectData = mRect3Data.Back();
 
 		rectData.area = area;
 		rectData.color = mColor;
 		rectData.transform = mTransform;
 		rectData.layer = mLayer;
-		rectData.center = mTransform.multiplyAffine(area.getCenter());
+		rectData.center = mTransform.MultiplyAffine(area.getCenter());
 	}
 
 	void DrawHelper::Text(const Vector3& position, const String& text, const HFont& font, UINT32 size)
 	{
-		if (!font.isLoaded() || text.empty())
+		if (!font.IsLoaded() || text.empty())
 			return;
 
 		mText2DData.push_back(Text2DData());
-		Text2DData& textData = mText2DData.back();
+		Text2DData& textData = mText2DData.Back();
 
 		textData.position = position;
 		textData.color = mColor;
 		textData.transform = mTransform;
 		textData.layer = mLayer;
-		textData.center = mTransform.multiplyAffine(position);
+		textData.center = mTransform.MultiplyAffine(position);
 		textData.text = text;
 		textData.font = font;
 		textData.size = size;
@@ -310,34 +310,34 @@ namespace bs
 			return;
 
 		mWireMeshData.push_back(WireMeshData());
-		WireMeshData& wireMeshData = mWireMeshData.back();
+		WireMeshData& wireMeshData = mWireMeshData.Back();
 
 		wireMeshData.meshData = meshData;
 		wireMeshData.color = mColor;
 		wireMeshData.transform = mTransform;
 		wireMeshData.layer = mLayer;
-		wireMeshData.center = mTransform.multiplyAffine(Vector3::ZERO);
+		wireMeshData.center = mTransform.MultiplyAffine(Vector3::ZERO);
 	}
 
 	void DrawHelper::Clear()
 	{
-		mSolidCubeData.clear();
-		mWireCubeData.clear();
-		mSolidSphereData.clear();
-		mWireSphereData.clear();
-		mWireHemisphereData.clear();
-		mLineData.clear();
-		mLineListData.clear();
-		mRect3Data.clear();
-		mFrustumData.clear();
-		mDiscData.clear();
-		mWireDiscData.clear();
-		mArcData.clear();
-		mWireArcData.clear();
-		mConeData.clear();
-		mWireConeData.clear();
-		mText2DData.clear();
-		mWireMeshData.clear();
+		mSolidCubeData.Clear();
+		mWireCubeData.Clear();
+		mSolidSphereData.Clear();
+		mWireSphereData.Clear();
+		mWireHemisphereData.Clear();
+		mLineData.Clear();
+		mLineListData.Clear();
+		mRect3Data.Clear();
+		mFrustumData.Clear();
+		mDiscData.Clear();
+		mWireDiscData.Clear();
+		mArcData.Clear();
+		mWireArcData.Clear();
+		mConeData.Clear();
+		mWireConeData.Clear();
+		mText2DData.Clear();
+		mWireMeshData.Clear();
 	}
 
 	Vector<DrawHelper::ShapeMeshData> DrawHelper::BuildMeshes(SortType sorting, const Camera* camera, UINT64 layers)
@@ -370,7 +370,7 @@ namespace bs
 		Vector3 reference = Vector3::ZERO;
 		
 		if(camera)
-			reference = camera->getTransform().getPosition();
+			reference = camera->GetTransform().GetPosition();
 
 		UINT32 localIdx = 0;
 		for (auto& shapeData : mSolidCubeData)
@@ -382,13 +382,13 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.back();
+			RawData& rawData = allShapes.Back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
 			rawData.meshType = MeshType::Solid;
 			rawData.shapeType = ShapeType::Cube;
-			rawData.distance = shapeData.center.distance(reference);
+			rawData.distance = shapeData.center.Distance(reference);
 
 			ShapeMeshes3D::getNumElementsAABox(rawData.numVertices, rawData.numIndices);
 		}
@@ -403,13 +403,13 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.back();
+			RawData& rawData = allShapes.Back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
 			rawData.meshType = MeshType::Solid;
 			rawData.shapeType = ShapeType::Sphere;
-			rawData.distance = shapeData.center.distance(reference);
+			rawData.distance = shapeData.center.Distance(reference);
 
 			ShapeMeshes3D::getNumElementsSphere(shapeData.quality,
 				rawData.numVertices, rawData.numIndices);
@@ -425,13 +425,13 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.back();
+			RawData& rawData = allShapes.Back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
 			rawData.meshType = MeshType::Solid;
 			rawData.shapeType = ShapeType::Cone;
-			rawData.distance = shapeData.center.distance(reference);
+			rawData.distance = shapeData.center.Distance(reference);
 
 			ShapeMeshes3D::getNumElementsCone(shapeData.quality,
 				rawData.numVertices, rawData.numIndices);
@@ -447,13 +447,13 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.back();
+			RawData& rawData = allShapes.Back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
 			rawData.meshType = MeshType::Solid;
 			rawData.shapeType = ShapeType::Disc;
-			rawData.distance = shapeData.center.distance(reference);
+			rawData.distance = shapeData.center.Distance(reference);
 
 			ShapeMeshes3D::getNumElementsDisc(shapeData.quality,
 				rawData.numVertices, rawData.numIndices);
@@ -469,13 +469,13 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.back();
+			RawData& rawData = allShapes.Back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
 			rawData.meshType = MeshType::Solid;
 			rawData.shapeType = ShapeType::Arc;
-			rawData.distance = shapeData.center.distance(reference);
+			rawData.distance = shapeData.center.Distance(reference);
 
 			ShapeMeshes3D::getNumElementsArc(shapeData.quality,
 				rawData.numVertices, rawData.numIndices);
@@ -491,13 +491,13 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.back();
+			RawData& rawData = allShapes.Back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
 			rawData.meshType = MeshType::Solid;
 			rawData.shapeType = ShapeType::Rectangle;
-			rawData.distance = shapeData.center.distance(reference);
+			rawData.distance = shapeData.center.Distance(reference);
 
 			ShapeMeshes3D::getNumElementsQuad(rawData.numVertices, rawData.numIndices);
 		}
@@ -512,13 +512,13 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.back();
+			RawData& rawData = allShapes.Back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
 			rawData.meshType = MeshType::Line;
 			rawData.shapeType = ShapeType::WireCube;
-			rawData.distance = shapeData.center.distance(reference);
+			rawData.distance = shapeData.center.Distance(reference);
 
 			ShapeMeshes3D::getNumElementsWireAABox(rawData.numVertices, rawData.numIndices);
 		}
@@ -533,13 +533,13 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.back();
+			RawData& rawData = allShapes.Back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
 			rawData.meshType = MeshType::Line;
 			rawData.shapeType = ShapeType::WireSphere;
-			rawData.distance = shapeData.center.distance(reference);
+			rawData.distance = shapeData.center.Distance(reference);
 
 			ShapeMeshes3D::getNumElementsWireSphere(shapeData.quality,
 				rawData.numVertices, rawData.numIndices);
@@ -555,13 +555,13 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.back();
+			RawData& rawData = allShapes.Back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
 			rawData.meshType = MeshType::Line;
 			rawData.shapeType = ShapeType::WireHemisphere;
-			rawData.distance = shapeData.center.distance(reference);
+			rawData.distance = shapeData.center.Distance(reference);
 
 			ShapeMeshes3D::getNumElementsWireHemisphere(shapeData.quality,
 				rawData.numVertices, rawData.numIndices);
@@ -577,13 +577,13 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.back();
+			RawData& rawData = allShapes.Back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
 			rawData.meshType = MeshType::Line;
 			rawData.shapeType = ShapeType::WireCone;
-			rawData.distance = shapeData.center.distance(reference);
+			rawData.distance = shapeData.center.Distance(reference);
 
 			ShapeMeshes3D::getNumElementsWireCone(shapeData.quality,
 				rawData.numVertices, rawData.numIndices);
@@ -599,13 +599,13 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.back();
+			RawData& rawData = allShapes.Back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
 			rawData.meshType = MeshType::Line;
 			rawData.shapeType = ShapeType::Line;
-			rawData.distance = shapeData.center.distance(reference);
+			rawData.distance = shapeData.center.Distance(reference);
 			rawData.numVertices = 2;
 			rawData.numIndices = 2;
 		}
@@ -620,14 +620,14 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.back();
+			RawData& rawData = allShapes.Back();
 
-			UINT32 numLines = (UINT32)shapeData.lines.size() / 2;
+			UINT32 numLines = (UINT32)shapeData.lines.Size() / 2;
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
 			rawData.meshType = MeshType::Line;
 			rawData.shapeType = ShapeType::LineList;
-			rawData.distance = shapeData.center.distance(reference);
+			rawData.distance = shapeData.center.Distance(reference);
 			rawData.numVertices = numLines * 2;
 			rawData.numIndices = numLines * 2;
 		}
@@ -642,13 +642,13 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.back();
+			RawData& rawData = allShapes.Back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
 			rawData.meshType = MeshType::Line;
 			rawData.shapeType = ShapeType::Frustum;
-			rawData.distance = shapeData.center.distance(reference);
+			rawData.distance = shapeData.center.Distance(reference);
 
 			ShapeMeshes3D::getNumElementsFrustum(rawData.numVertices, rawData.numIndices);
 		}
@@ -663,13 +663,13 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.back();
+			RawData& rawData = allShapes.Back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
 			rawData.meshType = MeshType::Line;
 			rawData.shapeType = ShapeType::WireDisc;
-			rawData.distance = shapeData.center.distance(reference);
+			rawData.distance = shapeData.center.Distance(reference);
 
 			ShapeMeshes3D::getNumElementsWireDisc(shapeData.quality,
 				rawData.numVertices, rawData.numIndices);
@@ -685,13 +685,13 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.back();
+			RawData& rawData = allShapes.Back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
 			rawData.meshType = MeshType::Line;
 			rawData.shapeType = ShapeType::WireArc;
-			rawData.distance = shapeData.center.distance(reference);
+			rawData.distance = shapeData.center.Distance(reference);
 
 			ShapeMeshes3D::getNumElementsWireArc(shapeData.quality,
 				rawData.numVertices, rawData.numIndices);
@@ -707,15 +707,15 @@ namespace bs
 			}
 
 			allShapes.push_back(RawData());
-			RawData& rawData = allShapes.back();
+			RawData& rawData = allShapes.Back();
 
 			rawData.idx = localIdx++;
 			rawData.textIdx = 0;
 			rawData.meshType = MeshType::Wire;
 			rawData.shapeType = ShapeType::WireMesh;
-			rawData.distance = shapeData.center.distance(reference);
-			rawData.numVertices = shapeData.meshData->getNumVertices();
-			rawData.numIndices = shapeData.meshData->getNumIndices();
+			rawData.distance = shapeData.center.Distance(reference);
+			rawData.numVertices = shapeData.meshData->GetNumVertices();
+			rawData.numIndices = shapeData.meshData->GetNumIndices();
 		}
 
 		struct TextRenderData
@@ -739,19 +739,19 @@ namespace bs
 			U32String utf32text = UTF8::toUTF32(shapeData.text);
 			SPtr<TextData<>> textData = bs_shared_ptr_new<TextData<>>(utf32text, shapeData.font, shapeData.size);
 
-			UINT32 numPages = textData->getNumPages();
+			UINT32 numPages = textData->GetNumPages();
 			for (UINT32 j = 0; j < numPages; j++)
 			{
-				UINT32 numQuads = textData->getNumQuadsForPage(j);
+				UINT32 numQuads = textData->GetNumQuadsForPage(j);
 
 				allShapes.push_back(RawData());
-				RawData& rawData = allShapes.back();
+				RawData& rawData = allShapes.Back();
 
 				rawData.idx = localIdx;
 				rawData.textIdx = textIdx;
 				rawData.meshType = MeshType::Text;
 				rawData.shapeType = ShapeType::Text;
-				rawData.distance = shapeData.center.distance(reference);
+				rawData.distance = shapeData.center.Distance(reference);
 				rawData.numVertices = numQuads * 4;
 				rawData.numIndices = numQuads * 6;
 
@@ -796,7 +796,7 @@ namespace bs
 			UINT32 numIndices;
 		};
 
-		UINT32 numShapes = (UINT32)allShapes.size();
+		UINT32 numShapes = (UINT32)allShapes.Size();
 
 		Vector<Batch> batches;
 		if (numShapes > 0)
@@ -804,7 +804,7 @@ namespace bs
 			batches.push_back(Batch());
 
 			{
-				Batch& currentBatch = batches.back();
+				Batch& currentBatch = batches.Back();
 				currentBatch.startIdx = 0;
 				currentBatch.type = allShapes[0].meshType;
 				currentBatch.numVertices = allShapes[0].numVertices;
@@ -813,19 +813,19 @@ namespace bs
 				if (allShapes[0].meshType == MeshType::Text)
 				{
 					TextRenderData& renderData = textRenderData[allShapes[0].textIdx];
-					currentBatch.texture = renderData.textData->getTextureForPage(renderData.page);
+					currentBatch.texture = renderData.textData->GetTextureForPage(renderData.page);
 				}
 			}
 
 			for (UINT32 i = 1; i < numShapes; i++)
 			{
-				Batch& currentBatch = batches.back();
+				Batch& currentBatch = batches.Back();
 
 				HTexture texture;
 				if (allShapes[i].meshType == MeshType::Text)
 				{
 					TextRenderData& renderData = textRenderData[allShapes[i].textIdx];
-					texture = renderData.textData->getTextureForPage(renderData.page);
+					texture = renderData.textData->GetTextureForPage(renderData.page);
 				}
 
 				bool startNewBatch = allShapes[i].meshType != currentBatch.type || texture != currentBatch.texture;
@@ -835,7 +835,7 @@ namespace bs
 
 					batches.push_back(Batch());
 
-					Batch& newBatch = batches.back();
+					Batch& newBatch = batches.Back();
 					newBatch.startIdx = i;
 					newBatch.type = allShapes[i].meshType;
 					newBatch.numVertices = allShapes[i].numVertices;
@@ -851,7 +851,7 @@ namespace bs
 			}
 
 			{
-				Batch& currentBatch = batches.back();
+				Batch& currentBatch = batches.Back();
 				currentBatch.endIdx = numShapes - 1;
 			}
 		}
@@ -889,18 +889,18 @@ namespace bs
 			if(!meshData[i])
 				continue;
 
-			positionIter[i] = meshData[i]->getVec3DataIter(VES_POSITION);
-			colorIter[i] = meshData[i]->getDWORDDataIter(VES_COLOR);
+			positionIter[i] = meshData[i]->GetVec3DataIter(VES_POSITION);
+			colorIter[i] = meshData[i]->GetDWORDDataIter(VES_COLOR);
 		}
 
 		VertexElemIter<Vector3> solidNormalIter;
 		if(meshData[0])
-			solidNormalIter = meshData[0]->getVec3DataIter(VES_NORMAL);
+			solidNormalIter = meshData[0]->GetVec3DataIter(VES_NORMAL);
 
 		VertexElemIter<Vector2> textUVIter;
 		
 		if(meshData[3])
-			textUVIter = meshData[3]->getVec2DataIter(VES_TEXCOORD);
+			textUVIter = meshData[3]->GetVec2DataIter(VES_TEXCOORD);
 
 		for (auto& batch : batches)
 		{
@@ -909,7 +909,7 @@ namespace bs
 			if (batch.type == MeshType::Solid)
 			{
 				meshInfos.push_back(ShapeMeshData());
-				ShapeMeshData& newMesh = meshInfos.back();
+				ShapeMeshData& newMesh = meshInfos.Back();
 				newMesh.subMesh.indexOffset = indexOffset[typeIdx];
 				newMesh.subMesh.indexCount = batch.numIndices;
 				newMesh.subMesh.drawOp = DOT_TRIANGLE_LIST;
@@ -931,7 +931,7 @@ namespace bs
 						ShapeMeshes3D::solidAABox(box, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx]);
 
 						transform = &cubeData.transform;
-						color = cubeData.color.getAsRGBA();
+						color = cubeData.color.GetAsRGBA();
 					}
 						break;
 					case ShapeType::Sphere:
@@ -942,7 +942,7 @@ namespace bs
 							sphereData.quality);
 
 						transform = &sphereData.transform;
-						color = sphereData.color.getAsRGBA();
+						color = sphereData.color.GetAsRGBA();
 					}
 						break;
 					case ShapeType::Cone:
@@ -952,7 +952,7 @@ namespace bs
 							coneData.scale, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], coneData.quality);
 
 						transform = &coneData.transform;
-						color = coneData.color.getAsRGBA();
+						color = coneData.color.GetAsRGBA();
 					}
 						break;
 					case ShapeType::Disc:
@@ -962,7 +962,7 @@ namespace bs
 							meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], discData.quality);
 
 						transform = &discData.transform;
-						color = discData.color.getAsRGBA();
+						color = discData.color.GetAsRGBA();
 					}
 						break;
 					case ShapeType::Arc:
@@ -973,7 +973,7 @@ namespace bs
 							indexOffset[typeIdx], arcData.quality);
 
 						transform = &arcData.transform;
-						color = arcData.color.getAsRGBA();
+						color = arcData.color.GetAsRGBA();
 					}
 						break;
 					case ShapeType::Rectangle:
@@ -983,22 +983,22 @@ namespace bs
 							indexOffset[typeIdx]);
 
 						transform = &rectData.transform;
-						color = rectData.color.getAsRGBA();
+						color = rectData.color.GetAsRGBA();
 					}
 						break;
 					default:
 						break;
 					}
 
-					Matrix4 transformIT = transform->inverseAffine().transpose();
+					Matrix4 transformIT = transform->InverseAffine().Transpose();
 					for (UINT32 i = 0; i < shapeData.numVertices; i++)
 					{
-						Vector3 worldPos = transform->multiplyAffine(positionIter[typeIdx].getValue());
-						Vector3 worldNormal = transformIT.multiplyAffine(solidNormalIter.getValue());
+						Vector3 worldPos = transform->MultiplyAffine(positionIter[typeIdx].GetValue());
+						Vector3 worldNormal = transformIT.MultiplyAffine(solidNormalIter.getValue());
 
-						positionIter[typeIdx].addValue(worldPos);
-						solidNormalIter.addValue(worldNormal);
-						colorIter[typeIdx].addValue(color);
+						positionIter[typeIdx].AddValue(worldPos);
+						solidNormalIter.AddValue(worldNormal);
+						colorIter[typeIdx].AddValue(color);
 					}
 
 					vertexOffset[typeIdx] += shapeData.numVertices;
@@ -1008,7 +1008,7 @@ namespace bs
 			else if (batch.type == MeshType::Wire)
 			{
 				meshInfos.push_back(ShapeMeshData());
-				ShapeMeshData& newMesh = meshInfos.back();
+				ShapeMeshData& newMesh = meshInfos.Back();
 				newMesh.subMesh.indexOffset = indexOffset[typeIdx];
 				newMesh.subMesh.indexCount = batch.numIndices;
 				newMesh.subMesh.drawOp = DOT_TRIANGLE_LIST;
@@ -1028,21 +1028,21 @@ namespace bs
 						WireMeshData& wireMeshData = mWireMeshData[shapeData.idx];
 
 						transform = &wireMeshData.transform;
-						color = wireMeshData.color.getAsRGBA();
+						color = wireMeshData.color.GetAsRGBA();
 
-						auto vertIterRead = wireMeshData.meshData->getVec3DataIter(VES_POSITION);
-						for (UINT32 j = 0; j < vertIterRead.getNumElements(); j++)
+						auto vertIterRead = wireMeshData.meshData->GetVec3DataIter(VES_POSITION);
+						for (UINT32 j = 0; j < vertIterRead.GetNumElements(); j++)
 						{
-							Vector3 worldPos = transform->multiplyAffine(vertIterRead.getValue());
+							Vector3 worldPos = transform->MultiplyAffine(vertIterRead.GetValue());
 
-							positionIter[typeIdx].addValue(worldPos);
-							colorIter[typeIdx].addValue(color);
+							positionIter[typeIdx].AddValue(worldPos);
+							colorIter[typeIdx].AddValue(color);
 
-							vertIterRead.moveNext();
+							vertIterRead.MoveNext();
 						}
 
-						UINT32* srcIndexData = wireMeshData.meshData->getIndices32();
-						UINT32* destIndexData = meshData[typeIdx]->getIndices32() + indexOffset[typeIdx];
+						UINT32* srcIndexData = wireMeshData.meshData->GetIndices32();
+						UINT32* destIndexData = meshData[typeIdx]->GetIndices32() + indexOffset[typeIdx];
 
 						for(UINT32 j = 0; j < shapeData.numIndices; j++)
 							destIndexData[j] = srcIndexData[j] + vertexOffset[typeIdx];
@@ -1059,7 +1059,7 @@ namespace bs
 			else If(batch.type == MeshType::Line)
 			{
 				meshInfos.push_back(ShapeMeshData());
-				ShapeMeshData& newMesh = meshInfos.back();
+				ShapeMeshData& newMesh = meshInfos.Back();
 				newMesh.subMesh.indexOffset = indexOffset[typeIdx];
 				newMesh.subMesh.indexCount = batch.numIndices;
 				newMesh.subMesh.drawOp = DOT_LINE_LIST;
@@ -1082,7 +1082,7 @@ namespace bs
 						ShapeMeshes3D::wireAABox(box, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx]);
 
 						transform = &cubeData.transform;
-						color = cubeData.color.getAsRGBA();
+						color = cubeData.color.GetAsRGBA();
 					}
 						break;
 					case ShapeType::WireSphere:
@@ -1094,7 +1094,7 @@ namespace bs
 							sphereData.quality);
 
 						transform = &sphereData.transform;
-						color = sphereData.color.getAsRGBA();
+						color = sphereData.color.GetAsRGBA();
 					}
 						break;
 					case ShapeType::WireHemisphere:
@@ -1106,7 +1106,7 @@ namespace bs
 							sphereData.quality);
 
 						transform = &sphereData.transform;
-						color = sphereData.color.getAsRGBA();
+						color = sphereData.color.GetAsRGBA();
 					}
 						break;
 					case ShapeType::WireCone:
@@ -1117,7 +1117,7 @@ namespace bs
 							coneData.quality);
 
 						transform = &coneData.transform;
-						color = coneData.color.getAsRGBA();
+						color = coneData.color.GetAsRGBA();
 					}
 					break;
 					case ShapeType::Line:
@@ -1128,7 +1128,7 @@ namespace bs
 							indexOffset[typeIdx]);
 
 						transform = &lineData.transform;
-						color = lineData.color.getAsRGBA();
+						color = lineData.color.GetAsRGBA();
 					}
 						break;
 					case ShapeType::LineList:
@@ -1139,7 +1139,7 @@ namespace bs
 							indexOffset[typeIdx]);
 
 						transform = &lineListData.transform;
-						color = lineListData.color.getAsRGBA();
+						color = lineListData.color.GetAsRGBA();
 					}
 					break;
 					case ShapeType::Frustum:
@@ -1150,7 +1150,7 @@ namespace bs
 							frustumData.farDist, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx]);
 
 						transform = &frustumData.transform;
-						color = frustumData.color.getAsRGBA();
+						color = frustumData.color.GetAsRGBA();
 					}
 						break;
 					case ShapeType::WireDisc:
@@ -1161,7 +1161,7 @@ namespace bs
 							meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], discData.quality);
 
 						transform = &discData.transform;
-						color = discData.color.getAsRGBA();
+						color = discData.color.GetAsRGBA();
 					}
 						break;
 					case ShapeType::WireArc:
@@ -1173,7 +1173,7 @@ namespace bs
 							indexOffset[typeIdx], arcData.quality);
 
 						transform = &arcData.transform;
-						color = arcData.color.getAsRGBA();
+						color = arcData.color.GetAsRGBA();
 					}
 						break;
 					default:
@@ -1182,10 +1182,10 @@ namespace bs
 
 					for (UINT32 i = 0; i < shapeData.numVertices; i++)
 					{
-						Vector3 worldPos = transform->multiplyAffine(positionIter[typeIdx].getValue());
+						Vector3 worldPos = transform->MultiplyAffine(positionIter[typeIdx].GetValue());
 
-						positionIter[typeIdx].addValue(worldPos);
-						colorIter[typeIdx].addValue(color);
+						positionIter[typeIdx].AddValue(worldPos);
+						colorIter[typeIdx].AddValue(color);
 					}
 
 					vertexOffset[typeIdx] += shapeData.numVertices;
@@ -1199,7 +1199,7 @@ namespace bs
 					continue;
 
 				meshInfos.push_back(ShapeMeshData());
-				ShapeMeshData& newMesh = meshInfos.back();
+				ShapeMeshData& newMesh = meshInfos.Back();
 				newMesh.subMesh.indexOffset = indexOffset[typeIdx];
 				newMesh.subMesh.indexCount = batch.numIndices;
 				newMesh.subMesh.drawOp = DOT_TRIANGLE_LIST;
@@ -1212,21 +1212,21 @@ namespace bs
 					Text2DData& text2DData = mText2DData[shapeData.idx];
 
 					TextRenderData& renderData = textRenderData[shapeData.textIdx];
-					UINT32 numQuads = renderData.textData->getNumQuadsForPage(renderData.page);
+					UINT32 numQuads = renderData.textData->GetNumQuadsForPage(renderData.page);
 
-					UINT32* indices = meshData[typeIdx]->getIndices32() + indexOffset[typeIdx];
+					UINT32* indices = meshData[typeIdx]->GetIndices32() + indexOffset[typeIdx];
 
 					// Note: Need temporary buffers because TextLine doesn't support arbitrary vertex stride. Eventually
 					// that should be supported (should be almost trivial to implement)
 					Vector2* tempVertices = bs_stack_alloc<Vector2>(shapeData.numVertices);
 					Vector2* tempUVs = bs_stack_alloc<Vector2>(shapeData.numVertices);
 
-					UINT32 numLines = renderData.textData->getNumLines();
+					UINT32 numLines = renderData.textData->GetNumLines();
 					UINT32 quadOffset = 0;
 					for (UINT32 j = 0; j < numLines; j++)
 					{
-						const TextDataBase::TextLine& line = renderData.textData->getLine(j);
-						UINT32 writtenQuads = line.fillBuffer(renderData.page, tempVertices, tempUVs, indices, quadOffset, numQuads);
+						const TextDataBase::TextLine& line = renderData.textData->GetLine(j);
+						UINT32 writtenQuads = line.FillBuffer(renderData.page, tempVertices, tempUVs, indices, quadOffset, numQuads);
 
 						quadOffset += writtenQuads;
 					}
@@ -1234,20 +1234,20 @@ namespace bs
 					for(UINT32 j = 0; j < shapeData.numIndices; j++)
 						indices[j] += vertexOffset[typeIdx];
 
-					Vector3 worldSpacePos = text2DData.transform.multiplyAffine(text2DData.position);
-					Vector2I screenPos = camera->worldToScreenPoint(worldSpacePos);
-					screenPos.x -= renderData.textData->getWidth() / 2;
-					screenPos.y -= renderData.textData->getHeight() / 2;
+					Vector3 worldSpacePos = text2DData.transform.MultiplyAffine(text2DData.position);
+					Vector2I screenPos = camera->WorldToScreenPoint(worldSpacePos);
+					screenPos.x -= renderData.textData->GetWidth() / 2;
+					screenPos.y -= renderData.textData->GetHeight() / 2;
 
-					float z = camera->projectPoint(camera->worldToViewPoint(worldSpacePos)).z;
+					float z = camera->ProjectPoint(camera->worldToViewPoint(worldSpacePos)).z;
 
 					for (UINT32 j = 0; j < shapeData.numVertices; j++)
 					{
 						Vector3 VertexPos(screenPos.x + tempVertices[j].x, screenPos.y + tempVertices[j].y, z);
 
-						positionIter[typeIdx].addValue(vertexPos);
-						textUVIter.addValue(tempUVs[j]);
-						colorIter[typeIdx].addValue(text2DData.color.getAsRGBA());
+						positionIter[typeIdx].AddValue(vertexPos);
+						textUVIter.AddValue(tempUVs[j]);
+						colorIter[typeIdx].AddValue(text2DData.color.getAsRGBA());
 					}
 
 					bs_stack_free(tempUVs);

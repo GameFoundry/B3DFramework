@@ -25,7 +25,7 @@ namespace bs
 	public:																													\
 		static ScriptComponentBase* create##ScriptType(const HComponent& component)											\
 		{																													\
-			MonoObject* managedInstance = ScriptType::getMetaData()->scriptClass->createInstance();							\
+			MonoObject* managedInstance = ScriptType::getMetaData()->scriptClass->CreateInstance();							\
 			ScriptType* scriptComponent = new (bs_alloc<ScriptType>())														\
 				ScriptType(managedInstance, static_object_cast<ComponentType>(component));									\
 																															\
@@ -39,7 +39,7 @@ namespace bs
 																															\
 			BuiltinComponentInfo entry;																						\
 			entry.metaData = ScriptType::getMetaData();																		\
-			entry.typeId = ComponentType::getRTTIStatic()->getRTTIId();														\
+			entry.typeId = ComponentType::getRTTIStatic()->GetRTTIId();														\
 			entry.monoClass = nullptr;																						\
 			entry.createCallback = &create##ScriptType;																		\
 																															\

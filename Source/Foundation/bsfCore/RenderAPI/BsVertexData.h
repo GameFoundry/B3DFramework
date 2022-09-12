@@ -36,7 +36,7 @@ namespace bs { namespace ct
 		bool IsBufferBound(UINT32 index) const;
 
 		/**	Gets total number of bound buffers. */
-		UINT32 GetBufferCount() const { return (UINT32)mVertexBuffers.size(); }
+		UINT32 GetBufferCount() const { return (UINT32)mVertexBuffers.Size(); }
 
 		/**	Returns the maximum index of all bound buffers. */
 		UINT32 GetMaxBufferIndex() const { return mMaxBufferIdx; }

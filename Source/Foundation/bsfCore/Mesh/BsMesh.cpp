@@ -24,9 +24,9 @@ namespace bs
 	}
 
 	Mesh::Mesh(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc)
-		:MeshBase(initialMeshData->getNumVertices(), initialMeshData->getNumIndices(), desc.subMeshes),
-		mCPUData(initialMeshData), mVertexDesc(initialMeshData->getVertexDesc()),
-		mUsage(desc.usage), mIndexType(initialMeshData->getIndexType()), mSkeleton(desc.skeleton),
+		:MeshBase(initialMeshData->GetNumVertices(), initialMeshData->getNumIndices(), desc.subMeshes),
+		mCPUData(initialMeshData), mVertexDesc(initialMeshData->GetVertexDesc()),
+		mUsage(desc.usage), mIndexType(initialMeshData->GetIndexType()), mSkeleton(desc.skeleton),
 		mMorphShapes(desc.morphShapes)
 	{ }
 
@@ -44,13 +44,13 @@ namespace bs
 		std::function<void(const SPtr<ct::Mesh>&, const SPtr<MeshData>&, bool, AsyncOp&)> func =
 			[&](const SPtr<ct::Mesh>& mesh, const SPtr<MeshData>& _meshData, bool _discardEntireBuffer, AsyncOp& asyncOp)
 		{
-			mesh->writeData(*_meshData, _discardEntireBuffer, false);
+			mesh->WriteData(*_meshData, _discardEntireBuffer, false);
 			_meshData->_unlock();
 			asyncOp._completeOperation();
 
 		};
 
-		return GCoreThread().queueReturnCommand(std::bind(func, getCore(),
+		return GCoreThread().QueueReturnCommand(std::bind(func, getCore(),
 			 data, discardEntireBuffer, std::placeholders::_1));
 	}
 
@@ -62,15 +62,15 @@ namespace bs
 			[&](const SPtr<ct::Mesh>& mesh, const SPtr<MeshData>& _meshData, AsyncOp& asyncOp)
 		{
 			// Make sure any queued command start executing before reading
-			ct::RenderAPI::instance().submitCommandBuffer(nullptr);
+			ct::RenderAPI::instance().SubmitCommandBuffer(nullptr);
 
-			mesh->readData(*_meshData);
+			mesh->ReadData(*_meshData);
 			_meshData->_unlock();
 			asyncOp._completeOperation();
 
 		};
 
-		return GCoreThread().queueReturnCommand(std::bind(func, getCore(),
+		return GCoreThread().QueueReturnCommand(std::bind(func, getCore(),
 			data, std::placeholders::_1));
 	}
 
@@ -95,7 +95,7 @@ namespace bs
 
 	void Mesh::UpdateBounds(const MeshData& meshData)
 	{
-		mProperties.mBounds = meshData.calculateBounds();
+		mProperties.mBounds = meshData.CalculateBounds();
 		markCoreDirty();
 	}
 
@@ -138,22 +138,22 @@ namespace bs
 			return;
 		}
 
-		if (pixelData.getNumIndices() != mProperties.getNumIndices() ||
-			pixelData.getNumVertices() != mProperties.getNumVertices() ||
-			pixelData.getIndexType() != mIndexType ||
-			pixelData.getVertexDesc()->getVertexStride() != mVertexDesc->getVertexStride())
+		if (pixelData.GetNumIndices() != mProperties.getNumIndices() ||
+			pixelData.GetNumVertices() != mProperties.getNumVertices() ||
+			pixelData.GetIndexType() != mIndexType ||
+			pixelData.GetVertexDesc()->GetVertexStride() != mVertexDesc->getVertexStride())
 		{
 			BS_LOG(Error, Mesh, "Provided buffer is not of valid dimensions or format in order to update this mesh.");
 			return;
 		}
 
-		if (mCPUData->getSize() != pixelData.getSize())
+		if (mCPUData->GetSize() != pixelData.GetSize())
 			BS_EXCEPT(InternalErrorException, "Buffer sizes don't match.");
 
-		UINT8* dest = mCPUData->getData();
-		UINT8* src = pixelData.getData();
+		UINT8* dest = mCPUData->GetData();
+		UINT8* src = pixelData.GetData();
 
-		memcpy(dest, src, pixelData.getSize());
+		memcpy(dest, src, pixelData.GetSize());
 	}
 
 	void Mesh::CreateCPUBuffer()
@@ -163,7 +163,7 @@ namespace bs
 
 	HMesh Mesh::Dummy()
 	{
-		return MeshManager::Instance().getDummyMesh();
+		return MeshManager::Instance().GetDummyMesh();
 	}
 
 	/************************************************************************/
@@ -221,7 +221,7 @@ namespace bs
 	{
 		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(desc));
 		mesh->_setThisPtr(mesh);
-		mesh->initialize();
+		mesh->Initialize();
 
 		return mesh;
 	}
@@ -230,7 +230,7 @@ namespace bs
 	{
 		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(initialMeshData, desc));
 		mesh->_setThisPtr(mesh);
-		mesh->initialize();
+		mesh->Initialize();
 
 		return mesh;
 	}
@@ -239,11 +239,11 @@ namespace bs
 	{
 		MESH_DESC desc;
 		desc.usage = usage;
-		desc.subMeshes.push_back(SubMesh(0, initialMeshData->getNumIndices(), drawOp));
+		desc.subMeshes.push_back(SubMesh(0, initialMeshData->GetNumIndices(), drawOp));
 
 		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(initialMeshData, desc));
 		mesh->_setThisPtr(mesh);
-		mesh->initialize();
+		mesh->Initialize();
 
 		return mesh;
 	}
@@ -293,18 +293,18 @@ namespace bs
 		mVertexData->vertexCount = mProperties.mNumVertices;
 		mVertexData->vertexDeclaration = VertexDeclaration::create(mVertexDesc, mDeviceMask);
 
-		for (UINT32 i = 0; i <= mVertexDesc->getMaxStreamIdx(); i++)
+		for (UINT32 i = 0; i <= mVertexDesc->GetMaxStreamIdx(); i++)
 		{
-			if (!mVertexDesc->hasStream(i))
+			if (!mVertexDesc->HasStream(i))
 				continue;
 
 			VERTEX_BUFFER_DESC vbDesc;
-			vbDesc.vertexSize = mVertexData->vertexDeclaration->getProperties().getVertexSize(i);
+			vbDesc.vertexSize = mVertexData->vertexDeclaration->GetProperties().GetVertexSize(i);
 			vbDesc.numVerts = mVertexData->vertexCount;
 			vbDesc.usage = (GpuBufferUsage)usage;
 
 			SPtr<VertexBuffer> vertexBuffer = VertexBuffer::create(vbDesc, mDeviceMask);
-			mVertexData->setBuffer(i, vertexBuffer);
+			mVertexData->SetBuffer(i, vertexBuffer);
 		}
 
 		// TODO Low priority - DX11 (and maybe OpenGL)? allow an optimization that allows you to set
@@ -361,39 +361,39 @@ namespace bs
 		}
 
 		// Indices
-		const IndexBufferProperties& ibProps = mIndexBuffer->getProperties();
+		const IndexBufferProperties& ibProps = mIndexBuffer->GetProperties();
 
-		UINT32 indicesSize = meshData.getIndexBufferSize();
-		UINT8* srcIdxData = meshData.getIndexData();
+		UINT32 indicesSize = meshData.GetIndexBufferSize();
+		UINT8* srcIdxData = meshData.GetIndexData();
 
-		if (meshData.getIndexElementSize() != ibProps.getIndexSize())
+		if (meshData.GetIndexElementSize() != ibProps.getIndexSize())
 		{
 			BS_LOG(Error, Mesh, "Provided index size doesn't match meshes index size. Needed: {0}. Got: {1}",
-				ibProps.getIndexSize(), meshData.getIndexElementSize());
+				ibProps.GetIndexSize(), meshData.getIndexElementSize());
 
 			return;
 		}
 
-		if (indicesSize > mIndexBuffer->getSize())
+		if (indicesSize > mIndexBuffer->GetSize())
 		{
-			indicesSize = mIndexBuffer->getSize();
+			indicesSize = mIndexBuffer->GetSize();
 			BS_LOG(Error, Mesh, "Index buffer values are being written out of valid range.");
 		}
 
-		mIndexBuffer->writeData(0, indicesSize, srcIdxData, discardEntireBuffer ? BWT_DISCARD : BWT_NORMAL, queueIdx);
+		mIndexBuffer->WriteData(0, indicesSize, srcIdxData, discardEntireBuffer ? BWT_DISCARD : BWT_NORMAL, queueIdx);
 
 		// Vertices
-		for (UINT32 i = 0; i <= mVertexDesc->getMaxStreamIdx(); i++)
+		for (UINT32 i = 0; i <= mVertexDesc->GetMaxStreamIdx(); i++)
 		{
-			if (!mVertexDesc->hasStream(i))
+			if (!mVertexDesc->HasStream(i))
 				continue;
 
-			if (!meshData.getVertexDesc()->hasStream(i))
+			if (!meshData.GetVertexDesc()->HasStream(i))
 				continue;
 
 			// Ensure both have the same sized vertices
-			UINT32 myVertSize = mVertexDesc->getVertexStride(i);
-			UINT32 otherVertSize = meshData.getVertexDesc()->getVertexStride(i);
+			UINT32 myVertSize = mVertexDesc->GetVertexStride(i);
+			UINT32 otherVertSize = meshData.GetVertexDesc()->GetVertexStride(i);
 			if (myVertSize != otherVertSize)
 			{
 				BS_LOG(Error, Mesh, "Provided vertex size for stream {0} doesn't match meshes vertex size. "
@@ -402,14 +402,14 @@ namespace bs
 				continue;
 			}
 
-			SPtr<VertexBuffer> vertexBuffer = mVertexData->getBuffer(i);
+			SPtr<VertexBuffer> vertexBuffer = mVertexData->GetBuffer(i);
 
-			UINT32 bufferSize = meshData.getStreamSize(i);
-			UINT8* srcVertBufferData = meshData.getStreamData(i);
+			UINT32 bufferSize = meshData.GetStreamSize(i);
+			UINT8* srcVertBufferData = meshData.GetStreamData(i);
 
-			if (bufferSize > vertexBuffer->getSize())
+			if (bufferSize > vertexBuffer->GetSize())
 			{
-				bufferSize = vertexBuffer->getSize();
+				bufferSize = vertexBuffer->GetSize();
 				BS_LOG(Error, Mesh, "Vertex buffer values for stream \"{0}\" are being written out of valid range.", i);
 			}
 
@@ -427,33 +427,33 @@ namespace bs
 
 		IndexType indexType = IT_32BIT;
 		if (mIndexBuffer)
-			indexType = mIndexBuffer->getProperties().getType();
+			indexType = mIndexBuffer->GetProperties().GetType();
 
 		if (mIndexBuffer)
 		{
-			const IndexBufferProperties& ibProps = mIndexBuffer->getProperties();
+			const IndexBufferProperties& ibProps = mIndexBuffer->GetProperties();
 
-			if (meshData.getIndexElementSize() != ibProps.getIndexSize())
+			if (meshData.GetIndexElementSize() != ibProps.getIndexSize())
 			{
 				BS_LOG(Error, Mesh, "Provided index size doesn't match meshes index size. Needed: {0}. Got: {1}",
-					ibProps.getIndexSize(), meshData.getIndexElementSize());
+					ibProps.GetIndexSize(), meshData.getIndexElementSize());
 				return;
 			}
 
-			UINT8* idxData = static_cast<UINT8*>(mIndexBuffer->lock(GBL_READ_ONLY, deviceIdx, queueIdx));
-			UINT32 idxElemSize = ibProps.getIndexSize();
+			UINT8* idxData = static_cast<UINT8*>(mIndexBuffer->Lock(GBL_READ_ONLY, deviceIdx, queueIdx));
+			UINT32 idxElemSize = ibProps.GetIndexSize();
 
 			UINT8* indices = nullptr;
 
 			if (indexType == IT_16BIT)
-				indices = (UINT8*)meshData.getIndices16();
+				indices = (UINT8*)meshData.GetIndices16();
 			else
-				indices = (UINT8*)meshData.getIndices32();
+				indices = (UINT8*)meshData.GetIndices32();
 
-			UINT32 numIndicesToCopy = std::min(mProperties.mNumIndices, meshData.getNumIndices());
+			UINT32 numIndicesToCopy = std::min(mProperties.mNumIndices, meshData.GetNumIndices());
 
 			UINT32 indicesSize = numIndicesToCopy * idxElemSize;
-			if (indicesSize > meshData.getIndexBufferSize())
+			if (indicesSize > meshData.GetIndexBufferSize())
 			{
 				BS_LOG(Error, Mesh, "Provided buffer doesn't have enough space to store mesh indices.");
 				return;
@@ -461,25 +461,25 @@ namespace bs
 
 			memcpy(indices, idxData, numIndicesToCopy * idxElemSize);
 
-			mIndexBuffer->unlock();
+			mIndexBuffer->Unlock();
 		}
 
 		if (mVertexData)
 		{
-			auto vertexBuffers = mVertexData->getBuffers();
+			auto vertexBuffers = mVertexData->GetBuffers();
 
 			UINT32 streamIdx = 0;
-			for (auto iter = vertexBuffers.begin(); iter != vertexBuffers.end(); ++iter)
+			for (auto iter = vertexBuffers.Begin(); iter != vertexBuffers.end(); ++iter)
 			{
-				if (!meshData.getVertexDesc()->hasStream(streamIdx))
+				if (!meshData.GetVertexDesc()->HasStream(streamIdx))
 					continue;
 
 				SPtr<VertexBuffer> vertexBuffer = iter->second;
-				const VertexBufferProperties& vbProps = vertexBuffer->getProperties();
+				const VertexBufferProperties& vbProps = vertexBuffer->GetProperties();
 
 				// Ensure both have the same sized vertices
-				UINT32 myVertSize = mVertexDesc->getVertexStride(streamIdx);
-				UINT32 otherVertSize = meshData.getVertexDesc()->getVertexStride(streamIdx);
+				UINT32 myVertSize = mVertexDesc->GetVertexStride(streamIdx);
+				UINT32 otherVertSize = meshData.GetVertexDesc()->GetVertexStride(streamIdx);
 				if (myVertSize != otherVertSize)
 				{
 					BS_LOG(Error, Mesh, "Provided vertex size for stream {0} doesn't match meshes vertex size. "
@@ -488,22 +488,22 @@ namespace bs
 					continue;
 				}
 
-				UINT32 numVerticesToCopy = meshData.getNumVertices();
-				UINT32 bufferSize = vbProps.getVertexSize() * numVerticesToCopy;
+				UINT32 numVerticesToCopy = meshData.GetNumVertices();
+				UINT32 bufferSize = vbProps.GetVertexSize() * numVerticesToCopy;
 
-				if (bufferSize > vertexBuffer->getSize())
+				if (bufferSize > vertexBuffer->GetSize())
 				{
 					BS_LOG(Error, Mesh, "Vertex buffer values for stream \"{0}\" are being read out of valid range.",
 						streamIdx);
 					continue;
 				}
 
-				UINT8* vertDataPtr = static_cast<UINT8*>(vertexBuffer->lock(GBL_READ_ONLY, deviceIdx, queueIdx));
+				UINT8* vertDataPtr = static_cast<UINT8*>(vertexBuffer->Lock(GBL_READ_ONLY, deviceIdx, queueIdx));
 
-				UINT8* dest = meshData.getStreamData(streamIdx);
+				UINT8* dest = meshData.GetStreamData(streamIdx);
 				memcpy(dest, vertDataPtr, bufferSize);
 
-				vertexBuffer->unlock();
+				vertexBuffer->Unlock();
 
 				streamIdx++;
 			}
@@ -512,7 +512,7 @@ namespace bs
 
 	void Mesh::UpdateBounds(const MeshData& meshData)
 	{
-		mProperties.mBounds = meshData.calculateBounds();
+		mProperties.mBounds = meshData.CalculateBounds();
 
 		// TODO - Sync this to sim-thread possibly?
 	}
@@ -530,7 +530,7 @@ namespace bs
 
 		SPtr<Mesh> mesh = bs_shared_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(nullptr, desc, deviceMask));
 		mesh->_setThisPtr(mesh);
-		mesh->initialize();
+		mesh->Initialize();
 
 		return mesh;
 	}
@@ -540,7 +540,7 @@ namespace bs
 		SPtr<Mesh> mesh = bs_shared_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(nullptr, desc, deviceMask));
 
 		mesh->_setThisPtr(mesh);
-		mesh->initialize();
+		mesh->Initialize();
 
 		return mesh;
 	}
@@ -548,16 +548,16 @@ namespace bs
 	SPtr<Mesh> Mesh::Create(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc, GpuDeviceFlags deviceMask)
 	{
 		MESH_DESC descCopy = desc;
-		descCopy.numVertices = initialMeshData->getNumVertices();
-		descCopy.numIndices = initialMeshData->getNumIndices();
-		descCopy.vertexDesc = initialMeshData->getVertexDesc();
-		descCopy.indexType = initialMeshData->getIndexType();
+		descCopy.numVertices = initialMeshData->GetNumVertices();
+		descCopy.numIndices = initialMeshData->GetNumIndices();
+		descCopy.vertexDesc = initialMeshData->GetVertexDesc();
+		descCopy.indexType = initialMeshData->GetIndexType();
 
 		SPtr<Mesh> mesh =
 			bs_shared_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(initialMeshData, descCopy, deviceMask));
 
 		mesh->_setThisPtr(mesh);
-		mesh->initialize();
+		mesh->Initialize();
 
 		return mesh;
 	}
@@ -566,18 +566,18 @@ namespace bs
 		GpuDeviceFlags deviceMask)
 	{
 		MESH_DESC desc;
-		desc.numVertices = initialMeshData->getNumVertices();
-		desc.numIndices = initialMeshData->getNumIndices();
-		desc.vertexDesc = initialMeshData->getVertexDesc();
-		desc.indexType = initialMeshData->getIndexType();
-		desc.subMeshes.push_back(SubMesh(0, initialMeshData->getNumIndices(), drawOp));
+		desc.numVertices = initialMeshData->GetNumVertices();
+		desc.numIndices = initialMeshData->GetNumIndices();
+		desc.vertexDesc = initialMeshData->GetVertexDesc();
+		desc.indexType = initialMeshData->GetIndexType();
+		desc.subMeshes.push_back(SubMesh(0, initialMeshData->GetNumIndices(), drawOp));
 		desc.usage = usage;
 
 		SPtr<Mesh> mesh =
 			bs_shared_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(initialMeshData, desc, deviceMask));
 
 		mesh->_setThisPtr(mesh);
-		mesh->initialize();
+		mesh->Initialize();
 
 		return mesh;
 	}

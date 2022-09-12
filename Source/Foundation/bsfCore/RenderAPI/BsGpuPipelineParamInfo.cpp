@@ -94,7 +94,7 @@ namespace bs
 		for (UINT32 i = 0; i < (UINT32)ParamType::Count; i++)
 			mAlloc.reserve<ResourceInfo>(mNumElementsPerType[i]);
 
-		mAlloc.init();
+		mAlloc.Init();
 
 		mSetInfos = mAlloc.alloc<SetInfo>(mNumSets);
 
@@ -256,8 +256,8 @@ namespace bs
 	{
 		auto findBinding = [](auto& paramMap, const String& name, GpuParamBinding& binding)
 		{
-			auto iterFind = paramMap.find(name);
-			if (iterFind != paramMap.end())
+			auto iterFind = paramMap.Find(name);
+			if (iterFind != paramMap.End())
 			{
 				binding.set = iterFind->second.set;
 				binding.slot = iterFind->second.slot;
@@ -304,7 +304,7 @@ namespace bs
 		SPtr<GpuPipelineParamInfo> paramInfo =
 			bs_core_ptr<GpuPipelineParamInfo>(new (bs_alloc<GpuPipelineParamInfo>()) GpuPipelineParamInfo(desc));
 		paramInfo->_setThisPtr(paramInfo);
-		paramInfo->initialize();
+		paramInfo->Initialize();
 
 		return paramInfo;
 	}
@@ -336,7 +336,7 @@ namespace bs
 	SPtr<GpuPipelineParamInfo> GpuPipelineParamInfo::create(const GPU_PIPELINE_PARAMS_DESC& desc,
 		GpuDeviceFlags deviceMask)
 	{
-		return RenderStateManager::Instance().createPipelineParamInfo(desc, deviceMask);
+		return RenderStateManager::Instance().CreatePipelineParamInfo(desc, deviceMask);
 	}
 	}
 }

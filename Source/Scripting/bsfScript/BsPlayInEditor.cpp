@@ -16,18 +16,18 @@ namespace bs
 		:mState(PlayInEditorState::Stopped), mNextState(PlayInEditorState::Stopped),
 		mFrameStepActive(false), mScheduledStateChange(false), mPausableTime(0.0f)
 	{
-		if (!gApplication().isEditor())
+		if (!gApplication().IsEditor())
 			mState = PlayInEditorState::Playing;
 		else
 		{
 			setSystemsPauseState(true);
-			gSceneManager().setComponentState(ComponentState::Stopped);
+			gSceneManager().SetComponentState(ComponentState::Stopped);
 		}
 	}
 
 	void PlayInEditor::SetState(PlayInEditorState state)
 	{
-		if (!gApplication().isEditor())
+		if (!gApplication().IsEditor())
 			return;
 
 		// Delay state change to next frame as this method could be called in middle of object update, in which case
@@ -53,7 +53,7 @@ namespace bs
 
 			setSystemsPauseState(true);
 
-			gSceneManager().setComponentState(ComponentState::Stopped);
+			gSceneManager().SetComponentState(ComponentState::Stopped);
 			mSavedScene->_instantiate();
 			gSceneManager()._setRootNode(mSavedScene);
 
@@ -66,9 +66,9 @@ namespace bs
 			if (oldState == PlayInEditorState::Stopped)
 				saveSceneInMemory();
 
-			gSceneManager().setComponentState(ComponentState::Running);
+			gSceneManager().SetComponentState(ComponentState::Running);
 			setSystemsPauseState(false);
-			gAnimation().setPaused(false);
+			gAnimation().SetPaused(false);
 
 			if (oldState == PlayInEditorState::Stopped)
 				onPlay();
@@ -80,12 +80,12 @@ namespace bs
 		{
 			mFrameStepActive = false;
 			setSystemsPauseState(true);
-			gAnimation().setPaused(true);
+			gAnimation().SetPaused(true);
 
 			if (oldState == PlayInEditorState::Stopped)
 				saveSceneInMemory();
 
-			gSceneManager().setComponentState(ComponentState::Paused);
+			gSceneManager().SetComponentState(ComponentState::Paused);
 
 			if (oldState == PlayInEditorState::Stopped)
 				onPlay();
@@ -100,7 +100,7 @@ namespace bs
 
 	void PlayInEditor::FrameStep()
 	{
-		if (!gApplication().isEditor())
+		if (!gApplication().IsEditor())
 			return;
 
 		switch (mState)
@@ -119,7 +119,7 @@ namespace bs
 	void PlayInEditor::Update()
 	{
 		if (mState == PlayInEditorState::Playing)
-			mPausableTime += gTime().getFrameDelta();
+			mPausableTime += gTime().GetFrameDelta();
 
 		if (mScheduledStateChange)
 		{
@@ -136,31 +136,31 @@ namespace bs
 
 	void PlayInEditor::SaveSceneInMemory()
 	{
-		mSavedScene = SceneManager::instance().getMainScene()->getRoot()->clone(false, true);
+		mSavedScene = SceneManager::instance().GetMainScene()->GetRoot()->clone(false, true);
 
 		// Remove objects with "dont save" flag
 		Stack<HSceneObject> todo;
-		todo.push(mSavedScene);
+		todo.Push(mSavedScene);
 
-		while (!todo.empty())
+		while (!todo.Empty())
 		{
-			HSceneObject current = todo.top();
-			todo.pop();
+			HSceneObject current = todo.Top();
+			todo.Pop();
 
-			if (current->hasFlag(SOF_DontSave))
-				current->destroy();
+			if (current->HasFlag(SOF_DontSave))
+				current->Destroy();
 			else
 			{
-				UINT32 numChildren = current->getNumChildren();
+				UINT32 numChildren = current->GetNumChildren();
 				for (UINT32 i = 0; i < numChildren; i++)
-					todo.push(current->getChild(i));
+					todo.Push(current->GetChild(i));
 			}
 		}
 	}
 
 	void PlayInEditor::SetSystemsPauseState(bool paused)
 	{
-		gPhysics().setPaused(paused);
-		gAudio().setPaused(paused);
+		gPhysics().SetPaused(paused);
+		gAudio().SetPaused(paused);
 	}
 }

@@ -28,7 +28,7 @@ namespace bs
 	{
 		mInternal->_updateState(*SO());
 
-		return mInternal->getBounds();
+		return mInternal->GetBounds();
 	}
 
 	void CLight::OnInitialized()
@@ -36,7 +36,7 @@ namespace bs
 		// If mInternal already exists this means this object was deserialized,
 		// so all we need to do is initialize it.
 		if (mInternal != nullptr)
-			mInternal->initialize();
+			mInternal->Initialize();
 		else
 		{
 			mInternal = Light::create(
@@ -55,7 +55,7 @@ namespace bs
 	void CLight::OnDestroyed()
 	{
 		gSceneManager()._unbindActor(mInternal);
-		mInternal->destroy();
+		mInternal->Destroy();
 	}
 	
 	RTTITypeBase* CLight::getRTTIStatic()

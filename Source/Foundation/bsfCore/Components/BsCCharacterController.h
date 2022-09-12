@@ -127,7 +127,7 @@ namespace bs
 		 */
 
 		/**	Returns the character controller that this component wraps. */
-		CharacterController* _getInternal() const { return static_cast<CharacterController*>(mInternal.get()); }
+		CharacterController* _getInternal() const { return static_cast<CharacterController*>(mInternal.Get()); }
 
 		/** @} */
 

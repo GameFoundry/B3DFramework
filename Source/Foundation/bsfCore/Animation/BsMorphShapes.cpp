@@ -28,10 +28,10 @@ namespace bs
 	MorphChannel::MorphChannel(const String& name, const Vector<SPtr<MorphShape>>& shapes)
 		:mName(name), mShapes(shapes)
 	{
-		std::sort(mShapes.begin(), mShapes.end(),
+		std::sort(mShapes.Begin(), mShapes.end(),
 			[](auto& x, auto& y)
 		{
-			return x->getWeight() < y->getWeight();
+			return x->GetWeight() < y->getWeight();
 		});
 	}
 

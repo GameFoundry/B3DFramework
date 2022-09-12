@@ -17,10 +17,10 @@ namespace bs
 
 	void ScriptParticleSize::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_setOptions", (void*)&ScriptParticleSize::Internal_setOptions);
-		metaData.scriptClass->addInternalCall("Internal_getOptions", (void*)&ScriptParticleSize::Internal_getOptions);
-		metaData.scriptClass->addInternalCall("Internal_create", (void*)&ScriptParticleSize::Internal_create);
-		metaData.scriptClass->addInternalCall("Internal_create0", (void*)&ScriptParticleSize::Internal_create0);
+		metaData.scriptClass->AddInternalCall("Internal_setOptions", (void*)&ScriptParticleSize::Internal_setOptions);
+		metaData.scriptClass->AddInternalCall("Internal_getOptions", (void*)&ScriptParticleSize::Internal_getOptions);
+		metaData.scriptClass->AddInternalCall("Internal_create", (void*)&ScriptParticleSize::Internal_create);
+		metaData.scriptClass->AddInternalCall("Internal_create0", (void*)&ScriptParticleSize::Internal_create0);
 
 	}
 
@@ -31,7 +31,7 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.scriptClass->createInstance("bool", ctorParams);
+		MonoObject* managedInstance = metaData.scriptClass->CreateInstance("bool", ctorParams);
 		new (bs_alloc<ScriptParticleSize>()) ScriptParticleSize(managedInstance, value);
 		return managedInstance;
 	}
@@ -39,13 +39,13 @@ namespace bs
 	{
 		PARTICLE_SIZE_DESC tmpoptions;
 		tmpoptions = ScriptPARTICLE_SIZE_DESC::fromInterop(*options);
-		thisPtr->getInternal()->setOptions(tmpoptions);
+		thisPtr->GetInternal()->setOptions(tmpoptions);
 	}
 
 	void ScriptParticleSize::Internal_getOptions(ScriptParticleSize* thisPtr, __PARTICLE_SIZE_DESCInterop* __output)
 	{
 		PARTICLE_SIZE_DESC tmp__output;
-		tmp__output = thisPtr->getInternal()->getOptions();
+		tmp__output = thisPtr->GetInternal()->getOptions();
 
 		__PARTICLE_SIZE_DESCInterop interop__output;
 		interop__output = ScriptPARTICLE_SIZE_DESC::toInterop(tmp__output);

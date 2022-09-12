@@ -110,19 +110,19 @@ namespace bs
 		/** Frees the internal buffers. */
 		void Free()
 		{
-			if(prevPosition) alloc.free(prevPosition);
-			if(position) alloc.free(position);
-			if(velocity) alloc.free(velocity);
-			if(size) alloc.free(size);
-			if(rotation) alloc.free(rotation);
-			if(lifetime) alloc.free(lifetime);
-			if(initialLifetime) alloc.free(initialLifetime);
-			if(color) alloc.free(color);
-			if(seed) alloc.free(seed);
-			if(frame) alloc.free(frame);
-			if(indices) alloc.free(indices);
+			if(prevPosition) alloc.Free(prevPosition);
+			if(position) alloc.Free(position);
+			if(velocity) alloc.Free(velocity);
+			if(size) alloc.Free(size);
+			if(rotation) alloc.Free(rotation);
+			if(lifetime) alloc.Free(lifetime);
+			if(initialLifetime) alloc.Free(initialLifetime);
+			if(color) alloc.Free(color);
+			if(seed) alloc.Free(seed);
+			if(frame) alloc.Free(frame);
+			if(indices) alloc.Free(indices);
 
-			alloc.clear();
+			alloc.Clear();
 		}
 
 		/** Transfers ownership of @p other internal buffers to this object. */

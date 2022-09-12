@@ -35,8 +35,8 @@ namespace bs
 	{
 		mDefaultClip = clip;
 
-		if(clip.isLoaded() && mInternal != nullptr && !mPreviewMode)
-			mInternal->play(clip);
+		if(clip.IsLoaded() && mInternal != nullptr && !mPreviewMode)
+			mInternal->Play(clip);
 	}
 
 	void CAnimation::SetWrapMode(AnimWrapMode wrapMode)
@@ -44,7 +44,7 @@ namespace bs
 		mWrapMode = wrapMode;
 
 		if (mInternal != nullptr && !mPreviewMode)
-			mInternal->setWrapMode(wrapMode);
+			mInternal->SetWrapMode(wrapMode);
 	}
 
 	void CAnimation::SetSpeed(float speed)
@@ -52,61 +52,61 @@ namespace bs
 		mSpeed = speed;
 
 		if (mInternal != nullptr && !mPreviewMode)
-			mInternal->setSpeed(speed);
+			mInternal->SetSpeed(speed);
 	}
 
 	void CAnimation::Play(const HAnimationClip& clip)
 	{
 		if (mInternal != nullptr && !mPreviewMode)
-			mInternal->play(clip);
+			mInternal->Play(clip);
 	}
 
 	void CAnimation::BlendAdditive(const HAnimationClip& clip, float weight, float fadeLength, UINT32 layer)
 	{
 		if (mInternal != nullptr && !mPreviewMode)
-			mInternal->blendAdditive(clip, weight, fadeLength, layer);
+			mInternal->BlendAdditive(clip, weight, fadeLength, layer);
 	}
 
 	void CAnimation::Blend1D(const Blend1DInfo& info, float t)
 	{
 		if (mInternal != nullptr && !mPreviewMode)
-			mInternal->blend1D(info, t);
+			mInternal->Blend1D(info, t);
 	}
 
 	void CAnimation::Blend2D(const Blend2DInfo& info, const Vector2& t)
 	{
 		if (mInternal != nullptr && !mPreviewMode)
-			mInternal->blend2D(info, t);
+			mInternal->Blend2D(info, t);
 	}
 
 	void CAnimation::CrossFade(const HAnimationClip& clip, float fadeLength)
 	{
 		if (mInternal != nullptr && !mPreviewMode)
-			mInternal->crossFade(clip, fadeLength);
+			mInternal->CrossFade(clip, fadeLength);
 	}
 
 	void CAnimation::Sample(const HAnimationClip& clip, float time)
 	{
 		if (mInternal != nullptr)
-			mInternal->sample(clip, time);
+			mInternal->Sample(clip, time);
 	}
 
 	void CAnimation::Stop(UINT32 layer)
 	{
 		if (mInternal != nullptr && !mPreviewMode)
-			mInternal->stop(layer);
+			mInternal->Stop(layer);
 	}
 
 	void CAnimation::StopAll()
 	{
 		if (mInternal != nullptr && !mPreviewMode)
-			mInternal->stopAll();
+			mInternal->StopAll();
 	}
 
 	bool CAnimation::IsPlaying() const
 	{
 		if (mInternal != nullptr)
-			return mInternal->isPlaying();
+			return mInternal->IsPlaying();
 
 		return false;
 	}
@@ -114,7 +114,7 @@ namespace bs
 	bool CAnimation::GetState(const HAnimationClip& clip, AnimationClipState& state)
 	{
 		if (mInternal != nullptr)
-			return mInternal->getState(clip, state);
+			return mInternal->GetState(clip, state);
 
 		return false;
 	}
@@ -122,7 +122,7 @@ namespace bs
 	void CAnimation::SetState(const HAnimationClip& clip, AnimationClipState state)
 	{
 		if (mInternal != nullptr)
-			return mInternal->setState(clip, state);
+			return mInternal->SetState(clip, state);
 	}
 
 	void CAnimation::SetMorphChannelWeight(const String& name, float weight)
@@ -133,20 +133,20 @@ namespace bs
 		if (mAnimatedRenderable == nullptr)
 			return;
 
-		HMesh mesh = mAnimatedRenderable->getMesh();
-		if (!mesh.isLoaded())
+		HMesh mesh = mAnimatedRenderable->GetMesh();
+		if (!mesh.IsLoaded())
 			return;
 
-		SPtr<MorphShapes> morphShapes = mesh->getMorphShapes();
+		SPtr<MorphShapes> morphShapes = mesh->GetMorphShapes();
 		if (morphShapes == nullptr)
 			return;
 
-		const Vector<SPtr<MorphChannel>>& channels = morphShapes->getChannels();
-		for (UINT32 i = 0; i < (UINT32)channels.size(); i++)
+		const Vector<SPtr<MorphChannel>>& channels = morphShapes->GetChannels();
+		for (UINT32 i = 0; i < (UINT32)channels.Size(); i++)
 		{
-			if (channels[i]->getName() == name)
+			if (channels[i]->GetName() == name)
 			{
-				mInternal->setMorphChannelWeight(i, weight);
+				mInternal->SetMorphChannelWeight(i, weight);
 				break;
 			}
 		}
@@ -162,14 +162,14 @@ namespace bs
 			{
 				SPtr<Renderable> renderable = mAnimatedRenderable->_getInternal();
 				if (renderable != nullptr)
-					renderable->setOverrideBounds(bounds);
+					renderable->SetOverrideBounds(bounds);
 
 				if(mInternal != nullptr && !mPreviewMode)
 				{
 					AABox bounds = mBounds;
 
-					bounds.transformAffine(SO()->getWorldMatrix());
-					mInternal->setBounds(bounds);
+					bounds.TransformAffine(SO()->GetWorldMatrix());
+					mInternal->SetBounds(bounds);
 				}
 			}
 		}
@@ -187,13 +187,13 @@ namespace bs
 		mEnableCull = enable;
 
 		if (mInternal != nullptr && !mPreviewMode)
-			mInternal->setCulling(enable);
+			mInternal->SetCulling(enable);
 	}
 
 	UINT32 CAnimation::GetNumClips() const
 	{
 		if (mInternal != nullptr)
-			return mInternal->getNumClips();
+			return mInternal->GetNumClips();
 
 		return 0;
 	}
@@ -201,7 +201,7 @@ namespace bs
 	HAnimationClip CAnimation::GetClip(UINT32 idx) const
 	{
 		if (mInternal != nullptr)
-			return mInternal->getClip(idx);
+			return mInternal->GetClip(idx);
 
 		return HAnimationClip();
 	}
@@ -229,13 +229,13 @@ namespace bs
 			mPreviewMode = false;
 		}
 		
-		if(SceneManager::instance().isRunning())
+		if(SceneManager::instance().IsRunning())
 			restoreInternal(false);
 	}
 
 	void CAnimation::Update()
 	{
-		const bool isRunning = SceneManager::instance().isRunning();
+		const bool isRunning = SceneManager::instance().IsRunning();
 		if(!isRunning && !mPreviewMode)
 		{
 			// Make sure attached CBone components match the position of the skeleton bones even when the component is not
@@ -244,10 +244,10 @@ namespace bs
 			HRenderable animatedRenderable = SO()->getComponent<CRenderable>();
 			if(animatedRenderable)
 			{
-				HMesh mesh = animatedRenderable->getMesh();
-				if(mesh.isLoaded())
+				HMesh mesh = animatedRenderable->GetMesh();
+				if(mesh.IsLoaded())
 				{
-					const SPtr<Skeleton>& skeleton = mesh->getSkeleton();
+					const SPtr<Skeleton>& skeleton = mesh->GetSkeleton();
 					if(skeleton)
 					{
 						for (auto& entry : mMappingInfos)
@@ -256,21 +256,21 @@ namespace bs
 							if(!entry.isMappedToBone || entry.bone == nullptr)
 								continue;
 
-							const UINT32 numBones = skeleton->getNumBones();
+							const UINT32 numBones = skeleton->GetNumBones();
 							for (UINT32 j = 0; j < numBones; j++)
 							{
-								if (skeleton->getBoneInfo(j).name == entry.bone->getBoneName())
+								if (skeleton->GetBoneInfo(j).name == entry.bone->getBoneName())
 								{
-									Matrix4 bindPose = skeleton->getInvBindPose(j).inverseAffine();
-									bindPose = SO()->getTransform().getMatrix() * bindPose;
+									Matrix4 bindPose = skeleton->GetInvBindPose(j).InverseAffine();
+									bindPose = SO()->GetTransform().GetMatrix() * bindPose;
 
 									Vector3 position, scale;
 									Quaternion rotation;
-									bindPose.decomposition(position, rotation, scale);
+									bindPose.Decomposition(position, rotation, scale);
 
-									entry.sceneObject->setWorldPosition(position);
-									entry.sceneObject->setWorldRotation(rotation);
-									entry.sceneObject->setWorldScale(scale);
+									entry.sceneObject->SetWorldPosition(position);
+									entry.sceneObject->SetWorldRotation(rotation);
+									entry.sceneObject->SetWorldScale(scale);
 
 									break;
 								}
@@ -284,7 +284,7 @@ namespace bs
 		if (mInternal == nullptr || !isRunning)
 			return;
 
-		HAnimationClip newPrimaryClip = mInternal->getClip(0);
+		HAnimationClip newPrimaryClip = mInternal->GetClip(0);
 		if (newPrimaryClip != mPrimaryPlayingClip)
 			_refreshClipMappings();
 
@@ -294,7 +294,7 @@ namespace bs
 
 	void CAnimation::OnTransformChanged(TransformChangedFlags flags)
 	{
-		if (!SO()->getActive())
+		if (!SO()->GetActive())
 			return;
 
 		if ((flags & (TCF_Transform)) != 0)
@@ -312,22 +312,22 @@ namespace bs
 
 		if (!previewMode)
 		{
-			mInternal->onEventTriggered.connect(std::bind(&CAnimation::eventTriggered, this, _1, _2));
+			mInternal->onEventTriggered.Connect(std::bind(&CAnimation::eventTriggered, this, _1, _2));
 
-			mInternal->setWrapMode(mWrapMode);
-			mInternal->setSpeed(mSpeed);
-			mInternal->setCulling(mEnableCull);
+			mInternal->SetWrapMode(mWrapMode);
+			mInternal->SetSpeed(mSpeed);
+			mInternal->SetCulling(mEnableCull);
 		}
 
 		_updateBounds();
 
 		if (!previewMode)
 		{
-			if (mDefaultClip.isLoaded())
-				mInternal->play(mDefaultClip);
+			if (mDefaultClip.IsLoaded())
+				mInternal->Play(mDefaultClip);
 
-			mPrimaryPlayingClip = mInternal->getClip(0);
-			if (mPrimaryPlayingClip.isLoaded())
+			mPrimaryPlayingClip = mInternal->GetClip(0);
+			if (mPrimaryPlayingClip.IsLoaded())
 			{
 				if (_scriptRebuildFloatProperties)
 					_scriptRebuildFloatProperties(mPrimaryPlayingClip);
@@ -356,7 +356,7 @@ namespace bs
 
 	bool CAnimation::_togglePreviewMode(bool enabled)
 	{
-		bool isRunning = SceneManager::instance().isRunning();
+		bool isRunning = SceneManager::instance().IsRunning();
 
 		if(enabled)
 		{
@@ -392,7 +392,7 @@ namespace bs
 		if (mInternal == nullptr)
 			return false;
 
-		return mInternal->getGenericCurveValue(curveIdx, value);
+		return mInternal->GetGenericCurveValue(curveIdx, value);
 	}
 
 	void CAnimation::MapCurveToSceneObject(const String& curve, const HSceneObject& so)
@@ -400,7 +400,7 @@ namespace bs
 		if (mInternal == nullptr)
 			return;
 
-		mInternal->mapCurveToSceneObject(curve, so);
+		mInternal->MapCurveToSceneObject(curve, so);
 	}
 
 	void CAnimation::UnmapSceneObject(const HSceneObject& so)
@@ -408,7 +408,7 @@ namespace bs
 		if (mInternal == nullptr)
 			return;
 
-		mInternal->unmapSceneObject(so);
+		mInternal->UnmapSceneObject(so);
 	}
 
 	void CAnimation::_addBone(HBone bone)
@@ -423,20 +423,20 @@ namespace bs
 		mMappingInfos.push_back(newMapping);
 
 		if(mInternal)
-			mInternal->mapCurveToSceneObject(newMapping.bone->getBoneName(), newMapping.sceneObject);
+			mInternal->MapCurveToSceneObject(newMapping.bone->getBoneName(), newMapping.sceneObject);
 	}
 
 	void CAnimation::_removeBone(const HBone& bone)
 	{
 		HSceneObject newSO;
-		for (UINT32 i = 0; i < (UINT32)mMappingInfos.size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mMappingInfos.Size(); i++)
 		{
 			if (mMappingInfos[i].bone == bone)
 			{
 				if(mInternal)
-					mInternal->unmapSceneObject(mMappingInfos[i].sceneObject);
+					mInternal->UnmapSceneObject(mMappingInfos[i].sceneObject);
 
-				mMappingInfos.erase(mMappingInfos.begin() + i);
+				mMappingInfos.Erase(mMappingInfos.begin() + i);
 				i--;
 			}
 		}
@@ -447,12 +447,12 @@ namespace bs
 		if (mInternal == nullptr)
 			return;
 
-		for (UINT32 i = 0; i < (UINT32)mMappingInfos.size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mMappingInfos.Size(); i++)
 		{
 			if (mMappingInfos[i].bone == bone)
 			{
-				mInternal->unmapSceneObject(mMappingInfos[i].sceneObject);
-				mInternal->mapCurveToSceneObject(bone->getBoneName(), mMappingInfos[i].sceneObject);
+				mInternal->UnmapSceneObject(mMappingInfos[i].sceneObject);
+				mInternal->MapCurveToSceneObject(bone->getBoneName(), mMappingInfos[i].sceneObject);
 				break;
 			}
 		}
@@ -480,44 +480,44 @@ namespace bs
 		{
 			if (renderable != nullptr)
 			{
-				renderable->setUseOverrideBounds(true);
-				renderable->setOverrideBounds(mBounds);
+				renderable->SetUseOverrideBounds(true);
+				renderable->SetOverrideBounds(mBounds);
 			}
 
 			if (mInternal != nullptr)
 			{
 				AABox bounds = mBounds;
-				bounds.transformAffine(SO()->getWorldMatrix());
+				bounds.TransformAffine(SO()->GetWorldMatrix());
 
-				mInternal->setBounds(bounds);
+				mInternal->SetBounds(bounds);
 			}
 		}
 		else
 		{
 			if (renderable != nullptr)
-				renderable->setUseOverrideBounds(false);
+				renderable->SetUseOverrideBounds(false);
 
 			if (mInternal != nullptr)
 			{
 				AABox bounds;
 				if (mAnimatedRenderable != nullptr)
-					bounds = mAnimatedRenderable->getBounds().getBox();
+					bounds = mAnimatedRenderable->GetBounds().GetBox();
 
-				mInternal->setBounds(bounds);
+				mInternal->SetBounds(bounds);
 			}
 		}
 	}
 
 	void CAnimation::SetBoneMappings()
 	{
-		mMappingInfos.clear();
+		mMappingInfos.Clear();
 
 		SceneObjectMappingInfo rootMapping;
 		rootMapping.sceneObject = SO();
 		rootMapping.isMappedToBone = true;
 
 		mMappingInfos.push_back(rootMapping);
-		mInternal->mapCurveToSceneObject("", rootMapping.sceneObject);
+		mInternal->MapCurveToSceneObject("", rootMapping.sceneObject);
 
 		Vector<HBone> childBones = findChildBones();
 		for (auto& entry : childBones)
@@ -535,19 +535,19 @@ namespace bs
 				unmapSceneObject(entry.sceneObject);
 		}
 
-		if (mPrimaryPlayingClip.isLoaded())
+		if (mPrimaryPlayingClip.IsLoaded())
 		{
 			HSceneObject root = SO();
 
 			const auto& findMappings = [&](const String& name, AnimationCurveFlags flags)
 			{
-				if (flags.isSet(AnimationCurveFlag::ImportedCurve))
+				if (flags.IsSet(AnimationCurveFlag::ImportedCurve))
 					return;
 
-				HSceneObject currentSO = root->findPath(name);
+				HSceneObject currentSO = root->FindPath(name);
 
 				bool found = false;
-				for (UINT32 i = 0; i < (UINT32)newMappingInfos.size(); i++)
+				for (UINT32 i = 0; i < (UINT32)newMappingInfos.Size(); i++)
 				{
 					if (newMappingInfos[i].sceneObject == currentSO)
 					{
@@ -567,7 +567,7 @@ namespace bs
 				}
 			};
 
-			SPtr<AnimationCurves> curves = mPrimaryPlayingClip->getCurves();
+			SPtr<AnimationCurves> curves = mPrimaryPlayingClip->GetCurves();
 			for(auto& curve : curves->position)
 				findMappings(curve.name, curve.flags);
 
@@ -583,7 +583,7 @@ namespace bs
 
 	void CAnimation::_refreshClipMappings()
 	{
-		mPrimaryPlayingClip = mInternal->getClip(0);
+		mPrimaryPlayingClip = mInternal->GetClip(0);
 
 		if (_scriptRebuildFloatProperties)
 			_scriptRebuildFloatProperties(mPrimaryPlayingClip);
@@ -594,13 +594,13 @@ namespace bs
 	Vector<HBone> CAnimation::FindChildBones()
 	{
 		Stack<HSceneObject> todo;
-		todo.push(SO());
+		todo.Push(SO());
 
 		Vector<HBone> bones;
-		while (todo.size() > 0)
+		while (todo.Size() > 0)
 		{
-			HSceneObject currentSO = todo.top();
-			todo.pop();
+			HSceneObject currentSO = todo.Top();
+			todo.Pop();
 
 			HBone bone = currentSO->getComponent<CBone>();
 			if (bone != nullptr)
@@ -609,14 +609,14 @@ namespace bs
 				bones.push_back(bone);
 			}
 
-			int childCount = currentSO->getNumChildren();
+			int childCount = currentSO->GetNumChildren();
 			for (int i = 0; i < childCount; i++)
 			{
-				HSceneObject child = currentSO->getChild(i);
+				HSceneObject child = currentSO->GetChild(i);
 				if (child->getComponent<CAnimation>() != nullptr)
 					continue;
 
-				todo.push(child);
+				todo.Push(child);
 			}
 		}
 

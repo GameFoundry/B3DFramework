@@ -59,7 +59,7 @@ namespace bs
 		UINT32 GetStreamOffset(UINT32 streamIdx) const;
 
 		/**	Returns the number of vertex elements. */
-		UINT32 GetNumElements() const { return (UINT32)mVertexElements.size(); }
+		UINT32 GetNumElements() const { return (UINT32)mVertexElements.Size(); }
 
 		/**	Returns the vertex element at the specified index. */
 		const VertexElement& GetElement(UINT32 idx) const { return mVertexElements[idx]; }

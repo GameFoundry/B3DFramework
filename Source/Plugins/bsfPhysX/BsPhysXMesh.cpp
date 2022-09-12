@@ -24,68 +24,68 @@ namespace bs
 	 */
 	bool CookConvex(PxCooking* cooking, const SPtr<MeshData>& meshData, UINT8** data, UINT32& size)
 	{
-		SPtr<VertexDataDesc> vertexDesc = meshData->getVertexDesc();
+		SPtr<VertexDataDesc> vertexDesc = meshData->GetVertexDesc();
 		
 		// Try to create hull from points
 		PxConvexMeshDesc convexDesc;
-		convexDesc.points.count = meshData->getNumVertices();
-		convexDesc.points.stride = vertexDesc->getVertexStride();
-		convexDesc.points.data = meshData->getElementData(VES_POSITION);
+		convexDesc.points.count = meshData->GetNumVertices();
+		convexDesc.points.stride = vertexDesc->GetVertexStride();
+		convexDesc.points.data = meshData->GetElementData(VES_POSITION);
 		convexDesc.flags |= PxConvexFlag::eCOMPUTE_CONVEX;
 
 		PxDefaultMemoryOutputStream output;
-		if (cooking->cookConvexMesh(convexDesc, output))
+		if (cooking->CookConvexMesh(convexDesc, output))
 		{
-			size = output.getSize();
+			size = output.GetSize();
 			*data = (UINT8*)bs_alloc(size);
 
-			memcpy(*data, output.getData(), size);
+			memcpy(*data, output.GetData(), size);
 			return true;
 		}
 
 		// Try inflating the convex mesh
 		convexDesc.flags |= PxConvexFlag::eINFLATE_CONVEX;
-		if (cooking->cookConvexMesh(convexDesc, output))
+		if (cooking->CookConvexMesh(convexDesc, output))
 		{
-			size = output.getSize();
+			size = output.GetSize();
 			*data = (UINT8*)bs_alloc(size);
 
-			memcpy(*data, output.getData(), size);
+			memcpy(*data, output.GetData(), size);
 			return true;
 		}
 
 		// Nothing works, just compute an AABB
 		AABox box;
 
-		auto vertIter = meshData->getVec3DataIter(VES_POSITION);
+		auto vertIter = meshData->GetVec3DataIter(VES_POSITION);
 		do
 		{
-			box.merge(vertIter.getValue());
+			box.Merge(vertIter.getValue());
 		}
-		while (vertIter.moveNext());
+		while (vertIter.MoveNext());
 
 		Vector3 aabbVerts[8];
-		aabbVerts[0] = box.getCorner(AABox::FAR_LEFT_BOTTOM);
-		aabbVerts[1] = box.getCorner(AABox::FAR_RIGHT_BOTTOM);
-		aabbVerts[2] = box.getCorner(AABox::FAR_RIGHT_TOP);
-		aabbVerts[3] = box.getCorner(AABox::FAR_LEFT_TOP);
+		aabbVerts[0] = box.GetCorner(AABox::FAR_LEFT_BOTTOM);
+		aabbVerts[1] = box.GetCorner(AABox::FAR_RIGHT_BOTTOM);
+		aabbVerts[2] = box.GetCorner(AABox::FAR_RIGHT_TOP);
+		aabbVerts[3] = box.GetCorner(AABox::FAR_LEFT_TOP);
 
-		aabbVerts[4] = box.getCorner(AABox::NEAR_LEFT_BOTTOM);
-		aabbVerts[5] = box.getCorner(AABox::NEAR_RIGHT_BOTTOM);
-		aabbVerts[6] = box.getCorner(AABox::NEAR_RIGHT_TOP);
-		aabbVerts[7] = box.getCorner(AABox::NEAR_LEFT_TOP);
+		aabbVerts[4] = box.GetCorner(AABox::NEAR_LEFT_BOTTOM);
+		aabbVerts[5] = box.GetCorner(AABox::NEAR_RIGHT_BOTTOM);
+		aabbVerts[6] = box.GetCorner(AABox::NEAR_RIGHT_TOP);
+		aabbVerts[7] = box.GetCorner(AABox::NEAR_LEFT_TOP);
 
 		convexDesc.points.count = 8;
 		convexDesc.points.stride = sizeof(Vector3);
 		convexDesc.points.data = &aabbVerts[0];
 		convexDesc.flags &= ~PxConvexFlag::eINFLATE_CONVEX;
 
-		if (cooking->cookConvexMesh(convexDesc, output))
+		if (cooking->CookConvexMesh(convexDesc, output))
 		{
-			size = output.getSize();
+			size = output.GetSize();
 			*data = (UINT8*)bs_alloc(size);
 
-			memcpy(*data, output.getData(), size);
+			memcpy(*data, output.GetData(), size);
 			return true;
 		}
 
@@ -103,15 +103,15 @@ namespace bs
 		if (meshData == nullptr)
 			return false;
 
-		PxCooking* cooking = gPhysX().getCooking();
+		PxCooking* cooking = gPhysX().GetCooking();
 		if (cooking == nullptr)
 		{
 			BS_LOG(Warning, Physics, "Attempting to cook a physics mesh but cooking is not enabled globally.");
 			return false;
 		}
 
-		SPtr<VertexDataDesc> vertexDesc = meshData->getVertexDesc();
-		if (!vertexDesc->hasElement(VES_POSITION))
+		SPtr<VertexDataDesc> vertexDesc = meshData->GetVertexDesc();
+		if (!vertexDesc->HasElement(VES_POSITION))
 		{
 			BS_LOG(Warning, Physics, "Provided PhysicsMesh mesh data has no vertex positions.");
 			return false;
@@ -129,34 +129,34 @@ namespace bs
 		else
 		{
 			PxTriangleMeshDesc meshDesc;
-			meshDesc.points.count = meshData->getNumVertices();
-			meshDesc.points.stride = vertexDesc->getVertexStride();
-			meshDesc.points.data = meshData->getElementData(VES_POSITION);
+			meshDesc.points.count = meshData->GetNumVertices();
+			meshDesc.points.stride = vertexDesc->GetVertexStride();
+			meshDesc.points.data = meshData->GetElementData(VES_POSITION);
 
-			meshDesc.triangles.count = meshData->getNumIndices() / 3;
+			meshDesc.triangles.count = meshData->GetNumIndices() / 3;
 			meshDesc.flags |= PxMeshFlag::eFLIPNORMALS;
 
-			IndexType indexType = meshData->getIndexType();
+			IndexType indexType = meshData->GetIndexType();
 			if (indexType == IT_32BIT)
 			{
 				meshDesc.triangles.stride = 3 * sizeof(PxU32);
-				meshDesc.triangles.data = meshData->getIndices32();
+				meshDesc.triangles.data = meshData->GetIndices32();
 			}
 			else
 			{
 				meshDesc.triangles.stride = 3 * sizeof(PxU16);
-				meshDesc.triangles.data = meshData->getIndices16();
+				meshDesc.triangles.data = meshData->GetIndices16();
 				meshDesc.flags |= PxMeshFlag::e16_BIT_INDICES;
 			}
 
 			PxDefaultMemoryOutputStream output;
-			if (!cooking->cookTriangleMesh(meshDesc, output))
+			if (!cooking->CookTriangleMesh(meshDesc, output))
 				return false;
 
-			size = output.getSize();
+			size = output.GetSize();
 			*data = (UINT8*)bs_alloc(size);
 
-			memcpy(*data, output.getData(), size);
+			memcpy(*data, output.GetData(), size);
 		}
 
 		return true;
@@ -209,13 +209,13 @@ namespace bs
 
 		if (mTriangleMesh != nullptr)
 		{
-			mTriangleMesh->release();
+			mTriangleMesh->Release();
 			mTriangleMesh = nullptr;
 		}
 
 		if (mConvexMesh != nullptr)
 		{
-			mConvexMesh->release();
+			mConvexMesh->Release();
 			mConvexMesh = nullptr;
 		}
 	}
@@ -224,20 +224,20 @@ namespace bs
 	{
 		if (mCookedData != nullptr && mCookedDataSize > 0)
 		{
-			PxPhysics* physx = gPhysX().getPhysX();
+			PxPhysics* physx = gPhysX().GetPhysX();
 
 			PxDefaultMemoryInputData Input(mCookedData, mCookedDataSize);
 			if (mType == PhysicsMeshType::Convex)
-				mConvexMesh = physx->createConvexMesh(input);
+				mConvexMesh = physx->CreateConvexMesh(input);
 			else
-				mTriangleMesh = physx->createTriangleMesh(input);
+				mTriangleMesh = physx->CreateTriangleMesh(input);
 		}
 	}
 
 	SPtr<MeshData> FPhysXMesh::GetMeshData() const
 	{
 		SPtr<VertexDataDesc> vertexDesc = VertexDataDesc::create();
-		vertexDesc->addVertElem(VET_FLOAT3, VES_POSITION);
+		vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
 
 		if (mConvexMesh == nullptr && mTriangleMesh == nullptr)
 			return MeshData::Create(0, 0, vertexDesc);
@@ -247,13 +247,13 @@ namespace bs
 
 		if(mConvexMesh != nullptr)
 		{
-			numVertices = mConvexMesh->getNbVertices();
+			numVertices = mConvexMesh->GetNbVertices();
 
-			UINT32 numPolygons = mConvexMesh->getNbPolygons();
+			UINT32 numPolygons = mConvexMesh->GetNbPolygons();
 			for (UINT32 i = 0; i < numPolygons; i++)
 			{
 				PxHullPolygon face;
-				bool status = mConvexMesh->getPolygonData(i, face);
+				bool status = mConvexMesh->GetPolygonData(i, face);
 				assert(status);
 
 				numIndices += (face.mNbVerts - 2) * 3;
@@ -261,28 +261,28 @@ namespace bs
 		}
 		else // Triangle
 		{
-			numVertices = mTriangleMesh->getNbVertices();
-			numIndices = mTriangleMesh->getNbTriangles() * 3;
+			numVertices = mTriangleMesh->GetNbVertices();
+			numIndices = mTriangleMesh->GetNbTriangles() * 3;
 		}
 
 		SPtr<MeshData> meshData = MeshData::create(numVertices, numIndices, vertexDesc);
 
-		auto posIter = meshData->getVec3DataIter(VES_POSITION);
-		UINT32* outIndices = meshData->getIndices32();
+		auto posIter = meshData->GetVec3DataIter(VES_POSITION);
+		UINT32* outIndices = meshData->GetIndices32();
 
 		if (mConvexMesh != nullptr)
 		{
-			const PxVec3* convexVertices = mConvexMesh->getVertices();
-			const UINT8* convexIndices = mConvexMesh->getIndexBuffer();
+			const PxVec3* convexVertices = mConvexMesh->GetVertices();
+			const UINT8* convexIndices = mConvexMesh->GetIndexBuffer();
 
 			for (UINT32 i = 0; i < numVertices; i++)
-				posIter.addValue(fromPxVector(convexVertices[i]));
+				posIter.AddValue(fromPxVector(convexVertices[i]));
 
-			UINT32 numPolygons = mConvexMesh->getNbPolygons();
+			UINT32 numPolygons = mConvexMesh->GetNbPolygons();
 			for (UINT32 i = 0; i < numPolygons; i++)
 			{
 				PxHullPolygon face;
-				bool status = mConvexMesh->getPolygonData(i, face);
+				bool status = mConvexMesh->GetPolygonData(i, face);
 				assert(status);
 
 				const PxU8* faceIndices = convexIndices + face.mIndexBase;
@@ -296,13 +296,13 @@ namespace bs
 		}
 		else
 		{
-			const PxVec3* vertices = mTriangleMesh->getVertices();
+			const PxVec3* vertices = mTriangleMesh->GetVertices();
 			for (UINT32 i = 0; i < numVertices; i++)
-				posIter.addValue(fromPxVector(vertices[i]));
+				posIter.AddValue(fromPxVector(vertices[i]));
 
-			if(mTriangleMesh->getTriangleMeshFlags() & PxTriangleMeshFlag::e16_BIT_INDICES)
+			if(mTriangleMesh->GetTriangleMeshFlags() & PxTriangleMeshFlag::e16_BIT_INDICES)
 			{
-				const UINT16* indices = (const UINT16*)mTriangleMesh->getTriangles();
+				const UINT16* indices = (const UINT16*)mTriangleMesh->GetTriangles();
 
 				UINT32 numTriangles = numIndices / 3;
 				for (UINT32 i = 0; i < numTriangles; i++)
@@ -315,7 +315,7 @@ namespace bs
 			}
 			else
 			{
-				const UINT32* indices = (const UINT32*)mTriangleMesh->getTriangles();
+				const UINT32* indices = (const UINT32*)mTriangleMesh->GetTriangles();
 
 				UINT32 numTriangles = numIndices / 3;
 				for (UINT32 i = 0; i < numTriangles; i++)

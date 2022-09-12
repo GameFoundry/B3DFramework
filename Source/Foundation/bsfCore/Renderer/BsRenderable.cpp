@@ -21,7 +21,7 @@ namespace bs
 	bool IsMeshValid(const T& mesh) { return false; }
 
 	template<>
-	bool IsMeshValid(const HMesh& mesh) { return mesh.isLoaded(); }
+	bool IsMeshValid(const HMesh& mesh) { return mesh.IsLoaded(); }
 
 	template<>
 	bool IsMeshValid(const SPtr<ct::Mesh>& mesh) { return mesh != nullptr; }
@@ -29,7 +29,7 @@ namespace bs
 	template<bool Core>
 	TRenderable<Core>::TRenderable()
 	{
-		mMaterials.resize(1);
+		mMaterials.Resize(1);
 	}
 
 	template <bool Core>
@@ -39,8 +39,8 @@ namespace bs
 			return;
 
 		mTransform = transform;
-		mTfrmMatrix = transform.getMatrix();
-		mTfrmMatrixNoScale = Matrix4::TRS(transform.getPosition(), transform.getRotation(), Vector3::ONE);
+		mTfrmMatrix = transform.GetMatrix();
+		mTfrmMatrixNoScale = Matrix4::TRS(transform.GetPosition(), transform.getRotation(), Vector3::ONE);
 
 		_markCoreDirty(ActorDirtyFlag::Transform);
 	}
@@ -52,9 +52,9 @@ namespace bs
 
 		int numSubMeshes = 0;
 		if (isMeshValid(mesh))
-			numSubMeshes = mesh->getProperties().getNumSubMeshes();
+			numSubMeshes = mesh->GetProperties().GetNumSubMeshes();
 
-		mMaterials.resize(numSubMeshes);
+		mMaterials.Resize(numSubMeshes);
 
 		onMeshChanged();
 
@@ -66,7 +66,7 @@ namespace bs
 	template<bool Core>
 	void TRenderable<Core>::setMaterial(UINT32 idx, const MaterialType& material)
 	{
-		if (idx >= (UINT32)mMaterials.size())
+		if (idx >= (UINT32)mMaterials.Size())
 			return;
 
 		mMaterials[idx] = material;
@@ -79,8 +79,8 @@ namespace bs
 	template<bool Core>
 	void TRenderable<Core>::setMaterials(const Vector<MaterialType>& materials)
 	{
-		UINT32 numMaterials = (UINT32)mMaterials.size();
-		UINT32 min = std::min(numMaterials, (UINT32)materials.size());
+		UINT32 numMaterials = (UINT32)mMaterials.Size();
+		UINT32 min = std::min(numMaterials, (UINT32)materials.Size());
 
 		for (UINT32 i = 0; i < min; i++)
 			mMaterials[i] = materials[i];
@@ -102,7 +102,7 @@ namespace bs
 	template <bool Core>
 	typename TRenderable<Core>::MaterialType TRenderable<Core>::getMaterial(UINT32 idx) const
 	{
-		if(idx >= (UINT32)mMaterials.size())
+		if(idx >= (UINT32)mMaterials.Size())
 			return nullptr;
 
 		return mMaterials[idx];
@@ -188,29 +188,29 @@ namespace bs
 	{
 		if(mUseOverrideBounds)
 		{
-			Sphere Sphere(mOverrideBounds.getCenter(), mOverrideBounds.getRadius());
+			Sphere Sphere(mOverrideBounds.GetCenter(), mOverrideBounds.getRadius());
 
 			Bounds Bounds(mOverrideBounds, sphere);
-			bounds.transformAffine(mTfrmMatrix);
+			bounds.TransformAffine(mTfrmMatrix);
 
 			return bounds;
 		}
 
 		HMesh mesh = getMesh();
 
-		if (!mesh.isLoaded())
+		if (!mesh.IsLoaded())
 		{
 			const Transform& tfrm = getTransform();
 
-			AABox Box(tfrm.getPosition(), tfrm.getPosition());
-			Sphere Sphere(tfrm.getPosition(), 0.0f);
+			AABox Box(tfrm.GetPosition(), tfrm.getPosition());
+			Sphere Sphere(tfrm.GetPosition(), 0.0f);
 
 			return Bounds(box, sphere);
 		}
 		else
 		{
-			Bounds bounds = mesh->getProperties().getBounds();
-			bounds.transformAffine(mTfrmMatrix);
+			Bounds bounds = mesh->GetProperties().GetBounds();
+			bounds.TransformAffine(mTfrmMatrix);
 
 			return bounds;
 		}
@@ -243,10 +243,10 @@ namespace bs
 			return;
 		}
 
-		if (mMesh.isLoaded(false))
+		if (mMesh.IsLoaded(false))
 		{
-			SPtr<Skeleton> skeleton = mMesh->getSkeleton();
-			SPtr<MorphShapes> morphShapes = mMesh->getMorphShapes();
+			SPtr<Skeleton> skeleton = mMesh->GetSkeleton();
+			SPtr<MorphShapes> morphShapes = mMesh->GetMorphShapes();
 
 			if (skeleton != nullptr && morphShapes != nullptr)
 				mAnimType = RenderableAnimType::SkinnedMorph;
@@ -257,21 +257,21 @@ namespace bs
 			else
 				mAnimType = RenderableAnimType::None;
 
-			mAnimation->setSkeleton(mMesh->getSkeleton());
-			mAnimation->setMorphShapes(mMesh->getMorphShapes());
+			mAnimation->SetSkeleton(mMesh->getSkeleton());
+			mAnimation->SetMorphShapes(mMesh->getMorphShapes());
 		}
 		else
 		{
 			mAnimType = RenderableAnimType::None;
 
-			mAnimation->setSkeleton(nullptr);
-			mAnimation->setMorphShapes(nullptr);
+			mAnimation->SetSkeleton(nullptr);
+			mAnimation->SetMorphShapes(nullptr);
 		}
 	}
 
 	void Renderable::_updateState(const SceneObject& so, bool force)
 	{
-		UINT32 curHash = so.getTransformHash();
+		UINT32 curHash = so.GetTransformHash();
 		if (curHash != mHash || force)
 		{
 			// If skinned animation, don't include own transform since that will be handled by root bone animation
@@ -285,14 +285,14 @@ namespace bs
 			{
 				// Note: Technically we're checking child's hash but using parent's transform. Ideally we check the parent's
 				// hash to reduce the number of required updates.
-				HSceneObject parentSO = so.getParent();
+				HSceneObject parentSO = so.GetParent();
 				if (parentSO != nullptr)
-					setTransform(parentSO->getTransform());
+					setTransform(parentSO->GetTransform());
 				else
 					setTransform(Transform());
 			}
 			else
-				setTransform(so.getTransform());
+				setTransform(so.GetTransform());
 
 			mHash = curHash;
 		}
@@ -327,7 +327,7 @@ namespace bs
 		UINT64 animationId = 0;
 		if(dirtyFlags != (UINT32)ActorDirtyFlag::Transform)
 		{
-			numMaterials = (UINT32)mMaterials.size();
+			numMaterials = (UINT32)mMaterials.Size();
 
 			if (mAnimation != nullptr)
 				animationId = mAnimation->_getId();
@@ -348,7 +348,7 @@ namespace bs
 		}
 
 
-		UINT8* data = allocator->alloc(size);
+		UINT8* data = allocator->Alloc(size);
 		Bitstream Stream(data, size);
 
 		rtti_write(dirtyFlags, stream);
@@ -365,19 +365,19 @@ namespace bs
 			rtti_write(mAnimType, stream);
 			rtti_write(mCullDistanceFactor, stream);
 
-			SPtr<ct::Mesh>* mesh = new (stream.cursor()) SPtr<ct::Mesh>();
-			if (mMesh.isLoaded())
-				*mesh = mMesh->getCore();
+			SPtr<ct::Mesh>* mesh = new (stream.Cursor()) SPtr<ct::Mesh>();
+			if (mMesh.IsLoaded())
+				*mesh = mMesh->GetCore();
 
-			stream.skipBytes(sizeof(SPtr<ct::Mesh>));
+			stream.SkipBytes(sizeof(SPtr<ct::Mesh>));
 
 			for (UINT32 i = 0; i < numMaterials; i++)
 			{
-				SPtr<ct::Material>* material = new (stream.cursor())SPtr<ct::Material>();
-				if (mMaterials[i].isLoaded())
-					*material = mMaterials[i]->getCore();
+				SPtr<ct::Material>* material = new (stream.Cursor())SPtr<ct::Material>();
+				if (mMaterials[i].IsLoaded())
+					*material = mMaterials[i]->GetCore();
 
-				stream.skipBytes(sizeof(SPtr<ct::Material>));
+				stream.SkipBytes(sizeof(SPtr<ct::Material>));
 			}
 		}
 
@@ -386,19 +386,19 @@ namespace bs
 
 	void Renderable::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 	{
-		if (mMesh.isLoaded())
-			dependencies.push_back(mMesh.get());
+		if (mMesh.IsLoaded())
+			dependencies.push_back(mMesh.Get());
 
 		for (auto& material : mMaterials)
 		{
-			if (material.isLoaded())
-				dependencies.push_back(material.get());
+			if (material.IsLoaded())
+				dependencies.push_back(material.Get());
 		}
 	}
 
 	void Renderable::OnDependencyDirty(CoreObject* dependency, UINT32 dirtyFlags)
 	{
-		if(mMesh.isLoaded(false) && mMesh.get() == dependency)
+		if(mMesh.IsLoaded(false) && mMesh.get() == dependency)
 		{
 			CoreObject::onDependencyDirty(dependency, dirtyFlags);
 			return;
@@ -441,7 +441,7 @@ namespace bs
 	SPtr<Renderable> Renderable::Create()
 	{
 		SPtr<Renderable> handlerPtr = createEmpty();
-		handlerPtr->initialize();
+		handlerPtr->Initialize();
 
 		return handlerPtr;
 	}
@@ -475,12 +475,12 @@ namespace bs
 	Renderable::~Renderable()
 	{
 		if (mActive)
-			gRenderer()->notifyRenderableRemoved(this);
+			gRenderer()->NotifyRenderableRemoved(this);
 	}
 
 	void Renderable::Initialize()
 	{
-		gRenderer()->notifyRenderableAdded(this);
+		gRenderer()->NotifyRenderableAdded(this);
 
 		CoreObject::initialize();
 	}
@@ -489,10 +489,10 @@ namespace bs
 	{
 		if (mUseOverrideBounds)
 		{
-			Sphere Sphere(mOverrideBounds.getCenter(), mOverrideBounds.getRadius());
+			Sphere Sphere(mOverrideBounds.GetCenter(), mOverrideBounds.getRadius());
 
 			Bounds Bounds(mOverrideBounds, sphere);
-			bounds.transformAffine(mTfrmMatrix);
+			bounds.TransformAffine(mTfrmMatrix);
 
 			return bounds;
 		}
@@ -503,15 +503,15 @@ namespace bs
 		{
 			const Transform& tfrm = getTransform();
 
-			AABox Box(tfrm.getPosition(), tfrm.getPosition());
-			Sphere Sphere(tfrm.getPosition(), 0.0f);
+			AABox Box(tfrm.GetPosition(), tfrm.getPosition());
+			Sphere Sphere(tfrm.GetPosition(), 0.0f);
 
 			return Bounds(box, sphere);
 		}
 		else
 		{
-			Bounds bounds = mesh->getProperties().getBounds();
-			bounds.transformAffine(mTfrmMatrix);
+			Bounds bounds = mesh->GetProperties().GetBounds();
+			bounds.TransformAffine(mTfrmMatrix);
 
 			return bounds;
 		}
@@ -527,7 +527,7 @@ namespace bs
 		desc.usage = GBU_DYNAMIC;
 
 		SPtr<GpuBuffer> buffer = GpuBuffer::create(desc);
-		UINT8* dest = (UINT8*)buffer->lock(0, numBones * 3 * sizeof(Vector4), GBL_WRITE_ONLY_DISCARD);
+		UINT8* dest = (UINT8*)buffer->Lock(0, numBones * 3 * sizeof(Vector4), GBL_WRITE_ONLY_DISCARD);
 
 		// Initialize bone transforms to identity, so the object renders properly even if no animation is animating it
 		for (UINT32 i = 0; i < numBones; i++)
@@ -536,7 +536,7 @@ namespace bs
 			dest += 12 * sizeof(float);
 		}
 
-		buffer->unlock();
+		buffer->Unlock();
 
 		return buffer;
 	}
@@ -545,8 +545,8 @@ namespace bs
 	{
 		if (mAnimType == RenderableAnimType::Skinned || mAnimType == RenderableAnimType::SkinnedMorph)
 		{
-			SPtr<Skeleton> skeleton = mMesh->getSkeleton();
-			UINT32 numBones = skeleton != nullptr ? skeleton->getNumBones() : 0;
+			SPtr<Skeleton> skeleton = mMesh->GetSkeleton();
+			UINT32 numBones = skeleton != nullptr ? skeleton->GetNumBones() : 0;
 
 			if (numBones > 0)
 			{
@@ -573,10 +573,10 @@ namespace bs
 		{
 			// Note: Not handling velocity writing for morph animations
 			
-			SPtr<MorphShapes> morphShapes = mMesh->getMorphShapes();
+			SPtr<MorphShapes> morphShapes = mMesh->GetMorphShapes();
 
 			UINT32 vertexSize = sizeof(Vector3) + sizeof(UINT32);
-			UINT32 numVertices = morphShapes->getNumVertices();
+			UINT32 numVertices = morphShapes->GetNumVertices();
 
 			VERTEX_BUFFER_DESC desc;
 			desc.vertexSize = vertexSize;
@@ -586,9 +586,9 @@ namespace bs
 			SPtr<VertexBuffer> vertexBuffer = VertexBuffer::create(desc);
 
 			UINT32 totalSize = vertexSize * numVertices;
-			UINT8* dest = (UINT8*)vertexBuffer->lock(0, totalSize, GBL_WRITE_ONLY_DISCARD);
+			UINT8* dest = (UINT8*)vertexBuffer->Lock(0, totalSize, GBL_WRITE_ONLY_DISCARD);
 			memset(dest, 0, totalSize);
-			vertexBuffer->unlock();
+			vertexBuffer->Unlock();
 
 			mMorphShapeBuffer = vertexBuffer;
 		}
@@ -605,8 +605,8 @@ namespace bs
 
 		const EvaluatedAnimationData::AnimInfo* animInfo = nullptr;
 
-		auto iterFind = animData.infos.find(mAnimationId);
-		if (iterFind != animData.infos.end())
+		auto iterFind = animData.infos.Find(mAnimationId);
+		if (iterFind != animData.infos.End())
 			animInfo = &iterFind->second;
 
 		if (animInfo == nullptr)
@@ -621,7 +621,7 @@ namespace bs
 
 			// Note: If multiple elements are using the same animation (not possible atm), this buffer should be shared by
 			// all such elements
-			UINT8* dest = (UINT8*)mBoneMatrixBuffer->lock(0, poseInfo.numBones * 3 * sizeof(Vector4), GBL_WRITE_ONLY_DISCARD);
+			UINT8* dest = (UINT8*)mBoneMatrixBuffer->Lock(0, poseInfo.numBones * 3 * sizeof(Vector4), GBL_WRITE_ONLY_DISCARD);
 			for (UINT32 j = 0; j < poseInfo.numBones; j++)
 			{
 				const Matrix4& transform = animData.transforms[poseInfo.startIdx + j];
@@ -630,7 +630,7 @@ namespace bs
 				dest += 12 * sizeof(float);
 			}
 
-			mBoneMatrixBuffer->unlock();
+			mBoneMatrixBuffer->Unlock();
 		}
 
 		if (mAnimType == RenderableAnimType::Morph || mAnimType == RenderableAnimType::SkinnedMorph)
@@ -639,10 +639,10 @@ namespace bs
 			{
 				SPtr<MeshData> meshData = animInfo->morphShapeInfo.meshData;
 
-				UINT32 bufferSize = meshData->getSize();
-				UINT8* data = meshData->getData();
+				UINT32 bufferSize = meshData->GetSize();
+				UINT8* data = meshData->GetData();
 
-				mMorphShapeBuffer->writeData(0, bufferSize, data, BWT_DISCARD);
+				mMorphShapeBuffer->WriteData(0, bufferSize, data, BWT_DISCARD);
 				mMorphShapeVersion = animInfo->morphShapeInfo.version;
 			}
 		}
@@ -659,9 +659,9 @@ namespace bs
 
 	void Renderable::SyncToCore(const CoreSyncData& data)
 	{
-		Bitstream Stream(data.getBuffer(), data.getBufferSize());
+		Bitstream Stream(data.GetBuffer(), data.getBufferSize());
 
-		mMaterials.clear();
+		mMaterials.Clear();
 
 		UINT32 numMaterials = 0;
 		UINT32 dirtyFlags = 0;
@@ -670,8 +670,8 @@ namespace bs
 		rtti_read(dirtyFlags, stream);
 		SceneActor::rttiEnumFields(RttiCoreSyncReader(stream), (ActorDirtyFlags)dirtyFlags);
 
-		mTfrmMatrix = mTransform.getMatrix();
-		mTfrmMatrixNoScale = Matrix4::TRS(mTransform.getPosition(), mTransform.getRotation(), Vector3::ONE);
+		mTfrmMatrix = mTransform.GetMatrix();
+		mTfrmMatrixNoScale = Matrix4::TRS(mTransform.GetPosition(), mTransform.getRotation(), Vector3::ONE);
 
 		if(dirtyFlags != (UINT32)ActorDirtyFlag::Transform)
 		{
@@ -684,17 +684,17 @@ namespace bs
 			rtti_read(mAnimType, stream);
 			rtti_read(mCullDistanceFactor, stream);
 
-			SPtr<Mesh>* mesh = (SPtr<Mesh>*)stream.cursor();
+			SPtr<Mesh>* mesh = (SPtr<Mesh>*)stream.Cursor();
 			mMesh = *mesh;
 			mesh->~SPtr<Mesh>();
-			stream.skipBytes(sizeof(SPtr<Mesh>));
+			stream.SkipBytes(sizeof(SPtr<Mesh>));
 
 			for (UINT32 i = 0; i < numMaterials; i++)
 			{
-				SPtr<Material>* material = (SPtr<Material>*)stream.cursor();
+				SPtr<Material>* material = (SPtr<Material>*)stream.Cursor();
 				mMaterials.push_back(*material);
 				material->~SPtr<Material>();
-				stream.skipBytes(sizeof(SPtr<Material>));
+				stream.SkipBytes(sizeof(SPtr<Material>));
 			}
 		}
 
@@ -710,10 +710,10 @@ namespace bs
 			if (mAnimType == RenderableAnimType::Morph || mAnimType == RenderableAnimType::SkinnedMorph)
 			{
 				SPtr<VertexDataDesc> vertexDesc = VertexDataDesc::create();
-				*vertexDesc = * mMesh->getVertexDesc();
+				*vertexDesc = * mMesh->GetVertexDesc();
 
-				vertexDesc->addVertElem(VET_FLOAT3, VES_POSITION, 1, 1);
-				vertexDesc->addVertElem(VET_UBYTE4_NORM, VES_NORMAL, 1, 1);
+				vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION, 1, 1);
+				vertexDesc->AddVertElem(VET_UBYTE4_NORM, VES_NORMAL, 1, 1);
 
 				mMorphVertexDeclaration = VertexDeclaration::create(vertexDesc);
 			}
@@ -723,25 +723,25 @@ namespace bs
 			if (oldIsActive != mActive)
 			{
 				if (mActive)
-					gRenderer()->notifyRenderableAdded(this);
+					gRenderer()->NotifyRenderableAdded(this);
 				else
-					gRenderer()->notifyRenderableRemoved(this);
+					gRenderer()->NotifyRenderableRemoved(this);
 			}
 			else
 			{
-				gRenderer()->notifyRenderableRemoved(this);
-				gRenderer()->notifyRenderableAdded(this);
+				gRenderer()->NotifyRenderableRemoved(this);
+				gRenderer()->NotifyRenderableAdded(this);
 			}
 		}
 		else If((dirtyFlags & (UINT32)ActorDirtyFlag::Mobility) != 0)
 		{
-				gRenderer()->notifyRenderableRemoved(this);
-				gRenderer()->notifyRenderableAdded(this);
+				gRenderer()->NotifyRenderableRemoved(this);
+				gRenderer()->NotifyRenderableAdded(this);
 		}
 		else if ((dirtyFlags & (UINT32)ActorDirtyFlag::Transform) != 0)
 		{
 			if (mActive)
-				gRenderer()->notifyRenderableUpdated(this);
+				gRenderer()->NotifyRenderableUpdated(this);
 		}
 	}
 	}

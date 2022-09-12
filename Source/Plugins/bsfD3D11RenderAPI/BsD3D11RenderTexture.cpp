@@ -29,8 +29,8 @@ namespace bs
 				if (mColorSurfaces[i] == nullptr)
 					continue;
 
-				D3D11TextureView* textureView = static_cast<D3D11TextureView*>(mColorSurfaces[i].get());
-				rtvs[i] = textureView->getRTV();
+				D3D11TextureView* textureView = static_cast<D3D11TextureView*>(mColorSurfaces[i].Get());
+				rtvs[i] = textureView->GetRTV();
 			}
 		}
 		else If(name == "DSV")
@@ -39,9 +39,9 @@ namespace bs
 				return;
 
 			ID3D11DepthStencilView** dsv = (ID3D11DepthStencilView**)data;
-			D3D11TextureView* depthStencilView = static_cast<D3D11TextureView*>(mDepthStencilSurface.get());
+			D3D11TextureView* depthStencilView = static_cast<D3D11TextureView*>(mDepthStencilSurface.Get());
 
-			*dsv = depthStencilView->getDSV(false, false);
+			*dsv = depthStencilView->GetDSV(false, false);
 		}
 		else if (name == "RODSV")
 		{
@@ -49,9 +49,9 @@ namespace bs
 				return;
 
 			ID3D11DepthStencilView** dsv = (ID3D11DepthStencilView**)data;
-			D3D11TextureView* depthStencilView = static_cast<D3D11TextureView*>(mDepthStencilSurface.get());
+			D3D11TextureView* depthStencilView = static_cast<D3D11TextureView*>(mDepthStencilSurface.Get());
 
-			*dsv = depthStencilView->getDSV(true, true);
+			*dsv = depthStencilView->GetDSV(true, true);
 		}
 		else if (name == "RODWSV")
 		{
@@ -59,9 +59,9 @@ namespace bs
 				return;
 
 			ID3D11DepthStencilView** dsv = (ID3D11DepthStencilView**)data;
-			D3D11TextureView* depthStencilView = static_cast<D3D11TextureView*>(mDepthStencilSurface.get());
+			D3D11TextureView* depthStencilView = static_cast<D3D11TextureView*>(mDepthStencilSurface.Get());
 
-			*dsv = depthStencilView->getDSV(true, false);
+			*dsv = depthStencilView->GetDSV(true, false);
 		}
 		else if (name == "WDROSV")
 		{
@@ -69,9 +69,9 @@ namespace bs
 				return;
 
 			ID3D11DepthStencilView** dsv = (ID3D11DepthStencilView**)data;
-			D3D11TextureView* depthStencilView = static_cast<D3D11TextureView*>(mDepthStencilSurface.get());
+			D3D11TextureView* depthStencilView = static_cast<D3D11TextureView*>(mDepthStencilSurface.Get());
 
-			*dsv = depthStencilView->getDSV(false, true);
+			*dsv = depthStencilView->GetDSV(false, true);
 		}
 	}
 }}

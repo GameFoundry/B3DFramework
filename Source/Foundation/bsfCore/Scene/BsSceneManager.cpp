@@ -42,35 +42,35 @@ namespace bs
 		: mMainScene(
 			bs_shared_ptr_new<SceneInstance>(SceneInstance::ConstructPrivately(), "Main",
 				SceneObject::createInternal("SceneRoot"),
-				gPhysics().createPhysicsScene()))
+				gPhysics().CreatePhysicsScene()))
 	{
-		mMainScene->mRoot->setScene(mMainScene);
+		mMainScene->mRoot->SetScene(mMainScene);
 	}
 
 	SceneManager::~SceneManager()
 	{
 		mMainScene->mPhysicsScene = nullptr;
 
-		if (mMainScene->mRoot != nullptr && !mMainScene->mRoot.isDestroyed())
-			mMainScene->mRoot->destroy(true);
+		if (mMainScene->mRoot != nullptr && !mMainScene->mRoot.IsDestroyed())
+			mMainScene->mRoot->Destroy(true);
 	}
 
 	void SceneManager::ClearScene(bool forceAll)
 	{
-		UINT32 numChildren = mMainScene->mRoot->getNumChildren();
+		UINT32 numChildren = mMainScene->mRoot->GetNumChildren();
 
 		UINT32 curIdx = 0;
 		for (UINT32 i = 0; i < numChildren; i++)
 		{
-			HSceneObject child = mMainScene->mRoot->getChild(curIdx);
+			HSceneObject child = mMainScene->mRoot->GetChild(curIdx);
 
-			if (forceAll || !child->hasFlag(SOF_Persistent))
-				child->destroy();
+			if (forceAll || !child->HasFlag(SOF_Persistent))
+				child->Destroy();
 			else
 				curIdx++;
 		}
 
-		GameObjectManager::instance().destroyQueuedObjects();
+		GameObjectManager::instance().DestroyQueuedObjects();
 
 		HSceneObject newRoot = SceneObject::createInternal("SceneRoot");
 		_setRootNode(newRoot);
@@ -84,7 +84,7 @@ namespace bs
 
 	HPrefab SceneManager::SaveScene() const
 	{
-		HSceneObject sceneRoot = mMainScene->getRoot();
+		HSceneObject sceneRoot = mMainScene->GetRoot();
 		return Prefab::Create(sceneRoot);
 	}
 
@@ -95,7 +95,7 @@ namespace bs
 
 		HSceneObject oldRoot = mMainScene->mRoot;
 
-		UINT32 numChildren = oldRoot->getNumChildren();
+		UINT32 numChildren = oldRoot->GetNumChildren();
 		// Make sure to keep persistent objects
 
 		bs_frame_mark();
@@ -103,39 +103,39 @@ namespace bs
 			FrameVector<HSceneObject> toRemove;
 			for (UINT32 i = 0; i < numChildren; i++)
 			{
-				HSceneObject child = oldRoot->getChild(i);
+				HSceneObject child = oldRoot->GetChild(i);
 
-				if (child->hasFlag(SOF_Persistent))
+				if (child->HasFlag(SOF_Persistent))
 					toRemove.push_back(child);
 			}
 
 			for (auto& entry : toRemove)
-				entry->setParent(root, false);
+				entry->SetParent(root, false);
 		}
 		bs_frame_clear();
 
 		mMainScene->mRoot = root;
 		mMainScene->mRoot->_setParent(HSceneObject());
-		mMainScene->mRoot->setScene(mMainScene);
+		mMainScene->mRoot->SetScene(mMainScene);
 
-		oldRoot->destroy();
+		oldRoot->Destroy();
 	}
 
 	void SceneManager::_bindActor(const SPtr<SceneActor>& actor, const HSceneObject& so)
 	{
-		mBoundActors[actor.get()] = BoundActorData(actor, so);
+		mBoundActors[actor.Get()] = BoundActorData(actor, so);
 		actor->_updateState(*so, true);
 	}
 
 	void SceneManager::_unbindActor(const SPtr<SceneActor>& actor)
 	{
-		mBoundActors.erase(actor.get());
+		mBoundActors.Erase(actor.get());
 	}
 
 	HSceneObject SceneManager::_getActorSO(const SPtr<SceneActor>& actor) const
 	{
-		auto iterFind = mBoundActors.find(actor.get());
-		if (iterFind != mBoundActors.end())
+		auto iterFind = mBoundActors.Find(actor.get());
+		if (iterFind != mBoundActors.End())
 			return iterFind->second.so;
 
 		return HSceneObject();		
@@ -143,46 +143,46 @@ namespace bs
 
 	void SceneManager::_registerCamera(const SPtr<Camera>& camera)
 	{
-		mCameras[camera.get()] = camera;
+		mCameras[camera.Get()] = camera;
 	}
 
 	void SceneManager::_unregisterCamera(const SPtr<Camera>& camera)
 	{
-		mCameras.erase(camera.get());
+		mCameras.Erase(camera.get());
 
-		auto iterFind = std::find_if(mMainCameras.begin(), mMainCameras.end(),
+		auto iterFind = std::find_if(mMainCameras.Begin(), mMainCameras.end(),
 			[&](const SPtr<Camera>& x)
 		{
 			return x == camera;
 		});
 
-		if (iterFind != mMainCameras.end())
-			mMainCameras.erase(iterFind);
+		if (iterFind != mMainCameras.End())
+			mMainCameras.Erase(iterFind);
 	}
 
 	void SceneManager::_notifyMainCameraStateChanged(const SPtr<Camera>& camera)
 	{
-		auto iterFind = std::find_if(mMainCameras.begin(), mMainCameras.end(),
+		auto iterFind = std::find_if(mMainCameras.Begin(), mMainCameras.end(),
 			[&](const SPtr<Camera>& entry)
 		{
 			return entry == camera;
 		});
 
-		SPtr<Viewport> viewport = camera->getViewport();
-		if (camera->isMain())
+		SPtr<Viewport> viewport = camera->GetViewport();
+		if (camera->IsMain())
 		{
-			if (iterFind == mMainCameras.end())
-				mMainCameras.push_back(mCameras[camera.get()]);
+			if (iterFind == mMainCameras.End())
+				mMainCameras.push_back(mCameras[camera.Get()]);
 
-			viewport->setTarget(mMainRT);
+			viewport->SetTarget(mMainRT);
 		}
 		else
 		{
-			if (iterFind != mMainCameras.end())
-				mMainCameras.erase(iterFind);
+			if (iterFind != mMainCameras.End())
+				mMainCameras.Erase(iterFind);
 
-			if (viewport->getTarget() == mMainRT)
-				viewport->setTarget(nullptr);
+			if (viewport->GetTarget() == mMainRT)
+				viewport->SetTarget(nullptr);
 		}
 	}
 
@@ -194,7 +194,7 @@ namespace bs
 
 	SPtr<Camera> SceneManager::GetMainCamera() const
 	{
-		if (mMainCameras.size() > 0)
+		if (mMainCameras.Size() > 0)
 			return mMainCameras[0];
 
 		return nullptr;
@@ -205,24 +205,24 @@ namespace bs
 		if (mMainRT == rt)
 			return;
 
-		mMainRTResizedConn.disconnect();
+		mMainRTResizedConn.Disconnect();
 
 		if (rt != nullptr)
-			mMainRTResizedConn = rt->onResized.connect(std::bind(&SceneManager::onMainRenderTargetResized, this));
+			mMainRTResizedConn = rt->onResized.Connect(std::bind(&SceneManager::onMainRenderTargetResized, this));
 
 		mMainRT = rt;
 
 		float aspect = 1.0f;
 		if (rt != nullptr)
 		{
-			auto& rtProps = rt->getProperties();
+			auto& rtProps = rt->GetProperties();
 			aspect = rtProps.width / (float)rtProps.height;
 		}
 
 		for (auto& entry : mMainCameras)
 		{
-			entry->getViewport()->setTarget(rt);
-			entry->setAspectRatio(aspect);
+			entry->GetViewport()->setTarget(rt);
+			entry->SetAspectRatio(aspect);
 		}
 	}
 
@@ -256,10 +256,10 @@ namespace bs
 				// Disable, and then re-enable components that have an AlwaysRun flag
 				for(auto& entry : mActiveComponents)
 				{
-					if (entry->sceneObject()->getActive())
+					if (entry->SceneObject()->getActive())
 					{
-						entry->onDisabled();
-						entry->onEnabled();
+						entry->OnDisabled();
+						entry->OnEnabled();
 					}
 				}
 
@@ -270,9 +270,9 @@ namespace bs
 				// inactive components that have active scene object parents)
 				for(auto& entry : mInactiveComponents)
 				{
-					if (entry->sceneObject()->getActive())
+					if (entry->SceneObject()->getActive())
 					{
-						entry->onEnabled();
+						entry->OnEnabled();
 
 						if(state == ComponentState::Running)
 							mStateChanges.emplace_back(entry, ComponentStateEventType::Activated);
@@ -285,11 +285,11 @@ namespace bs
 				// Initialize and enable uninitialized components
 				for(auto& entry : mUninitializedComponents)
 				{
-					entry->onInitialized();
+					entry->OnInitialized();
 
-					if (entry->sceneObject()->getActive())
+					if (entry->SceneObject()->getActive())
 					{
-						entry->onEnabled();
+						entry->OnEnabled();
 						mStateChanges.emplace_back(entry, ComponentStateEventType::Activated);
 					}
 					else
@@ -309,22 +309,22 @@ namespace bs
 			{
 				for (const auto& component : mActiveComponents)
 				{
-					const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+					const bool alwaysRun = component->HasFlag(ComponentFlag::AlwaysRun);
 
-					component->onDisabled();
+					component->OnDisabled();
 
 					if(alwaysRun)
-						component->onEnabled();
+						component->OnEnabled();
 				}
 			}
 
 			// Move from active to inactive list
-			for (INT32 i = 0; i < (INT32)mActiveComponents.size(); i++)
+			for (INT32 i = 0; i < (INT32)mActiveComponents.Size(); i++)
 			{
 				// Note: Purposely not a reference since the list changes in the add/remove methods below
 				const HComponent component = mActiveComponents[i];
 
-				const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+				const bool alwaysRun = component->HasFlag(ComponentFlag::AlwaysRun);
 				if (alwaysRun)
 					continue;
 
@@ -345,15 +345,15 @@ namespace bs
 		mStateChanges.emplace_back(component, ComponentStateEventType::Created);
 		ScopeToggle Toggle(mDisableStateChange);
 		
-		component->onCreated();
+		component->OnCreated();
 		
-		const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+		const bool alwaysRun = component->HasFlag(ComponentFlag::AlwaysRun);
 		if(alwaysRun || mComponentState != ComponentState::Stopped)
 		{
-			component->onInitialized();
+			component->OnInitialized();
 
 			if (parentActive)
-				component->onEnabled();
+				component->OnEnabled();
 		}
 	}
 
@@ -366,11 +366,11 @@ namespace bs
 		mStateChanges.emplace_back(component, ComponentStateEventType::Activated);
 		ScopeToggle Toggle(mDisableStateChange);
 
-		const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+		const bool alwaysRun = component->HasFlag(ComponentFlag::AlwaysRun);
 		if(alwaysRun || mComponentState != ComponentState::Stopped)
 		{
 			if (triggerEvent)
-				component->onEnabled();
+				component->OnEnabled();
 		}
 	}
 
@@ -383,11 +383,11 @@ namespace bs
 		mStateChanges.emplace_back(component, ComponentStateEventType::Deactivated);
 		ScopeToggle Toggle(mDisableStateChange);
 
-		const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+		const bool alwaysRun = component->HasFlag(ComponentFlag::AlwaysRun);
 		if(alwaysRun || mComponentState != ComponentState::Stopped)
 		{
 			if (triggerEvent)
-				component->onDisabled();
+				component->OnDisabled();
 		}
 	}
 
@@ -405,14 +405,14 @@ namespace bs
 
 		ScopeToggle Toggle(mDisableStateChange);
 
-		const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
-		const bool isEnabled = component->sceneObject()->getActive() && (alwaysRun ||
+		const bool alwaysRun = component->HasFlag(ComponentFlag::AlwaysRun);
+		const bool isEnabled = component->SceneObject()->getActive() && (alwaysRun ||
 			mComponentState != ComponentState::Stopped);
 
 		if (isEnabled)
-			component->onDisabled();
+			component->OnDisabled();
 		
-		component->onDestroyed();
+		component->OnDestroyed();
 
 		if(immediate)
 		{
@@ -421,7 +421,7 @@ namespace bs
 
 			UINT32 existingListType;
 			UINT32 existingIdx;
-			decodeComponentId(component->getSceneManagerId(), existingIdx, existingListType);
+			decodeComponentId(component->GetSceneManagerId(), existingIdx, existingListType);
 
 			if(existingListType != 0)
 				removeFromStateList(component);
@@ -435,17 +435,17 @@ namespace bs
 
 		Vector<HComponent>& list = *mComponentsPerState[listType - 1];
 
-		const auto idx = (UINT32)list.size();
+		const auto idx = (UINT32)list.Size();
 		list.push_back(component);
 
-		component->setSceneManagerId(encodeComponentId(idx, listType));
+		component->SetSceneManagerId(encodeComponentId(idx, listType));
 	}
 
 	void SceneManager::RemoveFromStateList(const HComponent& component)
 	{
 		UINT32 listType;
 		UINT32 idx;
-		decodeComponentId(component->getSceneManagerId(), idx, listType);
+		decodeComponentId(component->GetSceneManagerId(), idx, listType);
 
 		if(listType == 0)
 			return;
@@ -453,17 +453,17 @@ namespace bs
 		Vector<HComponent>& list = *mComponentsPerState[listType - 1];
 
 		UINT32 lastIdx;
-		decodeComponentId(list.back()->getSceneManagerId(), lastIdx, listType);
+		decodeComponentId(list.Back()->GetSceneManagerId(), lastIdx, listType);
 
 		assert(list[idx] == component);
 
 		if (idx != lastIdx)
 		{
 			std::swap(list[idx], list[lastIdx]);
-			list[idx]->setSceneManagerId(encodeComponentId(idx, listType));
+			list[idx]->SetSceneManagerId(encodeComponentId(idx, listType));
 		}
 
-		list.erase(list.end() - 1);
+		list.Erase(list.end() - 1);
 	}
 
 	void SceneManager::ProcessStateChanges()
@@ -473,15 +473,15 @@ namespace bs
 		for(auto& entry : mStateChanges)
 		{
 			const HComponent& component = entry.obj;
-			if(component.isDestroyed(false))
+			if(component.IsDestroyed(false))
 				continue;
 
 			UINT32 existingListType;
 			UINT32 existingIdx;
-			decodeComponentId(component->getSceneManagerId(), existingIdx, existingListType);
+			decodeComponentId(component->GetSceneManagerId(), existingIdx, existingListType);
 
-			const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
-			const bool isActive = component->SO()->getActive();
+			const bool alwaysRun = component->HasFlag(ComponentFlag::AlwaysRun);
+			const bool isActive = component->SO()->GetActive();
 
 			UINT32 listType = 0;
 			switch(entry.type)
@@ -514,7 +514,7 @@ namespace bs
 			addToStateList(component, listType);
 		}
 
-		mStateChanges.clear();
+		mStateChanges.Clear();
 	}
 
 
@@ -533,7 +533,7 @@ namespace bs
 
 	bool SceneManager::IsComponentOfType(const HComponent& component, UINT32 rttiId)
 	{
-		return component->getRTTI()->getRTTIId() == rttiId;
+		return component->GetRTTI()->getRTTIId() == rttiId;
 	}
 
 	void SceneManager::_update()
@@ -545,9 +545,9 @@ namespace bs
 
 		ScopeToggle Toggle(mDisableStateChange);
 		for (auto& entry : mActiveComponents)
-			entry->update();
+			entry->Update();
 
-		GameObjectManager::instance().destroyQueuedObjects();
+		GameObjectManager::instance().DestroyQueuedObjects();
 	}
 
 	void SceneManager::_fixedUpdate()
@@ -556,22 +556,22 @@ namespace bs
 
 		ScopeToggle Toggle(mDisableStateChange);
 		for (auto& entry : mActiveComponents)
-			entry->fixedUpdate();
+			entry->FixedUpdate();
 	}
 
 	void SceneManager::RegisterNewSO(const HSceneObject& node)
 	{
-		if(mMainScene->getRoot())
-			node->setParent(mMainScene->getRoot());
+		if(mMainScene->GetRoot())
+			node->SetParent(mMainScene->getRoot());
 	}
 
 	void SceneManager::OnMainRenderTargetResized()
 	{
-		auto& rtProps = mMainRT->getProperties();
+		auto& rtProps = mMainRT->GetProperties();
 		float aspect = rtProps.width / (float)rtProps.height;
 
 		for (auto& entry : mMainCameras)
-			entry->setAspectRatio(aspect);
+			entry->SetAspectRatio(aspect);
 	}
 
 	SceneManager& GSceneManager()

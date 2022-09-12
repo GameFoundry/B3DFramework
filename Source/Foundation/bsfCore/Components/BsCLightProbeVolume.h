@@ -26,19 +26,19 @@ namespace bs
 
 		/** @copydoc LightProbeVolume::addProbe() */
 		BS_SCRIPT_EXPORT()
-		UINT32 AddProbe(const Vector3& position) { return mInternal->addProbe(position); }
+		UINT32 AddProbe(const Vector3& position) { return mInternal->AddProbe(position); }
 
 		/** @copydoc LightProbeVolume::setProbePosition() */
 		BS_SCRIPT_EXPORT()
-		void SetProbePosition(UINT32 handle, const Vector3& position) { mInternal->setProbePosition(handle, position); }
+		void SetProbePosition(UINT32 handle, const Vector3& position) { mInternal->SetProbePosition(handle, position); }
 
 		/** @copydoc LightProbeVolume::getProbePosition() */
 		BS_SCRIPT_EXPORT()
-		Vector3 GetProbePosition(UINT32 handle) const { return mInternal->getProbePosition(handle); }
+		Vector3 GetProbePosition(UINT32 handle) const { return mInternal->GetProbePosition(handle); }
 
 		/** @copydoc LightProbeVolume::removeProbe() */
 		BS_SCRIPT_EXPORT()
-		void RemoveProbe(UINT32 handle) { mInternal->removeProbe(handle); }
+		void RemoveProbe(UINT32 handle) { mInternal->RemoveProbe(handle); }
 
 		/** @copydoc LightProbeVolume::getProbes() */
 		BS_SCRIPT_EXPORT()
@@ -54,15 +54,15 @@ namespace bs
 
 		/** @copydoc LightProbeVolume::resize() */
 		BS_SCRIPT_EXPORT()		
-		void Resize(const AABox& volume, const Vector3I& cellCount = Vector3I(1, 1, 1)) { mInternal->resize(volume, cellCount); }
+		void Resize(const AABox& volume, const Vector3I& cellCount = Vector3I(1, 1, 1)) { mInternal->Resize(volume, cellCount); }
 
 		/** @copydoc LightProbeVolume::clip() */
 		BS_SCRIPT_EXPORT()
-		void Clip() { mInternal->clip(); }
+		void Clip() { mInternal->Clip(); }
 
 		/** @copydoc LightProbeVolume::reset() */
 		BS_SCRIPT_EXPORT()
-		void Reset() { mInternal->reset(); }
+		void Reset() { mInternal->Reset(); }
 
 		/** @copydoc LightProbeVolume::getGridVolume() */
 		BS_SCRIPT_EXPORT(n:GridVolume,pr:getter)

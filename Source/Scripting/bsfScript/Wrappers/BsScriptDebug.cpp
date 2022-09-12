@@ -27,72 +27,72 @@ namespace bs
 
 	void ScriptDebug::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_Log", (void*)&ScriptDebug::internal_log);
-		metaData.scriptClass->addInternalCall("Internal_LogWarning", (void*)&ScriptDebug::internal_logWarning);
-		metaData.scriptClass->addInternalCall("Internal_LogError", (void*)&ScriptDebug::internal_logError);
-		metaData.scriptClass->addInternalCall("Internal_LogMessage", (void*)&ScriptDebug::internal_logMessage);
-		metaData.scriptClass->addInternalCall("Internal_Clear", (void*)&ScriptDebug::internal_clear);
-		metaData.scriptClass->addInternalCall("Internal_GetMessages", (void*)&ScriptDebug::internal_getMessages);
+		metaData.scriptClass->AddInternalCall("Internal_Log", (void*)&ScriptDebug::internal_log);
+		metaData.scriptClass->AddInternalCall("Internal_LogWarning", (void*)&ScriptDebug::internal_logWarning);
+		metaData.scriptClass->AddInternalCall("Internal_LogError", (void*)&ScriptDebug::internal_logError);
+		metaData.scriptClass->AddInternalCall("Internal_LogMessage", (void*)&ScriptDebug::internal_logMessage);
+		metaData.scriptClass->AddInternalCall("Internal_Clear", (void*)&ScriptDebug::internal_clear);
+		metaData.scriptClass->AddInternalCall("Internal_GetMessages", (void*)&ScriptDebug::internal_getMessages);
 
-		onAddedThunk = (OnAddedThunkDef)metaData.scriptClass->getMethod("Internal_OnAdded", 3)->getThunk();
+		onAddedThunk = (OnAddedThunkDef)metaData.scriptClass->GetMethod("Internal_OnAdded", 3)->getThunk();
 	}
 
 	void ScriptDebug::StartUp()
 	{
-		mOnLogEntryAddedConn = gDebug().onLogEntryAdded.connect(&ScriptDebug::onLogEntryAdded);
+		mOnLogEntryAddedConn = gDebug().onLogEntryAdded.Connect(&ScriptDebug::onLogEntryAdded);
 	}
 
 	void ScriptDebug::ShutDown()
 	{
-		mOnLogEntryAddedConn.disconnect();
+		mOnLogEntryAddedConn.Disconnect();
 	}
 
 	void ScriptDebug::OnLogEntryAdded(const LogEntry& entry)
 	{
-		MonoString* message = MonoUtil::stringToMono(entry.getMessage());
+		MonoString* message = MonoUtil::stringToMono(entry.GetMessage());
 
-		MonoUtil::invokeThunk(onAddedThunk, message, (INT32)entry.getVerbosity(), entry.getCategory());
+		MonoUtil::invokeThunk(onAddedThunk, message, (INT32)entry.GetVerbosity(), entry.getCategory());
 	}
 
 	void ScriptDebug::internal_log(MonoString* message, UINT32 category)
 	{
-		gDebug().log(MonoUtil::monoToString(message), LogVerbosity::Info, category);
+		gDebug().Log(MonoUtil::monoToString(message), LogVerbosity::Info, category);
 	}
 
 	void ScriptDebug::internal_logWarning(MonoString* message, UINT32 category)
 	{
-		gDebug().log(MonoUtil::monoToString(message), LogVerbosity::Warning, category);
+		gDebug().Log(MonoUtil::monoToString(message), LogVerbosity::Warning, category);
 	}
 
 	void ScriptDebug::internal_logError(MonoString* message, UINT32 category)
 	{
-		gDebug().log(MonoUtil::monoToString(message), LogVerbosity::Error, category);
+		gDebug().Log(MonoUtil::monoToString(message), LogVerbosity::Error, category);
 	}
 
 	void ScriptDebug::internal_logMessage(MonoString* message, LogVerbosity type, UINT32 category)
 	{
-		gDebug().log(MonoUtil::monoToString(message), type, category);
+		gDebug().Log(MonoUtil::monoToString(message), type, category);
 	}
 
 	void ScriptDebug::internal_clear(LogVerbosity verbosity, UINT32 category)
 	{
-		gDebug().getLog().clear(verbosity, category);
+		gDebug().GetLog().clear(verbosity, category);
 	}
 
 	MonoArray* ScriptDebug::internal_getMessages()
 	{
-		Vector<LogEntry> entries = gDebug().getLog().getEntries();
+		Vector<LogEntry> entries = gDebug().GetLog().getEntries();
 
-		UINT32 numEntries = (UINT32)entries.size();
+		UINT32 numEntries = (UINT32)entries.Size();
 		ScriptArray output = ScriptArray::create<ScriptLogEntry>(numEntries);
 		for (UINT32 i = 0; i < numEntries; i++)
 		{
-			MonoString* message = MonoUtil::stringToMono(entries[i].getMessage());
+			MonoString* message = MonoUtil::stringToMono(entries[i].GetMessage());
 
-			ScriptLogEntryData scriptEntry = { message, entries[i].getVerbosity(), entries[i].getCategory() };
-			output.set(i, scriptEntry);
+			ScriptLogEntryData scriptEntry = { message, entries[i].GetVerbosity(), entries[i].getCategory() };
+			output.Set(i, scriptEntry);
 		}
 
-		return output.getInternal();
+		return output.GetInternal();
 	}
 }

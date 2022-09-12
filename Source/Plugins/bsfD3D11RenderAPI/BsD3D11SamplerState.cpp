@@ -24,22 +24,22 @@ namespace bs { namespace ct
 		D3D11_SAMPLER_DESC samplerState;
 		ZeroMemory(&samplerState, sizeof(D3D11_SAMPLER_DESC));
 
-		samplerState.AddressU = D3D11Mappings::get(mProperties.getTextureAddressingMode().u);
-		samplerState.AddressV = D3D11Mappings::get(mProperties.getTextureAddressingMode().v);
-		samplerState.AddressW = D3D11Mappings::get(mProperties.getTextureAddressingMode().w);
-		samplerState.BorderColor[0] = mProperties.getBorderColor()[0];
-		samplerState.BorderColor[1] = mProperties.getBorderColor()[1];
-		samplerState.BorderColor[2] = mProperties.getBorderColor()[2];
-		samplerState.BorderColor[3] = mProperties.getBorderColor()[3];
-		samplerState.ComparisonFunc = D3D11Mappings::get(mProperties.getComparisonFunction());
-		samplerState.MaxAnisotropy = mProperties.getTextureAnisotropy();
-		samplerState.MaxLOD = mProperties.getMaximumMip();
-		samplerState.MinLOD = mProperties.getMinimumMip();
-		samplerState.MipLODBias = mProperties.getTextureMipmapBias();
+		samplerState.AddressU = D3D11Mappings::get(mProperties.GetTextureAddressingMode().u);
+		samplerState.AddressV = D3D11Mappings::get(mProperties.GetTextureAddressingMode().v);
+		samplerState.AddressW = D3D11Mappings::get(mProperties.GetTextureAddressingMode().w);
+		samplerState.BorderColor[0] = mProperties.GetBorderColor()[0];
+		samplerState.BorderColor[1] = mProperties.GetBorderColor()[1];
+		samplerState.BorderColor[2] = mProperties.GetBorderColor()[2];
+		samplerState.BorderColor[3] = mProperties.GetBorderColor()[3];
+		samplerState.ComparisonFunc = D3D11Mappings::get(mProperties.GetComparisonFunction());
+		samplerState.MaxAnisotropy = mProperties.GetTextureAnisotropy();
+		samplerState.MaxLOD = mProperties.GetMaximumMip();
+		samplerState.MinLOD = mProperties.GetMinimumMip();
+		samplerState.MipLODBias = mProperties.GetTextureMipmapBias();
 
-		FilterOptions minFilter = mProperties.getTextureFiltering(FT_MIN);
-		FilterOptions magFilter = mProperties.getTextureFiltering(FT_MAG);
-		FilterOptions mipFilter = mProperties.getTextureFiltering(FT_MIP);
+		FilterOptions minFilter = mProperties.GetTextureFiltering(FT_MIN);
+		FilterOptions magFilter = mProperties.GetTextureFiltering(FT_MAG);
+		FilterOptions mipFilter = mProperties.GetTextureFiltering(FT_MIP);
 
 		if (minFilter == FO_ANISOTROPIC && magFilter == FO_ANISOTROPIC && mipFilter == FO_ANISOTROPIC)
 		{
@@ -83,7 +83,7 @@ namespace bs { namespace ct
 			}
 		}
 
-		bool isComparison = mProperties.getComparisonFunction() != CMPF_ALWAYS_PASS;
+		bool isComparison = mProperties.GetComparisonFunction() != CMPF_ALWAYS_PASS;
 		if(isComparison)
 		{
 			// Adds COMPARISON flag to the filter
@@ -92,12 +92,12 @@ namespace bs { namespace ct
 		}
 
 		D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::instancePtr());
-		D3D11Device& device = rs->getPrimaryDevice();
-		HRESULT hr = device.getD3D11Device()->CreateSamplerState(&samplerState, &mSamplerState);
+		D3D11Device& device = rs->GetPrimaryDevice();
+		HRESULT hr = device.GetD3D11Device()->CreateSamplerState(&samplerState, &mSamplerState);
 
-		if(FAILED(hr) || device.hasError())
+		if(FAILED(hr) || device.HasError())
 		{
-			String errorDescription = device.getErrorDescription();
+			String errorDescription = device.GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Cannot create sampler state.\nError Description:" + errorDescription);
 		}
 

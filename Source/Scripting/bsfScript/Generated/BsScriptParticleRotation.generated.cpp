@@ -17,10 +17,10 @@ namespace bs
 
 	void ScriptParticleRotation::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_setOptions", (void*)&ScriptParticleRotation::Internal_setOptions);
-		metaData.scriptClass->addInternalCall("Internal_getOptions", (void*)&ScriptParticleRotation::Internal_getOptions);
-		metaData.scriptClass->addInternalCall("Internal_create", (void*)&ScriptParticleRotation::Internal_create);
-		metaData.scriptClass->addInternalCall("Internal_create0", (void*)&ScriptParticleRotation::Internal_create0);
+		metaData.scriptClass->AddInternalCall("Internal_setOptions", (void*)&ScriptParticleRotation::Internal_setOptions);
+		metaData.scriptClass->AddInternalCall("Internal_getOptions", (void*)&ScriptParticleRotation::Internal_getOptions);
+		metaData.scriptClass->AddInternalCall("Internal_create", (void*)&ScriptParticleRotation::Internal_create);
+		metaData.scriptClass->AddInternalCall("Internal_create0", (void*)&ScriptParticleRotation::Internal_create0);
 
 	}
 
@@ -31,7 +31,7 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.scriptClass->createInstance("bool", ctorParams);
+		MonoObject* managedInstance = metaData.scriptClass->CreateInstance("bool", ctorParams);
 		new (bs_alloc<ScriptParticleRotation>()) ScriptParticleRotation(managedInstance, value);
 		return managedInstance;
 	}
@@ -39,13 +39,13 @@ namespace bs
 	{
 		PARTICLE_ROTATION_DESC tmpoptions;
 		tmpoptions = ScriptPARTICLE_ROTATION_DESC::fromInterop(*options);
-		thisPtr->getInternal()->setOptions(tmpoptions);
+		thisPtr->GetInternal()->setOptions(tmpoptions);
 	}
 
 	void ScriptParticleRotation::Internal_getOptions(ScriptParticleRotation* thisPtr, __PARTICLE_ROTATION_DESCInterop* __output)
 	{
 		PARTICLE_ROTATION_DESC tmp__output;
-		tmp__output = thisPtr->getInternal()->getOptions();
+		tmp__output = thisPtr->GetInternal()->getOptions();
 
 		__PARTICLE_ROTATION_DESCInterop interop__output;
 		interop__output = ScriptPARTICLE_ROTATION_DESC::toInterop(tmp__output);

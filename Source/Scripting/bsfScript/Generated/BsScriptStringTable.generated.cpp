@@ -18,14 +18,14 @@ namespace bs
 
 	void ScriptStringTable::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_GetRef", (void*)&ScriptStringTable::Internal_getRef);
-		metaData.scriptClass->addInternalCall("Internal_contains", (void*)&ScriptStringTable::Internal_contains);
-		metaData.scriptClass->addInternalCall("Internal_getNumStrings", (void*)&ScriptStringTable::Internal_getNumStrings);
-		metaData.scriptClass->addInternalCall("Internal_getIdentifiers", (void*)&ScriptStringTable::Internal_getIdentifiers);
-		metaData.scriptClass->addInternalCall("Internal_setString", (void*)&ScriptStringTable::Internal_setString);
-		metaData.scriptClass->addInternalCall("Internal_getString", (void*)&ScriptStringTable::Internal_getString);
-		metaData.scriptClass->addInternalCall("Internal_removeString", (void*)&ScriptStringTable::Internal_removeString);
-		metaData.scriptClass->addInternalCall("Internal_create", (void*)&ScriptStringTable::Internal_create);
+		metaData.scriptClass->AddInternalCall("Internal_GetRef", (void*)&ScriptStringTable::Internal_getRef);
+		metaData.scriptClass->AddInternalCall("Internal_contains", (void*)&ScriptStringTable::Internal_contains);
+		metaData.scriptClass->AddInternalCall("Internal_getNumStrings", (void*)&ScriptStringTable::Internal_getNumStrings);
+		metaData.scriptClass->AddInternalCall("Internal_getIdentifiers", (void*)&ScriptStringTable::Internal_getIdentifiers);
+		metaData.scriptClass->AddInternalCall("Internal_setString", (void*)&ScriptStringTable::Internal_setString);
+		metaData.scriptClass->AddInternalCall("Internal_getString", (void*)&ScriptStringTable::Internal_getString);
+		metaData.scriptClass->AddInternalCall("Internal_removeString", (void*)&ScriptStringTable::Internal_removeString);
+		metaData.scriptClass->AddInternalCall("Internal_create", (void*)&ScriptStringTable::Internal_create);
 
 	}
 
@@ -34,11 +34,11 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		return metaData.scriptClass->createInstance("bool", ctorParams);
+		return metaData.scriptClass->CreateInstance("bool", ctorParams);
 	}
 	MonoObject* ScriptStringTable::Internal_getRef(ScriptStringTable* thisPtr)
 	{
-		return thisPtr->getRRef();
+		return thisPtr->GetRRef();
 	}
 
 	bool ScriptStringTable::Internal_contains(ScriptStringTable* thisPtr, MonoString* identifier)
@@ -46,7 +46,7 @@ namespace bs
 		bool tmp__output;
 		String tmpidentifier;
 		tmpidentifier = MonoUtil::monoToString(identifier);
-		tmp__output = thisPtr->getHandle()->contains(tmpidentifier);
+		tmp__output = thisPtr->GetHandle()->contains(tmpidentifier);
 
 		bool __output;
 		__output = tmp__output;
@@ -57,7 +57,7 @@ namespace bs
 	uint32_t ScriptStringTable::Internal_getNumStrings(ScriptStringTable* thisPtr)
 	{
 		uint32_t tmp__output;
-		tmp__output = thisPtr->getHandle()->getNumStrings();
+		tmp__output = thisPtr->GetHandle()->getNumStrings();
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -68,16 +68,16 @@ namespace bs
 	MonoArray* ScriptStringTable::Internal_getIdentifiers(ScriptStringTable* thisPtr)
 	{
 		Vector<String> vec__output;
-		vec__output = thisPtr->getHandle()->getIdentifiers();
+		vec__output = thisPtr->GetHandle()->getIdentifiers();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
+		int arraySize__output = (int)vec__output.Size();
 		ScriptArray array__output = ScriptArray::create<String>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
-			array__output.set(i, vec__output[i]);
+			array__output.Set(i, vec__output[i]);
 		}
-		__output = array__output.getInternal();
+		__output = array__output.GetInternal();
 
 		return __output;
 	}
@@ -88,7 +88,7 @@ namespace bs
 		tmpidentifier = MonoUtil::monoToString(identifier);
 		String tmpvalue;
 		tmpvalue = MonoUtil::monoToString(value);
-		thisPtr->getHandle()->setString(tmpidentifier, language, tmpvalue);
+		thisPtr->GetHandle()->setString(tmpidentifier, language, tmpvalue);
 	}
 
 	MonoString* ScriptStringTable::Internal_getString(ScriptStringTable* thisPtr, MonoString* identifier, Language language)
@@ -96,7 +96,7 @@ namespace bs
 		String tmp__output;
 		String tmpidentifier;
 		tmpidentifier = MonoUtil::monoToString(identifier);
-		tmp__output = thisPtr->getHandle()->getString(tmpidentifier, language);
+		tmp__output = thisPtr->GetHandle()->getString(tmpidentifier, language);
 
 		MonoString* __output;
 		__output = MonoUtil::stringToMono(tmp__output);
@@ -108,12 +108,12 @@ namespace bs
 	{
 		String tmpidentifier;
 		tmpidentifier = MonoUtil::monoToString(identifier);
-		thisPtr->getHandle()->removeString(tmpidentifier);
+		thisPtr->GetHandle()->removeString(tmpidentifier);
 	}
 
 	void ScriptStringTable::Internal_create(MonoObject* managedInstance)
 	{
 		ResourceHandle<StringTable> instance = StringTable::create();
-		ScriptResourceManager::instance().createBuiltinScriptResource(instance, managedInstance);
+		ScriptResourceManager::instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 }

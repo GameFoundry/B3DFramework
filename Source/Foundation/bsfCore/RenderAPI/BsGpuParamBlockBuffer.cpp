@@ -74,12 +74,12 @@ namespace bs
 
 	SPtr<ct::CoreObject> GpuParamBlockBuffer::CreateCore() const
 	{
-		return ct::HardwareBufferManager::instance().createGpuParamBlockBufferInternal(mSize, mUsage);
+		return ct::HardwareBufferManager::instance().CreateGpuParamBlockBufferInternal(mSize, mUsage);
 	}
 
 	CoreSyncData GpuParamBlockBuffer::SyncToCore(FrameAlloc* allocator)
 	{
-		UINT8* buffer = allocator->alloc(mSize);
+		UINT8* buffer = allocator->Alloc(mSize);
 		read(0, buffer, mSize);
 
 		return CoreSyncData(buffer, mSize);
@@ -87,7 +87,7 @@ namespace bs
 
 	SPtr<GpuParamBlockBuffer> GpuParamBlockBuffer::Create(UINT32 size, GpuBufferUsage usage)
 	{
-		return HardwareBufferManager::Instance().createGpuParamBlockBuffer(size, usage);
+		return HardwareBufferManager::Instance().CreateGpuParamBlockBuffer(size, usage);
 	}
 
 	namespace ct
@@ -172,21 +172,21 @@ namespace bs
 
 	void GpuParamBlockBuffer::WriteToGPU(const UINT8* data, UINT32 queueIdx)
 	{
-		mBuffer->writeData(0, mSize, data, BWT_DISCARD, queueIdx);
+		mBuffer->WriteData(0, mSize, data, BWT_DISCARD, queueIdx);
 
 		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuParamBuffer);
 	}
 
 	void GpuParamBlockBuffer::SyncToCore(const CoreSyncData& data)
 	{
-		assert(mSize == data.getBufferSize());
+		assert(mSize == data.GetBufferSize());
 
-		write(0, data.getBuffer(), data.getBufferSize());
+		write(0, data.GetBuffer(), data.getBufferSize());
 	}
 
 	SPtr<GpuParamBlockBuffer> GpuParamBlockBuffer::Create(UINT32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferManager::Instance().createGpuParamBlockBuffer(size, usage, deviceMask);
+		return HardwareBufferManager::Instance().CreateGpuParamBlockBuffer(size, usage, deviceMask);
 	}
 	}
 }

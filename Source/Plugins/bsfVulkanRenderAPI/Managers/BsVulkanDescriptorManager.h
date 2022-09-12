@@ -51,7 +51,7 @@ namespace std
 		size_t Operator()(const bs::ct::VulkanLayoutKey& value) const
 		{
 			if (value.layout != nullptr)
-				return value.layout->getHash();
+				return value.layout->GetHash();
 
 			return bs::ct::VulkanDescriptorLayout::calculateHash(value.bindings, value.numBindings);
 		}
@@ -63,7 +63,7 @@ namespace std
 	{
 		size_t Operator()(const bs::ct::VulkanPipelineLayoutKey& value) const
 		{
-			return value.calculateHash();
+			return value.CalculateHash();
 		}
 	};
 }

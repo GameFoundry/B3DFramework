@@ -28,7 +28,7 @@ namespace bs
 		 */
 
 		/** Returns the AudioListener implementation wrapped by this component. */
-		AudioListener* _getInternal() const { return mInternal.get(); }
+		AudioListener* _getInternal() const { return mInternal.Get(); }
 
 		/** @} */
 

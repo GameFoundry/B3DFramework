@@ -33,7 +33,7 @@ namespace bs { namespace ct
 
 	void Renderer::SetGlobalShaderOverride(const SPtr<bs::Shader>& shader)
 	{
-		const Vector<bs::SubShader>& subShaders = shader->getSubShaders();
+		const Vector<bs::SubShader>& subShaders = shader->GetSubShaders();
 		
 		for(auto& entry : subShaders)
 			setGlobalShaderOverride(entry.name, entry.shader);
@@ -42,28 +42,28 @@ namespace bs { namespace ct
 	bool Renderer::CompareCallback(const RendererExtension* a, const RendererExtension* b)
 	{
 		// Sort by alpha setting first, then by cull mode, then by index
-		if (a->getLocation() == b->getLocation())
+		if (a->GetLocation() == b->getLocation())
 		{
-			if (a->getPriority() == b->getPriority())
+			if (a->GetPriority() == b->getPriority())
 				return a > b; // Use address, at this point it doesn't matter, but std::set requires us to differentiate
 			else
-				return a->getPriority() > b->getPriority();
+				return a->GetPriority() > b->getPriority();
 		}
 		else
-			return (UINT32)a->getLocation() < (UINT32)b->getLocation();
+			return (UINT32)a->GetLocation() < (UINT32)b->getLocation();
 	}
 
 	void Renderer::Update()
 	{
 		for(auto& entry : mUnresolvedTasks)
 		{
-			if (entry->isComplete())
-				entry->onComplete();
-			else if (!entry->isCanceled())
+			if (entry->IsComplete())
+				entry->OnComplete();
+			else if (!entry->IsCanceled())
 				mRemainingUnresolvedTasks.push_back(entry);
 		}
 
-		mUnresolvedTasks.clear();
+		mUnresolvedTasks.Clear();
 		std::swap(mRemainingUnresolvedTasks, mUnresolvedTasks);
 	}
 
@@ -72,9 +72,9 @@ namespace bs { namespace ct
 		Lock Lock(mTaskMutex);
 
 		assert(task->mState != 1 && "Task is already executing, it cannot be executed again until it finishes.");
-		task->mState.store(0); // Reset state in case the task is getting re-queued
+		task->mState.Store(0); // Reset state in case the task is getting re-queued
 
-		mQueuedTasks.push_back(RendererTaskQueuedInfo(task, gTime().getFrameIdx()));
+		mQueuedTasks.push_back(RendererTaskQueuedInfo(task, gTime().GetFrameIdx()));
 		mUnresolvedTasks.push_back(task);
 	}
 
@@ -84,12 +84,12 @@ namespace bs { namespace ct
 		{
 			Lock Lock(mTaskMutex);
 
-			for(UINT32 i = 0; i < (UINT32)mQueuedTasks.size();)
+			for(UINT32 i = 0; i < (UINT32)mQueuedTasks.Size();)
 			{
 				if(mQueuedTasks[i].frameIdx <= upToFrame)
 				{
 					mRunningTasks.push_back(mQueuedTasks[i].task);
-					bs_swap_and_erase(mQueuedTasks, mQueuedTasks.begin() + i);
+					bs_swap_and_erase(mQueuedTasks, mQueuedTasks.Begin() + i);
 					
 					continue;
 				}
@@ -102,26 +102,26 @@ namespace bs { namespace ct
 		{
 			for (auto& entry : mRunningTasks)
 			{
-				if (entry->isCanceled() || entry->isComplete())
+				if (entry->IsCanceled() || entry->isComplete())
 					continue;
 
-				entry->mState.store(1);
+				entry->mState.Store(1);
 
 				const bool complete = [&entry]()
 				{
-					ProfileGPUBlock SampleBlock("Renderer task: " + ProfilerString(entry->mName.data(), entry->mName.size()));
-					return entry->mTaskWorker();
+					ProfileGPUBlock SampleBlock("Renderer task: " + ProfilerString(entry->mName.Data(), entry->mName.size()));
+					return entry->MTaskWorker();
 				}();
 
 				if (!complete)
 					mRemainingTasks.push_back(entry);
 				else
-					entry->mState.store(2);
+					entry->mState.Store(2);
 			}
 
-			mRunningTasks.clear();
+			mRunningTasks.Clear();
 			std::swap(mRemainingTasks, mRunningTasks);
-		} while (forceAll && !mRunningTasks.empty());
+		} while (forceAll && !mRunningTasks.Empty());
 	}
 
 	void Renderer::ProcessTask(RendererTask& task, bool forceAll)
@@ -130,34 +130,34 @@ namespace bs { namespace ct
 		{
 			Lock Lock(mTaskMutex);
 
-			for(UINT32 i = 0; i < (UINT32)mQueuedTasks.size(); i++)
+			for(UINT32 i = 0; i < (UINT32)mQueuedTasks.Size(); i++)
 			{
-				if(mQueuedTasks[i].task.get() == &task)
+				if(mQueuedTasks[i].task.Get() == &task)
 				{
 					mRunningTasks.push_back(mQueuedTasks[i].task);
-					bs_swap_and_erase(mQueuedTasks, mQueuedTasks.begin() + i);
+					bs_swap_and_erase(mQueuedTasks, mQueuedTasks.Begin() + i);
 
 					break;
 				}
 			}
 		}
 
-		bool complete = task.isCanceled() || task.isComplete();
+		bool complete = task.IsCanceled() || task.isComplete();
 		while (!complete)
 		{
-			task.mState.store(1);
+			task.mState.Store(1);
 
-			gProfilerGPU().beginFrame();
-			gProfilerCPU().beginThread("RenderTask");
+			gProfilerGPU().BeginFrame();
+			gProfilerCPU().BeginThread("RenderTask");
 			{
-				ProfileGPUBlock SampleBlock("Renderer task: " + ProfilerString(task.mName.data(), task.mName.size()));
-				complete = task.mTaskWorker();
+				ProfileGPUBlock SampleBlock("Renderer task: " + ProfilerString(task.mName.Data(), task.mName.size()));
+				complete = task.MTaskWorker();
 			}
-			gProfilerCPU().endThread();
-			gProfilerGPU().endFrame(true);
+			gProfilerCPU().EndThread();
+			gProfilerGPU().EndFrame(true);
 
 			if (complete)
-				task.mState.store(2);
+				task.mState.Store(2);
 
 			if (!forceAll)
 				break;
@@ -166,7 +166,7 @@ namespace bs { namespace ct
 
 	SPtr<Renderer> GRenderer()
 	{
-		return std::static_pointer_cast<Renderer>(RendererManager::instance().getActive());
+		return std::static_pointer_cast<Renderer>(RendererManager::instance().GetActive());
 	}
 
 	RendererTask::RendererTask(const PrivatelyConstruct& dummy, String name, std::function<bool()> taskWorker)
@@ -180,12 +180,12 @@ namespace bs { namespace ct
 
 	bool RendererTask::IsComplete() const
 	{
-		return mState.load() == 2;
+		return mState.Load() == 2;
 	}
 
 	bool RendererTask::IsCanceled() const
 	{
-		return mState.load() == 3;
+		return mState.Load() == 3;
 	}
 
 	void RendererTask::Wait()
@@ -195,21 +195,21 @@ namespace bs { namespace ct
 		// Note: wait() might only get called during serialization, in which case we might call these methods just once
 		// before a level save, instead for every individual component
 		gSceneManager()._updateCoreObjectTransforms();
-		CoreObjectManager::instance().syncToCore();
+		CoreObjectManager::instance().SyncToCore();
 
 		auto worker = [this]()
 		{
-			gRenderer()->processTask(*this, true);
+			gRenderer()->ProcessTask(*this, true);
 		};
 
-		gCoreThread().queueCommand(worker);
-		gCoreThread().submit(true);
+		gCoreThread().QueueCommand(worker);
+		gCoreThread().Submit(true);
 
 		// Note: Tigger on complete callback and clear it from Renderer?
 	}
 
 	void RendererTask::Cancel()
 	{
-		mState.store(3);
+		mState.Store(3);
 	}
 }}

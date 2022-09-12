@@ -19,7 +19,7 @@ namespace bs { namespace ct
 		D3D11VertexBuffer(D3D11Device& device, const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 
 		/**	Get the D3D-specific index buffer */
-		ID3D11Buffer* getD3DVertexBuffer() const { return static_cast<D3D11HardwareBuffer*>(mBuffer)->getD3DBuffer(); }		
+		ID3D11Buffer* getD3DVertexBuffer() const { return static_cast<D3D11HardwareBuffer*>(mBuffer)->GetD3DBuffer(); }
 
 	protected:
 		/** @copydoc VertexBuffer::initialize */

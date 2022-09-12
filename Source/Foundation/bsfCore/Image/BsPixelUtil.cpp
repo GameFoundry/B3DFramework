@@ -19,26 +19,26 @@ namespace bs
 	{
 		static void Scale(const PixelData& source, const PixelData& dest)
 		{
-			UINT8* sourceData = source.getData();
-			UINT8* destPtr = dest.getData();
+			UINT8* sourceData = source.GetData();
+			UINT8* destPtr = dest.GetData();
 
 			// Get steps for traversing source data in 16/48 fixed point format
-			UINT64 stepX = ((UINT64)source.getWidth() << 48) / dest.getWidth();
-			UINT64 stepY = ((UINT64)source.getHeight() << 48) / dest.getHeight();
-			UINT64 stepZ = ((UINT64)source.getDepth() << 48) / dest.getDepth();
+			UINT64 stepX = ((UINT64)source.GetWidth() << 48) / dest.getWidth();
+			UINT64 stepY = ((UINT64)source.GetHeight() << 48) / dest.getHeight();
+			UINT64 stepZ = ((UINT64)source.GetDepth() << 48) / dest.getDepth();
 
 			UINT64 curZ = (stepZ >> 1) - 1; // Offset half a pixel to start at pixel center
-			for (UINT32 z = dest.getFront(); z < dest.getBack(); z++, curZ += stepZ)
+			for (UINT32 z = dest.GetFront(); z < dest.getBack(); z++, curZ += stepZ)
 			{
-				UINT32 offsetZ = (UINT32)(curZ >> 48) * source.getSlicePitch();
+				UINT32 offsetZ = (UINT32)(curZ >> 48) * source.GetSlicePitch();
 
 				UINT64 curY = (stepY >> 1) - 1; // Offset half a pixel to start at pixel center
-				for (UINT32 y = dest.getTop(); y < dest.getBottom(); y++, curY += stepY)
+				for (UINT32 y = dest.GetTop(); y < dest.getBottom(); y++, curY += stepY)
 				{
-					UINT32 offsetY = (UINT32)(curY >> 48) * source.getRowPitch();
+					UINT32 offsetY = (UINT32)(curY >> 48) * source.GetRowPitch();
 
 					UINT64 curX = (stepX >> 1) - 1; // Offset half a pixel to start at pixel center
-					for (UINT32 x = dest.getLeft(); x < dest.getRight(); x++, curX += stepX)
+					for (UINT32 x = dest.GetLeft(); x < dest.getRight(); x++, curX += stepX)
 					{
 						UINT32 offsetX = (UINT32)(curX >> 48);
 						UINT32 offsetBytes = elementSize*offsetX + offsetY + offsetZ;
@@ -49,10 +49,10 @@ namespace bs
 						destPtr += elementSize;
 					}
 
-					destPtr += dest.getRowSkip();
+					destPtr += dest.GetRowSkip();
 				}
 
-				destPtr += dest.getSliceSkip();
+				destPtr += dest.GetSliceSkip();
 			}
 		}
 	};
@@ -62,16 +62,16 @@ namespace bs
 	{
 		static void Scale(const PixelData& source, const PixelData& dest)
 		{
-			UINT32 sourceElemSize = PixelUtil::getNumElemBytes(source.getFormat());
-			UINT32 destElemSize = PixelUtil::getNumElemBytes(dest.getFormat());
+			UINT32 sourceElemSize = PixelUtil::getNumElemBytes(source.GetFormat());
+			UINT32 destElemSize = PixelUtil::getNumElemBytes(dest.GetFormat());
 
-			UINT8* sourceData = source.getData();
-			UINT8* destPtr = dest.getData();
+			UINT8* sourceData = source.GetData();
+			UINT8* destPtr = dest.GetData();
 
 			// Get steps for traversing source data in 16/48 fixed point precision format
-			UINT64 stepX = ((UINT64)source.getWidth() << 48) / dest.getWidth();
-			UINT64 stepY = ((UINT64)source.getHeight() << 48) / dest.getHeight();
-			UINT64 stepZ = ((UINT64)source.getDepth() << 48) / dest.getDepth();
+			UINT64 stepX = ((UINT64)source.GetWidth() << 48) / dest.getWidth();
+			UINT64 stepY = ((UINT64)source.GetHeight() << 48) / dest.getHeight();
+			UINT64 stepZ = ((UINT64)source.GetDepth() << 48) / dest.getDepth();
 
 			// Contains 16/16 fixed point precision format. Most significant
 			// 16 bits will contain the coordinate in the source image, and the
@@ -80,45 +80,45 @@ namespace bs
 			UINT32 temp = 0;
 
 			UINT64 curZ = (stepZ >> 1) - 1; // Offset half a pixel to start at pixel center
-			for (UINT32 z = dest.getFront(); z < dest.getBack(); z++, curZ += stepZ)
+			for (UINT32 z = dest.GetFront(); z < dest.getBack(); z++, curZ += stepZ)
 			{
 				temp = UINT32(curZ >> 32);
 				temp = (temp > 0x8000)? temp - 0x8000 : 0;
 				UINT32 sampleCoordZ1 = temp >> 16;
-				UINT32 sampleCoordZ2 = std::min(sampleCoordZ1 + 1, (UINT32)source.getDepth() - 1);
+				UINT32 sampleCoordZ2 = std::min(sampleCoordZ1 + 1, (UINT32)source.GetDepth() - 1);
 				float sampleWeightZ = (temp & 0xFFFF) / 65536.0f;
 
 				UINT64 curY = (stepY >> 1) - 1; // Offset half a pixel to start at pixel center
-				for (UINT32 y = dest.getTop(); y < dest.getBottom(); y++, curY += stepY)
+				for (UINT32 y = dest.GetTop(); y < dest.getBottom(); y++, curY += stepY)
 				{
 					temp = (UINT32)(curY >> 32);
 					temp = (temp > 0x8000)? temp - 0x8000 : 0;
 					UINT32 sampleCoordY1 = temp >> 16;
-					UINT32 sampleCoordY2 = std::min(sampleCoordY1 + 1, (UINT32)source.getHeight() - 1);
+					UINT32 sampleCoordY2 = std::min(sampleCoordY1 + 1, (UINT32)source.GetHeight() - 1);
 					float sampleWeightY = (temp & 0xFFFF) / 65536.0f;
 
 					UINT64 curX = (stepX >> 1) - 1; // Offset half a pixel to start at pixel center
-					for (UINT32 x = dest.getLeft(); x < dest.getRight(); x++, curX += stepX)
+					for (UINT32 x = dest.GetLeft(); x < dest.getRight(); x++, curX += stepX)
 					{
 						temp = (UINT32)(curX >> 32);
 						temp = (temp > 0x8000)? temp - 0x8000 : 0;
 						UINT32 sampleCoordX1 = temp >> 16;
-						UINT32 sampleCoordX2 = std::min(sampleCoordX1 + 1, (UINT32)source.getWidth() - 1);
+						UINT32 sampleCoordX2 = std::min(sampleCoordX1 + 1, (UINT32)source.GetWidth() - 1);
 						float sampleWeightX = (temp & 0xFFFF) / 65536.0f;
 
 						Color x1y1z1, x2y1z1, x1y2z1, x2y2z1;
 						Color x1y1z2, x2y1z2, x1y2z2, x2y2z2;
 
-#define GETSOURCEDATA(x, y, z) sourceData + sourceElemSize*(x)+(y)*source.getRowPitch() + (z)*source.getSlicePitch()
+#define GETSOURCEDATA(x, y, z) sourceData + sourceElemSize*(x)+(y)*source.GetRowPitch() + (z)*source.getSlicePitch()
 
-						PixelUtil::unpackColor(&x1y1z1, source.getFormat(), GETSOURCEDATA(sampleCoordX1, sampleCoordY1, sampleCoordZ1));
-						PixelUtil::unpackColor(&x2y1z1, source.getFormat(), GETSOURCEDATA(sampleCoordX2, sampleCoordY1, sampleCoordZ1));
-						PixelUtil::unpackColor(&x1y2z1, source.getFormat(), GETSOURCEDATA(sampleCoordX1, sampleCoordY2, sampleCoordZ1));
-						PixelUtil::unpackColor(&x2y2z1, source.getFormat(), GETSOURCEDATA(sampleCoordX2, sampleCoordY2, sampleCoordZ1));
-						PixelUtil::unpackColor(&x1y1z2, source.getFormat(), GETSOURCEDATA(sampleCoordX1, sampleCoordY1, sampleCoordZ2));
-						PixelUtil::unpackColor(&x2y1z2, source.getFormat(), GETSOURCEDATA(sampleCoordX2, sampleCoordY1, sampleCoordZ2));
-						PixelUtil::unpackColor(&x1y2z2, source.getFormat(), GETSOURCEDATA(sampleCoordX1, sampleCoordY2, sampleCoordZ2));
-						PixelUtil::unpackColor(&x2y2z2, source.getFormat(), GETSOURCEDATA(sampleCoordX2, sampleCoordY2, sampleCoordZ2));
+						PixelUtil::unpackColor(&x1y1z1, source.GetFormat(), GETSOURCEDATA(sampleCoordX1, sampleCoordY1, sampleCoordZ1));
+						PixelUtil::unpackColor(&x2y1z1, source.GetFormat(), GETSOURCEDATA(sampleCoordX2, sampleCoordY1, sampleCoordZ1));
+						PixelUtil::unpackColor(&x1y2z1, source.GetFormat(), GETSOURCEDATA(sampleCoordX1, sampleCoordY2, sampleCoordZ1));
+						PixelUtil::unpackColor(&x2y2z1, source.GetFormat(), GETSOURCEDATA(sampleCoordX2, sampleCoordY2, sampleCoordZ1));
+						PixelUtil::unpackColor(&x1y1z2, source.GetFormat(), GETSOURCEDATA(sampleCoordX1, sampleCoordY1, sampleCoordZ2));
+						PixelUtil::unpackColor(&x2y1z2, source.GetFormat(), GETSOURCEDATA(sampleCoordX2, sampleCoordY1, sampleCoordZ2));
+						PixelUtil::unpackColor(&x1y2z2, source.GetFormat(), GETSOURCEDATA(sampleCoordX1, sampleCoordY2, sampleCoordZ2));
+						PixelUtil::unpackColor(&x2y2z2, source.GetFormat(), GETSOURCEDATA(sampleCoordX2, sampleCoordY2, sampleCoordZ2));
 #undef GETSOURCEDATA
 
 						Color accum =
@@ -131,15 +131,15 @@ namespace bs
 							x1y2z2 * ((1.0f - sampleWeightX)*        sampleWeightY *        sampleWeightZ ) +
 							x2y2z2 * (        sampleWeightX *        sampleWeightY *        sampleWeightZ );
 
-						PixelUtil::packColor(accum, dest.getFormat(), destPtr);
+						PixelUtil::packColor(accum, dest.GetFormat(), destPtr);
 
 						destPtr += destElemSize;
 					}
 
-					destPtr += dest.getRowSkip();
+					destPtr += dest.GetRowSkip();
 				}
 
-				destPtr += dest.getSliceSkip();
+				destPtr += dest.GetSliceSkip();
 			}
 		}
 	};
@@ -153,22 +153,22 @@ namespace bs
 	{
 		static void Scale(const PixelData& source, const PixelData& dest)
 		{
-			UINT32 sourcePixelSize = PixelUtil::getNumElemBytes(source.getFormat());
-			UINT32 destPixelSize = PixelUtil::getNumElemBytes(dest.getFormat());
+			UINT32 sourcePixelSize = PixelUtil::getNumElemBytes(source.GetFormat());
+			UINT32 destPixelSize = PixelUtil::getNumElemBytes(dest.GetFormat());
 
 			UINT32 numSourceChannels = sourcePixelSize / sizeof(float);
 			UINT32 numDestChannels = destPixelSize / sizeof(float);
 
-			float* sourceData = (float*)source.getData();
-			float* destPtr = (float*)dest.getData();
+			float* sourceData = (float*)source.GetData();
+			float* destPtr = (float*)dest.GetData();
 
 			// Get steps for traversing source data in 16/48 fixed point precision format
-			UINT64 stepX = ((UINT64)source.getWidth() << 48) / dest.getWidth();
-			UINT64 stepY = ((UINT64)source.getHeight() << 48) / dest.getHeight();
-			UINT64 stepZ = ((UINT64)source.getDepth() << 48) / dest.getDepth();
+			UINT64 stepX = ((UINT64)source.GetWidth() << 48) / dest.getWidth();
+			UINT64 stepY = ((UINT64)source.GetHeight() << 48) / dest.getHeight();
+			UINT64 stepZ = ((UINT64)source.GetDepth() << 48) / dest.getDepth();
 
-			UINT32 sourceRowPitch = source.getRowPitch() / sourcePixelSize;
-			UINT32 sourceSlicePitch = source.getSlicePitch() / sourcePixelSize;
+			UINT32 sourceRowPitch = source.GetRowPitch() / sourcePixelSize;
+			UINT32 sourceSlicePitch = source.GetSlicePitch() / sourcePixelSize;
 
 			// Contains 16/16 fixed point precision format. Most significant
 			// 16 bits will contain the coordinate in the source image, and the
@@ -177,30 +177,30 @@ namespace bs
 			UINT32 temp = 0;
 
 			UINT64 curZ = (stepZ >> 1) - 1; // Offset half a pixel to start at pixel center
-			for (UINT32 z = dest.getFront(); z < dest.getBack(); z++, curZ += stepZ)
+			for (UINT32 z = dest.GetFront(); z < dest.getBack(); z++, curZ += stepZ)
 			{
 				temp = (UINT32)(curZ >> 32);
 				temp = (temp > 0x8000)? temp - 0x8000 : 0;
 				UINT32 sampleCoordZ1 = temp >> 16;
-				UINT32 sampleCoordZ2 = std::min(sampleCoordZ1 + 1, (UINT32)source.getDepth() - 1);
+				UINT32 sampleCoordZ2 = std::min(sampleCoordZ1 + 1, (UINT32)source.GetDepth() - 1);
 				float sampleWeightZ = (temp & 0xFFFF) / 65536.0f;
 
 				UINT64 curY = (stepY >> 1) - 1; // Offset half a pixel to start at pixel center
-				for (UINT32 y = dest.getTop(); y < dest.getBottom(); y++, curY += stepY)
+				for (UINT32 y = dest.GetTop(); y < dest.getBottom(); y++, curY += stepY)
 				{
 					temp = (UINT32)(curY >> 32);
 					temp = (temp > 0x8000)? temp - 0x8000 : 0;
 					UINT32 sampleCoordY1 = temp >> 16;
-					UINT32 sampleCoordY2 = std::min(sampleCoordY1 + 1, (UINT32)source.getHeight() - 1);
+					UINT32 sampleCoordY2 = std::min(sampleCoordY1 + 1, (UINT32)source.GetHeight() - 1);
 					float sampleWeightY = (temp & 0xFFFF) / 65536.0f;
 
 					UINT64 curX = (stepX >> 1) - 1; // Offset half a pixel to start at pixel center
-					for (UINT32 x = dest.getLeft(); x < dest.getRight(); x++, curX += stepX)
+					for (UINT32 x = dest.GetLeft(); x < dest.getRight(); x++, curX += stepX)
 					{
 						temp = (UINT32)(curX >> 32);
 						temp = (temp > 0x8000)? temp - 0x8000 : 0;
 						UINT32 sampleCoordX1 = temp >> 16;
-						UINT32 sampleCoordX2 = std::min(sampleCoordX1 + 1, (UINT32)source.getWidth() - 1);
+						UINT32 sampleCoordX2 = std::min(sampleCoordX1 + 1, (UINT32)source.GetWidth() - 1);
 						float sampleWeightX = (temp & 0xFFFF) / 65536.0f;
 
 						// process R,G,B,A simultaneously for cache coherence?
@@ -253,10 +253,10 @@ namespace bs
 						destPtr += numDestChannels;
 					}
 
-					destPtr += dest.getRowSkip() / sizeof(float);
+					destPtr += dest.GetRowSkip() / sizeof(float);
 				}
 
-				destPtr += dest.getSliceSkip() / sizeof(float);
+				destPtr += dest.GetSliceSkip() / sizeof(float);
 			}
 		}
 	};
@@ -280,18 +280,18 @@ namespace bs
 		static void Scale(const PixelData& source, const PixelData& dest)
 		{
 			// Only optimized for 2D
-			if (source.getDepth() > 1 || dest.getDepth() > 1)
+			if (source.GetDepth() > 1 || dest.getDepth() > 1)
 			{
 				LinearResampler::scale(source, dest);
 				return;
 			}
 
-			UINT8* sourceData = (UINT8*)source.getData();
-			UINT8* destPtr = (UINT8*)dest.getData();
+			UINT8* sourceData = (UINT8*)source.GetData();
+			UINT8* destPtr = (UINT8*)dest.GetData();
 
 			// Get steps for traversing source data in 16/48 fixed point precision format
-			UINT64 stepX = ((UINT64)source.getWidth() << 48) / dest.getWidth();
-			UINT64 stepY = ((UINT64)source.getHeight() << 48) / dest.getHeight();
+			UINT64 stepX = ((UINT64)source.GetWidth() << 48) / dest.getWidth();
+			UINT64 stepY = ((UINT64)source.GetHeight() << 48) / dest.getHeight();
 
 			// Contains 16/16 fixed point precision format. Most significant
 			// 16 bits will contain the coordinate in the source image, and the
@@ -300,25 +300,25 @@ namespace bs
 			UINT32 temp;
 
 			UINT64 curY = (stepY >> 1) - 1; // Offset half a pixel to start at pixel center
-			for (UINT32 y = dest.getTop(); y < dest.getBottom(); y++, curY += stepY)
+			for (UINT32 y = dest.GetTop(); y < dest.getBottom(); y++, curY += stepY)
 			{
 				temp = (UINT32)(curY >> 36);
 				temp = (temp > 0x800)? temp - 0x800: 0;
 				UINT32 sampleWeightY = temp & 0xFFF;
 				UINT32 sampleCoordY1 = temp >> 12;
-				UINT32 sampleCoordY2 = std::min(sampleCoordY1 + 1, (UINT32)source.getBottom() - source.getTop() - 1);
+				UINT32 sampleCoordY2 = std::min(sampleCoordY1 + 1, (UINT32)source.GetBottom() - source.getTop() - 1);
 
-				UINT32 sampleY1Offset = sampleCoordY1 * source.getRowPitch();
-				UINT32 sampleY2Offset = sampleCoordY2 * source.getRowPitch();
+				UINT32 sampleY1Offset = sampleCoordY1 * source.GetRowPitch();
+				UINT32 sampleY2Offset = sampleCoordY2 * source.GetRowPitch();
 
 				UINT64 curX = (stepX >> 1) - 1; // Offset half a pixel to start at pixel center
-				for (UINT32 x = dest.getLeft(); x < dest.getRight(); x++, curX += stepX)
+				for (UINT32 x = dest.GetLeft(); x < dest.getRight(); x++, curX += stepX)
 				{
 					temp = (UINT32)(curX >> 36);
 					temp = (temp > 0x800)? temp - 0x800 : 0;
 					UINT32 sampleWeightX = temp & 0xFFF;
 					UINT32 sampleCoordX1 = temp >> 12;
-					UINT32 sampleCoordX2 = std::min(sampleCoordX1 + 1, (UINT32)source.getRight() - source.getLeft() - 1);
+					UINT32 sampleCoordX2 = std::min(sampleCoordX1 + 1, (UINT32)source.GetRight() - source.getLeft() - 1);
 
 					UINT32 sxfsyf = sampleWeightX*sampleWeightY;
 					for (UINT32 k = 0; k < channels; k++)
@@ -334,7 +334,7 @@ namespace bs
 						destPtr++;
 					}
 				}
-				destPtr += dest.getRowSkip();
+				destPtr += dest.GetRowSkip();
 			}
 		}
 	};
@@ -1227,13 +1227,13 @@ namespace bs
 
 		void BeginImage(int size, int width, int height, int depth, int face, int miplevel) override
 		{
-			assert(miplevel >= 0 && miplevel < (int)buffers.size());
-			assert((UINT32)size == buffers[miplevel]->getConsecutiveSize());
+			assert(miplevel >= 0 && miplevel < (int)buffers.Size());
+			assert((UINT32)size == buffers[miplevel]->GetConsecutiveSize());
 
 			activeBuffer = buffers[miplevel];
 
-			bufferWritePos = activeBuffer->getData();
-			bufferEnd = bufferWritePos + activeBuffer->getConsecutiveSize();
+			bufferWritePos = activeBuffer->GetData();
+			bufferEnd = bufferWritePos + activeBuffer->GetConsecutiveSize();
 		}
 
 		bool WriteData(const void* data, int size) override
@@ -1922,23 +1922,23 @@ namespace bs
 
 	void PixelUtil::BulkPixelConversion(const PixelData &src, PixelData &dst)
 	{
-		if(src.getWidth() != dst.getWidth() || src.getHeight() != dst.getHeight() || src.getDepth() != dst.getDepth())
+		if(src.GetWidth() != dst.getWidth() || src.getHeight() != dst.getHeight() || src.getDepth() != dst.getDepth())
 		{
 			BS_LOG(Error, PixelUtility, "Cannot convert pixels between buffers of different sizes.");
 			return;
 		}
 
 		// The easy case
-		if (src.getFormat() == dst.getFormat())
+		if (src.GetFormat() == dst.getFormat())
 		{
 			// Everything consecutive?
-			if (src.isConsecutive() && dst.isConsecutive())
+			if (src.IsConsecutive() && dst.isConsecutive())
 			{
-				memcpy(dst.getData(), src.getData(), src.getConsecutiveSize());
+				memcpy(dst.GetData(), src.getData(), src.getConsecutiveSize());
 				return;
 			}
 
-			PixelFormat format = src.getFormat();
+			PixelFormat format = src.GetFormat();
 			UINT32 pixelSize = getNumElemBytes(format);
 
 			Vector2I blockDim = getBlockDimensions(format);
@@ -1947,36 +1947,36 @@ namespace bs
 				UINT32 blockSize = getBlockSize(format);
 				pixelSize = blockSize / blockDim.x;
 
-				if(src.getLeft() % blockDim.x != 0 || src.getTop() % blockDim.y != 0)
+				if(src.GetLeft() % blockDim.x != 0 || src.getTop() % blockDim.y != 0)
 				{
 					BS_LOG(Error, PixelUtility,
 						"Source offset must be a multiple of block size for compressed formats.");
 				}
 
-				if(dst.getLeft() % blockDim.x != 0 || dst.getTop() % blockDim.y != 0)
+				if(dst.GetLeft() % blockDim.x != 0 || dst.getTop() % blockDim.y != 0)
 				{
 					BS_LOG(Error, PixelUtility,
 						"Destination offset must be a multiple of block size for compressed formats.");
 				}
 			}
 
-			UINT8* srcPtr = static_cast<UINT8*>(src.getData())
-				+ src.getLeft() * pixelSize + src.getTop() * src.getRowPitch() + src.getFront() * src.getSlicePitch();
-			UINT8* dstPtr = static_cast<UINT8*>(dst.getData())
-				+ dst.getLeft() * pixelSize + dst.getTop() * dst.getRowPitch() + dst.getFront() * dst.getSlicePitch();
+			UINT8* srcPtr = static_cast<UINT8*>(src.GetData())
+				+ src.GetLeft() * pixelSize + src.getTop() * src.getRowPitch() + src.getFront() * src.getSlicePitch();
+			UINT8* dstPtr = static_cast<UINT8*>(dst.GetData())
+				+ dst.GetLeft() * pixelSize + dst.getTop() * dst.getRowPitch() + dst.getFront() * dst.getSlicePitch();
 
 			// Get pitches+skips in bytes
-			const UINT32 srcRowPitchBytes = src.getRowPitch();
-			const UINT32 srcSliceSkipBytes = src.getSliceSkip();
+			const UINT32 srcRowPitchBytes = src.GetRowPitch();
+			const UINT32 srcSliceSkipBytes = src.GetSliceSkip();
 
-			const UINT32 dstRowPitchBytes = dst.getRowPitch();
-			const UINT32 dstSliceSkipBytes = dst.getSliceSkip();
+			const UINT32 dstRowPitchBytes = dst.GetRowPitch();
+			const UINT32 dstSliceSkipBytes = dst.GetSliceSkip();
 
 			// Otherwise, copy per row
-			const UINT32 rowSize = src.getWidth()*pixelSize;
-			for (UINT32 z = src.getFront(); z < src.getBack(); z++)
+			const UINT32 rowSize = src.GetWidth()*pixelSize;
+			for (UINT32 z = src.GetFront(); z < src.getBack(); z++)
 			{
-				for (UINT32 y = src.getTop(); y < src.getBottom(); y += blockDim.y)
+				for (UINT32 y = src.GetTop(); y < src.getBottom(); y += blockDim.y)
 				{
 					memcpy(dstPtr, srcPtr, rowSize);
 
@@ -1992,9 +1992,9 @@ namespace bs
 		}
 
 		// Check for compressed formats, we don't support decompression
-		if (isCompressed(src.getFormat()))
+		if (isCompressed(src.GetFormat()))
 		{
-			if (src.getFormat() != dst.getFormat())
+			if (src.GetFormat() != dst.getFormat())
 			{
 				BS_LOG(Error, PixelUtility, "Cannot convert from a compressed format to another format.");
 				return;
@@ -2002,41 +2002,41 @@ namespace bs
 		}
 
 		// Check for compression
-		if (isCompressed(dst.getFormat()))
+		if (isCompressed(dst.GetFormat()))
 		{
-			if (src.getFormat() != dst.getFormat())
+			if (src.GetFormat() != dst.getFormat())
 			{
 				CompressionOptions co;
-				co.format = dst.getFormat();
+				co.format = dst.GetFormat();
 				compress(src, dst, co);
 
 				return;
 			}
 		}
 
-		UINT32 srcPixelSize = getNumElemBytes(src.getFormat());
-		UINT32 dstPixelSize = getNumElemBytes(dst.getFormat());
-		UINT8 *srcptr = static_cast<UINT8*>(src.getData())
-			+ src.getLeft() * srcPixelSize + src.getTop() * src.getRowPitch() + src.getFront() * src.getSlicePitch();
-		UINT8 *dstptr = static_cast<UINT8*>(dst.getData())
-			+ dst.getLeft() * dstPixelSize + dst.getTop() * dst.getRowPitch() + dst.getFront() * dst.getSlicePitch();
+		UINT32 srcPixelSize = getNumElemBytes(src.GetFormat());
+		UINT32 dstPixelSize = getNumElemBytes(dst.GetFormat());
+		UINT8 *srcptr = static_cast<UINT8*>(src.GetData())
+			+ src.GetLeft() * srcPixelSize + src.getTop() * src.getRowPitch() + src.getFront() * src.getSlicePitch();
+		UINT8 *dstptr = static_cast<UINT8*>(dst.GetData())
+			+ dst.GetLeft() * dstPixelSize + dst.getTop() * dst.getRowPitch() + dst.getFront() * dst.getSlicePitch();
 
 		// Get pitches+skips in bytes
-		UINT32 srcRowSkipBytes = src.getRowSkip();
-		UINT32 srcSliceSkipBytes = src.getSliceSkip();
-		UINT32 dstRowSkipBytes = dst.getRowSkip();
-		UINT32 dstSliceSkipBytes = dst.getSliceSkip();
+		UINT32 srcRowSkipBytes = src.GetRowSkip();
+		UINT32 srcSliceSkipBytes = src.GetSliceSkip();
+		UINT32 dstRowSkipBytes = dst.GetRowSkip();
+		UINT32 dstSliceSkipBytes = dst.GetSliceSkip();
 
 		// The brute force fallback
 		float r, g, b, a;
-		for (UINT32 z = src.getFront(); z < src.getBack(); z++)
+		for (UINT32 z = src.GetFront(); z < src.getBack(); z++)
 		{
-			for (UINT32 y = src.getTop(); y < src.getBottom(); y++)
+			for (UINT32 y = src.GetTop(); y < src.getBottom(); y++)
 			{
-				for (UINT32 x = src.getLeft(); x < src.getRight(); x++)
+				for (UINT32 x = src.GetLeft(); x < src.getRight(); x++)
 				{
-					unpackColor(&r, &g, &b, &a, src.getFormat(), srcptr);
-					packColor(r, g, b, a, dst.getFormat(), dstptr);
+					unpackColor(&r, &g, &b, &a, src.GetFormat(), srcptr);
+					packColor(r, g, b, a, dst.GetFormat(), dstptr);
 
 					srcptr += srcPixelSize;
 					dstptr += dstPixelSize;
@@ -2053,13 +2053,13 @@ namespace bs
 
 	void PixelUtil::FlipComponentOrder(PixelData& data)
 	{
-		if (isCompressed(data.getFormat()))
+		if (isCompressed(data.GetFormat()))
 		{
 			BS_LOG(Error, PixelUtility, "flipComponentOrder() not supported on compressed images.");
 			return;
 		}
 
-		const PixelFormatDescription& pfd = getDescriptionFor(data.getFormat());
+		const PixelFormatDescription& pfd = getDescriptionFor(data.GetFormat());
 		if(pfd.elemBytes > 4)
 		{
 			BS_LOG(Error, PixelUtility, "flipComponentOrder() only supported on 4 byte or smaller pixel formats.");
@@ -2107,21 +2107,21 @@ namespace bs
 		if (pfd.componentCount < 3)
 			compData[2].shift = 0xFF;
 
-		std::sort(compData.begin(), compData.end(),
+		std::sort(compData.Begin(), compData.end(),
 			[&](const CompData& lhs, const CompData& rhs) { return lhs.shift < rhs.shift; }
 		);
 
-		UINT8* dataPtr = data.getData();
+		UINT8* dataPtr = data.GetData();
 
 		UINT32 pixelSize = pfd.elemBytes;
-		UINT32 rowSkipBytes = data.getRowSkip();
-		UINT32 sliceSkipBytes = data.getSliceSkip();
+		UINT32 rowSkipBytes = data.GetRowSkip();
+		UINT32 sliceSkipBytes = data.GetSliceSkip();
 
-		for (UINT32 z = 0; z < data.getDepth(); z++)
+		for (UINT32 z = 0; z < data.GetDepth(); z++)
 		{
-			for (UINT32 y = 0; y < data.getHeight(); y++)
+			for (UINT32 y = 0; y < data.GetHeight(); y++)
 			{
-				for (UINT32 x = 0; x < data.getWidth(); x++)
+				for (UINT32 x = 0; x < data.GetWidth(); x++)
 				{
 					if(pfd.componentCount == 2)
 					{
@@ -2172,15 +2172,15 @@ namespace bs
 
 	void PixelUtil::Scale(const PixelData& src, PixelData& scaled, Filter filter)
 	{
-		assert(PixelUtil::isAccessible(src.getFormat()));
-		assert(PixelUtil::isAccessible(scaled.getFormat()));
+		assert(PixelUtil::isAccessible(src.GetFormat()));
+		assert(PixelUtil::isAccessible(scaled.GetFormat()));
 
 		PixelData temp;
 		switch (filter)
 		{
 		default:
 		case FILTER_NEAREST:
-			if(src.getFormat() == scaled.getFormat())
+			if(src.GetFormat() == scaled.getFormat())
 			{
 				// No intermediate buffer needed
 				temp = scaled;
@@ -2188,12 +2188,12 @@ namespace bs
 			else
 			{
 				// Allocate temporary buffer of destination size in source format
-				temp = PixelData(scaled.getWidth(), scaled.getHeight(), scaled.getDepth(), src.getFormat());
-				temp.allocateInternalBuffer();
+				temp = PixelData(scaled.GetWidth(), scaled.getHeight(), scaled.getDepth(), src.getFormat());
+				temp.AllocateInternalBuffer();
 			}
 
 			// No conversion
-			switch (PixelUtil::getNumElemBytes(src.getFormat()))
+			switch (PixelUtil::getNumElemBytes(src.GetFormat()))
 			{
 			case 1: NearestResampler<1>::scale(src, temp); break;
 			case 2: NearestResampler<2>::scale(src, temp); break;
@@ -2208,23 +2208,23 @@ namespace bs
 				assert(false);
 			}
 
-			if(temp.getData() != scaled.getData())
+			if(temp.GetData() != scaled.getData())
 			{
 				// Blit temp buffer
 				PixelUtil::bulkPixelConversion(temp, scaled);
 
-				temp.freeInternalBuffer();
+				temp.FreeInternalBuffer();
 			}
 
 			break;
 
 		case FILTER_LINEAR:
-			switch (src.getFormat())
+			switch (src.GetFormat())
 			{
 			case PF_RG8:
 			case PF_RGB8: case PF_BGR8:
 			case PF_RGBA8: case PF_BGRA8:
-				if(src.getFormat() == scaled.getFormat())
+				if(src.GetFormat() == scaled.getFormat())
 				{
 					// No intermediate buffer needed
 					temp = scaled;
@@ -2232,12 +2232,12 @@ namespace bs
 				else
 				{
 					// Allocate temp buffer of destination size in source format
-					temp = PixelData(scaled.getWidth(), scaled.getHeight(), scaled.getDepth(), src.getFormat());
-					temp.allocateInternalBuffer();
+					temp = PixelData(scaled.GetWidth(), scaled.getHeight(), scaled.getDepth(), src.getFormat());
+					temp.AllocateInternalBuffer();
 				}
 
 				// No conversion
-				switch (PixelUtil::getNumElemBytes(src.getFormat()))
+				switch (PixelUtil::getNumElemBytes(src.GetFormat()))
 				{
 				case 1: LinearResampler_Byte<1>::scale(src, temp); break;
 				case 2: LinearResampler_Byte<2>::scale(src, temp); break;
@@ -2248,17 +2248,17 @@ namespace bs
 					assert(false);
 				}
 
-				if(temp.getData() != scaled.getData())
+				if(temp.GetData() != scaled.getData())
 				{
 					// Blit temp buffer
 					PixelUtil::bulkPixelConversion(temp, scaled);
-					temp.freeInternalBuffer();
+					temp.FreeInternalBuffer();
 				}
 
 				break;
 			case PF_RGB32F:
 			case PF_RGBA32F:
-				if (scaled.getFormat() == PF_RGB32F || scaled.getFormat() == PF_RGBA32F)
+				if (scaled.GetFormat() == PF_RGB32F || scaled.getFormat() == PF_RGBA32F)
 				{
 					// float32 to float32, avoid unpack/repack overhead
 					LinearResampler_Float32::scale(src, scaled);
@@ -2275,62 +2275,62 @@ namespace bs
 
 	void PixelUtil::Copy(const PixelData& src, PixelData& dst, UINT32 offsetX, UINT32 offsetY, UINT32 offsetZ)
 	{
-		if(src.getFormat() != dst.getFormat())
+		if(src.GetFormat() != dst.getFormat())
 		{
 			BS_LOG(Error, PixelUtility, "Source format is different from destination format for copy(). This operation "
 				"cannot be used for a format conversion. Aborting copy.");
 			return;
 		}
 
-		UINT32 right = offsetX + dst.getWidth();
-		UINT32 bottom = offsetY + dst.getHeight();
-		UINT32 back = offsetZ + dst.getDepth();
+		UINT32 right = offsetX + dst.GetWidth();
+		UINT32 bottom = offsetY + dst.GetHeight();
+		UINT32 back = offsetZ + dst.GetDepth();
 
-		if(right > src.getWidth() || bottom > src.getHeight() || back > src.getDepth())
+		if(right > src.GetWidth() || bottom > src.getHeight() || back > src.getDepth())
 		{
 			BS_LOG(Error, PixelUtility, "Provided offset or destination size is too large and is referencing pixels that "
 				"are out of bounds on the source texture. Aborting copy().");
 			return;
 		}
 
-		UINT8* srcPtr = (UINT8*)src.getData() + offsetZ * src.getSlicePitch();
-		UINT8* dstPtr = (UINT8*)dst.getData();
+		UINT8* srcPtr = (UINT8*)src.GetData() + offsetZ * src.getSlicePitch();
+		UINT8* dstPtr = (UINT8*)dst.GetData();
 
-		UINT32 elemSize = getNumElemBytes(dst.getFormat());
-		UINT32 rowSize = dst.getWidth() * elemSize;
+		UINT32 elemSize = getNumElemBytes(dst.GetFormat());
+		UINT32 rowSize = dst.GetWidth() * elemSize;
 
-		for(UINT32 z = 0; z < dst.getDepth(); z++)
+		for(UINT32 z = 0; z < dst.GetDepth(); z++)
 		{
-			UINT8* srcRowPtr = srcPtr + offsetY * src.getRowPitch();
+			UINT8* srcRowPtr = srcPtr + offsetY * src.GetRowPitch();
 			UINT8* dstRowPtr = dstPtr;
 
-			for(UINT32 y = 0; y < dst.getHeight(); y++)
+			for(UINT32 y = 0; y < dst.GetHeight(); y++)
 			{
 				memcpy(dstRowPtr, srcRowPtr + offsetX * elemSize, rowSize);
 
-				srcRowPtr += src.getRowPitch();
-				dstRowPtr += dst.getRowPitch();
+				srcRowPtr += src.GetRowPitch();
+				dstRowPtr += dst.GetRowPitch();
 			}
 
-			srcPtr += src.getSlicePitch();
-			dstPtr += dst.getSlicePitch();
+			srcPtr += src.GetSlicePitch();
+			dstPtr += dst.GetSlicePitch();
 		}
 	}
 
 	void PixelUtil::Mirror(PixelData& pixelData, MirrorMode mode)
 	{
-		UINT32 width = pixelData.getWidth();
-		UINT32 height = pixelData.getHeight();
-		UINT32 depth = pixelData.getDepth();
+		UINT32 width = pixelData.GetWidth();
+		UINT32 height = pixelData.GetHeight();
+		UINT32 depth = pixelData.GetDepth();
 
-		UINT32 elemSize = getNumElemBytes(pixelData.getFormat());
+		UINT32 elemSize = getNumElemBytes(pixelData.GetFormat());
 
-		if (mode.isSet(MirrorModeBits::Z))
+		if (mode.IsSet(MirrorModeBits::Z))
 		{
 			UINT32 sliceSize = width * height * elemSize;
 			UINT8* sliceTemp = bs_stack_alloc<UINT8>(sliceSize);
 
-			UINT8* dataPtr = pixelData.getData();
+			UINT8* dataPtr = pixelData.GetData();
 			UINT32 halfDepth = depth / 2;
 			for (UINT32 z = 0; z < halfDepth; z++)
 			{
@@ -2347,12 +2347,12 @@ namespace bs
 			bs_stack_free(sliceTemp);
 		}
 
-		if(mode.isSet(MirrorModeBits::Y))
+		if(mode.IsSet(MirrorModeBits::Y))
 		{
 			UINT32 rowSize = width * elemSize;
 			UINT8* rowTemp = bs_stack_alloc<UINT8>(rowSize);
 
-			UINT8* slicePtr = pixelData.getData();
+			UINT8* slicePtr = pixelData.GetData();
 			for (UINT32 z = 0; z < depth; z++)
 			{
 				UINT32 halfHeight = height / 2;
@@ -2368,17 +2368,17 @@ namespace bs
 
 				// Note: If flipping X as well I could do it here without an extra set of memcpys
 
-				slicePtr += pixelData.getSlicePitch();
+				slicePtr += pixelData.GetSlicePitch();
 			}
 
 			bs_stack_free(rowTemp);
 		}
 
-		if (mode.isSet(MirrorModeBits::X))
+		if (mode.IsSet(MirrorModeBits::X))
 		{
 			UINT8* elemTemp = bs_stack_alloc<UINT8>(elemSize);
 
-			UINT8* slicePtr = pixelData.getData();
+			UINT8* slicePtr = pixelData.GetData();
 			for (UINT32 z = 0; z < depth; z++)
 			{
 				UINT8* rowPtr = slicePtr;
@@ -2395,10 +2395,10 @@ namespace bs
 						memcpy(&rowPtr[srcX], elemTemp, elemSize);
 					}
 
-					rowPtr += pixelData.getRowPitch();
+					rowPtr += pixelData.GetRowPitch();
 				}
 
-				slicePtr += pixelData.getSlicePitch();
+				slicePtr += pixelData.GetSlicePitch();
 			}
 
 			bs_stack_free(elemTemp);
@@ -2407,20 +2407,20 @@ namespace bs
 
 	void PixelUtil::LinearToSRGB(PixelData& pixelData)
 	{
-		UINT32 depth = pixelData.getDepth();
-		UINT32 height = pixelData.getHeight();
-		UINT32 width = pixelData.getWidth();
+		UINT32 depth = pixelData.GetDepth();
+		UINT32 height = pixelData.GetHeight();
+		UINT32 width = pixelData.GetWidth();
 
-		UINT32 pixelSize = PixelUtil::getNumElemBytes(pixelData.getFormat());
-		UINT8* data = pixelData.getData();
+		UINT32 pixelSize = PixelUtil::getNumElemBytes(pixelData.GetFormat());
+		UINT8* data = pixelData.GetData();
 
 		for (UINT32 z = 0; z < depth; z++)
 		{
-			UINT32 zDataIdx = z * pixelData.getSlicePitch();
+			UINT32 zDataIdx = z * pixelData.GetSlicePitch();
 
 			for (UINT32 y = 0; y < height; y++)
 			{
-				UINT32 yDataIdx = y * pixelData.getRowPitch();
+				UINT32 yDataIdx = y * pixelData.GetRowPitch();
 
 				for (UINT32 x = 0; x < width; x++)
 				{
@@ -2429,9 +2429,9 @@ namespace bs
 
 					Color color;
 
-					PixelUtil::unpackColor(&color, pixelData.getFormat(), dest);
-					color = color.getGamma();
-					PixelUtil::packColor(color, pixelData.getFormat(), dest);
+					PixelUtil::unpackColor(&color, pixelData.GetFormat(), dest);
+					color = color.GetGamma();
+					PixelUtil::packColor(color, pixelData.GetFormat(), dest);
 				}
 			}
 		}
@@ -2439,20 +2439,20 @@ namespace bs
 
 	void PixelUtil::SRGBToLinear(PixelData& pixelData)
 	{
-		UINT32 depth = pixelData.getDepth();
-		UINT32 height = pixelData.getHeight();
-		UINT32 width = pixelData.getWidth();
+		UINT32 depth = pixelData.GetDepth();
+		UINT32 height = pixelData.GetHeight();
+		UINT32 width = pixelData.GetWidth();
 
-		UINT32 pixelSize = PixelUtil::getNumElemBytes(pixelData.getFormat());
-		UINT8* data = pixelData.getData();
+		UINT32 pixelSize = PixelUtil::getNumElemBytes(pixelData.GetFormat());
+		UINT8* data = pixelData.GetData();
 
 		for (UINT32 z = 0; z < depth; z++)
 		{
-			UINT32 zDataIdx = z * pixelData.getSlicePitch();
+			UINT32 zDataIdx = z * pixelData.GetSlicePitch();
 
 			for (UINT32 y = 0; y < height; y++)
 			{
-				UINT32 yDataIdx = y * pixelData.getRowPitch();
+				UINT32 yDataIdx = y * pixelData.GetRowPitch();
 
 				for (UINT32 x = 0; x < width; x++)
 				{
@@ -2461,9 +2461,9 @@ namespace bs
 
 					Color color;
 
-					PixelUtil::unpackColor(&color, pixelData.getFormat(), dest);
-					color = color.getLinear();
-					PixelUtil::packColor(color, pixelData.getFormat(), dest);
+					PixelUtil::unpackColor(&color, pixelData.GetFormat(), dest);
+					color = color.GetLinear();
+					PixelUtil::packColor(color, pixelData.GetFormat(), dest);
 				}
 			}
 		}
@@ -2477,13 +2477,13 @@ namespace bs
 			return;
 		}
 
-		if (src.getDepth() != 1)
+		if (src.GetDepth() != 1)
 		{
 			BS_LOG(Error, PixelUtility, "Compression failed. 3D texture compression not supported.");
 			return;
 		}
 
-		if (isCompressed(src.getFormat()))
+		if (isCompressed(src.GetFormat()))
 		{
 			BS_LOG(Error, PixelUtility, "Compression failed. Source data cannot be compressed.");
 			return;
@@ -2491,40 +2491,40 @@ namespace bs
 
 		PixelFormat interimFormat = options.format == PF_BC6H ? PF_RGBA32F : PF_BGRA8;
 
-		PixelData InterimData(src.getWidth(), src.getHeight(), 1, interimFormat);
-		interimData.allocateInternalBuffer();
+		PixelData InterimData(src.GetWidth(), src.getHeight(), 1, interimFormat);
+		interimData.AllocateInternalBuffer();
 		bulkPixelConversion(src, interimData);
 
 		nvtt::InputOptions io;
-		io.setTextureLayout(nvtt::TextureType_2D, src.getWidth(), src.getHeight());
-		io.setMipmapGeneration(false);
-		io.setAlphaMode(toNVTTAlphaMode(options.alphaMode));
-		io.setNormalMap(options.isNormalMap);
+		io.SetTextureLayout(nvtt::TextureType_2D, src.getWidth(), src.getHeight());
+		io.SetMipmapGeneration(false);
+		io.SetAlphaMode(toNVTTAlphaMode(options.alphaMode));
+		io.SetNormalMap(options.isNormalMap);
 
 		if (interimFormat == PF_RGBA32F)
-			io.setFormat(nvtt::InputFormat_RGBA_32F);
+			io.SetFormat(nvtt::InputFormat_RGBA_32F);
 		else
-			io.setFormat(nvtt::InputFormat_BGRA_8UB);
+			io.SetFormat(nvtt::InputFormat_BGRA_8UB);
 
 		if (options.isSRGB)
-			io.setGamma(2.2f, 2.2f);
+			io.SetGamma(2.2f, 2.2f);
 		else
-			io.setGamma(1.0f, 1.0f);
+			io.SetGamma(1.0f, 1.0f);
 
-		io.setMipmapData(interimData.getData(), src.getWidth(), src.getHeight());
+		io.SetMipmapData(interimData.getData(), src.getWidth(), src.getHeight());
 
 		nvtt::CompressionOptions co;
-		co.setFormat(toNVTTFormat(options.format));
-		co.setQuality(toNVTTQuality(options.quality));
+		co.SetFormat(toNVTTFormat(options.format));
+		co.SetQuality(toNVTTQuality(options.quality));
 
-		NVTTCompressOutputHandler OutputHandler(dst.getData(), dst.getConsecutiveSize());
+		NVTTCompressOutputHandler OutputHandler(dst.GetData(), dst.getConsecutiveSize());
 
 		nvtt::OutputOptions oo;
-		oo.setOutputHeader(false);
-		oo.setOutputHandler(&outputHandler);
+		oo.SetOutputHeader(false);
+		oo.SetOutputHandler(&outputHandler);
 
 		nvtt::Compressor compressor;
-		if (!compressor.process(io, co, oo))
+		if (!compressor.Process(io, co, oo))
 		{
 			BS_LOG(Error, PixelUtility, "Compression failed. Internal error.");
 			return;
@@ -2535,79 +2535,79 @@ namespace bs
 	{
 		Vector<SPtr<PixelData>> outputMipBuffers;
 
-		if (src.getDepth() != 1)
+		if (src.GetDepth() != 1)
 		{
 			BS_LOG(Error, PixelUtility, "Mipmap generation failed. 3D texture formats not supported.");
 			return outputMipBuffers;
 		}
 
-		if (isCompressed(src.getFormat()))
+		if (isCompressed(src.GetFormat()))
 		{
 			BS_LOG(Error, PixelUtility, "Mipmap generation failed. Source data cannot be compressed.");
 			return outputMipBuffers;
 		}
 
-		if (!Bitwise::isPow2(src.getWidth()) || !Bitwise::isPow2(src.getHeight()))
+		if (!Bitwise::isPow2(src.GetWidth()) || !Bitwise::isPow2(src.getHeight()))
 		{
 			BS_LOG(Error, PixelUtility, "Mipmap generation failed. Texture width & height must be powers of 2.");
 			return outputMipBuffers;
 		}
 
-		PixelFormat interimFormat = isFloatingPoint(src.getFormat()) ? PF_RGBA32F : PF_BGRA8;
+		PixelFormat interimFormat = isFloatingPoint(src.GetFormat()) ? PF_RGBA32F : PF_BGRA8;
 
-		PixelData InterimData(src.getWidth(), src.getHeight(), 1, interimFormat);
-		interimData.allocateInternalBuffer();
+		PixelData InterimData(src.GetWidth(), src.getHeight(), 1, interimFormat);
+		interimData.AllocateInternalBuffer();
 		bulkPixelConversion(src, interimData);
 
 		if (interimFormat != PF_RGBA32F)
 			flipComponentOrder(interimData);
 
 		nvtt::InputOptions io;
-		io.setTextureLayout(nvtt::TextureType_2D, src.getWidth(), src.getHeight());
-		io.setMipmapGeneration(true);
-		io.setNormalMap(options.isNormalMap);
-		io.setNormalizeMipmaps(options.normalizeMipmaps);
-		io.setWrapMode(toNVTTWrapMode(options.wrapMode));
+		io.SetTextureLayout(nvtt::TextureType_2D, src.getWidth(), src.getHeight());
+		io.SetMipmapGeneration(true);
+		io.SetNormalMap(options.isNormalMap);
+		io.SetNormalizeMipmaps(options.normalizeMipmaps);
+		io.SetWrapMode(toNVTTWrapMode(options.wrapMode));
 
 		if (interimFormat == PF_RGBA32F)
-			io.setFormat(nvtt::InputFormat_RGBA_32F);
+			io.SetFormat(nvtt::InputFormat_RGBA_32F);
 		else
-			io.setFormat(nvtt::InputFormat_BGRA_8UB);
+			io.SetFormat(nvtt::InputFormat_BGRA_8UB);
 
 		if (options.isSRGB)
-			io.setGamma(2.2f, 2.2f);
+			io.SetGamma(2.2f, 2.2f);
 		else
-			io.setGamma(1.0f, 1.0f);
+			io.SetGamma(1.0f, 1.0f);
 
-		io.setMipmapData(interimData.getData(), src.getWidth(), src.getHeight());
+		io.SetMipmapData(interimData.getData(), src.getWidth(), src.getHeight());
 
 		nvtt::CompressionOptions co;
-		co.setFormat(nvtt::Format_RGBA);
+		co.SetFormat(nvtt::Format_RGBA);
 
 		if (interimFormat == PF_RGBA32F)
 		{
-			co.setPixelType(nvtt::PixelType_Float);
-			co.setPixelFormat(32, 32, 32, 32);
+			co.SetPixelType(nvtt::PixelType_Float);
+			co.SetPixelFormat(32, 32, 32, 32);
 		}
 		else
 		{
-			co.setPixelType(nvtt::PixelType_UnsignedNorm);
-			co.setPixelFormat(32, 0x0000FF00, 0x00FF0000, 0xFF000000, 0x000000FF);
+			co.SetPixelType(nvtt::PixelType_UnsignedNorm);
+			co.SetPixelFormat(32, 0x0000FF00, 0x00FF0000, 0xFF000000, 0x000000FF);
 		}
 
-		UINT32 numMips = getMaxMipmaps(src.getWidth(), src.getHeight(), 1, src.getFormat());
+		UINT32 numMips = getMaxMipmaps(src.GetWidth(), src.getHeight(), 1, src.getFormat());
 
 		Vector<SPtr<PixelData>> rgbaMipBuffers;
 
 		// Note: This can be done more effectively without creating so many temp buffers
 		// and working with the original formats directly, but it would complicate the code
 		// too much at the moment.
-		UINT32 curWidth = src.getWidth();
-		UINT32 curHeight = src.getHeight();
+		UINT32 curWidth = src.GetWidth();
+		UINT32 curHeight = src.GetHeight();
 		for (UINT32 i = 0; i < numMips; i++)
 		{
 			rgbaMipBuffers.push_back(bs_shared_ptr_new<PixelData>(curWidth, curHeight, 1, interimFormat));
-			rgbaMipBuffers.back()->allocateInternalBuffer();
+			rgbaMipBuffers.Back()->AllocateInternalBuffer();
 
 			if (curWidth > 1)
 				curWidth = curWidth / 2;
@@ -2617,31 +2617,31 @@ namespace bs
 		}
 
 		rgbaMipBuffers.push_back(bs_shared_ptr_new<PixelData>(curWidth, curHeight, 1, interimFormat));
-		rgbaMipBuffers.back()->allocateInternalBuffer();
+		rgbaMipBuffers.Back()->AllocateInternalBuffer();
 
 		NVTTMipmapOutputHandler OutputHandler(rgbaMipBuffers);
 
 		nvtt::OutputOptions oo;
-		oo.setOutputHeader(false);
-		oo.setOutputHandler(&outputHandler);
+		oo.SetOutputHeader(false);
+		oo.SetOutputHandler(&outputHandler);
 
 		nvtt::Compressor compressor;
-		if (!compressor.process(io, co, oo))
+		if (!compressor.Process(io, co, oo))
 		{
 			BS_LOG(Error, PixelUtility, "Mipmap generation failed. Internal error.");
 			return outputMipBuffers;
 		}
 
-		interimData.freeInternalBuffer();
+		interimData.FreeInternalBuffer();
 
-		for (UINT32 i = 0; i < (UINT32)rgbaMipBuffers.size(); i++)
+		for (UINT32 i = 0; i < (UINT32)rgbaMipBuffers.Size(); i++)
 		{
 			SPtr<PixelData> argbBuffer = rgbaMipBuffers[i];
-			SPtr<PixelData> outputBuffer = bs_shared_ptr_new<PixelData>(argbBuffer->getWidth(), argbBuffer->getHeight(), 1, src.getFormat());
-			outputBuffer->allocateInternalBuffer();
+			SPtr<PixelData> outputBuffer = bs_shared_ptr_new<PixelData>(argbBuffer->GetWidth(), argbBuffer->getHeight(), 1, src.GetFormat());
+			outputBuffer->AllocateInternalBuffer();
 
 			bulkPixelConversion(*argbBuffer, *outputBuffer);
-			argbBuffer->freeInternalBuffer();
+			argbBuffer->FreeInternalBuffer();
 
 			outputMipBuffers.push_back(outputBuffer);
 		}

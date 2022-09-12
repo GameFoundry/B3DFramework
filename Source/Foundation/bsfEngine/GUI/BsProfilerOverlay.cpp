@@ -39,30 +39,30 @@ namespace bs
 
 		~BasicRowFiller()
 		{
-			UINT32 excessEntries = (UINT32)rows.size() - curIdx;
+			UINT32 excessEntries = (UINT32)rows.Size() - curIdx;
 			for(UINT32 i = 0; i < excessEntries; i++)
 			{
 				ProfilerOverlay::BasicRow& row = rows[curIdx + i];
 
 				if (!row.disabled)
 				{
-					row.labelLayout->setVisible(false);
-					row.contentLayout->setVisible(false);
+					row.labelLayout->SetVisible(false);
+					row.contentLayout->SetVisible(false);
 					row.disabled = true;
 				}
 			}
 
-			rows.resize(curIdx);
+			rows.Resize(curIdx);
 		}
 
 		void addData(UINT32 depth, const String& name, float pctOfParent, UINT32 numCalls, UINT64 numAllocs,
 			UINT64 numFrees, double avgTime, double totalTime, double avgSelfTime, double totalSelfTime)
 		{
-			if(curIdx >= rows.size())
+			if(curIdx >= rows.Size())
 			{
 				rows.push_back(ProfilerOverlay::BasicRow());
 
-				ProfilerOverlay::BasicRow& newRow = rows.back();
+				ProfilerOverlay::BasicRow& newRow = rows.Back();
 
 				newRow.disabled = false;
 				newRow.name = HEString(u8"{0}");
@@ -75,8 +75,8 @@ namespace bs
 				newRow.avgTimeSelf = HEString(u8"{0}");
 				newRow.totalTimeSelf = HEString(u8"{0}");
 
-				newRow.labelLayout = labelLayout.insertNewElement<GUILayoutX>(labelLayout.getNumChildren() - 1); // Insert before flexible space
-				newRow.contentLayout = contentLayout.insertNewElement<GUILayoutX>(contentLayout.getNumChildren() - 1); // Insert before flexible space
+				newRow.labelLayout = labelLayout.insertNewElement<GUILayoutX>(labelLayout.GetNumChildren() - 1); // Insert before flexible space
+				newRow.contentLayout = contentLayout.insertNewElement<GUILayoutX>(contentLayout.GetNumChildren() - 1); // Insert before flexible space
 
 				newRow.labelSpace = newRow.labelLayout->addNewElement<GUIFixedSpace>(0);
 				newRow.guiName = newRow.labelLayout->addNewElement<GUILabel>(newRow.name, GUIOptions(GUIOption::fixedWidth(200)));
@@ -93,31 +93,31 @@ namespace bs
 			
 			ProfilerOverlay::BasicRow& row = rows[curIdx];
 
-			row.labelSpace->setSize(depth * 20);
-			row.name.setParameter(0, name);
-			row.pctOfParent.setParameter(0, toString(pctOfParent * 100.0f, 2, 0, ' ', std::ios::fixed));
-			row.numCalls.setParameter(0, toString(numCalls));
-			row.numAllocs.setParameter(0, toString(numAllocs));
-			row.numFrees.setParameter(0, toString(numFrees));
-			row.avgTime.setParameter(0, toString(avgTime, 2, 0, ' ', std::ios::fixed));
-			row.totalTime.setParameter(0, toString(totalTime, 2, 0, ' ', std::ios::fixed));
-			row.avgTimeSelf.setParameter(0, toString(avgSelfTime, 2, 0, ' ', std::ios::fixed));
-			row.totalTimeSelf.setParameter(0, toString(totalSelfTime, 2, 0, ' ', std::ios::fixed));
+			row.labelSpace->SetSize(depth * 20);
+			row.name.SetParameter(0, name);
+			row.pctOfParent.SetParameter(0, toString(pctOfParent * 100.0f, 2, 0, ' ', std::ios::fixed));
+			row.numCalls.SetParameter(0, toString(numCalls));
+			row.numAllocs.SetParameter(0, toString(numAllocs));
+			row.numFrees.SetParameter(0, toString(numFrees));
+			row.avgTime.SetParameter(0, toString(avgTime, 2, 0, ' ', std::ios::fixed));
+			row.totalTime.SetParameter(0, toString(totalTime, 2, 0, ' ', std::ios::fixed));
+			row.avgTimeSelf.SetParameter(0, toString(avgSelfTime, 2, 0, ' ', std::ios::fixed));
+			row.totalTimeSelf.SetParameter(0, toString(totalSelfTime, 2, 0, ' ', std::ios::fixed));
 
-			row.guiName->setContent(row.name);
-			row.guiPctOfParent->setContent(row.pctOfParent);
-			row.guiNumCalls->setContent(row.numCalls);
-			row.guiNumAllocs->setContent(row.numAllocs);
-			row.guiNumFrees->setContent(row.numFrees);
-			row.guiAvgTime->setContent(row.avgTime);
-			row.guiTotalTime->setContent(row.totalTime);
-			row.guiAvgTimeSelf->setContent(row.avgTimeSelf);
-			row.guiTotalTimeSelf->setContent(row.totalTimeSelf);
+			row.guiName->SetContent(row.name);
+			row.guiPctOfParent->SetContent(row.pctOfParent);
+			row.guiNumCalls->SetContent(row.numCalls);
+			row.guiNumAllocs->SetContent(row.numAllocs);
+			row.guiNumFrees->SetContent(row.numFrees);
+			row.guiAvgTime->SetContent(row.avgTime);
+			row.guiTotalTime->SetContent(row.totalTime);
+			row.guiAvgTimeSelf->SetContent(row.avgTimeSelf);
+			row.guiTotalTimeSelf->SetContent(row.totalTimeSelf);
 
 			if (row.disabled)
 			{
-				row.labelLayout->setVisible(true);
-				row.contentLayout->setVisible(true);
+				row.labelLayout->SetVisible(true);
+				row.contentLayout->SetVisible(true);
 				row.disabled = false;
 			}
 
@@ -140,30 +140,30 @@ namespace bs
 
 		~PreciseRowFiller()
 		{
-			UINT32 excessEntries = (UINT32)rows.size() - curIdx;
+			UINT32 excessEntries = (UINT32)rows.Size() - curIdx;
 			for(UINT32 i = 0; i < excessEntries; i++)
 			{
 				ProfilerOverlay::PreciseRow& row = rows[curIdx + i];
 
 				if (!row.disabled)
 				{
-					row.labelLayout->setVisible(false);
-					row.contentLayout->setVisible(false);
+					row.labelLayout->SetVisible(false);
+					row.contentLayout->SetVisible(false);
 					row.disabled = true;
 				}
 			}
 
-			rows.resize(curIdx);
+			rows.Resize(curIdx);
 		}
 
 		void addData(UINT32 depth, const String& name, float pctOfParent, UINT32 numCalls, UINT64 numAllocs,
 			UINT64 numFrees, UINT64 avgCycles, UINT64 totalCycles, UINT64 avgSelfCycles, UINT64 totalSelfCycles)
 		{
-			if(curIdx >= rows.size())
+			if(curIdx >= rows.Size())
 			{
 				rows.push_back(ProfilerOverlay::PreciseRow());
 
-				ProfilerOverlay::PreciseRow& newRow = rows.back();
+				ProfilerOverlay::PreciseRow& newRow = rows.Back();
 
 				newRow.disabled = false;
 				newRow.name = HEString(u8"{0}");
@@ -176,8 +176,8 @@ namespace bs
 				newRow.avgCyclesSelf = HEString(u8"{0}");
 				newRow.totalCyclesSelf = HEString(u8"{0}");
 
-				newRow.labelLayout = labelLayout.insertNewElement<GUILayoutX>(labelLayout.getNumChildren() - 1); // Insert before flexible space
-				newRow.contentLayout = contentLayout.insertNewElement<GUILayoutX>(contentLayout.getNumChildren() - 1); // Insert before flexible space
+				newRow.labelLayout = labelLayout.insertNewElement<GUILayoutX>(labelLayout.GetNumChildren() - 1); // Insert before flexible space
+				newRow.contentLayout = contentLayout.insertNewElement<GUILayoutX>(contentLayout.GetNumChildren() - 1); // Insert before flexible space
 
 				newRow.labelSpace = newRow.labelLayout->addNewElement<GUIFixedSpace>(0);
 				newRow.guiName = newRow.labelLayout->addNewElement<GUILabel>(newRow.name, GUIOptions(GUIOption::fixedWidth(200)));
@@ -194,31 +194,31 @@ namespace bs
 
 			ProfilerOverlay::PreciseRow& row = rows[curIdx];
 
-			row.labelSpace->setSize(depth * 20);
-			row.name.setParameter(0, name);
-			row.pctOfParent.setParameter(0, toString(pctOfParent * 100.0f, 2, 0, ' ', std::ios::fixed));
-			row.numCalls.setParameter(0, toString(numCalls));
-			row.numAllocs.setParameter(0, toString(numAllocs));
-			row.numFrees.setParameter(0, toString(numFrees));
-			row.avgCycles.setParameter(0, toString(avgCycles));
-			row.totalCycles.setParameter(0, toString(totalCycles));
-			row.avgCyclesSelf.setParameter(0, toString(avgSelfCycles));
-			row.totalCyclesSelf.setParameter(0, toString(totalSelfCycles));
+			row.labelSpace->SetSize(depth * 20);
+			row.name.SetParameter(0, name);
+			row.pctOfParent.SetParameter(0, toString(pctOfParent * 100.0f, 2, 0, ' ', std::ios::fixed));
+			row.numCalls.SetParameter(0, toString(numCalls));
+			row.numAllocs.SetParameter(0, toString(numAllocs));
+			row.numFrees.SetParameter(0, toString(numFrees));
+			row.avgCycles.SetParameter(0, toString(avgCycles));
+			row.totalCycles.SetParameter(0, toString(totalCycles));
+			row.avgCyclesSelf.SetParameter(0, toString(avgSelfCycles));
+			row.totalCyclesSelf.SetParameter(0, toString(totalSelfCycles));
 
-			row.guiName->setContent(row.name);
-			row.guiPctOfParent->setContent(row.pctOfParent);
-			row.guiNumCalls->setContent(row.numCalls);
-			row.guiNumAllocs->setContent(row.numAllocs);
-			row.guiNumFrees->setContent(row.numFrees);
-			row.guiAvgCycles->setContent(row.avgCycles);
-			row.guiTotalCycles->setContent(row.totalCycles);
-			row.guiAvgCyclesSelf->setContent(row.avgCyclesSelf);
-			row.guiTotalCyclesSelf->setContent(row.totalCyclesSelf);
+			row.guiName->SetContent(row.name);
+			row.guiPctOfParent->SetContent(row.pctOfParent);
+			row.guiNumCalls->SetContent(row.numCalls);
+			row.guiNumAllocs->SetContent(row.numAllocs);
+			row.guiNumFrees->SetContent(row.numFrees);
+			row.guiAvgCycles->SetContent(row.avgCycles);
+			row.guiTotalCycles->SetContent(row.totalCycles);
+			row.guiAvgCyclesSelf->SetContent(row.avgCyclesSelf);
+			row.guiTotalCyclesSelf->SetContent(row.totalCyclesSelf);
 
 			if (row.disabled)
 			{
-				row.labelLayout->setVisible(true);
-				row.contentLayout->setVisible(true);
+				row.labelLayout->SetVisible(true);
+				row.contentLayout->SetVisible(true);
 				row.disabled = false;
 			}
 
@@ -242,36 +242,36 @@ namespace bs
 
 		~GPUSampleRowFiller()
 		{
-			UINT32 excessEntries = (UINT32)rows.size() - curIdx;
+			UINT32 excessEntries = (UINT32)rows.Size() - curIdx;
 			for (UINT32 i = 0; i < excessEntries; i++)
 			{
 				ProfilerOverlay::GPUSampleRow& row = rows[curIdx + i];
 
 				if (!row.disabled)
 				{
-					row.labelLayout->setVisible(false);
-					row.contentLayout->setVisible(false);
+					row.labelLayout->SetVisible(false);
+					row.contentLayout->SetVisible(false);
 					row.disabled = true;
 				}
 			}
 
-			rows.resize(curIdx);
+			rows.Resize(curIdx);
 		}
 
 		void AddData(UINT32 depth, const String& name, float timeMs)
 		{
-			if (curIdx >= rows.size())
+			if (curIdx >= rows.Size())
 			{
 				rows.push_back(ProfilerOverlay::GPUSampleRow());
 
-				ProfilerOverlay::GPUSampleRow& newRow = rows.back();
+				ProfilerOverlay::GPUSampleRow& newRow = rows.Back();
 
 				newRow.disabled = false;
 				newRow.name = HEString(u8"{1}");
 				newRow.time = HEString(u8"{0}");
 
-				newRow.labelLayout = labelLayout.insertNewElement<GUILayoutX>(labelLayout.getNumChildren() - 1); // Insert before flexible space
-				newRow.contentLayout = contentLayout.insertNewElement<GUILayoutX>(contentLayout.getNumChildren() - 1); // Insert before flexible space
+				newRow.labelLayout = labelLayout.insertNewElement<GUILayoutX>(labelLayout.GetNumChildren() - 1); // Insert before flexible space
+				newRow.contentLayout = contentLayout.insertNewElement<GUILayoutX>(contentLayout.GetNumChildren() - 1); // Insert before flexible space
 
 				newRow.labelSpace = newRow.labelLayout->addNewElement<GUIFixedSpace>(0);
 				newRow.guiName = newRow.labelLayout->addNewElement<GUILabel>(newRow.name, GUIOptions(GUIOption::fixedWidth(200)));
@@ -281,17 +281,17 @@ namespace bs
 
 			ProfilerOverlay::GPUSampleRow& row = rows[curIdx];
 
-			row.labelSpace->setSize(depth * 20);
-			row.name.setParameter(0, name);
-			row.time.setParameter(0, toString(timeMs));
+			row.labelSpace->SetSize(depth * 20);
+			row.name.SetParameter(0, name);
+			row.time.SetParameter(0, toString(timeMs));
 
-			row.guiName->setContent(row.name);
-			row.guiTime->setContent(row.time);
+			row.guiName->SetContent(row.name);
+			row.guiTime->SetContent(row.time);
 
 			if (row.disabled)
 			{
-				row.labelLayout->setVisible(false);
-				row.contentLayout->setVisible(false);
+				row.labelLayout->SetVisible(false);
+				row.contentLayout->SetVisible(false);
 				row.disabled = false;
 			}
 
@@ -308,34 +308,34 @@ namespace bs
 	ProfilerOverlay::~ProfilerOverlay()
 	{
 		if(mTarget != nullptr)
-			mTargetResizedConn.disconnect();
+			mTargetResizedConn.Disconnect();
 
 		if(mWidgetSO)
-			mWidgetSO->destroy();
+			mWidgetSO->Destroy();
 	}
 
 	void ProfilerOverlay::SetTarget(const SPtr<Camera>& camera)
 	{
 		if(mTarget != nullptr)
-			mTargetResizedConn.disconnect();
+			mTargetResizedConn.Disconnect();
 
-		mTarget = camera->getViewport();
+		mTarget = camera->GetViewport();
 
-		mTargetResizedConn = mTarget->getTarget()->onResized.connect(std::bind(&ProfilerOverlay::targetResized, this));
+		mTargetResizedConn = mTarget->GetTarget()->onResized.Connect(std::bind(&ProfilerOverlay::targetResized, this));
 
 		if(mWidgetSO)
-			mWidgetSO->destroy();
+			mWidgetSO->Destroy();
 
 		mWidgetSO = SceneObject::create("ProfilerOverlay", SOF_Internal | SOF_Persistent | SOF_DontSave);
 		mWidget = mWidgetSO->addComponent<CGUIWidget>(camera);
-		mWidget->setDepth(127);
-		mWidget->setSkin(BuiltinResources::instance().getGUISkin());
+		mWidget->SetDepth(127);
+		mWidget->SetSkin(BuiltinResources::instance().GetGUISkin());
 
 		// Set up CPU sample areas
-		mBasicLayoutLabels = mWidget->getPanel()->addNewElement<GUILayoutY>();
-		mPreciseLayoutLabels = mWidget->getPanel()->addNewElement<GUILayoutY>();
-		mBasicLayoutContents = mWidget->getPanel()->addNewElement<GUILayoutY>();
-		mPreciseLayoutContents = mWidget->getPanel()->addNewElement<GUILayoutY>();
+		mBasicLayoutLabels = mWidget->GetPanel()->addNewElement<GUILayoutY>();
+		mPreciseLayoutLabels = mWidget->GetPanel()->addNewElement<GUILayoutY>();
+		mBasicLayoutContents = mWidget->GetPanel()->addNewElement<GUILayoutY>();
+		mPreciseLayoutContents = mWidget->GetPanel()->addNewElement<GUILayoutY>();
 
 		// Set up CPU sample title bars
 		mTitleBasicName = GUILabel::create(HEString(u8"Name"), GUIOptions(GUIOption::fixedWidth(200)));
@@ -363,25 +363,25 @@ namespace bs
 		GUILayout* basicTitleContentLayout = mBasicLayoutContents->addNewElement<GUILayoutX>();
 		GUILayout* preciseTitleContentLayout = mPreciseLayoutContents->addNewElement<GUILayoutX>();
 
-		basicTitleLabelLayout->addElement(mTitleBasicName);
-		basicTitleContentLayout->addElement(mTitleBasicPctOfParent);
-		basicTitleContentLayout->addElement(mTitleBasicNumCalls);
-		basicTitleContentLayout->addElement(mTitleBasicNumAllocs);
-		basicTitleContentLayout->addElement(mTitleBasicNumFrees);
-		basicTitleContentLayout->addElement(mTitleBasicAvgTime);
-		basicTitleContentLayout->addElement(mTitleBasicTotalTime);
-		basicTitleContentLayout->addElement(mTitleBasicAvgTitleSelf);
-		basicTitleContentLayout->addElement(mTitleBasicTotalTimeSelf);
+		basicTitleLabelLayout->AddElement(mTitleBasicName);
+		basicTitleContentLayout->AddElement(mTitleBasicPctOfParent);
+		basicTitleContentLayout->AddElement(mTitleBasicNumCalls);
+		basicTitleContentLayout->AddElement(mTitleBasicNumAllocs);
+		basicTitleContentLayout->AddElement(mTitleBasicNumFrees);
+		basicTitleContentLayout->AddElement(mTitleBasicAvgTime);
+		basicTitleContentLayout->AddElement(mTitleBasicTotalTime);
+		basicTitleContentLayout->AddElement(mTitleBasicAvgTitleSelf);
+		basicTitleContentLayout->AddElement(mTitleBasicTotalTimeSelf);
 
-		preciseTitleLabelLayout->addElement(mTitlePreciseName);
-		preciseTitleContentLayout->addElement(mTitlePrecisePctOfParent);
-		preciseTitleContentLayout->addElement(mTitlePreciseNumCalls);
-		preciseTitleContentLayout->addElement(mTitlePreciseNumAllocs);
-		preciseTitleContentLayout->addElement(mTitlePreciseNumFrees);
-		preciseTitleContentLayout->addElement(mTitlePreciseAvgCycles);
-		preciseTitleContentLayout->addElement(mTitlePreciseTotalCycles);
-		preciseTitleContentLayout->addElement(mTitlePreciseAvgCyclesSelf);
-		preciseTitleContentLayout->addElement(mTitlePreciseTotalCyclesSelf);
+		preciseTitleLabelLayout->AddElement(mTitlePreciseName);
+		preciseTitleContentLayout->AddElement(mTitlePrecisePctOfParent);
+		preciseTitleContentLayout->AddElement(mTitlePreciseNumCalls);
+		preciseTitleContentLayout->AddElement(mTitlePreciseNumAllocs);
+		preciseTitleContentLayout->AddElement(mTitlePreciseNumFrees);
+		preciseTitleContentLayout->AddElement(mTitlePreciseAvgCycles);
+		preciseTitleContentLayout->AddElement(mTitlePreciseTotalCycles);
+		preciseTitleContentLayout->AddElement(mTitlePreciseAvgCyclesSelf);
+		preciseTitleContentLayout->AddElement(mTitlePreciseTotalCyclesSelf);
 
 		mBasicLayoutLabels->addNewElement<GUIFlexibleSpace>();
 		mPreciseLayoutLabels->addNewElement<GUIFlexibleSpace>();
@@ -389,16 +389,16 @@ namespace bs
 		mPreciseLayoutContents->addNewElement<GUIFlexibleSpace>();
 
 #if BS_SHOW_PRECISE_PROFILING == 0
-		mPreciseLayoutLabels->setActive(false);
-		mPreciseLayoutContents->setActive(false);
+		mPreciseLayoutLabels->SetActive(false);
+		mPreciseLayoutContents->SetActive(false);
 #endif
 
 		// Set up GPU sample areas
-		mGPULayoutFrameContents = mWidget->getPanel()->addNewElement<GUILayoutX>();
+		mGPULayoutFrameContents = mWidget->GetPanel()->addNewElement<GUILayoutX>();
 		mGPULayoutFrameContentsLeft = mGPULayoutFrameContents->addNewElement<GUILayoutY>();
 		mGPULayoutFrameContentsRight = mGPULayoutFrameContents->addNewElement<GUILayoutY>();
 
-		mGPULayoutSamples = mWidget->getPanel()->addNewElement<GUIPanel>();
+		mGPULayoutSamples = mWidget->GetPanel()->addNewElement<GUIPanel>();
 
 		HString GpuSamplesStr(u8"__ProfOvGPUSamples", u8"Samples");
 		mGPULayoutSamples->addNewElement<GUILabel>(gpuSamplesStr);
@@ -410,8 +410,8 @@ namespace bs
 
 			HString GpuSamplesNameStr(u8"__ProfOvGPUSampName", u8"Name");
 			HString GpuSamplesTimeStr(u8"__ProfOvGPUSampTime", u8"Time");
-			mGPULayoutSampleLabels[i]->addElement(GUILabel::create(gpuSamplesNameStr, GUIOptions(GUIOption::fixedWidth(200))));
-			mGPULayoutSampleContents[i]->addElement(GUILabel::create(gpuSamplesTimeStr, GUIOptions(GUIOption::fixedWidth(100))));
+			mGPULayoutSampleLabels[i]->AddElement(GUILabel::create(gpuSamplesNameStr, GUIOptions(GUIOption::fixedWidth(200))));
+			mGPULayoutSampleContents[i]->AddElement(GUILabel::create(gpuSamplesTimeStr, GUIOptions(GUIOption::fixedWidth(100))));
 
 			mGPULayoutSampleLabels[i]->addNewElement<GUIFlexibleSpace>();
 			mGPULayoutSampleContents[i]->addNewElement<GUIFlexibleSpace>();
@@ -455,25 +455,25 @@ namespace bs
 		mGPUVertexBufferBindsLbl = GUILabel::create(mGPUVertexBufferBindsStr, GUIOptions(GUIOption::fixedWidth(200)));
 		mGPUIndexBufferBindsLbl = GUILabel::create(mGPUIndexBufferBindsStr, GUIOptions(GUIOption::fixedWidth(200)));
 
-		mGPULayoutFrameContentsLeft->addElement(mGPUFrameNumLbl);
-		mGPULayoutFrameContentsLeft->addElement(mGPUTimeLbl);
-		mGPULayoutFrameContentsLeft->addElement(mGPUDrawCallsLbl);
-		mGPULayoutFrameContentsLeft->addElement(mGPURenTargetChangesLbl);
-		mGPULayoutFrameContentsLeft->addElement(mGPUPresentsLbl);
-		mGPULayoutFrameContentsLeft->addElement(mGPUClearsLbl);
-		mGPULayoutFrameContentsLeft->addElement(mGPUVerticesLbl);
-		mGPULayoutFrameContentsLeft->addElement(mGPUPrimitivesLbl);
-		mGPULayoutFrameContentsLeft->addElement(mGPUSamplesLbl);
-		mGPULayoutFrameContentsLeft->addElement(mGPUPipelineStateChangesLbl);
+		mGPULayoutFrameContentsLeft->AddElement(mGPUFrameNumLbl);
+		mGPULayoutFrameContentsLeft->AddElement(mGPUTimeLbl);
+		mGPULayoutFrameContentsLeft->AddElement(mGPUDrawCallsLbl);
+		mGPULayoutFrameContentsLeft->AddElement(mGPURenTargetChangesLbl);
+		mGPULayoutFrameContentsLeft->AddElement(mGPUPresentsLbl);
+		mGPULayoutFrameContentsLeft->AddElement(mGPUClearsLbl);
+		mGPULayoutFrameContentsLeft->AddElement(mGPUVerticesLbl);
+		mGPULayoutFrameContentsLeft->AddElement(mGPUPrimitivesLbl);
+		mGPULayoutFrameContentsLeft->AddElement(mGPUSamplesLbl);
+		mGPULayoutFrameContentsLeft->AddElement(mGPUPipelineStateChangesLbl);
 		mGPULayoutFrameContentsLeft->addNewElement<GUIFlexibleSpace>();
 
-		mGPULayoutFrameContentsRight->addElement(mGPUObjectsCreatedLbl);
-		mGPULayoutFrameContentsRight->addElement(mGPUObjectsDestroyedLbl);
-		mGPULayoutFrameContentsRight->addElement(mGPUResourceWritesLbl);
-		mGPULayoutFrameContentsRight->addElement(mGPUResourceReadsLbl);
-		mGPULayoutFrameContentsRight->addElement(mGPUParamBindsLbl);
-		mGPULayoutFrameContentsRight->addElement(mGPUVertexBufferBindsLbl);
-		mGPULayoutFrameContentsRight->addElement(mGPUIndexBufferBindsLbl);
+		mGPULayoutFrameContentsRight->AddElement(mGPUObjectsCreatedLbl);
+		mGPULayoutFrameContentsRight->AddElement(mGPUObjectsDestroyedLbl);
+		mGPULayoutFrameContentsRight->AddElement(mGPUResourceWritesLbl);
+		mGPULayoutFrameContentsRight->AddElement(mGPUResourceReadsLbl);
+		mGPULayoutFrameContentsRight->AddElement(mGPUParamBindsLbl);
+		mGPULayoutFrameContentsRight->AddElement(mGPUVertexBufferBindsLbl);
+		mGPULayoutFrameContentsRight->AddElement(mGPUIndexBufferBindsLbl);
 		mGPULayoutFrameContentsRight->addNewElement<GUIFlexibleSpace>();
 
 		updateCPUSampleAreaSizes();
@@ -494,21 +494,21 @@ namespace bs
 	{
 		if (type == ProfilerOverlayType::CPUSamples)
 		{
-			mBasicLayoutLabels->setVisible(true);
-			mPreciseLayoutLabels->setVisible(true);
-			mBasicLayoutContents->setVisible(true);
-			mPreciseLayoutContents->setVisible(true);
-			mGPULayoutFrameContents->setVisible(false);
-			mGPULayoutSamples->setVisible(false);
+			mBasicLayoutLabels->SetVisible(true);
+			mPreciseLayoutLabels->SetVisible(true);
+			mBasicLayoutContents->SetVisible(true);
+			mPreciseLayoutContents->SetVisible(true);
+			mGPULayoutFrameContents->SetVisible(false);
+			mGPULayoutSamples->SetVisible(false);
 		}
 		else
 		{
-			mGPULayoutFrameContents->setVisible(true);
-			mGPULayoutSamples->setVisible(true);
-			mBasicLayoutLabels->setVisible(false);
-			mPreciseLayoutLabels->setVisible(false);
-			mBasicLayoutContents->setVisible(false);
-			mPreciseLayoutContents->setVisible(false);
+			mGPULayoutFrameContents->SetVisible(true);
+			mGPULayoutSamples->SetVisible(true);
+			mBasicLayoutLabels->SetVisible(false);
+			mPreciseLayoutLabels->SetVisible(false);
+			mBasicLayoutContents->SetVisible(false);
+			mPreciseLayoutContents->SetVisible(false);
 		}
 
 		mType = type;
@@ -517,31 +517,31 @@ namespace bs
 
 	void ProfilerOverlay::Hide()
 	{
-		mBasicLayoutLabels->setVisible(false);
-		mPreciseLayoutLabels->setVisible(false);
-		mBasicLayoutContents->setVisible(false);
-		mPreciseLayoutContents->setVisible(false);
-		mGPULayoutFrameContents->setVisible(false);
-		mGPULayoutSamples->setVisible(false);
+		mBasicLayoutLabels->SetVisible(false);
+		mPreciseLayoutLabels->SetVisible(false);
+		mBasicLayoutContents->SetVisible(false);
+		mPreciseLayoutContents->SetVisible(false);
+		mGPULayoutFrameContents->SetVisible(false);
+		mGPULayoutSamples->SetVisible(false);
 		mIsShown = false;
 	}
 
 	void ProfilerOverlay::Update()
 	{
-		const ProfilerReport& latestSimReport = ProfilingManager::instance().getReport(ProfiledThread::Sim);
-		const ProfilerReport& latestCoreReport = ProfilingManager::instance().getReport(ProfiledThread::Core);
+		const ProfilerReport& latestSimReport = ProfilingManager::instance().GetReport(ProfiledThread::Sim);
+		const ProfilerReport& latestCoreReport = ProfilingManager::instance().GetReport(ProfiledThread::Core);
 
 		updateCPUSampleContents(latestSimReport, latestCoreReport);
 
-		while (ProfilerGPU::instance().getNumAvailableReports() > 1)
-			ProfilerGPU::instance().getNextReport(); // Drop any extra reports, we only want the latest
+		while (ProfilerGPU::instance().GetNumAvailableReports() > 1)
+			ProfilerGPU::instance().GetNextReport(); // Drop any extra reports, we only want the latest
 
-		if (ProfilerGPU::instance().getNumAvailableReports() > 0)
+		if (ProfilerGPU::instance().GetNumAvailableReports() > 0)
 		{
-			GPUProfilerReport report = ProfilerGPU::instance().getNextReport();
+			GPUProfilerReport report = ProfilerGPU::instance().GetNextReport();
 
 			// TODO - Currently displaying just the first view. I need to add a way to toggle between views
-			if(!report.viewSamples.empty())
+			if(!report.viewSamples.Empty())
 				updateGPUSampleContents(report.viewSamples[0]);
 		}
 	}
@@ -557,27 +557,27 @@ namespace bs
 		static const INT32 PADDING = 10;
 		static const float LABELS_CONTENT_RATIO = 0.3f;
 
-		UINT32 width = (UINT32)std::max(0, (INT32)mTarget->getPixelArea().width - PADDING * 2);
-		UINT32 height = (UINT32)std::max(0, (INT32)(mTarget->getPixelArea().height - PADDING * 3));
+		UINT32 width = (UINT32)std::max(0, (INT32)mTarget->GetPixelArea().width - PADDING * 2);
+		UINT32 height = (UINT32)std::max(0, (INT32)(mTarget->GetPixelArea().height - PADDING * 3));
 
 		UINT32 labelsWidth = Math::ceilToInt(width * LABELS_CONTENT_RATIO);
 		UINT32 contentWidth = width - labelsWidth;
 
-		mBasicLayoutLabels->setPosition(PADDING, PADDING);
-		mBasicLayoutLabels->setWidth(labelsWidth);
-		mBasicLayoutLabels->setHeight(height);
+		mBasicLayoutLabels->SetPosition(PADDING, PADDING);
+		mBasicLayoutLabels->SetWidth(labelsWidth);
+		mBasicLayoutLabels->SetHeight(height);
 
-		mPreciseLayoutLabels->setPosition(PADDING, height + PADDING * 2);
-		mPreciseLayoutLabels->setWidth(labelsWidth);
-		mPreciseLayoutLabels->setHeight(height);
+		mPreciseLayoutLabels->SetPosition(PADDING, height + PADDING * 2);
+		mPreciseLayoutLabels->SetWidth(labelsWidth);
+		mPreciseLayoutLabels->SetHeight(height);
 
-		mBasicLayoutContents->setPosition(PADDING + labelsWidth, PADDING);
-		mBasicLayoutContents->setWidth(contentWidth);
-		mBasicLayoutContents->setHeight(height);
+		mBasicLayoutContents->SetPosition(PADDING + labelsWidth, PADDING);
+		mBasicLayoutContents->SetWidth(contentWidth);
+		mBasicLayoutContents->SetHeight(height);
 
-		mPreciseLayoutContents->setPosition(PADDING + labelsWidth, height + PADDING * 2);
-		mPreciseLayoutContents->setWidth(contentWidth);
-		mPreciseLayoutContents->setHeight(height);
+		mPreciseLayoutContents->SetPosition(PADDING + labelsWidth, height + PADDING * 2);
+		mPreciseLayoutContents->SetWidth(contentWidth);
+		mPreciseLayoutContents->SetHeight(height);
 	}
 
 	void ProfilerOverlay::UpdateGPUSampleAreaSizes()
@@ -588,31 +588,31 @@ namespace bs
 		static const INT32 NUM_COLUMNS = 3;
 		static const INT32 HEIGHT_PER_ENTRY = 15;
 
-		UINT32 width = (UINT32)std::max(0, (INT32)mTarget->getPixelArea().width - PADDING * 2);
-		UINT32 height = (UINT32)std::max(0, (INT32)(mTarget->getPixelArea().height - PADDING * 3));
+		UINT32 width = (UINT32)std::max(0, (INT32)mTarget->GetPixelArea().width - PADDING * 2);
+		UINT32 height = (UINT32)std::max(0, (INT32)(mTarget->GetPixelArea().height - PADDING * 3));
 
 		UINT32 frameHeight = Math::ceilToInt(height * SAMPLES_FRAME_RATIO);
 		UINT32 samplesHeight = height - frameHeight;
 
-		mGPULayoutFrameContents->setPosition(PADDING, PADDING);
-		mGPULayoutFrameContents->setWidth(width);
-		mGPULayoutFrameContents->setHeight(frameHeight);
+		mGPULayoutFrameContents->SetPosition(PADDING, PADDING);
+		mGPULayoutFrameContents->SetWidth(width);
+		mGPULayoutFrameContents->SetHeight(frameHeight);
 
-		mGPULayoutSamples->setPosition(PADDING, PADDING + frameHeight + PADDING);
-		mGPULayoutSamples->setWidth(width);
-		mGPULayoutSamples->setHeight(samplesHeight);
+		mGPULayoutSamples->SetPosition(PADDING, PADDING + frameHeight + PADDING);
+		mGPULayoutSamples->SetWidth(width);
+		mGPULayoutSamples->SetHeight(samplesHeight);
 
 		UINT32 columnWidth = width / NUM_COLUMNS;
 		UINT32 columnHeight = samplesHeight - HEADER_HEIGHT;
 		for(UINT32 i = 0; i < NUM_COLUMNS; i++)
 		{
-			mGPULayoutSampleLabels[i]->setPosition(columnWidth * i, HEADER_HEIGHT);
-			mGPULayoutSampleLabels[i]->setWidth(columnWidth / 2);
-			mGPULayoutSampleLabels[i]->setHeight(columnHeight);
+			mGPULayoutSampleLabels[i]->SetPosition(columnWidth * i, HEADER_HEIGHT);
+			mGPULayoutSampleLabels[i]->SetWidth(columnWidth / 2);
+			mGPULayoutSampleLabels[i]->SetHeight(columnHeight);
 
-			mGPULayoutSampleContents[i]->setPosition(columnWidth * i + columnWidth / 2, HEADER_HEIGHT);
-			mGPULayoutSampleContents[i]->setWidth(columnWidth / 2);
-			mGPULayoutSampleContents[i]->setHeight(columnHeight);
+			mGPULayoutSampleContents[i]->SetPosition(columnWidth * i + columnWidth / 2, HEADER_HEIGHT);
+			mGPULayoutSampleContents[i]->SetWidth(columnWidth / 2);
+			mGPULayoutSampleContents[i]->SetHeight(columnHeight);
 		}
 
 		mNumGPUSamplesPerColumn = columnHeight / HEIGHT_PER_ENTRY;
@@ -622,11 +622,11 @@ namespace bs
 	{
 		static const UINT32 NUM_ROOT_ENTRIES = 2;
 
-		const CPUProfilerBasicSamplingEntry& simBasicRootEntry = simReport.cpuReport.getBasicSamplingData();
-		const CPUProfilerPreciseSamplingEntry& simPreciseRootEntry = simReport.cpuReport.getPreciseSamplingData();
+		const CPUProfilerBasicSamplingEntry& simBasicRootEntry = simReport.cpuReport.GetBasicSamplingData();
+		const CPUProfilerPreciseSamplingEntry& simPreciseRootEntry = simReport.cpuReport.GetPreciseSamplingData();
 
-		const CPUProfilerBasicSamplingEntry& coreBasicRootEntry = coreReport.cpuReport.getBasicSamplingData();
-		const CPUProfilerPreciseSamplingEntry& corePreciseRootEntry = coreReport.cpuReport.getPreciseSamplingData();
+		const CPUProfilerBasicSamplingEntry& coreBasicRootEntry = coreReport.cpuReport.GetBasicSamplingData();
+		const CPUProfilerPreciseSamplingEntry& corePreciseRootEntry = coreReport.cpuReport.GetPreciseSamplingData();
 
 		struct TodoBasic
 		{
@@ -657,12 +657,12 @@ namespace bs
 
 		for(UINT32 i = 0; i < NUM_ROOT_ENTRIES; i++)
 		{
-			todoBasic.push(TodoBasic(*basicRootEntries[i], 0));
+			todoBasic.Push(TodoBasic(*basicRootEntries[i], 0));
 
-			while(!todoBasic.empty())
+			while(!todoBasic.Empty())
 			{
-				TodoBasic curEntry = todoBasic.top();
-				todoBasic.pop();
+				TodoBasic curEntry = todoBasic.Top();
+				todoBasic.Pop();
 
 				const CPUProfilerBasicSamplingEntry::Data& data = curEntry.entry.data;
 				basicRowFiller.addData(curEntry.depth, data.name, data.pctOfParent, data.numCalls, data.memAllocs, data.memFrees,
@@ -670,9 +670,9 @@ namespace bs
 
 				if(curEntry.depth <= MAX_DEPTH)
 				{
-					for(auto iter = curEntry.entry.childEntries.rbegin(); iter != curEntry.entry.childEntries.rend(); ++iter)
+					for(auto iter = curEntry.entry.childEntries.Rbegin(); iter != curEntry.entry.childEntries.rend(); ++iter)
 					{
-						todoBasic.push(TodoBasic(*iter, curEntry.depth + 1));
+						todoBasic.Push(TodoBasic(*iter, curEntry.depth + 1));
 					}
 				}
 			}
@@ -687,12 +687,12 @@ namespace bs
 
 		for(UINT32 i = 0; i < NUM_ROOT_ENTRIES; i++)
 		{
-			todoPrecise.push(TodoPrecise(*preciseRootEntries[i], 0));
+			todoPrecise.Push(TodoPrecise(*preciseRootEntries[i], 0));
 
-			while(!todoBasic.empty())
+			while(!todoBasic.Empty())
 			{
-				TodoPrecise curEntry = todoPrecise.top();
-				todoPrecise.pop();
+				TodoPrecise curEntry = todoPrecise.Top();
+				todoPrecise.Pop();
 
 				const CPUProfilerPreciseSamplingEntry::Data& data = curEntry.entry.data;
 				preciseRowFiller.addData(curEntry.depth, data.name, data.pctOfParent, data.numCalls, data.memAllocs, data.memFrees,
@@ -700,9 +700,9 @@ namespace bs
 
 				if(curEntry.depth <= MAX_DEPTH)
 				{
-					for(auto iter = curEntry.entry.childEntries.rbegin(); iter != curEntry.entry.childEntries.rend(); ++iter)
+					for(auto iter = curEntry.entry.childEntries.Rbegin(); iter != curEntry.entry.childEntries.rend(); ++iter)
 					{
-						todoPrecise.push(TodoPrecise(*iter, curEntry.depth + 1));
+						todoPrecise.Push(TodoPrecise(*iter, curEntry.depth + 1));
 					}
 				}
 			}
@@ -711,43 +711,43 @@ namespace bs
 
 	void ProfilerOverlay::UpdateGPUSampleContents(const GPUProfileSample& frameSample)
 	{
-		mGPUFrameNumStr.setParameter(0, toString((UINT64)gTime().getFrameIdx()));
-		mGPUTimeStr.setParameter(0, toString(frameSample.timeMs));
-		mGPUDrawCallsStr.setParameter(0, toString(frameSample.numDrawCalls));
-		mGPURenTargetChangesStr.setParameter(0, toString(frameSample.numRenderTargetChanges));
-		mGPUPresentsStr.setParameter(0, toString(frameSample.numPresents));
-		mGPUClearsStr.setParameter(0, toString(frameSample.numClears));
-		mGPUVerticesStr.setParameter(0, toString(frameSample.numVertices));
-		mGPUPrimitivesStr.setParameter(0, toString(frameSample.numPrimitives));
-		mGPUSamplesStr.setParameter(0, toString(frameSample.numDrawnSamples));
-		mGPUPipelineStateChangesStr.setParameter(0, toString(frameSample.numPipelineStateChanges));
+		mGPUFrameNumStr.SetParameter(0, toString((UINT64)gTime().getFrameIdx()));
+		mGPUTimeStr.SetParameter(0, toString(frameSample.timeMs));
+		mGPUDrawCallsStr.SetParameter(0, toString(frameSample.numDrawCalls));
+		mGPURenTargetChangesStr.SetParameter(0, toString(frameSample.numRenderTargetChanges));
+		mGPUPresentsStr.SetParameter(0, toString(frameSample.numPresents));
+		mGPUClearsStr.SetParameter(0, toString(frameSample.numClears));
+		mGPUVerticesStr.SetParameter(0, toString(frameSample.numVertices));
+		mGPUPrimitivesStr.SetParameter(0, toString(frameSample.numPrimitives));
+		mGPUSamplesStr.SetParameter(0, toString(frameSample.numDrawnSamples));
+		mGPUPipelineStateChangesStr.SetParameter(0, toString(frameSample.numPipelineStateChanges));
 
-		mGPUObjectsCreatedStr.setParameter(0, toString(frameSample.numObjectsCreated));
-		mGPUObjectsDestroyedStr.setParameter(0, toString(frameSample.numObjectsDestroyed));
-		mGPUResourceWritesStr.setParameter(0, toString(frameSample.numResourceWrites));
-		mGPUResourceReadsStr.setParameter(0, toString(frameSample.numResourceReads));
-		mGPUParamBindsStr.setParameter(0, toString(frameSample.numGpuParamBinds));
-		mGPUVertexBufferBindsStr.setParameter(0, toString(frameSample.numVertexBufferBinds));
-		mGPUIndexBufferBindsStr.setParameter(0, toString(frameSample.numIndexBufferBinds));
+		mGPUObjectsCreatedStr.SetParameter(0, toString(frameSample.numObjectsCreated));
+		mGPUObjectsDestroyedStr.SetParameter(0, toString(frameSample.numObjectsDestroyed));
+		mGPUResourceWritesStr.SetParameter(0, toString(frameSample.numResourceWrites));
+		mGPUResourceReadsStr.SetParameter(0, toString(frameSample.numResourceReads));
+		mGPUParamBindsStr.SetParameter(0, toString(frameSample.numGpuParamBinds));
+		mGPUVertexBufferBindsStr.SetParameter(0, toString(frameSample.numVertexBufferBinds));
+		mGPUIndexBufferBindsStr.SetParameter(0, toString(frameSample.numIndexBufferBinds));
 
-		mGPUFrameNumLbl->setContent(mGPUFrameNumStr);
-		mGPUTimeLbl->setContent(mGPUTimeStr);
-		mGPUDrawCallsLbl->setContent(mGPUDrawCallsStr);
-		mGPURenTargetChangesLbl->setContent(mGPURenTargetChangesStr);
-		mGPUPresentsLbl->setContent(mGPUPresentsStr);
-		mGPUClearsLbl->setContent(mGPUClearsStr);
-		mGPUVerticesLbl->setContent(mGPUVerticesStr);
-		mGPUPrimitivesLbl->setContent(mGPUPrimitivesStr);
-		mGPUSamplesLbl->setContent(mGPUSamplesStr);
-		mGPUPipelineStateChangesLbl->setContent(mGPUPipelineStateChangesStr);
+		mGPUFrameNumLbl->SetContent(mGPUFrameNumStr);
+		mGPUTimeLbl->SetContent(mGPUTimeStr);
+		mGPUDrawCallsLbl->SetContent(mGPUDrawCallsStr);
+		mGPURenTargetChangesLbl->SetContent(mGPURenTargetChangesStr);
+		mGPUPresentsLbl->SetContent(mGPUPresentsStr);
+		mGPUClearsLbl->SetContent(mGPUClearsStr);
+		mGPUVerticesLbl->SetContent(mGPUVerticesStr);
+		mGPUPrimitivesLbl->SetContent(mGPUPrimitivesStr);
+		mGPUSamplesLbl->SetContent(mGPUSamplesStr);
+		mGPUPipelineStateChangesLbl->SetContent(mGPUPipelineStateChangesStr);
 
-		mGPUObjectsCreatedLbl->setContent(mGPUObjectsCreatedStr);
-		mGPUObjectsDestroyedLbl->setContent(mGPUObjectsDestroyedStr);
-		mGPUResourceWritesLbl->setContent(mGPUResourceWritesStr);
-		mGPUResourceReadsLbl->setContent(mGPUResourceReadsStr);
-		mGPUParamBindsLbl->setContent(mGPUParamBindsStr);
-		mGPUVertexBufferBindsLbl->setContent(mGPUVertexBufferBindsStr);
-		mGPUIndexBufferBindsLbl->setContent(mGPUIndexBufferBindsStr);
+		mGPUObjectsCreatedLbl->SetContent(mGPUObjectsCreatedStr);
+		mGPUObjectsDestroyedLbl->SetContent(mGPUObjectsDestroyedStr);
+		mGPUResourceWritesLbl->SetContent(mGPUResourceWritesStr);
+		mGPUResourceReadsLbl->SetContent(mGPUResourceReadsStr);
+		mGPUParamBindsLbl->SetContent(mGPUParamBindsStr);
+		mGPUVertexBufferBindsLbl->SetContent(mGPUVertexBufferBindsStr);
+		mGPUIndexBufferBindsLbl->SetContent(mGPUIndexBufferBindsStr);
 
 		GPUSampleRowFiller sampleRowFillers[GPU_NUM_SAMPLE_COLUMNS] =
 		{
@@ -770,17 +770,17 @@ namespace bs
 		UINT32 currentCount = 0;
 
 		Stack<Todo> todo;
-		todo.push(Todo(frameSample, 0));
+		todo.Push(Todo(frameSample, 0));
 
-		while (!todo.empty())
+		while (!todo.Empty())
 		{
-			Todo curEntry = todo.top();
-			todo.pop();
+			Todo curEntry = todo.Top();
+			todo.Pop();
 
 			const GPUProfileSample& data = curEntry.entry;
 
 			if(column < GPU_NUM_SAMPLE_COLUMNS)
-				sampleRowFillers[column].addData(curEntry.depth, data.name, data.timeMs);
+				sampleRowFillers[column].AddData(curEntry.depth, data.name, data.timeMs);
 
 			currentCount++;
 			if (currentCount % mNumGPUSamplesPerColumn == 0)
@@ -788,8 +788,8 @@ namespace bs
 
 			if (curEntry.depth <= MAX_DEPTH)
 			{
-				for (auto iter = curEntry.entry.children.rbegin(); iter != curEntry.entry.children.rend(); ++iter)
-					todo.push(Todo(*iter, curEntry.depth + 1));
+				for (auto iter = curEntry.entry.children.Rbegin(); iter != curEntry.entry.children.rend(); ++iter)
+					todo.Push(Todo(*iter, curEntry.depth + 1));
 			}
 		}
 	}

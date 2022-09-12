@@ -29,12 +29,12 @@ namespace bs
 		:GUIElementContainer(dimensions), mCaptureMouseOver(captureMouseOver),
 		mCaptureMousePresses(captureMousePresses)
 	{
-		mOptionFlags.set(GUIElementOption::ClickThrough);
+		mOptionFlags.Set(GUIElementOption::ClickThrough);
 	}
 
 	void GUIDropDownHitBox::SetBounds(const Rect2I& bounds)
 	{
-		mBounds.clear();
+		mBounds.Clear();
 		mBounds.push_back(bounds);
 
 		updateClippedBounds();
@@ -51,12 +51,12 @@ namespace bs
 	{
 		mClippedBounds = Rect2I();
 
-		if (mBounds.size() > 0)
+		if (mBounds.Size() > 0)
 		{
 			mClippedBounds = mBounds[0];
 
-			for (UINT32 i = 1; i < (UINT32)mBounds.size(); i++)
-				mClippedBounds.encapsulate(mBounds[i]);
+			for (UINT32 i = 1; i < (UINT32)mBounds.Size(); i++)
+				mClippedBounds.Encapsulate(mBounds[i]);
 		}
 	}
 
@@ -64,16 +64,16 @@ namespace bs
 	{
 		bool processed = GUIElementContainer::_commandEvent(ev);
 
-		if(ev.getType() == GUICommandEventType::FocusGained)
+		if(ev.GetType() == GUICommandEventType::FocusGained)
 		{
-			if(!onFocusGained.empty())
+			if(!onFocusGained.Empty())
 				onFocusGained();
 
 			return false;
 		}
-		else If(ev.getType() == GUICommandEventType::FocusLost)
+		else If(ev.GetType() == GUICommandEventType::FocusLost)
 		{
-			if(!onFocusLost.empty())
+			if(!onFocusLost.Empty())
 				onFocusLost();
 
 			return false;
@@ -88,15 +88,15 @@ namespace bs
 
 		if(mCaptureMouseOver)
 		{
-			if (ev.getType() == GUIMouseEventType::MouseOver)
+			if (ev.GetType() == GUIMouseEventType::MouseOver)
 			{
 				return true;
 			}
-			else if (ev.getType() == GUIMouseEventType::MouseOut)
+			else if (ev.GetType() == GUIMouseEventType::MouseOut)
 			{
 				return true;
 			}
-			else if (ev.getType() == GUIMouseEventType::MouseMove)
+			else if (ev.GetType() == GUIMouseEventType::MouseMove)
 			{
 				return true;
 			}
@@ -104,15 +104,15 @@ namespace bs
 
 		if (mCaptureMousePresses)
 		{
-			if (ev.getType() == GUIMouseEventType::MouseUp)
+			if (ev.GetType() == GUIMouseEventType::MouseUp)
 			{
 				return true;
 			}
-			else if (ev.getType() == GUIMouseEventType::MouseDown)
+			else if (ev.GetType() == GUIMouseEventType::MouseDown)
 			{
 				return true;
 			}
-			else if (ev.getType() == GUIMouseEventType::MouseDoubleClick)
+			else if (ev.GetType() == GUIMouseEventType::MouseDoubleClick)
 			{
 				return true;
 			}
@@ -125,7 +125,7 @@ namespace bs
 	{
 		for(auto& bound : mBounds)
 		{
-			if(bound.contains(position))
+			if(bound.Contains(position))
 				return true;
 		}
 

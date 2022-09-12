@@ -41,12 +41,12 @@ namespace bs { namespace ct
 		poolCI.poolSizeCount = sizeof(poolSizes)/sizeof(poolSizes[0]);
 		poolCI.pPoolSizes = poolSizes;
 
-		VkResult result = vkCreateDescriptorPool(mDevice.getLogical(), &poolCI, gVulkanAllocator, &mPool);
+		VkResult result = vkCreateDescriptorPool(mDevice.GetLogical(), &poolCI, gVulkanAllocator, &mPool);
 		assert(result == VK_SUCCESS);
 	}
 
 	VulkanDescriptorPool::~VulkanDescriptorPool()
 	{
-		vkDestroyDescriptorPool(mDevice.getLogical(), mPool, gVulkanAllocator);
+		vkDestroyDescriptorPool(mDevice.GetLogical(), mPool, gVulkanAllocator);
 	}
 }}

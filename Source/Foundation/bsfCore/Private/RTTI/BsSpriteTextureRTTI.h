@@ -46,7 +46,7 @@ namespace bs
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{
 			SpriteTexture* texture = static_cast<SpriteTexture*>(obj);
-			texture->initialize();
+			texture->Initialize();
 		}
 	};
 

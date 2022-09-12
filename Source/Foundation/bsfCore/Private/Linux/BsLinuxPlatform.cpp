@@ -149,10 +149,10 @@ namespace bs
 		if(!data->cursorClipEnabled || data->cursorClipWindow != window)
 			return;
 
-		data->cursorClipRect.x = window->getLeft();
-		data->cursorClipRect.y = window->getTop();
-		data->cursorClipRect.width = window->getWidth();
-		data->cursorClipRect.height = window->getHeight();
+		data->cursorClipRect.x = window->GetLeft();
+		data->cursorClipRect.y = window->GetTop();
+		data->cursorClipRect.width = window->GetWidth();
+		data->cursorClipRect.height = window->GetHeight();
 	}
 
 	bool ClipCursor(Platform::Pimpl* data, Vector2I& pos)
@@ -234,7 +234,7 @@ namespace bs
 				continue;
 
 			Rect2I Area(pos.x, pos.y, (UINT32)xwa.width, (UINT32)xwa.height);
-			if(area.contains(screenPos))
+			if(area.Contains(screenPos))
 			{
 				XFree(children);
 				return GetWindowUnderPoint(display, rootWindow, curWindow, screenPos);
@@ -279,7 +279,7 @@ namespace bs
 		Lock Lock(mData->lock);
 
 		LinuxWindow* linuxWindow;
-		window.getCustomAttribute("LINUX_WINDOW", &linuxWindow);
+		window.GetCustomAttribute("LINUX_WINDOW", &linuxWindow);
 
 		UINT32 mask = ButtonPressMask | ButtonReleaseMask | PointerMotionMask | FocusChangeMask;
 		XGrabPointer(mData->xDisplay, linuxWindow->_getXWindow(), False, mask, GrabModeAsync,
@@ -300,7 +300,7 @@ namespace bs
 		Lock Lock(mData->lock);
 
 		LinuxWindow* linuxWindow;
-		window.getCustomAttribute("LINUX_WINDOW", &linuxWindow);
+		window.GetCustomAttribute("LINUX_WINDOW", &linuxWindow);
 		::Window xWindow = linuxWindow->_getXWindow();
 
 		UINT32 screenCount = (UINT32)XScreenCount(mData->xDisplay);
@@ -345,7 +345,7 @@ namespace bs
 		Lock Lock(mData->lock);
 
 		LinuxWindow* linuxWindow;
-		window.getCustomAttribute("LINUX_WINDOW", &linuxWindow);
+		window.GetCustomAttribute("LINUX_WINDOW", &linuxWindow);
 
 		mData->cursorClipEnabled = true;
 		mData->cursorClipWindow = linuxWindow;
@@ -381,17 +381,17 @@ namespace bs
 
 	void Platform::SetCursor(PixelData& pixelData, const Vector2I& hotSpot)
 	{
-		SPtr<PixelData> bgraData = PixelData::create(pixelData.getWidth(), pixelData.getHeight(), 1, PF_BGRA8);
+		SPtr<PixelData> bgraData = PixelData::create(pixelData.GetWidth(), pixelData.getHeight(), 1, PF_BGRA8);
 		PixelUtil::bulkPixelConversion(pixelData, *bgraData);
 
 		Lock Lock(mData->lock);
 
-		XcursorImage* image = XcursorImageCreate((int)bgraData->getWidth(), (int)bgraData->getHeight());
+		XcursorImage* image = XcursorImageCreate((int)bgraData->GetWidth(), (int)bgraData->getHeight());
 		image->xhot = (XcursorDim)hotSpot.x;
 		image->yhot = (XcursorDim)hotSpot.y;
 		image->delay = 0;
 
-		memcpy(image->pixels, bgraData->getData(), bgraData->getSize());
+		memcpy(image->pixels, bgraData->GetData(), bgraData->getSize());
 
 		::Cursor cursor = XcursorImageLoadCursor(mData->xDisplay, image);
 		XcursorImageDestroy(image);
@@ -404,25 +404,25 @@ namespace bs
 		if(!mData->mainXWindow)
 			return;
 
-		auto iterFind = mData->windowMap.find(mData->mainXWindow);
-		if(iterFind == mData->windowMap.end())
+		auto iterFind = mData->windowMap.Find(mData->mainXWindow);
+		if(iterFind == mData->windowMap.End())
 			return;
 
 		LinuxWindow* mainLinuxWindow = iterFind->second;
 
 		Lock Lock(mData->lock);
-		mainLinuxWindow->setIcon(pixelData);
+		mainLinuxWindow->SetIcon(pixelData);
 	}
 
 	void Platform::SetCaptionNonClientAreas(const ct::RenderWindow& window, const Vector<Rect2I>& nonClientAreas)
 	{
-		if(nonClientAreas.size() == 0)
+		if(nonClientAreas.Size() == 0)
 			return;
 
 		Lock Lock(mData->lock);
 
 		LinuxWindow* linuxWindow;
-		window.getCustomAttribute("LINUX_WINDOW", &linuxWindow);
+		window.GetCustomAttribute("LINUX_WINDOW", &linuxWindow);
 
 		linuxWindow->_setDragZones(nonClientAreas);
 	}
@@ -437,7 +437,7 @@ namespace bs
 		Lock Lock(mData->lock);
 
 		LinuxWindow* linuxWindow;
-		window.getCustomAttribute("LINUX_WINDOW", &linuxWindow);
+		window.GetCustomAttribute("LINUX_WINDOW", &linuxWindow);
 
 		linuxWindow->_setDragZones({});
 	}
@@ -686,8 +686,8 @@ namespace bs
 			return "";
 		}
 
-		auto iterFind = mData->keyNameMap.find(String(keyName));
-		if(iterFind == mData->keyNameMap.end())
+		auto iterFind = mData->keyNameMap.Find(String(keyName));
+		if(iterFind == mData->keyNameMap.End())
 		{
 			// Cannot find mapping, although this shouldn't really happen
 			return "";
@@ -718,11 +718,11 @@ namespace bs
 
 	void Platform::OpenFolder(const Path& path)
 	{
-		String pathString = path.toString();
+		String pathString = path.ToString();
 
 		const char* commandPattern = "xdg-open '%s'";
 
-		char* commandStr = (char*)bs_stack_alloc((UINT32)pathString.size() + (UINT32)strlen(commandPattern) + 1);
+		char* commandStr = (char*)bs_stack_alloc((UINT32)pathString.Size() + (UINT32)strlen(commandPattern) + 1);
 		sprintf(commandStr, commandPattern, pathString.c_str());
 
 		if(system(commandStr)){};
@@ -776,8 +776,8 @@ namespace bs
 	/** Returns a LinuxWindow from a native X11 window handle. */
 	LinuxWindow* getLinuxWindow(LinuxPlatform::Pimpl* data, ::Window xWindow)
 	{
-		auto iterFind = data->windowMap.find(xWindow);
-		if (iterFind != data->windowMap.end())
+		auto iterFind = data->windowMap.Find(xWindow);
+		if (iterFind != data->windowMap.End())
 		{
 			LinuxWindow* window = iterFind->second;
 			return window;
@@ -814,7 +814,7 @@ namespace bs
 		event.button = bc;
 		event.pressed = pressed;
 		event.timestamp = timestamp;
-		LinuxPlatform::buttonEvents.push(event);
+		LinuxPlatform::buttonEvents.Push(event);
 	}
 
 	void Platform::_messagePump()
@@ -915,7 +915,7 @@ namespace bs
 						buffer[length] = '\0';
 
 						U32String utfStr = UTF8::toUTF32(String(buffer));
-						if (utfStr.length() > 0)
+						if (utfStr.Length() > 0)
 							onCharInput((UINT32) utfStr[0]);
 					}
 				}
@@ -923,7 +923,7 @@ namespace bs
 				// Send an input command event
 				if(isInputCommand)
 				{
-					if(!onInputCommand.empty())
+					if(!onInputCommand.Empty())
 						onInputCommand(command);
 				}
 			}
@@ -1124,7 +1124,7 @@ namespace bs
 				// Not a render window, so it doesn't care about these events
 				if (renderWindow != nullptr)
 				{
-					if (!renderWindow->getProperties().hasFocus)
+					if (!renderWindow->GetProperties().hasFocus)
 						renderWindow->_notifyWindowEvent(WindowEventType::FocusReceived);
 				}
 			}
@@ -1140,7 +1140,7 @@ namespace bs
 				// Not a render window, so it doesn't care about these events
 				if (renderWindow != nullptr)
 				{
-					if (renderWindow->getProperties().hasFocus)
+					if (renderWindow->GetProperties().hasFocus)
 						renderWindow->_notifyWindowEvent(WindowEventType::FocusLost);
 				}
 			}
@@ -1162,7 +1162,7 @@ namespace bs
 					String utf8data = mData->clipboardData;
 
 					const UINT8* data = (const UINT8*)utf8data.c_str();
-					INT32 dataLength = (INT32)utf8data.length();
+					INT32 dataLength = (INT32)utf8data.Length();
 
 					XChangeProperty(mData->xDisplay, selReq.requestor, selReq.property,
 							selReq.target, 8, PropModeReplace, data, dataLength);
@@ -1334,7 +1334,7 @@ namespace bs
 		}
 
 		// Initialize "X11 keycode" -> "Banshee ButtonCode" map, based on the keyNameMap and keyCodeToKeyName()
-		mData->keyCodeMap.resize(desc->max_key_code + 1, BC_UNASSIGNED);
+		mData->keyCodeMap.Resize(desc->max_key_code + 1, BC_UNASSIGNED);
 
 		XkbFreeNames(desc, XkbKeyNamesMask, True);
 		XkbFreeKeyboard(desc, 0, True);
@@ -1347,8 +1347,8 @@ namespace bs
 			if (keyNameCStr != nullptr)
 			{
 				String keyName = String(keyNameCStr);
-				auto iterFind = mData->keyNameMap.find(keyName);
-				if (iterFind != mData->keyNameMap.end())
+				auto iterFind = mData->keyNameMap.Find(keyName);
+				if (iterFind != mData->keyNameMap.End())
 				{
 					KeyCode keyCode = iterFind->second;
 					mData->keyCodeMap[keyCode] = buttonCode;
@@ -1418,12 +1418,12 @@ namespace bs
 
 	void LinuxPlatform::LockX()
 	{
-		mData->lock.lock();
+		mData->lock.Lock();
 	}
 
 	void LinuxPlatform::UnlockX()
 	{
-		mData->lock.unlock();
+		mData->lock.Unlock();
 	}
 
 	void LinuxPlatform::_registerWindow(::Window xWindow, LinuxWindow* window)
@@ -1447,13 +1447,13 @@ namespace bs
 
 	void LinuxPlatform::_unregisterWindow(::Window xWindow)
 	{
-		auto iterFind = mData->windowMap.find(xWindow);
-		if(iterFind != mData->windowMap.end())
+		auto iterFind = mData->windowMap.Find(xWindow);
+		if(iterFind != mData->windowMap.End())
 		{
 			if(mData->cursorClipEnabled && mData->cursorClipWindow == iterFind->second)
 				bs::clipCursorDisable(mData);
 
-			mData->windowMap.erase(iterFind);
+			mData->windowMap.Erase(iterFind);
 		}
 
 		if(mData->mainXWindow == xWindow)
@@ -1463,7 +1463,7 @@ namespace bs
 	Pixmap LinuxPlatform::CreatePixmap(const PixelData& data, UINT32 depth)
 	{
 		// Premultiply alpha
-		Vector<Color> colors = data.getColors();
+		Vector<Color> colors = data.GetColors();
 		for(auto& color : colors)
 		{
 			color.r *= color.a;
@@ -1472,18 +1472,18 @@ namespace bs
 		}
 
 		// Convert to BGRA
-		SPtr<PixelData> bgraData = PixelData::create(data.getWidth(), data.getHeight(), 1, PF_BGRA8);
-		bgraData->setColors(colors);
+		SPtr<PixelData> bgraData = PixelData::create(data.GetWidth(), data.getHeight(), 1, PF_BGRA8);
+		bgraData->SetColors(colors);
 
 		XImage* image = XCreateImage(mData->xDisplay, CopyFromParent, depth, ZPixmap, 0,
-				(char*)bgraData->getData(), data.getWidth(), data.getHeight(), 32, 0);
+				(char*)bgraData->GetData(), data.GetWidth(), data.getHeight(), 32, 0);
 
 		Pixmap pixmap = XCreatePixmap(mData->xDisplay, XDefaultRootWindow(mData->xDisplay),
-				data.getWidth(), data.getHeight(), depth);
+				data.GetWidth(), data.getHeight(), depth);
 
 		XGCValues gcValues;
 		GC gc = XCreateGC(mData->xDisplay, pixmap, 0, &gcValues);
-		XPutImage(mData->xDisplay, pixmap, gc, image, 0, 0, 0, 0, data.getWidth(), data.getHeight());
+		XPutImage(mData->xDisplay, pixmap, gc, image, 0, 0, 0, 0, data.GetWidth(), data.getHeight());
 		XFreeGC(mData->xDisplay, gc);
 
 		// Make sure XDestroyImage doesn't free the data pointed to by 'data.bytes'

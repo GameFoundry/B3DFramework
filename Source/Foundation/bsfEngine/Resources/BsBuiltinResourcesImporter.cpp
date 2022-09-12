@@ -92,7 +92,7 @@ int main(int argc, char * argv[])
 			const bool fullReimport = modifications == 2;
 
 			sManifest = ResourceManifest::create("BuiltinResources");
-			gResources().registerResourceManifest(sManifest);
+			gResources().RegisterResourceManifest(sManifest);
 
 			processAssets(generateGenerated, fullReimport, lastUpdateTime);
 			BuiltinResourcesHelper::writeTimestamp(sOutputFolder + TIMESTAMP_NAME);
@@ -113,28 +113,28 @@ namespace bs
 	void GenerateTextures()
 	{
 		SPtr<PixelData> blackPixelData = PixelData::create(2, 2, 1, PF_RGBA8);
-		blackPixelData->setColorAt(Color::Black, 0, 0);
-		blackPixelData->setColorAt(Color::Black, 0, 1);
-		blackPixelData->setColorAt(Color::Black, 1, 0);
-		blackPixelData->setColorAt(Color::Black, 1, 1);
+		blackPixelData->SetColorAt(Color::Black, 0, 0);
+		blackPixelData->SetColorAt(Color::Black, 0, 1);
+		blackPixelData->SetColorAt(Color::Black, 1, 0);
+		blackPixelData->SetColorAt(Color::Black, 1, 1);
 
 		SPtr<Texture> blackTexture = Texture::_createPtr(blackPixelData);
 
 		SPtr<PixelData> whitePixelData = PixelData::create(2, 2, 1, PF_RGBA8);
-		whitePixelData->setColorAt(Color::White, 0, 0);
-		whitePixelData->setColorAt(Color::White, 0, 1);
-		whitePixelData->setColorAt(Color::White, 1, 0);
-		whitePixelData->setColorAt(Color::White, 1, 1);
+		whitePixelData->SetColorAt(Color::White, 0, 0);
+		whitePixelData->SetColorAt(Color::White, 0, 1);
+		whitePixelData->SetColorAt(Color::White, 1, 0);
+		whitePixelData->SetColorAt(Color::White, 1, 1);
 
 		SPtr<Texture> whiteTexture = Texture::_createPtr(whitePixelData);
 
 		SPtr<PixelData> normalPixelData = PixelData::create(2, 2, 1, PF_RGBA8);
 
 		Color EncodedNormal(0.5f, 0.5f, 1.0f);
-		normalPixelData->setColorAt(encodedNormal, 0, 0);
-		normalPixelData->setColorAt(encodedNormal, 0, 1);
-		normalPixelData->setColorAt(encodedNormal, 1, 0);
-		normalPixelData->setColorAt(encodedNormal, 1, 1);
+		normalPixelData->SetColorAt(encodedNormal, 0, 0);
+		normalPixelData->SetColorAt(encodedNormal, 0, 1);
+		normalPixelData->SetColorAt(encodedNormal, 1, 0);
+		normalPixelData->SetColorAt(encodedNormal, 1, 1);
 
 		SPtr<Texture> normalTexture = Texture::_createPtr(normalPixelData);
 
@@ -145,8 +145,8 @@ namespace bs
 		{
 			HResource textureResource = gResources()._createResourceHandle(texture, UUID(uuid));
 
-			gResources().save(textureResource, path, true);
-			sManifest->registerResource(textureResource.getUUID(), path);
+			gResources().Save(textureResource, path, true);
+			sManifest->RegisterResource(textureResource.GetUUID(), path);
 		};
 
 		Path whitePath = outputDir + BuiltinResources::TEXTURE_WHITE_FILE;
@@ -162,11 +162,11 @@ namespace bs
 	void GenerateMeshes()
 	{
 		SPtr<VertexDataDesc> vertexDesc = bs_shared_ptr_new<VertexDataDesc>();
-		vertexDesc->addVertElem(VET_FLOAT3, VES_POSITION);
-		vertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD);
-		vertexDesc->addVertElem(VET_FLOAT3, VES_NORMAL);
-		vertexDesc->addVertElem(VET_FLOAT4, VES_TANGENT);
-		vertexDesc->addVertElem(VET_COLOR, VES_COLOR);
+		vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
+		vertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD);
+		vertexDesc->AddVertElem(VET_FLOAT3, VES_NORMAL);
+		vertexDesc->AddVertElem(VET_FLOAT4, VES_TANGENT);
+		vertexDesc->AddVertElem(VET_COLOR, VES_COLOR);
 
 		UINT32 boxNumVertices = 0;
 		UINT32 boxNumIndices = 0;
@@ -227,8 +227,8 @@ namespace bs
 		{
 			HResource meshResource = gResources()._createResourceHandle(mesh, UUID(uuid));
 
-			gResources().save(meshResource, path, true);
-			sManifest->registerResource(meshResource.getUUID(), path);
+			gResources().Save(meshResource, path, true);
+			sManifest->RegisterResource(meshResource.GetUUID(), path);
 		};
 
 		Path boxPath = outputDir + BuiltinResources::MESH_BOX_FILE;
@@ -259,7 +259,7 @@ namespace bs
 
 		Path guiSkinPath = sInputFolder + GUI_SKIN_JSON;
 		SPtr<DataStream> guiSkinStream = FileSystem::openFile(guiSkinPath);
-		json guiSkinJSON = json::parse(guiSkinStream->getAsString().c_str());
+		json guiSkinJSON = json::parse(guiSkinStream->GetAsString().c_str());
 
 		SPtr<GUISkin> skin = GUISkin::_createPtr();
 
@@ -268,7 +268,7 @@ namespace bs
 			std::string name = entry["name"];
 
 			GUIElementStyle style = BuiltinResourcesHelper::loadGUIStyleFromJSON(entry, loader);
-			skin->setStyle(name.c_str(), style);
+			skin->SetStyle(name.c_str(), style);
 		}
 
 		return skin;
@@ -287,7 +287,7 @@ namespace bs
 
 		const Path dataListsFilePath = sInputFolder + DATA_LIST_JSON;
 		SPtr<DataStream> dataListStream = FileSystem::openFile(dataListsFilePath);
-		json dataListJSON = json::parse(dataListStream->getAsString().c_str());
+		json dataListJSON = json::parse(dataListStream->GetAsString().c_str());
 
 		json skinJSON = dataListJSON["Skin"];
 		json animatedSpritesJSON = dataListJSON["AnimatedSprites"];
@@ -378,7 +378,7 @@ namespace bs
 				texturesJSON);
 		}
 
-		dataListStream->close();
+		dataListStream->Close();
 
 		if(updatedDataLists)
 		{
@@ -420,10 +420,10 @@ namespace bs
 			if(!texturesJSON.is_null())
 				dataListJSON["Textures"] = texturesJSON;
 
-			String jsonString = dataListJSON.dump(4).c_str();
+			String jsonString = dataListJSON.Dump(4).c_str();
 			dataListStream = FileSystem::createAndOpenFile(dataListsFilePath);
-			dataListStream->writeString(jsonString);
-			dataListStream->close();
+			dataListStream->WriteString(jsonString);
+			dataListStream->Close();
 		}
 
 		const Path skinFolder = sOutputFolder + BuiltinResources::SKIN_FOLDER;
@@ -468,8 +468,8 @@ namespace bs
 		if(FileSystem::exists(shaderDependenciesFile))
 		{
 			SPtr<DataStream> stream = FileSystem::openFile(shaderDependenciesFile);
-			shaderDependenciesJSON = json::parse(stream->getAsString().c_str());
-			stream->close();
+			shaderDependenciesJSON = json::parse(stream->GetAsString().c_str());
+			stream->Close();
 		}
 
 		// Import cursors
@@ -697,11 +697,11 @@ namespace bs
 
 		// Update shader dependencies JSON
 		{
-			String jsonString = shaderDependenciesJSON.dump(4).c_str();
+			String jsonString = shaderDependenciesJSON.Dump(4).c_str();
 
 			dataListStream = FileSystem::createAndOpenFile(shaderDependenciesFile);
-			dataListStream->writeString(jsonString);
-			dataListStream->close();
+			dataListStream->WriteString(jsonString);
+			dataListStream->Close();
 		}
 
 		// Import fonts
@@ -719,9 +719,9 @@ namespace bs
 				for (auto& sizeEntry : fontSizesJSON)
 					fontSizes.push_back(sizeEntry);
 
-				String InputName(path.data(), path.size());
-				String OutputName(name.data(), name.size());
-				UUID UUID(String(uuidStr.data(), uuidStr.size()));
+				String InputName(path.Data(), path.size());
+				String OutputName(name.Data(), name.size());
+				UUID UUID(String(uuidStr.Data(), uuidStr.size()));
 
 				const Path fontSourcePath = sInputFolder + inputName;
 
@@ -736,23 +736,23 @@ namespace bs
 			std::string name = guiSkinJSON["Path"];
 			std::string uuidStr = guiSkinJSON["UUID"];
 
-			String FileName(name.data(), name.size());
-			UUID UUID(String(uuidStr.data(), uuidStr.size()));
+			String FileName(name.Data(), name.size());
+			UUID UUID(String(uuidStr.Data(), uuidStr.size()));
 
 			const SPtr<GUISkin> skin = generateGUISkin();
 			const Path outputPath = sOutputFolder + (fileName + u8".asset");
 
 			HResource skinResource = gResources()._createResourceHandle(skin, UUID);
 
-			gResources().save(skinResource, outputPath, true);
-			sManifest->registerResource(skinResource.getUUID(), outputPath);
+			gResources().Save(skinResource, outputPath, true);
+			sManifest->RegisterResource(skinResource.GetUUID(), outputPath);
 		}
 
 		// Generate & save splash screen
 		if(!splashScreenJSON.is_null())
 		{
 			std::string name = splashScreenJSON["Path"];
-			String FileName(name.data(), name.size());
+			String FileName(name.Data(), name.size());
 
 			Path inputPath = sInputFolder + fileName;
 			Path outputPath = sOutputFolder + (fileName + ".asset");
@@ -762,11 +762,11 @@ namespace bs
 			textureIO->generateMips = false;
 			HTexture splashTexture = gImporter().import<Texture>(inputPath, textureIO);
 
-			SPtr<PixelData> splashPixelData = splashTexture->getProperties().allocBuffer(0, 0);
-			splashTexture->readCachedData(*splashPixelData);
+			SPtr<PixelData> splashPixelData = splashTexture->GetProperties().AllocBuffer(0, 0);
+			splashTexture->ReadCachedData(*splashPixelData);
 
 			FileEncoder Fe(outputPath);
-			fe.encode(splashPixelData.get());
+			fe.Encode(splashPixelData.get());
 		}
 	}
 }

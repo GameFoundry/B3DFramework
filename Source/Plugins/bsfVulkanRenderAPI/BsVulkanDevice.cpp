@@ -27,7 +27,7 @@ namespace bs { namespace ct
 		vkGetPhysicalDeviceQueueFamilyProperties(device, &numQueueFamilies, nullptr);
 
 		Vector<VkQueueFamilyProperties> QueueFamilyProperties(numQueueFamilies);
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &numQueueFamilies, queueFamilyProperties.data());
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &numQueueFamilies, queueFamilyProperties.Data());
 
 		// Create queues
 		const float defaultQueuePriorities[BS_MAX_QUEUES_PER_TYPE] = { 0.0f };
@@ -37,7 +37,7 @@ namespace bs { namespace ct
 		{
 			queueCreateInfos.push_back(VkDeviceQueueCreateInfo());
 
-			VkDeviceQueueCreateInfo& createInfo = queueCreateInfos.back();
+			VkDeviceQueueCreateInfo& createInfo = queueCreateInfos.Back();
 			createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 			createInfo.pNext = nullptr;
 			createInfo.flags = 0;
@@ -46,11 +46,11 @@ namespace bs { namespace ct
 			createInfo.pQueuePriorities = defaultQueuePriorities;
 
 			mQueueInfos[type].familyIdx = familyIdx;
-			mQueueInfos[type].queues.resize(createInfo.queueCount, nullptr);
+			mQueueInfos[type].queues.Resize(createInfo.queueCount, nullptr);
 		};
 
 		// Look for dedicated compute queues
-		for (UINT32 i = 0; i < (UINT32)queueFamilyProperties.size(); i++)
+		for (UINT32 i = 0; i < (UINT32)queueFamilyProperties.Size(); i++)
 		{
 			if ((queueFamilyProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT) && (queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0)
 			{
@@ -60,7 +60,7 @@ namespace bs { namespace ct
 		}
 
 		// Look for dedicated upload queues
-		for (UINT32 i = 0; i < (UINT32)queueFamilyProperties.size(); i++)
+		for (UINT32 i = 0; i < (UINT32)queueFamilyProperties.Size(); i++)
 		{
 			if ((queueFamilyProperties[i].queueFlags & VK_QUEUE_TRANSFER_BIT) &&
 				((queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) &&
@@ -72,7 +72,7 @@ namespace bs { namespace ct
 		}
 
 		// Looks for graphics queues
-		for (UINT32 i = 0; i < (UINT32)queueFamilyProperties.size(); i++)
+		for (UINT32 i = 0; i < (UINT32)queueFamilyProperties.Size(); i++)
 		{
 			if (queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
 			{
@@ -98,7 +98,7 @@ namespace bs { namespace ct
 		if (numAvailableExtensions > 0)
 		{
 			Vector<VkExtensionProperties> AvailableExtensions(numAvailableExtensions);
-			if (vkEnumerateDeviceExtensionProperties(device, nullptr, &numAvailableExtensions, availableExtensions.data()) == VK_SUCCESS)
+			if (vkEnumerateDeviceExtensionProperties(device, nullptr, &numAvailableExtensions, availableExtensions.Data()) == VK_SUCCESS)
 			{
 				for (auto entry : extensions)
 				{
@@ -120,8 +120,8 @@ namespace bs { namespace ct
 		deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		deviceInfo.pNext = nullptr;
 		deviceInfo.flags = 0;
-		deviceInfo.queueCreateInfoCount = (uint32_t)queueCreateInfos.size();
-		deviceInfo.pQueueCreateInfos = queueCreateInfos.data();
+		deviceInfo.queueCreateInfoCount = (uint32_t)queueCreateInfos.Size();
+		deviceInfo.pQueueCreateInfos = queueCreateInfos.Data();
 		deviceInfo.pEnabledFeatures = &mDeviceFeatures;
 		deviceInfo.enabledExtensionCount = numExtensions;
 		deviceInfo.ppEnabledExtensionNames = extensions;
@@ -134,7 +134,7 @@ namespace bs { namespace ct
 		// Retrieve queues
 		for(UINT32 i = 0; i < GQT_COUNT; i++)
 		{
-			UINT32 numQueues = (UINT32)mQueueInfos[i].queues.size();
+			UINT32 numQueues = (UINT32)mQueueInfos[i].queues.Size();
 			for (UINT32 j = 0; j < numQueues; j++)
 			{
 				VkQueue queue;
@@ -169,10 +169,10 @@ namespace bs { namespace ct
 
 		for (UINT32 i = 0; i < GQT_COUNT; i++)
 		{
-			UINT32 numQueues = (UINT32)mQueueInfos[i].queues.size();
+			UINT32 numQueues = (UINT32)mQueueInfos[i].queues.Size();
 			for (UINT32 j = 0; j < numQueues; j++)
 			{
-				mQueueInfos[i].queues[j]->refreshStates(true, true);
+				mQueueInfos[i].queues[j]->RefreshStates(true, true);
 				bs_delete(mQueueInfos[i].queues[j]);
 			}
 		}
@@ -204,7 +204,7 @@ namespace bs { namespace ct
 			for (UINT32 j = 0; j < numQueues; j++)
 			{
 				VulkanQueue* queue = getQueue((GpuQueueType)i, j);
-				queue->refreshStates(forceWait, false);
+				queue->RefreshStates(forceWait, false);
 			}
 		}
 	}

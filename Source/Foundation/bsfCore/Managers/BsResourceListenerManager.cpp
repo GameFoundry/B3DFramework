@@ -13,7 +13,7 @@ namespace bs
 #if BS_DEBUG_MODE
 	void ThrowIfNotSimThread()
 	{
-		if(BS_THREAD_CURRENT_ID != CoreApplication::instance().getSimThreadId())
+		if(BS_THREAD_CURRENT_ID != CoreApplication::instance().GetSimThreadId())
 			BS_EXCEPT(InternalErrorException, "This method can only be accessed from the simulation thread.");
 	}
 
@@ -24,23 +24,23 @@ namespace bs
 
 	ResourceListenerManager::ResourceListenerManager()
 	{
-		mResourceLoadedConn = gResources().onResourceLoaded.connect(std::bind(&ResourceListenerManager::onResourceLoaded, this, _1));
-		mResourceModifiedConn = gResources().onResourceModified.connect(std::bind(&ResourceListenerManager::onResourceModified, this, _1));
+		mResourceLoadedConn = gResources().onResourceLoaded.Connect(std::bind(&ResourceListenerManager::onResourceLoaded, this, _1));
+		mResourceModifiedConn = gResources().onResourceModified.Connect(std::bind(&ResourceListenerManager::onResourceModified, this, _1));
 	}
 
 	ResourceListenerManager::~ResourceListenerManager()
 	{
-		assert(mResourceToListenerMap.empty() && "Not all resource listeners had their resources unregistered properly.");
+		assert(mResourceToListenerMap.Empty() && "Not all resource listeners had their resources unregistered properly.");
 
-		mResourceLoadedConn.disconnect();
-		mResourceModifiedConn.disconnect();
+		mResourceLoadedConn.Disconnect();
+		mResourceModifiedConn.Disconnect();
 	}
 
 	void ResourceListenerManager::RegisterListener(IResourceListener* listener)
 	{
 #if BS_DEBUG_MODE
 		RecursiveLock Lock(mMutex);
-		mActiveListeners.insert(listener);
+		mActiveListeners.Insert(listener);
 #endif
 	}
 
@@ -49,13 +49,13 @@ namespace bs
 #if BS_DEBUG_MODE
 		{
 			RecursiveLock Lock(mMutex);
-			mActiveListeners.erase(listener);
+			mActiveListeners.Erase(listener);
 		}
 #endif
 		
 		{
 			RecursiveLock Lock(mMutex);
-			mDirtyListeners.erase(listener);
+			mDirtyListeners.Erase(listener);
 		}
 
 		clearDependencies(listener);
@@ -64,7 +64,7 @@ namespace bs
 	void ResourceListenerManager::MarkListenerDirty(IResourceListener* listener)
 	{
 		RecursiveLock Lock(mMutex);
-		mDirtyListeners.insert(listener);
+		mDirtyListeners.Insert(listener);
 	}
 
 	void ResourceListenerManager::Update()
@@ -81,8 +81,8 @@ namespace bs
 			for (auto& entry : mModifiedResources)
 				sendResourceModified(entry.second);
 
-			mLoadedResources.clear();
-			mModifiedResources.clear();
+			mLoadedResources.Clear();
+			mModifiedResources.Clear();
 		}
 	}
 
@@ -94,7 +94,7 @@ namespace bs
 			for (auto& listener : mDirtyListeners)
 				mTempListenerBuffer.push_back(listener);
 
-			mDirtyListeners.clear();
+			mDirtyListeners.Clear();
 		}
 
 		for (auto& listener : mTempListenerBuffer)
@@ -103,7 +103,7 @@ namespace bs
 			addDependencies(listener);
 		}
 
-		mTempListenerBuffer.clear();
+		mTempListenerBuffer.Clear();
 
 	}
 
@@ -116,11 +116,11 @@ namespace bs
 		{
 			RecursiveLock Lock(mMutex);
 
-			const auto iterFind = mLoadedResources.find(resourceUUID);
-			if (iterFind != mLoadedResources.end())
+			const auto iterFind = mLoadedResources.Find(resourceUUID);
+			if (iterFind != mLoadedResources.End())
 			{
 				loadedResource = std::move(iterFind->second);
-				mLoadedResources.erase(iterFind);
+				mLoadedResources.Erase(iterFind);
 			}
 		}
 
@@ -131,11 +131,11 @@ namespace bs
 		{
 			RecursiveLock Lock(mMutex);
 
-			const auto iterFind = mModifiedResources.find(resourceUUID);
-			if (iterFind != mModifiedResources.end())
+			const auto iterFind = mModifiedResources.Find(resourceUUID);
+			if (iterFind != mModifiedResources.End())
 			{
 				modifiedResource = std::move(iterFind->second);
-				mModifiedResources.erase(iterFind);
+				mModifiedResources.Erase(iterFind);
 			}
 		}
 
@@ -147,91 +147,91 @@ namespace bs
 	{
 		RecursiveLock Lock(mMutex);
 
-		mLoadedResources[resource.getUUID()] = resource;
+		mLoadedResources[resource.GetUUID()] = resource;
 	}
 
 	void ResourceListenerManager::OnResourceModified(const HResource& resource)
 	{
 		RecursiveLock Lock(mMutex);
 
-		mModifiedResources[resource.getUUID()] = resource;
+		mModifiedResources[resource.GetUUID()] = resource;
 	}
 
 	void ResourceListenerManager::SendResourceLoaded(const HResource& resource)
 	{
-		UINT64 handleId = (UINT64)resource.getHandleData().get();
+		UINT64 handleId = (UINT64)resource.GetHandleData().get();
 
-		auto iterFind = mResourceToListenerMap.find(handleId);
-		if (iterFind == mResourceToListenerMap.end())
+		auto iterFind = mResourceToListenerMap.Find(handleId);
+		if (iterFind == mResourceToListenerMap.End())
 			return;
 
 		const Vector<IResourceListener*> relevantListeners = iterFind->second;
 		for (auto& listener : relevantListeners)
 		{
 #if BS_DEBUG_MODE
-			assert(mActiveListeners.find(listener) != mActiveListeners.end() && "Attempting to notify a destroyed IResourceListener");
+			assert(mActiveListeners.Find(listener) != mActiveListeners.end() && "Attempting to notify a destroyed IResourceListener");
 #endif
 
-			listener->notifyResourceLoaded(resource);
+			listener->NotifyResourceLoaded(resource);
 		}
 	}
 
 	void ResourceListenerManager::SendResourceModified(const HResource& resource)
 	{
-		UINT64 handleId = (UINT64)resource.getHandleData().get();
+		UINT64 handleId = (UINT64)resource.GetHandleData().get();
 
-		auto iterFind = mResourceToListenerMap.find(handleId);
-		if (iterFind == mResourceToListenerMap.end())
+		auto iterFind = mResourceToListenerMap.Find(handleId);
+		if (iterFind == mResourceToListenerMap.End())
 			return;
 
 		const Vector<IResourceListener*> relevantListeners = iterFind->second;
 		for (auto& listener : relevantListeners)
 		{
 #if BS_DEBUG_MODE
-			assert(mActiveListeners.find(listener) != mActiveListeners.end() && "Attempting to notify a destroyed IResourceListener");
+			assert(mActiveListeners.Find(listener) != mActiveListeners.end() && "Attempting to notify a destroyed IResourceListener");
 #endif
 
-			listener->notifyResourceChanged(resource);
+			listener->NotifyResourceChanged(resource);
 		}
 	}
 
 	void ResourceListenerManager::ClearDependencies(IResourceListener* listener)
 	{
-		auto iterFind = mListenerToResourceMap.find(listener);
-		if (iterFind == mListenerToResourceMap.end())
+		auto iterFind = mListenerToResourceMap.Find(listener);
+		if (iterFind == mListenerToResourceMap.End())
 			return;
 
 		const Vector<UINT64>& dependantResources = iterFind->second;
 		for (auto& resourceHandleId : dependantResources)
 		{
-			auto iterFind2 = mResourceToListenerMap.find(resourceHandleId);
-			if (iterFind2 != mResourceToListenerMap.end())
+			auto iterFind2 = mResourceToListenerMap.Find(resourceHandleId);
+			if (iterFind2 != mResourceToListenerMap.End())
 			{
 				Vector<IResourceListener*>& listeners = iterFind2->second;
-				auto iterFind3 = std::find(listeners.begin(), listeners.end(), listener);
+				auto iterFind3 = std::find(listeners.Begin(), listeners.end(), listener);
 
-				if (iterFind3 != listeners.end())
-					listeners.erase(iterFind3);
+				if (iterFind3 != listeners.End())
+					listeners.Erase(iterFind3);
 
-				if (listeners.size() == 0)
-					mResourceToListenerMap.erase(iterFind2);
+				if (listeners.Size() == 0)
+					mResourceToListenerMap.Erase(iterFind2);
 			}
 		}
 
-		mListenerToResourceMap.erase(iterFind);
+		mListenerToResourceMap.Erase(iterFind);
 	}
 
 	void ResourceListenerManager::AddDependencies(IResourceListener* listener)
 	{
-		listener->getListenerResources(mTempResourceBuffer);
+		listener->GetListenerResources(mTempResourceBuffer);
 
-		if (mTempResourceBuffer.size() > 0)
+		if (mTempResourceBuffer.Size() > 0)
 		{
-			Vector<UINT64> ResourceHandleIds(mTempResourceBuffer.size());
+			Vector<UINT64> ResourceHandleIds(mTempResourceBuffer.Size());
 			UINT32 idx = 0;
 			for (auto& resource : mTempResourceBuffer)
 			{
-				UINT64 handleId = (UINT64)resource.getHandleData().get();
+				UINT64 handleId = (UINT64)resource.GetHandleData().get();
 				resourceHandleIds[idx] = handleId;
 				mResourceToListenerMap[handleId].push_back(listener);
 
@@ -241,6 +241,6 @@ namespace bs
 			mListenerToResourceMap[listener] = resourceHandleIds;
 		}
 
-		mTempResourceBuffer.clear();
+		mTempResourceBuffer.Clear();
 	}
 }

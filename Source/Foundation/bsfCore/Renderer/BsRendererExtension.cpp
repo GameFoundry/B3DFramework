@@ -11,26 +11,26 @@ namespace bs
 	{
 		auto coreInitializer = [=]()
 		{
-			RendererManager::instance().getActive()->addPlugin(obj);
-			obj->initialize(data);
+			RendererManager::instance().GetActive()->AddPlugin(obj);
+			obj->Initialize(data);
 		};
 
-		gCoreThread().queueCommand(coreInitializer);
+		gCoreThread().QueueCommand(coreInitializer);
 	}
 
 	void RendererExtension::_deleter(RendererExtension* obj)
 	{
 		auto deleteObj = [=]()
 		{
-			RendererManager::instance().getActive()->removePlugin(obj);
+			RendererManager::instance().GetActive()->RemovePlugin(obj);
 
-			obj->destroy();
+			obj->Destroy();
 			obj->~RendererExtension();
 
 			bs_free(obj);
 		};
 
 		// Queue deletion on the core thread
-		gCoreThread().queueCommand(deleteObj);
+		gCoreThread().QueueCommand(deleteObj);
 	}
 }

@@ -46,7 +46,7 @@ namespace bs
 			if(coreContext->goState)
 			{
 				GameObjectHandleBase* gameObjectHandle = static_cast<GameObjectHandleBase*>(obj);
-				coreContext->goState->registerUnresolvedHandle(mOriginalInstanceId, *gameObjectHandle);
+				coreContext->goState->RegisterUnresolvedHandle(mOriginalInstanceId, *gameObjectHandle);
 			}
 		}
 

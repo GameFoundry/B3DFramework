@@ -35,7 +35,7 @@ namespace bs
 		ScriptRRefBase* scriptclip;
 		scriptclip = ScriptRRefBase::toNative(value.clip);
 		if(scriptclip != nullptr)
-			tmpclip = static_resource_cast<AnimationClip>(scriptclip->getHandle());
+			tmpclip = static_resource_cast<AnimationClip>(scriptclip->GetHandle());
 		output.clip = tmpclip;
 		output.position = value.position;
 
@@ -46,10 +46,10 @@ namespace bs
 	{
 		__BlendClipInfoInterop output;
 		ScriptRRefBase* scriptclip;
-		scriptclip = ScriptResourceManager::instance().getScriptRRef(value.clip);
+		scriptclip = ScriptResourceManager::instance().GetScriptRRef(value.clip);
 		MonoObject* tmpclip;
 		if(scriptclip != nullptr)
-			tmpclip = scriptclip->getManagedInstance();
+			tmpclip = scriptclip->GetManagedInstance();
 		else
 			tmpclip = nullptr;
 		output.clip = tmpclip;

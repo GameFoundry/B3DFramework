@@ -41,7 +41,7 @@ namespace bs
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{
 			StringTable* stringTable = static_cast<StringTable*>(obj);
-			stringTable->setActiveLanguage(stringTable->mActiveLanguage);
+			stringTable->SetActiveLanguage(stringTable->mActiveLanguage);
 		}
 
 		const String& GetRTTIName() override
@@ -78,7 +78,7 @@ namespace bs
 			{
 				BitLength size = 0;
 
-				auto numElements = (uint32_t)data.strings.size();
+				auto numElements = (uint32_t)data.strings.Size();
 				size += rtti_write(numElements, stream);
 
 				for (auto& entry : data.strings)
@@ -100,7 +100,7 @@ namespace bs
 			uint32_t numElements = 0;
 			rtti_read(numElements, stream);
 
-			data.strings.clear();
+			data.strings.Clear();
 			for (uint32_t i = 0; i < numElements; i++)
 			{
 				String identifier;

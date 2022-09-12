@@ -15,7 +15,7 @@ namespace bs
 		mTextDesc = textDesc;
 		mNumChars = UTF8::count(mTextDesc.text);
 
-		mLineDescs.clear();
+		mLineDescs.Clear();
 
 		bs_frame_mark();
 		{
@@ -23,12 +23,12 @@ namespace bs
 			TextData<FrameAlloc> textData(utf32text, mTextDesc.font, mTextDesc.fontSize,
 				mTextDesc.width, mTextDesc.height, mTextDesc.wordWrap, mTextDesc.wordBreak);
 
-			UINT32 numLines = textData.getNumLines();
-			UINT32 numPages = textData.getNumPages();
+			UINT32 numLines = textData.GetNumLines();
+			UINT32 numPages = textData.GetNumPages();
 
 			mNumQuads = 0;
 			for (UINT32 i = 0; i < numPages; i++)
-				mNumQuads += textData.getNumQuadsForPage(i);
+				mNumQuads += textData.GetNumQuadsForPage(i);
 
 			if (mQuads != nullptr)
 				bs_delete(mQuads);
@@ -48,20 +48,20 @@ namespace bs
 
 			for (UINT32 i = 0; i < numLines; i++)
 			{
-				const TextDataBase::TextLine& line = textData.getLine(i);
+				const TextDataBase::TextLine& line = textData.GetLine(i);
 
 				// Line has a newline char only if it wasn't created by word wrap and it isn't the last line
-				bool hasNewline = line.hasNewlineChar() && (curLineIdx != (numLines - 1));
+				bool hasNewline = line.HasNewlineChar() && (curLineIdx != (numLines - 1));
 
 				UINT32 startChar = curCharIdx;
-				UINT32 endChar = curCharIdx + line.getNumChars() + (hasNewline ? 1 : 0);
-				UINT32 lineHeight = line.getYOffset();
+				UINT32 endChar = curCharIdx + line.GetNumChars() + (hasNewline ? 1 : 0);
+				UINT32 lineHeight = line.GetYOffset();
 				INT32 lineYStart = alignmentOffsets[curLineIdx].y;
 
 				GUIInputLineDesc LineDesc(startChar, endChar, lineHeight, lineYStart, hasNewline);
 				mLineDescs.push_back(lineDesc);
 
-				curCharIdx = lineDesc.getEndChar();
+				curCharIdx = lineDesc.GetEndChar();
 				curLineIdx++;
 			}
 
@@ -94,12 +94,12 @@ namespace bs
 
 		// If char is newline we don't have any geometry to return
 		const GUIInputLineDesc& lineDesc = getLineDesc(lineIdx);
-		if(lineDesc.isNewline(charIdx))
+		if(lineDesc.IsNewline(charIdx))
 			return Rect2I();
 
 		UINT32 numNewlineChars = 0;
 		for(UINT32 i = 0; i < lineIdx; i++)
-			numNewlineChars += (getLineDesc(i).hasNewlineChar() ? 1 : 0);
+			numNewlineChars += (getLineDesc(i).HasNewlineChar() ? 1 : 0);
 
 		INT32 quadIdx = (INT32)(charIdx - numNewlineChars);
 		if(quadIdx >= 0 && quadIdx < (INT32)mNumQuads)
@@ -129,17 +129,17 @@ namespace bs
 		UINT32 lineIdx = 0;
 		for(auto& line : mLineDescs)
 		{
-			INT32 lineStart = line.getLineYStart() + getTextOffset().y;
-			if(pos.y >= lineStart && pos.y < (lineStart + (INT32)line.getLineHeight()))
+			INT32 lineStart = line.GetLineYStart() + getTextOffset().y;
+			if(pos.y >= lineStart && pos.y < (lineStart + (INT32)line.GetLineHeight()))
 			{
-				lineStartChar = line.getStartChar();
-				lineEndChar = line.getEndChar(false);
+				lineStartChar = line.GetStartChar();
+				lineEndChar = line.GetEndChar(false);
 				break;
 			}
 
 			// Newline chars count in the startChar/endChar variables, but don't actually exist in the buffers
 			// so we need to filter them out
-			numNewlineChars += (line.hasNewlineChar() ? 1 : 0);
+			numNewlineChars += (line.HasNewlineChar() ? 1 : 0);
 
 			lineIdx++;
 		}
@@ -180,10 +180,10 @@ namespace bs
 		UINT32 idx = 0;
 		for(auto& line : mLineDescs)
 		{
-			if((charIdx >= line.getStartChar() && charIdx < line.getEndChar()) ||
-				(charIdx == line.getStartChar() && line.getStartChar() == line.getEndChar()))
+			if((charIdx >= line.GetStartChar() && charIdx < line.getEndChar()) ||
+				(charIdx == line.GetStartChar() && line.getStartChar() == line.getEndChar()))
 			{
-				if(line.isNewline(charIdx) && newlineCountsOnNextLine)
+				if(line.IsNewline(charIdx) && newlineCountsOnNextLine)
 					return idx + 1; // Incrementing is safe because next line must exist, since we just found a newline char
 
 				return idx;
@@ -209,12 +209,12 @@ namespace bs
 			const GUIInputLineDesc& lineDesc = getLineDesc(i);
 
 			if(curPos == inputIdx)
-				return lineDesc.getStartChar();
+				return lineDesc.GetStartChar();
 
 			curPos++; // Move past line start position
 
-			UINT32 numChars = lineDesc.getEndChar() - lineDesc.getStartChar();
-			UINT32 numCaretPositions = lineDesc.getEndChar(false) - lineDesc.getStartChar();
+			UINT32 numChars = lineDesc.GetEndChar() - lineDesc.getStartChar();
+			UINT32 numCaretPositions = lineDesc.GetEndChar(false) - lineDesc.getStartChar();
 			if(inputIdx >= (curPos + numCaretPositions))
 			{
 				curCharIdx += numChars;
@@ -245,7 +245,7 @@ namespace bs
 			if(curPos == inputIdx)
 				return true;
 
-			UINT32 numChars = lineDesc.getEndChar(false) - lineDesc.getStartChar();
+			UINT32 numChars = lineDesc.GetEndChar(false) - lineDesc.getStartChar();
 			curPos += numChars;
 		}
 
@@ -265,7 +265,7 @@ namespace bs
 		// something went wrong when creating the line descs, therefore it is
 		// not valid and no text is displayed.
 		if(mNumChars > 0)
-			return !mLineDescs.empty();
+			return !mLineDescs.Empty();
 
 		return true;
 	}

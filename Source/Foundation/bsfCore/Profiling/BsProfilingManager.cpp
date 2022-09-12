@@ -25,9 +25,9 @@ namespace bs
 	void ProfilingManager::_update()
 	{
 #if BS_PROFILING_ENABLED
-		mSavedSimReports[mNextSimReportIdx].cpuReport = gProfilerCPU().generateReport();
+		mSavedSimReports[mNextSimReportIdx].cpuReport = gProfilerCPU().GenerateReport();
 
-		gProfilerCPU().reset();
+		gProfilerCPU().Reset();
 
 		mNextSimReportIdx = (mNextSimReportIdx + 1) % NUM_SAVED_FRAMES;
 #endif
@@ -37,9 +37,9 @@ namespace bs
 	{
 #if BS_PROFILING_ENABLED
 		Lock Lock(mSync);
-		mSavedCoreReports[mNextCoreReportIdx].cpuReport = gProfilerCPU().generateReport();
+		mSavedCoreReports[mNextCoreReportIdx].cpuReport = gProfilerCPU().GenerateReport();
 
-		gProfilerCPU().reset();
+		gProfilerCPU().Reset();
 
 		mNextCoreReportIdx = (mNextCoreReportIdx + 1) % NUM_SAVED_FRAMES;
 #endif

@@ -24,7 +24,7 @@ namespace bs
 			gamepadInfo.name = lpddi->tszInstanceName;
 			gamepadInfo.guidInstance = lpddi->guidInstance;
 			gamepadInfo.guidProduct = lpddi->guidProduct;
-			gamepadInfo.id = (UINT32)data->gamepadInfos.size();
+			gamepadInfo.id = (UINT32)data->gamepadInfos.Size();
 			gamepadInfo.isXInput = false;
 			gamepadInfo.xInputDev = 0;
 
@@ -36,7 +36,7 @@ namespace bs
 	
 	void CheckXInputDevices(Vector<GamepadInfo>& infos)
 	{
-		if (infos.size() == 0)
+		if (infos.Size() == 0)
 			return;
 
 		HRESULT hr = CoInitialize(nullptr);
@@ -218,7 +218,7 @@ namespace bs
 		{
 		case InputDevice::Keyboard: return 1;
 		case InputDevice::Mouse: return 1;
-		case InputDevice::Gamepad: return (UINT32)mPlatformData->gamepadInfos.size();
+		case InputDevice::Gamepad: return (UINT32)mPlatformData->gamepadInfos.Size();
 		default:
 		case InputDevice::Count: return 0;
 		}

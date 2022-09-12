@@ -78,10 +78,10 @@ namespace bs
 		Vector2I GetTextOffset() const;
 
 		/**	Returns number of lines in the current text string. */
-		UINT32 GetNumLines() const { return (UINT32)mLineDescs.size(); }
+		UINT32 GetNumLines() const { return (UINT32)mLineDescs.Size(); }
 
 		/**	Returns descriptor for a line with the specified index. */
-		const GUIInputLineDesc& GetLineDesc(UINT32 lineIdx) const { return mLineDescs.at(lineIdx); }
+		const GUIInputLineDesc& GetLineDesc(UINT32 lineIdx) const { return mLineDescs.At(lineIdx); }
 
 		/**
 		 * Returns index of a line containing the specified character.

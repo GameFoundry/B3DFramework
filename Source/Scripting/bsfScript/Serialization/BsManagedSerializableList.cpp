@@ -23,7 +23,7 @@ namespace bs
 	{
 		mGCHandle = MonoUtil::newGCHandle(managedInstance, false);
 
-		MonoClass* listClass = MonoManager::instance().findClass(MonoUtil::getClass(managedInstance));
+		MonoClass* listClass = MonoManager::instance().FindClass(MonoUtil::getClass(managedInstance));
 		if(listClass == nullptr)
 			return;
 
@@ -53,7 +53,7 @@ namespace bs
 
 		String fullName = elementNs + "." + elementTypeName;
 
-		if(ScriptAssemblyManager::instance().getBuiltinClasses().systemGenericListClass->getFullName() != fullName)
+		if(ScriptAssemblyManager::instance().GetBuiltinClasses().systemGenericListClass->GetFullName() != fullName)
 			return nullptr;
 
 		return bs_shared_ptr_new<ManagedSerializableList>(ConstructPrivately(), typeInfo, managedInstance);
@@ -66,22 +66,22 @@ namespace bs
 
 	MonoObject* ManagedSerializableList::createManagedInstance(const SPtr<ManagedSerializableTypeInfoList>& typeInfo, UINT32 size)
 	{
-		if (!typeInfo->isTypeLoaded())
+		if (!typeInfo->IsTypeLoaded())
 			return nullptr;
 
-		::MonoClass* listMonoClass = typeInfo->getMonoClass();
-		MonoClass* listClass = MonoManager::instance().findClass(listMonoClass);
+		::MonoClass* listMonoClass = typeInfo->GetMonoClass();
+		MonoClass* listClass = MonoManager::instance().FindClass(listMonoClass);
 		if (listClass == nullptr)
 			return nullptr;
 
 		void* params[1] = { &size };
-		MonoObject* instance = listClass->createInstance("int", params);
+		MonoObject* instance = listClass->CreateInstance("int", params);
 		
-		ScriptArray TempArray(typeInfo->mElementType->getMonoClass(), size);
-		params[0] = tempArray.getInternal();
+		ScriptArray TempArray(typeInfo->mElementType->GetMonoClass(), size);
+		params[0] = tempArray.GetInternal();
 
-		MonoMethod* addRangeMethod = listClass->getMethod("AddRange", 1);
-		addRangeMethod->invoke(instance, params);
+		MonoMethod* addRangeMethod = listClass->GetMethod("AddRange", 1);
+		addRangeMethod->Invoke(instance, params);
 
 		return instance;
 	}
@@ -112,7 +112,7 @@ namespace bs
 
 	void ManagedSerializableList::SetFieldData(MonoObject* obj, UINT32 arrayIdx, const SPtr<ManagedSerializableFieldData>& val)
 	{
-		mItemProp->setIndexed(obj, arrayIdx, val->getValue(mListTypeInfo->mElementType));
+		mItemProp->SetIndexed(obj, arrayIdx, val->getValue(mListTypeInfo->mElementType));
 	}
 
 	void ManagedSerializableList::AddFieldDataInternal(const SPtr<ManagedSerializableFieldData>& val)
@@ -120,8 +120,8 @@ namespace bs
 		MonoObject* managedInstance = MonoUtil::getObjectFromGCHandle(mGCHandle);
 
 		void* params[1];
-		params[0] = val->getValue(mListTypeInfo->mElementType);
-		mAddMethod->invoke(managedInstance, params);
+		params[0] = val->GetValue(mListTypeInfo->mElementType);
+		mAddMethod->Invoke(managedInstance, params);
 	}
 
 	SPtr<ManagedSerializableFieldData> ManagedSerializableList::GetFieldData(UINT32 arrayIdx)
@@ -129,7 +129,7 @@ namespace bs
 		if (mGCHandle != 0)
 		{
 			MonoObject* managedInstance = MonoUtil::getObjectFromGCHandle(mGCHandle);
-			MonoObject* obj = mItemProp->getIndexed(managedInstance, arrayIdx);
+			MonoObject* obj = mItemProp->GetIndexed(managedInstance, arrayIdx);
 
 			return ManagedSerializableFieldData::Create(mListTypeInfo->mElementType, obj);
 		}
@@ -141,26 +141,26 @@ namespace bs
 	{
 		if (mGCHandle != 0)
 		{
-			ScriptArray TempArray(mListTypeInfo->mElementType->getMonoClass(), newSize);
+			ScriptArray TempArray(mListTypeInfo->mElementType->GetMonoClass(), newSize);
 
 			UINT32 minSize = std::min(mNumElements, newSize);
 			UINT32 dummy = 0;
 
 			void* params[4];
 			params[0] = &dummy;;
-			params[1] = tempArray.getInternal();
+			params[1] = tempArray.GetInternal();
 			params[2] = &dummy;
 			params[3] = &minSize;
 
-			mCopyToMethod->invoke(getManagedInstance(), params);
-			mClearMethod->invoke(getManagedInstance(), nullptr);
+			mCopyToMethod->Invoke(getManagedInstance(), params);
+			mClearMethod->Invoke(getManagedInstance(), nullptr);
 
-			params[0] = tempArray.getInternal();
-			mAddRangeMethod->invoke(getManagedInstance(), params);
+			params[0] = tempArray.GetInternal();
+			mAddRangeMethod->Invoke(getManagedInstance(), params);
 		}
 		else
 		{
-			mCachedEntries.resize(newSize);
+			mCachedEntries.Resize(newSize);
 		}
 
 		mNumElements = newSize;
@@ -179,7 +179,7 @@ namespace bs
 
 		// Serialize children
 		for (auto& fieldEntry : mCachedEntries)
-			fieldEntry->serialize();
+			fieldEntry->Serialize();
 
 		MonoUtil::freeGCHandle(mGCHandle);
 		mGCHandle = 0;
@@ -192,12 +192,12 @@ namespace bs
 		if (managedInstance == nullptr)
 			return nullptr;
 
-		MonoClass* listClass = MonoManager::instance().findClass(mListTypeInfo->getMonoClass());
+		MonoClass* listClass = MonoManager::instance().FindClass(mListTypeInfo->GetMonoClass());
 		initMonoObjects(listClass);
 
 		// Deserialize children
 		for (auto& fieldEntry : mCachedEntries)
-			fieldEntry->deserialize();
+			fieldEntry->Deserialize();
 
 		UINT32 idx = 0;
 		for (auto& entry : mCachedEntries)
@@ -212,7 +212,7 @@ namespace bs
 	UINT32 ManagedSerializableList::GetLengthInternal() const
 	{
 		MonoObject* managedInstance = MonoUtil::getObjectFromGCHandle(mGCHandle);
-		MonoObject* length = mCountProp->get(managedInstance);
+		MonoObject* length = mCountProp->Get(managedInstance);
 
 		if(length == nullptr)
 			return 0;
@@ -222,12 +222,12 @@ namespace bs
 
 	void ManagedSerializableList::InitMonoObjects(MonoClass* listClass)
 	{
-		mItemProp = listClass->getProperty("Item");
-		mCountProp = listClass->getProperty("Count");
-		mAddMethod = listClass->getMethod("Add", 1);
-		mAddRangeMethod = listClass->getMethod("AddRange", 1);
-		mClearMethod = listClass->getMethod("Clear");
-		mCopyToMethod = listClass->getMethod("CopyTo", 4);
+		mItemProp = listClass->GetProperty("Item");
+		mCountProp = listClass->GetProperty("Count");
+		mAddMethod = listClass->GetMethod("Add", 1);
+		mAddRangeMethod = listClass->GetMethod("AddRange", 1);
+		mClearMethod = listClass->GetMethod("Clear");
+		mCopyToMethod = listClass->GetMethod("CopyTo", 4);
 	}
 
 	RTTITypeBase* ManagedSerializableList::getRTTIStatic()

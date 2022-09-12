@@ -290,20 +290,20 @@ namespace bs
 		Vector3 side1 = position3 - position1;
 
 		// Calculate face normal
-		Vector3 normal = side1.cross(side0);
-		normal.normalize();
+		Vector3 normal = side1.Cross(side0);
+		normal.Normalize();
 
 		// Now we use a formula to calculate the tangent.
 		float deltaV0 = v1 - v2;
 		float deltaV1 = v3 - v1;
 		Vector3 tangent = deltaV1 * side0 - deltaV0 * side1;
-		tangent.normalize();
+		tangent.Normalize();
 
 		// Calculate binormal
 		float deltaU0 = u1 - u2;
 		float deltaU1 = u3 - u1;
 		Vector3 binormal = deltaU1 * side0 - deltaU0 * side1;
-		binormal.normalize();
+		binormal.Normalize();
 
 		// Now, we take the cross product of the tangents to get a vector which
 		// should point in the same direction as our normal calculated above.
@@ -311,8 +311,8 @@ namespace bs
 		// then we need to reverse the s and t tangents.
 		// This is because the triangle has been mirrored when going from tangent space to object space.
 		// reverse tangents if necessary.
-		Vector3 tangentCross = tangent.cross(binormal);
-		if (tangentCross.dot(normal) < 0.0f)
+		Vector3 tangentCross = tangent.Cross(binormal);
+		if (tangentCross.Dot(normal) < 0.0f)
 		{
 			tangent = -tangent;
 			binormal = -binormal;

@@ -33,7 +33,7 @@ namespace bs
 		ScriptTDistributionVector3* scriptvelocity;
 		scriptvelocity = ScriptTDistributionVector3::toNative(value.velocity);
 		if(scriptvelocity != nullptr)
-			tmpvelocity = scriptvelocity->getInternal();
+			tmpvelocity = scriptvelocity->GetInternal();
 		if(tmpvelocity != nullptr)
 		output.velocity = *tmpvelocity;
 		output.worldSpace = value.worldSpace;

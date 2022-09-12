@@ -9,19 +9,19 @@ namespace bs
 	SPtr<SerializedObject> SerializedObject::Create(IReflectable& obj, SerializedObjectEncodeFlags flags, SerializationContext* context)
 	{
 		IntermediateSerializer is;
-		return is.encode(&obj, flags, context);
+		return is.Encode(&obj, flags, context);
 	}
 
 	SPtr<IReflectable> SerializedObject::Decode(SerializationContext* context) const
 	{
 		IntermediateSerializer is;
-		return is.decode(this, context);
+		return is.Decode(this, context);
 	}
 
 	SPtr<SerializedInstance> SerializedObject::Clone(bool cloneData)
 	{
 		SPtr<SerializedObject> copy = bs_shared_ptr_new<SerializedObject>();
-		copy->subObjects = Vector<SerializedSubObject>(subObjects.size());
+		copy->subObjects = Vector<SerializedSubObject>(subObjects.Size());
 
 		UINT32 i = 0;
 		for (auto& subObject : subObjects)
@@ -33,7 +33,7 @@ namespace bs
 				SerializedEntry entry = entryPair.second;
 
 				if (entry.serialized != nullptr)
-					entry.serialized = entry.serialized->clone(cloneData);
+					entry.serialized = entry.serialized->Clone(cloneData);
 
 				copy->subObjects[i].entries[entryPair.first] = entry;
 			}
@@ -71,14 +71,14 @@ namespace bs
 
 		if (cloneData)
 		{
-			if(stream->isFile())
+			if(stream->IsFile())
 			{
 				BS_LOG(Warning, Generic,
 					"Cloning a file stream. Streaming is disabled and stream data will be loaded into memory.");
 			}
 
 			auto stream = bs_shared_ptr_new<MemoryDataStream>(size);
-			stream->read(stream->data(), size);
+			stream->Read(stream->data(), size);
 
 			copy->stream = stream;
 			copy->offset = 0;
@@ -100,7 +100,7 @@ namespace bs
 		for (auto& entryPair : entries)
 		{
 			SerializedArrayEntry entry = entryPair.second;
-			entry.serialized = entry.serialized->clone(cloneData);
+			entry.serialized = entry.serialized->Clone(cloneData);
 
 			copy->entries[entryPair.first] = entry;
 		}
@@ -140,7 +140,7 @@ namespace bs
 
 	UINT32 SerializedObject::GetRootTypeId() const
 	{
-		if(subObjects.size() > 0)
+		if(subObjects.Size() > 0)
 			return subObjects[0].typeId;
 
 		return 0;

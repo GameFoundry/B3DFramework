@@ -49,7 +49,7 @@ namespace bs { namespace ct
 		else
 		{
 			SPtr<GLCommandBuffer> glCB = std::static_pointer_cast<GLCommandBuffer>(cb);
-			glCB->queueCommand(execute);
+			glCB->QueueCommand(execute);
 		}
 	}
 
@@ -69,7 +69,7 @@ namespace bs { namespace ct
 		else
 		{
 			SPtr<GLCommandBuffer> glCB = std::static_pointer_cast<GLCommandBuffer>(cb);
-			glCB->queueCommand(execute);
+			glCB->QueueCommand(execute);
 		}
 	}
 

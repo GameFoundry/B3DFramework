@@ -33,8 +33,8 @@ namespace bs
 
 		SPtr<DataStream> GetData(AudioClip* obj, UINT32& size)
 		{
-			SPtr<DataStream> stream = obj->getSourceStream(size);
-			if (stream != nullptr && stream->isFile())
+			SPtr<DataStream> stream = obj->GetSourceStream(size);
+			if (stream != nullptr && stream->IsFile())
 			{
 				BS_LOG(Warning, RTTI, "Saving an AudioClip which uses streaming data. Streaming data might not be "
 					"available if saving to the same file.");
@@ -45,9 +45,9 @@ namespace bs
 
 		void SetData(AudioClip* obj, const SPtr<DataStream>& val, UINT32 size)
 		{
-			obj->mStreamData = val->clone(); // Making sure that the AudioClip cannot modify the source stream, which is still used by the deserializer
+			obj->mStreamData = val->Clone(); // Making sure that the AudioClip cannot modify the source stream, which is still used by the deserializer
 			obj->mStreamSize = size;
-			obj->mStreamOffset = (UINT32)val->tell();
+			obj->mStreamOffset = (UINT32)val->Tell();
 		}
 
 	public:
@@ -59,7 +59,7 @@ namespace bs
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{
 			AudioClip* clip = static_cast<AudioClip*>(obj);
-			clip->initialize();
+			clip->Initialize();
 		}
 
 		const String& GetRTTIName() override

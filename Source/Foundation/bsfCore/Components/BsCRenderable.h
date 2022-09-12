@@ -27,51 +27,51 @@ namespace bs
 
 		/** @copydoc Renderable::getMesh */
 		BS_SCRIPT_EXPORT(n:Mesh,pr:getter)
-		HMesh GetMesh() const { return mInternal->getMesh(); }
+		HMesh GetMesh() const { return mInternal->GetMesh(); }
 
 		/** @copydoc Renderable::setMaterial */
 		BS_SCRIPT_EXPORT(n:SetMaterial)
-		void SetMaterial(UINT32 idx, HMaterial material) { mInternal->setMaterial(idx, material); }
+		void SetMaterial(UINT32 idx, HMaterial material) { mInternal->SetMaterial(idx, material); }
 
 		/** @copydoc Renderable::setMaterial */
 		BS_SCRIPT_EXPORT(n:SetMaterial)
-		void SetMaterial(HMaterial material) { mInternal->setMaterial(material); }
+		void SetMaterial(HMaterial material) { mInternal->SetMaterial(material); }
 
 		/** @copydoc Renderable::getMaterial */
 		BS_SCRIPT_EXPORT(n:GetMaterial)
-		HMaterial GetMaterial(UINT32 idx) const { return mInternal->getMaterial(idx); }
+		HMaterial GetMaterial(UINT32 idx) const { return mInternal->GetMaterial(idx); }
 
 		/** @copydoc Renderable::setMaterials */
 		BS_SCRIPT_EXPORT(n:Materials,pr:setter)
-		void SetMaterials(const Vector<HMaterial>& materials) { mInternal->setMaterials(materials); }
+		void SetMaterials(const Vector<HMaterial>& materials) { mInternal->SetMaterials(materials); }
 
 		/** @copydoc Renderable::getMaterials */
 		BS_SCRIPT_EXPORT(n:Materials,pr:getter)
-		const Vector<HMaterial>& GetMaterials() { return mInternal->getMaterials(); }
+		const Vector<HMaterial>& GetMaterials() { return mInternal->GetMaterials(); }
 
 		/** @copydoc Renderable::setCullDistanceFactor */
 		BS_SCRIPT_EXPORT(n:CullDistance, pr:setter)
-		void SetCullDistanceFactor(float factor) { mInternal->setCullDistanceFactor(factor); }
+		void SetCullDistanceFactor(float factor) { mInternal->SetCullDistanceFactor(factor); }
 
 		/** @copydoc Renderable::getCullDistanceFactor */
 		BS_SCRIPT_EXPORT(n:CullDistance, pr:getter)
-		float GetCullDistanceFactor() const { return mInternal->getCullDistanceFactor(); }
+		float GetCullDistanceFactor() const { return mInternal->GetCullDistanceFactor(); }
 
 		/** @copydoc Renderable::setWriteVelocity */
 		BS_SCRIPT_EXPORT(n:WriteVelocity, pr:setter)
-		void SetWriteVelocity(bool enable) { mInternal->setWriteVelocity(enable); }
+		void SetWriteVelocity(bool enable) { mInternal->SetWriteVelocity(enable); }
 
 		/** @copydoc Renderable::getWriteVelocity */
 		BS_SCRIPT_EXPORT(n:WriteVelocity, pr:getter)
-		bool GetWriteVelocity() const { return mInternal->getWriteVelocity(); }
+		bool GetWriteVelocity() const { return mInternal->GetWriteVelocity(); }
 		
 		/** @copydoc Renderable::setLayer */
 		BS_SCRIPT_EXPORT(n:Layers,pr:setter)
-		void SetLayer(UINT64 layer) { mInternal->setLayer(layer); }
+		void SetLayer(UINT64 layer) { mInternal->SetLayer(layer); }
 
 		/** @copydoc Renderable::getLayer */
 		BS_SCRIPT_EXPORT(n:Layers,pr:getter)
-		UINT64 GetLayer() const { return mInternal->getLayer(); }
+		UINT64 GetLayer() const { return mInternal->GetLayer(); }
 
 		/**	Gets world bounds of the mesh rendered by this object. */
 		BS_SCRIPT_EXPORT(n:Bounds,pr:getter)

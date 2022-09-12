@@ -37,7 +37,7 @@ namespace bs
 			minSize.x = std::max((UINT32)minSize.x, sizeRange.min.x + paddingX);
 		}
 
-		LayoutSizeRange sizeRange = _getDimensions().calculateSizeRange(optimalSize);
+		LayoutSizeRange sizeRange = _getDimensions().CalculateSizeRange(optimalSize);
 		sizeRange.min.x = std::max(sizeRange.min.x, minSize.x);
 		sizeRange.min.y = std::max(sizeRange.min.y, minSize.y);
 
@@ -49,8 +49,8 @@ namespace bs
 		// Update all children first, otherwise we can't determine our own optimal size
 		GUIElementBase::_updateOptimalLayoutSizes();
 
-		if(mChildren.size() != mChildSizeRanges.size())
-			mChildSizeRanges.resize(mChildren.size());
+		if(mChildren.Size() != mChildSizeRanges.size())
+			mChildSizeRanges.Resize(mChildren.size());
 
 		Vector2I optimalSize;
 		Vector2I minSize;
@@ -84,7 +84,7 @@ namespace bs
 			childIdx++;
 		}
 
-		mSizeRange = _getDimensions().calculateSizeRange(optimalSize);
+		mSizeRange = _getDimensions().CalculateSizeRange(optimalSize);
 		mSizeRange.min.x = std::max(mSizeRange.min.x, minSize.x);
 		mSizeRange.min.y = std::max(mSizeRange.min.y, minSize.y);
 	}
@@ -92,7 +92,7 @@ namespace bs
 	void GUILayoutY::_getElementAreas(const Rect2I& layoutArea, Rect2I* elementAreas, UINT32 numElements,
 		const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const
 	{
-		assert(mChildren.size() == numElements);
+		assert(mChildren.Size() == numElements);
 
 		UINT32 totalOptimalSize = mySizeRange.optimal.y;
 		UINT32 totalNonClampedSize = 0;
@@ -102,13 +102,13 @@ namespace bs
 		bool* processedElements = nullptr;
 		float* elementScaleWeights = nullptr;
 
-		if (mChildren.size() > 0)
+		if (mChildren.Size() > 0)
 		{
-			processedElements = bs_stack_alloc<bool>((UINT32)mChildren.size());
-			memset(processedElements, 0, mChildren.size() * sizeof(bool));
+			processedElements = bs_stack_alloc<bool>((UINT32)mChildren.Size());
+			memset(processedElements, 0, mChildren.Size() * sizeof(bool));
 
-			elementScaleWeights = bs_stack_alloc<float>((UINT32)mChildren.size());
-			memset(elementScaleWeights, 0, mChildren.size() * sizeof(float));
+			elementScaleWeights = bs_stack_alloc<float>((UINT32)mChildren.Size());
+			memset(elementScaleWeights, 0, mChildren.Size() * sizeof(float));
 		}
 
 		// Set initial sizes, count number of children per type and mark fixed elements as already processed
@@ -135,7 +135,7 @@ namespace bs
 			{
 				const GUIDimensions& dimensions = child->_getDimensions();
 
-				if (dimensions.fixedHeight())
+				if (dimensions.FixedHeight())
 					processedElements[childIdx] = true;
 				else
 				{
@@ -196,7 +196,7 @@ namespace bs
 		// Weight is to ensure all elements are scaled fairly, so elements that are large will get effected more than smaller elements.
 		childIdx = 0;
 		float invOptimalSize = 1.0f / totalNonClampedSize;
-		UINT32 childCount = (UINT32)mChildren.size();
+		UINT32 childCount = (UINT32)mChildren.Size();
 		for (UINT32 i = 0; i < childCount; i++)
 		{
 			if (processedElements[childIdx])
@@ -358,7 +358,7 @@ namespace bs
 			const LayoutSizeRange& sizeRange = sizeRanges[childIdx];
 			UINT32 elemWidth = (UINT32)sizeRanges[childIdx].optimal.x;
 			const GUIDimensions& dimensions = child->_getDimensions();
-			if (!dimensions.fixedWidth())
+			if (!dimensions.FixedWidth())
 			{
 				elemWidth = layoutArea.width;
 				if (sizeRange.min.x > 0 && elemWidth < (UINT32)sizeRange.min.x)
@@ -394,7 +394,7 @@ namespace bs
 
 	void GUILayoutY::_updateLayoutInternal(const GUILayoutData& data)
 	{
-		UINT32 numElements = (UINT32)mChildren.size();
+		UINT32 numElements = (UINT32)mChildren.Size();
 		Rect2I* elementAreas = nullptr;
 		
 		if (numElements > 0)
@@ -412,7 +412,7 @@ namespace bs
 			{
 				childData.area = elementAreas[childIdx];
 				childData.clipRect = childData.area;
-				childData.clipRect.clip(data.clipRect);
+				childData.clipRect.Clip(data.clipRect);
 
 				child->_setLayoutData(childData);
 				child->_updateLayoutInternal(childData);

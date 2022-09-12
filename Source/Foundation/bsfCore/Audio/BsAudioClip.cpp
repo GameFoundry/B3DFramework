@@ -11,7 +11,7 @@ namespace bs
 		: Resource(false), mDesc(desc), mNumSamples(numSamples), mStreamSize(streamSize), mStreamData(samples)
 	{
 		if (samples != nullptr)
-			mStreamOffset = (UINT32)samples->tell();
+			mStreamOffset = (UINT32)samples->Tell();
 
 		mKeepSourceData = desc.keepSourceData;
 	}
@@ -30,9 +30,9 @@ namespace bs
 
 	SPtr<AudioClip> AudioClip::_createPtr(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples, const AUDIO_CLIP_DESC& desc)
 	{
-		SPtr<AudioClip> newClip = gAudio().createClip(samples, streamSize, numSamples, desc);
+		SPtr<AudioClip> newClip = gAudio().CreateClip(samples, streamSize, numSamples, desc);
 		newClip->_setThisPtr(newClip);
-		newClip->initialize();
+		newClip->Initialize();
 
 		return newClip;
 	}
@@ -41,7 +41,7 @@ namespace bs
 	{
 		AUDIO_CLIP_DESC desc;
 
-		SPtr<AudioClip> newClip = gAudio().createClip(nullptr, 0, 0, desc);
+		SPtr<AudioClip> newClip = gAudio().CreateClip(nullptr, 0, 0, desc);
 		newClip->_setThisPtr(newClip);
 
 		return newClip;

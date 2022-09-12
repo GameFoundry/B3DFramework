@@ -25,7 +25,7 @@ namespace bs
 		{
 			Vector<VertexElement>& elemList = obj->mProperties.mElementList;
 
-			auto iter = elemList.begin();
+			auto iter = elemList.Begin();
 			for(UINT32 i = 0; i < idx; i++)
 				++iter;
 
@@ -36,7 +36,7 @@ namespace bs
 		{
 			Vector<VertexElement>& elemList = obj->mProperties.mElementList;
 
-			auto iter = elemList.begin();
+			auto iter = elemList.Begin();
 			for(UINT32 i = 0; i < idx; i++)
 				++iter;
 
@@ -47,14 +47,14 @@ namespace bs
 		{
 			Vector<VertexElement>& elemList = obj->mProperties.mElementList;
 
-			return (UINT32)elemList.size();
+			return (UINT32)elemList.Size();
 		}
 
 		void SetElementArraySize(VertexDeclaration* obj, UINT32 size)
 		{
 			Vector<VertexElement>& elemList = obj->mProperties.mElementList;
 
-			for (size_t i = elemList.size(); i < size; i++)
+			for (size_t i = elemList.Size(); i < size; i++)
 				elemList.push_back(VertexElement());
 		}
 
@@ -67,7 +67,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return HardwareBufferManager::Instance().createVertexDeclaration(VertexDataDesc::create());
+			return HardwareBufferManager::Instance().CreateVertexDeclaration(VertexDataDesc::create());
 		}
 
 		const String& GetRTTIName() override

@@ -14,11 +14,11 @@ namespace bs
 
 	void ScriptWhiteBalanceSettings::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_WhiteBalanceSettings", (void*)&ScriptWhiteBalanceSettings::Internal_WhiteBalanceSettings);
-		metaData.scriptClass->addInternalCall("Internal_gettemperature", (void*)&ScriptWhiteBalanceSettings::Internal_gettemperature);
-		metaData.scriptClass->addInternalCall("Internal_settemperature", (void*)&ScriptWhiteBalanceSettings::Internal_settemperature);
-		metaData.scriptClass->addInternalCall("Internal_gettint", (void*)&ScriptWhiteBalanceSettings::Internal_gettint);
-		metaData.scriptClass->addInternalCall("Internal_settint", (void*)&ScriptWhiteBalanceSettings::Internal_settint);
+		metaData.scriptClass->AddInternalCall("Internal_WhiteBalanceSettings", (void*)&ScriptWhiteBalanceSettings::Internal_WhiteBalanceSettings);
+		metaData.scriptClass->AddInternalCall("Internal_gettemperature", (void*)&ScriptWhiteBalanceSettings::Internal_gettemperature);
+		metaData.scriptClass->AddInternalCall("Internal_settemperature", (void*)&ScriptWhiteBalanceSettings::Internal_settemperature);
+		metaData.scriptClass->AddInternalCall("Internal_gettint", (void*)&ScriptWhiteBalanceSettings::Internal_gettint);
+		metaData.scriptClass->AddInternalCall("Internal_settint", (void*)&ScriptWhiteBalanceSettings::Internal_settint);
 
 	}
 
@@ -29,7 +29,7 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.scriptClass->createInstance("bool", ctorParams);
+		MonoObject* managedInstance = metaData.scriptClass->CreateInstance("bool", ctorParams);
 		new (bs_alloc<ScriptWhiteBalanceSettings>()) ScriptWhiteBalanceSettings(managedInstance, value);
 		return managedInstance;
 	}
@@ -42,7 +42,7 @@ namespace bs
 	float ScriptWhiteBalanceSettings::Internal_gettemperature(ScriptWhiteBalanceSettings* thisPtr)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->getInternal()->temperature;
+		tmp__output = thisPtr->GetInternal()->temperature;
 
 		float __output;
 		__output = tmp__output;
@@ -52,13 +52,13 @@ namespace bs
 
 	void ScriptWhiteBalanceSettings::Internal_settemperature(ScriptWhiteBalanceSettings* thisPtr, float value)
 	{
-		thisPtr->getInternal()->temperature = value;
+		thisPtr->GetInternal()->temperature = value;
 	}
 
 	float ScriptWhiteBalanceSettings::Internal_gettint(ScriptWhiteBalanceSettings* thisPtr)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->getInternal()->tint;
+		tmp__output = thisPtr->GetInternal()->tint;
 
 		float __output;
 		__output = tmp__output;
@@ -68,6 +68,6 @@ namespace bs
 
 	void ScriptWhiteBalanceSettings::Internal_settint(ScriptWhiteBalanceSettings* thisPtr, float value)
 	{
-		thisPtr->getInternal()->tint = value;
+		thisPtr->GetInternal()->tint = value;
 	}
 }

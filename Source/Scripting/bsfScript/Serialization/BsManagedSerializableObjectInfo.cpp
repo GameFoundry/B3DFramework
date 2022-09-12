@@ -31,18 +31,18 @@ namespace bs
 		const ManagedSerializableObjectInfo* objInfo = this;
 		while (objInfo != nullptr)
 		{
-			if (objInfo->mTypeInfo->matches(fieldTypeInfo))
+			if (objInfo->mTypeInfo->Matches(fieldTypeInfo))
 			{
-				auto iterFind = objInfo->mFieldNameToId.find(fieldInfo->mName);
-				if (iterFind != objInfo->mFieldNameToId.end())
+				auto iterFind = objInfo->mFieldNameToId.Find(fieldInfo->mName);
+				if (iterFind != objInfo->mFieldNameToId.End())
 				{
-					auto iterFind2 = objInfo->mFields.find(iterFind->second);
-					if (iterFind2 != objInfo->mFields.end())
+					auto iterFind2 = objInfo->mFields.Find(iterFind->second);
+					if (iterFind2 != objInfo->mFields.End())
 					{
 						SPtr<ManagedSerializableMemberInfo> foundField = iterFind2->second;
-						if (foundField->isSerializable())
+						if (foundField->IsSerializable())
 						{
-							if (fieldInfo->mTypeInfo->matches(foundField->mTypeInfo))
+							if (fieldInfo->mTypeInfo->Matches(foundField->mTypeInfo))
 								return foundField;
 						}
 					}
@@ -52,7 +52,7 @@ namespace bs
 			}
 
 			if (objInfo->mBaseClass != nullptr)
-				objInfo = objInfo->mBaseClass.get();
+				objInfo = objInfo->mBaseClass.Get();
 			else
 				objInfo = nullptr;
 		}
@@ -82,17 +82,17 @@ namespace bs
 
 	::MonoObject* ManagedSerializableFieldInfo::getAttribute(MonoClass* monoClass)
 	{
-		return mMonoField->getAttribute(monoClass);
+		return mMonoField->GetAttribute(monoClass);
 	}
 
 	MonoObject* ManagedSerializableFieldInfo::getValue(MonoObject* instance) const
 	{
-		return mMonoField->getBoxed(instance);
+		return mMonoField->GetBoxed(instance);
 	}
 
 	void ManagedSerializableFieldInfo::SetValue(MonoObject* instance, void* value) const
 	{
-		mMonoField->set(instance, value);
+		mMonoField->Set(instance, value);
 	}
 
 	RTTITypeBase* ManagedSerializableFieldInfo::getRTTIStatic()
@@ -107,17 +107,17 @@ namespace bs
 
 	::MonoObject* ManagedSerializablePropertyInfo::getAttribute(MonoClass* monoClass)
 	{
-		return mMonoProperty->getAttribute(monoClass);
+		return mMonoProperty->GetAttribute(monoClass);
 	}
 
 	MonoObject* ManagedSerializablePropertyInfo::getValue(MonoObject* instance) const
 	{
-		return mMonoProperty->get(instance);
+		return mMonoProperty->Get(instance);
 	}
 
 	void ManagedSerializablePropertyInfo::SetValue(MonoObject* instance, void* value) const
 	{
-		mMonoProperty->set(instance, value);
+		mMonoProperty->Set(instance, value);
 	}
 
 	RTTITypeBase* ManagedSerializablePropertyInfo::getRTTIStatic()
@@ -204,7 +204,7 @@ namespace bs
 
 	bool ManagedSerializableTypeInfoEnum::Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const
 	{
-		if(const auto enumTypeInfo = rtti_cast<ManagedSerializableTypeInfoEnum>(typeInfo.get()))
+		if(const auto enumTypeInfo = rtti_cast<ManagedSerializableTypeInfoEnum>(typeInfo.Get()))
 		{
 			return
 				enumTypeInfo->mTypeNamespace == mTypeNamespace &&
@@ -217,13 +217,13 @@ namespace bs
 
 	bool ManagedSerializableTypeInfoEnum::IsTypeLoaded() const
 	{
-		MonoClass* klass = MonoManager::instance().findClass(mTypeNamespace, mTypeName);
+		MonoClass* klass = MonoManager::instance().FindClass(mTypeNamespace, mTypeName);
 		return klass != nullptr;
 	}
 
 	::MonoClass* ManagedSerializableTypeInfoEnum::getMonoClass() const
 	{
-		MonoClass* klass = MonoManager::instance().findClass(mTypeNamespace, mTypeName);
+		MonoClass* klass = MonoManager::instance().FindClass(mTypeNamespace, mTypeName);
 
 		if(klass)
 			return klass->_getInternalClass();
@@ -268,7 +268,7 @@ namespace bs
 			break;
 		}
 
-		return ScriptAssemblyManager::Instance().hasSerializableObjectInfo(mTypeNamespace, mTypeName);
+		return ScriptAssemblyManager::Instance().HasSerializableObjectInfo(mTypeNamespace, mTypeName);
 	}
 
 	::MonoClass* ManagedSerializableTypeInfoRef::getMonoClass() const
@@ -280,18 +280,18 @@ namespace bs
 		case ScriptReferenceType::ManagedResourceBase:
 			return ScriptManagedResource::GetMetaData()->scriptClass->_getInternalClass();
 		case ScriptReferenceType::SceneObject:
-			return ScriptAssemblyManager::Instance().getBuiltinClasses().sceneObjectClass->_getInternalClass();
+			return ScriptAssemblyManager::Instance().GetBuiltinClasses().sceneObjectClass->_getInternalClass();
 		case ScriptReferenceType::BuiltinComponentBase:
-			return ScriptAssemblyManager::Instance().getBuiltinClasses().componentClass->_getInternalClass();
+			return ScriptAssemblyManager::Instance().GetBuiltinClasses().componentClass->_getInternalClass();
 		case ScriptReferenceType::ManagedComponentBase:
-			return ScriptAssemblyManager::Instance().getBuiltinClasses().managedComponentClass->_getInternalClass();
+			return ScriptAssemblyManager::Instance().GetBuiltinClasses().managedComponentClass->_getInternalClass();
 		default:
 			break;
 		}
 
 		// Specific component or resource (either builtin or custom)
 		SPtr<ManagedSerializableObjectInfo> objInfo;
-		if (!ScriptAssemblyManager::instance().getSerializableObjectInfo(mTypeNamespace, mTypeName, objInfo))
+		if (!ScriptAssemblyManager::instance().GetSerializableObjectInfo(mTypeNamespace, mTypeName, objInfo))
 			return nullptr;
 
 		return objInfo->mMonoClass->_getInternalClass();
@@ -317,12 +317,12 @@ namespace bs
 		if(mResourceType == nullptr)
 			return resourceTypeInfo->mResourceType == nullptr;
 
-		return mResourceType->matches(resourceTypeInfo->mResourceType);
+		return mResourceType->Matches(resourceTypeInfo->mResourceType);
 	}
 
 	bool ManagedSerializableTypeInfoRRef::IsTypeLoaded() const
 	{
-		return mResourceType == nullptr || mResourceType->isTypeLoaded();
+		return mResourceType == nullptr || mResourceType->IsTypeLoaded();
 	}
 
 	::MonoClass* ManagedSerializableTypeInfoRRef::getMonoClass() const
@@ -330,7 +330,7 @@ namespace bs
 		// If non-null, this is a templated (i.e. C# generic) RRef type
 		if(mResourceType)
 		{
-			::MonoClass* resourceTypeClass = mResourceType->getMonoClass();
+			::MonoClass* resourceTypeClass = mResourceType->GetMonoClass();
 			if (resourceTypeClass == nullptr)
 				return nullptr;
 
@@ -338,7 +338,7 @@ namespace bs
 		}
 		// RRefBase
 		else
-			return ScriptAssemblyManager::Instance().getBuiltinClasses().rrefBaseClass->_getInternalClass();
+			return ScriptAssemblyManager::Instance().GetBuiltinClasses().rrefBaseClass->_getInternalClass();
 	}
 
 	RTTITypeBase* ManagedSerializableTypeInfoRRef::getRTTIStatic()
@@ -364,13 +364,13 @@ namespace bs
 
 	bool ManagedSerializableTypeInfoObject::IsTypeLoaded() const
 	{
-		return ScriptAssemblyManager::Instance().hasSerializableObjectInfo(mTypeNamespace, mTypeName);
+		return ScriptAssemblyManager::Instance().HasSerializableObjectInfo(mTypeNamespace, mTypeName);
 	}
 
 	::MonoClass* ManagedSerializableTypeInfoObject::getMonoClass() const
 	{
 		SPtr<ManagedSerializableObjectInfo> objInfo;
-		if(!ScriptAssemblyManager::instance().getSerializableObjectInfo(mTypeNamespace, mTypeName, objInfo))
+		if(!ScriptAssemblyManager::instance().GetSerializableObjectInfo(mTypeNamespace, mTypeName, objInfo))
 			return nullptr;
 
 		return objInfo->mMonoClass->_getInternalClass();
@@ -393,21 +393,21 @@ namespace bs
 
 		auto arrayTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoArray>(typeInfo);
 
-		return arrayTypeInfo->mRank == mRank && arrayTypeInfo->mElementType->matches(mElementType);
+		return arrayTypeInfo->mRank == mRank && arrayTypeInfo->mElementType->Matches(mElementType);
 	}
 
 	bool ManagedSerializableTypeInfoArray::IsTypeLoaded() const
 	{
-		return mElementType->isTypeLoaded();
+		return mElementType->IsTypeLoaded();
 	}
 
 	::MonoClass* ManagedSerializableTypeInfoArray::getMonoClass() const
 	{
-		::MonoClass* elementClass = mElementType->getMonoClass();
+		::MonoClass* elementClass = mElementType->GetMonoClass();
 		if(elementClass == nullptr)
 			return nullptr;
 
-		return ScriptArray::BuildArrayClass(mElementType->getMonoClass(), mRank);
+		return ScriptArray::BuildArrayClass(mElementType->GetMonoClass(), mRank);
 	}
 
 	RTTITypeBase* ManagedSerializableTypeInfoArray::getRTTIStatic()
@@ -427,21 +427,21 @@ namespace bs
 
 		auto listTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoList>(typeInfo);
 
-		return listTypeInfo->mElementType->matches(mElementType);
+		return listTypeInfo->mElementType->Matches(mElementType);
 	}
 
 	bool ManagedSerializableTypeInfoList::IsTypeLoaded() const
 	{
-		return mElementType->isTypeLoaded();
+		return mElementType->IsTypeLoaded();
 	}
 
 	::MonoClass* ManagedSerializableTypeInfoList::getMonoClass() const
 	{
-		::MonoClass* elementClass = mElementType->getMonoClass();
+		::MonoClass* elementClass = mElementType->GetMonoClass();
 		if(elementClass == nullptr)
 			return nullptr;
 
-		MonoClass* genericListClass = ScriptAssemblyManager::instance().getBuiltinClasses().systemGenericListClass;
+		MonoClass* genericListClass = ScriptAssemblyManager::instance().GetBuiltinClasses().systemGenericListClass;
 		::MonoClass* genParams[1] = { elementClass };
 
 		return MonoUtil::BindGenericParameters(genericListClass->_getInternalClass(), genParams, 1);
@@ -464,23 +464,23 @@ namespace bs
 
 		auto dictTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoDictionary>(typeInfo);
 
-		return dictTypeInfo->mKeyType->matches(mKeyType) && dictTypeInfo->mValueType->matches(mValueType);
+		return dictTypeInfo->mKeyType->Matches(mKeyType) && dictTypeInfo->mValueType->matches(mValueType);
 	}
 
 	bool ManagedSerializableTypeInfoDictionary::IsTypeLoaded() const
 	{
-		return mKeyType->isTypeLoaded() && mValueType->isTypeLoaded();
+		return mKeyType->IsTypeLoaded() && mValueType->isTypeLoaded();
 	}
 
 	::MonoClass* ManagedSerializableTypeInfoDictionary::getMonoClass() const
 	{
-		::MonoClass* keyClass = mKeyType->getMonoClass();
-		::MonoClass* valueClass = mValueType->getMonoClass();
+		::MonoClass* keyClass = mKeyType->GetMonoClass();
+		::MonoClass* valueClass = mValueType->GetMonoClass();
 		if(keyClass == nullptr || valueClass == nullptr)
 			return nullptr;
 
 		MonoClass* genericDictionaryClass =
-			ScriptAssemblyManager::instance().getBuiltinClasses().systemGenericDictionaryClass;
+			ScriptAssemblyManager::instance().GetBuiltinClasses().systemGenericDictionaryClass;
 
 		::MonoClass* params[2] = { keyClass, valueClass };
 		return MonoUtil::BindGenericParameters(genericDictionaryClass->_getInternalClass(), params, 2);

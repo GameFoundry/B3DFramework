@@ -35,7 +35,7 @@ namespace bs
 		 */
 
 		/**	Returns the mesh collider that this component wraps. */
-		MeshCollider* _getInternal() const { return static_cast<MeshCollider*>(mInternal.get()); }
+		MeshCollider* _getInternal() const { return static_cast<MeshCollider*>(mInternal.Get()); }
 
 		/** @} */
 

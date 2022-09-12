@@ -42,7 +42,7 @@ namespace bs
 		{
 			mSize = other.mSize;
 			mNode = other.mNode;
-			mPtr.resize(other.mPtr.size());
+			mPtr.Resize(other.mPtr.size());
 
 			for (auto& entry : mNode)
 				mPtr[entry.index] = &entry;
@@ -66,7 +66,7 @@ namespace bs
 
 		HeapNode<K, V>* insert(const K& key, const V& value)
 		{
-			if (mSize == mNode.size())
+			if (mSize == mNode.Size())
 				return nullptr;
 
 			int child = mSize++;
@@ -205,8 +205,8 @@ namespace bs
 			mSize = 0;
 			if (elements > 0)
 			{
-				mNode.resize(elements);
-				mPtr.resize(elements);
+				mNode.Resize(elements);
+				mPtr.Resize(elements);
 
 				for (UINT32 i = 0; i < elements; ++i)
 				{
@@ -216,8 +216,8 @@ namespace bs
 			}
 			else
 			{
-				mNode.clear();
-				mPtr.clear();
+				mNode.Clear();
+				mPtr.Clear();
 			}
 		}
 

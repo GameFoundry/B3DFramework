@@ -82,12 +82,12 @@ namespace bs
 
 		void Lock()
 		{
-			mLock.lock();
+			mLock.Lock();
 		};
 
 		void Unlock()
 		{
-			mLock.unlock();
+			mLock.Unlock();
 		}
 
 	private:

@@ -51,7 +51,7 @@ namespace bs
 		 */
 		virtual const String& GetFullDescription() const
 		{
-			if (mFullDesc.empty())
+			if (mFullDesc.Empty())
 			{
 				StringStream desc;
 
@@ -64,7 +64,7 @@ namespace bs
 					desc << " at " << mFile << " (line " << mLine << ")";
 				}
 
-				mFullDesc = desc.str();
+				mFullDesc = desc.Str();
 			}
 
 			return mFullDesc;
@@ -175,7 +175,7 @@ namespace bs
 		static_assert((std::is_base_of<bs::Exception, type>::value),						\
 			"Invalid exception type (" #type ") for BS_EXCEPT macro."						\
 			" It needs to derive from bs::Exception.");										\
-		gCrashHandler().reportCrash(#type, desc, __PRETTY_FUNCTION__, __FILE__, __LINE__);	\
+		gCrashHandler().ReportCrash(#type, desc, __PRETTY_FUNCTION__, __FILE__, __LINE__);	\
 		PlatformUtility::terminate(true);													\
 	}
 #endif

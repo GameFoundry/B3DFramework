@@ -123,14 +123,14 @@ namespace bs
 	class StringID::StringIDUtil <String>
 	{
 	public:
-		static UINT32 Size(String const& input) { return (UINT32)input.length(); }
+		static UINT32 Size(String const& input) { return (UINT32)input.Length(); }
 		static void Copy(String const& input, char* dest)
 		{
-			UINT32 len = (UINT32)input.length();
-			input.copy(dest, len);
+			UINT32 len = (UINT32)input.Length();
+			input.Copy(dest, len);
 			dest[len] = '\0';
 		}
-		static bool Compare(String const& a, char* b) { return a.compare(b) == 0; }
+		static bool Compare(String const& a, char* b) { return a.Compare(b) == 0; }
 	};
 
 	template BS_UTILITY_EXPORT void StringID::Construct(const char* const&);

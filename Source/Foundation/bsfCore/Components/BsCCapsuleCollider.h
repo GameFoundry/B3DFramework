@@ -59,7 +59,7 @@ namespace bs
 		 */
 
 		/**	Returns the capsule collider that this component wraps. */
-		CapsuleCollider* _getInternal() const { return static_cast<CapsuleCollider*>(mInternal.get()); }
+		CapsuleCollider* _getInternal() const { return static_cast<CapsuleCollider*>(mInternal.Get()); }
 
 		/** @} */
 

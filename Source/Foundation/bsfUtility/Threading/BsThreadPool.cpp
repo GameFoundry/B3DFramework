@@ -32,7 +32,7 @@ namespace bs
 
 			for (auto& thread : mPool->mThreads)
 			{
-				if (thread->getId() == mThreadId)
+				if (thread->GetId() == mThreadId)
 				{
 					parentThread = thread;
 					break;
@@ -47,7 +47,7 @@ namespace bs
 			if (parentThread->mId == mThreadId) // Check again in case it changed
 			{
 				while (!parentThread->mIdle)
-					parentThread->mWorkerEndedCond.wait(lock);
+					parentThread->mWorkerEndedCond.Wait(lock);
 			}
 		}
 	}
@@ -59,7 +59,7 @@ namespace bs
 		Lock Lock(mMutex);
 
 		while(!mThreadStarted)
-			mStartedCond.wait(lock);
+			mStartedCond.Wait(lock);
 	}
 
 	void PooledThread::Start(std::function<void()> workerMethod, UINT32 id)
@@ -97,7 +97,7 @@ namespace bs
 					Lock Lock(mMutex);
 
 					while (!mThreadReady)
-						mReadyCond.wait(lock);
+						mReadyCond.Wait(lock);
 
 					worker = mWorkerMethod;
 				}
@@ -133,7 +133,7 @@ namespace bs
 	{
 		__try {
 			function();
-		} __except(gCrashHandler().reportCrash(GetExceptionInformation())) {
+		} __except(gCrashHandler().ReportCrash(GetExceptionInformation())) {
 			PlatformUtility::terminate(true);
 		}
 	}
@@ -150,7 +150,7 @@ namespace bs
 		}
 
 		mReadyCond.notify_one();
-		mThread->join();
+		mThread->Join();
 		bs_delete(mThread);
 	}
 
@@ -159,7 +159,7 @@ namespace bs
 		Lock Lock(mMutex);
 
 		while (!mIdle)
-			mWorkerEndedCond.wait(lock);
+			mWorkerEndedCond.Wait(lock);
 	}
 
 	bool PooledThread::IsIdle()
@@ -202,9 +202,9 @@ namespace bs
 	HThread ThreadPool::Run(const String& name, std::function<void()> workerMethod)
 	{
 		PooledThread* thread = getThread(name);
-		thread->start(workerMethod, mUniqueId++);
+		thread->Start(workerMethod, mUniqueId++);
 
-		return HThread(this, thread->getId());
+		return HThread(this, thread->GetId());
 	}
 
 	void ThreadPool::StopAll()
@@ -215,7 +215,7 @@ namespace bs
 			destroyThread(thread);
 		}
 
-		mThreads.clear();
+		mThreads.Clear();
 	}
 
 	void ThreadPool::ClearUnused()
@@ -223,22 +223,22 @@ namespace bs
 		Lock Lock(mMutex);
 		mAge = 0;
 
-		if(mThreads.size() <= mDefaultCapacity)
+		if(mThreads.Size() <= mDefaultCapacity)
 			return;
 
 		Vector<PooledThread*> idleThreads;
 		Vector<PooledThread*> expiredThreads;
 		Vector<PooledThread*> activeThreads;
 
-		idleThreads.reserve(mThreads.size());
-		expiredThreads.reserve(mThreads.size());
-		activeThreads.reserve(mThreads.size());
+		idleThreads.Reserve(mThreads.size());
+		expiredThreads.Reserve(mThreads.size());
+		activeThreads.Reserve(mThreads.size());
 
 		for(auto& thread : mThreads)
 		{
-			if(thread->isIdle())
+			if(thread->IsIdle())
 			{
-				if(thread->idleTime() >= mIdleTimeout)
+				if(thread->IdleTime() >= mIdleTimeout)
 					expiredThreads.push_back(thread);
 				else
 					idleThreads.push_back(thread);
@@ -247,11 +247,11 @@ namespace bs
 				activeThreads.push_back(thread);
 		}
 
-		idleThreads.insert(idleThreads.end(), expiredThreads.begin(), expiredThreads.end());
-		UINT32 limit = std::min((UINT32)idleThreads.size(), mDefaultCapacity);
+		idleThreads.Insert(idleThreads.end(), expiredThreads.begin(), expiredThreads.end());
+		UINT32 limit = std::min((UINT32)idleThreads.Size(), mDefaultCapacity);
 
 		UINT32 i = 0;
-		mThreads.clear();
+		mThreads.Clear();
 
 		for(auto& thread : idleThreads)
 		{
@@ -264,12 +264,12 @@ namespace bs
 				destroyThread(thread);
 		}
 
-		mThreads.insert(mThreads.end(), activeThreads.begin(), activeThreads.end());
+		mThreads.Insert(mThreads.end(), activeThreads.begin(), activeThreads.end());
 	}
 
 	void ThreadPool::DestroyThread(PooledThread* thread)
 	{
-		thread->destroy();
+		thread->Destroy();
 		bs_delete(thread);
 	}
 
@@ -288,14 +288,14 @@ namespace bs
 
 		for(auto& thread : mThreads)
 		{
-			if(thread->isIdle())
+			if(thread->IsIdle())
 			{
-				thread->setName(name);
+				thread->SetName(name);
 				return thread;
 			}
 		}
 
-		if(mThreads.size() >= mMaxCapacity)
+		if(mThreads.Size() >= mMaxCapacity)
 			BS_EXCEPT(InvalidStateException, "Unable to create a new thread in the pool because maximum capacity has been reached.");
 
 		PooledThread* newThread = createThread(name);
@@ -311,7 +311,7 @@ namespace bs
 		Lock Lock(mMutex);
 		for(auto& thread : mThreads)
 		{
-			if(!thread->isIdle())
+			if(!thread->IsIdle())
 				numAvailable--;
 		}
 
@@ -325,7 +325,7 @@ namespace bs
 		Lock Lock(mMutex);
 		for(auto& thread : mThreads)
 		{
-			if(!thread->isIdle())
+			if(!thread->IsIdle())
 				numActive++;
 		}
 
@@ -336,6 +336,6 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		return (UINT32)mThreads.size();
+		return (UINT32)mThreads.Size();
 	}
 }

@@ -15,8 +15,8 @@ namespace bs
 
 	void ScriptMorphChannel::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_getName", (void*)&ScriptMorphChannel::Internal_getName);
-		metaData.scriptClass->addInternalCall("Internal_getShapes", (void*)&ScriptMorphChannel::Internal_getShapes);
+		metaData.scriptClass->AddInternalCall("Internal_getName", (void*)&ScriptMorphChannel::Internal_getName);
+		metaData.scriptClass->AddInternalCall("Internal_getShapes", (void*)&ScriptMorphChannel::Internal_getShapes);
 
 	}
 
@@ -27,14 +27,14 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.scriptClass->createInstance("bool", ctorParams);
+		MonoObject* managedInstance = metaData.scriptClass->CreateInstance("bool", ctorParams);
 		new (bs_alloc<ScriptMorphChannel>()) ScriptMorphChannel(managedInstance, value);
 		return managedInstance;
 	}
 	MonoString* ScriptMorphChannel::Internal_getName(ScriptMorphChannel* thisPtr)
 	{
 		String tmp__output;
-		tmp__output = thisPtr->getInternal()->getName();
+		tmp__output = thisPtr->GetInternal()->getName();
 
 		MonoString* __output;
 		__output = MonoUtil::stringToMono(tmp__output);
@@ -45,19 +45,19 @@ namespace bs
 	MonoArray* ScriptMorphChannel::Internal_getShapes(ScriptMorphChannel* thisPtr)
 	{
 		Vector<SPtr<MorphShape>> vec__output;
-		vec__output = thisPtr->getInternal()->getShapes();
+		vec__output = thisPtr->GetInternal()->getShapes();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
+		int arraySize__output = (int)vec__output.Size();
 		ScriptArray array__output = ScriptArray::create<ScriptMorphShape>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
 			SPtr<MorphShape> arrayElemPtr__output = vec__output[i];
 			MonoObject* arrayElem__output;
 			arrayElem__output = ScriptMorphShape::create(arrayElemPtr__output);
-			array__output.set(i, arrayElem__output);
+			array__output.Set(i, arrayElem__output);
 		}
-		__output = array__output.getInternal();
+		__output = array__output.GetInternal();
 
 		return __output;
 	}

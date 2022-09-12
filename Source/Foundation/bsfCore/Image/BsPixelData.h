@@ -268,13 +268,13 @@ namespace bs
 		PixelFormat GetFormat() const { return mFormat; }
 
 		/**	Returns width of the buffer in pixels. */
-		UINT32 GetWidth() const { return mExtents.getWidth(); }
+		UINT32 GetWidth() const { return mExtents.GetWidth(); }
 
 		/**	Returns height of the buffer in pixels. */
-		UINT32 GetHeight() const { return mExtents.getHeight(); }
+		UINT32 GetHeight() const { return mExtents.GetHeight(); }
 
 		/**	Returns depth of the buffer in pixels. */
-		UINT32 GetDepth() const { return mExtents.getDepth(); }
+		UINT32 GetDepth() const { return mExtents.GetDepth(); }
 
 		/**
 		 * Returns left-most start of the pixel volume. This value is not used internally in any way. It is just passed

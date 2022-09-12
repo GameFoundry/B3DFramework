@@ -257,7 +257,7 @@ namespace bs
 			GamepadInfo info;
 			if(parseGamepadInfo(file, i, info))
 			{
-				info.id = (UINT32)mPlatformData->gamepadInfos.size();
+				info.id = (UINT32)mPlatformData->gamepadInfos.Size();
 				mPlatformData->gamepadInfos.push_back(info);
 			}
 
@@ -292,7 +292,7 @@ namespace bs
 		{
 		case InputDevice::Keyboard: return 1;
 		case InputDevice::Mouse: return 1;
-		case InputDevice::Gamepad: return (UINT32)mPlatformData->gamepadInfos.size();
+		case InputDevice::Gamepad: return (UINT32)mPlatformData->gamepadInfos.Size();
 		case InputDevice::Count: return 0;
 		}
 

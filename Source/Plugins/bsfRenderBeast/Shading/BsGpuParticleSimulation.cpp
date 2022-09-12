@@ -327,8 +327,8 @@ namespace bs { namespace ct
 		mSortedIndices[0] = GpuBuffer::create(sortedIndicesBufferDesc);
 		mSortedIndices[1] = GpuBuffer::create(sortedIndicesBufferDesc);
 
-		mSortBuffers.values[0] = mSortedIndices[0]->getView(GBT_STANDARD, BF_32X1U);
-		mSortBuffers.values[1] = mSortedIndices[1]->getView(GBT_STANDARD, BF_32X1U);
+		mSortBuffers.values[0] = mSortedIndices[0]->GetView(GBT_STANDARD, BF_32X1U);
+		mSortBuffers.values[1] = mSortedIndices[1]->GetView(GBT_STANDARD, BF_32X1U);
 
 		// Clear the free tile linked list
 		for (UINT32 i = 0; i < TILE_COUNT; i++)
@@ -391,29 +391,29 @@ namespace bs { namespace ct
 	{
 		// Prepare vertex declaration for rendering tiles
 		SPtr<VertexDataDesc> tileVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
-		tileVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD);
+		tileVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD);
 
 		tileVertexDecl = VertexDeclaration::create(tileVertexDesc);
 
 		// Prepare vertex declaration for injecting new particles
 		SPtr<VertexDataDesc> injectVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
-		injectVertexDesc->addVertElem(VET_FLOAT4, VES_TEXCOORD, 0, 0, 1); // Position & time, per instance
-		injectVertexDesc->addVertElem(VET_FLOAT4, VES_TEXCOORD, 1, 0, 1); // Velocity, per instance
-		injectVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD, 2, 0, 1); // Size, per instance
-		injectVertexDesc->addVertElem(VET_FLOAT1, VES_TEXCOORD, 3, 0, 1); // Rotation, per instance
-		injectVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD, 4, 0, 1); // Data UV, per instance
-		injectVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD, 5, 1); // Sprite texture coordinates
+		injectVertexDesc->AddVertElem(VET_FLOAT4, VES_TEXCOORD, 0, 0, 1); // Position & time, per instance
+		injectVertexDesc->AddVertElem(VET_FLOAT4, VES_TEXCOORD, 1, 0, 1); // Velocity, per instance
+		injectVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD, 2, 0, 1); // Size, per instance
+		injectVertexDesc->AddVertElem(VET_FLOAT1, VES_TEXCOORD, 3, 0, 1); // Rotation, per instance
+		injectVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD, 4, 0, 1); // Data UV, per instance
+		injectVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD, 5, 1); // Sprite texture coordinates
 
 		injectVertexDecl = VertexDeclaration::create(injectVertexDesc);
 
 		// Prepare UV coordinates for rendering tiles
 		VERTEX_BUFFER_DESC tileUVBufferDesc;
 		tileUVBufferDesc.numVerts = PARTICLES_PER_INSTANCE * 4;
-		tileUVBufferDesc.vertexSize = tileVertexDesc->getVertexStride();
+		tileUVBufferDesc.vertexSize = tileVertexDesc->GetVertexStride();
 
 		tileUVs = VertexBuffer::create(tileUVBufferDesc);
 
-		auto* const tileUVData = (Vector2*)tileUVs->lock(GBL_WRITE_ONLY_DISCARD);
+		auto* const tileUVData = (Vector2*)tileUVs->Lock(GBL_WRITE_ONLY_DISCARD);
 		const float tileUVScale = GpuParticleResources::TILE_SIZE / (float)GpuParticleResources::TEX_SIZE;
 		for (UINT32 i = 0; i < PARTICLES_PER_INSTANCE; i++)
 		{
@@ -423,16 +423,16 @@ namespace bs { namespace ct
 			tileUVData[i * 4 + 3] = Vector2(0.0f, 1.0f) * tileUVScale;
 		}
 
-		tileUVs->unlock();
+		tileUVs->Unlock();
 
 		// Prepare UV coordinates for rendering particles
 		VERTEX_BUFFER_DESC particleUVBufferDesc;
 		particleUVBufferDesc.numVerts = PARTICLES_PER_INSTANCE * 4;
-		particleUVBufferDesc.vertexSize = tileVertexDesc->getVertexStride();
+		particleUVBufferDesc.vertexSize = tileVertexDesc->GetVertexStride();
 
 		particleUVs = VertexBuffer::create(particleUVBufferDesc);
 
-		auto* const particleUVData = (Vector2*)particleUVs->lock(GBL_WRITE_ONLY_DISCARD);
+		auto* const particleUVData = (Vector2*)particleUVs->Lock(GBL_WRITE_ONLY_DISCARD);
 		const float particleUVScale = 1.0f / (float)GpuParticleResources::TEX_SIZE;
 		for (UINT32 i = 0; i < PARTICLES_PER_INSTANCE; i++)
 		{
@@ -442,7 +442,7 @@ namespace bs { namespace ct
 			particleUVData[i * 4 + 3] = Vector2(0.0f, 1.0f) * particleUVScale;
 		}
 
-		particleUVs->unlock();
+		particleUVs->Unlock();
 
 		// Prepare indices for rendering tiles & particles
 		INDEX_BUFFER_DESC spriteIndexBufferDesc;
@@ -451,7 +451,7 @@ namespace bs { namespace ct
 
 		spriteIndices = IndexBuffer::create(spriteIndexBufferDesc);
 
-		auto* const indices = (UINT16*)spriteIndices->lock(GBL_WRITE_ONLY_DISCARD);
+		auto* const indices = (UINT16*)spriteIndices->Lock(GBL_WRITE_ONLY_DISCARD);
 
 		const Conventions& rapiConventions = gCaps().conventions;
 		for (UINT32 i = 0; i < PARTICLES_PER_INSTANCE; i++)
@@ -470,7 +470,7 @@ namespace bs { namespace ct
 			}
 		}
 
-		spriteIndices->unlock();
+		spriteIndices->Unlock();
 
 		// Prepare a scratch buffer we'll use to clear tiles
 		GPU_BUFFER_DESC tileScratchBufferDesc;
@@ -484,7 +484,7 @@ namespace bs { namespace ct
 		// Prepare a scratch buffer we'll use to inject new particles
 		VERTEX_BUFFER_DESC injectScratchBufferDesc;
 		injectScratchBufferDesc.numVerts = NUM_SCRATCH_PARTICLES;
-		injectScratchBufferDesc.vertexSize = injectVertexDesc->getVertexStride(0);
+		injectScratchBufferDesc.vertexSize = injectVertexDesc->GetVertexStride(0);
 		injectScratchBufferDesc.usage = GBU_DYNAMIC;
 
 		injectScratch = VertexBuffer::create(injectScratchBufferDesc);
@@ -493,12 +493,12 @@ namespace bs { namespace ct
 	GpuParticleSystem::GpuParticleSystem(ParticleSystem* parent)
 		:mParent(parent)
 	{
-		GpuParticleSimulation::instance().addSystem(this);
+		GpuParticleSimulation::instance().AddSystem(this);
 	}
 
 	GpuParticleSystem::~GpuParticleSystem()
 	{
-		GpuParticleSimulation::instance().removeSystem(this);
+		GpuParticleSimulation::instance().RemoveSystem(this);
 	}
 
 	bool GpuParticleSystem::allocateTiles(GpuParticleResources& resources, Vector<GpuParticle>& newParticles,
@@ -508,7 +508,7 @@ namespace bs { namespace ct
 		Vector2 tileUV = GpuParticleResources::getTileCoords(cachedTile.id);
 
 		bool newTilesAdded = false;
-		for (UINT32 i = 0; i < (UINT32)newParticles.size(); i++)
+		for (UINT32 i = 0; i < (UINT32)newParticles.Size(); i++)
 		{
 			UINT32 tileIdx;
 
@@ -518,15 +518,15 @@ namespace bs { namespace ct
 			else
 			{
 				// Otherwise try to find an inactive tile
-				if (mNumActiveTiles < (UINT32)mTiles.size())
+				if (mNumActiveTiles < (UINT32)mTiles.Size())
 				{
-					tileIdx = mActiveTiles.find(false);
+					tileIdx = mActiveTiles.Find(false);
 					mActiveTiles[tileIdx] = true;
 				}
 				// And finally just allocate a new tile if no room elsewhere
 				else
 				{
-					const UINT32 tileId = resources.allocTile();
+					const UINT32 tileId = resources.AllocTile();
 					if (tileId == (UINT32)-1)
 						return newTilesAdded; // Out of space in the texture
 
@@ -534,10 +534,10 @@ namespace bs { namespace ct
 					newTile.id = tileId;
 					newTile.lifetime = 0.0f;
 
-					tileIdx = (UINT32)mTiles.size();
+					tileIdx = (UINT32)mTiles.Size();
 					newTiles.push_back(newTile.id);
 					mTiles.push_back(newTile);
-					mActiveTiles.add(true);
+					mActiveTiles.Add(true);
 
 					newTilesAdded = true;
 				}
@@ -568,7 +568,7 @@ namespace bs { namespace ct
 	void GpuParticleSystem::DetectInactiveTiles()
 	{
 		mNumActiveTiles = 0;
-		for (UINT32 i = 0; i < (UINT32)mTiles.size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mTiles.Size(); i++)
 		{
 			if (mTiles[i].lifetime >= mTime)
 			{
@@ -585,13 +585,13 @@ namespace bs { namespace ct
 
 	bool GpuParticleSystem::FreeInactiveTiles(GpuParticleResources& resources)
 	{
-		const UINT32 numFreeTiles = (UINT32)mTiles.size() - mNumActiveTiles;
+		const UINT32 numFreeTiles = (UINT32)mTiles.Size() - mNumActiveTiles;
 		for(UINT32 i = 0; i < numFreeTiles; i++)
 		{
-			const UINT32 freeIdx = mActiveTiles.find(false);
+			const UINT32 freeIdx = mActiveTiles.Find(false);
 			assert(freeIdx != (UINT32)-1);
 
-			const UINT32 lastIdx = (UINT32)mTiles.size() - 1;
+			const UINT32 lastIdx = (UINT32)mTiles.Size() - 1;
 
 			if (freeIdx != lastIdx)
 			{
@@ -599,10 +599,10 @@ namespace bs { namespace ct
 				std::swap(mActiveTiles[freeIdx], mActiveTiles[lastIdx]);
 			}
 
-			resources.freeTile(mTiles[lastIdx].id);
+			resources.FreeTile(mTiles[lastIdx].id);
 
-			mTiles.erase(mTiles.end() - 1);
-			mActiveTiles.remove(lastIdx);
+			mTiles.Erase(mTiles.end() - 1);
+			mActiveTiles.Remove(lastIdx);
 		}
 
 		// Tile order changed so this might no longer be valid
@@ -614,7 +614,7 @@ namespace bs { namespace ct
 
 	void GpuParticleSystem::UpdateGpuBuffers()
 	{
-		const auto numTiles = (UINT32)mTiles.size();
+		const auto numTiles = (UINT32)mTiles.Size();
 		const UINT32 numTilesToAllocates = Math::divideAndRoundUp(numTiles, TILES_PER_INSTANCE) * TILES_PER_INSTANCE;
 
 		// Tile offsets buffer
@@ -628,14 +628,14 @@ namespace bs { namespace ct
 
 			mTileUVs = GpuBuffer::create(tilesBufferDesc);
 
-			auto* tileUVs = (Vector2*)mTileUVs->lock(GBL_WRITE_ONLY_NO_OVERWRITE);
+			auto* tileUVs = (Vector2*)mTileUVs->Lock(GBL_WRITE_ONLY_NO_OVERWRITE);
 			for (UINT32 i = 0; i < numTiles; i++)
 				tileUVs[i] = GpuParticleResources::getTileCoords(mTiles[i].id);
 
 			for (UINT32 i = numTiles; i < numTilesToAllocates; i++)
 				tileUVs[i] = Vector2(2.0f, 2.0f); // Out of range
 
-			mTileUVs->unlock();
+			mTileUVs->Unlock();
 		}
 
 		// Particle data offsets
@@ -650,7 +650,7 @@ namespace bs { namespace ct
 			particleUVDesc.usage = GBU_DYNAMIC;
 
 			mParticleIndices = GpuBuffer::create(particleUVDesc);
-			auto* particleIndices = (UINT32*)mParticleIndices->lock(GBL_WRITE_ONLY_NO_OVERWRITE);
+			auto* particleIndices = (UINT32*)mParticleIndices->Lock(GBL_WRITE_ONLY_NO_OVERWRITE);
 
 			UINT32 idx = 0;
 			for (UINT32 i = 0; i < numTiles; i++)
@@ -666,13 +666,13 @@ namespace bs { namespace ct
 				}
 			}
 
-			mParticleIndices->unlock();
+			mParticleIndices->Unlock();
 		}
 	}
 	
 	void GpuParticleSystem::AdvanceTime(float dt)
 	{
-		const ParticleSystemSettings& settings = mParent->getSettings();
+		const ParticleSystemSettings& settings = mParent->GetSettings();
 
 		float timeStep;
 		mTime = bs::ParticleSystem::_advanceTime(mTime, dt, settings.duration, settings.isLooping, timeStep);
@@ -680,7 +680,7 @@ namespace bs { namespace ct
 
 	AABox GpuParticleSystem::GetBounds() const
 	{
-		const ParticleSystemSettings& settings = mParent->getSettings();
+		const ParticleSystemSettings& settings = mParent->GetSettings();
 
 		if(settings.useAutomaticBounds)
 			return AABox::INF_BOX;
@@ -701,9 +701,9 @@ namespace bs { namespace ct
 	GpuParticleSimulation::GpuParticleSimulation()
 		:m(bs_new<Pimpl>())
 	{
-		m->vectorFieldParams = gVectorFieldParamsDef.createBuffer();
-		m->depthCollisionParams = gGpuParticleDepthCollisionParamsDef.createBuffer();
-		m->simulationParams = gGpuParticleSimulateParamsDef.createBuffer();
+		m->vectorFieldParams = gVectorFieldParamsDef.CreateBuffer();
+		m->depthCollisionParams = gGpuParticleDepthCollisionParamsDef.CreateBuffer();
+		m->simulationParams = gGpuParticleSimulateParamsDef.CreateBuffer();
 	}
 
 	GpuParticleSimulation::~GpuParticleSimulation()
@@ -713,61 +713,61 @@ namespace bs { namespace ct
 
 	void GpuParticleSimulation::AddSystem(GpuParticleSystem* system)
 	{
-		m->systems.insert(system);
+		m->systems.Insert(system);
 	}
 
 	void GpuParticleSimulation::RemoveSystem(GpuParticleSystem* system)
 	{
-		m->systems.erase(system);
+		m->systems.Erase(system);
 	}
 
 	void GpuParticleSimulation::simulate(const SceneInfo& sceneInfo, const ParticlePerFrameData* simData,
 		const SPtr<GpuParamBlockBuffer>& viewParams, const GBufferTextures& gbuffer, float dt)
 	{
-		m->resources.swap();
-		m->resources.getCurveTexture().applyChanges();
+		m->resources.Swap();
+		m->resources.GetCurveTexture().applyChanges();
 
 		Vector<UINT32> newTiles;
 		Vector<GpuParticle> allNewParticles;
 		for (auto& entry : m->systems)
 		{
-			entry->detectInactiveTiles();
+			entry->DetectInactiveTiles();
 
 			bool tilesDirty = false;
-			const auto iterFind = simData->gpuData.find(entry->getParent()->getId());
-			if(iterFind != simData->gpuData.end())
+			const auto iterFind = simData->gpuData.Find(entry->GetParent()->getId());
+			if(iterFind != simData->gpuData.End())
 			{
 				Vector<GpuParticle>& newParticles = iterFind->second->particles;
-				tilesDirty = entry->allocateTiles(m->resources, newParticles, newTiles);
+				tilesDirty = entry->AllocateTiles(m->resources, newParticles, newTiles);
 
-				allNewParticles.insert(allNewParticles.end(), newParticles.begin(), newParticles.end());
+				allNewParticles.Insert(allNewParticles.end(), newParticles.begin(), newParticles.end());
 			}
 
-			entry->advanceTime(dt);
-			tilesDirty |= entry->freeInactiveTiles(m->resources);
+			entry->AdvanceTime(dt);
+			tilesDirty |= entry->FreeInactiveTiles(m->resources);
 
 			if (tilesDirty)
-				entry->updateGpuBuffers();
+				entry->UpdateGpuBuffers();
 		}
 
 		RenderAPI& rapi = RenderAPI::instance();
-		rapi.setRenderTarget(m->resources.getInjectTarget());
+		rapi.SetRenderTarget(m->resources.getInjectTarget());
 
 		clearTiles(newTiles);
 		injectParticles(allNewParticles);
 
 		// Simulate
 		// TODO - Run multiple iterations for more stable simulation at lower/erratic framerates
-		gGpuParticleSimulateParamsDef.gDT.set(m->simulationParams, dt);
-		gGpuParticleSimulateParamsDef.gNumIterations.set(m->simulationParams, 1);
+		gGpuParticleSimulateParamsDef.gDT.Set(m->simulationParams, dt);
+		gGpuParticleSimulateParamsDef.gNumIterations.Set(m->simulationParams, 1);
 
-		rapi.setRenderTarget(m->resources.getSimulationTarget());
-		rapi.setVertexDeclaration(m->helperBuffers.tileVertexDecl);
+		rapi.SetRenderTarget(m->resources.getSimulationTarget());
+		rapi.SetVertexDeclaration(m->helperBuffers.tileVertexDecl);
 
 		SPtr<VertexBuffer> buffers[] = { m->helperBuffers.tileUVs };
-		rapi.setVertexBuffers(0, buffers, (UINT32)bs_size(buffers));
-		rapi.setIndexBuffer(m->helperBuffers.spriteIndices);
-		rapi.setDrawOperation(DOT_TRIANGLE_LIST);
+		rapi.SetVertexBuffers(0, buffers, (UINT32)bs_size(buffers));
+		rapi.SetIndexBuffer(m->helperBuffers.spriteIndices);
+		rapi.SetDrawOperation(DOT_TRIANGLE_LIST);
 
 		enum class SimType { Normal, DepthCollisionsWorld, DepthCollisionsLocal, Count };
 
@@ -779,80 +779,80 @@ namespace bs { namespace ct
 			const bool localSpace = type == SimType::DepthCollisionsLocal;
 
 			GpuParticleSimulateMat* simulateMat = GpuParticleSimulateMat::getVariation(simulateDepthCollisions, localSpace);
-			simulateMat->bindGlobal(m->resources, viewParams, gbuffer.depth, gbuffer.normals, m->simulationParams);
+			simulateMat->BindGlobal(m->resources, viewParams, gbuffer.depth, gbuffer.normals, m->simulationParams);
 
 			for (auto& entry : m->systems)
 			{
-				if (entry->getNumTiles() == 0)
+				if (entry->GetNumTiles() == 0)
 					continue;
 
-				ParticleSystem* parentSystem = entry->getParent();
+				ParticleSystem* parentSystem = entry->GetParent();
 
-				const ParticleGpuSimulationSettings& simSettings = parentSystem->getGpuSimulationSettings();
+				const ParticleGpuSimulationSettings& simSettings = parentSystem->GetGpuSimulationSettings();
 				if(simSettings.depthCollision.enabled != simulateDepthCollisions)
 					continue;
 
 				if(simulateDepthCollisions)
 				{
-					const ParticleSystemSettings& settings = parentSystem->getSettings();
+					const ParticleSystemSettings& settings = parentSystem->GetSettings();
 					bool isLocal = settings.simulationSpace == ParticleSimulationSpace::Local;
 					if(isLocal != localSpace)
 						continue;
 				}
 
-				const RendererParticles& rendererParticles = sceneInfo.particleSystems[parentSystem->getRendererId()];
+				const RendererParticles& rendererParticles = sceneInfo.particleSystems[parentSystem->GetRendererId()];
 
 				prepareBuffers(entry, rendererParticles);
 
 				SPtr<Texture> vfTexture;
 				if (simSettings.vectorField.vectorField)
-					vfTexture = simSettings.vectorField.vectorField->getTexture();
+					vfTexture = simSettings.vectorField.vectorField->GetTexture();
 
-				simulateMat->bindPerCallParams(entry->getTileUVs(), rendererParticles.perObjectParamBuffer,
+				simulateMat->BindPerCallParams(entry->getTileUVs(), rendererParticles.perObjectParamBuffer,
 					m->vectorFieldParams, vfTexture, m->depthCollisionParams);
 
-				const UINT32 tileCount = entry->getNumTiles();
+				const UINT32 tileCount = entry->GetNumTiles();
 				const UINT32 numInstances = Math::divideAndRoundUp(tileCount, TILES_PER_INSTANCE);
-				rapi.drawIndexed(0, TILES_PER_INSTANCE * 6, 0, TILES_PER_INSTANCE * 4, numInstances);
+				rapi.DrawIndexed(0, TILES_PER_INSTANCE * 6, 0, TILES_PER_INSTANCE * 4, numInstances);
 			}
 		}
 	}
 
 	void GpuParticleSimulation::Sort(const RendererView& view)
 	{
-		const bool supportsCompute = gRenderBeast()->getFeatureSet() == RenderBeastFeatureSet::Desktop;
+		const bool supportsCompute = gRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 		if(!supportsCompute)
 			return;
 
 		// Make sure that the position texture isn't bound for rendering
 		RenderAPI& rapi = RenderAPI::instance();
-		rapi.setRenderTarget(nullptr);
+		rapi.SetRenderTarget(nullptr);
 
-		const Vector3& viewOrigin = view.getProperties().viewOrigin;
+		const Vector3& viewOrigin = view.GetProperties().viewOrigin;
 
 		GpuParticleSortPrepareMat* prepareMat = GpuParticleSortPrepareMat::get();
-		prepareMat->bind(m->resources.getCurrentState().positionAndTimeTex);
+		prepareMat->Bind(m->resources.GetCurrentState().positionAndTimeTex);
 
 		UINT32 systemIdx = 0;
 		UINT32 offset = 0;
 		for (auto& entry : m->systems)
 		{
-			if (entry->getNumTiles() == 0)
+			if (entry->GetNumTiles() == 0)
 			{
-				entry->setSortInfo(false, 0);
+				entry->SetSortInfo(false, 0);
 				continue;
 			}
 
-			ParticleSystem* parentSystem = entry->getParent();
+			ParticleSystem* parentSystem = entry->GetParent();
 
-			const ParticleSystemSettings& settings = parentSystem->getSettings();
+			const ParticleSystemSettings& settings = parentSystem->GetSettings();
 			if (settings.sortMode != ParticleSortMode::Distance)
 			{
-				entry->setSortInfo(false, 0);
+				entry->SetSortInfo(false, 0);
 				continue;
 			}
 
-			entry->setSortInfo(true, offset);
+			entry->SetSortInfo(true, offset);
 
 			offset += prepareMat->execute(*entry, systemIdx, viewOrigin, offset,
 				m->resources.mSortBuffers.keys[0],
@@ -867,35 +867,35 @@ namespace bs { namespace ct
 
 		const UINT32 totalNumKeys = offset;
 		const UINT32 keyMask = 0xFFFF | (Math::ceilToInt(Math::log2((float)(numSystemsToSort + 1))) << 16);
-		const UINT32 outputBufferIdx = GpuSort::instance().sort(m->resources.mSortBuffers, totalNumKeys, keyMask);
+		const UINT32 outputBufferIdx = GpuSort::instance().Sort(m->resources.mSortBuffers, totalNumKeys, keyMask);
 
 		m->resources.mSortedIndicesBufferIdx = outputBufferIdx;
 	}
 
 	void GpuParticleSimulation::PrepareBuffers(const GpuParticleSystem* system, const RendererParticles& rendererInfo)
 	{
-		ParticleSystem* parentSystem = system->getParent();
+		ParticleSystem* parentSystem = system->GetParent();
 
-		const ParticleSystemSettings& settings = parentSystem->getSettings();
-		const ParticleGpuSimulationSettings& simSettings = parentSystem->getGpuSimulationSettings();
+		const ParticleSystemSettings& settings = parentSystem->GetSettings();
+		const ParticleGpuSimulationSettings& simSettings = parentSystem->GetGpuSimulationSettings();
 
-		const Random& random = system->getRandom();
-		const float time = system->getTime();
+		const Random& random = system->GetRandom();
+		const float time = system->GetTime();
 		const float nrmTime = time / settings.duration;
 
-		gGpuParticleSimulateParamsDef.gDrag.set(m->simulationParams, simSettings.drag);
-		gGpuParticleSimulateParamsDef.gAcceleration.set(m->simulationParams, simSettings.acceleration);
+		gGpuParticleSimulateParamsDef.gDrag.Set(m->simulationParams, simSettings.drag);
+		gGpuParticleSimulateParamsDef.gAcceleration.Set(m->simulationParams, simSettings.acceleration);
 
 		SPtr<Texture> vfTexture;
 		if(simSettings.vectorField.vectorField)
-			vfTexture = simSettings.vectorField.vectorField->getTexture();
+			vfTexture = simSettings.vectorField.vectorField->GetTexture();
 
 		if(vfTexture)
 		{
-			gGpuParticleSimulateParamsDef.gNumVectorFields.set(m->simulationParams, 1);
+			gGpuParticleSimulateParamsDef.gNumVectorFields.Set(m->simulationParams, 1);
 				
 			const SPtr<VectorField>& vectorField = simSettings.vectorField.vectorField;
-			const VECTOR_FIELD_DESC& vfDesc = vectorField->getDesc();
+			const VECTOR_FIELD_DESC& vfDesc = vectorField->GetDesc();
 
 			const Vector3 tiling(
 				simSettings.vectorField.tilingX ? 0.0f : 1.0f,
@@ -903,36 +903,36 @@ namespace bs { namespace ct
 				simSettings.vectorField.tilingZ ? 0.0f : 1.0f
 			);
 
-			gVectorFieldParamsDef.gFieldBounds.set(m->vectorFieldParams, vfDesc.bounds.getSize());
-			gVectorFieldParamsDef.gFieldTightness.set(m->vectorFieldParams, simSettings.vectorField.tightness);
-			gVectorFieldParamsDef.gFieldTiling.set(m->vectorFieldParams, tiling);
-			gVectorFieldParamsDef.gFieldIntensity.set(m->vectorFieldParams, simSettings.vectorField.intensity);
+			gVectorFieldParamsDef.gFieldBounds.Set(m->vectorFieldParams, vfDesc.bounds.getSize());
+			gVectorFieldParamsDef.gFieldTightness.Set(m->vectorFieldParams, simSettings.vectorField.tightness);
+			gVectorFieldParamsDef.gFieldTiling.Set(m->vectorFieldParams, tiling);
+			gVectorFieldParamsDef.gFieldIntensity.Set(m->vectorFieldParams, simSettings.vectorField.intensity);
 
-			const Vector3 rotationRate = simSettings.vectorField.rotationRate.evaluate(nrmTime, random) * time;
+			const Vector3 rotationRate = simSettings.vectorField.rotationRate.Evaluate(nrmTime, random) * time;
 			const Quaternion AddedRotation(Degree(rotationRate.x), Degree(rotationRate.y), Degree(rotationRate.z));
 
-			const Vector3 offset = vfDesc.bounds.getMin() + simSettings.vectorField.offset;
+			const Vector3 offset = vfDesc.bounds.GetMin() + simSettings.vectorField.offset;
 			const Quaternion rotation = simSettings.vectorField.rotation * addedRotation;
-			const Vector3 scale = vfDesc.bounds.getSize() * simSettings.vectorField.scale;
+			const Vector3 scale = vfDesc.bounds.GetSize() * simSettings.vectorField.scale;
 
 			Matrix4 fieldToWorld = Matrix4::TRS(offset, rotation, scale);
 			fieldToWorld = rendererInfo.localToWorld * fieldToWorld;
 
-			const Matrix3 fieldToWorld3x3 = fieldToWorld.get3x3();
+			const Matrix3 fieldToWorld3x3 = fieldToWorld.Get3x3();
 
-			gVectorFieldParamsDef.gFieldToWorld.set(m->vectorFieldParams, fieldToWorld3x3);
-			gVectorFieldParamsDef.gWorldToField.set(m->vectorFieldParams, fieldToWorld.inverseAffine());
+			gVectorFieldParamsDef.gFieldToWorld.Set(m->vectorFieldParams, fieldToWorld3x3);
+			gVectorFieldParamsDef.gWorldToField.Set(m->vectorFieldParams, fieldToWorld.inverseAffine());
 		}
 		else
-			gGpuParticleSimulateParamsDef.gNumVectorFields.set(m->simulationParams, 0);
+			gGpuParticleSimulateParamsDef.gNumVectorFields.Set(m->simulationParams, 0);
 
 		const ParticleDepthCollisionSettings& depthCollisionSettings = simSettings.depthCollision;
 		if(depthCollisionSettings.enabled)
 		{
-			Vector3 scale3D = rendererInfo.particleSystem->getTransform().getScale();
+			Vector3 scale3D = rendererInfo.particleSystem->GetTransform().GetScale();
 			float uniformScale = std::max(std::max(scale3D.x, scale3D.y), scale3D.z);
 
-			gGpuParticleDepthCollisionParamsDef.gCollisionRange.set(m->depthCollisionParams, 2.0f);
+			gGpuParticleDepthCollisionParamsDef.gCollisionRange.Set(m->depthCollisionParams, 2.0f);
 			gGpuParticleDepthCollisionParamsDef.gCollisionRadiusScale.set(m->depthCollisionParams,
 				depthCollisionSettings.radiusScale * uniformScale);
 			gGpuParticleDepthCollisionParamsDef.gDampening.set(m->depthCollisionParams,
@@ -945,29 +945,29 @@ namespace bs { namespace ct
 			const float sizeScaleUVScale =
 					GpuParticleCurves::getUVScale(rendererInfo.sizeScaleFrameIdxCurveAlloc);
 
-			gGpuParticleDepthCollisionParamsDef.gSizeScaleCurveOffset.set(m->depthCollisionParams, sizeScaleUVOffset);
-			gGpuParticleDepthCollisionParamsDef.gSizeScaleCurveScale.set(m->depthCollisionParams, Vector2(sizeScaleUVScale, 0.0f));
+			gGpuParticleDepthCollisionParamsDef.gSizeScaleCurveOffset.Set(m->depthCollisionParams, sizeScaleUVOffset);
+			gGpuParticleDepthCollisionParamsDef.gSizeScaleCurveScale.Set(m->depthCollisionParams, Vector2(sizeScaleUVScale, 0.0f));
 		}
 	}
 
 	void GpuParticleSimulation::ClearTiles(const Vector<UINT32>& tiles)
 	{
-		const auto numTiles = (UINT32)tiles.size();
+		const auto numTiles = (UINT32)tiles.Size();
 		if(numTiles == 0)
 			return;
 
 		const UINT32 numIterations = Math::divideAndRoundUp(numTiles, GpuParticleHelperBuffers::NUM_SCRATCH_TILES);
 
 		GpuParticleClearMat* clearMat = GpuParticleClearMat::get();
-		clearMat->bind(m->helperBuffers.tileScratch);
+		clearMat->Bind(m->helperBuffers.tileScratch);
 
 		RenderAPI& rapi = RenderAPI::instance();
-		rapi.setVertexDeclaration(m->helperBuffers.tileVertexDecl);
+		rapi.SetVertexDeclaration(m->helperBuffers.tileVertexDecl);
 
 		SPtr<VertexBuffer> buffers[] = { m->helperBuffers.tileUVs };
-		rapi.setVertexBuffers(0, buffers, (UINT32)bs_size(buffers));
-		rapi.setIndexBuffer(m->helperBuffers.spriteIndices);
-		rapi.setDrawOperation(DOT_TRIANGLE_LIST);
+		rapi.SetVertexBuffers(0, buffers, (UINT32)bs_size(buffers));
+		rapi.SetIndexBuffer(m->helperBuffers.spriteIndices);
+		rapi.SetDrawOperation(DOT_TRIANGLE_LIST);
 
 		UINT32 tileStart = 0;
 		for (UINT32 i = 0; i < numIterations; i++)
@@ -977,7 +977,7 @@ namespace bs { namespace ct
 
 			const UINT32 tileEnd = std::min(numTiles, tileStart + GpuParticleHelperBuffers::NUM_SCRATCH_TILES);
 
-			auto* tileUVs = (Vector2*)m->helperBuffers.tileScratch->lock(GBL_WRITE_ONLY_DISCARD);
+			auto* tileUVs = (Vector2*)m->helperBuffers.tileScratch->Lock(GBL_WRITE_ONLY_DISCARD);
 			for (UINT32 j = tileStart; j < tileEnd; j++)
 				tileUVs[j - tileStart] = GpuParticleResources::getTileCoords(tiles[j]);
 
@@ -985,10 +985,10 @@ namespace bs { namespace ct
 			for (UINT32 j = tileEnd; j < alignedTileEnd; j++)
 				tileUVs[j - tileEnd] = Vector2(2.0f, 2.0f); // Out of bounds (we don't want to accidentaly clear used tiles)
 
-			m->helperBuffers.tileScratch->unlock();
+			m->helperBuffers.tileScratch->Unlock();
 
 			const UINT32 numInstances = (alignedTileEnd - tileStart) / TILES_PER_INSTANCE;
-			rapi.drawIndexed(0, TILES_PER_INSTANCE * 6, 0, TILES_PER_INSTANCE * 4, numInstances);
+			rapi.DrawIndexed(0, TILES_PER_INSTANCE * 6, 0, TILES_PER_INSTANCE * 4, numInstances);
 
 			tileStart = alignedTileEnd;
 		}
@@ -996,32 +996,32 @@ namespace bs { namespace ct
 
 	void GpuParticleSimulation::InjectParticles(const Vector<GpuParticle>& particles)
 	{
-		const auto numParticles = (UINT32)particles.size();
+		const auto numParticles = (UINT32)particles.Size();
 		const UINT32 numIterations = Math::divideAndRoundUp(numParticles, GpuParticleHelperBuffers::NUM_SCRATCH_PARTICLES);
 
 		GpuParticleInjectMat* injectMat = GpuParticleInjectMat::get();
-		injectMat->bind();
+		injectMat->Bind();
 
 		RenderAPI& rapi = RenderAPI::instance();
-		rapi.setVertexDeclaration(m->helperBuffers.injectVertexDecl);
+		rapi.SetVertexDeclaration(m->helperBuffers.injectVertexDecl);
 
 		SPtr<VertexBuffer> buffers[] = { m->helperBuffers.injectScratch, m->helperBuffers.particleUVs };
-		rapi.setVertexBuffers(0, buffers, (UINT32)bs_size(buffers));
-		rapi.setIndexBuffer(m->helperBuffers.spriteIndices);
-		rapi.setDrawOperation(DOT_TRIANGLE_LIST);
+		rapi.SetVertexBuffers(0, buffers, (UINT32)bs_size(buffers));
+		rapi.SetIndexBuffer(m->helperBuffers.spriteIndices);
+		rapi.SetDrawOperation(DOT_TRIANGLE_LIST);
 
 		UINT32 particleStart = 0;
 		for (UINT32 i = 0; i < numIterations; i++)
 		{
 			const UINT32 particleEnd = std::min(numParticles, particleStart + GpuParticleHelperBuffers::NUM_SCRATCH_PARTICLES);
 
-			auto* particleData = (GpuParticleVertex*)m->helperBuffers.injectScratch->lock(GBL_WRITE_ONLY_DISCARD);
+			auto* particleData = (GpuParticleVertex*)m->helperBuffers.injectScratch->Lock(GBL_WRITE_ONLY_DISCARD);
 			for (UINT32 j = particleStart; j < particleEnd; j++)
-				particleData[j - particleStart] = particles[j].getVertex();
+				particleData[j - particleStart] = particles[j].GetVertex();
 
-			m->helperBuffers.injectScratch->unlock();
+			m->helperBuffers.injectScratch->Unlock();
 
-			rapi.drawIndexed(0, 6, 0, 4, particleEnd - particleStart);
+			rapi.DrawIndexed(0, 6, 0, 4, particleEnd - particleStart);
 			particleStart = particleEnd;
 		}
 	}
@@ -1033,7 +1033,7 @@ namespace bs { namespace ct
 
 	SPtr<GpuParamBlockBuffer> CreateGpuParticleVertexInputBuffer()
 	{
-		SPtr<GpuParamBlockBuffer> inputBuffer = gGpuParticleTileVertexParamsDef.createBuffer();
+		SPtr<GpuParamBlockBuffer> inputBuffer = gGpuParticleTileVertexParamsDef.CreateBuffer();
 
 		// [0, 1] -> [-1, 1] and flip Y
 		Vector4 UvToNdc(2.0f, -2.0f, -1.0f, 1.0f);
@@ -1047,7 +1047,7 @@ namespace bs { namespace ct
 			uvToNdc.w = -uvToNdc.w;
 		}
 
-		gGpuParticleTileVertexParamsDef.gUVToNDC.set(inputBuffer, uvToNdc);
+		gGpuParticleTileVertexParamsDef.gUVToNDC.Set(inputBuffer, uvToNdc);
 
 		return inputBuffer;
 	}
@@ -1056,18 +1056,18 @@ namespace bs { namespace ct
 	{
 		const SPtr<GpuParamBlockBuffer> inputBuffer = createGpuParticleVertexInputBuffer();
 
-		mParams->setParamBlockBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
-		mParams->getBufferParam(GPT_VERTEX_PROGRAM, "gTileUVs", mTileUVParam);
+		mParams->SetParamBlockBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
+		mParams->GetBufferParam(GPT_VERTEX_PROGRAM, "gTileUVs", mTileUVParam);
 	}
 
 	void GpuParticleClearMat::_initDefines(ShaderDefines& defines)
 	{
-		defines.set("TILES_PER_INSTANCE", TILES_PER_INSTANCE);
+		defines.Set("TILES_PER_INSTANCE", TILES_PER_INSTANCE);
 	}
 
 	void GpuParticleClearMat::Bind(const SPtr<GpuBuffer>& tileUVs)
 	{
-		mTileUVParam.set(tileUVs);
+		mTileUVParam.Set(tileUVs);
 
 		RendererMaterial::bind();
 	}
@@ -1075,95 +1075,95 @@ namespace bs { namespace ct
 	GpuParticleInjectMat::GpuParticleInjectMat()
 	{
 		const SPtr<GpuParamBlockBuffer> inputBuffer = createGpuParticleVertexInputBuffer();
-		mParams->setParamBlockBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
+		mParams->SetParamBlockBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
 	}
 
 	GpuParticleCurveInjectMat::GpuParticleCurveInjectMat()
 	{
 		const SPtr<GpuParamBlockBuffer> inputBuffer = createGpuParticleVertexInputBuffer();
-		mParams->setParamBlockBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
+		mParams->SetParamBlockBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
 	}
 
 	GpuParticleSimulateMat::GpuParticleSimulateMat()
 	{
 		const SPtr<GpuParamBlockBuffer> inputBuffer = createGpuParticleVertexInputBuffer();
-		mParams->setParamBlockBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
+		mParams->SetParamBlockBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
 
-		mParams->getParamInfo()->getBinding(
+		mParams->GetParamInfo()->getBinding(
 			GPT_FRAGMENT_PROGRAM,
 			GpuPipelineParamInfoBase::ParamType::ParamBlock,
 			"Params",
 			mParamsBinding
 		);
 		
-		mParams->getParamInfo()->getBinding(
+		mParams->GetParamInfo()->getBinding(
 			GPT_FRAGMENT_PROGRAM,
 			GpuPipelineParamInfoBase::ParamType::ParamBlock,
 			"VectorFieldParams",
 			mVectorFieldBinding
 		);
 		
-		mParams->getBufferParam(GPT_VERTEX_PROGRAM, "gTileUVs", mTileUVParam);
-		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gPosAndTimeTex", mPosAndTimeTexParam);
-		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gVelocityTex", mVelocityTexParam);
-		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gVectorFieldTex", mVectorFieldTexParam);
+		mParams->GetBufferParam(GPT_VERTEX_PROGRAM, "gTileUVs", mTileUVParam);
+		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gPosAndTimeTex", mPosAndTimeTexParam);
+		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gVelocityTex", mVelocityTexParam);
+		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gVectorFieldTex", mVectorFieldTexParam);
 
-		mSupportsDepthCollisions = mVariation.getUInt("DEPTH_COLLISIONS") > 0;
+		mSupportsDepthCollisions = mVariation.GetUInt("DEPTH_COLLISIONS") > 0;
 		if(mSupportsDepthCollisions)
 		{
-			mParams->getParamInfo()->getBinding(
+			mParams->GetParamInfo()->getBinding(
 				GPT_FRAGMENT_PROGRAM,
 				GpuPipelineParamInfoBase::ParamType::ParamBlock,
 				"PerCamera",
 				mPerCameraBinding
 			);
 
-			mParams->getParamInfo()->getBinding(
+			mParams->GetParamInfo()->getBinding(
 				GPT_FRAGMENT_PROGRAM,
 				GpuPipelineParamInfoBase::ParamType::ParamBlock,
 				"PerObject",
 				mPerObjectBinding
 			);
 
-			mParams->getParamInfo()->getBinding(
+			mParams->GetParamInfo()->getBinding(
 				GPT_FRAGMENT_PROGRAM,
 				GpuPipelineParamInfoBase::ParamType::ParamBlock,
 				"DepthCollisionParams",
 				mDepthCollisionBinding
 			);
 		
-			mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSizeRotationTex", mSizeRotationTexParam);
-			mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gCurvesTex", mCurvesTexParam);
-			mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexParam);
-			mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gNormalsTex", mNormalsTexParam);
+			mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gSizeRotationTex", mSizeRotationTexParam);
+			mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gCurvesTex", mCurvesTexParam);
+			mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexParam);
+			mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gNormalsTex", mNormalsTexParam);
 		}
 	}
 
 	void GpuParticleSimulateMat::_initDefines(ShaderDefines& defines)
 	{
-		defines.set("TILES_PER_INSTANCE", TILES_PER_INSTANCE);
+		defines.Set("TILES_PER_INSTANCE", TILES_PER_INSTANCE);
 	}
 
 	void GpuParticleSimulateMat::bindGlobal(GpuParticleResources& resources, const SPtr<GpuParamBlockBuffer>& viewParams,
 		const SPtr<Texture>& depth, const SPtr<Texture>& normals, const SPtr<GpuParamBlockBuffer>& simulationParams)
 	{
-		GpuParticleStateTextures& prevState = resources.getPreviousState();
-		const GpuParticleStaticTextures& staticTextures = resources.getStaticTextures();
-		GpuParticleCurves& curveTexture = resources.getCurveTexture();
+		GpuParticleStateTextures& prevState = resources.GetPreviousState();
+		const GpuParticleStaticTextures& staticTextures = resources.GetStaticTextures();
+		GpuParticleCurves& curveTexture = resources.GetCurveTexture();
 
-		mParams->setParamBlockBuffer(mParamsBinding.set, mParamsBinding.slot, simulationParams);
+		mParams->SetParamBlockBuffer(mParamsBinding.set, mParamsBinding.slot, simulationParams);
 
-		mPosAndTimeTexParam.set(prevState.positionAndTimeTex);
-		mVelocityTexParam.set(prevState.velocityTex);
+		mPosAndTimeTexParam.Set(prevState.positionAndTimeTex);
+		mVelocityTexParam.Set(prevState.velocityTex);
 
 		if(mSupportsDepthCollisions)
 		{
-			mParams->setParamBlockBuffer(mPerCameraBinding.set, mPerCameraBinding.slot, viewParams);
+			mParams->SetParamBlockBuffer(mPerCameraBinding.set, mPerCameraBinding.slot, viewParams);
 
-			mSizeRotationTexParam.set(staticTextures.sizeAndRotationTex);
-			mCurvesTexParam.set(curveTexture.getTexture());
-			mDepthTexParam.set(depth);
-			mNormalsTexParam.set(normals);
+			mSizeRotationTexParam.Set(staticTextures.sizeAndRotationTex);
+			mCurvesTexParam.Set(curveTexture.getTexture());
+			mDepthTexParam.Set(depth);
+			mNormalsTexParam.Set(normals);
 		}
 
 		RendererMaterial::bind(false);
@@ -1173,14 +1173,14 @@ namespace bs { namespace ct
 		const SPtr<GpuParamBlockBuffer>& perObjectParams, const SPtr<GpuParamBlockBuffer>& vectorFieldParams,
 		const SPtr<Texture>& vectorFieldTexture, const SPtr<GpuParamBlockBuffer>& depthCollisionParams)
 	{
-		mTileUVParam.set(tileUVs);
-		mParams->setParamBlockBuffer(mVectorFieldBinding.set, mVectorFieldBinding.slot, vectorFieldParams);
-		mVectorFieldTexParam.set(vectorFieldTexture);
+		mTileUVParam.Set(tileUVs);
+		mParams->SetParamBlockBuffer(mVectorFieldBinding.set, mVectorFieldBinding.slot, vectorFieldParams);
+		mVectorFieldTexParam.Set(vectorFieldTexture);
 
 		if(mSupportsDepthCollisions)
 		{
-			mParams->setParamBlockBuffer(mPerObjectBinding.set, mPerObjectBinding.slot, perObjectParams);
-			mParams->setParamBlockBuffer(mDepthCollisionBinding.set, mDepthCollisionBinding.slot, depthCollisionParams);
+			mParams->SetParamBlockBuffer(mPerObjectBinding.set, mPerObjectBinding.slot, perObjectParams);
+			mParams->SetParamBlockBuffer(mDepthCollisionBinding.set, mDepthCollisionBinding.slot, depthCollisionParams);
 		}
 
 		bindParams();
@@ -1201,22 +1201,22 @@ namespace bs { namespace ct
 
 	GpuParticleBoundsMat::GpuParticleBoundsMat()
 	{
-		mInputBuffer = gGpuParticleBoundsParamsDef.createBuffer();
-		mParams->setParamBlockBuffer(GPT_COMPUTE_PROGRAM, "Input", mInputBuffer);
+		mInputBuffer = gGpuParticleBoundsParamsDef.CreateBuffer();
+		mParams->SetParamBlockBuffer(GPT_COMPUTE_PROGRAM, "Input", mInputBuffer);
 		
-		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gParticleIndices", mParticleIndicesParam);
-		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputParam);
-		mParams->getTextureParam(GPT_COMPUTE_PROGRAM, "gPosAndTimeTex", mPosAndTimeTexParam);
+		mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gParticleIndices", mParticleIndicesParam);
+		mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputParam);
+		mParams->GetTextureParam(GPT_COMPUTE_PROGRAM, "gPosAndTimeTex", mPosAndTimeTexParam);
 	}
 
 	void GpuParticleBoundsMat::_initDefines(ShaderDefines& defines)
 	{
-		defines.set("NUM_THREADS", NUM_THREADS);
+		defines.Set("NUM_THREADS", NUM_THREADS);
 	}
 
 	void GpuParticleBoundsMat::Bind(const SPtr<Texture>& positionAndTime)
 	{
-		mPosAndTimeTexParam.set(positionAndTime);
+		mPosAndTimeTexParam.Set(positionAndTime);
 
 		RendererMaterial::bind();
 	}
@@ -1231,9 +1231,9 @@ namespace bs { namespace ct
 		const UINT32 iterationsPerGroup = numIterations / numGroups;
 		const UINT32 extraIterations = numIterations % numGroups;
 
-		gGpuParticleBoundsParamsDef.gIterationsPerGroup.set(mInputBuffer, iterationsPerGroup);
-		gGpuParticleBoundsParamsDef.gNumExtraIterations.set(mInputBuffer, extraIterations);
-		gGpuParticleBoundsParamsDef.gNumParticles.set(mInputBuffer, numParticles);
+		gGpuParticleBoundsParamsDef.gIterationsPerGroup.Set(mInputBuffer, iterationsPerGroup);
+		gGpuParticleBoundsParamsDef.gNumExtraIterations.Set(mInputBuffer, extraIterations);
+		gGpuParticleBoundsParamsDef.gNumParticles.Set(mInputBuffer, numParticles);
 
 		GPU_BUFFER_DESC outputDesc;
 		outputDesc.type = GBT_STANDARD;
@@ -1243,45 +1243,45 @@ namespace bs { namespace ct
 
 		SPtr<GpuBuffer> output = GpuBuffer::create(outputDesc);
 
-		mParticleIndicesParam.set(indices);
-		mOutputParam.set(output);
+		mParticleIndicesParam.Set(indices);
+		mOutputParam.Set(output);
 
-		RenderAPI::instance().dispatchCompute(numGroups);
+		RenderAPI::instance().DispatchCompute(numGroups);
 
 		Vector3 min = Vector3::INF;
 		Vector3 max = -Vector3::INF;
 
-		const Vector3* data = (Vector3*)output->lock(GBL_READ_ONLY);
+		const Vector3* data = (Vector3*)output->Lock(GBL_READ_ONLY);
 		for(UINT32 i = 0; i < numGroups; i++)
 		{
 			min = Vector3::min(min, data[i * 2 + 0]);
 			max = Vector3::min(max, data[i * 2 + 1]);
 		}
 
-		output->unlock();
+		output->Unlock();
 
 		return AABox(min, max);
 	}
 
 	GpuParticleSortPrepareMat::GpuParticleSortPrepareMat()
 	{
-		mInputBuffer = gGpuParticleSortPrepareParamDef.createBuffer();
-		mParams->setParamBlockBuffer(GPT_COMPUTE_PROGRAM, "Input", mInputBuffer);
+		mInputBuffer = gGpuParticleSortPrepareParamDef.CreateBuffer();
+		mParams->SetParamBlockBuffer(GPT_COMPUTE_PROGRAM, "Input", mInputBuffer);
 		
-		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gInputIndices", mInputIndicesParam);
-		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutputKeys", mOutputKeysParam);
-		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutputIndices", mOutputIndicesParam);
-		mParams->getTextureParam(GPT_COMPUTE_PROGRAM, "gPosAndTimeTex", mPosAndTimeTexParam);
+		mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gInputIndices", mInputIndicesParam);
+		mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gOutputKeys", mOutputKeysParam);
+		mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gOutputIndices", mOutputIndicesParam);
+		mParams->GetTextureParam(GPT_COMPUTE_PROGRAM, "gPosAndTimeTex", mPosAndTimeTexParam);
 	}
 
 	void GpuParticleSortPrepareMat::_initDefines(ShaderDefines& defines)
 	{
-		defines.set("NUM_THREADS", NUM_THREADS);
+		defines.Set("NUM_THREADS", NUM_THREADS);
 	}
 
 	void GpuParticleSortPrepareMat::Bind(const SPtr<Texture>& positionAndTime)
 	{
-		mPosAndTimeTexParam.set(positionAndTime);
+		mPosAndTimeTexParam.Set(positionAndTime);
 
 		RendererMaterial::bind(false);
 	}
@@ -1293,7 +1293,7 @@ namespace bs { namespace ct
 
 		assert(systemIdx < std::pow(2, 16));
 
-		const UINT32 numParticles = system.getNumTiles() * GpuParticleResources::PARTICLES_PER_TILE;
+		const UINT32 numParticles = system.GetNumTiles() * GpuParticleResources::PARTICLES_PER_TILE;
 
 		const UINT32 numIterations = Math::divideAndRoundUp(numParticles, NUM_THREADS);
 		const UINT32 numGroups = std::min(numIterations, MAX_NUM_GROUPS);
@@ -1302,28 +1302,28 @@ namespace bs { namespace ct
 		const UINT32 extraIterations = numIterations % numGroups;
 
 		Vector3 localViewOrigin;
-		ParticleSystem* parentSystem = system.getParent();
-		if(parentSystem->getSettings().simulationSpace == ParticleSimulationSpace::Local)
+		ParticleSystem* parentSystem = system.GetParent();
+		if(parentSystem->GetSettings().simulationSpace == ParticleSimulationSpace::Local)
 		{
-			const Matrix4& worldToLocal = parentSystem->getTransform().getInvMatrix();
-			localViewOrigin = worldToLocal.multiplyAffine(viewOrigin);
+			const Matrix4& worldToLocal = parentSystem->GetTransform().GetInvMatrix();
+			localViewOrigin = worldToLocal.MultiplyAffine(viewOrigin);
 		}
 		else
 			localViewOrigin = viewOrigin;
 
-		gGpuParticleSortPrepareParamDef.gIterationsPerGroup.set(mInputBuffer, iterationsPerGroup);
-		gGpuParticleSortPrepareParamDef.gNumExtraIterations.set(mInputBuffer, extraIterations);
-		gGpuParticleSortPrepareParamDef.gNumParticles.set(mInputBuffer, numParticles);
-		gGpuParticleSortPrepareParamDef.gOutputOffset.set(mInputBuffer, offset);
-		gGpuParticleSortPrepareParamDef.gSystemKey.set(mInputBuffer, systemIdx << 16);
-		gGpuParticleSortPrepareParamDef.gLocalViewOrigin.set(mInputBuffer, localViewOrigin);
+		gGpuParticleSortPrepareParamDef.gIterationsPerGroup.Set(mInputBuffer, iterationsPerGroup);
+		gGpuParticleSortPrepareParamDef.gNumExtraIterations.Set(mInputBuffer, extraIterations);
+		gGpuParticleSortPrepareParamDef.gNumParticles.Set(mInputBuffer, numParticles);
+		gGpuParticleSortPrepareParamDef.gOutputOffset.Set(mInputBuffer, offset);
+		gGpuParticleSortPrepareParamDef.gSystemKey.Set(mInputBuffer, systemIdx << 16);
+		gGpuParticleSortPrepareParamDef.gLocalViewOrigin.Set(mInputBuffer, localViewOrigin);
 
-		mInputIndicesParam.set(system.getParticleIndices());
-		mOutputKeysParam.set(outKeys);
-		mOutputIndicesParam.set(outIndices);
+		mInputIndicesParam.Set(system.getParticleIndices());
+		mOutputKeysParam.Set(outKeys);
+		mOutputIndicesParam.Set(outIndices);
 
 		bindParams();
-		RenderAPI::instance().dispatchCompute(numGroups);
+		RenderAPI::instance().DispatchCompute(numGroups);
 		return numParticles;
 	}
 
@@ -1350,27 +1350,27 @@ namespace bs { namespace ct
 
 		// Prepare vertex declaration for injecting new curves
 		SPtr<VertexDataDesc> injectVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
-		injectVertexDesc->addVertElem(VET_FLOAT4, VES_TEXCOORD, 0, 0, 1); // Color, per instance
-		injectVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD, 1, 0, 1); // Data UV, per instance
-		injectVertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD, 2, 1); // Pixel texture coordinates
+		injectVertexDesc->AddVertElem(VET_FLOAT4, VES_TEXCOORD, 0, 0, 1); // Color, per instance
+		injectVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD, 1, 0, 1); // Data UV, per instance
+		injectVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD, 2, 1); // Pixel texture coordinates
 
 		mInjectVertexDecl = VertexDeclaration::create(injectVertexDesc);
 
 		// Prepare UV coordinates for injecting curves
 		VERTEX_BUFFER_DESC injectUVBufferDesc;
 		injectUVBufferDesc.numVerts = 4;
-		injectUVBufferDesc.vertexSize = injectVertexDesc->getVertexStride(1);
+		injectUVBufferDesc.vertexSize = injectVertexDesc->GetVertexStride(1);
 
 		mInjectUV = VertexBuffer::create(injectUVBufferDesc);
 
-		auto* const tileUVData = (Vector2*)mInjectUV->lock(GBL_WRITE_ONLY_DISCARD);
+		auto* const tileUVData = (Vector2*)mInjectUV->Lock(GBL_WRITE_ONLY_DISCARD);
 		const float tileUVScale = 1.0f / (float)TEX_SIZE;
 		tileUVData[0] = Vector2(0.0f, 0.0f) * tileUVScale;
 		tileUVData[1] = Vector2(1.0f, 0.0f) * tileUVScale;
 		tileUVData[2] = Vector2(1.0f, 1.0f) * tileUVScale;
 		tileUVData[3] = Vector2(0.0f, 1.0f) * tileUVScale;
 
-		mInjectUV->unlock();
+		mInjectUV->Unlock();
 
 		// Prepare indices for injecting curves
 		INDEX_BUFFER_DESC injectIndexBufferDesc;
@@ -1381,7 +1381,7 @@ namespace bs { namespace ct
 
 		const Conventions& rapiConventions = gCaps().conventions;
 
-		auto* const indices = (UINT16*)mInjectIndices->lock(GBL_WRITE_ONLY_DISCARD);
+		auto* const indices = (UINT16*)mInjectIndices->Lock(GBL_WRITE_ONLY_DISCARD);
 
 		// If UV is flipped, then our tile will be upside down so we need to change index order so it doesn't
 		// get culled.
@@ -1396,12 +1396,12 @@ namespace bs { namespace ct
 			indices[3] = 0; indices[4] = 2; indices[5] = 3;
 		}
 
-		mInjectIndices->unlock();
+		mInjectIndices->Unlock();
 
 		// Prepare a scratch buffer we'll use to inject new curves
 		VERTEX_BUFFER_DESC injectScratchBufferDesc;
 		injectScratchBufferDesc.numVerts = SCRATCH_NUM_VERTICES;
-		injectScratchBufferDesc.vertexSize = injectVertexDesc->getVertexStride(0);
+		injectScratchBufferDesc.vertexSize = injectVertexDesc->GetVertexStride(0);
 		injectScratchBufferDesc.usage = GBU_DYNAMIC;
 
 		mInjectScratch = VertexBuffer::create(injectScratchBufferDesc);
@@ -1410,20 +1410,20 @@ namespace bs { namespace ct
 	GpuParticleCurves::~GpuParticleCurves()
 	{
 		for(auto& entry : mPendingAllocations)
-			mPendingAllocator.free(entry.pixels);
+			mPendingAllocator.Free(entry.pixels);
 
-		mPendingAllocator.clear();
+		mPendingAllocator.Clear();
 	}
 
 	TextureRowAllocation GpuParticleCurves::Alloc(Color* pixels, uint32_t count)
 	{
 		PendingAllocation pendingAlloc;
-		pendingAlloc.allocation = mRowAllocator.alloc(count);
+		pendingAlloc.allocation = mRowAllocator.Alloc(count);
 
 		if(pendingAlloc.allocation.length == 0)
 			return pendingAlloc.allocation;
 
-		pendingAlloc.pixels = (Color*)mPendingAllocator.alloc(sizeof(Color) * count);
+		pendingAlloc.pixels = (Color*)mPendingAllocator.Alloc(sizeof(Color) * count);
 		memcpy(pendingAlloc.pixels, pixels, sizeof(Color) * count);
 
 		mPendingAllocations.push_back(pendingAlloc);
@@ -1432,30 +1432,30 @@ namespace bs { namespace ct
 
 	void GpuParticleCurves::Free(const TextureRowAllocation& alloc)
 	{
-		mRowAllocator.free(alloc);
+		mRowAllocator.Free(alloc);
 	}
 
 	void GpuParticleCurves::ApplyChanges()
 	{
-		const auto numCurves = (UINT32)mPendingAllocations.size();
+		const auto numCurves = (UINT32)mPendingAllocations.Size();
 		if(numCurves == 0)
 			return;
 
 		GpuParticleCurveInjectMat* injectMat = GpuParticleCurveInjectMat::get();
-		injectMat->bind();
+		injectMat->Bind();
 
 		RenderAPI& rapi = RenderAPI::instance();
-		rapi.setRenderTarget(mRT);
-		rapi.setVertexDeclaration(mInjectVertexDecl);
+		rapi.SetRenderTarget(mRT);
+		rapi.SetVertexDeclaration(mInjectVertexDecl);
 
 		SPtr<VertexBuffer> buffers[] = { mInjectScratch, mInjectUV };
-		rapi.setVertexBuffers(0, buffers, (UINT32)bs_size(buffers));
-		rapi.setIndexBuffer(mInjectIndices);
-		rapi.setDrawOperation(DOT_TRIANGLE_LIST);
+		rapi.SetVertexBuffers(0, buffers, (UINT32)bs_size(buffers));
+		rapi.SetIndexBuffer(mInjectIndices);
+		rapi.SetDrawOperation(DOT_TRIANGLE_LIST);
 
 		UINT32 curveIdx = 0;
 
-		auto* data = (GpuParticleCurveInject*)mInjectScratch->lock(GBL_WRITE_ONLY_DISCARD);
+		auto* data = (GpuParticleCurveInject*)mInjectScratch->Lock(GBL_WRITE_ONLY_DISCARD);
 		while(curveIdx < numCurves)
 		{
 			UINT32 count = 0;
@@ -1478,19 +1478,19 @@ namespace bs { namespace ct
 				}
 			}
 
-			mInjectScratch->unlock();
-			rapi.drawIndexed(0, 6, 0, 4, count);
+			mInjectScratch->Unlock();
+			rapi.DrawIndexed(0, 6, 0, 4, count);
 
-			data = (GpuParticleCurveInject*)mInjectScratch->lock(GBL_WRITE_ONLY_DISCARD);
+			data = (GpuParticleCurveInject*)mInjectScratch->Lock(GBL_WRITE_ONLY_DISCARD);
 		}
 
-		mInjectScratch->unlock();
+		mInjectScratch->Unlock();
 
 		for(auto& entry : mPendingAllocations)
-			mPendingAllocator.free(entry.pixels);
+			mPendingAllocator.Free(entry.pixels);
 
-		mPendingAllocations.clear();
-		mPendingAllocator.clear();
+		mPendingAllocations.Clear();
+		mPendingAllocator.Clear();
 	}
 
 	Vector2 GpuParticleCurves::GetUVOffset(const TextureRowAllocation& alloc)

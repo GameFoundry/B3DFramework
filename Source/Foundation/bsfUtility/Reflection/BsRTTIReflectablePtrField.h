@@ -131,8 +131,8 @@ namespace bs
 		{
 			// This need to be initialized after the field itself, otherwise we get recursive static constructor
 			// calls due to one type calling getRTTIStatic() on one another
-			schema.fieldTypeSchema = DataType::getRTTIStatic()->getSchema();;
-			schema.fieldTypeId = DataType::getRTTIStatic()->getRTTIId();
+			schema.fieldTypeSchema = DataType::getRTTIStatic()->GetSchema();;
+			schema.fieldTypeId = DataType::getRTTIStatic()->GetRTTIId();
 		}
 
 		/** @copydoc RTTIReflectablePtrFieldBase::getValue */
@@ -226,19 +226,19 @@ namespace bs
 		/** @copydoc RTTIReflectablePtrFieldBase::newObject */
 		SPtr<IReflectable> NewObject() override
 		{
-			return SPtr<IReflectable>(DataType::getRTTIStatic()->newRTTIObject());
+			return SPtr<IReflectable>(DataType::getRTTIStatic()->NewRTTIObject());
 		}
 
 		/** @copydoc RTTIReflectablePtrFieldBase::getRTTIId */
 		UINT32 GetRTTIId() override
 		{
-			return DataType::GetRTTIStatic()->getRTTIId();
+			return DataType::GetRTTIStatic()->GetRTTIId();
 		}
 
 		/** @copydoc RTTIReflectablePtrFieldBase::getRTTIName */
 		const String& GetRTTIName() override
 		{
-			return DataType::GetRTTIStatic()->getRTTIName();
+			return DataType::GetRTTIStatic()->GetRTTIName();
 		}
 
 

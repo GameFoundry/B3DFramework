@@ -229,16 +229,16 @@ namespace bs
 		bs_frame_mark();
 
 		OggVorbisEncoder writer;
-		writer.open(writeCallback, info.sampleRate, info.bitDepth, info.numChannels);
+		writer.Open(writeCallback, info.sampleRate, info.bitDepth, info.numChannels);
 
-		writer.write(samples, info.numSamples);
-		writer.close();
+		writer.Write(samples, info.numSamples);
+		writer.Close();
 
 		auto output = bs_shared_ptr_new<MemoryDataStream>(totalEncodedSize);
 		UINT32 offset = 0;
 		for (auto& block : blocks)
 		{
-			memcpy(output->data() + offset, block.data, block.size);
+			memcpy(output->Data() + offset, block.data, block.size);
 			offset += block.size;
 
 			bs_frame_free(block.data);

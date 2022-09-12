@@ -201,32 +201,32 @@ namespace bs
 		//    - icon/cursor/etc data
 
 		std::fstream stream;
-		stream.open(path.toPlatformString().c_str(), std::ios::in | std::ios::out | std::ios::binary);
+		stream.Open(path.toPlatformString().c_str(), std::ios::in | std::ios::out | std::ios::binary);
 
 		// First check magic number to ensure file is even an executable
 		UINT16 magicNum;
-		stream.read((char*)&magicNum, sizeof(magicNum));
+		stream.Read((char*)&magicNum, sizeof(magicNum));
 		if (magicNum != MSDOS_SIGNATURE)
 			BS_EXCEPT(InvalidStateException, "Provided file is not a valid executable.");
 
 		// Read the MSDOS header and skip over it
-		stream.seekg(0);
+		stream.Seekg(0);
 
 		MSDOSHeader msdosHeader;
-		stream.read((char*)&msdosHeader, sizeof(MSDOSHeader));
+		stream.Read((char*)&msdosHeader, sizeof(MSDOSHeader));
 
 		// Read PE signature
-		stream.seekg(msdosHeader.lfanew);
+		stream.Seekg(msdosHeader.lfanew);
 
 		UINT32 peSignature;
-		stream.read((char*)&peSignature, sizeof(peSignature));
+		stream.Read((char*)&peSignature, sizeof(peSignature));
 
 		if (peSignature != PE_SIGNATURE)
 			BS_EXCEPT(InvalidStateException, "Provided file is not in PE format.");
 
 		// Read COFF header
 		COFFHeader coffHeader;
-		stream.read((char*)&coffHeader, sizeof(COFFHeader));
+		stream.Read((char*)&coffHeader, sizeof(COFFHeader));
 
 		if (coffHeader.sizeOptHeader == 0) // .exe files always have an optional header
 			BS_EXCEPT(InvalidStateException, "Provided file is not a valid executable.");
@@ -234,24 +234,24 @@ namespace bs
 		UINT32 numSectionHeaders = coffHeader.numSections;
 
 		// Read optional header
-		auto optionalHeaderPos = stream.tellg();
+		auto optionalHeaderPos = stream.Tellg();
 
 		UINT16 optionalHeaderSignature;
-		stream.read((char*)&optionalHeaderSignature, sizeof(optionalHeaderSignature));
+		stream.Read((char*)&optionalHeaderSignature, sizeof(optionalHeaderSignature));
 
 		PEDataDirectory* dataDirectory = nullptr;
-		stream.seekg(optionalHeaderPos);
+		stream.Seekg(optionalHeaderPos);
 		if (optionalHeaderSignature == PE_32BIT_SIGNATURE)
 		{
 			PEOptionalHeader32 optionalHeader;
-			stream.read((char*)&optionalHeader, sizeof(optionalHeader));
+			stream.Read((char*)&optionalHeader, sizeof(optionalHeader));
 
 			dataDirectory = optionalHeader.dataDirectory + PE_IMAGE_DIRECTORY_ENTRY_RESOURCE;
 		}
 		else if (optionalHeaderSignature == PE_64BIT_SIGNATURE)
 		{
 			PEOptionalHeader64 optionalHeader;
-			stream.read((char*)&optionalHeader, sizeof(optionalHeader));
+			stream.Read((char*)&optionalHeader, sizeof(optionalHeader));
 
 			dataDirectory = optionalHeader.dataDirectory + PE_IMAGE_DIRECTORY_ENTRY_RESOURCE;
 		}
@@ -260,10 +260,10 @@ namespace bs
 
 		// Read section headers
 		auto sectionHeaderPos = optionalHeaderPos + (std::ifstream::pos_type)coffHeader.sizeOptHeader;
-		stream.seekg(sectionHeaderPos);
+		stream.Seekg(sectionHeaderPos);
 
 		PESectionHeader* sectionHeaders = bs_stack_alloc<PESectionHeader>(numSectionHeaders);
-		stream.read((char*)sectionHeaders, sizeof(PESectionHeader) * numSectionHeaders);
+		stream.Read((char*)sectionHeaders, sizeof(PESectionHeader) * numSectionHeaders);
 
 		// Look for .rsrc section header
 		std::function<void(PEImageResourceDirectory*, PEImageResourceDirectory*, UINT8*, UINT32)> setIconData =
@@ -303,22 +303,22 @@ namespace bs
 				UINT32 imageSize = sectionHeaders[i].physicalSize;
 				UINT8* imageData = (UINT8*)bs_stack_alloc(imageSize);
 
-				stream.seekg(sectionHeaders[i].physicalAddress);
-				stream.read((char*)imageData, imageSize);
+				stream.Seekg(sectionHeaders[i].physicalAddress);
+				stream.Read((char*)imageData, imageSize);
 
 				UINT32 resourceDirOffset = dataDirectory->virtualAddress - sectionHeaders[i].relativeVirtualAddress;
 				PEImageResourceDirectory* resourceDirectory = (PEImageResourceDirectory*)&imageData[resourceDirOffset];
 
 				setIconData(resourceDirectory, resourceDirectory, imageData, sectionHeaders[i].relativeVirtualAddress);
-				stream.seekp(sectionHeaders[i].physicalAddress);
-				stream.write((char*)imageData, imageSize);
+				stream.Seekp(sectionHeaders[i].physicalAddress);
+				stream.Write((char*)imageData, imageSize);
 
 				bs_stack_free(imageData);
 			}
 		}
 
 		bs_stack_free(sectionHeaders);
-		stream.close();
+		stream.Close();
 	}
 
 	void IconUtility::UpdateIconData(UINT8* iconData, const Map<UINT32, SPtr<PixelData>>& pixelsPerSize)
@@ -336,9 +336,9 @@ namespace bs
 		UINT32 width = iconHeader->width;
 		UINT32 height = iconHeader->height / 2;
 
-		auto iterFind = pixelsPerSize.find(width);
-		if (iterFind == pixelsPerSize.end() || iterFind->second->getWidth() != width
-			|| iterFind->second->getHeight() != height)
+		auto iterFind = pixelsPerSize.Find(width);
+		if (iterFind == pixelsPerSize.End() || iterFind->second->GetWidth() != width
+			|| iterFind->second->GetHeight() != height)
 		{
 			// No icon of this size provided
 			return;
@@ -352,7 +352,7 @@ namespace bs
 		for (INT32 y = (INT32)height - 1; y >= 0; y--)
 		{
 			for (UINT32 x = 0; x < width; x++)
-				colorData[idx++] = srcPixels->getColorAt(x, y).getAsBGRA();
+				colorData[idx++] = srcPixels->GetColorAt(x, y).GetAsBGRA();
 		}
 
 		// Write AND mask
@@ -369,7 +369,7 @@ namespace bs
 				for (UINT32 pixelIdx = 0; pixelIdx < 8; pixelIdx++)
 				{
 					UINT32 x = packedX * 8 + pixelIdx;
-					Color color = srcPixels->getColorAt(x, y);
+					Color color = srcPixels->GetColorAt(x, y);
 					if (color.a < 0.25f)
 						mask |= 1 << (7 - pixelIdx);
 				}

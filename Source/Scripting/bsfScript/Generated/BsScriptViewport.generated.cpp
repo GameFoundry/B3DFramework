@@ -20,20 +20,20 @@ namespace bs
 
 	void ScriptViewport::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_setTarget", (void*)&ScriptViewport::Internal_setTarget);
-		metaData.scriptClass->addInternalCall("Internal_getTarget", (void*)&ScriptViewport::Internal_getTarget);
-		metaData.scriptClass->addInternalCall("Internal_setArea", (void*)&ScriptViewport::Internal_setArea);
-		metaData.scriptClass->addInternalCall("Internal_getArea", (void*)&ScriptViewport::Internal_getArea);
-		metaData.scriptClass->addInternalCall("Internal_getPixelArea", (void*)&ScriptViewport::Internal_getPixelArea);
-		metaData.scriptClass->addInternalCall("Internal_setClearFlags", (void*)&ScriptViewport::Internal_setClearFlags);
-		metaData.scriptClass->addInternalCall("Internal_getClearFlags", (void*)&ScriptViewport::Internal_getClearFlags);
-		metaData.scriptClass->addInternalCall("Internal_setClearColorValue", (void*)&ScriptViewport::Internal_setClearColorValue);
-		metaData.scriptClass->addInternalCall("Internal_getClearColorValue", (void*)&ScriptViewport::Internal_getClearColorValue);
-		metaData.scriptClass->addInternalCall("Internal_setClearDepthValue", (void*)&ScriptViewport::Internal_setClearDepthValue);
-		metaData.scriptClass->addInternalCall("Internal_getClearDepthValue", (void*)&ScriptViewport::Internal_getClearDepthValue);
-		metaData.scriptClass->addInternalCall("Internal_setClearStencilValue", (void*)&ScriptViewport::Internal_setClearStencilValue);
-		metaData.scriptClass->addInternalCall("Internal_getClearStencilValue", (void*)&ScriptViewport::Internal_getClearStencilValue);
-		metaData.scriptClass->addInternalCall("Internal_create", (void*)&ScriptViewport::Internal_create);
+		metaData.scriptClass->AddInternalCall("Internal_setTarget", (void*)&ScriptViewport::Internal_setTarget);
+		metaData.scriptClass->AddInternalCall("Internal_getTarget", (void*)&ScriptViewport::Internal_getTarget);
+		metaData.scriptClass->AddInternalCall("Internal_setArea", (void*)&ScriptViewport::Internal_setArea);
+		metaData.scriptClass->AddInternalCall("Internal_getArea", (void*)&ScriptViewport::Internal_getArea);
+		metaData.scriptClass->AddInternalCall("Internal_getPixelArea", (void*)&ScriptViewport::Internal_getPixelArea);
+		metaData.scriptClass->AddInternalCall("Internal_setClearFlags", (void*)&ScriptViewport::Internal_setClearFlags);
+		metaData.scriptClass->AddInternalCall("Internal_getClearFlags", (void*)&ScriptViewport::Internal_getClearFlags);
+		metaData.scriptClass->AddInternalCall("Internal_setClearColorValue", (void*)&ScriptViewport::Internal_setClearColorValue);
+		metaData.scriptClass->AddInternalCall("Internal_getClearColorValue", (void*)&ScriptViewport::Internal_getClearColorValue);
+		metaData.scriptClass->AddInternalCall("Internal_setClearDepthValue", (void*)&ScriptViewport::Internal_setClearDepthValue);
+		metaData.scriptClass->AddInternalCall("Internal_getClearDepthValue", (void*)&ScriptViewport::Internal_getClearDepthValue);
+		metaData.scriptClass->AddInternalCall("Internal_setClearStencilValue", (void*)&ScriptViewport::Internal_setClearStencilValue);
+		metaData.scriptClass->AddInternalCall("Internal_getClearStencilValue", (void*)&ScriptViewport::Internal_getClearStencilValue);
+		metaData.scriptClass->AddInternalCall("Internal_create", (void*)&ScriptViewport::Internal_create);
 
 	}
 
@@ -44,7 +44,7 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.scriptClass->createInstance("bool", ctorParams);
+		MonoObject* managedInstance = metaData.scriptClass->CreateInstance("bool", ctorParams);
 		new (bs_alloc<ScriptViewport>()) ScriptViewport(managedInstance, value);
 		return managedInstance;
 	}
@@ -54,14 +54,14 @@ namespace bs
 		ScriptRenderTargetBase* scripttarget;
 		scripttarget = (ScriptRenderTargetBase*)ScriptRenderTarget::toNative(target);
 		if(scripttarget != nullptr)
-			tmptarget = scripttarget->getInternal();
-		thisPtr->getInternal()->setTarget(tmptarget);
+			tmptarget = scripttarget->GetInternal();
+		thisPtr->GetInternal()->setTarget(tmptarget);
 	}
 
 	MonoObject* ScriptViewport::Internal_getTarget(ScriptViewport* thisPtr)
 	{
 		SPtr<RenderTarget> tmp__output;
-		tmp__output = thisPtr->getInternal()->getTarget();
+		tmp__output = thisPtr->GetInternal()->getTarget();
 
 		MonoObject* __output;
 		if(tmp__output)
@@ -79,13 +79,13 @@ namespace bs
 
 	void ScriptViewport::Internal_setArea(ScriptViewport* thisPtr, Rect2* area)
 	{
-		thisPtr->getInternal()->setArea(*area);
+		thisPtr->GetInternal()->setArea(*area);
 	}
 
 	void ScriptViewport::Internal_getArea(ScriptViewport* thisPtr, Rect2* __output)
 	{
 		Rect2 tmp__output;
-		tmp__output = thisPtr->getInternal()->getArea();
+		tmp__output = thisPtr->GetInternal()->getArea();
 
 		*__output = tmp__output;
 	}
@@ -93,20 +93,20 @@ namespace bs
 	void ScriptViewport::Internal_getPixelArea(ScriptViewport* thisPtr, Rect2I* __output)
 	{
 		Rect2I tmp__output;
-		tmp__output = thisPtr->getInternal()->getPixelArea();
+		tmp__output = thisPtr->GetInternal()->getPixelArea();
 
 		*__output = tmp__output;
 	}
 
 	void ScriptViewport::Internal_setClearFlags(ScriptViewport* thisPtr, ClearFlagBits flags)
 	{
-		thisPtr->getInternal()->setClearFlags(flags);
+		thisPtr->GetInternal()->setClearFlags(flags);
 	}
 
 	ClearFlagBits ScriptViewport::Internal_getClearFlags(ScriptViewport* thisPtr)
 	{
 		Flags<ClearFlagBits> tmp__output;
-		tmp__output = thisPtr->getInternal()->getClearFlags();
+		tmp__output = thisPtr->GetInternal()->getClearFlags();
 
 		ClearFlagBits __output;
 		__output = (ClearFlagBits)(uint32_t)tmp__output;
@@ -116,26 +116,26 @@ namespace bs
 
 	void ScriptViewport::Internal_setClearColorValue(ScriptViewport* thisPtr, Color* color)
 	{
-		thisPtr->getInternal()->setClearColorValue(*color);
+		thisPtr->GetInternal()->setClearColorValue(*color);
 	}
 
 	void ScriptViewport::Internal_getClearColorValue(ScriptViewport* thisPtr, Color* __output)
 	{
 		Color tmp__output;
-		tmp__output = thisPtr->getInternal()->getClearColorValue();
+		tmp__output = thisPtr->GetInternal()->getClearColorValue();
 
 		*__output = tmp__output;
 	}
 
 	void ScriptViewport::Internal_setClearDepthValue(ScriptViewport* thisPtr, float depth)
 	{
-		thisPtr->getInternal()->setClearDepthValue(depth);
+		thisPtr->GetInternal()->setClearDepthValue(depth);
 	}
 
 	float ScriptViewport::Internal_getClearDepthValue(ScriptViewport* thisPtr)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->getInternal()->getClearDepthValue();
+		tmp__output = thisPtr->GetInternal()->getClearDepthValue();
 
 		float __output;
 		__output = tmp__output;
@@ -145,13 +145,13 @@ namespace bs
 
 	void ScriptViewport::Internal_setClearStencilValue(ScriptViewport* thisPtr, uint16_t value)
 	{
-		thisPtr->getInternal()->setClearStencilValue(value);
+		thisPtr->GetInternal()->setClearStencilValue(value);
 	}
 
 	uint16_t ScriptViewport::Internal_getClearStencilValue(ScriptViewport* thisPtr)
 	{
 		uint16_t tmp__output;
-		tmp__output = thisPtr->getInternal()->getClearStencilValue();
+		tmp__output = thisPtr->GetInternal()->getClearStencilValue();
 
 		uint16_t __output;
 		__output = tmp__output;
@@ -165,7 +165,7 @@ namespace bs
 		ScriptRenderTargetBase* scripttarget;
 		scripttarget = (ScriptRenderTargetBase*)ScriptRenderTarget::toNative(target);
 		if(scripttarget != nullptr)
-			tmptarget = scripttarget->getInternal();
+			tmptarget = scripttarget->GetInternal();
 		SPtr<Viewport> instance = Viewport::create(tmptarget, x, y, width, height);
 		new (bs_alloc<ScriptViewport>())ScriptViewport(managedInstance, instance);
 	}

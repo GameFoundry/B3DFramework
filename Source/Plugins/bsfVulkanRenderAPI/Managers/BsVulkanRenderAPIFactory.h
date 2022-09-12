@@ -36,7 +36,7 @@ namespace bs { namespace ct
 				if(newFactory == nullptr)
 				{
 					newFactory = bs_shared_ptr_new<VulkanRenderAPIFactory>();
-					RenderAPIManager::instance().registerFactory(newFactory);
+					RenderAPIManager::instance().RegisterFactory(newFactory);
 				}
 			}
 		};

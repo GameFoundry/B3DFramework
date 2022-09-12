@@ -25,7 +25,7 @@ int main(int __argc, char* __argv[])
 #if BS_CORE_THREAD_IS_MAIN
 	Thread Thread([argc = __argc, argv = __argv](){ bs_main(argc, argv); });
 	CoreThread::_run();
-	thread.join();
+	thread.Join();
 #else
 	bs_main(__argc, __argv);
 #endif

@@ -20,14 +20,14 @@ namespace bs
 
 	void ScriptParticleCollisions::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_setPlanes", (void*)&ScriptParticleCollisions::Internal_setPlanes);
-		metaData.scriptClass->addInternalCall("Internal_getPlanes", (void*)&ScriptParticleCollisions::Internal_getPlanes);
-		metaData.scriptClass->addInternalCall("Internal_setPlaneObjects", (void*)&ScriptParticleCollisions::Internal_setPlaneObjects);
-		metaData.scriptClass->addInternalCall("Internal_getPlaneObjects", (void*)&ScriptParticleCollisions::Internal_getPlaneObjects);
-		metaData.scriptClass->addInternalCall("Internal_setOptions", (void*)&ScriptParticleCollisions::Internal_setOptions);
-		metaData.scriptClass->addInternalCall("Internal_getOptions", (void*)&ScriptParticleCollisions::Internal_getOptions);
-		metaData.scriptClass->addInternalCall("Internal_create", (void*)&ScriptParticleCollisions::Internal_create);
-		metaData.scriptClass->addInternalCall("Internal_create0", (void*)&ScriptParticleCollisions::Internal_create0);
+		metaData.scriptClass->AddInternalCall("Internal_setPlanes", (void*)&ScriptParticleCollisions::Internal_setPlanes);
+		metaData.scriptClass->AddInternalCall("Internal_getPlanes", (void*)&ScriptParticleCollisions::Internal_getPlanes);
+		metaData.scriptClass->AddInternalCall("Internal_setPlaneObjects", (void*)&ScriptParticleCollisions::Internal_setPlaneObjects);
+		metaData.scriptClass->AddInternalCall("Internal_getPlaneObjects", (void*)&ScriptParticleCollisions::Internal_getPlaneObjects);
+		metaData.scriptClass->AddInternalCall("Internal_setOptions", (void*)&ScriptParticleCollisions::Internal_setOptions);
+		metaData.scriptClass->AddInternalCall("Internal_getOptions", (void*)&ScriptParticleCollisions::Internal_getOptions);
+		metaData.scriptClass->AddInternalCall("Internal_create", (void*)&ScriptParticleCollisions::Internal_create);
+		metaData.scriptClass->AddInternalCall("Internal_create0", (void*)&ScriptParticleCollisions::Internal_create0);
 
 	}
 
@@ -38,7 +38,7 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.scriptClass->createInstance("bool", ctorParams);
+		MonoObject* managedInstance = metaData.scriptClass->CreateInstance("bool", ctorParams);
 		new (bs_alloc<ScriptParticleCollisions>()) ScriptParticleCollisions(managedInstance, value);
 		return managedInstance;
 	}
@@ -48,28 +48,28 @@ namespace bs
 		if(planes != nullptr)
 		{
 			ScriptArray Arrayplanes(planes);
-			vecplanes.resize(arrayplanes.size());
-			for(int i = 0; i < (int)arrayplanes.size(); i++)
+			vecplanes.Resize(arrayplanes.size());
+			for(int i = 0; i < (int)arrayplanes.Size(); i++)
 			{
 				vecplanes[i] = arrayplanes.get<Plane>(i);
 			}
 		}
-		thisPtr->getInternal()->setPlanes(vecplanes);
+		thisPtr->GetInternal()->setPlanes(vecplanes);
 	}
 
 	MonoArray* ScriptParticleCollisions::Internal_getPlanes(ScriptParticleCollisions* thisPtr)
 	{
 		Vector<Plane> vec__output;
-		vec__output = thisPtr->getInternal()->getPlanes();
+		vec__output = thisPtr->GetInternal()->getPlanes();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
+		int arraySize__output = (int)vec__output.Size();
 		ScriptArray array__output = ScriptArray::create<ScriptPlane>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
-			array__output.set(i, vec__output[i]);
+			array__output.Set(i, vec__output[i]);
 		}
-		__output = array__output.getInternal();
+		__output = array__output.GetInternal();
 
 		return __output;
 	}
@@ -80,53 +80,53 @@ namespace bs
 		if(objects != nullptr)
 		{
 			ScriptArray Arrayobjects(objects);
-			vecobjects.resize(arrayobjects.size());
-			for(int i = 0; i < (int)arrayobjects.size(); i++)
+			vecobjects.Resize(arrayobjects.size());
+			for(int i = 0; i < (int)arrayobjects.Size(); i++)
 			{
 				ScriptSceneObject* scriptobjects;
 				scriptobjects = ScriptSceneObject::toNative(arrayobjects.get<MonoObject*>(i));
 				if(scriptobjects != nullptr)
 				{
-					GameObjectHandle<SceneObject> arrayElemPtrobjects = scriptobjects->getHandle();
+					GameObjectHandle<SceneObject> arrayElemPtrobjects = scriptobjects->GetHandle();
 					vecobjects[i] = arrayElemPtrobjects;
 				}
 			}
 		}
-		thisPtr->getInternal()->setPlaneObjects(vecobjects);
+		thisPtr->GetInternal()->setPlaneObjects(vecobjects);
 	}
 
 	MonoArray* ScriptParticleCollisions::Internal_getPlaneObjects(ScriptParticleCollisions* thisPtr)
 	{
 		Vector<GameObjectHandle<SceneObject>> vec__output;
-		vec__output = thisPtr->getInternal()->getPlaneObjects();
+		vec__output = thisPtr->GetInternal()->getPlaneObjects();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
+		int arraySize__output = (int)vec__output.Size();
 		ScriptArray array__output = ScriptArray::create<ScriptSceneObject>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
 			ScriptSceneObject* script__output = nullptr;
 			if(vec__output[i])
-			script__output = ScriptGameObjectManager::instance().getOrCreateScriptSceneObject(vec__output[i]);
+			script__output = ScriptGameObjectManager::instance().GetOrCreateScriptSceneObject(vec__output[i]);
 			if(script__output != nullptr)
-				array__output.set(i, script__output->getManagedInstance());
+				array__output.Set(i, script__output->GetManagedInstance());
 			else
-				array__output.set(i, nullptr);
+				array__output.Set(i, nullptr);
 		}
-		__output = array__output.getInternal();
+		__output = array__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptParticleCollisions::Internal_setOptions(ScriptParticleCollisions* thisPtr, PARTICLE_COLLISIONS_DESC* options)
 	{
-		thisPtr->getInternal()->setOptions(*options);
+		thisPtr->GetInternal()->setOptions(*options);
 	}
 
 	void ScriptParticleCollisions::Internal_getOptions(ScriptParticleCollisions* thisPtr, PARTICLE_COLLISIONS_DESC* __output)
 	{
 		PARTICLE_COLLISIONS_DESC tmp__output;
-		tmp__output = thisPtr->getInternal()->getOptions();
+		tmp__output = thisPtr->GetInternal()->getOptions();
 
 		*__output = tmp__output;
 	}

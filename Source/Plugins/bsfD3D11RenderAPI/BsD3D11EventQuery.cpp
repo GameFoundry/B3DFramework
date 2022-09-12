@@ -14,19 +14,19 @@ namespace bs { namespace ct
 		assert(deviceIdx == 0 && "Multiple GPUs not supported natively on DirectX 11.");
 
 		D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::instancePtr());
-		D3D11Device& device = rs->getPrimaryDevice();
+		D3D11Device& device = rs->GetPrimaryDevice();
 
 		D3D11_QUERY_DESC queryDesc;
 		queryDesc.Query = D3D11_QUERY_EVENT;
 		queryDesc.MiscFlags = 0;
 
-		HRESULT hr = device.getD3D11Device()->CreateQuery(&queryDesc, &mQuery);
+		HRESULT hr = device.GetD3D11Device()->CreateQuery(&queryDesc, &mQuery);
 		if(hr != S_OK)
 		{
 			BS_EXCEPT(RenderingAPIException, "Failed to create an Event query.");
 		}
 
-		mContext = device.getImmediateContext();
+		mContext = device.GetImmediateContext();
 
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
 	}
@@ -54,7 +54,7 @@ namespace bs { namespace ct
 		else
 		{
 			SPtr<D3D11CommandBuffer> d3d11cb = std::static_pointer_cast<D3D11CommandBuffer>(cb);
-			d3d11cb->queueCommand(execute);
+			d3d11cb->QueueCommand(execute);
 		}
 	}
 

@@ -628,9 +628,9 @@ namespace bs
 
 	inline uint64_t Bitstream::Write(const String& value)
 	{
-		uint32_t length = (uint32_t)value.size();
+		uint32_t length = (uint32_t)value.Size();
 		uint64_t written = writeVarInt(length);
-		written += writeBits((QuantType*)value.data(), (uint64_t)length * 8);
+		written += writeBits((QuantType*)value.Data(), (uint64_t)length * 8);
 
 		return written;
 	}
@@ -640,9 +640,9 @@ namespace bs
 		uint32_t length;
 		uint64_t read = readVarInt(length);
 
-		value.resize(length);
+		value.Resize(length);
 
-		QuantType* temp = (QuantType*)value.data();
+		QuantType* temp = (QuantType*)value.Data();
 		read += readBits(temp, (uint64_t)length * 8);
 
 		return read;

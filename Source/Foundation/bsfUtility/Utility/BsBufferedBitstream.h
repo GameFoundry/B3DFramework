@@ -143,15 +143,15 @@ namespace bs
 
 	inline BufferedBitstreamReader::BufferedBitstreamReader(Bitstream* bitstream, const SPtr<DataStream>& dataStream,
 		uint32_t preloadSize, uint32_t maxBufferSize)
-		: MCursor((uint64_t)dataStream->tell() * 8), mBufferedRangeStart(mCursor), mBufferedRangeEnd(mCursor), mBitstream(bitstream)
-		, MDataStream(dataStream), mLength((uint32_t)dataStream->size()), mPreloadSize(preloadSize), mMaxBufferSize(maxBufferSize)
-		, MIsMapped(!dataStream->isFile())
+		: MCursor((uint64_t)dataStream->Tell() * 8), mBufferedRangeStart(mCursor), mBufferedRangeEnd(mCursor), mBitstream(bitstream)
+		, MDataStream(dataStream), mLength((uint32_t)dataStream->Size()), mPreloadSize(preloadSize), mMaxBufferSize(maxBufferSize)
+		, MIsMapped(!dataStream->IsFile())
 	{
 		// Special case for memory streams, we can just map the memory directly
 		if(mIsMapped)
 		{
 			auto memStream = std::static_pointer_cast<MemoryDataStream>(dataStream);
-			mMemBitstream = Bitstream(memStream->data(), (uint32_t)memStream->size());
+			mMemBitstream = Bitstream(memStream->Data(), (uint32_t)memStream->size());
 			mBitstream = &mMemBitstream;
 
 			mBufferedRangeStart = 0;
@@ -163,7 +163,7 @@ namespace bs
 	{
 		preload((uint32_t)Math::divideAndRoundUp(count, (uint64_t)8));
 		mCursor += count;
-		return mBitstream->readBits(data, count);
+		return mBitstream->ReadBits(data, count);
 	}
 
 	template <class T>
@@ -171,20 +171,20 @@ namespace bs
 	{
 		preload(sizeof(T));
 		mCursor += sizeof(T) * 8;
-		return mBitstream->readBytes(value);
+		return mBitstream->ReadBytes(value);
 	}
 
 	inline uint32_t BufferedBitstreamReader::ReadBytes(Bitstream::QuantType* data, uint32_t count)
 	{
 		preload(count);
 		mCursor += (uint64_t)count * 8;
-		return mBitstream->readBytes(data, count);
+		return mBitstream->ReadBytes(data, count);
 	}
 
 	inline uint32_t BufferedBitstreamReader::ReadVarInt(uint32_t& value)
 	{
 		preload(sizeof(value));
-		uint32_t readBits = mBitstream->readVarInt(value);
+		uint32_t readBits = mBitstream->ReadVarInt(value);
 		mCursor += readBits;
 
 		return readBits;
@@ -213,7 +213,7 @@ namespace bs
 		}
 
 		mCursor = pos;
-		mBitstream->seek(pos - mBufferedRangeStart);
+		mBitstream->Seek(pos - mBufferedRangeStart);
 	}
 
 	inline void BufferedBitstreamReader::Preload(uint32_t count)
@@ -232,18 +232,18 @@ namespace bs
 		// Make sure our buffer has enough room for the new data
 		uint64_t bufferedLength = mBufferedRangeEnd - mBufferedRangeStart;
 		uint64_t newBufferedLength = bufferedLength + numBytesToPreload * 8;
-		if (mBitstream->capacity() < newBufferedLength)
-			mBitstream->resize((uint32_t)Math::divideAndRoundUp(newBufferedLength, (uint64_t)Bitstream::BITS_PER_QUANT));
+		if (mBitstream->Capacity() < newBufferedLength)
+			mBitstream->Resize((uint32_t)Math::divideAndRoundUp(newBufferedLength, (uint64_t)Bitstream::BITS_PER_QUANT));
 
 		// Read the data from data stream into the bitstream
-		uint64_t orgPos = mBitstream->tell();
-		mBitstream->seek(bufferedLength);
+		uint64_t orgPos = mBitstream->Tell();
+		mBitstream->Seek(bufferedLength);
 		
-		mDataStream->seek((size_t)(mBufferedRangeEnd / 8));
-		if (mDataStream->read(mBitstream->cursor(), numBytesToPreload) != numBytesToPreload)
+		mDataStream->Seek((size_t)(mBufferedRangeEnd / 8));
+		if (mDataStream->Read(mBitstream->cursor(), numBytesToPreload) != numBytesToPreload)
 			BS_EXCEPT(InternalErrorException, "Error reading data.");
 		
-		mBitstream->seek(orgPos);
+		mBitstream->Seek(orgPos);
 		mBufferedRangeEnd += numBytesToPreload * 8;
 	}
 
@@ -271,12 +271,12 @@ namespace bs
 		if(remainingBytes > 0)
 		{
 			remainingData = bs_stack_alloc<Bitstream::QuantType>(remainingBytes);
-			mBitstream->readBytes(remainingData, remainingBytes);
+			mBitstream->ReadBytes(remainingData, remainingBytes);
 		}
 
-		mBitstream->seek(0);
-		mBitstream->writeBytes(remainingData, remainingBytes);
-		mBitstream->seek(remainingBits);
+		mBitstream->Seek(0);
+		mBitstream->WriteBytes(remainingData, remainingBytes);
+		mBitstream->Seek(remainingBits);
 
 		if (remainingData)
 			bs_stack_free(remainingData);
@@ -286,39 +286,39 @@ namespace bs
 		uint32_t bufferSize, uint32_t flushAfter)
 		: MBitstream(bitstream), mDataStream(dataStream), mFlushAfter(flushAfter)
 	{
-		if (mBitstream->capacity() < (uint64_t)bufferSize * 8)
-			mBitstream->reserve(bufferSize);
+		if (mBitstream->Capacity() < (uint64_t)bufferSize * 8)
+			mBitstream->Reserve(bufferSize);
 	}
 
 	inline uint64_t BufferedBitstreamWriter::WriteBits(const Bitstream::QuantType* data, uint64_t count)
 	{
-		return mBitstream->writeBits(data, count);
+		return mBitstream->WriteBits(data, count);
 	}
 
 	template <class T>
 	uint32_t BufferedBitstreamWriter::WriteBytes(T& value)
 	{
-		return mBitstream->writeBytes(value);
+		return mBitstream->WriteBytes(value);
 	}
 
 	inline uint32_t BufferedBitstreamWriter::WriteBytes(Bitstream::QuantType* data, uint32_t count)
 	{
-		return mBitstream->writeBytes(data, count);
+		return mBitstream->WriteBytes(data, count);
 	}
 
 	inline uint32_t BufferedBitstreamWriter::WriteVarInt(uint32_t value)
 	{
-		return mBitstream->writeVarInt(value);
+		return mBitstream->WriteVarInt(value);
 	}
 
 	inline void BufferedBitstreamWriter::Align(uint32_t count)
 	{
-		mBitstream->align(count);
+		mBitstream->Align(count);
 	}
 
 	inline void BufferedBitstreamWriter::Flush(bool force)
 	{
-		uint64_t bitsInBuffer = mBitstream->tell();
+		uint64_t bitsInBuffer = mBitstream->Tell();
 		if ((bitsInBuffer < (mFlushAfter * 8)) && !force)
 			return;
 
@@ -334,7 +334,7 @@ namespace bs
 		{
 			// Pad the last quant
 			uint32_t bitsToPad = Bitstream::BITS_PER_QUANT - leftoverBits;
-			mBitstream->writeBits(&quant, bitsToPad);
+			mBitstream->WriteBits(&quant, bitsToPad);
 			bitsInBuffer += bitsToPad;
 			
 			assert((bitsInBuffer % Bitstream::BITS_PER_QUANT) == 0);
@@ -344,13 +344,13 @@ namespace bs
 			leftoverBits = 0;
 		}
 
-		mBitstream->seek(bitsToFlush);
-		mBitstream->readBits(&quant, leftoverBits);
+		mBitstream->Seek(bitsToFlush);
+		mBitstream->ReadBits(&quant, leftoverBits);
 
-		mBitstream->seek(0);
-		mDataStream->write(mBitstream->cursor(), (size_t)bytesToFlush);
+		mBitstream->Seek(0);
+		mDataStream->Write(mBitstream->cursor(), (size_t)bytesToFlush);
 
-		mBitstream->writeBits(&quant, leftoverBits);
+		mBitstream->WriteBits(&quant, leftoverBits);
 	}
 	
 }

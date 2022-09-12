@@ -35,14 +35,14 @@ namespace bs
 		ScriptTDistributionfloat* scriptsize;
 		scriptsize = ScriptTDistributionfloat::toNative(value.size);
 		if(scriptsize != nullptr)
-			tmpsize = scriptsize->getInternal();
+			tmpsize = scriptsize->GetInternal();
 		if(tmpsize != nullptr)
 		output.size = *tmpsize;
 		SPtr<TDistribution<Vector3>> tmpsize3D;
 		ScriptTDistributionVector3* scriptsize3D;
 		scriptsize3D = ScriptTDistributionVector3::toNative(value.size3D);
 		if(scriptsize3D != nullptr)
-			tmpsize3D = scriptsize3D->getInternal();
+			tmpsize3D = scriptsize3D->GetInternal();
 		if(tmpsize3D != nullptr)
 		output.size3D = *tmpsize3D;
 		output.use3DSize = value.use3DSize;

@@ -45,11 +45,11 @@ namespace bs { namespace ct
 				}
 
 				VideoOutputInfo* output = bs_new<LinuxVideoOutputInfo>(display, i, outputInfo, crtcInfo, screenRes,
-						screenRes->outputs[j], (UINT32)mOutputs.size());
+						screenRes->outputs[j], (UINT32)mOutputs.Size());
 
 				// Make sure the primary output is the first in the output list
 				if(i == defaultScreen && screenRes->outputs[j] == primaryOutput)
-					mOutputs.insert(mOutputs.begin(), output);
+					mOutputs.Insert(mOutputs.begin(), output);
 				else
 					mOutputs.push_back(output);
 
@@ -126,7 +126,7 @@ namespace bs { namespace ct
 		XFree(outputProps);
 
 		// Use the output name if display name cannot be found
-		if(mName.empty())
+		if(mName.Empty())
 			mName = outputInfo->name;
 
 		// Enumerate all valid resolutions

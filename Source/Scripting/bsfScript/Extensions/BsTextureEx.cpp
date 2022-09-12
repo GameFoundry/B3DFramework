@@ -36,53 +36,53 @@ namespace bs
 
 	PixelFormat TextureEx::GetPixelFormat(const HTexture& thisPtr)
 	{
-		return thisPtr->getProperties().getFormat();
+		return thisPtr->GetProperties().GetFormat();
 	}
 
 	TextureUsage TextureEx::GetUsage(const HTexture& thisPtr)
 	{
-		return (TextureUsage)thisPtr->getProperties().getUsage();
+		return (TextureUsage)thisPtr->GetProperties().GetUsage();
 	}
 
 	TextureType TextureEx::GetType(const HTexture& thisPtr)
 	{
-		return thisPtr->getProperties().getTextureType();
+		return thisPtr->GetProperties().GetTextureType();
 	}
 
 	UINT32 TextureEx::GetWidth(const HTexture& thisPtr)
 	{
-		return thisPtr->getProperties().getWidth();
+		return thisPtr->GetProperties().GetWidth();
 	}
 
 	UINT32 TextureEx::GetHeight(const HTexture& thisPtr)
 	{
-		return thisPtr->getProperties().getHeight();
+		return thisPtr->GetProperties().GetHeight();
 	}
 
 	UINT32 TextureEx::GetDepth(const HTexture& thisPtr)
 	{
-		return thisPtr->getProperties().getDepth();
+		return thisPtr->GetProperties().GetDepth();
 	}
 
 	bool TextureEx::GetGammaCorrection(const HTexture& thisPtr)
 	{
-		return thisPtr->getProperties().isHardwareGammaEnabled();
+		return thisPtr->GetProperties().IsHardwareGammaEnabled();
 	}
 
 	UINT32 TextureEx::GetSampleCount(const HTexture& thisPtr)
 	{
-		return thisPtr->getProperties().getNumSamples();
+		return thisPtr->GetProperties().GetNumSamples();
 	}
 
 	UINT32 TextureEx::GetMipmapCount(const HTexture& thisPtr)
 	{
-		return thisPtr->getProperties().getNumMipmaps();
+		return thisPtr->GetProperties().GetNumMipmaps();
 	}
 
 	SPtr<PixelData> TextureEx::GetPixels(const HTexture& thisPtr, UINT32 face, UINT32 mipLevel)
 	{
-		SPtr<PixelData> pixelData = thisPtr->getProperties().allocBuffer(face, mipLevel);
-		thisPtr->readCachedData(*pixelData, face, mipLevel);
+		SPtr<PixelData> pixelData = thisPtr->GetProperties().AllocBuffer(face, mipLevel);
+		thisPtr->ReadCachedData(*pixelData, face, mipLevel);
 
 		return pixelData;
 	}
@@ -90,15 +90,15 @@ namespace bs
 	void TextureEx::SetPixels(const HTexture& thisPtr, const SPtr<PixelData>& data, UINT32 face, UINT32 mipLevel)
 	{
 		if (data != nullptr)
-			thisPtr->writeData(data, face, mipLevel, false);
+			thisPtr->WriteData(data, face, mipLevel, false);
 	}
 
 	void TextureEx::SetPixelsArray(const HTexture& thisPtr, const Vector<Color>& colors, UINT32 face, UINT32 mipLevel)
 	{
-		UINT32 numElements = (UINT32)colors.size();
+		UINT32 numElements = (UINT32)colors.Size();
 
-		const TextureProperties& props = thisPtr->getProperties();
-		UINT32 texNumElements = props.getWidth() * props.getHeight() * props.getDepth();
+		const TextureProperties& props = thisPtr->GetProperties();
+		UINT32 texNumElements = props.GetWidth() * props.getHeight() * props.getDepth();
 
 		if (texNumElements != numElements)
 		{
@@ -106,11 +106,11 @@ namespace bs
 			return;
 		}		
 
-		SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(props.getWidth(), props.getHeight(), props.getDepth(),
-			props.getFormat());
-		pixelData->allocateInternalBuffer();
-		pixelData->setColors(colors);
+		SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(props.GetWidth(), props.getHeight(), props.getDepth(),
+			props.GetFormat());
+		pixelData->AllocateInternalBuffer();
+		pixelData->SetColors(colors);
 
-		thisPtr->writeData(pixelData, face, mipLevel, false);
+		thisPtr->WriteData(pixelData, face, mipLevel, false);
 	}
 }

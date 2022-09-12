@@ -50,7 +50,7 @@ namespace bs { namespace ct
 
 		// Pretend as if we can parse HLSL
 		mNullProgramFactory = bs_new<NullProgramFactory>();
-		GpuProgramManager::instance().addFactory("hlsl", mNullProgramFactory);
+		GpuProgramManager::instance().AddFactory("hlsl", mNullProgramFactory);
 
 		mNumDevices = 1;
 		mCurrentCapabilities = bs_newN<RenderAPICapabilities>(mNumDevices);

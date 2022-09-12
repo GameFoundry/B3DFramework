@@ -22,9 +22,9 @@ namespace bs
 	{
 		Map<String, UINT32>& uniqueButtonIds = getUniqueButtonIds();
 
-		auto findIter = uniqueButtonIds.find(name);
+		auto findIter = uniqueButtonIds.Find(name);
 
-		if(findIter != uniqueButtonIds.end())
+		if(findIter != uniqueButtonIds.End())
 			buttonIdentifier = findIter->second;
 		else
 		{
@@ -41,9 +41,9 @@ namespace bs
 
 	VirtualAxis::VirtualAxis(const String& name)
 	{
-		auto findIter = UniqueAxisIds.find(name);
+		auto findIter = UniqueAxisIds.Find(name);
 
-		if (findIter != UniqueAxisIds.end())
+		if (findIter != UniqueAxisIds.End())
 			axisIdentifier = findIter->second;
 		else
 		{
@@ -57,7 +57,7 @@ namespace bs
 		Vector<VirtualButtonData>& btnData = mButtons[buttonCode & 0x0000FFFF];
 
 		INT32 idx = -1;
-		for(UINT32 i = 0; i < (UINT32)btnData.size(); i++)
+		for(UINT32 i = 0; i < (UINT32)btnData.Size(); i++)
 		{
 			if (btnData[i].name == name)
 			{
@@ -68,7 +68,7 @@ namespace bs
 
 		if(idx == -1)
 		{
-			idx = (INT32)btnData.size();
+			idx = (INT32)btnData.Size();
 			btnData.push_back(VirtualButtonData());
 		}
 
@@ -84,7 +84,7 @@ namespace bs
 
 		for(UINT32 i = 0; i < BC_Count; i++)
 		{
-			for(UINT32 j = 0; j < (UINT32)mButtons[i].size(); j++)
+			for(UINT32 j = 0; j < (UINT32)mButtons[i].Size(); j++)
 			{
 				if(mButtons[i][j].name == name)
 					toRemove.push_back(j);
@@ -93,12 +93,12 @@ namespace bs
 			UINT32 numRemoved = 0;
 			for(auto& toRemoveIdx : toRemove)
 			{
-				mButtons[i].erase(mButtons[i].begin() + toRemoveIdx - numRemoved);
+				mButtons[i].Erase(mButtons[i].begin() + toRemoveIdx - numRemoved);
 
 				numRemoved++;
 			}
 
-			toRemove.clear();
+			toRemove.Clear();
 		}
 	}
 
@@ -106,8 +106,8 @@ namespace bs
 	{
 		VirtualAxis Axis(name);
 
-		if (axis.axisIdentifier >= (UINT32)mAxes.size())
-			mAxes.resize(axis.axisIdentifier + 1);
+		if (axis.axisIdentifier >= (UINT32)mAxes.Size())
+			mAxes.Resize(axis.axisIdentifier + 1);
 
 		mAxes[axis.axisIdentifier].name = name;
 		mAxes[axis.axisIdentifier].desc = desc;
@@ -116,11 +116,11 @@ namespace bs
 
 	void InputConfiguration::UnregisterAxis(const String& name)
 	{
-		for (UINT32 i = 0; i < (UINT32)mAxes.size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mAxes.Size(); i++)
 		{
 			if (mAxes[i].name == name)
 			{
-				mAxes.erase(mAxes.begin() + i);
+				mAxes.Erase(mAxes.begin() + i);
 				i--;
 			}
 		}
@@ -131,7 +131,7 @@ namespace bs
 		const Vector<VirtualButtonData>& btnData = mButtons[code & 0x0000FFFF];
 
 		bool foundAny = false;
-		for(UINT32 i = 0; i < (UINT32)btnData.size(); i++)
+		for(UINT32 i = 0; i < (UINT32)btnData.Size(); i++)
 		{
 			if((((UINT32)btnData[i].desc.modifiers) & modifiers) == ((UINT32)btnData[i].desc.modifiers))
 			{
@@ -146,7 +146,7 @@ namespace bs
 
 	bool InputConfiguration::_getAxis(const VirtualAxis& axis, VIRTUAL_AXIS_DESC& axisDesc) const
 	{
-		if (axis.axisIdentifier >= (UINT32)mAxes.size())
+		if (axis.axisIdentifier >= (UINT32)mAxes.Size())
 			return false;
 
 		axisDesc = mAxes[axis.axisIdentifier].desc;

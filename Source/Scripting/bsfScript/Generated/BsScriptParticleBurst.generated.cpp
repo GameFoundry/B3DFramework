@@ -34,7 +34,7 @@ namespace bs
 		ScriptTDistributionfloat* scriptcount;
 		scriptcount = ScriptTDistributionfloat::toNative(value.count);
 		if(scriptcount != nullptr)
-			tmpcount = scriptcount->getInternal();
+			tmpcount = scriptcount->GetInternal();
 		if(tmpcount != nullptr)
 		output.count = *tmpcount;
 		output.cycles = value.cycles;

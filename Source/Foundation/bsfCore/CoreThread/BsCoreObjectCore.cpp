@@ -36,11 +36,11 @@ namespace bs
 		if (!isInitialized())
 		{
 #if BS_DEBUG_MODE
-			if (BS_THREAD_CURRENT_ID == CoreThread::instance().getCoreThreadId())
+			if (BS_THREAD_CURRENT_ID == CoreThread::instance().GetCoreThreadId())
 				BS_EXCEPT(InternalErrorException, "You cannot call this method on the core thread. It will cause a deadlock!");
 #endif
 
-			gCoreThread().submitAll(true);
+			gCoreThread().SubmitAll(true);
 
 			Lock Lock(mCoreGpuObjectLoadedMutex);
 			while (!isInitialized())
@@ -48,7 +48,7 @@ namespace bs
 				if (!isScheduledToBeInitialized())
 					BS_EXCEPT(InternalErrorException, "Attempting to wait until initialization finishes but object is not scheduled to be initialized.");
 
-				mCoreGpuObjectLoadedCondition.wait(lock);
+				mCoreGpuObjectLoadedCondition.Wait(lock);
 			}
 		}
 	}

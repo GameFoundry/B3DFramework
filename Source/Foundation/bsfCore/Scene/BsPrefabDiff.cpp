@@ -64,38 +64,38 @@ namespace bs
 
 		applyDiff(mRoot, object, &serzContext);
 
-		serzContext.goState->resolve();
+		serzContext.goState->Resolve();
 	}
 
 	void PrefabDiff::applyDiff(const SPtr<PrefabObjectDiff>& diff, const HSceneObject& object,
 		SerializationContext* context)
 	{
 		if ((diff->soFlags & (UINT32)SceneObjectDiffFlags::Name) != 0)
-			object->setName(diff->name);
+			object->SetName(diff->name);
 
 		if ((diff->soFlags & (UINT32)SceneObjectDiffFlags::Position) != 0)
-			object->setPosition(diff->position);
+			object->SetPosition(diff->position);
 
 		if ((diff->soFlags & (UINT32)SceneObjectDiffFlags::Rotation) != 0)
-			object->setRotation(diff->rotation);
+			object->SetRotation(diff->rotation);
 
 		if ((diff->soFlags & (UINT32)SceneObjectDiffFlags::Scale) != 0)
-			object->setScale(diff->scale);
+			object->SetScale(diff->scale);
 
 		if ((diff->soFlags & (UINT32)SceneObjectDiffFlags::Active) != 0)
-			object->setActive(diff->isActive);
+			object->SetActive(diff->isActive);
 
 		// Note: It is important to remove objects and components first, before adding them.
 		//		 Some systems rely on the fact that applyDiff added components/objects are
 		//       always at the end.
-		const Vector<HComponent>& components = object->getComponents();
+		const Vector<HComponent>& components = object->GetComponents();
 		for (auto& removedId : diff->removedComponents)
 		{
 			for (auto component : components)
 			{
-				if (removedId == component->getLinkId())
+				if (removedId == component->GetLinkId())
 				{
-					component->destroy(true);
+					component->Destroy(true);
 					break;
 				}
 			}
@@ -103,13 +103,13 @@ namespace bs
 
 		for (auto& removedId : diff->removedChildren)
 		{
-			UINT32 childCount = object->getNumChildren();
+			UINT32 childCount = object->GetNumChildren();
 			for (UINT32 i = 0; i < childCount; i++)
 			{
-				HSceneObject child = object->getChild(i);
-				if (removedId == child->getLinkId())
+				HSceneObject child = object->GetChild(i);
+				if (removedId == child->GetLinkId())
 				{
-					child->destroy(true);
+					child->Destroy(true);
 					break;
 				}
 			}
@@ -117,17 +117,17 @@ namespace bs
 
 		for (auto& addedComponentData : diff->addedComponents)
 		{
-			SPtr<Component> component = std::static_pointer_cast<Component>(addedComponentData->decode(context));
+			SPtr<Component> component = std::static_pointer_cast<Component>(addedComponentData->Decode(context));
 
-			object->addAndInitializeComponent(component);
+			object->AddAndInitializeComponent(component);
 		}
 
 		for (auto& addedChildData : diff->addedChildren)
 		{
-			SPtr<SceneObject> sceneObject = std::static_pointer_cast<SceneObject>(addedChildData->decode(context));
-			sceneObject->setParent(object);
+			SPtr<SceneObject> sceneObject = std::static_pointer_cast<SceneObject>(addedChildData->Decode(context));
+			sceneObject->SetParent(object);
 
-			if(object->isInstantiated())
+			if(object->IsInstantiated())
 				sceneObject->_instantiate();
 		}
 
@@ -135,10 +135,10 @@ namespace bs
 		{
 			for (auto& component : components)
 			{
-				if (componentDiff->id == (INT32)component->getLinkId())
+				if (componentDiff->id == (INT32)component->GetLinkId())
 				{
-					IDiff& diffHandler = component->getRTTI()->getDiffHandler();
-					diffHandler.applyDiff(component.getInternalPtr(), componentDiff->data, context);
+					IDiff& diffHandler = component->GetRTTI()->getDiffHandler();
+					diffHandler.ApplyDiff(component.getInternalPtr(), componentDiff->data, context);
 					break;
 				}
 			}
@@ -146,11 +146,11 @@ namespace bs
 
 		for (auto& childDiff : diff->childDiffs)
 		{
-			UINT32 childCount = object->getNumChildren();
+			UINT32 childCount = object->GetNumChildren();
 			for (UINT32 i = 0; i < childCount; i++)
 			{
-				HSceneObject child = object->getChild(i);
-				if (childDiff->id == child->getLinkId())
+				HSceneObject child = object->GetChild(i);
+				if (childDiff->id == child->GetLinkId())
 				{
 					applyDiff(childDiff, child, context);
 					break;
@@ -163,70 +163,70 @@ namespace bs
 	{
 		SPtr<PrefabObjectDiff> output;
 
-		if (prefab->getName() != instance->getName())
+		if (prefab->GetName() != instance->getName())
 		{
 			if (output == nullptr)
 				output = bs_shared_ptr_new<PrefabObjectDiff>();
 
-			output->name = instance->getName();
+			output->name = instance->GetName();
 			output->soFlags |= (UINT32)SceneObjectDiffFlags::Name;
 		}
 
-		const Transform& prefabTfrm = prefab->getLocalTransform();
-		const Transform& instanceTfrm = instance->getLocalTransform();
-		if (prefabTfrm.getPosition() != instanceTfrm.getPosition())
+		const Transform& prefabTfrm = prefab->GetLocalTransform();
+		const Transform& instanceTfrm = instance->GetLocalTransform();
+		if (prefabTfrm.GetPosition() != instanceTfrm.getPosition())
 		{
 			if (output == nullptr)
 				output = bs_shared_ptr_new<PrefabObjectDiff>();
 
-			output->position = instanceTfrm.getPosition();
+			output->position = instanceTfrm.GetPosition();
 			output->soFlags |= (UINT32)SceneObjectDiffFlags::Position;
 		}
 
-		if (prefabTfrm.getRotation() != instanceTfrm.getRotation())
+		if (prefabTfrm.GetRotation() != instanceTfrm.getRotation())
 		{
 			if (output == nullptr)
 				output = bs_shared_ptr_new<PrefabObjectDiff>();
 
-			output->rotation = instanceTfrm.getRotation();
+			output->rotation = instanceTfrm.GetRotation();
 			output->soFlags |= (UINT32)SceneObjectDiffFlags::Rotation;
 		}
 
-		if (prefabTfrm.getScale() != instanceTfrm.getScale())
+		if (prefabTfrm.GetScale() != instanceTfrm.getScale())
 		{
 			if (output == nullptr)
 				output = bs_shared_ptr_new<PrefabObjectDiff>();
 
-			output->scale = instanceTfrm.getScale();
+			output->scale = instanceTfrm.GetScale();
 			output->soFlags |= (UINT32)SceneObjectDiffFlags::Scale;
 		}
 
-		if (prefab->getActive() != instance->getActive())
+		if (prefab->GetActive() != instance->getActive())
 		{
 			if (output == nullptr)
 				output = bs_shared_ptr_new<PrefabObjectDiff>();
 
-			output->isActive = instance->getActive();
+			output->isActive = instance->GetActive();
 			output->soFlags |= (UINT32)SceneObjectDiffFlags::Active;
 		}
 
-		UINT32 prefabChildCount = prefab->getNumChildren();
-		UINT32 instanceChildCount = instance->getNumChildren();
+		UINT32 prefabChildCount = prefab->GetNumChildren();
+		UINT32 instanceChildCount = instance->GetNumChildren();
 
 		// Find modified and removed children
 		for (UINT32 i = 0; i < prefabChildCount; i++)
 		{
-			HSceneObject prefabChild = prefab->getChild(i);
+			HSceneObject prefabChild = prefab->GetChild(i);
 
 			SPtr<PrefabObjectDiff> childDiff;
 			bool foundMatching = false;
 			for (UINT32 j = 0; j < instanceChildCount; j++)
 			{
-				HSceneObject instanceChild = instance->getChild(j);
+				HSceneObject instanceChild = instance->GetChild(j);
 
-				if (prefabChild->getLinkId() == instanceChild->getLinkId())
+				if (prefabChild->GetLinkId() == instanceChild->getLinkId())
 				{
-					if (instanceChild->mPrefabLinkUUID.empty())
+					if (instanceChild->mPrefabLinkUUID.Empty())
 						childDiff = generateDiff(prefabChild, instanceChild);
 
 					foundMatching = true;
@@ -249,26 +249,26 @@ namespace bs
 				if (output == nullptr)
 					output = bs_shared_ptr_new<PrefabObjectDiff>();
 
-				output->removedChildren.push_back(prefabChild->getLinkId());
+				output->removedChildren.push_back(prefabChild->GetLinkId());
 			}	
 		}
 
 		// Find added children
 		for (UINT32 i = 0; i < instanceChildCount; i++)
 		{
-			HSceneObject instanceChild = instance->getChild(i);
+			HSceneObject instanceChild = instance->GetChild(i);
 
-			if (instanceChild->hasFlag(SOF_DontSave))
+			if (instanceChild->HasFlag(SOF_DontSave))
 				continue;
 
 			bool foundMatching = false;
-			if (instanceChild->getLinkId() != (UINT32)-1)
+			if (instanceChild->GetLinkId() != (UINT32)-1)
 			{
 				for (UINT32 j = 0; j < prefabChildCount; j++)
 				{
-					HSceneObject prefabChild = prefab->getChild(j);
+					HSceneObject prefabChild = prefab->GetChild(j);
 
-					if (prefabChild->getLinkId() == instanceChild->getLinkId())
+					if (prefabChild->GetLinkId() == instanceChild->getLinkId())
 					{
 						foundMatching = true;
 						break;
@@ -287,11 +287,11 @@ namespace bs
 			}
 		}
 
-		const Vector<HComponent>& prefabComponents = prefab->getComponents();
-		const Vector<HComponent>& instanceComponents = instance->getComponents();
+		const Vector<HComponent>& prefabComponents = prefab->GetComponents();
+		const Vector<HComponent>& instanceComponents = instance->GetComponents();
 
-		UINT32 prefabComponentCount = (UINT32)prefabComponents.size();
-		UINT32 instanceComponentCount = (UINT32)instanceComponents.size();
+		UINT32 prefabComponentCount = (UINT32)prefabComponents.Size();
+		UINT32 instanceComponentCount = (UINT32)instanceComponents.Size();
 
 		// Find modified and removed components
 		for (UINT32 i = 0; i < prefabComponentCount; i++)
@@ -304,18 +304,18 @@ namespace bs
 			{
 				HComponent instanceComponent = instanceComponents[j];
 
-				if (prefabComponent->getLinkId() == instanceComponent->getLinkId())
+				if (prefabComponent->GetLinkId() == instanceComponent->getLinkId())
 				{
 					SPtr<SerializedObject> encodedPrefab = SerializedObject::create(*prefabComponent);
 					SPtr<SerializedObject> encodedInstance = SerializedObject::create(*instanceComponent);
 
-					IDiff& diffHandler = prefabComponent->getRTTI()->getDiffHandler();
-					SPtr<SerializedObject> diff = diffHandler.generateDiff(encodedPrefab, encodedInstance);
+					IDiff& diffHandler = prefabComponent->GetRTTI()->getDiffHandler();
+					SPtr<SerializedObject> diff = diffHandler.GenerateDiff(encodedPrefab, encodedInstance);
 
 					if (diff != nullptr)
 					{
 						childDiff = bs_shared_ptr_new<PrefabComponentDiff>();
-						childDiff->id = prefabComponent->getLinkId();
+						childDiff->id = prefabComponent->GetLinkId();
 						childDiff->data = diff;
 					}
 
@@ -339,7 +339,7 @@ namespace bs
 				if (output == nullptr)
 					output = bs_shared_ptr_new<PrefabObjectDiff>();
 
-				output->removedComponents.push_back(prefabComponent->getLinkId());
+				output->removedComponents.push_back(prefabComponent->GetLinkId());
 			}
 		}
 
@@ -349,13 +349,13 @@ namespace bs
 			HComponent instanceComponent = instanceComponents[i];
 
 			bool foundMatching = false;
-			if (instanceComponent->getLinkId() != (UINT32)-1)
+			if (instanceComponent->GetLinkId() != (UINT32)-1)
 			{
 				for (UINT32 j = 0; j < prefabComponentCount; j++)
 				{
 					HComponent prefabComponent = prefabComponents[j];
 
-					if (prefabComponent->getLinkId() == instanceComponent->getLinkId())
+					if (prefabComponent->GetLinkId() == instanceComponent->getLinkId())
 					{
 						foundMatching = true;
 						break;
@@ -375,7 +375,7 @@ namespace bs
 		}
 
 		if (output != nullptr)
-			output->id = instance->getLinkId();
+			output->id = instance->GetLinkId();
 
 		return output;
 	}
@@ -394,108 +394,108 @@ namespace bs
 		// contain prefab's IDs, but will be used for the instance.
 
 		Stack<StackEntry> todo;
-		todo.push({ instance, UUID::EMPTY });
+		todo.Push({ instance, UUID::EMPTY });
 
-		while (!todo.empty())
+		while (!todo.Empty())
 		{
-			StackEntry current = todo.top();
-			todo.pop();
+			StackEntry current = todo.Top();
+			todo.Pop();
 
 			UUID childParentUUID;
-			if (current.so->mPrefabLinkUUID.empty())
+			if (current.so->mPrefabLinkUUID.Empty())
 				childParentUUID = current.uuid;
 			else
 				childParentUUID = current.so->mPrefabLinkUUID;
 
 			UnorderedMap<UINT32, UINT64>& idMap = linkToInstanceId[childParentUUID];
 
-			const Vector<HComponent>& components = current.so->getComponents();
+			const Vector<HComponent>& components = current.so->GetComponents();
 			for (auto& component : components)
 			{
-				if (component->getLinkId() != (UINT32)-1)
-					idMap[component->getLinkId()] = component->getInstanceId();
+				if (component->GetLinkId() != (UINT32)-1)
+					idMap[component->GetLinkId()] = component->getInstanceId();
 			}
 
-			UINT32 numChildren = current.so->getNumChildren();
+			UINT32 numChildren = current.so->GetNumChildren();
 			for (UINT32 i = 0; i < numChildren; i++)
 			{
-				HSceneObject child = current.so->getChild(i);
+				HSceneObject child = current.so->GetChild(i);
 
-				if (child->getLinkId() != (UINT32)-1)
-					idMap[child->getLinkId()] = child->getInstanceId();
+				if (child->GetLinkId() != (UINT32)-1)
+					idMap[child->GetLinkId()] = child->getInstanceId();
 
-				todo.push({ child, childParentUUID });
+				todo.Push({ child, childParentUUID });
 			}
 		}
 
 		// Root has link ID from its parent so we handle it separately
 		{
 			output.push_back(RenamedGameObject());
-			RenamedGameObject& renamedGO = output.back();
+			RenamedGameObject& renamedGO = output.Back();
 			renamedGO.instanceData = instance->mInstanceData;
-			renamedGO.originalId = instance->getInstanceId();
+			renamedGO.originalId = instance->GetInstanceId();
 
-			prefab->mInstanceData->mInstanceId = instance->getInstanceId();
+			prefab->mInstanceData->mInstanceId = instance->GetInstanceId();
 		}
 
-		todo.push({ prefab, UUID::EMPTY });
-		while (!todo.empty())
+		todo.Push({ prefab, UUID::EMPTY });
+		while (!todo.Empty())
 		{
-			StackEntry current = todo.top();
-			todo.pop();
+			StackEntry current = todo.Top();
+			todo.Pop();
 
 			UUID childParentUUID;
-			if (current.so->mPrefabLinkUUID.empty())
+			if (current.so->mPrefabLinkUUID.Empty())
 				childParentUUID = current.uuid;
 			else
 				childParentUUID = current.so->mPrefabLinkUUID;
 
-			auto iterFind = linkToInstanceId.find(childParentUUID);
-			if (iterFind != linkToInstanceId.end())
+			auto iterFind = linkToInstanceId.Find(childParentUUID);
+			if (iterFind != linkToInstanceId.End())
 			{
 				UnorderedMap<UINT32, UINT64>& idMap = iterFind->second;
 
-				const Vector<HComponent>& components = current.so->getComponents();
+				const Vector<HComponent>& components = current.so->GetComponents();
 				for (auto& component : components)
 				{
-					auto iterFind2 = idMap.find(component->getLinkId());
-					if (iterFind2 != idMap.end())
+					auto iterFind2 = idMap.Find(component->GetLinkId());
+					if (iterFind2 != idMap.End())
 					{
 						output.push_back(RenamedGameObject());
-						RenamedGameObject& renamedGO = output.back();
+						RenamedGameObject& renamedGO = output.Back();
 						renamedGO.instanceData = component->mInstanceData;
-						renamedGO.originalId = component->getInstanceId();
+						renamedGO.originalId = component->GetInstanceId();
 
 						component->mInstanceData->mInstanceId = iterFind2->second;
 					}
 				}
 			}
 
-			UINT32 numChildren = current.so->getNumChildren();
+			UINT32 numChildren = current.so->GetNumChildren();
 			for (UINT32 i = 0; i < numChildren; i++)
 			{
-				HSceneObject child = current.so->getChild(i);
+				HSceneObject child = current.so->GetChild(i);
 
-				if (iterFind != linkToInstanceId.end())
+				if (iterFind != linkToInstanceId.End())
 				{
-					if (child->getLinkId() != (UINT32)-1)
+					if (child->GetLinkId() != (UINT32)-1)
 					{
 						UnorderedMap<UINT32, UINT64>& idMap = iterFind->second;
 
-						auto iterFind2 = idMap.find(child->getLinkId());
-						if (iterFind2 != idMap.end())
+						auto iterFind2 = idMap.Find(child->GetLinkId());
+						if (iterFind2 != idMap.End())
 						{
 							output.push_back(RenamedGameObject());
-							RenamedGameObject& renamedGO = output.back();
+							RenamedGameObject& renamedGO = output.Back();
 							renamedGO.instanceData = child->mInstanceData;
-							renamedGO.originalId = child->getInstanceId();
+							renamedGO.originalId = child->GetInstanceId();
 
 							child->mInstanceData->mInstanceId = iterFind2->second;
 						}
 					}
 				}
 
-				todo.push({ child, childParentUUID });
+				todo.Push({ child, childParentUUID });
 			}
 		}
 	}

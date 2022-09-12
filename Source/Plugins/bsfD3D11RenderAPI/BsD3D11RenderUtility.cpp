@@ -39,42 +39,42 @@ namespace bs { namespace ct
 		// Set states
 		if((clearBuffers & FBT_COLOR) != 0)
 		{
-			D3D11BlendState* d3d11BlendState = static_cast<D3D11BlendState*>(const_cast<BlendState*>(mClearQuadBlendStateYesC.get()));
-			mDevice->getImmediateContext()->OMSetBlendState(d3d11BlendState->getInternal(), nullptr, 0xFFFFFFFF);
+			D3D11BlendState* d3d11BlendState = static_cast<D3D11BlendState*>(const_cast<BlendState*>(mClearQuadBlendStateYesC.Get()));
+			mDevice->GetImmediateContext()->OMSetBlendState(d3d11BlendState->getInternal(), nullptr, 0xFFFFFFFF);
 		}
 		else
 		{
-			D3D11BlendState* d3d11BlendState = static_cast<D3D11BlendState*>(const_cast<BlendState*>(mClearQuadBlendStateNoC.get()));
-			mDevice->getImmediateContext()->OMSetBlendState(d3d11BlendState->getInternal(), nullptr, 0xFFFFFFFF);
+			D3D11BlendState* d3d11BlendState = static_cast<D3D11BlendState*>(const_cast<BlendState*>(mClearQuadBlendStateNoC.Get()));
+			mDevice->GetImmediateContext()->OMSetBlendState(d3d11BlendState->getInternal(), nullptr, 0xFFFFFFFF);
 		}
 
-		D3D11RasterizerState* d3d11RasterizerState = static_cast<D3D11RasterizerState*>(const_cast<RasterizerState*>(mClearQuadRasterizerState.get()));
-		mDevice->getImmediateContext()->RSSetState(d3d11RasterizerState->getInternal());
+		D3D11RasterizerState* d3d11RasterizerState = static_cast<D3D11RasterizerState*>(const_cast<RasterizerState*>(mClearQuadRasterizerState.Get()));
+		mDevice->GetImmediateContext()->RSSetState(d3d11RasterizerState->getInternal());
 
 		if((clearBuffers & FBT_DEPTH) != 0)
 		{
 			if((clearBuffers & FBT_STENCIL) != 0)
 			{
-				D3D11DepthStencilState* d3d11DepthStencilState = static_cast<D3D11DepthStencilState*>(const_cast<DepthStencilState*>(mClearQuadDSStateYesD_YesS.get()));
-				mDevice->getImmediateContext()->OMSetDepthStencilState(d3d11DepthStencilState->getInternal(), stencil);
+				D3D11DepthStencilState* d3d11DepthStencilState = static_cast<D3D11DepthStencilState*>(const_cast<DepthStencilState*>(mClearQuadDSStateYesD_YesS.Get()));
+				mDevice->GetImmediateContext()->OMSetDepthStencilState(d3d11DepthStencilState->getInternal(), stencil);
 			}
 			else
 			{
-				D3D11DepthStencilState* d3d11DepthStencilState = static_cast<D3D11DepthStencilState*>(const_cast<DepthStencilState*>(mClearQuadDSStateYesD_NoS.get()));
-				mDevice->getImmediateContext()->OMSetDepthStencilState(d3d11DepthStencilState->getInternal(), stencil);
+				D3D11DepthStencilState* d3d11DepthStencilState = static_cast<D3D11DepthStencilState*>(const_cast<DepthStencilState*>(mClearQuadDSStateYesD_NoS.Get()));
+				mDevice->GetImmediateContext()->OMSetDepthStencilState(d3d11DepthStencilState->getInternal(), stencil);
 			}
 		}
 		else
 		{
 			if((clearBuffers & FBT_STENCIL) != 0)
 			{
-				D3D11DepthStencilState* d3d11DepthStencilState = static_cast<D3D11DepthStencilState*>(const_cast<DepthStencilState*>(mClearQuadDSStateNoD_YesS.get()));
-				mDevice->getImmediateContext()->OMSetDepthStencilState(d3d11DepthStencilState->getInternal(), stencil);
+				D3D11DepthStencilState* d3d11DepthStencilState = static_cast<D3D11DepthStencilState*>(const_cast<DepthStencilState*>(mClearQuadDSStateNoD_YesS.Get()));
+				mDevice->GetImmediateContext()->OMSetDepthStencilState(d3d11DepthStencilState->getInternal(), stencil);
 			}
 			else
 			{
-				D3D11DepthStencilState* d3d11DepthStencilState = static_cast<D3D11DepthStencilState*>(const_cast<DepthStencilState*>(mClearQuadDSStateNoD_NoS.get()));
-				mDevice->getImmediateContext()->OMSetDepthStencilState(d3d11DepthStencilState->getInternal(), stencil);
+				D3D11DepthStencilState* d3d11DepthStencilState = static_cast<D3D11DepthStencilState*>(const_cast<DepthStencilState*>(mClearQuadDSStateNoD_NoS.Get()));
+				mDevice->GetImmediateContext()->OMSetDepthStencilState(d3d11DepthStencilState->getInternal(), stencil);
 			}
 		}
 
@@ -85,15 +85,15 @@ namespace bs { namespace ct
 		vertexData[2].pos = Vector3(-1.0f, -1.0f, depth);
 		vertexData[3].pos = Vector3(1.0f, -1.0f, depth);
 
-		vertexData[0].col = color.getAsRGBA();
-		vertexData[1].col = color.getAsRGBA();
-		vertexData[2].col = color.getAsRGBA();
-		vertexData[3].col = color.getAsRGBA();
+		vertexData[0].col = color.GetAsRGBA();
+		vertexData[1].col = color.GetAsRGBA();
+		vertexData[2].col = color.GetAsRGBA();
+		vertexData[3].col = color.GetAsRGBA();
 
-		mDevice->getImmediateContext()->UpdateSubresource(mClearQuadVB, 0, nullptr, vertexData, 0, sizeof(ClearVertex) * 4);
+		mDevice->GetImmediateContext()->UpdateSubresource(mClearQuadVB, 0, nullptr, vertexData, 0, sizeof(ClearVertex) * 4);
 
-		mDevice->getImmediateContext()->VSSetShader(mClearQuadVS, nullptr, 0);
-		mDevice->getImmediateContext()->PSSetShader(mClearQuadPS, nullptr, 0);
+		mDevice->GetImmediateContext()->VSSetShader(mClearQuadVS, nullptr, 0);
+		mDevice->GetImmediateContext()->PSSetShader(mClearQuadPS, nullptr, 0);
 
 		ID3D11Buffer* buffers[1];
 		buffers[0] = mClearQuadVB;
@@ -101,36 +101,36 @@ namespace bs { namespace ct
 		UINT32 strides[1] = { sizeof(ClearVertex) };
 		UINT32 offsets[1] = { 0 };
 
-		mDevice->getImmediateContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		mDevice->getImmediateContext()->IASetIndexBuffer(mClearQuadIB, DXGI_FORMAT_R16_UINT, 0);
-		mDevice->getImmediateContext()->IASetVertexBuffers(0, 1, buffers, strides, offsets);
-		mDevice->getImmediateContext()->IASetInputLayout(mClearQuadIL);
+		mDevice->GetImmediateContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		mDevice->GetImmediateContext()->IASetIndexBuffer(mClearQuadIB, DXGI_FORMAT_R16_UINT, 0);
+		mDevice->GetImmediateContext()->IASetVertexBuffers(0, 1, buffers, strides, offsets);
+		mDevice->GetImmediateContext()->IASetInputLayout(mClearQuadIL);
 
-		mDevice->getImmediateContext()->DrawIndexed(6, 0, 0);
+		mDevice->GetImmediateContext()->DrawIndexed(6, 0, 0);
 	}
 
 	void D3D11RenderUtility::InitClearQuadResources()
 	{
 		BLEND_STATE_DESC blendStateDescYesC;
-		mClearQuadBlendStateYesC = RenderStateManager::instance().createBlendState(blendStateDescYesC);
+		mClearQuadBlendStateYesC = RenderStateManager::instance().CreateBlendState(blendStateDescYesC);
 
 		BLEND_STATE_DESC blendStateDescNoC;
 		for(int i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
 			blendStateDescNoC.renderTargetDesc[i].renderTargetWriteMask = 0;
 
-		mClearQuadBlendStateNoC = RenderStateManager::instance().createBlendState(blendStateDescNoC);
+		mClearQuadBlendStateNoC = RenderStateManager::instance().CreateBlendState(blendStateDescNoC);
 
 		DEPTH_STENCIL_STATE_DESC depthStateDescNoD_NoS;
 		depthStateDescNoD_NoS.depthReadEnable = false;
 		depthStateDescNoD_NoS.depthWriteEnable = false;
 		depthStateDescNoD_NoS.depthComparisonFunc = CMPF_ALWAYS_PASS;
-		mClearQuadDSStateNoD_NoS = RenderStateManager::instance().createDepthStencilState(depthStateDescNoD_NoS);
+		mClearQuadDSStateNoD_NoS = RenderStateManager::instance().CreateDepthStencilState(depthStateDescNoD_NoS);
 
 		DEPTH_STENCIL_STATE_DESC depthStateDescYesD_NoS;
 		depthStateDescYesD_NoS.depthReadEnable = false;
 		depthStateDescYesD_NoS.depthWriteEnable = true;
 		depthStateDescYesD_NoS.depthComparisonFunc = CMPF_ALWAYS_PASS;
-		mClearQuadDSStateYesD_NoS = RenderStateManager::instance().createDepthStencilState(depthStateDescYesD_NoS);
+		mClearQuadDSStateYesD_NoS = RenderStateManager::instance().CreateDepthStencilState(depthStateDescYesD_NoS);
 
 		DEPTH_STENCIL_STATE_DESC depthStateDescYesD_YesS;
 		depthStateDescYesD_YesS.depthReadEnable = false;
@@ -139,7 +139,7 @@ namespace bs { namespace ct
 		depthStateDescYesD_YesS.stencilEnable = true;
 		depthStateDescYesD_YesS.frontStencilComparisonFunc = CMPF_ALWAYS_PASS;
 		depthStateDescYesD_YesS.frontStencilPassOp = SOP_REPLACE;
-		mClearQuadDSStateYesD_YesS = RenderStateManager::instance().createDepthStencilState(depthStateDescYesD_YesS);
+		mClearQuadDSStateYesD_YesS = RenderStateManager::instance().CreateDepthStencilState(depthStateDescYesD_YesS);
 
 		DEPTH_STENCIL_STATE_DESC depthStateDescNoD_YesS;
 		depthStateDescNoD_YesS.depthReadEnable = false;
@@ -147,10 +147,10 @@ namespace bs { namespace ct
 		depthStateDescNoD_YesS.depthComparisonFunc = CMPF_ALWAYS_PASS;
 		depthStateDescNoD_YesS.stencilEnable = true;
 		depthStateDescNoD_YesS.frontStencilComparisonFunc = CMPF_ALWAYS_PASS;
-		mClearQuadDSStateNoD_YesS = RenderStateManager::instance().createDepthStencilState(depthStateDescNoD_YesS);
+		mClearQuadDSStateNoD_YesS = RenderStateManager::instance().CreateDepthStencilState(depthStateDescNoD_YesS);
 
 		RASTERIZER_STATE_DESC rasterizerStateDesc;
-		mClearQuadRasterizerState = RenderStateManager::instance().createRasterizerState(rasterizerStateDesc);
+		mClearQuadRasterizerState = RenderStateManager::instance().CreateRasterizerState(rasterizerStateDesc);
 
 		String vsShaderCode = "										\
 						void main(									\
@@ -172,7 +172,7 @@ namespace bs { namespace ct
 		ID3DBlob* errors = nullptr;
 
 		// Compile pixel shader
-		hr = D3DCompile(psShaderCode.c_str(), psShaderCode.size(), nullptr, nullptr, nullptr, "main", "ps_4_0",
+		hr = D3DCompile(psShaderCode.c_str(), psShaderCode.Size(), nullptr, nullptr, nullptr, "main", "ps_4_0",
 			D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR, 0, &microcode, &errors);
 
 		if (FAILED(hr))
@@ -186,8 +186,8 @@ namespace bs { namespace ct
 
 		SAFE_RELEASE(errors);
 
-		hr = mDevice->getD3D11Device()->CreatePixelShader(static_cast<DWORD*>(microcode->GetBufferPointer()),
-			microcode->GetBufferSize(), mDevice->getClassLinkage(), &mClearQuadPS);
+		hr = mDevice->GetD3D11Device()->CreatePixelShader(static_cast<DWORD*>(microcode->GetBufferPointer()),
+			microcode->GetBufferSize(), mDevice->GetClassLinkage(), &mClearQuadPS);
 
 		if (FAILED(hr))
 		{
@@ -196,7 +196,7 @@ namespace bs { namespace ct
 		}
 
 		// Compile vertex shader
-		hr = D3DCompile(vsShaderCode.c_str(), vsShaderCode.size(), nullptr, nullptr, nullptr, "main", "vs_4_0",
+		hr = D3DCompile(vsShaderCode.c_str(), vsShaderCode.Size(), nullptr, nullptr, nullptr, "main", "vs_4_0",
 			D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR, 0, &microcode, &errors);
 
 		if (FAILED(hr))
@@ -210,8 +210,8 @@ namespace bs { namespace ct
 
 		SAFE_RELEASE(errors);
 
-		hr = mDevice->getD3D11Device()->CreateVertexShader(static_cast<DWORD*>(microcode->GetBufferPointer()),
-			microcode->GetBufferSize(), mDevice->getClassLinkage(), &mClearQuadVS);
+		hr = mDevice->GetD3D11Device()->CreateVertexShader(static_cast<DWORD*>(microcode->GetBufferPointer()),
+			microcode->GetBufferSize(), mDevice->GetClassLinkage(), &mClearQuadVS);
 
 		if (FAILED(hr))
 		{
@@ -239,7 +239,7 @@ namespace bs { namespace ct
 		declElements[1].InputSlotClass			= D3D11_INPUT_PER_VERTEX_DATA;
 		declElements[1].InstanceDataStepRate	= 0;
 
-		hr = mDevice->getD3D11Device()->CreateInputLayout(declElements, 2, microcode->GetBufferPointer(),
+		hr = mDevice->GetD3D11Device()->CreateInputLayout(declElements, 2, microcode->GetBufferPointer(),
 			microcode->GetBufferSize(), &mClearQuadIL);
 
 		bs_deleteN(declElements, 2);
@@ -266,18 +266,18 @@ namespace bs { namespace ct
 		vertexData[2].pos = Vector3(0, 0, 0);
 		vertexData[3].pos = Vector3(0, 0, 0);
 
-		vertexData[0].col = Color::White.getAsBGRA();
-		vertexData[1].col = Color::White.getAsBGRA();
-		vertexData[2].col = Color::White.getAsBGRA();
-		vertexData[3].col = Color::White.getAsBGRA();
+		vertexData[0].col = Color::White.GetAsBGRA();
+		vertexData[1].col = Color::White.GetAsBGRA();
+		vertexData[2].col = Color::White.GetAsBGRA();
+		vertexData[3].col = Color::White.GetAsBGRA();
 
 		D3D11_SUBRESOURCE_DATA vertexSubresourceData;
 		vertexSubresourceData.pSysMem = vertexData;
 
-		hr = mDevice->getD3D11Device()->CreateBuffer(&mVBDesc, &vertexSubresourceData, &mClearQuadVB);
-		if (FAILED(hr) || mDevice->hasError())
+		hr = mDevice->GetD3D11Device()->CreateBuffer(&mVBDesc, &vertexSubresourceData, &mClearQuadVB);
+		if (FAILED(hr) || mDevice->HasError())
 		{
-			String msg = mDevice->getErrorDescription();
+			String msg = mDevice->GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Cannot create D3D11 buffer: " + msg);
 		}
 
@@ -303,10 +303,10 @@ namespace bs { namespace ct
 		D3D11_SUBRESOURCE_DATA indexSubresourceData;
 		indexSubresourceData.pSysMem = indexData;
 
-		hr = mDevice->getD3D11Device()->CreateBuffer(&mIBDesc, &indexSubresourceData, &mClearQuadIB);
-		if (FAILED(hr) || mDevice->hasError())
+		hr = mDevice->GetD3D11Device()->CreateBuffer(&mIBDesc, &indexSubresourceData, &mClearQuadIB);
+		if (FAILED(hr) || mDevice->HasError())
 		{
-			String msg = mDevice->getErrorDescription();
+			String msg = mDevice->GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Cannot create D3D11 buffer: " + msg);
 		}
 	}

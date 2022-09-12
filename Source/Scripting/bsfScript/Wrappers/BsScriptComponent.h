@@ -56,7 +56,7 @@ namespace bs
 		TScriptComponent(MonoObject* instance, const GameObjectHandle<CompType>& component)
 			:ScriptObject<ScriptClass, BaseType>(instance), mComponent(component)
 		{
-			this->setManagedInstance(instance);
+			this->SetManagedInstance(instance);
 		}
 
 		virtual ~TScriptComponent() {}
@@ -64,8 +64,8 @@ namespace bs
 		/** @copydoc ScriptObject::_createManagedInstance */
 		MonoObject* _createManagedInstance(bool construct) override
 		{
-			MonoObject* managedInstance = ScriptClass::metaData.scriptClass->createInstance(construct);
-			this->setManagedInstance(managedInstance);
+			MonoObject* managedInstance = ScriptClass::metaData.scriptClass->CreateInstance(construct);
+			this->SetManagedInstance(managedInstance);
 
 			return managedInstance;
 		}
@@ -73,7 +73,7 @@ namespace bs
 		/** @copydoc ScriptObjectBase::_clearManagedInstance */
 		void _clearManagedInstance() override
 		{
-			this->freeManagedInstance();
+			this->FreeManagedInstance();
 		}
 
 		/**
@@ -82,15 +82,15 @@ namespace bs
 		 */
 		void _notifyDestroyed() override
 		{
-			this->freeManagedInstance();
+			this->FreeManagedInstance();
 		}
 
 		/**	Called when the managed instance gets finalized by the CLR. */
 		void _onManagedInstanceDeleted(bool assemblyRefresh) override
 		{
-			this->freeManagedInstance();
+			this->FreeManagedInstance();
 
-			this->destroy(assemblyRefresh);
+			this->Destroy(assemblyRefresh);
 		}
 
 		GameObjectHandle<CompType> mComponent;

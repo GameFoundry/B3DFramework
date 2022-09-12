@@ -113,8 +113,8 @@ namespace bs
 			arrayGetSize = getSize;
 			arraySetSize = setSize;
 
-			const SPtr<RTTISchema>& fieldTypeSchema = DataType::getRTTIStatic()->getSchema();;
-			UINT32 typeId = DataType::getRTTIStatic()->getRTTIId();
+			const SPtr<RTTISchema>& fieldTypeSchema = DataType::getRTTIStatic()->GetSchema();;
+			UINT32 typeId = DataType::getRTTIStatic()->GetRTTIId();
 			init(std::move(name), RTTIFieldSchema(uniqueId, true, true, 0, SerializableFT_Reflectable,
 				0, nullptr, info));
 		}
@@ -124,8 +124,8 @@ namespace bs
 		{
 			// This need to be initialized after the field itself, otherwise we get recursive static constructor
 			// calls due to one type calling getRTTIStatic() on one another
-			schema.fieldTypeSchema = DataType::getRTTIStatic()->getSchema();;
-			schema.fieldTypeId = DataType::getRTTIStatic()->getRTTIId();
+			schema.fieldTypeSchema = DataType::getRTTIStatic()->GetSchema();;
+			schema.fieldTypeId = DataType::getRTTIStatic()->GetRTTIId();
 		}
 
 		/** @copydoc RTTIReflectableFieldBase::getValue */
@@ -219,7 +219,7 @@ namespace bs
 		/** @copydoc RTTIReflectableFieldBase::newObject */
 		SPtr<IReflectable> NewObject() override
 		{
-			return DataType::GetRTTIStatic()->newRTTIObject();
+			return DataType::GetRTTIStatic()->NewRTTIObject();
 		}
 
 		/** @copydoc RTTIReflectableFieldBase::getType */

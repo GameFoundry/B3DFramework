@@ -159,8 +159,8 @@ namespace ct
 		template<class T>
 		static void RegisterNodeType()
 		{
-			auto findIter = mNodeTypes.find(T::getNodeId());
-			if (findIter != mNodeTypes.end())
+			auto findIter = mNodeTypes.Find(T::getNodeId());
+			if (findIter != mNodeTypes.End())
 				BS_LOG(Error, Renderer, "Found two render compositor nodes with the same name \"{0}\".", String(T::getNodeId().c_str()));
 
 			mNodeTypes[T::getNodeId()] = bs_new<TNodeType<T>>();
@@ -172,7 +172,7 @@ namespace ct
 			for (auto& entry : mNodeTypes)
 				bs_delete(entry.second);
 
-			mNodeTypes.clear();
+			mNodeTypes.Clear();
 		}
 
 	private:

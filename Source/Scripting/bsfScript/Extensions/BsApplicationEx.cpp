@@ -18,7 +18,7 @@ namespace bs
 
 	void ApplicationEx::RunMainLoop()
 	{
-		Application::instance().runMainLoop();
+		Application::instance().RunMainLoop();
 	}
 
 	void ApplicationEx::ShutDown()

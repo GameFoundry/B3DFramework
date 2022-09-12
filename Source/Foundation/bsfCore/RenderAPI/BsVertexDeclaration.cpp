@@ -119,7 +119,7 @@ namespace bs
 		// Use the current render system to determine if possible
 		if (ct::RenderAPI::instancePtr() != nullptr)
 		{
-			return ct::RenderAPI::instance().getCapabilities(0).vertexColorType;
+			return ct::RenderAPI::instance().GetCapabilities(0).vertexColorType;
 		}
 		else
 		{
@@ -166,25 +166,25 @@ namespace bs
 	{
 		for (auto& elem : elements)
 		{
-			VertexElementType type = elem.getType();
+			VertexElementType type = elem.GetType();
 
-			if (elem.getType() == VET_COLOR)
+			if (elem.GetType() == VET_COLOR)
 				type = VertexElement::getBestColorVertexElementType();
 
-			mElementList.push_back(VertexElement(elem.getStreamIdx(), elem.getOffset(), type, elem.getSemantic(),
-				elem.getSemanticIdx(), elem.getInstanceStepRate()));
+			mElementList.push_back(VertexElement(elem.GetStreamIdx(), elem.getOffset(), type, elem.getSemantic(),
+				elem.GetSemanticIdx(), elem.getInstanceStepRate()));
 		}
 	}
 
 	bool VertexDeclarationProperties::operator== (const VertexDeclarationProperties& rhs) const
 	{
-		if (mElementList.size() != rhs.mElementList.size())
+		if (mElementList.Size() != rhs.mElementList.size())
 			return false;
 
-		auto myIter = mElementList.begin();
-		auto theirIter = rhs.mElementList.begin();
+		auto myIter = mElementList.Begin();
+		auto theirIter = rhs.mElementList.Begin();
 
-		for (; myIter != mElementList.end() && theirIter != rhs.mElementList.end(); ++myIter, ++theirIter)
+		for (; myIter != mElementList.End() && theirIter != rhs.mElementList.end(); ++myIter, ++theirIter)
 		{
 			if (!(*myIter == *theirIter))
 				return false;
@@ -200,9 +200,9 @@ namespace bs
 
 	const VertexElement* VertexDeclarationProperties::getElement(UINT16 index) const
 	{
-		assert(index < mElementList.size() && "Index out of bounds");
+		assert(index < mElementList.Size() && "Index out of bounds");
 
-		auto iter = mElementList.begin();
+		auto iter = mElementList.Begin();
 		for (UINT16 i = 0; i < index; ++i)
 			++iter;
 
@@ -214,7 +214,7 @@ namespace bs
 	{
 		for (auto& elem : mElementList)
 		{
-			if (elem.getSemantic() == sem && elem.getSemanticIdx() == index)
+			if (elem.GetSemantic() == sem && elem.getSemanticIdx() == index)
 			{
 				return &elem;
 			}
@@ -228,7 +228,7 @@ namespace bs
 		Vector<VertexElement> retList;
 		for (auto& elem : mElementList)
 		{
-			if (elem.getStreamIdx() == source)
+			if (elem.GetStreamIdx() == source)
 				retList.push_back(elem);
 		}
 
@@ -241,9 +241,9 @@ namespace bs
 
 		for (auto& elem : mElementList)
 		{
-			if (elem.getStreamIdx() == source)
+			if (elem.GetStreamIdx() == source)
 			{
-				size += elem.getSize();
+				size += elem.GetSize();
 			}
 		}
 
@@ -263,12 +263,12 @@ namespace bs
 
 	SPtr<ct::CoreObject> VertexDeclaration::CreateCore() const
 	{
-		return ct::HardwareBufferManager::instance().createVertexDeclarationInternal(mProperties.mElementList);
+		return ct::HardwareBufferManager::instance().CreateVertexDeclarationInternal(mProperties.mElementList);
 	}
 
 	SPtr<VertexDeclaration> VertexDeclaration::Create(const SPtr<VertexDataDesc>& desc)
 	{
-		return HardwareBufferManager::Instance().createVertexDeclaration(desc);
+		return HardwareBufferManager::Instance().CreateVertexDeclaration(desc);
 	}
 
 	/************************************************************************/
@@ -331,20 +331,20 @@ namespace bs
 
 	SPtr<VertexDeclaration> VertexDeclaration::Create(const SPtr<VertexDataDesc>& desc, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferManager::Instance().createVertexDeclaration(desc, deviceMask);
+		return HardwareBufferManager::Instance().CreateVertexDeclaration(desc, deviceMask);
 	}
 
 	bool VertexDeclaration::IsCompatible(const SPtr<VertexDeclaration>& shaderDecl)
 	{
-		const Vector<VertexElement>& shaderElems = shaderDecl->getProperties().getElements();
-		const Vector<VertexElement>& bufferElems = getProperties().getElements();
+		const Vector<VertexElement>& shaderElems = shaderDecl->GetProperties().GetElements();
+		const Vector<VertexElement>& bufferElems = getProperties().GetElements();
 
-		for (auto shaderIter = shaderElems.begin(); shaderIter != shaderElems.end(); ++shaderIter)
+		for (auto shaderIter = shaderElems.Begin(); shaderIter != shaderElems.end(); ++shaderIter)
 		{
 			const VertexElement* foundElement = nullptr;
-			for (auto bufferIter = bufferElems.begin(); bufferIter != bufferElems.end(); ++bufferIter)
+			for (auto bufferIter = bufferElems.Begin(); bufferIter != bufferElems.end(); ++bufferIter)
 			{
-				if (shaderIter->getSemantic() == bufferIter->getSemantic() && shaderIter->getSemanticIdx() == bufferIter->getSemanticIdx())
+				if (shaderIter->GetSemantic() == bufferIter->getSemantic() && shaderIter->getSemanticIdx() == bufferIter->getSemanticIdx())
 				{
 					foundElement = &(*bufferIter);
 					break;
@@ -362,15 +362,15 @@ namespace bs
 	{
 		Vector<VertexElement> missingElements;
 
-		const Vector<VertexElement>& shaderElems = shaderDecl->getProperties().getElements();
-		const Vector<VertexElement>& bufferElems = getProperties().getElements();
+		const Vector<VertexElement>& shaderElems = shaderDecl->GetProperties().GetElements();
+		const Vector<VertexElement>& bufferElems = getProperties().GetElements();
 
-		for (auto shaderIter = shaderElems.begin(); shaderIter != shaderElems.end(); ++shaderIter)
+		for (auto shaderIter = shaderElems.Begin(); shaderIter != shaderElems.end(); ++shaderIter)
 		{
 			const VertexElement* foundElement = nullptr;
-			for (auto bufferIter = bufferElems.begin(); bufferIter != bufferElems.end(); ++bufferIter)
+			for (auto bufferIter = bufferElems.Begin(); bufferIter != bufferElems.end(); ++bufferIter)
 			{
-				if (shaderIter->getSemantic() == bufferIter->getSemantic() && shaderIter->getSemanticIdx() == bufferIter->getSemanticIdx())
+				if (shaderIter->GetSemantic() == bufferIter->getSemantic() && shaderIter->getSemanticIdx() == bufferIter->getSemanticIdx())
 				{
 					foundElement = &(*bufferIter);
 					break;

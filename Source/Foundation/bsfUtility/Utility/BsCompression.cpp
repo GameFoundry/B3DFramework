@@ -17,10 +17,10 @@ namespace bs
 		DataStreamSource(const SPtr<DataStream>& stream, std::function<void(float)> reportProgress = nullptr)
 			:mStream(stream), mReportProgress(std::move(reportProgress))
 		{
-			mTotal = mStream->size() - mStream->tell();
+			mTotal = mStream->Size() - mStream->tell();
 			mRemaining = mTotal;
 
-			if (mStream->isFile())
+			if (mStream->IsFile())
 				mReadBuffer = (char*)bs_alloc(32768);
 		}
 
@@ -37,19 +37,19 @@ namespace bs
 
 		const char* Peek(size_t* len) override
 		{
-			if (!mStream->isFile())
+			if (!mStream->IsFile())
 			{
 				SPtr<MemoryDataStream> memStream = std::static_pointer_cast<MemoryDataStream>(mStream);
 
 				*len = Available();
-				return (char*)memStream->data() + mBufferOffset;
+				return (char*)memStream->Data() + mBufferOffset;
 			}
 			else
 			{
 				while (mBufferOffset >= mReadBufferContentSize)
 				{
 					mBufferOffset -= mReadBufferContentSize;
-					mReadBufferContentSize = mStream->read(mReadBuffer, 32768);
+					mReadBufferContentSize = mStream->Read(mReadBuffer, 32768);
 
 					if (mReadBufferContentSize == 0)
 						break;
@@ -100,7 +100,7 @@ namespace bs
 
 		void Append(const char* data, size_t n) override
 		{
-			if(mBufferPieces.empty() || mBufferPieces.back().buffer != data)
+			if(mBufferPieces.Empty() || mBufferPieces.back().buffer != data)
 			{
 				BufferPiece piece;
 				piece.buffer = (char*)bs_alloc((UINT32)n);
@@ -111,7 +111,7 @@ namespace bs
 			}
 			else
 			{
-				BufferPiece& piece = mBufferPieces.back();
+				BufferPiece& piece = mBufferPieces.Back();
 				assert(piece.buffer == data);
 
 				piece.size = n;
@@ -144,7 +144,7 @@ namespace bs
 		void AppendAndTakeOwnership(char* bytes, size_t n, void(*deleter)(void*, const char*, size_t),
 			void *deleter_arg) override
 		{
-			BufferPiece& piece = mBufferPieces.back();
+			BufferPiece& piece = mBufferPieces.Back();
 
 			if (piece.buffer != bytes)
 			{
@@ -163,9 +163,9 @@ namespace bs
 
 			SPtr<MemoryDataStream> ds = bs_shared_ptr_new<MemoryDataStream>(totalSize);
 			for (auto& entry : mBufferPieces)
-				ds->write(entry.buffer, entry.size);
+				ds->Write(entry.buffer, entry.size);
 
-			ds->seek(0);
+			ds->Seek(0);
 			return ds;
 		}
 
@@ -180,7 +180,7 @@ namespace bs
 
 		size_t bytesWritten = snappy::Compress(&src, &dst);
 		SPtr<MemoryDataStream> output = dst.GetOutput();
-		assert(output->size() == bytesWritten);
+		assert(output->Size() == bytesWritten);
 
 		return output;
 	}

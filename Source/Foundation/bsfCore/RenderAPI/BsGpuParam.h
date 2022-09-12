@@ -35,7 +35,7 @@ namespace bs
 	template<>
 	struct TransposePolicy<Matrix3>
 	{
-		static Matrix3 Transpose(const Matrix3& value) { return value.transpose(); }
+		static Matrix3 Transpose(const Matrix3& value) { return value.Transpose(); }
 		static bool TransposeEnabled(bool enabled) { return enabled; }
 	};
 
@@ -43,7 +43,7 @@ namespace bs
 	template<>
 	struct TransposePolicy<Matrix4>
 	{
-		static Matrix4 Transpose(const Matrix4& value) { return value.transpose(); }
+		static Matrix4 Transpose(const Matrix4& value) { return value.Transpose(); }
 		static bool TransposeEnabled(bool enabled) { return enabled; }
 	};
 
@@ -51,7 +51,7 @@ namespace bs
 	template<int N, int M>
 	struct TransposePolicy<MatrixNxM<N, M>>
 	{
-		static MatrixNxM<M, N> Transpose(const MatrixNxM<N, M>& value) { return value.transpose(); }
+		static MatrixNxM<M, N> Transpose(const MatrixNxM<N, M>& value) { return value.Transpose(); }
 		static bool TransposeEnabled(bool enabled) { return enabled; }
 	};
 

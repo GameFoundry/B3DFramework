@@ -42,7 +42,7 @@ namespace bs
 		if(amount > freeMem)
 			allocBlock(amount);
 
-		UINT8* data = mFreeBlock->alloc(amount);
+		UINT8* data = mFreeBlock->Alloc(amount);
 
 #if BS_DEBUG_MODE
 		mTotalAllocBytes += amount;
@@ -94,7 +94,7 @@ namespace bs
 		}
 
 		amount += alignOffset;
-		UINT8* data = mFreeBlock->alloc(amount);
+		UINT8* data = mFreeBlock->Alloc(amount);
 
 #if BS_DEBUG_MODE
 		mTotalAllocBytes += amount;
@@ -134,7 +134,7 @@ namespace bs
 	{
 		if(mLastFrame != nullptr)
 		{
-			assert(mBlocks.size() > 0 && mNextBlockIdx > 0);
+			assert(mBlocks.Size() > 0 && mNextBlockIdx > 0);
 
 			free((UINT8*)mLastFrame);
 
@@ -186,7 +186,7 @@ namespace bs
 					totalBytes += curBlock->mSize;
 
 					deallocBlock(curBlock);
-					mBlocks.erase(mBlocks.begin() + mNextBlockIdx);
+					mBlocks.Erase(mBlocks.begin() + mNextBlockIdx);
 				}
 
 				UINT32 oldNextBlockIdx = mNextBlockIdx;
@@ -204,11 +204,11 @@ namespace bs
 		else
 		{
 #if BS_DEBUG_MODE
-			if (mTotalAllocBytes.load() > 0)
+			if (mTotalAllocBytes.Load() > 0)
 				BS_EXCEPT(InvalidStateException, "Not all frame allocated bytes were properly released.");
 #endif
 
-			if (mBlocks.size() > 1)
+			if (mBlocks.Size() > 1)
 			{
 				// Merge all blocks into one
 				UINT32 totalBytes = 0;
@@ -218,12 +218,12 @@ namespace bs
 					deallocBlock(block);
 				}
 
-				mBlocks.clear();
+				mBlocks.Clear();
 				mNextBlockIdx = 0;
 
 				allocBlock(totalBytes);
 			}
-			else If(mBlocks.size() > 0)
+			else If(mBlocks.Size() > 0)
 				mBlocks[0]->mFreePtr = 0;
 		}
 	}
@@ -235,7 +235,7 @@ namespace bs
 			blockSize = wantedSize;
 
 		MemBlock* newBlock = nullptr;
-		while (mNextBlockIdx < mBlocks.size())
+		while (mNextBlockIdx < mBlocks.Size())
 		{
 			MemBlock* curBlock = mBlocks[mNextBlockIdx];
 			if (blockSize <= curBlock->mSize)
@@ -248,7 +248,7 @@ namespace bs
 			{
 				// Found an empty block that doesn't fit our data, delete it
 				deallocBlock(curBlock);
-				mBlocks.erase(mBlocks.begin() + mNextBlockIdx);
+				mBlocks.Erase(mBlocks.begin() + mNextBlockIdx);
 			}
 		}
 
@@ -296,31 +296,31 @@ namespace bs
 
 	BS_UTILITY_EXPORT UINT8* bs_frame_alloc(UINT32 numBytes)
 	{
-		return GFrameAlloc().alloc(numBytes);
+		return GFrameAlloc().Alloc(numBytes);
 	}
 
 	BS_UTILITY_EXPORT UINT8* bs_frame_alloc_aligned(UINT32 count, UINT32 align)
 	{
-		return GFrameAlloc().allocAligned(count, align);
+		return GFrameAlloc().AllocAligned(count, align);
 	}
 
 	BS_UTILITY_EXPORT void bs_frame_free(void* data)
 	{
-		gFrameAlloc().free((UINT8*)data);
+		gFrameAlloc().Free((UINT8*)data);
 	}
 
 	BS_UTILITY_EXPORT void bs_frame_free_aligned(void* data)
 	{
-		gFrameAlloc().free((UINT8*)data);
+		gFrameAlloc().Free((UINT8*)data);
 	}
 
 	BS_UTILITY_EXPORT void bs_frame_mark()
 	{
-		gFrameAlloc().markFrame();
+		gFrameAlloc().MarkFrame();
 	}
 
 	BS_UTILITY_EXPORT void bs_frame_clear()
 	{
-		gFrameAlloc().clear();
+		gFrameAlloc().Clear();
 	}
 }

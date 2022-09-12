@@ -53,13 +53,13 @@ namespace bs { namespace ct
 
 		assert(globalQueueIdx < MAX_UNIQUE_QUEUES);
 		
-		if (useFlags.isSet(VulkanAccessFlag::Read))
+		if (useFlags.IsSet(VulkanAccessFlag::Read))
 		{
 			assert(mReadUses[globalQueueIdx] < 255 && "Resource used in too many command buffers at once.");
 			mReadUses[globalQueueIdx]++;
 		}
 		
-		if(useFlags.isSet(VulkanAccessFlag::Write))
+		if(useFlags.IsSet(VulkanAccessFlag::Write))
 		{
 			assert(mWriteUses[globalQueueIdx] < 255 && "Resource used in too many command buffers at once.");
 			mWriteUses[globalQueueIdx]++;
@@ -74,13 +74,13 @@ namespace bs { namespace ct
 			mNumUsedHandles--;
 			mNumBoundHandles--;
 
-			if (useFlags.isSet(VulkanAccessFlag::Read))
+			if (useFlags.IsSet(VulkanAccessFlag::Read))
 			{
 				assert(mReadUses[globalQueueIdx] > 0);
 				mReadUses[globalQueueIdx]--;
 			}
 
-			if (useFlags.isSet(VulkanAccessFlag::Write))
+			if (useFlags.IsSet(VulkanAccessFlag::Write))
 			{
 				assert(mWriteUses[globalQueueIdx] > 0);
 				mWriteUses[globalQueueIdx]--;
@@ -92,7 +92,7 @@ namespace bs { namespace ct
 
 		// (Safe to check outside of mutex as we guarantee that once queued for destruction, state cannot be changed)
 		if (destroy)
-			mOwner->destroy(this);
+			mOwner->Destroy(this);
 	}
 
 	void VulkanResource::NotifyUnbound()
@@ -108,14 +108,14 @@ namespace bs { namespace ct
 
 		// (Safe to check outside of mutex as we guarantee that once queued for destruction, state cannot be changed)
 		if (destroy)
-			mOwner->destroy(this);
+			mOwner->Destroy(this);
 	}
 
 	UINT32 VulkanResource::GetUseInfo(VulkanAccessFlags useFlags) const
 	{
 		UINT32 mask = 0;
 
-		if(useFlags.isSet(VulkanAccessFlag::Read))
+		if(useFlags.IsSet(VulkanAccessFlag::Read))
 		{
 			for (UINT32 i = 0; i < MAX_UNIQUE_QUEUES; i++)
 			{
@@ -124,7 +124,7 @@ namespace bs { namespace ct
 			}
 		}
 
-		if (useFlags.isSet(VulkanAccessFlag::Write))
+		if (useFlags.IsSet(VulkanAccessFlag::Write))
 		{
 			for (UINT32 i = 0; i < MAX_UNIQUE_QUEUES; i++)
 			{
@@ -152,12 +152,12 @@ namespace bs { namespace ct
 
 		// (Safe to check outside of mutex as we guarantee that once queued for destruction, state cannot be changed)
 		if (destroy)
-			mOwner->destroy(this);
+			mOwner->Destroy(this);
 	}
 
 	VulkanDevice& VulkanResource::GetDevice() const
 	{
-		return mOwner->getDevice();
+		return mOwner->GetDevice();
 	}
 
 	VulkanResourceManager::VulkanResourceManager(VulkanDevice& device)
@@ -168,7 +168,7 @@ namespace bs { namespace ct
 	{
 #if BS_DEBUG_MODE
 		Lock Lock(mMutex);
-		assert(mResources.empty() && "Resource manager shutting down but not all resources were released.");
+		assert(mResources.Empty() && "Resource manager shutting down but not all resources were released.");
 #endif
 	}
 
@@ -177,7 +177,7 @@ namespace bs { namespace ct
 #if BS_DEBUG_MODE
 		{
 			Lock Lock(mMutex);
-			mResources.erase(resource);
+			mResources.Erase(resource);
 		}
 #endif
 

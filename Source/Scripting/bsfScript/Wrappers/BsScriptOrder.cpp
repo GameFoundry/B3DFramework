@@ -11,6 +11,6 @@ namespace bs
 
 	void ScriptOrder::InitRuntimeData()
 	{
-		indexField = metaData.scriptClass->getField("index");
+		indexField = metaData.scriptClass->GetField("index");
 	}
 }

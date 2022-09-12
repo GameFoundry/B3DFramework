@@ -73,8 +73,8 @@ namespace bs
 																								\
 	std::common_type<decltype(OwnerType::field)>::type::value_type& get##name(OwnerType* obj, ::bs::UINT32 idx) { return obj->field[idx]; }				\
 	void set##name(OwnerType* obj, ::bs::UINT32 idx, std::common_type<decltype(OwnerType::field)>::type::value_type& val) { obj->field[idx] = val; }	\
-	::bs::UINT32 getSize##name(OwnerType* obj) { return (::bs::UINT32)obj->field.size(); }																\
-	void setSize##name(OwnerType* obj, ::bs::UINT32 val) { obj->field.resize(val); }																	\
+	::bs::UINT32 getSize##name(OwnerType* obj) { return (::bs::UINT32)obj->field.Size(); }																\
+	void setSize##name(OwnerType* obj, ::bs::UINT32 val) { obj->field.Resize(val); }																	\
 																								\
 	struct META_NextEntry_##name{};																\
 	void META_InitPrevEntry(META_NextEntry_##name typeId)										\
@@ -141,8 +141,8 @@ namespace bs
 																								\
 	std::common_type<decltype(OwnerType::field)>::type::value_type& get##name(OwnerType* obj, ::bs::UINT32 idx) { return obj->field[idx]; }				\
 	void set##name(OwnerType* obj, ::bs::UINT32 idx, std::common_type<decltype(OwnerType::field)>::type::value_type& val) { obj->field[idx] = val; }	\
-	::bs::UINT32 getSize##name(OwnerType* obj) { return (::bs::UINT32)obj->field.size(); }		\
-	void setSize##name(OwnerType* obj, ::bs::UINT32 val) { obj->field.resize(val); }			\
+	::bs::UINT32 getSize##name(OwnerType* obj) { return (::bs::UINT32)obj->field.Size(); }		\
+	void setSize##name(OwnerType* obj, ::bs::UINT32 val) { obj->field.Resize(val); }			\
 																								\
 	struct META_NextEntry_##name{};																\
 	void META_InitPrevEntry(META_NextEntry_##name typeId)										\
@@ -210,8 +210,8 @@ namespace bs
 																								\
 	std::common_type<decltype(OwnerType::field)>::type::value_type get##name(OwnerType* obj, ::bs::UINT32 idx) { return obj->field[idx]; }				\
 	void set##name(OwnerType* obj, ::bs::UINT32 idx, std::common_type<decltype(OwnerType::field)>::type::value_type val) { obj->field[idx] = val; }		\
-	::bs::UINT32 getSize##name(OwnerType* obj) { return (::bs::UINT32)obj->field.size(); }		\
-	void setSize##name(OwnerType* obj, ::bs::UINT32 val) { obj->field.resize(val); }			\
+	::bs::UINT32 getSize##name(OwnerType* obj) { return (::bs::UINT32)obj->field.Size(); }		\
+	void setSize##name(OwnerType* obj, ::bs::UINT32 val) { obj->field.Resize(val); }			\
 																								\
 	struct META_NextEntry_##name{};																\
 	void META_InitPrevEntry(META_NextEntry_##name typeId)										\
@@ -363,10 +363,10 @@ namespace bs
 		}
 
 		/** Returns the total number of fields in this RTTI type. */
-		UINT32 GetNumFields() const { return (UINT32)mFields.size(); }
+		UINT32 GetNumFields() const { return (UINT32)mFields.Size(); }
 
 		/** Returns a field based on the field index. Use getNumFields() to get total number of fields available. */
-		RTTIField* getField(UINT32 idx) { return mFields.at(idx); }
+		RTTIField* getField(UINT32 idx) { return mFields.At(idx); }
 
 		/**
 		 * Tries to find a field with the specified name. Throws an exception if it can't.
@@ -505,7 +505,7 @@ namespace bs
 			// Compiler will only generate code for stuff that is directly used, including static data members,
 			// so we fool it here like we're using the class directly. Otherwise compiler won't generate the code for the member
 			// and our type won't get initialized on start (Actual behavior is a bit more random)
-			initOnStart.makeSureIAmInstantiated();
+			initOnStart.MakeSureIAmInstantiated();
 		}
 		virtual ~RTTIType() = default;
 
@@ -535,18 +535,18 @@ namespace bs
 			assert(base != nullptr);
 
 			Stack<RTTITypeBase*> todo;
-			todo.push(base);
+			todo.Push(base);
 
-			while (!todo.empty())
+			while (!todo.Empty())
 			{
-				RTTITypeBase* currentType = todo.top();
-				todo.pop();
+				RTTITypeBase* currentType = todo.Top();
+				todo.Pop();
 
-				if (currentType->getRTTIId() == getRTTIId())
+				if (currentType->GetRTTIId() == getRTTIId())
 					return true;
 
-				for (const auto& item : currentType->getDerivedClasses())
-					todo.push(item);
+				for (const auto& item : currentType->GetDerivedClasses())
+					todo.Push(item);
 			}
 
 			return false;
@@ -582,7 +582,7 @@ namespace bs
 				"Data type derives from IReflectable but it is being added as a plain field.");
 
 			auto newField = bs_new<RTTIPlainField<InterfaceType, DataType, ObjectType>>();
-			newField->initSingle(name, uniqueId, getter, setter, info);
+			newField->InitSingle(name, uniqueId, getter, setter, info);
 			addNewField(newField);
 		}
 
@@ -597,7 +597,7 @@ namespace bs
 				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
 
 			auto newField = bs_new<RTTIReflectableField<InterfaceType, DataType, ObjectType>>();
-			newField->initSingle(name, uniqueId, getter, setter, info);
+			newField->InitSingle(name, uniqueId, getter, setter, info);
 			addNewField(newField);
 		}
 
@@ -612,7 +612,7 @@ namespace bs
 				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
 
 			auto newField = bs_new<RTTIReflectablePtrField<InterfaceType, DataType, ObjectType>>();
-			newField->initSingle(name, uniqueId, getter, setter, info);
+			newField->InitSingle(name, uniqueId, getter, setter, info);
 			addNewField(newField);
 		}
 
@@ -632,7 +632,7 @@ namespace bs
 				"Data type derives from IReflectable but it is being added as a plain field.");
 
 			auto newField = bs_new<RTTIPlainField<InterfaceType, DataType, ObjectType>>();
-			newField->initArray(name, uniqueId, getter, getSize, setter, setSize, info);
+			newField->InitArray(name, uniqueId, getter, getSize, setter, setSize, info);
 			addNewField(newField);
 		}	
 
@@ -649,7 +649,7 @@ namespace bs
 				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
 
 			auto newField = bs_new<RTTIReflectableField<InterfaceType, DataType, ObjectType>>();
-			newField->initArray(name, uniqueId, getter, getSize, setter, setSize, info);
+			newField->InitArray(name, uniqueId, getter, getSize, setter, setSize, info);
 			addNewField(newField);
 		}
 
@@ -666,7 +666,7 @@ namespace bs
 				"Invalid data type for complex field. It needs to derive from bs::IReflectable.");
 
 			auto newField = bs_new<RTTIReflectablePtrField<InterfaceType, DataType, ObjectType>>();
-			newField->initArray(name, uniqueId, getter, getSize, setter, setSize, info);
+			newField->InitArray(name, uniqueId, getter, getSize, setter, setSize, info);
 			addNewField(newField);
 		}
 
@@ -677,7 +677,7 @@ namespace bs
 			const RTTIFieldInfo& info = RTTIFieldInfo::DEFAULT)
 		{
 			auto newField = bs_new<RTTIManagedDataBlockField<InterfaceType, UINT8*, ObjectType>>();
-			newField->initSingle(name, uniqueId, getter, setter, info);
+			newField->InitSingle(name, uniqueId, getter, setter, info);
 			addNewField(newField);
 		}	
 	};
@@ -701,7 +701,7 @@ namespace bs
 		static_assert((std::is_base_of<bs::IReflectable, T>::value),
 			"Invalid data type for type checking. It needs to derive from bs::IReflectable.");
 
-		return object->getTypeId() == T::getRTTIStatic()->getRTTIId();
+		return object->GetTypeId() == T::getRTTIStatic()->getRTTIId();
 	}
 
 	/** Returns true if the provided object can be safely cast into type T. */
@@ -711,7 +711,7 @@ namespace bs
 		static_assert((std::is_base_of<bs::IReflectable, T>::value),
 			"Invalid data type for type checking. It needs to derive from bs::IReflectable.");
 
-		return object->getTypeId() == T::getRTTIStatic()->getRTTIId();
+		return object->GetTypeId() == T::getRTTIStatic()->getRTTIId();
 	}
 
 	/** Creates a new object just from its type ID. */
@@ -724,7 +724,7 @@ namespace bs
 		static_assert((std::is_base_of<bs::IReflectable, T>::value),
 			"Invalid data type for type checking. It needs to derive from bs::IReflectable.");
 
-		return object && object->isDerivedFrom(T::getRTTIStatic());
+		return object && object->IsDerivedFrom(T::getRTTIStatic());
 	}
 
 	/** Checks is the current object a subclass of some type. */
@@ -734,7 +734,7 @@ namespace bs
 		static_assert((std::is_base_of<bs::IReflectable, T>::value),
 			"Invalid data type for type checking. It needs to derive from bs::IReflectable.");
 
-		return object && object->isDerivedFrom(T::getRTTIStatic());
+		return object && object->IsDerivedFrom(T::getRTTIStatic());
 	}
 
 	/** Attempts to cast the object to the provided type, or returns null if cast is not valid. */

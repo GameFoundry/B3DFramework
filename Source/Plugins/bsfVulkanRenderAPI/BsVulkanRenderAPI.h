@@ -116,7 +116,7 @@ namespace bs { namespace ct
 		const SPtr<VulkanDevice>& _getPresentDevice() const { return mPrimaryDevices[0]; }
 
 		/** Gets the total number of Vulkan compatible devices available on this system. */
-		UINT32 _getNumDevices() const { return (UINT32)mDevices.size(); }
+		UINT32 _getNumDevices() const { return (UINT32)mDevices.Size(); }
 
 		/**
 		 * Returns one or multiple devices recognized as primary. This will be a single device in most cases, or multiple
@@ -125,7 +125,7 @@ namespace bs { namespace ct
 		const Vector<SPtr<VulkanDevice>> _getPrimaryDevices() const { return mPrimaryDevices; }
 
 		/** Returns the main command buffer, executing on the graphics queue. */
-		VulkanCommandBuffer* _getMainCommandBuffer() const { return mMainCommandBuffer.get(); }
+		VulkanCommandBuffer* _getMainCommandBuffer() const { return mMainCommandBuffer.Get(); }
 
 		/** @} */
 	protected:

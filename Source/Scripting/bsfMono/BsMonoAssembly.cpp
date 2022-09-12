@@ -64,11 +64,11 @@ namespace bs
 			return;
 		}
 
-		UINT32 assemblySize = (UINT32)assemblyStream->size();
+		UINT32 assemblySize = (UINT32)assemblyStream->Size();
 		char* assemblyData = (char*)bs_stack_alloc(assemblySize);
-		assemblyStream->read(assemblyData, assemblySize);
+		assemblyStream->Read(assemblyData, assemblySize);
 
-		String imageName = mPath.getFilename();
+		String imageName = mPath.GetFilename();
 
 		MonoImageOpenStatus status = MONO_IMAGE_OK;
 		MonoImage* image = mono_image_open_from_data_with_name(assemblyData, assemblySize, true, &status, false, imageName.c_str());
@@ -83,7 +83,7 @@ namespace bs
 		// Load MDB file
 #if BS_DEBUG_MODE
 		Path mdbPath = mPath;
-		mdbPath.setExtension(mdbPath.getExtension() + ".mdb");
+		mdbPath.SetExtension(mdbPath.getExtension() + ".mdb");
 
 		if (FileSystem::exists(mdbPath))
 		{
@@ -91,9 +91,9 @@ namespace bs
 
 			if (mdbStream != nullptr)
 			{
-				UINT32 mdbSize = (UINT32)mdbStream->size();
+				UINT32 mdbSize = (UINT32)mdbStream->Size();
 				mDebugData = (UINT8*)bs_alloc(mdbSize);
-				mdbStream->read(mDebugData, mdbSize);
+				mdbStream->Read(mDebugData, mdbSize);
 
 				mono_debug_open_image_from_memory(image, mDebugData, mdbSize);
 			}
@@ -140,9 +140,9 @@ namespace bs
 		for(auto& entry : mClassesByRaw)
 			bs_delete(entry.second);
 
-		mClasses.clear();
-		mClassesByRaw.clear();
-		mCachedClassList.clear();
+		mClasses.Clear();
+		mClassesByRaw.Clear();
+		mCachedClassList.Clear();
 		mHaveCachedClassList = false;
 
 		if(!mIsDependency)
@@ -192,9 +192,9 @@ namespace bs
 			BS_EXCEPT(InvalidStateException, "Trying to use an unloaded assembly.");
 
 		MonoAssembly::ClassId ClassId(namespaceName, name);
-		auto iterFind = mClasses.find(classId);
+		auto iterFind = mClasses.Find(classId);
 
-		if(iterFind != mClasses.end())
+		if(iterFind != mClasses.End())
 			return iterFind->second;
 
 		::MonoClass* monoClass = mono_class_from_name(mMonoImage, namespaceName.c_str(), name.c_str());
@@ -216,9 +216,9 @@ namespace bs
 		if(rawMonoClass == nullptr)
 			return nullptr;
 
-		auto iterFind = mClassesByRaw.find(rawMonoClass);
+		auto iterFind = mClassesByRaw.Find(rawMonoClass);
 
-		if(iterFind != mClassesByRaw.end())
+		if(iterFind != mClassesByRaw.End())
 			return iterFind->second;
 
 		String ns;
@@ -247,9 +247,9 @@ namespace bs
 		if (rawMonoClass == nullptr)
 			return nullptr;
 
-		auto iterFind = mClassesByRaw.find(rawMonoClass);
+		auto iterFind = mClassesByRaw.Find(rawMonoClass);
 
-		if (iterFind != mClassesByRaw.end())
+		if (iterFind != mClassesByRaw.End())
 			return iterFind->second;
 
 
@@ -271,10 +271,10 @@ namespace bs
 		if(mHaveCachedClassList)
 			return mCachedClassList;
 		
-		mCachedClassList.clear();
+		mCachedClassList.Clear();
 		Stack<MonoClass*> todo;
 
-		MonoAssembly* corlib = MonoManager::instance().getAssembly("corlib");
+		MonoAssembly* corlib = MonoManager::instance().GetAssembly("corlib");
 		MonoClass* compilerGeneratedAttrib = corlib->getClass("System.Runtime.CompilerServices",
 				"CompilerGeneratedAttribute");
 
@@ -292,15 +292,15 @@ namespace bs
 			if (curClass != nullptr)
 			{
 				// Skip compiler generates classes
-				if(curClass->hasAttribute(compilerGeneratedAttrib))
+				if(curClass->HasAttribute(compilerGeneratedAttrib))
 					continue;
 
 				// Get nested types if it has any
-				todo.push(curClass);
-				while (!todo.empty())
+				todo.Push(curClass);
+				while (!todo.Empty())
 				{
-					MonoClass* curNestedClass = todo.top();
-					todo.pop();
+					MonoClass* curNestedClass = todo.Top();
+					todo.Pop();
 
 					void* iter = nullptr;
 					do
@@ -309,17 +309,17 @@ namespace bs
 						if (rawNestedClass == nullptr)
 							break;
 
-						String nestedType = curNestedClass->getTypeName() + "+" + mono_class_get_name(rawNestedClass);
+						String nestedType = curNestedClass->GetTypeName() + "+" + mono_class_get_name(rawNestedClass);
 
 						MonoClass* nestedClass = getClass(ns, nestedType, rawNestedClass);
 						if (nestedClass != nullptr)
 						{
 							// Skip compiler generated classes
-							if(nestedClass->hasAttribute(compilerGeneratedAttrib))
+							if(nestedClass->HasAttribute(compilerGeneratedAttrib))
 								continue;
 
 							mCachedClassList.push_back(nestedClass);
-							todo.push(nestedClass);
+							todo.Push(nestedClass);
 						}
 
 					} while (true);					
@@ -338,8 +338,8 @@ namespace bs
 	{
 		// By CIL convention generic classes have ` separating their name and
 		// number of generic parameters
-		auto iterFind = std::find(name.rbegin(), name.rend(), '`');
+		auto iterFind = std::find(name.Rbegin(), name.rend(), '`');
 
-		return iterFind != name.rend();
+		return iterFind != name.Rend();
 	}
 }

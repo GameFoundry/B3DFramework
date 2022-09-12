@@ -30,13 +30,13 @@ namespace bs
 
 	void ResourceManifest::RegisterResource(const UUID& uuid, const Path& filePath)
 	{
-		auto iterFind = mUUIDToFilePath.find(uuid);
+		auto iterFind = mUUIDToFilePath.Find(uuid);
 
-		if(iterFind != mUUIDToFilePath.end())
+		if(iterFind != mUUIDToFilePath.End())
 		{
 			if (iterFind->second != filePath)
 			{
-				mFilePathToUUID.erase(iterFind->second);
+				mFilePathToUUID.Erase(iterFind->second);
 
 				mUUIDToFilePath[uuid] = filePath;
 				mFilePathToUUID[filePath] = uuid;
@@ -44,9 +44,9 @@ namespace bs
 		}
 		else
 		{
-			auto iterFind2 = mFilePathToUUID.find(filePath);
-			if (iterFind2 != mFilePathToUUID.end())
-				mUUIDToFilePath.erase(iterFind2->second);
+			auto iterFind2 = mFilePathToUUID.Find(filePath);
+			if (iterFind2 != mFilePathToUUID.End())
+				mUUIDToFilePath.Erase(iterFind2->second);
 
 			mUUIDToFilePath[uuid] = filePath;
 			mFilePathToUUID[filePath] = uuid;
@@ -55,20 +55,20 @@ namespace bs
 
 	void ResourceManifest::UnregisterResource(const UUID& uuid)
 	{
-		auto iterFind = mUUIDToFilePath.find(uuid);
+		auto iterFind = mUUIDToFilePath.Find(uuid);
 
-		if(iterFind != mUUIDToFilePath.end())
+		if(iterFind != mUUIDToFilePath.End())
 		{
-			mFilePathToUUID.erase(iterFind->second);
-			mUUIDToFilePath.erase(uuid);
+			mFilePathToUUID.Erase(iterFind->second);
+			mUUIDToFilePath.Erase(uuid);
 		}
 	}
 
 	bool ResourceManifest::UuidToFilePath(const UUID& uuid, Path& filePath) const
 	{
-		auto iterFind = mUUIDToFilePath.find(uuid);
+		auto iterFind = mUUIDToFilePath.Find(uuid);
 
-		if(iterFind != mUUIDToFilePath.end())
+		if(iterFind != mUUIDToFilePath.End())
 		{
 			filePath = iterFind->second;
 			return true;
@@ -82,9 +82,9 @@ namespace bs
 
 	bool ResourceManifest::FilePathToUUID(const Path& filePath, UUID& outUUID) const
 	{
-		auto iterFind = mFilePathToUUID.find(filePath);
+		auto iterFind = mFilePathToUUID.Find(filePath);
 
-		if(iterFind != mFilePathToUUID.end())
+		if(iterFind != mFilePathToUUID.End())
 		{
 			outUUID = iterFind->second;
 			return true;
@@ -98,24 +98,24 @@ namespace bs
 
 	bool ResourceManifest::UuidExists(const UUID& uuid) const
 	{
-		auto iterFind = mUUIDToFilePath.find(uuid);
+		auto iterFind = mUUIDToFilePath.Find(uuid);
 
-		return iterFind != mUUIDToFilePath.end();
+		return iterFind != mUUIDToFilePath.End();
 	}
 
 	bool ResourceManifest::FilePathExists(const Path& filePath) const
 	{
-		auto iterFind = mFilePathToUUID.find(filePath);
+		auto iterFind = mFilePathToUUID.Find(filePath);
 
-		return iterFind != mFilePathToUUID.end();
+		return iterFind != mFilePathToUUID.End();
 	}
 
 	void ResourceManifest::Save(const SPtr<ResourceManifest>& manifest, const Path& path, const Path& relativePath)
 	{
-		if(relativePath.isEmpty())
+		if(relativePath.IsEmpty())
 		{
 			FileEncoder Fs(path);
-			fs.encode(manifest.get());
+			fs.Encode(manifest.get());
 		}
 		else
 		{
@@ -123,54 +123,54 @@ namespace bs
 
 			for (auto& elem : manifest->mFilePathToUUID)
 			{
-				if (!relativePath.includes(elem.first))
+				if (!relativePath.Includes(elem.first))
 				{
 					BS_EXCEPT(InvalidStateException, "Path in resource manifest cannot be made relative to: \"" +
-						relativePath.toString() + "\". Path: \"" + elem.first.toString() + "\"");
+						relativePath.ToString() + "\". Path: \"" + elem.first.toString() + "\"");
 				}
 
-				Path elementRelativePath = elem.first.getRelative(relativePath);
+				Path elementRelativePath = elem.first.GetRelative(relativePath);
 
 				copy->mFilePathToUUID[elementRelativePath] = elem.second;
 			}
 
 			for (auto& elem : manifest->mUUIDToFilePath)
 			{
-				if (!relativePath.includes(elem.second))
+				if (!relativePath.Includes(elem.second))
 				{
 					BS_EXCEPT(InvalidStateException, "Path in resource manifest cannot be made relative to: \"" +
-						relativePath.toString() + "\". Path: \"" + elem.second.toString() + "\"");
+						relativePath.ToString() + "\". Path: \"" + elem.second.toString() + "\"");
 				}
 
-				Path elementRelativePath = elem.second.getRelative(relativePath);
+				Path elementRelativePath = elem.second.GetRelative(relativePath);
 
 				copy->mUUIDToFilePath[elem.first] = elementRelativePath;
 			}
 
 			FileEncoder Fs(path);
-			fs.encode(copy.get());
+			fs.Encode(copy.get());
 		}
 	}
 
 	SPtr<ResourceManifest> ResourceManifest::Load(const Path& path, const Path& relativePath)
 	{
 		FileDecoder Fs(path);
-		SPtr<ResourceManifest> manifest = std::static_pointer_cast<ResourceManifest>(fs.decode());
+		SPtr<ResourceManifest> manifest = std::static_pointer_cast<ResourceManifest>(fs.Decode());
 
-		if(relativePath.isEmpty())
+		if(relativePath.IsEmpty())
 			return manifest;
 
 		SPtr<ResourceManifest> copy = create(manifest->mName);
 
 		for(auto& elem : manifest->mFilePathToUUID)
 		{
-			Path absPath = elem.first.getAbsolute(relativePath);
+			Path absPath = elem.first.GetAbsolute(relativePath);
 			copy->mFilePathToUUID[absPath] = elem.second;
 		}
 
 		for(auto& elem : manifest->mUUIDToFilePath)
 		{
-			Path absPath = elem.second.getAbsolute(relativePath);
+			Path absPath = elem.second.GetAbsolute(relativePath);
 			copy->mUUIDToFilePath[elem.first] = absPath;
 		}
 

@@ -18,7 +18,7 @@ namespace bs
 	Prefab::~Prefab()
 	{
 		if (mRoot != nullptr)
-			mRoot->destroy(true);
+			mRoot->Destroy(true);
 	}
 
 	HPrefab Prefab::Create(const HSceneObject& sceneObject, bool isScene)
@@ -27,10 +27,10 @@ namespace bs
 		newPrefab->mIsScene = isScene;
 
 		PrefabUtility::clearPrefabIds(sceneObject, true, false);
-		newPrefab->initialize(sceneObject);
+		newPrefab->Initialize(sceneObject);
 
 		HPrefab handle = static_resource_cast<Prefab>(gResources()._createResourceHandle(newPrefab));
-		newPrefab->mUUID = handle.getUUID();
+		newPrefab->mUUID = handle.GetUUID();
 		sceneObject->mPrefabLinkUUID = newPrefab->mUUID;
 		newPrefab->_getRoot()->mPrefabLinkUUID = newPrefab->mUUID;
 
@@ -52,48 +52,48 @@ namespace bs
 
 		// If there are any child prefab instances, make sure to update their diffs so they are saved with this prefab
 		Stack<HSceneObject> todo;
-		todo.push(sceneObject);
+		todo.Push(sceneObject);
 
-		while (!todo.empty())
+		while (!todo.Empty())
 		{
-			HSceneObject current = todo.top();
-			todo.pop();
+			HSceneObject current = todo.Top();
+			todo.Pop();
 
-			UINT32 childCount = current->getNumChildren();
+			UINT32 childCount = current->GetNumChildren();
 			for (UINT32 i = 0; i < childCount; i++)
 			{
-				HSceneObject child = current->getChild(i);
+				HSceneObject child = current->GetChild(i);
 
-				if (!child->mPrefabLinkUUID.empty())
+				if (!child->mPrefabLinkUUID.Empty())
 					PrefabUtility::recordPrefabDiff(child);
 				else
-					todo.push(child);
+					todo.Push(child);
 			}
 		}
 
 		// Clone the hierarchy for internal storage
 		if (mRoot != nullptr)
-			mRoot->destroy(true);
+			mRoot->Destroy(true);
 
-		mRoot = sceneObject->clone(false, true);
+		mRoot = sceneObject->Clone(false, true);
 		mRoot->mParent = nullptr;
 		mRoot->mLinkId = -1;
 
 		// Remove objects with "dont save" flag
-		todo.push(mRoot);
+		todo.Push(mRoot);
 
-		while (!todo.empty())
+		while (!todo.Empty())
 		{
-			HSceneObject current = todo.top();
-			todo.pop();
+			HSceneObject current = todo.Top();
+			todo.Pop();
 
-			if (current->hasFlag(SOF_DontSave))
-				current->destroy();
+			if (current->HasFlag(SOF_DontSave))
+				current->Destroy();
 			else
 			{
-				UINT32 numChildren = current->getNumChildren();
+				UINT32 numChildren = current->GetNumChildren();
 				for (UINT32 i = 0; i < numChildren; i++)
-					todo.push(current->getChild(i));
+					todo.Push(current->GetChild(i));
 			}
 		}
 	}
@@ -110,22 +110,22 @@ namespace bs
 	void Prefab::_updateChildInstances() const
 	{
 		Stack<HSceneObject> todo;
-		todo.push(mRoot);
+		todo.Push(mRoot);
 
-		while (!todo.empty())
+		while (!todo.Empty())
 		{
-			HSceneObject current = todo.top();
-			todo.pop();
+			HSceneObject current = todo.Top();
+			todo.Pop();
 
-			UINT32 childCount = current->getNumChildren();
+			UINT32 childCount = current->GetNumChildren();
 			for (UINT32 i = 0; i < childCount; i++)
 			{
-				HSceneObject child = current->getChild(i);
+				HSceneObject child = current->GetChild(i);
 
-				if (!child->mPrefabLinkUUID.empty())
+				if (!child->mPrefabLinkUUID.Empty())
 					PrefabUtility::updateFromPrefab(child);
 				else
-					todo.push(child);
+					todo.Push(child);
 			}
 		}
 	}
@@ -136,7 +136,7 @@ namespace bs
 			return HSceneObject();
 
 #if BS_IS_BANSHEE3D
-		if (gCoreApplication().isEditor())
+		if (gCoreApplication().IsEditor())
 		{
 			// Update any child prefab instances in case their prefabs changed
 			_updateChildInstances();
@@ -157,7 +157,7 @@ namespace bs
 		mRoot->mPrefabHash = mHash;
 		mRoot->mLinkId = -1;
 
-		return mRoot->clone(false, preserveUUIDs);
+		return mRoot->Clone(false, preserveUUIDs);
 	}
 
 	RTTITypeBase* Prefab::getRTTIStatic()

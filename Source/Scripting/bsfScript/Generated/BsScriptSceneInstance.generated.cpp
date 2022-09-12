@@ -18,10 +18,10 @@ namespace bs
 
 	void ScriptSceneInstance::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_getName", (void*)&ScriptSceneInstance::Internal_getName);
-		metaData.scriptClass->addInternalCall("Internal_getRoot", (void*)&ScriptSceneInstance::Internal_getRoot);
-		metaData.scriptClass->addInternalCall("Internal_isActive", (void*)&ScriptSceneInstance::Internal_isActive);
-		metaData.scriptClass->addInternalCall("Internal_getPhysicsScene", (void*)&ScriptSceneInstance::Internal_getPhysicsScene);
+		metaData.scriptClass->AddInternalCall("Internal_getName", (void*)&ScriptSceneInstance::Internal_getName);
+		metaData.scriptClass->AddInternalCall("Internal_getRoot", (void*)&ScriptSceneInstance::Internal_getRoot);
+		metaData.scriptClass->AddInternalCall("Internal_isActive", (void*)&ScriptSceneInstance::Internal_isActive);
+		metaData.scriptClass->AddInternalCall("Internal_getPhysicsScene", (void*)&ScriptSceneInstance::Internal_getPhysicsScene);
 
 	}
 
@@ -32,14 +32,14 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.scriptClass->createInstance("bool", ctorParams);
+		MonoObject* managedInstance = metaData.scriptClass->CreateInstance("bool", ctorParams);
 		new (bs_alloc<ScriptSceneInstance>()) ScriptSceneInstance(managedInstance, value);
 		return managedInstance;
 	}
 	MonoString* ScriptSceneInstance::Internal_getName(ScriptSceneInstance* thisPtr)
 	{
 		String tmp__output;
-		tmp__output = thisPtr->getInternal()->getName();
+		tmp__output = thisPtr->GetInternal()->getName();
 
 		MonoString* __output;
 		__output = MonoUtil::stringToMono(tmp__output);
@@ -50,14 +50,14 @@ namespace bs
 	MonoObject* ScriptSceneInstance::Internal_getRoot(ScriptSceneInstance* thisPtr)
 	{
 		GameObjectHandle<SceneObject> tmp__output;
-		tmp__output = thisPtr->getInternal()->getRoot();
+		tmp__output = thisPtr->GetInternal()->getRoot();
 
 		MonoObject* __output;
 		ScriptSceneObject* script__output = nullptr;
 		if(tmp__output)
-		script__output = ScriptGameObjectManager::instance().getOrCreateScriptSceneObject(tmp__output);
+		script__output = ScriptGameObjectManager::instance().GetOrCreateScriptSceneObject(tmp__output);
 		if(script__output != nullptr)
-			__output = script__output->getManagedInstance();
+			__output = script__output->GetManagedInstance();
 		else
 			__output = nullptr;
 
@@ -67,7 +67,7 @@ namespace bs
 	bool ScriptSceneInstance::Internal_isActive(ScriptSceneInstance* thisPtr)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->getInternal()->isActive();
+		tmp__output = thisPtr->GetInternal()->isActive();
 
 		bool __output;
 		__output = tmp__output;
@@ -78,7 +78,7 @@ namespace bs
 	MonoObject* ScriptSceneInstance::Internal_getPhysicsScene(ScriptSceneInstance* thisPtr)
 	{
 		SPtr<PhysicsScene> tmp__output;
-		tmp__output = thisPtr->getInternal()->getPhysicsScene();
+		tmp__output = thisPtr->GetInternal()->getPhysicsScene();
 
 		MonoObject* __output;
 		__output = ScriptPhysicsScene::create(tmp__output);

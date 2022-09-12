@@ -31,7 +31,7 @@ namespace bs
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{
 			Technique* technique = static_cast<Technique*>(obj);
-			technique->initialize();
+			technique->Initialize();
 		}
 
 		const String& GetRTTIName() override

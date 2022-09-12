@@ -30,7 +30,7 @@ namespace bs
 		UnorderedMap<String, String> GetAll() const { return mDefines; }
 
 		/** Removes all defines. */
-		void Clear() { mDefines.clear(); }
+		void Clear() { mDefines.Clear(); }
 
 	protected:
 		UnorderedMap<String, String> mDefines;
@@ -150,15 +150,15 @@ namespace bs
 
 		/** Removes a parameter with the specified name. */
 		BS_SCRIPT_EXPORT()
-		void RemoveParam(const StringID& paramName) { mParams.erase(paramName); }
+		void RemoveParam(const StringID& paramName) { mParams.Erase(paramName); }
 
 		/** Checks if the variation has a parameter with the specified name. */
 		BS_SCRIPT_EXPORT()
-		bool HasParam(const StringID& paramName) { return mParams.find(paramName) != mParams.end(); }
+		bool HasParam(const StringID& paramName) { return mParams.Find(paramName) != mParams.end(); }
 
 		/** Removes all parameters. */
 		BS_SCRIPT_EXPORT()
-		void ClearParams() { mParams.clear(); }
+		void ClearParams() { mParams.Clear(); }
 
 		/** Returns a list of names of all registered parameters. */
 		BS_SCRIPT_EXPORT(n:ParamNames,pr:getter)

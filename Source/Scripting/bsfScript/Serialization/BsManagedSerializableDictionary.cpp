@@ -38,28 +38,28 @@ namespace bs
 		{
 			MonoObject* managedInstance = MonoUtil::getObjectFromGCHandle(parent->mGCHandle);
 
-			mNumEntries = *(UINT32*)MonoUtil::unbox(parent->mCountProp->get(managedInstance));
-			MonoObject* keyCollection = parent->mKeysProp->get(managedInstance);
-			MonoObject* valueCollection = parent->mValuesProp->get(managedInstance);
+			mNumEntries = *(UINT32*)MonoUtil::unbox(parent->mCountProp->Get(managedInstance));
+			MonoObject* keyCollection = parent->mKeysProp->Get(managedInstance);
+			MonoObject* valueCollection = parent->mValuesProp->Get(managedInstance);
 
-			mKeyType = parent->mDictionaryTypeInfo->mKeyType->getMonoClass();
-			mValueType = parent->mDictionaryTypeInfo->mValueType->getMonoClass();
+			mKeyType = parent->mDictionaryTypeInfo->mKeyType->GetMonoClass();
+			mValueType = parent->mDictionaryTypeInfo->mValueType->GetMonoClass();
 
 			ScriptArray Keys(mKeyType, mNumEntries);
 			ScriptArray Values(mValueType, mNumEntries);
 
 			UINT32 offset = 0;
-			void* keyParams[2] = { keys.getInternal(), &offset };
-			parent->mKeysCopyTo->invoke(keyCollection, keyParams);
+			void* keyParams[2] = { keys.GetInternal(), &offset };
+			parent->mKeysCopyTo->Invoke(keyCollection, keyParams);
 
-			void* valueParams[2] = { values.getInternal(), &offset };
-			parent->mValuesCopyTo->invoke(valueCollection, valueParams);
+			void* valueParams[2] = { values.GetInternal(), &offset };
+			parent->mValuesCopyTo->Invoke(valueCollection, valueParams);
 
-			keysArray = keys.getInternal();
-			valuesArray = values.getInternal();
+			keysArray = keys.GetInternal();
+			valuesArray = values.GetInternal();
 		}
 		else
-			mNumEntries = (UINT32)parent->mCachedEntries.size();
+			mNumEntries = (UINT32)parent->mCachedEntries.Size();
 
 		// Note: Handle needed since Enumerator will be on the stack? meaning the GC should be able to find the references.
 		if(keysArray && valuesArray)
@@ -139,7 +139,7 @@ namespace bs
 
 			if(mCurrentIdx != (UINT32)-1)
 			{
-				void* val = (void*)keys.getRaw(mCurrentIdx, keys.elementSize());
+				void* val = (void*)keys.GetRaw(mCurrentIdx, keys.elementSize());
 
 				MonoObject* obj = nullptr;
 				if (MonoUtil::isValueType(mKeyType))
@@ -170,7 +170,7 @@ namespace bs
 
 			if(mCurrentIdx != (UINT32)-1)
 			{
-				void* val = (void*)values.getRaw(mCurrentIdx, values.elementSize());
+				void* val = (void*)values.GetRaw(mCurrentIdx, values.elementSize());
 
 				MonoObject* obj = nullptr;
 				if (MonoUtil::isValueType(mValueType))
@@ -208,13 +208,13 @@ namespace bs
 		{
 			if (!mIteratorInitialized)
 			{
-				mCachedIter = mParent->mCachedEntries.begin();
+				mCachedIter = mParent->mCachedEntries.Begin();
 				mIteratorInitialized = true;
 			}
 			else
 				++mCachedIter;
 
-			return mCachedIter != mParent->mCachedEntries.end();
+			return mCachedIter != mParent->mCachedEntries.End();
 		}
 	}
 
@@ -226,7 +226,7 @@ namespace bs
 	{
 		mGCHandle = MonoUtil::newGCHandle(managedInstance, false);
 
-		MonoClass* dictClass = MonoManager::instance().findClass(MonoUtil::getClass(managedInstance));
+		MonoClass* dictClass = MonoManager::instance().FindClass(MonoUtil::getClass(managedInstance));
 		if (dictClass == nullptr)
 			return;
 
@@ -254,7 +254,7 @@ namespace bs
 
 		String fullName = elementNs + "." + elementTypeName;
 
-		if(ScriptAssemblyManager::instance().getBuiltinClasses().systemGenericDictionaryClass->getFullName() != fullName)
+		if(ScriptAssemblyManager::instance().GetBuiltinClasses().systemGenericDictionaryClass->GetFullName() != fullName)
 			return nullptr;
 
 		return bs_shared_ptr_new<ManagedSerializableDictionary>(ConstructPrivately(), typeInfo, managedInstance);
@@ -267,15 +267,15 @@ namespace bs
 
 	MonoObject* ManagedSerializableDictionary::createManagedInstance(const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo)
 	{
-		if (!typeInfo->isTypeLoaded())
+		if (!typeInfo->IsTypeLoaded())
 			return nullptr;
 
-		::MonoClass* dictionaryMonoClass = typeInfo->getMonoClass();
-		MonoClass* dictionaryClass = MonoManager::instance().findClass(dictionaryMonoClass);
+		::MonoClass* dictionaryMonoClass = typeInfo->GetMonoClass();
+		MonoClass* dictionaryClass = MonoManager::instance().FindClass(dictionaryMonoClass);
 		if (dictionaryClass == nullptr)
 			return nullptr;
 
-		return dictionaryClass->createInstance();
+		return dictionaryClass->CreateInstance();
 	}
 
 	SPtr<ManagedSerializableDictionary> ManagedSerializableDictionary::CreateEmpty()
@@ -297,26 +297,26 @@ namespace bs
 			return;
 
 		MonoObject* managedInstance = MonoUtil::getObjectFromGCHandle(mGCHandle);
-		MonoClass* dictionaryClass = MonoManager::instance().findClass(MonoUtil::getClass(managedInstance));
+		MonoClass* dictionaryClass = MonoManager::instance().FindClass(MonoUtil::getClass(managedInstance));
 		if (dictionaryClass == nullptr)
 			return;
 
 		initMonoObjects(dictionaryClass);
-		mCachedEntries.clear();
+		mCachedEntries.Clear();
 
 		Enumerator enumerator = getEnumerator();
 
-		while (enumerator.moveNext())
+		while (enumerator.MoveNext())
 		{
-			SPtr<ManagedSerializableFieldData> key = enumerator.getKey();
-			mCachedEntries.insert(std::make_pair(key, enumerator.getValue()));
+			SPtr<ManagedSerializableFieldData> key = enumerator.GetKey();
+			mCachedEntries.Insert(std::make_pair(key, enumerator.getValue()));
 		}
 
 		// Serialize children
 		for (auto& fieldEntry : mCachedEntries)
 		{
-			fieldEntry.first->serialize();
-			fieldEntry.second->serialize();
+			fieldEntry.first->Serialize();
+			fieldEntry.second->Serialize();
 		}
 
 		MonoUtil::freeGCHandle(mGCHandle);
@@ -329,8 +329,8 @@ namespace bs
 		if (managedInstance == nullptr)
 			return nullptr;
 
-		::MonoClass* dictionaryMonoClass = mDictionaryTypeInfo->getMonoClass();
-		MonoClass* dictionaryClass = MonoManager::instance().findClass(dictionaryMonoClass);
+		::MonoClass* dictionaryMonoClass = mDictionaryTypeInfo->GetMonoClass();
+		MonoClass* dictionaryClass = MonoManager::instance().FindClass(dictionaryMonoClass);
 		if (dictionaryClass == nullptr)
 			return nullptr;
 
@@ -339,8 +339,8 @@ namespace bs
 		// Deserialize children
 		for (auto& fieldEntry : mCachedEntries)
 		{
-			fieldEntry.first->deserialize();
-			fieldEntry.second->deserialize();
+			fieldEntry.first->Deserialize();
+			fieldEntry.second->Deserialize();
 		}
 
 		UINT32 idx = 0;
@@ -360,14 +360,14 @@ namespace bs
 			MonoObject* value = nullptr;
 
 			void* params[2];
-			params[0] = key->getValue(mDictionaryTypeInfo->mKeyType);
+			params[0] = key->GetValue(mDictionaryTypeInfo->mKeyType);
 			params[1] = &value;
 
 			MonoObject* managedInstance = MonoUtil::getObjectFromGCHandle(mGCHandle);
-			mTryGetValueMethod->invoke(managedInstance, params);
+			mTryGetValueMethod->Invoke(managedInstance, params);
 
 			MonoObject* boxedValue = value;
-			::MonoClass* valueTypeClass = mDictionaryTypeInfo->mValueType->getMonoClass();
+			::MonoClass* valueTypeClass = mDictionaryTypeInfo->mValueType->GetMonoClass();
 			if (MonoUtil::isValueType(valueTypeClass))
 			{
 				if (value != nullptr)
@@ -398,10 +398,10 @@ namespace bs
 	void ManagedSerializableDictionary::SetFieldData(MonoObject* obj, const SPtr<ManagedSerializableFieldData>& key, const SPtr<ManagedSerializableFieldData>& val)
 	{
 		void* params[2];
-		params[0] = key->getValue(mDictionaryTypeInfo->mKeyType);
-		params[1] = val->getValue(mDictionaryTypeInfo->mValueType);
+		params[0] = key->GetValue(mDictionaryTypeInfo->mKeyType);
+		params[1] = val->GetValue(mDictionaryTypeInfo->mValueType);
 
-		mAddMethod->invoke(obj, params);
+		mAddMethod->Invoke(obj, params);
 	}
 
 	void ManagedSerializableDictionary::RemoveFieldData(const SPtr<ManagedSerializableFieldData>& key)
@@ -409,16 +409,16 @@ namespace bs
 		if (mGCHandle != 0)
 		{
 			void* params[1];
-			params[0] = key->getValue(mDictionaryTypeInfo->mKeyType);
+			params[0] = key->GetValue(mDictionaryTypeInfo->mKeyType);
 
 			MonoObject* managedInstance = MonoUtil::getObjectFromGCHandle(mGCHandle);
-			mRemoveMethod->invoke(managedInstance, params);
+			mRemoveMethod->Invoke(managedInstance, params);
 		}
 		else
 		{
-			auto findIter = mCachedEntries.find(key);
-			if (findIter != mCachedEntries.end())
-				mCachedEntries.erase(findIter);
+			auto findIter = mCachedEntries.Find(key);
+			if (findIter != mCachedEntries.End())
+				mCachedEntries.Erase(findIter);
 		}
 	}
 
@@ -427,14 +427,14 @@ namespace bs
 		if (mGCHandle != 0)
 		{
 			void* params[1];
-			params[0] = key->getValue(mDictionaryTypeInfo->mKeyType);
+			params[0] = key->GetValue(mDictionaryTypeInfo->mKeyType);
 
 			MonoObject* managedInstance = MonoUtil::getObjectFromGCHandle(mGCHandle);
-			MonoObject* returnVal = mContainsKeyMethod->invoke(managedInstance, params);
+			MonoObject* returnVal = mContainsKeyMethod->Invoke(managedInstance, params);
 			return *(bool*)MonoUtil::unbox(returnVal);
 		}
 		else
-			return mCachedEntries.find(key) != mCachedEntries.end();
+			return mCachedEntries.Find(key) != mCachedEntries.end();
 	}
 
 	ManagedSerializableDictionary::Enumerator ManagedSerializableDictionary::GetEnumerator() const
@@ -444,19 +444,19 @@ namespace bs
 
 	void ManagedSerializableDictionary::InitMonoObjects(MonoClass* dictionaryClass)
 	{
-		mAddMethod = dictionaryClass->getMethod("Add", 2);
-		mRemoveMethod = dictionaryClass->getMethod("Remove", 1);
-		mTryGetValueMethod = dictionaryClass->getMethod("TryGetValue", 2);
-		mContainsKeyMethod = dictionaryClass->getMethod("ContainsKey", 1);
-		mCountProp = dictionaryClass->getProperty("Count");
-		mKeysProp = dictionaryClass->getProperty("Keys");
-		mValuesProp = dictionaryClass->getProperty("Values");
+		mAddMethod = dictionaryClass->GetMethod("Add", 2);
+		mRemoveMethod = dictionaryClass->GetMethod("Remove", 1);
+		mTryGetValueMethod = dictionaryClass->GetMethod("TryGetValue", 2);
+		mContainsKeyMethod = dictionaryClass->GetMethod("ContainsKey", 1);
+		mCountProp = dictionaryClass->GetProperty("Count");
+		mKeysProp = dictionaryClass->GetProperty("Keys");
+		mValuesProp = dictionaryClass->GetProperty("Values");
 
-		MonoClass* keyCollectionClass = mKeysProp->getReturnType();
-		mKeysCopyTo = keyCollectionClass->getMethod("CopyTo", 2);
+		MonoClass* keyCollectionClass = mKeysProp->GetReturnType();
+		mKeysCopyTo = keyCollectionClass->GetMethod("CopyTo", 2);
 
-		MonoClass* valueCollectionClass = mValuesProp->getReturnType();
-		mValuesCopyTo = valueCollectionClass->getMethod("CopyTo", 2);
+		MonoClass* valueCollectionClass = mValuesProp->GetReturnType();
+		mValuesCopyTo = valueCollectionClass->GetMethod("CopyTo", 2);
 	}
 
 	RTTITypeBase* ManagedSerializableDictionary::getRTTIStatic()

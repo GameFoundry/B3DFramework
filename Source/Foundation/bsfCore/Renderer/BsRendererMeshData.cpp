@@ -28,92 +28,92 @@ namespace bs
 
 	void RendererMeshData::GetPositions(Vector3* buffer, UINT32 size)
 	{
-		if (!mMeshData->getVertexDesc()->hasElement(VES_POSITION))
+		if (!mMeshData->GetVertexDesc()->hasElement(VES_POSITION))
 			return;
 
-		UINT32 numElements = mMeshData->getNumVertices();
+		UINT32 numElements = mMeshData->GetNumVertices();
 		assert(numElements * sizeof(Vector3) == size);
 
-		mMeshData->getVertexData(VES_POSITION, buffer, size);
+		mMeshData->GetVertexData(VES_POSITION, buffer, size);
 	}
 
 	void RendererMeshData::SetPositions(Vector3* buffer, UINT32 size)
 	{
-		if (!mMeshData->getVertexDesc()->hasElement(VES_POSITION))
+		if (!mMeshData->GetVertexDesc()->hasElement(VES_POSITION))
 			return;
 
-		UINT32 numElements = mMeshData->getNumVertices();
+		UINT32 numElements = mMeshData->GetNumVertices();
 		assert(numElements * sizeof(Vector3) == size);
 
-		mMeshData->setVertexData(VES_POSITION, buffer, size);
+		mMeshData->SetVertexData(VES_POSITION, buffer, size);
 	}
 
 	void RendererMeshData::GetNormals(Vector3* buffer, UINT32 size)
 	{
-		if (!mMeshData->getVertexDesc()->hasElement(VES_NORMAL))
+		if (!mMeshData->GetVertexDesc()->hasElement(VES_NORMAL))
 			return;
 
-		UINT32 numElements = mMeshData->getNumVertices();
+		UINT32 numElements = mMeshData->GetNumVertices();
 		assert(numElements * sizeof(Vector3) == size);
 
-		UINT8* normalSrc = mMeshData->getElementData(VES_NORMAL);
-		UINT32 stride = mMeshData->getVertexDesc()->getVertexStride(0);
+		UINT8* normalSrc = mMeshData->GetElementData(VES_NORMAL);
+		UINT32 stride = mMeshData->GetVertexDesc()->getVertexStride(0);
 
 		MeshUtility::unpackNormals(normalSrc, buffer, numElements, stride);
 	}
 
 	void RendererMeshData::SetNormals(Vector3* buffer, UINT32 size)
 	{
-		if (!mMeshData->getVertexDesc()->hasElement(VES_NORMAL))
+		if (!mMeshData->GetVertexDesc()->hasElement(VES_NORMAL))
 			return;
 
-		UINT32 numElements = mMeshData->getNumVertices();
+		UINT32 numElements = mMeshData->GetNumVertices();
 		assert(numElements * sizeof(Vector3) == size);
 
-		UINT8* normalDst = mMeshData->getElementData(VES_NORMAL);
-		UINT32 stride = mMeshData->getVertexDesc()->getVertexStride(0);
+		UINT8* normalDst = mMeshData->GetElementData(VES_NORMAL);
+		UINT32 stride = mMeshData->GetVertexDesc()->getVertexStride(0);
 
 		MeshUtility::packNormals(buffer, normalDst, numElements, sizeof(Vector3), stride);
 	}
 
 	void RendererMeshData::GetTangents(Vector4* buffer, UINT32 size)
 	{
-		if (!mMeshData->getVertexDesc()->hasElement(VES_TANGENT))
+		if (!mMeshData->GetVertexDesc()->hasElement(VES_TANGENT))
 			return;
 
-		UINT32 numElements = mMeshData->getNumVertices();
+		UINT32 numElements = mMeshData->GetNumVertices();
 		assert(numElements * sizeof(Vector4) == size);
 
-		UINT8* tangentSrc = mMeshData->getElementData(VES_TANGENT);
-		UINT32 stride = mMeshData->getVertexDesc()->getVertexStride(0);
+		UINT8* tangentSrc = mMeshData->GetElementData(VES_TANGENT);
+		UINT32 stride = mMeshData->GetVertexDesc()->getVertexStride(0);
 
 		MeshUtility::unpackNormals(tangentSrc, buffer, numElements, stride);
 	}
 
 	void RendererMeshData::SetTangents(Vector4* buffer, UINT32 size)
 	{
-		if (!mMeshData->getVertexDesc()->hasElement(VES_TANGENT))
+		if (!mMeshData->GetVertexDesc()->hasElement(VES_TANGENT))
 			return;
 
-		UINT32 numElements = mMeshData->getNumVertices();
+		UINT32 numElements = mMeshData->GetNumVertices();
 		assert(numElements * sizeof(Vector4) == size);
 
-		UINT8* tangentDst = mMeshData->getElementData(VES_TANGENT);
-		UINT32 stride = mMeshData->getVertexDesc()->getVertexStride(0);
+		UINT8* tangentDst = mMeshData->GetElementData(VES_TANGENT);
+		UINT32 stride = mMeshData->GetVertexDesc()->getVertexStride(0);
 
 		MeshUtility::packNormals(buffer, tangentDst, numElements, sizeof(Vector4), stride);
 	}
 
 	void RendererMeshData::GetColors(Color* buffer, UINT32 size)
 	{
-		if (!mMeshData->getVertexDesc()->hasElement(VES_COLOR))
+		if (!mMeshData->GetVertexDesc()->hasElement(VES_COLOR))
 			return;
 
-		UINT32 numElements = mMeshData->getNumVertices();
+		UINT32 numElements = mMeshData->GetNumVertices();
 		assert(numElements * sizeof(Vector4) == size);
 
-		UINT8* colorSrc = mMeshData->getElementData(VES_COLOR);
-		UINT32 stride = mMeshData->getVertexDesc()->getVertexStride(0);
+		UINT8* colorSrc = mMeshData->GetElementData(VES_COLOR);
+		UINT32 stride = mMeshData->GetVertexDesc()->getVertexStride(0);
 
 		Color* colorDst = buffer;
 		for (UINT32 i = 0; i < numElements; i++)
@@ -127,14 +127,14 @@ namespace bs
 
 	void RendererMeshData::SetColors(Color* buffer, UINT32 size)
 	{
-		if (!mMeshData->getVertexDesc()->hasElement(VES_COLOR))
+		if (!mMeshData->GetVertexDesc()->hasElement(VES_COLOR))
 			return;
 
-		UINT32 numElements = mMeshData->getNumVertices();
+		UINT32 numElements = mMeshData->GetNumVertices();
 		assert(numElements * sizeof(Vector4) == size);
 
-		UINT8* colorDst = mMeshData->getElementData(VES_COLOR);
-		UINT32 stride = mMeshData->getVertexDesc()->getVertexStride(0);
+		UINT8* colorDst = mMeshData->GetElementData(VES_COLOR);
+		UINT32 stride = mMeshData->GetVertexDesc()->getVertexStride(0);
 
 		Color* colorSrc = buffer;
 		for (UINT32 i = 0; i < numElements; i++)
@@ -148,74 +148,74 @@ namespace bs
 
 	void RendererMeshData::SetColors(UINT32* buffer, UINT32 size)
 	{
-		if (!mMeshData->getVertexDesc()->hasElement(VES_COLOR))
+		if (!mMeshData->GetVertexDesc()->hasElement(VES_COLOR))
 			return;
 
-		UINT32 numElements = mMeshData->getNumVertices();
+		UINT32 numElements = mMeshData->GetNumVertices();
 		assert(numElements * sizeof(UINT32) == size);
 
-		mMeshData->setVertexData(VES_COLOR, buffer, size);
+		mMeshData->SetVertexData(VES_COLOR, buffer, size);
 	}
 
 	void RendererMeshData::GetUV0(Vector2* buffer, UINT32 size)
 	{
-		if (!mMeshData->getVertexDesc()->hasElement(VES_TEXCOORD, 0))
+		if (!mMeshData->GetVertexDesc()->hasElement(VES_TEXCOORD, 0))
 			return;
 
-		UINT32 numElements = mMeshData->getNumVertices();
+		UINT32 numElements = mMeshData->GetNumVertices();
 		assert(numElements * sizeof(Vector2) == size);
 
-		mMeshData->getVertexData(VES_TEXCOORD, buffer, size, 0);
+		mMeshData->GetVertexData(VES_TEXCOORD, buffer, size, 0);
 	}
 
 	void RendererMeshData::SetUV0(Vector2* buffer, UINT32 size)
 	{
-		if (!mMeshData->getVertexDesc()->hasElement(VES_TEXCOORD, 0))
+		if (!mMeshData->GetVertexDesc()->hasElement(VES_TEXCOORD, 0))
 			return;
 
-		UINT32 numElements = mMeshData->getNumVertices();
+		UINT32 numElements = mMeshData->GetNumVertices();
 		assert(numElements * sizeof(Vector2) == size);
 
-		mMeshData->setVertexData(VES_TEXCOORD, buffer, size, 0);
+		mMeshData->SetVertexData(VES_TEXCOORD, buffer, size, 0);
 	}
 
 	void RendererMeshData::GetUV1(Vector2* buffer, UINT32 size)
 	{
-		if (!mMeshData->getVertexDesc()->hasElement(VES_TEXCOORD, 1))
+		if (!mMeshData->GetVertexDesc()->hasElement(VES_TEXCOORD, 1))
 			return;
 
-		UINT32 numElements = mMeshData->getNumVertices();
+		UINT32 numElements = mMeshData->GetNumVertices();
 		assert(numElements * sizeof(Vector2) == size);
 
-		mMeshData->getVertexData(VES_TEXCOORD, buffer, size, 1);
+		mMeshData->GetVertexData(VES_TEXCOORD, buffer, size, 1);
 	}
 
 	void RendererMeshData::SetUV1(Vector2* buffer, UINT32 size)
 	{
-		if (!mMeshData->getVertexDesc()->hasElement(VES_TEXCOORD, 1))
+		if (!mMeshData->GetVertexDesc()->hasElement(VES_TEXCOORD, 1))
 			return;
 
-		UINT32 numElements = mMeshData->getNumVertices();
+		UINT32 numElements = mMeshData->GetNumVertices();
 		assert(numElements * sizeof(Vector2) == size);
 
-		mMeshData->setVertexData(VES_TEXCOORD, buffer, size, 1);
+		mMeshData->SetVertexData(VES_TEXCOORD, buffer, size, 1);
 	}
 
 	void RendererMeshData::GetBoneWeights(BoneWeight* buffer, UINT32 size)
 	{
-		SPtr<VertexDataDesc> vertexDesc = mMeshData->getVertexDesc();
+		SPtr<VertexDataDesc> vertexDesc = mMeshData->GetVertexDesc();
 
-		if (!vertexDesc->hasElement(VES_BLEND_WEIGHTS) ||
-			!vertexDesc->hasElement(VES_BLEND_INDICES))
+		if (!vertexDesc->HasElement(VES_BLEND_WEIGHTS) ||
+			!vertexDesc->HasElement(VES_BLEND_INDICES))
 			return;
 
-		UINT32 numElements = mMeshData->getNumVertices();
+		UINT32 numElements = mMeshData->GetNumVertices();
 		assert(numElements * sizeof(BoneWeight) == size);
 
-		UINT8* weightPtr = mMeshData->getElementData(VES_BLEND_WEIGHTS);
-		UINT8* indexPtr = mMeshData->getElementData(VES_BLEND_INDICES);
+		UINT8* weightPtr = mMeshData->GetElementData(VES_BLEND_WEIGHTS);
+		UINT8* indexPtr = mMeshData->GetElementData(VES_BLEND_INDICES);
 
-		UINT32 stride = vertexDesc->getVertexStride(0);
+		UINT32 stride = vertexDesc->GetVertexStride(0);
 
 		BoneWeight* weightDst = buffer;
 		for (UINT32 i = 0; i < numElements; i++)
@@ -241,19 +241,19 @@ namespace bs
 
 	void RendererMeshData::SetBoneWeights(BoneWeight* buffer, UINT32 size)
 	{
-		SPtr<VertexDataDesc> vertexDesc = mMeshData->getVertexDesc();
+		SPtr<VertexDataDesc> vertexDesc = mMeshData->GetVertexDesc();
 
-		if (!vertexDesc->hasElement(VES_BLEND_WEIGHTS) ||
-			!vertexDesc->hasElement(VES_BLEND_INDICES))
+		if (!vertexDesc->HasElement(VES_BLEND_WEIGHTS) ||
+			!vertexDesc->HasElement(VES_BLEND_INDICES))
 			return;
 
-		UINT32 numElements = mMeshData->getNumVertices();
+		UINT32 numElements = mMeshData->GetNumVertices();
 		assert(numElements * sizeof(BoneWeight) == size);
 
-		UINT8* weightPtr = mMeshData->getElementData(VES_BLEND_WEIGHTS);
-		UINT8* indexPtr = mMeshData->getElementData(VES_BLEND_INDICES);
+		UINT8* weightPtr = mMeshData->GetElementData(VES_BLEND_WEIGHTS);
+		UINT8* indexPtr = mMeshData->GetElementData(VES_BLEND_INDICES);
 
-		UINT32 stride = vertexDesc->getVertexStride(0);
+		UINT32 stride = vertexDesc->GetVertexStride(0);
 
 		BoneWeight* weightSrc = buffer;
 		for (UINT32 i = 0; i < numElements; i++)
@@ -279,14 +279,14 @@ namespace bs
 
 	void RendererMeshData::GetIndices(UINT32* buffer, UINT32 size)
 	{
-		UINT32 indexSize = mMeshData->getIndexElementSize();
-		UINT32 numIndices = mMeshData->getNumIndices();
+		UINT32 indexSize = mMeshData->GetIndexElementSize();
+		UINT32 numIndices = mMeshData->GetNumIndices();
 
 		assert(numIndices * indexSize == size);
 
-		if (mMeshData->getIndexType() == IT_16BIT)
+		if (mMeshData->GetIndexType() == IT_16BIT)
 		{
-			UINT16* src = mMeshData->getIndices16();
+			UINT16* src = mMeshData->GetIndices16();
 			UINT32* dest = buffer;
 			
 			for (UINT32 i = 0; i < numIndices; i++)
@@ -299,20 +299,20 @@ namespace bs
 		}
 		else
 		{
-			memcpy(buffer, mMeshData->getIndices32(), size);
+			memcpy(buffer, mMeshData->GetIndices32(), size);
 		}
 	}
 
 	void RendererMeshData::SetIndices(UINT32* buffer, UINT32 size)
 	{
-		UINT32 indexSize = mMeshData->getIndexElementSize();
-		UINT32 numIndices = mMeshData->getNumIndices();
+		UINT32 indexSize = mMeshData->GetIndexElementSize();
+		UINT32 numIndices = mMeshData->GetNumIndices();
 
 		assert(numIndices * indexSize == size);
 
-		if (mMeshData->getIndexType() == IT_16BIT)
+		if (mMeshData->GetIndexType() == IT_16BIT)
 		{
-			UINT16* dest = mMeshData->getIndices16();
+			UINT16* dest = mMeshData->GetIndices16();
 			UINT32* src = buffer;
 
 			for (UINT32 i = 0; i < numIndices; i++)
@@ -325,18 +325,18 @@ namespace bs
 		}
 		else
 		{
-			memcpy(mMeshData->getIndices32(), buffer, size);
+			memcpy(mMeshData->GetIndices32(), buffer, size);
 		}
 	}
 
 	SPtr<RendererMeshData> RendererMeshData::Create(UINT32 numVertices, UINT32 numIndices, VertexLayout layout, IndexType indexType)
 	{
-		return RendererManager::Instance().getActive()->_createMeshData(numVertices, numIndices, layout, indexType);
+		return RendererManager::Instance().GetActive()->_createMeshData(numVertices, numIndices, layout, indexType);
 	}
 
 	SPtr<RendererMeshData> RendererMeshData::Create(const SPtr<MeshData>& meshData)
 	{
-		return RendererManager::Instance().getActive()->_createMeshData(meshData);
+		return RendererManager::Instance().GetActive()->_createMeshData(meshData);
 	}
 
 	SPtr<VertexDataDesc> RendererMeshData::VertexLayoutVertexDesc(VertexLayout type)
@@ -349,27 +349,27 @@ namespace bs
 			type = VertexLayout::Position;
 
 		if ((intType & (INT32)VertexLayout::Position) != 0)
-			vertexDesc->addVertElem(VET_FLOAT3, VES_POSITION);
+			vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
 
 		if ((intType & (INT32)VertexLayout::Normal) != 0)
-			vertexDesc->addVertElem(VET_UBYTE4_NORM, VES_NORMAL);
+			vertexDesc->AddVertElem(VET_UBYTE4_NORM, VES_NORMAL);
 
 		if ((intType & (INT32)VertexLayout::Tangent) != 0)
-			vertexDesc->addVertElem(VET_UBYTE4_NORM, VES_TANGENT);
+			vertexDesc->AddVertElem(VET_UBYTE4_NORM, VES_TANGENT);
 
 		if ((intType & (INT32)VertexLayout::UV0) != 0)
-			vertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD, 0);
+			vertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD, 0);
 
 		if ((intType & (INT32)VertexLayout::UV1) != 0)
-			vertexDesc->addVertElem(VET_FLOAT2, VES_TEXCOORD, 1);
+			vertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD, 1);
 
 		if ((intType & (INT32)VertexLayout::Color) != 0)
-			vertexDesc->addVertElem(VET_COLOR, VES_COLOR);
+			vertexDesc->AddVertElem(VET_COLOR, VES_COLOR);
 
 		if ((intType & (INT32)VertexLayout::BoneWeights) != 0)
 		{
-			vertexDesc->addVertElem(VET_UBYTE4, VES_BLEND_INDICES);
-			vertexDesc->addVertElem(VET_FLOAT4, VES_BLEND_WEIGHTS);
+			vertexDesc->AddVertElem(VET_UBYTE4, VES_BLEND_INDICES);
+			vertexDesc->AddVertElem(VET_FLOAT4, VES_BLEND_WEIGHTS);
 		}
 
 		return vertexDesc;
@@ -378,81 +378,81 @@ namespace bs
 	SPtr<MeshData> RendererMeshData::Convert(const SPtr<MeshData>& meshData)
 	{
 		// Note: Only converting between packed normals/tangents for now
-		SPtr<VertexDataDesc> vertexDesc = meshData->getVertexDesc();
+		SPtr<VertexDataDesc> vertexDesc = meshData->GetVertexDesc();
 
-		UINT32 numVertices = meshData->getNumVertices();
-		UINT32 numIndices = meshData->getNumIndices();
-		UINT32 inputStride = vertexDesc->getVertexStride();
+		UINT32 numVertices = meshData->GetNumVertices();
+		UINT32 numIndices = meshData->GetNumIndices();
+		UINT32 inputStride = vertexDesc->GetVertexStride();
 
 		INT32 type = 0;
 
-		const VertexElement* posElem = vertexDesc->getElement(VES_POSITION);
-		if (posElem != nullptr && posElem->getType() == VET_FLOAT3)
+		const VertexElement* posElem = vertexDesc->GetElement(VES_POSITION);
+		if (posElem != nullptr && posElem->GetType() == VET_FLOAT3)
 			type = (INT32)VertexLayout::Position;
 
-		const VertexElement* normalElem = vertexDesc->getElement(VES_NORMAL);
+		const VertexElement* normalElem = vertexDesc->GetElement(VES_NORMAL);
 		bool packNormals = false;
 		if(normalElem != nullptr)
 		{
-			if (normalElem->getType() == VET_FLOAT3)
+			if (normalElem->GetType() == VET_FLOAT3)
 			{
 				packNormals = true;
 				type |= (INT32)VertexLayout::Normal;
 			}
-			else If(normalElem->getType() == VET_UBYTE4_NORM)
+			else If(normalElem->GetType() == VET_UBYTE4_NORM)
 				type |= (INT32)VertexLayout::Normal;
 		}
 
-		const VertexElement* tanElem = vertexDesc->getElement(VES_TANGENT);
+		const VertexElement* tanElem = vertexDesc->GetElement(VES_TANGENT);
 		bool packTangents = false;
 		if (tanElem != nullptr)
 		{
-			if (tanElem->getType() == VET_FLOAT4)
+			if (tanElem->GetType() == VET_FLOAT4)
 			{
 				packTangents = true;
 				type |= (INT32)VertexLayout::Tangent;
 			}
-			else if (tanElem->getType() == VET_UBYTE4_NORM)
+			else if (tanElem->GetType() == VET_UBYTE4_NORM)
 				type |= (INT32)VertexLayout::Tangent;
 		}
 
-		const VertexElement* uv0Elem = vertexDesc->getElement(VES_TEXCOORD, 0);
-		if (uv0Elem != nullptr && uv0Elem->getType() == VET_FLOAT2)
+		const VertexElement* uv0Elem = vertexDesc->GetElement(VES_TEXCOORD, 0);
+		if (uv0Elem != nullptr && uv0Elem->GetType() == VET_FLOAT2)
 			type |= (INT32)VertexLayout::UV0;
 
-		const VertexElement* uv1Elem = vertexDesc->getElement(VES_TEXCOORD, 1);
-		if (uv1Elem != nullptr && uv1Elem->getType() == VET_FLOAT2)
+		const VertexElement* uv1Elem = vertexDesc->GetElement(VES_TEXCOORD, 1);
+		if (uv1Elem != nullptr && uv1Elem->GetType() == VET_FLOAT2)
 			type |= (INT32)VertexLayout::UV1;
 
-		const VertexElement* colorElem = vertexDesc->getElement(VES_COLOR);
-		if (colorElem != nullptr && colorElem->getType() == VET_COLOR)
+		const VertexElement* colorElem = vertexDesc->GetElement(VES_COLOR);
+		if (colorElem != nullptr && colorElem->GetType() == VET_COLOR)
 			type |= (INT32)VertexLayout::Color;
 
-		const VertexElement* blendIndicesElem = vertexDesc->getElement(VES_BLEND_INDICES);
-		const VertexElement* blendWeightsElem = vertexDesc->getElement(VES_BLEND_WEIGHTS);
-		if (blendIndicesElem != nullptr && blendIndicesElem->getType() == VET_UBYTE4 &&
-			blendWeightsElem != nullptr && blendWeightsElem->getType() == VET_FLOAT4)
+		const VertexElement* blendIndicesElem = vertexDesc->GetElement(VES_BLEND_INDICES);
+		const VertexElement* blendWeightsElem = vertexDesc->GetElement(VES_BLEND_WEIGHTS);
+		if (blendIndicesElem != nullptr && blendIndicesElem->GetType() == VET_UBYTE4 &&
+			blendWeightsElem != nullptr && blendWeightsElem->GetType() == VET_FLOAT4)
 			type |= (INT32)VertexLayout::BoneWeights;
 
 		SPtr<RendererMeshData> rendererMeshData = create(numVertices, numIndices, (VertexLayout)type,
-			meshData->getIndexType());
+			meshData->GetIndexType());
 
 		SPtr<MeshData> output = rendererMeshData->mMeshData;
-		SPtr<VertexDataDesc> outputVertexDesc = output->getVertexDesc();
-		UINT32 outputStride = outputVertexDesc->getVertexStride();
+		SPtr<VertexDataDesc> outputVertexDesc = output->GetVertexDesc();
+		UINT32 outputStride = outputVertexDesc->GetVertexStride();
 
 		if((type & (INT32)VertexLayout::Position) != 0)
 		{
-			UINT8* inData = meshData->getElementData(VES_POSITION);
-			UINT8* outData = output->getElementData(VES_POSITION);
+			UINT8* inData = meshData->GetElementData(VES_POSITION);
+			UINT8* outData = output->GetElementData(VES_POSITION);
 			for(UINT32 i = 0; i < numVertices; i++)
 				memcpy(outData + i * outputStride, inData + i * inputStride, sizeof(Vector3));
 		}
 
 		if ((type & (INT32)VertexLayout::Normal) != 0)
 		{
-			UINT8* inData = meshData->getElementData(VES_NORMAL);
-			UINT8* outData = output->getElementData(VES_NORMAL);
+			UINT8* inData = meshData->GetElementData(VES_NORMAL);
+			UINT8* outData = output->GetElementData(VES_NORMAL);
 
 			if (packNormals)
 				MeshUtility::packNormals((Vector3*)inData, outData, numVertices, inputStride, outputStride);
@@ -465,8 +465,8 @@ namespace bs
 
 		if ((type & (INT32)VertexLayout::Tangent) != 0)
 		{
-			UINT8* inData = meshData->getElementData(VES_TANGENT);
-			UINT8* outData = output->getElementData(VES_TANGENT);
+			UINT8* inData = meshData->GetElementData(VES_TANGENT);
+			UINT8* outData = output->GetElementData(VES_TANGENT);
 
 			if (packTangents)
 				MeshUtility::packNormals((Vector4*)inData, outData, numVertices, inputStride, outputStride);
@@ -479,24 +479,24 @@ namespace bs
 
 		if ((type & (INT32)VertexLayout::UV0) != 0)
 		{
-			UINT8* inData = meshData->getElementData(VES_TEXCOORD, 0);
-			UINT8* outData = output->getElementData(VES_TEXCOORD, 0);
+			UINT8* inData = meshData->GetElementData(VES_TEXCOORD, 0);
+			UINT8* outData = output->GetElementData(VES_TEXCOORD, 0);
 			for (UINT32 i = 0; i < numVertices; i++)
 				memcpy(outData + i * outputStride, inData + i * inputStride, sizeof(Vector2));
 		}
 
 		if ((type & (INT32)VertexLayout::UV1) != 0)
 		{
-			UINT8* inData = meshData->getElementData(VES_TEXCOORD, 1);
-			UINT8* outData = output->getElementData(VES_TEXCOORD, 1);
+			UINT8* inData = meshData->GetElementData(VES_TEXCOORD, 1);
+			UINT8* outData = output->GetElementData(VES_TEXCOORD, 1);
 			for (UINT32 i = 0; i < numVertices; i++)
 				memcpy(outData + i * outputStride, inData + i * inputStride, sizeof(Vector2));
 		}
 
 		if ((type & (INT32)VertexLayout::Color) != 0)
 		{
-			UINT8* inData = meshData->getElementData(VES_COLOR, 0);
-			UINT8* outData = output->getElementData(VES_COLOR, 0);
+			UINT8* inData = meshData->GetElementData(VES_COLOR, 0);
+			UINT8* outData = output->GetElementData(VES_COLOR, 0);
 			for (UINT32 i = 0; i < numVertices; i++)
 				memcpy(outData + i * outputStride, inData + i * inputStride, sizeof(UINT32));
 		}
@@ -504,29 +504,29 @@ namespace bs
 		if ((type & (INT32)VertexLayout::BoneWeights) != 0)
 		{
 			{
-				UINT8* inData = meshData->getElementData(VES_BLEND_INDICES, 0);
-				UINT8* outData = output->getElementData(VES_BLEND_INDICES, 0);
+				UINT8* inData = meshData->GetElementData(VES_BLEND_INDICES, 0);
+				UINT8* outData = output->GetElementData(VES_BLEND_INDICES, 0);
 				for (UINT32 i = 0; i < numVertices; i++)
 					memcpy(outData + i * outputStride, inData + i * inputStride, sizeof(UINT32));
 			}
 
 			{
-				UINT8* inData = meshData->getElementData(VES_BLEND_WEIGHTS, 0);
-				UINT8* outData = output->getElementData(VES_BLEND_WEIGHTS, 0);
+				UINT8* inData = meshData->GetElementData(VES_BLEND_WEIGHTS, 0);
+				UINT8* outData = output->GetElementData(VES_BLEND_WEIGHTS, 0);
 				for (UINT32 i = 0; i < numVertices; i++)
 					memcpy(outData + i * outputStride, inData + i * inputStride, sizeof(Vector4));
 			}
 		}
 
-		if(meshData->getIndexType() == IT_32BIT)
+		if(meshData->GetIndexType() == IT_32BIT)
 		{
-			UINT32* dst = output->getIndices32();
-			memcpy(dst, meshData->getIndices32(), numIndices * sizeof(UINT32));
+			UINT32* dst = output->GetIndices32();
+			memcpy(dst, meshData->GetIndices32(), numIndices * sizeof(UINT32));
 		}
 		else
 		{
-			UINT16* dst = output->getIndices16();
-			memcpy(dst, meshData->getIndices16(), numIndices * sizeof(UINT16));
+			UINT16* dst = output->GetIndices16();
+			memcpy(dst, meshData->GetIndices16(), numIndices * sizeof(UINT16));
 		}
 
 		return output;

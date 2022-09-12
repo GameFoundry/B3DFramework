@@ -19,7 +19,7 @@ namespace bs { namespace ct
 		EnumDisplayMonitors(0, nullptr, &monitorEnumCallback, (LPARAM)&handles);
 
 		// Sort so that primary is the first output
-		for (auto iter = handles.begin(); iter != handles.end(); ++iter)
+		for (auto iter = handles.Begin(); iter != handles.end(); ++iter)
 		{
 			MONITORINFOEX monitorInfo;
 
@@ -29,7 +29,7 @@ namespace bs { namespace ct
 
 			if ((monitorInfo.dwFlags & MONITORINFOF_PRIMARY) != 0)
 			{
-				if (iter != handles.begin())
+				if (iter != handles.Begin())
 				{
 					HMONITOR temp = handles[0];
 					handles[0] = *iter;

@@ -21,7 +21,7 @@ namespace bs
 		mInstanceData = other;
 		mInstanceData->object = myPtr;
 
-		GameObjectManager::instance().remapId(oldId, mInstanceData->mInstanceId);
+		GameObjectManager::instance().RemapId(oldId, mInstanceData->mInstanceId);
 	}
 	
 	RTTITypeBase* GameObject::getRTTIStatic()

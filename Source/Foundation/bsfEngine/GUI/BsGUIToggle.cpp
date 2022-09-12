@@ -74,7 +74,7 @@ namespace bs
 	SPtr<GUIToggleGroup> GUIToggle::CreateToggleGroup(bool allowAllOff)
 	{
 		SPtr<GUIToggleGroup> toggleGroup = bs_shared_ptr<GUIToggleGroup>(new (bs_alloc<GUIToggleGroup>()) GUIToggleGroup(allowAllOff));
-		toggleGroup->initialize(toggleGroup);
+		toggleGroup->Initialize(toggleGroup);
 
 		return toggleGroup;
 	}
@@ -91,7 +91,7 @@ namespace bs
 				if(isToggled)
 				{
 					if(toggleElem->mIsToggled)
-						toggleElem->toggleOff();
+						toggleElem->ToggleOff();
 				}
 				else
 				{
@@ -115,7 +115,7 @@ namespace bs
 
 		if(triggerEvent)
 		{
-			if (!onToggled.empty())
+			if (!onToggled.Empty())
 				onToggled(mIsToggled);
 		}
 
@@ -161,7 +161,7 @@ namespace bs
 
 			if(triggerEvent)
 			{
-				if (!onToggled.empty())
+				if (!onToggled.Empty())
 					onToggled(mIsToggled);
 			}
 
@@ -173,7 +173,7 @@ namespace bs
 	{
 		bool processed = GUIButtonBase::_mouseEvent(ev);
 
-		if(ev.getType() == GUIMouseEventType::MouseUp)
+		if(ev.GetType() == GUIMouseEventType::MouseUp)
 		{
 			if (!_isDisabled())
 			{
@@ -193,7 +193,7 @@ namespace bs
 	{
 		const bool processed = GUIButtonBase::_commandEvent(ev);
 
-		if(ev.getType() == GUICommandEventType::Confirm)
+		if(ev.GetType() == GUICommandEventType::Confirm)
 		{
 			if(!_isDisabled())
 			{

@@ -6,11 +6,11 @@ namespace bs
 {
 	Color ColorGradientEx::Evaluate(const SPtr<ColorGradient>& thisPtr, float t)
 	{
-		return Color::FromRGBA(thisPtr->evaluate(t));
+		return Color::FromRGBA(thisPtr->Evaluate(t));
 	}
 
 	Color ColorGradientHDREx::Evaluate(const SPtr<ColorGradientHDR>& thisPtr, float t)
 	{
-		return thisPtr->evaluate(t);
+		return thisPtr->Evaluate(t);
 	}
 }

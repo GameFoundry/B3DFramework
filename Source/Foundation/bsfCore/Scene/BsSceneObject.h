@@ -374,7 +374,7 @@ namespace bs
 		int IndexOfChild(const HSceneObject& child) const;
 
 		/**	Gets the number of all child GameObjects. */
-		UINT32 GetNumChildren() const { return (UINT32)mChildren.size(); }
+		UINT32 GetNumChildren() const { return (UINT32)mChildren.Size(); }
 
 		/** Returns the scene this object is part of. Can be null if scene object hasn't been instantiated. */
 		const SPtr<SceneInstance>& GetScene() const;
@@ -499,7 +499,7 @@ namespace bs
 				&bs_delete<T>, StdAlloc<T>());
 
 			const HComponent newComponent =
-				static_object_cast<Component>(GameObjectManager::instance().registerObject(gameObject));
+				static_object_cast<Component>(GameObjectManager::instance().RegisterObject(gameObject));
 
 			addAndInitializeComponent(newComponent);
 			return static_object_cast<T>(newComponent);
@@ -551,7 +551,7 @@ namespace bs
 
 			for (auto entry : mComponents)
 			{
-				if (entry->getRTTI()->isDerivedFrom(T::getRTTIStatic()))
+				if (entry->GetRTTI()->isDerivedFrom(T::getRTTIStatic()))
 					output.push_back(static_object_cast<T>(entry));
 			}
 
@@ -574,7 +574,7 @@ namespace bs
 
 			for (auto entry : mComponents)
 			{
-				if (entry->getRTTI()->isDerivedFrom(T::getRTTIStatic()))
+				if (entry->GetRTTI()->isDerivedFrom(T::getRTTIStatic()))
 					return true;
 			}
 

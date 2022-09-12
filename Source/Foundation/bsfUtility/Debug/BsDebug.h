@@ -137,7 +137,7 @@ namespace bs
 	using namespace ::bs;																			\
 	if ((INT32)LogVerbosity::verbosity <= (INT32)BS_LOG_VERBOSITY)									\
 	{																								\
-	  GDebug().log(StringUtil::format(message, ##__VA_ARGS__) + String("\n\t\t in ") +				\
+	  GDebug().Log(StringUtil::format(message, ##__VA_ARGS__) + String("\n\t\t in ") +				\
 					   __PRETTY_FUNCTION__ + " [" + __FILE__ + ":" + toString(__LINE__) + "]\n",	\
 				   LogVerbosity::verbosity, LogCategory##category::_id);							\
 	}																								\

@@ -7,6 +7,6 @@ namespace bs
 {
 	SPtr<SphericalJoint> SphericalJoint::Create(PhysicsScene& scene, const SPHERICAL_JOINT_DESC& desc)
 	{
-		return scene.createSphericalJoint(desc);
+		return scene.CreateSphericalJoint(desc);
 	}
 }

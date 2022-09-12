@@ -26,7 +26,7 @@ namespace bs
 
 	VulkanRenderTexture::~VulkanRenderTexture()
 	{
-		mFramebuffer->destroy();
+		mFramebuffer->Destroy();
 	}
 
 	void VulkanRenderTexture::Initialize()
@@ -48,22 +48,22 @@ namespace bs
 				continue;
 
 			const SPtr<TextureView>& view = mColorSurfaces[i];
-			VulkanTexture* texture = static_cast<VulkanTexture*>(mDesc.colorSurfaces[i].texture.get());
+			VulkanTexture* texture = static_cast<VulkanTexture*>(mDesc.colorSurfaces[i].texture.Get());
 
-			VulkanImage* image = texture->getResource(mDeviceIdx);
+			VulkanImage* image = texture->GetResource(mDeviceIdx);
 			if (image == nullptr)
 				continue;
 
 			TextureSurface surface;
-			surface.mipLevel = view->getMostDetailedMip();
-			surface.numMipLevels = view->getNumMips();
+			surface.mipLevel = view->GetMostDetailedMip();
+			surface.numMipLevels = view->GetNumMips();
 
-			if (texture->getProperties().getTextureType() == TEX_TYPE_3D)
+			if (texture->GetProperties().GetTextureType() == TEX_TYPE_3D)
 			{
-				if(view->getFirstArraySlice() > 0)
+				if(view->GetFirstArraySlice() > 0)
 					BS_LOG(Error, RenderBackend, "Non-zero array slice offset not supported when rendering to a 3D texture.");
 
-				if (view->getNumArraySlices() > 1)
+				if (view->GetNumArraySlices() > 1)
 					BS_LOG(Error, RenderBackend, "Cannot specify array slices when rendering to a 3D texture.");
 
 				surface.face = 0;
@@ -73,39 +73,39 @@ namespace bs
 			}
 			else
 			{
-				surface.face = view->getFirstArraySlice();
-				surface.numFaces = view->getNumArraySlices();
+				surface.face = view->GetFirstArraySlice();
+				surface.numFaces = view->GetNumArraySlices();
 
-				fbDesc.color[i].baseLayer = view->getFirstArraySlice();
-				fbDesc.layers = view->getNumArraySlices();
+				fbDesc.color[i].baseLayer = view->GetFirstArraySlice();
+				fbDesc.layers = view->GetNumArraySlices();
 			}
 
 			fbDesc.color[i].image = image;
 			fbDesc.color[i].surface = surface;
 
 			rpDesc.color[i].enabled = true;
-			rpDesc.color[i].format = VulkanUtility::getPixelFormat(texture->getProperties().getFormat(),
-																   texture->getProperties().isHardwareGammaEnabled());
+			rpDesc.color[i].format = VulkanUtility::getPixelFormat(texture->GetProperties().GetFormat(),
+																   texture->GetProperties().IsHardwareGammaEnabled());
 		}
 
 		if(mDepthStencilSurface != nullptr)
 		{
 			const SPtr<TextureView>& view = mDepthStencilSurface;
-			VulkanTexture* texture = static_cast<VulkanTexture*>(mDesc.depthStencilSurface.texture.get());
+			VulkanTexture* texture = static_cast<VulkanTexture*>(mDesc.depthStencilSurface.texture.Get());
 
-			VulkanImage* image = texture->getResource(mDeviceIdx);
+			VulkanImage* image = texture->GetResource(mDeviceIdx);
 			if (image != nullptr)
 			{
 				TextureSurface surface;
-				surface.mipLevel = view->getMostDetailedMip();
-				surface.numMipLevels = view->getNumMips();
+				surface.mipLevel = view->GetMostDetailedMip();
+				surface.numMipLevels = view->GetNumMips();
 
-				if (texture->getProperties().getTextureType() == TEX_TYPE_3D)
+				if (texture->GetProperties().GetTextureType() == TEX_TYPE_3D)
 				{
-					if (view->getFirstArraySlice() > 0)
+					if (view->GetFirstArraySlice() > 0)
 						BS_LOG(Error, RenderBackend, "Non-zero array slice offset not supported when rendering to a 3D texture.");
 
-					if (view->getNumArraySlices() > 1)
+					if (view->GetNumArraySlices() > 1)
 						BS_LOG(Error, RenderBackend, "Cannot specify array slices when rendering to a 3D texture.");
 
 					surface.face = 0;
@@ -113,27 +113,27 @@ namespace bs
 				}
 				else
 				{
-					surface.face = view->getFirstArraySlice();
-					surface.numFaces = view->getNumArraySlices();
+					surface.face = view->GetFirstArraySlice();
+					surface.numFaces = view->GetNumArraySlices();
 
-					fbDesc.layers = view->getNumArraySlices();
+					fbDesc.layers = view->GetNumArraySlices();
 				}
 
 				fbDesc.depth.image = image;
 				fbDesc.depth.surface = surface;
-				fbDesc.depth.baseLayer = view->getFirstArraySlice();
+				fbDesc.depth.baseLayer = view->GetFirstArraySlice();
 
 				rpDesc.depth.enabled = true;
-				rpDesc.depth.format = VulkanUtility::getPixelFormat(texture->getProperties().getFormat(),
-																	texture->getProperties().isHardwareGammaEnabled());
+				rpDesc.depth.format = VulkanUtility::getPixelFormat(texture->GetProperties().GetFormat(),
+																	texture->GetProperties().IsHardwareGammaEnabled());
 			}
 		}
 
 		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::instance());
 		SPtr<VulkanDevice> device = rapi._getDevice(mDeviceIdx);
 
-		VulkanRenderPass* renderPass = VulkanRenderPasses::instance().get(device->getLogical(), rpDesc);
-		mFramebuffer = device->getResourceManager().create<VulkanFramebuffer>(renderPass, fbDesc);
+		VulkanRenderPass* renderPass = VulkanRenderPasses::instance().Get(device->GetLogical(), rpDesc);
+		mFramebuffer = device->GetResourceManager().create<VulkanFramebuffer>(renderPass, fbDesc);
 	}
 
 	void VulkanRenderTexture::GetCustomAttribute(const String& name, void* data) const

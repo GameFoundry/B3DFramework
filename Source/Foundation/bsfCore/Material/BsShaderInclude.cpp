@@ -22,7 +22,7 @@ namespace bs
 		SPtr<ShaderInclude> shaderIncludePtr = bs_core_ptr<ShaderInclude>(
 			new (bs_alloc<ShaderInclude>()) ShaderInclude(includeString));
 		shaderIncludePtr->_setThisPtr(shaderIncludePtr);
-		shaderIncludePtr->initialize();
+		shaderIncludePtr->Initialize();
 
 		return shaderIncludePtr;
 	}

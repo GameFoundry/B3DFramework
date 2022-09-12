@@ -51,7 +51,7 @@ namespace bs
 			obj->size = size;
 			obj->ownsMemory = true;
 
-			value->read(obj->value, size);
+			value->Read(obj->value, size);
 		}
 
 	public:
@@ -83,7 +83,7 @@ namespace bs
 		SPtr<DataStream> GetData(SerializedDataBlock* obj, UINT32& size)
 		{
 			size = obj->size;
-			obj->stream->seek(obj->offset);
+			obj->stream->Seek(obj->offset);
 
 			return obj->stream;
 		}
@@ -91,7 +91,7 @@ namespace bs
 		void SetData(SerializedDataBlock* obj, const SPtr<DataStream>& value, UINT32 size)
 		{
 			SPtr<MemoryDataStream> memStream = bs_shared_ptr_new<MemoryDataStream>(size);
-			value->read(memStream->data(), size);
+			value->Read(memStream->data(), size);
 
 			obj->stream = memStream;
 			obj->size = size;
@@ -135,7 +135,7 @@ namespace bs
 
 		UINT32 GetNumEntries(SerializedObject* obj)
 		{
-			return (UINT32)obj->subObjects.size();
+			return (UINT32)obj->subObjects.Size();
 		}
 
 		void SetNumEntries(SerializedObject* obj, UINT32 numEntries)
@@ -191,7 +191,7 @@ namespace bs
 
 		UINT32 GetNumEntries(SerializedArray* obj)
 		{
-			return (UINT32)mSequentialEntries.size();
+			return (UINT32)mSequentialEntries.Size();
 		}
 
 		void SetNumEntries(SerializedArray* obj, UINT32 numEntries)
@@ -259,7 +259,7 @@ namespace bs
 
 		UINT32 GetNumEntries(SerializedSubObject* obj)
 		{
-			return (UINT32)mSequentialEntries.size();
+			return (UINT32)mSequentialEntries.Size();
 		}
 
 		void SetNumEntries(SerializedSubObject* obj, UINT32 numEntries)

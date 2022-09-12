@@ -24,7 +24,7 @@ namespace bs
 
 		for (auto& suite : mSuites)
 		{
-			suite->run(output);
+			suite->Run(output);
 		}
 
 		shutDown();
@@ -43,6 +43,6 @@ namespace bs
 	void TestSuite::Assertment(bool success, const String& desc, const String& file, long line)
 	{
 		if (!success)
-			mOutput->outputFail(desc, mActiveTestName, file, line);
+			mOutput->OutputFail(desc, mActiveTestName, file, line);
 	}
 }

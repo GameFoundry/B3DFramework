@@ -96,19 +96,19 @@ namespace bs
 		static Radian Atan2(float y, float x) { return Radian(std::atan2(y, x)); }
 
 		/** Cosine. */
-		static float Cos(const Radian& val) { return (float)std::cos(val.valueRadians()); }
+		static float Cos(const Radian& val) { return (float)std::cos(val.ValueRadians()); }
 
 		/** Cosine. */
 		static float Cos(float val) { return (float)std::cos(val); }
 
 		/** Sine. */
-		static float Sin(const Radian& val) { return (float)std::sin(val.valueRadians()); }
+		static float Sin(const Radian& val) { return (float)std::sin(val.ValueRadians()); }
 
 		/** Sine. */
 		static float Sin(float val) { return (float)std::sin(val); }
 
 		/** Tangent. */
-		static float Tan(const Radian& val) { return (float)std::tan(val.valueRadians()); }
+		static float Tan(const Radian& val) { return (float)std::tan(val.ValueRadians()); }
 
 		/** Tangent. */
 		static float Tan(float val) { return (float)std::tan(val); }
@@ -117,10 +117,10 @@ namespace bs
 		static float Sqrt(float val) { return (float)std::sqrt(val); }
 
 		/** Square root. */
-		static Radian Sqrt(const Radian& val) { return Radian(std::sqrt(val.valueRadians())); }
+		static Radian Sqrt(const Radian& val) { return Radian(std::sqrt(val.ValueRadians())); }
 
 		/** Square root. */
-		static Degree Sqrt(const Degree& val) { return Degree(std::sqrt(val.valueDegrees())); }
+		static Degree Sqrt(const Degree& val) { return Degree(std::sqrt(val.ValueDegrees())); }
 
 		/** Square root followed by an inverse. */
 		static float InvSqrt(float val);
@@ -147,19 +147,19 @@ namespace bs
 		static float Sign(float val);
 
 		/** Returns the sign of the provided value as 1 or -1. */
-		static Radian Sign(const Radian& val) { return Radian(sign(val.valueRadians())); }
+		static Radian Sign(const Radian& val) { return Radian(sign(val.ValueRadians())); }
 
 		/** Returns the sign of the provided value as 1 or -1. */
-		static Degree Sign(const Degree& val) { return Degree(sign(val.valueDegrees())); }
+		static Degree Sign(const Degree& val) { return Degree(sign(val.ValueDegrees())); }
 
 		/** Returns the absolute value. */
 		static float Abs(float val) { return float(std::fabs(val)); }
 
 		/** Returns the absolute value. */
-		static Degree Abs(const Degree& val) { return Degree(std::fabs(val.valueDegrees())); }
+		static Degree Abs(const Degree& val) { return Degree(std::fabs(val.ValueDegrees())); }
 
 		/** Returns the absolute value. */
-		static Radian Abs(const Radian& val) { return Radian(std::fabs(val.valueRadians())); }
+		static Radian Abs(const Radian& val) { return Radian(std::fabs(val.ValueRadians())); }
 
 		/** Returns the nearest integer equal or higher to the provided value. */
 		static float Ceil(float val) { return (float)std::ceil(val); }
@@ -388,7 +388,7 @@ namespace bs
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
-		static float FastSin0(const Radian& val) { return (float)fastASin0(val.valueRadians()); }
+		static float FastSin0(const Radian& val) { return (float)fastASin0(val.ValueRadians()); }
 
 		/**
 		 * Sine function approximation.
@@ -407,7 +407,7 @@ namespace bs
 		 * @note	
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastSin0.
 		 */
-		static float FastSin1(const Radian& val) { return (float)fastASin1(val.valueRadians()); }
+		static float FastSin1(const Radian& val) { return (float)fastASin1(val.ValueRadians()); }
 
 		/**
 		 * Sine function approximation.
@@ -426,7 +426,7 @@ namespace bs
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
-		static float FastCos0(const Radian& val) { return (float)fastACos0(val.valueRadians()); }
+		static float FastCos0(const Radian& val) { return (float)fastACos0(val.ValueRadians()); }
 
 		/**
 		 * Cosine function approximation.
@@ -445,7 +445,7 @@ namespace bs
 		 * @note	
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastCos0.
 		 */
-		static float FastCos1(const Radian& val) { return (float)fastACos1(val.valueRadians()); }
+		static float FastCos1(const Radian& val) { return (float)fastACos1(val.ValueRadians()); }
 
 		/**
 		 * Cosine function approximation.
@@ -464,7 +464,7 @@ namespace bs
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
-		static float FastTan0(const Radian& val) { return (float)fastATan0(val.valueRadians()); }
+		static float FastTan0(const Radian& val) { return (float)fastATan0(val.ValueRadians()); }
 
 		/**
 		 * Tangent function approximation.
@@ -483,7 +483,7 @@ namespace bs
 		 * @note	
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastTan0.
 		 */
-		static float FastTan1(const Radian& val) { return (float)fastATan1(val.valueRadians()); }
+		static float FastTan1(const Radian& val) { return (float)fastATan1(val.ValueRadians()); }
 
 		/**
 		 * Tangent function approximation.
@@ -502,7 +502,7 @@ namespace bs
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
-		static float FastASin0(const Radian& val) { return (float)fastASin0(val.valueRadians()); }
+		static float FastASin0(const Radian& val) { return (float)fastASin0(val.ValueRadians()); }
 
 		/**
 		 * Inverse sine function approximation.
@@ -521,7 +521,7 @@ namespace bs
 		 * @note	
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastASin0.
 		 */
-		static float FastASin1(const Radian& val) { return (float)fastASin1(val.valueRadians()); }
+		static float FastASin1(const Radian& val) { return (float)fastASin1(val.ValueRadians()); }
 
 		/**
 		 * Inverse sine function approximation.
@@ -540,7 +540,7 @@ namespace bs
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
-		static float FastACos0(const Radian& val) { return (float)fastACos0(val.valueRadians()); }
+		static float FastACos0(const Radian& val) { return (float)fastACos0(val.ValueRadians()); }
 
 		/**
 		 * Inverse cosine function approximation.
@@ -559,7 +559,7 @@ namespace bs
 		 * @note	
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastACos0.
 		 */
-		static float FastACos1(const Radian& val) { return (float)fastACos1(val.valueRadians()); }
+		static float FastACos1(const Radian& val) { return (float)fastACos1(val.ValueRadians()); }
 
 		/**
 		 * Inverse cosine function approximation.
@@ -578,7 +578,7 @@ namespace bs
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
-		static float FastATan0(const Radian& val) { return (float)fastATan0(val.valueRadians()); }
+		static float FastATan0(const Radian& val) { return (float)fastATan0(val.ValueRadians()); }
 
 		/**
 		 * Inverse tangent function approximation.
@@ -597,7 +597,7 @@ namespace bs
 		 * @note	
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastATan0.
 		 */
-		static float FastATan1(const Radian& val) { return (float)fastATan1(val.valueRadians()); }
+		static float FastATan1(const Radian& val) { return (float)fastATan1(val.ValueRadians()); }
 
 		/**
 		 * Inverse tangent function approximation.

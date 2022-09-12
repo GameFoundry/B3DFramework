@@ -35,7 +35,7 @@ namespace bs { namespace ct
 				if(newFactory == nullptr)
 				{
 					newFactory = bs_shared_ptr_new<D3D11RenderAPIFactory>();
-					RenderAPIManager::instance().registerFactory(newFactory);
+					RenderAPIManager::instance().RegisterFactory(newFactory);
 				}
 			}
 		};

@@ -32,7 +32,7 @@ namespace bs
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{
 			SamplerState* samplerState = static_cast<SamplerState*>(obj);
-			samplerState->initialize();
+			samplerState->Initialize();
 		}
 
 		const String& GetRTTIName() override

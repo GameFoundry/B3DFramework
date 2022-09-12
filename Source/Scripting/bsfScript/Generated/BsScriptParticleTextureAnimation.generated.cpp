@@ -17,10 +17,10 @@ namespace bs
 
 	void ScriptParticleTextureAnimation::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_setOptions", (void*)&ScriptParticleTextureAnimation::Internal_setOptions);
-		metaData.scriptClass->addInternalCall("Internal_getOptions", (void*)&ScriptParticleTextureAnimation::Internal_getOptions);
-		metaData.scriptClass->addInternalCall("Internal_create", (void*)&ScriptParticleTextureAnimation::Internal_create);
-		metaData.scriptClass->addInternalCall("Internal_create0", (void*)&ScriptParticleTextureAnimation::Internal_create0);
+		metaData.scriptClass->AddInternalCall("Internal_setOptions", (void*)&ScriptParticleTextureAnimation::Internal_setOptions);
+		metaData.scriptClass->AddInternalCall("Internal_getOptions", (void*)&ScriptParticleTextureAnimation::Internal_getOptions);
+		metaData.scriptClass->AddInternalCall("Internal_create", (void*)&ScriptParticleTextureAnimation::Internal_create);
+		metaData.scriptClass->AddInternalCall("Internal_create0", (void*)&ScriptParticleTextureAnimation::Internal_create0);
 
 	}
 
@@ -31,19 +31,19 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.scriptClass->createInstance("bool", ctorParams);
+		MonoObject* managedInstance = metaData.scriptClass->CreateInstance("bool", ctorParams);
 		new (bs_alloc<ScriptParticleTextureAnimation>()) ScriptParticleTextureAnimation(managedInstance, value);
 		return managedInstance;
 	}
 	void ScriptParticleTextureAnimation::Internal_setOptions(ScriptParticleTextureAnimation* thisPtr, PARTICLE_TEXTURE_ANIMATION_DESC* options)
 	{
-		thisPtr->getInternal()->setOptions(*options);
+		thisPtr->GetInternal()->setOptions(*options);
 	}
 
 	void ScriptParticleTextureAnimation::Internal_getOptions(ScriptParticleTextureAnimation* thisPtr, PARTICLE_TEXTURE_ANIMATION_DESC* __output)
 	{
 		PARTICLE_TEXTURE_ANIMATION_DESC tmp__output;
-		tmp__output = thisPtr->getInternal()->getOptions();
+		tmp__output = thisPtr->GetInternal()->getOptions();
 
 		*__output = tmp__output;
 	}

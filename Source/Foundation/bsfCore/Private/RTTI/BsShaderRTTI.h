@@ -400,62 +400,62 @@ namespace bs
 
 		SHADER_DATA_PARAM_DESC& GetDataParam(Shader* obj, UINT32 idx)
 		{
-			auto iter = obj->mDesc.dataParams.begin();
+			auto iter = obj->mDesc.dataParams.Begin();
 			for(UINT32 i = 0; i < idx; i++) ++iter;
 
 			return iter->second;
 		}
 
 		void SetDataParam(Shader* obj, UINT32 idx, SHADER_DATA_PARAM_DESC& val) { obj->mDesc.dataParams[val.name] = val; }
-		UINT32 GetDataParamsArraySize(Shader* obj) { return (UINT32)obj->mDesc.dataParams.size(); }
+		UINT32 GetDataParamsArraySize(Shader* obj) { return (UINT32)obj->mDesc.dataParams.Size(); }
 		void SetDataParamsArraySize(Shader* obj, UINT32 size) {  } // Do nothing
 
 		SHADER_OBJECT_PARAM_DESC& GetTextureParam(Shader* obj, UINT32 idx)
 		{
-			auto iter = obj->mDesc.textureParams.begin();
+			auto iter = obj->mDesc.textureParams.Begin();
 			for(UINT32 i = 0; i < idx; i++) ++iter;
 
 			return iter->second;
 		}
 
 		void SetTextureParam(Shader* obj, UINT32 idx, SHADER_OBJECT_PARAM_DESC& val) { obj->mDesc.textureParams[val.name] = val; }
-		UINT32 GetTextureParamsArraySize(Shader* obj) { return (UINT32)obj->mDesc.textureParams.size(); }
+		UINT32 GetTextureParamsArraySize(Shader* obj) { return (UINT32)obj->mDesc.textureParams.Size(); }
 		void SetTextureParamsArraySize(Shader* obj, UINT32 size) {  } // Do nothing
 
 		SHADER_OBJECT_PARAM_DESC& GetSamplerParam(Shader* obj, UINT32 idx)
 		{
-			auto iter = obj->mDesc.samplerParams.begin();
+			auto iter = obj->mDesc.samplerParams.Begin();
 			for (UINT32 i = 0; i < idx; i++) ++iter;
 
 			return iter->second;
 		}
 
 		void SetSamplerParam(Shader* obj, UINT32 idx, SHADER_OBJECT_PARAM_DESC& val) { obj->mDesc.samplerParams[val.name] = val; }
-		UINT32 GetSamplerParamsArraySize(Shader* obj) { return (UINT32)obj->mDesc.samplerParams.size(); }
+		UINT32 GetSamplerParamsArraySize(Shader* obj) { return (UINT32)obj->mDesc.samplerParams.Size(); }
 		void SetSamplerParamsArraySize(Shader* obj, UINT32 size) {  } // Do nothing
 
 		SHADER_OBJECT_PARAM_DESC& GetBufferParam(Shader* obj, UINT32 idx)
 		{
-			auto iter = obj->mDesc.bufferParams.begin();
+			auto iter = obj->mDesc.bufferParams.Begin();
 			for (UINT32 i = 0; i < idx; i++) ++iter;
 
 			return iter->second;
 		}
 
 		void SetBufferParam(Shader* obj, UINT32 idx, SHADER_OBJECT_PARAM_DESC& val) { obj->mDesc.bufferParams[val.name] = val; }
-		UINT32 GetBufferParamsArraySize(Shader* obj) { return (UINT32)obj->mDesc.bufferParams.size(); }
+		UINT32 GetBufferParamsArraySize(Shader* obj) { return (UINT32)obj->mDesc.bufferParams.Size(); }
 		void SetBufferParamsArraySize(Shader* obj, UINT32 size) {  } // Do nothing
 
 		SHADER_PARAM_BLOCK_DESC& GetParamBlock(Shader* obj, UINT32 idx)
 		{
-			auto iter = obj->mDesc.paramBlocks.begin();
+			auto iter = obj->mDesc.paramBlocks.Begin();
 			for (UINT32 i = 0; i < idx; i++) ++iter;
 
 			return iter->second;
 		}
 
 		void SetParamBlock(Shader* obj, UINT32 idx, SHADER_PARAM_BLOCK_DESC& val) { obj->mDesc.paramBlocks[val.name] = val; }
-		UINT32 GetParamBlocksArraySize(Shader* obj) { return (UINT32)obj->mDesc.paramBlocks.size(); }
+		UINT32 GetParamBlocksArraySize(Shader* obj) { return (UINT32)obj->mDesc.paramBlocks.Size(); }
 		void SetParamBlocksArraySize(Shader* obj, UINT32 size) {  } // Do nothing
 
 	public:
@@ -476,7 +476,7 @@ namespace bs
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{
 			Shader* shader = static_cast<Shader*>(obj);
-			shader->initialize();
+			shader->Initialize();
 		}
 
 		const String& GetRTTIName() override

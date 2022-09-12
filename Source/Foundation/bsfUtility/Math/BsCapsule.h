@@ -39,10 +39,10 @@ namespace bs
 		 * Returns the height of the capsule. The height is the distance between centers of the hemispheres that form the
 		 * capsule's ends.
 		 */
-		float GetHeight() const { return mSegment.getLength(); }
+		float GetHeight() const { return mSegment.GetLength(); }
 
 		/** Returns the center point of the capsule. */
-		Vector3 GetCenter() const { return mSegment.getCenter(); }
+		Vector3 GetCenter() const { return mSegment.GetCenter(); }
 
 	private:
 		LineSegment3 mSegment;

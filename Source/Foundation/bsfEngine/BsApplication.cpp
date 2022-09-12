@@ -34,9 +34,9 @@ namespace bs
 	Application::~Application()
 	{
 		// Cleanup any new objects queued for destruction by unloaded scripts
-		CoreObjectManager::instance().syncToCore();
-		gCoreThread().update();
-		gCoreThread().submitAll(true);
+		CoreObjectManager::instance().SyncToCore();
+		gCoreThread().Update();
+		gCoreThread().SubmitAll(true);
 
 		Cursor::shutDown();
 
@@ -57,16 +57,16 @@ namespace bs
 		VirtualInput::startUp();
 		BuiltinResources::startUp();
 		RendererMaterialManager::startUp();
-		RendererManager::instance().initialize();
+		RendererManager::instance().Initialize();
 		SpriteManager::startUp();
 		GUIManager::startUp();
 		ShortcutManager::startUp();
 
 		Cursor::startUp();
-		Cursor::instance().setCursor(CursorType::Arrow);
-		Platform::setIcon(BuiltinResources::instance().getFrameworkIcon());
+		Cursor::instance().SetCursor(CursorType::Arrow);
+		Platform::setIcon(BuiltinResources::instance().GetFrameworkIcon());
 
-		SceneManager::instance().setMainRenderTarget(getPrimaryWindow());
+		SceneManager::instance().SetMainRenderTarget(getPrimaryWindow());
 		DebugDraw::startUp();
 
 		startUpScriptManager();
@@ -76,10 +76,10 @@ namespace bs
 	{
 		// Need to clear all objects before I unload any plugins, as they
 		// could have allocated parts or all of those objects.
-		SceneManager::instance().clearScene(true);
+		SceneManager::instance().ClearScene(true);
 
 		// Resources too (Prefabs especially, since they hold the same data as a scene)
-		Resources::instance().unloadAll();
+		Resources::instance().UnloadAll();
 
 		// Shut down before script manager as scripts could have registered shortcut callbacks
 		ShortcutManager::shutDown();
@@ -97,7 +97,7 @@ namespace bs
 		VirtualInput::instance()._update();
 
 		if(mProfilerOverlay)
-			mProfilerOverlay->update();
+			mProfilerOverlay->Update();
 	}
 
 	void Application::PostUpdate()
@@ -105,28 +105,28 @@ namespace bs
 		CoreApplication::postUpdate();
 		updateScriptManager();
 
-		PROFILE_CALL(GUIManager::instance().update(), "GUI");
+		PROFILE_CALL(GUIManager::instance().Update(), "GUI");
 		DebugDraw::instance()._update();
 	}
 
 	void Application::ShowProfilerOverlay(ProfilerOverlayType type, const SPtr<Camera>& camera)
 	{
-		const SPtr<Camera>& overlayCamera = camera ? camera : gSceneManager().getMainCamera();
+		const SPtr<Camera>& overlayCamera = camera ? camera : gSceneManager().GetMainCamera();
 		if(!overlayCamera)
 			return;
 
 		if(!mProfilerOverlay)
 			mProfilerOverlay = bs_shared_ptr_new<ProfilerOverlay>(overlayCamera);
 		else
-			mProfilerOverlay->setTarget(overlayCamera);
+			mProfilerOverlay->SetTarget(overlayCamera);
 
-		mProfilerOverlay->show(type);
+		mProfilerOverlay->Show(type);
 	}
 
 	void Application::HideProfilerOverlay()
 	{
 		if(mProfilerOverlay)
-			mProfilerOverlay->hide();
+			mProfilerOverlay->Hide();
 
 		mProfilerOverlay = nullptr;
 	}
@@ -143,7 +143,7 @@ namespace bs
 
 	void Application::UpdateScriptManager()
 	{
-		ScriptManager::instance().update();
+		ScriptManager::instance().Update();
 	}
 
 	START_UP_DESC Application::BuildStartUpDesc(VideoMode videoMode, const String& title, bool fullscreen)

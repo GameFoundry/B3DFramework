@@ -353,14 +353,14 @@ namespace bs
 		 *
 		 * @note	Core thread.
 		 */
-		void AddPlugin(RendererExtension* plugin) { mCallbacks.insert(plugin); }
+		void AddPlugin(RendererExtension* plugin) { mCallbacks.Insert(plugin); }
 
 		/**
 		 * Unregisters an extension registered with addPlugin().
 		 *
 		 * @note	Core thread.
 		 */
-		void RemovePlugin(RendererExtension* plugin) { mCallbacks.erase(plugin); }
+		void RemovePlugin(RendererExtension* plugin) { mCallbacks.Erase(plugin); }
 
 		/**
 		 * Registers a new task for execution on the core thread.

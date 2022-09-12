@@ -33,7 +33,7 @@ namespace bs
 		ScriptTDistributionVector3* scriptforce;
 		scriptforce = ScriptTDistributionVector3::toNative(value.force);
 		if(scriptforce != nullptr)
-			tmpforce = scriptforce->getInternal();
+			tmpforce = scriptforce->GetInternal();
 		if(tmpforce != nullptr)
 		output.force = *tmpforce;
 		output.worldSpace = value.worldSpace;

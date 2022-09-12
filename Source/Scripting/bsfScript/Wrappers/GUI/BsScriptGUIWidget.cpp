@@ -19,15 +19,15 @@ namespace bs
 	ScriptGUIWidget::ScriptGUIWidget(MonoObject* managedInstance)
 		:ScriptObject(managedInstance), mGUIWidget(nullptr)
 	{
-		SPtr<Camera> mainCamera = gSceneManager().getMainCamera();
+		SPtr<Camera> mainCamera = gSceneManager().GetMainCamera();
 
 		mGUIWidget = GUIWidget::create(mainCamera);
-		mGUIWidget->setSkin(BuiltinResources::instance().getGUISkin());
+		mGUIWidget->SetSkin(BuiltinResources::instance().GetGUISkin());
 
-		MonoObject* guiPanel = ScriptGUIPanel::createFromExisting(mGUIWidget->getPanel());
+		MonoObject* guiPanel = ScriptGUIPanel::createFromExisting(mGUIWidget->GetPanel());
 		mPanel = ScriptGUILayout::toNative(guiPanel);
 
-		sGUIPanelField->set(managedInstance, guiPanel);
+		sGUIPanelField->Set(managedInstance, guiPanel);
 	}
 
 	ScriptGUIWidget::~ScriptGUIWidget()
@@ -35,16 +35,16 @@ namespace bs
 
 	void ScriptGUIWidget::InitRuntimeData()
 	{
-		sGUIPanelField = metaData.scriptClass->getField("panel");
+		sGUIPanelField = metaData.scriptClass->GetField("panel");
 
-		metaData.scriptClass->addInternalCall("Internal_Create", (void*)&ScriptGUIWidget::internal_Create);
-		metaData.scriptClass->addInternalCall("Internal_UpdateTransform", (void*)&ScriptGUIWidget::internal_UpdateTransform);
-		metaData.scriptClass->addInternalCall("Internal_UpdateMainCamera", (void*)&ScriptGUIWidget::internal_UpdateMainCamera);
-		metaData.scriptClass->addInternalCall("Internal_SetSkin", (void*)&ScriptGUIWidget::internal_SetSkin);
-		metaData.scriptClass->addInternalCall("Internal_SetCamera", (void*)&ScriptGUIWidget::internal_SetCamera);
-		metaData.scriptClass->addInternalCall("Internal_SetDepth", (void*)&ScriptGUIWidget::internal_SetDepth);
-		metaData.scriptClass->addInternalCall("Internal_GetDepth", (void*)&ScriptGUIWidget::internal_GetDepth);
-		metaData.scriptClass->addInternalCall("Internal_Destroy", (void*)&ScriptGUIWidget::internal_Destroy);
+		metaData.scriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIWidget::internal_Create);
+		metaData.scriptClass->AddInternalCall("Internal_UpdateTransform", (void*)&ScriptGUIWidget::internal_UpdateTransform);
+		metaData.scriptClass->AddInternalCall("Internal_UpdateMainCamera", (void*)&ScriptGUIWidget::internal_UpdateMainCamera);
+		metaData.scriptClass->AddInternalCall("Internal_SetSkin", (void*)&ScriptGUIWidget::internal_SetSkin);
+		metaData.scriptClass->AddInternalCall("Internal_SetCamera", (void*)&ScriptGUIWidget::internal_SetCamera);
+		metaData.scriptClass->AddInternalCall("Internal_SetDepth", (void*)&ScriptGUIWidget::internal_SetDepth);
+		metaData.scriptClass->AddInternalCall("Internal_GetDepth", (void*)&ScriptGUIWidget::internal_GetDepth);
+		metaData.scriptClass->AddInternalCall("Internal_Destroy", (void*)&ScriptGUIWidget::internal_Destroy);
 	}
 
 	void ScriptGUIWidget::internal_Create(MonoObject* managedInstance)
@@ -54,30 +54,30 @@ namespace bs
 
 	void ScriptGUIWidget::internal_UpdateTransform(ScriptGUIWidget* thisPtr, ScriptSceneObject* parent)
 	{
-		HSceneObject parentSO = parent->getHandle();
+		HSceneObject parentSO = parent->GetHandle();
 
-		SPtr<GUIWidget> widget = thisPtr->getInternal();
-		if (!parentSO.isDestroyed() && widget != nullptr)
+		SPtr<GUIWidget> widget = thisPtr->GetInternal();
+		if (!parentSO.IsDestroyed() && widget != nullptr)
 		{
 			widget->_updateTransform(parentSO);
 			widget->_updateRT();
 
-			if (parentSO->getActive() != widget->getIsActive())
-				widget->setIsActive(parentSO->getActive());
+			if (parentSO->GetActive() != widget->getIsActive())
+				widget->SetIsActive(parentSO->getActive());
 		}
 	}
 
 	void ScriptGUIWidget::internal_UpdateMainCamera(ScriptGUIWidget* instance, ScriptCCamera* camera)
 	{
-		SPtr<GUIWidget> widget = instance->getInternal();
+		SPtr<GUIWidget> widget = instance->GetInternal();
 
 		if (widget != nullptr)
 		{
 			SPtr<Camera> nativeCamera;
 			if (camera != nullptr)
-				nativeCamera = camera->getHandle()->_getCamera();
+				nativeCamera = camera->GetHandle()->_getCamera();
 
-			widget->setCamera(nativeCamera);
+			widget->SetCamera(nativeCamera);
 		}
 	}
 
@@ -85,50 +85,50 @@ namespace bs
 	{
 		HGUISkin guiSkin;
 		if (skin != nullptr)
-			guiSkin = skin->getHandle();
+			guiSkin = skin->GetHandle();
 
-		if (!guiSkin.isLoaded())
-			guiSkin = BuiltinResources::instance().getGUISkin();
+		if (!guiSkin.IsLoaded())
+			guiSkin = BuiltinResources::instance().GetGUISkin();
 
-		SPtr<GUIWidget> widget = instance->getInternal();
+		SPtr<GUIWidget> widget = instance->GetInternal();
 		if (widget != nullptr)
-			widget->setSkin(guiSkin);
+			widget->SetSkin(guiSkin);
 	}
 
 	void ScriptGUIWidget::internal_SetCamera(ScriptGUIWidget* instance, ScriptCCamera* camera)
 	{
 		SPtr<Camera> nativeCamera;
 		if (camera != nullptr)
-			nativeCamera = camera->getHandle()->_getCamera();
+			nativeCamera = camera->GetHandle()->_getCamera();
 
 		if(nativeCamera == nullptr)
-			nativeCamera = gSceneManager().getMainCamera();
+			nativeCamera = gSceneManager().GetMainCamera();
 
-		SPtr<GUIWidget> widget = instance->getInternal();
+		SPtr<GUIWidget> widget = instance->GetInternal();
 		if(widget != nullptr)
-			widget->setCamera(nativeCamera);
+			widget->SetCamera(nativeCamera);
 	}
 
 	void ScriptGUIWidget::internal_SetDepth(ScriptGUIWidget* instance, INT8 value)
 	{
-		instance->getInternal()->setDepth(value);
+		instance->GetInternal()->setDepth(value);
 	}
 
 	INT8 ScriptGUIWidget::internal_GetDepth(ScriptGUIWidget* instance)
 	{
-		return instance->getInternal()->getDepth();
+		return instance->GetInternal()->getDepth();
 	}
 
 	void ScriptGUIWidget::internal_Destroy(ScriptGUIWidget* instance)
 	{
-		instance->destroy();
+		instance->Destroy();
 	}
 
 	void ScriptGUIWidget::Destroy(bool destroyPanel)
 	{
 		if(mPanel != nullptr && destroyPanel)
 		{
-			mPanel->destroy();
+			mPanel->Destroy();
 			mPanel = nullptr;
 		}
 

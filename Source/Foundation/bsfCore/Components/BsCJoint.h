@@ -76,7 +76,7 @@ namespace bs
 		 */
 
 		/** Returns the Joint implementation wrapped by this component. */
-		Joint* _getInternal() const { return mInternal.get(); }
+		Joint* _getInternal() const { return mInternal.Get(); }
 
 		/** @} */
 

@@ -76,7 +76,7 @@ namespace bs
 		{
 			throwIfDestroyed();
 
-			return mData->mPtr->object.get();
+			return mData->mPtr->object.Get();
 		}
 
 		/**
@@ -213,7 +213,7 @@ namespace bs
 		{
 			throwIfDestroyed();
 
-			return reinterpret_cast<T*>(mData->mPtr->object.get());
+			return reinterpret_cast<T*>(mData->mPtr->object.Get());
 		}
 
 		/**
@@ -298,7 +298,7 @@ namespace bs
 	bool operator==(const GameObjectHandle<_Ty1>& _Left, const GameObjectHandle<_Ty2>& _Right)
 	{	
 		return (_Left.mData == nullptr && _Right.mData == nullptr) ||
-			(_Left.mData != nullptr && _Right.mData != nullptr && _Left.getInstanceId() == _Right.getInstanceId());
+			(_Left.mData != nullptr && _Right.mData != nullptr && _Left.GetInstanceId() == _Right.getInstanceId());
 	}
 
 	/**	Compares if two handles point to different GameObject%s. */

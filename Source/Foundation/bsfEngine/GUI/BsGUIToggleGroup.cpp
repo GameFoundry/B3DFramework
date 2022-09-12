@@ -29,12 +29,12 @@ namespace bs
 			return;
 
 		mButtons.push_back(toggle);
-		toggle->_setToggleGroup(mThis.lock());
+		toggle->_setToggleGroup(mThis.Lock());
 	}
 
 	void GUIToggleGroup::_remove(GUIToggle* toggle)
 	{
-		auto sharedPtr = mThis.lock(); // Make sure we keep a reference because calling _setToggleGroup(nullptr)
+		auto sharedPtr = mThis.Lock(); // Make sure we keep a reference because calling _setToggleGroup(nullptr)
 		                               // may otherwise clear the last reference and cause us to destruct
 
 		auto iterFind = std::find(begin(mButtons), end(mButtons), toggle);
@@ -42,6 +42,6 @@ namespace bs
 			return;
 
 		(*iterFind)->_setToggleGroup(nullptr);
-		mButtons.erase(iterFind);
+		mButtons.Erase(iterFind);
 	}
 }

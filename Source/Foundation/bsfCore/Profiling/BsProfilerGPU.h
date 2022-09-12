@@ -219,8 +219,8 @@ namespace bs
 
 	/** Profiling macros that allow profiling functionality to be disabled at compile time. */
 #if BS_PROFILING_ENABLED
-	#define BS_GPU_PROFILE_BEGIN(name) gProfilerGPU().beginSample(name);
-	#define BS_GPU_PROFILE_END(name) gProfilerGPU().endSample(name);
+	#define BS_GPU_PROFILE_BEGIN(name) gProfilerGPU().BeginSample(name);
+	#define BS_GPU_PROFILE_END(name) gProfilerGPU().EndSample(name);
 #else
 	#define BS_GPU_PROFILE_BEGIN(name)
 	#define BS_GPU_PROFILE_END(name)
@@ -236,7 +236,7 @@ namespace bs
 		ProfileGPUBlock(ProfilerString name)
 		{
 			mSampleName = std::move(name);
-			gProfilerGPU().beginSample(mSampleName);
+			gProfilerGPU().BeginSample(mSampleName);
 		}
 #else
 		ProfileGPUBlock(const ProfilerString& name)
@@ -246,7 +246,7 @@ namespace bs
 #if BS_PROFILING_ENABLED
 		~ProfileGPUBlock()
 		{
-			gProfilerGPU().endSample(mSampleName);
+			gProfilerGPU().EndSample(mSampleName);
 		}
 #endif
 

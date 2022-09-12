@@ -51,10 +51,10 @@ namespace bs
 	private:
 		FontBitmap& GetBitmap(Font* obj, UINT32 idx)
 		{
-			if(idx >= obj->mFontDataPerSize.size())
-				BS_EXCEPT(InternalErrorException, "Index out of range: " + toString(idx) + ". Valid range: 0 .. " + toString((int)obj->mFontDataPerSize.size()));
+			if(idx >= obj->mFontDataPerSize.Size())
+				BS_EXCEPT(InternalErrorException, "Index out of range: " + toString(idx) + ". Valid range: 0 .. " + toString((int)obj->mFontDataPerSize.Size()));
 
-			auto iter = obj->mFontDataPerSize.begin();
+			auto iter = obj->mFontDataPerSize.Begin();
 			for(UINT32 i = 0; i < idx; i++, ++iter)
 			{ }
 
@@ -69,12 +69,12 @@ namespace bs
 
 		UINT32 GetNumBitmaps(Font* obj)
 		{
-			return (UINT32)obj->mFontDataPerSize.size();
+			return (UINT32)obj->mFontDataPerSize.Size();
 		}
 
 		void SetNumBitmaps(Font* obj, UINT32 size)
 		{
-			mFontDataPerSize.resize(size);
+			mFontDataPerSize.Resize(size);
 		}
 
 	public:
@@ -103,7 +103,7 @@ namespace bs
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{
 			Font* font = static_cast<Font*>(obj);
-			font->initialize(mFontDataPerSize);
+			font->Initialize(mFontDataPerSize);
 		}
 
 		Vector<SPtr<FontBitmap>> mFontDataPerSize;

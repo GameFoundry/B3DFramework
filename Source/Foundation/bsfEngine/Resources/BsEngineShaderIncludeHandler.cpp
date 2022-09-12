@@ -12,19 +12,19 @@ namespace bs
 	{
 		Path path = toResourcePath(name);
 
-		if (path.isEmpty())
+		if (path.IsEmpty())
 			return HShaderInclude();
 
-		if (name.size() >= 8)
+		if (name.Size() >= 8)
 		{
-			if (name.substr(0, 8) == "$ENGINE$" || name.substr(0, 8) == "$EDITOR$")
-				return static_resource_cast<ShaderInclude>(Resources::instance().load(path));
+			if (name.Substr(0, 8) == "$ENGINE$" || name.substr(0, 8) == "$EDITOR$")
+				return static_resource_cast<ShaderInclude>(Resources::instance().Load(path));
 		}
 
 		for(auto& folder : mSearchPaths)
 		{
 			Path entry = folder;
-			entry.append(name);
+			entry.Append(name);
 
 			if(FileSystem::exists(entry))
 			{
@@ -39,29 +39,29 @@ namespace bs
 
 	Path EngineShaderIncludeHandler::ToResourcePath(const String& name)
 	{
-		if (name.substr(0, 8) == "$ENGINE$")
+		if (name.Substr(0, 8) == "$ENGINE$")
 		{
-			if (name.size() > 8)
+			if (name.Size() > 8)
 			{
 				Path fullPath = BuiltinResources::getShaderIncludeFolder();
-				Path includePath = name.substr(9, name.size() - 9);
+				Path includePath = name.Substr(9, name.size() - 9);
 
-				fullPath.append(includePath);
-				fullPath.setFilename(includePath.getFilename() + ".asset");
+				fullPath.Append(includePath);
+				fullPath.SetFilename(includePath.getFilename() + ".asset");
 
 				return fullPath;
 			}
 		}
 #ifdef BS_IS_ASSET_TOOL
-		else if (name.substr(0, 8) == "$EDITOR$")
+		else if (name.Substr(0, 8) == "$EDITOR$")
 		{
-			if (name.size() > 8)
+			if (name.Size() > 8)
 			{
 				Path fullPath = BuiltinResources::getEditorShaderIncludeFolder();
-				Path includePath = name.substr(9, name.size() - 9);
+				Path includePath = name.Substr(9, name.size() - 9);
 
-				fullPath.append(includePath);
-				fullPath.setFilename(includePath.getFilename() + ".asset");
+				fullPath.Append(includePath);
+				fullPath.SetFilename(includePath.getFilename() + ".asset");
 
 				return fullPath;
 			}

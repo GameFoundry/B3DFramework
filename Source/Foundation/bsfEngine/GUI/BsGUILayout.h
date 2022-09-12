@@ -57,7 +57,7 @@ namespace bs
 		void Clear();
 
 		/**	Returns number of child elements in the layout. */
-		UINT32 GetNumChildren() const { return (UINT32)mChildren.size(); }
+		UINT32 GetNumChildren() const { return (UINT32)mChildren.Size(); }
 
 		/**	Destroy the layout. Removes it from parent and widget, and deletes it. */
 		static void Destroy(GUILayout* layout);

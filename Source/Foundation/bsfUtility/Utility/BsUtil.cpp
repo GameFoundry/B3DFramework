@@ -8,14 +8,14 @@ namespace bs
 	String Md5(const WString& source)
 	{
 		MD5 md5;
-		md5.update((UINT8*)source.data(), (UINT32)source.length() * sizeof(WString::value_type));
-		md5.finalize();
+		md5.Update((UINT8*)source.data(), (UINT32)source.length() * sizeof(WString::value_type));
+		md5.Finalize();
 
 		UINT8 digest[16];
-		md5.decdigest(digest, sizeof(digest));
+		md5.Decdigest(digest, sizeof(digest));
 
 		String buf;
-		buf.resize(32);
+		buf.Resize(32);
 		for (int i = 0; i < 16; i++)
 			snprintf(&(buf[0]) + i * 2, 3, "%02x", digest[i]);
 
@@ -25,14 +25,14 @@ namespace bs
 	String Md5(const String& source)
 	{
 		MD5 md5;
-		md5.update((UINT8*)source.data(), (UINT32)source.length() * sizeof(String::value_type));
-		md5.finalize();
+		md5.Update((UINT8*)source.data(), (UINT32)source.length() * sizeof(String::value_type));
+		md5.Finalize();
 
 		UINT8 digest[16];
-		md5.decdigest(digest, sizeof(digest));
+		md5.Decdigest(digest, sizeof(digest));
 
 		String buf;
-		buf.resize(32);
+		buf.Resize(32);
 		for (int i = 0; i < 16; i++)
 			snprintf(&(buf[0]) + i * 2, 3, "%02x", digest[i]);
 

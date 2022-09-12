@@ -28,24 +28,24 @@ namespace bs
 
 	HResource StandaloneResourceLoader::Load(const Path& path, ResourceLoadFlags flags, bool async) const
 	{
-		auto iterFind = mMapping.find(path);
-		if(iterFind != mMapping.end())
+		auto iterFind = mMapping.Find(path);
+		if(iterFind != mMapping.End())
 		{
 			if(!async)
-				return GResources().load(iterFind->second, flags);
+				return GResources().Load(iterFind->second, flags);
 			else
-				return GResources().loadAsync(iterFind->second, flags);
+				return GResources().LoadAsync(iterFind->second, flags);
 		}
 		
 		if (!async)
-			return GResources().load(path, flags);
+			return GResources().Load(path, flags);
 		else
-			return GResources().loadAsync(path, flags);
+			return GResources().LoadAsync(path, flags);
 	}
 
 	void StandaloneResourceLoader::SetMapping(const SPtr<ResourceMapping>& mapping)
 	{
-		mMapping = mapping->getMap();
+		mMapping = mapping->GetMap();
 	}
 
 	GameResourceManager::GameResourceManager()
@@ -56,12 +56,12 @@ namespace bs
 
 	HResource GameResourceManager::Load(const Path& path, ResourceLoadFlags flags, bool async) const
 	{
-		return mLoader->load(path, flags, async);
+		return mLoader->Load(path, flags, async);
 	}
 
 	void GameResourceManager::SetMapping(const SPtr<ResourceMapping>& mapping)
 	{
-		mLoader->setMapping(mapping);
+		mLoader->SetMapping(mapping);
 	}
 
 	void GameResourceManager::SetLoader(const SPtr<IGameResourceLoader>& loader)

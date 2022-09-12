@@ -83,8 +83,8 @@ namespace bs
 			if (n > 0 && n <= len)
 			{
 				WString Result(buffer);
-				if (result[result.size() - 1] != L'\\')
-					result.append(L"\\");
+				if (result[result.Size() - 1] != L'\\')
+					result.Append(L"\\");
 
 				bs_free(buffer);
 				return result;
@@ -107,8 +107,8 @@ namespace bs
 			if (n > 0 && n <= len)
 			{
 				WString Result(buffer);
-				if (result[result.size() - 1] != L'\\')
-					result.append(L"\\");
+				if (result[result.Size() - 1] != L'\\')
+					result.Append(L"\\");
 
 				bs_free(buffer);
 				return result;
@@ -154,29 +154,29 @@ namespace bs
 		StringUtil::toUpperCase(ucPath);
 
 		return
-			ucPath.compare(0, 4, L"\\\\.\\") == 0 ||
-			ucPath.compare(L"CON") == 0 ||
-			ucPath.compare(L"PRN") == 0 ||
-			ucPath.compare(L"AUX") == 0 ||
-			ucPath.compare(L"NUL") == 0 ||
-			ucPath.compare(L"LPT1") == 0 ||
-			ucPath.compare(L"LPT2") == 0 ||
-			ucPath.compare(L"LPT3") == 0 ||
-			ucPath.compare(L"LPT4") == 0 ||
-			ucPath.compare(L"LPT5") == 0 ||
-			ucPath.compare(L"LPT6") == 0 ||
-			ucPath.compare(L"LPT7") == 0 ||
-			ucPath.compare(L"LPT8") == 0 ||
-			ucPath.compare(L"LPT9") == 0 ||
-			ucPath.compare(L"COM1") == 0 ||
-			ucPath.compare(L"COM2") == 0 ||
-			ucPath.compare(L"COM3") == 0 ||
-			ucPath.compare(L"COM4") == 0 ||
-			ucPath.compare(L"COM5") == 0 ||
-			ucPath.compare(L"COM6") == 0 ||
-			ucPath.compare(L"COM7") == 0 ||
-			ucPath.compare(L"COM8") == 0 ||
-			ucPath.compare(L"COM9") == 0;
+			ucPath.Compare(0, 4, L"\\\\.\\") == 0 ||
+			ucPath.Compare(L"CON") == 0 ||
+			ucPath.Compare(L"PRN") == 0 ||
+			ucPath.Compare(L"AUX") == 0 ||
+			ucPath.Compare(L"NUL") == 0 ||
+			ucPath.Compare(L"LPT1") == 0 ||
+			ucPath.Compare(L"LPT2") == 0 ||
+			ucPath.Compare(L"LPT3") == 0 ||
+			ucPath.Compare(L"LPT4") == 0 ||
+			ucPath.Compare(L"LPT5") == 0 ||
+			ucPath.Compare(L"LPT6") == 0 ||
+			ucPath.Compare(L"LPT7") == 0 ||
+			ucPath.Compare(L"LPT8") == 0 ||
+			ucPath.Compare(L"LPT9") == 0 ||
+			ucPath.Compare(L"COM1") == 0 ||
+			ucPath.Compare(L"COM2") == 0 ||
+			ucPath.Compare(L"COM3") == 0 ||
+			ucPath.Compare(L"COM4") == 0 ||
+			ucPath.Compare(L"COM5") == 0 ||
+			ucPath.Compare(L"COM6") == 0 ||
+			ucPath.Compare(L"COM7") == 0 ||
+			ucPath.Compare(L"COM8") == 0 ||
+			ucPath.Compare(L"COM9") == 0;
 	}
 
 	bool win32_isFile(const WString& path)
@@ -239,7 +239,7 @@ namespace bs
 
 	void FileSystem::RemoveFile(const Path& path)
 	{
-		WString pathStr = UTF8::toWide(path.toString());
+		WString pathStr = UTF8::toWide(path.ToString());
 		if (win32_isDirectory(pathStr))
 		{
 			if (RemoveDirectoryW(pathStr.c_str()) == 0)
@@ -254,8 +254,8 @@ namespace bs
 
 	void FileSystem::CopyFile(const Path& from, const Path& to)
 	{
-		WString fromStr = UTF8::toWide(from.toString());
-		WString toStr = UTF8::toWide(to.toString());
+		WString fromStr = UTF8::toWide(from.ToString());
+		WString toStr = UTF8::toWide(to.ToString());
 
 		if (CopyFileW(fromStr.c_str(), toStr.c_str(), FALSE) == FALSE)
 			win32_handleError(GetLastError(), fromStr);
@@ -263,8 +263,8 @@ namespace bs
 
 	void FileSystem::MoveFile(const Path& oldPath, const Path& newPath)
 	{
-		WString oldPathStr = UTF8::toWide(oldPath.toString());
-		WString newPathStr = UTF8::toWide(newPath.toString());
+		WString oldPathStr = UTF8::toWide(oldPath.ToString());
+		WString newPathStr = UTF8::toWide(newPath.ToString());
 
 		if (MoveFileW(oldPathStr.c_str(), newPathStr.c_str()) == 0)
 			win32_handleError(GetLastError(), oldPathStr);
@@ -272,7 +272,7 @@ namespace bs
 
 	SPtr<DataStream> FileSystem::OpenFile(const Path& fullPath, bool readOnly)
 	{
-		WString pathWString = UTF8::toWide(fullPath.toString());
+		WString pathWString = UTF8::toWide(fullPath.ToString());
 		const wchar_t* pathString = pathWString.c_str();
 
 		if (!win32_pathExists(pathString) || !win32_isFile(pathString))
@@ -295,24 +295,24 @@ namespace bs
 
 	UINT64 FileSystem::GetFileSize(const Path& fullPath)
 	{
-		return win32_getFileSize(UTF8::toWide(fullPath.toString()));
+		return win32_getFileSize(UTF8::toWide(fullPath.ToString()));
 	}
 
 	bool FileSystem::Exists(const Path& fullPath)
 	{
-		return win32_pathExists(UTF8::toWide(fullPath.toString()));
+		return win32_pathExists(UTF8::toWide(fullPath.ToString()));
 	}
 
 	bool FileSystem::IsFile(const Path& fullPath)
 	{
-		WString pathStr = UTF8::toWide(fullPath.toString());
+		WString pathStr = UTF8::toWide(fullPath.ToString());
 
 		return win32_pathExists(pathStr) && win32_isFile(pathStr);
 	}
 
 	bool FileSystem::IsDirectory(const Path& fullPath)
 	{
-		WString pathStr = UTF8::toWide(fullPath.toString());
+		WString pathStr = UTF8::toWide(fullPath.ToString());
 
 		return win32_pathExists(pathStr) && win32_isDirectory(pathStr);
 	}
@@ -320,32 +320,32 @@ namespace bs
 	void FileSystem::CreateDir(const Path& fullPath)
 	{
 		Path parentPath = fullPath;
-		while (!exists(parentPath) && parentPath.getNumDirectories() > 0)
+		while (!exists(parentPath) && parentPath.GetNumDirectories() > 0)
 		{
-			parentPath = parentPath.getParent();
+			parentPath = parentPath.GetParent();
 		}
 
-		for (UINT32 i = parentPath.getNumDirectories(); i < fullPath.getNumDirectories(); i++)
+		for (UINT32 i = parentPath.GetNumDirectories(); i < fullPath.getNumDirectories(); i++)
 		{
-			parentPath.append(fullPath[i]);
-			win32_createDirectory(UTF8::toWide(parentPath.toString()));
+			parentPath.Append(fullPath[i]);
+			win32_createDirectory(UTF8::toWide(parentPath.ToString()));
 		}
 
-		if (fullPath.isFile())
-			win32_createDirectory(UTF8::toWide(fullPath.toString()));
+		if (fullPath.IsFile())
+			win32_createDirectory(UTF8::toWide(fullPath.ToString()));
 	}
 
 	void FileSystem::GetChildren(const Path& dirPath, Vector<Path>& files, Vector<Path>& directories)
 	{
-		WString findPath = UTF8::toWide(dirPath.toString());
+		WString findPath = UTF8::toWide(dirPath.ToString());
 
 		if (win32_isFile(findPath))
 			return;
 
-		if(dirPath.isFile()) // Assuming the file is a folder, just improperly formatted in Path
-			findPath.append(L"\\*");
+		if(dirPath.IsFile()) // Assuming the file is a folder, just improperly formatted in Path
+			findPath.Append(L"\\*");
 		else
-			findPath.append(L"*");
+			findPath.Append(L"*");
 
 		WIN32_FIND_DATAW findData;
 		HANDLE fileHandle = FindFirstFileW(findPath.c_str(), &findData);
@@ -364,9 +364,9 @@ namespace bs
 			{
 				Path fullPath = dirPath;
 				if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
-					directories.push_back(fullPath.append(UTF8::fromWide(tempName) + u8"/"));
+					directories.push_back(fullPath.Append(UTF8::fromWide(tempName) + u8"/"));
 				else
-					files.push_back(fullPath.append(UTF8::fromWide(tempName)));
+					files.push_back(fullPath.Append(UTF8::fromWide(tempName)));
 			}
 
 			if(FindNextFileW(fileHandle, &findData) == FALSE)
@@ -384,15 +384,15 @@ namespace bs
 	bool FileSystem::Iterate(const Path& dirPath, std::function<bool(const Path&)> fileCallback,
 		std::function<bool(const Path&)> dirCallback, bool recursive)
 	{
-		WString findPath = UTF8::toWide(dirPath.toString());
+		WString findPath = UTF8::toWide(dirPath.ToString());
 
 		if (win32_isFile(findPath))
 			return false;
 
-		if (dirPath.isFile()) // Assuming the file is a folder, just improperly formatted in Path
-			findPath.append(L"\\*");
+		if (dirPath.IsFile()) // Assuming the file is a folder, just improperly formatted in Path
+			findPath.Append(L"\\*");
 		else
-			findPath.append(L"*");
+			findPath.Append(L"*");
 
 		WIN32_FIND_DATAW findData;
 		HANDLE fileHandle = FindFirstFileW(findPath.c_str(), &findData);
@@ -412,7 +412,7 @@ namespace bs
 				Path fullPath = dirPath;
 				if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
 				{
-					Path childDir = fullPath.append(UTF8::fromWide(tempName) + u8"/");
+					Path childDir = fullPath.Append(UTF8::fromWide(tempName) + u8"/");
 					if (dirCallback != nullptr)
 					{
 						if (!dirCallback(childDir))
@@ -433,7 +433,7 @@ namespace bs
 				}
 				else
 				{
-					Path filePath = fullPath.append(UTF8::fromWide(tempName));
+					Path filePath = fullPath.Append(UTF8::fromWide(tempName));
 					if (fileCallback != nullptr)
 					{
 						if (!fileCallback(filePath))
@@ -460,7 +460,7 @@ namespace bs
 
 	std::time_t FileSystem::GetLastModifiedTime(const Path& fullPath)
 	{
-		return win32_getLastModifiedTime(UTF8::toWide(fullPath.toString()));
+		return win32_getLastModifiedTime(UTF8::toWide(fullPath.ToString()));
 	}
 
 	Path FileSystem::GetWorkingDirectoryPath()

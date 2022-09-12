@@ -30,7 +30,7 @@ namespace bs
 		{
 			obj->mUUIDToFilePath = val;
 
-			obj->mFilePathToUUID.clear();
+			obj->mFilePathToUUID.Clear();
 
 			for(auto& entry : obj->mUUIDToFilePath)
 			{

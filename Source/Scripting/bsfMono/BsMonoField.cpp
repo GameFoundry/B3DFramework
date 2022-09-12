@@ -26,7 +26,7 @@ namespace bs
 		if(fieldClass == nullptr)
 			return nullptr;	
 		
-		mFieldType = MonoManager::instance().findClass(fieldClass);
+		mFieldType = MonoManager::instance().FindClass(fieldClass);
 
 		return mFieldType;
 	}
@@ -38,7 +38,7 @@ namespace bs
 
 	MonoObject* MonoField::getBoxed(MonoObject* instance)
 	{
-		return mono_field_get_value_object(MonoManager::instance().getDomain(), mField, instance);
+		return mono_field_get_value_object(MonoManager::instance().GetDomain(), mField, instance);
 	}
 
 	void MonoField::Set(MonoObject* instance, void* value)

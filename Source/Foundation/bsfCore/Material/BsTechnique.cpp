@@ -19,7 +19,7 @@ namespace bs
 
 	bool TechniqueBase::IsSupported() const
 	{
-		if (ct::GpuProgramManager::instance().isLanguageSupported(mLanguage) || mLanguage == "Any")
+		if (ct::GpuProgramManager::instance().IsLanguageSupported(mLanguage) || mLanguage == "Any")
 			return true;
 
 		return false;
@@ -50,7 +50,7 @@ namespace bs
 	template<bool Core>
 	SPtr<typename TTechnique<Core>::PassType> TTechnique<Core>::getPass(UINT32 idx) const
 	{
-		if (idx < 0 || idx >= (UINT32)mPasses.size())
+		if (idx < 0 || idx >= (UINT32)mPasses.Size())
 			BS_EXCEPT(InvalidParametersException, "Index out of range: " + toString(idx));
 
 		return mPasses[idx];
@@ -59,7 +59,7 @@ namespace bs
 	void TTechnique<Core>::compile()
 	{
 		for(auto& pass : mPasses)
-			pass->compile();
+			pass->Compile();
 	}
 
 	template class TTechnique < false > ;
@@ -83,7 +83,7 @@ namespace bs
 	{
 		Vector<SPtr<ct::Pass>> passes;
 		for (auto& pass : mPasses)
-			passes.push_back(pass->getCore());
+			passes.push_back(pass->GetCore());
 
 		ct::Technique* technique = new(bs_alloc<ct::Technique>()) ct::Technique(
 			mLanguage,
@@ -100,7 +100,7 @@ namespace bs
 	void Technique::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 	{
 		for (auto& pass : mPasses)
-			dependencies.push_back(pass.get());
+			dependencies.push_back(pass.Get());
 	}
 
 	SPtr<Technique> Technique::Create(const String& language, const Vector<SPtr<Pass>>& passes)
@@ -108,7 +108,7 @@ namespace bs
 		Technique* technique = new (bs_alloc<Technique>()) Technique(language, {}, ShaderVariation(), passes);
 		SPtr<Technique> techniquePtr = bs_core_ptr<Technique>(technique);
 		techniquePtr->_setThisPtr(techniquePtr);
-		techniquePtr->initialize();
+		techniquePtr->Initialize();
 
 		return techniquePtr;
 	}
@@ -119,7 +119,7 @@ namespace bs
 		Technique* technique = new (bs_alloc<Technique>()) Technique(language, tags, variation, passes);
 		SPtr<Technique> techniquePtr = bs_core_ptr<Technique>(technique);
 		techniquePtr->_setThisPtr(techniquePtr);
-		techniquePtr->initialize();
+		techniquePtr->Initialize();
 
 		return techniquePtr;
 	}
@@ -155,7 +155,7 @@ namespace bs
 		Technique* technique = new (bs_alloc<Technique>()) Technique(language, {}, ShaderVariation(), passes);
 		SPtr<Technique> techniquePtr = bs_shared_ptr<Technique>(technique);
 		techniquePtr->_setThisPtr(techniquePtr);
-		techniquePtr->initialize();
+		techniquePtr->Initialize();
 
 		return techniquePtr;
 	}
@@ -166,7 +166,7 @@ namespace bs
 		Technique* technique = new (bs_alloc<Technique>()) Technique(language, tags, variation, passes);
 		SPtr<Technique> techniquePtr = bs_shared_ptr<Technique>(technique);
 		techniquePtr->_setThisPtr(techniquePtr);
-		techniquePtr->initialize();
+		techniquePtr->Initialize();
 
 		return techniquePtr;
 	}

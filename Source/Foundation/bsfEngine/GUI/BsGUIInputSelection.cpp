@@ -18,14 +18,14 @@ namespace bs
 	{
 		mSelectionRects = getSelectionRects();
 
-		INT32 diff = (INT32)(mSprites.size() - mSelectionRects.size());
+		INT32 diff = (INT32)(mSprites.Size() - mSelectionRects.size());
 
 		if(diff > 0)
 		{
-			for(UINT32 i = (UINT32)mSelectionRects.size(); i < (UINT32)mSprites.size(); i++)
+			for(UINT32 i = (UINT32)mSelectionRects.Size(); i < (UINT32)mSprites.size(); i++)
 				bs_delete(mSprites[i]);
 
-			mSprites.erase(mSprites.begin() + mSelectionRects.size(), mSprites.end());
+			mSprites.Erase(mSprites.begin() + mSelectionRects.size(), mSprites.end());
 		}
 		else If(diff < 0)
 		{
@@ -46,9 +46,9 @@ namespace bs
 			IMAGE_SPRITE_DESC desc;
 			desc.width = mSelectionRects[idx].width;
 			desc.height = mSelectionRects[idx].height;
-			desc.texture = GUIManager::instance().getTextSelectionTexture();
+			desc.texture = GUIManager::instance().GetTextSelectionTexture();
 
-			sprite->update(desc, (UINT64)widget);
+			sprite->Update(desc, (UINT64)widget);
 			idx++;
 		}
 	}
@@ -72,7 +72,7 @@ namespace bs
 		localParentCliprect.y += mElement->_getTextInputOffset().y + clipRect.y;
 
 		// Clip our rectangle so its not larger then the parent
-		clipRect.clip(localParentCliprect);
+		clipRect.Clip(localParentCliprect);
 
 		// Increase clip size by 1, so we can fit the caret in case it is fully at the end of the text
 		clipRect.width += 1;
@@ -101,7 +101,7 @@ namespace bs
 			UINT32 endCharIdx = mSelectionEnd - 1;
 			if(startLine != endLine)
 			{
-				endCharIdx = lineDesc.getEndChar(false);
+				endCharIdx = lineDesc.GetEndChar(false);
 				if(endCharIdx > 0)
 					endCharIdx = endCharIdx - 1;
 			}
@@ -113,8 +113,8 @@ namespace bs
 
 				Rect2I selectionRect;
 				selectionRect.x = startChar.x;
-				selectionRect.y = lineDesc.getLineYStart();
-				selectionRect.height = lineDesc.getLineHeight();
+				selectionRect.y = lineDesc.GetLineYStart();
+				selectionRect.height = lineDesc.GetLineHeight();
 				selectionRect.width = (endChar.x + endChar.width) - startChar.x;
 
 				selectionRects.push_back(selectionRect);
@@ -124,20 +124,20 @@ namespace bs
 		for(UINT32 i = startLine + 1; i < endLine; i++)
 		{
 			const GUIInputLineDesc& lineDesc = getLineDesc(i);
-			if(lineDesc.getStartChar() == lineDesc.getEndChar() || isNewlineChar(lineDesc.getStartChar()))
+			if(lineDesc.GetStartChar() == lineDesc.getEndChar() || isNewlineChar(lineDesc.getStartChar()))
 				continue;
 
-			UINT32 endCharIdx = lineDesc.getEndChar(false);
+			UINT32 endCharIdx = lineDesc.GetEndChar(false);
 			if(endCharIdx > 0)
 				endCharIdx = endCharIdx - 1;
 
-			Rect2I startChar = getLocalCharRect(lineDesc.getStartChar());
+			Rect2I startChar = getLocalCharRect(lineDesc.GetStartChar());
 			Rect2I endChar = getLocalCharRect(endCharIdx);
 
 			Rect2I selectionRect;
 			selectionRect.x = startChar.x;
-			selectionRect.y = lineDesc.getLineYStart();
-			selectionRect.height = lineDesc.getLineHeight();
+			selectionRect.y = lineDesc.GetLineYStart();
+			selectionRect.height = lineDesc.GetLineHeight();
 			selectionRect.width = (endChar.x + endChar.width) - startChar.x;
 
 			selectionRects.push_back(selectionRect);
@@ -147,19 +147,19 @@ namespace bs
 		{
 			const GUIInputLineDesc& lineDesc = getLineDesc(endLine);
 
-			if(lineDesc.getStartChar() != lineDesc.getEndChar() && !isNewlineChar(lineDesc.getStartChar()))
+			if(lineDesc.GetStartChar() != lineDesc.getEndChar() && !isNewlineChar(lineDesc.getStartChar()))
 			{
 				UINT32 endCharIdx = mSelectionEnd - 1;
 
 				if(!isNewlineChar(endCharIdx))
 				{
-					Rect2I startChar = getLocalCharRect(lineDesc.getStartChar());
+					Rect2I startChar = getLocalCharRect(lineDesc.GetStartChar());
 					Rect2I endChar = getLocalCharRect(endCharIdx);
 
 					Rect2I selectionRect;
 					selectionRect.x = startChar.x;
-					selectionRect.y = lineDesc.getLineYStart();
-					selectionRect.height = lineDesc.getLineHeight();
+					selectionRect.y = lineDesc.GetLineYStart();
+					selectionRect.height = lineDesc.GetLineHeight();
 					selectionRect.width = (endChar.x + endChar.width) - startChar.x;
 
 					selectionRects.push_back(selectionRect);
@@ -184,7 +184,7 @@ namespace bs
 		for(auto& sprite : mSprites)
 			bs_delete(sprite);
 
-		mSprites.clear();
+		mSprites.Clear();
 	}
 
 	void GUIInputSelection::SelectionDragStart(UINT32 caretPos)

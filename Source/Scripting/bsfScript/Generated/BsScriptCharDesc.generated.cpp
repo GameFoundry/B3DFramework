@@ -45,8 +45,8 @@ namespace bs
 		if(value.kerningPairs != nullptr)
 		{
 			ScriptArray ArraykerningPairs(value.kerningPairs);
-			veckerningPairs.resize(arraykerningPairs.size());
-			for(int i = 0; i < (int)arraykerningPairs.size(); i++)
+			veckerningPairs.Resize(arraykerningPairs.size());
+			for(int i = 0; i < (int)arraykerningPairs.Size(); i++)
 			{
 				veckerningPairs[i] = arraykerningPairs.get<KerningPair>(i);
 			}
@@ -71,14 +71,14 @@ namespace bs
 		output.yOffset = value.yOffset;
 		output.xAdvance = value.xAdvance;
 		output.yAdvance = value.yAdvance;
-		int arraySizekerningPairs = (int)value.kerningPairs.size();
+		int arraySizekerningPairs = (int)value.kerningPairs.Size();
 		MonoArray* veckerningPairs;
 		ScriptArray arraykerningPairs = ScriptArray::create<ScriptKerningPair>(arraySizekerningPairs);
 		for(int i = 0; i < arraySizekerningPairs; i++)
 		{
-			arraykerningPairs.set(i, value.kerningPairs[i]);
+			arraykerningPairs.Set(i, value.kerningPairs[i]);
 		}
-		veckerningPairs = arraykerningPairs.getInternal();
+		veckerningPairs = arraykerningPairs.GetInternal();
 		output.kerningPairs = veckerningPairs;
 
 		return output;

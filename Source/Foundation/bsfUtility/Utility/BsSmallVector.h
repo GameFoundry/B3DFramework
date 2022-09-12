@@ -25,13 +25,13 @@ namespace bs
 		SmallVector() = default;
 		SmallVector(const SmallVector<ValueType, N>& other)
 		{
-			if(!other.empty())
+			if(!other.Empty())
 				*this = other;
 		}
 
 		SmallVector(SmallVector<ValueType, N>&& other)
 		{
-			if(!other.empty())
+			if(!other.Empty())
 				*this = std::move(other);
 		}
 
@@ -60,14 +60,14 @@ namespace bs
 				return *this;
 
 			UINT32 mySize = size();
-			const UINT32 otherSize = other.size();
+			const UINT32 otherSize = other.Size();
 
 			// Use assignment copy if we have more elements than the other array, and destroy any excess elements
 			if(mySize > otherSize)
 			{
 				Iterator newEnd;
 				if(otherSize > 0)
-					newEnd = std::copy(other.begin(), other.end(), begin());
+					newEnd = std::copy(other.Begin(), other.end(), begin());
 				else
 					newEnd = begin();
 
@@ -87,9 +87,9 @@ namespace bs
 					grow(otherSize);
 				}
 				else if (mySize > 0)
-					std::copy(other.begin(), other.begin() + mySize, begin());
+					std::copy(other.Begin(), other.begin() + mySize, begin());
 
-				std::uninitialized_copy(other.begin() + mySize, other.end(), begin() + mySize);
+				std::uninitialized_copy(other.Begin() + mySize, other.end(), begin() + mySize);
 			}
 
 			mSize = otherSize;
@@ -102,7 +102,7 @@ namespace bs
 				return *this;
 
 			// If the other buffer isn't small, we can just steal its buffer
-			if(!other.isSmall())
+			if(!other.IsSmall())
 			{
 				for(auto& entry : *this)
 					entry.~Type();
@@ -120,14 +120,14 @@ namespace bs
 			else
 			{
 				UINT32 mySize = size();
-				const UINT32 otherSize = other.size();
+				const UINT32 otherSize = other.Size();
 
 				// Use assignment copy if we have more elements than the other array, and destroy any excess elements
 				if(mySize > otherSize)
 				{
 					Iterator newEnd;
 					if(otherSize > 0)
-						newEnd = std::move(other.begin(), other.end(), begin());
+						newEnd = std::move(other.Begin(), other.end(), begin());
 					else
 						newEnd = begin();
 
@@ -144,16 +144,16 @@ namespace bs
 						grow(otherSize);
 					}
 					else if (mySize > 0)
-						std::move(other.begin(), other.begin() + mySize, begin());
+						std::move(other.Begin(), other.begin() + mySize, begin());
 
 					std::uninitialized_copy(
-						std::make_move_iterator(other.begin() + mySize),
-						std::make_move_iterator(other.end()), 
+						std::make_move_iterator(other.Begin() + mySize),
+						std::make_move_iterator(other.End()),
 						begin() + mySize);
 				}
 
 				mSize = otherSize;
-				other.clear();
+				other.Clear();
 			}
 
 			return *this;
@@ -162,14 +162,14 @@ namespace bs
 		SmallVector<ValueType, N>& operator=(std::initializer_list<Type> list)
 		{
 			UINT32 mySize = size();
-			const UINT32 otherSize = (UINT32)list.size();
+			const UINT32 otherSize = (UINT32)list.Size();
 
 			// Use assignment copy if we have more elements than the list, and destroy any excess elements
 			if(mySize > otherSize)
 			{
 				Iterator newEnd;
 				if(otherSize > 0)
-					newEnd = std::copy(list.begin(), list.end(), begin());
+					newEnd = std::copy(list.Begin(), list.end(), begin());
 				else
 					newEnd = begin();
 
@@ -189,9 +189,9 @@ namespace bs
 					grow(otherSize);
 				}
 				else if (mySize > 0)
-					std::copy(list.begin(), list.begin() + mySize, begin());
+					std::copy(list.Begin(), list.begin() + mySize, begin());
 
-				std::uninitialized_copy(list.begin() + mySize, list.end(), begin() + mySize);
+				std::uninitialized_copy(list.Begin() + mySize, list.end(), begin() + mySize);
 			}
 
 			mSize = otherSize;
@@ -200,8 +200,8 @@ namespace bs
 
 		bool operator== (const SmallVector<ValueType, N>& other)
 		{
-			if (this->size() != other.size()) return false;
-			return std::Equal(this->begin(), this->end(), other.begin());
+			if (this->Size() != other.Size()) return false;
+			return std::Equal(this->Begin(), this->end(), other.Begin());
 		}
 
 		bool operator!= (const SmallVector<ValueType, N>& other)
@@ -211,7 +211,7 @@ namespace bs
 
 		bool operator< (const SmallVector<ValueType, N>& other) const
 		{
-			return std::lexicographical_compare(begin(), end(), other.begin(), other.end());
+			return std::lexicographical_compare(begin(), end(), other.Begin(), other.end());
 		}
 
 		bool operator> (const SmallVector<ValueType, N>& other) const
@@ -314,16 +314,16 @@ namespace bs
 			const UINT32 count = (UINT32)std::distance(start, end);
 
 			if ((size() + count) > capacity())
-				this->grow(size() + count);
+				this->Grow(size() + count);
 
-			std::uninitialized_copy(start, end, this->end());
+			std::uninitialized_copy(start, end, this->End());
 			mSize += count;
 		}
 
 		void Append(UINT32 count, const Type& element)
 		{
 			if ((size() + count) > capacity())
-				this->grow(size() + count);
+				this->Grow(size() + count);
 
 			std::uninitialized_fill_n(end(), count, element);
 			mSize += count;
@@ -331,7 +331,7 @@ namespace bs
 
 		void Append(std::initializer_list<Type> list)
 		{
-			append(list.begin(), list.end());
+			append(list.Begin(), list.end());
 		}
 
 		void Pop()

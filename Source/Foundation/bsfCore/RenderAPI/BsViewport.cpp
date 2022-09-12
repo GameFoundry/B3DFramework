@@ -115,7 +115,7 @@ namespace bs
 	UINT32 Viewport::GetTargetWidth() const
 	{
 		if (mTarget != nullptr)
-			return mTarget->getProperties().width;
+			return mTarget->GetProperties().width;
 
 		return 0;
 	}
@@ -123,7 +123,7 @@ namespace bs
 	UINT32 Viewport::GetTargetHeight() const
 	{
 		if(mTarget != nullptr)
-			return mTarget->getProperties().height;
+			return mTarget->GetProperties().height;
 
 		return 0;
 	}
@@ -132,7 +132,7 @@ namespace bs
 	{
 		SPtr<ct::RenderTarget> targetCore;
 		if (mTarget != nullptr)
-			targetCore = mTarget->getCore();
+			targetCore = mTarget->GetCore();
 
 		ct::Viewport* viewport = new (bs_alloc<ct::Viewport>())
 			ct::Viewport(targetCore, mNormArea.x, mNormArea.y, mNormArea.width, mNormArea.height);
@@ -147,7 +147,7 @@ namespace bs
 	{
 		UINT32 size = csync_size(*this);
 
-		UINT8* buffer = allocator->alloc(size);
+		UINT8* buffer = allocator->Alloc(size);
 		Bitstream Stream(buffer, size);
 
 		csync_write(*this, stream);
@@ -158,7 +158,7 @@ namespace bs
 	void Viewport::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 	{
 		if (mTarget != nullptr)
-			dependencies.push_back(mTarget.get());
+			dependencies.push_back(mTarget.Get());
 	}
 
 	SPtr<Viewport> Viewport::Create(const SPtr<RenderTarget>& target, float x, float y, float width, float height)
@@ -166,7 +166,7 @@ namespace bs
 		Viewport* viewport = new (bs_alloc<Viewport>()) Viewport(target, x, y, width, height);
 		SPtr<Viewport> viewportPtr = bs_core_ptr<Viewport>(viewport);
 		viewportPtr->_setThisPtr(viewportPtr);
-		viewportPtr->initialize();
+		viewportPtr->Initialize();
 
 		return viewportPtr;
 	}
@@ -202,7 +202,7 @@ namespace bs
 
 		SPtr<Viewport> viewportPtr = bs_shared_ptr<Viewport>(viewport);
 		viewportPtr->_setThisPtr(viewportPtr);
-		viewportPtr->initialize();
+		viewportPtr->Initialize();
 
 		return viewportPtr;
 	}
@@ -210,7 +210,7 @@ namespace bs
 	UINT32 Viewport::GetTargetWidth() const
 	{
 		if (mTarget != nullptr)
-			return mTarget->getProperties().width;
+			return mTarget->GetProperties().width;
 
 		return 0;
 	}
@@ -218,14 +218,14 @@ namespace bs
 	UINT32 Viewport::GetTargetHeight() const
 	{
 		if (mTarget != nullptr)
-			return mTarget->getProperties().height;
+			return mTarget->GetProperties().height;
 
 		return 0;
 	}
 
 	void Viewport::SyncToCore(const CoreSyncData& data)
 	{
-		Bitstream Stream(data.getBuffer(), data.getBufferSize());
+		Bitstream Stream(data.GetBuffer(), data.getBufferSize());
 		csync_read(*this, stream);
 	}
 	}

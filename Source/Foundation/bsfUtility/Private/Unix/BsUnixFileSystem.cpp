@@ -82,7 +82,7 @@ namespace bs
 
 	void FileSystem::RemoveFile(const Path& path)
 	{
-		String pathStr = path.toString();
+		String pathStr = path.ToString();
 		if (unix_isDirectory(pathStr))
 		{
 			if (rmdir(pathStr.c_str()))
@@ -97,27 +97,27 @@ namespace bs
 
 	void FileSystem::CopyFile(const Path& source, const Path& destination)
 	{
-		std::ifstream SourceStream(source.toString().c_str(), std::ios::binary);
-		std::ofstream DestinationStream(destination.toString().c_str(), std::ios::binary);
+		std::ifstream SourceStream(source.ToString().c_str(), std::ios::binary);
+		std::ofstream DestinationStream(destination.ToString().c_str(), std::ios::binary);
 
-		destinationStream << sourceStream.rdbuf();
-		sourceStream.close();
-		destinationStream.close();
+		destinationStream << sourceStream.Rdbuf();
+		sourceStream.Close();
+		destinationStream.Close();
 	}
 
 	void FileSystem::MoveFile(const Path& oldPath, const Path& newPath)
 	{
-		String oldPathStr = oldPath.toString();
-		String newPathStr = newPath.toString();
+		String oldPathStr = oldPath.ToString();
+		String newPathStr = newPath.ToString();
 		if (std::rename(oldPathStr.c_str(), newPathStr.c_str()) == -1)
 		{
 			// Cross-filesystem copy is likely needed (for example, /tmp to Banshee install dir while copying assets)
 			std::ifstream Src(oldPathStr.c_str(), std::ios::binary);
 			std::ofstream Dst(newPathStr.c_str(), std::ios::binary);
-			dst << src.rdbuf(); // First, copy
+			dst << src.Rdbuf(); // First, copy
 
 			// Error handling
-			src.close();
+			src.Close();
 			if (!src)
 			{
 				BS_LOG(Error, FileSystem, String(__FUNCTION__) + ": renaming " + oldPathStr + " to " + newPathStr +
@@ -136,7 +136,7 @@ namespace bs
 
 	SPtr<DataStream> FileSystem::OpenFile(const Path& path, bool readOnly)
 	{
-		String pathString = path.toString();
+		String pathString = path.ToString();
 
 		DataStream::AccessMode accessMode = DataStream::READ;
 		if (!readOnly)
@@ -154,56 +154,56 @@ namespace bs
 	{
 		struct stat st_buf;
 
-		if (stat(path.toString().c_str(), &st_buf) == 0)
+		if (stat(path.ToString().c_str(), &st_buf) == 0)
 		{
 			return (UINT64)st_buf.st_size;
 		}
 		else
 		{
-			HANDLE_PATH_ERROR(path.toString(), errno);
+			HANDLE_PATH_ERROR(path.ToString(), errno);
 			return (UINT64)-1;
 		}
 	}
 
 	bool FileSystem::Exists(const Path& path)
 	{
-		return unix_pathExists(path.toString());
+		return unix_pathExists(path.ToString());
 	}
 
 	bool FileSystem::IsFile(const Path& path)
 	{
-		String pathStr = path.toString();
+		String pathStr = path.ToString();
 		return unix_pathExists(pathStr) && unix_isFile(pathStr);
 	}
 
 	bool FileSystem::IsDirectory(const Path& path)
 	{
-		String pathStr = path.toString();
+		String pathStr = path.ToString();
 		return unix_pathExists(pathStr) && unix_isDirectory(pathStr);
 	}
 
 	void FileSystem::CreateDir(const Path& path)
 	{
 		Path parentPath = path;
-		while (!exists(parentPath) && parentPath.getNumDirectories() > 0)
+		while (!exists(parentPath) && parentPath.GetNumDirectories() > 0)
 		{
-			parentPath = parentPath.getParent();
+			parentPath = parentPath.GetParent();
 		}
 
-		for (UINT32 i = parentPath.getNumDirectories(); i < path.getNumDirectories(); i++)
+		for (UINT32 i = parentPath.GetNumDirectories(); i < path.getNumDirectories(); i++)
 		{
-			parentPath.append(path[i]);
-			unix_createDirectory(parentPath.toString());
+			parentPath.Append(path[i]);
+			unix_createDirectory(parentPath.ToString());
 		}
 
 		// Last "file" entry is also considered a directory
-		if(!parentPath.equals(path))
-			unix_createDirectory(path.toString());
+		if(!parentPath.Equals(path))
+			unix_createDirectory(path.ToString());
 	}
 
 	void FileSystem::GetChildren(const Path& dirPath, Vector<Path>& files, Vector<Path>& directories)
 	{
-		const String pathStr = dirPath.toString();
+		const String pathStr = dirPath.ToString();
 
 		if (unix_isFile(pathStr))
 			return;
@@ -233,7 +233,7 @@ namespace bs
 	std::time_t FileSystem::GetLastModifiedTime(const Path& path)
 	{
 		struct stat st_buf;
-		stat(path.toString().c_str(), &st_buf);
+		stat(path.ToString().c_str(), &st_buf);
 		std::time_t time = st_buf.st_mtime;
 
 		return time;
@@ -256,7 +256,7 @@ namespace bs
 	bool FileSystem::Iterate(const Path& dirPath, std::function<bool(const Path&)> fileCallback,
 		std::function<bool(const Path&)> dirCallback, bool recursive)
 	{
-		String pathStr = dirPath.toString();
+		String pathStr = dirPath.ToString();
 
 		if (unix_isFile(pathStr))
 			return false;
@@ -278,7 +278,7 @@ namespace bs
 			Path fullPath = dirPath;
 			if (unix_isDirectory(pathStr + "/" + filename))
 			{
-				Path childDir = fullPath.append(filename + "/");
+				Path childDir = fullPath.Append(filename + "/");
 				if (dirCallback != nullptr)
 				{
 					if (!dirCallback(childDir))
@@ -299,7 +299,7 @@ namespace bs
 			}
 			else
 			{
-				Path filePath = fullPath.append(filename);
+				Path filePath = fullPath.Append(filename);
 				if (fileCallback != nullptr)
 				{
 					if (!fileCallback(filePath))
@@ -335,11 +335,11 @@ namespace bs
 #endif
 		}
 
-		tmpdir.append("/bsf-XXXXXX");
+		tmpdir.Append("/bsf-XXXXXX");
 		
 		// null terminated, modifiable tmpdir name template
-		Vector<char> NameTemplate(tmpdir.c_str(), tmpdir.c_str() + tmpdir.size() + 1);
-		char *directoryName = mkdtemp(nameTemplate.data());
+		Vector<char> NameTemplate(tmpdir.c_str(), tmpdir.c_str() + tmpdir.Size() + 1);
+		char *directoryName = mkdtemp(nameTemplate.Data());
 
 		if (directoryName == nullptr)
 		{

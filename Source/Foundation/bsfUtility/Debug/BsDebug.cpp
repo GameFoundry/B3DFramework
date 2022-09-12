@@ -54,7 +54,7 @@ namespace bs
 				return;
 		}
 
-		mLog.logMsg(message, verbosity, category);
+		mLog.LogMsg(message, verbosity, category);
 
 		if(verbosity != LogVerbosity::Log)
 		{
@@ -91,7 +91,7 @@ namespace bs
 			if(overwrite)
 				FileSystem::remove(filePath);
 			else
-				BS_EXCEPT(FileNotFoundException, "File already exists at specified location: " + filePath.toString());
+				BS_EXCEPT(FileNotFoundException, "File already exists at specified location: " + filePath.ToString());
 		}
 
 		SPtr<DataStream> ds = FileSystem::createAndOpenFile(filePath);
@@ -101,8 +101,8 @@ namespace bs
 
 		BitmapWriter::rawPixelsToBMP(rawPixels, bmpBuffer, width, height, bytesPerPixel);
 
-		ds->write(bmpBuffer, bmpDataSize);
-		ds->close();
+		ds->Write(bmpBuffer, bmpDataSize);
+		ds->Close();
 
 		bs_deleteN(bmpBuffer, bmpDataSize);
 	}
@@ -110,12 +110,12 @@ namespace bs
 	void Debug::_triggerCallbacks()
 	{
 		LogEntry entry;
-		while (mLog.getUnreadEntry(entry))
+		while (mLog.GetUnreadEntry(entry))
 		{
 			onLogEntryAdded(entry);
 		}
 
-		UINT64 hash = mLog.getHash();
+		UINT64 hash = mLog.GetHash();
 		if(mLogHash != hash)
 		{
 			onLogModified();
@@ -282,7 +282,7 @@ table td
 		stream << "<p>bs::framework version: " << BS_VERSION_MAJOR << "." << BS_VERSION_MINOR <<"." << BS_VERSION_PATCH << "</p>\n";
 
 		if(Time::isStarted())
-			stream << "<p>Started on: " << gTime().getAppStartUpDateString(false) << "</p>\n";
+			stream << "<p>Started on: " << gTime().GetAppStartUpDateString(false) << "</p>\n";
 
 		SystemInfo systemInfo = PlatformUtility::getSystemInfo();
 		stream << "<p>OS version: " << systemInfo.osName << " " << (systemInfo.osIs64Bit ? "64-bit" : "32-bit") << "</p>\n";
@@ -306,12 +306,12 @@ table td
 		stream << htmlEntriesTableHeader;
 
 		bool alternate = false;
-		Vector<LogEntry> entries = mLog.getAllEntries();
+		Vector<LogEntry> entries = mLog.GetAllEntries();
 		for (auto& entry : entries)
 		{
 			String channelName;
 
-			LogVerbosity verbosity = entry.getVerbosity();
+			LogVerbosity verbosity = entry.GetVerbosity();
 			switch(verbosity)
 			{
 			case LogVerbosity::Fatal:
@@ -340,14 +340,14 @@ table td
 			}
 			stream << R"(			<td>)" << toString(verbosity)<< R"(</td>)" << std::endl;
 
-			stream << R"(			<td>)" << toString(entry.getLocalTime(), false, false, TimeToStringConversionType::Time)
+			stream << R"(			<td>)" << toString(entry.GetLocalTime(), false, false, TimeToStringConversionType::Time)
 			       << "</td>" << std::endl;
 
 			String categoryName;
-			mLog.getCategoryName(entry.getCategory(), categoryName);
+			mLog.GetCategoryName(entry.getCategory(), categoryName);
 			stream << R"(			<td>)" << categoryName << "</td>" << std::endl;
 
-			String parsedMessage = StringUtil::replaceAll(entry.getMessage(), "\n", "<br>\n");
+			String parsedMessage = StringUtil::replaceAll(entry.GetMessage(), "\n", "<br>\n");
 
 			stream << R"(			<td>)" << parsedMessage << "</td>" << std::endl;
 			stream << R"(		</tr>)" << std::endl;
@@ -358,7 +358,7 @@ table td
 		stream << htmlFooter;
 
 		SPtr<DataStream> fileStream = FileSystem::createAndOpenFile(path);
-		fileStream->writeString(stream.str());
+		fileStream->WriteString(stream.Str());
 	}
 	
 	/* Internal function to get the given number of spaces, so that the log looks properly indented */
@@ -366,7 +366,7 @@ table td
 	{
 		String tmp;
 		for (UINT8 i = 0; i < numSpaces; i++)
-			tmp.append(" ");
+			tmp.Append(" ");
 		return tmp;
 	}
 
@@ -387,7 +387,7 @@ table td
 		stream << bsfOnlyHeader << BS_VERSION_MAJOR << "." << BS_VERSION_MINOR <<"." << BS_VERSION_PATCH << "\n";
 		#endif
 		if (Time::isStarted())
-			stream << "Started on: " << gTime().getAppStartUpDateString(false) << "\n";
+			stream << "Started on: " << gTime().GetAppStartUpDateString(false) << "\n";
 		
 		stream << "\n";
 		stream << "System information:\n" <<
@@ -417,54 +417,54 @@ table td
 		stream << "Log entries:\n" <<
 				  "================================================================================\n";
 		
-		Vector<LogEntry> entries = mLog.getAllEntries();
+		Vector<LogEntry> entries = mLog.GetAllEntries();
 		for (auto& entry : entries)
 		{
 			String builtMsg;
-			builtMsg.append(toString(entry.getLocalTime(), false, true, TimeToStringConversionType::Full));
-			builtMsg.append(" ");
+			builtMsg.Append(toString(entry.getLocalTime(), false, true, TimeToStringConversionType::Full));
+			builtMsg.Append(" ");
 			
-			switch(entry.getVerbosity())
+			switch(entry.GetVerbosity())
 			{
 			case LogVerbosity::Fatal:
-				builtMsg.append("[FATAL]");
+				builtMsg.Append("[FATAL]");
 				break;
 			case LogVerbosity::Error:
-				builtMsg.append("[ERROR]");
+				builtMsg.Append("[ERROR]");
 				break;
 			case LogVerbosity::Warning:
-				builtMsg.append("[WARNING]");
+				builtMsg.Append("[WARNING]");
 				break;
 			case LogVerbosity::Info:
-				builtMsg.append("[INFO]");
+				builtMsg.Append("[INFO]");
 				break;
 			case LogVerbosity::Log:
-				builtMsg.append("[LOG]");
+				builtMsg.Append("[LOG]");
 				break;
 			case LogVerbosity::Verbose:
-				builtMsg.append("[VERBOSE]");
+				builtMsg.Append("[VERBOSE]");
 				break;
 			case LogVerbosity::VeryVerbose:
-				builtMsg.append("[VERY_VERBOSE]");
+				builtMsg.Append("[VERY_VERBOSE]");
 				break;
 			}
 			
 			String categoryName;
-			mLog.getCategoryName(entry.getCategory(), categoryName);
-			builtMsg.append(" <" + categoryName + ">");
+			mLog.GetCategoryName(entry.getCategory(), categoryName);
+			builtMsg.Append(" <" + categoryName + ">");
 
-			builtMsg.append(" | ");
+			builtMsg.Append(" | ");
 			
-			String tmpSpaces = _getSpacesIndentation(builtMsg.length());
+			String tmpSpaces = _getSpacesIndentation(builtMsg.Length());
 			
-			String parsedMessage = StringUtil::replaceAll(entry.getMessage(), "\n\t\t", "\n" + tmpSpaces);
-			builtMsg.append(parsedMessage);
+			String parsedMessage = StringUtil::replaceAll(entry.GetMessage(), "\n\t\t", "\n" + tmpSpaces);
+			builtMsg.Append(parsedMessage);
 			
 			stream << builtMsg << "\n";
 		}
 		
 		SPtr<DataStream> fileStream = FileSystem::createAndOpenFile(path);
-		fileStream->writeString(stream.str());
+		fileStream->WriteString(stream.Str());
 		
 	}
 	

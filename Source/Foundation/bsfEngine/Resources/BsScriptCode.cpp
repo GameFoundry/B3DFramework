@@ -22,7 +22,7 @@ namespace bs
 		SPtr<ScriptCode> scriptCodePtr = bs_core_ptr<ScriptCode>(
 			new (bs_alloc<ScriptCode>()) ScriptCode(data, editorScript));
 		scriptCodePtr->_setThisPtr(scriptCodePtr);
-		scriptCodePtr->initialize();
+		scriptCodePtr->Initialize();
 
 		return scriptCodePtr;
 	}

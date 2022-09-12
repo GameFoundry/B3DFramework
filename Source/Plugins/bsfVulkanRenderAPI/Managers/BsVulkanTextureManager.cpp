@@ -59,7 +59,7 @@ namespace bs
 			for(int depth = 0; depth < entry.depth; depth++)
 				for(int height = 0; height < entry.height; height++)
 					for(int width = 0; width < entry.width; width++)
-						pixelData->setColorAt(Color::White, width, height, depth);
+						pixelData->SetColorAt(Color::White, width, height, depth);
 
 			TEXTURE_DESC desc;
 			desc.type = entry.type;
@@ -71,7 +71,7 @@ namespace bs
 			desc.usage = TU_STATIC | TU_MUTABLEFORMAT;
 
 			mDummyReadTextures[idx] = std::static_pointer_cast<VulkanTexture>(createTexture(desc));
-			mDummyReadTextures[idx]->writeData(*pixelData);
+			mDummyReadTextures[idx]->WriteData(*pixelData);
 
 			desc.usage = TU_LOADSTORE;
 			mDummyStorageTextures[idx] = std::static_pointer_cast<VulkanTexture>(createTexture(desc));
@@ -86,32 +86,32 @@ namespace bs
 		{
 		case GPOT_TEXTURE2DMS:
 		case GPOT_TEXTURE2D:
-			return mDummyReadTextures[2].get();
+			return mDummyReadTextures[2].Get();
 		case GPOT_RWTEXTURE2D:
 		case GPOT_RWTEXTURE2DMS:
-			return mDummyStorageTextures[2].get();
+			return mDummyStorageTextures[2].Get();
 		case GPOT_TEXTURECUBE:
-			return mDummyReadTextures[5].get();
+			return mDummyReadTextures[5].Get();
 		case GPOT_TEXTURECUBEARRAY:
-			return mDummyReadTextures[6].get();
+			return mDummyReadTextures[6].Get();
 		case GPOT_TEXTURE2DARRAY:
 		case GPOT_TEXTURE2DMSARRAY:
-			return mDummyReadTextures[3].get();
+			return mDummyReadTextures[3].Get();
 		case GPOT_RWTEXTURE2DARRAY:
 		case GPOT_RWTEXTURE2DMSARRAY:
-			return mDummyStorageTextures[3].get();
+			return mDummyStorageTextures[3].Get();
 		case GPOT_TEXTURE3D:
-			return mDummyReadTextures[4].get();
+			return mDummyReadTextures[4].Get();
 		case GPOT_RWTEXTURE3D:
-			return mDummyStorageTextures[4].get();
+			return mDummyStorageTextures[4].Get();
 		case GPOT_TEXTURE1D:
-			return mDummyReadTextures[0].get();
+			return mDummyReadTextures[0].Get();
 		case GPOT_TEXTURE1DARRAY:
-			return mDummyReadTextures[1].get();
+			return mDummyReadTextures[1].Get();
 		case GPOT_RWTEXTURE1D:
-			return mDummyStorageTextures[0].get();
+			return mDummyStorageTextures[0].Get();
 		case GPOT_RWTEXTURE1DARRAY:
-			return mDummyStorageTextures[1].get();
+			return mDummyStorageTextures[1].Get();
 		default:
 			return nullptr;
 		}

@@ -14,9 +14,9 @@ namespace bs
 
 	RTTIField* RTTITypeBase::findField(const String& name)
 	{
-		auto foundElement = std::find_if(mFields.begin(), mFields.end(), [&name](RTTIField* x) { return x->name == name; });
+		auto foundElement = std::find_if(mFields.Begin(), mFields.end(), [&name](RTTIField* x) { return x->name == name; });
 
-		if(foundElement == mFields.end())
+		if(foundElement == mFields.End())
 		{
 			BS_EXCEPT(InternalErrorException,
 				"Cannot find a field with the specified name: " + name);
@@ -27,9 +27,9 @@ namespace bs
 
 	RTTIField* RTTITypeBase::findField(int uniqueFieldId)
 	{
-		auto foundElement = std::find_if(mFields.begin(), mFields.end(), [&uniqueFieldId](RTTIField* x) { return x->schema.id == uniqueFieldId; });
+		auto foundElement = std::find_if(mFields.Begin(), mFields.end(), [&uniqueFieldId](RTTIField* x) { return x->schema.id == uniqueFieldId; });
 
-		if(foundElement == mFields.end())
+		if(foundElement == mFields.End())
 			return nullptr;
 
 		return *foundElement;
@@ -41,15 +41,15 @@ namespace bs
 			BS_EXCEPT(InvalidParametersException, "Field argument can't be null.");
 
 		int uniqueId = field->schema.id;
-		auto foundElementById = std::find_if(mFields.begin(), mFields.end(), [uniqueId](RTTIField* x) { return x->schema.id == uniqueId; });
+		auto foundElementById = std::find_if(mFields.Begin(), mFields.end(), [uniqueId](RTTIField* x) { return x->schema.id == uniqueId; });
 
-		if(foundElementById != mFields.end())
+		if(foundElementById != mFields.End())
 			BS_EXCEPT(InternalErrorException, "Field with the same ID already exists.");
 
 		String& name = field->name;
-		auto foundElementByName = std::find_if(mFields.begin(), mFields.end(), [&name](RTTIField* x) { return x->name == name; });
+		auto foundElementByName = std::find_if(mFields.Begin(), mFields.end(), [&name](RTTIField* x) { return x->name == name; });
 
-		if(foundElementByName != mFields.end())
+		if(foundElementByName != mFields.End())
 			BS_EXCEPT(InternalErrorException, "Field with the same name already exists.");
 
 		mFields.push_back(field);
@@ -62,11 +62,11 @@ namespace bs
 		
 		RTTITypeBase* baseType = getBaseClass();
 		if (baseType)
-			mSchema->baseTypeSchema = baseType->getSchema();
+			mSchema->baseTypeSchema = baseType->GetSchema();
 		
 		for (auto& entry : mFields)
 		{
-			entry->initSchema();
+			entry->InitSchema();
 			mSchema->fieldSchemas.push_back(entry->schema);
 		}
 	}

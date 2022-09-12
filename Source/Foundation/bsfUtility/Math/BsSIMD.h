@@ -47,16 +47,16 @@ namespace bs
 			/** Initializes bounds from an AABox. */
 			AABox(const bs::AABox& box)
 			{
-				center = Vector4(box.getCenter());
-				extents = Vector4(box.getHalfSize());
+				center = Vector4(box.GetCenter());
+				extents = Vector4(box.GetHalfSize());
 			}
 
 			/** Initializes bounds from a Sphere. */
 			AABox(const Sphere& sphere)
 			{
-				center = Vector4(sphere.getCenter());
+				center = Vector4(sphere.GetCenter());
 
-				float radius = sphere.getRadius();
+				float radius = sphere.GetRadius();
 				extents = Vector4(radius, radius, radius, 0.0f);
 			}
 
@@ -100,8 +100,8 @@ namespace bs
 			/** Initializes bounds from an Rect2. */
 			Rect2(const bs::Rect2& rect)
 			{
-				center = Vector4(rect.getCenter().x, rect.getCenter().y, 0.0f, 0.0f);
-				extents = Vector4(rect.getHalfSize().x, rect.getHalfSize().y, 0.0f, 0.0f);
+				center = Vector4(rect.GetCenter().x, rect.getCenter().y, 0.0f, 0.0f);
+				extents = Vector4(rect.GetHalfSize().x, rect.getHalfSize().y, 0.0f, 0.0f);
 			}
 
 			/** Initializes bounds from a vector representing the center and equal extents in all directions. */

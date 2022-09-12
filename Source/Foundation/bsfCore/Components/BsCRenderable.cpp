@@ -26,7 +26,7 @@ namespace bs
 
 	void CRenderable::SetMesh(HMesh mesh)
 	{
-		mInternal->setMesh(mesh);
+		mInternal->SetMesh(mesh);
 
 		if (mAnimation != nullptr)
 			mAnimation->_updateBounds(false);
@@ -37,7 +37,7 @@ namespace bs
 		// If mInternal already exists this means this object was deserialized,
 		// so all we need to do is initialize it.
 		if (mInternal != nullptr)
-			mInternal->initialize();
+			mInternal->Initialize();
 		else
 			mInternal = Renderable::create();
 
@@ -54,7 +54,7 @@ namespace bs
 	Bounds CRenderable::GetBounds() const
 	{
 		mInternal->_updateState(*SO());
-		return mInternal->getBounds();
+		return mInternal->GetBounds();
 	}
 
 	bool CRenderable::CalculateBounds(Bounds& bounds)
@@ -70,7 +70,7 @@ namespace bs
 
 		if (mInternal != nullptr)
 		{
-			mInternal->setAnimation(animation->_getInternal());
+			mInternal->SetAnimation(animation->_getInternal());
 
 			// Need to update transform because animated renderables handle local transforms through bones, so it
 			// shouldn't be included in the renderable's transform.
@@ -84,7 +84,7 @@ namespace bs
 
 		if(mInternal != nullptr)
 		{
-			mInternal->setAnimation(nullptr);
+			mInternal->SetAnimation(nullptr);
 
 			// Need to update transform because animated renderables handle local transforms through bones, so it
 			// shouldn't be included in the renderable's transform.
@@ -103,7 +103,7 @@ namespace bs
 			mAnimation->_unregisterRenderable();
 
 		gSceneManager()._unbindActor(mInternal);
-		mInternal->destroy();
+		mInternal->Destroy();
 	}
 
 	RTTITypeBase* CRenderable::getRTTIStatic()

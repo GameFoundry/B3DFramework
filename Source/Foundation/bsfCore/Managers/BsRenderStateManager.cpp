@@ -11,7 +11,7 @@ namespace bs
 	SPtr<SamplerState> RenderStateManager::CreateSamplerState(const SAMPLER_STATE_DESC& desc) const
 	{
 		SPtr<SamplerState> state = _createSamplerStatePtr(desc);
-		state->initialize();
+		state->Initialize();
 
 		return state;
 	}
@@ -19,7 +19,7 @@ namespace bs
 	SPtr<DepthStencilState> RenderStateManager::CreateDepthStencilState(const DEPTH_STENCIL_STATE_DESC& desc) const
 	{
 		SPtr<DepthStencilState> state = _createDepthStencilStatePtr(desc);
-		state->initialize();
+		state->Initialize();
 
 		return state;
 	}
@@ -27,7 +27,7 @@ namespace bs
 	SPtr<RasterizerState> RenderStateManager::CreateRasterizerState(const RASTERIZER_STATE_DESC& desc) const
 	{
 		SPtr<RasterizerState> state = _createRasterizerStatePtr(desc);
-		state->initialize();
+		state->Initialize();
 
 		return state;
 	}
@@ -35,7 +35,7 @@ namespace bs
 	SPtr<BlendState> RenderStateManager::CreateBlendState(const BLEND_STATE_DESC& desc) const
 	{
 		SPtr<BlendState> state = _createBlendStatePtr(desc);
-		state->initialize();
+		state->Initialize();
 
 		return state;
 	}
@@ -43,7 +43,7 @@ namespace bs
 	SPtr<GraphicsPipelineState> RenderStateManager::CreateGraphicsPipelineState(const PIPELINE_STATE_DESC& desc) const
 	{
 		SPtr<GraphicsPipelineState> state = _createGraphicsPipelineState(desc);
-		state->initialize();
+		state->Initialize();
 
 		return state;
 	}
@@ -51,7 +51,7 @@ namespace bs
 	SPtr<ComputePipelineState> RenderStateManager::CreateComputePipelineState(const SPtr<GpuProgram>& program) const
 	{
 		SPtr<ComputePipelineState> state = _createComputePipelineState(program);
-		state->initialize();
+		state->Initialize();
 
 		return state;
 	}
@@ -147,7 +147,7 @@ namespace bs
 		if (state == nullptr)
 		{
 			state = createSamplerStateInternal(desc, deviceMask);
-			state->initialize();
+			state->Initialize();
 
 			notifySamplerStateCreated(desc, state);
 		}
@@ -162,7 +162,7 @@ namespace bs
 		if (state == nullptr)
 		{
 			state = createDepthStencilStateInternal(desc, id);
-			state->initialize();
+			state->Initialize();
 
 			CachedDepthStencilState CachedData(id);
 			cachedData.state = state;
@@ -180,7 +180,7 @@ namespace bs
 		if (state == nullptr)
 		{
 			state = createRasterizerStateInternal(desc, id);
-			state->initialize();
+			state->Initialize();
 
 			CachedRasterizerState CachedData(id);
 			cachedData.state = state;
@@ -198,7 +198,7 @@ namespace bs
 		if (state == nullptr)
 		{
 			state = createBlendStateInternal(desc, id);
-			state->initialize();
+			state->Initialize();
 
 			CachedBlendState CachedData(id);
 			cachedData.state = state;
@@ -213,7 +213,7 @@ namespace bs
 		GpuDeviceFlags deviceMask) const
 	{
 		SPtr<GraphicsPipelineState> state = _createGraphicsPipelineState(desc, deviceMask);
-		state->initialize();
+		state->Initialize();
 
 		return state;
 	}
@@ -222,7 +222,7 @@ namespace bs
 																					  GpuDeviceFlags deviceMask) const
 	{
 		SPtr<ComputePipelineState> state = _createComputePipelineState(program, deviceMask);
-		state->initialize();
+		state->Initialize();
 
 		return state;
 	}
@@ -231,7 +231,7 @@ namespace bs
 		const GPU_PIPELINE_PARAMS_DESC& desc, GpuDeviceFlags deviceMask) const
 	{
 		SPtr<GpuPipelineParamInfo> paramInfo = _createPipelineParamInfo(desc, deviceMask);
-		paramInfo->initialize();
+		paramInfo->Initialize();
 
 		return paramInfo;
 	}
@@ -409,16 +409,16 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		mCachedSamplerStates.erase(desc);
+		mCachedSamplerStates.Erase(desc);
 	}
 
 	SPtr<SamplerState> RenderStateManager::FindCachedState(const SAMPLER_STATE_DESC& desc) const
 	{
 		Lock Lock(mMutex);
 
-		auto iterFind = mCachedSamplerStates.find(desc);
-		if (iterFind != mCachedSamplerStates.end())
-			return iterFind->second.lock();
+		auto iterFind = mCachedSamplerStates.Find(desc);
+		if (iterFind != mCachedSamplerStates.End())
+			return iterFind->second.Lock();
 
 		return nullptr;
 	}
@@ -427,13 +427,13 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		auto iterFind = mCachedBlendStates.find(desc);
-		if (iterFind != mCachedBlendStates.end())
+		auto iterFind = mCachedBlendStates.Find(desc);
+		if (iterFind != mCachedBlendStates.End())
 		{
 			id = iterFind->second.id;
 
-			if (!iterFind->second.state.expired())
-				return iterFind->second.state.lock();
+			if (!iterFind->second.state.Expired())
+				return iterFind->second.state.Lock();
 
 			return nullptr;
 		}
@@ -448,13 +448,13 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		auto iterFind = mCachedRasterizerStates.find(desc);
-		if (iterFind != mCachedRasterizerStates.end())
+		auto iterFind = mCachedRasterizerStates.Find(desc);
+		if (iterFind != mCachedRasterizerStates.End())
 		{
 			id = iterFind->second.id;
 
-			if (!iterFind->second.state.expired())
-				return iterFind->second.state.lock();
+			if (!iterFind->second.state.Expired())
+				return iterFind->second.state.Lock();
 
 			return nullptr;
 		}
@@ -469,13 +469,13 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		auto iterFind = mCachedDepthStencilStates.find(desc);
-		if (iterFind != mCachedDepthStencilStates.end())
+		auto iterFind = mCachedDepthStencilStates.Find(desc);
+		if (iterFind != mCachedDepthStencilStates.End())
 		{
 			id = iterFind->second.id;
 
-			if (!iterFind->second.state.expired())
-				return iterFind->second.state.lock();
+			if (!iterFind->second.state.Expired())
+				return iterFind->second.state.Lock();
 
 			return nullptr;
 		}

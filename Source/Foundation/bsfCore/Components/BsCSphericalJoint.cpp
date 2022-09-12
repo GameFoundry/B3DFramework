@@ -32,7 +32,7 @@ namespace bs
 		mDesc.limit = limit;
 
 		if (mInternal != nullptr)
-			_getInternal()->setLimit(limit);
+			_getInternal()->SetLimit(limit);
 	}
 	
 	void CSphericalJoint::SetFlag(SphericalJointFlag flag, bool enabled)
@@ -47,7 +47,7 @@ namespace bs
 			mDesc.flag = (SphericalJointFlag)((UINT32)mDesc.flag & ~(UINT32)flag);
 
 		if (mInternal != nullptr)
-			_getInternal()->setFlag(flag, enabled);
+			_getInternal()->SetFlag(flag, enabled);
 	}
 
 	bool CSphericalJoint::HasFlag(SphericalJointFlag flag) const
@@ -57,8 +57,8 @@ namespace bs
 
 	SPtr<Joint> CSphericalJoint::CreateInternal()
 	{
-		const SPtr<SceneInstance>& scene = SO()->getScene();
-		SPtr<Joint> joint = SphericalJoint::create(*scene->getPhysicsScene(), mDesc);
+		const SPtr<SceneInstance>& scene = SO()->GetScene();
+		SPtr<Joint> joint = SphericalJoint::create(*scene->GetPhysicsScene(), mDesc);
 
 		joint->_setOwner(PhysicsOwnerType::Component, this);
 		return joint;

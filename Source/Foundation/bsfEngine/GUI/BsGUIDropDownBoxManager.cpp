@@ -26,7 +26,7 @@ namespace bs
 	{
 		if(mDropDownSO != nullptr)
 		{
-			mDropDownSO->destroy();
+			mDropDownSO->Destroy();
 			mDropDownSO = nullptr;
 
 			if(mOnClosedCallback != nullptr)

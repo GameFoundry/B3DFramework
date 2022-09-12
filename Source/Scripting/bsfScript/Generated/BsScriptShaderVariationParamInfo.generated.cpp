@@ -40,8 +40,8 @@ namespace bs
 		if(value.values != nullptr)
 		{
 			ScriptArray Arrayvalues(value.values);
-			vecvalues.resize(arrayvalues.size());
-			for(int i = 0; i < (int)arrayvalues.size(); i++)
+			vecvalues.Resize(arrayvalues.size());
+			for(int i = 0; i < (int)arrayvalues.Size(); i++)
 			{
 				vecvalues[i] = ScriptShaderVariationParamValue::fromInterop(arrayvalues.get<__ShaderVariationParamValueInterop>(i));
 			}
@@ -61,14 +61,14 @@ namespace bs
 		tmpidentifier = MonoUtil::stringToMono(value.identifier);
 		output.identifier = tmpidentifier;
 		output.isInternal = value.isInternal;
-		int arraySizevalues = (int)value.values.size();
+		int arraySizevalues = (int)value.values.Size();
 		MonoArray* vecvalues;
 		ScriptArray arrayvalues = ScriptArray::create<ScriptShaderVariationParamValue>(arraySizevalues);
 		for(int i = 0; i < arraySizevalues; i++)
 		{
-			arrayvalues.set(i, ScriptShaderVariationParamValue::toInterop(value.values[i]));
+			arrayvalues.Set(i, ScriptShaderVariationParamValue::toInterop(value.values[i]));
 		}
-		vecvalues = arrayvalues.getInternal();
+		vecvalues = arrayvalues.GetInternal();
 		output.values = vecvalues;
 
 		return output;

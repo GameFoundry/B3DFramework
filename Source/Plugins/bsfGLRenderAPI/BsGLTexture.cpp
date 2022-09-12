@@ -24,7 +24,7 @@ namespace bs { namespace ct
 
 	GLTexture::~GLTexture()
 	{
-		mSurfaceList.clear();
+		mSurfaceList.Clear();
 		glDeleteTextures(1, &mTextureID);
 		BS_CHECK_GL_ERROR();
 
@@ -35,19 +35,19 @@ namespace bs { namespace ct
 
 	void GLTexture::Initialize()
 	{
-		UINT32 width = mProperties.getWidth();
-		UINT32 height = mProperties.getHeight();
-		UINT32 depth = mProperties.getDepth();
-		TextureType texType = mProperties.getTextureType();
-		int usage = mProperties.getUsage();
-		UINT32 numMips = mProperties.getNumMipmaps();
-		UINT32 numFaces = mProperties.getNumFaces();
+		UINT32 width = mProperties.GetWidth();
+		UINT32 height = mProperties.GetHeight();
+		UINT32 depth = mProperties.GetDepth();
+		TextureType texType = mProperties.GetTextureType();
+		int usage = mProperties.GetUsage();
+		UINT32 numMips = mProperties.GetNumMipmaps();
+		UINT32 numFaces = mProperties.GetNumFaces();
 
 		// 0-sized textures aren't supported by the API
 		width = std::max(width, 1U);
 		height = std::max(height, 1U);
 
-		PixelFormat pixFormat = mProperties.getFormat();
+		PixelFormat pixFormat = mProperties.GetFormat();
 		mInternalFormat = GLPixelUtil::getClosestSupportedPF(pixFormat, texType, usage);
 
 		if (pixFormat != mInternalFormat)
@@ -57,7 +57,7 @@ namespace bs { namespace ct
 		}
 
 		// Check requested number of mipmaps
-		UINT32 maxMips = PixelUtil::getMaxMipmaps(width, height, depth, mProperties.getFormat());
+		UINT32 maxMips = PixelUtil::getMaxMipmaps(width, height, depth, mProperties.GetFormat());
 		if (numMips > maxMips)
 		{
 			BS_LOG(Error, RenderBackend, "Invalid number of mipmaps. Maximum allowed is: {0}", maxMips);
@@ -85,7 +85,7 @@ namespace bs { namespace ct
 		glBindTexture(getGLTextureTarget(), mTextureID);
 		BS_CHECK_GL_ERROR();
 
-		if(mProperties.getNumSamples() <= 1)
+		if(mProperties.GetNumSamples() <= 1)
 		{
 			// This needs to be set otherwise the texture doesn't get rendered
 			glTexParameteri(getGLTextureTarget(), GL_TEXTURE_MAX_LEVEL, numMips - 1);
@@ -93,10 +93,10 @@ namespace bs { namespace ct
 		}
 
 		// Allocate internal buffer so that glTexSubImageXD can be used
-		mGLFormat = GLPixelUtil::getGLInternalFormat(mInternalFormat, mProperties.isHardwareGammaEnabled());
+		mGLFormat = GLPixelUtil::getGLInternalFormat(mInternalFormat, mProperties.IsHardwareGammaEnabled());
 
-		UINT32 sampleCount = mProperties.getNumSamples();
-		if((usage & (TU_RENDERTARGET | TU_DEPTHSTENCIL)) != 0 && mProperties.getTextureType() == TEX_TYPE_2D && sampleCount > 1)
+		UINT32 sampleCount = mProperties.GetNumSamples();
+		if((usage & (TU_RENDERTARGET | TU_DEPTHSTENCIL)) != 0 && mProperties.GetTextureType() == TEX_TYPE_2D && sampleCount > 1)
 		{
 			if (numFaces <= 1)
 			{
@@ -302,7 +302,7 @@ namespace bs { namespace ct
 
 	GLenum GLTexture::GetGLTextureTarget() const
 	{
-		return GetGLTextureTarget(mProperties.getTextureType(), mProperties.getNumSamples(), mProperties.getNumFaces());
+		return GetGLTextureTarget(mProperties.GetTextureType(), mProperties.getNumSamples(), mProperties.getNumFaces());
 	}
 
 	GLuint GLTexture::GetGLID() const
@@ -378,20 +378,20 @@ namespace bs { namespace ct
 	PixelData GLTexture::lockImpl(GpuLockOptions options, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx,
 									  UINT32 queueIdx)
 	{
-		if (mProperties.getNumSamples() > 1)
+		if (mProperties.GetNumSamples() > 1)
 			BS_EXCEPT(InvalidStateException, "Multisampled textures cannot be accessed from the CPU directly.");
 
 		if(mLockedBuffer != nullptr)
 			BS_EXCEPT(InternalErrorException, "Trying to lock a buffer that's already locked.");
 
-		UINT32 mipWidth = std::max(1u, mProperties.getWidth() >> mipLevel);
-		UINT32 mipHeight = std::max(1u, mProperties.getHeight() >> mipLevel);
-		UINT32 mipDepth = std::max(1u, mProperties.getDepth() >> mipLevel);
+		UINT32 mipWidth = std::max(1u, mProperties.GetWidth() >> mipLevel);
+		UINT32 mipHeight = std::max(1u, mProperties.GetHeight() >> mipLevel);
+		UINT32 mipDepth = std::max(1u, mProperties.GetDepth() >> mipLevel);
 
-		PixelData LockedArea(mipWidth, mipHeight, mipDepth, mProperties.getFormat());
+		PixelData LockedArea(mipWidth, mipHeight, mipDepth, mProperties.GetFormat());
 
 		mLockedBuffer = getBuffer(face, mipLevel);
-		lockedArea.setExternalBuffer((UINT8*)mLockedBuffer->lock(options));
+		lockedArea.SetExternalBuffer((UINT8*)mLockedBuffer->Lock(options));
 
 		return lockedArea;
 	}
@@ -404,49 +404,49 @@ namespace bs { namespace ct
 			return;
 		}
 
-		mLockedBuffer->unlock();
+		mLockedBuffer->Unlock();
 		mLockedBuffer = nullptr;
 	}
 
 	void GLTexture::ReadDataImpl(PixelData& dest, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
 	{
-		if (mProperties.getNumSamples() > 1)
+		if (mProperties.GetNumSamples() > 1)
 		{
 			BS_LOG(Error, RenderBackend, "Multisampled textures cannot be accessed from the CPU directly.");
 			return;
 		}
 
-		if(dest.getFormat() != mInternalFormat)
+		if(dest.GetFormat() != mInternalFormat)
 		{
-			PixelData Temp(dest.getExtents(), mInternalFormat);
-			temp.allocateInternalBuffer();
+			PixelData Temp(dest.GetExtents(), mInternalFormat);
+			temp.AllocateInternalBuffer();
 
-			getBuffer(face, mipLevel)->download(temp);
+			getBuffer(face, mipLevel)->Download(temp);
 			PixelUtil::bulkPixelConversion(temp, dest);
 		}
 		else
-			getBuffer(face, mipLevel)->download(dest);
+			getBuffer(face, mipLevel)->Download(dest);
 	}
 
 	void GLTexture::writeDataImpl(const PixelData& src, UINT32 mipLevel, UINT32 face, bool discardWholeBuffer,
 								  UINT32 queueIdx)
 	{
-		if (mProperties.getNumSamples() > 1)
+		if (mProperties.GetNumSamples() > 1)
 		{
 			BS_LOG(Error, RenderBackend, "Multisampled textures cannot be accessed from the CPU directly.");
 			return;
 		}
 
-		if (src.getFormat() != mInternalFormat)
+		if (src.GetFormat() != mInternalFormat)
 		{
-			PixelData Temp(src.getExtents(), mInternalFormat);
-			temp.allocateInternalBuffer();
+			PixelData Temp(src.GetExtents(), mInternalFormat);
+			temp.AllocateInternalBuffer();
 
 			PixelUtil::bulkPixelConversion(src, temp);
-			getBuffer(face, mipLevel)->upload(temp, temp.getExtents());
+			getBuffer(face, mipLevel)->Upload(temp, temp.GetExtents());
 		}
 		else
-			getBuffer(face, mipLevel)->upload(src, src.getExtents());
+			getBuffer(face, mipLevel)->Upload(src, src.GetExtents());
 	}
 
 	void GLTexture::copyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc,
@@ -454,13 +454,13 @@ namespace bs { namespace ct
 	{
 		auto executeRef = [this](const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc)
 		{
-			GLTexture* destTex = static_cast<GLTexture*>(target.get());
-			GLTextureBuffer* dest = static_cast<GLTextureBuffer*>(destTex->getBuffer(desc.dstFace, desc.dstMip).get());
-			GLTextureBuffer* src = static_cast<GLTextureBuffer*>(getBuffer(desc.srcFace, desc.srcMip).get());
+			GLTexture* destTex = static_cast<GLTexture*>(target.Get());
+			GLTextureBuffer* dest = static_cast<GLTextureBuffer*>(destTex->GetBuffer(desc.dstFace, desc.dstMip).Get());
+			GLTextureBuffer* src = static_cast<GLTextureBuffer*>(getBuffer(desc.srcFace, desc.srcMip).Get());
 
-			bool copyEntireSurface = desc.srcVolume.getWidth() == 0 ||
-				desc.srcVolume.getHeight() == 0 ||
-				desc.srcVolume.getDepth() == 0;
+			bool copyEntireSurface = desc.srcVolume.GetWidth() == 0 ||
+				desc.srcVolume.GetHeight() == 0 ||
+				desc.srcVolume.GetDepth() == 0;
 
 			PixelVolume srcVolume = desc.srcVolume;
 
@@ -471,22 +471,22 @@ namespace bs { namespace ct
 
 			if(copyEntireSurface)
 			{
-				srcVolume.right = srcVolume.left + src->getWidth();
-				srcVolume.bottom = srcVolume.top + src->getHeight();
-				srcVolume.back = srcVolume.front + src->getDepth();
+				srcVolume.right = srcVolume.left + src->GetWidth();
+				srcVolume.bottom = srcVolume.top + src->GetHeight();
+				srcVolume.back = srcVolume.front + src->GetDepth();
 
-				dstVolume.right = dstVolume.left + src->getWidth();
-				dstVolume.bottom = dstVolume.top + src->getHeight();
-				dstVolume.back = dstVolume.front + src->getDepth();
+				dstVolume.right = dstVolume.left + src->GetWidth();
+				dstVolume.bottom = dstVolume.top + src->GetHeight();
+				dstVolume.back = dstVolume.front + src->GetDepth();
 			}
 			else
 			{
-				dstVolume.right = dstVolume.left + desc.srcVolume.getWidth();
-				dstVolume.bottom = dstVolume.top + desc.srcVolume.getHeight();
-				dstVolume.back = dstVolume.front + desc.srcVolume.getDepth();
+				dstVolume.right = dstVolume.left + desc.srcVolume.GetWidth();
+				dstVolume.bottom = dstVolume.top + desc.srcVolume.GetHeight();
+				dstVolume.back = dstVolume.front + desc.srcVolume.GetDepth();
 			}
 
-			dest->blitFromTexture(src, srcVolume, dstVolume);
+			dest->BlitFromTexture(src, srcVolume, dstVolume);
 		};
 
 		if (commandBuffer == nullptr)
@@ -496,25 +496,25 @@ namespace bs { namespace ct
 			auto execute = [=]() { executeRef(target, desc); };
 
 			SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
-			cb->queueCommand(execute);
+			cb->QueueCommand(execute);
 		}
 	}
 
 	void GLTexture::CreateSurfaceList()
 	{
-		mSurfaceList.clear();
+		mSurfaceList.Clear();
 		
-		for (UINT32 face = 0; face < mProperties.getNumFaces(); face++)
+		for (UINT32 face = 0; face < mProperties.GetNumFaces(); face++)
 		{
-			for (UINT32 mip = 0; mip <= mProperties.getNumMipmaps(); mip++)
+			for (UINT32 mip = 0; mip <= mProperties.GetNumMipmaps(); mip++)
 			{
 				GLPixelBuffer *buf = bs_new<GLTextureBuffer>(getGLTextureTarget(), mTextureID, face, mip, mInternalFormat,
-					static_cast<GpuBufferUsage>(mProperties.getUsage()),
-					mProperties.isHardwareGammaEnabled(),
-					mProperties.getNumSamples());
+					static_cast<GpuBufferUsage>(mProperties.GetUsage()),
+					mProperties.IsHardwareGammaEnabled(),
+					mProperties.GetNumSamples());
 
 				mSurfaceList.push_back(bs_shared_ptr<GLPixelBuffer>(buf));
-				if(buf->getWidth() == 0 || buf->getHeight() == 0 || buf->getDepth() == 0)
+				if(buf->GetWidth() == 0 || buf->getHeight() == 0 || buf->getDepth() == 0)
 				{
 					BS_EXCEPT(RenderingAPIException,
 						"Zero sized texture surface on texture face " + toString(face) + " mipmap " + toString(mip)
@@ -528,14 +528,14 @@ namespace bs { namespace ct
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		if(face >= mProperties.getNumFaces())
+		if(face >= mProperties.GetNumFaces())
 			BS_EXCEPT(InvalidParametersException, "Face index out of range");
 
-		if (mipmap > mProperties.getNumMipmaps())
+		if (mipmap > mProperties.GetNumMipmaps())
 			BS_EXCEPT(InvalidParametersException, "Mipmap index out of range");
 
-		unsigned int idx = face * (mProperties.getNumMipmaps() + 1) + mipmap;
-		assert(idx < mSurfaceList.size());
+		unsigned int idx = face * (mProperties.GetNumMipmaps() + 1) + mipmap;
+		assert(idx < mSurfaceList.Size());
 		return mSurfaceList[idx];
 	}
 

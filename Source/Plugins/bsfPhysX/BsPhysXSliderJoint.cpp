@@ -44,7 +44,7 @@ namespace bs
 		if (((UINT32)desc.flag & (UINT32)SliderJointFlag::Limit) != 0)
 			flags |= PxPrismaticJointFlag::eLIMIT_ENABLED;
 
-		joint->setPrismaticJointFlags(flags);
+		joint->SetPrismaticJointFlags(flags);
 
 		// Calls to virtual methods are okay here
 		setLimit(desc.limit);
@@ -57,17 +57,17 @@ namespace bs
 
 	float PhysXSliderJoint::GetPosition() const
 	{
-		return GetInternal()->getPosition();
+		return GetInternal()->GetPosition();
 	}
 
 	float PhysXSliderJoint::GetSpeed() const
 	{
-		return GetInternal()->getVelocity();
+		return GetInternal()->GetVelocity();
 	}
 
 	LimitLinearRange PhysXSliderJoint::GetLimit() const
 	{
-		PxJointLinearLimitPair pxLimit = getInternal()->getLimit();
+		PxJointLinearLimitPair pxLimit = getInternal()->GetLimit();
 
 		LimitLinearRange limit;
 		limit.lower = pxLimit.lower;
@@ -82,22 +82,22 @@ namespace bs
 
 	void PhysXSliderJoint::SetLimit(const LimitLinearRange& limit)
 	{
-		PxJointLinearLimitPair PxLimit(gPhysX().getScale(), limit.lower, limit.upper, limit.contactDist);
+		PxJointLinearLimitPair PxLimit(gPhysX().GetScale(), limit.lower, limit.upper, limit.contactDist);
 		pxLimit.stiffness = limit.spring.stiffness;
 		pxLimit.damping = limit.spring.damping;
 		pxLimit.restitution = limit.restitution;
 
-		getInternal()->setLimit(pxLimit);
+		getInternal()->SetLimit(pxLimit);
 	}
 
 	void PhysXSliderJoint::SetFlag(SliderJointFlag flag, bool enabled)
 	{
-		getInternal()->setPrismaticJointFlag(toPxFlag(flag), enabled);
+		getInternal()->SetPrismaticJointFlag(toPxFlag(flag), enabled);
 	}
 
 	bool PhysXSliderJoint::HasFlag(SliderJointFlag flag) const
 	{
-		return GetInternal()->getPrismaticJointFlags() & toPxFlag(flag);
+		return GetInternal()->GetPrismaticJointFlags() & toPxFlag(flag);
 	}
 
 	PxPrismaticJoint* PhysXSliderJoint::getInternal() const

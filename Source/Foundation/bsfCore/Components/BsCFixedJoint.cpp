@@ -22,8 +22,8 @@ namespace bs
 
 	SPtr<Joint> CFixedJoint::CreateInternal()
 	{
-		const SPtr<SceneInstance>& scene = SO()->getScene();
-		SPtr<Joint> joint = FixedJoint::create(*scene->getPhysicsScene(), mDesc);
+		const SPtr<SceneInstance>& scene = SO()->GetScene();
+		SPtr<Joint> joint = FixedJoint::create(*scene->GetPhysicsScene(), mDesc);
 
 		joint->_setOwner(PhysicsOwnerType::Component, this);
 		return joint;
@@ -35,29 +35,29 @@ namespace bs
 		rotation = mRotations[(UINT32)body];
 
 		HRigidbody rigidbody = mBodies[(UINT32)body];
-		const Transform& tfrm = SO()->getTransform();
+		const Transform& tfrm = SO()->GetTransform();
 		if (rigidbody == nullptr) // Get world space transform if no relative to any body
 		{
-			Quaternion worldRot = tfrm.getRotation();
+			Quaternion worldRot = tfrm.GetRotation();
 
 			rotation = worldRot*rotation;
-			position = worldRot.rotate(position) + tfrm.getPosition();
+			position = worldRot.Rotate(position) + tfrm.getPosition();
 		}
 		else
 		{
-			const Transform& rigidbodyTfrm = rigidbody->SO()->getTransform();
+			const Transform& rigidbodyTfrm = rigidbody->SO()->GetTransform();
 
 			// Find world space transform
-			Quaternion worldRot = rigidbodyTfrm.getRotation();
+			Quaternion worldRot = rigidbodyTfrm.GetRotation();
 
 			rotation = worldRot * rotation;
-			position = worldRot.rotate(position) + rigidbodyTfrm.getPosition();
+			position = worldRot.Rotate(position) + rigidbodyTfrm.getPosition();
 
 			// Get transform of the joint local to the object
-			Quaternion invRotation = rotation.inverse();
+			Quaternion invRotation = rotation.Inverse();
 
-			position = invRotation.rotate(tfrm.getPosition() - position);
-			rotation = invRotation * tfrm.getRotation();
+			position = invRotation.Rotate(tfrm.getPosition() - position);
+			rotation = invRotation * tfrm.GetRotation();
 		}
 	}
 

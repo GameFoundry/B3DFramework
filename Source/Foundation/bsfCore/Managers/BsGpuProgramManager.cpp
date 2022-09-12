@@ -10,7 +10,7 @@ namespace bs
 		GpuProgram* program = new (bs_alloc<GpuProgram>()) GpuProgram(desc);
 		SPtr<GpuProgram> ret = bs_core_ptr<GpuProgram>(program);
 		ret->_setThisPtr(ret);
-		ret->initialize();
+		ret->Initialize();
 
 		return ret;
 	}
@@ -91,16 +91,16 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		auto iter = mFactories.find(language);
-		if (iter != mFactories.end())
-			mFactories.erase(iter);
+		auto iter = mFactories.Find(language);
+		if (iter != mFactories.End())
+			mFactories.Erase(iter);
 	}
 
 	GpuProgramFactory* GpuProgramManager::getFactory(const String& language)
 	{
-		auto iter = mFactories.find(language);
-		if (iter == mFactories.end())
-			iter = mFactories.find(sNullLang);
+		auto iter = mFactories.Find(language);
+		if (iter == mFactories.End())
+			iter = mFactories.Find(sNullLang);
 
 		return iter->second;
 	}
@@ -109,14 +109,14 @@ namespace bs
 	{
 		Lock Lock(mMutex);
 
-		auto iter = mFactories.find(lang);
-		return iter != mFactories.end();
+		auto iter = mFactories.Find(lang);
+		return iter != mFactories.End();
 	}
 
 	SPtr<GpuProgram> GpuProgramManager::Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 	{
 		SPtr<GpuProgram> ret = createInternal(desc, deviceMask);
-		ret->initialize();
+		ret->Initialize();
 
 		return ret;
 	}
@@ -124,7 +124,7 @@ namespace bs
 	SPtr<GpuProgram> GpuProgramManager::CreateInternal(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 	{
 		GpuProgramFactory* factory = getFactory(desc.language);
-		SPtr<GpuProgram> ret = factory->create(desc, deviceMask);
+		SPtr<GpuProgram> ret = factory->Create(desc, deviceMask);
 
 		return ret;
 	}
@@ -132,7 +132,7 @@ namespace bs
 	SPtr<GpuProgramBytecode> GpuProgramManager::CompileBytecode(const GPU_PROGRAM_DESC& desc)
 	{
 		GpuProgramFactory* factory = getFactory(desc.language);
-		return factory->compileBytecode(desc);
+		return factory->CompileBytecode(desc);
 	}
 	}
 }

@@ -18,13 +18,13 @@ namespace bs { namespace ct
 		layoutCI.bindingCount = numBindings;
 		layoutCI.pBindings = bindings;
 
-		VkResult result = vkCreateDescriptorSetLayout(device.getLogical(), &layoutCI, gVulkanAllocator, &mLayout);
+		VkResult result = vkCreateDescriptorSetLayout(device.GetLogical(), &layoutCI, gVulkanAllocator, &mLayout);
 		assert(result == VK_SUCCESS);
 	}
 
 	VulkanDescriptorLayout::~VulkanDescriptorLayout()
 	{
-		vkDestroyDescriptorSetLayout(mDevice.getLogical(), mLayout, gVulkanAllocator);
+		vkDestroyDescriptorSetLayout(mDevice.GetLogical(), mLayout, gVulkanAllocator);
 	}
 
 	size_t VulkanDescriptorLayout::CalculateHash(VkDescriptorSetLayoutBinding* bindings, UINT32 numBindings)

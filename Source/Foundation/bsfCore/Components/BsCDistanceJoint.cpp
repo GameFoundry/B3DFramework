@@ -24,7 +24,7 @@ namespace bs
 		if (mInternal == nullptr)
 			return 0.0f;
 
-		return _getInternal()->getDistance();
+		return _getInternal()->GetDistance();
 	}
 
 	float CDistanceJoint::GetMinDistance() const
@@ -40,7 +40,7 @@ namespace bs
 		mDesc.minDistance = value;
 
 		if (mInternal != nullptr)
-			_getInternal()->setMinDistance(value);
+			_getInternal()->SetMinDistance(value);
 	}
 
 	float CDistanceJoint::GetMaxDistance() const
@@ -56,7 +56,7 @@ namespace bs
 		mDesc.maxDistance = value;
 
 		if (mInternal != nullptr)
-			_getInternal()->setMaxDistance(value);
+			_getInternal()->SetMaxDistance(value);
 	}
 
 	float CDistanceJoint::GetTolerance() const
@@ -72,7 +72,7 @@ namespace bs
 		mDesc.tolerance = value;
 
 		if (mInternal != nullptr)
-			_getInternal()->setTolerance(value);
+			_getInternal()->SetTolerance(value);
 	}
 
 	Spring CDistanceJoint::GetSpring() const
@@ -88,7 +88,7 @@ namespace bs
 		mDesc.spring = value;
 
 		if(mInternal != nullptr)
-			_getInternal()->setSpring(value);
+			_getInternal()->SetSpring(value);
 	}
 
 	void CDistanceJoint::SetFlag(DistanceJointFlag flag, bool enabled)
@@ -103,7 +103,7 @@ namespace bs
 			mDesc.flag = (DistanceJointFlag)((UINT32)mDesc.flag & ~(UINT32)flag);
 
 		if (mInternal != nullptr)
-			_getInternal()->setFlag(flag, enabled);
+			_getInternal()->SetFlag(flag, enabled);
 	}
 
 	bool CDistanceJoint::HasFlag(DistanceJointFlag flag) const
@@ -113,8 +113,8 @@ namespace bs
 
 	SPtr<Joint> CDistanceJoint::CreateInternal()
 	{
-		const SPtr<SceneInstance>& scene = SO()->getScene();
-		SPtr<Joint> joint = DistanceJoint::create(*scene->getPhysicsScene(), mDesc);
+		const SPtr<SceneInstance>& scene = SO()->GetScene();
+		SPtr<Joint> joint = DistanceJoint::create(*scene->GetPhysicsScene(), mDesc);
 
 		joint->_setOwner(PhysicsOwnerType::Component, this);
 		return joint;

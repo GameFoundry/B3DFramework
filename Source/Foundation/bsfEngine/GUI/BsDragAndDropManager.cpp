@@ -11,13 +11,13 @@ namespace bs
 {
 	DragAndDropManager::DragAndDropManager()
 	{
-		mMouseCaptureChangedConn = Platform::onMouseCaptureChanged.connect(std::bind(&DragAndDropManager::mouseCaptureChanged, this));
-		Input::instance().onPointerReleased.connect(std::bind(&DragAndDropManager::cursorReleased, this, _1));
+		mMouseCaptureChangedConn = Platform::onMouseCaptureChanged.Connect(std::bind(&DragAndDropManager::mouseCaptureChanged, this));
+		Input::instance().onPointerReleased.Connect(std::bind(&DragAndDropManager::cursorReleased, this, _1));
 	}
 
 	DragAndDropManager::~DragAndDropManager()
 	{
-		mMouseCaptureChangedConn.disconnect();
+		mMouseCaptureChangedConn.Disconnect();
 	}
 
 	void DragAndDropManager::AddDropCallback(std::function<void(bool)> dropCallback)
@@ -36,10 +36,10 @@ namespace bs
 		addDropCallback(dropCallback);
 		mIsDragInProgress = true;
 
-		mCaptureActive.store(false);
-		mCaptureChanged.store(false);
+		mCaptureActive.Store(false);
+		mCaptureChanged.Store(false);
 
-		Platform::captureMouse(*gCoreApplication().getPrimaryWindow());
+		Platform::captureMouse(*gCoreApplication().GetPrimaryWindow());
 	}
 
 	void DragAndDropManager::_update()
@@ -48,12 +48,12 @@ namespace bs
 			return;
 
 		// This generally happens when window loses focus and capture is lost (for example alt+tab)
-		int captureActive = mCaptureActive.load();
-		if (!captureActive && mCaptureChanged.load() &&
-			(gTime().getFrameIdx() > mCaptureChangeFrame.load())) // Wait one frame to ensure input (like mouse up) gets a chance to be processed
+		int captureActive = mCaptureActive.Load();
+		if (!captureActive && mCaptureChanged.Load() &&
+			(gTime().GetFrameIdx() > mCaptureChangeFrame.load())) // Wait one frame to ensure input (like mouse up) gets a chance to be processed
 		{
 			endDrag(false);
-			mCaptureChanged.store(false);
+			mCaptureChanged.Store(false);
 		}
 	}
 
@@ -64,15 +64,15 @@ namespace bs
 
 		mDragTypeId = 0;
 		mData = nullptr;
-		mDropCallbacks.clear();
+		mDropCallbacks.Clear();
 		mIsDragInProgress = false;
 	}
 
 	void DragAndDropManager::MouseCaptureChanged()
 	{
 		mCaptureActive.fetch_xor(1); // mCaptureActive = !mCaptureActive;
-		mCaptureChanged.store(true);
-		mCaptureChangeFrame.store(gTime().getFrameIdx());
+		mCaptureChanged.Store(true);
+		mCaptureChangeFrame.Store(gTime().getFrameIdx());
 	}
 
 	void DragAndDropManager::CursorReleased(const PointerEvent& event)
@@ -80,7 +80,7 @@ namespace bs
 		if(!mIsDragInProgress)
 			return;
 
-		if(!onDragEnded.empty())
+		if(!onDragEnded.Empty())
 		{
 			DragCallbackInfo info;
 			onDragEnded(event, info);

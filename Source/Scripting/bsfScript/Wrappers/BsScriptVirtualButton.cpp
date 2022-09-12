@@ -13,7 +13,7 @@ namespace bs
 
 	void ScriptVirtualButton::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_InitVirtualButton", (void*)&ScriptVirtualButton::internal_InitVirtualButton);
+		metaData.scriptClass->AddInternalCall("Internal_InitVirtualButton", (void*)&ScriptVirtualButton::internal_InitVirtualButton);
 	}
 
 	UINT32 ScriptVirtualButton::internal_InitVirtualButton(MonoString* name)

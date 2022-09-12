@@ -187,8 +187,8 @@ namespace bs
 		/**	Copy constructor. */
 		TResourceHandle(const TResourceHandle& other)
 		{
-			this->mData = other.getHandleData();
-			this->addRef();
+			this->mData = other.GetHandleData();
+			this->AddRef();
 		}
 
 		/** Move constructor. */
@@ -196,14 +196,14 @@ namespace bs
 
 		~TResourceHandle()
 		{
-			this->releaseRef();
+			this->ReleaseRef();
 		}
 
 		/**	Converts a specific handle to generic Resource handle. */
 		operator TResourceHandle<Resource, WeakHandle>() const
 		{
 			TResourceHandle<Resource, WeakHandle> handle;
-			handle.setHandleData(this->getHandleData());
+			handle.SetHandleData(this->GetHandleData());
 
 			return handle;
 		}
@@ -225,7 +225,7 @@ namespace bs
 		/** Clears the handle making it invalid and releases any references held to the resource. */
 		TResourceHandle<T, WeakHandle>& operator=(std::nullptr_t ptr)
 		{
-			this->releaseRef();
+			this->ReleaseRef();
 			this->mData = nullptr;
 
 			return *this;
@@ -234,7 +234,7 @@ namespace bs
 		/**	Copy assignment. */
 		TResourceHandle<T, WeakHandle>& operator=(const TResourceHandle<T, WeakHandle>& rhs)
 		{
-			setHandleData(rhs.getHandleData());
+			setHandleData(rhs.GetHandleData());
 			return *this;
 		}
 
@@ -244,7 +244,7 @@ namespace bs
 			if(this == &other)
 				return *this;
 
-			this->releaseRef();
+			this->ReleaseRef();
 			this->mData = std::exchange(other.mData, nullptr);
 
 			return *this;
@@ -264,7 +264,7 @@ namespace bs
 		 */
 		operator int Bool_struct<T>::*() const
 		{
-			return ((this->mData != nullptr && !this->mData->mUUID.empty()) ? &Bool_struct<T>::_Member : 0);
+			return ((this->mData != nullptr && !this->mData->mUUID.Empty()) ? &Bool_struct<T>::_Member : 0);
 		}
 
 		/**
@@ -274,9 +274,9 @@ namespace bs
 		 */
 		T* get() const
 		{
-			this->throwIfNotLoaded();
+			this->ThrowIfNotLoaded();
 
-			return reinterpret_cast<T*>(this->mData->mPtr.get());
+			return reinterpret_cast<T*>(this->mData->mPtr.Get());
 		}
 
 		/**
@@ -286,7 +286,7 @@ namespace bs
 		 */
 		SPtr<T> GetInternalPtr() const
 		{
-			this->throwIfNotLoaded();
+			this->ThrowIfNotLoaded();
 
 			return std::static_pointer_cast<T>(this->mData->mPtr);
 		}
@@ -295,7 +295,7 @@ namespace bs
 		TResourceHandle<T, true> GetWeak() const
 		{
 			TResourceHandle<T, true> handle;
-			handle.setHandleData(this->getHandleData());
+			handle.SetHandleData(this->GetHandleData());
 
 			return handle;
 		}
@@ -318,9 +318,9 @@ namespace bs
 			:TResourceHandleBase<WeakHandle>()
 		{
 			this->mData = bs_shared_ptr_new<ResourceHandleData>();
-			this->addRef();
+			this->AddRef();
 
-			this->setHandleData(SPtr<Resource>(ptr), uuid);
+			this->SetHandleData(SPtr<Resource>(ptr), uuid);
 			this->mIsCreated = true;
 		}
 
@@ -333,32 +333,32 @@ namespace bs
 			this->mData = bs_shared_ptr_new<ResourceHandleData>();
 			this->mData->mUUID = uuid;
 
-			this->addRef();
+			this->AddRef();
 		}
 
 		/**	Constructs a new valid handle for the provided resource with the provided UUID. */
 		TResourceHandle(const SPtr<T> ptr, const UUID& uuid)
 		{
 			this->mData = bs_shared_ptr_new<ResourceHandleData>();
-			this->addRef();
+			this->AddRef();
 
-			this->setHandleData(ptr, uuid);
+			this->SetHandleData(ptr, uuid);
 			this->mData->mIsCreated = true;
 		}
 
 		/**	Replaces the internal handle data pointer, effectively transforming the handle into a different handle. */
 		void SetHandleData(const SPtr<ResourceHandleData>& data)
 		{
-			this->releaseRef();
+			this->ReleaseRef();
 			this->mData = data;
-			this->addRef();
+			this->AddRef();
 		}
 
 		/**	Converts a weak handle into a normal handle. */
 		TResourceHandle<T, false> Lock() const
 		{
 			TResourceHandle<Resource, false> handle;
-			handle.setHandleData(this->getHandleData());
+			handle.SetHandleData(this->GetHandleData());
 
 			return handle;
 		}
@@ -370,17 +370,17 @@ namespace bs
 	template<class _Ty1, bool _Weak1, class _Ty2, bool _Weak2>
 	bool operator==(const TResourceHandle<_Ty1, _Weak1>& _Left, const TResourceHandle<_Ty2, _Weak2>& _Right)
 	{
-		if(_Left.getHandleData() != nullptr && _Right.getHandleData() != nullptr)
-			return _Left.getHandleData()->mPtr == _Right.getHandleData()->mPtr;
+		if(_Left.GetHandleData() != nullptr && _Right.getHandleData() != nullptr)
+			return _Left.GetHandleData()->mPtr == _Right.getHandleData()->mPtr;
 
-		return _Left.getHandleData() == _Right.getHandleData();
+		return _Left.GetHandleData() == _Right.getHandleData();
 	}
 
 	/**	Checks if a handle is null. */
 	template<class _Ty1, bool _Weak1, class _Ty2, bool _Weak2>
 	bool operator==(const TResourceHandle<_Ty1, _Weak1>& _Left, std::nullptr_t  _Right)
 	{
-		return _Left.getHandleData() == nullptr || _Left.getHandleData()->mUUID.empty();
+		return _Left.GetHandleData() == nullptr || _Left.getHandleData()->mUUID.empty();
 	}
 
 	template<class _Ty1, bool _Weak1, class _Ty2, bool _Weak2>
@@ -412,7 +412,7 @@ namespace bs
 	TResourceHandle<_Ty1, _Weak1> static_resource_cast(const TResourceHandle<_Ty2, _Weak2>& other)
 	{
 		TResourceHandle<_Ty1, _Weak1> handle;
-		handle.setHandleData(other.getHandleData());
+		handle.SetHandleData(other.getHandleData());
 
 		return handle;
 	}
@@ -422,7 +422,7 @@ namespace bs
 	TResourceHandle<_Ty1, false> static_resource_cast(const TResourceHandle<_Ty2, _Weak2>& other)
 	{
 		TResourceHandle<_Ty1, false> handle;
-		handle.setHandleData(other.getHandleData());
+		handle.SetHandleData(other.getHandleData());
 
 		return handle;
 	}

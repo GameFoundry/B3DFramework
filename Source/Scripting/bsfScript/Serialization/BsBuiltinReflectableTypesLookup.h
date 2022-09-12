@@ -35,7 +35,7 @@ namespace bs
 																															\
 			ReflectableTypeInfo entry;																						\
 			entry.metaData = ScriptType::getMetaData();																		\
-			entry.typeId = ReflectableType::getRTTIStatic()->getRTTIId();													\
+			entry.typeId = ReflectableType::getRTTIStatic()->GetRTTIId();													\
 			entry.monoClass = nullptr;																						\
 			entry.createCallback = &create##ScriptType;																		\
 																															\

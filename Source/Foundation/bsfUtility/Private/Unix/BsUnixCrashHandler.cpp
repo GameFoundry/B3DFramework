@@ -32,7 +32,7 @@ namespace bs
 
 		// Note: Not safe to grab a stack-trace here (nor do memory allocations), but we might as well try since we're
 		// crashing anyway
-		CrashHandler::instance().reportCrash(signalName, "Received fatal signal", "", "");
+		CrashHandler::instance().ReportCrash(signalName, "Received fatal signal", "", "");
 
 		kill(getpid(), signal);
 		exit(signal);
@@ -169,7 +169,7 @@ namespace bs
 
 		free(messages);
 
-		return stackTrace.str();
+		return stackTrace.Str();
 	}
 
 	void CrashHandler::reportCrash(const String& type,
@@ -180,7 +180,7 @@ namespace bs
 	{
 		if(mSettings.onBeforeReportCrash)
 		{
-			if(mSettings.onBeforeReportCrash(type, description, function, file, line))
+			if(mSettings.OnBeforeReportCrash(type, description, function, file, line))
 				return;
 		}
 
@@ -188,7 +188,7 @@ namespace bs
 
 		if(mSettings.onCrashPrintedToLog)
 		{
-			if(mSettings.onCrashPrintedToLog())
+			if(mSettings.OnCrashPrintedToLog())
 				return;
 		}
 

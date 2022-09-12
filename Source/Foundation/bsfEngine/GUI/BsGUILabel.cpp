@@ -60,7 +60,7 @@ namespace bs
 			mImageDesc.borderBottom = _getStyle()->border.bottom;
 			mImageDesc.color = getTint();
 
-			mImageSprite->update(mImageDesc, (UINT64)_getParentWidget());
+			mImageSprite->Update(mImageDesc, (UINT64)_getParentWidget());
 		}
 
 		mDesc.font = _getStyle()->font;
@@ -73,7 +73,7 @@ namespace bs
 		mDesc.text = mContent.text;
 		mDesc.color = getTint() * _getStyle()->normal.textColor;;
 
-		mTextSprite->update(mDesc, (UINT64)_getParentWidget());
+		mTextSprite->Update(mDesc, (UINT64)_getParentWidget());
 
 		// Populate GUI render elements from the sprites
 		{
@@ -104,25 +104,25 @@ namespace bs
 		UINT32 indexStride = sizeof(UINT32);
 		Vector2I layoutOffset = Vector2I(mLayoutData.area.x, mLayoutData.area.y) + offset;
 
-		UINT32 imageSpriteIdx = mTextSprite->getNumRenderElements();
+		UINT32 imageSpriteIdx = mTextSprite->GetNumRenderElements();
 
 		if (renderElementIdx < imageSpriteIdx)
 		{
 			mTextSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride,
-				indexStride, renderElementIdx, layoutOffset, mLayoutData.getLocalClipRect());
+				indexStride, renderElementIdx, layoutOffset, mLayoutData.GetLocalClipRect());
 
 			return;
 		}
 
 		mImageSprite->fillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
-			vertexStride, indexStride, imageSpriteIdx - renderElementIdx, layoutOffset, mLayoutData.getLocalClipRect());
+			vertexStride, indexStride, imageSpriteIdx - renderElementIdx, layoutOffset, mLayoutData.GetLocalClipRect());
 	}
 
 	void GUILabel::SetContent(const GUIContent& content)
 	{
-		Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+		Vector2I origSize = mDimensions.CalculateSizeRange(_getOptimalSize()).optimal;
 		mContent = content;
-		Vector2I newSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+		Vector2I newSize = mDimensions.CalculateSizeRange(_getOptimalSize()).optimal;
 
 		if (origSize != newSize)
 			_markLayoutAsDirty();

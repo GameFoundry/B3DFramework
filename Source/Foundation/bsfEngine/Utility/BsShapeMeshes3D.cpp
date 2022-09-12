@@ -30,39 +30,39 @@ namespace bs
 
 	void ShapeMeshes3D::WireAABox(const AABox& box, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
-		UINT32* indexData = meshData->getIndices32();
-		UINT8* positionData = meshData->getElementData(VES_POSITION);
+		UINT32* indexData = meshData->GetIndices32();
+		UINT8* positionData = meshData->GetElementData(VES_POSITION);
 
-		assert((vertexOffset + 8) <= meshData->getNumVertices());
-		assert((indexOffset + 24) <= meshData->getNumIndices());	
+		assert((vertexOffset + 8) <= meshData->GetNumVertices());
+		assert((indexOffset + 24) <= meshData->GetNumIndices());
 
-		wireAABox(box, positionData, vertexOffset, meshData->getVertexDesc()->getVertexStride(), indexData, indexOffset);
+		wireAABox(box, positionData, vertexOffset, meshData->GetVertexDesc()->getVertexStride(), indexData, indexOffset);
 	}
 
 	void ShapeMeshes3D::SolidAABox(const AABox& box, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
-		const SPtr<VertexDataDesc>& desc = meshData->getVertexDesc();
+		const SPtr<VertexDataDesc>& desc = meshData->GetVertexDesc();
 
-		UINT32* indexData = meshData->getIndices32();
-		UINT8* positionData = meshData->getElementData(VES_POSITION);
-		UINT8* normalData = meshData->getElementData(VES_NORMAL);
+		UINT32* indexData = meshData->GetIndices32();
+		UINT8* positionData = meshData->GetElementData(VES_POSITION);
+		UINT8* normalData = meshData->GetElementData(VES_NORMAL);
 
-		UINT32 numVertices = meshData->getNumVertices();
-		UINT32 numIndices = meshData->getNumIndices();
-		UINT32 vertexStride = desc->getVertexStride();
+		UINT32 numVertices = meshData->GetNumVertices();
+		UINT32 numIndices = meshData->GetNumIndices();
+		UINT32 vertexStride = desc->GetVertexStride();
 
-		assert((vertexOffset + 24) <= meshData->getNumVertices());
-		assert((indexOffset + 36) <= meshData->getNumIndices());
+		assert((vertexOffset + 24) <= meshData->GetNumVertices());
+		assert((indexOffset + 36) <= meshData->GetNumIndices());
 
 		UINT8* uvData = nullptr;
-		if (desc->hasElement(VES_TEXCOORD))
-			uvData = meshData->getElementData(VES_TEXCOORD);
+		if (desc->HasElement(VES_TEXCOORD))
+			uvData = meshData->GetElementData(VES_TEXCOORD);
 
 		solidAABox(box, positionData, normalData, uvData, vertexOffset, vertexStride, indexData, indexOffset);
 
-		if (uvData != nullptr && desc->hasElement(VES_TANGENT))
+		if (uvData != nullptr && desc->HasElement(VES_TANGENT))
 		{
-			UINT8* tangentData = meshData->getElementData(VES_TANGENT);
+			UINT8* tangentData = meshData->GetElementData(VES_TANGENT);
 			generateTangents(positionData, normalData, uvData, indexData, numVertices, numIndices,
 				vertexOffset, indexOffset, vertexStride, tangentData);
 		}
@@ -73,19 +73,19 @@ namespace bs
 		UINT32 requiredNumVertices, requiredNumIndices;
 		getNumElementsWireSphere(quality, requiredNumVertices, requiredNumIndices);
 
-		assert((vertexOffset + requiredNumVertices) <= meshData->getNumVertices());
-		assert((indexOffset + requiredNumIndices) <= meshData->getNumIndices());
+		assert((vertexOffset + requiredNumVertices) <= meshData->GetNumVertices());
+		assert((indexOffset + requiredNumIndices) <= meshData->GetNumIndices());
 
 		UINT32 verticesPerArc = (quality + 1) * 5;
 		UINT32 indicesPerArc = (verticesPerArc - 1) * 2;
 
-		wireDisc(sphere.getCenter(), sphere.getRadius(), Vector3::UNIT_X, meshData,
+		wireDisc(sphere.GetCenter(), sphere.getRadius(), Vector3::UNIT_X, meshData,
 			vertexOffset, indexOffset, quality);
 
-		wireDisc(sphere.getCenter(), sphere.getRadius(), Vector3::UNIT_Y, meshData,
+		wireDisc(sphere.GetCenter(), sphere.getRadius(), Vector3::UNIT_Y, meshData,
 			vertexOffset + verticesPerArc, indexOffset + indicesPerArc, quality);
 
-		wireDisc(sphere.getCenter(), sphere.getRadius(), Vector3::UNIT_Z, meshData,
+		wireDisc(sphere.GetCenter(), sphere.getRadius(), Vector3::UNIT_Z, meshData,
 			vertexOffset + verticesPerArc * 2, indexOffset + indicesPerArc * 2, quality);
 	}
 
@@ -95,34 +95,34 @@ namespace bs
 		UINT32 requiredNumVertices, requiredNumIndices;
 		getNumElementsWireHemisphere(quality, requiredNumVertices, requiredNumIndices);
 
-		assert((vertexOffset + requiredNumVertices) <= meshData->getNumVertices());
-		assert((indexOffset + requiredNumIndices) <= meshData->getNumIndices());
+		assert((vertexOffset + requiredNumVertices) <= meshData->GetNumVertices());
+		assert((indexOffset + requiredNumIndices) <= meshData->GetNumIndices());
 
 		UINT32 verticesPerArc = (quality + 1) * 5;
 		UINT32 indicesPerArc = (verticesPerArc - 1) * 2;
 
-		wireArc(sphere.getCenter(), sphere.getRadius(), Vector3::UNIT_X, Degree(0.0f), Degree(180.0f), meshData,
+		wireArc(sphere.GetCenter(), sphere.getRadius(), Vector3::UNIT_X, Degree(0.0f), Degree(180.0f), meshData,
 			vertexOffset, indexOffset, quality);
 
-		wireArc(sphere.getCenter(), sphere.getRadius(), Vector3::UNIT_Y, Degree(0.0f), Degree(180.0f), meshData,
+		wireArc(sphere.GetCenter(), sphere.getRadius(), Vector3::UNIT_Y, Degree(0.0f), Degree(180.0f), meshData,
 			vertexOffset + verticesPerArc, indexOffset + indicesPerArc, quality);
 
-		wireDisc(sphere.getCenter(), sphere.getRadius(), Vector3::UNIT_Z, meshData,
+		wireDisc(sphere.GetCenter(), sphere.getRadius(), Vector3::UNIT_Z, meshData,
 			vertexOffset + verticesPerArc * 2, indexOffset + indicesPerArc * 2, quality);
 	}
 
 	void ShapeMeshes3D::solidSphere(const Sphere& sphere, const SPtr<MeshData>& meshData, UINT32 vertexOffset,
 		UINT32 indexOffset, UINT32 quality)
 	{
-		const SPtr<VertexDataDesc>& desc = meshData->getVertexDesc();
+		const SPtr<VertexDataDesc>& desc = meshData->GetVertexDesc();
 
-		UINT32* indexData = meshData->getIndices32();
-		UINT8* positionData = meshData->getElementData(VES_POSITION);
-		UINT8* normalData = meshData->getElementData(VES_NORMAL);
+		UINT32* indexData = meshData->GetIndices32();
+		UINT8* positionData = meshData->GetElementData(VES_POSITION);
+		UINT8* normalData = meshData->GetElementData(VES_NORMAL);
 
-		UINT32 numVertices = meshData->getNumVertices();
-		UINT32 numIndices = meshData->getNumIndices();
-		UINT32 vertexStride = desc->getVertexStride();
+		UINT32 numVertices = meshData->GetNumVertices();
+		UINT32 numIndices = meshData->GetNumIndices();
+		UINT32 vertexStride = desc->GetVertexStride();
 
 		UINT32 requiredNumVertices, requiredNumIndices;
 		getNumElementsSphere(quality, requiredNumVertices, requiredNumIndices);
@@ -131,14 +131,14 @@ namespace bs
 		assert((indexOffset + requiredNumIndices) <= numIndices);
 
 		UINT8* uvData = nullptr;
-		if (desc->hasElement(VES_TEXCOORD))
-			uvData = meshData->getElementData(VES_TEXCOORD);
+		if (desc->HasElement(VES_TEXCOORD))
+			uvData = meshData->GetElementData(VES_TEXCOORD);
 
 		solidSphere(sphere, positionData, normalData, uvData, vertexOffset, vertexStride, indexData, indexOffset, quality);
 
-		if (uvData != nullptr && desc->hasElement(VES_TANGENT))
+		if (uvData != nullptr && desc->HasElement(VES_TANGENT))
 		{
-			UINT8* tangentData = meshData->getElementData(VES_TANGENT);
+			UINT8* tangentData = meshData->GetElementData(VES_TANGENT);
 			generateTangents(positionData, normalData, uvData, indexData, numVertices, numIndices,
 				vertexOffset, indexOffset, vertexStride, tangentData);
 		}
@@ -159,48 +159,48 @@ namespace bs
 	void ShapeMeshes3D::wireArc(const Vector3& center, float radius, const Vector3& normal, Degree startAngle, Degree amountAngle,
 		const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset, UINT32 quality)
 	{
-		UINT32* indexData = meshData->getIndices32();
-		UINT8* positionData = meshData->getElementData(VES_POSITION);
+		UINT32* indexData = meshData->GetIndices32();
+		UINT8* positionData = meshData->GetElementData(VES_POSITION);
 
 		UINT32 requiredNumVertices, requiredNumIndices;
 		getNumElementsWireArc(quality, requiredNumVertices, requiredNumIndices);
 
-		assert((vertexOffset + requiredNumVertices) <= meshData->getNumVertices());
-		assert((indexOffset + requiredNumIndices) <= meshData->getNumIndices());
+		assert((vertexOffset + requiredNumVertices) <= meshData->GetNumVertices());
+		assert((indexOffset + requiredNumIndices) <= meshData->GetNumIndices());
 
 		wireArc(center, radius, normal, startAngle, amountAngle, positionData, vertexOffset,
-			meshData->getVertexDesc()->getVertexStride(), indexData, indexOffset, quality);
+			meshData->GetVertexDesc()->getVertexStride(), indexData, indexOffset, quality);
 	}
 
 	void ShapeMeshes3D::solidArc(const Vector3& center, float radius, const Vector3& normal, Degree startAngle, Degree amountAngle,
 		const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset, UINT32 quality)
 	{
-		const SPtr<VertexDataDesc>& desc = meshData->getVertexDesc();
+		const SPtr<VertexDataDesc>& desc = meshData->GetVertexDesc();
 
-		UINT32* indexData = meshData->getIndices32();
-		UINT8* positionData = meshData->getElementData(VES_POSITION);
-		UINT8* normalData = meshData->getElementData(VES_NORMAL);
+		UINT32* indexData = meshData->GetIndices32();
+		UINT8* positionData = meshData->GetElementData(VES_POSITION);
+		UINT8* normalData = meshData->GetElementData(VES_NORMAL);
 
-		UINT32 numVertices = meshData->getNumVertices();
-		UINT32 numIndices = meshData->getNumIndices();
-		UINT32 vertexStride = desc->getVertexStride();
+		UINT32 numVertices = meshData->GetNumVertices();
+		UINT32 numIndices = meshData->GetNumIndices();
+		UINT32 vertexStride = desc->GetVertexStride();
 
 		UINT32 requiredNumVertices, requiredNumIndices;
 		getNumElementsArc(quality, requiredNumVertices, requiredNumIndices);
 
-		assert((vertexOffset + requiredNumVertices) <= meshData->getNumVertices());
-		assert((indexOffset + requiredNumIndices) <= meshData->getNumIndices());
+		assert((vertexOffset + requiredNumVertices) <= meshData->GetNumVertices());
+		assert((indexOffset + requiredNumIndices) <= meshData->GetNumIndices());
 
 		UINT8* uvData = nullptr;
-		if (desc->hasElement(VES_TEXCOORD))
-			uvData = meshData->getElementData(VES_TEXCOORD);
+		if (desc->HasElement(VES_TEXCOORD))
+			uvData = meshData->GetElementData(VES_TEXCOORD);
 
 		solidArc(center, radius, normal, startAngle, amountAngle, positionData, normalData, uvData, vertexOffset,
 			vertexStride, indexData, indexOffset, quality);
 
-		if (uvData != nullptr && desc->hasElement(VES_TANGENT))
+		if (uvData != nullptr && desc->HasElement(VES_TANGENT))
 		{
-			UINT8* tangentData = meshData->getElementData(VES_TANGENT);
+			UINT8* tangentData = meshData->GetElementData(VES_TANGENT);
 			generateTangents(positionData, normalData, uvData, indexData, numVertices, numIndices,
 				vertexOffset, indexOffset, vertexStride, tangentData);
 		}
@@ -209,44 +209,44 @@ namespace bs
 	void ShapeMeshes3D::wireFrustum(const Vector3& position, float aspect, Degree FOV, float near, float far,
 		const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
-		UINT32* indexData = meshData->getIndices32();
-		UINT8* positionData = meshData->getElementData(VES_POSITION);
+		UINT32* indexData = meshData->GetIndices32();
+		UINT8* positionData = meshData->GetElementData(VES_POSITION);
 
-		assert((vertexOffset + 8) <= meshData->getNumVertices());
-		assert((indexOffset + 24) <= meshData->getNumIndices());
+		assert((vertexOffset + 8) <= meshData->GetNumVertices());
+		assert((indexOffset + 24) <= meshData->GetNumIndices());
 
-		wireFrustum(position, aspect, FOV, near, far, positionData, vertexOffset, meshData->getVertexDesc()->getVertexStride(), indexData, indexOffset);
+		wireFrustum(position, aspect, FOV, near, far, positionData, vertexOffset, meshData->GetVertexDesc()->getVertexStride(), indexData, indexOffset);
 	}
 
 	void ShapeMeshes3D::solidCone(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale,
 		const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset, UINT32 quality)
 	{
-		const SPtr<VertexDataDesc>& desc = meshData->getVertexDesc();
+		const SPtr<VertexDataDesc>& desc = meshData->GetVertexDesc();
 
-		UINT32* indexData = meshData->getIndices32();
-		UINT8* positionData = meshData->getElementData(VES_POSITION);
-		UINT8* normalData = meshData->getElementData(VES_NORMAL);
+		UINT32* indexData = meshData->GetIndices32();
+		UINT8* positionData = meshData->GetElementData(VES_POSITION);
+		UINT8* normalData = meshData->GetElementData(VES_NORMAL);
 
-		UINT32 numVertices = meshData->getNumVertices();
-		UINT32 numIndices = meshData->getNumIndices();
-		UINT32 vertexStride = desc->getVertexStride();
+		UINT32 numVertices = meshData->GetNumVertices();
+		UINT32 numIndices = meshData->GetNumIndices();
+		UINT32 vertexStride = desc->GetVertexStride();
 
 		UINT32 requiredNumVertices, requiredNumIndices;
 		getNumElementsCone(quality, requiredNumVertices, requiredNumIndices);
 
-		assert((vertexOffset + requiredNumVertices) <= meshData->getNumVertices());
-		assert((indexOffset + requiredNumIndices) <= meshData->getNumIndices());
+		assert((vertexOffset + requiredNumVertices) <= meshData->GetNumVertices());
+		assert((indexOffset + requiredNumIndices) <= meshData->GetNumIndices());
 
 		UINT8* uvData = nullptr;
-		if (desc->hasElement(VES_TEXCOORD))
-			uvData = meshData->getElementData(VES_TEXCOORD);
+		if (desc->HasElement(VES_TEXCOORD))
+			uvData = meshData->GetElementData(VES_TEXCOORD);
 
 		solidCone(base, normal, height, radius, scale, positionData, normalData, uvData, vertexOffset,
 			vertexStride, indexData, indexOffset, quality);
 
-		if (uvData != nullptr && desc->hasElement(VES_TANGENT))
+		if (uvData != nullptr && desc->HasElement(VES_TANGENT))
 		{
-			UINT8* tangentData = meshData->getElementData(VES_TANGENT);
+			UINT8* tangentData = meshData->GetElementData(VES_TANGENT);
 			generateTangents(positionData, normalData, uvData, indexData, numVertices, numIndices,
 				vertexOffset, indexOffset, vertexStride, tangentData);
 		}
@@ -255,48 +255,48 @@ namespace bs
 	void ShapeMeshes3D::wireCone(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale,
 		const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset, UINT32 quality)
 	{
-		UINT32* indexData = meshData->getIndices32();
-		UINT8* positionData = meshData->getElementData(VES_POSITION);
+		UINT32* indexData = meshData->GetIndices32();
+		UINT8* positionData = meshData->GetElementData(VES_POSITION);
 
 		UINT32 requiredNumVertices, requiredNumIndices;
 		getNumElementsWireCone(quality, requiredNumVertices, requiredNumIndices);
 
-		assert((vertexOffset + requiredNumVertices) <= meshData->getNumVertices());
-		assert((indexOffset + requiredNumIndices) <= meshData->getNumIndices());
+		assert((vertexOffset + requiredNumVertices) <= meshData->GetNumVertices());
+		assert((indexOffset + requiredNumIndices) <= meshData->GetNumIndices());
 
 		wireCone(base, normal, height, radius, scale, positionData, vertexOffset,
-			meshData->getVertexDesc()->getVertexStride(), indexData, indexOffset, quality);
+			meshData->GetVertexDesc()->getVertexStride(), indexData, indexOffset, quality);
 	}
 
 	void ShapeMeshes3D::solidCylinder(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale,
 		const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset, UINT32 quality)
 	{
-		const SPtr<VertexDataDesc>& desc = meshData->getVertexDesc();
+		const SPtr<VertexDataDesc>& desc = meshData->GetVertexDesc();
 
-		UINT32* indexData = meshData->getIndices32();
-		UINT8* positionData = meshData->getElementData(VES_POSITION);
-		UINT8* normalData = meshData->getElementData(VES_NORMAL);
+		UINT32* indexData = meshData->GetIndices32();
+		UINT8* positionData = meshData->GetElementData(VES_POSITION);
+		UINT8* normalData = meshData->GetElementData(VES_NORMAL);
 
-		UINT32 numVertices = meshData->getNumVertices();
-		UINT32 numIndices = meshData->getNumIndices();
-		UINT32 vertexStride = desc->getVertexStride();
+		UINT32 numVertices = meshData->GetNumVertices();
+		UINT32 numIndices = meshData->GetNumIndices();
+		UINT32 vertexStride = desc->GetVertexStride();
 
 		UINT32 requiredNumVertices, requiredNumIndices;
 		getNumElementsCylinder(quality, requiredNumVertices, requiredNumIndices);
 
-		assert((vertexOffset + requiredNumVertices) <= meshData->getNumVertices());
-		assert((indexOffset + requiredNumIndices) <= meshData->getNumIndices());
+		assert((vertexOffset + requiredNumVertices) <= meshData->GetNumVertices());
+		assert((indexOffset + requiredNumIndices) <= meshData->GetNumIndices());
 
 		UINT8* uvData = nullptr;
-		if (desc->hasElement(VES_TEXCOORD))
-			uvData = meshData->getElementData(VES_TEXCOORD);
+		if (desc->HasElement(VES_TEXCOORD))
+			uvData = meshData->GetElementData(VES_TEXCOORD);
 
 		solidCylinder(base, normal, height, radius, scale, positionData, normalData, uvData, vertexOffset,
 			vertexStride, indexData, indexOffset, quality);
 
-		if (uvData != nullptr && desc->hasElement(VES_TANGENT))
+		if (uvData != nullptr && desc->HasElement(VES_TANGENT))
 		{
-			UINT8* tangentData = meshData->getElementData(VES_TANGENT);
+			UINT8* tangentData = meshData->GetElementData(VES_TANGENT);
 			generateTangents(positionData, normalData, uvData, indexData, numVertices, numIndices,
 				vertexOffset, indexOffset, vertexStride, tangentData);
 		}
@@ -305,44 +305,44 @@ namespace bs
 	void ShapeMeshes3D::wireCylinder(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale,
 		const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset, UINT32 quality)
 	{
-		UINT32* indexData = meshData->getIndices32();
-		UINT8* positionData = meshData->getElementData(VES_POSITION);
+		UINT32* indexData = meshData->GetIndices32();
+		UINT8* positionData = meshData->GetElementData(VES_POSITION);
 
 		UINT32 requiredNumVertices, requiredNumIndices;
 		getNumElementsWireCylinder(quality, requiredNumVertices, requiredNumIndices);
 
-		assert((vertexOffset + requiredNumVertices) <= meshData->getNumVertices());
-		assert((indexOffset + requiredNumIndices) <= meshData->getNumIndices());
+		assert((vertexOffset + requiredNumVertices) <= meshData->GetNumVertices());
+		assert((indexOffset + requiredNumIndices) <= meshData->GetNumIndices());
 
 		wireCylinder(base, normal, height, radius, scale, positionData, vertexOffset,
-			meshData->getVertexDesc()->getVertexStride(), indexData, indexOffset, quality);
+			meshData->GetVertexDesc()->getVertexStride(), indexData, indexOffset, quality);
 	}
 
 	void ShapeMeshes3D::SolidQuad(const Rect3& area, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
-		const SPtr<VertexDataDesc>& desc = meshData->getVertexDesc();
+		const SPtr<VertexDataDesc>& desc = meshData->GetVertexDesc();
 
-		UINT32* indexData = meshData->getIndices32();
-		UINT8* positionData = meshData->getElementData(VES_POSITION);
-		UINT8* normalData = meshData->getElementData(VES_NORMAL);
+		UINT32* indexData = meshData->GetIndices32();
+		UINT8* positionData = meshData->GetElementData(VES_POSITION);
+		UINT8* normalData = meshData->GetElementData(VES_NORMAL);
 
-		UINT32 numVertices = meshData->getNumVertices();
-		UINT32 numIndices = meshData->getNumIndices();
-		UINT32 vertexStride = desc->getVertexStride();
+		UINT32 numVertices = meshData->GetNumVertices();
+		UINT32 numIndices = meshData->GetNumIndices();
+		UINT32 vertexStride = desc->GetVertexStride();
 
 		assert((vertexOffset + 8) <= numVertices);
 		assert((indexOffset + 12) <= numIndices);
 
 		UINT8* uvData = nullptr;
-		if (desc->hasElement(VES_TEXCOORD))
-			uvData = meshData->getElementData(VES_TEXCOORD);
+		if (desc->HasElement(VES_TEXCOORD))
+			uvData = meshData->GetElementData(VES_TEXCOORD);
 
 		solidQuad(area, positionData, normalData, uvData, vertexOffset,
-			meshData->getVertexDesc()->getVertexStride(), indexData, indexOffset);
+			meshData->GetVertexDesc()->getVertexStride(), indexData, indexOffset);
 
-		if(uvData != nullptr && desc->hasElement(VES_TANGENT))
+		if(uvData != nullptr && desc->HasElement(VES_TANGENT))
 		{
-			UINT8* tangentData = meshData->getElementData(VES_TANGENT);
+			UINT8* tangentData = meshData->GetElementData(VES_TANGENT);
 			generateTangents(positionData, normalData, uvData, indexData, numVertices, numIndices,
 				vertexOffset, indexOffset, vertexStride, tangentData);
 		}
@@ -350,32 +350,32 @@ namespace bs
 
 	void ShapeMeshes3D::PixelLine(const Vector3& a, const Vector3& b, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
-		UINT32* indexData = meshData->getIndices32();
-		UINT8* positionData = meshData->getElementData(VES_POSITION);
+		UINT32* indexData = meshData->GetIndices32();
+		UINT8* positionData = meshData->GetElementData(VES_POSITION);
 
-		assert((vertexOffset + 2) <= meshData->getNumVertices());
-		assert((indexOffset + 2) <= meshData->getNumIndices());
+		assert((vertexOffset + 2) <= meshData->GetNumVertices());
+		assert((indexOffset + 2) <= meshData->GetNumIndices());
 
-		pixelLine(a, b, positionData, vertexOffset, meshData->getVertexDesc()->getVertexStride(), indexData, indexOffset);
+		pixelLine(a, b, positionData, vertexOffset, meshData->GetVertexDesc()->getVertexStride(), indexData, indexOffset);
 	}
 
 	void ShapeMeshes3D::PixelLineList(const Vector<Vector3>& linePoints, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
-		assert(linePoints.size() % 2 == 0);
+		assert(linePoints.Size() % 2 == 0);
 
-		assert((vertexOffset + linePoints.size()) <= meshData->getNumVertices());
-		assert((indexOffset + linePoints.size()) <= meshData->getNumIndices());
+		assert((vertexOffset + linePoints.Size()) <= meshData->GetNumVertices());
+		assert((indexOffset + linePoints.Size()) <= meshData->GetNumIndices());
 
 		UINT32 curVertOffset = vertexOffset;
 		UINT32 curIdxOffset = indexOffset;
 
-		UINT32* indexData = meshData->getIndices32();
-		UINT8* positionData = meshData->getElementData(VES_POSITION);
+		UINT32* indexData = meshData->GetIndices32();
+		UINT8* positionData = meshData->GetElementData(VES_POSITION);
 
-		UINT32 numPoints = (UINT32)linePoints.size();
+		UINT32 numPoints = (UINT32)linePoints.Size();
 		for (UINT32 i = 0; i < numPoints; i += 2)
 		{
-			pixelLine(linePoints[i], linePoints[i + 1], positionData, curVertOffset, meshData->getVertexDesc()->getVertexStride(), indexData, curIdxOffset);
+			pixelLine(linePoints[i], linePoints[i + 1], positionData, curVertOffset, meshData->GetVertexDesc()->getVertexStride(), indexData, curIdxOffset);
 
 			curVertOffset += 2;
 			curIdxOffset += 2;
@@ -385,35 +385,35 @@ namespace bs
 	void ShapeMeshes3D::antialiasedLine(const Vector3& a, const Vector3& b, const Vector3& up, float width, float borderWidth,
 		const Color& color, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
-		UINT32* indexData = meshData->getIndices32();
-		UINT8* positionData = meshData->getElementData(VES_POSITION);
-		UINT8* colorData = meshData->getElementData(VES_COLOR);
+		UINT32* indexData = meshData->GetIndices32();
+		UINT8* positionData = meshData->GetElementData(VES_POSITION);
+		UINT8* colorData = meshData->GetElementData(VES_COLOR);
 
-		assert((vertexOffset + NUM_VERTICES_AA_LINE) <= meshData->getNumVertices());
-		assert((indexOffset + NUM_INDICES_AA_LINE) <= meshData->getNumIndices());
+		assert((vertexOffset + NUM_VERTICES_AA_LINE) <= meshData->GetNumVertices());
+		assert((indexOffset + NUM_INDICES_AA_LINE) <= meshData->GetNumIndices());
 
-		antialiasedLine(a, b, up, width, borderWidth, color, positionData, colorData, vertexOffset, meshData->getVertexDesc()->getVertexStride(), indexData, indexOffset);
+		antialiasedLine(a, b, up, width, borderWidth, color, positionData, colorData, vertexOffset, meshData->GetVertexDesc()->getVertexStride(), indexData, indexOffset);
 	}
 
 	void ShapeMeshes3D::antialiasedLineList(const Vector<Vector3>& linePoints, const Vector3& up, float width, float borderWidth,
 		const Color& color, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
-		assert(linePoints.size() % 2 == 0);
+		assert(linePoints.Size() % 2 == 0);
 
-		assert((vertexOffset + linePoints.size() * 4) <= meshData->getNumVertices());
-		assert((indexOffset + linePoints.size() * 15) <= meshData->getNumIndices());
+		assert((vertexOffset + linePoints.Size() * 4) <= meshData->GetNumVertices());
+		assert((indexOffset + linePoints.Size() * 15) <= meshData->GetNumIndices());
 
 		UINT32 curVertOffset = vertexOffset;
 		UINT32 curIdxOffset = indexOffset;
 
-		UINT32* indexData = meshData->getIndices32();
-		UINT8* positionData = meshData->getElementData(VES_POSITION);
-		UINT8* colorData = meshData->getElementData(VES_COLOR);
+		UINT32* indexData = meshData->GetIndices32();
+		UINT8* positionData = meshData->GetElementData(VES_POSITION);
+		UINT8* colorData = meshData->GetElementData(VES_COLOR);
 
-		UINT32 numPoints = (UINT32)linePoints.size();
+		UINT32 numPoints = (UINT32)linePoints.Size();
 		for (UINT32 i = 0; i < numPoints; i += 2)
 		{
-			antialiasedLine(linePoints[i], linePoints[i + 1], up, width, borderWidth, color, positionData, colorData, curVertOffset, meshData->getVertexDesc()->getVertexStride(), indexData, curIdxOffset);
+			antialiasedLine(linePoints[i], linePoints[i + 1], up, width, borderWidth, color, positionData, colorData, curVertOffset, meshData->GetVertexDesc()->getVertexStride(), indexData, curIdxOffset);
 
 			curVertOffset += NUM_VERTICES_AA_LINE;
 			curIdxOffset += NUM_INDICES_AA_LINE;
@@ -521,15 +521,15 @@ namespace bs
 	{
 		outVertices += vertexOffset * vertexStride;
 
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::NEAR_LEFT_BOTTOM));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::NEAR_RIGHT_BOTTOM));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::NEAR_RIGHT_TOP));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::NEAR_LEFT_TOP));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_LEFT_BOTTOM));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_RIGHT_BOTTOM));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_RIGHT_TOP));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_LEFT_TOP));
 
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::FAR_RIGHT_BOTTOM));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::FAR_LEFT_BOTTOM));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::FAR_LEFT_TOP));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::FAR_RIGHT_TOP));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_RIGHT_BOTTOM));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_LEFT_BOTTOM));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_LEFT_TOP));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_RIGHT_TOP));
 
 		outIndices += indexOffset;
 
@@ -579,40 +579,40 @@ namespace bs
 		outVertices += (vertexOffset * vertexStride);
 
 		// Front face
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::NEAR_LEFT_BOTTOM));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::NEAR_RIGHT_BOTTOM));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::NEAR_RIGHT_TOP));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::NEAR_LEFT_TOP));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_LEFT_BOTTOM));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_RIGHT_BOTTOM));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_RIGHT_TOP));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_LEFT_TOP));
 
 		// Back face
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::FAR_RIGHT_BOTTOM));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::FAR_LEFT_BOTTOM));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::FAR_LEFT_TOP));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::FAR_RIGHT_TOP));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_RIGHT_BOTTOM));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_LEFT_BOTTOM));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_LEFT_TOP));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_RIGHT_TOP));
 
 		// Left face
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::FAR_LEFT_BOTTOM));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::NEAR_LEFT_BOTTOM));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::NEAR_LEFT_TOP));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::FAR_LEFT_TOP));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_LEFT_BOTTOM));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_LEFT_BOTTOM));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_LEFT_TOP));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_LEFT_TOP));
 
 		// Right face
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::NEAR_RIGHT_BOTTOM));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::FAR_RIGHT_BOTTOM));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::FAR_RIGHT_TOP));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::NEAR_RIGHT_TOP));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_RIGHT_BOTTOM));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_RIGHT_BOTTOM));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_RIGHT_TOP));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_RIGHT_TOP));
 
 		// Top face
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::FAR_LEFT_TOP));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::NEAR_LEFT_TOP));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::NEAR_RIGHT_TOP));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::FAR_RIGHT_TOP));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_LEFT_TOP));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_LEFT_TOP));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_RIGHT_TOP));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_RIGHT_TOP));
 
 		// Bottom face
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::FAR_LEFT_BOTTOM));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::FAR_RIGHT_BOTTOM));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::NEAR_RIGHT_BOTTOM));
-		outVertices = writeVector3(outVertices, vertexStride, box.getCorner(AABox::NEAR_LEFT_BOTTOM));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_LEFT_BOTTOM));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::FAR_RIGHT_BOTTOM));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_RIGHT_BOTTOM));
+		outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_LEFT_BOTTOM));
 
 		// Normals
 		static const Vector3 faceNormals[6] =
@@ -701,7 +701,7 @@ namespace bs
 		UINT32 curVertOffset = vertexOffset;
 		for (int i = 0; i < 20; ++i)
 		{
-			curVertOffset += subdivideTriangleOnSphere(sphere.getCenter(), sphere.getRadius(), quality,
+			curVertOffset += subdivideTriangleOnSphere(sphere.GetCenter(), sphere.getRadius(), quality,
 				vertices[triangles[i][2]], vertices[triangles[i][1]], vertices[triangles[i][0]],
 				outVertices, outNormals, curVertOffset, vertexStride);
 		}
@@ -897,7 +897,7 @@ namespace bs
 		// Fill out the remaining extra vertices, just so they aren't uninitialized
 		for(; extraVertIdx < maxExtraVerts; extraVertIdx++)
 		{
-			extraPositions = writeVector3(extraPositions, vertexStride, sphere.getCenter());
+			extraPositions = writeVector3(extraPositions, vertexStride, sphere.GetCenter());
 
 			if (extraNormals)
 				extraNormals = writeVector3(extraNormals, vertexStride, Vector3::UNIT_Z);
@@ -932,7 +932,7 @@ namespace bs
 		outNormals += vertexOffset * vertexStride;
 		outIndices += indexOffset;
 
-		bool reverseOrder = amountAngle.valueDegrees() < 0.0f;
+		bool reverseOrder = amountAngle.ValueDegrees() < 0.0f;
 		Vector3 visibleNormal = normal;
 
 		outVertices = writeVector3(outVertices, vertexStride, center);
@@ -966,7 +966,7 @@ namespace bs
 
 			Vector3 arcNormal = normal;
 			Vector3 right, top;
-			arcNormal.orthogonalComplement(right, top);
+			arcNormal.OrthogonalComplement(right, top);
 
 			for (UINT32 i = 0; i < numArcVertices; i++)
 			{
@@ -1088,7 +1088,7 @@ namespace bs
 		{
 			Vector3 arcNormal = normal;
 			Vector3 right, top;
-			arcNormal.orthogonalComplement(right, top);
+			arcNormal.OrthogonalComplement(right, top);
 
 			for (UINT32 i = 0; i < numArcVertices; i++)
 			{
@@ -1158,10 +1158,10 @@ namespace bs
 				Vector3 toTop = topVertex - *b;
 
 				Vector3 normalLeft = Vector3::cross(*a - *b, toTop);
-				normalLeft.normalize();
+				normalLeft.Normalize();
 
 				Vector3 normalRight = Vector3::cross(toTop, *c - *b);
-				normalRight.normalize();
+				normalRight.Normalize();
 
 				Vector3 triNormal = Vector3::normalize(normalLeft + normalRight);
 
@@ -1287,7 +1287,7 @@ namespace bs
 		{
 			Vector3 arcNormal = normal;
 			Vector3 right, top;
-			arcNormal.orthogonalComplement(right, top);
+			arcNormal.OrthogonalComplement(right, top);
 
 			for (UINT32 i = 0; i < numArcVertices; i++)
 			{
@@ -1344,7 +1344,7 @@ namespace bs
 		{
 			Vector3 arcNormal = normal;
 			Vector3 right, top;
-			arcNormal.orthogonalComplement(right, top);
+			arcNormal.OrthogonalComplement(right, top);
 
 			for (UINT32 i = 0; i < numArcVertices; i++)
 			{
@@ -1413,10 +1413,10 @@ namespace bs
 				Vector3 toTop = normal;
 
 				Vector3 normalLeft = Vector3::cross(*a - *b, toTop);
-				normalLeft.normalize();
+				normalLeft.Normalize();
 
 				Vector3 normalRight = Vector3::cross(toTop, *c - *b);
-				normalRight.normalize();
+				normalRight.Normalize();
 
 				Vector3 triNormal = Vector3::normalize(normalLeft + normalRight);
 
@@ -1520,10 +1520,10 @@ namespace bs
 	{
 		outVertices += (vertexOffset * vertexStride);
 
-		Vector3 topLeft = area.getCenter() - area.getAxisHorz() * area.getExtentHorz() + area.getAxisVert() * area.getExtentVertical();
-		Vector3 topRight = area.getCenter() + area.getAxisHorz() * area.getExtentHorz() + area.getAxisVert() * area.getExtentVertical();
-		Vector3 botRight = area.getCenter() + area.getAxisHorz() * area.getExtentHorz() - area.getAxisVert() * area.getExtentVertical();
-		Vector3 botLeft = area.getCenter() - area.getAxisHorz() * area.getExtentHorz() - area.getAxisVert() * area.getExtentVertical();
+		Vector3 topLeft = area.GetCenter() - area.getAxisHorz() * area.getExtentHorz() + area.getAxisVert() * area.getExtentVertical();
+		Vector3 topRight = area.GetCenter() + area.getAxisHorz() * area.getExtentHorz() + area.getAxisVert() * area.getExtentVertical();
+		Vector3 botRight = area.GetCenter() + area.getAxisHorz() * area.getExtentHorz() - area.getAxisVert() * area.getExtentVertical();
+		Vector3 botLeft = area.GetCenter() - area.getAxisHorz() * area.getExtentHorz() - area.getAxisVert() * area.getExtentVertical();
 
 		outVertices = writeVector3(outVertices, vertexStride, topLeft);
 		outVertices = writeVector3(outVertices, vertexStride, topRight);
@@ -1535,7 +1535,7 @@ namespace bs
 		outVertices = writeVector3(outVertices, vertexStride, botRight);
 		outVertices = writeVector3(outVertices, vertexStride, botLeft);
 
-		Vector3 normal = area.getAxisHorz().cross(area.getAxisVert());
+		Vector3 normal = area.GetAxisHorz().cross(area.getAxisVert());
 		Vector3 reverseNormal = -normal;
 
 		outNormals += (vertexOffset * vertexStride);
@@ -1616,10 +1616,10 @@ namespace bs
 		UINT32 vertexOffset, UINT32 vertexStride, UINT32* outIndices, UINT32 indexOffset)
 	{
 		Vector3 dir = b - a;
-		dir.normalize();
+		dir.Normalize();
 
-		Vector3 right = dir.cross(up);
-		right.normalize();
+		Vector3 right = dir.Cross(up);
+		right.Normalize();
 
 		Vector<Vector3> Points(4);
 
@@ -1654,7 +1654,7 @@ namespace bs
 		}
 
 		outIndices += indexOffset;
-		INT32 numPoints = (INT32)points.size();
+		INT32 numPoints = (INT32)points.Size();
 		UINT32 idxCnt = 0;
 		for (int i = 2; i < numPoints; i++)
 		{
@@ -1667,7 +1667,7 @@ namespace bs
 	void ShapeMeshes3D::pixelWirePolygon(const Vector<Vector3>& points, UINT8* outVertices,
 		UINT32 vertexOffset, UINT32 vertexStride, UINT32* outIndices, UINT32 indexOffset)
 	{
-		INT32 numPoints = (INT32)points.size();
+		INT32 numPoints = (INT32)points.Size();
 		UINT32 curVertOffset = vertexOffset;
 		UINT32 curIdxOffset = indexOffset;
 		for (INT32 i = 0, j = numPoints - 1; i < numPoints; j = i++)
@@ -1681,7 +1681,7 @@ namespace bs
 	void ShapeMeshes3D::antialiasedPolygon(const Vector<Vector3>& points, const Vector3& up, float borderWidth, const Color& color, UINT8* outVertices, UINT8* outColors,
 		UINT32 vertexOffset, UINT32 vertexStride, UINT32* outIndices, UINT32 indexOffset)
 	{
-		UINT32 numCoords = (UINT32)points.size();
+		UINT32 numCoords = (UINT32)points.Size();
 
 		outVertices += vertexOffset * vertexStride;
 		outColors += vertexOffset * vertexStride;
@@ -1693,8 +1693,8 @@ namespace bs
 			const Vector3& v1 = points[i];
 
 			Vector3 dir = v1 - v0;
-			Vector3 right = dir.cross(up);
-			right.normalize();
+			Vector3 right = dir.Cross(up);
+			right.Normalize();
 
 			tempNormals[j] = right;
 
@@ -1703,7 +1703,7 @@ namespace bs
 			*vertices = v1;
 
 			UINT32* colors = (UINT32*)outColors;
-			*colors = color.getAsRGBA();
+			*colors = color.GetAsRGBA();
 
 			outVertices += vertexStride;
 			outColors += vertexStride;
@@ -1718,7 +1718,7 @@ namespace bs
 			const Vector3& n1 = tempNormals[i];
 
 			Vector3 avgNrm = (n0 + n1) * 0.5f;
-			float magSqrd = avgNrm.squaredLength();
+			float magSqrd = avgNrm.SquaredLength();
 
 			if (magSqrd > 0.000001f)
 			{
@@ -1736,7 +1736,7 @@ namespace bs
 			*vertices = tempCoord;
 
 			UINT32* colors = (UINT32*)outColors;
-			*colors = transparentColor.getAsRGBA();
+			*colors = transparentColor.GetAsRGBA();
 
 			outVertices += vertexStride;
 			outColors += vertexStride;
@@ -1830,8 +1830,8 @@ namespace bs
 		Quaternion alignWithStart = Quaternion(-Vector3::UNIT_Y, startAngle);
 		Quaternion alignWithUp = Quaternion::getRotationFromTo(Vector3::UNIT_Y, up);
 
-		Vector3 right = alignWithUp.rotate(alignWithStart.rotate(Vector3::UNIT_X));
-		right.normalize();
+		Vector3 right = alignWithUp.Rotate(alignWithStart.rotate(Vector3::UNIT_X));
+		right.Normalize();
 
 		Quaternion Increment(-up, angleAmount / (float)(numVertices - 1));
 
@@ -1841,7 +1841,7 @@ namespace bs
 		{
 			// Note: Ignoring scale
 			outVertices = writeVector3(outVertices, vertexStride, (center + curDirection));
-			curDirection = increment.rotate(curDirection);
+			curDirection = increment.Rotate(curDirection);
 		}
 	}
 

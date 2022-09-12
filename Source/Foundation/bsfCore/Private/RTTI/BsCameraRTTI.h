@@ -49,11 +49,11 @@ namespace bs
 		
 		CameraFlags& GetCameraFlags(Camera* obj)
 		{
-			mFlags = obj->getFlags();
+			mFlags = obj->GetFlags();
 
 			// OnDemand flag is transient and shouldn't be saved
 			// (Primarily because we set it in editor on user's cameras and we don't want that to persist)
-			mFlags.unset(CameraFlag::OnDemand);
+			mFlags.Unset(CameraFlag::OnDemand);
 			return mFlags;
 		}
 

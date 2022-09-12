@@ -55,16 +55,16 @@ namespace bs
 
 			// Pull off individual formats (separated by comma by FI)
 			Vector<String> extsVector = StringUtil::split(exts, u8",");
-			for (auto v = extsVector.begin(); v != extsVector.end(); ++v)
+			for (auto v = extsVector.Begin(); v != extsVector.end(); ++v)
 			{
-				auto findIter = std::find(mExtensions.begin(), mExtensions.end(), *v);
+				auto findIter = std::find(mExtensions.Begin(), mExtensions.end(), *v);
 
-				if(findIter == mExtensions.end())
+				if(findIter == mExtensions.End())
 				{
 					String ext = *v;
 					StringUtil::toLowerCase(ext);
 
-					mExtensionToFID.insert(std::make_pair(ext, i));
+					mExtensionToFID.Insert(std::make_pair(ext, i));
 					mExtensions.push_back(ext);
 				}
 			}
@@ -84,7 +84,7 @@ namespace bs
 		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
 
-		return Find(mExtensions.begin(), mExtensions.end(), lowerCaseExt) != mExtensions.end();
+		return Find(mExtensions.Begin(), mExtensions.end(), lowerCaseExt) != mExtensions.end();
 	}
 
 	bool FreeImgImporter::IsMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
@@ -124,10 +124,10 @@ namespace bs
 
 	SPtr<Resource> FreeImgImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
-		const TextureImportOptions* textureImportOptions = static_cast<const TextureImportOptions*>(importOptions.get());
+		const TextureImportOptions* textureImportOptions = static_cast<const TextureImportOptions*>(importOptions.Get());
 
 		SPtr<PixelData> imgData = importRawImage(filePath);
-		if(imgData == nullptr || imgData->getData() == nullptr)
+		if(imgData == nullptr || imgData->GetData() == nullptr)
 			return nullptr;
 
 		Vector<SPtr<PixelData>> faceData;
@@ -140,7 +140,7 @@ namespace bs
 			std::array<SPtr<PixelData>, 6> cubemapFaces;
 			if (generateCubemap(imgData, textureImportOptions->cubemapSourceType, cubemapFaces))
 			{
-				faceData.insert(faceData.begin(), cubemapFaces.begin(), cubemapFaces.end());
+				faceData.Insert(faceData.begin(), cubemapFaces.begin(), cubemapFaces.end());
 			}
 			else // Fall-back to 2D texture
 			{
@@ -156,10 +156,10 @@ namespace bs
 
 		UINT32 numMips = 0;
 		if (textureImportOptions->generateMips &&
-			Bitwise::isPow2(faceData[0]->getWidth()) && Bitwise::isPow2(faceData[0]->getHeight()))
+			Bitwise::isPow2(faceData[0]->GetWidth()) && Bitwise::isPow2(faceData[0]->getHeight()))
 		{
-			UINT32 maxPossibleMip = PixelUtil::getMaxMipmaps(faceData[0]->getWidth(), faceData[0]->getHeight(),
-				faceData[0]->getDepth(), faceData[0]->getFormat());
+			UINT32 maxPossibleMip = PixelUtil::getMaxMipmaps(faceData[0]->GetWidth(), faceData[0]->getHeight(),
+				faceData[0]->GetDepth(), faceData[0]->getFormat());
 
 			if (textureImportOptions->maxMip == 0)
 				numMips = maxPossibleMip;
@@ -175,8 +175,8 @@ namespace bs
 
 		TEXTURE_DESC texDesc;
 		texDesc.type = texType;
-		texDesc.width = faceData[0]->getWidth();
-		texDesc.height = faceData[0]->getHeight();
+		texDesc.width = faceData[0]->GetWidth();
+		texDesc.height = faceData[0]->GetHeight();
 		texDesc.numMips = numMips;
 		texDesc.format = textureImportOptions->format;
 		texDesc.usage = usage;
@@ -184,7 +184,7 @@ namespace bs
 
 		SPtr<Texture> newTexture = Texture::_createPtr(texDesc);
 
-		UINT32 numFaces = (UINT32)faceData.size();
+		UINT32 numFaces = (UINT32)faceData.Size();
 		for (UINT32 i = 0; i < numFaces; i++)
 		{
 			Vector<SPtr<PixelData>> mipLevels;
@@ -198,17 +198,17 @@ namespace bs
 			else
 				mipLevels.push_back(faceData[i]);
 
-			for (UINT32 mip = 0; mip < (UINT32)mipLevels.size(); ++mip)
+			for (UINT32 mip = 0; mip < (UINT32)mipLevels.Size(); ++mip)
 			{
-				SPtr<PixelData> dst = newTexture->getProperties().allocBuffer(0, mip);
+				SPtr<PixelData> dst = newTexture->GetProperties().AllocBuffer(0, mip);
 
 				PixelUtil::bulkPixelConversion(*mipLevels[mip], *dst);
-				newTexture->writeData(dst, i, mip);
+				newTexture->WriteData(dst, i, mip);
 			}
 		}
 
-		const String fileName = filePath.getFilename(false);
-		newTexture->setName(fileName);
+		const String fileName = filePath.GetFilename(false);
+		newTexture->SetName(fileName);
 
 		return newTexture;
 	}
@@ -221,19 +221,19 @@ namespace bs
 			Lock lock = FileScheduler::getLock(filePath);
 
 			SPtr<DataStream> fileData = FileSystem::openFile(filePath, true);
-			if (fileData->size() > std::numeric_limits<UINT32>::max())
+			if (fileData->Size() > std::numeric_limits<UINT32>::max())
 			{
 				BS_EXCEPT(InternalErrorException, "File size larger than supported!");
 			}
 
-			UINT32 magicLen = std::min((UINT32)fileData->size(), 32u);
+			UINT32 magicLen = std::min((UINT32)fileData->Size(), 32u);
 			UINT8 magicBuf[32];
-			fileData->read(magicBuf, magicLen);
-			fileData->seek(0);
+			fileData->Read(magicBuf, magicLen);
+			fileData->Seek(0);
 
 			String fileExtension = magicNumToExtension(magicBuf, magicLen);
-			auto findFormat = mExtensionToFID.find(fileExtension);
-			if (findFormat == mExtensionToFID.end())
+			auto findFormat = mExtensionToFID.Find(fileExtension);
+			if (findFormat == mExtensionToFID.End())
 			{
 				BS_EXCEPT(InvalidParametersException, "Type of the file provided is not supported by this importer. File type: " + fileExtension);
 			}
@@ -245,13 +245,13 @@ namespace bs
 
 			// Buffer stream into memory (TODO: override IO functions instead?)
 			memStream = bs_unique_ptr_new<MemoryDataStream>(fileData);
-			fileData->close();
+			fileData->Close();
 		}
 
 		if(!memStream)
 			return nullptr;
 
-		FIMEMORY* fiMem = FreeImage_OpenMemory(memStream->data(), static_cast<DWORD>(memStream->size()));
+		FIMEMORY* fiMem = FreeImage_OpenMemory(memStream->Data(), static_cast<DWORD>(memStream->size()));
 
 		FIBITMAP* fiBitmap = FreeImage_LoadFromMemory(
 			(FREE_IMAGE_FORMAT)imageFormat, fiMem);
@@ -391,8 +391,8 @@ namespace bs
 
 		// Bind output buffer
 		SPtr<PixelData> texData = bs_shared_ptr_new<PixelData>(width, height, 1, format);
-		texData->allocateInternalBuffer();
-		UINT8* output = texData->getData();
+		texData->AllocateInternalBuffer();
+		UINT8* output = texData->GetData();
 
 		UINT8* pSrc;
 		UINT8* pDst = output;
@@ -439,7 +439,7 @@ namespace bs
 		Vector2I faceStart;
 		for(UINT32 i = 0; i < 6; i++)
 		{
-			output[i] = PixelData::create(faceSize, faceSize, 1, source->getFormat());
+			output[i] = PixelData::create(faceSize, faceSize, 1, source->GetFormat());
 
 			PixelVolume Volume(faceStart.x, faceStart.y, faceStart.x + faceSize, faceStart.y + faceSize);
 			PixelUtil::copy(*source, *output[i], faceStart.x, faceStart.y);
@@ -481,7 +481,7 @@ namespace bs
 
 		for (UINT32 i = 0; i < 6; i++)
 		{
-			output[i] = PixelData::create(faceSize, faceSize, 1, source->getFormat());
+			output[i] = PixelData::create(faceSize, faceSize, 1, source->GetFormat());
 
 			UINT32 faceX = (faceIndices[i] % numFacesInRow) * faceSize;
 			UINT32 faceY = (faceIndices[i] / numFacesInRow) * faceSize;
@@ -502,7 +502,7 @@ namespace bs
 		Vector3 nrmDir = Vector3::normalize(dir);
 		nrmDir.z += 1.0f;
 
-		float m = 2 * nrmDir.length();
+		float m = 2 * nrmDir.Length();
 
 		float u = nrmDir.x / m + 0.5f;
 		float v = nrmDir.y / m + 0.5f;
@@ -529,7 +529,7 @@ namespace bs
 	{
 		for(UINT32 i = 0; i < 6; i++)
 		{
-			output[i] = PixelData::create(size, size, 1, input[i]->getFormat());
+			output[i] = PixelData::create(size, size, 1, input[i]->GetFormat());
 			PixelUtil::scale(*input[i], *output[i]);
 		}
 	}
@@ -566,7 +566,7 @@ namespace bs
 		float invSize = 1.0f / faceSize;
 		for (UINT32 faceIdx = 0; faceIdx < 6; faceIdx++)
 		{
-			output[faceIdx] = PixelData::create(faceSize, faceSize, 1, source->getFormat());
+			output[faceIdx] = PixelData::create(faceSize, faceSize, 1, source->GetFormat());
 
 			const RemapInfo& remapInfo = remapLookup[faceIdx];
 			for (UINT32 y = 0; y < faceSize; y++)
@@ -587,10 +587,10 @@ namespace bs
 
 					// Find location in the source to sample from
 					Vector2 sourceUV = remap(rotatedDir);
-					Color color = source->sampleColorAt(sourceUV);
+					Color color = source->SampleColorAt(sourceUV);
 
 					// Write the sampled color
-					output[faceIdx]->setColorAt(color, x, y);
+					output[faceIdx]->SetColorAt(color, x, y);
 				}
 			}
 		}
@@ -610,29 +610,29 @@ namespace bs
 		{
 		case CubemapSourceType::Faces:
 			{
-				float aspect = source->getWidth() / (float)source->getHeight();
+				float aspect = source->GetWidth() / (float)source->getHeight();
 				
 				if(Math::approxEquals(aspect, 6.0f)) // Horizontal list
 				{
-					faceSize.x = source->getWidth() / 6;
-					faceSize.y = source->getHeight();
+					faceSize.x = source->GetWidth() / 6;
+					faceSize.y = source->GetHeight();
 				}
 				else If(Math::approxEquals(aspect, 1.0f / 6.0f)) // Vertical list
 				{
-					faceSize.x = source->getWidth();
-					faceSize.y = source->getHeight() / 6;
+					faceSize.x = source->GetWidth();
+					faceSize.y = source->GetHeight() / 6;
 					vertical = true;
 				}
 				else If(Math::approxEquals(aspect, 4.0f / 3.0f)) // Horizontal cross
 				{
-					faceSize.x = source->getWidth() / 4;
-					faceSize.y = source->getHeight() / 3;
+					faceSize.x = source->GetWidth() / 4;
+					faceSize.y = source->GetHeight() / 3;
 					cross = true;
 				}
 				else If(Math::approxEquals(aspect, 3.0f / 4.0f)) // Vertical cross
 				{
-					faceSize.x = source->getWidth() / 3;
-					faceSize.y = source->getHeight() / 4;
+					faceSize.x = source->GetWidth() / 3;
+					faceSize.y = source->GetHeight() / 4;
 					cross = true;
 					vertical = true;
 				}
@@ -646,7 +646,7 @@ namespace bs
 		case CubemapSourceType::Cylindrical:
 		case CubemapSourceType::Spherical:
 			// Half of the source size will be used for each cube face, which should yield good enough quality
-			faceSize.x = std::max(source->getWidth(), source->getHeight()) / 2;
+			faceSize.x = std::max(source->GetWidth(), source->getHeight()) / 2;
 			faceSize.x = Bitwise::closestPow2(faceSize.x);
 
 			// Don't allow sizes larger than 4096
@@ -656,8 +656,8 @@ namespace bs
 
 			break;
 		default: // Assuming single-image
-			faceSize.x = source->getWidth();
-			faceSize.y = source->getHeight();
+			faceSize.x = source->GetWidth();
+			faceSize.y = source->GetHeight();
 			break;
 		}
 

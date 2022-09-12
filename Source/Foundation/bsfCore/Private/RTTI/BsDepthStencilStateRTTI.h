@@ -32,7 +32,7 @@ namespace bs
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{
 			DepthStencilState* depthStencilState = static_cast<DepthStencilState*>(obj);
-			depthStencilState->initialize();
+			depthStencilState->Initialize();
 		}
 
 		const String& GetRTTIName() override

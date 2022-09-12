@@ -21,7 +21,7 @@ namespace bs
 		{
 			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
-				return stream.writeBytes(data.data, data.size);
+				return stream.WriteBytes(data.data, data.size);
 			});
 		}
 
@@ -36,7 +36,7 @@ namespace bs
 			data.size = size.bytes - sizeof(uint32_t);
 			data.data = (uint8_t*)bs_alloc(data.size);
 
-			stream.readBytes(data.data, data.size);
+			stream.ReadBytes(data.data, data.size);
 
 			return size;
 		}

@@ -130,7 +130,7 @@ namespace bs { namespace ct
 		{
 			GLHardwareBuffer& glSrcBuffer = static_cast<GLHardwareBuffer&>(srcBuffer);
 
-			glBindBuffer(GL_COPY_READ_BUFFER, glSrcBuffer.getGLBufferId());
+			glBindBuffer(GL_COPY_READ_BUFFER, glSrcBuffer.GetGLBufferId());
 			BS_CHECK_GL_ERROR();
 
 			glBindBuffer(GL_COPY_WRITE_BUFFER, mBufferId);
@@ -147,7 +147,7 @@ namespace bs { namespace ct
 			auto execute = [&]() { executeRef(srcBuffer, srcOffset, dstOffset, length); };
 
 			SPtr<GLCommandBuffer> cb = std::static_pointer_cast<GLCommandBuffer>(commandBuffer);
-			cb->queueCommand(execute);
+			cb->QueueCommand(execute);
 		}
 
 	}

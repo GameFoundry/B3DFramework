@@ -31,8 +31,8 @@ namespace bs { namespace ct
 				if (mBufferViews[i] == VK_NULL_HANDLE)
 					continue;
 
-				VulkanBuffer* buffer = static_cast<VulkanHardwareBuffer*>(mBuffer)->getResource(i);
-				buffer->freeView(mBufferViews[i]);
+				VulkanBuffer* buffer = static_cast<VulkanHardwareBuffer*>(mBuffer)->GetResource(i);
+				buffer->FreeView(mBufferViews[i]);
 			}
 		}
 
@@ -50,13 +50,13 @@ namespace bs { namespace ct
 		if(!mBuffer)
 		{
 			VulkanHardwareBuffer::BufferType bufferType;
-			if (props.getType() == GBT_STRUCTURED)
+			if (props.GetType() == GBT_STRUCTURED)
 				bufferType = VulkanHardwareBuffer::BT_STRUCTURED;
 			else
 				bufferType = VulkanHardwareBuffer::BT_GENERIC;
 
-			UINT32 size = props.getElementCount() * props.getElementSize();
-			mBuffer = bs_pool_new<VulkanHardwareBuffer>(bufferType, props.getFormat(), props.getUsage(), size, mDeviceMask);
+			UINT32 size = props.GetElementCount() * props.getElementSize();
+			mBuffer = bs_pool_new<VulkanHardwareBuffer>(bufferType, props.GetFormat(), props.getUsage(), size, mDeviceMask);
 		}
 
 		updateViews();
@@ -93,7 +93,7 @@ namespace bs { namespace ct
 
 	VulkanBuffer* VulkanGpuBuffer::getResource(UINT32 deviceIdx) const
 	{
-		return static_cast<VulkanHardwareBuffer*>(mBuffer)->getResource(deviceIdx);
+		return static_cast<VulkanHardwareBuffer*>(mBuffer)->GetResource(deviceIdx);
 	}
 
 	VkBufferView VulkanGpuBuffer::GetView(UINT32 deviceIdx) const
@@ -103,22 +103,22 @@ namespace bs { namespace ct
 
 	void VulkanGpuBuffer::UpdateViews()
 	{
-		if(mProperties.getType() == GBT_STRUCTURED)
+		if(mProperties.GetType() == GBT_STRUCTURED)
 			return;
 
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
-			VulkanBuffer* buffer = static_cast<VulkanHardwareBuffer*>(mBuffer)->getResource(i);
+			VulkanBuffer* buffer = static_cast<VulkanHardwareBuffer*>(mBuffer)->GetResource(i);
 
 			VkBuffer newBufferHandle = VK_NULL_HANDLE;
 
 			if(buffer)
-				newBufferHandle = buffer->getHandle();
+				newBufferHandle = buffer->GetHandle();
 
 			if (mCachedBuffers[i] != newBufferHandle)
 			{
 				if(newBufferHandle != VK_NULL_HANDLE)
-					mBufferViews[i] = buffer->getView(VulkanUtility::getBufferFormat(mProperties.getFormat()));
+					mBufferViews[i] = buffer->GetView(VulkanUtility::getBufferFormat(mProperties.GetFormat()));
 				else
 					mBufferViews[i] = VK_NULL_HANDLE;
 

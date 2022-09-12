@@ -82,7 +82,7 @@ namespace bs
 		verts[3] = Vector4(x + width, y + height, 0.0f, 1.0f);
 
 		for(UINT32 i = 0; i < 4; i++)
-			verts[i] = matrix.multiply(verts[i]);
+			verts[i] = matrix.Multiply(verts[i]);
 
 		float minX = std::numeric_limits<float>::max();
 		float maxX = std::numeric_limits<float>::min();

@@ -75,7 +75,7 @@ namespace bs
 		SPtr<ct::Win32RenderWindow> coreObj = bs_shared_ptr_new<ct::Win32RenderWindow>(desc, mWindowId, mGLSupport);
 		coreObj->_setThisPtr(coreObj);
 
-		mGLSupport._notifyWindowCreated(coreObj.get());
+		mGLSupport._notifyWindowCreated(coreObj.Get());
 		return coreObj;
 	}
 
@@ -105,7 +105,7 @@ namespace bs
 
 		if (mWindow != nullptr)
 		{
-			ReleaseDC(mWindow->getHWnd(), mHDC);
+			ReleaseDC(mWindow->GetHWnd(), mHDC);
 
 			bs_delete(mWindow);
 			mWindow = nullptr;
@@ -154,21 +154,21 @@ namespace bs
 		windowDesc.module = GetModuleHandle(MODULE_NAME);
 #endif
 
-		auto opt = mDesc.platformSpecific.find("parentWindowHandle");
-		if (opt != mDesc.platformSpecific.end())
+		auto opt = mDesc.platformSpecific.Find("parentWindowHandle");
+		if (opt != mDesc.platformSpecific.End())
 			windowDesc.parent = (HWND)parseUINT64(opt->second);
 
-		opt = mDesc.platformSpecific.find("externalWindowHandle");
-		if (opt != mDesc.platformSpecific.end())
+		opt = mDesc.platformSpecific.Find("externalWindowHandle");
+		if (opt != mDesc.platformSpecific.End())
 			windowDesc.external = (HWND)parseUINT64(opt->second);
 		
-		const Win32VideoModeInfo& videoModeInfo = static_cast<const Win32VideoModeInfo&>(RenderAPI::instance().getVideoModeInfo());
-		UINT32 numOutputs = videoModeInfo.getNumOutputs();
+		const Win32VideoModeInfo& videoModeInfo = static_cast<const Win32VideoModeInfo&>(RenderAPI::instance().GetVideoModeInfo());
+		UINT32 numOutputs = videoModeInfo.GetNumOutputs();
 		if (numOutputs > 0)
 		{
 			UINT32 actualMonitorIdx = std::min(mDesc.videoMode.outputIdx, numOutputs - 1);
-			const Win32VideoOutputInfo& outputInfo = static_cast<const Win32VideoOutputInfo&>(videoModeInfo.getOutputInfo(actualMonitorIdx));
-			windowDesc.monitor = outputInfo.getMonitorHandle();
+			const Win32VideoOutputInfo& outputInfo = static_cast<const Win32VideoOutputInfo&>(videoModeInfo.GetOutputInfo(actualMonitorIdx));
+			windowDesc.monitor = outputInfo.GetMonitorHandle();
 		}
 
 		mIsChild = windowDesc.parent != nullptr;
@@ -182,10 +182,10 @@ namespace bs
 
 		mWindow = bs_new<Win32Window>(windowDesc);
 
-		props.width = mWindow->getWidth();
-		props.height = mWindow->getHeight();
-		props.top = mWindow->getTop();
-		props.left = mWindow->getLeft();
+		props.width = mWindow->GetWidth();
+		props.height = mWindow->GetHeight();
+		props.top = mWindow->GetTop();
+		props.left = mWindow->GetLeft();
 		
 		if (!windowDesc.external)
 		{
@@ -218,18 +218,18 @@ namespace bs
 			}
 		}
 
-		mHDC = GetDC(mWindow->getHWnd());
+		mHDC = GetDC(mWindow->GetHWnd());
 
 		int testMultisample = props.multisampleCount;
 		bool testHwGamma = mDesc.gamma;
-		bool formatOk = mGLSupport.selectPixelFormat(mHDC, 32, testMultisample, testHwGamma, mDesc.depthBuffer);
+		bool formatOk = mGLSupport.SelectPixelFormat(mHDC, 32, testMultisample, testHwGamma, mDesc.depthBuffer);
 		if (!formatOk)
 		{
 			if (props.multisampleCount > 0)
 			{
 				// Try without multisampling
 				testMultisample = 0;
-				formatOk = mGLSupport.selectPixelFormat(mHDC, 32, testMultisample, testHwGamma, mDesc.depthBuffer);
+				formatOk = mGLSupport.SelectPixelFormat(mHDC, 32, testMultisample, testHwGamma, mDesc.depthBuffer);
 			}
 
 			if (!formatOk && mDesc.gamma)
@@ -237,7 +237,7 @@ namespace bs
 				// Try without sRGB
 				testHwGamma = false;
 				testMultisample = props.multisampleCount;
-				formatOk = mGLSupport.selectPixelFormat(mHDC, 32, testMultisample, testHwGamma, mDesc.depthBuffer);
+				formatOk = mGLSupport.SelectPixelFormat(mHDC, 32, testMultisample, testHwGamma, mDesc.depthBuffer);
 			}
 
 			if (!formatOk && mDesc.gamma && (props.multisampleCount > 0))
@@ -245,7 +245,7 @@ namespace bs
 				// Try without both
 				testHwGamma = false;
 				testMultisample = 0;
-				formatOk = mGLSupport.selectPixelFormat(mHDC, 32, testMultisample, testHwGamma, mDesc.depthBuffer);
+				formatOk = mGLSupport.SelectPixelFormat(mHDC, 32, testMultisample, testHwGamma, mDesc.depthBuffer);
 			}
 
 			if (!formatOk)
@@ -258,7 +258,7 @@ namespace bs
 		props.hwGamma = testHwGamma;
 		props.multisampleCount = testMultisample;
 
-		mContext = mGLSupport.createContext(mHDC, nullptr);
+		mContext = mGLSupport.CreateContext(mHDC, nullptr);
 
 		if (props.vsync && props.vsyncInterval > 0)
 			setVSync(true, props.vsyncInterval);
@@ -268,7 +268,7 @@ namespace bs
 			mSyncedProperties = props;
 		}
 
-		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+		bs::RenderWindowManager::instance().NotifySyncDataDirty(this);
 		RenderWindow::initialize();
 	}
 
@@ -279,15 +279,15 @@ namespace bs
 		if (mIsChild)
 			return;
 
-		const Win32VideoModeInfo& videoModeInfo = static_cast<const Win32VideoModeInfo&>(RenderAPI::instance().getVideoModeInfo());
-		UINT32 numOutputs = videoModeInfo.getNumOutputs();
+		const Win32VideoModeInfo& videoModeInfo = static_cast<const Win32VideoModeInfo&>(RenderAPI::instance().GetVideoModeInfo());
+		UINT32 numOutputs = videoModeInfo.GetNumOutputs();
 		if (numOutputs == 0)
 			return;
 
 		RenderWindowProperties& props = mProperties;
 
 		UINT32 actualMonitorIdx = std::min(monitorIdx, numOutputs - 1);
-		const Win32VideoOutputInfo& outputInfo = static_cast<const Win32VideoOutputInfo&>(videoModeInfo.getOutputInfo(actualMonitorIdx));
+		const Win32VideoOutputInfo& outputInfo = static_cast<const Win32VideoOutputInfo&>(videoModeInfo.GetOutputInfo(actualMonitorIdx));
 
 		mDisplayFrequency = Math::roundToInt(refreshRate);
 		props.isFullScreen = true;
@@ -302,7 +302,7 @@ namespace bs
 		displayDeviceMode.dmDisplayFrequency = mDisplayFrequency;
 		displayDeviceMode.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
 
-		HMONITOR hMonitor = outputInfo.getMonitorHandle();
+		HMONITOR hMonitor = outputInfo.GetMonitorHandle();
 		MONITORINFOEX monitorInfo;
 
 		memset(&monitorInfo, 0, sizeof(MONITORINFOEX));
@@ -319,10 +319,10 @@ namespace bs
 		props.width = width;
 		props.height = height;
 
-		SetWindowLong(mWindow->getHWnd(), GWL_STYLE, WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
-		SetWindowLong(mWindow->getHWnd(), GWL_EXSTYLE, 0);
+		SetWindowLong(mWindow->GetHWnd(), GWL_STYLE, WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+		SetWindowLong(mWindow->GetHWnd(), GWL_EXSTYLE, 0);
 
-		SetWindowPos(mWindow->getHWnd(), HWND_TOP, props.left, props.top, width, height, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+		SetWindowPos(mWindow->GetHWnd(), HWND_TOP, props.left, props.top, width, height, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 
 		_windowMovedOrResized();
 
@@ -334,8 +334,8 @@ namespace bs
 			mSyncedProperties.height = props.height;
 		}
 
-		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
-		bs::RenderWindowManager::instance().notifyMovedOrResized(this);
+		bs::RenderWindowManager::instance().NotifySyncDataDirty(this);
+		bs::RenderWindowManager::instance().NotifyMovedOrResized(this);
 	}
 
 	void Win32RenderWindow::SetFullscreen(const VideoMode& mode)
@@ -367,12 +367,12 @@ namespace bs
 		RECT rect;
 		SetRect(&rect, 0, 0, winWidth, winHeight);
 
-		AdjustWindowRect(&rect, mWindow->getStyle(), false);
+		AdjustWindowRect(&rect, mWindow->GetStyle(), false);
 		winWidth = rect.right - rect.left;
 		winHeight = rect.bottom - rect.top;
 
 		// Deal with centering when switching down to smaller resolution
-		HMONITOR hMonitor = MonitorFromWindow(mWindow->getHWnd(), MONITOR_DEFAULTTONEAREST);
+		HMONITOR hMonitor = MonitorFromWindow(mWindow->GetHWnd(), MONITOR_DEFAULTTONEAREST);
 		MONITORINFO monitorInfo;
 		memset(&monitorInfo, 0, sizeof(MONITORINFO));
 		monitorInfo.cbSize = sizeof(MONITORINFO);
@@ -384,9 +384,9 @@ namespace bs
 		INT32 left = screenw > INT32(winWidth) ? ((screenw - INT32(winWidth)) / 2) : 0;
 		INT32 top = screenh > INT32(winHeight) ? ((screenh - INT32(winHeight)) / 2) : 0;
 
-		SetWindowLong(mWindow->getHWnd(), GWL_STYLE, mWindow->getStyle() | WS_VISIBLE);
-		SetWindowLong(mWindow->getHWnd(), GWL_EXSTYLE, mWindow->getStyleEx());
-		SetWindowPos(mWindow->getHWnd(), HWND_NOTOPMOST, left, top, winWidth, winHeight,
+		SetWindowLong(mWindow->GetHWnd(), GWL_STYLE, mWindow->getStyle() | WS_VISIBLE);
+		SetWindowLong(mWindow->GetHWnd(), GWL_EXSTYLE, mWindow->getStyleEx());
+		SetWindowPos(mWindow->GetHWnd(), HWND_NOTOPMOST, left, top, winWidth, winHeight,
 			SWP_DRAWFRAME | SWP_FRAMECHANGED | SWP_NOACTIVATE);
 
 		_windowMovedOrResized();
@@ -399,8 +399,8 @@ namespace bs
 			mSyncedProperties.height = props.height;
 		}
 
-		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
-		bs::RenderWindowManager::instance().notifyMovedOrResized(this);
+		bs::RenderWindowManager::instance().NotifySyncDataDirty(this);
+		bs::RenderWindowManager::instance().NotifyMovedOrResized(this);
 	}
 
 	void Win32RenderWindow::Move(INT32 left, INT32 top)
@@ -410,10 +410,10 @@ namespace bs
 		RenderWindowProperties& props = mProperties;
 		if (!props.isFullScreen)
 		{
-			mWindow->move(left, top);
+			mWindow->Move(left, top);
 
-			props.top = mWindow->getTop();
-			props.left = mWindow->getLeft();
+			props.top = mWindow->GetTop();
+			props.left = mWindow->GetLeft();
 
 			{
 				ScopedSpinLock Lock(mLock);
@@ -421,7 +421,7 @@ namespace bs
 				mSyncedProperties.left = props.left;
 			}
 
-			bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+			bs::RenderWindowManager::instance().NotifySyncDataDirty(this);
 		}
 	}
 
@@ -432,10 +432,10 @@ namespace bs
 		RenderWindowProperties& props = mProperties;
 		if (!props.isFullScreen)
 		{
-			mWindow->resize(width, height);
+			mWindow->Resize(width, height);
 
-			props.width = mWindow->getWidth();
-			props.height = mWindow->getHeight();
+			props.width = mWindow->GetWidth();
+			props.height = mWindow->GetHeight();
 			
 			{
 				ScopedSpinLock Lock(mLock);
@@ -443,7 +443,7 @@ namespace bs
 				mSyncedProperties.height = props.height;
 			}
 
-			bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+			bs::RenderWindowManager::instance().NotifySyncDataDirty(this);
 		}
 	}
 
@@ -451,21 +451,21 @@ namespace bs
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		mWindow->minimize();
+		mWindow->Minimize();
 	}
 
 	void Win32RenderWindow::Maximize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		mWindow->maximize();
+		mWindow->Maximize();
 	}
 
 	void Win32RenderWindow::Restore()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		mWindow->restore();
+		mWindow->Restore();
 	}
 
 	void Win32RenderWindow::SetVSync(bool enabled, UINT32 interval)
@@ -482,7 +482,7 @@ namespace bs
 			mSyncedProperties.vsyncInterval = interval;
 		}
 
-		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+		bs::RenderWindowManager::instance().NotifySyncDataDirty(this);
 	}
 
 	void Win32RenderWindow::SwapBuffers(UINT32 syncMask)
@@ -499,9 +499,9 @@ namespace bs
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		if ((dst.getRight() > getProperties().width) ||
-			(dst.getBottom() > getProperties().height) ||
-			(dst.getFront() != 0) || (dst.getBack() != 1))
+		if ((dst.GetRight() > getProperties().width) ||
+			(dst.GetBottom() > getProperties().height) ||
+			(dst.GetFront() != 0) || (dst.getBack() != 1))
 		{
 			BS_EXCEPT(InvalidParametersException, "Invalid box.");
 		}
@@ -511,8 +511,8 @@ namespace bs
 			buffer = mProperties.isFullScreen ? FB_FRONT : FB_BACK;
 		}
 
-		GLenum format = GLPixelUtil::getGLOriginFormat(dst.getFormat());
-		GLenum type = GLPixelUtil::getGLOriginDataType(dst.getFormat());
+		GLenum format = GLPixelUtil::getGLOriginFormat(dst.GetFormat());
+		GLenum type = GLPixelUtil::getGLOriginDataType(dst.GetFormat());
 
 		if ((format == GL_NONE) || (type == 0))
 		{
@@ -526,9 +526,9 @@ namespace bs
 		glReadBuffer((buffer == FB_FRONT)? GL_FRONT : GL_BACK);
 		BS_CHECK_GL_ERROR();
 
-		glReadPixels((GLint)dst.getLeft(), (GLint)dst.getTop(),
-					 (GLsizei)dst.getWidth(), (GLsizei)dst.getHeight(),
-					 format, type, dst.getData());
+		glReadPixels((GLint)dst.GetLeft(), (GLint)dst.getTop(),
+					 (GLsizei)dst.GetWidth(), (GLsizei)dst.getHeight(),
+					 format, type, dst.GetData());
 		BS_CHECK_GL_ERROR();
 
 		// restore default alignment
@@ -537,10 +537,10 @@ namespace bs
 
 		//vertical flip
 		{
-			size_t rowSpan = dst.getWidth() * PixelUtil::getNumElemBytes(dst.getFormat());
-			size_t height = dst.getHeight();
+			size_t rowSpan = dst.GetWidth() * PixelUtil::getNumElemBytes(dst.getFormat());
+			size_t height = dst.GetHeight();
 			UINT8* tmpData = (UINT8*)bs_alloc((UINT32)(rowSpan * height));
-			UINT8* srcRow = (UINT8 *)dst.getData(), *tmpRow = tmpData + (height - 1) * rowSpan;
+			UINT8* srcRow = (UINT8 *)dst.GetData(), *tmpRow = tmpData + (height - 1) * rowSpan;
 
 			while (tmpRow >= tmpData)
 			{
@@ -548,7 +548,7 @@ namespace bs
 				srcRow += rowSpan;
 				tmpRow -= rowSpan;
 			}
-			memcpy(dst.getData(), tmpData, rowSpan * height);
+			memcpy(dst.GetData(), tmpData, rowSpan * height);
 
 			bs_free(tmpData);
 		}
@@ -574,7 +574,7 @@ namespace bs
 	{	
 		THROW_IF_NOT_CORE_THREAD;
 
-		mWindow->setActive(state);
+		mWindow->SetActive(state);
 
 		RenderWindow::setActive(state);
 	}
@@ -584,7 +584,7 @@ namespace bs
 		THROW_IF_NOT_CORE_THREAD;
 
 		mShowOnSwap = false;
-		mWindow->setHidden(hidden);
+		mWindow->SetHidden(hidden);
 
 		RenderWindow::setHidden(hidden);
 	}
@@ -599,16 +599,16 @@ namespace bs
 		RenderWindowProperties& props = mProperties;
 		if (!props.isFullScreen) // Fullscreen is handled directly by this object
 		{
-			props.top = mWindow->getTop();
-			props.left = mWindow->getLeft();
-			props.width = mWindow->getWidth();
-			props.height = mWindow->getHeight();
+			props.top = mWindow->GetTop();
+			props.left = mWindow->GetLeft();
+			props.width = mWindow->GetWidth();
+			props.height = mWindow->GetHeight();
 		}
 	}
 
 	HWND Win32RenderWindow::_getHWnd() const
 	{
-		return mWindow->getHWnd();
+		return mWindow->GetHWnd();
 	}
 
 	void Win32RenderWindow::SyncProperties()

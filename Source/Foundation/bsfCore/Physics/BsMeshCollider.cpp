@@ -7,7 +7,7 @@ namespace bs
 {
 	SPtr<MeshCollider> MeshCollider::Create(PhysicsScene& scene, const Vector3& position, const Quaternion& rotation)
 	{
-		return scene.createMeshCollider(position, rotation);
+		return scene.CreateMeshCollider(position, rotation);
 	}
 
 	void MeshCollider::GetListenerResources(Vector<HResource>& resources)

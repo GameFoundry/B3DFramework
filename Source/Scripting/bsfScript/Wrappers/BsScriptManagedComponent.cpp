@@ -26,12 +26,12 @@ namespace bs
 		MonoUtil::getClassName(instance, mNamespace, mType);
 		mGCHandle = MonoUtil::newGCHandle(instance, false);
 
-		component->initialize(this);
+		component->Initialize(this);
 	}
 
 	void ScriptManagedComponent::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_Invoke", (void*)&ScriptManagedComponent::internal_invoke);
+		metaData.scriptClass->AddInternalCall("Internal_Invoke", (void*)&ScriptManagedComponent::internal_invoke);
 	}
 
 	void ScriptManagedComponent::internal_invoke(ScriptManagedComponent* nativeInstance, MonoString* name)
@@ -40,23 +40,23 @@ namespace bs
 		if (checkIfDestroyed(nativeInstance->mComponent))
 			return;
 
-		MonoObject* compObj = comp->getManagedInstance();
-		MonoClass* compClass = comp->getClass();
+		MonoObject* compObj = comp->GetManagedInstance();
+		MonoClass* compClass = comp->GetClass();
 
 		bool found = false;
 		String methodName = MonoUtil::monoToString(name);
 		while (compClass != nullptr)
 		{
-			MonoMethod* method = compClass->getMethod(methodName);
+			MonoMethod* method = compClass->GetMethod(methodName);
 			if (method != nullptr)
 			{
-				method->invoke(compObj, nullptr);
+				method->Invoke(compObj, nullptr);
 				found = true;
 				break;
 			}
 
 			// Search for methods on base class if there is one
-			MonoClass* baseClass = compClass->getBaseClass();
+			MonoClass* baseClass = compClass->GetBaseClass();
 			if (baseClass != metaData.scriptClass)
 				compClass = baseClass;
 			else
@@ -66,7 +66,7 @@ namespace bs
 		if (!found)
 		{
 			BS_LOG(Warning, Script, "Method invoke failed. Cannot find method \"{0}\" on component of type \"{1}\".",
-				methodName, compClass->getTypeName());
+				methodName, compClass->GetTypeName());
 		}
 	}
 
@@ -76,15 +76,15 @@ namespace bs
 
 		// See if this type even still exists
 		MonoObject* instance;
-		if (!ScriptAssemblyManager::instance().getSerializableObjectInfo(mNamespace, mType, currentObjInfo))
+		if (!ScriptAssemblyManager::instance().GetSerializableObjectInfo(mNamespace, mType, currentObjInfo))
 		{
 			mTypeMissing = true;
-			instance = ScriptAssemblyManager::instance().getBuiltinClasses().missingComponentClass->createInstance(true);
+			instance = ScriptAssemblyManager::instance().GetBuiltinClasses().missingComponentClass->CreateInstance(true);
 		}
 		else
 		{
 			mTypeMissing = false;
-			instance = currentObjInfo->mMonoClass->createInstance(construct);
+			instance = currentObjInfo->mMonoClass->CreateInstance(construct);
 		}
 
 		mGCHandle = MonoUtil::newGCHandle(instance, false);
@@ -103,8 +103,8 @@ namespace bs
 
 		// It's possible that managed component is destroyed but a reference to it
 		// is still kept. Don't backup such components.
-		if (!managedComponent.isDestroyed(true))
-			backupData.data = managedComponent->backup(true);
+		if (!managedComponent.IsDestroyed(true))
+			backupData.data = managedComponent->Backup(true);
 
 		return backupData;
 	}
@@ -114,7 +114,7 @@ namespace bs
 		HManagedComponent managedComponent = static_object_cast<ManagedComponent>(mComponent);
 
 		RawBackupData componentBackup = any_cast<RawBackupData>(backupData.data);
-		managedComponent->restore(componentBackup, mTypeMissing);
+		managedComponent->Restore(componentBackup, mTypeMissing);
 	}
 
 	void ScriptManagedComponent::_onManagedInstanceDeleted(bool assemblyRefresh)
@@ -124,8 +124,8 @@ namespace bs
 		// It's possible that managed component is destroyed but a reference to it
 		// is still kept during assembly refresh. Such components shouldn't be restored
 		// so we delete them.
-		if (!assemblyRefresh || mComponent.isDestroyed(true))
-			ScriptGameObjectManager::instance().destroyScriptComponent(this);
+		if (!assemblyRefresh || mComponent.IsDestroyed(true))
+			ScriptGameObjectManager::instance().DestroyScriptComponent(this);
 	}
 
 	void ScriptManagedComponent::_notifyDestroyed()

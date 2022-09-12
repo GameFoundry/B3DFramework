@@ -22,7 +22,7 @@ namespace bs
 
 	NullPhysics::~NullPhysics()
 	{
-		assert(mScenes.empty() && "All scenes must be freed before physics system shutdown");
+		assert(mScenes.Empty() && "All scenes must be freed before physics system shutdown");
 	}
 
 	SPtr<PhysicsMaterial> NullPhysics::CreateMaterial(float staticFriction, float dynamicFriction, float restitution)
@@ -38,17 +38,17 @@ namespace bs
 	SPtr<PhysicsScene> NullPhysics::CreatePhysicsScene()
 	{
 		SPtr<NullPhysicsScene> scene = bs_shared_ptr_new<NullPhysicsScene>(mInitDesc);
-		mScenes.push_back(scene.get());
+		mScenes.push_back(scene.Get());
 
 		return scene;
 	}
 
 	void NullPhysics::_notifySceneDestroyed(NullPhysicsScene* scene)
 	{
-		auto iterFind = std::find(mScenes.begin(), mScenes.end(), scene);
-		assert(iterFind != mScenes.end());
+		auto iterFind = std::find(mScenes.Begin(), mScenes.end(), scene);
+		assert(iterFind != mScenes.End());
 
-		mScenes.erase(iterFind);
+		mScenes.Erase(iterFind);
 	}
 
 	NullPhysicsScene::NullPhysicsScene(const PHYSICS_INIT_DESC& input)

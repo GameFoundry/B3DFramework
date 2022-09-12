@@ -114,7 +114,7 @@ namespace bs
 
 		operator Bool() const
 		{
-			return mBitIndex < mOwner.size();
+			return mBitIndex < mOwner.Size();
 		}
 
 		bool operator!() const

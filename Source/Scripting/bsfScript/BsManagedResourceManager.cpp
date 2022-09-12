@@ -16,19 +16,19 @@ namespace bs
 		for (auto& resourcePair : resourceCopy)
 		{
 			WeakResourceHandle<ManagedResource> resource = resourcePair.second;
-			gResources().release((WeakResourceHandle<Resource>&)resource);
+			gResources().Release((WeakResourceHandle<Resource>&)resource);
 		}
 
-		mResources.clear();
+		mResources.Clear();
 	}
 
 	void ManagedResourceManager::RegisterManagedResource(const WeakResourceHandle<ManagedResource>& resource)
 	{
-		mResources.insert(std::make_pair(resource.getUUID(), resource));
+		mResources.Insert(std::make_pair(resource.getUUID(), resource));
 	}
 
 	void ManagedResourceManager::UnregisterManagedResource(const WeakResourceHandle<ManagedResource>& resource)
 	{
-		mResources.erase(resource.getUUID());
+		mResources.Erase(resource.getUUID());
 	}
 }

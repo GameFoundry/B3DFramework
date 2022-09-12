@@ -10,10 +10,10 @@ namespace bs
 
 	bool WaveDecoder::IsValid(const SPtr<DataStream>& stream, UINT32 offset)
 	{
-		stream->seek(offset);
+		stream->Seek(offset);
 
 		INT8 header[MAIN_CHUNK_SIZE];
-		if (stream->read(header, sizeof(header)) < (sizeof(header)))
+		if (stream->Read(header, sizeof(header)) < (sizeof(header)))
 			return false;
 
 		return (header[0] == 'R') && (header[1] == 'I') && (header[2] == 'F') && (header[3] == 'F')
@@ -26,7 +26,7 @@ namespace bs
 			return false;
 
 		mStream = stream;
-		mStream->seek(offset + MAIN_CHUNK_SIZE);
+		mStream->Seek(offset + MAIN_CHUNK_SIZE);
 		
 		if (!parseHeader(info))
 		{
@@ -39,12 +39,12 @@ namespace bs
 
 	void WaveDecoder::Seek(UINT32 offset)
 	{
-		mStream->seek(mDataOffset + offset * mBytesPerSample);
+		mStream->Seek(mDataOffset + offset * mBytesPerSample);
 	}
 
 	UINT32 WaveDecoder::Read(UINT8* samples, UINT32 numSamples)
 	{
-		UINT32 numRead = (UINT32)mStream->read(samples, numSamples * mBytesPerSample);
+		UINT32 numRead = (UINT32)mStream->Read(samples, numSamples * mBytesPerSample);
 
 		if(mBytesPerSample == 1) // 8-bit samples are stored as unsigned, but engine convention is to store all bit depths as signed
 		{
@@ -65,18 +65,18 @@ namespace bs
 		{
 			// Get sub-chunk ID and size
 			UINT8 subChunkId[4];
-			if (mStream->read(subChunkId, sizeof(subChunkId)) != sizeof(subChunkId))
+			if (mStream->Read(subChunkId, sizeof(subChunkId)) != sizeof(subChunkId))
 				return false;
 
 			UINT32 subChunkSize = 0;
-			if (mStream->read(&subChunkSize, sizeof(subChunkSize)) != sizeof(subChunkSize))
+			if (mStream->Read(&subChunkSize, sizeof(subChunkSize)) != sizeof(subChunkSize))
 				return false;
 
 			// FMT chunk
 			if (subChunkId[0] == 'f' && subChunkId[1] == 'm' && subChunkId[2] == 't' && subChunkId[3] == ' ')
 			{
 				UINT16 format = 0;
-				if (mStream->read(&format, sizeof(format)) != sizeof(format))
+				if (mStream->Read(&format, sizeof(format)) != sizeof(format))
 					return false;
 
 				if (format != WAVE_FORMAT_PCM && format != WAVE_FORMAT_EXTENDED)
@@ -86,23 +86,23 @@ namespace bs
 				}
 
 				UINT16 numChannels = 0;
-				if (mStream->read(&numChannels, sizeof(numChannels)) != sizeof(numChannels))
+				if (mStream->Read(&numChannels, sizeof(numChannels)) != sizeof(numChannels))
 					return false;
 
 				UINT32 sampleRate = 0;
-				if (mStream->read(&sampleRate, sizeof(sampleRate)) != sizeof(sampleRate))
+				if (mStream->Read(&sampleRate, sizeof(sampleRate)) != sizeof(sampleRate))
 					return false;
 
 				UINT32 byteRate = 0;
-				if (mStream->read(&byteRate, sizeof(byteRate)) != sizeof(byteRate))
+				if (mStream->Read(&byteRate, sizeof(byteRate)) != sizeof(byteRate))
 					return false;
 
 				UINT16 blockAlign = 0;
-				if (mStream->read(&blockAlign, sizeof(blockAlign)) != sizeof(blockAlign))
+				if (mStream->Read(&blockAlign, sizeof(blockAlign)) != sizeof(blockAlign))
 					return false;
 
 				UINT16 bitDepth = 0;
-				if (mStream->read(&bitDepth, sizeof(bitDepth)) != sizeof(bitDepth))
+				if (mStream->Read(&bitDepth, sizeof(bitDepth)) != sizeof(bitDepth))
 					return false;
 
 				info.numChannels = numChannels;
@@ -119,7 +119,7 @@ namespace bs
 				if(format == WAVE_FORMAT_EXTENDED)
 				{
 					UINT16 extensionSize = 0;
-					if (mStream->read(&extensionSize, sizeof(extensionSize)) != sizeof(extensionSize))
+					if (mStream->Read(&extensionSize, sizeof(extensionSize)) != sizeof(extensionSize))
 						return false;
 
 					if(extensionSize != 22)
@@ -129,15 +129,15 @@ namespace bs
 					}
 
 					UINT16 validBitDepth = 0;
-					if (mStream->read(&validBitDepth, sizeof(validBitDepth)) != sizeof(validBitDepth))
+					if (mStream->Read(&validBitDepth, sizeof(validBitDepth)) != sizeof(validBitDepth))
 						return false;
 
 					UINT32 channelMask = 0;
-					if (mStream->read(&channelMask, sizeof(channelMask)) != sizeof(channelMask))
+					if (mStream->Read(&channelMask, sizeof(channelMask)) != sizeof(channelMask))
 						return false;
 
 					UINT8 subFormat[16];
-					if (mStream->read(subFormat, sizeof(subFormat)) != sizeof(subFormat))
+					if (mStream->Read(subFormat, sizeof(subFormat)) != sizeof(subFormat))
 						return false;
 
 					memcpy(&format, subFormat, sizeof(format));
@@ -154,15 +154,15 @@ namespace bs
 			else if (subChunkId[0] == 'd' && subChunkId[1] == 'a' && subChunkId[2] == 't' && subChunkId[3] == 'a')
 			{
 				info.numSamples = subChunkSize / mBytesPerSample;
-				mDataOffset = (UINT32)mStream->tell();
+				mDataOffset = (UINT32)mStream->Tell();
 
 				foundData = true;
 			}
 			// Unsupported chunk type
 			else
 			{
-				mStream->skip(subChunkSize);
-				if (mStream->eof())
+				mStream->Skip(subChunkSize);
+				if (mStream->Eof())
 					return false;
 			}
 		}

@@ -9,9 +9,9 @@ namespace bs
 
 	MessageId::MessageId(const String& name)
 	{
-		auto findIter = UniqueMessageIds.find(name);
+		auto findIter = UniqueMessageIds.Find(name);
 
-		if (findIter != UniqueMessageIds.end())
+		if (findIter != UniqueMessageIds.End())
 			mMsgIdentifier = findIter->second;
 		else
 		{
@@ -27,17 +27,17 @@ namespace bs
 	void HMessage::Disconnect()
 	{
 		if (mId > 0)
-			MessageHandler::instance().unsubscribe(mId);
+			MessageHandler::instance().Unsubscribe(mId);
 	}
 
 	void MessageHandler::Send(MessageId message)
 	{
-		auto iterFind = mMessageHandlers.find(message.mMsgIdentifier);
-		if (iterFind != mMessageHandlers.end())
+		auto iterFind = mMessageHandlers.Find(message.mMsgIdentifier);
+		if (iterFind != mMessageHandlers.End())
 		{
 			for (auto& handlerData : iterFind->second)
 			{
-				handlerData.callback();
+				handlerData.Callback();
 			}
 		}
 	}
@@ -60,25 +60,25 @@ namespace bs
 	{
 		UINT32 msgId = mHandlerIdToMessageMap[handleId];
 
-		auto iterFind = mMessageHandlers.find(msgId);
-		if (iterFind != mMessageHandlers.end())
+		auto iterFind = mMessageHandlers.Find(msgId);
+		if (iterFind != mMessageHandlers.End())
 		{
 			Vector<MessageHandlerData>& handlerData = iterFind->second;
 
 			handlerData.erase(
-				std::remove_if(handlerData.begin(), handlerData.end(),
+				std::remove_if(handlerData.Begin(), handlerData.end(),
 				[&](MessageHandlerData& x)
 				{
 					return x.id == handleId;
 				}),
-				handlerData.end());
+				handlerData.End());
 		}
 
-		mHandlerIdToMessageMap.erase(handleId);
+		mHandlerIdToMessageMap.Erase(handleId);
 	}
 
 	void SendMessage(MessageId message)
 	{
-		MessageHandler::instance().send(message);
+		MessageHandler::instance().Send(message);
 	}
 }

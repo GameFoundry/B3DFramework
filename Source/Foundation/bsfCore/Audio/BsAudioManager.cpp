@@ -8,17 +8,17 @@ namespace bs
 {
 	AudioManager::AudioManager(const String& pluginName)
 	{
-		mPlugin = DynLibManager::instance().load(pluginName);
+		mPlugin = DynLibManager::instance().Load(pluginName);
 
 		if(mPlugin != nullptr)
 		{
 			typedef AudioFactory* (*LoadPluginFunc)();
 
-			LoadPluginFunc loadPluginFunc = (LoadPluginFunc)mPlugin->getSymbol("loadPlugin");
+			LoadPluginFunc loadPluginFunc = (LoadPluginFunc)mPlugin->GetSymbol("loadPlugin");
 			mFactory = loadPluginFunc();
 
 			if (mFactory != nullptr)
-				mFactory->startUp();
+				mFactory->StartUp();
 		}
 	}
 
@@ -30,13 +30,13 @@ namespace bs
 			{
 				typedef void (*UnloadPluginFunc)(AudioFactory*);
 
-				UnloadPluginFunc unloadPluginFunc = (UnloadPluginFunc)mPlugin->getSymbol("unloadPlugin");
+				UnloadPluginFunc unloadPluginFunc = (UnloadPluginFunc)mPlugin->GetSymbol("unloadPlugin");
 
-				mFactory->shutDown();
+				mFactory->ShutDown();
 				unloadPluginFunc(mFactory);
 			}
 
-			DynLibManager::instance().unload(mPlugin);
+			DynLibManager::instance().Unload(mPlugin);
 		}
 	}
 }

@@ -33,12 +33,12 @@ namespace bs
 
 		void NullRenderer::RenderAll(PerFrameData perFrameData)
 		{
-			CoreObjectManager::instance().syncToCore();
+			CoreObjectManager::instance().SyncToCore();
 		}
 
 		SPtr<NullRenderer> GNullRenderer()
 		{
-			return std::static_pointer_cast<NullRenderer>(RendererManager::instance().getActive());
+			return std::static_pointer_cast<NullRenderer>(RendererManager::instance().GetActive());
 		}
 	}
 }

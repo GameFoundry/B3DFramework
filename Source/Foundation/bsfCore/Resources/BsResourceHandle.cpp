@@ -18,7 +18,7 @@ namespace bs
 		bool isLoaded = (mData != nullptr && mData->mIsCreated && mData->mPtr != nullptr);
 
 		if (checkDependencies && isLoaded)
-			isLoaded = mData->mPtr->areDependenciesLoaded();
+			isLoaded = mData->mPtr->AreDependenciesLoaded();
 
 		return isLoaded;
 	}
@@ -33,13 +33,13 @@ namespace bs
 			Lock Lock(mResourceCreatedMutex);
 			while (!mData->mIsCreated)
 			{
-				mResourceCreatedCondition.wait(lock);
+				mResourceCreatedCondition.Wait(lock);
 			}
 
 			// Send out ResourceListener events right away, as whatever called this method probably also expects the
 			// listener events to trigger immediately as well
-			if(BS_THREAD_CURRENT_ID == gCoreApplication().getSimThreadId())
-				ResourceListenerManager::instance().notifyListeners(mData->mUUID);
+			if(BS_THREAD_CURRENT_ID == gCoreApplication().GetSimThreadId())
+				ResourceListenerManager::instance().NotifyListeners(mData->mUUID);
 		}
 
 		if (waitForDependencies)
@@ -48,10 +48,10 @@ namespace bs
 
 			{
 				FrameVector<HResource> dependencies;
-				mData->mPtr->getResourceDependencies(dependencies);
+				mData->mPtr->GetResourceDependencies(dependencies);
 
 				for (auto& dependency : dependencies)
-					dependency.blockUntilLoaded(waitForDependencies);
+					dependency.BlockUntilLoaded(waitForDependencies);
 			}
 
 			bs_frame_clear();
@@ -60,13 +60,13 @@ namespace bs
 
 	void ResourceHandleBase::Release()
 	{
-		gResources().release(*this);
+		gResources().Release(*this);
 	}
 
 	void ResourceHandleBase::Destroy()
 	{
 		if(mData->mPtr)
-			gResources().destroy(*this);
+			gResources().Destroy(*this);
 	}
 
 	void ResourceHandleBase::SetHandleData(const SPtr<Resource>& ptr, const UUID& uuid)

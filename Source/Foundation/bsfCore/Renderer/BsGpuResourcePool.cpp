@@ -26,7 +26,7 @@ namespace bs { namespace ct
 		}
 
 		SPtr<PooledRenderTexture> newTexture = bs_shared_ptr_new<PooledRenderTexture>(mCurrentFrame);
-		mTextures.add(newTexture);
+		mTextures.Add(newTexture);
 
 		TEXTURE_DESC texDesc;
 		texDesc.type = desc.type;
@@ -52,7 +52,7 @@ namespace bs { namespace ct
 			{
 				rtDesc.colorSurfaces[0].texture = newTexture->texture;
 				rtDesc.colorSurfaces[0].face = 0;
-				rtDesc.colorSurfaces[0].numFaces = newTexture->texture->getProperties().getNumFaces();
+				rtDesc.colorSurfaces[0].numFaces = newTexture->texture->GetProperties().GetNumFaces();
 				rtDesc.colorSurfaces[0].mipLevel = 0;
 			}
 
@@ -60,7 +60,7 @@ namespace bs { namespace ct
 			{
 				rtDesc.depthStencilSurface.texture = newTexture->texture;
 				rtDesc.depthStencilSurface.face = 0;
-				rtDesc.depthStencilSurface.numFaces = newTexture->texture->getProperties().getNumFaces();
+				rtDesc.depthStencilSurface.numFaces = newTexture->texture->GetProperties().GetNumFaces();
 				rtDesc.depthStencilSurface.mipLevel = 0;
 			}
 
@@ -97,7 +97,7 @@ namespace bs { namespace ct
 		}
 
 		SPtr<PooledStorageBuffer> newBuffer = bs_shared_ptr_new<PooledStorageBuffer>(mCurrentFrame);
-		mBuffers.add(newBuffer);
+		mBuffers.Add(newBuffer);
 
 		GPU_BUFFER_DESC bufferDesc;
 		bufferDesc.type = desc.type;
@@ -130,7 +130,7 @@ namespace bs { namespace ct
 
 	void GpuResourcePool::Prune(UINT32 age)
 	{
-		for(auto iter = mTextures.begin(); iter != mTextures.end();)
+		for(auto iter = mTextures.Begin(); iter != mTextures.end();)
 		{
 			auto& entry = *iter;
 
@@ -143,12 +143,12 @@ namespace bs { namespace ct
 
 			UINT32 entryAge = mCurrentFrame - entry->mLastUsedFrame;
 			if(entryAge >= age)
-				mTextures.swapAndErase(iter);
+				mTextures.SwapAndErase(iter);
 			else
 				++iter;
 		}
 
-		for(auto iter = mBuffers.begin(); iter != mBuffers.end();)
+		for(auto iter = mBuffers.Begin(); iter != mBuffers.end();)
 		{
 			auto& entry = *iter;
 
@@ -161,7 +161,7 @@ namespace bs { namespace ct
 
 			UINT32 entryAge = mCurrentFrame - entry->mLastUsedFrame;
 			if(entryAge >= age)
-				mBuffers.swapAndErase(iter);
+				mBuffers.SwapAndErase(iter);
 			else
 				++iter;
 		}
@@ -169,23 +169,23 @@ namespace bs { namespace ct
 
 	bool GpuResourcePool::Matches(const SPtr<Texture>& texture, const POOLED_RENDER_TEXTURE_DESC& desc)
 	{
-		const TextureProperties& texProps = texture->getProperties();
+		const TextureProperties& texProps = texture->GetProperties();
 
-		bool match = texProps.getTextureType() == desc.type
-			&& texProps.getFormat() == desc.format
-			&& texProps.getWidth() == desc.width
-			&& texProps.getHeight() == desc.height
-			&& (texProps.getUsage() & desc.flag) == desc.flag
+		bool match = texProps.GetTextureType() == desc.type
+			&& texProps.GetFormat() == desc.format
+			&& texProps.GetWidth() == desc.width
+			&& texProps.GetHeight() == desc.height
+			&& (texProps.GetUsage() & desc.flag) == desc.flag
 			&& (
 				(desc.type == TEX_TYPE_2D
-					&& texProps.isHardwareGammaEnabled() == desc.hwGamma
-					&& texProps.getNumSamples() == desc.numSamples)
+					&& texProps.IsHardwareGammaEnabled() == desc.hwGamma
+					&& texProps.GetNumSamples() == desc.numSamples)
 				|| (desc.type == TEX_TYPE_3D
-					&& texProps.getDepth() == desc.depth)
+					&& texProps.GetDepth() == desc.depth)
 				|| (desc.type == TEX_TYPE_CUBE_MAP)
 				)
-			&& texProps.getNumArraySlices() == desc.arraySize
-			&& texProps.getNumMipmaps() == desc.numMipLevels
+			&& texProps.GetNumArraySlices() == desc.arraySize
+			&& texProps.GetNumMipmaps() == desc.numMipLevels
 			;
 
 		return match;
@@ -193,18 +193,18 @@ namespace bs { namespace ct
 
 	bool GpuResourcePool::Matches(const SPtr<GpuBuffer>& buffer, const POOLED_STORAGE_BUFFER_DESC& desc)
 	{
-		const GpuBufferProperties& props = buffer->getProperties();
+		const GpuBufferProperties& props = buffer->GetProperties();
 
-		bool match = props.getType() == desc.type && props.getElementCount() == desc.numElements;
+		bool match = props.GetType() == desc.type && props.getElementCount() == desc.numElements;
 		if(match)
 		{
 			if (desc.type == GBT_STANDARD)
-				match = props.getFormat() == desc.format;
+				match = props.GetFormat() == desc.format;
 			else // Structured
-				match = props.getElementSize() == desc.elementSize;
+				match = props.GetElementSize() == desc.elementSize;
 
 			if(match)
-				match = props.getUsage() == desc.usage;
+				match = props.GetUsage() == desc.usage;
 		}
 
 		return match;

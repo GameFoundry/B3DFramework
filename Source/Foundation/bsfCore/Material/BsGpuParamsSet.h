@@ -153,7 +153,7 @@ namespace bs
 		void SetParamBlockBuffer(const String& name, const ParamBlockPtrType& paramBlock, bool ignoreInUpdate = false);
 
 		/** Returns the number of passes the set contains the parameters for. */
-		UINT32 GetNumPasses() const { return (UINT32)mPassParams.size(); }
+		UINT32 GetNumPasses() const { return (UINT32)mPassParams.Size(); }
 
 		/**
 		 * Updates parameter data in this object from the provided material parameters object.

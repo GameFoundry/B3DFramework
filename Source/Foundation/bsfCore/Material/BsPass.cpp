@@ -80,19 +80,19 @@ namespace bs
 		{
 			PipelineStateDescType desc;
 
-			if(!mData.vertexProgramDesc.source.empty())
+			if(!mData.vertexProgramDesc.source.Empty())
 				desc.vertexProgram = GpuProgramType::create(mData.vertexProgramDesc);
 
-			if(!mData.fragmentProgramDesc.source.empty())
+			if(!mData.fragmentProgramDesc.source.Empty())
 				desc.fragmentProgram = GpuProgramType::create(mData.fragmentProgramDesc);
 
-			if(!mData.geometryProgramDesc.source.empty())
+			if(!mData.geometryProgramDesc.source.Empty())
 				desc.geometryProgram = GpuProgramType::create(mData.geometryProgramDesc);
 
-			if(!mData.hullProgramDesc.source.empty())
+			if(!mData.hullProgramDesc.source.Empty())
 				desc.hullProgram = GpuProgramType::create(mData.hullProgramDesc);
 
-			if(!mData.domainProgramDesc.source.empty())
+			if(!mData.domainProgramDesc.source.Empty())
 				desc.domainProgram = GpuProgramType::create(mData.domainProgramDesc);
 
 			desc.blendState = BlendStateType::create(mData.blendStateDesc);
@@ -150,7 +150,7 @@ namespace bs
 	CoreSyncData Pass::SyncToCore(FrameAlloc* allocator)
 	{
 		UINT32 size = csync_size(*this);
-		UINT8* data = allocator->alloc(size);
+		UINT8* data = allocator->Alloc(size);
 
 		Bitstream Stream(data, size);
 		csync_write(*this, stream);
@@ -163,7 +163,7 @@ namespace bs
 		Pass* newPass = new (bs_alloc<Pass>()) Pass(desc);
 		SPtr<Pass> newPassPtr = bs_core_ptr<Pass>(newPass);
 		newPassPtr->_setThisPtr(newPassPtr);
-		newPassPtr->initialize();
+		newPassPtr->Initialize();
 
 		return newPassPtr;
 	}
@@ -203,7 +203,7 @@ namespace bs
 
 	void Pass::SyncToCore(const CoreSyncData& data)
 	{
-		Bitstream Stream(data.getBuffer(), data.getBufferSize());
+		Bitstream Stream(data.GetBuffer(), data.getBufferSize());
 		csync_read(*this, stream);
 	}
 
@@ -212,7 +212,7 @@ namespace bs
 		Pass* newPass = new (bs_alloc<Pass>()) Pass(desc);
 		SPtr<Pass> newPassPtr = bs_shared_ptr<Pass>(newPass);
 		newPassPtr->_setThisPtr(newPassPtr);
-		newPassPtr->initialize();
+		newPassPtr->Initialize();
 
 		return newPassPtr;
 	}

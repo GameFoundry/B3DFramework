@@ -25,7 +25,7 @@ namespace bs
 		if (name == "WINDOW" || name == "LINUX_WINDOW")
 		{
 			blockUntilCoreInitialized();
-			getCore()->getCustomAttribute(name, data);
+			getCore()->GetCustomAttribute(name, data);
 			return;
 		}
 	}
@@ -35,7 +35,7 @@ namespace bs
 		blockUntilCoreInitialized();
 
 		LinuxPlatform::lockX();
-		Vector2I pos = getCore()->_getInternal()->screenToWindowPos(screenPos);
+		Vector2I pos = getCore()->_getInternal()->ScreenToWindowPos(screenPos);
 		LinuxPlatform::unlockX();
 
 		return pos;
@@ -46,7 +46,7 @@ namespace bs
 		blockUntilCoreInitialized();
 
 		LinuxPlatform::lockX();
-		Vector2I pos = getCore()->_getInternal()->windowToScreenPos(windowPos);
+		Vector2I pos = getCore()->_getInternal()->WindowToScreenPos(windowPos);
 		LinuxPlatform::unlockX();
 
 		return pos;
@@ -107,7 +107,7 @@ namespace bs
 		props.isFullScreen = mDesc.fullscreen;
 		mIsChild = false;
 
-		GLVisualConfig visualConfig = mGLSupport.findBestVisual(LinuxPlatform::getXDisplay(), mDesc.depthBuffer,
+		GLVisualConfig visualConfig = mGLSupport.FindBestVisual(LinuxPlatform::getXDisplay(), mDesc.depthBuffer,
 				mDesc.multisampleCount, mDesc.gamma);
 
 		WINDOW_DESC windowDesc;
@@ -124,15 +124,15 @@ namespace bs
 		windowDesc.screen = mDesc.videoMode.outputIdx;
 		windowDesc.hidden = mDesc.hideUntilSwap || mDesc.hidden;
 
-		auto opt = mDesc.platformSpecific.find("parentWindowHandle");
-		if (opt != mDesc.platformSpecific.end())
+		auto opt = mDesc.platformSpecific.Find("parentWindowHandle");
+		if (opt != mDesc.platformSpecific.End())
 			windowDesc.parent = (::Window)parseUINT64(opt->second);
 		else
 			windowDesc.parent = 0;
 
 		// TODO: add passing the XDisplay here as well. Right now the default display is assumed
-		opt = mDesc.platformSpecific.find("externalWindowHandle");
-		if (opt != mDesc.platformSpecific.end())
+		opt = mDesc.platformSpecific.Find("externalWindowHandle");
+		if (opt != mDesc.platformSpecific.End())
 			windowDesc.external = (::Window)parseUINT64(opt->second);
 		else
 			windowDesc.external = 0;
@@ -146,10 +146,10 @@ namespace bs
 		mWindow = bs_new<LinuxWindow>(windowDesc);
 		mWindow->_setUserData(this);
 
-		props.width = mWindow->getWidth();
-		props.height = mWindow->getHeight();
-		props.top = mWindow->getTop();
-		props.left = mWindow->getLeft();
+		props.width = mWindow->GetWidth();
+		props.height = mWindow->GetHeight();
+		props.top = mWindow->GetTop();
+		props.left = mWindow->GetLeft();
 
 		props.hwGamma = visualConfig.caps.srgb;
 		props.multisampleCount = visualConfig.caps.numSamples;
@@ -163,7 +163,7 @@ namespace bs
 
 		LinuxPlatform::unlockX(); // Calls below have their own locking mechanisms
 
-		mContext = mGLSupport.createContext(LinuxPlatform::getXDisplay(), requestVI);
+		mContext = mGLSupport.CreateContext(LinuxPlatform::getXDisplay(), requestVI);
 
 		if(mDesc.fullscreen && !mIsChild)
 			setFullscreen(mDesc.videoMode);
@@ -176,7 +176,7 @@ namespace bs
 			mSyncedProperties = props;
 		}
 
-		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+		bs::RenderWindowManager::instance().NotifySyncDataDirty(this);
 		RenderWindow::initialize();
 	}
 
@@ -240,10 +240,10 @@ namespace bs
 			return;
 
 		const LinuxVideoModeInfo& videoModeInfo =
-				static_cast<const LinuxVideoModeInfo&>(RenderAPI::instance().getVideoModeInfo());
+				static_cast<const LinuxVideoModeInfo&>(RenderAPI::instance().GetVideoModeInfo());
 
 		UINT32 outputIdx = mode.outputIdx;
-		if(outputIdx >= videoModeInfo.getNumOutputs())
+		if(outputIdx >= videoModeInfo.GetNumOutputs())
 		{
 			BS_LOG(Error, Platform, "Invalid output device index.");
 			return;
@@ -365,8 +365,8 @@ namespace bs
 			mSyncedProperties.height = props.height;
 		}
 
-		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
-		bs::RenderWindowManager::instance().notifyMovedOrResized(this);
+		bs::RenderWindowManager::instance().NotifySyncDataDirty(this);
+		bs::RenderWindowManager::instance().NotifyMovedOrResized(this);
 	}
 
 	void LinuxRenderWindow::SetWindowed(UINT32 width, UINT32 height)
@@ -380,10 +380,10 @@ namespace bs
 
 		// Restore old screen config
 		const LinuxVideoModeInfo& videoModeInfo =
-				static_cast<const LinuxVideoModeInfo&>(RenderAPI::instance().getVideoModeInfo());
+				static_cast<const LinuxVideoModeInfo&>(RenderAPI::instance().GetVideoModeInfo());
 
 		UINT32 outputIdx = 0; // 0 is always primary
-		if(outputIdx >= videoModeInfo.getNumOutputs())
+		if(outputIdx >= videoModeInfo.GetNumOutputs())
 		{
 			BS_LOG(Error, Platform, "Invalid output device index.");
 			return;
@@ -392,7 +392,7 @@ namespace bs
 		const LinuxVideoOutputInfo& outputInfo =
 				static_cast<const LinuxVideoOutputInfo&>(videoModeInfo.getOutputInfo (outputIdx));
 
-		const LinuxVideoMode& desktopVideoMode = static_cast<const LinuxVideoMode&>(outputInfo.getDesktopVideoMode());
+		const LinuxVideoMode& desktopVideoMode = static_cast<const LinuxVideoMode&>(outputInfo.GetDesktopVideoMode());
 
 		LinuxPlatform::lockX();
 
@@ -415,8 +415,8 @@ namespace bs
 			mSyncedProperties.height = props.height;
 		}
 
-		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
-		bs::RenderWindowManager::instance().notifyMovedOrResized(this);
+		bs::RenderWindowManager::instance().NotifySyncDataDirty(this);
+		bs::RenderWindowManager::instance().NotifyMovedOrResized(this);
 	}
 
 	void LinuxRenderWindow::Move(INT32 left, INT32 top)
@@ -427,11 +427,11 @@ namespace bs
 		if (!props.isFullScreen)
 		{
 			LinuxPlatform::lockX();
-			mWindow->move(left, top);
+			mWindow->Move(left, top);
 			LinuxPlatform::unlockX();
 
-			props.top = mWindow->getTop();
-			props.left = mWindow->getLeft();
+			props.top = mWindow->GetTop();
+			props.left = mWindow->GetLeft();
 
 			{
 				ScopedSpinLock Lock(mLock);
@@ -439,7 +439,7 @@ namespace bs
 				mSyncedProperties.left = props.left;
 			}
 
-			bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+			bs::RenderWindowManager::instance().NotifySyncDataDirty(this);
 		}
 	}
 
@@ -451,11 +451,11 @@ namespace bs
 		if (!props.isFullScreen)
 		{
 			LinuxPlatform::lockX();
-			mWindow->resize(width, height);
+			mWindow->Resize(width, height);
 			LinuxPlatform::unlockX();
 
-			props.width = mWindow->getWidth();
-			props.height = mWindow->getHeight();
+			props.width = mWindow->GetWidth();
+			props.height = mWindow->GetHeight();
 
 			{
 				ScopedSpinLock Lock(mLock);
@@ -463,7 +463,7 @@ namespace bs
 				mSyncedProperties.height = props.height;
 			}
 
-			bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+			bs::RenderWindowManager::instance().NotifySyncDataDirty(this);
 		}
 	}
 
@@ -472,7 +472,7 @@ namespace bs
 		THROW_IF_NOT_CORE_THREAD;
 
 		LinuxPlatform::lockX();
-		mWindow->minimize();
+		mWindow->Minimize();
 		LinuxPlatform::unlockX();
 	}
 
@@ -481,7 +481,7 @@ namespace bs
 		THROW_IF_NOT_CORE_THREAD;
 
 		LinuxPlatform::lockX();
-		mWindow->maximize();
+		mWindow->Maximize();
 		LinuxPlatform::unlockX();
 	}
 
@@ -490,7 +490,7 @@ namespace bs
 		THROW_IF_NOT_CORE_THREAD;
 
 		LinuxPlatform::lockX();
-		mWindow->restore();
+		mWindow->Restore();
 		LinuxPlatform::unlockX();
 	}
 
@@ -521,7 +521,7 @@ namespace bs
 			mSyncedProperties.vsyncInterval = interval;
 		}
 
-		bs::RenderWindowManager::instance().notifySyncDataDirty(this);		
+		bs::RenderWindowManager::instance().NotifySyncDataDirty(this);
 	}
 
 	void LinuxRenderWindow::SwapBuffers(UINT32 syncMask)
@@ -540,9 +540,9 @@ namespace bs
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		if ((dst.getRight() > getProperties().width) ||
-			(dst.getBottom() > getProperties().height) ||
-			(dst.getFront() != 0) || (dst.getBack() != 1))
+		if ((dst.GetRight() > getProperties().width) ||
+			(dst.GetBottom() > getProperties().height) ||
+			(dst.GetFront() != 0) || (dst.getBack() != 1))
 		{
 			BS_EXCEPT(InvalidParametersException, "Invalid box.");
 		}
@@ -552,8 +552,8 @@ namespace bs
 			buffer = mProperties.isFullScreen ? FB_FRONT : FB_BACK;
 		}
 
-		GLenum format = GLPixelUtil::getGLOriginFormat(dst.getFormat());
-		GLenum type = GLPixelUtil::getGLOriginDataType(dst.getFormat());
+		GLenum format = GLPixelUtil::getGLOriginFormat(dst.GetFormat());
+		GLenum type = GLPixelUtil::getGLOriginDataType(dst.GetFormat());
 
 		if ((format == GL_NONE) || (type == 0))
 		{
@@ -564,19 +564,19 @@ namespace bs
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
 		glReadBuffer((buffer == FB_FRONT)? GL_FRONT : GL_BACK);
-		glReadPixels((GLint)dst.getLeft(), (GLint)dst.getTop(),
-				(GLsizei)dst.getWidth(), (GLsizei)dst.getHeight(),
-				format, type, dst.getData());
+		glReadPixels((GLint)dst.GetLeft(), (GLint)dst.getTop(),
+				(GLsizei)dst.GetWidth(), (GLsizei)dst.getHeight(),
+				format, type, dst.GetData());
 
 		// restore default alignment
 		glPixelStorei(GL_PACK_ALIGNMENT, 4);
 
 		//vertical flip
 		{
-			size_t rowSpan = dst.getWidth() * PixelUtil::getNumElemBytes(dst.getFormat());
-			size_t height = dst.getHeight();
+			size_t rowSpan = dst.GetWidth() * PixelUtil::getNumElemBytes(dst.getFormat());
+			size_t height = dst.GetHeight();
 			UINT8* tmpData = (UINT8*)bs_alloc((UINT32)(rowSpan * height));
-			UINT8* srcRow = (UINT8 *)dst.getData(), *tmpRow = tmpData + (height - 1) * rowSpan;
+			UINT8* srcRow = (UINT8 *)dst.GetData(), *tmpRow = tmpData + (height - 1) * rowSpan;
 
 			while (tmpRow >= tmpData)
 			{
@@ -584,7 +584,7 @@ namespace bs
 				srcRow += rowSpan;
 				tmpRow -= rowSpan;
 			}
-			memcpy(dst.getData(), tmpData, rowSpan * height);
+			memcpy(dst.GetData(), tmpData, rowSpan * height);
 
 			bs_free(tmpData);
 		}
@@ -619,9 +619,9 @@ namespace bs
 		LinuxPlatform::lockX();
 
 		if(state)
-			mWindow->restore();
+			mWindow->Restore();
 		else
-			mWindow->minimize();
+			mWindow->Minimize();
 
 		LinuxPlatform::unlockX();
 
@@ -638,9 +638,9 @@ namespace bs
 		LinuxPlatform::lockX();
 
 		if(hidden)
-			mWindow->hide();
+			mWindow->Hide();
 		else
-			mWindow->show();
+			mWindow->Show();
 
 		LinuxPlatform::unlockX();
 
@@ -655,10 +655,10 @@ namespace bs
 		RenderWindowProperties& props = mProperties;
 		if (!props.isFullScreen) // Fullscreen is handled directly by this object
 		{
-			props.top = mWindow->getTop();
-			props.left = mWindow->getLeft();
-			props.width = mWindow->getWidth();
-			props.height = mWindow->getHeight();
+			props.top = mWindow->GetTop();
+			props.left = mWindow->GetLeft();
+			props.width = mWindow->GetWidth();
+			props.height = mWindow->GetHeight();
 		}
 	}
 

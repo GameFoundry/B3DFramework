@@ -36,14 +36,14 @@ namespace bs { namespace ct
 
 	D3D11InputLayoutManager::~D3D11InputLayoutManager()
 	{
-		while(mInputLayoutMap.begin() != mInputLayoutMap.end())
+		while(mInputLayoutMap.Begin() != mInputLayoutMap.end())
 		{
-			auto firstElem = mInputLayoutMap.begin();
+			auto firstElem = mInputLayoutMap.Begin();
 
 			SAFE_RELEASE(firstElem->second->inputLayout);
 			bs_delete(firstElem->second);
 
-			mInputLayoutMap.erase(firstElem);
+			mInputLayoutMap.Erase(firstElem);
 			BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_InputLayout);
 		}
 	}
@@ -52,20 +52,20 @@ namespace bs { namespace ct
 		const SPtr<VertexDeclaration>& vertexBufferDecl, D3D11GpuProgram& vertexProgram)
 	{
 		VertexDeclarationKey pair;
-		pair.vertxDeclId = vertexBufferDecl->getId();
-		pair.vertexProgramId = vertexProgram.getProgramId();
+		pair.vertxDeclId = vertexBufferDecl->GetId();
+		pair.vertexProgramId = vertexProgram.GetProgramId();
 
-		auto iterFind = mInputLayoutMap.find(pair);
-		if(iterFind == mInputLayoutMap.end())
+		auto iterFind = mInputLayoutMap.Find(pair);
+		if(iterFind == mInputLayoutMap.End())
 		{
-			if(mInputLayoutMap.size() >= DECLARATION_BUFFER_SIZE)
+			if(mInputLayoutMap.Size() >= DECLARATION_BUFFER_SIZE)
 				removeLeastUsed(); // Prune so the buffer doesn't just infinitely grow
 
 			addNewInputLayout(vertexShaderDecl, vertexBufferDecl, vertexProgram);
 
-			iterFind = mInputLayoutMap.find(pair);
+			iterFind = mInputLayoutMap.Find(pair);
 
-			if(iterFind == mInputLayoutMap.end()) // We failed to create input layout
+			if(iterFind == mInputLayoutMap.End()) // We failed to create input layout
 				return nullptr;
 		}
 
@@ -76,27 +76,27 @@ namespace bs { namespace ct
 	void D3D11InputLayoutManager::addNewInputLayout(const SPtr<VertexDeclaration>& vertexShaderDecl,
 		const SPtr<VertexDeclaration>& vertexBufferDecl, D3D11GpuProgram& vertexProgram)
 	{
-		const VertexDeclarationProperties& bufferDeclProps = vertexBufferDecl->getProperties();
-		const VertexDeclarationProperties& shaderDeclProps = vertexShaderDecl->getProperties();
+		const VertexDeclarationProperties& bufferDeclProps = vertexBufferDecl->GetProperties();
+		const VertexDeclarationProperties& shaderDeclProps = vertexShaderDecl->GetProperties();
 
 		Vector<D3D11_INPUT_ELEMENT_DESC> declElements;
 
-		const Vector<VertexElement>& bufferElems = bufferDeclProps.getElements();
-		const Vector<VertexElement>& shaderElems = shaderDeclProps.getElements();
+		const Vector<VertexElement>& bufferElems = bufferDeclProps.GetElements();
+		const Vector<VertexElement>& shaderElems = shaderDeclProps.GetElements();
 
 		INT32 maxStreamIdx = -1;
-		for (auto iter = bufferElems.begin(); iter != bufferElems.end(); ++iter)
+		for (auto iter = bufferElems.Begin(); iter != bufferElems.end(); ++iter)
 		{
 			declElements.push_back(D3D11_INPUT_ELEMENT_DESC());
-			D3D11_INPUT_ELEMENT_DESC& elementDesc = declElements.back();
+			D3D11_INPUT_ELEMENT_DESC& elementDesc = declElements.Back();
 
-			elementDesc.SemanticName = D3D11Mappings::get(iter->getSemantic());
-			elementDesc.SemanticIndex = iter->getSemanticIdx();
-			elementDesc.Format = D3D11Mappings::get(iter->getType());
-			elementDesc.InputSlot = iter->getStreamIdx();
-			elementDesc.AlignedByteOffset = static_cast<WORD>(iter->getOffset());
+			elementDesc.SemanticName = D3D11Mappings::get(iter->GetSemantic());
+			elementDesc.SemanticIndex = iter->GetSemanticIdx();
+			elementDesc.Format = D3D11Mappings::get(iter->GetType());
+			elementDesc.InputSlot = iter->GetStreamIdx();
+			elementDesc.AlignedByteOffset = static_cast<WORD>(iter->GetOffset());
 
-			if (iter->getInstanceStepRate() == 0)
+			if (iter->GetInstanceStepRate() == 0)
 			{
 				elementDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 				elementDesc.InstanceDataStepRate = 0;
@@ -104,19 +104,19 @@ namespace bs { namespace ct
 			else
 			{
 				elementDesc.InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
-				elementDesc.InstanceDataStepRate = iter->getInstanceStepRate();
+				elementDesc.InstanceDataStepRate = iter->GetInstanceStepRate();
 			}
 
-			maxStreamIdx = std::max(maxStreamIdx, (INT32)iter->getStreamIdx());
+			maxStreamIdx = std::max(maxStreamIdx, (INT32)iter->GetStreamIdx());
 		}
 
 		// Find elements missing in buffer and add a dummy stream for them
-		for (auto shaderIter = shaderElems.begin(); shaderIter != shaderElems.end(); ++shaderIter)
+		for (auto shaderIter = shaderElems.Begin(); shaderIter != shaderElems.end(); ++shaderIter)
 		{
 			bool foundElement = false;
-			for (auto bufferIter = bufferElems.begin(); bufferIter != bufferElems.end(); ++bufferIter)
+			for (auto bufferIter = bufferElems.Begin(); bufferIter != bufferElems.end(); ++bufferIter)
 			{
-				if (shaderIter->getSemantic() == bufferIter->getSemantic() && shaderIter->getSemanticIdx() == bufferIter->getSemanticIdx())
+				if (shaderIter->GetSemantic() == bufferIter->getSemantic() && shaderIter->getSemanticIdx() == bufferIter->getSemanticIdx())
 				{
 					foundElement = true;
 					break;
@@ -126,11 +126,11 @@ namespace bs { namespace ct
 			if (!foundElement)
 			{
 				declElements.push_back(D3D11_INPUT_ELEMENT_DESC());
-				D3D11_INPUT_ELEMENT_DESC& elementDesc = declElements.back();
+				D3D11_INPUT_ELEMENT_DESC& elementDesc = declElements.Back();
 
-				elementDesc.SemanticName = D3D11Mappings::get(shaderIter->getSemantic());
-				elementDesc.SemanticIndex = shaderIter->getSemanticIdx();
-				elementDesc.Format = D3D11Mappings::get(shaderIter->getType());
+				elementDesc.SemanticName = D3D11Mappings::get(shaderIter->GetSemantic());
+				elementDesc.SemanticIndex = shaderIter->GetSemanticIdx();
+				elementDesc.Format = D3D11Mappings::get(shaderIter->GetType());
 				elementDesc.InputSlot = (UINT32)(maxStreamIdx + 1);
 				elementDesc.AlignedByteOffset = 0;
 				elementDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
@@ -139,27 +139,27 @@ namespace bs { namespace ct
 		}
 
 		D3D11RenderAPI* d3d11rs = static_cast<D3D11RenderAPI*>(RenderAPI::instancePtr());
-		D3D11Device& device = d3d11rs->getPrimaryDevice();
+		D3D11Device& device = d3d11rs->GetPrimaryDevice();
 
-		const DataBlob& microcode = vertexProgram.getMicroCode();
+		const DataBlob& microcode = vertexProgram.GetMicroCode();
 
 		InputLayoutEntry* newEntry = bs_new<InputLayoutEntry>();
 		newEntry->lastUsedIdx = ++mLastUsedCounter;
 		newEntry->inputLayout = nullptr;
-		HRESULT hr = device.getD3D11Device()->CreateInputLayout(
+		HRESULT hr = device.GetD3D11Device()->CreateInputLayout(
 			&declElements[0],
-			(UINT32)declElements.size(),
+			(UINT32)declElements.Size(),
 			microcode.data,
 			microcode.size,
 			&newEntry->inputLayout);
 
-		if (FAILED(hr)|| device.hasError())
-			BS_EXCEPT(RenderingAPIException, "Unable to set D3D11 vertex declaration" + device.getErrorDescription());
+		if (FAILED(hr)|| device.HasError())
+			BS_EXCEPT(RenderingAPIException, "Unable to set D3D11 vertex declaration" + device.GetErrorDescription());
 
 		// Create key and add to the layout map
 		VertexDeclarationKey pair;
-		pair.vertxDeclId = vertexBufferDecl->getId();
-		pair.vertexProgramId = vertexProgram.getProgramId();
+		pair.vertxDeclId = vertexBufferDecl->GetId();
+		pair.vertexProgramId = vertexProgram.GetProgramId();
 
 		mInputLayoutMap[pair] = newEntry;
 
@@ -180,18 +180,18 @@ namespace bs { namespace ct
 
 		Map<UINT32, VertexDeclarationKey> leastFrequentlyUsedMap;
 
-		for(auto iter = mInputLayoutMap.begin(); iter != mInputLayoutMap.end(); ++iter)
+		for(auto iter = mInputLayoutMap.Begin(); iter != mInputLayoutMap.end(); ++iter)
 			leastFrequentlyUsedMap[iter->second->lastUsedIdx] = iter->first;
 
 		UINT32 elemsRemoved = 0;
-		for(auto iter = leastFrequentlyUsedMap.begin(); iter != leastFrequentlyUsedMap.end(); ++iter)
+		for(auto iter = leastFrequentlyUsedMap.Begin(); iter != leastFrequentlyUsedMap.end(); ++iter)
 		{
-			auto inputLayoutIter = mInputLayoutMap.find(iter->second);
+			auto inputLayoutIter = mInputLayoutMap.Find(iter->second);
 
 			SAFE_RELEASE(inputLayoutIter->second->inputLayout);
 			bs_delete(inputLayoutIter->second);
 
-			mInputLayoutMap.erase(inputLayoutIter);
+			mInputLayoutMap.Erase(inputLayoutIter);
 			BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_InputLayout);
 
 			elemsRemoved++;

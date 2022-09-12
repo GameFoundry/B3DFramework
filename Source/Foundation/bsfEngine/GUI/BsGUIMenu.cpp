@@ -32,9 +32,9 @@ namespace bs
 
 	const GUIMenuItem* GUIMenuItem::findChild(const String& name) const
 	{
-		auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&] (GUIMenuItem* x) { return x->getName() == name; });
+		auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&] (GUIMenuItem* x) { return x->GetName() == name; });
 
-		if(iterFind != mChildren.end())
+		if(iterFind != mChildren.End())
 			return *iterFind;
 
 		return nullptr;
@@ -42,9 +42,9 @@ namespace bs
 
 	GUIMenuItem* GUIMenuItem::findChild(const String& name)
 	{
-		auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&] (GUIMenuItem* x) { return x->getName() == name; });
+		auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&] (GUIMenuItem* x) { return x->GetName() == name; });
 
-		if(iterFind != mChildren.end())
+		if(iterFind != mChildren.End())
 			return *iterFind;
 
 		return nullptr;
@@ -52,12 +52,12 @@ namespace bs
 
 	void GUIMenuItem::RemoveChild(const String& name)
 	{
-		auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&] (GUIMenuItem* x) { return x->getName() == name; });
+		auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&] (GUIMenuItem* x) { return x->GetName() == name; });
 
-		if(iterFind != mChildren.end())
+		if(iterFind != mChildren.End())
 		{
 			bs_delete(*iterFind);
-			mChildren.erase(iterFind);
+			mChildren.Erase(iterFind);
 		}
 	}
 
@@ -65,10 +65,10 @@ namespace bs
 	{
 		auto iterFind = std::find(begin(mChildren), end(mChildren), item);
 
-		if (iterFind != mChildren.end())
+		if (iterFind != mChildren.End())
 		{
 			bs_delete(*iterFind);
-			mChildren.erase(iterFind);
+			mChildren.Erase(iterFind);
 		}
 	}
 
@@ -99,17 +99,17 @@ namespace bs
 		Vector<String> pathElements = StringUtil::split(path, "/");
 
 		GUIMenuItem* curSubMenu = &mRootElement;
-		for(UINT32 i = 0; i < (UINT32)pathElements.size(); i++)
+		for(UINT32 i = 0; i < (UINT32)pathElements.Size(); i++)
 		{
 			if(pathElements[i] == "")
 				continue;
 
-			const String& pathElem = *(pathElements.begin() + i);
-			GUIMenuItem* existingItem = curSubMenu->findChild(pathElem);
+			const String& pathElem = *(pathElements.Begin() + i);
+			GUIMenuItem* existingItem = curSubMenu->FindChild(pathElem);
 
 			if(existingItem == nullptr)
 			{
-				bool isLastElem = i == (UINT32)(pathElements.size() - 1);
+				bool isLastElem = i == (UINT32)(pathElements.Size() - 1);
 
 				if(isLastElem)
 					existingItem = bs_new<GUIMenuItem>(curSubMenu, pathElem, callback, priority, mNextIdx++, key);
@@ -119,7 +119,7 @@ namespace bs
 					existingItem = new (existingItem) GUIMenuItem(curSubMenu, pathElem, nullptr, priority, mNextIdx++, ShortcutKey::NONE);
 				}
 
-				curSubMenu->addChild(existingItem);
+				curSubMenu->AddChild(existingItem);
 			}
 
 			curSubMenu = existingItem;
@@ -128,7 +128,7 @@ namespace bs
 		if(isSeparator)
 		{
 			GUIMenuItem* separatorItem = bs_new<GUIMenuItem>(curSubMenu, priority, mNextIdx++);
-			curSubMenu->addChild(separatorItem);
+			curSubMenu->AddChild(separatorItem);
 
 			return separatorItem;
 		}
@@ -141,12 +141,12 @@ namespace bs
 		Vector<String> pathElements = StringUtil::split(path, "/");
 
 		GUIMenuItem* curSubMenu = &mRootElement;
-		for(UINT32 i = 0; i < (UINT32)pathElements.size(); i++)
+		for(UINT32 i = 0; i < (UINT32)pathElements.Size(); i++)
 		{
-			const String& pathElem = *(pathElements.begin() + i);
-			GUIMenuItem* existingItem = curSubMenu->findChild(pathElem);
+			const String& pathElem = *(pathElements.Begin() + i);
+			GUIMenuItem* existingItem = curSubMenu->FindChild(pathElem);
 
-			if(existingItem == nullptr || existingItem->isSeparator())
+			if(existingItem == nullptr || existingItem->IsSeparator())
 				return nullptr;
 
 			curSubMenu = existingItem;
@@ -160,7 +160,7 @@ namespace bs
 		GUIMenuItem* parent = item->mParent;
 		assert(parent != nullptr);
 
-		parent->removeChild(item->getName());
+		parent->RemoveChild(item->getName());
 	}
 
 	GUIDropDownData GUIMenu::GetDropDownData() const
@@ -179,20 +179,20 @@ namespace bs
 
 		for(auto& menuItem : menu.mChildren)
 		{
-			if(menuItem->isSeparator())
+			if(menuItem->IsSeparator())
 			{
 				dropDownData.entries.push_back(GUIDropDownDataEntry::separator());
 			}
 			else
 			{
-				if(menuItem->getNumChildren() == 0)
+				if(menuItem->GetNumChildren() == 0)
 				{
-					dropDownData.entries.push_back(GUIDropDownDataEntry::button(menuItem->getName(),
-						menuItem->getCallback(), menuItem->getShortcut().getName()));
+					dropDownData.entries.push_back(GUIDropDownDataEntry::button(menuItem->GetName(),
+						menuItem->GetCallback(), menuItem->getShortcut().GetName()));
 				}
 				else
 				{
-					dropDownData.entries.push_back(GUIDropDownDataEntry::subMenu(menuItem->getName(),
+					dropDownData.entries.push_back(GUIDropDownDataEntry::subMenu(menuItem->GetName(),
 						getDropDownDataInternal(*menuItem)));
 				}
 			}

@@ -33,7 +33,7 @@ namespace bs
 		ScriptTColorDistributionColorGradient* scriptcolor;
 		scriptcolor = ScriptTColorDistributionColorGradient::toNative(value.color);
 		if(scriptcolor != nullptr)
-			tmpcolor = scriptcolor->getInternal();
+			tmpcolor = scriptcolor->GetInternal();
 		if(tmpcolor != nullptr)
 		output.color = *tmpcolor;
 

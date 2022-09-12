@@ -18,14 +18,14 @@ namespace bs
 
 	float ReflectionProbeBase::GetRadius() const
 	{
-		Vector3 scale = mTransform.getScale();
+		Vector3 scale = mTransform.GetScale();
 		return mRadius * std::max(std::max(scale.x, scale.y), scale.z);
 	}
 
 	void ReflectionProbeBase::UpdateBounds()
 	{
-		Vector3 position = mTransform.getPosition();
-		Vector3 scale = mTransform.getScale();
+		Vector3 position = mTransform.GetPosition();
+		Vector3 scale = mTransform.GetScale();
 
 		switch (mType)
 		{
@@ -33,7 +33,7 @@ namespace bs
 			mBounds = Sphere(position, mRadius * std::max(std::max(scale.x, scale.y), scale.z));
 			break;
 		case ReflectionProbeType::Box:
-			mBounds = Sphere(position, (mExtents * scale).length());
+			mBounds = Sphere(position, (mExtents * scale).Length());
 			break;
 		}
 	}
@@ -60,7 +60,7 @@ namespace bs
 	ReflectionProbe::~ReflectionProbe()
 	{
 		if (mRendererTask)
-			mRendererTask->cancel();
+			mRendererTask->Cancel();
 	}
 
 	void ReflectionProbe::Capture()
@@ -83,7 +83,7 @@ namespace bs
 	{
 		// If previous rendering task exists, cancel it
 		if (mRendererTask != nullptr)
-			mRendererTask->cancel();
+			mRendererTask->Cancel();
 
 		TEXTURE_DESC cubemapDesc;
 		cubemapDesc.type = TEX_TYPE_CUBE_MAP;
@@ -101,25 +101,25 @@ namespace bs
 		};
 
 		SPtr<ct::ReflectionProbe> coreProbe = getCore();
-		SPtr<ct::Texture> coreTexture = mFilteredTexture->getCore();
+		SPtr<ct::Texture> coreTexture = mFilteredTexture->GetCore();
 
 		if (mCustomTexture == nullptr)
 		{
 			auto renderReflProbe = [coreTexture, coreProbe]()
 			{
 				float radius = coreProbe->mType == ReflectionProbeType::Sphere ? coreProbe->mRadius :
-					coreProbe->mExtents.length();
+					coreProbe->mExtents.Length();
 
 				ct::CaptureSettings settings;
 				settings.encodeDepth = true;
 				settings.depthEncodeNear = radius;
 				settings.depthEncodeFar = radius + 1; // + 1 arbitrary, make it a customizable value?
 
-				ct::gRenderer()->captureSceneCubeMap(coreTexture, coreProbe->getTransform().getPosition(), settings);
-				ct::gIBLUtility().filterCubemapForSpecular(coreTexture, nullptr);
+				ct::gRenderer()->CaptureSceneCubeMap(coreTexture, coreProbe->getTransform().GetPosition(), settings);
+				ct::gIBLUtility().FilterCubemapForSpecular(coreTexture, nullptr);
 
 				coreProbe->mFilteredTexture = coreTexture;
-				ct::gRenderer()->notifyReflectionProbeUpdated(coreProbe.get(), true);
+				ct::gRenderer()->NotifyReflectionProbeUpdated(coreProbe.Get(), true);
 
 				return true;
 			};
@@ -128,14 +128,14 @@ namespace bs
 		}
 		else
 		{
-			SPtr<ct::Texture> coreCustomTex = mCustomTexture->getCore();
+			SPtr<ct::Texture> coreCustomTex = mCustomTexture->GetCore();
 			auto filterReflProbe = [coreCustomTex, coreTexture, coreProbe]()
 			{
-				ct::gIBLUtility().scaleCubemap(coreCustomTex, 0, coreTexture, 0);
-				ct::gIBLUtility().filterCubemapForSpecular(coreTexture, nullptr);
+				ct::gIBLUtility().ScaleCubemap(coreCustomTex, 0, coreTexture, 0);
+				ct::gIBLUtility().FilterCubemapForSpecular(coreTexture, nullptr);
 
 				coreProbe->mFilteredTexture = coreTexture;
-				ct::gRenderer()->notifyReflectionProbeUpdated(coreProbe.get(), true);
+				ct::gRenderer()->NotifyReflectionProbeUpdated(coreProbe.Get(), true);
 
 				return true;
 			};
@@ -143,8 +143,8 @@ namespace bs
 			mRendererTask = ct::RendererTask::create("ReflProbeRender", filterReflProbe);
 		}
 
-		mRendererTask->onComplete.connect(renderComplete);
-		ct::gRenderer()->addTask(mRendererTask);
+		mRendererTask->onComplete.Connect(renderComplete);
+		ct::gRenderer()->AddTask(mRendererTask);
 	}
 
 	SPtr<ct::ReflectionProbe> ReflectionProbe::GetCore() const
@@ -157,7 +157,7 @@ namespace bs
 		ReflectionProbe* probe = new (bs_alloc<ReflectionProbe>()) ReflectionProbe(ReflectionProbeType::Sphere, radius, Vector3::ZERO);
 		SPtr<ReflectionProbe> probePtr = bs_core_ptr<ReflectionProbe>(probe);
 		probePtr->_setThisPtr(probePtr);
-		probePtr->initialize();
+		probePtr->Initialize();
 
 		return probePtr;
 	}
@@ -167,7 +167,7 @@ namespace bs
 		ReflectionProbe* probe = new (bs_alloc<ReflectionProbe>()) ReflectionProbe(ReflectionProbeType::Box, 1.0f, extents);
 		SPtr<ReflectionProbe> probePtr = bs_core_ptr<ReflectionProbe>(probe);
 		probePtr->_setThisPtr(probePtr);
-		probePtr->initialize();
+		probePtr->Initialize();
 
 		return probePtr;
 	}
@@ -185,7 +185,7 @@ namespace bs
 	{
 		SPtr<ct::Texture> filteredTexture;
 		if (mFilteredTexture != nullptr)
-			filteredTexture = mFilteredTexture->getCore();
+			filteredTexture = mFilteredTexture->GetCore();
 
 		ct::ReflectionProbe* probe = new (bs_alloc<ct::ReflectionProbe>()) ct::ReflectionProbe(mType, mRadius, mExtents,
 			filteredTexture);
@@ -202,7 +202,7 @@ namespace bs
 		size += csync_size((SceneActor&)*this);
 		size += csync_size(*this);
 
-		UINT8* buffer = allocator->alloc(size);
+		UINT8* buffer = allocator->Alloc(size);
 
 		Bitstream Stream(buffer, size);
 		rtti_write(getCoreDirtyFlags(), stream);
@@ -241,20 +241,20 @@ namespace bs
 
 	ReflectionProbe::~ReflectionProbe()
 	{
-		gRenderer()->notifyReflectionProbeRemoved(this);
+		gRenderer()->NotifyReflectionProbeRemoved(this);
 	}
 
 	void ReflectionProbe::Initialize()
 	{
 		updateBounds();
-		gRenderer()->notifyReflectionProbeAdded(this);
+		gRenderer()->NotifyReflectionProbeAdded(this);
 
 		CoreObject::initialize();
 	}
 
 	void ReflectionProbe::SyncToCore(const CoreSyncData& data)
 	{
-		Bitstream Stream(data.getBuffer(), data.getBufferSize());
+		Bitstream Stream(data.GetBuffer(), data.getBufferSize());
 
 		UINT32 dirtyFlags = 0;
 		bool oldIsActive = mActive;
@@ -269,19 +269,19 @@ namespace bs
 		if (dirtyFlags == (UINT32)ActorDirtyFlag::Transform)
 		{
 			if (mActive)
-				gRenderer()->notifyReflectionProbeUpdated(this, false);
+				gRenderer()->NotifyReflectionProbeUpdated(this, false);
 		}
 		else
 		{
 			if (oldIsActive != mActive)
 			{
 				if (mActive)
-					gRenderer()->notifyReflectionProbeAdded(this);
+					gRenderer()->NotifyReflectionProbeAdded(this);
 				else
 				{
 					ReflectionProbeType newType = mType;
 					mType = oldType;
-					gRenderer()->notifyReflectionProbeRemoved(this);
+					gRenderer()->NotifyReflectionProbeRemoved(this);
 					mType = newType;
 				}
 			}
@@ -289,10 +289,10 @@ namespace bs
 			{
 				ReflectionProbeType newType = mType;
 				mType = oldType;
-				gRenderer()->notifyReflectionProbeRemoved(this);
+				gRenderer()->NotifyReflectionProbeRemoved(this);
 				mType = newType;
 
-				gRenderer()->notifyReflectionProbeAdded(this);
+				gRenderer()->NotifyReflectionProbeAdded(this);
 			}
 		}
 	}

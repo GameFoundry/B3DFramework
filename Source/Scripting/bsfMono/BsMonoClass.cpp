@@ -47,28 +47,28 @@ namespace bs
 			bs_delete(mapEntry.second);
 		}
 
-		mMethods.clear();
+		mMethods.Clear();
 
 		for(auto& mapEntry : mFields)
 		{
 			bs_delete(mapEntry.second);
 		}
 
-		mFields.clear();
+		mFields.Clear();
 
 		for(auto& mapEntry : mProperties)
 		{
 			bs_delete(mapEntry.second);
 		}
 
-		mProperties.clear();
+		mProperties.Clear();
 	}
 
 	MonoMethod* MonoClass::getMethod(const String& name, UINT32 numParams) const
 	{
 		MethodId MehodId(name, numParams);
-		auto iterFind = mMethods.find(mehodId);
-		if(iterFind != mMethods.end())
+		auto iterFind = mMethods.Find(mehodId);
+		if(iterFind != mMethods.End())
 			return iterFind->second;
 
 		::MonoMethod* method = mono_class_get_method_from_name(mClass, name.c_str(), (int)numParams);
@@ -84,8 +84,8 @@ namespace bs
 	MonoMethod* MonoClass::getMethodExact(const String& name, const String& signature) const
 	{
 		MethodId MehodId(name + "(" + signature + ")", 0);
-		auto iterFind = mMethods.find(mehodId);
-		if(iterFind != mMethods.end())
+		auto iterFind = mMethods.Find(mehodId);
+		if(iterFind != mMethods.End())
 			return iterFind->second;
 
 		::MonoMethod* method;
@@ -128,8 +128,8 @@ namespace bs
 
 	MonoField* MonoClass::getField(const String& name) const
 	{
-		auto iterFind = mFields.find(name);
-		if(iterFind != mFields.end())
+		auto iterFind = mFields.Find(name);
+		if(iterFind != mFields.End())
 			return iterFind->second;
 
 		MonoClassField* field = mono_class_get_field_from_name(mClass, name.c_str());
@@ -144,8 +144,8 @@ namespace bs
 
 	MonoProperty* MonoClass::getProperty(const String& name) const
 	{
-		auto iterFind = mProperties.find(name);
-		if(iterFind != mProperties.end())
+		auto iterFind = mProperties.Find(name);
+		if(iterFind != mProperties.End())
 			return iterFind->second;
 
 		::MonoProperty* property = mono_class_get_property_from_name(mClass, name.c_str());
@@ -163,7 +163,7 @@ namespace bs
 		if(mHasCachedFields)
 			return mCachedFieldList;
 
-		mCachedFieldList.clear();
+		mCachedFieldList.Clear();
 
 		void* iter = nullptr;
 		MonoClassField* curClassField = mono_class_get_fields(mClass, &iter);
@@ -186,7 +186,7 @@ namespace bs
 		if (mHasCachedProperties)
 			return mCachedPropertyList;
 
-		mCachedPropertyList.clear();
+		mCachedPropertyList.Clear();
 
 		void* iter = nullptr;
 		::MonoProperty* curClassProperty = mono_class_get_properties(mClass, &iter);
@@ -209,7 +209,7 @@ namespace bs
 		if (mHasCachedMethods)
 			return mCachedMethodList;
 
-		mCachedMethodList.clear();
+		mCachedMethodList.Clear();
 
 		void* iter = nullptr;
 		::MonoMethod* curClassMethod = mono_class_get_methods(mClass, &iter);
@@ -242,7 +242,7 @@ namespace bs
 		for (INT32 i = 0; i < attrInfo->num_attrs; i++)
 		{
 			::MonoClass* attribClass = mono_method_get_class(attrInfo->attrs[i].ctor);
-			MonoClass* klass = MonoManager::instance().findClass(attribClass);
+			MonoClass* klass = MonoManager::instance().FindClass(attribClass);
 
 			if (klass != nullptr)
 				attributes.push_back(klass);
@@ -255,7 +255,7 @@ namespace bs
 
 	MonoObject* MonoClass::invokeMethod(const String& name, MonoObject* instance, void** params, UINT32 numParams)
 	{
-		return GetMethod(name, numParams)->invoke(instance, params);
+		return GetMethod(name, numParams)->Invoke(instance, params);
 	}
 
 	void MonoClass::AddInternalCall(const String& name, const void* method)
@@ -266,7 +266,7 @@ namespace bs
 
 	MonoObject* MonoClass::createInstance(bool construct) const
 	{
-		MonoObject* obj = mono_object_new(MonoManager::instance().getDomain(), mClass);
+		MonoObject* obj = mono_object_new(MonoManager::instance().GetDomain(), mClass);
 
 		if(construct)
 			mono_runtime_object_init(obj);
@@ -276,16 +276,16 @@ namespace bs
 
 	MonoObject* MonoClass::createInstance(void** params, UINT32 numParams)
 	{
-		MonoObject* obj = mono_object_new(MonoManager::instance().getDomain(), mClass);
-		getMethod(".ctor", numParams)->invoke(obj, params);
+		MonoObject* obj = mono_object_new(MonoManager::instance().GetDomain(), mClass);
+		getMethod(".ctor", numParams)->Invoke(obj, params);
 
 		return obj;
 	}
 
 	MonoObject* MonoClass::createInstance(const String& ctorSignature, void** params)
 	{
-		MonoObject* obj = mono_object_new(MonoManager::instance().getDomain(), mClass);
-		getMethodExact(".ctor", ctorSignature)->invoke(obj, params);
+		MonoObject* obj = mono_object_new(MonoManager::instance().GetDomain(), mClass);
+		getMethodExact(".ctor", ctorSignature)->Invoke(obj, params);
 
 		return obj;
 	}
@@ -336,7 +336,7 @@ namespace bs
 		String type;
 		MonoUtil::getClassName(monoBase, ns, type);
 
-		return MonoManager::Instance().findClass(ns, type);
+		return MonoManager::Instance().FindClass(ns, type);
 	}
 
 	bool MonoClass::IsInstanceOfType(MonoObject* object) const

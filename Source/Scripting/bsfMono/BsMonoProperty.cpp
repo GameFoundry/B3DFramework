@@ -106,14 +106,14 @@ namespace bs
 		if(mGetMethod)
 		{
 			MonoMethod GetterWrapper(mGetMethod);
-			getterVisibility = getterWrapper.getVisibility();
+			getterVisibility = getterWrapper.GetVisibility();
 		}
 
 		MonoMemberVisibility setterVisibility = MonoMemberVisibility::Public;
 		if (mSetMethod)
 		{
 			MonoMethod SetterWrapper(mSetMethod);
-			setterVisibility = setterWrapper.getVisibility();
+			setterVisibility = setterWrapper.GetVisibility();
 		}
 
 		if (getterVisibility < setterVisibility)
@@ -133,7 +133,7 @@ namespace bs
 			{
 				::MonoClass* returnClass = mono_class_from_mono_type(returnType);
 				if (returnClass != nullptr)
-					mReturnType = MonoManager::instance().findClass(returnClass);
+					mReturnType = MonoManager::instance().FindClass(returnClass);
 			}
 
 			UINT32 numParams = mono_signature_get_param_count(signature);
@@ -148,7 +148,7 @@ namespace bs
 			{
 				::MonoClass* returnClass = mono_class_from_mono_type(returnType);
 				if (returnClass != nullptr)
-					mReturnType = MonoManager::instance().findClass(returnClass);
+					mReturnType = MonoManager::instance().FindClass(returnClass);
 			}
 
 			UINT32 numParams = mono_signature_get_param_count(signature);

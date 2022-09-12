@@ -52,9 +52,9 @@ namespace bs
 		// Get CPU manufacturer
 		__cpuid(CPUInfo, 0);
 		output.cpuManufacturer = String(12, ' ');
-		memcpy((char*)output.cpuManufacturer.data(), &CPUInfo[1], 4);
-		memcpy((char*)output.cpuManufacturer.data() + 4, &CPUInfo[3], 4);
-		memcpy((char*)output.cpuManufacturer.data() + 8, &CPUInfo[2], 4);
+		memcpy((char*)output.cpuManufacturer.Data(), &CPUInfo[1], 4);
+		memcpy((char*)output.cpuManufacturer.Data() + 4, &CPUInfo[3], 4);
+		memcpy((char*)output.cpuManufacturer.Data() + 8, &CPUInfo[2], 4);
 
 		// Get CPU brand string
 		char brandString[48];
@@ -141,7 +141,7 @@ namespace bs
 
 	String PlatformUtility::ConvertCaseUTF8(const String& input, bool toUpper)
 	{
-		if(input.empty())
+		if(input.Empty())
 			return "";
 
 		WString wideString = UTF8::toWide(input);
@@ -152,8 +152,8 @@ namespace bs
 		UINT32 requiredNumChars = LCMapStringEx(
 			LOCALE_NAME_USER_DEFAULT,
 			flags,
-			wideString.data(),
-			(int)wideString.length(),
+			wideString.Data(),
+			(int)wideString.Length(),
 			nullptr,
 			0,
 			nullptr,
@@ -165,10 +165,10 @@ namespace bs
 		LCMapStringEx(
 			LOCALE_NAME_USER_DEFAULT,
 			flags,
-			wideString.data(),
-			(int)wideString.length(),
+			wideString.Data(),
+			(int)wideString.Length(),
 			&outputWideString[0],
-			(int)outputWideString.length(),
+			(int)outputWideString.Length(),
 			nullptr,
 			nullptr,
 			0);
@@ -216,7 +216,7 @@ namespace bs
 					pixel.b *= pixel.a;
 				}
 
-				*dst = pixel.getAsBGRA();
+				*dst = pixel.GetAsBGRA();
 
 				dst++;
 			}

@@ -55,7 +55,7 @@ namespace bs
 		 */
 		void* lock(GpuLockOptions options, UINT32 deviceIdx = 0, UINT32 queueIdx = 0)
 		{
-			return this->lock(0, mSize, options, deviceIdx, queueIdx);
+			return this->Lock(0, mSize, options, deviceIdx, queueIdx);
 		}
 
 		/**	Releases the lock on this buffer. */
@@ -118,7 +118,7 @@ namespace bs
 		 */
 		virtual void CopyData(HardwareBuffer& srcBuffer, const SPtr<ct::CommandBuffer>& commandBuffer = nullptr)
 		{
-			UINT32 sz = std::min(getSize(), srcBuffer.getSize());
+			UINT32 sz = std::min(getSize(), srcBuffer.GetSize());
 			copyData(srcBuffer, 0, 0, sz, true, commandBuffer);
 		}
 			

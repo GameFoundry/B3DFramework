@@ -38,7 +38,7 @@ namespace bs
 	void GUIElement::UpdateClippedBounds()
 	{
 		mClippedBounds = mLayoutData.area;
-		mClippedBounds.clip(mLayoutData.clipRect);
+		mClippedBounds.Clip(mLayoutData.clipRect);
 	}
 
 	void GUIElement::SetStyle(const String& styleName)
@@ -59,15 +59,15 @@ namespace bs
 
 	bool GUIElement::_commandEvent(const GUICommandEvent& ev)
 	{
-		if (ev.getType() == GUICommandEventType::FocusGained)
+		if (ev.GetType() == GUICommandEventType::FocusGained)
 		{
 			onFocusChanged(true);
-			return !mOptionFlags.isSet(GUIElementOption::ClickThrough);
+			return !mOptionFlags.IsSet(GUIElementOption::ClickThrough);
 		}
-		else if (ev.getType() == GUICommandEventType::FocusLost)
+		else if (ev.GetType() == GUICommandEventType::FocusLost)
 		{
 			onFocusChanged(false);
-			return !mOptionFlags.isSet(GUIElementOption::ClickThrough);
+			return !mOptionFlags.IsSet(GUIElementOption::ClickThrough);
 		}
 
 		return false;
@@ -117,7 +117,7 @@ namespace bs
 		{
 			// Unregister from current widget's nav-group
 			if(!mNavGroup && mParentWidget)
-				mParentWidget->_getDefaultNavGroup()->unregisterElement(this);
+				mParentWidget->_getDefaultNavGroup()->UnregisterElement(this);
 
 			widgetChanged = true;
 		}
@@ -128,7 +128,7 @@ namespace bs
 		{
 			// Register with the new widget's nav-group
 			if(!mNavGroup && mParentWidget)
-				mParentWidget->_getDefaultNavGroup()->registerElement(this);
+				mParentWidget->_getDefaultNavGroup()->RegisterElement(this);
 
 			_refreshStyle();
 		}
@@ -153,10 +153,10 @@ namespace bs
 			return;
 
 		if(currentNavGroup)
-			currentNavGroup->unregisterElement(this);
+			currentNavGroup->UnregisterElement(this);
 
 		if(navGroup)
-			navGroup->registerElement(this);
+			navGroup->RegisterElement(this);
 
 		mNavGroup = navGroup;
 	}
@@ -165,7 +165,7 @@ namespace bs
 	{
 		SPtr<GUINavGroup> navGroup = _getNavGroup();
 		if(navGroup != nullptr)
-			navGroup->setIndex(this, index);
+			navGroup->SetIndex(this, index);
 	}
 
 	SPtr<GUINavGroup> GUIElement::_getNavGroup() const
@@ -181,7 +181,7 @@ namespace bs
 
 	void GUIElement::SetFocus(bool enabled, bool clear)
 	{
-		GUIManager::instance().setFocus(this, enabled, clear);
+		GUIManager::instance().SetFocus(this, enabled, clear);
 	}
 
 	void GUIElement::ResetDimensions()
@@ -189,7 +189,7 @@ namespace bs
 		bool isFixedBefore = (mDimensions.flags & GUIDF_FixedWidth) != 0 && (mDimensions.flags & GUIDF_FixedHeight) != 0;
 
 		mDimensions = GUIDimensions::create();
-		mDimensions.updateWithStyle(mStyle);
+		mDimensions.UpdateWithStyle(mStyle);
 
 		bool isFixedAfter = (mDimensions.flags & GUIDF_FixedWidth) != 0 && (mDimensions.flags & GUIDF_FixedHeight) != 0;
 
@@ -232,7 +232,7 @@ namespace bs
 		// Transform into element space so we can clip it using the element clip rectangle
 		Vector2I offsetDiff = Vector2I(contentBounds.x - mLayoutData.area.x, contentBounds.y - mLayoutData.area.y);
 		Rect2I ContentClipRect(offsetDiff.x, offsetDiff.y, contentBounds.width, contentBounds.height);
-		contentClipRect.clip(mLayoutData.getLocalClipRect());
+		contentClipRect.Clip(mLayoutData.getLocalClipRect());
 
 		// Transform into content sprite space
 		contentClipRect.x -= offsetDiff.x;
@@ -253,7 +253,7 @@ namespace bs
 	{
 		Rect2I contentBounds = getCachedVisibleBounds();
 
-		return contentBounds.contains(position);
+		return contentBounds.Contains(position);
 	}
 
 	SPtr<GUIContextMenu> GUIElement::_getContextMenu() const
@@ -267,8 +267,8 @@ namespace bs
 	void GUIElement::_refreshStyle()
 	{
 		const GUIElementStyle* newStyle = nullptr;
-		if(_getParentWidget() != nullptr && !mStyleName.empty())
-			newStyle = _getParentWidget()->getSkin().getStyle(mStyleName);
+		if(_getParentWidget() != nullptr && !mStyleName.Empty())
+			newStyle = _getParentWidget()->GetSkin().GetStyle(mStyleName);
 		else
 			newStyle = &GUISkin::DefaultStyle;
 
@@ -278,7 +278,7 @@ namespace bs
 
 			bool isFixedBefore = (mDimensions.flags & GUIDF_FixedWidth) != 0 && (mDimensions.flags & GUIDF_FixedHeight) != 0;
 
-			mDimensions.updateWithStyle(mStyle);
+			mDimensions.UpdateWithStyle(mStyle);
 
 			bool isFixedAfter = (mDimensions.flags & GUIDF_FixedWidth) != 0 && (mDimensions.flags & GUIDF_FixedHeight) != 0;
 			if (isFixedBefore != isFixedAfter)
@@ -291,9 +291,9 @@ namespace bs
 
 	const String& GUIElement::GetSubStyleName(const String& subStyleTypeName) const
 	{
-		auto iterFind = mStyle->subStyles.find(subStyleTypeName);
+		auto iterFind = mStyle->subStyles.Find(subStyleTypeName);
 
-		if (iterFind != mStyle->subStyles.end())
+		if (iterFind != mStyle->subStyles.End())
 			return iterFind->second;
 		else
 			return StringUtil::BLANK;
@@ -306,14 +306,14 @@ namespace bs
 
 		SPtr<GUINavGroup> currentNavGroup = element->_getNavGroup();
 		if(currentNavGroup)
-			currentNavGroup->unregisterElement(element);
+			currentNavGroup->UnregisterElement(element);
 
 		if (element->mParentElement != nullptr)
 			element->mParentElement->_unregisterChildElement(element);
 
 		element->mIsDestroyed = true;
 
-		GUIManager::instance().queueForDestroy(element);
+		GUIManager::instance().QueueForDestroy(element);
 	}
 
 	Rect2I GUIElement::GetVisibleBounds()

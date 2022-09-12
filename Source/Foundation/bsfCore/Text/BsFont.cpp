@@ -8,10 +8,10 @@ namespace bs
 {
 	const CharDesc& FontBitmap::GetCharDesc(UINT32 charId) const
 	{
-		auto iterFind = characters.find(charId);
-		if(iterFind != characters.end())
+		auto iterFind = characters.Find(charId);
+		if(iterFind != characters.End())
 		{
-			return characters.at(charId);
+			return characters.At(charId);
 		}
 
 		return missingGlyph;
@@ -33,7 +33,7 @@ namespace bs
 
 	void Font::Initialize(const Vector<SPtr<FontBitmap>>& fontData)
 	{
-		for(auto iter = fontData.begin(); iter != fontData.end(); ++iter)
+		for(auto iter = fontData.Begin(); iter != fontData.end(); ++iter)
 		{
 			mFontDataPerSize[(*iter)->size] = *iter;
 
@@ -49,9 +49,9 @@ namespace bs
 
 	SPtr<FontBitmap> Font::GetBitmap(UINT32 size) const
 	{
-		auto iterFind = mFontDataPerSize.find(size);
+		auto iterFind = mFontDataPerSize.Find(size);
 
-		if(iterFind == mFontDataPerSize.end())
+		if(iterFind == mFontDataPerSize.End())
 			return nullptr;
 
 		return iterFind->second;
@@ -62,7 +62,7 @@ namespace bs
 		UINT32 minDiff = std::numeric_limits<UINT32>::max();
 		UINT32 bestSize = size;
 
-		for(auto iter = mFontDataPerSize.begin(); iter != mFontDataPerSize.end(); ++iter)
+		for(auto iter = mFontDataPerSize.Begin(); iter != mFontDataPerSize.end(); ++iter)
 		{
 			if(iter->first == size)
 				return size;
@@ -95,8 +95,8 @@ namespace bs
 		{
 			for (auto& texture : fontDataEntry.second->texturePages)
 			{
-				if (texture.isLoaded())
-					dependencies.push_back(texture.get());
+				if (texture.IsLoaded())
+					dependencies.push_back(texture.Get());
 			}
 		}
 	}
@@ -112,7 +112,7 @@ namespace bs
 	{
 		SPtr<Font> newFont = bs_core_ptr<Font>(new (bs_alloc<Font>()) Font());
 		newFont->_setThisPtr(newFont);
-		newFont->initialize(fontData);
+		newFont->Initialize(fontData);
 
 		return newFont;
 	}

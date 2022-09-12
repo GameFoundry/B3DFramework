@@ -25,7 +25,7 @@ namespace bs
 
 	void ScriptManagedResource::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptManagedResource::internal_createInstance);
+		metaData.scriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptManagedResource::internal_createInstance);
 	}
 
 	void ScriptManagedResource::internal_createInstance(MonoObject* instance)
@@ -38,10 +38,10 @@ namespace bs
 		SPtr<ManagedSerializableObjectInfo> currentObjInfo = nullptr;
 
 		// See if this type even still exists
-		if (!ScriptAssemblyManager::instance().getSerializableObjectInfo(mNamespace, mType, currentObjInfo))
+		if (!ScriptAssemblyManager::instance().GetSerializableObjectInfo(mNamespace, mType, currentObjInfo))
 			return nullptr;
 
-		MonoObject* instance = currentObjInfo->mMonoClass->createInstance(construct);
+		MonoObject* instance = currentObjInfo->mMonoClass->CreateInstance(construct);
 		mGCHandle = MonoUtil::newGCHandle(instance, false);
 
 		return instance;
@@ -55,7 +55,7 @@ namespace bs
 	ScriptObjectBackup ScriptManagedResource::BeginRefresh()
 	{
 		ScriptObjectBackup backupData;
-		backupData.data = mResource->backup();
+		backupData.data = mResource->Backup();
 
 		return backupData;
 	}
@@ -65,7 +65,7 @@ namespace bs
 		MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
 
 		ResourceBackupData resourceBackup = any_cast<ResourceBackupData>(backupData.data);
-		mResource->restore(resourceBackup);
+		mResource->Restore(resourceBackup);
 
 		// If we could not find resource type after refresh, treat it as if it was destroyed
 		if (instance == nullptr)
@@ -76,16 +76,16 @@ namespace bs
 	{
 		mGCHandle = 0;
 		
-		if (!assemblyRefresh || mResource->isDestroyed())
+		if (!assemblyRefresh || mResource->IsDestroyed())
 		{
 			// The only way this method should be reachable is when Resource::unload is called, which means the resource
 			// has had to been already freed. Even if all managed instances are released ManagedResource itself holds the last
 			// instance which is only freed on unload().
 			// Note: During domain unload this could get called even if not all instances are released, but ManagedResourceManager
 			// should make sure all instances are unloaded before that happens.
-			BS_ASSERT(mResource == nullptr || !mResource.isLoaded());
+			BS_ASSERT(mResource == nullptr || !mResource.IsLoaded());
 
-			ScriptResourceManager::instance().destroyScriptResource(this);
+			ScriptResourceManager::instance().DestroyScriptResource(this);
 		}
 	}
 

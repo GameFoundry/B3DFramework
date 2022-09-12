@@ -26,37 +26,37 @@ namespace bs
 
 	void ScriptVirtualInput::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_GetKeyConfig", (void*)&ScriptVirtualInput::internal_getKeyConfig);
-		metaData.scriptClass->addInternalCall("Internal_SetKeyConfig", (void*)&ScriptVirtualInput::internal_setKeyConfig);
-		metaData.scriptClass->addInternalCall("Internal_IsButtonHeld", (void*)&ScriptVirtualInput::internal_isButtonHeld);
-		metaData.scriptClass->addInternalCall("Internal_IsButtonDown", (void*)&ScriptVirtualInput::internal_isButtonDown);
-		metaData.scriptClass->addInternalCall("Internal_IsButtonUp", (void*)&ScriptVirtualInput::internal_isButtonUp);
-		metaData.scriptClass->addInternalCall("Internal_GetAxisValue", (void*)&ScriptVirtualInput::internal_getAxisValue);
+		metaData.scriptClass->AddInternalCall("Internal_GetKeyConfig", (void*)&ScriptVirtualInput::internal_getKeyConfig);
+		metaData.scriptClass->AddInternalCall("Internal_SetKeyConfig", (void*)&ScriptVirtualInput::internal_setKeyConfig);
+		metaData.scriptClass->AddInternalCall("Internal_IsButtonHeld", (void*)&ScriptVirtualInput::internal_isButtonHeld);
+		metaData.scriptClass->AddInternalCall("Internal_IsButtonDown", (void*)&ScriptVirtualInput::internal_isButtonDown);
+		metaData.scriptClass->AddInternalCall("Internal_IsButtonUp", (void*)&ScriptVirtualInput::internal_isButtonUp);
+		metaData.scriptClass->AddInternalCall("Internal_GetAxisValue", (void*)&ScriptVirtualInput::internal_getAxisValue);
 
-		OnButtonUpThunk = (OnButtonEventThunkDef)metaData.scriptClass->getMethodExact("Internal_TriggerButtonDown", "VirtualButton,int")->getThunk();
-		OnButtonDownThunk = (OnButtonEventThunkDef)metaData.scriptClass->getMethodExact("Internal_TriggerButtonUp", "VirtualButton,int")->getThunk();
-		OnButtonHeldThunk = (OnButtonEventThunkDef)metaData.scriptClass->getMethodExact("Internal_TriggerButtonHeld", "VirtualButton,int")->getThunk();
+		OnButtonUpThunk = (OnButtonEventThunkDef)metaData.scriptClass->GetMethodExact("Internal_TriggerButtonDown", "VirtualButton,int")->getThunk();
+		OnButtonDownThunk = (OnButtonEventThunkDef)metaData.scriptClass->GetMethodExact("Internal_TriggerButtonUp", "VirtualButton,int")->getThunk();
+		OnButtonHeldThunk = (OnButtonEventThunkDef)metaData.scriptClass->GetMethodExact("Internal_TriggerButtonHeld", "VirtualButton,int")->getThunk();
 	}
 
 	void ScriptVirtualInput::StartUp()
 	{
 		VirtualInput& input = VirtualInput::instance();
 
-		OnButtonPressedConn = input.onButtonDown.connect(&ScriptVirtualInput::onButtonDown);
-		OnButtonReleasedConn = input.onButtonUp.connect(&ScriptVirtualInput::onButtonUp);
-		OnButtonHeldConn = input.onButtonHeld.connect(&ScriptVirtualInput::onButtonHeld);
+		OnButtonPressedConn = input.onButtonDown.Connect(&ScriptVirtualInput::onButtonDown);
+		OnButtonReleasedConn = input.onButtonUp.Connect(&ScriptVirtualInput::onButtonUp);
+		OnButtonHeldConn = input.onButtonHeld.Connect(&ScriptVirtualInput::onButtonHeld);
 	}
 
 	void ScriptVirtualInput::ShutDown()
 	{
-		OnButtonPressedConn.disconnect();
-		OnButtonReleasedConn.disconnect();
-		OnButtonHeldConn.disconnect();
+		OnButtonPressedConn.Disconnect();
+		OnButtonReleasedConn.Disconnect();
+		OnButtonHeldConn.Disconnect();
 	}
 
 	void ScriptVirtualInput::OnButtonDown(const VirtualButton& btn, UINT32 deviceIdx)
 	{
-		if (PlayInEditor::instance().getState() != PlayInEditorState::Playing)
+		if (PlayInEditor::instance().GetState() != PlayInEditorState::Playing)
 			return;
 
 		MonoObject* virtualButton = ScriptVirtualButton::box(btn);
@@ -65,7 +65,7 @@ namespace bs
 
 	void ScriptVirtualInput::OnButtonUp(const VirtualButton& btn, UINT32 deviceIdx)
 	{
-		if (PlayInEditor::instance().getState() != PlayInEditorState::Playing)
+		if (PlayInEditor::instance().GetState() != PlayInEditorState::Playing)
 			return;
 
 		MonoObject* virtualButton = ScriptVirtualButton::box(btn);
@@ -74,7 +74,7 @@ namespace bs
 
 	void ScriptVirtualInput::OnButtonHeld(const VirtualButton& btn, UINT32 deviceIdx)
 	{
-		if (PlayInEditor::instance().getState() != PlayInEditorState::Playing)
+		if (PlayInEditor::instance().GetState() != PlayInEditorState::Playing)
 			return;
 
 		MonoObject* virtualButton = ScriptVirtualButton::box(btn);
@@ -83,39 +83,39 @@ namespace bs
 
 	MonoObject* ScriptVirtualInput::internal_getKeyConfig()
 	{
-		SPtr<InputConfiguration> inputConfig = VirtualInput::instance().getConfiguration();
+		SPtr<InputConfiguration> inputConfig = VirtualInput::instance().GetConfiguration();
 
 		ScriptInputConfiguration* scriptInputConfig = ScriptInputConfiguration::getScriptInputConfig(inputConfig);
 		if (scriptInputConfig == nullptr)
 			scriptInputConfig = ScriptInputConfiguration::createScriptInputConfig(inputConfig);
 
-		return scriptInputConfig->getManagedInstance();
+		return scriptInputConfig->GetManagedInstance();
 	}
 
 	void ScriptVirtualInput::internal_setKeyConfig(MonoObject* keyConfig)
 	{
 		ScriptInputConfiguration* inputConfig = ScriptInputConfiguration::toNative(keyConfig);
 
-		VirtualInput::instance().setConfiguration(inputConfig->getInternalValue());
+		VirtualInput::instance().SetConfiguration(inputConfig->GetInternalValue());
 	}
 
 	bool ScriptVirtualInput::internal_isButtonHeld(VirtualButton* btn, UINT32 deviceIdx)
 	{
-		return VirtualInput::Instance().isButtonHeld(*btn, deviceIdx);
+		return VirtualInput::Instance().IsButtonHeld(*btn, deviceIdx);
 	}
 
 	bool ScriptVirtualInput::internal_isButtonDown(VirtualButton* btn, UINT32 deviceIdx)
 	{
-		return VirtualInput::Instance().isButtonDown(*btn, deviceIdx);
+		return VirtualInput::Instance().IsButtonDown(*btn, deviceIdx);
 	}
 
 	bool ScriptVirtualInput::internal_isButtonUp(VirtualButton* btn, UINT32 deviceIdx)
 	{
-		return VirtualInput::Instance().isButtonUp(*btn, deviceIdx);
+		return VirtualInput::Instance().IsButtonUp(*btn, deviceIdx);
 	}
 
 	float ScriptVirtualInput::internal_getAxisValue(VirtualAxis* axis, UINT32 deviceIdx)
 	{
-		return VirtualInput::Instance().getAxisValue(*axis, deviceIdx);
+		return VirtualInput::Instance().GetAxisValue(*axis, deviceIdx);
 	}
 }

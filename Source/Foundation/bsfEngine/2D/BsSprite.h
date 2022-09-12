@@ -75,7 +75,7 @@ namespace bs
 		 * 			
 		 * @return	The number render elements.
 		 */
-		UINT32 GetNumRenderElements() const { return (UINT32)mCachedRenderElements.size(); }
+		UINT32 GetNumRenderElements() const { return (UINT32)mCachedRenderElements.Size(); }
 
 		/**
 		 * Returns information about the number of vertices and indices the required render element requires, as well

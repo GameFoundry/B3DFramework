@@ -13,7 +13,7 @@ namespace bs
 	PixelData::PixelData(const PixelVolume& extents, PixelFormat pixelFormat)
 		:mExtents(extents), mFormat(pixelFormat)
 	{
-		PixelUtil::getPitch(extents.getWidth(), extents.getHeight(), extents.getDepth(), pixelFormat, mRowPitch,
+		PixelUtil::getPitch(extents.GetWidth(), extents.getHeight(), extents.getDepth(), pixelFormat, mRowPitch,
 			mSlicePitch);
 	}
 
@@ -86,20 +86,20 @@ namespace bs
 			BS_EXCEPT(InvalidParametersException, "Cannot return subvolume of compressed PixelBuffer");
 		}
 
-		if (!mExtents.contains(volume))
+		if (!mExtents.Contains(volume))
 		{
 			BS_EXCEPT(InvalidParametersException, "Bounds out of range");
 		}
 
 		const size_t elemSize = PixelUtil::getNumElemBytes(mFormat);
-		PixelData Rval(volume.getWidth(), volume.getHeight(), volume.getDepth(), mFormat);
+		PixelData Rval(volume.GetWidth(), volume.getHeight(), volume.getDepth(), mFormat);
 
-		rval.setExternalBuffer(((UINT8*)getData()) + ((volume.left - getLeft())*elemSize)
+		rval.SetExternalBuffer(((UINT8*)getData()) + ((volume.left - getLeft())*elemSize)
 			+ ((volume.top - getTop())*mRowPitch)
 			+ ((volume.front - getFront())*mSlicePitch));
 
 		rval.mFormat = mFormat;
-		PixelUtil::getPitch(volume.getWidth(), volume.getHeight(), volume.getDepth(), mFormat, rval.mRowPitch,
+		PixelUtil::getPitch(volume.GetWidth(), volume.getHeight(), volume.getDepth(), mFormat, rval.mRowPitch,
 							rval.mSlicePitch);
 
 		return rval;
@@ -107,10 +107,10 @@ namespace bs
 
 	Color PixelData::SampleColorAt(const Vector2& coords, TextureFilter filter) const
 	{
-		Vector2 pixelCoords = coords * Vector2((float)mExtents.getWidth(), (float)mExtents.getHeight());
+		Vector2 pixelCoords = coords * Vector2((float)mExtents.GetWidth(), (float)mExtents.getHeight());
 
-		INT32 maxExtentX = std::max(0, (INT32)mExtents.getWidth() - 1);
-		INT32 maxExtentY = std::max(0, (INT32)mExtents.getHeight() - 1);
+		INT32 maxExtentX = std::max(0, (INT32)mExtents.GetWidth() - 1);
+		INT32 maxExtentY = std::max(0, (INT32)mExtents.GetHeight() - 1);
 
 		if(filter == TF_BILINEAR)
 		{
@@ -165,9 +165,9 @@ namespace bs
 
 	Vector<Color> PixelData::GetColors() const
 	{
-		UINT32 depth = mExtents.getDepth();
-		UINT32 height = mExtents.getHeight();
-		UINT32 width = mExtents.getWidth();
+		UINT32 depth = mExtents.GetDepth();
+		UINT32 height = mExtents.GetHeight();
+		UINT32 width = mExtents.GetWidth();
 
 		UINT32 pixelSize = PixelUtil::getNumElemBytes(mFormat);
 		UINT8* data = getData();
@@ -200,9 +200,9 @@ namespace bs
 	template<class T>
 	void PixelData::SetColorsInternal(const T& colors, UINT32 numElements)
 	{
-		UINT32 depth = mExtents.getDepth();
-		UINT32 height = mExtents.getHeight();
-		UINT32 width = mExtents.getWidth();
+		UINT32 depth = mExtents.GetDepth();
+		UINT32 height = mExtents.GetHeight();
+		UINT32 width = mExtents.GetWidth();
 
 		UINT32 totalNumElements = width * height * depth;
 		if (numElements != totalNumElements)
@@ -241,7 +241,7 @@ namespace bs
 
 	void PixelData::SetColors(const Vector<Color>& colors)
 	{
-		setColorsInternal(colors, (UINT32)colors.size());
+		setColorsInternal(colors, (UINT32)colors.Size());
 	}
 
 	void PixelData::SetColors(Color* colors, UINT32 numElements)
@@ -251,9 +251,9 @@ namespace bs
 
 	void PixelData::SetColors(const Color& color)
 	{
-		UINT32 depth = mExtents.getDepth();
-		UINT32 height = mExtents.getHeight();
-		UINT32 width = mExtents.getWidth();
+		UINT32 depth = mExtents.GetDepth();
+		UINT32 height = mExtents.GetHeight();
+		UINT32 width = mExtents.GetWidth();
 
 		UINT32 pixelSize = PixelUtil::getNumElemBytes(mFormat);
 		UINT32 packedColor[4];
@@ -290,9 +290,9 @@ namespace bs
 
 	Vector<float> PixelData::GetDepths() const
 	{
-		UINT32 depth = mExtents.getDepth();
-		UINT32 height = mExtents.getHeight();
-		UINT32 width = mExtents.getWidth();
+		UINT32 depth = mExtents.GetDepth();
+		UINT32 height = mExtents.GetHeight();
+		UINT32 width = mExtents.GetWidth();
 
 		UINT32 pixelSize = PixelUtil::getNumElemBytes(mFormat);
 		UINT8* data = getData();
@@ -325,7 +325,7 @@ namespace bs
 	SPtr<PixelData> PixelData::Create(const PixelVolume &extents, PixelFormat pixelFormat)
 	{
 		SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(extents, pixelFormat);
-		pixelData->allocateInternalBuffer();
+		pixelData->AllocateInternalBuffer();
 
 		return pixelData;
 	}
@@ -333,7 +333,7 @@ namespace bs
 	SPtr<PixelData> PixelData::Create(UINT32 width, UINT32 height, UINT32 depth, PixelFormat pixelFormat)
 	{
 		SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(width, height, depth, pixelFormat);
-		pixelData->allocateInternalBuffer();
+		pixelData->AllocateInternalBuffer();
 
 		return pixelData;
 	}

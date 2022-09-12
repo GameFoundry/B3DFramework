@@ -26,7 +26,7 @@ namespace bs
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{
 			PhysicsMesh* mesh = static_cast<PhysicsMesh*>(obj);
-			mesh->initialize();
+			mesh->Initialize();
 		}
 
 		const String& GetRTTIName() override
@@ -42,7 +42,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			SPtr<PhysicsMesh> mesh = gPhysics().createMesh(nullptr, PhysicsMeshType::Convex);
+			SPtr<PhysicsMesh> mesh = gPhysics().CreateMesh(nullptr, PhysicsMeshType::Convex);
 			mesh->_setThisPtr(mesh);
 
 			return mesh;

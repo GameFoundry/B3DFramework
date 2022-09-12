@@ -8,12 +8,12 @@ namespace bs
 	void FileSystem::Copy(const Path& oldPath, const Path& newPath, bool overwriteExisting)
 	{
 		Stack<std::tuple<Path, Path>> todo;
-		todo.push(std::make_tuple(oldPath, newPath));
+		todo.Push(std::make_tuple(oldPath, newPath));
 
-		while (!todo.empty())
+		while (!todo.Empty())
 		{
-			auto current = todo.top();
-			todo.pop();
+			auto current = todo.Top();
+			todo.Pop();
 
 			Path sourcePath = std::get<0>(current);
 			if (!FileSystem::exists(sourcePath))
@@ -54,17 +54,17 @@ namespace bs
 				for (auto& file : files)
 				{
 					Path fileDestPath = destinationPath;
-					fileDestPath.append(file.getTail());
+					fileDestPath.Append(file.getTail());
 
-					todo.push(std::make_tuple(file, fileDestPath));
+					todo.Push(std::make_tuple(file, fileDestPath));
 				}
 
 				for (auto& dir : directories)
 				{
 					Path dirDestPath = destinationPath;
-					dirDestPath.append(dir.getTail());
+					dirDestPath.Append(dir.getTail());
 
-					todo.push(std::make_tuple(dir, dirDestPath));
+					todo.Push(std::make_tuple(dir, dirDestPath));
 				}
 			}
 		}

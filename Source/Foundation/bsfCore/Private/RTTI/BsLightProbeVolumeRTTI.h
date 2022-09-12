@@ -92,11 +92,11 @@ namespace bs
 
 		SavedLightProbeInfo& GetProbeInfo(LightProbeVolume* obj)
 		{
-			obj->updateCoefficients();
+			obj->UpdateCoefficients();
 
-			UINT32 numProbes = (UINT32)obj->mProbes.size();
-			mSavedLightProbeInfo.coefficients.resize(numProbes);
-			mSavedLightProbeInfo.positions.resize(numProbes);
+			UINT32 numProbes = (UINT32)obj->mProbes.Size();
+			mSavedLightProbeInfo.coefficients.Resize(numProbes);
+			mSavedLightProbeInfo.positions.Resize(numProbes);
 
 			UINT32 idx = 0;
 			for(auto& entry : obj->mProbes)
@@ -112,9 +112,9 @@ namespace bs
 
 		void SetProbeInfo(LightProbeVolume* obj, SavedLightProbeInfo& data)
 		{
-			obj->mProbes.clear();
+			obj->mProbes.Clear();
 
-			UINT32 numProbes = (UINT32)data.positions.size();
+			UINT32 numProbes = (UINT32)data.positions.Size();
 			for(UINT32 i = 0; i < numProbes; ++i)
 			{
 				UINT32 handle = obj->mNextProbeId++;

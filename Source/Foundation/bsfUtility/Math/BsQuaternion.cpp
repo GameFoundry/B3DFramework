@@ -206,7 +206,7 @@ namespace bs
 	{
 		Matrix3 matRot;
 		toRotationMatrix(matRot);
-		return matRot.toEulerAngles(xAngle, yAngle, zAngle);
+		return matRot.ToEulerAngles(xAngle, yAngle, zAngle);
 	}
 
 	Vector3 Quaternion::XAxis() const
@@ -274,7 +274,7 @@ namespace bs
 		//       an intermediate matrix.
 		Matrix3 rot;
 		toRotationMatrix(rot);
-		return rot.multiply(v);
+		return rot.Multiply(v);
 	}
 
 	void Quaternion::LookRotation(const Vector3& forwardDir)
@@ -285,7 +285,7 @@ namespace bs
 		Vector3 nrmForwardDir = Vector3::normalize(forwardDir);
 		Vector3 currentForwardDir = -zAxis();
 
-		if ((nrmForwardDir + currentForwardDir).squaredLength() < 0.00005f)
+		if ((nrmForwardDir + currentForwardDir).SquaredLength() < 0.00005f)
 		{
 			// Oops, a 180 degree turn (infinite possible rotation axes)
 			// Default to yaw i.e. use current UP
@@ -313,15 +313,15 @@ namespace bs
 		Vector3 x = Vector3::cross(forward, up);
 		Vector3 y = Vector3::cross(x, forward);
 
-		x.normalize();
-		y.normalize();
+		x.Normalize();
+		y.Normalize();
 
 		*this = Quaternion(x, y, -forward);
 	}
 
 	Quaternion Quaternion::Slerp(float t, const Quaternion& p, const Quaternion& q, bool shortestPath)
 	{
-		float cos = p.dot(q);
+		float cos = p.Dot(q);
 		Quaternion quat;
 
 		if (cos < 0.0f && shortestPath)
@@ -355,7 +355,7 @@ namespace bs
 			Quaternion ret = (1.0f - t) * p + t * quat;
 
 			// Taking the complement requires renormalization
-			ret.normalize();
+			ret.Normalize();
 			return ret;
 		}
 	}
@@ -367,10 +367,10 @@ namespace bs
 
 		Vector3 v0 = from;
 		Vector3 v1 = dest;
-		v0.normalize();
-		v1.normalize();
+		v0.Normalize();
+		v1.Normalize();
 
-		float d = v0.dot(v1);
+		float d = v0.Dot(v1);
 
 		// If dot == 1, vectors are the same
 		if (d >= 1.0f)
@@ -381,16 +381,16 @@ namespace bs
 			if (fallbackAxis != Vector3::ZERO)
 			{
 				// Rotate 180 degrees about the fallback axis
-				q.fromAxisAngle(fallbackAxis, Radian(Math::PI));
+				q.FromAxisAngle(fallbackAxis, Radian(Math::PI));
 			}
 			else
 			{
 				// Generate an axis
-				Vector3 axis = Vector3::UNIT_X.cross(from);
-				if (axis.isZeroLength()) // Pick another if colinear
-					axis = Vector3::UNIT_Y.cross(from);
-				axis.normalize();
-				q.fromAxisAngle(axis, Radian(Math::PI));
+				Vector3 axis = Vector3::UNIT_X.Cross(from);
+				if (axis.IsZeroLength()) // Pick another if colinear
+					axis = Vector3::UNIT_Y.Cross(from);
+				axis.Normalize();
+				q.FromAxisAngle(axis, Radian(Math::PI));
 			}
 		}
 		else
@@ -398,13 +398,13 @@ namespace bs
 			float s = Math::sqrt( (1+d)*2 );
 			float invs = 1 / s;
 
-			Vector3 c = v0.cross(v1);
+			Vector3 c = v0.Cross(v1);
 
 			q.x = c.x * invs;
 			q.y = c.y * invs;
 			q.z = c.z * invs;
 			q.w = s * 0.5f;
-			q.normalize();
+			q.Normalize();
 		}
 
 		return q;

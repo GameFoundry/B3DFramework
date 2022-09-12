@@ -29,7 +29,7 @@ namespace bs
 			return;
 
 		mNormal = normal;
-		mNormal.normalize();
+		mNormal.Normalize();
 		
 		mLocalRotation = Quaternion::getRotationFromTo(Vector3::UNIT_X, normal);
 		mLocalPosition = mNormal * mDistance;
@@ -52,10 +52,10 @@ namespace bs
 
 	SPtr<Collider> CPlaneCollider::CreateInternal()
 	{
-		const SPtr<SceneInstance>& scene = SO()->getScene();
-		const Transform& tfrm = SO()->getTransform();
+		const SPtr<SceneInstance>& scene = SO()->GetScene();
+		const Transform& tfrm = SO()->GetTransform();
 
-		SPtr<Collider> collider = PlaneCollider::create(*scene->getPhysicsScene(), tfrm.getPosition(), tfrm.getRotation());
+		SPtr<Collider> collider = PlaneCollider::create(*scene->GetPhysicsScene(), tfrm.GetPosition(), tfrm.getRotation());
 
 		collider->_setOwner(PhysicsOwnerType::Component, this);
 		return collider;
@@ -64,7 +64,7 @@ namespace bs
 	bool CPlaneCollider::IsValidParent(const HRigidbody& parent) const
 	{
 		// Planes cannot be added to non-kinematic rigidbodies
-		return parent->getIsKinematic();
+		return parent->GetIsKinematic();
 	}
 
 	RTTITypeBase* CPlaneCollider::getRTTIStatic()

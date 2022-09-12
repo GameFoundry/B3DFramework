@@ -28,13 +28,13 @@ namespace bs
 	{
 		assert(ThreadMemStack != nullptr && "Stack allocation failed. Did you call beginThread?");
 
-		return ThreadMemStack->alloc(numBytes);
+		return ThreadMemStack->Alloc(numBytes);
 	}
 
 	void MemStack::DeallocLast(UINT8* data)
 	{
 		assert(ThreadMemStack != nullptr && "Stack deallocation failed. Did you call beginThread?");
 
-		ThreadMemStack->dealloc(data);
+		ThreadMemStack->Dealloc(data);
 	}
 }

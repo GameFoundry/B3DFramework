@@ -18,9 +18,9 @@ namespace bs
 
 	void ScriptShader::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_GetRef", (void*)&ScriptShader::Internal_getRef);
-		metaData.scriptClass->addInternalCall("Internal_getVariationParams", (void*)&ScriptShader::Internal_getVariationParams);
-		metaData.scriptClass->addInternalCall("Internal_getParameters", (void*)&ScriptShader::Internal_getParameters);
+		metaData.scriptClass->AddInternalCall("Internal_GetRef", (void*)&ScriptShader::Internal_getRef);
+		metaData.scriptClass->AddInternalCall("Internal_getVariationParams", (void*)&ScriptShader::Internal_getVariationParams);
+		metaData.scriptClass->AddInternalCall("Internal_getParameters", (void*)&ScriptShader::Internal_getParameters);
 
 	}
 
@@ -29,26 +29,26 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		return metaData.scriptClass->createInstance("bool", ctorParams);
+		return metaData.scriptClass->CreateInstance("bool", ctorParams);
 	}
 	MonoObject* ScriptShader::Internal_getRef(ScriptShader* thisPtr)
 	{
-		return thisPtr->getRRef();
+		return thisPtr->GetRRef();
 	}
 
 	MonoArray* ScriptShader::Internal_getVariationParams(ScriptShader* thisPtr)
 	{
 		Vector<ShaderVariationParamInfo> vec__output;
-		vec__output = thisPtr->getHandle()->getVariationParams();
+		vec__output = thisPtr->GetHandle()->getVariationParams();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
+		int arraySize__output = (int)vec__output.Size();
 		ScriptArray array__output = ScriptArray::create<ScriptShaderVariationParamInfo>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
-			array__output.set(i, ScriptShaderVariationParamInfo::toInterop(vec__output[i]));
+			array__output.Set(i, ScriptShaderVariationParamInfo::toInterop(vec__output[i]));
 		}
-		__output = array__output.getInternal();
+		__output = array__output.GetInternal();
 
 		return __output;
 	}
@@ -56,16 +56,16 @@ namespace bs
 	MonoArray* ScriptShader::Internal_getParameters(ScriptShader* thisPtr)
 	{
 		Vector<ShaderParameter> vec__output;
-		vec__output = ShaderEx::getParameters(thisPtr->getHandle());
+		vec__output = ShaderEx::getParameters(thisPtr->GetHandle());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
+		int arraySize__output = (int)vec__output.Size();
 		ScriptArray array__output = ScriptArray::create<ScriptShaderParameter>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
-			array__output.set(i, ScriptShaderParameter::toInterop(vec__output[i]));
+			array__output.Set(i, ScriptShaderParameter::toInterop(vec__output[i]));
 		}
-		__output = array__output.getInternal();
+		__output = array__output.GetInternal();
 
 		return __output;
 	}

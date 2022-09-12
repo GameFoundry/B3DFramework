@@ -46,7 +46,7 @@ namespace bs
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{
 			VectorField* vectorField = static_cast<VectorField*>(obj);
-			vectorField->initialize();
+			vectorField->Initialize();
 		}
 	};
 

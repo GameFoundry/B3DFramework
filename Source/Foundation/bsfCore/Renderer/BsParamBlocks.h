@@ -45,18 +45,18 @@ namespace bs { namespace ct
 			if (TransposePolicy<T>::transposeEnabled(transposeMatrices))
 			{
 				auto transposed = TransposePolicy<T>::transpose(value);
-				paramBlock->write((mParamDesc.cpuMemOffset + arrayIdx * mParamDesc.arrayElementStride) * sizeof(UINT32),
+				paramBlock->Write((mParamDesc.cpuMemOffset + arrayIdx * mParamDesc.arrayElementStride) * sizeof(UINT32),
 					&transposed, sizeBytes);
 			}
 			else
-				paramBlock->write((mParamDesc.cpuMemOffset + arrayIdx * mParamDesc.arrayElementStride) * sizeof(UINT32),
+				paramBlock->Write((mParamDesc.cpuMemOffset + arrayIdx * mParamDesc.arrayElementStride) * sizeof(UINT32),
 					&value, sizeBytes);
 
 			// Set unused bytes to 0
 			if (sizeBytes < elementSizeBytes)
 			{
 				UINT32 diffSize = elementSizeBytes - sizeBytes;
-				paramBlock->zeroOut((mParamDesc.cpuMemOffset + arrayIdx * mParamDesc.arrayElementStride) * sizeof(UINT32) +
+				paramBlock->ZeroOut((mParamDesc.cpuMemOffset + arrayIdx * mParamDesc.arrayElementStride) * sizeof(UINT32) +
 					sizeBytes, diffSize);
 			}
 		}
@@ -80,7 +80,7 @@ namespace bs { namespace ct
 			UINT32 sizeBytes = std::min(elementSizeBytes, (UINT32)sizeof(T));
 
 			T value;
-			paramBlock->read((mParamDesc.cpuMemOffset + arrayIdx * mParamDesc.arrayElementStride) * sizeof(UINT32), &value,
+			paramBlock->Read((mParamDesc.cpuMemOffset + arrayIdx * mParamDesc.arrayElementStride) * sizeof(UINT32), &value,
 				sizeBytes);
 
 			return value;
@@ -139,7 +139,7 @@ namespace bs { namespace ct
 			mParams = getEntries();																							\
 			RenderAPI& rapi = RenderAPI::instance();																		\
 																															\
-			GpuParamBlockDesc blockDesc = rapi.generateParamBlockDesc(#Name, mParams);										\
+			GpuParamBlockDesc blockDesc = rapi.GenerateParamBlockDesc(#Name, mParams);										\
 			mBlockSize = blockDesc.blockSize * sizeof(UINT32);																\
 																															\
 			initEntries();																									\
@@ -163,7 +163,7 @@ namespace bs { namespace ct
 			META_GetPrevEntries(params, META_Entry_##Name());																\
 																															\
 			params.push_back(GpuParamDataDesc());																			\
-			GpuParamDataDesc& newEntry = params.back();																		\
+			GpuParamDataDesc& newEntry = params.Back();																		\
 			newEntry.name = #Name;																							\
 			newEntry.type = (GpuParamDataType)TGpuDataParamInfo<Type>::TypeId;												\
 			newEntry.arraySize = NumElements;																				\
@@ -200,7 +200,7 @@ namespace bs { namespace ct
 																															\
 		void InitEntries()																									\
 		{																													\
-			META_InitPrevEntry(mParams, (UINT32)mParams.size() - 1, META_LastEntry());										\
+			META_InitPrevEntry(mParams, (UINT32)mParams.Size() - 1, META_LastEntry());										\
 		}																													\
 																															\
 		Vector<GpuParamDataDesc> mParams;																					\

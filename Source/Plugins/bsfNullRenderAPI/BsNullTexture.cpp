@@ -45,15 +45,15 @@ namespace bs
 
 		PixelData NullTexture::LockImpl(GpuLockOptions options, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
 		{
-			UINT32 mipWidth = std::max(1u, mProperties.getWidth() >> mipLevel);
-			UINT32 mipHeight = std::max(1u, mProperties.getHeight() >> mipLevel);
-			UINT32 mipDepth = std::max(1u, mProperties.getDepth() >> mipLevel);
+			UINT32 mipWidth = std::max(1u, mProperties.GetWidth() >> mipLevel);
+			UINT32 mipHeight = std::max(1u, mProperties.GetHeight() >> mipLevel);
+			UINT32 mipDepth = std::max(1u, mProperties.GetDepth() >> mipLevel);
 
-			mMappedBuffer = bs_new<PixelData>(mipWidth, mipHeight, mipDepth, mProperties.getFormat());
-			mMappedBuffer->allocateInternalBuffer();
+			mMappedBuffer = bs_new<PixelData>(mipWidth, mipHeight, mipDepth, mProperties.GetFormat());
+			mMappedBuffer->AllocateInternalBuffer();
 
-			PixelData Output(mipWidth, mipHeight, mipDepth, mProperties.getFormat());
-			output.setExternalBuffer(mMappedBuffer->getData());
+			PixelData Output(mipWidth, mipHeight, mipDepth, mProperties.GetFormat());
+			output.SetExternalBuffer(mMappedBuffer->GetData());
 
 			return output;
 		}

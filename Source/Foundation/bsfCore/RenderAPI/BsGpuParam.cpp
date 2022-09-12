@@ -27,7 +27,7 @@ namespace bs
 		if (mParent == nullptr)
 			return;
 
-		GpuParamBufferType paramBlock = mParent->getParamBlockBuffer(mParamDesc->paramBlockSet, mParamDesc->paramBlockSlot);
+		GpuParamBufferType paramBlock = mParent->GetParamBlockBuffer(mParamDesc->paramBlockSet, mParamDesc->paramBlockSlot);
 		if (paramBlock == nullptr)
 			return;
 
@@ -46,16 +46,16 @@ namespace bs
 		if (TransposePolicy<T>::transposeEnabled(transposeMatrices))
 		{
 			auto transposed = TransposePolicy<T>::transpose(value);
-			paramBlock->write((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), &transposed, sizeBytes);
+			paramBlock->Write((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), &transposed, sizeBytes);
 		}
 		else
-			paramBlock->write((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), &value, sizeBytes);
+			paramBlock->Write((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), &value, sizeBytes);
 
 		// Set unused bytes to 0
 		if (sizeBytes < elementSizeBytes)
 		{
 			UINT32 diffSize = elementSizeBytes - sizeBytes;
-			paramBlock->zeroOut((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride)  * sizeof(UINT32) + sizeBytes, diffSize);
+			paramBlock->ZeroOut((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride)  * sizeof(UINT32) + sizeBytes, diffSize);
 		}
 
 		mParent->_markCoreDirty();
@@ -67,7 +67,7 @@ namespace bs
 		if (mParent == nullptr)
 			return T();
 
-		GpuParamBufferType paramBlock = mParent->getParamBlockBuffer(mParamDesc->paramBlockSet, mParamDesc->paramBlockSlot);
+		GpuParamBufferType paramBlock = mParent->GetParamBlockBuffer(mParamDesc->paramBlockSet, mParamDesc->paramBlockSlot);
 		if (paramBlock == nullptr)
 			return T();
 
@@ -83,7 +83,7 @@ namespace bs
 		UINT32 sizeBytes = std::min(elementSizeBytes, (UINT32)sizeof(T));
 
 		T value;
-		paramBlock->read((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), &value, sizeBytes);
+		paramBlock->Read((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), &value, sizeBytes);
 
 		return value;
 	}
@@ -104,7 +104,7 @@ namespace bs
 		if (mParent == nullptr)
 			return;
 
-		GpuParamBufferType paramBlock = mParent->getParamBlockBuffer(mParamDesc->paramBlockSet, mParamDesc->paramBlockSlot);
+		GpuParamBufferType paramBlock = mParent->GetParamBlockBuffer(mParamDesc->paramBlockSet, mParamDesc->paramBlockSlot);
 		if (paramBlock == nullptr)
 			return;
 
@@ -126,13 +126,13 @@ namespace bs
 
 		sizeBytes = std::min(elementSizeBytes, sizeBytes);
 
-		paramBlock->write((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), value, sizeBytes);
+		paramBlock->Write((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), value, sizeBytes);
 
 		// Set unused bytes to 0
 		if (sizeBytes < elementSizeBytes)
 		{
 			UINT32 diffSize = elementSizeBytes - sizeBytes;
-			paramBlock->zeroOut((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride)  * sizeof(UINT32) + sizeBytes, diffSize);
+			paramBlock->ZeroOut((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride)  * sizeof(UINT32) + sizeBytes, diffSize);
 		}
 
 		mParent->_markCoreDirty();
@@ -144,7 +144,7 @@ namespace bs
 		if (mParent == nullptr)
 			return;
 
-		GpuParamBufferType paramBlock = mParent->getParamBlockBuffer(mParamDesc->paramBlockSet, mParamDesc->paramBlockSlot);
+		GpuParamBufferType paramBlock = mParent->GetParamBlockBuffer(mParamDesc->paramBlockSet, mParamDesc->paramBlockSlot);
 		if (paramBlock == nullptr)
 			return;
 
@@ -165,7 +165,7 @@ namespace bs
 #endif
 		sizeBytes = std::min(elementSizeBytes, sizeBytes);
 
-		paramBlock->read((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), value, sizeBytes);
+		paramBlock->Read((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), value, sizeBytes);
 	}
 
 	template<bool Core>
@@ -193,7 +193,7 @@ namespace bs
 		if (mParent == nullptr)
 			return;
 
-		mParent->setTexture(mParamDesc->set, mParamDesc->slot, texture, surface);
+		mParent->SetTexture(mParamDesc->set, mParamDesc->slot, texture, surface);
 
 		mParent->_markResourcesDirty();
 		mParent->_markCoreDirty();
@@ -205,7 +205,7 @@ namespace bs
 		if (mParent == nullptr)
 			return TextureType();
 
-		return mParent->getTexture(mParamDesc->set, mParamDesc->slot);
+		return mParent->GetTexture(mParamDesc->set, mParamDesc->slot);
 	}
 
 	template<bool Core>
@@ -224,7 +224,7 @@ namespace bs
 		if (mParent == nullptr)
 			return;
 
-		mParent->setBuffer(mParamDesc->set, mParamDesc->slot, buffer);
+		mParent->SetBuffer(mParamDesc->set, mParamDesc->slot, buffer);
 
 		mParent->_markResourcesDirty();
 		mParent->_markCoreDirty();
@@ -236,7 +236,7 @@ namespace bs
 		if (mParent == nullptr)
 			return BufferType();
 
-		return mParent->getBuffer(mParamDesc->set, mParamDesc->slot);
+		return mParent->GetBuffer(mParamDesc->set, mParamDesc->slot);
 	}
 
 	template<bool Core>
@@ -255,7 +255,7 @@ namespace bs
 		if (mParent == nullptr)
 			return;
 
-		mParent->setLoadStoreTexture(mParamDesc->set, mParamDesc->slot, texture, surface);
+		mParent->SetLoadStoreTexture(mParamDesc->set, mParamDesc->slot, texture, surface);
 
 		mParent->_markResourcesDirty();
 		mParent->_markCoreDirty();
@@ -267,7 +267,7 @@ namespace bs
 		if (mParent == nullptr)
 			return TextureType();
 
-		return mParent->getTexture(mParamDesc->set, mParamDesc->slot);
+		return mParent->GetTexture(mParamDesc->set, mParamDesc->slot);
 	}
 
 	template<bool Core>
@@ -286,7 +286,7 @@ namespace bs
 		if (mParent == nullptr)
 			return;
 
-		mParent->setSamplerState(mParamDesc->set, mParamDesc->slot, samplerState);
+		mParent->SetSamplerState(mParamDesc->set, mParamDesc->slot, samplerState);
 
 		mParent->_markResourcesDirty();
 		mParent->_markCoreDirty();
@@ -298,7 +298,7 @@ namespace bs
 		if (mParent == nullptr)
 			return SamplerStateType();
 
-		return mParent->getSamplerState(mParamDesc->set, mParamDesc->slot);
+		return mParent->GetSamplerState(mParamDesc->set, mParamDesc->slot);
 	}
 
 	template class TGpuDataParam < float, false > ;

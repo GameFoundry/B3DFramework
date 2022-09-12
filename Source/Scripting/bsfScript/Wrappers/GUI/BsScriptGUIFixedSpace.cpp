@@ -21,8 +21,8 @@ namespace bs
 
 	void ScriptGUIFixedSpace::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptGUIFixedSpace::internal_createInstance);
-		metaData.scriptClass->addInternalCall("Internal_SetSize", (void*)&ScriptGUIFixedSpace::internal_setSize);
+		metaData.scriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptGUIFixedSpace::internal_createInstance);
+		metaData.scriptClass->AddInternalCall("Internal_SetSize", (void*)&ScriptGUIFixedSpace::internal_setSize);
 	}
 
 	void ScriptGUIFixedSpace::Destroy()
@@ -30,7 +30,7 @@ namespace bs
 		if (!mIsDestroyed)
 		{
 			if (mParent != nullptr)
-				mParent->removeChild(this);
+				mParent->RemoveChild(this);
 
 			GUIFixedSpace::destroy(mFixedSpace);
 
@@ -47,6 +47,6 @@ namespace bs
 
 	void ScriptGUIFixedSpace::internal_setSize(ScriptGUIFixedSpace* nativeInstance, UINT32 size)
 	{
-		nativeInstance->mFixedSpace->setSize(size);
+		nativeInstance->mFixedSpace->SetSize(size);
 	}
 }

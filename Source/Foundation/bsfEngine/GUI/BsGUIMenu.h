@@ -50,10 +50,10 @@ namespace bs
 		~GUIMenuItem();
 
 		/**	Registers a new child with the item. */
-		void AddChild(GUIMenuItem* child) { mChildren.insert(child); }
+		void AddChild(GUIMenuItem* child) { mChildren.Insert(child); }
 
 		/**	Returns number of child menu items. */
-		UINT32 GetNumChildren() const { return (UINT32)mChildren.size(); }
+		UINT32 GetNumChildren() const { return (UINT32)mChildren.Size(); }
 
 		/**	Returns the parent menu item, or null if none. */
 		GUIMenuItem* getParent() const { return mParent; }

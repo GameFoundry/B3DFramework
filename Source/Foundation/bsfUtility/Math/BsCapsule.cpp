@@ -11,25 +11,25 @@ namespace bs
 
 	std::pair<bool, float> Capsule::Intersects(const Ray& ray) const
 	{
-		const Vector3& org = ray.getOrigin();
-		const Vector3& dir = ray.getDirection();
+		const Vector3& org = ray.GetOrigin();
+		const Vector3& dir = ray.GetDirection();
 
 		Vector3 segDir = mSegment.end - mSegment.start;
-		float segExtent = segDir.normalize() * 0.5f;
+		float segExtent = segDir.Normalize() * 0.5f;
 		Vector3 segCenter = mSegment.start + segDir * segExtent;
 
 		Vector3 basis[3];
 		basis[0] = segDir;
-		basis[0].orthogonalComplement(basis[1], basis[2]);
+		basis[0].OrthogonalComplement(basis[1], basis[2]);
 
 		float rSqr = mRadius * mRadius;
 
 		Vector3 diff = org - segCenter;
-		Vector3 P(basis[1].dot(diff), basis[2].dot(diff), basis[0].dot(diff));
+		Vector3 P(basis[1].Dot(diff), basis[2].dot(diff), basis[0].dot(diff));
 
 		// Get the z-value, in capsule coordinates, of the incoming line's
 		// unit-length direction.
-		float dz = basis[0].dot(dir);
+		float dz = basis[0].Dot(dir);
 		if (std::abs(dz) == 1.0f)
 		{
 			// The line is parallel to the capsule axis.  Determine whether the
@@ -51,7 +51,7 @@ namespace bs
 		}
 
 		// Convert the incoming line unit-length direction to capsule coordinates.
-		Vector3 D(basis[1].dot(dir), basis[2].dot(dir), dz);
+		Vector3 D(basis[1].Dot(dir), basis[2].dot(dir), dz);
 
 		// Test intersection of line with infinite cylinder
 		float a0 = P[0] * P[0] + P[1] * P[1] - rSqr;

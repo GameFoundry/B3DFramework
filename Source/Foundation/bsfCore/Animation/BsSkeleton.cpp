@@ -112,20 +112,20 @@ namespace bs
 			FrameVector<AnimationCurveMapping> BoneToCurveMapping(mNumBones);
 
 			AnimationState state;
-			state.curves = clip.getCurves();
-			state.length = clip.getLength();
-			state.boneToCurveMapping = boneToCurveMapping.data();
+			state.curves = clip.GetCurves();
+			state.length = clip.GetLength();
+			state.boneToCurveMapping = boneToCurveMapping.Data();
 			state.loop = loop;
 			state.weight = 1.0f;
 			state.time = time;
 
-			FrameVector<TCurveCache<Vector3>> PositionCache(state.curves->position.size());
-			FrameVector<TCurveCache<Quaternion>> RotationCache(state.curves->rotation.size());
-			FrameVector<TCurveCache<Vector3>> ScaleCache(state.curves->scale.size());
+			FrameVector<TCurveCache<Vector3>> PositionCache(state.curves->position.Size());
+			FrameVector<TCurveCache<Quaternion>> RotationCache(state.curves->rotation.Size());
+			FrameVector<TCurveCache<Vector3>> ScaleCache(state.curves->scale.Size());
 
-			state.positionCaches = positionCache.data();
-			state.rotationCaches = rotationCache.data();
-			state.scaleCaches = scaleCache.data();
+			state.positionCaches = positionCache.Data();
+			state.rotationCaches = rotationCache.Data();
+			state.scaleCaches = scaleCache.Data();
 			state.genericCaches = nullptr;
 			state.disabled = false;
 
@@ -135,7 +135,7 @@ namespace bs
 			layer.states = &state;
 			layer.numStates = 1;
 
-			clip.getBoneMapping(*this, state.boneToCurveMapping);
+			clip.GetBoneMapping(*this, state.boneToCurveMapping);
 
 			getPose(pose, localPose, mask, &layer, 1);
 		}
@@ -192,7 +192,7 @@ namespace bs
 
 				for (UINT32 k = 0; k < mNumBones; k++)
 				{
-					if (!mask.isEnabled(k))
+					if (!mask.IsEnabled(k))
 						continue;
 
 					const AnimationCurveMapping& mapping = state.boneToCurveMapping[k];
@@ -200,7 +200,7 @@ namespace bs
 					if (curveIdx != (UINT32)-1)
 					{
 						const TAnimationCurve<Vector3>& curve = state.curves->position[curveIdx].curve;
-						localPose.positions[k] += curve.evaluate(state.time, state.positionCaches[curveIdx], false) * normWeight;
+						localPose.positions[k] += curve.Evaluate(state.time, state.positionCaches[curveIdx], false) * normWeight;
 
 						localPose.hasOverride[k] = false;
 						hasAnimCurve[k] = true;
@@ -210,7 +210,7 @@ namespace bs
 					if (curveIdx != (UINT32)-1)
 					{
 						const TAnimationCurve<Vector3>& curve = state.curves->scale[curveIdx].curve;
-						localPose.scales[k] *= curve.evaluate(state.time, state.scaleCaches[curveIdx], false) * normWeight;
+						localPose.scales[k] *= curve.Evaluate(state.time, state.scaleCaches[curveIdx], false) * normWeight;
 
 						localPose.hasOverride[k] = false;
 						hasAnimCurve[k] = true;
@@ -227,7 +227,7 @@ namespace bs
 
 							const TAnimationCurve<Quaternion>& curve = state.curves->rotation[curveIdx].curve;
 
-							Quaternion value = curve.evaluate(state.time, state.rotationCaches[curveIdx], false);
+							Quaternion value = curve.Evaluate(state.time, state.rotationCaches[curveIdx], false);
 							value = Quaternion::lerp(normWeight, Quaternion::IDENTITY, value);
 
 							localPose.rotations[k] *= value;
@@ -241,9 +241,9 @@ namespace bs
 						if (curveIdx != (UINT32)-1)
 						{
 							const TAnimationCurve<Quaternion>& curve = state.curves->rotation[curveIdx].curve;
-							Quaternion value = curve.evaluate(state.time, state.rotationCaches[curveIdx], false) * normWeight;
+							Quaternion value = curve.Evaluate(state.time, state.rotationCaches[curveIdx], false) * normWeight;
 
-							if (value.dot(localPose.rotations[k]) < 0.0f)
+							if (value.Dot(localPose.rotations[k]) < 0.0f)
 								value = -value;
 
 							localPose.rotations[k] += value;
@@ -261,9 +261,9 @@ namespace bs
 			if(hasAnimCurve[i])
 				continue;
 
-			localPose.positions[i] = mBoneTransforms[i].getPosition();
-			localPose.rotations[i] = mBoneTransforms[i].getRotation();
-			localPose.scales[i] = mBoneTransforms[i].getScale();
+			localPose.positions[i] = mBoneTransforms[i].GetPosition();
+			localPose.rotations[i] = mBoneTransforms[i].GetRotation();
+			localPose.scales[i] = mBoneTransforms[i].GetScale();
 		}
 
 		// Calculate local pose matrices
@@ -277,7 +277,7 @@ namespace bs
 			if (!isAssigned)
 				localPose.rotations[i] = Quaternion::IDENTITY;
 			else
-				localPose.rotations[i].normalize();
+				localPose.rotations[i].Normalize();
 
 			if (localPose.hasOverride[i])
 			{
@@ -330,7 +330,7 @@ namespace bs
 		UINT32 parentIdx = mBoneInfo[idx].parent;
 		while(parentIdx != (UINT32)-1)
 		{
-			output.makeWorld(mBoneTransforms[parentIdx]);
+			output.MakeWorld(mBoneTransforms[parentIdx]);
 
 			parentIdx = mBoneInfo[parentIdx].parent;
 		}

@@ -7,11 +7,11 @@ namespace bs { namespace ct
 {
 	INT32 GLSLAttribute::MatchesName(const String& name)
 	{
-		if (name.length() >= mName.length())
+		if (name.Length() >= mName.length())
 		{
-			if (name.substr(0, mName.length()) == mName)
+			if (name.Substr(0, mName.length()) == mName)
 			{
-				String indexStr = name.substr(mName.length(), name.length());
+				String indexStr = name.Substr(mName.length(), name.length());
 				return ParseUINT32(indexStr, 0);
 			}
 		}
@@ -163,11 +163,11 @@ namespace bs { namespace ct
 
 		for (UINT32 i = 0; i < numAttribs; i++)
 		{
-			INT32 attribIndex = attributes[i].matchesName(name);
+			INT32 attribIndex = attributes[i].MatchesName(name);
 			if (attribIndex != -1)
 			{
 				index = attribIndex;
-				semantic = attributes[i].getSemantic();
+				semantic = attributes[i].GetSemantic();
 				return true;
 			}
 		}
@@ -243,8 +243,8 @@ namespace bs { namespace ct
 			newBlockDesc.isShareable = true;
 
 			returnParamDesc.paramBlocks[newBlockDesc.name] = newBlockDesc;
-			blockSlotToName.insert(std::make_pair(index + 1, newBlockDesc.name));
-			blockNames.insert(newBlockDesc.name);
+			blockSlotToName.Insert(std::make_pair(index + 1, newBlockDesc.name));
+			blockNames.Insert(newBlockDesc.name);
 		}
 
 #if BS_OPENGL_4_3 || BS_OPENGLES_3_1
@@ -265,7 +265,7 @@ namespace bs { namespace ct
 			bufferParam.type = GPOT_RWSTRUCTURED_BUFFER;
 			bufferParam.set = mapParameterToSet(type, ParamType::StorageBlock);
 
-			returnParamDesc.buffers.insert(std::make_pair(uniformName, bufferParam));
+			returnParamDesc.buffers.Insert(std::make_pair(uniformName, bufferParam));
 		}
 #endif
 
@@ -295,26 +295,26 @@ namespace bs { namespace ct
 
 			bool inStruct = false;
 			String structName;
-			if (nameElements.size() > 1)
+			if (nameElements.Size() > 1)
 			{
-				auto uniformBlockFind = blockNames.find(nameElements[0]);
+				auto uniformBlockFind = blockNames.Find(nameElements[0]);
 
 				// Check if the name is not a struct, and instead a Uniform block namespace
-				if (uniformBlockFind != blockNames.end())
+				if (uniformBlockFind != blockNames.End())
 				{
 					// Possibly it's a struct inside a named uniform block
-					if (nameElements.size() > 2)
+					if (nameElements.Size() > 2)
 					{
 						inStruct = true;
 						structName = nameElements[1];
-						paramName = nameElements.back();
+						paramName = nameElements.Back();
 					}
 				}
 				else
 				{
 					inStruct = true;
 					structName = nameElements[0];
-					paramName = nameElements.back();
+					paramName = nameElements.Back();
 				}
 			}
 
@@ -326,25 +326,25 @@ namespace bs { namespace ct
 			if (inStruct)
 			{
 				// If the uniform name has a "[" in it then its an array element uniform.
-				String::size_type arrayStart = structName.find("[");
-				String::size_type arrayEnd = structName.find("]");
+				String::size_type arrayStart = structName.Find("[");
+				String::size_type arrayEnd = structName.Find("]");
 				if (arrayStart != String::npos)
 				{
-					String strArrIdx = structName.substr(arrayStart + 1, arrayEnd - (arrayStart + 1));
+					String strArrIdx = structName.Substr(arrayStart + 1, arrayEnd - (arrayStart + 1));
 					arrayIdx = parseUINT32(strArrIdx, 0);
 					isInArray = true;
 
-					structName = structName.substr(0, arrayStart);
+					structName = structName.Substr(0, arrayStart);
 				}
 			}
 
 			{
 				// If the uniform name has a "[" in it then its an array element uniform.
-				String::size_type arrayStart = cleanParamName.find("[");
-				String::size_type arrayEnd = cleanParamName.find("]");
+				String::size_type arrayStart = cleanParamName.Find("[");
+				String::size_type arrayEnd = cleanParamName.Find("]");
 				if (arrayStart != String::npos)
 				{
-					String strArrIdx = cleanParamName.substr(arrayStart + 1, arrayEnd - (arrayStart + 1));
+					String strArrIdx = cleanParamName.Substr(arrayStart + 1, arrayEnd - (arrayStart + 1));
 
 					// If in struct, we don't care about individual element array indices
 					if(!inStruct)
@@ -353,7 +353,7 @@ namespace bs { namespace ct
 						isInArray = true;
 					}
 
-					cleanParamName = cleanParamName.substr(0, arrayStart);
+					cleanParamName = cleanParamName.Substr(0, arrayStart);
 				}
 			}
 
@@ -366,8 +366,8 @@ namespace bs { namespace ct
 				if (inStruct)
 					nameToSearch = structName;
 
-				auto arrayIndexFind = foundFirstArrayIndex.find(nameToSearch);
-				if (arrayIndexFind == foundFirstArrayIndex.end())
+				auto arrayIndexFind = foundFirstArrayIndex.Find(nameToSearch);
+				if (arrayIndexFind == foundFirstArrayIndex.End())
 				{
 					foundFirstArrayIndex[nameToSearch] = arrayIdx;
 				}
@@ -528,8 +528,8 @@ namespace bs { namespace ct
 				textureParam.slot = samplerParam.slot;
 				textureParam.set = mapParameterToSet(type, ParamType::Texture);
 
-				returnParamDesc.samplers.insert(std::make_pair(paramName, samplerParam));
-				returnParamDesc.textures.insert(std::make_pair(paramName, textureParam));
+				returnParamDesc.samplers.Insert(std::make_pair(paramName, samplerParam));
+				returnParamDesc.textures.Insert(std::make_pair(paramName, textureParam));
 
 				BS_CHECK_GL_ERROR();
 			}
@@ -541,7 +541,7 @@ namespace bs { namespace ct
 				textureParam.slot = glGetUniformLocation(glProgram, uniformName);
 				textureParam.set = mapParameterToSet(type, ParamType::Image);
 
-				returnParamDesc.loadStoreTextures.insert(std::make_pair(paramName, textureParam));
+				returnParamDesc.loadStoreTextures.Insert(std::make_pair(paramName, textureParam));
 
 				BS_CHECK_GL_ERROR();
 			}
@@ -553,7 +553,7 @@ namespace bs { namespace ct
 				bufferParam.slot = glGetUniformLocation(glProgram, uniformName);
 				bufferParam.set = mapParameterToSet(type, ParamType::Texture);
 
-				returnParamDesc.buffers.insert(std::make_pair(paramName, bufferParam));
+				returnParamDesc.buffers.Insert(std::make_pair(paramName, bufferParam));
 
 				BS_CHECK_GL_ERROR();
 			}
@@ -565,7 +565,7 @@ namespace bs { namespace ct
 				bufferParam.slot = glGetUniformLocation(glProgram, uniformName);
 				bufferParam.set = mapParameterToSet(type, ParamType::Image);
 
-				returnParamDesc.buffers.insert(std::make_pair(paramName, bufferParam));
+				returnParamDesc.buffers.Insert(std::make_pair(paramName, bufferParam));
 
 				BS_CHECK_GL_ERROR();
 			}
@@ -624,15 +624,15 @@ namespace bs { namespace ct
 				// not part of a uniform block (in which case we treat struct members as separate parameters)
 				if (!inStruct || blockIndex == -1)
 				{
-					returnParamDesc.params.insert(std::make_pair(gpuParam.name, gpuParam));
+					returnParamDesc.params.Insert(std::make_pair(gpuParam.name, gpuParam));
 					continue;
 				}
 
 				// If the parameter is part of a struct, then we need to update the struct definition
-				auto findExistingStruct = foundStructs.find(structName);
+				auto findExistingStruct = foundStructs.Find(structName);
 
 				// Create new definition if one doesn't exist
-				if (findExistingStruct == foundStructs.end())
+				if (findExistingStruct == foundStructs.End())
 				{
 					foundStructs[structName] = GpuParamDataDesc();
 					GpuParamDataDesc& structDesc = foundStructs[structName];
@@ -668,11 +668,11 @@ namespace bs { namespace ct
 			entry.second.elementSize = entry.second.elementSize - entry.second.cpuMemOffset;
 			entry.second.arrayElementStride = Math::divideAndRoundUp(entry.second.elementSize, 4U) * 4;
 
-			returnParamDesc.params.insert(std::make_pair(entry.first, entry.second));
+			returnParamDesc.params.Insert(std::make_pair(entry.first, entry.second));
 		}
 
 		// Param blocks always need to be a multiple of 4, so make it so
-		for (auto iter = returnParamDesc.paramBlocks.begin(); iter != returnParamDesc.paramBlocks.end(); ++iter)
+		for (auto iter = returnParamDesc.paramBlocks.Begin(); iter != returnParamDesc.paramBlocks.end(); ++iter)
 		{
 			GpuParamBlockDesc& blockDesc = iter->second;
 
@@ -682,7 +682,7 @@ namespace bs { namespace ct
 
 #if BS_DEBUG_MODE
 		// Check if manually calculated and OpenGL buffer sizes match
-		for (auto iter = returnParamDesc.paramBlocks.begin(); iter != returnParamDesc.paramBlocks.end(); ++iter)
+		for (auto iter = returnParamDesc.paramBlocks.Begin(); iter != returnParamDesc.paramBlocks.end(); ++iter)
 		{
 			if (iter->second.slot == 0)
 				continue;

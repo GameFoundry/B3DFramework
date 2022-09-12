@@ -28,7 +28,7 @@ namespace bs::ct
 
 			// Make sure the primary output is the first in the output list
 			if(CGDisplayIsMain(displays[i]))
-				mOutputs.insert(mOutputs.begin(), output);
+				mOutputs.Insert(mOutputs.begin(), output);
 			else
 				mOutputs.push_back(output);
 		}

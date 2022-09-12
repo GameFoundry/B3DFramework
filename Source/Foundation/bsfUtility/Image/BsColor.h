@@ -93,7 +93,7 @@ namespace bs
 		Color SaturateCopy() const
 		{
 			Color ret = *this;
-			ret.saturate();
+			ret.Saturate();
 			return ret;
 		}
 

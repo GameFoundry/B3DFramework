@@ -10,7 +10,7 @@ namespace bs { namespace ct
 	SPtr<EventQuery> D3D11QueryManager::CreateEventQuery(UINT32 deviceIdx) const
 	{
 		SPtr<EventQuery> query = SPtr<D3D11EventQuery>(bs_new<D3D11EventQuery>(deviceIdx), &QueryManager::deleteEventQuery, StdAlloc<D3D11EventQuery>());
-		mEventQueries.push_back(query.get());
+		mEventQueries.push_back(query.Get());
 
 		return query;
 	}
@@ -18,7 +18,7 @@ namespace bs { namespace ct
 	SPtr<TimerQuery> D3D11QueryManager::CreateTimerQuery(UINT32 deviceIdx) const
 	{
 		SPtr<TimerQuery> query = SPtr<D3D11TimerQuery>(bs_new<D3D11TimerQuery>(deviceIdx), &QueryManager::deleteTimerQuery, StdAlloc<D3D11TimerQuery>());
-		mTimerQueries.push_back(query.get());
+		mTimerQueries.push_back(query.Get());
 
 		return query;
 	}
@@ -27,7 +27,7 @@ namespace bs { namespace ct
 	{
 		SPtr<OcclusionQuery> query = SPtr<D3D11OcclusionQuery>(bs_new<D3D11OcclusionQuery>(binary, deviceIdx),
 			&QueryManager::deleteOcclusionQuery, StdAlloc<D3D11OcclusionQuery>());
-		mOcclusionQueries.push_back(query.get());
+		mOcclusionQueries.push_back(query.Get());
 
 		return query;
 	}

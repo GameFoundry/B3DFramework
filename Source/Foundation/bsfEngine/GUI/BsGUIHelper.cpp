@@ -23,11 +23,11 @@ namespace bs
 	{
 		Vector2I contentBounds = calcOptimalContentsSize((const String&)content.text, style, dimensions);
 
-		const HSpriteTexture& image = content.getImage(state);
+		const HSpriteTexture& image = content.GetImage(state);
 		if (SpriteTexture::checkIsLoaded(image))
 		{
-			contentBounds.x += image->getWidth() + GUIContent::IMAGE_TEXT_SPACING;
-			contentBounds.y = std::max(image->getHeight(), (UINT32)contentBounds.y);
+			contentBounds.x += image->GetWidth() + GUIContent::IMAGE_TEXT_SPACING;
+			contentBounds.y = std::max(image->GetHeight(), (UINT32)contentBounds.y);
 		}
 
 		return contentBounds;
@@ -44,15 +44,15 @@ namespace bs
 		UINT32 contentWidth = style.margins.left + style.margins.right + style.contentOffset.left + style.contentOffset.right;
 		UINT32 contentHeight = style.margins.top + style.margins.bottom + style.contentOffset.top + style.contentOffset.bottom;
 
-		if(style.font != nullptr && !text.empty())
+		if(style.font != nullptr && !text.Empty())
 		{
 			bs_frame_mark();
 
 			const U32String utf32text = UTF8::toUTF32(text);
 			TextData<FrameAlloc> TextData(utf32text, style.font, style.fontSize, wordWrapWidth, 0, style.wordWrap);
 
-			contentWidth += textData.getWidth();
-			contentHeight += textData.getNumLines() * textData.getLineHeight();
+			contentWidth += textData.GetWidth();
+			contentHeight += textData.GetNumLines() * textData.getLineHeight();
 
 			bs_frame_clear();
 		}
@@ -70,8 +70,8 @@ namespace bs
 			const U32String utf32text = UTF8::toUTF32(text);
 			TextData<FrameAlloc> TextData(utf32text, font, fontSize, 0, 0, false);
 
-			size.x = textData.getWidth();
-			size.y = textData.getNumLines() * textData.getLineHeight();
+			size.x = textData.GetWidth();
+			size.y = textData.GetNumLines() * textData.getLineHeight();
 
 			bs_frame_clear();
 		}

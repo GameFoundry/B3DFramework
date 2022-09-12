@@ -21,14 +21,14 @@ namespace bs
 
 	CReflectionProbe::~CReflectionProbe()
 	{
-		mInternal->destroy();
+		mInternal->Destroy();
 	}
 
 	Sphere CReflectionProbe::GetBounds() const
 	{
 		mInternal->_updateState(*SO());
 
-		return mInternal->getBounds();
+		return mInternal->GetBounds();
 	}
 
 	void CReflectionProbe::OnInitialized()
@@ -36,20 +36,20 @@ namespace bs
 		// If mInternal already exists this means this object was deserialized,
 		// so all we need to do is initialize it.
 		if (mInternal != nullptr)
-			mInternal->initialize();
+			mInternal->Initialize();
 		else
 			mInternal = ReflectionProbe::createBox(Vector3::ONE);
 
 		gSceneManager()._bindActor(mInternal, sceneObject());
 
 		// If filtered texture doesn't exist, ensure it is generated
-		SPtr<Texture> filteredTexture = mInternal->getFilteredTexture();
+		SPtr<Texture> filteredTexture = mInternal->GetFilteredTexture();
 		if(filteredTexture == nullptr)
 		{
-			if (mInternal->getCustomTexture())
-				mInternal->filter();
+			if (mInternal->GetCustomTexture())
+				mInternal->Filter();
 			else
-				mInternal->capture();
+				mInternal->Capture();
 		}
 	}
 

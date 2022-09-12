@@ -10,20 +10,20 @@ namespace bs
 	RendererManager::~RendererManager()
 	{
 		if (mActiveRenderer != nullptr)
-			mActiveRenderer->destroy();
+			mActiveRenderer->Destroy();
 	}
 
 	void RendererManager::SetActive(const String& name)
 	{
-		for(auto iter = mAvailableFactories.begin(); iter != mAvailableFactories.end(); ++iter)
+		for(auto iter = mAvailableFactories.Begin(); iter != mAvailableFactories.end(); ++iter)
 		{
-			if((*iter)->name() == name)
+			if((*iter)->Name() == name)
 			{
-				SPtr<ct::Renderer> newRenderer = (*iter)->create();
+				SPtr<ct::Renderer> newRenderer = (*iter)->Create();
 				if(newRenderer != nullptr)
 				{
 					if (mActiveRenderer != nullptr)
-						mActiveRenderer->destroy();
+						mActiveRenderer->Destroy();
 
 					mActiveRenderer = newRenderer;
 				}				
@@ -40,7 +40,7 @@ namespace bs
 	void RendererManager::Initialize()
 	{
 		if (mActiveRenderer != nullptr)
-			mActiveRenderer->initialize();
+			mActiveRenderer->Initialize();
 	}
 
 	void RendererManager::_registerFactory(SPtr<RendererFactory> factory)

@@ -36,7 +36,7 @@ namespace bs
 		ScriptCRenderable* scriptrenderable;
 		scriptrenderable = ScriptCRenderable::toNative(value.renderable);
 		if(scriptrenderable != nullptr)
-			tmprenderable = scriptrenderable->getHandle();
+			tmprenderable = scriptrenderable->GetHandle();
 		output.renderable = tmprenderable;
 
 		return output;
@@ -48,11 +48,11 @@ namespace bs
 		output.type = value.type;
 		output.sequential = value.sequential;
 		ScriptComponentBase* scriptrenderable = nullptr;
-		if(value.renderable.getComponent())
-			scriptrenderable = ScriptGameObjectManager::instance().getBuiltinScriptComponent(static_object_cast<Component>(value.renderable.getComponent()));
+		if(value.renderable.GetComponent())
+			scriptrenderable = ScriptGameObjectManager::instance().GetBuiltinScriptComponent(static_object_cast<Component>(value.renderable.getComponent()));
 		MonoObject* tmprenderable;
 		if(scriptrenderable != nullptr)
-			tmprenderable = scriptrenderable->getManagedInstance();
+			tmprenderable = scriptrenderable->GetManagedInstance();
 		else
 			tmprenderable = nullptr;
 		output.renderable = tmprenderable;

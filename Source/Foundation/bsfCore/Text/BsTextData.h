@@ -119,7 +119,7 @@ namespace bs
 			UINT32 GetHeight() const { return mHeight; }
 
 			/**	Returns an offset used to separate two lines. */
-			UINT32 GetYOffset() const { return mTextData->getLineHeight(); }
+			UINT32 GetYOffset() const { return mTextData->GetLineHeight(); }
 
 			/**
 			 * Calculates new width of the line if we were to add the provided character, without actually adding it.

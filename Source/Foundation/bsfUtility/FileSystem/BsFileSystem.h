@@ -156,7 +156,7 @@ namespace bs
 			// Note: File path should be analyzed and determined on which drive does the path belong to. Locks can then
 			// be issued on a per-drive basis, instead of having one global lock. This would allow multiple files to be
 			// accessed at the same time, as long as they're on different drives.
-			mMutex.lock();
+			mMutex.Lock();
 		}
 
 		/**
@@ -165,7 +165,7 @@ namespace bs
 		 */
 		static void Unlock(const Path& path)
 		{
-			mMutex.unlock();
+			mMutex.Unlock();
 		}
 
 		/**

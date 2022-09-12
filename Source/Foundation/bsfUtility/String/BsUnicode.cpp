@@ -223,7 +223,7 @@ namespace bs
 
 		// Note: Not exactly valid on Windows, since the input character could require a surrogate pair.
 		//       Consider improving this if it ever becomes an issue.
-		wchar_t wideChar = facet.widen(input);
+		wchar_t wideChar = facet.Widen(input);
 
 		char32_t output;
 		wideToUTF32(&wideChar, &wideChar + 1, output);
@@ -250,18 +250,18 @@ namespace bs
 		const std::ctype<wchar_t>& facet = std::use_facet<std::ctype<wchar_t>>(locale);
 
 		// Note: Same as above, not exactly correct as narrow() doesn't accept a surrogate pair
-		return facet.narrow((wchar_t)input, invalidChar);
+		return facet.Narrow((wchar_t)input, invalidChar);
 	}
 
 	String UTF8::FromANSI(const String& input, const std::locale& locale)
 	{
 		String output;
-		output.reserve(input.size());
+		output.Reserve(input.size());
 
 		auto backInserter = std::back_inserter(output);
 
-		auto iter = input.begin();
-		while(iter != input.end())
+		auto iter = input.Begin();
+		while(iter != input.End())
 		{
 			char32_t u32char = ANSIToUTF32(*iter, locale);
 			UTF32To8(u32char, backInserter, 4);
@@ -276,11 +276,11 @@ namespace bs
 	{
 		String output;
 
-		auto iter = input.begin();
-		while(iter != input.end())
+		auto iter = input.Begin();
+		while(iter != input.End())
 		{
 			char32_t u32char;
-			iter = UTF8To32(iter, input.end(), u32char, invalidChar);
+			iter = UTF8To32(iter, input.End(), u32char, invalidChar);
 
 			output.push_back(UTF32ToANSI(u32char, invalidChar, locale));
 		}
@@ -291,15 +291,15 @@ namespace bs
 	String UTF8::FromWide(const WString& input)
 	{
 		String output;
-		output.reserve(input.size());
+		output.Reserve(input.size());
 
 		auto backInserter = std::back_inserter(output);
 
-		auto iter = input.begin();
-		while(iter != input.end())
+		auto iter = input.Begin();
+		while(iter != input.End())
 		{
 			char32_t u32char;
-			iter = wideToUTF32(iter, input.end(), u32char);
+			iter = wideToUTF32(iter, input.End(), u32char);
 			UTF32To8(u32char, backInserter, 4);
 		}
 
@@ -311,11 +311,11 @@ namespace bs
 		WString output;
 		auto backInserter = std::back_inserter(output);
 
-		auto iter = input.begin();
-		while(iter != input.end())
+		auto iter = input.Begin();
+		while(iter != input.End())
 		{
 			char32_t u32char;
-			iter = UTF8To32(iter, input.end(), u32char);
+			iter = UTF8To32(iter, input.End(), u32char);
 
 			UTF32ToWide(u32char, backInserter, 2);
 		}
@@ -326,15 +326,15 @@ namespace bs
 	String UTF8::FromUTF16(const U16String& input)
 	{
 		String output;
-		output.reserve(input.size());
+		output.Reserve(input.size());
 
 		auto backInserter = std::back_inserter(output);
 
-		auto iter = input.begin();
-		while(iter != input.end())
+		auto iter = input.Begin();
+		while(iter != input.End())
 		{
 			char32_t u32char = 0;
-			iter = UTF16To32(iter, input.end(), u32char);
+			iter = UTF16To32(iter, input.End(), u32char);
 			UTF32To8(u32char, backInserter, 4);
 		}
 
@@ -346,11 +346,11 @@ namespace bs
 		U16String output;
 		auto backInserter = std::back_inserter(output);
 
-		auto iter = input.begin();
-		while(iter != input.end())
+		auto iter = input.Begin();
+		while(iter != input.End())
 		{
 			char32_t u32char;
-			iter = UTF8To32(iter, input.end(), u32char);
+			iter = UTF8To32(iter, input.End(), u32char);
 
 			UTF32To16(u32char, backInserter, 2);
 		}
@@ -361,12 +361,12 @@ namespace bs
 	String UTF8::FromUTF32(const U32String& input)
 	{
 		String output;
-		output.reserve(input.size());
+		output.Reserve(input.size());
 
 		auto backInserter = std::back_inserter(output);
 
-		auto iter = input.begin();
-		while(iter != input.end())
+		auto iter = input.Begin();
+		while(iter != input.End())
 		{
 			UTF32To8(*iter, backInserter, 4);
 
@@ -380,11 +380,11 @@ namespace bs
 	{
 		U32String output;
 
-		auto iter = input.begin();
-		while(iter != input.end())
+		auto iter = input.Begin();
+		while(iter != input.End())
 		{
 			char32_t u32char;
-			iter = UTF8To32(iter, input.end(), u32char);
+			iter = UTF8To32(iter, input.End(), u32char);
 
 			output.push_back(u32char);
 		}
@@ -422,7 +422,7 @@ namespace bs
 			curByte++;
 		}
 
-		return (UINT32)input.size();
+		return (UINT32)input.Size();
 	}
 
 	UINT32 UTF8::CharByteCount(const String& input, UINT32 charIdx)
@@ -430,7 +430,7 @@ namespace bs
 		const UINT32 byteIdx = charToByteIndex(input, charIdx);
 
 		UINT32 count = 1;
-		for(auto i = (size_t)byteIdx + 1; i < input.size(); i++)
+		for(auto i = (size_t)byteIdx + 1; i < input.Size(); i++)
 		{
 			if((i & 0xc0) != 0x80)
 				break;

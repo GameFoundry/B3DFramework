@@ -132,10 +132,10 @@ namespace bs
 #endif
 
 		/** Checks is the path a directory (contains no file-name). */
-		bool IsDirectory() const { return mFilename.empty(); }
+		bool IsDirectory() const { return mFilename.Empty(); }
 
 		/** Checks does the path point to a file. */
-		bool IsFile() const { return !mFilename.empty(); }
+		bool IsFile() const { return !mFilename.Empty(); }
 
 		/** Checks is the contained path absolute. */
 		bool IsAbsolute() const { return mIsAbsolute; }
@@ -231,7 +231,7 @@ namespace bs
 		String GetExtension() const;
 
 		/** Gets the number of directories in the path. */
-		UINT32 GetNumDirectories() const { return (UINT32)mDirectories.size(); }
+		UINT32 GetNumDirectories() const { return (UINT32)mDirectories.Size(); }
 
 		/** Gets a directory name with the specified index from the path. */
 		const String& GetDirectory(UINT32 idx) const;
@@ -252,7 +252,7 @@ namespace bs
 		void Clear();
 
 		/** Returns true if no path has been set. */
-		bool IsEmpty() const { return mDirectories.empty() && mFilename.empty() && mDevice.empty() && mNode.empty(); }
+		bool IsEmpty() const { return mDirectories.Empty() && mFilename.empty() && mDevice.empty() && mNode.empty(); }
 
 		/** Concatenates two paths. */
 		Path operator+ (const Path& rhs) const;
@@ -307,12 +307,12 @@ namespace bs
 				{
 					idx++;
 
-					tempStream.str(BasicString<T>());
-					tempStream.clear();
+					tempStream.Str(BasicString<T>());
+					tempStream.Clear();
 					while (idx < numChars && pathStr[idx] != '\\' && pathStr[idx] != '/')
 						tempStream << pathStr[idx++];
 
-					setNode(tempStream.str());
+					setNode(tempStream.Str());
 
 					if (idx < numChars)
 						idx++;
@@ -343,8 +343,8 @@ namespace bs
 
 				while (idx < numChars)
 				{
-					tempStream.str(BasicString<T>());
-					tempStream.clear();
+					tempStream.Str(BasicString<T>());
+					tempStream.Clear();
 					while (idx < numChars && pathStr[idx] != '\\' && pathStr[idx] != '/')
 					{
 						tempStream << pathStr[idx];
@@ -352,9 +352,9 @@ namespace bs
 					}
 
 					if (idx < numChars)
-						pushDirectory(tempStream.str());
+						pushDirectory(tempStream.Str());
 					else
-						setFilename(tempStream.str());
+						setFilename(tempStream.Str());
 
 					idx++;
 				}
@@ -391,8 +391,8 @@ namespace bs
 
 				while (idx < numChars)
 				{
-					tempStream.str(BasicString<T>());
-					tempStream.clear();
+					tempStream.Str(BasicString<T>());
+					tempStream.Clear();
 					while (idx < numChars && pathStr[idx] != '/')
 					{
 						tempStream << pathStr[idx];
@@ -401,12 +401,12 @@ namespace bs
 
 					if (idx < numChars)
 					{
-						if (mDirectories.empty())
+						if (mDirectories.Empty())
 						{
-							BasicString<T> deviceStr = tempStream.str();
-							if (!deviceStr.empty() && *(deviceStr.rbegin()) == ':')
+							BasicString<T> deviceStr = tempStream.Str();
+							if (!deviceStr.Empty() && *(deviceStr.rbegin()) == ':')
 							{
-								setDevice(deviceStr.substr(0, deviceStr.length() - 1));
+								setDevice(deviceStr.Substr(0, deviceStr.length() - 1));
 								mIsAbsolute = true;
 							}
 							else
@@ -416,12 +416,12 @@ namespace bs
 						}
 						else
 						{
-							pushDirectory(tempStream.str());
+							pushDirectory(tempStream.Str());
 						}
 					}
 					else
 					{
-						setFilename(tempStream.str());
+						setFilename(tempStream.Str());
 					}
 
 					idx++;

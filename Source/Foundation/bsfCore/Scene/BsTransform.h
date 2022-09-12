@@ -103,21 +103,21 @@ namespace bs
 		 *
 		 * @return	Forward axis of the object.
 		 */
-		Vector3 GetForward() const { return getRotation().rotate(-Vector3::UNIT_Z); }
+		Vector3 GetForward() const { return getRotation().Rotate(-Vector3::UNIT_Z); }
 
 		/**
 		 * Gets the Y (up) axis of the object.
 		 *
 		 * @return	Up axis of the object.
 		 */
-		Vector3 GetUp() const { return getRotation().rotate(Vector3::UNIT_Y); }
+		Vector3 GetUp() const { return getRotation().Rotate(Vector3::UNIT_Y); }
 
 		/**
 		 * Gets the X (right) axis of the object.
 		 *
 		 * @return	Right axis of the object.
 		 */
-		Vector3 GetRight() const { return getRotation().rotate(Vector3::UNIT_X); }
+		Vector3 GetRight() const { return getRotation().Rotate(Vector3::UNIT_X); }
 
 		/**
 		 * Rotates the game object so it's forward axis faces the provided direction.

@@ -86,12 +86,12 @@ namespace bs
 
 	const HSpriteTexture& SpriteTexture::Dummy()
 	{
-		return BuiltinResources::Instance().getDummySpriteTexture();
+		return BuiltinResources::Instance().GetDummySpriteTexture();
 	}
 
 	bool SpriteTexture::CheckIsLoaded(const HSpriteTexture& tex)
 	{
-		return tex != nullptr && tex.isLoaded(false) && tex->getTexture() != nullptr && tex->getTexture().isLoaded(false);
+		return tex != nullptr && tex.IsLoaded(false) && tex->GetTexture() != nullptr && tex->getTexture().isLoaded(false);
 	}
 
 	void SpriteTexture::SetTexture(const HTexture& texture)
@@ -105,12 +105,12 @@ namespace bs
 
 	UINT32 SpriteTexture::GetWidth() const
 	{
-		return Math::RoundToInt(mAtlasTexture->getProperties().getWidth() * mUVScale.x);
+		return Math::RoundToInt(mAtlasTexture->GetProperties().GetWidth() * mUVScale.x);
 	}
 
 	UINT32 SpriteTexture::GetHeight() const
 	{
-		return Math::RoundToInt(mAtlasTexture->getProperties().getHeight() * mUVScale.y);
+		return Math::RoundToInt(mAtlasTexture->GetProperties().GetHeight() * mUVScale.y);
 	}
 
 	UINT32 SpriteTexture::GetFrameWidth() const
@@ -138,8 +138,8 @@ namespace bs
 	SPtr<ct::CoreObject> SpriteTexture::CreateCore() const
 	{
 		SPtr<ct::Texture> texturePtr;
-		if(mAtlasTexture.isLoaded())
-			texturePtr = mAtlasTexture->getCore();
+		if(mAtlasTexture.IsLoaded())
+			texturePtr = mAtlasTexture->GetCore();
 
 		ct::SpriteTexture* spriteTexture = new (bs_alloc<ct::SpriteTexture>()) ct::SpriteTexture(mUVOffset, mUVScale,
 			std::move(texturePtr), mAnimation, mPlayback);
@@ -154,7 +154,7 @@ namespace bs
 	{
 		UINT32 size = csync_size(*this);
 
-		UINT8* buffer = allocator->alloc(size);
+		UINT8* buffer = allocator->Alloc(size);
 		Bitstream Stream(buffer, size);
 		csync_write(*this, stream);
 
@@ -163,8 +163,8 @@ namespace bs
 
 	void SpriteTexture::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 	{
-		if (mAtlasTexture.isLoaded())
-			dependencies.push_back(mAtlasTexture.get());
+		if (mAtlasTexture.IsLoaded())
+			dependencies.push_back(mAtlasTexture.Get());
 	}
 
 	SPtr<ct::SpriteTexture> SpriteTexture::GetCore() const
@@ -192,7 +192,7 @@ namespace bs
 			(new (bs_alloc<SpriteTexture>()) SpriteTexture(Vector2(0.0f, 0.0f), Vector2(1.0f, 1.0f), texture));
 
 		texturePtr->_setThisPtr(texturePtr);
-		texturePtr->initialize();
+		texturePtr->Initialize();
 
 		return texturePtr;
 	}
@@ -203,7 +203,7 @@ namespace bs
 			(new (bs_alloc<SpriteTexture>()) SpriteTexture(uvOffset, uvScale, texture));
 
 		texturePtr->_setThisPtr(texturePtr);
-		texturePtr->initialize();
+		texturePtr->Initialize();
 
 		return texturePtr;
 	}
@@ -240,7 +240,7 @@ namespace bs
 
 		void SpriteTexture::SyncToCore(const CoreSyncData& data)
 		{
-			Bitstream Stream(data.getBuffer(), data.getBufferSize());
+			Bitstream Stream(data.GetBuffer(), data.getBufferSize());
 			csync_read(*this, stream);
 		}
 	}

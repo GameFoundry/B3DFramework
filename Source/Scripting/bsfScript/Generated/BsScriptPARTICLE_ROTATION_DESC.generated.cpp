@@ -35,14 +35,14 @@ namespace bs
 		ScriptTDistributionfloat* scriptrotation;
 		scriptrotation = ScriptTDistributionfloat::toNative(value.rotation);
 		if(scriptrotation != nullptr)
-			tmprotation = scriptrotation->getInternal();
+			tmprotation = scriptrotation->GetInternal();
 		if(tmprotation != nullptr)
 		output.rotation = *tmprotation;
 		SPtr<TDistribution<Vector3>> tmprotation3D;
 		ScriptTDistributionVector3* scriptrotation3D;
 		scriptrotation3D = ScriptTDistributionVector3::toNative(value.rotation3D);
 		if(scriptrotation3D != nullptr)
-			tmprotation3D = scriptrotation3D->getInternal();
+			tmprotation3D = scriptrotation3D->GetInternal();
 		if(tmprotation3D != nullptr)
 		output.rotation3D = *tmprotation3D;
 		output.use3DRotation = value.use3DRotation;

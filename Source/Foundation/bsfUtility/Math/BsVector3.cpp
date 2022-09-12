@@ -14,7 +14,7 @@ namespace bs
 
 	Radian Vector3::AngleBetween(const Vector3& dest) const
 	{
-		float lenProduct = length() * dest.length();
+		float lenProduct = length() * dest.Length();
 
 		// Divide by zero check
 		if (lenProduct < 1e-6f)

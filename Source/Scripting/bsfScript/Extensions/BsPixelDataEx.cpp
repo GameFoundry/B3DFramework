@@ -8,7 +8,7 @@ namespace bs
 	SPtr<PixelData> PixelDataEx::Create(const PixelVolume& volume, PixelFormat format)
 	{
 		SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(volume, format);
-		pixelData->allocateInternalBuffer();
+		pixelData->AllocateInternalBuffer();
 
 		return pixelData;
 	}
@@ -16,7 +16,7 @@ namespace bs
 	SPtr<PixelData> PixelDataEx::Create(UINT32 width, UINT32 height, UINT32 depth, PixelFormat format)
 	{
 		SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(width, height, depth, format);
-		pixelData->allocateInternalBuffer();
+		pixelData->AllocateInternalBuffer();
 
 		return pixelData;
 	}
@@ -24,7 +24,7 @@ namespace bs
 	Color PixelDataEx::GetPixel(const SPtr<PixelData>& thisPtr, int x, int y, int z)
 	{
 		if (!checkIsLocked(thisPtr))
-			return thisPtr->getColorAt(x, y, z);
+			return thisPtr->GetColorAt(x, y, z);
 		else
 			return Color();
 	}
@@ -32,7 +32,7 @@ namespace bs
 	void PixelDataEx::SetPixel(const SPtr<PixelData>& thisPtr, const Color& value, int x, int y, int z)
 	{
 		if (!checkIsLocked(thisPtr))
-			thisPtr->setColorAt(value, x, y, z);
+			thisPtr->SetColorAt(value, x, y, z);
 	}
 
 	Vector<Color> PixelDataEx::GetPixels(const SPtr<PixelData>& thisPtr)
@@ -40,7 +40,7 @@ namespace bs
 		if (!checkIsLocked(thisPtr))
 			return Vector<Color>();
 
-		return thisPtr->getColors();
+		return thisPtr->GetColors();
 	}
 
 	void PixelDataEx::SetPixels(const SPtr<PixelData>& thisPtr, const Vector<Color>& value)
@@ -48,7 +48,7 @@ namespace bs
 		if (!checkIsLocked(thisPtr))
 			return;
 
-		thisPtr->setColors(value);
+		thisPtr->SetColors(value);
 	}
 
 	Vector<char> PixelDataEx::GetRawPixels(const SPtr<PixelData>& thisPtr)
@@ -56,8 +56,8 @@ namespace bs
 		if (!checkIsLocked(thisPtr))
 			return Vector<char>();
 
-		Vector<char> Output(thisPtr->getSize());
-		memcpy(output.data(), thisPtr->getData(), thisPtr->getSize());
+		Vector<char> Output(thisPtr->GetSize());
+		memcpy(output.Data(), thisPtr->GetData(), thisPtr->getSize());
 
 		return output;
 	}
@@ -67,20 +67,20 @@ namespace bs
 		if (!checkIsLocked(thisPtr))
 			return;
 
-		UINT32 arrayLen = (UINT32)value.size();
-		if (thisPtr->getSize() != arrayLen)
+		UINT32 arrayLen = (UINT32)value.Size();
+		if (thisPtr->GetSize() != arrayLen)
 		{
 			BS_LOG(Warning, Texture, "Unable to set colors, invalid array size.");
 			return;
 		}
 
-		UINT8* data = thisPtr->getData();
-		memcpy(data, value.data(), thisPtr->getSize());
+		UINT8* data = thisPtr->GetData();
+		memcpy(data, value.Data(), thisPtr->GetSize());
 	}
 
 	bool PixelDataEx::CheckIsLocked(const SPtr<PixelData>& thisPtr)
 	{
-		if (thisPtr->isLocked())
+		if (thisPtr->IsLocked())
 		{
 			BS_LOG(Warning, Texture, "Attempting to access a locked pixel data buffer.");
 			return true;

@@ -75,12 +75,12 @@ namespace bs
 		// Ensure all errors are reported properly
 		CrashHandler::startUp(desc.crashHandling);
 		if(desc.logCallback)
-			gDebug().setLogCallback(desc.logCallback);
+			gDebug().SetLogCallback(desc.logCallback);
 	}
 
 	CoreApplication::~CoreApplication()
 	{
-		mPrimaryWindow->destroy();
+		mPrimaryWindow->Destroy();
 		mPrimaryWindow = nullptr;
 
 		Importer::shutDown();
@@ -112,9 +112,9 @@ namespace bs
 
 		// All CoreObject related modules should be shut down now. They have likely queued CoreObjects for destruction, so
 		// we need to wait for those objects to get destroyed before continuing.
-		CoreObjectManager::instance().syncToCore();
-		gCoreThread().update();
-		gCoreThread().submitAll(true);
+		CoreObjectManager::instance().SyncToCore();
+		gCoreThread().Update();
+		gCoreThread().SubmitAll(true);
 
 		unloadPlugin(mRendererPlugin);
 
@@ -170,7 +170,7 @@ namespace bs
 		ct::GpuProgramManager::startUp();
 		RenderAPIManager::startUp();
 
-		mPrimaryWindow = RenderAPIManager::instance().initialize(mStartUpDesc.renderAPI, mStartUpDesc.primaryWindowDesc);
+		mPrimaryWindow = RenderAPIManager::instance().Initialize(mStartUpDesc.renderAPI, mStartUpDesc.primaryWindowDesc);
 
 		ct::ParamBlockManager::startUp();
 		Input::startUp();
@@ -181,7 +181,7 @@ namespace bs
 		// Must be initialized before the scene manager, as game scene creation triggers physics scene creation
 		PhysicsManager::startUp(mStartUpDesc.physics, mStartUpDesc.physicsCooking);
 		SceneManager::startUp();
-		RendererManager::instance().setActive(mStartUpDesc.renderer);
+		RendererManager::instance().SetActive(mStartUpDesc.renderer);
 		startUpRenderer();
 
 		ProfilerGPU::startUp();
@@ -208,7 +208,7 @@ namespace bs
 			// Limit FPS if needed
 			if (mFrameStep > 0)
 			{
-				UINT64 currentTime = gTime().getTimePrecise();
+				UINT64 currentTime = gTime().GetTimePrecise();
 				UINT64 nextFrameTime = mLastFrameTime + mFrameStep;
 				while (nextFrameTime > currentTime)
 				{
@@ -218,7 +218,7 @@ namespace bs
 					if (waitTime >= 2000)
 					{
 						Platform::sleep(waitTime / 1000);
-						currentTime = gTime().getTimePrecise();
+						currentTime = gTime().GetTimePrecise();
 					}
 					else
 					{
@@ -226,7 +226,7 @@ namespace bs
 						// millisecond otherwise.
 						// Note: For mobiles where power might be more important than input latency, consider using sleep.
 						while(nextFrameTime > currentTime)
-							currentTime = gTime().getTimePrecise();
+							currentTime = gTime().GetTimePrecise();
 					}
 				}
 
@@ -251,7 +251,7 @@ namespace bs
 
 	void CoreApplication::RunMainLoopFrame()
 	{
-		gProfilerCPU().beginThread("Sim");
+		gProfilerCPU().BeginThread("Sim");
 
 		Platform::_update();
 		DeferredCallManager::instance()._update();
@@ -277,7 +277,7 @@ namespace bs
 			{
 				fixedUpdate();
 				PROFILE_CALL(gSceneManager()._fixedUpdate(), "Scene fixed update");
-				PROFILE_CALL(gPhysics().fixedUpdate(stepSeconds), "Physics simulation");
+				PROFILE_CALL(gPhysics().FixedUpdate(stepSeconds), "Physics simulation");
 
 				gTime()._advanceFixedUpdate(step);
 			}
@@ -285,11 +285,11 @@ namespace bs
 
 		PROFILE_CALL(gSceneManager()._update(), "Scene update");
 		gAudio()._update();
-		gPhysics().update();
+		gPhysics().Update();
 
 		// Update plugins
 		for (auto& pluginUpdateFunc : mPluginUpdateFunctions)
-			pluginUpdateFunc.second();
+			pluginUpdateFunc.Second();
 
 		postUpdate();
 
@@ -297,18 +297,18 @@ namespace bs
 
 		// Evaluate animation after scene and plugin updates because the renderer will just now be displaying the
 		// animation we sent on the previous frame, and we want the scene information to match to what is displayed.
-		perFrameData.animation = AnimationManager::instance().update(mStartUpDesc.asyncAnimation);
-		perFrameData.particles = ParticleManager::instance().update(*perFrameData.animation);
+		perFrameData.animation = AnimationManager::instance().Update(mStartUpDesc.asyncAnimation);
+		perFrameData.particles = ParticleManager::instance().Update(*perFrameData.animation);
 
 		// Send out resource events in case any were loaded/destroyed/modified
-		ResourceListenerManager::instance().update();
+		ResourceListenerManager::instance().Update();
 
 		// Trigger any renderer task callbacks (should be done before scene object update, or core sync, so objects have
 		// a chance to respond to the callback).
-		RendererManager::instance().getActive()->update();
+		RendererManager::instance().GetActive()->Update();
 
 		gSceneManager()._updateCoreObjectTransforms();
-		PROFILE_CALL(RendererManager::instance().getActive()->renderAll(perFrameData), "Render");
+		PROFILE_CALL(RendererManager::instance().GetActive()->RenderAll(perFrameData), "Render");
 
 		// Core and sim thread run in lockstep. This will result in a larger input latency than if I was
 		// running just a single thread. Latency becomes worse if the core thread takes longer than sim
@@ -319,27 +319,27 @@ namespace bs
 
 			while(!mIsFrameRenderingFinished)
 			{
-				TaskScheduler::instance().addWorker();
-				mFrameRenderingFinishedCondition.wait(lock);
-				TaskScheduler::instance().removeWorker();
+				TaskScheduler::instance().AddWorker();
+				mFrameRenderingFinishedCondition.Wait(lock);
+				TaskScheduler::instance().RemoveWorker();
 			}
 
 			mIsFrameRenderingFinished = false;
 		}
 
-		gCoreThread().queueCommand(std::bind(&CoreApplication::beginCoreProfiling, this), CTQF_InternalQueue);
-		gCoreThread().queueCommand(&Platform::_coreUpdate, CTQF_InternalQueue);
-		gCoreThread().queueCommand(std::bind(&ct::RenderWindowManager::_update, ct::RenderWindowManager::instancePtr()), CTQF_InternalQueue);
+		gCoreThread().QueueCommand(std::bind(&CoreApplication::beginCoreProfiling, this), CTQF_InternalQueue);
+		gCoreThread().QueueCommand(&Platform::_coreUpdate, CTQF_InternalQueue);
+		gCoreThread().QueueCommand(std::bind(&ct::RenderWindowManager::_update, ct::RenderWindowManager::instancePtr()), CTQF_InternalQueue);
 
-		gCoreThread().update();
-		gCoreThread().submitAll();
+		gCoreThread().Update();
+		gCoreThread().SubmitAll();
 
-		gCoreThread().queueCommand(std::bind(&CoreApplication::frameRenderingFinishedCallback, this), CTQF_InternalQueue);
+		gCoreThread().QueueCommand(std::bind(&CoreApplication::frameRenderingFinishedCallback, this), CTQF_InternalQueue);
 
-		gCoreThread().queueCommand(std::bind(&ct::QueryManager::_update, ct::QueryManager::instancePtr()), CTQF_InternalQueue);
-		gCoreThread().queueCommand(std::bind(&CoreApplication::endCoreProfiling, this), CTQF_InternalQueue);
+		gCoreThread().QueueCommand(std::bind(&ct::QueryManager::_update, ct::QueryManager::instancePtr()), CTQF_InternalQueue);
+		gCoreThread().QueueCommand(std::bind(&CoreApplication::endCoreProfiling, this), CTQF_InternalQueue);
 
-		gProfilerCPU().endThread();
+		gProfilerCPU().EndThread();
 		gProfiler()._update();
 	}
 
@@ -349,9 +349,9 @@ namespace bs
 
 		while (!mIsFrameRenderingFinished)
 		{
-			TaskScheduler::instance().addWorker();
-			mFrameRenderingFinishedCondition.wait(lock);
-			TaskScheduler::instance().removeWorker();
+			TaskScheduler::instance().AddWorker();
+			mFrameRenderingFinishedCondition.Wait(lock);
+			TaskScheduler::instance().RemoveWorker();
 		}
 	}
 
@@ -399,13 +399,13 @@ namespace bs
 
 	void CoreApplication::StartUpRenderer()
 	{
-		RendererManager::instance().initialize();
+		RendererManager::instance().Initialize();
 	}
 
 	void CoreApplication::BeginCoreProfiling()
 	{
 #if !BS_FORCE_SINGLETHREADED_RENDERING
-		gProfilerCPU().beginThread("Core");
+		gProfilerCPU().BeginThread("Core");
 #endif
 	}
 
@@ -414,14 +414,14 @@ namespace bs
 		ProfilerGPU::instance()._update();
 
 #if !BS_FORCE_SINGLETHREADED_RENDERING
-		gProfilerCPU().endThread();
+		gProfilerCPU().EndThread();
 		gProfiler()._updateCore();
 #endif
 	}
 
 	void* CoreApplication::loadPlugin(const String& pluginName, DynLib** library, void* passThrough)
 	{
-		DynLib* loadedLibrary = gDynLibManager().load(pluginName);
+		DynLib* loadedLibrary = gDynLibManager().Load(pluginName);
 		if(library != nullptr)
 			*library = loadedLibrary;
 
@@ -432,7 +432,7 @@ namespace bs
 			{
 				typedef void* (*LoadPluginFunc)();
 
-				LoadPluginFunc loadPluginFunc = (LoadPluginFunc)loadedLibrary->getSymbol("loadPlugin");
+				LoadPluginFunc loadPluginFunc = (LoadPluginFunc)loadedLibrary->GetSymbol("loadPlugin");
 
 				if (loadPluginFunc != nullptr)
 					retVal = loadPluginFunc();
@@ -441,13 +441,13 @@ namespace bs
 			{
 				typedef void* (*LoadPluginFunc)(void*);
 
-				LoadPluginFunc loadPluginFunc = (LoadPluginFunc)loadedLibrary->getSymbol("loadPlugin");
+				LoadPluginFunc loadPluginFunc = (LoadPluginFunc)loadedLibrary->GetSymbol("loadPlugin");
 
 				if (loadPluginFunc != nullptr)
 					retVal = loadPluginFunc(passThrough);
 			}
 
-			UpdatePluginFunc loadPluginFunc = (UpdatePluginFunc)loadedLibrary->getSymbol("updatePlugin");
+			UpdatePluginFunc loadPluginFunc = (UpdatePluginFunc)loadedLibrary->GetSymbol("updatePlugin");
 
 			if (loadPluginFunc != nullptr)
 				mPluginUpdateFunctions[loadedLibrary] = loadPluginFunc;
@@ -460,13 +460,13 @@ namespace bs
 	{
 		typedef void (*UnloadPluginFunc)();
 
-		UnloadPluginFunc unloadPluginFunc = (UnloadPluginFunc)library->getSymbol("unloadPlugin");
+		UnloadPluginFunc unloadPluginFunc = (UnloadPluginFunc)library->GetSymbol("unloadPlugin");
 
 		if(unloadPluginFunc != nullptr)
 			unloadPluginFunc();
 
-		mPluginUpdateFunctions.erase(library);
-		gDynLibManager().unload(library);
+		mPluginUpdateFunctions.Erase(library);
+		gDynLibManager().Unload(library);
 	}
 
 	SPtr<IShaderIncludeHandler> CoreApplication::GetShaderIncludeHandler() const

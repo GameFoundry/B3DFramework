@@ -60,13 +60,13 @@ namespace bs
 		case PDT_Curve:
 		case PDT_RandomCurveRange:
 			{
-				const std::pair<float, float> minCurveRange = mMinGradient.getTimeRange();
+				const std::pair<float, float> minCurveRange = mMinGradient.GetTimeRange();
 				minT = minCurveRange.first;
 				maxT = minCurveRange.second;
 
 				if(useRange)
 				{
-					const std::pair<float, float> maxCurveRange = mMaxGradient.getTimeRange();
+					const std::pair<float, float> maxCurveRange = mMaxGradient.GetTimeRange();
 					minT = std::min(minT, maxCurveRange.first);
 					maxT = std::max(maxT, maxCurveRange.second);
 				}
@@ -78,10 +78,10 @@ namespace bs
 				float t = minT;
 				for(UINT32 i = 0; i < numSamples; i++)
 				{
-					addToVector(impl::TGradientHelper<typename T::ColorType>::fromInternalColor(mMinGradient.evaluate(t)), values);
+					addToVector(impl::TGradientHelper<typename T::ColorType>::fromInternalColor(mMinGradient.Evaluate(t)), values);
 
 					if(useRange)
-						addToVector(impl::TGradientHelper<typename T::ColorType>::fromInternalColor(mMaxGradient.evaluate(t)), values);
+						addToVector(impl::TGradientHelper<typename T::ColorType>::fromInternalColor(mMaxGradient.Evaluate(t)), values);
 					
 					t += sampleInterval;
 				}
@@ -118,13 +118,13 @@ namespace bs
 		case PDT_Curve:
 		case PDT_RandomCurveRange:
 			{
-				const std::pair<float, float> minCurveRange = mMinCurve.getTimeRange();
+				const std::pair<float, float> minCurveRange = mMinCurve.GetTimeRange();
 				minT = minCurveRange.first;
 				maxT = minCurveRange.second;
 
 				if(useRange)
 				{
-					const std::pair<float, float> maxCurveRange = mMaxCurve.getTimeRange();
+					const std::pair<float, float> maxCurveRange = mMaxCurve.GetTimeRange();
 					minT = std::min(minT, maxCurveRange.first);
 					maxT = std::max(maxT, maxCurveRange.second);
 				}
@@ -136,12 +136,12 @@ namespace bs
 				float t = minT;
 				for(UINT32 i = 0; i < numSamples; i++)
 				{
-					T value = mMinCurve.evaluate(t);
+					T value = mMinCurve.Evaluate(t);
 					addToVector(value, values);
 
 					if(useRange)
 					{
-						value = mMaxCurve.evaluate(t);
+						value = mMaxCurve.Evaluate(t);
 						addToVector(value, values);
 					}
 					

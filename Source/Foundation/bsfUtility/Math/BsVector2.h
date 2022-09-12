@@ -236,13 +236,13 @@ namespace bs
 		/** Returns the distance to another vector. */
 		float Distance(const Vector2& rhs) const
 		{
-			return (*this - rhs).length();
+			return (*this - rhs).Length();
 		}
 
 		/** Returns the square of the distance to another vector. */
 		float SqrdDistance(const Vector2& rhs) const
 		{
-			return (*this - rhs).squaredLength();
+			return (*this - rhs).SquaredLength();
 		}
 
 		/** Calculates the dot (scalar) product of this vector with another. */
@@ -304,17 +304,17 @@ namespace bs
 		/** Calculates a reflection vector to the plane with the given normal. */
 		Vector2 Reflect(const Vector2& normal) const
 		{
-			return Vector2(*this - (2 * this->dot(normal) * normal));
+			return Vector2(*this - (2 * this->Dot(normal) * normal));
 		}
 
 		/** Performs Gram-Schmidt orthonormalization. */
 		static void Orthonormalize(Vector2& u, Vector2& v)
 		{
-			u.normalize();
+			u.Normalize();
 
-			float dot = u.dot(v);
+			float dot = u.Dot(v);
 			v -= u*dot;
-			v.normalize();
+			v.Normalize();
 		}
 
 		/**

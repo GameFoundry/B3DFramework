@@ -18,8 +18,8 @@ namespace bs
 	GUIListBox::GUIListBox(const String& styleName, const Vector<HString>& elements, bool isMultiselect, const GUIDimensions& dimensions)
 		:GUIButtonBase(styleName, GUIContent(HString("")), dimensions), mElements(elements), mIsMultiselect(isMultiselect)
 	{
-		mElementStates.resize(elements.size(), false);
-		if (!mIsMultiselect && mElementStates.size() > 0)
+		mElementStates.Resize(elements.size(), false);
+		if (!mIsMultiselect && mElementStates.Size() > 0)
 			mElementStates[0] = true;
 
 		updateContents();
@@ -54,9 +54,9 @@ namespace bs
 
 		mElements = elements;
 
-		mElementStates.clear();
-		mElementStates.resize(mElements.size(), false);
-		if (!mIsMultiselect && mElementStates.size() > 0)
+		mElementStates.Clear();
+		mElementStates.Resize(mElements.size(), false);
+		if (!mIsMultiselect && mElementStates.Size() > 0)
 			mElementStates[0] = true;
 
 		updateContents();
@@ -67,7 +67,7 @@ namespace bs
 
 	void GUIListBox::SelectElement(UINT32 idx)
 	{
-		if (idx >= (UINT32)mElements.size())
+		if (idx >= (UINT32)mElements.Size())
 			return;
 
 		if (mElementStates[idx] != true)
@@ -76,7 +76,7 @@ namespace bs
 
 	void GUIListBox::DeselectElement(UINT32 idx)
 	{
-		if (!mIsMultiselect || idx >= (UINT32)mElements.size())
+		if (!mIsMultiselect || idx >= (UINT32)mElements.Size())
 			return;
 
 		if (mElementStates[idx] != false)
@@ -85,8 +85,8 @@ namespace bs
 
 	void GUIListBox::SetElementStates(const Vector<bool>& states)
 	{
-		UINT32 numElements = (UINT32)mElementStates.size();
-		UINT32 min = std::min(numElements, (UINT32)states.size());
+		UINT32 numElements = (UINT32)mElementStates.Size();
+		UINT32 min = std::min(numElements, (UINT32)states.Size());
 
 		bool anythingModified = min != numElements;
 		if (!anythingModified)
@@ -132,7 +132,7 @@ namespace bs
 	{
 		bool processed = GUIButtonBase::_mouseEvent(ev);
 
-		if(ev.getType() == GUIMouseEventType::MouseDown)
+		if(ev.GetType() == GUIMouseEventType::MouseDown)
 		{
 			if (!_isDisabled())
 			{
@@ -152,7 +152,7 @@ namespace bs
 	{
 		const bool processed = GUIButtonBase::_commandEvent(ev);
 
-		if(ev.getType() == GUICommandEventType::Confirm)
+		if(ev.GetType() == GUICommandEventType::Confirm)
 		{
 			if(!_isDisabled())
 			{
@@ -170,7 +170,7 @@ namespace bs
 
 	void GUIListBox::ElementSelected(UINT32 idx)
 	{
-		if (idx >= (UINT32)mElements.size())
+		if (idx >= (UINT32)mElements.Size())
 			return;
 
 		if (mIsMultiselect)
@@ -178,17 +178,17 @@ namespace bs
 			bool selected = mElementStates[idx];
 			mElementStates[idx] = !selected;
 
-			if (!onSelectionToggled.empty())
+			if (!onSelectionToggled.Empty())
 				onSelectionToggled(idx, !selected);
 		}
 		else
 		{
-			for (UINT32 i = 0; i < (UINT32)mElementStates.size(); i++)
+			for (UINT32 i = 0; i < (UINT32)mElementStates.Size(); i++)
 				mElementStates[i] = false;
 
 			mElementStates[idx] = true;
 
-			if (!onSelectionToggled.empty())
+			if (!onSelectionToggled.Empty())
 				onSelectionToggled(idx, true);
 
 			closeListBox();
@@ -214,8 +214,8 @@ namespace bs
 
 		GUIWidget* widget = _getParentWidget();
 
-		desc.camera = widget->getCamera();
-		desc.skin = widget->getSkinResource();
+		desc.camera = widget->GetCamera();
+		desc.skin = widget->GetSkinResource();
 		desc.placement = DropDownAreaPlacement::aroundBoundsHorz(mClippedBounds);
 		desc.dropDownData.states = mElementStates;
 
@@ -235,7 +235,7 @@ namespace bs
 	{
 		if (mDropDownBox != nullptr)
 		{
-			GUIDropDownBoxManager::instance().closeDropDownBox();
+			GUIDropDownBoxManager::instance().CloseDropDownBox();
 
 			_setOn(false);
 			mDropDownBox = nullptr;
@@ -246,7 +246,7 @@ namespace bs
 	{
 		UINT32 selectedIdx = 0;
 		UINT32 numSelected = 0;
-		for (UINT32 i = 0; i < (UINT32)mElementStates.size(); i++)
+		for (UINT32 i = 0; i < (UINT32)mElementStates.Size(); i++)
 		{
 			if (mElementStates[i])
 			{
@@ -266,7 +266,7 @@ namespace bs
 		}
 		else
 		{
-			if(!mElements.empty())
+			if(!mElements.Empty())
 				setContent(GUIContent(mElements[selectedIdx]));
 			else
 				setContent(GUIContent(HEString("None")));

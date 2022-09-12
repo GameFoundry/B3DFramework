@@ -36,7 +36,7 @@ namespace bs
 		ScriptSpriteTexture* scripttexture;
 		scripttexture = ScriptSpriteTexture::toNative(value.texture);
 		if(scripttexture != nullptr)
-			tmptexture = scripttexture->getHandle();
+			tmptexture = scripttexture->GetHandle();
 		output.texture = tmptexture;
 		output.textColor = value.textColor;
 
@@ -47,10 +47,10 @@ namespace bs
 	{
 		__GUIElementStateStyleInterop output;
 		ScriptResourceBase* scripttexture;
-		scripttexture = ScriptResourceManager::instance().getScriptResource(value.texture, true);
+		scripttexture = ScriptResourceManager::instance().GetScriptResource(value.texture, true);
 		MonoObject* tmptexture;
 		if(scripttexture != nullptr)
-			tmptexture = scripttexture->getManagedInstance();
+			tmptexture = scripttexture->GetManagedInstance();
 		else
 			tmptexture = nullptr;
 		output.texture = tmptexture;

@@ -7,6 +7,6 @@ namespace bs { namespace ct
 {
 	SPtr<TimerQuery> TimerQuery::Create(UINT32 deviceIdx)
 	{
-		return QueryManager::Instance().createTimerQuery(deviceIdx);
+		return QueryManager::Instance().CreateTimerQuery(deviceIdx);
 	}
 }}

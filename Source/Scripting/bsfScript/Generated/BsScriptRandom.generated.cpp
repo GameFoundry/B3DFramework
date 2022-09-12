@@ -17,21 +17,21 @@ namespace bs
 
 	void ScriptRandom::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_Random", (void*)&ScriptRandom::Internal_Random);
-		metaData.scriptClass->addInternalCall("Internal_setSeed", (void*)&ScriptRandom::Internal_setSeed);
-		metaData.scriptClass->addInternalCall("Internal_get", (void*)&ScriptRandom::Internal_get);
-		metaData.scriptClass->addInternalCall("Internal_getRange", (void*)&ScriptRandom::Internal_getRange);
-		metaData.scriptClass->addInternalCall("Internal_getUNorm", (void*)&ScriptRandom::Internal_getUNorm);
-		metaData.scriptClass->addInternalCall("Internal_getSNorm", (void*)&ScriptRandom::Internal_getSNorm);
-		metaData.scriptClass->addInternalCall("Internal_getUnitVector", (void*)&ScriptRandom::Internal_getUnitVector);
-		metaData.scriptClass->addInternalCall("Internal_getUnitVector2D", (void*)&ScriptRandom::Internal_getUnitVector2D);
-		metaData.scriptClass->addInternalCall("Internal_getPointInSphere", (void*)&ScriptRandom::Internal_getPointInSphere);
-		metaData.scriptClass->addInternalCall("Internal_getPointInSphereShell", (void*)&ScriptRandom::Internal_getPointInSphereShell);
-		metaData.scriptClass->addInternalCall("Internal_getPointInCircle", (void*)&ScriptRandom::Internal_getPointInCircle);
-		metaData.scriptClass->addInternalCall("Internal_getPointInCircleShell", (void*)&ScriptRandom::Internal_getPointInCircleShell);
-		metaData.scriptClass->addInternalCall("Internal_getPointInArc", (void*)&ScriptRandom::Internal_getPointInArc);
-		metaData.scriptClass->addInternalCall("Internal_getPointInArcShell", (void*)&ScriptRandom::Internal_getPointInArcShell);
-		metaData.scriptClass->addInternalCall("Internal_getBarycentric", (void*)&ScriptRandom::Internal_getBarycentric);
+		metaData.scriptClass->AddInternalCall("Internal_Random", (void*)&ScriptRandom::Internal_Random);
+		metaData.scriptClass->AddInternalCall("Internal_setSeed", (void*)&ScriptRandom::Internal_setSeed);
+		metaData.scriptClass->AddInternalCall("Internal_get", (void*)&ScriptRandom::Internal_get);
+		metaData.scriptClass->AddInternalCall("Internal_getRange", (void*)&ScriptRandom::Internal_getRange);
+		metaData.scriptClass->AddInternalCall("Internal_getUNorm", (void*)&ScriptRandom::Internal_getUNorm);
+		metaData.scriptClass->AddInternalCall("Internal_getSNorm", (void*)&ScriptRandom::Internal_getSNorm);
+		metaData.scriptClass->AddInternalCall("Internal_getUnitVector", (void*)&ScriptRandom::Internal_getUnitVector);
+		metaData.scriptClass->AddInternalCall("Internal_getUnitVector2D", (void*)&ScriptRandom::Internal_getUnitVector2D);
+		metaData.scriptClass->AddInternalCall("Internal_getPointInSphere", (void*)&ScriptRandom::Internal_getPointInSphere);
+		metaData.scriptClass->AddInternalCall("Internal_getPointInSphereShell", (void*)&ScriptRandom::Internal_getPointInSphereShell);
+		metaData.scriptClass->AddInternalCall("Internal_getPointInCircle", (void*)&ScriptRandom::Internal_getPointInCircle);
+		metaData.scriptClass->AddInternalCall("Internal_getPointInCircleShell", (void*)&ScriptRandom::Internal_getPointInCircleShell);
+		metaData.scriptClass->AddInternalCall("Internal_getPointInArc", (void*)&ScriptRandom::Internal_getPointInArc);
+		metaData.scriptClass->AddInternalCall("Internal_getPointInArcShell", (void*)&ScriptRandom::Internal_getPointInArcShell);
+		metaData.scriptClass->AddInternalCall("Internal_getBarycentric", (void*)&ScriptRandom::Internal_getBarycentric);
 
 	}
 
@@ -42,7 +42,7 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.scriptClass->createInstance("bool", ctorParams);
+		MonoObject* managedInstance = metaData.scriptClass->CreateInstance("bool", ctorParams);
 		new (bs_alloc<ScriptRandom>()) ScriptRandom(managedInstance, value);
 		return managedInstance;
 	}
@@ -54,13 +54,13 @@ namespace bs
 
 	void ScriptRandom::Internal_setSeed(ScriptRandom* thisPtr, uint32_t seed)
 	{
-		thisPtr->getInternal()->setSeed(seed);
+		thisPtr->GetInternal()->setSeed(seed);
 	}
 
 	uint32_t ScriptRandom::Internal_get(ScriptRandom* thisPtr)
 	{
 		uint32_t tmp__output;
-		tmp__output = thisPtr->getInternal()->get();
+		tmp__output = thisPtr->GetInternal()->get();
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -71,7 +71,7 @@ namespace bs
 	int32_t ScriptRandom::Internal_getRange(ScriptRandom* thisPtr, int32_t min, int32_t max)
 	{
 		int32_t tmp__output;
-		tmp__output = thisPtr->getInternal()->getRange(min, max);
+		tmp__output = thisPtr->GetInternal()->getRange(min, max);
 
 		int32_t __output;
 		__output = tmp__output;
@@ -82,7 +82,7 @@ namespace bs
 	float ScriptRandom::Internal_getUNorm(ScriptRandom* thisPtr)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->getInternal()->getUNorm();
+		tmp__output = thisPtr->GetInternal()->getUNorm();
 
 		float __output;
 		__output = tmp__output;
@@ -93,7 +93,7 @@ namespace bs
 	float ScriptRandom::Internal_getSNorm(ScriptRandom* thisPtr)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->getInternal()->getSNorm();
+		tmp__output = thisPtr->GetInternal()->getSNorm();
 
 		float __output;
 		__output = tmp__output;
@@ -104,7 +104,7 @@ namespace bs
 	void ScriptRandom::Internal_getUnitVector(ScriptRandom* thisPtr, Vector3* __output)
 	{
 		Vector3 tmp__output;
-		tmp__output = thisPtr->getInternal()->getUnitVector();
+		tmp__output = thisPtr->GetInternal()->getUnitVector();
 
 		*__output = tmp__output;
 	}
@@ -112,7 +112,7 @@ namespace bs
 	void ScriptRandom::Internal_getUnitVector2D(ScriptRandom* thisPtr, Vector2* __output)
 	{
 		Vector2 tmp__output;
-		tmp__output = thisPtr->getInternal()->getUnitVector2D();
+		tmp__output = thisPtr->GetInternal()->getUnitVector2D();
 
 		*__output = tmp__output;
 	}
@@ -120,7 +120,7 @@ namespace bs
 	void ScriptRandom::Internal_getPointInSphere(ScriptRandom* thisPtr, Vector3* __output)
 	{
 		Vector3 tmp__output;
-		tmp__output = thisPtr->getInternal()->getPointInSphere();
+		tmp__output = thisPtr->GetInternal()->getPointInSphere();
 
 		*__output = tmp__output;
 	}
@@ -128,7 +128,7 @@ namespace bs
 	void ScriptRandom::Internal_getPointInSphereShell(ScriptRandom* thisPtr, float thickness, Vector3* __output)
 	{
 		Vector3 tmp__output;
-		tmp__output = thisPtr->getInternal()->getPointInSphereShell(thickness);
+		tmp__output = thisPtr->GetInternal()->getPointInSphereShell(thickness);
 
 		*__output = tmp__output;
 	}
@@ -136,7 +136,7 @@ namespace bs
 	void ScriptRandom::Internal_getPointInCircle(ScriptRandom* thisPtr, Vector2* __output)
 	{
 		Vector2 tmp__output;
-		tmp__output = thisPtr->getInternal()->getPointInCircle();
+		tmp__output = thisPtr->GetInternal()->getPointInCircle();
 
 		*__output = tmp__output;
 	}
@@ -144,7 +144,7 @@ namespace bs
 	void ScriptRandom::Internal_getPointInCircleShell(ScriptRandom* thisPtr, float thickness, Vector2* __output)
 	{
 		Vector2 tmp__output;
-		tmp__output = thisPtr->getInternal()->getPointInCircleShell(thickness);
+		tmp__output = thisPtr->GetInternal()->getPointInCircleShell(thickness);
 
 		*__output = tmp__output;
 	}
@@ -152,7 +152,7 @@ namespace bs
 	void ScriptRandom::Internal_getPointInArc(ScriptRandom* thisPtr, Degree* angle, Vector2* __output)
 	{
 		Vector2 tmp__output;
-		tmp__output = thisPtr->getInternal()->getPointInArc(*angle);
+		tmp__output = thisPtr->GetInternal()->getPointInArc(*angle);
 
 		*__output = tmp__output;
 	}
@@ -160,7 +160,7 @@ namespace bs
 	void ScriptRandom::Internal_getPointInArcShell(ScriptRandom* thisPtr, Degree* angle, float thickness, Vector2* __output)
 	{
 		Vector2 tmp__output;
-		tmp__output = thisPtr->getInternal()->getPointInArcShell(*angle, thickness);
+		tmp__output = thisPtr->GetInternal()->getPointInArcShell(*angle, thickness);
 
 		*__output = tmp__output;
 	}
@@ -168,7 +168,7 @@ namespace bs
 	void ScriptRandom::Internal_getBarycentric(ScriptRandom* thisPtr, Vector3* __output)
 	{
 		Vector3 tmp__output;
-		tmp__output = thisPtr->getInternal()->getBarycentric();
+		tmp__output = thisPtr->GetInternal()->getBarycentric();
 
 		*__output = tmp__output;
 	}

@@ -26,27 +26,27 @@ namespace bs
 		mDesc.countZ = std::max(1U, mDesc.countZ);
 
 		const UINT32 count = mDesc.countX * mDesc.countY * mDesc.countZ;
-		if(count != (UINT32)values.size())
+		if(count != (UINT32)values.Size())
 		{
 			BS_LOG(Warning, Particles, "Number of values provided to the vector field does not match the expected number. "
-				"Expected: {0}. Got: {1}.", count, (UINT32)values.size());
+				"Expected: {0}. Got: {1}.", count, (UINT32)values.Size());
 		}
 
-		const UINT32 valuesToCopy = std::min(count, (UINT32)values.size());
+		const UINT32 valuesToCopy = std::min(count, (UINT32)values.Size());
 
 		const SPtr<PixelData> pixelData = PixelData::create(mDesc.countX, mDesc.countY, mDesc.countZ, PF_RGBA16F);
 
 		const UINT32 pixelSize = PixelUtil::getNumElemBytes(PF_RGBA16F);
-		UINT8* data = pixelData->getData();
+		UINT8* data = pixelData->GetData();
 		for(UINT32 z = 0; z < (UINT32)mDesc.countZ; z++)
 		{
 			const UINT32 zArrayIdx = z * mDesc.countY * mDesc.countX;
-			const UINT32 zDataIdx = z * pixelData->getSlicePitch();
+			const UINT32 zDataIdx = z * pixelData->GetSlicePitch();
 
 			for(UINT32 y = 0; y < (UINT32)mDesc.countY; y++)
 			{
 				const UINT32 yArrayIdx = y * mDesc.countX;
-				const UINT32 yDataIdx = y * pixelData->getRowPitch();
+				const UINT32 yDataIdx = y * pixelData->GetRowPitch();
 
 				for(UINT32 x = 0; x < (UINT32)mDesc.countX; x++)
 				{
@@ -65,7 +65,7 @@ namespace bs
 
 	SPtr<ct::CoreObject> VectorField::CreateCore() const
 	{
-		ct::VectorField* vectorField = new (bs_alloc<ct::VectorField>()) ct::VectorField(mDesc, mTexture->getCore());
+		ct::VectorField* vectorField = new (bs_alloc<ct::VectorField>()) ct::VectorField(mDesc, mTexture->GetCore());
 
 		SPtr<ct::VectorField> vectorFieldPtr = bs_shared_ptr<ct::VectorField>(vectorField);
 		vectorFieldPtr->_setThisPtr(vectorFieldPtr);
@@ -108,7 +108,7 @@ namespace bs
 
 		SPtr<VectorField> vectorFieldPtr = bs_shared_ptr<VectorField>(vectorField);
 		vectorFieldPtr->_setThisPtr(vectorFieldPtr);
-		vectorFieldPtr->initialize();
+		vectorFieldPtr->Initialize();
 
 		return vectorFieldPtr;
 	}
@@ -152,12 +152,12 @@ namespace bs
 			Lock fileLock = FileScheduler::getLock(filePath);
 
 			SPtr<DataStream> stream = FileSystem::openFile(filePath);
-			data = stream->getAsString();
+			data = stream->GetAsString();
 		}
 
-		auto chars = bs_managed_stack_alloc<char>((UINT32)data.size() + 1);
-		memcpy(chars, data.data(), data.size());
-		chars[data.size()] = '\0';
+		auto chars = bs_managed_stack_alloc<char>((UINT32)data.Size() + 1);
+		memcpy(chars, data.Data(), data.size());
+		chars[data.Size()] = '\0';
 
 		const auto parseInt = [](char* input, INT32& output)
 		{
@@ -240,7 +240,7 @@ namespace bs
 
 		const UINT32 count = size.x * size.y * size.z;
 		Vector<Vector3> values;
-		values.resize(count);
+		values.Resize(count);
 
 		for(UINT32 i = 0; i < count; i++)
 		{
@@ -261,9 +261,9 @@ namespace bs
 				"Unexpected excess data. This might indicate corrupt data. Remaining data will be truncated.");
 		}
 
-		const String fileName = filePath.getFilename(false);
+		const String fileName = filePath.GetFilename(false);
 		SPtr<VectorField> vectorField = VectorField::_createPtr(desc, values);
-		vectorField->setName(fileName);
+		vectorField->SetName(fileName);
 
 		return vectorField;
 	}

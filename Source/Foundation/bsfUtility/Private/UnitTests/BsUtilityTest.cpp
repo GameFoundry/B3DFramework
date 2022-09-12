@@ -10,7 +10,7 @@ int main()
 	SPtr<TestSuite> tests = UtilityTestSuite::create<UtilityTestSuite>();
 
 	ConsoleTestOutput testOutput;
-	tests->run(testOutput);
+	tests->Run(testOutput);
 
 	return 0;
 }

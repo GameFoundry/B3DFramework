@@ -29,7 +29,7 @@ namespace bs
 
 		if (mInternal != nullptr)
 		{
-			_getInternal()->setRadius(clampedRadius);
+			_getInternal()->SetRadius(clampedRadius);
 
 			if (mParent != nullptr)
 				mParent->_updateMassDistribution();
@@ -49,11 +49,11 @@ namespace bs
 
 	SPtr<Collider> CSphereCollider::CreateInternal()
 	{
-		const SPtr<SceneInstance>& scene = SO()->getScene();
-		const Transform& tfrm = SO()->getTransform();
+		const SPtr<SceneInstance>& scene = SO()->GetScene();
+		const Transform& tfrm = SO()->GetTransform();
 
-		SPtr<Collider> collider = SphereCollider::create(*scene->getPhysicsScene(), mRadius, tfrm.getPosition(),
-			tfrm.getRotation());
+		SPtr<Collider> collider = SphereCollider::create(*scene->GetPhysicsScene(), mRadius, tfrm.GetPosition(),
+			tfrm.GetRotation());
 
 		collider->_setOwner(PhysicsOwnerType::Component, this);
 		return collider;

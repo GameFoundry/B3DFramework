@@ -21,7 +21,7 @@ namespace bs { namespace ct
 		~GLVertexBuffer();
 
 		/**	Returns internal OpenGL buffer ID. */
-		GLuint GetGLBufferId() const { return static_cast<GLHardwareBuffer*>(mBuffer)->getGLBufferId(); }
+		GLuint GetGLBufferId() const { return static_cast<GLHardwareBuffer*>(mBuffer)->GetGLBufferId(); }
 
 		/**	Registers a new VertexArrayObject that uses this vertex buffer. */
 		void RegisterVAO(const GLVertexArrayObject& vao);

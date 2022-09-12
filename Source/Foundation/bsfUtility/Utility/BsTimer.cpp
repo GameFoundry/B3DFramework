@@ -16,29 +16,29 @@ namespace bs
 
 	void Timer::Reset()
 	{
-		mStartTime = mHRClock.now();
+		mStartTime = mHRClock.Now();
 	}
 
 	UINT64 Timer::GetMilliseconds() const
 	{
-		auto newTime = mHRClock.now();
+		auto newTime = mHRClock.Now();
 		duration<double> dur = newTime - mStartTime;
 
-		return duration_cast<milliseconds>(dur).count();
+		return duration_cast<milliseconds>(dur).Count();
 	}
 
 	UINT64 Timer::GetMicroseconds() const
 	{
-		auto newTime = mHRClock.now();
+		auto newTime = mHRClock.Now();
 		duration<double> dur = newTime - mStartTime;
 
-		return duration_cast<microseconds>(dur).count();
+		return duration_cast<microseconds>(dur).Count();
 	}
 
 	UINT64 Timer::GetStartMs() const
 	{
 		nanoseconds startTimeNs = mStartTime.time_since_epoch();
 
-		return duration_cast<milliseconds>(startTimeNs).count();
+		return duration_cast<milliseconds>(startTimeNs).Count();
 	}
 }

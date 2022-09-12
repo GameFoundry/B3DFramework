@@ -17,10 +17,10 @@ namespace bs
 
 	void ScriptParticleEmitterBoxShape::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_setOptions", (void*)&ScriptParticleEmitterBoxShape::Internal_setOptions);
-		metaData.scriptClass->addInternalCall("Internal_getOptions", (void*)&ScriptParticleEmitterBoxShape::Internal_getOptions);
-		metaData.scriptClass->addInternalCall("Internal_create", (void*)&ScriptParticleEmitterBoxShape::Internal_create);
-		metaData.scriptClass->addInternalCall("Internal_create0", (void*)&ScriptParticleEmitterBoxShape::Internal_create0);
+		metaData.scriptClass->AddInternalCall("Internal_setOptions", (void*)&ScriptParticleEmitterBoxShape::Internal_setOptions);
+		metaData.scriptClass->AddInternalCall("Internal_getOptions", (void*)&ScriptParticleEmitterBoxShape::Internal_getOptions);
+		metaData.scriptClass->AddInternalCall("Internal_create", (void*)&ScriptParticleEmitterBoxShape::Internal_create);
+		metaData.scriptClass->AddInternalCall("Internal_create0", (void*)&ScriptParticleEmitterBoxShape::Internal_create0);
 
 	}
 
@@ -31,7 +31,7 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.scriptClass->createInstance("bool", ctorParams);
+		MonoObject* managedInstance = metaData.scriptClass->CreateInstance("bool", ctorParams);
 		new (bs_alloc<ScriptParticleEmitterBoxShape>()) ScriptParticleEmitterBoxShape(managedInstance, value);
 		return managedInstance;
 	}
@@ -39,13 +39,13 @@ namespace bs
 	{
 		PARTICLE_BOX_SHAPE_DESC tmpoptions;
 		tmpoptions = ScriptPARTICLE_BOX_SHAPE_DESC::fromInterop(*options);
-		thisPtr->getInternal()->setOptions(tmpoptions);
+		thisPtr->GetInternal()->setOptions(tmpoptions);
 	}
 
 	void ScriptParticleEmitterBoxShape::Internal_getOptions(ScriptParticleEmitterBoxShape* thisPtr, __PARTICLE_BOX_SHAPE_DESCInterop* __output)
 	{
 		PARTICLE_BOX_SHAPE_DESC tmp__output;
-		tmp__output = thisPtr->getInternal()->getOptions();
+		tmp__output = thisPtr->GetInternal()->getOptions();
 
 		__PARTICLE_BOX_SHAPE_DESCInterop interop__output;
 		interop__output = ScriptPARTICLE_BOX_SHAPE_DESC::toInterop(tmp__output);

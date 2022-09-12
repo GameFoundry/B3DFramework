@@ -20,14 +20,14 @@ namespace bs
 
 	void ScriptGUICanvas::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptGUICanvas::internal_createInstance);
-		metaData.scriptClass->addInternalCall("Internal_DrawLine", (void*)&ScriptGUICanvas::internal_drawLine);
-		metaData.scriptClass->addInternalCall("Internal_DrawPolyLine", (void*)&ScriptGUICanvas::internal_drawPolyLine);
-		metaData.scriptClass->addInternalCall("Internal_DrawTexture", (void*)&ScriptGUICanvas::internal_drawTexture);
-		metaData.scriptClass->addInternalCall("Internal_DrawTriangleStrip", (void*)&ScriptGUICanvas::internal_drawTriangleStrip);
-		metaData.scriptClass->addInternalCall("Internal_DrawTriangleList", (void*)&ScriptGUICanvas::internal_drawTriangleList);
-		metaData.scriptClass->addInternalCall("Internal_DrawText", (void*)&ScriptGUICanvas::internal_drawText);
-		metaData.scriptClass->addInternalCall("Internal_Clear", (void*)&ScriptGUICanvas::internal_clear);
+		metaData.scriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptGUICanvas::internal_createInstance);
+		metaData.scriptClass->AddInternalCall("Internal_DrawLine", (void*)&ScriptGUICanvas::internal_drawLine);
+		metaData.scriptClass->AddInternalCall("Internal_DrawPolyLine", (void*)&ScriptGUICanvas::internal_drawPolyLine);
+		metaData.scriptClass->AddInternalCall("Internal_DrawTexture", (void*)&ScriptGUICanvas::internal_drawTexture);
+		metaData.scriptClass->AddInternalCall("Internal_DrawTriangleStrip", (void*)&ScriptGUICanvas::internal_drawTriangleStrip);
+		metaData.scriptClass->AddInternalCall("Internal_DrawTriangleList", (void*)&ScriptGUICanvas::internal_drawTriangleList);
+		metaData.scriptClass->AddInternalCall("Internal_DrawText", (void*)&ScriptGUICanvas::internal_drawText);
+		metaData.scriptClass->AddInternalCall("Internal_Clear", (void*)&ScriptGUICanvas::internal_clear);
 	}
 
 	void ScriptGUICanvas::internal_createInstance(MonoObject* instance, MonoString* style, MonoArray* guiOptions)
@@ -35,9 +35,9 @@ namespace bs
 		GUIOptions options;
 
 		ScriptArray ScriptArray(guiOptions);
-		UINT32 arrayLen = scriptArray.size();
+		UINT32 arrayLen = scriptArray.Size();
 		for (UINT32 i = 0; i < arrayLen; i++)
-			options.addOption(scriptArray.get<GUIOption>(i));
+			options.AddOption(scriptArray.get<GUIOption>(i));
 
 		GUICanvas* guiCanvas = GUICanvas::create(options, MonoUtil::monoToString(style));
 
@@ -47,80 +47,80 @@ namespace bs
 	void ScriptGUICanvas::internal_drawLine(ScriptGUICanvas* nativeInstance, Vector2I* a, Vector2I* b, Color* color,
 		UINT8 depth)
 	{
-		GUICanvas* canvas = (GUICanvas*)nativeInstance->getGUIElement();
-		canvas->drawLine(*a, *b, *color, depth);
+		GUICanvas* canvas = (GUICanvas*)nativeInstance->GetGUIElement();
+		canvas->DrawLine(*a, *b, *color, depth);
 	}
 
 	void ScriptGUICanvas::internal_drawPolyLine(ScriptGUICanvas* nativeInstance, MonoArray* vertices, Color* color,
 		UINT8 depth)
 	{
-		GUICanvas* canvas = (GUICanvas*)nativeInstance->getGUIElement();
+		GUICanvas* canvas = (GUICanvas*)nativeInstance->GetGUIElement();
 
 		ScriptArray VerticesArray(vertices);
-		UINT32 size = verticesArray.size();
+		UINT32 size = verticesArray.Size();
 
 		Vector<Vector2I> NativeVertices(size);
-		memcpy(nativeVertices.data(), verticesArray.getRaw<Vector2I>(), sizeof(Vector2I) * size);
+		memcpy(nativeVertices.Data(), verticesArray.getRaw<Vector2I>(), sizeof(Vector2I) * size);
 
-		canvas->drawPolyLine(nativeVertices, *color, depth);
+		canvas->DrawPolyLine(nativeVertices, *color, depth);
 	}
 
 	void ScriptGUICanvas::internal_drawTexture(ScriptGUICanvas* nativeInstance, ScriptSpriteTexture* texture, Rect2I* area,
 		TextureScaleMode scaleMode, Color* color, UINT8 depth)
 	{
-		GUICanvas* canvas = (GUICanvas*)nativeInstance->getGUIElement();
+		GUICanvas* canvas = (GUICanvas*)nativeInstance->GetGUIElement();
 
 		HSpriteTexture nativeTexture;
 		if (texture != nullptr)
-			nativeTexture = texture->getHandle();
+			nativeTexture = texture->GetHandle();
 
-		canvas->drawTexture(nativeTexture, *area, scaleMode, *color, depth);
+		canvas->DrawTexture(nativeTexture, *area, scaleMode, *color, depth);
 	}
 	
 	void ScriptGUICanvas::internal_drawTriangleStrip(ScriptGUICanvas* nativeInstance, MonoArray* vertices, Color* color,
 		UINT8 depth)
 	{
-		GUICanvas* canvas = (GUICanvas*)nativeInstance->getGUIElement();
+		GUICanvas* canvas = (GUICanvas*)nativeInstance->GetGUIElement();
 
 		ScriptArray VerticesArray(vertices);
-		UINT32 size = verticesArray.size();
+		UINT32 size = verticesArray.Size();
 
 		Vector<Vector2I> NativeVertices(size);
-		memcpy(nativeVertices.data(), verticesArray.getRaw<Vector2I>(), sizeof(Vector2I) * size);
+		memcpy(nativeVertices.Data(), verticesArray.getRaw<Vector2I>(), sizeof(Vector2I) * size);
 
-		canvas->drawTriangleStrip(nativeVertices, *color, depth);
+		canvas->DrawTriangleStrip(nativeVertices, *color, depth);
 	}
 
 	void ScriptGUICanvas::internal_drawTriangleList(ScriptGUICanvas* nativeInstance, MonoArray* vertices, Color* color,
 		UINT8 depth)
 	{
-		GUICanvas* canvas = (GUICanvas*)nativeInstance->getGUIElement();
+		GUICanvas* canvas = (GUICanvas*)nativeInstance->GetGUIElement();
 
 		ScriptArray VerticesArray(vertices);
-		UINT32 size = verticesArray.size();
+		UINT32 size = verticesArray.Size();
 
 		Vector<Vector2I> NativeVertices(size);
-		memcpy(nativeVertices.data(), verticesArray.getRaw<Vector2I>(), sizeof(Vector2I) * size);
+		memcpy(nativeVertices.Data(), verticesArray.getRaw<Vector2I>(), sizeof(Vector2I) * size);
 
-		canvas->drawTriangleList(nativeVertices, *color, depth);
+		canvas->DrawTriangleList(nativeVertices, *color, depth);
 	}
 
 	void ScriptGUICanvas::internal_drawText(ScriptGUICanvas* nativeInstance, MonoString* text, Vector2I* position,
 		ScriptFont* font, UINT32 size, Color* color, UINT8 depth)
 	{
-		GUICanvas* canvas = (GUICanvas*)nativeInstance->getGUIElement();
+		GUICanvas* canvas = (GUICanvas*)nativeInstance->GetGUIElement();
 		String nativeText = MonoUtil::monoToString(text);
 
 		HFont nativeFont;
 		if (font != nullptr)
-			nativeFont = font->getHandle();
+			nativeFont = font->GetHandle();
 
-		canvas->drawText(nativeText, *position, nativeFont, size, *color, depth);
+		canvas->DrawText(nativeText, *position, nativeFont, size, *color, depth);
 	}
 
 	void ScriptGUICanvas::internal_clear(ScriptGUICanvas* nativeInstance)
 	{
-		GUICanvas* canvas = (GUICanvas*)nativeInstance->getGUIElement();
-		canvas->clear();
+		GUICanvas* canvas = (GUICanvas*)nativeInstance->GetGUIElement();
+		canvas->Clear();
 	}
 }

@@ -10,7 +10,7 @@ namespace bs { namespace ct
 	VulkanEvent::VulkanEvent(VulkanResourceManager* owner)
 		:VulkanResource(owner, false)
 	{
-		VkDevice vkDevice = owner->getDevice().getLogical();
+		VkDevice vkDevice = owner->GetDevice().GetLogical();
 
 		VkEventCreateInfo eventCI;
 		eventCI.sType = VK_STRUCTURE_TYPE_EVENT_CREATE_INFO;
@@ -23,19 +23,19 @@ namespace bs { namespace ct
 
 	VulkanEvent::~VulkanEvent()
 	{
-		VkDevice vkDevice = mOwner->getDevice().getLogical();
+		VkDevice vkDevice = mOwner->GetDevice().GetLogical();
 		vkDestroyEvent(vkDevice, mEvent, gVulkanAllocator);
 	}
 
 	bool VulkanEvent::IsSignaled() const
 	{
-		VkDevice vkDevice = mOwner->getDevice().getLogical();
+		VkDevice vkDevice = mOwner->GetDevice().GetLogical();
 		return VkGetEventStatus(vkDevice, mEvent) == VK_EVENT_SET;
 	}
 
 	void VulkanEvent::Reset()
 	{
-		VkDevice vkDevice = mOwner->getDevice().getLogical();
+		VkDevice vkDevice = mOwner->GetDevice().GetLogical();
 
 		VkResult result = vkResetEvent(vkDevice, mEvent);
 		assert(result == VK_SUCCESS);
@@ -50,7 +50,7 @@ namespace bs { namespace ct
 	VulkanEventQuery::~VulkanEventQuery()
 	{
 		if (mEvent != nullptr)
-			mEvent->destroy();
+			mEvent->Destroy();
 
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
 	}
@@ -59,31 +59,31 @@ namespace bs { namespace ct
 	{
 		if (mEvent != nullptr)
 		{
-			if (mEvent->isBound())
+			if (mEvent->IsBound())
 			{
 				// Clear current event and create a new one
-				mEvent->destroy();
-				mEvent = mDevice.getResourceManager().create<VulkanEvent>();
+				mEvent->Destroy();
+				mEvent = mDevice.GetResourceManager().create<VulkanEvent>();
 			}
 			else
 			{
 				// Re-use existing event
-				mEvent->reset();
+				mEvent->Reset();
 			}
 		}
 		else // Create new event
-			mEvent = mDevice.getResourceManager().create<VulkanEvent>();
+			mEvent = mDevice.GetResourceManager().create<VulkanEvent>();
 
 		VulkanCommandBuffer* vulkanCB;
 		if (cb != nullptr)
-			vulkanCB = static_cast<VulkanCommandBuffer*>(cb.get());
+			vulkanCB = static_cast<VulkanCommandBuffer*>(cb.Get());
 		else
 			vulkanCB = static_cast<VulkanCommandBuffer*>(gVulkanRenderAPI()._getMainCommandBuffer());
 
-		VulkanCmdBuffer* internalCB = vulkanCB->getInternal();
-		internalCB->registerResource(mEvent, VulkanAccessFlag::Read);
+		VulkanCmdBuffer* internalCB = vulkanCB->GetInternal();
+		internalCB->RegisterResource(mEvent, VulkanAccessFlag::Read);
 
-		internalCB->setEvent(mEvent);
+		internalCB->SetEvent(mEvent);
 
 		setActive(true);
 	}
@@ -93,6 +93,6 @@ namespace bs { namespace ct
 		if (mEvent == nullptr)
 			return false;
 
-		return mEvent->isSignaled();
+		return mEvent->IsSignaled();
 	}
 }}

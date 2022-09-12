@@ -28,7 +28,7 @@ namespace bs
 		if (name == "WINDOW" || name == "LINUX_WINDOW")
 		{
 			blockUntilCoreInitialized();
-			getCore()->getCustomAttribute(name, data);
+			getCore()->GetCustomAttribute(name, data);
 			return;
 		}
 	}
@@ -38,7 +38,7 @@ namespace bs
 		blockUntilCoreInitialized();
 
 		LinuxPlatform::lockX();
-		Vector2I pos = getCore()->_getInternal()->screenToWindowPos(screenPos);
+		Vector2I pos = getCore()->_getInternal()->ScreenToWindowPos(screenPos);
 		LinuxPlatform::unlockX();
 
 		return pos;
@@ -49,7 +49,7 @@ namespace bs
 		blockUntilCoreInitialized();
 
 		LinuxPlatform::lockX();
-		Vector2I pos = getCore()->_getInternal()->windowToScreenPos(windowPos);
+		Vector2I pos = getCore()->_getInternal()->WindowToScreenPos(windowPos);
 		LinuxPlatform::unlockX();
 
 		return pos;
@@ -91,7 +91,7 @@ namespace bs
 			setWindowed(50, 50);
 
 		SPtr<VulkanDevice> presentDevice = mRenderAPI._getPresentDevice();
-		presentDevice->waitIdle();
+		presentDevice->WaitIdle();
 
 		if (mWindow != nullptr)
 		{
@@ -105,7 +105,7 @@ namespace bs
 			LinuxPlatform::unlockX();
 		}
 
-		mSwapChain->destroy();
+		mSwapChain->Destroy();
 		vkDestroySurfaceKHR(mRenderAPI._getInstance(), mSurface, gVulkanAllocator);
 	}
 
@@ -141,15 +141,15 @@ namespace bs
 		windowDesc.screen = mDesc.videoMode.outputIdx;
 		windowDesc.hidden = mDesc.hideUntilSwap || mDesc.hidden;
 
-		auto opt = mDesc.platformSpecific.find("parentWindowHandle");
-		if (opt != mDesc.platformSpecific.end())
+		auto opt = mDesc.platformSpecific.Find("parentWindowHandle");
+		if (opt != mDesc.platformSpecific.End())
 			windowDesc.parent = (::Window)parseUINT64(opt->second);
 		else
 			windowDesc.parent = 0;
 
 		// TODO: add passing the XDisplay here as well. Right now the default display is assumed
-		opt = mDesc.platformSpecific.find("externalWindowHandle");
-		if (opt != mDesc.platformSpecific.end())
+		opt = mDesc.platformSpecific.Find("externalWindowHandle");
+		if (opt != mDesc.platformSpecific.End())
 			windowDesc.external = (::Window)parseUINT64(opt->second);
 		else
 			windowDesc.external = 0;
@@ -163,10 +163,10 @@ namespace bs
 		mWindow = bs_new<LinuxWindow>(windowDesc);
 		mWindow->_setUserData(this);
 
-		props.width = mWindow->getWidth();
-		props.height = mWindow->getHeight();
-		props.top = mWindow->getTop();
-		props.left = mWindow->getLeft();
+		props.width = mWindow->GetWidth();
+		props.height = mWindow->GetHeight();
+		props.top = mWindow->GetTop();
+		props.left = mWindow->GetLeft();
 
 		props.hwGamma = mDesc.gamma;
 		props.multisampleCount = mDesc.multisampleCount;
@@ -190,9 +190,9 @@ namespace bs
 		assert(result == VK_SUCCESS);
 
 		SPtr<VulkanDevice> presentDevice = mRenderAPI._getPresentDevice();
-		VkPhysicalDevice physicalDevice = presentDevice->getPhysical();
+		VkPhysicalDevice physicalDevice = presentDevice->GetPhysical();
 
-		mPresentQueueFamily = presentDevice->getQueueFamily(GQT_GRAPHICS);
+		mPresentQueueFamily = presentDevice->GetQueueFamily(GQT_GRAPHICS);
 
 		VkBool32 supportsPresent;
 		vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, mPresentQueueFamily, mSurface, &supportsPresent);
@@ -205,13 +205,13 @@ namespace bs
 			BS_EXCEPT(RenderingAPIException, "Cannot find a graphics queue that also supports present operations.");
 		}
 
-		SurfaceFormat format = presentDevice->getSurfaceFormat(mSurface, mDesc.gamma);
+		SurfaceFormat format = presentDevice->GetSurfaceFormat(mSurface, mDesc.gamma);
 		mColorFormat = format.colorFormat;
 		mColorSpace = format.colorSpace;
 		mDepthFormat = format.depthFormat;
 
 		// Create swap chain
-		mSwapChain = presentDevice->getResourceManager().create<VulkanSwapChain>(mSurface, props.width, props.height,
+		mSwapChain = presentDevice->GetResourceManager().create<VulkanSwapChain>(mSurface, props.width, props.height,
 				props.vsync, mColorFormat, mColorSpace, mDesc.depthBuffer, mDepthFormat);
 
 		LinuxPlatform::unlockX(); // Calls below have their own locking mechanisms
@@ -227,7 +227,7 @@ namespace bs
 			mSyncedProperties = props;
 		}
 
-		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+		bs::RenderWindowManager::instance().NotifySyncDataDirty(this);
 		RenderWindow::initialize();
 	}
 
@@ -237,14 +237,14 @@ namespace bs
 		if (!mRequiresNewBackBuffer)
 			return;
 
-		VkResult acquireResult = mSwapChain->acquireBackBuffer();
+		VkResult acquireResult = mSwapChain->AcquireBackBuffer();
 		if(acquireResult == VK_SUBOPTIMAL_KHR || acquireResult == VK_ERROR_OUT_OF_DATE_KHR)
 		{
 			LinuxPlatform::lockX();
 			rebuildSwapChain();
 			LinuxPlatform::unlockX();
 
-			mSwapChain->acquireBackBuffer();
+			mSwapChain->AcquireBackBuffer();
 		}
 
 		mRequiresNewBackBuffer = false;
@@ -310,10 +310,10 @@ namespace bs
 			return;
 
 		const LinuxVideoModeInfo& videoModeInfo =
-				static_cast<const LinuxVideoModeInfo&>(RenderAPI::instance().getVideoModeInfo());
+				static_cast<const LinuxVideoModeInfo&>(RenderAPI::instance().GetVideoModeInfo());
 
 		UINT32 outputIdx = mode.outputIdx;
-		if(outputIdx >= videoModeInfo.getNumOutputs())
+		if(outputIdx >= videoModeInfo.GetNumOutputs())
 		{
 			BS_LOG(Error, Platform, "Invalid output device index.");
 			return;
@@ -435,8 +435,8 @@ namespace bs
 			mSyncedProperties.height = props.height;
 		}
 
-		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
-		bs::RenderWindowManager::instance().notifyMovedOrResized(this);
+		bs::RenderWindowManager::instance().NotifySyncDataDirty(this);
+		bs::RenderWindowManager::instance().NotifyMovedOrResized(this);
 	}
 
 	void LinuxRenderWindow::SetWindowed(UINT32 width, UINT32 height)
@@ -450,10 +450,10 @@ namespace bs
 
 		// Restore old screen config
 		const LinuxVideoModeInfo& videoModeInfo =
-				static_cast<const LinuxVideoModeInfo&>(RenderAPI::instance().getVideoModeInfo());
+				static_cast<const LinuxVideoModeInfo&>(RenderAPI::instance().GetVideoModeInfo());
 
 		UINT32 outputIdx = 0; // 0 is always primary
-		if(outputIdx >= videoModeInfo.getNumOutputs())
+		if(outputIdx >= videoModeInfo.GetNumOutputs())
 		{
 			BS_LOG(Error, Platform, "Invalid output device index.");
 			return;
@@ -462,7 +462,7 @@ namespace bs
 		const LinuxVideoOutputInfo& outputInfo =
 				static_cast<const LinuxVideoOutputInfo&>(videoModeInfo.getOutputInfo (outputIdx));
 
-		const LinuxVideoMode& desktopVideoMode = static_cast<const LinuxVideoMode&>(outputInfo.getDesktopVideoMode());
+		const LinuxVideoMode& desktopVideoMode = static_cast<const LinuxVideoMode&>(outputInfo.GetDesktopVideoMode());
 
 		LinuxPlatform::lockX();
 
@@ -485,8 +485,8 @@ namespace bs
 			mSyncedProperties.height = props.height;
 		}
 
-		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
-		bs::RenderWindowManager::instance().notifyMovedOrResized(this);
+		bs::RenderWindowManager::instance().NotifySyncDataDirty(this);
+		bs::RenderWindowManager::instance().NotifyMovedOrResized(this);
 	}
 
 	void LinuxRenderWindow::Move(INT32 left, INT32 top)
@@ -497,11 +497,11 @@ namespace bs
 		if (!props.isFullScreen)
 		{
 			LinuxPlatform::lockX();
-			mWindow->move(left, top);
+			mWindow->Move(left, top);
 			LinuxPlatform::unlockX();
 
-			props.top = mWindow->getTop();
-			props.left = mWindow->getLeft();
+			props.top = mWindow->GetTop();
+			props.left = mWindow->GetLeft();
 
 			{
 				ScopedSpinLock Lock(mLock);
@@ -509,7 +509,7 @@ namespace bs
 				mSyncedProperties.left = props.left;
 			}
 
-			bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+			bs::RenderWindowManager::instance().NotifySyncDataDirty(this);
 		}
 	}
 
@@ -521,11 +521,11 @@ namespace bs
 		if (!props.isFullScreen)
 		{
 			LinuxPlatform::lockX();
-			mWindow->resize(width, height);
+			mWindow->Resize(width, height);
 			LinuxPlatform::unlockX();
 
-			props.width = mWindow->getWidth();
-			props.height = mWindow->getHeight();
+			props.width = mWindow->GetWidth();
+			props.height = mWindow->GetHeight();
 
 			{
 				ScopedSpinLock Lock(mLock);
@@ -533,7 +533,7 @@ namespace bs
 				mSyncedProperties.height = props.height;
 			}
 
-			bs::RenderWindowManager::instance().notifySyncDataDirty(this);
+			bs::RenderWindowManager::instance().NotifySyncDataDirty(this);
 		}
 	}
 
@@ -542,7 +542,7 @@ namespace bs
 		THROW_IF_NOT_CORE_THREAD;
 
 		LinuxPlatform::lockX();
-		mWindow->minimize();
+		mWindow->Minimize();
 		LinuxPlatform::unlockX();
 	}
 
@@ -551,7 +551,7 @@ namespace bs
 		THROW_IF_NOT_CORE_THREAD;
 
 		LinuxPlatform::lockX();
-		mWindow->maximize();
+		mWindow->Maximize();
 		LinuxPlatform::unlockX();
 	}
 
@@ -560,7 +560,7 @@ namespace bs
 		THROW_IF_NOT_CORE_THREAD;
 
 		LinuxPlatform::lockX();
-		mWindow->restore();
+		mWindow->Restore();
 		LinuxPlatform::unlockX();
 	}
 
@@ -584,7 +584,7 @@ namespace bs
 			mSyncedProperties.vsyncInterval = interval;
 		}
 
-		bs::RenderWindowManager::instance().notifySyncDataDirty(this);		
+		bs::RenderWindowManager::instance().NotifySyncDataDirty(this);
 	}
 
 	void LinuxRenderWindow::SwapBuffers(UINT32 syncMask)
@@ -600,32 +600,32 @@ namespace bs
 		SPtr<VulkanDevice> presentDevice = mRenderAPI._getPresentDevice();
 
 		// Assuming present queue is always graphics
-		assert(presentDevice->getQueueFamily(GQT_GRAPHICS) == mPresentQueueFamily);
+		assert(presentDevice->GetQueueFamily(GQT_GRAPHICS) == mPresentQueueFamily);
 
 		// Find an appropriate queue to execute on
-		VulkanQueue* queue = presentDevice->getQueue(GQT_GRAPHICS, 0);
-		UINT32 queueMask = presentDevice->getQueueMask(GQT_GRAPHICS, 0);
+		VulkanQueue* queue = presentDevice->GetQueue(GQT_GRAPHICS, 0);
+		UINT32 queueMask = presentDevice->GetQueueMask(GQT_GRAPHICS, 0);
 
 		// Ignore myself
 		syncMask &= ~queueMask;
 
-		UINT32 deviceIdx = presentDevice->getIndex();
+		UINT32 deviceIdx = presentDevice->GetIndex();
 		VulkanCommandBufferManager& cbm = static_cast<VulkanCommandBufferManager&>(CommandBufferManager::instance());
 
 		UINT32 numSemaphores;
-		cbm.getSyncSemaphores(deviceIdx, syncMask, mSemaphoresTemp, numSemaphores);
+		cbm.GetSyncSemaphores(deviceIdx, syncMask, mSemaphoresTemp, numSemaphores);
 
 		// Wait on present (i.e. until the back buffer becomes available), if we haven't already done so
-		const SwapChainSurface& surface = mSwapChain->getBackBuffer();
+		const SwapChainSurface& surface = mSwapChain->GetBackBuffer();
 		if(surface.needsWait)
 		{
-			mSemaphoresTemp[numSemaphores] = mSwapChain->getBackBuffer().sync;
+			mSemaphoresTemp[numSemaphores] = mSwapChain->GetBackBuffer().sync;
 			numSemaphores++;
 
-			mSwapChain->notifyBackBufferWaitIssued();
+			mSwapChain->NotifyBackBufferWaitIssued();
 		}
 
-		VkResult presentResult = queue->present(mSwapChain, mSemaphoresTemp, numSemaphores);
+		VkResult presentResult = queue->Present(mSwapChain, mSemaphoresTemp, numSemaphores);
 		if(presentResult == VK_SUBOPTIMAL_KHR || presentResult == VK_ERROR_OUT_OF_DATE_KHR)
 			rebuildSwapChain();
 
@@ -646,7 +646,7 @@ namespace bs
 		if (name == "FB")
 		{
 			VulkanFramebuffer** fb = (VulkanFramebuffer**)data;
-			*fb = mSwapChain->getBackBuffer().framebuffer;
+			*fb = mSwapChain->GetBackBuffer().framebuffer;
 			return;
 		}
 
@@ -679,9 +679,9 @@ namespace bs
 		LinuxPlatform::lockX();
 
 		if(state)
-			mWindow->restore();
+			mWindow->Restore();
 		else
-			mWindow->minimize();
+			mWindow->Minimize();
 
 		LinuxPlatform::unlockX();
 
@@ -698,9 +698,9 @@ namespace bs
 		LinuxPlatform::lockX();
 
 		if(hidden)
-			mWindow->hide();
+			mWindow->Hide();
 		else
-			mWindow->show();
+			mWindow->Show();
 
 		LinuxPlatform::unlockX();
 
@@ -715,10 +715,10 @@ namespace bs
 		RenderWindowProperties& props = mProperties;
 		if (!props.isFullScreen) // Fullscreen is handled directly by this object
 		{
-			props.top = mWindow->getTop();
-			props.left = mWindow->getLeft();
-			props.width = mWindow->getWidth();
-			props.height = mWindow->getHeight();
+			props.top = mWindow->GetTop();
+			props.left = mWindow->GetLeft();
+			props.width = mWindow->GetWidth();
+			props.height = mWindow->GetHeight();
 		}
 
 		// Note: This assumes that this method was called from the main message loop, which already acquires X locks,
@@ -738,15 +738,15 @@ namespace bs
 		// Note: Optionally I can detect exactly on which queues (if any) are the swap chain images used on, and only wait
 		// on those
 		SPtr<VulkanDevice> presentDevice = mRenderAPI._getPresentDevice();
-		presentDevice->waitIdle();
+		presentDevice->WaitIdle();
 
 		VulkanSwapChain* oldSwapChain = mSwapChain;
 
-		mSwapChain = presentDevice->getResourceManager().create<VulkanSwapChain>(
+		mSwapChain = presentDevice->GetResourceManager().create<VulkanSwapChain>(
 				mSurface, mProperties.width, mProperties.height, mProperties.vsync, mColorFormat, mColorSpace,
 				mDesc.depthBuffer, mDepthFormat, oldSwapChain);
 
-		oldSwapChain->destroy();
+		oldSwapChain->Destroy();
 	}
 }}
 

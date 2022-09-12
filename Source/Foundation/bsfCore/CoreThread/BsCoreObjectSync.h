@@ -55,11 +55,11 @@ namespace bs
 
 		/** Convert a resource handle to the underlying resource SPtr. */
 		template <class T>
-		decltype(((std::decay_t<T>*)nullptr)->getInternalPtr()) remove_handle(T&& handle, std::enable_if_t<
+		decltype(((std::decay_t<T>*)nullptr)->GetInternalPtr()) remove_handle(T&& handle, std::enable_if_t<
 			is_resource_handle<std::decay_t<T>>::value>* = 0)
 		{
-			if(handle.isLoaded(false))
-				return handle.getInternalPtr();
+			if(handle.IsLoaded(false))
+				return handle.GetInternalPtr();
 
 			return nullptr;
 		}
@@ -96,14 +96,14 @@ namespace bs
 
 		/** Convert shared-pointers with classes that derive from CoreObject to their core thread variants. */
 		template <class T>
-		decltype(((std::decay_t<typename std::decay_t<T>::element_type>*)nullptr)->getCore())
+		decltype(((std::decay_t<typename std::decay_t<T>::element_type>*)nullptr)->GetCore())
 		get_core_object(T&& value, std::enable_if_t<
 			is_shared_ptr<std::decay_t<T>>::value &&
 			(std::is_class<std::decay_t<typename std::decay_t<T>::element_type>>::value &&
 				std::is_base_of<CoreObject, std::decay_t<typename std::decay_t<T>::element_type>>::value)>* = 0)
 		{
 			if(value)
-				return value->getCore();
+				return value->GetCore();
 
 			return nullptr;
 		}
@@ -137,7 +137,7 @@ namespace bs
 		template<class T>
 		void Operator()(T&& value, std::enable_if_t<has_rttiEnumFields<T>::value>* = 0)
 		{
-			value.rttiEnumFields(*this);
+			value.RttiEnumFields(*this);
 		}
 
 		/** If the type doesn't offer a rttiEnumFields method, perform the write using plain serialization. */
@@ -161,10 +161,10 @@ namespace bs
 		{
 			using SPtrType = std::decay_t<T>;
 
-			SPtrType* sptrPtr = new (mStream.cursor()) SPtrType;
+			SPtrType* sptrPtr = new (mStream.Cursor()) SPtrType;
 			*sptrPtr = (value);
 
-			mStream.skipBytes(sizeof(SPtrType));
+			mStream.SkipBytes(sizeof(SPtrType));
 		}
 
 		Bitstream& mStream;
@@ -189,7 +189,7 @@ namespace bs
 		template<class T>
 		void Operator()(T&& value, std::enable_if_t<has_rttiEnumFields<T>::value>* = 0)
 		{
-			value.rttiEnumFields(*this);
+			value.RttiEnumFields(*this);
 		}
 
 		/** If the type doesn't offer a rttiEnumFields method, perform the read using plain serialization. */
@@ -213,11 +213,11 @@ namespace bs
 		{
 			using SPtrType = std::decay_t<T>;
 
-			SPtrType* sptr = (SPtrType*)(mStream.cursor());
+			SPtrType* sptr = (SPtrType*)(mStream.Cursor());
 			value = *sptr;
 			sptr->~SPtrType();
 
-			mStream.skipBytes(sizeof(SPtrType));
+			mStream.SkipBytes(sizeof(SPtrType));
 		}
 
 		Bitstream& mStream;
@@ -244,7 +244,7 @@ namespace bs
 		template<class T>
 		void Operator()(T&& value, std::enable_if_t<has_rttiEnumFields<T>::value>* = 0)
 		{
-			value.rttiEnumFields(*this);
+			value.RttiEnumFields(*this);
 		}
 
 		/** If the type doesn't offer a rttiEnumFields method, perform the read using plain serialization. */
@@ -281,7 +281,7 @@ namespace bs
 	uint32_t csync_size(T& v)
 	{
 		uint32_t size = 0;
-		v.rttiEnumFields(RttiCoreSyncSize(size));
+		v.RttiEnumFields(RttiCoreSyncSize(size));
 		return size;
 	}
 
@@ -292,7 +292,7 @@ namespace bs
 	template<class T>
 	void csync_write(T& v, Bitstream& stream)
 	{
-		v.rttiEnumFields(RttiCoreSyncWriter(stream));
+		v.RttiEnumFields(RttiCoreSyncWriter(stream));
 	}
 
 	/**
@@ -303,7 +303,7 @@ namespace bs
 	template<class T>
 	void csync_read(T& v, Bitstream& stream)
 	{
-		v.rttiEnumFields(RttiCoreSyncReader(stream));
+		v.RttiEnumFields(RttiCoreSyncReader(stream));
 	}
 
 	/** @} */

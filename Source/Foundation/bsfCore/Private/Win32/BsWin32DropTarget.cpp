@@ -36,8 +36,8 @@ namespace bs
 		for(auto& fileList : mFileLists)
 			bs_delete(fileList);
 
-		mFileLists.clear();
-		mQueuedDropOps.clear();
+		mFileLists.Clear();
+		mQueuedDropOps.Clear();
 	}
 
 	void Win32DropTarget::RegisterWithOS()
@@ -103,9 +103,9 @@ namespace bs
 			ScreenToClient(mHWnd, (POINT *)&pt);
 			mQueuedDropOps.push_back(DropTargetOp(DropOpType::DragOver, Vector2I((int)pt.x, (int)pt.y)));
 
-			DropTargetOp& op = mQueuedDropOps.back();
+			DropTargetOp& op = mQueuedDropOps.Back();
 			op.dataType = DropOpDataType::FileList;
-			op.mFileList = mFileLists.back();
+			op.mFileList = mFileLists.Back();
 		}
 
 		return S_OK;
@@ -124,9 +124,9 @@ namespace bs
 			ScreenToClient(mHWnd, (POINT *)&pt);
 			mQueuedDropOps.push_back(DropTargetOp(DropOpType::DragOver, Vector2I((int)pt.x, (int)pt.y)));
 
-			DropTargetOp& op = mQueuedDropOps.back();
+			DropTargetOp& op = mQueuedDropOps.Back();
 			op.dataType = DropOpDataType::FileList;
-			op.mFileList = mFileLists.back();
+			op.mFileList = mFileLists.Back();
 		}
 
 		return S_OK;
@@ -139,9 +139,9 @@ namespace bs
 
 			mQueuedDropOps.push_back(DropTargetOp(DropOpType::Leave, Vector2I()));
 
-			DropTargetOp& op = mQueuedDropOps.back();
+			DropTargetOp& op = mQueuedDropOps.Back();
 			op.dataType = DropOpDataType::FileList;
-			op.mFileList = mFileLists.back();
+			op.mFileList = mFileLists.Back();
 		}
 
 		return S_OK;
@@ -163,9 +163,9 @@ namespace bs
 			ScreenToClient(mHWnd, (POINT *)&pt);
 			mQueuedDropOps.push_back(DropTargetOp(DropOpType::Drop, Vector2I((int)pt.x, (int)pt.y)));
 
-			DropTargetOp& op = mQueuedDropOps.back();
+			DropTargetOp& op = mQueuedDropOps.Back();
 			op.dataType = DropOpDataType::FileList;
-			op.mFileList = mFileLists.back();
+			op.mFileList = mFileLists.Back();
 		}
 
 		return S_OK;
@@ -179,13 +179,13 @@ namespace bs
 	void Win32DropTarget::UnregisterDropTarget(DropTarget* dropTarget)
 	{
 		auto findIter = std::find(begin(mDropTargets), end(mDropTargets), dropTarget);
-		if(findIter != mDropTargets.end())
-			mDropTargets.erase(findIter);
+		if(findIter != mDropTargets.End())
+			mDropTargets.Erase(findIter);
 	}
 
 	unsigned int Win32DropTarget::GetNumDropTargets() const
 	{
-		return (unsigned int)mDropTargets.size();
+		return (unsigned int)mDropTargets.Size();
 	}
 
 	void Win32DropTarget::Update()
@@ -204,22 +204,22 @@ namespace bs
 						{
 							target->_setFileList(*op.mFileList);
 							target->_setActive(true);
-							target->onEnter(op.position.x, op.position.y);
+							target->OnEnter(op.position.x, op.position.y);
 						}
 
 						if(op.type == DropOpType::DragOver)
-							target->onDragOver(op.position.x, op.position.y);
+							target->OnDragOver(op.position.x, op.position.y);
 						else If(op.type == DropOpType::Drop)
 						{
 							target->_setFileList(*op.mFileList);
-							target->onDrop(op.position.x, op.position.y);
+							target->OnDrop(op.position.x, op.position.y);
 						}
 					}
 					else
 					{
 						if(target->_isActive())
 						{
-							target->onLeave();
+							target->OnLeave();
 							target->_clear();
 							target->_setActive(false);
 						}
@@ -229,7 +229,7 @@ namespace bs
 				{
 					if(target->_isActive())
 					{
-						target->onLeave();
+						target->OnLeave();
 						target->_clear();
 						target->_setActive(false);
 					}
@@ -238,12 +238,12 @@ namespace bs
 
 			if(op.type == DropOpType::Leave || op.type == DropOpType::Drop)
 			{
-				while (!mFileLists.empty())
+				while (!mFileLists.Empty())
 				{
 					bool done = mFileLists[0] == op.mFileList;
 
 					bs_delete(mFileLists[0]);
-					mFileLists.erase(mFileLists.begin());
+					mFileLists.Erase(mFileLists.begin());
 
 					if (done)
 						break;
@@ -251,7 +251,7 @@ namespace bs
 			}
 		}
 
-		mQueuedDropOps.clear();
+		mQueuedDropOps.Clear();
 	}
 
 	bool Win32DropTarget::IsDataValid(IDataObject* data)
@@ -276,7 +276,7 @@ namespace bs
 			HDROP hDrop = (HDROP)data;
 			UINT numFiles = DragQueryFileW(hDrop, 0xFFFFFFFF, nullptr, 0);
 
-			files->resize(numFiles);
+			files->Resize(numFiles);
 			for(UINT i = 0; i < numFiles; i++)
 			{
 				UINT numChars = DragQueryFileW(hDrop, i, nullptr, 0) + 1;

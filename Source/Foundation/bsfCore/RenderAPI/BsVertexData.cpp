@@ -18,8 +18,8 @@ namespace bs { namespace ct
 
 	SPtr<VertexBuffer> VertexData::GetBuffer(UINT32 index) const
 	{
-		auto iterFind = mVertexBuffers.find(index);
-		if(iterFind != mVertexBuffers.end())
+		auto iterFind = mVertexBuffers.Find(index);
+		if(iterFind != mVertexBuffers.End())
 		{
 			return iterFind->second;
 		}
@@ -29,8 +29,8 @@ namespace bs { namespace ct
 
 	bool VertexData::IsBufferBound(UINT32 index) const
 	{
-		auto iterFind = mVertexBuffers.find(index);
-		if(iterFind != mVertexBuffers.end())
+		auto iterFind = mVertexBuffers.Find(index);
+		if(iterFind != mVertexBuffers.End())
 		{
 			if(iterFind->second != nullptr)
 				return true;

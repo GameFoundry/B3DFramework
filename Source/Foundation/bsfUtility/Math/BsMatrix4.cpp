@@ -168,7 +168,7 @@ namespace bs
 	void Matrix4::SetTRS(const Vector3& translation, const Quaternion& rotation, const Vector3& scale)
 	{
 		Matrix3 rot3x3;
-		rotation.toRotationMatrix(rot3x3);
+		rotation.ToRotationMatrix(rot3x3);
 
 		m[0][0] = scale.x * rot3x3[0][0]; m[0][1] = scale.y * rot3x3[0][1]; m[0][2] = scale.z * rot3x3[0][2]; m[0][3] = translation.x;
 		m[1][0] = scale.x * rot3x3[1][0]; m[1][1] = scale.y * rot3x3[1][1]; m[1][2] = scale.z * rot3x3[1][2]; m[1][3] = translation.y;
@@ -183,16 +183,16 @@ namespace bs
 		// Invert the parameters
 		Vector3 invTranslate = -translation;
 		Vector3 InvScale(1 / scale.x, 1 / scale.y, 1 / scale.z);
-		Quaternion invRot = rotation.inverse();
+		Quaternion invRot = rotation.Inverse();
 
 		// Because we're inverting, order is translation, rotation, scale
 		// So make translation relative to scale & rotation
-		invTranslate = invRot.rotate(invTranslate);
+		invTranslate = invRot.Rotate(invTranslate);
 		invTranslate *= invScale;
 
 		// Next, make a 3x3 rotation matrix
 		Matrix3 rot3x3;
-		invRot.toRotationMatrix(rot3x3);
+		invRot.ToRotationMatrix(rot3x3);
 
 		// Set up final matrix with scale, rotation and translation
 		m[0][0] = invScale.x * rot3x3[0][0]; m[0][1] = invScale.x * rot3x3[0][1]; m[0][2] = invScale.x * rot3x3[0][2]; m[0][3] = invTranslate.x;
@@ -228,11 +228,11 @@ namespace bs
 
 		// This is most efficiently done using 3x3 Matrices
 		Matrix3 rot;
-		orientation.toRotationMatrix(rot);
+		orientation.ToRotationMatrix(rot);
 
 		// Make the translation relative to new axes
-		Matrix3 rotT = rot.transpose();
-		Vector3 trans = (-rotT).multiply(position);
+		Matrix3 rotT = rot.Transpose();
+		Vector3 trans = (-rotT).Multiply(position);
 
 		// Make final matrix
 		*this = Matrix4(rotT);
@@ -322,7 +322,7 @@ namespace bs
 	Matrix4 Matrix4::Rotation(const Quaternion& rotation)
 	{
 		Matrix3 mat;
-		rotation.toRotationMatrix(mat);
+		rotation.ToRotationMatrix(mat);
 
 		return Matrix4(mat);
 	}
@@ -379,7 +379,7 @@ namespace bs
 	Matrix4 Matrix4::ProjectionOrthographic(float left, float right, float top, float bottom, float near, float far)
 	{
 		Matrix4 output;
-		output.makeProjectionOrtho(left, right, top, bottom, near, far);
+		output.MakeProjectionOrtho(left, right, top, bottom, near, far);
 
 		return output;
 	}
@@ -387,7 +387,7 @@ namespace bs
 	Matrix4 Matrix4::View(const Vector3& position, const Quaternion& orientation)
 	{
 		Matrix4 mat;
-		mat.makeView(position, orientation);
+		mat.MakeView(position, orientation);
 
 		return mat;
 	}
@@ -395,7 +395,7 @@ namespace bs
 	Matrix4 Matrix4::TRS(const Vector3& translation, const Quaternion& rotation, const Vector3& scale)
 	{
 		Matrix4 mat;
-		mat.setTRS(translation, rotation, scale);
+		mat.SetTRS(translation, rotation, scale);
 
 		return mat;
 	}
@@ -403,7 +403,7 @@ namespace bs
 	Matrix4 Matrix4::InverseTRS(const Vector3& translation, const Quaternion& rotation, const Vector3& scale)
 	{
 		Matrix4 mat;
-		mat.setInverseTRS(translation, rotation, scale);
+		mat.SetInverseTRS(translation, rotation, scale);
 
 		return mat;
 	}

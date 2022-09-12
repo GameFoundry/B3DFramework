@@ -114,7 +114,7 @@ namespace bs
 			if(amount > freeMem)
 				allocBlock(amount);
 
-			UINT8* data = mFreeBlock->alloc(amount);
+			UINT8* data = mFreeBlock->Alloc(amount);
 
 			UINT32* storedSize = reinterpret_cast<UINT32*>(data);
 			*storedSize = amount;
@@ -128,7 +128,7 @@ namespace bs
 			data -= sizeof(UINT32);
 
 			UINT32* storedSize = reinterpret_cast<UINT32*>(data);
-			mFreeBlock->dealloc(data, *storedSize);
+			mFreeBlock->Dealloc(data, *storedSize);
 
 			if (mFreeBlock->mFreePtr == 0)
 			{

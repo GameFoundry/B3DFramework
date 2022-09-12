@@ -120,18 +120,18 @@ namespace bs
 		BS_TEST_ASSERT(i == curCount);
 
 		// Dynamic additon
-		bitfield.add(false);
-		bitfield.add(false);
-		bitfield.add(true);
-		bitfield.add(false);
+		bitfield.Add(false);
+		bitfield.Add(false);
+		bitfield.Add(true);
+		bitfield.Add(false);
 		curCount += 4;
 
 		// Realloc
 		curCount += EXTRA_COUNT;
 		for (uint32_t j = 0; j < 32; j++)
-			bitfield.add(false);
+			bitfield.Add(false);
 
-		BS_TEST_ASSERT(bitfield.size() == curCount);
+		BS_TEST_ASSERT(bitfield.Size() == curCount);
 
 		BS_TEST_ASSERT(bitfield[COUNT + 0] == false);
 		BS_TEST_ASSERT(bitfield[COUNT + 1] == false);
@@ -159,8 +159,8 @@ namespace bs
 		BS_TEST_ASSERT(bitfield[6] == false);
 
 		// Removal
-		bitfield.remove(10);
-		bitfield.remove(10);
+		bitfield.Remove(10);
+		bitfield.Remove(10);
 		curCount -= 2;
 
 		for (UINT32 j = 48; j < 68; j++)
@@ -169,11 +169,11 @@ namespace bs
 		BS_TEST_ASSERT(bitfield[5] == false);
 		BS_TEST_ASSERT(bitfield[6] == false);
 
-		BS_TEST_ASSERT(bitfield.size() == curCount);
+		BS_TEST_ASSERT(bitfield.Size() == curCount);
 
 		// Find
-		BS_TEST_ASSERT(bitfield.find(true) == 0);
-		BS_TEST_ASSERT(bitfield.find(false) == 5);
+		BS_TEST_ASSERT(bitfield.Find(true) == 0);
+		BS_TEST_ASSERT(bitfield.Find(false) == 5);
 	}
 
 	void UtilityTestSuite::TestOctree()
@@ -217,9 +217,9 @@ namespace bs
 				DebugOctreeElem elem;
 				elem.box = AABox(position - extents, position + extents);
 
-				UINT32 elemIdx = (UINT32)octreeData.elements.size();
+				UINT32 elemIdx = (UINT32)octreeData.elements.Size();
 				octreeData.elements.push_back(elem);
-				octree.addElement(elemIdx);
+				octree.AddElement(elemIdx);
 			}
 		}
 
@@ -231,32 +231,32 @@ namespace bs
 		
 		for(UINT32 i = 0; i < 3; i++)
 		{
-			UINT32 elemIdx = (UINT32)octreeData.elements.size();
+			UINT32 elemIdx = (UINT32)octreeData.elements.Size();
 			octreeData.elements.push_back(manualElems[i]);
-			octree.addElement(elemIdx);
+			octree.AddElement(elemIdx);
 		}
 
 		AABox queryBounds = manualElems[0].box;
 		DebugOctree::BoxIntersectIterator InterIter(octree, queryBounds);
 
 		Vector<UINT32> overlapElements;
-		while(interIter.moveNext())
+		while(interIter.MoveNext())
 		{
-			UINT32 element = interIter.getElement();
+			UINT32 element = interIter.GetElement();
 			overlapElements.push_back(element);
 
 			// Manually check for intersections
-			BS_TEST_ASSERT(octreeData.elements[element].box.intersects(queryBounds));
+			BS_TEST_ASSERT(octreeData.elements[element].box.Intersects(queryBounds));
 		}
 
 		// Ensure that all we have found all possible overlaps by manually testing all elements
 		UINT32 elemIdx = 0;
 		for(auto& entry : octreeData.elements)
 		{
-			if(entry.box.intersects(queryBounds))
+			if(entry.box.Intersects(queryBounds))
 			{
-				auto iterFind = std::find(overlapElements.begin(), overlapElements.end(), elemIdx);
-				BS_TEST_ASSERT(iterFind != overlapElements.end());
+				auto iterFind = std::find(overlapElements.Begin(), overlapElements.end(), elemIdx);
+				BS_TEST_ASSERT(iterFind != overlapElements.End());
 			}
 
 			elemIdx++;
@@ -264,7 +264,7 @@ namespace bs
 
 		// Ensure nothing goes wrong during element removal
 		for(auto& entry : octreeData.elements)
-			octree.removeElement(entry.octreeId);
+			octree.RemoveElement(entry.octreeId);
 	}
 
 	void UtilityTestSuite::TestSmallVector()
@@ -277,15 +277,15 @@ namespace bs
 
 		// Make sure initial construction works
 		SmallVector<SomeElem, 4> V(4);
-		BS_TEST_ASSERT(v.size() == 4);
-		BS_TEST_ASSERT(v.capacity() == 4);
+		BS_TEST_ASSERT(v.Size() == 4);
+		BS_TEST_ASSERT(v.Capacity() == 4);
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[3].a == 10);
 		BS_TEST_ASSERT(v[3].b == 0);
 
 		// Making the vector dynamic
-		v.add({3, 4});
-		BS_TEST_ASSERT(v.size() == 5);
+		v.Add({3, 4});
+		BS_TEST_ASSERT(v.Size() == 5);
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[3].a == 10);
 		BS_TEST_ASSERT(v[3].b == 0);
@@ -294,7 +294,7 @@ namespace bs
 
 		// Make a copy
 		SmallVector<SomeElem, 4> v2 = v;
-		BS_TEST_ASSERT(v2.size() == 5);
+		BS_TEST_ASSERT(v2.Size() == 5);
 		BS_TEST_ASSERT(v2[0].a == 10);
 		BS_TEST_ASSERT(v2[3].a == 10);
 		BS_TEST_ASSERT(v2[3].b == 0);
@@ -302,23 +302,23 @@ namespace bs
 		BS_TEST_ASSERT(v2[4].b == 4);
 
 		// Pop an element
-		v2.pop();
-		BS_TEST_ASSERT(v2.size() == 4);
+		v2.Pop();
+		BS_TEST_ASSERT(v2.Size() == 4);
 		BS_TEST_ASSERT(v2[0].a == 10);
 		BS_TEST_ASSERT(v2[3].a == 10);
 		BS_TEST_ASSERT(v2[3].b == 0);
 
 		// Make a static only copy
 		SmallVector<SomeElem, 4> v3 = v2;
-		BS_TEST_ASSERT(v3.size() == 4);
-		BS_TEST_ASSERT(v3.capacity() == 4);
+		BS_TEST_ASSERT(v3.Size() == 4);
+		BS_TEST_ASSERT(v3.Capacity() == 4);
 		BS_TEST_ASSERT(v3[0].a == 10);
 		BS_TEST_ASSERT(v3[3].a == 10);
 		BS_TEST_ASSERT(v3[3].b == 0);
 
 		// Remove an element
-		v.remove(2);
-		BS_TEST_ASSERT(v.size() == 4);
+		v.Remove(2);
+		BS_TEST_ASSERT(v.Size() == 4);
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[2].a == 10);
 		BS_TEST_ASSERT(v[3].a == 3);
@@ -326,26 +326,26 @@ namespace bs
 
 		// Move a static vector
 		SmallVector<SomeElem, 4> v4 = std::move(v3);
-		BS_TEST_ASSERT(v3.size() == 0);
-		BS_TEST_ASSERT(v4.size() == 4);
-		BS_TEST_ASSERT(v4.capacity() == 4);
+		BS_TEST_ASSERT(v3.Size() == 0);
+		BS_TEST_ASSERT(v4.Size() == 4);
+		BS_TEST_ASSERT(v4.Capacity() == 4);
 		BS_TEST_ASSERT(v4[0].a == 10);
 		BS_TEST_ASSERT(v4[3].a == 10);
 		BS_TEST_ASSERT(v4[3].b == 0);
 
 		// Move a dynamic vector
 		SmallVector<SomeElem, 4> v5 = std::move(v2);
-		BS_TEST_ASSERT(v2.size() == 0);
-		BS_TEST_ASSERT(v5.size() == 4);
+		BS_TEST_ASSERT(v2.Size() == 0);
+		BS_TEST_ASSERT(v5.Size() == 4);
 		BS_TEST_ASSERT(v5[0].a == 10);
 		BS_TEST_ASSERT(v5[3].a == 10);
 		BS_TEST_ASSERT(v5[3].b == 0);
 
 		// Move a dynamic vector into a dynamic vector
-		v.add({33, 44});
+		v.Add({33, 44});
 		SmallVector<SomeElem, 4> v6 = std::move(v);
-		BS_TEST_ASSERT(v.size() == 0);
-		BS_TEST_ASSERT(v6.size() == 5);
+		BS_TEST_ASSERT(v.Size() == 0);
+		BS_TEST_ASSERT(v6.Size() == 5);
 		BS_TEST_ASSERT(v6[0].a == 10);
 		BS_TEST_ASSERT(v6[3].a == 3);
 		BS_TEST_ASSERT(v6[3].b == 4);
@@ -363,15 +363,15 @@ namespace bs
 
 		// Make sure initial construction works
 		DynArray<SomeElem> V(4);
-		BS_TEST_ASSERT(v.size() == 4);
-		BS_TEST_ASSERT(v.capacity() == 4);
+		BS_TEST_ASSERT(v.Size() == 4);
+		BS_TEST_ASSERT(v.Capacity() == 4);
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[3].a == 10);
 		BS_TEST_ASSERT(v[3].b == 0);
 
 		// Add an element
-		v.add({3, 4});
-		BS_TEST_ASSERT(v.size() == 5);
+		v.Add({3, 4});
+		BS_TEST_ASSERT(v.Size() == 5);
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[3].a == 10);
 		BS_TEST_ASSERT(v[3].b == 0);
@@ -380,7 +380,7 @@ namespace bs
 
 		// Make a copy
 		DynArray<SomeElem> v2 = v;
-		BS_TEST_ASSERT(v2.size() == 5);
+		BS_TEST_ASSERT(v2.Size() == 5);
 		BS_TEST_ASSERT(v2[0].a == 10);
 		BS_TEST_ASSERT(v2[3].a == 10);
 		BS_TEST_ASSERT(v2[3].b == 0);
@@ -388,23 +388,23 @@ namespace bs
 		BS_TEST_ASSERT(v2[4].b == 4);
 
 		// Pop an element
-		v2.pop();
-		BS_TEST_ASSERT(v2.size() == 4);
+		v2.Pop();
+		BS_TEST_ASSERT(v2.Size() == 4);
 		BS_TEST_ASSERT(v2[0].a == 10);
 		BS_TEST_ASSERT(v2[3].a == 10);
 		BS_TEST_ASSERT(v2[3].b == 0);
 
 		// Remove an element
-		v.remove(2);
-		BS_TEST_ASSERT(v.size() == 4);
+		v.Remove(2);
+		BS_TEST_ASSERT(v.Size() == 4);
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[2].a == 10);
 		BS_TEST_ASSERT(v[3].a == 3);
 		BS_TEST_ASSERT(v[3].b == 4);
 
 		// Insert an element
-		v.insert(v.begin() + 2, { 99, 100 });
-		BS_TEST_ASSERT(v.size() == 5);
+		v.Insert(v.begin() + 2, { 99, 100 });
+		BS_TEST_ASSERT(v.Size() == 5);
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[2].a == 99);
 		BS_TEST_ASSERT(v[3].a == 10);
@@ -412,8 +412,8 @@ namespace bs
 		BS_TEST_ASSERT(v[4].b == 4);
 
 		// Insert a list
-		v.insert(v.begin() + 1, {{ 55, 100 }, { 56, 100 }, { 57, 100 }});
-		BS_TEST_ASSERT(v.size() == 8);
+		v.Insert(v.begin() + 1, {{ 55, 100 }, { 56, 100 }, { 57, 100 }});
+		BS_TEST_ASSERT(v.Size() == 8);
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[1].a == 55);
 		BS_TEST_ASSERT(v[2].a == 56);
@@ -425,8 +425,8 @@ namespace bs
 		BS_TEST_ASSERT(v[7].b == 4);
 
 		// Erase a range of elements
-		v.erase(v.begin() + 2, v.begin() + 5);
-		BS_TEST_ASSERT(v.size() == 5);
+		v.Erase(v.begin() + 2, v.begin() + 5);
+		BS_TEST_ASSERT(v.Size() == 5);
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[1].a == 55);
 		BS_TEST_ASSERT(v[2].a == 99);
@@ -435,8 +435,8 @@ namespace bs
 		BS_TEST_ASSERT(v[4].b == 4);
 
 		// Insert a range
-		v.insert(v.begin() + 1, v2.begin() + 1, v2.begin() + 3);
-		BS_TEST_ASSERT(v.size() == 7);
+		v.Insert(v.begin() + 1, v2.begin() + 1, v2.begin() + 3);
+		BS_TEST_ASSERT(v.Size() == 7);
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[1].a == 10);
 		BS_TEST_ASSERT(v[2].a == 10);
@@ -447,8 +447,8 @@ namespace bs
 		BS_TEST_ASSERT(v[6].b == 4);
 
 		// Shrink capacity
-		v.shrink();
-		BS_TEST_ASSERT(v.size() == v.capacity());
+		v.Shrink();
+		BS_TEST_ASSERT(v.Size() == v.capacity());
 		BS_TEST_ASSERT(v[0].a == 10);
 		BS_TEST_ASSERT(v[1].a == 10);
 		BS_TEST_ASSERT(v[2].a == 10);
@@ -460,8 +460,8 @@ namespace bs
 
 		// Move it
 		DynArray<SomeElem> v3 = std::move(v2);
-		BS_TEST_ASSERT(v2.size() == 0);
-		BS_TEST_ASSERT(v3.size() == 4);
+		BS_TEST_ASSERT(v2.Size() == 0);
+		BS_TEST_ASSERT(v3.Size() == 4);
 		BS_TEST_ASSERT(v3[0].a == 10);
 		BS_TEST_ASSERT(v3[3].a == 10);
 		BS_TEST_ASSERT(v3[3].b == 0);
@@ -470,81 +470,81 @@ namespace bs
 	void UtilityTestSuite::TestComplex()
 	{
 		Complex<float> C(10.0, 4.0);
-		BS_TEST_ASSERT(c.real() == 10.0);
-		BS_TEST_ASSERT(c.imag() == 4.0);
+		BS_TEST_ASSERT(c.Real() == 10.0);
+		BS_TEST_ASSERT(c.Imag() == 4.0);
 
 		Complex<float> C2(15.0, 5.0);
-		BS_TEST_ASSERT(c2.real() == 15.0);
-		BS_TEST_ASSERT(c2.imag() == 5.0);
+		BS_TEST_ASSERT(c2.Real() == 15.0);
+		BS_TEST_ASSERT(c2.Imag() == 5.0);
 
 		Complex<float> c3 = c + c2;
-		BS_TEST_ASSERT(c3.real() == 25.0);
-		BS_TEST_ASSERT(c3.imag() == 9.0);
+		BS_TEST_ASSERT(c3.Real() == 25.0);
+		BS_TEST_ASSERT(c3.Imag() == 9.0);
 
 		Complex<float> c4 = c - c2;
-		BS_TEST_ASSERT(c4.real() == -5.0);
-		BS_TEST_ASSERT(c4.imag() == -1.0);
+		BS_TEST_ASSERT(c4.Real() == -5.0);
+		BS_TEST_ASSERT(c4.Imag() == -1.0);
 
 		Complex<float> c5 = c * c2;
-		BS_TEST_ASSERT(c5.real() == 130.0);
-		BS_TEST_ASSERT(c5.imag() == 110.0);
+		BS_TEST_ASSERT(c5.Real() == 130.0);
+		BS_TEST_ASSERT(c5.Imag() == 110.0);
 
 		Complex<float> c6 = c / c2;
-		BS_TEST_ASSERT(c6.real() == 0.680000007f);
-		BS_TEST_ASSERT(c6.imag() == 0.0399999991f);
+		BS_TEST_ASSERT(c6.Real() == 0.680000007f);
+		BS_TEST_ASSERT(c6.Imag() == 0.0399999991f);
 
 		BS_TEST_ASSERT(Complex<float>::abs(c) == 10.7703295f);
 		BS_TEST_ASSERT(Complex<float>::arg(c) == 0.380506366f);
 		BS_TEST_ASSERT(Complex<float>::norm(c) == 116);
 
 		Complex<float> c7 = Complex<float>::conj(c);
-		BS_TEST_ASSERT(c7.real() == 10);
-		BS_TEST_ASSERT(c7.imag() == -4);
+		BS_TEST_ASSERT(c7.Real() == 10);
+		BS_TEST_ASSERT(c7.Imag() == -4);
 		c7 = 0;
 
 		c7 = Complex<float>::polar(2.0, 0.5);
-		BS_TEST_ASSERT(c7.real() == 1.75516510f);
-		BS_TEST_ASSERT(c7.imag() == 0.958851099f);
+		BS_TEST_ASSERT(c7.Real() == 1.75516510f);
+		BS_TEST_ASSERT(c7.Imag() == 0.958851099f);
 		c7 = 0;
 
 		c7 = Complex<float>::cos(c);
-		BS_TEST_ASSERT(c7.real() == -22.9135609f);
-		BS_TEST_ASSERT(c7.imag() == 14.8462915f);
+		BS_TEST_ASSERT(c7.Real() == -22.9135609f);
+		BS_TEST_ASSERT(c7.Imag() == 14.8462915f);
 		c7 = 0;
 
 		c7 = Complex<float>::cosh(c);
-		BS_TEST_ASSERT(c7.real() == -7198.72949f);
-		BS_TEST_ASSERT(c7.imag() == -8334.84180f);
+		BS_TEST_ASSERT(c7.Real() == -7198.72949f);
+		BS_TEST_ASSERT(c7.Imag() == -8334.84180f);
 		c7 = 0;
 
 		c7 = Complex<float>::exp(c);
-		BS_TEST_ASSERT(c7.real() == -14397.4580f);
-		BS_TEST_ASSERT(c7.imag() == -16669.6836f);
+		BS_TEST_ASSERT(c7.Real() == -14397.4580f);
+		BS_TEST_ASSERT(c7.Imag() == -16669.6836f);
 		c7 = 0;
 
 		c7 = Complex<float>::log(c);
-		BS_TEST_ASSERT(c7.real() == 2.37679505f);
-		BS_TEST_ASSERT(c7.imag() == 0.380506366f);
+		BS_TEST_ASSERT(c7.Real() == 2.37679505f);
+		BS_TEST_ASSERT(c7.Imag() == 0.380506366f);
 		c7 = 0;
 
 		c7 = Complex<float>::pow(c, 2.0);
-		BS_TEST_ASSERT(c7.real() == 84.0000000f);
-		BS_TEST_ASSERT(c7.imag() == 79.9999924f);
+		BS_TEST_ASSERT(c7.Real() == 84.0000000f);
+		BS_TEST_ASSERT(c7.Imag() == 79.9999924f);
 		c7 = 0;
 
 		c7 = Complex<float>::sin(c);
-		BS_TEST_ASSERT(c7.real() == -14.8562555f);
-		BS_TEST_ASSERT(c7.imag() == -22.8981915f);
+		BS_TEST_ASSERT(c7.Real() == -14.8562555f);
+		BS_TEST_ASSERT(c7.Imag() == -22.8981915f);
 		c7 = 0;
 
 		c7 = Complex<float>::sinh(c);
-		BS_TEST_ASSERT(c7.real() == -7198.72900f);
-		BS_TEST_ASSERT(c7.imag() == -8334.84277f);
+		BS_TEST_ASSERT(c7.Real() == -7198.72900f);
+		BS_TEST_ASSERT(c7.Imag() == -8334.84277f);
 		c7 = 0;
 
 		c7 = Complex<float>::sqrt(c);
-		BS_TEST_ASSERT(c7.real() == 3.22260213f);
-		BS_TEST_ASSERT(c7.imag() == 0.620616496f);
+		BS_TEST_ASSERT(c7.Real() == 3.22260213f);
+		BS_TEST_ASSERT(c7.Imag() == 0.620616496f);
 		c7 = 0;
 	}
 	
@@ -557,36 +557,36 @@ namespace bs
 		};
 
 		MinHeap<SomeElem, int> m;
-		m.resize(8);
-		BS_TEST_ASSERT(m.valid() == true);
+		m.Resize(8);
+		BS_TEST_ASSERT(m.Valid() == true);
 
 		SomeElem elements;
 		elements.a = 4;
 		elements.b = 5;
 
-		m.insert(elements, 10);
+		m.Insert(elements, 10);
 		BS_TEST_ASSERT(m[0].key.a == 4);
 		BS_TEST_ASSERT(m[0].key.b == 5);
 		BS_TEST_ASSERT(m[0].value == 10);
-		BS_TEST_ASSERT(m.size() == 1);
+		BS_TEST_ASSERT(m.Size() == 1);
 
 		int v = 11;
-		m.insert(elements, v);
+		m.Insert(elements, v);
 		BS_TEST_ASSERT(m[1].key.a == 4);
 		BS_TEST_ASSERT(m[1].key.b == 5);
 		BS_TEST_ASSERT(m[1].value == 11);
-		BS_TEST_ASSERT(m.size() == 2);
+		BS_TEST_ASSERT(m.Size() == 2);
 
 		SomeElem minKey;
 		int minValue;
 
-		m.minimum(minKey, minValue);
+		m.Minimum(minKey, minValue);
 		BS_TEST_ASSERT(minKey.a == 4);
 		BS_TEST_ASSERT(minKey.b == 5);
 		BS_TEST_ASSERT(minValue == 10);
 
-		m.erase(elements, v);
-		BS_TEST_ASSERT(m.size() == 1);
+		m.Erase(elements, v);
+		BS_TEST_ASSERT(m.Size() == 1);
 	}
 
 	void UtilityTestSuite::TestQuadtree()
@@ -628,9 +628,9 @@ namespace bs
 				DebugQuadtreeElem elem;
 				elem.box = Rect2(position - extents, extents);
 
-				UINT32 elemIdx = (UINT32)quadtreeData.elements.size();
+				UINT32 elemIdx = (UINT32)quadtreeData.elements.Size();
 				quadtreeData.elements.push_back(elem);
-				quadtree.addElement(elemIdx);
+				quadtree.AddElement(elemIdx);
 			}
 		}
 
@@ -642,32 +642,32 @@ namespace bs
 
 		for (UINT32 i = 0; i < 3; i++)
 		{
-			UINT32 elemIdx = (UINT32)quadtreeData.elements.size();
+			UINT32 elemIdx = (UINT32)quadtreeData.elements.Size();
 			quadtreeData.elements.push_back(manualElems[i]);
-			quadtree.addElement(elemIdx);
+			quadtree.AddElement(elemIdx);
 		}
 
 		Rect2 queryBounds = manualElems[0].box;
 		DebugQuadtree::BoxIntersectIterator InterIter(quadtree, queryBounds);
 
 		Vector<UINT32> overlapElements;
-		while (interIter.moveNext())
+		while (interIter.MoveNext())
 		{
-			UINT32 element = interIter.getElement();
+			UINT32 element = interIter.GetElement();
 			overlapElements.push_back(element);
 
 			// Manually check for intersections
-			assert(quadtreeData.elements[element].box.overlaps(queryBounds));
+			assert(quadtreeData.elements[element].box.Overlaps(queryBounds));
 		}
 
 		// Ensure that all we have found all possible overlaps by manually testing all elements
 		UINT32 elemIdx = 0;
 		for (auto& entry : quadtreeData.elements)
 		{
-			if (entry.box.overlaps(queryBounds))
+			if (entry.box.Overlaps(queryBounds))
 			{
-				auto iterFind = std::find(overlapElements.begin(), overlapElements.end(), elemIdx);
-				assert(iterFind != overlapElements.end());
+				auto iterFind = std::find(overlapElements.Begin(), overlapElements.end(), elemIdx);
+				assert(iterFind != overlapElements.End());
 			}
 
 			elemIdx++;
@@ -675,7 +675,7 @@ namespace bs
 
 		// Ensure nothing goes wrong during element removal
 		for (auto& entry : quadtreeData.elements)
-			quadtree.removeElement(entry.quadtreeId);
+			quadtree.RemoveElement(entry.quadtreeId);
 	}
 
 	void UtilityTestSuite::TestVarInt()
@@ -768,26 +768,26 @@ namespace bs
 
 		Bitstream bs;
 
-		bs.write(v0); // 0  - 32
-		bs.write(v1); // 32 - 33
-		bs.write(v2); // 33 - 65
-		bs.write(v3); // 65 - 66
-		bs.write(v4); // 66 - 67
+		bs.Write(v0); // 0  - 32
+		bs.Write(v1); // 32 - 33
+		bs.Write(v2); // 33 - 65
+		bs.Write(v3); // 65 - 66
+		bs.Write(v4); // 66 - 67
 
-		bs.writeBits((uint8_t*)&v5, 10); // 67 - 77
-		bs.write(v6); // 77 - 213
-		bs.writeVarInt(v7); // 213 - 229
-		bs.writeVarIntDelta(v7, 0); // 229 - 246
-		bs.writeVarInt(v8); // 246 - 310
-		bs.writeVarIntDelta(v8, v8); // 310 - 311
-		bs.writeNorm(v9); // 311 - 327
-		bs.writeRange(v10, 5.0f, 15.0f); // 327 - 343
-		bs.writeRange(v5, 500U, 1000U); // 343 - 352
+		bs.WriteBits((uint8_t*)&v5, 10); // 67 - 77
+		bs.Write(v6); // 77 - 213
+		bs.WriteVarInt(v7); // 213 - 229
+		bs.WriteVarIntDelta(v7, 0); // 229 - 246
+		bs.WriteVarInt(v8); // 246 - 310
+		bs.WriteVarIntDelta(v8, v8); // 310 - 311
+		bs.WriteNorm(v9); // 311 - 327
+		bs.WriteRange(v10, 5.0f, 15.0f); // 327 - 343
+		bs.WriteRange(v5, 500U, 1000U); // 343 - 352
 
-		bs.align(); // 352
-		bs.write(v11); // 352 - 416
+		bs.Align(); // 352
+		bs.Write(v11); // 352 - 416
 
-		BS_TEST_ASSERT(bs.size() == 416);
+		BS_TEST_ASSERT(bs.Size() == 416);
 
 		uint32_t uv;
 		uint64_t ulv;
@@ -796,52 +796,52 @@ namespace bs
 		float fv;
 		String sv;
 
-		bs.seek(0);
-		bs.read(uv);
+		bs.Seek(0);
+		bs.Read(uv);
 		BS_TEST_ASSERT(uv == v0);
 
-		bs.read(bv);
+		bs.Read(bv);
 		BS_TEST_ASSERT(bv == v1);
 
-		bs.read(uv);
+		bs.Read(uv);
 		BS_TEST_ASSERT(uv == v2);
 
-		bs.read(bv);
+		bs.Read(bv);
 		BS_TEST_ASSERT(bv == v3);
 
-		bs.read(bv);
+		bs.Read(bv);
 		BS_TEST_ASSERT(bv == v4);
 
 		uv = 0;
-		bs.readBits((uint8_t*)&uv, 10);
+		bs.ReadBits((uint8_t*)&uv, 10);
 		BS_TEST_ASSERT(uv == v5);
 
-		bs.read(sv);
+		bs.Read(sv);
 		BS_TEST_ASSERT(sv == v6);
 
-		bs.readVarInt(iv);
+		bs.ReadVarInt(iv);
 		BS_TEST_ASSERT(iv == v7);
 
-		bs.readVarIntDelta(iv, 0);
+		bs.ReadVarIntDelta(iv, 0);
 		BS_TEST_ASSERT(iv == v7);
 
-		bs.readVarInt(ulv);
+		bs.ReadVarInt(ulv);
 		BS_TEST_ASSERT(ulv == v8);
 
-		bs.readVarIntDelta(v8, v8);
+		bs.ReadVarIntDelta(v8, v8);
 		BS_TEST_ASSERT(ulv == v8);
 
-		bs.readNorm(fv);
+		bs.ReadNorm(fv);
 		BS_TEST_ASSERT(Math::approxEquals(fv, v9, 0.01f));
 
-		bs.readRange(fv, 5.0f, 15.0f);
+		bs.ReadRange(fv, 5.0f, 15.0f);
 		BS_TEST_ASSERT(Math::approxEquals(fv, v10, 0.01f));
 
-		bs.readRange(uv, 500U, 1000U);
+		bs.ReadRange(uv, 500U, 1000U);
 		BS_TEST_ASSERT(uv == v5);
 
-		bs.align();
-		bs.read(ulv);
+		bs.Align();
+		bs.Read(ulv);
 		BS_TEST_ASSERT(ulv == v11);
 	}
 }

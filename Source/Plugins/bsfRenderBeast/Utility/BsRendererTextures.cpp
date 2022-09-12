@@ -33,7 +33,7 @@ namespace bs { namespace ct
 				color.r = bases[base].x * 0.5f + 0.5f;
 				color.g = bases[base].y * 0.5f + 0.5f;
 
-				pixelData->setColorAt(color, x, y);
+				pixelData->SetColorAt(color, x, y);
 			}
 
 		return Texture::Create(pixelData);
@@ -94,7 +94,7 @@ namespace bs { namespace ct
 		desc.height = 32;
 
 		SPtr<Texture> texture = Texture::create(desc);
-		PixelData pixelData = texture->lock(GBL_WRITE_ONLY_DISCARD);
+		PixelData pixelData = texture->Lock(GBL_WRITE_ONLY_DISCARD);
 
 		for (UINT32 y = 0; y < desc.height; y++)
 		{
@@ -166,11 +166,11 @@ namespace bs { namespace ct
 				color.r = Math::clamp01(scale);
 				color.g = Math::clamp01(offset);
 
-				pixelData.setColorAt(color, x, y);
+				pixelData.SetColorAt(color, x, y);
 			}
 		}
 
-		texture->unlock();
+		texture->Unlock();
 
 		return texture;
 	}
@@ -191,36 +191,36 @@ namespace bs { namespace ct
 		UINT32 sides[] = { CF_PositiveX, CF_NegativeX, CF_PositiveZ, CF_NegativeZ };
 		for(UINT32 i = 0; i < 4; ++i)
 		{
-			PixelData data = skyTexture->lock(GBL_WRITE_ONLY_DISCARD, 0, sides[i]);
+			PixelData data = skyTexture->Lock(GBL_WRITE_ONLY_DISCARD, 0, sides[i]);
 
-			data.setColorAt(skyColor, 0, 0);
-			data.setColorAt(skyColor, 1, 0);
-			data.setColorAt(Color::Black, 0, 1);
-			data.setColorAt(Color::Black, 1, 1);
+			data.SetColorAt(skyColor, 0, 0);
+			data.SetColorAt(skyColor, 1, 0);
+			data.SetColorAt(Color::Black, 0, 1);
+			data.SetColorAt(Color::Black, 1, 1);
 
-			skyTexture->unlock();
+			skyTexture->Unlock();
 		}
 
 		{
-			PixelData data = skyTexture->lock(GBL_WRITE_ONLY_DISCARD, 0, CF_PositiveY);
+			PixelData data = skyTexture->Lock(GBL_WRITE_ONLY_DISCARD, 0, CF_PositiveY);
 			
-			data.setColorAt(skyColor, 0, 0);
-			data.setColorAt(skyColor, 1, 0);
-			data.setColorAt(skyColor, 0, 1);
-			data.setColorAt(skyColor, 1, 1);
+			data.SetColorAt(skyColor, 0, 0);
+			data.SetColorAt(skyColor, 1, 0);
+			data.SetColorAt(skyColor, 0, 1);
+			data.SetColorAt(skyColor, 1, 1);
 
-			skyTexture->unlock();
+			skyTexture->Unlock();
 		}
 
 		{
-			PixelData data = skyTexture->lock(GBL_WRITE_ONLY_DISCARD, 0, CF_NegativeY);
+			PixelData data = skyTexture->Lock(GBL_WRITE_ONLY_DISCARD, 0, CF_NegativeY);
 			
-			data.setColorAt(Color::Black, 0, 0);
-			data.setColorAt(Color::Black, 1, 0);
-			data.setColorAt(Color::Black, 0, 1);
-			data.setColorAt(Color::Black, 1, 1);
+			data.SetColorAt(Color::Black, 0, 0);
+			data.SetColorAt(Color::Black, 1, 0);
+			data.SetColorAt(Color::Black, 0, 1);
+			data.SetColorAt(Color::Black, 1, 1);
 
-			skyTexture->unlock();
+			skyTexture->Unlock();
 		}
 
 		TEXTURE_DESC irradianceCubemapDesc;
@@ -232,7 +232,7 @@ namespace bs { namespace ct
 		irradianceCubemapDesc.usage = TU_STATIC | TU_RENDERTARGET;
 
 		SPtr<Texture> irradiance = Texture::create(irradianceCubemapDesc);
-		gIBLUtility().filterCubemapForIrradiance(skyTexture, irradiance);
+		gIBLUtility().FilterCubemapForIrradiance(skyTexture, irradiance);
 
 		return irradiance;
 	}
@@ -254,11 +254,11 @@ namespace bs { namespace ct
 
 		SPtr<PixelData> pixels = PixelData::create(32, 1, 1, PF_RGBA8);
 		for(UINT32 i = 0; i < 16; i++)
-			pixels->setColorAt(Color::fromRGBA(gradient.evaluate(i/16.0f)), i, 0);
+			pixels->SetColorAt(Color::fromRGBA(gradient.Evaluate(i/16.0f)), i, 0);
 
 		// We keep the second half of the texture empty, to avoid a mul in shader
 		for(UINT32 i = 16; i < 32; i++)
-			pixels->setColorAt(Color::Black, i, 0);
+			pixels->SetColorAt(Color::Black, i, 0);
 
 		return Texture::Create(pixels);
 	}
@@ -266,9 +266,9 @@ namespace bs { namespace ct
 	SPtr<Texture> GenerateChromaticAberrationFringe()
 	{
 		SPtr<PixelData> pixels = PixelData::create(3, 1, 1, PF_RGBA8);
-		pixels->setColorAt(Color(1.0f, 0.0f, 0.0f, 1.0f), 0, 0);
-		pixels->setColorAt(Color(0.0f, 1.0f, 0.0f, 1.0f), 1, 0);
-		pixels->setColorAt(Color(0.0f, 0.0f, 1.0f, 1.0f), 2, 0);
+		pixels->SetColorAt(Color(1.0f, 0.0f, 0.0f, 1.0f), 0, 0);
+		pixels->SetColorAt(Color(0.0f, 1.0f, 0.0f, 1.0f), 1, 0);
+		pixels->SetColorAt(Color(0.0f, 0.0f, 1.0f, 1.0f), 2, 0);
 
 		return Texture::Create(pixels);
 	}

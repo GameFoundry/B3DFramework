@@ -27,19 +27,19 @@ namespace bs
 
 	GUITooltip::GUITooltip(const HSceneObject& parent, const GUIWidget& overlaidWidget, const Vector2I& position,
 		const String& text)
-		:CGUIWidget(parent, overlaidWidget.getCamera())
+		:CGUIWidget(parent, overlaidWidget.GetCamera())
 	{
 		setDepth(0); // Needs to be in front of everything
-		setSkin(overlaidWidget.getSkinResource());
+		setSkin(overlaidWidget.GetSkinResource());
 		
-		SPtr<Camera> camera = overlaidWidget.getCamera();
-		SPtr<Viewport> viewport = camera->getViewport();
+		SPtr<Camera> camera = overlaidWidget.GetCamera();
+		SPtr<Viewport> viewport = camera->GetViewport();
 
-		Rect2I availableBounds = viewport->getPixelArea();
+		Rect2I availableBounds = viewport->GetPixelArea();
 		
 		const GUISkin& skin = getSkin();
-		const GUIElementStyle* multiLineLabelStyle = skin.getStyle(BuiltinResources::MultiLineLabelStyle);
-		const GUIElementStyle* backgroundStyle = skin.getStyle(getFrameStyleName());
+		const GUIElementStyle* multiLineLabelStyle = skin.GetStyle(BuiltinResources::MultiLineLabelStyle);
+		const GUIElementStyle* backgroundStyle = skin.GetStyle(getFrameStyleName());
 
 		Vector2I Size(TOOLTIP_WIDTH, 25);
 		if (multiLineLabelStyle != nullptr)
@@ -61,20 +61,20 @@ namespace bs
 
 		// Content area
 		GUIPanel* contentPanel = getPanel()->addNewElement<GUIPanel>();
-		contentPanel->setWidth((UINT32)size.x);
-		contentPanel->setHeight((UINT32)size.y);
-		contentPanel->setDepthRange(-1);
+		contentPanel->SetWidth((UINT32)size.x);
+		contentPanel->SetHeight((UINT32)size.y);
+		contentPanel->SetDepthRange(-1);
 
 		// Background frame
 		GUIPanel* backgroundPanel = getPanel()->addNewElement<GUIPanel>();
-		backgroundPanel->setWidth((UINT32)size.x);
-		backgroundPanel->setHeight((UINT32)size.y);
-		backgroundPanel->setDepthRange(0);
+		backgroundPanel->SetWidth((UINT32)size.x);
+		backgroundPanel->SetHeight((UINT32)size.y);
+		backgroundPanel->SetDepthRange(0);
 
 		GUILayout* backgroundLayout = backgroundPanel->addNewElement<GUILayoutX>();
 
 		GUITexture* backgroundFrame = GUITexture::create(TextureScaleMode::StretchToFit, getFrameStyleName());
-		backgroundLayout->addElement(backgroundFrame);
+		backgroundLayout->AddElement(backgroundFrame);
 
 		GUILayout* contentLayout = contentPanel->addNewElement<GUILayoutY>();
 		contentLayout->addNewElement<GUILabel>(HString(text),
@@ -90,9 +90,9 @@ namespace bs
 		DropDownAreaPlacement::HorzDir horzDir;
 		DropDownAreaPlacement::VertDir vertDir;
 		DropDownAreaPlacement placement = DropDownAreaPlacement::aroundBounds(positionBounds);
-		Rect2I placementBounds = placement.getOptimalBounds((UINT32)size.x, (UINT32)size.y, availableBounds, horzDir, vertDir);
+		Rect2I placementBounds = placement.GetOptimalBounds((UINT32)size.x, (UINT32)size.y, availableBounds, horzDir, vertDir);
 
-		backgroundPanel->setPosition(placementBounds.x, placementBounds.y);
-		contentPanel->setPosition(placementBounds.x + contentOffsetX, placementBounds.y + contentOffsetY);
+		backgroundPanel->SetPosition(placementBounds.x, placementBounds.y);
+		contentPanel->SetPosition(placementBounds.x + contentOffsetX, placementBounds.y + contentOffsetY);
 	}
 }

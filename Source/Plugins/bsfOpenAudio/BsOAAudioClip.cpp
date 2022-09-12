@@ -34,12 +34,12 @@ namespace bs
 			// If we need to keep source data, read everything into memory and keep a copy
 			if (mKeepSourceData)
 			{
-				mStreamData->seek(mStreamOffset);
+				mStreamData->Seek(mStreamOffset);
 
 				auto memStream = bs_shared_ptr_new<MemoryDataStream>(mStreamSize);
 				mSourceStreamData = memStream;
 				
-				mStreamData->read(memStream->data(), mStreamSize);
+				mStreamData->Read(memStream->data(), mStreamSize);
 				mSourceStreamSize = mStreamSize;
 			}
 
@@ -68,16 +68,16 @@ namespace bs
 				if (mDesc.format == AudioFormat::VORBIS)
 				{
 					OggVorbisDecoder reader;
-					if (reader.open(stream, info, offset))
-						reader.read(sampleBuffer, info.numSamples);
+					if (reader.Open(stream, info, offset))
+						reader.Read(sampleBuffer, info.numSamples);
 					else
 						BS_LOG(Error, Audio, "Failed decompressing AudioClip stream.");
 				}
 				// Load directly
 				else
 				{
-					stream->seek(offset);
-					stream->read(sampleBuffer, bufferSize);
+					stream->Seek(offset);
+					stream->Read(sampleBuffer, bufferSize);
 				}
 
 				alGenBuffers(1, &mBufferId);
@@ -93,7 +93,7 @@ namespace bs
 			else If(mDesc.readMode == AudioReadMode::LoadCompressed)
 			{
 				// If reading from file, make a copy of data in memory, otherwise just take ownership of the existing buffer
-				if (mStreamData->isFile())
+				if (mStreamData->IsFile())
 				{
 					if (mSourceStreamData != nullptr) // If it's already loaded in memory, use it directly
 						mStreamData = mSourceStreamData;
@@ -101,8 +101,8 @@ namespace bs
 					{
 						auto memStream = bs_shared_ptr_new<MemoryDataStream>(mStreamSize);
 
-						mStreamData->seek(mStreamOffset);
-						mStreamData->read(memStream->data(), mStreamSize);
+						mStreamData->Seek(mStreamOffset);
+						mStreamData->Read(memStream->data(), mStreamSize);
 
 						mStreamData = memStream;
 					}
@@ -122,7 +122,7 @@ namespace bs
 
 				if (mStreamData != nullptr)
 				{
-					if (!mVorbisReader.open(mStreamData, info, mStreamOffset))
+					if (!mVorbisReader.Open(mStreamData, info, mStreamOffset))
 						BS_LOG(Error, Audio, "Failed decompressing AudioClip stream.");
 				}
 			}
@@ -140,8 +140,8 @@ namespace bs
 		{
 			if (mNeedsDecompression)
 			{
-				mVorbisReader.seek(offset);
-				mVorbisReader.read(samples, count);
+				mVorbisReader.Seek(offset);
+				mVorbisReader.Read(samples, count);
 			}
 			else
 			{
@@ -149,8 +149,8 @@ namespace bs
 				UINT32 size = count * bytesPerSample;
 				UINT32 streamOffset = mStreamOffset + offset * bytesPerSample;
 
-				mStreamData->seek(streamOffset);
-				mStreamData->read(samples, size);
+				mStreamData->Seek(streamOffset);
+				mStreamData->Read(samples, size);
 			}
 
 			return;
@@ -164,8 +164,8 @@ namespace bs
 			UINT32 size = count * bytesPerSample;
 			UINT32 streamOffset = offset * bytesPerSample;
 
-			mSourceStreamData->seek(streamOffset);
-			mSourceStreamData->read(samples, size);
+			mSourceStreamData->Seek(streamOffset);
+			mSourceStreamData->Read(samples, size);
 			return;
 		}
 
@@ -177,7 +177,7 @@ namespace bs
 		Lock Lock(mMutex);
 
 		size = mSourceStreamSize;
-		mSourceStreamData->seek(0);
+		mSourceStreamData->Seek(0);
 
 		return mSourceStreamData;
 	}

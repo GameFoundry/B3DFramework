@@ -71,7 +71,7 @@ namespace bs
 			_instance() = bs_new<T>(std::forward<Args>(args)...);
 			isStartedUp() = true;
 
-			((Module*)_instance())->onStartUp();
+			((Module*)_instance())->OnStartUp();
 		}
 
 		/**
@@ -89,7 +89,7 @@ namespace bs
 			_instance() = bs_new<SubType>(std::forward<Args>(args)...);
 			isStartedUp() = true;
 
-			((Module*)_instance())->onStartUp();
+			((Module*)_instance())->OnStartUp();
 		}
 
 		/** Shuts down this module and frees any resources it is using. */
@@ -107,7 +107,7 @@ namespace bs
 					"Trying to shut down a module which was never started.");
 			}
 
-			((Module*)_instance())->onShutDown();
+			((Module*)_instance())->OnShutDown();
 
 			bs_delete(_instance());
 			isDestroyed() = true;

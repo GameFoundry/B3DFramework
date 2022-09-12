@@ -322,7 +322,7 @@ namespace bs
 		virtual ~ManagedSerializableMemberInfo() = default;
 
 		/**	Determines should the member be serialized when serializing the parent object. */
-		bool IsSerializable() const { return mFlags.isSet(ScriptFieldFlag::Serializable); }
+		bool IsSerializable() const { return mFlags.IsSet(ScriptFieldFlag::Serializable); }
 
 		/**
 		 * Returns a boxed value contained in the member in the specified object instance.

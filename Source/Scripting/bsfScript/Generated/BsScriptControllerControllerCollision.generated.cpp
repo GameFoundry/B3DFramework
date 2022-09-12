@@ -36,7 +36,7 @@ namespace bs
 		ScriptCCharacterController* scriptcontroller;
 		scriptcontroller = ScriptCCharacterController::toNative(value.controller);
 		if(scriptcontroller != nullptr)
-			tmpcontroller = scriptcontroller->getHandle();
+			tmpcontroller = scriptcontroller->GetHandle();
 		output.controller = tmpcontroller;
 		output.position = value.position;
 		output.normal = value.normal;
@@ -51,10 +51,10 @@ namespace bs
 		__ControllerControllerCollisionInterop output;
 		ScriptComponentBase* scriptcontroller = nullptr;
 		if(value.controller)
-			scriptcontroller = ScriptGameObjectManager::instance().getBuiltinScriptComponent(static_object_cast<Component>(value.controller));
+			scriptcontroller = ScriptGameObjectManager::instance().GetBuiltinScriptComponent(static_object_cast<Component>(value.controller));
 		MonoObject* tmpcontroller;
 		if(scriptcontroller != nullptr)
-			tmpcontroller = scriptcontroller->getManagedInstance();
+			tmpcontroller = scriptcontroller->GetManagedInstance();
 		else
 			tmpcontroller = nullptr;
 		output.controller = tmpcontroller;

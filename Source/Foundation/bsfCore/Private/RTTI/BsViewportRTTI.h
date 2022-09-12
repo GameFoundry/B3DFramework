@@ -30,7 +30,7 @@ namespace bs
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{
 			Viewport* viewport = static_cast<Viewport*>(obj);
-			viewport->initialize();
+			viewport->Initialize();
 		}
 
 		const String& GetRTTIName() override

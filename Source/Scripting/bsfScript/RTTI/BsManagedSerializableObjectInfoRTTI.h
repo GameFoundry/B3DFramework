@@ -31,7 +31,7 @@ namespace bs
 
 		SPtr<ManagedSerializableObjectInfo> GetSerializableObjectInfo(ManagedSerializableAssemblyInfo* obj, UINT32 idx)
 		{
-			auto iter = obj->mObjectInfos.begin();
+			auto iter = obj->mObjectInfos.Begin();
 			for(UINT32 i = 0; i < idx; i++)
 				iter++;
 
@@ -40,11 +40,11 @@ namespace bs
 
 		void SetSerializableObjectInfo(ManagedSerializableAssemblyInfo* obj, UINT32 idx, SPtr<ManagedSerializableObjectInfo> val)
 		{
-			obj->mTypeNameToId[val->getFullTypeName()] = val->mTypeInfo->mTypeId;
+			obj->mTypeNameToId[val->GetFullTypeName()] = val->mTypeInfo->mTypeId;
 			obj->mObjectInfos[val->mTypeInfo->mTypeId] = val;
 		}
 		
-		UINT32 GetSerializableObjectInfoArraySize(ManagedSerializableAssemblyInfo* obj) { return (UINT32)obj->mObjectInfos.size(); }
+		UINT32 GetSerializableObjectInfoArraySize(ManagedSerializableAssemblyInfo* obj) { return (UINT32)obj->mObjectInfos.Size(); }
 		void SetSerializableObjectInfoArraySize(ManagedSerializableAssemblyInfo* obj, UINT32 size) {  }
 
 	public:
@@ -100,7 +100,7 @@ namespace bs
 
 		SPtr<ManagedSerializableMemberInfo> GetSerializableFieldInfo(ManagedSerializableObjectInfo* obj, UINT32 idx)
 		{
-			auto iter = obj->mFields.begin();
+			auto iter = obj->mFields.Begin();
 			for(UINT32 i = 0; i < idx; i++)
 				iter++;
 
@@ -113,7 +113,7 @@ namespace bs
 			obj->mFields[val->mFieldId] = val;
 		}
 
-		UINT32 GetSerializableFieldInfoArraySize(ManagedSerializableObjectInfo* obj) { return (UINT32)obj->mFields.size(); }
+		UINT32 GetSerializableFieldInfoArraySize(ManagedSerializableObjectInfo* obj) { return (UINT32)obj->mFields.Size(); }
 		void SetSerializableFieldInfoArraySize(ManagedSerializableObjectInfo* obj, UINT32 size) {  }
 
 	public:

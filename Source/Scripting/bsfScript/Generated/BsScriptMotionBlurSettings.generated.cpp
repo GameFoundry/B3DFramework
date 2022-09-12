@@ -14,17 +14,17 @@ namespace bs
 
 	void ScriptMotionBlurSettings::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_MotionBlurSettings", (void*)&ScriptMotionBlurSettings::Internal_MotionBlurSettings);
-		metaData.scriptClass->addInternalCall("Internal_getenabled", (void*)&ScriptMotionBlurSettings::Internal_getenabled);
-		metaData.scriptClass->addInternalCall("Internal_setenabled", (void*)&ScriptMotionBlurSettings::Internal_setenabled);
-		metaData.scriptClass->addInternalCall("Internal_getdomain", (void*)&ScriptMotionBlurSettings::Internal_getdomain);
-		metaData.scriptClass->addInternalCall("Internal_setdomain", (void*)&ScriptMotionBlurSettings::Internal_setdomain);
-		metaData.scriptClass->addInternalCall("Internal_getfilter", (void*)&ScriptMotionBlurSettings::Internal_getfilter);
-		metaData.scriptClass->addInternalCall("Internal_setfilter", (void*)&ScriptMotionBlurSettings::Internal_setfilter);
-		metaData.scriptClass->addInternalCall("Internal_getquality", (void*)&ScriptMotionBlurSettings::Internal_getquality);
-		metaData.scriptClass->addInternalCall("Internal_setquality", (void*)&ScriptMotionBlurSettings::Internal_setquality);
-		metaData.scriptClass->addInternalCall("Internal_getmaximumRadius", (void*)&ScriptMotionBlurSettings::Internal_getmaximumRadius);
-		metaData.scriptClass->addInternalCall("Internal_setmaximumRadius", (void*)&ScriptMotionBlurSettings::Internal_setmaximumRadius);
+		metaData.scriptClass->AddInternalCall("Internal_MotionBlurSettings", (void*)&ScriptMotionBlurSettings::Internal_MotionBlurSettings);
+		metaData.scriptClass->AddInternalCall("Internal_getenabled", (void*)&ScriptMotionBlurSettings::Internal_getenabled);
+		metaData.scriptClass->AddInternalCall("Internal_setenabled", (void*)&ScriptMotionBlurSettings::Internal_setenabled);
+		metaData.scriptClass->AddInternalCall("Internal_getdomain", (void*)&ScriptMotionBlurSettings::Internal_getdomain);
+		metaData.scriptClass->AddInternalCall("Internal_setdomain", (void*)&ScriptMotionBlurSettings::Internal_setdomain);
+		metaData.scriptClass->AddInternalCall("Internal_getfilter", (void*)&ScriptMotionBlurSettings::Internal_getfilter);
+		metaData.scriptClass->AddInternalCall("Internal_setfilter", (void*)&ScriptMotionBlurSettings::Internal_setfilter);
+		metaData.scriptClass->AddInternalCall("Internal_getquality", (void*)&ScriptMotionBlurSettings::Internal_getquality);
+		metaData.scriptClass->AddInternalCall("Internal_setquality", (void*)&ScriptMotionBlurSettings::Internal_setquality);
+		metaData.scriptClass->AddInternalCall("Internal_getmaximumRadius", (void*)&ScriptMotionBlurSettings::Internal_getmaximumRadius);
+		metaData.scriptClass->AddInternalCall("Internal_setmaximumRadius", (void*)&ScriptMotionBlurSettings::Internal_setmaximumRadius);
 
 	}
 
@@ -35,7 +35,7 @@ namespace bs
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.scriptClass->createInstance("bool", ctorParams);
+		MonoObject* managedInstance = metaData.scriptClass->CreateInstance("bool", ctorParams);
 		new (bs_alloc<ScriptMotionBlurSettings>()) ScriptMotionBlurSettings(managedInstance, value);
 		return managedInstance;
 	}
@@ -48,7 +48,7 @@ namespace bs
 	bool ScriptMotionBlurSettings::Internal_getenabled(ScriptMotionBlurSettings* thisPtr)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->getInternal()->enabled;
+		tmp__output = thisPtr->GetInternal()->enabled;
 
 		bool __output;
 		__output = tmp__output;
@@ -58,13 +58,13 @@ namespace bs
 
 	void ScriptMotionBlurSettings::Internal_setenabled(ScriptMotionBlurSettings* thisPtr, bool value)
 	{
-		thisPtr->getInternal()->enabled = value;
+		thisPtr->GetInternal()->enabled = value;
 	}
 
 	MotionBlurDomain ScriptMotionBlurSettings::Internal_getdomain(ScriptMotionBlurSettings* thisPtr)
 	{
 		MotionBlurDomain tmp__output;
-		tmp__output = thisPtr->getInternal()->domain;
+		tmp__output = thisPtr->GetInternal()->domain;
 
 		MotionBlurDomain __output;
 		__output = tmp__output;
@@ -74,13 +74,13 @@ namespace bs
 
 	void ScriptMotionBlurSettings::Internal_setdomain(ScriptMotionBlurSettings* thisPtr, MotionBlurDomain value)
 	{
-		thisPtr->getInternal()->domain = value;
+		thisPtr->GetInternal()->domain = value;
 	}
 
 	MotionBlurFilter ScriptMotionBlurSettings::Internal_getfilter(ScriptMotionBlurSettings* thisPtr)
 	{
 		MotionBlurFilter tmp__output;
-		tmp__output = thisPtr->getInternal()->filter;
+		tmp__output = thisPtr->GetInternal()->filter;
 
 		MotionBlurFilter __output;
 		__output = tmp__output;
@@ -90,13 +90,13 @@ namespace bs
 
 	void ScriptMotionBlurSettings::Internal_setfilter(ScriptMotionBlurSettings* thisPtr, MotionBlurFilter value)
 	{
-		thisPtr->getInternal()->filter = value;
+		thisPtr->GetInternal()->filter = value;
 	}
 
 	MotionBlurQuality ScriptMotionBlurSettings::Internal_getquality(ScriptMotionBlurSettings* thisPtr)
 	{
 		MotionBlurQuality tmp__output;
-		tmp__output = thisPtr->getInternal()->quality;
+		tmp__output = thisPtr->GetInternal()->quality;
 
 		MotionBlurQuality __output;
 		__output = tmp__output;
@@ -106,13 +106,13 @@ namespace bs
 
 	void ScriptMotionBlurSettings::Internal_setquality(ScriptMotionBlurSettings* thisPtr, MotionBlurQuality value)
 	{
-		thisPtr->getInternal()->quality = value;
+		thisPtr->GetInternal()->quality = value;
 	}
 
 	float ScriptMotionBlurSettings::Internal_getmaximumRadius(ScriptMotionBlurSettings* thisPtr)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->getInternal()->maximumRadius;
+		tmp__output = thisPtr->GetInternal()->maximumRadius;
 
 		float __output;
 		__output = tmp__output;
@@ -122,6 +122,6 @@ namespace bs
 
 	void ScriptMotionBlurSettings::Internal_setmaximumRadius(ScriptMotionBlurSettings* thisPtr, float value)
 	{
-		thisPtr->getInternal()->maximumRadius = value;
+		thisPtr->GetInternal()->maximumRadius = value;
 	}
 }

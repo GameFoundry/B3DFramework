@@ -30,7 +30,7 @@ namespace bs
 
 			// Make sure that the renderer finishes generating filtered radiance and irradiance before saving
 			if (skybox->mRendererTask)
-				skybox->mRendererTask->wait();
+				skybox->mRendererTask->Wait();
 		}
 
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override

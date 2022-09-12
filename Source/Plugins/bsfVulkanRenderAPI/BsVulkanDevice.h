@@ -58,7 +58,7 @@ namespace bs { namespace ct
 		const VkPhysicalDeviceMemoryProperties& GetMemoryProperties() const { return mMemoryProperties; }
 
 		/** Returns the number of queue supported on the device, per type. */
-		UINT32 GetNumQueues(GpuQueueType type) const { return (UINT32)mQueueInfos[(int)type].queues.size(); }
+		UINT32 GetNumQueues(GpuQueueType type) const { return (UINT32)mQueueInfos[(int)type].queues.Size(); }
 
 		/** Returns queue of the specified type at the specified index. Index must be in range [0, getNumQueues()). */
 		VulkanQueue* getQueue(GpuQueueType type, UINT32 idx) const { return mQueueInfos[(int)type].queues[idx]; }

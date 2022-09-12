@@ -27,9 +27,9 @@ namespace bs
 
 	void ScriptGUIRenderTexture::InitRuntimeData()
 	{
-		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptGUIRenderTexture::internal_createInstance);
-		metaData.scriptClass->addInternalCall("Internal_SetTexture", (void*)&ScriptGUIRenderTexture::internal_setTexture);
-		metaData.scriptClass->addInternalCall("Internal_SetTint", (void*)&ScriptGUIRenderTexture::internal_setTint);
+		metaData.scriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptGUIRenderTexture::internal_createInstance);
+		metaData.scriptClass->AddInternalCall("Internal_SetTexture", (void*)&ScriptGUIRenderTexture::internal_setTexture);
+		metaData.scriptClass->AddInternalCall("Internal_SetTint", (void*)&ScriptGUIRenderTexture::internal_setTint);
 	}
 
 	void ScriptGUIRenderTexture::internal_createInstance(MonoObject* instance,
@@ -38,13 +38,13 @@ namespace bs
 		GUIOptions options;
 
 		ScriptArray ScriptArray(guiOptions);
-		UINT32 arrayLen = scriptArray.size();
+		UINT32 arrayLen = scriptArray.Size();
 		for (UINT32 i = 0; i < arrayLen; i++)
-			options.addOption(scriptArray.get<GUIOption>(i));
+			options.AddOption(scriptArray.get<GUIOption>(i));
 
 		SPtr<RenderTexture> renderTexture;
 		if (texture != nullptr)
-			renderTexture = texture->getInternal();
+			renderTexture = texture->GetInternal();
 
 		GUIRenderTexture* guiTexture = GUIRenderTexture::create(renderTexture, transparent, options, MonoUtil::monoToString(style));
 
@@ -55,15 +55,15 @@ namespace bs
 	{
 		SPtr<RenderTexture> renderTexture;
 		if (texture != nullptr)
-			renderTexture = texture->getInternal();
+			renderTexture = texture->GetInternal();
 
-		GUIRenderTexture* guiTexture = (GUIRenderTexture*)nativeInstance->getGUIElement();
-		guiTexture->setRenderTexture(renderTexture);
+		GUIRenderTexture* guiTexture = (GUIRenderTexture*)nativeInstance->GetGUIElement();
+		guiTexture->SetRenderTexture(renderTexture);
 	}
 
 	void ScriptGUIRenderTexture::internal_setTint(ScriptGUIRenderTexture* nativeInstance, Color* color)
 	{
-		GUIRenderTexture* guiTexture = (GUIRenderTexture*)nativeInstance->getGUIElement();
-		guiTexture->setTint(*color);
+		GUIRenderTexture* guiTexture = (GUIRenderTexture*)nativeInstance->GetGUIElement();
+		guiTexture->SetTint(*color);
 	}
 }
