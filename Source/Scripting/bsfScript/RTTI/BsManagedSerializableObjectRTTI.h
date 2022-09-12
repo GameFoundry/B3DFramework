@@ -37,7 +37,7 @@ namespace bs
 			SPtr<ManagedSerializableFieldKey> fieldKey = ManagedSerializableFieldKey::create(field->mParentTypeId, field->mFieldId);
 			SPtr<ManagedSerializableFieldData> fieldData = obj->getFieldData(field);
 
-			return ManagedSerializableFieldDataEntry::create(fieldKey, fieldData);
+			return ManagedSerializableFieldDataEntry::Create(fieldKey, fieldData);
 		}
 
 		void SetFieldsEntry(ManagedSerializableObject* obj, UINT32 arrayIdx, SPtr<ManagedSerializableFieldDataEntry> val)
@@ -105,7 +105,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return ManagedSerializableObject::createEmpty();
+			return ManagedSerializableObject::CreateEmpty();
 		}
 
 	private:

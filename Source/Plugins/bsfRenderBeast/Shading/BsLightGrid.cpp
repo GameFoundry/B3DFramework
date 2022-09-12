@@ -107,7 +107,7 @@ namespace bs { namespace ct
 		mProbesBufferParam.set(probesBuffer);
 	}
 
-	void LightGridLLCreationMat::execute(const RendererView& view)
+	void LightGridLLCreationMat::Execute(const RendererView& view)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
@@ -212,7 +212,7 @@ namespace bs { namespace ct
 		mProbesLLParam.set(probeLL);
 	}
 
-	void LightGridLLReductionMat::execute(const RendererView& view)
+	void LightGridLLReductionMat::Execute(const RendererView& view)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
@@ -301,7 +301,7 @@ namespace bs { namespace ct
 		reductionMat->execute(view);
 	}
 
-	LightGridOutputs LightGrid::getOutputs() const
+	LightGridOutputs LightGrid::GetOutputs() const
 	{
 		LightGridOutputs outputs;
 

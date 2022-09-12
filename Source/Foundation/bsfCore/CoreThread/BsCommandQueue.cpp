@@ -41,7 +41,7 @@ namespace bs
 		}
 	}
 
-	AsyncOp CommandQueueBase::queueReturn(std::function<void(AsyncOp&)> commandCallback, bool _notifyWhenComplete, UINT32 _callbackId)
+	AsyncOp CommandQueueBase::QueueReturn(std::function<void(AsyncOp&)> commandCallback, bool _notifyWhenComplete, UINT32 _callbackId)
 	{
 #if BS_DEBUG_MODE
 		breakIfNeeded(mCommandQueueIdx, mMaxDebugIdx);
@@ -61,7 +61,7 @@ namespace bs
 		return newCommand.asyncOp;
 	}
 
-	void CommandQueueBase::queue(std::function<void()> commandCallback, bool _notifyWhenComplete, UINT32 _callbackId)
+	void CommandQueueBase::Queue(std::function<void()> commandCallback, bool _notifyWhenComplete, UINT32 _callbackId)
 	{
 #if BS_DEBUG_MODE
 		breakIfNeeded(mCommandQueueIdx, mMaxDebugIdx);
@@ -97,7 +97,7 @@ namespace bs
 		return oldCommands;
 	}
 
-	void CommandQueueBase::playbackWithNotify(bs::Queue<QueuedCommand>* commands, std::function<void(UINT32)> notifyCallback)
+	void CommandQueueBase::PlaybackWithNotify(bs::Queue<QueuedCommand>* commands, std::function<void(UINT32)> notifyCallback)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -138,12 +138,12 @@ namespace bs
 		mEmptyCommandQueues.push(commands);
 	}
 
-	void CommandQueueBase::playback(bs::Queue<QueuedCommand>* commands)
+	void CommandQueueBase::Playback(bs::Queue<QueuedCommand>* commands)
 	{
 		playbackWithNotify(commands, std::function<void(UINT32)>());
 	}
 
-	void CommandQueueBase::cancelAll()
+	void CommandQueueBase::CancelAll()
 	{
 		bs::Queue<QueuedCommand>* commands = flush();
 
@@ -154,7 +154,7 @@ namespace bs
 		mEmptyCommandQueues.push(commands);
 	}
 
-	bool CommandQueueBase::isEmpty()
+	bool CommandQueueBase::IsEmpty()
 	{
 		if(mCommands != nullptr && mCommands->size() > 0)
 			return false;
@@ -162,7 +162,7 @@ namespace bs
 		return true;
 	}
 
-	void CommandQueueBase::throwInvalidThreadException(const String& message) const
+	void CommandQueueBase::ThrowInvalidThreadException(const String& message) const
 	{
 		BS_EXCEPT(InternalErrorException, message);
 	}
@@ -188,14 +188,14 @@ namespace bs
 		return a.queueIdx == b.queueIdx && a.commandIdx == b.commandIdx;
 	}
 
-	void CommandQueueBase::addBreakpoint(UINT32 queueIdx, UINT32 commandIdx)
+	void CommandQueueBase::AddBreakpoint(UINT32 queueIdx, UINT32 commandIdx)
 	{
 		Lock Lock(CommandQueueBreakpointMutex);
 
 		SetBreakpoints.insert(QueueBreakpoint(queueIdx, commandIdx));
 	}
 
-	void CommandQueueBase::breakIfNeeded(UINT32 queueIdx, UINT32 commandIdx)
+	void CommandQueueBase::BreakIfNeeded(UINT32 queueIdx, UINT32 commandIdx)
 	{
 		// I purposely don't use a mutex here, as this gets called very often. Generally breakpoints
 		// will only be added at the start of the application, so race conditions should not occur.
@@ -207,7 +207,7 @@ namespace bs
 		}
 	}
 #else
-	void CommandQueueBase::addBreakpoint(UINT32 queueIdx, UINT32 commandIdx)
+	void CommandQueueBase::AddBreakpoint(UINT32 queueIdx, UINT32 commandIdx)
 	{
 		// Do nothing, no breakpoints in release
 	}

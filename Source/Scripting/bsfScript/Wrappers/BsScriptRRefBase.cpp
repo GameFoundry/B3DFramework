@@ -21,7 +21,7 @@ namespace bs
 		BS_ASSERT(mGCHandle == 0 && "Object being destroyed without its managed instance being freed first.");
 	}
 
-	void ScriptRRefBase::initRuntimeData()
+	void ScriptRRefBase::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_IsLoaded", (void*)&ScriptRRefBase::internal_IsLoaded);
 		metaData.scriptClass->addInternalCall("Internal_GetResource", (void*)&ScriptRRefBase::internal_GetResource);
@@ -55,7 +55,7 @@ namespace bs
 
 	MonoObject* ScriptRRefBase::getManagedInstance() const
 	{
-		return MonoUtil::getObjectFromGCHandle(mGCHandle);
+		return MonoUtil::GetObjectFromGCHandle(mGCHandle);
 	}
 
 	void ScriptRRefBase::_clearManagedInstance()
@@ -83,7 +83,7 @@ namespace bs
 		MonoClass* rrefClass = ScriptAssemblyManager::instance().getBuiltinClasses().genericRRefClass;
 
 		::MonoClass* params[1] = { param };
-		return MonoUtil::bindGenericParameters(rrefClass->_getInternalClass(), params, 1);
+		return MonoUtil::BindGenericParameters(rrefClass->_getInternalClass(), params, 1);
 	}
 
 	bool ScriptRRefBase::internal_IsLoaded(ScriptRRefBase* thisPtr)

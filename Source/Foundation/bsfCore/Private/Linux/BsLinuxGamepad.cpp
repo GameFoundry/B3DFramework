@@ -40,7 +40,7 @@ namespace bs
 		bs_delete(m);
 	}
 
-	void Gamepad::capture()
+	void Gamepad::Capture()
 	{
 		if(m->fileHandle == -1)
 			return;
@@ -153,7 +153,7 @@ namespace bs
 		}
 	}
 
-	void Gamepad::changeCaptureContext(UINT64 windowHandle)
+	void Gamepad::ChangeCaptureContext(UINT64 windowHandle)
 	{
 		m->hasInputFocus = windowHandle != (UINT64)-1;
 	}

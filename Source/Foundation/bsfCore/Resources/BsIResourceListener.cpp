@@ -15,7 +15,7 @@ namespace bs
 		ResourceListenerManager::instance().unregisterListener(this);
 	}
 
-	void IResourceListener::markListenerResourcesDirty()
+	void IResourceListener::MarkListenerResourcesDirty()
 	{
 		ResourceListenerManager::instance().markListenerDirty(this);
 	}

@@ -34,12 +34,12 @@ namespace bs
 		mNotifyFlags = (TransformChangedFlags)(TCF_Parent | TCF_Transform);
 	}
 
-	HRigidbody CJoint::getBody(JointBody body) const
+	HRigidbody CJoint::GetBody(JointBody body) const
 	{
 		return mBodies[(int)body];
 	}
 
-	void CJoint::setBody(JointBody body, const HRigidbody& value)
+	void CJoint::SetBody(JointBody body, const HRigidbody& value)
 	{
 		if (mBodies[(int)body] == value)
 			return;
@@ -77,17 +77,17 @@ namespace bs
 		}
 	}
 
-	Vector3 CJoint::getPosition(JointBody body) const
+	Vector3 CJoint::GetPosition(JointBody body) const
 	{
 		return mPositions[(int)body];
 	}
 
-	Quaternion CJoint::getRotation(JointBody body) const
+	Quaternion CJoint::GetRotation(JointBody body) const
 	{
 		return mRotations[(int)body];
 	}
 
-	void CJoint::setTransform(JointBody body, const Vector3& position, const Quaternion& rotation)
+	void CJoint::SetTransform(JointBody body, const Vector3& position, const Quaternion& rotation)
 	{
 		if (mPositions[(int)body] == position && mRotations[(int)body] == rotation)
 			return;
@@ -99,12 +99,12 @@ namespace bs
 			updateTransform(body);
 	}
 
-	float CJoint::getBreakForce() const
+	float CJoint::GetBreakForce() const
 	{
 		return mDesc.breakForce;
 	}
 
-	void CJoint::setBreakForce(float force)
+	void CJoint::SetBreakForce(float force)
 	{
 		if (mDesc.breakForce == force)
 			return;
@@ -115,12 +115,12 @@ namespace bs
 			mInternal->setBreakForce(force);
 	}
 
-	float CJoint::getBreakTorque() const
+	float CJoint::GetBreakTorque() const
 	{
 		return mDesc.breakTorque;
 	}
 
-	void CJoint::setBreakTorque(float torque)
+	void CJoint::SetBreakTorque(float torque)
 	{
 		if (mDesc.breakTorque == torque)
 			return;
@@ -131,12 +131,12 @@ namespace bs
 			mInternal->setBreakTorque(torque);
 	}
 
-	bool CJoint::getEnableCollision() const
+	bool CJoint::GetEnableCollision() const
 	{
 		return mDesc.enableCollision;
 	}
 
-	void CJoint::setEnableCollision(bool value)
+	void CJoint::SetEnableCollision(bool value)
 	{
 		if (mDesc.enableCollision == value)
 			return;
@@ -147,12 +147,12 @@ namespace bs
 			mInternal->setEnableCollision(value);
 	}
 
-	void CJoint::onInitialized()
+	void CJoint::OnInitialized()
 	{
 
 	}
 
-	void CJoint::onDestroyed()
+	void CJoint::OnDestroyed()
 	{
 		if (mBodies[0] != nullptr)
 			mBodies[0]->_setJoint(HJoint());
@@ -164,19 +164,19 @@ namespace bs
 			destroyInternal();
 	}
 
-	void CJoint::onDisabled()
+	void CJoint::OnDisabled()
 	{
 		if (mInternal != nullptr)
 			destroyInternal();
 	}
 
-	void CJoint::onEnabled()
+	void CJoint::OnEnabled()
 	{
 		if(isBodyValid(mBodies[0]) || isBodyValid(mBodies[1]))
 			restoreInternal();
 	}
 
-	void CJoint::onTransformChanged(TransformChangedFlags flags)
+	void CJoint::OnTransformChanged(TransformChangedFlags flags)
 	{
 		if (mInternal == nullptr)
 			return;
@@ -194,7 +194,7 @@ namespace bs
 		updateTransform(JointBody::Anchor);
 	}
 
-	void CJoint::restoreInternal()
+	void CJoint::RestoreInternal()
 	{
 		if (mBodies[0] != nullptr)
 			mDesc.bodies[0].body = mBodies[0]->_getInternal();
@@ -214,7 +214,7 @@ namespace bs
 		mInternal->onJointBreak.connect(std::bind(&CJoint::triggerOnJointBroken, this));
 	}
 
-	void CJoint::destroyInternal()
+	void CJoint::DestroyInternal()
 	{
 		// This should release the last reference and destroy the internal joint
 		if(mInternal)
@@ -224,7 +224,7 @@ namespace bs
 		}
 	}
 
-	void CJoint::notifyRigidbodyMoved(const HRigidbody& body)
+	void CJoint::NotifyRigidbodyMoved(const HRigidbody& body)
 	{
 		if (mInternal == nullptr)
 			return;
@@ -241,7 +241,7 @@ namespace bs
 			assert(false); // Not allowed to happen
 	}
 
-	bool CJoint::isBodyValid(const HRigidbody& body)
+	bool CJoint::IsBodyValid(const HRigidbody& body)
 	{
 		if (body == nullptr)
 			return false;
@@ -252,7 +252,7 @@ namespace bs
 		return true;
 	}
 
-	void CJoint::updateTransform(JointBody body)
+	void CJoint::UpdateTransform(JointBody body)
 	{
 		Vector3 localPos;
 		Quaternion localRot;
@@ -261,7 +261,7 @@ namespace bs
 		mInternal->setTransform(body, localPos, localRot);
 	}
 
-	void CJoint::getLocalTransform(JointBody body, Vector3& position, Quaternion& rotation)
+	void CJoint::GetLocalTransform(JointBody body, Vector3& position, Quaternion& rotation)
 	{
 		position = mPositions[(UINT32)body];
 		rotation = mRotations[(UINT32)body];
@@ -281,18 +281,18 @@ namespace bs
 		}
 	}
 	
-	void CJoint::triggerOnJointBroken()
+	void CJoint::TriggerOnJointBroken()
 	{
 		onJointBreak();
 	}
 
 	RTTITypeBase* CJoint::getRTTIStatic()
 	{
-		return CJointRTTI::instance();
+		return CJointRTTI::Instance();
 	}
 
 	RTTITypeBase* CJoint::getRTTI() const
 	{
-		return CJoint::getRTTIStatic();
+		return CJoint::GetRTTIStatic();
 	}
 }

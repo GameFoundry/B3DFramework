@@ -17,7 +17,7 @@ namespace bs
 	{
 	}
 
-	void ScriptParticleSystemSettings::initRuntimeData()
+	void ScriptParticleSystemSettings::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getmaterial", (void*)&ScriptParticleSystemSettings::Internal_getmaterial);
 		metaData.scriptClass->addInternalCall("Internal_setmaterial", (void*)&ScriptParticleSystemSettings::Internal_setmaterial);

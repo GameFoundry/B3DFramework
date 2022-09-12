@@ -38,7 +38,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_ResourceView);
 	}
 
-	void GpuBufferView::initialize(D3D11GpuBuffer* buffer, GPU_BUFFER_VIEW_DESC& desc)
+	void GpuBufferView::Initialize(D3D11GpuBuffer* buffer, GPU_BUFFER_VIEW_DESC& desc)
 	{
 		mBuffer = buffer;
 		mDesc = desc;

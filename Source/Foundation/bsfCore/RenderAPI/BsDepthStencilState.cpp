@@ -39,12 +39,12 @@ namespace bs
 
 	}
 
-	SPtr<ct::DepthStencilState> DepthStencilState::getCore() const
+	SPtr<ct::DepthStencilState> DepthStencilState::GetCore() const
 	{
 		return std::static_pointer_cast<ct::DepthStencilState>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObject> DepthStencilState::createCore() const
+	SPtr<ct::CoreObject> DepthStencilState::CreateCore() const
 	{
 		SPtr<ct::DepthStencilState> core = ct::RenderStateManager::instance()._createDepthStencilState(mProperties.mData);
 		mId = core->getId(); // Accessing core from sim thread is okay here since core ID is immutable
@@ -52,22 +52,22 @@ namespace bs
 		return core;
 	}
 
-	const SPtr<DepthStencilState>& DepthStencilState::getDefault()
+	const SPtr<DepthStencilState>& DepthStencilState::GetDefault()
 	{
-		return RenderStateManager::instance().getDefaultDepthStencilState();
+		return RenderStateManager::Instance().getDefaultDepthStencilState();
 	}
 
-	const DepthStencilProperties& DepthStencilState::getProperties() const
+	const DepthStencilProperties& DepthStencilState::GetProperties() const
 	{
 		return mProperties;
 	}
 
-	SPtr<DepthStencilState> DepthStencilState::create(const DEPTH_STENCIL_STATE_DESC& desc)
+	SPtr<DepthStencilState> DepthStencilState::Create(const DEPTH_STENCIL_STATE_DESC& desc)
 	{
-		return RenderStateManager::instance().createDepthStencilState(desc);
+		return RenderStateManager::Instance().createDepthStencilState(desc);
 	}
 
-	UINT64 DepthStencilState::generateHash(const DEPTH_STENCIL_STATE_DESC& desc)
+	UINT64 DepthStencilState::GenerateHash(const DEPTH_STENCIL_STATE_DESC& desc)
 	{
 		size_t hash = 0;
 		bs_hash_combine(hash, desc.depthReadEnable);
@@ -94,12 +94,12 @@ namespace bs
 
 	RTTITypeBase* DepthStencilState::getRTTIStatic()
 	{
-		return DepthStencilStateRTTI::instance();
+		return DepthStencilStateRTTI::Instance();
 	}
 
 	RTTITypeBase* DepthStencilState::getRTTI() const
 	{
-		return DepthStencilState::getRTTIStatic();
+		return DepthStencilState::GetRTTIStatic();
 	}
 
 	namespace ct
@@ -115,7 +115,7 @@ namespace bs
 
 	}
 
-	void DepthStencilState::initialize()
+	void DepthStencilState::Initialize()
 	{
 		// Since we cache states it's possible this object was already initialized
 		// (i.e. multiple sim-states can share a single core-state)
@@ -126,19 +126,19 @@ namespace bs
 		CoreObject::initialize();
 	}
 
-	const DepthStencilProperties& DepthStencilState::getProperties() const
+	const DepthStencilProperties& DepthStencilState::GetProperties() const
 	{
 		return mProperties;
 	}
 
-	SPtr<DepthStencilState> DepthStencilState::create(const DEPTH_STENCIL_STATE_DESC& desc)
+	SPtr<DepthStencilState> DepthStencilState::Create(const DEPTH_STENCIL_STATE_DESC& desc)
 	{
-		return RenderStateManager::instance().createDepthStencilState(desc);
+		return RenderStateManager::Instance().createDepthStencilState(desc);
 	}
 
-	const SPtr<DepthStencilState>& DepthStencilState::getDefault()
+	const SPtr<DepthStencilState>& DepthStencilState::GetDefault()
 	{
-		return RenderStateManager::instance().getDefaultDepthStencilState();
+		return RenderStateManager::Instance().getDefaultDepthStencilState();
 	}
 	}
 }

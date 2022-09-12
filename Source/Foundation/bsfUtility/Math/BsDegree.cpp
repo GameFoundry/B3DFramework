@@ -9,7 +9,7 @@ namespace bs
 		:mDeg(r.valueDegrees())
 	{ }
 
-	Degree Degree::wrap()
+	Degree Degree::Wrap()
 	{
 		mDeg = fmod(mDeg, 360.0f);
 
@@ -44,7 +44,7 @@ namespace bs
 		mDeg -= r.valueDegrees(); return *this;
 	}
 
-	float Degree::valueRadians() const
+	float Degree::ValueRadians() const
 	{
 		return mDeg * Math::DEG2RAD;
 	}

@@ -27,7 +27,7 @@ namespace bs
 	{
 	}
 
-	void ScriptMaterial::initRuntimeData()
+	void ScriptMaterial::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetRef", (void*)&ScriptMaterial::Internal_getRef);
 		metaData.scriptClass->addInternalCall("Internal_setShader", (void*)&ScriptMaterial::Internal_setShader);

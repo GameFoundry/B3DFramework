@@ -20,7 +20,7 @@ namespace bs
 		setManagedInstance(instance);
 	}
 
-	void ScriptSceneObject::initRuntimeData()
+	void ScriptSceneObject::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptSceneObject::internal_createInstance);
 		metaData.scriptClass->addInternalCall("Internal_GetName", (void*)&ScriptSceneObject::internal_getName);
@@ -91,7 +91,7 @@ namespace bs
 			return nullptr;
 
 		String name = nativeInstance->mSceneObject->getName();
-		return MonoUtil::stringToMono(name);
+		return MonoUtil::StringToMono(name);
 	}
 
 	void ScriptSceneObject::internal_setActive(ScriptSceneObject* nativeInstance, bool value)
@@ -164,7 +164,7 @@ namespace bs
 		if (checkIfDestroyed(nativeInstance))
 			return nullptr;
 
-		return ScriptSceneInstance::create(nativeInstance->mSceneObject->getScene());
+		return ScriptSceneInstance::Create(nativeInstance->mSceneObject->getScene());
 	}
 
 	void ScriptSceneObject::internal_getNumChildren(ScriptSceneObject* nativeInstance, UINT32* value)
@@ -406,7 +406,7 @@ namespace bs
 			nativeInstance->mSceneObject->destroy(immediate);
 	}
 
-	bool ScriptSceneObject::checkIfDestroyed(ScriptSceneObject* nativeInstance)
+	bool ScriptSceneObject::CheckIfDestroyed(ScriptSceneObject* nativeInstance)
 	{
 		if (nativeInstance->mSceneObject.isDestroyed())
 		{
@@ -444,7 +444,7 @@ namespace bs
 		freeManagedInstance();
 	}
 
-	void ScriptSceneObject::setNativeHandle(const HGameObject& gameObject)
+	void ScriptSceneObject::SetNativeHandle(const HGameObject& gameObject)
 	{
 		mSceneObject = static_object_cast<SceneObject>(gameObject);
 	}

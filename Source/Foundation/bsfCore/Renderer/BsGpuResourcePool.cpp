@@ -7,7 +7,7 @@
 
 namespace bs { namespace ct
 {
-	SPtr<PooledRenderTexture> GpuResourcePool::get(const POOLED_RENDER_TEXTURE_DESC& desc)
+	SPtr<PooledRenderTexture> GpuResourcePool::Get(const POOLED_RENDER_TEXTURE_DESC& desc)
 	{
 		for (auto& entry : mTextures)
 		{
@@ -70,7 +70,7 @@ namespace bs { namespace ct
 		return newTexture;
 	}
 
-	void GpuResourcePool::get(SPtr<PooledRenderTexture>& texture, const POOLED_RENDER_TEXTURE_DESC& desc)
+	void GpuResourcePool::Get(SPtr<PooledRenderTexture>& texture, const POOLED_RENDER_TEXTURE_DESC& desc)
 	{
 		if(texture && matches(texture->texture, desc))
 			return;
@@ -78,7 +78,7 @@ namespace bs { namespace ct
 		texture = get(desc);
 	}
 
-	SPtr<PooledStorageBuffer> GpuResourcePool::get(const POOLED_STORAGE_BUFFER_DESC& desc)
+	SPtr<PooledStorageBuffer> GpuResourcePool::Get(const POOLED_STORAGE_BUFFER_DESC& desc)
 	{
 		for (auto& entry : mBuffers)
 		{
@@ -111,7 +111,7 @@ namespace bs { namespace ct
 		return newBuffer;
 	}
 
-	void GpuResourcePool::get(SPtr<PooledStorageBuffer>& buffer, const POOLED_STORAGE_BUFFER_DESC& desc)
+	void GpuResourcePool::Get(SPtr<PooledStorageBuffer>& buffer, const POOLED_STORAGE_BUFFER_DESC& desc)
 	{
 		if(buffer && matches(buffer->buffer, desc))
 			return;
@@ -119,7 +119,7 @@ namespace bs { namespace ct
 		buffer = get(desc);
 	}
 
-	void GpuResourcePool::update()
+	void GpuResourcePool::Update()
 	{
 		mCurrentFrame++;
 
@@ -128,7 +128,7 @@ namespace bs { namespace ct
 		prune(3);
 	}
 
-	void GpuResourcePool::prune(UINT32 age)
+	void GpuResourcePool::Prune(UINT32 age)
 	{
 		for(auto iter = mTextures.begin(); iter != mTextures.end();)
 		{
@@ -167,7 +167,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	bool GpuResourcePool::matches(const SPtr<Texture>& texture, const POOLED_RENDER_TEXTURE_DESC& desc)
+	bool GpuResourcePool::Matches(const SPtr<Texture>& texture, const POOLED_RENDER_TEXTURE_DESC& desc)
 	{
 		const TextureProperties& texProps = texture->getProperties();
 
@@ -191,7 +191,7 @@ namespace bs { namespace ct
 		return match;
 	}
 
-	bool GpuResourcePool::matches(const SPtr<GpuBuffer>& buffer, const POOLED_STORAGE_BUFFER_DESC& desc)
+	bool GpuResourcePool::Matches(const SPtr<GpuBuffer>& buffer, const POOLED_STORAGE_BUFFER_DESC& desc)
 	{
 		const GpuBufferProperties& props = buffer->getProperties();
 
@@ -292,7 +292,7 @@ namespace bs { namespace ct
 
 	GpuResourcePool& GGpuResourcePool()
 	{
-		return GpuResourcePool::instance();
+		return GpuResourcePool::Instance();
 	}
 
 }}

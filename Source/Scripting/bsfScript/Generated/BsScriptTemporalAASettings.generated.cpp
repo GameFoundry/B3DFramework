@@ -12,7 +12,7 @@ namespace bs
 	{
 	}
 
-	void ScriptTemporalAASettings::initRuntimeData()
+	void ScriptTemporalAASettings::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_TemporalAASettings", (void*)&ScriptTemporalAASettings::Internal_TemporalAASettings);
 		metaData.scriptClass->addInternalCall("Internal_getenabled", (void*)&ScriptTemporalAASettings::Internal_getenabled);

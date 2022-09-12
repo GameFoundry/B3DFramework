@@ -17,7 +17,7 @@ namespace bs
 	{
 	}
 
-	void ScriptParticleGpuSimulationSettings::initRuntimeData()
+	void ScriptParticleGpuSimulationSettings::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getvectorField", (void*)&ScriptParticleGpuSimulationSettings::Internal_getvectorField);
 		metaData.scriptClass->addInternalCall("Internal_setvectorField", (void*)&ScriptParticleGpuSimulationSettings::Internal_setvectorField);

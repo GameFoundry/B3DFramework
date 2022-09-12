@@ -15,7 +15,7 @@ namespace bs
 		mInternal = value;
 	}
 
-	void ScriptParticleEmitterSkinnedMeshShape::initRuntimeData()
+	void ScriptParticleEmitterSkinnedMeshShape::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_setOptions", (void*)&ScriptParticleEmitterSkinnedMeshShape::Internal_setOptions);
 		metaData.scriptClass->addInternalCall("Internal_getOptions", (void*)&ScriptParticleEmitterSkinnedMeshShape::Internal_getOptions);

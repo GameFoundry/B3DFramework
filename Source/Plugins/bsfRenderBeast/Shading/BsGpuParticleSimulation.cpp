@@ -335,7 +335,7 @@ namespace bs { namespace ct
 			mFreeTiles[i] = TILE_COUNT - i - 1;
 	}
 
-	UINT32 GpuParticleResources::allocTile()
+	UINT32 GpuParticleResources::AllocTile()
 	{
 		if (mNumFreeTiles > 0)
 		{
@@ -346,7 +346,7 @@ namespace bs { namespace ct
 		return (UINT32)-1;
 	}
 
-	void GpuParticleResources::freeTile(UINT32 tile)
+	void GpuParticleResources::FreeTile(UINT32 tile)
 	{
 		assert(tile < TILE_COUNT);
 		assert(mNumFreeTiles < TILE_COUNT);
@@ -355,34 +355,34 @@ namespace bs { namespace ct
 		mNumFreeTiles++;
 	}
 
-	Vector2I GpuParticleResources::getTileOffset(UINT32 tileId)
+	Vector2I GpuParticleResources::GetTileOffset(UINT32 tileId)
 	{
 		return Vector2I(
 			(tileId % TILE_COUNT_1D) * TILE_SIZE,
 			(tileId / TILE_COUNT_1D) * TILE_SIZE);
 	}
 
-	Vector2 GpuParticleResources::getTileCoords(UINT32 tileId)
+	Vector2 GpuParticleResources::GetTileCoords(UINT32 tileId)
 	{
 		return Vector2(
 			Math::frac(tileId / (float)TILE_COUNT_1D),
 			(UINT32)(tileId / TILE_COUNT_1D) / (float)TILE_COUNT_1D);
 	}
 
-	Vector2I GpuParticleResources::getParticleOffset(UINT32 subTileId)
+	Vector2I GpuParticleResources::GetParticleOffset(UINT32 subTileId)
 	{
 		return Vector2I(
 			subTileId % TILE_SIZE,
 			subTileId / TILE_SIZE);
 	}
 
-	Vector2 GpuParticleResources::getParticleCoords(UINT32 subTileId)
+	Vector2 GpuParticleResources::GetParticleCoords(UINT32 subTileId)
 	{
 		const Vector2I tileOffset = getParticleOffset(subTileId);
 		return tileOffset / (float)TEX_SIZE;
 	}
 
-	const SPtr<GpuBuffer>& GpuParticleResources::getSortedIndices() const
+	const SPtr<GpuBuffer>& GpuParticleResources::GetSortedIndices() const
 	{
 		return mSortedIndices[mSortedIndicesBufferIdx];
 	}
@@ -565,7 +565,7 @@ namespace bs { namespace ct
 		return newTilesAdded;
 	}
 
-	void GpuParticleSystem::detectInactiveTiles()
+	void GpuParticleSystem::DetectInactiveTiles()
 	{
 		mNumActiveTiles = 0;
 		for (UINT32 i = 0; i < (UINT32)mTiles.size(); i++)
@@ -583,7 +583,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	bool GpuParticleSystem::freeInactiveTiles(GpuParticleResources& resources)
+	bool GpuParticleSystem::FreeInactiveTiles(GpuParticleResources& resources)
 	{
 		const UINT32 numFreeTiles = (UINT32)mTiles.size() - mNumActiveTiles;
 		for(UINT32 i = 0; i < numFreeTiles; i++)
@@ -612,7 +612,7 @@ namespace bs { namespace ct
 		return numFreeTiles > 0;
 	}
 
-	void GpuParticleSystem::updateGpuBuffers()
+	void GpuParticleSystem::UpdateGpuBuffers()
 	{
 		const auto numTiles = (UINT32)mTiles.size();
 		const UINT32 numTilesToAllocates = Math::divideAndRoundUp(numTiles, TILES_PER_INSTANCE) * TILES_PER_INSTANCE;
@@ -670,7 +670,7 @@ namespace bs { namespace ct
 		}
 	}
 	
-	void GpuParticleSystem::advanceTime(float dt)
+	void GpuParticleSystem::AdvanceTime(float dt)
 	{
 		const ParticleSystemSettings& settings = mParent->getSettings();
 
@@ -678,7 +678,7 @@ namespace bs { namespace ct
 		mTime = bs::ParticleSystem::_advanceTime(mTime, dt, settings.duration, settings.isLooping, timeStep);
 	}
 
-	AABox GpuParticleSystem::getBounds() const
+	AABox GpuParticleSystem::GetBounds() const
 	{
 		const ParticleSystemSettings& settings = mParent->getSettings();
 
@@ -711,12 +711,12 @@ namespace bs { namespace ct
 		bs_delete(m);
 	}
 
-	void GpuParticleSimulation::addSystem(GpuParticleSystem* system)
+	void GpuParticleSimulation::AddSystem(GpuParticleSystem* system)
 	{
 		m->systems.insert(system);
 	}
 
-	void GpuParticleSimulation::removeSystem(GpuParticleSystem* system)
+	void GpuParticleSimulation::RemoveSystem(GpuParticleSystem* system)
 	{
 		m->systems.erase(system);
 	}
@@ -818,7 +818,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GpuParticleSimulation::sort(const RendererView& view)
+	void GpuParticleSimulation::Sort(const RendererView& view)
 	{
 		const bool supportsCompute = gRenderBeast()->getFeatureSet() == RenderBeastFeatureSet::Desktop;
 		if(!supportsCompute)
@@ -872,7 +872,7 @@ namespace bs { namespace ct
 		m->resources.mSortedIndicesBufferIdx = outputBufferIdx;
 	}
 
-	void GpuParticleSimulation::prepareBuffers(const GpuParticleSystem* system, const RendererParticles& rendererInfo)
+	void GpuParticleSimulation::PrepareBuffers(const GpuParticleSystem* system, const RendererParticles& rendererInfo)
 	{
 		ParticleSystem* parentSystem = system->getParent();
 
@@ -950,7 +950,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GpuParticleSimulation::clearTiles(const Vector<UINT32>& tiles)
+	void GpuParticleSimulation::ClearTiles(const Vector<UINT32>& tiles)
 	{
 		const auto numTiles = (UINT32)tiles.size();
 		if(numTiles == 0)
@@ -994,7 +994,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GpuParticleSimulation::injectParticles(const Vector<GpuParticle>& particles)
+	void GpuParticleSimulation::InjectParticles(const Vector<GpuParticle>& particles)
 	{
 		const auto numParticles = (UINT32)particles.size();
 		const UINT32 numIterations = Math::divideAndRoundUp(numParticles, GpuParticleHelperBuffers::NUM_SCRATCH_PARTICLES);
@@ -1026,7 +1026,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	GpuParticleResources& GpuParticleSimulation::getResources() const
+	GpuParticleResources& GpuParticleSimulation::GetResources() const
 	{
 		return m->resources;
 	}
@@ -1065,7 +1065,7 @@ namespace bs { namespace ct
 		defines.set("TILES_PER_INSTANCE", TILES_PER_INSTANCE);
 	}
 
-	void GpuParticleClearMat::bind(const SPtr<GpuBuffer>& tileUVs)
+	void GpuParticleClearMat::Bind(const SPtr<GpuBuffer>& tileUVs)
 	{
 		mTileUVParam.set(tileUVs);
 
@@ -1214,14 +1214,14 @@ namespace bs { namespace ct
 		defines.set("NUM_THREADS", NUM_THREADS);
 	}
 
-	void GpuParticleBoundsMat::bind(const SPtr<Texture>& positionAndTime)
+	void GpuParticleBoundsMat::Bind(const SPtr<Texture>& positionAndTime)
 	{
 		mPosAndTimeTexParam.set(positionAndTime);
 
 		RendererMaterial::bind();
 	}
 
-	AABox GpuParticleBoundsMat::execute(const SPtr<GpuBuffer>& indices, UINT32 numParticles)
+	AABox GpuParticleBoundsMat::Execute(const SPtr<GpuBuffer>& indices, UINT32 numParticles)
 	{
 		static constexpr UINT32 MAX_NUM_GROUPS = 128;
 
@@ -1279,7 +1279,7 @@ namespace bs { namespace ct
 		defines.set("NUM_THREADS", NUM_THREADS);
 	}
 
-	void GpuParticleSortPrepareMat::bind(const SPtr<Texture>& positionAndTime)
+	void GpuParticleSortPrepareMat::Bind(const SPtr<Texture>& positionAndTime)
 	{
 		mPosAndTimeTexParam.set(positionAndTime);
 
@@ -1415,7 +1415,7 @@ namespace bs { namespace ct
 		mPendingAllocator.clear();
 	}
 
-	TextureRowAllocation GpuParticleCurves::alloc(Color* pixels, uint32_t count)
+	TextureRowAllocation GpuParticleCurves::Alloc(Color* pixels, uint32_t count)
 	{
 		PendingAllocation pendingAlloc;
 		pendingAlloc.allocation = mRowAllocator.alloc(count);
@@ -1430,12 +1430,12 @@ namespace bs { namespace ct
 		return pendingAlloc.allocation;
 	}
 
-	void GpuParticleCurves::free(const TextureRowAllocation& alloc)
+	void GpuParticleCurves::Free(const TextureRowAllocation& alloc)
 	{
 		mRowAllocator.free(alloc);
 	}
 
-	void GpuParticleCurves::applyChanges()
+	void GpuParticleCurves::ApplyChanges()
 	{
 		const auto numCurves = (UINT32)mPendingAllocations.size();
 		if(numCurves == 0)
@@ -1493,7 +1493,7 @@ namespace bs { namespace ct
 		mPendingAllocator.clear();
 	}
 
-	Vector2 GpuParticleCurves::getUVOffset(const TextureRowAllocation& alloc)
+	Vector2 GpuParticleCurves::GetUVOffset(const TextureRowAllocation& alloc)
 	{
 		return Vector2(
 			((float)alloc.x + 0.5f) / TEX_SIZE,
@@ -1501,7 +1501,7 @@ namespace bs { namespace ct
 		);
 	}
 
-	float GpuParticleCurves::getUVScale(const TextureRowAllocation& alloc)
+	float GpuParticleCurves::GetUVScale(const TextureRowAllocation& alloc)
 	{
 		if(alloc.length == 0)
 			return 0.0f;

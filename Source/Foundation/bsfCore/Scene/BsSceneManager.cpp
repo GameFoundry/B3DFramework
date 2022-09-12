@@ -55,7 +55,7 @@ namespace bs
 			mMainScene->mRoot->destroy(true);
 	}
 
-	void SceneManager::clearScene(bool forceAll)
+	void SceneManager::ClearScene(bool forceAll)
 	{
 		UINT32 numChildren = mMainScene->mRoot->getNumChildren();
 
@@ -76,16 +76,16 @@ namespace bs
 		_setRootNode(newRoot);
 	}
 
-	void SceneManager::loadScene(const HPrefab& scene)
+	void SceneManager::LoadScene(const HPrefab& scene)
 	{
 		HSceneObject root = scene->_instantiate(true);
 		_setRootNode(root);
 	}
 
-	HPrefab SceneManager::saveScene() const
+	HPrefab SceneManager::SaveScene() const
 	{
 		HSceneObject sceneRoot = mMainScene->getRoot();
-		return Prefab::create(sceneRoot);
+		return Prefab::Create(sceneRoot);
 	}
 
 	void SceneManager::_setRootNode(const HSceneObject& root)
@@ -192,7 +192,7 @@ namespace bs
 			entry.second.actor->_updateState(*entry.second.so);
 	}
 
-	SPtr<Camera> SceneManager::getMainCamera() const
+	SPtr<Camera> SceneManager::GetMainCamera() const
 	{
 		if (mMainCameras.size() > 0)
 			return mMainCameras[0];
@@ -200,7 +200,7 @@ namespace bs
 		return nullptr;
 	}
 
-	void SceneManager::setMainRenderTarget(const SPtr<RenderTarget>& rt)
+	void SceneManager::SetMainRenderTarget(const SPtr<RenderTarget>& rt)
 	{
 		if (mMainRT == rt)
 			return;
@@ -226,7 +226,7 @@ namespace bs
 		}
 	}
 
-	void SceneManager::setComponentState(ComponentState state)
+	void SceneManager::SetComponentState(ComponentState state)
 	{
 		if(mDisableStateChange)
 		{
@@ -428,7 +428,7 @@ namespace bs
 		}
 	}
 
-	void SceneManager::addToStateList(const HComponent& component, UINT32 listType)
+	void SceneManager::AddToStateList(const HComponent& component, UINT32 listType)
 	{
 		if(listType == 0)
 			return;
@@ -441,7 +441,7 @@ namespace bs
 		component->setSceneManagerId(encodeComponentId(idx, listType));
 	}
 
-	void SceneManager::removeFromStateList(const HComponent& component)
+	void SceneManager::RemoveFromStateList(const HComponent& component)
 	{
 		UINT32 listType;
 		UINT32 idx;
@@ -466,7 +466,7 @@ namespace bs
 		list.erase(list.end() - 1);
 	}
 
-	void SceneManager::processStateChanges()
+	void SceneManager::ProcessStateChanges()
 	{
 		const bool isStopped = mComponentState == ComponentState::Stopped;
 
@@ -518,20 +518,20 @@ namespace bs
 	}
 
 
-	UINT32 SceneManager::encodeComponentId(UINT32 idx, UINT32 type)
+	UINT32 SceneManager::EncodeComponentId(UINT32 idx, UINT32 type)
 	{
 		assert(idx <= (0x3FFFFFFF));
 
 		return (type << 30) | idx;
 	}
 
-	void SceneManager::decodeComponentId(UINT32 id, UINT32& idx, UINT32& type)
+	void SceneManager::DecodeComponentId(UINT32 id, UINT32& idx, UINT32& type)
 	{
 		idx = id & 0x3FFFFFFF;
 		type = id >> 30;
 	}
 
-	bool SceneManager::isComponentOfType(const HComponent& component, UINT32 rttiId)
+	bool SceneManager::IsComponentOfType(const HComponent& component, UINT32 rttiId)
 	{
 		return component->getRTTI()->getRTTIId() == rttiId;
 	}
@@ -559,13 +559,13 @@ namespace bs
 			entry->fixedUpdate();
 	}
 
-	void SceneManager::registerNewSO(const HSceneObject& node)
+	void SceneManager::RegisterNewSO(const HSceneObject& node)
 	{
 		if(mMainScene->getRoot())
 			node->setParent(mMainScene->getRoot());
 	}
 
-	void SceneManager::onMainRenderTargetResized()
+	void SceneManager::OnMainRenderTargetResized()
 	{
 		auto& rtProps = mMainRT->getProperties();
 		float aspect = rtProps.width / (float)rtProps.height;
@@ -576,6 +576,6 @@ namespace bs
 
 	SceneManager& GSceneManager()
 	{
-		return SceneManager::instance();
+		return SceneManager::Instance();
 	}
 }

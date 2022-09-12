@@ -24,7 +24,7 @@ namespace bs
 		value->onJointBreak.connect(std::bind(&ScriptCJoint::onJointBreak, this));
 	}
 
-	void ScriptCJoint::initRuntimeData()
+	void ScriptCJoint::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getBody", (void*)&ScriptCJoint::Internal_getBody);
 		metaData.scriptClass->addInternalCall("Internal_setBody", (void*)&ScriptCJoint::Internal_setBody);
@@ -41,7 +41,7 @@ namespace bs
 		onJointBreakThunk = (onJointBreakThunkDef)metaData.scriptClass->getMethodExact("Internal_onJointBreak", "")->getThunk();
 	}
 
-	void ScriptCJoint::onJointBreak()
+	void ScriptCJoint::OnJointBreak()
 	{
 		MonoUtil::invokeThunk(onJointBreakThunk, getManagedInstance());
 	}

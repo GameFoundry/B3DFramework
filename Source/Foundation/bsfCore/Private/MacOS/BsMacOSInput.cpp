@@ -620,7 +620,7 @@ namespace bs
 		CFRelease(mHIDManager);
 	}
 
-	void HIDManager::capture(IOHIDDeviceRef device, bool ignoreEvents)
+	void HIDManager::Capture(IOHIDDeviceRef device, bool ignoreEvents)
 	{
 		if(mData.type == HIDType::Mouse)
 			bs_zero_out(mData.mouseAxisValues);
@@ -846,7 +846,7 @@ namespace bs
 		}
 	}
 
-	void Input::initRawInput()
+	void Input::InitRawInput()
 	{
 		mPlatformData = bs_new<InputPrivateData>();
 
@@ -862,7 +862,7 @@ namespace bs
 		}
 	}
 
-	void Input::cleanUpRawInput()
+	void Input::CleanUpRawInput()
 	{
 		if (mMouse != nullptr)
 			bs_delete(mMouse);
@@ -878,7 +878,7 @@ namespace bs
 		bs_delete(mPlatformData);
 	}
 
-	UINT32 Input::getDeviceCount(InputDevice device) const
+	UINT32 Input::GetDeviceCount(InputDevice device) const
 	{
 		switch(device)
 		{

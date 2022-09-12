@@ -142,7 +142,7 @@ namespace bs
 		CrashHandler::shutDown();
 	}
 
-	void CoreApplication::onStartUp()
+	void CoreApplication::OnStartUp()
 	{
 		UINT32 numWorkerThreads = BS_THREAD_HARDWARE_CONCURRENCY - 1; // Number of cores while excluding current thread.
 
@@ -199,7 +199,7 @@ namespace bs
 		Importer::instance()._registerAssetImporter(fgaImporter);
 	}
 
-	void CoreApplication::runMainLoop()
+	void CoreApplication::RunMainLoop()
 	{
 		beginMainLoop();
 
@@ -239,17 +239,17 @@ namespace bs
 		endMainLoop();
 	}
 
-	void CoreApplication::beginMainLoop()
+	void CoreApplication::BeginMainLoop()
 	{
 		mRunMainLoop = true;
 	}
 
-	void CoreApplication::endMainLoop()
+	void CoreApplication::EndMainLoop()
 	{
 		waitUntilFrameFinished();
 	}
 
-	void CoreApplication::runMainLoopFrame()
+	void CoreApplication::RunMainLoopFrame()
 	{
 		gProfilerCPU().beginThread("Sim");
 
@@ -343,7 +343,7 @@ namespace bs
 		gProfiler()._update();
 	}
 
-	void CoreApplication::waitUntilFrameFinished()
+	void CoreApplication::WaitUntilFrameFinished()
 	{
 		Lock Lock(mFrameRenderingFinishedMutex);
 
@@ -355,33 +355,33 @@ namespace bs
 		}
 	}
 
-	void CoreApplication::preUpdate()
+	void CoreApplication::PreUpdate()
 	{
 		// Do nothing
 	}
 
-	void CoreApplication::postUpdate()
+	void CoreApplication::PostUpdate()
 	{
 		// Do nothing
 	}
 
-	void CoreApplication::fixedUpdate()
+	void CoreApplication::FixedUpdate()
 	{
 	   // Do nothing
 	}
 
-	void CoreApplication::stopMainLoop()
+	void CoreApplication::StopMainLoop()
 	{
 		mRunMainLoop = false; // No sync primitives needed, in that rare case of
 		// a race condition we might run the loop one extra iteration which is acceptable
 	}
 
-	void CoreApplication::quitRequested()
+	void CoreApplication::QuitRequested()
 	{
 		stopMainLoop();
 	}
 
-	void CoreApplication::setFPSLimit(UINT32 limit)
+	void CoreApplication::SetFPSLimit(UINT32 limit)
 	{
 		if(limit > 0)
 			mFrameStep = (UINT64)1000000 / limit;
@@ -389,7 +389,7 @@ namespace bs
 			mFrameStep = 0;
 	}
 
-	void CoreApplication::frameRenderingFinishedCallback()
+	void CoreApplication::FrameRenderingFinishedCallback()
 	{
 		Lock Lock(mFrameRenderingFinishedMutex);
 
@@ -397,19 +397,19 @@ namespace bs
 		mFrameRenderingFinishedCondition.notify_one();
 	}
 
-	void CoreApplication::startUpRenderer()
+	void CoreApplication::StartUpRenderer()
 	{
 		RendererManager::instance().initialize();
 	}
 
-	void CoreApplication::beginCoreProfiling()
+	void CoreApplication::BeginCoreProfiling()
 	{
 #if !BS_FORCE_SINGLETHREADED_RENDERING
 		gProfilerCPU().beginThread("Core");
 #endif
 	}
 
-	void CoreApplication::endCoreProfiling()
+	void CoreApplication::EndCoreProfiling()
 	{
 		ProfilerGPU::instance()._update();
 
@@ -456,7 +456,7 @@ namespace bs
 		return retVal;
 	}
 
-	void CoreApplication::unloadPlugin(DynLib* library)
+	void CoreApplication::UnloadPlugin(DynLib* library)
 	{
 		typedef void (*UnloadPluginFunc)();
 
@@ -469,13 +469,13 @@ namespace bs
 		gDynLibManager().unload(library);
 	}
 
-	SPtr<IShaderIncludeHandler> CoreApplication::getShaderIncludeHandler() const
+	SPtr<IShaderIncludeHandler> CoreApplication::GetShaderIncludeHandler() const
 	{
 		return bs_shared_ptr_new<DefaultShaderIncludeHandler>();
 	}
 
 	CoreApplication& GCoreApplication()
 	{
-		return CoreApplication::instance();
+		return CoreApplication::Instance();
 	}
 }

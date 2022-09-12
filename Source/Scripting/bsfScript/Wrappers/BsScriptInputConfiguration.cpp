@@ -20,7 +20,7 @@ namespace bs
 		ScriptInputConfigurations[configId] = this;
 	}
 
-	void ScriptInputConfiguration::initRuntimeData()
+	void ScriptInputConfiguration::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptInputConfiguration::internal_CreateInstance);
 		metaData.scriptClass->addInternalCall("Internal_RegisterButton", (void*)&ScriptInputConfiguration::internal_RegisterButton);
@@ -33,7 +33,7 @@ namespace bs
 
 	MonoObject* ScriptInputConfiguration::getManagedInstance() const
 	{
-		return MonoUtil::getObjectFromGCHandle(mGCHandle);
+		return MonoUtil::GetObjectFromGCHandle(mGCHandle);
 	}
 
 	ScriptInputConfiguration* ScriptInputConfiguration::getScriptInputConfig(const SPtr<InputConfiguration>& inputConfig)
@@ -120,7 +120,7 @@ namespace bs
 		:ScriptObject(instance)
 	{ }
 
-	void ScriptVirtualAxis::initRuntimeData()
+	void ScriptVirtualAxis::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_InitVirtualAxis", (void*)&ScriptVirtualAxis::internal_InitVirtualAxis);
 	}

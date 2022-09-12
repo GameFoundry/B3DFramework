@@ -12,25 +12,25 @@ namespace bs
 {
 	RTTITypeBase* PrefabComponentDiff::getRTTIStatic()
 	{
-		return PrefabComponentDiffRTTI::instance();
+		return PrefabComponentDiffRTTI::Instance();
 	}
 
 	RTTITypeBase* PrefabComponentDiff::getRTTI() const
 	{
-		return PrefabComponentDiff::getRTTIStatic();
+		return PrefabComponentDiff::GetRTTIStatic();
 	}
 
 	RTTITypeBase* PrefabObjectDiff::getRTTIStatic()
 	{
-		return PrefabObjectDiffRTTI::instance();
+		return PrefabObjectDiffRTTI::Instance();
 	}
 
 	RTTITypeBase* PrefabObjectDiff::getRTTI() const
 	{
-		return PrefabObjectDiff::getRTTIStatic();
+		return PrefabObjectDiff::GetRTTIStatic();
 	}
 
-	SPtr<PrefabDiff> PrefabDiff::create(const HSceneObject& prefab, const HSceneObject& instance)
+	SPtr<PrefabDiff> PrefabDiff::Create(const HSceneObject& prefab, const HSceneObject& instance)
 	{
 		if (prefab->mPrefabLinkUUID != instance->mPrefabLinkUUID)
 			return nullptr;
@@ -53,7 +53,7 @@ namespace bs
 		return output;
 	}
 
-	void PrefabDiff::apply(const HSceneObject& object)
+	void PrefabDiff::Apply(const HSceneObject& object)
 	{
 		if (mRoot == nullptr)
 			return;
@@ -159,7 +159,7 @@ namespace bs
 		}
 	}
 
-	SPtr<PrefabObjectDiff> PrefabDiff::generateDiff(const HSceneObject& prefab, const HSceneObject& instance)
+	SPtr<PrefabObjectDiff> PrefabDiff::GenerateDiff(const HSceneObject& prefab, const HSceneObject& instance)
 	{
 		SPtr<PrefabObjectDiff> output;
 
@@ -380,7 +380,7 @@ namespace bs
 		return output;
 	}
 
-	void PrefabDiff::renameInstanceIds(const HSceneObject& prefab, const HSceneObject& instance, Vector<RenamedGameObject>& output)
+	void PrefabDiff::RenameInstanceIds(const HSceneObject& prefab, const HSceneObject& instance, Vector<RenamedGameObject>& output)
 	{
 		UnorderedMap<UUID, UnorderedMap<UINT32, UINT64>> linkToInstanceId;
 
@@ -500,7 +500,7 @@ namespace bs
 		}
 	}
 
-	void PrefabDiff::restoreInstanceIds(const Vector<RenamedGameObject>& renamedObjects)
+	void PrefabDiff::RestoreInstanceIds(const Vector<RenamedGameObject>& renamedObjects)
 	{
 		for (auto& renamedGO : renamedObjects)
 			renamedGO.instanceData->mInstanceId = renamedGO.originalId;
@@ -508,11 +508,11 @@ namespace bs
 
 	RTTITypeBase* PrefabDiff::getRTTIStatic()
 	{
-		return PrefabDiffRTTI::instance();
+		return PrefabDiffRTTI::Instance();
 	}
 
 	RTTITypeBase* PrefabDiff::getRTTI() const
 	{
-		return PrefabDiff::getRTTIStatic();
+		return PrefabDiff::GetRTTIStatic();
 	}
 }

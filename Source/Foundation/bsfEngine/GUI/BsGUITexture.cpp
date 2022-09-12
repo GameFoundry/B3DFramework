@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	const String& GUITexture::getGUITypeName()
+	const String& GUITexture::GetGUITypeName()
 	{
 		static String name = "Texture";
 		return name;
@@ -46,41 +46,41 @@ namespace bs
 		const GUIOptions& options, const String& styleName)
 	{
 		return new (bs_alloc<GUITexture>()) GUITexture(getStyleName<GUITexture>(styleName),
-			texture, scale, transparent, GUIDimensions::create(options));
+			texture, scale, transparent, GUIDimensions::Create(options));
 	}
 
 	GUITexture* GUITexture::create(const HSpriteTexture& texture, TextureScaleMode scale, bool transparent,
 		const String& styleName)
 	{
 		return new (bs_alloc<GUITexture>()) GUITexture(getStyleName<GUITexture>(styleName),
-			texture, scale, transparent, GUIDimensions::create());
+			texture, scale, transparent, GUIDimensions::Create());
 	}
 
 	GUITexture* GUITexture::create(const HSpriteTexture& texture, TextureScaleMode scale,
 		const GUIOptions& options, const String& styleName)
 	{
 		return new (bs_alloc<GUITexture>()) GUITexture(getStyleName<GUITexture>(styleName),
-			texture, scale, true, GUIDimensions::create(options));
+			texture, scale, true, GUIDimensions::Create(options));
 	}
 
 	GUITexture* GUITexture::create(const HSpriteTexture& texture, TextureScaleMode scale,
 		const String& styleName)
 	{
 		return new (bs_alloc<GUITexture>()) GUITexture(getStyleName<GUITexture>(styleName),
-			texture, scale, true, GUIDimensions::create());
+			texture, scale, true, GUIDimensions::Create());
 	}
 
 	GUITexture* GUITexture::create(const HSpriteTexture& texture,
 		const GUIOptions& options, const String& styleName)
 	{
 		return new (bs_alloc<GUITexture>()) GUITexture(getStyleName<GUITexture>(styleName),
-			texture, TextureScaleMode::StretchToFit, true, GUIDimensions::create(options));
+			texture, TextureScaleMode::StretchToFit, true, GUIDimensions::Create(options));
 	}
 
 	GUITexture* GUITexture::create(const HSpriteTexture& texture, const String& styleName)
 	{
 		return new (bs_alloc<GUITexture>()) GUITexture(getStyleName<GUITexture>(styleName),
-			texture, TextureScaleMode::StretchToFit, true, GUIDimensions::create());
+			texture, TextureScaleMode::StretchToFit, true, GUIDimensions::Create());
 	}
 
 	GUITexture* GUITexture::create(TextureScaleMode scale, const GUIOptions& options, const String& styleName)
@@ -107,7 +107,7 @@ namespace bs
 			HSpriteTexture(), TextureScaleMode::StretchToFit, true, GUIDimensions::create());
 	}
 
-	void GUITexture::setTexture(const HSpriteTexture& texture)
+	void GUITexture::SetTexture(const HSpriteTexture& texture)
 	{
 		Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
 
@@ -127,7 +127,7 @@ namespace bs
 			_markContentAsDirty();
 	}
 
-	void GUITexture::updateRenderElementsInternal()
+	void GUITexture::UpdateRenderElementsInternal()
 	{
 		Vector2I textureSize;
 		if (SpriteTexture::checkIsLoaded(mActiveTexture))
@@ -193,7 +193,7 @@ namespace bs
 		GUIElement::updateRenderElementsInternal();
 	}
 
-	void GUITexture::styleUpdated()
+	void GUITexture::StyleUpdated()
 	{
 		if (mUsingStyleTexture)
 		{

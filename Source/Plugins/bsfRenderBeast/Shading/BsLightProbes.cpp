@@ -225,7 +225,7 @@ namespace bs { namespace ct
 		:mTetrahedronVolumeDirty(false), mMaxCoefficientRows(0), mMaxTetrahedra(0), mMaxFaces(0), mNumValidTetrahedra(0)
 	{ }
 
-	void LightProbes::notifyAdded(LightProbeVolume* volume)
+	void LightProbes::NotifyAdded(LightProbeVolume* volume)
 	{
 		UINT32 handle = (UINT32)mVolumes.size();
 
@@ -239,7 +239,7 @@ namespace bs { namespace ct
 		notifyDirty(volume);
 	}
 
-	void LightProbes::notifyDirty(LightProbeVolume* volume)
+	void LightProbes::NotifyDirty(LightProbeVolume* volume)
 	{
 		UINT32 handle = volume->getRendererId();
 		mVolumes[handle].isDirty = true;
@@ -247,7 +247,7 @@ namespace bs { namespace ct
 		mTetrahedronVolumeDirty = true;
 	}
 
-	void LightProbes::notifyRemoved(LightProbeVolume* volume)
+	void LightProbes::NotifyRemoved(LightProbeVolume* volume)
 	{
 		UINT32 handle = volume->getRendererId();
 
@@ -267,7 +267,7 @@ namespace bs { namespace ct
 		mTetrahedronVolumeDirty = true;
 	}
 
-	void LightProbes::updateProbes()
+	void LightProbes::UpdateProbes()
 	{
 		if (!mTetrahedronVolumeDirty)
 			return;
@@ -744,7 +744,7 @@ namespace bs { namespace ct
 		mTetrahedronVolumeDirty = false;
 	}
 
-	bool LightProbes::hasAnyProbes() const
+	bool LightProbes::HasAnyProbes() const
 	{
 		for(auto& entry : mVolumes)
 		{
@@ -756,7 +756,7 @@ namespace bs { namespace ct
 		return false;
 	}
 
-	LightProbesInfo LightProbes::getInfo() const
+	LightProbesInfo LightProbes::GetInfo() const
 	{
 		LightProbesInfo info;
 		info.shCoefficients = mProbeCoefficientsGPU;
@@ -768,7 +768,7 @@ namespace bs { namespace ct
 		return info;
 	}
 
-	void LightProbes::resizeTetrahedronBuffer(UINT32 count)
+	void LightProbes::ResizeTetrahedronBuffer(UINT32 count)
 	{
 		static constexpr UINT32 ELEMENT_SIZE = Math::divideAndRoundUp((UINT32)sizeof(TetrahedronDataGPU), 4U);
 
@@ -783,7 +783,7 @@ namespace bs { namespace ct
 		mMaxTetrahedra = count;
 	}
 
-	void LightProbes::resizeTetrahedronFaceBuffer(UINT32 count)
+	void LightProbes::ResizeTetrahedronFaceBuffer(UINT32 count)
 	{
 		static constexpr UINT32 ELEMENT_SIZE = Math::divideAndRoundUp((UINT32)sizeof(TetrahedronFaceDataGPU), 4U);
 
@@ -798,7 +798,7 @@ namespace bs { namespace ct
 		mMaxFaces = count;
 	}
 
-	void LightProbes::resizeCoefficientTexture(UINT32 numRows)
+	void LightProbes::ResizeCoefficientTexture(UINT32 numRows)
 	{
 		TEXTURE_DESC desc;
 		desc.width = 4096;

@@ -75,7 +75,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return Skeleton::createEmpty();
+			return Skeleton::CreateEmpty();
 		}
 	};
 

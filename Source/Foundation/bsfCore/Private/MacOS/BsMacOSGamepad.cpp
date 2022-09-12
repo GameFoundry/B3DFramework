@@ -27,12 +27,12 @@ namespace bs
 		bs_delete(m);
 	}
 
-	void Gamepad::capture()
+	void Gamepad::Capture()
 	{
 		m->hid->capture(m->ref, !m->hasInputFocus);
 	}
 
-	void Gamepad::changeCaptureContext(UINT64 windowHandle)
+	void Gamepad::ChangeCaptureContext(UINT64 windowHandle)
 	{
 		m->hasInputFocus = windowHandle != (UINT64)-1;
 	}

@@ -10,7 +10,7 @@ namespace bs
 {
 	const float Math::LOG2 = std::log(2.0f);
 
-	Radian Math::acos(float val)
+	Radian Math::Acos(float val)
 	{
 		if (-1.0f < val)
 		{
@@ -25,7 +25,7 @@ namespace bs
 		}
 	}
 
-	Radian Math::asin(float val)
+	Radian Math::Asin(float val)
 	{
 		if (-1.0f < val)
 		{
@@ -40,7 +40,7 @@ namespace bs
 		}
 	}
 
-	float Math::sign(float val)
+	float Math::Sign(float val)
 	{
 		if (val > 0.0f)
 			return 1.0f;
@@ -51,12 +51,12 @@ namespace bs
 		return 0.0f;
 	}
 
-	float Math::invSqrt(float val)
+	float Math::InvSqrt(float val)
 	{
 		return 1.0f/sqrt(val);
 	}
 
-	float Math::fastSin0(float val)
+	float Math::FastSin0(float val)
 	{
 		float angleSqr = val*val;
 		float result = 7.61e-03f;
@@ -68,7 +68,7 @@ namespace bs
 		return result;
 	}
 
-	float Math::fastSin1(float val)
+	float Math::FastSin1(float val)
 	{
 		float angleSqr = val*val;
 		float result = -2.39e-08f;
@@ -87,7 +87,7 @@ namespace bs
 		return result;
 	}
 
-	float Math::fastCos0(float val)
+	float Math::FastCos0(float val)
 	{
 		float angleSqr = val*val;
 		float result = 3.705e-02f;
@@ -99,7 +99,7 @@ namespace bs
 		return result;
 	}
 
-	float Math::fastCos1(float val)
+	float Math::FastCos1(float val)
 	{
 		float angleSqr = val*val;
 		float result = -2.605e-07f;
@@ -117,7 +117,7 @@ namespace bs
 		return result;
 	}
 
-	float Math::fastTan0(float val)
+	float Math::FastTan0(float val)
 	{
 		float angleSqr = val*val;
 		float result = 2.033e-01f;
@@ -129,7 +129,7 @@ namespace bs
 		return result;
 	}
 
-	float Math::fastTan1(float val)
+	float Math::FastTan1(float val)
 	{
 		float angleSqr = val*val;
 		float result = 9.5168091e-03f;
@@ -149,7 +149,7 @@ namespace bs
 		return result;
 	}
 
-	float Math::fastASin0(float val)
+	float Math::FastASin0(float val)
 	{
 		float root = sqrt(abs(1.0f - val));
 		float result = -0.0187293f;
@@ -163,7 +163,7 @@ namespace bs
 		return result;
 	}
 
-	float Math::fastASin1(float val)
+	float Math::FastASin1(float val)
 	{
 		float root = sqrt(abs(1.0f - val));
 		float result = -0.0012624911f;
@@ -185,7 +185,7 @@ namespace bs
 		return result;
 	}
 
-	float Math::fastACos0(float val)
+	float Math::FastACos0(float val)
 	{
 		float root = sqrt(abs(1.0f - val));
 		float result = -0.0187293f;
@@ -199,7 +199,7 @@ namespace bs
 		return result;
 	}
 
-	float Math::fastACos1(float val)
+	float Math::FastACos1(float val)
 	{
 		float root = sqrt(abs(1.0f - val));
 		float result = -0.0012624911f;
@@ -221,7 +221,7 @@ namespace bs
 		return result;
 	}
 
-	float Math::fastATan0(float val)
+	float Math::FastATan0(float val)
 	{
 		float valueSqr = val*val;
 		float result = 0.0208351f;
@@ -237,7 +237,7 @@ namespace bs
 		return result;
 	}
 
-	float Math::fastATan1(float val)
+	float Math::FastATan1(float val)
 	{
 		float valueSqr = val*val;
 		float result = 0.0028662257f;
@@ -261,23 +261,23 @@ namespace bs
 		return result;
 	}
 
-	bool Math::approxEquals(const Vector2& a, const Vector2& b, float tolerance)
+	bool Math::ApproxEquals(const Vector2& a, const Vector2& b, float tolerance)
 	{
 		return Fabs(b.x - a.x) <= tolerance && fabs(b.y - a.y) <= tolerance;
 	}
 
-	bool Math::approxEquals(const Vector3& a, const Vector3& b, float tolerance)
+	bool Math::ApproxEquals(const Vector3& a, const Vector3& b, float tolerance)
 	{
 		return Fabs(b.x - a.x) <= tolerance && fabs(b.y - a.y) <= tolerance && fabs(b.z - a.z) <= tolerance;
 	}
 
-	bool Math::approxEquals(const Vector4& a, const Vector4& b, float tolerance)
+	bool Math::ApproxEquals(const Vector4& a, const Vector4& b, float tolerance)
 	{
 		return Fabs(b.x - a.x) <= tolerance && fabs(b.y - a.y) <= tolerance && fabs(b.z - a.z) <= tolerance &&
 			fabs(b.w - a.w) <= tolerance;
 	}
 
-	bool Math::approxEquals(const Quaternion& a, const Quaternion& b, float tolerance)
+	bool Math::ApproxEquals(const Quaternion& a, const Quaternion& b, float tolerance)
 	{
 		return Fabs(b.x - a.x) <= tolerance && fabs(b.y - a.y) <= tolerance && fabs(b.z - a.z) <= tolerance &&
 			fabs(b.w - a.w) <= tolerance;

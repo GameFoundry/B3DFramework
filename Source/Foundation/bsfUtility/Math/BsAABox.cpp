@@ -59,13 +59,13 @@ namespace bs
 		setExtents(min, max);
 	}
 
-	void AABox::setExtents(const Vector3& min, const Vector3& max)
+	void AABox::SetExtents(const Vector3& min, const Vector3& max)
 	{
 		mMinimum = min;
 		mMaximum = max;
 	}
 
-	void AABox::scale(const Vector3& s)
+	void AABox::Scale(const Vector3& s)
 	{
 		Vector3 center = getCenter();
 		Vector3 min = center + (mMinimum - center) * s;
@@ -74,7 +74,7 @@ namespace bs
 		setExtents(min, max);
 	}
 
-	Vector3 AABox::getCorner(Corner cornerToGet) const
+	Vector3 AABox::GetCorner(Corner cornerToGet) const
 	{
 		switch(cornerToGet)
 		{
@@ -99,7 +99,7 @@ namespace bs
 		}
 	}
 
-	void AABox::merge(const AABox& rhs)
+	void AABox::Merge(const AABox& rhs)
 	{
 		Vector3 min = mMinimum;
 		Vector3 max = mMaximum;
@@ -109,13 +109,13 @@ namespace bs
 		setExtents(min, max);
 	}
 
-	void AABox::merge(const Vector3& point)
+	void AABox::Merge(const Vector3& point)
 	{
 		mMaximum.max(point);
 		mMinimum.min(point);
 	}
 
-	void AABox::transform(const Matrix4& matrix)
+	void AABox::Transform(const Matrix4& matrix)
 	{
 		// Getting the old values so that we can use the existing merge method.
 		Vector3 oldMin = mMinimum;
@@ -163,7 +163,7 @@ namespace bs
 		merge(matrix.multiplyAffine(currentCorner));
 	}
 
-	void AABox::transformAffine(const Matrix4& m)
+	void AABox::TransformAffine(const Matrix4& m)
 	{
 		Vector3 min = m.getTranslation();
 		Vector3 max = m.getTranslation();
@@ -191,7 +191,7 @@ namespace bs
 		setExtents(min, max);
 	}
 
-	bool AABox::intersects(const AABox& b2) const
+	bool AABox::Intersects(const AABox& b2) const
 	{
 		// Use up to 6 separating planes
 		if (mMaximum.x < b2.mMinimum.x)
@@ -212,7 +212,7 @@ namespace bs
 		return true;
 	}
 
-	bool AABox::intersects(const Sphere& sphere) const
+	bool AABox::Intersects(const Sphere& sphere) const
 	{
 		// Use splitting planes
 		const Vector3& center = sphere.getCenter();
@@ -238,12 +238,12 @@ namespace bs
 		return d <= radius * radius;
 	}
 
-	bool AABox::intersects(const Plane& p) const
+	bool AABox::Intersects(const Plane& p) const
 	{
 		return (p.getSide(*this) == Plane::BOTH_SIDE);
 	}
 
-	std::pair<bool, float> AABox::intersects(const Ray& ray) const
+	std::pair<bool, float> AABox::Intersects(const Ray& ray) const
 	{
 		float lowt = 0.0f;
 		float t;
@@ -368,7 +368,7 @@ namespace bs
 
 	}
 
-	bool AABox::intersects(const Ray& ray, float& d1, float& d2) const
+	bool AABox::Intersects(const Ray& ray, float& d1, float& d2) const
 	{
 		const Vector3& min = getMin();
 		const Vector3& max = getMax();
@@ -445,7 +445,7 @@ namespace bs
 		return true;
 	}
 
-	Vector3 AABox::getCenter() const
+	Vector3 AABox::GetCenter() const
 	{
 		return Vector3(
 			(mMaximum.x + mMinimum.x) * 0.5f,
@@ -453,42 +453,42 @@ namespace bs
 			(mMaximum.z + mMinimum.z) * 0.5f);
 	}
 
-	Vector3 AABox::getSize() const
+	Vector3 AABox::GetSize() const
 	{
 		return mMaximum - mMinimum;
 	}
 
-	Vector3 AABox::getHalfSize() const
+	Vector3 AABox::GetHalfSize() const
 	{
 		return (mMaximum - mMinimum) * 0.5;
 	}
 
-	float AABox::getRadius() const
+	float AABox::GetRadius() const
 	{
 		return ((mMaximum - mMinimum) * 0.5).length();
 	}
 
-	float AABox::getVolume() const
+	float AABox::GetVolume() const
 	{
 		Vector3 diff = mMaximum - mMinimum;
 		return diff.x * diff.y * diff.z;
 	}
 
-	bool AABox::contains(const Vector3& v) const
+	bool AABox::Contains(const Vector3& v) const
 	{
 		return mMinimum.x <= v.x && v.x <= mMaximum.x &&
 				mMinimum.y <= v.y && v.y <= mMaximum.y &&
 				mMinimum.z <= v.z && v.z <= mMaximum.z;
 	}
 
-	bool AABox::contains(const Vector3& v, float extra) const
+	bool AABox::Contains(const Vector3& v, float extra) const
 	{
 		return (mMinimum.x - extra) <= v.x && v.x <= (mMaximum.x + extra) &&
 			   (mMinimum.y - extra) <= v.y && v.y <= (mMaximum.y + extra) &&
 			   (mMinimum.z - extra) <= v.z && v.z <= (mMaximum.z + extra);
 	}
 
-	bool AABox::contains(const AABox& other) const
+	bool AABox::Contains(const AABox& other) const
 	{
 		return this->mMinimum.x <= other.mMinimum.x &&
 				this->mMinimum.y <= other.mMinimum.y &&

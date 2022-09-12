@@ -34,7 +34,7 @@ namespace bs
 #endif
 	}
 
-	void CoreObject::destroy()
+	void CoreObject::Destroy()
 	{
 		CoreObjectManager::instance().unregisterObject(this);
 		setIsDestroyed(true);
@@ -52,7 +52,7 @@ namespace bs
 		mCoreSpecific = nullptr;
 	}
 
-	void CoreObject::initialize()
+	void CoreObject::Initialize()
 	{
 		CoreObjectManager::instance().registerObject(this);
 		mCoreSpecific = createCore();
@@ -85,18 +85,18 @@ namespace bs
 		markDependenciesDirty();
 	}
 
-	void CoreObject::blockUntilCoreInitialized() const
+	void CoreObject::BlockUntilCoreInitialized() const
 	{
 		if (mCoreSpecific != nullptr)
 			mCoreSpecific->synchronize();
 	}
 
-	void CoreObject::syncToCore()
+	void CoreObject::SyncToCore()
 	{
 		CoreObjectManager::instance().syncToCore(this);
 	}
 
-	void CoreObject::markCoreDirty(UINT32 flags)
+	void CoreObject::MarkCoreDirty(UINT32 flags)
 	{
 		bool wasDirty = isCoreDirty();
 
@@ -106,7 +106,7 @@ namespace bs
 			CoreObjectManager::instance().notifyCoreDirty(this);
 	}
 
-	void CoreObject::markDependenciesDirty()
+	void CoreObject::MarkDependenciesDirty()
 	{
 		CoreObjectManager::instance().notifyDependenciesDirty(this);
 	}
@@ -116,7 +116,7 @@ namespace bs
 		mThis = ptrThis;
 	}
 
-	void CoreObject::queueGpuCommand(const SPtr<ct::CoreObject>& obj, std::function<void()> func)
+	void CoreObject::QueueGpuCommand(const SPtr<ct::CoreObject>& obj, std::function<void()> func)
 	{
 		// We call another internal method and go through an additional layer of abstraction in order to keep an active
 		// reference to the obj (saved in the bound function).
@@ -125,34 +125,34 @@ namespace bs
 		gCoreThread().queueCommand(std::bind(&CoreObject::executeGpuCommand, obj, func));
 	}
 
-	AsyncOp CoreObject::queueReturnGpuCommand(const SPtr<ct::CoreObject>& obj, std::function<void(AsyncOp&)> func)
+	AsyncOp CoreObject::QueueReturnGpuCommand(const SPtr<ct::CoreObject>& obj, std::function<void(AsyncOp&)> func)
 	{
 		// See queueGpuCommand
 		return GCoreThread().queueReturnCommand(std::bind(&CoreObject::executeReturnGpuCommand, obj, func, _1));
 	}
 
-	void CoreObject::queueInitializeGpuCommand(const SPtr<ct::CoreObject>& obj)
+	void CoreObject::QueueInitializeGpuCommand(const SPtr<ct::CoreObject>& obj)
 	{
 		std::function<void()> func = std::bind(&ct::CoreObject::initialize, obj.get());
 
 		CoreThread::instance().queueCommand(std::bind(&CoreObject::executeGpuCommand, obj, func));
 	}
 
-	void CoreObject::queueDestroyGpuCommand(const SPtr<ct::CoreObject>& obj)
+	void CoreObject::QueueDestroyGpuCommand(const SPtr<ct::CoreObject>& obj)
 	{
 		std::function<void()> func = [&](){}; // Do nothing function. We just need the shared pointer to stay alive until it reaches the core thread
 
 		gCoreThread().queueCommand(std::bind(&CoreObject::executeGpuCommand, obj, func));
 	}
 
-	void CoreObject::executeGpuCommand(const SPtr<ct::CoreObject>& obj, std::function<void()> func)
+	void CoreObject::ExecuteGpuCommand(const SPtr<ct::CoreObject>& obj, std::function<void()> func)
 	{
 		volatile SPtr<ct::CoreObject> objParam = obj; // Makes sure obj isn't optimized out?
 
 		func();
 	}
 
-	void CoreObject::executeReturnGpuCommand(const SPtr<ct::CoreObject>& obj, std::function<void(AsyncOp&)> func,
+	void CoreObject::ExecuteReturnGpuCommand(const SPtr<ct::CoreObject>& obj, std::function<void(AsyncOp&)> func,
 		AsyncOp& op)
 	{
 		volatile SPtr<ct::CoreObject> objParam = obj; // Makes sure obj isn't optimized out?

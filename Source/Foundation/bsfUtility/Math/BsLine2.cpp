@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	std::pair<bool, float> Line2::intersects(const Line2& rhs) const
+	std::pair<bool, float> Line2::Intersects(const Line2& rhs) const
 	{
 		Vector2 diff = rhs.getOrigin() - getOrigin();
 		Vector2 perpDir = rhs.getDirection();

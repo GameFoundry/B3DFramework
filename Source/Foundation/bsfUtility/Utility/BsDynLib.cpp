@@ -28,7 +28,7 @@ namespace bs
 		unload();
 	}
 
-	void DynLib::load()
+	void DynLib::Load()
 	{
 		if (mHandle)
 			return;
@@ -42,7 +42,7 @@ namespace bs
 		}
 	}
 
-	void DynLib::unload()
+	void DynLib::Unload()
 	{
 		if (!mHandle)
 			return;
@@ -64,7 +64,7 @@ namespace bs
 		return (void*)DYNLIB_GETSYM(mHandle, strName.c_str());
 	}
 
-	String DynLib::dynlibError()
+	String DynLib::DynlibError()
 	{
 #if BS_PLATFORM == BS_PLATFORM_WIN32
 		LPVOID lpMsgBuf;

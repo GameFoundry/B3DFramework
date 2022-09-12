@@ -188,7 +188,7 @@ namespace bs {	namespace ct
 		assert(mSamplerOverrides.empty());
 	}
 
-	void RendererScene::registerCamera(Camera* camera)
+	void RendererScene::RegisterCamera(Camera* camera)
 	{
 		RENDERER_VIEW_DESC viewDesc = createViewDesc(camera);
 
@@ -205,7 +205,7 @@ namespace bs {	namespace ct
 		updateCameraRenderTargets(camera);
 	}
 
-	void RendererScene::updateCamera(Camera* camera, UINT32 updateFlag)
+	void RendererScene::UpdateCamera(Camera* camera, UINT32 updateFlag)
 	{
 		UINT32 cameraId = camera->getRendererId();
 		RendererView* view = mInfo.views[cameraId];
@@ -242,7 +242,7 @@ namespace bs {	namespace ct
 		view->updatePerViewBuffer();
 	}
 
-	void RendererScene::unregisterCamera(Camera* camera)
+	void RendererScene::UnregisterCamera(Camera* camera)
 	{
 		UINT32 cameraId = camera->getRendererId();
 
@@ -271,7 +271,7 @@ namespace bs {	namespace ct
 		updateCameraRenderTargets(camera, true);
 	}
 
-	void RendererScene::registerLight(Light* light)
+	void RendererScene::RegisterLight(Light* light)
 	{
 		if (light->getType() == LightType::Directional)
 		{
@@ -301,7 +301,7 @@ namespace bs {	namespace ct
 		}
 	}
 
-	void RendererScene::updateLight(Light* light)
+	void RendererScene::UpdateLight(Light* light)
 	{
 		UINT32 lightId = light->getRendererId();
 
@@ -311,7 +311,7 @@ namespace bs {	namespace ct
 			mInfo.spotLightWorldBounds[lightId] = light->getBounds();
 	}
 
-	void RendererScene::unregisterLight(Light* light)
+	void RendererScene::UnregisterLight(Light* light)
 	{
 		UINT32 lightId = light->getRendererId();
 		if (light->getType() == LightType::Directional)
@@ -370,7 +370,7 @@ namespace bs {	namespace ct
 		}
 	}
 
-	void RendererScene::registerRenderable(Renderable* renderable)
+	void RendererScene::RegisterRenderable(Renderable* renderable)
 	{
 		UINT32 renderableId = (UINT32)mInfo.renderables.size();
 
@@ -509,7 +509,7 @@ namespace bs {	namespace ct
 		}
 	}
 
-	void RendererScene::updateRenderable(Renderable* renderable)
+	void RendererScene::UpdateRenderable(Renderable* renderable)
 	{
 		UINT32 renderableId = renderable->getRendererId();
 
@@ -526,7 +526,7 @@ namespace bs {	namespace ct
 		mInfo.renderableCullInfos[renderableId].cullDistanceFactor = renderable->getCullDistanceFactor();
 	}
 
-	void RendererScene::unregisterRenderable(Renderable* renderable)
+	void RendererScene::UnregisterRenderable(Renderable* renderable)
 	{
 		UINT32 renderableId = renderable->getRendererId();
 		Renderable* lastRenerable = mInfo.renderables.back()->renderable;
@@ -556,7 +556,7 @@ namespace bs {	namespace ct
 		bs_delete(rendererRenderable);
 	}
 
-	void RendererScene::registerReflectionProbe(ReflectionProbe* probe)
+	void RendererScene::RegisterReflectionProbe(ReflectionProbe* probe)
 	{
 		UINT32 probeId = (UINT32)mInfo.reflProbes.size();
 		probe->setRendererId(probeId);
@@ -592,7 +592,7 @@ namespace bs {	namespace ct
 		}
 	}
 
-	void RendererScene::updateReflectionProbe(ReflectionProbe* probe, bool texture)
+	void RendererScene::UpdateReflectionProbe(ReflectionProbe* probe, bool texture)
 	{
 		// Should only get called if transform changes, any other major changes and ReflProbeInfo entry gets rebuild
 		UINT32 probeId = probe->getRendererId();
@@ -605,7 +605,7 @@ namespace bs {	namespace ct
 		}
 	}
 
-	void RendererScene::unregisterReflectionProbe(ReflectionProbe* probe)
+	void RendererScene::UnregisterReflectionProbe(ReflectionProbe* probe)
 	{
 		UINT32 probeId = probe->getRendererId();
 		UINT32 arrayIdx = mInfo.reflProbes[probeId].arrayIdx;
@@ -630,7 +630,7 @@ namespace bs {	namespace ct
 		mInfo.reflProbeWorldBounds.erase(mInfo.reflProbeWorldBounds.end() - 1);
 	}
 
-	void RendererScene::setReflectionProbeArrayIndex(UINT32 probeIdx, UINT32 arrayIdx, bool markAsClean)
+	void RendererScene::SetReflectionProbeArrayIndex(UINT32 probeIdx, UINT32 arrayIdx, bool markAsClean)
 	{
 		RendererReflectionProbe* probe = &mInfo.reflProbes[probeIdx];
 		probe->arrayIdx = arrayIdx;
@@ -639,38 +639,38 @@ namespace bs {	namespace ct
 			probe->arrayDirty = false;
 	}
 
-	void RendererScene::registerLightProbeVolume(LightProbeVolume* volume)
+	void RendererScene::RegisterLightProbeVolume(LightProbeVolume* volume)
 	{
 		mInfo.lightProbes.notifyAdded(volume);
 	}
 
-	void RendererScene::updateLightProbeVolume(LightProbeVolume* volume)
+	void RendererScene::UpdateLightProbeVolume(LightProbeVolume* volume)
 	{
 		mInfo.lightProbes.notifyDirty(volume);
 	}
 
-	void RendererScene::unregisterLightProbeVolume(LightProbeVolume* volume)
+	void RendererScene::UnregisterLightProbeVolume(LightProbeVolume* volume)
 	{
 		mInfo.lightProbes.notifyRemoved(volume);
 	}
 
-	void RendererScene::updateLightProbes()
+	void RendererScene::UpdateLightProbes()
 	{
 		mInfo.lightProbes.updateProbes();
 	}
 
-	void RendererScene::registerSkybox(Skybox* skybox)
+	void RendererScene::RegisterSkybox(Skybox* skybox)
 	{
 		mInfo.skybox = skybox;
 	}
 
-	void RendererScene::unregisterSkybox(Skybox* skybox)
+	void RendererScene::UnregisterSkybox(Skybox* skybox)
 	{
 		if (mInfo.skybox == skybox)
 			mInfo.skybox = nullptr;
 	}
 
-	void RendererScene::registerParticleSystem(ParticleSystem* particleSystem)
+	void RendererScene::RegisterParticleSystem(ParticleSystem* particleSystem)
 	{
 		const auto rendererId = (UINT32)mInfo.particleSystems.size();
 		particleSystem->setRendererId(rendererId);
@@ -687,7 +687,7 @@ namespace bs {	namespace ct
 		rendererParticles.prevFrameDirtyState = PrevFrameDirtyState::Clean;
 	}
 
-	void RendererScene::updateParticleSystem(ParticleSystem* particleSystem, bool tfrmOnly)
+	void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tfrmOnly)
 	{
 		const UINT32 rendererId = particleSystem->getRendererId();
 		RendererParticles& rendererParticles = mInfo.particleSystems[rendererId];
@@ -976,7 +976,7 @@ namespace bs {	namespace ct
 		}
 	}
 
-	void RendererScene::unregisterParticleSystem(ParticleSystem* particleSystem)
+	void RendererScene::UnregisterParticleSystem(ParticleSystem* particleSystem)
 	{
 		const UINT32 rendererId = particleSystem->getRendererId();
 		RendererParticles& rendererParticles = mInfo.particleSystems[rendererId];
@@ -1009,7 +1009,7 @@ namespace bs {	namespace ct
 		mInfo.particleSystemCullInfos.erase(mInfo.particleSystemCullInfos.end() - 1);
 	}
 
-	void RendererScene::registerDecal(Decal* decal)
+	void RendererScene::RegisterDecal(Decal* decal)
 	{
 		const auto renderableId = (UINT32)mInfo.decals.size();
 		decal->setRendererId(renderableId);
@@ -1088,7 +1088,7 @@ namespace bs {	namespace ct
 			gpuParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gMaskTex", renElement.maskInputTexture);
 	}
 
-	void RendererScene::updateDecal(Decal* decal)
+	void RendererScene::UpdateDecal(Decal* decal)
 	{
 		const UINT32 rendererId = decal->getRendererId();
 
@@ -1096,7 +1096,7 @@ namespace bs {	namespace ct
 		mInfo.decalCullInfos[rendererId].bounds = decal->getBounds();
 	}
 
-	void RendererScene::unregisterDecal(Decal* decal)
+	void RendererScene::UnregisterDecal(Decal* decal)
 	{
 		const UINT32 rendererId = decal->getRendererId();
 		Decal* lastDecal = mInfo.decals.back().decal;
@@ -1123,7 +1123,7 @@ namespace bs {	namespace ct
 		mInfo.decalCullInfos.erase(mInfo.decalCullInfos.end() - 1);
 	}
 
-	void RendererScene::setOptions(const SPtr<RenderBeastOptions>& options)
+	void RendererScene::SetOptions(const SPtr<RenderBeastOptions>& options)
 	{
 		mOptions = options;
 
@@ -1131,7 +1131,7 @@ namespace bs {	namespace ct
 			entry->setStateReductionMode(mOptions->stateReductionMode);
 	}
 
-	RENDERER_VIEW_DESC RendererScene::createViewDesc(Camera* camera) const
+	RENDERER_VIEW_DESC RendererScene::CreateViewDesc(Camera* camera) const
 	{
 		SPtr<Viewport> viewport = camera->getViewport();
 		ClearFlags clearFlags = viewport->getClearFlags();
@@ -1193,7 +1193,7 @@ namespace bs {	namespace ct
 		return viewDesc;
 	}
 
-	void RendererScene::updateCameraRenderTargets(Camera* camera, bool remove)
+	void RendererScene::UpdateCameraRenderTargets(Camera* camera, bool remove)
 	{
 		SPtr<RenderTarget> renderTarget = camera->getViewport()->getTarget();
 
@@ -1267,7 +1267,7 @@ namespace bs {	namespace ct
 		}
 	}
 
-	void RendererScene::refreshSamplerOverrides(bool force)
+	void RendererScene::RefreshSamplerOverrides(bool force)
 	{
 		bool anyDirty = false;
 		for (auto& entry : mSamplerOverrides)
@@ -1351,12 +1351,12 @@ namespace bs {	namespace ct
 			entry.second->isDirty = false;
 	}
 
-	void RendererScene::setParamFrameParams(float time)
+	void RendererScene::SetParamFrameParams(float time)
 	{
 		gPerFrameParamDef.gTime.set(mPerFrameParamBuffer, time);
 	}
 
-	void RendererScene::prepareRenderable(UINT32 idx, const FrameInfo& frameInfo)
+	void RendererScene::PrepareRenderable(UINT32 idx, const FrameInfo& frameInfo)
 	{
 		RendererRenderable* rendererRenderable = mInfo.renderables[idx];
 		
@@ -1379,7 +1379,7 @@ namespace bs {	namespace ct
 		}
 	}
 
-	void RendererScene::prepareVisibleRenderable(UINT32 idx, const FrameInfo& frameInfo)
+	void RendererScene::PrepareVisibleRenderable(UINT32 idx, const FrameInfo& frameInfo)
 	{
 		if (mInfo.renderableReady[idx])
 			return;
@@ -1399,7 +1399,7 @@ namespace bs {	namespace ct
 		mInfo.renderableReady[idx] = true;
 	}
 
-	void RendererScene::prepareParticleSystem(UINT32 idx, const FrameInfo& frameInfo)
+	void RendererScene::PrepareParticleSystem(UINT32 idx, const FrameInfo& frameInfo)
 	{
 		RendererParticles& rendererParticles = mInfo.particleSystems[idx];
 		
@@ -1421,7 +1421,7 @@ namespace bs {	namespace ct
 		mInfo.particleSystems[idx].perObjectParamBuffer->flushToGPU();
 	}
 
-	void RendererScene::prepareDecal(UINT32 idx, const FrameInfo& frameInfo)
+	void RendererScene::PrepareDecal(UINT32 idx, const FrameInfo& frameInfo)
 	{
 		DecalRenderElement& renElement = mInfo.decals[idx].renderElement;
 		renElement.materialAnimationTime += frameInfo.timings.timeDelta;
@@ -1430,7 +1430,7 @@ namespace bs {	namespace ct
 		mInfo.decals[idx].perObjectParamBuffer->flushToGPU();
 	}
 
-	void RendererScene::updateParticleSystemBounds(const ParticlePerFrameData* particleRenderData)
+	void RendererScene::UpdateParticleSystemBounds(const ParticlePerFrameData* particleRenderData)
 	{
 		// Note: Avoid updating bounds for deterministic particle systems every frame. Also see if this can be copied
 		// over in a faster way (or ideally just assigned)
@@ -1477,7 +1477,7 @@ namespace bs {	namespace ct
 		}
 	}
 
-	void RendererScene::freeSamplerStateOverrides(RenderElement& elem)
+	void RendererScene::FreeSamplerStateOverrides(RenderElement& elem)
 	{
 		SamplerOverrideKey SamplerKey(elem.material, elem.defaultTechniqueIdx);
 

@@ -51,7 +51,7 @@ namespace bs { namespace ct
 		clear();
 	}
 
-	void RenderCompositor::build(const RendererView& view, const StringID& finalNode)
+	void RenderCompositor::Build(const RendererView& view, const StringID& finalNode)
 	{
 		clear();
 
@@ -152,7 +152,7 @@ namespace bs { namespace ct
 		bs_frame_clear();
 	}
 
-	void RenderCompositor::execute(RenderCompositorNodeInputs& inputs) const
+	void RenderCompositor::Execute(RenderCompositorNodeInputs& inputs) const
 	{
 		if (!mIsValid)
 			return;
@@ -202,7 +202,7 @@ namespace bs { namespace ct
 			mNodeInfos.back().node->clear();
 	}
 
-	void RenderCompositor::clear()
+	void RenderCompositor::Clear()
 	{
 		for (auto& entry : mNodeInfos)
 			bs_delete(entry.node);
@@ -211,7 +211,7 @@ namespace bs { namespace ct
 		mIsValid = false;
 	}
 
-	void RCNodeSceneDepth::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeSceneDepth::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
 
@@ -223,17 +223,17 @@ namespace bs { namespace ct
 			numSamples, false));
 	}
 
-	void RCNodeSceneDepth::clear()
+	void RCNodeSceneDepth::Clear()
 	{
 		depthTex = nullptr;
 	}
 
-	SmallVector<StringID, 4> RCNodeSceneDepth::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeSceneDepth::GetDependencies(const RendererView& view)
 	{
 		return {};
 	}
 
-	void RCNodeBasePass::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		// Allocate necessary textures & targets
 		GpuResourcePool& resPool = gGpuResourcePool();
@@ -486,7 +486,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(nullptr);
 	}
 
-	void RCNodeBasePass::clear()
+	void RCNodeBasePass::Clear()
 	{
 		albedoTex = nullptr;
 		normalTex = nullptr;
@@ -494,14 +494,14 @@ namespace bs { namespace ct
 		idTex = nullptr;
 	}
 
-	SmallVector<StringID, 4> RCNodeBasePass::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeBasePass::GetDependencies(const RendererView& view)
 	{
 		return {
 			RCNodeSceneDepth::getNodeId(), RCNodeSceneColor::getNodeId(), RCNodeParticleSort::getNodeId(),
 			RCNodeMSAACoverage::getNodeId() };
 	}
 
-	void RCNodeSceneColor::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeSceneColor::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		GpuResourcePool& resPool = gGpuResourcePool();
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
@@ -557,13 +557,13 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RCNodeSceneColor::clear()
+	void RCNodeSceneColor::Clear()
 	{
 		sceneColorTex = nullptr;
 		sceneColorTexArray = nullptr;
 	}
 
-	void RCNodeSceneColor::msaaTexArrayToTexture()
+	void RCNodeSceneColor::MsaaTexArrayToTexture()
 	{
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(renderTarget, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
@@ -577,26 +577,26 @@ namespace bs { namespace ct
 		sceneColorTexArray = nullptr;
 	}
 
-	void RCNodeSceneColor::swap(RCNodeLightAccumulation* lightAccumNode)
+	void RCNodeSceneColor::Swap(RCNodeLightAccumulation* lightAccumNode)
 	{
 		lightAccumNode->lightAccumulationTex.swap(sceneColorTex);
 		lightAccumNode->lightAccumulationTexArray.swap(sceneColorTexArray);
 		lightAccumNode->renderTarget.swap(renderTarget);	
 	}
 
-	void RCNodeSceneColor::setExternalTexture(const SPtr<PooledRenderTexture>& texture)
+	void RCNodeSceneColor::SetExternalTexture(const SPtr<PooledRenderTexture>& texture)
 	{
 		assert(sceneColorTexArray == nullptr);
 		
 		sceneColorTex = texture;
 	}
 
-	SmallVector<StringID, 4> RCNodeSceneColor::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeSceneColor::GetDependencies(const RendererView& view)
 	{
 		return { RCNodeSceneDepth::getNodeId() };
 	}
 
-	void RCNodeMSAACoverage::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeMSAACoverage::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
 		if(viewProps.target.numSamples <= 1)
@@ -613,17 +613,17 @@ namespace bs { namespace ct
 		output = gGpuResourcePool().get(POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8, width, height, TU_RENDERTARGET));
 	}
 
-	void RCNodeMSAACoverage::clear()
+	void RCNodeMSAACoverage::Clear()
 	{
 		output = nullptr;
 	}
 
-	SmallVector<StringID, 4> RCNodeMSAACoverage::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeMSAACoverage::GetDependencies(const RendererView& view)
 	{
 		return { };
 	}
 
-	void RCNodeParticleSimulate::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeParticleSimulate::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		// Only simulate particles for the first view in the main render pass
 		if(inputs.viewGroup.isMainPass() && inputs.view.getViewIdx() == 0)
@@ -644,17 +644,17 @@ namespace bs { namespace ct
 		GpuParticleSimulation::instance().sort(inputs.view);
 	}
 
-	void RCNodeParticleSimulate::clear()
+	void RCNodeParticleSimulate::Clear()
 	{
 		// Do nothing
 	}
 
-	SmallVector<StringID, 4> RCNodeParticleSimulate::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeParticleSimulate::GetDependencies(const RendererView& view)
 	{
 		return { RCNodeBasePass::getNodeId(), RCNodeSceneDepth::getNodeId() };
 	}
 
-	void RCNodeParticleSort::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeParticleSort::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		const ParticlePerFrameData* particleData = inputs.frameInfo.perFrameData.particles;
 		if(!particleData)
@@ -724,17 +724,17 @@ namespace bs { namespace ct
 		bs_frame_clear();
 	}
 
-	void RCNodeParticleSort::clear()
+	void RCNodeParticleSort::Clear()
 	{
 		// Do nothing
 	}
 
-	SmallVector<StringID, 4> RCNodeParticleSort::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeParticleSort::GetDependencies(const RendererView& view)
 	{
 		return { };
 	}
 
-	void RCNodeLightAccumulation::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeLightAccumulation::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		bool supportsTiledDeferred = gRenderBeast()->getFeatureSet() != RenderBeastFeatureSet::DesktopMacOS;
 		if(!supportsTiledDeferred)
@@ -812,7 +812,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RCNodeLightAccumulation::msaaTexArrayToTexture()
+	void RCNodeLightAccumulation::MsaaTexArrayToTexture()
 	{
 		RenderAPI& rapi = RenderAPI::instance();
 		rapi.setRenderTarget(renderTarget, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
@@ -821,14 +821,14 @@ namespace bs { namespace ct
 		material->execute(lightAccumulationTexArray->texture, lightAccumulationTex->texture);
 	}
 
-	void RCNodeLightAccumulation::clear()
+	void RCNodeLightAccumulation::Clear()
 	{
 		renderTarget = nullptr;
 		lightAccumulationTex = nullptr;
 		lightAccumulationTexArray = nullptr;
 	}
 
-	SmallVector<StringID, 4> RCNodeLightAccumulation::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeLightAccumulation::GetDependencies(const RendererView& view)
 	{
 		SmallVector<StringID, 4> deps;
 
@@ -841,7 +841,7 @@ namespace bs { namespace ct
 		return deps;
 	}
 
-	void RCNodeDeferredDirectLighting::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		output = static_cast<RCNodeLightAccumulation*>(inputs.inputNodes[0]);
 
@@ -989,12 +989,12 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(nullptr);
 	}
 
-	void RCNodeDeferredDirectLighting::clear()
+	void RCNodeDeferredDirectLighting::Clear()
 	{
 		output = nullptr;
 	}
 
-	SmallVector<StringID, 4> RCNodeDeferredDirectLighting::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeDeferredDirectLighting::GetDependencies(const RendererView& view)
 	{
 		SmallVector<StringID, 4> deps;
 		deps.add(RCNodeLightAccumulation::getNodeId());
@@ -1006,7 +1006,7 @@ namespace bs { namespace ct
 		return deps;
 	}
 
-	void RCNodeIndirectDiffuseLighting::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeIndirectDiffuseLighting::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		if (!inputs.view.getRenderSettings().enableIndirectLighting)
 			return;
@@ -1078,12 +1078,12 @@ namespace bs { namespace ct
 		volumeIndices = nullptr;
 	}
 
-	void RCNodeIndirectDiffuseLighting::clear()
+	void RCNodeIndirectDiffuseLighting::Clear()
 	{
 		// Do nothing
 	}
 
-	SmallVector<StringID, 4> RCNodeIndirectDiffuseLighting::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeIndirectDiffuseLighting::GetDependencies(const RendererView& view)
 	{
 		SmallVector<StringID, 4> deps;
 		deps.add(RCNodeBasePass::getNodeId());
@@ -1095,7 +1095,7 @@ namespace bs { namespace ct
 		return deps;
 	}
 
-	void RCNodeDeferredIndirectSpecularLighting::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		RCNodeSceneColor* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[0]);
 		RCNodeBasePass* gbufferNode = static_cast<RCNodeBasePass*>(inputs.inputNodes[1]);
@@ -1254,12 +1254,12 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RCNodeDeferredIndirectSpecularLighting::clear()
+	void RCNodeDeferredIndirectSpecularLighting::Clear()
 	{
 		output = nullptr;
 	}
 
-	SmallVector<StringID, 4> RCNodeDeferredIndirectSpecularLighting::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeDeferredIndirectSpecularLighting::GetDependencies(const RendererView& view)
 	{
 		SmallVector<StringID, 4> deps;
 		deps.add(RCNodeSceneColor::getNodeId());
@@ -1274,7 +1274,7 @@ namespace bs { namespace ct
 		return deps;
 	}
 
-	void RCNodeClusteredForward::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		const SceneInfo& sceneInfo = inputs.scene;
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
@@ -1549,12 +1549,12 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RCNodeClusteredForward::clear()
+	void RCNodeClusteredForward::Clear()
 	{
 		// Do nothing
 	}
 
-	SmallVector<StringID, 4> RCNodeClusteredForward::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeClusteredForward::GetDependencies(const RendererView& view)
 	{
 		return {
 			RCNodeSceneColor::getNodeId(),
@@ -1566,7 +1566,7 @@ namespace bs { namespace ct
 		};
 	}
 
-	void RCNodeSkybox::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeSkybox::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		Skybox* skybox = nullptr;
 		if(inputs.view.getRenderSettings().enableSkybox)
@@ -1601,10 +1601,10 @@ namespace bs { namespace ct
 		gRendererUtility().draw(mesh, mesh->getProperties().getSubMesh(0));
 	}
 
-	void RCNodeSkybox::clear()
+	void RCNodeSkybox::Clear()
 	{ }
 
-	SmallVector<StringID, 4> RCNodeSkybox::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeSkybox::GetDependencies(const RendererView& view)
 	{
 		SmallVector<StringID, 4> deps;
 		deps.add(RCNodeSceneColor::getNodeId());
@@ -1613,7 +1613,7 @@ namespace bs { namespace ct
 		return deps;
 	}
 
-	void RCNodeFinalResolve::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeFinalResolve::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
 
@@ -1661,10 +1661,10 @@ namespace bs { namespace ct
 		inputs.view._notifyCompositorTargetChanged(nullptr);
 	}
 
-	void RCNodeFinalResolve::clear()
+	void RCNodeFinalResolve::Clear()
 	{ }
 
-	SmallVector<StringID, 4> RCNodeFinalResolve::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeFinalResolve::GetDependencies(const RendererView& view)
 	{
 		const RendererViewProperties& viewProps = view.getProperties();
 
@@ -1686,7 +1686,7 @@ namespace bs { namespace ct
 		return deps;
 	}
 
-	void RCNodePostProcess::getAndSwitch(const RendererView& view, SPtr<RenderTexture>& output, SPtr<Texture>& lastFrame) const
+	void RCNodePostProcess::GetAndSwitch(const RendererView& view, SPtr<RenderTexture>& output, SPtr<Texture>& lastFrame) const
 	{
 		const RendererViewProperties& viewProps = view.getProperties();
 		UINT32 width = viewProps.target.viewRect.width;
@@ -1707,7 +1707,7 @@ namespace bs { namespace ct
 		mCurrentIdx = otherIdx;
 	}
 
-	SPtr<Texture> RCNodePostProcess::getLastOutput() const
+	SPtr<Texture> RCNodePostProcess::GetLastOutput() const
 	{
 		UINT32 otherIdx = (mCurrentIdx + 1) % 2;
 		if (mOutput[otherIdx])
@@ -1716,24 +1716,24 @@ namespace bs { namespace ct
 		return nullptr;
 	}
 
-	void RCNodePostProcess::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodePostProcess::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		// Do nothing, this is just a helper node
 	}
 
-	void RCNodePostProcess::clear()
+	void RCNodePostProcess::Clear()
 	{
 		mOutput[0] = nullptr;
 		mOutput[1] = nullptr;
 		mCurrentIdx = 0;
 	}
 
-	SmallVector<StringID, 4> RCNodePostProcess::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodePostProcess::GetDependencies(const RendererView& view)
 	{
 		return {};
 	}
 
-	void RCNodeEyeAdaptation::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		GpuResourcePool& resPool = gGpuResourcePool();
 
@@ -1839,18 +1839,18 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RCNodeEyeAdaptation::clear()
+	void RCNodeEyeAdaptation::Clear()
 	{
 		std::swap(output, previous);
 		output = nullptr;
 	}
 	
-	bool RCNodeEyeAdaptation::useHistogramEyeAdapatation(const RenderCompositorNodeInputs& inputs)
+	bool RCNodeEyeAdaptation::UseHistogramEyeAdapatation(const RenderCompositorNodeInputs& inputs)
 	{
 		return inputs.featureSet == RenderBeastFeatureSet::Desktop;
 	}
 
-	SmallVector<StringID, 4> RCNodeEyeAdaptation::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeEyeAdaptation::GetDependencies(const RendererView& view)
 	{
 		SmallVector<StringID, 4> deps;
 		deps.add(RCNodeClusteredForward::getNodeId());
@@ -1862,7 +1862,7 @@ namespace bs { namespace ct
 		return deps;
 	}
 
-	void RCNodeTonemapping::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeTonemapping::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
 		const RenderSettings& settings = inputs.view.getRenderSettings();
@@ -1939,12 +1939,12 @@ namespace bs { namespace ct
 		tonemapping->execute(sceneColor, eyeAdaptationTex, bloomTex, tonemapLUTTex, ppOutput, settings);
 	}
 
-	void RCNodeTonemapping::clear()
+	void RCNodeTonemapping::Clear()
 	{
 		// Do nothing
 	}
 	
-	SmallVector<StringID, 4> RCNodeTonemapping::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeTonemapping::GetDependencies(const RendererView& view)
 	{
 		SmallVector<StringID, 4> deps = {
 			RCNodeEyeAdaptation::getNodeId(),
@@ -1963,7 +1963,7 @@ namespace bs { namespace ct
 		return deps;
 	}
 
-	void RCNodeBokehDOF::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeBokehDOF::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		const DepthOfFieldSettings& settings = inputs.view.getRenderSettings().depthOfField;
 		if(!settings.enabled || settings.type != DepthOfFieldType::Bokeh)
@@ -2003,12 +2003,12 @@ namespace bs { namespace ct
 		sceneColorNode->swap(lightAccumNode);
 	}
 
-	void RCNodeBokehDOF::clear()
+	void RCNodeBokehDOF::Clear()
 	{
 		// Do nothing
 	}
 
-	SmallVector<StringID, 4> RCNodeBokehDOF::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeBokehDOF::GetDependencies(const RendererView& view)
 	{
 		return 
 		{ 
@@ -2024,7 +2024,7 @@ namespace bs { namespace ct
 		deallocOutputs();
 	}
 
-	void RCNodeTemporalAA::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeTemporalAA::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		auto* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.inputNodes[1]);
 		SPtr<PooledRenderTexture> sceneColor = sceneColorNode->sceneColorTex;
@@ -2092,20 +2092,20 @@ namespace bs { namespace ct
 		output = mPooledOutput->texture;
 	}
 
-	void RCNodeTemporalAA::clear()
+	void RCNodeTemporalAA::Clear()
 	{
 		mPrevFrame = mPooledOutput;
 		mPooledOutput = nullptr;
 		output = nullptr;
 	}
 
-	void RCNodeTemporalAA::deallocOutputs()
+	void RCNodeTemporalAA::DeallocOutputs()
 	{
 		mPrevFrame = nullptr;
 		output = nullptr;
 	}
 
-	SmallVector<StringID, 4> RCNodeTemporalAA::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeTemporalAA::GetDependencies(const RendererView& view)
 	{
 		return
 		{
@@ -2116,7 +2116,7 @@ namespace bs { namespace ct
 		};
 	}
 
-	void RCNodeMotionBlur::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeMotionBlur::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		const MotionBlurSettings& settings = inputs.view.getRenderSettings().motionBlur;
 		if (!settings.enabled)
@@ -2140,12 +2140,12 @@ namespace bs { namespace ct
 		//sceneColorNode->swap(lightAccumNode);
 	}
 
-	void RCNodeMotionBlur::clear()
+	void RCNodeMotionBlur::Clear()
 	{
 		// Do nothing
 	}
 
-	SmallVector<StringID, 4> RCNodeMotionBlur::getDependencies(const RendererView & view)
+	SmallVector<StringID, 4> RCNodeMotionBlur::GetDependencies(const RendererView & view)
 	{
 		return
 		{
@@ -2156,7 +2156,7 @@ namespace bs { namespace ct
 		};
 	}
 
-	void RCNodeGaussianDOF::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeGaussianDOF::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[1]);
 		RCNodePostProcess* postProcessNode = static_cast<RCNodePostProcess*>(inputs.inputNodes[2]);
@@ -2229,17 +2229,17 @@ namespace bs { namespace ct
 		separateMat->release();
 	}
 
-	void RCNodeGaussianDOF::clear()
+	void RCNodeGaussianDOF::Clear()
 	{
 		// Do nothing
 	}
 
-	SmallVector<StringID, 4> RCNodeGaussianDOF::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeGaussianDOF::GetDependencies(const RendererView& view)
 	{
 		return { RCNodeTonemapping::getNodeId(), RCNodeSceneDepth::getNodeId(), RCNodePostProcess::getNodeId() };
 	}
 
-	void RCNodeFXAA::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeFXAA::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		const RenderSettings& settings = inputs.view.getRenderSettings();
 		if (!settings.enableFXAA)
@@ -2256,17 +2256,17 @@ namespace bs { namespace ct
 		fxaa->execute(ppLastFrame, ppOutput);
 	}
 
-	void RCNodeFXAA::clear()
+	void RCNodeFXAA::Clear()
 	{
 		// Do nothing
 	}
 
-	SmallVector<StringID, 4> RCNodeFXAA::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeFXAA::GetDependencies(const RendererView& view)
 	{
 		return { RCNodeGaussianDOF::getNodeId(), RCNodePostProcess::getNodeId() };
 	}
 
-	void RCNodeChromaticAberration::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeChromaticAberration::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		const RenderSettings& settings = inputs.view.getRenderSettings();
 		if (!settings.chromaticAberration.enabled)
@@ -2282,17 +2282,17 @@ namespace bs { namespace ct
 		chromaticAberration->execute(ppLastFrame, settings.chromaticAberration, ppOutput);
 	}
 
-	void RCNodeChromaticAberration::clear()
+	void RCNodeChromaticAberration::Clear()
 	{
 		// Do nothing
 	}
 
-	SmallVector<StringID, 4> RCNodeChromaticAberration::getDependencies(const RendererView & view)
+	SmallVector<StringID, 4> RCNodeChromaticAberration::GetDependencies(const RendererView & view)
 	{
 		return { RCNodeFXAA::getNodeId(), RCNodePostProcess::getNodeId() };
 	}
 
-	void RCNodeFilmGrain::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeFilmGrain::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		const RenderSettings& settings = inputs.view.getRenderSettings();
 		if (!settings.filmGrain.enabled)
@@ -2308,17 +2308,17 @@ namespace bs { namespace ct
 		filmGrain->execute(ppLastFrame, inputs.frameInfo.timings.time, settings.filmGrain, ppOutput);
 	}
 
-	void RCNodeFilmGrain::clear()
+	void RCNodeFilmGrain::Clear()
 	{
 		// Do nothing
 	}
 
-	SmallVector<StringID, 4> RCNodeFilmGrain::getDependencies(const RendererView & view)
+	SmallVector<StringID, 4> RCNodeFilmGrain::GetDependencies(const RendererView & view)
 	{
 		return { RCNodeChromaticAberration::getNodeId(), RCNodePostProcess::getNodeId() };
 	}
 	
-	void RCNodeHalfSceneColor::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeHalfSceneColor::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
 
@@ -2334,19 +2334,19 @@ namespace bs { namespace ct
 		downsampleMat->execute(input, output->renderTexture);
 	}
 
-	void RCNodeHalfSceneColor::clear()
+	void RCNodeHalfSceneColor::Clear()
 	{
 		output = nullptr;
 	}
 
-	SmallVector<StringID, 4> RCNodeHalfSceneColor::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeHalfSceneColor::GetDependencies(const RendererView& view)
 	{
 		return { RCNodeSceneColor::getNodeId() };
 	}
 
 	constexpr UINT32 RCNodeSceneColorDownsamples::MAX_NUM_DOWNSAMPLES;
 
-	void RCNodeSceneColorDownsamples::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeSceneColorDownsamples::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		GpuResourcePool& resPool = gGpuResourcePool();
 
@@ -2374,18 +2374,18 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RCNodeSceneColorDownsamples::clear()
+	void RCNodeSceneColorDownsamples::Clear()
 	{
 		for(UINT32 i = 0; i < MAX_NUM_DOWNSAMPLES; i++)
 			output[i] = nullptr;
 	}
 
-	SmallVector<StringID, 4> RCNodeSceneColorDownsamples::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeSceneColorDownsamples::GetDependencies(const RendererView& view)
 	{
 		return { RCNodeHalfSceneColor::getNodeId() };
 	}
 
-	void RCNodeResolvedSceneDepth::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeResolvedSceneDepth::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
 		RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.inputNodes[0]);
@@ -2407,18 +2407,18 @@ namespace bs { namespace ct
 			output = sceneDepthNode->depthTex;
 	}
 
-	void RCNodeResolvedSceneDepth::clear()
+	void RCNodeResolvedSceneDepth::Clear()
 	{
 		output = nullptr;
 	}
 
-	SmallVector<StringID, 4> RCNodeResolvedSceneDepth::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeResolvedSceneDepth::GetDependencies(const RendererView& view)
 	{
 		// GBuffer require because it renders the base pass (populates the depth buffer)
 		return { RCNodeSceneDepth::getNodeId(), RCNodeBasePass::getNodeId() };
 	}
 
-	void RCNodeHiZ::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeHiZ::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		const RendererViewProperties& viewProps = inputs.view.getProperties();
 
@@ -2495,12 +2495,12 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RCNodeHiZ::clear()
+	void RCNodeHiZ::Clear()
 	{
 		output = nullptr;
 	}
 
-	SmallVector<StringID, 4> RCNodeHiZ::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeHiZ::GetDependencies(const RendererView& view)
 	{
 		// Note: This doesn't actually use any gbuffer textures, but node is a dependency because it renders to the depth
 		// buffer. In order to avoid keeping gbuffer textures alive I could separate out the base pass into its own node
@@ -2508,7 +2508,7 @@ namespace bs { namespace ct
 		return { RCNodeResolvedSceneDepth::getNodeId(), RCNodeBasePass::getNodeId() };
 	}
 
-	void RCNodeSSAO::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		/** Maximum valid depth range within samples in a sample set. In meters. */
 		static const float DEPTH_RANGE = 1.0f;
@@ -2683,13 +2683,13 @@ namespace bs { namespace ct
 		output = mPooledOutput->texture;
 	}
 
-	void RCNodeSSAO::clear()
+	void RCNodeSSAO::Clear()
 	{
 		mPooledOutput = nullptr;
 		output = nullptr;
 	}
 
-	SmallVector<StringID, 4> RCNodeSSAO::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeSSAO::GetDependencies(const RendererView& view)
 	{
 		return { RCNodeResolvedSceneDepth::getNodeId(), RCNodeBasePass::getNodeId() };
 	}
@@ -2699,7 +2699,7 @@ namespace bs { namespace ct
 		deallocOutputs();
 	}
 
-	void RCNodeSSR::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		const ScreenSpaceReflectionsSettings& settings = inputs.view.getRenderSettings().screenSpaceReflections;
 		if (!settings.enabled)
@@ -2794,7 +2794,7 @@ namespace bs { namespace ct
 		output = mPooledOutput->texture;
 	}
 
-	void RCNodeSSR::clear()
+	void RCNodeSSR::Clear()
 	{
 		if(!mUsingTemporalAA)
 			mPrevFrame = mPooledOutput;
@@ -2803,13 +2803,13 @@ namespace bs { namespace ct
 		output = nullptr;
 	}
 
-	void RCNodeSSR::deallocOutputs()
+	void RCNodeSSR::DeallocOutputs()
 	{
 		mPrevFrame = nullptr;
 		output = nullptr;
 	}
 
-	SmallVector<StringID, 4> RCNodeSSR::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeSSR::GetDependencies(const RendererView& view)
 	{
 		SmallVector<StringID, 4> deps;
 		if (view.getRenderSettings().screenSpaceReflections.enabled)
@@ -2825,7 +2825,7 @@ namespace bs { namespace ct
 		return deps;
 	}
 
-	void RCNodeBloom::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeBloom::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		const RenderSettings& settings = inputs.view.getRenderSettings();
 
@@ -2897,13 +2897,13 @@ namespace bs { namespace ct
 		output = mPooledOutput->texture;
 	}
 
-	void RCNodeBloom::clear()
+	void RCNodeBloom::Clear()
 	{
 		mPooledOutput = nullptr;
 		output = nullptr;
 	}
 
-	SmallVector<StringID, 4> RCNodeBloom::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeBloom::GetDependencies(const RendererView& view)
 	{
 		return
 		{
@@ -2913,7 +2913,7 @@ namespace bs { namespace ct
 		};
 	}
 
-	void RCNodeScreenSpaceLensFlare::render(const RenderCompositorNodeInputs& inputs)
+	void RCNodeScreenSpaceLensFlare::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		GpuResourcePool& resPool = GpuResourcePool::instance();
 		const RenderSettings& settings = inputs.view.getRenderSettings();
@@ -2968,12 +2968,12 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RCNodeScreenSpaceLensFlare::clear()
+	void RCNodeScreenSpaceLensFlare::Clear()
 	{
 		// Do nothing
 	}
 
-	SmallVector<StringID, 4> RCNodeScreenSpaceLensFlare::getDependencies(const RendererView& view)
+	SmallVector<StringID, 4> RCNodeScreenSpaceLensFlare::GetDependencies(const RendererView& view)
 	{
 		return
 		{

@@ -22,18 +22,18 @@ namespace bs
 			mParentElement->_unregisterChildElement(this);
 	}
 
-	void GUILayout::addElement(GUIElementBase* element)
+	void GUILayout::AddElement(GUIElementBase* element)
 	{
 		if (!element->_isDestroyed())
 			_registerChildElement(element);
 	}
 
-	void GUILayout::removeElement(GUIElementBase* element)
+	void GUILayout::RemoveElement(GUIElementBase* element)
 	{
 		_unregisterChildElement(element);
 	}
 
-	void GUILayout::insertElement(UINT32 idx, GUIElementBase* element)
+	void GUILayout::InsertElement(UINT32 idx, GUIElementBase* element)
 	{
 		if(idx > (UINT32)mChildren.size())
 			BS_EXCEPT(InvalidParametersException, "Index out of range: " + toString(idx) + ". Valid range: 0 .. " + toString((UINT32)mChildren.size()));
@@ -57,12 +57,12 @@ namespace bs
 		_markLayoutAsDirty();
 	}
 
-	void GUILayout::clear()
+	void GUILayout::Clear()
 	{
 		destroyChildElements();
 	}
 
-	void GUILayout::removeElementAt(UINT32 idx)
+	void GUILayout::RemoveElementAt(UINT32 idx)
 	{
 		if(idx >= (UINT32)mChildren.size())
 			BS_EXCEPT(InvalidParametersException, "Index out of range: " + toString(idx) + ". Valid range: 0 .. " + toString((UINT32)mChildren.size()));
@@ -82,7 +82,7 @@ namespace bs
 		return padding;
 	}
 
-	void GUILayout::destroy(GUILayout* layout)
+	void GUILayout::Destroy(GUILayout* layout)
 	{
 		bs_delete(layout);
 	}

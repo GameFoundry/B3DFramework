@@ -21,7 +21,7 @@ namespace bs
 		value->onControllerHit.connect(std::bind(&ScriptCCharacterController::onControllerHit, this, std::placeholders::_1));
 	}
 
-	void ScriptCCharacterController::initRuntimeData()
+	void ScriptCCharacterController::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_move", (void*)&ScriptCCharacterController::Internal_move);
 		metaData.scriptClass->addInternalCall("Internal_getFootPosition", (void*)&ScriptCCharacterController::Internal_getFootPosition);
@@ -51,7 +51,7 @@ namespace bs
 		onControllerHitThunk = (onControllerHitThunkDef)metaData.scriptClass->getMethodExact("Internal_onControllerHit", "ControllerControllerCollision&")->getThunk();
 	}
 
-	void ScriptCCharacterController::onColliderHit(const ControllerColliderCollision& p0)
+	void ScriptCCharacterController::OnColliderHit(const ControllerColliderCollision& p0)
 	{
 		MonoObject* tmpp0;
 		__ControllerColliderCollisionInterop interopp0;
@@ -60,7 +60,7 @@ namespace bs
 		MonoUtil::invokeThunk(onColliderHitThunk, getManagedInstance(), tmpp0);
 	}
 
-	void ScriptCCharacterController::onControllerHit(const ControllerControllerCollision& p0)
+	void ScriptCCharacterController::OnControllerHit(const ControllerControllerCollision& p0)
 	{
 		MonoObject* tmpp0;
 		__ControllerControllerCollisionInterop interopp0;

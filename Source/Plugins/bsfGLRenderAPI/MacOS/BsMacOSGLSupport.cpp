@@ -18,17 +18,17 @@ namespace bs::ct
 		return SPtr<bs::RenderWindow>(window, &bs::CoreObject::_delete<bs::MacOSRenderWindow, GenAlloc>);
 	}
 
-	void MacOSGLSupport::start()
+	void MacOSGLSupport::Start()
 	{
 		// Do nothing
 	}
 
-	void MacOSGLSupport::stop()
+	void MacOSGLSupport::Stop()
 	{
 		// Do nothing
 	}
 
-	SPtr<MacOSContext> MacOSGLSupport::createContext(bool depthStencil, UINT32 msaaCount)
+	SPtr<MacOSContext> MacOSGLSupport::CreateContext(bool depthStencil, UINT32 msaaCount)
 	{
 		GLRenderAPI* rapi = static_cast<GLRenderAPI*>(RenderAPI::instancePtr());
 
@@ -55,7 +55,7 @@ namespace bs::ct
 		return Dlsym(image, (const char*)procname.c_str());
 	}
 
-	SPtr<VideoModeInfo> MacOSGLSupport::getVideoModeInfo() const
+	SPtr<VideoModeInfo> MacOSGLSupport::GetVideoModeInfo() const
 	{
 		return bs_shared_ptr_new<MacOSVideoModeInfo>();
 	}

@@ -13,20 +13,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptControllerCollision::initRuntimeData()
+	void ScriptControllerCollision::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptControllerCollision::box(const __ControllerCollisionInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__ControllerCollisionInterop ScriptControllerCollision::unbox(MonoObject* value)
+	__ControllerCollisionInterop ScriptControllerCollision::Unbox(MonoObject* value)
 	{
 		return *(__ControllerCollisionInterop*)MonoUtil::unbox(value);
 	}
 
-	ControllerCollision ScriptControllerCollision::fromInterop(const __ControllerCollisionInterop& value)
+	ControllerCollision ScriptControllerCollision::FromInterop(const __ControllerCollisionInterop& value)
 	{
 		ControllerCollision output;
 		output.position = value.position;
@@ -37,7 +37,7 @@ namespace bs
 		return output;
 	}
 
-	__ControllerCollisionInterop ScriptControllerCollision::toInterop(const ControllerCollision& value)
+	__ControllerCollisionInterop ScriptControllerCollision::ToInterop(const ControllerCollision& value)
 	{
 		__ControllerCollisionInterop output;
 		output.position = value.position;

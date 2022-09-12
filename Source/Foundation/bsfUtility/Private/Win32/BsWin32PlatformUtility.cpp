@@ -13,7 +13,7 @@ namespace bs
 {
 	GPUInfo PlatformUtility::sGPUInfo;
 
-	void PlatformUtility::terminate(bool force)
+	void PlatformUtility::Terminate(bool force)
 	{
 		if (!force)
 			PostQuitMessage(0);
@@ -43,7 +43,7 @@ namespace bs
 		return rovi;
 	}
 
-	SystemInfo PlatformUtility::getSystemInfo()
+	SystemInfo PlatformUtility::GetSystemInfo()
 	{
 		SystemInfo output;
 
@@ -125,7 +125,7 @@ namespace bs
 		return output;
 	}
 
-	UUID PlatformUtility::generateUUID()
+	UUID PlatformUtility::GenerateUUID()
 	{
 		::UUID uuid;
 		UuidCreate(&uuid);
@@ -139,7 +139,7 @@ namespace bs
 		return UUID(data1, data2, data3, data4);
 	}
 
-	String PlatformUtility::convertCaseUTF8(const String& input, bool toUpper)
+	String PlatformUtility::ConvertCaseUTF8(const String& input, bool toUpper)
 	{
 		if(input.empty())
 			return "";
@@ -173,10 +173,10 @@ namespace bs
 			nullptr,
 			0);
 
-		return UTF8::fromWide(outputWideString);
+		return UTF8::FromWide(outputWideString);
 	}
 
-	HBITMAP Win32PlatformUtility::createBitmap(const Color* pixels, UINT32 width, UINT32 height, bool premultiplyAlpha)
+	HBITMAP Win32PlatformUtility::CreateBitmap(const Color* pixels, UINT32 width, UINT32 height, bool premultiplyAlpha)
 	{
 		BITMAPINFO bi;
 

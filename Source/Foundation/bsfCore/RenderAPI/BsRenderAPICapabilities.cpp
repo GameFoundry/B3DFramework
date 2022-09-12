@@ -12,7 +12,7 @@ namespace bs
 		"intel"
 	};
 
-	GPUVendor RenderAPICapabilities::vendorFromString(const String& vendorString)
+	GPUVendor RenderAPICapabilities::VendorFromString(const String& vendorString)
 	{
 		GPUVendor ret = GPU_UNKNOWN;
 		String cmpString = vendorString;
@@ -29,7 +29,7 @@ namespace bs
 		return ret;
 	}
 
-	String RenderAPICapabilities::vendorToString(GPUVendor vendor)
+	String RenderAPICapabilities::VendorToString(GPUVendor vendor)
 	{
 		return GPU_VENDOR_STRINGS[vendor];
 	}

@@ -36,7 +36,7 @@ namespace bs
 			mRendererTask->cancel();
 	}
 
-	void Skybox::filterTexture()
+	void Skybox::FilterTexture()
 	{
 		// If previous rendering task exists, cancel it
 		if (mRendererTask != nullptr)
@@ -96,7 +96,7 @@ namespace bs
 		ct::gRenderer()->addTask(mRendererTask);
 	}
 
-	void Skybox::setTexture(const HTexture& texture)
+	void Skybox::SetTexture(const HTexture& texture)
 	{
 		mTexture = texture;
 
@@ -109,12 +109,12 @@ namespace bs
 		_markCoreDirty((ActorDirtyFlag)SkyboxDirtyFlag::Texture);
 	}
 
-	SPtr<ct::Skybox> Skybox::getCore() const
+	SPtr<ct::Skybox> Skybox::GetCore() const
 	{
 		return std::static_pointer_cast<ct::Skybox>(mCoreSpecific);
 	}
 
-	SPtr<Skybox> Skybox::createEmpty()
+	SPtr<Skybox> Skybox::CreateEmpty()
 	{
 		Skybox* skybox = new (bs_alloc<Skybox>()) Skybox();
 		SPtr<Skybox> skyboxPtr = bs_core_ptr<Skybox>(skybox);
@@ -123,7 +123,7 @@ namespace bs
 		return skyboxPtr;
 	}
 
-	SPtr<Skybox> Skybox::create()
+	SPtr<Skybox> Skybox::Create()
 	{
 		SPtr<Skybox> skyboxPtr = createEmpty();
 		skyboxPtr->initialize();
@@ -131,7 +131,7 @@ namespace bs
 		return skyboxPtr;
 	}
 
-	SPtr<ct::CoreObject> Skybox::createCore() const
+	SPtr<ct::CoreObject> Skybox::CreateCore() const
 	{
 		SPtr<ct::Texture> radiance;
 		if (mTexture.isLoaded(false))
@@ -152,7 +152,7 @@ namespace bs
 		return skyboxPtr;
 	}
 
-	CoreSyncData Skybox::syncToCore(FrameAlloc* allocator)
+	CoreSyncData Skybox::SyncToCore(FrameAlloc* allocator)
 	{
 		UINT32 size = 0;
 		size += rtti_size(getCoreDirtyFlags()).bytes;
@@ -176,12 +176,12 @@ namespace bs
 
 	RTTITypeBase* Skybox::getRTTIStatic()
 	{
-		return SkyboxRTTI::instance();
+		return SkyboxRTTI::Instance();
 	}
 
 	RTTITypeBase* Skybox::getRTTI() const
 	{
-		return Skybox::getRTTIStatic();
+		return Skybox::GetRTTIStatic();
 	}
 
 	namespace ct
@@ -197,14 +197,14 @@ namespace bs
 			gRenderer()->notifySkyboxRemoved(this);
 		}
 
-		void Skybox::initialize()
+		void Skybox::Initialize()
 		{
 			gRenderer()->notifySkyboxAdded(this);
 
 			CoreObject::initialize();
 		}
 
-		void Skybox::syncToCore(const CoreSyncData& data)
+		void Skybox::SyncToCore(const CoreSyncData& data)
 		{
 			Bitstream Stream(data.getBuffer(), data.getBufferSize());
 

@@ -25,7 +25,7 @@ namespace bs
 	public:																													\
 		static MonoObject* create##ScriptType(const SPtr<IReflectable>& reflectable)										\
 		{																													\
-			return ScriptType::create(std::static_pointer_cast<ReflectableType>(reflectable));								\
+			return ScriptType::Create(std::static_pointer_cast<ReflectableType>(reflectable));								\
 		}																													\
 																															\
 		struct META_NextEntry_##ScriptType {};																				\

@@ -29,17 +29,17 @@ namespace bs
 		:CGUIWidget(parent, camera->_getCamera())
 	{ }
 
-	void CGUIWidget::setSkin(const HGUISkin& skin)
+	void CGUIWidget::SetSkin(const HGUISkin& skin)
 	{
 		mInternal->setSkin(skin);
 	}
 
-	const GUISkin& CGUIWidget::getSkin() const
+	const GUISkin& CGUIWidget::GetSkin() const
 	{
 		return mInternal->getSkin();
 	}
 
-	const HGUISkin& CGUIWidget::getSkinResource() const
+	const HGUISkin& CGUIWidget::GetSkinResource() const
 	{
 		return mInternal->getSkinResource();
 	}
@@ -49,22 +49,22 @@ namespace bs
 		return mInternal->getPanel();
 	}
 
-	UINT8 CGUIWidget::getDepth() const
+	UINT8 CGUIWidget::GetDepth() const
 	{
 		return mInternal->getDepth();
 	}
 
-	void CGUIWidget::setDepth(UINT8 depth)
+	void CGUIWidget::SetDepth(UINT8 depth)
 	{
 		mInternal->setDepth(depth);
 	}
 
-	bool CGUIWidget::inBounds(const Vector2I& position) const
+	bool CGUIWidget::InBounds(const Vector2I& position) const
 	{
 		return mInternal->inBounds(position);
 	}
 
-	const Rect2I& CGUIWidget::getBounds() const
+	const Rect2I& CGUIWidget::GetBounds() const
 	{
 		return mInternal->getBounds();
 	}
@@ -74,7 +74,7 @@ namespace bs
 		return mInternal->getTarget();
 	}
 
-	SPtr<Camera> CGUIWidget::getCamera() const
+	SPtr<Camera> CGUIWidget::GetCamera() const
 	{
 		return mInternal->getCamera();
 	}
@@ -84,7 +84,7 @@ namespace bs
 		return mInternal->getElements();
 	}
 
-	void CGUIWidget::update()
+	void CGUIWidget::Update()
 	{
 		HSceneObject parent = SO();
 
@@ -101,7 +101,7 @@ namespace bs
 		mInternal->_updateRT();
 	}
 
-	void CGUIWidget::onDestroyed()
+	void CGUIWidget::OnDestroyed()
 	{
 		mOwnerTargetResizedConn.disconnect();
 		mOwnerWindowFocusChangedConn.disconnect();
@@ -110,11 +110,11 @@ namespace bs
 
 	RTTITypeBase* CGUIWidget::getRTTIStatic()
 	{
-		return CGUIWidgetRTTI::instance();
+		return CGUIWidgetRTTI::Instance();
 	}
 
 	RTTITypeBase* CGUIWidget::getRTTI() const
 	{
-		return CGUIWidget::getRTTIStatic();
+		return CGUIWidget::GetRTTIStatic();
 	}
 }

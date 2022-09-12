@@ -101,7 +101,7 @@ namespace bs
 				
 			} while (sqrdSize > 1.0f || sqrdSize < 0.001f);
 
-			return Vector3::normalize(output);
+			return Vector3::Normalize(output);
 		}
 
 		/** Returns a random unit vector in two dimensions. */
@@ -122,7 +122,7 @@ namespace bs
 				
 			} while (sqrdSize > 1.0f || sqrdSize < 0.001f);
 
-			return Vector2::normalize(output);
+			return Vector2::Normalize(output);
 		}
 
 		/** Returns a random point inside a unit sphere. */

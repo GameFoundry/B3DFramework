@@ -104,15 +104,15 @@ namespace bs
 	SPtr<RenderTexture> RenderTexture::create(const TEXTURE_DESC& desc,
 		bool createDepth, PixelFormat depthStencilFormat)
 	{
-		return TextureManager::instance().createRenderTexture(desc, createDepth, depthStencilFormat);
+		return TextureManager::Instance().createRenderTexture(desc, createDepth, depthStencilFormat);
 	}
 
-	SPtr<RenderTexture> RenderTexture::create(const RENDER_TEXTURE_DESC& desc)
+	SPtr<RenderTexture> RenderTexture::Create(const RENDER_TEXTURE_DESC& desc)
 	{
-		return TextureManager::instance().createRenderTexture(desc);
+		return TextureManager::Instance().createRenderTexture(desc);
 	}
 
-	SPtr<ct::RenderTexture> RenderTexture::getCore() const
+	SPtr<ct::RenderTexture> RenderTexture::GetCore() const
 	{
 		return std::static_pointer_cast<ct::RenderTexture>(mCoreSpecific);
 	}
@@ -130,7 +130,7 @@ namespace bs
 			mBindableDepthStencilTex = desc.depthStencilSurface.texture;
 	}
 
-	SPtr<ct::CoreObject> RenderTexture::createCore() const
+	SPtr<ct::CoreObject> RenderTexture::CreateCore() const
 	{
 		ct::RENDER_TEXTURE_DESC coreDesc;
 
@@ -157,7 +157,7 @@ namespace bs
 		return ct::TextureManager::instance().createRenderTextureInternal(coreDesc);
 	}
 
-	CoreSyncData RenderTexture::syncToCore(FrameAlloc* allocator)
+	CoreSyncData RenderTexture::SyncToCore(FrameAlloc* allocator)
 	{
 		UINT32 size = sizeof(RenderTextureProperties);
 		UINT8* buffer = allocator->alloc(size);
@@ -168,7 +168,7 @@ namespace bs
 		return CoreSyncData(buffer, size);
 	}
 
-	const RenderTextureProperties& RenderTexture::getProperties() const
+	const RenderTextureProperties& RenderTexture::GetProperties() const
 	{
 		return static_cast<const RenderTextureProperties&>(getPropertiesInternal());
 	}
@@ -179,12 +179,12 @@ namespace bs
 
 	RTTITypeBase* RenderTexture::getRTTIStatic()
 	{
-		return RenderTextureRTTI::instance();
+		return RenderTextureRTTI::Instance();
 	}
 
 	RTTITypeBase* RenderTexture::getRTTI() const
 	{
-		return RenderTexture::getRTTIStatic();
+		return RenderTexture::GetRTTIStatic();
 	}
 
 	namespace ct
@@ -193,7 +193,7 @@ namespace bs
 		:mDesc(desc)
 	{ }
 
-	void RenderTexture::initialize()
+	void RenderTexture::Initialize()
 	{
 		RenderTarget::initialize();
 
@@ -225,23 +225,23 @@ namespace bs
 		throwIfBuffersDontMatch();
 	}
 
-	SPtr<RenderTexture> RenderTexture::create(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx)
+	SPtr<RenderTexture> RenderTexture::Create(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx)
 	{
-		return TextureManager::instance().createRenderTexture(desc, deviceIdx);
+		return TextureManager::Instance().createRenderTexture(desc, deviceIdx);
 	}
 
-	void RenderTexture::syncToCore(const CoreSyncData& data)
+	void RenderTexture::SyncToCore(const CoreSyncData& data)
 	{
 		RenderTextureProperties& props = const_cast<RenderTextureProperties&>(getProperties());
 		props = data.getData<RenderTextureProperties>();
 	}
 
-	const RenderTextureProperties& RenderTexture::getProperties() const
+	const RenderTextureProperties& RenderTexture::GetProperties() const
 	{
 		return static_cast<const RenderTextureProperties&>(getPropertiesInternal());
 	}
 
-	void RenderTexture::throwIfBuffersDontMatch() const
+	void RenderTexture::ThrowIfBuffersDontMatch() const
 	{
 		UINT32 firstSurfaceIdx = (UINT32)-1;
 		for (UINT32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)

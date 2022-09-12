@@ -7,7 +7,7 @@ namespace bs { namespace ct
 {
 	constexpr const char* VulkanRenderAPIFactory::SystemName;
 
-	void VulkanRenderAPIFactory::create()
+	void VulkanRenderAPIFactory::Create()
 	{
 		RenderAPI::startUp<VulkanRenderAPI>();
 	}

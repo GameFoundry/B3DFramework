@@ -12,7 +12,7 @@ namespace bs { namespace ct
 		: GpuPipelineParamInfo(desc, deviceMask), mDeviceMask(deviceMask), mLayouts(), mLayoutInfos()
 	{ }
 
-	void VulkanGpuPipelineParamInfo::initialize()
+	void VulkanGpuPipelineParamInfo::Initialize()
 	{
 		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::instance());
 

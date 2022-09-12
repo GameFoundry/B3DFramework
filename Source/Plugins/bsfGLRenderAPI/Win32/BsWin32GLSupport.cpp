@@ -26,7 +26,7 @@ namespace bs { namespace ct
 		initialiseWGL();
 	}
 
-	SPtr<bs::RenderWindow> Win32GLSupport::newWindow(RENDER_WINDOW_DESC& desc, UINT32 windowId, SPtr<bs::RenderWindow> parentWindow)
+	SPtr<bs::RenderWindow> Win32GLSupport::NewWindow(RENDER_WINDOW_DESC& desc, UINT32 windowId, SPtr<bs::RenderWindow> parentWindow)
 	{		
 		if(parentWindow != nullptr)
 		{
@@ -45,16 +45,16 @@ namespace bs { namespace ct
 			mInitialWindow = window;
 	}
 
-	void Win32GLSupport::start()
+	void Win32GLSupport::Start()
 	{
 	}
 
-	void Win32GLSupport::stop()
+	void Win32GLSupport::Stop()
 	{
 		mInitialWindow = nullptr;
 	}
 
-	void Win32GLSupport::initializeExtensions()
+	void Win32GLSupport::InitializeExtensions()
 	{
 		assert(mInitialWindow != nullptr);
 		
@@ -78,7 +78,7 @@ namespace bs { namespace ct
 			extensionList.insert(instr);
 	}
 
-	SPtr<Win32Context> Win32GLSupport::createContext(HDC hdc, HGLRC externalGlrc)
+	SPtr<Win32Context> Win32GLSupport::CreateContext(HDC hdc, HGLRC externalGlrc)
 	{
 		GLRenderAPI* rapi = static_cast<GLRenderAPI*>(RenderAPI::instancePtr());
 
@@ -131,7 +131,7 @@ namespace bs { namespace ct
 		return (void*)wglGetProcAddress(procname.c_str());
 	}
 
-	void Win32GLSupport::initialiseWGL()
+	void Win32GLSupport::InitialiseWGL()
 	{
 		// We need to create a dummy context in order to get functions that allow us to create a more advanced context.
 		// It seems hacky but that's the only way to do it.
@@ -258,12 +258,12 @@ namespace bs { namespace ct
 		UnregisterClass(dummyText, hinst);
 	}
 
-	LRESULT Win32GLSupport::dummyWndProc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp)
+	LRESULT Win32GLSupport::DummyWndProc(HWND hwnd, UINT umsg, WPARAM wp, LPARAM lp)
 	{
 		return DefWindowProc(hwnd, umsg, wp, lp);
 	}
 
-	bool Win32GLSupport::selectPixelFormat(HDC hdc, int colorDepth, int multisample, bool hwGamma, bool depthStencil)
+	bool Win32GLSupport::SelectPixelFormat(HDC hdc, int colorDepth, int multisample, bool hwGamma, bool depthStencil)
 	{
 		PIXELFORMATDESCRIPTOR pfd;
 		memset(&pfd, 0, sizeof(pfd));
@@ -325,7 +325,7 @@ namespace bs { namespace ct
 		return format && SetPixelFormat(hdc, format, &pfd);
 	}
 
-	SPtr<VideoModeInfo> Win32GLSupport::getVideoModeInfo() const
+	SPtr<VideoModeInfo> Win32GLSupport::GetVideoModeInfo() const
 	{
 		return bs_shared_ptr_new<Win32VideoModeInfo>();
 	}

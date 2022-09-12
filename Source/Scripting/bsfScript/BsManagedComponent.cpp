@@ -33,7 +33,7 @@ namespace bs
 		return nullptr;
 	}
 
-	RawBackupData ManagedComponent::backup(bool clearExisting)
+	RawBackupData ManagedComponent::Backup(bool clearExisting)
 	{
 		RawBackupData backupData;
 
@@ -95,7 +95,7 @@ namespace bs
 		return backupData;
 	}
 
-	void ManagedComponent::restore(const RawBackupData& data, bool missingType)
+	void ManagedComponent::Restore(const RawBackupData& data, bool missingType)
 	{
 		initialize(mOwner);
 		mObjInfo = nullptr;
@@ -131,7 +131,7 @@ namespace bs
 		mRequiresReset = true;
 	}
 
-	void ManagedComponent::initialize(ScriptManagedComponent* owner)
+	void ManagedComponent::Initialize(ScriptManagedComponent* owner)
 	{
 		mOwner = owner;
 		mFullTypeName = mNamespace + "." + mTypeName;
@@ -241,7 +241,7 @@ namespace bs
 		}
 	}
 
-	bool ManagedComponent::typeEquals(const Component& other)
+	bool ManagedComponent::TypeEquals(const Component& other)
 	{
 		if(Component::typeEquals(other))
 		{
@@ -254,7 +254,7 @@ namespace bs
 		return false;
 	}
 
-	bool ManagedComponent::calculateBounds(Bounds& bounds)
+	bool ManagedComponent::CalculateBounds(Bounds& bounds)
 	{
 		MonoObject* instance = nullptr;
 		
@@ -279,10 +279,10 @@ namespace bs
 			return areBoundsValid;
 		}
 
-		return Component::calculateBounds(bounds);
+		return Component::CalculateBounds(bounds);
 	}
 
-	void ManagedComponent::update()
+	void ManagedComponent::Update()
 	{
 		if (mOnUpdateThunk != nullptr)
 		{
@@ -294,7 +294,7 @@ namespace bs
 		}
 	}
 
-	void ManagedComponent::triggerOnReset()
+	void ManagedComponent::TriggerOnReset()
 	{
 		if (mRequiresReset && mOnResetThunk != nullptr)
 		{
@@ -343,7 +343,7 @@ namespace bs
 		ScriptGameObjectManager::instance().createManagedScriptComponent(instance, componentHandle);
 	}
 
-	void ManagedComponent::onCreated()
+	void ManagedComponent::OnCreated()
 	{
 		MonoObject* instance = mOwner->getManagedInstance();
 
@@ -363,7 +363,7 @@ namespace bs
 		triggerOnReset();
 	}
 
-	void ManagedComponent::onInitialized()
+	void ManagedComponent::OnInitialized()
 	{
 		if (mOnInitializedThunk != nullptr)
 		{
@@ -377,7 +377,7 @@ namespace bs
 		triggerOnReset();
 	}
 
-	void ManagedComponent::onDestroyed()
+	void ManagedComponent::OnDestroyed()
 	{
 		if (mOnDestroyThunk != nullptr)
 		{
@@ -389,7 +389,7 @@ namespace bs
 		}
 	}
 
-	void ManagedComponent::onEnabled()
+	void ManagedComponent::OnEnabled()
 	{
 		if (mOnEnabledThunk != nullptr)
 		{
@@ -401,7 +401,7 @@ namespace bs
 		}
 	}
 
-	void ManagedComponent::onDisabled()
+	void ManagedComponent::OnDisabled()
 	{
 		if (mOnDisabledThunk != nullptr)
 		{
@@ -413,7 +413,7 @@ namespace bs
 		}
 	}
 
-	void ManagedComponent::onTransformChanged(TransformChangedFlags flags)
+	void ManagedComponent::OnTransformChanged(TransformChangedFlags flags)
 	{
 		if(mOnTransformChangedThunk != nullptr)
 		{
@@ -427,11 +427,11 @@ namespace bs
 
 	RTTITypeBase* ManagedComponent::getRTTIStatic()
 	{
-		return ManagedComponentRTTI::instance();
+		return ManagedComponentRTTI::Instance();
 	}
 
 	RTTITypeBase* ManagedComponent::getRTTI() const
 	{
-		return ManagedComponent::getRTTIStatic();
+		return ManagedComponent::GetRTTIStatic();
 	}
 }

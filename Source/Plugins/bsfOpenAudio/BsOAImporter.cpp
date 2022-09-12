@@ -18,7 +18,7 @@ namespace bs
 
 	}
 
-	bool OAImporter::isExtensionSupported(const String& ext) const
+	bool OAImporter::IsExtensionSupported(const String& ext) const
 	{
 		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
@@ -26,18 +26,18 @@ namespace bs
 		return lowerCaseExt == u8"wav" || lowerCaseExt == u8"flac" || lowerCaseExt == u8"ogg";
 	}
 
-	bool OAImporter::isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
+	bool OAImporter::IsMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
 	{
 		// Don't check for magic number, rely on extension
 		return true;
 	}
 
-	SPtr<ImportOptions> OAImporter::createImportOptions() const
+	SPtr<ImportOptions> OAImporter::CreateImportOptions() const
 	{
 		return bs_shared_ptr_new<AudioClipImportOptions>();
 	}
 
-	SPtr<Resource> OAImporter::import(const Path& filePath, SPtr<const ImportOptions> importOptions)
+	SPtr<Resource> OAImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
 		AudioDataInfo info;
 		UINT32 bytesPerSample;

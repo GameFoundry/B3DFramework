@@ -44,7 +44,7 @@ namespace bs { namespace ct
 		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
 
-	void DownsampleMat::execute(const SPtr<Texture>& input, const SPtr<RenderTarget>& output)
+	void DownsampleMat::Execute(const SPtr<Texture>& input, const SPtr<RenderTarget>& output)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
@@ -84,7 +84,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(nullptr);
 	}
 
-	POOLED_RENDER_TEXTURE_DESC DownsampleMat::getOutputDesc(const SPtr<Texture>& target)
+	POOLED_RENDER_TEXTURE_DESC DownsampleMat::GetOutputDesc(const SPtr<Texture>& target)
 	{
 		const TextureProperties& rtProps = target->getProperties();
 		
@@ -157,7 +157,7 @@ namespace bs { namespace ct
 		rapi.dispatchCompute(threadGroupCount.x, threadGroupCount.y);
 	}
 
-	POOLED_RENDER_TEXTURE_DESC EyeAdaptHistogramMat::getOutputDesc(const SPtr<Texture>& target)
+	POOLED_RENDER_TEXTURE_DESC EyeAdaptHistogramMat::GetOutputDesc(const SPtr<Texture>& target)
 	{
 		Vector2I threadGroupCount = getThreadGroupCount(target);
 		UINT32 numHistograms = threadGroupCount.x * threadGroupCount.y;
@@ -166,7 +166,7 @@ namespace bs { namespace ct
 			TU_LOADSTORE);
 	}
 
-	Vector2I EyeAdaptHistogramMat::getThreadGroupCount(const SPtr<Texture>& target)
+	Vector2I EyeAdaptHistogramMat::GetThreadGroupCount(const SPtr<Texture>& target)
 	{
 		const UINT32 texelsPerThreadGroupX = THREAD_GROUP_SIZE_X * LOOP_COUNT_X;
 		const UINT32 texelsPerThreadGroupY = THREAD_GROUP_SIZE_Y * LOOP_COUNT_Y;
@@ -180,7 +180,7 @@ namespace bs { namespace ct
 		return threadGroupCount;
 	}
 
-	Vector2 EyeAdaptHistogramMat::getHistogramScaleOffset(const AutoExposureSettings& settings)
+	Vector2 EyeAdaptHistogramMat::GetHistogramScaleOffset(const AutoExposureSettings& settings)
 	{
 		float diff = settings.histogramLog2Max - settings.histogramLog2Min;
 		float scale = 1.0f / diff;
@@ -232,7 +232,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(nullptr);
 	}
 
-	POOLED_RENDER_TEXTURE_DESC EyeAdaptHistogramReduceMat::getOutputDesc()
+	POOLED_RENDER_TEXTURE_DESC EyeAdaptHistogramReduceMat::GetOutputDesc()
 	{
 		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, EyeAdaptHistogramMat::HISTOGRAM_NUM_TEXELS, 2,
 			TU_RENDERTARGET);
@@ -274,7 +274,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(nullptr);
 	}
 
-	POOLED_RENDER_TEXTURE_DESC EyeAdaptationMat::getOutputDesc()
+	POOLED_RENDER_TEXTURE_DESC EyeAdaptationMat::GetOutputDesc()
 	{
 		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_R32F, 1, 1, TU_RENDERTARGET);
 	}
@@ -346,7 +346,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(nullptr);
 	}
 
-	POOLED_RENDER_TEXTURE_DESC EyeAdaptationBasicSetupMat::getOutputDesc(const SPtr<Texture>& input)
+	POOLED_RENDER_TEXTURE_DESC EyeAdaptationBasicSetupMat::GetOutputDesc(const SPtr<Texture>& input)
 	{
 		auto& props = input->getProperties();
 		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, props.getWidth(), props.getHeight(), TU_RENDERTARGET);
@@ -395,7 +395,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(nullptr);
 	}
 
-	POOLED_RENDER_TEXTURE_DESC EyeAdaptationBasicMat::getOutputDesc()
+	POOLED_RENDER_TEXTURE_DESC EyeAdaptationBasicMat::GetOutputDesc()
 	{
 		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_R32F, 1, 1, TU_RENDERTARGET);
 	}
@@ -422,7 +422,7 @@ namespace bs { namespace ct
 		defines.set("LUT_SIZE", LUT_SIZE);
 	}
 
-	void CreateTonemapLUTMat::execute3D(const SPtr<Texture>& output, const RenderSettings& settings)
+	void CreateTonemapLUTMat::Execute3D(const SPtr<Texture>& output, const RenderSettings& settings)
 	{
 		assert(mIs3D);
 		BS_RENMAT_PROFILE_BLOCK
@@ -438,7 +438,7 @@ namespace bs { namespace ct
 		rapi.dispatchCompute(LUT_SIZE / 8, LUT_SIZE / 8, LUT_SIZE);
 	}
 
-	void CreateTonemapLUTMat::execute2D(const SPtr<RenderTexture>& output, const RenderSettings& settings)
+	void CreateTonemapLUTMat::Execute2D(const SPtr<RenderTexture>& output, const RenderSettings& settings)
 	{
 		assert(!mIs3D);
 		BS_RENMAT_PROFILE_BLOCK
@@ -455,7 +455,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(nullptr);
 	}
 
-	void CreateTonemapLUTMat::populateParamBuffers(const RenderSettings& settings)
+	void CreateTonemapLUTMat::PopulateParamBuffers(const RenderSettings& settings)
 	{
 		// Set parameters
 		gCreateTonemapLUTParamDef.gGammaAdjustment.set(mParamBuffer, 2.2f / settings.gamma);
@@ -489,7 +489,7 @@ namespace bs { namespace ct
 		gWhiteBalanceParamDef.gWhiteOffset.set(mWhiteBalanceParamBuffer, settings.whiteBalance.tint);
 	}
 
-	POOLED_RENDER_TEXTURE_DESC CreateTonemapLUTMat::getOutputDesc() const
+	POOLED_RENDER_TEXTURE_DESC CreateTonemapLUTMat::GetOutputDesc() const
 	{
 		if(mIs3D)
 			return POOLED_RENDER_TEXTURE_DESC::create3D(PF_RGBA8, LUT_SIZE, LUT_SIZE, LUT_SIZE, TU_LOADSTORE);
@@ -959,7 +959,7 @@ namespace bs { namespace ct
 		return numSamples;
 	}
 
-	float GaussianBlurMat::calcKernelRadius(const SPtr<Texture>& source, float scale, Direction filterDir)
+	float GaussianBlurMat::CalcKernelRadius(const SPtr<Texture>& source, float scale, Direction filterDir)
 	{
 		scale = Math::clamp01(scale);
 
@@ -970,7 +970,7 @@ namespace bs { namespace ct
 			length = source->getProperties().getHeight();
 
 		// Divide by two because we need the radius
-		return std::min(length * scale / 2, (float)MAX_BLUR_SAMPLES - 1);
+		return std::Min(length * scale / 2, (float)MAX_BLUR_SAMPLES - 1);
 	}
 
 	void GaussianBlurMat::populateBuffer(const SPtr<GpuParamBlockBuffer>& buffer, Direction direction,
@@ -1104,7 +1104,7 @@ namespace bs { namespace ct
 		gRendererUtility().drawScreenQuad();
 	}
 
-	SPtr<PooledRenderTexture> GaussianDOFSeparateMat::getOutput(UINT32 idx)
+	SPtr<PooledRenderTexture> GaussianDOFSeparateMat::GetOutput(UINT32 idx)
 	{
 		if (idx == 0)
 			return mOutput0;
@@ -1114,7 +1114,7 @@ namespace bs { namespace ct
 		return nullptr;
 	}
 
-	void GaussianDOFSeparateMat::release()
+	void GaussianDOFSeparateMat::Release()
 	{
 		mOutput0 = nullptr;
 		mOutput1 = nullptr;
@@ -1238,7 +1238,7 @@ namespace bs { namespace ct
 			gRendererUtility().drawScreenQuad();
 	}
 
-	POOLED_RENDER_TEXTURE_DESC BokehDOFPrepareMat::getOutputDesc(const SPtr<Texture>& target)
+	POOLED_RENDER_TEXTURE_DESC BokehDOFPrepareMat::GetOutputDesc(const SPtr<Texture>& target)
 	{
 		const TextureProperties& rtProps = target->getProperties();
 
@@ -1384,7 +1384,7 @@ namespace bs { namespace ct
 		rapi.drawIndexed(0, QUADS_PER_TILE * 6, 0, QUADS_PER_TILE * 4, numInstances);
 	}
 
-	POOLED_RENDER_TEXTURE_DESC BokehDOFMat::getOutputDesc(const SPtr<Texture>& target)
+	POOLED_RENDER_TEXTURE_DESC BokehDOFMat::GetOutputDesc(const SPtr<Texture>& target)
 	{
 		const TextureProperties& rtProps = target->getProperties();
 
@@ -1623,7 +1623,7 @@ namespace bs { namespace ct
 		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
 
-	void FXAAMat::execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& destination)
+	void FXAAMat::Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& destination)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
@@ -2104,7 +2104,7 @@ namespace bs { namespace ct
 			gRendererUtility().drawScreenQuad();
 	}
 
-	Vector2 SSRTraceMat::calcRoughnessFadeScaleBias(float maxRoughness)
+	Vector2 SSRTraceMat::CalcRoughnessFadeScaleBias(float maxRoughness)
 	{
 		const static float RANGE_SCALE = 2.0f;
 
@@ -2390,7 +2390,7 @@ namespace bs { namespace ct
 		setSamplerState(mParams, GPT_FRAGMENT_PROGRAM, "gInputSamp", "gInputTex", samplerState);
 	}
 
-	void EncodeDepthMat::execute(const SPtr<Texture>& depth, float near, float far, const SPtr<RenderTarget>& output)
+	void EncodeDepthMat::Execute(const SPtr<Texture>& depth, float near, float far, const SPtr<RenderTarget>& output)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
@@ -2410,7 +2410,7 @@ namespace bs { namespace ct
 		:mGBufferParams(GPT_FRAGMENT_PROGRAM, mParams)
 	{ }
 
-	void MSAACoverageMat::execute(const RendererView& view, GBufferTextures gbuffer)
+	void MSAACoverageMat::Execute(const RendererView& view, GBufferTextures gbuffer)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
@@ -2443,7 +2443,7 @@ namespace bs { namespace ct
 		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gMSAACoverage", mCoverageTexParam);
 	}
 
-	void MSAACoverageStencilMat::execute(const RendererView& view, const SPtr<Texture>& coverage)
+	void MSAACoverageStencilMat::Execute(const RendererView& view, const SPtr<Texture>& coverage)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 

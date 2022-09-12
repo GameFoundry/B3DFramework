@@ -15,7 +15,7 @@ namespace bs
 
 	}
 
-	void ScriptPrefab::initRuntimeData()
+	void ScriptPrefab::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptPrefab::internal_CreateInstance);
 		metaData.scriptClass->addInternalCall("Internal_Instantiate", (void*)&ScriptPrefab::internal_Instantiate);

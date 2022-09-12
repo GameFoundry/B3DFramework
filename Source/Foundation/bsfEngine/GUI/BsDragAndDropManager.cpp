@@ -20,12 +20,12 @@ namespace bs
 		mMouseCaptureChangedConn.disconnect();
 	}
 
-	void DragAndDropManager::addDropCallback(std::function<void(bool)> dropCallback)
+	void DragAndDropManager::AddDropCallback(std::function<void(bool)> dropCallback)
 	{
 		mDropCallbacks.push_back(dropCallback);
 	}
 
-	void DragAndDropManager::startDrag(UINT32 typeId, void* data, std::function<void(bool)> dropCallback, bool needsValidDropTarget)
+	void DragAndDropManager::StartDrag(UINT32 typeId, void* data, std::function<void(bool)> dropCallback, bool needsValidDropTarget)
 	{
 		if (mIsDragInProgress)
 			endDrag(false);
@@ -57,7 +57,7 @@ namespace bs
 		}
 	}
 
-	void DragAndDropManager::endDrag(bool processed)
+	void DragAndDropManager::EndDrag(bool processed)
 	{
 		for(auto& callback : mDropCallbacks)
 			callback(processed);
@@ -68,14 +68,14 @@ namespace bs
 		mIsDragInProgress = false;
 	}
 
-	void DragAndDropManager::mouseCaptureChanged()
+	void DragAndDropManager::MouseCaptureChanged()
 	{
 		mCaptureActive.fetch_xor(1); // mCaptureActive = !mCaptureActive;
 		mCaptureChanged.store(true);
 		mCaptureChangeFrame.store(gTime().getFrameIdx());
 	}
 
-	void DragAndDropManager::cursorReleased(const PointerEvent& event)
+	void DragAndDropManager::CursorReleased(const PointerEvent& event)
 	{
 		if(!mIsDragInProgress)
 			return;

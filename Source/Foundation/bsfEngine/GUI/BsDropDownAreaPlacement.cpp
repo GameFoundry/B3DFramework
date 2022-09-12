@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	DropDownAreaPlacement DropDownAreaPlacement::aroundPosition(const Vector2I& position)
+	DropDownAreaPlacement DropDownAreaPlacement::AroundPosition(const Vector2I& position)
 	{
 		DropDownAreaPlacement instance;
 		instance.mType = Type::Position;
@@ -14,7 +14,7 @@ namespace bs
 		return instance;
 	}
 
-	DropDownAreaPlacement DropDownAreaPlacement::aroundBoundsVert(const Rect2I& bounds)
+	DropDownAreaPlacement DropDownAreaPlacement::AroundBoundsVert(const Rect2I& bounds)
 	{
 		DropDownAreaPlacement instance;
 		instance.mType = Type::BoundsVert;
@@ -23,7 +23,7 @@ namespace bs
 		return instance;
 	}
 
-	DropDownAreaPlacement DropDownAreaPlacement::aroundBoundsHorz(const Rect2I& bounds)
+	DropDownAreaPlacement DropDownAreaPlacement::AroundBoundsHorz(const Rect2I& bounds)
 	{
 		DropDownAreaPlacement instance;
 		instance.mType = Type::BoundsHorz;
@@ -32,7 +32,7 @@ namespace bs
 		return instance;
 	}
 
-	DropDownAreaPlacement DropDownAreaPlacement::aroundBounds(const Rect2I& bounds)
+	DropDownAreaPlacement DropDownAreaPlacement::AroundBounds(const Rect2I& bounds)
 	{
 		DropDownAreaPlacement instance;
 		instance.mType = Type::BoundsAll;
@@ -41,7 +41,7 @@ namespace bs
 		return instance;
 	}
 
-	Rect2I DropDownAreaPlacement::getOptimalBounds(UINT32 width, UINT32 height, const Rect2I& availableArea, HorzDir& horzDir, VertDir& vertDir) const
+	Rect2I DropDownAreaPlacement::GetOptimalBounds(UINT32 width, UINT32 height, const Rect2I& availableArea, HorzDir& horzDir, VertDir& vertDir) const
 	{
 		Rect2I output;
 

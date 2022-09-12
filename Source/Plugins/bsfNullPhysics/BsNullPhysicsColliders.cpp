@@ -9,7 +9,7 @@ namespace bs
 		: MPosition(position), mRotation(rotation)
 	{ }
 
-	void FNullPhysicsCollider::setTransform(const Vector3& pos, const Quaternion& rotation)
+	void FNullPhysicsCollider::SetTransform(const Vector3& pos, const Quaternion& rotation)
 	{
 		mPosition = pos;
 		mRotation = rotation;

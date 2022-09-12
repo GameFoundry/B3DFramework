@@ -12,7 +12,7 @@ namespace bs
 	{
 	}
 
-	void ScriptShaderVariation::initRuntimeData()
+	void ScriptShaderVariation::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_ShaderVariation", (void*)&ScriptShaderVariation::Internal_ShaderVariation);
 		metaData.scriptClass->addInternalCall("Internal_getInt", (void*)&ScriptShaderVariation::Internal_getInt);

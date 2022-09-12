@@ -31,7 +31,7 @@ namespace bs { namespace ct
 		clearBufferViews();
 	}
 
-	void D3D11GpuBuffer::initialize()
+	void D3D11GpuBuffer::Initialize()
 	{
 		const GpuBufferProperties& props = getProperties();
 		mBufferDeleter = &deleteBuffer;
@@ -105,7 +105,7 @@ namespace bs { namespace ct
 		return iterFind->second->view;
 	}
 
-	void D3D11GpuBuffer::releaseView(GpuBufferView* view)
+	void D3D11GpuBuffer::ReleaseView(GpuBufferView* view)
 	{
 		D3D11GpuBuffer* buffer = view->getBuffer();
 
@@ -130,7 +130,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void D3D11GpuBuffer::clearBufferViews()
+	void D3D11GpuBuffer::ClearBufferViews()
 	{
 		for (auto iter = mBufferViews.begin(); iter != mBufferViews.end(); ++iter)
 		{

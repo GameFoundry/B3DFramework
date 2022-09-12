@@ -16,13 +16,13 @@ namespace bs
 {
 	const UINT32 GUIScrollBar::ButtonScrollAmount = 10;
 
-	const String& GUIScrollBar::getHScrollHandleType()
+	const String& GUIScrollBar::GetHScrollHandleType()
 	{
 		static String typeName = "UIScrollBarHHandle";
 		return typeName;
 	}
 
-	const String& GUIScrollBar::getVScrollHandleType()
+	const String& GUIScrollBar::GetVScrollHandleType()
 	{
 		static String typeName = "UIScrollBarVHandle";
 		return typeName;
@@ -89,7 +89,7 @@ namespace bs
 		GUIElement::destroy(mHandleBtn);
 	}
 
-	void GUIScrollBar::updateRenderElementsInternal()
+	void GUIScrollBar::UpdateRenderElementsInternal()
 	{
 		IMAGE_SPRITE_DESC desc;
 
@@ -111,7 +111,7 @@ namespace bs
 		GUIElement::updateRenderElementsInternal();
 	}
 
-	void GUIScrollBar::updateClippedBounds()
+	void GUIScrollBar::UpdateClippedBounds()
 	{
 		mClippedBounds = Rect2I(0, 0, 0, 0); // We don't want any mouse input for this element. This is just a container.
 	}
@@ -145,7 +145,7 @@ namespace bs
 			vertexStride, indexStride, renderElementIdx, layoutOffset, mLayoutData.getLocalClipRect());
 	}
 
-	void GUIScrollBar::styleUpdated()
+	void GUIScrollBar::StyleUpdated()
 	{
 		if (mHorizontal)
 			mHandleBtn->setStyle(getSubStyleName(getHScrollHandleType()));
@@ -153,13 +153,13 @@ namespace bs
 			mHandleBtn->setStyle(getSubStyleName(getVScrollHandleType()));
 	}
 
-	void GUIScrollBar::handleMoved(float handlePct, float sizePct)
+	void GUIScrollBar::HandleMoved(float handlePct, float sizePct)
 	{
 		if(!onScrollOrResize.empty())
 			onScrollOrResize(handlePct, sizePct);
 	}
 
-	void GUIScrollBar::upButtonClicked()
+	void GUIScrollBar::UpButtonClicked()
 	{
 		float handleOffset = 0.0f;
 		float scrollableSize = (float)mHandleBtn->getScrollableSize();
@@ -170,7 +170,7 @@ namespace bs
 		scroll(handleOffset);
 	}
 
-	void GUIScrollBar::downButtonClicked()
+	void GUIScrollBar::DownButtonClicked()
 	{
 		float handleOffset = 0.0f;
 		float scrollableSize = (float)mHandleBtn->getScrollableSize();
@@ -181,7 +181,7 @@ namespace bs
 		scroll(-handleOffset);
 	}
 
-	void GUIScrollBar::scroll(float amount)
+	void GUIScrollBar::Scroll(float amount)
 	{
 		float newHandlePos = Math::clamp01(mHandleBtn->getHandlePos() - amount);
 
@@ -207,12 +207,12 @@ namespace bs
 		mHandleBtn->_setHandlePos(pct);
 	}
 
-	float GUIScrollBar::getScrollPos() const
+	float GUIScrollBar::GetScrollPos() const
 	{
 		return mHandleBtn->getHandlePos();
 	}
 
-	void GUIScrollBar::setScrollPos(float pct)
+	void GUIScrollBar::SetScrollPos(float pct)
 	{
 		float oldHandlePos = mHandleBtn->getHandlePos();
 		mHandleBtn->_setHandlePos(pct);
@@ -221,23 +221,23 @@ namespace bs
 			mHandleBtn->_markLayoutAsDirty();
 	}
 
-	float GUIScrollBar::getHandleSize() const
+	float GUIScrollBar::GetHandleSize() const
 	{
 		return mHandleBtn->_getHandleSizePct();
 	}
 
-	void GUIScrollBar::setHandleSize(float pct)
+	void GUIScrollBar::SetHandleSize(float pct)
 	{
 		mHandleBtn->_setHandleSize(pct);
 		mHandleBtn->_markLayoutAsDirty();
 	}
 
-	UINT32 GUIScrollBar::getScrollableSize() const
+	UINT32 GUIScrollBar::GetScrollableSize() const
 	{
 		return mHandleBtn->getScrollableSize();
 	}
 
-	void GUIScrollBar::setTint(const Color& color)
+	void GUIScrollBar::SetTint(const Color& color)
 	{
 		mUpBtn->setTint(color);
 		mDownBtn->setTint(color);

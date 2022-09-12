@@ -48,7 +48,7 @@ namespace bs
 
 			const auto prevKeyTime = mTimes[i - 1];
 			const auto fracColor = impl::TGradientHelper<COLOR>::invLerp(prevKeyTime, curKeyTime, time);
-			return Color::lerp(fracColor, mColors[i - 1], mColors[i]);
+			return Color::Lerp(fracColor, mColors[i - 1], mColors[i]);
 		}
 
 		return mColors[mNumKeys - 1];

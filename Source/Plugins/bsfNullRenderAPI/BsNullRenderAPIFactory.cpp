@@ -8,7 +8,7 @@ namespace bs { namespace ct
 {
 	constexpr const char* NullRenderAPIFactory::SystemName;
 
-	void NullRenderAPIFactory::create()
+	void NullRenderAPIFactory::Create()
 	{
 		RenderAPI::startUp<NullRenderAPI>();
 	}

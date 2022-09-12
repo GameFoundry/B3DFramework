@@ -20,7 +20,7 @@ namespace bs
 		setName("FixedJoint");
 	}
 
-	SPtr<Joint> CFixedJoint::createInternal()
+	SPtr<Joint> CFixedJoint::CreateInternal()
 	{
 		const SPtr<SceneInstance>& scene = SO()->getScene();
 		SPtr<Joint> joint = FixedJoint::create(*scene->getPhysicsScene(), mDesc);
@@ -29,7 +29,7 @@ namespace bs
 		return joint;
 	}
 
-	void CFixedJoint::getLocalTransform(JointBody body, Vector3& position, Quaternion& rotation)
+	void CFixedJoint::GetLocalTransform(JointBody body, Vector3& position, Quaternion& rotation)
 	{
 		position = mPositions[(UINT32)body];
 		rotation = mRotations[(UINT32)body];
@@ -63,11 +63,11 @@ namespace bs
 
 	RTTITypeBase* CFixedJoint::getRTTIStatic()
 	{
-		return CFixedJointRTTI::instance();
+		return CFixedJointRTTI::Instance();
 	}
 
 	RTTITypeBase* CFixedJoint::getRTTI() const
 	{
-		return CFixedJoint::getRTTIStatic();
+		return CFixedJoint::GetRTTIStatic();
 	}
 }

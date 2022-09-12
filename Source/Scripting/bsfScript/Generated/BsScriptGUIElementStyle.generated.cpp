@@ -16,7 +16,7 @@ namespace bs
 	{
 	}
 
-	void ScriptGUIElementStyle::initRuntimeData()
+	void ScriptGUIElementStyle::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GUIElementStyle", (void*)&ScriptGUIElementStyle::Internal_GUIElementStyle);
 		metaData.scriptClass->addInternalCall("Internal_addSubStyle", (void*)&ScriptGUIElementStyle::Internal_addSubStyle);

@@ -26,7 +26,7 @@ namespace bs
 		mContextMenu = bs_shared_ptr_new<GUIContextMenu>();
 	}
 
-	void ScriptContextMenu::initRuntimeData()
+	void ScriptContextMenu::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptContextMenu::internal_CreateInstance);
 		metaData.scriptClass->addInternalCall("Internal_Open", (void*)&ScriptContextMenu::internal_Open);
@@ -85,7 +85,7 @@ namespace bs
 		contextMenu->setLocalizedName(nativeLabel, *name->getInternal());
 	}
 
-	void ScriptContextMenu::onContextMenuItemTriggered(UINT32 idx)
+	void ScriptContextMenu::OnContextMenuItemTriggered(UINT32 idx)
 	{
 		MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
 		MonoUtil::invokeThunk(onEntryTriggered, instance, idx);

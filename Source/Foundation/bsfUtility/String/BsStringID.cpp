@@ -29,7 +29,7 @@ namespace bs
 	}
 
 	template<class T>
-	void StringID::construct(T const& name)
+	void StringID::Construct(T const& name)
 	{
 		assert(StringIDUtil<T>::size(name) <= STRING_SIZE);
 
@@ -74,7 +74,7 @@ namespace bs
 	}
 
 	template<class T>
-	UINT32 StringID::calcHash(T const& input)
+	UINT32 StringID::CalcHash(T const& input)
 	{
 		UINT32 size = StringIDUtil<T>::size(input);
 
@@ -133,9 +133,9 @@ namespace bs
 		static bool Compare(String const& a, char* b) { return a.compare(b) == 0; }
 	};
 
-	template BS_UTILITY_EXPORT void StringID::construct(const char* const&);
-	template BS_UTILITY_EXPORT void StringID::construct(String const&);
+	template BS_UTILITY_EXPORT void StringID::Construct(const char* const&);
+	template BS_UTILITY_EXPORT void StringID::Construct(String const&);
 	
-	template BS_UTILITY_EXPORT UINT32 StringID::calcHash(const char* const&);
-	template BS_UTILITY_EXPORT UINT32 StringID::calcHash(String const&);
+	template BS_UTILITY_EXPORT UINT32 StringID::CalcHash(const char* const&);
+	template BS_UTILITY_EXPORT UINT32 StringID::CalcHash(String const&);
 }

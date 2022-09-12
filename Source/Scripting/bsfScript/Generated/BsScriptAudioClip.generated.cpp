@@ -13,7 +13,7 @@ namespace bs
 	{
 	}
 
-	void ScriptAudioClip::initRuntimeData()
+	void ScriptAudioClip::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetRef", (void*)&ScriptAudioClip::Internal_getRef);
 		metaData.scriptClass->addInternalCall("Internal_getBitDepth", (void*)&ScriptAudioClip::Internal_getBitDepth);

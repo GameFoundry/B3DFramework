@@ -13,7 +13,7 @@ namespace bs
 	Signal ResourceHandleBase::mResourceCreatedCondition;
 	Mutex ResourceHandleBase::mResourceCreatedMutex;
 
-	bool ResourceHandleBase::isLoaded(bool checkDependencies) const
+	bool ResourceHandleBase::IsLoaded(bool checkDependencies) const
 	{
 		bool isLoaded = (mData != nullptr && mData->mIsCreated && mData->mPtr != nullptr);
 
@@ -23,7 +23,7 @@ namespace bs
 		return isLoaded;
 	}
 
-	void ResourceHandleBase::blockUntilLoaded(bool waitForDependencies) const
+	void ResourceHandleBase::BlockUntilLoaded(bool waitForDependencies) const
 	{
 		if(mData == nullptr)
 			return;
@@ -58,18 +58,18 @@ namespace bs
 		}
 	}
 
-	void ResourceHandleBase::release()
+	void ResourceHandleBase::Release()
 	{
 		gResources().release(*this);
 	}
 
-	void ResourceHandleBase::destroy()
+	void ResourceHandleBase::Destroy()
 	{
 		if(mData->mPtr)
 			gResources().destroy(*this);
 	}
 
-	void ResourceHandleBase::setHandleData(const SPtr<Resource>& ptr, const UUID& uuid)
+	void ResourceHandleBase::SetHandleData(const SPtr<Resource>& ptr, const UUID& uuid)
 	{
 		mData->mPtr = ptr;
 
@@ -77,7 +77,7 @@ namespace bs
 			mData->mUUID = uuid;
 	}
 
-	void ResourceHandleBase::notifyLoadComplete()
+	void ResourceHandleBase::NotifyLoadComplete()
 	{
 		if (!mData->mIsCreated)
 		{
@@ -90,7 +90,7 @@ namespace bs
 		}
 	}
 
-	void ResourceHandleBase::clearHandleData()
+	void ResourceHandleBase::ClearHandleData()
 	{
 		mData->mPtr = nullptr;
 
@@ -98,17 +98,17 @@ namespace bs
 		mData->mIsCreated = false;
 	}
 
-	void ResourceHandleBase::addInternalRef()
+	void ResourceHandleBase::AddInternalRef()
 	{
 		mData->mRefCount.fetch_add(1, std::memory_order_relaxed);
 	}
 
-	void ResourceHandleBase::removeInternalRef()
+	void ResourceHandleBase::RemoveInternalRef()
 	{
 		mData->mRefCount.fetch_sub(1, std::memory_order_relaxed);
 	}
 
-	void ResourceHandleBase::throwIfNotLoaded() const
+	void ResourceHandleBase::ThrowIfNotLoaded() const
 	{
 #if BS_DEBUG_MODE
 		if (!isLoaded(false))
@@ -120,7 +120,7 @@ namespace bs
 
 	RTTITypeBase* TResourceHandleBase<true>::getRTTIStatic()
 	{
-		return WeakResourceHandleRTTI::instance();
+		return WeakResourceHandleRTTI::Instance();
 	}
 
 	RTTITypeBase* TResourceHandleBase<true>::getRTTI() const
@@ -130,7 +130,7 @@ namespace bs
 
 	RTTITypeBase* TResourceHandleBase<false>::getRTTIStatic()
 	{
-		return ResourceHandleRTTI::instance();
+		return ResourceHandleRTTI::Instance();
 	}
 
 	RTTITypeBase* TResourceHandleBase<false>::getRTTI() const

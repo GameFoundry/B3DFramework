@@ -27,7 +27,7 @@ namespace bs
 		value->_scriptOnEventTriggered = std::bind(&ScriptCAnimation::_scriptOnEventTriggered, this, std::placeholders::_1, std::placeholders::_2);
 	}
 
-	void ScriptCAnimation::initRuntimeData()
+	void ScriptCAnimation::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_setDefaultClip", (void*)&ScriptCAnimation::Internal_setDefaultClip);
 		metaData.scriptClass->addInternalCall("Internal_getDefaultClip", (void*)&ScriptCAnimation::Internal_getDefaultClip);

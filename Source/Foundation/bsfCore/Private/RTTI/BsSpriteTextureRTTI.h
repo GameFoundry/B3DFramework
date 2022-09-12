@@ -39,7 +39,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return SpriteTexture::createEmpty();
+			return SpriteTexture::CreateEmpty();
 		}
 
 	private:

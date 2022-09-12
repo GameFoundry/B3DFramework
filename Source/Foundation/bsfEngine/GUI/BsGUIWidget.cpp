@@ -59,7 +59,7 @@ namespace bs
 		mDrawGroups.push_back(mainDrawGroup);
 	}
 
-	void GUIDrawGroups::add(GUIElement* element)
+	void GUIDrawGroups::Add(GUIElement* element)
 	{
 		const SmallVector<GUIRenderElement, 4> & renderElements = element->_getRenderElements();
 
@@ -74,7 +74,7 @@ namespace bs
 		mGroupsCoreDirty = true;
 	}
 
-	void GUIDrawGroups::add(GUIGroupElement& groupElement, UINT32 renderElementIdx)
+	void GUIDrawGroups::Add(GUIGroupElement& groupElement, UINT32 renderElementIdx)
 	{
 		GUIElement* element = groupElement.element;
 		const SmallVector<GUIRenderElement, 4> & renderElements = element->_getRenderElements();
@@ -93,7 +93,7 @@ namespace bs
 		}
 	}
 
-	void GUIDrawGroups::add(GUIGroupElement& groupElement, UINT32 renderElementIdx, UINT32 groupIdx)
+	void GUIDrawGroups::Add(GUIGroupElement& groupElement, UINT32 renderElementIdx, UINT32 groupIdx)
 	{
 		GUIElement* element = groupElement.element;
 		const SmallVector<GUIRenderElement, 4> & renderElements = element->_getRenderElements();
@@ -138,7 +138,7 @@ namespace bs
 		}
 	}
 
-	void GUIDrawGroups::remove(GUIElement* element)
+	void GUIDrawGroups::Remove(GUIElement* element)
 	{
 		auto iterFind = mElements.find(element);
 		if (iterFind == mElements.end())
@@ -151,7 +151,7 @@ namespace bs
 		mGroupsCoreDirty = true;
 	}
 
-	void GUIDrawGroups::remove(GUIGroupElement& groupElement, UINT32 renderElementIdx)
+	void GUIDrawGroups::Remove(GUIGroupElement& groupElement, UINT32 renderElementIdx)
 	{
 		if (renderElementIdx >= (UINT32)groupElement.groups.size())
 			return;
@@ -170,7 +170,7 @@ namespace bs
 		}
 	}
 
-	void GUIDrawGroups::remove(GUIGroupElement& groupElement, UINT32 renderElementIdx, UINT32 groupIdx)
+	void GUIDrawGroups::Remove(GUIGroupElement& groupElement, UINT32 renderElementIdx, UINT32 groupIdx)
 	{
 		GUIElement* element = groupElement.element;
 		const SmallVector<GUIRenderElement, 4>& renderElements = element->_getRenderElements();
@@ -226,7 +226,7 @@ namespace bs
 		}
 	}
 
-	GUIDrawGroupRenderDataUpdate GUIDrawGroups::rebuildDirty(bool forceRebuildMeshes)
+	GUIDrawGroupRenderDataUpdate GUIDrawGroups::RebuildDirty(bool forceRebuildMeshes)
 	{
 		// Update dirty draw groups and mark them for redraw
 		bool shouldRebuildMeshes = forceRebuildMeshes;
@@ -435,17 +435,17 @@ namespace bs
 		return output;
 	}
 
-	void GUIDrawGroups::notifyContentDirty(GUIElement* element)
+	void GUIDrawGroups::NotifyContentDirty(GUIElement* element)
 	{
 		mDirtyElements[element] |= DirtyContent;
 	}
 
-	void GUIDrawGroups::notifyMeshDirty(GUIElement* element)
+	void GUIDrawGroups::NotifyMeshDirty(GUIElement* element)
 	{
 		mDirtyElements[element] |= DirtyMesh;
 	}
 
-	void GUIDrawGroups::rebuildMeshes()
+	void GUIDrawGroups::RebuildMeshes()
 	{
 		struct GUIMaterialGroup
 		{
@@ -743,7 +743,7 @@ namespace bs
 		bs_frame_clear();
 	}
 
-	GUIDrawGroups::GUIDrawGroup& GUIDrawGroups::split(UINT32 groupIdx, UINT32 depth)
+	GUIDrawGroups::GUIDrawGroup& GUIDrawGroups::Split(UINT32 groupIdx, UINT32 depth)
 	{
 		GUIDrawGroup& group = mDrawGroups[groupIdx];
 		assert(depth > group.minDepth);
@@ -782,7 +782,7 @@ namespace bs
 		return mDrawGroups[groupIdx + 1];
 	}
 
-	GUIMeshRenderData GUIDrawGroups::getRenderData(const GUIMesh& guiMesh)
+	GUIMeshRenderData GUIDrawGroups::GetRenderData(const GUIMesh& guiMesh)
 	{
 		SPtr<ct::Texture> textureCore;
 		if (guiMesh.matInfo.texture.isLoaded())
@@ -813,7 +813,7 @@ namespace bs
 		return output;
 	}
 
-	GUIDrawGroupRenderData GUIDrawGroups::getRenderData(const GUIDrawGroup& drawGroup)
+	GUIDrawGroupRenderData GUIDrawGroups::GetRenderData(const GUIDrawGroup& drawGroup)
 	{
 		GUIDrawGroupRenderData output;
 		output.id = drawGroup.id;
@@ -837,7 +837,7 @@ namespace bs
 		return output;
 	}
 
-	Rect2I GUIDrawGroups::calculateBounds(GUIDrawGroup& group)
+	Rect2I GUIDrawGroups::CalculateBounds(GUIDrawGroup& group)
 	{
 		Rect2I bounds = Rect2I();
 		bool boundsSet = false;
@@ -872,7 +872,7 @@ namespace bs
 		construct(mCamera);
 	}
 
-	void GUIWidget::construct(const SPtr<Camera>& camera)
+	void GUIWidget::Construct(const SPtr<Camera>& camera)
 	{
 		if (mCamera != nullptr)
 		{
@@ -896,12 +896,12 @@ namespace bs
 		_destroy();
 	}
 
-	SPtr<GUIWidget> GUIWidget::create(const SPtr<Camera>& camera)
+	SPtr<GUIWidget> GUIWidget::Create(const SPtr<Camera>& camera)
 	{
 		return bs_shared_ptr(new (bs_alloc<GUIWidget>()) GUIWidget(camera));
 	}
 
-	SPtr<GUIWidget> GUIWidget::create(const HCamera& camera)
+	SPtr<GUIWidget> GUIWidget::Create(const HCamera& camera)
 	{
 		return bs_shared_ptr(new (bs_alloc<GUIWidget>()) GUIWidget(camera));
 	}
@@ -924,7 +924,7 @@ namespace bs
 		mDirtyContents.clear();
 	}
 
-	void GUIWidget::setDepth(UINT8 depth)
+	void GUIWidget::SetDepth(UINT8 depth)
 	{
 		mDepth = depth;
 		mWidgetIsDirty = true;
@@ -1158,7 +1158,7 @@ namespace bs
 		}
 	}
 
-	void GUIWidget::setSkin(const HGUISkin& skin)
+	void GUIWidget::SetSkin(const HGUISkin& skin)
 	{
 		mSkin = skin;
 
@@ -1166,7 +1166,7 @@ namespace bs
 			element->_refreshStyle();
 	}
 
-	const GUISkin& GUIWidget::getSkin() const
+	const GUISkin& GUIWidget::GetSkin() const
 	{
 		if(mSkin.isLoaded())
 			return *mSkin;
@@ -1174,7 +1174,7 @@ namespace bs
 			return *BuiltinResources::instance().getGUISkin();
 	}
 
-	void GUIWidget::setCamera(const SPtr<Camera>& camera)
+	void GUIWidget::SetCamera(const SPtr<Camera>& camera)
 	{
 		SPtr<Camera> newCamera = camera;
 		if(newCamera != nullptr)
@@ -1193,12 +1193,12 @@ namespace bs
 		updateRootPanel();
 	}
 
-	void GUIWidget::setIsActive(bool active)
+	void GUIWidget::SetIsActive(bool active)
 	{
 		mIsActive = active;
 	}
 
-	GUIDrawGroupRenderDataUpdate GUIWidget::rebuildDirtyRenderData()
+	GUIDrawGroupRenderDataUpdate GUIWidget::RebuildDirtyRenderData()
 	{
 		if (!mIsActive)
 			return GUIDrawGroupRenderDataUpdate();
@@ -1226,7 +1226,7 @@ namespace bs
 		return mDrawGroups.rebuildDirty(dirty);
 	}
 
-	bool GUIWidget::inBounds(const Vector2I& position) const
+	bool GUIWidget::InBounds(const Vector2I& position) const
 	{
 		Viewport* target = getTarget();
 		if (target == nullptr)
@@ -1243,7 +1243,7 @@ namespace bs
 		return mBounds.contains(localPos);
 	}
 
-	void GUIWidget::updateBounds() const
+	void GUIWidget::UpdateBounds() const
 	{
 		if(!mElements.empty())
 			mBounds = mElements[0]->_getClippedBounds();
@@ -1255,12 +1255,12 @@ namespace bs
 		}
 	}
 
-	void GUIWidget::ownerWindowFocusChanged()
+	void GUIWidget::OwnerWindowFocusChanged()
 	{
 		onOwnerWindowFocusChanged();
 	}
 
-	void GUIWidget::updateRootPanel()
+	void GUIWidget::UpdateRootPanel()
 	{
 		Viewport* target = getTarget();
 		if (target == nullptr)

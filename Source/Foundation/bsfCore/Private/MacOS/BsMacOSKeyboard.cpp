@@ -28,12 +28,12 @@ namespace bs
 		bs_delete(m);
 	}
 
-	void Keyboard::capture()
+	void Keyboard::Capture()
 	{
 		m->hid.capture(nullptr, !m->hasInputFocus);
 	}
 
-	void Keyboard::changeCaptureContext(UINT64 windowHandle)
+	void Keyboard::ChangeCaptureContext(UINT64 windowHandle)
 	{
 		m->hasInputFocus = windowHandle != (UINT64)-1;
 	}

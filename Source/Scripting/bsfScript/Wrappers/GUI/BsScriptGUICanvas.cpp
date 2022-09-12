@@ -18,7 +18,7 @@ namespace bs
 
 	}
 
-	void ScriptGUICanvas::initRuntimeData()
+	void ScriptGUICanvas::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptGUICanvas::internal_createInstance);
 		metaData.scriptClass->addInternalCall("Internal_DrawLine", (void*)&ScriptGUICanvas::internal_drawLine);

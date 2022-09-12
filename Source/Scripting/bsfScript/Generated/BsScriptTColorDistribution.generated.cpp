@@ -15,7 +15,7 @@ namespace bs
 	{
 	}
 
-	void ScriptTColorDistributionColorGradient::initRuntimeData()
+	void ScriptTColorDistributionColorGradient::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_TColorDistribution", (void*)&ScriptTColorDistributionColorGradient::Internal_TColorDistribution);
 		metaData.scriptClass->addInternalCall("Internal_TColorDistribution0", (void*)&ScriptTColorDistributionColorGradient::Internal_TColorDistribution0);
@@ -140,7 +140,7 @@ namespace bs
 	{
 	}
 
-	void ScriptTColorDistributionColorGradientHDR::initRuntimeData()
+	void ScriptTColorDistributionColorGradientHDR::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_TColorDistribution", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_TColorDistribution);
 		metaData.scriptClass->addInternalCall("Internal_TColorDistribution0", (void*)&ScriptTColorDistributionColorGradientHDR::Internal_TColorDistribution0);

@@ -17,7 +17,7 @@ namespace bs
 	{
 	}
 
-	void ScriptGUISkin::initRuntimeData()
+	void ScriptGUISkin::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetRef", (void*)&ScriptGUISkin::Internal_getRef);
 		metaData.scriptClass->addInternalCall("Internal_hasStyle", (void*)&ScriptGUISkin::Internal_hasStyle);

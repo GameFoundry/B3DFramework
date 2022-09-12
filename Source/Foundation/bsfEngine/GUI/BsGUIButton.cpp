@@ -6,7 +6,7 @@
 
 namespace bs
 {
-	const String& GUIButton::getGUITypeName()
+	const String& GUIButton::GetGUITypeName()
 	{
 		static String name = "Button";
 		return name;

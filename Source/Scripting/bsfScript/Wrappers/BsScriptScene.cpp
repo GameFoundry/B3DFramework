@@ -35,7 +35,7 @@ namespace bs
 		:ScriptObject(instance)
 	{ }
 
-	void ScriptScene::initRuntimeData()
+	void ScriptScene::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetRoot", (void*)&ScriptScene::internal_GetRoot);
 		metaData.scriptClass->addInternalCall("Internal_GetMainCameraSO", (void*)&ScriptScene::internal_GetMainCameraSO);
@@ -49,26 +49,26 @@ namespace bs
 #endif
 	}
 
-	void ScriptScene::startUp()
+	void ScriptScene::StartUp()
 	{
 		OnRefreshStartedConn = ScriptObjectManager::instance().onRefreshStarted.connect(&onRefreshStarted);
 		OnRefreshDomainLoadedConn = ScriptObjectManager::instance().onRefreshDomainLoaded.connect(&onRefreshDomainLoaded);
 	}
 
-	void ScriptScene::shutDown()
+	void ScriptScene::ShutDown()
 	{
 		OnRefreshStartedConn.disconnect();
 		OnRefreshDomainLoadedConn.disconnect();
 	}
 
-	void ScriptScene::update()
+	void ScriptScene::Update()
 	{
 #if BS_IS_BANSHEE3D
 		MonoUtil::invokeThunk(onUpdateThunk);
 #endif
 	}
 
-	void ScriptScene::setActiveScene(const HPrefab& prefab)
+	void ScriptScene::SetActiveScene(const HPrefab& prefab)
 	{
 		if (prefab.isLoaded(false))
 		{
@@ -87,7 +87,7 @@ namespace bs
 		}
 	}
 
-	void ScriptScene::onRefreshStarted()
+	void ScriptScene::OnRefreshStarted()
 	{
 		MonoMethod* uuidMethod = metaData.scriptClass->getMethod("GetSceneUUID");
 		if (uuidMethod != nullptr)
@@ -102,7 +102,7 @@ namespace bs
 			sIsGenericPrefab = *(bool*)MonoUtil::unbox(genericPrefabMethod->invoke(nullptr, nullptr));
 	}
 
-	void ScriptScene::onRefreshDomainLoaded()
+	void ScriptScene::OnRefreshDomainLoaded()
 	{
 		MonoMethod* uuidMethod = metaData.scriptClass->getMethod("SetSceneUUID", 1);
 		if (uuidMethod != nullptr)

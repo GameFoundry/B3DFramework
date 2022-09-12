@@ -219,13 +219,13 @@ namespace bs
 		/** @copydoc RTTIReflectableFieldBase::newObject */
 		SPtr<IReflectable> NewObject() override
 		{
-			return DataType::getRTTIStatic()->newRTTIObject();
+			return DataType::GetRTTIStatic()->newRTTIObject();
 		}
 
 		/** @copydoc RTTIReflectableFieldBase::getType */
 		RTTITypeBase* getType() override
 		{
-			return DataType::getRTTIStatic();
+			return DataType::GetRTTIStatic();
 		}
 
 	private:

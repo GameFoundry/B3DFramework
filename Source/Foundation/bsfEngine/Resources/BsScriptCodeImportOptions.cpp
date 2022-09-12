@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	SPtr<ScriptCodeImportOptions> ScriptCodeImportOptions::create()
+	SPtr<ScriptCodeImportOptions> ScriptCodeImportOptions::Create()
 	{
 		return bs_shared_ptr_new<ScriptCodeImportOptions>();
 	}
@@ -15,11 +15,11 @@ namespace bs
 	/************************************************************************/
 	RTTITypeBase* ScriptCodeImportOptions::getRTTIStatic()
 	{
-		return ScriptCodeImportOptionsRTTI::instance();
+		return ScriptCodeImportOptionsRTTI::Instance();
 	}
 
 	RTTITypeBase* ScriptCodeImportOptions::getRTTI() const
 	{
-		return ScriptCodeImportOptions::getRTTIStatic();
+		return ScriptCodeImportOptions::GetRTTIStatic();
 	}
 }

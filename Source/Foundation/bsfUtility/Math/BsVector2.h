@@ -224,7 +224,7 @@ namespace bs
 		/** Returns the length (magnitude) of the vector. */
 		float Length() const
 		{
-			return Math::sqrt(x * x + y * y);
+			return Math::Sqrt(x * x + y * y);
 		}
 
 		/** Returns the square of the length(magnitude) of the vector. */
@@ -334,7 +334,7 @@ namespace bs
 		/** Checks are any of the vector components NaN. */
 		bool IsNaN() const
 		{
-			return Math::isNaN(x) || Math::isNaN(y);
+			return Math::IsNaN(x) || Math::isNaN(y);
 		}
 
 		/** Returns the minimum of all the vector components as a new vector. */

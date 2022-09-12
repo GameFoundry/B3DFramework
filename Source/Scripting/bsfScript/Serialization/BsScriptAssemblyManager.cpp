@@ -20,7 +20,7 @@ namespace bs
 {
 	BuiltinTypeMappings BuiltinTypeMappings::EMPTY;
 
-	Vector<String> ScriptAssemblyManager::getScriptAssemblies() const
+	Vector<String> ScriptAssemblyManager::GetScriptAssemblies() const
 	{
 		Vector<String> initializedAssemblies;
 		for (auto& assemblyPair : mAssemblyInfos)
@@ -29,7 +29,7 @@ namespace bs
 		return initializedAssemblies;
 	}
 
-	void ScriptAssemblyManager::loadAssemblyInfo(const String& assemblyName, const BuiltinTypeMappings& typeMappings)
+	void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName, const BuiltinTypeMappings& typeMappings)
 	{
 		if(!mBaseTypesInitialized)
 			initializeBaseTypes();
@@ -311,7 +311,7 @@ namespace bs
 		}
 	}
 
-	void ScriptAssemblyManager::clearAssemblyInfo()
+	void ScriptAssemblyManager::ClearAssemblyInfo()
 	{
 		clearScriptObjects();
 		mAssemblyInfos.clear();
@@ -327,7 +327,7 @@ namespace bs
 		mReflectableTypeInfosByTID.clear();
 	}
 
-	SPtr<ManagedSerializableTypeInfo> ScriptAssemblyManager::getTypeInfo(MonoClass* monoClass)
+	SPtr<ManagedSerializableTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
 	{
 		if(!mBaseTypesInitialized)
 			BS_EXCEPT(InvalidStateException, "Calling getTypeInfo without previously initializing base types.");
@@ -605,13 +605,13 @@ namespace bs
 		return nullptr;
 	}
 
-	void ScriptAssemblyManager::clearScriptObjects()
+	void ScriptAssemblyManager::ClearScriptObjects()
 	{
 		mBaseTypesInitialized = false;
 		mBuiltin = BuiltinScriptClasses();
 	}
 
-	void ScriptAssemblyManager::initializeBaseTypes()
+	void ScriptAssemblyManager::InitializeBaseTypes()
 	{
 		// Get necessary classes for detecting needed class & field information
 		MonoAssembly* corlib = MonoManager::instance().getAssembly("corlib");
@@ -741,7 +741,7 @@ namespace bs
 		mBaseTypesInitialized = true;
 	}
 
-	void ScriptAssemblyManager::loadTypeMappings(MonoAssembly& assembly, const BuiltinTypeMappings& mapping)
+	void ScriptAssemblyManager::LoadTypeMappings(MonoAssembly& assembly, const BuiltinTypeMappings& mapping)
 	{
 		for(auto& entry : mapping.components)
 		{
@@ -841,7 +841,7 @@ namespace bs
 		return &(iterFind->second);
 	}
 
-	bool ScriptAssemblyManager::getSerializableObjectInfo(const String& ns, const String& typeName, SPtr<ManagedSerializableObjectInfo>& outInfo)
+	bool ScriptAssemblyManager::GetSerializableObjectInfo(const String& ns, const String& typeName, SPtr<ManagedSerializableObjectInfo>& outInfo)
 	{
 		String fullName = ns + "." + typeName;
 		for(auto& curAssembly : mAssemblyInfos)
@@ -861,7 +861,7 @@ namespace bs
 		return false;
 	}
 
-	bool ScriptAssemblyManager::hasSerializableObjectInfo(const String& ns, const String& typeName)
+	bool ScriptAssemblyManager::HasSerializableObjectInfo(const String& ns, const String& typeName)
 	{
 		String fullName = ns + "." + typeName;
 		for(auto& curAssembly : mAssemblyInfos)
@@ -874,7 +874,7 @@ namespace bs
 		return false;
 	}
 
-	SPtr<IReflectable> ScriptAssemblyManager::getReflectableFromManagedObject(MonoObject* value)
+	SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoObject* value)
 	{
 		if (value != nullptr)
 		{

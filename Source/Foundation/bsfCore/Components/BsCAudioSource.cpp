@@ -24,7 +24,7 @@ namespace bs
 		mNotifyFlags = TCF_Transform;
 	}
 
-	void CAudioSource::setClip(const HAudioClip& clip)
+	void CAudioSource::SetClip(const HAudioClip& clip)
 	{
 		if (mAudioClip == clip)
 			return;
@@ -35,7 +35,7 @@ namespace bs
 			mInternal->setClip(clip);
 	}
 
-	void CAudioSource::setVolume(float volume)
+	void CAudioSource::SetVolume(float volume)
 	{
 		if (mVolume == volume)
 			return;
@@ -46,7 +46,7 @@ namespace bs
 			mInternal->setVolume(volume);
 	}
 
-	void CAudioSource::setPitch(float pitch)
+	void CAudioSource::SetPitch(float pitch)
 	{
 		if (mPitch == pitch)
 			return;
@@ -57,7 +57,7 @@ namespace bs
 			mInternal->setPitch(pitch);
 	}
 
-	void CAudioSource::setIsLooping(bool loop)
+	void CAudioSource::SetIsLooping(bool loop)
 	{
 		if (mLoop == loop)
 			return;
@@ -68,7 +68,7 @@ namespace bs
 			mInternal->setIsLooping(loop);
 	}
 
-	void CAudioSource::setPriority(UINT32 priority)
+	void CAudioSource::SetPriority(UINT32 priority)
 	{
 		if (mPriority == priority)
 			return;
@@ -79,7 +79,7 @@ namespace bs
 			mInternal->setPriority(priority);
 	}
 
-	void CAudioSource::setMinDistance(float distance)
+	void CAudioSource::SetMinDistance(float distance)
 	{
 		if (mMinDistance == distance)
 			return;
@@ -90,7 +90,7 @@ namespace bs
 			mInternal->setMinDistance(distance);
 	}
 
-	void CAudioSource::setAttenuation(float attenuation)
+	void CAudioSource::SetAttenuation(float attenuation)
 	{
 		if (mAttenuation == attenuation)
 			return;
@@ -101,31 +101,31 @@ namespace bs
 			mInternal->setAttenuation(attenuation);
 	}
 
-	void CAudioSource::play()
+	void CAudioSource::Play()
 	{
 		if (mInternal != nullptr)
 			mInternal->play();
 	}
 
-	void CAudioSource::pause()
+	void CAudioSource::Pause()
 	{
 		if (mInternal != nullptr)
 			mInternal->pause();
 	}
 
-	void CAudioSource::stop()
+	void CAudioSource::Stop()
 	{
 		if (mInternal != nullptr)
 			mInternal->stop();
 	}
 
-	void CAudioSource::setTime(float position)
+	void CAudioSource::SetTime(float position)
 	{
 		if (mInternal != nullptr)
 			mInternal->setTime(position);
 	}
 
-	float CAudioSource::getTime() const
+	float CAudioSource::GetTime() const
 	{
 		if (mInternal != nullptr)
 			return mInternal->getTime();
@@ -133,7 +133,7 @@ namespace bs
 		return 0.0f;
 	}
 
-	AudioSourceState CAudioSource::getState() const
+	AudioSourceState CAudioSource::GetState() const
 	{
 		if (mInternal != nullptr)
 			return mInternal->getState();
@@ -141,22 +141,22 @@ namespace bs
 		return AudioSourceState::Stopped;
 	}
 
-	void CAudioSource::onInitialized()
+	void CAudioSource::OnInitialized()
 	{
 
 	}
 
-	void CAudioSource::onDestroyed()
-	{
-		destroyInternal();
-	}
-
-	void CAudioSource::onDisabled()
+	void CAudioSource::OnDestroyed()
 	{
 		destroyInternal();
 	}
 
-	void CAudioSource::onEnabled()
+	void CAudioSource::OnDisabled()
+	{
+		destroyInternal();
+	}
+
+	void CAudioSource::OnEnabled()
 	{
 		restoreInternal();
 
@@ -164,7 +164,7 @@ namespace bs
 			play();
 	}
 
-	void CAudioSource::onTransformChanged(TransformChangedFlags flags)
+	void CAudioSource::OnTransformChanged(TransformChangedFlags flags)
 	{
 		if (!SO()->getActive())
 			return;
@@ -173,7 +173,7 @@ namespace bs
 			updateTransform();
 	}
 
-	void CAudioSource::update()
+	void CAudioSource::Update()
 	{
 		const Vector3 worldPos = SO()->getTransform().getPosition();
 
@@ -186,7 +186,7 @@ namespace bs
 		mLastPosition = worldPos;
 	}
 
-	void CAudioSource::restoreInternal()
+	void CAudioSource::RestoreInternal()
 	{
 		if (mInternal == nullptr)
 			mInternal = AudioSource::create();
@@ -203,13 +203,13 @@ namespace bs
 		updateTransform();
 	}
 
-	void CAudioSource::destroyInternal()
+	void CAudioSource::DestroyInternal()
 	{
 		// This should release the last reference and destroy the internal listener
 		mInternal = nullptr;
 	}
 
-	void CAudioSource::updateTransform()
+	void CAudioSource::UpdateTransform()
 	{
 		mInternal->setTransform(SO()->getTransform());
 		mInternal->setVelocity(mVelocity);
@@ -217,11 +217,11 @@ namespace bs
 
 	RTTITypeBase* CAudioSource::getRTTIStatic()
 	{
-		return CAudioSourceRTTI::instance();
+		return CAudioSourceRTTI::Instance();
 	}
 
 	RTTITypeBase* CAudioSource::getRTTI() const
 	{
-		return CAudioSource::getRTTIStatic();
+		return CAudioSource::GetRTTIStatic();
 	}
 }

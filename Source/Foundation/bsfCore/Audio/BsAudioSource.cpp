@@ -7,71 +7,71 @@
 
 namespace bs
 {
-	void AudioSource::setClip(const HAudioClip& clip)
+	void AudioSource::SetClip(const HAudioClip& clip)
 	{
 		mAudioClip = clip;
 
 		markListenerResourcesDirty();
 	}
 
-	void AudioSource::setVelocity(const Vector3& velocity)
+	void AudioSource::SetVelocity(const Vector3& velocity)
 	{
 		mVelocity = velocity;
 	}
 
-	void AudioSource::setVolume(float volume)
+	void AudioSource::SetVolume(float volume)
 	{
 		mVolume = Math::clamp01(volume);
 	}
 
-	void AudioSource::setPitch(float pitch)
+	void AudioSource::SetPitch(float pitch)
 	{
 		mPitch = pitch;
 	}
 
-	void AudioSource::setIsLooping(bool loop)
+	void AudioSource::SetIsLooping(bool loop)
 	{
 		mLoop = loop;
 	}
 
-	void AudioSource::setPriority(INT32 priority)
+	void AudioSource::SetPriority(INT32 priority)
 	{
 		mPriority = priority;
 	}
 
-	void AudioSource::setMinDistance(float distance)
+	void AudioSource::SetMinDistance(float distance)
 	{
 		mMinDistance = distance;
 	}
 
-	void AudioSource::setAttenuation(float attenuation)
+	void AudioSource::SetAttenuation(float attenuation)
 	{
 		mAttenuation = attenuation;
 	}
 
-	SPtr<AudioSource> AudioSource::create()
+	SPtr<AudioSource> AudioSource::Create()
 	{
 		return GAudio().createSource();
 	}
 
-	void AudioSource::getListenerResources(Vector<HResource>& resources)
+	void AudioSource::GetListenerResources(Vector<HResource>& resources)
 	{
 		if (mAudioClip != nullptr)
 			resources.push_back(mAudioClip);
 	}
 
-	void AudioSource::notifyResourceChanged(const HResource& resource)
+	void AudioSource::NotifyResourceChanged(const HResource& resource)
 	{
 		onClipChanged();
 	}
 
 	RTTITypeBase* AudioSource::getRTTIStatic()
 	{
-		return AudioSourceRTTI::instance();
+		return AudioSourceRTTI::Instance();
 	}
 
 	RTTITypeBase* AudioSource::getRTTI() const
 	{
-		return AudioSource::getRTTIStatic();
+		return AudioSource::GetRTTIStatic();
 	}
 }

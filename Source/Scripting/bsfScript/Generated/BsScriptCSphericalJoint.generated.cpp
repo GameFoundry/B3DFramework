@@ -14,7 +14,7 @@ namespace bs
 	{
 	}
 
-	void ScriptCSphericalJoint::initRuntimeData()
+	void ScriptCSphericalJoint::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getLimit", (void*)&ScriptCSphericalJoint::Internal_getLimit);
 		metaData.scriptClass->addInternalCall("Internal_setLimit", (void*)&ScriptCSphericalJoint::Internal_setLimit);

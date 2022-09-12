@@ -17,7 +17,7 @@ namespace bs
 		:ScriptObject(instance)
 	{ }
 
-	void ScriptBuiltin::initRuntimeData()
+	void ScriptBuiltin::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetWhiteTexture", (void*)&ScriptBuiltin::internal_GetWhiteTexture);
 		metaData.scriptClass->addInternalCall("Internal_GetBuiltinShader", (void*)&ScriptBuiltin::internal_GetBuiltinShader);

@@ -25,7 +25,7 @@ namespace bs
 		bs_delete(m);
 	}
 
-	void Keyboard::capture()
+	void Keyboard::Capture()
 	{
 		Lock Lock(LinuxPlatform::eventLock);
 
@@ -49,7 +49,7 @@ namespace bs
 		}
 	}
 
-	void Keyboard::changeCaptureContext(UINT64 windowHandle)
+	void Keyboard::ChangeCaptureContext(UINT64 windowHandle)
 	{
 		m->hasInputFocus = windowHandle != (UINT64)-1;
 	}

@@ -16,33 +16,33 @@ namespace bs
 		mRotation = linkedSO->getTransform().getRotation();
 	}
 
-	void NullPhysicsRigidbody::move(const Vector3& position)
+	void NullPhysicsRigidbody::Move(const Vector3& position)
 	{
 		setTransform(position, getRotation());
 	}
 
-	void NullPhysicsRigidbody::rotate(const Quaternion& rotation)
+	void NullPhysicsRigidbody::Rotate(const Quaternion& rotation)
 	{
 		setTransform(getPosition(), rotation);
 	}
 
-	Vector3 NullPhysicsRigidbody::getPosition() const
+	Vector3 NullPhysicsRigidbody::GetPosition() const
 	{
 		return mPosition;
 	}
 
-	Quaternion NullPhysicsRigidbody::getRotation() const
+	Quaternion NullPhysicsRigidbody::GetRotation() const
 	{
 		return mRotation;
 	}
 
-	void NullPhysicsRigidbody::setTransform(const Vector3& pos, const Quaternion& rot)
+	void NullPhysicsRigidbody::SetTransform(const Vector3& pos, const Quaternion& rot)
 	{
 		mPosition = pos;
 		mRotation = rot;
 	}
 
-	void NullPhysicsRigidbody::setCenterOfMass(const class Vector3& position, const Quaternion& rotation)
+	void NullPhysicsRigidbody::SetCenterOfMass(const class Vector3& position, const Quaternion& rotation)
 	{
 		mCenterOfMassPosition = position;
 		mCenterOfMassRotation = rotation;

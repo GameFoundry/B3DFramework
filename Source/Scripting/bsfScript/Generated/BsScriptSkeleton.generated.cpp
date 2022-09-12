@@ -14,7 +14,7 @@ namespace bs
 	{
 	}
 
-	void ScriptSkeleton::initRuntimeData()
+	void ScriptSkeleton::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getNumBones", (void*)&ScriptSkeleton::Internal_getNumBones);
 		metaData.scriptClass->addInternalCall("Internal_getBoneInfo", (void*)&ScriptSkeleton::Internal_getBoneInfo);

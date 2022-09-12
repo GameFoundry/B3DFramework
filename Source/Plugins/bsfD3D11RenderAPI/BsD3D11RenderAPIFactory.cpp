@@ -7,7 +7,7 @@ namespace bs { namespace ct
 {
 	constexpr const char* D3D11RenderAPIFactory::SystemName;
 
-	void D3D11RenderAPIFactory::create()
+	void D3D11RenderAPIFactory::Create()
 	{
 		RenderAPI::startUp<D3D11RenderAPI>();
 	}

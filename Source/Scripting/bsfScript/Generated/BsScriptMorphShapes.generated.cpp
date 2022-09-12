@@ -13,7 +13,7 @@ namespace bs
 	{
 	}
 
-	void ScriptMorphShapes::initRuntimeData()
+	void ScriptMorphShapes::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getChannels", (void*)&ScriptMorphShapes::Internal_getChannels);
 

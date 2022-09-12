@@ -23,7 +23,7 @@ namespace bs
 		setFlag(ComponentFlag::AlwaysRun, true);
 	}
 
-	void CParticleSystem::setSettings(const ParticleSystemSettings& settings)
+	void CParticleSystem::SetSettings(const ParticleSystemSettings& settings)
 	{
 		mSettings = settings;
 
@@ -31,7 +31,7 @@ namespace bs
 			mInternal->setSettings(settings);
 	}
 
-	void CParticleSystem::setGpuSimulationSettings(const ParticleGpuSimulationSettings& settings)
+	void CParticleSystem::SetGpuSimulationSettings(const ParticleGpuSimulationSettings& settings)
 	{
 		mGpuSimulationSettings = settings;
 
@@ -39,7 +39,7 @@ namespace bs
 			mInternal->setGpuSimulationSettings(settings);
 	}
 
-	void CParticleSystem::setEvolvers(const Vector<SPtr<ParticleEvolver>>& evolvers)
+	void CParticleSystem::SetEvolvers(const Vector<SPtr<ParticleEvolver>>& evolvers)
 	{
 		mEvolvers = evolvers;
 
@@ -47,7 +47,7 @@ namespace bs
 			mInternal->setEvolvers(evolvers);
 	}
 
-	void CParticleSystem::setEmitters(const Vector<SPtr<ParticleEmitter>>& emitters)
+	void CParticleSystem::SetEmitters(const Vector<SPtr<ParticleEmitter>>& emitters)
 	{
 		mEmitters = emitters;
 
@@ -55,7 +55,7 @@ namespace bs
 			mInternal->setEmitters(emitters);
 	}
 
-	void CParticleSystem::setLayer(UINT64 layer)
+	void CParticleSystem::SetLayer(UINT64 layer)
 	{
 		mLayer = layer;
 
@@ -63,17 +63,17 @@ namespace bs
 			mInternal->setLayer(layer);
 	}
 
-	void CParticleSystem::onDestroyed()
+	void CParticleSystem::OnDestroyed()
 	{
 		destroyInternal();
 	}
 
-	void CParticleSystem::onDisabled()
+	void CParticleSystem::OnDisabled()
 	{
 		destroyInternal();
 	}
 
-	void CParticleSystem::onEnabled()
+	void CParticleSystem::OnEnabled()
 	{
 		if(mPreviewMode)
 		{
@@ -88,7 +88,7 @@ namespace bs
 		}
 	}
 
-	void CParticleSystem::restoreInternal()
+	void CParticleSystem::RestoreInternal()
 	{
 		if (mInternal == nullptr)
 		{
@@ -103,7 +103,7 @@ namespace bs
 		mInternal->setLayer(mLayer);
 	}
 
-	void CParticleSystem::destroyInternal()
+	void CParticleSystem::DestroyInternal()
 	{
 		if(mInternal)
 		{
@@ -148,11 +148,11 @@ namespace bs
 
 	RTTITypeBase* CParticleSystem::getRTTIStatic()
 	{
-		return CParticleSystemRTTI::instance();
+		return CParticleSystemRTTI::Instance();
 	}
 
 	RTTITypeBase* CParticleSystem::getRTTI() const
 	{
-		return CParticleSystem::getRTTIStatic();
+		return CParticleSystem::GetRTTIStatic();
 	}
 }

@@ -30,7 +30,7 @@ namespace bs { namespace ct
 			mCB->end();
 	}
 
-	void VulkanTransferBuffer::allocate()
+	void VulkanTransferBuffer::Allocate()
 	{
 		if (mCB != nullptr)
 			return;
@@ -92,7 +92,7 @@ namespace bs { namespace ct
 		mBarriersTemp.clear();		
 	}
 
-	void VulkanTransferBuffer::flush(bool wait)
+	void VulkanTransferBuffer::Flush(bool wait)
 	{
 		if (mCB == nullptr)
 			return;
@@ -216,7 +216,7 @@ namespace bs { namespace ct
 		return transferBuffer;
 	}
 
-	void VulkanCommandBufferManager::flushTransferBuffers(UINT32 deviceIdx)
+	void VulkanCommandBufferManager::FlushTransferBuffers(UINT32 deviceIdx)
 	{
 		assert(deviceIdx < mNumDevices);
 

@@ -763,7 +763,7 @@ namespace bs { namespace ct
 		glslang::FinalizeProcess();
 	}
 
-	SPtr<GpuProgramBytecode> GLSLToSPIRV::convert(const GPU_PROGRAM_DESC& desc)
+	SPtr<GpuProgramBytecode> GLSLToSPIRV::Convert(const GPU_PROGRAM_DESC& desc)
 	{
 		TBuiltInResource resources = DefaultTBuiltInResource;
 		glslang::TProgram* program = bs_new<glslang::TProgram>();

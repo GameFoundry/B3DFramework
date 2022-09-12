@@ -45,7 +45,7 @@ namespace bs
 	BS_LOG_CATEGORY_IMPL(Generic)
 	BS_LOG_CATEGORY_IMPL(Platform)
 
-	void Debug::log(const String& message, LogVerbosity verbosity, UINT32 category)
+	void Debug::Log(const String& message, LogVerbosity verbosity, UINT32 category)
 	{
 		if(mCustomLogCallback)
 		{
@@ -123,7 +123,7 @@ namespace bs
 		}
 	}
 
-	void Debug::saveLog(const Path& path, SavedLogType type) const
+	void Debug::SaveLog(const Path& path, SavedLogType type) const
 	{
 		switch (type)
 		{
@@ -137,7 +137,7 @@ namespace bs
 		}
 	}
 	
-	void Debug::saveHtmlLog(const Path& path) const
+	void Debug::SaveHtmlLog(const Path& path) const
 	{
 		static const char* style =
 			R"(html {
@@ -370,7 +370,7 @@ table td
 		return tmp;
 	}
 
-	void Debug::saveTextLog(const Path& path) const
+	void Debug::SaveTextLog(const Path& path) const
 	{
 		#if BS_IS_BANSHEE3D
 		static const char* engineHeader = "This is Banshee Engine ";

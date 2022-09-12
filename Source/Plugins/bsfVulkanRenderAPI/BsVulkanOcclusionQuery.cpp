@@ -25,7 +25,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
 	}
 
-	void VulkanOcclusionQuery::begin(const SPtr<CommandBuffer>& cb)
+	void VulkanOcclusionQuery::Begin(const SPtr<CommandBuffer>& cb)
 	{
 		VulkanQueryPool& queryPool = mDevice.getQueryPool();
 
@@ -52,7 +52,7 @@ namespace bs { namespace ct
 		setActive(true);
 	}
 
-	void VulkanOcclusionQuery::end(const SPtr<CommandBuffer>& cb)
+	void VulkanOcclusionQuery::End(const SPtr<CommandBuffer>& cb)
 	{
 		if(mQueries.empty())
 		{
@@ -94,7 +94,7 @@ namespace bs { namespace ct
 		queryPool.endOcclusionQuery(mQueries.back(), &cb);
 	}
 
-	bool VulkanOcclusionQuery::isReady() const
+	bool VulkanOcclusionQuery::IsReady() const
 	{
 		if (!mQueryEndCalled)
 			return false;
@@ -110,7 +110,7 @@ namespace bs { namespace ct
 		return ready;
 	}
 
-	UINT32 VulkanOcclusionQuery::getNumSamples()
+	UINT32 VulkanOcclusionQuery::GetNumSamples()
 	{
 		if(!mQueryFinalized)
 		{

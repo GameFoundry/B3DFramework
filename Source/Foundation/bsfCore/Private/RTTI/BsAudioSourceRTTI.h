@@ -44,7 +44,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return AudioSource::create();
+			return AudioSource::Create();
 		}
 	};
 

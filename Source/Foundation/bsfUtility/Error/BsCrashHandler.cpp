@@ -14,10 +14,10 @@ namespace bs
 
 	CrashHandler& GCrashHandler()
 	{
-		return CrashHandler::instance();
+		return CrashHandler::Instance();
 	}
 
-	const Path& CrashHandler::getCrashFolder()
+	const Path& CrashHandler::GetCrashFolder()
 	{
 		static const Path path = FileSystem::getWorkingDirectoryPath() + sCrashReportFolder +
 			getCrashTimestamp();
@@ -32,7 +32,7 @@ namespace bs
 		return path;
 	}
 
-	void CrashHandler::logErrorAndStackTrace(const String& errorMsg, const String& stackTrace) const
+	void CrashHandler::LogErrorAndStackTrace(const String& errorMsg, const String& stackTrace) const
 	{
 		StringStream errorMessage;
 		errorMessage << sFatalErrorMsg << std::endl;
@@ -54,7 +54,7 @@ namespace bs
 		logErrorAndStackTrace(errorMessage.str(), getStackTrace());
 	}
 
-	void CrashHandler::saveCrashLog() const
+	void CrashHandler::SaveCrashLog() const
 	{
 		gDebug().saveLog(getCrashFolder() + sCrashLogName, SavedLogType::HTML);
 	}

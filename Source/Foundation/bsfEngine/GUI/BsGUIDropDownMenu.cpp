@@ -25,7 +25,7 @@ namespace bs
 {
 	const UINT32 GUIDropDownMenu::DROP_DOWN_BOX_WIDTH = 250;
 
-	GUIDropDownDataEntry GUIDropDownDataEntry::separator()
+	GUIDropDownDataEntry GUIDropDownDataEntry::Separator()
 	{
 		GUIDropDownDataEntry data;
 		data.mType = Type::Separator;
@@ -34,7 +34,7 @@ namespace bs
 		return data;
 	}
 
-	GUIDropDownDataEntry GUIDropDownDataEntry::button(const String& label, std::function<void()> callback, const String& shortcutTag)
+	GUIDropDownDataEntry GUIDropDownDataEntry::Button(const String& label, std::function<void()> callback, const String& shortcutTag)
 	{
 		GUIDropDownDataEntry data;
 		data.mLabel = label;
@@ -45,7 +45,7 @@ namespace bs
 		return data;
 	}
 
-	GUIDropDownDataEntry GUIDropDownDataEntry::subMenu(const String& label, const GUIDropDownData& data)
+	GUIDropDownDataEntry GUIDropDownDataEntry::SubMenu(const String& label, const GUIDropDownData& data)
 	{
 		GUIDropDownDataEntry dataEntry;
 		dataEntry.mLabel = label;
@@ -127,7 +127,7 @@ namespace bs
 
 	}
 
-	void GUIDropDownMenu::onDestroyed()
+	void GUIDropDownMenu::OnDestroyed()
 	{
 		GUIElement::destroy(mFrontHitBox);
 		GUIElement::destroy(mBackHitBox);
@@ -138,13 +138,13 @@ namespace bs
 		CGUIWidget::onDestroyed();
 	}
 
-	void GUIDropDownMenu::dropDownFocusLost()
+	void GUIDropDownMenu::DropDownFocusLost()
 	{
 		mRootMenu->closeSubMenu();
 		GUIDropDownBoxManager::instance().closeDropDownBox();
 	}
 
-	void GUIDropDownMenu::notifySubMenuOpened(DropDownSubMenu* subMenu)
+	void GUIDropDownMenu::NotifySubMenuOpened(DropDownSubMenu* subMenu)
 	{
 		Vector<Rect2I> bounds;
 		while(subMenu != nullptr)
@@ -162,7 +162,7 @@ namespace bs
 		mFrontHitBox->setBounds(bounds);
 	}
 
-	void GUIDropDownMenu::notifySubMenuClosed(DropDownSubMenu* subMenu)
+	void GUIDropDownMenu::NotifySubMenuClosed(DropDownSubMenu* subMenu)
 	{
 		Vector<Rect2I> bounds;
 		while(subMenu != nullptr)

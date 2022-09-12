@@ -111,14 +111,14 @@ namespace bs
 		return nullptr;
 	}
 
-	bool MonoClass::hasField(const String& name) const
+	bool MonoClass::HasField(const String& name) const
 	{
 		MonoClassField* field = mono_class_get_field_from_name(mClass, name.c_str());
 
 		return field != nullptr;
 	}
 
-	bool MonoClass::isSubClassOf(const MonoClass* monoClass) const
+	bool MonoClass::IsSubClassOf(const MonoClass* monoClass) const
 	{
 		if(monoClass == nullptr)
 			return false;
@@ -258,7 +258,7 @@ namespace bs
 		return GetMethod(name, numParams)->invoke(instance, params);
 	}
 
-	void MonoClass::addInternalCall(const String& name, const void* method)
+	void MonoClass::AddInternalCall(const String& name, const void* method)
 	{
 		String fullMethodName = mFullName + "::" + name;
 		mono_add_internal_call(fullMethodName.c_str(), method);
@@ -290,12 +290,12 @@ namespace bs
 		return obj;
 	}
 
-	void MonoClass::construct(MonoObject* object)
+	void MonoClass::Construct(MonoObject* object)
 	{
 		mono_runtime_object_init(object);
 	}
 
-	bool MonoClass::hasAttribute(MonoClass* monoClass) const
+	bool MonoClass::HasAttribute(MonoClass* monoClass) const
 	{
 		// TODO - Consider caching custom attributes or just initializing them all at load
 
@@ -336,10 +336,10 @@ namespace bs
 		String type;
 		MonoUtil::getClassName(monoBase, ns, type);
 
-		return MonoManager::instance().findClass(ns, type);
+		return MonoManager::Instance().findClass(ns, type);
 	}
 
-	bool MonoClass::isInstanceOfType(MonoObject* object) const
+	bool MonoClass::IsInstanceOfType(MonoObject* object) const
 	{
 		if(object == nullptr)
 			return false;
@@ -348,7 +348,7 @@ namespace bs
 		return mono_class_is_subclass_of(monoClass, mClass, false) != 0;
 	}
 
-	UINT32 MonoClass::getInstanceSize() const
+	UINT32 MonoClass::GetInstanceSize() const
 	{
 		UINT32 dummy = 0;
 

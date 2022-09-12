@@ -17,7 +17,7 @@ namespace bs
 
 	}
 
-	bool TechniqueBase::isSupported() const
+	bool TechniqueBase::IsSupported() const
 	{
 		if (ct::GpuProgramManager::instance().isLanguageSupported(mLanguage) || mLanguage == "Any")
 			return true;
@@ -25,7 +25,7 @@ namespace bs
 		return false;
 	}
 
-	bool TechniqueBase::hasTag(const StringID& tag)
+	bool TechniqueBase::HasTag(const StringID& tag)
 	{
 		for(auto& entry : mTags)
 		{
@@ -74,12 +74,12 @@ namespace bs
 		: TTechnique()
 	{ }
 
-	SPtr<ct::Technique> Technique::getCore() const
+	SPtr<ct::Technique> Technique::GetCore() const
 	{
 		return std::static_pointer_cast<ct::Technique>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObject> Technique::createCore() const
+	SPtr<ct::CoreObject> Technique::CreateCore() const
 	{
 		Vector<SPtr<ct::Pass>> passes;
 		for (auto& pass : mPasses)
@@ -97,13 +97,13 @@ namespace bs
 		return techniquePtr;
 	}
 
-	void Technique::getCoreDependencies(Vector<CoreObject*>& dependencies)
+	void Technique::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 	{
 		for (auto& pass : mPasses)
 			dependencies.push_back(pass.get());
 	}
 
-	SPtr<Technique> Technique::create(const String& language, const Vector<SPtr<Pass>>& passes)
+	SPtr<Technique> Technique::Create(const String& language, const Vector<SPtr<Pass>>& passes)
 	{
 		Technique* technique = new (bs_alloc<Technique>()) Technique(language, {}, ShaderVariation(), passes);
 		SPtr<Technique> techniquePtr = bs_core_ptr<Technique>(technique);
@@ -124,7 +124,7 @@ namespace bs
 		return techniquePtr;
 	}
 
-	SPtr<Technique> Technique::createEmpty()
+	SPtr<Technique> Technique::CreateEmpty()
 	{
 		Technique* technique = new (bs_alloc<Technique>()) Technique();
 		SPtr<Technique> techniquePtr = bs_core_ptr<Technique>(technique);
@@ -135,12 +135,12 @@ namespace bs
 
 	RTTITypeBase* Technique::getRTTIStatic()
 	{
-		return TechniqueRTTI::instance();
+		return TechniqueRTTI::Instance();
 	}
 
 	RTTITypeBase* Technique::getRTTI() const
 	{
-		return Technique::getRTTIStatic();
+		return Technique::GetRTTIStatic();
 	}
 
 	namespace ct
@@ -150,7 +150,7 @@ namespace bs
 		:TTechnique(language, tags, variation, passes)
 	{ }
 
-	SPtr<Technique> Technique::create(const String& language, const Vector<SPtr<Pass>>& passes)
+	SPtr<Technique> Technique::Create(const String& language, const Vector<SPtr<Pass>>& passes)
 	{
 		Technique* technique = new (bs_alloc<Technique>()) Technique(language, {}, ShaderVariation(), passes);
 		SPtr<Technique> techniquePtr = bs_shared_ptr<Technique>(technique);

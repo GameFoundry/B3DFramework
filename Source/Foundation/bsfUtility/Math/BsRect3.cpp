@@ -7,7 +7,7 @@
 
 namespace bs
 {
-	std::pair<std::array<Vector3, 2>, float> Rect3::getNearestPoint(const Ray& ray) const
+	std::pair<std::array<Vector3, 2>, float> Rect3::GetNearestPoint(const Ray& ray) const
 	{
 		const Vector3& org = ray.getOrigin();
 		const Vector3& dir = ray.getDirection();
@@ -75,7 +75,7 @@ namespace bs
 		return std::make_pair(nearestPoints, distance);
 	}
 
-	std::pair<Vector3, float> Rect3::getNearestPoint(const Vector3& point) const
+	std::pair<Vector3, float> Rect3::GetNearestPoint(const Vector3& point) const
 	{
 		Vector3 diff = mCenter - point;
 		float b0 = diff.dot(mAxisHorz);
@@ -106,7 +106,7 @@ namespace bs
 		return std::make_pair(nearestPoint, dist);
 	}
 
-	std::pair<bool, float> Rect3::intersects(const Ray& ray) const
+	std::pair<bool, float> Rect3::Intersects(const Ray& ray) const
 	{
 		const Vector3& org = ray.getOrigin();
 		const Vector3& dir = ray.getDirection();

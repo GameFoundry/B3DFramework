@@ -34,7 +34,7 @@ namespace bs
 			bs_delete(mContentImageSprite);
 	}
 
-	void GUIButtonBase::setContent(const GUIContent& content)
+	void GUIButtonBase::SetContent(const GUIContent& content)
 	{
 		Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
 		mContent = content;
@@ -63,7 +63,7 @@ namespace bs
 		return ((INT32)mActiveState & (INT32)GUIElementState::OnFlag) != 0;
 	}
 
-	void GUIButtonBase::updateRenderElementsInternal()
+	void GUIButtonBase::UpdateRenderElementsInternal()
 	{		
 		mImageDesc.width = mLayoutData.area.width;
 		mImageDesc.height = mLayoutData.area.height;
@@ -350,7 +350,7 @@ namespace bs
 		return mContent.tooltip;
 	}
 
-	void GUIButtonBase::refreshContentSprite()
+	void GUIButtonBase::RefreshContentSprite()
 	{
 		HSpriteTexture contentTex = mContent.getImage(mActiveState);
 		if (SpriteTexture::checkIsLoaded(contentTex))
@@ -368,7 +368,7 @@ namespace bs
 		}
 	}
 
-	TEXT_SPRITE_DESC GUIButtonBase::getTextDesc() const
+	TEXT_SPRITE_DESC GUIButtonBase::GetTextDesc() const
 	{
 		TEXT_SPRITE_DESC textDesc;
 		textDesc.text = mContent.text;
@@ -386,7 +386,7 @@ namespace bs
 		return textDesc;
 	}
 
-	void GUIButtonBase::styleUpdated()
+	void GUIButtonBase::StyleUpdated()
 	{
 		mImageDesc.animationStartTime = gTime().getTime();
 	}
@@ -408,7 +408,7 @@ namespace bs
 			_markContentAsDirty();
 	}
 
-	const HSpriteTexture& GUIButtonBase::getActiveTexture() const
+	const HSpriteTexture& GUIButtonBase::GetActiveTexture() const
 	{
 		switch(mActiveState)
 		{
@@ -439,7 +439,7 @@ namespace bs
 		return _getStyle()->normal.texture;
 	}
 
-	Color GUIButtonBase::getActiveTextColor() const
+	Color GUIButtonBase::GetActiveTextColor() const
 	{
 		switch (mActiveState)
 		{

@@ -11,7 +11,7 @@ namespace bs
 		hide();
 	}
 
-	void GUITooltipManager::show(const GUIWidget& widget, const Vector2I& position, const String& text)
+	void GUITooltipManager::Show(const GUIWidget& widget, const Vector2I& position, const String& text)
 	{
 		hide();
 
@@ -19,7 +19,7 @@ namespace bs
 		GameObjectHandle<GUITooltip> tooltip = mTooltipSO->addComponent<GUITooltip>(widget, position, text);
 	}
 
-	void GUITooltipManager::hide()
+	void GUITooltipManager::Hide()
 	{
 		if (mTooltipSO != nullptr)
 		{

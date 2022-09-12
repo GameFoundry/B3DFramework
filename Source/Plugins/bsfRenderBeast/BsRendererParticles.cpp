@@ -95,7 +95,7 @@ namespace bs { namespace ct
 		buffer->unlock();
 	}
 
-	void ParticlesRenderElement::draw() const
+	void ParticlesRenderElement::Draw() const
 	{
 		if (numParticles > 0)
 		{
@@ -106,7 +106,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RendererParticles::updatePerObjectBuffer()
+	void RendererParticles::UpdatePerObjectBuffer()
 	{
 		const ParticleSystemSettings& settings = particleSystem->getSettings();
 		const UINT32 layer = Bitwise::mostSignificantBit(particleSystem->getLayer());
@@ -122,7 +122,7 @@ namespace bs { namespace ct
 		PerObjectBuffer::update(perObjectParamBuffer, localToWorld, localToWorldNoScale, prevLocalToWorld, layer);
 	}
 
-	void RendererParticles::bindCPUSimulatedInputs(const ParticleRenderData* renderData, const RendererView& view) const
+	void RendererParticles::BindCPUSimulatedInputs(const ParticleRenderData* renderData, const RendererView& view) const
 	{
 		ParticleTexturePool& particlesTexPool = ParticleRenderer::instance().getTexturePool();
 
@@ -174,7 +174,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RendererParticles::bindGPUSimulatedInputs(const GpuParticleResources& gpuSimResources, const RendererView& view) const
+	void RendererParticles::BindGPUSimulatedInputs(const GpuParticleResources& gpuSimResources, const RendererView& view) const
 	{
 		const GpuParticleStateTextures& gpuSimStateTextures = gpuSimResources.getCurrentState();
 		const GpuParticleStaticTextures& gpuSimStaticTextures = gpuSimResources.getStaticTextures();
@@ -284,7 +284,7 @@ namespace bs { namespace ct
 		return output;
 	}
 
-	void ParticleTexturePool::clear()
+	void ParticleTexturePool::Clear()
 	{
 		for(auto& buffers : mBillboardBufferList)
 			buffers.second.nextFreeIdx = 0;
@@ -417,7 +417,7 @@ namespace bs { namespace ct
 		bs_delete(m);
 	}
 
-	void ParticleRenderer::drawBillboards(UINT32 count)
+	void ParticleRenderer::DrawBillboards(UINT32 count)
 	{
 		SPtr<VertexBuffer> vertexBuffers[] = { m->billboardVB };
 

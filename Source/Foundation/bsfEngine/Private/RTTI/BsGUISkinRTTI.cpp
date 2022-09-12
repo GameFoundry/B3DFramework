@@ -10,11 +10,11 @@ namespace bs
 
 	RTTITypeBase* GUISkinEntry::getRTTIStatic()
 	{
-		return GUISkinEntryRTTI::instance();
+		return GUISkinEntryRTTI::Instance();
 	}
 
 	RTTITypeBase* GUISkinEntry::getRTTI() const
 	{
-		return GUISkinEntry::getRTTIStatic();
+		return GUISkinEntry::GetRTTIStatic();
 	}
 }

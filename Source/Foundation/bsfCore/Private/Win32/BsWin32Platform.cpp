@@ -96,7 +96,7 @@ namespace bs
 		mData = nullptr;
 	}
 
-	Vector2I Platform::getCursorPosition()
+	Vector2I Platform::GetCursorPosition()
 	{
 		Vector2I screenPos;
 
@@ -109,12 +109,12 @@ namespace bs
 		return screenPos;
 	}
 
-	void Platform::setCursorPosition(const Vector2I& screenPos)
+	void Platform::SetCursorPosition(const Vector2I& screenPos)
 	{
 		SetCursorPos(screenPos.x, screenPos.y);
 	}
 
-	void Platform::captureMouse(const RenderWindow& window)
+	void Platform::CaptureMouse(const RenderWindow& window)
 	{
 		SPtr<RenderWindow> primaryWindow = gCoreApplication().getPrimaryWindow();
 		UINT64 hwnd;
@@ -123,7 +123,7 @@ namespace bs
 		PostMessage((HWND)hwnd, WM_BS_SETCAPTURE, WPARAM((HWND)hwnd), 0);
 	}
 
-	void Platform::releaseMouseCapture()
+	void Platform::ReleaseMouseCapture()
 	{
 		SPtr<RenderWindow> primaryWindow = gCoreApplication().getPrimaryWindow();
 		UINT64 hwnd;
@@ -132,7 +132,7 @@ namespace bs
 		PostMessage((HWND)hwnd, WM_BS_RELEASECAPTURE, WPARAM((HWND)hwnd), 0);
 	}
 
-	bool Platform::isPointOverWindow(const RenderWindow& window, const Vector2I& screenPos)
+	bool Platform::IsPointOverWindow(const RenderWindow& window, const Vector2I& screenPos)
 	{
 		SPtr<RenderWindow> primaryWindow = gCoreApplication().getPrimaryWindow();
 
@@ -147,7 +147,7 @@ namespace bs
 		return hwndUnderPos == (HWND)hwndToCheck;
 	}
 
-	void Platform::hideCursor()
+	void Platform::HideCursor()
 	{
 		if (mData->mIsCursorHidden)
 			return;
@@ -164,7 +164,7 @@ namespace bs
 		PostMessage((HWND)hwnd, WM_SETCURSOR, WPARAM((HWND)hwnd), (LPARAM)MAKELONG(HTCLIENT, WM_MOUSEMOVE));
 	}
 
-	void Platform::showCursor()
+	void Platform::ShowCursor()
 	{
 		if (!mData->mIsCursorHidden)
 			return;
@@ -181,12 +181,12 @@ namespace bs
 		PostMessage((HWND)hwnd, WM_SETCURSOR, WPARAM((HWND)hwnd), (LPARAM)MAKELONG(HTCLIENT, WM_MOUSEMOVE));
 	}
 
-	bool Platform::isCursorHidden()
+	bool Platform::IsCursorHidden()
 	{
 		return mData->mIsCursorHidden;
 	}
 
-	void Platform::clipCursorToWindow(const RenderWindow& window)
+	void Platform::ClipCursorToWindow(const RenderWindow& window)
 	{
 		UINT64 hwnd;
 		window.getCustomAttribute("WINDOW", &hwnd);
@@ -198,7 +198,7 @@ namespace bs
 			applyClipping(mData);
 	}
 
-	void Platform::clipCursorToRect(const Rect2I& screenRect)
+	void Platform::ClipCursorToRect(const Rect2I& screenRect)
 	{
 		mData->mCursorClipping = true;
 		mData->mClipWindow = 0;
@@ -212,7 +212,7 @@ namespace bs
 			applyClipping(mData);
 	}
 
-	void Platform::clipCursorDisable()
+	void Platform::ClipCursorDisable()
 	{
 		mData->mCursorClipping = false;
 		mData->mClipWindow = 0;
@@ -222,7 +222,7 @@ namespace bs
 	}
 
 	// TODO - Add support for animated custom cursor
-	void Platform::setCursor(PixelData& pixelData, const Vector2I& hotSpot)
+	void Platform::SetCursor(PixelData& pixelData, const Vector2I& hotSpot)
 	{
 		if (mData->mUsingCustomCursor)
 		{
@@ -259,7 +259,7 @@ namespace bs
 		PostMessage((HWND)hwnd, WM_SETCURSOR, WPARAM((HWND)hwnd), (LPARAM)MAKELONG(HTCLIENT, WM_MOUSEMOVE));
 	}
 
-	void Platform::setIcon(const PixelData& pixelData)
+	void Platform::SetIcon(const PixelData& pixelData)
 	{
 		Vector<Color> pixels = pixelData.getColors();
 		UINT32 width = pixelData.getWidth();
@@ -288,21 +288,21 @@ namespace bs
 		PostMessage((HWND)hwnd, WM_SETICON, WPARAM(ICON_BIG), (LPARAM)icon);
 	}
 
-	void Platform::setCaptionNonClientAreas(const ct::RenderWindow& window, const Vector<Rect2I>& nonClientAreas)
+	void Platform::SetCaptionNonClientAreas(const ct::RenderWindow& window, const Vector<Rect2I>& nonClientAreas)
 	{
 		Lock Lock(mData->mSync);
 
 		mData->mNonClientAreas[&window].moveAreas = nonClientAreas;
 	}
 
-	void Platform::setResizeNonClientAreas(const ct::RenderWindow& window, const Vector<NonClientResizeArea>& nonClientAreas)
+	void Platform::SetResizeNonClientAreas(const ct::RenderWindow& window, const Vector<NonClientResizeArea>& nonClientAreas)
 	{
 		Lock Lock(mData->mSync);
 
 		mData->mNonClientAreas[&window].resizeAreas = nonClientAreas;
 	}
 
-	void Platform::resetNonClientAreas(const ct::RenderWindow& window)
+	void Platform::ResetNonClientAreas(const ct::RenderWindow& window)
 	{
 		Lock Lock(mData->mSync);
 
@@ -312,12 +312,12 @@ namespace bs
 			mData->mNonClientAreas.erase(iterFind);
 	}
 
-	void Platform::sleep(UINT32 duration)
+	void Platform::Sleep(UINT32 duration)
 	{
 		Sleep((DWORD)duration);
 	}
 
-	void Win32Platform::registerDropTarget(DropTarget* target)
+	void Win32Platform::RegisterDropTarget(DropTarget* target)
 	{
 		const RenderWindow* window = target->_getOwnerWindow();
 
@@ -342,7 +342,7 @@ namespace bs
 		win32DropTarget->registerDropTarget(target);
 	}
 
-	void Win32Platform::unregisterDropTarget(DropTarget* target)
+	void Win32Platform::UnregisterDropTarget(DropTarget* target)
 	{
 		auto iterFind = mData->mDropTargets.dropTargetsPerWindow.find(target->_getOwnerWindow());
 		if (iterFind == mData->mDropTargets.dropTargetsPerWindow.end())
@@ -366,7 +366,7 @@ namespace bs
 		}
 	}
 
-	void Platform::copyToClipboard(const String& string)
+	void Platform::CopyToClipboard(const String& string)
 	{
 		WString wideString = UTF8::toWide(string);
 
@@ -390,7 +390,7 @@ namespace bs
 		}
 	}
 
-	String Platform::copyFromClipboard()
+	String Platform::CopyFromClipboard()
 	{
 		if (OpenClipboard(NULL))
 		{
@@ -403,7 +403,7 @@ namespace bs
 				GlobalUnlock(hData);
 
 				CloseClipboard();
-				return UTF8::fromWide(wideString);
+				return UTF8::FromWide(wideString);
 			}
 			else
 			{
@@ -415,7 +415,7 @@ namespace bs
 		return u8"";
 	}
 
-	String Platform::keyCodeToUnicode(UINT32 keyCode)
+	String Platform::KeyCodeToUnicode(UINT32 keyCode)
 	{
 		static HKL keyboardLayout = GetKeyboardLayout(0);
 		static UINT8 keyboarState[256];
@@ -428,12 +428,12 @@ namespace bs
 		wchar_t output[2];
 		int count = ToUnicodeEx(virtualKey, keyCode, keyboarState, output, 2, 0, keyboardLayout);
 		if (count > 0)
-			return UTF8::fromWide(WString(output, count));
+			return UTF8::FromWide(WString(output, count));
 
 		return StringUtil::BLANK;
 	}
 
-	void Platform::openFolder(const Path& path)
+	void Platform::OpenFolder(const Path& path)
 	{
 		WString pathString = UTF8::toWide(path.toString());
 

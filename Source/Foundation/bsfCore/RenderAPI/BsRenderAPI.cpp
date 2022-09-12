@@ -17,25 +17,25 @@ using namespace std::placeholders;
 
 namespace bs
 {
-	void RenderAPI::setGpuParams(const SPtr<GpuParams>& gpuParams)
+	void RenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams)
 	{
 		gCoreThread().queueCommand(std::bind(&ct::RenderAPI::setGpuParams, ct::RenderAPI::instancePtr(), gpuParams->getCore(),
 			nullptr));
 	}
 
-	void RenderAPI::setGraphicsPipeline(const SPtr<GraphicsPipelineState>& pipelineState)
+	void RenderAPI::SetGraphicsPipeline(const SPtr<GraphicsPipelineState>& pipelineState)
 	{
 		gCoreThread().queueCommand(std::bind(&ct::RenderAPI::setGraphicsPipeline, ct::RenderAPI::instancePtr(),
 			pipelineState->getCore(), nullptr));
 	}
 
-	void RenderAPI::setComputePipeline(const SPtr<ComputePipelineState>& pipelineState)
+	void RenderAPI::SetComputePipeline(const SPtr<ComputePipelineState>& pipelineState)
 	{
 		gCoreThread().queueCommand(std::bind(&ct::RenderAPI::setComputePipeline, ct::RenderAPI::instancePtr(),
 							  pipelineState->getCore(), nullptr));
 	}
 
-	void RenderAPI::setVertexBuffers(UINT32 index, const Vector<SPtr<VertexBuffer>>& buffers)
+	void RenderAPI::SetVertexBuffers(UINT32 index, const Vector<SPtr<VertexBuffer>>& buffers)
 	{
 		Vector<SPtr<ct::VertexBuffer>> CoreBuffers(buffers.size());
 		for (UINT32 i = 0; i < (UINT32)buffers.size(); i++)
@@ -50,35 +50,35 @@ namespace bs
 		gCoreThread().queueCommand(std::bind(resizeFunc, ct::RenderAPI::instancePtr(), index, coreBuffers));
 	}
 
-	void RenderAPI::setIndexBuffer(const SPtr<IndexBuffer>& buffer)
+	void RenderAPI::SetIndexBuffer(const SPtr<IndexBuffer>& buffer)
 	{
 		gCoreThread().queueCommand(std::bind(&ct::RenderAPI::setIndexBuffer, ct::RenderAPI::instancePtr(), buffer->getCore(),
 			nullptr));
 	}
 
-	void RenderAPI::setVertexDeclaration(const SPtr<VertexDeclaration>& vertexDeclaration)
+	void RenderAPI::SetVertexDeclaration(const SPtr<VertexDeclaration>& vertexDeclaration)
 	{
 		gCoreThread().queueCommand(std::bind(&ct::RenderAPI::setVertexDeclaration, ct::RenderAPI::instancePtr(),
 			vertexDeclaration->getCore(), nullptr));
 	}
 
-	void RenderAPI::setViewport(const Rect2& vp)
+	void RenderAPI::SetViewport(const Rect2& vp)
 	{
 		gCoreThread().queueCommand(std::bind(&ct::RenderAPI::setViewport, ct::RenderAPI::instancePtr(), vp, nullptr));
 	}
 
-	void RenderAPI::setStencilRef(UINT32 value)
+	void RenderAPI::SetStencilRef(UINT32 value)
 	{
 		gCoreThread().queueCommand(std::bind(&ct::RenderAPI::setStencilRef, ct::RenderAPI::instancePtr(), value, nullptr));
 	}
 
-	void RenderAPI::setDrawOperation(DrawOperationType op)
+	void RenderAPI::SetDrawOperation(DrawOperationType op)
 	{
 		gCoreThread().queueCommand(std::bind(&ct::RenderAPI::setDrawOperation, ct::RenderAPI::instancePtr(), op,
 			nullptr));
 	}
 
-	void RenderAPI::setScissorRect(UINT32 left, UINT32 top, UINT32 right, UINT32 bottom)
+	void RenderAPI::SetScissorRect(UINT32 left, UINT32 top, UINT32 right, UINT32 bottom)
 	{
 		gCoreThread().queueCommand(std::bind(&ct::RenderAPI::setScissorRect, ct::RenderAPI::instancePtr(), left, top, right, bottom,
 			nullptr));
@@ -105,12 +105,12 @@ namespace bs
 			stencil, targetMask, nullptr));
 	}
 
-	void RenderAPI::swapBuffers(const SPtr<RenderTarget>& target)
+	void RenderAPI::SwapBuffers(const SPtr<RenderTarget>& target)
 	{
 		gCoreThread().queueCommand(std::bind(&ct::RenderAPI::swapBuffers, ct::RenderAPI::instancePtr(), target->getCore(), 1));
 	}
 
-	void RenderAPI::draw(UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount)
+	void RenderAPI::Draw(UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount)
 	{
 		gCoreThread().queueCommand(std::bind(&ct::RenderAPI::draw, ct::RenderAPI::instancePtr(), vertexOffset,
 			vertexCount, instanceCount, nullptr));
@@ -123,18 +123,18 @@ namespace bs
 			vertexOffset, vertexCount, instanceCount, nullptr));
 	}
 
-	void RenderAPI::dispatchCompute(UINT32 numGroupsX, UINT32 numGroupsY, UINT32 numGroupsZ)
+	void RenderAPI::DispatchCompute(UINT32 numGroupsX, UINT32 numGroupsY, UINT32 numGroupsZ)
 	{
 		gCoreThread().queueCommand(std::bind(&ct::RenderAPI::dispatchCompute, ct::RenderAPI::instancePtr(), numGroupsX,
 			numGroupsY, numGroupsZ, nullptr));
 	}
 
-	const VideoModeInfo& RenderAPI::getVideoModeInfo()
+	const VideoModeInfo& RenderAPI::GetVideoModeInfo()
 	{
 		return ct::RenderAPI::instance().getVideoModeInfo();
 	}
 
-	void RenderAPI::convertProjectionMatrix(const Matrix4& matrix, Matrix4& dest)
+	void RenderAPI::ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest)
 	{
 		ct::RenderAPI::instance().convertProjectionMatrix(matrix, dest);
 	}
@@ -154,7 +154,7 @@ namespace bs
 		mCurrentCapabilities = nullptr;
 	}
 
-	SPtr<bs::RenderWindow> RenderAPI::initialize(const RENDER_WINDOW_DESC& primaryWindowDesc)
+	SPtr<bs::RenderWindow> RenderAPI::Initialize(const RENDER_WINDOW_DESC& primaryWindowDesc)
 	{
 		gCoreThread().queueCommand(std::bind((void(RenderAPI::*)())&RenderAPI::initialize, this),
 			CTQF_InternalQueue | CTQF_BlockUntilComplete);
@@ -171,28 +171,28 @@ namespace bs
 		return renderWindow;
 	}
 
-	void RenderAPI::initialize()
+	void RenderAPI::Initialize()
 	{
 		// Do nothing
 	}
 
-	void RenderAPI::initializeWithWindow(const SPtr<RenderWindow>& primaryWindow)
+	void RenderAPI::InitializeWithWindow(const SPtr<RenderWindow>& primaryWindow)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 	}
 
-	void RenderAPI::destroy()
+	void RenderAPI::Destroy()
 	{
 		gCoreThread().queueCommand(std::bind(&RenderAPI::destroyCore, this));
 		gCoreThread().submitAll(true);
 	}
 
-	void RenderAPI::destroyCore()
+	void RenderAPI::DestroyCore()
 	{
 		mActiveRenderTarget = nullptr;
 	}
 
-	const RenderAPICapabilities& RenderAPI::getCapabilities(UINT32 deviceIdx) const
+	const RenderAPICapabilities& RenderAPI::GetCapabilities(UINT32 deviceIdx) const
 	{
 		if(deviceIdx >= mNumDevices)
 		{
@@ -204,7 +204,7 @@ namespace bs
 		return mCurrentCapabilities[deviceIdx];
 	}
 
-	UINT32 RenderAPI::vertexCountToPrimCount(DrawOperationType type, UINT32 elementCount)
+	UINT32 RenderAPI::VertexCountToPrimCount(DrawOperationType type, UINT32 elementCount)
 	{
 		UINT32 primCount = 0;
 		switch (type)

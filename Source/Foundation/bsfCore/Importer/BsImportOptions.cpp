@@ -10,11 +10,11 @@ namespace bs
 	/************************************************************************/
 	RTTITypeBase* ImportOptions::getRTTIStatic()
 	{
-		return ImportOptionsRTTI::instance();
+		return ImportOptionsRTTI::Instance();
 	}
 
 	RTTITypeBase* ImportOptions::getRTTI() const
 	{
-		return ImportOptions::getRTTIStatic();
+		return ImportOptions::GetRTTIStatic();
 	}
 }

@@ -31,17 +31,17 @@ namespace bs
 	
 	MonoObject* ScriptGameObjectBase::getManagedInstance() const
 	{
-		return MonoUtil::getObjectFromGCHandle(mGCHandle);
+		return MonoUtil::GetObjectFromGCHandle(mGCHandle);
 	}
 
-	void ScriptGameObjectBase::setManagedInstance(::MonoObject* instance)
+	void ScriptGameObjectBase::SetManagedInstance(::MonoObject* instance)
 	{
 		BS_ASSERT(mGCHandle == 0 && "Attempting to set a new managed instance without freeing the old one.");
 
 		mGCHandle = MonoUtil::newGCHandle(instance, false);
 	}
 
-	void ScriptGameObjectBase::freeManagedInstance()
+	void ScriptGameObjectBase::FreeManagedInstance()
 	{
 		if (mGCHandle != 0)
 		{
@@ -54,7 +54,7 @@ namespace bs
 		:ScriptObject(instance)
 	{ }
 
-	void ScriptGameObject::initRuntimeData()
+	void ScriptGameObject::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetInstanceId", (void*)&ScriptGameObject::internal_getInstanceId);
 		metaData.scriptClass->addInternalCall("Internal_GetUUID", (void*)&ScriptGameObject::internal_getUUID);

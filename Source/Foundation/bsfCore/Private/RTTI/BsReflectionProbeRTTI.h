@@ -59,7 +59,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return ReflectionProbe::createEmpty();
+			return ReflectionProbe::CreateEmpty();
 		}
 	};
 

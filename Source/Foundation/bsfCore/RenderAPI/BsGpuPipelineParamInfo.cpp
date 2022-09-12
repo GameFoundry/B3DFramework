@@ -185,7 +185,7 @@ namespace bs
 		}
 	}
 
-	UINT32 GpuPipelineParamInfoBase::getSequentialSlot(ParamType type, UINT32 set, UINT32 slot) const
+	UINT32 GpuPipelineParamInfoBase::GetSequentialSlot(ParamType type, UINT32 set, UINT32 slot) const
 	{
 #if BS_DEBUG_MODE
 		if (set >= mNumSets)
@@ -221,7 +221,7 @@ namespace bs
 		return mSetInfos[set].slotIndices[slot];
 	}
 
-	void GpuPipelineParamInfoBase::getBinding(ParamType type, UINT32 sequentialSlot, UINT32& set, UINT32& slot) const
+	void GpuPipelineParamInfoBase::GetBinding(ParamType type, UINT32 sequentialSlot, UINT32& set, UINT32& slot) const
 	{
 #if BS_DEBUG_MODE
 		if(sequentialSlot >= mNumElementsPerType[(int)type])
@@ -239,7 +239,7 @@ namespace bs
 		slot = mResourceInfos[(int)type][sequentialSlot].slot;
 	}
 
-	void GpuPipelineParamInfoBase::getBindings(ParamType type, const String& name, GpuParamBinding (& bindings)[GPT_COUNT])
+	void GpuPipelineParamInfoBase::GetBindings(ParamType type, const String& name, GpuParamBinding (& bindings)[GPT_COUNT])
 	{
 		constexpr UINT32 numParamDescs = sizeof(mParamDescs) / sizeof(mParamDescs[0]);
 		static_assert(
@@ -299,7 +299,7 @@ namespace bs
 		:GpuPipelineParamInfoBase(desc)
 	{ }
 
-	SPtr<GpuPipelineParamInfo> GpuPipelineParamInfo::create(const GPU_PIPELINE_PARAMS_DESC& desc)
+	SPtr<GpuPipelineParamInfo> GpuPipelineParamInfo::Create(const GPU_PIPELINE_PARAMS_DESC& desc)
 	{
 		SPtr<GpuPipelineParamInfo> paramInfo =
 			bs_core_ptr<GpuPipelineParamInfo>(new (bs_alloc<GpuPipelineParamInfo>()) GpuPipelineParamInfo(desc));
@@ -309,12 +309,12 @@ namespace bs
 		return paramInfo;
 	}
 
-	SPtr<ct::GpuPipelineParamInfo> GpuPipelineParamInfo::getCore() const
+	SPtr<ct::GpuPipelineParamInfo> GpuPipelineParamInfo::GetCore() const
 	{
 		return std::static_pointer_cast<ct::GpuPipelineParamInfo>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObject> GpuPipelineParamInfo::createCore() const
+	SPtr<ct::CoreObject> GpuPipelineParamInfo::CreateCore() const
 	{
 		GPU_PIPELINE_PARAMS_DESC desc;
 		desc.fragmentParams = mParamDescs[GPT_FRAGMENT_PROGRAM];
@@ -336,7 +336,7 @@ namespace bs
 	SPtr<GpuPipelineParamInfo> GpuPipelineParamInfo::create(const GPU_PIPELINE_PARAMS_DESC& desc,
 		GpuDeviceFlags deviceMask)
 	{
-		return RenderStateManager::instance().createPipelineParamInfo(desc, deviceMask);
+		return RenderStateManager::Instance().createPipelineParamInfo(desc, deviceMask);
 	}
 	}
 }

@@ -6,7 +6,7 @@
 
 namespace bs
 {
-	bool TextureAtlasLayout::addElement(UINT32 width, UINT32 height, UINT32& x, UINT32& y)
+	bool TextureAtlasLayout::AddElement(UINT32 width, UINT32 height, UINT32& x, UINT32& y)
 	{
 		if(width == 0 || height == 0)
 		{
@@ -37,7 +37,7 @@ namespace bs
 		return true;
 	}
 
-	void TextureAtlasLayout::clear()
+	void TextureAtlasLayout::Clear()
 	{
 		mNodes.clear();
 		mNodes.push_back(TexAtlasNode(0, 0, mWidth, mHeight));
@@ -46,7 +46,7 @@ namespace bs
 		mHeight = mInitialHeight;
 	}
 
-	bool TextureAtlasLayout::addToNode(UINT32 nodeIdx, UINT32 width, UINT32 height, UINT32& x, UINT32& y, bool allowGrowth)
+	bool TextureAtlasLayout::AddToNode(UINT32 nodeIdx, UINT32 width, UINT32 height, UINT32& x, UINT32& y, bool allowGrowth)
 	{
 		TexAtlasNode* node = &mNodes[nodeIdx];
 		float aspect = node->width / (float)node->height;

@@ -201,14 +201,14 @@ namespace bs
 		_clear();
 	}
 
-	void DropTarget::setArea(const Rect2I& area)
+	void DropTarget::SetArea(const Rect2I& area)
 	{
 		mArea = area;
 
 		LinuxDragAndDrop::updateDropTarget(this);
 	}
 
-	void LinuxDragAndDrop::startUp(::Display* xDisplay)
+	void LinuxDragAndDrop::StartUp(::Display* xDisplay)
 	{
 		sXDisplay = xDisplay;
 
@@ -229,36 +229,36 @@ namespace bs
 #undef INIT_ATOM
 	}
 
-	void LinuxDragAndDrop::shutDown()
+	void LinuxDragAndDrop::ShutDown()
 	{
 		sXDisplay = nullptr;
 	}
 
-	void LinuxDragAndDrop::makeDNDAware(::Window xWindow)
+	void LinuxDragAndDrop::MakeDNDAware(::Window xWindow)
 	{
 		UINT32 dndVersion = 5;
 		XChangeProperty(sXDisplay, xWindow, sXdndAware, XA_ATOM, 32, PropModeReplace, (unsigned char*)&dndVersion, 1);
 	}
 
-	void LinuxDragAndDrop::registerDropTarget(DropTarget* target)
+	void LinuxDragAndDrop::RegisterDropTarget(DropTarget* target)
 	{
 		Lock Lock(sMutex);
 		sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Register, target->getArea()));
 	}
 
-	void LinuxDragAndDrop::unregisterDropTarget(DropTarget* target)
+	void LinuxDragAndDrop::UnregisterDropTarget(DropTarget* target)
 	{
 		Lock Lock(sMutex);
 		sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Unregister));
 	}
 
-	void LinuxDragAndDrop::updateDropTarget(DropTarget* target)
+	void LinuxDragAndDrop::UpdateDropTarget(DropTarget* target)
 	{
 		Lock Lock(sMutex);
 		sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Update, target->getArea()));
 	}
 
-	bool LinuxDragAndDrop::handleClientMessage(XClientMessageEvent& event)
+	bool LinuxDragAndDrop::HandleClientMessage(XClientMessageEvent& event)
 	{
 		// First handle any queued registration/unregistration
 		{
@@ -514,7 +514,7 @@ namespace bs
 		return true;
 	}
 
-	bool LinuxDragAndDrop::handleSelectionNotify(XSelectionEvent& event)
+	bool LinuxDragAndDrop::HandleSelectionNotify(XSelectionEvent& event)
 	{
 		if(event.target != sDNDType)
 			return false;
@@ -581,7 +581,7 @@ namespace bs
 		return true;
 	}
 
-	void LinuxDragAndDrop::update()
+	void LinuxDragAndDrop::Update()
 	{
 		Vector<DragAndDropOp> operations;
 

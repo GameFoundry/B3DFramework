@@ -21,7 +21,7 @@ namespace bs
 		
 	}
 
-	void ScriptScriptCode::initRuntimeData()
+	void ScriptScriptCode::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptScriptCode::internal_createInstance);
 		metaData.scriptClass->addInternalCall("Internal_GetText", (void*)&ScriptScriptCode::internal_getText);
@@ -45,7 +45,7 @@ namespace bs
 		if (!scriptCode.isLoaded())
 			MonoUtil::wstringToMono(L"");
 
-		return MonoUtil::wstringToMono(scriptCode->getString());
+		return MonoUtil::WstringToMono(scriptCode->getString());
 	}
 
 	void ScriptScriptCode::internal_setText(ScriptScriptCode* thisPtr, MonoString* text)
@@ -106,7 +106,7 @@ namespace bs
 		return metaData.scriptClass->createInstance();
 	}
 
-	Vector<ScriptScriptCode::FullTypeName> ScriptScriptCode::parseTypes(const WString& code)
+	Vector<ScriptScriptCode::FullTypeName> ScriptScriptCode::ParseTypes(const WString& code)
 	{
 		struct NamespaceData
 		{

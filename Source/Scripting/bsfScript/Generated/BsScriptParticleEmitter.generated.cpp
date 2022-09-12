@@ -37,7 +37,7 @@ namespace bs
 	{
 	}
 
-	void ScriptParticleEmitter::initRuntimeData()
+	void ScriptParticleEmitter::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_setShape", (void*)&ScriptParticleEmitter::Internal_setShape);
 		metaData.scriptClass->addInternalCall("Internal_getShape", (void*)&ScriptParticleEmitter::Internal_getShape);

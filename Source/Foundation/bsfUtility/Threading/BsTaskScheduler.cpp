@@ -12,36 +12,36 @@ namespace bs
 
 	}
 
-	SPtr<Task> Task::create(const String& name, std::function<void()> taskWorker, TaskPriority priority,
+	SPtr<Task> Task::Create(const String& name, std::function<void()> taskWorker, TaskPriority priority,
 		SPtr<Task> dependency)
 	{
 		return bs_shared_ptr_new<Task>(PrivatelyConstruct(), name, std::move(taskWorker), priority, std::move(dependency));
 	}
 
-	bool Task::isComplete() const
+	bool Task::IsComplete() const
 	{
 		return mState == 2;
 	}
 
-	bool Task::isCanceled() const
+	bool Task::IsCanceled() const
 	{
 		return mState == 3;
 	}
 
-	bool Task::hasStarted() const
+	bool Task::HasStarted() const
 	{
 		UINT32 state = mState;
 
 		return state == 1 || state == 2;
 	}
 
-	void Task::wait()
+	void Task::Wait()
 	{
 		if(mParent != nullptr)
 			mParent->waitUntilComplete(this);
 	}
 
-	void Task::cancel()
+	void Task::Cancel()
 	{
 		mState = 3;
 	}
@@ -54,19 +54,19 @@ namespace bs
 
 	}
 
-	SPtr<TaskGroup> TaskGroup::create(String name, std::function<void(UINT32)> taskWorker, UINT32 count,
+	SPtr<TaskGroup> TaskGroup::Create(String name, std::function<void(UINT32)> taskWorker, UINT32 count,
 		TaskPriority priority, SPtr<Task> dependency)
 	{
 		return bs_shared_ptr_new<TaskGroup>(PrivatelyConstruct(), std::move(name), std::move(taskWorker), count, priority,
 			std::move(dependency));
 	}
 
-	bool TaskGroup::isComplete() const
+	bool TaskGroup::IsComplete() const
 	{
 		return mNumRemainingTasks == 0;
 	}
 
-	void TaskGroup::wait()
+	void TaskGroup::Wait()
 	{
 		if(mParent != nullptr)
 			mParent->waitUntilComplete(this);
@@ -108,7 +108,7 @@ namespace bs
 		mTaskSchedulerThread.blockUntilComplete();
 	}
 
-	void TaskScheduler::addTask(SPtr<Task> task)
+	void TaskScheduler::AddTask(SPtr<Task> task)
 	{
 		Lock Lock(mReadyMutex);
 
@@ -125,7 +125,7 @@ namespace bs
 		mTaskReadyCond.notify_one();
 	}
 
-	void TaskScheduler::addTaskGroup(const SPtr<TaskGroup>& taskGroup)
+	void TaskScheduler::AddTaskGroup(const SPtr<TaskGroup>& taskGroup)
 	{
 		Lock Lock(mReadyMutex);
 
@@ -152,7 +152,7 @@ namespace bs
 		mTaskReadyCond.notify_one();
 	}
 
-	void TaskScheduler::addWorker()
+	void TaskScheduler::AddWorker()
 	{
 		Lock Lock(mReadyMutex);
 
@@ -162,7 +162,7 @@ namespace bs
 		mTaskReadyCond.notify_one();
 	}
 
-	void TaskScheduler::removeWorker()
+	void TaskScheduler::RemoveWorker()
 	{
 		Lock Lock(mReadyMutex);
 
@@ -170,7 +170,7 @@ namespace bs
 			mMaxActiveTasks--;
 	}
 
-	void TaskScheduler::runMain()
+	void TaskScheduler::RunMain()
 	{
 		while(true)
 		{
@@ -223,7 +223,7 @@ namespace bs
 		}
 	}
 
-	void TaskScheduler::runTask(SPtr<Task> task)
+	void TaskScheduler::RunTask(SPtr<Task> task)
 	{
 		task->mTaskWorker();
 
@@ -251,7 +251,7 @@ namespace bs
 		}
 	}
 
-	void TaskScheduler::waitUntilComplete(const Task* task)
+	void TaskScheduler::WaitUntilComplete(const Task* task)
 	{
 		if(task->isCanceled())
 			return;
@@ -297,7 +297,7 @@ namespace bs
 		}
 	}
 
-	void TaskScheduler::waitUntilComplete(const TaskGroup* taskGroup)
+	void TaskScheduler::WaitUntilComplete(const TaskGroup* taskGroup)
 	{
 		Lock Lock(mCompleteMutex);
 
@@ -309,7 +309,7 @@ namespace bs
 		}
 	}
 
-	bool TaskScheduler::taskCompare(const SPtr<Task>& lhs, const SPtr<Task>& rhs)
+	bool TaskScheduler::TaskCompare(const SPtr<Task>& lhs, const SPtr<Task>& rhs)
 	{
 		// If priority is the same, sort by the order the tasks were queued
 		if(lhs->mPriority == rhs->mPriority)

@@ -20,7 +20,7 @@ namespace bs
 		destroyChildElements();
 	}
 
-	void GUIElementBase::setPosition(INT32 x, INT32 y)
+	void GUIElementBase::SetPosition(INT32 x, INT32 y)
 	{
 		mDimensions.x = x;
 		mDimensions.y = y;
@@ -30,7 +30,7 @@ namespace bs
 		_markLayoutAsDirty();
 	}
 
-	void GUIElementBase::setSize(UINT32 width, UINT32 height)
+	void GUIElementBase::SetSize(UINT32 width, UINT32 height)
 	{
 		bool isFixedBefore = (mDimensions.flags & GUIDF_FixedWidth) != 0 && (mDimensions.flags & GUIDF_FixedHeight) != 0;
 
@@ -46,7 +46,7 @@ namespace bs
 		_markLayoutAsDirty();
 	}
 
-	void GUIElementBase::setWidth(UINT32 width)
+	void GUIElementBase::SetWidth(UINT32 width)
 	{
 		bool isFixedBefore = (mDimensions.flags & GUIDF_FixedWidth) != 0 && (mDimensions.flags & GUIDF_FixedHeight) != 0;
 
@@ -61,7 +61,7 @@ namespace bs
 		_markLayoutAsDirty();
 	}
 
-	void GUIElementBase::setFlexibleWidth(UINT32 minWidth, UINT32 maxWidth)
+	void GUIElementBase::SetFlexibleWidth(UINT32 minWidth, UINT32 maxWidth)
 	{
 		if (maxWidth < minWidth)
 			std::swap(minWidth, maxWidth);
@@ -81,7 +81,7 @@ namespace bs
 		_markLayoutAsDirty();
 	}
 
-	void GUIElementBase::setHeight(UINT32 height)
+	void GUIElementBase::SetHeight(UINT32 height)
 	{
 		bool isFixedBefore = (mDimensions.flags & GUIDF_FixedWidth) != 0 && (mDimensions.flags & GUIDF_FixedHeight) != 0;
 
@@ -96,7 +96,7 @@ namespace bs
 		_markLayoutAsDirty();
 	}
 
-	void GUIElementBase::setFlexibleHeight(UINT32 minHeight, UINT32 maxHeight)
+	void GUIElementBase::SetFlexibleHeight(UINT32 minHeight, UINT32 maxHeight)
 	{
 		if (maxHeight < minHeight)
 			std::swap(minHeight, maxHeight);
@@ -116,7 +116,7 @@ namespace bs
 		_markLayoutAsDirty();
 	}
 
-	void GUIElementBase::resetDimensions()
+	void GUIElementBase::ResetDimensions()
 	{
 		bool isFixedBefore = (mDimensions.flags & GUIDF_FixedWidth) != 0 && (mDimensions.flags & GUIDF_FixedHeight) != 0;
 
@@ -130,7 +130,7 @@ namespace bs
 		_markLayoutAsDirty();
 	}
 
-	Rect2I GUIElementBase::getBounds(GUIPanel* relativeTo)
+	Rect2I GUIElementBase::GetBounds(GUIPanel* relativeTo)
 	{
 		if (relativeTo == nullptr)
 			relativeTo = mAnchorParent;
@@ -149,14 +149,14 @@ namespace bs
 		return bounds;
 	}
 
-	void GUIElementBase::setBounds(const Rect2I& bounds)
+	void GUIElementBase::SetBounds(const Rect2I& bounds)
 	{
 		setPosition(bounds.x, bounds.y);
 		setWidth(bounds.width);
 		setHeight(bounds.height);
 	}
 
-	Rect2I GUIElementBase::getGlobalBounds()
+	Rect2I GUIElementBase::GetGlobalBounds()
 	{
 		if (mUpdateParent != nullptr && mUpdateParent->_isDirty() && mParentWidget != nullptr)
 			mParentWidget->_updateLayout(mUpdateParent);
@@ -164,7 +164,7 @@ namespace bs
 		return mLayoutData.area;
 	}
 
-	Rect2I GUIElementBase::getScreenBounds() const
+	Rect2I GUIElementBase::GetScreenBounds() const
 	{
 		if (mUpdateParent != nullptr && mUpdateParent->_isDirty() && mParentWidget != nullptr)
 			mParentWidget->_updateLayout(mUpdateParent);
@@ -195,7 +195,7 @@ namespace bs
 		return area;
 	}
 
-	Rect2I GUIElementBase::getVisibleBounds()
+	Rect2I GUIElementBase::GetVisibleBounds()
 	{
 		return GetBounds();
 	}
@@ -234,7 +234,7 @@ namespace bs
 			mParentWidget->_markMeshDirty(this);
 	}
 
-	void GUIElementBase::setVisible(bool visible)
+	void GUIElementBase::SetVisible(bool visible)
 	{
 		// No visibility states matter if object is not active
 		if (!_isActive())
@@ -288,7 +288,7 @@ namespace bs
 		}
 	}
 
-	void GUIElementBase::setActive(bool active)
+	void GUIElementBase::SetActive(bool active)
 	{
 		static const UINT8 ACTIVE_FLAGS = GUIElem_InactiveSelf | GUIElem_HiddenSelf;
 
@@ -354,7 +354,7 @@ namespace bs
 		}
 	}
 
-	void GUIElementBase::setDisabled(bool disabled)
+	void GUIElementBase::SetDisabled(bool disabled)
 	{
 		bool disabledSelf = (mFlags & GUIElem_DisabledSelf) != 0;
 		if (disabledSelf != disabled)
@@ -497,7 +497,7 @@ namespace bs
 			BS_EXCEPT(InvalidParametersException, "Provided element is not a part of this element.");
 	}
 
-	void GUIElementBase::destroyChildElements()
+	void GUIElementBase::DestroyChildElements()
 	{
 		Vector<GUIElementBase*> childCopy = mChildren;
 		for (auto& child : childCopy)
@@ -603,7 +603,7 @@ namespace bs
 		return nullptr;
 	}
 
-	void GUIElementBase::refreshChildUpdateParents()
+	void GUIElementBase::RefreshChildUpdateParents()
 	{
 		GUIElementBase* updateParent = findUpdateParent();
 
@@ -626,7 +626,7 @@ namespace bs
 		}
 	}
 
-	void GUIElementBase::setAnchorParent(GUIPanel* anchorParent)
+	void GUIElementBase::SetAnchorParent(GUIPanel* anchorParent)
 	{
 		mAnchorParent = anchorParent;
 
@@ -637,7 +637,7 @@ namespace bs
 			child->setAnchorParent(anchorParent);
 	}
 
-	void GUIElementBase::setUpdateParent(GUIElementBase* updateParent)
+	void GUIElementBase::SetUpdateParent(GUIElementBase* updateParent)
 	{
 		mUpdateParent = updateParent;
 

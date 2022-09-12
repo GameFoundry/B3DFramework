@@ -28,12 +28,12 @@ namespace bs
 		bs_delete(m);
 	}
 
-	void Mouse::capture()
+	void Mouse::Capture()
 	{
 		m->hid.capture(nullptr, !m->hasInputFocus);
 	}
 
-	void Mouse::changeCaptureContext(UINT64 windowHandle)
+	void Mouse::ChangeCaptureContext(UINT64 windowHandle)
 	{
 		m->hasInputFocus = windowHandle != (UINT64)-1;
 	}

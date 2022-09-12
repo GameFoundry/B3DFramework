@@ -19,13 +19,13 @@ namespace bs
 
 	}
 
-	void ScriptGUIFixedSpace::initRuntimeData()
+	void ScriptGUIFixedSpace::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptGUIFixedSpace::internal_createInstance);
 		metaData.scriptClass->addInternalCall("Internal_SetSize", (void*)&ScriptGUIFixedSpace::internal_setSize);
 	}
 
-	void ScriptGUIFixedSpace::destroy()
+	void ScriptGUIFixedSpace::Destroy()
 	{
 		if (!mIsDestroyed)
 		{

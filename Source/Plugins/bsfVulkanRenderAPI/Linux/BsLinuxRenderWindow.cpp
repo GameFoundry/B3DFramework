@@ -23,7 +23,7 @@ namespace bs
 		:RenderWindow(desc, windowId), mProperties(desc)
 	{ }
 
-	void LinuxRenderWindow::getCustomAttribute(const String& name, void* data) const
+	void LinuxRenderWindow::GetCustomAttribute(const String& name, void* data) const
 	{
 		if (name == "WINDOW" || name == "LINUX_WINDOW")
 		{
@@ -33,7 +33,7 @@ namespace bs
 		}
 	}
 
-	Vector2I LinuxRenderWindow::screenToWindowPos(const Vector2I& screenPos) const
+	Vector2I LinuxRenderWindow::ScreenToWindowPos(const Vector2I& screenPos) const
 	{
 		blockUntilCoreInitialized();
 
@@ -44,7 +44,7 @@ namespace bs
 		return pos;
 	}
 
-	Vector2I LinuxRenderWindow::windowToScreenPos(const Vector2I& windowPos) const
+	Vector2I LinuxRenderWindow::WindowToScreenPos(const Vector2I& windowPos) const
 	{
 		blockUntilCoreInitialized();
 
@@ -55,12 +55,12 @@ namespace bs
 		return pos;
 	}
 
-	SPtr<ct::LinuxRenderWindow> LinuxRenderWindow::getCore() const
+	SPtr<ct::LinuxRenderWindow> LinuxRenderWindow::GetCore() const
 	{
 		return std::static_pointer_cast<ct::LinuxRenderWindow>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObject> LinuxRenderWindow::createCore() const
+	SPtr<ct::CoreObject> LinuxRenderWindow::CreateCore() const
 	{
 		ct::VulkanRenderAPI& rapi = static_cast<ct::VulkanRenderAPI&>(ct::RenderAPI::instance());
 
@@ -71,7 +71,7 @@ namespace bs
 		return coreObj;
 	}
 
-	void LinuxRenderWindow::syncProperties()
+	void LinuxRenderWindow::SyncProperties()
 	{
 		ScopedSpinLock Lock(getCore()->_getPropertiesLock());
 		mProperties = getCore()->mSyncedProperties;
@@ -109,7 +109,7 @@ namespace bs
 		vkDestroySurfaceKHR(mRenderAPI._getInstance(), mSurface, gVulkanAllocator);
 	}
 
-	void LinuxRenderWindow::initialize()
+	void LinuxRenderWindow::Initialize()
 	{
 		LinuxPlatform::lockX();
 
@@ -231,7 +231,7 @@ namespace bs
 		RenderWindow::initialize();
 	}
 
-	void LinuxRenderWindow::acquireBackBuffer()
+	void LinuxRenderWindow::AcquireBackBuffer()
 	{
 		// We haven't presented the current back buffer yet, so just use that one
 		if (!mRequiresNewBackBuffer)
@@ -250,7 +250,7 @@ namespace bs
 		mRequiresNewBackBuffer = false;
 	}
 
-	void LinuxRenderWindow::setFullscreen(UINT32 width, UINT32 height, float refreshRate, UINT32 monitorIdx)
+	void LinuxRenderWindow::SetFullscreen(UINT32 width, UINT32 height, float refreshRate, UINT32 monitorIdx)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -258,7 +258,7 @@ namespace bs
 		setFullscreen(videoMode);
 	}
 
-	void LinuxRenderWindow::setVideoMode(INT32 screen, RROutput output, RRMode mode)
+	void LinuxRenderWindow::SetVideoMode(INT32 screen, RROutput output, RRMode mode)
 	{
 		::Display* display = LinuxPlatform::getXDisplay();
 		::Window rootWindow = RootWindow(display, screen);
@@ -302,7 +302,7 @@ namespace bs
 		XRRFreeScreenResources(screenRes);
 	}
 
-	void LinuxRenderWindow::setFullscreen(const VideoMode& mode)
+	void LinuxRenderWindow::SetFullscreen(const VideoMode& mode)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -439,7 +439,7 @@ namespace bs
 		bs::RenderWindowManager::instance().notifyMovedOrResized(this);
 	}
 
-	void LinuxRenderWindow::setWindowed(UINT32 width, UINT32 height)
+	void LinuxRenderWindow::SetWindowed(UINT32 width, UINT32 height)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -489,7 +489,7 @@ namespace bs
 		bs::RenderWindowManager::instance().notifyMovedOrResized(this);
 	}
 
-	void LinuxRenderWindow::move(INT32 left, INT32 top)
+	void LinuxRenderWindow::Move(INT32 left, INT32 top)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -513,7 +513,7 @@ namespace bs
 		}
 	}
 
-	void LinuxRenderWindow::resize(UINT32 width, UINT32 height)
+	void LinuxRenderWindow::Resize(UINT32 width, UINT32 height)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -537,7 +537,7 @@ namespace bs
 		}
 	}
 
-	void LinuxRenderWindow::minimize()
+	void LinuxRenderWindow::Minimize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -546,7 +546,7 @@ namespace bs
 		LinuxPlatform::unlockX();
 	}
 
-	void LinuxRenderWindow::maximize()
+	void LinuxRenderWindow::Maximize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -555,7 +555,7 @@ namespace bs
 		LinuxPlatform::unlockX();
 	}
 
-	void LinuxRenderWindow::restore()
+	void LinuxRenderWindow::Restore()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -564,7 +564,7 @@ namespace bs
 		LinuxPlatform::unlockX();
 	}
 
-	void LinuxRenderWindow::setVSync(bool enabled, UINT32 interval)
+	void LinuxRenderWindow::SetVSync(bool enabled, UINT32 interval)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -587,7 +587,7 @@ namespace bs
 		bs::RenderWindowManager::instance().notifySyncDataDirty(this);		
 	}
 
-	void LinuxRenderWindow::swapBuffers(UINT32 syncMask)
+	void LinuxRenderWindow::SwapBuffers(UINT32 syncMask)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -634,14 +634,14 @@ namespace bs
 		LinuxPlatform::unlockX();
 	}
 
-	void LinuxRenderWindow::copyToMemory(PixelData &dst, FrameBuffer buffer)
+	void LinuxRenderWindow::CopyToMemory(PixelData &dst, FrameBuffer buffer)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
 		assert(false && "Not implemented");
 	}
 
-	void LinuxRenderWindow::getCustomAttribute(const String& name, void* data) const
+	void LinuxRenderWindow::GetCustomAttribute(const String& name, void* data) const
 	{
 		if (name == "FB")
 		{
@@ -672,7 +672,7 @@ namespace bs
 		}
 	}
 
-	void LinuxRenderWindow::setActive(bool state)
+	void LinuxRenderWindow::SetActive(bool state)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -688,7 +688,7 @@ namespace bs
 		RenderWindow::setActive(state);
 	}
 
-	void LinuxRenderWindow::setHidden(bool hidden)
+	void LinuxRenderWindow::SetHidden(bool hidden)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -726,13 +726,13 @@ namespace bs
 		rebuildSwapChain();
 	}
 
-	void LinuxRenderWindow::syncProperties()
+	void LinuxRenderWindow::SyncProperties()
 	{
 		ScopedSpinLock Lock(mLock);
 		mProperties = mSyncedProperties;
 	}
 
-	void LinuxRenderWindow::rebuildSwapChain()
+	void LinuxRenderWindow::RebuildSwapChain()
 	{
 		//// Need to make sure nothing is using the swap buffer before we re-create it
 		// Note: Optionally I can detect exactly on which queues (if any) are the swap chain images used on, and only wait

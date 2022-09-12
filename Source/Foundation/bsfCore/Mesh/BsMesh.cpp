@@ -34,7 +34,7 @@ namespace bs
 		:MeshBase(0, 0, DOT_TRIANGLE_LIST)
 	{ }
 
-	AsyncOp Mesh::writeData(const SPtr<MeshData>& data, bool discardEntireBuffer)
+	AsyncOp Mesh::WriteData(const SPtr<MeshData>& data, bool discardEntireBuffer)
 	{
 		updateBounds(*data);
 		updateCPUBuffer(0, *data);
@@ -54,7 +54,7 @@ namespace bs
 			 data, discardEntireBuffer, std::placeholders::_1));
 	}
 
-	AsyncOp Mesh::readData(const SPtr<MeshData>& data)
+	AsyncOp Mesh::ReadData(const SPtr<MeshData>& data)
 	{
 		data->_lock();
 
@@ -74,7 +74,7 @@ namespace bs
 			data, std::placeholders::_1));
 	}
 
-	SPtr<MeshData> Mesh::allocBuffer() const
+	SPtr<MeshData> Mesh::AllocBuffer() const
 	{
 		SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(mProperties.mNumVertices, mProperties.mNumIndices,
 			mVertexDesc, mIndexType);
@@ -82,7 +82,7 @@ namespace bs
 		return meshData;
 	}
 
-	void Mesh::initialize()
+	void Mesh::Initialize()
 	{
 		if (mCPUData != nullptr)
 			updateBounds(*mCPUData);
@@ -93,18 +93,18 @@ namespace bs
 			createCPUBuffer();
 	}
 
-	void Mesh::updateBounds(const MeshData& meshData)
+	void Mesh::UpdateBounds(const MeshData& meshData)
 	{
 		mProperties.mBounds = meshData.calculateBounds();
 		markCoreDirty();
 	}
 
-	SPtr<ct::Mesh> Mesh::getCore() const
+	SPtr<ct::Mesh> Mesh::GetCore() const
 	{
 		return std::static_pointer_cast<ct::Mesh>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObject> Mesh::createCore() const
+	SPtr<ct::CoreObject> Mesh::CreateCore() const
 	{
 		MESH_DESC desc;
 		desc.numVertices = mProperties.mNumVertices;
@@ -127,7 +127,7 @@ namespace bs
 		return meshCore;
 	}
 
-	void Mesh::updateCPUBuffer(UINT32 subresourceIdx, const MeshData& pixelData)
+	void Mesh::UpdateCPUBuffer(UINT32 subresourceIdx, const MeshData& pixelData)
 	{
 		if ((mUsage & MU_CPUCACHED) == 0)
 			return;
@@ -156,14 +156,14 @@ namespace bs
 		memcpy(dest, src, pixelData.getSize());
 	}
 
-	void Mesh::createCPUBuffer()
+	void Mesh::CreateCPUBuffer()
 	{
 		mCPUData = allocBuffer();
 	}
 
-	HMesh Mesh::dummy()
+	HMesh Mesh::Dummy()
 	{
-		return MeshManager::instance().getDummyMesh();
+		return MeshManager::Instance().getDummyMesh();
 	}
 
 	/************************************************************************/
@@ -172,12 +172,12 @@ namespace bs
 
 	RTTITypeBase* Mesh::getRTTIStatic()
 	{
-		return MeshRTTI::instance();
+		return MeshRTTI::Instance();
 	}
 
 	RTTITypeBase* Mesh::getRTTI() const
 	{
-		return Mesh::getRTTIStatic();
+		return Mesh::GetRTTIStatic();
 	}
 
 	/************************************************************************/
@@ -199,19 +199,19 @@ namespace bs
 		return static_resource_cast<Mesh>(gResources()._createResourceHandle(meshPtr));
 	}
 
-	HMesh Mesh::create(const MESH_DESC& desc)
+	HMesh Mesh::Create(const MESH_DESC& desc)
 	{
 		SPtr<Mesh> meshPtr = _createPtr(desc);
 		return static_resource_cast<Mesh>(gResources()._createResourceHandle(meshPtr));
 	}
 
-	HMesh Mesh::create(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc)
+	HMesh Mesh::Create(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc)
 	{
 		SPtr<Mesh> meshPtr = _createPtr(initialMeshData, desc);
 		return static_resource_cast<Mesh>(gResources()._createResourceHandle(meshPtr));
 	}
 
-	HMesh Mesh::create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp)
+	HMesh Mesh::Create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp)
 	{
 		SPtr<Mesh> meshPtr = _createPtr(initialMeshData, usage, drawOp);
 		return static_resource_cast<Mesh>(gResources()._createResourceHandle(meshPtr));
@@ -248,7 +248,7 @@ namespace bs
 		return mesh;
 	}
 
-	SPtr<Mesh> Mesh::createEmpty()
+	SPtr<Mesh> Mesh::CreateEmpty()
 	{
 		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh());
 		mesh->_setThisPtr(mesh);
@@ -275,7 +275,7 @@ namespace bs
 		mTempInitialMeshData = nullptr;
 	}
 
-	void Mesh::initialize()
+	void Mesh::Initialize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -318,28 +318,28 @@ namespace bs
 		MeshBase::initialize();
 	}
 
-	SPtr<VertexData> Mesh::getVertexData() const
+	SPtr<VertexData> Mesh::GetVertexData() const
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
 		return mVertexData;
 	}
 
-	SPtr<IndexBuffer> Mesh::getIndexBuffer() const
+	SPtr<IndexBuffer> Mesh::GetIndexBuffer() const
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
 		return mIndexBuffer;
 	}
 
-	SPtr<VertexDataDesc> Mesh::getVertexDesc() const
+	SPtr<VertexDataDesc> Mesh::GetVertexDesc() const
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
 		return mVertexDesc;
 	}
 
-	void Mesh::writeData(const MeshData& meshData, bool discardEntireBuffer, bool performUpdateBounds, UINT32 queueIdx)
+	void Mesh::WriteData(const MeshData& meshData, bool discardEntireBuffer, bool performUpdateBounds, UINT32 queueIdx)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -421,7 +421,7 @@ namespace bs
 			updateBounds(meshData);
 	}
 
-	void Mesh::readData(MeshData& meshData, UINT32 deviceIdx, UINT32 queueIdx)
+	void Mesh::ReadData(MeshData& meshData, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -510,7 +510,7 @@ namespace bs
 		}
 	}
 
-	void Mesh::updateBounds(const MeshData& meshData)
+	void Mesh::UpdateBounds(const MeshData& meshData)
 	{
 		mProperties.mBounds = meshData.calculateBounds();
 
@@ -535,7 +535,7 @@ namespace bs
 		return mesh;
 	}
 
-	SPtr<Mesh> Mesh::create(const MESH_DESC& desc, GpuDeviceFlags deviceMask)
+	SPtr<Mesh> Mesh::Create(const MESH_DESC& desc, GpuDeviceFlags deviceMask)
 	{
 		SPtr<Mesh> mesh = bs_shared_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(nullptr, desc, deviceMask));
 
@@ -545,7 +545,7 @@ namespace bs
 		return mesh;
 	}
 
-	SPtr<Mesh> Mesh::create(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc, GpuDeviceFlags deviceMask)
+	SPtr<Mesh> Mesh::Create(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc, GpuDeviceFlags deviceMask)
 	{
 		MESH_DESC descCopy = desc;
 		descCopy.numVertices = initialMeshData->getNumVertices();

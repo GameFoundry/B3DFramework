@@ -9,7 +9,7 @@ namespace bs
 	ScriptCategory::ScriptCategory(MonoObject* instance) : ScriptObject(instance)
 	{ }
 
-	void ScriptCategory::initRuntimeData()
+	void ScriptCategory::InitRuntimeData()
 	{
 		nameField = metaData.scriptClass->getField("name");
 	}

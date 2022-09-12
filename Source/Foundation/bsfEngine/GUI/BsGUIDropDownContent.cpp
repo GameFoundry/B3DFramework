@@ -51,7 +51,7 @@ namespace bs
 		return new (bs_alloc<GUIDropDownContent>()) GUIDropDownContent(parent, dropDownData, *curStyle, GUIDimensions::create(options));
 	}
 
-	void GUIDropDownContent::styleUpdated()
+	void GUIDropDownContent::StyleUpdated()
 	{
 		for (auto& visElem : mVisibleElements)
 		{
@@ -71,7 +71,7 @@ namespace bs
 		}
 	}
 
-	void GUIDropDownContent::setRange(UINT32 start, UINT32 end)
+	void GUIDropDownContent::SetRange(UINT32 start, UINT32 end)
 	{
 		std::function<void(UINT32, UINT32)> onHover =
 			[&](UINT32 idx, UINT32 visIdx)
@@ -158,7 +158,7 @@ namespace bs
 		_markLayoutAsDirty();
 	}
 
-	UINT32 GUIDropDownContent::getElementHeight(UINT32 idx) const
+	UINT32 GUIDropDownContent::GetElementHeight(UINT32 idx) const
 	{
 		if (_getParentWidget() == nullptr)
 			return 14; // Arbitrary
@@ -176,7 +176,7 @@ namespace bs
 		}
 	}
 
-	HString GUIDropDownContent::getElementLocalizedName(UINT32 idx) const
+	HString GUIDropDownContent::GetElementLocalizedName(UINT32 idx) const
 	{
 		const String& label = mDropDownData.entries[idx].getLabel();
 
@@ -187,7 +187,7 @@ namespace bs
 			return HString(label);
 	}
 
-	void GUIDropDownContent::setKeyboardFocus(bool focus)
+	void GUIDropDownContent::SetKeyboardFocus(bool focus)
 	{
 		mKeyboardFocus = focus;
 		setFocus(focus);
@@ -263,7 +263,7 @@ namespace bs
 		return false;
 	}
 
-	void GUIDropDownContent::setSelected(UINT32 idx)
+	void GUIDropDownContent::SetSelected(UINT32 idx)
 	{
 		if (mSelectedIdx != UINT_MAX)
 		{
@@ -282,7 +282,7 @@ namespace bs
 		mParent->elementSelected(mVisibleElements[mSelectedIdx].idx);
 	}
 
-	void GUIDropDownContent::selectNext(UINT32 startIdx)
+	void GUIDropDownContent::SelectNext(UINT32 startIdx)
 	{
 		UINT32 numElements = (UINT32)mDropDownData.entries.size();
 
@@ -322,7 +322,7 @@ namespace bs
 		}
 	}
 
-	void GUIDropDownContent::selectPrevious(UINT32 startIdx)
+	void GUIDropDownContent::SelectPrevious(UINT32 startIdx)
 	{
 		UINT32 numElements = (UINT32)mDropDownData.entries.size();
 
@@ -410,7 +410,7 @@ namespace bs
 		}
 	}
 
-	const String& GUIDropDownContent::getGUITypeName()
+	const String& GUIDropDownContent::GetGUITypeName()
 	{
 		static String typeName = "GUIDropDownContent";
 		return typeName;

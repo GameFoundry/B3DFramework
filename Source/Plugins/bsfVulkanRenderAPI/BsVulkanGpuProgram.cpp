@@ -45,7 +45,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuProgram);
 	}
 
-	void VulkanGpuProgram::initialize()
+	void VulkanGpuProgram::Initialize()
 	{
 		if (!isSupported())
 		{

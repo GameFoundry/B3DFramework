@@ -87,18 +87,18 @@ namespace bs
 		mFMOD->release();
 	}
 
-	void FMODAudio::setVolume(float volume)
+	void FMODAudio::SetVolume(float volume)
 	{
 		mVolume = Math::clamp01(volume);
 		mMasterChannelGroup->setVolume(mVolume);
 	}
 
-	float FMODAudio::getVolume() const
+	float FMODAudio::GetVolume() const
 	{
 		return mVolume;
 	}
 
-	void FMODAudio::setPaused(bool paused)
+	void FMODAudio::SetPaused(bool paused)
 	{
 		if (mIsPaused == paused)
 			return;
@@ -116,7 +116,7 @@ namespace bs
 		Audio::_update();
 	}
 
-	void FMODAudio::setActiveDevice(const AudioDevice& device)
+	void FMODAudio::SetActiveDevice(const AudioDevice& device)
 	{
 		for(UINT32 i = 0; i < (UINT32)mAllDevices.size(); i++)
 		{
@@ -136,12 +136,12 @@ namespace bs
 		return bs_core_ptr_new<FMODAudioClip>(samples, streamSize, numSamples, desc);
 	}
 
-	SPtr<AudioListener> FMODAudio::createListener()
+	SPtr<AudioListener> FMODAudio::CreateListener()
 	{
 		return bs_shared_ptr_new<FMODAudioListener>();
 	}
 
-	SPtr<AudioSource> FMODAudio::createSource()
+	SPtr<AudioSource> FMODAudio::CreateSource()
 	{
 		return bs_shared_ptr_new<FMODAudioSource>();
 	}
@@ -162,7 +162,7 @@ namespace bs
 		rebuildListeners();
 	}
 
-	void FMODAudio::rebuildListeners()
+	void FMODAudio::RebuildListeners()
 	{
 		INT32 numListeners = (INT32)mListeners.size();
 		if (numListeners > 0)

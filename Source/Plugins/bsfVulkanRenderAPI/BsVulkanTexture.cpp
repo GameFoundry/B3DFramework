@@ -124,7 +124,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	VkImageView VulkanImage::getView(bool framebuffer) const
+	VkImageView VulkanImage::GetView(bool framebuffer) const
 	{
 		if(framebuffer && (mUsage & TU_DEPTHSTENCIL) != 0)
 			return mFramebufferMainView;
@@ -132,18 +132,18 @@ namespace bs { namespace ct
 		return mMainView;
 	}
 
-	VkImageView VulkanImage::getView(const TextureSurface& surface, bool framebuffer) const
+	VkImageView VulkanImage::GetView(const TextureSurface& surface, bool framebuffer) const
 	{
 		return GetView(mImageViewCI.format, surface, framebuffer);
 	}
 
-	VkImageView VulkanImage::getView(VkFormat format, bool framebuffer) const
+	VkImageView VulkanImage::GetView(VkFormat format, bool framebuffer) const
 	{
 		TextureSurface CompleteSurface(0, mNumMipLevels, 0, mNumFaces);
 		return GetView(format, completeSurface, framebuffer);
 	}
 
-	VkImageView VulkanImage::getView(VkFormat format, const TextureSurface& surface, bool framebuffer) const
+	VkImageView VulkanImage::GetView(VkFormat format, const TextureSurface& surface, bool framebuffer) const
 	{
 		for(auto& entry : mImageInfos)
 		{
@@ -183,7 +183,7 @@ namespace bs { namespace ct
 		return info.view;
 	}
 
-	VkImageView VulkanImage::createView(const TextureSurface& surface, VkFormat format, VkImageAspectFlags aspectMask) const
+	VkImageView VulkanImage::CreateView(const TextureSurface& surface, VkFormat format, VkImageAspectFlags aspectMask) const
 	{
 		VkImageViewType oldViewType = mImageViewCI.viewType;
 		VkFormat oldFormat = mImageViewCI.format;
@@ -232,7 +232,7 @@ namespace bs { namespace ct
 		return view;
 	}
 
-	VkImageLayout VulkanImage::getOptimalLayout() const
+	VkImageLayout VulkanImage::GetOptimalLayout() const
 	{
 		// If it's load-store, no other flags matter, it must be in general layout
 		if ((mUsage & TU_LOADSTORE) != 0)
@@ -251,7 +251,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	VkImageAspectFlags VulkanImage::getAspectFlags() const
+	VkImageAspectFlags VulkanImage::GetAspectFlags() const
 	{
 		if ((mUsage & TU_DEPTHSTENCIL) != 0)
 		{
@@ -268,7 +268,7 @@ namespace bs { namespace ct
 		return VK_IMAGE_ASPECT_COLOR_BIT;
 	}
 
-	VkImageSubresourceRange VulkanImage::getRange() const
+	VkImageSubresourceRange VulkanImage::GetRange() const
 	{
 		VkImageSubresourceRange range;
 		range.baseArrayLayer = 0;
@@ -280,7 +280,7 @@ namespace bs { namespace ct
 		return range;
 	}
 
-	VkImageSubresourceRange VulkanImage::getRange(const TextureSurface& surface) const
+	VkImageSubresourceRange VulkanImage::GetRange(const TextureSurface& surface) const
 	{
 		VkImageSubresourceRange range;
 		range.baseArrayLayer = surface.face;
@@ -298,7 +298,7 @@ namespace bs { namespace ct
 		return mSubresources[mipLevel * mNumFaces + face];
 	}
 
-	void VulkanImage::map(UINT32 face, UINT32 mipLevel, PixelData& output) const
+	void VulkanImage::Map(UINT32 face, UINT32 mipLevel, PixelData& output) const
 	{
 		VulkanDevice& device = mOwner->getDevice();
 
@@ -343,7 +343,7 @@ namespace bs { namespace ct
 		return data;
 	}
 
-	void VulkanImage::unmap()
+	void VulkanImage::Unmap()
 	{
 		VulkanDevice& device = mOwner->getDevice();
 
@@ -370,7 +370,7 @@ namespace bs { namespace ct
 		vkCmdCopyImageToBuffer(cb->getCB()->getHandle(), mImage, layout, destination->getHandle(), 1, &region);
 	}
 
-	VkAccessFlags VulkanImage::getAccessFlags(VkImageLayout layout, bool readOnly)
+	VkAccessFlags VulkanImage::GetAccessFlags(VkImageLayout layout, bool readOnly)
 	{
 		VkAccessFlags accessFlags;
 
@@ -438,7 +438,7 @@ namespace bs { namespace ct
 		return accessFlags;
 	}
 
-	void VulkanImage::getBarriers(const VkImageSubresourceRange& range, Vector<VkImageMemoryBarrier>& barriers)
+	void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkImageMemoryBarrier>& barriers)
 	{
 		UINT32 numSubresources = range.levelCount * range.layerCount;
 
@@ -622,7 +622,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Texture);
 	}
 
-	void VulkanTexture::initialize()
+	void VulkanTexture::Initialize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -1275,7 +1275,7 @@ namespace bs { namespace ct
 		return lockedArea;
 	}
 
-	void VulkanTexture::unlockImpl()
+	void VulkanTexture::UnlockImpl()
 	{
 		// Possibly map() failed with some error
 		if (!mIsMapped)
@@ -1425,7 +1425,7 @@ namespace bs { namespace ct
 		mIsMapped = false;
 	}
 
-	void VulkanTexture::readDataImpl(PixelData& dest, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
+	void VulkanTexture::ReadDataImpl(PixelData& dest, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		if (mProperties.getNumSamples() > 1)
 		{

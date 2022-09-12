@@ -7,7 +7,7 @@
 
 namespace bs
 {
-	const String& GUIRenderTexture::getGUITypeName()
+	const String& GUIRenderTexture::GetGUITypeName()
 	{
 		static String name = "RenderTexture";
 		return name;
@@ -47,7 +47,7 @@ namespace bs
 		return new (bs_alloc<GUIRenderTexture>()) GUIRenderTexture(styleName, texture, false, GUIDimensions::create(options));
 	}
 
-	void GUIRenderTexture::setRenderTexture(const SPtr<RenderTexture>& texture)
+	void GUIRenderTexture::SetRenderTexture(const SPtr<RenderTexture>& texture)
 	{
 		if (mSourceTexture != nullptr)
 			GUIManager::instance().setInputBridge(mSourceTexture, nullptr);
@@ -74,7 +74,7 @@ namespace bs
 		_markLayoutAsDirty();
 	}
 
-	void GUIRenderTexture::updateRenderElementsInternal()
+	void GUIRenderTexture::UpdateRenderElementsInternal()
 	{		
 		if(mActiveTexture != nullptr && mActiveTexture.isLoaded())
 			mDesc.texture = mActiveTexture;

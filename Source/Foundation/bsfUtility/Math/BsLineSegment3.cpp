@@ -11,7 +11,7 @@ namespace bs
 
 	}
 
-	std::pair<std::array<Vector3, 2>, float>  LineSegment3::getNearestPoint(const Ray& ray) const
+	std::pair<std::array<Vector3, 2>, float>  LineSegment3::GetNearestPoint(const Ray& ray) const
 	{
 		const Vector3& org = ray.getOrigin();
 		const Vector3& dir = ray.getDirection();

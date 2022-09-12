@@ -16,7 +16,7 @@ namespace bs
 	{
 	}
 
-	void ScriptCSkybox::initRuntimeData()
+	void ScriptCSkybox::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getTexture", (void*)&ScriptCSkybox::Internal_getTexture);
 		metaData.scriptClass->addInternalCall("Internal_setTexture", (void*)&ScriptCSkybox::Internal_setTexture);

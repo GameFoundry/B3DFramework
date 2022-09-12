@@ -24,7 +24,7 @@ namespace bs
 		close();
 	}
 
-	bool OggVorbisEncoder::open(std::function<void(UINT8*, UINT32)> writeCallback, UINT32 sampleRate, UINT32 bitDepth,
+	bool OggVorbisEncoder::Open(std::function<void(UINT8*, UINT32)> writeCallback, UINT32 sampleRate, UINT32 bitDepth,
 		UINT32 numChannels)
 	{
 		mNumChannels = numChannels;
@@ -77,7 +77,7 @@ namespace bs
 		return true;
 	}
 
-	void OggVorbisEncoder::write(UINT8* samples, UINT32 numSamples)
+	void OggVorbisEncoder::Write(UINT8* samples, UINT32 numSamples)
 	{
 		static const UINT32 WRITE_LENGTH = 1024;
 
@@ -154,7 +154,7 @@ namespace bs
 		}
 	}
 
-	void OggVorbisEncoder::writeBlocks()
+	void OggVorbisEncoder::WriteBlocks()
 	{
 		while (vorbis_analysis_blockout(&mVorbisState, &mVorbisBlock) == 1)
 		{
@@ -179,7 +179,7 @@ namespace bs
 		}
 	}
 
-	void OggVorbisEncoder::flush()
+	void OggVorbisEncoder::Flush()
 	{
 		if (mBufferOffset > 0 && mWriteCallback != nullptr)
 			mWriteCallback(mBuffer, mBufferOffset);
@@ -187,7 +187,7 @@ namespace bs
 		mBufferOffset = 0;
 	}
 
-	void OggVorbisEncoder::close()
+	void OggVorbisEncoder::Close()
 	{
 		if (mClosed)
 			return;

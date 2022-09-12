@@ -108,7 +108,7 @@ namespace bs
 		return *this;
 	}
 
-	const String& HString::getValue() const
+	const String& HString::GetValue() const
 	{
 		if (mIsDirty)
 		{
@@ -128,7 +128,7 @@ namespace bs
 		return *mStringPtr;
 	}
 
-	void HString::setParameter(UINT32 idx, const String& value)
+	void HString::SetParameter(UINT32 idx, const String& value)
 	{
 		if (idx >= mStringData->numParameters)
 			return;
@@ -137,7 +137,7 @@ namespace bs
 		mIsDirty = true;
 	}
 
-	const HString& HString::dummy()
+	const HString& HString::Dummy()
 	{
 		static HString dummyVal;
 

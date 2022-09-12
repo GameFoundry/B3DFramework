@@ -16,7 +16,7 @@ namespace bs { namespace ct
 			bs_pool_delete(static_cast<VulkanHardwareBuffer*>(mBuffer));
 	}
 
-	void VulkanGpuParamBlockBuffer::initialize()
+	void VulkanGpuParamBlockBuffer::Initialize()
 	{
 		mBuffer = bs_pool_new<VulkanHardwareBuffer>(VulkanHardwareBuffer::BT_UNIFORM, BF_UNKNOWN, mUsage, mSize, mDeviceMask);
 

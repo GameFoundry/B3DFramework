@@ -19,7 +19,7 @@ namespace bs
 		setName("BoxCollider");
 	}
 
-	void CBoxCollider::setExtents(const Vector3& extents)
+	void CBoxCollider::SetExtents(const Vector3& extents)
 	{
 		Vector3 clampedExtents = Vector3::max(extents, Vector3(0.01f, 0.01f, 0.01f));
 
@@ -37,7 +37,7 @@ namespace bs
 		}
 	}
 
-	void CBoxCollider::setCenter(const Vector3& center)
+	void CBoxCollider::SetCenter(const Vector3& center)
 	{
 		if (mLocalPosition == center)
 			return;
@@ -48,7 +48,7 @@ namespace bs
 			updateTransform();
 	}
 
-	SPtr<Collider> CBoxCollider::createInternal()
+	SPtr<Collider> CBoxCollider::CreateInternal()
 	{
 		const SPtr<SceneInstance>& scene = SO()->getScene();
 		const Transform& tfrm = SO()->getTransform();
@@ -62,11 +62,11 @@ namespace bs
 
 	RTTITypeBase* CBoxCollider::getRTTIStatic()
 	{
-		return CBoxColliderRTTI::instance();
+		return CBoxColliderRTTI::Instance();
 	}
 
 	RTTITypeBase* CBoxCollider::getRTTI() const
 	{
-		return CBoxCollider::getRTTIStatic();
+		return CBoxCollider::GetRTTIStatic();
 	}
 }

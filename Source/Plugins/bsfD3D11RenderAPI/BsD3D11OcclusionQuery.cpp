@@ -38,7 +38,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
 	}
 
-	void D3D11OcclusionQuery::begin(const SPtr<CommandBuffer>& cb)
+	void D3D11OcclusionQuery::Begin(const SPtr<CommandBuffer>& cb)
 	{
 		auto execute = [&]()
 		{
@@ -59,7 +59,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void D3D11OcclusionQuery::end(const SPtr<CommandBuffer>& cb)
+	void D3D11OcclusionQuery::End(const SPtr<CommandBuffer>& cb)
 	{
 		auto execute = [&]()
 		{
@@ -78,7 +78,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	bool D3D11OcclusionQuery::isReady() const
+	bool D3D11OcclusionQuery::IsReady() const
 	{
 		if (!mQueryEndCalled)
 			return false;
@@ -95,7 +95,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	UINT32 D3D11OcclusionQuery::getNumSamples()
+	UINT32 D3D11OcclusionQuery::GetNumSamples()
 	{
 		if (!mFinalized && isReady())
 		{
@@ -105,7 +105,7 @@ namespace bs { namespace ct
 		return mNumSamples;
 	}
 
-	void D3D11OcclusionQuery::finalize()
+	void D3D11OcclusionQuery::Finalize()
 	{
 		mFinalized = true;
 

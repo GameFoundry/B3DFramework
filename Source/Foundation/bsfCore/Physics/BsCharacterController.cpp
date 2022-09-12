@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	SPtr<CharacterController> CharacterController::create(PhysicsScene& scene, const CHAR_CONTROLLER_DESC& desc)
+	SPtr<CharacterController> CharacterController::Create(PhysicsScene& scene, const CHAR_CONTROLLER_DESC& desc)
 	{
 		return scene.createCharacterController(desc);
 	}

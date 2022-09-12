@@ -14,7 +14,7 @@ namespace bs
 		:ScriptObject(instance)
 	{ }
 
-	void ScriptTime::initRuntimeData()
+	void ScriptTime::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetRealElapsed", (void*)&ScriptTime::internal_getRealElapsed);
 		metaData.scriptClass->addInternalCall("Internal_GetElapsed", (void*)&ScriptTime::internal_getElapsed);
@@ -30,7 +30,7 @@ namespace bs
 
 	float ScriptTime::internal_getElapsed()
 	{
-		return PlayInEditor::instance().getPausableTime();
+		return PlayInEditor::Instance().getPausableTime();
 	}
 
 	float ScriptTime::internal_getFrameDelta()

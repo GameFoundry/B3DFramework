@@ -15,20 +15,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptBlendClipInfo::initRuntimeData()
+	void ScriptBlendClipInfo::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptBlendClipInfo::box(const __BlendClipInfoInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__BlendClipInfoInterop ScriptBlendClipInfo::unbox(MonoObject* value)
+	__BlendClipInfoInterop ScriptBlendClipInfo::Unbox(MonoObject* value)
 	{
 		return *(__BlendClipInfoInterop*)MonoUtil::unbox(value);
 	}
 
-	BlendClipInfo ScriptBlendClipInfo::fromInterop(const __BlendClipInfoInterop& value)
+	BlendClipInfo ScriptBlendClipInfo::FromInterop(const __BlendClipInfoInterop& value)
 	{
 		BlendClipInfo output;
 		ResourceHandle<AnimationClip> tmpclip;
@@ -42,7 +42,7 @@ namespace bs
 		return output;
 	}
 
-	__BlendClipInfoInterop ScriptBlendClipInfo::toInterop(const BlendClipInfo& value)
+	__BlendClipInfoInterop ScriptBlendClipInfo::ToInterop(const BlendClipInfo& value)
 	{
 		__BlendClipInfoInterop output;
 		ScriptRRefBase* scriptclip;

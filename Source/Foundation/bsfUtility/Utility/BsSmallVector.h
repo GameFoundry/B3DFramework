@@ -201,7 +201,7 @@ namespace bs
 		bool operator== (const SmallVector<ValueType, N>& other)
 		{
 			if (this->size() != other.size()) return false;
-			return std::equal(this->begin(), this->end(), other.begin());
+			return std::Equal(this->begin(), this->end(), other.begin());
 		}
 
 		bool operator!= (const SmallVector<ValueType, N>& other)

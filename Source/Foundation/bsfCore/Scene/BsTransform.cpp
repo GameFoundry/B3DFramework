@@ -11,24 +11,24 @@ namespace bs
 		: MPosition(position), mRotation(rotation), mScale(scale)
 	{ }
 
-	Matrix4 Transform::getMatrix() const
+	Matrix4 Transform::GetMatrix() const
 	{
 		return Matrix4::TRS(mPosition, mRotation, mScale);
 	}
 
-	Matrix4 Transform::getInvMatrix() const
+	Matrix4 Transform::GetInvMatrix() const
 	{
-		return Matrix4::inverseTRS(mPosition, mRotation, mScale);
+		return Matrix4::InverseTRS(mPosition, mRotation, mScale);
 	}
 
-	void Transform::makeLocal(const Transform& parent)
+	void Transform::MakeLocal(const Transform& parent)
 	{
 		setWorldPosition(mPosition, parent);
 		setWorldRotation(mRotation, parent);
 		setWorldScale(mScale, parent);
 	}
 
-	void Transform::makeWorld(const Transform& parent)
+	void Transform::MakeWorld(const Transform& parent)
 	{
 		// Update orientation
 		const Quaternion& parentOrientation = parent.getRotation();
@@ -47,7 +47,7 @@ namespace bs
 		mPosition += parent.getPosition();
 	}
 
-	void Transform::setWorldPosition(const Vector3& position, const Transform& parent)
+	void Transform::SetWorldPosition(const Vector3& position, const Transform& parent)
 	{
 		Vector3 invScale = parent.getScale();
 		if (invScale.x != 0) invScale.x = 1.0f / invScale.x;
@@ -59,13 +59,13 @@ namespace bs
 		mPosition = invRotation.rotate(position - parent.getPosition()) *  invScale;
 	}
 
-	void Transform::setWorldRotation(const Quaternion& rotation, const Transform& parent)
+	void Transform::SetWorldRotation(const Quaternion& rotation, const Transform& parent)
 	{
 		Quaternion invRotation = parent.getRotation().inverse();
 		mRotation = invRotation * rotation;
 	}
 
-	void Transform::setWorldScale(const Vector3& scale, const Transform& parent)
+	void Transform::SetWorldScale(const Vector3& scale, const Transform& parent)
 	{
 		Matrix4 parentMatrix = parent.getMatrix();
 		Matrix3 rotScale = parentMatrix.get3x3();
@@ -81,7 +81,7 @@ namespace bs
 		mScale = localScale;
 	}
 
-	void Transform::lookAt(const Vector3& location, const Vector3& up)
+	void Transform::LookAt(const Vector3& location, const Vector3& up)
 	{
 		Vector3 forward = location - getPosition();
 		
@@ -90,12 +90,12 @@ namespace bs
 		setRotation(rotation);
 	}
 
-	void Transform::move(const Vector3& vec)
+	void Transform::Move(const Vector3& vec)
 	{
 		setPosition(mPosition + vec);
 	}
 
-	void Transform::moveRelative(const Vector3& vec)
+	void Transform::MoveRelative(const Vector3& vec)
 	{
 		// Transform the axes of the relative vector by camera's local axes
 		Vector3 trans = mRotation.rotate(vec);
@@ -103,14 +103,14 @@ namespace bs
 		setPosition(mPosition + trans);
 	}
 
-	void Transform::rotate(const Vector3& axis, const Radian& angle)
+	void Transform::Rotate(const Vector3& axis, const Radian& angle)
 	{
 		Quaternion q;
 		q.fromAxisAngle(axis, angle);
 		rotate(q);
 	}
 
-	void Transform::rotate(const Quaternion& q)
+	void Transform::Rotate(const Quaternion& q)
 	{
 		// Note the order of the mult, i.e. q comes after
 
@@ -120,27 +120,27 @@ namespace bs
 		setRotation(qnorm * mRotation);
 	}
 
-	void Transform::roll(const Radian& angle)
+	void Transform::Roll(const Radian& angle)
 	{
 		// Rotate around local Z axis
 		Vector3 zAxis = mRotation.rotate(Vector3::UNIT_Z);
 		rotate(zAxis, angle);
 	}
 
-	void Transform::yaw(const Radian& angle)
+	void Transform::Yaw(const Radian& angle)
 	{
 		Vector3 yAxis = mRotation.rotate(Vector3::UNIT_Y);
 		rotate(yAxis, angle);
 	}
 
-	void Transform::pitch(const Radian& angle)
+	void Transform::Pitch(const Radian& angle)
 	{
 		// Rotate around local X axis
 		Vector3 xAxis = mRotation.rotate(Vector3::UNIT_X);
 		rotate(xAxis, angle);
 	}
 
-	void Transform::setForward(const Vector3& forwardDir)
+	void Transform::SetForward(const Vector3& forwardDir)
 	{
 		Quaternion currentRotation = getRotation();
 		currentRotation.lookRotation(forwardDir);
@@ -149,11 +149,11 @@ namespace bs
 
 	RTTITypeBase* Transform::getRTTIStatic()
 	{
-		return TransformRTTI::instance();
+		return TransformRTTI::Instance();
 	}
 
 	RTTITypeBase* Transform::getRTTI() const
 	{
-		return Transform::getRTTIStatic();
+		return Transform::GetRTTIStatic();
 	}
 }

@@ -26,7 +26,7 @@ namespace bs
 	{
 	}
 
-	void ScriptRenderSettings::initRuntimeData()
+	void ScriptRenderSettings::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_RenderSettings", (void*)&ScriptRenderSettings::Internal_RenderSettings);
 		metaData.scriptClass->addInternalCall("Internal_getdepthOfField", (void*)&ScriptRenderSettings::Internal_getdepthOfField);

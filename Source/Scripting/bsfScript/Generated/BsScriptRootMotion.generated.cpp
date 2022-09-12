@@ -16,7 +16,7 @@ namespace bs
 	{
 	}
 
-	void ScriptRootMotion::initRuntimeData()
+	void ScriptRootMotion::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getPositionCurves", (void*)&ScriptRootMotion::Internal_getPositionCurves);
 		metaData.scriptClass->addInternalCall("Internal_getRotationCurves", (void*)&ScriptRootMotion::Internal_getRotationCurves);

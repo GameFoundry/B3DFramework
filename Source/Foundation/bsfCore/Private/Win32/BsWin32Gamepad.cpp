@@ -220,7 +220,7 @@ namespace bs
 		bs_delete(m);
 	}
 
-	void Gamepad::capture()
+	void Gamepad::Capture()
 	{
 		if (m->hWnd == (HWND)-1 || m->gamepad == nullptr)
 			return;
@@ -412,7 +412,7 @@ namespace bs
 		}
 	}
 
-	void Gamepad::changeCaptureContext(UINT64 windowHandle)
+	void Gamepad::ChangeCaptureContext(UINT64 windowHandle)
 	{
 		HWND newhWnd = (HWND)windowHandle;
 

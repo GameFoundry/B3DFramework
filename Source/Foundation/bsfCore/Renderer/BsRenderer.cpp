@@ -31,7 +31,7 @@ namespace bs { namespace ct
 			RendererMeshData(meshData));
 	}
 
-	void Renderer::setGlobalShaderOverride(const SPtr<bs::Shader>& shader)
+	void Renderer::SetGlobalShaderOverride(const SPtr<bs::Shader>& shader)
 	{
 		const Vector<bs::SubShader>& subShaders = shader->getSubShaders();
 		
@@ -39,7 +39,7 @@ namespace bs { namespace ct
 			setGlobalShaderOverride(entry.name, entry.shader);
 	}
 
-	bool Renderer::compareCallback(const RendererExtension* a, const RendererExtension* b)
+	bool Renderer::CompareCallback(const RendererExtension* a, const RendererExtension* b)
 	{
 		// Sort by alpha setting first, then by cull mode, then by index
 		if (a->getLocation() == b->getLocation())
@@ -53,7 +53,7 @@ namespace bs { namespace ct
 			return (UINT32)a->getLocation() < (UINT32)b->getLocation();
 	}
 
-	void Renderer::update()
+	void Renderer::Update()
 	{
 		for(auto& entry : mUnresolvedTasks)
 		{
@@ -67,7 +67,7 @@ namespace bs { namespace ct
 		std::swap(mRemainingUnresolvedTasks, mUnresolvedTasks);
 	}
 
-	void Renderer::addTask(const SPtr<RendererTask>& task)
+	void Renderer::AddTask(const SPtr<RendererTask>& task)
 	{
 		Lock Lock(mTaskMutex);
 
@@ -78,7 +78,7 @@ namespace bs { namespace ct
 		mUnresolvedTasks.push_back(task);
 	}
 
-	void Renderer::processTasks(bool forceAll, UINT64 upToFrame)
+	void Renderer::ProcessTasks(bool forceAll, UINT64 upToFrame)
 	{
 		// Move all tasks to the core thread queue
 		{
@@ -124,7 +124,7 @@ namespace bs { namespace ct
 		} while (forceAll && !mRunningTasks.empty());
 	}
 
-	void Renderer::processTask(RendererTask& task, bool forceAll)
+	void Renderer::ProcessTask(RendererTask& task, bool forceAll)
 	{
 		// Move task to the core thread queue
 		{
@@ -173,22 +173,22 @@ namespace bs { namespace ct
 		:mName(std::move(name)), mTaskWorker(std::move(taskWorker))
 	{ }
 
-	SPtr<RendererTask> RendererTask::create(String name, std::function<bool()> taskWorker)
+	SPtr<RendererTask> RendererTask::Create(String name, std::function<bool()> taskWorker)
 	{
 		return bs_shared_ptr_new<RendererTask>(PrivatelyConstruct(), std::move(name), std::move(taskWorker));
 	}
 
-	bool RendererTask::isComplete() const
+	bool RendererTask::IsComplete() const
 	{
 		return mState.load() == 2;
 	}
 
-	bool RendererTask::isCanceled() const
+	bool RendererTask::IsCanceled() const
 	{
 		return mState.load() == 3;
 	}
 
-	void RendererTask::wait()
+	void RendererTask::Wait()
 	{
 		// Task is about to be executed outside of normal rendering workflow. Make sure to manually sync all changes to
 		// the core thread first.
@@ -208,7 +208,7 @@ namespace bs { namespace ct
 		// Note: Tigger on complete callback and clear it from Renderer?
 	}
 
-	void RendererTask::cancel()
+	void RendererTask::Cancel()
 	{
 		mState.store(3);
 	}

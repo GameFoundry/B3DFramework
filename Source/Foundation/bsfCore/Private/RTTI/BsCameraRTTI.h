@@ -85,7 +85,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return Camera::createEmpty();
+			return Camera::CreateEmpty();
 		}
 
 	private:

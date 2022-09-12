@@ -29,7 +29,7 @@ namespace bs
 
 	}
 
-	void ScriptGUISliderH::initRuntimeData()
+	void ScriptGUISliderH::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptGUISliderH::internal_createInstance);
 		metaData.scriptClass->addInternalCall("Internal_SetPercent", (void*)&ScriptGUISliderH::internal_setPercent);
@@ -121,7 +121,7 @@ namespace bs
 		slider->setTint(*color);
 	}
 
-	void ScriptGUISliderH::onChanged(float percent)
+	void ScriptGUISliderH::OnChanged(float percent)
 	{
 		MonoUtil::invokeThunk(onChangedThunk, getManagedInstance(), percent);
 	}
@@ -134,7 +134,7 @@ namespace bs
 
 	}
 
-	void ScriptGUISliderV::initRuntimeData()
+	void ScriptGUISliderV::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptGUISliderV::internal_createInstance);
 		metaData.scriptClass->addInternalCall("Internal_SetPercent", (void*)&ScriptGUISliderV::internal_setPercent);
@@ -226,7 +226,7 @@ namespace bs
 		slider->setTint(*color);
 	}
 
-	void ScriptGUISliderV::onChanged(float percent)
+	void ScriptGUISliderV::OnChanged(float percent)
 	{
 		MonoUtil::invokeThunk(onChangedThunk, getManagedInstance(), percent);
 	}

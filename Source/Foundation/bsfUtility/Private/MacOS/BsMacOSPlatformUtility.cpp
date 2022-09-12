@@ -9,13 +9,13 @@ namespace bs
 {
 	GPUInfo PlatformUtility::sGPUInfo;
 
-	void PlatformUtility::terminate(bool force)
+	void PlatformUtility::Terminate(bool force)
 	{
 		// TODOPORT - Support clean exit by sending the main window a quit message
 		exit(0);
 	}
 
-	SystemInfo PlatformUtility::getSystemInfo()
+	SystemInfo PlatformUtility::GetSystemInfo()
 	{
 		char buffer[256];
 
@@ -67,7 +67,7 @@ namespace bs
 		return sysInfo;
 	}
 
-	UUID PlatformUtility::generateUUID()
+	UUID PlatformUtility::GenerateUUID()
 	{
 		uuid_t nativeUUID;
 		uuid_generate(nativeUUID);
@@ -79,7 +79,7 @@ namespace bs
 			*(UINT32*)&nativeUUID[12]);
 	}
 
-	String PlatformUtility::convertCaseUTF8(const bs::String& input, bool toUpper)
+	String PlatformUtility::ConvertCaseUTF8(const bs::String& input, bool toUpper)
 	{
 		CFMutableStringRef mutableString = CFStringCreateMutable(nullptr, 0);
 		CFStringAppendCString(mutableString, input.c_str(), kCFStringEncodingUTF8);

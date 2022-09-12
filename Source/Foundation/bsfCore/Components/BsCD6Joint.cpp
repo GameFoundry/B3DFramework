@@ -19,12 +19,12 @@ namespace bs
 		setName("D6Joint");
 	}
 
-	D6JointMotion CD6Joint::getMotion(D6JointAxis axis) const
+	D6JointMotion CD6Joint::GetMotion(D6JointAxis axis) const
 	{
 		return mDesc.motion[(int)axis];
 	}
 
-	void CD6Joint::setMotion(D6JointAxis axis, D6JointMotion motion)
+	void CD6Joint::SetMotion(D6JointAxis axis, D6JointMotion motion)
 	{
 		if (mDesc.motion[(int)axis] == motion)
 			return;
@@ -35,7 +35,7 @@ namespace bs
 			_getInternal()->setMotion(axis, motion);
 	}
 
-	Radian CD6Joint::getTwist() const
+	Radian CD6Joint::GetTwist() const
 	{
 		if (mInternal == nullptr)
 			return Radian(0.0f);
@@ -43,7 +43,7 @@ namespace bs
 		return _getInternal()->getTwist();
 	}
 
-	Radian CD6Joint::getSwingY() const
+	Radian CD6Joint::GetSwingY() const
 	{
 		if (mInternal == nullptr)
 			return Radian(0.0f);
@@ -51,7 +51,7 @@ namespace bs
 		return _getInternal()->getSwingY();
 	}
 
-	Radian CD6Joint::getSwingZ() const
+	Radian CD6Joint::GetSwingZ() const
 	{
 		if (mInternal == nullptr)
 			return Radian(0.0f);
@@ -59,12 +59,12 @@ namespace bs
 		return _getInternal()->getSwingZ();
 	}
 
-	LimitLinear CD6Joint::getLimitLinear() const
+	LimitLinear CD6Joint::GetLimitLinear() const
 	{
 		return mDesc.limitLinear;
 	}
 
-	void CD6Joint::setLimitLinear(const LimitLinear& limit)
+	void CD6Joint::SetLimitLinear(const LimitLinear& limit)
 	{
 		if (mDesc.limitLinear == limit)
 			return;
@@ -75,12 +75,12 @@ namespace bs
 			_getInternal()->setLimitLinear(limit);
 	}
 
-	LimitAngularRange CD6Joint::getLimitTwist() const
+	LimitAngularRange CD6Joint::GetLimitTwist() const
 	{
 		return mDesc.limitTwist;
 	}
 
-	void CD6Joint::setLimitTwist(const LimitAngularRange& limit)
+	void CD6Joint::SetLimitTwist(const LimitAngularRange& limit)
 	{
 		if (mDesc.limitTwist == limit)
 			return;
@@ -91,12 +91,12 @@ namespace bs
 			_getInternal()->setLimitTwist(limit);
 	}
 
-	LimitConeRange CD6Joint::getLimitSwing() const
+	LimitConeRange CD6Joint::GetLimitSwing() const
 	{
 		return mDesc.limitSwing;
 	}
 
-	void CD6Joint::setLimitSwing(const LimitConeRange& limit)
+	void CD6Joint::SetLimitSwing(const LimitConeRange& limit)
 	{
 		if (mDesc.limitSwing == limit)
 			return;
@@ -107,12 +107,12 @@ namespace bs
 			_getInternal()->setLimitSwing(limit);
 	}
 
-	D6JointDrive CD6Joint::getDrive(D6JointDriveType type) const
+	D6JointDrive CD6Joint::GetDrive(D6JointDriveType type) const
 	{
 		return mDesc.drive[(int)type];
 	}
 
-	void CD6Joint::setDrive(D6JointDriveType type, const D6JointDrive& drive)
+	void CD6Joint::SetDrive(D6JointDriveType type, const D6JointDrive& drive)
 	{
 		if (mDesc.drive[(int)type] == drive)
 			return;
@@ -123,17 +123,17 @@ namespace bs
 			_getInternal()->setDrive(type, drive);
 	}
 
-	Vector3 CD6Joint::getDrivePosition() const
+	Vector3 CD6Joint::GetDrivePosition() const
 	{
 		return mDesc.drivePosition;
 	}
 
-	Quaternion CD6Joint::getDriveRotation() const
+	Quaternion CD6Joint::GetDriveRotation() const
 	{
 		return mDesc.driveRotation;
 	}
 
-	void CD6Joint::setDriveTransform(const Vector3& position, const Quaternion& rotation)
+	void CD6Joint::SetDriveTransform(const Vector3& position, const Quaternion& rotation)
 	{
 		if (mDesc.drivePosition == position && mDesc.driveRotation == rotation)
 			return;
@@ -145,17 +145,17 @@ namespace bs
 			_getInternal()->setDriveTransform(position, rotation);
 	}
 
-	Vector3 CD6Joint::getDriveLinearVelocity() const
+	Vector3 CD6Joint::GetDriveLinearVelocity() const
 	{
 		return mDesc.driveLinearVelocity;
 	}
 
-	Vector3 CD6Joint::getDriveAngularVelocity() const
+	Vector3 CD6Joint::GetDriveAngularVelocity() const
 	{
 		return mDesc.driveAngularVelocity;
 	}
 
-	void CD6Joint::setDriveVelocity(const Vector3& linear, const Vector3& angular)
+	void CD6Joint::SetDriveVelocity(const Vector3& linear, const Vector3& angular)
 	{
 		if (mDesc.driveLinearVelocity == linear && mDesc.driveAngularVelocity == angular)
 			return;
@@ -167,7 +167,7 @@ namespace bs
 			_getInternal()->setDriveVelocity(linear, angular);
 	}
 
-	SPtr<Joint> CD6Joint::createInternal()
+	SPtr<Joint> CD6Joint::CreateInternal()
 	{
 		const SPtr<SceneInstance>& scene = SO()->getScene();
 		SPtr<Joint> joint = D6Joint::create(*scene->getPhysicsScene(), mDesc);
@@ -178,11 +178,11 @@ namespace bs
 
 	RTTITypeBase* CD6Joint::getRTTIStatic()
 	{
-		return CD6JointRTTI::instance();
+		return CD6JointRTTI::Instance();
 	}
 
 	RTTITypeBase* CD6Joint::getRTTI() const
 	{
-		return CD6Joint::getRTTIStatic();
+		return CD6Joint::GetRTTIStatic();
 	}
 }

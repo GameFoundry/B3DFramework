@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	SPtr<HingeJoint> HingeJoint::create(PhysicsScene& scene, const HINGE_JOINT_DESC& desc)
+	SPtr<HingeJoint> HingeJoint::Create(PhysicsScene& scene, const HINGE_JOINT_DESC& desc)
 	{
 		return scene.createHingeJoint(desc);
 	}

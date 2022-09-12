@@ -38,12 +38,12 @@ namespace bs
 #endif
 	}
 
-	SPtr<ct::IndexBuffer> IndexBuffer::getCore() const
+	SPtr<ct::IndexBuffer> IndexBuffer::GetCore() const
 	{
 		return std::static_pointer_cast<ct::IndexBuffer>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObject> IndexBuffer::createCore() const
+	SPtr<ct::CoreObject> IndexBuffer::CreateCore() const
 	{
 		INDEX_BUFFER_DESC desc;
 		desc.indexType = mProperties.mIndexType;
@@ -53,9 +53,9 @@ namespace bs
 		return ct::HardwareBufferManager::instance().createIndexBufferInternal(desc);
 	}
 
-	SPtr<IndexBuffer> IndexBuffer::create(const INDEX_BUFFER_DESC& desc)
+	SPtr<IndexBuffer> IndexBuffer::Create(const INDEX_BUFFER_DESC& desc)
 	{
-		return HardwareBufferManager::instance().createIndexBuffer(desc);
+		return HardwareBufferManager::Instance().createIndexBuffer(desc);
 	}
 
 	namespace ct
@@ -77,7 +77,7 @@ namespace bs
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_IndexBuffer);
 	}
 
-	void IndexBuffer::initialize()
+	void IndexBuffer::Initialize()
 	{
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_IndexBuffer);
 		CoreObject::initialize();
@@ -100,12 +100,12 @@ namespace bs
 		return mBuffer->lock(offset, length, options, deviceIdx, queueIdx);
 	}
 
-	void IndexBuffer::unmap()
+	void IndexBuffer::Unmap()
 	{
 		mBuffer->unlock();
 	}
 
-	void IndexBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
+	void IndexBuffer::ReadData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		mBuffer->readData(offset, length, dest, deviceIdx, queueIdx);
 
@@ -127,7 +127,7 @@ namespace bs
 		mBuffer->copyData(*srcIndexBuffer.mBuffer, srcOffset, dstOffset, length, discardWholeBuffer, commandBuffer);
 	}
 
-	SPtr<GpuBuffer> IndexBuffer::getLoadStore(GpuBufferType type, GpuBufferFormat format, UINT32 elementSize)
+	SPtr<GpuBuffer> IndexBuffer::GetLoadStore(GpuBufferType type, GpuBufferFormat format, UINT32 elementSize)
 	{
 		if((mUsage & GBU_LOADSTORE) != GBU_LOADSTORE)
 			return nullptr;
@@ -169,9 +169,9 @@ namespace bs
 		return newView;
 	}
 
-	SPtr<IndexBuffer> IndexBuffer::create(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+	SPtr<IndexBuffer> IndexBuffer::Create(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferManager::instance().createIndexBuffer(desc, deviceMask);
+		return HardwareBufferManager::Instance().createIndexBuffer(desc, deviceMask);
 	}
 	}
 }

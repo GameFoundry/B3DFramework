@@ -9,7 +9,7 @@ namespace bs
 		:mSegment(segment), mRadius(radius)
 	{ }
 
-	std::pair<bool, float> Capsule::intersects(const Ray& ray) const
+	std::pair<bool, float> Capsule::Intersects(const Ray& ray) const
 	{
 		const Vector3& org = ray.getOrigin();
 		const Vector3& dir = ray.getDirection();

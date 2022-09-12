@@ -138,7 +138,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return TextureManager::instance()._createEmpty();
+			return TextureManager::Instance()._createEmpty();
 		}
 
 	private:

@@ -6,7 +6,7 @@ using namespace std::placeholders;
 
 namespace bs
 {
-	SkeletonBoneInfoEx SkeletonEx::getBoneInfo(const SPtr<Skeleton>& thisPtr, int boneIdx)
+	SkeletonBoneInfoEx SkeletonEx::GetBoneInfo(const SPtr<Skeleton>& thisPtr, int boneIdx)
 	{
 		const SkeletonBoneInfo& boneInfo = thisPtr->getBoneInfo(boneIdx);
 		SkeletonBoneInfoEx boneInfoEx;

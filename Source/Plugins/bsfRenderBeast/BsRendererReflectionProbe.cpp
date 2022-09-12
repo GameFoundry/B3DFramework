@@ -14,7 +14,7 @@ namespace bs { namespace ct
 	
 	ReflProbeParamsParamDef gReflProbeParamsParamDef;
 
-	void VisibleReflProbeData::update(const SceneInfo& sceneInfo, const RendererViewGroup& viewGroup)
+	void VisibleReflProbeData::Update(const SceneInfo& sceneInfo, const RendererViewGroup& viewGroup)
 	{
 		mReflProbeData.clear();
 
@@ -81,7 +81,7 @@ namespace bs { namespace ct
 		errorFlagged = false;
 	}
 
-	void RendererReflectionProbe::getParameters(ReflProbeData& output) const
+	void RendererReflectionProbe::GetParameters(ReflProbeData& output) const
 	{
 		output.type = probe->getType() == ReflectionProbeType::Sphere ? 0
 			: probe->getType() == ReflectionProbeType::Box ? 1 : 2;

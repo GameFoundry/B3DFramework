@@ -26,7 +26,7 @@
 
 namespace bs
 {
-	void EngineScriptLibrary::initialize()
+	void EngineScriptLibrary::Initialize()
 	{
 		Path engineAssemblyPath = getEngineAssemblyPath();
 		const String ASSEMBLY_ENTRY_POINT = "Program::Start";
@@ -60,7 +60,7 @@ namespace bs
 #endif
 	}
 
-	void EngineScriptLibrary::update()
+	void EngineScriptLibrary::Update()
 	{
 		ScriptScene::update();
 		PlayInEditor::instance().update();
@@ -68,7 +68,7 @@ namespace bs
 		ScriptGUI::update();
 	}
 
-	void EngineScriptLibrary::reload()
+	void EngineScriptLibrary::Reload()
 	{
 #if BS_IS_BANSHEE3D
 		Path engineAssemblyPath = getEngineAssemblyPath();
@@ -99,20 +99,20 @@ namespace bs
 #endif
 	}
 
-	void EngineScriptLibrary::destroy()
+	void EngineScriptLibrary::Destroy()
 	{
 		unloadAssemblies();
 		shutdownModules();
 	}
 
-	void EngineScriptLibrary::unloadAssemblies()
+	void EngineScriptLibrary::UnloadAssemblies()
 	{
 		ManagedResourceManager::instance().clear();
 		MonoManager::instance().unloadScriptDomain();
 		ScriptObjectManager::instance().processFinalizedObjects();
 	}
 
-	void EngineScriptLibrary::shutdownModules()
+	void EngineScriptLibrary::ShutdownModules()
 	{
 		ScriptGUI::shutDown();
 		ScriptVirtualInput::shutDown();
@@ -138,7 +138,7 @@ namespace bs
 		GUIManager::instance().processDestroyQueue();
 	}
 
-	Path EngineScriptLibrary::getEngineAssemblyPath() const
+	Path EngineScriptLibrary::GetEngineAssemblyPath() const
 	{
 		Path assemblyPath = getBuiltinAssemblyFolder();
 		assemblyPath.append(String(ENGINE_ASSEMBLY) + ".dll");
@@ -147,7 +147,7 @@ namespace bs
 	}
 
 #if BS_IS_BANSHEE3D
-	Path EngineScriptLibrary::getGameAssemblyPath() const
+	Path EngineScriptLibrary::GetGameAssemblyPath() const
 	{
 		Path assemblyPath = getScriptAssemblyFolder();
 		assemblyPath.append(String(SCRIPT_GAME_ASSEMBLY) + ".dll");
@@ -156,7 +156,7 @@ namespace bs
 	}
 #endif
 
-	Path EngineScriptLibrary::getBuiltinAssemblyFolder() const
+	Path EngineScriptLibrary::GetBuiltinAssemblyFolder() const
 	{
 		Path releaseAssemblyFolder = getReleaseAssemblyPath();
 		Path debugAssemblyFolder = getDebugAssemblyPath();
@@ -174,18 +174,18 @@ namespace bs
 #endif
 	}
 
-	Path EngineScriptLibrary::getScriptAssemblyFolder() const
+	Path EngineScriptLibrary::GetScriptAssemblyFolder() const
 	{
 		return GetBuiltinAssemblyFolder();
 	}
 
-	const Path& EngineScriptLibrary::getReleaseAssemblyPath()
+	const Path& EngineScriptLibrary::GetReleaseAssemblyPath()
 	{
 		static Path path = Paths::findPath(Paths::RELEASE_ASSEMBLY_PATH);
 		return path;
 	}
 
-	const Path& EngineScriptLibrary::getDebugAssemblyPath()
+	const Path& EngineScriptLibrary::GetDebugAssemblyPath()
 	{
 		static Path path = Paths::findPath(Paths::DEBUG_ASSEMBLY_PATH);
 		return path;

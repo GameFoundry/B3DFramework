@@ -13,7 +13,7 @@ namespace bs
 		: GUILayout(dimensions), mDepthOffset(depth), mDepthRangeMin(depthRangeMin), mDepthRangeMax(depthRangeMax)
 	{ }
 
-	void GUIPanel::setDepthRange(INT16 depth, UINT16 depthRangeMin, UINT16 depthRangeMax)
+	void GUIPanel::SetDepthRange(INT16 depth, UINT16 depthRangeMin, UINT16 depthRangeMax)
 	{
 		mDepthOffset = depth;
 		mDepthRangeMin = depthRangeMin;

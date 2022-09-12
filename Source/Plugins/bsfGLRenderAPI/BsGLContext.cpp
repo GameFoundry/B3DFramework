@@ -4,6 +4,6 @@
 
 namespace bs { namespace ct
 {
-	void GLContext::endCurrent()
+	void GLContext::EndCurrent()
 	{ }
 }}

@@ -547,7 +547,7 @@ namespace bs
 	/** Shorthand for RenderAPI::getCapabilities(). */
 	inline const RenderAPICapabilities& GCaps(UINT32 deviceIdx = 0)
 	{
-		return RenderAPI::instance().getCapabilities(deviceIdx);
+		return RenderAPI::Instance().getCapabilities(deviceIdx);
 	}
 
 	/** @} */

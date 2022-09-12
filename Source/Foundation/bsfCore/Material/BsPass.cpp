@@ -118,12 +118,12 @@ namespace bs
 		:TPass(desc)
 	{ }
 
-	SPtr<ct::Pass> Pass::getCore() const
+	SPtr<ct::Pass> Pass::GetCore() const
 	{
 		return std::static_pointer_cast<ct::Pass>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObject> Pass::createCore() const
+	SPtr<ct::CoreObject> Pass::CreateCore() const
 	{
 		ct::Pass* pass = new (bs_alloc<ct::Pass>()) ct::Pass(mData);
 
@@ -133,7 +133,7 @@ namespace bs
 		return passPtr;
 	}
 
-	void Pass::compile()
+	void Pass::Compile()
 	{
 		if(mComputePipelineState || mGraphicsPipelineState)
 			return; // Already compiled
@@ -147,7 +147,7 @@ namespace bs
 		CoreObject::syncToCore();
 	}
 
-	CoreSyncData Pass::syncToCore(FrameAlloc* allocator)
+	CoreSyncData Pass::SyncToCore(FrameAlloc* allocator)
 	{
 		UINT32 size = csync_size(*this);
 		UINT8* data = allocator->alloc(size);
@@ -158,7 +158,7 @@ namespace bs
 		return CoreSyncData(data, size);
 	}
 
-	SPtr<Pass> Pass::create(const PASS_DESC& desc)
+	SPtr<Pass> Pass::Create(const PASS_DESC& desc)
 	{
 		Pass* newPass = new (bs_alloc<Pass>()) Pass(desc);
 		SPtr<Pass> newPassPtr = bs_core_ptr<Pass>(newPass);
@@ -168,7 +168,7 @@ namespace bs
 		return newPassPtr;
 	}
 
-	SPtr<Pass> Pass::createEmpty()
+	SPtr<Pass> Pass::CreateEmpty()
 	{
 		Pass* newPass = new (bs_alloc<Pass>()) Pass();
 		SPtr<Pass> newPassPtr = bs_core_ptr<Pass>(newPass);
@@ -179,12 +179,12 @@ namespace bs
 
 	RTTITypeBase* Pass::getRTTIStatic()
 	{
-		return PassRTTI::instance();
+		return PassRTTI::Instance();
 	}
 
 	RTTITypeBase* Pass::getRTTI() const
 	{
-		return Pass::getRTTIStatic();
+		return Pass::GetRTTIStatic();
 	}
 
 	namespace ct
@@ -193,7 +193,7 @@ namespace bs
 		:TPass(desc)
 	{ }
 
-	void Pass::compile()
+	void Pass::Compile()
 	{
 		if(mComputePipelineState || mGraphicsPipelineState)
 			return; // Already compiled
@@ -201,13 +201,13 @@ namespace bs
 		createPipelineState();
 	}
 
-	void Pass::syncToCore(const CoreSyncData& data)
+	void Pass::SyncToCore(const CoreSyncData& data)
 	{
 		Bitstream Stream(data.getBuffer(), data.getBufferSize());
 		csync_read(*this, stream);
 	}
 
-	SPtr<Pass> Pass::create(const PASS_DESC& desc)
+	SPtr<Pass> Pass::Create(const PASS_DESC& desc)
 	{
 		Pass* newPass = new (bs_alloc<Pass>()) Pass(desc);
 		SPtr<Pass> newPassPtr = bs_shared_ptr<Pass>(newPass);

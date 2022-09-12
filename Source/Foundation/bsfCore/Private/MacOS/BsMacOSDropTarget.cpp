@@ -29,32 +29,32 @@ namespace bs
 		_clear();
 	}
 
-	void DropTarget::setArea(const Rect2I& area)
+	void DropTarget::SetArea(const Rect2I& area)
 	{
 		mArea = area;
 
 		CocoaDragAndDrop::updateDropTarget(this);
 	}
 
-	void CocoaDragAndDrop::registerDropTarget(DropTarget* target)
+	void CocoaDragAndDrop::RegisterDropTarget(DropTarget* target)
 	{
 		Lock Lock(sMutex);
 		sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Register, target->getArea()));
 	}
 
-	void CocoaDragAndDrop::unregisterDropTarget(DropTarget* target)
+	void CocoaDragAndDrop::UnregisterDropTarget(DropTarget* target)
 	{
 		Lock Lock(sMutex);
 		sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Unregister));
 	}
 
-	void CocoaDragAndDrop::updateDropTarget(DropTarget* target)
+	void CocoaDragAndDrop::UpdateDropTarget(DropTarget* target)
 	{
 		Lock Lock(sMutex);
 		sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Update, target->getArea()));
 	}
 
-	void CocoaDragAndDrop::update()
+	void CocoaDragAndDrop::Update()
 	{
 		THROW_IF_CORE_THREAD
 

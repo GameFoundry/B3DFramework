@@ -11,7 +11,7 @@ namespace bs
 		:ScriptReflectableBase(managedInstance)
 	 { }
 
-	SPtr<ParticleEmitterShape> ScriptParticleEmitterShapeBase::getInternal() const
+	SPtr<ParticleEmitterShape> ScriptParticleEmitterShapeBase::GetInternal() const
 	{
 		return std::static_pointer_cast<ParticleEmitterShape>(mInternal);
 	}
@@ -21,7 +21,7 @@ namespace bs
 		mInternal = value;
 	}
 
-	void ScriptParticleEmitterShape::initRuntimeData()
+	void ScriptParticleEmitterShape::InitRuntimeData()
 	{
 
 	}

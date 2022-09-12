@@ -27,7 +27,7 @@ namespace bs
 		: Modifier(modifier), button(code)
 	{ }
 
-	String ShortcutKey::getName() const
+	String ShortcutKey::GetName() const
 	{
 		static const String MODIFIER_TO_NAME[8] =
 		{

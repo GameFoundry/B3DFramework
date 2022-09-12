@@ -22,14 +22,14 @@ namespace bs
 			mChannel->stop();
 	}
 
-	void FMODAudioSource::setClip(const HAudioClip& clip)
+	void FMODAudioSource::SetClip(const HAudioClip& clip)
 	{
 		stop();
 
 		AudioSource::setClip(clip);
 	}
 
-	void FMODAudioSource::setTransform(const Transform& transform)
+	void FMODAudioSource::SetTransform(const Transform& transform)
 	{
 		AudioSource::setTransform(transform);
 
@@ -42,7 +42,7 @@ namespace bs
 		}
 	}
 
-	void FMODAudioSource::setVelocity(const Vector3& velocity)
+	void FMODAudioSource::SetVelocity(const Vector3& velocity)
 	{
 		AudioSource::setVelocity(velocity);
 
@@ -53,7 +53,7 @@ namespace bs
 		}
 	}
 
-	void FMODAudioSource::setVolume(float volume)
+	void FMODAudioSource::SetVolume(float volume)
 	{
 		AudioSource::setVolume(volume);
 
@@ -61,7 +61,7 @@ namespace bs
 			mChannel->setVolume(mVolume);
 	}
 
-	void FMODAudioSource::setPitch(float pitch)
+	void FMODAudioSource::SetPitch(float pitch)
 	{
 		AudioSource::setPitch(pitch);
 
@@ -69,7 +69,7 @@ namespace bs
 			mChannel->setPitch(mPitch);
 	}
 
-	void FMODAudioSource::setIsLooping(bool loop)
+	void FMODAudioSource::SetIsLooping(bool loop)
 	{
 		AudioSource::setIsLooping(loop);
 
@@ -77,7 +77,7 @@ namespace bs
 			mChannel->setMode(loop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF);
 	}
 
-	void FMODAudioSource::setPriority(INT32 priority)
+	void FMODAudioSource::SetPriority(INT32 priority)
 	{
 		AudioSource::setPriority(priority);
 
@@ -85,7 +85,7 @@ namespace bs
 			mChannel->setPriority(priority);
 	}
 
-	void FMODAudioSource::play()
+	void FMODAudioSource::Play()
 	{
 		mGlobalUnpauseState = AudioSourceState::Playing;
 
@@ -143,7 +143,7 @@ namespace bs
 		mChannel->setPaused(false);
 	}
 
-	void FMODAudioSource::pause()
+	void FMODAudioSource::Pause()
 	{
 		mGlobalUnpauseState = AudioSourceState::Paused;
 
@@ -151,7 +151,7 @@ namespace bs
 			mChannel->setPaused(true);
 	}
 
-	void FMODAudioSource::stop()
+	void FMODAudioSource::Stop()
 	{
 		mGlobalUnpauseState = AudioSourceState::Stopped;
 
@@ -170,7 +170,7 @@ namespace bs
 		mTime = 0.0f;
 	}
 
-	void FMODAudioSource::setGlobalPause(bool doPause)
+	void FMODAudioSource::SetGlobalPause(bool doPause)
 	{
 		if (mGloballyPaused == doPause)
 			return;
@@ -193,7 +193,7 @@ namespace bs
 		}
 	}
 
-	AudioSourceState FMODAudioSource::getState() const
+	AudioSourceState FMODAudioSource::GetState() const
 	{
 		if(mChannel == nullptr)
 			return AudioSourceState::Stopped;
@@ -212,7 +212,7 @@ namespace bs
 		return AudioSourceState::Stopped;
 	}
 
-	void FMODAudioSource::setTime(float time)
+	void FMODAudioSource::SetTime(float time)
 	{
 		if (mChannel != nullptr)
 			mChannel->setPosition((UINT32)(time * 1000.0f), FMOD_TIMEUNIT_MS);
@@ -220,7 +220,7 @@ namespace bs
 			mTime = time;
 	}
 
-	float FMODAudioSource::getTime() const
+	float FMODAudioSource::GetTime() const
 	{
 		if(mChannel != nullptr)
 		{
@@ -233,7 +233,7 @@ namespace bs
 		return 0.0f;
 	}
 
-	void FMODAudioSource::onClipChanged()
+	void FMODAudioSource::OnClipChanged()
 	{
 		AudioSourceState state = getState();
 		float savedTime = getTime();

@@ -15,7 +15,7 @@ namespace bs
 		mInternal = value;
 	}
 
-	void ScriptParticleSize::initRuntimeData()
+	void ScriptParticleSize::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_setOptions", (void*)&ScriptParticleSize::Internal_setOptions);
 		metaData.scriptClass->addInternalCall("Internal_getOptions", (void*)&ScriptParticleSize::Internal_getOptions);

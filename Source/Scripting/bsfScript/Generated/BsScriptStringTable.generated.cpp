@@ -16,7 +16,7 @@ namespace bs
 	{
 	}
 
-	void ScriptStringTable::initRuntimeData()
+	void ScriptStringTable::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetRef", (void*)&ScriptStringTable::Internal_getRef);
 		metaData.scriptClass->addInternalCall("Internal_contains", (void*)&ScriptStringTable::Internal_contains);

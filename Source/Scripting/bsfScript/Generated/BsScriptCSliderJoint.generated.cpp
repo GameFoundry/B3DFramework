@@ -14,7 +14,7 @@ namespace bs
 	{
 	}
 
-	void ScriptCSliderJoint::initRuntimeData()
+	void ScriptCSliderJoint::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getPosition", (void*)&ScriptCSliderJoint::Internal_getPosition);
 		metaData.scriptClass->addInternalCall("Internal_getSpeed", (void*)&ScriptCSliderJoint::Internal_getSpeed);

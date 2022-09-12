@@ -11,7 +11,7 @@ namespace bs
 		:ScriptReflectableBase(managedInstance)
 	 { }
 
-	SPtr<ParticleEvolver> ScriptParticleEvolverBase::getInternal() const
+	SPtr<ParticleEvolver> ScriptParticleEvolverBase::GetInternal() const
 	{
 		return std::static_pointer_cast<ParticleEvolver>(mInternal);
 	}
@@ -21,7 +21,7 @@ namespace bs
 		mInternal = value;
 	}
 
-	void ScriptParticleEvolver::initRuntimeData()
+	void ScriptParticleEvolver::InitRuntimeData()
 	{
 
 	}

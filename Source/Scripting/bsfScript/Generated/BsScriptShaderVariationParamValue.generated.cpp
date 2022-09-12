@@ -11,20 +11,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptShaderVariationParamValue::initRuntimeData()
+	void ScriptShaderVariationParamValue::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptShaderVariationParamValue::box(const __ShaderVariationParamValueInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__ShaderVariationParamValueInterop ScriptShaderVariationParamValue::unbox(MonoObject* value)
+	__ShaderVariationParamValueInterop ScriptShaderVariationParamValue::Unbox(MonoObject* value)
 	{
 		return *(__ShaderVariationParamValueInterop*)MonoUtil::unbox(value);
 	}
 
-	ShaderVariationParamValue ScriptShaderVariationParamValue::fromInterop(const __ShaderVariationParamValueInterop& value)
+	ShaderVariationParamValue ScriptShaderVariationParamValue::FromInterop(const __ShaderVariationParamValueInterop& value)
 	{
 		ShaderVariationParamValue output;
 		String tmpname;
@@ -35,7 +35,7 @@ namespace bs
 		return output;
 	}
 
-	__ShaderVariationParamValueInterop ScriptShaderVariationParamValue::toInterop(const ShaderVariationParamValue& value)
+	__ShaderVariationParamValueInterop ScriptShaderVariationParamValue::ToInterop(const ShaderVariationParamValue& value)
 	{
 		__ShaderVariationParamValueInterop output;
 		MonoString* tmpname;

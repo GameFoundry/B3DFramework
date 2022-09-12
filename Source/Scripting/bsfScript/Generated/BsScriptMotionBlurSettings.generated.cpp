@@ -12,7 +12,7 @@ namespace bs
 	{
 	}
 
-	void ScriptMotionBlurSettings::initRuntimeData()
+	void ScriptMotionBlurSettings::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_MotionBlurSettings", (void*)&ScriptMotionBlurSettings::Internal_MotionBlurSettings);
 		metaData.scriptClass->addInternalCall("Internal_getenabled", (void*)&ScriptMotionBlurSettings::Internal_getenabled);

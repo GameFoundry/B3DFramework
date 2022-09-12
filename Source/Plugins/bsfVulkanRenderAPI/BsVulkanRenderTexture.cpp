@@ -29,7 +29,7 @@ namespace bs
 		mFramebuffer->destroy();
 	}
 
-	void VulkanRenderTexture::initialize()
+	void VulkanRenderTexture::Initialize()
 	{
 		RenderTexture::initialize();
 
@@ -136,7 +136,7 @@ namespace bs
 		mFramebuffer = device->getResourceManager().create<VulkanFramebuffer>(renderPass, fbDesc);
 	}
 
-	void VulkanRenderTexture::getCustomAttribute(const String& name, void* data) const
+	void VulkanRenderTexture::GetCustomAttribute(const String& name, void* data) const
 	{
 		if (name == "FB")
 		{

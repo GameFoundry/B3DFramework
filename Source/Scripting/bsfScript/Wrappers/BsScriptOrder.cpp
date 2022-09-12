@@ -9,7 +9,7 @@ namespace bs
 	ScriptOrder::ScriptOrder(MonoObject* instance) : ScriptObject(instance)
 	{ }
 
-	void ScriptOrder::initRuntimeData()
+	void ScriptOrder::InitRuntimeData()
 	{
 		indexField = metaData.scriptClass->getField("index");
 	}

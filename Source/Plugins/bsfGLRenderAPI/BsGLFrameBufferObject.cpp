@@ -27,30 +27,30 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_FrameBufferObject);
 	}
 
-	void GLFrameBufferObject::bindSurface(UINT32 attachment, const GLSurfaceDesc &target)
+	void GLFrameBufferObject::BindSurface(UINT32 attachment, const GLSurfaceDesc &target)
 	{
 		assert(attachment < BS_MAX_MULTIPLE_RENDER_TARGETS);
 		mColor[attachment] = target;
 	}
 
-	void GLFrameBufferObject::unbindSurface(UINT32 attachment)
+	void GLFrameBufferObject::UnbindSurface(UINT32 attachment)
 	{
 		assert(attachment < BS_MAX_MULTIPLE_RENDER_TARGETS);
 		mColor[attachment].buffer = nullptr;
 	}
 
-	void GLFrameBufferObject::bindDepthStencil(SPtr<GLPixelBuffer> depthStencilBuffer, bool allLayers)
+	void GLFrameBufferObject::BindDepthStencil(SPtr<GLPixelBuffer> depthStencilBuffer, bool allLayers)
 	{
 		mDepthStencilBuffer = depthStencilBuffer;
 		mDepthStencilAllLayers = allLayers;
 	}
 
-	void GLFrameBufferObject::unbindDepthStencil()
+	void GLFrameBufferObject::UnbindDepthStencil()
 	{
 		mDepthStencilBuffer = nullptr;
 	}
 
-	void GLFrameBufferObject::rebuild()
+	void GLFrameBufferObject::Rebuild()
 	{
 		// Store basic stats
 		UINT16 maxSupportedMRTs = RenderAPI::instancePtr()->getCapabilities(0).numMultiRenderTargets;
@@ -136,7 +136,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLFrameBufferObject::bind()
+	void GLFrameBufferObject::Bind()
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, mFB);
 		BS_CHECK_GL_ERROR();

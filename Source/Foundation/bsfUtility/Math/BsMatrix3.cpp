@@ -9,14 +9,14 @@ namespace bs
 	const Matrix3 Matrix3::ZERO{BS_ZERO()};
 	const Matrix3 Matrix3::IDENTITY{BS_IDENTITY()};
 
-	Vector3 Matrix3::getColumn(UINT32 col) const
+	Vector3 Matrix3::GetColumn(UINT32 col) const
 	{
 		assert(col < 3);
 
 		return Vector3(m[0][col],m[1][col], m[2][col]);
 	}
 
-	void Matrix3::setColumn(UINT32 col, const Vector3& vec)
+	void Matrix3::SetColumn(UINT32 col, const Vector3& vec)
 	{
 		assert(col < 3);
 
@@ -25,7 +25,7 @@ namespace bs
 		m[2][col] = vec.z;
 	}
 
-	void Matrix3::fromAxes(const Vector3& xAxis, const Vector3& yAxis, const Vector3& zAxis)
+	void Matrix3::FromAxes(const Vector3& xAxis, const Vector3& yAxis, const Vector3& zAxis)
 	{
 		setColumn(0, xAxis);
 		setColumn(1, yAxis);
@@ -131,7 +131,7 @@ namespace bs
 		return prod;
 	}
 
-	Vector3 Matrix3::multiply(const Vector3& vec) const
+	Vector3 Matrix3::Multiply(const Vector3& vec) const
 	{
 		Vector3 prod;
 		for (UINT32 row = 0; row < 3; row++)
@@ -145,7 +145,7 @@ namespace bs
 		return prod;
 	}
 
-	Matrix3 Matrix3::transpose() const
+	Matrix3 Matrix3::Transpose() const
 	{
 		Matrix3 matTranspose;
 		for (UINT32 row = 0; row < 3; row++)
@@ -157,7 +157,7 @@ namespace bs
 		return matTranspose;
 	}
 
-	bool Matrix3::inverse(Matrix3& matInv, float tolerance) const
+	bool Matrix3::Inverse(Matrix3& matInv, float tolerance) const
 	{
 		matInv[0][0] = m[1][1]*m[2][2] - m[1][2]*m[2][1];
 		matInv[0][1] = m[0][2]*m[2][1] - m[0][1]*m[2][2];
@@ -184,14 +184,14 @@ namespace bs
 		return true;
 	}
 
-	Matrix3 Matrix3::inverse(float tolerance) const
+	Matrix3 Matrix3::Inverse(float tolerance) const
 	{
 		Matrix3 matInv = Matrix3::ZERO;
 		inverse(matInv, tolerance);
 		return matInv;
 	}
 
-	float Matrix3::determinant() const
+	float Matrix3::Determinant() const
 	{
 		float cofactor00 = m[1][1]*m[2][2] - m[1][2]*m[2][1];
 		float cofactor10 = m[1][2]*m[2][0] - m[1][0]*m[2][2];
@@ -418,7 +418,7 @@ namespace bs
 		}
 	}
 
-	void Matrix3::singularValueDecomposition(Matrix3& matL, Vector3& matS, Matrix3& matR) const
+	void Matrix3::SingularValueDecomposition(Matrix3& matL, Vector3& matS, Matrix3& matR) const
 	{
 		UINT32 row, col;
 
@@ -531,7 +531,7 @@ namespace bs
 		}
 	}
 
-	void Matrix3::orthonormalize()
+	void Matrix3::Orthonormalize()
 	{
 		// Compute q0
 		float invLength = Math::invSqrt(m[0][0]*m[0][0]+ m[1][0]*m[1][0] + m[2][0]*m[2][0]);
@@ -568,7 +568,7 @@ namespace bs
 		m[2][2] *= invLength;
 	}
 
-	void Matrix3::decomposition(Quaternion& rotation, Vector3& scale) const
+	void Matrix3::Decomposition(Quaternion& rotation, Vector3& scale) const
 	{
 		Matrix3 matQ;
 		Vector3 vecU;
@@ -649,7 +649,7 @@ namespace bs
 		vecU[2] = matRight[1][2]/vecD[1];
 	}
 
-	void Matrix3::toAxisAngle(Vector3& axis, Radian& radians) const
+	void Matrix3::ToAxisAngle(Vector3& axis, Radian& radians) const
 	{
 		float trace = m[0][0] + m[1][1] + m[2][2];
 		float cos = 0.5f*(trace-1.0f);
@@ -720,7 +720,7 @@ namespace bs
 		}
 	}
 
-	void Matrix3::fromAxisAngle(const Vector3& axis, const Radian& angle)
+	void Matrix3::FromAxisAngle(const Vector3& axis, const Radian& angle)
 	{
 		float cos = Math::cos(angle);
 		float sin = Math::sin(angle);
@@ -746,17 +746,17 @@ namespace bs
 		m[2][2] = z2*oneMinusCos+cos;
 	}
 
-	void Matrix3::toQuaternion(Quaternion& quat) const
+	void Matrix3::ToQuaternion(Quaternion& quat) const
 	{
 		quat.fromRotationMatrix(*this);
 	}
 
-	void Matrix3::fromQuaternion(const Quaternion& quat)
+	void Matrix3::FromQuaternion(const Quaternion& quat)
 	{
 		quat.toRotationMatrix(*this);
 	}
 
-	bool Matrix3::toEulerAngles(Radian& xAngle, Radian& yAngle, Radian& zAngle) const
+	bool Matrix3::ToEulerAngles(Radian& xAngle, Radian& yAngle, Radian& zAngle) const
 	{
 		float m21 = m[2][1];
 		if (m21 < 1)
@@ -790,7 +790,7 @@ namespace bs
 		}
 	}
 
-	void Matrix3::fromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle)
+	void Matrix3::FromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle)
 	{
 		float cx = Math::cos(xAngle);
 		float sx = Math::sin(xAngle);
@@ -814,7 +814,7 @@ namespace bs
 		m[2][2] = cx * cy;
 	}
 
-	void Matrix3::fromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle, EulerAngleOrder order)
+	void Matrix3::FromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle, EulerAngleOrder order)
 	{
 		// Euler angle conversions
 		static constexpr const EulerAngleOrderData EA_LOOKUP[6] =
@@ -848,7 +848,7 @@ namespace bs
 		*this = mats[l.c]*(mats[l.b]*mats[l.a]);
 	}
 
-	void Matrix3::tridiagonal(float diag[3], float subDiag[3])
+	void Matrix3::Tridiagonal(float diag[3], float subDiag[3])
 	{
 		// Householder reduction T = Q^t M Q
 		//   Input:
@@ -990,7 +990,7 @@ namespace bs
 		return true;
 	}
 
-	void Matrix3::eigenSolveSymmetric(float eigenValues[3], Vector3 eigenVectors[3]) const
+	void Matrix3::EigenSolveSymmetric(float eigenValues[3], Vector3 eigenVectors[3]) const
 	{
 		Matrix3 mat = *this;
 		float subDiag[3];

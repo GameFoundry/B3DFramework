@@ -11,15 +11,15 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptBoneWeight::initRuntimeData()
+	void ScriptBoneWeight::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptBoneWeight::box(const BoneWeight& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	BoneWeight ScriptBoneWeight::unbox(MonoObject* value)
+	BoneWeight ScriptBoneWeight::Unbox(MonoObject* value)
 	{
 		return *(BoneWeight*)MonoUtil::unbox(value);
 	}

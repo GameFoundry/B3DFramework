@@ -13,7 +13,7 @@ namespace bs
 			mActiveRenderer->destroy();
 	}
 
-	void RendererManager::setActive(const String& name)
+	void RendererManager::SetActive(const String& name)
 	{
 		for(auto iter = mAvailableFactories.begin(); iter != mAvailableFactories.end(); ++iter)
 		{
@@ -37,7 +37,7 @@ namespace bs
 		}
 	}
 
-	void RendererManager::initialize()
+	void RendererManager::Initialize()
 	{
 		if (mActiveRenderer != nullptr)
 			mActiveRenderer->initialize();

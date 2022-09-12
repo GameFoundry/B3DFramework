@@ -13,7 +13,7 @@
 
 namespace bs
 {
-	SPtr<IReflectable> BinaryCloner::clone(IReflectable* object, bool shallow)
+	SPtr<IReflectable> BinaryCloner::Clone(IReflectable* object, bool shallow)
 	{
 		if (object == nullptr)
 			return nullptr;
@@ -47,7 +47,7 @@ namespace bs
 		return clonedObj;
 	}
 
-	void BinaryCloner::gatherReferences(IReflectable* object, FrameAlloc& alloc, ObjectReferenceData& referenceData)
+	void BinaryCloner::GatherReferences(IReflectable* object, FrameAlloc& alloc, ObjectReferenceData& referenceData)
 	{
 		if (object == nullptr)
 			return;
@@ -174,7 +174,7 @@ namespace bs
 		}
 	}
 
-	void BinaryCloner::restoreReferences(IReflectable* object, FrameAlloc& alloc, const ObjectReferenceData& referenceData)
+	void BinaryCloner::RestoreReferences(IReflectable* object, FrameAlloc& alloc, const ObjectReferenceData& referenceData)
 	{
 		for(auto iter = referenceData.subObjectData.rbegin(); iter != referenceData.subObjectData.rend(); ++iter)
 		{

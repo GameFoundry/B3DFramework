@@ -21,7 +21,7 @@ namespace bs
 			mRoot->destroy(true);
 	}
 
-	HPrefab Prefab::create(const HSceneObject& sceneObject, bool isScene)
+	HPrefab Prefab::Create(const HSceneObject& sceneObject, bool isScene)
 	{
 		SPtr<Prefab> newPrefab = createEmpty();
 		newPrefab->mIsScene = isScene;
@@ -37,7 +37,7 @@ namespace bs
 		return handle;
 	}
 
-	SPtr<Prefab> Prefab::createEmpty()
+	SPtr<Prefab> Prefab::CreateEmpty()
 	{
 		SPtr<Prefab> newPrefab = bs_core_ptr<Prefab>(new (bs_alloc<Prefab>()) Prefab());
 		newPrefab->_setThisPtr(newPrefab);
@@ -45,7 +45,7 @@ namespace bs
 		return newPrefab;
 	}
 
-	void Prefab::initialize(const HSceneObject& sceneObject)
+	void Prefab::Initialize(const HSceneObject& sceneObject)
 	{
 		sceneObject->mPrefabDiff = nullptr;
 		PrefabUtility::generatePrefabIds(sceneObject);
@@ -98,7 +98,7 @@ namespace bs
 		}
 	}
 
-	void Prefab::update(const HSceneObject& sceneObject)
+	void Prefab::Update(const HSceneObject& sceneObject)
 	{
 		initialize(sceneObject);
 		sceneObject->mPrefabLinkUUID = mUUID;
@@ -162,11 +162,11 @@ namespace bs
 
 	RTTITypeBase* Prefab::getRTTIStatic()
 	{
-		return PrefabRTTI::instance();
+		return PrefabRTTI::Instance();
 	}
 
 	RTTITypeBase* Prefab::getRTTI() const
 	{
-		return Prefab::getRTTIStatic();
+		return Prefab::GetRTTIStatic();
 	}
 }

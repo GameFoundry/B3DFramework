@@ -14,7 +14,7 @@ namespace bs
 	{
 	}
 
-	void ScriptCPlaneCollider::initRuntimeData()
+	void ScriptCPlaneCollider::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_setNormal", (void*)&ScriptCPlaneCollider::Internal_setNormal);
 		metaData.scriptClass->addInternalCall("Internal_getNormal", (void*)&ScriptCPlaneCollider::Internal_getNormal);

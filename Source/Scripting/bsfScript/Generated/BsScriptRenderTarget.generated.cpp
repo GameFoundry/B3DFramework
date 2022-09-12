@@ -12,7 +12,7 @@ namespace bs
 		:ScriptReflectableBase(managedInstance)
 	 { }
 
-	SPtr<RenderTarget> ScriptRenderTargetBase::getInternal() const
+	SPtr<RenderTarget> ScriptRenderTargetBase::GetInternal() const
 	{
 		return std::static_pointer_cast<RenderTarget>(mInternal);
 	}
@@ -22,7 +22,7 @@ namespace bs
 		mInternal = value;
 	}
 
-	void ScriptRenderTarget::initRuntimeData()
+	void ScriptRenderTarget::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getWidth", (void*)&ScriptRenderTarget::Internal_getWidth);
 		metaData.scriptClass->addInternalCall("Internal_getHeight", (void*)&ScriptRenderTarget::Internal_getHeight);

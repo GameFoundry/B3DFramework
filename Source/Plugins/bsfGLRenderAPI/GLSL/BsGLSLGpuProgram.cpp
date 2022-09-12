@@ -68,7 +68,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuProgram);
 	}
 
-	void GLSLGpuProgram::initialize()
+	void GLSLGpuProgram::Initialize()
 	{
 
 #if BS_OPENGL_4_5
@@ -267,7 +267,7 @@ namespace bs { namespace ct
 		GpuProgram::initialize();
 	}
 
-	bool GLSLGpuProgram::isSupported() const
+	bool GLSLGpuProgram::IsSupported() const
 	{
 		RenderAPI* rapi = RenderAPI::instancePtr();
 		const RenderAPICapabilities& caps = rapi->getCapabilities(0);

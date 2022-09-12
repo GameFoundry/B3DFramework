@@ -11,20 +11,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptShaderParameter::initRuntimeData()
+	void ScriptShaderParameter::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptShaderParameter::box(const __ShaderParameterInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__ShaderParameterInterop ScriptShaderParameter::unbox(MonoObject* value)
+	__ShaderParameterInterop ScriptShaderParameter::Unbox(MonoObject* value)
 	{
 		return *(__ShaderParameterInterop*)MonoUtil::unbox(value);
 	}
 
-	ShaderParameter ScriptShaderParameter::fromInterop(const __ShaderParameterInterop& value)
+	ShaderParameter ScriptShaderParameter::FromInterop(const __ShaderParameterInterop& value)
 	{
 		ShaderParameter output;
 		String tmpname;
@@ -39,7 +39,7 @@ namespace bs
 		return output;
 	}
 
-	__ShaderParameterInterop ScriptShaderParameter::toInterop(const ShaderParameter& value)
+	__ShaderParameterInterop ScriptShaderParameter::ToInterop(const ShaderParameter& value)
 	{
 		__ShaderParameterInterop output;
 		MonoString* tmpname;

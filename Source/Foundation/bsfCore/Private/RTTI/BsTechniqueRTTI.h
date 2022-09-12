@@ -47,7 +47,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return Technique::createEmpty();
+			return Technique::CreateEmpty();
 		}
 	};
 

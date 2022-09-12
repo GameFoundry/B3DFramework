@@ -27,13 +27,13 @@ namespace bs { namespace ct
 		vkDestroyEvent(vkDevice, mEvent, gVulkanAllocator);
 	}
 
-	bool VulkanEvent::isSignaled() const
+	bool VulkanEvent::IsSignaled() const
 	{
 		VkDevice vkDevice = mOwner->getDevice().getLogical();
 		return VkGetEventStatus(vkDevice, mEvent) == VK_EVENT_SET;
 	}
 
-	void VulkanEvent::reset()
+	void VulkanEvent::Reset()
 	{
 		VkDevice vkDevice = mOwner->getDevice().getLogical();
 
@@ -55,7 +55,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
 	}
 
-	void VulkanEventQuery::begin(const SPtr<CommandBuffer>& cb)
+	void VulkanEventQuery::Begin(const SPtr<CommandBuffer>& cb)
 	{
 		if (mEvent != nullptr)
 		{
@@ -88,7 +88,7 @@ namespace bs { namespace ct
 		setActive(true);
 	}
 
-	bool VulkanEventQuery::isReady() const
+	bool VulkanEventQuery::IsReady() const
 	{
 		if (mEvent == nullptr)
 			return false;

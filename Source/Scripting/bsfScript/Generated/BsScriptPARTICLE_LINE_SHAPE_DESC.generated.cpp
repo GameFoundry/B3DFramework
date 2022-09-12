@@ -18,7 +18,7 @@ namespace bs
 
 	MonoObject*ScriptPARTICLE_LINE_SHAPE_DESC::box(const __PARTICLE_LINE_SHAPE_DESCInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
 	__PARTICLE_LINE_SHAPE_DESCInterop ScriptPARTICLE_LINE_SHAPE_DESC::unbox(MonoObject* value)

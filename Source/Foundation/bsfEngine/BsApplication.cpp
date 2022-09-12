@@ -47,7 +47,7 @@ namespace bs
 		VirtualInput::shutDown();
 	}
 
-	void Application::onStartUp()
+	void Application::OnStartUp()
 	{
 		CoreApplication::onStartUp();
 
@@ -72,7 +72,7 @@ namespace bs
 		startUpScriptManager();
 	}
 
-	void Application::onShutDown()
+	void Application::OnShutDown()
 	{
 		// Need to clear all objects before I unload any plugins, as they
 		// could have allocated parts or all of those objects.
@@ -90,7 +90,7 @@ namespace bs
 		CoreApplication::onShutDown();
 	}
 
-	void Application::preUpdate()
+	void Application::PreUpdate()
 	{
 		CoreApplication::preUpdate();
 
@@ -100,7 +100,7 @@ namespace bs
 			mProfilerOverlay->update();
 	}
 
-	void Application::postUpdate()
+	void Application::PostUpdate()
 	{
 		CoreApplication::postUpdate();
 		updateScriptManager();
@@ -109,7 +109,7 @@ namespace bs
 		DebugDraw::instance()._update();
 	}
 
-	void Application::showProfilerOverlay(ProfilerOverlayType type, const SPtr<Camera>& camera)
+	void Application::ShowProfilerOverlay(ProfilerOverlayType type, const SPtr<Camera>& camera)
 	{
 		const SPtr<Camera>& overlayCamera = camera ? camera : gSceneManager().getMainCamera();
 		if(!overlayCamera)
@@ -123,7 +123,7 @@ namespace bs
 		mProfilerOverlay->show(type);
 	}
 
-	void Application::hideProfilerOverlay()
+	void Application::HideProfilerOverlay()
 	{
 		if(mProfilerOverlay)
 			mProfilerOverlay->hide();
@@ -131,22 +131,22 @@ namespace bs
 		mProfilerOverlay = nullptr;
 	}
 
-	void Application::startUpRenderer()
+	void Application::StartUpRenderer()
 	{
 		// Do nothing, we activate the renderer at a later stage
 	}
 
-	void Application::startUpScriptManager()
+	void Application::StartUpScriptManager()
 	{
 		ScriptManager::startUp();
 	}
 
-	void Application::updateScriptManager()
+	void Application::UpdateScriptManager()
 	{
 		ScriptManager::instance().update();
 	}
 
-	START_UP_DESC Application::buildStartUpDesc(VideoMode videoMode, const String& title, bool fullscreen)
+	START_UP_DESC Application::BuildStartUpDesc(VideoMode videoMode, const String& title, bool fullscreen)
 	{
 		START_UP_DESC desc;
 
@@ -168,7 +168,7 @@ namespace bs
 		return desc;
 	}
 
-	SPtr<IShaderIncludeHandler> Application::getShaderIncludeHandler() const
+	SPtr<IShaderIncludeHandler> Application::GetShaderIncludeHandler() const
 	{
 		return bs_shared_ptr_new<EngineShaderIncludeHandler>();
 	}

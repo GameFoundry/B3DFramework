@@ -10,7 +10,7 @@ namespace bs { namespace ct
 {
 	DecalParamDef gDecalParamDef;
 
-	void DecalRenderElement::draw() const
+	void DecalRenderElement::Draw() const
 	{
 		gRendererUtility().draw(mesh, subMesh);
 	}
@@ -22,7 +22,7 @@ namespace bs { namespace ct
 		perCallParamBuffer = gPerCallParamDef.createBuffer();
 	}
 
-	void RendererDecal::updatePerObjectBuffer()
+	void RendererDecal::UpdatePerObjectBuffer()
 	{
 		const Vector2 size = decal->getWorldSize();
 		const Vector2 extent = size * 0.5f;
@@ -62,7 +62,7 @@ namespace bs { namespace ct
 		gDecalParamDef.gLayerMask.set(decalParamBuffer, (INT32)decal->getLayerMask());
 	}
 
-	void RendererDecal::updatePerCallBuffer(const Matrix4& viewProj, bool flush) const
+	void RendererDecal::UpdatePerCallBuffer(const Matrix4& viewProj, bool flush) const
 	{
 		const Matrix4 worldViewProjMatrix = viewProj * decal->getMatrix();
 

@@ -44,7 +44,7 @@ namespace bs
 		return *this;
 	}
 
-	UINT32 PixelData::getRowSkip() const
+	UINT32 PixelData::GetRowSkip() const
 	{
 		UINT32 optimalRowPitch, optimalSlicePitch;
 		PixelUtil::getPitch(getWidth(), getHeight(), getDepth(), mFormat, optimalRowPitch,
@@ -53,7 +53,7 @@ namespace bs
 		return mRowPitch - optimalRowPitch;
 	}
 
-	UINT32 PixelData::getSliceSkip() const
+	UINT32 PixelData::GetSliceSkip() const
 	{
 		UINT32 optimalRowPitch, optimalSlicePitch;
 		PixelUtil::getPitch(getWidth(), getHeight(), getDepth(), mFormat, optimalRowPitch,
@@ -62,17 +62,17 @@ namespace bs
 		return mSlicePitch - optimalSlicePitch;
 	}
 
-	UINT32 PixelData::getConsecutiveSize() const
+	UINT32 PixelData::GetConsecutiveSize() const
 	{
-		return PixelUtil::getMemorySize(getWidth(), getHeight(), getDepth(), mFormat);
+		return PixelUtil::GetMemorySize(getWidth(), getHeight(), getDepth(), mFormat);
 	}
 
-	UINT32 PixelData::getSize() const
+	UINT32 PixelData::GetSize() const
 	{
 		return mSlicePitch * getDepth();
 	}
 
-	PixelData PixelData::getSubVolume(const PixelVolume& volume) const
+	PixelData PixelData::GetSubVolume(const PixelVolume& volume) const
 	{
 		if (PixelUtil::isCompressed(mFormat))
 		{
@@ -105,7 +105,7 @@ namespace bs
 		return rval;
 	}
 
-	Color PixelData::sampleColorAt(const Vector2& coords, TextureFilter filter) const
+	Color PixelData::SampleColorAt(const Vector2& coords, TextureFilter filter) const
 	{
 		Vector2 pixelCoords = coords * Vector2((float)mExtents.getWidth(), (float)mExtents.getHeight());
 
@@ -145,7 +145,7 @@ namespace bs
 		}
 	}
 
-	Color PixelData::getColorAt(UINT32 x, UINT32 y, UINT32 z) const
+	Color PixelData::GetColorAt(UINT32 x, UINT32 y, UINT32 z) const
 	{
 		Color cv;
 
@@ -156,14 +156,14 @@ namespace bs
 		return cv;
 	}
 
-	void PixelData::setColorAt(const Color& color, UINT32 x, UINT32 y, UINT32 z)
+	void PixelData::SetColorAt(const Color& color, UINT32 x, UINT32 y, UINT32 z)
 	{
 		UINT32 pixelSize = PixelUtil::getNumElemBytes(mFormat);
 		UINT32 pixelOffset = z * mSlicePitch + y * mRowPitch + x * pixelSize;
 		PixelUtil::packColor(color, mFormat, (unsigned char *)getData() + pixelOffset);
 	}
 
-	Vector<Color> PixelData::getColors() const
+	Vector<Color> PixelData::GetColors() const
 	{
 		UINT32 depth = mExtents.getDepth();
 		UINT32 height = mExtents.getHeight();
@@ -198,7 +198,7 @@ namespace bs
 	}
 
 	template<class T>
-	void PixelData::setColorsInternal(const T& colors, UINT32 numElements)
+	void PixelData::SetColorsInternal(const T& colors, UINT32 numElements)
 	{
 		UINT32 depth = mExtents.getDepth();
 		UINT32 height = mExtents.getHeight();
@@ -236,20 +236,20 @@ namespace bs
 		}
 	}
 
-	template BS_CORE_EXPORT void PixelData::setColorsInternal(Color* const &, UINT32);
-	template BS_CORE_EXPORT void PixelData::setColorsInternal(const Vector<Color>&, UINT32);
+	template BS_CORE_EXPORT void PixelData::SetColorsInternal(Color* const &, UINT32);
+	template BS_CORE_EXPORT void PixelData::SetColorsInternal(const Vector<Color>&, UINT32);
 
-	void PixelData::setColors(const Vector<Color>& colors)
+	void PixelData::SetColors(const Vector<Color>& colors)
 	{
 		setColorsInternal(colors, (UINT32)colors.size());
 	}
 
-	void PixelData::setColors(Color* colors, UINT32 numElements)
+	void PixelData::SetColors(Color* colors, UINT32 numElements)
 	{
 		setColorsInternal(colors, numElements);
 	}
 
-	void PixelData::setColors(const Color& color)
+	void PixelData::SetColors(const Color& color)
 	{
 		UINT32 depth = mExtents.getDepth();
 		UINT32 height = mExtents.getHeight();
@@ -281,14 +281,14 @@ namespace bs
 		}
 	}
 
-	float PixelData::getDepthAt(UINT32 x, UINT32 y, UINT32 z) const
+	float PixelData::GetDepthAt(UINT32 x, UINT32 y, UINT32 z) const
 	{
 		UINT32 pixelSize = PixelUtil::getNumElemBytes(mFormat);
 		UINT32 pixelOffset = z * mSlicePitch + y * mRowPitch + x * pixelSize;
-		return PixelUtil::unpackDepth(mFormat, (unsigned char *)getData() + pixelOffset);;
+		return PixelUtil::UnpackDepth(mFormat, (unsigned char *)getData() + pixelOffset);;
 	}
 
-	Vector<float> PixelData::getDepths() const
+	Vector<float> PixelData::GetDepths() const
 	{
 		UINT32 depth = mExtents.getDepth();
 		UINT32 height = mExtents.getHeight();
@@ -322,7 +322,7 @@ namespace bs
 		return depths;
 	}
 
-	SPtr<PixelData> PixelData::create(const PixelVolume &extents, PixelFormat pixelFormat)
+	SPtr<PixelData> PixelData::Create(const PixelVolume &extents, PixelFormat pixelFormat)
 	{
 		SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(extents, pixelFormat);
 		pixelData->allocateInternalBuffer();
@@ -330,7 +330,7 @@ namespace bs
 		return pixelData;
 	}
 
-	SPtr<PixelData> PixelData::create(UINT32 width, UINT32 height, UINT32 depth, PixelFormat pixelFormat)
+	SPtr<PixelData> PixelData::Create(UINT32 width, UINT32 height, UINT32 depth, PixelFormat pixelFormat)
 	{
 		SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(width, height, depth, pixelFormat);
 		pixelData->allocateInternalBuffer();
@@ -338,7 +338,7 @@ namespace bs
 		return pixelData;
 	}
 
-	UINT32 PixelData::getInternalBufferSize() const
+	UINT32 PixelData::GetInternalBufferSize() const
 	{
 		return GetSize();
 	}
@@ -349,11 +349,11 @@ namespace bs
 
 	RTTITypeBase* PixelData::getRTTIStatic()
 	{
-		return PixelDataRTTI::instance();
+		return PixelDataRTTI::Instance();
 	}
 
 	RTTITypeBase* PixelData::getRTTI() const
 	{
-		return PixelData::getRTTIStatic();
+		return PixelData::GetRTTIStatic();
 	}
 }

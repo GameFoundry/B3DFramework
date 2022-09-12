@@ -159,7 +159,7 @@ namespace bs
 		return nullptr;
 	}
 
-	void ScriptGameObjectManager::destroyScriptSceneObject(ScriptSceneObject* sceneObject)
+	void ScriptGameObjectManager::DestroyScriptSceneObject(ScriptSceneObject* sceneObject)
 	{
 		UINT64 instanceId = sceneObject->getNativeHandle().getInstanceId();
 		mScriptSceneObjects.erase(instanceId);
@@ -167,7 +167,7 @@ namespace bs
 		bs_delete(sceneObject);
 	}
 
-	void ScriptGameObjectManager::destroyScriptComponent(ScriptComponentBase* component)
+	void ScriptGameObjectManager::DestroyScriptComponent(ScriptComponentBase* component)
 	{
 		UINT64 instanceId = component->getNativeHandle().getInstanceId();
 		mScriptComponents.erase(instanceId);
@@ -175,7 +175,7 @@ namespace bs
 		bs_delete(component);
 	}
 
-	void ScriptGameObjectManager::sendComponentResetEvents()
+	void ScriptGameObjectManager::SendComponentResetEvents()
 	{
 		for (auto& scriptObjectEntry : mScriptComponents)
 		{
@@ -191,7 +191,7 @@ namespace bs
 		}
 	}
 
-	void ScriptGameObjectManager::onGameObjectDestroyed(const HGameObject& go)
+	void ScriptGameObjectManager::OnGameObjectDestroyed(const HGameObject& go)
 	{
 		UINT64 instanceId = go.getInstanceId();
 

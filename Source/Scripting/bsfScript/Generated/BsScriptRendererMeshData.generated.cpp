@@ -20,7 +20,7 @@ namespace bs
 	{
 	}
 
-	void ScriptRendererMeshData::initRuntimeData()
+	void ScriptRendererMeshData::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_create", (void*)&ScriptRendererMeshData::Internal_create);
 		metaData.scriptClass->addInternalCall("Internal_getPositions", (void*)&ScriptRendererMeshData::Internal_getPositions);

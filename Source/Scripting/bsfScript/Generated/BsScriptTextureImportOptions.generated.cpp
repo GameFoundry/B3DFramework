@@ -15,7 +15,7 @@ namespace bs
 		mInternal = value;
 	}
 
-	void ScriptTextureImportOptions::initRuntimeData()
+	void ScriptTextureImportOptions::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getformat", (void*)&ScriptTextureImportOptions::Internal_getformat);
 		metaData.scriptClass->addInternalCall("Internal_setformat", (void*)&ScriptTextureImportOptions::Internal_setformat);

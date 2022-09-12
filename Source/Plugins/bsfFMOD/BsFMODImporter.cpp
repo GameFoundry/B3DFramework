@@ -18,7 +18,7 @@ namespace bs
 
 	}
 
-	bool FMODImporter::isExtensionSupported(const String& ext) const
+	bool FMODImporter::IsExtensionSupported(const String& ext) const
 	{
 		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
@@ -28,18 +28,18 @@ namespace bs
 			lowerCaseExt == u8"fsb" || lowerCaseExt == u8"aif" || lowerCaseExt == u8"aiff";
 	}
 
-	bool FMODImporter::isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
+	bool FMODImporter::IsMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
 	{
 		// Don't check for magic number, rely on extension
 		return true;
 	}
 
-	SPtr<ImportOptions> FMODImporter::createImportOptions() const
+	SPtr<ImportOptions> FMODImporter::CreateImportOptions() const
 	{
 		return bs_shared_ptr_new<AudioClipImportOptions>();
 	}
 
-	SPtr<Resource> FMODImporter::import(const Path& filePath, SPtr<const ImportOptions> importOptions)
+	SPtr<Resource> FMODImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
 		AudioDataInfo info;
 

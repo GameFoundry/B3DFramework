@@ -11,15 +11,15 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptKeyframeRef::initRuntimeData()
+	void ScriptKeyframeRef::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptKeyframeRef::box(const KeyframeRef& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	KeyframeRef ScriptKeyframeRef::unbox(MonoObject* value)
+	KeyframeRef ScriptKeyframeRef::Unbox(MonoObject* value)
 	{
 		return *(KeyframeRef*)MonoUtil::unbox(value);
 	}

@@ -5,8 +5,8 @@
 
 namespace bs { namespace ct
 {
-	SPtr<EventQuery> EventQuery::create(UINT32 deviceIdx)
+	SPtr<EventQuery> EventQuery::Create(UINT32 deviceIdx)
 	{
-		return QueryManager::instance().createEventQuery(deviceIdx);
+		return QueryManager::Instance().createEventQuery(deviceIdx);
 	}
 }}

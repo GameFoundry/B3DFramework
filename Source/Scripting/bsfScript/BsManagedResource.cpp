@@ -47,7 +47,7 @@ namespace bs
 		return nullptr;
 	}
 
-	ResourceBackupData ManagedResource::backup()
+	ResourceBackupData ManagedResource::Backup()
 	{
 		MonoObject* instance = mOwner->getManagedInstance();
 		SPtr<ManagedSerializableObject> serializableObject = ManagedSerializableObject::createFromExisting(instance);
@@ -72,7 +72,7 @@ namespace bs
 		return backupData;
 	}
 
-	void ManagedResource::restore(const ResourceBackupData& data)
+	void ManagedResource::Restore(const ResourceBackupData& data)
 	{
 		MonoObject* instance = mOwner->getManagedInstance();
 		if (instance != nullptr)
@@ -97,7 +97,7 @@ namespace bs
 		}
 	}
 
-	HManagedResource ManagedResource::create(MonoObject* managedResource)
+	HManagedResource ManagedResource::Create(MonoObject* managedResource)
 	{
 		SPtr<ManagedResource> newRes = bs_core_ptr<ManagedResource>(new (bs_alloc<ManagedResource>()) ManagedResource(managedResource));
 		newRes->_setThisPtr(newRes);
@@ -109,7 +109,7 @@ namespace bs
 		return handle;
 	}
 
-	SPtr<ManagedResource> ManagedResource::createEmpty()
+	SPtr<ManagedResource> ManagedResource::CreateEmpty()
 	{
 		SPtr<ManagedResource> newRes = bs_core_ptr<ManagedResource>(new (bs_alloc<ManagedResource>()) ManagedResource());
 		newRes->_setThisPtr(newRes);
@@ -118,7 +118,7 @@ namespace bs
 		return newRes;
 	}
 
-	void ManagedResource::setHandle(MonoObject* object, const HManagedResource& myHandle)
+	void ManagedResource::SetHandle(MonoObject* object, const HManagedResource& myHandle)
 	{
 		mMyHandle = myHandle.getWeak();
 
@@ -126,7 +126,7 @@ namespace bs
 		ManagedResourceManager::instance().registerManagedResource(mMyHandle);
 	}
 
-	void ManagedResource::destroy()
+	void ManagedResource::Destroy()
 	{
 		Resource::destroy();
 
@@ -136,11 +136,11 @@ namespace bs
 
 	RTTITypeBase* ManagedResource::getRTTIStatic()
 	{
-		return ManagedResourceRTTI::instance();
+		return ManagedResourceRTTI::Instance();
 	}
 
 	RTTITypeBase* ManagedResource::getRTTI() const
 	{
-		return ManagedResource::getRTTIStatic();
+		return ManagedResource::GetRTTIStatic();
 	}
 }

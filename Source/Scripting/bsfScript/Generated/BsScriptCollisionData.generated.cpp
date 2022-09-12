@@ -16,20 +16,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptCollisionData::initRuntimeData()
+	void ScriptCollisionData::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptCollisionData::box(const __CollisionDataInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__CollisionDataInterop ScriptCollisionData::unbox(MonoObject* value)
+	__CollisionDataInterop ScriptCollisionData::Unbox(MonoObject* value)
 	{
 		return *(__CollisionDataInterop*)MonoUtil::unbox(value);
 	}
 
-	CollisionData ScriptCollisionData::fromInterop(const __CollisionDataInterop& value)
+	CollisionData ScriptCollisionData::FromInterop(const __CollisionDataInterop& value)
 	{
 		CollisionData output;
 		GameObjectHandle<CCollider> veccollider[2];
@@ -65,7 +65,7 @@ namespace bs
 		return output;
 	}
 
-	__CollisionDataInterop ScriptCollisionData::toInterop(const CollisionData& value)
+	__CollisionDataInterop ScriptCollisionData::ToInterop(const CollisionData& value)
 	{
 		__CollisionDataInterop output;
 		int arraySizecollider = 2;

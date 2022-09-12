@@ -12,7 +12,7 @@ namespace bs
 
 	}
 
-	HShaderInclude ShaderInclude::create(const String& includeString)
+	HShaderInclude ShaderInclude::Create(const String& includeString)
 	{
 		return static_resource_cast<ShaderInclude>(gResources()._createResourceHandle(_createPtr(includeString)));
 	}
@@ -29,11 +29,11 @@ namespace bs
 
 	RTTITypeBase* ShaderInclude::getRTTIStatic()
 	{
-		return ShaderIncludeRTTI::instance();
+		return ShaderIncludeRTTI::Instance();
 	}
 
 	RTTITypeBase* ShaderInclude::getRTTI() const
 	{
-		return ShaderInclude::getRTTIStatic();
+		return ShaderInclude::GetRTTIStatic();
 	}
 }

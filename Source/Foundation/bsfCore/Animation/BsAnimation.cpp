@@ -22,7 +22,7 @@ namespace bs
 		clear();
 	}
 
-	void AnimationProxy::clear()
+	void AnimationProxy::Clear()
 	{
 		if (layers == nullptr)
 			return;
@@ -562,7 +562,7 @@ namespace bs
 		bs_frame_clear();
 	}
 
-	void AnimationProxy::updateClipInfos(const Vector<AnimationClipInfo>& clipInfos)
+	void AnimationProxy::UpdateClipInfos(const Vector<AnimationClipInfo>& clipInfos)
 	{
 		for(auto& clipInfo : clipInfos)
 		{
@@ -582,7 +582,7 @@ namespace bs
 		}
 	}
 
-	void AnimationProxy::updateMorphChannelWeights(const Vector<float>& weights)
+	void AnimationProxy::UpdateMorphChannelWeights(const Vector<float>& weights)
 	{
 		UINT32 numWeights = (UINT32)weights.size();
 		for(UINT32 i = 0; i < numMorphChannels; i++)
@@ -596,7 +596,7 @@ namespace bs
 		morphChannelWeightsDirty = true;
 	}
 
-	void AnimationProxy::updateTransforms(const Vector<AnimatedSceneObject>& sceneObjects)
+	void AnimationProxy::UpdateTransforms(const Vector<AnimatedSceneObject>& sceneObjects)
 	{
 		Matrix4 InvRootTransform(BsIdentity);
 		for (UINT32 i = 0; i < numSceneObjects; i++)
@@ -631,7 +631,7 @@ namespace bs
 		}
 	}
 
-	void AnimationProxy::updateTime(const Vector<AnimationClipInfo>& clipInfos)
+	void AnimationProxy::UpdateTime(const Vector<AnimationClipInfo>& clipInfos)
 	{
 		for (auto& clipInfo : clipInfos)
 		{
@@ -659,13 +659,13 @@ namespace bs
 		AnimationManager::instance().unregisterAnimation(mId);
 	}
 
-	void Animation::setSkeleton(const SPtr<Skeleton>& skeleton)
+	void Animation::SetSkeleton(const SPtr<Skeleton>& skeleton)
 	{
 		mSkeleton = skeleton;
 		mDirty |= AnimDirtyStateFlag::All;
 	}
 
-	void Animation::setMorphShapes(const SPtr<MorphShapes>& morphShapes)
+	void Animation::SetMorphShapes(const SPtr<MorphShapes>& morphShapes)
 	{
 		mMorphShapes = morphShapes;
 
@@ -683,7 +683,7 @@ namespace bs
 		mDirty |= AnimDirtyStateFlag::MorphWeights;
 	}
 
-	void Animation::setMorphChannelWeight(UINT32 idx, float weight)
+	void Animation::SetMorphChannelWeight(UINT32 idx, float weight)
 	{
 		UINT32 numShapes = (UINT32)mMorphChannelWeights.size();
 		if (idx >= numShapes)
@@ -693,13 +693,13 @@ namespace bs
 		mDirty |= AnimDirtyStateFlag::MorphWeights;
 	}
 
-	void Animation::setMask(const SkeletonMask& mask)
+	void Animation::SetMask(const SkeletonMask& mask)
 	{
 		mSkeletonMask = mask;
 		mDirty |= AnimDirtyStateFlag::All;
 	}
 
-	void Animation::setWrapMode(AnimWrapMode wrapMode)
+	void Animation::SetWrapMode(AnimWrapMode wrapMode)
 	{
 		mDefaultWrapMode = wrapMode;
 
@@ -709,7 +709,7 @@ namespace bs
 		mDirty |= AnimDirtyStateFlag::Value;
 	}
 
-	void Animation::setSpeed(float speed)
+	void Animation::SetSpeed(float speed)
 	{
 		mDefaultSpeed = speed;
 
@@ -723,21 +723,21 @@ namespace bs
 		mDirty |= AnimDirtyStateFlag::Value;
 	}
 
-	void Animation::setBounds(const AABox& bounds)
+	void Animation::SetBounds(const AABox& bounds)
 	{
 		mBounds = bounds;
 
 		mDirty |= AnimDirtyStateFlag::Culling;
 	}
 
-	void Animation::setCulling(bool cull)
+	void Animation::SetCulling(bool cull)
 	{
 		mCull = cull;
 
 		mDirty |= AnimDirtyStateFlag::Culling;
 	}
 
-	void Animation::play(const HAnimationClip& clip)
+	void Animation::Play(const HAnimationClip& clip)
 	{
 		AnimationClipInfo* clipInfo = addClip(clip, (UINT32)-1);
 		if(clipInfo != nullptr)
@@ -753,7 +753,7 @@ namespace bs
 		mDirty |= AnimDirtyStateFlag::Value;
 	}
 
-	void Animation::blendAdditive(const HAnimationClip& clip, float weight, float fadeLength, UINT32 layer)
+	void Animation::BlendAdditive(const HAnimationClip& clip, float weight, float fadeLength, UINT32 layer)
 	{
 		if(clip != nullptr && !clip->isAdditive())
 		{
@@ -790,7 +790,7 @@ namespace bs
 		}
 	}
 
-	void Animation::blend1D(const Blend1DInfo& info, float t)
+	void Animation::Blend1D(const Blend1DInfo& info, float t)
 	{
 		if (info.clips.size() == 0)
 			return;
@@ -885,7 +885,7 @@ namespace bs
 		mDirty |= AnimDirtyStateFlag::Value;
 	}
 
-	void Animation::blend2D(const Blend2DInfo& info, const Vector2& t)
+	void Animation::Blend2D(const Blend2DInfo& info, const Vector2& t)
 	{
 		AnimationClipInfo* topLeftClipInfo = addClip(info.topLeftClip, (UINT32)-1, true);
 		if (topLeftClipInfo != nullptr)
@@ -939,7 +939,7 @@ namespace bs
 		mDirty |= AnimDirtyStateFlag::Value;
 	}
 
-	void Animation::crossFade(const HAnimationClip& clip, float fadeLength)
+	void Animation::CrossFade(const HAnimationClip& clip, float fadeLength)
 	{
 		bool isFading = fadeLength > 0.0f;
 		if(!isFading)
@@ -988,7 +988,7 @@ namespace bs
 		mDirty |= AnimDirtyStateFlag::Value;
 	}
 
-	void Animation::sample(const HAnimationClip& clip, float time)
+	void Animation::Sample(const HAnimationClip& clip, float time)
 	{
 		AnimationClipInfo* clipInfo = addClip(clip, (UINT32)-1);
 		if (clipInfo != nullptr)
@@ -1004,7 +1004,7 @@ namespace bs
 		mDirty |= AnimDirtyStateFlag::Value;
 	}
 
-	void Animation::stop(UINT32 layer)
+	void Animation::Stop(UINT32 layer)
 	{
 		bs_frame_mark();
 		{
@@ -1024,7 +1024,7 @@ namespace bs
 		bs_frame_clear();
 	}
 
-	void Animation::stopAll()
+	void Animation::StopAll()
 	{
 		mClipInfos.clear();
 
@@ -1121,7 +1121,7 @@ namespace bs
 		return false;
 	}
 
-	void Animation::getListenerResources(Vector<HResource>& resources)
+	void Animation::GetListenerResources(Vector<HResource>& resources)
 	{
 		for (auto& entry : mClipInfos)
 		{
@@ -1130,17 +1130,17 @@ namespace bs
 		}
 	}
 
-	void Animation::notifyResourceLoaded(const HResource& resource)
+	void Animation::NotifyResourceLoaded(const HResource& resource)
 	{
 		mDirty |= AnimDirtyStateFlag::Layout;
 	}
 
-	void Animation::notifyResourceChanged(const HResource& resource)
+	void Animation::NotifyResourceChanged(const HResource& resource)
 	{
 		mDirty |= AnimDirtyStateFlag::Layout;
 	}
 
-	bool Animation::isPlaying() const
+	bool Animation::IsPlaying() const
 	{
 		for(auto& clipInfo : mClipInfos)
 		{
@@ -1151,7 +1151,7 @@ namespace bs
 		return false;
 	}
 
-	bool Animation::getState(const HAnimationClip& clip, AnimationClipState& state)
+	bool Animation::GetState(const HAnimationClip& clip, AnimationClipState& state)
 	{
 		if (clip == nullptr)
 			return false;
@@ -1182,7 +1182,7 @@ namespace bs
 		return false;
 	}
 
-	void Animation::setState(const HAnimationClip& clip, AnimationClipState state)
+	void Animation::SetState(const HAnimationClip& clip, AnimationClipState state)
 	{
 		if (state.layer == 0)
 			state.layer = (UINT32)-1;
@@ -1201,12 +1201,12 @@ namespace bs
 		mDirty |= AnimDirtyStateFlag::Value;
 	}
 
-	UINT32 Animation::getNumClips() const
+	UINT32 Animation::GetNumClips() const
 	{
 		return (UINT32)mClipInfos.size();
 	}
 
-	HAnimationClip Animation::getClip(UINT32 idx) const
+	HAnimationClip Animation::GetClip(UINT32 idx) const
 	{
 		if (idx >= (UINT32)mClipInfos.size())
 			return HAnimationClip();
@@ -1214,7 +1214,7 @@ namespace bs
 		return mClipInfos[idx].clip;
 	}
 
-	void Animation::triggerEvents(float delta)
+	void Animation::TriggerEvents(float delta)
 	{
 		for (auto& clipInfo : mClipInfos)
 		{
@@ -1264,7 +1264,7 @@ namespace bs
 		}
 	}
 
-	void Animation::mapCurveToSceneObject(const String& curve, const HSceneObject& so)
+	void Animation::MapCurveToSceneObject(const String& curve, const HSceneObject& so)
 	{
 		AnimatedSceneObject animSo = { so, curve };
 		mSceneObjects[so.getInstanceId()] = animSo;
@@ -1272,14 +1272,14 @@ namespace bs
 		mDirty |= AnimDirtyStateFlag::All;
 	}
 
-	void Animation::unmapSceneObject(const HSceneObject& so)
+	void Animation::UnmapSceneObject(const HSceneObject& so)
 	{
 		mSceneObjects.erase(so.getInstanceId());
 
 		mDirty |= AnimDirtyStateFlag::All;
 	}
 
-	bool Animation::getGenericCurveValue(UINT32 curveIdx, float& value)
+	bool Animation::GetGenericCurveValue(UINT32 curveIdx, float& value)
 	{
 		if (!mGenericCurveValuesValid || curveIdx >= (UINT32)mGenericCurveOutputs.size())
 			return false;
@@ -1288,7 +1288,7 @@ namespace bs
 		return true;
 	}
 
-	SPtr<Animation> Animation::create()
+	SPtr<Animation> Animation::Create()
 	{
 		Animation* anim = new (bs_alloc<Animation>()) Animation();
 
@@ -1299,7 +1299,7 @@ namespace bs
 		return animPtr;
 	}
 
-	void Animation::updateAnimProxy(float timeDelta)
+	void Animation::UpdateAnimProxy(float timeDelta)
 	{
 		// Check if any of the clip curves are dirty and advance time, perform fading
 		for (auto& clipInfo : mClipInfos)
@@ -1408,7 +1408,7 @@ namespace bs
 		mDirty = AnimDirtyState();
 	}
 
-	void Animation::updateFromProxy()
+	void Animation::UpdateFromProxy()
 	{
 		// When sampling a single frame we don't want to keep updating the scene objects so they can be moved through other
 		// means (e.g. for the purposes of recording new keyframes if running from the editor).

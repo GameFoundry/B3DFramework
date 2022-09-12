@@ -26,7 +26,7 @@ namespace bs
 		mNotifyFlags = TCF_Transform;
 	}
 
-	CharacterCollisionFlags CCharacterController::move(const Vector3& displacement)
+	CharacterCollisionFlags CCharacterController::Move(const Vector3& displacement)
 	{
 		CharacterCollisionFlags output;
 
@@ -39,7 +39,7 @@ namespace bs
 		return output;
 	}
 
-	Vector3 CCharacterController::getFootPosition() const
+	Vector3 CCharacterController::GetFootPosition() const
 	{
 		if (mInternal == nullptr)
 			return Vector3::ZERO;
@@ -47,7 +47,7 @@ namespace bs
 		return mInternal->getFootPosition();
 	}
 
-	void CCharacterController::setFootPosition(const Vector3& position)
+	void CCharacterController::SetFootPosition(const Vector3& position)
 	{
 		if (mInternal == nullptr)
 			return;
@@ -56,7 +56,7 @@ namespace bs
 		updatePositionFromController();
 	}
 
-	void CCharacterController::setRadius(float radius)
+	void CCharacterController::SetRadius(float radius)
 	{
 		mDesc.radius = radius;
 
@@ -64,7 +64,7 @@ namespace bs
 			updateDimensions();
 	}
 
-	void CCharacterController::setHeight(float height)
+	void CCharacterController::SetHeight(float height)
 	{
 		mDesc.height = height;
 
@@ -72,7 +72,7 @@ namespace bs
 			updateDimensions();
 	}
 
-	void CCharacterController::setUp(const Vector3& up)
+	void CCharacterController::SetUp(const Vector3& up)
 	{
 		mDesc.up = up;
 
@@ -80,7 +80,7 @@ namespace bs
 			mInternal->setUp(up);
 	}
 
-	void CCharacterController::setClimbingMode(CharacterClimbingMode mode)
+	void CCharacterController::SetClimbingMode(CharacterClimbingMode mode)
 	{
 		mDesc.climbingMode = mode;
 
@@ -88,7 +88,7 @@ namespace bs
 			mInternal->setClimbingMode(mode);
 	}
 
-	void CCharacterController::setNonWalkableMode(CharacterNonWalkableMode mode)
+	void CCharacterController::SetNonWalkableMode(CharacterNonWalkableMode mode)
 	{
 		mDesc.nonWalkableMode = mode;
 
@@ -96,7 +96,7 @@ namespace bs
 			mInternal->setNonWalkableMode(mode);
 	}
 
-	void CCharacterController::setMinMoveDistance(float value)
+	void CCharacterController::SetMinMoveDistance(float value)
 	{
 		mDesc.minMoveDistance = value;
 
@@ -104,7 +104,7 @@ namespace bs
 			mInternal->setMinMoveDistance(value);
 	}
 
-	void CCharacterController::setContactOffset(float value)
+	void CCharacterController::SetContactOffset(float value)
 	{
 		mDesc.contactOffset = value;
 
@@ -112,7 +112,7 @@ namespace bs
 			mInternal->setContactOffset(value);
 	}
 
-	void CCharacterController::setStepOffset(float value)
+	void CCharacterController::SetStepOffset(float value)
 	{
 		mDesc.stepOffset = value;
 
@@ -120,7 +120,7 @@ namespace bs
 			mInternal->setStepOffset(value);
 	}
 
-	void CCharacterController::setSlopeLimit(Radian value)
+	void CCharacterController::SetSlopeLimit(Radian value)
 	{
 		mDesc.slopeLimit = value;
 
@@ -128,7 +128,7 @@ namespace bs
 			mInternal->setSlopeLimit(value);
 	}
 
-	void CCharacterController::setLayer(UINT64 layer)
+	void CCharacterController::SetLayer(UINT64 layer)
 	{
 		mLayer = layer;
 
@@ -136,22 +136,22 @@ namespace bs
 			mInternal->setLayer(layer);
 	}
 
-	void CCharacterController::onInitialized()
+	void CCharacterController::OnInitialized()
 	{
 
 	}
 
-	void CCharacterController::onDestroyed()
-	{
-		destroyInternal();
-	}
-
-	void CCharacterController::onDisabled()
+	void CCharacterController::OnDestroyed()
 	{
 		destroyInternal();
 	}
 
-	void CCharacterController::onEnabled()
+	void CCharacterController::OnDisabled()
+	{
+		destroyInternal();
+	}
+
+	void CCharacterController::OnEnabled()
 	{
 		const SPtr<SceneInstance>& scene = SO()->getScene();
 
@@ -166,7 +166,7 @@ namespace bs
 		updateDimensions();
 	}
 
-	void CCharacterController::onTransformChanged(TransformChangedFlags flags)
+	void CCharacterController::OnTransformChanged(TransformChangedFlags flags)
 	{
 		if (!SO()->getActive() || mInternal == nullptr)
 			return;
@@ -174,14 +174,14 @@ namespace bs
 		mInternal->setPosition(SO()->getTransform().getPosition());
 	}
 
-	void CCharacterController::updatePositionFromController()
+	void CCharacterController::UpdatePositionFromController()
 	{
 		mNotifyFlags = (TransformChangedFlags)0;
 		SO()->setWorldPosition(mInternal->getPosition());
 		mNotifyFlags = TCF_Transform;
 	}
 
-	void CCharacterController::updateDimensions()
+	void CCharacterController::UpdateDimensions()
 	{
 		Vector3 scale = SO()->getTransform().getScale();
 		float height = mDesc.height * Math::abs(scale.y);
@@ -191,7 +191,7 @@ namespace bs
 		mInternal->setRadius(radius);
 	}
 
-	void CCharacterController::destroyInternal()
+	void CCharacterController::DestroyInternal()
 	{
 		// This should release the last reference and destroy the internal controller
 		if(mInternal)
@@ -201,7 +201,7 @@ namespace bs
 		}
 	}
 
-	void CCharacterController::triggerOnColliderHit(const ControllerColliderCollision& value)
+	void CCharacterController::TriggerOnColliderHit(const ControllerColliderCollision& value)
 	{
 		// Const-cast and modify is okay because we're the only object receiving this event
 		auto& hit = const_cast<ControllerColliderCollision&>(value);
@@ -215,7 +215,7 @@ namespace bs
 		onColliderHit(hit);
 	}
 
-	void CCharacterController::triggerOnControllerHit(const ControllerControllerCollision& value)
+	void CCharacterController::TriggerOnControllerHit(const ControllerControllerCollision& value)
 	{
 		// Const-cast and modify is okay because we're the only object receiving this event
 		ControllerControllerCollision& hit = const_cast<ControllerControllerCollision&>(value);
@@ -231,11 +231,11 @@ namespace bs
 
 	RTTITypeBase* CCharacterController::getRTTIStatic()
 	{
-		return CCharacterControllerRTTI::instance();
+		return CCharacterControllerRTTI::Instance();
 	}
 
 	RTTITypeBase* CCharacterController::getRTTI() const
 	{
-		return CCharacterController::getRTTIStatic();
+		return CCharacterController::GetRTTIStatic();
 	}
 }

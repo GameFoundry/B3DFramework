@@ -24,13 +24,13 @@ namespace bs
 		:mId(id)
 	{ }
 
-	void HMessage::disconnect()
+	void HMessage::Disconnect()
 	{
 		if (mId > 0)
 			MessageHandler::instance().unsubscribe(mId);
 	}
 
-	void MessageHandler::send(MessageId message)
+	void MessageHandler::Send(MessageId message)
 	{
 		auto iterFind = mMessageHandlers.find(message.mMsgIdentifier);
 		if (iterFind != mMessageHandlers.end())
@@ -42,7 +42,7 @@ namespace bs
 		}
 	}
 
-	HMessage MessageHandler::listen(MessageId message, std::function<void()> callback)
+	HMessage MessageHandler::Listen(MessageId message, std::function<void()> callback)
 	{
 		UINT32 callbackId = mNextCallbackId++;
 		
@@ -56,7 +56,7 @@ namespace bs
 		return HMessage(callbackId);
 	}
 
-	void MessageHandler::unsubscribe(UINT32 handleId)
+	void MessageHandler::Unsubscribe(UINT32 handleId)
 	{
 		UINT32 msgId = mHandlerIdToMessageMap[handleId];
 

@@ -25,7 +25,7 @@ namespace bs
 		return bs_new<GUIFixedSpace>(size);
 	}
 
-	void GUIFixedSpace::destroy(GUIFixedSpace* space)
+	void GUIFixedSpace::Destroy(GUIFixedSpace* space)
 	{
 		bs_delete(space);
 	}
@@ -51,7 +51,7 @@ namespace bs
 		return bs_new<GUIFlexibleSpace>();
 	}
 
-	void GUIFlexibleSpace::destroy(GUIFlexibleSpace* space)
+	void GUIFlexibleSpace::Destroy(GUIFlexibleSpace* space)
 	{
 		bs_delete(space);
 	}

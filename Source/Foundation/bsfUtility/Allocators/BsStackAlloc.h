@@ -356,7 +356,7 @@ namespace bs
 	/** @copydoc MemStackInternal::dealloc() */
 	inline void bs_stack_free(void* data)
 	{
-		return MemStack::deallocLast((UINT8*)data);
+		return MemStack::DeallocLast((UINT8*)data);
 	}
 
 	/**

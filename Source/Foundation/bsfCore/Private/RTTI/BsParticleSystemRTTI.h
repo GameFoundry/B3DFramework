@@ -783,7 +783,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return ParticleSystem::createEmpty();
+			return ParticleSystem::CreateEmpty();
 		}
 	};
 

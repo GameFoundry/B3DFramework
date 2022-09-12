@@ -11,11 +11,11 @@ namespace bs
 
 	RTTITypeBase* SavedResourceData::getRTTIStatic()
 	{
-		return SavedResourceDataRTTI::instance();
+		return SavedResourceDataRTTI::Instance();
 	}
 
 	RTTITypeBase* SavedResourceData::getRTTI() const
 	{
-		return SavedResourceData::getRTTIStatic();
+		return SavedResourceData::GetRTTIStatic();
 	}
 }

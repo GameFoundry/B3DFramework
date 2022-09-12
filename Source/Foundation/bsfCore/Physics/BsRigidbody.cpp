@@ -19,7 +19,7 @@ namespace bs
 		mLinkedSO->setWorldRotation(rotation);
 	}
 
-	SPtr<Rigidbody> Rigidbody::create(const HSceneObject& linkedSO)
+	SPtr<Rigidbody> Rigidbody::Create(const HSceneObject& linkedSO)
 	{
 		const SPtr<SceneInstance>& scene = linkedSO->getScene();
 

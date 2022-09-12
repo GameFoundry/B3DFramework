@@ -24,12 +24,12 @@ namespace bs
 		:mParamInfo(paramInfo)
 	{ }
 
-	SPtr<GpuParamDesc> GpuParamsBase::getParamDesc(GpuProgramType type) const
+	SPtr<GpuParamDesc> GpuParamsBase::GetParamDesc(GpuProgramType type) const
 	{
 		return mParamInfo->getParamDesc(type);
 	}
 
-	UINT32 GpuParamsBase::getDataParamSize(GpuProgramType type, const String& name) const
+	UINT32 GpuParamsBase::GetDataParamSize(GpuProgramType type, const String& name) const
 	{
 		GpuParamDataDesc* desc = getParamDesc(type, name);
 		if(desc != nullptr)
@@ -38,12 +38,12 @@ namespace bs
 		return 0;
 	}
 
-	bool GpuParamsBase::hasParam(GpuProgramType type, const String& name) const
+	bool GpuParamsBase::HasParam(GpuProgramType type, const String& name) const
 	{
 		return GetParamDesc(type, name) != nullptr;
 	}
 
-	bool GpuParamsBase::hasTexture(GpuProgramType type, const String& name) const
+	bool GpuParamsBase::HasTexture(GpuProgramType type, const String& name) const
 	{
 		const SPtr<GpuParamDesc>& paramDesc = mParamInfo->getParamDesc(type);
 		if (paramDesc == nullptr)
@@ -56,7 +56,7 @@ namespace bs
 		return false;
 	}
 
-	bool GpuParamsBase::hasBuffer(GpuProgramType type, const String& name) const
+	bool GpuParamsBase::HasBuffer(GpuProgramType type, const String& name) const
 	{
 		const SPtr<GpuParamDesc>& paramDesc = mParamInfo->getParamDesc(type);
 		if (paramDesc == nullptr)
@@ -69,7 +69,7 @@ namespace bs
 		return false;
 	}
 
-	bool GpuParamsBase::hasLoadStoreTexture(GpuProgramType type, const String& name) const
+	bool GpuParamsBase::HasLoadStoreTexture(GpuProgramType type, const String& name) const
 	{
 		const SPtr<GpuParamDesc>& paramDesc = mParamInfo->getParamDesc(type);
 		if (paramDesc == nullptr)
@@ -82,7 +82,7 @@ namespace bs
 		return false;
 	}
 
-	bool GpuParamsBase::hasSamplerState(GpuProgramType type, const String& name) const
+	bool GpuParamsBase::HasSamplerState(GpuProgramType type, const String& name) const
 	{
 		const SPtr<GpuParamDesc>& paramDesc = mParamInfo->getParamDesc(type);
 		if (paramDesc == nullptr)
@@ -95,7 +95,7 @@ namespace bs
 		return false;
 	}
 
-	bool GpuParamsBase::hasParamBlock(GpuProgramType type, const String& name) const
+	bool GpuParamsBase::HasParamBlock(GpuProgramType type, const String& name) const
 	{
 		const SPtr<GpuParamDesc>& paramDesc = mParamInfo->getParamDesc(type);
 		if (paramDesc == nullptr)
@@ -579,12 +579,12 @@ namespace bs
 		return std::static_pointer_cast<GpuParams>(getThisPtr());
 	}
 
-	SPtr<ct::GpuParams> GpuParams::getCore() const
+	SPtr<ct::GpuParams> GpuParams::GetCore() const
 	{
 		return std::static_pointer_cast<ct::GpuParams>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObject> GpuParams::createCore() const
+	SPtr<ct::CoreObject> GpuParams::CreateCore() const
 	{
 		SPtr<GpuPipelineParamInfo> paramInfo = std::static_pointer_cast<GpuPipelineParamInfo>(mParamInfo);
 
@@ -601,22 +601,22 @@ namespace bs
 		markListenerResourcesDirty();
 	}
 
-	SPtr<GpuParams> GpuParams::create(const SPtr<GraphicsPipelineState>& pipelineState)
+	SPtr<GpuParams> GpuParams::Create(const SPtr<GraphicsPipelineState>& pipelineState)
 	{
-		return HardwareBufferManager::instance().createGpuParams(pipelineState->getParamInfo());
+		return HardwareBufferManager::Instance().createGpuParams(pipelineState->getParamInfo());
 	}
 
-	SPtr<GpuParams> GpuParams::create(const SPtr<ComputePipelineState>& pipelineState)
+	SPtr<GpuParams> GpuParams::Create(const SPtr<ComputePipelineState>& pipelineState)
 	{
-		return HardwareBufferManager::instance().createGpuParams(pipelineState->getParamInfo());
+		return HardwareBufferManager::Instance().createGpuParams(pipelineState->getParamInfo());
 	}
 
-	SPtr<GpuParams> GpuParams::create(const SPtr<GpuPipelineParamInfo>& paramInfo)
+	SPtr<GpuParams> GpuParams::Create(const SPtr<GpuPipelineParamInfo>& paramInfo)
 	{
-		return HardwareBufferManager::instance().createGpuParams(paramInfo);
+		return HardwareBufferManager::Instance().createGpuParams(paramInfo);
 	}
 
-	CoreSyncData GpuParams::syncToCore(FrameAlloc* allocator)
+	CoreSyncData GpuParams::SyncToCore(FrameAlloc* allocator)
 	{
 		UINT32 numParamBlocks = mParamInfo->getNumElements(GpuPipelineParamInfo::ParamType::ParamBlock);
 		UINT32 numTextures = mParamInfo->getNumElements(GpuPipelineParamInfo::ParamType::Texture);
@@ -711,7 +711,7 @@ namespace bs
 		return CoreSyncData(data, totalSize);
 	}
 
-	void GpuParams::getListenerResources(Vector<HResource>& resources)
+	void GpuParams::GetListenerResources(Vector<HResource>& resources)
 	{
 		UINT32 numTextures = mParamInfo->getNumElements(GpuPipelineParamInfo::ParamType::Texture);
 		UINT32 numStorageTextures = mParamInfo->getNumElements(GpuPipelineParamInfo::ParamType::LoadStoreTexture);
@@ -742,7 +742,7 @@ namespace bs
 		return std::static_pointer_cast<GpuParams>(getThisPtr());
 	}
 
-	void GpuParams::syncToCore(const CoreSyncData& data)
+	void GpuParams::SyncToCore(const CoreSyncData& data)
 	{
 		UINT32 numParamBlocks = mParamInfo->getNumElements(GpuPipelineParamInfo::ParamType::ParamBlock);
 		UINT32 numTextures = mParamInfo->getNumElements(GpuPipelineParamInfo::ParamType::Texture);
@@ -819,19 +819,19 @@ namespace bs
 		}
 	}
 
-	SPtr<GpuParams> GpuParams::create(const SPtr<GraphicsPipelineState>& pipelineState, GpuDeviceFlags deviceMask)
+	SPtr<GpuParams> GpuParams::Create(const SPtr<GraphicsPipelineState>& pipelineState, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferManager::instance().createGpuParams(pipelineState->getParamInfo(), deviceMask);
+		return HardwareBufferManager::Instance().createGpuParams(pipelineState->getParamInfo(), deviceMask);
 	}
 
-	SPtr<GpuParams> GpuParams::create(const SPtr<ComputePipelineState>& pipelineState, GpuDeviceFlags deviceMask)
+	SPtr<GpuParams> GpuParams::Create(const SPtr<ComputePipelineState>& pipelineState, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferManager::instance().createGpuParams(pipelineState->getParamInfo(), deviceMask);
+		return HardwareBufferManager::Instance().createGpuParams(pipelineState->getParamInfo(), deviceMask);
 	}
 
-	SPtr<GpuParams> GpuParams::create(const SPtr<GpuPipelineParamInfo>& paramInfo, GpuDeviceFlags deviceMask)
+	SPtr<GpuParams> GpuParams::Create(const SPtr<GpuPipelineParamInfo>& paramInfo, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferManager::instance().createGpuParams(paramInfo, deviceMask);
+		return HardwareBufferManager::Instance().createGpuParams(paramInfo, deviceMask);
 	}
 	}
 }

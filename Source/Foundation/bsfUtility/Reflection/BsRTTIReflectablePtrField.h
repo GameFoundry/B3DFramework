@@ -232,20 +232,20 @@ namespace bs
 		/** @copydoc RTTIReflectablePtrFieldBase::getRTTIId */
 		UINT32 GetRTTIId() override
 		{
-			return DataType::getRTTIStatic()->getRTTIId();
+			return DataType::GetRTTIStatic()->getRTTIId();
 		}
 
 		/** @copydoc RTTIReflectablePtrFieldBase::getRTTIName */
 		const String& GetRTTIName() override
 		{
-			return DataType::getRTTIStatic()->getRTTIName();
+			return DataType::GetRTTIStatic()->getRTTIName();
 		}
 
 
 		/** @copydoc RTTIReflectablePtrFieldBase::getType */
 		RTTITypeBase* getType() override
 		{
-			return DataType::getRTTIStatic();
+			return DataType::GetRTTIStatic();
 		}
 
 	private:

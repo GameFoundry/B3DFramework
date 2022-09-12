@@ -8,12 +8,12 @@ namespace bs
 {
 	constexpr const char* RenderBeastFactory::SystemName;
 
-	SPtr<ct::Renderer> RenderBeastFactory::create()
+	SPtr<ct::Renderer> RenderBeastFactory::Create()
 	{
 		return bs_shared_ptr_new<ct::RenderBeast>();
 	}
 
-	const String& RenderBeastFactory::name() const
+	const String& RenderBeastFactory::Name() const
 	{
 		static String StrSystemName = SystemName;
 		return StrSystemName;

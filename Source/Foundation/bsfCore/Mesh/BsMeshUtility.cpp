@@ -164,7 +164,7 @@ namespace bs
 		ClipMesh mesh;
 	};
 
-	void TriangleClipperBase::addEdgesAndFaces()
+	void TriangleClipperBase::AddEdgesAndFaces()
 	{
 		UINT32 numTris = (UINT32)mesh.verts.size() / 3;
 
@@ -208,7 +208,7 @@ namespace bs
 		}
 	}
 
-	INT32 TriangleClipperBase::clipByPlane(const Plane& plane)
+	INT32 TriangleClipperBase::ClipByPlane(const Plane& plane)
 	{
 		int state = processVertices(plane);
 
@@ -223,7 +223,7 @@ namespace bs
 		return 0;
 	}
 
-	INT32 TriangleClipperBase::processVertices(const Plane& plane)
+	INT32 TriangleClipperBase::ProcessVertices(const Plane& plane)
 	{
 		static const float EPSILON = 0.00001f;
 
@@ -266,7 +266,7 @@ namespace bs
 		return 0;
 	}
 
-	void TriangleClipperBase::processEdges()
+	void TriangleClipperBase::ProcessEdges()
 	{
 		for (UINT32 i = 0; i < (UINT32)mesh.edges.size(); i++)
 		{
@@ -329,7 +329,7 @@ namespace bs
 		}
 	}
 
-	void TriangleClipperBase::processFaces()
+	void TriangleClipperBase::ProcessFaces()
 	{
 		for (UINT32 i = 0; i < (UINT32)mesh.faces.size(); i++)
 		{
@@ -369,7 +369,7 @@ namespace bs
 		}
 	}
 
-	bool TriangleClipperBase::getOpenPolyline(ClipFace& face, UINT32& start, UINT32& end)
+	bool TriangleClipperBase::GetOpenPolyline(ClipFace& face, UINT32& start, UINT32& end)
 	{
 		// Count the number of occurrences of each vertex in the polyline. The
 		// resulting "occurs" values must be 1 or 2.
@@ -429,7 +429,7 @@ namespace bs
 		return gotStart;
 	}
 
-	void TriangleClipperBase::getOrderedFaces(FrameVector<FrameVector<UINT32>>& sortedFaces)
+	void TriangleClipperBase::GetOrderedFaces(FrameVector<FrameVector<UINT32>>& sortedFaces)
 	{
 		for (UINT32 i = 0; i < (UINT32)mesh.faces.size(); i++)
 		{
@@ -471,7 +471,7 @@ namespace bs
 		}
 	}
 
-	void TriangleClipperBase::getOrderedVertices(const ClipFace& face, UINT32* sortedVerts)
+	void TriangleClipperBase::GetOrderedVertices(const ClipFace& face, UINT32* sortedVerts)
 	{
 		UINT32 numEdges = (UINT32)face.edges.size();
 		UINT32* sortedEdges = (UINT32*)bs_stack_alloc(sizeof(UINT32) * numEdges);
@@ -515,7 +515,7 @@ namespace bs
 		bs_stack_free(sortedEdges);
 	}
 
-	Vector3 TriangleClipperBase::getNormal(UINT32* sortedVertices, UINT32 numVertices)
+	Vector3 TriangleClipperBase::GetNormal(UINT32* sortedVertices, UINT32 numVertices)
 	{
 		Vector3 Normal(BsZero);
 		for (UINT32 i = 0; i <= numVertices - 2; i++)
@@ -582,7 +582,7 @@ namespace bs
 		convertToMesh(writeCallback);
 	}
 
-	void TriangleClipper2D::convertToMesh(const std::function<void(Vector2*, Vector2*, UINT32)>& writeCallback)
+	void TriangleClipper2D::ConvertToMesh(const std::function<void(Vector2*, Vector2*, UINT32)>& writeCallback)
 	{
 		bs_frame_mark();
 		{
@@ -683,7 +683,7 @@ namespace bs
 		convertToMesh(writeCallback);
 	}
 
-	void TriangleClipper3D::convertToMesh(const std::function<void(Vector3*, Vector2*, UINT32)>& writeCallback)
+	void TriangleClipper3D::ConvertToMesh(const std::function<void(Vector3*, Vector2*, UINT32)>& writeCallback)
 	{
 		bs_frame_mark();
 		{
@@ -870,7 +870,7 @@ namespace bs
 		clipper.clip(vertices, uvs, numTris, vertexStride, clipPlanes, writeCallback);
 	}
 
-	void MeshUtility::packNormals(Vector3* source, UINT8* destination, UINT32 count, UINT32 inStride, UINT32 outStride)
+	void MeshUtility::PackNormals(Vector3* source, UINT8* destination, UINT32 count, UINT32 inStride, UINT32 outStride)
 	{
 		UINT8* srcPtr = (UINT8*)source;
 		UINT8* dstPtr = destination;
@@ -889,7 +889,7 @@ namespace bs
 		}
 	}
 
-	void MeshUtility::packNormals(Vector4* source, UINT8* destination, UINT32 count, UINT32 inStride, UINT32 outStride)
+	void MeshUtility::PackNormals(Vector4* source, UINT8* destination, UINT32 count, UINT32 inStride, UINT32 outStride)
 	{
 		UINT8* srcPtr = (UINT8*)source;
 		UINT8* dstPtr = destination;
@@ -908,7 +908,7 @@ namespace bs
 		}
 	}
 
-	void MeshUtility::unpackNormals(UINT8* source, Vector3* destination, UINT32 count, UINT32 stride)
+	void MeshUtility::UnpackNormals(UINT8* source, Vector3* destination, UINT32 count, UINT32 stride)
 	{
 		UINT8* ptr = source;
 		for (UINT32 i = 0; i < count; i++)
@@ -919,7 +919,7 @@ namespace bs
 		}
 	}
 
-	void MeshUtility::unpackNormals(UINT8* source, Vector4* destination, UINT32 count, UINT32 stride)
+	void MeshUtility::UnpackNormals(UINT8* source, Vector4* destination, UINT32 count, UINT32 stride)
 	{
 		UINT8* ptr = source;
 		for (UINT32 i = 0; i < count; i++)

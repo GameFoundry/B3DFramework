@@ -39,7 +39,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuBuffer);
 	}
 
-	void VulkanGpuBuffer::initialize()
+	void VulkanGpuBuffer::Initialize()
 	{
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuBuffer);
 
@@ -72,13 +72,13 @@ namespace bs { namespace ct
 		return data;
 	}
 
-	void VulkanGpuBuffer::unmap()
+	void VulkanGpuBuffer::Unmap()
 	{
 		GpuBuffer::unmap();
 		updateViews();
 	}
 
-	void VulkanGpuBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
+	void VulkanGpuBuffer::ReadData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		GpuBuffer::readData(offset, length, dest, deviceIdx, queueIdx);
 		updateViews();
@@ -96,12 +96,12 @@ namespace bs { namespace ct
 		return static_cast<VulkanHardwareBuffer*>(mBuffer)->getResource(deviceIdx);
 	}
 
-	VkBufferView VulkanGpuBuffer::getView(UINT32 deviceIdx) const
+	VkBufferView VulkanGpuBuffer::GetView(UINT32 deviceIdx) const
 	{
 		return mBufferViews[deviceIdx];
 	}
 
-	void VulkanGpuBuffer::updateViews()
+	void VulkanGpuBuffer::UpdateViews()
 	{
 		if(mProperties.getType() == GBT_STRUCTURED)
 			return;

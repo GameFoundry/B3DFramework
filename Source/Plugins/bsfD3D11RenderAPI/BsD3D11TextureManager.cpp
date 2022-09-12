@@ -8,14 +8,14 @@
 
 namespace bs
 {
-	SPtr<RenderTexture> D3D11TextureManager::createRenderTextureImpl(const RENDER_TEXTURE_DESC& desc)
+	SPtr<RenderTexture> D3D11TextureManager::CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc)
 	{
 		D3D11RenderTexture* tex = new (bs_alloc<D3D11RenderTexture>()) D3D11RenderTexture(desc);
 
 		return bs_core_ptr<D3D11RenderTexture>(tex);
 	}
 
-	PixelFormat D3D11TextureManager::getNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma)
+	PixelFormat D3D11TextureManager::GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma)
 	{
 		DXGI_FORMAT d3dPF = ct::D3D11Mappings::getPF(
 			ct::D3D11Mappings::getClosestSupportedPF(format, ttype, usage), hwGamma);

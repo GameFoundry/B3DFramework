@@ -19,7 +19,7 @@ namespace bs
 			alDeleteBuffers(1, &mBufferId);
 	}
 
-	void OAAudioClip::initialize()
+	void OAAudioClip::Initialize()
 	{
 		{
 			Lock Lock(mMutex); // Needs to be called even if stream data is null, to ensure memory fence is added so the
@@ -131,7 +131,7 @@ namespace bs
 		AudioClip::initialize();
 	}
 
-	void OAAudioClip::getSamples(UINT8* samples, UINT32 offset, UINT32 count) const
+	void OAAudioClip::GetSamples(UINT8* samples, UINT32 offset, UINT32 count) const
 	{
 		Lock Lock(mMutex);
 
@@ -172,7 +172,7 @@ namespace bs
 		BS_LOG(Warning, RenderBackend, "Attempting to read samples while sample data is not available.");
 	}
 
-	SPtr<DataStream> OAAudioClip::getSourceStream(UINT32& size)
+	SPtr<DataStream> OAAudioClip::GetSourceStream(UINT32& size)
 	{
 		Lock Lock(mMutex);
 

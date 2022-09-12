@@ -16,7 +16,7 @@ namespace bs
 	{
 	}
 
-	void ScriptColorGradientHDR::initRuntimeData()
+	void ScriptColorGradientHDR::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_ColorGradientHDR", (void*)&ScriptColorGradientHDR::Internal_ColorGradientHDR);
 		metaData.scriptClass->addInternalCall("Internal_ColorGradientHDR0", (void*)&ScriptColorGradientHDR::Internal_ColorGradientHDR0);

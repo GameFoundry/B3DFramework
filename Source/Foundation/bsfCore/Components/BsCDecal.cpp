@@ -24,7 +24,7 @@ namespace bs
 		mInternal->destroy();
 	}
 
-	void CDecal::onInitialized()
+	void CDecal::OnInitialized()
 	{
 		// If mInternal already exists this means this object was deserialized,
 		// so all we need to do is initialize it.
@@ -36,18 +36,18 @@ namespace bs
 		gSceneManager()._bindActor(mInternal, sceneObject());
 	}
 
-	void CDecal::onDestroyed()
+	void CDecal::OnDestroyed()
 	{
 		gSceneManager()._unbindActor(mInternal);
 	}
 
 	RTTITypeBase* CDecal::getRTTIStatic()
 	{
-		return CDecalRTTI::instance();
+		return CDecalRTTI::Instance();
 	}
 
 	RTTITypeBase* CDecal::getRTTI() const
 	{
-		return CDecal::getRTTIStatic();
+		return CDecal::GetRTTIStatic();
 	}
 }

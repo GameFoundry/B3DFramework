@@ -7,7 +7,7 @@ namespace bs { namespace ct
 {
 	constexpr const char* GLRenderAPIFactory::SystemName;
 
-	void GLRenderAPIFactory::create()
+	void GLRenderAPIFactory::Create()
 	{
 		RenderAPI::startUp<GLRenderAPI>();
 	}

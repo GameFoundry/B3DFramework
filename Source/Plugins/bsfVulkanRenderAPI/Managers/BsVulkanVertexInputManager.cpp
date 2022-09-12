@@ -191,7 +191,7 @@ namespace bs { namespace ct
 		mVertexInputMap[pair] = std::move(newEntry);
 	}
 
-	void VulkanVertexInputManager::removeLeastUsed()
+	void VulkanVertexInputManager::RemoveLeastUsed()
 	{
 		Lock Lock(mMutex);
 

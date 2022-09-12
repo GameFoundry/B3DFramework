@@ -14,7 +14,7 @@ namespace bs
 			bs_delete(sprite);
 	}
 
-	void GUIInputSelection::updateSprite()
+	void GUIInputSelection::UpdateSprite()
 	{
 		mSelectionRects = getSelectionRects();
 
@@ -53,12 +53,12 @@ namespace bs
 		}
 	}
 
-	Vector2I GUIInputSelection::getSelectionSpriteOffset(UINT32 spriteIdx) const
+	Vector2I GUIInputSelection::GetSelectionSpriteOffset(UINT32 spriteIdx) const
 	{
 		return Vector2I(mSelectionRects[spriteIdx].x, mSelectionRects[spriteIdx].y) + getTextOffset();
 	}
 
-	Rect2I GUIInputSelection::getSelectionSpriteClipRect(UINT32 spriteIdx, const Rect2I& parentClipRect) const
+	Rect2I GUIInputSelection::GetSelectionSpriteClipRect(UINT32 spriteIdx, const Rect2I& parentClipRect) const
 	{
 		Vector2I SelectionOffset(mSelectionRects[spriteIdx].x, mSelectionRects[spriteIdx].y);
 		Vector2I clipOffset = selectionOffset + mElement->_getTextInputOffset();
@@ -80,7 +80,7 @@ namespace bs
 		return clipRect;
 	}
 
-	Vector<Rect2I> GUIInputSelection::getSelectionRects() const
+	Vector<Rect2I> GUIInputSelection::GetSelectionRects() const
 	{
 		Vector<Rect2I> selectionRects;
 
@@ -170,7 +170,7 @@ namespace bs
 		return selectionRects;
 	}
 
-	void GUIInputSelection::showSelection(UINT32 anchorCaretPos)
+	void GUIInputSelection::ShowSelection(UINT32 anchorCaretPos)
 	{
 		UINT32 charIdx = getCharIdxAtInputIdx(anchorCaretPos);
 
@@ -179,7 +179,7 @@ namespace bs
 		mSelectionAnchor = charIdx;
 	}
 
-	void GUIInputSelection::clearSelectionVisuals()
+	void GUIInputSelection::ClearSelectionVisuals()
 	{
 		for(auto& sprite : mSprites)
 			bs_delete(sprite);
@@ -187,7 +187,7 @@ namespace bs
 		mSprites.clear();
 	}
 
-	void GUIInputSelection::selectionDragStart(UINT32 caretPos)
+	void GUIInputSelection::SelectionDragStart(UINT32 caretPos)
 	{
 		clearSelectionVisuals();
 
@@ -195,7 +195,7 @@ namespace bs
 		mSelectionDragAnchor = caretPos;
 	}
 
-	void GUIInputSelection::selectionDragUpdate(UINT32 caretPos)
+	void GUIInputSelection::SelectionDragUpdate(UINT32 caretPos)
 	{
 		if(caretPos < mSelectionDragAnchor)
 		{
@@ -220,13 +220,13 @@ namespace bs
 		}
 	}
 
-	void GUIInputSelection::selectionDragEnd()
+	void GUIInputSelection::SelectionDragEnd()
 	{
 		if(isSelectionEmpty())
 			clearSelectionVisuals();
 	}
 
-	void GUIInputSelection::moveSelectionToCaret(UINT32 caretPos)
+	void GUIInputSelection::MoveSelectionToCaret(UINT32 caretPos)
 	{
 		UINT32 charIdx = getCharIdxAtInputIdx(caretPos);
 
@@ -245,13 +245,13 @@ namespace bs
 			clearSelectionVisuals();
 	}
 
-	void GUIInputSelection::selectAll()
+	void GUIInputSelection::SelectAll()
 	{
 		mSelectionStart = 0;
 		mSelectionEnd = mNumChars;
 	}
 
-	bool GUIInputSelection::isSelectionEmpty() const
+	bool GUIInputSelection::IsSelectionEmpty() const
 	{
 		return mSelectionStart == mSelectionEnd;
 	}

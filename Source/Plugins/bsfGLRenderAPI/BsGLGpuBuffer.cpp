@@ -35,7 +35,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLGpuBuffer::initialize()
+	void GLGpuBuffer::Initialize()
 	{
 		mBufferDeleter = &deleteBuffer;
 

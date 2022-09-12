@@ -80,7 +80,7 @@ namespace bs
 		return true;
 	}
 
-	void FileSystem::removeFile(const Path& path)
+	void FileSystem::RemoveFile(const Path& path)
 	{
 		String pathStr = path.toString();
 		if (unix_isDirectory(pathStr))
@@ -95,7 +95,7 @@ namespace bs
 		}
 	}
 
-	void FileSystem::copyFile(const Path& source, const Path& destination)
+	void FileSystem::CopyFile(const Path& source, const Path& destination)
 	{
 		std::ifstream SourceStream(source.toString().c_str(), std::ios::binary);
 		std::ofstream DestinationStream(destination.toString().c_str(), std::ios::binary);
@@ -105,7 +105,7 @@ namespace bs
 		destinationStream.close();
 	}
 
-	void FileSystem::moveFile(const Path& oldPath, const Path& newPath)
+	void FileSystem::MoveFile(const Path& oldPath, const Path& newPath)
 	{
 		String oldPathStr = oldPath.toString();
 		String newPathStr = newPath.toString();
@@ -134,7 +134,7 @@ namespace bs
 		}
 	}
 
-	SPtr<DataStream> FileSystem::openFile(const Path& path, bool readOnly)
+	SPtr<DataStream> FileSystem::OpenFile(const Path& path, bool readOnly)
 	{
 		String pathString = path.toString();
 
@@ -145,12 +145,12 @@ namespace bs
 		return bs_shared_ptr_new<FileDataStream>(path, accessMode, true);
 	}
 
-	SPtr<DataStream> FileSystem::createAndOpenFile(const Path& path)
+	SPtr<DataStream> FileSystem::CreateAndOpenFile(const Path& path)
 	{
 		return bs_shared_ptr_new<FileDataStream>(path, DataStream::AccessMode::WRITE, true);
 	}
 
-	UINT64 FileSystem::getFileSize(const Path& path)
+	UINT64 FileSystem::GetFileSize(const Path& path)
 	{
 		struct stat st_buf;
 
@@ -165,24 +165,24 @@ namespace bs
 		}
 	}
 
-	bool FileSystem::exists(const Path& path)
+	bool FileSystem::Exists(const Path& path)
 	{
 		return unix_pathExists(path.toString());
 	}
 
-	bool FileSystem::isFile(const Path& path)
+	bool FileSystem::IsFile(const Path& path)
 	{
 		String pathStr = path.toString();
 		return unix_pathExists(pathStr) && unix_isFile(pathStr);
 	}
 
-	bool FileSystem::isDirectory(const Path& path)
+	bool FileSystem::IsDirectory(const Path& path)
 	{
 		String pathStr = path.toString();
 		return unix_pathExists(pathStr) && unix_isDirectory(pathStr);
 	}
 
-	void FileSystem::createDir(const Path& path)
+	void FileSystem::CreateDir(const Path& path)
 	{
 		Path parentPath = path;
 		while (!exists(parentPath) && parentPath.getNumDirectories() > 0)
@@ -201,7 +201,7 @@ namespace bs
 			unix_createDirectory(path.toString());
 	}
 
-	void FileSystem::getChildren(const Path& dirPath, Vector<Path>& files, Vector<Path>& directories)
+	void FileSystem::GetChildren(const Path& dirPath, Vector<Path>& files, Vector<Path>& directories)
 	{
 		const String pathStr = dirPath.toString();
 
@@ -230,7 +230,7 @@ namespace bs
 		closedir(dp);
 	}
 
-	std::time_t FileSystem::getLastModifiedTime(const Path& path)
+	std::time_t FileSystem::GetLastModifiedTime(const Path& path)
 	{
 		struct stat st_buf;
 		stat(path.toString().c_str(), &st_buf);
@@ -239,7 +239,7 @@ namespace bs
 		return time;
 	}
 
-	Path FileSystem::getWorkingDirectoryPath()
+	Path FileSystem::GetWorkingDirectoryPath()
 	{
 		char *buffer = bs_newN<char>(PATH_MAX);
 
@@ -253,7 +253,7 @@ namespace bs
 		return Path(wd);
 	}
 
-	bool FileSystem::iterate(const Path& dirPath, std::function<bool(const Path&)> fileCallback,
+	bool FileSystem::Iterate(const Path& dirPath, std::function<bool(const Path&)> fileCallback,
 		std::function<bool(const Path&)> dirCallback, bool recursive)
 	{
 		String pathStr = dirPath.toString();
@@ -315,7 +315,7 @@ namespace bs
 		return true;
 	}
 
-	Path FileSystem::getTempDirectoryPath()
+	Path FileSystem::GetTempDirectoryPath()
 	{
 		String tmpdir;
 

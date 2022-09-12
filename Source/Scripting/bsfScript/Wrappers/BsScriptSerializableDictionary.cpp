@@ -18,7 +18,7 @@ namespace bs
 
 	}
 
-	void ScriptSerializableDictionary::initRuntimeData()
+	void ScriptSerializableDictionary::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateKeyProperty", (void*)&ScriptSerializableDictionary::internal_createKeyProperty);
 		metaData.scriptClass->addInternalCall("Internal_CreateValueProperty", (void*)&ScriptSerializableDictionary::internal_createValueProperty);
@@ -41,11 +41,11 @@ namespace bs
 
 	MonoObject* ScriptSerializableDictionary::internal_createKeyProperty(ScriptSerializableDictionary* nativeInstance)
 	{
-		return ScriptSerializableProperty::create(nativeInstance->mTypeInfo->mKeyType);
+		return ScriptSerializableProperty::Create(nativeInstance->mTypeInfo->mKeyType);
 	}
 
 	MonoObject* ScriptSerializableDictionary::internal_createValueProperty(ScriptSerializableDictionary* nativeInstance)
 	{
-		return ScriptSerializableProperty::create(nativeInstance->mTypeInfo->mValueType);
+		return ScriptSerializableProperty::Create(nativeInstance->mTypeInfo->mValueType);
 	}
 }

@@ -12,7 +12,7 @@ namespace bs
 	{
 	}
 
-	void ScriptParticleDepthCollisionSettings::initRuntimeData()
+	void ScriptParticleDepthCollisionSettings::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_ParticleDepthCollisionSettings", (void*)&ScriptParticleDepthCollisionSettings::Internal_ParticleDepthCollisionSettings);
 		metaData.scriptClass->addInternalCall("Internal_getenabled", (void*)&ScriptParticleDepthCollisionSettings::Internal_getenabled);

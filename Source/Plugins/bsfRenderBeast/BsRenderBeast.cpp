@@ -44,13 +44,13 @@ namespace bs { namespace ct
 		mOptions = bs_shared_ptr_new<RenderBeastOptions>();
 	}
 
-	const StringID& RenderBeast::getName() const
+	const StringID& RenderBeast::GetName() const
 	{
 		static StringID name = "RenderBeast";
 		return name;
 	}
 
-	void RenderBeast::initialize()
+	void RenderBeast::Initialize()
 	{
 		Renderer::initialize();
 
@@ -62,7 +62,7 @@ namespace bs { namespace ct
 		gCoreThread().queueCommand([this, textures]() { initializeCore(textures); }, CTQF_InternalQueue);
 	}
 
-	void RenderBeast::destroy()
+	void RenderBeast::Destroy()
 	{
 		Renderer::destroy();
 
@@ -70,7 +70,7 @@ namespace bs { namespace ct
 		gCoreThread().submit(true);
 	}
 
-	void RenderBeast::initializeCore(const LoadedRendererTextures& rendererTextures)
+	void RenderBeast::InitializeCore(const LoadedRendererTextures& rendererTextures)
 	{
 		const RenderAPICapabilities& caps = gCaps();
 
@@ -135,7 +135,7 @@ namespace bs { namespace ct
 		RenderCompositor::registerNodeType<RCNodeTemporalAA>();
 	}
 
-	void RenderBeast::destroyCore()
+	void RenderBeast::DestroyCore()
 	{
 		// Make sure all tasks finish first
 		processTasks(true);
@@ -157,132 +157,132 @@ namespace bs { namespace ct
 		RendererUtility::shutDown();
 	}
 
-	void RenderBeast::notifyRenderableAdded(Renderable* renderable)
+	void RenderBeast::NotifyRenderableAdded(Renderable* renderable)
 	{
 		mScene->registerRenderable(renderable);
 	}
 
-	void RenderBeast::notifyRenderableRemoved(Renderable* renderable)
+	void RenderBeast::NotifyRenderableRemoved(Renderable* renderable)
 	{
 		mScene->unregisterRenderable(renderable);
 	}
 
-	void RenderBeast::notifyRenderableUpdated(Renderable* renderable)
+	void RenderBeast::NotifyRenderableUpdated(Renderable* renderable)
 	{
 		mScene->updateRenderable(renderable);
 	}
 
-	void RenderBeast::notifyLightAdded(Light* light)
+	void RenderBeast::NotifyLightAdded(Light* light)
 	{
 		mScene->registerLight(light);
 	}
 
-	void RenderBeast::notifyLightUpdated(Light* light)
+	void RenderBeast::NotifyLightUpdated(Light* light)
 	{
 		mScene->updateLight(light);
 	}
 
-	void RenderBeast::notifyLightRemoved(Light* light)
+	void RenderBeast::NotifyLightRemoved(Light* light)
 	{
 		mScene->unregisterLight(light);
 	}
 
-	void RenderBeast::notifyCameraAdded(Camera* camera)
+	void RenderBeast::NotifyCameraAdded(Camera* camera)
 	{
 		mScene->registerCamera(camera);
 	}
 
-	void RenderBeast::notifyCameraUpdated(Camera* camera, UINT32 updateFlag)
+	void RenderBeast::NotifyCameraUpdated(Camera* camera, UINT32 updateFlag)
 	{
 		mScene->updateCamera(camera, updateFlag);
 	}
 
-	void RenderBeast::notifyCameraRemoved(Camera* camera)
+	void RenderBeast::NotifyCameraRemoved(Camera* camera)
 	{
 		mScene->unregisterCamera(camera);
 	}
 
-	void RenderBeast::notifyReflectionProbeAdded(ReflectionProbe* probe)
+	void RenderBeast::NotifyReflectionProbeAdded(ReflectionProbe* probe)
 	{
 		mScene->registerReflectionProbe(probe);
 	}
 
-	void RenderBeast::notifyReflectionProbeUpdated(ReflectionProbe* probe, bool texture)
+	void RenderBeast::NotifyReflectionProbeUpdated(ReflectionProbe* probe, bool texture)
 	{
 		mScene->updateReflectionProbe(probe, texture);
 	}
 
-	void RenderBeast::notifyReflectionProbeRemoved(ReflectionProbe* probe)
+	void RenderBeast::NotifyReflectionProbeRemoved(ReflectionProbe* probe)
 	{
 		mScene->unregisterReflectionProbe(probe);
 	}
 
-	void RenderBeast::notifyLightProbeVolumeAdded(LightProbeVolume* volume)
+	void RenderBeast::NotifyLightProbeVolumeAdded(LightProbeVolume* volume)
 	{
 		mScene->registerLightProbeVolume(volume);
 	}
 
-	void RenderBeast::notifyLightProbeVolumeUpdated(LightProbeVolume* volume)
+	void RenderBeast::NotifyLightProbeVolumeUpdated(LightProbeVolume* volume)
 	{
 		mScene->updateLightProbeVolume(volume);
 	}
 
-	void RenderBeast::notifyLightProbeVolumeRemoved(LightProbeVolume* volume)
+	void RenderBeast::NotifyLightProbeVolumeRemoved(LightProbeVolume* volume)
 	{
 		mScene->unregisterLightProbeVolume(volume);
 	}
 
-	void RenderBeast::notifySkyboxAdded(Skybox* skybox)
+	void RenderBeast::NotifySkyboxAdded(Skybox* skybox)
 	{
 		mScene->registerSkybox(skybox);
 	}
 
-	void RenderBeast::notifySkyboxRemoved(Skybox* skybox)
+	void RenderBeast::NotifySkyboxRemoved(Skybox* skybox)
 	{
 		mScene->unregisterSkybox(skybox);
 	}
 
-	void RenderBeast::notifyParticleSystemAdded(ParticleSystem* particleSystem)
+	void RenderBeast::NotifyParticleSystemAdded(ParticleSystem* particleSystem)
 	{
 		mScene->registerParticleSystem(particleSystem);
 	}
 
-	void RenderBeast::notifyParticleSystemUpdated(ParticleSystem* particleSystem, bool tfrmOnly)
+	void RenderBeast::NotifyParticleSystemUpdated(ParticleSystem* particleSystem, bool tfrmOnly)
 	{
 		mScene->updateParticleSystem(particleSystem, tfrmOnly);
 	}
 
-	void RenderBeast::notifyParticleSystemRemoved(ParticleSystem* particleSystem)
+	void RenderBeast::NotifyParticleSystemRemoved(ParticleSystem* particleSystem)
 	{
 		mScene->unregisterParticleSystem(particleSystem);
 	}
 
-	void RenderBeast::notifyDecalAdded(Decal* decal)
+	void RenderBeast::NotifyDecalAdded(Decal* decal)
 	{
 		mScene->registerDecal(decal);
 	}
 
-	void RenderBeast::notifyDecalRemoved(Decal* decal)
+	void RenderBeast::NotifyDecalRemoved(Decal* decal)
 	{
 		mScene->unregisterDecal(decal);
 	}
 
-	void RenderBeast::notifyDecalUpdated(Decal* decal)
+	void RenderBeast::NotifyDecalUpdated(Decal* decal)
 	{
 		mScene->updateDecal(decal);
 	}
-	void RenderBeast::setOptions(const SPtr<RendererOptions>& options)
+	void RenderBeast::SetOptions(const SPtr<RendererOptions>& options)
 	{
 		mOptions = std::static_pointer_cast<RenderBeastOptions>(options);
 		mOptionsDirty = true;
 	}
 
-	SPtr<RendererOptions> RenderBeast::getOptions() const
+	SPtr<RendererOptions> RenderBeast::GetOptions() const
 	{
 		return mOptions;
 	}
 
-	void RenderBeast::syncOptions(const RenderBeastOptions& options)
+	void RenderBeast::SyncOptions(const RenderBeastOptions& options)
 	{
 		bool filteringChanged = mCoreOptions->filtering != options.filtering;
 		if (options.filtering == RenderBeastFiltering::Anisotropic)
@@ -299,7 +299,7 @@ namespace bs { namespace ct
 		shadowRenderer.setShadowMapSize(mCoreOptions->shadowMapSize);
 	}
 
-	ShaderExtensionPointInfo RenderBeast::getShaderExtensionPointInfo(const String& name)
+	ShaderExtensionPointInfo RenderBeast::GetShaderExtensionPointInfo(const String& name)
 	{
 		if(name == "DeferredDirectLighting")
 		{
@@ -329,7 +329,7 @@ namespace bs { namespace ct
 		return ShaderExtensionPointInfo();
 	}
 
-	void RenderBeast::setGlobalShaderOverride(const String& name, const SPtr<bs::Shader>& shader)
+	void RenderBeast::SetGlobalShaderOverride(const String& name, const SPtr<bs::Shader>& shader)
 	{
 		SPtr<ct::Shader> shaderCore;
 		if(shader)
@@ -348,7 +348,7 @@ namespace bs { namespace ct
 		gCoreThread().queueCommand(setShaderOverride);
 	}
 
-	void RenderBeast::renderAll(PerFrameData perFrameData)
+	void RenderBeast::RenderAll(PerFrameData perFrameData)
 	{
 		// Sync all dirty sim thread CoreObject data to core thread
 		PROFILE_CALL(CoreObjectManager::instance().syncToCore(), "Sync to core")
@@ -367,7 +367,7 @@ namespace bs { namespace ct
 		gCoreThread().queueCommand(std::bind(&RenderBeast::renderAllCore, this, timings, perFrameData));
 	}
 
-	void RenderBeast::renderAllCore(FrameTimings timings, PerFrameData perFrameData)
+	void RenderBeast::RenderAllCore(FrameTimings timings, PerFrameData perFrameData)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -441,7 +441,7 @@ namespace bs { namespace ct
 		gProfilerCPU().endSample("Render");
 	}
 
-	bool RenderBeast::renderViews(RendererViewGroup& viewGroup, const FrameInfo& frameInfo)
+	bool RenderBeast::RenderViews(RendererViewGroup& viewGroup, const FrameInfo& frameInfo)
 	{
 		bool needs3DRender = false;
 		UINT32 numViews = viewGroup.getNumViews();
@@ -511,7 +511,7 @@ namespace bs { namespace ct
 		return anythingDrawn;
 	}
 
-	void RenderBeast::renderView(const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo)
+	void RenderBeast::RenderView(const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo)
 	{
 		gProfilerCPU().beginSample("Render view");
 
@@ -572,7 +572,7 @@ namespace bs { namespace ct
 		gProfilerCPU().endSample("Render view");
 	}
 
-	bool RenderBeast::renderOverlay(RendererView& view, const FrameInfo& frameInfo)
+	bool RenderBeast::RenderOverlay(RendererView& view, const FrameInfo& frameInfo)
 	{
 		gProfilerCPU().beginSample("Render overlay");
 
@@ -643,7 +643,7 @@ namespace bs { namespace ct
 		return needsRedraw;
 	}
 	
-	void RenderBeast::updateReflProbeArray()
+	void RenderBeast::UpdateReflProbeArray()
 	{
 		SceneInfo& sceneInfo = mScene->_getSceneInfo();
 		UINT32 numProbes = (UINT32)sceneInfo.reflProbes.size();

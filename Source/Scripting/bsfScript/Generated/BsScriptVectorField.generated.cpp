@@ -18,7 +18,7 @@ namespace bs
 	{
 	}
 
-	void ScriptVectorField::initRuntimeData()
+	void ScriptVectorField::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetRef", (void*)&ScriptVectorField::Internal_getRef);
 		metaData.scriptClass->addInternalCall("Internal_create", (void*)&ScriptVectorField::Internal_create);

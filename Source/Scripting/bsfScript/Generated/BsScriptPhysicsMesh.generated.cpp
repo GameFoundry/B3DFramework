@@ -18,7 +18,7 @@ namespace bs
 	{
 	}
 
-	void ScriptPhysicsMesh::initRuntimeData()
+	void ScriptPhysicsMesh::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetRef", (void*)&ScriptPhysicsMesh::Internal_getRef);
 		metaData.scriptClass->addInternalCall("Internal_getType", (void*)&ScriptPhysicsMesh::Internal_getType);

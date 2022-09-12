@@ -28,14 +28,14 @@ namespace bs
 		{ TEX_TYPE_CUBE_MAP,	2, 2, 2, 1 }
 	};
 
-	SPtr<RenderTexture> VulkanTextureManager::createRenderTextureImpl(const RENDER_TEXTURE_DESC& desc)
+	SPtr<RenderTexture> VulkanTextureManager::CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc)
 	{
 		VulkanRenderTexture* tex = new (bs_alloc<VulkanRenderTexture>()) VulkanRenderTexture(desc);
 
 		return bs_core_ptr<VulkanRenderTexture>(tex);
 	}
 
-	PixelFormat VulkanTextureManager::getNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma)
+	PixelFormat VulkanTextureManager::GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma)
 	{
 		PixelUtil::checkFormat(format, ttype, usage);
 
@@ -47,7 +47,7 @@ namespace bs
 
 	namespace ct
 	{
-	void VulkanTextureManager::onStartUp()
+	void VulkanTextureManager::OnStartUp()
 	{
 		TextureManager::onStartUp();
 
@@ -117,7 +117,7 @@ namespace bs
 		}
 	}
 
-	VkFormat VulkanTextureManager::getDummyViewFormat(GpuBufferFormat format)
+	VkFormat VulkanTextureManager::GetDummyViewFormat(GpuBufferFormat format)
 	{
 		switch(format)
 		{

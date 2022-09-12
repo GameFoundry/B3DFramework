@@ -36,7 +36,7 @@ namespace bs
 		return Vector2I();
 	}
 
-	void GUIElementContainer::setFocus(bool enabled, bool clear)
+	void GUIElementContainer::SetFocus(bool enabled, bool clear)
 	{
 		if(mFocusElement)
 			mFocusElement->setFocus(enabled, clear);

@@ -8,7 +8,7 @@ namespace bs
 #define WAVE_FORMAT_PCM			0x0001
 #define WAVE_FORMAT_EXTENDED	0xFFFE
 
-	bool WaveDecoder::isValid(const SPtr<DataStream>& stream, UINT32 offset)
+	bool WaveDecoder::IsValid(const SPtr<DataStream>& stream, UINT32 offset)
 	{
 		stream->seek(offset);
 
@@ -20,7 +20,7 @@ namespace bs
 			&& (header[8] == 'W') && (header[9] == 'A') && (header[10] == 'V') && (header[11] == 'E');
 	}
 
-	bool WaveDecoder::open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset)
+	bool WaveDecoder::Open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset)
 	{
 		if (stream == nullptr)
 			return false;
@@ -37,12 +37,12 @@ namespace bs
 		return true;
 	}
 
-	void WaveDecoder::seek(UINT32 offset)
+	void WaveDecoder::Seek(UINT32 offset)
 	{
 		mStream->seek(mDataOffset + offset * mBytesPerSample);
 	}
 
-	UINT32 WaveDecoder::read(UINT8* samples, UINT32 numSamples)
+	UINT32 WaveDecoder::Read(UINT8* samples, UINT32 numSamples)
 	{
 		UINT32 numRead = (UINT32)mStream->read(samples, numSamples * mBytesPerSample);
 
@@ -58,7 +58,7 @@ namespace bs
 		return numRead;
 	}
 
-	bool WaveDecoder::parseHeader(AudioDataInfo& info)
+	bool WaveDecoder::ParseHeader(AudioDataInfo& info)
 	{
 		bool foundData = false;
 		while (!foundData)

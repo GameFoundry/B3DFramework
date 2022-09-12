@@ -163,7 +163,7 @@ namespace bs
 	template class TRenderable < false >;
 	template class TRenderable < true >;
 
-	void Renderable::initialize()
+	void Renderable::Initialize()
 	{
 		CoreObject::initialize();		
 
@@ -176,7 +176,7 @@ namespace bs
 	}
 
 
-	void Renderable::setAnimation(const SPtr<Animation>& animation)
+	void Renderable::SetAnimation(const SPtr<Animation>& animation)
 	{
 		mAnimation = animation;
 		refreshAnimation();
@@ -184,7 +184,7 @@ namespace bs
 		_markCoreDirty();
 	}
 
-	Bounds Renderable::getBounds() const
+	Bounds Renderable::GetBounds() const
 	{
 		if(mUseOverrideBounds)
 		{
@@ -216,12 +216,12 @@ namespace bs
 		}
 	}
 
-	SPtr<ct::Renderable> Renderable::getCore() const
+	SPtr<ct::Renderable> Renderable::GetCore() const
 	{
 		return std::static_pointer_cast<ct::Renderable>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObject> Renderable::createCore() const
+	SPtr<ct::CoreObject> Renderable::CreateCore() const
 	{
 		ct::Renderable* handler = new (bs_alloc<ct::Renderable>()) ct::Renderable();
 		SPtr<ct::Renderable> handlerPtr = bs_shared_ptr<ct::Renderable>(handler);
@@ -230,12 +230,12 @@ namespace bs
 		return handlerPtr;
 	}
 
-	void Renderable::onMeshChanged()
+	void Renderable::OnMeshChanged()
 	{
 		refreshAnimation();
 	}
 
-	void Renderable::refreshAnimation()
+	void Renderable::RefreshAnimation()
 	{
 		if (mAnimation == nullptr)
 		{
@@ -316,7 +316,7 @@ namespace bs
 		markListenerResourcesDirty();
 	}
 
-	CoreSyncData Renderable::syncToCore(FrameAlloc* allocator)
+	CoreSyncData Renderable::SyncToCore(FrameAlloc* allocator)
 	{
 		const UINT32 dirtyFlags = getCoreDirtyFlags();
 		UINT32 size = rtti_size(dirtyFlags).bytes;
@@ -384,7 +384,7 @@ namespace bs
 		return CoreSyncData(data, size);
 	}
 
-	void Renderable::getCoreDependencies(Vector<CoreObject*>& dependencies)
+	void Renderable::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 	{
 		if (mMesh.isLoaded())
 			dependencies.push_back(mMesh.get());
@@ -396,7 +396,7 @@ namespace bs
 		}
 	}
 
-	void Renderable::onDependencyDirty(CoreObject* dependency, UINT32 dirtyFlags)
+	void Renderable::OnDependencyDirty(CoreObject* dependency, UINT32 dirtyFlags)
 	{
 		if(mMesh.isLoaded(false) && mMesh.get() == dependency)
 		{
@@ -408,7 +408,7 @@ namespace bs
 			CoreObject::onDependencyDirty(dependency, dirtyFlags);
 	}
 
-	void Renderable::getListenerResources(Vector<HResource>& resources)
+	void Renderable::GetListenerResources(Vector<HResource>& resources)
 	{
 		if (mMesh != nullptr)
 			resources.push_back(mMesh);
@@ -420,7 +420,7 @@ namespace bs
 		}
 	}
 
-	void Renderable::notifyResourceLoaded(const HResource& resource)
+	void Renderable::NotifyResourceLoaded(const HResource& resource)
 	{
 		if (resource == mMesh)
 			onMeshChanged();
@@ -429,7 +429,7 @@ namespace bs
 		markCoreDirty();
 	}
 
-	void Renderable::notifyResourceChanged(const HResource& resource)
+	void Renderable::NotifyResourceChanged(const HResource& resource)
 	{
 		if(resource == mMesh)
 			onMeshChanged();
@@ -438,7 +438,7 @@ namespace bs
 		markCoreDirty();
 	}
 
-	SPtr<Renderable> Renderable::create()
+	SPtr<Renderable> Renderable::Create()
 	{
 		SPtr<Renderable> handlerPtr = createEmpty();
 		handlerPtr->initialize();
@@ -446,7 +446,7 @@ namespace bs
 		return handlerPtr;
 	}
 
-	SPtr<Renderable> Renderable::createEmpty()
+	SPtr<Renderable> Renderable::CreateEmpty()
 	{
 		Renderable* handler = new (bs_alloc<Renderable>()) Renderable();
 		SPtr<Renderable> handlerPtr = bs_core_ptr<Renderable>(handler);
@@ -457,12 +457,12 @@ namespace bs
 
 	RTTITypeBase* Renderable::getRTTIStatic()
 	{
-		return RenderableRTTI::instance();
+		return RenderableRTTI::Instance();
 	}
 
 	RTTITypeBase* Renderable::getRTTI() const
 	{
-		return Renderable::getRTTIStatic();
+		return Renderable::GetRTTIStatic();
 	}
 
 	namespace ct
@@ -478,14 +478,14 @@ namespace bs
 			gRenderer()->notifyRenderableRemoved(this);
 	}
 
-	void Renderable::initialize()
+	void Renderable::Initialize()
 	{
 		gRenderer()->notifyRenderableAdded(this);
 
 		CoreObject::initialize();
 	}
 
-	Bounds Renderable::getBounds() const
+	Bounds Renderable::GetBounds() const
 	{
 		if (mUseOverrideBounds)
 		{
@@ -541,7 +541,7 @@ namespace bs
 		return buffer;
 	}
 
-	void Renderable::createAnimationBuffers()
+	void Renderable::CreateAnimationBuffers()
 	{
 		if (mAnimType == RenderableAnimType::Skinned || mAnimType == RenderableAnimType::SkinnedMorph)
 		{
@@ -598,7 +598,7 @@ namespace bs
 		mMorphShapeVersion = 0;
 	}
 
-	void Renderable::updateAnimationBuffers(const EvaluatedAnimationData& animData)
+	void Renderable::UpdateAnimationBuffers(const EvaluatedAnimationData& animData)
 	{
 		if (mAnimationId == (UINT64)-1)
 			return;
@@ -648,7 +648,7 @@ namespace bs
 		}
 	}
 
-	void Renderable::updatePrevFrameAnimationBuffers()
+	void Renderable::UpdatePrevFrameAnimationBuffers()
 	{
 		if (!mWriteVelocity)
 			return;
@@ -657,7 +657,7 @@ namespace bs
 			std::swap(mBoneMatrixBuffer, mBonePrevMatrixBuffer);
 	}
 
-	void Renderable::syncToCore(const CoreSyncData& data)
+	void Renderable::SyncToCore(const CoreSyncData& data)
 	{
 		Bitstream Stream(data.getBuffer(), data.getBufferSize());
 

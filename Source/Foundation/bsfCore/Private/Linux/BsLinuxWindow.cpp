@@ -252,7 +252,7 @@ namespace bs
 		bs_delete(m);
 	}
 
-	void LinuxWindow::move(INT32 x, INT32 y)
+	void LinuxWindow::Move(INT32 x, INT32 y)
 	{
 		m->x = x;
 		m->y = y;
@@ -260,7 +260,7 @@ namespace bs
 		XMoveWindow(LinuxPlatform::getXDisplay(), m->xWindow, x, y);
 	}
 
-	void LinuxWindow::resize(UINT32 width, UINT32 height)
+	void LinuxWindow::Resize(UINT32 width, UINT32 height)
 	{
 		// If resize is disabled on WM level, we need to force it
 		if(m->resizeDisabled)
@@ -283,28 +283,28 @@ namespace bs
 		XResizeWindow(LinuxPlatform::getXDisplay(), m->xWindow, width, height);
 	}
 
-	void LinuxWindow::hide()
+	void LinuxWindow::Hide()
 	{
 		XUnmapWindow(LinuxPlatform::getXDisplay(), m->xWindow);
 	}
 
-	void LinuxWindow::show()
+	void LinuxWindow::Show()
 	{
 		XMapWindow(LinuxPlatform::getXDisplay(), m->xWindow);
 		XMoveResizeWindow(LinuxPlatform::getXDisplay(), m->xWindow, m->x, m->y, m->width, m->height);
 	}
 
-	void LinuxWindow::maximize()
+	void LinuxWindow::Maximize()
 	{
 		maximize(true);
 	}
 
-	void LinuxWindow::minimize()
+	void LinuxWindow::Minimize()
 	{
 		minimize(true);
 	}
 
-	void LinuxWindow::restore()
+	void LinuxWindow::Restore()
 	{
 		if(isMaximized())
 			maximize(false);
@@ -312,7 +312,7 @@ namespace bs
 			minimize(false);
 	}
 
-	INT32 LinuxWindow::getLeft() const
+	INT32 LinuxWindow::GetLeft() const
 	{
 		INT32 x, y;
 		::Window child;
@@ -322,7 +322,7 @@ namespace bs
 		return x;
 	}
 
-	INT32 LinuxWindow::getTop() const
+	INT32 LinuxWindow::GetTop() const
 	{
 		INT32 x, y;
 		::Window child;
@@ -332,7 +332,7 @@ namespace bs
 		return y;
 	}
 
-	UINT32 LinuxWindow::getWidth() const
+	UINT32 LinuxWindow::GetWidth() const
 	{
 		XWindowAttributes xwa;
 		XGetWindowAttributes(LinuxPlatform::getXDisplay(), m->xWindow, &xwa);
@@ -340,7 +340,7 @@ namespace bs
 		return (UINT32)xwa.width;
 	}
 
-	UINT32 LinuxWindow::getHeight() const
+	UINT32 LinuxWindow::GetHeight() const
 	{
 		XWindowAttributes xwa;
 		XGetWindowAttributes(LinuxPlatform::getXDisplay(), m->xWindow, &xwa);
@@ -348,7 +348,7 @@ namespace bs
 		return (UINT32)xwa.height;
 	}
 
-	Vector2I LinuxWindow::windowToScreenPos(const Vector2I& windowPos) const
+	Vector2I LinuxWindow::WindowToScreenPos(const Vector2I& windowPos) const
 	{
 		Vector2I screenPos;
 
@@ -359,7 +359,7 @@ namespace bs
 		return screenPos;
 	}
 
-	Vector2I LinuxWindow::screenToWindowPos(const Vector2I& screenPos) const
+	Vector2I LinuxWindow::ScreenToWindowPos(const Vector2I& screenPos) const
 	{
 		Vector2I windowPos;
 
@@ -370,7 +370,7 @@ namespace bs
 		return windowPos;
 	}
 
-	void LinuxWindow::setIcon(const PixelData& data)
+	void LinuxWindow::SetIcon(const PixelData& data)
 	{
 		constexpr UINT32 WIDTH = 128;
 		constexpr UINT32 HEIGHT = 128;
@@ -520,7 +520,7 @@ namespace bs
 		return m->userData;
 	}
 
-	bool LinuxWindow::isMaximized() const
+	bool LinuxWindow::IsMaximized() const
 	{
 		Atom wmState = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE", False);
 		Atom type;
@@ -558,7 +558,7 @@ namespace bs
 		return false;
 	}
 
-	bool LinuxWindow::isMinimized()
+	bool LinuxWindow::IsMinimized()
 	{
 		Atom wmState = XInternAtom(LinuxPlatform::getXDisplay(), "WM_STATE", True);
 		Atom type;
@@ -581,7 +581,7 @@ namespace bs
 		return false;
 	}
 
-	void LinuxWindow::maximize(bool enable)
+	void LinuxWindow::Maximize(bool enable)
 	{
 		Atom wmState = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE", False);
 		Atom wmMaxHorz = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE_MAXIMIZED_HORZ", False);
@@ -601,7 +601,7 @@ namespace bs
 				SubstructureRedirectMask | SubstructureNotifyMask, &xev);
 	}
 
-	void LinuxWindow::minimize(bool enable)
+	void LinuxWindow::Minimize(bool enable)
 	{
 		XEvent xev;
 		Atom wmChange = XInternAtom(LinuxPlatform::getXDisplay(), "WM_CHANGE_STATE", False);
@@ -617,7 +617,7 @@ namespace bs
 				SubstructureRedirectMask | SubstructureNotifyMask, &xev);
 	}
 
-	void LinuxWindow::showOnTaskbar(bool enable)
+	void LinuxWindow::ShowOnTaskbar(bool enable)
 	{
 		Atom wmState = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE", False);
 		Atom wmSkipTaskbar = XInternAtom(LinuxPlatform::getXDisplay(), "_NET_WM_STATE_SKIP_TASKBAR", False);
@@ -675,7 +675,7 @@ namespace bs
 				SubstructureRedirectMask | SubstructureNotifyMask, &xev);
 	}
 
-	void LinuxWindow::setShowDecorations(bool show)
+	void LinuxWindow::SetShowDecorations(bool show)
 	{
 		static constexpr UINT32 MWM_HINTS_DECORATIONS		= (1 << 1);
 
@@ -707,7 +707,7 @@ namespace bs
 				5);
 	}
 
-	void LinuxWindow::setIsModal(bool modal)
+	void LinuxWindow::SetIsModal(bool modal)
 	{
 		if(modal)
 		{

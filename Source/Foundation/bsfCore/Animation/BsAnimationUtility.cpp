@@ -37,7 +37,7 @@ namespace bs
 		}
 	}
 
-	void AnimationUtility::wrapTime(float& time, float start, float end, bool loop)
+	void AnimationUtility::WrapTime(float& time, float start, float end, bool loop)
 	{
 		float length = end - start;
 
@@ -189,7 +189,7 @@ namespace bs
 		return bs_shared_ptr_new<TAnimationCurve<Quaternion>>(quatKeyframes);
 	}
 
-	SPtr<TAnimationCurve<Vector3>> AnimationUtility::quaternionToEulerCurve(const SPtr<TAnimationCurve<Quaternion>>& quatCurve)
+	SPtr<TAnimationCurve<Vector3>> AnimationUtility::QuaternionToEulerCurve(const SPtr<TAnimationCurve<Quaternion>>& quatCurve)
 	{
 		// TODO: We calculate tangents by sampling. There must be an analytical way to calculate tangents when converting
 		// a curve.
@@ -348,7 +348,7 @@ namespace bs
 		}
 	}
 
-	Vector<SPtr<TAnimationCurve<float>>> AnimationUtility::splitCurve3D(const SPtr<TAnimationCurve<Vector3>>& compoundCurve)
+	Vector<SPtr<TAnimationCurve<float>>> AnimationUtility::SplitCurve3D(const SPtr<TAnimationCurve<Vector3>>& compoundCurve)
 	{
 		Vector<TKeyframe<float>> keyFrames[3];
 
@@ -362,7 +362,7 @@ namespace bs
 		return output;
 	}
 
-	SPtr<TAnimationCurve<Vector3>> AnimationUtility::combineCurve3D(const Vector<SPtr<TAnimationCurve<float>>>& curveComponents)
+	SPtr<TAnimationCurve<Vector3>> AnimationUtility::CombineCurve3D(const Vector<SPtr<TAnimationCurve<float>>>& curveComponents)
 	{
 		Vector<TKeyframe<Vector3>> keyFrames;
 		if(curveComponents.size() >= 3)
@@ -376,7 +376,7 @@ namespace bs
 		return bs_shared_ptr_new<TAnimationCurve<Vector3>>(keyFrames);
 	}
 
-	Vector<SPtr<TAnimationCurve<float>>> AnimationUtility::splitCurve2D(const SPtr<TAnimationCurve<Vector2>>& compoundCurve)
+	Vector<SPtr<TAnimationCurve<float>>> AnimationUtility::SplitCurve2D(const SPtr<TAnimationCurve<Vector2>>& compoundCurve)
 	{
 		Vector<TKeyframe<float>> keyFrames[2];
 
@@ -390,7 +390,7 @@ namespace bs
 		return output;
 	}
 
-	SPtr<TAnimationCurve<Vector2>> AnimationUtility::combineCurve2D(const Vector<SPtr<TAnimationCurve<float>>>& curveComponents)
+	SPtr<TAnimationCurve<Vector2>> AnimationUtility::CombineCurve2D(const Vector<SPtr<TAnimationCurve<float>>>& curveComponents)
 	{
 		Vector<TKeyframe<Vector2>> keyFrames;
 		if(curveComponents.size() >= 2)
@@ -499,7 +499,7 @@ namespace bs
 	}
 
 	template<class T>
-	TAnimationCurve<T> AnimationUtility::scaleCurve(const TAnimationCurve<T>& curve, float factor)
+	TAnimationCurve<T> AnimationUtility::ScaleCurve(const TAnimationCurve<T>& curve, float factor)
 	{
 		INT32 numKeys = (INT32)curve.getNumKeyFrames();
 
@@ -517,7 +517,7 @@ namespace bs
 	}
 
 	template<class T>
-	TAnimationCurve<T> AnimationUtility::offsetCurve(const TAnimationCurve<T>& curve, float offset)
+	TAnimationCurve<T> AnimationUtility::OffsetCurve(const TAnimationCurve<T>& curve, float offset)
 	{
 		INT32 numKeys = (INT32)curve.getNumKeyFrames();
 
@@ -535,7 +535,7 @@ namespace bs
 	}
 
 	template <class T>
-	void AnimationUtility::calculateTangents(Vector<TKeyframe<T>>& keyframes)
+	void AnimationUtility::CalculateTangents(Vector<TKeyframe<T>>& keyframes)
 	{
 		using Keyframe = TKeyframe<T>;
 		if (keyframes.empty())
@@ -589,26 +589,26 @@ namespace bs
 		}
 	}
 
-	template BS_CORE_EXPORT TAnimationCurve<Vector3> AnimationUtility::scaleCurve(const TAnimationCurve<Vector3>& curve, float factor);
-	template BS_CORE_EXPORT TAnimationCurve<Vector2> AnimationUtility::scaleCurve(const TAnimationCurve<Vector2>& curve, float factor);
-	template BS_CORE_EXPORT TAnimationCurve<Quaternion> AnimationUtility::scaleCurve(const TAnimationCurve<Quaternion>& curve, float factor);
-	template BS_CORE_EXPORT TAnimationCurve<float> AnimationUtility::scaleCurve(const TAnimationCurve<float>& curve, float factor);
+	template BS_CORE_EXPORT TAnimationCurve<Vector3> AnimationUtility::ScaleCurve(const TAnimationCurve<Vector3>& curve, float factor);
+	template BS_CORE_EXPORT TAnimationCurve<Vector2> AnimationUtility::ScaleCurve(const TAnimationCurve<Vector2>& curve, float factor);
+	template BS_CORE_EXPORT TAnimationCurve<Quaternion> AnimationUtility::ScaleCurve(const TAnimationCurve<Quaternion>& curve, float factor);
+	template BS_CORE_EXPORT TAnimationCurve<float> AnimationUtility::ScaleCurve(const TAnimationCurve<float>& curve, float factor);
 
-	template BS_CORE_EXPORT TAnimationCurve<Vector3> AnimationUtility::offsetCurve(const TAnimationCurve<Vector3>& curve, float offset);
-	template BS_CORE_EXPORT TAnimationCurve<Vector2> AnimationUtility::offsetCurve(const TAnimationCurve<Vector2>& curve, float offset);
-	template BS_CORE_EXPORT TAnimationCurve<Quaternion> AnimationUtility::offsetCurve(const TAnimationCurve<Quaternion>& curve, float offset);
-	template BS_CORE_EXPORT TAnimationCurve<float> AnimationUtility::offsetCurve(const TAnimationCurve<float>& curve, float offset);
+	template BS_CORE_EXPORT TAnimationCurve<Vector3> AnimationUtility::OffsetCurve(const TAnimationCurve<Vector3>& curve, float offset);
+	template BS_CORE_EXPORT TAnimationCurve<Vector2> AnimationUtility::OffsetCurve(const TAnimationCurve<Vector2>& curve, float offset);
+	template BS_CORE_EXPORT TAnimationCurve<Quaternion> AnimationUtility::OffsetCurve(const TAnimationCurve<Quaternion>& curve, float offset);
+	template BS_CORE_EXPORT TAnimationCurve<float> AnimationUtility::OffsetCurve(const TAnimationCurve<float>& curve, float offset);
 
-	template BS_CORE_EXPORT void AnimationUtility::calculateTangents(Vector<TKeyframe<Vector3>>& keyframes);
-	template BS_CORE_EXPORT void AnimationUtility::calculateTangents(Vector<TKeyframe<Vector2>>& keyframes);
-	template BS_CORE_EXPORT void AnimationUtility::calculateTangents(Vector<TKeyframe<Quaternion>>& keyframes);
-	template BS_CORE_EXPORT void AnimationUtility::calculateTangents(Vector<TKeyframe<float>>& keyframes);
+	template BS_CORE_EXPORT void AnimationUtility::CalculateTangents(Vector<TKeyframe<Vector3>>& keyframes);
+	template BS_CORE_EXPORT void AnimationUtility::CalculateTangents(Vector<TKeyframe<Vector2>>& keyframes);
+	template BS_CORE_EXPORT void AnimationUtility::CalculateTangents(Vector<TKeyframe<Quaternion>>& keyframes);
+	template BS_CORE_EXPORT void AnimationUtility::CalculateTangents(Vector<TKeyframe<float>>& keyframes);
 
-	template BS_CORE_EXPORT void AnimationUtility::splitCurve(const TAnimationCurve<float>&, TAnimationCurve<float> (&)[1]);
-	template BS_CORE_EXPORT void AnimationUtility::splitCurve(const TAnimationCurve<Vector2>&, TAnimationCurve<float> (&)[2]);
-	template BS_CORE_EXPORT void AnimationUtility::splitCurve(const TAnimationCurve<Vector3>&, TAnimationCurve<float> (&)[3]);
+	template BS_CORE_EXPORT void AnimationUtility::SplitCurve(const TAnimationCurve<float>&, TAnimationCurve<float> (&)[1]);
+	template BS_CORE_EXPORT void AnimationUtility::SplitCurve(const TAnimationCurve<Vector2>&, TAnimationCurve<float> (&)[2]);
+	template BS_CORE_EXPORT void AnimationUtility::SplitCurve(const TAnimationCurve<Vector3>&, TAnimationCurve<float> (&)[3]);
 
-	template BS_CORE_EXPORT void AnimationUtility::combineCurve(const TAnimationCurve<float> (&)[1], TAnimationCurve<float>&);
-	template BS_CORE_EXPORT void AnimationUtility::combineCurve(const TAnimationCurve<float> (&)[2], TAnimationCurve<Vector2>&);
-	template BS_CORE_EXPORT void AnimationUtility::combineCurve(const TAnimationCurve<float> (&)[3], TAnimationCurve<Vector3>&);
+	template BS_CORE_EXPORT void AnimationUtility::CombineCurve(const TAnimationCurve<float> (&)[1], TAnimationCurve<float>&);
+	template BS_CORE_EXPORT void AnimationUtility::CombineCurve(const TAnimationCurve<float> (&)[2], TAnimationCurve<Vector2>&);
+	template BS_CORE_EXPORT void AnimationUtility::CombineCurve(const TAnimationCurve<float> (&)[3], TAnimationCurve<Vector3>&);
 }

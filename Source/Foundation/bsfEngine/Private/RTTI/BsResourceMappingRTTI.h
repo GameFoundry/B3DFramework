@@ -36,7 +36,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return ResourceMapping::create();
+			return ResourceMapping::Create();
 		}
 	};
 

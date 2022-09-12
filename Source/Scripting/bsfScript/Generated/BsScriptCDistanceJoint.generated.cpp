@@ -14,7 +14,7 @@ namespace bs
 	{
 	}
 
-	void ScriptCDistanceJoint::initRuntimeData()
+	void ScriptCDistanceJoint::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getDistance", (void*)&ScriptCDistanceJoint::Internal_getDistance);
 		metaData.scriptClass->addInternalCall("Internal_getMinDistance", (void*)&ScriptCDistanceJoint::Internal_getMinDistance);

@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	Vector<ShaderParameter> ShaderEx::getParameters(const HShader& thisPtr)
+	Vector<ShaderParameter> ShaderEx::GetParameters(const HShader& thisPtr)
 	{
 		if (!thisPtr.isLoaded())
 			return Vector<ShaderParameter>();

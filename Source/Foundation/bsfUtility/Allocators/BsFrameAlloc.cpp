@@ -108,7 +108,7 @@ namespace bs
 #endif
 	}
 
-	void FrameAlloc::free(UINT8* data)
+	void FrameAlloc::Free(UINT8* data)
 	{
 		// Dealloc is only used for debug and can be removed if needed. All the actual deallocation
 		// happens in clear()
@@ -123,14 +123,14 @@ namespace bs
 #endif
 	}
 
-	void FrameAlloc::markFrame()
+	void FrameAlloc::MarkFrame()
 	{
 		void** framePtr = (void**)alloc(sizeof(void*));
 		*framePtr = mLastFrame;
 		mLastFrame = framePtr;
 	}
 
-	void FrameAlloc::clear()
+	void FrameAlloc::Clear()
 	{
 		if(mLastFrame != nullptr)
 		{
@@ -270,13 +270,13 @@ namespace bs
 		return newBlock;
 	}
 
-	void FrameAlloc::deallocBlock(MemBlock* block)
+	void FrameAlloc::DeallocBlock(MemBlock* block)
 	{
 		block->~MemBlock();
 		bs_free_aligned16(block);
 	}
 
-	void FrameAlloc::setOwnerThread(ThreadId thread)
+	void FrameAlloc::SetOwnerThread(ThreadId thread)
 	{
 	}
 

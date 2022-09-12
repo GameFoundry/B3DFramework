@@ -12,7 +12,7 @@ namespace bs
 	{
 	}
 
-	void ScriptTonemappingSettings::initRuntimeData()
+	void ScriptTonemappingSettings::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_TonemappingSettings", (void*)&ScriptTonemappingSettings::Internal_TonemappingSettings);
 		metaData.scriptClass->addInternalCall("Internal_getfilmicCurveShoulderStrength", (void*)&ScriptTonemappingSettings::Internal_getfilmicCurveShoulderStrength);

@@ -19,7 +19,7 @@ namespace bs
 		assert(deviceIdx == 0 && "Multiple GPUs not supported natively on DirectX 11.");
 	}
 
-	void D3D11RenderTexture::getCustomAttribute(const String& name, void* data) const
+	void D3D11RenderTexture::GetCustomAttribute(const String& name, void* data) const
 	{
 		if(name == "RTV")
 		{

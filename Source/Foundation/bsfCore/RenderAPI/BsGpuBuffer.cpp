@@ -32,17 +32,17 @@ namespace bs
 	{
 	}
 
-	SPtr<ct::GpuBuffer> GpuBuffer::getCore() const
+	SPtr<ct::GpuBuffer> GpuBuffer::GetCore() const
 	{
 		return std::static_pointer_cast<ct::GpuBuffer>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObject> GpuBuffer::createCore() const
+	SPtr<ct::CoreObject> GpuBuffer::CreateCore() const
 	{
 		return ct::HardwareBufferManager::instance().createGpuBufferInternal(mProperties.mDesc);
 	}
 
-	UINT32 GpuBuffer::getFormatSize(GpuBufferFormat format)
+	UINT32 GpuBuffer::GetFormatSize(GpuBufferFormat format)
 	{
 		static bool lookupInitialized = false;
 
@@ -92,9 +92,9 @@ namespace bs
 		return lookup[(UINT32)format];
 	}
 
-	SPtr<GpuBuffer> GpuBuffer::create(const GPU_BUFFER_DESC& desc)
+	SPtr<GpuBuffer> GpuBuffer::Create(const GPU_BUFFER_DESC& desc)
 	{
-		return HardwareBufferManager::instance().createGpuBuffer(desc);
+		return HardwareBufferManager::Instance().createGpuBuffer(desc);
 	}
 
 	namespace ct
@@ -129,7 +129,7 @@ namespace bs
 			mBufferDeleter(mBuffer);
 	}
 
-	void GpuBuffer::initialize()
+	void GpuBuffer::Initialize()
 	{
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuBuffer);
 		CoreObject::initialize();
@@ -152,12 +152,12 @@ namespace bs
 		return mBuffer->lock(offset, length, options, deviceIdx, queueIdx);
 	}
 
-	void GpuBuffer::unmap()
+	void GpuBuffer::Unmap()
 	{
 		mBuffer->unlock();
 	}
 
-	void GpuBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
+	void GpuBuffer::ReadData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_GpuBuffer);
 
@@ -179,7 +179,7 @@ namespace bs
 		mBuffer->copyData(*srcGpuBuffer.mBuffer, srcOffset, dstOffset, length, discardWholeBuffer, commandBuffer);
 	}
 
-	SPtr<GpuBuffer> GpuBuffer::getView(GpuBufferType type, GpuBufferFormat format, UINT32 elementSize)
+	SPtr<GpuBuffer> GpuBuffer::GetView(GpuBufferType type, GpuBufferFormat format, UINT32 elementSize)
 	{
 		const UINT32 elemSize = type == GBT_STANDARD ? bs::GpuBuffer::getFormatSize(format) : elementSize;
 		if((mBuffer->getSize() % elemSize) != 0)
@@ -206,14 +206,14 @@ namespace bs
 		return newView;
 	}
 
-	SPtr<GpuBuffer> GpuBuffer::create(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+	SPtr<GpuBuffer> GpuBuffer::Create(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferManager::instance().createGpuBuffer(desc, deviceMask);
+		return HardwareBufferManager::Instance().createGpuBuffer(desc, deviceMask);
 	}
 
-	SPtr<GpuBuffer> GpuBuffer::create(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer)
+	SPtr<GpuBuffer> GpuBuffer::Create(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer)
 	{
-		return HardwareBufferManager::instance().createGpuBuffer(desc, std::move(underlyingBuffer));
+		return HardwareBufferManager::Instance().createGpuBuffer(desc, std::move(underlyingBuffer));
 	}
 	}
 }

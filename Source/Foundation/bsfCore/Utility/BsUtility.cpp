@@ -142,7 +142,7 @@ namespace bs
 		} while(rtti != nullptr);
 	}
 
-	Vector<ResourceDependency> Utility::findResourceDependencies(IReflectable& obj, bool recursive)
+	Vector<ResourceDependency> Utility::FindResourceDependencies(IReflectable& obj, bool recursive)
 	{
 		gFrameAlloc().markFrame();
 
@@ -162,7 +162,7 @@ namespace bs
 		return dependencyList;
 	}
 
-	UINT32 Utility::getSceneObjectDepth(const HSceneObject& so)
+	UINT32 Utility::GetSceneObjectDepth(const HSceneObject& so)
 	{
 		HSceneObject parent = so->getParent();
 		
@@ -176,7 +176,7 @@ namespace bs
 		return depth;
 	}
 
-	Vector<HComponent> Utility::findComponents(const HSceneObject& object, UINT32 typeId)
+	Vector<HComponent> Utility::FindComponents(const HSceneObject& object, UINT32 typeId)
 	{
 		Vector<HComponent> output;
 
@@ -226,7 +226,7 @@ namespace bs
 
 	RTTITypeBase* CoreSerializationContext::getRTTIStatic()
 	{
-		return CoreSerializationContextRTTI::instance();
+		return CoreSerializationContextRTTI::Instance();
 	}
 
 	RTTITypeBase* CoreSerializationContext::getRTTI() const

@@ -17,7 +17,7 @@ namespace bs
 		mInternal = value;
 	}
 
-	void ScriptMeshImportOptions::initRuntimeData()
+	void ScriptMeshImportOptions::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getcpuCached", (void*)&ScriptMeshImportOptions::Internal_getcpuCached);
 		metaData.scriptClass->addInternalCall("Internal_setcpuCached", (void*)&ScriptMeshImportOptions::Internal_setcpuCached);

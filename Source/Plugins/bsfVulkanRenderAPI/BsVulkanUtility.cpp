@@ -76,7 +76,7 @@ namespace bs { namespace ct
 		return format;
 	}
 
-	VkFormat VulkanUtility::getPixelFormat(PixelFormat format, bool sRGB)
+	VkFormat VulkanUtility::GetPixelFormat(PixelFormat format, bool sRGB)
 	{
 		switch (format)
 		{
@@ -222,7 +222,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	VkFormat VulkanUtility::getBufferFormat(GpuBufferFormat format)
+	VkFormat VulkanUtility::GetBufferFormat(GpuBufferFormat format)
 	{
 		static bool lookupInitialized = false;
 
@@ -272,7 +272,7 @@ namespace bs { namespace ct
 		return lookup[(UINT32)format];
 	}
 
-	VkFormat VulkanUtility::getVertexType(VertexElementType type)
+	VkFormat VulkanUtility::GetVertexType(VertexElementType type)
 	{
 		static bool lookupInitialized = false;
 
@@ -312,7 +312,7 @@ namespace bs { namespace ct
 		return lookup[(UINT32)type];
 	}
 
-	VkSampleCountFlagBits VulkanUtility::getSampleFlags(UINT32 numSamples)
+	VkSampleCountFlagBits VulkanUtility::GetSampleFlags(UINT32 numSamples)
 	{
 		switch(numSamples)
 		{
@@ -336,7 +336,7 @@ namespace bs { namespace ct
 		return VK_SAMPLE_COUNT_1_BIT;
 	}
 
-	VkShaderStageFlagBits VulkanUtility::getShaderStage(GpuProgramType type)
+	VkShaderStageFlagBits VulkanUtility::GetShaderStage(GpuProgramType type)
 	{
 		switch(type)
 		{
@@ -360,7 +360,7 @@ namespace bs { namespace ct
 		return VK_SHADER_STAGE_VERTEX_BIT;
 	}
 
-	VkSamplerAddressMode VulkanUtility::getAddressingMode(TextureAddressingMode mode)
+	VkSamplerAddressMode VulkanUtility::GetAddressingMode(TextureAddressingMode mode)
 	{
 		switch (mode)
 		{
@@ -377,7 +377,7 @@ namespace bs { namespace ct
 		return VK_SAMPLER_ADDRESS_MODE_REPEAT;
 	}
 
-	VkBorderColor VulkanUtility::getBorderColor(const Color& color)
+	VkBorderColor VulkanUtility::GetBorderColor(const Color& color)
 	{
 		if(color.r > 0.0f || color.g > 0.0f || color.b > 0.0f)
 			return VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
@@ -388,7 +388,7 @@ namespace bs { namespace ct
 		return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
 	}
 
-	VkBlendFactor VulkanUtility::getBlendFactor(BlendFactor factor)
+	VkBlendFactor VulkanUtility::GetBlendFactor(BlendFactor factor)
 	{
 		switch (factor)
 		{
@@ -418,7 +418,7 @@ namespace bs { namespace ct
 		return VK_BLEND_FACTOR_ZERO;
 	}
 
-	VkBlendOp VulkanUtility::getBlendOp(BlendOperation op)
+	VkBlendOp VulkanUtility::GetBlendOp(BlendOperation op)
 	{
 		switch (op)
 		{
@@ -438,7 +438,7 @@ namespace bs { namespace ct
 		return VK_BLEND_OP_ADD;
 	}
 
-	VkCompareOp VulkanUtility::getCompareOp(CompareFunction op)
+	VkCompareOp VulkanUtility::GetCompareOp(CompareFunction op)
 	{
 		switch (op)
 		{
@@ -464,7 +464,7 @@ namespace bs { namespace ct
 		return VK_COMPARE_OP_ALWAYS;
 	}
 
-	VkCullModeFlagBits VulkanUtility::getCullMode(CullingMode mode)
+	VkCullModeFlagBits VulkanUtility::GetCullMode(CullingMode mode)
 	{
 		switch (mode)
 		{
@@ -480,7 +480,7 @@ namespace bs { namespace ct
 		return VK_CULL_MODE_NONE;
 	}
 
-	VkPolygonMode VulkanUtility::getPolygonMode(PolygonMode mode)
+	VkPolygonMode VulkanUtility::GetPolygonMode(PolygonMode mode)
 	{
 		switch (mode)
 		{
@@ -493,7 +493,7 @@ namespace bs { namespace ct
 		return VK_POLYGON_MODE_FILL;
 	}
 
-	VkStencilOp VulkanUtility::getStencilOp(StencilOperation op)
+	VkStencilOp VulkanUtility::GetStencilOp(StencilOperation op)
 	{
 		switch (op)
 		{
@@ -519,7 +519,7 @@ namespace bs { namespace ct
 		return VK_STENCIL_OP_KEEP;
 	}
 
-	VkIndexType VulkanUtility::getIndexType(IndexType op)
+	VkIndexType VulkanUtility::GetIndexType(IndexType op)
 	{
 		switch(op)
 		{
@@ -533,7 +533,7 @@ namespace bs { namespace ct
 		return VK_INDEX_TYPE_UINT32;
 	}
 
-	VkPrimitiveTopology VulkanUtility::getDrawOp(DrawOperationType op)
+	VkPrimitiveTopology VulkanUtility::GetDrawOp(DrawOperationType op)
 	{
 		switch (op)
 		{
@@ -555,7 +555,7 @@ namespace bs { namespace ct
 		return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	}
 
-	VkFilter VulkanUtility::getFilter(FilterOptions filter)
+	VkFilter VulkanUtility::GetFilter(FilterOptions filter)
 	{
 		switch(filter)
 		{
@@ -571,7 +571,7 @@ namespace bs { namespace ct
 		return VK_FILTER_LINEAR;
 	}
 
-	VkSamplerMipmapMode VulkanUtility::getMipFilter(FilterOptions filter)
+	VkSamplerMipmapMode VulkanUtility::GetMipFilter(FilterOptions filter)
 	{
 		switch (filter)
 		{
@@ -587,7 +587,7 @@ namespace bs { namespace ct
 		return VK_SAMPLER_MIPMAP_MODE_LINEAR;
 	}
 
-	void VulkanUtility::getDevices(const VulkanRenderAPI& rapi, GpuDeviceFlags flags, VulkanDevice*(&devices)[BS_MAX_DEVICES])
+	void VulkanUtility::GetDevices(const VulkanRenderAPI& rapi, GpuDeviceFlags flags, VulkanDevice*(&devices)[BS_MAX_DEVICES])
 	{
 		UINT32 numDevices = rapi._getNumDevices();
 
@@ -608,7 +608,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	VkPipelineStageFlags VulkanUtility::shaderToPipelineStage(VkShaderStageFlags shaderStageFlags)
+	VkPipelineStageFlags VulkanUtility::ShaderToPipelineStage(VkShaderStageFlags shaderStageFlags)
 	{
 		VkPipelineStageFlags output = 0;
 
@@ -633,7 +633,7 @@ namespace bs { namespace ct
 		return output;
 	}
 
-	bool VulkanUtility::isDeviceIdxSet(const VulkanRenderAPI& rapi, UINT32 idx, GpuDeviceFlags flags)
+	bool VulkanUtility::IsDeviceIdxSet(const VulkanRenderAPI& rapi, UINT32 idx, GpuDeviceFlags flags)
 	{
 		VulkanDevice* device = rapi._getDevice(idx).get();
 
@@ -773,7 +773,7 @@ namespace bs { namespace ct
 		assert(numAreas <= 5);
 	}
 
-	bool VulkanUtility::rangeOverlaps(const VkImageSubresourceRange& a, const VkImageSubresourceRange& b)
+	bool VulkanUtility::RangeOverlaps(const VkImageSubresourceRange& a, const VkImageSubresourceRange& b)
 	{
 		INT32 aRight = a.baseArrayLayer + (INT32)a.layerCount;
 		INT32 bRight = b.baseArrayLayer + (INT32)b.layerCount;
@@ -788,7 +788,7 @@ namespace bs { namespace ct
 		return false;
 	}
 
-	UINT32 VulkanUtility::calcInterfaceBlockElementSizeAndOffset(GpuParamDataType type, UINT32 arraySize, UINT32& offset)
+	UINT32 VulkanUtility::CalcInterfaceBlockElementSizeAndOffset(GpuParamDataType type, UINT32 arraySize, UINT32& offset)
 	{
 		const GpuParamDataTypeInfo& typeInfo = bs::GpuParams::PARAM_SIZES.lookup[type];
 		UINT32 size = (typeInfo.baseTypeSize * typeInfo.numColumns * typeInfo.numRows) / 4;

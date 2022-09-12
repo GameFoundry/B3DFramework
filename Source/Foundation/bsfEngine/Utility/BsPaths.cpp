@@ -16,7 +16,7 @@ namespace bs
 	const Path Paths::EDITOR_DATA_PATH = "EditorData/";
 #endif
 
-	const Path& Paths::getDataPath()
+	const Path& Paths::GetDataPath()
 	{
 		static bool initialized = false;
 		static Path path;
@@ -38,7 +38,7 @@ namespace bs
 		return path;
 	}
 
-	const Path& Paths::getBinariesPath()
+	const Path& Paths::GetBinariesPath()
 	{
 		static bool initialized = false;
 		static Path path;
@@ -65,7 +65,7 @@ namespace bs
 	}
 
 #if BS_INCLUDE_B3D_PATHS
-	const Path& Paths::getEditorDataPath()
+	const Path& Paths::GetEditorDataPath()
 	{
 		static bool initialized = false;
 		static Path path;
@@ -98,20 +98,20 @@ namespace bs
 		return path;
 	}
 
-	const Path& Paths::getGameSettingsPath()
+	const Path& Paths::GetGameSettingsPath()
 	{
 		static Path path = findPath(GAME_SETTINGS_NAME);
 		return path;
 	}
 
-	const Path& Paths::getGameResourcesPath()
+	const Path& Paths::GetGameResourcesPath()
 	{
 		static Path path = findPath(GAME_RESOURCES_FOLDER_NAME);
 		return path;
 	}
 #endif
 
-	Path Paths::findPath(const Path& path)
+	Path Paths::FindPath(const Path& path)
 	{
 		// Note: These paths should be searched for during start-up and cached
 

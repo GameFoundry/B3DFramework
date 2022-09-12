@@ -18,20 +18,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptPhysicsQueryHit::initRuntimeData()
+	void ScriptPhysicsQueryHit::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptPhysicsQueryHit::box(const __PhysicsQueryHitInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__PhysicsQueryHitInterop ScriptPhysicsQueryHit::unbox(MonoObject* value)
+	__PhysicsQueryHitInterop ScriptPhysicsQueryHit::Unbox(MonoObject* value)
 	{
 		return *(__PhysicsQueryHitInterop*)MonoUtil::unbox(value);
 	}
 
-	PhysicsQueryHit ScriptPhysicsQueryHit::fromInterop(const __PhysicsQueryHitInterop& value)
+	PhysicsQueryHit ScriptPhysicsQueryHit::FromInterop(const __PhysicsQueryHitInterop& value)
 	{
 		PhysicsQueryHit output;
 		output.point = value.point;
@@ -50,7 +50,7 @@ namespace bs
 		return output;
 	}
 
-	__PhysicsQueryHitInterop ScriptPhysicsQueryHit::toInterop(const PhysicsQueryHit& value)
+	__PhysicsQueryHitInterop ScriptPhysicsQueryHit::ToInterop(const PhysicsQueryHit& value)
 	{
 		__PhysicsQueryHitInterop output;
 		output.point = value.point;

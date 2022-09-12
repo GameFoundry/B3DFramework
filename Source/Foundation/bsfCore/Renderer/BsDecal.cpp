@@ -21,7 +21,7 @@ namespace bs
 		updateBounds();
 	}
 
-	void DecalBase::setLayer(UINT64 layer)
+	void DecalBase::SetLayer(UINT64 layer)
 	{
 		const bool isPow2 = layer && !((layer - 1) & layer);
 
@@ -35,7 +35,7 @@ namespace bs
 		_markCoreDirty();
 	}
 
-	void DecalBase::setTransform(const Transform& transform)
+	void DecalBase::SetTransform(const Transform& transform)
 	{
 		if (mMobility != ObjectMobility::Movable)
 			return;
@@ -47,7 +47,7 @@ namespace bs
 		_markCoreDirty(ActorDirtyFlag::Transform);
 	}
 
-	void DecalBase::updateBounds()
+	void DecalBase::UpdateBounds()
 	{
 		const Vector2& extents = mSize * 0.5f;
 
@@ -80,12 +80,12 @@ namespace bs
 		updateBounds();
 	}
 
-	SPtr<ct::Decal> Decal::getCore() const
+	SPtr<ct::Decal> Decal::GetCore() const
 	{
 		return std::static_pointer_cast<ct::Decal>(mCoreSpecific);
 	}
 
-	SPtr<Decal> Decal::create(const HMaterial& material, const Vector2& size, float maxDistance)
+	SPtr<Decal> Decal::Create(const HMaterial& material, const Vector2& size, float maxDistance)
 	{
 		Decal* decal = new (bs_alloc<Decal>()) Decal(material, size, maxDistance);
 		SPtr<Decal> decalPtr = bs_core_ptr<Decal>(decal);
@@ -95,7 +95,7 @@ namespace bs
 		return decalPtr;
 	}
 
-	SPtr<Decal> Decal::createEmpty()
+	SPtr<Decal> Decal::CreateEmpty()
 	{
 		Decal* decal = new (bs_alloc<Decal>()) Decal();
 		SPtr<Decal> decalPtr = bs_core_ptr<Decal>(decal);
@@ -104,7 +104,7 @@ namespace bs
 		return decalPtr;
 	}
 
-	SPtr<ct::CoreObject> Decal::createCore() const
+	SPtr<ct::CoreObject> Decal::CreateCore() const
 	{
 		SPtr<ct::Material> material;
 		if(mMaterial.isLoaded(false))
@@ -117,13 +117,13 @@ namespace bs
 		return decalPtr;
 	}
 
-	void Decal::getCoreDependencies(Vector<CoreObject*>& dependencies)
+	void Decal::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 	{
 		if (mMaterial.isLoaded())
 			dependencies.push_back(mMaterial.get());
 	}
 
-	CoreSyncData Decal::syncToCore(FrameAlloc* allocator)
+	CoreSyncData Decal::SyncToCore(FrameAlloc* allocator)
 	{
 		UINT32 size = 0;
 		size += rtti_size(getCoreDirtyFlags()).bytes;
@@ -147,12 +147,12 @@ namespace bs
 
 	RTTITypeBase* Decal::getRTTIStatic()
 	{
-		return DecalRTTI::instance();
+		return DecalRTTI::Instance();
 	}
 
 	RTTITypeBase* Decal::getRTTI() const
 	{
-		return Decal::getRTTIStatic();
+		return Decal::GetRTTIStatic();
 	}
 
 	template class TDecal<true>;
@@ -169,7 +169,7 @@ namespace bs
 		gRenderer()->notifyDecalRemoved(this);
 	}
 
-	void Decal::initialize()
+	void Decal::Initialize()
 	{
 		updateBounds();
 		gRenderer()->notifyDecalAdded(this);
@@ -177,7 +177,7 @@ namespace bs
 		CoreObject::initialize();
 	}
 
-	void Decal::syncToCore(const CoreSyncData& data)
+	void Decal::SyncToCore(const CoreSyncData& data)
 	{
 		Bitstream Stream(data.getBuffer(), data.getBufferSize());
 

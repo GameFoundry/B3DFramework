@@ -314,7 +314,7 @@ namespace bs
 			mWidgetSO->destroy();
 	}
 
-	void ProfilerOverlay::setTarget(const SPtr<Camera>& camera)
+	void ProfilerOverlay::SetTarget(const SPtr<Camera>& camera)
 	{
 		if(mTarget != nullptr)
 			mTargetResizedConn.disconnect();
@@ -490,7 +490,7 @@ namespace bs
 		}
 	}
 
-	void ProfilerOverlay::show(ProfilerOverlayType type)
+	void ProfilerOverlay::Show(ProfilerOverlayType type)
 	{
 		if (type == ProfilerOverlayType::CPUSamples)
 		{
@@ -515,7 +515,7 @@ namespace bs
 		mIsShown = true;
 	}
 
-	void ProfilerOverlay::hide()
+	void ProfilerOverlay::Hide()
 	{
 		mBasicLayoutLabels->setVisible(false);
 		mPreciseLayoutLabels->setVisible(false);
@@ -526,7 +526,7 @@ namespace bs
 		mIsShown = false;
 	}
 
-	void ProfilerOverlay::update()
+	void ProfilerOverlay::Update()
 	{
 		const ProfilerReport& latestSimReport = ProfilingManager::instance().getReport(ProfiledThread::Sim);
 		const ProfilerReport& latestCoreReport = ProfilingManager::instance().getReport(ProfiledThread::Core);
@@ -546,13 +546,13 @@ namespace bs
 		}
 	}
 
-	void ProfilerOverlay::targetResized()
+	void ProfilerOverlay::TargetResized()
 	{
 		updateCPUSampleAreaSizes();
 		updateGPUSampleAreaSizes();
 	}
 
-	void ProfilerOverlay::updateCPUSampleAreaSizes()
+	void ProfilerOverlay::UpdateCPUSampleAreaSizes()
 	{
 		static const INT32 PADDING = 10;
 		static const float LABELS_CONTENT_RATIO = 0.3f;
@@ -580,7 +580,7 @@ namespace bs
 		mPreciseLayoutContents->setHeight(height);
 	}
 
-	void ProfilerOverlay::updateGPUSampleAreaSizes()
+	void ProfilerOverlay::UpdateGPUSampleAreaSizes()
 	{
 		static const INT32 PADDING = 10;
 		static const float SAMPLES_FRAME_RATIO = 0.25f;
@@ -618,7 +618,7 @@ namespace bs
 		mNumGPUSamplesPerColumn = columnHeight / HEIGHT_PER_ENTRY;
 	}
 
-	void ProfilerOverlay::updateCPUSampleContents(const ProfilerReport& simReport, const ProfilerReport& coreReport)
+	void ProfilerOverlay::UpdateCPUSampleContents(const ProfilerReport& simReport, const ProfilerReport& coreReport)
 	{
 		static const UINT32 NUM_ROOT_ENTRIES = 2;
 
@@ -709,7 +709,7 @@ namespace bs
 		}
 	}
 
-	void ProfilerOverlay::updateGPUSampleContents(const GPUProfileSample& frameSample)
+	void ProfilerOverlay::UpdateGPUSampleContents(const GPUProfileSample& frameSample)
 	{
 		mGPUFrameNumStr.setParameter(0, toString((UINT64)gTime().getFrameIdx()));
 		mGPUTimeStr.setParameter(0, toString(frameSample.timeMs));

@@ -97,7 +97,7 @@ namespace bs { namespace ct
 		releaseContext();
 	}
 
-	void LinuxContext::setCurrent(const RenderWindow& window)
+	void LinuxContext::SetCurrent(const RenderWindow& window)
 	{
 		window.getCustomAttribute("WINDOW", &mCurrentWindow);
 
@@ -106,14 +106,14 @@ namespace bs { namespace ct
 		LinuxPlatform::unlockX();
 	}
 
-	void LinuxContext::endCurrent()
+	void LinuxContext::EndCurrent()
 	{
 		LinuxPlatform::lockX();
 		glXMakeCurrent(mDisplay, 0, 0);
 		LinuxPlatform::unlockX();
 	}
 
-	void LinuxContext::releaseContext()
+	void LinuxContext::ReleaseContext()
 	{
 		if (mContext)
 		{

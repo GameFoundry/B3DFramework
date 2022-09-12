@@ -18,7 +18,7 @@ namespace bs
 
 	RTTITypeBase* ManagedSerializableDiff::ModifiedField::getRTTIStatic()
 	{
-		return ModifiedFieldRTTI::instance();
+		return ModifiedFieldRTTI::Instance();
 	}
 
 	RTTITypeBase* ManagedSerializableDiff::ModifiedField::getRTTI() const
@@ -32,7 +32,7 @@ namespace bs
 
 	RTTITypeBase* ManagedSerializableDiff::ModifiedArrayEntry::getRTTIStatic()
 	{
-		return ModifiedArrayEntryRTTI::instance();
+		return ModifiedArrayEntryRTTI::Instance();
 	}
 
 	RTTITypeBase* ManagedSerializableDiff::ModifiedArrayEntry::getRTTI() const
@@ -47,7 +47,7 @@ namespace bs
 
 	RTTITypeBase* ManagedSerializableDiff::ModifiedDictionaryEntry::getRTTIStatic()
 	{
-		return ModifiedDictionaryEntryRTTI::instance();
+		return ModifiedDictionaryEntryRTTI::Instance();
 	}
 
 	RTTITypeBase* ManagedSerializableDiff::ModifiedDictionaryEntry::getRTTI() const
@@ -57,7 +57,7 @@ namespace bs
 
 	RTTITypeBase* ManagedSerializableDiff::Modification::getRTTIStatic()
 	{
-		return ModificationRTTI::instance();
+		return ModificationRTTI::Instance();
 	}
 
 	RTTITypeBase* ManagedSerializableDiff::Modification::getRTTI() const
@@ -72,7 +72,7 @@ namespace bs
 
 	RTTITypeBase* ManagedSerializableDiff::ModifiedObject::getRTTIStatic()
 	{
-		return ModifiedObjectRTTI::instance();
+		return ModifiedObjectRTTI::Instance();
 	}
 
 	RTTITypeBase* ManagedSerializableDiff::ModifiedObject::getRTTI() const
@@ -87,7 +87,7 @@ namespace bs
 
 	RTTITypeBase* ManagedSerializableDiff::ModifiedArray::getRTTIStatic()
 	{
-		return ModifiedArrayRTTI::instance();
+		return ModifiedArrayRTTI::Instance();
 	}
 
 	RTTITypeBase* ManagedSerializableDiff::ModifiedArray::getRTTI() const
@@ -102,7 +102,7 @@ namespace bs
 
 	RTTITypeBase* ManagedSerializableDiff::ModifiedDictionary::getRTTIStatic()
 	{
-		return ModifiedDictionaryRTTI::instance();
+		return ModifiedDictionaryRTTI::Instance();
 	}
 
 	RTTITypeBase* ManagedSerializableDiff::ModifiedDictionary::getRTTI() const
@@ -121,7 +121,7 @@ namespace bs
 
 	RTTITypeBase* ManagedSerializableDiff::ModifiedEntry::getRTTIStatic()
 	{
-		return ModifiedEntryRTTI::instance();
+		return ModifiedEntryRTTI::Instance();
 	}
 
 	RTTITypeBase* ManagedSerializableDiff::ModifiedEntry::getRTTI() const
@@ -208,7 +208,7 @@ namespace bs
 			if (newData == nullptr)
 				return nullptr;
 			else
-				return ModifiedEntry::create(newData);
+				return ModifiedEntry::Create(newData);
 		}
 		else
 		{
@@ -445,12 +445,12 @@ namespace bs
 		return newMod;
 	}
 
-	void ManagedSerializableDiff::apply(const SPtr<ManagedSerializableObject>& obj)
+	void ManagedSerializableDiff::Apply(const SPtr<ManagedSerializableObject>& obj)
 	{
 		applyDiff(mModificationRoot, obj);
 	}
 
-	SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::applyDiff(const SPtr<ModifiedObject>& mod, const SPtr<ManagedSerializableObject>& obj)
+	SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::ApplyDiff(const SPtr<ModifiedObject>& mod, const SPtr<ManagedSerializableObject>& obj)
 	{
 		SPtr<ManagedSerializableObjectInfo> objInfo = obj->getObjectInfo();
 		for (auto& modEntry : mod->entries)
@@ -472,7 +472,7 @@ namespace bs
 		return nullptr;
 	}
 
-	SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::applyDiff(const SPtr<ModifiedArray>& mod, const SPtr<ManagedSerializableArray>& obj)
+	SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::ApplyDiff(const SPtr<ModifiedArray>& mod, const SPtr<ManagedSerializableArray>& obj)
 	{
 		bool needsResize = false;
 
@@ -506,7 +506,7 @@ namespace bs
 		return newArray;
 	}
 
-	SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::applyDiff(const SPtr<ModifiedArray>& mod, const SPtr<ManagedSerializableList>& obj)
+	SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::ApplyDiff(const SPtr<ModifiedArray>& mod, const SPtr<ManagedSerializableList>& obj)
 	{
 		bool needsResize = mod->newSizes[0] != obj->getLength();
 
@@ -531,7 +531,7 @@ namespace bs
 		return newList;
 	}
 
-	SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::applyDiff(const SPtr<ModifiedDictionary>& mod, const SPtr<ManagedSerializableDictionary>& obj)
+	SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::ApplyDiff(const SPtr<ModifiedDictionary>& mod, const SPtr<ManagedSerializableDictionary>& obj)
 	{
 		for (auto& modEntry : mod->entries)
 		{
@@ -639,11 +639,11 @@ namespace bs
 
 	RTTITypeBase* ManagedSerializableDiff::getRTTIStatic()
 	{
-		return ManagedSerializableDiffRTTI::instance();
+		return ManagedSerializableDiffRTTI::Instance();
 	}
 
 	RTTITypeBase* ManagedSerializableDiff::getRTTI() const
 	{
-		return ManagedSerializableDiff::getRTTIStatic();
+		return ManagedSerializableDiff::GetRTTIStatic();
 	}
 }

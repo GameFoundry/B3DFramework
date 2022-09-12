@@ -28,35 +28,35 @@ namespace bs
 		bs_delete(mInternal);
 	}
 
-	void PhysXCapsuleCollider::setScale(const Vector3& scale)
+	void PhysXCapsuleCollider::SetScale(const Vector3& scale)
 	{
 		CapsuleCollider::setScale(scale);
 		applyGeometry();
 	}
 
-	void PhysXCapsuleCollider::setHalfHeight(float halfHeight)
+	void PhysXCapsuleCollider::SetHalfHeight(float halfHeight)
 	{
 		mHalfHeight = halfHeight;
 		applyGeometry();
 	}
 
-	float PhysXCapsuleCollider::getHalfHeight() const
+	float PhysXCapsuleCollider::GetHalfHeight() const
 	{
 		return mHalfHeight;
 	}
 
-	void PhysXCapsuleCollider::setRadius(float radius)
+	void PhysXCapsuleCollider::SetRadius(float radius)
 	{
 		mRadius = radius;
 		applyGeometry();
 	}
 
-	float PhysXCapsuleCollider::getRadius() const
+	float PhysXCapsuleCollider::GetRadius() const
 	{
 		return mRadius;
 	}
 
-	void PhysXCapsuleCollider::applyGeometry()
+	void PhysXCapsuleCollider::ApplyGeometry()
 	{
 		PxCapsuleGeometry Geometry(std::max(0.01f, mRadius * std::max(mScale.x, mScale.z)),
 			std::max(0.01f, mHalfHeight * mScale.y));

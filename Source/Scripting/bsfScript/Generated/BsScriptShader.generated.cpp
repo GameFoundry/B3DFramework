@@ -16,7 +16,7 @@ namespace bs
 	{
 	}
 
-	void ScriptShader::initRuntimeData()
+	void ScriptShader::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetRef", (void*)&ScriptShader::Internal_getRef);
 		metaData.scriptClass->addInternalCall("Internal_getVariationParams", (void*)&ScriptShader::Internal_getVariationParams);

@@ -28,24 +28,24 @@ namespace bs
 		bs_delete(mInternal);
 	}
 
-	void PhysXSphereCollider::setScale(const Vector3& scale)
+	void PhysXSphereCollider::SetScale(const Vector3& scale)
 	{
 		SphereCollider::setScale(scale);
 		applyGeometry();
 	}
 
-	void PhysXSphereCollider::setRadius(float radius)
+	void PhysXSphereCollider::SetRadius(float radius)
 	{
 		mRadius = radius;
 		applyGeometry();
 	}
 
-	float PhysXSphereCollider::getRadius() const
+	float PhysXSphereCollider::GetRadius() const
 	{
 		return mRadius;
 	}
 
-	void PhysXSphereCollider::applyGeometry()
+	void PhysXSphereCollider::ApplyGeometry()
 	{
 		float radius = std::max(0.01f, mRadius * std::max(std::max(mScale.x, mScale.y), mScale.z));
 		PxSphereGeometry Geometry(radius);

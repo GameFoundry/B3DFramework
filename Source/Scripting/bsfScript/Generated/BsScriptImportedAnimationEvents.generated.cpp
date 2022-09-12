@@ -14,7 +14,7 @@ namespace bs
 	{
 	}
 
-	void ScriptImportedAnimationEvents::initRuntimeData()
+	void ScriptImportedAnimationEvents::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_ImportedAnimationEvents", (void*)&ScriptImportedAnimationEvents::Internal_ImportedAnimationEvents);
 		metaData.scriptClass->addInternalCall("Internal_getname", (void*)&ScriptImportedAnimationEvents::Internal_getname);

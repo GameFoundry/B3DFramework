@@ -31,7 +31,7 @@ namespace bs
 		setName("Animation");
 	}
 
-	void CAnimation::setDefaultClip(const HAnimationClip& clip)
+	void CAnimation::SetDefaultClip(const HAnimationClip& clip)
 	{
 		mDefaultClip = clip;
 
@@ -39,7 +39,7 @@ namespace bs
 			mInternal->play(clip);
 	}
 
-	void CAnimation::setWrapMode(AnimWrapMode wrapMode)
+	void CAnimation::SetWrapMode(AnimWrapMode wrapMode)
 	{
 		mWrapMode = wrapMode;
 
@@ -47,7 +47,7 @@ namespace bs
 			mInternal->setWrapMode(wrapMode);
 	}
 
-	void CAnimation::setSpeed(float speed)
+	void CAnimation::SetSpeed(float speed)
 	{
 		mSpeed = speed;
 
@@ -55,55 +55,55 @@ namespace bs
 			mInternal->setSpeed(speed);
 	}
 
-	void CAnimation::play(const HAnimationClip& clip)
+	void CAnimation::Play(const HAnimationClip& clip)
 	{
 		if (mInternal != nullptr && !mPreviewMode)
 			mInternal->play(clip);
 	}
 
-	void CAnimation::blendAdditive(const HAnimationClip& clip, float weight, float fadeLength, UINT32 layer)
+	void CAnimation::BlendAdditive(const HAnimationClip& clip, float weight, float fadeLength, UINT32 layer)
 	{
 		if (mInternal != nullptr && !mPreviewMode)
 			mInternal->blendAdditive(clip, weight, fadeLength, layer);
 	}
 
-	void CAnimation::blend1D(const Blend1DInfo& info, float t)
+	void CAnimation::Blend1D(const Blend1DInfo& info, float t)
 	{
 		if (mInternal != nullptr && !mPreviewMode)
 			mInternal->blend1D(info, t);
 	}
 
-	void CAnimation::blend2D(const Blend2DInfo& info, const Vector2& t)
+	void CAnimation::Blend2D(const Blend2DInfo& info, const Vector2& t)
 	{
 		if (mInternal != nullptr && !mPreviewMode)
 			mInternal->blend2D(info, t);
 	}
 
-	void CAnimation::crossFade(const HAnimationClip& clip, float fadeLength)
+	void CAnimation::CrossFade(const HAnimationClip& clip, float fadeLength)
 	{
 		if (mInternal != nullptr && !mPreviewMode)
 			mInternal->crossFade(clip, fadeLength);
 	}
 
-	void CAnimation::sample(const HAnimationClip& clip, float time)
+	void CAnimation::Sample(const HAnimationClip& clip, float time)
 	{
 		if (mInternal != nullptr)
 			mInternal->sample(clip, time);
 	}
 
-	void CAnimation::stop(UINT32 layer)
+	void CAnimation::Stop(UINT32 layer)
 	{
 		if (mInternal != nullptr && !mPreviewMode)
 			mInternal->stop(layer);
 	}
 
-	void CAnimation::stopAll()
+	void CAnimation::StopAll()
 	{
 		if (mInternal != nullptr && !mPreviewMode)
 			mInternal->stopAll();
 	}
 
-	bool CAnimation::isPlaying() const
+	bool CAnimation::IsPlaying() const
 	{
 		if (mInternal != nullptr)
 			return mInternal->isPlaying();
@@ -111,7 +111,7 @@ namespace bs
 		return false;
 	}
 
-	bool CAnimation::getState(const HAnimationClip& clip, AnimationClipState& state)
+	bool CAnimation::GetState(const HAnimationClip& clip, AnimationClipState& state)
 	{
 		if (mInternal != nullptr)
 			return mInternal->getState(clip, state);
@@ -119,13 +119,13 @@ namespace bs
 		return false;
 	}
 
-	void CAnimation::setState(const HAnimationClip& clip, AnimationClipState state)
+	void CAnimation::SetState(const HAnimationClip& clip, AnimationClipState state)
 	{
 		if (mInternal != nullptr)
 			return mInternal->setState(clip, state);
 	}
 
-	void CAnimation::setMorphChannelWeight(const String& name, float weight)
+	void CAnimation::SetMorphChannelWeight(const String& name, float weight)
 	{
 		if (mInternal == nullptr)
 			return;
@@ -152,7 +152,7 @@ namespace bs
 		}
 	}
 
-	void CAnimation::setBounds(const AABox& bounds)
+	void CAnimation::SetBounds(const AABox& bounds)
 	{
 		mBounds = bounds;
 
@@ -175,14 +175,14 @@ namespace bs
 		}
 	}
 
-	void CAnimation::setUseBounds(bool enable)
+	void CAnimation::SetUseBounds(bool enable)
 	{
 		mUseBounds = enable;
 
 		_updateBounds();
 	}
 
-	void CAnimation::setEnableCull(bool enable)
+	void CAnimation::SetEnableCull(bool enable)
 	{
 		mEnableCull = enable;
 
@@ -190,7 +190,7 @@ namespace bs
 			mInternal->setCulling(enable);
 	}
 
-	UINT32 CAnimation::getNumClips() const
+	UINT32 CAnimation::GetNumClips() const
 	{
 		if (mInternal != nullptr)
 			return mInternal->getNumClips();
@@ -198,7 +198,7 @@ namespace bs
 		return 0;
 	}
 
-	HAnimationClip CAnimation::getClip(UINT32 idx) const
+	HAnimationClip CAnimation::GetClip(UINT32 idx) const
 	{
 		if (mInternal != nullptr)
 			return mInternal->getClip(idx);
@@ -206,22 +206,22 @@ namespace bs
 		return HAnimationClip();
 	}
 
-	void CAnimation::onInitialized()
+	void CAnimation::OnInitialized()
 	{
 		
 	}
 
-	void CAnimation::onDestroyed()
+	void CAnimation::OnDestroyed()
 	{
 		destroyInternal();
 	}
 
-	void CAnimation::onDisabled()
+	void CAnimation::OnDisabled()
 	{
 		destroyInternal();
 	}
 
-	void CAnimation::onEnabled()
+	void CAnimation::OnEnabled()
 	{
 		if(mPreviewMode)
 		{
@@ -233,7 +233,7 @@ namespace bs
 			restoreInternal(false);
 	}
 
-	void CAnimation::update()
+	void CAnimation::Update()
 	{
 		const bool isRunning = SceneManager::instance().isRunning();
 		if(!isRunning && !mPreviewMode)
@@ -292,7 +292,7 @@ namespace bs
 			_scriptUpdateFloatProperties();
 	}
 
-	void CAnimation::onTransformChanged(TransformChangedFlags flags)
+	void CAnimation::OnTransformChanged(TransformChangedFlags flags)
 	{
 		if (!SO()->getActive())
 			return;
@@ -301,7 +301,7 @@ namespace bs
 			_updateBounds(false);
 	}
 
-	void CAnimation::restoreInternal(bool previewMode)
+	void CAnimation::RestoreInternal(bool previewMode)
 	{
 		if (mInternal != nullptr)
 			destroyInternal();
@@ -343,7 +343,7 @@ namespace bs
 			mAnimatedRenderable->_registerAnimation(static_object_cast<CAnimation>(mThisHandle));
 	}
 
-	void CAnimation::destroyInternal()
+	void CAnimation::DestroyInternal()
 	{
 		if (mAnimatedRenderable != nullptr)
 			mAnimatedRenderable->_unregisterAnimation();
@@ -395,7 +395,7 @@ namespace bs
 		return mInternal->getGenericCurveValue(curveIdx, value);
 	}
 
-	void CAnimation::mapCurveToSceneObject(const String& curve, const HSceneObject& so)
+	void CAnimation::MapCurveToSceneObject(const String& curve, const HSceneObject& so)
 	{
 		if (mInternal == nullptr)
 			return;
@@ -403,7 +403,7 @@ namespace bs
 		mInternal->mapCurveToSceneObject(curve, so);
 	}
 
-	void CAnimation::unmapSceneObject(const HSceneObject& so)
+	void CAnimation::UnmapSceneObject(const HSceneObject& so)
 	{
 		if (mInternal == nullptr)
 			return;
@@ -508,7 +508,7 @@ namespace bs
 		}
 	}
 
-	void CAnimation::setBoneMappings()
+	void CAnimation::SetBoneMappings()
 	{
 		mMappingInfos.clear();
 
@@ -524,7 +524,7 @@ namespace bs
 			_addBone(entry);
 	}
 
-	void CAnimation::updateSceneObjectMapping()
+	void CAnimation::UpdateSceneObjectMapping()
 	{
 		Vector<SceneObjectMappingInfo> newMappingInfos;
 		for(auto& entry : mMappingInfos)
@@ -591,7 +591,7 @@ namespace bs
 		updateSceneObjectMapping();		
 	}
 
-	Vector<HBone> CAnimation::findChildBones()
+	Vector<HBone> CAnimation::FindChildBones()
 	{
 		Stack<HSceneObject> todo;
 		todo.push(SO());
@@ -623,7 +623,7 @@ namespace bs
 		return bones;
 	}
 
-	void CAnimation::eventTriggered(const HAnimationClip& clip, const String& name)
+	void CAnimation::EventTriggered(const HAnimationClip& clip, const String& name)
 	{
 		onEventTriggered(clip, name);
 
@@ -633,11 +633,11 @@ namespace bs
 
 	RTTITypeBase* CAnimation::getRTTIStatic()
 	{
-		return CAnimationRTTI::instance();
+		return CAnimationRTTI::Instance();
 	}
 
 	RTTITypeBase* CAnimation::getRTTI() const
 	{
-		return CAnimation::getRTTIStatic();
+		return CAnimation::GetRTTIStatic();
 	}
 }

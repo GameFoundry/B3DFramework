@@ -88,7 +88,7 @@ namespace bs
 		bs_delete(m);
 	}
 
-	void Mouse::capture()
+	void Mouse::Capture()
 	{
 		if (m->mouse == nullptr)
 			return;
@@ -162,7 +162,7 @@ namespace bs
 
 	}
 
-	void Mouse::changeCaptureContext(UINT64 windowHandle)
+	void Mouse::ChangeCaptureContext(UINT64 windowHandle)
 	{
 		HWND newhWnd = (HWND)windowHandle;
 

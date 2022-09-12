@@ -16,7 +16,7 @@ namespace bs
 	{
 	}
 
-	void ScriptFontBitmap::initRuntimeData()
+	void ScriptFontBitmap::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getCharDesc", (void*)&ScriptFontBitmap::Internal_getCharDesc);
 		metaData.scriptClass->addInternalCall("Internal_getsize", (void*)&ScriptFontBitmap::Internal_getsize);

@@ -25,27 +25,27 @@ namespace bs
 		invalidateFrustum();
 	}
 
-	void CameraBase::setFlags(CameraFlags flags)
+	void CameraBase::SetFlags(CameraFlags flags)
 	{
 		mCameraFlags = flags;
 		_markCoreDirty();
 	}
 
-	void CameraBase::setHorzFOV(const Radian& fov)
+	void CameraBase::SetHorzFOV(const Radian& fov)
 	{
 		mHorzFOV = fov;
 		invalidateFrustum();
 		_markCoreDirty();
 	}
 
-	void CameraBase::setFarClipDistance(float farPlane)
+	void CameraBase::SetFarClipDistance(float farPlane)
 	{
 		mFarDist = farPlane;
 		invalidateFrustum();
 		_markCoreDirty();
 	}
 
-	void CameraBase::setNearClipDistance(float nearPlane)
+	void CameraBase::SetNearClipDistance(float nearPlane)
 	{
 		if (nearPlane <= 0)
 		{
@@ -58,49 +58,49 @@ namespace bs
 		_markCoreDirty();
 	}
 
-	const Matrix4& CameraBase::getProjectionMatrix() const
+	const Matrix4& CameraBase::GetProjectionMatrix() const
 	{
 		updateFrustum();
 
 		return mProjMatrix;
 	}
 
-	const Matrix4& CameraBase::getProjectionMatrixInv() const
+	const Matrix4& CameraBase::GetProjectionMatrixInv() const
 	{
 		updateFrustum();
 
 		return mProjMatrixInv;
 	}
 
-	const Matrix4& CameraBase::getProjectionMatrixRS() const
+	const Matrix4& CameraBase::GetProjectionMatrixRS() const
 	{
 		updateFrustum();
 
 		return mProjMatrixRS;
 	}
 
-	const Matrix4& CameraBase::getProjectionMatrixRSInv() const
+	const Matrix4& CameraBase::GetProjectionMatrixRSInv() const
 	{
 		updateFrustum();
 
 		return mProjMatrixRSInv;
 	}
 
-	const Matrix4& CameraBase::getViewMatrix() const
+	const Matrix4& CameraBase::GetViewMatrix() const
 	{
 		updateView();
 
 		return mViewMatrix;
 	}
 
-	const Matrix4& CameraBase::getViewMatrixInv() const
+	const Matrix4& CameraBase::GetViewMatrixInv() const
 	{
 		updateView();
 
 		return mViewMatrixInv;
 	}
 
-	const ConvexVolume& CameraBase::getFrustum() const
+	const ConvexVolume& CameraBase::GetFrustum() const
 	{
 		// Make any pending updates to the calculated frustum planes
 		updateFrustumPlanes();
@@ -108,7 +108,7 @@ namespace bs
 		return mFrustum;
 	}
 
-	ConvexVolume CameraBase::getWorldFrustum() const
+	ConvexVolume CameraBase::GetWorldFrustum() const
 	{
 		const Vector<Plane>& frustumPlanes = getFrustum().getPlanes();
 
@@ -128,7 +128,7 @@ namespace bs
 		return ConvexVolume(worldPlanes);
 	}
 
-	void CameraBase::calcProjectionParameters(float& left, float& right, float& bottom, float& top) const
+	void CameraBase::CalcProjectionParameters(float& left, float& right, float& bottom, float& top) const
 	{
 		if (mCustomProjMatrix)
 		{
@@ -191,7 +191,7 @@ namespace bs
 		}
 	}
 
-	void CameraBase::updateFrustum() const
+	void CameraBase::UpdateFrustum() const
 	{
 		if (isFrustumOutOfDate())
 		{
@@ -303,12 +303,12 @@ namespace bs
 		}
 	}
 
-	bool CameraBase::isFrustumOutOfDate() const
+	bool CameraBase::IsFrustumOutOfDate() const
 	{
 		return mRecalcFrustum;
 	}
 
-	void CameraBase::updateView() const
+	void CameraBase::UpdateView() const
 	{
 		if (!mCustomViewMatrix && mRecalcView)
 		{
@@ -318,7 +318,7 @@ namespace bs
 		}
 	}
 
-	void CameraBase::updateFrustumPlanes() const
+	void CameraBase::UpdateFrustumPlanes() const
 	{
 		updateFrustum();
 
@@ -329,38 +329,38 @@ namespace bs
 		}
 	}
 
-	float CameraBase::getAspectRatio() const
+	float CameraBase::GetAspectRatio() const
 	{
 		return mAspect;
 	}
 
-	void CameraBase::setAspectRatio(float r)
+	void CameraBase::SetAspectRatio(float r)
 	{
 		mAspect = r;
 		invalidateFrustum();
 		_markCoreDirty();
 	}
 
-	const AABox& CameraBase::getBoundingBox() const
+	const AABox& CameraBase::GetBoundingBox() const
 	{
 		updateFrustum();
 
 		return mBoundingBox;
 	}
 
-	void CameraBase::setProjectionType(ProjectionType pt)
+	void CameraBase::SetProjectionType(ProjectionType pt)
 	{
 		mProjType = pt;
 		invalidateFrustum();
 		_markCoreDirty();
 	}
 
-	ProjectionType CameraBase::getProjectionType() const
+	ProjectionType CameraBase::GetProjectionType() const
 	{
 		return mProjType;
 	}
 
-	void CameraBase::setCustomViewMatrix(bool enable, const Matrix4& viewMatrix)
+	void CameraBase::SetCustomViewMatrix(bool enable, const Matrix4& viewMatrix)
 	{
 		mCustomViewMatrix = enable;
 		if (enable)
@@ -372,7 +372,7 @@ namespace bs
 		_markCoreDirty();
 	}
 
-	void CameraBase::setCustomProjectionMatrix(bool enable, const Matrix4& projMatrix)
+	void CameraBase::SetCustomProjectionMatrix(bool enable, const Matrix4& projMatrix)
 	{
 		mCustomProjMatrix = enable;
 
@@ -383,7 +383,7 @@ namespace bs
 		_markCoreDirty();
 	}
 
-	void CameraBase::setOrthoWindow(float w, float h)
+	void CameraBase::SetOrthoWindow(float w, float h)
 	{
 		mOrthoHeight = h;
 		mAspect = w / h;
@@ -392,7 +392,7 @@ namespace bs
 		_markCoreDirty();
 	}
 
-	void CameraBase::setOrthoWindowHeight(float h)
+	void CameraBase::SetOrthoWindowHeight(float h)
 	{
 		mOrthoHeight = h;
 
@@ -400,7 +400,7 @@ namespace bs
 		_markCoreDirty();
 	}
 
-	void CameraBase::setOrthoWindowWidth(float w)
+	void CameraBase::SetOrthoWindowWidth(float w)
 	{
 		mOrthoHeight = w / mAspect;
 
@@ -408,17 +408,17 @@ namespace bs
 		_markCoreDirty();
 	}
 
-	float CameraBase::getOrthoWindowHeight() const
+	float CameraBase::GetOrthoWindowHeight() const
 	{
 		return mOrthoHeight;
 	}
 
-	float CameraBase::getOrthoWindowWidth() const
+	float CameraBase::GetOrthoWindowWidth() const
 	{
 		return mOrthoHeight * mAspect;
 	}
 
-	void CameraBase::setFrustumExtents(float left, float right, float top, float bottom)
+	void CameraBase::SetFrustumExtents(float left, float right, float top, float bottom)
 	{
 		mFrustumExtentsManuallySet = true;
 		mLeft = left;
@@ -430,7 +430,7 @@ namespace bs
 		_markCoreDirty();
 	}
 
-	void CameraBase::resetFrustumExtents()
+	void CameraBase::ResetFrustumExtents()
 	{
 		mFrustumExtentsManuallySet = false;
 
@@ -438,7 +438,7 @@ namespace bs
 		_markCoreDirty();
 	}
 
-	void CameraBase::getFrustumExtents(float& outleft, float& outright, float& outtop, float& outbottom) const
+	void CameraBase::GetFrustumExtents(float& outleft, float& outright, float& outtop, float& outbottom) const
 	{
 		updateFrustum();
 
@@ -448,43 +448,43 @@ namespace bs
 		outbottom = mBottom;
 	}
 
-	void CameraBase::setTransform(const Transform& transform)
+	void CameraBase::SetTransform(const Transform& transform)
 	{
 		SceneActor::setTransform(transform);
 		
 		mRecalcView = true;
 	}
 
-	void CameraBase::invalidateFrustum() const
+	void CameraBase::InvalidateFrustum() const
 	{
 		mRecalcFrustum = true;
 		mRecalcFrustumPlanes = true;
 	}
 
-	Vector2I CameraBase::worldToScreenPoint(const Vector3& worldPoint) const
+	Vector2I CameraBase::WorldToScreenPoint(const Vector3& worldPoint) const
 	{
 		Vector2 ndcPoint = worldToNdcPoint(worldPoint);
 		return NdcToScreenPoint(ndcPoint);
 	}
 
-	Vector2 CameraBase::worldToNdcPoint(const Vector3& worldPoint) const
+	Vector2 CameraBase::WorldToNdcPoint(const Vector3& worldPoint) const
 	{
 		Vector3 viewPoint = worldToViewPoint(worldPoint);
 		return ViewToNdcPoint(viewPoint);
 	}
 
-	Vector3 CameraBase::worldToViewPoint(const Vector3& worldPoint) const
+	Vector3 CameraBase::WorldToViewPoint(const Vector3& worldPoint) const
 	{
 		return GetViewMatrix().multiplyAffine(worldPoint);
 	}
 
-	Vector3 CameraBase::screenToWorldPoint(const Vector2I& screenPoint, float depth) const
+	Vector3 CameraBase::ScreenToWorldPoint(const Vector2I& screenPoint, float depth) const
 	{
 		Vector2 ndcPoint = screenToNdcPoint(screenPoint);
 		return NdcToWorldPoint(ndcPoint, depth);
 	}
 
-	Vector3 CameraBase::screenToWorldPointDeviceDepth(const Vector2I& screenPoint, float deviceDepth) const
+	Vector3 CameraBase::ScreenToWorldPointDeviceDepth(const Vector2I& screenPoint, float deviceDepth) const
 	{
 		Vector2 ndcPoint = screenToNdcPoint(screenPoint);
 		Vector4 WorldPoint(ndcPoint.x, ndcPoint.y, deviceDepth, 1.0f);
@@ -503,13 +503,13 @@ namespace bs
 		return ViewToWorldPoint(worldPoint3D);
 	}
 
-	Vector3 CameraBase::screenToViewPoint(const Vector2I& screenPoint, float depth) const
+	Vector3 CameraBase::ScreenToViewPoint(const Vector2I& screenPoint, float depth) const
 	{
 		Vector2 ndcPoint = screenToNdcPoint(screenPoint);
 		return NdcToViewPoint(ndcPoint, depth);
 	}
 
-	Vector2 CameraBase::screenToNdcPoint(const Vector2I& screenPoint) const
+	Vector2 CameraBase::ScreenToNdcPoint(const Vector2I& screenPoint) const
 	{
 		Rect2I viewport = getViewportRect();
 
@@ -525,36 +525,36 @@ namespace bs
 		return ndcPoint;
 	}
 
-	Vector3 CameraBase::viewToWorldPoint(const Vector3& viewPoint) const
+	Vector3 CameraBase::ViewToWorldPoint(const Vector3& viewPoint) const
 	{
 		return GetViewMatrix().inverseAffine().multiplyAffine(viewPoint);
 	}
 
-	Vector2I CameraBase::viewToScreenPoint(const Vector3& viewPoint) const
+	Vector2I CameraBase::ViewToScreenPoint(const Vector3& viewPoint) const
 	{
 		Vector2 ndcPoint = viewToNdcPoint(viewPoint);
 		return NdcToScreenPoint(ndcPoint);
 	}
 
-	Vector2 CameraBase::viewToNdcPoint(const Vector3& viewPoint) const
+	Vector2 CameraBase::ViewToNdcPoint(const Vector3& viewPoint) const
 	{
 		Vector3 projPoint = projectPoint(viewPoint);
 
 		return Vector2(projPoint.x, projPoint.y);
 	}
 
-	Vector3 CameraBase::ndcToWorldPoint(const Vector2& ndcPoint, float depth) const
+	Vector3 CameraBase::NdcToWorldPoint(const Vector2& ndcPoint, float depth) const
 	{
 		Vector3 viewPoint = ndcToViewPoint(ndcPoint, depth);
 		return ViewToWorldPoint(viewPoint);
 	}
 
-	Vector3 CameraBase::ndcToViewPoint(const Vector2& ndcPoint, float depth) const
+	Vector3 CameraBase::NdcToViewPoint(const Vector2& ndcPoint, float depth) const
 	{
 		return UnprojectPoint(Vector3(ndcPoint.x, ndcPoint.y, depth));
 	}
 
-	Vector2I CameraBase::ndcToScreenPoint(const Vector2& ndcPoint) const
+	Vector2I CameraBase::NdcToScreenPoint(const Vector2& ndcPoint) const
 	{
 		Rect2I viewport = getViewportRect();
 
@@ -570,7 +570,7 @@ namespace bs
 		return screenPoint;
 	}
 
-	Ray CameraBase::screenPointToRay(const Vector2I& screenPoint) const
+	Ray CameraBase::ScreenPointToRay(const Vector2I& screenPoint) const
 	{
 		Vector2 ndcPoint = screenToNdcPoint(screenPoint);
 
@@ -583,7 +583,7 @@ namespace bs
 		return ray;
 	}
 
-	Vector3 CameraBase::projectPoint(const Vector3& point) const
+	Vector3 CameraBase::ProjectPoint(const Vector3& point) const
 	{
 		Vector4 ProjPoint4(point.x, point.y, point.z, 1.0f);
 		projPoint4 = getProjectionMatrixRS().multiply(projPoint4);
@@ -605,7 +605,7 @@ namespace bs
 		return Vector3(projPoint4.x, projPoint4.y, projPoint4.z);
 	}
 
-	Vector3 CameraBase::unprojectPoint(const Vector3& point) const
+	Vector3 CameraBase::UnprojectPoint(const Vector3& point) const
 	{
 		// Point.z is expected to be in view space, so we need to do some extra work to get the proper coordinates
 		// (as opposed to if point.z was in device coordinates, in which case we could just inverse project)
@@ -691,12 +691,12 @@ namespace bs
 	template class TCamera<false>;
 	template class TCamera<true>;
 
-	SPtr<ct::Camera> Camera::getCore() const
+	SPtr<ct::Camera> Camera::GetCore() const
 	{
 		return std::static_pointer_cast<ct::Camera>(mCoreSpecific);
 	}
 
-	SPtr<Camera> Camera::create()
+	SPtr<Camera> Camera::Create()
 	{
 		Camera* handler = new (bs_alloc<Camera>()) Camera();
 		SPtr<Camera> handlerPtr = bs_core_ptr<Camera>(handler);
@@ -706,7 +706,7 @@ namespace bs
 		return handlerPtr;
 	}
 
-	SPtr<Camera> Camera::createEmpty()
+	SPtr<Camera> Camera::CreateEmpty()
 	{
 		Camera* handler = new (bs_alloc<Camera>()) Camera();
 		SPtr<Camera> handlerPtr = bs_core_ptr<Camera>(handler);
@@ -715,7 +715,7 @@ namespace bs
 		return handlerPtr;
 	}
 
-	SPtr<ct::CoreObject> Camera::createCore() const
+	SPtr<ct::CoreObject> Camera::CreateCore() const
 	{
 		ct::Camera* handler = new (bs_alloc<ct::Camera>()) ct::Camera(mViewport->getCore());
 		SPtr<ct::Camera> handlerPtr = bs_shared_ptr<ct::Camera>(handler);
@@ -724,7 +724,7 @@ namespace bs
 		return handlerPtr;
 	}
 
-	void Camera::initialize()
+	void Camera::Initialize()
 	{
 		mViewport = Viewport::create(nullptr);
 
@@ -733,7 +733,7 @@ namespace bs
 		gSceneManager()._registerCamera(std::static_pointer_cast<Camera>(getThisPtr()));
 	}
 
-	void Camera::destroy()
+	void Camera::Destroy()
 	{
 		if(isInitialized())
 			gSceneManager()._unregisterCamera(std::static_pointer_cast<Camera>(getThisPtr()));
@@ -741,18 +741,18 @@ namespace bs
 		CoreObject::destroy();
 	}
 
-	void Camera::setMain(bool main)
+	void Camera::SetMain(bool main)
 	{
 		mMain = main;
 		gSceneManager()._notifyMainCameraStateChanged(std::static_pointer_cast<Camera>(getThisPtr()));
 	}
 
-	Rect2I Camera::getViewportRect() const
+	Rect2I Camera::GetViewportRect() const
 	{
 		return mViewport->getPixelArea();
 	}
 
-	CoreSyncData Camera::syncToCore(FrameAlloc* allocator)
+	CoreSyncData Camera::SyncToCore(FrameAlloc* allocator)
 	{
 		UINT32 dirtyFlag = getCoreDirtyFlags();
 
@@ -782,7 +782,7 @@ namespace bs
 		return CoreSyncData(buffer, size);
 	}
 
-	void Camera::getCoreDependencies(Vector<CoreObject*>& dependencies)
+	void Camera::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 	{
 		dependencies.push_back(mViewport.get());
 	}
@@ -794,12 +794,12 @@ namespace bs
 
 	RTTITypeBase* Camera::getRTTIStatic()
 	{
-		return CameraRTTI::instance();
+		return CameraRTTI::Instance();
 	}
 
 	RTTITypeBase* Camera::getRTTI() const
 	{
-		return Camera::getRTTIStatic();
+		return Camera::GetRTTIStatic();
 	}
 
 	namespace ct
@@ -821,19 +821,19 @@ namespace bs
 		mViewport = viewport;
 	}
 
-	void Camera::initialize()
+	void Camera::Initialize()
 	{
 		RendererManager::instance().getActive()->notifyCameraAdded(this);
 
 		CoreObject::initialize();
 	}
 
-	Rect2I Camera::getViewportRect() const
+	Rect2I Camera::GetViewportRect() const
 	{
 		return mViewport->getPixelArea();
 	}
 
-	void Camera::syncToCore(const CoreSyncData& data)
+	void Camera::SyncToCore(const CoreSyncData& data)
 	{
 		Bitstream Stream(data.getBuffer(), data.getBufferSize());
 

@@ -11,15 +11,15 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptVector4I::initRuntimeData()
+	void ScriptVector4I::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptVector4I::box(const Vector4I& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	Vector4I ScriptVector4I::unbox(MonoObject* value)
+	Vector4I ScriptVector4I::Unbox(MonoObject* value)
 	{
 		return *(Vector4I*)MonoUtil::unbox(value);
 	}

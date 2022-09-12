@@ -266,7 +266,7 @@ namespace bs
 		mCommandEvents[1].clear();
 	}
 
-	void Input::inputWindowChanged(RenderWindow& win)
+	void Input::InputWindowChanged(RenderWindow& win)
 	{
 		UINT64 hWnd = 0;
 		win.getCustomAttribute("WINDOW", &hWnd);
@@ -281,7 +281,7 @@ namespace bs
 			gamepad->changeCaptureContext(hWnd);
 	}
 
-	void Input::inputFocusLost()
+	void Input::InputFocusLost()
 	{
 		if(mKeyboard != nullptr)
 			mKeyboard->changeCaptureContext((UINT64)-1);
@@ -336,7 +336,7 @@ namespace bs
 		buttonUp(deviceIdx, code, timestamp - mTimestampClockOffset);
 	}
 
-	void Input::buttonDown(UINT32 deviceIdx, ButtonCode code, UINT64 timestamp)
+	void Input::ButtonDown(UINT32 deviceIdx, ButtonCode code, UINT64 timestamp)
 	{
 		Lock Lock(mMutex);
 
@@ -352,7 +352,7 @@ namespace bs
 		mButtonDownEvents[0].push_back(btnEvent);
 	}
 
-	void Input::buttonUp(UINT32 deviceIdx, ButtonCode code, UINT64 timestamp)
+	void Input::ButtonUp(UINT32 deviceIdx, ButtonCode code, UINT64 timestamp)
 	{
 		Lock Lock(mMutex);
 
@@ -365,7 +365,7 @@ namespace bs
 		mButtonUpEvents[0].push_back(btnEvent);
 	}
 
-	void Input::axisMoved(UINT32 deviceIdx, float value, UINT32 axis)
+	void Input::AxisMoved(UINT32 deviceIdx, float value, UINT32 axis)
 	{
 		// Note: This method must only ever be called from the main thread, as we don't lock access to axis data
 		while (deviceIdx >= (UINT32)mDevices.size())
@@ -378,7 +378,7 @@ namespace bs
 		mDevices[deviceIdx].axes[axis] = value;
 	}
 
-	void Input::cursorMoved(const Vector2I& cursorPos, const OSPointerButtonStates& btnStates)
+	void Input::CursorMoved(const Vector2I& cursorPos, const OSPointerButtonStates& btnStates)
 	{
 		Lock Lock(mMutex);
 
@@ -386,7 +386,7 @@ namespace bs
 		mPointerState = btnStates;
 	}
 
-	void Input::cursorPressed(const Vector2I& cursorPos, OSMouseButton button, const OSPointerButtonStates& btnStates)
+	void Input::CursorPressed(const Vector2I& cursorPos, OSMouseButton button, const OSPointerButtonStates& btnStates)
 	{
 		Lock Lock(mMutex);
 
@@ -420,7 +420,7 @@ namespace bs
 		mPointerPressedEvents[0].push_back(event);
 	}
 
-	void Input::cursorReleased(const Vector2I& cursorPos, OSMouseButton button, const OSPointerButtonStates& btnStates)
+	void Input::CursorReleased(const Vector2I& cursorPos, OSMouseButton button, const OSPointerButtonStates& btnStates)
 	{
 		Lock Lock(mMutex);
 
@@ -454,7 +454,7 @@ namespace bs
 		mPointerReleasedEvents[0].push_back(event);
 	}
 
-	void Input::cursorDoubleClick(const Vector2I& cursorPos, const OSPointerButtonStates& btnStates)
+	void Input::CursorDoubleClick(const Vector2I& cursorPos, const OSPointerButtonStates& btnStates)
 	{
 		Lock Lock(mMutex);
 
@@ -473,7 +473,7 @@ namespace bs
 		mPointerDoubleClickEvents[0].push_back(event);
 	}
 
-	void Input::inputCommandEntered(InputCommandType commandType)
+	void Input::InputCommandEntered(InputCommandType commandType)
 	{
 		Lock Lock(mMutex);
 
@@ -481,14 +481,14 @@ namespace bs
 		mCommandEvents[0].push_back(commandType);
 	}
 
-	void Input::mouseWheelScrolled(float scrollPos)
+	void Input::MouseWheelScrolled(float scrollPos)
 	{
 		Lock Lock(mMutex);
 
 		mMouseScroll = scrollPos;
 	}
 
-	void Input::charInput(UINT32 chr)
+	void Input::CharInput(UINT32 chr)
 	{
 		Lock Lock(mMutex);
 
@@ -499,7 +499,7 @@ namespace bs
 		mTextInputEvents[0].push_back(textInputEvent);
 	}
 
-	float Input::getAxisValue(UINT32 type, UINT32 deviceIdx) const
+	float Input::GetAxisValue(UINT32 type, UINT32 deviceIdx) const
 	{
 		if (deviceIdx >= (UINT32)mDevices.size())
 			return 0.0f;
@@ -511,7 +511,7 @@ namespace bs
 		return axes[type];
 	}
 
-	bool Input::isButtonHeld(ButtonCode button, UINT32 deviceIdx) const
+	bool Input::IsButtonHeld(ButtonCode button, UINT32 deviceIdx) const
 	{
 		if (deviceIdx >= (UINT32)mDevices.size())
 			return false;
@@ -521,7 +521,7 @@ namespace bs
 			mDevices[deviceIdx].keyStates[button & 0x0000FFFF] == ButtonState::ToggledOnOff;
 	}
 
-	bool Input::isButtonUp(ButtonCode button, UINT32 deviceIdx) const
+	bool Input::IsButtonUp(ButtonCode button, UINT32 deviceIdx) const
 	{
 		if (deviceIdx >= (UINT32)mDevices.size())
 			return false;
@@ -530,7 +530,7 @@ namespace bs
 			mDevices[deviceIdx].keyStates[button & 0x0000FFFF] == ButtonState::ToggledOnOff;
 	}
 
-	bool Input::isButtonDown(ButtonCode button, UINT32 deviceIdx) const
+	bool Input::IsButtonDown(ButtonCode button, UINT32 deviceIdx) const
 	{
 		if (deviceIdx >= (UINT32)mDevices.size())
 			return false;
@@ -539,36 +539,36 @@ namespace bs
 			mDevices[deviceIdx].keyStates[button & 0x0000FFFF] == ButtonState::ToggledOnOff;
 	}
 
-	bool Input::isPointerButtonHeld(PointerEventButton pointerButton) const
+	bool Input::IsPointerButtonHeld(PointerEventButton pointerButton) const
 	{
 		return mPointerButtonStates[(UINT32)pointerButton] == ButtonState::On ||
 			mPointerButtonStates[(UINT32)pointerButton] == ButtonState::ToggledOn ||
 			mPointerButtonStates[(UINT32)pointerButton] == ButtonState::ToggledOnOff;
 	}
 
-	bool Input::isPointerButtonUp(PointerEventButton pointerButton) const
+	bool Input::IsPointerButtonUp(PointerEventButton pointerButton) const
 	{
 		return mPointerButtonStates[(UINT32)pointerButton] == ButtonState::ToggledOff ||
 			mPointerButtonStates[(UINT32)pointerButton] == ButtonState::ToggledOnOff;
 	}
 
-	bool Input::isPointerButtonDown(PointerEventButton pointerButton) const
+	bool Input::IsPointerButtonDown(PointerEventButton pointerButton) const
 	{
 		return mPointerButtonStates[(UINT32)pointerButton] == ButtonState::ToggledOn ||
 			mPointerButtonStates[(UINT32)pointerButton] == ButtonState::ToggledOnOff;
 	}
 
-	bool Input::isPointerDoubleClicked() const
+	bool Input::IsPointerDoubleClicked() const
 	{
 		return mPointerDoubleClicked;
 	}
 
-	Vector2I Input::getPointerPosition() const
+	Vector2I Input::GetPointerPosition() const
 	{
 		return mPointerPosition;
 	}
 
-	String Input::getDeviceName(InputDevice type, UINT32 idx)
+	String Input::GetDeviceName(InputDevice type, UINT32 idx)
 	{
 		switch(type)
 		{
@@ -592,12 +592,12 @@ namespace bs
 		}
 	}
 
-	void Input::setMouseSmoothing(bool enable)
+	void Input::SetMouseSmoothing(bool enable)
 	{
 		mMouseSmoothingEnabled = enable;
 	}
 
-	float Input::smoothMouse(float value, UINT32 idx)
+	float Input::SmoothMouse(float value, UINT32 idx)
 	{
 		UINT32 sampleCount = 1;
 
@@ -639,6 +639,6 @@ namespace bs
 
 	Input& GInput()
 	{
-		return Input::instance();
+		return Input::Instance();
 	}
 }

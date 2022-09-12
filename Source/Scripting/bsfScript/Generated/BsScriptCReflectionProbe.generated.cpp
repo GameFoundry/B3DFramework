@@ -17,7 +17,7 @@ namespace bs
 	{
 	}
 
-	void ScriptCReflectionProbe::initRuntimeData()
+	void ScriptCReflectionProbe::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getType", (void*)&ScriptCReflectionProbe::Internal_getType);
 		metaData.scriptClass->addInternalCall("Internal_setType", (void*)&ScriptCReflectionProbe::Internal_setType);

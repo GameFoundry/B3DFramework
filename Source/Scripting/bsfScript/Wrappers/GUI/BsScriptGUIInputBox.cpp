@@ -22,7 +22,7 @@ namespace bs
 
 	}
 
-	void ScriptGUIInputBox::initRuntimeData()
+	void ScriptGUIInputBox::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptGUIInputBox::internal_createInstance);
 		metaData.scriptClass->addInternalCall("Internal_GetText", (void*)&ScriptGUIInputBox::internal_getText);
@@ -67,13 +67,13 @@ namespace bs
 		inputBox->setTint(*color);
 	}
 
-	void ScriptGUIInputBox::onChanged(const String& newValue)
+	void ScriptGUIInputBox::OnChanged(const String& newValue)
 	{
 		MonoString* monoValue = MonoUtil::stringToMono(newValue);
 		MonoUtil::invokeThunk(onChangedThunk, getManagedInstance(), monoValue);
 	}
 
-	void ScriptGUIInputBox::onConfirmed()
+	void ScriptGUIInputBox::OnConfirmed()
 	{
 		MonoUtil::invokeThunk(onConfirmedThunk, getManagedInstance());
 	}

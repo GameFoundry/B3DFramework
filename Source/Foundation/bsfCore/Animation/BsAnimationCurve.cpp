@@ -354,7 +354,7 @@ namespace bs
 		{
 			calculateCoeffs(lhs, rhs, time, coeffs);
 
-			return impl::evaluateCubic(time, lhs.time, rhs.time, coeffs);
+			return impl::EvaluateCubic(time, lhs.time, rhs.time, coeffs);
 		}
 
 		template<>
@@ -610,7 +610,7 @@ namespace bs
 
 		// If time is within cache, evaluate it directly
 		if (time >= cache.cachedCurveStart && time < cache.cachedCurveEnd)
-			return impl::evaluateCubic(time, cache.cachedCurveStart, cache.cachedCurveEnd, cache.cachedCubicCoefficients);
+			return impl::EvaluateCubic(time, cache.cachedCurveStart, cache.cachedCurveEnd, cache.cachedCubicCoefficients);
 
 		// Clamp to start, cache constant of the first key and return
 		if(time < mStart)
@@ -654,7 +654,7 @@ namespace bs
 		cache.cachedCurveStart = leftKey.time;
 		cache.cachedCurveEnd = rightKey.time;
 
-		return impl::evaluateAndUpdateCache(leftKey, rightKey, time, cache.cachedCubicCoefficients);
+		return impl::EvaluateAndUpdateCache(leftKey, rightKey, time, cache.cachedCubicCoefficients);
 	}
 
 	template <class T>
@@ -677,7 +677,7 @@ namespace bs
 		if (leftKeyIdx == rightKeyIdx)
 			return leftKey.value;
 
-		return impl::evaluate(leftKey, rightKey, time);
+		return impl::Evaluate(leftKey, rightKey, time);
 	}
 
 	template <class T>
@@ -864,7 +864,7 @@ namespace bs
 	template <class T>
 	TKeyframe<T> TAnimationCurve<T>::evaluateKey(const KeyFrame& lhs, const KeyFrame& rhs, float time) const
 	{
-		return impl::evaluateKey(lhs, rhs, time);
+		return impl::EvaluateKey(lhs, rhs, time);
 	}
 
 	template <class T>

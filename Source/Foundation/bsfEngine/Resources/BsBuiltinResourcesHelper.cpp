@@ -422,7 +422,7 @@ namespace bs
 		return output;
 	}
 
-	bool BuiltinResourcesHelper::updateJSON(const Path& folder, AssetType type, nlohmann::json& entries)
+	bool BuiltinResourcesHelper::UpdateJSON(const Path& folder, AssetType type, nlohmann::json& entries)
 	{
 		UnorderedSet<Path> existingEntries;
 		for(auto& entry : entries)
@@ -580,7 +580,7 @@ namespace bs
 		}
 	}
 
-	void BuiltinResourcesHelper::writeTimestamp(const Path& file)
+	void BuiltinResourcesHelper::WriteTimestamp(const Path& file)
 	{
 		SPtr<DataStream> fileStream = FileSystem::createAndOpenFile(file);
 
@@ -621,7 +621,7 @@ namespace bs
 		return 0;
 	}
 
-	bool BuiltinResourcesHelper::verifyAndReportShader(const HShader& shader)
+	bool BuiltinResourcesHelper::VerifyAndReportShader(const HShader& shader)
 	{
 		if(!shader.isLoaded(false) || shader->getNumTechniques() == 0)
 		{
@@ -684,7 +684,7 @@ namespace bs
 		return true;
 	}
 
-	void BuiltinResourcesHelper::updateShaderBytecode(const Path& path)
+	void BuiltinResourcesHelper::UpdateShaderBytecode(const Path& path)
 	{
 		HShader shader = gResources().load<Shader>(path, ResourceLoadFlag::KeepSourceData);
 		if (!shader)
@@ -882,7 +882,7 @@ namespace bs
 	{ }
 
 
-	HSpriteTexture BuiltinResourceGUIElementStyleLoader::loadTexture(const String& name) const
+	HSpriteTexture BuiltinResourceGUIElementStyleLoader::LoadTexture(const String& name) const
 	{
 		Path texturePath = mTexturePath;
 		texturePath.append(u8"sprite_" + name + u8".asset");
@@ -890,7 +890,7 @@ namespace bs
 		return GResources().load<SpriteTexture>(texturePath);
 	}
 
-	HFont BuiltinResourceGUIElementStyleLoader::loadFont(const String& name) const
+	HFont BuiltinResourceGUIElementStyleLoader::LoadFont(const String& name) const
 	{
 		Path fontPath = mFontPath;
 		fontPath.append(name + u8".asset");

@@ -15,7 +15,7 @@ namespace bs
 {
 	const float GUICanvas::LINE_SMOOTH_BORDER_WIDTH = 3.0f;
 
-	const String& GUICanvas::getGUITypeName()
+	const String& GUICanvas::GetGUITypeName()
 	{
 		static String name = "Canvas";
 		return name;
@@ -40,12 +40,12 @@ namespace bs
 		return new (bs_alloc<GUICanvas>()) GUICanvas(getStyleName<GUICanvas>(styleName), GUIDimensions::create());
 	}
 
-	void GUICanvas::drawLine(const Vector2I& a, const Vector2I& b, const Color& color, UINT8 depth)
+	void GUICanvas::DrawLine(const Vector2I& a, const Vector2I& b, const Color& color, UINT8 depth)
 	{
 		drawPolyLine({ a, b }, color, depth);
 	}
 
-	void GUICanvas::drawPolyLine(const Vector<Vector2I>& vertices, const Color& color, UINT8 depth)
+	void GUICanvas::DrawPolyLine(const Vector<Vector2I>& vertices, const Color& color, UINT8 depth)
 	{
 		if(vertices.size() < 2)
 			return;
@@ -98,7 +98,7 @@ namespace bs
 		_markContentAsDirty();
 	}
 
-	void GUICanvas::drawTriangleStrip(const Vector<Vector2I>& vertices, const Color& color, UINT8 depth)
+	void GUICanvas::DrawTriangleStrip(const Vector<Vector2I>& vertices, const Color& color, UINT8 depth)
 	{
 		if (vertices.size() < 3)
 		{
@@ -144,7 +144,7 @@ namespace bs
 		_markContentAsDirty();
 	}
 
-	void GUICanvas::drawTriangleList(const Vector<Vector2I>& vertices, const Color& color, UINT8 depth)
+	void GUICanvas::DrawTriangleList(const Vector<Vector2I>& vertices, const Color& color, UINT8 depth)
 	{
 		if (vertices.size() < 3 || vertices.size() % 3 != 0)
 		{
@@ -195,7 +195,7 @@ namespace bs
 		_markContentAsDirty();
 	}
 
-	void GUICanvas::clear()
+	void GUICanvas::Clear()
 	{
 		for (auto& element : mElements)
 		{
@@ -219,7 +219,7 @@ namespace bs
 		mForceTriangleBuild = false;
 	}
 
-	void GUICanvas::updateRenderElementsInternal()
+	void GUICanvas::UpdateRenderElementsInternal()
 	{
 		Vector2 Offset((float)mLayoutData.area.x, (float)mLayoutData.area.y);
 		Rect2I clipRect = mLayoutData.getLocalClipRect();
@@ -428,7 +428,7 @@ namespace bs
 		}
 	}
 
-	void GUICanvas::buildImageElement(const CanvasElement& element)
+	void GUICanvas::BuildImageElement(const CanvasElement& element)
 	{
 		assert(element.type == CanvasElementType::Image);
 
@@ -455,7 +455,7 @@ namespace bs
 		element.imageSprite->update(desc, (UINT64)_getParentWidget());
 	}
 
-	void GUICanvas::buildTextElement(const CanvasElement& element)
+	void GUICanvas::BuildTextElement(const CanvasElement& element)
 	{
 		assert(element.type == CanvasElementType::Text);
 
@@ -470,7 +470,7 @@ namespace bs
 		element.textSprite->update(desc, (UINT64)_getParentWidget());
 	}
 
-	void GUICanvas::buildTriangleElement(const CanvasElement& element, const Vector2& offset, const Rect2I& clipRect) const
+	void GUICanvas::BuildTriangleElement(const CanvasElement& element, const Vector2& offset, const Rect2I& clipRect) const
 	{
 		assert(element.type == CanvasElementType::Triangle || element.type == CanvasElementType::Line);
 
@@ -563,7 +563,7 @@ namespace bs
 		}
 	}
 
-	void GUICanvas::buildAllTriangleElementsIfDirty(const Vector2& offset, const Rect2I& clipRect) const
+	void GUICanvas::BuildAllTriangleElementsIfDirty(const Vector2& offset, const Rect2I& clipRect) const
 	{
 		// We need to rebuild if new triangle element(s) were added, or if offset or clip rectangle changed
 		bool isDirty = mForceTriangleBuild || (mLastOffset != offset) || (mLastClipRect != clipRect);
@@ -585,7 +585,7 @@ namespace bs
 		mForceTriangleBuild = false;
 	}
 
-	const GUICanvas::CanvasElement& GUICanvas::findElement(UINT32 renderElementIdx) const
+	const GUICanvas::CanvasElement& GUICanvas::FindElement(UINT32 renderElementIdx) const
 	{
 		INT32 start = 0;
 		INT32 end = (INT32)(mElements.size() - 1);

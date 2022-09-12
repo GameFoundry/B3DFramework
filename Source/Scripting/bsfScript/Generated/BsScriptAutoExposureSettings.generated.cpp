@@ -12,7 +12,7 @@ namespace bs
 	{
 	}
 
-	void ScriptAutoExposureSettings::initRuntimeData()
+	void ScriptAutoExposureSettings::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_AutoExposureSettings", (void*)&ScriptAutoExposureSettings::Internal_AutoExposureSettings);
 		metaData.scriptClass->addInternalCall("Internal_gethistogramLog2Min", (void*)&ScriptAutoExposureSettings::Internal_gethistogramLog2Min);

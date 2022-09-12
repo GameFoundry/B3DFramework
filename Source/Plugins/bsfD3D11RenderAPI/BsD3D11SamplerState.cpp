@@ -19,7 +19,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_SamplerState);
 	}
 
-	void D3D11SamplerState::createInternal()
+	void D3D11SamplerState::CreateInternal()
 	{
 		D3D11_SAMPLER_DESC samplerState;
 		ZeroMemory(&samplerState, sizeof(D3D11_SAMPLER_DESC));

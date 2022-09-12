@@ -133,7 +133,7 @@ namespace bs
 		close();
 	}
 
-	bool FLACDecoder::isValid(const SPtr<DataStream>& stream, UINT32 offset)
+	bool FLACDecoder::IsValid(const SPtr<DataStream>& stream, UINT32 offset)
 	{
 		stream->seek(offset);
 
@@ -155,7 +155,7 @@ namespace bs
 		return valid && !data.error;
 	}
 
-	bool FLACDecoder::open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset)
+	bool FLACDecoder::Open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset)
 	{
 		if (stream == nullptr)
 			return false;
@@ -186,7 +186,7 @@ namespace bs
 		return true;
 	}
 
-	void FLACDecoder::seek(UINT32 offset)
+	void FLACDecoder::Seek(UINT32 offset)
 	{
 		mData.output = nullptr;
 		mData.samplesToRead = 0;
@@ -195,7 +195,7 @@ namespace bs
 		FLAC__stream_decoder_seek_absolute(mDecoder, offset);
 	}
 
-	UINT32 FLACDecoder::read(UINT8* samples, UINT32 numSamples)
+	UINT32 FLACDecoder::Read(UINT8* samples, UINT32 numSamples)
 	{
 		UINT32 overflowSize = (UINT32)mData.overflow.size();
 		UINT32 overflowNumSamples = 0;
@@ -233,7 +233,7 @@ namespace bs
 		return numSamples - mData.samplesToRead;
 	}
 
-	void FLACDecoder::close()
+	void FLACDecoder::Close()
 	{
 		if (mDecoder != nullptr)
 		{

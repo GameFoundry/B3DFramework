@@ -9,7 +9,7 @@ namespace bs
 		:test(test), name(name)
 	{ }
 
-	void TestSuite::run(TestOutput& output)
+	void TestSuite::Run(TestOutput& output)
 	{
 		mOutput = &output;
 
@@ -30,17 +30,17 @@ namespace bs
 		shutDown();
 	}
 
-	void TestSuite::add(const SPtr<TestSuite>& suite)
+	void TestSuite::Add(const SPtr<TestSuite>& suite)
 	{
 		mSuites.push_back(suite);
 	}
 
-	void TestSuite::addTest(Func test, const String& name)
+	void TestSuite::AddTest(Func test, const String& name)
 	{
 		mTests.push_back(TestEntry(test, name));
 	}
 
-	void TestSuite::assertment(bool success, const String& desc, const String& file, long line)
+	void TestSuite::Assertment(bool success, const String& desc, const String& file, long line)
 	{
 		if (!success)
 			mOutput->outputFail(desc, mActiveTestName, file, line);

@@ -33,7 +33,7 @@ namespace bs
 		}
 	}
 
-	Map<String, UINT32>& VirtualButton::getUniqueButtonIds()
+	Map<String, UINT32>& VirtualButton::GetUniqueButtonIds()
 	{
 		static Map<String, UINT32> uniqueButtonIds;
 		return uniqueButtonIds;
@@ -52,7 +52,7 @@ namespace bs
 		}
 	}
 
-	void InputConfiguration::registerButton(const String& name, ButtonCode buttonCode, ButtonModifier modifiers, bool repeatable)
+	void InputConfiguration::RegisterButton(const String& name, ButtonCode buttonCode, ButtonModifier modifiers, bool repeatable)
 	{
 		Vector<VirtualButtonData>& btnData = mButtons[buttonCode & 0x0000FFFF];
 
@@ -78,7 +78,7 @@ namespace bs
 		btn.button = VirtualButton(name);
 	}
 
-	void InputConfiguration::unregisterButton(const String& name)
+	void InputConfiguration::UnregisterButton(const String& name)
 	{
 		Vector<UINT32> toRemove;
 
@@ -102,7 +102,7 @@ namespace bs
 		}
 	}
 
-	void InputConfiguration::registerAxis(const String& name, const VIRTUAL_AXIS_DESC& desc)
+	void InputConfiguration::RegisterAxis(const String& name, const VIRTUAL_AXIS_DESC& desc)
 	{
 		VirtualAxis Axis(name);
 
@@ -114,7 +114,7 @@ namespace bs
 		mAxes[axis.axisIdentifier].axis = axis;
 	}
 
-	void InputConfiguration::unregisterAxis(const String& name)
+	void InputConfiguration::UnregisterAxis(const String& name)
 	{
 		for (UINT32 i = 0; i < (UINT32)mAxes.size(); i++)
 		{

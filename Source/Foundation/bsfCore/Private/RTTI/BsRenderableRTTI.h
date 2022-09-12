@@ -49,7 +49,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return Renderable::createEmpty();
+			return Renderable::CreateEmpty();
 		}
 	};
 

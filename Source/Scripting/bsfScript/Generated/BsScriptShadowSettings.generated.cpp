@@ -12,7 +12,7 @@ namespace bs
 	{
 	}
 
-	void ScriptShadowSettings::initRuntimeData()
+	void ScriptShadowSettings::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_ShadowSettings", (void*)&ScriptShadowSettings::Internal_ShadowSettings);
 		metaData.scriptClass->addInternalCall("Internal_getdirectionalShadowDistance", (void*)&ScriptShadowSettings::Internal_getdirectionalShadowDistance);

@@ -13,7 +13,7 @@ namespace bs
 	{
 	}
 
-	void ScriptAnimationSplitInfo::initRuntimeData()
+	void ScriptAnimationSplitInfo::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_AnimationSplitInfo", (void*)&ScriptAnimationSplitInfo::Internal_AnimationSplitInfo);
 		metaData.scriptClass->addInternalCall("Internal_AnimationSplitInfo0", (void*)&ScriptAnimationSplitInfo::Internal_AnimationSplitInfo0);

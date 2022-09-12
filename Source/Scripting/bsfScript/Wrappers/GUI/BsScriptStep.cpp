@@ -9,7 +9,7 @@ namespace bs
 	ScriptStep::ScriptStep(MonoObject* instance) : ScriptObject(instance)
 	{ }
 
-	void ScriptStep::initRuntimeData()
+	void ScriptStep::InitRuntimeData()
 	{
 		stepField = metaData.scriptClass->getField("step");
 	}

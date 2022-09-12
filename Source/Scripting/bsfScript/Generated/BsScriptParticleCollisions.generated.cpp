@@ -18,7 +18,7 @@ namespace bs
 		mInternal = value;
 	}
 
-	void ScriptParticleCollisions::initRuntimeData()
+	void ScriptParticleCollisions::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_setPlanes", (void*)&ScriptParticleCollisions::Internal_setPlanes);
 		metaData.scriptClass->addInternalCall("Internal_getPlanes", (void*)&ScriptParticleCollisions::Internal_getPlanes);

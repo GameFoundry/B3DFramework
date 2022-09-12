@@ -46,7 +46,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return RenderStateManager::instance()._createBlendStatePtr(BLEND_STATE_DESC());
+			return RenderStateManager::Instance()._createBlendStatePtr(BLEND_STATE_DESC());
 		}
 	};
 

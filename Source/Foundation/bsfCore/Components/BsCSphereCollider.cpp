@@ -19,7 +19,7 @@ namespace bs
 		setName("SphereCollider");
 	}
 
-	void CSphereCollider::setRadius(float radius)
+	void CSphereCollider::SetRadius(float radius)
 	{
 		float clampedRadius = std::max(radius, 0.01f);
 		if (mRadius == clampedRadius)
@@ -36,7 +36,7 @@ namespace bs
 		}
 	}
 
-	void CSphereCollider::setCenter(const Vector3& center)
+	void CSphereCollider::SetCenter(const Vector3& center)
 	{
 		if (mLocalPosition == center)
 			return;
@@ -47,7 +47,7 @@ namespace bs
 			updateTransform();
 	}
 
-	SPtr<Collider> CSphereCollider::createInternal()
+	SPtr<Collider> CSphereCollider::CreateInternal()
 	{
 		const SPtr<SceneInstance>& scene = SO()->getScene();
 		const Transform& tfrm = SO()->getTransform();
@@ -61,11 +61,11 @@ namespace bs
 
 	RTTITypeBase* CSphereCollider::getRTTIStatic()
 	{
-		return CSphereColliderRTTI::instance();
+		return CSphereColliderRTTI::Instance();
 	}
 
 	RTTITypeBase* CSphereCollider::getRTTI() const
 	{
-		return CSphereCollider::getRTTIStatic();
+		return CSphereCollider::GetRTTIStatic();
 	}
 }

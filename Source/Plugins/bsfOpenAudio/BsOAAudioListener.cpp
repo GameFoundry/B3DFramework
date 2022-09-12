@@ -17,7 +17,7 @@ namespace bs
 		gOAAudio()._unregisterListener(this);
 	}
 
-	void OAAudioListener::setTransform(const Transform& transform)
+	void OAAudioListener::SetTransform(const Transform& transform)
 	{
 		AudioListener::setTransform(transform);
 
@@ -34,7 +34,7 @@ namespace bs
 		updateOrientation(orientation);
 	}
 
-	void OAAudioListener::setVelocity(const Vector3& velocity)
+	void OAAudioListener::SetVelocity(const Vector3& velocity)
 	{
 		AudioListener::setVelocity(velocity);
 
@@ -48,7 +48,7 @@ namespace bs
 		updateVelocity();
 	}
 
-	void OAAudioListener::rebuild()
+	void OAAudioListener::Rebuild()
 	{
 		auto contexts = gOAAudio()._getContexts();
 		
@@ -67,7 +67,7 @@ namespace bs
 		updateVolume(globalVolume);
 	}
 
-	std::array<float, 6> OAAudioListener::getOrientation() const
+	std::array<float, 6> OAAudioListener::GetOrientation() const
 	{
 		Vector3 direction = getTransform().getForward();
 		Vector3 up = getTransform().getUp();
@@ -83,24 +83,24 @@ namespace bs
 		}};
 	}
 
-	void OAAudioListener::updatePosition()
+	void OAAudioListener::UpdatePosition()
 	{
 		Vector3 position = getTransform().getPosition();
 
 		alListener3f(AL_POSITION, position.x, position.y, position.z);
 	}
 
-	void OAAudioListener::updateOrientation(const std::array<float, 6>& orientation)
+	void OAAudioListener::UpdateOrientation(const std::array<float, 6>& orientation)
 	{
 		alListenerfv(AL_ORIENTATION, orientation.data());
 	}
 
-	void OAAudioListener::updateVelocity()
+	void OAAudioListener::UpdateVelocity()
 	{
 		alListener3f(AL_VELOCITY, mVelocity.x, mVelocity.y, mVelocity.z);
 	}
 
-	void OAAudioListener::updateVolume(float volume)
+	void OAAudioListener::UpdateVolume(float volume)
 	{
 		alListenerf(AL_GAIN, volume);
 	}

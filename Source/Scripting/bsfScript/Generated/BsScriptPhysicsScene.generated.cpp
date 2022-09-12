@@ -21,7 +21,7 @@ namespace bs
 	{
 	}
 
-	void ScriptPhysicsScene::initRuntimeData()
+	void ScriptPhysicsScene::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_rayCast", (void*)&ScriptPhysicsScene::Internal_rayCast);
 		metaData.scriptClass->addInternalCall("Internal_rayCast0", (void*)&ScriptPhysicsScene::Internal_rayCast0);

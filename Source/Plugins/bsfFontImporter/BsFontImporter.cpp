@@ -24,7 +24,7 @@ namespace bs
 		mExtensions.push_back(u8"otf");
 	}
 
-	bool FontImporter::isExtensionSupported(const String& ext) const
+	bool FontImporter::IsExtensionSupported(const String& ext) const
 	{
 		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
@@ -32,18 +32,18 @@ namespace bs
 		return Find(mExtensions.begin(), mExtensions.end(), lowerCaseExt) != mExtensions.end();
 	}
 
-	bool FontImporter::isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
+	bool FontImporter::IsMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
 	{
 		// Not used
 		return false;
 	}
 
-	SPtr<ImportOptions> FontImporter::createImportOptions() const
+	SPtr<ImportOptions> FontImporter::CreateImportOptions() const
 	{
 		return bs_shared_ptr_new<FontImportOptions>();
 	}
 
-	SPtr<Resource> FontImporter::import(const Path& filePath, SPtr<const ImportOptions> importOptions)
+	SPtr<Resource> FontImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
 		const FontImportOptions* fontImportOptions = static_cast<const FontImportOptions*>(importOptions.get());
 

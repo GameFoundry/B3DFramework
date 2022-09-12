@@ -16,7 +16,7 @@ namespace bs
 	{
 	}
 
-	void ScriptStringTableManager::initRuntimeData()
+	void ScriptStringTableManager::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_setActiveLanguage", (void*)&ScriptStringTableManager::Internal_setActiveLanguage);
 		metaData.scriptClass->addInternalCall("Internal_getActiveLanguage", (void*)&ScriptStringTableManager::Internal_getActiveLanguage);

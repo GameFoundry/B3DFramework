@@ -14,7 +14,7 @@ namespace bs
 		mData = bs_shared_ptr_new<GameObjectHandleData>(ptr->mInstanceData);
 	}
 
-	bool GameObjectHandleBase::isDestroyed(bool checkQueued) const
+	bool GameObjectHandleBase::IsDestroyed(bool checkQueued) const
 	{
 		return mData->mPtr == nullptr || mData->mPtr->object == nullptr
 			|| (checkQueued && mData->mPtr->object->_getIsDestroyed());
@@ -25,7 +25,7 @@ namespace bs
 		mData->mPtr = object->mInstanceData;
 	}
 
-	void GameObjectHandleBase::throwIfDestroyed() const
+	void GameObjectHandleBase::ThrowIfDestroyed() const
 	{
 		if(isDestroyed())
 		{
@@ -35,11 +35,11 @@ namespace bs
 
 	RTTITypeBase* GameObjectHandleBase::getRTTIStatic()
 	{
-		return GameObjectHandleRTTI::instance();
+		return GameObjectHandleRTTI::Instance();
 	}
 
 	RTTITypeBase* GameObjectHandleBase::getRTTI() const
 	{
-		return GameObjectHandleBase::getRTTIStatic();
+		return GameObjectHandleBase::GetRTTIStatic();
 	}
 }

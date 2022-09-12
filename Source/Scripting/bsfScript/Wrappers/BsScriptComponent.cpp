@@ -22,7 +22,7 @@ namespace bs
 		:ScriptGameObjectBase(instance)
 	{ }
 
-	void ScriptComponentBase::destroy(bool assemblyRefresh)
+	void ScriptComponentBase::Destroy(bool assemblyRefresh)
 	{
 		// It's possible that managed component is destroyed but a reference to it is still kept during assembly refresh.
 		// Such components shouldn't be restored so we delete them.
@@ -32,7 +32,7 @@ namespace bs
 			ScriptGameObjectManager::instance().destroyScriptComponent(this);
 	}
 
-	bool ScriptComponentBase::checkIfDestroyed(const GameObjectHandleBase& handle)
+	bool ScriptComponentBase::CheckIfDestroyed(const GameObjectHandleBase& handle)
 	{
 		if (handle.isDestroyed())
 		{
@@ -49,7 +49,7 @@ namespace bs
 		assert(instance != nullptr);
 	}
 
-	void ScriptComponent::initRuntimeData()
+	void ScriptComponent::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_AddComponent", (void*)&ScriptComponent::internal_addComponent);
 		metaData.scriptClass->addInternalCall("Internal_GetComponent", (void*)&ScriptComponent::internal_getComponent);

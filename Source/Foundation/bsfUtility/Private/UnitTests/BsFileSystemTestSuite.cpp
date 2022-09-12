@@ -36,7 +36,7 @@ namespace bs
 		return content;
 	}
 
-	void FileSystemTestSuite::startUp()
+	void FileSystemTestSuite::StartUp()
 	{
 		mTestDirectory = FileSystem::getWorkingDirectoryPath() + testDirectoryName;
 		if (FileSystem::exists(mTestDirectory))
@@ -52,7 +52,7 @@ namespace bs
 		}
 	}
 
-	void FileSystemTestSuite::shutDown()
+	void FileSystemTestSuite::ShutDown()
 	{
 		FileSystem::remove(mTestDirectory, true);
 		if (FileSystem::exists(mTestDirectory))
@@ -169,7 +169,7 @@ namespace bs
 		BS_TEST_ASSERT(!FileSystem::exists(path));
 	}
 
-	void FileSystemTestSuite::testMove()
+	void FileSystemTestSuite::TestMove()
 	{
 		Path source = mTestDirectory + "move-source-1";
 		Path destination = mTestDirectory + "move-destination-1";
@@ -210,7 +210,7 @@ namespace bs
 		BS_TEST_ASSERT(readFile(destination) == "move-data-destination-3");
 	}
 
-	void FileSystemTestSuite::testCopy()
+	void FileSystemTestSuite::TestCopy()
 	{
 		Path source = mTestDirectory + "copy-source-1";
 		Path destination = mTestDirectory + "copy-destination-1";
@@ -257,7 +257,7 @@ namespace bs
 
 #define CONTAINS(v, e) (std::find(v.begin(), v.end(), e) != v.end())
 
-	void FileSystemTestSuite::testGetChildren()
+	void FileSystemTestSuite::TestGetChildren()
 	{
 		Path path = mTestDirectory + "get-children-test/";
 		FileSystem::createDir(path);
@@ -281,7 +281,7 @@ namespace bs
 		BS_TEST_ASSERT(CONTAINS(directories, path + "baz"));
 	}
 
-	void FileSystemTestSuite::testGetLastModifiedTime()
+	void FileSystemTestSuite::TestGetLastModifiedTime()
 	{
 		std::time_t beforeTime;
 		time(&beforeTime);
@@ -293,7 +293,7 @@ namespace bs
 		BS_TEST_ASSERT(mtime <= beforeTime + 10);
 	}
 
-	void FileSystemTestSuite::testGetTempDirectoryPath()
+	void FileSystemTestSuite::TestGetTempDirectoryPath()
 	{
 		Path path = FileSystem::getTempDirectoryPath();
 		/* No judging. */

@@ -25,7 +25,7 @@ namespace bs
 		:mAlloc(&gFrameAlloc())
 	{ }
 
-	void BinarySerializer::encode(IReflectable* object, const SPtr<DataStream>& stream, BinarySerializerFlags flags, SerializationContext* context)
+	void BinarySerializer::Encode(IReflectable* object, const SPtr<DataStream>& stream, BinarySerializerFlags flags, SerializationContext* context)
 	{
 		mObjectsToEncode.clear();
 		mObjectAddrToId.clear();
@@ -216,7 +216,7 @@ namespace bs
 		return rootObject;
 	}
 
-	bool BinarySerializer::encodeEntry(IReflectable* object, UINT32 objectId, BufferedBitstreamWriter& stream, BinarySerializerFlags flags)
+	bool BinarySerializer::EncodeEntry(IReflectable* object, UINT32 objectId, BufferedBitstreamWriter& stream, BinarySerializerFlags flags)
 	{
 		const bool writeMeta = !flags.isSet(BinarySerializerFlag::NoMeta);
 		const bool compress = flags.isSet(BinarySerializerFlag::Compress);
@@ -968,7 +968,7 @@ namespace bs
 		return false;
 	}
 
-	bool BinarySerializer::complexTypeToStream(IReflectable* object, BufferedBitstreamWriter& stream, BinarySerializerFlags flags)
+	bool BinarySerializer::ComplexTypeToStream(IReflectable* object, BufferedBitstreamWriter& stream, BinarySerializerFlags flags)
 	{
 		if (object != nullptr)
 		{
@@ -996,7 +996,7 @@ namespace bs
 		return true;
 	}
 
-	UINT32 BinarySerializer::encodeFieldMetaData(const RTTIFieldSchema& schema, bool terminator)
+	UINT32 BinarySerializer::EncodeFieldMetaData(const RTTIFieldSchema& schema, bool terminator)
 	{
 		// If O == 0 - Meta contains field information (Encoded using this method)
 		//// Encoding if E = 0: IIII IIII IIII IIII SSSS SSSS ETYP DCAO
@@ -1036,7 +1036,7 @@ namespace bs
 
 	}
 
-	RTTIFieldSchema BinarySerializer::decodeFieldMetaData(UINT32 encodedData, bool& terminator)
+	RTTIFieldSchema BinarySerializer::DecodeFieldMetaData(UINT32 encodedData, bool& terminator)
 	{
 		if(isObjectMetaData(encodedData))
 		{
@@ -1070,13 +1070,13 @@ namespace bs
 		return schema;
 	}
 
-	UINT8 BinarySerializer::encodeFieldTerminator()
+	UINT8 BinarySerializer::EncodeFieldTerminator()
 	{
 		// See the documentation for encodeFieldMetaData() on why we're using this format
 		return 0x40;
 	}
 
-	void BinarySerializer::skipBuiltinType(UINT32 fieldType, BufferedBitstreamReader& stream, bool compressed)
+	void BinarySerializer::SkipBuiltinType(UINT32 fieldType, BufferedBitstreamReader& stream, bool compressed)
 	{
 		switch(fieldType)
 		{
@@ -1107,7 +1107,7 @@ namespace bs
 		}
 	}
 
-	bool BinarySerializer::isFieldTerminator(UINT8 data)
+	bool BinarySerializer::IsFieldTerminator(UINT8 data)
 	{
 		if(isObjectMetaData(data))
 		{
@@ -1118,7 +1118,7 @@ namespace bs
 		return (data & 0x40) != 0;
 	}
 
-	BinarySerializer::ObjectMetaData BinarySerializer::encodeObjectMetaData(UINT32 objId, UINT32 objTypeId, bool isBaseClass)
+	BinarySerializer::ObjectMetaData BinarySerializer::EncodeObjectMetaData(UINT32 objId, UINT32 objTypeId, bool isBaseClass)
 	{
 		// If O == 1 - Meta contains object instance information (Encoded using encodeObjectMetaData)
 		//// Encoding: SSSS SSSS SSSS SSSS xxxx xxxx xxxx xxBO
@@ -1137,7 +1137,7 @@ namespace bs
 		return metaData;
 	}
 
-	void BinarySerializer::decodeObjectMetaData(ObjectMetaData encodedData, UINT32& objId, UINT32& objTypeId, bool& isBaseClass)
+	void BinarySerializer::DecodeObjectMetaData(ObjectMetaData encodedData, UINT32& objId, UINT32& objTypeId, bool& isBaseClass)
 	{
 		if(!isObjectMetaData(encodedData.objectMeta))
 		{
@@ -1149,7 +1149,7 @@ namespace bs
 		objTypeId = encodedData.typeId;
 	}
 
-	UINT32 BinarySerializer::encodeObjectMetaData(UINT32 objId, bool isBaseClass)
+	UINT32 BinarySerializer::EncodeObjectMetaData(UINT32 objId, bool isBaseClass)
 	{
 		// If O == 1 - Meta contains object instance information (Encoded using encodeObjectMetaData)
 		//// Encoding: SSSS SSSS SSSS SSSS xxxx xxxx xxxx xxBO
@@ -1165,7 +1165,7 @@ namespace bs
 		return (objId << 2) | (isBaseClass ? 0x02 : 0) | 0x01;
 	}
 
-	void BinarySerializer::decodeObjectMetaData(UINT32 encodedData, UINT32& objId, bool& isBaseClass)
+	void BinarySerializer::DecodeObjectMetaData(UINT32 encodedData, UINT32& objId, bool& isBaseClass)
 	{
 		if(!isObjectMetaData(encodedData))
 		{
@@ -1177,12 +1177,12 @@ namespace bs
 		isBaseClass = (encodedData & 0x02) != 0;
 	}
 
-	bool BinarySerializer::isObjectMetaData(UINT32 encodedData)
+	bool BinarySerializer::IsObjectMetaData(UINT32 encodedData)
 	{
 		return ((encodedData & 0x01) != 0);
 	}
 
-	UINT32 BinarySerializer::readObjectMetaData(BufferedBitstreamReader& stream, BinarySerializerFlags flags, uint32_t& objId, uint32_t& objTypeId, bool& isBaseType)
+	UINT32 BinarySerializer::ReadObjectMetaData(BufferedBitstreamReader& stream, BinarySerializerFlags flags, uint32_t& objId, uint32_t& objTypeId, bool& isBaseType)
 	{
 		if (!flags.isSet(BinarySerializerFlag::NoMeta))
 		{
@@ -1218,7 +1218,7 @@ namespace bs
 		}
 	}
 
-	UINT32 BinarySerializer::findOrCreatePersistentId(IReflectable* object)
+	UINT32 BinarySerializer::FindOrCreatePersistentId(IReflectable* object)
 	{
 		void* ptrAddress = (void*)object;
 
@@ -1232,7 +1232,7 @@ namespace bs
 		return objId;
 	}
 
-	UINT32 BinarySerializer::registerObjectPtr(SPtr<IReflectable> object)
+	UINT32 BinarySerializer::RegisterObjectPtr(SPtr<IReflectable> object)
 	{
 		if(object == nullptr)
 			return 0;

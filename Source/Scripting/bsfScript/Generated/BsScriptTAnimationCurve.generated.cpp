@@ -20,7 +20,7 @@ namespace bs
 	{
 	}
 
-	void ScriptTAnimationCurvefloat::initRuntimeData()
+	void ScriptTAnimationCurvefloat::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_TAnimationCurve", (void*)&ScriptTAnimationCurvefloat::Internal_TAnimationCurve);
 		metaData.scriptClass->addInternalCall("Internal_evaluate", (void*)&ScriptTAnimationCurvefloat::Internal_evaluate);
@@ -88,7 +88,7 @@ namespace bs
 	{
 	}
 
-	void ScriptTAnimationCurveVector3::initRuntimeData()
+	void ScriptTAnimationCurveVector3::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_TAnimationCurve", (void*)&ScriptTAnimationCurveVector3::Internal_TAnimationCurve);
 		metaData.scriptClass->addInternalCall("Internal_evaluate", (void*)&ScriptTAnimationCurveVector3::Internal_evaluate);
@@ -153,7 +153,7 @@ namespace bs
 	{
 	}
 
-	void ScriptTAnimationCurveVector2::initRuntimeData()
+	void ScriptTAnimationCurveVector2::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_TAnimationCurve", (void*)&ScriptTAnimationCurveVector2::Internal_TAnimationCurve);
 		metaData.scriptClass->addInternalCall("Internal_evaluate", (void*)&ScriptTAnimationCurveVector2::Internal_evaluate);
@@ -218,7 +218,7 @@ namespace bs
 	{
 	}
 
-	void ScriptTAnimationCurveQuaternion::initRuntimeData()
+	void ScriptTAnimationCurveQuaternion::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_TAnimationCurve", (void*)&ScriptTAnimationCurveQuaternion::Internal_TAnimationCurve);
 		metaData.scriptClass->addInternalCall("Internal_evaluate", (void*)&ScriptTAnimationCurveQuaternion::Internal_evaluate);

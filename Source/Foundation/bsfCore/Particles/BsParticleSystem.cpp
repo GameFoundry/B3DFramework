@@ -22,7 +22,7 @@ namespace bs
 
 	RTTITypeBase* ParticleSystemSettings::getRTTIStatic()
 	{
-		return ParticleSystemSettingsRTTI::instance();
+		return ParticleSystemSettingsRTTI::Instance();
 	}
 
 	RTTITypeBase* ParticleSystemSettings::getRTTI() const
@@ -67,7 +67,7 @@ namespace bs
 
 	RTTITypeBase* ParticleVectorFieldSettings::getRTTIStatic()
 	{
-		return ParticleVectorFieldSettingsRTTI::instance();
+		return ParticleVectorFieldSettingsRTTI::Instance();
 	}
 
 	RTTITypeBase* ParticleVectorFieldSettings::getRTTI() const
@@ -76,7 +76,7 @@ namespace bs
 	}
 
 	template<class P>
-	void ParticleDepthCollisionSettings::rttiEnumFields(P p)
+	void ParticleDepthCollisionSettings::RttiEnumFields(P p)
 	{
 		p(enabled);
 		p(restitution);
@@ -86,7 +86,7 @@ namespace bs
 
 	RTTITypeBase* ParticleDepthCollisionSettings::getRTTIStatic()
 	{
-		return ParticleDepthCollisionSettingsRTTI::instance();
+		return ParticleDepthCollisionSettingsRTTI::Instance();
 	}
 
 	RTTITypeBase* ParticleDepthCollisionSettings::getRTTI() const
@@ -108,7 +108,7 @@ namespace bs
 
 	RTTITypeBase* ParticleGpuSimulationSettings::getRTTIStatic()
 	{
-		return ParticleGpuSimulationSettingsRTTI::instance();
+		return ParticleGpuSimulationSettingsRTTI::Instance();
 	}
 
 	RTTITypeBase* ParticleGpuSimulationSettings::getRTTI() const
@@ -139,7 +139,7 @@ namespace bs
 			bs_delete(mParticleSet);
 	}
 		
-	void ParticleSystem::setSettings(const ParticleSystemSettings& settings)
+	void ParticleSystem::SetSettings(const ParticleSystemSettings& settings)
 	{
 		if(settings.useAutomaticSeed != mSettings.useAutomaticSeed)
 		{
@@ -167,13 +167,13 @@ namespace bs
 		markDependenciesDirty();
 	}
 
-	void ParticleSystem::setGpuSimulationSettings(const ParticleGpuSimulationSettings& settings)
+	void ParticleSystem::SetGpuSimulationSettings(const ParticleGpuSimulationSettings& settings)
 	{
 		mGpuSimulationSettings = settings;
 		_markCoreDirty();
 	}
 
-	void ParticleSystem::setLayer(UINT64 layer)
+	void ParticleSystem::SetLayer(UINT64 layer)
 	{
 		const bool isPow2 = layer && !((layer - 1) & layer);
 
@@ -187,13 +187,13 @@ namespace bs
 		_markCoreDirty();
 	}	
 
-	void ParticleSystem::setEmitters(const Vector<SPtr<ParticleEmitter>>& emitters)
+	void ParticleSystem::SetEmitters(const Vector<SPtr<ParticleEmitter>>& emitters)
 	{
 		mEmitters = emitters;
 		_markCoreDirty();
 	}
 
-	void ParticleSystem::setEvolvers(const Vector<SPtr<ParticleEvolver>>& evolvers)
+	void ParticleSystem::SetEvolvers(const Vector<SPtr<ParticleEvolver>>& evolvers)
 	{
 		mEvolvers = evolvers;
 
@@ -212,7 +212,7 @@ namespace bs
 		_markCoreDirty();
 	}
 
-	void ParticleSystem::play()
+	void ParticleSystem::Play()
 	{
 		if(mState == State::Playing)
 			return;
@@ -228,13 +228,13 @@ namespace bs
 		mRandom.setSeed(mSeed);
 	}
 
-	void ParticleSystem::pause()
+	void ParticleSystem::Pause()
 	{
 		if(mState == State::Playing)
 			mState = State::Paused;
 	}
 
-	void ParticleSystem::stop()
+	void ParticleSystem::Stop()
 	{
 		if(mState != State::Playing && mState != State::Paused)
 			return;
@@ -422,12 +422,12 @@ namespace bs
 		return newTime;
 	}
 
-	SPtr<ct::ParticleSystem> ParticleSystem::getCore() const
+	SPtr<ct::ParticleSystem> ParticleSystem::GetCore() const
 	{
 		return std::static_pointer_cast<ct::ParticleSystem>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObject> ParticleSystem::createCore() const
+	SPtr<ct::CoreObject> ParticleSystem::CreateCore() const
 	{
 		ct::ParticleSystem* rawPtr = new (bs_alloc<ct::ParticleSystem>()) ct::ParticleSystem(mId);
 		SPtr<ct::ParticleSystem> ptr = bs_shared_ptr<ct::ParticleSystem>(rawPtr);
@@ -441,7 +441,7 @@ namespace bs
 		markCoreDirty((UINT32)flag);
 	}
 
-	CoreSyncData ParticleSystem::syncToCore(FrameAlloc* allocator)
+	CoreSyncData ParticleSystem::SyncToCore(FrameAlloc* allocator)
 	{
 		UINT32 size = rtti_size(getCoreDirtyFlags()).bytes;
 		size += csync_size((SceneActor&)*this);
@@ -460,7 +460,7 @@ namespace bs
 		return CoreSyncData(data, size);
 	}
 
-	void ParticleSystem::getCoreDependencies(Vector<CoreObject*>& dependencies)
+	void ParticleSystem::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 	{
 		if (mSettings.mesh.isLoaded())
 			dependencies.push_back(mSettings.mesh.get());
@@ -469,7 +469,7 @@ namespace bs
 			dependencies.push_back(mSettings.material.get());
 	}
 
-	SPtr<ParticleSystem> ParticleSystem::create()
+	SPtr<ParticleSystem> ParticleSystem::Create()
 	{
 		SPtr<ParticleSystem> ptr = createEmpty();
 		ptr->initialize();
@@ -477,7 +477,7 @@ namespace bs
 		return ptr;
 	}
 
-	SPtr<ParticleSystem> ParticleSystem::createEmpty()
+	SPtr<ParticleSystem> ParticleSystem::CreateEmpty()
 	{
 		ParticleSystem* rawPtr = new (bs_alloc<ParticleSystem>()) ParticleSystem();
 		SPtr<ParticleSystem> ptr = bs_core_ptr<ParticleSystem>(rawPtr);
@@ -488,12 +488,12 @@ namespace bs
 
 	RTTITypeBase* ParticleSystem::getRTTIStatic()
 	{
-		return ParticleSystemRTTI::instance();
+		return ParticleSystemRTTI::Instance();
 	}
 
 	RTTITypeBase* ParticleSystem::getRTTI() const
 	{
-		return ParticleSystem::getRTTIStatic();
+		return ParticleSystem::GetRTTIStatic();
 	}
 
 	namespace ct
@@ -504,12 +504,12 @@ namespace bs
 				gRenderer()->notifyParticleSystemRemoved(this);
 		}
 
-		void ParticleSystem::initialize()
+		void ParticleSystem::Initialize()
 		{
 			gRenderer()->notifyParticleSystemAdded(this);
 		}
 
-		void ParticleSystem::setLayer(UINT64 layer)
+		void ParticleSystem::SetLayer(UINT64 layer)
 		{
 			const bool isPow2 = layer && !((layer - 1) & layer);
 
@@ -523,7 +523,7 @@ namespace bs
 			_markCoreDirty();
 		}
 
-		void ParticleSystem::syncToCore(const CoreSyncData& data)
+		void ParticleSystem::SyncToCore(const CoreSyncData& data)
 		{
 			Bitstream Stream((uint8_t*)data.getBuffer(), data.getBufferSize());
 

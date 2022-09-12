@@ -31,7 +31,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
 	}
 
-	void VulkanTimerQuery::begin(const SPtr<CommandBuffer>& cb)
+	void VulkanTimerQuery::Begin(const SPtr<CommandBuffer>& cb)
 	{
 		VulkanQueryPool& queryPool = mDevice.getQueryPool();
 
@@ -66,7 +66,7 @@ namespace bs { namespace ct
 		setActive(true);
 	}
 
-	void VulkanTimerQuery::end(const SPtr<CommandBuffer>& cb)
+	void VulkanTimerQuery::End(const SPtr<CommandBuffer>& cb)
 	{
 		if (mQueries.empty())
 		{
@@ -110,7 +110,7 @@ namespace bs { namespace ct
 		mQueries.back().second = endQuery;
 	}
 
-	bool VulkanTimerQuery::isReady() const
+	bool VulkanTimerQuery::IsReady() const
 	{
 		if (!mQueryEndCalled)
 			return false;
@@ -129,7 +129,7 @@ namespace bs { namespace ct
 		return ready;
 	}
 
-	float VulkanTimerQuery::getTimeMs()
+	float VulkanTimerQuery::GetTimeMs()
 	{
 		if (!mQueryFinalized)
 		{

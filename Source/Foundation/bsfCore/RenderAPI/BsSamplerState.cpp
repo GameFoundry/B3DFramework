@@ -24,7 +24,7 @@ namespace bs
 		:mData(desc), mHash(SamplerState::generateHash(desc))
 	{ }
 
-	FilterOptions SamplerProperties::getTextureFiltering(FilterType ft) const
+	FilterOptions SamplerProperties::GetTextureFiltering(FilterType ft) const
 	{
 		switch (ft)
 		{
@@ -39,7 +39,7 @@ namespace bs
 		return mData.minFilter;
 	}
 
-	const Color& SamplerProperties::getBorderColor() const
+	const Color& SamplerProperties::GetBorderColor() const
 	{
 		return mData.borderColor;
 	}
@@ -50,27 +50,27 @@ namespace bs
 
 	}
 
-	SPtr<ct::SamplerState> SamplerState::getCore() const
+	SPtr<ct::SamplerState> SamplerState::GetCore() const
 	{
 		return std::static_pointer_cast<ct::SamplerState>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObject> SamplerState::createCore() const
+	SPtr<ct::CoreObject> SamplerState::CreateCore() const
 	{
 		return ct::RenderStateManager::instance()._createSamplerState(mProperties.mData);
 	}
 
-	SPtr<SamplerState> SamplerState::create(const SAMPLER_STATE_DESC& desc)
+	SPtr<SamplerState> SamplerState::Create(const SAMPLER_STATE_DESC& desc)
 	{
-		return RenderStateManager::instance().createSamplerState(desc);
+		return RenderStateManager::Instance().createSamplerState(desc);
 	}
 
-	const SPtr<SamplerState>& SamplerState::getDefault()
+	const SPtr<SamplerState>& SamplerState::GetDefault()
 	{
-		return RenderStateManager::instance().getDefaultSamplerState();
+		return RenderStateManager::Instance().getDefaultSamplerState();
 	}
 
-	UINT64 SamplerState::generateHash(const SAMPLER_STATE_DESC& desc)
+	UINT64 SamplerState::GenerateHash(const SAMPLER_STATE_DESC& desc)
 	{
 		size_t hash = 0;
 		bs_hash_combine(hash, (UINT32)desc.addressMode.u);
@@ -89,7 +89,7 @@ namespace bs
 		return (UINT64)hash;
 	}
 
-	const SamplerProperties& SamplerState::getProperties() const
+	const SamplerProperties& SamplerState::GetProperties() const
 	{
 		return mProperties;
 	}
@@ -100,12 +100,12 @@ namespace bs
 
 	RTTITypeBase* SamplerState::getRTTIStatic()
 	{
-		return SamplerStateRTTI::instance();
+		return SamplerStateRTTI::Instance();
 	}
 
 	RTTITypeBase* SamplerState::getRTTI() const
 	{
-		return SamplerState::getRTTIStatic();
+		return SamplerState::GetRTTIStatic();
 	}
 
 	namespace ct
@@ -122,7 +122,7 @@ namespace bs
 		RenderStateManager::instance().notifySamplerStateDestroyed(mProperties.mData);
 	}
 
-	void SamplerState::initialize()
+	void SamplerState::Initialize()
 	{
 		// Since we cache states it's possible this object was already initialized
 		// (i.e. multiple sim-states can share a single core-state)
@@ -133,19 +133,19 @@ namespace bs
 		CoreObject::initialize();
 	}
 
-	const SamplerProperties& SamplerState::getProperties() const
+	const SamplerProperties& SamplerState::GetProperties() const
 	{
 		return mProperties;
 	}
 
-	SPtr<SamplerState> SamplerState::create(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask)
+	SPtr<SamplerState> SamplerState::Create(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		return RenderStateManager::instance().createSamplerState(desc, deviceMask);
+		return RenderStateManager::Instance().createSamplerState(desc, deviceMask);
 	}
 
-	const SPtr<SamplerState>& SamplerState::getDefault()
+	const SPtr<SamplerState>& SamplerState::GetDefault()
 	{
-		return RenderStateManager::instance().getDefaultSamplerState();
+		return RenderStateManager::Instance().getDefaultSamplerState();
 	}
 
 	}

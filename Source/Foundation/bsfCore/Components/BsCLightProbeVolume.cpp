@@ -25,7 +25,7 @@ namespace bs
 			mInternal->destroy();
 	}
 
-	void CLightProbeVolume::renderProbe(UINT32 handle)
+	void CLightProbeVolume::RenderProbe(UINT32 handle)
 	{
 		if (mInternal != nullptr && SO()->getActive())
 		{
@@ -34,7 +34,7 @@ namespace bs
 		}
 	}
 
-	void CLightProbeVolume::renderProbes()
+	void CLightProbeVolume::RenderProbes()
 	{
 		if (mInternal != nullptr && SO()->getActive())
 		{
@@ -43,7 +43,7 @@ namespace bs
 		}
 	}
 
-	Vector<LightProbeInfo> CLightProbeVolume::getProbes() const
+	Vector<LightProbeInfo> CLightProbeVolume::GetProbes() const
 	{
 		if (mInternal != nullptr)
 			return mInternal->getProbes();
@@ -51,7 +51,7 @@ namespace bs
 		return Vector<LightProbeInfo>();
 	}
 
-	void CLightProbeVolume::onInitialized()
+	void CLightProbeVolume::OnInitialized()
 	{
 		// If mInternal already exists this means this object was deserialized,
 		// so all we need to do is initialize it.
@@ -63,18 +63,18 @@ namespace bs
 		gSceneManager()._bindActor(mInternal, sceneObject());
 	}
 
-	void CLightProbeVolume::onDestroyed()
+	void CLightProbeVolume::OnDestroyed()
 	{
 		gSceneManager()._unbindActor(mInternal);
 	}
 	
 	RTTITypeBase* CLightProbeVolume::getRTTIStatic()
 	{
-		return CLightProbeVolumeRTTI::instance();
+		return CLightProbeVolumeRTTI::Instance();
 	}
 
 	RTTITypeBase* CLightProbeVolume::getRTTI() const
 	{
-		return CLightProbeVolume::getRTTIStatic();
+		return CLightProbeVolume::GetRTTIStatic();
 	}
 }

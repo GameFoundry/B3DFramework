@@ -17,7 +17,7 @@ namespace bs
 	{
 	}
 
-	void ScriptAnimationUtility::initRuntimeData()
+	void ScriptAnimationUtility::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_eulerToQuaternionCurve", (void*)&ScriptAnimationUtility::Internal_eulerToQuaternionCurve);
 		metaData.scriptClass->addInternalCall("Internal_quaternionToEulerCurve", (void*)&ScriptAnimationUtility::Internal_quaternionToEulerCurve);

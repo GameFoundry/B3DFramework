@@ -25,7 +25,7 @@ namespace bs { namespace ct
 		mBuffer.freeInternalBuffer();
 	}
 
-	void GLPixelBuffer::allocateBuffer()
+	void GLPixelBuffer::AllocateBuffer()
 	{
 		if(mBuffer.getData())
 			return;
@@ -34,7 +34,7 @@ namespace bs { namespace ct
 		// TODO: use PBO if we're HBU_DYNAMIC
 	}
 
-	void GLPixelBuffer::freeBuffer()
+	void GLPixelBuffer::FreeBuffer()
 	{
 		if(mUsage & GBU_STATIC)
 			mBuffer.freeInternalBuffer();
@@ -50,7 +50,7 @@ namespace bs { namespace ct
 		return lockedData.getData();
 	}
 
-	const PixelData& GLPixelBuffer::lock(const PixelVolume& lockBox, GpuLockOptions options)
+	const PixelData& GLPixelBuffer::Lock(const PixelVolume& lockBox, GpuLockOptions options)
 	{
 		allocateBuffer();
 
@@ -69,7 +69,7 @@ namespace bs { namespace ct
 		return mCurrentLock;
 	}
 
-	void GLPixelBuffer::unlock()
+	void GLPixelBuffer::Unlock()
 	{
 		assert(mIsLocked && "Cannot unlock this buffer, it is not locked!");
 
@@ -83,17 +83,17 @@ namespace bs { namespace ct
 		mIsLocked = false;
 	}
 
-	void GLPixelBuffer::upload(const PixelData& data, const PixelVolume& dest)
+	void GLPixelBuffer::Upload(const PixelData& data, const PixelVolume& dest)
 	{
 		BS_EXCEPT(RenderingAPIException, "Upload not possible for this pixel buffer type");
 	}
 
-	void GLPixelBuffer::download(const PixelData& data)
+	void GLPixelBuffer::Download(const PixelData& data)
 	{
 		BS_EXCEPT(RenderingAPIException, "Download not possible for this pixel buffer type");
 	}
 
-	void GLPixelBuffer::blitFromTexture(GLTextureBuffer* src)
+	void GLPixelBuffer::BlitFromTexture(GLTextureBuffer* src)
 	{
 		blitFromTexture(src,
 			PixelVolume(0, 0, 0, src->getWidth(), src->getHeight(), src->getDepth()),
@@ -101,12 +101,12 @@ namespace bs { namespace ct
 			);
 	}
 
-	void GLPixelBuffer::blitFromTexture(GLTextureBuffer* src, const PixelVolume& srcBox, const PixelVolume& dstBox)
+	void GLPixelBuffer::BlitFromTexture(GLTextureBuffer* src, const PixelVolume& srcBox, const PixelVolume& dstBox)
 	{
 		BS_EXCEPT(RenderingAPIException, "BlitFromTexture not possible for this pixel buffer type");
 	}
 
-	void GLPixelBuffer::bindToFramebuffer(GLenum attachment, UINT32 zoffset, bool allLayers)
+	void GLPixelBuffer::BindToFramebuffer(GLenum attachment, UINT32 zoffset, bool allLayers)
 	{
 		BS_EXCEPT(RenderingAPIException, "Framebuffer bind not possible for this pixel buffer type");
 	}
@@ -161,7 +161,7 @@ namespace bs { namespace ct
 		mBuffer = PixelData(mWidth, mHeight, mDepth, mFormat);
 	}
 
-	void GLTextureBuffer::upload(const PixelData& data, const PixelVolume& dest)
+	void GLTextureBuffer::Upload(const PixelData& data, const PixelVolume& dest)
 	{
 		if ((mUsage & TU_DEPTHSTENCIL) != 0)
 		{
@@ -301,7 +301,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_Texture);
 	}
 
-	void GLTextureBuffer::download(const PixelData &data)
+	void GLTextureBuffer::Download(const PixelData &data)
 	{
 		if (data.getWidth() != getWidth() || data.getHeight() != getHeight() || data.getDepth() != getDepth())
 		{
@@ -388,7 +388,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_Texture);
 	}
 
-	void GLTextureBuffer::bindToFramebuffer(GLenum attachment, UINT32 zoffset, bool allLayers)
+	void GLTextureBuffer::BindToFramebuffer(GLenum attachment, UINT32 zoffset, bool allLayers)
 	{
 		if(mTarget == GL_TEXTURE_1D || mTarget == GL_TEXTURE_2D)
 			allLayers = true;
@@ -437,7 +437,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLTextureBuffer::copyFromFramebuffer(UINT32 zoffset)
+	void GLTextureBuffer::CopyFromFramebuffer(UINT32 zoffset)
 	{
 		glBindTexture(mTarget, mTextureID);
 		BS_CHECK_GL_ERROR();
@@ -460,12 +460,12 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLTextureBuffer::blitFromTexture(GLTextureBuffer* src)
+	void GLTextureBuffer::BlitFromTexture(GLTextureBuffer* src)
 	{
 		GLPixelBuffer::blitFromTexture(src);
 	}
 
-	void GLTextureBuffer::blitFromTexture(GLTextureBuffer* src, const PixelVolume& srcBox, const PixelVolume& dstBox)
+	void GLTextureBuffer::BlitFromTexture(GLTextureBuffer* src, const PixelVolume& srcBox, const PixelVolume& dstBox)
 	{
 		// If supported, prefer direct image copy. If not supported, or if sample counts don't match, fall back to FB blit
 #if BS_OPENGL_4_3 || BS_OPENGLES_3_2

@@ -13,7 +13,7 @@ namespace bs { namespace ct
 			BS_EXCEPT(InvalidParametersException, "Only a single device supported on DX11.");
 	}
 
-	void D3D11CommandBuffer::queueCommand(const std::function<void()> command)
+	void D3D11CommandBuffer::QueueCommand(const std::function<void()> command)
 	{
 #if BS_DEBUG_MODE
 		if (getState() == CommandBufferState::Executing)
@@ -31,7 +31,7 @@ namespace bs { namespace ct
 		mCommandQueued = true;
 	}
 
-	void D3D11CommandBuffer::executeCommands()
+	void D3D11CommandBuffer::ExecuteCommands()
 	{
 #if BS_DEBUG_MODE
 		if (mIsSecondary)
@@ -52,7 +52,7 @@ namespace bs { namespace ct
 		mIsSubmitted = true;
 	}
 
-	CommandBufferState D3D11CommandBuffer::getState() const
+	CommandBufferState D3D11CommandBuffer::GetState() const
 	{
 		if (mIsSubmitted)
 			return IsComplete() ? CommandBufferState::Done : CommandBufferState::Executing;
@@ -60,13 +60,13 @@ namespace bs { namespace ct
 		return mCommandQueued ? CommandBufferState::Recording : CommandBufferState::Empty;
 	}
 
-	void D3D11CommandBuffer::reset()
+	void D3D11CommandBuffer::Reset()
 	{
 		mCommandQueued = false;
 		mIsSubmitted = false;
 	}
 
-	bool D3D11CommandBuffer::isComplete() const
+	bool D3D11CommandBuffer::IsComplete() const
 	{
 		return mFence && mFence->isReady();
 	}

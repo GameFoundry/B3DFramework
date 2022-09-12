@@ -19,7 +19,7 @@ namespace bs
 		:TScriptGUIElementBase(instance, layout), mLayout(layout), mOwnsNative(ownsNative)
 	{ }
 
-	void ScriptGUILayout::initRuntimeData()
+	void ScriptGUILayout::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstanceX", (void*)&ScriptGUILayout::internal_createInstanceX);
 		metaData.scriptClass->addInternalCall("Internal_CreateInstanceY", (void*)&ScriptGUILayout::internal_createInstanceY);
@@ -32,7 +32,7 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_Clear", (void*)&ScriptGUILayout::internal_clear);
 	}
 
-	void ScriptGUILayout::destroy()
+	void ScriptGUILayout::Destroy()
 	{
 		if(!mIsDestroyed)
 		{
@@ -53,7 +53,7 @@ namespace bs
 		}
 	}
 
-	void ScriptGUILayout::addChild(ScriptGUIElementBaseTBase* element)
+	void ScriptGUILayout::AddChild(ScriptGUIElementBaseTBase* element)
 	{
 		ChildInfo childInfo;
 
@@ -63,7 +63,7 @@ namespace bs
 		mChildren.push_back(childInfo);
 	}
 
-	void ScriptGUILayout::insertChild(UINT32 idx, ScriptGUIElementBaseTBase* element)
+	void ScriptGUILayout::InsertChild(UINT32 idx, ScriptGUIElementBaseTBase* element)
 	{
 		ChildInfo childInfo;
 
@@ -73,7 +73,7 @@ namespace bs
 		mChildren.insert(mChildren.begin() + idx, childInfo);
 	}
 
-	void ScriptGUILayout::removeChild(ScriptGUIElementBaseTBase* element)
+	void ScriptGUILayout::RemoveChild(ScriptGUIElementBaseTBase* element)
 	{
 		auto iterFind = std::find_if(mChildren.begin(), mChildren.end(),
 			[&](const ChildInfo& x)
@@ -216,7 +216,7 @@ namespace bs
 		:ScriptObject(instance)
 	{ }
 
-	void ScriptGUIPanel::initRuntimeData()
+	void ScriptGUIPanel::InitRuntimeData()
 	{ }
 
 	MonoObject* ScriptGUIPanel::createFromExisting(GUIPanel* panel)
@@ -233,7 +233,7 @@ namespace bs
 		
 	}
 
-	void ScriptGUIScrollAreaLayout::destroy()
+	void ScriptGUIScrollAreaLayout::Destroy()
 	{
 		if (!mIsDestroyed)
 		{

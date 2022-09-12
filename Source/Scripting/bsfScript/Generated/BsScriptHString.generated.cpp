@@ -13,7 +13,7 @@ namespace bs
 	{
 	}
 
-	void ScriptHString::initRuntimeData()
+	void ScriptHString::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_HString", (void*)&ScriptHString::Internal_HString);
 		metaData.scriptClass->addInternalCall("Internal_HString0", (void*)&ScriptHString::Internal_HString0);

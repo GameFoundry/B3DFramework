@@ -19,7 +19,7 @@ namespace bs
 	{
 	}
 
-	void ScriptAnimationClip::initRuntimeData()
+	void ScriptAnimationClip::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetRef", (void*)&ScriptAnimationClip::Internal_getRef);
 		metaData.scriptClass->addInternalCall("Internal_getCurves", (void*)&ScriptAnimationClip::Internal_getCurves);

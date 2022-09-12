@@ -26,7 +26,7 @@ namespace bs
 		requiresTextureFlipping = false;
 	}
 
-	void RenderWindow::destroy()
+	void RenderWindow::Destroy()
 	{
 		RenderWindowManager::instance().notifyWindowDestroyed(this);
 
@@ -39,7 +39,7 @@ namespace bs
 
 	}
 
-	void RenderWindow::resize(UINT32 width, UINT32 height)
+	void RenderWindow::Resize(UINT32 width, UINT32 height)
 	{
 		std::function<void(SPtr<ct::RenderWindow>, UINT32, UINT32)> resizeFunc =
 			[](SPtr<ct::RenderWindow> renderWindow, UINT32 width, UINT32 height)
@@ -60,7 +60,7 @@ namespace bs
 		}
 	}
 
-	void RenderWindow::move(INT32 left, INT32 top)
+	void RenderWindow::Move(INT32 left, INT32 top)
 	{
 		std::function<void(SPtr<ct::RenderWindow>, INT32, INT32)> moveFunc =
 			[](SPtr<ct::RenderWindow> renderWindow, INT32 left, INT32 top)
@@ -81,7 +81,7 @@ namespace bs
 		}
 	}
 
-	void RenderWindow::hide()
+	void RenderWindow::Hide()
 	{
 		std::function<void(SPtr<ct::RenderWindow>)> hideFunc =
 			[](SPtr<ct::RenderWindow> renderWindow)
@@ -94,7 +94,7 @@ namespace bs
 		gCoreThread().queueCommand(std::bind(hideFunc, getCore()));
 	}
 
-	void RenderWindow::show()
+	void RenderWindow::Show()
 	{
 		std::function<void(SPtr<ct::RenderWindow>)> showFunc =
 			[](SPtr<ct::RenderWindow> renderWindow)
@@ -107,7 +107,7 @@ namespace bs
 		gCoreThread().queueCommand(std::bind(showFunc, getCore()));
 	}
 
-	void RenderWindow::minimize()
+	void RenderWindow::Minimize()
 	{
 		std::function<void(SPtr<ct::RenderWindow>)> minimizeFunc =
 			[](SPtr<ct::RenderWindow> renderWindow)
@@ -120,7 +120,7 @@ namespace bs
 		gCoreThread().queueCommand(std::bind(minimizeFunc, getCore()));
 	}
 
-	void RenderWindow::maximize()
+	void RenderWindow::Maximize()
 	{
 		std::function<void(SPtr<ct::RenderWindow>)> maximizeFunc =
 			[](SPtr<ct::RenderWindow> renderWindow)
@@ -143,7 +143,7 @@ namespace bs
 		}
 	}
 
-	void RenderWindow::restore()
+	void RenderWindow::Restore()
 	{
 		std::function<void(SPtr<ct::RenderWindow>)> restoreFunc =
 			[](SPtr<ct::RenderWindow> renderWindow)
@@ -166,7 +166,7 @@ namespace bs
 		}
 	}
 
-	void RenderWindow::setFullscreen(UINT32 width, UINT32 height, float refreshRate, UINT32 monitorIdx)
+	void RenderWindow::SetFullscreen(UINT32 width, UINT32 height, float refreshRate, UINT32 monitorIdx)
 	{
 		std::function<void(SPtr<ct::RenderWindow>, UINT32, UINT32, float, UINT32)> fullscreenFunc =
 			[](SPtr<ct::RenderWindow> renderWindow, UINT32 width, UINT32 height, float refreshRate, UINT32 monitorIdx)
@@ -187,7 +187,7 @@ namespace bs
 		}
 	}
 
-	void RenderWindow::setFullscreen(const VideoMode& mode)
+	void RenderWindow::SetFullscreen(const VideoMode& mode)
 	{
 		std::function<void(SPtr<ct::RenderWindow>, const VideoMode&)> fullscreenFunc =
 			[](SPtr<ct::RenderWindow> renderWindow, const VideoMode& mode)
@@ -208,7 +208,7 @@ namespace bs
 		}
 	}
 
-	void RenderWindow::setWindowed(UINT32 width, UINT32 height)
+	void RenderWindow::SetWindowed(UINT32 width, UINT32 height)
 	{
 		std::function<void(SPtr<ct::RenderWindow>, UINT32, UINT32)> windowedFunc =
 			[](SPtr<ct::RenderWindow> renderWindow, UINT32 width, UINT32 height)
@@ -229,22 +229,22 @@ namespace bs
 		}
 	}
 
-	SPtr<ct::RenderWindow> RenderWindow::getCore() const
+	SPtr<ct::RenderWindow> RenderWindow::GetCore() const
 	{
 		return std::static_pointer_cast<ct::RenderWindow>(mCoreSpecific);
 	}
 
-	SPtr<RenderWindow> RenderWindow::create(RENDER_WINDOW_DESC& desc, SPtr<RenderWindow> parentWindow)
+	SPtr<RenderWindow> RenderWindow::Create(RENDER_WINDOW_DESC& desc, SPtr<RenderWindow> parentWindow)
 	{
-		return RenderWindowManager::instance().create(desc, parentWindow);
+		return RenderWindowManager::Instance().create(desc, parentWindow);
 	}
 
-	RenderWindowProperties& RenderWindow::getMutableProperties()
+	RenderWindowProperties& RenderWindow::GetMutableProperties()
 	{
 		return const_cast<RenderWindowProperties&>(getProperties());
 	}
 
-	const RenderWindowProperties& RenderWindow::getProperties() const
+	const RenderWindowProperties& RenderWindow::GetProperties() const
 	{
 		return static_cast<const RenderWindowProperties&>(getPropertiesInternal());
 	}
@@ -410,12 +410,12 @@ namespace bs
 
 	RTTITypeBase* RenderWindow::getRTTIStatic()
 	{
-		return RenderWindowRTTI::instance();
+		return RenderWindowRTTI::Instance();
 	}
 
 	RTTITypeBase* RenderWindow::getRTTI() const
 	{
-		return RenderWindow::getRTTIStatic();
+		return RenderWindow::GetRTTIStatic();
 	}
 
 	namespace ct
@@ -431,7 +431,7 @@ namespace bs
 		RenderWindowManager::instance().windowDestroyed(this);
 	}
 
-	void RenderWindow::setHidden(bool hidden)
+	void RenderWindow::SetHidden(bool hidden)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -446,7 +446,7 @@ namespace bs
 		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
 	}
 
-	void RenderWindow::setActive(bool state)
+	void RenderWindow::SetActive(bool state)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 	}
@@ -565,7 +565,7 @@ namespace bs
 		}
 	}
 
-	const RenderWindowProperties& RenderWindow::getProperties() const
+	const RenderWindowProperties& RenderWindow::GetProperties() const
 	{
 		return static_cast<const RenderWindowProperties&>(getPropertiesInternal());
 	}

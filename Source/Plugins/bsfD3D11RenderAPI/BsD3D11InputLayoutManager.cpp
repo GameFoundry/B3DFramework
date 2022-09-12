@@ -166,7 +166,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_InputLayout);
 	}
 
-	void D3D11InputLayoutManager::removeLeastUsed()
+	void D3D11InputLayoutManager::RemoveLeastUsed()
 	{
 		if(!mWarningShown)
 		{

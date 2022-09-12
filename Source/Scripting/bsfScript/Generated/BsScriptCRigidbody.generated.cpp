@@ -23,7 +23,7 @@ namespace bs
 		value->onCollisionEnd.connect(std::bind(&ScriptCRigidbody::onCollisionEnd, this, std::placeholders::_1));
 	}
 
-	void ScriptCRigidbody::initRuntimeData()
+	void ScriptCRigidbody::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_move", (void*)&ScriptCRigidbody::Internal_move);
 		metaData.scriptClass->addInternalCall("Internal_rotate", (void*)&ScriptCRigidbody::Internal_rotate);
@@ -72,7 +72,7 @@ namespace bs
 		onCollisionEndThunk = (onCollisionEndThunkDef)metaData.scriptClass->getMethodExact("Internal_onCollisionEnd", "CollisionData&")->getThunk();
 	}
 
-	void ScriptCRigidbody::onCollisionBegin(const CollisionData& p0)
+	void ScriptCRigidbody::OnCollisionBegin(const CollisionData& p0)
 	{
 		MonoObject* tmpp0;
 		__CollisionDataInterop interopp0;
@@ -81,7 +81,7 @@ namespace bs
 		MonoUtil::invokeThunk(onCollisionBeginThunk, getManagedInstance(), tmpp0);
 	}
 
-	void ScriptCRigidbody::onCollisionStay(const CollisionData& p0)
+	void ScriptCRigidbody::OnCollisionStay(const CollisionData& p0)
 	{
 		MonoObject* tmpp0;
 		__CollisionDataInterop interopp0;
@@ -90,7 +90,7 @@ namespace bs
 		MonoUtil::invokeThunk(onCollisionStayThunk, getManagedInstance(), tmpp0);
 	}
 
-	void ScriptCRigidbody::onCollisionEnd(const CollisionData& p0)
+	void ScriptCRigidbody::OnCollisionEnd(const CollisionData& p0)
 	{
 		MonoObject* tmpp0;
 		__CollisionDataInterop interopp0;

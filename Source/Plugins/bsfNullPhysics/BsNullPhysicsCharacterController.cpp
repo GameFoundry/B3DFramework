@@ -11,7 +11,7 @@ namespace bs
 		:CharacterController(desc), mDesc(desc)
 	{ }
 
-	CharacterCollisionFlags NullPhysicsCharacterController::move(const Vector3& displacement)
+	CharacterCollisionFlags NullPhysicsCharacterController::Move(const Vector3& displacement)
 	{
 		mDesc.position += displacement;
 

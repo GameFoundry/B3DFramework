@@ -33,7 +33,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
 	}
 
-	void GLTimerQuery::begin(const SPtr<CommandBuffer>& cb)
+	void GLTimerQuery::Begin(const SPtr<CommandBuffer>& cb)
 	{
 		auto execute = [&]()
 		{
@@ -53,7 +53,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLTimerQuery::end(const SPtr<CommandBuffer>& cb)
+	void GLTimerQuery::End(const SPtr<CommandBuffer>& cb)
 	{
 		auto execute = [&]()
 		{
@@ -73,7 +73,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	bool GLTimerQuery::isReady() const
+	bool GLTimerQuery::IsReady() const
 	{
 		if (!mEndIssued)
 			return false;
@@ -85,7 +85,7 @@ namespace bs { namespace ct
 		return done == GL_TRUE;
 	}
 
-	float GLTimerQuery::getTimeMs()
+	float GLTimerQuery::GetTimeMs()
 	{
 		if(!mFinalized && isReady())
 		{
@@ -95,7 +95,7 @@ namespace bs { namespace ct
 		return mTimeDelta;
 	}
 
-	void GLTimerQuery::finalize()
+	void GLTimerQuery::Finalize()
 	{
 		mFinalized = true;
 

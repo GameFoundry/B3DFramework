@@ -33,7 +33,7 @@ namespace bs
 		BS_ADD_TEST(CoreTestSuite::testLookupTable);
 	}
 
-	void CoreTestSuite::testAnimCurveIntegration()
+	void CoreTestSuite::TestAnimCurveIntegration()
 	{
 		static constexpr float EPSILON = 0.0001f;
 
@@ -111,7 +111,7 @@ namespace bs
 		}
 	}
 
-	void CoreTestSuite::testLookupTable()
+	void CoreTestSuite::TestLookupTable()
 	{
 		static constexpr float EPSILON = 0.0001f;
 

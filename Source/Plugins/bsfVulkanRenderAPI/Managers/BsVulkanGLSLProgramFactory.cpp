@@ -46,7 +46,7 @@ namespace bs { namespace ct
 		GLSLToSPIRV::shutDown();
 	}
 
-	SPtr<GpuProgram> VulkanGLSLProgramFactory::create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+	SPtr<GpuProgram> VulkanGLSLProgramFactory::Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 	{
 		SPtr<GpuProgram> gpuProg = bs_shared_ptr<VulkanGpuProgram>(new (bs_alloc<VulkanGpuProgram>())
 			VulkanGpuProgram(desc, deviceMask));
@@ -55,7 +55,7 @@ namespace bs { namespace ct
 		return gpuProg;
 	}
 
-	SPtr<GpuProgram> VulkanGLSLProgramFactory::create(GpuProgramType type, GpuDeviceFlags deviceMask)
+	SPtr<GpuProgram> VulkanGLSLProgramFactory::Create(GpuProgramType type, GpuDeviceFlags deviceMask)
 	{
 		GPU_PROGRAM_DESC desc;
 		desc.type = type;
@@ -67,7 +67,7 @@ namespace bs { namespace ct
 		return gpuProg;
 	}
 
-	SPtr<GpuProgramBytecode> VulkanGLSLProgramFactory::compileBytecode(const GPU_PROGRAM_DESC& desc)
+	SPtr<GpuProgramBytecode> VulkanGLSLProgramFactory::CompileBytecode(const GPU_PROGRAM_DESC& desc)
 	{
 		SPtr<GpuProgramBytecode> spirv = GLSLToSPIRV::instance().convert(desc);
 

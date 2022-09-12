@@ -22,7 +22,7 @@ namespace bs
 		mGCHandle = MonoUtil::newWeakGCHandle(instance);
 	}
 
-	void ScriptGUIElementBaseTBase::initialize(GUIElementBase* element)
+	void ScriptGUIElementBaseTBase::Initialize(GUIElementBase* element)
 	{
 		mElement = element;
 
@@ -33,7 +33,7 @@ namespace bs
 		}
 	}
 
-	void ScriptGUIElementBaseTBase::onFocusChanged(ScriptGUIElementBaseTBase* thisPtr, bool focus)
+	void ScriptGUIElementBaseTBase::OnFocusChanged(ScriptGUIElementBaseTBase* thisPtr, bool focus)
 	{
 		MonoObject* instance = MonoUtil::getObjectFromGCHandle(thisPtr->mGCHandle);
 
@@ -45,7 +45,7 @@ namespace bs
 
 	MonoObject* ScriptGUIElementBaseTBase::getManagedInstance() const
 	{
-		return MonoUtil::getObjectFromGCHandle(mGCHandle);
+		return MonoUtil::GetObjectFromGCHandle(mGCHandle);
 	}
 
 	void ScriptGUIElementBaseTBase::_onManagedInstanceDeleted(bool assemblyRefresh)
@@ -68,7 +68,7 @@ namespace bs
 
 	}
 
-	void ScriptGUIElementTBase::destroy()
+	void ScriptGUIElementTBase::Destroy()
 	{
 		if(!mIsDestroyed)
 		{
@@ -94,7 +94,7 @@ namespace bs
 
 	}
 
-	void ScriptGUIElement::initRuntimeData()
+	void ScriptGUIElement::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_Destroy", (void*)&ScriptGUIElement::internal_destroy);
 		metaData.scriptClass->addInternalCall("Internal_SetVisible", (void*)&ScriptGUIElement::internal_setVisible);
@@ -395,11 +395,11 @@ namespace bs
 			if (guiElemBase->_getType() == GUIElementBase::Type::Element)
 			{
 				GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
-				return MonoUtil::stringToMono(guiElem->getStyleName());
+				return MonoUtil::StringToMono(guiElem->getStyleName());
 			}
 		}
 
-		return MonoUtil::stringToMono(StringUtil::BLANK);
+		return MonoUtil::StringToMono(StringUtil::BLANK);
 	}
 
 	void ScriptGUIElement::internal_SetStyle(ScriptGUIElementBaseTBase* nativeInstance, MonoString* style)

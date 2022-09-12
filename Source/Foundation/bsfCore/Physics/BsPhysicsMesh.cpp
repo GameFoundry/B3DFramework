@@ -13,17 +13,17 @@ namespace bs
 		// Derived class is responsible for initializing mInternal
 	}
 
-	PhysicsMeshType PhysicsMesh::getType() const
+	PhysicsMeshType PhysicsMesh::GetType() const
 	{
 		return mInternal->mType;
 	}
 
-	SPtr<MeshData> PhysicsMesh::getMeshData() const
+	SPtr<MeshData> PhysicsMesh::GetMeshData() const
 	{
 		return mInternal->getMeshData();
 	}
 
-	HPhysicsMesh PhysicsMesh::create(const SPtr<MeshData>& meshData, PhysicsMeshType type)
+	HPhysicsMesh PhysicsMesh::Create(const SPtr<MeshData>& meshData, PhysicsMeshType type)
 	{
 		SPtr<PhysicsMesh> newMesh = _createPtr(meshData, type);
 
@@ -39,7 +39,7 @@ namespace bs
 		return newMesh;
 	}
 
-	void PhysicsMesh::initialize()
+	void PhysicsMesh::Initialize()
 	{
 		mInitMeshData = nullptr;
 
@@ -48,7 +48,7 @@ namespace bs
 
 	RTTITypeBase* PhysicsMesh::getRTTIStatic()
 	{
-		return PhysicsMeshRTTI::instance();
+		return PhysicsMeshRTTI::Instance();
 	}
 
 	RTTITypeBase* PhysicsMesh::getRTTI() const
@@ -69,7 +69,7 @@ namespace bs
 
 	RTTITypeBase* FPhysicsMesh::getRTTIStatic()
 	{
-		return FPhysicsMeshRTTI::instance();
+		return FPhysicsMeshRTTI::Instance();
 	}
 
 	RTTITypeBase* FPhysicsMesh::getRTTI() const

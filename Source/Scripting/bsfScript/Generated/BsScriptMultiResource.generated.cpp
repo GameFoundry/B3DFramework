@@ -15,7 +15,7 @@ namespace bs
 	{
 	}
 
-	void ScriptMultiResource::initRuntimeData()
+	void ScriptMultiResource::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_MultiResource", (void*)&ScriptMultiResource::Internal_MultiResource);
 		metaData.scriptClass->addInternalCall("Internal_MultiResource0", (void*)&ScriptMultiResource::Internal_MultiResource0);

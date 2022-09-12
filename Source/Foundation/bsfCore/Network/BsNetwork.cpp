@@ -129,13 +129,13 @@ namespace bs
 		systemToNetworkAddress(sysAddress, *this);
 	}
 
-	String NetworkAddress::toString(bool withPort) const
+	String NetworkAddress::ToString(bool withPort) const
 	{
 		SystemAddress sysAddress = networkToSystemAddress(*this);
 		return String(sysAddress.ToString(withPort, '|'));
 	}
 
-	bool NetworkAddress::compareIP(const NetworkAddress& other) const
+	bool NetworkAddress::CompareIP(const NetworkAddress& other) const
 	{
 		if(ipType != other.ipType)
 			return false;
@@ -362,7 +362,7 @@ namespace bs
 		bs_delete(m);
 	}
 
-	bool NetworkPeer::connect(const char* host, UINT16 port)
+	bool NetworkPeer::Connect(const char* host, UINT16 port)
 	{
 		ConnectionAttemptResult result = m->peer->Connect(host, port, nullptr, 0);
 		
@@ -395,12 +395,12 @@ namespace bs
 		return true;
 	}
 
-	void NetworkPeer::disconnect(const NetworkAddress& address, bool silent)
+	void NetworkPeer::Disconnect(const NetworkAddress& address, bool silent)
 	{
 		m->peer->CloseConnection(networkToSystemAddress(address), !silent);
 	}
 
-	void NetworkPeer::disconnect(const NetworkId& id, bool silent)
+	void NetworkPeer::Disconnect(const NetworkId& id, bool silent)
 	{
 		const RakNetGUID* guid = m->getGUID(id);
 		if(!guid)
@@ -421,7 +421,7 @@ namespace bs
 		return m->allocNetworkEvent(packet);
 	}
 
-	void NetworkPeer::free(NetworkEvent* event)
+	void NetworkPeer::Free(NetworkEvent* event)
 	{
 		if(!event)
 			return;
@@ -429,7 +429,7 @@ namespace bs
 		m->freeNetworkEvent(event);
 	}
 
-	void NetworkPeer::send(const PacketData& data, const NetworkAddress& address, const PacketChannel& channel)
+	void NetworkPeer::Send(const PacketData& data, const NetworkAddress& address, const PacketChannel& channel)
 	{
 		::PacketReliability reliability;
 		::PacketPriority priority;
@@ -440,7 +440,7 @@ namespace bs
 			networkToSystemAddress(address), false);
 	}
 
-	void NetworkPeer::send(const PacketData& data, const NetworkId& id, const PacketChannel& channel)
+	void NetworkPeer::Send(const PacketData& data, const NetworkId& id, const PacketChannel& channel)
 	{
 		const RakNetGUID* guid = m->getGUID(id);
 		if(!guid)
@@ -458,7 +458,7 @@ namespace bs
 			*guid, false);
 	}
 
-	void NetworkPeer::broadcast(const PacketData& data, const PacketChannel& channel)
+	void NetworkPeer::Broadcast(const PacketData& data, const PacketChannel& channel)
 	{
 		::PacketReliability reliability;
 		::PacketPriority priority;
@@ -474,7 +474,7 @@ namespace bs
 		Network::instance()._notifyNetworkObjectDestroyed(this);
 	}
 
-	NetworkObjectState NetworkObject::getNetworkState() const
+	NetworkObjectState NetworkObject::GetNetworkState() const
 	{
 		// We know serialization will maintain object state, so safely remove the const
 		NetworkObject* thisObj = const_cast<NetworkObject*>(this);
@@ -486,7 +486,7 @@ namespace bs
 		return state;
 	}
 
-	void NetworkObject::networkSpawn()
+	void NetworkObject::NetworkSpawn()
 	{
 		if(mState != NotReplicated || !Network::instance().isHost())
 			return;
@@ -496,7 +496,7 @@ namespace bs
 		// TODO
 	}
 
-	void NetworkObject::networkDespawn()
+	void NetworkObject::NetworkDespawn()
 	{
 		if(mState != Replicated || !Network::instance().isHost())
 			return;
@@ -524,7 +524,7 @@ namespace bs
 		bs_free(mWriteBuffer);
 	}
 
-	void NetworkEncoder::encode(UINT8 type, const UUID& uuid, IReflectable* object, SerializationContext* context)
+	void NetworkEncoder::Encode(UINT8 type, const UUID& uuid, IReflectable* object, SerializationContext* context)
 	{
 		BinarySerializer bs;
 		
@@ -634,13 +634,13 @@ namespace bs
 		return mResultBuffer;
 	}
 
-	void NetworkEncoder::clear()
+	void NetworkEncoder::Clear()
 	{
 		mWriteBufferOffset = 0;
 		mBytesWritten = 0;
 	}
 
-	NetworkEncoder::BufferPiece NetworkEncoder::allocBufferPiece()
+	NetworkEncoder::BufferPiece NetworkEncoder::AllocBufferPiece()
 	{
 		BufferPiece piece;
 		if (!mBufferPiecePool.empty())
@@ -662,7 +662,7 @@ namespace bs
 		mInputStream->skip(1); // Skip the network message type byte
 	}
 
-	SPtr<IReflectable> NetworkDecoder::decode(UINT8& type, UUID& uuid, SerializationContext* context)
+	SPtr<IReflectable> NetworkDecoder::Decode(UINT8& type, UUID& uuid, SerializationContext* context)
 	{
 		if (mInputStream->eof())
 			return nullptr;
@@ -731,7 +731,7 @@ namespace bs
 		Despawn
 	};
 
-	void Network::host(const SmallVector<NetworkAddress, 4>& listenAddresses, UINT32 tickRate, UINT32 maxConnections)
+	void Network::Host(const SmallVector<NetworkAddress, 4>& listenAddresses, UINT32 tickRate, UINT32 maxConnections)
 	{
 		if(mPeer)
 		{
@@ -750,7 +750,7 @@ namespace bs
 		mTimeAccumulator = 0.0f;
 	}
 
-	void Network::connect(const char* host, UINT16 port)
+	void Network::Connect(const char* host, UINT16 port)
 	{
 		if(mPeer)
 		{
@@ -766,13 +766,13 @@ namespace bs
 		mState = NetworkState::Connecting;
 	}
 
-	void Network::disconnect()
+	void Network::Disconnect()
 	{
 		mPeer = nullptr;
 		mState = NetworkState::Disconnected;
 	}
 
-	void Network::update(float dt)
+	void Network::Update(float dt)
 	{
 		if(mPeer)
 		{

@@ -336,7 +336,7 @@ namespace bs
 		bs_delete(m);
 	}
 
-	void Win32Window::move(INT32 left, INT32 top)
+	void Win32Window::Move(INT32 left, INT32 top)
 	{
 		if (m->hWnd)
 		{
@@ -347,7 +347,7 @@ namespace bs
 		}
 	}
 
-	void Win32Window::resize(UINT32 width, UINT32 height)
+	void Win32Window::Resize(UINT32 width, UINT32 height)
 	{
 		if (m->hWnd)
 		{
@@ -363,7 +363,7 @@ namespace bs
 		}
 	}
 
-	void Win32Window::setActive(bool state)
+	void Win32Window::SetActive(bool state)
 	{
 		if (m->hWnd)
 		{
@@ -374,7 +374,7 @@ namespace bs
 		}
 	}
 
-	void Win32Window::setHidden(bool hidden)
+	void Win32Window::SetHidden(bool hidden)
 	{
 		if (hidden)
 			ShowWindow(m->hWnd, SW_HIDE);
@@ -384,7 +384,7 @@ namespace bs
 		m->isHidden = hidden;
 	}
 
-	void Win32Window::minimize()
+	void Win32Window::Minimize()
 	{
 		if (m->hWnd)
 			ShowWindow(m->hWnd, SW_MINIMIZE);
@@ -393,7 +393,7 @@ namespace bs
 			ShowWindow(m->hWnd, SW_HIDE);
 	}
 
-	void Win32Window::maximize()
+	void Win32Window::Maximize()
 	{
 		if (m->hWnd)
 			ShowWindow(m->hWnd, SW_MAXIMIZE);
@@ -410,7 +410,7 @@ namespace bs
 		}
 	}
 
-	void Win32Window::restore()
+	void Win32Window::Restore()
 	{
 		if (m->hWnd)
 			ShowWindow(m->hWnd, SW_RESTORE);
@@ -442,7 +442,7 @@ namespace bs
 		m->height = rc.bottom - rc.top;
 	}
 
-	Vector2I Win32Window::screenToWindowPos(const Vector2I& screenPos) const
+	Vector2I Win32Window::ScreenToWindowPos(const Vector2I& screenPos) const
 	{
 		POINT pos;
 		pos.x = screenPos.x;
@@ -452,7 +452,7 @@ namespace bs
 		return Vector2I(pos.x, pos.y);
 	}
 
-	Vector2I Win32Window::windowToScreenPos(const Vector2I& windowPos) const
+	Vector2I Win32Window::WindowToScreenPos(const Vector2I& windowPos) const
 	{
 		POINT pos;
 		pos.x = windowPos.x;
@@ -462,37 +462,37 @@ namespace bs
 		return Vector2I(pos.x, pos.y);
 	}
 
-	INT32 Win32Window::getLeft() const
+	INT32 Win32Window::GetLeft() const
 	{
 		return m->left;
 	}
 
-	INT32 Win32Window::getTop() const
+	INT32 Win32Window::GetTop() const
 	{
 		return m->top;
 	}
 
-	UINT32 Win32Window::getWidth() const
+	UINT32 Win32Window::GetWidth() const
 	{
 		return m->width;
 	}
 
-	UINT32 Win32Window::getHeight() const
+	UINT32 Win32Window::GetHeight() const
 	{
 		return m->height;
 	}
 
-	HWND Win32Window::getHWnd() const
+	HWND Win32Window::GetHWnd() const
 	{
 		return m->hWnd;
 	}
 
-	DWORD Win32Window::getStyle() const
+	DWORD Win32Window::GetStyle() const
 	{
 		return m->style;
 	}
 
-	DWORD Win32Window::getStyleEx() const
+	DWORD Win32Window::GetStyleEx() const
 	{
 		return m->styleEx;
 	}

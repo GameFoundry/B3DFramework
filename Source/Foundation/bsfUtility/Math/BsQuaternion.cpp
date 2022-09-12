@@ -11,7 +11,7 @@ namespace bs
 	const Quaternion Quaternion::ZERO{BS_ZERO()};
 	const Quaternion Quaternion::IDENTITY{BS_IDENTITY()};
 
-	void Quaternion::fromRotationMatrix(const Matrix3& mat)
+	void Quaternion::FromRotationMatrix(const Matrix3& mat)
 	{
 		// Algorithm in Ken Shoemake's article in 1987 SIGGRAPH course notes
 		// article "Quaternion Calculus and Fast Animation".
@@ -58,7 +58,7 @@ namespace bs
 		normalize();
 	}
 
-	void Quaternion::fromAxisAngle(const Vector3& axis, const Radian& angle)
+	void Quaternion::FromAxisAngle(const Vector3& axis, const Radian& angle)
 	{
 		Radian halfAngle (0.5f*angle);
 		float sin = Math::sin(halfAngle);
@@ -69,7 +69,7 @@ namespace bs
 		z = sin*axis.z;
 	}
 
-	void Quaternion::fromAxes(const Vector3& xaxis, const Vector3& yaxis, const Vector3& zaxis)
+	void Quaternion::FromAxes(const Vector3& xaxis, const Vector3& yaxis, const Vector3& zaxis)
 	{
 		Matrix3 kRot;
 
@@ -88,7 +88,7 @@ namespace bs
 		fromRotationMatrix(kRot);
 	}
 
-	void Quaternion::fromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle)
+	void Quaternion::FromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle)
 	{
 		Radian halfXAngle = xAngle * 0.5f;
 		Radian halfYAngle = yAngle * 0.5f;
@@ -110,7 +110,7 @@ namespace bs
 		*this = quatZ * (quatX * quatY);
 	}
 
-	void Quaternion::fromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle, EulerAngleOrder order)
+	void Quaternion::FromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle, EulerAngleOrder order)
 	{
 		static constexpr const EulerAngleOrderData EA_LOOKUP[6] = { { 0, 1, 2}, { 0, 2, 1}, { 1, 0, 2},
 									    { 1, 2, 0}, { 2, 0, 1}, { 2, 1, 0} };
@@ -137,7 +137,7 @@ namespace bs
 		*this = quats[l.c] * (quats[l.b] * quats[l.a]);
 	}
 
-	void Quaternion::toRotationMatrix(Matrix3& mat) const
+	void Quaternion::ToRotationMatrix(Matrix3& mat) const
 	{
 		float tx  = x+x;
 		float ty  = y+y;
@@ -163,7 +163,7 @@ namespace bs
 		mat[2][2] = 1.0f-(txx+tyy);
 	}
 
-	void Quaternion::toAxisAngle(Vector3& axis, Radian& angle) const
+	void Quaternion::ToAxisAngle(Vector3& axis, Radian& angle) const
 	{
 		float sqrLength = x*x+y*y+z*z;
 		if ( sqrLength > 0.0 )
@@ -184,7 +184,7 @@ namespace bs
 		}
 	}
 
-	void Quaternion::toAxes(Vector3& xaxis, Vector3& yaxis, Vector3& zaxis) const
+	void Quaternion::ToAxes(Vector3& xaxis, Vector3& yaxis, Vector3& zaxis) const
 	{
 		Matrix3 matRot;
 		toRotationMatrix(matRot);
@@ -202,14 +202,14 @@ namespace bs
 		zaxis.z = matRot[2][2];
 	}
 
-	bool Quaternion::toEulerAngles(Radian& xAngle, Radian& yAngle, Radian& zAngle) const
+	bool Quaternion::ToEulerAngles(Radian& xAngle, Radian& yAngle, Radian& zAngle) const
 	{
 		Matrix3 matRot;
 		toRotationMatrix(matRot);
 		return matRot.toEulerAngles(xAngle, yAngle, zAngle);
 	}
 
-	Vector3 Quaternion::xAxis() const
+	Vector3 Quaternion::XAxis() const
 	{
 		float fTy  = 2.0f*y;
 		float fTz  = 2.0f*z;
@@ -223,7 +223,7 @@ namespace bs
 		return Vector3(1.0f-(fTyy+fTzz), fTxy+fTwz, fTxz-fTwy);
 	}
 
-	Vector3 Quaternion::yAxis() const
+	Vector3 Quaternion::YAxis() const
 	{
 		float fTx  = 2.0f*x;
 		float fTy  = 2.0f*y;
@@ -238,7 +238,7 @@ namespace bs
 		return Vector3(fTxy-fTwz, 1.0f-(fTxx+fTzz), fTyz+fTwx);
 	}
 
-	Vector3 Quaternion::zAxis() const
+	Vector3 Quaternion::ZAxis() const
 	{
 		float fTx  = 2.0f*x;
 		float fTy  = 2.0f*y;
@@ -253,7 +253,7 @@ namespace bs
 		return Vector3(fTxz+fTwy, fTyz-fTwx, 1.0f-(fTxx+fTyy));
 	}
 
-	Quaternion Quaternion::inverse() const
+	Quaternion Quaternion::Inverse() const
 	{
 		float fNorm = w*w+x*x+y*y+z*z;
 		if (fNorm > 0.0f)
@@ -268,7 +268,7 @@ namespace bs
 		}
 	}
 
-	Vector3 Quaternion::rotate(const Vector3& v) const
+	Vector3 Quaternion::Rotate(const Vector3& v) const
 	{
 		// Note: Does compiler generate fast code here? Perhaps its better to pull all code locally without constructing
 		//       an intermediate matrix.
@@ -277,7 +277,7 @@ namespace bs
 		return rot.multiply(v);
 	}
 
-	void Quaternion::lookRotation(const Vector3& forwardDir)
+	void Quaternion::LookRotation(const Vector3& forwardDir)
 	{
 		if (forwardDir == Vector3::ZERO)
 			return;
@@ -299,7 +299,7 @@ namespace bs
 		}
 	}
 
-	void Quaternion::lookRotation(const Vector3& forwardDir, const Vector3& upDir)
+	void Quaternion::LookRotation(const Vector3& forwardDir, const Vector3& upDir)
 	{
 		Vector3 forward = Vector3::normalize(forwardDir);
 		Vector3 up = Vector3::normalize(upDir);
@@ -319,7 +319,7 @@ namespace bs
 		*this = Quaternion(x, y, -forward);
 	}
 
-	Quaternion Quaternion::slerp(float t, const Quaternion& p, const Quaternion& q, bool shortestPath)
+	Quaternion Quaternion::Slerp(float t, const Quaternion& p, const Quaternion& q, bool shortestPath)
 	{
 		float cos = p.dot(q);
 		Quaternion quat;
@@ -360,7 +360,7 @@ namespace bs
 		}
 	}
 
-	Quaternion Quaternion::getRotationFromTo(const Vector3& from, const Vector3& dest, const Vector3& fallbackAxis)
+	Quaternion Quaternion::GetRotationFromTo(const Vector3& from, const Vector3& dest, const Vector3& fallbackAxis)
 	{
 		// Based on Stan Melax's article in Game Programming Gems
 		Quaternion q;

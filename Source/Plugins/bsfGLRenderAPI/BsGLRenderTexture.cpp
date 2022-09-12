@@ -40,7 +40,7 @@ namespace bs
 			bs_delete(mFB);
 	}
 
-	void GLRenderTexture::initialize()
+	void GLRenderTexture::Initialize()
 	{
 		RenderTexture::initialize();
 
@@ -128,7 +128,7 @@ namespace bs
 		mFB->rebuild();
 	}
 
-	void GLRenderTexture::getCustomAttribute(const String& name, void* data) const
+	void GLRenderTexture::GetCustomAttribute(const String& name, void* data) const
 	{
 		if(name=="FBO")
 		{
@@ -286,7 +286,7 @@ namespace bs
 		return status == GL_FRAMEBUFFER_COMPLETE && !failed;
 	}
 
-	void GLRTTManager::detectFBOFormats()
+	void GLRTTManager::DetectFBOFormats()
 	{
 		// Try all formats, and report which ones work as target
 		GLuint fb = 0, tid = 0;
@@ -427,7 +427,7 @@ namespace bs
 		BS_CHECK_GL_ERROR();
 	}
 
-	PixelFormat GLRTTManager::getSupportedAlternative(PixelFormat format)
+	PixelFormat GLRTTManager::GetSupportedAlternative(PixelFormat format)
 	{
 		if (checkFormat(format))
 			return format;

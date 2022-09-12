@@ -11,15 +11,15 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptTextureSurface::initRuntimeData()
+	void ScriptTextureSurface::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptTextureSurface::box(const TextureSurface& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	TextureSurface ScriptTextureSurface::unbox(MonoObject* value)
+	TextureSurface ScriptTextureSurface::Unbox(MonoObject* value)
 	{
 		return *(TextureSurface*)MonoUtil::unbox(value);
 	}

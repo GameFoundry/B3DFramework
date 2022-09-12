@@ -42,7 +42,7 @@ namespace bs
 		return *this;
 	}
 
-	void Path::swap(Path& path)
+	void Path::Swap(Path& path)
 	{
 		std::swap(mDirectories, path.mDirectories);
 		std::swap(mFilename, path.mFilename);
@@ -51,7 +51,7 @@ namespace bs
 		std::swap(mIsAbsolute, path.mIsAbsolute);
 	}
 
-	void Path::assign(const Path& path)
+	void Path::Assign(const Path& path)
 	{
 		mDirectories = path.mDirectories;
 		mFilename = path.mFilename;
@@ -60,17 +60,17 @@ namespace bs
 		mIsAbsolute = path.mIsAbsolute;
 	}
 
-	void Path::assign(const String& pathStr, PathType type)
+	void Path::Assign(const String& pathStr, PathType type)
 	{
 		assign(pathStr.data(), (UINT32)pathStr.length(), type);
 	}
 
-	void Path::assign(const char* pathStr, PathType type)
+	void Path::Assign(const char* pathStr, PathType type)
 	{
 		assign(pathStr, (UINT32)strlen(pathStr), type);
 	}
 
-	void Path::assign(const char* pathStr, UINT32 numChars, PathType type)
+	void Path::Assign(const char* pathStr, UINT32 numChars, PathType type)
 	{
 		switch (type)
 		{
@@ -93,13 +93,13 @@ namespace bs
 	}
 
 #if BS_PLATFORM == BS_PLATFORM_WIN32
-	WString Path::toPlatformString() const
+	WString Path::ToPlatformString() const
 	{
-		return UTF8::toWide(toString());
+		return UTF8::ToWide(toString());
 	}
 #endif
 
-	String Path::toString(PathType type) const
+	String Path::ToString(PathType type) const
 	{
 		switch (type)
 		{
@@ -119,7 +119,7 @@ namespace bs
 		}
 	}
 
-	Path Path::getParent() const
+	Path Path::GetParent() const
 	{
 		Path copy = *this;
 		copy.makeParent();
@@ -127,7 +127,7 @@ namespace bs
 		return copy;
 	}
 
-	Path Path::getAbsolute(const Path& base) const
+	Path Path::GetAbsolute(const Path& base) const
 	{
 		Path copy = *this;
 		copy.makeAbsolute(base);
@@ -135,7 +135,7 @@ namespace bs
 		return copy;
 	}
 
-	Path Path::getRelative(const Path& base) const
+	Path Path::GetRelative(const Path& base) const
 	{
 		Path copy = *this;
 		copy.makeRelative(base);
@@ -143,7 +143,7 @@ namespace bs
 		return copy;
 	}
 
-	Path Path::getDirectory() const
+	Path Path::GetDirectory() const
 	{
 		Path copy = *this;
 		copy.mFilename.clear();
@@ -151,7 +151,7 @@ namespace bs
 		return copy;
 	}
 
-	Path& Path::makeParent()
+	Path& Path::MakeParent()
 	{
 		if (mFilename.empty())
 		{
@@ -176,7 +176,7 @@ namespace bs
 		return *this;
 	}
 
-	Path& Path::makeAbsolute(const Path& base)
+	Path& Path::MakeAbsolute(const Path& base)
 	{
 		if (mIsAbsolute)
 			return *this;
@@ -194,7 +194,7 @@ namespace bs
 		return *this;
 	}
 
-	Path& Path::makeRelative(const Path& base)
+	Path& Path::MakeRelative(const Path& base)
 	{
 		if (!base.includes(*this))
 			return *this;
@@ -218,7 +218,7 @@ namespace bs
 		return *this;
 	}
 
-	bool Path::includes(const Path& child) const
+	bool Path::Includes(const Path& child) const
 	{
 		if (mDevice != child.mDevice)
 			return false;
@@ -258,7 +258,7 @@ namespace bs
 		return true;
 	}
 
-	bool Path::equals(const Path& other) const
+	bool Path::Equals(const Path& other) const
 	{
 		if (mIsAbsolute != other.mIsAbsolute)
 			return false;
@@ -326,7 +326,7 @@ namespace bs
 		return true;
 	}
 
-	Path& Path::append(const Path& path)
+	Path& Path::Append(const Path& path)
 	{
 		if (!mFilename.empty())
 			pushDirectory(mFilename);
@@ -339,12 +339,12 @@ namespace bs
 		return *this;
 	}
 
-	void Path::setBasename(const String& basename)
+	void Path::SetBasename(const String& basename)
 	{
 		mFilename = basename + getExtension();
 	}
 
-	void Path::setExtension(const String& extension)
+	void Path::SetExtension(const String& extension)
 	{
 		StringStream stream;
 		stream << GetFilename(false);
@@ -353,7 +353,7 @@ namespace bs
 		mFilename = stream.str();
 	}
 
-	String Path::getFilename(bool extension) const
+	String Path::GetFilename(bool extension) const
 	{
 		if (extension)
 			return mFilename;
@@ -367,7 +367,7 @@ namespace bs
 		}
 	}
 
-	String Path::getExtension() const
+	String Path::GetExtension() const
 	{
 		String::size_type pos = mFilename.rfind('.');
 		if (pos != String::npos)
@@ -376,7 +376,7 @@ namespace bs
 			return String();
 	}
 
-	const String& Path::getDirectory(UINT32 idx) const
+	const String& Path::GetDirectory(UINT32 idx) const
 	{
 		if (idx >= (UINT32)mDirectories.size())
 		{
@@ -387,7 +387,7 @@ namespace bs
 		return mDirectories[idx];
 	}
 
-	const String& Path::getTail() const
+	const String& Path::GetTail() const
 	{
 		if (isFile())
 			return mFilename;
@@ -397,7 +397,7 @@ namespace bs
 			return StringUtil::BLANK;
 	}
 
-	void Path::clear()
+	void Path::Clear()
 	{
 		mDirectories.clear();
 		mDevice.clear();
@@ -406,12 +406,12 @@ namespace bs
 		mIsAbsolute = false;
 	}
 
-	void Path::throwInvalidPathException(const String& path) const
+	void Path::ThrowInvalidPathException(const String& path) const
 	{
 		BS_EXCEPT(InvalidParametersException, "Incorrectly formatted path provided: " + path);
 	}
 
-	String Path::buildWindows() const
+	String Path::BuildWindows() const
 	{
 		StringStream result;
 		if (!mNode.empty())
@@ -440,7 +440,7 @@ namespace bs
 		return result.str();
 	}
 
-	String Path::buildUnix() const
+	String Path::BuildUnix() const
 	{
 		StringStream result;
 		auto dirIter = mDirectories.begin();
@@ -474,7 +474,7 @@ namespace bs
 
 	Path Path::operator+ (const Path& rhs) const
 	{
-		return Path::combine(*this, rhs);
+		return Path::Combine(*this, rhs);
 	}
 
 	Path& Path::operator+= (const Path& rhs)
@@ -482,22 +482,22 @@ namespace bs
 		return Append(rhs);
 	}
 
-	bool Path::comparePathElem(const String& left, const String& right)
+	bool Path::ComparePathElem(const String& left, const String& right)
 	{
 		// Note: Might be more efficient to perform toLower character by character, and return as soon as comparison
 		// fails. Instead of this way where we're allocating two temporary strings with dynamic memory. Although that
 		// approach is problematic as well because UTF8 case conversion requires external library calls which might not
 		// support single character conversion, so it might end up being less efficient.
-		return UTF8::toLower(left) == UTF8::toLower(right);
+		return UTF8::ToLower(left) == UTF8::toLower(right);
 	}
 
-	Path Path::combine(const Path& left, const Path& right)
+	Path Path::Combine(const Path& left, const Path& right)
 	{
 		Path output = left;
 		return output.append(right);
 	}
 
-	void Path::stripInvalid(String& path)
+	void Path::StripInvalid(String& path)
 	{
 		String illegalChars = "\\/:?\"<>|";
 
@@ -508,7 +508,7 @@ namespace bs
 		}
 	}
 
-	void Path::pushDirectory(const String& dir)
+	void Path::PushDirectory(const String& dir)
 	{
 		if (!dir.empty() && dir != ".")
 		{

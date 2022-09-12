@@ -15,7 +15,7 @@ namespace bs
 		mInternal = value;
 	}
 
-	void ScriptAudioClipImportOptions::initRuntimeData()
+	void ScriptAudioClipImportOptions::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getformat", (void*)&ScriptAudioClipImportOptions::Internal_getformat);
 		metaData.scriptClass->addInternalCall("Internal_setformat", (void*)&ScriptAudioClipImportOptions::Internal_setformat);

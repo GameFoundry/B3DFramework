@@ -34,7 +34,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Texture);
 	}
 
-	void D3D11Texture::initialize()
+	void D3D11Texture::Initialize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -204,7 +204,7 @@ namespace bs { namespace ct
 		return lockedArea;
 	}
 
-	void D3D11Texture::unlockImpl()
+	void D3D11Texture::UnlockImpl()
 	{
 		if(mLockedForReading)
 			unmapstagingbuffer();
@@ -217,7 +217,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void D3D11Texture::readDataImpl(PixelData& dest, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
+	void D3D11Texture::ReadDataImpl(PixelData& dest, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		if (mProperties.getNumSamples() > 1)
 		{
@@ -281,7 +281,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void D3D11Texture::create1DTex()
+	void D3D11Texture::Create1DTex()
 	{
 		UINT32 width = mProperties.getWidth();
 		int usage = mProperties.getUsage();
@@ -398,7 +398,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void D3D11Texture::create2DTex()
+	void D3D11Texture::Create2DTex()
 	{
 		UINT32 width = mProperties.getWidth();
 		UINT32 height = mProperties.getHeight();
@@ -542,7 +542,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void D3D11Texture::create3DTex()
+	void D3D11Texture::Create3DTex()
 	{
 		UINT32 width = mProperties.getWidth();
 		UINT32 height = mProperties.getHeight();
@@ -610,7 +610,7 @@ namespace bs { namespace ct
 
 			// Determine total number of mipmaps including main one (d3d11 convention)
 			desc.MipLevels		= (numMips == MIP_UNLIMITED || (1U << numMips)
-				> std::max(std::max(width, height), depth)) ? 0 : numMips + 1;
+				> std::Max(std::max(width, height), depth)) ? 0 : numMips + 1;
 		}
 
 		if ((usage & TU_LOADSTORE) != 0)
@@ -689,7 +689,7 @@ namespace bs { namespace ct
 		return pMappedResource.pData;
 	}
 
-	void D3D11Texture::unmap(ID3D11Resource* res)
+	void D3D11Texture::Unmap(ID3D11Resource* res)
 	{
 		D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::instancePtr());
 		D3D11Device& device = rs->getPrimaryDevice();
@@ -718,7 +718,7 @@ namespace bs { namespace ct
 		return Map(mStagingBuffer, flags, face, mipLevel, rowPitch, slicePitch);
 	}
 
-	void D3D11Texture::unmapstagingbuffer()
+	void D3D11Texture::Unmapstagingbuffer()
 	{
 		unmap(mStagingBuffer);
 		SAFE_RELEASE(mStagingBuffer);
@@ -735,7 +735,7 @@ namespace bs { namespace ct
 		return mStaticBuffer->getData();
 	}
 
-	void D3D11Texture::unmapstaticbuffer()
+	void D3D11Texture::Unmapstaticbuffer()
 	{
 		UINT32 rowWidth = D3D11Mappings::getSizeInBytes(mStaticBuffer->getFormat(), mStaticBuffer->getWidth());
 		UINT32 sliceWidth = D3D11Mappings::getSizeInBytes(mStaticBuffer->getFormat(), mStaticBuffer->getWidth(), mStaticBuffer->getHeight());
@@ -759,7 +759,7 @@ namespace bs { namespace ct
 		return mShaderResourceView->getSRV();
 	}
 
-	void D3D11Texture::createStagingBuffer()
+	void D3D11Texture::CreateStagingBuffer()
 	{
 		D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::instancePtr());
 		D3D11Device& device = rs->getPrimaryDevice();
@@ -808,7 +808,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	SPtr<TextureView> D3D11Texture::createView(const TEXTURE_VIEW_DESC& desc)
+	SPtr<TextureView> D3D11Texture::CreateView(const TEXTURE_VIEW_DESC& desc)
 	{
 		return bs_shared_ptr<D3D11TextureView>(new (bs_alloc<D3D11TextureView>()) D3D11TextureView(this, desc));
 	}

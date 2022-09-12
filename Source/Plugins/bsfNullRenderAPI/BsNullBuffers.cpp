@@ -62,7 +62,7 @@ namespace bs { namespace ct
 		: GpuBuffer(desc, std::move(underlyingBuffer))
 	{ }
 
-	void NullGpuBuffer::initialize()
+	void NullGpuBuffer::Initialize()
 	{
 		const GpuBufferProperties& props = getProperties();
 		mBufferDeleter = &deleteBuffer;
@@ -78,7 +78,7 @@ namespace bs { namespace ct
 		:GpuParamBlockBuffer(size, usage, deviceMask)
 	{ }
 
-	void NullGpuParamBlockBuffer::initialize()
+	void NullGpuParamBlockBuffer::Initialize()
 	{
 		mBuffer = bs_pool_new<NullHardwareBuffer>(mUsage, 1, mSize);
 		GpuParamBlockBuffer::initialize();
@@ -96,7 +96,7 @@ namespace bs { namespace ct
 		return mStagingBuffer;
 	}
 
-	void NullHardwareBuffer::unmap()
+	void NullHardwareBuffer::Unmap()
 	{
 		bs_free(mStagingBuffer);
 		mStagingBuffer = nullptr;
@@ -106,7 +106,7 @@ namespace bs { namespace ct
 		:IndexBuffer(desc, deviceMask)
 	{ }
 
-	void NullIndexBuffer::initialize()
+	void NullIndexBuffer::Initialize()
 	{
 		mBuffer = bs_pool_new<NullHardwareBuffer>(mUsage, 1, mSize);
 		mBufferDeleter = &deleteBuffer;
@@ -118,7 +118,7 @@ namespace bs { namespace ct
 		: VertexBuffer(desc, deviceMask)
 	{ }
 
-	void NullVertexBuffer::initialize()
+	void NullVertexBuffer::Initialize()
 	{
 		mBuffer = bs_pool_new<NullHardwareBuffer>(mUsage, 1, mSize);
 		mBufferDeleter = &deleteBuffer;

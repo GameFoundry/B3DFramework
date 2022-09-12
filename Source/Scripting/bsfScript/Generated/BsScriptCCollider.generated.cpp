@@ -28,7 +28,7 @@ namespace bs
 		value->onCollisionEnd.connect(std::bind(&ScriptCCollider::onCollisionEnd, this, std::placeholders::_1));
 	}
 
-	void ScriptCCollider::initRuntimeData()
+	void ScriptCCollider::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_setIsTrigger", (void*)&ScriptCCollider::Internal_setIsTrigger);
 		metaData.scriptClass->addInternalCall("Internal_getIsTrigger", (void*)&ScriptCCollider::Internal_getIsTrigger);
@@ -50,7 +50,7 @@ namespace bs
 		onCollisionEndThunk = (onCollisionEndThunkDef)metaData.scriptClass->getMethodExact("Internal_onCollisionEnd", "CollisionData&")->getThunk();
 	}
 
-	void ScriptCCollider::onCollisionBegin(const CollisionData& p0)
+	void ScriptCCollider::OnCollisionBegin(const CollisionData& p0)
 	{
 		MonoObject* tmpp0;
 		__CollisionDataInterop interopp0;
@@ -59,7 +59,7 @@ namespace bs
 		MonoUtil::invokeThunk(onCollisionBeginThunk, getManagedInstance(), tmpp0);
 	}
 
-	void ScriptCCollider::onCollisionStay(const CollisionData& p0)
+	void ScriptCCollider::OnCollisionStay(const CollisionData& p0)
 	{
 		MonoObject* tmpp0;
 		__CollisionDataInterop interopp0;
@@ -68,7 +68,7 @@ namespace bs
 		MonoUtil::invokeThunk(onCollisionStayThunk, getManagedInstance(), tmpp0);
 	}
 
-	void ScriptCCollider::onCollisionEnd(const CollisionData& p0)
+	void ScriptCCollider::OnCollisionEnd(const CollisionData& p0)
 	{
 		MonoObject* tmpp0;
 		__CollisionDataInterop interopp0;

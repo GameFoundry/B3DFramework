@@ -25,7 +25,7 @@ namespace bs
 	ScriptGUI::~ScriptGUI()
 	{ }
 
-	void ScriptGUI::startUp()
+	void ScriptGUI::StartUp()
 	{
 		SPtr<Camera> mainCamera = gSceneManager().getMainCamera();
 		sGUIWidget = GUIWidget::create(mainCamera);
@@ -55,7 +55,7 @@ namespace bs
 		sDomainUnloadConn = MonoManager::instance().onDomainUnload.connect(clearPanel);
 	}
 
-	void ScriptGUI::update()
+	void ScriptGUI::Update()
 	{
 		if (sGUIWidget == nullptr)
 			return;
@@ -67,7 +67,7 @@ namespace bs
 		sGUIWidget->_updateRT();
 	}
 
-	void ScriptGUI::shutDown()
+	void ScriptGUI::ShutDown()
 	{
 		sDomainLoadConn.disconnect();
 		sDomainUnloadConn.disconnect();
@@ -85,7 +85,7 @@ namespace bs
 		}
 	}
 
-	void ScriptGUI::initRuntimeData()
+	void ScriptGUI::InitRuntimeData()
 	{
 		sGUIPanelMethod = metaData.scriptClass->getMethod("SetPanel", 1);
 

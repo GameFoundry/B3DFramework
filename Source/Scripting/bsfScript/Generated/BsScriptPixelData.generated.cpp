@@ -16,7 +16,7 @@ namespace bs
 	{
 	}
 
-	void ScriptPixelData::initRuntimeData()
+	void ScriptPixelData::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getRowPitch", (void*)&ScriptPixelData::Internal_getRowPitch);
 		metaData.scriptClass->addInternalCall("Internal_getSlicePitch", (void*)&ScriptPixelData::Internal_getSlicePitch);

@@ -36,7 +36,7 @@ namespace bs { namespace ct
 				pixelData->setColorAt(color, x, y);
 			}
 
-		return Texture::create(pixelData);
+		return Texture::Create(pixelData);
 	}
 
 	// Reverse bits functions used for Hammersley sequence
@@ -260,7 +260,7 @@ namespace bs { namespace ct
 		for(UINT32 i = 16; i < 32; i++)
 			pixels->setColorAt(Color::Black, i, 0);
 
-		return Texture::create(pixels);
+		return Texture::Create(pixels);
 	}
 
 	SPtr<Texture> GenerateChromaticAberrationFringe()
@@ -270,7 +270,7 @@ namespace bs { namespace ct
 		pixels->setColorAt(Color(0.0f, 1.0f, 0.0f, 1.0f), 1, 0);
 		pixels->setColorAt(Color(0.0f, 0.0f, 1.0f, 1.0f), 2, 0);
 
-		return Texture::create(pixels);
+		return Texture::Create(pixels);
 	}
 
 	SPtr<Texture> RendererTextures::preintegratedEnvGF;
@@ -280,7 +280,7 @@ namespace bs { namespace ct
 	SPtr<Texture> RendererTextures::bokehFlare;
 	SPtr<Texture> RendererTextures::chromaticAberrationFringe;
 
-	void RendererTextures::startUp(const LoadedRendererTextures& textures)
+	void RendererTextures::StartUp(const LoadedRendererTextures& textures)
 	{
 		preintegratedEnvGF = generatePreintegratedEnvBRDF();
 		ssaoRandomization4x4 = generate4x4RandomizationTexture();
@@ -290,7 +290,7 @@ namespace bs { namespace ct
 		chromaticAberrationFringe = generateChromaticAberrationFringe();
 	}
 
-	void RendererTextures::shutDown()
+	void RendererTextures::ShutDown()
 	{
 		preintegratedEnvGF = nullptr;
 		ssaoRandomization4x4 = nullptr;

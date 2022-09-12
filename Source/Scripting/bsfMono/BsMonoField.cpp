@@ -31,7 +31,7 @@ namespace bs
 		return mFieldType;
 	}
 
-	void MonoField::get(MonoObject* instance, void* outValue)
+	void MonoField::Get(MonoObject* instance, void* outValue)
 	{
 		mono_field_get_value(instance, mField, outValue);
 	}
@@ -41,12 +41,12 @@ namespace bs
 		return mono_field_get_value_object(MonoManager::instance().getDomain(), mField, instance);
 	}
 
-	void MonoField::set(MonoObject* instance, void* value)
+	void MonoField::Set(MonoObject* instance, void* value)
 	{
 		mono_field_set_value(instance, mField, value);
 	}
 
-	bool MonoField::hasAttribute(MonoClass* monoClass)
+	bool MonoField::HasAttribute(MonoClass* monoClass)
 	{
 		// TODO - Consider caching custom attributes or just initializing them all at load
 
@@ -79,7 +79,7 @@ namespace bs
 		return foundAttr;
 	}
 
-	MonoMemberVisibility MonoField::getVisibility()
+	MonoMemberVisibility MonoField::GetVisibility()
 	{
 		uint32_t flags = mono_field_get_flags(mField) & MONO_FIELD_ATTR_FIELD_ACCESS_MASK;
 
@@ -98,7 +98,7 @@ namespace bs
 		return MonoMemberVisibility::Private;
 	}
 
-	bool MonoField::isStatic()
+	bool MonoField::IsStatic()
 	{
 		uint32_t flags = mono_field_get_flags(mField);
 

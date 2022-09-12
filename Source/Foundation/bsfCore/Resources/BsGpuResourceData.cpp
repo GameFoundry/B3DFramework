@@ -49,7 +49,7 @@ namespace bs
 		return mData;
 	}
 
-	void GpuResourceData::setData(UPtr<UINT8[]> &data)
+	void GpuResourceData::SetData(UPtr<UINT8[]> &data)
 	{
 		verifyLockAndThread(this);
 
@@ -59,12 +59,12 @@ namespace bs
 		mOwnsData = true;
 	}
 
-	void GpuResourceData::allocateInternalBuffer()
+	void GpuResourceData::AllocateInternalBuffer()
 	{
 		allocateInternalBuffer(getInternalBufferSize());
 	}
 
-	void GpuResourceData::allocateInternalBuffer(UINT32 size)
+	void GpuResourceData::AllocateInternalBuffer(UINT32 size)
 	{
 		verifyLockAndThread(this);
 
@@ -74,7 +74,7 @@ namespace bs
 		mOwnsData = true;
 	}
 
-	void GpuResourceData::freeInternalBuffer()
+	void GpuResourceData::FreeInternalBuffer()
 	{
 		if(mData == nullptr || !mOwnsData)
 			return;
@@ -85,7 +85,7 @@ namespace bs
 		mData = nullptr;
 	}
 
-	void GpuResourceData::setExternalBuffer(UINT8* data)
+	void GpuResourceData::SetExternalBuffer(UINT8* data)
 	{
 		verifyLockAndThread(this);
 
@@ -111,11 +111,11 @@ namespace bs
 
 	RTTITypeBase* GpuResourceData::getRTTIStatic()
 	{
-		return GpuResourceDataRTTI::instance();
+		return GpuResourceDataRTTI::Instance();
 	}
 
 	RTTITypeBase* GpuResourceData::getRTTI() const
 	{
-		return GpuResourceData::getRTTIStatic();
+		return GpuResourceData::GetRTTIStatic();
 	}
 }

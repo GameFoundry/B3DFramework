@@ -12,7 +12,7 @@ namespace bs
 	{
 	}
 
-	void ScriptScreenSpaceLensFlareSettings::initRuntimeData()
+	void ScriptScreenSpaceLensFlareSettings::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_ScreenSpaceLensFlareSettings", (void*)&ScriptScreenSpaceLensFlareSettings::Internal_ScreenSpaceLensFlareSettings);
 		metaData.scriptClass->addInternalCall("Internal_getenabled", (void*)&ScriptScreenSpaceLensFlareSettings::Internal_getenabled);

@@ -325,7 +325,7 @@ namespace bs
 		/** Query if any of the components of the quaternion are not a number. */
 		bool IsNaN() const
 		{
-			return Math::isNaN(x) || Math::isNaN(y) || Math::isNaN(z) || Math::isNaN(w);
+			return Math::IsNaN(x) || Math::isNaN(y) || Math::isNaN(z) || Math::isNaN(w);
 		}
 
 		/** Calculates the dot product between two quaternions. */

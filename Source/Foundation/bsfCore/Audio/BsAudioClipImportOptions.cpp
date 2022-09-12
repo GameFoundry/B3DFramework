@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	SPtr<AudioClipImportOptions> AudioClipImportOptions::create()
+	SPtr<AudioClipImportOptions> AudioClipImportOptions::Create()
 	{
 		return bs_shared_ptr_new<AudioClipImportOptions>();
 	}
@@ -15,7 +15,7 @@ namespace bs
 	/************************************************************************/
 	RTTITypeBase* AudioClipImportOptions::getRTTIStatic()
 	{
-		return AudioClipImportOptionsRTTI::instance();
+		return AudioClipImportOptionsRTTI::Instance();
 	}
 
 	RTTITypeBase* AudioClipImportOptions::getRTTI() const

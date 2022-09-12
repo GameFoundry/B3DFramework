@@ -42,7 +42,7 @@ namespace bs { namespace ct
 			vkDestroyQueryPool(mDevice.getLogical(), entry.pool, gVulkanAllocator);
 	}
 
-	VulkanQueryPool::PoolInfo& VulkanQueryPool::allocatePool(VkQueryType type)
+	VulkanQueryPool::PoolInfo& VulkanQueryPool::AllocatePool(VkQueryType type)
 	{
 		VkQueryPoolCreateInfo queryPoolCI;
 		queryPoolCI.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
@@ -134,7 +134,7 @@ namespace bs { namespace ct
 		return query;
 	}
 
-	void VulkanQueryPool::endOcclusionQuery(VulkanQuery* query, VulkanCmdBuffer* cb)
+	void VulkanQueryPool::EndOcclusionQuery(VulkanQuery* query, VulkanCmdBuffer* cb)
 	{
 		Lock Lock(mMutex);
 
@@ -142,7 +142,7 @@ namespace bs { namespace ct
 		vkCmdEndQuery(vkCmdBuf, query->mPool, query->mQueryIdx);
 	}
 
-	void VulkanQueryPool::releaseQuery(VulkanQuery* query)
+	void VulkanQueryPool::ReleaseQuery(VulkanQuery* query)
 	{
 		Lock Lock(mMutex);
 
@@ -153,7 +153,7 @@ namespace bs { namespace ct
 		:mRenderAPI(rapi)
 	{ }
 
-	SPtr<EventQuery> VulkanQueryManager::createEventQuery(UINT32 deviceIdx) const
+	SPtr<EventQuery> VulkanQueryManager::CreateEventQuery(UINT32 deviceIdx) const
 	{
 		SPtr<VulkanDevice> device = mRenderAPI._getDevice(deviceIdx);
 
@@ -164,7 +164,7 @@ namespace bs { namespace ct
 		return query;
 	}
 
-	SPtr<TimerQuery> VulkanQueryManager::createTimerQuery(UINT32 deviceIdx) const
+	SPtr<TimerQuery> VulkanQueryManager::CreateTimerQuery(UINT32 deviceIdx) const
 	{
 		SPtr<VulkanDevice> device = mRenderAPI._getDevice(deviceIdx);
 
@@ -175,7 +175,7 @@ namespace bs { namespace ct
 		return query;
 	}
 
-	SPtr<OcclusionQuery> VulkanQueryManager::createOcclusionQuery(bool binary, UINT32 deviceIdx) const
+	SPtr<OcclusionQuery> VulkanQueryManager::CreateOcclusionQuery(bool binary, UINT32 deviceIdx) const
 	{
 		SPtr<VulkanDevice> device = mRenderAPI._getDevice(deviceIdx);
 
@@ -191,7 +191,7 @@ namespace bs { namespace ct
 	{
 	}
 
-	bool VulkanQuery::getResult(UINT64& result) const
+	bool VulkanQuery::GetResult(UINT64& result) const
 	{
 		// Note: A potentially better approach to get results is to make the query pool a VulkanResource, which we attach
 		// to a command buffer upon use. Then when CB finishes executing we perform vkGetQueryPoolResults on all queries
@@ -205,7 +205,7 @@ namespace bs { namespace ct
 		return vkResult == VK_SUCCESS;
 	}
 
-	void VulkanQuery::reset(VkCommandBuffer cmdBuf)
+	void VulkanQuery::Reset(VkCommandBuffer cmdBuf)
 	{
 		vkCmdResetQueryPool(cmdBuf, mPool, mQueryIdx, 1);
 	}

@@ -20,7 +20,7 @@ namespace bs
 
 	}
 
-	void ScriptSerializableObject::initRuntimeData()
+	void ScriptSerializableObject::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptSerializableObject::internal_createInstance);
 		metaData.scriptClass->addInternalCall("Internal_GetBaseClass", (void*)&ScriptSerializableObject::internal_getBaseClass);

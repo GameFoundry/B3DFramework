@@ -18,7 +18,7 @@ namespace bs
 	{
 	}
 
-	void ScriptViewport::initRuntimeData()
+	void ScriptViewport::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_setTarget", (void*)&ScriptViewport::Internal_setTarget);
 		metaData.scriptClass->addInternalCall("Internal_getTarget", (void*)&ScriptViewport::Internal_getTarget);

@@ -14,17 +14,17 @@ namespace bs
 		processFinalizedObjects();
 	}
 
-	void ScriptObjectManager::registerScriptObject(ScriptObjectBase* instance)
+	void ScriptObjectManager::RegisterScriptObject(ScriptObjectBase* instance)
 	{
 		mScriptObjects.insert(instance);
 	}
 
-	void ScriptObjectManager::unregisterScriptObject(ScriptObjectBase* instance)
+	void ScriptObjectManager::UnregisterScriptObject(ScriptObjectBase* instance)
 	{
 		mScriptObjects.erase(instance);
 	}
 
-	void ScriptObjectManager::refreshAssemblies(const Vector<AssemblyRefreshInfo>& assemblies)
+	void ScriptObjectManager::RefreshAssemblies(const Vector<AssemblyRefreshInfo>& assemblies)
 	{
 		Map<ScriptObjectBase*, ScriptObjectBackup> backupData;
 
@@ -75,7 +75,7 @@ namespace bs
 		onRefreshComplete();
 	}
 
-	void ScriptObjectManager::notifyObjectFinalized(ScriptObjectBase* instance)
+	void ScriptObjectManager::NotifyObjectFinalized(ScriptObjectBase* instance)
 	{
 		assert(instance != nullptr);
 
@@ -83,12 +83,12 @@ namespace bs
 		mFinalizedObjects[mFinalizedQueueIdx].push_back(instance);
 	}
 
-	void ScriptObjectManager::update()
+	void ScriptObjectManager::Update()
 	{
 		processFinalizedObjects();
 	}
 
-	void ScriptObjectManager::processFinalizedObjects(bool assemblyRefresh)
+	void ScriptObjectManager::ProcessFinalizedObjects(bool assemblyRefresh)
 	{
 		UINT32 readQueueIdx = 0;
 		{

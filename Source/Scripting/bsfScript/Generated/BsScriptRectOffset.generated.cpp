@@ -11,15 +11,15 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptRectOffset::initRuntimeData()
+	void ScriptRectOffset::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptRectOffset::box(const RectOffset& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	RectOffset ScriptRectOffset::unbox(MonoObject* value)
+	RectOffset ScriptRectOffset::Unbox(MonoObject* value)
 	{
 		return *(RectOffset*)MonoUtil::unbox(value);
 	}

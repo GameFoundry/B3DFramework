@@ -1182,11 +1182,11 @@ namespace bs
 			if(newObj->getTypeId() == TID_SerializedObject)
 			{
 				impl::RTTIObjectWrapper<false> NewObjWrapper(static_cast<SerializedObject*>(newObj));
-				return impl::generateDiff(orgObjWrapper, newObjWrapper, objectMap, replicableOnly);
+				return impl::GenerateDiff(orgObjWrapper, newObjWrapper, objectMap, replicableOnly);
 			}
 
 			impl::RTTIObjectWrapper<true> NewObjWrapper(newObj, newObj->getRTTI());
-			return impl::generateDiff(orgObjWrapper, newObjWrapper, objectMap, replicableOnly);
+			return impl::GenerateDiff(orgObjWrapper, newObjWrapper, objectMap, replicableOnly);
 		}
 		else
 		{
@@ -1195,11 +1195,11 @@ namespace bs
 			if(newObj->getTypeId() == TID_SerializedObject)
 			{
 				impl::RTTIObjectWrapper<false> NewObjWrapper(static_cast<SerializedObject*>(newObj));
-				return impl::generateDiff(orgObjWrapper, newObjWrapper, objectMap, replicableOnly);
+				return impl::GenerateDiff(orgObjWrapper, newObjWrapper, objectMap, replicableOnly);
 			}
 
 			impl::RTTIObjectWrapper<true> NewObjWrapper(newObj, newObj->getRTTI());
-			return impl::generateDiff(orgObjWrapper, newObjWrapper, objectMap, replicableOnly);
+			return impl::GenerateDiff(orgObjWrapper, newObjWrapper, objectMap, replicableOnly);
 		}
 	}
 

@@ -41,7 +41,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
 	}
 
-	void D3D11EventQuery::begin(const SPtr<CommandBuffer>& cb)
+	void D3D11EventQuery::Begin(const SPtr<CommandBuffer>& cb)
 	{
 		auto execute = [&]()
 		{
@@ -58,7 +58,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	bool D3D11EventQuery::isReady() const
+	bool D3D11EventQuery::IsReady() const
 	{
 		BOOL queryData;
 		return mContext->GetData(mQuery, &queryData, sizeof(BOOL), 0) == S_OK;

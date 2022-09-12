@@ -195,7 +195,7 @@ namespace bs
 		gCoreThread().submit(true);
 	}
 
-	HSpriteTexture BuiltinResources::getSkinTexture(const String& name) const
+	HSpriteTexture BuiltinResources::GetSkinTexture(const String& name) const
 	{
 		Path texturePath = mEngineSkinSpritesFolder;
 		texturePath.append(u8"sprite_" + name + u8".asset");
@@ -203,7 +203,7 @@ namespace bs
 		return GResources().load<SpriteTexture>(texturePath);
 	}
 
-	HShader BuiltinResources::getShader(const Path& path) const
+	HShader BuiltinResources::GetShader(const Path& path) const
 	{
 		Path programPath = mEngineShaderFolder;
 		programPath.append(path);
@@ -212,7 +212,7 @@ namespace bs
 		return GResources().load<Shader>(programPath);
 	}
 
-	HTexture BuiltinResources::getCursorTexture(const String& name) const
+	HTexture BuiltinResources::GetCursorTexture(const String& name) const
 	{
 		Path cursorPath = mEngineCursorFolder;
 		cursorPath.append(name + u8".asset");
@@ -220,94 +220,94 @@ namespace bs
 		return GResources().load<Texture>(cursorPath);
 	}
 
-	const PixelData& BuiltinResources::getCursorArrow(Vector2I& hotSpot)
+	const PixelData& BuiltinResources::GetCursorArrow(Vector2I& hotSpot)
 	{
 		hotSpot = CursorArrowHotspot;
 		return *mCursorArrow.get();
 	}
 
-	const PixelData& BuiltinResources::getCursorArrowDrag(Vector2I& hotSpot)
+	const PixelData& BuiltinResources::GetCursorArrowDrag(Vector2I& hotSpot)
 	{
 		hotSpot = CursorArrowDragHotspot;
 		return *mCursorArrowDrag.get();
 	}
 
-	const PixelData& BuiltinResources::getCursorWait(Vector2I& hotSpot)
+	const PixelData& BuiltinResources::GetCursorWait(Vector2I& hotSpot)
 	{
 		hotSpot = CursorWaitHotspot;
 		return *mCursorWait.get();
 	}
 
-	const PixelData& BuiltinResources::getCursorIBeam(Vector2I& hotSpot)
+	const PixelData& BuiltinResources::GetCursorIBeam(Vector2I& hotSpot)
 	{
 		hotSpot = CursorIBeamHotspot;
 		return *mCursorIBeam.get();
 	}
 
-	const PixelData& BuiltinResources::getCursorSizeNESW(Vector2I& hotSpot)
+	const PixelData& BuiltinResources::GetCursorSizeNESW(Vector2I& hotSpot)
 	{
 		hotSpot = CursorSizeNESWHotspot;
 		return *mCursorSizeNESW.get();
 	}
 
-	const PixelData& BuiltinResources::getCursorSizeNS(Vector2I& hotSpot)
+	const PixelData& BuiltinResources::GetCursorSizeNS(Vector2I& hotSpot)
 	{
 		hotSpot = CursorSizeNSHotspot;
 		return *mCursorSizeNS.get();
 	}
 
-	const PixelData& BuiltinResources::getCursorSizeNWSE(Vector2I& hotSpot)
+	const PixelData& BuiltinResources::GetCursorSizeNWSE(Vector2I& hotSpot)
 	{
 		hotSpot = CursorSizeNWSEHotspot;
 		return *mCursorSizeNWSE.get();
 	}
 
-	const PixelData& BuiltinResources::getCursorSizeWE(Vector2I& hotSpot)
+	const PixelData& BuiltinResources::GetCursorSizeWE(Vector2I& hotSpot)
 	{
 		hotSpot = CursorSizeWEHotspot;
 		return *mCursorSizeWE.get();
 	}
 
-	const PixelData& BuiltinResources::getCursorDeny(Vector2I& hotSpot)
+	const PixelData& BuiltinResources::GetCursorDeny(Vector2I& hotSpot)
 	{
 		hotSpot = CursorDenyHotspot;
 		return *mCursorDeny.get();
 	}
 
-	const PixelData& BuiltinResources::getCursorMoveLeftRight(Vector2I& hotSpot)
+	const PixelData& BuiltinResources::GetCursorMoveLeftRight(Vector2I& hotSpot)
 	{
 		hotSpot = CursorArrowLeftRightHotspot;
 		return *mCursorArrowLeftRight.get();
 	}
 
-	const PixelData& BuiltinResources::getFrameworkIcon()
+	const PixelData& BuiltinResources::GetFrameworkIcon()
 	{
 		return *mFrameworkIcon.get();
 	}
 
-	Path BuiltinResources::getRawShaderFolder()
+	Path BuiltinResources::GetRawShaderFolder()
 	{
-		return Paths::getDataPath() + "Raw/" + SHADER_FOLDER;
+		return Paths::GetDataPath() + "Raw/" + SHADER_FOLDER;
 	}
 
-	Path BuiltinResources::getShaderIncludeFolder()
+	Path BuiltinResources::GetShaderIncludeFolder()
 	{
-		return Paths::getDataPath() + SHADER_INCLUDE_FOLDER;
+		return Paths::GetDataPath() + SHADER_INCLUDE_FOLDER;
 	}
 
-	Path BuiltinResources::getIconFolder()
+	Path BuiltinResources::GetIconFolder()
 	{
-		return Paths::getDataPath() + ICON_FOLDER;
+		return Paths::GetDataPath() + ICON_FOLDER;
 	}
 
 #if BS_IS_BANSHEE3D || defined BS_IS_ASSET_TOOL
-	Path BuiltinResources::getEditorShaderIncludeFolder()
+	Path BuiltinResources::GetEditorShaderIncludeFolder()
 	{
-		return Paths::getEditorDataPath() + SHADER_INCLUDE_FOLDER;
+		return Paths::GetEditorDataPath() + SHADER_INCLUDE_FOLDER;
 	}
 #endif
 
-	HMesh BuiltinResources::getMesh(BuiltinMesh mesh) const
+	HMesh BuiltinResources::GetMesh(BuiltinMesh mesh) const
 	{
 		Path meshPath = mEngineMeshFolder;
 
@@ -336,7 +336,7 @@ namespace bs
 		return GResources().load<Mesh>(meshPath);
 	}
 
-	HShader BuiltinResources::getBuiltinShader(BuiltinShader type) const
+	HShader BuiltinResources::GetBuiltinShader(BuiltinShader type) const
 	{
 		switch(type)
 		{
@@ -359,7 +359,7 @@ namespace bs
 		return HShader();
 	}
 
-	HTexture BuiltinResources::getTexture(BuiltinTexture type)
+	HTexture BuiltinResources::GetTexture(BuiltinTexture type)
 	{
 		Path texturePath = Paths::getDataPath();
 		texturePath.append(TEXTURE_FOLDER);
@@ -383,23 +383,23 @@ namespace bs
 		return GResources().load<Texture>(texturePath);
 	}
 
-	HMaterial BuiltinResources::createSpriteTextMaterial() const
+	HMaterial BuiltinResources::CreateSpriteTextMaterial() const
 	{
-		return Material::create(mShaderSpriteText);
+		return Material::Create(mShaderSpriteText);
 	}
 
-	HMaterial BuiltinResources::createSpriteImageMaterial() const
+	HMaterial BuiltinResources::CreateSpriteImageMaterial() const
 	{
-		return Material::create(mShaderSpriteImage);
+		return Material::Create(mShaderSpriteImage);
 	}
 
-	HMaterial BuiltinResources::createSpriteLineMaterial() const
+	HMaterial BuiltinResources::CreateSpriteLineMaterial() const
 	{
-		return Material::create(mShaderSpriteLine);
+		return Material::Create(mShaderSpriteLine);
 	}
 
 	BuiltinResources& GBuiltinResources()
 	{
-		return BuiltinResources::instance();
+		return BuiltinResources::Instance();
 	}
 }

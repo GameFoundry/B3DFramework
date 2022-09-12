@@ -16,7 +16,7 @@ namespace bs
 	{
 	}
 
-	void ScriptPhysicsMaterial::initRuntimeData()
+	void ScriptPhysicsMaterial::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetRef", (void*)&ScriptPhysicsMaterial::Internal_getRef);
 		metaData.scriptClass->addInternalCall("Internal_setStaticFriction", (void*)&ScriptPhysicsMaterial::Internal_setStaticFriction);

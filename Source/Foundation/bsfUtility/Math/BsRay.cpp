@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	void Ray::transform(const Matrix4& matrix)
+	void Ray::Transform(const Matrix4& matrix)
 	{
 		Vector3 end = getPoint(1.0f);
 
@@ -18,7 +18,7 @@ namespace bs
 		mDirection = Vector3::normalize(end - mOrigin);
 	}
 
-	void Ray::transformAffine(const Matrix4& matrix)
+	void Ray::TransformAffine(const Matrix4& matrix)
 	{
 		Vector3 end = getPoint(1.0f);
 
@@ -28,17 +28,17 @@ namespace bs
 		mDirection = Vector3::normalize(end - mOrigin);
 	}
 
-	std::pair<bool, float> Ray::intersects(const Plane& p) const
+	std::pair<bool, float> Ray::Intersects(const Plane& p) const
 	{
 		return p.intersects(*this);
 	}
 
-	std::pair<bool, float> Ray::intersects(const Sphere& s) const
+	std::pair<bool, float> Ray::Intersects(const Sphere& s) const
 	{
 		return s.intersects(*this);
 	}
 
-	std::pair<bool, float> Ray::intersects(const AABox& box) const
+	std::pair<bool, float> Ray::Intersects(const AABox& box) const
 	{
 		return box.intersects(*this);
 	}

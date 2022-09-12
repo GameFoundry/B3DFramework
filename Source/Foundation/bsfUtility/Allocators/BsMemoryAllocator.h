@@ -48,7 +48,7 @@ namespace bs
 #elif BS_PLATFORM == BS_PLATFORM_LINUX || BS_PLATFORM == BS_PLATFORM_ANDROID
 	inline void* platformAlignedAlloc16(size_t size)
 	{
-		return ::memalign(16, size);
+		return ::Memalign(16, size);
 	}
 
 	inline void PlatformAlignedFree16(void* ptr)
@@ -58,7 +58,7 @@ namespace bs
 
 	inline void* platformAlignedAlloc(size_t size, size_t alignment)
 	{
-		return ::memalign(alignment, size);
+		return ::Memalign(alignment, size);
 	}
 
 	inline void PlatformAlignedFree(void* ptr)
@@ -68,7 +68,7 @@ namespace bs
 #else // 16 byte aligment by default
 	inline void* platformAlignedAlloc16(size_t size)
 	{
-		return ::malloc(size);
+		return ::Malloc(size);
 	}
 
 	inline void PlatformAlignedFree16(void* ptr)

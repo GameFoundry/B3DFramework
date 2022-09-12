@@ -7,11 +7,11 @@ namespace bs
 {
 	RTTITypeBase* GUIElementStyle::getRTTIStatic()
 	{
-		return GUIElementStyleRTTI::instance();
+		return GUIElementStyleRTTI::Instance();
 	}
 
 	RTTITypeBase* GUIElementStyle::getRTTI() const
 	{
-		return GUIElementStyle::getRTTIStatic();
+		return GUIElementStyle::GetRTTIStatic();
 	}
 }

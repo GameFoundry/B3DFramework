@@ -529,14 +529,14 @@ namespace bs
 		bs_frame_clear();
 	}
 
-	UINT32 ParticleManager::registerParticleSystem(ParticleSystem* system)
+	UINT32 ParticleManager::RegisterParticleSystem(ParticleSystem* system)
 	{
 		mSystems.insert(system);
 
 		return mNextId++;
 	}
 
-	void ParticleManager::unregisterParticleSystem(ParticleSystem* system)
+	void ParticleManager::UnregisterParticleSystem(ParticleSystem* system)
 	{
 		mSystems.erase(system);
 	}

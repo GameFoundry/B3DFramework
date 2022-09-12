@@ -7,7 +7,7 @@
 
 namespace bs { namespace ct
 {
-	D3D11_TEXTURE_ADDRESS_MODE D3D11Mappings::get(TextureAddressingMode tam)
+	D3D11_TEXTURE_ADDRESS_MODE D3D11Mappings::Get(TextureAddressingMode tam)
 	{
 		switch(tam)
 		{
@@ -24,7 +24,7 @@ namespace bs { namespace ct
 		return D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
 	}
 
-	D3D11_BLEND D3D11Mappings::get(BlendFactor bf)
+	D3D11_BLEND D3D11Mappings::Get(BlendFactor bf)
 	{
 		switch(bf)
 		{
@@ -54,7 +54,7 @@ namespace bs { namespace ct
 		return D3D11_BLEND_ZERO;
 	}
 
-	D3D11_BLEND_OP D3D11Mappings::get(BlendOperation bo)
+	D3D11_BLEND_OP D3D11Mappings::Get(BlendOperation bo)
 	{
 		switch(bo)
 		{
@@ -74,7 +74,7 @@ namespace bs { namespace ct
 		return D3D11_BLEND_OP_ADD;
 	}
 
-	D3D11_COMPARISON_FUNC D3D11Mappings::get(CompareFunction cf)
+	D3D11_COMPARISON_FUNC D3D11Mappings::Get(CompareFunction cf)
 	{
 		switch(cf)
 		{
@@ -100,7 +100,7 @@ namespace bs { namespace ct
 		return D3D11_COMPARISON_ALWAYS;
 	}
 
-	D3D11_CULL_MODE D3D11Mappings::get(CullingMode cm)
+	D3D11_CULL_MODE D3D11Mappings::Get(CullingMode cm)
 	{
 		switch(cm)
 		{
@@ -116,7 +116,7 @@ namespace bs { namespace ct
 		return D3D11_CULL_NONE;
 	}
 
-	D3D11_FILL_MODE D3D11Mappings::get(PolygonMode mode)
+	D3D11_FILL_MODE D3D11Mappings::Get(PolygonMode mode)
 	{
 		switch(mode)
 		{
@@ -129,7 +129,7 @@ namespace bs { namespace ct
 		return D3D11_FILL_SOLID;
 	}
 
-	D3D11_STENCIL_OP D3D11Mappings::get(StencilOperation op, bool invert)
+	D3D11_STENCIL_OP D3D11Mappings::Get(StencilOperation op, bool invert)
 	{
 		switch(op)
 		{
@@ -155,7 +155,7 @@ namespace bs { namespace ct
 		return D3D11_STENCIL_OP_KEEP;
 	}
 
-	DWORD D3D11Mappings::get(FilterType ft)
+	DWORD D3D11Mappings::Get(FilterType ft)
 	{
 		switch (ft)
 		{
@@ -171,7 +171,7 @@ namespace bs { namespace ct
 		return D3D11_MIP_FILTER_SHIFT;
 	}
 
-	D3D11_FILTER D3D11Mappings::get(const FilterOptions min, const FilterOptions mag, const FilterOptions mip, const bool comparison)
+	D3D11_FILTER D3D11Mappings::Get(const FilterOptions min, const FilterOptions mag, const FilterOptions mip, const bool comparison)
 	{
 		D3D11_FILTER res;
 #define MERGE_FOR_SWITCH(_comparison_, _min_ , _mag_, _mip_ ) ((_comparison_ << 16) | (_min_ << 8) | (_mag_ << 4) | (_mip_))
@@ -239,7 +239,7 @@ namespace bs { namespace ct
 		return res;
 	}
 
-	DWORD D3D11Mappings::get(GpuBufferUsage usage)
+	DWORD D3D11Mappings::Get(GpuBufferUsage usage)
 	{
 		DWORD ret = D3D11_USAGE_DEFAULT;
 
@@ -249,7 +249,7 @@ namespace bs { namespace ct
 		return ret;
 	}
 
-	D3D11_MAP D3D11Mappings::get(GpuLockOptions options, GpuBufferUsage usage)
+	D3D11_MAP D3D11Mappings::Get(GpuLockOptions options, GpuBufferUsage usage)
 	{
 		D3D11_MAP ret = D3D11_MAP_READ_WRITE;
 		if (options == GBL_WRITE_ONLY_DISCARD)
@@ -272,7 +272,7 @@ namespace bs { namespace ct
 		return ret;
 	}
 
-	DXGI_FORMAT D3D11Mappings::get(VertexElementType type)
+	DXGI_FORMAT D3D11Mappings::Get(VertexElementType type)
 	{
 		switch (type)
 		{
@@ -325,7 +325,7 @@ namespace bs { namespace ct
 		return DXGI_FORMAT_R32G32B32A32_FLOAT;
 	}
 
-	VertexElementSemantic D3D11Mappings::get(LPCSTR sem)
+	VertexElementSemantic D3D11Mappings::Get(LPCSTR sem)
 	{
 		if(strcmp(sem, "BLENDINDICES") == 0)
 			return VES_BLEND_INDICES;
@@ -352,7 +352,7 @@ namespace bs { namespace ct
 		return VES_POSITION;
 	}
 
-	LPCSTR D3D11Mappings::get(VertexElementSemantic sem)
+	LPCSTR D3D11Mappings::Get(VertexElementSemantic sem)
 	{
 		switch (sem)	
 		{
@@ -382,7 +382,7 @@ namespace bs { namespace ct
 		return "";
 	}
 
-	VertexElementType D3D11Mappings::getInputType(D3D_REGISTER_COMPONENT_TYPE type)
+	VertexElementType D3D11Mappings::GetInputType(D3D_REGISTER_COMPONENT_TYPE type)
 	{
 		switch(type)
 		{
@@ -397,7 +397,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void D3D11Mappings::get(const Color& inColor, float* outColor)
+	void D3D11Mappings::Get(const Color& inColor, float* outColor)
 	{
 		outColor[0] = inColor.r;
 		outColor[1] = inColor.g;
@@ -405,7 +405,7 @@ namespace bs { namespace ct
 		outColor[3] = inColor.a;	
 	}
 
-	PixelFormat D3D11Mappings::getPF(DXGI_FORMAT pf)
+	PixelFormat D3D11Mappings::GetPF(DXGI_FORMAT pf)
 	{
 		switch(pf)
 		{
@@ -601,7 +601,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	DXGI_FORMAT D3D11Mappings::getPF(PixelFormat pf, bool gamma)
+	DXGI_FORMAT D3D11Mappings::GetPF(PixelFormat pf, bool gamma)
 	{
 		switch(pf)
 		{
@@ -733,7 +733,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	DXGI_FORMAT D3D11Mappings::getBF(GpuBufferFormat format)
+	DXGI_FORMAT D3D11Mappings::GetBF(GpuBufferFormat format)
 	{
 		static bool lookupInitialized = false;
 
@@ -783,7 +783,7 @@ namespace bs { namespace ct
 		return lookup[(UINT32)format];
 	}
 
-	DXGI_FORMAT D3D11Mappings::getTypelessDepthStencilPF(PixelFormat format)
+	DXGI_FORMAT D3D11Mappings::GetTypelessDepthStencilPF(PixelFormat format)
 	{
 		switch(format)
 		{
@@ -800,7 +800,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	DXGI_FORMAT D3D11Mappings::getShaderResourceDepthStencilPF(PixelFormat format)
+	DXGI_FORMAT D3D11Mappings::GetShaderResourceDepthStencilPF(PixelFormat format)
 	{
 		switch (format)
 		{
@@ -817,7 +817,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	PixelFormat D3D11Mappings::getClosestSupportedPF(PixelFormat pf, TextureType texType, int usage)
+	PixelFormat D3D11Mappings::GetClosestSupportedPF(PixelFormat pf, TextureType texType, int usage)
 	{
 		// Check for any obvious issues first
 		PixelUtil::checkFormat(pf, texType, usage);
@@ -848,7 +848,7 @@ namespace bs { namespace ct
 		return pf;
 	}
 
-	D3D11_USAGE D3D11Mappings::getUsage(GpuBufferUsage usage)
+	D3D11_USAGE D3D11Mappings::GetUsage(GpuBufferUsage usage)
 	{
 		if (isDynamic(usage))
 			return D3D11_USAGE_DYNAMIC;
@@ -856,12 +856,12 @@ namespace bs { namespace ct
 			return D3D11_USAGE_DEFAULT;
 	}
 
-	bool D3D11Mappings::isDynamic(GpuBufferUsage usage)
+	bool D3D11Mappings::IsDynamic(GpuBufferUsage usage)
 	{
 		return (usage & GBU_DYNAMIC) != 0;
 	}
 
-	bool D3D11Mappings::isMappingWrite(D3D11_MAP map)
+	bool D3D11Mappings::IsMappingWrite(D3D11_MAP map)
 	{
 		if(map == D3D11_MAP_READ)
 			return false;
@@ -869,7 +869,7 @@ namespace bs { namespace ct
 		return true;
 	}
 
-	bool D3D11Mappings::isMappingRead(D3D11_MAP map)
+	bool D3D11Mappings::IsMappingRead(D3D11_MAP map)
 	{
 		if(map == D3D11_MAP_READ || map == D3D11_MAP_READ_WRITE)
 			return true;
@@ -877,7 +877,7 @@ namespace bs { namespace ct
 		return false;
 	}
 
-	UINT D3D11Mappings::getAccessFlags(GpuBufferUsage usage)
+	UINT D3D11Mappings::GetAccessFlags(GpuBufferUsage usage)
 	{
 		if(isDynamic(usage))
 			return D3D11_CPU_ACCESS_WRITE;
@@ -885,7 +885,7 @@ namespace bs { namespace ct
 			return 0;
 	}
 
-	D3D11_PRIMITIVE_TOPOLOGY D3D11Mappings::getPrimitiveType(DrawOperationType type)
+	D3D11_PRIMITIVE_TOPOLOGY D3D11Mappings::GetPrimitiveType(DrawOperationType type)
 	{
 		switch(type)
 		{
@@ -906,7 +906,7 @@ namespace bs { namespace ct
 		return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	}
 
-	UINT32 D3D11Mappings::getSizeInBytes(PixelFormat pf, UINT32 width, UINT32 height)
+	UINT32 D3D11Mappings::GetSizeInBytes(PixelFormat pf, UINT32 width, UINT32 height)
 	{
 		if(PixelUtil::isCompressed(pf))
 		{
@@ -931,7 +931,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	D3D11_MAP D3D11Mappings::getLockOptions(GpuLockOptions lockOptions)
+	D3D11_MAP D3D11Mappings::GetLockOptions(GpuLockOptions lockOptions)
 	{
 		switch(lockOptions)
 		{

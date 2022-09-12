@@ -20,7 +20,7 @@ namespace bs
 		setName("MeshCollider");
 	}
 
-	void CMeshCollider::setMesh(const HPhysicsMesh& mesh)
+	void CMeshCollider::SetMesh(const HPhysicsMesh& mesh)
 	{
 		if (mMesh == mesh)
 			return;
@@ -49,7 +49,7 @@ namespace bs
 		}
 	}
 
-	SPtr<Collider> CMeshCollider::createInternal()
+	SPtr<Collider> CMeshCollider::CreateInternal()
 	{
 		const SPtr<SceneInstance>& scene = SO()->getScene();
 		const Transform& tfrm = SO()->getTransform();
@@ -62,7 +62,7 @@ namespace bs
 		return collider;
 	}
 
-	bool CMeshCollider::isValidParent(const HRigidbody& parent) const
+	bool CMeshCollider::IsValidParent(const HRigidbody& parent) const
 	{
 		// Triangle mesh colliders cannot be used for non-kinematic rigidbodies
 		return !mMesh.isLoaded() || mMesh->getType() == PhysicsMeshType::Convex || parent->getIsKinematic();
@@ -70,11 +70,11 @@ namespace bs
 
 	RTTITypeBase* CMeshCollider::getRTTIStatic()
 	{
-		return CMeshColliderRTTI::instance();
+		return CMeshColliderRTTI::Instance();
 	}
 
 	RTTITypeBase* CMeshCollider::getRTTI() const
 	{
-		return CMeshCollider::getRTTIStatic();
+		return CMeshCollider::GetRTTIStatic();
 	}
 }

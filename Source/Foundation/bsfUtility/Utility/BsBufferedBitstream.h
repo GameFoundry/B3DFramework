@@ -159,7 +159,7 @@ namespace bs
 		}
 	}
 
-	inline uint64_t BufferedBitstreamReader::readBits(Bitstream::QuantType* data, uint64_t count)
+	inline uint64_t BufferedBitstreamReader::ReadBits(Bitstream::QuantType* data, uint64_t count)
 	{
 		preload((uint32_t)Math::divideAndRoundUp(count, (uint64_t)8));
 		mCursor += count;
@@ -167,21 +167,21 @@ namespace bs
 	}
 
 	template <class T>
-	uint32_t BufferedBitstreamReader::readBytes(T& value)
+	uint32_t BufferedBitstreamReader::ReadBytes(T& value)
 	{
 		preload(sizeof(T));
 		mCursor += sizeof(T) * 8;
 		return mBitstream->readBytes(value);
 	}
 
-	inline uint32_t BufferedBitstreamReader::readBytes(Bitstream::QuantType* data, uint32_t count)
+	inline uint32_t BufferedBitstreamReader::ReadBytes(Bitstream::QuantType* data, uint32_t count)
 	{
 		preload(count);
 		mCursor += (uint64_t)count * 8;
 		return mBitstream->readBytes(data, count);
 	}
 
-	inline uint32_t BufferedBitstreamReader::readVarInt(uint32_t& value)
+	inline uint32_t BufferedBitstreamReader::ReadVarInt(uint32_t& value)
 	{
 		preload(sizeof(value));
 		uint32_t readBits = mBitstream->readVarInt(value);
@@ -190,12 +190,12 @@ namespace bs
 		return readBits;
 	}
 
-	inline void BufferedBitstreamReader::skip(int64_t count)
+	inline void BufferedBitstreamReader::Skip(int64_t count)
 	{
 		seek((uint64_t)std::max((int64_t)0, (int64_t)mCursor + count));
 	}
 
-	inline void BufferedBitstreamReader::align(uint32_t count)
+	inline void BufferedBitstreamReader::Align(uint32_t count)
 	{
 		if (count == 0)
 			return;
@@ -204,7 +204,7 @@ namespace bs
 		skip(bits - (((mCursor - 1) & (bits - 1)) + 1));
 	}
 
-	inline void BufferedBitstreamReader::seek(uint64_t pos)
+	inline void BufferedBitstreamReader::Seek(uint64_t pos)
 	{
 		if (!mIsMapped && (pos < mBufferedRangeStart || pos >= mBufferedRangeEnd))
 		{
@@ -216,7 +216,7 @@ namespace bs
 		mBitstream->seek(pos - mBufferedRangeStart);
 	}
 
-	inline void BufferedBitstreamReader::preload(uint32_t count)
+	inline void BufferedBitstreamReader::Preload(uint32_t count)
 	{
 		assert(mCursor >= mBufferedRangeStart);
 		
@@ -247,7 +247,7 @@ namespace bs
 		mBufferedRangeEnd += numBytesToPreload * 8;
 	}
 
-	inline void BufferedBitstreamReader::clearBuffered(bool force)
+	inline void BufferedBitstreamReader::ClearBuffered(bool force)
 	{
 		// If memory stream, there is no buffer and we map the entire stream
 		if (mIsMapped)
@@ -290,33 +290,33 @@ namespace bs
 			mBitstream->reserve(bufferSize);
 	}
 
-	inline uint64_t BufferedBitstreamWriter::writeBits(const Bitstream::QuantType* data, uint64_t count)
+	inline uint64_t BufferedBitstreamWriter::WriteBits(const Bitstream::QuantType* data, uint64_t count)
 	{
 		return mBitstream->writeBits(data, count);
 	}
 
 	template <class T>
-	uint32_t BufferedBitstreamWriter::writeBytes(T& value)
+	uint32_t BufferedBitstreamWriter::WriteBytes(T& value)
 	{
 		return mBitstream->writeBytes(value);
 	}
 
-	inline uint32_t BufferedBitstreamWriter::writeBytes(Bitstream::QuantType* data, uint32_t count)
+	inline uint32_t BufferedBitstreamWriter::WriteBytes(Bitstream::QuantType* data, uint32_t count)
 	{
 		return mBitstream->writeBytes(data, count);
 	}
 
-	inline uint32_t BufferedBitstreamWriter::writeVarInt(uint32_t value)
+	inline uint32_t BufferedBitstreamWriter::WriteVarInt(uint32_t value)
 	{
 		return mBitstream->writeVarInt(value);
 	}
 
-	inline void BufferedBitstreamWriter::align(uint32_t count)
+	inline void BufferedBitstreamWriter::Align(uint32_t count)
 	{
 		mBitstream->align(count);
 	}
 
-	inline void BufferedBitstreamWriter::flush(bool force)
+	inline void BufferedBitstreamWriter::Flush(bool force)
 	{
 		uint64_t bitsInBuffer = mBitstream->tell();
 		if ((bitsInBuffer < (mFlushAfter * 8)) && !force)

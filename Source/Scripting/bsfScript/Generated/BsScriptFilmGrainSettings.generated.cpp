@@ -12,7 +12,7 @@ namespace bs
 	{
 	}
 
-	void ScriptFilmGrainSettings::initRuntimeData()
+	void ScriptFilmGrainSettings::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_FilmGrainSettings", (void*)&ScriptFilmGrainSettings::Internal_FilmGrainSettings);
 		metaData.scriptClass->addInternalCall("Internal_getenabled", (void*)&ScriptFilmGrainSettings::Internal_getenabled);

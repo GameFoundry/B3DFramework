@@ -19,7 +19,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_BlendState);
 	}
 
-	void D3D11BlendState::createInternal()
+	void D3D11BlendState::CreateInternal()
 	{
 		D3D11_BLEND_DESC blendStateDesc;
 		ZeroMemory(&blendStateDesc, sizeof(D3D11_BLEND_DESC));

@@ -138,7 +138,7 @@ namespace bs { namespace ct
 		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInput", mInputParam);
 	}
 
-	void TextureArrayToMSAATexture::execute(const SPtr<Texture>& inputArray, const SPtr<Texture>& target)
+	void TextureArrayToMSAATexture::Execute(const SPtr<Texture>& inputArray, const SPtr<Texture>& target)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
@@ -206,7 +206,7 @@ namespace bs { namespace ct
 		RenderAPI::instance().dispatchCompute(numGroupsX, numGroupsY);
 	}
 
-	void ClearLoadStoreMat::execute(const SPtr<GpuBuffer>& target, const Color& clearValue)
+	void ClearLoadStoreMat::Execute(const SPtr<GpuBuffer>& target, const Color& clearValue)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 

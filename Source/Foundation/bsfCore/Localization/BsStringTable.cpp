@@ -15,7 +15,7 @@ namespace bs
 			bs_deleteN(parameterOffsets, numParameters);
 	}
 
-	void LocalizedStringData::concatenateString(String& outputString, String* parameters, UINT32 numParameterValues) const
+	void LocalizedStringData::ConcatenateString(String& outputString, String* parameters, UINT32 numParameterValues) const
 	{
 		// A safeguard in case translated strings have different number of parameters
 		UINT32 actualNumParameters = std::min(numParameterValues, numParameters);
@@ -61,7 +61,7 @@ namespace bs
 		}
 	}
 
-	void LocalizedStringData::updateString(const String& _string)
+	void LocalizedStringData::UpdateString(const String& _string)
 	{
 		if(parameterOffsets != nullptr)
 			bs_deleteN(parameterOffsets, numParameters);
@@ -172,7 +172,7 @@ namespace bs
 		bs_deleteN(mAllLanguages, (UINT32)Language::Count);
 	}
 
-	void StringTable::setActiveLanguage(Language language)
+	void StringTable::SetActiveLanguage(Language language)
 	{
 		if(language == mActiveLanguage)
 			return;
@@ -181,12 +181,12 @@ namespace bs
 		mActiveLanguage = language;
 	}
 
-	bool StringTable::contains(const String& identifier)
+	bool StringTable::Contains(const String& identifier)
 	{
 		return mIdentifiers.find(identifier) == mIdentifiers.end();
 	}
 
-	Vector<String> StringTable::getIdentifiers() const
+	Vector<String> StringTable::GetIdentifiers() const
 	{
 		Vector<String> output;
 		for (auto& entry : mIdentifiers)
@@ -195,7 +195,7 @@ namespace bs
 		return output;
 	}
 
-	void StringTable::setString(const String& identifier, Language language, const String& value)
+	void StringTable::SetString(const String& identifier, Language language, const String& value)
 	{
 		LanguageData* curLanguage = &(mAllLanguages[(UINT32)language]);
 
@@ -216,7 +216,7 @@ namespace bs
 		stringData->updateString(value);
 	}
 
-	String StringTable::getString(const String& identifier, Language language)
+	String StringTable::GetString(const String& identifier, Language language)
 	{
 		LanguageData* curLanguage = &(mAllLanguages[(UINT32)language]);
 
@@ -227,7 +227,7 @@ namespace bs
 		return identifier;
 	}
 
-	void StringTable::removeString(const String& identifier)
+	void StringTable::RemoveString(const String& identifier)
 	{
 		for(UINT32 i = 0; i < (UINT32)Language::Count; i++)
 		{
@@ -237,12 +237,12 @@ namespace bs
 		mIdentifiers.erase(identifier);
 	}
 
-	SPtr<LocalizedStringData> StringTable::getStringData(const String& identifier, bool insertIfNonExisting)
+	SPtr<LocalizedStringData> StringTable::GetStringData(const String& identifier, bool insertIfNonExisting)
 	{
 		return GetStringData(identifier, mActiveLanguage, insertIfNonExisting);
 	}
 
-	SPtr<LocalizedStringData> StringTable::getStringData(const String& identifier, Language language, bool insertIfNonExisting)
+	SPtr<LocalizedStringData> StringTable::GetStringData(const String& identifier, Language language, bool insertIfNonExisting)
 	{
 		LanguageData* curLanguage = &(mAllLanguages[(UINT32)language]);
 
@@ -267,7 +267,7 @@ namespace bs
 		return nullptr;
 	}
 
-	HStringTable StringTable::create()
+	HStringTable StringTable::Create()
 	{
 		return static_resource_cast<StringTable>(gResources()._createResourceHandle(_createPtr()));
 	}
@@ -284,11 +284,11 @@ namespace bs
 
 	RTTITypeBase* StringTable::getRTTIStatic()
 	{
-		return StringTableRTTI::instance();
+		return StringTableRTTI::Instance();
 	}
 
 	RTTITypeBase* StringTable::getRTTI() const
 	{
-		return StringTable::getRTTIStatic();
+		return StringTable::GetRTTIStatic();
 	}
 }

@@ -79,7 +79,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return ManagedSerializableList::createEmpty();
+			return ManagedSerializableList::CreateEmpty();
 		}
 	};
 

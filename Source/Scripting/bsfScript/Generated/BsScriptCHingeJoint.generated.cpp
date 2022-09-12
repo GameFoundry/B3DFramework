@@ -15,7 +15,7 @@ namespace bs
 	{
 	}
 
-	void ScriptCHingeJoint::initRuntimeData()
+	void ScriptCHingeJoint::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getAngle", (void*)&ScriptCHingeJoint::Internal_getAngle);
 		metaData.scriptClass->addInternalCall("Internal_getSpeed", (void*)&ScriptCHingeJoint::Internal_getSpeed);

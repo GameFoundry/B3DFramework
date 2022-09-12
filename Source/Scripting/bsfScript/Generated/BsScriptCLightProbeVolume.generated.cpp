@@ -16,7 +16,7 @@ namespace bs
 	{
 	}
 
-	void ScriptCLightProbeVolume::initRuntimeData()
+	void ScriptCLightProbeVolume::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_addProbe", (void*)&ScriptCLightProbeVolume::Internal_addProbe);
 		metaData.scriptClass->addInternalCall("Internal_setProbePosition", (void*)&ScriptCLightProbeVolume::Internal_setProbePosition);

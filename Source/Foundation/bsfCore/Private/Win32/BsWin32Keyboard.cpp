@@ -82,7 +82,7 @@ namespace bs
 		bs_delete(m);
 	}
 
-	void Keyboard::capture()
+	void Keyboard::Capture()
 	{
 		if (m->keyboard == nullptr)
 			return;
@@ -156,7 +156,7 @@ namespace bs
 		}
 	}
 
-	void Keyboard::changeCaptureContext(UINT64 windowHandle)
+	void Keyboard::ChangeCaptureContext(UINT64 windowHandle)
 	{
 		HWND newhWnd = (HWND)windowHandle;
 

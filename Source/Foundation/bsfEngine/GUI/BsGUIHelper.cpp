@@ -60,7 +60,7 @@ namespace bs
 		return Vector2I(contentWidth, contentHeight);
 	}
 
-	Vector2I GUIHelper::calcTextSize(const String& text, const HFont& font, UINT32 fontSize)
+	Vector2I GUIHelper::CalcTextSize(const String& text, const HFont& font, UINT32 fontSize)
 	{
 		Vector2I size;
 		if (font != nullptr)

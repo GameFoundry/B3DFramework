@@ -217,7 +217,7 @@ namespace bs { namespace ct
 	}
 
 	// Note: This must receieve a copy and not a ref because original will be destroyed
-	void GLVertexArrayObjectManager::notifyBufferDestroyed(GLVertexArrayObject vao)
+	void GLVertexArrayObjectManager::NotifyBufferDestroyed(GLVertexArrayObject vao)
 	{
 		mVAObjects.erase(vao);
 

@@ -25,7 +25,7 @@ namespace bs
 		mNotifyFlags = TCF_Parent;
 	}
 
-	void CBone::setBoneName(const String& name)
+	void CBone::SetBoneName(const String& name)
 	{
 		if (mBoneName == name)
 			return;
@@ -36,7 +36,7 @@ namespace bs
 			mParent->_notifyBoneChanged(static_object_cast<CBone>(getHandle()));
 	}
 
-	void CBone::onDestroyed()
+	void CBone::OnDestroyed()
 	{
 		if (mParent != nullptr)
 			mParent->_removeBone(static_object_cast<CBone>(getHandle()));
@@ -44,7 +44,7 @@ namespace bs
 		mParent = nullptr;
 	}
 
-	void CBone::onDisabled()
+	void CBone::OnDisabled()
 	{
 		if (mParent != nullptr)
 			mParent->_removeBone(static_object_cast<CBone>(getHandle()));
@@ -52,12 +52,12 @@ namespace bs
 		mParent = nullptr;
 	}
 	
-	void CBone::onEnabled()
+	void CBone::OnEnabled()
 	{
 		updateParentAnimation();
 	}
 
-	void CBone::onTransformChanged(TransformChangedFlags flags)
+	void CBone::OnTransformChanged(TransformChangedFlags flags)
 	{
 		if (!SO()->getActive())
 			return;
@@ -66,7 +66,7 @@ namespace bs
 			updateParentAnimation();
 	}
 
-	void CBone::updateParentAnimation()
+	void CBone::UpdateParentAnimation()
 	{
 		HSceneObject currentSO = SO();
 		while (currentSO != nullptr)
@@ -107,11 +107,11 @@ namespace bs
 	
 	RTTITypeBase* CBone::getRTTIStatic()
 	{
-		return CBoneRTTI::instance();
+		return CBoneRTTI::Instance();
 	}
 
 	RTTITypeBase* CBone::getRTTI() const
 	{
-		return CBone::getRTTIStatic();
+		return CBone::GetRTTIStatic();
 	}
 }

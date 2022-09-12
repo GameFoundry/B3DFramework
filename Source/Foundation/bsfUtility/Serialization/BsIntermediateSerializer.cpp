@@ -60,7 +60,7 @@ namespace bs
 		return EncodeEntry(object, flags, context, mAlloc);
 	}
 
-	void IntermediateSerializer::decodeEntry(const SPtr<IReflectable>& object, const SerializedObject* serializableObject)
+	void IntermediateSerializer::DecodeEntry(const SPtr<IReflectable>& object, const SerializedObject* serializableObject)
 	{
 		UINT32 numSubObjects = (UINT32)serializableObject->subObjects.size();
 		if (numSubObjects == 0)

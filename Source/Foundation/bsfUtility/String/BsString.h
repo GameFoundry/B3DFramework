@@ -580,14 +580,14 @@ namespace bs
 		template<class T, class... Args>
 		static BasicString<T> Format(const BasicString<T>& source, Args&& ...args)
 		{
-			return StringFormat::format(source.c_str(), std::forward<Args>(args)...);
+			return StringFormat::Format(source.c_str(), std::forward<Args>(args)...);
 		}
 
 		/** @copydoc StringFormat::format */
 		template<class T, class... Args>
 		static BasicString<T> Format(const T* source, Args&& ...args)
 		{
-			return StringFormat::format(source, std::forward<Args>(args)...);
+			return StringFormat::Format(source, std::forward<Args>(args)...);
 		}
 
 		/** Constant blank string, useful for returning by ref where local does not exist. */

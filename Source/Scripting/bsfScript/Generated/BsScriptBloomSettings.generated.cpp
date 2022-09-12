@@ -13,7 +13,7 @@ namespace bs
 	{
 	}
 
-	void ScriptBloomSettings::initRuntimeData()
+	void ScriptBloomSettings::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_BloomSettings", (void*)&ScriptBloomSettings::Internal_BloomSettings);
 		metaData.scriptClass->addInternalCall("Internal_getenabled", (void*)&ScriptBloomSettings::Internal_getenabled);

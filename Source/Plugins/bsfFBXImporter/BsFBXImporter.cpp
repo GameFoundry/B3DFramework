@@ -79,7 +79,7 @@ namespace bs
 		mExtensions.push_back(u8"dae");
 	}
 
-	bool FBXImporter::isExtensionSupported(const String& ext) const
+	bool FBXImporter::IsExtensionSupported(const String& ext) const
 	{
 		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
@@ -87,17 +87,17 @@ namespace bs
 		return Find(mExtensions.begin(), mExtensions.end(), lowerCaseExt) != mExtensions.end();
 	}
 
-	bool FBXImporter::isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
+	bool FBXImporter::IsMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
 	{
 		return true; // FBX files can be plain-text so I don't even check for magic number
 	}
 
-	SPtr<ImportOptions> FBXImporter::createImportOptions() const
+	SPtr<ImportOptions> FBXImporter::CreateImportOptions() const
 	{
 		return bs_shared_ptr_new<MeshImportOptions>();
 	}
 
-	SPtr<Resource> FBXImporter::import(const Path& filePath, SPtr<const ImportOptions> importOptions)
+	SPtr<Resource> FBXImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
 		MESH_DESC desc;
 
@@ -119,7 +119,7 @@ namespace bs
 		return mesh;
 	}
 
-	Vector<SubResourceRaw> FBXImporter::importAll(const Path& filePath, SPtr<const ImportOptions> importOptions)
+	Vector<SubResourceRaw> FBXImporter::ImportAll(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
 		MESH_DESC desc;
 
@@ -241,7 +241,7 @@ namespace bs
 		return rendererMeshData;
 	}
 
-	SPtr<Skeleton> FBXImporter::createSkeleton(const FBXImportScene& scene, bool sharedRoot)
+	SPtr<Skeleton> FBXImporter::CreateSkeleton(const FBXImportScene& scene, bool sharedRoot)
 	{
 		Vector<BONE_DESC> allBones;
 		UnorderedMap<FBXImportNode*, UINT32> boneMap;
@@ -335,7 +335,7 @@ namespace bs
 
 			UINT32 numAllBones = (UINT32)allBones.size();
 			if (numProcessedBones == numAllBones)
-				return Skeleton::create(allBones.data(), numAllBones);
+				return Skeleton::Create(allBones.data(), numAllBones);
 
 			BS_LOG(Error, FBXImporter, "Not all bones were found in the node hierarchy. Skeleton invalid.");
 		}
@@ -343,7 +343,7 @@ namespace bs
 		return nullptr;
 	}
 
-	SPtr<MorphShapes> FBXImporter::createMorphShapes(const FBXImportScene& scene)
+	SPtr<MorphShapes> FBXImporter::CreateMorphShapes(const FBXImportScene& scene)
 	{
 		// Combine morph shapes from all sub-meshes, and transform them
 		struct RawMorphShape
@@ -441,12 +441,12 @@ namespace bs
 		}
 
 		if (!allChannels.empty())
-			return MorphShapes::create(allChannels, totalNumVertices);
+			return MorphShapes::Create(allChannels, totalNumVertices);
 
 		return morphShapes;
 	}
 
-	bool FBXImporter::startUpSdk(FbxScene*& scene)
+	bool FBXImporter::StartUpSdk(FbxScene*& scene)
 	{
 		mFBXManager = FbxManager::Create();
 		if (mFBXManager == nullptr)
@@ -468,13 +468,13 @@ namespace bs
 		return true;
 	}
 
-	void FBXImporter::shutDownSdk()
+	void FBXImporter::ShutDownSdk()
 	{
 		mFBXManager->Destroy();
 		mFBXManager = nullptr;
 	}
 
-	bool FBXImporter::loadFBXFile(FbxScene* scene, const Path& filePath)
+	bool FBXImporter::LoadFBXFile(FbxScene* scene, const Path& filePath)
 	{
 		int lFileMajor, lFileMinor, lFileRevision;
 		int lSDKMajor,  lSDKMinor,  lSDKRevision;
@@ -516,7 +516,7 @@ namespace bs
 		return true;
 	}
 
-	void FBXImporter::parseScene(FbxScene* scene, const FBXImportOptions& options, FBXImportScene& outputScene)
+	void FBXImporter::ParseScene(FbxScene* scene, const FBXImportOptions& options, FBXImportScene& outputScene)
 	{
 		// Scale from file units to engine units, and apply optional user scale
 		float importScale = 1.0f;
@@ -653,7 +653,7 @@ namespace bs
 		return node;
 	}
 
-	void FBXImporter::splitMeshVertices(FBXImportScene& scene)
+	void FBXImporter::SplitMeshVertices(FBXImportScene& scene)
 	{
 		Vector<FBXImportMesh*> splitMeshes;
 
@@ -1107,12 +1107,12 @@ namespace bs
 
 		if (allMeshData.size() > 1)
 		{
-			return RendererMeshData::create(MeshData::combine(allMeshData, allSubMeshes, outputSubMeshes));
+			return RendererMeshData::Create(MeshData::combine(allMeshData, allSubMeshes, outputSubMeshes));
 		}
 		else if (allMeshData.size() == 1)
 		{
 			outputSubMeshes = allSubMeshes[0];
-			return RendererMeshData::create(allMeshData[0]);
+			return RendererMeshData::Create(allMeshData[0]);
 		}
 
 		return nullptr;
@@ -1253,7 +1253,7 @@ namespace bs
 			BS_LOG(Warning, FBXImporter,"FBX Import: Unsupported layer reference mode.");
 	}
 
-	void FBXImporter::parseMesh(FbxMesh* mesh, FBXImportNode* parentNode, const FBXImportOptions& options, FBXImportScene& outputScene)
+	void FBXImporter::ParseMesh(FbxMesh* mesh, FBXImportNode* parentNode, const FBXImportOptions& options, FBXImportScene& outputScene)
 	{
 		// Check if valid
 		if (!mesh->IsTriangleMesh())
@@ -1448,7 +1448,7 @@ namespace bs
 		}
 	}
 
-	void FBXImporter::importBlendShapes(FBXImportScene& scene, const FBXImportOptions& options)
+	void FBXImporter::ImportBlendShapes(FBXImportScene& scene, const FBXImportOptions& options)
 	{
 		for (auto& mesh : scene.meshes)
 		{
@@ -1497,7 +1497,7 @@ namespace bs
 		}
 	}
 
-	void FBXImporter::importBlendShapeFrame(FbxShape* shape, const FBXImportMesh& mesh, const FBXImportOptions& options, FBXBlendShapeFrame& outFrame)
+	void FBXImporter::ImportBlendShapeFrame(FbxShape* shape, const FBXImportMesh& mesh, const FBXImportOptions& options, FBXBlendShapeFrame& outFrame)
 	{
 		UINT32 vertexCount = (UINT32)shape->GetControlPointsCount();
 		outFrame.positions.resize(vertexCount);
@@ -1535,7 +1535,7 @@ namespace bs
 		}
 	}
 
-	void FBXImporter::importSkin(FBXImportScene& scene, const FBXImportOptions& options)
+	void FBXImporter::ImportSkin(FBXImportScene& scene, const FBXImportOptions& options)
 	{
 		for (auto& mesh : scene.meshes)
 		{
@@ -1564,7 +1564,7 @@ namespace bs
 		}
 	}
 
-	void FBXImporter::importSkin(FBXImportScene& scene, FbxSkin* skin, FBXImportMesh& mesh, const FBXImportOptions& options)
+	void FBXImporter::ImportSkin(FBXImportScene& scene, FbxSkin* skin, FBXImportMesh& mesh, const FBXImportOptions& options)
 	{
 		Vector<FBXBoneInfluence>& influences = mesh.boneInfluences;
 		influences.resize(mesh.positions.size());
@@ -1679,7 +1679,7 @@ namespace bs
 		}
 	}
 
-	void FBXImporter::generateMissingTangentSpace(FBXImportScene& scene, const FBXImportOptions& options)
+	void FBXImporter::GenerateMissingTangentSpace(FBXImportScene& scene, const FBXImportOptions& options)
 	{
 		for (auto& mesh : scene.meshes)
 		{
@@ -1726,7 +1726,7 @@ namespace bs
 		}
 	}
 
-	void FBXImporter::importAnimations(FbxScene* scene, FBXImportOptions& importOptions, FBXImportScene& importScene)
+	void FBXImporter::ImportAnimations(FbxScene* scene, FBXImportOptions& importOptions, FBXImportScene& importScene)
 	{
 		FbxNode* root = scene->GetRootNode();
 
@@ -1931,7 +1931,7 @@ namespace bs
 		}
 	}
 
-	void FBXImporter::bakeTransforms(FbxScene* scene)
+	void FBXImporter::BakeTransforms(FbxScene* scene)
 	{
 		// FBX stores transforms in a more complex way than just translation-rotation-scale as used by the framework.
 		// Instead they also support rotations offsets and pivots, scaling pivots and more. We wish to bake all this data
@@ -1987,7 +1987,7 @@ namespace bs
 		bs_frame_clear();
 	}
 
-	TAnimationCurve<Vector3> FBXImporter::reduceKeyframes(TAnimationCurve<Vector3>& curve)
+	TAnimationCurve<Vector3> FBXImporter::ReduceKeyframes(TAnimationCurve<Vector3>& curve)
 	{
 		UINT32 keyCount = curve.getNumKeyFrames();
 
@@ -2045,7 +2045,7 @@ namespace bs
 	}
 
 	template<class T, int C>
-	TAnimationCurve<T> FBXImporter::importCurve(FbxAnimCurve*(&fbxCurve)[C], float (&defaultValues)[C],
+	TAnimationCurve<T> FBXImporter::ImportCurve(FbxAnimCurve*(&fbxCurve)[C], float (&defaultValues)[C],
 		FBXImportOptions& importOptions, float clipStart, float clipEnd)
 	{
 		int keyCounts[C];

@@ -11,16 +11,16 @@ namespace bs
 		:ScriptObject(instance)
 	{ }
 
-	void ScriptPlane::initRuntimeData()
+	void ScriptPlane::InitRuntimeData()
 	{ }
 
 	MonoObject* ScriptPlane::box(const Plane& value)
 	{
 		// We're casting away const but it's fine since structs are passed by value anyway
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	Plane ScriptPlane::unbox(MonoObject* obj)
+	Plane ScriptPlane::Unbox(MonoObject* obj)
 	{
 		return *(Plane*)MonoUtil::unbox(obj);
 	}

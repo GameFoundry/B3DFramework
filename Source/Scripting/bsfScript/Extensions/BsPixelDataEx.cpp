@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	SPtr<PixelData> PixelDataEx::create(const PixelVolume& volume, PixelFormat format)
+	SPtr<PixelData> PixelDataEx::Create(const PixelVolume& volume, PixelFormat format)
 	{
 		SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(volume, format);
 		pixelData->allocateInternalBuffer();
@@ -13,7 +13,7 @@ namespace bs
 		return pixelData;
 	}
 
-	SPtr<PixelData> PixelDataEx::create(UINT32 width, UINT32 height, UINT32 depth, PixelFormat format)
+	SPtr<PixelData> PixelDataEx::Create(UINT32 width, UINT32 height, UINT32 depth, PixelFormat format)
 	{
 		SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(width, height, depth, format);
 		pixelData->allocateInternalBuffer();
@@ -21,7 +21,7 @@ namespace bs
 		return pixelData;
 	}
 
-	Color PixelDataEx::getPixel(const SPtr<PixelData>& thisPtr, int x, int y, int z)
+	Color PixelDataEx::GetPixel(const SPtr<PixelData>& thisPtr, int x, int y, int z)
 	{
 		if (!checkIsLocked(thisPtr))
 			return thisPtr->getColorAt(x, y, z);
@@ -29,13 +29,13 @@ namespace bs
 			return Color();
 	}
 
-	void PixelDataEx::setPixel(const SPtr<PixelData>& thisPtr, const Color& value, int x, int y, int z)
+	void PixelDataEx::SetPixel(const SPtr<PixelData>& thisPtr, const Color& value, int x, int y, int z)
 	{
 		if (!checkIsLocked(thisPtr))
 			thisPtr->setColorAt(value, x, y, z);
 	}
 
-	Vector<Color> PixelDataEx::getPixels(const SPtr<PixelData>& thisPtr)
+	Vector<Color> PixelDataEx::GetPixels(const SPtr<PixelData>& thisPtr)
 	{
 		if (!checkIsLocked(thisPtr))
 			return Vector<Color>();
@@ -43,7 +43,7 @@ namespace bs
 		return thisPtr->getColors();
 	}
 
-	void PixelDataEx::setPixels(const SPtr<PixelData>& thisPtr, const Vector<Color>& value)
+	void PixelDataEx::SetPixels(const SPtr<PixelData>& thisPtr, const Vector<Color>& value)
 	{
 		if (!checkIsLocked(thisPtr))
 			return;
@@ -51,7 +51,7 @@ namespace bs
 		thisPtr->setColors(value);
 	}
 
-	Vector<char> PixelDataEx::getRawPixels(const SPtr<PixelData>& thisPtr)
+	Vector<char> PixelDataEx::GetRawPixels(const SPtr<PixelData>& thisPtr)
 	{
 		if (!checkIsLocked(thisPtr))
 			return Vector<char>();
@@ -62,7 +62,7 @@ namespace bs
 		return output;
 	}
 
-	void PixelDataEx::setRawPixels(const SPtr<PixelData>& thisPtr, const Vector<char>& value)
+	void PixelDataEx::SetRawPixels(const SPtr<PixelData>& thisPtr, const Vector<char>& value)
 	{
 		if (!checkIsLocked(thisPtr))
 			return;
@@ -78,7 +78,7 @@ namespace bs
 		memcpy(data, value.data(), thisPtr->getSize());
 	}
 
-	bool PixelDataEx::checkIsLocked(const SPtr<PixelData>& thisPtr)
+	bool PixelDataEx::CheckIsLocked(const SPtr<PixelData>& thisPtr)
 	{
 		if (thisPtr->isLocked())
 		{

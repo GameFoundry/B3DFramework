@@ -40,56 +40,56 @@ namespace bs
 		:mData(desc), mHash(BlendState::generateHash(desc))
 	{ }
 
-	bool BlendProperties::getBlendEnabled(UINT32 renderTargetIdx) const
+	bool BlendProperties::GetBlendEnabled(UINT32 renderTargetIdx) const
 	{
 		assert(renderTargetIdx < BS_MAX_MULTIPLE_RENDER_TARGETS);
 
 		return mData.renderTargetDesc[renderTargetIdx].blendEnable;
 	}
 
-	BlendFactor BlendProperties::getSrcBlend(UINT32 renderTargetIdx) const
+	BlendFactor BlendProperties::GetSrcBlend(UINT32 renderTargetIdx) const
 	{
 		assert(renderTargetIdx < BS_MAX_MULTIPLE_RENDER_TARGETS);
 
 		return mData.renderTargetDesc[renderTargetIdx].srcBlend;
 	}
 
-	BlendFactor BlendProperties::getDstBlend(UINT32 renderTargetIdx) const
+	BlendFactor BlendProperties::GetDstBlend(UINT32 renderTargetIdx) const
 	{
 		assert(renderTargetIdx < BS_MAX_MULTIPLE_RENDER_TARGETS);
 
 		return mData.renderTargetDesc[renderTargetIdx].dstBlend;
 	}
 
-	BlendOperation BlendProperties::getBlendOperation(UINT32 renderTargetIdx) const
+	BlendOperation BlendProperties::GetBlendOperation(UINT32 renderTargetIdx) const
 	{
 		assert(renderTargetIdx < BS_MAX_MULTIPLE_RENDER_TARGETS);
 
 		return mData.renderTargetDesc[renderTargetIdx].blendOp;
 	}
 
-	BlendFactor BlendProperties::getAlphaSrcBlend(UINT32 renderTargetIdx) const
+	BlendFactor BlendProperties::GetAlphaSrcBlend(UINT32 renderTargetIdx) const
 	{
 		assert(renderTargetIdx < BS_MAX_MULTIPLE_RENDER_TARGETS);
 
 		return mData.renderTargetDesc[renderTargetIdx].srcBlendAlpha;
 	}
 
-	BlendFactor BlendProperties::getAlphaDstBlend(UINT32 renderTargetIdx) const
+	BlendFactor BlendProperties::GetAlphaDstBlend(UINT32 renderTargetIdx) const
 	{
 		assert(renderTargetIdx < BS_MAX_MULTIPLE_RENDER_TARGETS);
 
 		return mData.renderTargetDesc[renderTargetIdx].dstBlendAlpha;
 	}
 
-	BlendOperation BlendProperties::getAlphaBlendOperation(UINT32 renderTargetIdx) const
+	BlendOperation BlendProperties::GetAlphaBlendOperation(UINT32 renderTargetIdx) const
 	{
 		assert(renderTargetIdx < BS_MAX_MULTIPLE_RENDER_TARGETS);
 
 		return mData.renderTargetDesc[renderTargetIdx].blendOpAlpha;
 	}
 
-	UINT8 BlendProperties::getRenderTargetWriteMask(UINT32 renderTargetIdx) const
+	UINT8 BlendProperties::GetRenderTargetWriteMask(UINT32 renderTargetIdx) const
 	{
 		assert(renderTargetIdx < BS_MAX_MULTIPLE_RENDER_TARGETS);
 
@@ -105,12 +105,12 @@ namespace bs
 
 	}
 
-	SPtr<ct::BlendState> BlendState::getCore() const
+	SPtr<ct::BlendState> BlendState::GetCore() const
 	{
 		return std::static_pointer_cast<ct::BlendState>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObject> BlendState::createCore() const
+	SPtr<ct::CoreObject> BlendState::CreateCore() const
 	{
 		SPtr<ct::BlendState> core = ct::RenderStateManager::instance()._createBlendState(mProperties.mData);
 		mId = core->getId(); // Accessing core from sim thread is okay here since core ID is immutable
@@ -118,22 +118,22 @@ namespace bs
 		return core;
 	}
 
-	const BlendProperties& BlendState::getProperties() const
+	const BlendProperties& BlendState::GetProperties() const
 	{
 		return mProperties;
 	}
 
-	const SPtr<BlendState>& BlendState::getDefault()
+	const SPtr<BlendState>& BlendState::GetDefault()
 	{
-		return RenderStateManager::instance().getDefaultBlendState();
+		return RenderStateManager::Instance().getDefaultBlendState();
 	}
 
-	SPtr<BlendState> BlendState::create(const BLEND_STATE_DESC& desc)
+	SPtr<BlendState> BlendState::Create(const BLEND_STATE_DESC& desc)
 	{
-		return RenderStateManager::instance().createBlendState(desc);
+		return RenderStateManager::Instance().createBlendState(desc);
 	}
 
-	UINT64 BlendState::generateHash(const BLEND_STATE_DESC& desc)
+	UINT64 BlendState::GenerateHash(const BLEND_STATE_DESC& desc)
 	{
 		size_t hash = 0;
 		bs_hash_combine(hash, desc.alphaToCoverageEnable);
@@ -160,12 +160,12 @@ namespace bs
 
 	RTTITypeBase* BlendState::getRTTIStatic()
 	{
-		return BlendStateRTTI::instance();
+		return BlendStateRTTI::Instance();
 	}
 
 	RTTITypeBase* BlendState::getRTTI() const
 	{
-		return BlendState::getRTTIStatic();
+		return BlendState::GetRTTIStatic();
 	}
 
 	namespace ct
@@ -181,7 +181,7 @@ namespace bs
 
 	}
 
-	void BlendState::initialize()
+	void BlendState::Initialize()
 	{
 		// Since we cache states it's possible this object was already initialized
 		// (i.e. multiple sim-states can share a single core-state)
@@ -192,19 +192,19 @@ namespace bs
 		CoreObject::initialize();
 	}
 
-	const BlendProperties& BlendState::getProperties() const
+	const BlendProperties& BlendState::GetProperties() const
 	{
 		return mProperties;
 	}
 
-	SPtr<BlendState> BlendState::create(const BLEND_STATE_DESC& desc)
+	SPtr<BlendState> BlendState::Create(const BLEND_STATE_DESC& desc)
 	{
-		return RenderStateManager::instance().createBlendState(desc);
+		return RenderStateManager::Instance().createBlendState(desc);
 	}
 
-	const SPtr<BlendState>& BlendState::getDefault()
+	const SPtr<BlendState>& BlendState::GetDefault()
 	{
-		return RenderStateManager::instance().getDefaultBlendState();
+		return RenderStateManager::Instance().getDefaultBlendState();
 	}
 	}
 }

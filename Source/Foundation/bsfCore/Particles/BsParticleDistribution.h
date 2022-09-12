@@ -144,7 +144,7 @@ namespace bs
 					const auto minColor = mMinGradient.evaluate(0.0f);
 					const auto maxColor = mMaxGradient.evaluate(0.0f);
 
-					return Color::lerp(lerpFactor, minColor, maxColor);
+					return Color::Lerp(lerpFactor, minColor, maxColor);
 				}
 			case PDT_Curve:
 				return mMinGradient.evaluate(t);
@@ -153,7 +153,7 @@ namespace bs
 					const auto minColor = mMinGradient.evaluate(t);
 					const auto maxColor = mMaxGradient.evaluate(t);
 
-					return Color::lerp(lerpFactor, minColor, maxColor);
+					return Color::Lerp(lerpFactor, minColor, maxColor);
 				}
 			}
 		}
@@ -181,7 +181,7 @@ namespace bs
 				const auto maxColor = mMaxGradient.evaluate(0.0f);
 
 				const auto lerpFactor = impl::TGradientHelper<typename T::ColorType>::toLerpFactor(factor.getUNorm());
-				return Color::lerp(lerpFactor, minColor, maxColor);
+				return Color::Lerp(lerpFactor, minColor, maxColor);
 			}
 			case PDT_Curve:
 				return mMinGradient.evaluate(t);
@@ -191,7 +191,7 @@ namespace bs
 					const auto maxColor = mMaxGradient.evaluate(t);
 
 					const auto lerpFactor = impl::TGradientHelper<typename T::ColorType>::toLerpFactor(factor.getUNorm());
-					return Color::lerp(lerpFactor, minColor, maxColor);
+					return Color::Lerp(lerpFactor, minColor, maxColor);
 				}
 			}
 		}
@@ -340,7 +340,7 @@ namespace bs
 			case PDT_Constant:
 				return GetMinConstant();
 			case PDT_RandomRange:
-				return Math::lerp(factor, getMinConstant(), getMaxConstant());
+				return Math::Lerp(factor, getMinConstant(), getMaxConstant());
 			case PDT_Curve:
 				return mMinCurve.evaluate(t);
 			case PDT_RandomCurveRange:
@@ -348,7 +348,7 @@ namespace bs
 					const T minValue = mMinCurve.evaluate(t);
 					const T maxValue = mMaxCurve.evaluate(t);
 
-					return Math::lerp(factor, minValue, maxValue);
+					return Math::Lerp(factor, minValue, maxValue);
 				}
 			}
 		}
@@ -372,7 +372,7 @@ namespace bs
 			case PDT_Constant:
 				return GetMinConstant();
 			case PDT_RandomRange:
-				return Math::lerp(factor.getUNorm(), getMinConstant(), getMaxConstant());
+				return Math::Lerp(factor.getUNorm(), getMinConstant(), getMaxConstant());
 			case PDT_Curve:
 				return mMinCurve.evaluate(t);
 			case PDT_RandomCurveRange:
@@ -380,7 +380,7 @@ namespace bs
 					const T minValue = mMinCurve.evaluate(t);
 					const T maxValue = mMaxCurve.evaluate(t);
 
-					return Math::lerp(factor.getUNorm(), minValue, maxValue);
+					return Math::Lerp(factor.getUNorm(), minValue, maxValue);
 				}
 			}
 		}

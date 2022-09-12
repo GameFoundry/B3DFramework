@@ -203,7 +203,7 @@ namespace bs
 			else
 			{
 				UINT8 buffer[5];
-				return Bitwise::encodeVarInt(data, buffer);
+				return Bitwise::EncodeVarInt(data, buffer);
 			}
 		}
 	};
@@ -237,7 +237,7 @@ namespace bs
 			else
 			{
 				UINT8 buffer[5];
-				return Bitwise::encodeVarInt(data, buffer);
+				return Bitwise::EncodeVarInt(data, buffer);
 			}
 		}
 	};

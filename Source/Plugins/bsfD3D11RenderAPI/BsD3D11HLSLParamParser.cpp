@@ -452,7 +452,7 @@ namespace bs { namespace ct
 		desc.params.insert(std::make_pair(memberDesc.name, memberDesc));
 	}
 
-	UINT32 D3D11HLSLParamParser::mapParameterToSet(GpuProgramType progType, ParamType paramType)
+	UINT32 D3D11HLSLParamParser::MapParameterToSet(GpuProgramType progType, ParamType paramType)
 	{
 		UINT32 progTypeIdx = (UINT32)progType;
 		UINT32 paramTypeIdx = (UINT32)paramType;

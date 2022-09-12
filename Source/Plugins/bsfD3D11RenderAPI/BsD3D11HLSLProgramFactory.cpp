@@ -9,7 +9,7 @@
 
 namespace bs { namespace ct
 {
-	SPtr<GpuProgram> D3D11HLSLProgramFactory::create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+	SPtr<GpuProgram> D3D11HLSLProgramFactory::Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 	{
 		SPtr<GpuProgram> gpuProg;
 
@@ -47,7 +47,7 @@ namespace bs { namespace ct
 		return gpuProg;
 	}
 
-	SPtr<GpuProgram> D3D11HLSLProgramFactory::create(GpuProgramType type, GpuDeviceFlags deviceMask)
+	SPtr<GpuProgram> D3D11HLSLProgramFactory::Create(GpuProgramType type, GpuDeviceFlags deviceMask)
 	{
 		SPtr<GpuProgram> gpuProg;
 
@@ -107,7 +107,7 @@ namespace bs { namespace ct
 		return 0;
 	}
 
-	SPtr<GpuProgramBytecode> D3D11HLSLProgramFactory::compileBytecode(const GPU_PROGRAM_DESC& desc)
+	SPtr<GpuProgramBytecode> D3D11HLSLProgramFactory::CompileBytecode(const GPU_PROGRAM_DESC& desc)
 	{
 		String hlslProfile;
 		switch(desc.type)

@@ -13,20 +13,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptLimitConeRange::initRuntimeData()
+	void ScriptLimitConeRange::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptLimitConeRange::box(const __LimitConeRangeInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__LimitConeRangeInterop ScriptLimitConeRange::unbox(MonoObject* value)
+	__LimitConeRangeInterop ScriptLimitConeRange::Unbox(MonoObject* value)
 	{
 		return *(__LimitConeRangeInterop*)MonoUtil::unbox(value);
 	}
 
-	LimitConeRange ScriptLimitConeRange::fromInterop(const __LimitConeRangeInterop& value)
+	LimitConeRange ScriptLimitConeRange::FromInterop(const __LimitConeRangeInterop& value)
 	{
 		LimitConeRange output;
 		output.yLimitAngle = value.yLimitAngle;
@@ -38,7 +38,7 @@ namespace bs
 		return output;
 	}
 
-	__LimitConeRangeInterop ScriptLimitConeRange::toInterop(const LimitConeRange& value)
+	__LimitConeRangeInterop ScriptLimitConeRange::ToInterop(const LimitConeRange& value)
 	{
 		__LimitConeRangeInterop output;
 		output.yLimitAngle = value.yLimitAngle;

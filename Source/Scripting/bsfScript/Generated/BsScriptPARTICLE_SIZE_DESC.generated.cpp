@@ -20,7 +20,7 @@ namespace bs
 
 	MonoObject*ScriptPARTICLE_SIZE_DESC::box(const __PARTICLE_SIZE_DESCInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
 	__PARTICLE_SIZE_DESCInterop ScriptPARTICLE_SIZE_DESC::unbox(MonoObject* value)

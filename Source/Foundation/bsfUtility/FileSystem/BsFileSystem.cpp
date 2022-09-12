@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	void FileSystem::copy(const Path& oldPath, const Path& newPath, bool overwriteExisting)
+	void FileSystem::Copy(const Path& oldPath, const Path& newPath, bool overwriteExisting)
 	{
 		Stack<std::tuple<Path, Path>> todo;
 		todo.push(std::make_tuple(oldPath, newPath));
@@ -70,7 +70,7 @@ namespace bs
 		}
 	}
 
-	void FileSystem::remove(const Path& path, bool recursively)
+	void FileSystem::Remove(const Path& path, bool recursively)
 	{
 		if (!FileSystem::exists(path))
 			return;
@@ -92,7 +92,7 @@ namespace bs
 		FileSystem::removeFile(path);
 	}
 
-	void FileSystem::move(const Path& oldPath, const Path& newPath, bool overwriteExisting)
+	void FileSystem::Move(const Path& oldPath, const Path& newPath, bool overwriteExisting)
 	{
 		if (FileSystem::exists(newPath))
 		{

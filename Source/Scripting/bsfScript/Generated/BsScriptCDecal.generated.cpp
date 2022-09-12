@@ -17,7 +17,7 @@ namespace bs
 	{
 	}
 
-	void ScriptCDecal::initRuntimeData()
+	void ScriptCDecal::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_setMaterial", (void*)&ScriptCDecal::Internal_setMaterial);
 		metaData.scriptClass->addInternalCall("Internal_getMaterial", (void*)&ScriptCDecal::Internal_getMaterial);

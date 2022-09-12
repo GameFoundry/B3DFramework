@@ -188,7 +188,7 @@ namespace bs
 		Path fullPath = rootPath;
 		fullPath.append(UTF8::fromWide(getFileName()));
 				
-		return UTF8::toWide(fullPath.toString());
+		return UTF8::ToWide(fullPath.toString());
 	}
 
 	enum class FileActionType
@@ -337,7 +337,7 @@ namespace bs
 		bs_delete(m);
 	}
 
-	void FolderMonitor::startMonitor(const Path& folderPath, bool subdirectories, FolderChangeBits changeFilter)
+	void FolderMonitor::StartMonitor(const Path& folderPath, bool subdirectories, FolderChangeBits changeFilter)
 	{
 		if(!FileSystem::isDirectory(folderPath))
 		{
@@ -402,7 +402,7 @@ namespace bs
 		}
 	}
 
-	void FolderMonitor::stopMonitor(const Path& folderPath)
+	void FolderMonitor::StopMonitor(const Path& folderPath)
 	{
 		auto findIter = std::find_if(m->mFoldersToWatch.begin(), m->mFoldersToWatch.end(),
 			[&](const FolderWatchInfo* x) { return x->mFolderToMonitor == folderPath; });
@@ -421,7 +421,7 @@ namespace bs
 			stopMonitorAll();
 	}
 
-	void FolderMonitor::stopMonitorAll()
+	void FolderMonitor::StopMonitorAll()
 	{
 		for(auto& watchInfo : m->mFoldersToWatch)
 		{
@@ -455,7 +455,7 @@ namespace bs
 		}
 	}
 
-	void FolderMonitor::workerThreadMain()
+	void FolderMonitor::WorkerThreadMain()
 	{
 		FolderWatchInfo* watchInfo = nullptr;
 
@@ -572,7 +572,7 @@ namespace bs
 		} while (watchInfo != nullptr);
 	}
 
-	void FolderMonitor::handleNotifications(FileNotifyInfo& notifyInfo, FolderWatchInfo& watchInfo)
+	void FolderMonitor::HandleNotifications(FileNotifyInfo& notifyInfo, FolderWatchInfo& watchInfo)
 	{
 		Vector<FileAction*> mActions;
 

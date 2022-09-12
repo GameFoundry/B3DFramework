@@ -4,13 +4,13 @@
 
 namespace bs
 {
-	Color ColorDistributionEx::evaluate(const SPtr<ColorDistribution>& thisPtr, float t, float factor)
+	Color ColorDistributionEx::Evaluate(const SPtr<ColorDistribution>& thisPtr, float t, float factor)
 	{
-		return Color::fromRGBA(thisPtr->evaluate(t, factor));
+		return Color::FromRGBA(thisPtr->evaluate(t, factor));
 	}
 
-	class Color ColorDistributionEx::evaluate(const SPtr<ColorDistribution>& thisPtr, float t, Random& factor)
+	class Color ColorDistributionEx::Evaluate(const SPtr<ColorDistribution>& thisPtr, float t, Random& factor)
 	{
-		return Color::fromRGBA(thisPtr->evaluate(t, factor));
+		return Color::FromRGBA(thisPtr->evaluate(t, factor));
 	}
 }

@@ -59,7 +59,7 @@ namespace bs
 		return bs_shared_ptr_new<ManagedSerializableList>(ConstructPrivately(), typeInfo, managedInstance);
 	}
 
-	SPtr<ManagedSerializableList> ManagedSerializableList::createNew(const SPtr<ManagedSerializableTypeInfoList>& typeInfo, UINT32 size)
+	SPtr<ManagedSerializableList> ManagedSerializableList::CreateNew(const SPtr<ManagedSerializableTypeInfoList>& typeInfo, UINT32 size)
 	{
 		return bs_shared_ptr_new<ManagedSerializableList>(ConstructPrivately(), typeInfo, createManagedInstance(typeInfo, size));
 	}
@@ -86,7 +86,7 @@ namespace bs
 		return instance;
 	}
 
-	SPtr<ManagedSerializableList> ManagedSerializableList::createEmpty()
+	SPtr<ManagedSerializableList> ManagedSerializableList::CreateEmpty()
 	{
 		return bs_shared_ptr_new<ManagedSerializableList>(ConstructPrivately());
 	}
@@ -94,12 +94,12 @@ namespace bs
 	MonoObject* ManagedSerializableList::getManagedInstance() const
 	{
 		if(mGCHandle != 0)
-			return MonoUtil::getObjectFromGCHandle(mGCHandle);
+			return MonoUtil::GetObjectFromGCHandle(mGCHandle);
 
 		return nullptr;
 	}
 
-	void ManagedSerializableList::setFieldData(UINT32 arrayIdx, const SPtr<ManagedSerializableFieldData>& val)
+	void ManagedSerializableList::SetFieldData(UINT32 arrayIdx, const SPtr<ManagedSerializableFieldData>& val)
 	{
 		if (mGCHandle != 0)
 		{
@@ -110,12 +110,12 @@ namespace bs
 			mCachedEntries[arrayIdx] = val;
 	}
 
-	void ManagedSerializableList::setFieldData(MonoObject* obj, UINT32 arrayIdx, const SPtr<ManagedSerializableFieldData>& val)
+	void ManagedSerializableList::SetFieldData(MonoObject* obj, UINT32 arrayIdx, const SPtr<ManagedSerializableFieldData>& val)
 	{
 		mItemProp->setIndexed(obj, arrayIdx, val->getValue(mListTypeInfo->mElementType));
 	}
 
-	void ManagedSerializableList::addFieldDataInternal(const SPtr<ManagedSerializableFieldData>& val)
+	void ManagedSerializableList::AddFieldDataInternal(const SPtr<ManagedSerializableFieldData>& val)
 	{
 		MonoObject* managedInstance = MonoUtil::getObjectFromGCHandle(mGCHandle);
 
@@ -124,20 +124,20 @@ namespace bs
 		mAddMethod->invoke(managedInstance, params);
 	}
 
-	SPtr<ManagedSerializableFieldData> ManagedSerializableList::getFieldData(UINT32 arrayIdx)
+	SPtr<ManagedSerializableFieldData> ManagedSerializableList::GetFieldData(UINT32 arrayIdx)
 	{
 		if (mGCHandle != 0)
 		{
 			MonoObject* managedInstance = MonoUtil::getObjectFromGCHandle(mGCHandle);
 			MonoObject* obj = mItemProp->getIndexed(managedInstance, arrayIdx);
 
-			return ManagedSerializableFieldData::create(mListTypeInfo->mElementType, obj);
+			return ManagedSerializableFieldData::Create(mListTypeInfo->mElementType, obj);
 		}
 		else
 			return mCachedEntries[arrayIdx];
 	}
 
-	void ManagedSerializableList::resize(UINT32 newSize)
+	void ManagedSerializableList::Resize(UINT32 newSize)
 	{
 		if (mGCHandle != 0)
 		{
@@ -166,7 +166,7 @@ namespace bs
 		mNumElements = newSize;
 	}
 
-	void ManagedSerializableList::serialize()
+	void ManagedSerializableList::Serialize()
 	{
 		if (mGCHandle == 0)
 			return;
@@ -209,7 +209,7 @@ namespace bs
 		return managedInstance;
 	}
 
-	UINT32 ManagedSerializableList::getLengthInternal() const
+	UINT32 ManagedSerializableList::GetLengthInternal() const
 	{
 		MonoObject* managedInstance = MonoUtil::getObjectFromGCHandle(mGCHandle);
 		MonoObject* length = mCountProp->get(managedInstance);
@@ -220,7 +220,7 @@ namespace bs
 		return *(UINT32*)MonoUtil::unbox(length);
 	}
 
-	void ManagedSerializableList::initMonoObjects(MonoClass* listClass)
+	void ManagedSerializableList::InitMonoObjects(MonoClass* listClass)
 	{
 		mItemProp = listClass->getProperty("Item");
 		mCountProp = listClass->getProperty("Count");
@@ -232,11 +232,11 @@ namespace bs
 
 	RTTITypeBase* ManagedSerializableList::getRTTIStatic()
 	{
-		return ManagedSerializableListRTTI::instance();
+		return ManagedSerializableListRTTI::Instance();
 	}
 
 	RTTITypeBase* ManagedSerializableList::getRTTI() const
 	{
-		return ManagedSerializableList::getRTTIStatic();
+		return ManagedSerializableList::GetRTTIStatic();
 	}
 }

@@ -20,7 +20,7 @@ namespace bs
 		BS_ADD_TEST(RenderBeastTestSuite::testTextureRowAllocator);
 	}
 
-	void RenderBeastTestSuite::testTextureRowAllocator()
+	void RenderBeastTestSuite::TestTextureRowAllocator()
 	{
 		ct::TextureRowAllocator<128, 128> alloc;
 

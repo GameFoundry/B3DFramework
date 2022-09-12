@@ -6,7 +6,7 @@
 
 namespace bs
 {
-	void GameObject::initialize(const SPtr<GameObject>& object, UINT64 instanceId)
+	void GameObject::Initialize(const SPtr<GameObject>& object, UINT64 instanceId)
 	{
 		mInstanceData = bs_shared_ptr_new<GameObjectInstanceData>();
 		mInstanceData->object = object;
@@ -26,11 +26,11 @@ namespace bs
 	
 	RTTITypeBase* GameObject::getRTTIStatic()
 	{
-		return GameObjectRTTI::instance();
+		return GameObjectRTTI::Instance();
 	}
 
 	RTTITypeBase* GameObject::getRTTI() const
 	{
-		return GameObject::getRTTIStatic();
+		return GameObject::GetRTTIStatic();
 	}
 }

@@ -14,42 +14,42 @@ namespace bs
 			restoreCursorIcon((CursorType)i);
 	}
 
-	void Cursor::setScreenPosition(const Vector2I& screenPos)
+	void Cursor::SetScreenPosition(const Vector2I& screenPos)
 	{
 		Platform::setCursorPosition(screenPos);
 	}
 
-	Vector2I Cursor::getScreenPosition()
+	Vector2I Cursor::GetScreenPosition()
 	{
-		return Platform::getCursorPosition();
+		return Platform::GetCursorPosition();
 	}
 
-	void Cursor::hide()
+	void Cursor::Hide()
 	{
 		Platform::hideCursor();
 	}
 
-	void Cursor::show()
+	void Cursor::Show()
 	{
 		Platform::showCursor();
 	}
 
-	void Cursor::clipToWindow(const RenderWindow& window)
+	void Cursor::ClipToWindow(const RenderWindow& window)
 	{
 		Platform::clipCursorToWindow(window);
 	}
 
-	void Cursor::clipToRect(const Rect2I& screenRect)
+	void Cursor::ClipToRect(const Rect2I& screenRect)
 	{
 		Platform::clipCursorToRect(screenRect);
 	}
 
-	void Cursor::clipDisable()
+	void Cursor::ClipDisable()
 	{
 		Platform::clipCursorDisable();
 	}
 
-	void Cursor::setCursor(CursorType type)
+	void Cursor::SetCursor(CursorType type)
 	{
 		UINT32 id = (UINT32)type;
 		if((UINT32)mActiveCursorId != id)
@@ -59,7 +59,7 @@ namespace bs
 		}
 	}
 
-	void Cursor::setCursor(const String& name)
+	void Cursor::SetCursor(const String& name)
 	{
 		auto iterFind = mCustomIconNameToId.find(name);
 		if(iterFind == mCustomIconNameToId.end())
@@ -76,7 +76,7 @@ namespace bs
 		}
 	}
 
-	void Cursor::setCursorIcon(const String& name, const PixelData& pixelData, const Vector2I& hotSpot)
+	void Cursor::SetCursorIcon(const String& name, const PixelData& pixelData, const Vector2I& hotSpot)
 	{
 		auto iterFind = mCustomIconNameToId.find(name);
 		if(iterFind != mCustomIconNameToId.end())
@@ -95,7 +95,7 @@ namespace bs
 		}
 	}
 
-	void Cursor::setCursorIcon(CursorType type, const PixelData& pixelData, const Vector2I& hotSpot)
+	void Cursor::SetCursorIcon(CursorType type, const PixelData& pixelData, const Vector2I& hotSpot)
 	{
 		UINT32 id = (UINT32)type;
 
@@ -106,7 +106,7 @@ namespace bs
 			updateCursorImage(); // Refresh active
 	}
 
-	void Cursor::clearCursorIcon(const String& name)
+	void Cursor::ClearCursorIcon(const String& name)
 	{
 		auto iterFind = mCustomIconNameToId.find(name);
 		if(iterFind == mCustomIconNameToId.end())
@@ -116,7 +116,7 @@ namespace bs
 		mCustomIconNameToId.erase(iterFind);
 	}
 
-	void Cursor::clearCursorIcon(CursorType type)
+	void Cursor::ClearCursorIcon(CursorType type)
 	{
 		restoreCursorIcon(type);
 
@@ -124,7 +124,7 @@ namespace bs
 			updateCursorImage(); // Refresh active
 	}
 
-	void Cursor::restoreCursorIcon(CursorType type)
+	void Cursor::RestoreCursorIcon(CursorType type)
 	{
 		UINT32 id = (UINT32)type;
 		mCustomIcons[id] = CustomIcon();
@@ -168,7 +168,7 @@ namespace bs
 		BS_EXCEPT(InvalidParametersException, "Invalid cursor type: " + toString((UINT32)type));
 	}
 
-	void Cursor::updateCursorImage()
+	void Cursor::UpdateCursorImage()
 	{
 		if (mActiveCursorId < 0)
 			return;

@@ -15,20 +15,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptSubResource::initRuntimeData()
+	void ScriptSubResource::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptSubResource::box(const __SubResourceInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__SubResourceInterop ScriptSubResource::unbox(MonoObject* value)
+	__SubResourceInterop ScriptSubResource::Unbox(MonoObject* value)
 	{
 		return *(__SubResourceInterop*)MonoUtil::unbox(value);
 	}
 
-	SubResource ScriptSubResource::fromInterop(const __SubResourceInterop& value)
+	SubResource ScriptSubResource::FromInterop(const __SubResourceInterop& value)
 	{
 		SubResource output;
 		String tmpname;
@@ -44,7 +44,7 @@ namespace bs
 		return output;
 	}
 
-	__SubResourceInterop ScriptSubResource::toInterop(const SubResource& value)
+	__SubResourceInterop ScriptSubResource::ToInterop(const SubResource& value)
 	{
 		__SubResourceInterop output;
 		MonoString* tmpname;

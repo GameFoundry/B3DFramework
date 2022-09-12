@@ -242,7 +242,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	VkResult VulkanSwapChain::acquireBackBuffer()
+	VkResult VulkanSwapChain::AcquireBackBuffer()
 	{
 		uint32_t imageIndex;
 
@@ -268,7 +268,7 @@ namespace bs { namespace ct
 		return VK_SUCCESS;
 	}
 
-	bool VulkanSwapChain::prepareForPresent(UINT32& backBufferIdx)
+	bool VulkanSwapChain::PrepareForPresent(UINT32& backBufferIdx)
 	{
 		if (!mSurfaces[mCurrentBackBufferIdx].acquired)
 			return false;
@@ -280,7 +280,7 @@ namespace bs { namespace ct
 		return true;
 	}
 
-	void VulkanSwapChain::notifyBackBufferWaitIssued()
+	void VulkanSwapChain::NotifyBackBufferWaitIssued()
 	{
 		if (!mSurfaces[mCurrentBackBufferIdx].acquired)
 			return;

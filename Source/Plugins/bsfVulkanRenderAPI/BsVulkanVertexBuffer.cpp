@@ -15,7 +15,7 @@ namespace bs { namespace ct
 		:VertexBuffer(desc, deviceMask), mDeviceMask(deviceMask)
 	{ }
 
-	void VulkanVertexBuffer::initialize()
+	void VulkanVertexBuffer::Initialize()
 	{
 		mBuffer = bs_pool_new<VulkanHardwareBuffer>(VulkanHardwareBuffer::BT_VERTEX, BF_UNKNOWN, mUsage, mSize, mDeviceMask);
 		mBufferDeleter = &deleteBuffer;

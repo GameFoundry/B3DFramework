@@ -15,7 +15,7 @@ namespace bs
 		gFMODAudio()._unregisterListener(this);
 	}
 
-	void FMODAudioListener::setTransform(const Transform& transform)
+	void FMODAudioListener::SetTransform(const Transform& transform)
 	{
 		AudioListener::setTransform(transform);
 
@@ -31,7 +31,7 @@ namespace bs
 		fmod->set3DListenerAttributes(mId, &fmodPos, nullptr, &fmodDir, &fmodUp);
 	}
 
-	void FMODAudioListener::setVelocity(const Vector3& velocity)
+	void FMODAudioListener::SetVelocity(const Vector3& velocity)
 	{
 		AudioListener::setVelocity(velocity);
 
@@ -41,7 +41,7 @@ namespace bs
 		fmod->set3DListenerAttributes(mId, nullptr, &value, nullptr, nullptr);
 	}
 
-	void FMODAudioListener::rebuild(INT32 id)
+	void FMODAudioListener::Rebuild(INT32 id)
 	{
 		mId = id;
 

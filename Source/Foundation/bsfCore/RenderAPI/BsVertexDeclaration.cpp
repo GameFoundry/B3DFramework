@@ -14,12 +14,12 @@ namespace bs
 	{
 	}
 
-	UINT32 VertexElement::getSize(void) const
+	UINT32 VertexElement::GetSize(void) const
 	{
 		return GetTypeSize(mType);
 	}
 
-	UINT32 VertexElement::getTypeSize(VertexElementType etype)
+	UINT32 VertexElement::GetTypeSize(VertexElementType etype)
 	{
 		switch(etype)
 		{
@@ -74,7 +74,7 @@ namespace bs
 		return 0;
 	}
 
-	unsigned short VertexElement::getTypeCount(VertexElementType etype)
+	unsigned short VertexElement::GetTypeCount(VertexElementType etype)
 	{
 		switch (etype)
 		{
@@ -114,7 +114,7 @@ namespace bs
 		return 0;
 	}
 
-	VertexElementType VertexElement::getBestColorVertexElementType()
+	VertexElementType VertexElement::GetBestColorVertexElementType()
 	{
 		// Use the current render system to determine if possible
 		if (ct::RenderAPI::instancePtr() != nullptr)
@@ -149,7 +149,7 @@ namespace bs
 		return !(*this == rhs);
 	}
 
-	size_t VertexElement::getHash(const VertexElement& element)
+	size_t VertexElement::GetHash(const VertexElement& element)
 	{
 		size_t hash = 0;
 		bs_hash_combine(hash, element.mType);
@@ -223,7 +223,7 @@ namespace bs
 		return nullptr;
 	}
 
-	Vector<VertexElement> VertexDeclarationProperties::findElementsBySource(UINT16 source) const
+	Vector<VertexElement> VertexDeclarationProperties::FindElementsBySource(UINT16 source) const
 	{
 		Vector<VertexElement> retList;
 		for (auto& elem : mElementList)
@@ -235,7 +235,7 @@ namespace bs
 		return retList;
 	}
 
-	UINT32 VertexDeclarationProperties::getVertexSize(UINT16 source) const
+	UINT32 VertexDeclarationProperties::GetVertexSize(UINT16 source) const
 	{
 		UINT32 size = 0;
 
@@ -256,19 +256,19 @@ namespace bs
 
 	}
 
-	SPtr<ct::VertexDeclaration> VertexDeclaration::getCore() const
+	SPtr<ct::VertexDeclaration> VertexDeclaration::GetCore() const
 	{
 		return std::static_pointer_cast<ct::VertexDeclaration>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObject> VertexDeclaration::createCore() const
+	SPtr<ct::CoreObject> VertexDeclaration::CreateCore() const
 	{
 		return ct::HardwareBufferManager::instance().createVertexDeclarationInternal(mProperties.mElementList);
 	}
 
-	SPtr<VertexDeclaration> VertexDeclaration::create(const SPtr<VertexDataDesc>& desc)
+	SPtr<VertexDeclaration> VertexDeclaration::Create(const SPtr<VertexDataDesc>& desc)
 	{
-		return HardwareBufferManager::instance().createVertexDeclaration(desc);
+		return HardwareBufferManager::Instance().createVertexDeclaration(desc);
 	}
 
 	/************************************************************************/
@@ -276,7 +276,7 @@ namespace bs
 	/************************************************************************/
 	RTTITypeBase* VertexDeclaration::getRTTIStatic()
 	{
-		return VertexDeclarationRTTI::instance();
+		return VertexDeclarationRTTI::Instance();
 	}
 
 	RTTITypeBase* VertexDeclaration::getRTTI() const
@@ -323,18 +323,18 @@ namespace bs
 		
 	}
 
-	void VertexDeclaration::initialize()
+	void VertexDeclaration::Initialize()
 	{
 		mId = NextFreeId++;
 		CoreObject::initialize();
 	}
 
-	SPtr<VertexDeclaration> VertexDeclaration::create(const SPtr<VertexDataDesc>& desc, GpuDeviceFlags deviceMask)
+	SPtr<VertexDeclaration> VertexDeclaration::Create(const SPtr<VertexDataDesc>& desc, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferManager::instance().createVertexDeclaration(desc, deviceMask);
+		return HardwareBufferManager::Instance().createVertexDeclaration(desc, deviceMask);
 	}
 
-	bool VertexDeclaration::isCompatible(const SPtr<VertexDeclaration>& shaderDecl)
+	bool VertexDeclaration::IsCompatible(const SPtr<VertexDeclaration>& shaderDecl)
 	{
 		const Vector<VertexElement>& shaderElems = shaderDecl->getProperties().getElements();
 		const Vector<VertexElement>& bufferElems = getProperties().getElements();
@@ -358,7 +358,7 @@ namespace bs
 		return true;
 	}
 
-	Vector<VertexElement> VertexDeclaration::getMissingElements(const SPtr<VertexDeclaration>& shaderDecl)
+	Vector<VertexElement> VertexDeclaration::GetMissingElements(const SPtr<VertexDeclaration>& shaderDecl)
 	{
 		Vector<VertexElement> missingElements;
 

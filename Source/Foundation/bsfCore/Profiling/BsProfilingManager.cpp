@@ -45,7 +45,7 @@ namespace bs
 #endif
 	}
 
-	const ProfilerReport& ProfilingManager::getReport(ProfiledThread thread, UINT32 idx) const
+	const ProfilerReport& ProfilingManager::GetReport(ProfiledThread thread, UINT32 idx) const
 	{
 		idx = Math::clamp(idx, 0U, (UINT32)(NUM_SAVED_FRAMES - 1));
 
@@ -69,6 +69,6 @@ namespace bs
 
 	ProfilingManager& GProfiler()
 	{
-		return ProfilingManager::instance();
+		return ProfilingManager::Instance();
 	}
 }

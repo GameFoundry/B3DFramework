@@ -27,7 +27,7 @@ namespace bs
 		mGCHandle = MonoUtil::newWeakGCHandle(managedInstance);
 	}
 
-	void ScriptResources::initRuntimeData()
+	void ScriptResources::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_load", (void*)&ScriptResources::Internal_load);
 		metaData.scriptClass->addInternalCall("Internal_loadAsync", (void*)&ScriptResources::Internal_loadAsync);
@@ -51,20 +51,20 @@ namespace bs
 		onResourceModifiedThunk = (onResourceModifiedThunkDef)metaData.scriptClass->getMethodExact("Internal_onResourceModified", "RRefBase")->getThunk();
 	}
 
-	void ScriptResources::startUp()
+	void ScriptResources::StartUp()
 	{
 		onResourceLoadedConn = Resources::instance().onResourceLoaded.connect(&ScriptResources::onResourceLoaded);
 		onResourceDestroyedConn = Resources::instance().onResourceDestroyed.connect(&ScriptResources::onResourceDestroyed);
 		onResourceModifiedConn = Resources::instance().onResourceModified.connect(&ScriptResources::onResourceModified);
 	}
-	void ScriptResources::shutDown()
+	void ScriptResources::ShutDown()
 	{
 		onResourceLoadedConn.disconnect();
 		onResourceDestroyedConn.disconnect();
 		onResourceModifiedConn.disconnect();
 	}
 
-	void ScriptResources::onResourceLoaded(const ResourceHandle<Resource>& p0)
+	void ScriptResources::OnResourceLoaded(const ResourceHandle<Resource>& p0)
 	{
 		MonoObject* tmpp0;
 		ScriptRRefBase* scriptp0;
@@ -76,14 +76,14 @@ namespace bs
 		MonoUtil::invokeThunk(onResourceLoadedThunk, tmpp0);
 	}
 
-	void ScriptResources::onResourceDestroyed(const UUID& p0)
+	void ScriptResources::OnResourceDestroyed(const UUID& p0)
 	{
 		MonoObject* tmpp0;
 		tmpp0 = ScriptUUID::box(p0);
 		MonoUtil::invokeThunk(onResourceDestroyedThunk, tmpp0);
 	}
 
-	void ScriptResources::onResourceModified(const ResourceHandle<Resource>& p0)
+	void ScriptResources::OnResourceModified(const ResourceHandle<Resource>& p0)
 	{
 		MonoObject* tmpp0;
 		ScriptRRefBase* scriptp0;

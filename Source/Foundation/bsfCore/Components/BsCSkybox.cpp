@@ -25,7 +25,7 @@ namespace bs
 		mInternal->destroy();
 	}
 
-	void CSkybox::onInitialized()
+	void CSkybox::OnInitialized()
 	{
 		// If mInternal already exists this means this object was deserialized,
 		// so all we need to do is initialize it.
@@ -37,18 +37,18 @@ namespace bs
 		gSceneManager()._bindActor(mInternal, sceneObject());
 	}
 
-	void CSkybox::onDestroyed()
+	void CSkybox::OnDestroyed()
 	{
 		gSceneManager()._unbindActor(mInternal);
 	}
 
 	RTTITypeBase* CSkybox::getRTTIStatic()
 	{
-		return CSkyboxRTTI::instance();
+		return CSkyboxRTTI::Instance();
 	}
 
 	RTTITypeBase* CSkybox::getRTTI() const
 	{
-		return CSkybox::getRTTIStatic();
+		return CSkybox::GetRTTIStatic();
 	}
 }

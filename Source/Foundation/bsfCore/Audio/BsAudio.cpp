@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	void Audio::play(const HAudioClip& clip, const Vector3& position, float volume)
+	void Audio::Play(const HAudioClip& clip, const Vector3& position, float volume)
 	{
 		Transform transform;
 		transform.setPosition(position);
@@ -19,7 +19,7 @@ namespace bs
 		mManualSources.push_back(source);
 	}
 
-	void Audio::stopManualSources()
+	void Audio::StopManualSources()
 	{
 		for (auto& source : mManualSources)
 			source->stop();
@@ -42,6 +42,6 @@ namespace bs
 
 	Audio& GAudio()
 	{
-		return Audio::instance();
+		return Audio::Instance();
 	}
 }

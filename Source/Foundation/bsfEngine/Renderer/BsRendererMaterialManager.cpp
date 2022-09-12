@@ -40,7 +40,7 @@ namespace bs
 		materials.push_back({ metaData, shaderPath });
 	}
 
-	void RendererMaterialManager::initOnCore(const Vector<SPtr<ct::Shader>>& shaders)
+	void RendererMaterialManager::InitOnCore(const Vector<SPtr<ct::Shader>>& shaders)
 	{
 		Lock Lock(getMutex());
 
@@ -85,7 +85,7 @@ namespace bs
 		return output;
 	}
 
-	void RendererMaterialManager::destroyOnCore()
+	void RendererMaterialManager::DestroyOnCore()
 	{
 		Lock Lock(getMutex());
 
@@ -105,13 +105,13 @@ namespace bs
 		}
 	}
 
-	Vector<RendererMaterialManager::RendererMaterialData>& RendererMaterialManager::getMaterials()
+	Vector<RendererMaterialManager::RendererMaterialData>& RendererMaterialManager::GetMaterials()
 	{
 		static Vector<RendererMaterialData> materials;
 		return materials;
 	}
 
-	Mutex& RendererMaterialManager::getMutex()
+	Mutex& RendererMaterialManager::GetMutex()
 	{
 		static Mutex mutex;
 		return mutex;

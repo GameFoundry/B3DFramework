@@ -35,7 +35,7 @@ namespace bs
 			GUIDimensions::create(options));
 	}
 
-	const String& GUIScrollBarVert::getGUITypeName(bool resizable)
+	const String& GUIScrollBarVert::GetGUITypeName(bool resizable)
 	{
 		static String typeName = "ScrollBarVert";
 		static String resizableTypeName = "ResizeableScrollBarVert";

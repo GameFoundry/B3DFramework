@@ -97,7 +97,7 @@ namespace bs
 			bs_deleteN(mBoneInfo, mNumBones);
 	}
 
-	SPtr<Skeleton> Skeleton::create(BONE_DESC* bones, UINT32 numBones)
+	SPtr<Skeleton> Skeleton::Create(BONE_DESC* bones, UINT32 numBones)
 	{
 		Skeleton* rawPtr = new (bs_alloc<Skeleton>()) Skeleton(bones, numBones);
 
@@ -320,7 +320,7 @@ namespace bs
 		bs_stack_free(hasAnimCurve);
 	}
 
-	Transform Skeleton::calcBoneTransform(UINT32 idx) const
+	Transform Skeleton::CalcBoneTransform(UINT32 idx) const
 	{
 		if(idx >= mNumBones)
 			return Transform::IDENTITY;
@@ -338,7 +338,7 @@ namespace bs
 		return output;
 	}
 
-	UINT32 Skeleton::getRootBoneIndex() const
+	UINT32 Skeleton::GetRootBoneIndex() const
 	{
 		for (UINT32 i = 0; i < mNumBones; i++)
 		{
@@ -349,7 +349,7 @@ namespace bs
 		return (UINT32)-1;
 	}
 
-	SPtr<Skeleton> Skeleton::createEmpty()
+	SPtr<Skeleton> Skeleton::CreateEmpty()
 	{
 		Skeleton* rawPtr = new (bs_alloc<Skeleton>()) Skeleton();
 
@@ -359,7 +359,7 @@ namespace bs
 
 	RTTITypeBase* Skeleton::getRTTIStatic()
 	{
-		return SkeletonRTTI::instance();
+		return SkeletonRTTI::Instance();
 	}
 
 	RTTITypeBase* Skeleton::getRTTI() const

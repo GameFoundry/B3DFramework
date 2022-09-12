@@ -6,12 +6,12 @@
 
 namespace bs
 {
-	GUIDimensions GUIDimensions::create()
+	GUIDimensions GUIDimensions::Create()
 	{
 		return GUIDimensions();
 	}
 
-	GUIDimensions GUIDimensions::create(const GUIOptions& options)
+	GUIDimensions GUIDimensions::Create(const GUIOptions& options)
 	{
 		GUIDimensions dimensions;
 
@@ -49,7 +49,7 @@ namespace bs
 		return dimensions;
 	}
 
-	void GUIDimensions::updateWithStyle(const GUIElementStyle* style)
+	void GUIDimensions::UpdateWithStyle(const GUIElementStyle* style)
 	{
 		if(!overridenWidth())
 		{
@@ -82,7 +82,7 @@ namespace bs
 		}
 	}
 
-	LayoutSizeRange GUIDimensions::calculateSizeRange(const Vector2I& optimal) const
+	LayoutSizeRange GUIDimensions::CalculateSizeRange(const Vector2I& optimal) const
 	{
 		LayoutSizeRange sizeRange;
 

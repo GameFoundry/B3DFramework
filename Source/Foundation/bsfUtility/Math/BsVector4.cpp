@@ -7,8 +7,8 @@ namespace bs
 {
 	const Vector4 Vector4::ZERO{BS_ZERO()};
 
-	bool Vector4::isNaN() const
+	bool Vector4::IsNaN() const
 	{
-		return Math::isNaN(x) || Math::isNaN(y) || Math::isNaN(z) || Math::isNaN(w);
+		return Math::IsNaN(x) || Math::isNaN(y) || Math::isNaN(z) || Math::isNaN(w);
 	}
 }

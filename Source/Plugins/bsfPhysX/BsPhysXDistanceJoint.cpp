@@ -67,42 +67,42 @@ namespace bs
 		bs_delete(mInternal);
 	}
 
-	float PhysXDistanceJoint::getDistance() const
+	float PhysXDistanceJoint::GetDistance() const
 	{
 		return GetInternal()->getDistance();
 	}
 
-	float PhysXDistanceJoint::getMinDistance() const
+	float PhysXDistanceJoint::GetMinDistance() const
 	{
 		return GetInternal()->getMinDistance();
 	}
 
-	void PhysXDistanceJoint::setMinDistance(float value)
+	void PhysXDistanceJoint::SetMinDistance(float value)
 	{
 		getInternal()->setMinDistance(value);
 	}
 
-	float PhysXDistanceJoint::getMaxDistance() const
+	float PhysXDistanceJoint::GetMaxDistance() const
 	{
 		return GetInternal()->getMaxDistance();
 	}
 
-	void PhysXDistanceJoint::setMaxDistance(float value)
+	void PhysXDistanceJoint::SetMaxDistance(float value)
 	{
 		getInternal()->setMaxDistance(value);
 	}
 
-	float PhysXDistanceJoint::getTolerance() const
+	float PhysXDistanceJoint::GetTolerance() const
 	{
 		return GetInternal()->getTolerance();
 	}
 
-	void PhysXDistanceJoint::setTolerance(float value)
+	void PhysXDistanceJoint::SetTolerance(float value)
 	{
 		getInternal()->setTolerance(value);
 	}
 
-	Spring PhysXDistanceJoint::getSpring() const
+	Spring PhysXDistanceJoint::GetSpring() const
 	{
 		float damping = getInternal()->getDamping();
 		float stiffness = getInternal()->getStiffness();
@@ -110,18 +110,18 @@ namespace bs
 		return Spring(stiffness, damping);
 	}
 
-	void PhysXDistanceJoint::setSpring(const Spring& value)
+	void PhysXDistanceJoint::SetSpring(const Spring& value)
 	{
 		getInternal()->setDamping(value.damping);
 		getInternal()->setStiffness(value.stiffness);
 	}
 
-	void PhysXDistanceJoint::setFlag(DistanceJointFlag flag, bool enabled)
+	void PhysXDistanceJoint::SetFlag(DistanceJointFlag flag, bool enabled)
 	{
 		getInternal()->setDistanceJointFlag(toPxFlag(flag), enabled);
 	}
 
-	bool PhysXDistanceJoint::hasFlag(DistanceJointFlag flag) const
+	bool PhysXDistanceJoint::HasFlag(DistanceJointFlag flag) const
 	{
 		return GetInternal()->getDistanceJointFlags() & toPxFlag(flag);
 	}

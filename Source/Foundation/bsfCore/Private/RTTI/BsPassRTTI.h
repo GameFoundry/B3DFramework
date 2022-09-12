@@ -74,7 +74,7 @@ namespace bs
 
 	RTTITypeBase* SerializedGpuProgramData::getRTTIStatic()
 	{
-		return SerializedGpuProgramDataRTTI::instance();
+		return SerializedGpuProgramDataRTTI::Instance();
 	}
 
 	RTTITypeBase* SerializedGpuProgramData::getRTTI() const
@@ -217,7 +217,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return Pass::createEmpty();
+			return Pass::CreateEmpty();
 		}
 
 	private:

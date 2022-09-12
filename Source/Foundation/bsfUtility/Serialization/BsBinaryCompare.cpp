@@ -27,7 +27,7 @@ namespace bs
 		:mAlloc(&gFrameAlloc())
 	{ }
 
-	bool BinaryCompare::run(IReflectable& a, IReflectable& b)
+	bool BinaryCompare::Run(IReflectable& a, IReflectable& b)
 	{
 		mAlloc->markFrame();
 		bool output = compare(a, b);
@@ -37,7 +37,7 @@ namespace bs
 		return output;
 	}
 
-	bool BinaryCompare::compare(IReflectable& a, IReflectable& b)
+	bool BinaryCompare::Compare(IReflectable& a, IReflectable& b)
 	{
 		RTTITypeBase* rtti = a.getRTTI();
 

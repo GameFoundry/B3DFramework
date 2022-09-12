@@ -17,7 +17,7 @@ namespace bs { namespace ct
 		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX.");
 	}
 
-	void D3D11IndexBuffer::initialize()
+	void D3D11IndexBuffer::Initialize()
 	{
 		mBuffer = bs_pool_new<D3D11HardwareBuffer>(D3D11HardwareBuffer::BT_INDEX, mUsage, 1, mSize, mDevice);
 		mBufferDeleter = &deleteBuffer;

@@ -10,11 +10,11 @@ namespace bs
 	/************************************************************************/
 	RTTITypeBase* ShaderImportOptions::getRTTIStatic()
 	{
-		return ShaderImportOptionsRTTI::instance();
+		return ShaderImportOptionsRTTI::Instance();
 	}
 
 	RTTITypeBase* ShaderImportOptions::getRTTI() const
 	{
-		return ShaderImportOptions::getRTTIStatic();
+		return ShaderImportOptions::GetRTTIStatic();
 	}
 }

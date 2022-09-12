@@ -5,13 +5,13 @@
 
 namespace bs
 {
-	HPhysicsMesh PhysicsMeshEx::create(const SPtr<RendererMeshData>& meshData, PhysicsMeshType type)
+	HPhysicsMesh PhysicsMeshEx::Create(const SPtr<RendererMeshData>& meshData, PhysicsMeshType type)
 	{
-		return PhysicsMesh::create(meshData->getData(), type);
+		return PhysicsMesh::Create(meshData->getData(), type);
 	}
 
-	SPtr<RendererMeshData> PhysicsMeshEx::getMeshData(const HPhysicsMesh& thisPtr)
+	SPtr<RendererMeshData> PhysicsMeshEx::GetMeshData(const HPhysicsMesh& thisPtr)
 	{
-		return RendererMeshData::create(thisPtr->getMeshData());
+		return RendererMeshData::Create(thisPtr->getMeshData());
 	}
 }

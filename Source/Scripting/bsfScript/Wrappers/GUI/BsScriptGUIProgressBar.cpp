@@ -27,7 +27,7 @@ namespace bs
 
 	}
 
-	void ScriptGUIProgressBar::initRuntimeData()
+	void ScriptGUIProgressBar::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptGUIProgressBar::internal_createInstance);
 		metaData.scriptClass->addInternalCall("Internal_SetPercent", (void*)&ScriptGUIProgressBar::internal_setPercent);

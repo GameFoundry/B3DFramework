@@ -76,7 +76,7 @@ namespace bs { namespace ct
 		return static_cast<void*>(static_cast<unsigned char*>(buffer));
 	}
 
-	void GLHardwareBuffer::unmap()
+	void GLHardwareBuffer::Unmap()
 	{
 		if(mBufferId == 0)
 			return;
@@ -94,7 +94,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLHardwareBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
+	void GLHardwareBuffer::ReadData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		if(mBufferId == 0)
 			return;
@@ -104,7 +104,7 @@ namespace bs { namespace ct
 		unlock();
 	}
 
-	void GLHardwareBuffer::writeData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags, UINT32 queueIdx)
+	void GLHardwareBuffer::WriteData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags, UINT32 queueIdx)
 	{
 		if(mBufferId == 0)
 			return;

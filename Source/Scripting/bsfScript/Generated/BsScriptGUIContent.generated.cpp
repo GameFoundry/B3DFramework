@@ -15,20 +15,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptGUIContent::initRuntimeData()
+	void ScriptGUIContent::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptGUIContent::box(const __GUIContentInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__GUIContentInterop ScriptGUIContent::unbox(MonoObject* value)
+	__GUIContentInterop ScriptGUIContent::Unbox(MonoObject* value)
 	{
 		return *(__GUIContentInterop*)MonoUtil::unbox(value);
 	}
 
-	GUIContent ScriptGUIContent::fromInterop(const __GUIContentInterop& value)
+	GUIContent ScriptGUIContent::FromInterop(const __GUIContentInterop& value)
 	{
 		GUIContent output;
 		SPtr<HString> tmptext;
@@ -52,7 +52,7 @@ namespace bs
 		return output;
 	}
 
-	__GUIContentInterop ScriptGUIContent::toInterop(const GUIContent& value)
+	__GUIContentInterop ScriptGUIContent::ToInterop(const GUIContent& value)
 	{
 		__GUIContentInterop output;
 		MonoObject* tmptext;

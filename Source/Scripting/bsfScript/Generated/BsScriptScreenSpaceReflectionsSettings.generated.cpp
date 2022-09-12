@@ -12,7 +12,7 @@ namespace bs
 	{
 	}
 
-	void ScriptScreenSpaceReflectionsSettings::initRuntimeData()
+	void ScriptScreenSpaceReflectionsSettings::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_ScreenSpaceReflectionsSettings", (void*)&ScriptScreenSpaceReflectionsSettings::Internal_ScreenSpaceReflectionsSettings);
 		metaData.scriptClass->addInternalCall("Internal_getenabled", (void*)&ScriptScreenSpaceReflectionsSettings::Internal_getenabled);

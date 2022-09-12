@@ -60,7 +60,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return Prefab::createEmpty();
+			return Prefab::CreateEmpty();
 		}
 	};
 

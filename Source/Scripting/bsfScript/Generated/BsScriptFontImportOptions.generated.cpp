@@ -16,7 +16,7 @@ namespace bs
 		mInternal = value;
 	}
 
-	void ScriptFontImportOptions::initRuntimeData()
+	void ScriptFontImportOptions::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getfontSizes", (void*)&ScriptFontImportOptions::Internal_getfontSizes);
 		metaData.scriptClass->addInternalCall("Internal_setfontSizes", (void*)&ScriptFontImportOptions::Internal_setfontSizes);

@@ -11,15 +11,15 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptSpriteSheetGridAnimation::initRuntimeData()
+	void ScriptSpriteSheetGridAnimation::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptSpriteSheetGridAnimation::box(const SpriteSheetGridAnimation& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	SpriteSheetGridAnimation ScriptSpriteSheetGridAnimation::unbox(MonoObject* value)
+	SpriteSheetGridAnimation ScriptSpriteSheetGridAnimation::Unbox(MonoObject* value)
 	{
 		return *(SpriteSheetGridAnimation*)MonoUtil::unbox(value);
 	}

@@ -10,7 +10,7 @@
 
 namespace bs
 {
-	SPtr<VertexDeclaration> HardwareBufferManager::createVertexDeclaration(const SPtr<VertexDataDesc>& desc)
+	SPtr<VertexDeclaration> HardwareBufferManager::CreateVertexDeclaration(const SPtr<VertexDataDesc>& desc)
 	{
 		VertexDeclaration* decl = new (bs_alloc<VertexDeclaration>()) VertexDeclaration(desc->createElements());
 
@@ -21,7 +21,7 @@ namespace bs
 		return declPtr;
 	}
 
-	SPtr<VertexBuffer> HardwareBufferManager::createVertexBuffer(const VERTEX_BUFFER_DESC& desc)
+	SPtr<VertexBuffer> HardwareBufferManager::CreateVertexBuffer(const VERTEX_BUFFER_DESC& desc)
 	{
 		SPtr<VertexBuffer> vbuf = bs_core_ptr<VertexBuffer>(new (bs_alloc<VertexBuffer>()) VertexBuffer(desc));
 		vbuf->_setThisPtr(vbuf);
@@ -29,7 +29,7 @@ namespace bs
 		return vbuf;
 	}
 
-	SPtr<IndexBuffer> HardwareBufferManager::createIndexBuffer(const INDEX_BUFFER_DESC& desc)
+	SPtr<IndexBuffer> HardwareBufferManager::CreateIndexBuffer(const INDEX_BUFFER_DESC& desc)
 	{
 		SPtr<IndexBuffer> ibuf = bs_core_ptr<IndexBuffer>(new (bs_alloc<IndexBuffer>()) IndexBuffer(desc));
 		ibuf->_setThisPtr(ibuf);
@@ -38,7 +38,7 @@ namespace bs
 
 	}
 
-	SPtr<GpuParamBlockBuffer> HardwareBufferManager::createGpuParamBlockBuffer(UINT32 size, GpuBufferUsage usage)
+	SPtr<GpuParamBlockBuffer> HardwareBufferManager::CreateGpuParamBlockBuffer(UINT32 size, GpuBufferUsage usage)
 	{
 		SPtr<GpuParamBlockBuffer> paramBlockPtr = bs_core_ptr<GpuParamBlockBuffer>(new (bs_alloc<GpuParamBlockBuffer>()) GpuParamBlockBuffer(size, usage));
 		paramBlockPtr->_setThisPtr(paramBlockPtr);
@@ -46,7 +46,7 @@ namespace bs
 		return paramBlockPtr;
 	}
 
-	SPtr<GpuBuffer> HardwareBufferManager::createGpuBuffer(const GPU_BUFFER_DESC& desc)
+	SPtr<GpuBuffer> HardwareBufferManager::CreateGpuBuffer(const GPU_BUFFER_DESC& desc)
 	{
 		SPtr<GpuBuffer> gbuf = bs_core_ptr<GpuBuffer>(new (bs_alloc<GpuBuffer>()) GpuBuffer(desc));
 		gbuf->_setThisPtr(gbuf);
@@ -55,7 +55,7 @@ namespace bs
 		return gbuf;
 	}
 
-	SPtr<GpuParams> HardwareBufferManager::createGpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo)
+	SPtr<GpuParams> HardwareBufferManager::CreateGpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo)
 	{
 		GpuParams* params = new (bs_alloc<GpuParams>()) GpuParams(paramInfo);
 		SPtr<GpuParams> paramsPtr = bs_core_ptr<GpuParams>(params);

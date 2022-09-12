@@ -18,17 +18,17 @@ namespace bs
 
 	}
 
-	SPtr<ResourceManifest> ResourceManifest::create(const String& name)
+	SPtr<ResourceManifest> ResourceManifest::Create(const String& name)
 	{
 		return bs_shared_ptr_new<ResourceManifest>(name);
 	}
 
-	SPtr<ResourceManifest> ResourceManifest::createEmpty()
+	SPtr<ResourceManifest> ResourceManifest::CreateEmpty()
 	{
 		return bs_shared_ptr_new<ResourceManifest>(ConstructPrivately());
 	}
 
-	void ResourceManifest::registerResource(const UUID& uuid, const Path& filePath)
+	void ResourceManifest::RegisterResource(const UUID& uuid, const Path& filePath)
 	{
 		auto iterFind = mUUIDToFilePath.find(uuid);
 
@@ -53,7 +53,7 @@ namespace bs
 		}
 	}
 
-	void ResourceManifest::unregisterResource(const UUID& uuid)
+	void ResourceManifest::UnregisterResource(const UUID& uuid)
 	{
 		auto iterFind = mUUIDToFilePath.find(uuid);
 
@@ -64,7 +64,7 @@ namespace bs
 		}
 	}
 
-	bool ResourceManifest::uuidToFilePath(const UUID& uuid, Path& filePath) const
+	bool ResourceManifest::UuidToFilePath(const UUID& uuid, Path& filePath) const
 	{
 		auto iterFind = mUUIDToFilePath.find(uuid);
 
@@ -80,7 +80,7 @@ namespace bs
 		}
 	}
 
-	bool ResourceManifest::filePathToUUID(const Path& filePath, UUID& outUUID) const
+	bool ResourceManifest::FilePathToUUID(const Path& filePath, UUID& outUUID) const
 	{
 		auto iterFind = mFilePathToUUID.find(filePath);
 
@@ -96,21 +96,21 @@ namespace bs
 		}
 	}
 
-	bool ResourceManifest::uuidExists(const UUID& uuid) const
+	bool ResourceManifest::UuidExists(const UUID& uuid) const
 	{
 		auto iterFind = mUUIDToFilePath.find(uuid);
 
 		return iterFind != mUUIDToFilePath.end();
 	}
 
-	bool ResourceManifest::filePathExists(const Path& filePath) const
+	bool ResourceManifest::FilePathExists(const Path& filePath) const
 	{
 		auto iterFind = mFilePathToUUID.find(filePath);
 
 		return iterFind != mFilePathToUUID.end();
 	}
 
-	void ResourceManifest::save(const SPtr<ResourceManifest>& manifest, const Path& path, const Path& relativePath)
+	void ResourceManifest::Save(const SPtr<ResourceManifest>& manifest, const Path& path, const Path& relativePath)
 	{
 		if(relativePath.isEmpty())
 		{
@@ -152,7 +152,7 @@ namespace bs
 		}
 	}
 
-	SPtr<ResourceManifest> ResourceManifest::load(const Path& path, const Path& relativePath)
+	SPtr<ResourceManifest> ResourceManifest::Load(const Path& path, const Path& relativePath)
 	{
 		FileDecoder Fs(path);
 		SPtr<ResourceManifest> manifest = std::static_pointer_cast<ResourceManifest>(fs.decode());
@@ -179,11 +179,11 @@ namespace bs
 
 	RTTITypeBase* ResourceManifest::getRTTIStatic()
 	{
-		return ResourceManifestRTTI::instance();
+		return ResourceManifestRTTI::Instance();
 	}
 
 	RTTITypeBase* ResourceManifest::getRTTI() const
 	{
-		return ResourceManifest::getRTTIStatic();
+		return ResourceManifest::GetRTTIStatic();
 	}
 }

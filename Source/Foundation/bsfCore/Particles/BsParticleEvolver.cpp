@@ -135,19 +135,19 @@ namespace bs
 		}
 	}
 
-	SPtr<ParticleTextureAnimation> ParticleTextureAnimation::create(const PARTICLE_TEXTURE_ANIMATION_DESC& desc)
+	SPtr<ParticleTextureAnimation> ParticleTextureAnimation::Create(const PARTICLE_TEXTURE_ANIMATION_DESC& desc)
 	{
 		return bs_shared_ptr_new<ParticleTextureAnimation>(desc);
 	}
 
-	SPtr<ParticleTextureAnimation> ParticleTextureAnimation::create()
+	SPtr<ParticleTextureAnimation> ParticleTextureAnimation::Create()
 	{
 		return bs_shared_ptr_new<ParticleTextureAnimation>();
 	}
 
 	RTTITypeBase* ParticleTextureAnimation::getRTTIStatic()
 	{
-		return ParticleTextureAnimationRTTI::instance();
+		return ParticleTextureAnimationRTTI::Instance();
 	}
 
 	RTTITypeBase* ParticleTextureAnimation::getRTTI() const
@@ -204,19 +204,19 @@ namespace bs
 		}
 	}
 
-	SPtr<ParticleOrbit> ParticleOrbit::create(const PARTICLE_ORBIT_DESC& desc)
+	SPtr<ParticleOrbit> ParticleOrbit::Create(const PARTICLE_ORBIT_DESC& desc)
 	{
 		return bs_shared_ptr_new<ParticleOrbit>(desc);
 	}
 
-	SPtr<ParticleOrbit> ParticleOrbit::create()
+	SPtr<ParticleOrbit> ParticleOrbit::Create()
 	{
 		return bs_shared_ptr_new<ParticleOrbit>();
 	}
 
 	RTTITypeBase* ParticleOrbit::getRTTIStatic()
 	{
-		return ParticleOrbitRTTI::instance();
+		return ParticleOrbitRTTI::Instance();
 	}
 
 	RTTITypeBase* ParticleOrbit::getRTTI() const
@@ -255,19 +255,19 @@ namespace bs
 		}
 	}
 
-	SPtr<ParticleVelocity> ParticleVelocity::create(const PARTICLE_VELOCITY_DESC& desc)
+	SPtr<ParticleVelocity> ParticleVelocity::Create(const PARTICLE_VELOCITY_DESC& desc)
 	{
 		return bs_shared_ptr_new<ParticleVelocity>(desc);
 	}
 
-	SPtr<ParticleVelocity> ParticleVelocity::create()
+	SPtr<ParticleVelocity> ParticleVelocity::Create()
 	{
 		return bs_shared_ptr_new<ParticleVelocity>();
 	}
 
 	RTTITypeBase* ParticleVelocity::getRTTIStatic()
 	{
-		return ParticleVelocityRTTI::instance();
+		return ParticleVelocityRTTI::Instance();
 	}
 
 	RTTITypeBase* ParticleVelocity::getRTTI() const
@@ -306,19 +306,19 @@ namespace bs
 		}
 	}
 
-	SPtr<ParticleForce> ParticleForce::create(const PARTICLE_FORCE_DESC& desc)
+	SPtr<ParticleForce> ParticleForce::Create(const PARTICLE_FORCE_DESC& desc)
 	{
 		return bs_shared_ptr_new<ParticleForce>(desc);
 	}
 
-	SPtr<ParticleForce> ParticleForce::create()
+	SPtr<ParticleForce> ParticleForce::Create()
 	{
 		return bs_shared_ptr_new<ParticleForce>();
 	}
 
 	RTTITypeBase* ParticleForce::getRTTIStatic()
 	{
-		return ParticleForceRTTI::instance();
+		return ParticleForceRTTI::Instance();
 	}
 
 	RTTITypeBase* ParticleForce::getRTTI() const
@@ -356,19 +356,19 @@ namespace bs
 		}
 	}
 
-	SPtr<ParticleGravity> ParticleGravity::create(const PARTICLE_GRAVITY_DESC& desc)
+	SPtr<ParticleGravity> ParticleGravity::Create(const PARTICLE_GRAVITY_DESC& desc)
 	{
 		return bs_shared_ptr_new<ParticleGravity>(desc);
 	}
 
-	SPtr<ParticleGravity> ParticleGravity::create()
+	SPtr<ParticleGravity> ParticleGravity::Create()
 	{
 		return bs_shared_ptr_new<ParticleGravity>();
 	}
 
 	RTTITypeBase* ParticleGravity::getRTTIStatic()
 	{
-		return ParticleGravityRTTI::instance();
+		return ParticleGravityRTTI::Instance();
 	}
 
 	RTTITypeBase* ParticleGravity::getRTTI() const
@@ -395,19 +395,19 @@ namespace bs
 		}
 	}
 
-	SPtr<ParticleColor> ParticleColor::create(const PARTICLE_COLOR_DESC& desc)
+	SPtr<ParticleColor> ParticleColor::Create(const PARTICLE_COLOR_DESC& desc)
 	{
 		return bs_shared_ptr_new<ParticleColor>(desc);
 	}
 
-	SPtr<ParticleColor> ParticleColor::create()
+	SPtr<ParticleColor> ParticleColor::Create()
 	{
 		return bs_shared_ptr_new<ParticleColor>();
 	}
 
 	RTTITypeBase* ParticleColor::getRTTIStatic()
 	{
-		return ParticleColorRTTI::instance();
+		return ParticleColorRTTI::Instance();
 	}
 
 	RTTITypeBase* ParticleColor::getRTTI() const
@@ -448,19 +448,19 @@ namespace bs
 		}
 	}
 
-	SPtr<ParticleSize> ParticleSize::create(const PARTICLE_SIZE_DESC& desc)
+	SPtr<ParticleSize> ParticleSize::Create(const PARTICLE_SIZE_DESC& desc)
 	{
 		return bs_shared_ptr_new<ParticleSize>(desc);
 	}
 
-	SPtr<ParticleSize> ParticleSize::create()
+	SPtr<ParticleSize> ParticleSize::Create()
 	{
 		return bs_shared_ptr_new<ParticleSize>();
 	}
 
 	RTTITypeBase* ParticleSize::getRTTIStatic()
 	{
-		return ParticleSizeRTTI::instance();
+		return ParticleSizeRTTI::Instance();
 	}
 
 	RTTITypeBase* ParticleSize::getRTTI() const
@@ -501,19 +501,19 @@ namespace bs
 		}
 	}
 
-	SPtr<ParticleRotation> ParticleRotation::create(const PARTICLE_ROTATION_DESC& desc)
+	SPtr<ParticleRotation> ParticleRotation::Create(const PARTICLE_ROTATION_DESC& desc)
 	{
 		return bs_shared_ptr_new<ParticleRotation>(desc);
 	}
 
-	SPtr<ParticleRotation> ParticleRotation::create()
+	SPtr<ParticleRotation> ParticleRotation::Create()
 	{
 		return bs_shared_ptr_new<ParticleRotation>();
 	}
 
 	RTTITypeBase* ParticleRotation::getRTTIStatic()
 	{
-		return ParticleRotationRTTI::instance();
+		return ParticleRotationRTTI::Instance();
 	}
 
 	RTTITypeBase* ParticleRotation::getRTTI() const
@@ -767,19 +767,19 @@ namespace bs
 		}
 	}
 
-	SPtr<ParticleCollisions> ParticleCollisions::create(const PARTICLE_COLLISIONS_DESC& desc)
+	SPtr<ParticleCollisions> ParticleCollisions::Create(const PARTICLE_COLLISIONS_DESC& desc)
 	{
 		return bs_shared_ptr_new<ParticleCollisions>(desc);
 	}
 
-	SPtr<ParticleCollisions> ParticleCollisions::create()
+	SPtr<ParticleCollisions> ParticleCollisions::Create()
 	{
 		return bs_shared_ptr_new<ParticleCollisions>();
 	}
 
 	RTTITypeBase* ParticleCollisions::getRTTIStatic()
 	{
-		return ParticleCollisionsRTTI::instance();
+		return ParticleCollisionsRTTI::Instance();
 	}
 
 	RTTITypeBase* ParticleCollisions::getRTTI() const

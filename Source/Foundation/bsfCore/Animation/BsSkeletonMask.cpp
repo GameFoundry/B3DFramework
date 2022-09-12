@@ -9,7 +9,7 @@ namespace bs
 		:mIsDisabled(numBones)
 	{ }
 
-	bool SkeletonMask::isEnabled(UINT32 boneIdx) const
+	bool SkeletonMask::IsEnabled(UINT32 boneIdx) const
 	{
 		if (boneIdx >= (UINT32)mIsDisabled.size())
 			return true;
@@ -21,7 +21,7 @@ namespace bs
 		:mSkeleton(skeleton), mMask(skeleton->getNumBones())
 	{ }
 
-	void SkeletonMaskBuilder::setBoneState(const String& name, bool enabled)
+	void SkeletonMaskBuilder::SetBoneState(const String& name, bool enabled)
 	{
 		UINT32 numBones = mSkeleton->getNumBones();
 		for(UINT32 i = 0; i < numBones; i++)

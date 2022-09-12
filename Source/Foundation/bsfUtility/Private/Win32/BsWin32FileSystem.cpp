@@ -237,7 +237,7 @@ namespace bs
 		return (std::time_t) ((ull.QuadPart / 10000000ULL) - 11644473600ULL);
 	}
 
-	void FileSystem::removeFile(const Path& path)
+	void FileSystem::RemoveFile(const Path& path)
 	{
 		WString pathStr = UTF8::toWide(path.toString());
 		if (win32_isDirectory(pathStr))
@@ -252,7 +252,7 @@ namespace bs
 		}
 	}
 
-	void FileSystem::copyFile(const Path& from, const Path& to)
+	void FileSystem::CopyFile(const Path& from, const Path& to)
 	{
 		WString fromStr = UTF8::toWide(from.toString());
 		WString toStr = UTF8::toWide(to.toString());
@@ -261,7 +261,7 @@ namespace bs
 			win32_handleError(GetLastError(), fromStr);
 	}
 
-	void FileSystem::moveFile(const Path& oldPath, const Path& newPath)
+	void FileSystem::MoveFile(const Path& oldPath, const Path& newPath)
 	{
 		WString oldPathStr = UTF8::toWide(oldPath.toString());
 		WString newPathStr = UTF8::toWide(newPath.toString());
@@ -270,7 +270,7 @@ namespace bs
 			win32_handleError(GetLastError(), oldPathStr);
 	}
 
-	SPtr<DataStream> FileSystem::openFile(const Path& fullPath, bool readOnly)
+	SPtr<DataStream> FileSystem::OpenFile(const Path& fullPath, bool readOnly)
 	{
 		WString pathWString = UTF8::toWide(fullPath.toString());
 		const wchar_t* pathString = pathWString.c_str();
@@ -288,36 +288,36 @@ namespace bs
 		return bs_shared_ptr_new<FileDataStream>(fullPath, accessMode, true);
 	}
 
-	SPtr<DataStream> FileSystem::createAndOpenFile(const Path& fullPath)
+	SPtr<DataStream> FileSystem::CreateAndOpenFile(const Path& fullPath)
 	{
 		return bs_shared_ptr_new<FileDataStream>(fullPath, DataStream::AccessMode::WRITE, true);
 	}
 
-	UINT64 FileSystem::getFileSize(const Path& fullPath)
+	UINT64 FileSystem::GetFileSize(const Path& fullPath)
 	{
 		return win32_getFileSize(UTF8::toWide(fullPath.toString()));
 	}
 
-	bool FileSystem::exists(const Path& fullPath)
+	bool FileSystem::Exists(const Path& fullPath)
 	{
 		return win32_pathExists(UTF8::toWide(fullPath.toString()));
 	}
 
-	bool FileSystem::isFile(const Path& fullPath)
+	bool FileSystem::IsFile(const Path& fullPath)
 	{
 		WString pathStr = UTF8::toWide(fullPath.toString());
 
 		return win32_pathExists(pathStr) && win32_isFile(pathStr);
 	}
 
-	bool FileSystem::isDirectory(const Path& fullPath)
+	bool FileSystem::IsDirectory(const Path& fullPath)
 	{
 		WString pathStr = UTF8::toWide(fullPath.toString());
 
 		return win32_pathExists(pathStr) && win32_isDirectory(pathStr);
 	}
 
-	void FileSystem::createDir(const Path& fullPath)
+	void FileSystem::CreateDir(const Path& fullPath)
 	{
 		Path parentPath = fullPath;
 		while (!exists(parentPath) && parentPath.getNumDirectories() > 0)
@@ -335,7 +335,7 @@ namespace bs
 			win32_createDirectory(UTF8::toWide(fullPath.toString()));
 	}
 
-	void FileSystem::getChildren(const Path& dirPath, Vector<Path>& files, Vector<Path>& directories)
+	void FileSystem::GetChildren(const Path& dirPath, Vector<Path>& files, Vector<Path>& directories)
 	{
 		WString findPath = UTF8::toWide(dirPath.toString());
 
@@ -381,7 +381,7 @@ namespace bs
 		FindClose(fileHandle);
 	}
 
-	bool FileSystem::iterate(const Path& dirPath, std::function<bool(const Path&)> fileCallback,
+	bool FileSystem::Iterate(const Path& dirPath, std::function<bool(const Path&)> fileCallback,
 		std::function<bool(const Path&)> dirCallback, bool recursive)
 	{
 		WString findPath = UTF8::toWide(dirPath.toString());
@@ -458,18 +458,18 @@ namespace bs
 		return true;
 	}
 
-	std::time_t FileSystem::getLastModifiedTime(const Path& fullPath)
+	std::time_t FileSystem::GetLastModifiedTime(const Path& fullPath)
 	{
 		return win32_getLastModifiedTime(UTF8::toWide(fullPath.toString()));
 	}
 
-	Path FileSystem::getWorkingDirectoryPath()
+	Path FileSystem::GetWorkingDirectoryPath()
 	{
 		const String utf8dir = UTF8::fromWide(win32_getCurrentDirectory());
 		return Path(utf8dir);
 	}
 
-	Path FileSystem::getTempDirectoryPath()
+	Path FileSystem::GetTempDirectoryPath()
 	{
 		const String utf8dir = UTF8::fromWide(win32_getTempDirectory());
 		return Path(utf8dir);

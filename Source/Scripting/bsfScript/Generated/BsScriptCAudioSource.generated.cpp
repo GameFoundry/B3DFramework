@@ -16,7 +16,7 @@ namespace bs
 	{
 	}
 
-	void ScriptCAudioSource::initRuntimeData()
+	void ScriptCAudioSource::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_setClip", (void*)&ScriptCAudioSource::Internal_setClip);
 		metaData.scriptClass->addInternalCall("Internal_getClip", (void*)&ScriptCAudioSource::Internal_getClip);

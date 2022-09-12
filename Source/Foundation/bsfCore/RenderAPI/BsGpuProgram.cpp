@@ -18,12 +18,12 @@ namespace bs
 
 	RTTITypeBase* GpuProgramBytecode::getRTTIStatic()
 	{
-		return GpuProgramBytecodeRTTI::instance();
+		return GpuProgramBytecodeRTTI::Instance();
 	}
 
 	RTTITypeBase* GpuProgramBytecode::getRTTI() const
 	{
-		return GpuProgramBytecode::getRTTIStatic();
+		return GpuProgramBytecode::GetRTTIStatic();
 	}
 
 	GpuProgram::GpuProgram(const GPU_PROGRAM_DESC& desc)
@@ -33,27 +33,27 @@ namespace bs
 
 	}
 
-	bool GpuProgram::isCompiled() const
+	bool GpuProgram::IsCompiled() const
 	{
 		return GetCore()->isCompiled();
 	}
 
-	String GpuProgram::getCompileErrorMessage() const
+	String GpuProgram::GetCompileErrorMessage() const
 	{
 		return GetCore()->getCompileErrorMessage();
 	}
 
-	SPtr<GpuParamDesc> GpuProgram::getParamDesc() const
+	SPtr<GpuParamDesc> GpuProgram::GetParamDesc() const
 	{
 		return GetCore()->getParamDesc();
 	}
 
-	SPtr<ct::GpuProgram> GpuProgram::getCore() const
+	SPtr<ct::GpuProgram> GpuProgram::GetCore() const
 	{
 		return std::static_pointer_cast<ct::GpuProgram>(mCoreSpecific);
 	}
 
-	SPtr<ct::CoreObject> GpuProgram::createCore() const
+	SPtr<ct::CoreObject> GpuProgram::CreateCore() const
 	{
 		GPU_PROGRAM_DESC desc;
 		desc.source = mSource;
@@ -66,9 +66,9 @@ namespace bs
 		return ct::GpuProgramManager::instance().createInternal(desc);
 	}
 
-	SPtr<GpuProgram> GpuProgram::create(const GPU_PROGRAM_DESC& desc)
+	SPtr<GpuProgram> GpuProgram::Create(const GPU_PROGRAM_DESC& desc)
 	{
-		return GpuProgramManager::instance().create(desc);
+		return GpuProgramManager::Instance().create(desc);
 	}
 
 	/************************************************************************/
@@ -76,12 +76,12 @@ namespace bs
 	/************************************************************************/
 	RTTITypeBase* GpuProgram::getRTTIStatic()
 	{
-		return GpuProgramRTTI::instance();
+		return GpuProgramRTTI::Instance();
 	}
 
 	RTTITypeBase* GpuProgram::getRTTI() const
 	{
-		return GpuProgram::getRTTIStatic();
+		return GpuProgram::GetRTTIStatic();
 	}
 
 	namespace ct
@@ -96,19 +96,19 @@ namespace bs
 	GpuProgram::~GpuProgram()
 	{ }
 
-	bool GpuProgram::isSupported() const
+	bool GpuProgram::IsSupported() const
 	{
 		return true;
 	}
 
-	SPtr<GpuProgram> GpuProgram::create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+	SPtr<GpuProgram> GpuProgram::Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		return GpuProgramManager::instance().create(desc, deviceMask);
+		return GpuProgramManager::Instance().create(desc, deviceMask);
 	}
 
-	SPtr<GpuProgramBytecode> GpuProgram::compileBytecode(const GPU_PROGRAM_DESC& desc)
+	SPtr<GpuProgramBytecode> GpuProgram::CompileBytecode(const GPU_PROGRAM_DESC& desc)
 	{
-		return GpuProgramManager::instance().compileBytecode(desc);
+		return GpuProgramManager::Instance().compileBytecode(desc);
 	}
 	}
 }

@@ -297,12 +297,12 @@ namespace bs { namespace ct
 		bs_free(mDescriptorSetsTemp);
 	}
 
-	UINT32 VulkanCmdBuffer::getDeviceIdx() const
+	UINT32 VulkanCmdBuffer::GetDeviceIdx() const
 	{
 		return mDevice.getIndex();
 	}
 
-	void VulkanCmdBuffer::begin()
+	void VulkanCmdBuffer::Begin()
 	{
 		assert(mState == State::Ready);
 
@@ -318,7 +318,7 @@ namespace bs { namespace ct
 		mState = State::Recording;
 	}
 
-	void VulkanCmdBuffer::end()
+	void VulkanCmdBuffer::End()
 	{
 		assert(mState == State::Recording);
 
@@ -333,7 +333,7 @@ namespace bs { namespace ct
 		mState = State::RecordingDone;
 	}
 
-	void VulkanCmdBuffer::beginRenderPass()
+	void VulkanCmdBuffer::BeginRenderPass()
 	{
 		assert(mState == State::Recording);
 
@@ -377,7 +377,7 @@ namespace bs { namespace ct
 		mState = State::RecordingRenderPass;
 	}
 
-	void VulkanCmdBuffer::endRenderPass()
+	void VulkanCmdBuffer::EndRenderPass()
 	{
 		assert(mState == State::RecordingRenderPass);
 
@@ -410,7 +410,7 @@ namespace bs { namespace ct
 		mBoundParamsDirty = true;
 	}
 
-	void VulkanCmdBuffer::allocateSemaphores(VkSemaphore* semaphores)
+	void VulkanCmdBuffer::AllocateSemaphores(VkSemaphore* semaphores)
 	{
 		if (mIntraQueueSemaphore != nullptr)
 			mIntraQueueSemaphore->destroy();
@@ -438,7 +438,7 @@ namespace bs { namespace ct
 		return mInterQueueSemaphores[mNumUsedInterQueueSemaphores++];
 	}
 
-	void VulkanCmdBuffer::submit(VulkanQueue* queue, UINT32 queueIdx, UINT32 syncMask)
+	void VulkanCmdBuffer::Submit(VulkanQueue* queue, UINT32 queueIdx, UINT32 syncMask)
 	{
 		assert(isReadyForSubmit());
 
@@ -770,7 +770,7 @@ namespace bs { namespace ct
 		mActiveSwapChains.clear();
 	}
 
-	bool VulkanCmdBuffer::checkFenceStatus(bool block) const
+	bool VulkanCmdBuffer::CheckFenceStatus(bool block) const
 	{
 		VkResult result = vkWaitForFences(mDevice.getLogical(), 1, &mFence, true, block ? 1'000'000'000 : 0);
 		assert(result == VK_SUCCESS || result == VK_TIMEOUT);
@@ -778,7 +778,7 @@ namespace bs { namespace ct
 		return result == VK_SUCCESS;
 	}
 
-	void VulkanCmdBuffer::reset()
+	void VulkanCmdBuffer::Reset()
 	{
 		bool wasSubmitted = mState == State::Submitted;
 
@@ -856,7 +856,7 @@ namespace bs { namespace ct
 		mMemoryBarrierSrcStages = 0;
 	}
 
-	void VulkanCmdBuffer::setRenderTarget(const SPtr<RenderTarget>& rt, UINT32 readOnlyFlags, RenderSurfaceMask loadMask)
+	void VulkanCmdBuffer::SetRenderTarget(const SPtr<RenderTarget>& rt, UINT32 readOnlyFlags, RenderSurfaceMask loadMask)
 	{
 		assert(mState != State::Submitted);
 
@@ -1150,13 +1150,13 @@ namespace bs { namespace ct
 		notifyRenderTargetModified();
 	}
 
-	void VulkanCmdBuffer::clearRenderTarget(UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask)
+	void VulkanCmdBuffer::ClearRenderTarget(UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask)
 	{
 		Rect2I Area(0, 0, mFramebuffer->getWidth(), mFramebuffer->getHeight());
 		clearViewport(area, buffers, color, depth, stencil, targetMask);
 	}
 
-	void VulkanCmdBuffer::clearViewport(UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask)
+	void VulkanCmdBuffer::ClearViewport(UINT32 buffers, const Color& color, float depth, UINT16 stencil, UINT8 targetMask)
 	{
 		Rect2I area;
 		area.x = (UINT32)(mViewport.x * mFramebuffer->getWidth());
@@ -1167,7 +1167,7 @@ namespace bs { namespace ct
 		clearViewport(area, buffers, color, depth, stencil, targetMask);
 	}
 
-	void VulkanCmdBuffer::setPipelineState(const SPtr<GraphicsPipelineState>& state)
+	void VulkanCmdBuffer::SetPipelineState(const SPtr<GraphicsPipelineState>& state)
 	{
 		if (mGraphicsPipeline == state)
 			return;
@@ -1176,7 +1176,7 @@ namespace bs { namespace ct
 		mGfxPipelineRequiresBind = true;
 	}
 
-	void VulkanCmdBuffer::setPipelineState(const SPtr<ComputePipelineState>& state)
+	void VulkanCmdBuffer::SetPipelineState(const SPtr<ComputePipelineState>& state)
 	{
 		if (mComputePipeline == state)
 			return;
@@ -1185,7 +1185,7 @@ namespace bs { namespace ct
 		mCmpPipelineRequiresBind = true;
 	}
 
-	void VulkanCmdBuffer::setGpuParams(const SPtr<GpuParams>& gpuParams)
+	void VulkanCmdBuffer::SetGpuParams(const SPtr<GpuParams>& gpuParams)
 	{
 		// Note: We keep an internal reference to GPU params even though we shouldn't keep a reference to a core thread
 		// object. But it should be fine since we expect the resource to be externally synchronized so it should never
@@ -1204,7 +1204,7 @@ namespace bs { namespace ct
 		mDescriptorSetsBindState = DescriptorSetBindFlag::Graphics | DescriptorSetBindFlag::Compute;
 	}
 
-	void VulkanCmdBuffer::setViewport(const Rect2& area)
+	void VulkanCmdBuffer::SetViewport(const Rect2& area)
 	{
 		if (mViewport == area)
 			return;
@@ -1213,7 +1213,7 @@ namespace bs { namespace ct
 		mViewportRequiresBind = true;
 	}
 
-	void VulkanCmdBuffer::setScissorRect(const Rect2I& value)
+	void VulkanCmdBuffer::SetScissorRect(const Rect2I& value)
 	{
 		if (mScissor == value)
 			return;
@@ -1222,7 +1222,7 @@ namespace bs { namespace ct
 		mScissorRequiresBind = true;
 	}
 
-	void VulkanCmdBuffer::setStencilRef(UINT32 value)
+	void VulkanCmdBuffer::SetStencilRef(UINT32 value)
 	{
 		if (mStencilRef == value)
 			return;
@@ -1231,7 +1231,7 @@ namespace bs { namespace ct
 		mStencilRefRequiresBind = true;
 	}
 
-	void VulkanCmdBuffer::setDrawOp(DrawOperationType drawOp)
+	void VulkanCmdBuffer::SetDrawOp(DrawOperationType drawOp)
 	{
 		if (mDrawOp == drawOp)
 			return;
@@ -1240,7 +1240,7 @@ namespace bs { namespace ct
 		mGfxPipelineRequiresBind = true;
 	}
 
-	void VulkanCmdBuffer::setVertexBuffers(UINT32 index, SPtr<VertexBuffer>* buffers, UINT32 numBuffers)
+	void VulkanCmdBuffer::SetVertexBuffers(UINT32 index, SPtr<VertexBuffer>* buffers, UINT32 numBuffers)
 	{
 		if (numBuffers == 0)
 			return;
@@ -1255,14 +1255,14 @@ namespace bs { namespace ct
 		mVertexInputsDirty = true;
 	}
 
-	void VulkanCmdBuffer::setIndexBuffer(const SPtr<IndexBuffer>& buffer)
+	void VulkanCmdBuffer::SetIndexBuffer(const SPtr<IndexBuffer>& buffer)
 	{
 		mIndexBuffer = std::static_pointer_cast<VulkanIndexBuffer>(buffer);
 
 		mVertexInputsDirty = true;
 	}
 
-	void VulkanCmdBuffer::setVertexDeclaration(const SPtr<VertexDeclaration>& decl)
+	void VulkanCmdBuffer::SetVertexDeclaration(const SPtr<VertexDeclaration>& decl)
 	{
 		if (mVertexDecl == decl)
 			return;
@@ -1271,7 +1271,7 @@ namespace bs { namespace ct
 		mGfxPipelineRequiresBind = true;
 	}
 
-	bool VulkanCmdBuffer::isReadyForRender()
+	bool VulkanCmdBuffer::IsReadyForRender()
 	{
 		if (mGraphicsPipeline == nullptr)
 			return false;
@@ -1283,7 +1283,7 @@ namespace bs { namespace ct
 		return mFramebuffer != nullptr && mVertexDecl != nullptr;
 	}
 
-	bool VulkanCmdBuffer::bindGraphicsPipeline()
+	bool VulkanCmdBuffer::BindGraphicsPipeline()
 	{
 		SPtr<VertexDeclaration> inputDecl = mGraphicsPipeline->getInputDeclaration();
 		SPtr<VulkanVertexInput> vertexInput = VulkanVertexInputManager::instance().getVertexInfo(mVertexDecl, inputDecl);
@@ -1333,7 +1333,7 @@ namespace bs { namespace ct
 		return true;
 	}
 
-	void VulkanCmdBuffer::bindDynamicStates(bool forceAll)
+	void VulkanCmdBuffer::BindDynamicStates(bool forceAll)
 	{
 		if (mViewportRequiresBind || forceAll)
 		{
@@ -1379,7 +1379,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void VulkanCmdBuffer::bindVertexInputs()
+	void VulkanCmdBuffer::BindVertexInputs()
 	{
 		if (!mVertexBuffers.empty())
 		{
@@ -1447,7 +1447,7 @@ namespace bs { namespace ct
 		vkCmdBindIndexBuffer(mCmdBuffer, vkBuffer, 0, indexType);
 	}
 
-	void VulkanCmdBuffer::bindGpuParams()
+	void VulkanCmdBuffer::BindGpuParams()
 	{
 		if (mBoundParamsDirty)
 		{
@@ -1467,7 +1467,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void VulkanCmdBuffer::executeLayoutTransitions()
+	void VulkanCmdBuffer::ExecuteLayoutTransitions()
 	{
 		auto createLayoutTransitionBarrier = [&](VulkanImage* image, ImageInfo& imageInfo)
 		{
@@ -1530,7 +1530,7 @@ namespace bs { namespace ct
 		mLayoutTransitionBarriersTemp.clear();
 	}
 
-	void VulkanCmdBuffer::executeWriteHazardBarrier()
+	void VulkanCmdBuffer::ExecuteWriteHazardBarrier()
 	{
 		if(!mNeedsRAWMemoryBarrier && !mNeedsWARMemoryBarrier)
 			return;
@@ -1585,7 +1585,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void VulkanCmdBuffer::updateFinalLayouts()
+	void VulkanCmdBuffer::UpdateFinalLayouts()
 	{
 		if (mFramebuffer == nullptr)
 			return;
@@ -1613,7 +1613,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void VulkanCmdBuffer::executeClearPass()
+	void VulkanCmdBuffer::ExecuteClearPass()
 	{
 		assert(mState == State::Recording);
 
@@ -1642,7 +1642,7 @@ namespace bs { namespace ct
 		mClearMask = CLEAR_NONE;
 	}
 
-	void VulkanCmdBuffer::draw(UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount)
+	void VulkanCmdBuffer::Draw(UINT32 vertexOffset, UINT32 vertexCount, UINT32 instanceCount)
 	{
 		if (!isReadyForRender())
 			return;
@@ -1688,7 +1688,7 @@ namespace bs { namespace ct
 		notifyRenderTargetModified();
 	}
 
-	void VulkanCmdBuffer::drawIndexed(UINT32 startIndex, UINT32 indexCount, UINT32 vertexOffset, UINT32 instanceCount)
+	void VulkanCmdBuffer::DrawIndexed(UINT32 startIndex, UINT32 indexCount, UINT32 vertexOffset, UINT32 instanceCount)
 	{
 		if (!isReadyForRender())
 			return;
@@ -1734,7 +1734,7 @@ namespace bs { namespace ct
 		notifyRenderTargetModified();
 	}
 
-	void VulkanCmdBuffer::dispatch(UINT32 numGroupsX, UINT32 numGroupsY, UINT32 numGroupsZ)
+	void VulkanCmdBuffer::Dispatch(UINT32 numGroupsX, UINT32 numGroupsY, UINT32 numGroupsZ)
 	{
 		if (mComputePipeline == nullptr)
 			return;
@@ -1793,7 +1793,7 @@ namespace bs { namespace ct
 		mShaderBoundSubresourceInfos.clear();
 	}
 
-	void VulkanCmdBuffer::setEvent(VulkanEvent* event)
+	void VulkanCmdBuffer::SetEvent(VulkanEvent* event)
 	{
 		if(isInRenderPass())
 			mQueuedEvents.push_back(event);
@@ -1801,7 +1801,7 @@ namespace bs { namespace ct
 			vkCmdSetEvent(mCmdBuffer, event->getHandle(), VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 	}
 
-	void VulkanCmdBuffer::resetQuery(VulkanQuery* query)
+	void VulkanCmdBuffer::ResetQuery(VulkanQuery* query)
 	{
 		if (isInRenderPass())
 			mQueuedQueryResets.push_back(query);
@@ -1934,7 +1934,7 @@ namespace bs { namespace ct
 		return subresource->getLayout();
 	}
 
-	void VulkanCmdBuffer::registerResource(VulkanResource* res, VulkanAccessFlags flags)
+	void VulkanCmdBuffer::RegisterResource(VulkanResource* res, VulkanAccessFlags flags)
 	{
 		auto insertResult = mResources.insert(std::make_pair(res, ResourceUseHandle()));
 		if(insertResult.second) // New element
@@ -2315,7 +2315,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void VulkanCmdBuffer::registerResource(VulkanFramebuffer* res, RenderSurfaceMask loadMask, UINT32 readMask)
+	void VulkanCmdBuffer::RegisterResource(VulkanFramebuffer* res, RenderSurfaceMask loadMask, UINT32 readMask)
 	{
 		auto insertResult = mResources.insert(std::make_pair(res, ResourceUseHandle()));
 		if (insertResult.second) // New element
@@ -2377,7 +2377,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void VulkanCmdBuffer::registerResource(VulkanSwapChain* res)
+	void VulkanCmdBuffer::RegisterResource(VulkanSwapChain* res)
 	{
 		auto insertResult = mSwapChains.insert(std::make_pair(res, ResourceUseHandle()));
 		if (insertResult.second) // New element
@@ -2587,7 +2587,7 @@ namespace bs { namespace ct
 		subresourceInfo.useFlags |= ImageUseFlagBits::Transfer;
 	}
 
-	VulkanCmdBuffer::ImageSubresourceInfo& VulkanCmdBuffer::findSubresourceInfo(VulkanImage* image, UINT32 face, UINT32 mip)
+	VulkanCmdBuffer::ImageSubresourceInfo& VulkanCmdBuffer::FindSubresourceInfo(VulkanImage* image, UINT32 face, UINT32 mip)
 	{
 		UINT32 imageInfoIdx = mImages[image];
 		ImageInfo& imageInfo = mImageInfos[imageInfoIdx];
@@ -2607,7 +2607,7 @@ namespace bs { namespace ct
 		return subresourceInfos[0];
 	}
 
-	void VulkanCmdBuffer::getInProgressQueries(Vector<VulkanTimerQuery*>& timer, Vector<VulkanOcclusionQuery*>& occlusion) const
+	void VulkanCmdBuffer::GetInProgressQueries(Vector<VulkanTimerQuery*>& timer, Vector<VulkanOcclusionQuery*>& occlusion) const
 	{
 		for(auto& query : mTimerQueries)
 		{
@@ -2622,7 +2622,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void VulkanCmdBuffer::notifyRenderTargetModified()
+	void VulkanCmdBuffer::NotifyRenderTargetModified()
 	{
 		if (mRenderTarget == nullptr || mRenderTargetModified)
 			return;
@@ -2649,7 +2649,7 @@ namespace bs { namespace ct
 		acquireNewBuffer();
 	}
 
-	RenderSurfaceMask VulkanCmdBuffer::getFBReadMask()
+	RenderSurfaceMask VulkanCmdBuffer::GetFBReadMask()
 	{
 		// Check if any frame-buffer attachments are also used as shader inputs, in which case we make them read-only
 		VulkanRenderPass* renderPass = mFramebuffer->getRenderPass();
@@ -2689,7 +2689,7 @@ namespace bs { namespace ct
 		return readMask;
 	}
 
-	void VulkanCommandBuffer::acquireNewBuffer()
+	void VulkanCommandBuffer::AcquireNewBuffer()
 	{
 		VulkanCmdBufferPool& pool = mDevice.getCmdBufferPool();
 
@@ -2700,7 +2700,7 @@ namespace bs { namespace ct
 		mBuffer = pool.getBuffer(queueFamily, mIsSecondary);
 	}
 
-	void VulkanCommandBuffer::submit(UINT32 syncMask)
+	void VulkanCommandBuffer::Submit(UINT32 syncMask)
 	{
 		if (getState() == CommandBufferState::Executing)
 		{
@@ -2745,7 +2745,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	CommandBufferState VulkanCommandBuffer::getState() const
+	CommandBufferState VulkanCommandBuffer::GetState() const
 	{
 		if(mBuffer->isSubmitted())
 			return mBuffer->checkFenceStatus(false) ? CommandBufferState::Done : CommandBufferState::Executing;
@@ -2754,7 +2754,7 @@ namespace bs { namespace ct
 		return recording ? CommandBufferState::Recording : CommandBufferState::Empty;
 	}
 
-	void VulkanCommandBuffer::reset()
+	void VulkanCommandBuffer::Reset()
 	{
 		acquireNewBuffer();
 	}

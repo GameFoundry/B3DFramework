@@ -11,11 +11,11 @@ namespace bs
 
 	RTTITypeBase* GpuParamDesc::getRTTIStatic()
 	{
-		return GpuParamDescRTTI::instance();
+		return GpuParamDescRTTI::Instance();
 	}
 
 	RTTITypeBase* GpuParamDesc::getRTTI() const
 	{
-		return GpuParamDesc::getRTTIStatic();
+		return GpuParamDesc::GetRTTIStatic();
 	}
 }

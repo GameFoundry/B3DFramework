@@ -11,7 +11,7 @@ namespace bs
 
 	}
 
-	void ScriptShaderInclude::initRuntimeData()
+	void ScriptShaderInclude::InitRuntimeData()
 	{
 
 	}

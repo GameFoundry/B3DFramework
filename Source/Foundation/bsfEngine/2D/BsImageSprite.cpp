@@ -12,7 +12,7 @@ namespace bs
 		clearMesh();
 	}
 
-	void ImageSprite::update(const IMAGE_SPRITE_DESC& desc, UINT64 groupId)
+	void ImageSprite::Update(const IMAGE_SPRITE_DESC& desc, UINT64 groupId)
 	{
 		if(!SpriteTexture::checkIsLoaded(desc.texture))
 		{
@@ -236,7 +236,7 @@ namespace bs
 		updateBounds();
 	}
 
-	void ImageSprite::clearMesh()
+	void ImageSprite::ClearMesh()
 	{
 		for (auto& renderElem : mCachedRenderElements)
 		{
@@ -266,7 +266,7 @@ namespace bs
 		updateBounds();
 	}
 
-	Vector2 ImageSprite::getTextureUVScale(Vector2I sourceSize, Vector2I destSize, TextureScaleMode scaleMode)
+	Vector2 ImageSprite::GetTextureUVScale(Vector2I sourceSize, Vector2I destSize, TextureScaleMode scaleMode)
 	{
 		Vector2 uvScale = Vector2(1.0f, 1.0f);
 

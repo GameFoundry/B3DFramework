@@ -18,7 +18,7 @@ namespace bs
 		getAllRTTITypes()[rttiType->getRTTIId()] = rttiType;
 	}
 
-	SPtr<IReflectable> IReflectable::createInstanceFromTypeId(UINT32 rttiTypeId)
+	SPtr<IReflectable> IReflectable::CreateInstanceFromTypeId(UINT32 rttiTypeId)
 	{
 		RTTITypeBase* type = _getRTTIfromTypeId(rttiTypeId);
 
@@ -46,7 +46,7 @@ namespace bs
 		return IReflectable::_getRTTIfromTypeId(typeId) != nullptr;
 	}
 
-	bool IReflectable::isDerivedFrom(RTTITypeBase* base)
+	bool IReflectable::IsDerivedFrom(RTTITypeBase* base)
 	{
 		return GetRTTI()->isDerivedFrom(base);
 	}
@@ -94,18 +94,18 @@ namespace bs
 		}
 	}
 
-	UINT32 IReflectable::getTypeId() const
+	UINT32 IReflectable::GetTypeId() const
 	{
 		return GetRTTI()->getRTTIId();
 	}
 
-	const String& IReflectable::getTypeName() const
+	const String& IReflectable::GetTypeName() const
 	{
 		return GetRTTI()->getRTTIName();
 	}
 
 	RTTITypeBase* IReflectable::getRTTIStatic()
 	{
-		return IReflectableRTTI::instance();
+		return IReflectableRTTI::Instance();
 	}
 }

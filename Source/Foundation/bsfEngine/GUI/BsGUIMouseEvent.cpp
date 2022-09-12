@@ -10,7 +10,7 @@ namespace bs
 		memcpy(mButtonStates, buttonStates, sizeof(mButtonStates));
 	}
 
-	void GUIMouseEvent::setMouseOverData(const Vector2I& position)
+	void GUIMouseEvent::SetMouseOverData(const Vector2I& position)
 	{
 		mType = GUIMouseEventType::MouseOver;
 		mPosition = position;
@@ -20,7 +20,7 @@ namespace bs
 		mWheelScrollAmount = 0.0f;
 	}
 
-	void GUIMouseEvent::setMouseOutData(const Vector2I& position)
+	void GUIMouseEvent::SetMouseOutData(const Vector2I& position)
 	{
 		mType = GUIMouseEventType::MouseOut;
 		mPosition = position;
@@ -30,7 +30,7 @@ namespace bs
 		mWheelScrollAmount = 0.0f;
 	}
 
-	void GUIMouseEvent::setMouseMoveData(const Vector2I& position)
+	void GUIMouseEvent::SetMouseMoveData(const Vector2I& position)
 	{
 		mType = GUIMouseEventType::MouseMove;
 		mPosition = position;
@@ -40,7 +40,7 @@ namespace bs
 		mWheelScrollAmount = 0.0f;
 	}
 
-	void GUIMouseEvent::setMouseWheelScrollData(float scrollAmount)
+	void GUIMouseEvent::SetMouseWheelScrollData(float scrollAmount)
 	{
 		mType = GUIMouseEventType::MouseWheelScroll;
 		mPosition = Vector2I();
@@ -50,7 +50,7 @@ namespace bs
 		mWheelScrollAmount = scrollAmount;
 	}
 
-	void GUIMouseEvent::setMouseUpData(const Vector2I& position, GUIMouseButton button)
+	void GUIMouseEvent::SetMouseUpData(const Vector2I& position, GUIMouseButton button)
 	{
 		mType = GUIMouseEventType::MouseUp;
 		mPosition = position;
@@ -60,7 +60,7 @@ namespace bs
 		mWheelScrollAmount = 0.0f;
 	}
 
-	void GUIMouseEvent::setMouseDownData(const Vector2I& position, GUIMouseButton button)
+	void GUIMouseEvent::SetMouseDownData(const Vector2I& position, GUIMouseButton button)
 	{
 		mType = GUIMouseEventType::MouseDown;
 		mPosition = position;
@@ -70,7 +70,7 @@ namespace bs
 		mWheelScrollAmount = 0.0f;
 	}
 
-	void GUIMouseEvent::setMouseDoubleClickData(const Vector2I& position, GUIMouseButton button)
+	void GUIMouseEvent::SetMouseDoubleClickData(const Vector2I& position, GUIMouseButton button)
 	{
 		mType = GUIMouseEventType::MouseDoubleClick;
 		mPosition = position;
@@ -80,7 +80,7 @@ namespace bs
 		mWheelScrollAmount = 0.0f;
 	}
 
-	void GUIMouseEvent::setMouseDragData(const Vector2I& position, const Vector2I& dragAmount)
+	void GUIMouseEvent::SetMouseDragData(const Vector2I& position, const Vector2I& dragAmount)
 	{
 		mType = GUIMouseEventType::MouseDrag;
 		mPosition = position;
@@ -90,7 +90,7 @@ namespace bs
 		mWheelScrollAmount = 0.0f;
 	}
 
-	void GUIMouseEvent::setMouseDragStartData(const Vector2I& position, const Vector2I& dragStartPosition)
+	void GUIMouseEvent::SetMouseDragStartData(const Vector2I& position, const Vector2I& dragStartPosition)
 	{
 		mType = GUIMouseEventType::MouseDragStart;
 		mPosition = position;
@@ -100,7 +100,7 @@ namespace bs
 		mWheelScrollAmount = 0.0f;
 	}
 
-	void GUIMouseEvent::setMouseDragEndData(const Vector2I& position)
+	void GUIMouseEvent::SetMouseDragEndData(const Vector2I& position)
 	{
 		mType = GUIMouseEventType::MouseDragEnd;
 		mPosition = position;
@@ -110,7 +110,7 @@ namespace bs
 		mWheelScrollAmount = 0.0f;
 	}
 
-	void GUIMouseEvent::setDragAndDropDroppedData(const Vector2I& position, UINT32 dragTypeId, void* dragData)
+	void GUIMouseEvent::SetDragAndDropDroppedData(const Vector2I& position, UINT32 dragTypeId, void* dragData)
 	{
 		mType = GUIMouseEventType::MouseDragAndDropDropped;
 		mPosition = position;
@@ -122,7 +122,7 @@ namespace bs
 		mDragData = dragData;
 	}
 
-	void GUIMouseEvent::setDragAndDropDraggedData(const Vector2I& position, UINT32 dragTypeId, void* dragData)
+	void GUIMouseEvent::SetDragAndDropDraggedData(const Vector2I& position, UINT32 dragTypeId, void* dragData)
 	{
 		mType = GUIMouseEventType::MouseDragAndDropDragged;
 		mPosition = position;
@@ -134,7 +134,7 @@ namespace bs
 		mDragData = dragData;
 	}
 
-	void GUIMouseEvent::setDragAndDropLeftData(const Vector2I& position, UINT32 dragTypeId, void* dragData)
+	void GUIMouseEvent::SetDragAndDropLeftData(const Vector2I& position, UINT32 dragTypeId, void* dragData)
 	{
 		mType = GUIMouseEventType::MouseDragAndDropLeft;
 		mPosition = position;

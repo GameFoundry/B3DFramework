@@ -27,7 +27,7 @@ namespace bs { namespace ct
 		vkDestroyDescriptorSetLayout(mDevice.getLogical(), mLayout, gVulkanAllocator);
 	}
 
-	size_t VulkanDescriptorLayout::calculateHash(VkDescriptorSetLayoutBinding* bindings, UINT32 numBindings)
+	size_t VulkanDescriptorLayout::CalculateHash(VkDescriptorSetLayoutBinding* bindings, UINT32 numBindings)
 	{
 		size_t hash = 0;
 		for (UINT32 i = 0; i < numBindings; i++)

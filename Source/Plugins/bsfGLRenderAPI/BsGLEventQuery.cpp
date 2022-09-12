@@ -24,7 +24,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
 	}
 
-	void GLEventQuery::begin(const SPtr<CommandBuffer>& cb)
+	void GLEventQuery::Begin(const SPtr<CommandBuffer>& cb)
 	{
 		auto execute = [&]()
 		{
@@ -43,7 +43,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	bool GLEventQuery::isReady() const
+	bool GLEventQuery::IsReady() const
 	{
 		GLint done = 0;
 		glGetQueryObjectiv(mQueryObj, GL_QUERY_RESULT_AVAILABLE, &done);

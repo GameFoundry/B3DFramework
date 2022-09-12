@@ -11,7 +11,7 @@ namespace bs { namespace ct
 			BS_EXCEPT(InvalidParametersException, "Only a single device supported on OpenGL.");
 	}
 
-	void GLCommandBuffer::queueCommand(const std::function<void()> command)
+	void GLCommandBuffer::QueueCommand(const std::function<void()> command)
 	{
 #if BS_DEBUG_MODE
 		if (getState() == CommandBufferState::Executing)
@@ -29,7 +29,7 @@ namespace bs { namespace ct
 		mCommandQueued = true;
 	}
 
-	void GLCommandBuffer::executeCommands()
+	void GLCommandBuffer::ExecuteCommands()
 	{
 #if BS_DEBUG_MODE
 		if (mIsSecondary)
@@ -53,7 +53,7 @@ namespace bs { namespace ct
 		mIsSubmitted = true;
 	}
 
-	CommandBufferState GLCommandBuffer::getState() const
+	CommandBufferState GLCommandBuffer::GetState() const
 	{
 		if (mIsSubmitted)
 			return IsComplete() ? CommandBufferState::Done : CommandBufferState::Executing;
@@ -61,13 +61,13 @@ namespace bs { namespace ct
 		return mCommandQueued ? CommandBufferState::Recording : CommandBufferState::Empty;
 	}
 
-	void GLCommandBuffer::reset()
+	void GLCommandBuffer::Reset()
 	{
 		mCommandQueued = false;
 		mIsSubmitted = false;
 	}
 
-	bool GLCommandBuffer::isComplete() const
+	bool GLCommandBuffer::IsComplete() const
 	{
 		GLenum result = glClientWaitSync(mFence, 0, 0);
 		return result == GL_ALREADY_SIGNALED || result == GL_CONDITION_SATISFIED;

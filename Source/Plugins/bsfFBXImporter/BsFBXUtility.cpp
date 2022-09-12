@@ -144,7 +144,7 @@ namespace bs
 		}
 	}
 
-	void FBXUtility::splitVertices(const FBXImportMesh& source, FBXImportMesh& dest)
+	void FBXUtility::SplitVertices(const FBXImportMesh& source, FBXImportMesh& dest)
 	{
 		dest.indices = source.indices;
 		dest.materials = source.materials;
@@ -244,7 +244,7 @@ namespace bs
 		}
 	}
 
-	void FBXUtility::flipWindingOrder(FBXImportMesh& input)
+	void FBXUtility::FlipWindingOrder(FBXImportMesh& input)
 	{
 		for (UINT32 i = 0; i < (UINT32)input.materials.size(); i += 3)
 		{
@@ -257,7 +257,7 @@ namespace bs
 		}
 	}
 
-	void FBXUtility::copyVertexAttributes(const FBXImportMesh& srcMesh, int srcIdx, FBXImportMesh& destMesh, int dstIdx)
+	void FBXUtility::CopyVertexAttributes(const FBXImportMesh& srcMesh, int srcIdx, FBXImportMesh& destMesh, int dstIdx)
 	{
 		if (!srcMesh.normals.empty())
 			destMesh.normals[dstIdx] = srcMesh.normals[srcIdx];
@@ -301,7 +301,7 @@ namespace bs
 		}
 	}
 
-	void FBXUtility::addVertex(const FBXImportMesh& srcMesh, int srcIdx, int srcVertex, FBXImportMesh& destMesh)
+	void FBXUtility::AddVertex(const FBXImportMesh& srcMesh, int srcIdx, int srcVertex, FBXImportMesh& destMesh)
 	{
 		destMesh.positions.push_back(srcMesh.positions[srcVertex]);
 
@@ -352,7 +352,7 @@ namespace bs
 		}
 	}
 
-	bool FBXUtility::needsSplitAttributes(const FBXImportMesh& meshA, int idxA, const FBXImportMesh& meshB, int idxB)
+	bool FBXUtility::NeedsSplitAttributes(const FBXImportMesh& meshA, int idxA, const FBXImportMesh& meshB, int idxB)
 	{
 		static const float SplitAngleCosine = Math::cos(Degree(1.0f));
 		static const float UVEpsilon = 0.001f;

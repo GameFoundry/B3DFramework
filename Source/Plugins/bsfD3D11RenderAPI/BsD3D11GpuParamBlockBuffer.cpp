@@ -20,7 +20,7 @@ namespace bs { namespace ct
 			bs_pool_delete(static_cast<D3D11HardwareBuffer*>(mBuffer));
 	}
 
-	void D3D11GpuParamBlockBuffer::initialize()
+	void D3D11GpuParamBlockBuffer::Initialize()
 	{
 		D3D11RenderAPI* d3d11rs = static_cast<D3D11RenderAPI*>(RenderAPI::instancePtr());
 		D3D11Device& device = d3d11rs->getPrimaryDevice();

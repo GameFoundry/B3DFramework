@@ -11,6 +11,6 @@ namespace bs
 		:ScriptObject(instance)
 	{ }
 
-	void ScriptLogEntry::initRuntimeData()
+	void ScriptLogEntry::InitRuntimeData()
 	{ }
 }

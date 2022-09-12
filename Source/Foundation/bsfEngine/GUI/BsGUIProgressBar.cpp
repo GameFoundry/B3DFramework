@@ -22,13 +22,13 @@ namespace bs
 		_registerChildElement(mBackground);
 	}
 
-	const String& GUIProgressBar::getBarStyleType()
+	const String& GUIProgressBar::GetBarStyleType()
 	{
 		static String HANDLE_STYLE_TYPE = "ProgressBarFill";
 		return HANDLE_STYLE_TYPE;
 	}
 
-	const String& GUIProgressBar::getBackgroundStyleType()
+	const String& GUIProgressBar::GetBackgroundStyleType()
 	{
 		static String BACKGROUND_STYLE_TYPE = "ProgressBarBackground";
 		return BACKGROUND_STYLE_TYPE;
@@ -65,19 +65,19 @@ namespace bs
 		mBar->_setLayoutData(barLayoutData);
 	}
 
-	void GUIProgressBar::styleUpdated()
+	void GUIProgressBar::StyleUpdated()
 	{
 		mBar->setStyle(getSubStyleName(getBarStyleType()));
 		mBackground->setStyle(getSubStyleName(getBackgroundStyleType()));
 	}
 
-	void GUIProgressBar::setPercent(float pct)
+	void GUIProgressBar::SetPercent(float pct)
 	{
 		mPercent = pct;
 		_markLayoutAsDirty();
 	}
 
-	void GUIProgressBar::setTint(const Color& color)
+	void GUIProgressBar::SetTint(const Color& color)
 	{
 		mBar->setTint(color);
 		mBackground->setTint(color);
@@ -93,7 +93,7 @@ namespace bs
 		return new (bs_alloc<GUIProgressBar>()) GUIProgressBar(getStyleName<GUIProgressBar>(styleName), GUIDimensions::create(options));
 	}
 
-	const String& GUIProgressBar::getGUITypeName()
+	const String& GUIProgressBar::GetGUITypeName()
 	{
 		static String typeName = "ProgressBar";
 		return typeName;

@@ -31,55 +31,55 @@ namespace bs
 		texDesc.hwGamma = gammaCorrection;
 		texDesc.numSamples = numSamples;
 
-		return Texture::create(texDesc);
+		return Texture::Create(texDesc);
 	}
 
-	PixelFormat TextureEx::getPixelFormat(const HTexture& thisPtr)
+	PixelFormat TextureEx::GetPixelFormat(const HTexture& thisPtr)
 	{
 		return thisPtr->getProperties().getFormat();
 	}
 
-	TextureUsage TextureEx::getUsage(const HTexture& thisPtr)
+	TextureUsage TextureEx::GetUsage(const HTexture& thisPtr)
 	{
 		return (TextureUsage)thisPtr->getProperties().getUsage();
 	}
 
-	TextureType TextureEx::getType(const HTexture& thisPtr)
+	TextureType TextureEx::GetType(const HTexture& thisPtr)
 	{
 		return thisPtr->getProperties().getTextureType();
 	}
 
-	UINT32 TextureEx::getWidth(const HTexture& thisPtr)
+	UINT32 TextureEx::GetWidth(const HTexture& thisPtr)
 	{
 		return thisPtr->getProperties().getWidth();
 	}
 
-	UINT32 TextureEx::getHeight(const HTexture& thisPtr)
+	UINT32 TextureEx::GetHeight(const HTexture& thisPtr)
 	{
 		return thisPtr->getProperties().getHeight();
 	}
 
-	UINT32 TextureEx::getDepth(const HTexture& thisPtr)
+	UINT32 TextureEx::GetDepth(const HTexture& thisPtr)
 	{
 		return thisPtr->getProperties().getDepth();
 	}
 
-	bool TextureEx::getGammaCorrection(const HTexture& thisPtr)
+	bool TextureEx::GetGammaCorrection(const HTexture& thisPtr)
 	{
 		return thisPtr->getProperties().isHardwareGammaEnabled();
 	}
 
-	UINT32 TextureEx::getSampleCount(const HTexture& thisPtr)
+	UINT32 TextureEx::GetSampleCount(const HTexture& thisPtr)
 	{
 		return thisPtr->getProperties().getNumSamples();
 	}
 
-	UINT32 TextureEx::getMipmapCount(const HTexture& thisPtr)
+	UINT32 TextureEx::GetMipmapCount(const HTexture& thisPtr)
 	{
 		return thisPtr->getProperties().getNumMipmaps();
 	}
 
-	SPtr<PixelData> TextureEx::getPixels(const HTexture& thisPtr, UINT32 face, UINT32 mipLevel)
+	SPtr<PixelData> TextureEx::GetPixels(const HTexture& thisPtr, UINT32 face, UINT32 mipLevel)
 	{
 		SPtr<PixelData> pixelData = thisPtr->getProperties().allocBuffer(face, mipLevel);
 		thisPtr->readCachedData(*pixelData, face, mipLevel);
@@ -87,13 +87,13 @@ namespace bs
 		return pixelData;
 	}
 
-	void TextureEx::setPixels(const HTexture& thisPtr, const SPtr<PixelData>& data, UINT32 face, UINT32 mipLevel)
+	void TextureEx::SetPixels(const HTexture& thisPtr, const SPtr<PixelData>& data, UINT32 face, UINT32 mipLevel)
 	{
 		if (data != nullptr)
 			thisPtr->writeData(data, face, mipLevel, false);
 	}
 
-	void TextureEx::setPixelsArray(const HTexture& thisPtr, const Vector<Color>& colors, UINT32 face, UINT32 mipLevel)
+	void TextureEx::SetPixelsArray(const HTexture& thisPtr, const Vector<Color>& colors, UINT32 face, UINT32 mipLevel)
 	{
 		UINT32 numElements = (UINT32)colors.size();
 

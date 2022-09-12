@@ -35,7 +35,7 @@ namespace bs
 		return *foundElement;
 	}
 
-	void RTTITypeBase::addNewField(RTTIField* field)
+	void RTTITypeBase::AddNewField(RTTIField* field)
 	{
 		if(field == nullptr)
 			BS_EXCEPT(InvalidParametersException, "Field argument can't be null.");
@@ -73,7 +73,7 @@ namespace bs
 
 	RTTITypeBase* RTTISchema::getRTTIStatic()
 	{
-		return RTTISchemaRTTI::instance();
+		return RTTISchemaRTTI::Instance();
 	}
 
 	RTTITypeBase* RTTISchema::getRTTI() const
@@ -103,7 +103,7 @@ namespace bs
 
 	RTTITypeBase* SerializationContext::getRTTIStatic()
 	{
-		return SerializationContextRTTI::instance();
+		return SerializationContextRTTI::Instance();
 	}
 
 	RTTITypeBase* SerializationContext::getRTTI() const
@@ -113,6 +113,6 @@ namespace bs
 
 	SPtr<IReflectable> rtti_create(UINT32 rttiId)
 	{
-		return IReflectable::createInstanceFromTypeId(rttiId);
+		return IReflectable::CreateInstanceFromTypeId(rttiId);
 	}
 }

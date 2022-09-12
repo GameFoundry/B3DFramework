@@ -15,20 +15,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptBlend2DInfo::initRuntimeData()
+	void ScriptBlend2DInfo::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptBlend2DInfo::box(const __Blend2DInfoInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__Blend2DInfoInterop ScriptBlend2DInfo::unbox(MonoObject* value)
+	__Blend2DInfoInterop ScriptBlend2DInfo::Unbox(MonoObject* value)
 	{
 		return *(__Blend2DInfoInterop*)MonoUtil::unbox(value);
 	}
 
-	Blend2DInfo ScriptBlend2DInfo::fromInterop(const __Blend2DInfoInterop& value)
+	Blend2DInfo ScriptBlend2DInfo::FromInterop(const __Blend2DInfoInterop& value)
 	{
 		Blend2DInfo output;
 		ResourceHandle<AnimationClip> tmptopLeftClip;
@@ -59,7 +59,7 @@ namespace bs
 		return output;
 	}
 
-	__Blend2DInfoInterop ScriptBlend2DInfo::toInterop(const Blend2DInfo& value)
+	__Blend2DInfoInterop ScriptBlend2DInfo::ToInterop(const Blend2DInfo& value)
 	{
 		__Blend2DInfoInterop output;
 		ScriptRRefBase* scripttopLeftClip;

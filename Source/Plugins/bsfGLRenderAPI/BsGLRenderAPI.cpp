@@ -97,13 +97,13 @@ namespace bs { namespace ct
 		mProgramPipelineManager = bs_new<GLSLProgramPipelineManager>();
 	}
 
-	const StringID& GLRenderAPI::getName() const
+	const StringID& GLRenderAPI::GetName() const
 	{
 		static StringID StrName("GLRenderAPI");
 		return strName;
 	}
 
-	void GLRenderAPI::initialize()
+	void GLRenderAPI::Initialize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -124,7 +124,7 @@ namespace bs { namespace ct
 		RenderAPI::initialize();
 	}
 
-	void GLRenderAPI::initializeWithWindow(const SPtr<RenderWindow>& primaryWindow)
+	void GLRenderAPI::InitializeWithWindow(const SPtr<RenderWindow>& primaryWindow)
 	{
 		// Get the context from the window and finish initialization
 		SPtr<GLContext> context;
@@ -173,7 +173,7 @@ namespace bs { namespace ct
 		RenderAPI::initializeWithWindow(primaryWindow);
 	}
 
-	void GLRenderAPI::destroyCore()
+	void GLRenderAPI::DestroyCore()
 	{
 		RenderAPI::destroyCore();
 
@@ -385,7 +385,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT(NumPipelineStateChanges);
 	}
 
-	void GLRenderAPI::setGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<CommandBuffer>& commandBuffer)
+	void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<CommandBuffer>& commandBuffer)
 	{
 		auto executeRef = [&](const SPtr<GpuParams>& gpuParams)
 		{
@@ -899,7 +899,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT(NumGpuParamBinds);
 	}
 
-	void GLRenderAPI::setStencilRef(UINT32 stencilRefValue, const SPtr<CommandBuffer>& commandBuffer)
+	void GLRenderAPI::SetStencilRef(UINT32 stencilRefValue, const SPtr<CommandBuffer>& commandBuffer)
 	{
 		auto executeRef = [&](UINT32 stencilRefValue)
 		{
@@ -1041,7 +1041,7 @@ namespace bs { namespace ct
 		cb->queueCommand(execute);
 	}
 
-	void GLRenderAPI::setDrawOperation(DrawOperationType op, const SPtr<CommandBuffer>& commandBuffer)
+	void GLRenderAPI::SetDrawOperation(DrawOperationType op, const SPtr<CommandBuffer>& commandBuffer)
 	{
 		auto executeRef = [&](DrawOperationType op)
 		{
@@ -1056,7 +1056,7 @@ namespace bs { namespace ct
 		cb->queueCommand(execute);
 	}
 
-	void GLRenderAPI::setIndexBuffer(const SPtr<IndexBuffer>& buffer, const SPtr<CommandBuffer>& commandBuffer)
+	void GLRenderAPI::SetIndexBuffer(const SPtr<IndexBuffer>& buffer, const SPtr<CommandBuffer>& commandBuffer)
 	{
 		auto executeRef = [&](const SPtr<IndexBuffer>& buffer)
 		{
@@ -1265,7 +1265,7 @@ namespace bs { namespace ct
 		cb->queueCommand(execute);
 	}
 
-	void GLRenderAPI::swapBuffers(const SPtr<RenderTarget>& target, UINT32 syncMask)
+	void GLRenderAPI::SwapBuffers(const SPtr<RenderTarget>& target, UINT32 syncMask)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -1289,14 +1289,14 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT(NumPresents);
 	}
 
-	void GLRenderAPI::addCommands(const SPtr<CommandBuffer>& commandBuffer, const SPtr<CommandBuffer>& secondary)
+	void GLRenderAPI::AddCommands(const SPtr<CommandBuffer>& commandBuffer, const SPtr<CommandBuffer>& secondary)
 	{
 		// We're not supporting this as we don't support command buffer command queuing at all (i.e. they are executed
 		// straight away).
 		BS_LOG(Error, RenderBackend, "Secondary command buffers not supported on OpenGL.");
 	}
 
-	void GLRenderAPI::submitCommandBuffer(const SPtr<CommandBuffer>& commandBuffer, UINT32 syncMask)
+	void GLRenderAPI::SubmitCommandBuffer(const SPtr<CommandBuffer>& commandBuffer, UINT32 syncMask)
 	{
 		SPtr<GLCommandBuffer> cb = getCB(commandBuffer);
 		cb->executeCommands();
@@ -1305,12 +1305,12 @@ namespace bs { namespace ct
 			mMainCommandBuffer = std::static_pointer_cast<GLCommandBuffer>(CommandBuffer::create(GQT_GRAPHICS));
 	}
 
-	SPtr<CommandBuffer> GLRenderAPI::getMainCommandBuffer() const
+	SPtr<CommandBuffer> GLRenderAPI::GetMainCommandBuffer() const
 	{
 		return mMainCommandBuffer;
 	}
 
-	SPtr<GLCommandBuffer> GLRenderAPI::getCB(const SPtr<CommandBuffer>& buffer)
+	SPtr<GLCommandBuffer> GLRenderAPI::GetCB(const SPtr<CommandBuffer>& buffer)
 	{
 		if (buffer != nullptr)
 			return std::static_pointer_cast<GLCommandBuffer>(buffer);
@@ -1513,7 +1513,7 @@ namespace bs { namespace ct
 	/* 								PRIVATE		                     		*/
 	/************************************************************************/
 
-	void GLRenderAPI::setTextureAddressingMode(UINT16 unit, const UVWAddressingMode& uvw)
+	void GLRenderAPI::SetTextureAddressingMode(UINT16 unit, const UVWAddressingMode& uvw)
 	{
 		glTexParameteri(mTextureInfos[unit].type, GL_TEXTURE_WRAP_S, getTextureAddressingMode(uvw.u));
 		BS_CHECK_GL_ERROR();
@@ -1525,20 +1525,20 @@ namespace bs { namespace ct
 		BS_CHECK_GL_ERROR();
 	}
 
-	void GLRenderAPI::setTextureBorderColor(UINT16 unit, const Color& color)
+	void GLRenderAPI::SetTextureBorderColor(UINT16 unit, const Color& color)
 	{
 		GLfloat border[4] = { color.r, color.g, color.b, color.a };
 		glTexParameterfv(mTextureInfos[unit].type, GL_TEXTURE_BORDER_COLOR, border);
 		BS_CHECK_GL_ERROR();
 	}
 
-	void GLRenderAPI::setTextureMipmapBias(UINT16 unit, float bias)
+	void GLRenderAPI::SetTextureMipmapBias(UINT16 unit, float bias)
 	{
 		glTexParameterf(mTextureInfos[unit].type, GL_TEXTURE_LOD_BIAS, bias);
 		BS_CHECK_GL_ERROR();
 	}
 
-	void GLRenderAPI::setTextureMipmapRange(UINT16 unit, float min, float max)
+	void GLRenderAPI::SetTextureMipmapRange(UINT16 unit, float min, float max)
 	{
 		glTexParameterf(mTextureInfos[unit].type, GL_TEXTURE_MIN_LOD, min);
 		BS_CHECK_GL_ERROR();
@@ -1547,7 +1547,7 @@ namespace bs { namespace ct
 		BS_CHECK_GL_ERROR();
 	}
 
-	void GLRenderAPI::setSceneBlending(UINT32 target, BlendFactor sourceFactor, BlendFactor destFactor, BlendOperation op)
+	void GLRenderAPI::SetSceneBlending(UINT32 target, BlendFactor sourceFactor, BlendFactor destFactor, BlendOperation op)
 	{
 		GLint sourceBlend = getBlendMode(sourceFactor);
 		GLint destBlend = getBlendMode(destFactor);
@@ -1655,7 +1655,7 @@ namespace bs { namespace ct
 		BS_CHECK_GL_ERROR();
 	}
 
-	void GLRenderAPI::setAlphaToCoverage(bool enable)
+	void GLRenderAPI::SetAlphaToCoverage(bool enable)
 	{
 		static bool lasta2c = false;
 
@@ -1676,7 +1676,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLRenderAPI::setScissorTestEnable(bool enable)
+	void GLRenderAPI::SetScissorTestEnable(bool enable)
 	{
 		if (mActiveRenderTarget == nullptr)
 			return;
@@ -1715,7 +1715,7 @@ namespace bs { namespace ct
 		mScissorRectDirty = false;
 	}
 
-	void GLRenderAPI::setMultisamplingEnable(bool enable)
+	void GLRenderAPI::SetMultisamplingEnable(bool enable)
 	{
 		if (enable)
 		{
@@ -1729,7 +1729,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLRenderAPI::setDepthClipEnable(bool enable)
+	void GLRenderAPI::SetDepthClipEnable(bool enable)
 	{
 		if (!enable) // If clipping disabled, clamp is enabled
 		{
@@ -1743,7 +1743,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLRenderAPI::setAntialiasedLineEnable(bool enable)
+	void GLRenderAPI::SetAntialiasedLineEnable(bool enable)
 	{
 		if (enable)
 		{
@@ -1758,7 +1758,7 @@ namespace bs { namespace ct
 	}
 
 
-	void GLRenderAPI::setCullingMode(CullingMode mode)
+	void GLRenderAPI::SetCullingMode(CullingMode mode)
 	{
 		GLenum cullMode;
 
@@ -1784,7 +1784,7 @@ namespace bs { namespace ct
 		BS_CHECK_GL_ERROR();
 	}
 
-	void GLRenderAPI::setDepthBufferCheckEnabled(bool enabled)
+	void GLRenderAPI::SetDepthBufferCheckEnabled(bool enabled)
 	{
 		if (enabled)
 		{
@@ -1801,7 +1801,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLRenderAPI::setDepthBufferWriteEnabled(bool enabled)
+	void GLRenderAPI::SetDepthBufferWriteEnabled(bool enabled)
 	{
 		GLboolean flag = enabled ? GL_TRUE : GL_FALSE;
 		glDepthMask(flag);
@@ -1810,13 +1810,13 @@ namespace bs { namespace ct
 		mDepthWrite = enabled;
 	}
 
-	void GLRenderAPI::setDepthBufferFunction(CompareFunction func)
+	void GLRenderAPI::SetDepthBufferFunction(CompareFunction func)
 	{
 		glDepthFunc(convertCompareFunction(func));
 		BS_CHECK_GL_ERROR();
 	}
 
-	void GLRenderAPI::setDepthBias(float constantBias, float slopeScaleBias)
+	void GLRenderAPI::SetDepthBias(float constantBias, float slopeScaleBias)
 	{
 		if (constantBias != 0 || slopeScaleBias != 0)
 		{
@@ -1846,7 +1846,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLRenderAPI::setColorBufferWriteEnabled(UINT32 target, bool red, bool green, bool blue, bool alpha)
+	void GLRenderAPI::SetColorBufferWriteEnabled(UINT32 target, bool red, bool green, bool blue, bool alpha)
 	{
 		glColorMaski(target, red, green, blue, alpha);
 		BS_CHECK_GL_ERROR();
@@ -1860,7 +1860,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLRenderAPI::setPolygonMode(PolygonMode level)
+	void GLRenderAPI::SetPolygonMode(PolygonMode level)
 	{
 		GLenum glmode;
 		switch(level)
@@ -1878,7 +1878,7 @@ namespace bs { namespace ct
 		BS_CHECK_GL_ERROR();
 	}
 
-	void GLRenderAPI::setStencilCheckEnabled(bool enabled)
+	void GLRenderAPI::SetStencilCheckEnabled(bool enabled)
 	{
 		if (enabled)
 		{
@@ -1915,7 +1915,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLRenderAPI::setStencilBufferFunc(CompareFunction func, UINT32 mask, bool front)
+	void GLRenderAPI::SetStencilBufferFunc(CompareFunction func, UINT32 mask, bool front)
 	{
 		mStencilReadMask = mask;
 
@@ -1933,7 +1933,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLRenderAPI::setStencilBufferWriteMask(UINT32 mask)
+	void GLRenderAPI::SetStencilBufferWriteMask(UINT32 mask)
 	{
 		mStencilWriteMask = mask;
 
@@ -1941,7 +1941,7 @@ namespace bs { namespace ct
 		BS_CHECK_GL_ERROR();
 	}
 
-	void GLRenderAPI::setStencilRefValue(UINT32 refValue)
+	void GLRenderAPI::SetStencilRefValue(UINT32 refValue)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -1954,7 +1954,7 @@ namespace bs { namespace ct
 		BS_CHECK_GL_ERROR();
 	}
 
-	void GLRenderAPI::setTextureFiltering(UINT16 unit, FilterType ftype, FilterOptions fo)
+	void GLRenderAPI::SetTextureFiltering(UINT16 unit, FilterType ftype, FilterOptions fo)
 	{
 		switch(ftype)
 		{
@@ -1990,7 +1990,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLRenderAPI::setTextureAnisotropy(UINT16 unit, UINT32 maxAnisotropy)
+	void GLRenderAPI::SetTextureAnisotropy(UINT16 unit, UINT32 maxAnisotropy)
 	{
 		GLfloat maxSupportAnisotropy = 0;
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxSupportAnisotropy);
@@ -2006,7 +2006,7 @@ namespace bs { namespace ct
 		BS_CHECK_GL_ERROR();
 	}
 
-	void GLRenderAPI::setTextureCompareMode(UINT16 unit, CompareFunction compare)
+	void GLRenderAPI::SetTextureCompareMode(UINT16 unit, CompareFunction compare)
 	{
 		if (compare == CMPF_ALWAYS_PASS)
 		{
@@ -2023,7 +2023,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	bool GLRenderAPI::activateGLTextureUnit(UINT16 unit)
+	bool GLRenderAPI::ActivateGLTextureUnit(UINT16 unit)
 	{
 		if (mActiveTextureUnit != unit)
 		{
@@ -2053,7 +2053,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLRenderAPI::beginDraw()
+	void GLRenderAPI::BeginDraw()
 	{
 		if(mDrawCallInProgress)
 			BS_EXCEPT(InternalErrorException, "Calling beginDraw without finishing previous draw call. Please call endDraw().");
@@ -2103,7 +2103,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT(NumVertexBufferBinds);
 	}
 
-	void GLRenderAPI::endDraw()
+	void GLRenderAPI::EndDraw()
 	{
 		if(!mDrawCallInProgress)
 			return;
@@ -2116,7 +2116,7 @@ namespace bs { namespace ct
 		mDrawCallInProgress = false;
 	}
 
-	GLfloat GLRenderAPI::getCurrentAnisotropy(UINT16 unit)
+	GLfloat GLRenderAPI::GetCurrentAnisotropy(UINT16 unit)
 	{
 		GLfloat curAniso = 0;
 		glGetTexParameterfv(mTextureInfos[unit].type, GL_TEXTURE_MAX_ANISOTROPY_EXT, &curAniso);
@@ -2125,7 +2125,7 @@ namespace bs { namespace ct
 		return curAniso ? curAniso : 1;
 	}
 
-	GLint GLRenderAPI::convertStencilOp(StencilOperation op) const
+	GLint GLRenderAPI::ConvertStencilOp(StencilOperation op) const
 	{
 		switch (op)
 		{
@@ -2150,7 +2150,7 @@ namespace bs { namespace ct
 		return SOP_KEEP;
 	}
 
-	GLint GLRenderAPI::convertCompareFunction(CompareFunction func) const
+	GLint GLRenderAPI::ConvertCompareFunction(CompareFunction func) const
 	{
 		switch (func)
 		{
@@ -2175,7 +2175,7 @@ namespace bs { namespace ct
 		return GL_ALWAYS;
 	}
 
-	GLuint GLRenderAPI::getCombinedMinMipFilter() const
+	GLuint GLRenderAPI::GetCombinedMinMipFilter() const
 	{
 		switch (mMinFilter)
 		{
@@ -2223,7 +2223,7 @@ namespace bs { namespace ct
 		return 0;
 	}
 
-	GLint GLRenderAPI::getBlendMode(BlendFactor blendMode) const
+	GLint GLRenderAPI::GetBlendMode(BlendFactor blendMode) const
 	{
 		switch (blendMode)
 		{
@@ -2252,7 +2252,7 @@ namespace bs { namespace ct
 		return GL_ONE;
 	}
 
-	GLint GLRenderAPI::getTextureAddressingMode(TextureAddressingMode tam) const
+	GLint GLRenderAPI::GetTextureAddressingMode(TextureAddressingMode tam) const
 	{
 		switch (tam)
 		{
@@ -2268,7 +2268,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	GLint GLRenderAPI::getGLDrawMode() const
+	GLint GLRenderAPI::GetGLDrawMode() const
 	{
 		GLint primType;
 
@@ -2300,7 +2300,7 @@ namespace bs { namespace ct
 		return primType;
 	}
 
-	SPtr<GLSLGpuProgram> GLRenderAPI::getActiveProgram(GpuProgramType gptype) const
+	SPtr<GLSLGpuProgram> GLRenderAPI::GetActiveProgram(GpuProgramType gptype) const
 	{
 		switch (gptype)
 		{
@@ -2323,7 +2323,7 @@ namespace bs { namespace ct
 		return nullptr;
 	}
 
-	void GLRenderAPI::initFromCaps(RenderAPICapabilities* caps)
+	void GLRenderAPI::InitFromCaps(RenderAPICapabilities* caps)
 	{
 		if(caps->renderAPIName != getName())
 		{
@@ -2359,7 +2359,7 @@ namespace bs { namespace ct
 		TextureManager::startUp<GLTextureManager>(std::ref(*mGLSupport));
 	}
 
-	void GLRenderAPI::switchContext(const SPtr<GLContext>& context, const RenderWindow& window)
+	void GLRenderAPI::SwitchContext(const SPtr<GLContext>& context, const RenderWindow& window)
 	{
 		// Unbind pipeline and rebind to new context later	
 		setGraphicsPipeline(nullptr);
@@ -2383,7 +2383,7 @@ namespace bs { namespace ct
 		BS_CHECK_GL_ERROR();
 	}
 
-	void GLRenderAPI::initCapabilities(RenderAPICapabilities& caps) const
+	void GLRenderAPI::InitCapabilities(RenderAPICapabilities& caps) const
 	{
 		Vector<String> tokens = StringUtil::split(mGLSupport->getGLVersion(), ".");
 
@@ -2606,7 +2606,7 @@ namespace bs { namespace ct
 		caps.numMultiRenderTargets = 8;
 	}
 
-	void GLRenderAPI::makeGLMatrix(GLfloat gl_matrix[16], const Matrix4& m)
+	void GLRenderAPI::MakeGLMatrix(GLfloat gl_matrix[16], const Matrix4& m)
 	{
 		UINT32 x = 0;
 		for (UINT32 i = 0; i < 4; i++)
@@ -2619,7 +2619,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLRenderAPI::applyViewport()
+	void GLRenderAPI::ApplyViewport()
 	{
 		if (mActiveRenderTarget == nullptr)
 			return;
@@ -2646,7 +2646,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GLRenderAPI::notifyRenderTargetModified()
+	void GLRenderAPI::NotifyRenderTargetModified()
 	{
 		if (mActiveRenderTarget == nullptr || mActiveRenderTargetModified)
 			return;
@@ -2659,12 +2659,12 @@ namespace bs { namespace ct
 	/* 								UTILITY		                     		*/
 	/************************************************************************/
 
-	void GLRenderAPI::convertProjectionMatrix(const Matrix4& matrix, Matrix4& dest)
+	void GLRenderAPI::ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest)
 	{
 		dest = matrix;
 	}
 
-	GpuParamBlockDesc GLRenderAPI::generateParamBlockDesc(const String& name, Vector<GpuParamDataDesc>& params)
+	GpuParamBlockDesc GLRenderAPI::GenerateParamBlockDesc(const String& name, Vector<GpuParamDataDesc>& params)
 	{
 		GpuParamBlockDesc block;
 		block.blockSize = 0;

@@ -14,12 +14,12 @@ namespace bs
 		reset();
 	}
 
-	void Timer::reset()
+	void Timer::Reset()
 	{
 		mStartTime = mHRClock.now();
 	}
 
-	UINT64 Timer::getMilliseconds() const
+	UINT64 Timer::GetMilliseconds() const
 	{
 		auto newTime = mHRClock.now();
 		duration<double> dur = newTime - mStartTime;
@@ -27,7 +27,7 @@ namespace bs
 		return duration_cast<milliseconds>(dur).count();
 	}
 
-	UINT64 Timer::getMicroseconds() const
+	UINT64 Timer::GetMicroseconds() const
 	{
 		auto newTime = mHRClock.now();
 		duration<double> dur = newTime - mStartTime;
@@ -35,7 +35,7 @@ namespace bs
 		return duration_cast<microseconds>(dur).count();
 	}
 
-	UINT64 Timer::getStartMs() const
+	UINT64 Timer::GetStartMs() const
 	{
 		nanoseconds startTimeNs = mStartTime.time_since_epoch();
 

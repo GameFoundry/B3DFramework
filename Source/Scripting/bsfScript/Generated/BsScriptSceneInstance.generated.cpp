@@ -16,7 +16,7 @@ namespace bs
 	{
 	}
 
-	void ScriptSceneInstance::initRuntimeData()
+	void ScriptSceneInstance::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getName", (void*)&ScriptSceneInstance::Internal_getName);
 		metaData.scriptClass->addInternalCall("Internal_getRoot", (void*)&ScriptSceneInstance::Internal_getRoot);

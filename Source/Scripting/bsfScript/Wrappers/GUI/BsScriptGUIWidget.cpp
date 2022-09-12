@@ -33,7 +33,7 @@ namespace bs
 	ScriptGUIWidget::~ScriptGUIWidget()
 	{ }
 
-	void ScriptGUIWidget::initRuntimeData()
+	void ScriptGUIWidget::InitRuntimeData()
 	{
 		sGUIPanelField = metaData.scriptClass->getField("panel");
 
@@ -124,7 +124,7 @@ namespace bs
 		instance->destroy();
 	}
 
-	void ScriptGUIWidget::destroy(bool destroyPanel)
+	void ScriptGUIWidget::Destroy(bool destroyPanel)
 	{
 		if(mPanel != nullptr && destroyPanel)
 		{

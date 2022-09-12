@@ -16,20 +16,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptGUIElementStateStyle::initRuntimeData()
+	void ScriptGUIElementStateStyle::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptGUIElementStateStyle::box(const __GUIElementStateStyleInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__GUIElementStateStyleInterop ScriptGUIElementStateStyle::unbox(MonoObject* value)
+	__GUIElementStateStyleInterop ScriptGUIElementStateStyle::Unbox(MonoObject* value)
 	{
 		return *(__GUIElementStateStyleInterop*)MonoUtil::unbox(value);
 	}
 
-	GUIElementStateStyle ScriptGUIElementStateStyle::fromInterop(const __GUIElementStateStyleInterop& value)
+	GUIElementStateStyle ScriptGUIElementStateStyle::FromInterop(const __GUIElementStateStyleInterop& value)
 	{
 		GUIElementStateStyle output;
 		ResourceHandle<SpriteTexture> tmptexture;
@@ -43,7 +43,7 @@ namespace bs
 		return output;
 	}
 
-	__GUIElementStateStyleInterop ScriptGUIElementStateStyle::toInterop(const GUIElementStateStyle& value)
+	__GUIElementStateStyleInterop ScriptGUIElementStateStyle::ToInterop(const GUIElementStateStyle& value)
 	{
 		__GUIElementStateStyleInterop output;
 		ScriptResourceBase* scripttexture;

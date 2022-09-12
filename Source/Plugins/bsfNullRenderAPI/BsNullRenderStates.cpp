@@ -13,7 +13,7 @@ namespace bs { namespace ct
 		return ret;
 	}
 
-	SPtr<BlendState> NullRenderStateManager::createBlendStateInternal(const BLEND_STATE_DESC& desc, UINT32 id) const
+	SPtr<BlendState> NullRenderStateManager::CreateBlendStateInternal(const BLEND_STATE_DESC& desc, UINT32 id) const
 	{
 		SPtr<NullBlendState> ret = bs_shared_ptr_new<NullBlendState>(desc, id);
 		ret->_setThisPtr(ret);
@@ -21,7 +21,7 @@ namespace bs { namespace ct
 		return ret;
 	}
 
-	SPtr<RasterizerState> NullRenderStateManager::createRasterizerStateInternal(const RASTERIZER_STATE_DESC& desc, UINT32 id) const
+	SPtr<RasterizerState> NullRenderStateManager::CreateRasterizerStateInternal(const RASTERIZER_STATE_DESC& desc, UINT32 id) const
 	{
 		SPtr<NullRasterizerState> ret = bs_shared_ptr_new<NullRasterizerState>(desc, id);
 		ret->_setThisPtr(ret);
@@ -29,7 +29,7 @@ namespace bs { namespace ct
 		return ret;
 	}
 
-	SPtr<DepthStencilState> NullRenderStateManager::createDepthStencilStateInternal(const DEPTH_STENCIL_STATE_DESC& desc, UINT32 id) const
+	SPtr<DepthStencilState> NullRenderStateManager::CreateDepthStencilStateInternal(const DEPTH_STENCIL_STATE_DESC& desc, UINT32 id) const
 	{
 		SPtr<NullDepthStencilState> ret = bs_shared_ptr_new<NullDepthStencilState>(desc, id);
 		ret->_setThisPtr(ret);

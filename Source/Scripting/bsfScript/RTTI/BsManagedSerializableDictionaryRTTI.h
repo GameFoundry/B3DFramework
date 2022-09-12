@@ -117,7 +117,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return ManagedSerializableDictionary::createEmpty();
+			return ManagedSerializableDictionary::CreateEmpty();
 		}
 
 	private:

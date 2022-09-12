@@ -4,7 +4,7 @@
 
 namespace bs
 {
-	void StringTableManager::setActiveLanguage(Language language)
+	void StringTableManager::SetActiveLanguage(Language language)
 	{
 		if (language != mActiveLanguage)
 		{
@@ -15,7 +15,7 @@ namespace bs
 		}
 	}
 
-	HStringTable StringTableManager::getTable(UINT32 id)
+	HStringTable StringTableManager::GetTable(UINT32 id)
 	{
 		auto iterFind = mTables.find(id);
 		if (iterFind != mTables.end())
@@ -27,12 +27,12 @@ namespace bs
 		return newTable;
 	}
 
-	void StringTableManager::removeTable(UINT32 id)
+	void StringTableManager::RemoveTable(UINT32 id)
 	{
 		mTables.erase(id);
 	}
 
-	void StringTableManager::setTable(UINT32 id, const HStringTable& table)
+	void StringTableManager::SetTable(UINT32 id, const HStringTable& table)
 	{
 		mTables[id] = table;
 
@@ -42,6 +42,6 @@ namespace bs
 
 	StringTableManager& GStringTableManager()
 	{
-		return StringTableManager::instance();
+		return StringTableManager::Instance();
 	}
 }

@@ -6,12 +6,12 @@
 
 namespace bs
 {
-	Vector2I GUILayoutUtility::calcOptimalSize(const GUIElementBase* elem)
+	Vector2I GUILayoutUtility::CalcOptimalSize(const GUIElementBase* elem)
 	{
 		return elem->_calculateLayoutSizeRange().optimal;
 	}
 
-	Vector2I GUILayoutUtility::calcActualSize(UINT32 width, UINT32 height, GUILayout* layout, bool updateOptimalSizes)
+	Vector2I GUILayoutUtility::CalcActualSize(UINT32 width, UINT32 height, GUILayout* layout, bool updateOptimalSizes)
 	{
 		if (updateOptimalSizes)
 			layout->_updateOptimalLayoutSizes();
@@ -19,7 +19,7 @@ namespace bs
 		return CalcActualSizeInternal(width, height, layout);
 	}
 
-	Vector2I GUILayoutUtility::calcActualSizeInternal(UINT32 width, UINT32 height, GUILayout* layout)
+	Vector2I GUILayoutUtility::CalcActualSizeInternal(UINT32 width, UINT32 height, GUILayout* layout)
 	{
 		UINT32 numElements = (UINT32)layout->_getNumChildren();
 		Rect2I* elementAreas = nullptr;

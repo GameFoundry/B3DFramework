@@ -23,7 +23,7 @@ namespace bs
 
 	}
 
-	void ScriptSerializableField::initRuntimeData()
+	void ScriptSerializableField::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateProperty", (void*)&ScriptSerializableField::internal_createProperty);
 		metaData.scriptClass->addInternalCall("Internal_GetValue", (void*)&ScriptSerializableField::internal_getValue);
@@ -46,7 +46,7 @@ namespace bs
 
 	MonoObject* ScriptSerializableField::internal_createProperty(ScriptSerializableField* nativeInstance)
 	{
-		return ScriptSerializableProperty::create(nativeInstance->mFieldInfo->mTypeInfo);
+		return ScriptSerializableProperty::Create(nativeInstance->mFieldInfo->mTypeInfo);
 	}
 
 	MonoObject* ScriptSerializableField::internal_getValue(ScriptSerializableField* nativeInstance, MonoObject* instance)
@@ -121,6 +121,6 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptSerializableFieldStyle::initRuntimeData()
+	void ScriptSerializableFieldStyle::InitRuntimeData()
 	{ }
 }

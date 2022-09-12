@@ -7,36 +7,36 @@ namespace bs
 {
 	RTTITypeBase* AnimationSplitInfo::getRTTIStatic()
 	{
-		return AnimationSplitInfoRTTI::instance();
+		return AnimationSplitInfoRTTI::Instance();
 	}
 
 	RTTITypeBase* AnimationSplitInfo::getRTTI() const
 	{
-		return AnimationSplitInfo::getRTTIStatic();
+		return AnimationSplitInfo::GetRTTIStatic();
 	}
 
 	RTTITypeBase* ImportedAnimationEvents::getRTTIStatic()
 	{
-		return ImportedAnimationEventsRTTI::instance();
+		return ImportedAnimationEventsRTTI::Instance();
 	}
 
 	RTTITypeBase* ImportedAnimationEvents::getRTTI() const
 	{
-		return ImportedAnimationEvents::getRTTIStatic();
+		return ImportedAnimationEvents::GetRTTIStatic();
 	}
 
-	SPtr<MeshImportOptions> MeshImportOptions::create()
+	SPtr<MeshImportOptions> MeshImportOptions::Create()
 	{
 		return bs_shared_ptr_new<MeshImportOptions>();
 	}
 
 	RTTITypeBase* MeshImportOptions::getRTTIStatic()
 	{
-		return MeshImportOptionsRTTI::instance();
+		return MeshImportOptionsRTTI::Instance();
 	}
 
 	RTTITypeBase* MeshImportOptions::getRTTI() const
 	{
-		return MeshImportOptions::getRTTIStatic();
+		return MeshImportOptions::GetRTTIStatic();
 	}
 }

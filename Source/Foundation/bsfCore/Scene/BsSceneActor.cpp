@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	void SceneActor::setTransform(const Transform& transform)
+	void SceneActor::SetTransform(const Transform& transform)
 	{
 		if (mMobility != ObjectMobility::Movable)
 			return;
@@ -14,13 +14,13 @@ namespace bs
 		_markCoreDirty(ActorDirtyFlag::Transform);
 	}
 
-	void SceneActor::setMobility(ObjectMobility mobility)
+	void SceneActor::SetMobility(ObjectMobility mobility)
 	{
 		mMobility = mobility;
 		_markCoreDirty(ActorDirtyFlag::Mobility);
 	}
 
-	void SceneActor::setActive(bool active)
+	void SceneActor::SetActive(bool active)
 	{
 		mActive = active;
 		_markCoreDirty(ActorDirtyFlag::Active);

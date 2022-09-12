@@ -5,22 +5,22 @@
 
 namespace bs
 {
-	void ShaderDefines::set(const String& name, float value)
+	void ShaderDefines::Set(const String& name, float value)
 	{
 		mDefines[name] = toString(value);
 	}
 
-	void ShaderDefines::set(const String& name, INT32 value)
+	void ShaderDefines::Set(const String& name, INT32 value)
 	{
 		mDefines[name] = toString(value);
 	}
 
-	void ShaderDefines::set(const String& name, UINT32 value)
+	void ShaderDefines::Set(const String& name, UINT32 value)
 	{
 		mDefines[name] = toString(value);
 	}
 
-	void ShaderDefines::set(const String& name, const String& value)
+	void ShaderDefines::Set(const String& name, const String& value)
 	{
 		mDefines[name] = value;
 	}
@@ -33,7 +33,7 @@ namespace bs
 			mParams[entry.name] = entry;
 	}
 
-	INT32 ShaderVariation::getInt(const StringID& name)
+	INT32 ShaderVariation::GetInt(const StringID& name)
 	{
 		auto iterFind = mParams.find(name);
 		if (iterFind == mParams.end())
@@ -42,7 +42,7 @@ namespace bs
 			return iterFind->second.i;
 	}
 
-	UINT32 ShaderVariation::getUInt(const StringID& name)
+	UINT32 ShaderVariation::GetUInt(const StringID& name)
 	{
 		auto iterFind = mParams.find(name);
 		if (iterFind == mParams.end())
@@ -51,7 +51,7 @@ namespace bs
 			return iterFind->second.ui;
 	}
 
-	float ShaderVariation::getFloat(const StringID& name)
+	float ShaderVariation::GetFloat(const StringID& name)
 	{
 		auto iterFind = mParams.find(name);
 		if (iterFind == mParams.end())
@@ -60,7 +60,7 @@ namespace bs
 			return iterFind->second.f;
 	}
 
-	bool ShaderVariation::getBool(const StringID& name)
+	bool ShaderVariation::GetBool(const StringID& name)
 	{
 		auto iterFind = mParams.find(name);
 		if (iterFind == mParams.end())
@@ -69,27 +69,27 @@ namespace bs
 			return iterFind->second.i > 0 ? true : false;
 	}
 
-	void ShaderVariation::setInt(const StringID& name, INT32 value)
+	void ShaderVariation::SetInt(const StringID& name, INT32 value)
 	{
 		addParam(Param(name, value));
 	}
 
-	void ShaderVariation::setUInt(const StringID& name, UINT32 value)
+	void ShaderVariation::SetUInt(const StringID& name, UINT32 value)
 	{
 		addParam(Param(name, value));
 	}
 
-	void ShaderVariation::setFloat(const StringID& name, float value)
+	void ShaderVariation::SetFloat(const StringID& name, float value)
 	{
 		addParam(Param(name, value));
 	}
 
-	void ShaderVariation::setBool(const StringID& name, bool value)
+	void ShaderVariation::SetBool(const StringID& name, bool value)
 	{
 		addParam(Param(name, value));
 	}
 
-	Vector<String> ShaderVariation::getParamNames() const
+	Vector<String> ShaderVariation::GetParamNames() const
 	{
 		Vector<String> params;
 		params.reserve(mParams.size());
@@ -100,7 +100,7 @@ namespace bs
 		return params;
 	}
 
-	ShaderDefines ShaderVariation::getDefines() const
+	ShaderDefines ShaderVariation::GetDefines() const
 	{
 		ShaderDefines defines;
 		for (auto& entry : mParams)
@@ -123,7 +123,7 @@ namespace bs
 		return defines;
 	}
 
-	bool ShaderVariation::matches(const ShaderVariation& other, bool exact) const
+	bool ShaderVariation::Matches(const ShaderVariation& other, bool exact) const
 	{
 		for(auto& entry : other.mParams)
 		{
@@ -156,14 +156,14 @@ namespace bs
 		return Matches(rhs, true);
 	}
 
-	void ShaderVariations::add(const ShaderVariation& variation)
+	void ShaderVariations::Add(const ShaderVariation& variation)
 	{
 		variation.mIdx = mNextIdx++;
 
 		mVariations.add(variation);
 	}
 	
-	UINT32 ShaderVariations::find(const ShaderVariation& variation) const
+	UINT32 ShaderVariations::Find(const ShaderVariation& variation) const
 	{
 		UINT32 idx = 0;
 		for(auto& entry : mVariations)
@@ -179,12 +179,12 @@ namespace bs
 	
 	RTTITypeBase* ShaderVariation::getRTTIStatic()
 	{
-		return ShaderVariationRTTI::instance();
+		return ShaderVariationRTTI::Instance();
 	}
 
 	RTTITypeBase* ShaderVariation::getRTTI() const
 	{
-		return ShaderVariation::getRTTIStatic();
+		return ShaderVariation::GetRTTIStatic();
 	}
 
 	// This is here to solve a linking issue on Clang 7. The destructor apparently either doesn't get implicitly

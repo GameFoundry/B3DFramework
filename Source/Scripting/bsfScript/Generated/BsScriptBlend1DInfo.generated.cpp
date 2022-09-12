@@ -13,20 +13,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptBlend1DInfo::initRuntimeData()
+	void ScriptBlend1DInfo::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptBlend1DInfo::box(const __Blend1DInfoInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__Blend1DInfoInterop ScriptBlend1DInfo::unbox(MonoObject* value)
+	__Blend1DInfoInterop ScriptBlend1DInfo::Unbox(MonoObject* value)
 	{
 		return *(__Blend1DInfoInterop*)MonoUtil::unbox(value);
 	}
 
-	Blend1DInfo ScriptBlend1DInfo::fromInterop(const __Blend1DInfoInterop& value)
+	Blend1DInfo ScriptBlend1DInfo::FromInterop(const __Blend1DInfoInterop& value)
 	{
 		Blend1DInfo output;
 		Vector<BlendClipInfo> vecclips;
@@ -44,7 +44,7 @@ namespace bs
 		return output;
 	}
 
-	__Blend1DInfoInterop ScriptBlend1DInfo::toInterop(const Blend1DInfo& value)
+	__Blend1DInfoInterop ScriptBlend1DInfo::ToInterop(const Blend1DInfo& value)
 	{
 		__Blend1DInfoInterop output;
 		int arraySizeclips = (int)value.clips.size();

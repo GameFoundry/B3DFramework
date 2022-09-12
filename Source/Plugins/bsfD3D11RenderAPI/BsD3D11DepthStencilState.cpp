@@ -19,7 +19,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_DepthStencilState);
 	}
 
-	void D3D11DepthStencilState::createInternal()
+	void D3D11DepthStencilState::CreateInternal()
 	{
 		D3D11_DEPTH_STENCIL_DESC depthStencilState;
 		ZeroMemory(&depthStencilState, sizeof(D3D11_DEPTH_STENCIL_DESC));

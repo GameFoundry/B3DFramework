@@ -13,7 +13,7 @@ namespace bs
 	const UINT32 ShapeMeshes2D::NUM_VERTICES_AA_LINE = 4;
 	const UINT32 ShapeMeshes2D::NUM_INDICES_AA_LINE = 6;
 
-	void ShapeMeshes2D::solidQuad(const Rect2& area, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
+	void ShapeMeshes2D::SolidQuad(const Rect2& area, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
 		UINT32* indexData = meshData->getIndices32();
 		UINT8* positionData = meshData->getElementData(VES_POSITION);
@@ -30,7 +30,7 @@ namespace bs
 		pixelSolidPolygon(points, positionData, vertexOffset, meshData->getVertexDesc()->getVertexStride(), indexData, indexOffset);
 	}
 
-	void ShapeMeshes2D::pixelLine(const Vector2& a, const Vector2& b, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
+	void ShapeMeshes2D::PixelLine(const Vector2& a, const Vector2& b, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
 		UINT32* indexData = meshData->getIndices32();
 		UINT8* positionData = meshData->getElementData(VES_POSITION);
@@ -48,7 +48,7 @@ namespace bs
 		quadLineList(linePoints, width, border, color, meshData, vertexOffset, indexOffset);
 	}
 
-	void ShapeMeshes2D::pixelLineList(const Vector<Vector2>& linePoints, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
+	void ShapeMeshes2D::PixelLineList(const Vector<Vector2>& linePoints, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
 		assert(linePoints.size() % 2 == 0);
 

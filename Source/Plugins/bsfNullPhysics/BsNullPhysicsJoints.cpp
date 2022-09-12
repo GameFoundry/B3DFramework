@@ -9,7 +9,7 @@ namespace bs
 		:FJoint(desc), mDesc(desc)
 	{ }
 
-	void FNullPhysicsJoint::setTransform(JointBody body, const Vector3& position, const Quaternion& rotation)
+	void FNullPhysicsJoint::SetTransform(JointBody body, const Vector3& position, const Quaternion& rotation)
 	{
 		mDesc.bodies[(int)body].position = position;
 		mDesc.bodies[(int)body].rotation = rotation;
@@ -26,13 +26,13 @@ namespace bs
 		bs_delete(mInternal);
 	}
 
-	void NullPhysicsD6Joint::setDriveTransform(const Vector3& position, const Quaternion& rotation)
+	void NullPhysicsD6Joint::SetDriveTransform(const Vector3& position, const Quaternion& rotation)
 	{
 		mDesc.drivePosition = position;
 		mDesc.driveRotation = rotation;
 	}
 
-	void NullPhysicsD6Joint::setDriveVelocity(const Vector3& linear, const Vector3& angular)
+	void NullPhysicsD6Joint::SetDriveVelocity(const Vector3& linear, const Vector3& angular)
 	{
 		mDesc.driveLinearVelocity = linear;
 		mDesc.driveAngularVelocity = angular;
@@ -49,7 +49,7 @@ namespace bs
 		bs_delete(mInternal);
 	}
 
-	void NullPhysicsDistanceJoint::setFlag(DistanceJointFlag flag, bool enabled)
+	void NullPhysicsDistanceJoint::SetFlag(DistanceJointFlag flag, bool enabled)
 	{
 		int flags = (int)mDesc.flag;
 		int newFlag = (int)flag;
@@ -62,7 +62,7 @@ namespace bs
 		mDesc.flag = (DistanceJointFlag)flags;
 	}
 
-	bool NullPhysicsDistanceJoint::hasFlag(DistanceJointFlag flag) const
+	bool NullPhysicsDistanceJoint::HasFlag(DistanceJointFlag flag) const
 	{
 		return ((int)mDesc.flag & (int)flag) != 0;
 	}
@@ -89,7 +89,7 @@ namespace bs
 		bs_delete(mInternal);
 	}
 
-	void NullPhysicsHingeJoint::setFlag(HingeJointFlag flag, bool enabled)
+	void NullPhysicsHingeJoint::SetFlag(HingeJointFlag flag, bool enabled)
 	{
 		int flags = (int)mDesc.flag;
 		int newFlag = (int)flag;
@@ -102,7 +102,7 @@ namespace bs
 		mDesc.flag = (HingeJointFlag)flags;
 	}
 
-	bool NullPhysicsHingeJoint::hasFlag(HingeJointFlag flag) const
+	bool NullPhysicsHingeJoint::HasFlag(HingeJointFlag flag) const
 	{
 		return ((int)mDesc.flag & (int)flag) != 0;
 	}
@@ -118,7 +118,7 @@ namespace bs
 		bs_delete(mInternal);
 	}
 
-	void NullPhysicsSliderJoint::setFlag(SliderJointFlag flag, bool enabled)
+	void NullPhysicsSliderJoint::SetFlag(SliderJointFlag flag, bool enabled)
 	{
 		int flags = (int)mDesc.flag;
 		int newFlag = (int)flag;
@@ -131,7 +131,7 @@ namespace bs
 		mDesc.flag = (SliderJointFlag)flags;
 	}
 
-	bool NullPhysicsSliderJoint::hasFlag(SliderJointFlag flag) const
+	bool NullPhysicsSliderJoint::HasFlag(SliderJointFlag flag) const
 	{
 		return ((int)mDesc.flag & (int)flag) != 0;
 	}
@@ -147,7 +147,7 @@ namespace bs
 		bs_delete(mInternal);
 	}
 
-	void NullPhysicsSphericalJoint::setFlag(SphericalJointFlag flag, bool enabled)
+	void NullPhysicsSphericalJoint::SetFlag(SphericalJointFlag flag, bool enabled)
 	{
 		int flags = (int)mDesc.flag;
 		int newFlag = (int)flag;
@@ -160,7 +160,7 @@ namespace bs
 		mDesc.flag = (SphericalJointFlag)flags;
 	}
 
-	bool NullPhysicsSphericalJoint::hasFlag(SphericalJointFlag flag) const
+	bool NullPhysicsSphericalJoint::HasFlag(SphericalJointFlag flag) const
 	{
 		return ((int)mDesc.flag & (int)flag) != 0;
 	}

@@ -194,7 +194,7 @@ namespace bs
 		mAlloc.clear();
 	}
 
-	const ColorGradientHDR& MaterialParamsBase::getColorGradientParam(const String& name, UINT32 arrayIdx) const
+	const ColorGradientHDR& MaterialParamsBase::GetColorGradientParam(const String& name, UINT32 arrayIdx) const
 	{
 		static ColorGradientHDR EMPTY_GRADIENT;
 
@@ -206,7 +206,7 @@ namespace bs
 		return GetColorGradientParam(*param, arrayIdx);
 	}
 
-	void MaterialParamsBase::setColorGradientParam(const String& name, UINT32 arrayIdx, const ColorGradientHDR& input) const
+	void MaterialParamsBase::SetColorGradientParam(const String& name, UINT32 arrayIdx, const ColorGradientHDR& input) const
 	{
 		const ParamData* param = nullptr;
 		auto result = getParamData(name, ParamType::Data, GPDT_COLOR, arrayIdx, &param);
@@ -216,7 +216,7 @@ namespace bs
 		setColorGradientParam(*param, arrayIdx, input);
 	}
 
-	const ColorGradientHDR& MaterialParamsBase::getColorGradientParam(const ParamData& param, UINT32 arrayIdx) const
+	const ColorGradientHDR& MaterialParamsBase::GetColorGradientParam(const ParamData& param, UINT32 arrayIdx) const
 	{
 		const DataParamInfo& paramInfo = mDataParams[param.index + arrayIdx];
 		if (paramInfo.colorGradient)
@@ -226,7 +226,7 @@ namespace bs
 		return EMPTY_GRADIENT;
 	}
 
-	void MaterialParamsBase::setColorGradientParam(const ParamData& param, UINT32 arrayIdx, const ColorGradientHDR& input) const
+	void MaterialParamsBase::SetColorGradientParam(const ParamData& param, UINT32 arrayIdx, const ColorGradientHDR& input) const
 	{
 		DataParamInfo& paramInfo = mDataParams[param.index + arrayIdx];
 		if (paramInfo.colorGradient)
@@ -237,7 +237,7 @@ namespace bs
 		param.version = ++mParamVersion;
 	}
 
-	UINT32 MaterialParamsBase::getParamIndex(const String& name) const
+	UINT32 MaterialParamsBase::GetParamIndex(const String& name) const
 	{
 		auto iterFind = mParamLookup.find(name);
 		if (iterFind == mParamLookup.end())
@@ -286,7 +286,7 @@ namespace bs
 		return GetParamResult::Success;
 	}
 
-	void MaterialParamsBase::reportGetParamError(GetParamResult errorCode, const String& name, UINT32 arrayIdx) const
+	void MaterialParamsBase::ReportGetParamError(GetParamResult errorCode, const String& name, UINT32 arrayIdx) const
 	{
 		switch (errorCode)
 		{
@@ -306,7 +306,7 @@ namespace bs
 
 	RTTITypeBase* MaterialParamStructData::getRTTIStatic()
 	{
-		return MaterialParamStructDataRTTI::instance();
+		return MaterialParamStructDataRTTI::Instance();
 	}
 
 	RTTITypeBase* MaterialParamStructData::getRTTI() const
@@ -316,7 +316,7 @@ namespace bs
 
 	RTTITypeBase* MaterialParamTextureData::getRTTIStatic()
 	{
-		return MaterialParamTextureDataRTTI::instance();
+		return MaterialParamTextureDataRTTI::Instance();
 	}
 
 	RTTITypeBase* MaterialParamTextureData::getRTTI() const
@@ -800,7 +800,7 @@ namespace bs
 		:TMaterialParams(shader, initialParamVersion), mLastSyncVersion(1)
 	{ }
 
-	void MaterialParams::getSyncData(UINT8* buffer, UINT32& size, bool forceAll)
+	void MaterialParams::GetSyncData(UINT8* buffer, UINT32& size, bool forceAll)
 	{
 		// Note: Not syncing struct data
 
@@ -1059,7 +1059,7 @@ namespace bs
 		mLastSyncVersion = mParamVersion;
 	}
 
-	void MaterialParams::getResourceDependencies(Vector<HResource>& resources)
+	void MaterialParams::GetResourceDependencies(Vector<HResource>& resources)
 	{
 		for (UINT32 i = 0; i < (UINT32)mParams.size(); i++)
 		{
@@ -1076,7 +1076,7 @@ namespace bs
 		}
 	}
 
-	void MaterialParams::getCoreObjectDependencies(Vector<CoreObject*>& coreObjects)
+	void MaterialParams::GetCoreObjectDependencies(Vector<CoreObject*>& coreObjects)
 	{
 		for (UINT32 i = 0; i < (UINT32)mParams.size(); i++)
 		{
@@ -1120,12 +1120,12 @@ namespace bs
 
 	RTTITypeBase* MaterialParams::getRTTIStatic()
 	{
-		return MaterialParamsRTTI::instance();
+		return MaterialParamsRTTI::Instance();
 	}
 
 	RTTITypeBase* MaterialParams::getRTTI() const
 	{
-		return MaterialParams::getRTTIStatic();
+		return MaterialParams::GetRTTIStatic();
 	}
 
 	namespace ct
@@ -1219,7 +1219,7 @@ namespace bs
 		}
 	}
 
-	void MaterialParams::setSyncData(UINT8* buffer, UINT32 size)
+	void MaterialParams::SetSyncData(UINT8* buffer, UINT32 size)
 	{
 		Bitstream Stream((uint8_t*)buffer, size);
 

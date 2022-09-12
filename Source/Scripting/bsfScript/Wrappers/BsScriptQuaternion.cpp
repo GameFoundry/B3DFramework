@@ -11,16 +11,16 @@ namespace bs
 		:ScriptObject(instance)
 	{ }
 
-	void ScriptQuaternion::initRuntimeData()
+	void ScriptQuaternion::InitRuntimeData()
 	{ }
 
 	MonoObject* ScriptQuaternion::box(const Quaternion& value)
 	{
 		// We're casting away const but it's fine since structs are passed by value anyway
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	Quaternion ScriptQuaternion::unbox(MonoObject* obj)
+	Quaternion ScriptQuaternion::Unbox(MonoObject* obj)
 	{
 		return *(Quaternion*)MonoUtil::unbox(obj);
 	}

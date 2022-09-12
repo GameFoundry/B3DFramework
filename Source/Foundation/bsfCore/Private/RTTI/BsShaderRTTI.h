@@ -492,7 +492,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return Shader::createEmpty();
+			return Shader::CreateEmpty();
 		}
 	};
 

@@ -12,7 +12,7 @@ namespace bs
 
 	}
 
-	Radian Vector3::angleBetween(const Vector3& dest) const
+	Radian Vector3::AngleBetween(const Vector3& dest) const
 	{
 		float lenProduct = length() * dest.length();
 
@@ -23,12 +23,12 @@ namespace bs
 		float f = dot(dest) / lenProduct;
 
 		f = Math::clamp(f, -1.0f, 1.0f);
-		return Math::acos(f);
+		return Math::Acos(f);
 	}
 
-	bool Vector3::isNaN() const
+	bool Vector3::IsNaN() const
 	{
-		return Math::isNaN(x) || Math::isNaN(y) || Math::isNaN(z);
+		return Math::IsNaN(x) || Math::isNaN(y) || Math::isNaN(z);
 	}
 
 	const Vector3 Vector3::ZERO{BS_ZERO()};

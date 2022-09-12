@@ -8,7 +8,7 @@ namespace bs
 	Radian::Radian (const Degree& d) : mRad(d.valueRadians())
 	{ }
 
-	Radian Radian::wrap()
+	Radian Radian::Wrap()
 	{
 		mRad = fmod(mRad, Math::TWO_PI);
 
@@ -46,7 +46,7 @@ namespace bs
 		return *this;
 	}
 
-	float Radian::valueDegrees() const
+	float Radian::ValueDegrees() const
 	{
 		return mRad * Math::RAD2DEG;
 	}

@@ -31,7 +31,7 @@ namespace bs
 		:ScriptObject(instance)
 	{ }
 
-	void ScriptInput::initRuntimeData()
+	void ScriptInput::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_IsButtonHeld", (void*)&ScriptInput::internal_isButtonHeld);
 		metaData.scriptClass->addInternalCall("Internal_IsButtonDown", (void*)&ScriptInput::internal_isButtonDown);
@@ -53,7 +53,7 @@ namespace bs
 		OnPointerDoubleClickThunk = (OnPointerEventThunkDef)metaData.scriptClass->getMethodExact("Internal_TriggerPointerDoubleClick", "Vector2I,Vector2I,PointerButton,bool,bool,bool,single,bool")->getThunk();
 	}
 
-	void ScriptInput::startUp()
+	void ScriptInput::StartUp()
 	{
 		Input& input = Input::instance();
 
@@ -66,7 +66,7 @@ namespace bs
 		OnPointerDoubleClickConn = input.onPointerDoubleClick.connect(&ScriptInput::onPointerDoubleClick);
 	}
 
-	void ScriptInput::shutDown()
+	void ScriptInput::ShutDown()
 	{
 		OnButtonPressedConn.disconnect();
 		OnButtonReleasedConn.disconnect();
@@ -77,7 +77,7 @@ namespace bs
 		OnPointerDoubleClickConn.disconnect();
 	}
 
-	void ScriptInput::onButtonDown(const ButtonEvent& ev)
+	void ScriptInput::OnButtonDown(const ButtonEvent& ev)
 	{
 		if (PlayInEditor::instance().getState() != PlayInEditorState::Playing)
 			return;
@@ -85,7 +85,7 @@ namespace bs
 		MonoUtil::invokeThunk(OnButtonPressedThunk, ev.buttonCode, ev.deviceIdx, ev.isUsed());
 	}
 
-	void ScriptInput::onButtonUp(const ButtonEvent& ev)
+	void ScriptInput::OnButtonUp(const ButtonEvent& ev)
 	{
 		if (PlayInEditor::instance().getState() != PlayInEditorState::Playing)
 			return;
@@ -93,7 +93,7 @@ namespace bs
 		MonoUtil::invokeThunk(OnButtonReleasedThunk, ev.buttonCode, ev.deviceIdx, ev.isUsed());
 	}
 
-	void ScriptInput::onCharInput(const TextInputEvent& ev)
+	void ScriptInput::OnCharInput(const TextInputEvent& ev)
 	{
 		if (PlayInEditor::instance().getState() != PlayInEditorState::Playing)
 			return;
@@ -101,7 +101,7 @@ namespace bs
 		MonoUtil::invokeThunk(OnCharInputThunk, ev.textChar, ev.isUsed());
 	}
 
-	void ScriptInput::onPointerMoved(const PointerEvent& ev)
+	void ScriptInput::OnPointerMoved(const PointerEvent& ev)
 	{
 		if (PlayInEditor::instance().getState() != PlayInEditorState::Playing)
 			return;
@@ -113,7 +113,7 @@ namespace bs
 			ev.button, ev.shift, ev.control, ev.alt, ev.mouseWheelScrollAmount, ev.isUsed());
 	}
 
-	void ScriptInput::onPointerPressed(const PointerEvent& ev)
+	void ScriptInput::OnPointerPressed(const PointerEvent& ev)
 	{
 		if (PlayInEditor::instance().getState() != PlayInEditorState::Playing)
 			return;
@@ -125,7 +125,7 @@ namespace bs
 			ev.button, ev.shift, ev.control, ev.alt, ev.mouseWheelScrollAmount, ev.isUsed());
 	}
 
-	void ScriptInput::onPointerReleased(const PointerEvent& ev)
+	void ScriptInput::OnPointerReleased(const PointerEvent& ev)
 	{
 		if (PlayInEditor::instance().getState() != PlayInEditorState::Playing)
 			return;
@@ -137,7 +137,7 @@ namespace bs
 			ev.button, ev.shift, ev.control, ev.alt, ev.mouseWheelScrollAmount, ev.isUsed());
 	}
 
-	void ScriptInput::onPointerDoubleClick(const PointerEvent& ev)
+	void ScriptInput::OnPointerDoubleClick(const PointerEvent& ev)
 	{
 		if (PlayInEditor::instance().getState() != PlayInEditorState::Playing)
 			return;
@@ -151,42 +151,42 @@ namespace bs
 
 	bool ScriptInput::internal_isButtonHeld(ButtonCode code, UINT32 deviceIdx)
 	{
-		return Input::instance().isButtonHeld(code, deviceIdx);
+		return Input::Instance().isButtonHeld(code, deviceIdx);
 	}
 
 	bool ScriptInput::internal_isButtonDown(ButtonCode code, UINT32 deviceIdx)
 	{
-		return Input::instance().isButtonDown(code, deviceIdx);
+		return Input::Instance().isButtonDown(code, deviceIdx);
 	}
 
 	bool ScriptInput::internal_isButtonUp(ButtonCode code, UINT32 deviceIdx)
 	{
-		return Input::instance().isButtonUp(code, deviceIdx);
+		return Input::Instance().isButtonUp(code, deviceIdx);
 	}
 
 	bool ScriptInput::internal_isPointerButtonHeld(PointerEventButton code)
 	{
-		return Input::instance().isPointerButtonHeld(code);
+		return Input::Instance().isPointerButtonHeld(code);
 	}
 
 	bool ScriptInput::internal_isPointerButtonDown(PointerEventButton code)
 	{
-		return Input::instance().isPointerButtonDown(code);
+		return Input::Instance().isPointerButtonDown(code);
 	}
 
 	bool ScriptInput::internal_isPointerButtonUp(PointerEventButton code)
 	{
-		return Input::instance().isPointerButtonUp(code);
+		return Input::Instance().isPointerButtonUp(code);
 	}
 
 	bool ScriptInput::internal_isPointerDoubleClicked()
 	{
-		return Input::instance().isPointerDoubleClicked();
+		return Input::Instance().isPointerDoubleClicked();
 	}
 
 	float ScriptInput::internal_getAxisValue(UINT32 axisType, UINT32 deviceIdx)
 	{
-		return Input::instance().getAxisValue(axisType, deviceIdx);
+		return Input::Instance().getAxisValue(axisType, deviceIdx);
 	}
 
 	void ScriptInput::internal_getPointerPosition(Vector2I* position)

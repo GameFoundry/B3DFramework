@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	SPtr<GpuProgram> GpuProgramManager::create(const GPU_PROGRAM_DESC& desc)
+	SPtr<GpuProgram> GpuProgramManager::Create(const GPU_PROGRAM_DESC& desc)
 	{
 		GpuProgram* program = new (bs_alloc<GpuProgram>()) GpuProgram(desc);
 		SPtr<GpuProgram> ret = bs_core_ptr<GpuProgram>(program);
@@ -15,7 +15,7 @@ namespace bs
 		return ret;
 	}
 
-	SPtr<GpuProgram> GpuProgramManager::createEmpty(const String& language, GpuProgramType type)
+	SPtr<GpuProgram> GpuProgramManager::CreateEmpty(const String& language, GpuProgramType type)
 	{
 		GPU_PROGRAM_DESC desc;
 		desc.language = language;
@@ -45,7 +45,7 @@ namespace bs
 		bool IsSupported() const override { return false; }
 	};
 
-	SPtr<GpuProgram> NullProgramFactory::create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+	SPtr<GpuProgram> NullProgramFactory::Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 	{
 		SPtr<NullProgram> ret = bs_shared_ptr_new<NullProgram>();
 		ret->_setThisPtr(ret);
@@ -53,7 +53,7 @@ namespace bs
 		return ret;
 	}
 
-	SPtr<GpuProgram> NullProgramFactory::create(GpuProgramType type, GpuDeviceFlags deviceMask)
+	SPtr<GpuProgram> NullProgramFactory::Create(GpuProgramType type, GpuDeviceFlags deviceMask)
 	{
 		SPtr<NullProgram> ret = bs_shared_ptr_new<NullProgram>();
 		ret->_setThisPtr(ret);
@@ -61,7 +61,7 @@ namespace bs
 		return ret;
 	}
 
-	SPtr<GpuProgramBytecode> NullProgramFactory::compileBytecode(const GPU_PROGRAM_DESC& desc)
+	SPtr<GpuProgramBytecode> NullProgramFactory::CompileBytecode(const GPU_PROGRAM_DESC& desc)
 	{
 		auto bytecode = bs_shared_ptr_new<GpuProgramBytecode>();
 		bytecode->compilerId = "Null";
@@ -80,14 +80,14 @@ namespace bs
 		bs_delete((NullProgramFactory*)mNullFactory);
 	}
 
-	void GpuProgramManager::addFactory(const String& language, GpuProgramFactory* factory)
+	void GpuProgramManager::AddFactory(const String& language, GpuProgramFactory* factory)
 	{
 		Lock Lock(mMutex);
 
 		mFactories[language] = factory;
 	}
 
-	void GpuProgramManager::removeFactory(const String& language)
+	void GpuProgramManager::RemoveFactory(const String& language)
 	{
 		Lock Lock(mMutex);
 
@@ -105,7 +105,7 @@ namespace bs
 		return iter->second;
 	}
 
-	bool GpuProgramManager::isLanguageSupported(const String& lang)
+	bool GpuProgramManager::IsLanguageSupported(const String& lang)
 	{
 		Lock Lock(mMutex);
 
@@ -113,7 +113,7 @@ namespace bs
 		return iter != mFactories.end();
 	}
 
-	SPtr<GpuProgram> GpuProgramManager::create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+	SPtr<GpuProgram> GpuProgramManager::Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 	{
 		SPtr<GpuProgram> ret = createInternal(desc, deviceMask);
 		ret->initialize();
@@ -121,7 +121,7 @@ namespace bs
 		return ret;
 	}
 
-	SPtr<GpuProgram> GpuProgramManager::createInternal(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+	SPtr<GpuProgram> GpuProgramManager::CreateInternal(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 	{
 		GpuProgramFactory* factory = getFactory(desc.language);
 		SPtr<GpuProgram> ret = factory->create(desc, deviceMask);
@@ -129,7 +129,7 @@ namespace bs
 		return ret;
 	}
 
-	SPtr<GpuProgramBytecode> GpuProgramManager::compileBytecode(const GPU_PROGRAM_DESC& desc)
+	SPtr<GpuProgramBytecode> GpuProgramManager::CompileBytecode(const GPU_PROGRAM_DESC& desc)
 	{
 		GpuProgramFactory* factory = getFactory(desc.language);
 		return factory->compileBytecode(desc);

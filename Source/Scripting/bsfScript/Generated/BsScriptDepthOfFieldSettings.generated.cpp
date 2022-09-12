@@ -16,7 +16,7 @@ namespace bs
 	{
 	}
 
-	void ScriptDepthOfFieldSettings::initRuntimeData()
+	void ScriptDepthOfFieldSettings::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_DepthOfFieldSettings", (void*)&ScriptDepthOfFieldSettings::Internal_DepthOfFieldSettings);
 		metaData.scriptClass->addInternalCall("Internal_getbokehShape", (void*)&ScriptDepthOfFieldSettings::Internal_getbokehShape);

@@ -34,7 +34,7 @@ namespace bs
 		mAssetImporters.clear();
 	}
 
-	bool Importer::supportsFileType(const String& extension) const
+	bool Importer::SupportsFileType(const String& extension) const
 	{
 		for(auto iter = mAssetImporters.begin(); iter != mAssetImporters.end(); ++iter)
 		{
@@ -45,7 +45,7 @@ namespace bs
 		return false;
 	}
 
-	bool Importer::supportsFileType(const UINT8* magicNumber, UINT32 magicNumSize) const
+	bool Importer::SupportsFileType(const UINT8* magicNumber, UINT32 magicNumSize) const
 	{
 		for(auto iter = mAssetImporters.begin(); iter != mAssetImporters.end(); ++iter)
 		{
@@ -56,7 +56,7 @@ namespace bs
 		return false;
 	}
 
-	HResource Importer::import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions, const UUID& UUID)
+	HResource Importer::Import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions, const UUID& UUID)
 	{
 		SPtr<Resource> importedResource = _import(inputFilePath, importOptions);
 
@@ -82,7 +82,7 @@ namespace bs
 		return output;
 	}
 
-	SPtr<MultiResource> Importer::importAll(const Path& inputFilePath, SPtr<const ImportOptions> importOptions)
+	SPtr<MultiResource> Importer::ImportAll(const Path& inputFilePath, SPtr<const ImportOptions> importOptions)
 	{
 		Vector<SubResource> output;
 
@@ -188,7 +188,7 @@ namespace bs
 		return importer;
 	}
 
-	UINT64 Importer::waitForAsync(SpecificImporter* importer)
+	UINT64 Importer::WaitForAsync(SpecificImporter* importer)
 	{
 		UINT64 taskId = 0;
 
@@ -307,7 +307,7 @@ namespace bs
 	template void Importer::queueForImport(SpecificImporter*, const Path&, const SPtr<const ImportOptions>&, const UUID&,
 		TAsyncOp<SPtr<MultiResource>>&);
 
-	SPtr<ImportOptions> Importer::createImportOptions(const Path& inputFilePath)
+	SPtr<ImportOptions> Importer::CreateImportOptions(const Path& inputFilePath)
 	{
 		if(!FileSystem::isFile(inputFilePath))
 		{
@@ -359,6 +359,6 @@ namespace bs
 
 	BS_CORE_EXPORT Importer& GImporter()
 	{
-		return Importer::instance();
+		return Importer::Instance();
 	}
 }

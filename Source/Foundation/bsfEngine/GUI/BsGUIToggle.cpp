@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	const String& GUIToggle::getGUITypeName()
+	const String& GUIToggle::GetGUITypeName()
 	{
 		static String name = "Toggle";
 		return name;
@@ -71,7 +71,7 @@ namespace bs
 		return new (bs_alloc<GUIToggle>()) GUIToggle(getStyleName<GUIToggle>(styleName), content, toggleGroup, GUIDimensions::create(options));
 	}
 
-	SPtr<GUIToggleGroup> GUIToggle::createToggleGroup(bool allowAllOff)
+	SPtr<GUIToggleGroup> GUIToggle::CreateToggleGroup(bool allowAllOff)
 	{
 		SPtr<GUIToggleGroup> toggleGroup = bs_shared_ptr<GUIToggleGroup>(new (bs_alloc<GUIToggleGroup>()) GUIToggleGroup(allowAllOff));
 		toggleGroup->initialize(toggleGroup);

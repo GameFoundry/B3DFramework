@@ -99,7 +99,7 @@ namespace bs { namespace ct
 		desc.usage = GBU_LOADSTORE;
 		desc.type = GBT_STANDARD;
 
-		return GpuBuffer::create(desc);
+		return GpuBuffer::Create(desc);
 	}
 
 	RadixSortClearMat::RadixSortClearMat()
@@ -112,7 +112,7 @@ namespace bs { namespace ct
 		initCommonDefines(defines);
 	}
 
-	void RadixSortClearMat::execute(const SPtr<GpuBuffer>& outputOffsets)
+	void RadixSortClearMat::Execute(const SPtr<GpuBuffer>& outputOffsets)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
@@ -211,7 +211,7 @@ namespace bs { namespace ct
 		mHelperBuffers[1] = createHelperBuffer();
 	}
 
-	UINT32 GpuSort::sort(const GpuSortBuffers& buffers, UINT32 numKeys, UINT32 keyMask)
+	UINT32 GpuSort::Sort(const GpuSortBuffers& buffers, UINT32 numKeys, UINT32 keyMask)
 	{
 		// Nothing to do if no input or output key buffers
 		if(buffers.keys[0] == nullptr || buffers.keys[1] == nullptr)
@@ -277,7 +277,7 @@ namespace bs { namespace ct
 		return inputBufferIdx;
 	}
 
-	GpuSortBuffers GpuSort::createSortBuffers(UINT32 numElements, bool values)
+	GpuSortBuffers GpuSort::CreateSortBuffers(UINT32 numElements, bool values)
 	{
 		GpuSortBuffers output;
 

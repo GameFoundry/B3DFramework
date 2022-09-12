@@ -21,7 +21,7 @@ namespace bs
 		:ScriptObject(nullptr)
 	{ }
 
-	void ScriptGUILayoutUtility::initRuntimeData()
+	void ScriptGUILayoutUtility::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CalculateOptimalSize", (void*)&ScriptGUILayoutUtility::internal_CalculateOptimalSize);
 		metaData.scriptClass->addInternalCall("Internal_CalculateBounds", (void*)&ScriptGUILayoutUtility::internal_CalculateBounds);

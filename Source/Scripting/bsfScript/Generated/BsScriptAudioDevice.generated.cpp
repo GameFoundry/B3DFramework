@@ -11,20 +11,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptAudioDevice::initRuntimeData()
+	void ScriptAudioDevice::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptAudioDevice::box(const __AudioDeviceInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__AudioDeviceInterop ScriptAudioDevice::unbox(MonoObject* value)
+	__AudioDeviceInterop ScriptAudioDevice::Unbox(MonoObject* value)
 	{
 		return *(__AudioDeviceInterop*)MonoUtil::unbox(value);
 	}
 
-	AudioDevice ScriptAudioDevice::fromInterop(const __AudioDeviceInterop& value)
+	AudioDevice ScriptAudioDevice::FromInterop(const __AudioDeviceInterop& value)
 	{
 		AudioDevice output;
 		String tmpname;
@@ -34,7 +34,7 @@ namespace bs
 		return output;
 	}
 
-	__AudioDeviceInterop ScriptAudioDevice::toInterop(const AudioDevice& value)
+	__AudioDeviceInterop ScriptAudioDevice::ToInterop(const AudioDevice& value)
 	{
 		__AudioDeviceInterop output;
 		MonoString* tmpname;

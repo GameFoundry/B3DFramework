@@ -20,7 +20,7 @@ namespace bs
 		gOAAudio()._unregisterSource(this);
 	}
 
-	void OAAudioSource::setClip(const HAudioClip& clip)
+	void OAAudioSource::SetClip(const HAudioClip& clip)
 	{
 		stop();
 
@@ -30,7 +30,7 @@ namespace bs
 		applyClip();
 	}
 
-	void OAAudioSource::setTransform(const Transform& transform)
+	void OAAudioSource::SetTransform(const Transform& transform)
 	{
 		AudioSource::setTransform(transform);
 
@@ -51,7 +51,7 @@ namespace bs
 		}
 	}
 
-	void OAAudioSource::setVelocity(const Vector3& velocity)
+	void OAAudioSource::SetVelocity(const Vector3& velocity)
 	{
 		AudioSource::setVelocity(velocity);
 
@@ -69,7 +69,7 @@ namespace bs
 		}
 	}
 
-	void OAAudioSource::setVolume(float volume)
+	void OAAudioSource::SetVolume(float volume)
 	{
 		AudioSource::setVolume(volume);
 
@@ -84,7 +84,7 @@ namespace bs
 		}
 	}
 
-	void OAAudioSource::setPitch(float pitch)
+	void OAAudioSource::SetPitch(float pitch)
 	{
 		AudioSource::setPitch(pitch);
 
@@ -99,7 +99,7 @@ namespace bs
 		}		
 	}
 
-	void OAAudioSource::setIsLooping(bool loop)
+	void OAAudioSource::SetIsLooping(bool loop)
 	{
 		AudioSource::setIsLooping(loop);
 
@@ -118,14 +118,14 @@ namespace bs
 		}
 	}
 
-	void OAAudioSource::setPriority(INT32 priority)
+	void OAAudioSource::SetPriority(INT32 priority)
 	{
 		AudioSource::setPriority(priority);
 
 		// Do nothing, OpenAL doesn't support priorities (perhaps emulate the behaviour by manually disabling sources?)
 	}
 
-	void OAAudioSource::setMinDistance(float distance)
+	void OAAudioSource::SetMinDistance(float distance)
 	{
 		AudioSource::setMinDistance(distance);
 
@@ -140,7 +140,7 @@ namespace bs
 		}
 	}
 
-	void OAAudioSource::setAttenuation(float attenuation)
+	void OAAudioSource::SetAttenuation(float attenuation)
 	{
 		AudioSource::setAttenuation(attenuation);
 
@@ -155,7 +155,7 @@ namespace bs
 		}
 	}
 
-	void OAAudioSource::play()
+	void OAAudioSource::Play()
 	{
 		if (mGloballyPaused)
 			return;
@@ -189,7 +189,7 @@ namespace bs
 		}
 	}
 
-	void OAAudioSource::pause()
+	void OAAudioSource::Pause()
 	{
 		auto& contexts = gOAAudio()._getContexts();
 		UINT32 numContexts = (UINT32)contexts.size();
@@ -202,7 +202,7 @@ namespace bs
 		}
 	}
 
-	void OAAudioSource::stop()
+	void OAAudioSource::Stop()
 	{
 		auto& contexts = gOAAudio()._getContexts();
 		UINT32 numContexts = (UINT32)contexts.size();
@@ -226,7 +226,7 @@ namespace bs
 		}
 	}
 
-	void OAAudioSource::setGlobalPause(bool pause)
+	void OAAudioSource::SetGlobalPause(bool pause)
 	{
 		if (mGloballyPaused == pause)
 			return;
@@ -254,7 +254,7 @@ namespace bs
 		}
 	}
 
-	void OAAudioSource::setTime(float time)
+	void OAAudioSource::SetTime(float time)
 	{
 		if (!mAudioClip.isLoaded())
 			return;
@@ -298,7 +298,7 @@ namespace bs
 			pause();
 	}
 
-	float OAAudioSource::getTime() const
+	float OAAudioSource::GetTime() const
 	{
 		Lock Lock(mMutex);
 
@@ -326,7 +326,7 @@ namespace bs
 		}
 	}
 
-	AudioSourceState OAAudioSource::getState() const
+	AudioSourceState OAAudioSource::GetState() const
 	{
 		ALint state;
 		alGetSourcei(mSourceIDs[0], AL_SOURCE_STATE, &state);
@@ -344,7 +344,7 @@ namespace bs
 		}
 	}
 
-	void OAAudioSource::clear()
+	void OAAudioSource::Clear()
 	{
 		mSavedState = getState();
 		mSavedTime = getTime();
@@ -366,7 +366,7 @@ namespace bs
 		mSourceIDs.clear();
 	}
 
-	void OAAudioSource::rebuild()
+	void OAAudioSource::Rebuild()
 	{
 		auto& contexts = gOAAudio()._getContexts();
 		UINT32 numContexts = (UINT32)contexts.size();
@@ -441,7 +441,7 @@ namespace bs
 			pause();
 	}
 
-	void OAAudioSource::startStreaming()
+	void OAAudioSource::StartStreaming()
 	{
 		assert(!mIsStreaming);
 
@@ -452,7 +452,7 @@ namespace bs
 		mIsStreaming = true;
 	}
 
-	void OAAudioSource::stopStreaming()
+	void OAAudioSource::StopStreaming()
 	{
 		assert(mIsStreaming);
 
@@ -477,14 +477,14 @@ namespace bs
 		alDeleteBuffers(StreamBufferCount, mStreamBuffers);
 	}
 
-	void OAAudioSource::stream()
+	void OAAudioSource::Stream()
 	{
 		Lock Lock(mMutex);
 
 		streamUnlocked();
 	}
 
-	void OAAudioSource::streamUnlocked()
+	void OAAudioSource::StreamUnlocked()
 	{
 		AudioDataInfo info;
 		info.bitDepth = mAudioClip->getBitDepth();
@@ -578,7 +578,7 @@ namespace bs
 		}
 	}
 
-	bool OAAudioSource::fillBuffer(UINT32 buffer, AudioDataInfo& info, UINT32 maxNumSamples)
+	bool OAAudioSource::FillBuffer(UINT32 buffer, AudioDataInfo& info, UINT32 maxNumSamples)
 	{
 		UINT32 numRemainingSamples = maxNumSamples - mStreamQueuedPosition;
 		if (numRemainingSamples == 0) // Reached the end
@@ -611,7 +611,7 @@ namespace bs
 		return true;
 	}
 
-	void OAAudioSource::applyClip()
+	void OAAudioSource::ApplyClip()
 	{
 		auto& contexts = gOAAudio()._getContexts();
 		UINT32 numContexts = (UINT32)contexts.size();
@@ -639,7 +639,7 @@ namespace bs
 		setIsLooping(mLoop);
 	}
 
-	void OAAudioSource::onClipChanged()
+	void OAAudioSource::OnClipChanged()
 	{
 		AudioSourceState state = getState();
 		float savedTime = getTime();
@@ -660,7 +660,7 @@ namespace bs
 			pause();
 	}
 
-	bool OAAudioSource::is3D() const
+	bool OAAudioSource::Is3D() const
 	{
 		if (!mAudioClip.isLoaded())
 			return true;
@@ -668,7 +668,7 @@ namespace bs
 		return mAudioClip->is3D();
 	}
 
-	bool OAAudioSource::requiresStreaming() const
+	bool OAAudioSource::RequiresStreaming() const
 	{
 		if (!mAudioClip.isLoaded())
 			return false;

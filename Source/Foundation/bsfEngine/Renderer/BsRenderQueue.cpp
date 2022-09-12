@@ -17,7 +17,7 @@ namespace bs { namespace ct
 
 	}
 
-	void RenderQueue::clear()
+	void RenderQueue::Clear()
 	{
 		mSortableElements.clear();
 		mSortableElementIdx.clear();
@@ -26,7 +26,7 @@ namespace bs { namespace ct
 		mSortedRenderElements.clear();
 	}
 
-	void RenderQueue::add(const RenderElement* element, float distFromCamera, UINT32 techniqueIdx)
+	void RenderQueue::Add(const RenderElement* element, float distFromCamera, UINT32 techniqueIdx)
 	{
 		SPtr<Material> material = element->material;
 		SPtr<Shader> shader = material->getShader();
@@ -71,7 +71,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RenderQueue::sort()
+	void RenderQueue::Sort()
 	{
 		std::function<bool(UINT32, UINT32, const Vector<SortableElement>&)> sortMethod;
 
@@ -147,7 +147,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	bool RenderQueue::elementSorterNoGroup(UINT32 aIdx, UINT32 bIdx, const Vector<SortableElement>& lookup)
+	bool RenderQueue::ElementSorterNoGroup(UINT32 aIdx, UINT32 bIdx, const Vector<SortableElement>& lookup)
 	{
 		const SortableElement& a = lookup[aIdx];
 		const SortableElement& b = lookup[bIdx];
@@ -163,7 +163,7 @@ namespace bs { namespace ct
 		return isHigher > isLower;
 	}
 
-	bool RenderQueue::elementSorterPreferGroup(UINT32 aIdx, UINT32 bIdx, const Vector<SortableElement>& lookup)
+	bool RenderQueue::ElementSorterPreferGroup(UINT32 aIdx, UINT32 bIdx, const Vector<SortableElement>& lookup)
 	{
 		const SortableElement& a = lookup[aIdx];
 		const SortableElement& b = lookup[bIdx];
@@ -185,7 +185,7 @@ namespace bs { namespace ct
 		return isHigher > isLower;
 	}
 
-	bool RenderQueue::elementSorterPreferDistance(UINT32 aIdx, UINT32 bIdx, const Vector<SortableElement>& lookup)
+	bool RenderQueue::ElementSorterPreferDistance(UINT32 aIdx, UINT32 bIdx, const Vector<SortableElement>& lookup)
 	{
 		const SortableElement& a = lookup[aIdx];
 		const SortableElement& b = lookup[bIdx];
@@ -207,7 +207,7 @@ namespace bs { namespace ct
 		return isHigher > isLower;
 	}
 
-	const Vector<RenderQueueElement>& RenderQueue::getSortedElements() const
+	const Vector<RenderQueueElement>& RenderQueue::GetSortedElements() const
 	{
 		return mSortedRenderElements;
 	}

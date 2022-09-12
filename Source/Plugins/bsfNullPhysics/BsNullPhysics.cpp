@@ -25,17 +25,17 @@ namespace bs
 		assert(mScenes.empty() && "All scenes must be freed before physics system shutdown");
 	}
 
-	SPtr<PhysicsMaterial> NullPhysics::createMaterial(float staticFriction, float dynamicFriction, float restitution)
+	SPtr<PhysicsMaterial> NullPhysics::CreateMaterial(float staticFriction, float dynamicFriction, float restitution)
 	{
 		return bs_core_ptr_new<NullPhysicsMaterial>(staticFriction, dynamicFriction, restitution);
 	}
 
-	SPtr<PhysicsMesh> NullPhysics::createMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
+	SPtr<PhysicsMesh> NullPhysics::CreateMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
 	{
 		return bs_core_ptr_new<NullPhysicsMesh>(meshData, type);
 	}
 
-	SPtr<PhysicsScene> NullPhysics::createPhysicsScene()
+	SPtr<PhysicsScene> NullPhysics::CreatePhysicsScene()
 	{
 		SPtr<NullPhysicsScene> scene = bs_shared_ptr_new<NullPhysicsScene>(mInitDesc);
 		mScenes.push_back(scene.get());
@@ -59,7 +59,7 @@ namespace bs
 		gNullPhysics()._notifySceneDestroyed(this);
 	}
 
-	SPtr<Rigidbody> NullPhysicsScene::createRigidbody(const HSceneObject& linkedSO)
+	SPtr<Rigidbody> NullPhysicsScene::CreateRigidbody(const HSceneObject& linkedSO)
 	{
 		return bs_shared_ptr_new<NullPhysicsRigidbody>(linkedSO);
 	}
@@ -70,12 +70,12 @@ namespace bs
 		return bs_shared_ptr_new<NullPhysicsBoxCollider>(position, rotation, extents);
 	}
 
-	SPtr<SphereCollider> NullPhysicsScene::createSphereCollider(float radius, const Vector3& position, const Quaternion& rotation)
+	SPtr<SphereCollider> NullPhysicsScene::CreateSphereCollider(float radius, const Vector3& position, const Quaternion& rotation)
 	{
 		return bs_shared_ptr_new<NullPhysicsSphereCollider>(position, rotation, radius);
 	}
 
-	SPtr<PlaneCollider> NullPhysicsScene::createPlaneCollider(const Vector3& position, const Quaternion& rotation)
+	SPtr<PlaneCollider> NullPhysicsScene::CreatePlaneCollider(const Vector3& position, const Quaternion& rotation)
 	{
 		return bs_shared_ptr_new<NullPhysicsPlaneCollider>(position, rotation);
 	}
@@ -86,42 +86,42 @@ namespace bs
 		return bs_shared_ptr_new<NullPhysicsCapsuleCollider>(position, rotation, radius, halfHeight);
 	}
 
-	SPtr<MeshCollider> NullPhysicsScene::createMeshCollider(const Vector3& position, const Quaternion& rotation)
+	SPtr<MeshCollider> NullPhysicsScene::CreateMeshCollider(const Vector3& position, const Quaternion& rotation)
 	{
 		return bs_shared_ptr_new<NullPhysicsMeshCollider>(position, rotation);
 	}
 
-	SPtr<FixedJoint> NullPhysicsScene::createFixedJoint(const FIXED_JOINT_DESC& desc)
+	SPtr<FixedJoint> NullPhysicsScene::CreateFixedJoint(const FIXED_JOINT_DESC& desc)
 	{
 		return bs_shared_ptr_new<NullPhysicsFixedJoint>(desc);
 	}
 
-	SPtr<DistanceJoint> NullPhysicsScene::createDistanceJoint(const DISTANCE_JOINT_DESC& desc)
+	SPtr<DistanceJoint> NullPhysicsScene::CreateDistanceJoint(const DISTANCE_JOINT_DESC& desc)
 	{
 		return bs_shared_ptr_new<NullPhysicsDistanceJoint>(desc);
 	}
 
-	SPtr<HingeJoint> NullPhysicsScene::createHingeJoint(const HINGE_JOINT_DESC& desc)
+	SPtr<HingeJoint> NullPhysicsScene::CreateHingeJoint(const HINGE_JOINT_DESC& desc)
 	{
 		return bs_shared_ptr_new<NullPhysicsHingeJoint>(desc);
 	}
 
-	SPtr<SphericalJoint> NullPhysicsScene::createSphericalJoint(const SPHERICAL_JOINT_DESC& desc)
+	SPtr<SphericalJoint> NullPhysicsScene::CreateSphericalJoint(const SPHERICAL_JOINT_DESC& desc)
 	{
 		return bs_shared_ptr_new<NullPhysicsSphericalJoint>(desc);
 	}
 
-	SPtr<SliderJoint> NullPhysicsScene::createSliderJoint(const SLIDER_JOINT_DESC& desc)
+	SPtr<SliderJoint> NullPhysicsScene::CreateSliderJoint(const SLIDER_JOINT_DESC& desc)
 	{
 		return bs_shared_ptr_new<NullPhysicsSliderJoint>(desc);
 	}
 
-	SPtr<D6Joint> NullPhysicsScene::createD6Joint(const D6_JOINT_DESC& desc)
+	SPtr<D6Joint> NullPhysicsScene::CreateD6Joint(const D6_JOINT_DESC& desc)
 	{
 		return bs_shared_ptr_new<NullPhysicsD6Joint>(desc);
 	}
 
-	SPtr<CharacterController> NullPhysicsScene::createCharacterController(const CHAR_CONTROLLER_DESC& desc)
+	SPtr<CharacterController> NullPhysicsScene::CreateCharacterController(const CHAR_CONTROLLER_DESC& desc)
 	{
 		return bs_shared_ptr_new<NullPhysicsCharacterController>(desc);
 	}

@@ -33,7 +33,7 @@ namespace bs
 	{
 	}
 
-	void ScriptImporter::initRuntimeData()
+	void ScriptImporter::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_import", (void*)&ScriptImporter::Internal_import);
 		metaData.scriptClass->addInternalCall("Internal_importAsync", (void*)&ScriptImporter::Internal_importAsync);

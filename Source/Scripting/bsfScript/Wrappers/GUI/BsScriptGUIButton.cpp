@@ -30,7 +30,7 @@ namespace bs
 
 	}
 
-	void ScriptGUIButton::initRuntimeData()
+	void ScriptGUIButton::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptGUIButton::internal_createInstance);
 		metaData.scriptClass->addInternalCall("Internal_SetContent", (void*)&ScriptGUIButton::internal_setContent);
@@ -77,22 +77,22 @@ namespace bs
 		button->setTint(*color);
 	}
 
-	void ScriptGUIButton::onClick()
+	void ScriptGUIButton::OnClick()
 	{
 		MonoUtil::invokeThunk(onClickThunk, getManagedInstance());
 	}
 
-	void ScriptGUIButton::onDoubleClick()
+	void ScriptGUIButton::OnDoubleClick()
 	{
 		MonoUtil::invokeThunk(onDoubleClickThunk, getManagedInstance());
 	}
 
-	void ScriptGUIButton::onHover()
+	void ScriptGUIButton::OnHover()
 	{
 		MonoUtil::invokeThunk(onHoverThunk, getManagedInstance());
 	}
 
-	void ScriptGUIButton::onOut()
+	void ScriptGUIButton::OnOut()
 	{
 		MonoUtil::invokeThunk(onOutThunk, getManagedInstance());
 	}

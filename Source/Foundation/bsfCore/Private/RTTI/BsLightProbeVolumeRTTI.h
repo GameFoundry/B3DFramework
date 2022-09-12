@@ -155,7 +155,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return LightProbeVolume::createEmpty();
+			return LightProbeVolume::CreateEmpty();
 		}
 
 	private:

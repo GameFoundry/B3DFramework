@@ -15,7 +15,7 @@ namespace bs
 	{
 	}
 
-	void ScriptRandom::initRuntimeData()
+	void ScriptRandom::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_Random", (void*)&ScriptRandom::Internal_Random);
 		metaData.scriptClass->addInternalCall("Internal_setSeed", (void*)&ScriptRandom::Internal_setSeed);

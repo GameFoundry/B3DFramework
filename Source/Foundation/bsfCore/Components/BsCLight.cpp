@@ -24,14 +24,14 @@ namespace bs
 	CLight::~CLight()
 	{ }
 
-	Sphere CLight::getBounds() const
+	Sphere CLight::GetBounds() const
 	{
 		mInternal->_updateState(*SO());
 
 		return mInternal->getBounds();
 	}
 
-	void CLight::onInitialized()
+	void CLight::OnInitialized()
 	{
 		// If mInternal already exists this means this object was deserialized,
 		// so all we need to do is initialize it.
@@ -52,7 +52,7 @@ namespace bs
 		gSceneManager()._bindActor(mInternal, sceneObject());
 	}
 
-	void CLight::onDestroyed()
+	void CLight::OnDestroyed()
 	{
 		gSceneManager()._unbindActor(mInternal);
 		mInternal->destroy();
@@ -60,11 +60,11 @@ namespace bs
 	
 	RTTITypeBase* CLight::getRTTIStatic()
 	{
-		return CLightRTTI::instance();
+		return CLightRTTI::Instance();
 	}
 
 	RTTITypeBase* CLight::getRTTI() const
 	{
-		return CLight::getRTTIStatic();
+		return CLight::GetRTTIStatic();
 	}
 }

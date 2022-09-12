@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	bool SLImporter::isExtensionSupported(const String& ext) const
+	bool SLImporter::IsExtensionSupported(const String& ext) const
 	{
 		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
@@ -16,12 +16,12 @@ namespace bs
 		return lowerCaseExt == u8"bsl";
 	}
 
-	bool SLImporter::isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
+	bool SLImporter::IsMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
 	{
 		return true; // Plain-text so I don't even check for magic number
 	}
 
-	SPtr<Resource> SLImporter::import(const Path& filePath, SPtr<const ImportOptions> importOptions)
+	SPtr<Resource> SLImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
 		String source;
 		{
@@ -53,7 +53,7 @@ namespace bs
 		return result.shader;
 	}
 
-	SPtr<ImportOptions> SLImporter::createImportOptions() const
+	SPtr<ImportOptions> SLImporter::CreateImportOptions() const
 	{
 		return bs_shared_ptr_new<ShaderImportOptions>();
 	}

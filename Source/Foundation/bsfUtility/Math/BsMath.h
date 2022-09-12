@@ -251,14 +251,14 @@ namespace bs
 		static T Clamp(T val, T minval, T maxval)
 		{
 			assert (minval <= maxval && "Invalid clamp range");
-			return std::max(std::min(val, maxval), minval);
+			return std::Max(std::min(val, maxval), minval);
 		}
 
 		/** Clamp a value within an inclusive range [0..1]. */
 		template <typename T>
 		static T Clamp01(T val)
 		{
-			return std::max(std::min(val, (T)1), (T)0);
+			return std::Max(std::min(val, (T)1), (T)0);
 		}
 
 		/** Returns the fractional part of a floating point number. */
@@ -632,42 +632,42 @@ namespace bs
 		template <typename A, typename B>
 		static std::common_type_t<A, B> Min(const A& a, const B& b)
 		{
-			return impl::min(a, b);
+			return impl::Min(a, b);
 		}
 
 		/** Returns the minimum value of all the values provided. */
 		template <typename A, typename B, typename... Args>
 		static std::common_type_t<A, B, Args...> Min(const A& a, const B& b, const Args&... args)
 		{
-			return impl::min(a, b, args...);
+			return impl::Min(a, b, args...);
 		}
 
 		/** Returns the maximum value of the two provided. */
 		template <typename A, typename B>
 		static std::common_type_t<A, B> Max(const A& a, const B& b)
 		{
-			return impl::max(a, b);
+			return impl::Max(a, b);
 		}
 
 		/** Returns the maximum value of all the values provided. */
 		template <typename A, typename B, typename... Args>
 		static std::common_type_t<A, B, Args...> Max(const A& a, const B& b, const Args&... args)
 		{
-			return impl::max(a, b, args...);
+			return impl::Max(a, b, args...);
 		}
 
 		/** Return the greater common divisor between two values. */
 		template <typename A, typename B>
 		static std::common_type_t<A, B> Gcd(const A& a, const B& b)
 		{
-			return impl::gcd(a, b);
+			return impl::Gcd(a, b);
 		}
 
 		/** Return the least common multiple between two values. */
 		template <typename A, typename B>
 		static std::common_type_t<A, B> Lcm(const A& a, const B& b)
 		{
-			return impl::lcm(a, b);
+			return impl::Lcm(a, b);
 		}
 
 		/**

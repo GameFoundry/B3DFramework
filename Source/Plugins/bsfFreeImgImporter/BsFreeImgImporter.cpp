@@ -79,7 +79,7 @@ namespace bs
 		FreeImage_DeInitialise();
 	}
 
-	bool FreeImgImporter::isExtensionSupported(const String& ext) const
+	bool FreeImgImporter::IsExtensionSupported(const String& ext) const
 	{
 		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
@@ -87,14 +87,14 @@ namespace bs
 		return Find(mExtensions.begin(), mExtensions.end(), lowerCaseExt) != mExtensions.end();
 	}
 
-	bool FreeImgImporter::isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
+	bool FreeImgImporter::IsMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
 	{
 		String ext = magicNumToExtension(magicNumPtr, numBytes);
 
 		return IsExtensionSupported(ext);
 	}
 
-	String FreeImgImporter::magicNumToExtension(const UINT8* magic, UINT32 maxBytes) const
+	String FreeImgImporter::MagicNumToExtension(const UINT8* magic, UINT32 maxBytes) const
 	{
 		// Set error handler
 		FreeImage_SetOutputMessage(FreeImageLoadErrorHandler);
@@ -117,12 +117,12 @@ namespace bs
 		}
 	}
 
-	SPtr<ImportOptions> FreeImgImporter::createImportOptions() const
+	SPtr<ImportOptions> FreeImgImporter::CreateImportOptions() const
 	{
 		return bs_shared_ptr_new<TextureImportOptions>();
 	}
 
-	SPtr<Resource> FreeImgImporter::import(const Path& filePath, SPtr<const ImportOptions> importOptions)
+	SPtr<Resource> FreeImgImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
 		const TextureImportOptions* textureImportOptions = static_cast<const TextureImportOptions*>(importOptions.get());
 
@@ -213,7 +213,7 @@ namespace bs
 		return newTexture;
 	}
 
-	SPtr<PixelData> FreeImgImporter::importRawImage(const Path& filePath)
+	SPtr<PixelData> FreeImgImporter::ImportRawImage(const Path& filePath)
 	{
 		UPtr<MemoryDataStream> memStream;
 		FREE_IMAGE_FORMAT imageFormat;

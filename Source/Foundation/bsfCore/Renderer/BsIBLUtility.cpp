@@ -9,7 +9,7 @@ namespace bs { namespace ct
 	const UINT32 IBLUtility::IRRADIANCE_CUBEMAP_SIZE = 32;
 
 	/** Returns the size of the texture required to store the provided number of SH coefficients. */
-	Vector2I IBLUtility::getSHCoeffTextureSize(UINT32 numCoeffSets, UINT32 shOrder)
+	Vector2I IBLUtility::GetSHCoeffTextureSize(UINT32 numCoeffSets, UINT32 shOrder)
 	{
 		UINT32 coeffsPerSet = shOrder * shOrder;
 		
@@ -24,7 +24,7 @@ namespace bs { namespace ct
 	}
 	
 	/** Determines the position of a set of coefficients in the coefficient texture, depending on the coefficient index. */
-	Vector2I IBLUtility::getSHCoeffXYFromIdx(UINT32 idx, UINT32 shOrder)
+	Vector2I IBLUtility::GetSHCoeffXYFromIdx(UINT32 idx, UINT32 shOrder)
 	{
 		UINT32 coeffsPerSet = shOrder * shOrder;
 		
@@ -40,6 +40,6 @@ namespace bs { namespace ct
 
 	const IBLUtility& GIBLUtility()
 	{
-		return IBLUtility::instance();
+		return IBLUtility::Instance();
 	}
 }}

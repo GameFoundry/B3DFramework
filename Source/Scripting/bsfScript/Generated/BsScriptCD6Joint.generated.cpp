@@ -19,7 +19,7 @@ namespace bs
 	{
 	}
 
-	void ScriptCD6Joint::initRuntimeData()
+	void ScriptCD6Joint::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getMotion", (void*)&ScriptCD6Joint::Internal_getMotion);
 		metaData.scriptClass->addInternalCall("Internal_setMotion", (void*)&ScriptCD6Joint::Internal_setMotion);

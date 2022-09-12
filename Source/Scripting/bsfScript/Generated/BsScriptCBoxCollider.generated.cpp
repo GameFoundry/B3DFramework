@@ -14,7 +14,7 @@ namespace bs
 	{
 	}
 
-	void ScriptCBoxCollider::initRuntimeData()
+	void ScriptCBoxCollider::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_setExtents", (void*)&ScriptCBoxCollider::Internal_setExtents);
 		metaData.scriptClass->addInternalCall("Internal_getExtents", (void*)&ScriptCBoxCollider::Internal_getExtents);

@@ -146,7 +146,7 @@ namespace bs
 		unloadAll();
 	}
 
-	MonoAssembly& MonoManager::loadAssembly(const Path& path, const String& name)
+	MonoAssembly& MonoManager::LoadAssembly(const Path& path, const String& name)
 	{
 		MonoAssembly* assembly = nullptr;
 
@@ -182,7 +182,7 @@ namespace bs
 		return *assembly;
 	}
 
-	void MonoManager::initializeScriptTypes(MonoAssembly& assembly)
+	void MonoManager::InitializeScriptTypes(MonoAssembly& assembly)
 	{
 		// Fully initialize all types that use this assembly
 		Vector<ScriptMetaInfo>& typeMetas = getScriptMetaData()[assembly.mName];
@@ -207,7 +207,7 @@ namespace bs
 		}
 	}
 
-	void MonoManager::unloadAll()
+	void MonoManager::UnloadAll()
 	{
 		for (auto& entry : mAssemblies)
 			bs_delete(entry.second);
@@ -237,7 +237,7 @@ namespace bs
 		return nullptr;
 	}
 
-	void MonoManager::registerScriptType(ScriptMeta* metaData, const ScriptMeta& localMetaData)
+	void MonoManager::RegisterScriptType(ScriptMeta* metaData, const ScriptMeta& localMetaData)
 	{
 		Vector<ScriptMetaInfo>& mMetas = getScriptMetaData()[localMetaData.assembly];
 		mMetas.push_back({ metaData, localMetaData });
@@ -269,7 +269,7 @@ namespace bs
 		return nullptr;
 	}
 
-	void MonoManager::unloadScriptDomain()
+	void MonoManager::UnloadScriptDomain()
 	{
 		if (mScriptDomain != nullptr)
 		{
@@ -308,24 +308,24 @@ namespace bs
 		mAssemblies["corlib"] = mCorlibAssembly;
 	}
 
-	Path MonoManager::getFrameworkAssembliesFolder() const
+	Path MonoManager::GetFrameworkAssembliesFolder() const
 	{
-		return Paths::findPath(MONO_VERSION_DATA[(int)MONO_VERSION].path);
+		return Paths::FindPath(MONO_VERSION_DATA[(int)MONO_VERSION].path);
 	}
 
-	Path MonoManager::getMonoEtcFolder() const
+	Path MonoManager::GetMonoEtcFolder() const
 	{
-		return Paths::findPath(MONO_ETC_DIR);
+		return Paths::FindPath(MONO_ETC_DIR);
 	}
 
-	Path MonoManager::getCompilerPath() const
+	Path MonoManager::GetCompilerPath() const
 	{
 		Path compilerPath = Paths::findPath(MONO_COMPILER_DIR);
 		compilerPath.append("mcs.exe");
 		return compilerPath;
 	}
 
-	Path MonoManager::getMonoExecPath() const
+	Path MonoManager::GetMonoExecPath() const
 	{
 		Path path = Paths::getBinariesPath();
 

@@ -292,7 +292,7 @@ namespace bs
 			bs_delete<ThreadInfo, ProfilerAlloc>(threadInfo);
 	}
 
-	void ProfilerCPU::beginThread(const char* name)
+	void ProfilerCPU::BeginThread(const char* name)
 	{
 		ThreadInfo* thread = ThreadInfo::activeThread;
 		if(thread == nullptr)
@@ -310,13 +310,13 @@ namespace bs
 		thread->begin(name);
 	}
 
-	void ProfilerCPU::endThread()
+	void ProfilerCPU::EndThread()
 	{
 		// I don't do a nullcheck where on purpose, so endSample can be called ASAP
 		ThreadInfo::activeThread->end();
 	}
 
-	void ProfilerCPU::beginSample(const char* name)
+	void ProfilerCPU::BeginSample(const char* name)
 	{
 		ThreadInfo* thread = ThreadInfo::activeThread;
 		if(thread == nullptr || !thread->isActive)
@@ -347,7 +347,7 @@ namespace bs
 		block->basic.beginSample();
 	}
 
-	void ProfilerCPU::endSample(const char* name)
+	void ProfilerCPU::EndSample(const char* name)
 	{
 		ThreadInfo* thread = ThreadInfo::activeThread;
 		ProfiledBlock* block = thread->activeBlock.block;
@@ -383,7 +383,7 @@ namespace bs
 			thread->activeBlock = ActiveBlock();
 	}
 
-	void ProfilerCPU::beginSamplePrecise(const char* name)
+	void ProfilerCPU::BeginSamplePrecise(const char* name)
 	{
 		// Note: There is a (small) possibility a context switch will happen during this measurement in which case result will be skewed.
 		// Increasing thread priority might help. This is generally only a problem with code that executes a long time (10-15+ ms - depending on OS quant length)
@@ -414,7 +414,7 @@ namespace bs
 		block->precise.beginSample();
 	}
 
-	void ProfilerCPU::endSamplePrecise(const char* name)
+	void ProfilerCPU::EndSamplePrecise(const char* name)
 	{
 		ThreadInfo* thread = ThreadInfo::activeThread;
 		ProfiledBlock* block = thread->activeBlock.block;
@@ -450,7 +450,7 @@ namespace bs
 			thread->activeBlock = ActiveBlock();
 	}
 
-	void ProfilerCPU::reset()
+	void ProfilerCPU::Reset()
 	{
 		ThreadInfo* thread = ThreadInfo::activeThread;
 
@@ -458,7 +458,7 @@ namespace bs
 			thread->reset();
 	}
 
-	CPUProfilerReport ProfilerCPU::generateReport()
+	CPUProfilerReport ProfilerCPU::GenerateReport()
 	{
 		CPUProfilerReport report;
 
@@ -758,7 +758,7 @@ namespace bs
 		return report;
 	}
 
-	void ProfilerCPU::estimateTimerOverhead()
+	void ProfilerCPU::EstimateTimerOverhead()
 	{
 		// Get an idea of how long timer calls and RDTSC takes
 		const UINT32 reps = 1000, sampleReps = 20;
@@ -999,6 +999,6 @@ namespace bs
 
 	ProfilerCPU& GProfilerCPU()
 	{
-		return ProfilerCPU::instance();
+		return ProfilerCPU::Instance();
 	}
 }

@@ -7,7 +7,7 @@
 
 namespace bs
 {
-	Rect2I Sprite::getBounds(const Vector2I& offset, const Rect2I& clipRect) const
+	Rect2I Sprite::GetBounds(const Vector2I& offset, const Rect2I& clipRect) const
 	{
 		Rect2I bounds = mBounds;
 
@@ -149,7 +149,7 @@ namespace bs
 		return renderElem.numQuads;
 	}
 
-	Vector2I Sprite::getAnchorOffset(SpriteAnchor anchor, UINT32 width, UINT32 height)
+	Vector2I Sprite::GetAnchorOffset(SpriteAnchor anchor, UINT32 width, UINT32 height)
 	{
 		switch(anchor)
 		{
@@ -176,7 +176,7 @@ namespace bs
 		return Vector2I();
 	}
 
-	void Sprite::updateBounds() const
+	void Sprite::UpdateBounds() const
 	{
 		Vector2 min;
 		Vector2 max;
@@ -221,7 +221,7 @@ namespace bs
 	// This will only properly clip an array of quads
 	// Vertices in the quad must be in a specific order: top left, top right, bottom left, bottom right
 	// (0, 0) represents top left of the screen
-	void Sprite::clipQuadsToRect(UINT8* vertices, UINT8* uv, UINT32 numQuads, UINT32 vertStride, const Rect2I& clipRect)
+	void Sprite::ClipQuadsToRect(UINT8* vertices, UINT8* uv, UINT32 numQuads, UINT32 vertStride, const Rect2I& clipRect)
 	{
 		float left = (float)clipRect.x;
 		float right = (float)clipRect.x + clipRect.width;

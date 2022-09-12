@@ -67,7 +67,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return HardwareBufferManager::instance().createVertexDeclaration(VertexDataDesc::create());
+			return HardwareBufferManager::Instance().createVertexDeclaration(VertexDataDesc::create());
 		}
 
 		const String& GetRTTIName() override

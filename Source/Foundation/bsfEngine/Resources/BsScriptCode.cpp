@@ -12,7 +12,7 @@ namespace bs
 
 	}
 
-	HScriptCode ScriptCode::create(const WString& data, bool editorScript)
+	HScriptCode ScriptCode::Create(const WString& data, bool editorScript)
 	{
 		return static_resource_cast<ScriptCode>(gResources()._createResourceHandle(_createPtr(data, editorScript)));
 	}
@@ -29,11 +29,11 @@ namespace bs
 
 	RTTITypeBase* ScriptCode::getRTTIStatic()
 	{
-		return ScriptCodeRTTI::instance();
+		return ScriptCodeRTTI::Instance();
 	}
 
 	RTTITypeBase* ScriptCode::getRTTI() const
 	{
-		return ScriptCode::getRTTIStatic();
+		return ScriptCode::GetRTTIStatic();
 	}
 }

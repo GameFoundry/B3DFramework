@@ -75,7 +75,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return AudioClip::createEmpty();
+			return AudioClip::CreateEmpty();
 		}
 	};
 

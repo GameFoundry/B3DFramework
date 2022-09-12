@@ -7,7 +7,7 @@
 
 namespace bs
 {
-	bool ShaderIncludeImporter::isExtensionSupported(const String& ext) const
+	bool ShaderIncludeImporter::IsExtensionSupported(const String& ext) const
 	{
 		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
@@ -15,12 +15,12 @@ namespace bs
 		return lowerCaseExt == u8"bslinc";
 	}
 
-	bool ShaderIncludeImporter::isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
+	bool ShaderIncludeImporter::IsMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
 	{
 		return true; // Plain-text so I don't even check for magic number
 	}
 
-	SPtr<Resource> ShaderIncludeImporter::import(const Path& filePath, SPtr<const ImportOptions> importOptions)
+	SPtr<Resource> ShaderIncludeImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
 		String includeString;
 		{

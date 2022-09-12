@@ -28,7 +28,7 @@ namespace bs
 		return 2;
 	}
 
-	void GUILabel::updateRenderElementsInternal()
+	void GUILabel::UpdateRenderElementsInternal()
 	{		
 		const HSpriteTexture& activeTex = _getStyle()->normal.texture;
 		if (SpriteTexture::checkIsLoaded(activeTex))
@@ -86,7 +86,7 @@ namespace bs
 
 	Vector2I GUILabel::_getOptimalSize() const
 	{
-		return GUIHelper::calcOptimalContentsSize(mContent, *_getStyle(), _getDimensions());
+		return GUIHelper::CalcOptimalContentsSize(mContent, *_getStyle(), _getDimensions());
 	}
 
 	void GUILabel::_fillBuffer(
@@ -118,7 +118,7 @@ namespace bs
 			vertexStride, indexStride, imageSpriteIdx - renderElementIdx, layoutOffset, mLayoutData.getLocalClipRect());
 	}
 
-	void GUILabel::setContent(const GUIContent& content)
+	void GUILabel::SetContent(const GUIContent& content)
 	{
 		Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
 		mContent = content;
@@ -150,7 +150,7 @@ namespace bs
 		return new (bs_alloc<GUILabel>()) GUILabel(getStyleName<GUILabel>(styleName), content, GUIDimensions::create(options));
 	}
 
-	const String& GUILabel::getGUITypeName()
+	const String& GUILabel::GetGUITypeName()
 	{
 		static String typeName = "Label";
 		return typeName;

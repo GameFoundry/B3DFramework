@@ -15,13 +15,13 @@
 
 namespace bs { namespace ct
 {
-	const StringID& NullRenderAPI::getName() const
+	const StringID& NullRenderAPI::GetName() const
 	{
 		static StringID StrName("NullRenderAPI");
 		return strName;
 	}
 
-	void NullRenderAPI::initialize()
+	void NullRenderAPI::Initialize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -61,14 +61,14 @@ namespace bs { namespace ct
 		RenderAPI::initialize();
 	}
 
-	void NullRenderAPI::initializeWithWindow(const SPtr<RenderWindow>& primaryWindow)
+	void NullRenderAPI::InitializeWithWindow(const SPtr<RenderWindow>& primaryWindow)
 	{
 		QueryManager::startUp<NullQueryManager>();
 
 		RenderAPI::initializeWithWindow(primaryWindow);
 	}
 
-	void NullRenderAPI::destroyCore()
+	void NullRenderAPI::DestroyCore()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -93,12 +93,12 @@ namespace bs { namespace ct
 		RenderAPI::destroyCore();
 	}
 
-	void NullRenderAPI::convertProjectionMatrix(const Matrix4& matrix, Matrix4& dest)
+	void NullRenderAPI::ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest)
 	{
 		dest = matrix;
 	}
 
-	GpuParamBlockDesc NullRenderAPI::generateParamBlockDesc(const String& name, Vector<GpuParamDataDesc>& params)
+	GpuParamBlockDesc NullRenderAPI::GenerateParamBlockDesc(const String& name, Vector<GpuParamDataDesc>& params)
 	{
 		GpuParamBlockDesc block;
 		block.blockSize = 0;

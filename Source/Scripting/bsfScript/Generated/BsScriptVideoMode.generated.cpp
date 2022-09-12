@@ -12,20 +12,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptVideoMode::initRuntimeData()
+	void ScriptVideoMode::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptVideoMode::box(const __VideoModeInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__VideoModeInterop ScriptVideoMode::unbox(MonoObject* value)
+	__VideoModeInterop ScriptVideoMode::Unbox(MonoObject* value)
 	{
 		return *(__VideoModeInterop*)MonoUtil::unbox(value);
 	}
 
-	VideoMode ScriptVideoMode::fromInterop(const __VideoModeInterop& value)
+	VideoMode ScriptVideoMode::FromInterop(const __VideoModeInterop& value)
 	{
 		VideoMode output;
 		output.width = value.width;
@@ -37,7 +37,7 @@ namespace bs
 		return output;
 	}
 
-	__VideoModeInterop ScriptVideoMode::toInterop(const VideoMode& value)
+	__VideoModeInterop ScriptVideoMode::ToInterop(const VideoMode& value)
 	{
 		__VideoModeInterop output;
 		output.width = value.width;

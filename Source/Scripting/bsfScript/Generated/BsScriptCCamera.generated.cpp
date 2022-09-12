@@ -18,7 +18,7 @@ namespace bs
 	{
 	}
 
-	void ScriptCCamera::initRuntimeData()
+	void ScriptCCamera::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_setFlags", (void*)&ScriptCCamera::Internal_setFlags);
 		metaData.scriptClass->addInternalCall("Internal_getFlags", (void*)&ScriptCCamera::Internal_getFlags);

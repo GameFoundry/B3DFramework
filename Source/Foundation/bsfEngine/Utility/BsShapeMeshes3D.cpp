@@ -28,7 +28,7 @@ namespace bs
 		return buffer + stride;
 	}
 
-	void ShapeMeshes3D::wireAABox(const AABox& box, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
+	void ShapeMeshes3D::WireAABox(const AABox& box, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
 		UINT32* indexData = meshData->getIndices32();
 		UINT8* positionData = meshData->getElementData(VES_POSITION);
@@ -39,7 +39,7 @@ namespace bs
 		wireAABox(box, positionData, vertexOffset, meshData->getVertexDesc()->getVertexStride(), indexData, indexOffset);
 	}
 
-	void ShapeMeshes3D::solidAABox(const AABox& box, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
+	void ShapeMeshes3D::SolidAABox(const AABox& box, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
 		const SPtr<VertexDataDesc>& desc = meshData->getVertexDesc();
 
@@ -68,7 +68,7 @@ namespace bs
 		}
 	}
 
-	void ShapeMeshes3D::wireSphere(const Sphere& sphere, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset, UINT32 quality)
+	void ShapeMeshes3D::WireSphere(const Sphere& sphere, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset, UINT32 quality)
 	{
 		UINT32 requiredNumVertices, requiredNumIndices;
 		getNumElementsWireSphere(quality, requiredNumVertices, requiredNumIndices);
@@ -318,7 +318,7 @@ namespace bs
 			meshData->getVertexDesc()->getVertexStride(), indexData, indexOffset, quality);
 	}
 
-	void ShapeMeshes3D::solidQuad(const Rect3& area, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
+	void ShapeMeshes3D::SolidQuad(const Rect3& area, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
 		const SPtr<VertexDataDesc>& desc = meshData->getVertexDesc();
 
@@ -348,7 +348,7 @@ namespace bs
 		}
 	}
 
-	void ShapeMeshes3D::pixelLine(const Vector3& a, const Vector3& b, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
+	void ShapeMeshes3D::PixelLine(const Vector3& a, const Vector3& b, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
 		UINT32* indexData = meshData->getIndices32();
 		UINT8* positionData = meshData->getElementData(VES_POSITION);
@@ -359,7 +359,7 @@ namespace bs
 		pixelLine(a, b, positionData, vertexOffset, meshData->getVertexDesc()->getVertexStride(), indexData, indexOffset);
 	}
 
-	void ShapeMeshes3D::pixelLineList(const Vector<Vector3>& linePoints, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
+	void ShapeMeshes3D::PixelLineList(const Vector<Vector3>& linePoints, const SPtr<MeshData>& meshData, UINT32 vertexOffset, UINT32 indexOffset)
 	{
 		assert(linePoints.size() % 2 == 0);
 
@@ -424,19 +424,19 @@ namespace bs
 	/* 								ELEMENT COUNT                      		*/
 	/************************************************************************/
 
-	void ShapeMeshes3D::getNumElementsAABox(UINT32& numVertices, UINT32& numIndices)
+	void ShapeMeshes3D::GetNumElementsAABox(UINT32& numVertices, UINT32& numIndices)
 	{
 		numVertices = 24;
 		numIndices = 36;
 	}
 
-	void ShapeMeshes3D::getNumElementsWireAABox(UINT32& numVertices, UINT32& numIndices)
+	void ShapeMeshes3D::GetNumElementsWireAABox(UINT32& numVertices, UINT32& numIndices)
 	{
 		numVertices = 8;
 		numIndices = 24;
 	}
 
-	void ShapeMeshes3D::getNumElementsSphere(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
+	void ShapeMeshes3D::GetNumElementsSphere(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
 	{
 		numVertices = 20 * (3 * ((UINT32)std::pow(4, quality)));
 		numIndices = numVertices;
@@ -445,79 +445,79 @@ namespace bs
 		numVertices += (3 * (UINT32)pow(4, quality));
 	}
 
-	void ShapeMeshes3D::getNumElementsWireSphere(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
+	void ShapeMeshes3D::GetNumElementsWireSphere(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
 	{
 		getNumElementsWireArc(quality, numVertices, numIndices);
 		numVertices *= 3;
 		numIndices *= 3;
 	}
 
-	void ShapeMeshes3D::getNumElementsWireHemisphere(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
+	void ShapeMeshes3D::GetNumElementsWireHemisphere(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
 	{
 		getNumElementsWireArc(quality, numVertices, numIndices);
 		numVertices *= 3;
 		numIndices *= 3;
 	}
 
-	void ShapeMeshes3D::getNumElementsArc(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
+	void ShapeMeshes3D::GetNumElementsArc(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
 	{
 		numVertices = ((quality + 1) * 5 + 1) * 2;
 		numIndices = ((quality + 1) * 5) * 6;
 	}
 
-	void ShapeMeshes3D::getNumElementsWireArc(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
+	void ShapeMeshes3D::GetNumElementsWireArc(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
 	{
 		numVertices = (quality + 1) * 5;
 		numIndices = ((quality + 1) * 5 - 1) * 2;
 	}
 
-	void ShapeMeshes3D::getNumElementsDisc(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
+	void ShapeMeshes3D::GetNumElementsDisc(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
 	{
 		getNumElementsArc(quality, numVertices, numIndices);
 	}
 
-	void ShapeMeshes3D::getNumElementsWireDisc(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
+	void ShapeMeshes3D::GetNumElementsWireDisc(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
 	{
 		getNumElementsWireArc(quality, numVertices, numIndices);
 	}
 
-	void ShapeMeshes3D::getNumElementsCone(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
+	void ShapeMeshes3D::GetNumElementsCone(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
 	{
 		numVertices = ((quality + 1) * 4) * 3 + 1;
 		numIndices = ((quality + 1) * 4) * 6;
 	}
 
-	void ShapeMeshes3D::getNumElementsWireCone(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
+	void ShapeMeshes3D::GetNumElementsWireCone(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
 	{
 		numVertices = (quality + 1) * 4 + 5;
 		numIndices = ((quality + 1) * 4 + 4) * 2;
 	}
 
-	void ShapeMeshes3D::getNumElementsCylinder(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
+	void ShapeMeshes3D::GetNumElementsCylinder(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
 	{
 		numVertices = ((quality + 1) * 4 + 1) * 4;
 		numIndices = ((quality + 1) * 4) * 12;
 	}
 
-	void ShapeMeshes3D::getNumElementsWireCylinder(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
+	void ShapeMeshes3D::GetNumElementsWireCylinder(UINT32 quality, UINT32& numVertices, UINT32& numIndices)
 	{
 		numVertices = ((quality + 1) * 4) * 2;
 		numIndices = ((quality + 1) * 4) * 6;
 	}
 
-	void ShapeMeshes3D::getNumElementsQuad(UINT32& numVertices, UINT32& numIndices)
+	void ShapeMeshes3D::GetNumElementsQuad(UINT32& numVertices, UINT32& numIndices)
 	{
 		numVertices = 8;
 		numIndices = 12;
 	}
 
-	void ShapeMeshes3D::getNumElementsFrustum(UINT32& numVertices, UINT32& numIndices)
+	void ShapeMeshes3D::GetNumElementsFrustum(UINT32& numVertices, UINT32& numIndices)
 	{
 		numVertices = 8;
 		numIndices = 36;
 	}
 
-	void ShapeMeshes3D::wireAABox(const AABox& box, UINT8* outVertices, UINT32 vertexOffset, UINT32 vertexStride, UINT32* outIndices, UINT32 indexOffset)
+	void ShapeMeshes3D::WireAABox(const AABox& box, UINT8* outVertices, UINT32 vertexOffset, UINT32 vertexStride, UINT32* outIndices, UINT32 indexOffset)
 	{
 		outVertices += vertexOffset * vertexStride;
 
@@ -1581,7 +1581,7 @@ namespace bs
 		outIndices[11] = vertexOffset + 6;
 	}
 
-	Vector3 ShapeMeshes3D::calcCenter(UINT8* vertices, UINT32 numVertices, UINT32 vertexStride)
+	Vector3 ShapeMeshes3D::CalcCenter(UINT8* vertices, UINT32 numVertices, UINT32 vertexStride)
 	{
 		Vector3 center = Vector3::ZERO;
 		for(UINT32 i = 0; i < numVertices; i++)

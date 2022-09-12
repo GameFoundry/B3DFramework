@@ -49,7 +49,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return Decal::createEmpty();
+			return Decal::CreateEmpty();
 		}
 	};
 

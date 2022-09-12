@@ -13,7 +13,7 @@ namespace bs
 		clearMesh();
 	}
 
-	void TextSprite::update(const TEXT_SPRITE_DESC& desc, UINT64 groupId)
+	void TextSprite::Update(const TEXT_SPRITE_DESC& desc, UINT64 groupId)
 	{
 		bs_frame_mark();
 		{
@@ -196,7 +196,7 @@ namespace bs
 		}
 	}
 
-	void TextSprite::clearMesh()
+	void TextSprite::ClearMesh()
 	{
 		for (auto& renderElem : mCachedRenderElements)
 		{

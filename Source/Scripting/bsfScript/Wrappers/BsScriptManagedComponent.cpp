@@ -29,7 +29,7 @@ namespace bs
 		component->initialize(this);
 	}
 
-	void ScriptManagedComponent::initRuntimeData()
+	void ScriptManagedComponent::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_Invoke", (void*)&ScriptManagedComponent::internal_invoke);
 	}
@@ -96,7 +96,7 @@ namespace bs
 		freeManagedInstance();
 	}
 
-	ScriptObjectBackup ScriptManagedComponent::beginRefresh()
+	ScriptObjectBackup ScriptManagedComponent::BeginRefresh()
 	{
 		HManagedComponent managedComponent = static_object_cast<ManagedComponent>(mComponent);
 		ScriptObjectBackup backupData;
@@ -109,7 +109,7 @@ namespace bs
 		return backupData;
 	}
 
-	void ScriptManagedComponent::endRefresh(const ScriptObjectBackup& backupData)
+	void ScriptManagedComponent::EndRefresh(const ScriptObjectBackup& backupData)
 	{
 		HManagedComponent managedComponent = static_object_cast<ManagedComponent>(mComponent);
 

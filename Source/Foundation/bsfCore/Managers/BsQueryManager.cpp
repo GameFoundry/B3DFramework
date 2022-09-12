@@ -65,22 +65,22 @@ namespace bs { namespace ct
 		processDeletedQueue();
 	}
 
-	void QueryManager::deleteEventQuery(EventQuery* query)
+	void QueryManager::DeleteEventQuery(EventQuery* query)
 	{
 		instance().mDeletedEventQueries.push_back(query);
 	}
 
-	void QueryManager::deleteTimerQuery(TimerQuery* query)
+	void QueryManager::DeleteTimerQuery(TimerQuery* query)
 	{
 		instance().mDeletedTimerQueries.push_back(query);
 	}
 
-	void QueryManager::deleteOcclusionQuery(OcclusionQuery* query)
+	void QueryManager::DeleteOcclusionQuery(OcclusionQuery* query)
 	{
 		instance().mDeletedOcclusionQueries.push_back(query);
 	}
 
-	void QueryManager::processDeletedQueue()
+	void QueryManager::ProcessDeletedQueue()
 	{
 		for (auto& query : mDeletedEventQueries)
 		{

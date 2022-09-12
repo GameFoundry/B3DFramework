@@ -23,7 +23,7 @@ namespace bs
 			mRendererTask->cancel();
 	}
 
-	UINT32 LightProbeVolume::addProbe(const Vector3& position)
+	UINT32 LightProbeVolume::AddProbe(const Vector3& position)
 	{
 		UINT32 handle = mNextProbeId++;
 		mProbes[handle] = ProbeInfo(LightProbeFlags::Clean, position);
@@ -32,7 +32,7 @@ namespace bs
 		return handle;
 	}
 
-	void LightProbeVolume::removeProbe(UINT32 handle)
+	void LightProbeVolume::RemoveProbe(UINT32 handle)
 	{
 		auto iterFind = mProbes.find(handle);
 		if (iterFind != mProbes.end() && mProbes.size() > 4)
@@ -42,7 +42,7 @@ namespace bs
 		}
 	}
 
-	void LightProbeVolume::setProbePosition(UINT32 handle, const Vector3& position)
+	void LightProbeVolume::SetProbePosition(UINT32 handle, const Vector3& position)
 	{
 		auto iterFind = mProbes.find(handle);
 		if (iterFind != mProbes.end())
@@ -52,7 +52,7 @@ namespace bs
 		}
 	}
 
-	Vector3 LightProbeVolume::getProbePosition(UINT32 handle) const
+	Vector3 LightProbeVolume::GetProbePosition(UINT32 handle) const
 	{
 		auto iterFind = mProbes.find(handle);
 		if (iterFind != mProbes.end())
@@ -61,7 +61,7 @@ namespace bs
 		return Vector3::ZERO;
 	}
 
-	Vector<LightProbeInfo> LightProbeVolume::getProbes() const
+	Vector<LightProbeInfo> LightProbeVolume::GetProbes() const
 	{
 		Vector<LightProbeInfo> output;
 
@@ -81,7 +81,7 @@ namespace bs
 		return output;		
 	}
 
-	void LightProbeVolume::resize(const AABox& volume, const Vector3I& cellCount)
+	void LightProbeVolume::Resize(const AABox& volume, const Vector3I& cellCount)
 	{
 		UINT32 numProbesX = std::max(1, mCellCount.x) + 1;
 		UINT32 numProbesY = std::max(1, mCellCount.y) + 1;
@@ -113,7 +113,7 @@ namespace bs
 		_markCoreDirty();
 	}
 
-	void LightProbeVolume::reset()
+	void LightProbeVolume::Reset()
 	{
 		UINT32 numProbesX = std::max(1, mCellCount.x) + 1;
 		UINT32 numProbesY = std::max(1, mCellCount.y) + 1;
@@ -163,7 +163,7 @@ namespace bs
 		_markCoreDirty();
 	}
 
-	void LightProbeVolume::clip()
+	void LightProbeVolume::Clip()
 	{
 		for (auto& entry : mProbes)
 		{
@@ -174,7 +174,7 @@ namespace bs
 		_markCoreDirty();
 	}
 
-	void LightProbeVolume::renderProbe(UINT32 handle)
+	void LightProbeVolume::RenderProbe(UINT32 handle)
 	{
 		auto iterFind = mProbes.find(handle);
 		if (iterFind != mProbes.end())
@@ -189,7 +189,7 @@ namespace bs
 		}
 	}
 
-	void LightProbeVolume::renderProbes()
+	void LightProbeVolume::RenderProbes()
 	{
 		bool anyModified = false;
 		for(auto& entry : mProbes)
@@ -208,7 +208,7 @@ namespace bs
 		}
 	}
 
-	void LightProbeVolume::runRenderProbeTask()
+	void LightProbeVolume::RunRenderProbeTask()
 	{
 		// If a task is already running cancel it
 		// Note: If the task is just about to start processing, cancelling it will skip the update this frame
@@ -235,7 +235,7 @@ namespace bs
 		ct::gRenderer()->addTask(mRendererTask);
 	}
 
-	void LightProbeVolume::updateCoefficients()
+	void LightProbeVolume::UpdateCoefficients()
 	{
 		// Ensure all light probe coefficients are generated
 		if (mRendererTask)
@@ -262,12 +262,12 @@ namespace bs
 		}
 	}
 
-	SPtr<ct::LightProbeVolume> LightProbeVolume::getCore() const
+	SPtr<ct::LightProbeVolume> LightProbeVolume::GetCore() const
 	{
 		return std::static_pointer_cast<ct::LightProbeVolume>(mCoreSpecific);
 	}
 
-	SPtr<LightProbeVolume> LightProbeVolume::create(const AABox& volume, const Vector3I& cellCount)
+	SPtr<LightProbeVolume> LightProbeVolume::Create(const AABox& volume, const Vector3I& cellCount)
 	{
 		LightProbeVolume* probeVolume = new (bs_alloc<LightProbeVolume>()) LightProbeVolume(volume, cellCount);
 		SPtr<LightProbeVolume> probeVolumePtr = bs_core_ptr<LightProbeVolume>(probeVolume);
@@ -277,7 +277,7 @@ namespace bs
 		return probeVolumePtr;
 	}
 
-	SPtr<LightProbeVolume> LightProbeVolume::createEmpty()
+	SPtr<LightProbeVolume> LightProbeVolume::CreateEmpty()
 	{
 		LightProbeVolume* probeVolume = new (bs_alloc<LightProbeVolume>()) LightProbeVolume();
 		SPtr<LightProbeVolume> probleVolumePtr = bs_core_ptr<LightProbeVolume>(probeVolume);
@@ -286,7 +286,7 @@ namespace bs
 		return probleVolumePtr;
 	}
 
-	SPtr<ct::CoreObject> LightProbeVolume::createCore() const
+	SPtr<ct::CoreObject> LightProbeVolume::CreateCore() const
 	{
 		ct::LightProbeVolume* handler = new (bs_alloc<ct::LightProbeVolume>()) ct::LightProbeVolume(mProbes);
 		SPtr<ct::LightProbeVolume> handlerPtr = bs_shared_ptr<ct::LightProbeVolume>(handler);
@@ -295,7 +295,7 @@ namespace bs
 		return handlerPtr;
 	}
 
-	CoreSyncData LightProbeVolume::syncToCore(FrameAlloc* allocator)
+	CoreSyncData LightProbeVolume::SyncToCore(FrameAlloc* allocator)
 	{
 		UINT32 size = 0;
 		UINT8* buffer = nullptr;
@@ -359,12 +359,12 @@ namespace bs
 
 	RTTITypeBase* LightProbeVolume::getRTTIStatic()
 	{
-		return LightProbeVolumeRTTI::instance();
+		return LightProbeVolumeRTTI::Instance();
 	}
 
 	RTTITypeBase* LightProbeVolume::getRTTI() const
 	{
-		return LightProbeVolume::getRTTIStatic();
+		return LightProbeVolume::GetRTTIStatic();
 	}
 
 	namespace ct
@@ -398,7 +398,7 @@ namespace bs
 		gRenderer()->notifyLightProbeVolumeRemoved(this);
 	}
 
-	void LightProbeVolume::initialize()
+	void LightProbeVolume::Initialize()
 	{
 		// Set SH coefficients loaded from the file
 		UINT32 numCoefficients = (UINT32)mInitCoefficients.size();
@@ -439,7 +439,7 @@ namespace bs
 		CoreObject::initialize();
 	}
 
-	bool LightProbeVolume::renderProbes(UINT32 maxProbes)
+	bool LightProbeVolume::RenderProbes(UINT32 maxProbes)
 	{
 		// Probe map only contains active probes
 		UINT32 numUsedProbes = (UINT32)mProbeMap.size();
@@ -485,7 +485,7 @@ namespace bs
 		return mFirstDirtyProbe == (UINT32)mProbeInfos.size();
 	}
 
-	void LightProbeVolume::syncToCore(const CoreSyncData& data)
+	void LightProbeVolume::SyncToCore(const CoreSyncData& data)
 	{
 		Bitstream Stream(data.getBuffer(), data.getBufferSize());
 
@@ -608,7 +608,7 @@ namespace bs
 		}
 	}
 
-	void LightProbeVolume::getProbeCoefficients(Vector<LightProbeCoefficientInfo>& output) const
+	void LightProbeVolume::GetProbeCoefficients(Vector<LightProbeCoefficientInfo>& output) const
 	{
 		UINT32 numActiveProbes = (UINT32)mProbeMap.size();
 		if (numActiveProbes == 0)
@@ -652,7 +652,7 @@ namespace bs
 		bs_stack_free(coefficients);
 	}
 
-	void LightProbeVolume::resizeCoefficientTexture(UINT32 count)
+	void LightProbeVolume::ResizeCoefficientTexture(UINT32 count)
 	{
 		Vector2I texSize = IBLUtility::getSHCoeffTextureSize(count, 3);
 

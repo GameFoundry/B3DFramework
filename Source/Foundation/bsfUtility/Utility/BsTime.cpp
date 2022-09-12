@@ -101,30 +101,30 @@ namespace bs
 		mLastFixedUpdateTime += step;
 	}
 
-	UINT64 Time::getTimePrecise() const
+	UINT64 Time::GetTimePrecise() const
 	{
 		return mTimer->getMicroseconds();
 	}
 
-	String Time::getCurrentDateTimeString(bool isUTC)
+	String Time::GetCurrentDateTimeString(bool isUTC)
 	{
 		std::time_t t = std::time(nullptr);
 		return ToString(t, isUTC, false, TimeToStringConversionType::Full);
 	}
 
-	String Time::getCurrentTimeString(bool isUTC)
+	String Time::GetCurrentTimeString(bool isUTC)
 	{
 		std::time_t t = std::time(nullptr);
 		return ToString(t, isUTC, false, TimeToStringConversionType::Time);
 	}
 
-	String Time::getAppStartUpDateString(bool isUTC)
+	String Time::GetAppStartUpDateString(bool isUTC)
 	{
 		return ToString(mAppStartUpDate,isUTC, false, TimeToStringConversionType::Full);
 	}
 	
 	Time& GTime()
 	{
-		return Time::instance();
+		return Time::Instance();
 	}
 }

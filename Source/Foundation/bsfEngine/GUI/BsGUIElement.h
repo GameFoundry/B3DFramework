@@ -294,7 +294,7 @@ namespace bs
 		static const String& GetStyleName(const String& overrideStyle)
 		{
 			if(overrideStyle == StringUtil::BLANK)
-				return T::getGUITypeName();
+				return T::GetGUITypeName();
 
 			return overrideStyle;
 		}

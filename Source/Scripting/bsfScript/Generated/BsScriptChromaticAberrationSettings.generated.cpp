@@ -15,7 +15,7 @@ namespace bs
 	{
 	}
 
-	void ScriptChromaticAberrationSettings::initRuntimeData()
+	void ScriptChromaticAberrationSettings::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_ChromaticAberrationSettings", (void*)&ScriptChromaticAberrationSettings::Internal_ChromaticAberrationSettings);
 		metaData.scriptClass->addInternalCall("Internal_getfringeTexture", (void*)&ScriptChromaticAberrationSettings::Internal_getfringeTexture);

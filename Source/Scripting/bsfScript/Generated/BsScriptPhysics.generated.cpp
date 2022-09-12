@@ -13,7 +13,7 @@ namespace bs
 	{
 	}
 
-	void ScriptPhysics::initRuntimeData()
+	void ScriptPhysics::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_toggleCollision", (void*)&ScriptPhysics::Internal_toggleCollision);
 		metaData.scriptClass->addInternalCall("Internal_isCollisionEnabled", (void*)&ScriptPhysics::Internal_isCollisionEnabled);

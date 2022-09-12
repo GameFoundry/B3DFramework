@@ -20,7 +20,7 @@ namespace bs
 	{
 	}
 
-	void ScriptTexture::initRuntimeData()
+	void ScriptTexture::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetRef", (void*)&ScriptTexture::Internal_getRef);
 		metaData.scriptClass->addInternalCall("Internal_readData", (void*)&ScriptTexture::Internal_readData);

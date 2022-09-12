@@ -22,7 +22,7 @@ namespace bs
 
 	}
 
-	void ScriptGUIScrollArea::initRuntimeData()
+	void ScriptGUIScrollArea::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptGUIScrollArea::internal_createInstance);
 		metaData.scriptClass->addInternalCall("Internal_GetContentBounds", (void*)&ScriptGUIScrollArea::internal_getContentBounds);
@@ -33,18 +33,18 @@ namespace bs
 		metaData.scriptClass->addInternalCall("Internal_GetScrollBarWidth", (void*)&ScriptGUIScrollArea::internal_getScrollBarWidth);
 	}
 
-	void ScriptGUIScrollArea::initialize(ScriptGUIScrollAreaLayout* layout)
+	void ScriptGUIScrollArea::Initialize(ScriptGUIScrollAreaLayout* layout)
 	{
 		mLayout = layout;
 		mLayout->mParentScrollArea = this;
 	}
 
-	void ScriptGUIScrollArea::notifyLayoutDestroyed()
+	void ScriptGUIScrollArea::NotifyLayoutDestroyed()
 	{
 		mLayout = nullptr;
 	}
 
-	void ScriptGUIScrollArea::destroy()
+	void ScriptGUIScrollArea::Destroy()
 	{
 		if (!mIsDestroyed)
 		{

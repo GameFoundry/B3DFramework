@@ -16,32 +16,32 @@ namespace bs
 		mInternal->release();
 	}
 
-	void PhysXMaterial::setStaticFriction(float value)
+	void PhysXMaterial::SetStaticFriction(float value)
 	{
 		mInternal->setStaticFriction(value);
 	}
 
-	float PhysXMaterial::getStaticFriction() const
+	float PhysXMaterial::GetStaticFriction() const
 	{
 		return mInternal->getStaticFriction();
 	}
 
-	void PhysXMaterial::setDynamicFriction(float value)
+	void PhysXMaterial::SetDynamicFriction(float value)
 	{
 		mInternal->setDynamicFriction(value);
 	}
 
-	float PhysXMaterial::getDynamicFriction() const
+	float PhysXMaterial::GetDynamicFriction() const
 	{
 		return mInternal->getDynamicFriction();
 	}
 
-	void PhysXMaterial::setRestitutionCoefficient(float value)
+	void PhysXMaterial::SetRestitutionCoefficient(float value)
 	{
 		mInternal->setRestitution(value);
 	}
 
-	float PhysXMaterial::getRestitutionCoefficient() const
+	float PhysXMaterial::GetRestitutionCoefficient() const
 	{
 		return mInternal->getRestitution();
 	}

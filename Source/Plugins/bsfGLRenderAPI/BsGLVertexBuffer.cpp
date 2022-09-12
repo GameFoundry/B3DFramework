@@ -25,7 +25,7 @@ namespace bs { namespace ct
 			GLVertexArrayObjectManager::instance().notifyBufferDestroyed(mVAObjects[0]);
 	}
 
-	void GLVertexBuffer::initialize()
+	void GLVertexBuffer::Initialize()
 	{
 		mBuffer = bs_pool_new<GLHardwareBuffer>(GL_ARRAY_BUFFER, mSize, mUsage);
 		mBufferDeleter = &deleteBuffer;
@@ -33,12 +33,12 @@ namespace bs { namespace ct
 		VertexBuffer::initialize();
 	}
 
-	void GLVertexBuffer::registerVAO(const GLVertexArrayObject& vao)
+	void GLVertexBuffer::RegisterVAO(const GLVertexArrayObject& vao)
 	{
 		mVAObjects.push_back(vao);
 	}
 
-	void GLVertexBuffer::unregisterVAO(const GLVertexArrayObject& vao)
+	void GLVertexBuffer::UnregisterVAO(const GLVertexArrayObject& vao)
 	{
 		const auto iterFind = std::find(mVAObjects.begin(), mVAObjects.end(), vao);
 

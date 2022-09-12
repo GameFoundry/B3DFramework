@@ -16,7 +16,7 @@ namespace bs
 	{
 	}
 
-	void ScriptApplicationEx::initRuntimeData()
+	void ScriptApplicationEx::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_startUp", (void*)&ScriptApplicationEx::Internal_startUp);
 		metaData.scriptClass->addInternalCall("Internal_startUp0", (void*)&ScriptApplicationEx::Internal_startUp0);

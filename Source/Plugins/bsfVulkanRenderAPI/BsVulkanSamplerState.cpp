@@ -31,7 +31,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void VulkanSamplerState::createInternal()
+	void VulkanSamplerState::CreateInternal()
 	{
 		FilterOptions minFilter = getProperties().getTextureFiltering(FT_MIN);
 		FilterOptions magFilter = getProperties().getTextureFiltering(FT_MAG);

@@ -19,12 +19,12 @@ namespace bs
 		bs_delete(mCaretSprite);
 	}
 
-	Vector2I GUIInputCaret::getSpriteOffset() const
+	Vector2I GUIInputCaret::GetSpriteOffset() const
 	{
 		return GetCaretPosition(getTextOffset());
 	}
 
-	Rect2I GUIInputCaret::getSpriteClipRect(const Rect2I& parentClipRect) const
+	Rect2I GUIInputCaret::GetSpriteClipRect(const Rect2I& parentClipRect) const
 	{
 		Vector2I Offset(mElement->_getLayoutData().area.x, mElement->_getLayoutData().area.y);
 
@@ -48,7 +48,7 @@ namespace bs
 		return clipRect;
 	}
 
-	void GUIInputCaret::updateSprite()
+	void GUIInputCaret::UpdateSprite()
 	{
 		IMAGE_SPRITE_DESC mCaretDesc;
 		mCaretDesc.width = 1;
@@ -62,29 +62,29 @@ namespace bs
 		mCaretSprite->update(mCaretDesc, (UINT64)widget);
 	}
 
-	void GUIInputCaret::moveCaretToStart()
+	void GUIInputCaret::MoveCaretToStart()
 	{
 		mCaretPos = 0;
 	}
 
-	void GUIInputCaret::moveCaretToEnd()
+	void GUIInputCaret::MoveCaretToEnd()
 	{
 		mCaretPos = getMaxCaretPos();
 	}
 
-	void GUIInputCaret::moveCaretLeft()
+	void GUIInputCaret::MoveCaretLeft()
 	{
 		mCaretPos = (UINT32)std::max(0, (INT32)mCaretPos - 1);
 	}
 
-	void GUIInputCaret::moveCaretRight()
+	void GUIInputCaret::MoveCaretRight()
 	{
 		UINT32 maxCaretPos = getMaxCaretPos();
 
 		mCaretPos = std::min(maxCaretPos, mCaretPos + 1);
 	}
 
-	void GUIInputCaret::moveCaretUp()
+	void GUIInputCaret::MoveCaretUp()
 	{
 		UINT32 charIdx = getCharIdxAtCaretPos();
 		if(charIdx > 0)
@@ -109,7 +109,7 @@ namespace bs
 		moveCaretToPos(caretCoords);
 	}
 
-	void GUIInputCaret::moveCaretDown()
+	void GUIInputCaret::MoveCaretDown()
 	{
 		UINT32 charIdx = getCharIdxAtCaretPos();
 		if(charIdx > 0)
@@ -134,7 +134,7 @@ namespace bs
 		moveCaretToPos(caretCoords);
 	}
 
-	void GUIInputCaret::moveCaretToPos(const Vector2I& pos)
+	void GUIInputCaret::MoveCaretToPos(const Vector2I& pos)
 	{
 		INT32 charIdx = getCharIdxAtPos(pos);
 
@@ -186,7 +186,7 @@ namespace bs
 		}
 	}
 
-	void GUIInputCaret::moveCaretToChar(UINT32 charIdx, CaretPos caretPos)
+	void GUIInputCaret::MoveCaretToChar(UINT32 charIdx, CaretPos caretPos)
 	{
 		if(charIdx >= mNumChars)
 		{
@@ -225,12 +225,12 @@ namespace bs
 		mCaretPos = curPos;
 	}
 
-	UINT32 GUIInputCaret::getCharIdxAtCaretPos() const
+	UINT32 GUIInputCaret::GetCharIdxAtCaretPos() const
 	{
 		return GetCharIdxAtInputIdx(mCaretPos);
 	}
 
-	Vector2I GUIInputCaret::getCaretPosition(const Vector2I& offset) const
+	Vector2I GUIInputCaret::GetCaretPosition(const Vector2I& offset) const
 	{
 		if(mNumChars > 0 && isDescValid())
 		{
@@ -266,7 +266,7 @@ namespace bs
 		return offset;
 	}
 
-	UINT32 GUIInputCaret::getCaretHeight() const
+	UINT32 GUIInputCaret::GetCaretHeight() const
 	{
 		UINT32 charIdx = getCharIdxAtCaretPos();
 		if(charIdx > 0)
@@ -292,12 +292,12 @@ namespace bs
 		return 0;
 	}
 
-	bool GUIInputCaret::isCaretAtNewline() const
+	bool GUIInputCaret::IsCaretAtNewline() const
 	{
 		return IsNewline(mCaretPos);
 	}
 
-	UINT32 GUIInputCaret::getMaxCaretPos() const
+	UINT32 GUIInputCaret::GetMaxCaretPos() const
 	{
 		if(mNumChars == 0)
 			return 0;

@@ -56,7 +56,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return Light::createEmpty();
+			return Light::CreateEmpty();
 		}
 	};
 

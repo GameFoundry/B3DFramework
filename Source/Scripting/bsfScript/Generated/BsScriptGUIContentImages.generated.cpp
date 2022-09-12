@@ -14,20 +14,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptGUIContentImages::initRuntimeData()
+	void ScriptGUIContentImages::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptGUIContentImages::box(const __GUIContentImagesInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__GUIContentImagesInterop ScriptGUIContentImages::unbox(MonoObject* value)
+	__GUIContentImagesInterop ScriptGUIContentImages::Unbox(MonoObject* value)
 	{
 		return *(__GUIContentImagesInterop*)MonoUtil::unbox(value);
 	}
 
-	GUIContentImages ScriptGUIContentImages::fromInterop(const __GUIContentImagesInterop& value)
+	GUIContentImages ScriptGUIContentImages::FromInterop(const __GUIContentImagesInterop& value)
 	{
 		GUIContentImages output;
 		ResourceHandle<SpriteTexture> tmpnormal;
@@ -82,7 +82,7 @@ namespace bs
 		return output;
 	}
 
-	__GUIContentImagesInterop ScriptGUIContentImages::toInterop(const GUIContentImages& value)
+	__GUIContentImagesInterop ScriptGUIContentImages::ToInterop(const GUIContentImages& value)
 	{
 		__GUIContentImagesInterop output;
 		ScriptResourceBase* scriptnormal;

@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	SPtr<FontImportOptions> FontImportOptions::create()
+	SPtr<FontImportOptions> FontImportOptions::Create()
 	{
 		return bs_shared_ptr_new<FontImportOptions>();
 	}
@@ -15,11 +15,11 @@ namespace bs
 	/************************************************************************/
 	RTTITypeBase* FontImportOptions::getRTTIStatic()
 	{
-		return FontImportOptionsRTTI::instance();
+		return FontImportOptionsRTTI::Instance();
 	}
 
 	RTTITypeBase* FontImportOptions::getRTTI() const
 	{
-		return FontImportOptions::getRTTIStatic();
+		return FontImportOptions::GetRTTIStatic();
 	}
 }

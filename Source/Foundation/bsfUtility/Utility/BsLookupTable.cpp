@@ -23,7 +23,7 @@ namespace bs
 		mTimeScale = 1.0f / timeInterval;
 	}
 
-	void LookupTable::evaluate(float t, const float*& left, const float*& right, float& fraction) const
+	void LookupTable::Evaluate(float t, const float*& left, const float*& right, float& fraction) const
 	{
 		t -= mTimeStart;
 		t *= mTimeScale;

@@ -13,20 +13,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptContactPoint::initRuntimeData()
+	void ScriptContactPoint::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptContactPoint::box(const __ContactPointInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__ContactPointInterop ScriptContactPoint::unbox(MonoObject* value)
+	__ContactPointInterop ScriptContactPoint::Unbox(MonoObject* value)
 	{
 		return *(__ContactPointInterop*)MonoUtil::unbox(value);
 	}
 
-	ContactPoint ScriptContactPoint::fromInterop(const __ContactPointInterop& value)
+	ContactPoint ScriptContactPoint::FromInterop(const __ContactPointInterop& value)
 	{
 		ContactPoint output;
 		output.position = value.position;
@@ -37,7 +37,7 @@ namespace bs
 		return output;
 	}
 
-	__ContactPointInterop ScriptContactPoint::toInterop(const ContactPoint& value)
+	__ContactPointInterop ScriptContactPoint::ToInterop(const ContactPoint& value)
 	{
 		__ContactPointInterop output;
 		output.position = value.position;

@@ -20,7 +20,7 @@ namespace bs { namespace ct
 		sToInitialize.clear();
 	}
 
-	void ParamBlockManager::registerBlock(ParamBlock* paramBlock)
+	void ParamBlockManager::RegisterBlock(ParamBlock* paramBlock)
 	{
 		if (isStarted())
 			paramBlock->initialize();
@@ -28,7 +28,7 @@ namespace bs { namespace ct
 			sToInitialize.push_back(paramBlock);
 	}
 
-	void ParamBlockManager::unregisterBlock(ParamBlock* paramBlock)
+	void ParamBlockManager::UnregisterBlock(ParamBlock* paramBlock)
 	{
 		auto iterFind = std::find(sToInitialize.begin(), sToInitialize.end(), paramBlock);
 		if (iterFind != sToInitialize.end())

@@ -183,7 +183,7 @@ namespace bs
 		bool operator== (const DenseMap<Key, Value>& other) const
 		{
 			if (this->size() != other.size()) return false;
-			return std::equal(this->begin(), this->end(), other.begin());
+			return std::Equal(this->begin(), this->end(), other.begin());
 		}
 
 		bool operator!= (const DenseMap<Key, Value>& other) const

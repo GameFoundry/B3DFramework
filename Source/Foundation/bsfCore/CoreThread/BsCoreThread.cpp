@@ -18,7 +18,7 @@ namespace bs
 	Signal CoreThread::sAppStartedCondition;
 #endif
 
-	void CoreThread::onStartUp()
+	void CoreThread::OnStartUp()
 	{
 		for (UINT32 i = 0; i < NUM_SYNC_BUFFERS; i++)
 		{
@@ -60,7 +60,7 @@ namespace bs
 		}
 	}
 
-	void CoreThread::initCoreThread()
+	void CoreThread::InitCoreThread()
 	{
 #if !BS_FORCE_SINGLETHREADED_RENDERING
 #if !BS_CORE_THREAD_IS_MAIN
@@ -99,7 +99,7 @@ namespace bs
 	}
 #endif
 
-	void CoreThread::runCoreThread()
+	void CoreThread::RunCoreThread()
 	{
 #if !BS_FORCE_SINGLETHREADED_RENDERING
 		TaskScheduler::instance().removeWorker(); // One less worker because we are reserving one core for this thread
@@ -142,7 +142,7 @@ namespace bs
 #endif
 	}
 
-	void CoreThread::shutdownCoreThread()
+	void CoreThread::ShutdownCoreThread()
 	{
 #if !BS_FORCE_SINGLETHREADED_RENDERING
 
@@ -162,7 +162,7 @@ namespace bs
 #endif
 	}
 
-	SPtr<CommandQueue<CommandQueueSync>> CoreThread::getQueue()
+	SPtr<CommandQueue<CommandQueueSync>> CoreThread::GetQueue()
 	{
 		if(mPerThreadQueue.current == nullptr)
 		{
@@ -178,7 +178,7 @@ namespace bs
 		return mPerThreadQueue.current->queue;
 	}
 
-	void CoreThread::submitCommandQueue(CommandQueue<CommandQueueSync>& queue, bool blockUntilComplete)
+	void CoreThread::SubmitCommandQueue(CommandQueue<CommandQueueSync>& queue, bool blockUntilComplete)
 	{
 		Queue<QueuedCommand>* commands = queue.flush();
 
@@ -190,7 +190,7 @@ namespace bs
 		queueCommand(std::bind(&CommandQueueBase::playback, &queue, commands), flags);
 	}
 
-	void CoreThread::submitAll(bool blockUntilComplete)
+	void CoreThread::SubmitAll(bool blockUntilComplete)
 	{
 		UINT32 blockCommandId = (UINT32)-1;
 
@@ -229,7 +229,7 @@ namespace bs
 		}
 	}
 
-	void CoreThread::submit(bool blockUntilComplete)
+	void CoreThread::Submit(bool blockUntilComplete)
 	{
 		Lock Lock(mSubmitMutex);
 
@@ -256,7 +256,7 @@ namespace bs
 			blockUntilCommandCompleted(commandId);
 	}
 
-	AsyncOp CoreThread::queueReturnCommand(std::function<void(AsyncOp&)> commandCallback, CoreThreadQueueFlags flags)
+	AsyncOp CoreThread::QueueReturnCommand(std::function<void(AsyncOp&)> commandCallback, CoreThreadQueueFlags flags)
 	{
 #if !BS_FORCE_SINGLETHREADED_RENDERING
 		assert(BS_THREAD_CURRENT_ID != getCoreThreadId() && "Cannot queue commands on the core thread for the core thread");
@@ -291,7 +291,7 @@ namespace bs
 		}
 	}
 
-	void CoreThread::queueCommand(std::function<void()> commandCallback, CoreThreadQueueFlags flags)
+	void CoreThread::QueueCommand(std::function<void()> commandCallback, CoreThreadQueueFlags flags)
 	{
 #if !BS_FORCE_SINGLETHREADED_RENDERING
 		assert(BS_THREAD_CURRENT_ID != getCoreThreadId() && "Cannot queue commands on the core thread for the core thread");
@@ -323,7 +323,7 @@ namespace bs
 		}
 	}
 
-	void CoreThread::update()
+	void CoreThread::Update()
 	{
 		for (UINT32 i = 0; i < NUM_SYNC_BUFFERS; i++)
 			mFrameAllocs[i]->setOwnerThread(mCoreThreadId);
@@ -338,7 +338,7 @@ namespace bs
 		return mFrameAllocs[mActiveFrameAlloc];
 	}
 
-	void CoreThread::blockUntilCommandCompleted(UINT32 commandId)
+	void CoreThread::BlockUntilCommandCompleted(UINT32 commandId)
 	{
 #if !BS_FORCE_SINGLETHREADED_RENDERING
 
@@ -362,7 +362,7 @@ namespace bs
 #endif
 	}
 
-	void CoreThread::commandCompletedNotify(UINT32 commandId)
+	void CoreThread::CommandCompletedNotify(UINT32 commandId)
 	{
 		{
 			Lock Lock(mCommandNotifyMutex);
@@ -374,7 +374,7 @@ namespace bs
 
 	CoreThread& GCoreThread()
 	{
-		return CoreThread::instance();
+		return CoreThread::Instance();
 	}
 
 	void ThrowIfNotCoreThread()

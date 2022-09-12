@@ -61,7 +61,7 @@ namespace bs
 
 	CrashHandler::~CrashHandler() {}
 
-	String CrashHandler::getCrashTimestamp()
+	String CrashHandler::GetCrashTimestamp()
 	{
 		std::time_t t = time(0);
 		struct tm *now = localtime(&t);
@@ -72,10 +72,10 @@ namespace bs
 		String strDay = toString(now->tm_mday, 2, '0');
 		String strHour = toString(now->tm_hour, 2, '0');
 		String strMinute = toString(now->tm_min, 2, '0');
-		return StringUtil::format(timeStamp, strYear, strMonth, strDay, strHour, strMinute);
+		return StringUtil::Format(timeStamp, strYear, strMonth, strDay, strHour, strMinute);
 	}
 
-	String CrashHandler::getStackTrace()
+	String CrashHandler::GetStackTrace()
 	{
 		StringStream stackTrace;
 		void* trace[BS_MAX_STACKTRACE_DEPTH];

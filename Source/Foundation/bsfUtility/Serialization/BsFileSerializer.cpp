@@ -23,7 +23,7 @@ namespace bs
 		mOutputStream = FileSystem::createAndOpenFile(fileLocation);
 	}
 
-	void FileEncoder::encode(IReflectable* object, SerializationContext* context)
+	void FileEncoder::Encode(IReflectable* object, SerializationContext* context)
 	{
 		if (object == nullptr)
 			return;
@@ -56,7 +56,7 @@ namespace bs
 		}
 	}
 
-	SPtr<IReflectable> FileDecoder::decode(SerializationContext* context)
+	SPtr<IReflectable> FileDecoder::Decode(SerializationContext* context)
 	{
 		if (mInputStream->eof())
 			return nullptr;
@@ -70,7 +70,7 @@ namespace bs
 		return object;
 	}
 
-	UINT32 FileDecoder::getSize() const
+	UINT32 FileDecoder::GetSize() const
 	{
 		if (mInputStream->eof())
 			return 0;
@@ -82,7 +82,7 @@ namespace bs
 		return objectSize;
 	}
 
-	void FileDecoder::skip()
+	void FileDecoder::Skip()
 	{
 		if (mInputStream->eof())
 			return;

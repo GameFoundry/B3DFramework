@@ -45,7 +45,7 @@ namespace bs
 		}		
 	}
 
-	SPtr<ManagedSerializableObject> ManagedSerializableObject::createFromExisting(MonoObject* managedInstance)
+	SPtr<ManagedSerializableObject> ManagedSerializableObject::CreateFromExisting(MonoObject* managedInstance)
 	{
 		if(managedInstance == nullptr)
 			return nullptr;
@@ -61,7 +61,7 @@ namespace bs
 		return bs_shared_ptr_new<ManagedSerializableObject>(ConstructPrivately(), objInfo, managedInstance);
 	}
 
-	SPtr<ManagedSerializableObject> ManagedSerializableObject::createNew(const SPtr<ManagedSerializableTypeInfoObject>& type)
+	SPtr<ManagedSerializableObject> ManagedSerializableObject::CreateNew(const SPtr<ManagedSerializableTypeInfoObject>& type)
 	{
 		SPtr<ManagedSerializableObjectInfo> currentObjInfo = nullptr;
 
@@ -87,7 +87,7 @@ namespace bs
 		return currentObjInfo->mMonoClass->createInstance(construct);
 	}
 
-	SPtr<ManagedSerializableObject> ManagedSerializableObject::createEmpty()
+	SPtr<ManagedSerializableObject> ManagedSerializableObject::CreateEmpty()
 	{
 		return bs_shared_ptr_new<ManagedSerializableObject>(ConstructPrivately());
 	}
@@ -95,12 +95,12 @@ namespace bs
 	MonoObject* ManagedSerializableObject::getManagedInstance() const
 	{
 		if(mGCHandle != 0)
-			return MonoUtil::getObjectFromGCHandle(mGCHandle);
+			return MonoUtil::GetObjectFromGCHandle(mGCHandle);
 
 		return nullptr;
 	}
 
-	void ManagedSerializableObject::serialize()
+	void ManagedSerializableObject::Serialize()
 	{
 		if(mGCHandle == 0)
 			return;
@@ -146,7 +146,7 @@ namespace bs
 		return managedInstance;
 	}
 
-	void ManagedSerializableObject::deserialize(MonoObject* instance, const SPtr<ManagedSerializableObjectInfo>& objInfo)
+	void ManagedSerializableObject::Deserialize(MonoObject* instance, const SPtr<ManagedSerializableObjectInfo>& objInfo)
 	{
 		if (instance == nullptr)
 			return;
@@ -181,7 +181,7 @@ namespace bs
 		}
 	}
 
-	bool ManagedSerializableObject::equals(ManagedSerializableObject& other)
+	bool ManagedSerializableObject::Equals(ManagedSerializableObject& other)
 	{
 		SPtr<ManagedSerializableObjectInfo> otherObjInfo = other.getObjectInfo();
 
@@ -217,7 +217,7 @@ namespace bs
 		return true;
 	}
 
-	void ManagedSerializableObject::setFieldData(const SPtr<ManagedSerializableMemberInfo>& fieldInfo, const SPtr<ManagedSerializableFieldData>& val)
+	void ManagedSerializableObject::SetFieldData(const SPtr<ManagedSerializableMemberInfo>& fieldInfo, const SPtr<ManagedSerializableFieldData>& val)
 	{
 		if (mGCHandle != 0)
 		{
@@ -231,14 +231,14 @@ namespace bs
 		}
 	}
 
-	SPtr<ManagedSerializableFieldData> ManagedSerializableObject::getFieldData(const SPtr<ManagedSerializableMemberInfo>& fieldInfo) const
+	SPtr<ManagedSerializableFieldData> ManagedSerializableObject::GetFieldData(const SPtr<ManagedSerializableMemberInfo>& fieldInfo) const
 	{
 		if (mGCHandle != 0)
 		{
 			MonoObject* managedInstance = MonoUtil::getObjectFromGCHandle(mGCHandle);
 			MonoObject* fieldValue = fieldInfo->getValue(managedInstance);
 
-			return ManagedSerializableFieldData::create(fieldInfo->mTypeInfo, fieldValue);
+			return ManagedSerializableFieldData::Create(fieldInfo->mTypeInfo, fieldValue);
 		}
 		else
 		{
@@ -254,11 +254,11 @@ namespace bs
 
 	RTTITypeBase* ManagedSerializableObject::getRTTIStatic()
 	{
-		return ManagedSerializableObjectRTTI::instance();
+		return ManagedSerializableObjectRTTI::Instance();
 	}
 
 	RTTITypeBase* ManagedSerializableObject::getRTTI() const
 	{
-		return ManagedSerializableObject::getRTTIStatic();
+		return ManagedSerializableObject::GetRTTIStatic();
 	}
 }

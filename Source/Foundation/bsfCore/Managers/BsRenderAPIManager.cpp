@@ -17,7 +17,7 @@ namespace bs
 		}
 	}
 
-	SPtr<RenderWindow> RenderAPIManager::initialize(const String& pluginFilename, RENDER_WINDOW_DESC& primaryWindowDesc)
+	SPtr<RenderWindow> RenderAPIManager::Initialize(const String& pluginFilename, RENDER_WINDOW_DESC& primaryWindowDesc)
 	{
 		if(mRenderAPIInitialized)
 			return nullptr;
@@ -46,7 +46,7 @@ namespace bs
 		return nullptr;
 	}
 
-	void RenderAPIManager::registerFactory(SPtr<RenderAPIFactory> factory)
+	void RenderAPIManager::RegisterFactory(SPtr<RenderAPIFactory> factory)
 	{
 		assert(factory != nullptr);
 

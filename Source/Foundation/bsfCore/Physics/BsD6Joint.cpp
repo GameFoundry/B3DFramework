@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	SPtr<D6Joint> D6Joint::create(PhysicsScene& scene, const D6_JOINT_DESC& desc)
+	SPtr<D6Joint> D6Joint::Create(PhysicsScene& scene, const D6_JOINT_DESC& desc)
 	{
 		return scene.createD6Joint(desc);
 	}

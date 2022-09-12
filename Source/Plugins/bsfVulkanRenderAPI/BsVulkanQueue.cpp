@@ -13,7 +13,7 @@ namespace bs { namespace ct
 			mSubmitDstWaitMask[i] = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 	}
 
-	bool VulkanQueue::isExecuting() const
+	bool VulkanQueue::IsExecuting() const
 	{
 		if (mLastCommandBuffer == nullptr)
 			return false;
@@ -21,7 +21,7 @@ namespace bs { namespace ct
 		return mLastCommandBuffer->isSubmitted();
 	}
 
-	void VulkanQueue::submit(VulkanCmdBuffer* cmdBuffer, VulkanSemaphore** waitSemaphores, UINT32 semaphoresCount)
+	void VulkanQueue::Submit(VulkanCmdBuffer* cmdBuffer, VulkanSemaphore** waitSemaphores, UINT32 semaphoresCount)
 	{
 		VkSemaphore signalSemaphores[BS_MAX_VULKAN_CB_DEPENDENCIES + 1];
 		cmdBuffer->allocateSemaphores(signalSemaphores);
@@ -46,7 +46,7 @@ namespace bs { namespace ct
 		mActiveBuffers.push(cmdBuffer);
 	}
 
-	void VulkanQueue::queueSubmit(VulkanCmdBuffer* cmdBuffer, VulkanSemaphore** waitSemaphores, UINT32 semaphoresCount)
+	void VulkanQueue::QueueSubmit(VulkanCmdBuffer* cmdBuffer, VulkanSemaphore** waitSemaphores, UINT32 semaphoresCount)
 	{
 		mQueuedBuffers.push_back(SubmitInfo(cmdBuffer, 0, semaphoresCount, 1));
 
@@ -54,7 +54,7 @@ namespace bs { namespace ct
 			mQueuedSemaphores.push_back(waitSemaphores[i]);
 	}
 
-	void VulkanQueue::submitQueued()
+	void VulkanQueue::SubmitQueued()
 	{
 		UINT32 numCBs = (UINT32)mQueuedBuffers.size();
 		if (numCBs == 0)
@@ -142,7 +142,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	VkResult VulkanQueue::present(VulkanSwapChain* swapChain, VulkanSemaphore** waitSemaphores, UINT32 semaphoresCount)
+	VkResult VulkanQueue::Present(VulkanSwapChain* swapChain, VulkanSemaphore** waitSemaphores, UINT32 semaphoresCount)
 	{
 		UINT32 backBufferIdx;
 		if (!swapChain->prepareForPresent(backBufferIdx))
@@ -179,13 +179,13 @@ namespace bs { namespace ct
 		return result;
 	}
 
-	void VulkanQueue::waitIdle() const
+	void VulkanQueue::WaitIdle() const
 	{
 		VkResult result = vkQueueWaitIdle(mQueue);
 		assert(result == VK_SUCCESS);
 	}
 
-	void VulkanQueue::refreshStates(bool forceWait, bool queueEmpty)
+	void VulkanQueue::RefreshStates(bool forceWait, bool queueEmpty)
 	{
 		UINT32 lastFinishedSubmission = 0;
 
@@ -241,7 +241,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void VulkanQueue::prepareSemaphores(VulkanSemaphore** inSemaphores, VkSemaphore* outSemaphores, UINT32& semaphoresCount)
+	void VulkanQueue::PrepareSemaphores(VulkanSemaphore** inSemaphores, VkSemaphore* outSemaphores, UINT32& semaphoresCount)
 	{
 		UINT32 semaphoreIdx = 0;
 		for (UINT32 i = 0; i < semaphoresCount; i++)

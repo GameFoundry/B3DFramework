@@ -13,20 +13,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptCharDesc::initRuntimeData()
+	void ScriptCharDesc::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptCharDesc::box(const __CharDescInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__CharDescInterop ScriptCharDesc::unbox(MonoObject* value)
+	__CharDescInterop ScriptCharDesc::Unbox(MonoObject* value)
 	{
 		return *(__CharDescInterop*)MonoUtil::unbox(value);
 	}
 
-	CharDesc ScriptCharDesc::fromInterop(const __CharDescInterop& value)
+	CharDesc ScriptCharDesc::FromInterop(const __CharDescInterop& value)
 	{
 		CharDesc output;
 		output.charId = value.charId;
@@ -56,7 +56,7 @@ namespace bs
 		return output;
 	}
 
-	__CharDescInterop ScriptCharDesc::toInterop(const CharDesc& value)
+	__CharDescInterop ScriptCharDesc::ToInterop(const CharDesc& value)
 	{
 		__CharDescInterop output;
 		output.charId = value.charId;

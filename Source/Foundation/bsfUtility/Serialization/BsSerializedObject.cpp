@@ -6,19 +6,19 @@
 
 namespace bs
 {
-	SPtr<SerializedObject> SerializedObject::create(IReflectable& obj, SerializedObjectEncodeFlags flags, SerializationContext* context)
+	SPtr<SerializedObject> SerializedObject::Create(IReflectable& obj, SerializedObjectEncodeFlags flags, SerializationContext* context)
 	{
 		IntermediateSerializer is;
 		return is.encode(&obj, flags, context);
 	}
 
-	SPtr<IReflectable> SerializedObject::decode(SerializationContext* context) const
+	SPtr<IReflectable> SerializedObject::Decode(SerializationContext* context) const
 	{
 		IntermediateSerializer is;
 		return is.decode(this, context);
 	}
 
-	SPtr<SerializedInstance> SerializedObject::clone(bool cloneData)
+	SPtr<SerializedInstance> SerializedObject::Clone(bool cloneData)
 	{
 		SPtr<SerializedObject> copy = bs_shared_ptr_new<SerializedObject>();
 		copy->subObjects = Vector<SerializedSubObject>(subObjects.size());
@@ -44,7 +44,7 @@ namespace bs
 		return copy;
 	}
 
-	SPtr<SerializedInstance> SerializedField::clone(bool cloneData)
+	SPtr<SerializedInstance> SerializedField::Clone(bool cloneData)
 	{
 		SPtr<SerializedField> copy = bs_shared_ptr_new<SerializedField>();
 		copy->size = size;
@@ -64,7 +64,7 @@ namespace bs
 		return copy;
 	}
 
-	SPtr<SerializedInstance> SerializedDataBlock::clone(bool cloneData)
+	SPtr<SerializedInstance> SerializedDataBlock::Clone(bool cloneData)
 	{
 		SPtr<SerializedDataBlock> copy = bs_shared_ptr_new<SerializedDataBlock>();
 		copy->size = size;
@@ -92,7 +92,7 @@ namespace bs
 		return copy;
 	}
 
-	SPtr<SerializedInstance> SerializedArray::clone(bool cloneData)
+	SPtr<SerializedInstance> SerializedArray::Clone(bool cloneData)
 	{
 		SPtr<SerializedArray> copy = bs_shared_ptr_new<SerializedArray>();
 		copy->numElements = numElements;
@@ -110,35 +110,35 @@ namespace bs
 
 	RTTITypeBase* SerializedInstance::getRTTIStatic()
 	{
-		return SerializedInstanceRTTI::instance();
+		return SerializedInstanceRTTI::Instance();
 	}
 
 	RTTITypeBase* SerializedInstance::getRTTI() const
 	{
-		return SerializedInstance::getRTTIStatic();
+		return SerializedInstance::GetRTTIStatic();
 	}
 
 	RTTITypeBase* SerializedDataBlock::getRTTIStatic()
 	{
-		return SerializedDataBlockRTTI::instance();
+		return SerializedDataBlockRTTI::Instance();
 	}
 
 	RTTITypeBase* SerializedDataBlock::getRTTI() const
 	{
-		return SerializedDataBlock::getRTTIStatic();
+		return SerializedDataBlock::GetRTTIStatic();
 	}
 
 	RTTITypeBase* SerializedField::getRTTIStatic()
 	{
-		return SerializedFieldRTTI::instance();
+		return SerializedFieldRTTI::Instance();
 	}
 
 	RTTITypeBase* SerializedField::getRTTI() const
 	{
-		return SerializedField::getRTTIStatic();
+		return SerializedField::GetRTTIStatic();
 	}
 
-	UINT32 SerializedObject::getRootTypeId() const
+	UINT32 SerializedObject::GetRootTypeId() const
 	{
 		if(subObjects.size() > 0)
 			return subObjects[0].typeId;
@@ -148,51 +148,51 @@ namespace bs
 
 	RTTITypeBase* SerializedObject::getRTTIStatic()
 	{
-		return SerializedObjectRTTI::instance();
+		return SerializedObjectRTTI::Instance();
 	}
 
 	RTTITypeBase* SerializedObject::getRTTI() const
 	{
-		return SerializedObject::getRTTIStatic();
+		return SerializedObject::GetRTTIStatic();
 	}
 
 	RTTITypeBase* SerializedArray::getRTTIStatic()
 	{
-		return SerializedArrayRTTI::instance();
+		return SerializedArrayRTTI::Instance();
 	}
 
 	RTTITypeBase* SerializedArray::getRTTI() const
 	{
-		return SerializedArray::getRTTIStatic();
+		return SerializedArray::GetRTTIStatic();
 	}
 
 	RTTITypeBase* SerializedSubObject::getRTTIStatic()
 	{
-		return SerializedSubObjectRTTI::instance();
+		return SerializedSubObjectRTTI::Instance();
 	}
 
 	RTTITypeBase* SerializedSubObject::getRTTI() const
 	{
-		return SerializedSubObject::getRTTIStatic();
+		return SerializedSubObject::GetRTTIStatic();
 	}
 
 	RTTITypeBase* SerializedEntry::getRTTIStatic()
 	{
-		return SerializedEntryRTTI::instance();
+		return SerializedEntryRTTI::Instance();
 	}
 
 	RTTITypeBase* SerializedEntry::getRTTI() const
 	{
-		return SerializedEntry::getRTTIStatic();
+		return SerializedEntry::GetRTTIStatic();
 	}
 
 	RTTITypeBase* SerializedArrayEntry::getRTTIStatic()
 	{
-		return SerializedArrayEntryRTTI::instance();
+		return SerializedArrayEntryRTTI::Instance();
 	}
 
 	RTTITypeBase* SerializedArrayEntry::getRTTI() const
 	{
-		return SerializedArrayEntry::getRTTIStatic();
+		return SerializedArrayEntry::GetRTTIStatic();
 	}
 }

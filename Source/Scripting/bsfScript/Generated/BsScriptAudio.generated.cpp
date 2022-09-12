@@ -14,7 +14,7 @@ namespace bs
 	{
 	}
 
-	void ScriptAudio::initRuntimeData()
+	void ScriptAudio::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_setVolume", (void*)&ScriptAudio::Internal_setVolume);
 		metaData.scriptClass->addInternalCall("Internal_getVolume", (void*)&ScriptAudio::Internal_getVolume);

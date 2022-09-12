@@ -14,7 +14,7 @@ namespace bs
 	{
 	}
 
-	void ScriptResourceManifest::initRuntimeData()
+	void ScriptResourceManifest::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getName", (void*)&ScriptResourceManifest::Internal_getName);
 		metaData.scriptClass->addInternalCall("Internal_registerResource", (void*)&ScriptResourceManifest::Internal_registerResource);

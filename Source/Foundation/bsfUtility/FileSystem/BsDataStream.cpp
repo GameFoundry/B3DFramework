@@ -46,7 +46,7 @@ namespace bs
 		return *this;
 	}
 
-	void DataStream::writeString(const String& string, StringEncoding encoding)
+	void DataStream::WriteString(const String& string, StringEncoding encoding)
 	{
 		if (encoding == StringEncoding::UTF16)
 		{
@@ -67,7 +67,7 @@ namespace bs
 		}
 	}
 
-	void DataStream::writeString(const WString& string, StringEncoding encoding)
+	void DataStream::WriteString(const WString& string, StringEncoding encoding)
 	{
 		if (encoding == StringEncoding::UTF16)
 		{
@@ -90,7 +90,7 @@ namespace bs
 		}
 	}
 
-	String DataStream::getAsString()
+	String DataStream::GetAsString()
 	{
 		// Ensure read from begin of stream
 		seek(0);
@@ -156,13 +156,13 @@ namespace bs
 			{
 			UINT32 numElems = (UINT32)string.length() / 2;
 
-			return UTF8::fromUTF16(U16String((char16_t*)string.data(), numElems));
+			return UTF8::FromUTF16(U16String((char16_t*)string.data(), numElems));
 			}
 		case 4: // UTF-32
 			{
 			UINT32 numElems = (UINT32)string.length() / 4;
 
-			return UTF8::fromUTF32(U32String((char32_t*)string.data(), numElems));
+			return UTF8::FromUTF32(U32String((char32_t*)string.data(), numElems));
 			}
 		}
 
@@ -171,11 +171,11 @@ namespace bs
 		// fine as most files are UTF-8 encoded.
 	}
 
-	WString DataStream::getAsWString()
+	WString DataStream::GetAsWString()
 	{
 		String u8string = getAsString();
 
-		return UTF8::toWide(u8string);
+		return UTF8::ToWide(u8string);
 	}
 
 	MemoryDataStream::MemoryDataStream()
@@ -292,7 +292,7 @@ namespace bs
 		return *this;
 	}
 
-	size_t MemoryDataStream::read(void* buf, size_t count) const
+	size_t MemoryDataStream::Read(void* buf, size_t count) const
 	{
 		size_t cnt = count;
 
@@ -310,7 +310,7 @@ namespace bs
 		return cnt;
 	}
 
-	size_t MemoryDataStream::write(const void* buf, size_t count)
+	size_t MemoryDataStream::Write(const void* buf, size_t count)
 	{
 		size_t written = 0;
 		if (isWriteable())
@@ -339,31 +339,31 @@ namespace bs
 		return written;
 	}
 
-	size_t DataStream::readBits(uint8_t* data, uint32_t count)
+	size_t DataStream::ReadBits(uint8_t* data, uint32_t count)
 	{
 		uint32_t numBytes = Math::divideAndRoundUp(count, 8U);
 		return Read(data, numBytes) * 8;
 	}
 
-	size_t DataStream::writeBits(const uint8_t* data, uint32_t count)
+	size_t DataStream::WriteBits(const uint8_t* data, uint32_t count)
 	{
 		uint32_t numBytes = Math::divideAndRoundUp(count, 8U);
 		return Write(data, numBytes) * 8;
 	}
 
-	void MemoryDataStream::skip(size_t count)
+	void MemoryDataStream::Skip(size_t count)
 	{
 		assert((mCursor + count) <= mEnd);
 		mCursor = std::min(mCursor + count, mEnd);
 	}
 
-	void MemoryDataStream::seek(size_t pos)
+	void MemoryDataStream::Seek(size_t pos)
 	{
 		assert((mData + pos) <= mEnd);
 		mCursor = std::min(mData + pos, mEnd);
 	}
 
-	void DataStream::align(uint32_t count)
+	void DataStream::Align(uint32_t count)
 	{
 		if (count <= 1)
 			return;
@@ -372,17 +372,17 @@ namespace bs
 		skip(alignOffset);
 	}
 
-	size_t MemoryDataStream::tell() const
+	size_t MemoryDataStream::Tell() const
 	{
 		return mCursor - mData;
 	}
 
-	bool MemoryDataStream::eof() const
+	bool MemoryDataStream::Eof() const
 	{
 		return mCursor >= mEnd;
 	}
 
-	SPtr<DataStream> MemoryDataStream::clone(bool copyData) const
+	SPtr<DataStream> MemoryDataStream::Clone(bool copyData) const
 	{
 		if (!copyData)
 			return bs_shared_ptr_new<MemoryDataStream>(mData, mSize);
@@ -390,7 +390,7 @@ namespace bs
 		return bs_shared_ptr_new<MemoryDataStream>(*this);
 	}
 
-	void MemoryDataStream::close()
+	void MemoryDataStream::Close()
 	{
 		if (mData != nullptr)
 		{
@@ -401,7 +401,7 @@ namespace bs
 		}
 	}
 
-	void MemoryDataStream::realloc(size_t numBytes)
+	void MemoryDataStream::Realloc(size_t numBytes)
 	{
 		if (numBytes != mSize)
 		{
@@ -469,14 +469,14 @@ namespace bs
 		close();
 	}
 
-	size_t FileDataStream::read(void* buf, size_t count) const
+	size_t FileDataStream::Read(void* buf, size_t count) const
 	{
 		mInStream->read(static_cast<char*>(buf), static_cast<std::streamsize>(count));
 
 		return (size_t)mInStream->gcount();
 	}
 
-	size_t FileDataStream::write(const void* buf, size_t count)
+	size_t FileDataStream::Write(const void* buf, size_t count)
 	{
 		size_t written = 0;
 		if (isWriteable() && mFStream)
@@ -487,7 +487,7 @@ namespace bs
 
 		return written;
 	}
-	void FileDataStream::skip(size_t count)
+	void FileDataStream::Skip(size_t count)
 	{
 		mInStream->clear(); // Clear fail status in case eof was set
 
@@ -497,7 +497,7 @@ namespace bs
 			mInStream->seekg(static_cast<std::ifstream::pos_type>(count), std::ios::cur);
 	}
 
-	void FileDataStream::seek(size_t pos)
+	void FileDataStream::Seek(size_t pos)
 	{
 		mInStream->clear(); // Clear fail status in case eof was set
 
@@ -507,7 +507,7 @@ namespace bs
 			mInStream->seekg(static_cast<std::streamoff>(pos), std::ios::beg);
 	}
 
-	size_t FileDataStream::tell() const
+	size_t FileDataStream::Tell() const
 	{
 		mInStream->clear(); // Clear fail status in case eof was set
 
@@ -517,17 +517,17 @@ namespace bs
 		return (size_t)mInStream->tellg();
 	}
 
-	bool FileDataStream::eof() const
+	bool FileDataStream::Eof() const
 	{
 		return mInStream->eof();
 	}
 
-	SPtr<DataStream> FileDataStream::clone(bool copyData) const
+	SPtr<DataStream> FileDataStream::Clone(bool copyData) const
 	{
 		return bs_shared_ptr_new<FileDataStream>(mPath, (AccessMode)getAccessMode(), true);
 	}
 
-	void FileDataStream::close()
+	void FileDataStream::Close()
 	{
 		if (mInStream)
 		{

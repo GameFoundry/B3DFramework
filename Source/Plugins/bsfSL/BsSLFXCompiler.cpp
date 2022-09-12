@@ -277,11 +277,11 @@ namespace bs
 	HTexture GetBuiltinTexture(UINT32 idx)
 	{
 		if (idx == 1)
-			return BuiltinResources::getTexture(BuiltinTexture::White);
+			return BuiltinResources::GetTexture(BuiltinTexture::White);
 		else if (idx == 2)
-			return BuiltinResources::getTexture(BuiltinTexture::Black);
+			return BuiltinResources::GetTexture(BuiltinTexture::Black);
 		else if (idx == 3)
-			return BuiltinResources::getTexture(BuiltinTexture::Normal);
+			return BuiltinResources::GetTexture(BuiltinTexture::Normal);
 
 		return HTexture();
 	}
@@ -434,7 +434,7 @@ namespace bs
 			break;
 		}
 
-		return SamplerState::create(desc);
+		return SamplerState::Create(desc);
 	}
 
 	void ParseParameters(const Xsc::Reflection::ReflectionData& reflData, SHADER_DESC& desc)
@@ -816,7 +816,7 @@ namespace bs
 		return output;
 	}
 
-	BSLFXCompileResult BSLFXCompiler::parseFX(ParseState* parseState, const char* source, const UnorderedMap<String, String>& defines)
+	BSLFXCompileResult BSLFXCompiler::ParseFX(ParseState* parseState, const char* source, const UnorderedMap<String, String>& defines)
 	{
 		for(auto& define : defines)
 		{
@@ -874,7 +874,7 @@ cleanup:
 		return output;
 	}
 
-	BSLFXCompiler::ShaderMetaData BSLFXCompiler::parseShaderMetaData(ASTFXNode* shader)
+	BSLFXCompiler::ShaderMetaData BSLFXCompiler::ParseShaderMetaData(ASTFXNode* shader)
 	{
 		ShaderMetaData metaData;
 
@@ -975,7 +975,7 @@ cleanup:
 	}
 
 
-	void BSLFXCompiler::parseVariations(ShaderMetaData& metaData, ASTFXNode* variations)
+	void BSLFXCompiler::ParseVariations(ShaderMetaData& metaData, ASTFXNode* variations)
 	{
 		assert(variations->type == NT_Variation);
 
@@ -1013,7 +1013,7 @@ cleanup:
 			metaData.variations.push_back(variationData);
 	}
 
-	BSLFXCompiler::VariationOption BSLFXCompiler::parseVariationOption(ASTFXNode* variationOption)
+	BSLFXCompiler::VariationOption BSLFXCompiler::ParseVariationOption(ASTFXNode* variationOption)
 	{
 		assert(variationOption->type == NT_VariationOption);
 
@@ -1045,7 +1045,7 @@ cleanup:
 		return output;
 	}
 
-	BSLFXCompiler::AttributeData BSLFXCompiler::parseAttributes(ASTFXNode* attributes)
+	BSLFXCompiler::AttributeData BSLFXCompiler::ParseAttributes(ASTFXNode* attributes)
 	{
 		assert(attributes->type == NT_Attributes);
 
@@ -1070,7 +1070,7 @@ cleanup:
 		return attributeData;
 	}
 
-	QueueSortType BSLFXCompiler::parseSortType(CullAndSortModeValue sortType)
+	QueueSortType BSLFXCompiler::ParseSortType(CullAndSortModeValue sortType)
 	{
 		switch (sortType)
 		{
@@ -1087,7 +1087,7 @@ cleanup:
 		return QueueSortType::None;
 	}
 
-	CompareFunction BSLFXCompiler::parseCompFunc(CompFuncValue compFunc)
+	CompareFunction BSLFXCompiler::ParseCompFunc(CompFuncValue compFunc)
 	{
 		switch (compFunc)
 		{
@@ -1112,7 +1112,7 @@ cleanup:
 		return CMPF_ALWAYS_PASS;
 	}
 
-	BlendFactor BSLFXCompiler::parseBlendFactor(OpValue factor)
+	BlendFactor BSLFXCompiler::ParseBlendFactor(OpValue factor)
 	{
 		switch (factor)
 		{
@@ -1143,7 +1143,7 @@ cleanup:
 		return BF_ONE;
 	}
 
-	BlendOperation BSLFXCompiler::parseBlendOp(BlendOpValue op)
+	BlendOperation BSLFXCompiler::ParseBlendOp(BlendOpValue op)
 	{
 		switch (op)
 		{
@@ -1162,7 +1162,7 @@ cleanup:
 		return BO_ADD;
 	}
 
-	StencilOperation BSLFXCompiler::parseStencilOp(OpValue op)
+	StencilOperation BSLFXCompiler::ParseStencilOp(OpValue op)
 	{
 		switch (op)
 		{
@@ -1189,7 +1189,7 @@ cleanup:
 		return SOP_KEEP;
 	}
 
-	CullingMode BSLFXCompiler::parseCullMode(CullAndSortModeValue cm)
+	CullingMode BSLFXCompiler::ParseCullMode(CullAndSortModeValue cm)
 	{
 		switch (cm)
 		{
@@ -1206,7 +1206,7 @@ cleanup:
 		return CULL_COUNTERCLOCKWISE;
 	}
 
-	PolygonMode BSLFXCompiler::parseFillMode(FillModeValue fm)
+	PolygonMode BSLFXCompiler::ParseFillMode(FillModeValue fm)
 	{
 		if (fm == FMV_Wire)
 			return PM_WIREFRAME;
@@ -1214,7 +1214,7 @@ cleanup:
 		return PM_SOLID;
 	}
 
-	void BSLFXCompiler::parseStencilFront(DEPTH_STENCIL_STATE_DESC& desc, ASTFXNode* stencilOpNode)
+	void BSLFXCompiler::ParseStencilFront(DEPTH_STENCIL_STATE_DESC& desc, ASTFXNode* stencilOpNode)
 	{
 		if (stencilOpNode == nullptr || stencilOpNode->type != NT_StencilOp)
 			return;
@@ -1243,7 +1243,7 @@ cleanup:
 		}
 	}
 
-	void BSLFXCompiler::parseStencilBack(DEPTH_STENCIL_STATE_DESC& desc, ASTFXNode* stencilOpNode)
+	void BSLFXCompiler::ParseStencilBack(DEPTH_STENCIL_STATE_DESC& desc, ASTFXNode* stencilOpNode)
 	{
 		if (stencilOpNode == nullptr || stencilOpNode->type != NT_StencilOp)
 			return;
@@ -1272,7 +1272,7 @@ cleanup:
 		}
 	}
 
-	void BSLFXCompiler::parseColorBlendDef(RENDER_TARGET_BLEND_STATE_DESC& desc, ASTFXNode* blendDefNode)
+	void BSLFXCompiler::ParseColorBlendDef(RENDER_TARGET_BLEND_STATE_DESC& desc, ASTFXNode* blendDefNode)
 	{
 		if (blendDefNode == nullptr || blendDefNode->type != NT_BlendDef)
 			return;
@@ -1298,7 +1298,7 @@ cleanup:
 		}
 	}
 
-	void BSLFXCompiler::parseAlphaBlendDef(RENDER_TARGET_BLEND_STATE_DESC& desc, ASTFXNode* blendDefNode)
+	void BSLFXCompiler::ParseAlphaBlendDef(RENDER_TARGET_BLEND_STATE_DESC& desc, ASTFXNode* blendDefNode)
 	{
 		if (blendDefNode == nullptr || blendDefNode->type != NT_BlendDef)
 			return;
@@ -1324,7 +1324,7 @@ cleanup:
 		}
 	}
 
-	void BSLFXCompiler::parseRenderTargetBlendState(BLEND_STATE_DESC& desc, ASTFXNode* targetNode, UINT32& index)
+	void BSLFXCompiler::ParseRenderTargetBlendState(BLEND_STATE_DESC& desc, ASTFXNode* targetNode, UINT32& index)
 	{
 		if (targetNode == nullptr || targetNode->type != NT_Target)
 			return;
@@ -1373,7 +1373,7 @@ cleanup:
 		index++;
 	}
 
-	bool BSLFXCompiler::parseBlendState(PassData& desc, ASTFXNode* blendNode)
+	bool BSLFXCompiler::ParseBlendState(PassData& desc, ASTFXNode* blendNode)
 	{
 		if (blendNode == nullptr || blendNode->type != NT_Blend)
 			return false;
@@ -1413,7 +1413,7 @@ cleanup:
 		return !isDefault;
 	}
 
-	bool BSLFXCompiler::parseRasterizerState(PassData& desc, ASTFXNode* rasterNode)
+	bool BSLFXCompiler::ParseRasterizerState(PassData& desc, ASTFXNode* rasterNode)
 	{
 		if (rasterNode == nullptr || rasterNode->type != NT_Raster)
 			return false;
@@ -1466,7 +1466,7 @@ cleanup:
 		return !isDefault;
 	}
 
-	bool BSLFXCompiler::parseDepthState(PassData& passData, ASTFXNode* depthNode)
+	bool BSLFXCompiler::ParseDepthState(PassData& passData, ASTFXNode* depthNode)
 	{
 		if (depthNode == nullptr || depthNode->type != NT_Depth)
 			return false;
@@ -1499,7 +1499,7 @@ cleanup:
 		return !isDefault;
 	}
 
-	bool BSLFXCompiler::parseStencilState(PassData& passData, ASTFXNode* stencilNode)
+	bool BSLFXCompiler::ParseStencilState(PassData& passData, ASTFXNode* stencilNode)
 	{
 		if (stencilNode == nullptr || stencilNode->type != NT_Stencil)
 			return false;
@@ -1543,7 +1543,7 @@ cleanup:
 		return !isDefault;
 	}
 
-	void BSLFXCompiler::parseCodeBlock(ASTFXNode* codeNode, const Vector<String>& codeBlocks, PassData& passData)
+	void BSLFXCompiler::ParseCodeBlock(ASTFXNode* codeNode, const Vector<String>& codeBlocks, PassData& passData)
 	{
 		if (codeNode == nullptr || (codeNode->type != NT_Code))
 		{
@@ -1563,7 +1563,7 @@ cleanup:
 		}
 	}
 
-	void BSLFXCompiler::parsePass(ASTFXNode* passNode, const Vector<String>& codeBlocks, PassData& passData)
+	void BSLFXCompiler::ParsePass(ASTFXNode* passNode, const Vector<String>& codeBlocks, PassData& passData)
 	{
 		if (passNode == nullptr || passNode->type != NT_Pass)
 			return;
@@ -1595,7 +1595,7 @@ cleanup:
 		}
 	}
 
-	void BSLFXCompiler::parseShader(ASTFXNode* shaderNode, const Vector<String>& codeBlocks, ShaderData& shaderData)
+	void BSLFXCompiler::ParseShader(ASTFXNode* shaderNode, const Vector<String>& codeBlocks, ShaderData& shaderData)
 	{
 		if (shaderNode == nullptr || (shaderNode->type != NT_Shader && shaderNode->type != NT_Mixin))
 			return;
@@ -1690,7 +1690,7 @@ cleanup:
 		}
 	}
 
-	BSLFXCompiler::SubShaderData BSLFXCompiler::parseSubShader(ASTFXNode* subShader)
+	BSLFXCompiler::SubShaderData BSLFXCompiler::ParseSubShader(ASTFXNode* subShader)
 	{
 		SubShaderData subShaderData;
 
@@ -1714,7 +1714,7 @@ cleanup:
 		return subShaderData;
 	}
 
-	void BSLFXCompiler::parseOptions(ASTFXNode* optionsNode, SHADER_DESC& shaderDesc)
+	void BSLFXCompiler::ParseOptions(ASTFXNode* optionsNode, SHADER_DESC& shaderDesc)
 	{
 		if (optionsNode == nullptr || optionsNode->type != NT_Options)
 			return;
@@ -1746,7 +1746,7 @@ cleanup:
 		}
 	}
 
-	BSLFXCompileResult BSLFXCompiler::populateVariations(Vector<std::pair<ASTFXNode*, ShaderMetaData>>& shaderMetaData)
+	BSLFXCompileResult BSLFXCompiler::PopulateVariations(Vector<std::pair<ASTFXNode*, ShaderMetaData>>& shaderMetaData)
 	{
 		BSLFXCompileResult output;
 
@@ -1826,7 +1826,7 @@ cleanup:
 		return output;
 	}
 
-	void BSLFXCompiler::populateVariationParamInfos(const ShaderMetaData& shaderMetaData, SHADER_DESC& desc)
+	void BSLFXCompiler::PopulateVariationParamInfos(const ShaderMetaData& shaderMetaData, SHADER_DESC& desc)
 	{
 		for(auto& entry : shaderMetaData.variations)
 		{
@@ -2509,7 +2509,7 @@ cleanup:
 		return output;
 	}
 
-	String BSLFXCompiler::removeQuotes(const char* input)
+	String BSLFXCompiler::RemoveQuotes(const char* input)
 	{
 		UINT32 len = (UINT32)strlen(input);
 		String Output(len - 2, ' ');

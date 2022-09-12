@@ -12,14 +12,14 @@ namespace bs
 		clear();
 	}
 
-	void Log::logMsg(const String& message, LogVerbosity verbosity, UINT32 category)
+	void Log::LogMsg(const String& message, LogVerbosity verbosity, UINT32 category)
 	{
 		RecursiveLock Lock(mMutex);
 
 		mUnreadEntries.push(LogEntry(message, verbosity, category));
 	}
 
-	void Log::clear()
+	void Log::Clear()
 	{
 		RecursiveLock Lock(mMutex);
 
@@ -31,7 +31,7 @@ namespace bs
 		mHash++;
 	}
 
-	void Log::clear(LogVerbosity verbosity, UINT32 category)
+	void Log::Clear(LogVerbosity verbosity, UINT32 category)
 	{
 		RecursiveLock Lock(mMutex);
 
@@ -64,7 +64,7 @@ namespace bs
 		mHash++;
 	}
 
-	bool Log::getUnreadEntry(LogEntry& entry)
+	bool Log::GetUnreadEntry(LogEntry& entry)
 	{
 		RecursiveLock Lock(mMutex);
 
@@ -79,7 +79,7 @@ namespace bs
 		return true;
 	}
 
-	bool Log::getLastEntry(LogEntry& entry)
+	bool Log::GetLastEntry(LogEntry& entry)
 	{
 		if (mEntries.size() == 0)
 			return false;
@@ -88,7 +88,7 @@ namespace bs
 		return true;
 	}
 
-	Vector<LogEntry> Log::getEntries() const
+	Vector<LogEntry> Log::GetEntries() const
 	{
 		RecursiveLock Lock(mMutex);
 
@@ -106,12 +106,12 @@ namespace bs
 		return false;
 	}
 	
-	bool Log::categoryExists(UINT32 id)
+	bool Log::CategoryExists(UINT32 id)
 	{
 		return sCategories.find(id) != sCategories.end();
 	}
 	
-	bool Log::getCategoryName(UINT32 id, String& name)
+	bool Log::GetCategoryName(UINT32 id, String& name)
 	{
 		auto search = sCategories.find(id);
 		if (search != sCategories.end())
@@ -124,7 +124,7 @@ namespace bs
 		return false;
 	}
 	
-	Vector<LogEntry> Log::getAllEntries() const
+	Vector<LogEntry> Log::GetAllEntries() const
 	{
 		Vector<LogEntry> entries;
 		{

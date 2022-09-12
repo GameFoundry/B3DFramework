@@ -11,20 +11,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptSkeletonBoneInfoEx::initRuntimeData()
+	void ScriptSkeletonBoneInfoEx::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptSkeletonBoneInfoEx::box(const __SkeletonBoneInfoExInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__SkeletonBoneInfoExInterop ScriptSkeletonBoneInfoEx::unbox(MonoObject* value)
+	__SkeletonBoneInfoExInterop ScriptSkeletonBoneInfoEx::Unbox(MonoObject* value)
 	{
 		return *(__SkeletonBoneInfoExInterop*)MonoUtil::unbox(value);
 	}
 
-	SkeletonBoneInfoEx ScriptSkeletonBoneInfoEx::fromInterop(const __SkeletonBoneInfoExInterop& value)
+	SkeletonBoneInfoEx ScriptSkeletonBoneInfoEx::FromInterop(const __SkeletonBoneInfoExInterop& value)
 	{
 		SkeletonBoneInfoEx output;
 		String tmpname;
@@ -36,7 +36,7 @@ namespace bs
 		return output;
 	}
 
-	__SkeletonBoneInfoExInterop ScriptSkeletonBoneInfoEx::toInterop(const SkeletonBoneInfoEx& value)
+	__SkeletonBoneInfoExInterop ScriptSkeletonBoneInfoEx::ToInterop(const SkeletonBoneInfoEx& value)
 	{
 		__SkeletonBoneInfoExInterop output;
 		MonoString* tmpname;

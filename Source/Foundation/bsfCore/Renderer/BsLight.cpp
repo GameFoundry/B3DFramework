@@ -25,7 +25,7 @@ namespace bs
 		updateAttenuationRange();
 	}
 
-	void LightBase::setUseAutoAttenuation(bool enabled)
+	void LightBase::SetUseAutoAttenuation(bool enabled)
 	{
 		mAutoAttenuation = enabled;
 
@@ -35,7 +35,7 @@ namespace bs
 		_markCoreDirty();
 	}
 
-	void LightBase::setAttenuationRadius(float radius)
+	void LightBase::SetAttenuationRadius(float radius)
 	{
 		if (mAutoAttenuation)
 			return;
@@ -45,7 +45,7 @@ namespace bs
 		updateBounds();
 	}
 
-	void LightBase::setSourceRadius(float radius)
+	void LightBase::SetSourceRadius(float radius)
 	{
 		mSourceRadius = radius;
 
@@ -55,7 +55,7 @@ namespace bs
 		_markCoreDirty();
 	}
 
-	void LightBase::setIntensity(float intensity)
+	void LightBase::SetIntensity(float intensity)
 	{
 		mIntensity = intensity;
 
@@ -65,7 +65,7 @@ namespace bs
 		_markCoreDirty();
 	}
 
-	float LightBase::getLuminance() const
+	float LightBase::GetLuminance() const
 	{
 		float radius2 = mSourceRadius * mSourceRadius;
 
@@ -104,7 +104,7 @@ namespace bs
 		}
 	}
 
-	void LightBase::updateAttenuationRange()
+	void LightBase::UpdateAttenuationRange()
 	{
 		// Value to which intensity needs to drop in order for the light contribution to fade out to zero
 		const float minAttenuation = 0.2f;
@@ -132,7 +132,7 @@ namespace bs
 		updateBounds();
 	}
 
-	void LightBase::updateBounds()
+	void LightBase::UpdateBounds()
 	{
 		const Transform& tfrm = getTransform();
 
@@ -168,7 +168,7 @@ namespace bs
 		}
 	}
 
-	void LightBase::setTransform(const Transform& transform)
+	void LightBase::SetTransform(const Transform& transform)
 	{
 		if (mMobility != ObjectMobility::Movable)
 			return;
@@ -178,7 +178,7 @@ namespace bs
 	}
 
 	template <class P>
-	void LightBase::rttiEnumFields(P p)
+	void LightBase::RttiEnumFields(P p)
 	{
 		p(mType);
 		p(mCastsShadows);
@@ -201,7 +201,7 @@ namespace bs
 		updateBounds();
 	}
 
-	SPtr<ct::Light> Light::getCore() const
+	SPtr<ct::Light> Light::GetCore() const
 	{
 		return std::static_pointer_cast<ct::Light>(mCoreSpecific);
 	}
@@ -218,7 +218,7 @@ namespace bs
 		return handlerPtr;
 	}
 
-	SPtr<Light> Light::createEmpty()
+	SPtr<Light> Light::CreateEmpty()
 	{
 		Light* handler = new (bs_alloc<Light>()) Light();
 		SPtr<Light> handlerPtr = bs_core_ptr<Light>(handler);
@@ -227,7 +227,7 @@ namespace bs
 		return handlerPtr;
 	}
 
-	SPtr<ct::CoreObject> Light::createCore() const
+	SPtr<ct::CoreObject> Light::CreateCore() const
 	{
 		ct::Light* handler = new (bs_alloc<ct::Light>())
 			ct::Light(mType, mColor, mIntensity, mAttRadius, mSourceRadius, mCastsShadows, mSpotAngle, mSpotFalloffAngle);
@@ -237,7 +237,7 @@ namespace bs
 		return handlerPtr;
 	}
 
-	CoreSyncData Light::syncToCore(FrameAlloc* allocator)
+	CoreSyncData Light::SyncToCore(FrameAlloc* allocator)
 	{
 		UINT32 size = 0;
 		size += rtti_size(getCoreDirtyFlags()).bytes;
@@ -261,12 +261,12 @@ namespace bs
 
 	RTTITypeBase* Light::getRTTIStatic()
 	{
-		return LightRTTI::instance();
+		return LightRTTI::Instance();
 	}
 
 	RTTITypeBase* Light::getRTTI() const
 	{
-		return Light::getRTTIStatic();
+		return Light::GetRTTIStatic();
 	}
 
 	namespace ct
@@ -286,7 +286,7 @@ namespace bs
 		gRenderer()->notifyLightRemoved(this);
 	}
 
-	void Light::initialize()
+	void Light::Initialize()
 	{
 		updateBounds();
 		gRenderer()->notifyLightAdded(this);
@@ -294,7 +294,7 @@ namespace bs
 		CoreObject::initialize();
 	}
 
-	void Light::syncToCore(const CoreSyncData& data)
+	void Light::SyncToCore(const CoreSyncData& data)
 	{
 		Bitstream Stream(data.getBuffer(), data.getBufferSize());
 

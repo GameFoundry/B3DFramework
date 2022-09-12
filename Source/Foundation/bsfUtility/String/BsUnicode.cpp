@@ -253,7 +253,7 @@ namespace bs
 		return facet.narrow((wchar_t)input, invalidChar);
 	}
 
-	String UTF8::fromANSI(const String& input, const std::locale& locale)
+	String UTF8::FromANSI(const String& input, const std::locale& locale)
 	{
 		String output;
 		output.reserve(input.size());
@@ -272,7 +272,7 @@ namespace bs
 		return output;
 	}
 
-	String UTF8::toANSI(const String& input, const std::locale& locale, char invalidChar)
+	String UTF8::ToANSI(const String& input, const std::locale& locale, char invalidChar)
 	{
 		String output;
 
@@ -288,7 +288,7 @@ namespace bs
 		return output;
 	}
 
-	String UTF8::fromWide(const WString& input)
+	String UTF8::FromWide(const WString& input)
 	{
 		String output;
 		output.reserve(input.size());
@@ -306,7 +306,7 @@ namespace bs
 		return output;
 	}
 
-	WString UTF8::toWide(const String& input)
+	WString UTF8::ToWide(const String& input)
 	{
 		WString output;
 		auto backInserter = std::back_inserter(output);
@@ -323,7 +323,7 @@ namespace bs
 		return output;
 	}
 
-	String UTF8::fromUTF16(const U16String& input)
+	String UTF8::FromUTF16(const U16String& input)
 	{
 		String output;
 		output.reserve(input.size());
@@ -341,7 +341,7 @@ namespace bs
 		return output;
 	}
 
-	U16String UTF8::toUTF16(const String& input)
+	U16String UTF8::ToUTF16(const String& input)
 	{
 		U16String output;
 		auto backInserter = std::back_inserter(output);
@@ -358,7 +358,7 @@ namespace bs
 		return output;
 	}
 
-	String UTF8::fromUTF32(const U32String& input)
+	String UTF8::FromUTF32(const U32String& input)
 	{
 		String output;
 		output.reserve(input.size());
@@ -376,7 +376,7 @@ namespace bs
 		return output;
 	}
 
-	U32String UTF8::toUTF32(const String& input)
+	U32String UTF8::ToUTF32(const String& input)
 	{
 		U32String output;
 
@@ -392,7 +392,7 @@ namespace bs
 		return output;
 	}
 
-	UINT32 UTF8::count(const String& input)
+	UINT32 UTF8::Count(const String& input)
 	{
 		UINT32 length = 0;
 		for (char i : input)
@@ -404,7 +404,7 @@ namespace bs
 		return length;
 	}
 
-	UINT32 UTF8::charToByteIndex(const String& input, UINT32 charIdx)
+	UINT32 UTF8::CharToByteIndex(const String& input, UINT32 charIdx)
 	{
 		UINT32 curChar = 0;
 		UINT32 curByte = 0;
@@ -425,7 +425,7 @@ namespace bs
 		return (UINT32)input.size();
 	}
 
-	UINT32 UTF8::charByteCount(const String& input, UINT32 charIdx)
+	UINT32 UTF8::CharByteCount(const String& input, UINT32 charIdx)
 	{
 		const UINT32 byteIdx = charToByteIndex(input, charIdx);
 
@@ -441,13 +441,13 @@ namespace bs
 		return count;
 	}
 
-	String UTF8::toLower(const String& input)
+	String UTF8::ToLower(const String& input)
 	{
-		return PlatformUtility::convertCaseUTF8(input, false);
+		return PlatformUtility::ConvertCaseUTF8(input, false);
 	}
 
-	String UTF8::toUpper(const String& input)
+	String UTF8::ToUpper(const String& input)
 	{
-		return PlatformUtility::convertCaseUTF8(input, true);
+		return PlatformUtility::ConvertCaseUTF8(input, true);
 	}
 }

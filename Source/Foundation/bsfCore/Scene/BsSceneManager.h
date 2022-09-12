@@ -274,7 +274,7 @@ namespace bs
 	BS_CORE_EXPORT SceneManager& GSceneManager();
 
 	template<class T>
-	Vector<GameObjectHandle<T>> SceneManager::findComponents(bool activeOnly)
+	Vector<GameObjectHandle<T>> SceneManager::FindComponents(bool activeOnly)
 	{
 		UINT32 rttiId = T::getRTTIStatic()->getRTTIId();
 

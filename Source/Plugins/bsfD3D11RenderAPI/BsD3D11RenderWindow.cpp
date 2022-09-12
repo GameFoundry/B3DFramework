@@ -26,7 +26,7 @@ namespace bs
 
 	}
 
-	void D3D11RenderWindow::getCustomAttribute(const String& name, void* pData) const
+	void D3D11RenderWindow::GetCustomAttribute(const String& name, void* pData) const
 	{
 		if (name == "WINDOW")
 		{
@@ -36,7 +36,7 @@ namespace bs
 		}
 	}
 
-	Vector2I D3D11RenderWindow::screenToWindowPos(const Vector2I& screenPos) const
+	Vector2I D3D11RenderWindow::ScreenToWindowPos(const Vector2I& screenPos) const
 	{
 		POINT pos;
 		pos.x = screenPos.x;
@@ -46,7 +46,7 @@ namespace bs
 		return Vector2I(pos.x, pos.y);
 	}
 
-	Vector2I D3D11RenderWindow::windowToScreenPos(const Vector2I& windowPos) const
+	Vector2I D3D11RenderWindow::WindowToScreenPos(const Vector2I& windowPos) const
 	{
 		POINT pos;
 		pos.x = windowPos.x;
@@ -56,24 +56,24 @@ namespace bs
 		return Vector2I(pos.x, pos.y);
 	}
 
-	SPtr<ct::D3D11RenderWindow> D3D11RenderWindow::getCore() const
+	SPtr<ct::D3D11RenderWindow> D3D11RenderWindow::GetCore() const
 	{
 		return std::static_pointer_cast<ct::D3D11RenderWindow>(mCoreSpecific);
 	}
 
-	HWND D3D11RenderWindow::getHWnd() const
+	HWND D3D11RenderWindow::GetHWnd() const
 	{
 		blockUntilCoreInitialized();
 		return GetCore()->_getWindowHandle();
 	}
 
-	void D3D11RenderWindow::syncProperties()
+	void D3D11RenderWindow::SyncProperties()
 	{
 		ScopedSpinLock Lock(getCore()->mLock);
 		mProperties = getCore()->mSyncedProperties;
 	}
 
-	SPtr<ct::CoreObject> D3D11RenderWindow::createCore() const
+	SPtr<ct::CoreObject> D3D11RenderWindow::CreateCore() const
 	{
 		ct::RenderAPI* rs = ct::RenderAPI::instancePtr();
 		auto d3d11rs = static_cast<ct::D3D11RenderAPI*>(rs);
@@ -114,7 +114,7 @@ namespace bs
 		Platform::resetNonClientAreas(*this);
 	}
 
-	void D3D11RenderWindow::initialize()
+	void D3D11RenderWindow::Initialize()
 	{
 		ZeroMemory(&mSwapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC));
 
@@ -220,7 +220,7 @@ namespace bs
 		RenderWindow::initialize();
 	}
 
-	void D3D11RenderWindow::swapBuffers(UINT32 syncMask)
+	void D3D11RenderWindow::SwapBuffers(UINT32 syncMask)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -236,7 +236,7 @@ namespace bs
 		}
 	}
 
-	void D3D11RenderWindow::move(INT32 left, INT32 top)
+	void D3D11RenderWindow::Move(INT32 left, INT32 top)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -259,7 +259,7 @@ namespace bs
 		}
 	}
 
-	void D3D11RenderWindow::resize(UINT32 width, UINT32 height)
+	void D3D11RenderWindow::Resize(UINT32 width, UINT32 height)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -282,7 +282,7 @@ namespace bs
 		}
 	}
 
-	void D3D11RenderWindow::setActive(bool state)
+	void D3D11RenderWindow::SetActive(bool state)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -300,7 +300,7 @@ namespace bs
 		RenderWindow::setActive(state);
 	}
 
-	void D3D11RenderWindow::setHidden(bool hidden)
+	void D3D11RenderWindow::SetHidden(bool hidden)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -310,28 +310,28 @@ namespace bs
 		RenderWindow::setHidden(hidden);
 	}
 
-	void D3D11RenderWindow::minimize()
+	void D3D11RenderWindow::Minimize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
 		mWindow->minimize();
 	}
 
-	void D3D11RenderWindow::maximize()
+	void D3D11RenderWindow::Maximize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
 		mWindow->maximize();
 	}
 
-	void D3D11RenderWindow::restore()
+	void D3D11RenderWindow::Restore()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
 		mWindow->restore();
 	}
 
-	void D3D11RenderWindow::setFullscreen(UINT32 width, UINT32 height, float refreshRate, UINT32 monitorIdx)
+	void D3D11RenderWindow::SetFullscreen(UINT32 width, UINT32 height, float refreshRate, UINT32 monitorIdx)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -381,7 +381,7 @@ namespace bs
 		bs::RenderWindowManager::instance().notifyMovedOrResized(this);
 	}
 
-	void D3D11RenderWindow::setFullscreen(const VideoMode& mode)
+	void D3D11RenderWindow::SetFullscreen(const VideoMode& mode)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -423,7 +423,7 @@ namespace bs
 		bs::RenderWindowManager::instance().notifyMovedOrResized(this);
 	}
 
-	void D3D11RenderWindow::setWindowed(UINT32 width, UINT32 height)
+	void D3D11RenderWindow::SetWindowed(UINT32 width, UINT32 height)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -461,7 +461,7 @@ namespace bs
 		bs::RenderWindowManager::instance().notifyMovedOrResized(this);
 	}
 
-	void D3D11RenderWindow::setVSync(bool enabled, UINT32 interval)
+	void D3D11RenderWindow::SetVSync(bool enabled, UINT32 interval)
 	{
 		mProperties.vsync = enabled;
 		mProperties.vsyncInterval = interval;
@@ -480,7 +480,7 @@ namespace bs
 		return mWindow->getHWnd();
 	}
 
-	void D3D11RenderWindow::getCustomAttribute(const String& name, void* pData) const
+	void D3D11RenderWindow::GetCustomAttribute(const String& name, void* pData) const
 	{
 		if(name == "WINDOW")
 		{
@@ -554,7 +554,7 @@ namespace bs
 		RenderWindow::getCustomAttribute(name, pData);
 	}
 
-	void D3D11RenderWindow::copyToMemory(PixelData &dst, FrameBuffer buffer)
+	void D3D11RenderWindow::CopyToMemory(PixelData &dst, FrameBuffer buffer)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -649,7 +649,7 @@ namespace bs
 		}
 	}
 
-	void D3D11RenderWindow::createSwapChain()
+	void D3D11RenderWindow::CreateSwapChain()
 	{
 		ZeroMemory(&mSwapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC));
 
@@ -709,7 +709,7 @@ namespace bs
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_SwapChain);
 	}
 
-	void D3D11RenderWindow::createSizeDependedD3DResources()
+	void D3D11RenderWindow::CreateSizeDependedD3DResources()
 	{
 		SAFE_RELEASE(mBackBuffer);
 
@@ -755,7 +755,7 @@ namespace bs
 			mDepthStencilBuffer = nullptr;
 	}
 
-	void D3D11RenderWindow::destroySizeDependedD3DResources()
+	void D3D11RenderWindow::DestroySizeDependedD3DResources()
 	{
 		SAFE_RELEASE(mBackBuffer);
 		SAFE_RELEASE(mRenderTargetView);
@@ -763,7 +763,7 @@ namespace bs
 		mDepthStencilBuffer = nullptr;
 	}
 
-	void D3D11RenderWindow::resizeSwapChainBuffers(UINT32 width, UINT32 height)
+	void D3D11RenderWindow::ResizeSwapChainBuffers(UINT32 width, UINT32 height)
 	{
 		destroySizeDependedD3DResources();
 
@@ -799,7 +799,7 @@ namespace bs
 		return pDXGIDevice;
 	}
 
-	void D3D11RenderWindow::syncProperties()
+	void D3D11RenderWindow::SyncProperties()
 	{
 		ScopedSpinLock Lock(mLock);
 		mProperties = mSyncedProperties;

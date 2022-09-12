@@ -28,7 +28,7 @@ namespace bs
 
 	}
 
-	void ScriptGUIListBox::initRuntimeData()
+	void ScriptGUIListBox::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptGUIListBox::internal_createInstance);
 		metaData.scriptClass->addInternalCall("Internal_SetElements", (void*)&ScriptGUIListBox::internal_setElements);
@@ -144,7 +144,7 @@ namespace bs
 		listBox->setElementStates(states);
 	}
 
-	void ScriptGUIListBox::onSelectionChanged(UINT32 index, bool enabled)
+	void ScriptGUIListBox::OnSelectionChanged(UINT32 index, bool enabled)
 	{
 		MonoUtil::invokeThunk(onSelectionChangedThunk, getManagedInstance(), index);
 	}

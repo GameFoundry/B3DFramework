@@ -101,7 +101,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return AnimationClip::createEmpty();
+			return AnimationClip::CreateEmpty();
 		}
 	};
 

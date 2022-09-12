@@ -13,7 +13,7 @@ namespace bs
 	{
 	}
 
-	void ScriptColorGradingSettings::initRuntimeData()
+	void ScriptColorGradingSettings::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getsaturation", (void*)&ScriptColorGradingSettings::Internal_getsaturation);
 		metaData.scriptClass->addInternalCall("Internal_setsaturation", (void*)&ScriptColorGradingSettings::Internal_setsaturation);

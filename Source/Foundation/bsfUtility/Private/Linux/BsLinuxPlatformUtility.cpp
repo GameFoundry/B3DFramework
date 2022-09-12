@@ -59,13 +59,13 @@ namespace bs
 
 	GPUInfo PlatformUtility::sGPUInfo;
 
-	void PlatformUtility::terminate(bool force)
+	void PlatformUtility::Terminate(bool force)
 	{
 		// TODOPORT - Support clean exit by sending the main window a quit message
 		exit(0);
 	}
 
-	SystemInfo PlatformUtility::getSystemInfo()
+	SystemInfo PlatformUtility::GetSystemInfo()
 	{
 		SystemInfo output;
 
@@ -173,7 +173,7 @@ namespace bs
 		return output;
 	}
 
-	String PlatformUtility::convertCaseUTF8(const String& input, bool toUpper)
+	String PlatformUtility::ConvertCaseUTF8(const String& input, bool toUpper)
 	{
 		UErrorCode errorCode = U_ZERO_ERROR;
 
@@ -219,7 +219,7 @@ namespace bs
 		return output;
 	}
 
-	UUID PlatformUtility::generateUUID()
+	UUID PlatformUtility::GenerateUUID()
 	{
 		uuid_t nativeUUID;
 		uuid_generate(nativeUUID);

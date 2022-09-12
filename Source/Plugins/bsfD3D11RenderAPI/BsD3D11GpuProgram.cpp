@@ -29,7 +29,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuProgram);
 	}
 
-	void D3D11GpuProgram::initialize()
+	void D3D11GpuProgram::Initialize()
 	{
 		if (!isSupported())
 		{
@@ -82,7 +82,7 @@ namespace bs { namespace ct
 		SAFE_RELEASE(mVertexShader);
 	}
 
-	void D3D11GpuVertexProgram::loadFromMicrocode(D3D11Device& device, const DataBlob& microcode)
+	void D3D11GpuVertexProgram::LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode)
 	{
 		HRESULT hr = device.getD3D11Device()->CreateVertexShader(
 			microcode.data, microcode.size, device.getClassLinkage(), &mVertexShader);
@@ -110,7 +110,7 @@ namespace bs { namespace ct
 		SAFE_RELEASE(mPixelShader);
 	}
 
-	void D3D11GpuFragmentProgram::loadFromMicrocode(D3D11Device& device, const DataBlob& microcode)
+	void D3D11GpuFragmentProgram::LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode)
 	{
 		HRESULT hr = device.getD3D11Device()->CreatePixelShader(
 			microcode.data, microcode.size, device.getClassLinkage(), &mPixelShader);
@@ -138,7 +138,7 @@ namespace bs { namespace ct
 		SAFE_RELEASE(mGeometryShader);
 	}
 
-	void D3D11GpuGeometryProgram::loadFromMicrocode(D3D11Device& device, const DataBlob& microcode)
+	void D3D11GpuGeometryProgram::LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode)
 	{
 		HRESULT hr = device.getD3D11Device()->CreateGeometryShader(
 			microcode.data, microcode.size, device.getClassLinkage(), &mGeometryShader);
@@ -165,7 +165,7 @@ namespace bs { namespace ct
 		SAFE_RELEASE(mDomainShader);
 	}
 
-	void D3D11GpuDomainProgram::loadFromMicrocode(D3D11Device& device, const DataBlob& microcode)
+	void D3D11GpuDomainProgram::LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode)
 	{
 		HRESULT hr = device.getD3D11Device()->CreateDomainShader(
 			microcode.data, microcode.size, device.getClassLinkage(), &mDomainShader);
@@ -192,7 +192,7 @@ namespace bs { namespace ct
 		SAFE_RELEASE(mHullShader);
 	}
 
-	void D3D11GpuHullProgram::loadFromMicrocode(D3D11Device& device, const DataBlob& microcode)
+	void D3D11GpuHullProgram::LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode)
 	{
 		// Create the shader
 		HRESULT hr = device.getD3D11Device()->CreateHullShader(
@@ -221,7 +221,7 @@ namespace bs { namespace ct
 		SAFE_RELEASE(mComputeShader);
 	}
 
-	void D3D11GpuComputeProgram::loadFromMicrocode(D3D11Device& device, const DataBlob& microcode)
+	void D3D11GpuComputeProgram::LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode)
 	{
 		HRESULT hr = device.getD3D11Device()->CreateComputeShader(
 			microcode.data, microcode.size, device.getClassLinkage(), &mComputeShader);

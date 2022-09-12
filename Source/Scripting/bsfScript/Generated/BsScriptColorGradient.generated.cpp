@@ -16,7 +16,7 @@ namespace bs
 	{
 	}
 
-	void ScriptColorGradient::initRuntimeData()
+	void ScriptColorGradient::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_ColorGradient", (void*)&ScriptColorGradient::Internal_ColorGradient);
 		metaData.scriptClass->addInternalCall("Internal_ColorGradient0", (void*)&ScriptColorGradient::Internal_ColorGradient0);

@@ -9,7 +9,7 @@ namespace bs
 {
 	const Rect2 Rect2::EMPTY;
 
-	bool Rect2::contains(const Vector2& point) const
+	bool Rect2::Contains(const Vector2& point) const
 	{
 		if(point.x >= x && point.x <= (x + width))
 		{
@@ -20,7 +20,7 @@ namespace bs
 		return false;
 	}
 
-	bool Rect2::overlaps(const Rect2& other) const
+	bool Rect2::Overlaps(const Rect2& other) const
 	{
 		float otherRight = other.x + other.width;
 		float myRight = x + width;
@@ -35,7 +35,7 @@ namespace bs
 		return false;
 	}
 
-	void Rect2::encapsulate(const Rect2& other)
+	void Rect2::Encapsulate(const Rect2& other)
 	{
 		float myRight = x + width;
 		float myBottom = y + height;
@@ -59,7 +59,7 @@ namespace bs
 			height = myBottom - y;
 	}
 
-	void Rect2::clip(const Rect2& clipRect)
+	void Rect2::Clip(const Rect2& clipRect)
 	{
 		float newLeft = std::max(x, clipRect.x);
 		float newTop = std::max(y, clipRect.y);
@@ -73,7 +73,7 @@ namespace bs
 		height = newBottom - newTop;
 	}
 
-	void Rect2::transform(const Matrix4& matrix)
+	void Rect2::Transform(const Matrix4& matrix)
 	{
 		Vector4 verts[4];
 		verts[0] = Vector4(x, y, 0.0f, 1.0f);
@@ -110,12 +110,12 @@ namespace bs
 		height = maxY - y;
 	}
 
-	Vector2 Rect2::getCenter() const
+	Vector2 Rect2::GetCenter() const
 	{
 		return Vector2(x + width * 0.5f, y + height * 0.5f);
 	}
 
-	Vector2 Rect2::getHalfSize() const
+	Vector2 Rect2::GetHalfSize() const
 	{
 		return Vector2(width, height) * 0.5f;
 	}

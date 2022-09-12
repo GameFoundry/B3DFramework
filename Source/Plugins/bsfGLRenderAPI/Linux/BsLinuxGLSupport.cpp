@@ -95,7 +95,7 @@ namespace bs { namespace ct
 		return SPtr<bs::RenderWindow>(window, &bs::CoreObject::_delete<bs::LinuxRenderWindow, GenAlloc>);
 	}
 
-	void LinuxGLSupport::start()
+	void LinuxGLSupport::Start()
 	{
 		// Retrieve all essential extensions
 		LinuxPlatform::lockX();
@@ -143,12 +143,12 @@ namespace bs { namespace ct
 		LinuxPlatform::unlockX();
 	}
 
-	void LinuxGLSupport::stop()
+	void LinuxGLSupport::Stop()
 	{
 		// Do nothing
 	}
 
-	SPtr<LinuxContext> LinuxGLSupport::createContext(::Display* x11display, XVisualInfo& visualInfo)
+	SPtr<LinuxContext> LinuxGLSupport::CreateContext(::Display* x11display, XVisualInfo& visualInfo)
 	{
 		GLRenderAPI* rapi = static_cast<GLRenderAPI*>(RenderAPI::instancePtr());
 
@@ -167,7 +167,7 @@ namespace bs { namespace ct
 		return (void*)glXGetProcAddressARB((const GLubyte*)procname.c_str());
 	}
 
-	GLVisualConfig LinuxGLSupport::findBestVisual(::Display* display, bool depthStencil, UINT32 multisample, bool srgb) const
+	GLVisualConfig LinuxGLSupport::FindBestVisual(::Display* display, bool depthStencil, UINT32 multisample, bool srgb) const
 	{
 		INT32 VISUAL_ATTRIBS[] =
 		{
@@ -295,7 +295,7 @@ namespace bs { namespace ct
 		return output;
 	}
 
-	SPtr<VideoModeInfo> LinuxGLSupport::getVideoModeInfo() const
+	SPtr<VideoModeInfo> LinuxGLSupport::GetVideoModeInfo() const
 	{
 		return bs_shared_ptr_new<LinuxVideoModeInfo>();
 	}

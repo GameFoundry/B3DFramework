@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	HShaderInclude EngineShaderIncludeHandler::findInclude(const String& name) const
+	HShaderInclude EngineShaderIncludeHandler::FindInclude(const String& name) const
 	{
 		Path path = toResourcePath(name);
 
@@ -34,10 +34,10 @@ namespace bs
 		}
 
 		path = Paths::findPath(path);
-		return Importer::instance().import<ShaderInclude>(path);
+		return Importer::Instance().import<ShaderInclude>(path);
 	}
 
-	Path EngineShaderIncludeHandler::toResourcePath(const String& name)
+	Path EngineShaderIncludeHandler::ToResourcePath(const String& name)
 	{
 		if (name.substr(0, 8) == "$ENGINE$")
 		{

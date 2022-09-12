@@ -15,7 +15,7 @@ namespace bs
 		markCoreClean();
 	}
 
-	void RenderTarget::setPriority(INT32 priority)
+	void RenderTarget::SetPriority(INT32 priority)
 	{
 		std::function<void(SPtr<ct::RenderTarget>, INT32)> windowedFunc =
 			[](SPtr<ct::RenderTarget> renderTarget, INT32 priority)
@@ -26,19 +26,19 @@ namespace bs
 		gCoreThread().queueCommand(std::bind(windowedFunc, getCore(), priority));
 	}
 
-	SPtr<ct::RenderTarget> RenderTarget::getCore() const
+	SPtr<ct::RenderTarget> RenderTarget::GetCore() const
 	{
 		return std::static_pointer_cast<ct::RenderTarget>(mCoreSpecific);
 	}
 
-	const RenderTargetProperties& RenderTarget::getProperties() const
+	const RenderTargetProperties& RenderTarget::GetProperties() const
 	{
 		THROW_IF_CORE_THREAD;
 
 		return GetPropertiesInternal();
 	}
 
-	void RenderTarget::getCustomAttribute(const String& name, void* pData) const
+	void RenderTarget::GetCustomAttribute(const String& name, void* pData) const
 	{
 		BS_EXCEPT(InvalidParametersException, "Attribute not found.");
 	}
@@ -49,12 +49,12 @@ namespace bs
 
 	RTTITypeBase* RenderTarget::getRTTIStatic()
 	{
-		return RenderTargetRTTI::instance();
+		return RenderTargetRTTI::Instance();
 	}
 
 	RTTITypeBase* RenderTarget::getRTTI() const
 	{
-		return RenderTarget::getRTTIStatic();
+		return RenderTarget::GetRTTIStatic();
 	}
 
 	namespace ct
@@ -64,19 +64,19 @@ namespace bs
 
 		}
 
-		void RenderTarget::setPriority(INT32 priority)
+		void RenderTarget::SetPriority(INT32 priority)
 		{
 			RenderTargetProperties& props = const_cast<RenderTargetProperties&>(getProperties());
 
 			props.priority = priority;
 		}
 
-		const RenderTargetProperties& RenderTarget::getProperties() const
+		const RenderTargetProperties& RenderTarget::GetProperties() const
 		{
 			return GetPropertiesInternal();
 		}
 
-		void RenderTarget::getCustomAttribute(const String& name, void* pData) const
+		void RenderTarget::GetCustomAttribute(const String& name, void* pData) const
 		{
 			BS_EXCEPT(InvalidParametersException, "Attribute not found.");
 		}

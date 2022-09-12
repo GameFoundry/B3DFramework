@@ -186,7 +186,7 @@ namespace bs
 		UINT32 clrImportant;
 	};
 
-	void IconUtility::updateIconExe(const Path& path, const Map<UINT32, SPtr<PixelData>>& pixelsPerSize)
+	void IconUtility::UpdateIconExe(const Path& path, const Map<UINT32, SPtr<PixelData>>& pixelsPerSize)
 	{
 		// A PE file is structured as such:
 		//  - MSDOS Header
@@ -321,7 +321,7 @@ namespace bs
 		stream.close();
 	}
 
-	void IconUtility::updateIconData(UINT8* iconData, const Map<UINT32, SPtr<PixelData>>& pixelsPerSize)
+	void IconUtility::UpdateIconData(UINT8* iconData, const Map<UINT32, SPtr<PixelData>>& pixelsPerSize)
 	{
 		IconHeader* iconHeader = (IconHeader*)iconData;
 

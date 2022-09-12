@@ -8,7 +8,7 @@
 namespace bs
 {
 	template <class Processor>
-	void AutoExposureSettings::rttiEnumFields(Processor p)
+	void AutoExposureSettings::RttiEnumFields(Processor p)
 	{
 		p(histogramLog2Min);
 		p(histogramLog2Max);
@@ -22,7 +22,7 @@ namespace bs
 
 	RTTITypeBase* AutoExposureSettings::getRTTIStatic()
 	{
-		return AutoExposureSettingsRTTI::instance();
+		return AutoExposureSettingsRTTI::Instance();
 	}
 
 	RTTITypeBase* AutoExposureSettings::getRTTI() const
@@ -31,7 +31,7 @@ namespace bs
 	}
 
 	template <class Processor>
-	void TonemappingSettings::rttiEnumFields(Processor p)
+	void TonemappingSettings::RttiEnumFields(Processor p)
 	{
 		p(filmicCurveShoulderStrength);
 		p(filmicCurveLinearStrength);
@@ -44,7 +44,7 @@ namespace bs
 
 	RTTITypeBase* TonemappingSettings::getRTTIStatic()
 	{
-		return TonemappingSettingsRTTI::instance();
+		return TonemappingSettingsRTTI::Instance();
 	}
 
 	RTTITypeBase* TonemappingSettings::getRTTI() const
@@ -53,7 +53,7 @@ namespace bs
 	}
 
 	template <class Processor>
-	void WhiteBalanceSettings::rttiEnumFields(Processor p)
+	void WhiteBalanceSettings::RttiEnumFields(Processor p)
 	{
 		p(temperature);
 		p(tint);
@@ -61,7 +61,7 @@ namespace bs
 
 	RTTITypeBase* WhiteBalanceSettings::getRTTIStatic()
 	{
-		return WhiteBalanceSettingsRTTI::instance();
+		return WhiteBalanceSettingsRTTI::Instance();
 	}
 
 	RTTITypeBase* WhiteBalanceSettings::getRTTI() const
@@ -70,7 +70,7 @@ namespace bs
 	}
 
 	template <class Processor>
-	void ColorGradingSettings::rttiEnumFields(Processor p)
+	void ColorGradingSettings::RttiEnumFields(Processor p)
 	{
 		p(saturation);
 		p(gain);
@@ -80,7 +80,7 @@ namespace bs
 
 	RTTITypeBase* ColorGradingSettings::getRTTIStatic()
 	{
-		return ColorGradingSettingsRTTI::instance();
+		return ColorGradingSettingsRTTI::Instance();
 	}
 
 	RTTITypeBase* ColorGradingSettings::getRTTI() const
@@ -89,7 +89,7 @@ namespace bs
 	}
 
 	template <class Processor>
-	void AmbientOcclusionSettings::rttiEnumFields(Processor p)
+	void AmbientOcclusionSettings::RttiEnumFields(Processor p)
 	{
 		p(enabled);
 		p(radius);
@@ -103,7 +103,7 @@ namespace bs
 
 	RTTITypeBase* AmbientOcclusionSettings::getRTTIStatic()
 	{
-		return AmbientOcclusionSettingsRTTI::instance();
+		return AmbientOcclusionSettingsRTTI::Instance();
 	}
 
 	RTTITypeBase* AmbientOcclusionSettings::getRTTI() const
@@ -139,7 +139,7 @@ namespace bs
 
 	RTTITypeBase* DepthOfFieldSettings::getRTTIStatic()
 	{
-		return DepthOfFieldSettingsRTTI::instance();
+		return DepthOfFieldSettingsRTTI::Instance();
 	}
 
 	RTTITypeBase* DepthOfFieldSettings::getRTTI() const
@@ -148,7 +148,7 @@ namespace bs
 	}
 
 	template <class Processor>
-	void ScreenSpaceReflectionsSettings::rttiEnumFields(Processor p)
+	void ScreenSpaceReflectionsSettings::RttiEnumFields(Processor p)
 	{
 		p(enabled);
 		p(quality);
@@ -158,7 +158,7 @@ namespace bs
 
 	RTTITypeBase* ScreenSpaceReflectionsSettings::getRTTIStatic()
 	{
-		return ScreenSpaceReflectionsSettingsRTTI::instance();
+		return ScreenSpaceReflectionsSettingsRTTI::Instance();
 	}
 
 	RTTITypeBase* ScreenSpaceReflectionsSettings::getRTTI() const
@@ -167,7 +167,7 @@ namespace bs
 	}
 
 	template <class Processor>
-	void BloomSettings::rttiEnumFields(Processor p)
+	void BloomSettings::RttiEnumFields(Processor p)
 	{
 		p(enabled);
 		p(quality);
@@ -179,7 +179,7 @@ namespace bs
 
 	RTTITypeBase* BloomSettings::getRTTIStatic()
 	{
-		return BloomSettingsRTTI::instance();
+		return BloomSettingsRTTI::Instance();
 	}
 
 	RTTITypeBase* BloomSettings::getRTTI() const
@@ -188,7 +188,7 @@ namespace bs
 	}
 
 	template <class Processor>
-	void ScreenSpaceLensFlareSettings::rttiEnumFields(Processor p)
+	void ScreenSpaceLensFlareSettings::RttiEnumFields(Processor p)
 	{
 		p(enabled);
 		p(downsampleCount);
@@ -209,7 +209,7 @@ namespace bs
 
 	RTTITypeBase* ScreenSpaceLensFlareSettings::getRTTIStatic()
 	{
-		return ScreenSpaceLensFlareSettingsRTTI::instance();
+		return ScreenSpaceLensFlareSettingsRTTI::Instance();
 	}
 
 	RTTITypeBase* ScreenSpaceLensFlareSettings::getRTTI() const
@@ -218,7 +218,7 @@ namespace bs
 	}
 
 	template <class Processor>
-	void MotionBlurSettings::rttiEnumFields(Processor p)
+	void MotionBlurSettings::RttiEnumFields(Processor p)
 	{
 		p(enabled);
 		p(domain);
@@ -229,7 +229,7 @@ namespace bs
 
 	RTTITypeBase* MotionBlurSettings::getRTTIStatic()
 	{
-		return MotionBlurSettingsRTTI::instance();
+		return MotionBlurSettingsRTTI::Instance();
 	}
 
 	RTTITypeBase* MotionBlurSettings::getRTTI() const
@@ -238,7 +238,7 @@ namespace bs
 	}
 
 	template <class Processor>
-	void TemporalAASettings::rttiEnumFields(Processor p)
+	void TemporalAASettings::RttiEnumFields(Processor p)
 	{
 		p(enabled);
 		p(jitteredPositionCount);
@@ -247,7 +247,7 @@ namespace bs
 
 	RTTITypeBase* TemporalAASettings::getRTTIStatic()
 	{
-		return TemporalAASettingsRTTI::instance();
+		return TemporalAASettingsRTTI::Instance();
 	}
 
 	RTTITypeBase* TemporalAASettings::getRTTI() const
@@ -270,7 +270,7 @@ namespace bs
 
 	RTTITypeBase* ChromaticAberrationSettings::getRTTIStatic()
 	{
-		return ChromaticAberrationSettingsRTTI::instance();
+		return ChromaticAberrationSettingsRTTI::Instance();
 	}
 
 	RTTITypeBase* ChromaticAberrationSettings::getRTTI() const
@@ -279,7 +279,7 @@ namespace bs
 	}
 
 	template <class Processor>
-	void FilmGrainSettings::rttiEnumFields(Processor p)
+	void FilmGrainSettings::RttiEnumFields(Processor p)
 	{
 		p(enabled);
 		p(intensity);
@@ -288,7 +288,7 @@ namespace bs
 
 	RTTITypeBase* FilmGrainSettings::getRTTIStatic()
 	{
-		return FilmGrainSettingsRTTI::instance();
+		return FilmGrainSettingsRTTI::Instance();
 	}
 
 	RTTITypeBase* FilmGrainSettings::getRTTI() const
@@ -297,7 +297,7 @@ namespace bs
 	}
 
 	template <class Processor>
-	void ShadowSettings::rttiEnumFields(Processor p)
+	void ShadowSettings::RttiEnumFields(Processor p)
 	{
 		p(directionalShadowDistance);
 		p(numCascades);
@@ -307,7 +307,7 @@ namespace bs
 
 	RTTITypeBase* ShadowSettings::getRTTIStatic()
 	{
-		return ShadowSettingsRTTI::instance();
+		return ShadowSettingsRTTI::Instance();
 	}
 
 	RTTITypeBase* ShadowSettings::getRTTI() const
@@ -358,7 +358,7 @@ namespace bs
 
 	RTTITypeBase* RenderSettings::getRTTIStatic()
 	{
-		return RenderSettingsRTTI::instance();
+		return RenderSettingsRTTI::Instance();
 	}
 
 	RTTITypeBase* RenderSettings::getRTTI() const

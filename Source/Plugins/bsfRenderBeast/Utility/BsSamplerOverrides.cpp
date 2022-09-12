@@ -200,7 +200,7 @@ namespace bs { namespace ct
 		return output;
 	}
 
-	void SamplerOverrideUtility::destroySamplerOverrides(MaterialSamplerOverrides* overrides)
+	void SamplerOverrideUtility::DestroySamplerOverrides(MaterialSamplerOverrides* overrides)
 	{
 		if (overrides != nullptr)
 		{
@@ -212,7 +212,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	bool SamplerOverrideUtility::checkNeedsOverride(const SPtr<SamplerState>& samplerState, const SPtr<RenderBeastOptions>& options)
+	bool SamplerOverrideUtility::CheckNeedsOverride(const SPtr<SamplerState>& samplerState, const SPtr<RenderBeastOptions>& options)
 	{
 		const SamplerProperties& props = samplerState->getProperties();
 
@@ -262,7 +262,7 @@ namespace bs { namespace ct
 		return false;
 	}
 
-	SPtr<SamplerState> SamplerOverrideUtility::generateSamplerOverride(const SPtr<SamplerState>& samplerState, const SPtr<RenderBeastOptions>& options)
+	SPtr<SamplerState> SamplerOverrideUtility::GenerateSamplerOverride(const SPtr<SamplerState>& samplerState, const SPtr<RenderBeastOptions>& options)
 	{
 		const SamplerProperties& props = samplerState->getProperties();
 		SAMPLER_STATE_DESC desc = props.getDesc();
@@ -288,6 +288,6 @@ namespace bs { namespace ct
 
 		desc.maxAniso = options->anisotropyMax;
 
-		return RenderStateManager::instance().createSamplerState(desc);
+		return RenderStateManager::Instance().createSamplerState(desc);
 	}
 }}

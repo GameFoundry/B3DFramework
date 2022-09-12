@@ -17,7 +17,7 @@ namespace bs
 		}
 	}
 
-	void GUIToggleGroup::initialize(const SPtr<GUIToggleGroup>& sharedPtr)
+	void GUIToggleGroup::Initialize(const SPtr<GUIToggleGroup>& sharedPtr)
 	{
 		mThis = sharedPtr;
 	}

@@ -18,13 +18,13 @@ namespace bs
 			sScriptLibrary->destroy();
 	}
 
-	void ScriptManager::update()
+	void ScriptManager::Update()
 	{
 		if(sScriptLibrary)
 			sScriptLibrary->update();
 	}
 
-	void ScriptManager::reload()
+	void ScriptManager::Reload()
 	{
 		if (sScriptLibrary)
 			sScriptLibrary->reload();

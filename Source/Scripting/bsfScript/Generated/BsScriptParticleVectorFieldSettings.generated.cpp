@@ -18,7 +18,7 @@ namespace bs
 	{
 	}
 
-	void ScriptParticleVectorFieldSettings::initRuntimeData()
+	void ScriptParticleVectorFieldSettings::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getvectorField", (void*)&ScriptParticleVectorFieldSettings::Internal_getvectorField);
 		metaData.scriptClass->addInternalCall("Internal_setvectorField", (void*)&ScriptParticleVectorFieldSettings::Internal_setvectorField);

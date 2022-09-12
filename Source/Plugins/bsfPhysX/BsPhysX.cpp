@@ -522,7 +522,7 @@ namespace bs
 		mFoundation->release();
 	}
 
-	void PhysX::fixedUpdate(float step)
+	void PhysX::FixedUpdate(float step)
 	{
 		if (mPaused)
 			return;
@@ -576,7 +576,7 @@ namespace bs
 		triggerEvents();
 	}
 
-	void PhysX::update()
+	void PhysX::Update()
 	{
 		// Note: Potentially interpolate (would mean a one frame delay needs to be introduced)
 	}
@@ -596,7 +596,7 @@ namespace bs
 		mJointBreakEvents.push_back(event);
 	}
 
-	void PhysX::triggerEvents()
+	void PhysX::TriggerEvents()
 	{
 		CollisionDataRaw data;
 
@@ -698,17 +698,17 @@ namespace bs
 		mJointBreakEvents.clear();
 	}
 
-	SPtr<PhysicsMaterial> PhysX::createMaterial(float staticFriction, float dynamicFriction, float restitution)
+	SPtr<PhysicsMaterial> PhysX::CreateMaterial(float staticFriction, float dynamicFriction, float restitution)
 	{
 		return bs_core_ptr_new<PhysXMaterial>(mPhysics, staticFriction, dynamicFriction, restitution);
 	}
 
-	SPtr<PhysicsMesh> PhysX::createMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
+	SPtr<PhysicsMesh> PhysX::CreateMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
 	{
 		return bs_core_ptr_new<PhysXMesh>(meshData, type);
 	}
 
-	SPtr<PhysicsScene> PhysX::createPhysicsScene()
+	SPtr<PhysicsScene> PhysX::CreatePhysicsScene()
 	{
 		SPtr<PhysXScene> scene = bs_shared_ptr_new<PhysXScene>(mPhysics, mInitDesc, mScale);
 		mScenes.push_back(scene.get());
@@ -724,7 +724,7 @@ namespace bs
 		mScenes.erase(iterFind);
 	}
 
-	void PhysX::setPaused(bool paused)
+	void PhysX::SetPaused(bool paused)
 	{
 		mPaused = paused;
 	}
@@ -784,7 +784,7 @@ namespace bs
 		gPhysX()._notifySceneDestroyed(this);
 	}
 
-	SPtr<Rigidbody> PhysXScene::createRigidbody(const HSceneObject& linkedSO)
+	SPtr<Rigidbody> PhysXScene::CreateRigidbody(const HSceneObject& linkedSO)
 	{
 		return bs_shared_ptr_new<PhysXRigidbody>(mPhysics, mScene, linkedSO);
 	}
@@ -795,12 +795,12 @@ namespace bs
 		return bs_shared_ptr_new<PhysXBoxCollider>(mPhysics, mScene, position, rotation, extents);
 	}
 
-	SPtr<SphereCollider> PhysXScene::createSphereCollider(float radius, const Vector3& position, const Quaternion& rotation)
+	SPtr<SphereCollider> PhysXScene::CreateSphereCollider(float radius, const Vector3& position, const Quaternion& rotation)
 	{
 		return bs_shared_ptr_new<PhysXSphereCollider>(mPhysics, mScene, position, rotation, radius);
 	}
 
-	SPtr<PlaneCollider> PhysXScene::createPlaneCollider(const Vector3& position, const Quaternion& rotation)
+	SPtr<PlaneCollider> PhysXScene::CreatePlaneCollider(const Vector3& position, const Quaternion& rotation)
 	{
 		return bs_shared_ptr_new<PhysXPlaneCollider>(mPhysics, mScene, position, rotation);
 	}
@@ -811,42 +811,42 @@ namespace bs
 		return bs_shared_ptr_new<PhysXCapsuleCollider>(mPhysics, mScene, position, rotation, radius, halfHeight);
 	}
 
-	SPtr<MeshCollider> PhysXScene::createMeshCollider(const Vector3& position, const Quaternion& rotation)
+	SPtr<MeshCollider> PhysXScene::CreateMeshCollider(const Vector3& position, const Quaternion& rotation)
 	{
 		return bs_shared_ptr_new<PhysXMeshCollider>(mPhysics, mScene, position, rotation);
 	}
 
-	SPtr<FixedJoint> PhysXScene::createFixedJoint(const FIXED_JOINT_DESC& desc)
+	SPtr<FixedJoint> PhysXScene::CreateFixedJoint(const FIXED_JOINT_DESC& desc)
 	{
 		return bs_shared_ptr_new<PhysXFixedJoint>(mPhysics, desc);
 	}
 
-	SPtr<DistanceJoint> PhysXScene::createDistanceJoint(const DISTANCE_JOINT_DESC& desc)
+	SPtr<DistanceJoint> PhysXScene::CreateDistanceJoint(const DISTANCE_JOINT_DESC& desc)
 	{
 		return bs_shared_ptr_new<PhysXDistanceJoint>(mPhysics, desc);
 	}
 
-	SPtr<HingeJoint> PhysXScene::createHingeJoint(const HINGE_JOINT_DESC& desc)
+	SPtr<HingeJoint> PhysXScene::CreateHingeJoint(const HINGE_JOINT_DESC& desc)
 	{
 		return bs_shared_ptr_new<PhysXHingeJoint>(mPhysics, desc);
 	}
 
-	SPtr<SphericalJoint> PhysXScene::createSphericalJoint(const SPHERICAL_JOINT_DESC& desc)
+	SPtr<SphericalJoint> PhysXScene::CreateSphericalJoint(const SPHERICAL_JOINT_DESC& desc)
 	{
 		return bs_shared_ptr_new<PhysXSphericalJoint>(mPhysics, desc);
 	}
 
-	SPtr<SliderJoint> PhysXScene::createSliderJoint(const SLIDER_JOINT_DESC& desc)
+	SPtr<SliderJoint> PhysXScene::CreateSliderJoint(const SLIDER_JOINT_DESC& desc)
 	{
 		return bs_shared_ptr_new<PhysXSliderJoint>(mPhysics, desc);
 	}
 
-	SPtr<D6Joint> PhysXScene::createD6Joint(const D6_JOINT_DESC& desc)
+	SPtr<D6Joint> PhysXScene::CreateD6Joint(const D6_JOINT_DESC& desc)
 	{
 		return bs_shared_ptr_new<PhysXD6Joint>(mPhysics, desc);
 	}
 
-	SPtr<CharacterController> PhysXScene::createCharacterController(const CHAR_CONTROLLER_DESC& desc)
+	SPtr<CharacterController> PhysXScene::CreateCharacterController(const CHAR_CONTROLLER_DESC& desc)
 	{
 		return bs_shared_ptr_new<PhysXCharacterController>(mCharManager, desc);
 	}
@@ -878,7 +878,7 @@ namespace bs
 			PxHitFlag::eDEFAULT | PxHitFlag::eUV | PxHitFlag::eMESH_ANY, filterData);
 	}
 
-	bool PhysXScene::rayCast(const Vector3& origin, const Vector3& unitDir, PhysicsQueryHit& hit, UINT64 layer, float max) const
+	bool PhysXScene::RayCast(const Vector3& origin, const Vector3& unitDir, PhysicsQueryHit& hit, UINT64 layer, float max) const
 	{
 		PxRaycastBuffer output;
 
@@ -1092,7 +1092,7 @@ namespace bs
 		return Overlap(geometry, transform, layer);
 	}
 
-	bool PhysXScene::boxOverlapAny(const AABox& box, const Quaternion& rotation, UINT64 layer) const
+	bool PhysXScene::BoxOverlapAny(const AABox& box, const Quaternion& rotation, UINT64 layer) const
 	{
 		PxBoxGeometry Geometry(toPxVector(box.getHalfSize()));
 		PxTransform transform = toPxTransform(box.getCenter(), rotation);
@@ -1100,7 +1100,7 @@ namespace bs
 		return OverlapAny(geometry, transform, layer);
 	}
 
-	bool PhysXScene::sphereOverlapAny(const Sphere& sphere, UINT64 layer) const
+	bool PhysXScene::SphereOverlapAny(const Sphere& sphere, UINT64 layer) const
 	{
 		PxSphereGeometry Geometry(sphere.getRadius());
 		PxTransform transform = toPxTransform(sphere.getCenter(), Quaternion::IDENTITY);
@@ -1150,7 +1150,7 @@ namespace bs
 		return wasHit;
 	}
 
-	bool PhysXScene::overlapAny(const PxGeometry& geometry, const PxTransform& tfrm, UINT64 layer) const
+	bool PhysXScene::OverlapAny(const PxGeometry& geometry, const PxTransform& tfrm, UINT64 layer) const
 	{
 		PxOverlapBuffer output;
 
@@ -1172,7 +1172,7 @@ namespace bs
 		return output.data;
 	}
 
-	void PhysXScene::setFlag(PhysicsFlags flag, bool enabled)
+	void PhysXScene::SetFlag(PhysicsFlags flag, bool enabled)
 	{
 		PhysicsScene::setFlag(flag, enabled);
 
@@ -1181,24 +1181,24 @@ namespace bs
 		mCharManager->setTessellation(mFlags.isSet(PhysicsFlag::CCT_Tesselation), mTesselationLength);
 	}
 
-	Vector3 PhysXScene::getGravity() const
+	Vector3 PhysXScene::GetGravity() const
 	{
 		return FromPxVector(mScene->getGravity());
 	}
 
-	void PhysXScene::setGravity(const Vector3& gravity)
+	void PhysXScene::SetGravity(const Vector3& gravity)
 	{
 		mScene->setGravity(toPxVector(gravity));
 	}
 
-	void PhysXScene::setMaxTesselationEdgeLength(float length)
+	void PhysXScene::SetMaxTesselationEdgeLength(float length)
 	{
 		mTesselationLength = length;
 
 		mCharManager->setTessellation(mFlags.isSet(PhysicsFlag::CCT_Tesselation), mTesselationLength);
 	}
 
-	UINT32 PhysXScene::addBroadPhaseRegion(const AABox& region)
+	UINT32 PhysXScene::AddBroadPhaseRegion(const AABox& region)
 	{
 		UINT32 id = mNextRegionIdx++;
 
@@ -1212,7 +1212,7 @@ namespace bs
 		return handle;
 	}
 
-	void PhysXScene::removeBroadPhaseRegion(UINT32 regionId)
+	void PhysXScene::RemoveBroadPhaseRegion(UINT32 regionId)
 	{
 		auto iterFind = mBroadPhaseRegionHandles.find(regionId);
 		if (iterFind == mBroadPhaseRegionHandles.end())
@@ -1222,7 +1222,7 @@ namespace bs
 		mBroadPhaseRegionHandles.erase(iterFind);
 	}
 
-	void PhysXScene::clearBroadPhaseRegions()
+	void PhysXScene::ClearBroadPhaseRegions()
 	{
 		for(auto& entry : mBroadPhaseRegionHandles)
 			mScene->removeBroadPhaseRegion(entry.second);

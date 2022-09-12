@@ -58,7 +58,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
 	}
 
-	void D3D11TimerQuery::begin(const SPtr<CommandBuffer>& cb)
+	void D3D11TimerQuery::Begin(const SPtr<CommandBuffer>& cb)
 	{
 		auto execute = [&]()
 		{
@@ -79,7 +79,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void D3D11TimerQuery::end(const SPtr<CommandBuffer>& cb)
+	void D3D11TimerQuery::End(const SPtr<CommandBuffer>& cb)
 	{
 		auto execute = [&]()
 		{
@@ -99,7 +99,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	bool D3D11TimerQuery::isReady() const
+	bool D3D11TimerQuery::IsReady() const
 	{
 		if (!mQueryEndCalled)
 			return false;
@@ -108,7 +108,7 @@ namespace bs { namespace ct
 		return mContext->GetData(mDisjointQuery, &disjointData, sizeof(disjointData), 0) == S_OK;
 	}
 
-	float D3D11TimerQuery::getTimeMs()
+	float D3D11TimerQuery::GetTimeMs()
 	{
 		if(!mFinalized && isReady())
 		{
@@ -118,7 +118,7 @@ namespace bs { namespace ct
 		return mTimeDelta;
 	}
 
-	void D3D11TimerQuery::finalize()
+	void D3D11TimerQuery::Finalize()
 	{
 		UINT64 timeStart, timeEnd;
 

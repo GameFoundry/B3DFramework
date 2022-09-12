@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	SPtr<SamplerState> RenderStateManager::createSamplerState(const SAMPLER_STATE_DESC& desc) const
+	SPtr<SamplerState> RenderStateManager::CreateSamplerState(const SAMPLER_STATE_DESC& desc) const
 	{
 		SPtr<SamplerState> state = _createSamplerStatePtr(desc);
 		state->initialize();
@@ -16,7 +16,7 @@ namespace bs
 		return state;
 	}
 
-	SPtr<DepthStencilState> RenderStateManager::createDepthStencilState(const DEPTH_STENCIL_STATE_DESC& desc) const
+	SPtr<DepthStencilState> RenderStateManager::CreateDepthStencilState(const DEPTH_STENCIL_STATE_DESC& desc) const
 	{
 		SPtr<DepthStencilState> state = _createDepthStencilStatePtr(desc);
 		state->initialize();
@@ -24,7 +24,7 @@ namespace bs
 		return state;
 	}
 
-	SPtr<RasterizerState> RenderStateManager::createRasterizerState(const RASTERIZER_STATE_DESC& desc) const
+	SPtr<RasterizerState> RenderStateManager::CreateRasterizerState(const RASTERIZER_STATE_DESC& desc) const
 	{
 		SPtr<RasterizerState> state = _createRasterizerStatePtr(desc);
 		state->initialize();
@@ -32,7 +32,7 @@ namespace bs
 		return state;
 	}
 
-	SPtr<BlendState> RenderStateManager::createBlendState(const BLEND_STATE_DESC& desc) const
+	SPtr<BlendState> RenderStateManager::CreateBlendState(const BLEND_STATE_DESC& desc) const
 	{
 		SPtr<BlendState> state = _createBlendStatePtr(desc);
 		state->initialize();
@@ -40,7 +40,7 @@ namespace bs
 		return state;
 	}
 
-	SPtr<GraphicsPipelineState> RenderStateManager::createGraphicsPipelineState(const PIPELINE_STATE_DESC& desc) const
+	SPtr<GraphicsPipelineState> RenderStateManager::CreateGraphicsPipelineState(const PIPELINE_STATE_DESC& desc) const
 	{
 		SPtr<GraphicsPipelineState> state = _createGraphicsPipelineState(desc);
 		state->initialize();
@@ -48,7 +48,7 @@ namespace bs
 		return state;
 	}
 
-	SPtr<ComputePipelineState> RenderStateManager::createComputePipelineState(const SPtr<GpuProgram>& program) const
+	SPtr<ComputePipelineState> RenderStateManager::CreateComputePipelineState(const SPtr<GpuProgram>& program) const
 	{
 		SPtr<ComputePipelineState> state = _createComputePipelineState(program);
 		state->initialize();
@@ -106,7 +106,7 @@ namespace bs
 		return pipelineState;
 	}
 
-	const SPtr<SamplerState>& RenderStateManager::getDefaultSamplerState() const
+	const SPtr<SamplerState>& RenderStateManager::GetDefaultSamplerState() const
 	{
 		if(mDefaultSamplerState == nullptr)
 			mDefaultSamplerState = createSamplerState(SAMPLER_STATE_DESC());
@@ -114,7 +114,7 @@ namespace bs
 		return mDefaultSamplerState;
 	}
 
-	const SPtr<BlendState>& RenderStateManager::getDefaultBlendState() const
+	const SPtr<BlendState>& RenderStateManager::GetDefaultBlendState() const
 	{
 		if(mDefaultBlendState == nullptr)
 			mDefaultBlendState = createBlendState(BLEND_STATE_DESC());
@@ -122,7 +122,7 @@ namespace bs
 		return mDefaultBlendState;
 	}
 
-	const SPtr<RasterizerState>& RenderStateManager::getDefaultRasterizerState() const
+	const SPtr<RasterizerState>& RenderStateManager::GetDefaultRasterizerState() const
 	{
 		if(mDefaultRasterizerState == nullptr)
 			mDefaultRasterizerState = createRasterizerState(RASTERIZER_STATE_DESC());
@@ -130,7 +130,7 @@ namespace bs
 		return mDefaultRasterizerState;
 	}
 
-	const SPtr<DepthStencilState>& RenderStateManager::getDefaultDepthStencilState() const
+	const SPtr<DepthStencilState>& RenderStateManager::GetDefaultDepthStencilState() const
 	{
 		if(mDefaultDepthStencilState == nullptr)
 			mDefaultDepthStencilState = createDepthStencilState(DEPTH_STENCIL_STATE_DESC());
@@ -155,7 +155,7 @@ namespace bs
 		return state;
 	}
 
-	SPtr<DepthStencilState> RenderStateManager::createDepthStencilState(const DEPTH_STENCIL_STATE_DESC& desc) const
+	SPtr<DepthStencilState> RenderStateManager::CreateDepthStencilState(const DEPTH_STENCIL_STATE_DESC& desc) const
 	{
 		UINT32 id = 0;
 		SPtr<DepthStencilState> state = findCachedState(desc, id);
@@ -173,7 +173,7 @@ namespace bs
 		return state;
 	}
 
-	SPtr<RasterizerState> RenderStateManager::createRasterizerState(const RASTERIZER_STATE_DESC& desc) const
+	SPtr<RasterizerState> RenderStateManager::CreateRasterizerState(const RASTERIZER_STATE_DESC& desc) const
 	{
 		UINT32 id = 0;
 		SPtr<RasterizerState> state = findCachedState(desc, id);
@@ -191,7 +191,7 @@ namespace bs
 		return state;
 	}
 
-	SPtr<BlendState> RenderStateManager::createBlendState(const BLEND_STATE_DESC& desc) const
+	SPtr<BlendState> RenderStateManager::CreateBlendState(const BLEND_STATE_DESC& desc) const
 	{
 		UINT32 id = 0;
 		SPtr<BlendState> state = findCachedState(desc, id);
@@ -337,7 +337,7 @@ namespace bs
 		return paramInfo;
 	}
 
-	void RenderStateManager::onShutDown()
+	void RenderStateManager::OnShutDown()
 	{
 		mDefaultBlendState = nullptr;
 		mDefaultDepthStencilState = nullptr;
@@ -345,7 +345,7 @@ namespace bs
 		mDefaultSamplerState = nullptr;
 	}
 
-	const SPtr<SamplerState>& RenderStateManager::getDefaultSamplerState() const
+	const SPtr<SamplerState>& RenderStateManager::GetDefaultSamplerState() const
 	{
 		if (mDefaultSamplerState == nullptr)
 			mDefaultSamplerState = createSamplerState(SAMPLER_STATE_DESC());
@@ -353,7 +353,7 @@ namespace bs
 		return mDefaultSamplerState;
 	}
 
-	const SPtr<BlendState>& RenderStateManager::getDefaultBlendState() const
+	const SPtr<BlendState>& RenderStateManager::GetDefaultBlendState() const
 	{
 		if (mDefaultBlendState == nullptr)
 			mDefaultBlendState = createBlendState(BLEND_STATE_DESC());
@@ -361,7 +361,7 @@ namespace bs
 		return mDefaultBlendState;
 	}
 
-	const SPtr<RasterizerState>& RenderStateManager::getDefaultRasterizerState() const
+	const SPtr<RasterizerState>& RenderStateManager::GetDefaultRasterizerState() const
 	{
 		if (mDefaultRasterizerState == nullptr)
 			mDefaultRasterizerState = createRasterizerState(RASTERIZER_STATE_DESC());
@@ -369,7 +369,7 @@ namespace bs
 		return mDefaultRasterizerState;
 	}
 
-	const SPtr<DepthStencilState>& RenderStateManager::getDefaultDepthStencilState() const
+	const SPtr<DepthStencilState>& RenderStateManager::GetDefaultDepthStencilState() const
 	{
 		if (mDefaultDepthStencilState == nullptr)
 			mDefaultDepthStencilState = createDepthStencilState(DEPTH_STENCIL_STATE_DESC());
@@ -377,42 +377,42 @@ namespace bs
 		return mDefaultDepthStencilState;
 	}
 
-	void RenderStateManager::notifySamplerStateCreated(const SAMPLER_STATE_DESC& desc, const SPtr<SamplerState>& state) const
+	void RenderStateManager::NotifySamplerStateCreated(const SAMPLER_STATE_DESC& desc, const SPtr<SamplerState>& state) const
 	{
 		Lock Lock(mMutex);
 
 		mCachedSamplerStates[desc] = state;
 	}
 
-	void RenderStateManager::notifyBlendStateCreated(const BLEND_STATE_DESC& desc, const CachedBlendState& state) const
+	void RenderStateManager::NotifyBlendStateCreated(const BLEND_STATE_DESC& desc, const CachedBlendState& state) const
 	{
 		Lock Lock(mMutex);
 
 		mCachedBlendStates[desc] = state;
 	}
 
-	void RenderStateManager::notifyRasterizerStateCreated(const RASTERIZER_STATE_DESC& desc, const CachedRasterizerState& state) const
+	void RenderStateManager::NotifyRasterizerStateCreated(const RASTERIZER_STATE_DESC& desc, const CachedRasterizerState& state) const
 	{
 		Lock Lock(mMutex);
 
 		mCachedRasterizerStates[desc] = state;
 	}
 
-	void RenderStateManager::notifyDepthStencilStateCreated(const DEPTH_STENCIL_STATE_DESC& desc, const CachedDepthStencilState& state) const
+	void RenderStateManager::NotifyDepthStencilStateCreated(const DEPTH_STENCIL_STATE_DESC& desc, const CachedDepthStencilState& state) const
 	{
 		Lock Lock(mMutex);
 
 		mCachedDepthStencilStates[desc] = state;
 	}
 
-	void RenderStateManager::notifySamplerStateDestroyed(const SAMPLER_STATE_DESC& desc) const
+	void RenderStateManager::NotifySamplerStateDestroyed(const SAMPLER_STATE_DESC& desc) const
 	{
 		Lock Lock(mMutex);
 
 		mCachedSamplerStates.erase(desc);
 	}
 
-	SPtr<SamplerState> RenderStateManager::findCachedState(const SAMPLER_STATE_DESC& desc) const
+	SPtr<SamplerState> RenderStateManager::FindCachedState(const SAMPLER_STATE_DESC& desc) const
 	{
 		Lock Lock(mMutex);
 
@@ -423,7 +423,7 @@ namespace bs
 		return nullptr;
 	}
 
-	SPtr<BlendState> RenderStateManager::findCachedState(const BLEND_STATE_DESC& desc, UINT32& id) const
+	SPtr<BlendState> RenderStateManager::FindCachedState(const BLEND_STATE_DESC& desc, UINT32& id) const
 	{
 		Lock Lock(mMutex);
 
@@ -444,7 +444,7 @@ namespace bs
 		return nullptr;
 	}
 
-	SPtr<RasterizerState> RenderStateManager::findCachedState(const RASTERIZER_STATE_DESC& desc, UINT32& id) const
+	SPtr<RasterizerState> RenderStateManager::FindCachedState(const RASTERIZER_STATE_DESC& desc, UINT32& id) const
 	{
 		Lock Lock(mMutex);
 
@@ -465,7 +465,7 @@ namespace bs
 		return nullptr;
 	}
 
-	SPtr<DepthStencilState> RenderStateManager::findCachedState(const DEPTH_STENCIL_STATE_DESC& desc, UINT32& id) const
+	SPtr<DepthStencilState> RenderStateManager::FindCachedState(const DEPTH_STENCIL_STATE_DESC& desc, UINT32& id) const
 	{
 		Lock Lock(mMutex);
 
@@ -486,7 +486,7 @@ namespace bs
 		return nullptr;
 	}
 
-	SPtr<SamplerState> RenderStateManager::createSamplerStateInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const
+	SPtr<SamplerState> RenderStateManager::CreateSamplerStateInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const
 	{
 		SPtr<SamplerState> state =
 			bs_shared_ptr<SamplerState>(new (bs_alloc<SamplerState>()) SamplerState(desc, deviceMask));
@@ -495,7 +495,7 @@ namespace bs
 		return state;
 	}
 
-	SPtr<DepthStencilState> RenderStateManager::createDepthStencilStateInternal(const DEPTH_STENCIL_STATE_DESC& desc, UINT32 id) const
+	SPtr<DepthStencilState> RenderStateManager::CreateDepthStencilStateInternal(const DEPTH_STENCIL_STATE_DESC& desc, UINT32 id) const
 	{
 		SPtr<DepthStencilState> state = bs_shared_ptr<DepthStencilState>(new (bs_alloc<DepthStencilState>()) DepthStencilState(desc, id));
 		state->_setThisPtr(state);
@@ -503,7 +503,7 @@ namespace bs
 		return state;
 	}
 
-	SPtr<RasterizerState> RenderStateManager::createRasterizerStateInternal(const RASTERIZER_STATE_DESC& desc, UINT32 id) const
+	SPtr<RasterizerState> RenderStateManager::CreateRasterizerStateInternal(const RASTERIZER_STATE_DESC& desc, UINT32 id) const
 	{
 		SPtr<RasterizerState> state = bs_shared_ptr<RasterizerState>(new (bs_alloc<RasterizerState>()) RasterizerState(desc, id));
 		state->_setThisPtr(state);
@@ -511,7 +511,7 @@ namespace bs
 		return state;
 	}
 
-	SPtr<BlendState> RenderStateManager::createBlendStateInternal(const BLEND_STATE_DESC& desc, UINT32 id) const
+	SPtr<BlendState> RenderStateManager::CreateBlendStateInternal(const BLEND_STATE_DESC& desc, UINT32 id) const
 	{
 		SPtr<BlendState> state = bs_shared_ptr<BlendState>(new (bs_alloc<BlendState>()) BlendState(desc, id));
 		state->_setThisPtr(state);

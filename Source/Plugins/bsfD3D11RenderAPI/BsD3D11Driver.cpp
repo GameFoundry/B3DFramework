@@ -36,7 +36,7 @@ namespace bs { namespace ct
 		SAFE_RELEASE(mDXGIAdapter);
 	}
 
-	void D3D11Driver::construct()
+	void D3D11Driver::Construct()
 	{
 		assert(mDXGIAdapter != nullptr);
 
@@ -67,7 +67,7 @@ namespace bs { namespace ct
 		return *this;
 	}
 
-	String D3D11Driver::getDriverName() const
+	String D3D11Driver::GetDriverName() const
 	{
 		size_t size = wcslen(mAdapterIdentifier.Description);
 		char* str = (char*)bs_alloc((UINT32)(size + 1));
@@ -80,7 +80,7 @@ namespace bs { namespace ct
 		return String(Description );
 	}
 
-	String D3D11Driver::getDriverDescription() const
+	String D3D11Driver::GetDriverDescription() const
 	{
 		size_t size = wcslen(mAdapterIdentifier.Description);
 		char* str = (char*)bs_alloc((UINT32)(size + 1));
@@ -95,7 +95,7 @@ namespace bs { namespace ct
 		return driverDescription;
 	}
 
-	DXGI_OUTPUT_DESC D3D11Driver::getOutputDesc(UINT32 adapterOutputIdx) const
+	DXGI_OUTPUT_DESC D3D11Driver::GetOutputDesc(UINT32 adapterOutputIdx) const
 	{
 		DXGI_OUTPUT_DESC desc;
 		

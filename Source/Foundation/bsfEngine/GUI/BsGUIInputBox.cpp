@@ -25,7 +25,7 @@ namespace bs
 	VirtualButton GUIInputBox::mCutVB = VirtualButton("Cut");
 	VirtualButton GUIInputBox::mSelectAllVB = VirtualButton("SelectAll");
 
-	const String& GUIInputBox::getGUITypeName()
+	const String& GUIInputBox::GetGUITypeName()
 	{
 		static String name = "InputBox";
 		return name;
@@ -59,7 +59,7 @@ namespace bs
 		return new (bs_alloc<GUIInputBox>()) GUIInputBox(getStyleName<GUIInputBox>(styleName), GUIDimensions::create(options), false);
 	}
 
-	void GUIInputBox::setText(const String& text)
+	void GUIInputBox::SetText(const String& text)
 	{
 		if (mText == text)
 			return;
@@ -103,7 +103,7 @@ namespace bs
 		}
 	}
 
-	void GUIInputBox::updateRenderElementsInternal()
+	void GUIInputBox::UpdateRenderElementsInternal()
 	{		
 		mImageDesc.width = mLayoutData.area.width;
 		mImageDesc.height = mLayoutData.area.height;
@@ -169,7 +169,7 @@ namespace bs
 		GUIElement::updateRenderElementsInternal();
 	}
 
-	void GUIInputBox::updateClippedBounds()
+	void GUIInputBox::UpdateClippedBounds()
 	{
 		Vector2I Offset(mLayoutData.area.x, mLayoutData.area.y);
 		mClippedBounds = mImageSprite->getBounds(offset, mLayoutData.getLocalClipRect());
@@ -226,7 +226,7 @@ namespace bs
 		return nullptr;
 	}
 
-	Vector2I GUIInputBox::renderElemToOffset(UINT32 renderElemIdx) const
+	Vector2I GUIInputBox::RenderElemToOffset(UINT32 renderElemIdx) const
 	{
 		UINT32 oldNumElements = 0;
 		UINT32 newNumElements = oldNumElements + mTextSprite->getNumRenderElements();
@@ -267,7 +267,7 @@ namespace bs
 		return Vector2I();
 	}
 
-	Rect2I GUIInputBox::renderElemToClipRect(UINT32 renderElemIdx) const
+	Rect2I GUIInputBox::RenderElemToClipRect(UINT32 renderElemIdx) const
 	{
 		UINT32 oldNumElements = 0;
 		UINT32 newNumElements = oldNumElements + mTextSprite->getNumRenderElements();
@@ -943,7 +943,7 @@ namespace bs
 		return false;
 	}
 
-	void GUIInputBox::showCaret()
+	void GUIInputBox::ShowCaret()
 	{
 		mCaretShown = true;
 
@@ -951,12 +951,12 @@ namespace bs
 		gGUIManager().getInputCaretTool()->updateText(this, textDesc);
 	}
 
-	void GUIInputBox::hideCaret()
+	void GUIInputBox::HideCaret()
 	{
 		mCaretShown = false;
 	}
 
-	void GUIInputBox::showSelection(UINT32 anchorCaretPos)
+	void GUIInputBox::ShowSelection(UINT32 anchorCaretPos)
 	{
 		TEXT_SPRITE_DESC textDesc = getTextDesc();
 		gGUIManager().getInputSelectionTool()->updateText(this, textDesc);
@@ -965,13 +965,13 @@ namespace bs
 		mSelectionShown = true;
 	}
 
-	void GUIInputBox::clearSelection()
+	void GUIInputBox::ClearSelection()
 	{
 		gGUIManager().getInputSelectionTool()->clearSelectionVisuals();
 		mSelectionShown = false;
 	}
 
-	void GUIInputBox::scrollTextToCaret()
+	void GUIInputBox::ScrollTextToCaret()
 	{
 		TEXT_SPRITE_DESC textDesc = getTextDesc();
 
@@ -1017,7 +1017,7 @@ namespace bs
 		gGUIManager().getInputSelectionTool()->updateText(this, textDesc);
 	}
 
-	void GUIInputBox::clampScrollToBounds(Rect2I unclippedTextBounds)
+	void GUIInputBox::ClampScrollToBounds(Rect2I unclippedTextBounds)
 	{
 		TEXT_SPRITE_DESC textDesc = getTextDesc();
 
@@ -1036,7 +1036,7 @@ namespace bs
 		}
 	}
 
-	void GUIInputBox::insertString(UINT32 charIdx, const String& string)
+	void GUIInputBox::InsertString(UINT32 charIdx, const String& string)
 	{
 		UINT32 byteIdx = UTF8::charToByteIndex(mText, charIdx);
 
@@ -1049,7 +1049,7 @@ namespace bs
 		gGUIManager().getInputSelectionTool()->updateText(this, textDesc);
 	}
 
-	void GUIInputBox::insertChar(UINT32 charIdx, UINT32 charCode)
+	void GUIInputBox::InsertChar(UINT32 charIdx, UINT32 charCode)
 	{
 		UINT32 byteIdx = UTF8::charToByteIndex(mText, charIdx);
 		String utf8chars = UTF8::fromUTF32(U32String(1, (char32_t)charCode));
@@ -1063,7 +1063,7 @@ namespace bs
 		gGUIManager().getInputSelectionTool()->updateText(this, textDesc);
 	}
 
-	void GUIInputBox::eraseChar(UINT32 charIdx)
+	void GUIInputBox::EraseChar(UINT32 charIdx)
 	{
 		UINT32 byteIdx = UTF8::charToByteIndex(mText, charIdx);
 		UINT32 byteCount = UTF8::charByteCount(mText, charIdx);
@@ -1077,7 +1077,7 @@ namespace bs
 		gGUIManager().getInputSelectionTool()->updateText(this, textDesc);
 	}
 
-	void GUIInputBox::deleteSelectedText(bool internal)
+	void GUIInputBox::DeleteSelectedText(bool internal)
 	{
 		UINT32 selStart = gGUIManager().getInputSelectionTool()->getSelectionStart();
 		UINT32 selEnd = gGUIManager().getInputSelectionTool()->getSelectionEnd();
@@ -1125,7 +1125,7 @@ namespace bs
 		clearSelection();
 	}
 
-	String GUIInputBox::getSelectedText()
+	String GUIInputBox::GetSelectedText()
 	{
 		UINT32 selStart = gGUIManager().getInputSelectionTool()->getSelectionStart();
 		UINT32 selEnd = gGUIManager().getInputSelectionTool()->getSelectionEnd();
@@ -1136,19 +1136,19 @@ namespace bs
 		return mText.substr(byteStart, byteEnd - byteStart);
 	}
 
-	Vector2I GUIInputBox::getTextOffset() const
+	Vector2I GUIInputBox::GetTextOffset() const
 	{
 		Rect2I textBounds = getCachedContentBounds();
 		return Vector2I(textBounds.x, textBounds.y) + mTextOffset;
 	}
 
-	Rect2I GUIInputBox::getTextClipRect() const
+	Rect2I GUIInputBox::GetTextClipRect() const
 	{
 		Rect2I contentClipRect = getCachedContentClipRect();
 		return Rect2I(contentClipRect.x - mTextOffset.x, contentClipRect.y - mTextOffset.y, contentClipRect.width, contentClipRect.height);
 	}
 
-	TEXT_SPRITE_DESC GUIInputBox::getTextDesc() const
+	TEXT_SPRITE_DESC GUIInputBox::GetTextDesc() const
 	{
 		TEXT_SPRITE_DESC textDesc;
 		textDesc.text = mText;
@@ -1166,7 +1166,7 @@ namespace bs
 		return textDesc;
 	}
 
-	const HSpriteTexture& GUIInputBox::getActiveTexture() const
+	const HSpriteTexture& GUIInputBox::GetActiveTexture() const
 	{
 		switch(mState)
 		{
@@ -1181,7 +1181,7 @@ namespace bs
 		return _getStyle()->normal.texture;
 	}
 
-	Color GUIInputBox::getActiveTextColor() const
+	Color GUIInputBox::GetActiveTextColor() const
 	{
 		switch (mState)
 		{
@@ -1219,7 +1219,7 @@ namespace bs
 		return nullptr;
 	}
 
-	void GUIInputBox::cutText()
+	void GUIInputBox::CutText()
 	{
 		Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
 
@@ -1233,12 +1233,12 @@ namespace bs
 			_markContentAsDirty();
 	}
 
-	void GUIInputBox::copyText()
+	void GUIInputBox::CopyText()
 	{
 		Platform::copyToClipboard(getSelectedText());
 	}
 
-	void GUIInputBox::pasteText()
+	void GUIInputBox::PasteText()
 	{
 		deleteSelectedText(true);
 

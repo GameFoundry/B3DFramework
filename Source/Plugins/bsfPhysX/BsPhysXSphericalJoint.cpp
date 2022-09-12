@@ -54,7 +54,7 @@ namespace bs
 		bs_delete(mInternal);
 	}
 
-	LimitConeRange PhysXSphericalJoint::getLimit() const
+	LimitConeRange PhysXSphericalJoint::GetLimit() const
 	{
 		PxJointLimitCone pxLimit = getInternal()->getLimitCone();
 
@@ -69,7 +69,7 @@ namespace bs
 		return limit;
 	}
 
-	void PhysXSphericalJoint::setLimit(const LimitConeRange& limit)
+	void PhysXSphericalJoint::SetLimit(const LimitConeRange& limit)
 	{
 		PxJointLimitCone PxLimit(limit.yLimitAngle.valueRadians(), limit.zLimitAngle.valueRadians(), limit.contactDist);
 		pxLimit.stiffness = limit.spring.stiffness;
@@ -79,12 +79,12 @@ namespace bs
 		getInternal()->setLimitCone(pxLimit);
 	}
 
-	void PhysXSphericalJoint::setFlag(SphericalJointFlag flag, bool enabled)
+	void PhysXSphericalJoint::SetFlag(SphericalJointFlag flag, bool enabled)
 	{
 		getInternal()->setSphericalJointFlag(toPxFlag(flag), enabled);
 	}
 
-	bool PhysXSphericalJoint::hasFlag(SphericalJointFlag flag) const
+	bool PhysXSphericalJoint::HasFlag(SphericalJointFlag flag) const
 	{
 		return GetInternal()->getSphericalJointFlags() & toPxFlag(flag);
 	}

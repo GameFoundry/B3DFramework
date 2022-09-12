@@ -19,7 +19,7 @@ namespace bs { namespace ct
 		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");
 	}
 
-	void GLIndexBuffer::initialize()
+	void GLIndexBuffer::Initialize()
 	{
 		mBuffer = bs_pool_new<GLHardwareBuffer>(GL_ELEMENT_ARRAY_BUFFER, mSize, mUsage);
 		mBufferDeleter = &deleteBuffer;

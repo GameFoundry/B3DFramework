@@ -26,7 +26,7 @@ namespace bs
 		return mono_runtime_invoke(mGetMethod, instance, nullptr, nullptr);
 	}
 
-	void MonoProperty::set(MonoObject* instance, void* value) const
+	void MonoProperty::Set(MonoObject* instance, void* value) const
 	{
 		if (mSetMethod == nullptr)
 			return;
@@ -43,7 +43,7 @@ namespace bs
 		return mono_runtime_invoke(mGetMethod, instance, args, nullptr);
 	}
 
-	void MonoProperty::setIndexed(MonoObject* instance, UINT32 index, void* value) const
+	void MonoProperty::SetIndexed(MonoObject* instance, UINT32 index, void* value) const
 	{
 		void* args[2];
 		args[0] = &index;
@@ -51,7 +51,7 @@ namespace bs
 		mono_runtime_invoke(mSetMethod, instance, args, nullptr);
 	}
 
-	bool MonoProperty::isIndexed() const
+	bool MonoProperty::IsIndexed() const
 	{
 		if (!mIsFullyInitialized)
 			initializeDeferred();
@@ -67,7 +67,7 @@ namespace bs
 		return mReturnType;
 	}
 
-	bool MonoProperty::hasAttribute(MonoClass* monoClass)
+	bool MonoProperty::HasAttribute(MonoClass* monoClass)
 	{
 		// TODO - Consider caching custom attributes or just initializing them all at load
 
@@ -100,7 +100,7 @@ namespace bs
 		return foundAttr;
 	}
 
-	MonoMemberVisibility MonoProperty::getVisibility()
+	MonoMemberVisibility MonoProperty::GetVisibility()
 	{
 		MonoMemberVisibility getterVisibility = MonoMemberVisibility::Public;
 		if(mGetMethod)
@@ -122,7 +122,7 @@ namespace bs
 		return setterVisibility;
 	}
 
-	void MonoProperty::initializeDeferred() const
+	void MonoProperty::InitializeDeferred() const
 	{
 		if (mGetMethod != nullptr)
 		{

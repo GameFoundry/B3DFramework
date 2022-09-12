@@ -12,7 +12,7 @@ namespace bs
 	{
 	}
 
-	void ScriptMorphShape::initRuntimeData()
+	void ScriptMorphShape::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_getName", (void*)&ScriptMorphShape::Internal_getName);
 		metaData.scriptClass->addInternalCall("Internal_getWeight", (void*)&ScriptMorphShape::Internal_getWeight);

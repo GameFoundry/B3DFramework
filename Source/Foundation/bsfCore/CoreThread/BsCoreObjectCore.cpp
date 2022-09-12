@@ -19,7 +19,7 @@ namespace bs
 		THROW_IF_NOT_CORE_THREAD;
 	}
 
-	void CoreObject::initialize()
+	void CoreObject::Initialize()
 	{
 		{
 			Lock Lock(mCoreGpuObjectLoadedMutex);
@@ -31,7 +31,7 @@ namespace bs
 		mCoreGpuObjectLoadedCondition.notify_all();
 	}
 
-	void CoreObject::synchronize()
+	void CoreObject::Synchronize()
 	{
 		if (!isInitialized())
 		{

@@ -9,7 +9,7 @@
 
 namespace bs
 {
-	const String& GUIListBox::getGUITypeName()
+	const String& GUIListBox::GetGUITypeName()
 	{
 		static String name = "ListBox";
 		return name;
@@ -45,7 +45,7 @@ namespace bs
 		return new (bs_alloc<GUIListBox>()) GUIListBox(getStyleName<GUIListBox>(styleName), elements, false, GUIDimensions::create(options));
 	}
 
-	void GUIListBox::setElements(const Vector<HString>& elements)
+	void GUIListBox::SetElements(const Vector<HString>& elements)
 	{
 		bool wasOpen = mDropDownBox != nullptr;
 
@@ -65,7 +65,7 @@ namespace bs
 			openListBox();
 	}
 
-	void GUIListBox::selectElement(UINT32 idx)
+	void GUIListBox::SelectElement(UINT32 idx)
 	{
 		if (idx >= (UINT32)mElements.size())
 			return;
@@ -74,7 +74,7 @@ namespace bs
 			elementSelected(idx);
 	}
 
-	void GUIListBox::deselectElement(UINT32 idx)
+	void GUIListBox::DeselectElement(UINT32 idx)
 	{
 		if (!mIsMultiselect || idx >= (UINT32)mElements.size())
 			return;
@@ -83,7 +83,7 @@ namespace bs
 			elementSelected(idx);
 	}
 
-	void GUIListBox::setElementStates(const Vector<bool>& states)
+	void GUIListBox::SetElementStates(const Vector<bool>& states)
 	{
 		UINT32 numElements = (UINT32)mElementStates.size();
 		UINT32 min = std::min(numElements, (UINT32)states.size());
@@ -168,7 +168,7 @@ namespace bs
 		return processed;
 	}
 
-	void GUIListBox::elementSelected(UINT32 idx)
+	void GUIListBox::ElementSelected(UINT32 idx)
 	{
 		if (idx >= (UINT32)mElements.size())
 			return;
@@ -197,7 +197,7 @@ namespace bs
 		updateContents();
 	}
 
-	void GUIListBox::openListBox()
+	void GUIListBox::OpenListBox()
 	{
 		closeListBox();
 
@@ -226,12 +226,12 @@ namespace bs
 			type = GUIDropDownType::ListBox;
 
 		mDropDownBox = GUIDropDownBoxManager::instance().openDropDownBox(
-			desc, type, std::bind(&GUIListBox::onListBoxClosed, this));
+			desc, type, std::Bind(&GUIListBox::onListBoxClosed, this));
 
 		_setOn(true);
 	}
 
-	void GUIListBox::closeListBox()
+	void GUIListBox::CloseListBox()
 	{
 		if (mDropDownBox != nullptr)
 		{
@@ -242,7 +242,7 @@ namespace bs
 		}
 	}
 
-	void GUIListBox::updateContents()
+	void GUIListBox::UpdateContents()
 	{
 		UINT32 selectedIdx = 0;
 		UINT32 numSelected = 0;
@@ -273,7 +273,7 @@ namespace bs
 		}
 	}
 
-	void GUIListBox::onListBoxClosed()
+	void GUIListBox::OnListBoxClosed()
 	{
 		_setOn(false);
 		mDropDownBox = nullptr;

@@ -14,7 +14,7 @@ namespace bs
 	const Color Color::LightGray = Color(200.0f / 255.0f, 200.0f / 255.0f, 200.0f / 255.0f);
 	const Color Color::BansheeOrange = Color(1.0f, (168.0f/255.0f), 0.0f);
 
-	Color Color::fromRGBA(RGBA val)
+	Color Color::FromRGBA(RGBA val)
 	{
 		Color output;
 		const UINT32 val32 = val;
@@ -27,7 +27,7 @@ namespace bs
 		return output;
 	}
 
-	Color Color::fromABGR(UINT32 val)
+	Color Color::FromABGR(UINT32 val)
 	{
 		Color output;
 		const UINT32 val32 = val;
@@ -40,7 +40,7 @@ namespace bs
 		return output;
 	}
 
-	Color Color::fromARGB(ARGB val)
+	Color Color::FromARGB(ARGB val)
 	{
 		Color output;
 		const UINT32 val32 = val;
@@ -53,7 +53,7 @@ namespace bs
 		return output;
 	}
 
-	Color Color::fromBGRA(BGRA val)
+	Color Color::FromBGRA(BGRA val)
 	{
 		Color output;
 		const UINT32 val32 = val;
@@ -66,7 +66,7 @@ namespace bs
 		return output;
 	}
 
-	Color Color::fromHSB(float hue, float saturation, float brightness)
+	Color Color::FromHSB(float hue, float saturation, float brightness)
 	{
 		Color output;
 
@@ -152,7 +152,7 @@ namespace bs
 		return output;
 	}
 
-	ABGR Color::getAsABGR() const
+	ABGR Color::GetAsABGR() const
 	{
 		UINT8 val8;
 		UINT32 val32 = 0;
@@ -179,7 +179,7 @@ namespace bs
 		return val32;
 	}
 
-	BGRA Color::getAsBGRA() const
+	BGRA Color::GetAsBGRA() const
 	{
 		UINT8 val8;
 		UINT32 val32 = 0;
@@ -206,7 +206,7 @@ namespace bs
 		return val32;
 	}
 
-	ARGB Color::getAsARGB() const
+	ARGB Color::GetAsARGB() const
 	{
 		UINT8 val8;
 		UINT32 val32 = 0;
@@ -234,7 +234,7 @@ namespace bs
 		return val32;
 	}
 
-	RGBA Color::getAsRGBA() const
+	RGBA Color::GetAsRGBA() const
 	{
 		UINT8 val8;
 		UINT32 val32 = 0;
@@ -271,7 +271,7 @@ namespace bs
 		else if (x < 0.0031308f)
 			return x * 12.92f;
 		else
-			return std::pow(x, 1.0f / 2.4f) * 1.055f - 0.055f;
+			return std::Pow(x, 1.0f / 2.4f) * 1.055f - 0.055f;
 	}
 
 	float SRGBToLinear(float x)
@@ -283,10 +283,10 @@ namespace bs
 		else if (x < 0.04045f)
 			return x / 12.92f;
 		else
-			return std::pow((x + 0.055f) / 1.055f, 2.4f);
+			return std::Pow((x + 0.055f) / 1.055f, 2.4f);
 	}
 
-	Color Color::getGamma() const
+	Color Color::GetGamma() const
 	{
 		return Color(
 				bs::linearToSRGB(r),
@@ -295,7 +295,7 @@ namespace bs
 				a);
 	}
 
-	Color Color::getLinear() const
+	Color Color::GetLinear() const
 	{
 		return Color(
 				bs::SRGBToLinear(r),
@@ -317,7 +317,7 @@ namespace bs
 		return !(*this == rhs);
 	}
 
-	void Color::getHSB(float* hue, float* saturation, float* brightness) const
+	void Color::GetHSB(float* hue, float* saturation, float* brightness) const
 	{
 		float vMin = std::min(r, std::min(g, b));
 		float vMax = std::max(r, std::max(g, b));
@@ -354,7 +354,7 @@ namespace bs
 		}
 	}
 
-	Color Color::lerp(float t, const Color& a, const Color& b)
+	Color Color::Lerp(float t, const Color& a, const Color& b)
 	{
 		t = Math::clamp01(t);
 		return Color(a.r + (b.r - a.r) * t,

@@ -12,7 +12,7 @@ namespace bs
 	{
 	}
 
-	void ScriptAmbientOcclusionSettings::initRuntimeData()
+	void ScriptAmbientOcclusionSettings::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_AmbientOcclusionSettings", (void*)&ScriptAmbientOcclusionSettings::Internal_AmbientOcclusionSettings);
 		metaData.scriptClass->addInternalCall("Internal_getenabled", (void*)&ScriptAmbientOcclusionSettings::Internal_getenabled);

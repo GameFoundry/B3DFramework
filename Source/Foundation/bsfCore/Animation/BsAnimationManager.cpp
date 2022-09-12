@@ -20,12 +20,12 @@ namespace bs
 		mBlendShapeVertexDesc->addVertElem(VET_UBYTE4_NORM, VES_NORMAL, 1, 1);
 	}
 
-	void AnimationManager::setPaused(bool paused)
+	void AnimationManager::SetPaused(bool paused)
 	{
 		mPaused = paused;
 	}
 
-	void AnimationManager::setUpdateRate(UINT32 fps)
+	void AnimationManager::SetUpdateRate(UINT32 fps)
 	{
 		if (fps == 0)
 			fps = 1;
@@ -173,7 +173,7 @@ namespace bs
 		return output;
 	}
 
-	void AnimationManager::evaluateAnimation(AnimationProxy* anim, UINT32& curBoneIdx)
+	void AnimationManager::EvaluateAnimation(AnimationProxy* anim, UINT32& curBoneIdx)
 	{
 		// Culling
 		if (anim->mCullEnabled)
@@ -519,19 +519,19 @@ namespace bs
 		}
 	}
 
-	UINT64 AnimationManager::registerAnimation(Animation* anim)
+	UINT64 AnimationManager::RegisterAnimation(Animation* anim)
 	{
 		mAnimations[mNextId] = anim;
 		return mNextId++;
 	}
 
-	void AnimationManager::unregisterAnimation(UINT64 animId)
+	void AnimationManager::UnregisterAnimation(UINT64 animId)
 	{
 		mAnimations.erase(animId);
 	}
 
 	AnimationManager& GAnimation()
 	{
-		return AnimationManager::instance();
+		return AnimationManager::Instance();
 	}
 }

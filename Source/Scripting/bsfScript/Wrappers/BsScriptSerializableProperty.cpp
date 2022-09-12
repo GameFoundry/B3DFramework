@@ -26,7 +26,7 @@ namespace bs
 
 	}
 
-	void ScriptSerializableProperty::initRuntimeData()
+	void ScriptSerializableProperty::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptSerializableProperty::internal_CreateInstance);
 		metaData.scriptClass->addInternalCall("Internal_CreateObject", (void*)&ScriptSerializableProperty::internal_createObject);
@@ -69,28 +69,28 @@ namespace bs
 	MonoObject* ScriptSerializableProperty::internal_createObject(ScriptSerializableProperty* nativeInstance,
 		MonoObject* managedInstance, MonoReflectionType* reflType)
 	{
-		return ScriptSerializableObject::create(nativeInstance, managedInstance, reflType);
+		return ScriptSerializableObject::Create(nativeInstance, managedInstance, reflType);
 	}
 
 	MonoObject* ScriptSerializableProperty::internal_createArray(ScriptSerializableProperty* nativeInstance, MonoObject* managedInstance)
 	{
-		return ScriptSerializableArray::create(nativeInstance, managedInstance);
+		return ScriptSerializableArray::Create(nativeInstance, managedInstance);
 	}
 
 	MonoObject* ScriptSerializableProperty::internal_createList(ScriptSerializableProperty* nativeInstance, MonoObject* managedInstance)
 	{
-		return ScriptSerializableList::create(nativeInstance, managedInstance);
+		return ScriptSerializableList::Create(nativeInstance, managedInstance);
 	}
 
 	MonoObject* ScriptSerializableProperty::internal_createDictionary(ScriptSerializableProperty* nativeInstance, MonoObject* managedInstance)
 	{
-		return ScriptSerializableDictionary::create(nativeInstance, managedInstance);
+		return ScriptSerializableDictionary::Create(nativeInstance, managedInstance);
 	}
 
 	MonoObject* ScriptSerializableProperty::internal_createManagedObjectInstance(ScriptSerializableProperty* nativeInstance)
 	{
 		SPtr<ManagedSerializableTypeInfoObject> objectTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoObject>(nativeInstance->mTypeInfo);
-		return ManagedSerializableObject::createManagedInstance(objectTypeInfo);
+		return ManagedSerializableObject::CreateManagedInstance(objectTypeInfo);
 	}
 
 	MonoObject* ScriptSerializableProperty::internal_createManagedArrayInstance(ScriptSerializableProperty* nativeInstance, MonoArray* sizes)
@@ -103,18 +103,18 @@ namespace bs
 			nativeSizes.push_back(scriptArray.get<UINT32>(i));
 
 		SPtr<ManagedSerializableTypeInfoArray> arrayTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoArray>(nativeInstance->mTypeInfo);
-		return ManagedSerializableArray::createManagedInstance(arrayTypeInfo, nativeSizes);
+		return ManagedSerializableArray::CreateManagedInstance(arrayTypeInfo, nativeSizes);
 	}
 
 	MonoObject* ScriptSerializableProperty::internal_createManagedListInstance(ScriptSerializableProperty* nativeInstance, int size)
 	{
 		SPtr<ManagedSerializableTypeInfoList> listTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoList>(nativeInstance->mTypeInfo);
-		return ManagedSerializableList::createManagedInstance(listTypeInfo, size);
+		return ManagedSerializableList::CreateManagedInstance(listTypeInfo, size);
 	}
 
 	MonoObject* ScriptSerializableProperty::internal_createManagedDictionaryInstance(ScriptSerializableProperty* nativeInstance)
 	{
 		SPtr<ManagedSerializableTypeInfoDictionary> dictTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoDictionary>(nativeInstance->mTypeInfo);
-		return ManagedSerializableDictionary::createManagedInstance(dictTypeInfo);
+		return ManagedSerializableDictionary::CreateManagedInstance(dictTypeInfo);
 	}
 }

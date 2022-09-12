@@ -28,7 +28,7 @@ namespace bs
 
 #pragma pack(pop)
 
-	void BitmapWriter::rawPixelsToBMP(const UINT8* input, UINT8* output, UINT32 width, UINT32 height, UINT32 bytesPerPixel)
+	void BitmapWriter::RawPixelsToBMP(const UINT8* input, UINT8* output, UINT32 width, UINT32 height, UINT32 bytesPerPixel)
 	{
 		UINT16 bmpBytesPerPixel = 3;
 		if(bytesPerPixel >= 4)
@@ -121,7 +121,7 @@ namespace bs
 		}
 	}
 
-	UINT32 BitmapWriter::getBMPSize(UINT32 width, UINT32 height, UINT32 bytesPerPixel)
+	UINT32 BitmapWriter::GetBMPSize(UINT32 width, UINT32 height, UINT32 bytesPerPixel)
 	{
 		UINT16 bmpBytesPerPixel = 3;
 		if(bytesPerPixel >= 4)

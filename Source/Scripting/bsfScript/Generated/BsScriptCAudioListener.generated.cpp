@@ -13,7 +13,7 @@ namespace bs
 	{
 	}
 
-	void ScriptCAudioListener::initRuntimeData()
+	void ScriptCAudioListener::InitRuntimeData()
 	{
 
 	}

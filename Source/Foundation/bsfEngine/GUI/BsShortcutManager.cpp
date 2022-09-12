@@ -17,17 +17,17 @@ namespace bs
 		mOnButtonDownConn.disconnect();
 	}
 
-	void ShortcutManager::addShortcut(const ShortcutKey& key, std::function<void()> callback)
+	void ShortcutManager::AddShortcut(const ShortcutKey& key, std::function<void()> callback)
 	{
 		mShortcuts[key] = callback;
 	}
 
-	void ShortcutManager::removeShortcut(const ShortcutKey& key)
+	void ShortcutManager::RemoveShortcut(const ShortcutKey& key)
 	{
 		mShortcuts.erase(key);
 	}
 
-	void ShortcutManager::onButtonDown(const ButtonEvent& event)
+	void ShortcutManager::OnButtonDown(const ButtonEvent& event)
 	{
 		UINT32 modifiers = 0;
 		if (Input::instance().isButtonHeld(BC_LSHIFT) || Input::instance().isButtonHeld(BC_RSHIFT))

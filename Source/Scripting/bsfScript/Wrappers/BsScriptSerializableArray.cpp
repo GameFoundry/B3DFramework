@@ -18,7 +18,7 @@ namespace bs
 
 	}
 
-	void ScriptSerializableArray::initRuntimeData()
+	void ScriptSerializableArray::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateProperty", (void*)&ScriptSerializableArray::internal_createProperty);
 	}
@@ -40,6 +40,6 @@ namespace bs
 
 	MonoObject* ScriptSerializableArray::internal_createProperty(ScriptSerializableArray* nativeInstance)
 	{
-		return ScriptSerializableProperty::create(nativeInstance->mTypeInfo->mElementType);
+		return ScriptSerializableProperty::Create(nativeInstance->mTypeInfo->mElementType);
 	}
 }

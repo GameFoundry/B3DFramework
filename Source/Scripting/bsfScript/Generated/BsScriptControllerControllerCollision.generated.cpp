@@ -16,20 +16,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptControllerControllerCollision::initRuntimeData()
+	void ScriptControllerControllerCollision::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptControllerControllerCollision::box(const __ControllerControllerCollisionInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__ControllerControllerCollisionInterop ScriptControllerControllerCollision::unbox(MonoObject* value)
+	__ControllerControllerCollisionInterop ScriptControllerControllerCollision::Unbox(MonoObject* value)
 	{
 		return *(__ControllerControllerCollisionInterop*)MonoUtil::unbox(value);
 	}
 
-	ControllerControllerCollision ScriptControllerControllerCollision::fromInterop(const __ControllerControllerCollisionInterop& value)
+	ControllerControllerCollision ScriptControllerControllerCollision::FromInterop(const __ControllerControllerCollisionInterop& value)
 	{
 		ControllerControllerCollision output;
 		GameObjectHandle<CCharacterController> tmpcontroller;
@@ -46,7 +46,7 @@ namespace bs
 		return output;
 	}
 
-	__ControllerControllerCollisionInterop ScriptControllerControllerCollision::toInterop(const ControllerControllerCollision& value)
+	__ControllerControllerCollisionInterop ScriptControllerControllerCollision::ToInterop(const ControllerControllerCollision& value)
 	{
 		__ControllerControllerCollisionInterop output;
 		ScriptComponentBase* scriptcontroller = nullptr;

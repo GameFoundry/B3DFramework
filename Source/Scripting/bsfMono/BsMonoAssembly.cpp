@@ -51,7 +51,7 @@ namespace bs
 		unload();
 	}
 
-	void MonoAssembly::load()
+	void MonoAssembly::Load()
 	{
 		if (mIsLoaded)
 			unload();
@@ -117,7 +117,7 @@ namespace bs
 		mIsDependency = false;
 	}
 
-	void MonoAssembly::loadFromImage(MonoImage* image)
+	void MonoAssembly::LoadFromImage(MonoImage* image)
 	{
 		::MonoAssembly* monoAssembly = mono_image_get_assembly(image);
 		if(monoAssembly == nullptr)
@@ -132,7 +132,7 @@ namespace bs
 		mIsDependency = true;
 	}
 
-	void MonoAssembly::unload()
+	void MonoAssembly::Unload()
 	{
 		if(!mIsLoaded)
 			return;
@@ -168,7 +168,7 @@ namespace bs
 		}
 	}
 
-	void MonoAssembly::invoke(const String& functionName)
+	void MonoAssembly::Invoke(const String& functionName)
 	{
 		MonoMethodDesc* methodDesc = mono_method_desc_new(functionName.c_str(), false);
 
@@ -334,7 +334,7 @@ namespace bs
 		return mCachedClassList;
 	}
 
-	bool MonoAssembly::isGenericClass(const String& name) const
+	bool MonoAssembly::IsGenericClass(const String& name) const
 	{
 		// By CIL convention generic classes have ` separating their name and
 		// number of generic parameters

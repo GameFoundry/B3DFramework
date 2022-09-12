@@ -7,7 +7,7 @@
 
 namespace bs
 {
-	void AnimationCurves::addPositionCurve(const String& name, const TAnimationCurve<Vector3>& curve)
+	void AnimationCurves::AddPositionCurve(const String& name, const TAnimationCurve<Vector3>& curve)
 	{
 		auto iterFind = std::find_if(position.begin(), position.end(), [&](auto x) { return x.name == name; });
 
@@ -17,7 +17,7 @@ namespace bs
 			position.push_back({ name, AnimationCurveFlags(), curve });
 	}
 
-	void AnimationCurves::addRotationCurve(const String& name, const TAnimationCurve<Quaternion>& curve)
+	void AnimationCurves::AddRotationCurve(const String& name, const TAnimationCurve<Quaternion>& curve)
 	{
 		auto iterFind = std::find_if(rotation.begin(), rotation.end(), [&](auto x) { return x.name == name; });
 
@@ -27,7 +27,7 @@ namespace bs
 			rotation.push_back({ name, AnimationCurveFlags(), curve });
 	}
 
-	void AnimationCurves::addScaleCurve(const String& name, const TAnimationCurve<Vector3>& curve)
+	void AnimationCurves::AddScaleCurve(const String& name, const TAnimationCurve<Vector3>& curve)
 	{
 		auto iterFind = std::find_if(scale.begin(), scale.end(), [&](auto x) { return x.name == name; });
 
@@ -37,7 +37,7 @@ namespace bs
 			scale.push_back({ name, AnimationCurveFlags(), curve });
 	}
 
-	void AnimationCurves::addGenericCurve(const String& name, const TAnimationCurve<float>& curve)
+	void AnimationCurves::AddGenericCurve(const String& name, const TAnimationCurve<float>& curve)
 	{
 		auto iterFind = std::find_if(generic.begin(), generic.end(), [&](auto x) { return x.name == name; });
 
@@ -47,7 +47,7 @@ namespace bs
 			generic.push_back({ name, AnimationCurveFlags(), curve });
 	}
 
-	void AnimationCurves::removePositionCurve(const String& name)
+	void AnimationCurves::RemovePositionCurve(const String& name)
 	{
 		auto iterFind = std::find_if(position.begin(), position.end(), [&](auto x) { return x.name == name; });
 
@@ -55,7 +55,7 @@ namespace bs
 			position.erase(iterFind);
 	}
 
-	void AnimationCurves::removeRotationCurve(const String& name)
+	void AnimationCurves::RemoveRotationCurve(const String& name)
 	{
 		auto iterFind = std::find_if(rotation.begin(), rotation.end(), [&](auto x) { return x.name == name; });
 
@@ -63,7 +63,7 @@ namespace bs
 			rotation.erase(iterFind);
 	}
 
-	void AnimationCurves::removeScaleCurve(const String& name)
+	void AnimationCurves::RemoveScaleCurve(const String& name)
 	{
 		auto iterFind = std::find_if(scale.begin(), scale.end(), [&](auto x) { return x.name == name; });
 
@@ -71,7 +71,7 @@ namespace bs
 			scale.erase(iterFind);
 	}
 
-	void AnimationCurves::removeGenericCurve(const String& name)
+	void AnimationCurves::RemoveGenericCurve(const String& name)
 	{
 		auto iterFind = std::find_if(generic.begin(), generic.end(), [&](auto x) { return x.name == name; });
 
@@ -101,7 +101,7 @@ namespace bs
 		calculateLength();
 	}
 
-	HAnimationClip AnimationClip::create(bool isAdditive)
+	HAnimationClip AnimationClip::Create(bool isAdditive)
 	{
 		return static_resource_cast<AnimationClip>(gResources()._createResourceHandle(
 			_createPtr(bs_shared_ptr_new<AnimationCurves>(), isAdditive)));
@@ -114,7 +114,7 @@ namespace bs
 			_createPtr(curves, isAdditive, sampleRate, rootMotion)));
 	}
 
-	SPtr<AnimationClip> AnimationClip::createEmpty()
+	SPtr<AnimationClip> AnimationClip::CreateEmpty()
 	{
 		AnimationClip* rawPtr = new (bs_alloc<AnimationClip>()) AnimationClip();
 
@@ -136,7 +136,7 @@ namespace bs
 		return newClip;
 	}
 
-	void AnimationClip::setCurves(const AnimationCurves& curves)
+	void AnimationClip::SetCurves(const AnimationCurves& curves)
 	{
 		*mCurves = curves;
 
@@ -145,13 +145,13 @@ namespace bs
 		mVersion++;
 	}
 
-	bool AnimationClip::hasRootMotion() const
+	bool AnimationClip::HasRootMotion() const
 	{
 		return mRootMotion != nullptr &&
 			(mRootMotion->position.getNumKeyFrames() > 0 || mRootMotion->rotation.getNumKeyFrames() > 0);
 	}
 
-	void AnimationClip::calculateLength()
+	void AnimationClip::CalculateLength()
 	{
 		mLength = 0.0f;
 
@@ -168,7 +168,7 @@ namespace bs
 			mLength = std::max(mLength, entry.curve.getLength());
 	}
 
-	void AnimationClip::buildNameMapping()
+	void AnimationClip::BuildNameMapping()
 	{
 		mNameMapping.clear();
 
@@ -226,14 +226,14 @@ namespace bs
 		}
 	}
 
-	void AnimationClip::initialize()
+	void AnimationClip::Initialize()
 	{
 		buildNameMapping();
 
 		Resource::initialize();
 	}
 
-	void AnimationClip::getBoneMapping(const Skeleton& skeleton, AnimationCurveMapping* mapping) const
+	void AnimationClip::GetBoneMapping(const Skeleton& skeleton, AnimationCurveMapping* mapping) const
 	{
 		UINT32 numBones = skeleton.getNumBones();
 		for(UINT32 i = 0; i < numBones; i++)
@@ -244,7 +244,7 @@ namespace bs
 		}
 	}
 
-	void AnimationClip::getCurveMapping(const String& name, AnimationCurveMapping& mapping) const
+	void AnimationClip::GetCurveMapping(const String& name, AnimationCurveMapping& mapping) const
 	{
 		auto iterFind = mNameMapping.find(name);
 		if (iterFind != mNameMapping.end())
@@ -259,7 +259,7 @@ namespace bs
 			mapping = { (UINT32)-1, (UINT32)-1, (UINT32)-1 };
 	}
 
-	void AnimationClip::getMorphMapping(const String& name, UINT32& frameIdx, UINT32& weightIdx) const
+	void AnimationClip::GetMorphMapping(const String& name, UINT32& frameIdx, UINT32& weightIdx) const
 	{
 		auto iterFind = mNameMapping.find(name);
 		if (iterFind != mNameMapping.end())
@@ -278,7 +278,7 @@ namespace bs
 
 	RTTITypeBase* AnimationClip::getRTTIStatic()
 	{
-		return AnimationClipRTTI::instance();
+		return AnimationClipRTTI::Instance();
 	}
 
 	RTTITypeBase* AnimationClip::getRTTI() const

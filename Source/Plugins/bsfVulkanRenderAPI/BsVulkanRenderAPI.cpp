@@ -97,13 +97,13 @@ namespace bs { namespace ct
 #endif
 	}
 
-	const StringID& VulkanRenderAPI::getName() const
+	const StringID& VulkanRenderAPI::GetName() const
 	{
 		static StringID StrName("VulkanRenderAPI");
 		return strName;
 	}
 
-	void VulkanRenderAPI::initialize()
+	void VulkanRenderAPI::Initialize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -326,7 +326,7 @@ namespace bs { namespace ct
 		RenderAPI::initialize();
 	}
 
-	void VulkanRenderAPI::destroyCore()
+	void VulkanRenderAPI::DestroyCore()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -390,7 +390,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT(NumPipelineStateChanges);
 	}
 
-	void VulkanRenderAPI::setGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<CommandBuffer>& commandBuffer)
+	void VulkanRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<CommandBuffer>& commandBuffer)
 	{
 		VulkanCommandBuffer* cb = getCB(commandBuffer);
 		VulkanCmdBuffer* vkCB = cb->getInternal();
@@ -418,7 +418,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT(NumGpuParamBinds);
 	}
 
-	void VulkanRenderAPI::setViewport(const Rect2& vp, const SPtr<CommandBuffer>& commandBuffer)
+	void VulkanRenderAPI::SetViewport(const Rect2& vp, const SPtr<CommandBuffer>& commandBuffer)
 	{
 		VulkanCommandBuffer* cb = getCB(commandBuffer);
 		VulkanCmdBuffer* vkCB = cb->getInternal();
@@ -437,7 +437,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT(NumVertexBufferBinds);
 	}
 
-	void VulkanRenderAPI::setIndexBuffer(const SPtr<IndexBuffer>& buffer, const SPtr<CommandBuffer>& commandBuffer)
+	void VulkanRenderAPI::SetIndexBuffer(const SPtr<IndexBuffer>& buffer, const SPtr<CommandBuffer>& commandBuffer)
 	{
 		VulkanCommandBuffer* cb = getCB(commandBuffer);
 		VulkanCmdBuffer* vkCB = cb->getInternal();
@@ -456,7 +456,7 @@ namespace bs { namespace ct
 		vkCB->setVertexDeclaration(vertexDeclaration);
 	}
 
-	void VulkanRenderAPI::setDrawOperation(DrawOperationType op, const SPtr<CommandBuffer>& commandBuffer)
+	void VulkanRenderAPI::SetDrawOperation(DrawOperationType op, const SPtr<CommandBuffer>& commandBuffer)
 	{
 		VulkanCommandBuffer* cb = getCB(commandBuffer);
 		VulkanCmdBuffer* vkCB = cb->getInternal();
@@ -515,7 +515,7 @@ namespace bs { namespace ct
 		vkCB->setScissorRect(area);
 	}
 
-	void VulkanRenderAPI::setStencilRef(UINT32 value, const SPtr<CommandBuffer>& commandBuffer)
+	void VulkanRenderAPI::SetStencilRef(UINT32 value, const SPtr<CommandBuffer>& commandBuffer)
 	{
 		VulkanCommandBuffer* cb = getCB(commandBuffer);
 		VulkanCmdBuffer* vkCB = cb->getInternal();
@@ -556,7 +556,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT(NumRenderTargetChanges);
 	}
 
-	void VulkanRenderAPI::swapBuffers(const SPtr<RenderTarget>& target, UINT32 syncMask)
+	void VulkanRenderAPI::SwapBuffers(const SPtr<RenderTarget>& target, UINT32 syncMask)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -570,12 +570,12 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT(NumPresents);
 	}
 
-	void VulkanRenderAPI::addCommands(const SPtr<CommandBuffer>& commandBuffer, const SPtr<CommandBuffer>& secondary)
+	void VulkanRenderAPI::AddCommands(const SPtr<CommandBuffer>& commandBuffer, const SPtr<CommandBuffer>& secondary)
 	{
 		BS_EXCEPT(NotImplementedException, "Secondary command buffers not implemented");
 	}
 
-	void VulkanRenderAPI::submitCommandBuffer(const SPtr<CommandBuffer>& commandBuffer, UINT32 syncMask)
+	void VulkanRenderAPI::SubmitCommandBuffer(const SPtr<CommandBuffer>& commandBuffer, UINT32 syncMask)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -591,12 +591,12 @@ namespace bs { namespace ct
 			mMainCommandBuffer = std::static_pointer_cast<VulkanCommandBuffer>(CommandBuffer::create(GQT_GRAPHICS));
 	}
 
-	SPtr<CommandBuffer> VulkanRenderAPI::getMainCommandBuffer() const
+	SPtr<CommandBuffer> VulkanRenderAPI::GetMainCommandBuffer() const
 	{
 		return mMainCommandBuffer;
 	}
 
-	void VulkanRenderAPI::convertProjectionMatrix(const Matrix4& matrix, Matrix4& dest)
+	void VulkanRenderAPI::ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest)
 	{
 		dest = matrix;
 
@@ -610,7 +610,7 @@ namespace bs { namespace ct
 		dest[2][3] = (dest[2][3] + dest[3][3]) / 2;
 	}
 
-	GpuParamBlockDesc VulkanRenderAPI::generateParamBlockDesc(const String& name, Vector<GpuParamDataDesc>& params)
+	GpuParamBlockDesc VulkanRenderAPI::GenerateParamBlockDesc(const String& name, Vector<GpuParamDataDesc>& params)
 	{
 		GpuParamBlockDesc block;
 		block.blockSize = 0;
@@ -647,7 +647,7 @@ namespace bs { namespace ct
 		return block;
 	}
 
-	void VulkanRenderAPI::initCapabilites()
+	void VulkanRenderAPI::InitCapabilites()
 	{
 		mNumDevices = (UINT32)mDevices.size();
 		mCurrentCapabilities = bs_newN<RenderAPICapabilities>(mNumDevices);

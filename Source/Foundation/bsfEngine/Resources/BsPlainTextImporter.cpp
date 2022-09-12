@@ -7,7 +7,7 @@
 
 namespace bs
 {
-	bool PlainTextImporter::isExtensionSupported(const String& ext) const
+	bool PlainTextImporter::IsExtensionSupported(const String& ext) const
 	{
 		String lowerCaseExt = ext;
 		StringUtil::toLowerCase(lowerCaseExt);
@@ -15,12 +15,12 @@ namespace bs
 		return lowerCaseExt == u8"txt" || lowerCaseExt == u8"xml" || lowerCaseExt == u8"json";
 	}
 
-	bool PlainTextImporter::isMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
+	bool PlainTextImporter::IsMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
 	{
 		return true; // Plain-text so we don't even check for magic number
 	}
 
-	SPtr<Resource> PlainTextImporter::import(const Path& filePath, SPtr<const ImportOptions> importOptions)
+	SPtr<Resource> PlainTextImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
 		WString textData;
 		{

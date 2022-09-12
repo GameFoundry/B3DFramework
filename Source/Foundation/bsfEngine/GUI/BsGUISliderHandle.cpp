@@ -11,7 +11,7 @@ namespace bs
 {
 	const UINT32 GUISliderHandle::RESIZE_HANDLE_SIZE = 7;
 
-	const String& GUISliderHandle::getGUITypeName()
+	const String& GUISliderHandle::GetGUITypeName()
 	{
 		static String name = "SliderHandle";
 		return name;
@@ -60,27 +60,27 @@ namespace bs
 		mPctHandlePos = Math::clamp(pct, 0.0f, maxPct);
 	}
 
-	float GUISliderHandle::getHandlePos() const
+	float GUISliderHandle::GetHandlePos() const
 	{
 		return mPctHandlePos;;
 	}
 
-	float GUISliderHandle::getStep() const
+	float GUISliderHandle::GetStep() const
 	{
 		return mStep;
 	}
 
-	void GUISliderHandle::setStep(float step)
+	void GUISliderHandle::SetStep(float step)
 	{
 		mStep = Math::clamp01(step);
 	}
 
-	UINT32 GUISliderHandle::getScrollableSize() const
+	UINT32 GUISliderHandle::GetScrollableSize() const
 	{
 		return GetMaxSize() - getHandleSize();
 	}
 
-	void GUISliderHandle::updateRenderElementsInternal()
+	void GUISliderHandle::UpdateRenderElementsInternal()
 	{		
 		IMAGE_SPRITE_DESC desc;
 
@@ -128,7 +128,7 @@ namespace bs
 		GUIElement::updateRenderElementsInternal();
 	}
 
-	void GUISliderHandle::updateClippedBounds()
+	void GUISliderHandle::UpdateClippedBounds()
 	{
 		mClippedBounds = mLayoutData.area;
 		mClippedBounds.clip(mLayoutData.clipRect);
@@ -428,7 +428,7 @@ namespace bs
 		return false;
 	}
 
-	void GUISliderHandle::moveOneStep(bool forward)
+	void GUISliderHandle::MoveOneStep(bool forward)
 	{
 		const UINT32 handleSize = getHandleSize();
 		INT32 handlePosPx = getHandlePosPx();
@@ -447,7 +447,7 @@ namespace bs
 		_markLayoutAsDirty();
 	}
 
-	bool GUISliderHandle::isOnHandle(const Vector2I& pos) const
+	bool GUISliderHandle::IsOnHandle(const Vector2I& pos) const
 	{
 		UINT32 handleSize = getHandleSize();
 		if(mFlags.isSet(GUISliderHandleFlag::Horizontal))
@@ -470,15 +470,15 @@ namespace bs
 		return false;
 	}
 
-	INT32 GUISliderHandle::getHandlePosPx() const
+	INT32 GUISliderHandle::GetHandlePosPx() const
 	{
 		INT32 maxScrollAmount = std::max(0, (INT32)getMaxSize() - (INT32)getHandleSize());
-		return Math::floorToInt(mPctHandlePos * maxScrollAmount);
+		return Math::FloorToInt(mPctHandlePos * maxScrollAmount);
 	}
 
-	UINT32 GUISliderHandle::getHandleSize() const
+	UINT32 GUISliderHandle::GetHandleSize() const
 	{
-		return std::max(mMinHandleSize, (UINT32)(getMaxSize() * mPctHandleSize));
+		return std::Max(mMinHandleSize, (UINT32)(getMaxSize() * mPctHandleSize));
 	}
 
 	float GUISliderHandle::_getHandleSizePct() const
@@ -486,7 +486,7 @@ namespace bs
 		return mPctHandleSize;
 	}
 
-	void GUISliderHandle::styleUpdated()
+	void GUISliderHandle::StyleUpdated()
 	{
 		const GUIElementStyle* style = _getStyle();
 		if (style != nullptr)
@@ -498,7 +498,7 @@ namespace bs
 		}
 	}
 
-	void GUISliderHandle::setHandlePosPx(INT32 pos)
+	void GUISliderHandle::SetHandlePosPx(INT32 pos)
 	{
 		float scrollableSize = (float)getMaxSize() - getHandleSize();
 
@@ -508,7 +508,7 @@ namespace bs
 			_setHandlePos(0.0f);
 	}
 
-	UINT32 GUISliderHandle::getMaxSize() const
+	UINT32 GUISliderHandle::GetMaxSize() const
 	{
 		UINT32 maxSize = mLayoutData.area.height;
 		if(mFlags.isSet(GUISliderHandleFlag::Horizontal))
@@ -517,7 +517,7 @@ namespace bs
 		return maxSize;
 	}
 
-	const HSpriteTexture& GUISliderHandle::getActiveTexture() const
+	const HSpriteTexture& GUISliderHandle::GetActiveTexture() const
 	{
 		switch(mState)
 		{

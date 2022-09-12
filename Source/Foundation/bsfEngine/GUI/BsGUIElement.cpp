@@ -30,18 +30,18 @@ namespace bs
 		updateRenderElementsInternal();
 	}
 
-	void GUIElement::updateRenderElementsInternal()
+	void GUIElement::UpdateRenderElementsInternal()
 	{
 		updateClippedBounds();
 	}
 
-	void GUIElement::updateClippedBounds()
+	void GUIElement::UpdateClippedBounds()
 	{
 		mClippedBounds = mLayoutData.area;
 		mClippedBounds.clip(mLayoutData.clipRect);
 	}
 
-	void GUIElement::setStyle(const String& styleName)
+	void GUIElement::SetStyle(const String& styleName)
 	{
 		mStyleName = styleName;
 		_refreshStyle();
@@ -78,7 +78,7 @@ namespace bs
 		return false;
 	}
 
-	void GUIElement::setTint(const Color& color)
+	void GUIElement::SetTint(const Color& color)
 	{
 		mColor = color;
 
@@ -146,7 +146,7 @@ namespace bs
 		}
 	}
 
-	void GUIElement::setNavGroup(const SPtr<GUINavGroup>& navGroup)
+	void GUIElement::SetNavGroup(const SPtr<GUINavGroup>& navGroup)
 	{
 		SPtr<GUINavGroup> currentNavGroup = _getNavGroup();
 		if(currentNavGroup == navGroup)
@@ -161,7 +161,7 @@ namespace bs
 		mNavGroup = navGroup;
 	}
 
-	void GUIElement::setNavGroupIndex(INT32 index)
+	void GUIElement::SetNavGroupIndex(INT32 index)
 	{
 		SPtr<GUINavGroup> navGroup = _getNavGroup();
 		if(navGroup != nullptr)
@@ -179,12 +179,12 @@ namespace bs
 		return nullptr;
 	}
 
-	void GUIElement::setFocus(bool enabled, bool clear)
+	void GUIElement::SetFocus(bool enabled, bool clear)
 	{
 		GUIManager::instance().setFocus(this, enabled, clear);
 	}
 
-	void GUIElement::resetDimensions()
+	void GUIElement::ResetDimensions()
 	{
 		bool isFixedBefore = (mDimensions.flags & GUIDF_FixedWidth) != 0 && (mDimensions.flags & GUIDF_FixedHeight) != 0;
 
@@ -199,7 +199,7 @@ namespace bs
 		_markLayoutAsDirty();
 	}
 
-	Rect2I GUIElement::getCachedVisibleBounds() const
+	Rect2I GUIElement::GetCachedVisibleBounds() const
 	{
 		Rect2I bounds = _getClippedBounds();
 		
@@ -211,7 +211,7 @@ namespace bs
 		return bounds;
 	}
 
-	Rect2I GUIElement::getCachedContentBounds() const
+	Rect2I GUIElement::GetCachedContentBounds() const
 	{
 		Rect2I bounds;
 
@@ -225,7 +225,7 @@ namespace bs
 		return bounds;
 	}
 
-	Rect2I GUIElement::getCachedContentClipRect() const
+	Rect2I GUIElement::GetCachedContentClipRect() const
 	{
 		Rect2I contentBounds = getCachedContentBounds();
 		
@@ -241,7 +241,7 @@ namespace bs
 		return contentClipRect;
 	}
 
-	Color GUIElement::getTint() const
+	Color GUIElement::GetTint() const
 	{
 		if (!_isDisabled())
 			return mColor;
@@ -289,7 +289,7 @@ namespace bs
 		}
 	}
 
-	const String& GUIElement::getSubStyleName(const String& subStyleTypeName) const
+	const String& GUIElement::GetSubStyleName(const String& subStyleTypeName) const
 	{
 		auto iterFind = mStyle->subStyles.find(subStyleTypeName);
 
@@ -299,7 +299,7 @@ namespace bs
 			return StringUtil::BLANK;
 	}
 
-	void GUIElement::destroy(GUIElement* element)
+	void GUIElement::Destroy(GUIElement* element)
 	{
 		if(element->mIsDestroyed)
 			return;
@@ -316,7 +316,7 @@ namespace bs
 		GUIManager::instance().queueForDestroy(element);
 	}
 
-	Rect2I GUIElement::getVisibleBounds()
+	Rect2I GUIElement::GetVisibleBounds()
 	{
 		Rect2I bounds = getBounds();
 

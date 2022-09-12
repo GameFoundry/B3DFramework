@@ -194,7 +194,7 @@ namespace bs
 
 		static Type Arg(const Complex<Type>& other)
 		{
-			return std::atan2(other.imag(), other.real());
+			return std::Atan2(other.imag(), other.real());
 		}
 
 		static Type Norm(const Complex<Type>& other)
@@ -233,7 +233,7 @@ namespace bs
 
 		static Complex<Type> Exp(const Complex<Type>& other)
 		{
-			return Complex::polar(std::exp(other.real()), other.imag());
+			return Complex::Polar(std::exp(other.real()), other.imag());
 		}
 
 		static Complex<Type> Log(const Complex<Type>& other)
@@ -243,7 +243,7 @@ namespace bs
 
 		static Complex<Type> Log10(const Complex<Type>& other)
 		{
-			return Complex::log(other) / std::log(Type(10));
+			return Complex::Log(other) / std::log(Type(10));
 		}
 
 		static Complex<Type> Pow(const Complex<Type>& other, const Type& i)
@@ -252,19 +252,19 @@ namespace bs
 				return Complex(std::pow(other.real(), i), other.imag());
 
 			Complex<Type> t = Complex::log(other);
-			return Complex::polar(std::exp(i * t.real()), i * t.imag());
+			return Complex::Polar(std::exp(i * t.real()), i * t.imag());
 		}
 
 		static Complex<Type> Pow(const Complex<Type>& x, const Complex<Type>& y)
 		{
-			return Complex::exp(y * Complex::log(x));
+			return Complex::Exp(y * Complex::log(x));
 		}
 
 		static Complex<Type> Pow(const Type& i, const Complex<Type>& other)
 		{
 			return i > Type() ?
 				Complex::polar(std::pow(i, other.real()), other.imag() * std::log(i))
-				: Complex::pow(Complex(i, Type()), other);
+				: Complex::Pow(Complex(i, Type()), other);
 		}
 
 		static Complex<Type> Sin(const Complex<Type>& other)
@@ -304,12 +304,12 @@ namespace bs
 
 		static Complex<Type> Tan(const Complex<Type>& other)
 		{
-			return Complex::sin(other) / Complex::cos(other);
+			return Complex::Sin(other) / Complex::cos(other);
 		}
 
 		static Complex<Type> Tanh(const Complex<Type>& other)
 		{
-			return Complex::sinh(other) / Complex::cosh(other);
+			return Complex::Sinh(other) / Complex::cosh(other);
 		}
 
 		friend std::ostream& operator<< (std::ostream& os, const Complex<Type> other)

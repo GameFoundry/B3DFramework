@@ -45,7 +45,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void VulkanGpuParams::initialize()
+	void VulkanGpuParams::Initialize()
 	{
 		VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
 
@@ -272,7 +272,7 @@ namespace bs { namespace ct
 		GpuParams::initialize();
 	}
 
-	void VulkanGpuParams::setParamBlockBuffer(UINT32 set, UINT32 slot, const SPtr<GpuParamBlockBuffer>& paramBlockBuffer)
+	void VulkanGpuParams::SetParamBlockBuffer(UINT32 set, UINT32 slot, const SPtr<GpuParamBlockBuffer>& paramBlockBuffer)
 	{
 		GpuParams::setParamBlockBuffer(set, slot, paramBlockBuffer);
 
@@ -322,7 +322,7 @@ namespace bs { namespace ct
 		mSetsDirty[set] = true;
 	}
 
-	void VulkanGpuParams::setTexture(UINT32 set, UINT32 slot, const SPtr<Texture>& texture, const TextureSurface& surface)
+	void VulkanGpuParams::SetTexture(UINT32 set, UINT32 slot, const SPtr<Texture>& texture, const TextureSurface& surface)
 	{
 		GpuParams::setTexture(set, slot, texture, surface);
 
@@ -438,7 +438,7 @@ namespace bs { namespace ct
 		mSetsDirty[set] = true;
 	}
 
-	void VulkanGpuParams::setBuffer(UINT32 set, UINT32 slot, const SPtr<GpuBuffer>& buffer)
+	void VulkanGpuParams::SetBuffer(UINT32 set, UINT32 slot, const SPtr<GpuBuffer>& buffer)
 	{
 		GpuParams::setBuffer(set, slot, buffer);
 
@@ -527,7 +527,7 @@ namespace bs { namespace ct
 		mSetsDirty[set] = true;
 	}
 
-	void VulkanGpuParams::setSamplerState(UINT32 set, UINT32 slot, const SPtr<SamplerState>& sampler)
+	void VulkanGpuParams::SetSamplerState(UINT32 set, UINT32 slot, const SPtr<SamplerState>& sampler)
 	{
 		GpuParams::setSamplerState(set, slot, sampler);
 
@@ -580,12 +580,12 @@ namespace bs { namespace ct
 		mSetsDirty[set] = true;
 	}
 
-	UINT32 VulkanGpuParams::getNumSets() const
+	UINT32 VulkanGpuParams::GetNumSets() const
 	{
 		return mParamInfo->getNumSets();
 	}
 
-	void VulkanGpuParams::prepareForBind(VulkanCmdBuffer& buffer, VkDescriptorSet* sets)
+	void VulkanGpuParams::PrepareForBind(VulkanCmdBuffer& buffer, VkDescriptorSet* sets)
 	{
 		UINT32 deviceIdx = buffer.getDeviceIdx();
 

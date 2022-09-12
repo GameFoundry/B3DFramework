@@ -8,7 +8,7 @@ namespace bs { namespace ct
 		:BlendState(desc, id)
 	{ }
 
-	void NullBlendState::createInternal()
+	void NullBlendState::CreateInternal()
 	{
 		D3D11_BLEND_DESC blendStateDesc;
 		ZeroMemory(&blendStateDesc, sizeof(D3D11_BLEND_DESC));

@@ -11,7 +11,7 @@ GLenum glewContextInit(bs::ct::GLSupport* glSupport);
 
 namespace bs { namespace ct
 {
-	void GLSupport::initializeExtensions()
+	void GLSupport::InitializeExtensions()
 	{
 #if BS_PLATFORM != BS_PLATFORM_OSX
 		glewContextInit(this);
@@ -39,7 +39,7 @@ namespace bs { namespace ct
 			extensionList.insert(String((char*)glGetStringi(GL_EXTENSIONS, i)));
 	}
 
-	bool GLSupport::checkExtension(const String& ext) const
+	bool GLSupport::CheckExtension(const String& ext) const
 	{
 		if(extensionList.find(ext) == extensionList.end())
 			return false;

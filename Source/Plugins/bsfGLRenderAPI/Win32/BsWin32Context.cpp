@@ -20,19 +20,19 @@ namespace bs { namespace ct
 			releaseContext();
 	}
 
-	void Win32Context::setCurrent(const RenderWindow& window)
+	void Win32Context::SetCurrent(const RenderWindow& window)
 	{
 		if(wglMakeCurrent(mHDC, mGlrc) != TRUE)
 			BS_EXCEPT(RenderingAPIException, "wglMakeCurrent failed: " + translateWGLError());
 	}
 
-	void Win32Context::endCurrent()
+	void Win32Context::EndCurrent()
 	{
 		if(wglMakeCurrent(mHDC, 0) != TRUE)
 			BS_EXCEPT(RenderingAPIException, "wglMakeCurrent failed: " + translateWGLError());
 	}
 
-	void Win32Context::releaseContext()
+	void Win32Context::ReleaseContext()
 	{
 		if (mGlrc != 0)
 		{

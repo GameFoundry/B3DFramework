@@ -34,7 +34,7 @@ namespace bs { namespace ct
 		SAFE_RELEASE(mClearQuadVB);
 	}
 
-	void D3D11RenderUtility::drawClearQuad(UINT32 clearBuffers, const Color& color, float depth, UINT16 stencil)
+	void D3D11RenderUtility::DrawClearQuad(UINT32 clearBuffers, const Color& color, float depth, UINT16 stencil)
 	{
 		// Set states
 		if((clearBuffers & FBT_COLOR) != 0)
@@ -109,7 +109,7 @@ namespace bs { namespace ct
 		mDevice->getImmediateContext()->DrawIndexed(6, 0, 0);
 	}
 
-	void D3D11RenderUtility::initClearQuadResources()
+	void D3D11RenderUtility::InitClearQuadResources()
 	{
 		BLEND_STATE_DESC blendStateDescYesC;
 		mClearQuadBlendStateYesC = RenderStateManager::instance().createBlendState(blendStateDescYesC);

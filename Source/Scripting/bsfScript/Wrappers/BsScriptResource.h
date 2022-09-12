@@ -94,7 +94,7 @@ namespace bs
 		/** Returns a reference wrapper for this resource. */
 		MonoObject* getRRef() const
 		{
-			return ScriptResourceBase::getRRef(mResource, ResType::getRTTIStatic()->getRTTIId());
+			return ScriptResourceBase::GetRRef(mResource, ResType::getRTTIStatic()->getRTTIId());
 		}
 
 	protected:

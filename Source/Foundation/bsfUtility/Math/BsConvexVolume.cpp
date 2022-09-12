@@ -93,7 +93,7 @@ namespace bs
 		}
 	}
 
-	bool ConvexVolume::intersects(const AABox& box) const
+	bool ConvexVolume::Intersects(const AABox& box) const
 	{
 		Vector3 center = box.getCenter();
 		Vector3 extents = box.getHalfSize();
@@ -114,7 +114,7 @@ namespace bs
 		return true;
 	}
 
-	bool ConvexVolume::intersects(const Sphere& sphere) const
+	bool ConvexVolume::Intersects(const Sphere& sphere) const
 	{
 		Vector3 center = sphere.getCenter();
 		float radius = sphere.getRadius();
@@ -130,7 +130,7 @@ namespace bs
 		return true;
 	}
 
-	bool ConvexVolume::contains(const Vector3& p, float expand) const
+	bool ConvexVolume::Contains(const Vector3& p, float expand) const
 	{
 		for(auto& plane : mPlanes)
 		{
@@ -141,7 +141,7 @@ namespace bs
 		return true;
 	}
 
-	const Plane& ConvexVolume::getPlane(FrustumPlane whichPlane) const
+	const Plane& ConvexVolume::GetPlane(FrustumPlane whichPlane) const
 	{
 		if(whichPlane >= mPlanes.size())
 		{

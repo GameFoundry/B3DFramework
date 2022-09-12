@@ -505,7 +505,7 @@ namespace bs
 		mNumPageInfos = MemBuffer->NextFreePageInfo;
 	}
 
-	void TextDataBase::generatePersistentData(const U32String& text, UINT8* buffer, UINT32& size, bool freeTemporary)
+	void TextDataBase::GeneratePersistentData(const U32String& text, UINT8* buffer, UINT32& size, bool freeTemporary)
 	{
 		UINT32 charArraySize = mNumChars * sizeof(const CharDesc*);
 		UINT32 wordArraySize = mNumWords * sizeof(TextWord);
@@ -545,27 +545,27 @@ namespace bs
 			MemBuffer->deallocAll();
 	}
 
-	const HTexture& TextDataBase::getTextureForPage(UINT32 page) const
+	const HTexture& TextDataBase::GetTextureForPage(UINT32 page) const
 	{
 		return mFontData->texturePages[page];
 	}
 
-	INT32 TextDataBase::getBaselineOffset() const
+	INT32 TextDataBase::GetBaselineOffset() const
 	{
 		return mFontData->baselineOffset;
 	}
 
-	UINT32 TextDataBase::getLineHeight() const
+	UINT32 TextDataBase::GetLineHeight() const
 	{
 		return mFontData->lineHeight;
 	}
 
-	UINT32 TextDataBase::getSpaceWidth() const
+	UINT32 TextDataBase::GetSpaceWidth() const
 	{
 		return mFontData->spaceWidth;
 	}
 
-	void TextDataBase::initAlloc()
+	void TextDataBase::InitAlloc()
 	{
 		if (MemBuffer == nullptr)
 			MemBuffer = bs_new<BufferData>();
@@ -661,7 +661,7 @@ namespace bs
 		PageBuffer[page].numQuads++;
 	}
 
-	UINT32 TextDataBase::getWidth() const
+	UINT32 TextDataBase::GetWidth() const
 	{
 		UINT32 width = 0;
 
@@ -671,7 +671,7 @@ namespace bs
 		return width;
 	}
 
-	UINT32 TextDataBase::getHeight() const
+	UINT32 TextDataBase::GetHeight() const
 	{
 		UINT32 height = 0;
 

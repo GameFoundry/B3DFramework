@@ -19,7 +19,7 @@ namespace bs
 	{
 	}
 
-	void ScriptSpriteTexture::initRuntimeData()
+	void ScriptSpriteTexture::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetRef", (void*)&ScriptSpriteTexture::Internal_getRef);
 		metaData.scriptClass->addInternalCall("Internal_setTexture", (void*)&ScriptSpriteTexture::Internal_setTexture);

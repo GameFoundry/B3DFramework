@@ -17,12 +17,12 @@ namespace bs
 		Input::instance().onButtonUp.connect(std::bind(&VirtualInput::buttonUp, this, _1));
 	}
 
-	SPtr<InputConfiguration> VirtualInput::createConfiguration()
+	SPtr<InputConfiguration> VirtualInput::CreateConfiguration()
 	{
 		return bs_shared_ptr_new<InputConfiguration>();
 	}
 
-	void VirtualInput::setConfiguration(const SPtr<InputConfiguration>& input)
+	void VirtualInput::SetConfiguration(const SPtr<InputConfiguration>& input)
 	{
 		mInputConfiguration = input;
 
@@ -32,7 +32,7 @@ namespace bs
 			deviceData.cachedStates.clear();
 	}
 
-	bool VirtualInput::isButtonDown(const VirtualButton& button, UINT32 deviceIdx) const
+	bool VirtualInput::IsButtonDown(const VirtualButton& button, UINT32 deviceIdx) const
 	{
 		if (deviceIdx >= (UINT32)mDevices.size())
 			return false;
@@ -46,7 +46,7 @@ namespace bs
 		return false;
 	}
 
-	bool VirtualInput::isButtonUp(const VirtualButton& button, UINT32 deviceIdx) const
+	bool VirtualInput::IsButtonUp(const VirtualButton& button, UINT32 deviceIdx) const
 	{
 		if (deviceIdx >= (UINT32)mDevices.size())
 			return false;
@@ -60,7 +60,7 @@ namespace bs
 		return false;
 	}
 
-	bool VirtualInput::isButtonHeld(const VirtualButton& button, UINT32 deviceIdx) const
+	bool VirtualInput::IsButtonHeld(const VirtualButton& button, UINT32 deviceIdx) const
 	{
 		if (deviceIdx >= (UINT32)mDevices.size())
 			return false;
@@ -74,7 +74,7 @@ namespace bs
 		return false;
 	}
 
-	float VirtualInput::getAxisValue(const VirtualAxis& axis, UINT32 deviceIdx) const
+	float VirtualInput::GetAxisValue(const VirtualAxis& axis, UINT32 deviceIdx) const
 	{
 		VIRTUAL_AXIS_DESC axisDesc;
 		if (mInputConfiguration->_getAxis(axis, axisDesc))
@@ -208,7 +208,7 @@ namespace bs
 
 	}
 
-	void VirtualInput::buttonDown(const ButtonEvent& event)
+	void VirtualInput::ButtonDown(const ButtonEvent& event)
 	{
 		if(event.buttonCode == BC_LSHIFT || event.buttonCode == BC_RSHIFT)
 			mActiveModifiers |= (UINT32)ButtonModifier::Shift;
@@ -253,7 +253,7 @@ namespace bs
 		}
 	}
 
-	void VirtualInput::buttonUp(const ButtonEvent& event)
+	void VirtualInput::ButtonUp(const ButtonEvent& event)
 	{
 		if(event.buttonCode == BC_LSHIFT || event.buttonCode == BC_RSHIFT)
 			mActiveModifiers &= ~(UINT32)ButtonModifier::Shift;
@@ -303,6 +303,6 @@ namespace bs
 
 	VirtualInput& GVirtualInput()
 	{
-		return VirtualInput::instance();
+		return VirtualInput::Instance();
 	}
 }

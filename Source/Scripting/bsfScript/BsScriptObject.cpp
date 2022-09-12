@@ -18,12 +18,12 @@ namespace bs
 		ScriptObjectManager::instance().unregisterScriptObject(this);
 	}
 
-	ScriptObjectBackup ScriptObjectBase::beginRefresh()
+	ScriptObjectBackup ScriptObjectBase::BeginRefresh()
 	{
 		return ScriptObjectBackup();
 	}
 
-	void ScriptObjectBase::endRefresh(const ScriptObjectBackup& data)
+	void ScriptObjectBase::EndRefresh(const ScriptObjectBackup& data)
 	{
 
 	}
@@ -43,7 +43,7 @@ namespace bs
 		:ScriptObject(instance)
 	{ }
 
-	void ScriptObjectImpl::initRuntimeData()
+	void ScriptObjectImpl::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_ManagedInstanceDeleted", (void*)&ScriptObjectImpl::internal_managedInstanceDeleted);
 	}

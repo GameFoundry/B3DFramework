@@ -150,7 +150,7 @@ namespace bs
 			CoUninitialize();
 	}
 
-	void Input::initRawInput()
+	void Input::InitRawInput()
 	{
 		mPlatformData = bs_new<InputPrivateData>();
 		
@@ -195,7 +195,7 @@ namespace bs
 			mGamepads.push_back(bs_new<Gamepad>(mPlatformData->gamepadInfos[i].name, mPlatformData->gamepadInfos[i], this));
 	}
 
-	void Input::cleanUpRawInput()
+	void Input::CleanUpRawInput()
 	{
 		if (mMouse != nullptr)
 			bs_delete(mMouse);
@@ -212,7 +212,7 @@ namespace bs
 		bs_delete(mPlatformData);
 	}
 
-	UINT32 Input::getDeviceCount(InputDevice device) const
+	UINT32 Input::GetDeviceCount(InputDevice device) const
 	{
 		switch(device)
 		{

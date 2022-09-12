@@ -9,52 +9,52 @@ namespace bs
 		return mInternal->getBody(body);
 	}
 
-	void Joint::setBody(JointBody body, Rigidbody* value)
+	void Joint::SetBody(JointBody body, Rigidbody* value)
 	{
 		mInternal->setBody(body, value);
 	}
 
-	Vector3 Joint::getPosition(JointBody body) const
+	Vector3 Joint::GetPosition(JointBody body) const
 	{
 		return mInternal->getPosition(body);
 	}
 
-	Quaternion Joint::getRotation(JointBody body) const
+	Quaternion Joint::GetRotation(JointBody body) const
 	{
 		return mInternal->getRotation(body);
 	}
 
-	void Joint::setTransform(JointBody body, const Vector3& position, const Quaternion& rotation)
+	void Joint::SetTransform(JointBody body, const Vector3& position, const Quaternion& rotation)
 	{
 		mInternal->setTransform(body, position, rotation);
 	}
 
-	float Joint::getBreakForce() const
+	float Joint::GetBreakForce() const
 	{
 		return mInternal->getBreakForce();
 	}
 
-	void Joint::setBreakForce(float force)
+	void Joint::SetBreakForce(float force)
 	{
 		mInternal->setBreakForce(force);
 	}
 
-	float Joint::getBreakTorque() const
+	float Joint::GetBreakTorque() const
 	{
 		return mInternal->getBreakTorque();
 	}
 
-	void Joint::setBreakTorque(float torque)
+	void Joint::SetBreakTorque(float torque)
 	{
 		mInternal->setBreakTorque(torque);
 	}
 
-	bool Joint::getEnableCollision() const
+	bool Joint::GetEnableCollision() const
 	{
 		return mInternal->getEnableCollision();
 	}
 
-	void Joint::setEnableCollision(bool value)
+	void Joint::SetEnableCollision(bool value)
 	{
 		mInternal->setEnableCollision(value);
 	}		

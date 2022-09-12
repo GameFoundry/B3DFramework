@@ -22,7 +22,7 @@ namespace bs
 		return mDropDownBox;
 	}
 
-	void GUIDropDownBoxManager::closeDropDownBox()
+	void GUIDropDownBoxManager::CloseDropDownBox()
 	{
 		if(mDropDownSO != nullptr)
 		{

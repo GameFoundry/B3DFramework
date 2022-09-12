@@ -57,7 +57,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return Mesh::createEmpty();
+			return Mesh::CreateEmpty();
 		}
 
 		const String& GetRTTIName() override

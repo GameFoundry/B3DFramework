@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	bool GUIMenuItemComparer::operator() (const GUIMenuItem* const& a, const GUIMenuItem* const& b) const
+	bool GUIMenuItemComparer::Operator() (const GUIMenuItem* const& a, const GUIMenuItem* const& b) const
 	{
 		return a->mPriority > b->mPriority || (a->mPriority == b->mPriority && a->mSeqIdx < b->mSeqIdx);
 	}
@@ -50,7 +50,7 @@ namespace bs
 		return nullptr;
 	}
 
-	void GUIMenuItem::removeChild(const String& name)
+	void GUIMenuItem::RemoveChild(const String& name)
 	{
 		auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&] (GUIMenuItem* x) { return x->getName() == name; });
 
@@ -61,7 +61,7 @@ namespace bs
 		}
 	}
 
-	void GUIMenuItem::removeChild(const GUIMenuItem* item)
+	void GUIMenuItem::RemoveChild(const GUIMenuItem* item)
 	{
 		auto iterFind = std::find(begin(mChildren), end(mChildren), item);
 
@@ -155,7 +155,7 @@ namespace bs
 		return curSubMenu;
 	}
 
-	void GUIMenu::removeMenuItem(const GUIMenuItem* item)
+	void GUIMenu::RemoveMenuItem(const GUIMenuItem* item)
 	{
 		GUIMenuItem* parent = item->mParent;
 		assert(parent != nullptr);
@@ -163,17 +163,17 @@ namespace bs
 		parent->removeChild(item->getName());
 	}
 
-	GUIDropDownData GUIMenu::getDropDownData() const
+	GUIDropDownData GUIMenu::GetDropDownData() const
 	{
 		return GetDropDownDataInternal(mRootElement);
 	}
 
-	void GUIMenu::setLocalizedName(const String& menuItemLabel, const HString& localizedName)
+	void GUIMenu::SetLocalizedName(const String& menuItemLabel, const HString& localizedName)
 	{
 		mLocalizedEntryNames[menuItemLabel] = localizedName;
 	}
 
-	GUIDropDownData GUIMenu::getDropDownDataInternal(const GUIMenuItem& menu) const
+	GUIDropDownData GUIMenu::GetDropDownDataInternal(const GUIMenuItem& menu) const
 	{
 		GUIDropDownData dropDownData;
 

@@ -13,14 +13,14 @@ namespace bs
 
 	}
 
-	SPtr<RenderTexture> GLTextureManager::createRenderTextureImpl(const RENDER_TEXTURE_DESC& desc)
+	SPtr<RenderTexture> GLTextureManager::CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc)
 	{
 		GLRenderTexture* tex = new (bs_alloc<GLRenderTexture>()) GLRenderTexture(desc);
 
 		return bs_core_ptr<GLRenderTexture>(tex);
 	}
 
-	PixelFormat GLTextureManager::getNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma)
+	PixelFormat GLTextureManager::GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma)
 	{
 		// Check if this is a valid rendertarget format
 		if(usage & TU_RENDERTARGET)

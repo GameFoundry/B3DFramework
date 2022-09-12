@@ -11,7 +11,7 @@
 
 namespace bs
 {
-	const String& GUIViewport::getGUITypeName()
+	const String& GUIViewport::GetGUITypeName()
 	{
 		static String name = "Viewport";
 		return name;
@@ -36,7 +36,7 @@ namespace bs
 		return new (bs_alloc<GUIViewport>()) GUIViewport(getStyleName<GUIViewport>(styleName), camera, aspectRatio, fieldOfView, GUIDimensions::create(options));
 	}
 
-	void GUIViewport::updateClippedBounds()
+	void GUIViewport::UpdateClippedBounds()
 	{
 		mClippedBounds = mLayoutData.area;
 		mClippedBounds.clip(mLayoutData.clipRect);
@@ -60,7 +60,7 @@ namespace bs
 
 	}
 
-	void GUIViewport::updateRenderElementsInternal()
+	void GUIViewport::UpdateRenderElementsInternal()
 	{
 		// TODO - This doesn't get called if element mesh is dirty!!! and I need to update the viewport when offset changes (in which case mesh is marked as dirty)
 		float currentAspect = mLayoutData.area.width / (float)mLayoutData.area.height;

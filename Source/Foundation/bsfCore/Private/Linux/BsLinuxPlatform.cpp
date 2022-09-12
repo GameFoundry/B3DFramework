@@ -261,20 +261,20 @@ namespace bs
 	Platform::~Platform()
 	{ }
 
-	Vector2I Platform::getCursorPosition()
+	Vector2I Platform::GetCursorPosition()
 	{
 		Lock Lock(mData->lock);
 		return _getCursorPosition(mData);
 	}
 
-	void Platform::setCursorPosition(const Vector2I& screenPos)
+	void Platform::SetCursorPosition(const Vector2I& screenPos)
 	{
 		Lock Lock(mData->lock);
 
 		_setCursorPosition(mData, screenPos);
 	}
 
-	void Platform::captureMouse(const RenderWindow& window)
+	void Platform::CaptureMouse(const RenderWindow& window)
 	{
 		Lock Lock(mData->lock);
 
@@ -287,7 +287,7 @@ namespace bs
 		XSync(mData->xDisplay, False);
 	}
 
-	void Platform::releaseMouseCapture()
+	void Platform::ReleaseMouseCapture()
 	{
 		Lock Lock(mData->lock);
 
@@ -295,7 +295,7 @@ namespace bs
 		XSync(mData->xDisplay, False);
 	}
 
-	bool Platform::isPointOverWindow(const RenderWindow& window, const Vector2I& screenPos)
+	bool Platform::IsPointOverWindow(const RenderWindow& window, const Vector2I& screenPos)
 	{
 		Lock Lock(mData->lock);
 
@@ -316,7 +316,7 @@ namespace bs
 		return false;
 	}
 
-	void Platform::hideCursor()
+	void Platform::HideCursor()
 	{
 		Lock Lock(mData->lock);
 		mData->isCursorHidden = true;
@@ -325,7 +325,7 @@ namespace bs
 			applyCurrentCursor(mData, entry.first);
 	}
 
-	void Platform::showCursor()
+	void Platform::ShowCursor()
 	{
 		Lock Lock(mData->lock);
 		mData->isCursorHidden = false;
@@ -334,13 +334,13 @@ namespace bs
 			applyCurrentCursor(mData, entry.first);
 	}
 
-	bool Platform::isCursorHidden()
+	bool Platform::IsCursorHidden()
 	{
 		Lock Lock(mData->lock);
 		return mData->isCursorHidden;
 	}
 
-	void Platform::clipCursorToWindow(const RenderWindow& window)
+	void Platform::ClipCursorToWindow(const RenderWindow& window)
 	{
 		Lock Lock(mData->lock);
 
@@ -358,7 +358,7 @@ namespace bs
 			_setCursorPosition(mData, pos);
 	}
 
-	void Platform::clipCursorToRect(const Rect2I& screenRect)
+	void Platform::ClipCursorToRect(const Rect2I& screenRect)
 	{
 		Lock Lock(mData->lock);
 
@@ -372,14 +372,14 @@ namespace bs
 			_setCursorPosition(mData, pos);
 	}
 
-	void Platform::clipCursorDisable()
+	void Platform::ClipCursorDisable()
 	{
 		Lock Lock(mData->lock);
 
 		bs::clipCursorDisable(mData);
 	}
 
-	void Platform::setCursor(PixelData& pixelData, const Vector2I& hotSpot)
+	void Platform::SetCursor(PixelData& pixelData, const Vector2I& hotSpot)
 	{
 		SPtr<PixelData> bgraData = PixelData::create(pixelData.getWidth(), pixelData.getHeight(), 1, PF_BGRA8);
 		PixelUtil::bulkPixelConversion(pixelData, *bgraData);
@@ -399,7 +399,7 @@ namespace bs
 		setCurrentCursor(mData, cursor);
 	}
 
-	void Platform::setIcon(const PixelData& pixelData)
+	void Platform::SetIcon(const PixelData& pixelData)
 	{
 		if(!mData->mainXWindow)
 			return;
@@ -414,7 +414,7 @@ namespace bs
 		mainLinuxWindow->setIcon(pixelData);
 	}
 
-	void Platform::setCaptionNonClientAreas(const ct::RenderWindow& window, const Vector<Rect2I>& nonClientAreas)
+	void Platform::SetCaptionNonClientAreas(const ct::RenderWindow& window, const Vector<Rect2I>& nonClientAreas)
 	{
 		if(nonClientAreas.size() == 0)
 			return;
@@ -427,12 +427,12 @@ namespace bs
 		linuxWindow->_setDragZones(nonClientAreas);
 	}
 
-	void Platform::setResizeNonClientAreas(const ct::RenderWindow& window, const Vector<NonClientResizeArea>& nonClientAreas)
+	void Platform::SetResizeNonClientAreas(const ct::RenderWindow& window, const Vector<NonClientResizeArea>& nonClientAreas)
 	{
 		// Do nothing, resize areas not supported on Linux (but they are provided even on undecorated windows by the WM)
 	}
 
-	void Platform::resetNonClientAreas(const ct::RenderWindow& window)
+	void Platform::ResetNonClientAreas(const ct::RenderWindow& window)
 	{
 		Lock Lock(mData->lock);
 
@@ -442,12 +442,12 @@ namespace bs
 		linuxWindow->_setDragZones({});
 	}
 
-	void Platform::sleep(UINT32 duration)
+	void Platform::Sleep(UINT32 duration)
 	{
 		usleep(duration * 1000);
 	}
 
-	void Platform::copyToClipboard(const String& string)
+	void Platform::CopyToClipboard(const String& string)
 	{
 		Lock Lock(mData->lock);
 		mData->clipboardData = string;
@@ -456,7 +456,7 @@ namespace bs
 		XSetSelectionOwner(mData->xDisplay, clipboardAtom, mData->mainXWindow, CurrentTime);
 	}
 
-	String Platform::copyFromClipboard()
+	String Platform::CopyFromClipboard()
 	{
 		Lock Lock(mData->lock);
 		Atom clipboardAtom = XInternAtom(mData->xDisplay, "CLIPBOARD", 0);
@@ -675,7 +675,7 @@ namespace bs
 		return nullptr;
 	}
 
-	String Platform::keyCodeToUnicode(UINT32 buttonCode)
+	String Platform::KeyCodeToUnicode(UINT32 buttonCode)
 	{
 		Lock Lock(mData->lock);
 
@@ -716,7 +716,7 @@ namespace bs
 		return "";
 	}
 
-	void Platform::openFolder(const Path& path)
+	void Platform::OpenFolder(const Path& path)
 	{
 		String pathString = path.toString();
 
@@ -1402,12 +1402,12 @@ namespace bs
 		return mData->xDisplay;
 	}
 
-	::Window LinuxPlatform::getMainXWindow()
+	::Window LinuxPlatform::GetMainXWindow()
 	{
 		return mData->mainXWindow;
 	}
 
-	Path LinuxPlatform::getHomeDir()
+	Path LinuxPlatform::GetHomeDir()
 	{
 		const char* homeDir = getenv("HOME");
 		if(!homeDir)
@@ -1416,12 +1416,12 @@ namespace bs
 		return Path(homeDir);
 	}
 
-	void LinuxPlatform::lockX()
+	void LinuxPlatform::LockX()
 	{
 		mData->lock.lock();
 	}
 
-	void LinuxPlatform::unlockX()
+	void LinuxPlatform::UnlockX()
 	{
 		mData->lock.unlock();
 	}
@@ -1460,7 +1460,7 @@ namespace bs
 			mData->mainXWindow = 0;
 	}
 
-	Pixmap LinuxPlatform::createPixmap(const PixelData& data, UINT32 depth)
+	Pixmap LinuxPlatform::CreatePixmap(const PixelData& data, UINT32 depth)
 	{
 		// Premultiply alpha
 		Vector<Color> colors = data.getColors();

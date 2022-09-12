@@ -5,7 +5,7 @@
 
 namespace bs { namespace ct
 {
-	void CommandSyncMask::addDependency(const SPtr<CommandBuffer>& buffer)
+	void CommandSyncMask::AddDependency(const SPtr<CommandBuffer>& buffer)
 	{
 		if (buffer == nullptr)
 			return;
@@ -13,7 +13,7 @@ namespace bs { namespace ct
 		mMask |= getGlobalQueueMask(buffer->getType(), buffer->getQueueIdx());
 	}
 
-	UINT32 CommandSyncMask::getGlobalQueueMask(GpuQueueType type, UINT32 queueIdx)
+	UINT32 CommandSyncMask::GetGlobalQueueMask(GpuQueueType type, UINT32 queueIdx)
 	{
 		UINT32 bitShift = 0;
 		switch (type)
@@ -33,7 +33,7 @@ namespace bs { namespace ct
 		return (1 << queueIdx) << bitShift;
 	}
 
-	UINT32 CommandSyncMask::getGlobalQueueIdx(GpuQueueType type, UINT32 queueIdx)
+	UINT32 CommandSyncMask::GetGlobalQueueIdx(GpuQueueType type, UINT32 queueIdx)
 	{
 		switch (type)
 		{
@@ -46,7 +46,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	UINT32 CommandSyncMask::getQueueIdxAndType(UINT32 globalQueueIdx, GpuQueueType& type)
+	UINT32 CommandSyncMask::GetQueueIdxAndType(UINT32 globalQueueIdx, GpuQueueType& type)
 	{
 		if(globalQueueIdx >= 16)
 		{
@@ -73,6 +73,6 @@ namespace bs { namespace ct
 	SPtr<CommandBuffer> CommandBuffer::create(GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx,
 		bool secondary)
 	{
-		return CommandBufferManager::instance().create(type, deviceIdx, queueIdx, secondary);
+		return CommandBufferManager::Instance().create(type, deviceIdx, queueIdx, secondary);
 	}
 }}

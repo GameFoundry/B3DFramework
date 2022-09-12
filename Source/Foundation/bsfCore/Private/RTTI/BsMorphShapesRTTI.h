@@ -63,7 +63,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return MorphChannel::createEmpty();
+			return MorphChannel::CreateEmpty();
 		}
 	};
 
@@ -89,7 +89,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return MorphShapes::createEmpty();
+			return MorphShapes::CreateEmpty();
 		}
 	};
 

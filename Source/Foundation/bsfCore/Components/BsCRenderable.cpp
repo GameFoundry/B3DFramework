@@ -24,7 +24,7 @@ namespace bs
 		setFlag(ComponentFlag::AlwaysRun, true);
 	}
 
-	void CRenderable::setMesh(HMesh mesh)
+	void CRenderable::SetMesh(HMesh mesh)
 	{
 		mInternal->setMesh(mesh);
 
@@ -32,7 +32,7 @@ namespace bs
 			mAnimation->_updateBounds(false);
 	}
 
-	void CRenderable::onInitialized()
+	void CRenderable::OnInitialized()
 	{
 		// If mInternal already exists this means this object was deserialized,
 		// so all we need to do is initialize it.
@@ -51,13 +51,13 @@ namespace bs
 		}
 	}
 
-	Bounds CRenderable::getBounds() const
+	Bounds CRenderable::GetBounds() const
 	{
 		mInternal->_updateState(*SO());
 		return mInternal->getBounds();
 	}
 
-	bool CRenderable::calculateBounds(Bounds& bounds)
+	bool CRenderable::CalculateBounds(Bounds& bounds)
 	{
 		bounds = getBounds();
 
@@ -92,12 +92,12 @@ namespace bs
 		}
 	}
 
-	void CRenderable::update()
+	void CRenderable::Update()
 	{
 
 	}
 
-	void CRenderable::onDestroyed()
+	void CRenderable::OnDestroyed()
 	{
 		if (mAnimation != nullptr)
 			mAnimation->_unregisterRenderable();
@@ -108,11 +108,11 @@ namespace bs
 
 	RTTITypeBase* CRenderable::getRTTIStatic()
 	{
-		return CRenderableRTTI::instance();
+		return CRenderableRTTI::Instance();
 	}
 
 	RTTITypeBase* CRenderable::getRTTI() const
 	{
-		return CRenderable::getRTTIStatic();
+		return CRenderable::GetRTTIStatic();
 	}
 }

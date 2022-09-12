@@ -15,12 +15,12 @@ namespace bs
 {
 	RTTITypeBase* SubShader::getRTTIStatic()
 	{
-		return SubShaderRTTI::instance();
+		return SubShaderRTTI::Instance();
 	}
 
 	RTTITypeBase* SubShader::getRTTI() const
 	{
-		return SubShader::getRTTIStatic();
+		return SubShader::GetRTTIStatic();
 	}
 
 	template<bool Core>
@@ -436,18 +436,18 @@ namespace bs
 		:TShader(id)
 	{ }
 
-	SPtr<ct::Shader> Shader::getCore() const
+	SPtr<ct::Shader> Shader::GetCore() const
 	{
 		return std::static_pointer_cast<ct::Shader>(mCoreSpecific);
 	}
 
-	void Shader::setIncludeFiles(const Vector<String>& includes)
+	void Shader::SetIncludeFiles(const Vector<String>& includes)
 	{
 		SPtr<ShaderMetaData> meta = std::static_pointer_cast<ShaderMetaData>(getMetaData());
 		meta->includes = includes;
 	}
 
-	SPtr<ct::CoreObject> Shader::createCore() const
+	SPtr<ct::CoreObject> Shader::CreateCore() const
 	{
 		Vector<SPtr<ct::Technique>> techniques;
 		for (auto& technique : mDesc.techniques)
@@ -460,7 +460,7 @@ namespace bs
 		return shaderCorePtr;
 	}
 
-	ct::SHADER_DESC Shader::convertDesc(const SHADER_DESC& desc) const
+	ct::SHADER_DESC Shader::ConvertDesc(const SHADER_DESC& desc) const
 	{
 		ct::SHADER_DESC output;
 		output.dataParams = desc.dataParams;
@@ -519,13 +519,13 @@ namespace bs
 		return output;
 	}
 
-	void Shader::getCoreDependencies(Vector<CoreObject*>& dependencies)
+	void Shader::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 	{
 		for (auto& technique : mDesc.techniques)
 			dependencies.push_back(technique.get());
 	}
 
-	bool Shader::isSampler(GpuParamObjectType type)
+	bool Shader::IsSampler(GpuParamObjectType type)
 	{
 		switch(type)
 		{
@@ -540,7 +540,7 @@ namespace bs
 		}
 	}
 
-	bool Shader::isTexture(GpuParamObjectType type)
+	bool Shader::IsTexture(GpuParamObjectType type)
 	{
 		switch(type)
 		{
@@ -559,7 +559,7 @@ namespace bs
 		}
 	}
 
-	bool Shader::isLoadStoreTexture(GpuParamObjectType type)
+	bool Shader::IsLoadStoreTexture(GpuParamObjectType type)
 	{
 		switch (type)
 		{
@@ -576,7 +576,7 @@ namespace bs
 		}
 	}
 
-	bool Shader::isBuffer(GpuParamObjectType type)
+	bool Shader::IsBuffer(GpuParamObjectType type)
 	{
 		switch(type)
 		{
@@ -594,7 +594,7 @@ namespace bs
 		}
 	}
 
-	UINT32 Shader::getDataParamSize(GpuParamDataType type)
+	UINT32 Shader::GetDataParamSize(GpuParamDataType type)
 	{
 		static const GpuDataParamInfos PARAM_SIZES;
 
@@ -605,7 +605,7 @@ namespace bs
 		return 0;
 	}
 
-	HShader Shader::create(const String& name, const SHADER_DESC& desc)
+	HShader Shader::Create(const String& name, const SHADER_DESC& desc)
 	{
 		SPtr<Shader> newShader = _createPtr(name, desc);
 
@@ -624,7 +624,7 @@ namespace bs
 		return newShader;
 	}
 
-	SPtr<Shader> Shader::createEmpty()
+	SPtr<Shader> Shader::CreateEmpty()
 	{
 		UINT32 id = ct::Shader::mNextShaderId.fetch_add(1, std::memory_order_relaxed);
 		assert(id < std::numeric_limits<UINT32>::max() && "Created too many shaders, reached maximum id.");
@@ -637,22 +637,22 @@ namespace bs
 
 	RTTITypeBase* Shader::getRTTIStatic()
 	{
-		return ShaderRTTI::instance();
+		return ShaderRTTI::Instance();
 	}
 
 	RTTITypeBase* Shader::getRTTI() const
 	{
-		return Shader::getRTTIStatic();
+		return Shader::GetRTTIStatic();
 	}
 
 	RTTITypeBase* ShaderMetaData::getRTTIStatic()
 	{
-		return ShaderMetaDataRTTI::instance();
+		return ShaderMetaDataRTTI::Instance();
 	}
 
 	RTTITypeBase* ShaderMetaData::getRTTI() const
 	{
-		return ShaderMetaData::getRTTIStatic();
+		return ShaderMetaData::GetRTTIStatic();
 	}
 
 	namespace ct
@@ -665,7 +665,7 @@ namespace bs
 
 	}
 
-	SPtr<Shader> Shader::create(const String& name, const SHADER_DESC& desc)
+	SPtr<Shader> Shader::Create(const String& name, const SHADER_DESC& desc)
 	{
 		UINT32 id = mNextShaderId.fetch_add(1, std::memory_order_relaxed);
 		assert(id < std::numeric_limits<UINT32>::max() && "Created too many shaders, reached maximum id.");

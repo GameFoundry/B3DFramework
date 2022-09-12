@@ -36,7 +36,7 @@ namespace bs
 	{
 	}
 
-	void ScriptCParticleSystem::initRuntimeData()
+	void ScriptCParticleSystem::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_setSettings", (void*)&ScriptCParticleSystem::Internal_setSettings);
 		metaData.scriptClass->addInternalCall("Internal_getSettings", (void*)&ScriptCParticleSystem::Internal_getSettings);

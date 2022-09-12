@@ -266,20 +266,20 @@ namespace bs
 	/** @} */
 
 	template<class T>
-	T ScriptArray::get(UINT32 idx)
+	T ScriptArray::Get(UINT32 idx)
 	{
 		return Detail::ScriptArray_get<T>(mInternal, idx);
 	}
 
 	/** Sets an entry from the array at the specified index. */
 	template<class T>
-	void ScriptArray::set(UINT32 idx, const T& value)
+	void ScriptArray::Set(UINT32 idx, const T& value)
 	{
 		Detail::ScriptArray_set<T>(mInternal, idx, value);
 	}
 
 	template<class T>
-	ScriptArray ScriptArray::create(UINT32 size)
+	ScriptArray ScriptArray::Create(UINT32 size)
 	{
 		return Detail::ScriptArray_create<T>(size);
 	}

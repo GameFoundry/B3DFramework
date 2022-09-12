@@ -16,7 +16,7 @@ namespace bs
 		desc.usage = usage;
 		desc.indexType = index;
 
-		return Mesh::create(desc);
+		return Mesh::Create(desc);
 	}
 
 	HMesh MeshEx::create(int numVertices, int numIndices, const Vector<SubMesh>& subMeshes, MeshUsage usage,
@@ -30,10 +30,10 @@ namespace bs
 		desc.usage = usage;
 		desc.indexType = index;
 
-		return Mesh::create(desc);
+		return Mesh::Create(desc);
 	}
 
-	HMesh MeshEx::create(const SPtr<RendererMeshData>& data, DrawOperationType topology, MeshUsage usage)
+	HMesh MeshEx::Create(const SPtr<RendererMeshData>& data, DrawOperationType topology, MeshUsage usage)
 	{
 		SPtr<MeshData> meshData;
 		if (data != nullptr)
@@ -47,10 +47,10 @@ namespace bs
 		desc.subMeshes = { SubMesh(0, numIndices, topology) };
 		desc.usage = usage;
 
-		return Mesh::create(meshData, desc);
+		return Mesh::Create(meshData, desc);
 	}
 
-	HMesh MeshEx::create(const SPtr<RendererMeshData>& data, const Vector<SubMesh>& subMeshes, MeshUsage usage)
+	HMesh MeshEx::Create(const SPtr<RendererMeshData>& data, const Vector<SubMesh>& subMeshes, MeshUsage usage)
 	{
 		SPtr<MeshData> meshData;
 		if (data != nullptr)
@@ -60,10 +60,10 @@ namespace bs
 		desc.subMeshes = subMeshes;
 		desc.usage = usage;
 
-		return Mesh::create(meshData, desc);
+		return Mesh::Create(meshData, desc);
 	}
 
-	Vector<SubMesh> MeshEx::getSubMeshes(const HMesh& thisPtr)
+	Vector<SubMesh> MeshEx::GetSubMeshes(const HMesh& thisPtr)
 	{
 		UINT32 numSubMeshes = thisPtr->getProperties().getNumSubMeshes();
 		Vector<SubMesh> Output(numSubMeshes);
@@ -73,25 +73,25 @@ namespace bs
 		return output;
 	}
 
-	UINT32 MeshEx::getSubMeshCount(const HMesh& thisPtr)
+	UINT32 MeshEx::GetSubMeshCount(const HMesh& thisPtr)
 	{
 		return thisPtr->getProperties().getNumSubMeshes();
 	}
 
-	void MeshEx::getBounds(const HMesh& thisPtr, AABox* box, Sphere* sphere)
+	void MeshEx::GetBounds(const HMesh& thisPtr, AABox* box, Sphere* sphere)
 	{
 		Bounds bounds = thisPtr->getProperties().getBounds();
 		*box = bounds.getBox();
 		*sphere = bounds.getSphere();
 	}
 
-	SPtr<RendererMeshData> MeshEx::getMeshData(const HMesh& thisPtr)
+	SPtr<RendererMeshData> MeshEx::GetMeshData(const HMesh& thisPtr)
 	{
 		const SPtr<MeshData>& meshData = thisPtr->getCachedData();
-		return RendererMeshData::create(meshData);
+		return RendererMeshData::Create(meshData);
 	}
 
-	void MeshEx::setMeshData(const HMesh& thisPtr, const SPtr<RendererMeshData>& value)
+	void MeshEx::SetMeshData(const HMesh& thisPtr, const SPtr<RendererMeshData>& value)
 	{
 		if (value != nullptr)
 		{

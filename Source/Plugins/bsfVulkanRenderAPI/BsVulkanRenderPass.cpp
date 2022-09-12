@@ -248,7 +248,7 @@ namespace bs { namespace ct
 		return newVariant;
 	}
 
-	UINT32 VulkanRenderPass::getNumClearEntries(ClearMask clearMask) const
+	UINT32 VulkanRenderPass::GetNumClearEntries(ClearMask clearMask) const
 	{
 		if (clearMask == CLEAR_NONE)
 			return 0;
@@ -267,7 +267,7 @@ namespace bs { namespace ct
 			}
 		}
 
-		return std::min(numAttachments, getNumColorAttachments());
+		return std::Min(numAttachments, getNumColorAttachments());
 	}
 
 

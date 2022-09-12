@@ -156,7 +156,7 @@ namespace bs
 		mutable Vector<SpriteRenderElementData> mCachedRenderElements;
 	};
 
-	inline void Sprite::getRenderElementInfo(UINT32 idx, SpriteRenderElement& info) const
+	inline void Sprite::GetRenderElementInfo(UINT32 idx, SpriteRenderElement& info) const
 	{
 		SpriteRenderElementData& renderElement = mCachedRenderElements[idx];
 		

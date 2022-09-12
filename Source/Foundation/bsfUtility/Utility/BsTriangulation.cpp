@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	TetrahedronVolume Triangulation::tetrahedralize(const Vector<Vector3>& points)
+	TetrahedronVolume Triangulation::Tetrahedralize(const Vector<Vector3>& points)
 	{
 		TetrahedronVolume volume;
 		if (points.size() < 4)

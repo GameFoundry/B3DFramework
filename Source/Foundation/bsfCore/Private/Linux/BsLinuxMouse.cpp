@@ -24,7 +24,7 @@ namespace bs
 		bs_delete(m);
 	}
 
-	void Mouse::capture()
+	void Mouse::Capture()
 	{
 		Lock Lock(LinuxPlatform::eventLock);
 
@@ -50,7 +50,7 @@ namespace bs
 		}
 	}
 
-	void Mouse::changeCaptureContext(UINT64 windowHandle)
+	void Mouse::ChangeCaptureContext(UINT64 windowHandle)
 	{
 		m->hasInputFocus = windowHandle != (UINT64)-1;
 	}

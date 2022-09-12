@@ -78,13 +78,13 @@ namespace bs
 	};
 
 	typedef Quadtree<UINT32, DebugQuadtreeOptions> DebugQuadtree;
-	void UtilityTestSuite::startUp()
+	void UtilityTestSuite::StartUp()
 	{
 		SPtr<TestSuite> fileSystemTests = create<FileSystemTestSuite>();
 		add(fileSystemTests);
 	}
 
-	void UtilityTestSuite::shutDown()
+	void UtilityTestSuite::ShutDown()
 	{
 	}
 
@@ -101,7 +101,7 @@ namespace bs
 		BS_ADD_TEST(UtilityTestSuite::testBitStream)
 	}
 
-	void UtilityTestSuite::testBitfield()
+	void UtilityTestSuite::TestBitfield()
 	{
 		static constexpr UINT32 COUNT = 100;
 		static constexpr UINT32 EXTRA_COUNT = 32;
@@ -176,7 +176,7 @@ namespace bs
 		BS_TEST_ASSERT(bitfield.find(false) == 5);
 	}
 
-	void UtilityTestSuite::testOctree()
+	void UtilityTestSuite::TestOctree()
 	{
 		DebugOctreeData octreeData;
 		DebugOctree Octree(Vector3::ZERO, 800.0f, &octreeData);
@@ -267,7 +267,7 @@ namespace bs
 			octree.removeElement(entry.octreeId);
 	}
 
-	void UtilityTestSuite::testSmallVector()
+	void UtilityTestSuite::TestSmallVector()
 	{
 		struct SomeElem
 		{
@@ -353,7 +353,7 @@ namespace bs
 		BS_TEST_ASSERT(v6[4].b == 44);
 	}
 
-	void UtilityTestSuite::testDynArray()
+	void UtilityTestSuite::TestDynArray()
 	{
 		struct SomeElem
 		{
@@ -467,7 +467,7 @@ namespace bs
 		BS_TEST_ASSERT(v3[3].b == 0);
 	}
 	
-	void UtilityTestSuite::testComplex()
+	void UtilityTestSuite::TestComplex()
 	{
 		Complex<float> C(10.0, 4.0);
 		BS_TEST_ASSERT(c.real() == 10.0);
@@ -548,7 +548,7 @@ namespace bs
 		c7 = 0;
 	}
 	
-	void UtilityTestSuite::testMinHeap()
+	void UtilityTestSuite::TestMinHeap()
 	{
 		struct SomeElem
 		{
@@ -589,7 +589,7 @@ namespace bs
 		BS_TEST_ASSERT(m.size() == 1);
 	}
 
-	void UtilityTestSuite::testQuadtree()
+	void UtilityTestSuite::TestQuadtree()
 	{
 		DebugQuadtreeData quadtreeData;
 		DebugQuadtree Quadtree(Vector2(0, 0), 800.0f, &quadtreeData);
@@ -678,7 +678,7 @@ namespace bs
 			quadtree.removeElement(entry.quadtreeId);
 	}
 
-	void UtilityTestSuite::testVarInt()
+	void UtilityTestSuite::TestVarInt()
 	{
 		UINT32 u0 = 0;
 		UINT32 u1 = 127;
@@ -750,7 +750,7 @@ namespace bs
 		BS_TEST_ASSERT(writeIdx == readIdx);
 	}
 
-	void UtilityTestSuite::testBitStream()
+	void UtilityTestSuite::TestBitStream()
 	{
 		uint32_t v0 = 12345;
 		bool v1 = true;

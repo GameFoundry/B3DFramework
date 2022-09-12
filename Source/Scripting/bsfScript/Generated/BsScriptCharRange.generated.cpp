@@ -12,15 +12,15 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptCharRange::initRuntimeData()
+	void ScriptCharRange::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptCharRange::box(const CharRange& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	CharRange ScriptCharRange::unbox(MonoObject* value)
+	CharRange ScriptCharRange::Unbox(MonoObject* value)
 	{
 		return *(CharRange*)MonoUtil::unbox(value);
 	}

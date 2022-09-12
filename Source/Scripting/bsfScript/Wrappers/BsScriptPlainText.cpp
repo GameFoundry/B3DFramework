@@ -19,7 +19,7 @@ namespace bs
 
 	}
 
-	void ScriptPlainText::initRuntimeData()
+	void ScriptPlainText::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptPlainText::internal_createInstance);
 		metaData.scriptClass->addInternalCall("Internal_GetText", (void*)&ScriptPlainText::internal_getText);
@@ -38,7 +38,7 @@ namespace bs
 	{
 		HPlainText plainText = thisPtr->getHandle();
 
-		return MonoUtil::wstringToMono(plainText->getString());
+		return MonoUtil::WstringToMono(plainText->getString());
 	}
 
 	void ScriptPlainText::internal_setText(ScriptPlainText* thisPtr, MonoString* text)

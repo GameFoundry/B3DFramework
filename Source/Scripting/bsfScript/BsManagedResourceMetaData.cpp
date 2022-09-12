@@ -7,11 +7,11 @@ namespace bs
 {
 	RTTITypeBase* ManagedResourceMetaData::getRTTIStatic()
 	{
-		return ManagedResourceMetaDataRTTI::instance();
+		return ManagedResourceMetaDataRTTI::Instance();
 	}
 
 	RTTITypeBase* ManagedResourceMetaData::getRTTI() const
 	{
-		return ManagedResourceMetaData::getRTTIStatic();
+		return ManagedResourceMetaData::GetRTTIStatic();
 	}
 }

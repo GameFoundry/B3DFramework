@@ -12,7 +12,7 @@ namespace bs
 	{
 	}
 
-	void ScriptWhiteBalanceSettings::initRuntimeData()
+	void ScriptWhiteBalanceSettings::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_WhiteBalanceSettings", (void*)&ScriptWhiteBalanceSettings::Internal_WhiteBalanceSettings);
 		metaData.scriptClass->addInternalCall("Internal_gettemperature", (void*)&ScriptWhiteBalanceSettings::Internal_gettemperature);

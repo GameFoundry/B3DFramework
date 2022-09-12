@@ -13,7 +13,7 @@ namespace bs
 	{
 	}
 
-	void ScriptCFixedJoint::initRuntimeData()
+	void ScriptCFixedJoint::InitRuntimeData()
 	{
 
 	}

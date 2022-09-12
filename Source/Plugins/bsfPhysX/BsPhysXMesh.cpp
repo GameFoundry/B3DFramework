@@ -166,7 +166,7 @@ namespace bs
 		:PhysicsMesh(meshData, type)
 	{ }
 
-	void PhysXMesh::initialize()
+	void PhysXMesh::Initialize()
 	{
 		if(mInternal == nullptr) // Could be not-null if we're deserializing
 			mInternal = bs_shared_ptr_new<FPhysXMesh>(mInitMeshData, mType);
@@ -174,7 +174,7 @@ namespace bs
 		PhysicsMesh::initialize();
 	}
 
-	void PhysXMesh::destroy()
+	void PhysXMesh::Destroy()
 	{
 		mInternal = nullptr;
 
@@ -220,7 +220,7 @@ namespace bs
 		}
 	}
 
-	void FPhysXMesh::initialize()
+	void FPhysXMesh::Initialize()
 	{
 		if (mCookedData != nullptr && mCookedDataSize > 0)
 		{
@@ -234,13 +234,13 @@ namespace bs
 		}
 	}
 
-	SPtr<MeshData> FPhysXMesh::getMeshData() const
+	SPtr<MeshData> FPhysXMesh::GetMeshData() const
 	{
 		SPtr<VertexDataDesc> vertexDesc = VertexDataDesc::create();
 		vertexDesc->addVertElem(VET_FLOAT3, VES_POSITION);
 
 		if (mConvexMesh == nullptr && mTriangleMesh == nullptr)
-			return MeshData::create(0, 0, vertexDesc);
+			return MeshData::Create(0, 0, vertexDesc);
 
 		UINT32 numVertices = 0;
 		UINT32 numIndices = 0;
@@ -333,7 +333,7 @@ namespace bs
 
 	RTTITypeBase* FPhysXMesh::getRTTIStatic()
 	{
-		return FPhysXMeshRTTI::instance();
+		return FPhysXMeshRTTI::Instance();
 	}
 
 	RTTITypeBase* FPhysXMesh::getRTTI() const

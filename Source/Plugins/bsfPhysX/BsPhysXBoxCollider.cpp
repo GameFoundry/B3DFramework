@@ -28,24 +28,24 @@ namespace bs
 		bs_delete(mInternal);
 	}
 
-	void PhysXBoxCollider::setScale(const Vector3& scale)
+	void PhysXBoxCollider::SetScale(const Vector3& scale)
 	{
 		BoxCollider::setScale(scale);
 		applyGeometry();
 	}
 
-	void PhysXBoxCollider::setExtents(const Vector3& extents)
+	void PhysXBoxCollider::SetExtents(const Vector3& extents)
 	{
 		mExtents = extents;
 		applyGeometry();
 	}
 
-	Vector3 PhysXBoxCollider::getExtents() const
+	Vector3 PhysXBoxCollider::GetExtents() const
 	{
 		return mExtents;
 	}
 
-	void PhysXBoxCollider::applyGeometry()
+	void PhysXBoxCollider::ApplyGeometry()
 	{
 		PxBoxGeometry Geometry(std::max(0.01f, mExtents.x * mScale.x),
 			std::max(0.01f, mExtents.y * mScale.y), std::max(0.01f, mExtents.z * mScale.z));

@@ -48,7 +48,7 @@ namespace bs
 		return mono_method_get_unmanaged_thunk(mMethod);
 	}
 
-	String MonoMethod::getName() const
+	String MonoMethod::GetName() const
 	{
 		return String(mono_method_get_name(mMethod));
 	}
@@ -61,7 +61,7 @@ namespace bs
 		return mCachedReturnType;
 	}
 
-	UINT32 MonoMethod::getNumParameters() const
+	UINT32 MonoMethod::GetNumParameters() const
 	{
 		if (!mHasCachedSignature)
 			cacheSignature();
@@ -80,7 +80,7 @@ namespace bs
 		return mCachedParameters[paramIdx];
 	}
 
-	bool MonoMethod::isStatic() const
+	bool MonoMethod::IsStatic() const
 	{
 		if (!mHasCachedSignature)
 			cacheSignature();
@@ -88,7 +88,7 @@ namespace bs
 		return mIsStatic;
 	}
 
-	bool MonoMethod::hasAttribute(MonoClass* monoClass) const
+	bool MonoMethod::HasAttribute(MonoClass* monoClass) const
 	{
 		// TODO - Consider caching custom attributes or just initializing them all at load
 
@@ -119,7 +119,7 @@ namespace bs
 		return foundAttr;
 	}
 
-	MonoMemberVisibility MonoMethod::getVisibility()
+	MonoMemberVisibility MonoMethod::GetVisibility()
 	{
 		uint32_t flags = mono_method_get_flags(mMethod, nullptr) & MONO_METHOD_ATTR_ACCESS_MASK;
 
@@ -138,7 +138,7 @@ namespace bs
 		return MonoMemberVisibility::Private;
 	}
 
-	void MonoMethod::cacheSignature() const
+	void MonoMethod::CacheSignature() const
 	{
 		MonoMethodSignature* methodSignature = mono_method_signature(mMethod);
 

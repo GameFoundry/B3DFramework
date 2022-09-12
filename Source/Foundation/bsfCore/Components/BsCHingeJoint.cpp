@@ -19,7 +19,7 @@ namespace bs
 		setName("HingeJoint");
 	}
 
-	Radian CHingeJoint::getAngle() const
+	Radian CHingeJoint::GetAngle() const
 	{
 		if (mInternal == nullptr)
 			return Radian(0.0f);
@@ -27,7 +27,7 @@ namespace bs
 		return _getInternal()->getAngle();
 	}
 
-	float CHingeJoint::getSpeed() const
+	float CHingeJoint::GetSpeed() const
 	{
 		if (mInternal == nullptr)
 			return 0.0f;
@@ -35,12 +35,12 @@ namespace bs
 		return _getInternal()->getSpeed();
 	}
 
-	LimitAngularRange CHingeJoint::getLimit() const
+	LimitAngularRange CHingeJoint::GetLimit() const
 	{
 		return mDesc.limit;
 	}
 
-	void CHingeJoint::setLimit(const LimitAngularRange& limit)
+	void CHingeJoint::SetLimit(const LimitAngularRange& limit)
 	{
 		if (limit == mDesc.limit)
 			return;
@@ -51,12 +51,12 @@ namespace bs
 			_getInternal()->setLimit(limit);
 	}
 
-	HingeJointDrive CHingeJoint::getDrive() const
+	HingeJointDrive CHingeJoint::GetDrive() const
 	{
 		return mDesc.drive;
 	}
 
-	void CHingeJoint::setDrive(const HingeJointDrive& drive)
+	void CHingeJoint::SetDrive(const HingeJointDrive& drive)
 	{
 		if (drive == mDesc.drive)
 			return;
@@ -67,7 +67,7 @@ namespace bs
 			_getInternal()->setDrive(drive);
 	}
 
-	void CHingeJoint::setFlag(HingeJointFlag flag, bool enabled)
+	void CHingeJoint::SetFlag(HingeJointFlag flag, bool enabled)
 	{
 		bool isEnabled = ((UINT32)mDesc.flag & (UINT32)flag) != 0;
 		if (isEnabled == enabled)
@@ -82,12 +82,12 @@ namespace bs
 			_getInternal()->setFlag(flag, enabled);
 	}
 
-	bool CHingeJoint::hasFlag(HingeJointFlag flag) const
+	bool CHingeJoint::HasFlag(HingeJointFlag flag) const
 	{
 		return ((UINT32)mDesc.flag & (UINT32)flag) != 0;
 	}
 
-	SPtr<Joint> CHingeJoint::createInternal()
+	SPtr<Joint> CHingeJoint::CreateInternal()
 	{
 		const SPtr<SceneInstance>& scene = SO()->getScene();
 		SPtr<Joint> joint = HingeJoint::create(*scene->getPhysicsScene(), mDesc);
@@ -98,11 +98,11 @@ namespace bs
 
 	RTTITypeBase* CHingeJoint::getRTTIStatic()
 	{
-		return CHingeJointRTTI::instance();
+		return CHingeJointRTTI::Instance();
 	}
 
 	RTTITypeBase* CHingeJoint::getRTTI() const
 	{
-		return CHingeJoint::getRTTIStatic();
+		return CHingeJoint::GetRTTIStatic();
 	}
 }

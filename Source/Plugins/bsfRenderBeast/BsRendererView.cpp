@@ -30,7 +30,7 @@ namespace bs { namespace ct
 			mParams->setParamBlockBuffer("Params", mParamBuffer);
 	}
 
-	void SkyboxMat::bind(const SPtr<GpuParamBlockBuffer>& perCamera, const SPtr<Texture>& texture, const Color& solidColor)
+	void SkyboxMat::Bind(const SPtr<GpuParamBlockBuffer>& perCamera, const SPtr<Texture>& texture, const Color& solidColor)
 	{
 		mParams->setParamBlockBuffer("PerCamera", perCamera);
 
@@ -78,7 +78,7 @@ namespace bs { namespace ct
 		setStateReductionMode(desc.stateReduction);
 	}
 
-	void RendererView::setStateReductionMode(StateReduction reductionMode)
+	void RendererView::SetStateReductionMode(StateReduction reductionMode)
 	{
 		mDeferredOpaqueQueue = bs_shared_ptr_new<RenderQueue>(reductionMode);
 		mForwardOpaqueQueue = bs_shared_ptr_new<RenderQueue>(reductionMode);
@@ -91,7 +91,7 @@ namespace bs { namespace ct
 		mDecalQueue = bs_shared_ptr_new<RenderQueue>(StateReduction::Material);
 	}
 
-	void RendererView::setRenderSettings(const SPtr<RenderSettings>& settings)
+	void RendererView::SetRenderSettings(const SPtr<RenderSettings>& settings)
 	{
 		if (mRenderSettings == nullptr)
 			mRenderSettings = bs_shared_ptr_new<RenderSettings>();
@@ -119,7 +119,7 @@ namespace bs { namespace ct
 		mProperties.temporalJitter = Vector2::ZERO;
 	}
 
-	void RendererView::setView(const RENDERER_VIEW_DESC& desc)
+	void RendererView::SetView(const RENDERER_VIEW_DESC& desc)
 	{
 		mCamera = desc.sceneCamera;
 		mProperties = desc;
@@ -132,7 +132,7 @@ namespace bs { namespace ct
 		setStateReductionMode(desc.stateReduction);
 	}
 
-	void RendererView::beginFrame(const FrameInfo& frameInfo)
+	void RendererView::BeginFrame(const FrameInfo& frameInfo)
 	{
 		// Check if render target resized and update the view properties accordingly
 		// Note: Normally we rely on the renderer notify* methods to let us know of changes to camera/viewport, but since
@@ -235,7 +235,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RendererView::endFrame()
+	void RendererView::EndFrame()
 	{
 		// Save view-projection matrix to use for temporal filtering
 		mProperties.prevViewProjTransform = mProperties.viewProjTransform;
@@ -269,7 +269,7 @@ namespace bs { namespace ct
 		mRedrawForSeconds = 0.0f;
 	}
 
-	bool RendererView::shouldDraw() const
+	bool RendererView::ShouldDraw() const
 	{
 		if (!mProperties.onDemand)
 			return true;
@@ -292,12 +292,12 @@ namespace bs { namespace ct
 		return mRedrawForFrames > 0 || mRedrawForSeconds > 0.0f;
 	}
 
-	bool RendererView::requiresVelocityWrites() const
+	bool RendererView::RequiresVelocityWrites() const
 	{
 		return mRenderSettings->temporalAA.enabled || mRenderSettings->enableVelocityBuffer;
 	}
 
-	void RendererView::updateAsyncOperations()
+	void RendererView::UpdateAsyncOperations()
 	{
 		// Find most recent available frame
 		auto lastFinishedIter = mLuminanceUpdates.end();
@@ -328,7 +328,7 @@ namespace bs { namespace ct
 		}
 	}
 	
-	RendererViewRedrawReason RendererView::getRedrawReason() const
+	RendererViewRedrawReason RendererView::GetRedrawReason() const
 	{
 		if (!mProperties.onDemand)
 			return RendererViewRedrawReason::PerFrame;
@@ -339,12 +339,12 @@ namespace bs { namespace ct
 		return RendererViewRedrawReason::OnDemandLingering;
 	}
 
-	float RendererView::getCurrentExposure() const
+	float RendererView::GetCurrentExposure() const
 	{
 		if (mRenderSettings->enableAutoExposure)
 			return mPreviousEyeAdaptation;
 
-		return Math::pow(2.0f, mRenderSettings->exposureScale);
+		return Math::Pow(2.0f, mRenderSettings->exposureScale);
 	}
 
 	void RendererView::_notifyLuminanceUpdated(UINT64 frameIdx, SPtr<CommandBuffer> cb, SPtr<PooledRenderTexture> texture) const
@@ -462,7 +462,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RendererView::calculateVisibility(const Vector<CullInfo>& cullInfos, Vector<bool>& visibility) const
+	void RendererView::CalculateVisibility(const Vector<CullInfo>& cullInfos, Vector<bool>& visibility) const
 	{
 		UINT64 cameraLayers = mProperties.visibleLayers;
 		const ConvexVolume& worldFrustum = mProperties.cullFrustum;
@@ -499,7 +499,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RendererView::calculateVisibility(const Vector<Sphere>& bounds, Vector<bool>& visibility) const
+	void RendererView::CalculateVisibility(const Vector<Sphere>& bounds, Vector<bool>& visibility) const
 	{
 		const ConvexVolume& worldFrustum = mProperties.cullFrustum;
 
@@ -510,7 +510,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RendererView::calculateVisibility(const Vector<AABox>& bounds, Vector<bool>& visibility) const
+	void RendererView::CalculateVisibility(const Vector<AABox>& bounds, Vector<bool>& visibility) const
 	{
 		const ConvexVolume& worldFrustum = mProperties.cullFrustum;
 
@@ -521,7 +521,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RendererView::queueRenderElements(const SceneInfo& sceneInfo)
+	void RendererView::QueueRenderElements(const SceneInfo& sceneInfo)
 	{
 		// Queue renderables
 		for(UINT32 i = 0; i < (UINT32)sceneInfo.renderables.size(); i++)
@@ -622,7 +622,7 @@ namespace bs { namespace ct
 		mDecalQueue->sort();
 	}
 
-	Vector2 RendererView::getDeviceZToViewZ(const Matrix4& projMatrix)
+	Vector2 RendererView::GetDeviceZToViewZ(const Matrix4& projMatrix)
 	{
 		// Returns a set of values that will transform depth buffer values (in range [0, 1]) to a distance
 		// in view space. This involes applying the inverse projection transform to the depth value. When you multiply
@@ -668,7 +668,7 @@ namespace bs { namespace ct
 		return output;
 	}
 
-	Vector2 RendererView::getNDCZToViewZ(const Matrix4& projMatrix)
+	Vector2 RendererView::GetNDCZToViewZ(const Matrix4& projMatrix)
 	{
 		// Returns a set of values that will transform depth buffer values (e.g. [0, 1] in DX, [-1, 1] in GL) to a distance
 		// in view space. This involes applying the inverse projection transform to the depth value. When you multiply
@@ -704,7 +704,7 @@ namespace bs { namespace ct
 		return output;
 	}
 
-	Vector2 RendererView::getNDCZToDeviceZ()
+	Vector2 RendererView::GetNDCZToDeviceZ()
 	{
 		const RenderAPICapabilities& caps = gCaps();
 
@@ -744,7 +744,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RendererView::updatePerViewBuffer()
+	void RendererView::UpdatePerViewBuffer()
 	{
 		Matrix4 viewProj = mProperties.projTransform * mProperties.viewTransform;
 		Matrix4 invProj = invertProjectionMatrix(mProperties.projTransform);
@@ -808,7 +808,7 @@ namespace bs { namespace ct
 			gPerCameraParamDef.gAmbientFactor.set(mParamBuffer, 0.0f);
 	}
 
-	Vector4 RendererView::getNDCToUV() const
+	Vector4 RendererView::GetNDCToUV() const
 	{
 		const RenderAPICapabilities& caps = gCaps();
 		const Rect2I& viewRect = mProperties.target.viewRect;
@@ -844,7 +844,7 @@ namespace bs { namespace ct
 		setViews(views, numViews);
 	}
 
-	void RendererViewGroup::setViews(RendererView** views, UINT32 numViews)
+	void RendererViewGroup::SetViews(RendererView** views, UINT32 numViews)
 	{
 		mViews.clear();
 
@@ -855,7 +855,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RendererViewGroup::determineVisibility(const SceneInfo& sceneInfo)
+	void RendererViewGroup::DetermineVisibility(const SceneInfo& sceneInfo)
 	{
 		const auto numViews = (UINT32)mViews.size();
 

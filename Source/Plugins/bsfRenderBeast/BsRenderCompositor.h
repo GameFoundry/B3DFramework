@@ -148,7 +148,7 @@ namespace ct
 			/** @copydoc NodeType::getDependencies() */
 			SmallVector<StringID, 4> GetDependencies(const RendererView& view) const override
 			{
-				return T::getDependencies(view);
+				return T::GetDependencies(view);
 			}
 		};
 

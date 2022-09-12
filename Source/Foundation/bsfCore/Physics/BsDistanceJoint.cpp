@@ -5,7 +5,7 @@
 
 namespace bs
 {
-	SPtr<DistanceJoint> DistanceJoint::create(PhysicsScene& scene, const DISTANCE_JOINT_DESC& desc)
+	SPtr<DistanceJoint> DistanceJoint::Create(PhysicsScene& scene, const DISTANCE_JOINT_DESC& desc)
 	{
 		return scene.createDistanceJoint(desc);
 	}

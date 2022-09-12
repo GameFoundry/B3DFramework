@@ -121,7 +121,7 @@ namespace bs
 		static const String& GetStyleName(bool resizeable, const String& overrideStyle)
 		{
 			if(overrideStyle == StringUtil::BLANK)
-				return T::getGUITypeName(resizeable);
+				return T::GetGUITypeName(resizeable);
 
 			return overrideStyle;
 		}

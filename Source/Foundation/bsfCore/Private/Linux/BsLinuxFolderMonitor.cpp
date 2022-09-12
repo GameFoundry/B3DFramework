@@ -238,7 +238,7 @@ namespace bs
 		bs_delete(m);
 	}
 
-	void FolderMonitor::startMonitor(const Path& folderPath, bool subdirectories, FolderChangeBits changeFilter)
+	void FolderMonitor::StartMonitor(const Path& folderPath, bool subdirectories, FolderChangeBits changeFilter)
 	{
 		if(!FileSystem::isDirectory(folderPath))
 		{
@@ -300,7 +300,7 @@ namespace bs
 		}
 	}
 
-	void FolderMonitor::stopMonitor(const Path& folderPath)
+	void FolderMonitor::StopMonitor(const Path& folderPath)
 	{
 		auto findIter = std::find_if(m->monitors.begin(), m->monitors.end(),
 			[&](const FolderWatchInfo* x) { return x->folderToMonitor == folderPath; });
@@ -323,7 +323,7 @@ namespace bs
 		}
 	}
 
-	void FolderMonitor::stopMonitorAll()
+	void FolderMonitor::StopMonitorAll()
 	{
 		if(m->started)
 		{
@@ -362,7 +362,7 @@ namespace bs
 		}
 	}
 
-	void FolderMonitor::workerThreadMain()
+	void FolderMonitor::WorkerThreadMain()
 	{
 		static const UINT32 BUFFER_SIZE = 16384;
 
@@ -481,7 +481,7 @@ namespace bs
 		}
 	}
 
-	void FolderMonitor::handleNotifications(FileNotifyInfo& notifyInfo, FolderWatchInfo& watchInfo)
+	void FolderMonitor::HandleNotifications(FileNotifyInfo& notifyInfo, FolderWatchInfo& watchInfo)
 	{
 		// Do nothing
 	}

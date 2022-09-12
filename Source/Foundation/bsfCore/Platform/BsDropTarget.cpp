@@ -22,7 +22,7 @@ namespace bs
 		mFileList = fileList;
 	}
 
-	SPtr<DropTarget> DropTarget::create(const RenderWindow* window, const Rect2I& area)
+	SPtr<DropTarget> DropTarget::Create(const RenderWindow* window, const Rect2I& area)
 	{
 		DropTarget* target = new (bs_alloc<DropTarget>()) DropTarget(window, area);
 		return bs_shared_ptr(target);

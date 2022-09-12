@@ -30,12 +30,12 @@ namespace bs
 		d = normal.dot(point0);
 	}
 
-	float Plane::getDistance(const Vector3& point) const
+	float Plane::GetDistance(const Vector3& point) const
 	{
 		return normal.dot(point) - d;
 	}
 
-	Plane::Side Plane::getSide(const Vector3& point, float epsilon) const
+	Plane::Side Plane::GetSide(const Vector3& point, float epsilon) const
 	{
 		float dist = getDistance(point);
 
@@ -48,7 +48,7 @@ namespace bs
 		return Plane::NO_SIDE;
 	}
 
-	Plane::Side Plane::getSide(const AABox& box) const
+	Plane::Side Plane::GetSide(const AABox& box) const
 	{
 		// Calculate the distance between box centre and the plane
 		float dist = getDistance(box.getCenter());
@@ -67,7 +67,7 @@ namespace bs
 		return Plane::BOTH_SIDE;
 	}
 
-	Plane::Side Plane::getSide(const Sphere& sphere) const
+	Plane::Side Plane::GetSide(const Sphere& sphere) const
 	{
 		// Calculate the distance between box centre and the plane
 		float dist = getDistance(sphere.getCenter());
@@ -82,7 +82,7 @@ namespace bs
 		return Plane::BOTH_SIDE;
 	}
 
-	Vector3 Plane::projectVector(const Vector3& point) const
+	Vector3 Plane::ProjectVector(const Vector3& point) const
 	{
 		// We know plane normal is unit length, so use simple method
 		Matrix3 xform;
@@ -99,7 +99,7 @@ namespace bs
 
 	}
 
-	float Plane::normalize()
+	float Plane::Normalize()
 	{
 		float fLength = normal.length();
 
@@ -114,17 +114,17 @@ namespace bs
 		return fLength;
 	}
 
-	bool Plane::intersects(const AABox& box) const
+	bool Plane::Intersects(const AABox& box) const
 	{
 		return box.intersects(*this);
 	}
 
-	bool Plane::intersects(const Sphere& sphere) const
+	bool Plane::Intersects(const Sphere& sphere) const
 	{
 		return sphere.intersects(*this);
 	}
 
-	std::pair<bool, float> Plane::intersects(const Ray& ray) const
+	std::pair<bool, float> Plane::Intersects(const Ray& ray) const
 	{
 		float denom = normal.dot(ray.getDirection());
 		if (Math::abs(denom) < std::numeric_limits<float>::epsilon())

@@ -20,7 +20,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_RasterizerState);
 	}
 
-	void D3D11RasterizerState::createInternal()
+	void D3D11RasterizerState::CreateInternal()
 	{
 		INT32 scaledDepthBias = Math::floorToInt(-mProperties.getDepthBias() * float((1 << 24))); // Note: Assumes 24-bit depth buffer
 

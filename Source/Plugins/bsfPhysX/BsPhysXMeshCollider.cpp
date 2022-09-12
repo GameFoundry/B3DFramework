@@ -27,18 +27,18 @@ namespace bs
 		bs_delete(mInternal);
 	}
 
-	void PhysXMeshCollider::setScale(const Vector3& scale)
+	void PhysXMeshCollider::SetScale(const Vector3& scale)
 	{
 		MeshCollider::setScale(scale);
 		applyGeometry();
 	}
 
-	void PhysXMeshCollider::onMeshChanged()
+	void PhysXMeshCollider::OnMeshChanged()
 	{
 		applyGeometry();
 	}
 
-	void PhysXMeshCollider::applyGeometry()
+	void PhysXMeshCollider::ApplyGeometry()
 	{
 		if (!mMesh.isLoaded())
 		{
@@ -66,7 +66,7 @@ namespace bs
 		}
 	}
 
-	void PhysXMeshCollider::setGeometry(const PxGeometry& geometry)
+	void PhysXMeshCollider::SetGeometry(const PxGeometry& geometry)
 	{
 		PxShape* shape = getInternal()->_getShape();
 		if (shape->getGeometryType() != geometry.getType())

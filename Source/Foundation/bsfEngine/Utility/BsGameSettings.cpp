@@ -7,12 +7,12 @@ namespace bs
 {
 	RTTITypeBase* GameSettings::getRTTIStatic()
 	{
-		return GameSettingsRTTI::instance();
+		return GameSettingsRTTI::Instance();
 	}
 
 	RTTITypeBase* GameSettings::getRTTI() const
 	{
-		return GameSettings::getRTTIStatic();
+		return GameSettings::GetRTTIStatic();
 	}
 
 }

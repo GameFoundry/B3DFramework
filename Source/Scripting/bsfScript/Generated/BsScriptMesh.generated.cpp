@@ -21,7 +21,7 @@ namespace bs
 	{
 	}
 
-	void ScriptMesh::initRuntimeData()
+	void ScriptMesh::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetRef", (void*)&ScriptMesh::Internal_getRef);
 		metaData.scriptClass->addInternalCall("Internal_getSkeleton", (void*)&ScriptMesh::Internal_getSkeleton);

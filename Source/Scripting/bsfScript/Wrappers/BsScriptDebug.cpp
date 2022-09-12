@@ -25,7 +25,7 @@ namespace bs
 		:ScriptObject(instance)
 	{ }
 
-	void ScriptDebug::initRuntimeData()
+	void ScriptDebug::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_Log", (void*)&ScriptDebug::internal_log);
 		metaData.scriptClass->addInternalCall("Internal_LogWarning", (void*)&ScriptDebug::internal_logWarning);
@@ -37,17 +37,17 @@ namespace bs
 		onAddedThunk = (OnAddedThunkDef)metaData.scriptClass->getMethod("Internal_OnAdded", 3)->getThunk();
 	}
 
-	void ScriptDebug::startUp()
+	void ScriptDebug::StartUp()
 	{
 		mOnLogEntryAddedConn = gDebug().onLogEntryAdded.connect(&ScriptDebug::onLogEntryAdded);
 	}
 
-	void ScriptDebug::shutDown()
+	void ScriptDebug::ShutDown()
 	{
 		mOnLogEntryAddedConn.disconnect();
 	}
 
-	void ScriptDebug::onLogEntryAdded(const LogEntry& entry)
+	void ScriptDebug::OnLogEntryAdded(const LogEntry& entry)
 	{
 		MonoString* message = MonoUtil::stringToMono(entry.getMessage());
 

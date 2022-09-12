@@ -11,15 +11,15 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptAnimationClipState::initRuntimeData()
+	void ScriptAnimationClipState::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptAnimationClipState::box(const AnimationClipState& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	AnimationClipState ScriptAnimationClipState::unbox(MonoObject* value)
+	AnimationClipState ScriptAnimationClipState::Unbox(MonoObject* value)
 	{
 		return *(AnimationClipState*)MonoUtil::unbox(value);
 	}

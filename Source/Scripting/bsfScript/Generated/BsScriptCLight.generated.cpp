@@ -14,7 +14,7 @@ namespace bs
 	{
 	}
 
-	void ScriptCLight::initRuntimeData()
+	void ScriptCLight::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_setType", (void*)&ScriptCLight::Internal_setType);
 		metaData.scriptClass->addInternalCall("Internal_getType", (void*)&ScriptCLight::Internal_getType);

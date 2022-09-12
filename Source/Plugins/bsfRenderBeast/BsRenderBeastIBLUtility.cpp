@@ -111,7 +111,7 @@ namespace bs { namespace ct
 		defines.set("PIXELS_PER_THREAD", PIXELS_PER_THREAD);
 	}
 
-	void IrradianceComputeSHMat::execute(const SPtr<Texture>& source, UINT32 face, const SPtr<GpuBuffer>& output)
+	void IrradianceComputeSHMat::Execute(const SPtr<Texture>& source, UINT32 face, const SPtr<GpuBuffer>& output)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
@@ -136,7 +136,7 @@ namespace bs { namespace ct
 		rapi.dispatchCompute(dispatchSize.x, dispatchSize.y);
 	}
 
-	SPtr<GpuBuffer> IrradianceComputeSHMat::createOutputBuffer(const SPtr<Texture>& source, UINT32& numCoeffSets)
+	SPtr<GpuBuffer> IrradianceComputeSHMat::CreateOutputBuffer(const SPtr<Texture>& source, UINT32& numCoeffSets)
 	{
 		auto& props = source->getProperties();
 		UINT32 faceSize = props.getWidth();
@@ -159,7 +159,7 @@ namespace bs { namespace ct
 		else
 			bufferDesc.elementSize = sizeof(SHCoeffsAndWeight5);
 
-		return GpuBuffer::create(bufferDesc);
+		return GpuBuffer::Create(bufferDesc);
 	}
 
 	IrradianceComputeSHMat* IrradianceComputeSHMat::getVariation(int order)
@@ -203,7 +203,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(nullptr);
 	}
 
-	POOLED_RENDER_TEXTURE_DESC IrradianceComputeSHFragMat::getOutputDesc(const SPtr<Texture>& input)
+	POOLED_RENDER_TEXTURE_DESC IrradianceComputeSHFragMat::GetOutputDesc(const SPtr<Texture>& input)
 	{
 		auto& props = input->getProperties();
 		return POOLED_RENDER_TEXTURE_DESC::createCube(PF_RGBA16F, props.getWidth(), props.getHeight(), TU_RENDERTARGET);
@@ -244,7 +244,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(nullptr);
 	}
 
-	POOLED_RENDER_TEXTURE_DESC IrradianceAccumulateSHMat::getOutputDesc(const SPtr<Texture>& input)
+	POOLED_RENDER_TEXTURE_DESC IrradianceAccumulateSHMat::GetOutputDesc(const SPtr<Texture>& input)
 	{
 		auto& props = input->getProperties();
 
@@ -299,7 +299,7 @@ namespace bs { namespace ct
 		rapi.setViewport(Rect2(0, 0, 1, 1));
 	}
 
-	POOLED_RENDER_TEXTURE_DESC IrradianceAccumulateCubeSHMat::getOutputDesc()
+	POOLED_RENDER_TEXTURE_DESC IrradianceAccumulateCubeSHMat::GetOutputDesc()
 	{
 		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA32F, 9, 1, TU_RENDERTARGET);
 	}
@@ -335,7 +335,7 @@ namespace bs { namespace ct
 		rapi.dispatchCompute(1);
 	}
 
-	SPtr<Texture> IrradianceReduceSHMat::createOutputTexture(UINT32 numCoeffSets)
+	SPtr<Texture> IrradianceReduceSHMat::CreateOutputTexture(UINT32 numCoeffSets)
 	{
 		UINT32 shOrder = (UINT32)mVariation.getInt("SH_ORDER");
 		Vector2I size = IBLUtility::getSHCoeffTextureSize(numCoeffSets, shOrder);
@@ -346,7 +346,7 @@ namespace bs { namespace ct
 		textureDesc.format = PF_RGBA32F;
 		textureDesc.usage = TU_STATIC | TU_LOADSTORE;
 
-		return Texture::create(textureDesc);
+		return Texture::Create(textureDesc);
 	}
 
 	IrradianceReduceSHMat* IrradianceReduceSHMat::getVariation(int order)
@@ -367,7 +367,7 @@ namespace bs { namespace ct
 		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSHCoeffs", mInputTexture);
 	}
 
-	void IrradianceProjectSHMat::execute(const SPtr<Texture>& shCoeffs, UINT32 face, const SPtr<RenderTarget>& target)
+	void IrradianceProjectSHMat::Execute(const SPtr<Texture>& shCoeffs, UINT32 face, const SPtr<RenderTarget>& target)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
@@ -382,7 +382,7 @@ namespace bs { namespace ct
 		gRendererUtility().drawScreenQuad();
 	}
 
-	void RenderBeastIBLUtility::filterCubemapForSpecular(const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch) const
+	void RenderBeastIBLUtility::FilterCubemapForSpecular(const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch) const
 	{
 		auto& props = cubemap->getProperties();
 
@@ -455,7 +455,7 @@ namespace bs { namespace ct
 		return GRenderBeast()->getFeatureSet() == RenderBeastFeatureSet::Desktop;
 	}
 
-	void RenderBeastIBLUtility::filterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output) const
+	void RenderBeastIBLUtility::FilterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output) const
 	{
 		SPtr<Texture> coeffTexture;
 		if(supportsComputeSH())

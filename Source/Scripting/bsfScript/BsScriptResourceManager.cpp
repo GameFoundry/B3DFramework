@@ -103,7 +103,7 @@ namespace bs
 		return newRRef;
 	}
 
-	void ScriptResourceManager::destroyScriptResource(ScriptResourceBase* resource)
+	void ScriptResourceManager::DestroyScriptResource(ScriptResourceBase* resource)
 	{
 		HResource resourceHandle = resource->getGenericHandle();
 		const UUID& uuid = resourceHandle.getUUID();
@@ -130,7 +130,7 @@ namespace bs
 		mScriptResources.erase(uuid);
 	}
 
-	void ScriptResourceManager::onResourceDestroyed(const UUID& uuid)
+	void ScriptResourceManager::OnResourceDestroyed(const UUID& uuid)
 	{
 		for(auto& kvp : mScriptRRefsPerType)
 		{
@@ -149,7 +149,7 @@ namespace bs
 		}
 	}
 
-	void ScriptResourceManager::clearRRefs()
+	void ScriptResourceManager::ClearRRefs()
 	{
 		mScriptRRefsPerType.clear();
 	}

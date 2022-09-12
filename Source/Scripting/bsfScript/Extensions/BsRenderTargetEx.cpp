@@ -5,37 +5,37 @@
 
 namespace bs
 {
-	UINT32 RenderTargetEx::getWidth(const SPtr<RenderTarget>& thisPtr)
+	UINT32 RenderTargetEx::GetWidth(const SPtr<RenderTarget>& thisPtr)
 	{
 		return thisPtr->getProperties().width;
 	}
 
-	UINT32 RenderTargetEx::getHeight(const SPtr<RenderTarget>& thisPtr)
+	UINT32 RenderTargetEx::GetHeight(const SPtr<RenderTarget>& thisPtr)
 	{
 		return thisPtr->getProperties().height;
 	}
 
-	bool RenderTargetEx::getGammaCorrection(const SPtr<RenderTarget>& thisPtr)
+	bool RenderTargetEx::GetGammaCorrection(const SPtr<RenderTarget>& thisPtr)
 	{
 		return thisPtr->getProperties().hwGamma;
 	}
 
-	INT32 RenderTargetEx::getPriority(const SPtr<RenderTarget>& thisPtr)
+	INT32 RenderTargetEx::GetPriority(const SPtr<RenderTarget>& thisPtr)
 	{
 		return thisPtr->getProperties().priority;
 	}
 
-	void RenderTargetEx::setPriority(const SPtr<RenderTarget>& thisPtr, INT32 priority)
+	void RenderTargetEx::SetPriority(const SPtr<RenderTarget>& thisPtr, INT32 priority)
 	{
 		thisPtr->setPriority(priority);
 	}
 
-	UINT32 RenderTargetEx::getSampleCount(const SPtr<RenderTarget>& thisPtr)
+	UINT32 RenderTargetEx::GetSampleCount(const SPtr<RenderTarget>& thisPtr)
 	{
 		return thisPtr->getProperties().multisampleCount;
 	}
 
-	SPtr<RenderTexture> RenderTextureEx::create(PixelFormat format, int width, int height, int numSamples, bool gammaCorrection, bool createDepth, PixelFormat depthStencilFormat)
+	SPtr<RenderTexture> RenderTextureEx::Create(PixelFormat format, int width, int height, int numSamples, bool gammaCorrection, bool createDepth, PixelFormat depthStencilFormat)
 	{
 		TEXTURE_DESC texDesc;
 		texDesc.type = TEX_TYPE_2D;
@@ -45,25 +45,25 @@ namespace bs
 		texDesc.hwGamma = gammaCorrection;
 		texDesc.numSamples = numSamples;
 
-		return RenderTexture::create(texDesc, createDepth, depthStencilFormat);
+		return RenderTexture::Create(texDesc, createDepth, depthStencilFormat);
 	}
 
-	SPtr<RenderTexture> RenderTextureEx::create(const HTexture& colorSurface)
+	SPtr<RenderTexture> RenderTextureEx::Create(const HTexture& colorSurface)
 	{
 		return Create(Vector<HTexture>{ colorSurface }, HTexture());
 	}
 
-	SPtr<RenderTexture> RenderTextureEx::create(const HTexture& colorSurface, const HTexture& depthStencilSurface)
+	SPtr<RenderTexture> RenderTextureEx::Create(const HTexture& colorSurface, const HTexture& depthStencilSurface)
 	{
 		return Create(Vector<HTexture>{ colorSurface }, depthStencilSurface);
 	}
 
-	SPtr<RenderTexture> RenderTextureEx::create(const Vector<HTexture>& colorSurface)
+	SPtr<RenderTexture> RenderTextureEx::Create(const Vector<HTexture>& colorSurface)
 	{
 		return Create(Vector<HTexture>{ colorSurface }, HTexture());
 	}
 		
-	SPtr<RenderTexture> RenderTextureEx::create(const Vector<HTexture>& colorSurfaces, const HTexture& depthStencilSurface)
+	SPtr<RenderTexture> RenderTextureEx::Create(const Vector<HTexture>& colorSurfaces, const HTexture& depthStencilSurface)
 	{
 		RENDER_SURFACE_DESC depthStencilSurfaceDesc;
 		if (depthStencilSurface != nullptr)
@@ -98,10 +98,10 @@ namespace bs
 
 		desc.depthStencilSurface = depthStencilSurfaceDesc;
 
-		return RenderTexture::create(desc);
+		return RenderTexture::Create(desc);
 	}
 
-	Vector<HTexture> RenderTextureEx::getColorSurfaces(const SPtr<RenderTexture>& thisPtr)
+	Vector<HTexture> RenderTextureEx::GetColorSurfaces(const SPtr<RenderTexture>& thisPtr)
 	{
 		UINT32 numColorSurfaces = BS_MAX_MULTIPLE_RENDER_TARGETS;
 
@@ -119,12 +119,12 @@ namespace bs
 		return output;
 	}
 
-	HTexture RenderTextureEx::getColorSurface(const SPtr<RenderTexture>& thisPtr)
+	HTexture RenderTextureEx::GetColorSurface(const SPtr<RenderTexture>& thisPtr)
 	{
 		return thisPtr->getColorTexture(0);
 	}
 
-	HTexture RenderTextureEx::getDepthStencilSurface(const SPtr<RenderTexture>& thisPtr)
+	HTexture RenderTextureEx::GetDepthStencilSurface(const SPtr<RenderTexture>& thisPtr)
 	{
 		return thisPtr->getDepthStencilTexture();
 	}

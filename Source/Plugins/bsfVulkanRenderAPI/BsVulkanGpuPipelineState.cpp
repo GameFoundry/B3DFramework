@@ -93,7 +93,7 @@ namespace bs { namespace ct
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_PipelineState);
 	}
 
-	void VulkanGraphicsPipelineState::initialize()
+	void VulkanGraphicsPipelineState::Initialize()
 	{
 		Lock Lock(mMutex);
 
@@ -341,12 +341,12 @@ namespace bs { namespace ct
 		return newPipeline;
 	}
 
-	VkPipelineLayout VulkanGraphicsPipelineState::getPipelineLayout(UINT32 deviceIdx) const
+	VkPipelineLayout VulkanGraphicsPipelineState::GetPipelineLayout(UINT32 deviceIdx) const
 	{
 		return mPerDeviceData[deviceIdx].pipelineLayout;
 	}
 
-	void VulkanGraphicsPipelineState::registerPipelineResources(VulkanCmdBuffer* cmdBuffer)
+	void VulkanGraphicsPipelineState::RegisterPipelineResources(VulkanCmdBuffer* cmdBuffer)
 	{
 		UINT32 deviceIdx = cmdBuffer->getDeviceIdx();
 
@@ -512,7 +512,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void VulkanComputePipelineState::initialize()
+	void VulkanComputePipelineState::Initialize()
 	{
 		ComputePipelineState::initialize();
 
@@ -590,12 +590,12 @@ namespace bs { namespace ct
 		return mPerDeviceData[deviceIdx].pipeline;
 	}
 
-	VkPipelineLayout VulkanComputePipelineState::getPipelineLayout(UINT32 deviceIdx) const
+	VkPipelineLayout VulkanComputePipelineState::GetPipelineLayout(UINT32 deviceIdx) const
 	{
 		return mPerDeviceData[deviceIdx].pipelineLayout;
 	}
 
-	void VulkanComputePipelineState::registerPipelineResources(VulkanCmdBuffer* cmdBuffer)
+	void VulkanComputePipelineState::RegisterPipelineResources(VulkanCmdBuffer* cmdBuffer)
 	{
 		UINT32 deviceIdx = cmdBuffer->getDeviceIdx();
 

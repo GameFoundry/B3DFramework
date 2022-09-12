@@ -280,7 +280,7 @@ namespace bs
 		}
 	}
 
-	void PrefabUtility::revertToPrefab(const HSceneObject& so)
+	void PrefabUtility::RevertToPrefab(const HSceneObject& so)
 	{
 		UUID prefabLinkUUID = so->getPrefabLink();
 		HPrefab prefabLink = static_resource_cast<Prefab>(gResources().loadFromUUID(prefabLinkUUID, false, ResourceLoadFlag::None));
@@ -308,7 +308,7 @@ namespace bs
 		impl::restoreLinkedInstanceData(newInstance, soProxy, linkedInstanceData);
 	}
 
-	void PrefabUtility::updateFromPrefab(const HSceneObject& so)
+	void PrefabUtility::UpdateFromPrefab(const HSceneObject& so)
 	{
 		HSceneObject topLevelObject = so;
 
@@ -423,7 +423,7 @@ namespace bs
 		gResources().unloadAllUnused();
 	}
 
-	void PrefabUtility::generatePrefabIds(const HSceneObject& sceneObject)
+	void PrefabUtility::GeneratePrefabIds(const HSceneObject& sceneObject)
 	{
 		UINT32 startingId = 0;
 
@@ -494,7 +494,7 @@ namespace bs
 		}
 	}
 
-	void PrefabUtility::clearPrefabIds(const HSceneObject& sceneObject, bool recursive, bool clearRoot)
+	void PrefabUtility::ClearPrefabIds(const HSceneObject& sceneObject, bool recursive, bool clearRoot)
 	{
 		Stack<HSceneObject> todo;
 		todo.push(sceneObject);
@@ -525,7 +525,7 @@ namespace bs
 		}
 	}
 
-	void PrefabUtility::recordPrefabDiff(const HSceneObject& sceneObject)
+	void PrefabUtility::RecordPrefabDiff(const HSceneObject& sceneObject)
 	{
 		HSceneObject topLevelObject = sceneObject;
 

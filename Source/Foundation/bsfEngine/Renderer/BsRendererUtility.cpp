@@ -161,7 +161,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void RendererUtility::setPass(const SPtr<Material>& material, UINT32 passIdx, UINT32 techniqueIdx)
+	void RendererUtility::SetPass(const SPtr<Material>& material, UINT32 passIdx, UINT32 techniqueIdx)
 	{
 		RenderAPI& rapi = RenderAPI::instance();
 
@@ -170,7 +170,7 @@ namespace bs { namespace ct
 		rapi.setStencilRef(pass->getStencilRefValue());
 	}
 
-	void RendererUtility::setComputePass(const SPtr<Material>& material, UINT32 passIdx)
+	void RendererUtility::SetComputePass(const SPtr<Material>& material, UINT32 passIdx)
 	{
 		RenderAPI& rapi = RenderAPI::instance();
 
@@ -178,7 +178,7 @@ namespace bs { namespace ct
 		rapi.setComputePipeline(pass->getComputePipelineState());
 	}
 
-	void RendererUtility::setPassParams(const SPtr<GpuParamsSet>& params, UINT32 passIdx)
+	void RendererUtility::SetPassParams(const SPtr<GpuParamsSet>& params, UINT32 passIdx)
 	{
 		SPtr<GpuParams> gpuParams = params->getGpuParams(passIdx);
 		if (gpuParams == nullptr)
@@ -188,12 +188,12 @@ namespace bs { namespace ct
 		rapi.setGpuParams(gpuParams);
 	}
 
-	void RendererUtility::draw(const SPtr<MeshBase>& mesh, UINT32 numInstances)
+	void RendererUtility::Draw(const SPtr<MeshBase>& mesh, UINT32 numInstances)
 	{
 		draw(mesh, mesh->getProperties().getSubMesh(0), numInstances);
 	}
 
-	void RendererUtility::draw(const SPtr<MeshBase>& mesh, const SubMesh& subMesh, UINT32 numInstances)
+	void RendererUtility::Draw(const SPtr<MeshBase>& mesh, const SubMesh& subMesh, UINT32 numInstances)
 	{
 		RenderAPI& rapi = RenderAPI::instance();
 		SPtr<VertexData> vertexData = mesh->getVertexData();
@@ -280,7 +280,7 @@ namespace bs { namespace ct
 		mesh->_notifyUsedOnGPU();
 	}
 
-	void RendererUtility::blit(const SPtr<Texture>& texture, const Rect2I& area, bool flipUV, bool isDepth, bool isFiltered)
+	void RendererUtility::Blit(const SPtr<Texture>& texture, const Rect2I& area, bool flipUV, bool isDepth, bool isFiltered)
 	{
 		auto& texProps = texture->getProperties();
 
@@ -297,7 +297,7 @@ namespace bs { namespace ct
 		blitMat->execute(texture, fArea, flipUV);
 	}
 
-	void RendererUtility::drawScreenQuad(const Rect2& uv, const Vector2I& textureSize, UINT32 numInstances, bool flipUV)
+	void RendererUtility::DrawScreenQuad(const Rect2& uv, const Vector2I& textureSize, UINT32 numInstances, bool flipUV)
 	{
 		// Note: Consider drawing the quad using a single large triangle for possibly better performance
 		// Note2: Consider setting quad size in shader instead of rebuilding the mesh every time
@@ -370,7 +370,7 @@ namespace bs { namespace ct
 		mNextQuadVBSlot = (mNextQuadVBSlot + 1) % NUM_QUAD_VB_SLOTS;
 	}
 
-	void RendererUtility::clear(UINT32 value)
+	void RendererUtility::Clear(UINT32 value)
 	{
 		ClearMat* clearMat = ClearMat::get();
 		clearMat->execute(value);
@@ -378,7 +378,7 @@ namespace bs { namespace ct
 
 	RendererUtility& GRendererUtility()
 	{
-		return RendererUtility::instance();
+		return RendererUtility::Instance();
 	}
 
 	BlitMat::BlitMat()
@@ -387,7 +387,7 @@ namespace bs { namespace ct
 		mIsFiltered = mVariation.getInt("MODE") == 1;
 	}
 
-	void BlitMat::execute(const SPtr<Texture>& source, const Rect2& area, bool flipUV)
+	void BlitMat::Execute(const SPtr<Texture>& source, const Rect2& area, bool flipUV)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
@@ -448,7 +448,7 @@ namespace bs { namespace ct
 		mParams->setParamBlockBuffer("Params", mParamBuffer);
 	}
 
-	void ClearMat::execute(UINT32 value)
+	void ClearMat::Execute(UINT32 value)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
@@ -468,7 +468,7 @@ namespace bs { namespace ct
 		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSource", mSourceTex);
 	}
 
-	void CompositeMat::execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint)
+	void CompositeMat::Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
@@ -495,7 +495,7 @@ namespace bs { namespace ct
 		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gSource", mSourceTex);
 	}
 
-	void BicubicUpsampleMat::execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint)
+	void BicubicUpsampleMat::Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint)
 	{
 		BS_RENMAT_PROFILE_BLOCK
 

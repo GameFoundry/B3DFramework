@@ -23,7 +23,7 @@ namespace bs
 		mGCHandle = MonoUtil::newGCHandle(instance, false);
 	}
 
-	void ScriptManagedResource::initRuntimeData()
+	void ScriptManagedResource::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptManagedResource::internal_createInstance);
 	}
@@ -52,7 +52,7 @@ namespace bs
 		freeManagedInstance();
 	}
 
-	ScriptObjectBackup ScriptManagedResource::beginRefresh()
+	ScriptObjectBackup ScriptManagedResource::BeginRefresh()
 	{
 		ScriptObjectBackup backupData;
 		backupData.data = mResource->backup();
@@ -60,7 +60,7 @@ namespace bs
 		return backupData;
 	}
 
-	void ScriptManagedResource::endRefresh(const ScriptObjectBackup& backupData)
+	void ScriptManagedResource::EndRefresh(const ScriptObjectBackup& backupData)
 	{
 		MonoObject* instance = MonoUtil::getObjectFromGCHandle(mGCHandle);
 
@@ -94,7 +94,7 @@ namespace bs
 		freeManagedInstance();
 	}
 
-	void ScriptManagedResource::setResource(const HResource& resource)
+	void ScriptManagedResource::SetResource(const HResource& resource)
 	{
 		mResource = static_resource_cast<ManagedResource>(resource);
 	}

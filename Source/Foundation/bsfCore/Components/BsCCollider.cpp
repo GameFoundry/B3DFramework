@@ -25,7 +25,7 @@ namespace bs
 		mNotifyFlags = (TransformChangedFlags)(TCF_Parent | TCF_Transform);
 	}
 
-	void CCollider::setIsTrigger(bool value)
+	void CCollider::SetIsTrigger(bool value)
 	{
 		if (mIsTrigger == value)
 			return;
@@ -41,7 +41,7 @@ namespace bs
 		}
 	}
 
-	void CCollider::setMass(float mass)
+	void CCollider::SetMass(float mass)
 	{
 		if (mMass == mass)
 			return;
@@ -57,7 +57,7 @@ namespace bs
 		}
 	}
 
-	void CCollider::setMaterial(const HPhysicsMaterial& material)
+	void CCollider::SetMaterial(const HPhysicsMaterial& material)
 	{
 		mMaterial = material;
 
@@ -65,7 +65,7 @@ namespace bs
 			mInternal->setMaterial(material);
 	}
 
-	void CCollider::setContactOffset(float value)
+	void CCollider::SetContactOffset(float value)
 	{
 		value = std::max(0.0f, std::max(value, getRestOffset()));
 
@@ -75,7 +75,7 @@ namespace bs
 			mInternal->setContactOffset(value);
 	}
 
-	void CCollider::setRestOffset(float value)
+	void CCollider::SetRestOffset(float value)
 	{
 		value = std::min(value, getContactOffset());
 
@@ -85,7 +85,7 @@ namespace bs
 			mInternal->setRestOffset(value);
 	}
 
-	void CCollider::setLayer(UINT64 layer)
+	void CCollider::SetLayer(UINT64 layer)
 	{
 		mLayer = layer;
 
@@ -93,7 +93,7 @@ namespace bs
 			mInternal->setLayer(layer);
 	}
 
-	void CCollider::setCollisionReportMode(CollisionReportMode mode)
+	void CCollider::SetCollisionReportMode(CollisionReportMode mode)
 	{
 		mCollisionReportMode = mode;
 
@@ -101,27 +101,27 @@ namespace bs
 			updateCollisionReportMode();
 	}
 
-	void CCollider::onInitialized()
+	void CCollider::OnInitialized()
 	{
 
 	}
 
-	void CCollider::onDestroyed()
-	{
-		destroyInternal();
-	}
-
-	void CCollider::onDisabled()
+	void CCollider::OnDestroyed()
 	{
 		destroyInternal();
 	}
 
-	void CCollider::onEnabled()
+	void CCollider::OnDisabled()
+	{
+		destroyInternal();
+	}
+
+	void CCollider::OnEnabled()
 	{
 		restoreInternal();
 	}
 
-	void CCollider::onTransformChanged(TransformChangedFlags flags)
+	void CCollider::OnTransformChanged(TransformChangedFlags flags)
 	{
 		if (!SO()->getActive())
 			return;
@@ -138,7 +138,7 @@ namespace bs
 			updateTransform();
 	}
 
-	void CCollider::setRigidbody(const HRigidbody& rigidbody, bool internal)
+	void CCollider::SetRigidbody(const HRigidbody& rigidbody, bool internal)
 	{
 		if (rigidbody == mParent)
 			return;
@@ -164,7 +164,7 @@ namespace bs
 		updateTransform();
 	}
 
-	bool CCollider::rayCast(const Ray& ray, PhysicsQueryHit& hit, float maxDist) const
+	bool CCollider::RayCast(const Ray& ray, PhysicsQueryHit& hit, float maxDist) const
 	{
 		if (mInternal == nullptr)
 			return false;
@@ -181,7 +181,7 @@ namespace bs
 		return mInternal->rayCast(origin, unitDir, hit, maxDist);
 	}
 
-	void CCollider::restoreInternal()
+	void CCollider::RestoreInternal()
 	{
 		if (mInternal == nullptr)
 		{
@@ -205,7 +205,7 @@ namespace bs
 		updateCollisionReportMode();
 	}
 
-	void CCollider::destroyInternal()
+	void CCollider::DestroyInternal()
 	{
 		if (mParent != nullptr)
 			mParent->removeCollider(static_object_cast<CCollider>(mThisHandle));
@@ -220,7 +220,7 @@ namespace bs
 		}
 	}
 
-	void CCollider::updateParentRigidbody()
+	void CCollider::UpdateParentRigidbody()
 	{
 		if (mIsTrigger)
 		{
@@ -249,7 +249,7 @@ namespace bs
 		setRigidbody(HRigidbody());
 	}
 
-	void CCollider::updateTransform()
+	void CCollider::UpdateTransform()
 	{
 		const Transform& tfrm = SO()->getTransform();
 		Vector3 myScale = tfrm.getScale();
@@ -296,7 +296,7 @@ namespace bs
 			mInternal->setScale(myScale);
 	}
 
-	void CCollider::updateCollisionReportMode()
+	void CCollider::UpdateCollisionReportMode()
 	{
 		CollisionReportMode mode = mCollisionReportMode;
 
@@ -307,7 +307,7 @@ namespace bs
 			mInternal->setCollisionReportMode(mode);
 	}
 
-	void CCollider::triggerOnCollisionBegin(const CollisionDataRaw& data)
+	void CCollider::TriggerOnCollisionBegin(const CollisionDataRaw& data)
 	{
 		CollisionData hit;
 		hit.contactPoints = data.contactPoints;
@@ -322,7 +322,7 @@ namespace bs
 		onCollisionBegin(hit);
 	}
 
-	void CCollider::triggerOnCollisionStay(const CollisionDataRaw& data)
+	void CCollider::TriggerOnCollisionStay(const CollisionDataRaw& data)
 	{
 		CollisionData hit;
 		hit.contactPoints = data.contactPoints;
@@ -337,7 +337,7 @@ namespace bs
 		onCollisionStay(hit);
 	}
 
-	void CCollider::triggerOnCollisionEnd(const CollisionDataRaw& data)
+	void CCollider::TriggerOnCollisionEnd(const CollisionDataRaw& data)
 	{
 		CollisionData hit;
 		hit.contactPoints = data.contactPoints;
@@ -354,11 +354,11 @@ namespace bs
 
 	RTTITypeBase* CCollider::getRTTIStatic()
 	{
-		return CColliderRTTI::instance();
+		return CColliderRTTI::Instance();
 	}
 
 	RTTITypeBase* CCollider::getRTTI() const
 	{
-		return CCollider::getRTTIStatic();
+		return CCollider::GetRTTIStatic();
 	}
 }

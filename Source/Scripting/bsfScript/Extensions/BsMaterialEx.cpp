@@ -11,17 +11,17 @@ namespace bs
 		thisPtr->setTexture(name, value, TextureSurface(mipLevel, numMipLevels, arraySlice, numArraySlices));
 	}
 
-	HTexture MaterialEx::getTexture(const HMaterial& thisPtr, const String& name)
+	HTexture MaterialEx::GetTexture(const HMaterial& thisPtr, const String& name)
 	{
 		return thisPtr->getTexture(name);
 	}
 
-	void MaterialEx::setSpriteTexture(const HMaterial& thisPtr, const String& name, const HSpriteTexture& value)
+	void MaterialEx::SetSpriteTexture(const HMaterial& thisPtr, const String& name, const HSpriteTexture& value)
 	{
 		thisPtr->setSpriteTexture(name, value);
 	}
 
-	HSpriteTexture MaterialEx::getSpriteTexture(const HMaterial& thisPtr, const String& name)
+	HSpriteTexture MaterialEx::GetSpriteTexture(const HMaterial& thisPtr, const String& name)
 	{
 		return thisPtr->getSpriteTexture(name);
 	}

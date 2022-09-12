@@ -13,7 +13,7 @@ namespace bs
 		:ScriptObject(instance)
 	{ }
 
-	void ScriptCursor::initRuntimeData()
+	void ScriptCursor::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetScreenPosition", (void*)&ScriptCursor::internal_getScreenPosition);
 		metaData.scriptClass->addInternalCall("Internal_SetScreenPosition", (void*)&ScriptCursor::internal_setScreenPosition);

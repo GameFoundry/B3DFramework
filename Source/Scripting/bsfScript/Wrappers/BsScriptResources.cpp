@@ -17,7 +17,7 @@ namespace bs
 		:ScriptObject(instance)
 	{ }
 
-	void ScriptResources::initRuntimeData()
+	void ScriptResources::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_Load", (void*)&ScriptResources::internal_Load);
 		metaData.scriptClass->addInternalCall("Internal_LoadFromUUID", (void*)&ScriptResources::internal_LoadFromUUID);

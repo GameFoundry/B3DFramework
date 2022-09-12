@@ -32,14 +32,14 @@ namespace bs
 #endif
 	}
 
-	UINT64 CoreObjectManager::generateId()
+	UINT64 CoreObjectManager::GenerateId()
 	{
 		Lock Lock(mObjectsMutex);
 
 		return mNextAvailableID++;
 	}
 
-	void CoreObjectManager::registerObject(CoreObject* object)
+	void CoreObjectManager::RegisterObject(CoreObject* object)
 	{
 		Lock Lock(mObjectsMutex);
 
@@ -48,7 +48,7 @@ namespace bs
 		mDirtyObjects[objId] = { object, -1 };
 	}
 
-	void CoreObjectManager::unregisterObject(CoreObject* object)
+	void CoreObjectManager::UnregisterObject(CoreObject* object)
 	{
 		assert(object != nullptr && !object->isDestroyed());
 
@@ -116,7 +116,7 @@ namespace bs
 		}
 	}
 
-	void CoreObjectManager::notifyCoreDirty(CoreObject* object)
+	void CoreObjectManager::NotifyCoreDirty(CoreObject* object)
 	{
 		UINT64 id = object->getInternalID();
 
@@ -125,7 +125,7 @@ namespace bs
 		mDirtyObjects[id] = { object, -1 };
 	}
 
-	void CoreObjectManager::notifyDependenciesDirty(CoreObject* object)
+	void CoreObjectManager::NotifyDependenciesDirty(CoreObject* object)
 	{
 		Vector<CoreObject*> dependencies;
 		object->getCoreDependencies(dependencies);
@@ -133,7 +133,7 @@ namespace bs
 		updateDependencies(object, &dependencies);
 	}
 
-	void CoreObjectManager::updateDependencies(CoreObject* object, Vector<CoreObject*>* dependencies)
+	void CoreObjectManager::UpdateDependencies(CoreObject* object, Vector<CoreObject*>* dependencies)
 	{
 		UINT64 id = object->getInternalID();
 
@@ -214,13 +214,13 @@ namespace bs
 		bs_frame_clear();
 	}
 
-	void CoreObjectManager::syncToCore()
+	void CoreObjectManager::SyncToCore()
 	{
 		syncDownload(gCoreThread().getFrameAlloc());
 		gCoreThread().queueCommand(std::bind(&CoreObjectManager::syncUpload, this));
 	}
 
-	void CoreObjectManager::syncToCore(CoreObject* object)
+	void CoreObjectManager::SyncToCore(CoreObject* object)
 	{
 		struct IndividualCoreSyncData
 		{
@@ -293,7 +293,7 @@ namespace bs
 			gCoreThread().queueCommand(std::bind(callback, syncData));
 	}
 
-	void CoreObjectManager::syncDownload(FrameAlloc* allocator)
+	void CoreObjectManager::SyncDownload(FrameAlloc* allocator)
 	{
 		Lock Lock(mObjectsMutex);
 
@@ -393,7 +393,7 @@ namespace bs
 		mDestroyedSyncData.clear();
 	}
 
-	void CoreObjectManager::syncUpload()
+	void CoreObjectManager::SyncUpload()
 	{
 		Lock Lock(mObjectsMutex);
 

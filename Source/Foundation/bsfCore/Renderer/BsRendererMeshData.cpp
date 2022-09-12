@@ -26,7 +26,7 @@ namespace bs
 
 	}
 
-	void RendererMeshData::getPositions(Vector3* buffer, UINT32 size)
+	void RendererMeshData::GetPositions(Vector3* buffer, UINT32 size)
 	{
 		if (!mMeshData->getVertexDesc()->hasElement(VES_POSITION))
 			return;
@@ -37,7 +37,7 @@ namespace bs
 		mMeshData->getVertexData(VES_POSITION, buffer, size);
 	}
 
-	void RendererMeshData::setPositions(Vector3* buffer, UINT32 size)
+	void RendererMeshData::SetPositions(Vector3* buffer, UINT32 size)
 	{
 		if (!mMeshData->getVertexDesc()->hasElement(VES_POSITION))
 			return;
@@ -48,7 +48,7 @@ namespace bs
 		mMeshData->setVertexData(VES_POSITION, buffer, size);
 	}
 
-	void RendererMeshData::getNormals(Vector3* buffer, UINT32 size)
+	void RendererMeshData::GetNormals(Vector3* buffer, UINT32 size)
 	{
 		if (!mMeshData->getVertexDesc()->hasElement(VES_NORMAL))
 			return;
@@ -62,7 +62,7 @@ namespace bs
 		MeshUtility::unpackNormals(normalSrc, buffer, numElements, stride);
 	}
 
-	void RendererMeshData::setNormals(Vector3* buffer, UINT32 size)
+	void RendererMeshData::SetNormals(Vector3* buffer, UINT32 size)
 	{
 		if (!mMeshData->getVertexDesc()->hasElement(VES_NORMAL))
 			return;
@@ -76,7 +76,7 @@ namespace bs
 		MeshUtility::packNormals(buffer, normalDst, numElements, sizeof(Vector3), stride);
 	}
 
-	void RendererMeshData::getTangents(Vector4* buffer, UINT32 size)
+	void RendererMeshData::GetTangents(Vector4* buffer, UINT32 size)
 	{
 		if (!mMeshData->getVertexDesc()->hasElement(VES_TANGENT))
 			return;
@@ -90,7 +90,7 @@ namespace bs
 		MeshUtility::unpackNormals(tangentSrc, buffer, numElements, stride);
 	}
 
-	void RendererMeshData::setTangents(Vector4* buffer, UINT32 size)
+	void RendererMeshData::SetTangents(Vector4* buffer, UINT32 size)
 	{
 		if (!mMeshData->getVertexDesc()->hasElement(VES_TANGENT))
 			return;
@@ -104,7 +104,7 @@ namespace bs
 		MeshUtility::packNormals(buffer, tangentDst, numElements, sizeof(Vector4), stride);
 	}
 
-	void RendererMeshData::getColors(Color* buffer, UINT32 size)
+	void RendererMeshData::GetColors(Color* buffer, UINT32 size)
 	{
 		if (!mMeshData->getVertexDesc()->hasElement(VES_COLOR))
 			return;
@@ -125,7 +125,7 @@ namespace bs
 		}
 	}
 
-	void RendererMeshData::setColors(Color* buffer, UINT32 size)
+	void RendererMeshData::SetColors(Color* buffer, UINT32 size)
 	{
 		if (!mMeshData->getVertexDesc()->hasElement(VES_COLOR))
 			return;
@@ -146,7 +146,7 @@ namespace bs
 		}
 	}
 
-	void RendererMeshData::setColors(UINT32* buffer, UINT32 size)
+	void RendererMeshData::SetColors(UINT32* buffer, UINT32 size)
 	{
 		if (!mMeshData->getVertexDesc()->hasElement(VES_COLOR))
 			return;
@@ -157,7 +157,7 @@ namespace bs
 		mMeshData->setVertexData(VES_COLOR, buffer, size);
 	}
 
-	void RendererMeshData::getUV0(Vector2* buffer, UINT32 size)
+	void RendererMeshData::GetUV0(Vector2* buffer, UINT32 size)
 	{
 		if (!mMeshData->getVertexDesc()->hasElement(VES_TEXCOORD, 0))
 			return;
@@ -168,7 +168,7 @@ namespace bs
 		mMeshData->getVertexData(VES_TEXCOORD, buffer, size, 0);
 	}
 
-	void RendererMeshData::setUV0(Vector2* buffer, UINT32 size)
+	void RendererMeshData::SetUV0(Vector2* buffer, UINT32 size)
 	{
 		if (!mMeshData->getVertexDesc()->hasElement(VES_TEXCOORD, 0))
 			return;
@@ -179,7 +179,7 @@ namespace bs
 		mMeshData->setVertexData(VES_TEXCOORD, buffer, size, 0);
 	}
 
-	void RendererMeshData::getUV1(Vector2* buffer, UINT32 size)
+	void RendererMeshData::GetUV1(Vector2* buffer, UINT32 size)
 	{
 		if (!mMeshData->getVertexDesc()->hasElement(VES_TEXCOORD, 1))
 			return;
@@ -190,7 +190,7 @@ namespace bs
 		mMeshData->getVertexData(VES_TEXCOORD, buffer, size, 1);
 	}
 
-	void RendererMeshData::setUV1(Vector2* buffer, UINT32 size)
+	void RendererMeshData::SetUV1(Vector2* buffer, UINT32 size)
 	{
 		if (!mMeshData->getVertexDesc()->hasElement(VES_TEXCOORD, 1))
 			return;
@@ -201,7 +201,7 @@ namespace bs
 		mMeshData->setVertexData(VES_TEXCOORD, buffer, size, 1);
 	}
 
-	void RendererMeshData::getBoneWeights(BoneWeight* buffer, UINT32 size)
+	void RendererMeshData::GetBoneWeights(BoneWeight* buffer, UINT32 size)
 	{
 		SPtr<VertexDataDesc> vertexDesc = mMeshData->getVertexDesc();
 
@@ -239,7 +239,7 @@ namespace bs
 		}
 	}
 
-	void RendererMeshData::setBoneWeights(BoneWeight* buffer, UINT32 size)
+	void RendererMeshData::SetBoneWeights(BoneWeight* buffer, UINT32 size)
 	{
 		SPtr<VertexDataDesc> vertexDesc = mMeshData->getVertexDesc();
 
@@ -277,7 +277,7 @@ namespace bs
 		}
 	}
 
-	void RendererMeshData::getIndices(UINT32* buffer, UINT32 size)
+	void RendererMeshData::GetIndices(UINT32* buffer, UINT32 size)
 	{
 		UINT32 indexSize = mMeshData->getIndexElementSize();
 		UINT32 numIndices = mMeshData->getNumIndices();
@@ -303,7 +303,7 @@ namespace bs
 		}
 	}
 
-	void RendererMeshData::setIndices(UINT32* buffer, UINT32 size)
+	void RendererMeshData::SetIndices(UINT32* buffer, UINT32 size)
 	{
 		UINT32 indexSize = mMeshData->getIndexElementSize();
 		UINT32 numIndices = mMeshData->getNumIndices();
@@ -329,17 +329,17 @@ namespace bs
 		}
 	}
 
-	SPtr<RendererMeshData> RendererMeshData::create(UINT32 numVertices, UINT32 numIndices, VertexLayout layout, IndexType indexType)
+	SPtr<RendererMeshData> RendererMeshData::Create(UINT32 numVertices, UINT32 numIndices, VertexLayout layout, IndexType indexType)
 	{
-		return RendererManager::instance().getActive()->_createMeshData(numVertices, numIndices, layout, indexType);
+		return RendererManager::Instance().getActive()->_createMeshData(numVertices, numIndices, layout, indexType);
 	}
 
-	SPtr<RendererMeshData> RendererMeshData::create(const SPtr<MeshData>& meshData)
+	SPtr<RendererMeshData> RendererMeshData::Create(const SPtr<MeshData>& meshData)
 	{
-		return RendererManager::instance().getActive()->_createMeshData(meshData);
+		return RendererManager::Instance().getActive()->_createMeshData(meshData);
 	}
 
-	SPtr<VertexDataDesc> RendererMeshData::vertexLayoutVertexDesc(VertexLayout type)
+	SPtr<VertexDataDesc> RendererMeshData::VertexLayoutVertexDesc(VertexLayout type)
 	{
 		SPtr<VertexDataDesc> vertexDesc = VertexDataDesc::create();
 
@@ -375,7 +375,7 @@ namespace bs
 		return vertexDesc;
 	}
 
-	SPtr<MeshData> RendererMeshData::convert(const SPtr<MeshData>& meshData)
+	SPtr<MeshData> RendererMeshData::Convert(const SPtr<MeshData>& meshData)
 	{
 		// Note: Only converting between packed normals/tangents for now
 		SPtr<VertexDataDesc> vertexDesc = meshData->getVertexDesc();

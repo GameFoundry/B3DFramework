@@ -13,20 +13,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptParticleBurst::initRuntimeData()
+	void ScriptParticleBurst::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptParticleBurst::box(const __ParticleBurstInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__ParticleBurstInterop ScriptParticleBurst::unbox(MonoObject* value)
+	__ParticleBurstInterop ScriptParticleBurst::Unbox(MonoObject* value)
 	{
 		return *(__ParticleBurstInterop*)MonoUtil::unbox(value);
 	}
 
-	ParticleBurst ScriptParticleBurst::fromInterop(const __ParticleBurstInterop& value)
+	ParticleBurst ScriptParticleBurst::FromInterop(const __ParticleBurstInterop& value)
 	{
 		ParticleBurst output;
 		output.time = value.time;
@@ -43,7 +43,7 @@ namespace bs
 		return output;
 	}
 
-	__ParticleBurstInterop ScriptParticleBurst::toInterop(const ParticleBurst& value)
+	__ParticleBurstInterop ScriptParticleBurst::ToInterop(const ParticleBurst& value)
 	{
 		__ParticleBurstInterop output;
 		output.time = value.time;

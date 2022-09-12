@@ -63,7 +63,7 @@ namespace bs { namespace ct
 		return bufferPtr;
 	}
 
-	GLenum GLHardwareBufferManager::getGLUsage(GpuBufferUsage usage)
+	GLenum GLHardwareBufferManager::GetGLUsage(GpuBufferUsage usage)
 	{
 		if((usage & GBU_LOADSTORE) == GBU_LOADSTORE)
 		{
@@ -81,7 +81,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	GLenum GLHardwareBufferManager::getGLType(VertexElementType type)
+	GLenum GLHardwareBufferManager::GetGLType(VertexElementType type)
 	{
 		switch(type)
 		{

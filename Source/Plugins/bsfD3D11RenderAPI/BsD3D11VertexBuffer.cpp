@@ -17,7 +17,7 @@ namespace bs { namespace ct
 		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX 11.");
 	}
 
-	void D3D11VertexBuffer::initialize()
+	void D3D11VertexBuffer::Initialize()
 	{
 		mBuffer = bs_pool_new<D3D11HardwareBuffer>(D3D11HardwareBuffer::BT_VERTEX, mUsage, 1, mSize, mDevice, false, mStreamOut);
 		mBufferDeleter = &deleteBuffer;

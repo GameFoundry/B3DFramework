@@ -7,7 +7,7 @@
 
 namespace bs
 {
-	std::pair<bool, float> Torus::intersects(const Ray& ray) const
+	std::pair<bool, float> Torus::Intersects(const Ray& ray) const
 	{
 		const Vector3& org = ray.getOrigin();
 		const Vector3& dir = ray.getDirection();

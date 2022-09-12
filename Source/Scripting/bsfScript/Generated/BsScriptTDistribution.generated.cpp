@@ -18,7 +18,7 @@ namespace bs
 	{
 	}
 
-	void ScriptTDistributionfloat::initRuntimeData()
+	void ScriptTDistributionfloat::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_TDistribution", (void*)&ScriptTDistributionfloat::Internal_TDistribution);
 		metaData.scriptClass->addInternalCall("Internal_TDistribution0", (void*)&ScriptTDistributionfloat::Internal_TDistribution0);
@@ -178,7 +178,7 @@ namespace bs
 	{
 	}
 
-	void ScriptTDistributionVector3::initRuntimeData()
+	void ScriptTDistributionVector3::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_TDistribution", (void*)&ScriptTDistributionVector3::Internal_TDistribution);
 		metaData.scriptClass->addInternalCall("Internal_TDistribution0", (void*)&ScriptTDistributionVector3::Internal_TDistribution0);
@@ -326,7 +326,7 @@ namespace bs
 	{
 	}
 
-	void ScriptTDistributionVector2::initRuntimeData()
+	void ScriptTDistributionVector2::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_TDistribution", (void*)&ScriptTDistributionVector2::Internal_TDistribution);
 		metaData.scriptClass->addInternalCall("Internal_TDistribution0", (void*)&ScriptTDistributionVector2::Internal_TDistribution0);

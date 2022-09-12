@@ -46,7 +46,7 @@ namespace bs { namespace ct
 		return data;
 	}
 
-	void VulkanBuffer::unmap()
+	void VulkanBuffer::Unmap()
 	{
 		VulkanDevice& device = mOwner->getDevice();
 
@@ -84,12 +84,12 @@ namespace bs { namespace ct
 		vkCmdCopyBufferToImage(cb->getHandle(), mBuffer, destination->getHandle(), layout, 1, &region);
 	}
 
-	void VulkanBuffer::update(VulkanCmdBuffer* cb, UINT8* data, VkDeviceSize offset, VkDeviceSize length)
+	void VulkanBuffer::Update(VulkanCmdBuffer* cb, UINT8* data, VkDeviceSize offset, VkDeviceSize length)
 	{
 		vkCmdUpdateBuffer(cb->getHandle(), mBuffer, offset, length, (uint32_t*)data);
 	}
 
-	void VulkanBuffer::notifyDone(UINT32 globalQueueIdx, VulkanAccessFlags useFlags)
+	void VulkanBuffer::NotifyDone(UINT32 globalQueueIdx, VulkanAccessFlags useFlags)
 	{
 		{
 			Lock Lock(mMutex);
@@ -104,7 +104,7 @@ namespace bs { namespace ct
 		VulkanResource::notifyDone(globalQueueIdx, useFlags);
 	}
 
-	void VulkanBuffer::notifyUnbound()
+	void VulkanBuffer::NotifyUnbound()
 	{
 		{
 			Lock Lock(mMutex);
@@ -119,7 +119,7 @@ namespace bs { namespace ct
 		VulkanResource::notifyUnbound();
 	}
 
-	VkBufferView VulkanBuffer::getView(VkFormat format)
+	VkBufferView VulkanBuffer::GetView(VkFormat format)
 	{
 		const auto iterFind = std::find_if(mViews.begin(), mViews.end(),
 			[format](const ViewInfo& x) { return x.format == format; });
@@ -147,7 +147,7 @@ namespace bs { namespace ct
 		return view;
 	}
 
-	void VulkanBuffer::freeView(VkBufferView view)
+	void VulkanBuffer::FreeView(VkBufferView view)
 	{
 		const auto iterFind = std::find_if(mViews.begin(), mViews.end(),
 			[view](const ViewInfo& x) { return x.view == view; });
@@ -163,7 +163,7 @@ namespace bs { namespace ct
 		}
 	}
 	
-	void VulkanBuffer::destroyUnusedViews()
+	void VulkanBuffer::DestroyUnusedViews()
 	{
 		for(auto iter = mViews.begin(); iter != mViews.end();)
 		{
@@ -506,7 +506,7 @@ namespace bs { namespace ct
 		return mStagingBuffer->map(0, length);
 	}
 
-	void VulkanHardwareBuffer::unmap()
+	void VulkanHardwareBuffer::Unmap()
 	{
 		// Possibly map() failed with some error
 		if (!mIsMapped)
@@ -676,7 +676,7 @@ namespace bs { namespace ct
 		vkCB->registerBuffer(dst, BufferUseFlagBits::Transfer, VulkanAccessFlag::Write);
 	}
 
-	void VulkanHardwareBuffer::readData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
+	void VulkanHardwareBuffer::ReadData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		void* lockedData = lock(offset, length, GBL_READ_ONLY, deviceIdx, queueIdx);
 		memcpy(dest, lockedData, length);

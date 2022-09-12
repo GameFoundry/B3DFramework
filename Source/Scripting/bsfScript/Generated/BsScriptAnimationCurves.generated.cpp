@@ -20,7 +20,7 @@ namespace bs
 	{
 	}
 
-	void ScriptAnimationCurves::initRuntimeData()
+	void ScriptAnimationCurves::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_AnimationCurves", (void*)&ScriptAnimationCurves::Internal_AnimationCurves);
 		metaData.scriptClass->addInternalCall("Internal_addPositionCurve", (void*)&ScriptAnimationCurves::Internal_addPositionCurve);

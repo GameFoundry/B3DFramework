@@ -17,7 +17,7 @@ namespace bs
 		mInternal = value;
 	}
 
-	void ScriptRenderTexture::initRuntimeData()
+	void ScriptRenderTexture::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_create", (void*)&ScriptRenderTexture::Internal_create);
 		metaData.scriptClass->addInternalCall("Internal_create0", (void*)&ScriptRenderTexture::Internal_create0);

@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	void MeshManager::onStartUp()
+	void MeshManager::OnStartUp()
 	{
 		SPtr<VertexDataDesc> vertexDesc = bs_shared_ptr_new<VertexDataDesc>();
 		vertexDesc->addVertElem(VET_FLOAT3, VES_POSITION);

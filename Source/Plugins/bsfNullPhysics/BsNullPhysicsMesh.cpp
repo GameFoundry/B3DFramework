@@ -13,7 +13,7 @@ namespace bs
 		:PhysicsMesh(meshData, type)
 	{ }
 
-	void NullPhysicsMesh::initialize()
+	void NullPhysicsMesh::Initialize()
 	{
 		if(mInternal == nullptr) // Could be not-null if we're deserializing
 			mInternal = bs_shared_ptr_new<FNullPhysicsMesh>(mInitMeshData, mType);
@@ -21,7 +21,7 @@ namespace bs
 		PhysicsMesh::initialize();
 	}
 
-	void NullPhysicsMesh::destroy()
+	void NullPhysicsMesh::Destroy()
 	{
 		mInternal = nullptr;
 
@@ -36,17 +36,17 @@ namespace bs
 		:FPhysicsMesh(meshData, type)
 	{ }
 
-	SPtr<MeshData> FNullPhysicsMesh::getMeshData() const
+	SPtr<MeshData> FNullPhysicsMesh::GetMeshData() const
 	{
 		SPtr<VertexDataDesc> vertexDesc = VertexDataDesc::create();
 		vertexDesc->addVertElem(VET_FLOAT3, VES_POSITION);
 
-		return MeshData::create(0, 0, vertexDesc);
+		return MeshData::Create(0, 0, vertexDesc);
 	}
 
 	RTTITypeBase* FNullPhysicsMesh::getRTTIStatic()
 	{
-		return FNullPhysicsMeshRTTI::instance();
+		return FNullPhysicsMeshRTTI::Instance();
 	}
 
 	RTTITypeBase* FNullPhysicsMesh::getRTTI() const

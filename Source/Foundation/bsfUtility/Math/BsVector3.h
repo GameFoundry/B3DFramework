@@ -238,7 +238,7 @@ namespace bs
 		/** Returns the length (magnitude) of the vector. */
 		float Length() const
 		{
-			return std::sqrt(x * x + y * y + z * z);
+			return std::Sqrt(x * x + y * y + z * z);
 		}
 
 		/** Returns the square of the length(magnitude) of the vector. */

@@ -13,7 +13,7 @@ namespace bs
 		:ScriptObject(instance)
 	{ }
 
-	void ScriptPixelUtility::initRuntimeData()
+	void ScriptPixelUtility::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_GetMemorySize", (void*)&ScriptPixelUtility::internal_getMemorySize);
 		metaData.scriptClass->addInternalCall("Internal_HasAlpha", (void*)&ScriptPixelUtility::internal_hasAlpha);
@@ -72,7 +72,7 @@ namespace bs
 
 		PixelUtil::bulkPixelConversion(*sourcePixelData, *outputData);
 
-		return ScriptPixelData::create(outputData);
+		return ScriptPixelData::Create(outputData);
 	}
 
 	MonoObject* ScriptPixelUtility::internal_compress(MonoObject* source, CompressionOptions* options)
@@ -88,7 +88,7 @@ namespace bs
 
 		PixelUtil::compress(*sourcePixelData, *outputData, *options);
 
-		return ScriptPixelData::create(outputData);
+		return ScriptPixelData::Create(outputData);
 	}
 
 	MonoArray* ScriptPixelUtility::internal_generateMipmaps(MonoObject* source, MipMapGenOptions* options)
@@ -125,7 +125,7 @@ namespace bs
 
 		PixelUtil::scale(*sourcePixelData, *outputData, filter);
 
-		return ScriptPixelData::create(outputData);
+		return ScriptPixelData::Create(outputData);
 	}
 
 	void ScriptPixelUtility::internal_linearToSRGB(MonoObject* source)

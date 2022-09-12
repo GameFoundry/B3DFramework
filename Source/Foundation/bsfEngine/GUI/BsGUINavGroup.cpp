@@ -6,12 +6,12 @@
 
 namespace bs
 {
-	SPtr<GUINavGroup> GUINavGroup::create()
+	SPtr<GUINavGroup> GUINavGroup::Create()
 	{
 		return bs_shared_ptr_new<GUINavGroup>();
 	}
 
-	void GUINavGroup::focusFirst()
+	void GUINavGroup::FocusFirst()
 	{
 		if(mOrderedElements.empty())
 			return;
@@ -28,7 +28,7 @@ namespace bs
 		focusTopLeft();
 	}
 
-	void GUINavGroup::focusNext(GUIElement* anchor)
+	void GUINavGroup::FocusNext(GUIElement* anchor)
 	{
 		// Nothing currently in focus
 		if(!anchor)
@@ -224,7 +224,7 @@ namespace bs
 		}
 	}
 
-	void GUINavGroup::focusTopLeft()
+	void GUINavGroup::FocusTopLeft()
 	{
 		UINT32 lowestDist = std::numeric_limits<UINT32>::max();
 		GUIElement* topLeftElement = nullptr;
@@ -259,13 +259,13 @@ namespace bs
 			topLeftElement->setFocus(true, true);
 	}
 	
-	void GUINavGroup::registerElement(GUIElement* element, INT32 tabIdx)
+	void GUINavGroup::RegisterElement(GUIElement* element, INT32 tabIdx)
 	{
 		mElements[element] = tabIdx;
 		mOrderedElements.insert(std::make_pair(tabIdx, element));
 	}
 
-	void GUINavGroup::setIndex(GUIElement* element, INT32 tabIdx)
+	void GUINavGroup::SetIndex(GUIElement* element, INT32 tabIdx)
 	{
 		const auto iterFind = mElements.find(element);
 		assert(iterFind != mElements.end());
@@ -286,7 +286,7 @@ namespace bs
 		mOrderedElements.insert(std::make_pair(tabIdx, element));
 	}
 
-	void GUINavGroup::unregisterElement(GUIElement* element)
+	void GUINavGroup::UnregisterElement(GUIElement* element)
 	{
 		const auto iterFind = mElements.find(element);
 		if(iterFind == mElements.end())

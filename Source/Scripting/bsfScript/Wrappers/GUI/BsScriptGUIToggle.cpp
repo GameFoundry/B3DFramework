@@ -35,7 +35,7 @@ namespace bs
 
 	}
 
-	void ScriptGUIToggle::initRuntimeData()
+	void ScriptGUIToggle::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_CreateInstance", (void*)&ScriptGUIToggle::internal_createInstance);
 		metaData.scriptClass->addInternalCall("Internal_SetContent", (void*)&ScriptGUIToggle::internal_setContent);
@@ -110,27 +110,27 @@ namespace bs
 		toggle->setTint(*color);
 	}
 
-	void ScriptGUIToggle::onClick()
+	void ScriptGUIToggle::OnClick()
 	{
 		MonoUtil::invokeThunk(onClickThunk, getManagedInstance());
 	}
 
-	void ScriptGUIToggle::onHover()
+	void ScriptGUIToggle::OnHover()
 	{
 		MonoUtil::invokeThunk(onHoverThunk, getManagedInstance());
 	}
 
-	void ScriptGUIToggle::onOut()
+	void ScriptGUIToggle::OnOut()
 	{
 		MonoUtil::invokeThunk(onOutThunk, getManagedInstance());
 	}
 
-	void ScriptGUIToggle::onToggled(bool toggled)
+	void ScriptGUIToggle::OnToggled(bool toggled)
 	{
 		MonoUtil::invokeThunk(onToggledThunk, getManagedInstance(), toggled);
 	}
 
-	void ScriptGUIToggle::onDoubleClick()
+	void ScriptGUIToggle::OnDoubleClick()
 	{
 		MonoUtil::invokeThunk(onDoubleClickThunk, getManagedInstance());
 	}

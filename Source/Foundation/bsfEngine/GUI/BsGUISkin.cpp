@@ -18,7 +18,7 @@ namespace bs
 		:Resource(false)
 	{ }
 
-	bool GUISkin::hasStyle(const String& name) const
+	bool GUISkin::HasStyle(const String& name) const
 	{
 		auto iterFind = mStyles.find(name);
 
@@ -40,17 +40,17 @@ namespace bs
 		return &DefaultStyle;
 	}
 
-	void GUISkin::setStyle(const String& guiElemType, const GUIElementStyle& style)
+	void GUISkin::SetStyle(const String& guiElemType, const GUIElementStyle& style)
 	{
 		mStyles[guiElemType] = style;
 	}
 
-	void GUISkin::removeStyle(const String& guiElemType)
+	void GUISkin::RemoveStyle(const String& guiElemType)
 	{
 		mStyles.erase(guiElemType);
 	}
 
-	Vector<String> GUISkin::getStyleNames() const
+	Vector<String> GUISkin::GetStyleNames() const
 	{
 		Vector<String> output;
 		for (auto& pair : mStyles)
@@ -59,7 +59,7 @@ namespace bs
 		return output;
 	}
 
-	HGUISkin GUISkin::create()
+	HGUISkin GUISkin::Create()
 	{
 		SPtr<GUISkin> newSkin = _createPtr();
 
@@ -77,11 +77,11 @@ namespace bs
 
 	RTTITypeBase* GUISkin::getRTTIStatic()
 	{
-		return GUISkinRTTI::instance();
+		return GUISkinRTTI::Instance();
 	}
 
 	RTTITypeBase* GUISkin::getRTTI() const
 	{
-		return GUISkin::getRTTIStatic();
+		return GUISkin::GetRTTIStatic();
 	}
 }

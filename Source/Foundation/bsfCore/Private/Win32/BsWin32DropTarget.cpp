@@ -20,7 +20,7 @@ namespace bs
 		_clear();
 	}
 
-	void DropTarget::setArea(const Rect2I& area)
+	void DropTarget::SetArea(const Rect2I& area)
 	{
 		mArea = area;
 	}
@@ -40,13 +40,13 @@ namespace bs
 		mQueuedDropOps.clear();
 	}
 
-	void Win32DropTarget::registerWithOS()
+	void Win32DropTarget::RegisterWithOS()
 	{
 		CoLockObjectExternal(this, TRUE, FALSE);
 		RegisterDragDrop(mHWnd, this);
 	}
 
-	void Win32DropTarget::unregisterWithOS()
+	void Win32DropTarget::UnregisterWithOS()
 	{
 		RevokeDragDrop(mHWnd);
 		CoLockObjectExternal(this, FALSE, FALSE);
@@ -171,24 +171,24 @@ namespace bs
 		return S_OK;
 	}
 
-	void Win32DropTarget::registerDropTarget(DropTarget* dropTarget)
+	void Win32DropTarget::RegisterDropTarget(DropTarget* dropTarget)
 	{
 		mDropTargets.push_back(dropTarget);
 	}
 
-	void Win32DropTarget::unregisterDropTarget(DropTarget* dropTarget)
+	void Win32DropTarget::UnregisterDropTarget(DropTarget* dropTarget)
 	{
 		auto findIter = std::find(begin(mDropTargets), end(mDropTargets), dropTarget);
 		if(findIter != mDropTargets.end())
 			mDropTargets.erase(findIter);
 	}
 
-	unsigned int Win32DropTarget::getNumDropTargets() const
+	unsigned int Win32DropTarget::GetNumDropTargets() const
 	{
 		return (unsigned int)mDropTargets.size();
 	}
 
-	void Win32DropTarget::update()
+	void Win32DropTarget::Update()
 	{
 		Lock Lock(mSync);
 
@@ -254,7 +254,7 @@ namespace bs
 		mQueuedDropOps.clear();
 	}
 
-	bool Win32DropTarget::isDataValid(IDataObject* data)
+	bool Win32DropTarget::IsDataValid(IDataObject* data)
 	{
 		// TODO - Currently only supports file drag and drop, so only CF_HDROP is used
 		FORMATETC fmtetc = { CF_HDROP, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };

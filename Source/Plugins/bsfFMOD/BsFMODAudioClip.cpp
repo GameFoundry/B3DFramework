@@ -77,7 +77,7 @@ namespace bs
 			mSound->release();
 	}
 
-	void FMODAudioClip::initialize()
+	void FMODAudioClip::Initialize()
 	{
 		AudioDataInfo info;
 		info.bitDepth = mDesc.bitDepth;
@@ -315,7 +315,7 @@ namespace bs
 		return sound;
 	}
 
-	void FMODAudioClip::releaseStreamingSound(FMOD::Sound* sound)
+	void FMODAudioClip::ReleaseStreamingSound(FMOD::Sound* sound)
 	{
 		FMODOggDecompressorData* decompressorData = nullptr;
 		((FMOD::Sound*)sound)->getUserData((void**)&decompressorData);
@@ -326,7 +326,7 @@ namespace bs
 		sound->release();
 	}
 
-	SPtr<DataStream> FMODAudioClip::getSourceStream(UINT32& size)
+	SPtr<DataStream> FMODAudioClip::GetSourceStream(UINT32& size)
 	{
 		size = mSourceStreamSize;
 		mSourceStreamData->seek(0);
@@ -334,7 +334,7 @@ namespace bs
 		return mSourceStreamData;
 	}
 
-	bool FMODAudioClip::requiresStreaming() const
+	bool FMODAudioClip::RequiresStreaming() const
 	{
 		return mDesc.readMode == AudioReadMode::Stream ||
 			(mDesc.readMode == AudioReadMode::LoadCompressed && mDesc.format == AudioFormat::VORBIS);

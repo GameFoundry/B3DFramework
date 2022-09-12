@@ -7,7 +7,7 @@ namespace bs
 {
 	BS_THREADLOCAL MemStackInternal<1024 * 1024>* MemStack::ThreadMemStack = nullptr;
 
-	void MemStack::beginThread()
+	void MemStack::BeginThread()
 	{
 		if(ThreadMemStack != nullptr)
 			endThread();
@@ -15,7 +15,7 @@ namespace bs
 		ThreadMemStack = bs_new<MemStackInternal<1024 * 1024>>();
 	}
 
-	void MemStack::endThread()
+	void MemStack::EndThread()
 	{
 		if(ThreadMemStack != nullptr)
 		{
@@ -31,7 +31,7 @@ namespace bs
 		return ThreadMemStack->alloc(numBytes);
 	}
 
-	void MemStack::deallocLast(UINT8* data)
+	void MemStack::DeallocLast(UINT8* data)
 	{
 		assert(ThreadMemStack != nullptr && "Stack deallocation failed. Did you call beginThread?");
 

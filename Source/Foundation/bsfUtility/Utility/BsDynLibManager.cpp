@@ -49,7 +49,7 @@ namespace bs
 		}
 	}
 
-	void DynLibManager::unload(DynLib* lib)
+	void DynLibManager::Unload(DynLib* lib)
 	{
 		const auto& iterFind = mLoadedLibraries.find(lib->getName());
 		if(iterFind != mLoadedLibraries.end())
@@ -60,6 +60,6 @@ namespace bs
 
 	DynLibManager& GDynLibManager()
 	{
-		return DynLibManager::instance();
+		return DynLibManager::Instance();
 	}
 }

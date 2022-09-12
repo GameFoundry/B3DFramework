@@ -17,7 +17,7 @@ namespace bs { namespace ct
 {
 	ShadowParamsDef gShadowParamsDef;
 
-	void ShadowDepthNormalMat::bind(const SPtr<GpuParamBlockBuffer>& shadowParams)
+	void ShadowDepthNormalMat::Bind(const SPtr<GpuParamBlockBuffer>& shadowParams)
 	{
 		mParams->setParamBlockBuffer("ShadowParams", shadowParams);
 
@@ -25,7 +25,7 @@ namespace bs { namespace ct
 		RenderAPI::instance().setStencilRef(mStencilRef);
 	}
 	
-	void ShadowDepthNormalMat::setPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams)
+	void ShadowDepthNormalMat::SetPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams)
 	{
 		mParams->setParamBlockBuffer("PerObject", perObjectParams);
 
@@ -53,7 +53,7 @@ namespace bs { namespace ct
 	ShadowDepthNormalNoPSMat::ShadowDepthNormalNoPSMat()
 	{ }
 
-	void ShadowDepthNormalNoPSMat::bind(const SPtr<GpuParamBlockBuffer>& shadowParams)
+	void ShadowDepthNormalNoPSMat::Bind(const SPtr<GpuParamBlockBuffer>& shadowParams)
 	{
 		mParams->setParamBlockBuffer("ShadowParams", shadowParams);
 
@@ -61,7 +61,7 @@ namespace bs { namespace ct
 		RenderAPI::instance().setStencilRef(mStencilRef);
 	}
 
-	void ShadowDepthNormalNoPSMat::setPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams)
+	void ShadowDepthNormalNoPSMat::SetPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams)
 	{
 		mParams->setParamBlockBuffer("PerObject", perObjectParams);
 
@@ -89,7 +89,7 @@ namespace bs { namespace ct
 	ShadowDepthDirectionalMat::ShadowDepthDirectionalMat()
 	{ }
 
-	void ShadowDepthDirectionalMat::bind(const SPtr<GpuParamBlockBuffer>& shadowParams)
+	void ShadowDepthDirectionalMat::Bind(const SPtr<GpuParamBlockBuffer>& shadowParams)
 	{
 		mParams->setParamBlockBuffer("ShadowParams", shadowParams);
 
@@ -97,7 +97,7 @@ namespace bs { namespace ct
 		RenderAPI::instance().setStencilRef(mStencilRef);
 	}
 	
-	void ShadowDepthDirectionalMat::setPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams)
+	void ShadowDepthDirectionalMat::SetPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams)
 	{
 		mParams->setParamBlockBuffer("PerObject", perObjectParams);
 		RenderAPI::instance().setGpuParams(mParams);
@@ -174,7 +174,7 @@ namespace bs { namespace ct
 			mParams->setParamBlockBuffer(GPT_VERTEX_PROGRAM, "VertParams", mVertParams);
 	}
 
-	void ShadowProjectStencilMat::bind(const SPtr<GpuParamBlockBuffer>& perCamera)
+	void ShadowProjectStencilMat::Bind(const SPtr<GpuParamBlockBuffer>& perCamera)
 	{
 		Vector4 LightPosAndScale(0, 0, 0, 1);
 		gShadowProjectVertParamsDef.gPositionAndScale.set(mVertParams, lightPosAndScale);
@@ -221,7 +221,7 @@ namespace bs { namespace ct
 			mParams->setParamBlockBuffer(GPT_VERTEX_PROGRAM, "VertParams", mVertParams);
 	}
 
-	void ShadowProjectMat::bind(const ShadowProjectParams& params)
+	void ShadowProjectMat::Bind(const ShadowProjectParams& params)
 	{
 		Vector4 LightPosAndScale(Vector3(0.0f, 0.0f, 0.0f), 1.0f);
 		gShadowProjectVertParamsDef.gPositionAndScale.set(mVertParams, lightPosAndScale);
@@ -293,7 +293,7 @@ namespace bs { namespace ct
 			mParams->setParamBlockBuffer(GPT_VERTEX_PROGRAM, "VertParams", mVertParams);
 	}
 
-	void ShadowProjectOmniMat::bind(const ShadowProjectParams& params)
+	void ShadowProjectOmniMat::Bind(const ShadowProjectParams& params)
 	{
 		Vector4 LightPosAndScale(params.light.getTransform().getPosition(), params.light.getAttenuationRadius());
 		gShadowProjectVertParamsDef.gPositionAndScale.set(mVertParams, lightPosAndScale);
@@ -337,7 +337,7 @@ namespace bs { namespace ct
 #undef BIND_MAT
 	}
 
-	void ShadowInfo::updateNormArea(UINT32 atlasSize)
+	void ShadowInfo::UpdateNormArea(UINT32 atlasSize)
 	{
 		normArea.x = area.x / (float)atlasSize;
 		normArea.y = area.y / (float)atlasSize;
@@ -352,7 +352,7 @@ namespace bs { namespace ct
 			POOLED_RENDER_TEXTURE_DESC::create2D(SHADOW_MAP_FORMAT, size, size, TU_DEPTHSTENCIL));
 	}
 
-	bool ShadowMapAtlas::addMap(UINT32 size, Rect2I& area, UINT32 border)
+	bool ShadowMapAtlas::AddMap(UINT32 size, Rect2I& area, UINT32 border)
 	{
 		UINT32 sizeWithBorder = size + border * 2;
 
@@ -368,23 +368,23 @@ namespace bs { namespace ct
 		return true;
 	}
 
-	void ShadowMapAtlas::clear()
+	void ShadowMapAtlas::Clear()
 	{
 		mLayout.clear();
 		mLastUsedCounter++;
 	}
 
-	bool ShadowMapAtlas::isEmpty() const
+	bool ShadowMapAtlas::IsEmpty() const
 	{
 		return mLayout.isEmpty();
 	}
 
-	SPtr<Texture> ShadowMapAtlas::getTexture() const
+	SPtr<Texture> ShadowMapAtlas::GetTexture() const
 	{
 		return mAtlas->texture;
 	}
 
-	SPtr<RenderTexture> ShadowMapAtlas::getTarget() const
+	SPtr<RenderTexture> ShadowMapAtlas::GetTarget() const
 	{
 		return mAtlas->renderTexture;
 	}
@@ -393,7 +393,7 @@ namespace bs { namespace ct
 		: MSize(size), mIsUsed(false), mLastUsedCounter (0)
 	{ }
 
-	SPtr<Texture> ShadowMapBase::getTexture() const
+	SPtr<Texture> ShadowMapBase::GetTexture() const
 	{
 		return mShadowMap->texture;
 	}
@@ -405,7 +405,7 @@ namespace bs { namespace ct
 			POOLED_RENDER_TEXTURE_DESC::createCube(SHADOW_MAP_FORMAT, size, size, TU_DEPTHSTENCIL));
 	}
 
-	SPtr<RenderTexture> ShadowCubemap::getTarget() const
+	SPtr<RenderTexture> ShadowCubemap::GetTarget() const
 	{
 		return mShadowMap->renderTexture;
 	}
@@ -427,7 +427,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	SPtr<RenderTexture> ShadowCascadedMap::getTarget(UINT32 cascadeIdx) const
+	SPtr<RenderTexture> ShadowCascadedMap::GetTarget(UINT32 cascadeIdx) const
 	{
 		return mTargets[cascadeIdx];
 	}
@@ -759,7 +759,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void ShadowRendering::setShadowMapSize(UINT32 size)
+	void ShadowRendering::SetShadowMapSize(UINT32 size)
 	{
 		if (mShadowMapSize == size)
 			return;
@@ -1705,7 +1705,7 @@ namespace bs { namespace ct
 		size = std::max(effectiveMapSize - 2 * border, 1u);
 	}
 
-	void ShadowRendering::drawNearFarPlanes(float near, float far, bool drawNear) const
+	void ShadowRendering::DrawNearFarPlanes(float near, float far, bool drawNear) const
 	{
 		const Conventions& rapiConventions = gCaps().conventions;
 		float flipY = (rapiConventions.ndcYAxis == Conventions::Axis::Down) ? -1.0f : 1.0f;
@@ -1738,7 +1738,7 @@ namespace bs { namespace ct
 		rapi.drawIndexed(0, drawNear ? 12 : 6, 0, drawNear ? 8 : 4);
 	}
 
-	void ShadowRendering::drawFrustum(const std::array<Vector3, 8>& corners) const
+	void ShadowRendering::DrawFrustum(const std::array<Vector3, 8>& corners) const
 	{
 		RenderAPI& rapi = RenderAPI::instance();
 
@@ -1754,7 +1754,7 @@ namespace bs { namespace ct
 		rapi.drawIndexed(0, 36, 0, 8);
 	}
 
-	UINT32 ShadowRendering::getShadowQuality(UINT32 requestedQuality, UINT32 shadowMapResolution, UINT32 minAllowedQuality)
+	UINT32 ShadowRendering::GetShadowQuality(UINT32 requestedQuality, UINT32 shadowMapResolution, UINT32 minAllowedQuality)
 	{
 		static const UINT32 TARGET_RESOLUTION = 512;
 
@@ -1912,7 +1912,7 @@ namespace bs { namespace ct
 		return ConvexVolume(lightVolume);
 	}
 
-	float ShadowRendering::getCSMSplitDistance(const RendererView& view, UINT32 index, UINT32 numCascades)
+	float ShadowRendering::GetCSMSplitDistance(const RendererView& view, UINT32 index, UINT32 numCascades)
 	{
 		auto& shadowSettings = view.getRenderSettings().shadowSettings;
 		float distributionExponent = shadowSettings.cascadeDistributionExponent;
@@ -1945,7 +1945,7 @@ namespace bs { namespace ct
 		return near + (far - near) * scale;
 	}
 
-	float ShadowRendering::getDepthBias(const Light& light, float radius, float depthRange, UINT32 mapSize)
+	float ShadowRendering::GetDepthBias(const Light& light, float radius, float depthRange, UINT32 mapSize)
 	{
 		const static float RADIAL_LIGHT_BIAS = 0.005f;
 		const static float SPOT_DEPTH_BIAS = 0.01f;
@@ -1988,7 +1988,7 @@ namespace bs { namespace ct
 		return defaultBias * light.getShadowBias() * resolutionScale * rangeScale;
 	}
 
-	float ShadowRendering::getFadeTransition(const Light& light, float radius, float depthRange, UINT32 mapSize)
+	float ShadowRendering::GetFadeTransition(const Light& light, float radius, float depthRange, UINT32 mapSize)
 	{
 		const static float SPOT_LIGHT_SCALE = 1000.0f;
 		const static float DIR_LIGHT_SCALE = 50000000.0f;

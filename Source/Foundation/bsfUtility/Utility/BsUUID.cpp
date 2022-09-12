@@ -107,7 +107,7 @@ namespace bs
 		}
 	}
 
-	String UUID::toString() const
+	String UUID::ToString() const
 	{
 		UINT8 output[36];
 		UINT32 idx = 0;
@@ -164,8 +164,8 @@ namespace bs
 		return String((const char*)output, 36);
 	}
 
-	UUID UUIDGenerator::generateRandom()
+	UUID UUIDGenerator::GenerateRandom()
 	{
-		return PlatformUtility::generateUUID();
+		return PlatformUtility::GenerateUUID();
 	}
 }

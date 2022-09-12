@@ -16,7 +16,7 @@ namespace bs
 		:ScriptObject(instance), mOp(op), mConvertCallback(convertCallback)
 	{ }
 
-	void ScriptAsyncOpBase::initRuntimeData()
+	void ScriptAsyncOpBase::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_IsComplete", (void*)&ScriptAsyncOpBase::internal_IsComplete);
 		metaData.scriptClass->addInternalCall("Internal_BlockUntilComplete", (void*)&ScriptAsyncOpBase::internal_BlockUntilComplete);
@@ -76,7 +76,7 @@ namespace bs
 		MonoClass* asyncOpClass = ScriptAssemblyManager::instance().getBuiltinClasses().genericAsyncOpClass;
 
 		::MonoClass* params[1] = { param };
-		return MonoUtil::bindGenericParameters(asyncOpClass->_getInternalClass(), params, 1);
+		return MonoUtil::BindGenericParameters(asyncOpClass->_getInternalClass(), params, 1);
 	}
 
 	bool ScriptAsyncOpBase::internal_IsComplete(ScriptAsyncOpBase* thisPtr)

@@ -13,20 +13,20 @@ namespace bs
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptLimitLinearRange::initRuntimeData()
+	void ScriptLimitLinearRange::InitRuntimeData()
 	{ }
 
 	MonoObject*ScriptLimitLinearRange::box(const __LimitLinearRangeInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::Box(metaData.scriptClass->_getInternalClass(), (void*)&value);
 	}
 
-	__LimitLinearRangeInterop ScriptLimitLinearRange::unbox(MonoObject* value)
+	__LimitLinearRangeInterop ScriptLimitLinearRange::Unbox(MonoObject* value)
 	{
 		return *(__LimitLinearRangeInterop*)MonoUtil::unbox(value);
 	}
 
-	LimitLinearRange ScriptLimitLinearRange::fromInterop(const __LimitLinearRangeInterop& value)
+	LimitLinearRange ScriptLimitLinearRange::FromInterop(const __LimitLinearRangeInterop& value)
 	{
 		LimitLinearRange output;
 		output.lower = value.lower;
@@ -38,7 +38,7 @@ namespace bs
 		return output;
 	}
 
-	__LimitLinearRangeInterop ScriptLimitLinearRange::toInterop(const LimitLinearRange& value)
+	__LimitLinearRangeInterop ScriptLimitLinearRange::ToInterop(const LimitLinearRange& value)
 	{
 		__LimitLinearRangeInterop output;
 		output.lower = value.lower;

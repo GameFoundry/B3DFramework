@@ -105,7 +105,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRTTIObject() override
 		{
-			return ManagedSerializableArray::createNew();
+			return ManagedSerializableArray::CreateNew();
 		}
 	};
 

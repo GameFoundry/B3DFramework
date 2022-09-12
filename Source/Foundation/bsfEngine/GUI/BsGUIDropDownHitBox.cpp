@@ -6,7 +6,7 @@
 
 namespace bs
 {
-	const String& GUIDropDownHitBox::getGUITypeName()
+	const String& GUIDropDownHitBox::GetGUITypeName()
 	{
 		static String name = "DropDownHitBox";
 		return name;
@@ -32,7 +32,7 @@ namespace bs
 		mOptionFlags.set(GUIElementOption::ClickThrough);
 	}
 
-	void GUIDropDownHitBox::setBounds(const Rect2I& bounds)
+	void GUIDropDownHitBox::SetBounds(const Rect2I& bounds)
 	{
 		mBounds.clear();
 		mBounds.push_back(bounds);
@@ -40,14 +40,14 @@ namespace bs
 		updateClippedBounds();
 	}
 
-	void GUIDropDownHitBox::setBounds(const Vector<Rect2I>& bounds)
+	void GUIDropDownHitBox::SetBounds(const Vector<Rect2I>& bounds)
 	{
 		mBounds = bounds;
 
 		updateClippedBounds();
 	}
 
-	void GUIDropDownHitBox::updateClippedBounds()
+	void GUIDropDownHitBox::UpdateClippedBounds()
 	{
 		mClippedBounds = Rect2I();
 

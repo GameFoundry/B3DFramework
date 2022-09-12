@@ -17,7 +17,7 @@ namespace bs
 	{
 	}
 
-	void ScriptCRenderable::initRuntimeData()
+	void ScriptCRenderable::InitRuntimeData()
 	{
 		metaData.scriptClass->addInternalCall("Internal_setMesh", (void*)&ScriptCRenderable::Internal_setMesh);
 		metaData.scriptClass->addInternalCall("Internal_getMesh", (void*)&ScriptCRenderable::Internal_getMesh);

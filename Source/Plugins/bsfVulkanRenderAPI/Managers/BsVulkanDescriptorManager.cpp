@@ -60,7 +60,7 @@ namespace bs { namespace ct
 		return true;
 	}
 
-	size_t VulkanPipelineLayoutKey::calculateHash() const
+	size_t VulkanPipelineLayoutKey::CalculateHash() const
 	{
 		size_t hash = 0;
 		for (UINT32 i = 0; i < numLayouts; i++)
@@ -140,7 +140,7 @@ namespace bs { namespace ct
 		return mDevice.getResourceManager().create<VulkanDescriptorSet>(set, allocateInfo.descriptorPool);
 	}
 
-	VkPipelineLayout VulkanDescriptorManager::getPipelineLayout(VulkanDescriptorLayout** layouts, UINT32 numLayouts)
+	VkPipelineLayout VulkanDescriptorManager::GetPipelineLayout(VulkanDescriptorLayout** layouts, UINT32 numLayouts)
 	{
 		VulkanPipelineLayoutKey Key(layouts, numLayouts);
 

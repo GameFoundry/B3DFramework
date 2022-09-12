@@ -51,7 +51,7 @@ namespace bs
 			ov_clear(&mOggVorbisFile);
 	}
 
-	bool OggVorbisDecoder::isValid(const SPtr<DataStream>& stream, UINT32 offset)
+	bool OggVorbisDecoder::IsValid(const SPtr<DataStream>& stream, UINT32 offset)
 	{
 		stream->seek(offset);
 		mDecoderData.stream = stream;
@@ -67,7 +67,7 @@ namespace bs
 		return false;
 	}
 
-	bool OggVorbisDecoder::open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset)
+	bool OggVorbisDecoder::Open(const SPtr<DataStream>& stream, AudioDataInfo& info, UINT32 offset)
 	{
 		if (stream == nullptr)
 			return false;
@@ -93,12 +93,12 @@ namespace bs
 		return true;
 	}
 
-	void OggVorbisDecoder::seek(UINT32 offset)
+	void OggVorbisDecoder::Seek(UINT32 offset)
 	{
 		ov_pcm_seek(&mOggVorbisFile, offset / mChannelCount);
 	}
 
-	UINT32 OggVorbisDecoder::read(UINT8* samples, UINT32 numSamples)
+	UINT32 OggVorbisDecoder::Read(UINT8* samples, UINT32 numSamples)
 	{
 		UINT32 numReadSamples = 0;
 		while (numReadSamples < numSamples)

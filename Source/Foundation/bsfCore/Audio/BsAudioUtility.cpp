@@ -122,7 +122,7 @@ namespace bs
 		}
 	}
 
-	void AudioUtility::convertToMono(const UINT8* input, UINT8* output, UINT32 bitDepth, UINT32 numSamples, UINT32 numChannels)
+	void AudioUtility::ConvertToMono(const UINT8* input, UINT8* output, UINT32 bitDepth, UINT32 numSamples, UINT32 numChannels)
 	{
 		switch (bitDepth)
 		{
@@ -144,7 +144,7 @@ namespace bs
 		}
 	}
 
-	void AudioUtility::convertBitDepth(const UINT8* input, UINT32 inBitDepth, UINT8* output, UINT32 outBitDepth, UINT32 numSamples)
+	void AudioUtility::ConvertBitDepth(const UINT8* input, UINT32 inBitDepth, UINT8* output, UINT32 outBitDepth, UINT32 numSamples)
 	{
 		INT32* srcBuffer = nullptr;
 
@@ -202,7 +202,7 @@ namespace bs
 		}
 	}
 
-	void AudioUtility::convertToFloat(const UINT8* input, UINT32 inBitDepth, float* output, UINT32 numSamples)
+	void AudioUtility::ConvertToFloat(const UINT8* input, UINT32 inBitDepth, float* output, UINT32 numSamples)
 	{
 		if (inBitDepth == 8)
 		{
@@ -248,7 +248,7 @@ namespace bs
 			assert(false);
 	}
 
-	INT32 AudioUtility::convert24To32Bits(const UINT8* input)
+	INT32 AudioUtility::Convert24To32Bits(const UINT8* input)
 	{
 		return (input[2] << 24) | (input[1] << 16) | (input[0] << 8);
 	}
