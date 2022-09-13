@@ -10,22 +10,22 @@ namespace bs
 {
 	void Ray::Transform(const Matrix4& matrix)
 	{
-		Vector3 end = getPoint(1.0f);
+		Vector3 end = GetPoint(1.0f);
 
 		mOrigin = matrix.Multiply(mOrigin);
 		end = matrix.Multiply(end);
 
-		mDirection = Vector3::normalize(end - mOrigin);
+		mDirection = Vector3::Normalize(end - mOrigin);
 	}
 
 	void Ray::TransformAffine(const Matrix4& matrix)
 	{
-		Vector3 end = getPoint(1.0f);
+		Vector3 end = GetPoint(1.0f);
 
 		mOrigin = matrix.MultiplyAffine(mOrigin);
 		end = matrix.MultiplyAffine(end);
 
-		mDirection = Vector3::normalize(end - mOrigin);
+		mDirection = Vector3::Normalize(end - mOrigin);
 	}
 
 	std::pair<bool, float> Ray::Intersects(const Plane& p) const
@@ -43,14 +43,14 @@ namespace bs
 		return box.Intersects(*this);
 	}
 
-	std::pair<bool, float> Ray::intersects(const Vector3& a,
+	std::pair<bool, float> Ray::Intersects(const Vector3& a,
 		const Vector3& b, const Vector3& c, const Vector3& normal,
 		bool positiveSide, bool negativeSide) const
 	{
 		// Calculate intersection with plane.
 		float t;
 		{
-			float denom = normal.Dot(getDirection());
+			float denom = normal.Dot(GetDirection());
 
 			// Check intersect side
 			if (denom > + std::numeric_limits<float>::epsilon())
@@ -70,7 +70,7 @@ namespace bs
 				return std::pair<bool, float>(false, 0.0f);
 			}
 
-			t = normal.Dot(a - getOrigin()) / denom;
+			t = normal.Dot(a - GetOrigin()) / denom;
 
 			if (t < 0)
 			{
@@ -82,9 +82,9 @@ namespace bs
 		// Calculate the largest area projection plane in X, Y or Z.
 		UINT32 i0, i1;
 		{
-			float n0 = Math::abs(normal[0]);
-			float n1 = Math::abs(normal[1]);
-			float n2 = Math::abs(normal[2]);
+			float n0 = Math::Abs(normal[0]);
+			float n1 = Math::Abs(normal[1]);
+			float n2 = Math::Abs(normal[2]);
 
 			i0 = 1; i1 = 2;
 			if (n1 > n2)
@@ -103,8 +103,8 @@ namespace bs
 			float v1 = b[i1] - a[i1];
 			float u2 = c[i0] - a[i0];
 			float v2 = c[i1] - a[i1];
-			float u0 = t * getDirection()[i0] + getOrigin()[i0] - a[i0];
-			float v0 = t * getDirection()[i1] + getOrigin()[i1] - a[i1];
+			float u0 = t * GetDirection()[i0] + GetOrigin()[i0] - a[i0];
+			float v0 = t * GetDirection()[i1] + GetOrigin()[i1] - a[i1];
 
 			float alpha = u0 * v2 - u2 * v0;
 			float beta  = u1 * v0 - u0 * v1;

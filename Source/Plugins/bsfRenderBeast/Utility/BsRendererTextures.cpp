@@ -163,8 +163,8 @@ namespace bs { namespace ct
 				offset /= NumSamples;
 
 				Color color;
-				color.r = Math::clamp01(scale);
-				color.g = Math::clamp01(offset);
+				color.r = Math::Clamp01(scale);
+				color.g = Math::Clamp01(offset);
 
 				pixelData.SetColorAt(color, x, y);
 			}

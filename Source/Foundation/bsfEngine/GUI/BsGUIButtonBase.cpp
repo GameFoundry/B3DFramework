@@ -99,13 +99,13 @@ namespace bs
 
 			if (horzRatio < vertRatio)
 			{
-				contentWidth = Math::roundToInt(contentWidth * horzRatio);
-				contentHeight = Math::roundToInt(contentHeight * horzRatio);
+				contentWidth = Math::RoundToInt(contentWidth * horzRatio);
+				contentHeight = Math::RoundToInt(contentHeight * horzRatio);
 			}
 			else
 			{
-				contentWidth = Math::roundToInt(contentWidth * vertRatio);
-				contentHeight = Math::roundToInt(contentHeight * vertRatio);
+				contentWidth = Math::RoundToInt(contentWidth * vertRatio);
+				contentHeight = Math::RoundToInt(contentHeight * vertRatio);
 			}
 
 			IMAGE_SPRITE_DESC contentImgDesc;

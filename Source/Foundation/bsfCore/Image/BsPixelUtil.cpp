@@ -1388,8 +1388,8 @@ namespace bs
 				case PF_BC5:
 				case PF_BC6H:
 				case PF_BC7:
-					width = Math::divideAndRoundUp(width, 4U);
-					height = Math::divideAndRoundUp(height, 4U);
+					width = Math::DivideAndRoundUp(width, 4U);
+					height = Math::DivideAndRoundUp(height, 4U);
 					break;
 				default:
 					break;
@@ -1417,8 +1417,8 @@ namespace bs
 			case PF_BC5:
 			case PF_BC6H:
 			case PF_BC7:
-				width = Math::divideAndRoundUp(width, 4U);
-				height = Math::divideAndRoundUp(height, 4U);
+				width = Math::DivideAndRoundUp(width, 4U);
+				height = Math::DivideAndRoundUp(height, 4U);
 				break;
 			default:
 				break;

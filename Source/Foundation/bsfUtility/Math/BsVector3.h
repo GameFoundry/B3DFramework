@@ -55,18 +55,6 @@ namespace bs
 			return *(&x + i);
 		}
 
-		/** Pointer accessor for direct copying. */
-		float* ptr()
-		{
-			return &x;
-		}
-
-		/** Pointer accessor for direct copying. */
-		const float* ptr() const
-		{
-			return &x;
-		}
-
 		Vector3& operator= (float rhs)
 		{
 			x = rhs;
@@ -238,7 +226,7 @@ namespace bs
 		/** Returns the length (magnitude) of the vector. */
 		float Length() const
 		{
-			return std::Sqrt(x * x + y * y + z * z);
+			return std::sqrt(x * x + y * y + z * z);
 		}
 
 		/** Returns the square of the length(magnitude) of the vector. */
@@ -272,7 +260,7 @@ namespace bs
 		template<bool SAFE = true>
 		float Normalize(float tolerance = 1e-04f)
 		{
-			float len = length();
+			float len = Length();
 			if (!SAFE || len > (tolerance * tolerance))
 				*this *= 1.0f / len;
 
@@ -342,9 +330,9 @@ namespace bs
 			else
 				a = Vector3(0, z, -y);
 
-			b = cross(a);
+			b = Cross(a);
 
-			orthonormalize(*this, a, b);
+			Orthonormalize(*this, a, b);
 		}
 
 		/** Performs Gram-Schmidt orthonormalization. */
@@ -375,9 +363,9 @@ namespace bs
 		template<bool SAFE = true>
 		static Vector3 Normalize(const Vector3& v, float tolerance = 1e-04f)
 		{
-			float sqrdLen = dot(v, v);
+			float sqrdLen = Dot(v, v);
 			if (!SAFE || sqrdLen > tolerance)
-				return v * Math::invSqrt(sqrdLen);
+				return v * Math::InverseSqrt(sqrdLen);
 
 			return v;
 		}

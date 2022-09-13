@@ -60,7 +60,7 @@ namespace bs
 		if (nextFrameTime <= currentTime)
 		{
 			const INT64 simulationAmount = (INT64)std::max(currentTime - mLastFixedUpdateTime, mFixedStep); // At least one step
-			auto numIterations = (UINT32)Math::divideAndRoundUp(simulationAmount, (INT64)mFixedStep);
+			auto numIterations = (UINT32)Math::DivideAndRoundUp(simulationAmount, (INT64)mFixedStep);
 
 			// Prevent physics from completely hogging the CPU. If the framerate is low, the physics will want to run many
 			// iterations per frame, slowing down the game even further. Therefore we limit the number of physics updates
@@ -79,8 +79,8 @@ namespace bs
 			auto stepus = (INT64)mFixedStep;
 			if (numIterations > mNumRemainingFixedUpdates)
 			{
-				stepus = Math::divideAndRoundUp(simulationAmount, (INT64)mNumRemainingFixedUpdates);
-				numIterations = (UINT32)Math::divideAndRoundUp(simulationAmount, (INT64)stepus);
+				stepus = Math::DivideAndRoundUp(simulationAmount, (INT64)mNumRemainingFixedUpdates);
+				numIterations = (UINT32)Math::DivideAndRoundUp(simulationAmount, (INT64)stepus);
 			}
 
 			assert(numIterations <= mNumRemainingFixedUpdates);

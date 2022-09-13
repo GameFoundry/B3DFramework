@@ -8,7 +8,7 @@ namespace bs { namespace ct
 {
 	VulkanResource::VulkanResource(VulkanResourceManager* owner, bool concurrency)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		mOwner = owner;
 		mQueueFamily = -1;
@@ -24,13 +24,13 @@ namespace bs { namespace ct
 	{
 		THROW_IF_NOT_CORE_THREAD
 
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 		assert(mState == State::Destroyed && "Vulkan resource getting destructed without destroy() called first.");
 	}
 
 	void VulkanResource::NotifyBound()
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 		assert(mState != State::Destroyed);
 
 		mNumBoundHandles++;
@@ -38,7 +38,7 @@ namespace bs { namespace ct
 
 	void VulkanResource::NotifyUsed(UINT32 globalQueueIdx, UINT32 queueFamily, VulkanAccessFlags useFlags)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 		assert(useFlags != VulkanAccessFlag::None);
 
 		bool isUsed = mNumUsedHandles > 0;
@@ -70,7 +70,7 @@ namespace bs { namespace ct
 	{
 		bool destroy;
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 			mNumUsedHandles--;
 			mNumBoundHandles--;
 
@@ -99,7 +99,7 @@ namespace bs { namespace ct
 	{
 		bool destroy;
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 			mNumBoundHandles--;
 
 			bool isBound = mNumBoundHandles > 0;
@@ -140,7 +140,7 @@ namespace bs { namespace ct
 	{
 		bool destroy;
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 			assert(mState != State::Destroyed && "Vulkan resource destroy() called more than once.");
 
 			mState = State::Destroyed;
@@ -167,7 +167,7 @@ namespace bs { namespace ct
 	VulkanResourceManager::~VulkanResourceManager()
 	{
 #if BS_DEBUG_MODE
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 		assert(mResources.empty() && "Resource manager shutting down but not all resources were released.");
 #endif
 	}
@@ -176,7 +176,7 @@ namespace bs { namespace ct
 	{
 #if BS_DEBUG_MODE
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 			mResources.erase(resource);
 		}
 #endif

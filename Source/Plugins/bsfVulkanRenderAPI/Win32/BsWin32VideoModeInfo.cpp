@@ -70,7 +70,7 @@ namespace bs { namespace ct
 			{
 				Win32VideoMode* win32VideoMode = static_cast<Win32VideoMode*>(videoMode);
 
-				UINT32 intRefresh = Math::roundToInt(win32VideoMode->refreshRate);
+				UINT32 intRefresh = Math::RoundToInt(win32VideoMode->refreshRate);
 				if (win32VideoMode->width == devMode.dmPelsWidth && win32VideoMode->height == devMode.dmPelsHeight
 					&& intRefresh == devMode.dmDisplayFrequency)
 				{

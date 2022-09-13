@@ -612,24 +612,24 @@ namespace bs
 			{
 				float aspect = source->GetWidth() / (float)source->getHeight();
 				
-				if(Math::approxEquals(aspect, 6.0f)) // Horizontal list
+				if(Math::ApproxEquals(aspect, 6.0f)) // Horizontal list
 				{
 					faceSize.x = source->GetWidth() / 6;
 					faceSize.y = source->GetHeight();
 				}
-				else if(Math::approxEquals(aspect, 1.0f / 6.0f)) // Vertical list
+				else if(Math::ApproxEquals(aspect, 1.0f / 6.0f)) // Vertical list
 				{
 					faceSize.x = source->GetWidth();
 					faceSize.y = source->GetHeight() / 6;
 					vertical = true;
 				}
-				else if(Math::approxEquals(aspect, 4.0f / 3.0f)) // Horizontal cross
+				else if(Math::ApproxEquals(aspect, 4.0f / 3.0f)) // Horizontal cross
 				{
 					faceSize.x = source->GetWidth() / 4;
 					faceSize.y = source->GetHeight() / 3;
 					cross = true;
 				}
-				else if(Math::approxEquals(aspect, 3.0f / 4.0f)) // Vertical cross
+				else if(Math::ApproxEquals(aspect, 3.0f / 4.0f)) // Vertical cross
 				{
 					faceSize.x = source->GetWidth() / 3;
 					faceSize.y = source->GetHeight() / 4;

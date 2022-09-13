@@ -2680,8 +2680,8 @@ namespace bs { namespace ct
 			if(param.type == GPDT_STRUCT)
 			{
 				// Structs are always aligned and rounded up to vec4
-				size = Math::divideAndRoundUp(param.elementSize, 16U) * 4;
-				block.blockSize = Math::divideAndRoundUp(block.blockSize, 4U) * 4;
+				size = Math::DivideAndRoundUp(param.elementSize, 16U) * 4;
+				block.blockSize = Math::DivideAndRoundUp(block.blockSize, 4U) * 4;
 			}
 			else
 				size = GLSLParamParser::calcInterfaceBlockElementSizeAndOffset(param.type, param.arraySize, block.blockSize);

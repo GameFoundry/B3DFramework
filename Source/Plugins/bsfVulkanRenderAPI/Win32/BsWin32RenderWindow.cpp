@@ -65,7 +65,7 @@ namespace bs
 
 	void Win32RenderWindow::SyncProperties()
 	{
-		ScopedSpinLock Lock(getCore()->mLock);
+		ScopedSpinLock lock(getCore()->mLock);
 		mProperties = getCore()->mSyncedProperties;
 	}
 
@@ -160,7 +160,7 @@ namespace bs
 		mWindow = bs_new<Win32Window>(windowDesc);
 
 		mIsChild = windowDesc.parent != nullptr;
-		mDisplayFrequency = Math::roundToInt(mDesc.videoMode.refreshRate);
+		mDisplayFrequency = Math::RoundToInt(mDesc.videoMode.refreshRate);
 
 		// Update local properties
 		props.isFullScreen = mDesc.fullscreen && !mIsChild;
@@ -241,7 +241,7 @@ namespace bs
 		}
 
 		{
-			ScopedSpinLock Lock(mLock);
+			ScopedSpinLock lock(mLock);
 			mSyncedProperties = props;
 		}
 
@@ -322,7 +322,7 @@ namespace bs
 			props.left = mWindow->GetLeft();
 
 			{
-				ScopedSpinLock Lock(mLock);
+				ScopedSpinLock lock(mLock);
 				mSyncedProperties.top = props.top;
 				mSyncedProperties.left = props.left;
 			}
@@ -345,7 +345,7 @@ namespace bs
 			props.height = mWindow->GetHeight();
 
 			{
-				ScopedSpinLock Lock(mLock);
+				ScopedSpinLock lock(mLock);
 				mSyncedProperties.width = props.width;
 				mSyncedProperties.height = props.height;
 			}
@@ -411,7 +411,7 @@ namespace bs
 		UINT32 actualMonitorIdx = std::min(monitorIdx, numOutputs - 1);
 		const Win32VideoOutputInfo& outputInfo = static_cast<const Win32VideoOutputInfo&>(videoModeInfo.GetOutputInfo(actualMonitorIdx));
 
-		mDisplayFrequency = Math::roundToInt(refreshRate);
+		mDisplayFrequency = Math::RoundToInt(refreshRate);
 		props.isFullScreen = true;
 
 		DEVMODE displayDeviceMode;
@@ -500,7 +500,7 @@ namespace bs
 			SWP_DRAWFRAME | SWP_FRAMECHANGED | SWP_NOACTIVATE);
 
 		{
-			ScopedSpinLock Lock(mLock);
+			ScopedSpinLock lock(mLock);
 			mSyncedProperties.width = props.width;
 			mSyncedProperties.height = props.height;
 		}
@@ -516,7 +516,7 @@ namespace bs
 		rebuildSwapChain();
 
 		{
-			ScopedSpinLock Lock(mLock);
+			ScopedSpinLock lock(mLock);
 			mSyncedProperties.vsync = enabled;
 			mSyncedProperties.vsyncInterval = interval;
 		}
@@ -578,7 +578,7 @@ namespace bs
 
 	void Win32RenderWindow::SyncProperties()
 	{
-		ScopedSpinLock Lock(mLock);
+		ScopedSpinLock lock(mLock);
 		mProperties = mSyncedProperties;
 	}
 

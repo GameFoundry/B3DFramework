@@ -37,7 +37,7 @@ namespace bs
 	{
 		// Wait for any workers to complete
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 
 			while (mNumActiveWorkers > 0)
 				mWorkerDoneSignal.Wait(lock);
@@ -59,7 +59,7 @@ namespace bs
 		if (mAnimationTime < mNextAnimationUpdateTime)
 			return &mAnimData[mPoseReadBufferIdx];
 
-		mNextAnimationUpdateTime = Math::floor(mAnimationTime / mUpdateRate) * mUpdateRate + mUpdateRate;
+		mNextAnimationUpdateTime = Math::Floor(mAnimationTime / mUpdateRate) * mUpdateRate + mUpdateRate;
 
 		float timeDelta = mAnimationTime - mLastAnimationUpdateTime;
 		mLastAnimationUpdateTime = mAnimationTime;
@@ -115,7 +115,7 @@ namespace bs
 
 		// Queue animation evaluation tasks
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 			mNumActiveWorkers = (UINT32)mProxies.size();
 		}
 
@@ -127,7 +127,7 @@ namespace bs
 				UINT32 boneIdx = curBoneIdx;
 				evaluateAnimation(anim.Get(), boneIdx);
 
-				Lock Lock(mMutex);
+				Lock lock(mMutex);
 				{
 					assert(mNumActiveWorkers > 0);
 					mNumActiveWorkers--;
@@ -147,7 +147,7 @@ namespace bs
 		if(!async)
 		{
 			{
-				Lock Lock(mMutex);
+				Lock lock(mMutex);
 
 				while (mNumActiveWorkers > 0)
 					mWorkerDoneSignal.Wait(lock);
@@ -338,14 +338,14 @@ namespace bs
 				MorphChannelInfo& channelInfo = anim->morphChannelInfos[i];
 				if (channelInfo.weightCurveIdx != (UINT32)-1)
 				{
-					channelInfo.weight = Math::clamp01(anim->genericCurveOutputs[channelInfo.weightCurveIdx]);
+					channelInfo.weight = Math::Clamp01(anim->genericCurveOutputs[channelInfo.weightCurveIdx]);
 					hasMorphCurves = true;
 				}
 
 				float frameWeight;
 				if (channelInfo.frameCurveIdx != (UINT32)-1)
 				{
-					frameWeight = Math::clamp01(anim->genericCurveOutputs[channelInfo.frameCurveIdx]);
+					frameWeight = Math::Clamp01(anim->genericCurveOutputs[channelInfo.frameCurveIdx]);
 					hasMorphCurves = true;
 				}
 				else
@@ -462,7 +462,7 @@ namespace bs
 				for (UINT32 i = 0; i < anim->numMorphShapes; i++)
 				{
 					const MorphShapeInfo& info = anim->morphShapeInfos[i];
-					float absWeight = Math::abs(info.finalWeight);
+					float absWeight = Math::Abs(info.finalWeight);
 
 					if (absWeight < 0.0001f)
 						continue;
@@ -514,7 +514,7 @@ namespace bs
 
 		if (hasAnimInfo)
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 			renderData.infos[anim->id] = animInfo;
 		}
 	}

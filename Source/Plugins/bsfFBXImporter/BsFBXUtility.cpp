@@ -354,7 +354,7 @@ namespace bs
 
 	bool FBXUtility::NeedsSplitAttributes(const FBXImportMesh& meshA, int idxA, const FBXImportMesh& meshB, int idxB)
 	{
-		static const float SplitAngleCosine = Math::cos(Degree(1.0f));
+		static const float SplitAngleCosine = Math::Cos(Degree(1.0f));
 		static const float UVEpsilon = 0.001f;
 
 		if (!meshA.colors.empty())
@@ -388,7 +388,7 @@ namespace bs
 		{
 			if (!meshA.UV[i].empty())
 			{
-				if (!Math::approxEquals(meshA.UV[i][idxA], meshB.UV[i][idxB], UVEpsilon))
+				if (!Math::ApproxEquals(meshA.UV[i][idxA], meshB.UV[i][idxB], UVEpsilon))
 					return true;
 			}
 		}

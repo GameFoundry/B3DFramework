@@ -56,7 +56,7 @@ namespace bs
 	public:
 		~ParticleSimulationDataPool()
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 
 			for (auto& sizeEntry : mBillboardBufferList)
 			{
@@ -85,7 +85,7 @@ namespace bs
 			ParticleBillboardRenderData* output = nullptr;
 
 			{
-				Lock Lock(mMutex);
+				Lock lock(mMutex);
 
 				BuffersPerSize& buffers = mBillboardBufferList[size];
 				if (buffers.nextFreeIdx < (UINT32)buffers.buffers.size())
@@ -99,7 +99,7 @@ namespace bs
 			{
 				output = createNewBillboardBuffersCPU(size);
 
-				Lock Lock(mMutex);
+				Lock lock(mMutex);
 
 				BuffersPerSize& buffers = mBillboardBufferList[size];
 				buffers.buffers.push_back(output);
@@ -152,7 +152,7 @@ namespace bs
 			ParticleMeshRenderData* output = nullptr;
 
 			{
-				Lock Lock(mMutex);
+				Lock lock(mMutex);
 
 				BuffersPerSize& buffers = mMeshBufferList[size];
 				if (buffers.nextFreeIdx < (UINT32)buffers.buffers.size())
@@ -166,7 +166,7 @@ namespace bs
 			{
 				output = createNewMeshBuffersCPU(size);
 
-				Lock Lock(mMutex);
+				Lock lock(mMutex);
 
 				BuffersPerSize& buffers = mMeshBufferList[size];
 				buffers.buffers.push_back(output);
@@ -224,7 +224,7 @@ namespace bs
 			ParticleGPUSimulationData* output = nullptr;
 
 			{
-				Lock Lock(mMutex);
+				Lock lock(mMutex);
 
 				if (mNextFreeGPUBuffer < (UINT32)mGPUBufferList.size())
 				{
@@ -237,7 +237,7 @@ namespace bs
 			{
 				output = createNewBuffersGPU();
 
-				Lock Lock(mMutex);
+				Lock lock(mMutex);
 
 				mGPUBufferList.push_back(output);
 				mNextFreeGPUBuffer++;
@@ -270,7 +270,7 @@ namespace bs
 		/** Makes all the buffers available for allocations. Does not free internal buffer memory. */
 		void Clear()
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 
 			for(auto& buffers : mBillboardBufferList)
 				buffers.second.nextFreeIdx = 0;
@@ -377,7 +377,7 @@ namespace bs
 
 		// Queue evaluation tasks
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 			mNumActiveWorkers = (UINT32)mSystems.size();
 		}
 
@@ -435,7 +435,7 @@ namespace bs
 				}
 
 				{
-					Lock Lock(mMutex);
+					Lock lock(mMutex);
 
 					assert(mNumActiveWorkers > 0);
 					mNumActiveWorkers--;
@@ -456,7 +456,7 @@ namespace bs
 		// Wait for tasks to complete
 		TaskScheduler::instance().AddWorker(); // Make the current core available for work (since this thread waits)
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 
 			while (mNumActiveWorkers > 0)
 				mWorkerDoneSignal.Wait(lock);

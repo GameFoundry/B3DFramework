@@ -22,7 +22,7 @@ namespace bs
 	void OAAudioClip::Initialize()
 	{
 		{
-			Lock Lock(mMutex); // Needs to be called even if stream data is null, to ensure memory fence is added so the
+			Lock lock(mMutex); // Needs to be called even if stream data is null, to ensure memory fence is added so the
 							   // other thread sees properly initialized AudioClip members
 
 			AudioDataInfo info;
@@ -133,7 +133,7 @@ namespace bs
 
 	void OAAudioClip::GetSamples(UINT8* samples, UINT32 offset, UINT32 count) const
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		// Try to read from normal stream, and if that fails read from in-memory stream if it exists
 		if (mStreamData != nullptr)
@@ -174,7 +174,7 @@ namespace bs
 
 	SPtr<DataStream> OAAudioClip::GetSourceStream(UINT32& size)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		size = mSourceStreamSize;
 		mSourceStreamData->Seek(0);

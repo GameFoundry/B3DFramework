@@ -736,7 +736,7 @@ namespace bs { namespace ct
 		const SceneInfo& sceneInfo = mScene->GetSceneInfo();
 		auto& texProps = cubemap->GetProperties();
 
-		Matrix4 projTransform = Matrix4::projectionPerspective(Degree(90.0f), 1.0f, 0.05f, 1000.0f);
+		Matrix4 projTransform = Matrix4::CreateProjectionPerspective(Degree(90.0f), 1.0f, 0.05f, 1000.0f);
 		ConvexVolume LocalFrustum(projTransform);
 		RenderAPI::instance().ConvertProjectionMatrix(projTransform, projTransform);
 

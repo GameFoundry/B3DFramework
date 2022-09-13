@@ -34,7 +34,7 @@ namespace bs
 	public:
 		/** Creates an unnamed stream. */
 		DataStream(UINT16 accessMode = READ)
-			: MAccess(accessMode)
+			: mAccess(accessMode)
 		{ }
 
 		/** Creates a named stream. */
@@ -233,10 +233,10 @@ namespace bs
 		bool IsFile() const override { return false; }
 
 		/** Get a pointer to the start of the memory block this stream holds. */
-		uint8_t* data() const { return mData; }
+		uint8_t* Data() const { return mData; }
 		
 		/** Get a pointer to the current position in the memory block this stream holds. */
-		uint8_t* cursor() const { return mCursor; }
+		uint8_t* Cursor() const { return mCursor; }
 		
 		/** @copydoc DataStream::read */
 		size_t Read(void* buf, size_t count) const override;
@@ -266,7 +266,7 @@ namespace bs
 		 * Disowns the internal memory buffer, ensuring it wont be released when the stream goes out of scope.
 		 * The caller becomes responsible for freeing the internal data buffer.
 		 */
-		uint8_t* disownMemory() { mOwnsMemory = false; return mData;  }
+		uint8_t* DisownMemory() { mOwnsMemory = false; return mData;  }
 
 	protected:
 		/** Reallocates the internal buffer making enough room for @p numBytes. */

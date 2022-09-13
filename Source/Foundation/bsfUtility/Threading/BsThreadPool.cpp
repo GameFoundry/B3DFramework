@@ -28,7 +28,7 @@ namespace bs
 		PooledThread* parentThread = nullptr;
 
 		{
-			Lock Lock(mPool->mMutex);
+			Lock lock(mPool->mMutex);
 
 			for (auto& thread : mPool->mThreads)
 			{
@@ -42,7 +42,7 @@ namespace bs
 
 		if (parentThread != nullptr)
 		{
-			Lock Lock(parentThread->mMutex);
+			Lock lock(parentThread->mMutex);
 
 			if (parentThread->mId == mThreadId) // Check again in case it changed
 			{
@@ -56,7 +56,7 @@ namespace bs
 	{
 		mThread = bs_new<Thread>(std::bind(&PooledThread::run, this));
 
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		while(!mThreadStarted)
 			mStartedCond.Wait(lock);
@@ -65,7 +65,7 @@ namespace bs
 	void PooledThread::Start(std::function<void()> workerMethod, UINT32 id)
 	{
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 
 			mWorkerMethod = workerMethod;
 			mIdle = false;
@@ -82,7 +82,7 @@ namespace bs
 		onThreadStarted(mName);
 
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 			mThreadStarted = true;
 		}
 
@@ -94,7 +94,7 @@ namespace bs
 
 			{
 				{
-					Lock Lock(mMutex);
+					Lock lock(mMutex);
 
 					while (!mThreadReady)
 						mReadyCond.Wait(lock);
@@ -116,7 +116,7 @@ namespace bs
 #endif
 
 			{
-				Lock Lock(mMutex);
+				Lock lock(mMutex);
 
 				mIdle = true;
 				mIdleTime = std::time(nullptr);
@@ -144,7 +144,7 @@ namespace bs
 		blockUntilComplete();
 
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 			mWorkerMethod = nullptr;
 			mThreadReady = true;
 		}
@@ -156,7 +156,7 @@ namespace bs
 
 	void PooledThread::BlockUntilComplete()
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		while (!mIdle)
 			mWorkerEndedCond.Wait(lock);
@@ -164,14 +164,14 @@ namespace bs
 
 	bool PooledThread::IsIdle()
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		return mIdle;
 	}
 
 	time_t PooledThread::IdleTime()
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		return (time(nullptr) - mIdleTime);
 	}
@@ -183,7 +183,7 @@ namespace bs
 
 	UINT32 PooledThread::GetId() const
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		return mId;
 	}
@@ -209,7 +209,7 @@ namespace bs
 
 	void ThreadPool::StopAll()
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 		for(auto& thread : mThreads)
 		{
 			destroyThread(thread);
@@ -220,7 +220,7 @@ namespace bs
 
 	void ThreadPool::ClearUnused()
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 		mAge = 0;
 
 		if(mThreads.size() <= mDefaultCapacity)
@@ -277,14 +277,14 @@ namespace bs
 	{
 		UINT32 age = 0;
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 			age = ++mAge;
 		}
 
 		if(age == UNUSED_CHECK_PERIOD)
 			clearUnused();
 
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		for(auto& thread : mThreads)
 		{
@@ -308,7 +308,7 @@ namespace bs
 	{
 		UINT32 numAvailable = mMaxCapacity;
 
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 		for(auto& thread : mThreads)
 		{
 			if(!thread->IsIdle())
@@ -322,7 +322,7 @@ namespace bs
 	{
 		UINT32 numActive = 0;
 
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 		for(auto& thread : mThreads)
 		{
 			if(!thread->IsIdle())
@@ -334,7 +334,7 @@ namespace bs
 
 	UINT32 ThreadPool::GetNumAllocated() const
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		return (UINT32)mThreads.size();
 	}

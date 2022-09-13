@@ -52,7 +52,7 @@ namespace bs
 
 		SPtr<PixelData> GetPixelData(Texture* obj, UINT32 idx)
 		{
-			UINT32 face = (size_t)Math::floor(idx / (float)(obj->mProperties.GetNumMipmaps() + 1));
+			UINT32 face = (size_t)Math::Floor(idx / (float)(obj->mProperties.GetNumMipmaps() + 1));
 			UINT32 mipmap = idx % (obj->mProperties.GetNumMipmaps() + 1);
 
 			SPtr<PixelData> pixelData = obj->mProperties.AllocBuffer(face, mipmap);
@@ -118,7 +118,7 @@ namespace bs
 
 			for(size_t i = 0; i < mPixelData.size(); i++)
 			{
-				UINT32 face = (size_t)Math::floor(i / (float)(texProps.GetNumMipmaps() + 1));
+				UINT32 face = (size_t)Math::Floor(i / (float)(texProps.GetNumMipmaps() + 1));
 				UINT32 mipmap = i % (texProps.GetNumMipmaps() + 1);
 
 				texture->WriteData(mPixelData[i], face, mipmap, false);

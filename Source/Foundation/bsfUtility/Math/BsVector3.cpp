@@ -22,13 +22,13 @@ namespace bs
 
 		float f = dot(dest) / lenProduct;
 
-		f = Math::clamp(f, -1.0f, 1.0f);
+		f = Math::Clamp(f, -1.0f, 1.0f);
 		return Math::Acos(f);
 	}
 
 	bool Vector3::IsNaN() const
 	{
-		return Math::IsNaN(x) || Math::isNaN(y) || Math::isNaN(z);
+		return Math::IsNaN(x) || Math::IsNaN(y) || Math::IsNaN(z);
 	}
 
 	const Vector3 Vector3::ZERO{BS_ZERO()};

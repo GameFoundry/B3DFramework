@@ -157,7 +157,7 @@ namespace bs
 			else if (mProjType == PT_PERSPECTIVE)
 			{
 				Radian ThetaX(mHorzFOV * 0.5f);
-				float tanThetaX = Math::tan(thetaX);
+				float tanThetaX = Math::Tan(thetaX);
 				float tanThetaY = tanThetaX / mAspect;
 
 				float half_w = tanThetaX * mNearDist;
@@ -491,7 +491,7 @@ namespace bs
 		worldPoint = getProjectionMatrixRS().Inverse().multiply(worldPoint);
 
 		Vector3 worldPoint3D;
-		if (Math::abs(worldPoint.w) > 1e-7f)
+		if (Math::Abs(worldPoint.w) > 1e-7f)
 		{
 			float invW = 1.0f / worldPoint.w;
 
@@ -559,13 +559,13 @@ namespace bs
 		Rect2I viewport = getViewportRect();
 
 		Vector2I screenPoint;
-		screenPoint.x = Math::roundToInt(viewport.x + ((ndcPoint.x + 1.0f) * 0.5f) * viewport.width);
+		screenPoint.x = Math::RoundToInt(viewport.x + ((ndcPoint.x + 1.0f) * 0.5f) * viewport.width);
 
 		const Conventions& rapiConventions = ct::gCaps().conventions;
 		if(rapiConventions.ndcYAxis == Conventions::Axis::Down)
-			screenPoint.y = Math::roundToInt(viewport.y + (ndcPoint.y + 1.0f) * 0.5f * viewport.height);
+			screenPoint.y = Math::RoundToInt(viewport.y + (ndcPoint.y + 1.0f) * 0.5f * viewport.height);
 		else
-			screenPoint.y = Math::roundToInt(viewport.y + (1.0f - (ndcPoint.y + 1.0f) * 0.5f) * viewport.height);
+			screenPoint.y = Math::RoundToInt(viewport.y + (1.0f - (ndcPoint.y + 1.0f) * 0.5f) * viewport.height);
 
 		return screenPoint;
 	}
@@ -588,7 +588,7 @@ namespace bs
 		Vector4 ProjPoint4(point.x, point.y, point.z, 1.0f);
 		projPoint4 = getProjectionMatrixRS().Multiply(projPoint4);
 
-		if (Math::abs(projPoint4.w) > 1e-7f)
+		if (Math::Abs(projPoint4.w) > 1e-7f)
 		{
 			float invW = 1.0f / projPoint4.w;
 			projPoint4.x *= invW;
@@ -615,7 +615,7 @@ namespace bs
 		farAwayPoint = getProjectionMatrixRS().Inverse().multiply(farAwayPoint);
 
 		// Can't proceed if w is too small
-		if (Math::abs(farAwayPoint.w) > 1e-7f)
+		if (Math::Abs(farAwayPoint.w) > 1e-7f)
 		{
 			// Perspective divide, to get the values that make sense in 3D space
 			float invW = 1.0f / farAwayPoint.w;

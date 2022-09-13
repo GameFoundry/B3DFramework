@@ -111,18 +111,6 @@ namespace bs
 			return *(&r+i);
 		}
 
-		/** Pointer accessor for direct copying. */
-		float* ptr()
-		{
-			return &r;
-		}
-
-		/** Pointer accessor for direct copying. */
-		const float* ptr() const
-		{
-			return &r;
-		}
-
 		Color operator+ (const Color& rhs) const
 		{
 			return Color(r + rhs.r, g + rhs.g, b + rhs.b, a + rhs.a);

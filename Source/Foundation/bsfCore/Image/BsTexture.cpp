@@ -36,7 +36,7 @@ namespace bs
 	{
 		UINT32 numMipmaps = getNumMipmaps() + 1;
 
-		face = Math::floorToInt((subresourceIdx) / (float)numMipmaps);
+		face = Math::FloorToInt((subresourceIdx) / (float)numMipmaps);
 		mip = subresourceIdx % numMipmaps;
 	}
 

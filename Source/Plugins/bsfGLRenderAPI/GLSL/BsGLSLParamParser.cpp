@@ -666,7 +666,7 @@ namespace bs { namespace ct
 		for(auto& entry : foundStructs)
 		{
 			entry.second.elementSize = entry.second.elementSize - entry.second.cpuMemOffset;
-			entry.second.arrayElementStride = Math::divideAndRoundUp(entry.second.elementSize, 4U) * 4;
+			entry.second.arrayElementStride = Math::DivideAndRoundUp(entry.second.elementSize, 4U) * 4;
 
 			returnParamDesc.params.Insert(std::make_pair(entry.first, entry.second));
 		}

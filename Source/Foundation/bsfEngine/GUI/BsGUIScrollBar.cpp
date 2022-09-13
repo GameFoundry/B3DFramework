@@ -183,7 +183,7 @@ namespace bs
 
 	void GUIScrollBar::Scroll(float amount)
 	{
-		float newHandlePos = Math::clamp01(mHandleBtn->GetHandlePos() - amount);
+		float newHandlePos = Math::Clamp01(mHandleBtn->GetHandlePos() - amount);
 
 		float oldHandlePos = mHandleBtn->GetHandlePos();
 		mHandleBtn->_setHandlePos(newHandlePos);

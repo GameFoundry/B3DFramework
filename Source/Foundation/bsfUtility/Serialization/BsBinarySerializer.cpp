@@ -748,7 +748,7 @@ namespace bs
 
 						if (curField != nullptr)
 						{
-							stream.Preload((uint32_t)Math::divideAndRoundUp(typeSizeBits, (uint64_t)8));
+							stream.Preload((uint32_t)Math::DivideAndRoundUp(typeSizeBits, (uint64_t)8));
 							curField->ArrayElemFromBuffer(rttiInstance, output.Get(), i, stream.getBitstream(), compressed);
 
 							stream.Skip(typeSizeBits);
@@ -890,7 +890,7 @@ namespace bs
 
 					if (curField != nullptr)
 					{
-						stream.Preload((uint32_t)Math::divideAndRoundUp(typeSizeBits, (uint64_t)8));
+						stream.Preload((uint32_t)Math::DivideAndRoundUp(typeSizeBits, (uint64_t)8));
 						curField->FromBuffer(rttiInstance, output.Get(), stream.getBitstream(), compressed);
 
 						stream.Skip(typeSizeBits);
@@ -959,7 +959,7 @@ namespace bs
 				stream.ClearBuffered(false);
 			}
 
-			UINT32 bytesRead = (UINT32)Math::divideAndRoundUp(stream.Tell(), (uint64_t)8);
+			UINT32 bytesRead = (UINT32)Math::DivideAndRoundUp(stream.Tell(), (uint64_t)8);
 			if (mReportProgress && (bytesRead >= mNextProgressReport))
 			{
 				UINT32 lastReport = (bytesRead / REPORT_AFTER_BYTES) * REPORT_AFTER_BYTES;

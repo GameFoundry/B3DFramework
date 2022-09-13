@@ -30,7 +30,7 @@ namespace bs
 
 		if (!mData->mIsCreated)
 		{
-			Lock Lock(mResourceCreatedMutex);
+			Lock lock(mResourceCreatedMutex);
 			while (!mData->mIsCreated)
 			{
 				mResourceCreatedCondition.Wait(lock);
@@ -81,7 +81,7 @@ namespace bs
 	{
 		if (!mData->mIsCreated)
 		{
-			Lock Lock(mResourceCreatedMutex);
+			Lock lock(mResourceCreatedMutex);
 			{
 				mData->mIsCreated = true;
 			}
@@ -94,7 +94,7 @@ namespace bs
 	{
 		mData->mPtr = nullptr;
 
-		Lock Lock(mResourceCreatedMutex);
+		Lock lock(mResourceCreatedMutex);
 		mData->mIsCreated = false;
 	}
 

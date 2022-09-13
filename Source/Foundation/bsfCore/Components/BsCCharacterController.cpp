@@ -184,8 +184,8 @@ namespace bs
 	void CCharacterController::UpdateDimensions()
 	{
 		Vector3 scale = SO()->GetTransform().GetScale();
-		float height = mDesc.height * Math::abs(scale.y);
-		float radius = mDesc.radius * Math::abs(std::max(scale.x, scale.z));
+		float height = mDesc.height * Math::Abs(scale.y);
+		float radius = mDesc.radius * Math::Abs(std::max(scale.x, scale.z));
 
 		mInternal->SetHeight(height);
 		mInternal->SetRadius(radius);

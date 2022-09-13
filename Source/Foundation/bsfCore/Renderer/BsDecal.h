@@ -36,7 +36,7 @@ namespace bs
 		}
 
 		/** Determines the maximum distance (from its origin) at which the decal is displayed. */
-		void SetMaxDistance(float distance) { mMaxDistance = Math::max(0.0f, distance); _markCoreDirty(); updateBounds(); }
+		void SetMaxDistance(float distance) { mMaxDistance = Math::Max(0.0f, distance); _markCoreDirty(); updateBounds(); }
 
 		/** @copydoc getSize */
 		float GetMaxDistance() const { return mMaxDistance; }

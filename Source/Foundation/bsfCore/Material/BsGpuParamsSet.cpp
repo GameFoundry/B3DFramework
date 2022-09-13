@@ -1080,7 +1080,7 @@ namespace bs
 							{
 								const ColorGradientHDR& gradient = params->GetColorGradientParam(*materialParamInfo, i);
 
-								const float wrappedT = Math::repeat(t, gradient.GetDuration());
+								const float wrappedT = Math::Repeat(t, gradient.GetDuration());
 								value = gradient.Evaluate(wrappedT);
 							}
 							else

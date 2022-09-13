@@ -49,13 +49,13 @@ namespace bs
 		{
 		default:
 		case SpriteAnimationPlayback::Normal:
-			t = Math::clamp(t, 0.0f, duration);
+			t = Math::Clamp(t, 0.0f, duration);
 			break;
 		case SpriteAnimationPlayback::Loop:
-			t = Math::repeat(t, duration);
+			t = Math::Repeat(t, duration);
 			break;
 		case SpriteAnimationPlayback::PingPong:
-			t = Math::pingPong(t, duration);
+			t = Math::PingPong(t, duration);
 			break;
 		}
 
@@ -63,7 +63,7 @@ namespace bs
 		UINT32 frame = 0;
 		
 		if(mAnimation.count > 0)
-			frame = Math::clamp(Math::floorToPosInt(pct * mAnimation.count), 0U, mAnimation.count - 1);
+			frame = Math::Clamp(Math::FloorToPosInt(pct * mAnimation.count), 0U, mAnimation.count - 1);
 
 		row = frame / mAnimation.numColumns;
 		column = frame % mAnimation.numColumns;

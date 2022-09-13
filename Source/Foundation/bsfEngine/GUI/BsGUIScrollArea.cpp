@@ -267,7 +267,7 @@ namespace bs
 		UINT32 scrollableHeight = (UINT32)std::max(0, INT32(mContentSize.y) - INT32(mVisibleSize.y));
 		if (mRecalculateVertOffset)
 		{
-			mVertOffset = scrollableHeight * Math::clamp01(mVertScroll->GetScrollPos());
+			mVertOffset = scrollableHeight * Math::Clamp01(mVertScroll->GetScrollPos());
 
 			mRecalculateVertOffset = false;
 		}
@@ -275,20 +275,20 @@ namespace bs
 		UINT32 scrollableWidth = (UINT32)std::max(0, INT32(mContentSize.x) - INT32(mVisibleSize.x));
 		if (mRecalculateHorzOffset)
 		{
-			mHorzOffset = scrollableWidth * Math::clamp01(mHorzScroll->GetScrollPos());
+			mHorzOffset = scrollableWidth * Math::Clamp01(mHorzScroll->GetScrollPos());
 
 			mRecalculateHorzOffset = false;
 		}
 
 		// Reset offset in case layout size changed so everything fits
-		mVertOffset = Math::clamp(mVertOffset, 0.0f, (float)scrollableHeight);
-		mHorzOffset = Math::clamp(mHorzOffset, 0.0f, (float)scrollableWidth);
+		mVertOffset = Math::Clamp(mVertOffset, 0.0f, (float)scrollableHeight);
+		mHorzOffset = Math::Clamp(mHorzOffset, 0.0f, (float)scrollableWidth);
 
 		// Layout
 		if (mContentLayout->_isActive())
 		{
-			layoutBounds.x -= Math::floorToInt(mHorzOffset);
-			layoutBounds.y -= Math::floorToInt(mVertOffset);
+			layoutBounds.x -= Math::FloorToInt(mHorzOffset);
+			layoutBounds.y -= Math::FloorToInt(mVertOffset);
 
 			Rect2I layoutClipRect = data.clipRect;
 			layoutClipRect.width = (UINT32)mVisibleSize.x;
@@ -354,7 +354,7 @@ namespace bs
 	void GUIScrollArea::VertScrollUpdate(float scrollPos)
 	{
 		UINT32 scrollableHeight = (UINT32)std::max(0, INT32(mContentSize.y) - INT32(mVisibleSize.y));
-		mVertOffset = scrollableHeight * Math::clamp01(scrollPos);
+		mVertOffset = scrollableHeight * Math::Clamp01(scrollPos);
 
 		_markLayoutAsDirty();
 	}
@@ -362,7 +362,7 @@ namespace bs
 	void GUIScrollArea::HorzScrollUpdate(float scrollPos)
 	{
 		UINT32 scrollableWidth = (UINT32)std::max(0, INT32(mContentSize.x) - INT32(mVisibleSize.x));
-		mHorzOffset = scrollableWidth * Math::clamp01(scrollPos);
+		mHorzOffset = scrollableWidth * Math::Clamp01(scrollPos);
 
 		_markLayoutAsDirty();
 	}

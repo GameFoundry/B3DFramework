@@ -92,7 +92,7 @@ namespace bs { namespace ct
 	void VulkanBuffer::NotifyDone(UINT32 globalQueueIdx, VulkanAccessFlags useFlags)
 	{
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 
 			// Note: With often used buffers this block might never execute, in which case views won't  get freed.
 			// If that ever becomes an issue (unlikely) then we'll need to track usage per-view.
@@ -107,7 +107,7 @@ namespace bs { namespace ct
 	void VulkanBuffer::NotifyUnbound()
 	{
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 
 			// Note: With often used buffers this block might never execute, in which case views won't  get freed.
 			// If that ever becomes an issue (unlikely) then we'll need to track usage per-view.

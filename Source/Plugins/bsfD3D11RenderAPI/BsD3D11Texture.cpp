@@ -241,8 +241,8 @@ namespace bs { namespace ct
 			return;
 		}
 
-		mipLevel = Math::clamp(mipLevel, (UINT32)mipLevel, mProperties.GetNumMipmaps());
-		face = Math::clamp(face, (UINT32)0, mProperties.GetNumFaces() - 1);
+		mipLevel = Math::Clamp(mipLevel, (UINT32)mipLevel, mProperties.GetNumMipmaps());
+		face = Math::Clamp(face, (UINT32)0, mProperties.GetNumFaces() - 1);
 
 		if (face > 0 && mProperties.GetTextureType() == TEX_TYPE_3D)
 		{
@@ -666,8 +666,8 @@ namespace bs { namespace ct
 		D3D11_MAPPED_SUBRESOURCE pMappedResource;
 		pMappedResource.pData = nullptr;
 
-		mipLevel = Math::clamp(mipLevel, (UINT32)mipLevel, mProperties.GetNumMipmaps());
-		face = Math::clamp(face, (UINT32)0, mProperties.GetNumFaces() - 1);
+		mipLevel = Math::Clamp(mipLevel, (UINT32)mipLevel, mProperties.GetNumMipmaps());
+		face = Math::Clamp(face, (UINT32)0, mProperties.GetNumFaces() - 1);
 
 		if (mProperties.GetTextureType() == TEX_TYPE_3D)
 			face = 0;

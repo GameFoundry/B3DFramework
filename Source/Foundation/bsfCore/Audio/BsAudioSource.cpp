@@ -21,7 +21,7 @@ namespace bs
 
 	void AudioSource::SetVolume(float volume)
 	{
-		mVolume = Math::clamp01(volume);
+		mVolume = Math::Clamp01(volume);
 	}
 
 	void AudioSource::SetPitch(float pitch)

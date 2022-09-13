@@ -55,18 +55,6 @@ namespace bs
 			return *(&x+i);
 		}
 
-		/** Pointer accessor for direct copying. */
-		float* ptr()
-		{
-			return &x;
-		}
-
-		/** Pointer accessor for direct copying. */
-		const float* ptr() const
-		{
-			return &x;
-		}
-
 		Vector4& operator= (float rhs)
 		{
 			x = rhs;

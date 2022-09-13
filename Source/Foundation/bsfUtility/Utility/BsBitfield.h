@@ -186,7 +186,7 @@ namespace bs
 			{
 				realloc(other.mMaxBits);
 
-				const uint32_t numBytes = Math::divideAndRoundUp(other.mNumBits, BITS_PER_DWORD) * sizeof(uint32_t);
+				const uint32_t numBytes = Math::DivideAndRoundUp(other.mNumBits, BITS_PER_DWORD) * sizeof(uint32_t);
 				memcpy(mData, other.mData, numBytes);
 			}
 		}
@@ -208,7 +208,7 @@ namespace bs
 				{
 					realloc(rhs.mMaxBits);
 
-					const uint32_t numBytes = Math::divideAndRoundUp(rhs.mNumBits, BITS_PER_DWORD) * sizeof(uint32_t);
+					const uint32_t numBytes = Math::DivideAndRoundUp(rhs.mNumBits, BITS_PER_DWORD) * sizeof(uint32_t);
 					memcpy(mData, rhs.mData, numBytes);
 				}
 			}
@@ -303,7 +303,7 @@ namespace bs
 		uint32_t Find(bool value) const
 		{
 			const uint32_t mask = value ? 0 : (uint32_t)-1;
-			const uint32_t numDWords = Math::divideAndRoundUp(mNumBits, BITS_PER_DWORD);
+			const uint32_t numDWords = Math::DivideAndRoundUp(mNumBits, BITS_PER_DWORD);
 
 			for(uint32_t i = 0; i < numDWords; i++)
 			{
@@ -342,7 +342,7 @@ namespace bs
 				return;
 
 			const int32_t mask = value ? 0xFF : 0;
-			const uint32_t numBytes = Math::divideAndRoundUp(mNumBits, BITS_PER_DWORD) * sizeof(uint32_t);
+			const uint32_t numBytes = Math::DivideAndRoundUp(mNumBits, BITS_PER_DWORD) * sizeof(uint32_t);
 			memset(mData, mask, numBytes);
 		}
 
@@ -411,19 +411,19 @@ namespace bs
 		/** Reallocates the internal buffer making enough room for @p numBits (rounded to a multiple of DWORD). */
 		void Realloc(uint32_t numBits)
 		{
-			numBits = Math::divideAndRoundUp(numBits, BITS_PER_DWORD) * BITS_PER_DWORD;
+			numBits = Math::DivideAndRoundUp(numBits, BITS_PER_DWORD) * BITS_PER_DWORD;
 
 			if(numBits != mMaxBits)
 			{
 				assert(numBits > mMaxBits);
 
-				const uint32_t numDwords = Math::divideAndRoundUp(numBits, BITS_PER_DWORD);
+				const uint32_t numDwords = Math::DivideAndRoundUp(numBits, BITS_PER_DWORD);
 				
 				// Note: Eventually add support for custom allocators
 				auto buffer = bs_allocN<uint32_t>(numDwords);
 				if(mData)
 				{
-					const uint32_t numBytes = Math::divideAndRoundUp(mMaxBits, BITS_PER_DWORD) * sizeof(uint32_t);
+					const uint32_t numBytes = Math::DivideAndRoundUp(mMaxBits, BITS_PER_DWORD) * sizeof(uint32_t);
 					memcpy(buffer, mData, numBytes);
 					bs_free(mData);
 				}

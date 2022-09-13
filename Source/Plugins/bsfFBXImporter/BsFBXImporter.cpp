@@ -2005,8 +2005,8 @@ namespace bs
 			{
 				TKeyframe<Vector3>& prevKey = newKeyframes.back();
 
-				isEqual = Math::approxEquals(prevKey.value, curKey.value) &&
-					Math::approxEquals(prevKey.outTangent, curKey.inTangent) && isEqual;
+				isEqual = Math::ApproxEquals(prevKey.value, curKey.value) &&
+						  Math::ApproxEquals(prevKey.outTangent, curKey.inTangent) && isEqual;
 			}
 			else
 				isEqual = false;
@@ -2134,7 +2134,7 @@ namespace bs
 					fbxTime = fbxCurve[j]->KeyGetTime(i);
 					float otherTime = (float)fbxTime.GetSecondDouble();
 
-					if (!Math::approxEquals(time, otherTime))
+					if (!Math::ApproxEquals(time, otherTime))
 					{
 						foundMismatch = true;
 						break;
@@ -2196,7 +2196,7 @@ namespace bs
 		curveEnd = std::max(curveEnd, clipEnd);
 
 		float curveLength = curveEnd - curveStart;
-		INT32 numSamples = Math::ceilToInt(curveLength / importOptions.animSampleRate) + 1;
+		INT32 numSamples = Math::CeilToInt(curveLength / importOptions.animSampleRate) + 1;
 
 		// We don't use the exact provided sample rate but instead modify it slightly so it
 		// completely covers the curve range including start/end points while maintaining

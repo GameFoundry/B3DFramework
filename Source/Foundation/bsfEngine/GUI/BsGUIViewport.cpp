@@ -22,7 +22,7 @@ namespace bs
 		:GUIElement(styleName, dimensions), mCamera(camera), mAspectRatio(aspectRatio),
 		mFieldOfView(fieldOfView)
 	{
-		mVerticalFOV = 2.0f * Math::atan(Math::tan(mFieldOfView.ValueRadians() * 0.5f) * (1.0f / mAspectRatio));
+		mVerticalFOV = 2.0f * Math::Atan(Math::Tan(mFieldOfView.ValueRadians() * 0.5f) * (1.0f / mAspectRatio));
 	}
 
 	GUIViewport* GUIViewport::create(const HCamera& camera, float aspectRatio, Degree fieldOfView, const String& styleName)
@@ -64,7 +64,7 @@ namespace bs
 	{
 		// TODO - This doesn't get called if element mesh is dirty!!! and I need to update the viewport when offset changes (in which case mesh is marked as dirty)
 		float currentAspect = mLayoutData.area.width / (float)mLayoutData.area.height;
-		Radian currentFOV = 2.0f * Math::atan(Math::tan(mVerticalFOV * 0.5f) * currentAspect);
+		Radian currentFOV = 2.0f * Math::Atan(Math::Tan(mVerticalFOV * 0.5f) * currentAspect);
 
 		mCamera->SetHorzFOV(currentFOV);
 

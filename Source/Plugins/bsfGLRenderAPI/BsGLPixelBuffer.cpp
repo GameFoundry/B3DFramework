@@ -175,8 +175,8 @@ namespace bs { namespace ct
 		if(PixelUtil::isCompressed(data.GetFormat()))
 		{
 			// Block-compressed data cannot be smaller than 4x4, and must be a multiple of 4
-			const UINT32 widthInBlocks = Math::divideAndRoundUp(std::max(mWidth, 4U), 4U);
-			const UINT32 heightInBlocks = Math::divideAndRoundUp(std::max(mHeight, 4U), 4U);
+			const UINT32 widthInBlocks = Math::DivideAndRoundUp(std::max(mWidth, 4U), 4U);
+			const UINT32 heightInBlocks = Math::DivideAndRoundUp(std::max(mHeight, 4U), 4U);
 
 			const UINT32 blockSize = PixelUtil::getBlockSize(data.GetFormat());
 			const UINT32 expectedRowPitch = widthInBlocks * blockSize;
@@ -315,8 +315,8 @@ namespace bs { namespace ct
 		if(PixelUtil::isCompressed(data.GetFormat()))
 		{
 			// Block-compressed data cannot be smaller than 4x4, and must be a multiple of 4
-			const UINT32 widthInBlocks = Math::divideAndRoundUp(std::max(mWidth, 4U), 4U);
-			const UINT32 heightInBlocks = Math::divideAndRoundUp(std::max(mHeight, 4U), 4U);
+			const UINT32 widthInBlocks = Math::DivideAndRoundUp(std::max(mWidth, 4U), 4U);
+			const UINT32 heightInBlocks = Math::DivideAndRoundUp(std::max(mHeight, 4U), 4U);
 
 			const UINT32 blockSize = PixelUtil::getBlockSize(data.GetFormat());
 			const UINT32 expectedRowPitch = widthInBlocks * blockSize;

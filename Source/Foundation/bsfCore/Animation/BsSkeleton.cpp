@@ -187,7 +187,7 @@ namespace bs
 				float normWeight = state.weight * invLayerWeight;
 
 				// Early exit for clips that don't contribute (which there could be plenty especially for sequential blends)
-				if (Math::approxEquals(normWeight, 0.0f))
+				if (Math::ApproxEquals(normWeight, 0.0f))
 					continue;
 
 				for (UINT32 k = 0; k < mNumBones; k++)

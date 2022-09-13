@@ -20,7 +20,7 @@ namespace bs
 		public:
 			constexpr TexAtlasNode() = default;
 			constexpr TexAtlasNode(UINT32 x, UINT32 y, UINT32 width, UINT32 height)
-				: X(x), y(y), width(width), height(height)
+				: x(x), y(y), width(width), height(height)
 			{ }
 
 			UINT32 x = 0;
@@ -44,7 +44,7 @@ namespace bs
 		 * @param[in]	pow2			When true the resulting atlas size will always be a power of two.
 		 */
 		TextureAtlasLayout(UINT32 width, UINT32 height, UINT32 maxWidth, UINT32 maxHeight, bool pow2 = false)
-			: MInitialWidth(width), mInitialHeight(height), mWidth(width), mHeight(height), mPow2(pow2)
+			: mInitialWidth(width), mInitialHeight(height), mWidth(width), mHeight(height), mPow2(pow2)
 		{
 			mNodes.push_back(TexAtlasNode(0, 0, maxWidth, maxHeight));
 		}
@@ -143,8 +143,7 @@ namespace bs
 		 * @return					One or more descriptors that determine the size of the final atlas textures.
 		 *							Texture elements will reference these pages with their output.page parameter.
 		 */
-		static Vector<Page> createAtlasLayout(Vector<Element>& elements, UINT32 width, UINT32 height, UINT32 maxWidth,
-			UINT32 maxHeight, bool pow2 = false);
+		static Vector<Page> CreateAtlasLayout(Vector<Element>& elements, UINT32 width, UINT32 height, UINT32 maxWidth, UINT32 maxHeight, bool pow2 = false);
 	};
 
 	/** @} */

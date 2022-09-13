@@ -29,7 +29,7 @@ namespace bs
 		t *= mTimeScale;
 
 		const auto index = (uint32_t)t;
-		fraction =  Math::frac(t);
+		fraction =  Math::Frac(t);
 
 		const uint32_t leftIdx = std::min(index, mNumSamples - 1);
 		const uint32_t rightIdx = std::min(index + 1, mNumSamples - 1);

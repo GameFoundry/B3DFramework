@@ -120,8 +120,8 @@ namespace bs { namespace ct
 		assert(faceSize == props.GetHeight());
 
 		Vector2I dispatchSize;
-		dispatchSize.x = Math::divideAndRoundUp(faceSize, TILE_WIDTH * PIXELS_PER_THREAD);
-		dispatchSize.y = Math::divideAndRoundUp(faceSize, TILE_HEIGHT * PIXELS_PER_THREAD);
+		dispatchSize.x = Math::DivideAndRoundUp(faceSize, TILE_WIDTH * PIXELS_PER_THREAD);
+		dispatchSize.y = Math::DivideAndRoundUp(faceSize, TILE_HEIGHT * PIXELS_PER_THREAD);
 
 		mInputTexture.Set(source);
 		gIrradianceComputeSHParamDef.gCubeFace.Set(mParamBuffer, face);
@@ -143,8 +143,8 @@ namespace bs { namespace ct
 		assert(faceSize == props.GetHeight());
 
 		Vector2I dispatchSize;
-		dispatchSize.x = Math::divideAndRoundUp(faceSize, TILE_WIDTH * PIXELS_PER_THREAD);
-		dispatchSize.y = Math::divideAndRoundUp(faceSize, TILE_HEIGHT * PIXELS_PER_THREAD);
+		dispatchSize.x = Math::DivideAndRoundUp(faceSize, TILE_WIDTH * PIXELS_PER_THREAD);
+		dispatchSize.y = Math::DivideAndRoundUp(faceSize, TILE_HEIGHT * PIXELS_PER_THREAD);
 
 		numCoeffSets = dispatchSize.x * dispatchSize.y * 6;
 

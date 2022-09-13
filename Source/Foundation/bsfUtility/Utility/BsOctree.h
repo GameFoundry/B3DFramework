@@ -190,7 +190,7 @@ namespace bs
 			/** Maps a global element index to a set of element groups and an index within those groups. */
 			UINT32 MapToGroup(UINT32 elementIdx, ElementGroup** elements, ElementBoundGroup** bounds)
 			{
-				UINT32 numGroups = Math::divideAndRoundUp(mElements.count, (UINT32)Options::MaxElementsPerNode);
+				UINT32 numGroups = Math::DivideAndRoundUp(mElements.count, (UINT32)Options::MaxElementsPerNode);
 				UINT32 groupIdx = numGroups - elementIdx / Options::MaxElementsPerNode - 1;
 
 				*elements = mElements.values;
@@ -444,7 +444,7 @@ namespace bs
 				, MCurrentElemGroup(node->mElements.values)
 				, MCurrentBoundGroup(node->mElements.bounds)
 			{
-				UINT32 numGroups = Math::divideAndRoundUp(node->mElements.count, (UINT32)Options::MaxElementsPerNode);
+				UINT32 numGroups = Math::DivideAndRoundUp(node->mElements.count, (UINT32)Options::MaxElementsPerNode);
 				mElemsInGroup = node->mElements.count - (numGroups - 1) * Options::MaxElementsPerNode;
 			}
 

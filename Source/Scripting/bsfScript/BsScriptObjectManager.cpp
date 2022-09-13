@@ -79,7 +79,7 @@ namespace bs
 	{
 		assert(instance != nullptr);
 
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 		mFinalizedObjects[mFinalizedQueueIdx].push_back(instance);
 	}
 
@@ -92,7 +92,7 @@ namespace bs
 	{
 		UINT32 readQueueIdx = 0;
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 			readQueueIdx = mFinalizedQueueIdx;
 			mFinalizedQueueIdx = (mFinalizedQueueIdx + 1) % 2;
 		}

@@ -57,17 +57,15 @@ namespace bs
 		template<class T, class... Args>
 		static BasicString<T> Format(const T* source, Args&& ...args)
 		{
-			UINT32 strLength = getLength(source);
+			UINT32 strLength = GetLength(source);
 
 			ParamData<T> parameters[MAX_PARAMS];
-			memset(parameters, 0, sizeof(parameters));
-			getParams(parameters, 0U, std::forward<Args>(args)...);
+			GetParams(parameters, 0U, std::forward<Args>(args)...);
 
 			T bracketChars[MAX_IDENTIFIER_SIZE + 1];
 			UINT32 bracketWriteIdx = 0;
 
 			FormatParamRange paramRanges[MAX_PARAM_REFERENCES];
-			memset(paramRanges, 0, sizeof(paramRanges));
 			UINT32 paramRangeWriteIdx = 0;
 
 			// Determine parameter positions
@@ -103,7 +101,7 @@ namespace bs
 						if (source[i] == '}' && numParamChars > 0 && !escaped)
 						{
 							bracketChars[bracketWriteIdx] = '\0';
-							UINT32 paramIdx = strToInt(bracketChars);
+							UINT32 paramIdx = StringToInteger(bracketChars);
 							if (paramIdx < MAX_PARAMS && paramRangeWriteIdx < MAX_PARAM_REFERENCES) // Check if exceeded maximum parameter limit
 							{
 								paramRanges[paramRangeWriteIdx++] = FormatParamRange(charWriteIdx, numParamChars + 2, paramIdx);
@@ -179,13 +177,13 @@ namespace bs
 		static UINT32 GetLength(const wchar_t* source) { return (UINT32)wcslen(source); }
 
 		/** Parses the string and returns an integer value extracted from string characters. */
-		static UINT32 StrToInt(const char* buffer)
+		static UINT32 StringToInteger(const char* buffer)
 		{
 			return (UINT32)strtoul(buffer, nullptr, 10);
 		}
 
 		/** Parses the string and returns an integer value extracted from string characters. */
-		static UINT32 StrToInt(const wchar_t* buffer)
+		static UINT32 StringToInteger(const wchar_t* buffer)
 		{
 			return (UINT32)wcstoul(buffer, nullptr, 10);
 		}
@@ -267,7 +265,7 @@ namespace bs
 
 			sourceParam.copy(parameters[idx].buffer, parameters[idx].size, 0);
 			
-			getParams(parameters, idx + 1, std::forward<Args>(args)...);
+			GetParams(parameters, idx + 1, std::forward<Args>(args)...);
 		}
 
 		/**
@@ -285,7 +283,7 @@ namespace bs
 			
 			sourceParam.copy(parameters[idx].buffer, parameters[idx].size, 0);
 
-			getParams(parameters, idx + 1, std::forward<Args>(args)...);
+			GetParams(parameters, idx + 1, std::forward<Args>(args)...);
 		}
 
 		/** Helper method for parameter size calculation. Used as a stopping point in template recursion. */

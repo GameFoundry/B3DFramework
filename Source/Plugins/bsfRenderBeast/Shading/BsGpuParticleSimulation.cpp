@@ -365,7 +365,7 @@ namespace bs { namespace ct
 	Vector2 GpuParticleResources::GetTileCoords(UINT32 tileId)
 	{
 		return Vector2(
-			Math::frac(tileId / (float)TILE_COUNT_1D),
+			Math::Frac(tileId / (float)TILE_COUNT_1D),
 			(UINT32)(tileId / TILE_COUNT_1D) / (float)TILE_COUNT_1D);
 	}
 
@@ -615,7 +615,7 @@ namespace bs { namespace ct
 	void GpuParticleSystem::UpdateGpuBuffers()
 	{
 		const auto numTiles = (UINT32)mTiles.size();
-		const UINT32 numTilesToAllocates = Math::divideAndRoundUp(numTiles, TILES_PER_INSTANCE) * TILES_PER_INSTANCE;
+		const UINT32 numTilesToAllocates = Math::DivideAndRoundUp(numTiles, TILES_PER_INSTANCE) * TILES_PER_INSTANCE;
 
 		// Tile offsets buffer
 		if(numTiles > 0)
@@ -812,7 +812,7 @@ namespace bs { namespace ct
 					m->vectorFieldParams, vfTexture, m->depthCollisionParams);
 
 				const UINT32 tileCount = entry->GetNumTiles();
-				const UINT32 numInstances = Math::divideAndRoundUp(tileCount, TILES_PER_INSTANCE);
+				const UINT32 numInstances = Math::DivideAndRoundUp(tileCount, TILES_PER_INSTANCE);
 				rapi.DrawIndexed(0, TILES_PER_INSTANCE * 6, 0, TILES_PER_INSTANCE * 4, numInstances);
 			}
 		}
@@ -866,7 +866,7 @@ namespace bs { namespace ct
 			return;
 
 		const UINT32 totalNumKeys = offset;
-		const UINT32 keyMask = 0xFFFF | (Math::ceilToInt(Math::log2((float)(numSystemsToSort + 1))) << 16);
+		const UINT32 keyMask = 0xFFFF | (Math::CeilToInt(Math::Log2((float)(numSystemsToSort + 1))) << 16);
 		const UINT32 outputBufferIdx = GpuSort::instance().Sort(m->resources.mSortBuffers, totalNumKeys, keyMask);
 
 		m->resources.mSortedIndicesBufferIdx = outputBufferIdx;
@@ -911,7 +911,7 @@ namespace bs { namespace ct
 			const Vector3 rotationRate = simSettings.vectorField.rotationRate.Evaluate(nrmTime, random) * time;
 			const Quaternion AddedRotation(Degree(rotationRate.x), Degree(rotationRate.y), Degree(rotationRate.z));
 
-			const Vector3 offset = vfDesc.bounds.GetMin() + simSettings.vectorField.offset;
+			const Vector3 offset = vfDesc.bounds.GetMinimum() + simSettings.vectorField.offset;
 			const Quaternion rotation = simSettings.vectorField.rotation * addedRotation;
 			const Vector3 scale = vfDesc.bounds.GetSize() * simSettings.vectorField.scale;
 
@@ -956,7 +956,7 @@ namespace bs { namespace ct
 		if(numTiles == 0)
 			return;
 
-		const UINT32 numIterations = Math::divideAndRoundUp(numTiles, GpuParticleHelperBuffers::NUM_SCRATCH_TILES);
+		const UINT32 numIterations = Math::DivideAndRoundUp(numTiles, GpuParticleHelperBuffers::NUM_SCRATCH_TILES);
 
 		GpuParticleClearMat* clearMat = GpuParticleClearMat::get();
 		clearMat->Bind(m->helperBuffers.tileScratch);
@@ -981,7 +981,7 @@ namespace bs { namespace ct
 			for (UINT32 j = tileStart; j < tileEnd; j++)
 				tileUVs[j - tileStart] = GpuParticleResources::getTileCoords(tiles[j]);
 
-			const UINT32 alignedTileEnd = Math::divideAndRoundUp(tileEnd, TILES_PER_INSTANCE) * TILES_PER_INSTANCE;
+			const UINT32 alignedTileEnd = Math::DivideAndRoundUp(tileEnd, TILES_PER_INSTANCE) * TILES_PER_INSTANCE;
 			for (UINT32 j = tileEnd; j < alignedTileEnd; j++)
 				tileUVs[j - tileEnd] = Vector2(2.0f, 2.0f); // Out of bounds (we don't want to accidentaly clear used tiles)
 
@@ -997,7 +997,7 @@ namespace bs { namespace ct
 	void GpuParticleSimulation::InjectParticles(const Vector<GpuParticle>& particles)
 	{
 		const auto numParticles = (UINT32)particles.size();
-		const UINT32 numIterations = Math::divideAndRoundUp(numParticles, GpuParticleHelperBuffers::NUM_SCRATCH_PARTICLES);
+		const UINT32 numIterations = Math::DivideAndRoundUp(numParticles, GpuParticleHelperBuffers::NUM_SCRATCH_PARTICLES);
 
 		GpuParticleInjectMat* injectMat = GpuParticleInjectMat::get();
 		injectMat->Bind();
@@ -1225,7 +1225,7 @@ namespace bs { namespace ct
 	{
 		static constexpr UINT32 MAX_NUM_GROUPS = 128;
 
-		const UINT32 numIterations = Math::divideAndRoundUp(numParticles, NUM_THREADS);
+		const UINT32 numIterations = Math::DivideAndRoundUp(numParticles, NUM_THREADS);
 		const UINT32 numGroups = std::min(numIterations, MAX_NUM_GROUPS);
 
 		const UINT32 iterationsPerGroup = numIterations / numGroups;
@@ -1295,7 +1295,7 @@ namespace bs { namespace ct
 
 		const UINT32 numParticles = system.GetNumTiles() * GpuParticleResources::PARTICLES_PER_TILE;
 
-		const UINT32 numIterations = Math::divideAndRoundUp(numParticles, NUM_THREADS);
+		const UINT32 numIterations = Math::DivideAndRoundUp(numParticles, NUM_THREADS);
 		const UINT32 numGroups = std::min(numIterations, MAX_NUM_GROUPS);
 
 		const UINT32 iterationsPerGroup = numIterations / numGroups;

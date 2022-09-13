@@ -289,9 +289,9 @@ namespace bs
 	Color Color::GetGamma() const
 	{
 		return Color(
-				bs::linearToSRGB(r),
-				bs::linearToSRGB(g),
-				bs::linearToSRGB(b),
+				bs::LinearToSRGB(r),
+				bs::LinearToSRGB(g),
+				bs::LinearToSRGB(b),
 				a);
 	}
 
@@ -325,7 +325,7 @@ namespace bs
 
 		*brightness = vMax;
 
-		if (Math::approxEquals(delta, 0.0f, 1e-6f))
+		if (Math::ApproxEquals(delta, 0.0f, 1e-6f))
 		{
 			// grey
 			*hue = 0;
@@ -340,11 +340,11 @@ namespace bs
 			float deltaG = (((vMax - g) / 6.0f) + (delta / 2.0f)) / delta;
 			float deltaB = (((vMax - b) / 6.0f) + (delta / 2.0f)) / delta;
 
-			if (Math::approxEquals(r, vMax))
+			if (Math::ApproxEquals(r, vMax))
 				*hue = deltaB - deltaG;
-			else if (Math::approxEquals(g, vMax))
+			else if (Math::ApproxEquals(g, vMax))
 				*hue = 0.3333333f + deltaR - deltaB;
-			else if (Math::approxEquals(b, vMax))
+			else if (Math::ApproxEquals(b, vMax))
 				*hue = 0.6666667f + deltaG - deltaR;
 
 			if (*hue < 0.0f)
@@ -356,7 +356,7 @@ namespace bs
 
 	Color Color::Lerp(float t, const Color& a, const Color& b)
 	{
-		t = Math::clamp01(t);
+		t = Math::Clamp01(t);
 		return Color(a.r + (b.r - a.r) * t,
 					 a.g + (b.g - a.g) * t,
 					 a.b + (b.b - a.b) * t,

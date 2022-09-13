@@ -278,7 +278,7 @@ namespace bs
 		{
 			float length = rhs.time - lhs.time;
 
-			if (Math::approxEquals(length, 0.0f))
+			if (Math::ApproxEquals(length, 0.0f))
 				return lhs;
 
 			// Resize tangents since we're not evaluating the curve over unit range
@@ -289,8 +289,8 @@ namespace bs
 
 			TKeyframe<T> output;
 			output.time = time;
-			output.value = Math::cubicHermite(t, lhs.value, rhs.value, leftTangent, rightTangent);
-			output.inTangent = Math::cubicHermiteD1(t, lhs.value, rhs.value, leftTangent, rightTangent) * invLength;
+			output.value = Math::CubicHermite(t, lhs.value, rhs.value, leftTangent, rightTangent);
+			output.inTangent = Math::CubicHermiteD1(t, lhs.value, rhs.value, leftTangent, rightTangent) * invLength;
 
 			setStepValue(lhs, rhs, output.value);
 			setStepTangent(lhs, rhs, output.inTangent);
@@ -337,7 +337,7 @@ namespace bs
 				coeffs[3] = lhs.value;
 			}
 			else
-				Math::cubicHermiteCoefficients(lhs.value, rhs.value, lhs.outTangent, rhs.inTangent, length, coeffs);
+				Math::CubicHermiteCoefficients(lhs.value, rhs.value, lhs.outTangent, rhs.inTangent, length, coeffs);
 
 			setStepCoefficients(lhs, rhs, coeffs);
 		}
@@ -377,7 +377,7 @@ namespace bs
 			T leftTangent;
 			T rightTangent;
 
-			if (Math::approxEquals(length, 0.0f))
+			if (Math::ApproxEquals(length, 0.0f))
 			{
 				t = 0.0f;
 				leftTangent = impl::getZero<T>();
@@ -391,7 +391,7 @@ namespace bs
 				rightTangent = rhs.inTangent * length;
 			}
 
-			T output = Math::cubicHermite(t, lhs.value, rhs.value, leftTangent, rightTangent);
+			T output = Math::CubicHermite(t, lhs.value, rhs.value, leftTangent, rightTangent);
 			setStepValue(lhs, rhs, output);
 
 			return output;
@@ -424,7 +424,7 @@ namespace bs
 			for (UINT32 i = 0; i < numComponents; i++)
 			{
 				float roots[2];
-				const UINT32 numRoots = Math::solveQuadratic(
+				const UINT32 numRoots = Math::SolveQuadratic(
 					getComponent(a, i),
 					getComponent(b, i),
 					getComponent(c, i),
@@ -472,7 +472,7 @@ namespace bs
 			for (UINT32 i = 0; i < numComponents; i++)
 			{
 				float roots[3];
-				const UINT32 numRoots = Math::solveCubic(
+				const UINT32 numRoots = Math::SolveCubic(
 					getComponent(a, i),
 					getComponent(b, i),
 					getComponent(c, i),
@@ -522,7 +522,7 @@ namespace bs
 			for (UINT32 i = 0; i < numComponents; i++)
 			{
 				float roots[4];
-				const UINT32 numRoots = Math::solveQuartic(
+				const UINT32 numRoots = Math::SolveQuartic(
 					getComponent(a, i),
 					getComponent(b, i),
 					getComponent(c, i),
@@ -596,7 +596,7 @@ namespace bs
 		if (mKeyframes.empty())
 			return impl::getZero<T>();
 
-		if (Math::approxEquals(mLength, 0.0f))
+		if (Math::ApproxEquals(mLength, 0.0f))
 			time = 0.0f;
 
 		// Wrap time if looping
@@ -855,7 +855,7 @@ namespace bs
 		const KeyFrame& leftKey = mKeyframes[leftKeyIdx];
 		const KeyFrame& rightKey = mKeyframes[rightKeyIdx];
 
-		if (Math::abs(leftKey.time - time) <= Math::abs(rightKey.time - time))
+		if (Math::Abs(leftKey.time - time) <= Math::Abs(rightKey.time - time))
 			return leftKeyIdx;
 		
 		return rightKeyIdx;
@@ -872,8 +872,8 @@ namespace bs
 	{
 		Vector<TKeyframe<T>> keyFrames;
 
-		start = Math::clamp(start, mStart, mEnd);
-		end = Math::clamp(end, mStart, mEnd);
+		start = Math::Clamp(start, mStart, mEnd);
+		end = Math::Clamp(end, mStart, mEnd);
 
 		UINT32 startKeyIdx = findKey(start);
 		UINT32 endKeyIdx = findKey(end);
@@ -882,7 +882,7 @@ namespace bs
 
 		const KeyFrame& startKey = mKeyframes[startKeyIdx];
 
-		if (!Math::approxEquals(startKey.time, start))
+		if (!Math::ApproxEquals(startKey.time, start))
 		{
 			if(start > startKey.time)
 			{
@@ -918,10 +918,10 @@ namespace bs
 			startKeyIdx++;
 		}
 
-		if (!Math::approxEquals(end - start, 0.0f))
+		if (!Math::ApproxEquals(end - start, 0.0f))
 		{
 			const KeyFrame& endKey = mKeyframes[endKeyIdx];
-			if(!Math::approxEquals(endKey.time, end))
+			if(!Math::ApproxEquals(endKey.time, end))
 			{
 				if(end > endKey.time)
 				{

@@ -1023,7 +1023,7 @@ namespace bs
 		 * a percent of particles that should be flipped, in range [0, 1].
 		 */
 		BS_SCRIPT_EXPORT(pr:setter,n:FlipU)
-		void SetFlipU(float value) { mFlipU = Math::clamp01(value); }
+		void SetFlipU(float value) { mFlipU = Math::Clamp01(value); }
 
 		/** @copydoc setFlipU */
 		BS_SCRIPT_EXPORT(pr:getter,n:FlipU)
@@ -1034,7 +1034,7 @@ namespace bs
 		 * a percent of particles that should be flipped, in range [0, 1].
 		 */
 		BS_SCRIPT_EXPORT(pr:setter,n:FlipV)
-		void SetFlipV(float value) { mFlipV = Math::clamp01(value); }
+		void SetFlipV(float value) { mFlipV = Math::Clamp01(value); }
 
 		/** @copydoc setFlipV */
 		BS_SCRIPT_EXPORT(pr:getter,n:FlipV)

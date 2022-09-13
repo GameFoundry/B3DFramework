@@ -25,7 +25,7 @@ namespace bs
 		float rSqr = mRadius * mRadius;
 
 		Vector3 diff = org - segCenter;
-		Vector3 P(basis[1].Dot(diff), basis[2].dot(diff), basis[0].dot(diff));
+		Vector3 P(basis[1].Dot(diff), basis[2].Dot(diff), basis[0].Dot(diff));
 
 		// Get the z-value, in capsule coordinates, of the incoming line's
 		// unit-length direction.
@@ -51,7 +51,7 @@ namespace bs
 		}
 
 		// Convert the incoming line unit-length direction to capsule coordinates.
-		Vector3 D(basis[1].Dot(dir), basis[2].dot(dir), dz);
+		Vector3 D(basis[1].Dot(dir), basis[2].Dot(dir), dz);
 
 		// Test intersection of line with infinite cylinder
 		float a0 = P[0] * P[0] + P[1] * P[1] - rSqr;

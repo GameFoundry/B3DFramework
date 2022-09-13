@@ -54,7 +54,7 @@ namespace bs
 				return;
 		}
 
-		mLog.LogMsg(message, verbosity, category);
+		mLog.LogMessage(message, verbosity, category);
 
 		if(verbosity != LogVerbosity::Log)
 		{

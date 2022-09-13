@@ -310,14 +310,14 @@ namespace bs
 		return win32_pathExists(pathStr) && win32_isFile(pathStr);
 	}
 
-	bool FileSystem::IsDirectory(const Path& fullPath)
+	bool FileSystem::IsFolder(const Path& fullPath)
 	{
 		WString pathStr = UTF8::toWide(fullPath.ToString());
 
 		return win32_pathExists(pathStr) && win32_isDirectory(pathStr);
 	}
 
-	void FileSystem::CreateDir(const Path& fullPath)
+	void FileSystem::CreateFolder(const Path& fullPath)
 	{
 		Path parentPath = fullPath;
 		while (!exists(parentPath) && parentPath.GetNumDirectories() > 0)

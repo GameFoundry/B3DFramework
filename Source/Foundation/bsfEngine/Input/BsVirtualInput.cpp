@@ -102,7 +102,7 @@ namespace bs
 					axisValue /= 1.0f;
 				}
 
-				axisValue = Math::clamp(axisValue * axisDesc.sensitivity, -1.0f, 1.0f);
+				axisValue = Math::Clamp(axisValue * axisDesc.sensitivity, -1.0f, 1.0f);
 			}
 			else
 				axisValue *= axisDesc.sensitivity;

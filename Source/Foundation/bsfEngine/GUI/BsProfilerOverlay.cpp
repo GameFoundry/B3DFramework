@@ -560,7 +560,7 @@ namespace bs
 		UINT32 width = (UINT32)std::max(0, (INT32)mTarget->GetPixelArea().width - PADDING * 2);
 		UINT32 height = (UINT32)std::max(0, (INT32)(mTarget->GetPixelArea().height - PADDING * 3));
 
-		UINT32 labelsWidth = Math::ceilToInt(width * LABELS_CONTENT_RATIO);
+		UINT32 labelsWidth = Math::CeilToInt(width * LABELS_CONTENT_RATIO);
 		UINT32 contentWidth = width - labelsWidth;
 
 		mBasicLayoutLabels->SetPosition(PADDING, PADDING);
@@ -591,7 +591,7 @@ namespace bs
 		UINT32 width = (UINT32)std::max(0, (INT32)mTarget->GetPixelArea().width - PADDING * 2);
 		UINT32 height = (UINT32)std::max(0, (INT32)(mTarget->GetPixelArea().height - PADDING * 3));
 
-		UINT32 frameHeight = Math::ceilToInt(height * SAMPLES_FRAME_RATIO);
+		UINT32 frameHeight = Math::CeilToInt(height * SAMPLES_FRAME_RATIO);
 		UINT32 samplesHeight = height - frameHeight;
 
 		mGPULayoutFrameContents->SetPosition(PADDING, PADDING);

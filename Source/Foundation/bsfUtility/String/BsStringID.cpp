@@ -17,7 +17,7 @@ namespace bs
 
 	StringID::InitStatics::InitStatics()
 	{
-		ScopedSpinLock Lock(mSync);
+		ScopedSpinLock lock(mSync);
 
 		memset(mStringHashTable, 0, sizeof(mStringHashTable));
 		memset(mChunks, 0, sizeof(mChunks));
@@ -47,7 +47,7 @@ namespace bs
 			existingEntry = existingEntry->next;
 		}
 
-		ScopedSpinLock Lock(mSync);
+		ScopedSpinLock lock(mSync);
 
 		// Search for the value again in case other thread just added it
 		existingEntry = mStringHashTable[hash];

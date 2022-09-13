@@ -57,16 +57,16 @@ namespace bs
 
 		{
 			TCurveIntegrationCache<float> cache;
-			BS_TEST_ASSERT(Math::approxEquals(curveConstant.EvaluateIntegrated(0.0f, cache), 0.0f, EPSILON));
-			BS_TEST_ASSERT(Math::approxEquals(curveConstant.EvaluateIntegrated(0.5f, cache), 0.5f, EPSILON));
-			BS_TEST_ASSERT(Math::approxEquals(curveConstant.EvaluateIntegrated(1.0f, cache), 1.0f, EPSILON));
+			BS_TEST_ASSERT(Math::ApproxEquals(curveConstant.EvaluateIntegrated(0.0f, cache), 0.0f, EPSILON));
+			BS_TEST_ASSERT(Math::ApproxEquals(curveConstant.EvaluateIntegrated(0.5f, cache), 0.5f, EPSILON));
+			BS_TEST_ASSERT(Math::ApproxEquals(curveConstant.EvaluateIntegrated(1.0f, cache), 1.0f, EPSILON));
 		}
 
 		{
 			TCurveIntegrationCache<float> cache;
-			BS_TEST_ASSERT(Math::approxEquals(curveLinear.EvaluateIntegrated(0.0f, cache), 0.0f, EPSILON));
-			BS_TEST_ASSERT(Math::approxEquals(curveLinear.EvaluateIntegrated(0.5f, cache), 0.125f, EPSILON));
-			BS_TEST_ASSERT(Math::approxEquals(curveLinear.EvaluateIntegrated(1.0f, cache), 0.5f, EPSILON));
+			BS_TEST_ASSERT(Math::ApproxEquals(curveLinear.EvaluateIntegrated(0.0f, cache), 0.0f, EPSILON));
+			BS_TEST_ASSERT(Math::ApproxEquals(curveLinear.EvaluateIntegrated(0.5f, cache), 0.125f, EPSILON));
+			BS_TEST_ASSERT(Math::ApproxEquals(curveLinear.EvaluateIntegrated(1.0f, cache), 0.5f, EPSILON));
 		}
 
 		{
@@ -75,7 +75,7 @@ namespace bs
 			float times[] = { 0.0f, 0.5f, 1.0f };
 			for(auto time : times)
 			{
-				BS_TEST_ASSERT(Math::approxEquals(curveConstant.EvaluateIntegratedDouble(time, cache),
+				BS_TEST_ASSERT(Math::ApproxEquals(curveConstant.EvaluateIntegratedDouble(time, cache),
 					evalPosition(1.0f, 0.0f, time), EPSILON));
 			}
 		}
@@ -86,13 +86,13 @@ namespace bs
 			float times[] = { 0.0f, 0.5f, 1.0f, 2.0f, 3.0f, 5.0f, 10.0f };
 			for(auto time : times)
 			{
-				BS_TEST_ASSERT(Math::approxEquals(curveAcceleration.EvaluateIntegrated(time, cache),
+				BS_TEST_ASSERT(Math::ApproxEquals(curveAcceleration.EvaluateIntegrated(time, cache),
 					evalVelocity(-9.81f, time), EPSILON));
 			}
 
 			std::pair<float, float> range = curveAcceleration.CalculateRangeIntegrated(cache);
-			BS_TEST_ASSERT(Math::approxEquals(range.first, -98.1f, EPSILON));
-			BS_TEST_ASSERT(Math::approxEquals(range.second, 0.0f, EPSILON));
+			BS_TEST_ASSERT(Math::ApproxEquals(range.first, -98.1f, EPSILON));
+			BS_TEST_ASSERT(Math::ApproxEquals(range.second, 0.0f, EPSILON));
 		}
 
 		{
@@ -101,13 +101,13 @@ namespace bs
 			float times[] = { 0.0f, 0.5f, 1.0f, 2.0f, 3.0f, 5.0f, 10.0f };
 			for(auto time : times)
 			{
-				BS_TEST_ASSERT(Math::approxEquals(curveAcceleration.EvaluateIntegratedDouble(time, cache),
+				BS_TEST_ASSERT(Math::ApproxEquals(curveAcceleration.EvaluateIntegratedDouble(time, cache),
 					evalPosition(-9.81f, 0.0f, time)));
 			}
 
 			std::pair<float, float> range = curveAcceleration.CalculateRangeIntegratedDouble(cache);
-			BS_TEST_ASSERT(Math::approxEquals(range.first, -490.5f, EPSILON));
-			BS_TEST_ASSERT(Math::approxEquals(range.second, 0.0f, EPSILON));
+			BS_TEST_ASSERT(Math::ApproxEquals(range.first, -490.5f, EPSILON));
+			BS_TEST_ASSERT(Math::ApproxEquals(range.second, 0.0f, EPSILON));
 		}
 	}
 
@@ -140,7 +140,7 @@ namespace bs
 			Vector3 valueCurve = curve.Evaluate(t);
 
 			for(UINT32 j = 0; j < 3; j++)
-				BS_TEST_ASSERT(Math::approxEquals(valueLookup[j], valueCurve[j], EPSILON));
+				BS_TEST_ASSERT(Math::ApproxEquals(valueLookup[j], valueCurve[j], EPSILON));
 		}
 	}
 }

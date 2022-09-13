@@ -41,7 +41,7 @@ namespace bs
 	{
 		float length = end - start;
 
-		if(Math::approxEquals(length, 0.0f))
+		if(Math::ApproxEquals(length, 0.0f))
 		{
 			time = 0.0f;
 			return;
@@ -116,17 +116,17 @@ namespace bs
 			Vector3 angles = eulerCurve->GetKeyFrame(i).value;
 
 			Vector3 diff = angles - lastAngles;
-			float maxAngle = Math::max(
-				Math::abs(diff.x),
-				Math::abs(diff.y),
-				Math::abs(diff.z)
+			float maxAngle = Math::Max(
+				Math::Abs(diff.x),
+				Math::Abs(diff.y),
+				Math::Abs(diff.z)
 			);
 
 			// Is the angle greater than 180? In which case we need multiple keyframes to represent it via quaternions
 			if(i > 0 && maxAngle > 180.0f)
 			{
 				constexpr float SPLIT_INTERVAL = 175.0f; // Not exactly 180 to ensure no precision issues
-				INT32 numSplits = Math::floorToPosInt(maxAngle / SPLIT_INTERVAL) + 1;
+				INT32 numSplits = Math::FloorToPosInt(maxAngle / SPLIT_INTERVAL) + 1;
 
 				Vector3 partAngles = diff / (float)numSplits;
 				float partTime = (time - lastTime) / numSplits;
@@ -283,8 +283,8 @@ namespace bs
 				{
 					const TKeyframe<float>& prevKey = keyFrames[j].back();
 
-					bool isEqual = Math::approxEquals(prevKey.value, TCurveProperties<T>::getComponent(key.value, j)) &&
-						Math::approxEquals(prevKey.outTangent, TCurveProperties<T>::getComponent(key.inTangent, j));
+					bool isEqual = Math::ApproxEquals(prevKey.value, TCurveProperties<T>::getComponent(key.value, j)) &&
+								   Math::ApproxEquals(prevKey.outTangent, TCurveProperties<T>::getComponent(key.inTangent, j));
 
 					addNew = !isEqual;
 				}
@@ -553,7 +553,7 @@ namespace bs
 		{
 			float diff = right.time - left.time;
 
-			if (!Math::approxEquals(diff, 0.0f))
+			if (!Math::ApproxEquals(diff, 0.0f))
 				return (right.value - left.value) / diff;
 
 			return std::numeric_limits<T>::infinity();

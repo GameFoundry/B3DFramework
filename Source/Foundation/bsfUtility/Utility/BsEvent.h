@@ -93,7 +93,7 @@ namespace bs
 		 */
 		void Disconnect(BaseConnectionData* conn)
 		{
-			RecursiveLock Lock(mMutex);
+			RecursiveLock lock(mMutex);
 
 			conn->Deactivate();
 			conn->handleLinks--;
@@ -105,7 +105,7 @@ namespace bs
 		/** Disconnects all connections in the event. */
 		void Clear()
 		{
-			RecursiveLock Lock(mMutex);
+			RecursiveLock lock(mMutex);
 
 			BaseConnectionData* conn = mConnections;
 			while (conn != nullptr)
@@ -129,7 +129,7 @@ namespace bs
 		 */
 		void FreeHandle(BaseConnectionData* conn)
 		{
-			RecursiveLock Lock(mMutex);
+			RecursiveLock lock(mMutex);
 
 			conn->handleLinks--;
 
@@ -291,7 +291,7 @@ namespace bs
 		/** Register a new callback that will get notified once the event is triggered. */
 		HEvent Connect(std::function<RetType(Args...)> func)
 		{
-			RecursiveLock Lock(mInternalData->mMutex);
+			RecursiveLock lock(mInternalData->mMutex);
 
 			ConnectionData* connData = nullptr;
 			if (mInternalData->mFreeConnections != nullptr)
@@ -336,7 +336,7 @@ namespace bs
 			// deletes the event itself.
 			SPtr<EventInternalData> internalData = mInternalData;
 
-			RecursiveLock Lock(internalData->mMutex);
+			RecursiveLock lock(internalData->mMutex);
 			internalData->mIsCurrentlyTriggering = true;
 
 			ConnectionData* conn = static_cast<ConnectionData*>(internalData->mConnections);
@@ -388,7 +388,7 @@ namespace bs
 		 */
 		bool Empty() const
 		{
-			RecursiveLock Lock(mInternalData->mMutex);
+			RecursiveLock lock(mInternalData->mMutex);
 
 			return mInternalData->mConnections == nullptr;
 		}

@@ -146,7 +146,7 @@ namespace bs
 		{
 			float t = accum;
 			if(interval > 0)
-				t = Math::roundToMultiple(accum, interval);
+				t = Math::RoundToMultiple(accum, interval);
 
 			const UINT32 particleIdx = index + i;
 			spawner->_spawn(t, particleData.position[particleIdx], particleData.velocity[particleIdx]);
@@ -172,7 +172,7 @@ namespace bs
 			t = fmod(t, length);
 
 			if(interval > 0.0f)
-				t = Math::roundToMultiple(t, interval);
+				t = Math::RoundToMultiple(t, interval);
 
 			const UINT32 particleIdx = index + i;
 			spawner->_spawn(t, particleData.position[particleIdx], particleData.velocity[particleIdx]);
@@ -201,7 +201,7 @@ namespace bs
 				t = fmod(t, length);
 
 			if(interval > 0.0f)
-				t = Math::roundToMultiple(t, interval);
+				t = Math::RoundToMultiple(t, interval);
 
 			const UINT32 particleIdx = index + i;
 			spawner->_spawn(t, particleData.position[particleIdx], particleData.velocity[particleIdx]);
@@ -250,7 +250,7 @@ namespace bs
 	void ParticleEmitterConeShape::_spawn(const Random& random, Vector3& position, Vector3& normal) const
 	{
 		Vector2 pos2D;
-		if (Math::approxEquals(mInfo.arc.ValueDegrees(), 360.0f))
+		if (Math::ApproxEquals(mInfo.arc.ValueDegrees(), 360.0f))
 			pos2D = random.GetPointInCircleShell(mInfo.thickness);
 		else
 			pos2D = random.GetPointInArcShell(mInfo.arc, mInfo.thickness);
@@ -260,7 +260,7 @@ namespace bs
 
 	void ParticleEmitterConeShape::_spawn(float t, Vector3& position, Vector3& normal) const
 	{
-		const Vector2 Pos2D(Math::cos(t), Math::sin(t));
+		const Vector2 Pos2D(Math::Cos(t), Math::Sin(t));
 
 		getPointInCone(pos2D, 0.0f, position, normal);
 	}
@@ -268,8 +268,8 @@ namespace bs
 	void ParticleEmitterConeShape::getPointInCone(const Vector2& pos2D, float distance, Vector3& position,
 		Vector3& normal) const
 	{
-		const float angleSin = Math::sin(mInfo.angle);
-		normal = Vector3(pos2D.x * angleSin, pos2D.y * angleSin, Math::cos(mInfo.angle));
+		const float angleSin = Math::Sin(mInfo.angle);
+		normal = Vector3(pos2D.x * angleSin, pos2D.y * angleSin, Math::Cos(mInfo.angle));
 		normal.Normalize();
 
 		position = Vector3(pos2D.x * mInfo.radius, pos2D.y * mInfo.radius, 0.0f);
@@ -290,25 +290,25 @@ namespace bs
 
 	void ParticleEmitterConeShape::CalcBounds(AABox& shape, AABox& velocity) const
 	{
-		const float sinAngle = Math::sin(mInfo.angle);
-		const float cosAngle = Math::cos(mInfo.angle);
+		const float sinAngle = Math::Sin(mInfo.angle);
+		const float cosAngle = Math::Cos(mInfo.angle);
 
 		if(mInfo.type == ParticleEmitterConeType::Base)
 		{
-			shape.SetMin(Vector3(-mInfo.radius, -mInfo.radius, 0.0f));
-			shape.SetMax(Vector3(mInfo.radius, mInfo.radius, 0.0f));
+			shape.SetMinimum(Vector3(-mInfo.radius, -mInfo.radius, 0.0f));
+			shape.SetMaximum(Vector3(mInfo.radius, mInfo.radius, 0.0f));
 		}
 		else
 		{
 			const float topRadius = mInfo.radius + mInfo.length * sinAngle;
 			const float length = mInfo.length * cosAngle;
 
-			shape.SetMin(Vector3(-topRadius, -topRadius, 0.0f));
-			shape.SetMax(Vector3(topRadius, topRadius, length));
+			shape.SetMinimum(Vector3(-topRadius, -topRadius, 0.0f));
+			shape.SetMaximum(Vector3(topRadius, topRadius, length));
 		}
 
-		velocity.SetMin(Vector3(-sinAngle, -sinAngle, 0.0f));
-		velocity.SetMax(Vector3(sinAngle, sinAngle, 1.0f));
+		velocity.SetMinimum(Vector3(-sinAngle, -sinAngle, 0.0f));
+		velocity.SetMaximum(Vector3(sinAngle, sinAngle, 1.0f));
 	}
 	
 	RTTITypeBase* ParticleEmitterConeShape::getRTTIStatic()
@@ -341,11 +341,11 @@ namespace bs
 
 	void ParticleEmitterSphereShape::CalcBounds(AABox& shape, AABox& velocity) const
 	{
-		shape.SetMin(Vector3::ONE * -mInfo.radius);
-		shape.SetMax(Vector3::ONE * mInfo.radius);
+		shape.SetMinimum(Vector3::ONE * -mInfo.radius);
+		shape.SetMaximum(Vector3::ONE * mInfo.radius);
 
-		velocity.SetMin(-Vector3::ONE);
-		velocity.SetMax(Vector3::ONE);
+		velocity.SetMinimum(-Vector3::ONE);
+		velocity.SetMaximum(Vector3::ONE);
 	}
 	
 	SPtr<ParticleEmitterSphereShape> ParticleEmitterSphereShape::Create(const PARTICLE_SPHERE_SHAPE_DESC& desc)
@@ -390,11 +390,11 @@ namespace bs
 
 	void ParticleEmitterHemisphereShape::CalcBounds(AABox& shape, AABox& velocity) const
 	{
-		shape.SetMin(Vector3(-mInfo.radius, -mInfo.radius, 0.0f));
-		shape.SetMax(Vector3::ONE * mInfo.radius);
+		shape.SetMinimum(Vector3(-mInfo.radius, -mInfo.radius, 0.0f));
+		shape.SetMaximum(Vector3::ONE * mInfo.radius);
 
-		velocity.SetMin(Vector3(-1.0f, -1.0f, 0.0f));
-		velocity.SetMax(Vector3::ONE);
+		velocity.SetMinimum(Vector3(-1.0f, -1.0f, 0.0f));
+		velocity.SetMaximum(Vector3::ONE);
 	}
 	
 	SPtr<ParticleEmitterHemisphereShape> ParticleEmitterHemisphereShape::Create(const PARTICLE_HEMISPHERE_SHAPE_DESC& desc)
@@ -427,7 +427,7 @@ namespace bs
 			float totalSurfaceArea = 0.0f;
 			for(UINT32 i = 0; i < 3; i++)
 			{
-				mSurfaceArea[i] = Math::sqr(desc.extents[i]);
+				mSurfaceArea[i] = Math::Sqr(desc.extents[i]);
 				totalSurfaceArea += mSurfaceArea[i];
 			}
 
@@ -564,11 +564,11 @@ namespace bs
 
 	void ParticleEmitterBoxShape::CalcBounds(AABox& shape, AABox& velocity) const
 	{
-		shape.SetMin(-mInfo.extents);
-		shape.SetMax(mInfo.extents);
+		shape.SetMinimum(-mInfo.extents);
+		shape.SetMaximum(mInfo.extents);
 
-		velocity.SetMin(Vector3::ZERO);
-		velocity.SetMax(Vector3::UNIT_Z);
+		velocity.SetMinimum(Vector3::ZERO);
+		velocity.SetMaximum(Vector3::UNIT_Z);
 	}
 
 	SPtr<ParticleEmitterBoxShape> ParticleEmitterBoxShape::Create(const PARTICLE_BOX_SHAPE_DESC& desc)
@@ -616,11 +616,11 @@ namespace bs
 
 	void ParticleEmitterLineShape::CalcBounds(AABox& shape, AABox& velocity) const
 	{
-		shape.SetMin(Vector3(-mInfo.length * 0.5f, 0.0f, 0.0f));
-		shape.SetMax(Vector3(mInfo.length * 0.5f, 0.0f, 0.0f));
+		shape.SetMinimum(Vector3(-mInfo.length * 0.5f, 0.0f, 0.0f));
+		shape.SetMaximum(Vector3(mInfo.length * 0.5f, 0.0f, 0.0f));
 
-		velocity.SetMin(Vector3::ZERO);
-		velocity.SetMax(Vector3::UNIT_Z);
+		velocity.SetMinimum(Vector3::ZERO);
+		velocity.SetMaximum(Vector3::UNIT_Z);
 	}
 
 	SPtr<ParticleEmitterLineShape> ParticleEmitterLineShape::Create(const PARTICLE_LINE_SHAPE_DESC& desc)
@@ -657,7 +657,7 @@ namespace bs
 	void ParticleEmitterCircleShape::_spawn(const Random& random, Vector3& position, Vector3& normal) const
 	{
 		Vector2 pos2D;
-		if (Math::approxEquals(mInfo.arc.ValueDegrees(), 360.0f))
+		if (Math::ApproxEquals(mInfo.arc.ValueDegrees(), 360.0f))
 			pos2D = random.GetPointInCircleShell(mInfo.thickness);
 		else
 			pos2D = random.GetPointInArcShell(mInfo.arc, mInfo.thickness);
@@ -668,7 +668,7 @@ namespace bs
 
 	void ParticleEmitterCircleShape::_spawn(float t, Vector3& position, Vector3& normal) const
 	{
-		const Vector2 Pos2D(Math::cos(t), Math::sin(t));
+		const Vector2 Pos2D(Math::Cos(t), Math::Sin(t));
 
 		position = Vector3(pos2D.x * mInfo.radius, pos2D.y * mInfo.radius, 0.0f);
 		normal = Vector3::UNIT_Z;
@@ -676,11 +676,11 @@ namespace bs
 
 	void ParticleEmitterCircleShape::CalcBounds(AABox& shape, AABox& velocity) const
 	{
-		shape.SetMin(Vector3(-mInfo.radius, -mInfo.radius, 0.0f));
-		shape.SetMax(Vector3(mInfo.radius, mInfo.radius, 0.0f));
+		shape.SetMinimum(Vector3(-mInfo.radius, -mInfo.radius, 0.0f));
+		shape.SetMaximum(Vector3(mInfo.radius, mInfo.radius, 0.0f));
 
-		velocity.SetMin(Vector3::ZERO);
-		velocity.SetMax(Vector3::UNIT_Z);
+		velocity.SetMinimum(Vector3::ZERO);
+		velocity.SetMaximum(Vector3::UNIT_Z);
 	}
 
 	SPtr<ParticleEmitterCircleShape> ParticleEmitterCircleShape::Create(const PARTICLE_CIRCLE_SHAPE_DESC& desc)
@@ -724,11 +724,11 @@ namespace bs
 
 	void ParticleEmitterRectShape::CalcBounds(AABox& shape, AABox& velocity) const
 	{
-		shape.SetMin(Vector3(-mInfo.extents.x, -mInfo.extents.y, 0.0f));
-		shape.SetMax(Vector3(mInfo.extents.x, mInfo.extents.y, 0.0f));
+		shape.SetMinimum(Vector3(-mInfo.extents.x, -mInfo.extents.y, 0.0f));
+		shape.SetMaximum(Vector3(mInfo.extents.x, mInfo.extents.y, 0.0f));
 
-		velocity.SetMin(Vector3::ZERO);
-		velocity.SetMax(Vector3::UNIT_Z);
+		velocity.SetMinimum(Vector3::ZERO);
+		velocity.SetMaximum(Vector3::UNIT_Z);
 	}
 
 	SPtr<ParticleEmitterRectShape> ParticleEmitterRectShape::Create(const PARTICLE_RECT_SHAPE_DESC& desc)
@@ -1034,8 +1034,8 @@ namespace bs
 				mMeshEmissionHelper.GetRandomEdge(random, edgePositions, edgeNormals, edgeIndices);
 
 				const float rnd = random.GetUNorm();
-				position = Math::lerp(rnd, edgePositions[0], edgePositions[1]);
-				normal = Math::lerp(rnd, edgeNormals[0], edgeNormals[1]);
+				position = Math::Lerp(rnd, edgePositions[0], edgePositions[1]);
+				normal = Math::Lerp(rnd, edgeNormals[0], edgeNormals[1]);
 			});
 		default:
 		case ParticleEmitterMeshType::Triangle:
@@ -1066,8 +1066,8 @@ namespace bs
 		else
 			shape = AABox::BOX_EMPTY;
 
-		velocity.SetMin(-Vector3::ONE);
-		velocity.SetMax(Vector3::ONE);
+		velocity.SetMinimum(-Vector3::ONE);
+		velocity.SetMaximum(Vector3::ONE);
 	}
 
 	SPtr<ParticleEmitterStaticMeshShape> ParticleEmitterStaticMeshShape::Create(const PARTICLE_STATIC_MESH_SHAPE_DESC& desc)
@@ -1187,8 +1187,8 @@ namespace bs
 				}
 
 				const float rnd = random.GetUNorm();
-				position = Math::lerp(rnd, edgePositions[0], edgePositions[1]);
-				normal = Math::lerp(rnd, edgeNormals[0], edgeNormals[1]);
+				position = Math::Lerp(rnd, edgePositions[0], edgePositions[1]);
+				normal = Math::Lerp(rnd, edgeNormals[0], edgeNormals[1]);
 			});
 		default:
 		case ParticleEmitterMeshType::Triangle:
@@ -1246,8 +1246,8 @@ namespace bs
 		else
 			shape = AABox::BOX_EMPTY;
 
-		velocity.SetMin(-Vector3::ONE);
-		velocity.SetMax(Vector3::ONE);
+		velocity.SetMinimum(-Vector3::ONE);
+		velocity.SetMaximum(Vector3::ONE);
 	}
 
 	SPtr<ParticleEmitterSkinnedMeshShape> ParticleEmitterSkinnedMeshShape::Create(const PARTICLE_SKINNED_MESH_SHAPE_DESC& desc)
@@ -1318,7 +1318,7 @@ namespace bs
 				const float interval = std::max(burst.interval, MIN_BURST_INTERVAL);
 
 				const float emitDuration = dt + mBurstAccumulator[i];
-				const UINT32 emitCycles = Math::floorToPosInt(emitDuration / interval);
+				const UINT32 emitCycles = Math::FloorToPosInt(emitDuration / interval);
 				mBurstAccumulator[i] = emitDuration - emitCycles * interval;
 
 				for (UINT32 j = 0; j < emitCycles; j++)

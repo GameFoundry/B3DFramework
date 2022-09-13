@@ -22,7 +22,7 @@ namespace bs { namespace ct
 
 	void D3D11RasterizerState::CreateInternal()
 	{
-		INT32 scaledDepthBias = Math::floorToInt(-mProperties.GetDepthBias() * float((1 << 24))); // Note: Assumes 24-bit depth buffer
+		INT32 scaledDepthBias = Math::FloorToInt(-mProperties.GetDepthBias() * float((1 << 24))); // Note: Assumes 24-bit depth buffer
 
 		D3D11_RASTERIZER_DESC rasterizerStateDesc;
 		ZeroMemory(&rasterizerStateDesc, sizeof(D3D11_RASTERIZER_DESC));

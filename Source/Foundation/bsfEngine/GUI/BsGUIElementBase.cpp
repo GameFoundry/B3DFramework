@@ -176,7 +176,7 @@ namespace bs
 			Vector2I LocalPos(area.x, area.y);
 
 			const Vector4 widgetPosFlt = widgetTfrm.MultiplyAffine(Vector4((float)localPos.x, (float)localPos.y, 0.0f, 1.0f));
-			const Vector2I WidgetPos(Math::roundToInt(widgetPosFlt.x), Math::roundToInt(widgetPosFlt.y));
+			const Vector2I WidgetPos(Math::RoundToInt(widgetPosFlt.x), Math::RoundToInt(widgetPosFlt.y));
 
 			const RenderWindow* parentWindow = GUIManager::instance().GetWidgetWindow(*mParentWidget);
 			if(parentWindow)

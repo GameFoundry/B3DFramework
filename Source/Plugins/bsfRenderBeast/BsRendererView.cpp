@@ -168,7 +168,7 @@ namespace bs { namespace ct
 		if(mRenderSettings->temporalAA.enabled)
 		{
 			UINT32 positionCount = mRenderSettings->temporalAA.jitteredPositionCount;
-			positionCount = Math::clamp(positionCount, 4U, 128U);
+			positionCount = Math::Clamp(positionCount, 4U, 128U);
 			
 			UINT32 positionIndex = mTemporalPositionIdx % positionCount;
 			
@@ -189,15 +189,15 @@ namespace bs { namespace ct
 			{
 				constexpr float EPSILON = 1e-6f;
 				
-				float u1 = Math::haltonSequence<float>(positionIndex + 1, 2);
-				float u2 = Math::haltonSequence<float>(positionIndex + 1, 3);
+				float u1 = Math::HaltonSequence<float>(positionIndex + 1, 2);
+				float u2 = Math::HaltonSequence<float>(positionIndex + 1, 3);
 
 				float scale = (2.0f - mRenderSettings->temporalAA.sharpness) * 0.3f;
 
 				float angle = 2.0f * Math::PI * u2;
-				float radius = scale * Math::sqrt(-2.0f * Math::log(Math::max(u1, EPSILON)));
+				float radius = scale * Math::Sqrt(-2.0f * Math::Log(Math::Max(u1, EPSILON)));
 
-				mProperties.temporalJitter = Vector2(radius * Math::cos(angle), radius * Math::sin(angle));
+				mProperties.temporalJitter = Vector2(radius * Math::Cos(angle), radius * Math::Sin(angle));
 			}
 
 			Vector2 viewSize = Vector2((float)mProperties.target.targetWidth, (float)mProperties.target.targetHeight);
@@ -284,7 +284,7 @@ namespace bs { namespace ct
 				return true;
 			
 			// Need to render until the auto-exposure reaches the target exposure
-			float eyeAdaptationDiff = Math::abs(mCurrentEyeAdaptation - mPreviousEyeAdaptation);
+			float eyeAdaptationDiff = Math::Abs(mCurrentEyeAdaptation - mPreviousEyeAdaptation);
 			if (eyeAdaptationDiff > AUTO_EXPOSURE_TOLERANCE)
 				return true;
 		}

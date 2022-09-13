@@ -148,7 +148,7 @@ namespace bs
 		OSPointerButtonStates pointerState;
 
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 
 			std::swap(mQueuedEvents[0], mQueuedEvents[1]);
 
@@ -298,17 +298,17 @@ namespace bs
 		mMouseSampleAccumulator[0] += relX;
 		mMouseSampleAccumulator[1] += relY;
 
-		mTotalMouseNumSamples[0] += Math::roundToInt(Math::abs((float)relX));
-		mTotalMouseNumSamples[1] += Math::roundToInt(Math::abs((float)relY));
+		mTotalMouseNumSamples[0] += Math::RoundToInt(Math::Abs((float)relX));
+		mTotalMouseNumSamples[1] += Math::RoundToInt(Math::Abs((float)relY));
 
 		// Update sample times used for determining sampling rate. But only if something was
 		// actually sampled, and only if this isn't the first non-zero sample.
 		if (mLastMouseUpdateFrame != gTime().GetFrameIdx())
 		{
-			if (relX != 0 && !Math::approxEquals(mMouseSmoothedAxis[0], 0.0f))
+			if (relX != 0 && !Math::ApproxEquals(mMouseSmoothedAxis[0], 0.0f))
 				mTotalMouseSamplingTime[0] += gTime().GetFrameDelta();
 
-			if (relY != 0 && !Math::approxEquals(mMouseSmoothedAxis[1], 0.0f))
+			if (relY != 0 && !Math::ApproxEquals(mMouseSmoothedAxis[1], 0.0f))
 				mTotalMouseSamplingTime[1] += gTime().GetFrameDelta();
 
 			mLastMouseUpdateFrame = gTime().GetFrameIdx();
@@ -320,9 +320,9 @@ namespace bs
 	void Input::_notifyAxisMoved(UINT32 gamepadIdx, UINT32 axisIdx, INT32 value)
 	{
 		// Move axis values into [-1.0f, 1.0f] range
-		float axisRange = Math::abs((float)Gamepad::MAX_AXIS) + Math::abs((float)Gamepad::MIN_AXIS);
+		float axisRange = Math::Abs((float)Gamepad::MAX_AXIS) + Math::Abs((float)Gamepad::MIN_AXIS);
 
-		float axisValue = ((value + Math::abs((float)Gamepad::MIN_AXIS)) / axisRange) * 2.0f - 1.0f;
+		float axisValue = ((value + Math::Abs((float)Gamepad::MIN_AXIS)) / axisRange) * 2.0f - 1.0f;
 		axisMoved(gamepadIdx, axisValue, axisIdx);
 	}
 
@@ -338,7 +338,7 @@ namespace bs
 
 	void Input::ButtonDown(UINT32 deviceIdx, ButtonCode code, UINT64 timestamp)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		while (deviceIdx >= (UINT32)mDevices.size())
 			mDevices.push_back(DeviceData());
@@ -354,7 +354,7 @@ namespace bs
 
 	void Input::ButtonUp(UINT32 deviceIdx, ButtonCode code, UINT64 timestamp)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		ButtonEvent btnEvent;
 		btnEvent.buttonCode = code;
@@ -380,7 +380,7 @@ namespace bs
 
 	void Input::CursorMoved(const Vector2I& cursorPos, const OSPointerButtonStates& btnStates)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		mPointerPosition = cursorPos;
 		mPointerState = btnStates;
@@ -388,7 +388,7 @@ namespace bs
 
 	void Input::CursorPressed(const Vector2I& cursorPos, OSMouseButton button, const OSPointerButtonStates& btnStates)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		PointerEvent event;
 		event.alt = false;
@@ -422,7 +422,7 @@ namespace bs
 
 	void Input::CursorReleased(const Vector2I& cursorPos, OSMouseButton button, const OSPointerButtonStates& btnStates)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		PointerEvent event;
 		event.alt = false;
@@ -456,7 +456,7 @@ namespace bs
 
 	void Input::CursorDoubleClick(const Vector2I& cursorPos, const OSPointerButtonStates& btnStates)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		PointerEvent event;
 		event.alt = false;
@@ -475,7 +475,7 @@ namespace bs
 
 	void Input::InputCommandEntered(InputCommandType commandType)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		mQueuedEvents[0].push_back(QueuedEvent(EventType::Command, (UINT32)mCommandEvents[0].size()));
 		mCommandEvents[0].push_back(commandType);
@@ -483,14 +483,14 @@ namespace bs
 
 	void Input::MouseWheelScrolled(float scrollPos)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		mMouseScroll = scrollPos;
 	}
 
 	void Input::CharInput(UINT32 chr)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		TextInputEvent textInputEvent;
 		textInputEvent.textChar = chr;
@@ -622,7 +622,7 @@ namespace bs
 					if (deltaTime < secondsPerSample * (sampleCount + 1))
 						value = value * deltaTime / (secondsPerSample * sampleCount);
 					else
-						sampleCount = Math::roundToInt(deltaTime / secondsPerSample);
+						sampleCount = Math::RoundToInt(deltaTime / secondsPerSample);
 				}
 
 				mMouseSmoothedAxis[idx] = value / sampleCount;

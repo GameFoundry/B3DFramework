@@ -283,7 +283,7 @@ namespace bs { namespace ct
 
 		VulkanRenderPass* pass;
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 
 			auto iterFind = mVariants.find(key);
 			if (iterFind != mVariants.end())

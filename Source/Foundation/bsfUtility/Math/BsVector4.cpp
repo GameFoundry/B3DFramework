@@ -9,6 +9,6 @@ namespace bs
 
 	bool Vector4::IsNaN() const
 	{
-		return Math::IsNaN(x) || Math::isNaN(y) || Math::isNaN(z) || Math::isNaN(w);
+		return Math::IsNaN(x) || Math::IsNaN(y) || Math::IsNaN(z) || Math::IsNaN(w);
 	}
 }

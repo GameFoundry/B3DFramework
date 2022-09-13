@@ -215,7 +215,7 @@ namespace bs
 			return Vector4(m[0][col], m[1][col], m[2][col], m[3][col]);
 		}
 
-		/** Returns a transpose of the matrix (switched columns and rows). */
+		/** Returns a Transpose of the matrix (switched columns and rows). */
 		Matrix4 Transpose() const
 		{
 			return Matrix4(m[0][0], m[1][0], m[2][0], m[3][0],
@@ -349,13 +349,13 @@ namespace bs
 		 */
 		Plane MultiplyAffine(const Plane& p) const
 		{
-			Vector4 LocalNormal(p.normal.x, p.normal.y, p.normal.z, 0.0f);
+			Vector4 localNormal(p.normal.x, p.normal.y, p.normal.z, 0.0f);
 			Vector4 localPoint = localNormal * p.d;
 			localPoint.w = 1.0f;
 
-			Matrix4 itMat = inverse().Transpose();
+			Matrix4 itMat = Inverse().Transpose();
 			Vector4 worldNormal = itMat.MultiplyAffine(localNormal);
-			Vector4 worldPoint = multiplyAffine(localPoint);
+			Vector4 worldPoint = MultiplyAffine(localPoint);
 
 			float d = worldNormal.Dot(worldPoint);
 
@@ -409,7 +409,7 @@ namespace bs
 		 */
 		Vector3 Multiply(const Vector3& v) const
 		{
-			Vector3 R(BsZero);
+			Vector3 r(BsZero);
 
 			float fInvW = 1.0f / (m[3][0] * v.x + m[3][1] * v.y + m[3][2] * v.z + m[3][3]);
 
@@ -467,11 +467,10 @@ namespace bs
 		 * @param[in]	positiveZ	If true the matrix will project geometry as if its looking along the positive Z axis.
 		 *							Otherwise it projects along the negative Z axis (default).
 		 */
-		static Matrix4 projectionPerspective(const Degree& horzFOV, float aspect, float near, float far,
-			bool positiveZ = false);
+		static Matrix4 CreateProjectionPerspective(const Degree& horzFOV, float aspect, float near, float far, bool positiveZ = false);
 
 		/** @copydoc makeProjectionOrtho() */
-		static Matrix4 ProjectionOrthographic(float left, float right, float top, float bottom, float near, float far);
+		static Matrix4 CreateProjectionOrthographic(float left, float right, float top, float bottom, float near, float far);
 
 		/** Creates a view matrix. */
 		static Matrix4 View(const Vector3& position, const Quaternion& orientation);

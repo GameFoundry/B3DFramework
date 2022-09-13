@@ -18,7 +18,7 @@ namespace bs
 	CoreObjectManager::~CoreObjectManager()
 	{
 #if BS_DEBUG_MODE
-		Lock Lock(mObjectsMutex);
+		Lock lock(mObjectsMutex);
 
 		if(mObjects.size() > 0)
 		{
@@ -34,14 +34,14 @@ namespace bs
 
 	UINT64 CoreObjectManager::GenerateId()
 	{
-		Lock Lock(mObjectsMutex);
+		Lock lock(mObjectsMutex);
 
 		return mNextAvailableID++;
 	}
 
 	void CoreObjectManager::RegisterObject(CoreObject* object)
 	{
-		Lock Lock(mObjectsMutex);
+		Lock lock(mObjectsMutex);
 
 		UINT64 objId = object->GetInternalID();
 		mObjects[objId] = object;
@@ -56,7 +56,7 @@ namespace bs
 
 		// If dirty, we generate sync data before it is destroyed
 		{
-			Lock Lock(mObjectsMutex);
+			Lock lock(mObjectsMutex);
 			bool isDirty = object->IsCoreDirty() || (mDirtyObjects.find(internalId) != mDirtyObjects.end());
 
 			if (isDirty)
@@ -87,7 +87,7 @@ namespace bs
 
 		// Clear dependencies from dependants
 		{
-			Lock Lock(mObjectsMutex);
+			Lock lock(mObjectsMutex);
 
 			auto iterFind = mDependants.find(internalId);
 			if (iterFind != mDependants.end())
@@ -120,7 +120,7 @@ namespace bs
 	{
 		UINT64 id = object->GetInternalID();
 
-		Lock Lock(mObjectsMutex);
+		Lock lock(mObjectsMutex);
 
 		mDirtyObjects[id] = { object, -1 };
 	}
@@ -142,7 +142,7 @@ namespace bs
 			FrameVector<CoreObject*> toRemove;
 			FrameVector<CoreObject*> toAdd;
 
-			Lock Lock(mObjectsMutex);
+			Lock lock(mObjectsMutex);
 
 			// Add dependencies and clear old dependencies from dependants
 			{
@@ -229,7 +229,7 @@ namespace bs
 			FrameAlloc* allocator;
 		};
 
-		Lock Lock(mObjectsMutex);
+		Lock lock(mObjectsMutex);
 
 		FrameAlloc* allocator = gCoreThread().GetFrameAlloc();
 		Vector<IndividualCoreSyncData> syncData;
@@ -295,7 +295,7 @@ namespace bs
 
 	void CoreObjectManager::SyncDownload(FrameAlloc* allocator)
 	{
-		Lock Lock(mObjectsMutex);
+		Lock lock(mObjectsMutex);
 
 		mCoreSyncData.push_back(CoreStoredSyncData());
 		CoreStoredSyncData& syncData = mCoreSyncData.back();
@@ -395,7 +395,7 @@ namespace bs
 
 	void CoreObjectManager::SyncUpload()
 	{
-		Lock Lock(mObjectsMutex);
+		Lock lock(mObjectsMutex);
 
 		if (mCoreSyncData.size() == 0)
 			return;

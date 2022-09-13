@@ -107,10 +107,10 @@ namespace bs
 			UINT32 vertIdx = quadIdx * 4;
 
 			Rect2I charRect;
-			charRect.x = Math::roundToInt(mQuads[vertIdx + 0].x);
-			charRect.y = Math::roundToInt(mQuads[vertIdx + 0].y);
-			charRect.width = Math::roundToInt(mQuads[vertIdx + 3].x - charRect.x);
-			charRect.height = Math::roundToInt(mQuads[vertIdx + 3].y - charRect.y);
+			charRect.x = Math::RoundToInt(mQuads[vertIdx + 0].x);
+			charRect.y = Math::RoundToInt(mQuads[vertIdx + 0].y);
+			charRect.width = Math::RoundToInt(mQuads[vertIdx + 3].x - charRect.x);
+			charRect.height = Math::RoundToInt(mQuads[vertIdx + 3].y - charRect.y);
 
 			return charRect;
 		}
@@ -160,7 +160,7 @@ namespace bs
 			centerX *= 0.5f;
 			centerX += textOffset.x;
 
-			float dist = Math::abs(centerX - vecPos.x);
+			float dist = Math::Abs(centerX - vecPos.x);
 			if(dist < nearestDist)
 			{
 				nearestChar = i + numNewlineChars;

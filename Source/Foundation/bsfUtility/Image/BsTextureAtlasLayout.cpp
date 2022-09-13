@@ -16,17 +16,17 @@ namespace bs
 		}
 
 		// Try adding without expanding, if that fails try to expand
-		if(!addToNode(0, width, height, x, y, false))
+		if(!AddToNode(0, width, height, x, y, false))
 		{
-			if (!addToNode(0, width, height, x, y, true))
+			if (!AddToNode(0, width, height, x, y, true))
 				return false;
 		}
 
 		// Update size to cover all nodes
 		if(mPow2)
 		{
-			mWidth = std::max(mWidth, Bitwise::nextPow2(x + width));
-			mHeight = std::max(mHeight, Bitwise::nextPow2(y + height));
+			mWidth = std::max(mWidth, Bitwise::NextPow2(x + width));
+			mHeight = std::max(mHeight, Bitwise::NextPow2(y + height));
 		}
 		else
 		{
@@ -39,7 +39,7 @@ namespace bs
 
 	void TextureAtlasLayout::Clear()
 	{
-		mNodes.Clear();
+		mNodes.clear();
 		mNodes.push_back(TexAtlasNode(0, 0, mWidth, mHeight));
 
 		mWidth = mInitialWidth;
@@ -53,7 +53,7 @@ namespace bs
 
 		if (node->children[0] != (UINT32)-1)
 		{
-			if (addToNode(node->children[0], width, height, x, y, allowGrowth))
+			if (AddToNode(node->children[0], width, height, x, y, allowGrowth))
 				return true;
 
 			return AddToNode(node->children[1], width, height, x, y, allowGrowth);
@@ -105,7 +105,7 @@ namespace bs
 		}
 	}
 
-	Vector<TextureAtlasUtility::Page> TextureAtlasUtility::createAtlasLayout(Vector<Element>& elements, UINT32 width,
+	Vector<TextureAtlasUtility::Page> TextureAtlasUtility::CreateAtlasLayout(Vector<Element>& elements, UINT32 width,
 		UINT32 height, UINT32 maxWidth, UINT32 maxHeight, bool pow2)
 	{
 		for (size_t i = 0; i < elements.size(); i++)
@@ -172,7 +172,7 @@ namespace bs
 
 		Vector<Page> pages;
 		for (auto& layout : layouts)
-			pages.push_back({ layout.GetWidth(), layout.getHeight() });
+			pages.push_back({ layout.GetWidth(), layout.GetHeight() });
 
 		return pages;
 	}

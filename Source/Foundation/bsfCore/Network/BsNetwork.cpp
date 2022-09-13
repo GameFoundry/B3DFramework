@@ -894,7 +894,7 @@ namespace bs
 				mEncoder.Clear();
 
 				float tickLength = 1.0f / mTickRate;
-				mTimeAccumulator = Math::repeat(mTimeAccumulator, tickLength) - tickLength;
+				mTimeAccumulator = Math::Repeat(mTimeAccumulator, tickLength) - tickLength;
 			}
 
 			mTimeAccumulator += dt;

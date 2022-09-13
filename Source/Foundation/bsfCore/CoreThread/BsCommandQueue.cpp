@@ -15,7 +15,7 @@ namespace bs
 		mCommands = bs_new<bs::Queue<QueuedCommand>>();
 
 		{
-			Lock Lock(CommandQueueBreakpointMutex);
+			Lock lock(CommandQueueBreakpointMutex);
 
 			mCommandQueueIdx = MaxCommandQueueIdx++;
 		}
@@ -83,7 +83,7 @@ namespace bs
 	{
 		bs::Queue<QueuedCommand>* oldCommands = mCommands;
 
-		Lock Lock(mEmptyCommandQueueMutex);
+		Lock lock(mEmptyCommandQueueMutex);
 		if(!mEmptyCommandQueues.empty())
 		{
 			mCommands = mEmptyCommandQueues.Top();
@@ -134,7 +134,7 @@ namespace bs
 			commands->Pop();
 		}
 
-		Lock Lock(mEmptyCommandQueueMutex);
+		Lock lock(mEmptyCommandQueueMutex);
 		mEmptyCommandQueues.Push(commands);
 	}
 
@@ -150,7 +150,7 @@ namespace bs
 		while(!commands->Empty())
 			commands->Pop();
 
-		Lock Lock(mEmptyCommandQueueMutex);
+		Lock lock(mEmptyCommandQueueMutex);
 		mEmptyCommandQueues.Push(commands);
 	}
 
@@ -190,7 +190,7 @@ namespace bs
 
 	void CommandQueueBase::AddBreakpoint(UINT32 queueIdx, UINT32 commandIdx)
 	{
-		Lock Lock(CommandQueueBreakpointMutex);
+		Lock lock(CommandQueueBreakpointMutex);
 
 		SetBreakpoints.Insert(QueueBreakpoint(queueIdx, commandIdx));
 	}

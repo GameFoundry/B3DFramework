@@ -82,7 +82,7 @@ namespace bs
 		 * @param[in]	verbosity	Verbosity of the message, determining its importance.
 		 * @param[in]	category	Category of the message, determining which system is it relevant to.
 		 */
-		void LogMsg(const String& message, LogVerbosity verbosity, UINT32 category);
+		void LogMessage(const String& message, LogVerbosity verbosity, UINT32 category);
 
 		/** Removes all log entries. */
 		void Clear();
@@ -127,7 +127,7 @@ namespace bs
 		static bool CategoryExists(UINT32 id);
 		
 		/** Returns the number of registered log categories. */
-		static UINT32 GetNumCategories() { return (UINT32)sCategories.size(); };
+		static UINT32 GetCategoryCount() { return (UINT32)sCategories.size(); };
 		
 		/**
 		 *  Get the name of the category based on its ID.

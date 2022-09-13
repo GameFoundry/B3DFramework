@@ -22,7 +22,7 @@ namespace bs
 		if (trace > 0.0f)
 		{
 			// |w| > 1/2, may as well choose w > 1/2
-			root = Math::sqrt(trace + 1.0f);  // 2w
+			root = Math::Sqrt(trace + 1.0f);  // 2w
 			w = 0.5f*root;
 			root = 0.5f/root;  // 1/(4w)
 			x = (mat[2][1]-mat[1][2])*root;
@@ -44,7 +44,7 @@ namespace bs
 			UINT32 j = nextLookup[i];
 			UINT32 k = nextLookup[j];
 
-			root = Math::sqrt(mat[i][i]-mat[j][j]-mat[k][k] + 1.0f);
+			root = Math::Sqrt(mat[i][i]-mat[j][j]-mat[k][k] + 1.0f);
 
 			float* cmpntLookup[3] = { &x, &y, &z };
 			*cmpntLookup[i] = 0.5f*root;
@@ -55,15 +55,15 @@ namespace bs
 			*cmpntLookup[k] = (mat[k][i]+mat[i][k])*root;
 		}
 
-		normalize();
+		Normalize();
 	}
 
 	void Quaternion::FromAxisAngle(const Vector3& axis, const Radian& angle)
 	{
 		Radian halfAngle (0.5f*angle);
-		float sin = Math::sin(halfAngle);
+		float sin = Math::Sin(halfAngle);
 
-		w = Math::cos(halfAngle);
+		w = Math::Cos(halfAngle);
 		x = sin*axis.x;
 		y = sin*axis.y;
 		z = sin*axis.z;
@@ -85,7 +85,7 @@ namespace bs
 		kRot[1][2] = zaxis.y;
 		kRot[2][2] = zaxis.z;
 
-		fromRotationMatrix(kRot);
+		FromRotationMatrix(kRot);
 	}
 
 	void Quaternion::FromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle)
@@ -94,18 +94,18 @@ namespace bs
 		Radian halfYAngle = yAngle * 0.5f;
 		Radian halfZAngle = zAngle * 0.5f;
 
-		float cx = Math::cos(halfXAngle);
-		float sx = Math::sin(halfXAngle);
+		float cx = Math::Cos(halfXAngle);
+		float sx = Math::Sin(halfXAngle);
 
-		float cy = Math::cos(halfYAngle);
-		float sy = Math::sin(halfYAngle);
+		float cy = Math::Cos(halfYAngle);
+		float sy = Math::Sin(halfYAngle);
 
-		float cz = Math::cos(halfZAngle);
-		float sz = Math::sin(halfZAngle);
+		float cz = Math::Cos(halfZAngle);
+		float sz = Math::Sin(halfZAngle);
 
-		Quaternion QuatX(cx, sx, 0.0f, 0.0f);
-		Quaternion QuatY(cy, 0.0f, sy, 0.0f);
-		Quaternion QuatZ(cz, 0.0f, 0.0f, sz);
+		Quaternion quatX(cx, sx, 0.0f, 0.0f);
+		Quaternion quatY(cy, 0.0f, sy, 0.0f);
+		Quaternion quatZ(cz, 0.0f, 0.0f, sz);
 
 		*this = quatZ * (quatX * quatY);
 	}
@@ -120,14 +120,14 @@ namespace bs
 		Radian halfYAngle = yAngle * 0.5f;
 		Radian halfZAngle = zAngle * 0.5f;
 
-		float cx = Math::cos(halfXAngle);
-		float sx = Math::sin(halfXAngle);
+		float cx = Math::Cos(halfXAngle);
+		float sx = Math::Sin(halfXAngle);
 
-		float cy = Math::cos(halfYAngle);
-		float sy = Math::sin(halfYAngle);
+		float cy = Math::Cos(halfYAngle);
+		float sy = Math::Sin(halfYAngle);
 
-		float cz = Math::cos(halfZAngle);
-		float sz = Math::sin(halfZAngle);
+		float cz = Math::Cos(halfZAngle);
+		float sz = Math::Sin(halfZAngle);
 
 		Quaternion quats[3];
 		quats[0] = Quaternion(cx, sx, 0.0f, 0.0f);
@@ -168,8 +168,8 @@ namespace bs
 		float sqrLength = x*x+y*y+z*z;
 		if ( sqrLength > 0.0 )
 		{
-			angle = 2.0*Math::acos(w);
-			float invLength = Math::invSqrt(sqrLength);
+			angle = 2.0*Math::Acos(w);
+			float invLength = Math::InverseSqrt(sqrLength);
 			axis.x = x*invLength;
 			axis.y = y*invLength;
 			axis.z = z*invLength;
@@ -187,7 +187,7 @@ namespace bs
 	void Quaternion::ToAxes(Vector3& xaxis, Vector3& yaxis, Vector3& zaxis) const
 	{
 		Matrix3 matRot;
-		toRotationMatrix(matRot);
+		ToRotationMatrix(matRot);
 
 		xaxis.x = matRot[0][0];
 		xaxis.y = matRot[1][0];
@@ -205,7 +205,7 @@ namespace bs
 	bool Quaternion::ToEulerAngles(Radian& xAngle, Radian& yAngle, Radian& zAngle) const
 	{
 		Matrix3 matRot;
-		toRotationMatrix(matRot);
+		ToRotationMatrix(matRot);
 		return matRot.ToEulerAngles(xAngle, yAngle, zAngle);
 	}
 
@@ -273,7 +273,7 @@ namespace bs
 		// Note: Does compiler generate fast code here? Perhaps its better to pull all code locally without constructing
 		//       an intermediate matrix.
 		Matrix3 rot;
-		toRotationMatrix(rot);
+		ToRotationMatrix(rot);
 		return rot.Multiply(v);
 	}
 
@@ -282,8 +282,8 @@ namespace bs
 		if (forwardDir == Vector3::ZERO)
 			return;
 
-		Vector3 nrmForwardDir = Vector3::normalize(forwardDir);
-		Vector3 currentForwardDir = -zAxis();
+		Vector3 nrmForwardDir = Vector3::Normalize(forwardDir);
+		Vector3 currentForwardDir = -ZAxis();
 
 		if ((nrmForwardDir + currentForwardDir).SquaredLength() < 0.00005f)
 		{
@@ -294,24 +294,24 @@ namespace bs
 		else
 		{
 			// Derive shortest arc to new direction
-			Quaternion rotQuat = getRotationFromTo(currentForwardDir, nrmForwardDir);
+			Quaternion rotQuat = GetRotationFromTo(currentForwardDir, nrmForwardDir);
 			*this = rotQuat * *this;
 		}
 	}
 
 	void Quaternion::LookRotation(const Vector3& forwardDir, const Vector3& upDir)
 	{
-		Vector3 forward = Vector3::normalize(forwardDir);
-		Vector3 up = Vector3::normalize(upDir);
+		Vector3 forward = Vector3::Normalize(forwardDir);
+		Vector3 up = Vector3::Normalize(upDir);
 
-		if (Math::approxEquals(Vector3::dot(forward, up), 1.0f))
+		if (Math::ApproxEquals(Vector3::Dot(forward, up), 1.0f))
 		{
-			lookRotation(forward);
+			LookRotation(forward);
 			return;
 		}
 
-		Vector3 x = Vector3::cross(forward, up);
-		Vector3 y = Vector3::cross(x, forward);
+		Vector3 x = Vector3::Cross(forward, up);
+		Vector3 y = Vector3::Cross(x, forward);
 
 		x.Normalize();
 		y.Normalize();
@@ -334,14 +334,14 @@ namespace bs
 			quat = q;
 		}
 
-		if (Math::abs(cos) < 1 - EPSILON)
+		if (Math::Abs(cos) < 1 - EPSILON)
 		{
 			// Standard case (slerp)
-			float sin = Math::sqrt(1 - Math::sqr(cos));
-			Radian angle = Math::atan2(sin, cos);
+			float sin = Math::Sqrt(1 - Math::Sqr(cos));
+			Radian angle = Math::Atan2(sin, cos);
 			float invSin = 1.0f / sin;
-			float coeff0 = Math::sin((1.0f - t) * angle) * invSin;
-			float coeff1 = Math::sin(t * angle) * invSin;
+			float coeff0 = Math::Sin((1.0f - t) * angle) * invSin;
+			float coeff1 = Math::Sin(t * angle) * invSin;
 			return coeff0 * p + coeff1 * quat;
 		}
 		else
@@ -395,7 +395,7 @@ namespace bs
 		}
 		else
 		{
-			float s = Math::sqrt( (1+d)*2 );
+			float s = Math::Sqrt( (1+d)*2 );
 			float invs = 1 / s;
 
 			Vector3 c = v0.Cross(v1);

@@ -14,56 +14,56 @@ namespace bs
 
 	namespace impl
 	{
-		/** Helper method for implementing variable-parameter Math::min. */
+		/** Helper method for implementing variable-parameter Math::Min. */
 		template<typename T>
 		const T& Min(const T& in)
 		{
 			return in;
 		}
 
-		/** Helper method for implementing variable-parameter Math::min. */
+		/** Helper method for implementing variable-parameter Math::Min. */
 		template<typename A, typename B>
 		std::common_type_t<A, B> Min(const A& a, const B& b)
 		{
 			return a < b ? a : b;
 		}
 
-		/** Helper method for implementing variable-parameter Math::min. */
+		/** Helper method for implementing variable-parameter Math::Min. */
 		template<typename A, typename B, typename ...Args>
 		std::common_type_t<A, B, Args...> Min(const A& a, const B& b, const Args& ...args)
 		{
 			return Min(min(a, b), min(args...));
 		}
 
-		/** Helper method for implementing variable-parameter Math::max. */
+		/** Helper method for implementing variable-parameter Math::Max. */
 		template<typename T>
 		const T& Max(const T& in)
 		{
 			return in;
 		}
 
-		/** Helper method for implementing variable-parameter Math::max. */
+		/** Helper method for implementing variable-parameter Math::Max. */
 		template<typename A, typename B>
 		std::common_type_t<A, B> Max(const A& a, const B& b)
 		{
 			return a > b ? a : b;
 		}
 
-		/** Helper method for implementing variable-parameter Math::max. */
+		/** Helper method for implementing variable-parameter Math::Max. */
 		template<typename A, typename B, typename ...Args>
 		std::common_type_t<A, B, Args...> Max(const A& a, const B& b, const Args& ...args)
 		{
 			return Max(max(a, b), max(args...));
 		}
 
-		/** Helper method for implementing Math::gcd. */
+		/** Helper method for implementing Math::Gcd. */
 		template <typename A, typename B>
 		std::common_type_t<A, B> Gcd(const A& a, const B& b)
 		{
 			return (b == 0) ? a : gcd(b, a % b);
 		}
 
-		/** Helper method for implementing Math::lcm. */
+		/** Helper method for implementing Math::Lcm. */
 		template <typename A, typename B>
 		std::common_type_t<A, B> Lcm(const A& a, const B& b)
 		{
@@ -123,7 +123,7 @@ namespace bs
 		static Degree Sqrt(const Degree& val) { return Degree(std::sqrt(val.ValueDegrees())); }
 
 		/** Square root followed by an inverse. */
-		static float InvSqrt(float val);
+		static float InverseSqrt(float val);
 
 		/** Returns square of the provided value. */
 		static float Sqr(float val) { return val * val; }
@@ -147,10 +147,10 @@ namespace bs
 		static float Sign(float val);
 
 		/** Returns the sign of the provided value as 1 or -1. */
-		static Radian Sign(const Radian& val) { return Radian(sign(val.ValueRadians())); }
+		static Radian Sign(const Radian& val) { return Radian(Sign(val.ValueRadians())); }
 
 		/** Returns the sign of the provided value as 1 or -1. */
-		static Degree Sign(const Degree& val) { return Degree(sign(val.ValueDegrees())); }
+		static Degree Sign(const Degree& val) { return Degree(Sign(val.ValueDegrees())); }
 
 		/** Returns the absolute value. */
 		static float Abs(float val) { return float(std::fabs(val)); }
@@ -197,12 +197,12 @@ namespace bs
 		 * Returns the integer nearest to the provided value. If you are sure the input is positive use roundToPosInt()
 		 * for a slightly faster operation.
 		 */
-		static int32_t RoundToInt(float val) { return floorToInt(val + 0.5f); }
+		static int32_t RoundToInt(float val) { return FloorToInt(val + 0.5f); }
 
 		/**
 		 * Returns the integer nearest to the provided value. Value must be non-negative. Slightly faster than roundToInt().
 		 */
-		static uint32_t RoundToPosInt(float val) { return floorToPosInt(val + 0.5f); }
+		static uint32_t RoundToPosInt(float val) { return FloorToPosInt(val + 0.5f); }
 
 		/**
 		 * Divides an integer by another integer and returns the result, rounded up. Only works if both integers are
@@ -251,14 +251,14 @@ namespace bs
 		static T Clamp(T val, T minval, T maxval)
 		{
 			assert (minval <= maxval && "Invalid clamp range");
-			return std::Max(std::min(val, maxval), minval);
+			return std::max(std::min(val, maxval), minval);
 		}
 
 		/** Clamp a value within an inclusive range [0..1]. */
 		template <typename T>
 		static T Clamp01(T val)
 		{
-			return std::Max(std::min(val, (T)1), (T)0);
+			return std::max(std::min(val, (T)1), (T)0);
 		}
 
 		/** Returns the fractional part of a floating point number. */
@@ -279,7 +279,7 @@ namespace bs
 		 */
 		static float PingPong(float val, float length)
 		{
-			val = repeat(val, length * 2.0f);
+			val = Repeat(val, length * 2.0f);
 			return length - fabs(val - length);
 		}
 
@@ -320,7 +320,7 @@ namespace bs
 		/** Performs smooth Hermite interpolation between values. */
 		static float SmoothStep(float val1, float val2, float t)
 		{
-			t = clamp((t - val1) / (val2 - val1), 0.0f, 1.0f);
+			t = Clamp((t - val1) / (val2 - val1), 0.0f, 1.0f);
 			return t * t * (3.0f - 2.0f * t);
 		}
 
@@ -344,38 +344,32 @@ namespace bs
 		}
 
 		/** Compare two floats, using tolerance for inaccuracies. */
-		static bool approxEquals(float a, float b,
-			float tolerance = std::numeric_limits<float>::epsilon())
+		static bool ApproxEquals(float a, float b, float tolerance = std::numeric_limits<float>::epsilon())
 		{
-			return Fabs(b - a) <= tolerance;
+			return fabs(b - a) <= tolerance;
 		}
 
 		/** Compare two doubles, using tolerance for inaccuracies. */
-		static bool approxEquals(double a, double b,
-			double tolerance = std::numeric_limits<double>::epsilon())
+		static bool ApproxEquals(double a, double b, double tolerance = std::numeric_limits<double>::epsilon())
 		{
-			return Fabs(b - a) <= tolerance;
+			return fabs(b - a) <= tolerance;
 		}
 
 		/** Compare two 2D vectors, using tolerance for inaccuracies. */
-		static bool approxEquals(const Vector2& a, const Vector2& b,
-			float tolerance = std::numeric_limits<float>::epsilon());
+		static bool ApproxEquals(const Vector2& a, const Vector2& b, float tolerance = std::numeric_limits<float>::epsilon());
 
 		/** Compare two 3D vectors, using tolerance for inaccuracies. */
-		static bool approxEquals(const Vector3& a, const Vector3& b,
-			float tolerance = std::numeric_limits<float>::epsilon());
+		static bool ApproxEquals(const Vector3& a, const Vector3& b, float tolerance = std::numeric_limits<float>::epsilon());
 
 		/** Compare two 4D vectors, using tolerance for inaccuracies. */
-		static bool approxEquals(const Vector4& a, const Vector4& b,
-			float tolerance = std::numeric_limits<float>::epsilon());
+		static bool ApproxEquals(const Vector4& a, const Vector4& b, float tolerance = std::numeric_limits<float>::epsilon());
 
 		/** Compare two quaternions, using tolerance for inaccuracies. */
-		static bool approxEquals(const Quaternion& a, const Quaternion& b,
-			float tolerance = std::numeric_limits<float>::epsilon());
+		static bool ApproxEquals(const Quaternion& a, const Quaternion& b, float tolerance = std::numeric_limits<float>::epsilon());
 
 		/** Calculates the tangent space vector for a given set of positions / texture coords. */
-		static Vector3 calculateTriTangent(const Vector3& position1, const Vector3& position2,
-			const Vector3& position3, float u1, float v1, float u2, float v2, float u3, float v3);
+		static Vector3 CalculateTriangleTangent(const Vector3& position1, const Vector3& position2,
+												const Vector3& position3, float u1, float v1, float u2, float v2, float u3, float v3);
 
 		/************************************************************************/
 		/* 							TRIG APPROXIMATIONS                      	*/
@@ -388,7 +382,7 @@ namespace bs
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
-		static float FastSin0(const Radian& val) { return (float)fastASin0(val.ValueRadians()); }
+		static float FastSin0(const Radian& val) { return (float)FastASin0(val.ValueRadians()); }
 
 		/**
 		 * Sine function approximation.
@@ -407,7 +401,7 @@ namespace bs
 		 * @note	
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastSin0.
 		 */
-		static float FastSin1(const Radian& val) { return (float)fastASin1(val.ValueRadians()); }
+		static float FastSin1(const Radian& val) { return (float)FastASin1(val.ValueRadians()); }
 
 		/**
 		 * Sine function approximation.
@@ -426,7 +420,7 @@ namespace bs
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
-		static float FastCos0(const Radian& val) { return (float)fastACos0(val.ValueRadians()); }
+		static float FastCos0(const Radian& val) { return (float)FastACos0(val.ValueRadians()); }
 
 		/**
 		 * Cosine function approximation.
@@ -445,7 +439,7 @@ namespace bs
 		 * @note	
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastCos0.
 		 */
-		static float FastCos1(const Radian& val) { return (float)fastACos1(val.ValueRadians()); }
+		static float FastCos1(const Radian& val) { return (float)FastACos1(val.ValueRadians()); }
 
 		/**
 		 * Cosine function approximation.
@@ -464,7 +458,7 @@ namespace bs
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
-		static float FastTan0(const Radian& val) { return (float)fastATan0(val.ValueRadians()); }
+		static float FastTan0(const Radian& val) { return (float)FastATan0(val.ValueRadians()); }
 
 		/**
 		 * Tangent function approximation.
@@ -483,7 +477,7 @@ namespace bs
 		 * @note	
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastTan0.
 		 */
-		static float FastTan1(const Radian& val) { return (float)fastATan1(val.ValueRadians()); }
+		static float FastTan1(const Radian& val) { return (float)FastATan1(val.ValueRadians()); }
 
 		/**
 		 * Tangent function approximation.
@@ -502,7 +496,7 @@ namespace bs
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
-		static float FastASin0(const Radian& val) { return (float)fastASin0(val.ValueRadians()); }
+		static float FastASin0(const Radian& val) { return (float)FastASin0(val.ValueRadians()); }
 
 		/**
 		 * Inverse sine function approximation.
@@ -521,7 +515,7 @@ namespace bs
 		 * @note	
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastASin0.
 		 */
-		static float FastASin1(const Radian& val) { return (float)fastASin1(val.ValueRadians()); }
+		static float FastASin1(const Radian& val) { return (float)FastASin1(val.ValueRadians()); }
 
 		/**
 		 * Inverse sine function approximation.
@@ -540,7 +534,7 @@ namespace bs
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
-		static float FastACos0(const Radian& val) { return (float)fastACos0(val.ValueRadians()); }
+		static float FastACos0(const Radian& val) { return (float)FastACos0(val.ValueRadians()); }
 
 		/**
 		 * Inverse cosine function approximation.
@@ -559,7 +553,7 @@ namespace bs
 		 * @note	
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastACos0.
 		 */
-		static float FastACos1(const Radian& val) { return (float)fastACos1(val.ValueRadians()); }
+		static float FastACos1(const Radian& val) { return (float)FastACos1(val.ValueRadians()); }
 
 		/**
 		 * Inverse cosine function approximation.
@@ -578,7 +572,7 @@ namespace bs
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
-		static float FastATan0(const Radian& val) { return (float)fastATan0(val.ValueRadians()); }
+		static float FastATan0(const Radian& val) { return (float)FastATan0(val.ValueRadians()); }
 
 		/**
 		 * Inverse tangent function approximation.
@@ -597,7 +591,7 @@ namespace bs
 		 * @note	
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastATan0.
 		 */
-		static float FastATan1(const Radian& val) { return (float)fastATan1(val.ValueRadians()); }
+		static float FastATan1(const Radian& val) { return (float)FastATan1(val.ValueRadians()); }
 
 		/**
 		 * Inverse tangent function approximation.
@@ -683,7 +677,7 @@ namespace bs
 		template <typename T>
 		static UINT32 SolveLinear(T A, T B, T* roots)
 		{
-			if (!approxEquals(A, (T)0))
+			if (!ApproxEquals(A, (T) 0))
 			{
 				roots[0] = -B / A;
 				return 1;
@@ -707,13 +701,13 @@ namespace bs
 		template <typename T>
 		static UINT32 SolveQuadratic(T A, T B, T C, T* roots)
 		{
-			if (!approxEquals(A, (T)0))
+			if (!ApproxEquals(A, (T) 0))
 			{
 				T p = B / (2 * A);
 				T q = C / A;
 				T D = p * p - q;
 
-				if (!approxEquals(D, (T)0))
+				if (!ApproxEquals(D, (T) 0))
 				{
 					if (D < (T)0)
 						return 0;
@@ -768,7 +762,7 @@ namespace bs
 			D = q * q + cbp;
 
 			UINT32 numRoots = 0;
-			if (!approxEquals(D, (T)0))
+			if (!ApproxEquals(D, (T) 0))
 			{
 				if (D < 0.0)
 				{
@@ -796,7 +790,7 @@ namespace bs
 			}
 			else
 			{
-				if (!approxEquals(q, (T)0))
+				if (!ApproxEquals(q, (T) 0))
 				{
 					T u = cbrt(-q);
 					roots[0] = 2 * u;
@@ -846,27 +840,27 @@ namespace bs
 			T r = -(3 / (T)256) * sqA * sqA + (1 / (T)16) * sqA * B - (1 / (T)4) * A * C + D;
 
 			UINT32 numRoots = 0;
-			if (!approxEquals(r, (T)0))
+			if (!ApproxEquals(r, (T) 0))
 			{
 				T cubicA = 1;
 				T cubicB = -(T)0.5 * p ;
 				T cubicC = -r;
 				T cubicD = (T)0.5 * r * p - (1 / (T)8) * q * q;
 
-				solveCubic(cubicA, cubicB, cubicC, cubicD, roots);
+				SolveCubic(cubicA, cubicB, cubicC, cubicD, roots);
 				T z = roots[0];
 
 				T u = z * z - r;
 				T v = 2 * z - p;
 
-				if (approxEquals(u, T(0)))
+				if (ApproxEquals(u, T(0)))
 					u = 0;
 				else if (u > 0)
 					u = sqrt(u);
 				else
 					return 0;
 
-				if (approxEquals(v, T(0)))
+				if (ApproxEquals(v, T(0)))
 					v = 0;
 				else if (v > 0)
 					v = sqrt(v);
@@ -877,17 +871,17 @@ namespace bs
 				T quadraticB = q < 0 ? -v : v;
 				T quadraticC = z - u;
 
-				numRoots = solveQuadratic(quadraticA, quadraticB, quadraticC, roots);
+				numRoots = SolveQuadratic(quadraticA, quadraticB, quadraticC, roots);
 
 				quadraticA = 1;
 				quadraticB = q < 0 ? v : -v;
 				quadraticC = z + u;
 
-				numRoots += solveQuadratic(quadraticA, quadraticB, quadraticC, roots + numRoots);
+				numRoots += SolveQuadratic(quadraticA, quadraticB, quadraticC, roots + numRoots);
 			}
 			else
 			{
-				numRoots = solveCubic(q, p, (T)0, (T)1, roots);
+				numRoots = SolveCubic(q, p, (T)0, (T)1, roots);
 				roots[numRoots++] = 0;
 			}
 
@@ -957,8 +951,7 @@ namespace bs
 		 * @param[out]	coefficients	Four coefficients for the cubic curve, in order [t^3, t^2, t, 1].
 		 */
 		template<class T>
-		static void cubicHermiteCoefficients(const T& pointA, const T& pointB, const T& tangentA, const T& tangentB,
-			T (&coefficients)[4])
+		static void CubicHermiteCoefficients(const T& pointA, const T& pointB, const T& tangentA, const T& tangentB, T (&coefficients)[4])
 		{
 			T diff = pointA - pointB;
 
@@ -980,8 +973,7 @@ namespace bs
 		 * @param[out]	coefficients	Four coefficients for the cubic curve, in order [t^3, t^2, t, 1].
 		 */
 		template<class T>
-		static void cubicHermiteCoefficients(const T& pointA, const T& pointB, const T& tangentA, const T& tangentB,
-			float length, T (&coefficients)[4])
+		static void CubicHermiteCoefficients(const T& pointA, const T& pointB, const T& tangentA, const T& tangentB, float length, T (&coefficients)[4])
 		{
 			float length2 = length * length;
 			float invLength2 = 1.0f / length2;
@@ -1014,14 +1006,14 @@ namespace bs
 			T r[order + 1][order + 1];
 
 			for (int i = 1; i < order + 1; ++i)
-				h[i] = (b - a) / Math::pow(2, i - 1);
+				h[i] = (b - a) / Math::Pow(2, i - 1);
 
 			r[1][1] = h[1] / 2 * (integrand(a) + integrand(b));
 
 			for (int i = 2; i < order + 1; ++i)
 			{
 				T coeff = 0;
-				for (int k = 1; k <= Math::pow(2, i - 2); ++k)
+				for (int k = 1; k <= Math::Pow(2, i - 2); ++k)
 					coeff += integrand(a + (2 * k - 1) * h[i]);
 
 				r[i][1] = 0.5 * (r[i - 1][1] + h[i - 1] * coeff);
@@ -1030,7 +1022,7 @@ namespace bs
 			for (int i = 2; i < order + 1; ++i)
 			{
 				for (int j = 2; j <= i; ++j)
-					r[i][j] = r[i][j - 1] + (r[i][j - 1] - r[i - 1][j - 1]) / (Math::pow(4, j - 1) - 1);
+					r[i][j] = r[i][j - 1] + (r[i][j - 1] - r[i - 1][j - 1]) / (Math::Pow(4, j - 1) - 1);
 			}
 
 			return r[order][order];

@@ -71,7 +71,7 @@ namespace bs
 		 *
 		 * @param[in]	fullPath	Full path to a full folder to create.
 		 */
-		static void CreateDir(const Path& fullPath);
+		static void CreateFolder(const Path& fullPath);
 
 		/**
 		 * Returns true if a file or a folder exists at the specified path.
@@ -92,7 +92,7 @@ namespace bs
 		 *
 		 * @param[in]	fullPath	Full path to a file or folder.
 		 */
-		static bool IsDirectory(const Path& fullPath);
+		static bool IsFolder(const Path& fullPath);
 
 		/**
 		 * Returns all files or folders located in the specified folder.

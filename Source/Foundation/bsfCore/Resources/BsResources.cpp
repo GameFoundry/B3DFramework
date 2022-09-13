@@ -23,7 +23,7 @@ namespace bs
 	Resources::Resources()
 	{
 		{
-			Lock Lock(mDefaultManifestMutex);
+			Lock lock(mDefaultManifestMutex);
 			mDefaultResourceManifest = ResourceManifest::create("Default");
 			mResourceManifests.push_back(mDefaultResourceManifest);
 		}
@@ -548,7 +548,7 @@ namespace bs
 		Vector<HResource> resourcesToUnload;
 
 		{
-			Lock Lock(mLoadedResourceMutex);
+			Lock lock(mLoadedResourceMutex);
 			for(auto iter = mLoadedResources.begin(); iter != mLoadedResources.end(); ++iter)
 			{
 				const LoadedResourceData& resData = iter->second;
@@ -576,7 +576,7 @@ namespace bs
 		UnorderedMap<UUID, LoadedResourceData> loadedResourcesCopy;
 		
 		{
-			Lock Lock(mLoadedResourceMutex);
+			Lock lock(mLoadedResourceMutex);
 			loadedResourcesCopy = mLoadedResources;
 		}
 
@@ -589,7 +589,7 @@ namespace bs
 		if (resource.mData == nullptr)
 			return;
 
-		RecursiveLock Lock(mDestroyMutex);
+		RecursiveLock lock(mDestroyMutex);
 
 		// If load in progress, first wait until it completes
 		const UUID& uuid = resource.GetUUID();
@@ -597,7 +597,7 @@ namespace bs
 		{
 			bool loadInProgress = false;
 			{
-				Lock Lock(mInProgressResourcesMutex);
+				Lock lock(mInProgressResourcesMutex);
 				auto iterFind2 = mInProgressResources.find(uuid);
 				if (iterFind2 != mInProgressResources.end())
 					loadInProgress = true;
@@ -617,7 +617,7 @@ namespace bs
 		resource.mData->mPtr->Destroy();
 
 		{
-			Lock Lock(mLoadedResourceMutex);
+			Lock lock(mLoadedResourceMutex);
 			auto iterFind = mLoadedResources.find(uuid);
 			if (iterFind != mLoadedResources.end())
 			{
@@ -648,7 +648,7 @@ namespace bs
 		{
 			bool loadInProgress = false;
 			{
-				Lock Lock(mInProgressResourcesMutex);
+				Lock lock(mInProgressResourcesMutex);
 				auto iterFind2 = mInProgressResources.find(resource.getUUID());
 				if (iterFind2 != mInProgressResources.end())
 					loadInProgress = true;
@@ -668,7 +668,7 @@ namespace bs
 		}
 
 		{
-			Lock Lock(mDefaultManifestMutex);
+			Lock lock(mDefaultManifestMutex);
 			mDefaultResourceManifest->RegisterResource(resource.GetUUID(), filePath);
 		}
 
@@ -807,7 +807,7 @@ namespace bs
 
 		if(resource)
 		{
-			Lock Lock(mLoadedResourceMutex);
+			Lock lock(mLoadedResourceMutex);
 			auto iterFind = mLoadedResources.find(uuid);
 			if (iterFind == mLoadedResources.end())
 			{
@@ -945,7 +945,7 @@ namespace bs
 		HResource NewHandle(obj, UUID);
 
 		{
-			Lock Lock(mLoadedResourceMutex);
+			Lock lock(mLoadedResourceMutex);
 
 			if(obj)
 			{
@@ -961,7 +961,7 @@ namespace bs
 
 	HResource Resources::_getResourceHandle(const UUID& uuid)
 	{
-		Lock Lock(mLoadedResourceMutex);
+		Lock lock(mLoadedResourceMutex);
 		auto iterFind3 = mHandles.find(uuid);
 		if (iterFind3 != mHandles.end()) // Not loaded, but handle does exist
 		{
@@ -1074,14 +1074,14 @@ namespace bs
 	{
 		ResourceLoadData* myLoadData;
 		{
-			Lock Lock(mInProgressResourcesMutex);
+			Lock lock(mInProgressResourcesMutex);
 			myLoadData = mInProgressResources[resource.GetUUID()];
 		}
 
 		SPtr<Resource> rawResource = loadFromDiskAndDeserialize(filePath, loadWithSaveData, myLoadData->progress);
 
 		{
-			Lock Lock(mInProgressResourcesMutex);
+			Lock lock(mInProgressResourcesMutex);
 
 			myLoadData->loadedData = rawResource;
 			myLoadData->remainingDependencies--;

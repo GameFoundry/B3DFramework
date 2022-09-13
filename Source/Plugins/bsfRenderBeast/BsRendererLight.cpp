@@ -20,8 +20,8 @@ namespace bs { namespace ct
 
 	void RendererLight::GetParameters(LightData& output) const
 	{
-		Radian spotAngle = Math::clamp(internal->GetSpotAngle() * 0.5f, Degree(0), Degree(89));
-		Radian spotFalloffAngle = Math::clamp(internal->GetSpotFalloffAngle() * 0.5f, Degree(0), (Degree)spotAngle);
+		Radian spotAngle = Math::Clamp(internal->GetSpotAngle() * 0.5f, Degree(0), Degree(89));
+		Radian spotFalloffAngle = Math::Clamp(internal->GetSpotFalloffAngle() * 0.5f, Degree(0), (Degree)spotAngle);
 		Color color = internal->GetColor();
 
 		const Transform& tfrm = internal->GetTransform();
@@ -31,8 +31,8 @@ namespace bs { namespace ct
 		output.direction = -tfrm.GetRotation().zAxis();
 		output.luminance = internal->GetLuminance();
 		output.spotAngles.x = spotAngle.ValueRadians();
-		output.spotAngles.y = Math::cos(output.spotAngles.x);
-		output.spotAngles.z = 1.0f / std::max(Math::cos(spotFalloffAngle) - output.spotAngles.y, 0.001f);
+		output.spotAngles.y = Math::Cos(output.spotAngles.x);
+		output.spotAngles.z = 1.0f / std::max(Math::Cos(spotFalloffAngle) - output.spotAngles.y, 0.001f);
 		output.attRadiusSqrdInv = 1.0f / (internal->GetAttenuationRadius() * internal->getAttenuationRadius());
 		output.color = Vector3(color.r, color.g, color.b);
 
@@ -75,8 +75,8 @@ namespace bs { namespace ct
 		lightGeometry.y = (float)Light::LIGHT_CONE_NUM_SLICES;
 		lightGeometry.z = internal->GetBounds().GetRadius();
 
-		float extraRadius = lightData.srcRadius / Math::tan(lightData.spotAngles.x * 0.5f);
-		float coneRadius = Math::sin(lightData.spotAngles.x) * (internal->GetAttenuationRadius() + extraRadius);
+		float extraRadius = lightData.srcRadius / Math::Tan(lightData.spotAngles.x * 0.5f);
+		float coneRadius = Math::Sin(lightData.spotAngles.x) * (internal->GetAttenuationRadius() + extraRadius);
 		lightGeometry.w = coneRadius;
 
 		gPerLightParamDef.gLightGeometry.Set(buffer, lightGeometry);
@@ -97,7 +97,7 @@ namespace bs { namespace ct
 
 		// Create position for fake attenuation for area spot lights (with disc center)
 		if (internal->GetType() == LightType::Spot)
-			return tfrm.GetPosition() - direction * (internal->GetSourceRadius() / Math::tan(internal->getSpotAngle() * 0.5f));
+			return tfrm.GetPosition() - direction * (internal->GetSourceRadius() / Math::Tan(internal->getSpotAngle() * 0.5f));
 		else
 			return tfrm.GetPosition();
 	}
@@ -278,7 +278,7 @@ namespace bs { namespace ct
 			if (size > curBufferSize || curBufferSize == 0)
 			{
 				// Allocate at least one block even if no lights, to avoid issues with null buffers
-				UINT32 bufferSize = std::max(1, Math::ceilToInt(size / (float) LIGHT_DATA_BUFFER_INCREMENT)) * LIGHT_DATA_BUFFER_INCREMENT;
+				UINT32 bufferSize = std::max(1, Math::CeilToInt(size / (float) LIGHT_DATA_BUFFER_INCREMENT)) * LIGHT_DATA_BUFFER_INCREMENT;
 
 				GPU_BUFFER_DESC bufferDesc;
 				bufferDesc.type = GBT_STRUCTURED;

@@ -379,42 +379,42 @@ namespace bs
 
 	void RenderStateManager::NotifySamplerStateCreated(const SAMPLER_STATE_DESC& desc, const SPtr<SamplerState>& state) const
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		mCachedSamplerStates[desc] = state;
 	}
 
 	void RenderStateManager::NotifyBlendStateCreated(const BLEND_STATE_DESC& desc, const CachedBlendState& state) const
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		mCachedBlendStates[desc] = state;
 	}
 
 	void RenderStateManager::NotifyRasterizerStateCreated(const RASTERIZER_STATE_DESC& desc, const CachedRasterizerState& state) const
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		mCachedRasterizerStates[desc] = state;
 	}
 
 	void RenderStateManager::NotifyDepthStencilStateCreated(const DEPTH_STENCIL_STATE_DESC& desc, const CachedDepthStencilState& state) const
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		mCachedDepthStencilStates[desc] = state;
 	}
 
 	void RenderStateManager::NotifySamplerStateDestroyed(const SAMPLER_STATE_DESC& desc) const
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		mCachedSamplerStates.erase(desc);
 	}
 
 	SPtr<SamplerState> RenderStateManager::FindCachedState(const SAMPLER_STATE_DESC& desc) const
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		auto iterFind = mCachedSamplerStates.find(desc);
 		if (iterFind != mCachedSamplerStates.end())
@@ -425,7 +425,7 @@ namespace bs
 
 	SPtr<BlendState> RenderStateManager::FindCachedState(const BLEND_STATE_DESC& desc, UINT32& id) const
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		auto iterFind = mCachedBlendStates.find(desc);
 		if (iterFind != mCachedBlendStates.end())
@@ -446,7 +446,7 @@ namespace bs
 
 	SPtr<RasterizerState> RenderStateManager::FindCachedState(const RASTERIZER_STATE_DESC& desc, UINT32& id) const
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		auto iterFind = mCachedRasterizerStates.find(desc);
 		if (iterFind != mCachedRasterizerStates.end())
@@ -467,7 +467,7 @@ namespace bs
 
 	SPtr<DepthStencilState> RenderStateManager::FindCachedState(const DEPTH_STENCIL_STATE_DESC& desc, UINT32& id) const
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		auto iterFind = mCachedDepthStencilStates.find(desc);
 		if (iterFind != mCachedDepthStencilStates.end())

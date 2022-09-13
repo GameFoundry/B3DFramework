@@ -441,7 +441,7 @@ namespace bs
 
 					// Wrap time if looping
 					if (state.loop && state.length > 0.0f)
-						state.time = Math::repeat(clipInfo.state.time, state.length);
+						state.time = Math::Repeat(clipInfo.state.time, state.length);
 					else
 						state.time = clipInfo.state.time;
 
@@ -573,7 +573,7 @@ namespace bs
 
 			// Wrap time if looping
 			if (state.loop && state.length > 0.0f)
-				state.time = Math::repeat(clipInfo.state.time, state.length);
+				state.time = Math::Repeat(clipInfo.state.time, state.length);
 			else
 				state.time = clipInfo.state.time;
 
@@ -639,7 +639,7 @@ namespace bs
 
 			// Wrap time if looping
 			if (state.loop && state.length > 0.0f)
-				state.time = Math::repeat(clipInfo.state.time, state.length);
+				state.time = Math::Repeat(clipInfo.state.time, state.length);
 			else
 				state.time = clipInfo.state.time;
 
@@ -806,7 +806,7 @@ namespace bs
 		}
 
 		float length = endPos - startPos;
-		if(Math::approxEquals(length, 0.0f) || info.clips.size() < 2)
+		if(Math::ApproxEquals(length, 0.0f) || info.clips.size() < 2)
 		{
 			play(info.clips[0].clip);
 			return;
@@ -1315,7 +1315,7 @@ namespace bs
 			}
 
 			float fadeTime = clipInfo.fadeTime + scaledTimeDelta;
-			clipInfo.fadeTime = Math::clamp(fadeTime, 0.0f, clipInfo.fadeLength);
+			clipInfo.fadeTime = Math::Clamp(fadeTime, 0.0f, clipInfo.fadeLength);
 		}
 
 		if(mSampleStep == AnimSampleStep::None)

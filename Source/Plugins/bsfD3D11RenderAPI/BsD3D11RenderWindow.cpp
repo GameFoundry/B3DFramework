@@ -69,7 +69,7 @@ namespace bs
 
 	void D3D11RenderWindow::SyncProperties()
 	{
-		ScopedSpinLock Lock(getCore()->mLock);
+		ScopedSpinLock lock(getCore()->mLock);
 		mProperties = getCore()->mSyncedProperties;
 	}
 
@@ -160,7 +160,7 @@ namespace bs
 
 		if (mDesc.videoMode.isCustom)
 		{
-			mRefreshRateNumerator = Math::roundToInt(mDesc.videoMode.refreshRate);
+			mRefreshRateNumerator = Math::RoundToInt(mDesc.videoMode.refreshRate);
 			mRefreshRateDenominator = 1;
 		}
 		else
@@ -212,7 +212,7 @@ namespace bs
 		mDXGIFactory->MakeWindowAssociation(mWindow->GetHWnd(), NULL);
 
 		{
-			ScopedSpinLock Lock(mLock);
+			ScopedSpinLock lock(mLock);
 			mSyncedProperties = props;
 		}
 
@@ -250,7 +250,7 @@ namespace bs
 			props.left = mWindow->GetLeft();
 
 			{
-				ScopedSpinLock Lock(mLock);
+				ScopedSpinLock lock(mLock);
 				mSyncedProperties.top = props.top;
 				mSyncedProperties.left = props.left;
 			}
@@ -273,7 +273,7 @@ namespace bs
 			props.height = mWindow->GetHeight();
 
 			{
-				ScopedSpinLock Lock(mLock);
+				ScopedSpinLock lock(mLock);
 				mSyncedProperties.width = props.width;
 				mSyncedProperties.height = props.height;
 			}
@@ -351,7 +351,7 @@ namespace bs
 
 		modeDesc.Width = width;
 		modeDesc.Height = height;
-		modeDesc.RefreshRate.Numerator = Math::roundToInt(refreshRate);
+		modeDesc.RefreshRate.Numerator = Math::RoundToInt(refreshRate);
 		modeDesc.RefreshRate.Denominator = 1;
 		modeDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		modeDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
@@ -370,7 +370,7 @@ namespace bs
 		mSwapChain->SetFullscreenState(true, outputInfo.GetDXGIOutput());
 
 		{
-			ScopedSpinLock Lock(mLock);
+			ScopedSpinLock lock(mLock);
 			mSyncedProperties.top = mProperties.top;
 			mSyncedProperties.left = mProperties.left;
 			mSyncedProperties.width = mProperties.width;
@@ -412,7 +412,7 @@ namespace bs
 		mSwapChain->SetFullscreenState(true, outputInfo.GetDXGIOutput());
 
 		{
-			ScopedSpinLock Lock(mLock);
+			ScopedSpinLock lock(mLock);
 			mSyncedProperties.top = mProperties.top;
 			mSyncedProperties.left = mProperties.left;
 			mSyncedProperties.width = mProperties.width;
@@ -450,7 +450,7 @@ namespace bs
 		mSwapChain->ResizeTarget(&modeDesc);
 
 		{
-			ScopedSpinLock Lock(mLock);
+			ScopedSpinLock lock(mLock);
 			mSyncedProperties.top = mProperties.top;
 			mSyncedProperties.left = mProperties.left;
 			mSyncedProperties.width = mProperties.width;
@@ -467,7 +467,7 @@ namespace bs
 		mProperties.vsyncInterval = interval;
 
 		{
-			ScopedSpinLock Lock(mLock);
+			ScopedSpinLock lock(mLock);
 			mSyncedProperties.vsync = enabled;
 			mSyncedProperties.vsyncInterval = interval;
 		}
@@ -801,7 +801,7 @@ namespace bs
 
 	void D3D11RenderWindow::SyncProperties()
 	{
-		ScopedSpinLock Lock(mLock);
+		ScopedSpinLock lock(mLock);
 		mProperties = mSyncedProperties;
 	}		
 	}

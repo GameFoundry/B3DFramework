@@ -1203,7 +1203,7 @@ namespace bs
 		UINT32 id = mNextRegionIdx++;
 
 		PxBroadPhaseRegion pxRegion;
-		pxRegion.bounds = PxBounds3(toPxVector(region.GetMin()), toPxVector(region.getMax()));
+		pxRegion.bounds = PxBounds3(toPxVector(region.GetMinimum()), toPxVector(region.getMax()));
 		pxRegion.userData = (void*)(UINT64)id;
 
 		UINT32 handle = mScene->AddBroadPhaseRegion(pxRegion, true);

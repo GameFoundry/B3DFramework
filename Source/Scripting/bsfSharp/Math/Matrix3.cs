@@ -338,7 +338,7 @@ namespace bs
             matQ.m12 -= dot*matQ.m11;
             matQ.m22 -= dot*matQ.m21;
 
-            invLength = MathEx.InvSqrt(matQ.m02*matQ.m02 + matQ.m12*matQ.m12 + matQ.m22*matQ.m22);
+            invLength = MathEx.InverseSqrt(matQ.m02*matQ.m02 + matQ.m12*matQ.m12 + matQ.m22*matQ.m22);
             matQ.m02 *= invLength;
             matQ.m12 *= invLength;
             matQ.m22 *= invLength;
@@ -522,7 +522,7 @@ namespace bs
         /// <summary>
         /// Calculates the transpose of the matrix.
         /// </summary>
-        /// <param name="mat">Matrix to calculate the transpose of.</param>
+        /// <param name="mat">Matrix to calculate the Transpose of.</param>
         /// <returns>Transpose of the matrix.</returns>
         public static Matrix3 Transpose(Matrix3 mat)
         {

@@ -832,10 +832,10 @@ namespace bs
 		BS_TEST_ASSERT(ulv == v8);
 
 		bs.ReadNorm(fv);
-		BS_TEST_ASSERT(Math::approxEquals(fv, v9, 0.01f));
+		BS_TEST_ASSERT(Math::ApproxEquals(fv, v9, 0.01f));
 
 		bs.ReadRange(fv, 5.0f, 15.0f);
-		BS_TEST_ASSERT(Math::approxEquals(fv, v10, 0.01f));
+		BS_TEST_ASSERT(Math::ApproxEquals(fv, v10, 0.01f));
 
 		bs.ReadRange(uv, 500U, 1000U);
 		BS_TEST_ASSERT(uv == v5);

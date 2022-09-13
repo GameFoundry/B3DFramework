@@ -270,7 +270,7 @@ namespace bs
         {
             float sqrdLen = SqrdLength;
             if (sqrdLen > 1e-04f)
-                this = this * MathEx.InvSqrt(sqrdLen);
+                this = this * MathEx.InverseSqrt(sqrdLen);
         }
 
         /// <inheritdoc/>

@@ -12,8 +12,8 @@ namespace bs
 	{
 		Vector3 newCenter = (mCenter + rhs.mCenter) * 0.5f;
 
-		float newRadiusA = newCenter.Distance(mCenter) + getRadius();
-		float newRadiusB = newCenter.Distance(rhs.mCenter) + rhs.getRadius();
+		float newRadiusA = newCenter.Distance(mCenter) + GetRadius();
+		float newRadiusB = newCenter.Distance(rhs.mCenter) + rhs.GetRadius();
 		
 		mCenter = newCenter;
 		mRadius = std::max(newRadiusA, newRadiusB);
@@ -42,20 +42,20 @@ namespace bs
 
 	bool Sphere::Contains(const Vector3& v) const
 	{
-		return ((v - mCenter).SquaredLength() <= Math::sqr(mRadius));
+		return ((v - mCenter).SquaredLength() <= Math::Sqr(mRadius));
 	}
 
 	bool Sphere::Intersects(const Sphere& s) const
 	{
 		return (s.mCenter - mCenter).SquaredLength() <=
-			Math::sqr(s.mRadius + mRadius);
+			Math::Sqr(s.mRadius + mRadius);
 	}
 
 	std::pair<bool, float> Sphere::Intersects(const Ray& ray, bool discardInside) const
 	{
 		const Vector3& raydir = ray.GetDirection();
-		const Vector3& rayorig = ray.GetOrigin() - getCenter();
-		float radius = getRadius();
+		const Vector3& rayorig = ray.GetOrigin() - GetCenter();
+		float radius = GetRadius();
 
 		// Check origin inside first
 		if (rayorig.SquaredLength() <= radius*radius && discardInside)
@@ -80,9 +80,9 @@ namespace bs
 			// If d == 0 there is one intersection, if d > 0 there are 2.
 			// We only return the first one.
 			
-			float t = ( -b - Math::sqrt(d) ) / (2 * a);
+			float t = ( -b - Math::Sqrt(d) ) / (2 * a);
 			if (t < 0)
-				t = ( -b + Math::sqrt(d) ) / (2 * a);
+				t = ( -b + Math::Sqrt(d) ) / (2 * a);
 
 			return std::pair<bool, float>(true, t);
 		}
@@ -90,7 +90,7 @@ namespace bs
 
 	bool Sphere::Intersects(const Plane& plane) const
 	{
-		return (Math::abs(plane.GetDistance(getCenter())) <= getRadius());
+		return (Math::Abs(plane.GetDistance(GetCenter())) <= GetRadius());
 	}
 
 	bool Sphere::Intersects(const AABox& box) const

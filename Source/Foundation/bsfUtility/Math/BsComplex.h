@@ -18,10 +18,10 @@ namespace bs
 		Complex() = default;
 
 		Complex(const Type& r, const Type& i)
-			: MReal(r), mImag(i) {}
+			: mReal(r), mImag(i) {}
 
 		Complex(const Complex& other)
-			: MReal(other.Real()), mImag(other.imag()) {}
+			: mReal(other.Real()), mImag(other.imag()) {}
 
 		Complex<Type>& operator= (const Type& other)
 		{
@@ -97,7 +97,7 @@ namespace bs
 		Complex<Type>& operator/= (const Complex<Type>& other)
 		{
 			const Type r = mReal * other.Real() + mImag * other.imag();
-			const Type n = Complex::norm(other);
+			const Type n = Complex::Norm(other);
 			mImag = (mImag * other.Real() - mReal * other.imag()) / n;
 			mReal = r / n;
 
@@ -194,7 +194,7 @@ namespace bs
 
 		static Type Arg(const Complex<Type>& other)
 		{
-			return std::Atan2(other.Imag(), other.real());
+			return std::atan2(other.Imag(), other.real());
 		}
 
 		static Type Norm(const Complex<Type>& other)
@@ -238,7 +238,7 @@ namespace bs
 
 		static Complex<Type> Log(const Complex<Type>& other)
 		{
-			return Complex(std::log(Complex::abs(other)), Complex::arg(other));
+			return Complex(std::log(Complex::Abs(other)), Complex::Arg(other));
 		}
 
 		static Complex<Type> Log10(const Complex<Type>& other)
@@ -251,19 +251,19 @@ namespace bs
 			if (other.Imag() == Type() && other.real() > Type())
 				return Complex(std::pow(other.Real(), i), other.imag());
 
-			Complex<Type> t = Complex::log(other);
+			Complex<Type> t = Complex::Log(other);
 			return Complex::Polar(std::exp(i * t.Real()), i * t.imag());
 		}
 
 		static Complex<Type> Pow(const Complex<Type>& x, const Complex<Type>& y)
 		{
-			return Complex::Exp(y * Complex::log(x));
+			return Complex::Exp(y * Complex::Log(x));
 		}
 
 		static Complex<Type> Pow(const Type& i, const Complex<Type>& other)
 		{
 			return i > Type() ?
-				Complex::polar(std::pow(i, other.Real()), other.imag() * std::log(i))
+				Complex::Polar(std::pow(i, other.Real()), other.imag() * std::log(i))
 				: Complex::Pow(Complex(i, Type()), other);
 		}
 
@@ -295,7 +295,7 @@ namespace bs
 			}
 			else
 			{
-				Type t = std::sqrt(2 * (Complex::abs(other) + std::abs(x)));
+				Type t = std::sqrt(2 * (Complex::Abs(other) + std::abs(x)));
 				Type u = t / 2;
 				return x > Type() ? Complex(u, y / t)
 					: Complex(std::abs(y) / t, y < Type() ? -u : u);
@@ -304,12 +304,12 @@ namespace bs
 
 		static Complex<Type> Tan(const Complex<Type>& other)
 		{
-			return Complex::Sin(other) / Complex::cos(other);
+			return Complex::Sin(other) / Complex::Cos(other);
 		}
 
 		static Complex<Type> Tanh(const Complex<Type>& other)
 		{
-			return Complex::Sinh(other) / Complex::cosh(other);
+			return Complex::Sinh(other) / Complex::Cosh(other);
 		}
 
 		friend std::ostream& operator<< (std::ostream& os, const Complex<Type> other)

@@ -258,7 +258,7 @@ namespace bs { namespace ct
 		if(desc.type == GPT_COMPUTE_PROGRAM)
 			size += sizeof(workgroupSize);
 
-		UINT32 wordSize = Math::divideAndRoundUp(size, 4U);
+		UINT32 wordSize = Math::DivideAndRoundUp(size, 4U);
 
 		UINT8* buffer = (UINT8*)bs_alloc(wordSize * 4);
 		UINT8* dst = buffer;

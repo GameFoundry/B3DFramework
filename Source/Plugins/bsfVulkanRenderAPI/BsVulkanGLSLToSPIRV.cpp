@@ -640,7 +640,7 @@ namespace bs { namespace ct
 			}
 			else // Uniform buffer
 			{
-				int size = Math::divideAndRoundUp(program->GetUniformBlockSize(i), 16) * 16;
+				int size = Math::DivideAndRoundUp(program->GetUniformBlockSize(i), 16) * 16;
 
 				GpuParamBlockDesc blockDesc;
 				blockDesc.name = name;
@@ -676,7 +676,7 @@ namespace bs { namespace ct
 						parseStruct(paramTypeList, elementSize);
 
 						// Struct alignment always a multiple of vec4
-						arrayStride = Math::divideAndRoundUp(elementSize, 4U) * 4;
+						arrayStride = Math::DivideAndRoundUp(elementSize, 4U) * 4;
 					}
 					else
 					{
@@ -697,7 +697,7 @@ namespace bs { namespace ct
 
 						// Array elements in std140 are always rounded to vec4
 						if (arraySize > 1)
-							arrayStride = Math::divideAndRoundUp(elementSize, 4U) * 4;
+							arrayStride = Math::DivideAndRoundUp(elementSize, 4U) * 4;
 						else
 							arrayStride = elementSize;
 					}
@@ -706,8 +706,8 @@ namespace bs { namespace ct
 					if (paramTType->GetBasicType() == glslang::EbtStruct)
 					{
 						// Structs are always aligned and rounded up to vec4
-						stride = Math::divideAndRoundUp(elementSize, 16U) * 4;
-						bufferOffset = Math::divideAndRoundUp(bufferOffset, 4U) * 4;
+						stride = Math::DivideAndRoundUp(elementSize, 16U) * 4;
+						bufferOffset = Math::DivideAndRoundUp(bufferOffset, 4U) * 4;
 					}
 					else
 						stride = VulkanUtility::calcInterfaceBlockElementSizeAndOffset(paramType, arraySize, bufferOffset);

@@ -68,7 +68,7 @@ namespace bs
 
 	void LinuxRenderWindow::SyncProperties()
 	{
-		ScopedSpinLock Lock(getCore()->_getPropertiesLock());
+		ScopedSpinLock lock(getCore()->_getPropertiesLock());
 		mProperties = getCore()->mSyncedProperties;
 	}
 
@@ -172,7 +172,7 @@ namespace bs
 			setVSync(true, mDesc.vsyncInterval);
 
 		{
-			ScopedSpinLock Lock(mLock);
+			ScopedSpinLock lock(mLock);
 			mSyncedProperties = props;
 		}
 
@@ -324,7 +324,7 @@ namespace bs
 					modeID = modeInfo.id;
 					foundMode = true;
 
-					if (Math::approxEquals(refreshRate, mode.refreshRate))
+					if (Math::ApproxEquals(refreshRate, mode.refreshRate))
 						break;
 				}
 			}
@@ -358,7 +358,7 @@ namespace bs
 		_windowMovedOrResized();
 
 		{
-			ScopedSpinLock Lock(mLock);
+			ScopedSpinLock lock(mLock);
 			mSyncedProperties.left = props.left;
 			mSyncedProperties.top = props.top;
 			mSyncedProperties.width = props.width;
@@ -408,7 +408,7 @@ namespace bs
 		_windowMovedOrResized();
 
 		{
-			ScopedSpinLock Lock(mLock);
+			ScopedSpinLock lock(mLock);
 			mSyncedProperties.left = props.left;
 			mSyncedProperties.top = props.top;
 			mSyncedProperties.width = props.width;
@@ -434,7 +434,7 @@ namespace bs
 			props.left = mWindow->GetLeft();
 
 			{
-				ScopedSpinLock Lock(mLock);
+				ScopedSpinLock lock(mLock);
 				mSyncedProperties.top = props.top;
 				mSyncedProperties.left = props.left;
 			}
@@ -458,7 +458,7 @@ namespace bs
 			props.height = mWindow->GetHeight();
 
 			{
-				ScopedSpinLock Lock(mLock);
+				ScopedSpinLock lock(mLock);
 				mSyncedProperties.width = props.width;
 				mSyncedProperties.height = props.height;
 			}
@@ -516,7 +516,7 @@ namespace bs
 		mProperties.vsyncInterval = interval;
 
 		{
-			ScopedSpinLock Lock(mLock);
+			ScopedSpinLock lock(mLock);
 			mSyncedProperties.vsync = enabled;
 			mSyncedProperties.vsyncInterval = interval;
 		}
@@ -664,7 +664,7 @@ namespace bs
 
 	void LinuxRenderWindow::SyncProperties()
 	{
-		ScopedSpinLock Lock(mLock);
+		ScopedSpinLock lock(mLock);
 		mProperties = mSyncedProperties;
 	}
 }}

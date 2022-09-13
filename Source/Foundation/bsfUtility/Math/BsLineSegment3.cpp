@@ -6,7 +6,7 @@
 namespace bs
 {
 	LineSegment3::LineSegment3(const Vector3& start, const Vector3& end)
-		: Start(start), end(end)
+		: start(start), end(end)
 	{
 
 	}

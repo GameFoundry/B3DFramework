@@ -35,7 +35,7 @@ namespace bs
 		}
 
 		/** Returns the manhattan distance between this and another point. */
-		UINT32 ManhattanDist(const Vector2I& other) const
+		UINT32 ManhattanDistance(const Vector2I& other) const
 		{
 			return (UINT32)std::abs(other.x - x) + (UINT32)std::abs(other.y - y);
 		}

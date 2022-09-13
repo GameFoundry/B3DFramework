@@ -55,16 +55,16 @@ namespace bs
 		const Vector3& GetCenter() const { return mCenter; }
 
 		/** Returns the rectangle's horizontal axis. */
-		const Vector3& GetAxisHorz() const { return mAxisHorz; }
+		const Vector3& GetHorizontalAxis() const { return mAxisHorz; }
 
 		/** Returns the rectangle's vertical axis. */
-		const Vector3& GetAxisVert() const { return mAxisVert; }
+		const Vector3& GetVerticalAxis() const { return mAxisVert; }
 
 		/** Gets the extent of the rectangle along its horizontal axis. */
-		const float& GetExtentHorz() const { return mExtentHorz; }
+		const float& GetHorizontalExtent() const { return mExtentHorz; }
 
 		/** Gets the extent of the rectangle along its vertical axis. */
-		const float& GetExtentVertical() const { return mExtentVert; }
+		const float& GetVerticalExtent() const { return mExtentVert; }
 
 	private:
 		Vector3 mCenter{BsZero};

@@ -27,11 +27,11 @@ namespace bs
 		constexpr Quaternion& operator=(const Quaternion&) = default;
 
 		constexpr Quaternion(BS_ZERO zero)
-			: X(0.0f), y(0.0f), z(0.0f), w(0.0f)
+			: x(0.0f), y(0.0f), z(0.0f), w(0.0f)
 		{ }
 
 		constexpr Quaternion(BS_IDENTITY)
-			: X(0.0f), y(0.0f), z(0.0f), w(1.0f)
+			: x(0.0f), y(0.0f), z(0.0f), w(1.0f)
 		{ }
 
 		constexpr Quaternion(float w, float x, float y, float z)
@@ -41,19 +41,19 @@ namespace bs
 		/** Construct a quaternion from a rotation matrix. */
 		explicit Quaternion(const Matrix3& rot)
 		{
-			fromRotationMatrix(rot);
+			FromRotationMatrix(rot);
 		}
 
 		/** Construct a quaternion from an angle/axis. */
 		explicit Quaternion(const Vector3& axis, const Radian& angle)
 		{
-			fromAxisAngle(axis, angle);
+			FromAxisAngle(axis, angle);
 		}
 
 		/** Construct a quaternion from 3 orthonormal local axes. */
 		explicit Quaternion(const Vector3& xaxis, const Vector3& yaxis, const Vector3& zaxis)
 		{
-			fromAxes(xaxis, yaxis, zaxis);
+			FromAxes(xaxis, yaxis, zaxis);
 		}
 
 		/**
@@ -63,7 +63,7 @@ namespace bs
 		 */
 		explicit Quaternion(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle)
 		{
-			fromEulerAngles(xAngle, yAngle, zAngle);
+			FromEulerAngles(xAngle, yAngle, zAngle);
 		}
 
 		/**
@@ -73,7 +73,7 @@ namespace bs
 		 */
 		explicit Quaternion(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle, EulerAngleOrder order)
 		{
-			fromEulerAngles(xAngle, yAngle, zAngle, order);
+			FromEulerAngles(xAngle, yAngle, zAngle, order);
 		}
 
 		/** Exchange the contents of this quaternion with another. */
@@ -186,7 +186,6 @@ namespace bs
 		/** Gets the positive z-axis of the coordinate system transformed by this quaternion. */
 		Vector3 ZAxis() const;
 
-
 		Quaternion operator+ (const Quaternion& rhs) const
 		{
 			return Quaternion(w + rhs.w, x + rhs.x, y + rhs.y, z + rhs.z);
@@ -289,7 +288,7 @@ namespace bs
 		template<bool SAFE = true>
 		float Normalize(float tolerance = 1e-04f)
 		{
-			float len = Math::sqrt(dot(*this, *this));
+			float len = Math::Sqrt(Dot(*this, *this));
 			if(!SAFE || len > (tolerance * tolerance))
 				*this = *this * (1.0f / len);
 
@@ -325,7 +324,7 @@ namespace bs
 		/** Query if any of the components of the quaternion are not a number. */
 		bool IsNaN() const
 		{
-			return Math::IsNaN(x) || Math::isNaN(y) || Math::isNaN(z) || Math::isNaN(w);
+			return Math::IsNaN(x) || Math::IsNaN(y) || Math::IsNaN(z) || Math::IsNaN(w);
 		}
 
 		/** Calculates the dot product between two quaternions. */
@@ -341,9 +340,9 @@ namespace bs
 		template<bool SAFE = true>
 		static Quaternion Normalize(const Quaternion& q, float tolerance = 1e-04f)
 		{
-			float sqrdLen = dot(q, q);
+			float sqrdLen = Dot(q, q);
 			if(!SAFE || sqrdLen > tolerance)
-				return q * Math::invSqrt(sqrdLen);
+				return q * Math::InverseSqrt(sqrdLen);
 
 			return q;
 		}
@@ -360,7 +359,7 @@ namespace bs
 		 */
 		static Quaternion Lerp(float t, const Quaternion& a, const Quaternion& b)
 		{
-			float d = dot(a, b);
+			float d = Dot(a, b);
 			float flip = d >= 0.0f ? 1.0f : -1.0f;
 
 			Quaternion output = flip * (1.0f - t) * a + t * b;

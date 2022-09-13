@@ -64,8 +64,8 @@ namespace bs
 		int newLeft = std::max(x, clipRect.x);
 		int newTop = std::max(y, clipRect.y);
 
-		int newRight = Math::clamp(x + (INT32)width, clipRect.x, clipRect.x + (INT32)clipRect.width);
-		int newBottom = Math::clamp(y + (INT32)height, clipRect.y, clipRect.y + (INT32)clipRect.height);
+		int newRight = Math::Clamp(x + (INT32)width, clipRect.x, clipRect.x + (INT32)clipRect.width);
+		int newBottom = Math::Clamp(y + (INT32)height, clipRect.y, clipRect.y + (INT32)clipRect.height);
 
 		x = std::min(newLeft, newRight);
 		y = std::min(newTop, newBottom);
@@ -154,7 +154,7 @@ namespace bs
 			UINT32 currentBufferIdx = bufferIdx;
 
 			bufferIdx = (bufferIdx + 1) % 2;
-			tempPieces[bufferIdx].Clear();
+			tempPieces[bufferIdx].clear();
 
 			for (auto& rect : tempPieces[currentBufferIdx])
 				rect.Cut(cutRect, tempPieces[bufferIdx]);
@@ -194,9 +194,9 @@ namespace bs
 				maxY = verts[i].y;
 		}
 
-		x = Math::floorToInt(minX);
-		y = Math::floorToInt(minY);
-		width = (UINT32)Math::ceilToInt(maxX) - x;
-		height = (UINT32)Math::ceilToInt(maxY) - y;
+		x = Math::FloorToInt(minX);
+		y = Math::FloorToInt(minY);
+		width = (UINT32)Math::CeilToInt(maxX) - x;
+		height = (UINT32)Math::CeilToInt(maxY) - y;
 	}
 }

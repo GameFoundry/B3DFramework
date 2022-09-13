@@ -1017,7 +1017,7 @@ namespace bs
 	void ShapeMeshes3D::wireFrustum(const Vector3& position, float aspect, Degree FOV, float near, float far,
 		UINT8* outVertices, UINT32 vertexOffset, UINT32 vertexStride, UINT32* outIndices, UINT32 indexOffset)
 	{
-		float fovTan = Math::tan(FOV * 0.5f);
+		float fovTan = Math::Tan(FOV * 0.5f);
 
 		Vector3 NearPoint(0, 0, near);
 		Vector3 NearWidth(near * fovTan * aspect, 0, 0);
@@ -1535,7 +1535,7 @@ namespace bs
 		outVertices = writeVector3(outVertices, vertexStride, botRight);
 		outVertices = writeVector3(outVertices, vertexStride, botLeft);
 
-		Vector3 normal = area.GetAxisHorz().cross(area.getAxisVert());
+		Vector3 normal = area.GetHorizontalAxis().cross(area.getAxisVert());
 		Vector3 reverseNormal = -normal;
 
 		outNormals += (vertexOffset * vertexStride);

@@ -286,7 +286,7 @@ namespace bs
 	{
 		reset();
 
-		Lock Lock(mThreadSync);
+		Lock lock(mThreadSync);
 
 		for(auto& threadInfo : mActiveThreads)
 			bs_delete<ThreadInfo, ProfilerAlloc>(threadInfo);
@@ -301,7 +301,7 @@ namespace bs
 			thread = ThreadInfo::activeThread;
 
 			{
-				Lock Lock(mThreadSync);
+				Lock lock(mThreadSync);
 
 				mActiveThreads.push_back(thread);
 			}

@@ -45,7 +45,7 @@ namespace bs
 
 	void GUISliderHandle::_setHandleSize(float pct)
 	{
-		mPctHandleSize = Math::clamp01(pct);
+		mPctHandleSize = Math::Clamp01(pct);
 	}
 
 	void GUISliderHandle::_setHandlePos(float pct)
@@ -54,10 +54,10 @@ namespace bs
 		if (mStep > 0.0f && pct < maxPct)
 		{
 			pct = (pct + mStep * 0.5f) - fmod(pct + mStep * 0.5f, mStep);
-			maxPct = Math::floor(1.0f / mStep) * mStep;
+			maxPct = Math::Floor(1.0f / mStep) * mStep;
 		}
 
-		mPctHandlePos = Math::clamp(pct, 0.0f, maxPct);
+		mPctHandlePos = Math::Clamp(pct, 0.0f, maxPct);
 	}
 
 	float GUISliderHandle::GetHandlePos() const
@@ -72,7 +72,7 @@ namespace bs
 
 	void GUISliderHandle::SetStep(float step)
 	{
-		mStep = Math::clamp01(step);
+		mStep = Math::Clamp01(step);
 	}
 
 	UINT32 GUISliderHandle::GetScrollableSize() const
@@ -314,7 +314,7 @@ namespace bs
 					{
 						INT32 newLeft = clickPosPx - mDragStartPos;
 						INT32 right = left + handleSize;
-						newLeft = Math::clamp(newLeft, 0, right);
+						newLeft = Math::Clamp(newLeft, 0, right);
 
 						newHandleSize = std::max((INT32)mMinHandleSize, right - newLeft);
 						newLeft = right - newHandleSize;

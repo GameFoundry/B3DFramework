@@ -1404,7 +1404,8 @@ namespace bs { namespace ct
 		Quaternion lightRotation = light->GetTransform().GetRotation();
 
 		Matrix4 view = Matrix4::view(rendererLight.GetShiftedLightPosition(), lightRotation);
-		Matrix4 proj = Matrix4::projectionPerspective(light->GetSpotAngle(), 1.0f, 0.05f, light->getAttenuationRadius());
+		Matrix4 proj = Matrix4::CreateProjectionPerspective(light->GetSpotAngle(), 1.0f, 0.05f,
+															light->getAttenuationRadius());
 
 		ConvexVolume localFrustum = ConvexVolume(proj);
 		RenderAPI::instance().ConvertProjectionMatrix(proj, proj);
@@ -1493,7 +1494,8 @@ namespace bs { namespace ct
 		mapInfo.subjectBounds = light->GetBounds();
 
 		// Note: Projecting on positive Z axis, because cubemaps use a left-handed coordinate system
-		Matrix4 proj = Matrix4::projectionPerspective(Degree(90.0f), 1.0f, 0.05f, light->GetAttenuationRadius(), true);
+		Matrix4 proj = Matrix4::CreateProjectionPerspective(Degree(90.0f), 1.0f, 0.05f, light->GetAttenuationRadius(),
+															true);
 		ConvexVolume LocalFrustum(proj);
 
 		ProfileGPUBlock ProfileSample("Project radial light shadows");
@@ -1690,7 +1692,7 @@ namespace bs { namespace ct
 				maxMapSize = std::max(maxMapSize, optimalMapSize);
 
 				// Determine if the shadow should fade out
-				float fadePercent = Math::invLerp(optimalMapSize, (float)MIN_SHADOW_MAP_SIZE, (float)SHADOW_MAP_FADE_SIZE);
+				float fadePercent = Math::InvLerp(optimalMapSize, (float)MIN_SHADOW_MAP_SIZE, (float)SHADOW_MAP_FADE_SIZE);
 				fadePercents.Add(fadePercent);
 				maxFadePercent = std::max(maxFadePercent, fadePercent);
 			}
@@ -1699,7 +1701,7 @@ namespace bs { namespace ct
 		// If light fully (or nearly fully) covers the screen, use full shadow map resolution, otherwise
 		// scale it down to smaller power of two, while clamping to minimal allowed resolution
 		UINT32 effectiveMapSize = Bitwise::nextPow2((UINT32)maxMapSize);
-		effectiveMapSize = Math::clamp(effectiveMapSize, MIN_SHADOW_MAP_SIZE, mShadowMapSize);
+		effectiveMapSize = Math::Clamp(effectiveMapSize, MIN_SHADOW_MAP_SIZE, mShadowMapSize);
 
 		// Leave room for border
 		size = std::max(effectiveMapSize - 2 * border, 1u);
@@ -1832,7 +1834,7 @@ namespace bs { namespace ct
 
 		float length = splitFar - splitNear;
 		float offset = (diagonalNearSq - diagonalFarSq) / (2 * length) + length * 0.5f;
-		float distToCenter = Math::clamp(splitFar - offset, splitNear, splitFar);
+		float distToCenter = Math::Clamp(splitFar - offset, splitNear, splitFar);
 
 		Vector3 center = viewOrigin + viewDir * distToCenter;
 
@@ -1940,7 +1942,7 @@ namespace bs { namespace ct
 		// Calculate split distance in Z
 		auto& viewProps = view.GetProperties();
 		float near = viewProps.nearPlane;
-		float far = Math::clamp(shadowSettings.directionalShadowDistance, viewProps.nearPlane, viewProps.farPlane);
+		float far = Math::Clamp(shadowSettings.directionalShadowDistance, viewProps.nearPlane, viewProps.farPlane);
 
 		return near + (far - near) * scale;
 	}

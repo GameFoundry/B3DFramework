@@ -467,7 +467,7 @@ namespace bs
 
 			if(mMaxBits > 0)
 			{
-				const uint32_t numBytes = (uint32_t)Math::divideAndRoundUp(mMaxBits, (uint64_t)BITS_PER_QUANT) * BYTES_PER_QUANT;
+				const uint32_t numBytes = (uint32_t)Math::DivideAndRoundUp(mMaxBits, (uint64_t)BITS_PER_QUANT) * BYTES_PER_QUANT;
 				memcpy(mData, other.mData, numBytes);
 			}
 		}
@@ -958,7 +958,7 @@ namespace bs
 
 	inline void Bitstream::WriteRange(float value, float min, float max, uint32_t bits)
 	{
-		float pct = Math::clamp01((value - min)/(max - min));
+		float pct = Math::Clamp01((value - min)/(max - min));
 		writeNorm(pct, bits);
 	}
 
@@ -994,7 +994,7 @@ namespace bs
 
 	inline void Bitstream::Skip(int64_t count)
 	{
-		mCursor = (uint64_t)Math::clamp((int64_t)mCursor + count, (int64_t)0, (int64_t)mMaxBits);
+		mCursor = (uint64_t)Math::Clamp((int64_t)mCursor + count, (int64_t)0, (int64_t)mMaxBits);
 	}
 
 	inline void Bitstream::Seek(uint64_t pos)
@@ -1048,19 +1048,19 @@ namespace bs
 
 	inline void Bitstream::Realloc(uint64_t numBits)
 	{
-		numBits = Math::divideAndRoundUp(numBits, (uint64_t)BITS_PER_QUANT) * BITS_PER_QUANT;
+		numBits = Math::DivideAndRoundUp(numBits, (uint64_t)BITS_PER_QUANT) * BITS_PER_QUANT;
 
 		if (numBits != mMaxBits)
 		{
 			assert(numBits > mMaxBits);
 
-			const uint32_t numQuants = (uint32_t)Math::divideAndRoundUp(numBits, (uint64_t)BITS_PER_QUANT);
+			const uint32_t numQuants = (uint32_t)Math::DivideAndRoundUp(numBits, (uint64_t)BITS_PER_QUANT);
 
 			// Note: Eventually add support for custom allocators
 			auto buffer = bs_allocN<uint8_t>(numQuants);
 			if (mData)
 			{
-				const uint32_t numBytes = (uint32_t)Math::divideAndRoundUp(mMaxBits, (uint64_t)BITS_PER_QUANT) * BYTES_PER_QUANT;
+				const uint32_t numBytes = (uint32_t)Math::DivideAndRoundUp(mMaxBits, (uint64_t)BITS_PER_QUANT) * BYTES_PER_QUANT;
 				memcpy(buffer, mData, numBytes);
 				bs_free(mData);
 			}

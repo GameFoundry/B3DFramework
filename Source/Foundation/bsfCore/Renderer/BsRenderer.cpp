@@ -69,7 +69,7 @@ namespace bs { namespace ct
 
 	void Renderer::AddTask(const SPtr<RendererTask>& task)
 	{
-		Lock Lock(mTaskMutex);
+		Lock lock(mTaskMutex);
 
 		assert(task->mState != 1 && "Task is already executing, it cannot be executed again until it finishes.");
 		task->mState.Store(0); // Reset state in case the task is getting re-queued
@@ -82,7 +82,7 @@ namespace bs { namespace ct
 	{
 		// Move all tasks to the core thread queue
 		{
-			Lock Lock(mTaskMutex);
+			Lock lock(mTaskMutex);
 
 			for(UINT32 i = 0; i < (UINT32)mQueuedTasks.size();)
 			{
@@ -128,7 +128,7 @@ namespace bs { namespace ct
 	{
 		// Move task to the core thread queue
 		{
-			Lock Lock(mTaskMutex);
+			Lock lock(mTaskMutex);
 
 			for(UINT32 i = 0; i < (UINT32)mQueuedTasks.size(); i++)
 			{

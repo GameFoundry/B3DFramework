@@ -161,7 +161,7 @@ namespace bs
 
 	inline uint64_t BufferedBitstreamReader::ReadBits(Bitstream::QuantType* data, uint64_t count)
 	{
-		preload((uint32_t)Math::divideAndRoundUp(count, (uint64_t)8));
+		preload((uint32_t)Math::DivideAndRoundUp(count, (uint64_t)8));
 		mCursor += count;
 		return mBitstream->ReadBits(data, count);
 	}
@@ -208,7 +208,7 @@ namespace bs
 	{
 		if (!mIsMapped && (pos < mBufferedRangeStart || pos >= mBufferedRangeEnd))
 		{
-			mBufferedRangeStart = Math::divideAndRoundUp(pos, (uint64_t)8) * 8;
+			mBufferedRangeStart = Math::DivideAndRoundUp(pos, (uint64_t)8) * 8;
 			mBufferedRangeEnd = mBufferedRangeStart;
 		}
 
@@ -233,7 +233,7 @@ namespace bs
 		uint64_t bufferedLength = mBufferedRangeEnd - mBufferedRangeStart;
 		uint64_t newBufferedLength = bufferedLength + numBytesToPreload * 8;
 		if (mBitstream->Capacity() < newBufferedLength)
-			mBitstream->Resize((uint32_t)Math::divideAndRoundUp(newBufferedLength, (uint64_t)Bitstream::BITS_PER_QUANT));
+			mBitstream->Resize((uint32_t)Math::DivideAndRoundUp(newBufferedLength, (uint64_t)Bitstream::BITS_PER_QUANT));
 
 		// Read the data from data stream into the bitstream
 		uint64_t orgPos = mBitstream->Tell();

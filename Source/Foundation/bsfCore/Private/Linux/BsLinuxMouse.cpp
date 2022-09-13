@@ -26,7 +26,7 @@ namespace bs
 
 	void Mouse::Capture()
 	{
-		Lock Lock(LinuxPlatform::eventLock);
+		Lock lock(LinuxPlatform::eventLock);
 
 		if(m->hasInputFocus)
 		{

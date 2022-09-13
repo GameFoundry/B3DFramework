@@ -29,8 +29,8 @@ namespace bs { namespace ct
 		// If width/height is 0xFFFFFFFF, we can manually specify width, height
 		if (surfaceCaps.currentExtent.width == (uint32_t)-1 || surfaceCaps.currentExtent.height == (uint32_t)-1)
 		{
-			swapchainExtent.width = Math::clamp(width, surfaceCaps.minImageExtent.width, surfaceCaps.maxImageExtent.width);
-			swapchainExtent.height = Math::clamp(height, surfaceCaps.minImageExtent.height, surfaceCaps.maxImageExtent.height);
+			swapchainExtent.width = Math::Clamp(width, surfaceCaps.minImageExtent.width, surfaceCaps.maxImageExtent.width);
+			swapchainExtent.height = Math::Clamp(height, surfaceCaps.minImageExtent.height, surfaceCaps.maxImageExtent.height);
 		}
 		else // Otherwise we must use the size we're given
 			swapchainExtent = surfaceCaps.currentExtent;

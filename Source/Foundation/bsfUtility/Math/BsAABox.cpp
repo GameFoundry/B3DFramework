@@ -50,13 +50,13 @@ namespace bs
 	AABox::AABox()
 	{
 		// Default to a unit box
-		setMin(Vector3(-0.5f, -0.5f, -0.5f));
-		setMax(Vector3(0.5f, 0.5f, 0.5f));
+		SetMinimum(Vector3(-0.5f, -0.5f, -0.5f));
+		SetMaximum(Vector3(0.5f, 0.5f, 0.5f));
 	}
 
 	AABox::AABox(const Vector3& min, const Vector3& max)
 	{
-		setExtents(min, max);
+		SetExtents(min, max);
 	}
 
 	void AABox::SetExtents(const Vector3& min, const Vector3& max)
@@ -67,11 +67,11 @@ namespace bs
 
 	void AABox::Scale(const Vector3& s)
 	{
-		Vector3 center = getCenter();
+		Vector3 center = GetCenter();
 		Vector3 min = center + (mMinimum - center) * s;
 		Vector3 max = center + (mMaximum - center) * s;
 
-		setExtents(min, max);
+		SetExtents(min, max);
 	}
 
 	Vector3 AABox::GetCorner(Corner cornerToGet) const
@@ -106,7 +106,7 @@ namespace bs
 		max.Max(rhs.mMaximum);
 		min.Min(rhs.mMinimum);
 
-		setExtents(min, max);
+		SetExtents(min, max);
 	}
 
 	void AABox::Merge(const Vector3& point)
@@ -132,35 +132,35 @@ namespace bs
 		// First corner
 		// min min min
 		currentCorner = oldMin;
-		merge(matrix.MultiplyAffine(currentCorner));
+		Merge(matrix.MultiplyAffine(currentCorner));
 
 		// min,min,max
 		currentCorner.z = oldMax.z;
-		merge(matrix.MultiplyAffine(currentCorner));
+		Merge(matrix.MultiplyAffine(currentCorner));
 
 		// min max max
 		currentCorner.y = oldMax.y;
-		merge(matrix.MultiplyAffine(currentCorner));
+		Merge(matrix.MultiplyAffine(currentCorner));
 
 		// min max min
 		currentCorner.z = oldMin.z;
-		merge(matrix.MultiplyAffine(currentCorner));
+		Merge(matrix.MultiplyAffine(currentCorner));
 
 		// max max min
 		currentCorner.x = oldMax.x;
-		merge(matrix.MultiplyAffine(currentCorner));
+		Merge(matrix.MultiplyAffine(currentCorner));
 
 		// max max max
 		currentCorner.z = oldMax.z;
-		merge(matrix.MultiplyAffine(currentCorner));
+		Merge(matrix.MultiplyAffine(currentCorner));
 
 		// max min max
 		currentCorner.y = oldMin.y;
-		merge(matrix.MultiplyAffine(currentCorner));
+		Merge(matrix.MultiplyAffine(currentCorner));
 
 		// max min min
 		currentCorner.z = oldMin.z;
-		merge(matrix.MultiplyAffine(currentCorner));
+		Merge(matrix.MultiplyAffine(currentCorner));
 	}
 
 	void AABox::TransformAffine(const Matrix4& m)
@@ -188,7 +188,7 @@ namespace bs
 
 		}
 
-		setExtents(min, max);
+		SetExtents(min, max);
 	}
 
 	bool AABox::Intersects(const AABox& b2) const
@@ -217,8 +217,8 @@ namespace bs
 		// Use splitting planes
 		const Vector3& center = sphere.GetCenter();
 		float radius = sphere.GetRadius();
-		const Vector3& min = getMin();
-		const Vector3& max = getMax();
+		const Vector3& min = GetMinimum();
+		const Vector3& max = GetMaximum();
 
 		// Arvo's algorithm
 		float s, d = 0;
@@ -248,9 +248,9 @@ namespace bs
 		float lowt = 0.0f;
 		float t;
 		bool hit = false;
-		Vector3 Hitpoint(BsZero);
-		const Vector3& min = getMin();
-		const Vector3& max = getMax();
+		Vector3 hitpoint(BsZero);
+		const Vector3& min = GetMinimum();
+		const Vector3& max = GetMaximum();
 		const Vector3& rayorig = ray.GetOrigin();
 		const Vector3& raydir = ray.GetDirection();
 
@@ -370,15 +370,15 @@ namespace bs
 
 	bool AABox::Intersects(const Ray& ray, float& d1, float& d2) const
 	{
-		const Vector3& min = getMin();
-		const Vector3& max = getMax();
+		const Vector3& min = GetMinimum();
+		const Vector3& max = GetMaximum();
 		const Vector3& rayorig = ray.GetOrigin();
 		const Vector3& raydir = ray.GetDirection();
 
 		Vector3 absDir;
-		absDir[0] = Math::abs(raydir[0]);
-		absDir[1] = Math::abs(raydir[1]);
-		absDir[2] = Math::abs(raydir[2]);
+		absDir[0] = Math::Abs(raydir[0]);
+		absDir[1] = Math::Abs(raydir[1]);
+		absDir[2] = Math::Abs(raydir[2]);
 
 		// Sort the axis, ensure check minimise floating error axis first
 		int imax = 0, imid = 1, imin = 2;

@@ -51,7 +51,7 @@ namespace bs
 		gCoreThread().Submit(true);
 
 		{
-			ScopedSpinLock Lock(getCore()->mLock);
+			ScopedSpinLock lock(getCore()->mLock);
 			const RenderWindowProperties& syncedProps = getCore()->GetSyncedProperties();
 			RenderWindowProperties& mutableProps = getMutableProperties();
 
@@ -72,7 +72,7 @@ namespace bs
 		gCoreThread().Submit(true);
 
 		{
-			ScopedSpinLock Lock(getCore()->mLock);
+			ScopedSpinLock lock(getCore()->mLock);
 			const RenderWindowProperties& syncedProps = getCore()->GetSyncedProperties();
 			RenderWindowProperties& mutableProps = getMutableProperties();
 
@@ -134,7 +134,7 @@ namespace bs
 		gCoreThread().Submit(true);
 
 		{
-			ScopedSpinLock Lock(getCore()->mLock);
+			ScopedSpinLock lock(getCore()->mLock);
 			const RenderWindowProperties& syncedProps = getCore()->GetSyncedProperties();
 			RenderWindowProperties& mutableProps = getMutableProperties();
 
@@ -157,7 +157,7 @@ namespace bs
 		gCoreThread().Submit(true);
 
 		{
-			ScopedSpinLock Lock(getCore()->mLock);
+			ScopedSpinLock lock(getCore()->mLock);
 			const RenderWindowProperties& syncedProps = getCore()->GetSyncedProperties();
 			RenderWindowProperties& mutableProps = getMutableProperties();
 
@@ -178,7 +178,7 @@ namespace bs
 		gCoreThread().Submit(true);
 
 		{
-			ScopedSpinLock Lock(getCore()->mLock);
+			ScopedSpinLock lock(getCore()->mLock);
 			const RenderWindowProperties& syncedProps = getCore()->GetSyncedProperties();
 			RenderWindowProperties& mutableProps = getMutableProperties();
 
@@ -199,7 +199,7 @@ namespace bs
 		gCoreThread().Submit(true);
 
 		{
-			ScopedSpinLock Lock(getCore()->mLock);
+			ScopedSpinLock lock(getCore()->mLock);
 			const RenderWindowProperties& syncedProps = getCore()->GetSyncedProperties();
 			RenderWindowProperties& mutableProps = getMutableProperties();
 
@@ -220,7 +220,7 @@ namespace bs
 		gCoreThread().Submit(true);
 
 		{
-			ScopedSpinLock Lock(getCore()->mLock);
+			ScopedSpinLock lock(getCore()->mLock);
 			const RenderWindowProperties& syncedProps = getCore()->GetSyncedProperties();
 			RenderWindowProperties& mutableProps = getMutableProperties();
 
@@ -264,7 +264,7 @@ namespace bs
 				_windowMovedOrResized();
 
 				{
-					ScopedSpinLock Lock(coreWindow->mLock);
+					ScopedSpinLock lock(coreWindow->mLock);
 					syncProps.width = props.width;
 					syncProps.height = props.height;
 				}
@@ -279,7 +279,7 @@ namespace bs
 				_windowMovedOrResized();
 
 				{
-					ScopedSpinLock Lock(coreWindow->mLock);
+					ScopedSpinLock lock(coreWindow->mLock);
 					syncProps.top = props.top;
 					syncProps.left = props.left;
 				}
@@ -292,7 +292,7 @@ namespace bs
 			case WindowEventType::FocusReceived:
 			{
 				{
-					ScopedSpinLock Lock(coreWindow->mLock);
+					ScopedSpinLock lock(coreWindow->mLock);
 					syncProps.hasFocus = true;
 				}
 
@@ -305,7 +305,7 @@ namespace bs
 			case WindowEventType::FocusLost:
 			{
 				{
-					ScopedSpinLock Lock(coreWindow->mLock);
+					ScopedSpinLock lock(coreWindow->mLock);
 					syncProps.hasFocus = false;
 				}
 
@@ -318,7 +318,7 @@ namespace bs
 			case WindowEventType::Minimized:
 			{
 				{
-					ScopedSpinLock Lock(coreWindow->mLock);
+					ScopedSpinLock lock(coreWindow->mLock);
 					syncProps.isMaximized = false;
 				}
 
@@ -330,7 +330,7 @@ namespace bs
 			case WindowEventType::Maximized:
 			{
 				{
-					ScopedSpinLock Lock(coreWindow->mLock);
+					ScopedSpinLock lock(coreWindow->mLock);
 					syncProps.isMaximized = true;
 				}
 
@@ -342,7 +342,7 @@ namespace bs
 			case WindowEventType::Restored:
 			{
 				{
-					ScopedSpinLock Lock(coreWindow->mLock);
+					ScopedSpinLock lock(coreWindow->mLock);
 					syncProps.isMaximized = false;
 				}
 
@@ -439,7 +439,7 @@ namespace bs
 
 		props.isHidden = hidden;
 		{
-			ScopedSpinLock Lock(mLock);
+			ScopedSpinLock lock(mLock);
 			getSyncedProperties().isHidden = hidden;
 		}
 
@@ -465,7 +465,7 @@ namespace bs
 				_windowMovedOrResized();
 
 				{
-					ScopedSpinLock Lock(mLock);
+					ScopedSpinLock lock(mLock);
 					syncProps.width = props.width;
 					syncProps.height = props.height;
 				}
@@ -480,7 +480,7 @@ namespace bs
 				_windowMovedOrResized();
 
 				{
-					ScopedSpinLock Lock(mLock);
+					ScopedSpinLock lock(mLock);
 					syncProps.top = props.top;
 					syncProps.left = props.left;
 				}
@@ -493,7 +493,7 @@ namespace bs
 			case WindowEventType::FocusReceived:
 			{
 				{
-					ScopedSpinLock Lock(mLock);
+					ScopedSpinLock lock(mLock);
 					syncProps.hasFocus = true;
 				}
 
@@ -506,7 +506,7 @@ namespace bs
 			case WindowEventType::FocusLost:
 			{
 				{
-					ScopedSpinLock Lock(mLock);
+					ScopedSpinLock lock(mLock);
 					syncProps.hasFocus = false;
 				}
 
@@ -519,7 +519,7 @@ namespace bs
 			case WindowEventType::Minimized:
 			{
 				{
-					ScopedSpinLock Lock(mLock);
+					ScopedSpinLock lock(mLock);
 					syncProps.isMaximized = false;
 				}
 
@@ -531,7 +531,7 @@ namespace bs
 			case WindowEventType::Maximized:
 			{
 				{
-					ScopedSpinLock Lock(mLock);
+					ScopedSpinLock lock(mLock);
 					syncProps.isMaximized = true;
 				}
 
@@ -543,7 +543,7 @@ namespace bs
 			case WindowEventType::Restored:
 			{
 				{
-					ScopedSpinLock Lock(mLock);
+					ScopedSpinLock lock(mLock);
 					syncProps.isMaximized = false;
 				}
 

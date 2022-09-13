@@ -467,7 +467,7 @@ namespace bs
             if (fSqrLength > 0.0f)
             {
                 angle = 2.0f * MathEx.Acos(w);
-                float fInvLength = MathEx.InvSqrt(fSqrLength);
+                float fInvLength = MathEx.InverseSqrt(fSqrLength);
                 axis.x = x*fInvLength;
                 axis.y = y*fInvLength;
                 axis.z = z*fInvLength;

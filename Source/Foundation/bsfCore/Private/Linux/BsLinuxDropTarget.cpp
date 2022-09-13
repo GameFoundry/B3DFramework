@@ -242,19 +242,19 @@ namespace bs
 
 	void LinuxDragAndDrop::RegisterDropTarget(DropTarget* target)
 	{
-		Lock Lock(sMutex);
+		Lock lock(sMutex);
 		sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Register, target->GetArea()));
 	}
 
 	void LinuxDragAndDrop::UnregisterDropTarget(DropTarget* target)
 	{
-		Lock Lock(sMutex);
+		Lock lock(sMutex);
 		sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Unregister));
 	}
 
 	void LinuxDragAndDrop::UpdateDropTarget(DropTarget* target)
 	{
-		Lock Lock(sMutex);
+		Lock lock(sMutex);
 		sQueuedAreaOperations.push_back(DropAreaOp(target, DropAreaOpType::Update, target->GetArea()));
 	}
 
@@ -262,7 +262,7 @@ namespace bs
 	{
 		// First handle any queued registration/unregistration
 		{
-			Lock Lock(sMutex);
+			Lock lock(sMutex);
 
 			for(auto& entry : sQueuedAreaOperations)
 			{
@@ -408,13 +408,13 @@ namespace bs
 
 							if(dropArea.target->_isActive())
 							{
-								Lock Lock(sMutex);
+								Lock lock(sMutex);
 								sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::DragOver, dropArea.target,
 									windowPos));
 							}
 							else
 							{
-								Lock Lock(sMutex);
+								Lock lock(sMutex);
 								sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Enter, dropArea.target,
 										windowPos));
 							}
@@ -427,7 +427,7 @@ namespace bs
 							if(dropArea.target->_isActive())
 							{
 								{
-									Lock Lock(sMutex);
+									Lock lock(sMutex);
 									sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Leave, dropArea.target));
 								}
 
@@ -449,7 +449,7 @@ namespace bs
 				if(dropArea.target->_isActive())
 				{
 					{
-						Lock Lock(sMutex);
+						Lock lock(sMutex);
 						sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Leave, dropArea.target));
 					}
 
@@ -549,7 +549,7 @@ namespace bs
 
 				Vector2I windowPos = linuxWindow->ScreenToWindowPos(sDragPosition);
 
-				Lock Lock(sMutex);
+				Lock lock(sMutex);
 				sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Drop, dropArea.target, windowPos, filePaths));
 
 				dropArea.target->_setActive(false);
@@ -586,7 +586,7 @@ namespace bs
 		Vector<DragAndDropOp> operations;
 
 		{
-			Lock Lock(sMutex);
+			Lock lock(sMutex);
 			std::swap(operations, sQueuedOperations);
 		}
 

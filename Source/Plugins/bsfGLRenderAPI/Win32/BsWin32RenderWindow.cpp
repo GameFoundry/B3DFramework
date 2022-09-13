@@ -81,7 +81,7 @@ namespace bs
 
 	void Win32RenderWindow::SyncProperties()
 	{
-		ScopedSpinLock Lock(getCore()->mLock);
+		ScopedSpinLock lock(getCore()->mLock);
 		mProperties = getCore()->mSyncedProperties;
 	}
 
@@ -128,7 +128,7 @@ namespace bs
 
 		props.isFullScreen = mDesc.fullscreen;
 		mIsChild = false;
-		mDisplayFrequency = Math::roundToInt(mDesc.videoMode.refreshRate);
+		mDisplayFrequency = Math::RoundToInt(mDesc.videoMode.refreshRate);
 
 		WINDOW_DESC windowDesc;
 		windowDesc.showTitleBar = mDesc.showTitleBar;
@@ -264,7 +264,7 @@ namespace bs
 			setVSync(true, props.vsyncInterval);
 
 		{
-			ScopedSpinLock Lock(mLock);
+			ScopedSpinLock lock(mLock);
 			mSyncedProperties = props;
 		}
 
@@ -289,7 +289,7 @@ namespace bs
 		UINT32 actualMonitorIdx = std::min(monitorIdx, numOutputs - 1);
 		const Win32VideoOutputInfo& outputInfo = static_cast<const Win32VideoOutputInfo&>(videoModeInfo.GetOutputInfo(actualMonitorIdx));
 
-		mDisplayFrequency = Math::roundToInt(refreshRate);
+		mDisplayFrequency = Math::RoundToInt(refreshRate);
 		props.isFullScreen = true;
 
 		DEVMODE displayDeviceMode;
@@ -327,7 +327,7 @@ namespace bs
 		_windowMovedOrResized();
 
 		{
-			ScopedSpinLock Lock(mLock);
+			ScopedSpinLock lock(mLock);
 			mSyncedProperties.top = props.top;
 			mSyncedProperties.left = props.left;
 			mSyncedProperties.width = props.width;
@@ -392,7 +392,7 @@ namespace bs
 		_windowMovedOrResized();
 
 		{
-			ScopedSpinLock Lock(mLock);
+			ScopedSpinLock lock(mLock);
 			mSyncedProperties.top = props.top;
 			mSyncedProperties.left = props.left;
 			mSyncedProperties.width = props.width;
@@ -416,7 +416,7 @@ namespace bs
 			props.left = mWindow->GetLeft();
 
 			{
-				ScopedSpinLock Lock(mLock);
+				ScopedSpinLock lock(mLock);
 				mSyncedProperties.top = props.top;
 				mSyncedProperties.left = props.left;
 			}
@@ -438,7 +438,7 @@ namespace bs
 			props.height = mWindow->GetHeight();
 			
 			{
-				ScopedSpinLock Lock(mLock);
+				ScopedSpinLock lock(mLock);
 				mSyncedProperties.width = props.width;
 				mSyncedProperties.height = props.height;
 			}
@@ -477,7 +477,7 @@ namespace bs
 		mProperties.vsyncInterval = interval;
 
 		{
-			ScopedSpinLock Lock(mLock);
+			ScopedSpinLock lock(mLock);
 			mSyncedProperties.vsync = enabled;
 			mSyncedProperties.vsyncInterval = interval;
 		}
@@ -613,7 +613,7 @@ namespace bs
 
 	void Win32RenderWindow::SyncProperties()
 	{
-		ScopedSpinLock Lock(mLock);
+		ScopedSpinLock lock(mLock);
 		mProperties = mSyncedProperties;
 	}		
 	}

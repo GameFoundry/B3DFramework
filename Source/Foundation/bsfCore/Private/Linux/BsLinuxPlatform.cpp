@@ -263,20 +263,20 @@ namespace bs
 
 	Vector2I Platform::GetCursorPosition()
 	{
-		Lock Lock(mData->lock);
+		Lock lock(mData->lock);
 		return _getCursorPosition(mData);
 	}
 
 	void Platform::SetCursorPosition(const Vector2I& screenPos)
 	{
-		Lock Lock(mData->lock);
+		Lock lock(mData->lock);
 
 		_setCursorPosition(mData, screenPos);
 	}
 
 	void Platform::CaptureMouse(const RenderWindow& window)
 	{
-		Lock Lock(mData->lock);
+		Lock lock(mData->lock);
 
 		LinuxWindow* linuxWindow;
 		window.GetCustomAttribute("LINUX_WINDOW", &linuxWindow);
@@ -289,7 +289,7 @@ namespace bs
 
 	void Platform::ReleaseMouseCapture()
 	{
-		Lock Lock(mData->lock);
+		Lock lock(mData->lock);
 
 		XUngrabPointer(mData->xDisplay, CurrentTime);
 		XSync(mData->xDisplay, False);
@@ -297,7 +297,7 @@ namespace bs
 
 	bool Platform::IsPointOverWindow(const RenderWindow& window, const Vector2I& screenPos)
 	{
-		Lock Lock(mData->lock);
+		Lock lock(mData->lock);
 
 		LinuxWindow* linuxWindow;
 		window.GetCustomAttribute("LINUX_WINDOW", &linuxWindow);
@@ -318,7 +318,7 @@ namespace bs
 
 	void Platform::HideCursor()
 	{
-		Lock Lock(mData->lock);
+		Lock lock(mData->lock);
 		mData->isCursorHidden = true;
 
 		for(auto& entry : mData->windowMap)
@@ -327,7 +327,7 @@ namespace bs
 
 	void Platform::ShowCursor()
 	{
-		Lock Lock(mData->lock);
+		Lock lock(mData->lock);
 		mData->isCursorHidden = false;
 
 		for(auto& entry : mData->windowMap)
@@ -336,13 +336,13 @@ namespace bs
 
 	bool Platform::IsCursorHidden()
 	{
-		Lock Lock(mData->lock);
+		Lock lock(mData->lock);
 		return mData->isCursorHidden;
 	}
 
 	void Platform::ClipCursorToWindow(const RenderWindow& window)
 	{
-		Lock Lock(mData->lock);
+		Lock lock(mData->lock);
 
 		LinuxWindow* linuxWindow;
 		window.GetCustomAttribute("LINUX_WINDOW", &linuxWindow);
@@ -360,7 +360,7 @@ namespace bs
 
 	void Platform::ClipCursorToRect(const Rect2I& screenRect)
 	{
-		Lock Lock(mData->lock);
+		Lock lock(mData->lock);
 
 		mData->cursorClipEnabled = true;
 		mData->cursorClipRect = screenRect;
@@ -374,7 +374,7 @@ namespace bs
 
 	void Platform::ClipCursorDisable()
 	{
-		Lock Lock(mData->lock);
+		Lock lock(mData->lock);
 
 		bs::clipCursorDisable(mData);
 	}
@@ -384,7 +384,7 @@ namespace bs
 		SPtr<PixelData> bgraData = PixelData::create(pixelData.GetWidth(), pixelData.getHeight(), 1, PF_BGRA8);
 		PixelUtil::bulkPixelConversion(pixelData, *bgraData);
 
-		Lock Lock(mData->lock);
+		Lock lock(mData->lock);
 
 		XcursorImage* image = XcursorImageCreate((int)bgraData->GetWidth(), (int)bgraData->getHeight());
 		image->xhot = (XcursorDim)hotSpot.x;
@@ -410,7 +410,7 @@ namespace bs
 
 		LinuxWindow* mainLinuxWindow = iterFind->second;
 
-		Lock Lock(mData->lock);
+		Lock lock(mData->lock);
 		mainLinuxWindow->SetIcon(pixelData);
 	}
 
@@ -419,7 +419,7 @@ namespace bs
 		if(nonClientAreas.size() == 0)
 			return;
 
-		Lock Lock(mData->lock);
+		Lock lock(mData->lock);
 
 		LinuxWindow* linuxWindow;
 		window.GetCustomAttribute("LINUX_WINDOW", &linuxWindow);
@@ -434,7 +434,7 @@ namespace bs
 
 	void Platform::ResetNonClientAreas(const ct::RenderWindow& window)
 	{
-		Lock Lock(mData->lock);
+		Lock lock(mData->lock);
 
 		LinuxWindow* linuxWindow;
 		window.GetCustomAttribute("LINUX_WINDOW", &linuxWindow);
@@ -449,7 +449,7 @@ namespace bs
 
 	void Platform::CopyToClipboard(const String& string)
 	{
-		Lock Lock(mData->lock);
+		Lock lock(mData->lock);
 		mData->clipboardData = string;
 
 		Atom clipboardAtom = XInternAtom(mData->xDisplay, "CLIPBOARD", 0);
@@ -458,7 +458,7 @@ namespace bs
 
 	String Platform::CopyFromClipboard()
 	{
-		Lock Lock(mData->lock);
+		Lock lock(mData->lock);
 		Atom clipboardAtom = XInternAtom(mData->xDisplay, "CLIPBOARD", 0);
 		::Window selOwner = XGetSelectionOwner(mData->xDisplay, clipboardAtom);
 
@@ -677,7 +677,7 @@ namespace bs
 
 	String Platform::KeyCodeToUnicode(UINT32 buttonCode)
 	{
-		Lock Lock(mData->lock);
+		Lock lock(mData->lock);
 
 		const char* keyName = buttonCodeToKeyName((ButtonCode)buttonCode);
 		if(keyName == nullptr)
@@ -821,7 +821,7 @@ namespace bs
 	{
 		while(true)
 		{
-			Lock Lock(mData->lock);
+			Lock lock(mData->lock);
 
 			if(XPending(mData->xDisplay) <= 0)
 				break;
@@ -1258,7 +1258,7 @@ namespace bs
 
 	void Platform::_startUp()
 	{
-		Lock Lock(mData->lock);
+		Lock lock(mData->lock);
 		mData->xDisplay = XOpenDisplay(nullptr);
 		XSetErrorHandler(x11ErrorHandler);
 
@@ -1369,7 +1369,7 @@ namespace bs
 
 	void Platform::_shutDown()
 	{
-		Lock Lock(mData->lock);
+		Lock lock(mData->lock);
 
 		// Free empty cursor
 		XFreeCursor(mData->xDisplay, mData->emptyCursor);

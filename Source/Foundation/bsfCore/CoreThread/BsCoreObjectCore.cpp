@@ -22,7 +22,7 @@ namespace bs
 	void CoreObject::Initialize()
 	{
 		{
-			Lock Lock(mCoreGpuObjectLoadedMutex);
+			Lock lock(mCoreGpuObjectLoadedMutex);
 			setIsInitialized(true);
 		}
 
@@ -42,7 +42,7 @@ namespace bs
 
 			gCoreThread().SubmitAll(true);
 
-			Lock Lock(mCoreGpuObjectLoadedMutex);
+			Lock lock(mCoreGpuObjectLoadedMutex);
 			while (!isInitialized())
 			{
 				if (!isScheduledToBeInitialized())

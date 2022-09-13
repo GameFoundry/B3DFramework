@@ -89,7 +89,7 @@ namespace bs
 
 	void FMODAudio::SetVolume(float volume)
 	{
-		mVolume = Math::clamp01(volume);
+		mVolume = Math::Clamp01(volume);
 		mMasterChannelGroup->SetVolume(mVolume);
 	}
 

@@ -146,7 +146,7 @@ namespace bs
 			UINT32 newNumVertices = mNumVertices;
 			while (newNumVertices < (mNumVertices + meshData->GetNumVertices()))
 			{
-				newNumVertices = Math::roundToInt(newNumVertices * GrowPercent);
+				newNumVertices = Math::RoundToInt(newNumVertices * GrowPercent);
 			}
 
 			growVertexBuffer(newNumVertices);
@@ -178,7 +178,7 @@ namespace bs
 			UINT32 newNumIndices = mNumIndices;
 			while (newNumIndices < (mNumIndices + meshData->GetNumIndices()))
 			{
-				newNumIndices = Math::roundToInt(newNumIndices * GrowPercent);
+				newNumIndices = Math::RoundToInt(newNumIndices * GrowPercent);
 			}
 
 			growIndexBuffer(newNumIndices);

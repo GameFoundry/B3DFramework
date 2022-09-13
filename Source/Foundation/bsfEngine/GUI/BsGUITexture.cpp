@@ -149,13 +149,13 @@ namespace bs
 
 				if (aspectY > aspectX)
 				{
-					destSize.x = Math::roundToPosInt(textureSize.x / aspectY);
-					destSize.y = Math::roundToPosInt(textureSize.y / aspectY);
+					destSize.x = Math::RoundToPosInt(textureSize.x / aspectY);
+					destSize.y = Math::RoundToPosInt(textureSize.y / aspectY);
 				}
 				else
 				{
-					destSize.x = Math::roundToPosInt(textureSize.x / aspectX);
-					destSize.y = Math::roundToPosInt(textureSize.y / aspectX);
+					destSize.x = Math::RoundToPosInt(textureSize.x / aspectX);
+					destSize.y = Math::RoundToPosInt(textureSize.y / aspectX);
 				}
 			}
 

@@ -645,8 +645,8 @@ namespace bs { namespace ct
 	{
 		numAreas = 0;
 
-		INT32 leftCut = Math::clamp((INT32)cutWith.baseArrayLayer - (INT32)toCut.baseArrayLayer, 0, (INT32)toCut.layerCount);
-		INT32 rightCut = Math::clamp((INT32)(cutWith.baseArrayLayer + cutWith.layerCount) - (INT32)toCut.baseArrayLayer, 0, (INT32)toCut.layerCount);
+		INT32 leftCut = Math::Clamp((INT32)cutWith.baseArrayLayer - (INT32)toCut.baseArrayLayer, 0, (INT32)toCut.layerCount);
+		INT32 rightCut = Math::Clamp((INT32)(cutWith.baseArrayLayer + cutWith.layerCount) - (INT32)toCut.baseArrayLayer, 0, (INT32)toCut.layerCount);
 
 		if (leftCut > 0 && leftCut < (INT32)toCut.layerCount)
 		{
@@ -695,8 +695,8 @@ namespace bs { namespace ct
 	{
 		numAreas = 0;
 
-		INT32 topCut = Math::clamp((INT32)cutWith.baseMipLevel - (INT32)toCut.baseMipLevel, 0, (INT32)toCut.levelCount);
-		INT32 bottomCut = Math::clamp((INT32)(cutWith.baseMipLevel + cutWith.levelCount) - (INT32)toCut.baseMipLevel, 0, (INT32)toCut.levelCount);
+		INT32 topCut = Math::Clamp((INT32)cutWith.baseMipLevel - (INT32)toCut.baseMipLevel, 0, (INT32)toCut.levelCount);
+		INT32 bottomCut = Math::Clamp((INT32)(cutWith.baseMipLevel + cutWith.levelCount) - (INT32)toCut.baseMipLevel, 0, (INT32)toCut.levelCount);
 
 		if (topCut > 0 && topCut < (INT32)toCut.levelCount)
 		{

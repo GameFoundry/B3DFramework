@@ -41,7 +41,7 @@ namespace bs
 
 	template <typename T> DataStream& DataStream::operator>> (T& val)
 	{
-		read(static_cast<void*>(&val), sizeof(T));
+		Read(static_cast<void*>(&val), sizeof(T));
 
 		return *this;
 	}
@@ -52,18 +52,18 @@ namespace bs
 		{
 			// Write BOM
 			UINT8 bom[2] = { 0xFF, 0xFE };
-			write(bom, sizeof(bom));
+			Write(bom, sizeof(bom));
 
-			U16String u16string = UTF8::toUTF16(string);
-			write(u16string.Data(), u16string.length() * sizeof(char16_t));
+			U16String u16string = UTF8::ToUTF16(string);
+			Write(u16string.data(), u16string.length() * sizeof(char16_t));
 		}
 		else
 		{
 			// Write BOM
 			UINT8 bom[3] = { 0xEF, 0xBB, 0xBF };
-			write(bom, sizeof(bom));
+			Write(bom, sizeof(bom));
 
-			write(string.Data(), string.length());
+			Write(string.data(), string.length());
 		}
 	}
 
@@ -73,38 +73,38 @@ namespace bs
 		{
 			// Write BOM
 			UINT8 bom[2] = { 0xFF, 0xFE };
-			write(bom, sizeof(bom));
+			Write(bom, sizeof(bom));
 
-			String u8string = UTF8::fromWide(string);
-			U16String u16string = UTF8::toUTF16(u8string);
-			write(u16string.Data(), u16string.length() * sizeof(char16_t));
+			String u8string = UTF8::FromWide(string);
+			U16String u16string = UTF8::ToUTF16(u8string);
+			Write(u16string.data(), u16string.length() * sizeof(char16_t));
 		}
 		else
 		{
 			// Write BOM
 			UINT8 bom[3] = { 0xEF, 0xBB, 0xBF };
-			write(bom, sizeof(bom));
+			Write(bom, sizeof(bom));
 
-			String u8string = UTF8::fromWide(string);
-			write(u8string.Data(), u8string.length());
+			String u8string = UTF8::FromWide(string);
+			Write(u8string.data(), u8string.length());
 		}
 	}
 
 	String DataStream::GetAsString()
 	{
 		// Ensure read from begin of stream
-		seek(0);
+		Seek(0);
 
 		// Try reading header
 		UINT8 headerBytes[4];
-		size_t numHeaderBytes = read(headerBytes, 4);
+		size_t numHeaderBytes = Read(headerBytes, 4);
 
 		size_t dataOffset = 0;
 		if(numHeaderBytes >= 4)
 		{
-			if (isUTF32LE(headerBytes))
+			if (IsUTF32LE(headerBytes))
 				dataOffset = 4;
-			else if (isUTF32BE(headerBytes))
+			else if (IsUTF32BE(headerBytes))
 			{
 				BS_LOG(Warning, Generic, "UTF-32 big endian decoding not supported");
 				return u8"";
@@ -113,22 +113,22 @@ namespace bs
 
 		if(dataOffset == 0 && numHeaderBytes >= 3)
 		{
-			if (isUTF8(headerBytes))
+			if (IsUTF8(headerBytes))
 				dataOffset = 3;
 		}
 
 		if(dataOffset == 0 && numHeaderBytes >= 2)
 		{
-			if (isUTF16LE(headerBytes))
+			if (IsUTF16LE(headerBytes))
 				dataOffset = 2;
-			else if (isUTF16BE(headerBytes))
+			else if (IsUTF16BE(headerBytes))
 			{
 				BS_LOG(Warning, Generic, "UTF-16 big endian decoding not supported");
 				return u8"";
 			}
 		}
 
-		seek(dataOffset);
+		Seek(dataOffset);
 
 		// Read the entire buffer - ideally in one read, but if the size of the buffer is unknown, do multiple fixed size
 		// reads.
@@ -136,10 +136,10 @@ namespace bs
 		auto tempBuffer = bs_stack_alloc<std::stringstream::char_type>((UINT32)bufSize);
 
 		std::stringstream result;
-		while (!eof())
+		while (!Eof())
 		{
-			size_t numReadBytes = read(tempBuffer, bufSize);
-			result.Write(tempBuffer, numReadBytes);
+			size_t numReadBytes = Read(tempBuffer, bufSize);
+			result.write(tempBuffer, numReadBytes);
 		}
 
 		bs_stack_free(tempBuffer);
@@ -151,18 +151,18 @@ namespace bs
 		default:
 		case 0: // No BOM = assumed UTF-8
 		case 3: // UTF-8
-			return String(string.Data(), string.length());
+			return String(string.data(), string.length());
 		case 2: // UTF-16
 			{
-			UINT32 numElems = (UINT32)string.Length() / 2;
+			UINT32 numElems = (UINT32)string.length() / 2;
 
-			return UTF8::FromUTF16(U16String((char16_t*)string.Data(), numElems));
+			return UTF8::FromUTF16(U16String((char16_t*)string.data(), numElems));
 			}
 		case 4: // UTF-32
 			{
-			UINT32 numElems = (UINT32)string.Length() / 4;
+			UINT32 numElems = (UINT32)string.length() / 4;
 
-			return UTF8::FromUTF32(U32String((char32_t*)string.Data(), numElems));
+			return UTF8::FromUTF32(U32String((char32_t*)string.data(), numElems));
 			}
 		}
 
@@ -173,7 +173,7 @@ namespace bs
 
 	WString DataStream::GetAsWString()
 	{
-		String u8string = getAsString();
+		String u8string = GetAsString();
 
 		return UTF8::ToWide(u8string);
 	}
@@ -187,7 +187,7 @@ namespace bs
 	MemoryDataStream::MemoryDataStream(size_t capacity)
 		: DataStream(READ | WRITE)
 	{
-		realloc(capacity);
+		Realloc(capacity);
 		mCursor = mData;
 		mEnd = mCursor + capacity;
 	}
@@ -204,7 +204,7 @@ namespace bs
 		: DataStream(READ | WRITE)
 	{
 		// Copy data from incoming stream
-		mSize = sourceStream.size();
+		mSize = sourceStream.Size();
 
 		mData = mCursor = static_cast<uint8_t*>(bs_alloc(mSize));
 		mEnd = mData + sourceStream.Read(mData, mSize);
@@ -231,7 +231,7 @@ namespace bs
 
 	MemoryDataStream::~MemoryDataStream()
 	{
-		close();
+		Close();
 	}
 
 	MemoryDataStream& MemoryDataStream::operator= (const MemoryDataStream& other)
@@ -262,7 +262,7 @@ namespace bs
 
 			this->mOwnsMemory = true;
 
-			realloc(other.mSize);
+			Realloc(other.mSize);
 			mEnd = mData + mSize;
 			mCursor = mData + (other.mCursor - other.mData);
 
@@ -313,7 +313,7 @@ namespace bs
 	size_t MemoryDataStream::Write(const void* buf, size_t count)
 	{
 		size_t written = 0;
-		if (isWriteable())
+		if (IsWriteable())
 		{
 			written = count;
 
@@ -322,7 +322,7 @@ namespace bs
 			if(newSize > mSize)
 			{
 				if (mOwnsMemory)
-					realloc(newSize);
+					Realloc(newSize);
 				else
 					written = mSize - numUsedBytes;
 			}
@@ -341,13 +341,13 @@ namespace bs
 
 	size_t DataStream::ReadBits(uint8_t* data, uint32_t count)
 	{
-		uint32_t numBytes = Math::divideAndRoundUp(count, 8U);
+		uint32_t numBytes = Math::DivideAndRoundUp(count, 8U);
 		return Read(data, numBytes) * 8;
 	}
 
 	size_t DataStream::WriteBits(const uint8_t* data, uint32_t count)
 	{
-		uint32_t numBytes = Math::divideAndRoundUp(count, 8U);
+		uint32_t numBytes = Math::DivideAndRoundUp(count, 8U);
 		return Write(data, numBytes) * 8;
 	}
 
@@ -368,8 +368,8 @@ namespace bs
 		if (count <= 1)
 			return;
 
-		UINT32 alignOffset = (count - (tell() & (count - 1))) & (count - 1);
-		skip(alignOffset);
+		UINT32 alignOffset = (count - (Tell() & (count - 1))) & (count - 1);
+		Skip(alignOffset);
 	}
 
 	size_t MemoryDataStream::Tell() const
@@ -442,46 +442,46 @@ namespace bs
 		{
 			mode |= std::ios::out;
 			mFStream = bs_shared_ptr_new<std::fstream>();
-			mFStream->Open(path.ToPlatformString().c_str(), mode);
+			mFStream->open(path.ToPlatformString().c_str(), mode);
 			mInStream = mFStream;
 		}
 		else
 		{
 			mFStreamRO = bs_shared_ptr_new<std::ifstream>();
-			mFStreamRO->Open(path.ToPlatformString().c_str(), mode);
+			mFStreamRO->open(path.ToPlatformString().c_str(), mode);
 			mInStream = mFStreamRO;
 		}
 
 		// Should check ensure open succeeded, in case fail for some reason.
-		if (mInStream->Fail())
+		if (mInStream->fail())
 		{
 			BS_LOG(Warning, FileSystem, "Cannot open file: " + path.ToString());
 			return;
 		}
 
-		mInStream->Seekg(0, std::ios_base::end);
-		mSize = (size_t)mInStream->Tellg();
-		mInStream->Seekg(0, std::ios_base::beg);
+		mInStream->seekg(0, std::ios_base::end);
+		mSize = (size_t)mInStream->tellg();
+		mInStream->seekg(0, std::ios_base::beg);
 	}
 
 	FileDataStream::~FileDataStream()
 	{
-		close();
+		Close();
 	}
 
 	size_t FileDataStream::Read(void* buf, size_t count) const
 	{
-		mInStream->Read(static_cast<char*>(buf), static_cast<std::streamsize>(count));
+		mInStream->read(static_cast<char*>(buf), static_cast<std::streamsize>(count));
 
-		return (size_t)mInStream->Gcount();
+		return (size_t)mInStream->gcount();
 	}
 
 	size_t FileDataStream::Write(const void* buf, size_t count)
 	{
 		size_t written = 0;
-		if (isWriteable() && mFStream)
+		if (IsWriteable() && mFStream)
 		{
-			mFStream->Write(static_cast<const char*>(buf), static_cast<std::streamsize>(count));
+			mFStream->write(static_cast<const char*>(buf), static_cast<std::streamsize>(count));
 			written = count;
 		}
 
@@ -489,42 +489,42 @@ namespace bs
 	}
 	void FileDataStream::Skip(size_t count)
 	{
-		mInStream->Clear(); // Clear fail status in case eof was set
+		mInStream->clear(); // Clear fail status in case eof was set
 
 		if (((mAccess & WRITE) != 0))
-			mFStream->Seekp(static_cast<std::ifstream::pos_type>(count), std::ios::cur);
+			mFStream->seekp(static_cast<std::ifstream::pos_type>(count), std::ios::cur);
 		else
-			mInStream->Seekg(static_cast<std::ifstream::pos_type>(count), std::ios::cur);
+			mInStream->seekg(static_cast<std::ifstream::pos_type>(count), std::ios::cur);
 	}
 
 	void FileDataStream::Seek(size_t pos)
 	{
-		mInStream->Clear(); // Clear fail status in case eof was set
+		mInStream->clear(); // Clear fail status in case eof was set
 
 		if (((mAccess & WRITE) != 0))
-			mFStream->Seekp(static_cast<std::ifstream::pos_type>(pos), std::ios::beg);
+			mFStream->seekp(static_cast<std::ifstream::pos_type>(pos), std::ios::beg);
 		else
-			mInStream->Seekg(static_cast<std::streamoff>(pos), std::ios::beg);
+			mInStream->seekg(static_cast<std::streamoff>(pos), std::ios::beg);
 	}
 
 	size_t FileDataStream::Tell() const
 	{
-		mInStream->Clear(); // Clear fail status in case eof was set
+		mInStream->clear(); // Clear fail status in case eof was set
 
 		if (((mAccess & WRITE) != 0))
-			return (size_t)mFStream->Tellp();
+			return (size_t)mFStream->tellp();
 
-		return (size_t)mInStream->Tellg();
+		return (size_t)mInStream->tellg();
 	}
 
 	bool FileDataStream::Eof() const
 	{
-		return mInStream->Eof();
+		return mInStream->eof();
 	}
 
 	SPtr<DataStream> FileDataStream::Clone(bool copyData) const
 	{
-		return bs_shared_ptr_new<FileDataStream>(mPath, (AccessMode)getAccessMode(), true);
+		return bs_shared_ptr_new<FileDataStream>(mPath, (AccessMode)GetAccessMode(), true);
 	}
 
 	void FileDataStream::Close()
@@ -532,12 +532,12 @@ namespace bs
 		if (mInStream)
 		{
 			if (mFStreamRO)
-				mFStreamRO->Close();
+				mFStreamRO->close();
 
 			if (mFStream)
 			{
-				mFStream->Flush();
-				mFStream->Close();
+				mFStream->flush();
+				mFStream->close();
 			}
 
 			if (mFreeOnClose)

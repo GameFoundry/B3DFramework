@@ -176,7 +176,7 @@ namespace bs { namespace ct
 			Type* resource = new (bs_alloc(sizeof(Type))) Type(this, std::forward<Args>(args)...);
 
 #if BS_DEBUG_MODE
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 			mResources.Insert(resource);
 #endif
 

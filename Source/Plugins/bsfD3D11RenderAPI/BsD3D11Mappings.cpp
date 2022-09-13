@@ -910,8 +910,8 @@ namespace bs { namespace ct
 	{
 		if(PixelUtil::isCompressed(pf))
 		{
-			UINT32 blockWidth = Math::divideAndRoundUp(width, 4U);
-			UINT32 blockHeight = Math::divideAndRoundUp(height, 4U);
+			UINT32 blockWidth = Math::DivideAndRoundUp(width, 4U);
+			UINT32 blockHeight = Math::DivideAndRoundUp(height, 4U);
 
 			// D3D wants the width of one row of cells in bytes
 			if (pf == PF_BC1 || pf == PF_BC4)

@@ -39,7 +39,7 @@ namespace bs
 		shutdownCoreThread();
 
 		{
-			Lock Lock(mSubmitMutex);
+			Lock lock(mSubmitMutex);
 
 			for(auto& queue : mAllQueues)
 				bs_delete(queue);
@@ -67,7 +67,7 @@ namespace bs
 		mCoreThread = ThreadPool::instance().Run("Core", std::bind(&CoreThread::runCoreThread, this));
 #else
 		{
-			Lock Lock(sAppStartedMutex);
+			Lock lock(sAppStartedMutex);
 			sAppStarted = true;
 		}
 
@@ -75,7 +75,7 @@ namespace bs
 #endif
 		
 		// Need to wait to unsure thread ID is correctly set before continuing
-		Lock Lock(mThreadStartedMutex);
+		Lock lock(mThreadStartedMutex);
 
 		while (!mCoreThreadStarted)
 			mCoreThreadStartedCondition.Wait(lock);
@@ -87,7 +87,7 @@ namespace bs
 	{
 		// Wait for the application to reach a point where core thread can be safely started
 		{
-			Lock Lock(sAppStartedMutex);
+			Lock lock(sAppStartedMutex);
 
 			while (!sAppStarted)
 				sAppStartedCondition.Wait(lock);
@@ -105,7 +105,7 @@ namespace bs
 		TaskScheduler::instance().RemoveWorker(); // One less worker because we are reserving one core for this thread
 
 		{
-			Lock Lock(mThreadStartedMutex);
+			Lock lock(mThreadStartedMutex);
 
 			mCoreThreadStarted = true;
 			mCoreThreadId = BS_THREAD_CURRENT_ID;
@@ -118,7 +118,7 @@ namespace bs
 			// Wait until we get some ready commands
 			Queue<QueuedCommand>* commands = nullptr;
 			{
-				Lock Lock(mCommandQueueMutex);
+				Lock lock(mCommandQueueMutex);
 
 				while(mCommandQueue->IsEmpty())
 				{
@@ -147,7 +147,7 @@ namespace bs
 #if !BS_FORCE_SINGLETHREADED_RENDERING
 
 		{
-			Lock Lock(mCommandQueueMutex);
+			Lock lock(mCommandQueueMutex);
 			mCoreThreadShutdown = true;
 		}
 
@@ -171,7 +171,7 @@ namespace bs
 			mPerThreadQueue.current->queue = newQueue;
 			mPerThreadQueue.current->isMain = BS_THREAD_CURRENT_ID == mSimThreadId;
 
-			Lock Lock(mSubmitMutex);
+			Lock lock(mSubmitMutex);
 			mAllQueues.push_back(mPerThreadQueue.current);
 		}
 
@@ -197,7 +197,7 @@ namespace bs
 		{
 			// This lock is needed mainly because of blocking. Without it another submitting thread might flush a command
 			// we want to wait on.
-			Lock Lock(mSubmitMutex);
+			Lock lock(mSubmitMutex);
 
 			// Submit workers first
 			ThreadQueueContainer* mainQueue = nullptr;
@@ -215,7 +215,7 @@ namespace bs
 
 			if(blockUntilComplete)
 			{
-				Lock Lock2(mCommandQueueMutex);
+				Lock lock2(mCommandQueueMutex);
 
 				blockCommandId = mMaxCommandNotifyId++;
 				mCommandQueue->Queue([](){}, true, blockCommandId);
@@ -231,14 +231,14 @@ namespace bs
 
 	void CoreThread::Submit(bool blockUntilComplete)
 	{
-		Lock Lock(mSubmitMutex);
+		Lock lock(mSubmitMutex);
 
 		CommandQueue<CommandQueueSync>& queue = *getQueue();
 		Queue<QueuedCommand>* commands = queue.Flush();
 
 		UINT32 commandId = -1;
 		{
-			Lock Lock2(mCommandQueueMutex);
+			Lock lock2(mCommandQueueMutex);
 
 			if (blockUntilComplete)
 			{
@@ -271,7 +271,7 @@ namespace bs
 			AsyncOp op;
 			UINT32 commandId = -1;
 			{
-				Lock Lock(mCommandQueueMutex);
+				Lock lock(mCommandQueueMutex);
 
 				if (blockUntilComplete)
 				{
@@ -305,7 +305,7 @@ namespace bs
 
 			UINT32 commandId = -1;
 			{
-				Lock Lock(mCommandQueueMutex);
+				Lock lock(mCommandQueueMutex);
 
 				if (blockUntilComplete)
 				{
@@ -344,7 +344,7 @@ namespace bs
 
 		while(true)
 		{
-			Lock Lock(mCommandNotifyMutex);
+			Lock lock(mCommandNotifyMutex);
 
 			// Check if our command id is in the completed list
 			auto iter = mCommandsCompleted.begin();
@@ -365,7 +365,7 @@ namespace bs
 	void CoreThread::CommandCompletedNotify(UINT32 commandId)
 	{
 		{
-			Lock Lock(mCommandNotifyMutex);
+			Lock lock(mCommandNotifyMutex);
 			mCommandsCompleted.push_back(commandId);
 		}
 

@@ -110,8 +110,8 @@ namespace bs { namespace ct
 		else
 			mOutputTextureParam.Set(lightAccumTex);
 
-		UINT32 numTilesX = (UINT32)Math::ceilToInt(width / (float)TILE_SIZE);
-		UINT32 numTilesY = (UINT32)Math::ceilToInt(height / (float)TILE_SIZE);
+		UINT32 numTilesX = (UINT32)Math::CeilToInt(width / (float)TILE_SIZE);
+		UINT32 numTilesY = (UINT32)Math::CeilToInt(height / (float)TILE_SIZE);
 
 		bind();
 		RenderAPI::instance().DispatchCompute(numTilesX, numTilesY);
@@ -200,8 +200,8 @@ namespace bs { namespace ct
 
 		bind();
 
-		UINT32 numGroupsX = Math::divideAndRoundUp(width, NUM_THREADS * TILE_SIZE);
-		UINT32 numGroupsY = Math::divideAndRoundUp(height, NUM_THREADS * TILE_SIZE);
+		UINT32 numGroupsX = Math::DivideAndRoundUp(width, NUM_THREADS * TILE_SIZE);
+		UINT32 numGroupsY = Math::DivideAndRoundUp(height, NUM_THREADS * TILE_SIZE);
 		
 		RenderAPI::instance().DispatchCompute(numGroupsX, numGroupsY);
 	}
@@ -222,7 +222,7 @@ namespace bs { namespace ct
 
 		bind();
 
-		UINT32 numGroupsX = Math::divideAndRoundUp(width, NUM_THREADS * (TILE_SIZE * TILE_SIZE));
+		UINT32 numGroupsX = Math::DivideAndRoundUp(width, NUM_THREADS * (TILE_SIZE * TILE_SIZE));
 		RenderAPI::instance().DispatchCompute(numGroupsX, 1);
 	}
 
@@ -375,8 +375,8 @@ namespace bs { namespace ct
 		else
 			mOutputTextureParam.Set(inputs.sceneColorTex);
 
-		UINT32 numTilesX = (UINT32)Math::ceilToInt(width / (float)TILE_SIZE);
-		UINT32 numTilesY = (UINT32)Math::ceilToInt(height / (float)TILE_SIZE);
+		UINT32 numTilesX = (UINT32)Math::CeilToInt(width / (float)TILE_SIZE);
+		UINT32 numTilesY = (UINT32)Math::CeilToInt(height / (float)TILE_SIZE);
 
 		bind();
 		RenderAPI::instance().DispatchCompute(numTilesX, numTilesY);

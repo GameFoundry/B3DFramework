@@ -94,7 +94,7 @@ namespace bs
 			{
 				for(UINT32 x = 0; x < numProbesX; ++x)
 				{
-					Vector3 position = mVolume.GetMin();
+					Vector3 position = mVolume.GetMinimum();
 					position.x += size.x * (x / (float)numProbesX);
 					position.y += size.y * (y / (float)numProbesY);
 					position.z += size.z * (z / (float)numProbesZ);
@@ -138,7 +138,7 @@ namespace bs
 			UINT32 y = (idx / rowPitch) % numProbesY;
 			UINT32 z = (idx / slicePitch);
 
-			Vector3 position = mVolume.GetMin();
+			Vector3 position = mVolume.GetMinimum();
 			position.x += size.x * (x / (float)(numProbesX - 1));
 			position.y += size.y * (y / (float)(numProbesY - 1));
 			position.z += size.z * (z / (float)(numProbesZ - 1));

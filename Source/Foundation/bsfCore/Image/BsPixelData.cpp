@@ -116,17 +116,17 @@ namespace bs
 		{
 			pixelCoords -= Vector2(0.5f, 0.5f);
 
-			UINT32 x = (UINT32)Math::clamp(Math::floorToInt(pixelCoords.x), 0, maxExtentX);
-			UINT32 y = (UINT32)Math::clamp(Math::floorToInt(pixelCoords.y), 0, maxExtentY);
+			UINT32 x = (UINT32)Math::Clamp(Math::FloorToInt(pixelCoords.x), 0, maxExtentX);
+			UINT32 y = (UINT32)Math::Clamp(Math::FloorToInt(pixelCoords.y), 0, maxExtentY);
 
 			float fracX = pixelCoords.x - x;
 			float fracY = pixelCoords.y - y;
 
-			x = Math::clamp(x, 0U, (UINT32)maxExtentX);
-			y = Math::clamp(y, 0U, (UINT32)maxExtentY);
+			x = Math::Clamp(x, 0U, (UINT32)maxExtentX);
+			y = Math::Clamp(y, 0U, (UINT32)maxExtentY);
 
-			INT32 x1 = Math::clamp(x + 1, 0U, (UINT32)maxExtentX);
-			INT32 y1 = Math::clamp(y + 1, 0U, (UINT32)maxExtentY);
+			INT32 x1 = Math::Clamp(x + 1, 0U, (UINT32)maxExtentX);
+			INT32 y1 = Math::Clamp(y + 1, 0U, (UINT32)maxExtentY);
 
 			Color color = Color::ZERO;
 			color += (1.0f - fracX) * (1.0f - fracY) * getColorAt(x, y);
@@ -138,8 +138,8 @@ namespace bs
 		}
 		else
 		{
-			UINT32 x = (UINT32)Math::clamp(Math::floorToInt(pixelCoords.x), 0, maxExtentX);
-			UINT32 y = (UINT32)Math::clamp(Math::floorToInt(pixelCoords.y), 0, maxExtentY);
+			UINT32 x = (UINT32)Math::Clamp(Math::FloorToInt(pixelCoords.x), 0, maxExtentX);
+			UINT32 y = (UINT32)Math::Clamp(Math::FloorToInt(pixelCoords.y), 0, maxExtentY);
 
 			return GetColorAt(x, y);
 		}

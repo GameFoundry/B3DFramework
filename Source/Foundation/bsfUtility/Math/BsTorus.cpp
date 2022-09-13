@@ -27,7 +27,7 @@ namespace bs
 		float E = d * d - 4 * outerRadius * outerRadius * c;
 
 		float roots[4];
-		UINT32 numRoots = Math::solveQuartic(A, B, C, D, E, roots);
+		UINT32 numRoots = Math::SolveQuartic(A, B, C, D, E, roots);
 
 		if (numRoots > 0)
 		{

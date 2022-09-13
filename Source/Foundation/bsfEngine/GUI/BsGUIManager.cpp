@@ -460,7 +460,7 @@ namespace bs
 
 		if(mDragState == DragState::HeldWithoutDrag)
 		{
-			UINT32 dist = mLastPointerClickPos.ManhattanDist(event.screenPos);
+			UINT32 dist = mLastPointerClickPos.ManhattanDistance(event.screenPos);
 
 			if(dist > DRAG_DISTANCE)
 			{
@@ -594,7 +594,7 @@ namespace bs
 
 			mLastPointerScreenPos = event.screenPos;
 
-			if(Math::abs(event.mouseWheelScrollAmount) > 0.00001f)
+			if(Math::Abs(event.mouseWheelScrollAmount) > 0.00001f)
 			{
 				for(auto& elementInfo : mElementsUnderPointer)
 				{
@@ -1357,7 +1357,7 @@ namespace bs
 		const Matrix4& worldTfrm = widget->GetWorldTfrm();
 
 		Vector4 vecLocalPos = worldTfrm.Inverse().multiplyAffine(Vector4((float)windowPos.x, (float)windowPos.y, 0.0f, 1.0f));
-		Vector2I CurLocalPos(Math::roundToInt(vecLocalPos.x), Math::roundToInt(vecLocalPos.y));
+		Vector2I CurLocalPos(Math::RoundToInt(vecLocalPos.x), Math::RoundToInt(vecLocalPos.y));
 
 		return curLocalPos;
 	}
@@ -1390,7 +1390,7 @@ namespace bs
 			float scaleX = bridgeBounds.width > 0 ? rtProps.width / (float)bridgeBounds.width : 0.0f;
 			float scaleY = bridgeBounds.height > 0 ? rtProps.height / (float)bridgeBounds.height : 0.0f;
 
-			return Vector2I(Math::roundToInt(x * scaleX), Math::roundToInt(y * scaleY));
+			return Vector2I(Math::RoundToInt(x * scaleX), Math::RoundToInt(y * scaleY));
 		}
 
 		return windowPos;

@@ -652,7 +652,7 @@ namespace bs { namespace ct
 		// Map vertices to actual SH coefficient indices, and write GPU buffer with tetrahedron information
 		if ((mNumValidTetrahedra + numValidFaces) > mMaxTetrahedra)
 		{
-			UINT32 newSize = Math::divideAndRoundUp(mNumValidTetrahedra + numValidFaces, 64U) * 64U;
+			UINT32 newSize = Math::DivideAndRoundUp(mNumValidTetrahedra + numValidFaces, 64U) * 64U;
 			resizeTetrahedronBuffer(newSize);
 		}
 
@@ -711,7 +711,7 @@ namespace bs { namespace ct
 		// Write data specific to faces
 		if (numValidFaces > mMaxFaces)
 		{
-			UINT32 newSize = Math::divideAndRoundUp(numValidFaces, 64U) * 64U;
+			UINT32 newSize = Math::DivideAndRoundUp(numValidFaces, 64U) * 64U;
 			resizeTetrahedronFaceBuffer(newSize);
 		}
 
@@ -770,7 +770,7 @@ namespace bs { namespace ct
 
 	void LightProbes::ResizeTetrahedronBuffer(UINT32 count)
 	{
-		static constexpr UINT32 ELEMENT_SIZE = Math::divideAndRoundUp((UINT32)sizeof(TetrahedronDataGPU), 4U);
+		static constexpr UINT32 ELEMENT_SIZE = Math::DivideAndRoundUp((UINT32)sizeof(TetrahedronDataGPU), 4U);
 
 		GPU_BUFFER_DESC desc;
 		desc.type = GBT_STANDARD;
@@ -785,7 +785,7 @@ namespace bs { namespace ct
 
 	void LightProbes::ResizeTetrahedronFaceBuffer(UINT32 count)
 	{
-		static constexpr UINT32 ELEMENT_SIZE = Math::divideAndRoundUp((UINT32)sizeof(TetrahedronFaceDataGPU), 4U);
+		static constexpr UINT32 ELEMENT_SIZE = Math::DivideAndRoundUp((UINT32)sizeof(TetrahedronFaceDataGPU), 4U);
 
 		GPU_BUFFER_DESC desc;
 		desc.type = GBT_STANDARD;

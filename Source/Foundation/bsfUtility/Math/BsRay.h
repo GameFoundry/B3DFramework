@@ -69,7 +69,7 @@ namespace bs
 		 * @param[in]	negativeSide	(optional) Should intersections with the negative side (opposite of normal facing) count.
 		 * @return						Boolean result if intersection happened and distance to intersection point.
 		 */
-		std::pair<bool, float> intersects(const Vector3& a, const Vector3& b, const Vector3& c,
+		std::pair<bool, float> Intersects(const Vector3& a, const Vector3& b, const Vector3& c,
 			const Vector3& normal, bool positiveSide = true, bool negativeSide = true) const;
 
 	protected:

@@ -29,7 +29,7 @@ namespace bs { namespace ct
 
 		const UINT32 count;
 		const UINT32 numTiles = count / TILE_SIZE;
-		const UINT32 numGroups = Math::clamp(numTiles, 1U, MAX_NUM_GROUPS);
+		const UINT32 numGroups = Math::Clamp(numTiles, 1U, MAX_NUM_GROUPS);
 
 		const UINT32 tilesPerGroup = numTiles / numGroups;
 		const UINT32 extraTiles = numTiles % numGroups;

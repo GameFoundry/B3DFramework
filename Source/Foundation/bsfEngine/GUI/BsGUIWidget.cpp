@@ -953,15 +953,15 @@ namespace bs
 
 		if(!mWidgetIsDirty)
 		{
-			if(!Math::approxEquals(mPosition, position, diffEpsilon))
+			if(!Math::ApproxEquals(mPosition, position, diffEpsilon))
 				mWidgetIsDirty = true;
 			else
 			{
-				if(!Math::approxEquals(mRotation, rotation, diffEpsilon))
+				if(!Math::ApproxEquals(mRotation, rotation, diffEpsilon))
 					mWidgetIsDirty = true;
 				else
 				{
-					if(Math::approxEquals(mScale, scale))
+					if(Math::ApproxEquals(mScale, scale))
 						mWidgetIsDirty = true;
 				}
 			}
@@ -1239,7 +1239,7 @@ namespace bs
 		Vector3 VecPos((float)position.x, (float)position.y, 0.0f);
 		vecPos = mTransform.Inverse().multiplyAffine(vecPos);
 
-		Vector2I LocalPos(Math::roundToInt(vecPos.x), Math::roundToInt(vecPos.y));
+		Vector2I LocalPos(Math::RoundToInt(vecPos.x), Math::RoundToInt(vecPos.y));
 		return mBounds.Contains(localPos);
 	}
 

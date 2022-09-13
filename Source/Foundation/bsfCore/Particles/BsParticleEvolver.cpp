@@ -128,10 +128,10 @@ namespace bs
 			}
 
 			float particleT = (particles.initialLifetime[i] - particles.lifetime[i]) / particles.initialLifetime[i];
-			particleT = Math::repeat(mDesc.numCycles * particleT, 1.0f);
+			particleT = Math::Repeat(mDesc.numCycles * particleT, 1.0f);
 
 			const float frame = particleT * (numFrames - 1);
-			particles.frame[i] = frameOffset + Math::clamp(frame, 0.0f, (float)(numFrames - 1));
+			particles.frame[i] = frameOffset + Math::Clamp(frame, 0.0f, (float)(numFrames - 1));
 		}
 	}
 
@@ -579,7 +579,7 @@ namespace bs
 			Vector3 diff = segments[i].end - segments[i].start;
 			const float length = diff.Length();
 
-			if(Math::approxEquals(length, 0.0f))
+			if(Math::ApproxEquals(length, 0.0f))
 				continue;
 
 			Ray ray;
@@ -612,8 +612,8 @@ namespace bs
 		:mDesc(desc)
 	{
 		mDesc.restitution = std::max(mDesc.restitution, 0.0f);
-		mDesc.dampening = Math::clamp01(mDesc.dampening);
-		mDesc.lifetimeLoss = Math::clamp01(mDesc.lifetimeLoss);
+		mDesc.dampening = Math::Clamp01(mDesc.dampening);
+		mDesc.lifetimeLoss = Math::Clamp01(mDesc.lifetimeLoss);
 		mDesc.radius = std::max(mDesc.radius, 0.0f);
 	}
 
@@ -686,7 +686,7 @@ namespace bs
 						const float distToTravelAlongNormal = plane.normal.Dot(velocity);
 
 						// Ignore movement parallel to the plane
-						if (Math::approxEquals(distToTravelAlongNormal, 0.0f))
+						if (Math::ApproxEquals(distToTravelAlongNormal, 0.0f))
 							continue;
 
 						const float distFromBoundary = mDesc.radius - dist;

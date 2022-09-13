@@ -27,7 +27,7 @@ namespace bs
 
 	void Keyboard::Capture()
 	{
-		Lock Lock(LinuxPlatform::eventLock);
+		Lock lock(LinuxPlatform::eventLock);
 
 		if(m->hasInputFocus)
 		{

@@ -157,10 +157,10 @@ namespace bs
 		return outputStream.str();
 	}
 
-	typedef Bool(WINAPI *EnumProcessModulesType)(HANDLE hProcess, HMODULE* lphModule, DWORD cb, LPDWORD lpcbNeeded);
+	typedef bool(WINAPI *EnumProcessModulesType)(HANDLE hProcess, HMODULE* lphModule, DWORD cb, LPDWORD lpcbNeeded);
 	typedef DWORD(WINAPI *GetModuleBaseNameType)(HANDLE hProcess, HMODULE hModule, LPSTR lpBaseName, DWORD nSize);
 	typedef DWORD(WINAPI *GetModuleFileNameExType)(HANDLE hProcess, HMODULE hModule, LPSTR lpFilename, DWORD nSize);
-	typedef Bool(WINAPI *GetModuleInformationType)(HANDLE hProcess, HMODULE hModule, LPMODULEINFO lpmodinfo, DWORD cb);
+	typedef bool(WINAPI *GetModuleInformationType)(HANDLE hProcess, HMODULE hModule, LPMODULEINFO lpmodinfo, DWORD cb);
 
 	static DynLib* gPSAPILib = nullptr;
 
@@ -176,10 +176,10 @@ namespace bs
 			return;
 
 		gPSAPILib = bs_new<DynLib>("PSAPI.dll");
-		gEnumProcessModules = (EnumProcessModulesType)gPSAPILib->GetSymbol("EnumProcessModules");
-		gGetModuleBaseName = (GetModuleBaseNameType)gPSAPILib->GetSymbol("GetModuleFileNameExA");
-		gGetModuleFileNameEx = (GetModuleFileNameExType)gPSAPILib->GetSymbol("GetModuleBaseNameA");
-		gGetModuleInformation = (GetModuleInformationType)gPSAPILib->GetSymbol("GetModuleInformation");
+		gEnumProcessModules = (EnumProcessModulesType)gPSAPILib->getSymbol("EnumProcessModules");
+		gGetModuleBaseName = (GetModuleBaseNameType)gPSAPILib->getSymbol("GetModuleFileNameExA");
+		gGetModuleFileNameEx = (GetModuleFileNameExType)gPSAPILib->getSymbol("GetModuleBaseNameA");
+		gGetModuleInformation = (GetModuleInformationType)gPSAPILib->getSymbol("GetModuleInformation");
 	}
 
 	/**	Unloads the PSAPI.dll if is loaded. */
@@ -415,7 +415,7 @@ namespace bs
 	{
 		MiniDumpParams* params = (MiniDumpParams*)data;
 
-		WString pathString = UTF8::toWide(params->filePath.ToString());
+		WString pathString = UTF8::ToWide(params->filePath.ToString());
 		HANDLE hFile = CreateFileW(pathString.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL,
 			nullptr);
 
@@ -456,7 +456,7 @@ namespace bs
 	{
 		WString simpleErrorMessage = msg
 			+ L"\n\nFor more information check the crash report located at:\n "
-			+ UTF8::toWide(folder.ToString());
+			+ UTF8::ToWide(folder.ToString());
 
 #if BS_IS_BANSHEE3D
 		MessageBoxW(nullptr, simpleErrorMessage.c_str(), L"Banshee fatal error!", MB_OK);
@@ -470,25 +470,25 @@ namespace bs
 	{
 		if(mSettings.onBeforeReportCrash)
 		{
-			if(mSettings.OnBeforeReportCrash(type, description, function, file, line))
+			if(mSettings.onBeforeReportCrash(type, description, function, file, line))
 				return;
 		}
 
 		// Win32 debug methods are not thread safe
-		Lock Lock(m->mutex);
+		Lock lock(m->mutex);
 
 		LogErrorAndStackTrace(type, description, function, file, line);
 
 		if(mSettings.onCrashPrintedToLog)
 		{
-			if(mSettings.OnCrashPrintedToLog())
+			if(mSettings.onCrashPrintedToLog())
 				return;
 		}
 
-		saveCrashLog();
+		SaveCrashLog();
 
-		win32_writeMiniDump(getCrashFolder() + String(sMiniDumpName), nullptr);
-		win32_popupErrorMessageBox(ToWString(sFatalErrorMsg), getCrashFolder());
+		win32_writeMiniDump(GetCrashFolder() + String(sMiniDumpName), nullptr);
+		win32_popupErrorMessageBox(ToWString(sFatalErrorMsg), GetCrashFolder());
 
 		DebugBreak();
 
@@ -499,14 +499,14 @@ namespace bs
 	{
 		if(mSettings.onBeforeWindowsSEHReportCrash)
 		{
-			if(mSettings.OnBeforeWindowsSEHReportCrash(exceptionDataPtr))
+			if(mSettings.onBeforeWindowsSEHReportCrash(exceptionDataPtr))
 				return EXCEPTION_EXECUTE_HANDLER;
 		}
 
 		EXCEPTION_POINTERS* exceptionData = (EXCEPTION_POINTERS*)exceptionDataPtr;
 
 		// Win32 debug methods are not thread safe
-		Lock Lock(m->mutex);
+		Lock lock(m->mutex);
 
 		win32_initPSAPI();
 		win32_loadSymbols();
@@ -516,14 +516,14 @@ namespace bs
 
 		if(mSettings.onCrashPrintedToLog)
 		{
-			if(mSettings.OnCrashPrintedToLog())
+			if(mSettings.onCrashPrintedToLog())
 				return EXCEPTION_EXECUTE_HANDLER;
 		}
 
-		saveCrashLog();
+		SaveCrashLog();
 
-		win32_writeMiniDump(getCrashFolder() + String(sMiniDumpName), exceptionData);
-		win32_popupErrorMessageBox(ToWString(sFatalErrorMsg), getCrashFolder());
+		win32_writeMiniDump(GetCrashFolder() + String(sMiniDumpName), exceptionData);
+		win32_popupErrorMessageBox(ToWString(sFatalErrorMsg), GetCrashFolder());
 
 		DebugBreak();
 

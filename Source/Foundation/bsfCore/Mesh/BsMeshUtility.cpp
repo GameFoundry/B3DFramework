@@ -879,9 +879,9 @@ namespace bs
 			Vector3 src = *(Vector3*)srcPtr;
 
 			PackedNormal& packed = *(PackedNormal*)dstPtr;
-			packed.x = Math::clamp((int)(src.x * 127.5f + 127.5f), 0, 255);
-			packed.y = Math::clamp((int)(src.y * 127.5f + 127.5f), 0, 255);
-			packed.z = Math::clamp((int)(src.z * 127.5f + 127.5f), 0, 255);
+			packed.x = Math::Clamp((int)(src.x * 127.5f + 127.5f), 0, 255);
+			packed.y = Math::Clamp((int)(src.y * 127.5f + 127.5f), 0, 255);
+			packed.z = Math::Clamp((int)(src.z * 127.5f + 127.5f), 0, 255);
 			packed.w = 128;
 
 			srcPtr += inStride;
@@ -898,10 +898,10 @@ namespace bs
 			Vector4 src = *(Vector4*)srcPtr;
 			PackedNormal& packed = *(PackedNormal*)dstPtr;
 
-			packed.x = Math::clamp((int)(src.x * 127.5f + 127.5f), 0, 255);
-			packed.y = Math::clamp((int)(src.y * 127.5f + 127.5f), 0, 255);
-			packed.z = Math::clamp((int)(src.z * 127.5f + 127.5f), 0, 255);
-			packed.w = Math::clamp((int)(src.w * 127.5f + 127.5f), 0, 255);
+			packed.x = Math::Clamp((int)(src.x * 127.5f + 127.5f), 0, 255);
+			packed.y = Math::Clamp((int)(src.y * 127.5f + 127.5f), 0, 255);
+			packed.z = Math::Clamp((int)(src.z * 127.5f + 127.5f), 0, 255);
+			packed.w = Math::Clamp((int)(src.w * 127.5f + 127.5f), 0, 255);
 
 			srcPtr += inStride;
 			dstPtr += outStride;

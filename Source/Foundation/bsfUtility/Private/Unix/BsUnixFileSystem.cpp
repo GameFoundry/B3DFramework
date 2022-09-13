@@ -176,29 +176,29 @@ namespace bs
 		return unix_pathExists(pathStr) && unix_isFile(pathStr);
 	}
 
-	bool FileSystem::IsDirectory(const Path& path)
+	bool FileSystem::IsFolder(const Path& fullPath)
 	{
-		String pathStr = path.ToString();
+		String pathStr = fullPath.ToString();
 		return unix_pathExists(pathStr) && unix_isDirectory(pathStr);
 	}
 
-	void FileSystem::CreateDir(const Path& path)
+	void FileSystem::CreateFolder(const Path& fullPath)
 	{
-		Path parentPath = path;
+		Path parentPath = fullPath;
 		while (!exists(parentPath) && parentPath.GetNumDirectories() > 0)
 		{
 			parentPath = parentPath.GetParent();
 		}
 
-		for (UINT32 i = parentPath.GetNumDirectories(); i < path.getNumDirectories(); i++)
+		for (UINT32 i = parentPath.GetNumDirectories(); i < fullPath.getNumDirectories(); i++)
 		{
-			parentPath.Append(path[i]);
+			parentPath.Append(fullPath[i]);
 			unix_createDirectory(parentPath.ToString());
 		}
 
 		// Last "file" entry is also considered a directory
-		if(!parentPath.Equals(path))
-			unix_createDirectory(path.ToString());
+		if(!parentPath.Equals(fullPath))
+			unix_createDirectory(fullPath.ToString());
 	}
 
 	void FileSystem::GetChildren(const Path& dirPath, Vector<Path>& files, Vector<Path>& directories)

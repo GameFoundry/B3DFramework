@@ -82,14 +82,14 @@ namespace bs
 
 	void GpuProgramManager::AddFactory(const String& language, GpuProgramFactory* factory)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		mFactories[language] = factory;
 	}
 
 	void GpuProgramManager::RemoveFactory(const String& language)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		auto iter = mFactories.find(language);
 		if (iter != mFactories.end())
@@ -107,7 +107,7 @@ namespace bs
 
 	bool GpuProgramManager::IsLanguageSupported(const String& lang)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		auto iter = mFactories.find(lang);
 		return iter != mFactories.end();

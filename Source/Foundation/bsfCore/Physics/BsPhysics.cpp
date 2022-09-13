@@ -16,7 +16,7 @@ namespace bs
 	{
 		assert(groupA < CollisionMapSize && groupB < CollisionMapSize);
 
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 		mCollisionMap[groupA][groupB] = enabled;
 	}
 
@@ -31,7 +31,7 @@ namespace bs
 			Flag3 = 1 << 2
 		};
 
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 		return mCollisionMap[groupA][groupB];
 	}
 

@@ -57,7 +57,7 @@ namespace bs { namespace ct
 			if (size > curBufferSize || curBufferSize == 0)
 			{
 				// Allocate at least one block even if no probes, to avoid issues with null buffers
-				UINT32 bufferSize = std::max(1, Math::ceilToInt(size / (float) REFL_PROBE_BUFFER_INCREMENT)) * REFL_PROBE_BUFFER_INCREMENT;
+				UINT32 bufferSize = std::max(1, Math::CeilToInt(size / (float) REFL_PROBE_BUFFER_INCREMENT)) * REFL_PROBE_BUFFER_INCREMENT;
 
 				GPU_BUFFER_DESC bufferDesc;
 				bufferDesc.type = GBT_STRUCTURED;

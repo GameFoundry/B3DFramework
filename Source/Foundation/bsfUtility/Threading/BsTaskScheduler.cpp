@@ -98,7 +98,7 @@ namespace bs
 
 		// Start shutdown of the main queue worker and wait until it exits
 		{
-			Lock Lock(mReadyMutex);
+			Lock lock(mReadyMutex);
 
 			mShutdown = true;
 		}
@@ -110,7 +110,7 @@ namespace bs
 
 	void TaskScheduler::AddTask(SPtr<Task> task)
 	{
-		Lock Lock(mReadyMutex);
+		Lock lock(mReadyMutex);
 
 		assert(task->mState != 1 && "Task is already executing, it cannot be executed again until it finishes.");
 
@@ -127,7 +127,7 @@ namespace bs
 
 	void TaskScheduler::AddTaskGroup(const SPtr<TaskGroup>& taskGroup)
 	{
-		Lock Lock(mReadyMutex);
+		Lock lock(mReadyMutex);
 
 		for(UINT32 i = 0; i < taskGroup->mCount; i++)
 		{
@@ -154,7 +154,7 @@ namespace bs
 
 	void TaskScheduler::AddWorker()
 	{
-		Lock Lock(mReadyMutex);
+		Lock lock(mReadyMutex);
 
 		mMaxActiveTasks++;
 
@@ -164,7 +164,7 @@ namespace bs
 
 	void TaskScheduler::RemoveWorker()
 	{
-		Lock Lock(mReadyMutex);
+		Lock lock(mReadyMutex);
 
 		if(mMaxActiveTasks > 0)
 			mMaxActiveTasks--;
@@ -174,7 +174,7 @@ namespace bs
 	{
 		while(true)
 		{
-			Lock Lock(mReadyMutex);
+			Lock lock(mReadyMutex);
 
 			while((!mCheckTasks || (UINT32)mActiveTasks.size() >= mMaxActiveTasks) && !mShutdown)
 				mTaskReadyCond.Wait(lock);
@@ -228,7 +228,7 @@ namespace bs
 		task->MTaskWorker();
 
 		{
-			Lock Lock(mReadyMutex);
+			Lock lock(mReadyMutex);
 
 			auto findIter = std::find(mActiveTasks.begin(), mActiveTasks.end(), task);
 			if (findIter != mActiveTasks.end())
@@ -236,7 +236,7 @@ namespace bs
 		}
 
 		{
-			Lock Lock(mCompleteMutex);
+			Lock lock(mCompleteMutex);
 			task->mState.Store(2);
 
 			mTaskCompleteCond.notify_all();
@@ -244,7 +244,7 @@ namespace bs
 
 		// Wake the main scheduler thread in case there are other tasks waiting or this task was someone's dependency
 		{
-			Lock Lock(mReadyMutex);
+			Lock lock(mReadyMutex);
 
 			mCheckTasks = true;
 			mTaskReadyCond.notify_one();
@@ -262,7 +262,7 @@ namespace bs
 		// If we haven't started executing the task yet, just execute it right here
 		SPtr<Task> queuedTask;
 		{
-			Lock Lock(mReadyMutex);
+			Lock lock(mReadyMutex);
 
 			if(!task->HasStarted())
 			{
@@ -286,7 +286,7 @@ namespace bs
 
 		// Otherwise we wait until the task completes
 		{
-			Lock Lock(mCompleteMutex);
+			Lock lock(mCompleteMutex);
 
 			while(!task->IsComplete())
 			{
@@ -299,7 +299,7 @@ namespace bs
 
 	void TaskScheduler::WaitUntilComplete(const TaskGroup* taskGroup)
 	{
-		Lock Lock(mCompleteMutex);
+		Lock lock(mCompleteMutex);
 
 		while (taskGroup->mNumRemainingTasks > 0)
 		{

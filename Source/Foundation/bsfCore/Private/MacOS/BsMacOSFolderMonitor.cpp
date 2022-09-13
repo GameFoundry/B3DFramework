@@ -237,7 +237,7 @@ namespace bs
 			if(pathLength == 0)
 				continue;
 
-			Lock Lock(folderData->mainMutex);
+			Lock lock(folderData->mainMutex);
 
 			// If not monitoring subdirectories, ignore paths that aren't direct descendants of the root path
 			if(!watcher->monitorSubdirectories)
@@ -381,7 +381,7 @@ namespace bs
 
 		// Register and start the monitor
 		{
-			Lock Lock(m->mainMutex);
+			Lock lock(m->mainMutex);
 
 			m->monitorsToStart.push_back(watchInfo);
 			m->monitors.push_back(watchInfo);
@@ -409,7 +409,7 @@ namespace bs
 				stopMonitorAll();
 			else
 			{
-				Lock Lock(m->mainMutex);
+				Lock lock(m->mainMutex);
 				FolderWatchInfo* watchInfo = *findIter;
 
 				m->monitorsToStop.push_back(watchInfo);
@@ -421,7 +421,7 @@ namespace bs
 	void FolderMonitor::StopMonitorAll()
 	{
 		{
-			Lock Lock(m->mainMutex);
+			Lock lock(m->mainMutex);
 
 			// Remove all watches (this will also wake up the thread)
 			for (auto& watchInfo : m->monitors)
@@ -447,7 +447,7 @@ namespace bs
 		{
 			// Start up any newly added monitors
 			{
-				Lock Lock(m->mainMutex);
+				Lock lock(m->mainMutex);
 
 				for(auto& entry : m->monitorsToStart)
 					entry->StartMonitor();
@@ -460,7 +460,7 @@ namespace bs
 
 			// Delete any stopped monitors
 			{
-				Lock Lock(m->mainMutex);
+				Lock lock(m->mainMutex);
 
 				for (auto& entry : m->monitorsToStop)
 					bs_delete(entry);
@@ -474,7 +474,7 @@ namespace bs
 
 			// Check if any created files have completed writing, and handle rename events
 			{
-				Lock Lock(m->mainMutex);
+				Lock lock(m->mainMutex);
 
 				for(auto& monitor : m->monitors)
 				{
@@ -507,7 +507,7 @@ namespace bs
 			// Note: In this case we may also pay a 0.1 second timeout cost, since we don't explicitly wake the run loop.
 			//       Ideally we would also wake the run loop from the main thread so it is able to exit immediately.
 			{
-				Lock Lock(m->mainMutex);
+				Lock lock(m->mainMutex);
 
 				if(m->monitors.empty())
 					break;
@@ -525,7 +525,7 @@ namespace bs
 	void FolderMonitor::_update()
 	{
 		{
-			Lock Lock(m->mainMutex);
+			Lock lock(m->mainMutex);
 
 			std::swap(m->fileActions, m->activeFileActions);
 		}

@@ -66,7 +66,7 @@ namespace bs
 	/** Checks if any of the windows of the current application are active. */
 	bool IsAppActive(Platform::Pimpl* data)
 	{
-		Lock Lock(data->mSync);
+		Lock lock(data->mSync);
 
 		return data->mIsActive;
 	}
@@ -290,21 +290,21 @@ namespace bs
 
 	void Platform::SetCaptionNonClientAreas(const ct::RenderWindow& window, const Vector<Rect2I>& nonClientAreas)
 	{
-		Lock Lock(mData->mSync);
+		Lock lock(mData->mSync);
 
 		mData->mNonClientAreas[&window].moveAreas = nonClientAreas;
 	}
 
 	void Platform::SetResizeNonClientAreas(const ct::RenderWindow& window, const Vector<NonClientResizeArea>& nonClientAreas)
 	{
-		Lock Lock(mData->mSync);
+		Lock lock(mData->mSync);
 
 		mData->mNonClientAreas[&window].resizeAreas = nonClientAreas;
 	}
 
 	void Platform::ResetNonClientAreas(const ct::RenderWindow& window)
 	{
-		Lock Lock(mData->mSync);
+		Lock lock(mData->mSync);
 
 		auto iterFind = mData->mNonClientAreas.find(&window);
 
@@ -332,7 +332,7 @@ namespace bs
 			mData->mDropTargets.dropTargetsPerWindow[window] = win32DropTarget;
 
 			{
-				Lock Lock(mData->mSync);
+				Lock lock(mData->mSync);
 				mData->mDropTargets.dropTargetsToInitialize.push_back(win32DropTarget);
 			}
 		}
@@ -359,7 +359,7 @@ namespace bs
 				mData->mDropTargets.dropTargetsPerWindow.erase(iterFind);
 
 				{
-					Lock Lock(mData->mSync);
+					Lock lock(mData->mSync);
 					mData->mDropTargets.dropTargetsToDestroy.push_back(win32DropTarget);
 				}
 			}
@@ -452,7 +452,7 @@ namespace bs
 
 	void Platform::_startUp()
 	{
-		Lock Lock(mData->mSync);
+		Lock lock(mData->mSync);
 
 		if (timeBeginPeriod(1) == TIMERR_NOCANDO)
 		{
@@ -474,7 +474,7 @@ namespace bs
 	void Platform::_coreUpdate()
 	{
 		{
-			Lock Lock(mData->mSync);
+			Lock lock(mData->mSync);
 			if (mData->mRequiresStartUp)
 			{
 				OleInitialize(nullptr);
@@ -484,7 +484,7 @@ namespace bs
 		}
 
 		{
-			Lock Lock(mData->mSync);
+			Lock lock(mData->mSync);
 			for (auto& dropTargetToDestroy : mData->mDropTargets.dropTargetsToDestroy)
 			{
 				dropTargetToDestroy->UnregisterWithOS();
@@ -495,7 +495,7 @@ namespace bs
 		}
 
 		{
-			Lock Lock(mData->mSync);
+			Lock lock(mData->mSync);
 			for (auto& dropTargetToInit : mData->mDropTargets.dropTargetsToInitialize)
 			{
 				dropTargetToInit->RegisterWithOS();
@@ -507,7 +507,7 @@ namespace bs
 		_messagePump();
 
 		{
-			Lock Lock(mData->mSync);
+			Lock lock(mData->mSync);
 			if (mData->mRequiresShutDown)
 			{
 				OleUninitialize();
@@ -518,7 +518,7 @@ namespace bs
 
 	void Platform::_shutDown()
 	{
-		Lock Lock(mData->mSync);
+		Lock lock(mData->mSync);
 
 		timeEndPeriod(1);
 		mData->mRequiresShutDown = true;
@@ -656,7 +656,7 @@ namespace bs
 			case WA_ACTIVE:
 			case WA_CLICKACTIVE:
 				{
-					Lock Lock(mData->mSync);
+					Lock lock(mData->mSync);
 
 					mData->mIsActive = true;
 				}
@@ -665,7 +665,7 @@ namespace bs
 				break;
 			case WA_INACTIVE:
 				{
-					Lock Lock(mData->mSync);
+					Lock lock(mData->mSync);
 
 					mData->mIsActive = false;
 				}
@@ -826,7 +826,7 @@ namespace bs
 				// to trigger, while the mouse is still in the non-client area of the window.
 				mData->mIsTrackingMouse = false; // TrackMouseEvent ends when this message is received and needs to be re-applied
 
-				Lock Lock(mData->mSync);
+				Lock lock(mData->mSync);
 				win->_notifyWindowEvent(WindowEventType::MouseLeft);
 			}
 			return 0;

@@ -30,7 +30,7 @@ namespace bs
 
 	void NullRenderWindow::SyncProperties()
 	{
-		ScopedSpinLock Lock(getCore()->mLock);
+		ScopedSpinLock lock(getCore()->mLock);
 		mProperties = getCore()->mSyncedProperties;
 	}
 
@@ -64,7 +64,7 @@ namespace bs
 
 		void NullRenderWindow::SyncProperties()
 		{
-			ScopedSpinLock Lock(mLock);
+			ScopedSpinLock lock(mLock);
 			mProperties = mSyncedProperties;
 		}
 

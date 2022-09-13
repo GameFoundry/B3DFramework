@@ -15,7 +15,7 @@ namespace bs
 
 	ConvexVolume::ConvexVolume(const Matrix4& projectionMatrix, bool useNearPlane)
 	{
-		mPlanes.Reserve(6);
+		mPlanes.reserve(6);
 
 		const Matrix4& proj = projectionMatrix;
 
@@ -97,15 +97,15 @@ namespace bs
 	{
 		Vector3 center = box.GetCenter();
 		Vector3 extents = box.GetHalfSize();
-		Vector3 AbsExtents(Math::abs(extents.x), Math::abs(extents.y), Math::abs(extents.z));
+		Vector3 absExtents(Math::Abs(extents.x), Math::Abs(extents.y), Math::Abs(extents.z));
 
 		for (auto& plane : mPlanes)
 		{
 			float dist = center.Dot(plane.normal) - plane.d;
 
-			float effectiveRadius = absExtents.x * Math::abs(plane.normal.x);
-			effectiveRadius += absExtents.y * Math::abs(plane.normal.y);
-			effectiveRadius += absExtents.z * Math::abs(plane.normal.z);
+			float effectiveRadius = absExtents.x * Math::Abs(plane.normal.x);
+			effectiveRadius += absExtents.y * Math::Abs(plane.normal.y);
+			effectiveRadius += absExtents.z * Math::Abs(plane.normal.z);
 
 			if (dist < -effectiveRadius)
 				return false;

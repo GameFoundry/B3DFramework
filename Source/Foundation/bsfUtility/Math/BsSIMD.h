@@ -100,8 +100,8 @@ namespace bs
 			/** Initializes bounds from an Rect2. */
 			Rect2(const bs::Rect2& rect)
 			{
-				center = Vector4(rect.GetCenter().x, rect.getCenter().y, 0.0f, 0.0f);
-				extents = Vector4(rect.GetHalfSize().x, rect.getHalfSize().y, 0.0f, 0.0f);
+				center = Vector4(rect.GetCenter().x, rect.GetCenter().y, 0.0f, 0.0f);
+				extents = Vector4(rect.GetHalfSize().x, rect.GetHalfSize().y, 0.0f, 0.0f);
 			}
 
 			/** Initializes bounds from a vector representing the center and equal extents in all directions. */

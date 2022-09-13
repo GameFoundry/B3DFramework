@@ -172,7 +172,7 @@ namespace bs
 						continue;
 					}
 
-					UINT32 extraWidth = std::min((UINT32)Math::ceilToInt(avgSize), remainingSize);
+					UINT32 extraWidth = std::min((UINT32)Math::CeilToInt(avgSize), remainingSize);
 					UINT32 elementWidth = elementAreas[childIdx].width + extraWidth;
 
 					// Clamp if needed
@@ -233,7 +233,7 @@ namespace bs
 
 					float avgSize = totalRemainingSize * elementScaleWeights[childIdx];
 
-					UINT32 extraWidth = std::min((UINT32)Math::ceilToInt(avgSize), remainingSize);
+					UINT32 extraWidth = std::min((UINT32)Math::CeilToInt(avgSize), remainingSize);
 					UINT32 elementWidth = (UINT32)std::max(0, (INT32)elementAreas[childIdx].width - (INT32)extraWidth);
 
 					// Clamp if needed
@@ -297,7 +297,7 @@ namespace bs
 					}
 
 					float avgSize = totalRemainingSize * elementScaleWeights[childIdx];
-					UINT32 extraWidth = std::min((UINT32)Math::ceilToInt(avgSize), remainingSize);
+					UINT32 extraWidth = std::min((UINT32)Math::CeilToInt(avgSize), remainingSize);
 					UINT32 elementWidth = elementAreas[childIdx].width + extraWidth;
 
 					// Clamp if needed
@@ -368,7 +368,7 @@ namespace bs
 				GUIElement* element = static_cast<GUIElement*>(child);
 
 				UINT32 yPadding = element->_getPadding().top + element->_getPadding().bottom;
-				INT32 yOffset = Math::ceilToInt(((INT32)layoutArea.height - (INT32)(elemHeight + yPadding)) * 0.5f);
+				INT32 yOffset = Math::CeilToInt(((INT32)layoutArea.height - (INT32)(elemHeight + yPadding)) * 0.5f);
 				yOffset = std::max(0, yOffset);
 
 				elementAreas[childIdx].x = layoutArea.x + xOffset;

@@ -123,7 +123,7 @@ namespace bs
 		
 		if(importer->GetAsyncMode() == ImporterAsyncMode::Single)
 		{
-			Lock Lock(mLastTaskMutex);
+			Lock lock(mLastTaskMutex);
 			auto iterFind = mLastQueuedTask.find(importer);
 			if (iterFind != mLastQueuedTask.end())
 			{
@@ -148,7 +148,7 @@ namespace bs
 
 		if(importer->GetAsyncMode() == ImporterAsyncMode::Single)
 		{
-			Lock Lock(mLastTaskMutex);
+			Lock lock(mLastTaskMutex);
 			auto iterFind = mLastQueuedTask.find(importer);
 			if (iterFind != mLastQueuedTask.end())
 			{
@@ -195,7 +195,7 @@ namespace bs
 		const ImporterAsyncMode asyncMode = importer->GetAsyncMode();
 		if(asyncMode == ImporterAsyncMode::Single)
 		{
-			Lock Lock(mLastTaskMutex);
+			Lock lock(mLastTaskMutex);
 
 			// Wait for any existing async tasks to complete
 			while(true)
@@ -280,7 +280,7 @@ namespace bs
 
 			// Clear itself from the task list so we don't unnecessarily keep a reference. But first make sure we are the
 			// last task by comparing the ids.
-			Lock Lock(mLastTaskMutex);
+			Lock lock(mLastTaskMutex);
 			auto iterFind = mLastQueuedTask.find(importer);
 			if(iterFind != mLastQueuedTask.end())
 			{

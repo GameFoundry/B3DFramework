@@ -606,7 +606,7 @@ namespace bs
         }
 
         /// <summary>
-        /// Returns a transpose of the matrix (switched columns and rows).
+        /// Returns a Transpose of the matrix (switched columns and rows).
         /// </summary>
         public static Matrix4 Transpose(Matrix4 mat)
         {

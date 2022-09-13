@@ -46,16 +46,16 @@ namespace bs
 		~AABox() = default;
 
 		/** Gets the corner of the box with minimum values (opposite to maximum corner). */
-		const Vector3& GetMin() const { return mMinimum; }
+		const Vector3& GetMinimum() const { return mMinimum; }
 
 		/** Gets the corner of the box with maximum values (opposite to minimum corner). */
-		const Vector3& GetMax() const { return mMaximum; }
+		const Vector3& GetMaximum() const { return mMaximum; }
 
 		/** Sets the corner of the box with minimum values (opposite to maximum corner). */
-		void SetMin(const Vector3& vec) { mMinimum = vec; }
+		void SetMinimum(const Vector3& vec) { mMinimum = vec; }
 
 		/** Sets the corner of the box with maximum values (opposite to minimum corner). */
-		void SetMax(const Vector3& vec) { mMaximum = vec; }
+		void SetMaximum(const Vector3& vec) { mMaximum = vec; }
 
 		/** Sets the minimum and maximum corners. */
 		void SetExtents(const Vector3& min, const Vector3& max);

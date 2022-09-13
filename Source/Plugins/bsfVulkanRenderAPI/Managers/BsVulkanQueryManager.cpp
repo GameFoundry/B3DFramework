@@ -13,7 +13,7 @@ namespace bs { namespace ct
 	VulkanQueryPool::VulkanQueryPool(VulkanDevice& device)
 		:mDevice(device)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		allocatePool(VK_QUERY_TYPE_TIMESTAMP);
 		allocatePool(VK_QUERY_TYPE_OCCLUSION);
@@ -21,7 +21,7 @@ namespace bs { namespace ct
 
 	VulkanQueryPool::~VulkanQueryPool()
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		for (auto& entry : mTimerQueries)
 		{
@@ -102,7 +102,7 @@ namespace bs { namespace ct
 
 	VulkanQuery* VulkanQueryPool::beginTimerQuery(VulkanCmdBuffer* cb)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		VulkanQuery* query = getQuery(VK_QUERY_TYPE_TIMESTAMP);
 		query->mFree = false;
@@ -119,7 +119,7 @@ namespace bs { namespace ct
 
 	VulkanQuery* VulkanQueryPool::beginOcclusionQuery(VulkanCmdBuffer* cb, bool precise)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		VulkanQuery* query = getQuery(VK_QUERY_TYPE_OCCLUSION);
 		query->mFree = false;
@@ -136,7 +136,7 @@ namespace bs { namespace ct
 
 	void VulkanQueryPool::EndOcclusionQuery(VulkanQuery* query, VulkanCmdBuffer* cb)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		VkCommandBuffer vkCmdBuf = cb->GetHandle();
 		vkCmdEndQuery(vkCmdBuf, query->mPool, query->mQueryIdx);
@@ -144,7 +144,7 @@ namespace bs { namespace ct
 
 	void VulkanQueryPool::ReleaseQuery(VulkanQuery* query)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		query->mFree = true;
 	}

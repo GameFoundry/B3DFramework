@@ -519,7 +519,7 @@ namespace bs
         /// </summary>
         /// <param name="f">Value to take the inverse square root of. Must not be negative or zero.</param>
         /// <returns>Inverse square root of the provided value.</returns>
-        public static float InvSqrt(float f)
+        public static float InverseSqrt(float f)
         {
             return 1.0f/(float) Math.Sqrt(f);
         }

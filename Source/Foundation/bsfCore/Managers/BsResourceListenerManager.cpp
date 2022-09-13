@@ -39,7 +39,7 @@ namespace bs
 	void ResourceListenerManager::RegisterListener(IResourceListener* listener)
 	{
 #if BS_DEBUG_MODE
-		RecursiveLock Lock(mMutex);
+		RecursiveLock lock(mMutex);
 		mActiveListeners.Insert(listener);
 #endif
 	}
@@ -48,13 +48,13 @@ namespace bs
 	{
 #if BS_DEBUG_MODE
 		{
-			RecursiveLock Lock(mMutex);
+			RecursiveLock lock(mMutex);
 			mActiveListeners.erase(listener);
 		}
 #endif
 		
 		{
-			RecursiveLock Lock(mMutex);
+			RecursiveLock lock(mMutex);
 			mDirtyListeners.erase(listener);
 		}
 
@@ -63,7 +63,7 @@ namespace bs
 
 	void ResourceListenerManager::MarkListenerDirty(IResourceListener* listener)
 	{
-		RecursiveLock Lock(mMutex);
+		RecursiveLock lock(mMutex);
 		mDirtyListeners.Insert(listener);
 	}
 
@@ -73,7 +73,7 @@ namespace bs
 		updateListeners();
 
 		{
-			RecursiveLock Lock(mMutex);
+			RecursiveLock lock(mMutex);
 
 			for (auto& entry : mLoadedResources)
 				sendResourceLoaded(entry.second);
@@ -89,7 +89,7 @@ namespace bs
 	void ResourceListenerManager::UpdateListeners()
 	{
 		{
-			RecursiveLock Lock(mMutex);
+			RecursiveLock lock(mMutex);
 
 			for (auto& listener : mDirtyListeners)
 				mTempListenerBuffer.push_back(listener);
@@ -114,7 +114,7 @@ namespace bs
 
 		HResource loadedResource;
 		{
-			RecursiveLock Lock(mMutex);
+			RecursiveLock lock(mMutex);
 
 			const auto iterFind = mLoadedResources.find(resourceUUID);
 			if (iterFind != mLoadedResources.end())
@@ -129,7 +129,7 @@ namespace bs
 
 		HResource modifiedResource;
 		{
-			RecursiveLock Lock(mMutex);
+			RecursiveLock lock(mMutex);
 
 			const auto iterFind = mModifiedResources.find(resourceUUID);
 			if (iterFind != mModifiedResources.end())
@@ -145,14 +145,14 @@ namespace bs
 
 	void ResourceListenerManager::OnResourceLoaded(const HResource& resource)
 	{
-		RecursiveLock Lock(mMutex);
+		RecursiveLock lock(mMutex);
 
 		mLoadedResources[resource.GetUUID()] = resource;
 	}
 
 	void ResourceListenerManager::OnResourceModified(const HResource& resource)
 	{
-		RecursiveLock Lock(mMutex);
+		RecursiveLock lock(mMutex);
 
 		mModifiedResources[resource.GetUUID()] = resource;
 	}

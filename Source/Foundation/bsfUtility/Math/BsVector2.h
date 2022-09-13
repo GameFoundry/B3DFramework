@@ -240,7 +240,7 @@ namespace bs
 		}
 
 		/** Returns the square of the distance to another vector. */
-		float SqrdDistance(const Vector2& rhs) const
+		float SquaredDistance(const Vector2& rhs) const
 		{
 			return (*this - rhs).SquaredLength();
 		}
@@ -258,7 +258,7 @@ namespace bs
 		template<bool SAFE = true>
 		float Normalize(float tolerance = 1e-04f)
 		{
-			float len = length();
+			float len = Length();
 			if (!SAFE || len > (tolerance * tolerance))
 				*this *= 1.0f / len;
 
@@ -326,7 +326,7 @@ namespace bs
 		{
 			float sqrdLen = v.x * v.x + v.y * v.y;
 			if (!SAFE || sqrdLen > tolerance)
-				return v * Math::invSqrt(sqrdLen);
+				return v * Math::InverseSqrt(sqrdLen);
 
 			return v;
 		}
@@ -334,7 +334,7 @@ namespace bs
 		/** Checks are any of the vector components NaN. */
 		bool IsNaN() const
 		{
-			return Math::IsNaN(x) || Math::isNaN(y);
+			return Math::IsNaN(x) || Math::IsNaN(y);
 		}
 
 		/** Returns the minimum of all the vector components as a new vector. */

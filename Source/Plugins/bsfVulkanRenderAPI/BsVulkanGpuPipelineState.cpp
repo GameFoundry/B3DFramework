@@ -95,7 +95,7 @@ namespace bs { namespace ct
 
 	void VulkanGraphicsPipelineState::Initialize()
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		GraphicsPipelineState::initialize();
 
@@ -322,7 +322,7 @@ namespace bs { namespace ct
 		UINT32 deviceIdx, VulkanRenderPass* renderPass, UINT32 readOnlyFlags, DrawOperationType drawOp,
 			const SPtr<VulkanVertexInput>& vertexInput)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		if (mPerDeviceData[deviceIdx].device == nullptr)
 			return nullptr;

@@ -50,13 +50,13 @@ namespace bs
 		/** Construct a matrix from a quaternion. */
 		explicit Matrix3(const Quaternion& rotation)
 		{
-			fromQuaternion(rotation);
+			FromQuaternion(rotation);
 		}
 
 		/** Construct a matrix that performs rotation and scale. */
 		explicit Matrix3(const Quaternion& rotation, const Vector3& scale)
 		{
-			fromQuaternion(rotation);
+			FromQuaternion(rotation);
 
 			for (int row = 0; row < 3; row++)
 			{
@@ -68,13 +68,13 @@ namespace bs
 		/** Construct a matrix from an angle/axis pair. */
 		explicit Matrix3(const Vector3& axis, const Radian& angle)
 		{
-			fromAxisAngle(axis, angle);
+			FromAxisAngle(axis, angle);
 		}
 
 		/** Construct a matrix from 3 orthonormal local axes. */
 		explicit Matrix3(const Vector3& xaxis, const Vector3& yaxis, const Vector3& zaxis)
 		{
-			fromAxes(xaxis, yaxis, zaxis);
+			FromAxes(xaxis, yaxis, zaxis);
 		}
 
 		/**
@@ -84,7 +84,7 @@ namespace bs
 		 */
 		explicit Matrix3(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle)
 		{
-			fromEulerAngles(xAngle, yAngle, zAngle);
+			FromEulerAngles(xAngle, yAngle, zAngle);
 		}
 
 		/**
@@ -94,7 +94,7 @@ namespace bs
 		 */
 		explicit Matrix3(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle, EulerAngleOrder order)
 		{
-			fromEulerAngles(xAngle, yAngle, zAngle, order);
+			FromEulerAngles(xAngle, yAngle, zAngle, order);
 		}
 
 		/** Swaps the contents of this matrix with another. */
@@ -136,8 +136,8 @@ namespace bs
 		/** Transforms the given vector by this matrix and returns the newly transformed vector. */
 		Vector3 Multiply(const Vector3& vec) const;
 
-		/** Returns a transpose of the matrix (switched columns and rows). */
-		Matrix3 transpose () const;
+		/** Returns a Transpose of the matrix (switched columns and rows). */
+		Matrix3 Transpose() const;
 
 		/**
 		 * Calculates an inverse of the matrix if it exists.
@@ -175,7 +175,7 @@ namespace bs
 		 * Decomposes the matrix into various useful values.
 		 *
 		 * @param[out]	matL	Unitary matrix. Columns form orthonormal bases. If your matrix is affine and
-		 * 						doesn't use non-uniform scaling this matrix will be a conjugate transpose of the rotation part of the matrix.
+		 * 						doesn't use non-uniform scaling this matrix will be a conjugate Transpose of the rotation part of the matrix.
 		 * @param[out]	matS	Singular values of the matrix. If your matrix is affine these will be scaling factors of the matrix.
 		 * @param[out]	matR	Unitary matrix. Columns form orthonormal bases. If your matrix is affine and
 		 * 						doesn't use non-uniform scaling this matrix will be the rotation part of the matrix.
@@ -274,14 +274,14 @@ namespace bs
 		friend class Matrix4;
 
 		// Support for eigensolver
-		void tridiagonal (float diag[3], float subDiag[3]);
-		bool QLAlgorithm (float diag[3], float subDiag[3]);
+		void Tridiagonal(float diag[3], float subDiag[3]);
+		bool QLAlgorithm(float diag[3], float subDiag[3]);
 
 		// Support for singular value decomposition
 		static constexpr const float SVD_EPSILON = 1e-04f;;
 		static constexpr const unsigned int SVD_MAX_ITERS = 32;
-		static void bidiagonalize (Matrix3& matA, Matrix3& matL, Matrix3& matR);
-		static void golubKahanStep (Matrix3& matA, Matrix3& matL, Matrix3& matR);
+		static void Bidiagonalize(Matrix3& matA, Matrix3& matL, Matrix3& matR);
+		static void GolubKahanStep(Matrix3& matA, Matrix3& matL, Matrix3& matR);
 
 		float m[3][3];
 	};

@@ -192,11 +192,11 @@ Matrices can be multiplied to combine their transformations.
 Matrix3 combination = b * a;
 ~~~~~~~~~~~~~
 
-Matrices can be transposed (switching rows/columns) by calling @bs::Matrix3::transpose.
+Matrices can be transposed (switching rows/columns) by calling @bs::Matrix3::Transpose.
 
 ~~~~~~~~~~~~~{.cpp}
 Matrix3 mat(Vector3::UNIT_Y, Degree(40));
-Matrix3 transpose = mat.transpose();
+Matrix3 transpose = mat.Transpose();
 ~~~~~~~~~~~~~
 
 Matrices can be inverted by calling @bs::Matrix3::inverse. Not all matrices have an inverse therefore this method returns a boolean which returns true if an inverse was found.
@@ -279,11 +279,11 @@ Matrices can be multiplied to combine their transformations.
 Matrix4 combination = b * a;
 ~~~~~~~~~~~~~
 
-Matrices can be transposed (switching rows/columns) by calling @bs::Matrix4::transpose.
+Matrices can be transposed (switching rows/columns) by calling @bs::Matrix4::Transpose.
 
 ~~~~~~~~~~~~~{.cpp}
 Matrix4 mat(Vector3::UNIT_Y, Degree(40));
-Matrix4 transpose = mat.transpose();
+Matrix4 transpose = mat.Transpose();
 ~~~~~~~~~~~~~
 
 Matrices can be inverted by calling @bs::Matrix4::inverse. Not all matrices have an inverse therefore this method returns a boolean which returns true if an inverse was found.

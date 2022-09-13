@@ -18,7 +18,7 @@ namespace bs
 		float distance = 0.0f;
 
 		// Check if Ray intersects the rectangle
-		auto intersectResult = intersects(ray);
+		auto intersectResult = Intersects(ray);
 		if (intersectResult.first)
 		{
 			t = intersectResult.second;
@@ -46,7 +46,7 @@ namespace bs
 					Vector3 segStart = segCenter - scaledAxes[1 - i];
 					Vector3 segEnd = segCenter + scaledAxes[1 - i];
 
-					LineSegment3 Segment(segStart, segEnd);
+					LineSegment3 segment(segStart, segEnd);
 					auto segResult = segment.GetNearestPoint(ray);
 
 					if (segResult.second < distance)
@@ -65,7 +65,7 @@ namespace bs
 		}
 		else // Rectangle is behind the ray origin, find nearest point to origin
 		{
-			auto nearestPointToOrg = getNearestPoint(org);
+			auto nearestPointToOrg = GetNearestPoint(org);
 
 			nearestPoints[0] = org;
 			nearestPoints[1] = nearestPointToOrg.first;

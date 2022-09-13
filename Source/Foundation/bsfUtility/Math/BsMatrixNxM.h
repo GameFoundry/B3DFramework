@@ -31,7 +31,7 @@ namespace bs
 			memcpy(m, data, N*M * sizeof(float));
 		}
 
-		/** Returns a transpose of the matrix (switched columns and rows). */
+		/** Returns a Transpose of the matrix (switched columns and rows). */
 		MatrixNxM<M, N> Transpose() const
 		{
 			MatrixNxM<M, N> matTranspose;

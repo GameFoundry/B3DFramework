@@ -88,8 +88,8 @@ namespace bs { namespace ct
 	{
 		const TextureProperties& rtProps = target->GetProperties();
 		
-		UINT32 width = std::max(1, Math::ceilToInt(rtProps.GetWidth() * 0.5f));
-		UINT32 height = std::max(1, Math::ceilToInt(rtProps.GetHeight() * 0.5f));
+		UINT32 width = std::max(1, Math::CeilToInt(rtProps.GetWidth() * 0.5f));
+		UINT32 height = std::max(1, Math::CeilToInt(rtProps.GetHeight() * 0.5f));
 
 		return POOLED_RENDER_TEXTURE_DESC::create2D(rtProps.GetFormat(), width, height, TU_RENDERTARGET);
 	}
@@ -288,9 +288,9 @@ namespace bs { namespace ct
 		eyeAdaptationParams[0].x = histogramScaleAndOffset.x;
 		eyeAdaptationParams[0].y = histogramScaleAndOffset.y;
 
-		float histogramPctHigh = Math::clamp01(settings.histogramPctHigh);
+		float histogramPctHigh = Math::Clamp01(settings.histogramPctHigh);
 
-		eyeAdaptationParams[0].z = std::min(Math::clamp01(settings.histogramPctLow), histogramPctHigh);
+		eyeAdaptationParams[0].z = std::min(Math::Clamp01(settings.histogramPctLow), histogramPctHigh);
 		eyeAdaptationParams[0].w = histogramPctHigh;
 
 		eyeAdaptationParams[1].x = std::min(settings.minEyeAdaptation, settings.maxEyeAdaptation);
@@ -299,10 +299,10 @@ namespace bs { namespace ct
 		eyeAdaptationParams[1].z = settings.eyeAdaptationSpeedUp;
 		eyeAdaptationParams[1].w = settings.eyeAdaptationSpeedDown;
 
-		eyeAdaptationParams[2].x = Math::pow(2.0f, exposureScale);
+		eyeAdaptationParams[2].x = Math::Pow(2.0f, exposureScale);
 		eyeAdaptationParams[2].y = frameDelta;
 
-		eyeAdaptationParams[2].z = Math::pow(2.0f, settings.histogramLog2Min);
+		eyeAdaptationParams[2].z = Math::Pow(2.0f, settings.histogramLog2Min);
 		eyeAdaptationParams[2].w = 0.0f; // Unused
 
 		gEyeAdaptationParamDef.gEyeAdaptationParams.Set(paramBuffer, eyeAdaptationParams[0], 0);
@@ -534,7 +534,7 @@ namespace bs { namespace ct
 		const TextureProperties& texProps = sceneColor->GetProperties();
 
 		gTonemappingParamDef.gRawGamma.Set(mParamBuffer, 1.0f / settings.gamma);
-		gTonemappingParamDef.gManualExposureScale.Set(mParamBuffer, Math::pow(2.0f, settings.exposureScale));
+		gTonemappingParamDef.gManualExposureScale.Set(mParamBuffer, Math::Pow(2.0f, settings.exposureScale));
 		gTonemappingParamDef.gTexSize.Set(mParamBuffer, Vector2((float)texProps.getWidth(), (float)texProps.getHeight()));
 		gTonemappingParamDef.gBloomTint.Set(mParamBuffer, settings.bloom.tint);
 		gTonemappingParamDef.gNumSamples.Set(mParamBuffer, texProps.getNumSamples());
@@ -648,7 +648,7 @@ namespace bs { namespace ct
 		BS_RENMAT_PROFILE_BLOCK
 
 		gBloomClipParamDef.gThreshold.Set(mParamBuffer, threshold);
-		gBloomClipParamDef.gManualExposureScale.Set(mParamBuffer, Math::pow(2.0f, settings.exposureScale));
+		gBloomClipParamDef.gManualExposureScale.Set(mParamBuffer, Math::Pow(2.0f, settings.exposureScale));
 
 		// Set parameters
 		mInputTex.Set(input);
@@ -891,8 +891,8 @@ namespace bs { namespace ct
 	UINT32 GaussianBlurMat::calcStdDistribution(float filterRadius, std::array<float, MAX_BLUR_SAMPLES>& weights,
 		std::array<float, MAX_BLUR_SAMPLES>& offsets)
 	{
-		filterRadius = Math::clamp(filterRadius, 0.00001f, (float)(MAX_BLUR_SAMPLES - 1));
-		INT32 intFilterRadius = std::min(Math::ceilToInt(filterRadius), MAX_BLUR_SAMPLES - 1);
+		filterRadius = Math::Clamp(filterRadius, 0.00001f, (float)(MAX_BLUR_SAMPLES - 1));
+		INT32 intFilterRadius = std::min(Math::CeilToInt(filterRadius), MAX_BLUR_SAMPLES - 1);
 
 		// Note: Does not include the scaling factor since we normalize later anyway
 		auto normalDistribution = [](int i, float scale)
@@ -961,7 +961,7 @@ namespace bs { namespace ct
 
 	float GaussianBlurMat::CalcKernelRadius(const SPtr<Texture>& source, float scale, Direction filterDir)
 	{
-		scale = Math::clamp01(scale);
+		scale = Math::Clamp01(scale);
 
 		UINT32 length;
 		if (filterDir == DirHorizontal)
@@ -1242,8 +1242,8 @@ namespace bs { namespace ct
 	{
 		const TextureProperties& rtProps = target->GetProperties();
 
-		UINT32 width = std::max(1U, Math::divideAndRoundUp(rtProps.GetWidth(), 2U));
-		UINT32 height = std::max(1U, Math::divideAndRoundUp(rtProps.GetHeight(), 2U));
+		UINT32 width = std::max(1U, Math::DivideAndRoundUp(rtProps.GetWidth(), 2U));
+		UINT32 height = std::max(1U, Math::DivideAndRoundUp(rtProps.GetHeight(), 2U));
 
 		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width, height, TU_RENDERTARGET);
 	}
@@ -1380,7 +1380,7 @@ namespace bs { namespace ct
 		rapi.SetDrawOperation(DOT_TRIANGLE_LIST);
 
 		bind();
-		const UINT32 numInstances = Math::divideAndRoundUp((UINT32)(tileCount.x * tileCount.y), QUADS_PER_TILE);
+		const UINT32 numInstances = Math::DivideAndRoundUp((UINT32)(tileCount.x * tileCount.y), QUADS_PER_TILE);
 		rapi.DrawIndexed(0, QUADS_PER_TILE * 6, 0, QUADS_PER_TILE * 4, numInstances);
 	}
 
@@ -1418,7 +1418,7 @@ namespace bs { namespace ct
 
 		gDepthOfFieldCommonParamDef.gSensorSize.Set(buffer, sensorSize);
 		gDepthOfFieldCommonParamDef.gImageSize.Set(buffer, imageSize);
-		gDepthOfFieldCommonParamDef.gMaxBokehSize.Set(buffer, Math::clamp01(settings.maxBokehSize) * imageSize);
+		gDepthOfFieldCommonParamDef.gMaxBokehSize.Set(buffer, Math::Clamp01(settings.maxBokehSize) * imageSize);
 	}
 
 	BokehDOFMat* BokehDOFMat::getVariation(bool depthOcclusion)
@@ -1452,7 +1452,7 @@ namespace bs { namespace ct
 
 		const TextureProperties& focusedProps = focused->GetProperties();
 		const TextureProperties& unfocusedProps = unfocused->GetProperties();
-		UINT32 halfHeight = std::max(1U, Math::divideAndRoundUp(focusedProps.GetHeight(), 2U));
+		UINT32 halfHeight = std::max(1U, Math::DivideAndRoundUp(focusedProps.GetHeight(), 2U));
 
 		float uvScale = halfHeight / (float)unfocusedProps.GetHeight();
 		float uvOffset = (halfHeight + BokehDOFMat::NEAR_FAR_PADDING) / (float)unfocusedProps.GetHeight();
@@ -1727,10 +1727,10 @@ namespace bs { namespace ct
 		float viewScale = viewProps.target.viewRect.width / (float)rtProps.width;
 
 		// Ramp up the radius exponentially. c^log2(x) function chosen arbitrarily, as it ramps up the radius in a nice way
-		float scale = pow(DOWNSAMPLE_SCALE, Math::log2(viewScale));
+		float scale = pow(DOWNSAMPLE_SCALE, Math::Log2(viewScale));
 
 		// Determine maximum radius scale (division by 4 because we don't downsample more than quarter-size)
-		float maxScale = pow(DOWNSAMPLE_SCALE, Math::log2(4.0f));
+		float maxScale = pow(DOWNSAMPLE_SCALE, Math::Log2(4.0f));
 
 		// Normalize the scale in [0, 1] range
 		scale /= maxScale;

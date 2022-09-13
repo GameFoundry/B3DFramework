@@ -20,7 +20,7 @@ namespace bs
 		BS_SCRIPT_EXPORT()
 		Random(uint32_t seed = 0)
 		{
-			setSeed(seed);
+			SetSeed(seed);
 		}
 
 		/** Changes the seed of the generator to the specified value. */
@@ -64,7 +64,7 @@ namespace bs
 			const int32_t range = max - min + 1;
 
 			constexpr static float DELTA = 0e-5f;
-			return min + (int32_t)(getUNorm() * ((float)range - DELTA));
+			return min + (int32_t)(GetUNorm() * ((float)range - DELTA));
 		}
 
 		/** Returns a random value in range [0, 1]. */
@@ -72,7 +72,7 @@ namespace bs
 		float GetUNorm() const
 		{
 			// Mask first 23 bits and divide by 2^23-1
-			return Float(get() & 0x007FFFFF) / 8388607.0f;
+			return float(Get() & 0x007FFFFF) / 8388607.0f;
 		}
 		
 		/** Returns a random value in range [-1, 1]. */
@@ -94,9 +94,9 @@ namespace bs
 
 			do
 			{
-				output.x = getSNorm();
-				output.y = getSNorm();
-				output.z = getSNorm();
+				output.x = GetSNorm();
+				output.y = GetSNorm();
+				output.z = GetSNorm();
 				sqrdSize = output.SquaredLength();
 				
 			} while (sqrdSize > 1.0f || sqrdSize < 0.001f);
@@ -116,8 +116,8 @@ namespace bs
 
 			do
 			{
-				output.x = getSNorm();
-				output.y = getSNorm();
+				output.x = GetSNorm();
+				output.y = GetSNorm();
 				sqrdSize = output.SquaredLength();
 				
 			} while (sqrdSize > 1.0f || sqrdSize < 0.001f);
@@ -129,8 +129,8 @@ namespace bs
 		BS_SCRIPT_EXPORT()
 		Vector3 GetPointInSphere() const
 		{
-			const Vector3 dir = getUnitVector();
-			return dir * std::pow(getUNorm(), 1.0f / 3.0f);
+			const Vector3 dir = GetUnitVector();
+			return dir * std::pow(GetUNorm(), 1.0f / 3.0f);
 		}
 
 		/**
@@ -144,16 +144,16 @@ namespace bs
 		{
 			const float minRadius = 1.0f - thickness;
 
-			const Vector3 dir = getUnitVector();
-			return dir * (minRadius + thickness * std::pow(getUNorm(), 1.0f / 3.0f));
+			const Vector3 dir = GetUnitVector();
+			return dir * (minRadius + thickness * std::pow(GetUNorm(), 1.0f / 3.0f));
 		}
 
 		/** Returns a random point inside a unit circle. */
 		BS_SCRIPT_EXPORT()
 		Vector2 GetPointInCircle() const
 		{
-			const Vector2 dir = getUnitVector2D();
-			return dir * std::pow(getUNorm(), 1.0f / 2.0f);
+			const Vector2 dir = GetUnitVector2D();
+			return dir * std::pow(GetUNorm(), 1.0f / 2.0f);
 		}
 
 		/**
@@ -167,16 +167,16 @@ namespace bs
 		{
 			const float minRadius = 1.0f - thickness;
 
-			const Vector2 dir = getUnitVector2D();
-			return dir * (minRadius + thickness * std::pow(getUNorm(), 1.0f / 2.0f));
+			const Vector2 dir = GetUnitVector2D();
+			return dir * (minRadius + thickness * std::pow(GetUNorm(), 1.0f / 2.0f));
 		}
 
 		/** Returns a random point on a unit arc with the specified length (angle). Angle of 360 represents a circle. */
 		BS_SCRIPT_EXPORT()
 		Vector2 GetPointInArc(Degree angle) const
 		{
-			float val = getUNorm() * angle.ValueRadians();
-			return Vector2(Math::cos(val), Math::sin(val));
+			float val = GetUNorm() * angle.ValueRadians();
+			return Vector2(Math::Cos(val), Math::Sin(val));
 		}
 
 		/**
@@ -190,18 +190,18 @@ namespace bs
 		{
 			const float minRadius = 1.0f - thickness;
 
-			const float val = getUNorm() * angle.ValueRadians();
-			const Vector2 Dir(Math::cos(val), Math::sin(val));
+			const float val = GetUNorm() * angle.ValueRadians();
+			const Vector2 dir(Math::Cos(val), Math::Sin(val));
 
-			return dir * (minRadius + thickness * std::pow(getUNorm(), 1.0f / 2.0f));
+			return dir * (minRadius + thickness * std::pow(GetUNorm(), 1.0f / 2.0f));
 		}
 
 		/** Returns a random set of Barycentric coordinates that may be used for generating random points on a triangle. */
 		BS_SCRIPT_EXPORT()
 		Vector3 GetBarycentric() const
 		{
-			float u = getUNorm();
-			float v = getUNorm();
+			float u = GetUNorm();
+			float v = GetUNorm();
 
 			if((u + v) > 1.0f)
 			{

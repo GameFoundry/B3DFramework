@@ -35,7 +35,7 @@ namespace bs { namespace ct
 
 	VulkanVertexInputManager::VulkanVertexInputManager()
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		mNextId = 1;
 		mWarningShown = false;
@@ -44,7 +44,7 @@ namespace bs { namespace ct
 
 	VulkanVertexInputManager::~VulkanVertexInputManager()
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		while (mVertexInputMap.begin() != mVertexInputMap.end())
 		{
@@ -56,7 +56,7 @@ namespace bs { namespace ct
 	SPtr<VulkanVertexInput> VulkanVertexInputManager::getVertexInfo(
 		const SPtr<VertexDeclaration>& vbDecl, const SPtr<VertexDeclaration>& shaderDecl)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		VertexDeclarationKey pair;
 		pair.bufferDeclId = vbDecl->GetId();
@@ -193,7 +193,7 @@ namespace bs { namespace ct
 
 	void VulkanVertexInputManager::RemoveLeastUsed()
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		if (!mWarningShown)
 		{

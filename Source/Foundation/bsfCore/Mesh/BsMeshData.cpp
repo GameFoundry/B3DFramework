@@ -395,7 +395,7 @@ namespace bs
 						radiusSqrd = dist;
 				}
 
-				float radius = Math::sqrt(radiusSqrd);
+				float radius = Math::Sqrt(radiusSqrd);
 
 				bounds = Bounds(AABox(min, max), Sphere(center, radius));
 				break;

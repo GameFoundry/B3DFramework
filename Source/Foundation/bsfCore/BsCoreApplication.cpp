@@ -315,7 +315,7 @@ namespace bs
 		// thread, in which case sim thread needs to wait. Optimal solution would be to get an average
 		// difference between sim/core thread and start the sim thread a bit later so they finish at nearly the same time.
 		{
-			Lock Lock(mFrameRenderingFinishedMutex);
+			Lock lock(mFrameRenderingFinishedMutex);
 
 			while(!mIsFrameRenderingFinished)
 			{
@@ -345,7 +345,7 @@ namespace bs
 
 	void CoreApplication::WaitUntilFrameFinished()
 	{
-		Lock Lock(mFrameRenderingFinishedMutex);
+		Lock lock(mFrameRenderingFinishedMutex);
 
 		while (!mIsFrameRenderingFinished)
 		{
@@ -391,7 +391,7 @@ namespace bs
 
 	void CoreApplication::FrameRenderingFinishedCallback()
 	{
-		Lock Lock(mFrameRenderingFinishedMutex);
+		Lock lock(mFrameRenderingFinishedMutex);
 
 		mIsFrameRenderingFinished = true;
 		mFrameRenderingFinishedCondition.notify_one();

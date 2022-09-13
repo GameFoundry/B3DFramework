@@ -2360,7 +2360,7 @@ namespace bs { namespace ct
 			halfSceneProps.GetFormat()
 		) + 1;
 
-		availableDownsamples = Math::min(MAX_NUM_DOWNSAMPLES, totalDownsampleLevels);
+		availableDownsamples = Math::Min(MAX_NUM_DOWNSAMPLES, totalDownsampleLevels);
 
 		{
 			output[0] = halfSceneColorNode->output;
@@ -2460,8 +2460,8 @@ namespace bs { namespace ct
 		{
 			// Make sure that 1 pixel in HiZ maps to a 2x2 block in source
 			destRect = Rect2(0, 0,
-				Math::ceilToInt(viewProps.target.viewRect.width / 2.0f) / (float)size,
-				Math::ceilToInt(viewProps.target.viewRect.height / 2.0f) / (float)size);
+				Math::CeilToInt(viewProps.target.viewRect.width / 2.0f) / (float)size,
+				Math::CeilToInt(viewProps.target.viewRect.height / 2.0f) / (float)size);
 
 			material->Execute(resolvedSceneDepth->output->texture, 0, srcRect, destRect, rt);
 		}
@@ -2561,8 +2561,8 @@ namespace bs { namespace ct
 		if(numDownsampleLevels > 0)
 		{
 			Vector2I downsampledSize(
-				std::max(1, Math::divideAndRoundUp((INT32)viewProps.target.viewRect.width, 2)),
-				std::max(1, Math::divideAndRoundUp((INT32)viewProps.target.viewRect.height, 2))
+				std::max(1, Math::DivideAndRoundUp((INT32)viewProps.target.viewRect.width, 2)),
+				std::max(1, Math::DivideAndRoundUp((INT32)viewProps.target.viewRect.height, 2))
 			);
 
 			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, downsampledSize.x,
@@ -2576,8 +2576,8 @@ namespace bs { namespace ct
 		if(numDownsampleLevels > 1)
 		{
 			Vector2I downsampledSize(
-				std::max(1, Math::divideAndRoundUp((INT32)viewProps.target.viewRect.width, 4)),
-				std::max(1, Math::divideAndRoundUp((INT32)viewProps.target.viewRect.height, 4))
+				std::max(1, Math::DivideAndRoundUp((INT32)viewProps.target.viewRect.width, 4)),
+				std::max(1, Math::DivideAndRoundUp((INT32)viewProps.target.viewRect.height, 4))
 			);
 
 			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, downsampledSize.x,
@@ -2598,8 +2598,8 @@ namespace bs { namespace ct
 			textures.aoSetup = setupTex1->texture;
 
 			Vector2I downsampledSize(
-				std::max(1, Math::divideAndRoundUp((INT32)viewProps.target.viewRect.width, 4)),
-				std::max(1, Math::divideAndRoundUp((INT32)viewProps.target.viewRect.height, 4))
+				std::max(1, Math::DivideAndRoundUp((INT32)viewProps.target.viewRect.width, 4)),
+				std::max(1, Math::DivideAndRoundUp((INT32)viewProps.target.viewRect.height, 4))
 			);
 
 			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8, downsampledSize.x,
@@ -2621,8 +2621,8 @@ namespace bs { namespace ct
 				textures.aoDownsampled = downAOTex1->texture;
 
 			Vector2I downsampledSize(
-				std::max(1, Math::divideAndRoundUp((INT32)viewProps.target.viewRect.width, 2)),
-				std::max(1, Math::divideAndRoundUp((INT32)viewProps.target.viewRect.height, 2))
+				std::max(1, Math::DivideAndRoundUp((INT32)viewProps.target.viewRect.width, 2)),
+				std::max(1, Math::DivideAndRoundUp((INT32)viewProps.target.viewRect.height, 2))
 			);
 
 			POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::create2D(PF_R8, downsampledSize.x,
@@ -2834,11 +2834,11 @@ namespace bs { namespace ct
 
 		constexpr UINT32 PREFERRED_NUM_DOWNSAMPLE_LEVELS = 6;
 		const UINT32 availableDownsamples = sceneDownsamplesNode->availableDownsamples;
-		const UINT32 numDownsamples = Math::min(availableDownsamples, PREFERRED_NUM_DOWNSAMPLE_LEVELS);
+		const UINT32 numDownsamples = Math::Min(availableDownsamples, PREFERRED_NUM_DOWNSAMPLE_LEVELS);
 		assert(numDownsamples >= 1);
 
 		// Blur & clip the downsampled entries and add them together
-		const UINT32 quality = Math::clamp(settings.bloom.quality, 0U, 3U);
+		const UINT32 quality = Math::Clamp(settings.bloom.quality, 0U, 3U);
 		constexpr UINT32 NUM_STEPS_PER_QUALITY[] = { 3, 4, 5, 6  };
 
 		GaussianBlurMat* filterMat = GaussianBlurMat::getVariation(true);
@@ -2923,7 +2923,7 @@ namespace bs { namespace ct
 		auto* sceneDownsamplesNode = static_cast<RCNodeSceneColorDownsamples*>(inputs.inputNodes[2]);
 
 		const UINT32 availableDownsamples = sceneDownsamplesNode->availableDownsamples;
-		const UINT32 numDownsamples = Math::clamp(settings.screenSpaceLensFlare.downsampleCount, 1U, availableDownsamples);
+		const UINT32 numDownsamples = Math::Clamp(settings.screenSpaceLensFlare.downsampleCount, 1U, availableDownsamples);
 		assert(numDownsamples >= 1);
 
 		SPtr<PooledRenderTexture> downsampledTex = sceneDownsamplesNode->output[numDownsamples - 1];

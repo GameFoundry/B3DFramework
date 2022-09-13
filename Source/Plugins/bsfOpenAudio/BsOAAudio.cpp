@@ -79,7 +79,7 @@ namespace bs
 
 	void OAAudio::SetVolume(float volume)
 	{
-		mVolume = Math::clamp01(volume);
+		mVolume = Math::Clamp01(volume);
 		
 		for (auto& listener : mListeners)
 			listener->Rebuild();
@@ -174,7 +174,7 @@ namespace bs
 
 	void OAAudio::StartStreaming(OAAudioSource* source)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		mStreamingCommandQueue.push_back({ StreamingCommandType::Start, source });
 		mDestroyedSources.erase(source);
@@ -182,7 +182,7 @@ namespace bs
 
 	void OAAudio::StopStreaming(OAAudioSource* source)
 	{
-		Lock Lock(mMutex);
+		Lock lock(mMutex);
 
 		mStreamingCommandQueue.push_back({ StreamingCommandType::Stop, source });
 		mDestroyedSources.Insert(source);
@@ -267,7 +267,7 @@ namespace bs
 	void OAAudio::UpdateStreaming()
 	{
 		{
-			Lock Lock(mMutex);
+			Lock lock(mMutex);
 
 			for(auto& command : mStreamingCommandQueue)
 			{
@@ -292,7 +292,7 @@ namespace bs
 		{
 			// Check if the source got destroyed while streaming
 			{
-				Lock Lock(mMutex);
+				Lock lock(mMutex);
 
 				auto iterFind = mDestroyedSources.find(source);
 				if (iterFind != mDestroyedSources.end())

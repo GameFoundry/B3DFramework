@@ -182,7 +182,7 @@ namespace bs
 	{
 		// Invert the parameters
 		Vector3 invTranslate = -translation;
-		Vector3 InvScale(1 / scale.x, 1 / scale.y, 1 / scale.z);
+		Vector3 invScale(1 / scale.x, 1 / scale.y, 1 / scale.z);
 		Quaternion invRot = rotation.Inverse();
 
 		// Because we're inverting, order is translation, rotation, scale
@@ -205,7 +205,7 @@ namespace bs
 
 	void Matrix4::Decomposition(Vector3& position, Quaternion& rotation, Vector3& scale) const
 	{
-		Matrix3 m3x3 = get3x3();
+		Matrix3 m3x3 = Get3x3();
 
 		Matrix3 matQ;
 		Vector3 vecU;
@@ -241,7 +241,7 @@ namespace bs
 		m[2][3] = trans.z;
 	}
 
-	void Matrix4::makeProjectionOrtho(float left, float right, float top,
+	void Matrix4::MakeProjectionOrtho(float left, float right, float top,
 		float bottom, float near, float far)
 	{
 		// Create a matrix that transforms coordinate to normalized device coordinate in range:
@@ -327,13 +327,13 @@ namespace bs
 		return Matrix4(mat);
 	}
 
-	Matrix4 Matrix4::ProjectionPerspective(const Degree& horzFOV, float aspect, float near, float far, bool positiveZ)
+	Matrix4 Matrix4::CreateProjectionPerspective(const Degree& horzFOV, float aspect, float near, float far, bool positiveZ)
 	{
 		// Note: Duplicate code in Camera, bring it all here eventually
 		static constexpr float INFINITE_FAR_PLANE_ADJUST = 0.00001f;
 
-		Radian ThetaX(horzFOV * 0.5f);
-		float tanThetaX = Math::tan(thetaX);
+		Radian thetaX(horzFOV * 0.5f);
+		float tanThetaX = Math::Tan(thetaX);
 		float tanThetaY = tanThetaX / aspect;
 
 		float half_w = tanThetaX * near;
@@ -376,7 +376,7 @@ namespace bs
 		return mat;
 	}
 
-	Matrix4 Matrix4::ProjectionOrthographic(float left, float right, float top, float bottom, float near, float far)
+	Matrix4 Matrix4::CreateProjectionOrthographic(float left, float right, float top, float bottom, float near, float far)
 	{
 		Matrix4 output;
 		output.MakeProjectionOrtho(left, right, top, bottom, near, far);

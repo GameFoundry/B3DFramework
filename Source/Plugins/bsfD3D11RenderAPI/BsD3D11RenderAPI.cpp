@@ -1336,11 +1336,11 @@ namespace bs { namespace ct
 				// Arrays perform no packing and their elements are always padded and aligned to four component vectors
 				UINT32 size;
 				if(param.type == GPDT_STRUCT)
-					size = Math::divideAndRoundUp(param.elementSize, 16U) * 4;
+					size = Math::DivideAndRoundUp(param.elementSize, 16U) * 4;
 				else
-					size = Math::divideAndRoundUp(typeInfo.size, 16U) * 4;
+					size = Math::DivideAndRoundUp(typeInfo.size, 16U) * 4;
 
-				block.blockSize = Math::divideAndRoundUp(block.blockSize, 4U) * 4;
+				block.blockSize = Math::DivideAndRoundUp(block.blockSize, 4U) * 4;
 
 				param.elementSize = size;
 				param.arrayElementStride = size;
@@ -1362,8 +1362,8 @@ namespace bs { namespace ct
 				if(param.type == GPDT_STRUCT)
 				{
 					// Structs are always aligned and arounded up to 4 component vectors
-					size = Math::divideAndRoundUp(param.elementSize, 16U) * 4;
-					block.blockSize = Math::divideAndRoundUp(block.blockSize, 4U) * 4;
+					size = Math::DivideAndRoundUp(param.elementSize, 16U) * 4;
+					block.blockSize = Math::DivideAndRoundUp(block.blockSize, 4U) * 4;
 				}
 				else
 				{

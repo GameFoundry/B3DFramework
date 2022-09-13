@@ -86,7 +86,7 @@ namespace bs
 				return;
 			}
 
-			Lock Lock(mSyncData->mMutex);
+			Lock lock(mSyncData->mMutex);
 			while (!hasCompleted())
 				mSyncData->mCondition.Wait(lock);
 		}
