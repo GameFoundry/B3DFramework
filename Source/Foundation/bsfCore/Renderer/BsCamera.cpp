@@ -28,21 +28,21 @@ namespace bs
 	void CameraBase::setFlags(CameraFlags flags)
 	{
 		mCameraFlags = flags;
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void CameraBase::setHorzFOV(const Radian& fov)
 	{
 		mHorzFOV = fov;
 		invalidateFrustum();
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void CameraBase::setFarClipDistance(float farPlane)
 	{
 		mFarDist = farPlane;
 		invalidateFrustum();
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void CameraBase::setNearClipDistance(float nearPlane)
@@ -55,7 +55,7 @@ namespace bs
 
 		mNearDist = nearPlane;
 		invalidateFrustum();
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	const Matrix4& CameraBase::getProjectionMatrix() const
@@ -338,7 +338,7 @@ namespace bs
 	{
 		mAspect = r;
 		invalidateFrustum();
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	const AABox& CameraBase::getBoundingBox() const
@@ -352,7 +352,7 @@ namespace bs
 	{
 		mProjType = pt;
 		invalidateFrustum();
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	ProjectionType CameraBase::getProjectionType() const
@@ -369,7 +369,7 @@ namespace bs
 			mViewMatrixInv = mViewMatrix.inverseAffine();
 		}
 
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void CameraBase::setCustomProjectionMatrix(bool enable, const Matrix4& projMatrix)
@@ -380,7 +380,7 @@ namespace bs
 			mProjMatrix = projMatrix;
 
 		invalidateFrustum();
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void CameraBase::setOrthoWindow(float w, float h)
@@ -389,7 +389,7 @@ namespace bs
 		mAspect = w / h;
 
 		invalidateFrustum();
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void CameraBase::setOrthoWindowHeight(float h)
@@ -397,7 +397,7 @@ namespace bs
 		mOrthoHeight = h;
 
 		invalidateFrustum();
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void CameraBase::setOrthoWindowWidth(float w)
@@ -405,7 +405,7 @@ namespace bs
 		mOrthoHeight = w / mAspect;
 
 		invalidateFrustum();
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	float CameraBase::getOrthoWindowHeight() const
@@ -427,7 +427,7 @@ namespace bs
 		mBottom = bottom;
 
 		invalidateFrustum();
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void CameraBase::resetFrustumExtents()
@@ -435,7 +435,7 @@ namespace bs
 		mFrustumExtentsManuallySet = false;
 
 		invalidateFrustum();
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void CameraBase::getFrustumExtents(float& outleft, float& outright, float& outtop, float& outbottom) const
@@ -700,7 +700,7 @@ namespace bs
 	{
 		Camera* handler = new (bs_alloc<Camera>()) Camera();
 		SPtr<Camera> handlerPtr = bs_core_ptr<Camera>(handler);
-		handlerPtr->_setThisPtr(handlerPtr);
+		handlerPtr->SetThisPtrInternal(handlerPtr);
 		handlerPtr->initialize();
 
 		return handlerPtr;
@@ -710,7 +710,7 @@ namespace bs
 	{
 		Camera* handler = new (bs_alloc<Camera>()) Camera();
 		SPtr<Camera> handlerPtr = bs_core_ptr<Camera>(handler);
-		handlerPtr->_setThisPtr(handlerPtr);
+		handlerPtr->SetThisPtrInternal(handlerPtr);
 
 		return handlerPtr;
 	}
@@ -719,7 +719,7 @@ namespace bs
 	{
 		ct::Camera* handler = new (bs_alloc<ct::Camera>()) ct::Camera(mViewport->getCore());
 		SPtr<ct::Camera> handlerPtr = bs_shared_ptr<ct::Camera>(handler);
-		handlerPtr->_setThisPtr(handlerPtr);
+		handlerPtr->SetThisPtrInternal(handlerPtr);
 
 		return handlerPtr;
 	}
@@ -730,13 +730,13 @@ namespace bs
 
 		CoreObject::initialize();
 
-		gSceneManager()._registerCamera(std::static_pointer_cast<Camera>(getThisPtr()));
+		gSceneManager().RegisterCameraInternal(std::static_pointer_cast<Camera>(getThisPtr()));
 	}
 
 	void Camera::destroy()
 	{
 		if(isInitialized())
-			gSceneManager()._unregisterCamera(std::static_pointer_cast<Camera>(getThisPtr()));
+			gSceneManager().UnregisterCameraInternal(std::static_pointer_cast<Camera>(getThisPtr()));
 
 		CoreObject::destroy();
 	}
@@ -744,7 +744,7 @@ namespace bs
 	void Camera::setMain(bool main)
 	{
 		mMain = main;
-		gSceneManager()._notifyMainCameraStateChanged(std::static_pointer_cast<Camera>(getThisPtr()));
+		gSceneManager().NotifyMainCameraStateChangedInternal(std::static_pointer_cast<Camera>(getThisPtr()));
 	}
 
 	Rect2I Camera::getViewportRect() const
@@ -787,7 +787,7 @@ namespace bs
 		dependencies.push_back(mViewport.get());
 	}
 
-	void Camera::_markCoreDirty(ActorDirtyFlag flag)
+	void Camera::MarkCoreDirtyInternal(ActorDirtyFlag flag)
 	{
 		markCoreDirty((UINT32)flag);
 	}

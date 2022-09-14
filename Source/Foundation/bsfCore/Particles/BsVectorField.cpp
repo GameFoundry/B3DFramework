@@ -60,7 +60,7 @@ namespace bs
 			}
 		}
 
-		mTexture = Texture::_createPtr(pixelData);
+		mTexture = Texture::CreatePtrInternal(pixelData);
 	}
 
 	SPtr<ct::CoreObject> VectorField::createCore() const
@@ -68,7 +68,7 @@ namespace bs
 		ct::VectorField* vectorField = new (bs_alloc<ct::VectorField>()) ct::VectorField(mDesc, mTexture->getCore());
 
 		SPtr<ct::VectorField> vectorFieldPtr = bs_shared_ptr<ct::VectorField>(vectorField);
-		vectorFieldPtr->_setThisPtr(vectorFieldPtr);
+		vectorFieldPtr->SetThisPtrInternal(vectorFieldPtr);
 
 		return vectorFieldPtr;
 	}
@@ -97,28 +97,28 @@ namespace bs
 	/************************************************************************/
 	HVectorField VectorField::create(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values)
 	{
-		SPtr<VectorField> vectorFieldPtr = _createPtr(desc, values);
+		SPtr<VectorField> vectorFieldPtr = CreatePtrInternal(desc, values);
 
-		return static_resource_cast<VectorField>(gResources()._createResourceHandle(vectorFieldPtr));
+		return static_resource_cast<VectorField>(gResources().CreateResourceHandleInternal(vectorFieldPtr));
 	}
 
-	SPtr<VectorField> VectorField::_createPtr(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values)
+	SPtr<VectorField> VectorField::CreatePtrInternal(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values)
 	{
 		auto* vectorField = new (bs_alloc<VectorField>()) VectorField(desc, values);
 
 		SPtr<VectorField> vectorFieldPtr = bs_shared_ptr<VectorField>(vectorField);
-		vectorFieldPtr->_setThisPtr(vectorFieldPtr);
+		vectorFieldPtr->SetThisPtrInternal(vectorFieldPtr);
 		vectorFieldPtr->initialize();
 
 		return vectorFieldPtr;
 	}
 
-	SPtr<VectorField> VectorField::_createEmpty()
+	SPtr<VectorField> VectorField::CreateEmptyInternal()
 	{
 		auto* vectorField = new (bs_alloc<VectorField>()) VectorField();
 
 		SPtr<VectorField> vectorFieldPtr = bs_shared_ptr<VectorField>(vectorField);
-		vectorFieldPtr->_setThisPtr(vectorFieldPtr);
+		vectorFieldPtr->SetThisPtrInternal(vectorFieldPtr);
 
 		return vectorFieldPtr;
 	}
@@ -262,7 +262,7 @@ namespace bs
 		}
 
 		const String fileName = filePath.getFilename(false);
-		SPtr<VectorField> vectorField = VectorField::_createPtr(desc, values);
+		SPtr<VectorField> vectorField = VectorField::CreatePtrInternal(desc, values);
 		vectorField->setName(fileName);
 
 		return vectorField;

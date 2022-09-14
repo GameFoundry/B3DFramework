@@ -13,7 +13,7 @@ namespace bs
 	{
 		for(auto& button : mButtons)
 		{
-			button->_setToggleGroup(nullptr);
+			button->SetToggleGroupInternal(nullptr);
 		}
 	}
 
@@ -22,26 +22,26 @@ namespace bs
 		mThis = sharedPtr;
 	}
 
-	void GUIToggleGroup::_add(GUIToggle* toggle)
+	void GUIToggleGroup::AddInternal(GUIToggle* toggle)
 	{
 		auto iterFind = std::find(begin(mButtons), end(mButtons), toggle);
 		if(iterFind != end(mButtons))
 			return;
 
 		mButtons.push_back(toggle);
-		toggle->_setToggleGroup(mThis.lock());
+		toggle->SetToggleGroupInternal(mThis.lock());
 	}
 
-	void GUIToggleGroup::_remove(GUIToggle* toggle)
+	void GUIToggleGroup::RemoveInternal(GUIToggle* toggle)
 	{
-		auto sharedPtr = mThis.lock(); // Make sure we keep a reference because calling _setToggleGroup(nullptr)
+		auto sharedPtr = mThis.lock(); // Make sure we keep a reference because calling SetToggleGroupInternal(nullptr)
 		                               // may otherwise clear the last reference and cause us to destruct
 
 		auto iterFind = std::find(begin(mButtons), end(mButtons), toggle);
 		if(iterFind == end(mButtons))
 			return;
 
-		(*iterFind)->_setToggleGroup(nullptr);
+		(*iterFind)->SetToggleGroupInternal(nullptr);
 		mButtons.erase(iterFind);
 	}
 }

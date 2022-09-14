@@ -233,7 +233,7 @@ namespace bs { namespace ct
 		rapi.drawIndexed(subMesh.indexOffset + mesh->getIndexOffset(), indexCount, mesh->getVertexOffset(),
 			vertexData->vertexCount, numInstances);
 
-		mesh->_notifyUsedOnGPU();
+		mesh->NotifyUsedOnGPUInternal();
 	}
 
 	void RendererUtility::drawMorph(const SPtr<MeshBase>& mesh, const SubMesh& subMesh,
@@ -277,7 +277,7 @@ namespace bs { namespace ct
 		rapi.drawIndexed(subMesh.indexOffset + mesh->getIndexOffset(), indexCount, mesh->getVertexOffset(),
 			vertexData->vertexCount, 1);
 
-		mesh->_notifyUsedOnGPU();
+		mesh->NotifyUsedOnGPUInternal();
 	}
 
 	void RendererUtility::blit(const SPtr<Texture>& texture, const Rect2I& area, bool flipUV, bool isDepth, bool isFiltered)

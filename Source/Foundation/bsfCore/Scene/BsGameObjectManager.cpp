@@ -131,28 +131,28 @@ namespace bs
 				const auto findIterObj = mDeserializedObjects.find(instanceId);
 
 				if (findIterObj != mDeserializedObjects.end())
-					entry.handle._resolve(findIterObj->second);
+					entry.handle.ResolveInternal(findIterObj->second);
 				else
 				{
 					if ((mOptions & GODM_KeepMissing) == 0)
-						entry.handle._resolve(nullptr);
+						entry.handle.ResolveInternal(nullptr);
 				}
 			}
 			else if (!isInternalReference && (mOptions & GODM_RestoreExternal) != 0)
 			{
 				HGameObject obj;
 				if(GameObjectManager::instance().tryGetObject(instanceId, obj))
-					entry.handle._resolve(obj);
+					entry.handle.ResolveInternal(obj);
 				else
 				{
 					if ((mOptions & GODM_KeepMissing) == 0)
-						entry.handle._resolve(nullptr);
+						entry.handle.ResolveInternal(nullptr);
 				}
 			}
 			else
 			{
 				if ((mOptions & GODM_KeepMissing) == 0)
-					entry.handle._resolve(nullptr);
+					entry.handle.ResolveInternal(nullptr);
 			}
 		}
 
@@ -218,7 +218,7 @@ namespace bs
 			SPtr<GameObject> ptr = object.getInternalPtr();
 
 			object.mData = iterFind->second;
-			object._setHandleData(ptr);
+			object.SetHandleDataInternal(ptr);
 		}
 
 		const UINT64 newId = object->getInstanceId();

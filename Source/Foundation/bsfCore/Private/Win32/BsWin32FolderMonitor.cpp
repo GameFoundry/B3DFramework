@@ -613,7 +613,7 @@ namespace bs
 		}
 	}
 
-	void FolderMonitor::_update()
+	void FolderMonitor::UpdateInternal()
 	{
 		{
 			Lock lock(m->mMainMutex);

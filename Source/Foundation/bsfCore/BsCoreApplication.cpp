@@ -137,7 +137,7 @@ namespace bs
 		ShaderManager::shutDown();
 
 		MemStack::endThread();
-		Platform::_shutDown();
+		Platform::ShutDownInternal();
 
 		CrashHandler::shutDown();
 	}
@@ -146,7 +146,7 @@ namespace bs
 	{
 		UINT32 numWorkerThreads = BS_THREAD_HARDWARE_CONCURRENCY - 1; // Number of cores while excluding current thread.
 
-		Platform::_startUp();
+		Platform::StartUpInternal();
 		MemStack::beginThread();
 
 		ShaderManager::startUp(getShaderIncludeHandler());
@@ -196,7 +196,7 @@ namespace bs
 
 		// Built-in importers
 		FGAImporter* fgaImporter = bs_new<FGAImporter>();
-		Importer::instance()._registerAssetImporter(fgaImporter);
+		Importer::instance().RegisterAssetImporterInternal(fgaImporter);
 	}
 
 	void CoreApplication::runMainLoop()
@@ -253,38 +253,38 @@ namespace bs
 	{
 		gProfilerCPU().beginThread("Sim");
 
-		Platform::_update();
-		DeferredCallManager::instance()._update();
-		gTime()._update();
-		gInput()._update();
+		Platform::UpdateInternal();
+		DeferredCallManager::instance().UpdateInternal();
+		gTime().UpdateInternal();
+		gInput().UpdateInternal();
 		// RenderWindowManager::update needs to happen after Input::update and before Input::_triggerCallbacks,
 		// so that all input is properly captured in case there is a focus change, and so that
 		// focus change is registered before input events are sent out (mouse press can result in code
 		// checking if a window is in focus, so it has to be up to date)
-		RenderWindowManager::instance()._update();
-		gInput()._triggerCallbacks();
-		gDebug()._triggerCallbacks();
+		RenderWindowManager::instance().UpdateInternal();
+		gInput().TriggerCallbacksInternal();
+		gDebug().TriggerCallbacksInternal();
 
 		preUpdate();
 
 		// Trigger fixed updates if required
 		{
 			UINT64 step;
-			const UINT32 numIterations = gTime()._getFixedUpdateStep(step);
+			const UINT32 numIterations = gTime().GetFixedUpdateStepInternal(step);
 
 			const float stepSeconds = step / 1000000.0f;
 			for (UINT32 i = 0; i < numIterations; i++)
 			{
 				fixedUpdate();
-				PROFILE_CALL(gSceneManager()._fixedUpdate(), "Scene fixed update");
+				PROFILE_CALL(gSceneManager().FixedUpdateInternal(), "Scene fixed update");
 				PROFILE_CALL(gPhysics().fixedUpdate(stepSeconds), "Physics simulation");
 
-				gTime()._advanceFixedUpdate(step);
+				gTime().AdvanceFixedUpdateInternal(step);
 			}
 		}
 
-		PROFILE_CALL(gSceneManager()._update(), "Scene update");
-		gAudio()._update();
+		PROFILE_CALL(gSceneManager().UpdateInternal(), "Scene update");
+		gAudio().UpdateInternal();
 		gPhysics().update();
 
 		// Update plugins
@@ -307,7 +307,7 @@ namespace bs
 		// a chance to respond to the callback).
 		RendererManager::instance().getActive()->update();
 
-		gSceneManager()._updateCoreObjectTransforms();
+		gSceneManager().UpdateCoreObjectTransformsInternal();
 		PROFILE_CALL(RendererManager::instance().getActive()->renderAll(perFrameData), "Render");
 
 		// Core and sim thread run in lockstep. This will result in a larger input latency than if I was
@@ -328,19 +328,19 @@ namespace bs
 		}
 
 		gCoreThread().queueCommand(std::bind(&CoreApplication::beginCoreProfiling, this), CTQF_InternalQueue);
-		gCoreThread().queueCommand(&Platform::_coreUpdate, CTQF_InternalQueue);
-		gCoreThread().queueCommand(std::bind(&ct::RenderWindowManager::_update, ct::RenderWindowManager::instancePtr()), CTQF_InternalQueue);
+		gCoreThread().queueCommand(&Platform::CoreUpdateInternal, CTQF_InternalQueue);
+		gCoreThread().queueCommand(std::bind(&ct::RenderWindowManager::UpdateInternal, ct::RenderWindowManager::instancePtr()), CTQF_InternalQueue);
 
 		gCoreThread().update();
 		gCoreThread().submitAll();
 
 		gCoreThread().queueCommand(std::bind(&CoreApplication::frameRenderingFinishedCallback, this), CTQF_InternalQueue);
 
-		gCoreThread().queueCommand(std::bind(&ct::QueryManager::_update, ct::QueryManager::instancePtr()), CTQF_InternalQueue);
+		gCoreThread().queueCommand(std::bind(&ct::QueryManager::UpdateInternal, ct::QueryManager::instancePtr()), CTQF_InternalQueue);
 		gCoreThread().queueCommand(std::bind(&CoreApplication::endCoreProfiling, this), CTQF_InternalQueue);
 
 		gProfilerCPU().endThread();
-		gProfiler()._update();
+		gProfiler().UpdateInternal();
 	}
 
 	void CoreApplication::waitUntilFrameFinished()
@@ -411,11 +411,11 @@ namespace bs
 
 	void CoreApplication::endCoreProfiling()
 	{
-		ProfilerGPU::instance()._update();
+		ProfilerGPU::instance().UpdateInternal();
 
 #if !BS_FORCE_SINGLETHREADED_RENDERING
 		gProfilerCPU().endThread();
-		gProfiler()._updateCore();
+		gProfiler().UpdateCoreInternal();
 #endif
 	}
 

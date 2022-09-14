@@ -59,7 +59,7 @@ namespace bs { namespace ct
 		for(UINT32 i = 0; i < gpuInfo.numGPUs; i++)
 			gpuInfo.names[i] = mDriverList->item(i)->getDriverName();
 
-		PlatformUtility::_setGPUInfo(gpuInfo);
+		PlatformUtility::SetGPUInfoInternal(gpuInfo);
 
 		IDXGIAdapter* selectedAdapter = mActiveD3DDriver->getDeviceAdapter();
 
@@ -1084,7 +1084,7 @@ namespace bs { namespace ct
 		if (mActiveRenderTarget == nullptr || mActiveRenderTargetModified)
 			return;
 
-		mActiveRenderTarget->_tickUpdateCount();
+		mActiveRenderTarget->TickUpdateCountInternal();
 		mActiveRenderTargetModified = true;
 	}
 

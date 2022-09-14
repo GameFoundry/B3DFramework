@@ -565,7 +565,7 @@ namespace bs
 			groupBounds.merge(segments[i].end);
 		}
 
-		Vector<Collider*> hitColliders = physicsScene._boxOverlap(groupBounds, Quaternion::IDENTITY, layer);
+		Vector<Collider*> hitColliders = physicsScene.BoxOverlapInternal(groupBounds, Quaternion::IDENTITY, layer);
 		if(hitColliders.empty())
 			return 0;
 

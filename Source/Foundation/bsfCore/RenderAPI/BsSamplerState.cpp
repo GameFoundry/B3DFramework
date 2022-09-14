@@ -57,7 +57,7 @@ namespace bs
 
 	SPtr<ct::CoreObject> SamplerState::createCore() const
 	{
-		return ct::RenderStateManager::instance()._createSamplerState(mProperties.mData);
+		return ct::RenderStateManager::instance().CreateSamplerStateInternal(mProperties.mData);
 	}
 
 	SPtr<SamplerState> SamplerState::create(const SAMPLER_STATE_DESC& desc)

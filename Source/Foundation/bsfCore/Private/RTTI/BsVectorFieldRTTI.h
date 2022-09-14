@@ -39,7 +39,7 @@ namespace bs
 
 		SPtr<IReflectable> newRTTIObject() override
 		{
-			return VectorField::_createEmpty();
+			return VectorField::CreateEmptyInternal();
 		}
 
 	protected:

@@ -38,7 +38,7 @@ namespace bs
 
 		const GUIWidget* widget = nullptr;
 		if (mElement != nullptr)
-			widget = mElement->_getParentWidget();
+			widget = mElement->GetParentWidgetInternal();
 
 		UINT32 idx = 0;
 		for(auto& sprite : mSprites)
@@ -61,15 +61,15 @@ namespace bs
 	Rect2I GUIInputSelection::getSelectionSpriteClipRect(UINT32 spriteIdx, const Rect2I& parentClipRect) const
 	{
 		Vector2I selectionOffset(mSelectionRects[spriteIdx].x, mSelectionRects[spriteIdx].y);
-		Vector2I clipOffset = selectionOffset + mElement->_getTextInputOffset();
+		Vector2I clipOffset = selectionOffset + mElement->GetTextInputOffsetInternal();
 
 		Rect2I clipRect(-clipOffset.x, -clipOffset.y, mTextDesc.width, mTextDesc.height);
 
 		Rect2I localParentCliprect = parentClipRect;
 
 		// Move parent rect to our space
-		localParentCliprect.x += mElement->_getTextInputOffset().x + clipRect.x;
-		localParentCliprect.y += mElement->_getTextInputOffset().y + clipRect.y;
+		localParentCliprect.x += mElement->GetTextInputOffsetInternal().x + clipRect.x;
+		localParentCliprect.y += mElement->GetTextInputOffsetInternal().y + clipRect.y;
 
 		// Clip our rectangle so its not larger then the parent
 		clipRect.clip(localParentCliprect);

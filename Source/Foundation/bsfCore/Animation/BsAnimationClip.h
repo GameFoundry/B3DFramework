@@ -269,7 +269,7 @@ namespace bs
 		 */
 
 		/** Creates a new AnimationClip without initializing it. Use create() for normal use. */
-		static SPtr<AnimationClip> _createPtr(const SPtr<AnimationCurves>& curves, bool isAdditive = false,
+		static SPtr<AnimationClip> CreatePtrInternal(const SPtr<AnimationCurves>& curves, bool isAdditive = false,
 			UINT32 sampleRate = 1, const SPtr<RootMotion>& rootMotion = nullptr);
 
 		/** @} */

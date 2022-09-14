@@ -52,7 +52,7 @@ namespace bs
 
 		__CharDescInterop interop__output;
 		interop__output = ScriptCharDesc::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptCharDesc::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptCharDesc::getMetaData()->scriptClass->GetInternalClassInternal());
 	}
 
 	uint32_t ScriptFontBitmap::Internal_getsize(ScriptFontBitmap* thisPtr)
@@ -110,7 +110,7 @@ namespace bs
 
 		__CharDescInterop interop__output;
 		interop__output = ScriptCharDesc::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptCharDesc::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptCharDesc::getMetaData()->scriptClass->GetInternalClassInternal());
 
 
 	}

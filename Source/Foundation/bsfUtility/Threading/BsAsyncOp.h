@@ -154,7 +154,7 @@ namespace bs
 		 */
 
 		/** Mark the async operation as completed, without setting a return value. */
-		void _completeOperation()
+		void CompleteOperationInternal()
 		{
 			mData->mIsCompleted.store(true, std::memory_order_release);
 
@@ -163,10 +163,10 @@ namespace bs
 		}
 
 		/** Mark the async operation as completed. */
-		void _completeOperation(const ReturnType& returnValue)
+		void CompleteOperationInternal(const ReturnType& returnValue)
 		{
 			mData->mReturnValue = returnValue;
-			_completeOperation();
+			CompleteOperationInternal();
 		}
 
 		/** @} */

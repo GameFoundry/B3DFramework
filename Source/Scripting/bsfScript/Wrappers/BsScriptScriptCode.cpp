@@ -94,7 +94,7 @@ namespace bs
 		UINT32 numValidTypes = (UINT32)validTypes.size();
 		MonoClass* typeClass = ScriptAssemblyManager::instance().getBuiltinClasses().systemTypeClass;
 
-		ScriptArray scriptArray(typeClass->_getInternalClass(), numValidTypes);
+		ScriptArray scriptArray(typeClass->GetInternalClassInternal(), numValidTypes);
 		for (UINT32 i = 0; i < numValidTypes; i++)
 			scriptArray.set(i, validTypes[i]);
 

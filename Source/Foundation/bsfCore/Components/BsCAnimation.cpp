@@ -160,7 +160,7 @@ namespace bs
 		{
 			if(mAnimatedRenderable != nullptr)
 			{
-				SPtr<Renderable> renderable = mAnimatedRenderable->_getInternal();
+				SPtr<Renderable> renderable = mAnimatedRenderable->GetInternalInternal();
 				if (renderable != nullptr)
 					renderable->setOverrideBounds(bounds);
 
@@ -179,7 +179,7 @@ namespace bs
 	{
 		mUseBounds = enable;
 
-		_updateBounds();
+		UpdateBoundsInternal();
 	}
 
 	void CAnimation::setEnableCull(bool enable)
@@ -286,10 +286,10 @@ namespace bs
 
 		HAnimationClip newPrimaryClip = mInternal->getClip(0);
 		if (newPrimaryClip != mPrimaryPlayingClip)
-			_refreshClipMappings();
+			RefreshClipMappingsInternal();
 
-		if (_scriptUpdateFloatProperties)
-			_scriptUpdateFloatProperties();
+		if (ScriptUpdateFloatPropertiesInternal)
+			ScriptUpdateFloatPropertiesInternal();
 	}
 
 	void CAnimation::onTransformChanged(TransformChangedFlags flags)
@@ -298,7 +298,7 @@ namespace bs
 			return;
 
 		if ((flags & (TCF_Transform)) != 0)
-			_updateBounds(false);
+			UpdateBoundsInternal(false);
 	}
 
 	void CAnimation::restoreInternal(bool previewMode)
@@ -319,7 +319,7 @@ namespace bs
 			mInternal->setCulling(mEnableCull);
 		}
 
-		_updateBounds();
+		UpdateBoundsInternal();
 
 		if (!previewMode)
 		{
@@ -329,8 +329,8 @@ namespace bs
 			mPrimaryPlayingClip = mInternal->getClip(0);
 			if (mPrimaryPlayingClip.isLoaded())
 			{
-				if (_scriptRebuildFloatProperties)
-					_scriptRebuildFloatProperties(mPrimaryPlayingClip);
+				if (ScriptRebuildFloatPropertiesInternal)
+					ScriptRebuildFloatPropertiesInternal(mPrimaryPlayingClip);
 			}
 		}
 
@@ -340,13 +340,13 @@ namespace bs
 			updateSceneObjectMapping();
 
 		if (mAnimatedRenderable != nullptr)
-			mAnimatedRenderable->_registerAnimation(static_object_cast<CAnimation>(mThisHandle));
+			mAnimatedRenderable->RegisterAnimationInternal(static_object_cast<CAnimation>(mThisHandle));
 	}
 
 	void CAnimation::destroyInternal()
 	{
 		if (mAnimatedRenderable != nullptr)
-			mAnimatedRenderable->_unregisterAnimation();
+			mAnimatedRenderable->UnregisterAnimationInternal();
 
 		mPrimaryPlayingClip = nullptr;
 
@@ -354,7 +354,7 @@ namespace bs
 		mInternal = nullptr;
 	}
 
-	bool CAnimation::_togglePreviewMode(bool enabled)
+	bool CAnimation::TogglePreviewModeInternal(bool enabled)
 	{
 		bool isRunning = SceneManager::instance().isRunning();
 
@@ -387,7 +387,7 @@ namespace bs
 		}
 	}
 
-	bool CAnimation::_getGenericCurveValue(UINT32 curveIdx, float& value)
+	bool CAnimation::GetGenericCurveValueInternal(UINT32 curveIdx, float& value)
 	{
 		if (mInternal == nullptr)
 			return false;
@@ -411,7 +411,7 @@ namespace bs
 		mInternal->unmapSceneObject(so);
 	}
 
-	void CAnimation::_addBone(HBone bone)
+	void CAnimation::AddBoneInternal(HBone bone)
 	{
 		const HSceneObject& currentSO = bone->SO();
 
@@ -426,7 +426,7 @@ namespace bs
 			mInternal->mapCurveToSceneObject(newMapping.bone->getBoneName(), newMapping.sceneObject);
 	}
 
-	void CAnimation::_removeBone(const HBone& bone)
+	void CAnimation::RemoveBoneInternal(const HBone& bone)
 	{
 		HSceneObject newSO;
 		for (UINT32 i = 0; i < (UINT32)mMappingInfos.size(); i++)
@@ -442,7 +442,7 @@ namespace bs
 		}
 	}
 
-	void CAnimation::_notifyBoneChanged(const HBone& bone)
+	void CAnimation::NotifyBoneChangedInternal(const HBone& bone)
 	{
 		if (mInternal == nullptr)
 			return;
@@ -458,23 +458,23 @@ namespace bs
 		}
 	}
 
-	void CAnimation::_registerRenderable(const HRenderable& renderable)
+	void CAnimation::RegisterRenderableInternal(const HRenderable& renderable)
 	{
 		mAnimatedRenderable = renderable;
 
-		_updateBounds();
+		UpdateBoundsInternal();
 	}
 
-	void CAnimation::_unregisterRenderable()
+	void CAnimation::UnregisterRenderableInternal()
 	{
 		mAnimatedRenderable = nullptr;
 	}
 
-	void CAnimation::_updateBounds(bool updateRenderable)
+	void CAnimation::UpdateBoundsInternal(bool updateRenderable)
 	{
 		SPtr<Renderable> renderable;
 		if (updateRenderable && mAnimatedRenderable != nullptr)
-			renderable = mAnimatedRenderable->_getInternal();
+			renderable = mAnimatedRenderable->GetInternalInternal();
 
 		if (mUseBounds)
 		{
@@ -521,7 +521,7 @@ namespace bs
 
 		Vector<HBone> childBones = findChildBones();
 		for (auto& entry : childBones)
-			_addBone(entry);
+			AddBoneInternal(entry);
 	}
 
 	void CAnimation::updateSceneObjectMapping()
@@ -581,12 +581,12 @@ namespace bs
 		mMappingInfos = newMappingInfos;
 	}
 
-	void CAnimation::_refreshClipMappings()
+	void CAnimation::RefreshClipMappingsInternal()
 	{
 		mPrimaryPlayingClip = mInternal->getClip(0);
 
-		if (_scriptRebuildFloatProperties)
-			_scriptRebuildFloatProperties(mPrimaryPlayingClip);
+		if (ScriptRebuildFloatPropertiesInternal)
+			ScriptRebuildFloatPropertiesInternal(mPrimaryPlayingClip);
 
 		updateSceneObjectMapping();		
 	}
@@ -605,7 +605,7 @@ namespace bs
 			HBone bone = currentSO->getComponent<CBone>();
 			if (bone != nullptr)
 			{
-				bone->_setParent(static_object_cast<CAnimation>(getHandle()), true);
+				bone->SetParentInternal(static_object_cast<CAnimation>(getHandle()), true);
 				bones.push_back(bone);
 			}
 
@@ -627,8 +627,8 @@ namespace bs
 	{
 		onEventTriggered(clip, name);
 
-		if(_scriptOnEventTriggered)
-			_scriptOnEventTriggered(clip, name);
+		if(ScriptOnEventTriggeredInternal)
+			ScriptOnEventTriggeredInternal(clip, name);
 	}
 
 	RTTITypeBase* CAnimation::getRTTIStatic()

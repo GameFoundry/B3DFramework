@@ -33,12 +33,12 @@ namespace bs
 		else
 			mInternal = Decal::create(HMaterial());
 
-		gSceneManager()._bindActor(mInternal, sceneObject());
+		gSceneManager().BindActorInternal(mInternal, sceneObject());
 	}
 
 	void CDecal::onDestroyed()
 	{
-		gSceneManager()._unbindActor(mInternal);
+		gSceneManager().UnbindActorInternal(mInternal);
 	}
 
 	RTTITypeBase* CDecal::getRTTIStatic()

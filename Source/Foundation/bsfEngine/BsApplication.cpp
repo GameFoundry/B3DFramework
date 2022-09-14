@@ -52,7 +52,7 @@ namespace bs
 		CoreApplication::onStartUp();
 
 		PlainTextImporter* importer = bs_new<PlainTextImporter>();
-		Importer::instance()._registerAssetImporter(importer);
+		Importer::instance().RegisterAssetImporterInternal(importer);
 
 		VirtualInput::startUp();
 		BuiltinResources::startUp();
@@ -94,7 +94,7 @@ namespace bs
 	{
 		CoreApplication::preUpdate();
 
-		VirtualInput::instance()._update();
+		VirtualInput::instance().UpdateInternal();
 
 		if(mProfilerOverlay)
 			mProfilerOverlay->update();
@@ -106,7 +106,7 @@ namespace bs
 		updateScriptManager();
 
 		PROFILE_CALL(GUIManager::instance().update(), "GUI");
-		DebugDraw::instance()._update();
+		DebugDraw::instance().UpdateInternal();
 	}
 
 	void Application::showProfilerOverlay(ProfilerOverlayType type, const SPtr<Camera>& camera)

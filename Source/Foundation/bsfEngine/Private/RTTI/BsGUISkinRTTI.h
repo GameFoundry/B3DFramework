@@ -102,7 +102,7 @@ namespace bs
 
 		SPtr<IReflectable> newRTTIObject() override
 		{
-			return GUISkin::_createPtr();
+			return GUISkin::CreatePtrInternal();
 		}
 
 	private:

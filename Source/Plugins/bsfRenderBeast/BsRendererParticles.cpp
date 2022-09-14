@@ -16,7 +16,7 @@
 namespace bs { namespace ct
 {
 	template<bool LOCK_Y, bool GPU, bool IS_3D, ParticleForwardLightingType FWD>
-	const ShaderVariation& _getParticleShaderVariation(ParticleOrientation orient)
+	const ShaderVariation& GetParticleShaderVariationInternal(ParticleOrientation orient)
 	{
 		switch (orient)
 		{
@@ -31,30 +31,30 @@ namespace bs { namespace ct
 	}
 
 	template<bool GPU, bool IS_3D, ParticleForwardLightingType FWD>
-	const ShaderVariation& _getParticleShaderVariation(ParticleOrientation orient, bool lockY)
+	const ShaderVariation& GetParticleShaderVariationInternal(ParticleOrientation orient, bool lockY)
 	{
 		if (lockY)
-			return _getParticleShaderVariation<true, GPU, IS_3D, FWD>(orient);
+			return GetParticleShaderVariationInternal<true, GPU, IS_3D, FWD>(orient);
 
-		return _getParticleShaderVariation<false, GPU, IS_3D, FWD>(orient);
+		return GetParticleShaderVariationInternal<false, GPU, IS_3D, FWD>(orient);
 	}
 
 	template<bool IS_3D, ParticleForwardLightingType FWD>
-	const ShaderVariation& _getParticleShaderVariation(ParticleOrientation orient, bool lockY, bool gpu)
+	const ShaderVariation& GetParticleShaderVariationInternal(ParticleOrientation orient, bool lockY, bool gpu)
 	{
 		if(gpu)
-			return _getParticleShaderVariation<true, IS_3D, FWD>(orient, lockY);
+			return GetParticleShaderVariationInternal<true, IS_3D, FWD>(orient, lockY);
 
-		return _getParticleShaderVariation<false, IS_3D, FWD>(orient, lockY);
+		return GetParticleShaderVariationInternal<false, IS_3D, FWD>(orient, lockY);
 	}
 
 	template<ParticleForwardLightingType FWD>
-	const ShaderVariation& _getParticleShaderVariation(ParticleOrientation orient, bool lockY, bool gpu, bool is3D)
+	const ShaderVariation& GetParticleShaderVariationInternal(ParticleOrientation orient, bool lockY, bool gpu, bool is3D)
 	{
 		if(is3D)
-			return _getParticleShaderVariation<true, FWD>(orient, lockY, gpu);
+			return GetParticleShaderVariationInternal<true, FWD>(orient, lockY, gpu);
 
-		return _getParticleShaderVariation<false, FWD>(orient, lockY, gpu);
+		return GetParticleShaderVariationInternal<false, FWD>(orient, lockY, gpu);
 	}
 	
 	const ShaderVariation& getParticleShaderVariation(ParticleOrientation orient, bool lockY, bool gpu,
@@ -64,11 +64,11 @@ namespace bs { namespace ct
 		{
 		default:
 		case ParticleForwardLightingType::None:
-			return _getParticleShaderVariation<ParticleForwardLightingType::None>(orient, lockY, gpu, is3D);
+			return GetParticleShaderVariationInternal<ParticleForwardLightingType::None>(orient, lockY, gpu, is3D);
 		case ParticleForwardLightingType::Clustered:
-			return _getParticleShaderVariation<ParticleForwardLightingType::Clustered>(orient, lockY, gpu, is3D);
+			return GetParticleShaderVariationInternal<ParticleForwardLightingType::Clustered>(orient, lockY, gpu, is3D);
 		case ParticleForwardLightingType::Standard:
-			return _getParticleShaderVariation<ParticleForwardLightingType::Standard>(orient, lockY, gpu, is3D);
+			return GetParticleShaderVariationInternal<ParticleForwardLightingType::Standard>(orient, lockY, gpu, is3D);
 		}
 	}
 

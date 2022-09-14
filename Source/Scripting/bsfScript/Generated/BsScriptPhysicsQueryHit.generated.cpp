@@ -23,7 +23,7 @@ namespace bs
 
 	MonoObject*ScriptPhysicsQueryHit::box(const __PhysicsQueryHitInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__PhysicsQueryHitInterop ScriptPhysicsQueryHit::unbox(MonoObject* value)

@@ -23,7 +23,7 @@ namespace bs
 	{
 		mNormArea = area;
 
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	Rect2I ViewportBase::getPixelArea() const
@@ -44,7 +44,7 @@ namespace bs
 	{
 		mClearFlags = flags;
 
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void ViewportBase::setClearValues(const Color& clearColor, float clearDepth, UINT16 clearStencil)
@@ -53,28 +53,28 @@ namespace bs
 		mClearDepthValue = clearDepth;
 		mClearStencilValue = clearStencil;
 
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void ViewportBase::setClearColorValue(const Color& color)
 	{
 		mClearColorValue = color;
 
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void ViewportBase::setClearDepthValue(float depth)
 	{
 		mClearDepthValue = depth;
 
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void ViewportBase::setClearStencilValue(UINT16 value)
 	{
 		mClearStencilValue = value;
 
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	template <bool Core>
@@ -99,7 +99,7 @@ namespace bs
 		mTarget = target;
 		
 		markDependenciesDirty();
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	SPtr<ct::Viewport> Viewport::getCore() const
@@ -107,7 +107,7 @@ namespace bs
 		return std::static_pointer_cast<ct::Viewport>(mCoreSpecific);
 	}
 
-	void Viewport::_markCoreDirty()
+	void Viewport::MarkCoreDirtyInternal()
 	{
 		markCoreDirty();
 	}
@@ -138,7 +138,7 @@ namespace bs
 			ct::Viewport(targetCore, mNormArea.x, mNormArea.y, mNormArea.width, mNormArea.height);
 
 		SPtr<ct::Viewport> viewportPtr = bs_shared_ptr<ct::Viewport>(viewport);
-		viewportPtr->_setThisPtr(viewportPtr);
+		viewportPtr->SetThisPtrInternal(viewportPtr);
 
 		return viewportPtr;
 	}
@@ -165,7 +165,7 @@ namespace bs
 	{
 		Viewport* viewport = new (bs_alloc<Viewport>()) Viewport(target, x, y, width, height);
 		SPtr<Viewport> viewportPtr = bs_core_ptr<Viewport>(viewport);
-		viewportPtr->_setThisPtr(viewportPtr);
+		viewportPtr->SetThisPtrInternal(viewportPtr);
 		viewportPtr->initialize();
 
 		return viewportPtr;
@@ -175,7 +175,7 @@ namespace bs
 	{
 		Viewport* viewport = new (bs_alloc<Viewport>()) Viewport();
 		SPtr<Viewport> viewportPtr = bs_core_ptr<Viewport>(viewport);
-		viewportPtr->_setThisPtr(viewportPtr);
+		viewportPtr->SetThisPtrInternal(viewportPtr);
 
 		return viewportPtr;
 	}
@@ -201,7 +201,7 @@ namespace bs
 		Viewport* viewport = new (bs_alloc<Viewport>()) Viewport(target, x, y, width, height);
 
 		SPtr<Viewport> viewportPtr = bs_shared_ptr<Viewport>(viewport);
-		viewportPtr->_setThisPtr(viewportPtr);
+		viewportPtr->SetThisPtrInternal(viewportPtr);
 		viewportPtr->initialize();
 
 		return viewportPtr;

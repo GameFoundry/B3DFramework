@@ -47,10 +47,10 @@ namespace bs
 		LightType getType() const { return mType; }
 
 		/** @copydoc getType() */
-		void setType(LightType type) { mType = type; _markCoreDirty(); updateBounds(); }
+		void setType(LightType type) { mType = type; MarkCoreDirtyInternal(); updateBounds(); }
 
 		/**	Determines does this light cast shadows when rendered. */
-		void setCastsShadow(bool castsShadow) { mCastsShadows = castsShadow; _markCoreDirty(); }
+		void setCastsShadow(bool castsShadow) { mCastsShadows = castsShadow; MarkCoreDirtyInternal(); }
 
 		/** @copydoc setCastsShadow */
 		bool getCastsShadow() const { return mCastsShadows; }
@@ -65,13 +65,13 @@ namespace bs
 		 *
 		 * Default value is 0.5. Should be in rough range [-1, 1].
 		 */
-		void setShadowBias(float bias) { mShadowBias = bias; _markCoreDirty(); }
+		void setShadowBias(float bias) { mShadowBias = bias; MarkCoreDirtyInternal(); }
 
 		/** @copydoc setShadowBias() */
 		float getShadowBias() const { return mShadowBias; }
 
 		/** Determines the color emitted by the light. */
-		void setColor(const Color& color) { mColor = color; _markCoreDirty(); }
+		void setColor(const Color& color) { mColor = color; MarkCoreDirtyInternal(); }
 
 		/** @copydoc setColor() */
 		Color getColor() const { return mColor; }
@@ -122,7 +122,7 @@ namespace bs
 		float getIntensity() const { return mIntensity; }
 
 		/**	Determines the total angle covered by a spot light. */
-		void setSpotAngle(const Degree& spotAngle) { mSpotAngle = spotAngle; _markCoreDirty(); updateBounds(); }
+		void setSpotAngle(const Degree& spotAngle) { mSpotAngle = spotAngle; MarkCoreDirtyInternal(); updateBounds(); }
 
 		/** @copydoc setSpotAngle */
 		Degree getSpotAngle() const { return mSpotAngle; }
@@ -132,7 +132,7 @@ namespace bs
 		 * starts quadratically falling off as the angle approaches the total spot angle.
 		 */
 		void setSpotFalloffAngle(const Degree& spotFallofAngle)
-		{ mSpotFalloffAngle = spotFallofAngle; _markCoreDirty(); updateBounds(); }
+		{ mSpotFalloffAngle = spotFallofAngle; MarkCoreDirtyInternal(); updateBounds(); }
 
 		/** @copydoc setSpotFalloffAngle */
 		Degree getSpotFalloffAngle() const { return mSpotFalloffAngle; }
@@ -215,7 +215,7 @@ namespace bs
 		SPtr<ct::CoreObject> createCore() const override;
 
 		/** @copydoc LightBase::_markCoreDirty */
-		void _markCoreDirty(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
+		void MarkCoreDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
 
 		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData syncToCore(FrameAlloc* allocator) override;

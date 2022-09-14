@@ -57,7 +57,7 @@ namespace bs
 
 		SPtr<IReflectable> newRTTIObject() override
 		{
-			return StringTable::_createPtr();
+			return StringTable::CreatePtrInternal();
 		}
 	};
 

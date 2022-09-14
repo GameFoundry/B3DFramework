@@ -128,7 +128,7 @@ namespace bs
 			sceneObject->setParent(object);
 
 			if(object->isInstantiated())
-				sceneObject->_instantiate();
+				sceneObject->InstantiateInternal();
 		}
 
 		for (auto& componentDiff : diff->componentDiffs)

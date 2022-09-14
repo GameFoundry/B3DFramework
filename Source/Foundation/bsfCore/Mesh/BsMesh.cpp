@@ -39,14 +39,14 @@ namespace bs
 		updateBounds(*data);
 		updateCPUBuffer(0, *data);
 
-		data->_lock();
+		data->LockInternal();
 
 		std::function<void(const SPtr<ct::Mesh>&, const SPtr<MeshData>&, bool, AsyncOp&)> func =
 			[&](const SPtr<ct::Mesh>& mesh, const SPtr<MeshData>& _meshData, bool _discardEntireBuffer, AsyncOp& asyncOp)
 		{
 			mesh->writeData(*_meshData, _discardEntireBuffer, false);
-			_meshData->_unlock();
-			asyncOp._completeOperation();
+			_meshData->UnlockInternal();
+			asyncOp.CompleteOperationInternal();
 
 		};
 
@@ -56,7 +56,7 @@ namespace bs
 
 	AsyncOp Mesh::readData(const SPtr<MeshData>& data)
 	{
-		data->_lock();
+		data->LockInternal();
 
 		std::function<void(const SPtr<ct::Mesh>&, const SPtr<MeshData>&, AsyncOp&)> func =
 			[&](const SPtr<ct::Mesh>& mesh, const SPtr<MeshData>& _meshData, AsyncOp& asyncOp)
@@ -65,8 +65,8 @@ namespace bs
 			ct::RenderAPI::instance().submitCommandBuffer(nullptr);
 
 			mesh->readData(*_meshData);
-			_meshData->_unlock();
-			asyncOp._completeOperation();
+			_meshData->UnlockInternal();
+			asyncOp.CompleteOperationInternal();
 
 		};
 
@@ -119,7 +119,7 @@ namespace bs
 		ct::Mesh* obj = new (bs_alloc<ct::Mesh>()) ct::Mesh(mCPUData, desc, GDF_DEFAULT);
 
 		SPtr<ct::CoreObject> meshCore = bs_shared_ptr<ct::Mesh>(obj);
-		meshCore->_setThisPtr(meshCore);
+		meshCore->SetThisPtrInternal(meshCore);
 
 		if ((mUsage & MU_CPUCACHED) == 0)
 			mCPUData = nullptr;
@@ -195,54 +195,54 @@ namespace bs
 		desc.subMeshes.push_back(SubMesh(0, numIndices, drawOp));
 		desc.indexType = indexType;
 
-		SPtr<Mesh> meshPtr = _createPtr(desc);
-		return static_resource_cast<Mesh>(gResources()._createResourceHandle(meshPtr));
+		SPtr<Mesh> meshPtr = CreatePtrInternal(desc);
+		return static_resource_cast<Mesh>(gResources().CreateResourceHandleInternal(meshPtr));
 	}
 
 	HMesh Mesh::create(const MESH_DESC& desc)
 	{
-		SPtr<Mesh> meshPtr = _createPtr(desc);
-		return static_resource_cast<Mesh>(gResources()._createResourceHandle(meshPtr));
+		SPtr<Mesh> meshPtr = CreatePtrInternal(desc);
+		return static_resource_cast<Mesh>(gResources().CreateResourceHandleInternal(meshPtr));
 	}
 
 	HMesh Mesh::create(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc)
 	{
-		SPtr<Mesh> meshPtr = _createPtr(initialMeshData, desc);
-		return static_resource_cast<Mesh>(gResources()._createResourceHandle(meshPtr));
+		SPtr<Mesh> meshPtr = CreatePtrInternal(initialMeshData, desc);
+		return static_resource_cast<Mesh>(gResources().CreateResourceHandleInternal(meshPtr));
 	}
 
 	HMesh Mesh::create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp)
 	{
-		SPtr<Mesh> meshPtr = _createPtr(initialMeshData, usage, drawOp);
-		return static_resource_cast<Mesh>(gResources()._createResourceHandle(meshPtr));
+		SPtr<Mesh> meshPtr = CreatePtrInternal(initialMeshData, usage, drawOp);
+		return static_resource_cast<Mesh>(gResources().CreateResourceHandleInternal(meshPtr));
 	}
 
-	SPtr<Mesh> Mesh::_createPtr(const MESH_DESC& desc)
+	SPtr<Mesh> Mesh::CreatePtrInternal(const MESH_DESC& desc)
 	{
 		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(desc));
-		mesh->_setThisPtr(mesh);
+		mesh->SetThisPtrInternal(mesh);
 		mesh->initialize();
 
 		return mesh;
 	}
 
-	SPtr<Mesh> Mesh::_createPtr(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc)
+	SPtr<Mesh> Mesh::CreatePtrInternal(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc)
 	{
 		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(initialMeshData, desc));
-		mesh->_setThisPtr(mesh);
+		mesh->SetThisPtrInternal(mesh);
 		mesh->initialize();
 
 		return mesh;
 	}
 
-	SPtr<Mesh> Mesh::_createPtr(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp)
+	SPtr<Mesh> Mesh::CreatePtrInternal(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp)
 	{
 		MESH_DESC desc;
 		desc.usage = usage;
 		desc.subMeshes.push_back(SubMesh(0, initialMeshData->getNumIndices(), drawOp));
 
 		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(initialMeshData, desc));
-		mesh->_setThisPtr(mesh);
+		mesh->SetThisPtrInternal(mesh);
 		mesh->initialize();
 
 		return mesh;
@@ -251,7 +251,7 @@ namespace bs
 	SPtr<Mesh> Mesh::createEmpty()
 	{
 		SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh());
-		mesh->_setThisPtr(mesh);
+		mesh->SetThisPtrInternal(mesh);
 
 		return mesh;
 	}
@@ -529,7 +529,7 @@ namespace bs
 		desc.indexType = indexType;
 
 		SPtr<Mesh> mesh = bs_shared_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(nullptr, desc, deviceMask));
-		mesh->_setThisPtr(mesh);
+		mesh->SetThisPtrInternal(mesh);
 		mesh->initialize();
 
 		return mesh;
@@ -539,7 +539,7 @@ namespace bs
 	{
 		SPtr<Mesh> mesh = bs_shared_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(nullptr, desc, deviceMask));
 
-		mesh->_setThisPtr(mesh);
+		mesh->SetThisPtrInternal(mesh);
 		mesh->initialize();
 
 		return mesh;
@@ -556,7 +556,7 @@ namespace bs
 		SPtr<Mesh> mesh =
 			bs_shared_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(initialMeshData, descCopy, deviceMask));
 
-		mesh->_setThisPtr(mesh);
+		mesh->SetThisPtrInternal(mesh);
 		mesh->initialize();
 
 		return mesh;
@@ -576,7 +576,7 @@ namespace bs
 		SPtr<Mesh> mesh =
 			bs_shared_ptr<Mesh>(new (bs_alloc<Mesh>()) Mesh(initialMeshData, desc, deviceMask));
 
-		mesh->_setThisPtr(mesh);
+		mesh->SetThisPtrInternal(mesh);
 		mesh->initialize();
 
 		return mesh;

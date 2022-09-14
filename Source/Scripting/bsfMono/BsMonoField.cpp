@@ -55,7 +55,7 @@ namespace bs
 		if(attrInfo == nullptr)
 			return false;
 
-		bool hasAttr = mono_custom_attrs_has_attr(attrInfo, monoClass->_getInternalClass()) != 0;
+		bool hasAttr = mono_custom_attrs_has_attr(attrInfo, monoClass->GetInternalClassInternal()) != 0;
 		
 		mono_custom_attrs_free(attrInfo);
 
@@ -72,8 +72,8 @@ namespace bs
 			return nullptr;
 
 		MonoObject* foundAttr = nullptr;
-		if(mono_custom_attrs_has_attr(attrInfo, monoClass->_getInternalClass()))
-			foundAttr = mono_custom_attrs_get_attr(attrInfo, monoClass->_getInternalClass());
+		if(mono_custom_attrs_has_attr(attrInfo, monoClass->GetInternalClassInternal()))
+			foundAttr = mono_custom_attrs_get_attr(attrInfo, monoClass->GetInternalClassInternal());
 
 		mono_custom_attrs_free(attrInfo);
 		return foundAttr;

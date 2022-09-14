@@ -35,7 +35,7 @@ namespace bs
 		blockUntilCoreInitialized();
 
 		LinuxPlatform::lockX();
-		Vector2I pos = getCore()->_getInternal()->screenToWindowPos(screenPos);
+		Vector2I pos = getCore()->GetInternalInternal()->screenToWindowPos(screenPos);
 		LinuxPlatform::unlockX();
 
 		return pos;
@@ -46,7 +46,7 @@ namespace bs
 		blockUntilCoreInitialized();
 
 		LinuxPlatform::lockX();
-		Vector2I pos = getCore()->_getInternal()->windowToScreenPos(windowPos);
+		Vector2I pos = getCore()->GetInternalInternal()->windowToScreenPos(windowPos);
 		LinuxPlatform::unlockX();
 
 		return pos;
@@ -61,14 +61,14 @@ namespace bs
 	{
 		RENDER_WINDOW_DESC desc = mDesc;
 		SPtr<ct::CoreObject> coreObj = bs_shared_ptr_new<ct::LinuxRenderWindow>(desc, mWindowId, mGLSupport);
-		coreObj->_setThisPtr(coreObj);
+		coreObj->SetThisPtrInternal(coreObj);
 
 		return coreObj;
 	}
 
 	void LinuxRenderWindow::syncProperties()
 	{
-		ScopedSpinLock lock(getCore()->_getPropertiesLock());
+		ScopedSpinLock lock(getCore()->GetPropertiesLockInternal());
 		mProperties = getCore()->mSyncedProperties;
 	}
 
@@ -144,7 +144,7 @@ namespace bs
 		props.isHidden = mDesc.hideUntilSwap || mDesc.hidden;
 
 		mWindow = bs_new<LinuxWindow>(windowDesc);
-		mWindow->_setUserData(this);
+		mWindow->SetUserDataInternal(this);
 
 		props.width = mWindow->getWidth();
 		props.height = mWindow->getHeight();
@@ -155,7 +155,7 @@ namespace bs
 		props.multisampleCount = visualConfig.caps.numSamples;
 
 		XWindowAttributes windowAttributes;
-		XGetWindowAttributes(LinuxPlatform::getXDisplay(), mWindow->_getXWindow(), &windowAttributes);
+		XGetWindowAttributes(LinuxPlatform::getXDisplay(), mWindow->GetXWindowInternal(), &windowAttributes);
 
 		XVisualInfo requestVI;
 		requestVI.screen = windowDesc.screen;
@@ -252,14 +252,14 @@ namespace bs
 		const LinuxVideoOutputInfo& outputInfo =
 				static_cast<const LinuxVideoOutputInfo&>(videoModeInfo.getOutputInfo (outputIdx));
 
-		INT32 screen = outputInfo._getScreen();
-		RROutput outputID = outputInfo._getOutputID();
+		INT32 screen = outputInfo.GetScreenInternal();
+		RROutput outputID = outputInfo.GetOutputIDInternal();
 
 		RRMode modeID = 0;
 		if(!mode.isCustom)
 		{
 			const LinuxVideoMode& videoMode = static_cast<const LinuxVideoMode&>(mode);
-			modeID = videoMode._getModeID();
+			modeID = videoMode.GetModeIDInternal();
 		}
 		else
 		{
@@ -343,7 +343,7 @@ namespace bs
 		LinuxPlatform::lockX();
 
 		setVideoMode(screen, outputID, modeID);
-		mWindow->_setFullscreen(true);
+		mWindow->SetFullscreenInternal(true);
 
 		LinuxPlatform::unlockX();
 
@@ -355,7 +355,7 @@ namespace bs
 		props.width = mode.width;
 		props.height = mode.height;
 
-		_windowMovedOrResized();
+		WindowMovedOrResizedInternal();
 
 		{
 			ScopedSpinLock lock(mLock);
@@ -396,8 +396,8 @@ namespace bs
 
 		LinuxPlatform::lockX();
 
-		setVideoMode(outputInfo._getScreen(), outputInfo._getOutputID(), desktopVideoMode._getModeID());
-		mWindow->_setFullscreen(false);
+		setVideoMode(outputInfo.GetScreenInternal(), outputInfo._getOutputID(), desktopVideoMode._getModeID());
+		mWindow->SetFullscreenInternal(false);
 
 		LinuxPlatform::unlockX();
 
@@ -405,7 +405,7 @@ namespace bs
 		props.width = width;
 		props.height = height;
 
-		_windowMovedOrResized();
+		WindowMovedOrResizedInternal();
 
 		{
 			ScopedSpinLock lock(mLock);
@@ -504,7 +504,7 @@ namespace bs
 		LinuxPlatform::lockX();
 
 		if(glXSwapIntervalEXT != nullptr)
-			glXSwapIntervalEXT(LinuxPlatform::getXDisplay(), mWindow->_getXWindow(), interval);
+			glXSwapIntervalEXT(LinuxPlatform::getXDisplay(), mWindow->GetXWindowInternal(), interval);
 		else if(glXSwapIntervalMESA != nullptr)
 			glXSwapIntervalMESA(interval);
 		else if(glXSwapIntervalSGI != nullptr)
@@ -532,7 +532,7 @@ namespace bs
 			setHidden(false);
 
 		LinuxPlatform::lockX();
-		glXSwapBuffers(LinuxPlatform::getXDisplay(), mWindow->_getXWindow());
+		glXSwapBuffers(LinuxPlatform::getXDisplay(), mWindow->GetXWindowInternal());
 		LinuxPlatform::unlockX();
 	}
 
@@ -607,7 +607,7 @@ namespace bs
 		else if(name == "WINDOW")
 		{
 			::Window* window = (::Window*)data;
-			*window = mWindow->_getXWindow();
+			*window = mWindow->GetXWindowInternal();
 			return;
 		}
 	}
@@ -647,7 +647,7 @@ namespace bs
 		RenderWindow::setHidden(hidden);
 	}
 
-	void LinuxRenderWindow::_windowMovedOrResized()
+	void LinuxRenderWindow::WindowMovedOrResizedInternal()
 	{
 		if (!mWindow)
 			return;

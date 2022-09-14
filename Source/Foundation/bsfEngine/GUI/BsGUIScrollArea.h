@@ -139,32 +139,32 @@ namespace bs
 		 */
 
 		/** @copydoc GUIElementContainer::_getElementType */
-		ElementType _getElementType() const override { return ElementType::ScrollArea; }
+		ElementType GetElementTypeInternal() const override { return ElementType::ScrollArea; }
 
 		/** @} */
 	protected:
 		~GUIScrollArea() = default;
 
 		/** @copydoc GUIElementContainer::_getLayoutSizeRange */
-		LayoutSizeRange _getLayoutSizeRange() const override;
+		LayoutSizeRange GetLayoutSizeRangeInternal() const override;
 
 		/** @copydoc GUIElementContainer::updateClippedBounds */
 		void updateClippedBounds() override;
 
 		/** @copydoc GUIElementBase::_calculateLayoutSizeRange */
-		LayoutSizeRange _calculateLayoutSizeRange() const override;
+		LayoutSizeRange CalculateLayoutSizeRangeInternal() const override;
 
 		/** @copydoc GUIElementBase::_updateOptimalLayoutSizes */
-		void _updateOptimalLayoutSizes() override;
+		void UpdateOptimalLayoutSizesInternal() override;
 
-		/** @copydoc GUIElementContainer::_getOptimalSize */
-		Vector2I _getOptimalSize() const override;
+		/** @copydoc GUIElementContainer::GetOptimalSizeInternal */
+		Vector2I GetOptimalSizeInternal() const override;
 	private:
 		GUIScrollArea(ScrollBarType vertBarType, ScrollBarType horzBarType,
 			const String& scrollBarStyle, const String& scrollAreaStyle, const GUIDimensions& dimensions);
 
 		/** @copydoc GUIElementContainer::_mouseEvent */
-		bool _mouseEvent(const GUIMouseEvent& ev) override;
+		bool MouseEventInternal(const GUIMouseEvent& ev) override;
 
 		/**
 		 * Called when the vertical scrollbar moves.
@@ -180,19 +180,19 @@ namespace bs
 		 */
 		void horzScrollUpdate(float pct);
 
-		/** @copydoc	GUIElementContainer::_updateLayoutInternal */
-		void _updateLayoutInternal(const GUILayoutData& data) override;
+		/** @copydoc	GUIElementContainer::UpdateLayoutInternal */
+		void UpdateLayoutInternalInternal(const GUILayoutData& data) override;
 
-		/** @copydoc	GUIElementContainer::_getElementAreas */
-		void _getElementAreas(const Rect2I& layoutArea, Rect2I* elementAreas, UINT32 numElements,
+		/** @copydoc	GUIElementContainer::GetElementAreasInternal */
+		void GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, UINT32 numElements,
 			const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const override;
 
 		/**
-		 * @copydoc	GUIElementContainer::_getElementAreas
+		 * @copydoc	GUIElementContainer::GetElementAreasInternal:
 		 *
 		 * @note	Also calculates some scroll area specific values.
 		 */
-		void _getElementAreas(const Rect2I& layoutArea, Rect2I* elementAreas, UINT32 numElements,
+		void GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, UINT32 numElements,
 			const Vector<LayoutSizeRange>& sizeRanges, Vector2I& visibleSize, Vector2I& contentSize) const;
 
 		ScrollBarType mVertBarType;

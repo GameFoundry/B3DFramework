@@ -101,7 +101,7 @@ namespace bs
 		Vector<SPtr<PixelData>> mipmaps = PixelUtil::genMipmaps(*sourcePixelData, *options);
 
 		UINT32 numElements = (UINT32)mipmaps.size();
-		ScriptArray scriptArray(ScriptPixelData::getMetaData()->scriptClass->_getInternalClass(), numElements);
+		ScriptArray scriptArray(ScriptPixelData::getMetaData()->scriptClass->GetInternalClassInternal(), numElements);
 
 		for (UINT32 i = 0; i < numElements; i++)
 		{

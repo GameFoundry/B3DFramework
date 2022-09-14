@@ -27,7 +27,7 @@ namespace bs
 		mManualSources.clear();
 	}
 
-	void Audio::_update()
+	void Audio::UpdateInternal()
 	{
 		const UINT32 numSources = (UINT32)mManualSources.size();
 		for(UINT32 i = 0; i < numSources; i++)

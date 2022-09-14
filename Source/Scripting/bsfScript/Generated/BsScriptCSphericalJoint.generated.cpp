@@ -30,7 +30,7 @@ namespace bs
 
 		__LimitConeRangeInterop interop__output;
 		interop__output = ScriptLimitConeRange::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptLimitConeRange::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptLimitConeRange::getMetaData()->scriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptCSphericalJoint::Internal_setLimit(ScriptCSphericalJoint* thisPtr, __LimitConeRangeInterop* limit)

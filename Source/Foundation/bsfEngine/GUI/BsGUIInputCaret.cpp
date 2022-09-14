@@ -26,18 +26,18 @@ namespace bs
 
 	Rect2I GUIInputCaret::getSpriteClipRect(const Rect2I& parentClipRect) const
 	{
-		Vector2I offset(mElement->_getLayoutData().area.x, mElement->_getLayoutData().area.y);
+		Vector2I offset(mElement->GetLayoutDataInternal().area.x, mElement->GetLayoutDataInternal().area.y);
 
 		Vector2I clipOffset = getSpriteOffset() - offset -
-			Vector2I(mElement->_getTextInputRect().x, mElement->_getTextInputRect().y);
+			Vector2I(mElement->GetTextInputRectInternal().x, mElement->GetTextInputRectInternal().y);
 
 		Rect2I clipRect(-clipOffset.x, -clipOffset.y, mTextDesc.width, mTextDesc.height);
 
 		Rect2I localParentCliprect = parentClipRect;
 
 		// Move parent rect to our space
-		localParentCliprect.x += mElement->_getTextInputOffset().x + clipRect.x;
-		localParentCliprect.y += mElement->_getTextInputOffset().y + clipRect.y;
+		localParentCliprect.x += mElement->GetTextInputOffsetInternal().x + clipRect.x;
+		localParentCliprect.y += mElement->GetTextInputOffsetInternal().y + clipRect.y;
 
 		// Clip our rectangle so its not larger then the parent
 		clipRect.clip(localParentCliprect);
@@ -57,7 +57,7 @@ namespace bs
 
 		GUIWidget* widget = nullptr;
 		if (mElement != nullptr)
-			widget = mElement->_getParentWidget();
+			widget = mElement->GetParentWidgetInternal();
 
 		mCaretSprite->update(mCaretDesc, (UINT64)widget);
 	}
@@ -103,7 +103,7 @@ namespace bs
 			return;
 		}
 
-		Vector2I caretCoords = getCaretPosition(mElement->_getTextInputOffset());
+		Vector2I caretCoords = getCaretPosition(mElement->GetTextInputOffsetInternal());
 		caretCoords.y -= getCaretHeight();
 
 		moveCaretToPos(caretCoords);
@@ -128,7 +128,7 @@ namespace bs
 			return;
 		}
 
-		Vector2I caretCoords = getCaretPosition(mElement->_getTextInputOffset());
+		Vector2I caretCoords = getCaretPosition(mElement->GetTextInputOffsetInternal());
 		caretCoords.y += getCaretHeight();
 
 		moveCaretToPos(caretCoords);

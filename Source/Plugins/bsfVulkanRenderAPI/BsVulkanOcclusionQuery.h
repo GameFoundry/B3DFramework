@@ -31,13 +31,13 @@ namespace bs { namespace ct
 		UINT32 getNumSamples() override;
 
 		/** Returns true if the query begin() was called, but not end(). */
-		bool _isInProgress() const;
+		bool IsInProgressInternal() const;
 
 		/**
 		 * Interrupts an in-progress query allowing the command buffer to submitted. Gets called on queries that are still
 		 * open during command buffer submission.
 		 */
-		void _interrupt(VulkanCmdBuffer& cb);
+		void InterruptInternal(VulkanCmdBuffer& cb);
 
 	private:
 		friend class QueryManager;

@@ -72,7 +72,7 @@ namespace bs
 
 		if(filterOkay)
 		{
-			Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+			Vector2I origSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 
 			mText = text;
 			mNumChars = UTF8::count(mText);
@@ -95,11 +95,11 @@ namespace bs
 				scrollTextToCaret();
 			}
 
-			Vector2I newSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+			Vector2I newSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 			if (origSize != newSize)
-				_markLayoutAsDirty();
+				MarkLayoutAsDirtyInternal();
 			else
-				_markContentAsDirty();
+				MarkContentAsDirtyInternal();
 		}
 	}
 
@@ -107,20 +107,20 @@ namespace bs
 	{		
 		mImageDesc.width = mLayoutData.area.width;
 		mImageDesc.height = mLayoutData.area.height;
-		mImageDesc.borderLeft = _getStyle()->border.left;
-		mImageDesc.borderRight = _getStyle()->border.right;
-		mImageDesc.borderTop = _getStyle()->border.top;
-		mImageDesc.borderBottom = _getStyle()->border.bottom;
+		mImageDesc.borderLeft = GetStyleInternal()->border.left;
+		mImageDesc.borderRight = GetStyleInternal()->border.right;
+		mImageDesc.borderTop = GetStyleInternal()->border.top;
+		mImageDesc.borderBottom = GetStyleInternal()->border.bottom;
 		mImageDesc.color = getTint();
 
 		const HSpriteTexture& activeTex = getActiveTexture();
 		if(SpriteTexture::checkIsLoaded(activeTex))
 			mImageDesc.texture = activeTex;
 
-		mImageSprite->update(mImageDesc, (UINT64)_getParentWidget());
+		mImageSprite->update(mImageDesc, (UINT64)GetParentWidgetInternal());
 
 		TEXT_SPRITE_DESC textDesc = getTextDesc();
-		mTextSprite->update(textDesc, (UINT64)_getParentWidget());
+		mTextSprite->update(textDesc, (UINT64)GetParentWidgetInternal());
 
 		ImageSprite* caretSprite = nullptr;
 		if(mCaretShown && gGUIManager().getCaretBlinkState())
@@ -310,7 +310,7 @@ namespace bs
 		return Rect2I();
 	}
 
-	Vector2I GUIInputBox::_getOptimalSize() const
+	Vector2I GUIInputBox::GetOptimalSizeInternal() const
 	{
 		UINT32 imageWidth = 0;
 		UINT32 imageHeight = 0;
@@ -322,19 +322,19 @@ namespace bs
 			imageHeight = activeTex->getHeight();
 		}
 
-		Vector2I contentSize = GUIHelper::calcOptimalContentsSize(mText, *_getStyle(), _getDimensions());
+		Vector2I contentSize = GUIHelper::calcOptimalContentsSize(mText, *GetStyleInternal(), GetDimensionsInternal());
 		UINT32 contentWidth = std::max(imageWidth, (UINT32)contentSize.x);
 		UINT32 contentHeight = std::max(imageHeight, (UINT32)contentSize.y);
 
 		return Vector2I(contentWidth, contentHeight);
 	}
 
-	Vector2I GUIInputBox::_getTextInputOffset() const
+	Vector2I GUIInputBox::GetTextInputOffsetInternal() const
 	{
 		return mTextOffset;	
 	}
 
-	Rect2I GUIInputBox::_getTextInputRect() const
+	Rect2I GUIInputBox::GetTextInputRectInternal() const
 	{
 		Rect2I textBounds = getCachedContentBounds();
 		textBounds.x -= mLayoutData.area.x;
@@ -343,14 +343,14 @@ namespace bs
 		return textBounds;
 	}
 
-	UINT32 GUIInputBox::_getRenderElementDepthRange() const
+	UINT32 GUIInputBox::GetRenderElementDepthRangeInternal() const
 	{
 		return 4;
 	}
 
-	bool GUIInputBox::_hasCustomCursor(const Vector2I position, CursorType& type) const
+	bool GUIInputBox::HasCustomCursorInternal(const Vector2I position, CursorType& type) const
 	{
-		if(_isInBounds(position) && !_isDisabled())
+		if(IsInBoundsInternal(position) && !IsDisabledInternal())
 		{
 			type = CursorType::IBeam;
 			return true;
@@ -382,22 +382,22 @@ namespace bs
 			indexStride, localRenderElementIdx, layoutOffset, clipRect);
 	}
 
-	bool GUIInputBox::_mouseEvent(const GUIMouseEvent& ev)
+	bool GUIInputBox::MouseEventInternal(const GUIMouseEvent& ev)
 	{
 		if(ev.getType() == GUIMouseEventType::MouseOver)
 		{
-			if (!_isDisabled())
+			if (!IsDisabledInternal())
 			{
 				if (!mHasFocus)
 				{
-					Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+					Vector2I origSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 					mState = State::Hover;
-					Vector2I newSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+					Vector2I newSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 
 					if (origSize != newSize)
-						_markLayoutAsDirty();
+						MarkLayoutAsDirtyInternal();
 					else
-						_markContentAsDirty();
+						MarkContentAsDirtyInternal();
 				}
 
 				mIsMouseOver = true;
@@ -407,18 +407,18 @@ namespace bs
 		}
 		else if(ev.getType() == GUIMouseEventType::MouseOut)
 		{
-			if (!_isDisabled())
+			if (!IsDisabledInternal())
 			{
 				if (!mHasFocus)
 				{
-					Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+					Vector2I origSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 					mState = State::Normal;
-					Vector2I newSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+					Vector2I newSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 
 					if (origSize != newSize)
-						_markLayoutAsDirty();
+						MarkLayoutAsDirtyInternal();
 					else
-						_markContentAsDirty();
+						MarkContentAsDirtyInternal();
 				}
 
 				mIsMouseOver = false;
@@ -428,19 +428,19 @@ namespace bs
 		}
 		else if(ev.getType() == GUIMouseEventType::MouseDoubleClick && ev.getButton() == GUIMouseButton::Left)
 		{
-			if (!_isDisabled())
+			if (!IsDisabledInternal())
 			{
 				showSelection(0);
 				gGUIManager().getInputSelectionTool()->selectAll();
 
-				_markContentAsDirty();
+				MarkContentAsDirtyInternal();
 			}
 
 			return true;
 		}
 		else if(ev.getType() == GUIMouseEventType::MouseDown && ev.getButton() == GUIMouseButton::Left)
 		{
-			if (!_isDisabled())
+			if (!IsDisabledInternal())
 			{
 				if (ev.isShiftDown())
 				{
@@ -467,14 +467,14 @@ namespace bs
 					gGUIManager().getInputSelectionTool()->moveSelectionToCaret(gGUIManager().getInputCaretTool()->getCaretPos());
 
 				scrollTextToCaret();
-				_markContentAsDirty();
+				MarkContentAsDirtyInternal();
 			}
 
 			return true;
 		}
 		else if(ev.getType() == GUIMouseEventType::MouseDragStart)
 		{
-			if (!_isDisabled())
+			if (!IsDisabledInternal())
 			{
 				if (!ev.isShiftDown())
 				{
@@ -483,7 +483,7 @@ namespace bs
 					UINT32 caretPos = gGUIManager().getInputCaretTool()->getCaretPos();
 					showSelection(caretPos);
 					gGUIManager().getInputSelectionTool()->selectionDragStart(caretPos);
-					_markContentAsDirty();
+					MarkContentAsDirtyInternal();
 
 					return true;
 				}
@@ -491,21 +491,21 @@ namespace bs
 		}
 		else if(ev.getType() == GUIMouseEventType::MouseDragEnd)
 		{
-			if (!_isDisabled())
+			if (!IsDisabledInternal())
 			{
 				if (!ev.isShiftDown())
 				{
 					mDragInProgress = false;
 
 					gGUIManager().getInputSelectionTool()->selectionDragEnd();
-					_markContentAsDirty();
+					MarkContentAsDirtyInternal();
 					return true;
 				}
 			}
 		}
 		else if(ev.getType() == GUIMouseEventType::MouseDrag)
 		{
-			if (!_isDisabled())
+			if (!IsDisabledInternal())
 			{
 				if (!ev.isShiftDown())
 				{
@@ -517,7 +517,7 @@ namespace bs
 					gGUIManager().getInputSelectionTool()->selectionDragUpdate(gGUIManager().getInputCaretTool()->getCaretPos());
 
 					scrollTextToCaret();
-					_markContentAsDirty();
+					MarkContentAsDirtyInternal();
 					return true;
 				}
 			}
@@ -526,12 +526,12 @@ namespace bs
 		return false;
 	}
 
-	bool GUIInputBox::_textInputEvent(const GUITextInputEvent& ev)
+	bool GUIInputBox::TextInputEventInternal(const GUITextInputEvent& ev)
 	{
-		if (_isDisabled())
+		if (IsDisabledInternal())
 			return false;
 
-		Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+		Vector2I origSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 
 		if(mSelectionShown)
 			deleteSelectedText(true);
@@ -560,31 +560,31 @@ namespace bs
 				onValueChanged(mText);
 		}
 
-		Vector2I newSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+		Vector2I newSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 		if (origSize != newSize)
-			_markLayoutAsDirty();
+			MarkLayoutAsDirtyInternal();
 		else
-			_markContentAsDirty();
+			MarkContentAsDirtyInternal();
 
 		return true;
 	}
 
-	bool GUIInputBox::_commandEvent(const GUICommandEvent& ev)
+	bool GUIInputBox::CommandEventInternal(const GUICommandEvent& ev)
 	{
-		if (_isDisabled())
+		if (IsDisabledInternal())
 			return false;
 
-		bool baseReturn = GUIElement::_commandEvent(ev);
+		bool baseReturn = GUIElement::CommandEventInternal(ev);
 
 		if(ev.getType() == GUICommandEventType::Redraw)
 		{
-			_markContentAsDirty();
+			MarkContentAsDirtyInternal();
 			return true;
 		}
 
 		if(ev.getType() == GUICommandEventType::FocusGained)
 		{
-			Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+			Vector2I origSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 			mState = State::Focused;
 
 			showSelection(0);
@@ -593,18 +593,18 @@ namespace bs
 			mHasFocus = true;
 			mFocusGainedFrame = gTime().getFrameIdx();
 
-			Vector2I newSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+			Vector2I newSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 			if (origSize != newSize)
-				_markLayoutAsDirty();
+				MarkLayoutAsDirtyInternal();
 			else
-				_markContentAsDirty();
+				MarkContentAsDirtyInternal();
 
 			return true;
 		}
 		
 		if(ev.getType() == GUICommandEventType::FocusLost)
 		{
-			Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+			Vector2I origSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 			mState = State::Normal;
 
 			hideCaret();
@@ -612,11 +612,11 @@ namespace bs
 
 			mHasFocus = false;
 
-			Vector2I newSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+			Vector2I newSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 			if (origSize != newSize)
-				_markLayoutAsDirty();
+				MarkLayoutAsDirtyInternal();
 			else
-				_markContentAsDirty();
+				MarkContentAsDirtyInternal();
 
 			return true;
 		}
@@ -625,7 +625,7 @@ namespace bs
 		{
 			if(mNumChars > 0)
 			{
-				Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+				Vector2I origSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 				if(mSelectionShown)
 				{
 					deleteSelectedText();
@@ -668,11 +668,11 @@ namespace bs
 					}
 				}
 
-				Vector2I newSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+				Vector2I newSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 				if (origSize != newSize)
-					_markLayoutAsDirty();
+					MarkLayoutAsDirtyInternal();
 				else
-					_markContentAsDirty();
+					MarkContentAsDirtyInternal();
 			}
 
 			return true;
@@ -682,7 +682,7 @@ namespace bs
 		{
 			if(mNumChars > 0)
 			{
-				Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+				Vector2I origSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 				if(mSelectionShown)
 				{
 					deleteSelectedText();
@@ -720,11 +720,11 @@ namespace bs
 					}
 				}
 
-				Vector2I newSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+				Vector2I newSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 				if (origSize != newSize)
-					_markLayoutAsDirty();
+					MarkLayoutAsDirtyInternal();
 				else
-					_markContentAsDirty();
+					MarkContentAsDirtyInternal();
 			}
 
 			return true;
@@ -749,7 +749,7 @@ namespace bs
 				gGUIManager().getInputCaretTool()->moveCaretLeft();
 
 			scrollTextToCaret();
-			_markContentAsDirty();
+			MarkContentAsDirtyInternal();
 			return true;
 		}
 
@@ -762,7 +762,7 @@ namespace bs
 			gGUIManager().getInputSelectionTool()->moveSelectionToCaret(gGUIManager().getInputCaretTool()->getCaretPos());
 
 			scrollTextToCaret();
-			_markContentAsDirty();
+			MarkContentAsDirtyInternal();
 			return true;
 		}
 
@@ -785,7 +785,7 @@ namespace bs
 				gGUIManager().getInputCaretTool()->moveCaretRight();
 
 			scrollTextToCaret();
-			_markContentAsDirty();
+			MarkContentAsDirtyInternal();
 			return true;
 		}
 
@@ -798,7 +798,7 @@ namespace bs
 			gGUIManager().getInputSelectionTool()->moveSelectionToCaret(gGUIManager().getInputCaretTool()->getCaretPos());
 
 			scrollTextToCaret();
-			_markContentAsDirty();
+			MarkContentAsDirtyInternal();
 			return true;
 		}
 
@@ -813,7 +813,7 @@ namespace bs
 			gGUIManager().getInputCaretTool()->moveCaretUp();
 
 			scrollTextToCaret();
-			_markContentAsDirty();
+			MarkContentAsDirtyInternal();
 			return true;
 		}
 
@@ -826,7 +826,7 @@ namespace bs
 			gGUIManager().getInputSelectionTool()->moveSelectionToCaret(gGUIManager().getInputCaretTool()->getCaretPos());
 
 			scrollTextToCaret();
-			_markContentAsDirty();
+			MarkContentAsDirtyInternal();
 			return true;
 		}
 
@@ -841,7 +841,7 @@ namespace bs
 			gGUIManager().getInputCaretTool()->moveCaretDown();
 
 			scrollTextToCaret();
-			_markContentAsDirty();
+			MarkContentAsDirtyInternal();
 			return true;
 		}
 
@@ -854,7 +854,7 @@ namespace bs
 			gGUIManager().getInputSelectionTool()->moveSelectionToCaret(gGUIManager().getInputCaretTool()->getCaretPos());
 
 			scrollTextToCaret();
-			_markContentAsDirty();
+			MarkContentAsDirtyInternal();
 			return true;
 		}
 
@@ -862,7 +862,7 @@ namespace bs
 		{
 			if (mIsMultiline)
 			{
-				Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+				Vector2I origSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 
 				if (mSelectionShown)
 					deleteSelectedText();
@@ -890,11 +890,11 @@ namespace bs
 						onValueChanged(mText);
 				}
 
-				Vector2I newSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+				Vector2I newSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 				if (origSize != newSize)
-					_markLayoutAsDirty();
+					MarkLayoutAsDirtyInternal();
 				else
-					_markContentAsDirty();
+					MarkContentAsDirtyInternal();
 
 				return true;
 			}
@@ -909,9 +909,9 @@ namespace bs
 		return baseReturn;
 	}
 
-	bool GUIInputBox::_virtualButtonEvent(const GUIVirtualButtonEvent& ev)
+	bool GUIInputBox::VirtualButtonEventInternal(const GUIVirtualButtonEvent& ev)
 	{
-		if (_isDisabled())
+		if (IsDisabledInternal())
 			return false;
 
 		if(ev.getButton() == mCutVB)
@@ -935,7 +935,7 @@ namespace bs
 		{
 			showSelection(0);
 			gGUIManager().getInputSelectionTool()->selectAll();
-			_markContentAsDirty();
+			MarkContentAsDirtyInternal();
 
 			return true;
 		}
@@ -1152,15 +1152,15 @@ namespace bs
 	{
 		TEXT_SPRITE_DESC textDesc;
 		textDesc.text = mText;
-		textDesc.font = _getStyle()->font;
-		textDesc.fontSize = _getStyle()->fontSize;
+		textDesc.font = GetStyleInternal()->font;
+		textDesc.fontSize = GetStyleInternal()->fontSize;
 		textDesc.color = getTint() * getActiveTextColor();
 
 		Rect2I textBounds = getCachedContentBounds();
 		textDesc.width = textBounds.width;
 		textDesc.height = textBounds.height;
-		textDesc.horzAlign = _getStyle()->textHorzAlign;
-		textDesc.vertAlign = _getStyle()->textVertAlign;
+		textDesc.horzAlign = GetStyleInternal()->textHorzAlign;
+		textDesc.vertAlign = GetStyleInternal()->textVertAlign;
 		textDesc.wordWrap = mIsMultiline;
 
 		return textDesc;
@@ -1171,14 +1171,14 @@ namespace bs
 		switch(mState)
 		{
 		case State::Focused:
-			return _getStyle()->focused.texture;
+			return GetStyleInternal()->focused.texture;
 		case State::Hover:
-			return _getStyle()->hover.texture;
+			return GetStyleInternal()->hover.texture;
 		case State::Normal:
-			return _getStyle()->normal.texture;
+			return GetStyleInternal()->normal.texture;
 		}
 
-		return _getStyle()->normal.texture;
+		return GetStyleInternal()->normal.texture;
 	}
 
 	Color GUIInputBox::getActiveTextColor() const
@@ -1186,17 +1186,17 @@ namespace bs
 		switch (mState)
 		{
 		case State::Focused:
-			return _getStyle()->focused.textColor;
+			return GetStyleInternal()->focused.textColor;
 		case State::Hover:
-			return _getStyle()->hover.textColor;
+			return GetStyleInternal()->hover.textColor;
 		case State::Normal:
-			return _getStyle()->normal.textColor;
+			return GetStyleInternal()->normal.textColor;
 		}
 
-		return _getStyle()->normal.textColor;
+		return GetStyleInternal()->normal.textColor;
 	}
 
-	SPtr<GUIContextMenu> GUIInputBox::_getContextMenu() const
+	SPtr<GUIContextMenu> GUIInputBox::GetContextMenuInternal() const
 	{
 		static SPtr<GUIContextMenu> contextMenu;
 
@@ -1213,7 +1213,7 @@ namespace bs
 			contextMenu->setLocalizedName("Paste", HString("Paste"));
 		}
 
-		if (!_isDisabled())
+		if (!IsDisabledInternal())
 			return contextMenu;
 
 		return nullptr;
@@ -1221,16 +1221,16 @@ namespace bs
 
 	void GUIInputBox::cutText()
 	{
-		Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+		Vector2I origSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 
 		copyText();
 		deleteSelectedText();
 
-		Vector2I newSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+		Vector2I newSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 		if (origSize != newSize)
-			_markLayoutAsDirty();
+			MarkLayoutAsDirtyInternal();
 		else
-			_markContentAsDirty();
+			MarkContentAsDirtyInternal();
 	}
 
 	void GUIInputBox::copyText()
@@ -1258,7 +1258,7 @@ namespace bs
 
 		if(filterOkay)
 		{
-			Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+			Vector2I origSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 			insertString(charIdx, textInClipboard);
 
 			UINT32 numChars = UTF8::count(textInClipboard);
@@ -1267,11 +1267,11 @@ namespace bs
 
 			scrollTextToCaret();
 
-			Vector2I newSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+			Vector2I newSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 			if (origSize != newSize)
-				_markLayoutAsDirty();
+				MarkLayoutAsDirtyInternal();
 			else
-				_markContentAsDirty();
+				MarkContentAsDirtyInternal();
 
 			if(!onValueChanged.empty())
 				onValueChanged(mText);

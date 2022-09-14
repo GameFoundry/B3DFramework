@@ -18,7 +18,7 @@ namespace bs
 
 	MonoObject*ScriptColorGradientKey::box(const __ColorGradientKeyInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__ColorGradientKeyInterop ScriptColorGradientKey::unbox(MonoObject* value)

@@ -64,15 +64,15 @@ namespace bs
 		 *  @{
 		 */
 
-		/** @copydoc GUIElementContainer::_getOptimalSize */
-		virtual Vector2I _getOptimalSize() const override;
+		/** @copydoc GUIElementContainer::GetOptimalSizeInternal */
+		virtual Vector2I GetOptimalSizeInternal() const override;
 
 		/** @} */
 	protected:
 		GUIProgressBar(const String& styleName, const GUIDimensions& dimensions);
 
 		/** @copydoc GUIElementContainer::_updateLayoutInternal */
-		virtual void _updateLayoutInternal(const GUILayoutData& data) override;
+		virtual void UpdateLayoutInternalInternal(const GUILayoutData& data) override;
 
 		/** @copydoc GUIElementContainer::styleUpdated */
 		void styleUpdated() override;

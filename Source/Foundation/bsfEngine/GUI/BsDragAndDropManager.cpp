@@ -42,7 +42,7 @@ namespace bs
 		Platform::captureMouse(*gCoreApplication().getPrimaryWindow());
 	}
 
-	void DragAndDropManager::_update()
+	void DragAndDropManager::UpdateInternal()
 	{
 		if(!mIsDragInProgress)
 			return;

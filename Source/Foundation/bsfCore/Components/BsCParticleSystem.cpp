@@ -93,7 +93,7 @@ namespace bs
 		if (mInternal == nullptr)
 		{
 			mInternal = ParticleSystem::create();
-			gSceneManager()._bindActor(mInternal, sceneObject());
+			gSceneManager().BindActorInternal(mInternal, sceneObject());
 		}
 
 		mInternal->setSettings(mSettings);
@@ -110,14 +110,14 @@ namespace bs
 			mEmitters = mInternal->getEmitters();
 			mEvolvers = mInternal->getEvolvers();
 
-			gSceneManager()._unbindActor(mInternal);
+			gSceneManager().UnbindActorInternal(mInternal);
 		}
 
 		// This should release the last reference and destroy the internal object
 		mInternal = nullptr;
 	}
 
-	bool CParticleSystem::_togglePreviewMode(bool enabled)
+	bool CParticleSystem::TogglePreviewModeInternal(bool enabled)
 	{
 		bool isRunning = SceneManager::instance().isRunning();
 

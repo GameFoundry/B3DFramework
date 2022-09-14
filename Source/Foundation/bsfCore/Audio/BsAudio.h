@@ -71,7 +71,7 @@ namespace bs
 		 */
 
 		/** Called once per frame. Queues streaming audio requests. */
-		virtual void _update();
+		virtual void UpdateInternal();
 
 		/** @} */
 	protected:

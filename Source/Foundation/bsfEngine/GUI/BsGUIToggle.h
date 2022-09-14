@@ -123,10 +123,10 @@ namespace bs
 		static SPtr<GUIToggleGroup> createToggleGroup(bool allowAllOff = false);
 
 		/**	Checks the toggle, making it active. */
-		void toggleOn() { _toggleOn(false); }
+		void toggleOn() { ToggleOnInternal(false); }
 
 		/**	Unchecks the toggle, making it inactive. */
-		void toggleOff() { _toggleOff(false); }
+		void toggleOff() { ToggleOffInternal(false); }
 
 		/**	Checks is the toggle currently on. */
 		bool isToggled() const { return mIsToggled; }
@@ -140,16 +140,16 @@ namespace bs
 		 */
 
 		/** @copydoc GUIButtonBase::_getElementType */
-		ElementType _getElementType() const override { return ElementType::Toggle; }
+		ElementType GetElementTypeInternal() const override { return ElementType::Toggle; }
 
 		/** Sets a toggle group of the toggle button. Toggling one button in a group will automatically untoggle others. */
-		void _setToggleGroup(SPtr<GUIToggleGroup> toggleGroup);
+		void SetToggleGroupInternal(SPtr<GUIToggleGroup> toggleGroup);
 
 		/**	Checks the toggle, making it active and optionally triggering the onToggled event. */
-		virtual void _toggleOn(bool triggerEvent);
+		virtual void ToggleOnInternal(bool triggerEvent);
 
 		/**	Unchecks the toggle, making it inactive and optionally triggering the onToggled event. */
-		virtual void _toggleOff(bool triggerEvent);
+		virtual void ToggleOffInternal(bool triggerEvent);
 
 		/** @} */
 	protected:
@@ -160,10 +160,10 @@ namespace bs
 			SPtr<GUIToggleGroup> toggleGroup, const GUIDimensions& dimensions);
 
 		/** @copydoc GUIButtonBase::_mouseEvent */
-		bool _mouseEvent(const GUIMouseEvent& ev) override;
+		bool MouseEventInternal(const GUIMouseEvent& ev) override;
 
 		/** @copydoc GUIButtonBase::_commandEvent */
-		bool _commandEvent(const GUICommandEvent& ev) override;
+		bool CommandEventInternal(const GUICommandEvent& ev) override;
 
 	protected:
 		SPtr<GUIToggleGroup> mToggleGroup;

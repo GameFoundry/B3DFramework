@@ -37,14 +37,14 @@ namespace bs
 		~ProfilingManager();
 
 		/** Called every frame. */
-		void _update();
+		void UpdateInternal();
 
 		/**
 		 * Called every frame from the core thread.
 		 * 			
 		 * @note	Core thread only.
 		 */
-		void _updateCore();
+		void UpdateCoreInternal();
 
 		/**
 		 * Returns a profiler report for the specified frame, for the specified thread.

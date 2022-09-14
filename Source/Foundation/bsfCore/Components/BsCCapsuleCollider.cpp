@@ -56,10 +56,10 @@ namespace bs
 
 		if (mInternal != nullptr)
 		{
-			_getInternal()->setHalfHeight(clampedHalfHeight);
+			GetInternalInternal()->setHalfHeight(clampedHalfHeight);
 
 			if (mParent != nullptr)
-				mParent->_updateMassDistribution();
+				mParent->UpdateMassDistributionInternal();
 		}
 	}
 
@@ -73,10 +73,10 @@ namespace bs
 
 		if (mInternal != nullptr)
 		{
-			_getInternal()->setRadius(clampedRadius);
+			GetInternalInternal()->setRadius(clampedRadius);
 
 			if (mParent != nullptr)
-				mParent->_updateMassDistribution();
+				mParent->UpdateMassDistributionInternal();
 		}
 	}
 
@@ -88,7 +88,7 @@ namespace bs
 		SPtr<Collider> collider = CapsuleCollider::create(*scene->getPhysicsScene(), mRadius, mHalfHeight,
 			tfrm.getPosition(), tfrm.getRotation());
 
-		collider->_setOwner(PhysicsOwnerType::Component, this);
+		collider->SetOwnerInternal(PhysicsOwnerType::Component, this);
 		return collider;
 	}
 

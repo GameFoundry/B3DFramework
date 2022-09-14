@@ -49,7 +49,7 @@ namespace bs
 
 		__PARTICLE_ROTATION_DESCInterop interop__output;
 		interop__output = ScriptPARTICLE_ROTATION_DESC::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptPARTICLE_ROTATION_DESC::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptPARTICLE_ROTATION_DESC::getMetaData()->scriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptParticleRotation::Internal_create(MonoObject* managedInstance, __PARTICLE_ROTATION_DESCInterop* desc)

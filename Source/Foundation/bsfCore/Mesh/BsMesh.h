@@ -230,21 +230,21 @@ namespace bs
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
-		static SPtr<Mesh> _createPtr(const MESH_DESC& desc);
+		static SPtr<Mesh> CreatePtrInternal(const MESH_DESC& desc);
 
 		/**
 		 * @copydoc	create(const SPtr<MeshData>&, const MESH_DESC&)
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
-		static SPtr<Mesh> _createPtr(const SPtr<MeshData>& initialData, const MESH_DESC& desc);
+		static SPtr<Mesh> CreatePtrInternal(const SPtr<MeshData>& initialData, const MESH_DESC& desc);
 
 		/**
 		 * @copydoc	create(const SPtr<MeshData>&, int, DrawOperationType)
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
-		static SPtr<Mesh> _createPtr(const SPtr<MeshData>& initialData, int usage = MU_STATIC,
+		static SPtr<Mesh> CreatePtrInternal(const SPtr<MeshData>& initialData, int usage = MU_STATIC,
 			DrawOperationType drawOp = DOT_TRIANGLE_LIST);
 
 		/**

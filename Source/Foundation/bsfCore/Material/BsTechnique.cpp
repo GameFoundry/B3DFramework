@@ -92,7 +92,7 @@ namespace bs
 			passes);
 
 		SPtr<ct::Technique> techniquePtr = bs_shared_ptr<ct::Technique>(technique);
-		techniquePtr->_setThisPtr(techniquePtr);
+		techniquePtr->SetThisPtrInternal(techniquePtr);
 
 		return techniquePtr;
 	}
@@ -107,7 +107,7 @@ namespace bs
 	{
 		Technique* technique = new (bs_alloc<Technique>()) Technique(language, {}, ShaderVariation(), passes);
 		SPtr<Technique> techniquePtr = bs_core_ptr<Technique>(technique);
-		techniquePtr->_setThisPtr(techniquePtr);
+		techniquePtr->SetThisPtrInternal(techniquePtr);
 		techniquePtr->initialize();
 
 		return techniquePtr;
@@ -118,7 +118,7 @@ namespace bs
 	{
 		Technique* technique = new (bs_alloc<Technique>()) Technique(language, tags, variation, passes);
 		SPtr<Technique> techniquePtr = bs_core_ptr<Technique>(technique);
-		techniquePtr->_setThisPtr(techniquePtr);
+		techniquePtr->SetThisPtrInternal(techniquePtr);
 		techniquePtr->initialize();
 
 		return techniquePtr;
@@ -128,7 +128,7 @@ namespace bs
 	{
 		Technique* technique = new (bs_alloc<Technique>()) Technique();
 		SPtr<Technique> techniquePtr = bs_core_ptr<Technique>(technique);
-		techniquePtr->_setThisPtr(techniquePtr);
+		techniquePtr->SetThisPtrInternal(techniquePtr);
 
 		return techniquePtr;
 	}
@@ -154,7 +154,7 @@ namespace bs
 	{
 		Technique* technique = new (bs_alloc<Technique>()) Technique(language, {}, ShaderVariation(), passes);
 		SPtr<Technique> techniquePtr = bs_shared_ptr<Technique>(technique);
-		techniquePtr->_setThisPtr(techniquePtr);
+		techniquePtr->SetThisPtrInternal(techniquePtr);
 		techniquePtr->initialize();
 
 		return techniquePtr;
@@ -165,7 +165,7 @@ namespace bs
 	{
 		Technique* technique = new (bs_alloc<Technique>()) Technique(language, tags, variation, passes);
 		SPtr<Technique> techniquePtr = bs_shared_ptr<Technique>(technique);
-		techniquePtr->_setThisPtr(techniquePtr);
+		techniquePtr->SetThisPtrInternal(techniquePtr);
 		techniquePtr->initialize();
 
 		return techniquePtr;

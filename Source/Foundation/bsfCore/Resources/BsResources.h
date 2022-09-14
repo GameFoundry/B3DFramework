@@ -342,23 +342,23 @@ namespace bs
 		 *
 		 * @note	Internal method used primarily be resource factory methods.
 		 */
-		HResource _createResourceHandle(const SPtr<Resource>& obj);
+		HResource CreateResourceHandleInternal(const SPtr<Resource>& obj);
 
 		/**
 		 * Creates a new resource handle from a resource pointer, with a user defined UUID.
 		 *
 		 * @note	Internal method used primarily be resource factory methods.
 		 */
-		HResource _createResourceHandle(const SPtr<Resource>& obj, const UUID& UUID);
+		HResource CreateResourceHandleInternal(const SPtr<Resource>& obj, const UUID& UUID);
 
 		/** Returns an existing handle for the specified UUID if one exists, or creates a new one. */
-		HResource _getResourceHandle(const UUID& uuid);
+		HResource GetResourceHandleInternal(const UUID& uuid);
 
 		/**
 		 * Same as save() except it saves the resource without registering it in the default manifest, requiring a handle,
 		 * or checking for overwrite.
 		 */
-		void _save(const SPtr<Resource>& resource, const Path& filePath, bool compress);
+		void SaveInternal(const SPtr<Resource>& resource, const Path& filePath, bool compress);
 
 		/** @} */
 	private:

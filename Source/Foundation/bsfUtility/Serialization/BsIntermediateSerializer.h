@@ -38,7 +38,7 @@ namespace bs
 		 * @p arrayIdx is -1 then the entire array will be encoded, otherwise just a single array field will. If the
 		 * field is not array the value of @p arrayIdx is not relevant.
 		 */
-		static SPtr<SerializedInstance> _encodeField(IReflectable* object, RTTITypeBase* rtti, RTTIField* field, UINT32 arrayIdx,
+		static SPtr<SerializedInstance> EncodeFieldInternal(IReflectable* object, RTTITypeBase* rtti, RTTIField* field, UINT32 arrayIdx,
 			SerializedObjectEncodeFlags flags, SerializationContext* context, FrameAlloc* alloc);
 
 		/** @} */

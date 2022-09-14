@@ -209,13 +209,13 @@ namespace bs
 		 */
 
 		/** Returns the Rigidbody implementation wrapped by this component. */
-		Rigidbody* _getInternal() const { return mInternal.get(); }
+		Rigidbody* GetInternalInternal() const { return mInternal.get(); }
 
 		/** Sets that joint that this rigidbody is attached to. Allows the rigidbody to notify the joint when it moves. */
-		void _setJoint(const HJoint& joint) { mParentJoint = joint; }
+		void SetJointInternal(const HJoint& joint) { mParentJoint = joint; }
 
 		/** @copydoc Rigidbody::updateMassDistribution */
-		void _updateMassDistribution();
+		void UpdateMassDistributionInternal();
 
 		/** @} */
 	protected:

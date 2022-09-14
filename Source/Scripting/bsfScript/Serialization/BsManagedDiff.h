@@ -19,7 +19,7 @@ namespace bs
 	{
 	protected:
 		/** @copydoc IDiff::generateDiff(IReflectable*, IReflectable*, ObjectMap&, bool) */
-		SPtr<SerializedObject> _generateDiff(IReflectable* orgObj, IReflectable* newObj,
+		SPtr<SerializedObject> GenerateDiffInternal(IReflectable* orgObj, IReflectable* newObj,
 			ObjectMap& objectMap, bool replicableOnly) override;
 
 		/**

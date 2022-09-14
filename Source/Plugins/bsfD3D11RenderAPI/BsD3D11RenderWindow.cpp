@@ -64,7 +64,7 @@ namespace bs
 	HWND D3D11RenderWindow::getHWnd() const
 	{
 		blockUntilCoreInitialized();
-		return getCore()->_getWindowHandle();
+		return getCore()->GetWindowHandleInternal();
 	}
 
 	void D3D11RenderWindow::syncProperties()
@@ -82,7 +82,7 @@ namespace bs
 		RENDER_WINDOW_DESC desc = mDesc;
 		SPtr<ct::CoreObject> coreObj = bs_shared_ptr_new<ct::D3D11RenderWindow>(desc, mWindowId,
 			d3d11rs->getPrimaryDevice(), d3d11rs->getDXGIFactory());
-		coreObj->_setThisPtr(coreObj);
+		coreObj->SetThisPtrInternal(coreObj);
 
 		return coreObj;
 	}
@@ -139,7 +139,7 @@ namespace bs
 		windowDesc.toolWindow = mDesc.toolWindow;
 		windowDesc.creationParams = this;
 		windowDesc.modal = mDesc.modal;
-		windowDesc.wndProc = &Win32Platform::_win32WndProc;
+		windowDesc.wndProc = &Win32Platform::Win32WndProcInternal;
 
 #ifdef BS_STATIC_LIB
 		windowDesc.module = GetModuleHandle(NULL);
@@ -475,7 +475,7 @@ namespace bs
 		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
 	}
 
-	HWND D3D11RenderWindow::_getWindowHandle() const
+	HWND D3D11RenderWindow::GetWindowHandleInternal() const
 	{
 		return mWindow->getHWnd();
 	}
@@ -624,14 +624,14 @@ namespace bs
 		SAFE_RELEASE(backbuffer);
 	}
 
-	void D3D11RenderWindow::_windowMovedOrResized()
+	void D3D11RenderWindow::WindowMovedOrResizedInternal()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
 		if (!mWindow)
 			return;
 
-		mWindow->_windowMovedOrResized();
+		mWindow->WindowMovedOrResizedInternal();
 
 		RenderWindowProperties& props = mProperties;
 

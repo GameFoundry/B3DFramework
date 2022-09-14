@@ -471,7 +471,7 @@ namespace bs
 
 	NetworkObject::~NetworkObject()
 	{
-		Network::instance()._notifyNetworkObjectDestroyed(this);
+		Network::instance().NotifyNetworkObjectDestroyedInternal(this);
 	}
 
 	NetworkObjectState NetworkObject::getNetworkState() const
@@ -491,7 +491,7 @@ namespace bs
 		if(mState != NotReplicated || !Network::instance().isHost())
 			return;
 
-		Network::instance()._notifyNetworkObjectSpawned(this);
+		Network::instance().NotifyNetworkObjectSpawnedInternal(this);
 		mState = Replicated;
 		// TODO
 	}
@@ -501,7 +501,7 @@ namespace bs
 		if(mState != Replicated || !Network::instance().isHost())
 			return;
 
-		Network::instance()._notifyNetworkObjectDespawned(this);
+		Network::instance().NotifyNetworkObjectDespawnedInternal(this);
 		mState = NotReplicated;
 		// TODO
 	}
@@ -691,7 +691,7 @@ namespace bs
 	PacketChannel CHANNEL_RELIABLE_ORDERED = { PacketPriority::Medium, PacketReliability::Reliable, PacketOrdering::Ordered };
 	PacketChannel CHANNEL_UNRELIABLE_ORDERED = { PacketPriority::Medium, PacketReliability::Unreliable, PacketOrdering::Ordered };
 
-	void Network::_notifyNetworkObjectSpawned(NetworkObject* object)
+	void Network::NotifyNetworkObjectSpawnedInternal(NetworkObject* object)
 	{
 		object->mNetworkUUID = UUIDGenerator::generateRandom();
 		mActions.emplace_back(object->mNetworkUUID, Spawning);
@@ -706,7 +706,7 @@ namespace bs
 		// change the tick rate. The same applies to other _notify functions.
 	}
 
-	void Network::_notifyNetworkObjectDespawned(NetworkObject* object)
+	void Network::NotifyNetworkObjectDespawnedInternal(NetworkObject* object)
 	{
 		object->mNetworkUUID = UUID::EMPTY;
 		mActions.emplace_back(object->mNetworkUUID, Despawning);
@@ -714,10 +714,10 @@ namespace bs
 		mNetworkObjects[object->mNetworkUUID].obj = nullptr;
 	}
 
-	void Network::_notifyNetworkObjectDestroyed(NetworkObject* object)
+	void Network::NotifyNetworkObjectDestroyedInternal(NetworkObject* object)
 	{
 		if(object->mState == NetworkObject::Replicated)
-			_notifyNetworkObjectDespawned(object);
+			NotifyNetworkObjectDespawnedInternal(object);
 		else
 			mNetworkObjects[object->mNetworkUUID].obj = nullptr;
 	}

@@ -61,15 +61,15 @@ namespace bs
 
 	HGUISkin GUISkin::create()
 	{
-		SPtr<GUISkin> newSkin = _createPtr();
+		SPtr<GUISkin> newSkin = CreatePtrInternal();
 
-		return static_resource_cast<GUISkin>(gResources()._createResourceHandle(newSkin));
+		return static_resource_cast<GUISkin>(gResources().CreateResourceHandleInternal(newSkin));
 	}
 
-	SPtr<GUISkin> GUISkin::_createPtr()
+	SPtr<GUISkin> GUISkin::CreatePtrInternal()
 	{
 		SPtr<GUISkin> newSkin = bs_core_ptr<GUISkin>(new (bs_alloc<GUISkin>()) GUISkin());
-		newSkin->_setThisPtr(newSkin);
+		newSkin->SetThisPtrInternal(newSkin);
 		newSkin->initialize();
 
 		return newSkin;

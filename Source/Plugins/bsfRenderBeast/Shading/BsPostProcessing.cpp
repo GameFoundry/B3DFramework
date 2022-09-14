@@ -123,7 +123,7 @@ namespace bs { namespace ct
 		mParams->getLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutputTex", mOutputTex);
 	}
 
-	void EyeAdaptHistogramMat::_initDefines(ShaderDefines& defines)
+	void EyeAdaptHistogramMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		defines.set("THREADGROUP_SIZE_X", THREAD_GROUP_SIZE_X);
 		defines.set("THREADGROUP_SIZE_Y", THREAD_GROUP_SIZE_Y);
@@ -248,7 +248,7 @@ namespace bs { namespace ct
 		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gHistogramTex", mReducedHistogramTex);
 	}
 
-	void EyeAdaptationMat::_initDefines(ShaderDefines& defines)
+	void EyeAdaptationMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		defines.set("THREADGROUP_SIZE_X", EyeAdaptHistogramMat::THREAD_GROUP_SIZE_X);
 		defines.set("THREADGROUP_SIZE_Y", EyeAdaptHistogramMat::THREAD_GROUP_SIZE_Y);
@@ -417,7 +417,7 @@ namespace bs { namespace ct
 			mParams->getLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutputTex", mOutputTex);
 	}
 
-	void CreateTonemapLUTMat::_initDefines(ShaderDefines& defines)
+	void CreateTonemapLUTMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		defines.set("LUT_SIZE", LUT_SIZE);
 	}
@@ -520,7 +520,7 @@ namespace bs { namespace ct
 			mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gColorLUT", mColorLUT);
 	}
 
-	void TonemappingMat::_initDefines(ShaderDefines& defines)
+	void TonemappingMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		defines.set("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE);
 	}
@@ -787,7 +787,7 @@ namespace bs { namespace ct
 		return get(getVariation<true>());
 	}
 
-	void ChromaticAberrationMat::_initDefines(ShaderDefines& defines)
+	void ChromaticAberrationMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		defines.set("MAX_SAMPLES", MAX_SAMPLES);
 	}
@@ -835,7 +835,7 @@ namespace bs { namespace ct
 			mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gAdditiveTex", mAdditiveTexture);
 	}
 
-	void GaussianBlurMat::_initDefines(ShaderDefines& defines)
+	void GaussianBlurMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		defines.set("MAX_NUM_SAMPLES", MAX_BLUR_SAMPLES);
 	}
@@ -1325,7 +1325,7 @@ namespace bs { namespace ct
 		mTileIndexBuffer->unlock();
 	}
 
-	void BokehDOFMat::_initDefines(ShaderDefines& defines)
+	void BokehDOFMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		defines.set("QUADS_PER_TILE", QUADS_PER_TILE);
 	}

@@ -32,7 +32,7 @@ namespace bs
 		bool isPaused() const override { return mIsPaused; }
 
 		/** @copydoc Audio::_update */
-		void _update() override;
+		void UpdateInternal() override;
 
 		/** @copydoc Audio::setActiveDevice */
 		void setActiveDevice(const AudioDevice& device) override;
@@ -51,37 +51,37 @@ namespace bs
 		 */
 
 		/** Checks is a specific OpenAL extension supported. */
-		bool _isExtensionSupported(const String& extension) const;
+		bool IsExtensionSupportedInternal(const String& extension) const;
 
 		/** Registers a new AudioListener. Should be called on listener creation. */
-		void _registerListener(OAAudioListener* listener);
+		void RegisterListenerInternal(OAAudioListener* listener);
 
 		/** Unregisters an existing AudioListener. Should be called before listener destruction. */
-		void _unregisterListener(OAAudioListener* listener);
+		void UnregisterListenerInternal(OAAudioListener* listener);
 
 		/** Registers a new AudioSource. Should be called on source creation. */
-		void _registerSource(OAAudioSource* source);
+		void RegisterSourceInternal(OAAudioSource* source);
 
 		/** Unregisters an existing AudioSource. Should be called before source destruction. */
-		void _unregisterSource(OAAudioSource* source);
+		void UnregisterSourceInternal(OAAudioSource* source);
 
 		/** Returns a list of all OpenAL contexts. Each listener has its own context. */
-		const Vector<ALCcontext*>& _getContexts() const { return mContexts; }
+		const Vector<ALCcontext*>& GetContextsInternal() const { return mContexts; }
 
 		/** Returns an OpenAL context assigned to the provided listener. */
-		ALCcontext* _getContext(const OAAudioListener* listener) const;
+		ALCcontext* GetContextInternal(const OAAudioListener* listener) const;
 
 		/**
 		 * Returns optimal format for the provided number of channels and bit depth. It is assumed the user has checked if
 		 * extensions providing these formats are actually available.
 		 */
-		INT32 _getOpenALBufferFormat(UINT32 numChannels, UINT32 bitDepth);
+		INT32 GetOpenALBufferFormatInternal(UINT32 numChannels, UINT32 bitDepth);
 
 		/**
 		 * Writes provided samples into the OpenAL buffer with the provided ID. If the provided format is not supported the
 		 * samples will first be converted into a valid format.
 		 */
-		void _writeToOpenALBuffer(UINT32 bufferId, UINT8* samples, const AudioDataInfo& info);
+		void WriteToOpenALBufferInternal(UINT32 bufferId, UINT8* samples, const AudioDataInfo& info);
 
 		/** @} */
 

@@ -83,7 +83,7 @@ namespace bs
 				}
 				else if (rtti_is_of_type<ShaderImportOptions>(importOptions))
 				{
-					ShaderDefines defines = RendererMaterialManager::_getDefines(relativePath);
+					ShaderDefines defines = RendererMaterialManager::GetDefinesInternal(relativePath);
 
 					SPtr<ShaderImportOptions> shaderImportOptions =
 						std::static_pointer_cast<ShaderImportOptions>(importOptions);
@@ -107,8 +107,8 @@ namespace bs
 
 			outputPath.setFilename("sprite_" + fileName + ".asset");
 
-			SPtr<SpriteTexture> spriteTexPtr = SpriteTexture::_createPtr(texture);
-			HResource spriteTex = gResources()._createResourceHandle(spriteTexPtr, UUID);
+			SPtr<SpriteTexture> spriteTexPtr = SpriteTexture::CreatePtrInternal(texture);
+			HResource spriteTex = gResources().CreateResourceHandleInternal(spriteTexPtr, UUID);
 
 			Resources::instance().save(spriteTex, outputPath, true, compress);
 			manifest->registerResource(spriteTex.getUUID(), outputPath);
@@ -122,11 +122,11 @@ namespace bs
 
 			outputPath.setFilename("sprite_" + fileName + ".asset");
 
-			SPtr<SpriteTexture> spriteTexPtr = SpriteTexture::_createPtr(texture);
+			SPtr<SpriteTexture> spriteTexPtr = SpriteTexture::CreatePtrInternal(texture);
 			spriteTexPtr->setAnimation(animation);
 			spriteTexPtr->setAnimationPlayback(playback);
 
-			HResource spriteTex = gResources()._createResourceHandle(spriteTexPtr, UUID);
+			HResource spriteTex = gResources().CreateResourceHandleInternal(spriteTexPtr, UUID);
 
 			Resources::instance().save(spriteTex, outputPath, true, compress);
 			manifest->registerResource(spriteTex.getUUID(), outputPath);
@@ -288,8 +288,8 @@ namespace bs
 
 		auto saveTexture = [&](auto& pixelData, auto& path, std::string& uuid)
 		{
-			SPtr<Texture> texturePtr = Texture::_createPtr(pixelData);
-			HResource texture = gResources()._createResourceHandle(texturePtr, UUID(uuid.c_str()));
+			SPtr<Texture> texturePtr = Texture::CreatePtrInternal(pixelData);
+			HResource texture = gResources().CreateResourceHandleInternal(texturePtr, UUID(uuid.c_str()));
 
 			Resources::instance().save(texture, path, true, compress);
 			manifest->registerResource(texture.getUUID(), path);

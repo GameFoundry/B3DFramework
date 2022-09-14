@@ -28,7 +28,7 @@ namespace bs
 
 	}
 
-	void ScriptObjectBase::_onManagedInstanceDeleted(bool assemblyRefresh)
+	void ScriptObjectBase::OnManagedInstanceDeletedInternal(bool assemblyRefresh)
 	{
 		bs_delete(this);
 	}

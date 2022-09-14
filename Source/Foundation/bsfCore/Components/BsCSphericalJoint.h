@@ -43,7 +43,7 @@ namespace bs
 		 */
 
 		/**	Returns the spherical joint that this component wraps. */
-		SphericalJoint* _getInternal() const { return static_cast<SphericalJoint*>(mInternal.get()); }
+		SphericalJoint* GetInternalInternal() const { return static_cast<SphericalJoint*>(mInternal.get()); }
 
 		/** @} */
 

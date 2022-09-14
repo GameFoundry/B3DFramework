@@ -30,7 +30,7 @@ namespace bs
 		void destroy(bool destroyPanel = true);
 
 		/** @copydoc ScriptObjectBase::_onManagedInstanceDeleted */
-		void _onManagedInstanceDeleted(bool assemblyRefresh) override;
+		void OnManagedInstanceDeletedInternal(bool assemblyRefresh) override;
 
 		SPtr<GUIWidget> mGUIWidget;
 		ScriptGUILayout* mPanel;

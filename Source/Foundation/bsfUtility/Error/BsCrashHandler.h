@@ -56,22 +56,22 @@ namespace bs
 		/** Constructs and starts the module. */
 		static void startUp(const CrashHandlerSettings& settings = CrashHandlerSettings())
 		{
-			if(_instance() == nullptr)
-				_instance() = bs_new<CrashHandler>(settings);
+			if(InstanceInternal() == nullptr)
+				InstanceInternal() = bs_new<CrashHandler>(settings);
 		}
 
 		/** Shuts down this module and frees any resources it is using. */
 		static void shutDown()
 		{
-			if(_instance() != nullptr)
+			if(InstanceInternal() != nullptr)
 			{
-				bs_delete(_instance());
-				_instance() = nullptr;
+				bs_delete(InstanceInternal());
+				InstanceInternal() = nullptr;
 			}
 		}
 
 		/** Returns a reference to the module instance. */
-		static CrashHandler& instance() { return *_instance(); }
+		static CrashHandler& instance() { return *InstanceInternal(); }
 
 		/**
 		 * Records a crash with a custom error message.
@@ -122,7 +122,7 @@ namespace bs
 		static String getCrashTimestamp();
 
 		/** Returns a singleton instance of this module. */
-		static CrashHandler*& _instance() { static CrashHandler* inst = nullptr; return inst; }
+		static CrashHandler*& InstanceInternal() { static CrashHandler* inst = nullptr; return inst; }
 
 		/** Handling customization callbacks */
 		CrashHandlerSettings mSettings;

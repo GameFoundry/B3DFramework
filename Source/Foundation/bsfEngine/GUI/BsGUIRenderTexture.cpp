@@ -71,7 +71,7 @@ namespace bs
 			setTexture(SpriteTexture::create(HTexture()));
 		}
 
-		_markLayoutAsDirty();
+		MarkLayoutAsDirtyInternal();
 	}
 
 	void GUIRenderTexture::updateRenderElementsInternal()
@@ -84,7 +84,7 @@ namespace bs
 		mDesc.transparent = mTransparent;
 		mDesc.color = getTint();
 
-		mImageSprite->update(mDesc, (UINT64)_getParentWidget());
+		mImageSprite->update(mDesc, (UINT64)GetParentWidgetInternal());
 
 		// Populate GUI render elements from the sprites
 		{

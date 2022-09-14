@@ -18,7 +18,7 @@ namespace bs
 
 	MonoObject*ScriptLimitCommon::box(const __LimitCommonInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__LimitCommonInterop ScriptLimitCommon::unbox(MonoObject* value)

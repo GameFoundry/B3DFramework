@@ -38,7 +38,7 @@ namespace bs
 			editorScript = scriptIO->editorScript;
 		}
 			
-		SPtr<ScriptCode> scriptCode = ScriptCode::_createPtr(textData, editorScript);
+		SPtr<ScriptCode> scriptCode = ScriptCode::CreatePtrInternal(textData, editorScript);
 
 		const String fileName = filePath.getFilename(false);
 		scriptCode->setName(fileName);

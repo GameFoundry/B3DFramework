@@ -46,10 +46,10 @@ namespace bs
 		void initialize(GUIElementBase* element);
 
 		/** @copydoc ScriptObjectBase::_onManagedInstanceDeleted */
-		void _onManagedInstanceDeleted(bool assemblyRefresh) override;
+		void OnManagedInstanceDeletedInternal(bool assemblyRefresh) override;
 
 		/** @copydoc ScriptObjectBase::_clearManagedInstance */
-		void _clearManagedInstance() override;
+		void ClearManagedInstanceInternal() override;
 
 		/**	Triggered when the focus changes for the underlying GUIElementBase. */
 		static void onFocusChanged(ScriptGUIElementBaseTBase* thisPtr, bool focus);

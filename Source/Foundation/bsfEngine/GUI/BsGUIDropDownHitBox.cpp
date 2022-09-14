@@ -60,9 +60,9 @@ namespace bs
 		}
 	}
 
-	bool GUIDropDownHitBox::_commandEvent(const GUICommandEvent& ev)
+	bool GUIDropDownHitBox::CommandEventInternal(const GUICommandEvent& ev)
 	{
-		bool processed = GUIElementContainer::_commandEvent(ev);
+		bool processed = GUIElementContainer::CommandEventInternal(ev);
 
 		if(ev.getType() == GUICommandEventType::FocusGained)
 		{
@@ -82,9 +82,9 @@ namespace bs
 		return processed;
 	}
 
-	bool GUIDropDownHitBox::_mouseEvent(const GUIMouseEvent& ev)
+	bool GUIDropDownHitBox::MouseEventInternal(const GUIMouseEvent& ev)
 	{
-		bool processed = GUIElementContainer::_mouseEvent(ev);
+		bool processed = GUIElementContainer::MouseEventInternal(ev);
 
 		if(mCaptureMouseOver)
 		{
@@ -121,7 +121,7 @@ namespace bs
 		return processed;
 	}
 
-	bool GUIDropDownHitBox::_isInBounds(const Vector2I position) const
+	bool GUIDropDownHitBox::IsInBoundsInternal(const Vector2I position) const
 	{
 		for(auto& bound : mBounds)
 		{

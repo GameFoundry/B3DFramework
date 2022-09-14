@@ -168,30 +168,30 @@ namespace bs
 
 		/**
 		 * Called every frame. Detects button state changes and prepares callback events to trigger via a call to
-		 * _triggerCallbacks().
+		* TriggerCallbacksInternal().
 		 */
-		void _update();
+		void UpdateInternal();
 
 		/** Triggers any queued input event callbacks. */
-		void _triggerCallbacks();
+		void TriggerCallbacksInternal();
 
 		/** Returns internal, platform specific privata data. */
-		InputPrivateData* _getPrivateData() const { return mPlatformData; }
+		InputPrivateData* GetPrivateDataInternal() const { return mPlatformData; }
 
 		/** Returns a handle to the window that is currently receiving input. */
-		UINT64 _getWindowHandle() const { return mWindowHandle; }
+		UINT64 GetWindowHandleInternal() const { return mWindowHandle; }
 
 		/** Called by Mouse when mouse movement is detected. */
-		void _notifyMouseMoved(INT32 relX, INT32 relY, INT32 relZ);
+		void NotifyMouseMovedInternal(INT32 relX, INT32 relY, INT32 relZ);
 
 		/** Called by any of the raw input devices when analog axis movement is detected. */
-		void _notifyAxisMoved(UINT32 gamepadIdx, UINT32 axisIdx, INT32 value);
+		void NotifyAxisMovedInternal(UINT32 gamepadIdx, UINT32 axisIdx, INT32 value);
 
 		/** Called by any of the raw input devices when a button is pressed. */
-		void _notifyButtonPressed(UINT32 deviceIdx, ButtonCode code, UINT64 timestamp);
+		void NotifyButtonPressedInternal(UINT32 deviceIdx, ButtonCode code, UINT64 timestamp);
 
 		/** Called by any of the raw input devices when a button is released. */
-		void _notifyButtonReleased(UINT32 deviceIdx, ButtonCode code, UINT64 timestamp);
+		void NotifyButtonReleasedInternal(UINT32 deviceIdx, ButtonCode code, UINT64 timestamp);
 
 		/** @} */
 

@@ -61,11 +61,11 @@ namespace bs
 
 	void GUIDrawGroups::add(GUIElement* element)
 	{
-		const SmallVector<GUIRenderElement, 4> & renderElements = element->_getRenderElements();
+		const SmallVector<GUIRenderElement, 4> & renderElements = element->GetRenderElementsInternal();
 
 		GUIGroupElement& groupElement = mElements[element];
 		groupElement.element = element;
-		groupElement.bounds = element->_getClippedBounds();
+		groupElement.bounds = element->GetClippedBoundsInternal();
 		groupElement.groups.resize(renderElements.size());
 
 		for (UINT32 i = 0; i < renderElements.size(); i++)
@@ -77,10 +77,10 @@ namespace bs
 	void GUIDrawGroups::add(GUIGroupElement& groupElement, UINT32 renderElementIdx)
 	{
 		GUIElement* element = groupElement.element;
-		const SmallVector<GUIRenderElement, 4> & renderElements = element->_getRenderElements();
+		const SmallVector<GUIRenderElement, 4> & renderElements = element->GetRenderElementsInternal();
 
 		const GUIRenderElement& renderElement = renderElements[renderElementIdx];
-		UINT32 elemDepth = element->_getDepth() + renderElement.depth;
+		UINT32 elemDepth = element->GetDepthInternal() + renderElement.depth;
 
 		// Groups are expected to be sorted by minDepth
 		for (UINT32 j = 0; j < (UINT32)mDrawGroups.size(); j++)
@@ -96,10 +96,10 @@ namespace bs
 	void GUIDrawGroups::add(GUIGroupElement& groupElement, UINT32 renderElementIdx, UINT32 groupIdx)
 	{
 		GUIElement* element = groupElement.element;
-		const SmallVector<GUIRenderElement, 4> & renderElements = element->_getRenderElements();
+		const SmallVector<GUIRenderElement, 4> & renderElements = element->GetRenderElementsInternal();
 
 		const GUIRenderElement& renderElement = renderElements[renderElementIdx];
-		UINT32 elemDepth = element->_getDepth() + renderElement.depth;
+		UINT32 elemDepth = element->GetDepthInternal() + renderElement.depth;
 
 		SpriteMaterial* spriteMaterial = renderElement.material;
 		assert(spriteMaterial != nullptr);
@@ -109,7 +109,7 @@ namespace bs
 		{
 			group.cachedElements.push_back(GUIGroupRenderElement(element, renderElementIdx));
 
-			Rect2I bounds = element->_getClippedBounds();
+			Rect2I bounds = element->GetClippedBoundsInternal();
 			group.bounds.encapsulate(bounds);
 			group.needsRedraw = true;
 			group.dirtyTexture = true;
@@ -157,7 +157,7 @@ namespace bs
 			return;
 		
 		GUIElement* element = groupElement.element;
-		const SmallVector<GUIRenderElement, 4>& renderElements = element->_getRenderElements();
+		const SmallVector<GUIRenderElement, 4>& renderElements = element->GetRenderElementsInternal();
 
 		auto iterFind = std::find_if(mDrawGroups.begin(), mDrawGroups.end(),
 			[drawGroupId = groupElement.groups[renderElementIdx]](const GUIDrawGroup& group) { return group.id == drawGroupId; });
@@ -173,7 +173,7 @@ namespace bs
 	void GUIDrawGroups::remove(GUIGroupElement& groupElement, UINT32 renderElementIdx, UINT32 groupIdx)
 	{
 		GUIElement* element = groupElement.element;
-		const SmallVector<GUIRenderElement, 4>& renderElements = element->_getRenderElements();
+		const SmallVector<GUIRenderElement, 4>& renderElements = element->GetRenderElementsInternal();
 		GUIDrawGroup& group = mDrawGroups[groupIdx];
 
 		for(auto iter = group.cachedElements.begin(); iter != group.cachedElements.end();)
@@ -240,7 +240,7 @@ namespace bs
 
 			shouldRebuildMeshes = true;
 			
-			const SmallVector<GUIRenderElement, 4> & renderElements = element->_getRenderElements();
+			const SmallVector<GUIRenderElement, 4> & renderElements = element->GetRenderElementsInternal();
 			GUIGroupElement& groupElement = iterFind->second;
 
 			bool dirtyBounds = false;
@@ -258,7 +258,7 @@ namespace bs
 				}
 
 				// If bounds changed, rebuild the bounds of the draw groups
-				Rect2I bounds = element->_getClippedBounds();
+				Rect2I bounds = element->GetClippedBoundsInternal();
 				if (groupElement.bounds != bounds)
 				{
 					dirtyBounds = true;
@@ -288,7 +288,7 @@ namespace bs
 					bool needsGroupChange = false;
 					if((entry.second & DirtyMesh) != 0)
 					{
-						UINT32 depth = element->_getDepth() + renderElement.depth;
+						UINT32 depth = element->GetDepthInternal() + renderElement.depth;
 
 						// If same as min-depth, no group change is necessary in any case
 						if (depth != group.minDepth)
@@ -477,8 +477,8 @@ namespace bs
 			// Make a list of all GUI elements, sorted from farthest to nearest (highest depth to lowest)
 			auto elemComp = [](const GUIGroupRenderElement& a, const GUIGroupRenderElement& b)
 			{
-				UINT32 aDepth = a.element->_getDepth() + a.element->_getRenderElements()[a.renderElementIdx].depth;
-				UINT32 bDepth = b.element->_getDepth() + b.element->_getRenderElements()[b.renderElementIdx].depth;
+				UINT32 aDepth = a.element->GetDepthInternal() + a.element->GetRenderElementsInternal()[a.renderElementIdx].depth;
+				UINT32 bDepth = b.element->GetDepthInternal() + b.element->GetRenderElementsInternal()[b.renderElementIdx].depth;
 
 				// Compare pointers just to differentiate between two elements with the same depth, their order doesn't really matter, but std::set
 				// requires all elements to be unique
@@ -497,7 +497,7 @@ namespace bs
 				FrameSet<GUIGroupRenderElement, std::function<bool(const GUIGroupRenderElement&, const GUIGroupRenderElement&)>> allElements(elemComp);
 				for (auto& element : entry.cachedElements)
 				{
-					if (!element.element->_isVisible())
+					if (!element.element->IsVisibleInternal())
 						continue;
 
 					allElements.insert(element);
@@ -505,7 +505,7 @@ namespace bs
 
 				for (auto& element : entry.nonCachedElements)
 				{
-					if (!element.element->_isVisible())
+					if (!element.element->IsVisibleInternal())
 						continue;
 
 					allElements.insert(element);
@@ -518,10 +518,10 @@ namespace bs
 				{
 					GUIElement* guiElem = elem.element;
 					UINT32 renderElemIdx = elem.renderElementIdx;
-					const GUIRenderElement& renderElem = elem.element->_getRenderElements()[renderElemIdx];
+					const GUIRenderElement& renderElem = elem.element->GetRenderElementsInternal()[renderElemIdx];
 
-					UINT32 elemDepth = guiElem->_getDepth() + renderElem.depth;
-					Rect2I bounds = guiElem->_getClippedBounds();
+					UINT32 elemDepth = guiElem->GetDepthInternal() + renderElem.depth;
+					Rect2I bounds = guiElem->GetClippedBoundsInternal();
 
 					SpriteMaterial* spriteMaterial = renderElem.material;
 					const SpriteMaterialInfo& matInfo = *renderElem.matInfo;
@@ -713,7 +713,7 @@ namespace bs
 							totalNumVertices[typeIdx], totalNumIndices[typeIdx],
 							matElement.renderElementIdx);
 
-						const GUIRenderElement& renderElement = matElement.element->_getRenderElements()[matElement.renderElementIdx];
+						const GUIRenderElement& renderElement = matElement.element->GetRenderElementsInternal()[matElement.renderElementIdx];
 
 						UINT32 indexStart = indexOffset[typeIdx];
 						UINT32 indexEnd = indexStart + renderElement.numIndices;
@@ -734,10 +734,10 @@ namespace bs
 			}
 
 			if (meshData[0])
-				mTriangleMesh = Mesh::_createPtr(meshData[0], MU_STATIC, DOT_TRIANGLE_LIST);
+				mTriangleMesh = Mesh::CreatePtrInternal(meshData[0], MU_STATIC, DOT_TRIANGLE_LIST);
 
 			if (meshData[1])
-				mLineMesh = Mesh::_createPtr(meshData[1], MU_STATIC, DOT_LINE_LIST);
+				mLineMesh = Mesh::CreatePtrInternal(meshData[1], MU_STATIC, DOT_LINE_LIST);
 		}
 
 		bs_frame_clear();
@@ -759,7 +759,7 @@ namespace bs
 		auto it = std::partition(group.cachedElements.begin(), group.cachedElements.end(),
 			[depth](const GUIGroupRenderElement& x)
 		{
-				UINT32 elemDepth = x.element->_getDepth() + x.element->_getRenderElements()[x.renderElementIdx].depth;
+				UINT32 elemDepth = x.element->GetDepthInternal() + x.element->GetRenderElementsInternal()[x.renderElementIdx].depth;
 				return elemDepth < depth;
 		});
 
@@ -844,10 +844,10 @@ namespace bs
 
 		for(auto& entry : group.cachedElements)
 		{
-			if (!entry.element->_isVisible())
+			if (!entry.element->IsVisibleInternal())
 				continue;
 			
-			Rect2I elementBounds = entry.element->_getClippedBounds();
+			Rect2I elementBounds = entry.element->GetClippedBoundsInternal();
 			if (!boundsSet)
 			{
 				bounds = elementBounds;
@@ -867,7 +867,7 @@ namespace bs
 	}
 
 	GUIWidget::GUIWidget(const HCamera& camera)
-		: mCamera(camera->_getCamera()), mDrawGroups(this)
+		: mCamera(camera->GetCameraInternal()), mDrawGroups(this)
 	{
 		construct(mCamera);
 	}
@@ -887,13 +887,13 @@ namespace bs
 		GUIManager::instance().registerWidget(this);
 
 		mPanel = GUIPanel::create();
-		mPanel->_changeParentWidget(this);
+		mPanel->ChangeParentWidgetInternal(this);
 		updateRootPanel();
 	}
 
 	GUIWidget::~GUIWidget()
 	{
-		_destroy();
+		DestroyInternal();
 	}
 
 	SPtr<GUIWidget> GUIWidget::create(const SPtr<Camera>& camera)
@@ -906,7 +906,7 @@ namespace bs
 		return bs_shared_ptr(new (bs_alloc<GUIWidget>()) GUIWidget(camera));
 	}
 
-	void GUIWidget::_destroy()
+	void GUIWidget::DestroyInternal()
 	{
 		if (mPanel != nullptr)
 		{
@@ -940,7 +940,7 @@ namespace bs
 		return nullptr;
 	}
 
-	void GUIWidget::_updateTransform(const HSceneObject& parent)
+	void GUIWidget::UpdateTransformInternal(const HSceneObject& parent)
 	{
 		// If the widgets parent scene object moved, we need to mark it as dirty
 		// as the GUIManager batching relies on object positions, so it needs to be updated.
@@ -973,7 +973,7 @@ namespace bs
 		mTransform = parent->getWorldMatrix();
 	}
 
-	void GUIWidget::_updateRT()
+	void GUIWidget::UpdateRTInternal()
 	{
 		SPtr<RenderTarget> rt;
 		UINT64 newRTId = 0;
@@ -991,7 +991,7 @@ namespace bs
 		}
 	}
 
-	void GUIWidget::_updateLayout()
+	void GUIWidget::UpdateLayoutInternal()
 	{
 		// Check if render target size changed and update if needed
 		// Note: Purposely not relying to the RenderTarget::onResized callback, as it will trigger /before/ Input events.
@@ -1004,7 +1004,7 @@ namespace bs
 			UINT32 width = area.width;
 			UINT32 height = area.height;
 
-			const Rect2I& panelArea = mPanel->_getLayoutData().area;
+			const Rect2I& panelArea = mPanel->GetLayoutDataInternal().area;
 			if(panelArea.width != width || panelArea.height != height)
 			{
 				updateRootPanel();
@@ -1023,31 +1023,31 @@ namespace bs
 			GUIElementBase* currentElem = todo.top();
 			todo.pop();
 
-			if (currentElem->_isDirty())
+			if (currentElem->IsDirtyInternal())
 			{
-				GUIElementBase* updateParent = currentElem->_getUpdateParent();
+				GUIElementBase* updateParent = currentElem->GetUpdateParentInternal();
 				assert(updateParent != nullptr || currentElem == mPanel);
 
 				if (updateParent != nullptr)
-					_updateLayout(updateParent);
+					UpdateLayoutInternal(updateParent);
 				else // Must be root panel
-					_updateLayout(mPanel);
+					UpdateLayoutInternal(mPanel);
 			}
 			else
 			{
-				UINT32 numChildren = currentElem->_getNumChildren();
+				UINT32 numChildren = currentElem->GetNumChildrenInternal();
 				for (UINT32 i = 0; i < numChildren; i++)
-					todo.push(currentElem->_getChild(i));
+					todo.push(currentElem->GetChildInternal(i));
 			}
 		}
 
 		bs_frame_clear();
 	}
 
-	void GUIWidget::_updateLayout(GUIElementBase* elem)
+	void GUIWidget::UpdateLayoutInternal(GUIElementBase* elem)
 	{
-		GUIElementBase* parent = elem->_getParent();
-		bool isPanelOptimized = parent != nullptr && parent->_getType() == GUIElementBase::Type::Panel;
+		GUIElementBase* parent = elem->GetParentInternal();
+		bool isPanelOptimized = parent != nullptr && parent->GetTypeInternal() == GUIElementBase::Type::Panel;
 
 		GUIElementBase* updateParent = nullptr;
 
@@ -1063,21 +1063,21 @@ namespace bs
 			GUIPanel* panel = static_cast<GUIPanel*>(updateParent);
 
 			GUIElementBase* dirtyElement = elem;
-			dirtyElement->_updateOptimalLayoutSizes();
+			dirtyElement->UpdateOptimalLayoutSizesInternal();
 
-			LayoutSizeRange elementSizeRange = panel->_getElementSizeRange(dirtyElement);
-			Rect2I elementArea = panel->_getElementArea(panel->_getLayoutData().area, dirtyElement, elementSizeRange);
+			LayoutSizeRange elementSizeRange = panel->GetElementSizeRangeInternal(dirtyElement);
+			Rect2I elementArea = panel->GetElementAreaInternal(panel->GetLayoutDataInternal().area, dirtyElement, elementSizeRange);
 
-			GUILayoutData childLayoutData = panel->_getLayoutData();
-			panel->_updateDepthRange(childLayoutData);
+			GUILayoutData childLayoutData = panel->GetLayoutDataInternal();
+			panel->UpdateDepthRangeInternal(childLayoutData);
 			childLayoutData.area = elementArea;
 
-			panel->_updateChildLayout(dirtyElement, childLayoutData);
+			panel->UpdateChildLayoutInternal(dirtyElement, childLayoutData);
 		}
 		else
 		{
-			GUILayoutData childLayoutData = updateParent->_getLayoutData();
-			updateParent->_updateLayout(childLayoutData);
+			GUILayoutData childLayoutData = updateParent->GetLayoutDataInternal();
+			updateParent->UpdateLayoutInternal(childLayoutData);
 		}
 		
 		// Mark dirty contents
@@ -1091,22 +1091,22 @@ namespace bs
 				GUIElementBase* currentElem = todo.top();
 				todo.pop();
 
-				_markContentDirty(currentElem);
-				currentElem->_markAsClean();
+				MarkContentDirtyInternal(currentElem);
+				currentElem->MarkAsCleanInternal();
 
-				UINT32 numChildren = currentElem->_getNumChildren();
+				UINT32 numChildren = currentElem->GetNumChildrenInternal();
 				for (UINT32 i = 0; i < numChildren; i++)
-					todo.push(currentElem->_getChild(i));
+					todo.push(currentElem->GetChildInternal(i));
 			}
 		}
 		bs_frame_clear();
 	}
 
-	void GUIWidget::_registerElement(GUIElementBase* elem)
+	void GUIWidget::RegisterElementInternal(GUIElementBase* elem)
 	{
-		assert(elem != nullptr && !elem->_isDestroyed());
+		assert(elem != nullptr && !elem->IsDestroyedInternal());
 
-		if (elem->_getType() == GUIElementBase::Type::Element)
+		if (elem->GetTypeInternal() == GUIElementBase::Type::Element)
 		{
 			mElements.push_back(static_cast<GUIElement*>(elem));
 			mWidgetIsDirty = true;
@@ -1118,7 +1118,7 @@ namespace bs
 		}
 	}
 
-	void GUIWidget::_unregisterElement(GUIElementBase* elem)
+	void GUIWidget::UnregisterElementInternal(GUIElementBase* elem)
 	{
 		assert(elem != nullptr);
 
@@ -1130,7 +1130,7 @@ namespace bs
 			mWidgetIsDirty = true;
 		}
 
-		if (elem->_getType() == GUIElementBase::Type::Element)
+		if (elem->GetTypeInternal() == GUIElementBase::Type::Element)
 		{
 			mDirtyContents.erase(static_cast<GUIElement*>(elem));
 
@@ -1139,17 +1139,17 @@ namespace bs
 		}
 	}
 
-	void GUIWidget::_markMeshDirty(GUIElementBase* elem)
+	void GUIWidget::MarkMeshDirtyInternal(GUIElementBase* elem)
 	{
 		mWidgetIsDirty = true;
 
-		if (elem->_getType() == GUIElementBase::Type::Element)
+		if (elem->GetTypeInternal() == GUIElementBase::Type::Element)
 			mDrawGroups.notifyMeshDirty(static_cast<GUIElement*>(elem));
 	}
 
-	void GUIWidget::_markContentDirty(GUIElementBase* elem)
+	void GUIWidget::MarkContentDirtyInternal(GUIElementBase* elem)
 	{
-		if (elem->_getType() == GUIElementBase::Type::Element)
+		if (elem->GetTypeInternal() == GUIElementBase::Type::Element)
 		{
 			auto guiElement = static_cast<GUIElement*>(elem);
 			
@@ -1163,7 +1163,7 @@ namespace bs
 		mSkin = skin;
 
 		for(auto& element : mElements)
-			element->_refreshStyle();
+			element->RefreshStyleInternal();
 	}
 
 	const GUISkin& GUIWidget::getSkin() const
@@ -1215,7 +1215,7 @@ namespace bs
 				mDirtyContentsTemp.swap(mDirtyContents);
 
 				for (auto& dirtyElement : mDirtyContentsTemp)
-					dirtyElement->_updateRenderElements();
+					dirtyElement->UpdateRenderElementsInternal();
 
 				mDirtyContentsTemp.clear();
 			}
@@ -1246,11 +1246,11 @@ namespace bs
 	void GUIWidget::updateBounds() const
 	{
 		if(!mElements.empty())
-			mBounds = mElements[0]->_getClippedBounds();
+			mBounds = mElements[0]->GetClippedBoundsInternal();
 
 		for(auto& elem : mElements)
 		{
-			Rect2I elemBounds = elem->_getClippedBounds();
+			Rect2I elemBounds = elem->GetClippedBoundsInternal();
 			mBounds.encapsulate(elemBounds);
 		}
 	}
@@ -1279,7 +1279,7 @@ namespace bs
 		mPanel->setWidth(width);
 		mPanel->setHeight(height);
 
-		mPanel->_setLayoutData(layoutData);
-		mPanel->_markLayoutAsDirty();
+		mPanel->SetLayoutDataInternal(layoutData);
+		mPanel->MarkLayoutAsDirtyInternal();
 	}
 }

@@ -41,7 +41,7 @@ namespace bs
 		 * Internal method. Should only be used for very specific purposes, like deserialization, as it requires additional
 		 * manual initialization that is not required normally.
 		 */
-		SPtr<Texture> _createEmpty();
+		SPtr<Texture> CreateEmptyInternal();
 
 		/**
 		 * Creates a new RenderTexture and automatically generates a single color surface and (optionally) a depth/stencil

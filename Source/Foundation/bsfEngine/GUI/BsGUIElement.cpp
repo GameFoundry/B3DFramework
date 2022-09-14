@@ -25,7 +25,7 @@ namespace bs
 		// is assigned to a parent (that's when the active GUI skin becomes known)
 	}
 
-	void GUIElement::_updateRenderElements()
+	void GUIElement::UpdateRenderElementsInternal()
 	{
 		updateRenderElementsInternal();
 	}
@@ -44,20 +44,20 @@ namespace bs
 	void GUIElement::setStyle(const String& styleName)
 	{
 		mStyleName = styleName;
-		_refreshStyle();
+		RefreshStyleInternal();
 	}
 
-	bool GUIElement::_mouseEvent(const GUIMouseEvent& ev)
+	bool GUIElement::MouseEventInternal(const GUIMouseEvent& ev)
 	{
 		return false;
 	}
 
-	bool GUIElement::_textInputEvent(const GUITextInputEvent& ev)
+	bool GUIElement::TextInputEventInternal(const GUITextInputEvent& ev)
 	{
 		return false;
 	}
 
-	bool GUIElement::_commandEvent(const GUICommandEvent& ev)
+	bool GUIElement::CommandEventInternal(const GUICommandEvent& ev)
 	{
 		if (ev.getType() == GUICommandEventType::FocusGained)
 		{
@@ -73,7 +73,7 @@ namespace bs
 		return false;
 	}
 
-	bool GUIElement::_virtualButtonEvent(const GUIVirtualButtonEvent& ev)
+	bool GUIElement::VirtualButtonEventInternal(const GUIVirtualButtonEvent& ev)
 	{
 		return false;
 	}
@@ -82,34 +82,34 @@ namespace bs
 	{
 		mColor = color;
 
-		_markContentAsDirty();
+		MarkContentAsDirtyInternal();
 	}
 
-	void GUIElement::_setElementDepth(UINT8 depth)
+	void GUIElement::SetElementDepthInternal(UINT8 depth)
 	{
 		mLayoutData.depth = depth | (mLayoutData.depth & 0xFFFFFF00);
-		_markMeshAsDirty();
+		MarkMeshAsDirtyInternal();
 	}
 
-	UINT8 GUIElement::_getElementDepth() const
+	UINT8 GUIElement::GetElementDepthInternal() const
 	{
 		return mLayoutData.depth & 0xFF;
 	}
 
-	void GUIElement::_setLayoutData(const GUILayoutData& data)
+	void GUIElement::SetLayoutDataInternal(const GUILayoutData& data)
 	{
 		// Preserve element depth as that is not controlled by layout but is stored
 		// there only for convenience
-		UINT8 elemDepth = _getElementDepth();
-		GUIElementBase::_setLayoutData(data);
-		_setElementDepth(elemDepth);
+		UINT8 elemDepth = GetElementDepthInternal();
+		GUIElementBase::SetLayoutDataInternal(data);
+		SetElementDepthInternal(elemDepth);
 
 		updateClippedBounds();
 	}
 
-	void GUIElement::_changeParentWidget(GUIWidget* widget)
+	void GUIElement::ChangeParentWidgetInternal(GUIWidget* widget)
 	{
-		if (_isDestroyed())
+		if (IsDestroyedInternal())
 			return;
 
 		bool widgetChanged = false;
@@ -117,24 +117,24 @@ namespace bs
 		{
 			// Unregister from current widget's nav-group
 			if(!mNavGroup && mParentWidget)
-				mParentWidget->_getDefaultNavGroup()->unregisterElement(this);
+				mParentWidget->GetDefaultNavGroupInternal()->unregisterElement(this);
 
 			widgetChanged = true;
 		}
 
-		GUIElementBase::_changeParentWidget(widget);
+		GUIElementBase::ChangeParentWidgetInternal(widget);
 
 		if(widgetChanged)
 		{
 			// Register with the new widget's nav-group
 			if(!mNavGroup && mParentWidget)
-				mParentWidget->_getDefaultNavGroup()->registerElement(this);
+				mParentWidget->GetDefaultNavGroupInternal()->registerElement(this);
 
-			_refreshStyle();
+			RefreshStyleInternal();
 		}
 	}
 
-	const RectOffset& GUIElement::_getPadding() const
+	const RectOffset& GUIElement::GetPaddingInternal() const
 	{
 		if(mStyle != nullptr)
 			return mStyle->padding;
@@ -148,7 +148,7 @@ namespace bs
 
 	void GUIElement::setNavGroup(const SPtr<GUINavGroup>& navGroup)
 	{
-		SPtr<GUINavGroup> currentNavGroup = _getNavGroup();
+		SPtr<GUINavGroup> currentNavGroup = GetNavGroupInternal();
 		if(currentNavGroup == navGroup)
 			return;
 
@@ -163,18 +163,18 @@ namespace bs
 
 	void GUIElement::setNavGroupIndex(INT32 index)
 	{
-		SPtr<GUINavGroup> navGroup = _getNavGroup();
+		SPtr<GUINavGroup> navGroup = GetNavGroupInternal();
 		if(navGroup != nullptr)
 			navGroup->setIndex(this, index);
 	}
 
-	SPtr<GUINavGroup> GUIElement::_getNavGroup() const
+	SPtr<GUINavGroup> GUIElement::GetNavGroupInternal() const
 	{
 		if(mNavGroup)
 			return mNavGroup;
 
 		if(mParentWidget)
-			return mParentWidget->_getDefaultNavGroup();
+			return mParentWidget->GetDefaultNavGroupInternal();
 
 		return nullptr;
 	}
@@ -196,12 +196,12 @@ namespace bs
 		if (isFixedBefore != isFixedAfter)
 			refreshChildUpdateParents();
 
-		_markLayoutAsDirty();
+		MarkLayoutAsDirtyInternal();
 	}
 
 	Rect2I GUIElement::getCachedVisibleBounds() const
 	{
-		Rect2I bounds = _getClippedBounds();
+		Rect2I bounds = GetClippedBoundsInternal();
 		
 		bounds.x += mStyle->margins.left;
 		bounds.y += mStyle->margins.top;
@@ -243,32 +243,32 @@ namespace bs
 
 	Color GUIElement::getTint() const
 	{
-		if (!_isDisabled())
+		if (!IsDisabledInternal())
 			return mColor;
 
 		return mColor * DISABLED_COLOR;
 	}
 
-	bool GUIElement::_isInBounds(const Vector2I position) const
+	bool GUIElement::IsInBoundsInternal(const Vector2I position) const
 	{
 		Rect2I contentBounds = getCachedVisibleBounds();
 
 		return contentBounds.contains(position);
 	}
 
-	SPtr<GUIContextMenu> GUIElement::_getContextMenu() const
+	SPtr<GUIContextMenu> GUIElement::GetContextMenuInternal() const
 	{
-		if (!_isDisabled())
+		if (!IsDisabledInternal())
 			return mContextMenu;
 
 		return nullptr;
 	}
 
-	void GUIElement::_refreshStyle()
+	void GUIElement::RefreshStyleInternal()
 	{
 		const GUIElementStyle* newStyle = nullptr;
-		if(_getParentWidget() != nullptr && !mStyleName.empty())
-			newStyle = _getParentWidget()->getSkin().getStyle(mStyleName);
+		if(GetParentWidgetInternal() != nullptr && !mStyleName.empty())
+			newStyle = GetParentWidgetInternal()->getSkin().getStyle(mStyleName);
 		else
 			newStyle = &GUISkin::DefaultStyle;
 
@@ -285,7 +285,7 @@ namespace bs
 				refreshChildUpdateParents();
 
 			styleUpdated();
-			_markLayoutAsDirty();
+			MarkLayoutAsDirtyInternal();
 		}
 	}
 
@@ -304,12 +304,12 @@ namespace bs
 		if(element->mIsDestroyed)
 			return;
 
-		SPtr<GUINavGroup> currentNavGroup = element->_getNavGroup();
+		SPtr<GUINavGroup> currentNavGroup = element->GetNavGroupInternal();
 		if(currentNavGroup)
 			currentNavGroup->unregisterElement(element);
 
 		if (element->mParentElement != nullptr)
-			element->mParentElement->_unregisterChildElement(element);
+			element->mParentElement->UnregisterChildElementInternal(element);
 
 		element->mIsDestroyed = true;
 

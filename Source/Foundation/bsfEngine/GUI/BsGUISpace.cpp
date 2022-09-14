@@ -7,13 +7,13 @@ namespace bs
 	GUIFixedSpace::~GUIFixedSpace()
 	{
 		if (mParentElement != nullptr)
-			mParentElement->_unregisterChildElement(this);
+			mParentElement->UnregisterChildElementInternal(this);
 	}
 
-	LayoutSizeRange GUIFixedSpace::_calculateLayoutSizeRange() const
+	LayoutSizeRange GUIFixedSpace::CalculateLayoutSizeRangeInternal() const
 	{
 		LayoutSizeRange range;
-		range.optimal = _getOptimalSize();
+		range.optimal = GetOptimalSizeInternal();
 		range.min = range.optimal;
 		range.max = range.optimal;
 
@@ -33,13 +33,13 @@ namespace bs
 	GUIFlexibleSpace::~GUIFlexibleSpace()
 	{
 		if (mParentElement != nullptr)
-			mParentElement->_unregisterChildElement(this);
+			mParentElement->UnregisterChildElementInternal(this);
 	}
 
-	LayoutSizeRange GUIFlexibleSpace::_calculateLayoutSizeRange() const
+	LayoutSizeRange GUIFlexibleSpace::CalculateLayoutSizeRangeInternal() const
 	{
 		LayoutSizeRange range;
-		range.optimal = _getOptimalSize();
+		range.optimal = GetOptimalSizeInternal();
 		range.min = range.optimal;
 		range.max = range.optimal;
 

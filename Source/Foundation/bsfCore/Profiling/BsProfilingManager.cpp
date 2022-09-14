@@ -22,7 +22,7 @@ namespace bs
 			bs_deleteN<ProfilerReport, ProfilerAlloc>(mSavedCoreReports, NUM_SAVED_FRAMES);
 	}
 
-	void ProfilingManager::_update()
+	void ProfilingManager::UpdateInternal()
 	{
 #if BS_PROFILING_ENABLED
 		mSavedSimReports[mNextSimReportIdx].cpuReport = gProfilerCPU().generateReport();
@@ -33,7 +33,7 @@ namespace bs
 #endif
 	}
 
-	void ProfilingManager::_updateCore()
+	void ProfilingManager::UpdateCoreInternal()
 	{
 #if BS_PROFILING_ENABLED
 		Lock lock(mSync);

@@ -25,7 +25,7 @@ namespace bs
 		bs_delete(mTimer);
 	}
 
-	void Time::_update()
+	void Time::UpdateInternal()
 	{
 		UINT64 currentFrameTime = mTimer->getMicroseconds();
 
@@ -45,7 +45,7 @@ namespace bs
 		mCurrentFrame.fetch_add(1, std::memory_order_relaxed);
 	}
 	
-	UINT32 Time::_getFixedUpdateStep(UINT64& step)
+	UINT32 Time::GetFixedUpdateStepInternal(UINT64& step)
 	{
 		const UINT64 currentTime = getTimePrecise();
 
@@ -96,7 +96,7 @@ namespace bs
 		return 0;
 	}
 
-	void Time::_advanceFixedUpdate(UINT64 step)
+	void Time::AdvanceFixedUpdateInternal(UINT64 step)
 	{
 		mLastFixedUpdateTime += step;
 	}

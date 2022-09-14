@@ -103,15 +103,15 @@ namespace bs
 
 	HAnimationClip AnimationClip::create(bool isAdditive)
 	{
-		return static_resource_cast<AnimationClip>(gResources()._createResourceHandle(
-			_createPtr(bs_shared_ptr_new<AnimationCurves>(), isAdditive)));
+		return static_resource_cast<AnimationClip>(gResources().CreateResourceHandleInternal(
+			CreatePtrInternal(bs_shared_ptr_new<AnimationCurves>(), isAdditive)));
 	}
 
 	HAnimationClip AnimationClip::create(const SPtr<AnimationCurves>& curves, bool isAdditive, UINT32 sampleRate,
 		const SPtr<RootMotion>& rootMotion)
 	{
-		return static_resource_cast<AnimationClip>(gResources()._createResourceHandle(
-			_createPtr(curves, isAdditive, sampleRate, rootMotion)));
+		return static_resource_cast<AnimationClip>(gResources().CreateResourceHandleInternal(
+			CreatePtrInternal(curves, isAdditive, sampleRate, rootMotion)));
 	}
 
 	SPtr<AnimationClip> AnimationClip::createEmpty()
@@ -119,18 +119,18 @@ namespace bs
 		AnimationClip* rawPtr = new (bs_alloc<AnimationClip>()) AnimationClip();
 
 		SPtr<AnimationClip> newClip = bs_core_ptr<AnimationClip>(rawPtr);
-		newClip->_setThisPtr(newClip);
+		newClip->SetThisPtrInternal(newClip);
 
 		return newClip;
 	}
 
-	SPtr<AnimationClip> AnimationClip::_createPtr(const SPtr<AnimationCurves>& curves, bool isAdditive, UINT32 sampleRate,
+	SPtr<AnimationClip> AnimationClip::CreatePtrInternal(const SPtr<AnimationCurves>& curves, bool isAdditive, UINT32 sampleRate,
 		const SPtr<RootMotion>& rootMotion)
 	{
 		AnimationClip* rawPtr = new (bs_alloc<AnimationClip>()) AnimationClip(curves, isAdditive, sampleRate, rootMotion);
 
 		SPtr<AnimationClip> newClip = bs_core_ptr<AnimationClip>(rawPtr);
-		newClip->_setThisPtr(newClip);
+		newClip->SetThisPtrInternal(newClip);
 		newClip->initialize();
 
 		return newClip;

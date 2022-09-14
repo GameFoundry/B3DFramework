@@ -81,7 +81,7 @@ namespace bs
 				}
 
 				alGenBuffers(1, &mBufferId);
-				gOAAudio()._writeToOpenALBuffer(mBufferId, sampleBuffer, info);
+				gOAAudio().WriteToOpenALBufferInternal(mBufferId, sampleBuffer, info);
 
 				mStreamData = nullptr;
 				mStreamOffset = 0;

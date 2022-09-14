@@ -16,7 +16,7 @@ namespace bs
 
 	MonoObject*ScriptAnimationEvent::box(const __AnimationEventInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__AnimationEventInterop ScriptAnimationEvent::unbox(MonoObject* value)

@@ -96,7 +96,7 @@ namespace bs
 
 		SPtr<IReflectable> newRTTIObject() override
 		{
-			return Font::_createEmpty();
+			return Font::CreateEmptyInternal();
 		}
 
 	protected:

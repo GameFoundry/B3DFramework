@@ -114,16 +114,16 @@ namespace bs
 		static void unregisterDropTarget(DropTarget* target);
 
 		/** Triggered by Cocoa window when mouse cursor enters its content area while dragging. */
-		static bool _notifyDragEntered(UINT32 windowId, const Vector2I& position);
+		static bool NotifyDragEnteredInternal(UINT32 windowId, const Vector2I& position);
 
 		/** Triggered by Cocoa window when mouse cursor moves within its content area while dragging. */
-		static bool _notifyDragMoved(UINT32 windowId, const Vector2I& position);
+		static bool NotifyDragMovedInternal(UINT32 windowId, const Vector2I& position);
 
 		/** Triggered by Cocoa window when mouse cursor leaves its content area while dragging.  */
-		static void _notifyDragLeft(UINT32 windowId);
+		static void NotifyDragLeftInternal(UINT32 windowId);
 
 		/** Triggered by Cocoa window when the user stops dragging (drops the items) within the window's content area. */
-		static bool _notifyDragDropped(UINT32 windowId, const Vector2I& position, const Vector<Path>& paths);
+		static bool NotifyDragDroppedInternal(UINT32 windowId, const Vector2I& position, const Vector<Path>& paths);
 
 	private:
 		static Vector<DropArea> sDropAreas;

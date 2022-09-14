@@ -64,7 +64,7 @@ namespace bs
 		if (mainCamera != sGUIWidget->getCamera())
 			sGUIWidget->setCamera(mainCamera);
 
-		sGUIWidget->_updateRT();
+		sGUIWidget->UpdateRTInternal();
 	}
 
 	void ScriptGUI::shutDown()
@@ -80,7 +80,7 @@ namespace bs
 
 		if (sGUIWidget != nullptr)
 		{
-			sGUIWidget->_destroy();
+			sGUIWidget->DestroyInternal();
 			sGUIWidget = nullptr;
 		}
 	}

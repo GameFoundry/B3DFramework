@@ -287,36 +287,36 @@ namespace bs
 		 */
 
 		/** Registers a new element as a child of the widget. */
-		void _registerElement(GUIElementBase* elem);
+		void RegisterElementInternal(GUIElementBase* elem);
 		
 		/**
 		 * Unregisters an element from the widget. Usually called when the element is destroyed, or reparented to another
 		 * widget.
 		 */
-		void _unregisterElement(GUIElementBase* elem);
+		void UnregisterElementInternal(GUIElementBase* elem);
 
 		/**
 		 * Returns the default navigation group assigned to all elements of this widget that don't have an explicit nav-
 		 * group. See GUIElement::setNavGroup().
 		 */
-		SPtr<GUINavGroup> _getDefaultNavGroup() const { return mDefaultNavGroup; }
+		SPtr<GUINavGroup> GetDefaultNavGroupInternal() const { return mDefaultNavGroup; }
 
 		/**
 		 * Marks the widget mesh dirty requiring a mesh rebuild. Provided element is the one that requested the mesh update.
 		 */
-		void _markMeshDirty(GUIElementBase* elem);
+		void MarkMeshDirtyInternal(GUIElementBase* elem);
 
 		/**
 		 * Marks the elements content as dirty, meaning its internal mesh will need to be rebuilt (this implies the entire
 		 * widget mesh will be rebuilt as well).
 		 */
-		void _markContentDirty(GUIElementBase* elem);
+		void MarkContentDirtyInternal(GUIElementBase* elem);
 
 		/**	Updates the layout of all child elements, repositioning and resizing them as needed. */
-		void _updateLayout();
+		void UpdateLayoutInternal();
 
 		/**	Updates the layout of the provided element, and queues content updates. */
-		void _updateLayout(GUIElementBase* elem);
+		void UpdateLayoutInternal(GUIElementBase* elem);
 
 		/**
 		 * Updates internal transform values from the specified scene object, in case that scene object's transform changed
@@ -324,16 +324,16 @@ namespace bs
 		 *
 		 * @note	Assumes the same scene object will be provided every time.
 		 */
-		void _updateTransform(const HSceneObject& parent);
+		void UpdateTransformInternal(const HSceneObject& parent);
 
 		/**
 		 * Checks if the render target of the destination camera changed, and updates the widget with new information if
 		 * it has. Should be called every frame.
 		 */
-		void _updateRT();
+		void UpdateRTInternal();
 
 		/** Destroys the GUI widget and all child GUI elements. This is called automatically when GUIWidget is deleted. */
-		void _destroy();
+		void DestroyInternal();
 
 		/** @} */
 

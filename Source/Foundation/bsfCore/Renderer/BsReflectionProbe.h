@@ -49,19 +49,19 @@ namespace bs
 		ReflectionProbeType getType() const { return mType; }
 
 		/**	Changes the type of the probe. */
-		void setType(ReflectionProbeType type) { mType = type; _markCoreDirty(); updateBounds(); }
+		void setType(ReflectionProbeType type) { mType = type; MarkCoreDirtyInternal(); updateBounds(); }
 
 		/** Returns the radius of a sphere reflection probe. Determines range of influence. */
 		float getRadius() const;
 
 		/** Sets the radius of a sphere reflection probe. */
-		void setRadius(float radius) { mRadius = radius; _markCoreDirty(); updateBounds(); }
+		void setRadius(float radius) { mRadius = radius; MarkCoreDirtyInternal(); updateBounds(); }
 
 		/** Returns the extents of a box reflection probe. */
 		Vector3 getExtents() const { return mExtents * mTransform.getScale(); }
 
 		/** Sets the extents of a box reflection probe. Determines range of influence. */
-		void setExtents(const Vector3& extents) { mExtents = extents; _markCoreDirty(); updateBounds(); }
+		void setExtents(const Vector3& extents) { mExtents = extents; MarkCoreDirtyInternal(); updateBounds(); }
 
 		/**	Returns world space bounds that completely encompass the probe's area of influence. */
 		Sphere getBounds() const { return mBounds; }
@@ -180,7 +180,7 @@ namespace bs
 		SPtr<ct::CoreObject> createCore() const override;
 
 		/** @copydoc ReflectionProbeBase::_markCoreDirty */
-		void _markCoreDirty(ActorDirtyFlag flags = ActorDirtyFlag::Everything) override;
+		void MarkCoreDirtyInternal(ActorDirtyFlag flags = ActorDirtyFlag::Everything) override;
 
 		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData syncToCore(FrameAlloc* allocator) override;

@@ -88,7 +88,7 @@ namespace bs
 		UINT32 getIndexOffset() const override;
 
 		 /** @copydoc MeshBase::_notifyUsedOnGPU */
-		void _notifyUsedOnGPU() override;
+		void NotifyUsedOnGPUInternal() override;
 
 	protected:
 		friend class bs::TransientMesh;

@@ -25,15 +25,15 @@ namespace bs
 
 	HPhysicsMesh PhysicsMesh::create(const SPtr<MeshData>& meshData, PhysicsMeshType type)
 	{
-		SPtr<PhysicsMesh> newMesh = _createPtr(meshData, type);
+		SPtr<PhysicsMesh> newMesh = CreatePtrInternal(meshData, type);
 
-		return static_resource_cast<PhysicsMesh>(gResources()._createResourceHandle(newMesh));
+		return static_resource_cast<PhysicsMesh>(gResources().CreateResourceHandleInternal(newMesh));
 	}
 
-	SPtr<PhysicsMesh> PhysicsMesh::_createPtr(const SPtr<MeshData>& meshData, PhysicsMeshType type)
+	SPtr<PhysicsMesh> PhysicsMesh::CreatePtrInternal(const SPtr<MeshData>& meshData, PhysicsMeshType type)
 	{
 		SPtr<PhysicsMesh> newMesh = gPhysics().createMesh(meshData, type);
-		newMesh->_setThisPtr(newMesh);
+		newMesh->SetThisPtrInternal(newMesh);
 		newMesh->initialize();
 
 		return newMesh;

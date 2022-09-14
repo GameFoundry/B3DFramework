@@ -30,7 +30,7 @@ namespace bs
 			includeString = stream->getAsString();
 		}
 
-		SPtr<ShaderInclude> gpuInclude = ShaderInclude::_createPtr(includeString);
+		SPtr<ShaderInclude> gpuInclude = ShaderInclude::CreatePtrInternal(includeString);
 
 		const String fileName = filePath.getFilename(false);
 		gpuInclude->setName(fileName);

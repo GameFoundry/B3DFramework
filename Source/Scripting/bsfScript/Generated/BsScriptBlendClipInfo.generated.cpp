@@ -20,7 +20,7 @@ namespace bs
 
 	MonoObject*ScriptBlendClipInfo::box(const __BlendClipInfoInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__BlendClipInfoInterop ScriptBlendClipInfo::unbox(MonoObject* value)

@@ -40,7 +40,7 @@ namespace bs
 		 * @param[in]	isInternal	If true the bone will just be changed internally, but parent animation will not be
 		 *							notified.
 		 */
-		void _setParent(const HAnimation& animation, bool isInternal = false);
+		void SetParentInternal(const HAnimation& animation, bool isInternal = false);
 
 		/** @} */
 	private:

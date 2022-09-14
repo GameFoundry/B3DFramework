@@ -213,7 +213,7 @@ namespace bs
 		void updateParticleSystemBounds(const ParticlePerFrameData* particleRenderData);
 
 		/** Returns a modifiable version of SceneInfo. Only to be used by friends who know what they are doing. */
-		SceneInfo& _getSceneInfo() { return mInfo; }
+		SceneInfo& GetSceneInfoInternal() { return mInfo; }
 	private:
 		/** Creates a renderer view descriptor for the particular camera. */
 		RENDERER_VIEW_DESC createViewDesc(Camera* camera) const;

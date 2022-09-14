@@ -36,7 +36,7 @@ namespace bs
 
 		SPtr<IReflectable> newRTTIObject() override
 		{
-			return ScriptCode::_createPtr(L""); // Initial string doesn't matter, it'll get overwritten
+			return ScriptCode::CreatePtrInternal(L""); // Initial string doesn't matter, it'll get overwritten
 		}
 	};
 

@@ -107,7 +107,7 @@ namespace bs
 		bs_deleteN(bmpBuffer, bmpDataSize);
 	}
 
-	void Debug::_triggerCallbacks()
+	void Debug::TriggerCallbacksInternal()
 	{
 		LogEntry entry;
 		while (mLog.getUnreadEntry(entry))
@@ -362,7 +362,7 @@ table td
 	}
 	
 	/* Internal function to get the given number of spaces, so that the log looks properly indented */
-	String _getSpacesIndentation(size_t numSpaces)
+	String GetSpacesIndentationInternal(size_t numSpaces)
 	{
 		String tmp;
 		for (UINT8 i = 0; i < numSpaces; i++)
@@ -455,7 +455,7 @@ table td
 
 			builtMsg.append(" | ");
 			
-			String tmpSpaces = _getSpacesIndentation(builtMsg.length());
+			String tmpSpaces = GetSpacesIndentationInternal(builtMsg.length());
 			
 			String parsedMessage = StringUtil::replaceAll(entry.getMessage(), "\n\t\t", "\n" + tmpSpaces);
 			builtMsg.append(parsedMessage);

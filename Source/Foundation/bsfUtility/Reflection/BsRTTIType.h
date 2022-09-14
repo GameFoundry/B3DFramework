@@ -393,17 +393,17 @@ namespace bs
 		 */
 
 		/** Called by the RTTI system when a class is first found in order to form child/parent class hierarchy. */
-		virtual void _registerDerivedClass(RTTITypeBase* derivedClass) = 0;
+		virtual void RegisterDerivedClassInternal(RTTITypeBase* derivedClass) = 0;
 
 		/**
 		 * Constucts a cloned version of the underlying class. The cloned version will not have any field information and
 		 * should instead be used for passing to various RTTIField methods during serialization/deserialization. This
 		 * allows each object instance to have a unique places to store temporary instance-specific data.
 		 */
-		virtual RTTITypeBase* _clone(FrameAlloc& alloc) = 0;
+		virtual RTTITypeBase* CloneInternal(FrameAlloc& alloc) = 0;
 
 		/** Initializes the type schema. Should be called once after construction. */
-		void _initSchema();
+		void InitSchemaInternal();
 		
 		/** @} */
 
@@ -430,10 +430,10 @@ namespace bs
 		InitRTTIOnStart()
 		{
 			RTTITypeBase* rttiType = Type::getRTTIStatic();
-			rttiType->_initSchema();
+			rttiType->InitSchemaInternal();
 			
-			IReflectable::_registerRTTIType(rttiType);
-			BaseType::getRTTIStatic()->_registerDerivedClass(rttiType);
+			IReflectable::RegisterRTTITypeInternal(rttiType);
+			BaseType::getRTTIStatic()->RegisterDerivedClassInternal(rttiType);
 		}
 
 		void makeSureIAmInstantiated() { }
@@ -447,9 +447,9 @@ namespace bs
 		InitRTTIOnStart()
 		{
 			RTTITypeBase* rttiType = Type::getRTTIStatic();
-			rttiType->_initSchema();
+			rttiType->InitSchemaInternal();
 
-			IReflectable::_registerRTTIType(rttiType);
+			IReflectable::RegisterRTTITypeInternal(rttiType);
 		}
 
 		void makeSureIAmInstantiated() { }
@@ -553,13 +553,13 @@ namespace bs
 		}
 
 		/** @copydoc RTTITypeBase::_registerDerivedClass */
-		void _registerDerivedClass(RTTITypeBase* derivedClass) override
+		void RegisterDerivedClassInternal(RTTITypeBase* derivedClass) override
 		{
 			getDerivedClasses().push_back(derivedClass);
 		}
 
 		/** @copydoc RTTITypeBase::_clone */
-		RTTITypeBase* _clone(FrameAlloc& alloc) override
+		RTTITypeBase* CloneInternal(FrameAlloc& alloc) override
 		{
 			return alloc.construct<MyRTTIType>();
 		}

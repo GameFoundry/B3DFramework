@@ -211,7 +211,7 @@ namespace bs {	namespace ct
 		RendererView* view = mInfo.views[cameraId];
 
 		if ((updateFlag & (UINT32)CameraDirtyFlag::Redraw) != 0)
-			view->_notifyNeedsRedraw();
+			view->NotifyNeedsRedrawInternal();
 
 		UINT32 updateEverythingFlag = (UINT32)ActorDirtyFlag::Everything
 			| (UINT32)ActorDirtyFlag::Active
@@ -1272,7 +1272,7 @@ namespace bs {	namespace ct
 		bool anyDirty = false;
 		for (auto& entry : mSamplerOverrides)
 		{
-			SPtr<MaterialParams> materialParams = entry.first.material->_getInternalParams();
+			SPtr<MaterialParams> materialParams = entry.first.material->GetInternalParamsInternal();
 
 			MaterialSamplerOverrides* materialOverrides = entry.second;
 			for(UINT32 i = 0; i < materialOverrides->numOverrides; i++)
@@ -1468,7 +1468,7 @@ namespace bs {	namespace ct
 		{
 			SPtr<Shader> shader = elem.material->getShader();
 			MaterialSamplerOverrides* samplerOverrides = SamplerOverrideUtility::generateSamplerOverrides(shader,
-				elem.material->_getInternalParams(), elem.params, mOptions);
+				elem.material->GetInternalParamsInternal(), elem.params, mOptions);
 
 			mSamplerOverrides[samplerKey] = samplerOverrides;
 

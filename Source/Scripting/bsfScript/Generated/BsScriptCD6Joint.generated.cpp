@@ -90,7 +90,7 @@ namespace bs
 
 		__LimitLinearInterop interop__output;
 		interop__output = ScriptLimitLinear::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptLimitLinear::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptLimitLinear::getMetaData()->scriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptCD6Joint::Internal_setLimitLinear(ScriptCD6Joint* thisPtr, __LimitLinearInterop* limit)
@@ -107,7 +107,7 @@ namespace bs
 
 		__LimitAngularRangeInterop interop__output;
 		interop__output = ScriptLimitAngularRange::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptLimitAngularRange::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptLimitAngularRange::getMetaData()->scriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptCD6Joint::Internal_setLimitTwist(ScriptCD6Joint* thisPtr, __LimitAngularRangeInterop* limit)
@@ -124,7 +124,7 @@ namespace bs
 
 		__LimitConeRangeInterop interop__output;
 		interop__output = ScriptLimitConeRange::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptLimitConeRange::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptLimitConeRange::getMetaData()->scriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptCD6Joint::Internal_setLimitSwing(ScriptCD6Joint* thisPtr, __LimitConeRangeInterop* limit)

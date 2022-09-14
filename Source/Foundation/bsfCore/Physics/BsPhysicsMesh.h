@@ -44,14 +44,14 @@ namespace bs
 		 */
 
 		/** Returns the internal implementation of the physics mesh. */
-		virtual FPhysicsMesh* _getInternal() { return mInternal.get(); }
+		virtual FPhysicsMesh* GetInternalInternal() { return mInternal.get(); }
 
 		/**
 		 * @copydoc create()
 		 *
 		 * For internal use. Requires manual initialization after creation.
 		 */
-		static SPtr<PhysicsMesh> _createPtr(const SPtr<MeshData>& meshData, PhysicsMeshType type);
+		static SPtr<PhysicsMesh> CreatePtrInternal(const SPtr<MeshData>& meshData, PhysicsMeshType type);
 
 		/** @} */
 

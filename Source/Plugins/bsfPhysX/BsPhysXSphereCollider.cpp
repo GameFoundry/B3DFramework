@@ -50,7 +50,7 @@ namespace bs
 		float radius = std::max(0.01f, mRadius * std::max(std::max(mScale.x, mScale.y), mScale.z));
 		PxSphereGeometry geometry(radius);
 
-		getInternal()->_getShape()->setGeometry(geometry);
+		getInternal()->GetShapeInternal()->setGeometry(geometry);
 	}
 
 	FPhysXCollider* PhysXSphereCollider::getInternal() const

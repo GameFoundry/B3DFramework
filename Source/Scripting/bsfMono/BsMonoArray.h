@@ -48,7 +48,7 @@ namespace bs
 #if BS_DEBUG_MODE
 			assert(size == elementSize());
 #endif
-			return _getArrayAddr(mInternal, size, idx);
+			return GetArrayAddrInternal(mInternal, size, idx);
 		}
 		/**
 		 * Returns the raw memory of the data at the specified array index. Returned value should not be used for writing
@@ -60,7 +60,7 @@ namespace bs
 #if BS_DEBUG_MODE
 			assert(sizeof(T) == elementSize());
 #endif
-			return (T*)_getArrayAddr(mInternal, sizeof(T), idx);
+			return (T*)GetArrayAddrInternal(mInternal, sizeof(T), idx);
 		}
 
 		/**
@@ -102,13 +102,13 @@ namespace bs
 		 * @param[in]	idx		Index of the item to retrieve.
 		 * @return				Address of the array item at the requested index.
 		 */
-		static UINT8* _getArrayAddr(MonoArray* array, UINT32 size, UINT32 idx);
+		static UINT8* GetArrayAddrInternal(MonoArray* array, UINT32 size, UINT32 idx);
 
 		/**
 		 * Sets one or multiple entries from the array at the specified index, from raw memory. User must provide the size
 		 * of the element, and it must match the element size expected by the array.
 		 */
-		static void _setArrayVal(MonoArray* array, UINT32 idx, const UINT8* value, UINT32 size, UINT32 count = 1);
+		static void SetArrayValInternal(MonoArray* array, UINT32 idx, const UINT8* value, UINT32 size, UINT32 count = 1);
 
 		/**
 		 * @}
@@ -130,13 +130,13 @@ namespace bs
 		template<class T>
 		T ScriptArray_get(MonoArray* array, UINT32 idx)
 		{
-			return *(T*)ScriptArray::_getArrayAddr(array, sizeof(T), idx);
+			return *(T*)ScriptArray::GetArrayAddrInternal(array, sizeof(T), idx);
 		}
 
 		template<class T>
 		void ScriptArray_set(MonoArray* array, UINT32 idx, const T& value)
 		{
-			ScriptArray::_setArrayVal(array, idx, (UINT8*)&value, sizeof(T));
+			ScriptArray::SetArrayValInternal(array, idx, (UINT8*)&value, sizeof(T));
 		}
 
 		template<>

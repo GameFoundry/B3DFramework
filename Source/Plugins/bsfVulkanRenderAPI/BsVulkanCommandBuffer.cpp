@@ -2611,13 +2611,13 @@ namespace bs { namespace ct
 	{
 		for(auto& query : mTimerQueries)
 		{
-			if (query->_isInProgress())
+			if (query->IsInProgressInternal())
 				timer.push_back(query);
 		}
 
 		for (auto& query : mOcclusionQueries)
 		{
-			if (query->_isInProgress())
+			if (query->IsInProgressInternal())
 				occlusion.push_back(query);
 		}
 	}
@@ -2627,7 +2627,7 @@ namespace bs { namespace ct
 		if (mRenderTarget == nullptr || mRenderTargetModified)
 			return;
 
-		mRenderTarget->_tickUpdateCount();
+		mRenderTarget->TickUpdateCountInternal();
 		mRenderTargetModified = true;
 	}
 
@@ -2729,10 +2729,10 @@ namespace bs { namespace ct
 				timerQueries.size(), occlusionQueries.size());
 
 			for (auto& query : timerQueries)
-				query->_interrupt(*mBuffer);
+				query->InterruptInternal(*mBuffer);
 
 			for (auto& query : occlusionQueries)
-				query->_interrupt(*mBuffer);
+				query->InterruptInternal(*mBuffer);
 		}
 		
 		if (mBuffer->isRecording())

@@ -521,13 +521,13 @@ namespace bs
 		 * Updates the particle simulation by advancing it by @p timeDelta. New state will be updated in the internal
 		 * ParticleSet.
 		 */
-		void _simulate(float timeDelta, const EvaluatedAnimationData* animData);
+		void SimulateInternal(float timeDelta, const EvaluatedAnimationData* animData);
 
 		/**
-		 * Calculates the bounds of all the particles in the system. Should be called after a call to _simulate() to get
+		 * Calculates the bounds of all the particles in the system. Should be called after a call to SimulateInternal() to get
 		 * up-to-date bounds. The bounds are in the simulation space of the particle system.
 		 */
-		AABox _calculateBounds() const;
+		AABox CalculateBoundsInternal() const;
 
 		/**
 		 * Advances the particle system time according to the current time, time delta and the provided settings.
@@ -542,7 +542,7 @@ namespace bs
 		 *								@p timeDelta but might be a different value if time was clamped.
 		 * @return						New time value.
 		 */
-		static float _advanceTime(float time, float timeDelta, float duration, bool loop, float& timeStep);
+		static float AdvanceTimeInternal(float time, float timeDelta, float duration, bool loop, float& timeStep);
 
 		/** @} */
 	private:
@@ -609,7 +609,7 @@ namespace bs
 		SPtr<ct::CoreObject> createCore() const override;
 
 		/** @copydoc SceneActor::_markCoreDirty */
-		void _markCoreDirty(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
+		void MarkCoreDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
 
 		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData syncToCore(FrameAlloc* allocator) override;

@@ -67,14 +67,14 @@ namespace bs
 		 */
 
 		/** @copydoc GUIElement::_getElementType */
-		ElementType _getElementType() const override { return ElementType::Button; }
+		ElementType GetElementTypeInternal() const override { return ElementType::Button; }
 
 		/** @} */
 	private:
 		GUIButton(const String& styleName, const GUIContent& content, const GUIDimensions& dimensions);
 
 		/** @copydoc GUIButtonBase::_commandEvent */
-		bool _commandEvent(const GUICommandEvent& ev) override;
+		bool CommandEventInternal(const GUICommandEvent& ev) override;
 	};
 
 	/** @} */

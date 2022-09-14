@@ -32,7 +32,7 @@ namespace bs
 	{
 		const UUID& uuid = resource.getUUID();
 #if BS_DEBUG_MODE
-		_throwExceptionIfInvalidOrDuplicate(uuid);
+		ThrowExceptionIfInvalidOrDuplicateInternal(uuid);
 #endif
 
 		ScriptManagedResource* scriptResource = new (bs_alloc<ScriptManagedResource>()) ScriptManagedResource(instance, resource);
@@ -45,7 +45,7 @@ namespace bs
 	{
 		const UUID& uuid = resource.getUUID();
 #if BS_DEBUG_MODE
-		_throwExceptionIfInvalidOrDuplicate(uuid);
+		ThrowExceptionIfInvalidOrDuplicateInternal(uuid);
 #endif
 
 		if (!resource.isLoaded(false))
@@ -154,7 +154,7 @@ namespace bs
 		mScriptRRefsPerType.clear();
 	}
 
-	void ScriptResourceManager::_throwExceptionIfInvalidOrDuplicate(const UUID& uuid) const
+	void ScriptResourceManager::ThrowExceptionIfInvalidOrDuplicateInternal(const UUID& uuid) const
 	{
 		if(uuid.empty())
 			BS_EXCEPT(InvalidParametersException, "Provided resource handle has an undefined resource UUID.");

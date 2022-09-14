@@ -78,38 +78,38 @@ namespace bs
 		 */
 
 		/** @copydoc GUIElementBase::_getType */
-		Type _getType() const override { return GUIElementBase::Type::Panel; }
+		Type GetTypeInternal() const override { return GUIElementBase::Type::Panel; }
 
 		/**	Calculate optimal sizes of all child layout elements. */
-		void _updateOptimalLayoutSizes() override;
+		void UpdateOptimalLayoutSizesInternal() override;
 
 		/** @copydoc GUIElementBase::_calculateLayoutSizeRange */
-		LayoutSizeRange _calculateLayoutSizeRange() const override;
+		LayoutSizeRange CalculateLayoutSizeRangeInternal() const override;
 
 		/** @copydoc GUILayout::_getElementAreas */
-		void _getElementAreas(const Rect2I& layoutArea, Rect2I* elementAreas, UINT32 numElements,
+		void GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, UINT32 numElements,
 			const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const override;
 
 		/** Calculates the size of the provided child within this layout with the provided dimensions. */
-		Rect2I _getElementArea(const Rect2I& layoutArea, const GUIElementBase* element, const LayoutSizeRange& sizeRange) const;
+		Rect2I GetElementAreaInternal(const Rect2I& layoutArea, const GUIElementBase* element, const LayoutSizeRange& sizeRange) const;
 
 		/**
 		 * Calculates an element size range for the provided child of the GUI panel. Will return cached bounds so make sure
 		 * to update optimal size ranges before calling.
 		 */
-		LayoutSizeRange _getElementSizeRange(const GUIElementBase* element) const;
+		LayoutSizeRange GetElementSizeRangeInternal(const GUIElementBase* element) const;
 
 		/** Assigns the specified layout information to a child element of a GUI panel. */
-		void _updateChildLayout(GUIElementBase* element, const GUILayoutData& data);
+		void UpdateChildLayoutInternal(GUIElementBase* element, const GUILayoutData& data);
 
 		/** @copydoc GUIElementBase::_updateLayoutInternal */
-		void _updateLayoutInternal(const GUILayoutData& data) override;
+		void UpdateLayoutInternalInternal(const GUILayoutData& data) override;
 
 		/**
 		 * Updates the provided depth range by taking into consideration the depth range of the panel. This depth range
 		 * should be passed on to child elements of the panel.
 		 */
-		void _updateDepthRange(GUILayoutData& data);
+		void UpdateDepthRangeInternal(GUILayoutData& data);
 
 		/** @} */
 

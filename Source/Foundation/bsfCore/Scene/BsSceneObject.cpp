@@ -91,10 +91,10 @@ namespace bs
 			while (!mComponents.empty())
 			{
 				HComponent component = mComponents.back();
-				component->_setIsDestroyed();
+				component->SetIsDestroyedInternal();
 
 				if (isInstantiated())
-					gSceneManager()._notifyComponentDestroyed(component, immediate);
+					gSceneManager().NotifyComponentDestroyedInternal(component, immediate);
 
 				component->destroyInternal(component, true);
 				mComponents.erase(mComponents.end() - 1);
@@ -106,13 +106,13 @@ namespace bs
 			GameObjectManager::instance().queueForDestroy(handle);
 	}
 
-	void SceneObject::_setInstanceData(GameObjectInstanceDataPtr& other)
+	void SceneObject::SetInstanceDataInternal(GameObjectInstanceDataPtr& other)
 	{
-		GameObject::_setInstanceData(other);
+		GameObject::SetInstanceDataInternal(other);
 
 		// Instance data changed, so make sure to refresh the handles to reflect that
 		SPtr<SceneObject> thisPtr = mThisHandle.getInternalPtr();
-		mThisHandle._setHandleData(thisPtr);
+		mThisHandle.SetHandleDataInternal(thisPtr);
 	}
 
 	UUID SceneObject::getPrefabLink(bool onlyDirect) const
@@ -179,23 +179,23 @@ namespace bs
 		return (mFlags & flag) != 0;
 	}
 
-	void SceneObject::_setFlags(UINT32 flags)
+	void SceneObject::SetFlagsInternal(UINT32 flags)
 	{
 		mFlags |= flags;
 
 		for (auto& child : mChildren)
-			child->_setFlags(flags);
+			child->SetFlagsInternal(flags);
 	}
 
-	void SceneObject::_unsetFlags(UINT32 flags)
+	void SceneObject::UnsetFlagsInternal(UINT32 flags)
 	{
 		mFlags &= ~flags;
 
 		for (auto& child : mChildren)
-			child->_unsetFlags(flags);
+			child->UnsetFlagsInternal(flags);
 	}
 
-	void SceneObject::_instantiate(bool prefabOnly)
+	void SceneObject::InstantiateInternal(bool prefabOnly)
 	{
 		std::function<void(SceneObject*)> instantiateRecursive = [&](SceneObject* obj)
 		{
@@ -205,7 +205,7 @@ namespace bs
 				gSceneManager().registerNewSO(obj->mThisHandle);
 
 			for (auto& component : obj->mComponents)
-				component->_instantiate();
+				component->InstantiateInternal();
 
 			for (auto& child : obj->mChildren)
 			{
@@ -217,7 +217,7 @@ namespace bs
 		std::function<void(SceneObject*)> triggerEventsRecursive = [&](SceneObject* obj)
 		{
 			for (auto& component : obj->mComponents)
-				gSceneManager()._notifyComponentCreated(component, obj->getActive());
+				gSceneManager().NotifyComponentCreatedInternal(component, obj->getActive());
 
 			for (auto& child : obj->mChildren)
 			{
@@ -501,7 +501,7 @@ namespace bs
 		if (mMobility != ObjectMobility::Movable)
 			keepWorldTransform = true;
 
-		_setParent(parent, keepWorldTransform);
+		SetParentInternal(parent, keepWorldTransform);
 
 #if BS_IS_BANSHEE3D
 		if (gCoreApplication().isEditor())
@@ -513,7 +513,7 @@ namespace bs
 #endif
 	}
 
-	void SceneObject::_setParent(const HSceneObject& parent, bool keepWorldTransform)
+	void SceneObject::SetParentInternal(const HSceneObject& parent, bool keepWorldTransform)
 	{
 		if (mThisHandle == parent)
 			return;
@@ -600,7 +600,7 @@ namespace bs
 	{
 		mChildren.push_back(object);
 
-		object->_setFlags(mFlags);
+		object->SetFlagsInternal(mFlags);
 	}
 
 	void SceneObject::removeChild(const HSceneObject& object)
@@ -716,12 +716,12 @@ namespace bs
 				if (activeHierarchy)
 				{
 					for (auto& component : mComponents)
-						gSceneManager()._notifyComponentActivated(component, triggerEvents);
+						gSceneManager().NotifyComponentActivatedInternal(component, triggerEvents);
 				}
 				else
 				{
 					for (auto& component : mComponents)
-						gSceneManager()._notifyComponentDeactivated(component, triggerEvents);
+						gSceneManager().NotifyComponentDeactivatedInternal(component, triggerEvents);
 				}
 			}
 		}
@@ -759,9 +759,9 @@ namespace bs
 		const bool isInstantiated = !hasFlag(SOF_DontInstantiate);
 
 		if (!instantiate)
-			_setFlags(SOF_DontInstantiate);
+			SetFlagsInternal(SOF_DontInstantiate);
 		else
-			_unsetFlags(SOF_DontInstantiate);
+			UnsetFlagsInternal(SOF_DontInstantiate);
 
 		SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>();
 		BinarySerializer serializer;
@@ -779,9 +779,9 @@ namespace bs
 			serializer.decode(stream, (UINT32)stream->size(), BinarySerializerFlag::None, &serzContext));
 
 		if(isInstantiated)
-			_unsetFlags(SOF_DontInstantiate);
+			UnsetFlagsInternal(SOF_DontInstantiate);
 		else
-			_setFlags(SOF_DontInstantiate);
+			SetFlagsInternal(SOF_DontInstantiate);
 
 		return cloneObj->mThisHandle;
 	}
@@ -812,10 +812,10 @@ namespace bs
 
 		if(iter != mComponents.end())
 		{
-			(*iter)->_setIsDestroyed();
+			(*iter)->SetIsDestroyedInternal();
 
 			if (isInstantiated())
-				gSceneManager()._notifyComponentDestroyed(*iter, immediate);
+				gSceneManager().NotifyComponentDestroyedInternal(*iter, immediate);
 			
 			(*iter)->destroyInternal(*iter, immediate);
 			mComponents.erase(iter);
@@ -832,7 +832,7 @@ namespace bs
 			if(x.isDestroyed())
 				return false;
 
-			return x._getHandleData()->mPtr->object.get() == component; }
+			return x.GetHandleDataInternal()->mPtr->object.get() == component; }
 		);
 
 		if(iterFind != mComponents.end())
@@ -884,9 +884,9 @@ namespace bs
 
 		if (isInstantiated())
 		{
-			component->_instantiate();
+			component->InstantiateInternal();
 
-			gSceneManager()._notifyComponentCreated(component, getActive());
+			gSceneManager().NotifyComponentCreatedInternal(component, getActive());
 		}
 	}
 

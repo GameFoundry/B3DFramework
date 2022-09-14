@@ -40,7 +40,7 @@ namespace bs
 		if(mHorizontal)
 		{
 			mLayout = GUILayoutX::create();
-			_registerChildElement(mLayout);
+			RegisterChildElementInternal(mLayout);
 
 			mUpBtn = GUIButton::create(HString(""), "ScrollLeftBtn");
 			mDownBtn = GUIButton::create(HString(""), "ScrollRightBtn");
@@ -50,7 +50,7 @@ namespace bs
 		else
 		{
 			mLayout = GUILayoutY::create();
-			_registerChildElement(mLayout);
+			RegisterChildElementInternal(mLayout);
 
 			mUpBtn = GUIButton::create(HString(""), "ScrollUpBtn");
 			mDownBtn = GUIButton::create(HString(""), "ScrollDownBtn");
@@ -93,14 +93,14 @@ namespace bs
 	{
 		IMAGE_SPRITE_DESC desc;
 
-		if(_getStyle()->normal.texture != nullptr && _getStyle()->normal.texture.isLoaded())
-			desc.texture = _getStyle()->normal.texture;
+		if(GetStyleInternal()->normal.texture != nullptr && GetStyleInternal()->normal.texture.isLoaded())
+			desc.texture = GetStyleInternal()->normal.texture;
 
 		desc.width = mLayoutData.area.width;
 		desc.height = mLayoutData.area.height;
 		desc.color = getTint();
 
-		mImageSprite->update(desc, (UINT64)_getParentWidget());
+		mImageSprite->update(desc, (UINT64)GetParentWidgetInternal());
 
 		// Populate GUI render elements from the sprites
 		{
@@ -116,12 +116,12 @@ namespace bs
 		mClippedBounds = Rect2I(0, 0, 0, 0); // We don't want any mouse input for this element. This is just a container.
 	}
 
-	Vector2I GUIScrollBar::_getOptimalSize() const
+	Vector2I GUIScrollBar::GetOptimalSizeInternal() const
 	{
-		return mLayout->_getOptimalSize();
+		return mLayout->GetOptimalSizeInternal();
 	}
 
-	UINT32 GUIScrollBar::_getRenderElementDepthRange() const
+	UINT32 GUIScrollBar::GetRenderElementDepthRangeInternal() const
 	{
 		return 3;
 	}
@@ -186,25 +186,25 @@ namespace bs
 		float newHandlePos = Math::clamp01(mHandleBtn->getHandlePos() - amount);
 
 		float oldHandlePos = mHandleBtn->getHandlePos();
-		mHandleBtn->_setHandlePos(newHandlePos);
+		mHandleBtn->SetHandlePosInternal(newHandlePos);
 
 		if (oldHandlePos != mHandleBtn->getHandlePos())
 		{
-			mHandleBtn->_markLayoutAsDirty();
+			mHandleBtn->MarkLayoutAsDirtyInternal();
 
 			if (!onScrollOrResize.empty())
-				onScrollOrResize(newHandlePos, mHandleBtn->_getHandleSizePct());
+				onScrollOrResize(newHandlePos, mHandleBtn->GetHandleSizePctInternal());
 		}
 	}
 
-	void GUIScrollBar::_setHandleSize(float pct)
+	void GUIScrollBar::SetHandleSizeInternal(float pct)
 	{
-		mHandleBtn->_setHandleSize(pct);
+		mHandleBtn->SetHandleSizeInternal(pct);
 	}
 
-	void GUIScrollBar::_setScrollPos(float pct)
+	void GUIScrollBar::SetScrollPosInternal(float pct)
 	{
-		mHandleBtn->_setHandlePos(pct);
+		mHandleBtn->SetHandlePosInternal(pct);
 	}
 
 	float GUIScrollBar::getScrollPos() const
@@ -215,21 +215,21 @@ namespace bs
 	void GUIScrollBar::setScrollPos(float pct)
 	{
 		float oldHandlePos = mHandleBtn->getHandlePos();
-		mHandleBtn->_setHandlePos(pct);
+		mHandleBtn->SetHandlePosInternal(pct);
 
 		if (oldHandlePos != mHandleBtn->getHandlePos())
-			mHandleBtn->_markLayoutAsDirty();
+			mHandleBtn->MarkLayoutAsDirtyInternal();
 	}
 
 	float GUIScrollBar::getHandleSize() const
 	{
-		return mHandleBtn->_getHandleSizePct();
+		return mHandleBtn->GetHandleSizePctInternal();
 	}
 
 	void GUIScrollBar::setHandleSize(float pct)
 	{
-		mHandleBtn->_setHandleSize(pct);
-		mHandleBtn->_markLayoutAsDirty();
+		mHandleBtn->SetHandleSizeInternal(pct);
+		mHandleBtn->MarkLayoutAsDirtyInternal();
 	}
 
 	UINT32 GUIScrollBar::getScrollableSize() const

@@ -18,7 +18,7 @@ namespace bs
 
 	MonoObject*ScriptTangentRef::box(const __TangentRefInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__TangentRefInterop ScriptTangentRef::unbox(MonoObject* value)

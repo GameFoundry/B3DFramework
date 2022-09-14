@@ -157,14 +157,14 @@ namespace bs
 		 * @note	This method should only be called by asset importers themselves on startup. Importer takes ownership
 		 *			of the provided pointer and will release it. Assumes it is allocated using the general allocator.
 		 */
-		void _registerAssetImporter(SpecificImporter* importer);
+		void RegisterAssetImporterInternal(SpecificImporter* importer);
 
 		/** Alternative to import() which doesn't create a resource handle, but instead returns a raw resource pointer. */
-		SPtr<Resource> _import(const Path& inputFilePath,
+		SPtr<Resource> ImportInternal(const Path& inputFilePath,
 			SPtr<const ImportOptions> importOptions = nullptr);
 
 		/** Alternative to importAll() which doesn't create resource handles, but instead returns raw resource pointers. */
-		Vector<SubResourceRaw> _importAll(const Path& inputFilePath,
+		Vector<SubResourceRaw> ImportAllInternal(const Path& inputFilePath,
 			SPtr<const ImportOptions> importOptions = nullptr);
 
 		/** @} */

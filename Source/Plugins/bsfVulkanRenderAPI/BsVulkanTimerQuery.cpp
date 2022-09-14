@@ -55,7 +55,7 @@ namespace bs { namespace ct
 		if (cb != nullptr)
 			vulkanCB = static_cast<VulkanCommandBuffer*>(cb.get());
 		else
-			vulkanCB = static_cast<VulkanCommandBuffer*>(gVulkanRenderAPI()._getMainCommandBuffer());
+			vulkanCB = static_cast<VulkanCommandBuffer*>(gVulkanRenderAPI().GetMainCommandBufferInternal());
 
 		VulkanCmdBuffer* internalCB = vulkanCB->getInternal();
 		VulkanQuery* beginQuery = queryPool.beginTimerQuery(internalCB);
@@ -81,7 +81,7 @@ namespace bs { namespace ct
 		if (cb != nullptr)
 			vulkanCB = static_cast<VulkanCommandBuffer*>(cb.get());
 		else
-			vulkanCB = static_cast<VulkanCommandBuffer*>(gVulkanRenderAPI()._getMainCommandBuffer());
+			vulkanCB = static_cast<VulkanCommandBuffer*>(gVulkanRenderAPI().GetMainCommandBufferInternal());
 
 		VulkanQueryPool& queryPool = mDevice.getQueryPool();
 		VulkanCmdBuffer* internalCB = vulkanCB->getInternal();
@@ -91,12 +91,12 @@ namespace bs { namespace ct
 		mQueries.back().second = endQuery;
 	}
 
-	bool VulkanTimerQuery::_isInProgress() const
+	bool VulkanTimerQuery::IsInProgressInternal() const
 	{
 		return !mQueries.empty() && !mQueryEndCalled;
 	}
 
-	void VulkanTimerQuery::_interrupt(VulkanCmdBuffer& cb)
+	void VulkanTimerQuery::InterruptInternal(VulkanCmdBuffer& cb)
 	{
 		assert(!mQueries.empty() && !mQueryEndCalled);
 

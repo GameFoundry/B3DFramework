@@ -109,11 +109,11 @@ namespace bs
 			source->setGlobalPause(paused);
 	}
 
-	void FMODAudio::_update()
+	void FMODAudio::UpdateInternal()
 	{
 		mFMOD->update();
 
-		Audio::_update();
+		Audio::UpdateInternal();
 	}
 
 	void FMODAudio::setActiveDevice(const AudioDevice& device)
@@ -146,14 +146,14 @@ namespace bs
 		return bs_shared_ptr_new<FMODAudioSource>();
 	}
 
-	void FMODAudio::_registerListener(FMODAudioListener* listener)
+	void FMODAudio::RegisterListenerInternal(FMODAudioListener* listener)
 	{
 		mListeners.push_back(listener);
 
 		rebuildListeners();
 	}
 
-	void FMODAudio::_unregisterListener(FMODAudioListener* listener)
+	void FMODAudio::UnregisterListenerInternal(FMODAudioListener* listener)
 	{
 		auto iterFind = std::find(mListeners.begin(), mListeners.end(), listener);
 		if (iterFind != mListeners.end())
@@ -182,12 +182,12 @@ namespace bs
 		}
 	}
 
-	void FMODAudio::_registerSource(FMODAudioSource* source)
+	void FMODAudio::RegisterSourceInternal(FMODAudioSource* source)
 	{
 		mSources.insert(source);
 	}
 
-	void FMODAudio::_unregisterSource(FMODAudioSource* source)
+	void FMODAudio::UnregisterSourceInternal(FMODAudioSource* source)
 	{
 		mSources.erase(source);
 	}

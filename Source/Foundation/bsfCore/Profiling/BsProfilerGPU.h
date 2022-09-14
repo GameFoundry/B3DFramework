@@ -166,7 +166,7 @@ namespace bs
 		/**
 		 * To be called once per frame from the Core thread.
 		 */
-		void _update();
+		void UpdateInternal();
 
 		/** @} */
 

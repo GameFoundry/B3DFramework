@@ -10,14 +10,14 @@ namespace bs
 	OAAudioSource::OAAudioSource()
 		:mStreamBuffers(), mBusyBuffers()
 	{
-		gOAAudio()._registerSource(this);
+		gOAAudio().RegisterSourceInternal(this);
 		rebuild();
 	}
 
 	OAAudioSource::~OAAudioSource()
 	{
 		clear();
-		gOAAudio()._unregisterSource(this);
+		gOAAudio().UnregisterSourceInternal(this);
 	}
 
 	void OAAudioSource::setClip(const HAudioClip& clip)
@@ -34,7 +34,7 @@ namespace bs
 	{
 		AudioSource::setTransform(transform);
 
-		auto& contexts = gOAAudio()._getContexts();
+		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
@@ -55,7 +55,7 @@ namespace bs
 	{
 		AudioSource::setVelocity(velocity);
 
-		auto& contexts = gOAAudio()._getContexts();
+		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
@@ -73,7 +73,7 @@ namespace bs
 	{
 		AudioSource::setVolume(volume);
 
-		auto& contexts = gOAAudio()._getContexts();
+		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
@@ -88,7 +88,7 @@ namespace bs
 	{
 		AudioSource::setPitch(pitch);
 
-		auto& contexts = gOAAudio()._getContexts();
+		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
@@ -107,7 +107,7 @@ namespace bs
 		if (requiresStreaming())
 			loop = false;
 
-		auto& contexts = gOAAudio()._getContexts();
+		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
@@ -129,7 +129,7 @@ namespace bs
 	{
 		AudioSource::setMinDistance(distance);
 
-		auto& contexts = gOAAudio()._getContexts();
+		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
@@ -144,7 +144,7 @@ namespace bs
 	{
 		AudioSource::setAttenuation(attenuation);
 
-		auto& contexts = gOAAudio()._getContexts();
+		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
@@ -171,7 +171,7 @@ namespace bs
 			}
 		}
 		
-		auto& contexts = gOAAudio()._getContexts();
+		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
@@ -191,7 +191,7 @@ namespace bs
 
 	void OAAudioSource::pause()
 	{
-		auto& contexts = gOAAudio()._getContexts();
+		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
@@ -204,7 +204,7 @@ namespace bs
 
 	void OAAudioSource::stop()
 	{
-		auto& contexts = gOAAudio()._getContexts();
+		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
@@ -237,7 +237,7 @@ namespace bs
 		{
 			if (pause)
 			{
-				auto& contexts = gOAAudio()._getContexts();
+				auto& contexts = gOAAudio().GetContextsInternal();
 				UINT32 numContexts = (UINT32)contexts.size();
 				for (UINT32 i = 0; i < numContexts; i++)
 				{
@@ -281,7 +281,7 @@ namespace bs
 			}
 		}
 
-		auto& contexts = gOAAudio()._getContexts();
+		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
@@ -302,7 +302,7 @@ namespace bs
 	{
 		Lock lock(mMutex);
 
-		auto& contexts = gOAAudio()._getContexts();
+		auto& contexts = gOAAudio().GetContextsInternal();
 
 		if (contexts.size() > 1)
 			alcMakeContextCurrent(contexts[0]);
@@ -350,7 +350,7 @@ namespace bs
 		mSavedTime = getTime();
 		stop();
 		
-		auto& contexts = gOAAudio()._getContexts();
+		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
 		
 		Lock lock(mMutex);
@@ -368,7 +368,7 @@ namespace bs
 
 	void OAAudioSource::rebuild()
 	{
-		auto& contexts = gOAAudio()._getContexts();
+		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
 
 		{
@@ -424,7 +424,7 @@ namespace bs
 					if (mAudioClip.isLoaded())
 					{
 						OAAudioClip* oaClip = static_cast<OAAudioClip*>(mAudioClip.get());
-						oaBuffer = oaClip->_getOpenALBuffer();
+						oaBuffer = oaClip->GetOpenALBufferInternal();
 					}
 
 					alSourcei(mSourceIDs[i], AL_BUFFER, oaBuffer);
@@ -459,7 +459,7 @@ namespace bs
 		mIsStreaming = false;
 		gOAAudio().stopStreaming(this);
 
-		auto& contexts = gOAAudio()._getContexts();
+		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
@@ -496,7 +496,7 @@ namespace bs
 
 		// Note: It is safe to access contexts here only because it is guaranteed by the OAAudio manager that it will always
 		// stop all streaming before changing contexts. Otherwise a mutex lock would be needed for every context access.
-		auto& contexts = gOAAudio()._getContexts();
+		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
@@ -604,7 +604,7 @@ namespace bs
 		mStreamQueuedPosition += numSamples;
 
 		info.numSamples = numSamples;
-		gOAAudio()._writeToOpenALBuffer(buffer, samples, info);
+		gOAAudio().WriteToOpenALBufferInternal(buffer, samples, info);
 
 		bs_stack_free(samples);
 
@@ -613,7 +613,7 @@ namespace bs
 
 	void OAAudioSource::applyClip()
 	{
-		auto& contexts = gOAAudio()._getContexts();
+		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
 		for (UINT32 i = 0; i < numContexts; i++)
 		{
@@ -628,7 +628,7 @@ namespace bs
 				if (mAudioClip.isLoaded())
 				{
 					OAAudioClip* oaClip = static_cast<OAAudioClip*>(mAudioClip.get());
-					oaBuffer = oaClip->_getOpenALBuffer();
+					oaBuffer = oaClip->GetOpenALBufferInternal();
 				}
 
 				alSourcei(mSourceIDs[i], AL_BUFFER, oaBuffer);

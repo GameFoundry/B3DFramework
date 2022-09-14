@@ -17,7 +17,7 @@ namespace bs
 
 	MonoObject*ScriptVideoMode::box(const __VideoModeInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__VideoModeInterop ScriptVideoMode::unbox(MonoObject* value)

@@ -64,7 +64,7 @@ namespace bs
 		if(!thisPtr->mObjInfo->mBaseClass)
 			return nullptr;
 
-		MonoReflectionType* reflType = MonoUtil::getType(thisPtr->mObjInfo->mBaseClass->mMonoClass->_getInternalClass());
+		MonoReflectionType* reflType = MonoUtil::getType(thisPtr->mObjInfo->mBaseClass->mMonoClass->GetInternalClassInternal());
 		return create(owningObject, reflType);
 	}
 
@@ -91,7 +91,7 @@ namespace bs
 			return x->mFieldId < y->mFieldId;
 		});
 
-		::MonoClass* serializableFieldClass = ScriptSerializableField::getMetaData()->scriptClass->_getInternalClass();
+		::MonoClass* serializableFieldClass = ScriptSerializableField::getMetaData()->scriptClass->GetInternalClassInternal();
 		ScriptArray scriptArray(serializableFieldClass, (UINT32)sortedFields.size());
 
 		UINT32 i = 0;

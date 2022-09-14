@@ -145,7 +145,7 @@ namespace bs
 			for (auto& child : mChildren)
 			{
 				if(child != nullptr)
-					child->_setParent(so->mThisHandle, false);
+					child->SetParentInternal(so->mThisHandle, false);
 			}
 
 			if(so->mUUID.empty() || coreContext->goState->getUseNewUUIDs())
@@ -165,7 +165,7 @@ namespace bs
 				so->setActiveHierarchy(parentActive, false);
 
 				if ((so->mFlags & SOF_DontInstantiate) == 0)
-					so->_instantiate();
+					so->InstantiateInternal();
 			}
 
 			so->mRTTIData = nullptr;

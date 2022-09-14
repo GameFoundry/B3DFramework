@@ -33,11 +33,11 @@ namespace bs::ct
 		GLRenderAPI* rapi = static_cast<GLRenderAPI*>(RenderAPI::instancePtr());
 
 		// If RenderAPI has initialized a context use that, otherwise we create our own
-		if (!rapi->_isContextInitialized())
+		if (!rapi->IsContextInitializedInternal())
 			return bs_shared_ptr_new<MacOSContext>(depthStencil, msaaCount);
 		else
 		{
-			SPtr<GLContext> context = rapi->_getMainContext();
+			SPtr<GLContext> context = rapi->GetMainContextInternal();
 			return std::static_pointer_cast<MacOSContext>(context);
 		}
 	}

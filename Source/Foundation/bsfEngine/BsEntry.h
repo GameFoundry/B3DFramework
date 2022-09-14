@@ -24,7 +24,7 @@ int main(int __argc, char* __argv[])
 	using namespace bs;
 #if BS_CORE_THREAD_IS_MAIN
 	Thread thread([argc = __argc, argv = __argv](){ bs_main(argc, argv); });
-	CoreThread::_run();
+	CoreThread::RunInternal();
 	thread.join();
 #else
 	bs_main(__argc, __argv);

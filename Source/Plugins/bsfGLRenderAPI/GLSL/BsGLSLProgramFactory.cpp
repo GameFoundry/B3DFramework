@@ -10,7 +10,7 @@ namespace bs { namespace ct
 		GLSLGpuProgram* prog = new (bs_alloc<GLSLGpuProgram>()) GLSLGpuProgram(desc, deviceMask);
 
 		SPtr<GLSLGpuProgram> gpuProg = bs_shared_ptr<GLSLGpuProgram>(prog);
-		gpuProg->_setThisPtr(gpuProg);
+		gpuProg->SetThisPtrInternal(gpuProg);
 
 		return gpuProg;
 	}
@@ -23,7 +23,7 @@ namespace bs { namespace ct
 		GLSLGpuProgram* prog = new (bs_alloc<GLSLGpuProgram>()) GLSLGpuProgram(desc, deviceMask);
 
 		SPtr<GLSLGpuProgram> gpuProg = bs_shared_ptr<GLSLGpuProgram>(prog);
-		gpuProg->_setThisPtr(gpuProg);
+		gpuProg->SetThisPtrInternal(gpuProg);
 
 		return gpuProg;
 	}

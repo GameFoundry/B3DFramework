@@ -33,7 +33,7 @@ namespace bs { namespace ct
 		processDeletedQueue();
 	}
 
-	void QueryManager::_update()
+	void QueryManager::UpdateInternal()
 	{
 		for(auto& query : mEventQueries)
 		{

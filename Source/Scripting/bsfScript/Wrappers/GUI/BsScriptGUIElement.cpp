@@ -26,7 +26,7 @@ namespace bs
 	{
 		mElement = element;
 
-		if (mElement != nullptr && mElement->_getType() == GUIElementBase::Type::Element)
+		if (mElement != nullptr && mElement->GetTypeInternal() == GUIElementBase::Type::Element)
 		{
 			GUIElement* guiElem = static_cast<GUIElement*>(element);
 			guiElem->onFocusChanged.connect(std::bind(&ScriptGUIElementBaseTBase::onFocusChanged, this, _1));
@@ -48,14 +48,14 @@ namespace bs
 		return MonoUtil::getObjectFromGCHandle(mGCHandle);
 	}
 
-	void ScriptGUIElementBaseTBase::_onManagedInstanceDeleted(bool assemblyRefresh)
+	void ScriptGUIElementBaseTBase::OnManagedInstanceDeletedInternal(bool assemblyRefresh)
 	{
 		destroy();
 
-		ScriptObjectBase::_onManagedInstanceDeleted(assemblyRefresh);
+		ScriptObjectBase::OnManagedInstanceDeletedInternal(assemblyRefresh);
 	}
 
-	void ScriptGUIElementBaseTBase::_clearManagedInstance()
+	void ScriptGUIElementBaseTBase::ClearManagedInstanceInternal()
 	{
 		// Need to call destroy here because we need to release any GC handles before the domain is unloaded
 
@@ -75,7 +75,7 @@ namespace bs
 			if (mParent != nullptr)
 				mParent->removeChild(this);
 
-			if (mElement->_getType() == GUIElementBase::Type::Element)
+			if (mElement->GetTypeInternal() == GUIElementBase::Type::Element)
 			{
 				GUIElement::destroy((GUIElement*)mElement);
 				mElement = nullptr;
@@ -163,7 +163,7 @@ namespace bs
 			return;
 
 		GUIElementBase* guiElemBase = nativeInstance->getGUIElement();
-		if (guiElemBase->_getType() == GUIElementBase::Type::Element)
+		if (guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
 		{
 			GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
 			guiElem->setFocus(focus, true);
@@ -176,7 +176,7 @@ namespace bs
 			return false;
 
 		GUIElementBase* guiElemBase = nativeInstance->getGUIElement();
-		return guiElemBase->_isVisible();
+		return guiElemBase->IsVisibleInternal();
 	}
 
 	bool ScriptGUIElement::internal_getActive(ScriptGUIElementBaseTBase* nativeInstance)
@@ -185,7 +185,7 @@ namespace bs
 			return false;
 
 		GUIElementBase* guiElemBase = nativeInstance->getGUIElement();
-		return guiElemBase->_isActive();
+		return guiElemBase->IsActiveInternal();
 	}
 
 	bool ScriptGUIElement::internal_getDisabled(ScriptGUIElementBaseTBase* nativeInstance)
@@ -194,7 +194,7 @@ namespace bs
 			return false;
 
 		GUIElementBase* guiElemBase = nativeInstance->getGUIElement();
-		return guiElemBase->_isDisabled();
+		return guiElemBase->IsDisabledInternal();
 	}
 
 	bool ScriptGUIElement::internal_getBlocking(ScriptGUIElementBaseTBase* nativeInstance)
@@ -203,7 +203,7 @@ namespace bs
 			return false;
 
 		GUIElementBase* guiElemBase = nativeInstance->getGUIElement();
-		if (guiElemBase->_getType() == GUIElementBase::Type::Element)
+		if (guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
 		{
 			GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
 			return !guiElem->getOptionFlags().isSet(GUIElementOption::ClickThrough);
@@ -218,7 +218,7 @@ namespace bs
 			return;
 
 		GUIElementBase* guiElemBase = nativeInstance->getGUIElement();
-		if (guiElemBase->_getType() == GUIElementBase::Type::Element)
+		if (guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
 		{
 			GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
 
@@ -238,7 +238,7 @@ namespace bs
 			return false;
 
 		GUIElementBase* guiElemBase = nativeInstance->getGUIElement();
-		if (guiElemBase->_getType() == GUIElementBase::Type::Element)
+		if (guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
 		{
 			GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
 			return guiElem->getOptionFlags().isSet(GUIElementOption::AcceptsKeyFocus);
@@ -253,7 +253,7 @@ namespace bs
 			return;
 
 		GUIElementBase* guiElemBase = nativeInstance->getGUIElement();
-		if (guiElemBase->_getType() == GUIElementBase::Type::Element)
+		if (guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
 		{
 			GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
 
@@ -375,7 +375,7 @@ namespace bs
 			return;
 
 		GUIElementBase* guiElemBase = nativeInstance->getGUIElement();
-		if (guiElemBase->_getType() == GUIElementBase::Type::Element)
+		if (guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
 		{
 			GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
 
@@ -392,7 +392,7 @@ namespace bs
 		if (!nativeInstance->isDestroyed())
 		{
 			GUIElementBase* guiElemBase = nativeInstance->getGUIElement();
-			if (guiElemBase->_getType() == GUIElementBase::Type::Element)
+			if (guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
 			{
 				GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
 				return MonoUtil::stringToMono(guiElem->getStyleName());
@@ -407,7 +407,7 @@ namespace bs
 		if (!nativeInstance->isDestroyed())
 		{
 			GUIElementBase* guiElemBase = nativeInstance->getGUIElement();
-			if (guiElemBase->_getType() == GUIElementBase::Type::Element)
+			if (guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
 			{
 				GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
 				guiElem->setStyle(MonoUtil::monoToString(style));

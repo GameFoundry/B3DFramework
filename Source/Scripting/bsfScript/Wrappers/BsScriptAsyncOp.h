@@ -64,15 +64,15 @@ namespace bs
 		 */
 
 		/** @copydoc create() */
-		static MonoObject* _create(const AsyncOpBase& op,
+		static MonoObject* CreateInternal(const AsyncOpBase& op,
 								   const std::function<MonoObject*(const Any&)>& convertCallback, UINT32 rttiId);
 
 		/** @copydoc create() */
-		static MonoObject* _create(const AsyncOpBase& op,
+		static MonoObject* CreateInternal(const AsyncOpBase& op,
 								   const std::function<MonoObject*(const Any&)>& convertCallback);
 
 		/** @copydoc create() */
-		static MonoObject* _create(const AsyncOpBase& op,
+		static MonoObject* CreateInternal(const AsyncOpBase& op,
 								   const std::function<MonoObject*(const Any&)>& convertCallback, MonoClass* returnTypeClass);
 
 		/** @} */
@@ -109,14 +109,14 @@ namespace bs
 		template<>
 		inline MonoObject* async_op_create(const TAsyncOp<Any>& op, const std::function<MonoObject*(const Any&)>& convertCallback)
 		{
-			return ScriptAsyncOpBase::_create(op, convertCallback);
+			return ScriptAsyncOpBase::CreateInternal(op, convertCallback);
 		}
 
 		template<class T>
 		inline MonoObject* async_op_create(const TAsyncOp<T>& op, const std::function<MonoObject*(const Any&)>& convertCallback,
 									MonoClass* returnTypeClass)
 		{
-			return ScriptAsyncOpBase::_create(op, convertCallback, returnTypeClass);
+			return ScriptAsyncOpBase::CreateInternal(op, convertCallback, returnTypeClass);
 		}
 	}
 

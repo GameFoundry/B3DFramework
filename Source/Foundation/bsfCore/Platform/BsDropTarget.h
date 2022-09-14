@@ -79,22 +79,22 @@ namespace bs
 		 */
 
 		/** Clears all internal values. */
-		void _clear();
+		void ClearInternal();
 
 		/** Sets the file list and marks the drop event as FileList. */
-		void _setFileList(const Vector<Path>& fileList);
+		void SetFileListInternal(const Vector<Path>& fileList);
 
 		/** Marks the drop area as inactive or active. */
-		void _setActive(bool active) { mActive = active; }
+		void SetActiveInternal(bool active) { mActive = active; }
 
 		/**	Checks is the specified position within the current drop area. Position should be in window local coordinates. */
-		bool _isInside(const Vector2I& pos) const;
+		bool IsInsideInternal(const Vector2I& pos) const;
 
 		/** Returns true if the drop target is active. */
-		bool _isActive() const { return mActive; }
+		bool IsActiveInternal() const { return mActive; }
 
 		/**	Returns a render window this drop target is attached to. */
-		const RenderWindow* _getOwnerWindow() const { return mOwnerWindow; }
+		const RenderWindow* GetOwnerWindowInternal() const { return mOwnerWindow; }
 
 		/** @} */
 	private:

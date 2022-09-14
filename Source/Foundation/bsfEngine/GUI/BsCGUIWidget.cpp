@@ -26,7 +26,7 @@ namespace bs
 	}
 
 	CGUIWidget::CGUIWidget(const HSceneObject& parent, const HCamera& camera)
-		:CGUIWidget(parent, camera->_getCamera())
+		:CGUIWidget(parent, camera->GetCameraInternal())
 	{ }
 
 	void CGUIWidget::setSkin(const HGUISkin& skin)
@@ -91,14 +91,14 @@ namespace bs
 		UINT32 curHash = parent->getTransformHash();
 		if (curHash != mParentHash)
 		{
-			mInternal->_updateTransform(parent);
+			mInternal->UpdateTransformInternal(parent);
 			mParentHash = curHash;
 		}
 
 		if (parent->getActive() != mInternal->getIsActive())
 			mInternal->setIsActive(parent->getActive());
 
-		mInternal->_updateRT();
+		mInternal->UpdateRTInternal();
 	}
 
 	void CGUIWidget::onDestroyed()

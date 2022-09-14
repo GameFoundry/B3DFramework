@@ -21,7 +21,7 @@ namespace bs
 
 	MonoObject*ScriptControllerColliderCollision::box(const __ControllerColliderCollisionInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__ControllerColliderCollisionInterop ScriptControllerColliderCollision::unbox(MonoObject* value)

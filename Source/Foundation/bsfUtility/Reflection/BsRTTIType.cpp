@@ -55,7 +55,7 @@ namespace bs
 		mFields.push_back(field);
 	}
 
-	void RTTITypeBase::_initSchema()
+	void RTTITypeBase::InitSchemaInternal()
 	{
 		mSchema = bs_shared_ptr_new<RTTISchema>();
 		mSchema->typeId = getRTTIId();

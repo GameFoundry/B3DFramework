@@ -48,7 +48,7 @@ namespace bs
 			Lock fileLock = FileScheduler::getLock(filePath);
 
 			String pathStr = filePath.toString();
-			if (gFMODAudio()._getFMOD()->createSound(pathStr.c_str(), FMOD_CREATESAMPLE, nullptr, &sound) != FMOD_OK)
+			if (gFMODAudio().GetFMODInternal()->createSound(pathStr.c_str(), FMOD_CREATESAMPLE, nullptr, &sound) != FMOD_OK)
 			{
 				BS_LOG(Error, Audio, "Failed importing audio file: {0}", pathStr);
 				return nullptr;
@@ -169,7 +169,7 @@ namespace bs
 		clipDesc.readMode = clipIO->readMode;
 		clipDesc.is3D = clipIO->is3D;
 
-		SPtr<AudioClip> clip = AudioClip::_createPtr(sampleStream, bufferSize, info.numSamples, clipDesc);
+		SPtr<AudioClip> clip = AudioClip::CreatePtrInternal(sampleStream, bufferSize, info.numSamples, clipDesc);
 
 		const String fileName = filePath.getFilename(false);
 		clip->setName(fileName);

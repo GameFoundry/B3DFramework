@@ -26,7 +26,7 @@ namespace bs
 
 	Sphere CLight::getBounds() const
 	{
-		mInternal->_updateState(*SO());
+		mInternal->UpdateStateInternal(*SO());
 
 		return mInternal->getBounds();
 	}
@@ -49,12 +49,12 @@ namespace bs
 				mSpotFalloffAngle);
 		}
 
-		gSceneManager()._bindActor(mInternal, sceneObject());
+		gSceneManager().BindActorInternal(mInternal, sceneObject());
 	}
 
 	void CLight::onDestroyed()
 	{
-		gSceneManager()._unbindActor(mInternal);
+		gSceneManager().UnbindActorInternal(mInternal);
 		mInternal->destroy();
 	}
 	

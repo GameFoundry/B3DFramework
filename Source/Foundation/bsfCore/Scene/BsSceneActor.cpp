@@ -11,22 +11,22 @@ namespace bs
 			return;
 
 		mTransform = transform;
-		_markCoreDirty(ActorDirtyFlag::Transform);
+		MarkCoreDirtyInternal(ActorDirtyFlag::Transform);
 	}
 
 	void SceneActor::setMobility(ObjectMobility mobility)
 	{
 		mMobility = mobility;
-		_markCoreDirty(ActorDirtyFlag::Mobility);
+		MarkCoreDirtyInternal(ActorDirtyFlag::Mobility);
 	}
 
 	void SceneActor::setActive(bool active)
 	{
 		mActive = active;
-		_markCoreDirty(ActorDirtyFlag::Active);
+		MarkCoreDirtyInternal(ActorDirtyFlag::Active);
 	}
 
-	void SceneActor::_updateState(const SceneObject& so, bool force)
+	void SceneActor::UpdateStateInternal(const SceneObject& so, bool force)
 	{
 		UINT32 curHash = so.getTransformHash();
 		if (curHash != mHash || force)

@@ -42,7 +42,7 @@ namespace bs { namespace ct
 		}
 
 		if (gpuProg != nullptr)
-			gpuProg->_setThisPtr(gpuProg);
+			gpuProg->SetThisPtrInternal(gpuProg);
 
 		return gpuProg;
 	}
@@ -83,7 +83,7 @@ namespace bs { namespace ct
 		}
 
 		if (gpuProg != nullptr)
-			gpuProg->_setThisPtr(gpuProg);
+			gpuProg->SetThisPtrInternal(gpuProg);
 
 		return gpuProg;
 	}

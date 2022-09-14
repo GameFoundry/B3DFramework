@@ -52,10 +52,10 @@ namespace bs
 		~ScriptRRefBase();
 
 		/** @copydoc ScriptObjectBase::_clearManagedInstance */
-		void _clearManagedInstance() override;
+		void ClearManagedInstanceInternal() override;
 
 		/** @copydoc ScriptObjectBase::_onManagedInstanceDeleted */
-		void _onManagedInstanceDeleted(bool assemblyRefresh) override;
+		void OnManagedInstanceDeletedInternal(bool assemblyRefresh) override;
 
 		/** Clears the internal cached ScriptResource reference. Should be called if the resource got destroyed. */
 		void clearResource() { mScriptResource = nullptr; }

@@ -16,7 +16,7 @@ namespace bs
 
 	MonoObject*ScriptPARTICLE_GRAVITY_DESC::box(const PARTICLE_GRAVITY_DESC& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	PARTICLE_GRAVITY_DESC ScriptPARTICLE_GRAVITY_DESC::unbox(MonoObject* value)

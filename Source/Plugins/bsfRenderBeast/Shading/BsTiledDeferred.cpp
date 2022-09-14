@@ -31,7 +31,7 @@ namespace bs { namespace ct
 		mParams->setParamBlockBuffer("Params", mParamBuffer);
 	}
 
-	void TiledDeferredLightingMat::_initDefines(ShaderDefines& defines)
+	void TiledDeferredLightingMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		defines.set("TILE_SIZE", TILE_SIZE);
 	}
@@ -172,7 +172,7 @@ namespace bs { namespace ct
 		mParams->setParamBlockBuffer(GPT_COMPUTE_PROGRAM, "Params", mParamBuffer);
 	}
 
-	void ClearLoadStoreMat::_initDefines(ShaderDefines& defines)
+	void ClearLoadStoreMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		defines.set("TILE_SIZE", TILE_SIZE);
 		defines.set("NUM_THREADS", NUM_THREADS);
@@ -319,7 +319,7 @@ namespace bs { namespace ct
 		mParams->setParamBlockBuffer("ReflProbeParams", mReflProbeParamBuffer.buffer);
 	}
 
-	void TiledDeferredImageBasedLightingMat::_initDefines(ShaderDefines& defines)
+	void TiledDeferredImageBasedLightingMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		defines.set("TILE_SIZE", TILE_SIZE);
 	}

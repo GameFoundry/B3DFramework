@@ -76,7 +76,7 @@ namespace bs
 		}
 
 		mForceTriangleBuild = true;
-		_markContentAsDirty();
+		MarkContentAsDirtyInternal();
 	}
 
 	void GUICanvas::drawTexture(const HSpriteTexture& texture, const Rect2I& area, TextureScaleMode scaleMode,
@@ -95,7 +95,7 @@ namespace bs
 		mDepthRange = std::max(mDepthRange, (UINT8)(depth + 1));
 
 		mImageData.push_back({ texture, area });
-		_markContentAsDirty();
+		MarkContentAsDirtyInternal();
 	}
 
 	void GUICanvas::drawTriangleStrip(const Vector<Vector2I>& vertices, const Color& color, UINT8 depth)
@@ -141,7 +141,7 @@ namespace bs
 		elemData.matInfo.tint = color;
 
 		mForceTriangleBuild = true;
-		_markContentAsDirty();
+		MarkContentAsDirtyInternal();
 	}
 
 	void GUICanvas::drawTriangleList(const Vector<Vector2I>& vertices, const Color& color, UINT8 depth)
@@ -173,7 +173,7 @@ namespace bs
 		elemData.matInfo.tint = color;
 
 		mForceTriangleBuild = true;
-		_markContentAsDirty();
+		MarkContentAsDirtyInternal();
 	}
 
 	void GUICanvas::drawText(const String& text, const Vector2I& position, const HFont& font, UINT32 size,
@@ -192,7 +192,7 @@ namespace bs
 		mDepthRange = std::max(mDepthRange, (UINT8)(depth + 1));
 
 		mTextData.push_back({ text, font, position });
-		_markContentAsDirty();
+		MarkContentAsDirtyInternal();
 	}
 
 	void GUICanvas::clear()
@@ -275,7 +275,7 @@ namespace bs
 					renderElement.depth = element.depth;
 					renderElement.type = GUIMeshType::Line;
 
-					mTriangleElementData[element.dataId].matInfo.groupId = (UINT64)_getParentWidget();
+					mTriangleElementData[element.dataId].matInfo.groupId = (UINT64)GetParentWidgetInternal();
 
 					// Actual mesh build happens when reading from it, because the mesh size varies due to clipping rectangle/offset
 					break;
@@ -295,7 +295,7 @@ namespace bs
 					renderElement.depth = element.depth;
 					renderElement.type = GUIMeshType::Triangle;
 
-					mTriangleElementData[element.dataId].matInfo.groupId = (UINT64)_getParentWidget();
+					mTriangleElementData[element.dataId].matInfo.groupId = (UINT64)GetParentWidgetInternal();
 
 					// Actual mesh build happens when reading from it, because the mesh size varies due to clipping rectangle/offset
 					break;
@@ -308,7 +308,7 @@ namespace bs
 		GUIElement::updateRenderElementsInternal();
 	}
 
-	Vector2I GUICanvas::_getOptimalSize() const
+	Vector2I GUICanvas::GetOptimalSizeInternal() const
 	{
 		return Vector2I(10, 10);
 	}
@@ -452,7 +452,7 @@ namespace bs
 		Vector2I destSize(mLayoutData.area.width, mLayoutData.area.height);
 		desc.uvScale = ImageSprite::getTextureUVScale(textureSize, destSize, element.scaleMode);
 
-		element.imageSprite->update(desc, (UINT64)_getParentWidget());
+		element.imageSprite->update(desc, (UINT64)GetParentWidgetInternal());
 	}
 
 	void GUICanvas::buildTextElement(const CanvasElement& element)
@@ -467,7 +467,7 @@ namespace bs
 		desc.text = textData.string;
 		desc.color = element.color;
 
-		element.textSprite->update(desc, (UINT64)_getParentWidget());
+		element.textSprite->update(desc, (UINT64)GetParentWidgetInternal());
 	}
 
 	void GUICanvas::buildTriangleElement(const CanvasElement& element, const Vector2& offset, const Rect2I& clipRect) const

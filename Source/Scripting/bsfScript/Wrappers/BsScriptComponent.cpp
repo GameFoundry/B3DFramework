@@ -75,7 +75,7 @@ namespace bs
 		MonoClass* managedComponent = sam.getBuiltinClasses().managedComponentClass;
 		::MonoClass* requestedClass = MonoUtil::getClass(type);
 
-		bool isManagedComponent = MonoUtil::isSubClassOf(requestedClass, managedComponent->_getInternalClass());
+		bool isManagedComponent = MonoUtil::isSubClassOf(requestedClass, managedComponent->GetInternalClassInternal());
 		if(isManagedComponent)
 		{
 			GameObjectHandle<ManagedComponent> mc = so->addComponent<ManagedComponent>(type);
@@ -179,7 +179,7 @@ namespace bs
 			}
 		}
 
-		ScriptArray scriptArray(metaData.scriptClass->_getInternalClass(), (UINT32)managedComponents.size());
+		ScriptArray scriptArray(metaData.scriptClass->GetInternalClassInternal(), (UINT32)managedComponents.size());
 		for (UINT32 i = 0; i < (UINT32)managedComponents.size(); i++)
 			scriptArray.set(i, managedComponents[i]);
 
@@ -213,7 +213,7 @@ namespace bs
 			}
 		}
 
-		ScriptArray scriptArray(metaData.scriptClass->_getInternalClass(), (UINT32)managedComponents.size());
+		ScriptArray scriptArray(metaData.scriptClass->GetInternalClassInternal(), (UINT32)managedComponents.size());
 		for(UINT32 i = 0; i < (UINT32)managedComponents.size(); i++)
 			scriptArray.set(i, managedComponents[i]);
 
@@ -284,7 +284,7 @@ namespace bs
 		HComponent component = nativeInstance->getComponent();
 
 		if (!checkIfDestroyed(component))
-			return component->_getNotifyFlags();
+			return component->GetNotifyFlagsInternal();
 
 		return TCF_None;
 	}

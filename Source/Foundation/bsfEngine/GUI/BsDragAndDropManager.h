@@ -76,7 +76,7 @@ namespace bs
 		void addDropCallback(std::function<void(bool)> dropCallback);
 
 		/** Called once per frame. Checks if drag ended or if window loses focus. */
-		void _update();
+		void UpdateInternal();
 
 		/**
 		 * Triggers a callback when user releases the pointer and the drag operation ends. Provided parameters inform the

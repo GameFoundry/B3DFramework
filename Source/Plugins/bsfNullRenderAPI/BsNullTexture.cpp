@@ -21,7 +21,7 @@ namespace bs
 			GpuDeviceFlags deviceMask)
 		{
 			SPtr<NullTexture> texPtr = bs_shared_ptr_new<NullTexture>(desc, initialData, deviceMask);
-			texPtr->_setThisPtr(texPtr);
+			texPtr->SetThisPtrInternal(texPtr);
 
 			return texPtr;
 		}
@@ -29,7 +29,7 @@ namespace bs
 		SPtr<RenderTexture> NullTextureManager::createRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, UINT32 deviceIdx)
 		{
 			SPtr<NullRenderTexture> texPtr = bs_shared_ptr_new<NullRenderTexture>(desc, deviceIdx);
-			texPtr->_setThisPtr(texPtr);
+			texPtr->SetThisPtrInternal(texPtr);
 
 			return texPtr;
 		}

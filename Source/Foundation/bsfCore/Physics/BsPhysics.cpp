@@ -61,7 +61,7 @@ namespace bs
 			if (entry == nullptr)
 				continue;
 
-			CCollider* component = (CCollider*)entry->_getOwner(PhysicsOwnerType::Component);
+			CCollider* component = (CCollider*)entry->GetOwnerInternal(PhysicsOwnerType::Component);
 			if (component == nullptr)
 				continue;
 
@@ -73,23 +73,23 @@ namespace bs
 
 	Vector<HCollider> PhysicsScene::boxOverlap(const AABox& box, const Quaternion& rotation, UINT64 layer) const
 	{
-		return rawToComponent(_boxOverlap(box, rotation, layer));
+		return rawToComponent(BoxOverlapInternal(box, rotation, layer));
 	}
 
 	Vector<HCollider> PhysicsScene::sphereOverlap(const Sphere& sphere, UINT64 layer) const
 	{
-		return rawToComponent(_sphereOverlap(sphere, layer));
+		return rawToComponent(SphereOverlapInternal(sphere, layer));
 	}
 
 	Vector<HCollider> PhysicsScene::capsuleOverlap(const Capsule& capsule, const Quaternion& rotation, UINT64 layer) const
 	{
-		return rawToComponent(_capsuleOverlap(capsule, rotation, layer));
+		return rawToComponent(CapsuleOverlapInternal(capsule, rotation, layer));
 	}
 
 	Vector<HCollider> PhysicsScene::convexOverlap(const HPhysicsMesh& mesh, const Vector3& position,
 		const Quaternion& rotation, UINT64 layer) const
 	{
-		return rawToComponent(_convexOverlap(mesh, position, rotation, layer));
+		return rawToComponent(ConvexOverlapInternal(mesh, position, rotation, layer));
 	}
 
 	Physics& gPhysics()

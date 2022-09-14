@@ -17,10 +17,10 @@ namespace bs
 	bool GameObjectHandleBase::isDestroyed(bool checkQueued) const
 	{
 		return mData->mPtr == nullptr || mData->mPtr->object == nullptr
-			|| (checkQueued && mData->mPtr->object->_getIsDestroyed());
+			|| (checkQueued && mData->mPtr->object->GetIsDestroyedInternal());
 	}
 
-	void GameObjectHandleBase::_setHandleData(const SPtr<GameObject>& object)
+	void GameObjectHandleBase::SetHandleDataInternal(const SPtr<GameObject>& object)
 	{
 		mData->mPtr = object->mInstanceData;
 	}

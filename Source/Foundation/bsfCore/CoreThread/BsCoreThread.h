@@ -132,7 +132,7 @@ namespace bs
 
 #if BS_CORE_THREAD_IS_MAIN
 		/** Runs the core thread loop as soon as CoreThread module is started. */
-		static void _run();
+		static void RunInternal();
 #endif
 
 		/** @} */

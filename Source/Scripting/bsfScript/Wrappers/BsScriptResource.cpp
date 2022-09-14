@@ -61,9 +61,9 @@ namespace bs
 	::MonoClass* ScriptResourceBase::getManagedResourceClass(UINT32 rttiId)
 	{
 		if(rttiId == Resource::getRTTIStatic()->getRTTIId())
-			return ScriptResource::getMetaData()->scriptClass->_getInternalClass();
+			return ScriptResource::getMetaData()->scriptClass->GetInternalClassInternal();
 		else if(rttiId == ManagedResource::getRTTIStatic()->getRTTIId())
-			return ScriptResource::getMetaData()->scriptClass->_getInternalClass();
+			return ScriptResource::getMetaData()->scriptClass->GetInternalClassInternal();
 		else
 		{
 			BuiltinResourceInfo* info = ScriptAssemblyManager::instance().getBuiltinResourceInfo(rttiId);
@@ -71,7 +71,7 @@ namespace bs
 			if (info == nullptr)
 				return nullptr;
 
-			return info->monoClass->_getInternalClass();
+			return info->monoClass->GetInternalClassInternal();
 		}
 	}
 
@@ -116,7 +116,7 @@ namespace bs
 	MonoObject* ScriptUUID::box(const UUID& value)
 	{
 		// We're casting away const but it's fine since structs are passed by value anyway
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	UUID ScriptUUID::unbox(MonoObject* obj)

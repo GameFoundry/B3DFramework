@@ -16,7 +16,7 @@ namespace bs
 
 	MonoObject*ScriptAudioDevice::box(const __AudioDeviceInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__AudioDeviceInterop ScriptAudioDevice::unbox(MonoObject* value)

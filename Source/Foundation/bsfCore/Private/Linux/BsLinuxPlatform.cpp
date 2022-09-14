@@ -91,7 +91,7 @@ namespace bs
 
 	static const UINT32 DOUBLE_CLICK_MS = 500;
 
-	Vector2I _getCursorPosition(Platform::Pimpl* data)
+	Vector2I GetCursorPositionInternal(Platform::Pimpl* data)
 	{
 		Vector2I pos;
 		UINT32 screenCount = (UINT32)XScreenCount(data->xDisplay);
@@ -109,7 +109,7 @@ namespace bs
 		return pos;
 	}
 
-	void _setCursorPosition(Platform::Pimpl* data, const Vector2I& screenPos)
+	void SetCursorPositionInternal(Platform::Pimpl* data, const Vector2I& screenPos)
 	{
 		UINT32 screenCount = (UINT32)XScreenCount(data->xDisplay);
 
@@ -264,14 +264,14 @@ namespace bs
 	Vector2I Platform::getCursorPosition()
 	{
 		Lock lock(mData->lock);
-		return _getCursorPosition(mData);
+		return GetCursorPositionInternal(mData);
 	}
 
 	void Platform::setCursorPosition(const Vector2I& screenPos)
 	{
 		Lock lock(mData->lock);
 
-		_setCursorPosition(mData, screenPos);
+		SetCursorPositionInternal(mData, screenPos);
 	}
 
 	void Platform::captureMouse(const RenderWindow& window)
@@ -282,7 +282,7 @@ namespace bs
 		window.getCustomAttribute("LINUX_WINDOW", &linuxWindow);
 
 		UINT32 mask = ButtonPressMask | ButtonReleaseMask | PointerMotionMask | FocusChangeMask;
-		XGrabPointer(mData->xDisplay, linuxWindow->_getXWindow(), False, mask, GrabModeAsync,
+		XGrabPointer(mData->xDisplay, linuxWindow->GetXWindowInternal(), False, mask, GrabModeAsync,
 				GrabModeAsync, None, None, CurrentTime);
 		XSync(mData->xDisplay, False);
 	}
@@ -301,7 +301,7 @@ namespace bs
 
 		LinuxWindow* linuxWindow;
 		window.getCustomAttribute("LINUX_WINDOW", &linuxWindow);
-		::Window xWindow = linuxWindow->_getXWindow();
+		::Window xWindow = linuxWindow->GetXWindowInternal();
 
 		UINT32 screenCount = (UINT32)XScreenCount(mData->xDisplay);
 
@@ -352,10 +352,10 @@ namespace bs
 
 		updateClipBounds(mData, linuxWindow);
 
-		Vector2I pos = _getCursorPosition(mData);
+		Vector2I pos = GetCursorPositionInternal(mData);
 
 		if(clipCursor(mData, pos))
-			_setCursorPosition(mData, pos);
+			SetCursorPositionInternal(mData, pos);
 	}
 
 	void Platform::clipCursorToRect(const Rect2I& screenRect)
@@ -366,10 +366,10 @@ namespace bs
 		mData->cursorClipRect = screenRect;
 		mData->cursorClipWindow = nullptr;
 
-		Vector2I pos = _getCursorPosition(mData);
+		Vector2I pos = GetCursorPositionInternal(mData);
 
 		if(clipCursor(mData, pos))
-			_setCursorPosition(mData, pos);
+			SetCursorPositionInternal(mData, pos);
 	}
 
 	void Platform::clipCursorDisable()
@@ -424,7 +424,7 @@ namespace bs
 		LinuxWindow* linuxWindow;
 		window.getCustomAttribute("LINUX_WINDOW", &linuxWindow);
 
-		linuxWindow->_setDragZones(nonClientAreas);
+		linuxWindow->SetDragZonesInternal(nonClientAreas);
 	}
 
 	void Platform::setResizeNonClientAreas(const ct::RenderWindow& window, const Vector<NonClientResizeArea>& nonClientAreas)
@@ -439,7 +439,7 @@ namespace bs
 		LinuxWindow* linuxWindow;
 		window.getCustomAttribute("LINUX_WINDOW", &linuxWindow);
 
-		linuxWindow->_setDragZones({});
+		linuxWindow->SetDragZonesInternal({});
 	}
 
 	void Platform::sleep(UINT32 duration)
@@ -791,7 +791,7 @@ namespace bs
 	{
 		LinuxWindow* linuxWindow = getLinuxWindow(data, xWindow);
 		if(linuxWindow != nullptr)
-			return (ct::RenderWindow*)linuxWindow->_getUserData();
+			return (ct::RenderWindow*)linuxWindow->GetUserDataInternal();
 
 		return nullptr;
 	}
@@ -817,7 +817,7 @@ namespace bs
 		LinuxPlatform::buttonEvents.push(event);
 	}
 
-	void Platform::_messagePump()
+	void Platform::MessagePumpInternal()
 	{
 		while(true)
 		{
@@ -877,11 +877,11 @@ namespace bs
 					if(window != nullptr)
 					{
 						// If it's a render window we allow the client code to handle the message
-						ct::RenderWindow* renderWindow = (ct::RenderWindow*)window->_getUserData();
+						ct::RenderWindow* renderWindow = (ct::RenderWindow*)window->GetUserDataInternal();
 						if(renderWindow != nullptr)
-							renderWindow->_notifyWindowEvent(WindowEventType::CloseRequested);
+							renderWindow->NotifyWindowEventInternal(WindowEventType::CloseRequested);
 						else // If not, we just destroy the window
-							window->_destroy();
+							window->DestroyInternal();
 					}
 				}
 			}
@@ -999,7 +999,7 @@ namespace bs
 				{
 					LinuxWindow* window = getLinuxWindow(mData, event.xbutton.window);
 					if(window != nullptr)
-						window->_dragStart(event.xbutton);
+						window->DragStartInternal(event.xbutton);
 				}
 
 				break;
@@ -1051,7 +1051,7 @@ namespace bs
 				{
 					LinuxWindow* window = getLinuxWindow(mData, event.xbutton.window);
 					if(window != nullptr)
-						window->_dragEnd();
+						window->DragEndInternal();
 				}
 
 				break;
@@ -1064,7 +1064,7 @@ namespace bs
 
 				// Handle clipping if enabled
 				if(clipCursor(mData, pos))
-					_setCursorPosition(mData, pos);
+					SetCursorPositionInternal(mData, pos);
 
 				// Send event
 				OSPointerButtonStates btnStates;
@@ -1089,12 +1089,12 @@ namespace bs
 					pos.y = event.xcrossing.y_root;
 
 					if (clipCursor(mData, pos))
-						_setCursorPosition(mData, pos);
+						SetCursorPositionInternal(mData, pos);
 				}
 
 				ct::RenderWindow* renderWindow = getRenderWindow(mData, event.xcrossing.window);
 				if(renderWindow != nullptr)
-					renderWindow->_notifyWindowEvent(WindowEventType::MouseLeft);
+					renderWindow->NotifyWindowEventInternal(WindowEventType::MouseLeft);
 			}
 				break;
 			case ConfigureNotify:
@@ -1104,11 +1104,11 @@ namespace bs
 				{
 					updateClipBounds(mData, window);
 
-					ct::RenderWindow* renderWindow = (ct::RenderWindow*)window->_getUserData();
+					ct::RenderWindow* renderWindow = (ct::RenderWindow*)window->GetUserDataInternal();
 					if(renderWindow != nullptr)
 					{
-						renderWindow->_notifyWindowEvent(WindowEventType::Resized);
-						renderWindow->_notifyWindowEvent(WindowEventType::Moved);
+						renderWindow->NotifyWindowEventInternal(WindowEventType::Resized);
+						renderWindow->NotifyWindowEventInternal(WindowEventType::Moved);
 					}
 				}
 			}
@@ -1125,7 +1125,7 @@ namespace bs
 				if (renderWindow != nullptr)
 				{
 					if (!renderWindow->getProperties().hasFocus)
-						renderWindow->_notifyWindowEvent(WindowEventType::FocusReceived);
+						renderWindow->NotifyWindowEventInternal(WindowEventType::FocusReceived);
 				}
 			}
 				break;
@@ -1141,7 +1141,7 @@ namespace bs
 				if (renderWindow != nullptr)
 				{
 					if (renderWindow->getProperties().hasFocus)
-						renderWindow->_notifyWindowEvent(WindowEventType::FocusLost);
+						renderWindow->NotifyWindowEventInternal(WindowEventType::FocusLost);
 				}
 			}
 				break;
@@ -1232,17 +1232,17 @@ namespace bs
 							if (foundVert && foundHorz)
 							{
 								if(event.xproperty.state == PropertyNewValue)
-									renderWindow->_notifyWindowEvent(WindowEventType::Maximized);
+									renderWindow->NotifyWindowEventInternal(WindowEventType::Maximized);
 								else
-									renderWindow->_notifyWindowEvent(WindowEventType::Restored);
+									renderWindow->NotifyWindowEventInternal(WindowEventType::Restored);
 							}
 
 							if(atoms[i] == mData->atomWmStateHidden)
 							{
 								if(event.xproperty.state == PropertyNewValue)
-									renderWindow->_notifyWindowEvent(WindowEventType::Minimized);
+									renderWindow->NotifyWindowEventInternal(WindowEventType::Minimized);
 								else
-									renderWindow->_notifyWindowEvent(WindowEventType::Restored);
+									renderWindow->NotifyWindowEventInternal(WindowEventType::Restored);
 							}
 						}
 
@@ -1256,7 +1256,7 @@ namespace bs
 		}
 	}
 
-	void Platform::_startUp()
+	void Platform::StartUpInternal()
 	{
 		Lock lock(mData->lock);
 		mData->xDisplay = XOpenDisplay(nullptr);
@@ -1357,17 +1357,17 @@ namespace bs
 		}
 	}
 
-	void Platform::_update()
+	void Platform::UpdateInternal()
 	{
 		LinuxDragAndDrop::update();
 	}
 
-	void Platform::_coreUpdate()
+	void Platform::CoreUpdateInternal()
 	{
-		_messagePump();
+		MessagePumpInternal();
 	}
 
-	void Platform::_shutDown()
+	void Platform::ShutDownInternal()
 	{
 		Lock lock(mData->lock);
 
@@ -1426,7 +1426,7 @@ namespace bs
 		mData->lock.unlock();
 	}
 
-	void LinuxPlatform::_registerWindow(::Window xWindow, LinuxWindow* window)
+	void LinuxPlatform::RegisterWindowInternal(::Window xWindow, LinuxWindow* window)
 	{
 		// First window is assumed to be the main
 		if(mData->mainXWindow == 0)
@@ -1445,7 +1445,7 @@ namespace bs
 		applyCurrentCursor(mData, xWindow);
 	}
 
-	void LinuxPlatform::_unregisterWindow(::Window xWindow)
+	void LinuxPlatform::UnregisterWindowInternal(::Window xWindow)
 	{
 		auto iterFind = mData->windowMap.find(xWindow);
 		if(iterFind != mData->windowMap.end())

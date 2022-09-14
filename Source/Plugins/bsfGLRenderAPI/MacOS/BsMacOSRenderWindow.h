@@ -73,7 +73,7 @@ namespace bs
 		SPtr<ct::MacOSRenderWindow> getCore() const;
 
 		/** Called when window is moved or resized. */
-		void _windowMovedOrResized() override;
+		void WindowMovedOrResizedInternal() override;
 
 	protected:
 		friend class GLRenderWindowManager;
@@ -147,7 +147,7 @@ namespace bs
 			void getCustomAttribute(const String& name, void* pData) const override;
 
 			/** Returns a lock that can be used for accessing synced properties. */
-			SpinLock& _getPropertiesLock() { return mLock;}
+			SpinLock& GetPropertiesLockInternal() { return mLock;}
 
 		protected:
 			friend class MacOSGLSupport;

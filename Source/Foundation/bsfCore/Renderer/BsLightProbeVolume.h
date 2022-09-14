@@ -186,7 +186,7 @@ namespace bs
 		SPtr<ct::CoreObject> createCore() const override;
 
 		/** @copydoc SceneActor::_markCoreDirty */
-		void _markCoreDirty(ActorDirtyFlag dirtFlags = ActorDirtyFlag::Everything) override;
+		void MarkCoreDirtyInternal(ActorDirtyFlag dirtFlags = ActorDirtyFlag::Everything) override;
 
 		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData syncToCore(FrameAlloc* allocator) override;

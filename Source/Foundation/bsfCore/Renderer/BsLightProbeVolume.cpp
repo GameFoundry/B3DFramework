@@ -28,7 +28,7 @@ namespace bs
 		UINT32 handle = mNextProbeId++;
 		mProbes[handle] = ProbeInfo(LightProbeFlags::Clean, position);
 
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 		return handle;
 	}
 
@@ -38,7 +38,7 @@ namespace bs
 		if (iterFind != mProbes.end() && mProbes.size() > 4)
 		{
 			iterFind->second.flags = LightProbeFlags::Removed;
-			_markCoreDirty();
+			MarkCoreDirtyInternal();
 		}
 	}
 
@@ -48,7 +48,7 @@ namespace bs
 		if (iterFind != mProbes.end())
 		{
 			iterFind->second.position = position;
-			_markCoreDirty();
+			MarkCoreDirtyInternal();
 		}
 	}
 
@@ -110,7 +110,7 @@ namespace bs
 		mVolume = volume;
 		mCellCount = cellCount;
 
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void LightProbeVolume::reset()
@@ -160,7 +160,7 @@ namespace bs
 			++iter;
 		}
 
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void LightProbeVolume::clip()
@@ -171,7 +171,7 @@ namespace bs
 				entry.second.flags = LightProbeFlags::Removed;
 		}
 
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void LightProbeVolume::renderProbe(UINT32 handle)
@@ -183,7 +183,7 @@ namespace bs
 			{
 				iterFind->second.flags = LightProbeFlags::Dirty;
 
-				_markCoreDirty();
+				MarkCoreDirtyInternal();
 				runRenderProbeTask();
 			}
 		}
@@ -203,7 +203,7 @@ namespace bs
 
 		if (anyModified)
 		{
-			_markCoreDirty();
+			MarkCoreDirtyInternal();
 			runRenderProbeTask();
 		}
 	}
@@ -271,7 +271,7 @@ namespace bs
 	{
 		LightProbeVolume* probeVolume = new (bs_alloc<LightProbeVolume>()) LightProbeVolume(volume, cellCount);
 		SPtr<LightProbeVolume> probeVolumePtr = bs_core_ptr<LightProbeVolume>(probeVolume);
-		probeVolumePtr->_setThisPtr(probeVolumePtr);
+		probeVolumePtr->SetThisPtrInternal(probeVolumePtr);
 		probeVolumePtr->initialize();
 
 		return probeVolumePtr;
@@ -281,7 +281,7 @@ namespace bs
 	{
 		LightProbeVolume* probeVolume = new (bs_alloc<LightProbeVolume>()) LightProbeVolume();
 		SPtr<LightProbeVolume> probleVolumePtr = bs_core_ptr<LightProbeVolume>(probeVolume);
-		probleVolumePtr->_setThisPtr(probleVolumePtr);
+		probleVolumePtr->SetThisPtrInternal(probleVolumePtr);
 
 		return probleVolumePtr;
 	}
@@ -290,7 +290,7 @@ namespace bs
 	{
 		ct::LightProbeVolume* handler = new (bs_alloc<ct::LightProbeVolume>()) ct::LightProbeVolume(mProbes);
 		SPtr<ct::LightProbeVolume> handlerPtr = bs_shared_ptr<ct::LightProbeVolume>(handler);
-		handlerPtr->_setThisPtr(handlerPtr);
+		handlerPtr->SetThisPtrInternal(handlerPtr);
 
 		return handlerPtr;
 	}
@@ -352,7 +352,7 @@ namespace bs
 		return CoreSyncData(buffer, size);
 	}
 
-	void LightProbeVolume::_markCoreDirty(ActorDirtyFlag dirtyFlag)
+	void LightProbeVolume::MarkCoreDirtyInternal(ActorDirtyFlag dirtyFlag)
 	{
 		markCoreDirty((UINT32)dirtyFlag);
 	}

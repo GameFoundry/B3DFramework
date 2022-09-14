@@ -18,7 +18,7 @@ namespace bs
 
 	MonoObject*ScriptContactPoint::box(const __ContactPointInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__ContactPointInterop ScriptContactPoint::unbox(MonoObject* value)

@@ -69,18 +69,18 @@ namespace bs
 		 *  @{
 		 */
 
-		/** @copydoc GUIElement::_getOptimalSize */
-		Vector2I _getOptimalSize() const override;
+		/** @copydoc GUIElement::GetOptimalSizeInternal */
+		Vector2I GetOptimalSizeInternal() const override;
 
 		/** @copydoc GUIElement::_getElementType */
-		ElementType _getElementType() const override { return ElementType::Label; }
+		ElementType GetElementTypeInternal() const override { return ElementType::Label; }
 
 		/** @} */
 	protected:
 		~GUILabel();
 
-		/** @copydoc GUIElement::_getRenderElementDepthRange */
-		UINT32 _getRenderElementDepthRange() const override;
+		/** @copydoc GUIElement::GetRenderElementDepthRangeInternal */
+		UINT32 GetRenderElementDepthRangeInternal() const override;
 
 		/** @copydoc GUIElement::_fillBuffer */
 		void _fillBuffer(

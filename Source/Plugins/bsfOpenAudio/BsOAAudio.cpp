@@ -101,7 +101,7 @@ namespace bs
 			source->setGlobalPause(paused);
 	}
 
-	void OAAudio::_update()
+	void OAAudio::UpdateInternal()
 	{
 		auto worker = [this]() { updateStreaming(); };
 
@@ -112,7 +112,7 @@ namespace bs
 		mStreamingTask = Task::create("AudioStream", worker, TaskPriority::VeryHigh);
 		TaskScheduler::instance().addTask(mStreamingTask);
 
-		Audio::_update();
+		Audio::UpdateInternal();
 	}
 
 	void OAAudio::setActiveDevice(const AudioDevice& device)
@@ -135,7 +135,7 @@ namespace bs
 		rebuildContexts();
 	}
 
-	bool OAAudio::_isExtensionSupported(const String& extension) const
+	bool OAAudio::IsExtensionSupportedInternal(const String& extension) const
 	{
 		if (mDevice == nullptr)
 			return false;
@@ -146,14 +146,14 @@ namespace bs
 			return alIsExtensionPresent(extension.c_str()) != AL_FALSE;
 	}
 
-	void OAAudio::_registerListener(OAAudioListener* listener)
+	void OAAudio::RegisterListenerInternal(OAAudioListener* listener)
 	{
 		mListeners.push_back(listener);
 
 		rebuildContexts();
 	}
 
-	void OAAudio::_unregisterListener(OAAudioListener* listener)
+	void OAAudio::UnregisterListenerInternal(OAAudioListener* listener)
 	{
 		auto iterFind = std::find(mListeners.begin(), mListeners.end(), listener);
 		if (iterFind != mListeners.end())
@@ -162,12 +162,12 @@ namespace bs
 		rebuildContexts();
 	}
 
-	void OAAudio::_registerSource(OAAudioSource* source)
+	void OAAudio::RegisterSourceInternal(OAAudioSource* source)
 	{
 		mSources.insert(source);
 	}
 
-	void OAAudio::_unregisterSource(OAAudioSource* source)
+	void OAAudio::UnregisterSourceInternal(OAAudioSource* source)
 	{
 		mSources.erase(source);
 	}
@@ -188,7 +188,7 @@ namespace bs
 		mDestroyedSources.insert(source);
 	}
 
-	ALCcontext* OAAudio::_getContext(const OAAudioListener* listener) const
+	ALCcontext* OAAudio::GetContextInternal(const OAAudioListener* listener) const
 	{
 		if (mListeners.size() > 0)
 		{
@@ -303,7 +303,7 @@ namespace bs
 		}
 	}
 
-	ALenum OAAudio::_getOpenALBufferFormat(UINT32 numChannels, UINT32 bitDepth)
+	ALenum OAAudio::GetOpenALBufferFormatInternal(UINT32 numChannels, UINT32 bitDepth)
 	{
 		switch (bitDepth)
 		{
@@ -358,20 +358,20 @@ namespace bs
 		}
 	}
 
-	void OAAudio::_writeToOpenALBuffer(UINT32 bufferId, UINT8* samples, const AudioDataInfo& info)
+	void OAAudio::WriteToOpenALBufferInternal(UINT32 bufferId, UINT8* samples, const AudioDataInfo& info)
 	{
 		if (info.numChannels <= 2) // Mono or stereo
 		{
 			if (info.bitDepth > 16)
 			{
-				if (_isExtensionSupported("AL_EXT_float32"))
+				if (IsExtensionSupportedInternal("AL_EXT_float32"))
 				{
 					UINT32 bufferSize = info.numSamples * sizeof(float);
 					float* sampleBufferFloat = (float*)bs_stack_alloc(bufferSize);
 
 					AudioUtility::convertToFloat(samples, info.bitDepth, sampleBufferFloat, info.numSamples);
 
-					ALenum format = _getOpenALBufferFormat(info.numChannels, info.bitDepth);
+					ALenum format = GetOpenALBufferFormatInternal(info.numChannels, info.bitDepth);
 					alBufferData(bufferId, format, sampleBufferFloat, bufferSize, info.sampleRate);
 
 					bs_stack_free(sampleBufferFloat);
@@ -386,7 +386,7 @@ namespace bs
 
 					AudioUtility::convertBitDepth(samples, info.bitDepth, sampleBuffer16, 16, info.numSamples);
 
-					ALenum format = _getOpenALBufferFormat(info.numChannels, 16);
+					ALenum format = GetOpenALBufferFormatInternal(info.numChannels, 16);
 					alBufferData(bufferId, format, sampleBuffer16, bufferSize, info.sampleRate);
 
 					bs_stack_free(sampleBuffer16);
@@ -401,14 +401,14 @@ namespace bs
 				for(UINT32 i = 0; i < info.numSamples; i++)
 					sampleBuffer[i] = ((INT8*)samples)[i] + 128;
 
-				ALenum format = _getOpenALBufferFormat(info.numChannels, 16);
+				ALenum format = GetOpenALBufferFormatInternal(info.numChannels, 16);
 				alBufferData(bufferId, format, sampleBuffer, bufferSize, info.sampleRate);
 
 				bs_stack_free(sampleBuffer);
 			}
 			else
 			{
-				ALenum format = _getOpenALBufferFormat(info.numChannels, info.bitDepth);
+				ALenum format = GetOpenALBufferFormatInternal(info.numChannels, info.bitDepth);
 				alBufferData(bufferId, format, samples, info.numSamples * (info.bitDepth / 8), info.sampleRate);
 			}
 		}
@@ -423,7 +423,7 @@ namespace bs
 
 				AudioUtility::convertBitDepth(samples, info.bitDepth, sampleBuffer32, 32, info.numSamples);
 
-				ALenum format = _getOpenALBufferFormat(info.numChannels, 32);
+				ALenum format = GetOpenALBufferFormatInternal(info.numChannels, 32);
 				alBufferData(bufferId, format, sampleBuffer32, bufferSize, info.sampleRate);
 
 				bs_stack_free(sampleBuffer32);
@@ -437,14 +437,14 @@ namespace bs
 				for (UINT32 i = 0; i < info.numSamples; i++)
 					sampleBuffer[i] = ((INT8*)samples)[i] + 128;
 
-				ALenum format = _getOpenALBufferFormat(info.numChannels, 16);
+				ALenum format = GetOpenALBufferFormatInternal(info.numChannels, 16);
 				alBufferData(bufferId, format, sampleBuffer, bufferSize, info.sampleRate);
 
 				bs_stack_free(sampleBuffer);
 			}
 			else
 			{
-				ALenum format = _getOpenALBufferFormat(info.numChannels, info.bitDepth);
+				ALenum format = GetOpenALBufferFormatInternal(info.numChannels, info.bitDepth);
 				alBufferData(bufferId, format, samples, info.numSamples * (info.bitDepth / 8), info.sampleRate);
 			}
 		}

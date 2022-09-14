@@ -29,10 +29,10 @@ namespace bs
 		PrefabUtility::clearPrefabIds(sceneObject, true, false);
 		newPrefab->initialize(sceneObject);
 
-		HPrefab handle = static_resource_cast<Prefab>(gResources()._createResourceHandle(newPrefab));
+		HPrefab handle = static_resource_cast<Prefab>(gResources().CreateResourceHandleInternal(newPrefab));
 		newPrefab->mUUID = handle.getUUID();
 		sceneObject->mPrefabLinkUUID = newPrefab->mUUID;
-		newPrefab->_getRoot()->mPrefabLinkUUID = newPrefab->mUUID;
+		newPrefab->GetRootInternal()->mPrefabLinkUUID = newPrefab->mUUID;
 
 		return handle;
 	}
@@ -40,7 +40,7 @@ namespace bs
 	SPtr<Prefab> Prefab::createEmpty()
 	{
 		SPtr<Prefab> newPrefab = bs_core_ptr<Prefab>(new (bs_alloc<Prefab>()) Prefab());
-		newPrefab->_setThisPtr(newPrefab);
+		newPrefab->SetThisPtrInternal(newPrefab);
 
 		return newPrefab;
 	}
@@ -107,7 +107,7 @@ namespace bs
 		mHash++;
 	}
 
-	void Prefab::_updateChildInstances() const
+	void Prefab::UpdateChildInstancesInternal() const
 	{
 		Stack<HSceneObject> todo;
 		todo.push(mRoot);
@@ -130,7 +130,7 @@ namespace bs
 		}
 	}
 
-	HSceneObject Prefab::_instantiate(bool preserveUUIDs) const
+	HSceneObject Prefab::InstantiateInternal(bool preserveUUIDs) const
 	{
 		if (mRoot == nullptr)
 			return HSceneObject();
@@ -139,17 +139,17 @@ namespace bs
 		if (gCoreApplication().isEditor())
 		{
 			// Update any child prefab instances in case their prefabs changed
-			_updateChildInstances();
+			UpdateChildInstancesInternal();
 		}
 #endif
 
-		HSceneObject clone = _clone(preserveUUIDs);
-		clone->_instantiate();
+		HSceneObject clone = CloneInternal(preserveUUIDs);
+		clone->InstantiateInternal();
 		
 		return clone;
 	}
 
-	HSceneObject Prefab::_clone(bool preserveUUIDs) const
+	HSceneObject Prefab::CloneInternal(bool preserveUUIDs) const
 	{
 		if (mRoot == nullptr)
 			return HSceneObject();

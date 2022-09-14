@@ -19,7 +19,7 @@ namespace bs::ct
 		LinuxVideoMode(UINT32 width, UINT32 height, float refreshRate, UINT32 outputIdx);
 
 		/** Returns internal RandR video mode id. */
-		RRMode _getModeID() const { return mModeID; }
+		RRMode GetModeIDInternal() const { return mModeID; }
 
 	private:
 		LinuxVideoMode(UINT32 width, UINT32 height, float refreshRate, UINT32 outputIdx, RRMode modeID);
@@ -36,10 +36,10 @@ namespace bs::ct
 			 XRRScreenResources* screenRes, RROutput outputID, UINT32 outputIdx);
 
 		/** Returns internal RandR output device id. */
-		RROutput _getOutputID() const { return mOutputID; }
+		RROutput GetOutputIDInternal() const { return mOutputID; }
 
 		/** Returns X11 screen this output renders to. One screen can contain multiple output devices. */
-		INT32 _getScreen() const { return mScreen;}
+		INT32 GetScreenInternal() const { return mScreen;}
 	private:
 		RROutput mOutputID;
 		INT32 mScreen;

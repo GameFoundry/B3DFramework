@@ -76,8 +76,8 @@ namespace bs
 		 *  @{
 		 */
 
-		/** @copydoc GUIElementContainer::_getOptimalSize */
-		Vector2I _getOptimalSize() const override;
+		/** @copydoc GUIElementContainer::GetOptimalSizeInternal */
+		Vector2I GetOptimalSizeInternal() const override;
 
 		/** @} */
 	protected:
@@ -85,7 +85,7 @@ namespace bs
 		virtual ~GUISlider();
 
 		/** @copydoc GUIElementContainer::_updateLayoutInternal */
-		void _updateLayoutInternal(const GUILayoutData& data) override;
+		void UpdateLayoutInternalInternal(const GUILayoutData& data) override;
 
 		/** @copydoc GUIElementContainer::styleUpdated */
 		void styleUpdated() override;
@@ -94,7 +94,7 @@ namespace bs
 		void onHandleMoved(float newPosition, float newSize);
 
 		/** @copydoc GUIElement::_commandEvent */
-		bool _commandEvent(const GUICommandEvent& ev) override;
+		bool CommandEventInternal(const GUICommandEvent& ev) override;
 	private:
 		GUISliderHandle* mSliderHandle;
 		GUITexture* mBackground;

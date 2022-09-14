@@ -53,7 +53,7 @@ namespace bs
 		void setEnableCollision(bool value) override;
 
 		/** Gets the internal PhysX joint object. */
-		physx::PxJoint* _getInternal() const { return mJoint; }
+		physx::PxJoint* GetInternalInternal() const { return mJoint; }
 	protected:
 		physx::PxJoint* mJoint;
 	};

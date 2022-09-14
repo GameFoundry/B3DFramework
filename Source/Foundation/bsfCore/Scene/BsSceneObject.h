@@ -104,7 +104,7 @@ namespace bs
 		 */
 
 		/** @copydoc GameObject::_setInstanceData */
-		void _setInstanceData(GameObjectInstanceDataPtr& other) override;
+		void SetInstanceDataInternal(GameObjectInstanceDataPtr& other) override;
 
 		/**
 		 * Register the scene object with the scene and activate all of its components.
@@ -112,40 +112,40 @@ namespace bs
 		 * @param[in]	prefabOnly	If true, only objects within the current prefab will be instantiated. If false all child
 		 *							objects and components will.
 		 */
-		void _instantiate(bool prefabOnly = false);
+		void InstantiateInternal(bool prefabOnly = false);
 
 		/**
 		 * Clears the internally stored prefab diff. If this object is updated from prefab its instance specific changes
 		 * will be lost.
 		 */
-		void _clearPrefabDiff() { mPrefabDiff = nullptr; }
+		void ClearPrefabDiffInternal() { mPrefabDiff = nullptr; }
 
 		/**
 		 * Returns the UUID of the prefab this object is linked to, if any. Unlike getPrefabLink() method this will not
 		 * search parents, but instead return only the value assigned to this object.
 		 */
-		const UUID& _getPrefabLinkUUID() const { return mPrefabLinkUUID; }
+		const UUID& GetPrefabLinkUUIDInternal() const { return mPrefabLinkUUID; }
 
 		/**
 		 * Allows you to change the prefab link UUID of this object. Normally this should be accompanied by reassigning the
 		 * link IDs.
 		 */
-		void _setPrefabLinkUUID(const UUID& UUID) { mPrefabLinkUUID = UUID; }
+		void SetPrefabLinkUUIDInternal(const UUID& UUID) { mPrefabLinkUUID = UUID; }
 
 		/**
 		 * Returns a prefab diff object containing instance specific modifications of this object compared to its prefab
 		 * reference, if any.
 		 */
-		const SPtr<PrefabDiff>& _getPrefabDiff() const { return mPrefabDiff; }
+		const SPtr<PrefabDiff>& GetPrefabDiffInternal() const { return mPrefabDiff; }
 
 		/** Assigns a new prefab diff object. Caller must ensure the prefab diff was generated for this object. */
-		void _setPrefabDiff(const SPtr<PrefabDiff>& diff) { mPrefabDiff = diff; }
+		void SetPrefabDiffInternal(const SPtr<PrefabDiff>& diff) { mPrefabDiff = diff; }
 
 		/** Recursively enables the provided set of flags on this object and all children. */
-		void _setFlags(UINT32 flags);
+		void SetFlagsInternal(UINT32 flags);
 
 		/** Recursively disables the provided set of flags on this object and all children. */
-		void _unsetFlags(UINT32 flags);
+		void UnsetFlagsInternal(UINT32 flags);
 
 		/** @} */
 
@@ -461,7 +461,7 @@ namespace bs
 		 * @param[in]	keepWorldTransform	Determines should the current transform be maintained even after the parent is
 		 *									changed (this means the local transform will be modified accordingly).
 		 */
-		void _setParent(const HSceneObject& parent, bool keepWorldTransform = true);
+		void SetParentInternal(const HSceneObject& parent, bool keepWorldTransform = true);
 
 		/** Changes the owning scene of the scene object and all children. */
 		void setScene(const SPtr<SceneInstance>& scene);
@@ -634,7 +634,7 @@ namespace bs
 		 */
 
 		/**	Returns a modifyable list of all components on this object. */
-		Vector<HComponent>& _getComponents() { return mComponents; }
+		Vector<HComponent>& GetComponentsInternal() { return mComponents; }
 
 		/** @} */
 	private:

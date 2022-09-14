@@ -20,7 +20,7 @@ namespace bs
 	{
 		mAsyncOpSyncData = bs_shared_ptr_new<AsyncOpSyncData>();
 
-		_registerAssetImporter(bs_new<ShaderIncludeImporter>());
+		RegisterAssetImporterInternal(bs_new<ShaderIncludeImporter>());
 	}
 
 	Importer::~Importer()
@@ -58,12 +58,12 @@ namespace bs
 
 	HResource Importer::import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions, const UUID& UUID)
 	{
-		SPtr<Resource> importedResource = _import(inputFilePath, importOptions);
+		SPtr<Resource> importedResource = ImportInternal(inputFilePath, importOptions);
 
 		if(UUID.empty())
-			return gResources()._createResourceHandle(importedResource);
+			return gResources().CreateResourceHandleInternal(importedResource);
 
-		return gResources()._createResourceHandle(importedResource, UUID);
+		return gResources().CreateResourceHandleInternal(importedResource, UUID);
 	}
 
 	TAsyncOp<HResource> Importer::importAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions,
@@ -74,7 +74,7 @@ namespace bs
 		SpecificImporter* importer = prepareForImport(inputFilePath, importOptions);
 		if(!importer)
 		{
-			output._completeOperation(HResource());
+			output.CompleteOperationInternal(HResource());
 			return output;
 		}
 
@@ -86,10 +86,10 @@ namespace bs
 	{
 		Vector<SubResource> output;
 
-		Vector<SubResourceRaw> importedResource = _importAll(inputFilePath, importOptions);
+		Vector<SubResourceRaw> importedResource = ImportAllInternal(inputFilePath, importOptions);
 		for(auto& entry : importedResource)
 		{
-			HResource handle = gResources()._createResourceHandle(entry.value);
+			HResource handle = gResources().CreateResourceHandleInternal(entry.value);
 			output.push_back({ entry.name, handle });
 		}
 
@@ -104,7 +104,7 @@ namespace bs
 		SpecificImporter* importer = prepareForImport(inputFilePath, importOptions);
 		if(!importer)
 		{
-			output._completeOperation(bs_shared_ptr_new<MultiResource>());
+			output.CompleteOperationInternal(bs_shared_ptr_new<MultiResource>());
 			return output;
 		}
 
@@ -112,7 +112,7 @@ namespace bs
 		return output;
 	}
 
-	SPtr<Resource> Importer::_import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions)
+	SPtr<Resource> Importer::ImportInternal(const Path& inputFilePath, SPtr<const ImportOptions> importOptions)
 	{
 		SpecificImporter* importer = prepareForImport(inputFilePath, importOptions);
 		if(importer == nullptr)
@@ -137,7 +137,7 @@ namespace bs
 		return output;
 	}
 
-	Vector<SubResourceRaw> Importer::_importAll(const Path& inputFilePath, SPtr<const ImportOptions> importOptions)
+	Vector<SubResourceRaw> Importer::ImportAllInternal(const Path& inputFilePath, SPtr<const ImportOptions> importOptions)
 	{
 		SpecificImporter* importer = prepareForImport(inputFilePath, importOptions);
 		if(!importer)
@@ -230,11 +230,11 @@ namespace bs
 
 		HResource resource;
 		if (uuid.empty())
-			resource = gResources()._createResourceHandle(resourcePtr);
+			resource = gResources().CreateResourceHandleInternal(resourcePtr);
 		else
-			resource = gResources()._createResourceHandle(resourcePtr, uuid);
+			resource = gResources().CreateResourceHandleInternal(resourcePtr, uuid);
 
-		op._completeOperation(resource);
+		op.CompleteOperationInternal(resource);
 	}
 
 	template<>
@@ -246,11 +246,11 @@ namespace bs
 		Vector<SubResource> subresources;
 		for (auto& entry : rawSubresources)
 		{
-			HResource handle = gResources()._createResourceHandle(entry.value);
+			HResource handle = gResources().CreateResourceHandleInternal(entry.value);
 			subresources.push_back({ entry.name, handle });
 		}
 
-		op._completeOperation(bs_shared_ptr_new<MultiResource>(subresources));
+		op.CompleteOperationInternal(bs_shared_ptr_new<MultiResource>(subresources));
 	}
 
 	template<class ReturnType>
@@ -322,7 +322,7 @@ namespace bs
 		return importer->createImportOptions();
 	}
 
-	void Importer::_registerAssetImporter(SpecificImporter* importer)
+	void Importer::RegisterAssetImporterInternal(SpecificImporter* importer)
 	{
 		if(!importer)
 		{

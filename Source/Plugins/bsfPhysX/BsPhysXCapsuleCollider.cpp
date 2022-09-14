@@ -61,7 +61,7 @@ namespace bs
 		PxCapsuleGeometry geometry(std::max(0.01f, mRadius * std::max(mScale.x, mScale.z)),
 			std::max(0.01f, mHalfHeight * mScale.y));
 
-		getInternal()->_getShape()->setGeometry(geometry);
+		getInternal()->GetShapeInternal()->setGeometry(geometry);
 	}
 
 	FPhysXCollider* PhysXCapsuleCollider::getInternal() const

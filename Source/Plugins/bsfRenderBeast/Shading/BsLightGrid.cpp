@@ -44,7 +44,7 @@ namespace bs { namespace ct
 		mProbesCounterParam.set(mProbesCounter);
 	}
 
-	void LightGridLLCreationMat::_initDefines(ShaderDefines& defines)
+	void LightGridLLCreationMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		defines.set("THREADGROUP_SIZE", THREADGROUP_SIZE);
 	}
@@ -158,7 +158,7 @@ namespace bs { namespace ct
 		mGridDataCounterParam.set(mGridDataCounter);
 	}
 
-	void LightGridLLReductionMat::_initDefines(ShaderDefines& defines)
+	void LightGridLLReductionMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		defines.set("THREADGROUP_SIZE", THREADGROUP_SIZE);
 	}

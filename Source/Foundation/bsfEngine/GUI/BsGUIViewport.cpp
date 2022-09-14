@@ -42,7 +42,7 @@ namespace bs
 		mClippedBounds.clip(mLayoutData.clipRect);
 	}
 
-	Vector2I GUIViewport::_getOptimalSize() const
+	Vector2I GUIViewport::GetOptimalSizeInternal() const
 	{
 		return Vector2I(0, 0);
 	}
@@ -80,9 +80,9 @@ namespace bs
 		viewport->setArea(Rect2(x, y, width, height));
 	}
 
-	void GUIViewport::_changeParentWidget(GUIWidget* widget)
+	void GUIViewport::ChangeParentWidgetInternal(GUIWidget* widget)
 	{
-		GUIElement::_changeParentWidget(widget);
+		GUIElement::ChangeParentWidgetInternal(widget);
 
 		if(widget != nullptr)
 		{

@@ -118,13 +118,13 @@ namespace bs
 		void setActive(bool state) override;
 
 		/** @copydoc RenderWindow::_windowMovedOrResized */
-		void _windowMovedOrResized() override;
+		void WindowMovedOrResizedInternal() override;
 
 		/**	Returns handle to device context associated with the window. */
-		HDC _getHDC() const { return mHDC; }
+		HDC GetHDCInternal() const { return mHDC; }
 
 		/**	Returns internal window handle. */
-		HWND _getHWnd() const;
+		HWND GetHWndInternal() const;
 
 	protected:
 		friend class Win32GLSupport;

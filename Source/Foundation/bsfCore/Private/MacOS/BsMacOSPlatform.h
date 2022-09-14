@@ -88,19 +88,19 @@ namespace bs
 		static void notifyWindowEvent(WindowEventType type, UINT32 windowId);
 
 		/** Returns the currently assigned custom cursor. */
-		static NSCursor* _getCurrentCursor();
+		static NSCursor* GetCurrentCursorInternal();
 
 		/**
 		 * Clips the cursor position to clip bounds, if clipping is enabled. Returns true if clipping occured, and updates
 		 * @p pos to the clipped position.
 		 */
-		static bool _clipCursor(Vector2I& pos);
+		static bool ClipCursorInternal(Vector2I& pos);
 
 		/** Updates clip bounds that depend on window size. Should be called after window size changes. */
-		static void _updateClipBounds(NSWindow* window);
+		static void UpdateClipBoundsInternal(NSWindow* window);
 
 		/** Moves the cursor to the specified position in screen coordinates. */
-		static void _setCursorPosition(const Vector2I& position);
+		static void SetCursorPositionInternal(const Vector2I& position);
 	};
 
 	/** Converts an area in screen space with bottom left origin, to top left origin. */

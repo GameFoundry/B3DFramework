@@ -19,7 +19,7 @@ namespace bs
 
 	MonoObject*ScriptPARTICLE_SKINNED_MESH_SHAPE_DESC::box(const __PARTICLE_SKINNED_MESH_SHAPE_DESCInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__PARTICLE_SKINNED_MESH_SHAPE_DESCInterop ScriptPARTICLE_SKINNED_MESH_SHAPE_DESC::unbox(MonoObject* value)

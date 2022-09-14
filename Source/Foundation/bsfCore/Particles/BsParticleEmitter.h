@@ -80,8 +80,7 @@ namespace bs
 		 * @return					Index at which the first of the particles was inserted, with other particles following
 		 *							sequentially.
 		 */
-		virtual UINT32 _spawn(const Random& random, ParticleSet& particles, UINT32 count,
-			const ParticleSystemState& state) const = 0;
+		virtual UINT32 SpawnInternal(const Random& random, ParticleSet& particles, UINT32 count, const ParticleSystemState& state) const = 0;
 
 		/** @} */
 	protected:
@@ -177,15 +176,15 @@ namespace bs
 		 * @{
 		 */
 
-		/** @copydoc ParticleEmitterShape::_spawn */
-		UINT32 _spawn(const Random& random, ParticleSet& particles, UINT32 count,
+		/** @copydoc ParticleEmitterShape::SpawnInternal */
+		UINT32 SpawnInternal(const Random& random, ParticleSet& particles, UINT32 count,
 			const ParticleSystemState& state) const override;
 
 		/** Spawns a single particle randomly, generating its position and normal. */
-		void _spawn(const Random& random, Vector3& position, Vector3& normal) const;
+		void SpawnInternal(const Random& random, Vector3& position, Vector3& normal) const;
 
 		/** Spawns a single particle on the specified point on the cone, generating its position and normal. */
-		void _spawn(float t, Vector3& position, Vector3& normal) const;
+		void SpawnInternal(float t, Vector3& position, Vector3& normal) const;
 
 		/** @} */
 	protected:
@@ -252,12 +251,12 @@ namespace bs
 		 * @{
 		 */
 
-		/** @copydoc ParticleEmitterShape::_spawn */
-		UINT32 _spawn(const Random& random, ParticleSet& particles, UINT32 count,
+		/** @copydoc ParticleEmitterShape::SpawnInternal */
+		UINT32 SpawnInternal(const Random& random, ParticleSet& particles, UINT32 count,
 			const ParticleSystemState& state) const override;
 
 		/** Spawns a single particle, generating its position and normal. */
-		void _spawn(const Random& random, Vector3& position, Vector3& normal) const;
+		void SpawnInternal(const Random& random, Vector3& position, Vector3& normal) const;
 
 		/** @} */
 	protected:
@@ -321,12 +320,12 @@ namespace bs
 		 * @{
 		 */
 
-		/** @copydoc ParticleEmitterShape::_spawn */
-		UINT32 _spawn(const Random& random, ParticleSet& particles, UINT32 count,
+		/** @copydoc ParticleEmitterShape::SpawnInternal */
+		UINT32 SpawnInternal(const Random& random, ParticleSet& particles, UINT32 count,
 			const ParticleSystemState& state) const override;
 
 		/** Spawns a single particle, generating its position and normal. */
-		void _spawn(const Random& random, Vector3& position, Vector3& normal) const;
+		void SpawnInternal(const Random& random, Vector3& position, Vector3& normal) const;
 
 		/** @} */
 	protected:
@@ -396,12 +395,12 @@ namespace bs
 		 * @{
 		 */
 
-		/** @copydoc ParticleEmitterShape::_spawn */
-		UINT32 _spawn(const Random& random, ParticleSet& particles, UINT32 count,
+		/** @copydoc ParticleEmitterShape::SpawnInternal */
+		UINT32 SpawnInternal(const Random& random, ParticleSet& particles, UINT32 count,
 			const ParticleSystemState& state) const override;
 
 		/** Spawns a single particle, generating its position and normal. */
-		void _spawn(const Random& random, Vector3& position, Vector3& normal) const;
+		void SpawnInternal(const Random& random, Vector3& position, Vector3& normal) const;
 
 		/** @} */
 	protected:
@@ -460,15 +459,15 @@ namespace bs
 		 * @{
 		 */
 
-		/** @copydoc ParticleEmitterShape::_spawn */
-		UINT32 _spawn(const Random& random, ParticleSet& particles, UINT32 count,
+		/** @copydoc ParticleEmitterShape::SpawnInternal */
+		UINT32 SpawnInternal(const Random& random, ParticleSet& particles, UINT32 count,
 			const ParticleSystemState& state) const override;
 
 		/** Spawns a single particle randomly, generating its position and normal. */
-		void _spawn(const Random& random, Vector3& position, Vector3& normal) const;
+		void SpawnInternal(const Random& random, Vector3& position, Vector3& normal) const;
 
 		/** Spawns a single particle on the specified point on the line, generating its position and normal. */
-		void _spawn(float t, Vector3& position, Vector3& normal) const;
+		void SpawnInternal(float t, Vector3& position, Vector3& normal) const;
 
 		/** @} */
 	protected:
@@ -539,15 +538,15 @@ namespace bs
 		 * @{
 		 */
 
-		/** @copydoc ParticleEmitterShape::_spawn */
-		UINT32 _spawn(const Random& random, ParticleSet& particles, UINT32 count,
+		/** @copydoc ParticleEmitterShape::SpawnInternal */
+		UINT32 SpawnInternal(const Random& random, ParticleSet& particles, UINT32 count,
 			const ParticleSystemState& state) const override;
 
 		/** Spawns a single particle randomly, generating its position and normal. */
-		void _spawn(const Random& random, Vector3& position, Vector3& normal) const;
+		void SpawnInternal(const Random& random, Vector3& position, Vector3& normal) const;
 
 		/** Spawns a single particle on the specified point on the circle, generating its position and normal. */
-		void _spawn(float t, Vector3& position, Vector3& normal) const;
+		void SpawnInternal(float t, Vector3& position, Vector3& normal) const;
 
 		/** @} */
 	protected:
@@ -600,12 +599,12 @@ namespace bs
 		 * @{
 		 */
 
-		/** @copydoc ParticleEmitterShape::_spawn */
-		UINT32 _spawn(const Random& random, ParticleSet& particles, UINT32 count,
+		/** @copydoc ParticleEmitterShape::SpawnInternal */
+		UINT32 SpawnInternal(const Random& random, ParticleSet& particles, UINT32 count,
 			const ParticleSystemState& state) const override;
 
 		/** Spawns a single particle, generating its position and normal. */
-		void _spawn(const Random& random, Vector3& position, Vector3& normal) const;
+		void SpawnInternal(const Random& random, Vector3& position, Vector3& normal) const;
 
 		/** @} */
 	protected:
@@ -766,8 +765,8 @@ namespace bs
 		 * @{
 		 */
 
-		/** @copydoc ParticleEmitterShape::_spawn */
-		UINT32 _spawn(const Random& random, ParticleSet& particles, UINT32 count,
+		/** @copydoc ParticleEmitterShape::SpawnInternal */
+		UINT32 SpawnInternal(const Random& random, ParticleSet& particles, UINT32 count,
 			const ParticleSystemState& state) const override;
 
 		/** @} */
@@ -841,8 +840,8 @@ namespace bs
 		 * @{
 		 */
 
-		/** @copydoc ParticleEmitterShape::_spawn */
-		UINT32 _spawn(const Random& random, ParticleSet& particles, UINT32 count,
+		/** @copydoc ParticleEmitterShape::SpawnInternal */
+		UINT32 SpawnInternal(const Random& random, ParticleSet& particles, UINT32 count,
 			const ParticleSystemState& state) const override;
 
 		/** @} */

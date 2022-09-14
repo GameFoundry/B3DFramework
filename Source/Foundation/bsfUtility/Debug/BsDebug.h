@@ -99,7 +99,7 @@ namespace bs
 		 * 			
 		 * @note	Sim thread only.
 		 */
-		void _triggerCallbacks();
+		void TriggerCallbacksInternal();
 
 		/** @} */
 	private:
@@ -126,7 +126,7 @@ namespace bs
 #define BS_LOG_CATEGORY(name, id) struct LogCategory##name { enum { _id = id }; static bool sRegistered; };
 
 /** Registers the name of the category. Should be placed in the implementation file for each corresponding BS_LOG_CATEGORY call. */
-#define BS_LOG_CATEGORY_IMPL(name) bool LogCategory##name::sRegistered = Log::_registerCategory(LogCategory##name::_id, #name);
+#define BS_LOG_CATEGORY_IMPL(name) bool LogCategory##name::sRegistered = Log::RegisterCategoryInternal(LogCategory##name::_id, #name);
 
 /** Get the ID of the log category based on its name. */
 #define BS_LOG_GET_CATEGORY_ID(category) LogCategory##category::_id

@@ -26,7 +26,7 @@ namespace bs
 
 	MonoObject*ScriptTNamedAnimationCurvefloat::box(const __TNamedAnimationCurvefloatInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__TNamedAnimationCurvefloatInterop ScriptTNamedAnimationCurvefloat::unbox(MonoObject* value)
@@ -78,7 +78,7 @@ namespace bs
 
 	MonoObject*ScriptTNamedAnimationCurveVector3::box(const __TNamedAnimationCurveVector3Interop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__TNamedAnimationCurveVector3Interop ScriptTNamedAnimationCurveVector3::unbox(MonoObject* value)
@@ -130,7 +130,7 @@ namespace bs
 
 	MonoObject*ScriptTNamedAnimationCurveVector2::box(const __TNamedAnimationCurveVector2Interop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__TNamedAnimationCurveVector2Interop ScriptTNamedAnimationCurveVector2::unbox(MonoObject* value)
@@ -182,7 +182,7 @@ namespace bs
 
 	MonoObject*ScriptTNamedAnimationCurveQuaternion::box(const __TNamedAnimationCurveQuaternionInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__TNamedAnimationCurveQuaternionInterop ScriptTNamedAnimationCurveQuaternion::unbox(MonoObject* value)
@@ -234,7 +234,7 @@ namespace bs
 
 	MonoObject*ScriptTNamedAnimationCurveint32_t::box(const __TNamedAnimationCurveint32_tInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__TNamedAnimationCurveint32_tInterop ScriptTNamedAnimationCurveint32_t::unbox(MonoObject* value)

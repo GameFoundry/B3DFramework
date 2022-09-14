@@ -363,7 +363,7 @@ namespace bs
 			dataPerSize.push_back(fontData);
 		}
 
-		SPtr<Font> newFont = Font::_createPtr(dataPerSize);
+		SPtr<Font> newFont = Font::CreatePtrInternal(dataPerSize);
 
 		FT_Done_FreeType(library);
 

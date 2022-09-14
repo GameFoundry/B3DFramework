@@ -46,7 +46,7 @@ namespace bs
 	{
 		GUIElementBase* layout = layoutPtr->getGUIElement();
 
-		GUIWidget* widget = layout->_getParentWidget();
+		GUIWidget* widget = layout->GetParentWidgetInternal();
 		if (widget == nullptr)
 			return;
 

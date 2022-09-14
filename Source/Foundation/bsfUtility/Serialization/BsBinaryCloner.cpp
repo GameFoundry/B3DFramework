@@ -56,7 +56,7 @@ namespace bs
 		Stack<RTTITypeBase*> rttiInstances;
 		while (rtti != nullptr)
 		{
-			RTTITypeBase* rttiInstance = rtti->_clone(alloc);
+			RTTITypeBase* rttiInstance = rtti->CloneInternal(alloc);
 
 			rttiInstance->onSerializationStarted(object, nullptr);
 			SubObjectReferenceData* subObjectData = nullptr;
@@ -182,7 +182,7 @@ namespace bs
 
 			if (!subObject.references.empty())
 			{
-				RTTITypeBase* rttiInstance = subObject.rtti->_clone(alloc);
+				RTTITypeBase* rttiInstance = subObject.rtti->CloneInternal(alloc);
 				rttiInstance->onDeserializationStarted(object, nullptr);
 
 				for (auto& reference : subObject.references)
@@ -204,7 +204,7 @@ namespace bs
 		{
 			if (!subObject.children.empty())
 			{
-				RTTITypeBase* rttiInstance = subObject.rtti->_clone(alloc);
+				RTTITypeBase* rttiInstance = subObject.rtti->CloneInternal(alloc);
 				rttiInstance->onSerializationStarted(object, nullptr);
 
 				for (auto& childObjectData : subObject.children)

@@ -77,7 +77,7 @@ namespace bs
 	float VirtualInput::getAxisValue(const VirtualAxis& axis, UINT32 deviceIdx) const
 	{
 		VIRTUAL_AXIS_DESC axisDesc;
-		if (mInputConfiguration->_getAxis(axis, axisDesc))
+		if (mInputConfiguration->GetAxisInternal(axis, axisDesc))
 		{
 			float axisValue = gInput().getAxisValue((UINT32)axisDesc.type, deviceIdx);
 
@@ -116,7 +116,7 @@ namespace bs
 		return 0.0f;
 	}
 
-	void VirtualInput::_update()
+	void VirtualInput::UpdateInternal()
 	{
 		UINT64 frameIdx = gTime().getFrameIdx();
 		for (auto& deviceData : mDevices)
@@ -220,7 +220,7 @@ namespace bs
 		tempButtons.clear();
 		tempBtnDescs.clear();
 
-		if (mInputConfiguration->_getButtons(event.buttonCode, mActiveModifiers, tempButtons, tempBtnDescs))
+		if (mInputConfiguration->GetButtonsInternal(event.buttonCode, mActiveModifiers, tempButtons, tempBtnDescs))
 		{
 			while (event.deviceIdx >= (UINT32)mDevices.size())
 				mDevices.push_back(DeviceData());
@@ -265,7 +265,7 @@ namespace bs
 		tempButtons.clear();
 		tempBtnDescs.clear();
 
-		if (mInputConfiguration->_getButtons(event.buttonCode, mActiveModifiers, tempButtons, tempBtnDescs))
+		if (mInputConfiguration->GetButtonsInternal(event.buttonCode, mActiveModifiers, tempButtons, tempBtnDescs))
 		{
 			while (event.deviceIdx >= (UINT32)mDevices.size())
 				mDevices.push_back(DeviceData());

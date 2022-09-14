@@ -163,14 +163,14 @@ namespace bs
 			mParticleSet->clear(settings.maxParticles);
 
 		mSettings = settings;
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 		markDependenciesDirty();
 	}
 
 	void ParticleSystem::setGpuSimulationSettings(const ParticleGpuSimulationSettings& settings)
 	{
 		mGpuSimulationSettings = settings;
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void ParticleSystem::setLayer(UINT64 layer)
@@ -184,13 +184,13 @@ namespace bs
 		}
 
 		mLayer = layer;
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}	
 
 	void ParticleSystem::setEmitters(const Vector<SPtr<ParticleEmitter>>& emitters)
 	{
 		mEmitters = emitters;
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void ParticleSystem::setEvolvers(const Vector<SPtr<ParticleEvolver>>& evolvers)
@@ -209,7 +209,7 @@ namespace bs
 				return priorityA > priorityB;
 		});
 
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void ParticleSystem::play()
@@ -243,13 +243,13 @@ namespace bs
 		mParticleSet->clear();
 	}
 
-	void ParticleSystem::_simulate(float timeDelta, const EvaluatedAnimationData* animData)
+	void ParticleSystem::SimulateInternal(float timeDelta, const EvaluatedAnimationData* animData)
 	{
 		if(mState != State::Playing)
 			return;
 
 		float timeStep;
-		const float newTime = _advanceTime(mTime, timeDelta, mSettings.duration, mSettings.isLooping, timeStep);
+		const float newTime = AdvanceTimeInternal(mTime, timeDelta, mSettings.duration, mSettings.isLooping, timeStep);
 
 		if(timeStep < 0.00001f)
 			return;
@@ -387,7 +387,7 @@ namespace bs
 		}
 	}
 
-	AABox ParticleSystem::_calculateBounds() const
+	AABox ParticleSystem::CalculateBoundsInternal() const
 	{
 		// TODO - If evolvers are deterministic (as well as their properties), calculate the maximinal bounds in an
 		// analytical way
@@ -404,7 +404,7 @@ namespace bs
 		return bounds;
 	}
 
-	float ParticleSystem::_advanceTime(float time, float timeDelta, float duration, bool loop, float& timeStep)
+	float ParticleSystem::AdvanceTimeInternal(float time, float timeDelta, float duration, bool loop, float& timeStep)
 	{
 		timeStep = timeDelta;
 		float newTime = time + timeStep;
@@ -431,12 +431,12 @@ namespace bs
 	{
 		ct::ParticleSystem* rawPtr = new (bs_alloc<ct::ParticleSystem>()) ct::ParticleSystem(mId);
 		SPtr<ct::ParticleSystem> ptr = bs_shared_ptr<ct::ParticleSystem>(rawPtr);
-		ptr->_setThisPtr(ptr);
+		ptr->SetThisPtrInternal(ptr);
 
 		return ptr;
 	}
 
-	void ParticleSystem::_markCoreDirty(ActorDirtyFlag flag)
+	void ParticleSystem::MarkCoreDirtyInternal(ActorDirtyFlag flag)
 	{
 		markCoreDirty((UINT32)flag);
 	}
@@ -481,7 +481,7 @@ namespace bs
 	{
 		ParticleSystem* rawPtr = new (bs_alloc<ParticleSystem>()) ParticleSystem();
 		SPtr<ParticleSystem> ptr = bs_core_ptr<ParticleSystem>(rawPtr);
-		ptr->_setThisPtr(ptr);
+		ptr->SetThisPtrInternal(ptr);
 
 		return ptr;
 	}
@@ -520,7 +520,7 @@ namespace bs
 			}
 
 			mLayer = layer;
-			_markCoreDirty();
+			MarkCoreDirtyInternal();
 		}
 
 		void ParticleSystem::syncToCore(const CoreSyncData& data)

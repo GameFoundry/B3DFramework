@@ -39,7 +39,7 @@ namespace bs
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
-		static SPtr<ScriptCode> _createPtr(const WString& data, bool editorScript = false);
+		static SPtr<ScriptCode> CreatePtrInternal(const WString& data, bool editorScript = false);
 
 		/** @} */
 	private:

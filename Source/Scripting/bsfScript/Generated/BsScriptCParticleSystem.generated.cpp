@@ -219,7 +219,7 @@ namespace bs
 	bool ScriptCParticleSystem::Internal__togglePreviewMode(ScriptCParticleSystem* thisPtr, bool enabled)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->getHandle()->_togglePreviewMode(enabled);
+		tmp__output = thisPtr->getHandle()->TogglePreviewModeInternal(enabled);
 
 		bool __output;
 		__output = tmp__output;

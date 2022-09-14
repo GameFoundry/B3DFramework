@@ -61,13 +61,13 @@ namespace bs
 		void updateClippedBounds() override;
 
 		/** @copydoc GUIElementContainer::_commandEvent */
-		bool _commandEvent(const GUICommandEvent& ev) override;
+		bool CommandEventInternal(const GUICommandEvent& ev) override;
 
 		/** @copydoc GUIElementContainer::_mouseEvent */
-		bool _mouseEvent(const GUIMouseEvent& ev) override;
+		bool MouseEventInternal(const GUIMouseEvent& ev) override;
 
 		/** @copydoc GUIElementContainer::_isInBounds */
-		bool _isInBounds(const Vector2I position) const override;
+		bool IsInBoundsInternal(const Vector2I position) const override;
 
 		Vector<Rect2I> mBounds;
 		bool mCaptureMouseOver;

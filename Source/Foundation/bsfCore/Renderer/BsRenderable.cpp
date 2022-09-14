@@ -42,7 +42,7 @@ namespace bs
 		mTfrmMatrix = transform.getMatrix();
 		mTfrmMatrixNoScale = Matrix4::TRS(transform.getPosition(), transform.getRotation(), Vector3::ONE);
 
-		_markCoreDirty(ActorDirtyFlag::Transform);
+		MarkCoreDirtyInternal(ActorDirtyFlag::Transform);
 	}
 
 	template<bool Core>
@@ -58,9 +58,9 @@ namespace bs
 
 		onMeshChanged();
 
-		_markDependenciesDirty();
-		_markResourcesDirty();
-		_markCoreDirty();
+		MarkDependenciesDirtyInternal();
+		MarkResourcesDirtyInternal();
+		MarkCoreDirtyInternal();
 	}
 
 	template<bool Core>
@@ -71,9 +71,9 @@ namespace bs
 
 		mMaterials[idx] = material;
 
-		_markDependenciesDirty();
-		_markResourcesDirty();
-		_markCoreDirty();
+		MarkDependenciesDirtyInternal();
+		MarkResourcesDirtyInternal();
+		MarkCoreDirtyInternal();
 	}
 
 	template<bool Core>
@@ -88,9 +88,9 @@ namespace bs
 		for (UINT32 i = min; i < numMaterials; i++)
 			mMaterials[i] = nullptr;
 
-		_markDependenciesDirty();
-		_markResourcesDirty();
-		_markCoreDirty();
+		MarkDependenciesDirtyInternal();
+		MarkResourcesDirtyInternal();
+		MarkCoreDirtyInternal();
 	}
 
 	template<bool Core>
@@ -120,7 +120,7 @@ namespace bs
 		}
 
 		mLayer = layer;
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}	
 	
 	template<bool Core>
@@ -129,7 +129,7 @@ namespace bs
 		mOverrideBounds = bounds;
 
 		if(mUseOverrideBounds)
-			_markCoreDirty();
+			MarkCoreDirtyInternal();
 	}
 
 	template<bool Core>
@@ -139,7 +139,7 @@ namespace bs
 			return;
 
 		mUseOverrideBounds = enable;
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	template<bool Core>
@@ -149,7 +149,7 @@ namespace bs
 			return;
 
 		mWriteVelocity = enable;
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	template<bool Core>
@@ -157,7 +157,7 @@ namespace bs
 	{
 		mCullDistanceFactor = factor;
 
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	template class TRenderable < false >;
@@ -169,10 +169,10 @@ namespace bs
 
 		// Since we don't pass any information along to the core thread object on its construction, make sure the data
 		// sync executes
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 
 		// If any resources were deserialized before initialization, make sure the listener is notified
-		_markResourcesDirty();
+		MarkResourcesDirtyInternal();
 	}
 
 
@@ -181,7 +181,7 @@ namespace bs
 		mAnimation = animation;
 		refreshAnimation();
 
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	Bounds Renderable::getBounds() const
@@ -225,7 +225,7 @@ namespace bs
 	{
 		ct::Renderable* handler = new (bs_alloc<ct::Renderable>()) ct::Renderable();
 		SPtr<ct::Renderable> handlerPtr = bs_shared_ptr<ct::Renderable>(handler);
-		handlerPtr->_setThisPtr(handlerPtr);
+		handlerPtr->SetThisPtrInternal(handlerPtr);
 
 		return handlerPtr;
 	}
@@ -269,7 +269,7 @@ namespace bs
 		}
 	}
 
-	void Renderable::_updateState(const SceneObject& so, bool force)
+	void Renderable::UpdateStateInternal(const SceneObject& so, bool force)
 	{
 		UINT32 curHash = so.getTransformHash();
 		if (curHash != mHash || force)
@@ -277,7 +277,7 @@ namespace bs
 			// If skinned animation, don't include own transform since that will be handled by root bone animation
 			bool ignoreOwnTransform;
 			if (mAnimType == RenderableAnimType::Skinned || mAnimType == RenderableAnimType::SkinnedMorph)
-				ignoreOwnTransform = mAnimation->_getAnimatesRoot();
+				ignoreOwnTransform = mAnimation->GetAnimatesRootInternal();
 			else
 				ignoreOwnTransform = false;
 
@@ -298,20 +298,20 @@ namespace bs
 		}
 
 		// Hash now matches so transform won't be applied twice, so we can just call base class version
-		SceneActor::_updateState(so, force);
+		SceneActor::UpdateStateInternal(so, force);
 	}
 
-	void Renderable::_markCoreDirty(ActorDirtyFlag flag)
+	void Renderable::MarkCoreDirtyInternal(ActorDirtyFlag flag)
 	{
 		markCoreDirty((UINT32)flag);
 	}
 
-	void Renderable::_markDependenciesDirty()
+	void Renderable::MarkDependenciesDirtyInternal()
 	{
 		markDependenciesDirty();
 	}
 
-	void Renderable::_markResourcesDirty()
+	void Renderable::MarkResourcesDirtyInternal()
 	{
 		markListenerResourcesDirty();
 	}
@@ -330,7 +330,7 @@ namespace bs
 			numMaterials = (UINT32)mMaterials.size();
 
 			if (mAnimation != nullptr)
-				animationId = mAnimation->_getId();
+				animationId = mAnimation->GetIdInternal();
 			else
 				animationId = (UINT64)-1;
 
@@ -450,7 +450,7 @@ namespace bs
 	{
 		Renderable* handler = new (bs_alloc<Renderable>()) Renderable();
 		SPtr<Renderable> handlerPtr = bs_core_ptr<Renderable>(handler);
-		handlerPtr->_setThisPtr(handlerPtr);
+		handlerPtr->SetThisPtrInternal(handlerPtr);
 
 		return handlerPtr;
 	}

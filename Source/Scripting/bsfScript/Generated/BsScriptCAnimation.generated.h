@@ -22,9 +22,9 @@ namespace bs
 		ScriptCAnimation(MonoObject* managedInstance, const GameObjectHandle<CAnimation>& value);
 
 	private:
-		void _scriptRebuildFloatProperties(const ResourceHandle<AnimationClip>& p0);
-		void _scriptUpdateFloatProperties();
-		void _scriptOnEventTriggered(const ResourceHandle<AnimationClip>& p0, const String& p1);
+		void ScriptRebuildFloatPropertiesInternal(const ResourceHandle<AnimationClip>& p0);
+		void ScriptUpdateFloatPropertiesInternal();
+		void ScriptOnEventTriggeredInternal(const ResourceHandle<AnimationClip>& p0, const String& p1);
 
 		typedef void(BS_THUNKCALL *_scriptRebuildFloatPropertiesThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
 		static _scriptRebuildFloatPropertiesThunkDef _scriptRebuildFloatPropertiesThunk;

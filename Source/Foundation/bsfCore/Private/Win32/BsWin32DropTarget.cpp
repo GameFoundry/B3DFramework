@@ -17,7 +17,7 @@ namespace bs
 	{
 		Win32Platform::unregisterDropTarget(this);
 
-		_clear();
+		ClearInternal();
 	}
 
 	void DropTarget::setArea(const Rect2I& area)
@@ -198,12 +198,12 @@ namespace bs
 			{
 				if(op.type != DropOpType::Leave)
 				{
-					if(target->_isInside(op.position))
+					if(target->IsInsideInternal(op.position))
 					{
-						if(!target->_isActive())
+						if(!target->IsActiveInternal())
 						{
-							target->_setFileList(*op.mFileList);
-							target->_setActive(true);
+							target->SetFileListInternal(*op.mFileList);
+							target->SetActiveInternal(true);
 							target->onEnter(op.position.x, op.position.y);
 						}
 
@@ -211,27 +211,27 @@ namespace bs
 							target->onDragOver(op.position.x, op.position.y);
 						else if(op.type == DropOpType::Drop)
 						{
-							target->_setFileList(*op.mFileList);
+							target->SetFileListInternal(*op.mFileList);
 							target->onDrop(op.position.x, op.position.y);
 						}
 					}
 					else
 					{
-						if(target->_isActive())
+						if(target->IsActiveInternal())
 						{
 							target->onLeave();
-							target->_clear();
-							target->_setActive(false);
+							target->ClearInternal();
+							target->SetActiveInternal(false);
 						}
 					}
 				}
 				else
 				{
-					if(target->_isActive())
+					if(target->IsActiveInternal())
 					{
 						target->onLeave();
-						target->_clear();
-						target->_setActive(false);
+						target->ClearInternal();
+						target->SetActiveInternal(false);
 					}
 				}
 			}

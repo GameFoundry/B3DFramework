@@ -39,7 +39,7 @@ namespace bs
 		 * Registers a new renderer factory. Any renderer you try to make active with setActive() you will need to have
 		 * previously registered here.
 		 */
-		void _registerFactory(SPtr<RendererFactory> factory);
+		void RegisterFactoryInternal(SPtr<RendererFactory> factory);
 	private:
 		Vector<SPtr<RendererFactory>> mAvailableFactories;
 

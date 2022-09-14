@@ -52,22 +52,22 @@ namespace bs
 		SPtr<ComputePipelineState> createComputePipelineState(const SPtr<GpuProgram>& program) const;
 
 		/** Creates an uninitialized sampler state. Requires manual initialization after creation. */
-		SPtr<SamplerState> _createSamplerStatePtr(const SAMPLER_STATE_DESC& desc) const;
+		SPtr<SamplerState> CreateSamplerStatePtrInternal(const SAMPLER_STATE_DESC& desc) const;
 
 		/** Creates an uninitialized depth-stencil state. Requires manual initialization after creation. */
-		SPtr<DepthStencilState> _createDepthStencilStatePtr(const DEPTH_STENCIL_STATE_DESC& desc) const;
+		SPtr<DepthStencilState> CreateDepthStencilStatePtrInternal(const DEPTH_STENCIL_STATE_DESC& desc) const;
 
 		/** Creates an uninitialized rasterizer state. Requires manual initialization after creation. */
-		SPtr<RasterizerState> _createRasterizerStatePtr(const RASTERIZER_STATE_DESC& desc) const;
+		SPtr<RasterizerState> CreateRasterizerStatePtrInternal(const RASTERIZER_STATE_DESC& desc) const;
 
 		/** Creates an uninitialized blend state. Requires manual initialization after creation. */
-		SPtr<BlendState> _createBlendStatePtr(const BLEND_STATE_DESC& desc) const;
+		SPtr<BlendState> CreateBlendStatePtrInternal(const BLEND_STATE_DESC& desc) const;
 
 		/**	Creates an uninitialized GraphicsPipelineState. Requires manual initialization after creation. */
-		virtual SPtr<GraphicsPipelineState> _createGraphicsPipelineState(const PIPELINE_STATE_DESC& desc) const;
+		virtual SPtr<GraphicsPipelineState> CreateGraphicsPipelineStateInternal(const PIPELINE_STATE_DESC& desc) const;
 
 		/**	Creates an uninitialized ComputePipelineState. Requires manual initialization after creation. */
-		virtual SPtr<ComputePipelineState> _createComputePipelineState(const SPtr<GpuProgram>& program) const;
+		virtual SPtr<ComputePipelineState> CreateComputePipelineStateInternal(const SPtr<GpuProgram>& program) const;
 
 		/** Gets a sampler state initialized with default options. */
 		const SPtr<SamplerState>& getDefaultSamplerState() const;
@@ -176,28 +176,28 @@ namespace bs
 															   GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
 		/** Creates an uninitialized sampler state. Requires manual initialization after creation. */
-		SPtr<SamplerState> _createSamplerState(const SAMPLER_STATE_DESC& desc,
+		SPtr<SamplerState> CreateSamplerStateInternal(const SAMPLER_STATE_DESC& desc,
 			GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
 		/** Creates an uninitialized depth-stencil state. Requires manual initialization after creation. */
-		SPtr<DepthStencilState> _createDepthStencilState(const DEPTH_STENCIL_STATE_DESC& desc) const;
+		SPtr<DepthStencilState> CreateDepthStencilStateInternal(const DEPTH_STENCIL_STATE_DESC& desc) const;
 
 		/** Creates an uninitialized rasterizer state. Requires manual initialization after creation. */
-		SPtr<RasterizerState> _createRasterizerState(const RASTERIZER_STATE_DESC& desc) const;
+		SPtr<RasterizerState> CreateRasterizerStateInternal(const RASTERIZER_STATE_DESC& desc) const;
 
 		/** Creates an uninitialized blend state. Requires manual initialization after creation. */
-		SPtr<BlendState> _createBlendState(const BLEND_STATE_DESC& desc) const;
+		SPtr<BlendState> CreateBlendStateInternal(const BLEND_STATE_DESC& desc) const;
 
 		/**	Creates an uninitialized GraphicsPipelineState. Requires manual initialization after creation. */
-		virtual SPtr<GraphicsPipelineState> _createGraphicsPipelineState(const PIPELINE_STATE_DESC& desc,
+		virtual SPtr<GraphicsPipelineState> CreateGraphicsPipelineStateInternal(const PIPELINE_STATE_DESC& desc,
 			GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
 		/**	Creates an uninitialized ComputePipelineState. Requires manual initialization after creation. */
-		virtual SPtr<ComputePipelineState> _createComputePipelineState(const SPtr<GpuProgram>& program,
+		virtual SPtr<ComputePipelineState> CreateComputePipelineStateInternal(const SPtr<GpuProgram>& program,
 																		   GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
 		/**	Creates an uninitialized GpuPipelineParamInfo. Requires manual initialization after creation. */
-		virtual SPtr<GpuPipelineParamInfo> _createPipelineParamInfo(const GPU_PIPELINE_PARAMS_DESC& desc,
+		virtual SPtr<GpuPipelineParamInfo> CreatePipelineParamInfoInternal(const GPU_PIPELINE_PARAMS_DESC& desc,
 																		GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
 		/** Gets a sampler state initialized with default options. */

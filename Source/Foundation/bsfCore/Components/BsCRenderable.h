@@ -85,13 +85,13 @@ namespace bs
 		 */
 
 		/** Returns the internal renderable that is used for majority of operations by this component. */
-		SPtr<Renderable> _getInternal() const { return mInternal; }
+		SPtr<Renderable> GetInternalInternal() const { return mInternal; }
 
 		/** Registers an Animation component that will be used for animating the renderable's mesh. */
-		void _registerAnimation(const HAnimation& animation);
+		void RegisterAnimationInternal(const HAnimation& animation);
 
 		/** Removes the Animation component, making the renderable rendered as a static object. */
-		void _unregisterAnimation();
+		void UnregisterAnimationInternal();
 
 		/** @} */
 

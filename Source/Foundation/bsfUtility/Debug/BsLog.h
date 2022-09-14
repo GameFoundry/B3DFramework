@@ -151,7 +151,7 @@ namespace bs
 		 *  @param[in] name		Name of the category.
 		 *  @return				False if the ID is already taken, otherwise true.
 		 */
-		static bool _registerCategory(UINT32 id, const char* name);
+		static bool RegisterCategoryInternal(UINT32 id, const char* name);
 		
 		/** @} */
 		

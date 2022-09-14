@@ -18,7 +18,7 @@ namespace bs
 
 	MonoObject*ScriptParticleBurst::box(const __ParticleBurstInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__ParticleBurstInterop ScriptParticleBurst::unbox(MonoObject* value)

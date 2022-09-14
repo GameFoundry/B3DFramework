@@ -110,10 +110,10 @@ namespace bs { namespace ct
 		/************************************************************************/
 
 		/**	Query has the main context been initialized. */
-		bool _isContextInitialized() const { return mGLInitialised; }
+		bool IsContextInitializedInternal() const { return mGLInitialised; }
 
 		/**	Returns main context. Caller must ensure the context has been initialized. */
-		SPtr<GLContext> _getMainContext() const { return mMainContext; }
+		SPtr<GLContext> GetMainContextInternal() const { return mMainContext; }
 
 		/**	Returns a support object you may use for creating */
 		GLSupport* getGLSupport() const { return mGLSupport; }

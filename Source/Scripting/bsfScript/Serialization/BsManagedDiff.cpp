@@ -10,7 +10,7 @@
 
 namespace bs
 {
-	SPtr<SerializedObject> ManagedDiff::_generateDiff(IReflectable* orgObj,
+	SPtr<SerializedObject> ManagedDiff::GenerateDiffInternal(IReflectable* orgObj,
 		IReflectable* newObj, ObjectMap& objectMap, bool reflectableOnly)
 	{
 		CoreSerializationContext context;

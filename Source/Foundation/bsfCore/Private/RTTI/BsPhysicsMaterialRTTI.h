@@ -68,7 +68,7 @@ namespace bs
 
 		SPtr<IReflectable> newRTTIObject() override
 		{
-			return PhysicsMaterial::_createPtr();
+			return PhysicsMaterial::CreatePtrInternal();
 		}
 
 	private:

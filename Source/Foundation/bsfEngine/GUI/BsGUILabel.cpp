@@ -23,14 +23,14 @@ namespace bs
 			bs_delete(mImageSprite);
 	}
 
-	UINT32 GUILabel::_getRenderElementDepthRange() const
+	UINT32 GUILabel::GetRenderElementDepthRangeInternal() const
 	{
 		return 2;
 	}
 
 	void GUILabel::updateRenderElementsInternal()
 	{		
-		const HSpriteTexture& activeTex = _getStyle()->normal.texture;
+		const HSpriteTexture& activeTex = GetStyleInternal()->normal.texture;
 		if (SpriteTexture::checkIsLoaded(activeTex))
 		{
 			mImageDesc.texture = activeTex;
@@ -54,26 +54,26 @@ namespace bs
 			mImageDesc.width = mLayoutData.area.width;
 			mImageDesc.height = mLayoutData.area.height;
 
-			mImageDesc.borderLeft = _getStyle()->border.left;
-			mImageDesc.borderRight = _getStyle()->border.right;
-			mImageDesc.borderTop = _getStyle()->border.top;
-			mImageDesc.borderBottom = _getStyle()->border.bottom;
+			mImageDesc.borderLeft = GetStyleInternal()->border.left;
+			mImageDesc.borderRight = GetStyleInternal()->border.right;
+			mImageDesc.borderTop = GetStyleInternal()->border.top;
+			mImageDesc.borderBottom = GetStyleInternal()->border.bottom;
 			mImageDesc.color = getTint();
 
-			mImageSprite->update(mImageDesc, (UINT64)_getParentWidget());
+			mImageSprite->update(mImageDesc, (UINT64)GetParentWidgetInternal());
 		}
 
-		mDesc.font = _getStyle()->font;
-		mDesc.fontSize = _getStyle()->fontSize;
-		mDesc.wordWrap = _getStyle()->wordWrap;
-		mDesc.horzAlign = _getStyle()->textHorzAlign;
-		mDesc.vertAlign = _getStyle()->textVertAlign;
+		mDesc.font = GetStyleInternal()->font;
+		mDesc.fontSize = GetStyleInternal()->fontSize;
+		mDesc.wordWrap = GetStyleInternal()->wordWrap;
+		mDesc.horzAlign = GetStyleInternal()->textHorzAlign;
+		mDesc.vertAlign = GetStyleInternal()->textVertAlign;
 		mDesc.width = mLayoutData.area.width;
 		mDesc.height = mLayoutData.area.height;
 		mDesc.text = mContent.text;
-		mDesc.color = getTint() * _getStyle()->normal.textColor;;
+		mDesc.color = getTint() * GetStyleInternal()->normal.textColor;;
 
-		mTextSprite->update(mDesc, (UINT64)_getParentWidget());
+		mTextSprite->update(mDesc, (UINT64)GetParentWidgetInternal());
 
 		// Populate GUI render elements from the sprites
 		{
@@ -84,9 +84,9 @@ namespace bs
 		GUIElement::updateRenderElementsInternal();
 	}
 
-	Vector2I GUILabel::_getOptimalSize() const
+	Vector2I GUILabel::GetOptimalSizeInternal() const
 	{
-		return GUIHelper::calcOptimalContentsSize(mContent, *_getStyle(), _getDimensions());
+		return GUIHelper::calcOptimalContentsSize(mContent, *GetStyleInternal(), GetDimensionsInternal());
 	}
 
 	void GUILabel::_fillBuffer(
@@ -120,14 +120,14 @@ namespace bs
 
 	void GUILabel::setContent(const GUIContent& content)
 	{
-		Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+		Vector2I origSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 		mContent = content;
-		Vector2I newSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+		Vector2I newSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 
 		if (origSize != newSize)
-			_markLayoutAsDirty();
+			MarkLayoutAsDirtyInternal();
 		else
-			_markContentAsDirty();
+			MarkContentAsDirtyInternal();
 	}
 
 	GUILabel* GUILabel::create(const HString& text, const String& styleName)

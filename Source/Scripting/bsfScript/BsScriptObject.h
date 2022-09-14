@@ -56,13 +56,13 @@ namespace bs
 		 * Clears any managed instance references from the interop object, and releases any GC handles. Called during
 		 * assembly refresh just before the script domain is unloaded.
 		 */
-		virtual void _clearManagedInstance() { }
+		virtual void ClearManagedInstanceInternal() { }
 
 		/**	Allows persistent objects to restore their managed instances after assembly reload. */
-		virtual void _restoreManagedInstance() { }
+		virtual void RestoreManagedInstanceInternal() { }
 
 		/**	Called when the managed instance gets finalized by the CLR. */
-		virtual void _onManagedInstanceDeleted(bool assemblyRefresh);
+		virtual void OnManagedInstanceDeletedInternal(bool assemblyRefresh);
 
 		/**	Called before assembly reload starts to give the object a chance to back up its data. */
 		virtual ScriptObjectBackup beginRefresh();
@@ -95,7 +95,7 @@ namespace bs
 	public:
 		InitScriptObjectOnStart()
 		{
-			ScriptObject<Type, Base>::_initMetaData();
+			ScriptObject<Type, Base>::InitMetaDataInternal();
 		}
 
 		void makeSureIAmInstantiated() { }
@@ -121,9 +121,9 @@ namespace bs
 		{ }
 
 		/**	Allows persistent objects to restore their managed instances after assembly reload. */
-		void _restoreManagedInstance()
+		void RestoreManagedInstanceInternal()
 		{
-			MonoObject* instance = _createManagedInstance(true);
+			MonoObject* instance = CreateManagedInstanceInternal(true);
 
 			Type* param = (Type*)(Base*)this; // Needed due to multiple inheritance. Safe since Type must point to an class derived from this one.
 
@@ -132,7 +132,7 @@ namespace bs
 		}
 
 		/**	Creates a new managed instance of the type wrapped by this interop object. */
-		virtual MonoObject* _createManagedInstance(bool construct)
+		virtual MonoObject* CreateManagedInstanceInternal(bool construct)
 		{
 			return metaData.scriptClass->createInstance(construct);
 		}
@@ -158,7 +158,7 @@ namespace bs
 		 * Initializes the meta-data containing class and method information for the managed type. Called on library load
 		 * and on assembly reload.
 		 */
-		static void _initMetaData()
+		static void InitMetaDataInternal()
 		{
 			// Need to delay init of actual metaData since it's also a static, and we can't guarantee the order
 			// (if it gets initialized after this, it will just overwrite the data)

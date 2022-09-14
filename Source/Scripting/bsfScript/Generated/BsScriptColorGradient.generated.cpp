@@ -120,7 +120,7 @@ namespace bs
 
 		__ColorGradientKeyInterop interop__output;
 		interop__output = ScriptColorGradientKey::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptColorGradientKey::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptColorGradientKey::getMetaData()->scriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptColorGradient::Internal_setConstant(ScriptColorGradient* thisPtr, Color* color)

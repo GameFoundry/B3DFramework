@@ -156,34 +156,34 @@ namespace bs
 		 */
 
 		/** Returns the Animation implementation wrapped by this component. */
-		SPtr<Animation> _getInternal() const { return mInternal; }
+		SPtr<Animation> GetInternalInternal() const { return mInternal; }
 
 		/**
 		 * Registers a new bone component, creating a new transform mapping from the bone name to the scene object the
 		 * component is attached to.
 		 */
-		void _addBone(HBone bone);
+		void AddBoneInternal(HBone bone);
 
 		/** Unregisters a bone component, removing the bone -> scene object mapping. */
-		void _removeBone(const HBone& bone);
+		void RemoveBoneInternal(const HBone& bone);
 
 		/** Called whenever the bone name the Bone component points to changes. */
-		void _notifyBoneChanged(const HBone& bone);
+		void NotifyBoneChangedInternal(const HBone& bone);
 
 		/**
 		 * Registers a Renderable component with the animation, should be called whenever a Renderable component is added
 		 * to the same scene object as this component.
 		 */
-		void _registerRenderable(const HRenderable& renderable);
+		void RegisterRenderableInternal(const HRenderable& renderable);
 
 		/**
 		 * Removes renderable from the animation component. Should be called when a Renderable component is removed from
 		 * this scene object.
 		 */
-		void _unregisterRenderable();
+		void UnregisterRenderableInternal();
 
 		/** Re-applies the bounds to the internal animation object, and the relevant renderable object if one exists. */
-		void _updateBounds(bool updateRenderable = true);
+		void UpdateBoundsInternal(bool updateRenderable = true);
 
 		/**
 		 * Rebuilds internal curve -> property mapping about the currently playing animation clip. This mapping allows the
@@ -191,11 +191,11 @@ namespace bs
 		 * whenever playback for a new clip starts, or when clip curves change.
 		 */
 		BS_SCRIPT_EXPORT(in:true)
-		void _refreshClipMappings();
+		void RefreshClipMappingsInternal();
 
 		/** @copydoc Animation::getGenericCurveValue */
 		BS_SCRIPT_EXPORT(in:true)
-		bool _getGenericCurveValue(UINT32 curveIdx, float& value);
+		bool GetGenericCurveValueInternal(UINT32 curveIdx, float& value);
 
 		/**
 		 * Preview mode allows certain operations on the component to be allowed (like basic animation playback),
@@ -205,19 +205,19 @@ namespace bs
 		 * currently running).
 		 */
 		BS_SCRIPT_EXPORT(in:true)
-		bool _togglePreviewMode(bool enabled);
+		bool TogglePreviewModeInternal(bool enabled);
 
 		/** Triggered when the list of properties animated via generic animation curves needs to be recreated (script only). */
 		BS_SCRIPT_EXPORT(n:RebuildFloatProperties)
-		std::function<void(const HAnimationClip&)> _scriptRebuildFloatProperties;
+		std::function<void(const HAnimationClip&)> ScriptRebuildFloatPropertiesInternal;
 
 		/** Triggered when generic animation curves values need be applied to the properties they effect (script only). */
 		BS_SCRIPT_EXPORT(n:_UpdateFloatProperties)
-		std::function<void()> _scriptUpdateFloatProperties;
+		std::function<void()> ScriptUpdateFloatPropertiesInternal;
 
 		/** Triggers a callback in script code when animation event is triggered (script only). */
 		BS_SCRIPT_EXPORT(n:EventTriggered)
-		std::function<void(const HAnimationClip&, const String&)> _scriptOnEventTriggered;
+		std::function<void(const HAnimationClip&, const String&)> ScriptOnEventTriggeredInternal;
 
 		/** @} */
 

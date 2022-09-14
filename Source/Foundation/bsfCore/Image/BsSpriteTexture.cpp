@@ -123,7 +123,7 @@ namespace bs
 		return getHeight() / std::max(1U, mAnimation.numRows);
 	}
 
-	void SpriteTexture::_markCoreDirty()
+	void SpriteTexture::MarkCoreDirtyInternal()
 	{
 		markCoreDirty();
 	}
@@ -145,7 +145,7 @@ namespace bs
 			std::move(texturePtr), mAnimation, mPlayback);
 
 		SPtr<ct::SpriteTexture> spriteTexPtr = bs_shared_ptr<ct::SpriteTexture>(spriteTexture);
-		spriteTexPtr->_setThisPtr(spriteTexPtr);
+		spriteTexPtr->SetThisPtrInternal(spriteTexPtr);
 
 		return spriteTexPtr;
 	}
@@ -174,35 +174,35 @@ namespace bs
 
 	HSpriteTexture SpriteTexture::create(const HTexture& texture)
 	{
-		SPtr<SpriteTexture> texturePtr = _createPtr(texture);
+		SPtr<SpriteTexture> texturePtr = CreatePtrInternal(texture);
 
-		return static_resource_cast<SpriteTexture>(gResources()._createResourceHandle(texturePtr));
+		return static_resource_cast<SpriteTexture>(gResources().CreateResourceHandleInternal(texturePtr));
 	}
 
 	HSpriteTexture SpriteTexture::create(const Vector2& uvOffset, const Vector2& uvScale, const HTexture& texture)
 	{
-		SPtr<SpriteTexture> texturePtr = _createPtr(uvOffset, uvScale, texture);
+		SPtr<SpriteTexture> texturePtr = CreatePtrInternal(uvOffset, uvScale, texture);
 
-		return static_resource_cast<SpriteTexture>(gResources()._createResourceHandle(texturePtr));
+		return static_resource_cast<SpriteTexture>(gResources().CreateResourceHandleInternal(texturePtr));
 	}
 
-	SPtr<SpriteTexture> SpriteTexture::_createPtr(const HTexture& texture)
+	SPtr<SpriteTexture> SpriteTexture::CreatePtrInternal(const HTexture& texture)
 	{
 		SPtr<SpriteTexture> texturePtr = bs_core_ptr<SpriteTexture>
 			(new (bs_alloc<SpriteTexture>()) SpriteTexture(Vector2(0.0f, 0.0f), Vector2(1.0f, 1.0f), texture));
 
-		texturePtr->_setThisPtr(texturePtr);
+		texturePtr->SetThisPtrInternal(texturePtr);
 		texturePtr->initialize();
 
 		return texturePtr;
 	}
 
-	SPtr<SpriteTexture> SpriteTexture::_createPtr(const Vector2& uvOffset, const Vector2& uvScale, const HTexture& texture)
+	SPtr<SpriteTexture> SpriteTexture::CreatePtrInternal(const Vector2& uvOffset, const Vector2& uvScale, const HTexture& texture)
 	{
 		SPtr<SpriteTexture> texturePtr = bs_core_ptr<SpriteTexture>
 			(new (bs_alloc<SpriteTexture>()) SpriteTexture(uvOffset, uvScale, texture));
 
-		texturePtr->_setThisPtr(texturePtr);
+		texturePtr->SetThisPtrInternal(texturePtr);
 		texturePtr->initialize();
 
 		return texturePtr;
@@ -213,7 +213,7 @@ namespace bs
 		SPtr<SpriteTexture> texturePtr = bs_core_ptr<SpriteTexture>
 			(new (bs_alloc<SpriteTexture>()) SpriteTexture(Vector2(0.0f, 0.0f), Vector2(1.0f, 1.0f), HTexture()));
 
-		texturePtr->_setThisPtr(texturePtr);
+		texturePtr->SetThisPtrInternal(texturePtr);
 
 		return texturePtr;
 	}

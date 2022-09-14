@@ -391,7 +391,7 @@ namespace bs
 			const auto evaluateWorker = [this, timeDelta, system, &animData, &simDataPool, &simulationData]()
 			{
 				// Advance the simulation
-				system->_simulate(timeDelta, &animData);
+				system->SimulateInternal(timeDelta, &animData);
 
 				ParticleRenderData* simulationDataCPU = nullptr;
 				ParticleGPUSimulationData* simulationDataGPU = nullptr;
@@ -413,7 +413,7 @@ namespace bs
 						simulationDataCPU->numParticles = numParticles;
 
 						if(settings.useAutomaticBounds)
-							simulationDataCPU->bounds = system->_calculateBounds();
+							simulationDataCPU->bounds = system->CalculateBoundsInternal();
 						else
 							simulationDataCPU->bounds = settings.customBounds;
 

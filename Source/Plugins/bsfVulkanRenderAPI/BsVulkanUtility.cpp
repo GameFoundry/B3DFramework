@@ -589,7 +589,7 @@ namespace bs { namespace ct
 
 	void VulkanUtility::getDevices(const VulkanRenderAPI& rapi, GpuDeviceFlags flags, VulkanDevice*(&devices)[BS_MAX_DEVICES])
 	{
-		UINT32 numDevices = rapi._getNumDevices();
+		UINT32 numDevices = rapi.GetNumDevicesInternal();
 
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
@@ -599,7 +599,7 @@ namespace bs { namespace ct
 				continue;
 			}
 
-			VulkanDevice* device = rapi._getDevice(i).get();
+			VulkanDevice* device = rapi.GetDeviceInternal(i).get();
 
 			if (isDeviceIdxSet(rapi, i, flags))
 				devices[i] = device;
@@ -635,7 +635,7 @@ namespace bs { namespace ct
 
 	bool VulkanUtility::isDeviceIdxSet(const VulkanRenderAPI& rapi, UINT32 idx, GpuDeviceFlags flags)
 	{
-		VulkanDevice* device = rapi._getDevice(idx).get();
+		VulkanDevice* device = rapi.GetDeviceInternal(idx).get();
 
 		return ((flags & (1 << idx)) != 0 || (flags == GDF_DEFAULT && device->isPrimary()));
 	}

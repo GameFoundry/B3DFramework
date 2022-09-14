@@ -24,7 +24,7 @@ namespace bs
 		virtual ~DecalBase() = default;
 
 		/** Width and height of the decal. */
-		void setSize(const Vector2& size) { mSize = Vector2::max(Vector2::ZERO, size); _markCoreDirty(); updateBounds(); }
+		void setSize(const Vector2& size) { mSize = Vector2::max(Vector2::ZERO, size); MarkCoreDirtyInternal(); updateBounds(); }
 
 		/** @copydoc setSize */
 		Vector2 getSize() const { return mSize; }
@@ -36,7 +36,7 @@ namespace bs
 		}
 
 		/** Determines the maximum distance (from its origin) at which the decal is displayed. */
-		void setMaxDistance(float distance) { mMaxDistance = Math::max(0.0f, distance); _markCoreDirty(); updateBounds(); }
+		void setMaxDistance(float distance) { mMaxDistance = Math::max(0.0f, distance); MarkCoreDirtyInternal(); updateBounds(); }
 
 		/** @copydoc getSize */
 		float getMaxDistance() const { return mMaxDistance; }
@@ -49,7 +49,7 @@ namespace bs
 		 * matching layers will be projected onto. Note that decal layer mask only supports 32-bits and objects with
 		 * layers in bits >= 32 will always be projected onto.
 		 */
-		void setLayerMask(UINT32 mask) { mLayerMask = mask; _markCoreDirty(); }
+		void setLayerMask(UINT32 mask) { mLayerMask = mask; MarkCoreDirtyInternal(); }
 
 		/** @copydoc setLayerMask */
 		UINT32 getLayerMask() const { return mLayerMask; }
@@ -105,7 +105,7 @@ namespace bs
 		virtual ~TDecal() = default;
 
 		/** Determines the material to use when rendering the decal. */
-		void setMaterial(const MaterialType& material) { mMaterial = material; _markCoreDirty(); }
+		void setMaterial(const MaterialType& material) { mMaterial = material; MarkCoreDirtyInternal(); }
 
 		/** @copydoc setMaterial */
 		const MaterialType& getMaterial() const { return mMaterial; }
@@ -156,7 +156,7 @@ namespace bs
 		void getCoreDependencies(Vector<CoreObject*>& dependencies) override;
 
 		/** @copydoc DecalBase::_markCoreDirty */
-		void _markCoreDirty(ActorDirtyFlag flags = ActorDirtyFlag::Everything) override;
+		void MarkCoreDirtyInternal(ActorDirtyFlag flags = ActorDirtyFlag::Everything) override;
 
 		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData syncToCore(FrameAlloc* allocator) override;

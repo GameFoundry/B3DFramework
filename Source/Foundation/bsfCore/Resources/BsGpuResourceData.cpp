@@ -95,12 +95,12 @@ namespace bs
 		mOwnsData = false;
 	}
 
-	void GpuResourceData::_lock() const
+	void GpuResourceData::LockInternal() const
 	{
 		mLocked = true;
 	}
 
-	void GpuResourceData::_unlock() const
+	void GpuResourceData::UnlockInternal() const
 	{
 		mLocked = false;
 	}

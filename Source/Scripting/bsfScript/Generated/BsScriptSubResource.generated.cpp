@@ -20,7 +20,7 @@ namespace bs
 
 	MonoObject*ScriptSubResource::box(const __SubResourceInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__SubResourceInterop ScriptSubResource::unbox(MonoObject* value)

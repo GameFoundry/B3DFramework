@@ -115,7 +115,7 @@ namespace bs
 		 */
 
 		 /** Returns the light that this component wraps. */
-		SPtr<Light> _getLight() const { return mInternal; }
+		SPtr<Light> GetLightInternal() const { return mInternal; }
 
 		/** @} */
 

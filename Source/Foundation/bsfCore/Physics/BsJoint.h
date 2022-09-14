@@ -70,13 +70,13 @@ namespace bs
 		 * Sets the object that owns this physics object, if any. Used for high level systems so they can easily map their
 		 * high level physics objects from the low level ones returned by various queries and events.
 		 */
-		void _setOwner(PhysicsOwnerType type, void* owner) { mOwner.type = type; mOwner.ownerData = owner; }
+		void SetOwnerInternal(PhysicsOwnerType type, void* owner) { mOwner.type = type; mOwner.ownerData = owner; }
 
 		/**
 		 * Gets the object that owns this physics object, if any. Used for high level systems so they can easily map their
 		 * high level physics objects from the low level ones returned by various queries and events.
 		 */
-		void* _getOwner(PhysicsOwnerType type) const { return mOwner.type == type ? mOwner.ownerData : nullptr; }
+		void* GetOwnerInternal(PhysicsOwnerType type) const { return mOwner.type == type ? mOwner.ownerData : nullptr; }
 
 		/** @} */
 

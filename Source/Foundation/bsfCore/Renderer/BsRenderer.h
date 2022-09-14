@@ -335,8 +335,7 @@ namespace bs
 		 *			
 		 * @see		RendererMeshData
 		 */
-		virtual SPtr<RendererMeshData> _createMeshData(UINT32 numVertices, UINT32 numIndices, VertexLayout layout,
-													   IndexType indexType = IT_32BIT);
+		virtual SPtr<RendererMeshData> CreateMeshDataInternal(UINT32 numVertices, UINT32 numIndices, VertexLayout layout, IndexType indexType = IT_32BIT);
 
 		/**
 		 * Creates a new renderer mesh data using an existing generic mesh data buffer.
@@ -345,7 +344,7 @@ namespace bs
 		 *			
 		 * @see		RendererMeshData
 		 */
-		virtual SPtr<RendererMeshData> _createMeshData(const SPtr<MeshData>& meshData);
+		virtual SPtr<RendererMeshData> CreateMeshDataInternal(const SPtr<MeshData>& meshData);
 
 		/**
 		 * Registers an extension object that will be called every frame by the renderer. Allows external code to perform

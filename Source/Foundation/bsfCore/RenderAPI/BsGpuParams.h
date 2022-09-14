@@ -81,10 +81,10 @@ namespace bs
 		GpuParamBlockDesc* getParamBlockDesc(GpuProgramType type, const String& name) const;
 
 		/** Marks the sim thread object as dirty, causing it to sync its contents with its core thread counterpart. */
-		virtual void _markCoreDirty() { }
+		virtual void MarkCoreDirtyInternal() { }
 
 		/** @copydoc IResourceListener::markListenerResourcesDirty */
-		virtual void _markResourcesDirty() { }
+		virtual void MarkResourcesDirtyInternal() { }
 
 	protected:
 		GpuParamsBase(const SPtr<GpuPipelineParamInfoBase>& paramInfo);
@@ -218,7 +218,7 @@ namespace bs
 		TGpuParams(const SPtr<GpuPipelineParamInfoBase>& paramInfo);
 
 		/** @copydoc CoreObject::getThisPtr */
-		virtual SPtr<GpuParamsType> _getThisPtr() const = 0;
+		virtual SPtr<GpuParamsType> GetThisPtrInternal() const = 0;
 
 		/** Data for a single bound texture. */
 		struct TextureData
@@ -281,10 +281,10 @@ namespace bs
 		 */
 
 		/** @copydoc GpuParamsBase::_markCoreDirty */
-		void _markCoreDirty() override;
+		void MarkCoreDirtyInternal() override;
 
 		/** @copydoc IResourceListener::markListenerResourcesDirty */
-		void _markResourcesDirty() override;
+		void MarkResourcesDirtyInternal() override;
 
 		/** @} */
 	protected:
@@ -293,7 +293,7 @@ namespace bs
 		GpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo);
 
 		/** @copydoc CoreObject::getThisPtr */
-		SPtr<GpuParams> _getThisPtr() const override;
+		SPtr<GpuParams> GetThisPtrInternal() const override;
 
 		/** @copydoc CoreObject::createCore */
 		SPtr<ct::CoreObject> createCore() const override;
@@ -357,7 +357,7 @@ namespace bs
 		GpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo, GpuDeviceFlags deviceMask);
 
 		/** @copydoc CoreObject::getThisPtr */
-		SPtr<GpuParams> _getThisPtr() const override;
+		SPtr<GpuParams> GetThisPtrInternal() const override;
 
 		/** @copydoc CoreObject::syncToCore */
 		void syncToCore(const CoreSyncData& data) override;

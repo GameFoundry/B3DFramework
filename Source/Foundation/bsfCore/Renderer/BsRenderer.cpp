@@ -19,13 +19,13 @@ namespace bs { namespace ct
 		:mCallbacks(&compareCallback)
 	{ }
 
-	SPtr<RendererMeshData> Renderer::_createMeshData(UINT32 numVertices, UINT32 numIndices, VertexLayout layout, IndexType indexType)
+	SPtr<RendererMeshData> Renderer::CreateMeshDataInternal(UINT32 numVertices, UINT32 numIndices, VertexLayout layout, IndexType indexType)
 	{
 		return bs_shared_ptr<RendererMeshData>(new (bs_alloc<RendererMeshData>())
 			RendererMeshData(numVertices, numIndices, layout, indexType));
 	}
 
-	SPtr<RendererMeshData> Renderer::_createMeshData(const SPtr<MeshData>& meshData)
+	SPtr<RendererMeshData> Renderer::CreateMeshDataInternal(const SPtr<MeshData>& meshData)
 	{
 		return bs_shared_ptr<RendererMeshData>(new (bs_alloc<RendererMeshData>())
 			RendererMeshData(meshData));
@@ -194,7 +194,7 @@ namespace bs { namespace ct
 		// the core thread first.
 		// Note: wait() might only get called during serialization, in which case we might call these methods just once
 		// before a level save, instead for every individual component
-		gSceneManager()._updateCoreObjectTransforms();
+		gSceneManager().UpdateCoreObjectTransformsInternal();
 		CoreObjectManager::instance().syncToCore();
 
 		auto worker = [this]()

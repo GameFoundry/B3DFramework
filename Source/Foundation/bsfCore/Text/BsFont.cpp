@@ -103,24 +103,24 @@ namespace bs
 
 	HFont Font::create(const Vector<SPtr<FontBitmap>>& fontData)
 	{
-		SPtr<Font> newFont = _createPtr(fontData);
+		SPtr<Font> newFont = CreatePtrInternal(fontData);
 
-		return static_resource_cast<Font>(gResources()._createResourceHandle(newFont));
+		return static_resource_cast<Font>(gResources().CreateResourceHandleInternal(newFont));
 	}
 
-	SPtr<Font> Font::_createPtr(const Vector<SPtr<FontBitmap>>& fontData)
+	SPtr<Font> Font::CreatePtrInternal(const Vector<SPtr<FontBitmap>>& fontData)
 	{
 		SPtr<Font> newFont = bs_core_ptr<Font>(new (bs_alloc<Font>()) Font());
-		newFont->_setThisPtr(newFont);
+		newFont->SetThisPtrInternal(newFont);
 		newFont->initialize(fontData);
 
 		return newFont;
 	}
 
-	SPtr<Font> Font::_createEmpty()
+	SPtr<Font> Font::CreateEmptyInternal()
 	{
 		SPtr<Font> newFont = bs_core_ptr<Font>(new (bs_alloc<Font>()) Font());
-		newFont->_setThisPtr(newFont);
+		newFont->SetThisPtrInternal(newFont);
 
 		return newFont;
 	}

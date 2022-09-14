@@ -32,7 +32,7 @@ namespace bs
 		bool isPaused() const override { return mIsPaused; }
 
 		/** @copydoc Audio::_update */
-		void _update() override;
+		void UpdateInternal() override;
 
 		/** @copydoc Audio::setActiveDevice */
 		void setActiveDevice(const AudioDevice& device) override;
@@ -51,19 +51,19 @@ namespace bs
 		 */
 
 		/** Registers a new AudioListener. Should be called on listener creation. */
-		void _registerListener(FMODAudioListener* listener);
+		void RegisterListenerInternal(FMODAudioListener* listener);
 
 		/** Unregisters an existing AudioListener. Should be called before listener destruction. */
-		void _unregisterListener(FMODAudioListener* listener);
+		void UnregisterListenerInternal(FMODAudioListener* listener);
 
 		/** Registers a new AudioSource. Should be called on source creation. */
-		void _registerSource(FMODAudioSource* source);
+		void RegisterSourceInternal(FMODAudioSource* source);
 
 		/** Unregisters an existing AudioSource. Should be called before source destruction. */
-		void _unregisterSource(FMODAudioSource* source);
+		void UnregisterSourceInternal(FMODAudioSource* source);
 
 		/** Returns internal FMOD system instance. */
-		FMOD::System* _getFMOD() const { return mFMOD; }
+		FMOD::System* GetFMODInternal() const { return mFMOD; }
 
 		/** @} */
 	private:

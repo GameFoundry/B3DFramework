@@ -185,7 +185,7 @@ namespace bs
 		{
 			for (auto& subObject : serializedObject->subObjects)
 			{
-				RTTITypeBase* rtti = IReflectable::_getRTTIfromTypeId(subObject.typeId);
+				RTTITypeBase* rtti = IReflectable::GetRTTIfromTypeIdInternal(subObject.typeId);
 				if (rtti == nullptr)
 					continue;
 

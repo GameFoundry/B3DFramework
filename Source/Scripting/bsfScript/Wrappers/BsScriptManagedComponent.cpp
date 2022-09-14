@@ -70,7 +70,7 @@ namespace bs
 		}
 	}
 
-	MonoObject* ScriptManagedComponent::_createManagedInstance(bool construct)
+	MonoObject* ScriptManagedComponent::CreateManagedInstanceInternal(bool construct)
 	{
 		SPtr<ManagedSerializableObjectInfo> currentObjInfo = nullptr;
 
@@ -91,7 +91,7 @@ namespace bs
 		return instance;
 	}
 
-	void ScriptManagedComponent::_clearManagedInstance()
+	void ScriptManagedComponent::ClearManagedInstanceInternal()
 	{
 		freeManagedInstance();
 	}
@@ -117,7 +117,7 @@ namespace bs
 		managedComponent->restore(componentBackup, mTypeMissing);
 	}
 
-	void ScriptManagedComponent::_onManagedInstanceDeleted(bool assemblyRefresh)
+	void ScriptManagedComponent::OnManagedInstanceDeletedInternal(bool assemblyRefresh)
 	{
 		mGCHandle = 0;
 
@@ -128,7 +128,7 @@ namespace bs
 			ScriptGameObjectManager::instance().destroyScriptComponent(this);
 	}
 
-	void ScriptManagedComponent::_notifyDestroyed()
+	void ScriptManagedComponent::NotifyDestroyedInternal()
 	{
 		freeManagedInstance();
 	}

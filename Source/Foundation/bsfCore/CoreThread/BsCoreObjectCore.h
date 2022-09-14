@@ -49,7 +49,7 @@ namespace bs
 		 *
 		 * @note	Called automatically by the factory creation methods so user should not call this manually.
 		 */
-		void _setThisPtr(SPtr<CoreObject> ptrThis);
+		void SetThisPtrInternal(SPtr<CoreObject> ptrThis);
 
 		/** @} */
 

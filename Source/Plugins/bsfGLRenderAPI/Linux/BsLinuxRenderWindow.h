@@ -125,13 +125,13 @@ namespace bs
 			void setActive(bool state) override;
 
 			/** @copydoc RenderWindow::_windowMovedOrResized */
-			void _windowMovedOrResized() override;
+			void WindowMovedOrResizedInternal() override;
 
 			/** Returns a lock that can be used for accessing synced properties. */
-			SpinLock& _getPropertiesLock() { return mLock;}
+			SpinLock& GetPropertiesLockInternal() { return mLock;}
 
 			/** Returns the internal X11 window that this object wraps. */
-			LinuxWindow* _getInternal() const { return mWindow; }
+			LinuxWindow* GetInternalInternal() const { return mWindow; }
 
 		protected:
 			friend class LinuxGLSupport;

@@ -455,7 +455,7 @@ namespace bs
 
 		ct::Shader* shaderCore = new (bs_alloc<ct::Shader>()) ct::Shader(mName, convertDesc(mDesc), mId);
 		SPtr<ct::Shader> shaderCorePtr = bs_shared_ptr<ct::Shader>(shaderCore);
-		shaderCorePtr->_setThisPtr(shaderCorePtr);
+		shaderCorePtr->SetThisPtrInternal(shaderCorePtr);
 
 		return shaderCorePtr;
 	}
@@ -607,18 +607,18 @@ namespace bs
 
 	HShader Shader::create(const String& name, const SHADER_DESC& desc)
 	{
-		SPtr<Shader> newShader = _createPtr(name, desc);
+		SPtr<Shader> newShader = CreatePtrInternal(name, desc);
 
-		return static_resource_cast<Shader>(gResources()._createResourceHandle(newShader));
+		return static_resource_cast<Shader>(gResources().CreateResourceHandleInternal(newShader));
 	}
 
-	SPtr<Shader> Shader::_createPtr(const String& name, const SHADER_DESC& desc)
+	SPtr<Shader> Shader::CreatePtrInternal(const String& name, const SHADER_DESC& desc)
 	{
 		UINT32 id = ct::Shader::mNextShaderId.fetch_add(1, std::memory_order_relaxed);
 		assert(id < std::numeric_limits<UINT32>::max() && "Created too many shaders, reached maximum id.");
 
 		SPtr<Shader> newShader = bs_core_ptr<Shader>(new (bs_alloc<Shader>()) Shader(name, desc, id));
-		newShader->_setThisPtr(newShader);
+		newShader->SetThisPtrInternal(newShader);
 		newShader->initialize();
 
 		return newShader;
@@ -630,7 +630,7 @@ namespace bs
 		assert(id < std::numeric_limits<UINT32>::max() && "Created too many shaders, reached maximum id.");
 
 		SPtr<Shader> newShader = bs_core_ptr<Shader>(new (bs_alloc<Shader>()) Shader(id));
-		newShader->_setThisPtr(newShader);
+		newShader->SetThisPtrInternal(newShader);
 
 		return newShader;
 	}
@@ -672,7 +672,7 @@ namespace bs
 
 		Shader* shaderCore = new (bs_alloc<Shader>()) Shader(name, desc, id);
 		SPtr<Shader> shaderCorePtr = bs_shared_ptr<Shader>(shaderCore);
-		shaderCorePtr->_setThisPtr(shaderCorePtr);
+		shaderCorePtr->SetThisPtrInternal(shaderCorePtr);
 		shaderCorePtr->initialize();
 
 		return shaderCorePtr;

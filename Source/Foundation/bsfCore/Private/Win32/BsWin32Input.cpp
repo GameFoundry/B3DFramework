@@ -10,7 +10,7 @@
 
 namespace bs
 {
-	BOOL CALLBACK _DIEnumDevCallback(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef)
+	BOOL CALLBACK DIEnumDevCallbackInternal(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef)
 	{
 		InputPrivateData* data = (InputPrivateData*)(pvRef);
 
@@ -172,7 +172,7 @@ namespace bs
 		
 		// Enumerate all attached devices
 		// Note: Only enumerating gamepads, assuming there is 1 keyboard and 1 mouse
-		mPlatformData->directInput->EnumDevices(NULL, _DIEnumDevCallback, mPlatformData, DIEDFL_ATTACHEDONLY);
+		mPlatformData->directInput->EnumDevices(NULL, DIEnumDevCallbackInternal, mPlatformData, DIEDFL_ATTACHEDONLY);
 
 		for (UINT32 i = 0; i < 4; ++i)
 		{

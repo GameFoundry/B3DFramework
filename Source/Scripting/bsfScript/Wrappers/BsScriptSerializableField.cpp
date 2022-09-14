@@ -114,7 +114,7 @@ namespace bs
 			}
 		}
 
-		MonoUtil::valueCopy(style, &interopStyle, ScriptSerializableFieldStyle::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(style, &interopStyle, ScriptSerializableFieldStyle::getMetaData()->scriptClass->GetInternalClassInternal());
 	}
 
 	ScriptSerializableFieldStyle::ScriptSerializableFieldStyle(MonoObject* managedInstance)

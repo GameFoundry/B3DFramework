@@ -43,22 +43,22 @@ namespace bs
 		 * Change the button "on" state. This state determines whether the button uses normal or "on" fields specified in
 		 * the GUI style.
 		 */
-		void _setOn(bool on);
+		void SetOnInternal(bool on);
 
 		/**
 		 * Retrieves the button "on" state. This state determines whether the button uses normal or "on" fields specified
 		 * in the GUI style.
 		 */
-		bool _isOn() const;
+		bool IsOnInternal() const;
 
 		/**	Change the internal button state, changing the button look depending on set style. */
-		void _setState(GUIElementState state);
+		void SetStateInternal(GUIElementState state);
 
-		/** @copydoc GUIElement::_getOptimalSize */
-		Vector2I _getOptimalSize() const override;
+		/** @copydoc GUIElement::GetOptimalSizeInternal */
+		Vector2I GetOptimalSizeInternal() const override;
 
-		/** @copydoc GUIElement::_getRenderElementDepthRange */
-		UINT32 _getRenderElementDepthRange() const override;
+		/** @copydoc GUIElement::GetRenderElementDepthRangeInternal */
+		UINT32 GetRenderElementDepthRangeInternal() const override;
 
 		/** @} */
 	protected:
@@ -81,13 +81,13 @@ namespace bs
 		void updateRenderElementsInternal() override;
 
 		/** @copydoc GUIElement::_mouseEvent */
-		bool _mouseEvent(const GUIMouseEvent& ev) override;
+		bool MouseEventInternal(const GUIMouseEvent& ev) override;
 
 		/** @copydoc GUIElement::_commandEvent */
-		bool _commandEvent(const GUICommandEvent& ev) override;
+		bool CommandEventInternal(const GUICommandEvent& ev) override;
 
 		/** @copydoc GUIElement::_getTooltip */
-		String _getTooltip() const override;
+		String GetTooltipInternal() const override;
 
 		/** @copydoc GUIElement::styleUpdated */
 		void styleUpdated() override;

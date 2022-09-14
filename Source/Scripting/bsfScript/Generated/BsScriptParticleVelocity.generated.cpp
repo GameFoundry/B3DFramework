@@ -49,7 +49,7 @@ namespace bs
 
 		__PARTICLE_VELOCITY_DESCInterop interop__output;
 		interop__output = ScriptPARTICLE_VELOCITY_DESC::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptPARTICLE_VELOCITY_DESC::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptPARTICLE_VELOCITY_DESC::getMetaData()->scriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptParticleVelocity::Internal_create(MonoObject* managedInstance, __PARTICLE_VELOCITY_DESCInterop* desc)

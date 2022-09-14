@@ -111,7 +111,7 @@ namespace bs
 		if (meshImportOptions->cpuCached)
 			desc.usage |= MU_CPUCACHED;
 
-		SPtr<Mesh> mesh = Mesh::_createPtr(rendererMeshData->getData(), desc);
+		SPtr<Mesh> mesh = Mesh::CreatePtrInternal(rendererMeshData->getData(), desc);
 
 		const String fileName = filePath.getFilename(false);
 		mesh->setName(fileName);
@@ -133,7 +133,7 @@ namespace bs
 		if (meshImportOptions->cpuCached)
 			desc.usage |= MU_CPUCACHED;
 
-		SPtr<Mesh> mesh = Mesh::_createPtr(rendererMeshData->getData(), desc);
+		SPtr<Mesh> mesh = Mesh::CreatePtrInternal(rendererMeshData->getData(), desc);
 
 		const String fileName = filePath.getFilename(false);
 		mesh->setName(fileName);
@@ -151,7 +151,7 @@ namespace bs
 					PhysicsMeshType type = collisionMeshType == CollisionMeshType::Convex ?
 						PhysicsMeshType::Convex : PhysicsMeshType::Triangle;
 
-					SPtr<PhysicsMesh> physicsMesh = PhysicsMesh::_createPtr(rendererMeshData->getData(), type);
+					SPtr<PhysicsMesh> physicsMesh = PhysicsMesh::CreatePtrInternal(rendererMeshData->getData(), type);
 
 					output.push_back({ u8"collision", physicsMesh });
 				}
@@ -164,7 +164,7 @@ namespace bs
 			Vector<ImportedAnimationEvents> events = meshImportOptions->animationEvents;
 			for(auto& entry : animationClips)
 			{
-				SPtr<AnimationClip> clip = AnimationClip::_createPtr(entry.curves, entry.isAdditive, entry.sampleRate,
+				SPtr<AnimationClip> clip = AnimationClip::CreatePtrInternal(entry.curves, entry.isAdditive, entry.sampleRate,
 					entry.rootMotion);
 				clip->setName(entry.name);
 				

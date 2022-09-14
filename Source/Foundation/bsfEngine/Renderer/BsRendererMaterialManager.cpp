@@ -32,7 +32,7 @@ namespace bs
 		gCoreThread().queueCommand(std::bind(&RendererMaterialManager::destroyOnCore));
 	}
 
-	void RendererMaterialManager::_registerMaterial(ct::RendererMaterialMetaData* metaData, const char* shaderPath)
+	void RendererMaterialManager::RegisterMaterialInternal(ct::RendererMaterialMetaData* metaData, const char* shaderPath)
 	{
 		Lock lock(getMutex());
 
@@ -71,7 +71,7 @@ namespace bs
 		}
 	}
 
-	ShaderDefines RendererMaterialManager::_getDefines(const Path& shaderPath)
+	ShaderDefines RendererMaterialManager::GetDefinesInternal(const Path& shaderPath)
 	{
 		ShaderDefines output;
 

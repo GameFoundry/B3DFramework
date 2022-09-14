@@ -1176,7 +1176,7 @@ namespace bs
 				}
 			}
 
-			paramPtr->_markCoreDirty();
+			paramPtr->MarkCoreDirtyInternal();
 		}
 
 		mParamVersion = params->getParamVersion();

@@ -258,7 +258,7 @@ namespace bs { namespace ct
 		mRedrawThisFrame = false;
 	}
 
-	void RendererView::_notifyNeedsRedraw()
+	void RendererView::NotifyNeedsRedrawInternal()
 	{
 		mRedrawThisFrame = true;
 		
@@ -347,7 +347,7 @@ namespace bs { namespace ct
 		return Math::pow(2.0f, mRenderSettings->exposureScale);
 	}
 
-	void RendererView::_notifyLuminanceUpdated(UINT64 frameIdx, SPtr<CommandBuffer> cb, SPtr<PooledRenderTexture> texture) const
+	void RendererView::NotifyLuminanceUpdatedInternal(UINT64 frameIdx, SPtr<CommandBuffer> cb, SPtr<PooledRenderTexture> texture) const
 	{
 		mLuminanceUpdates.emplace_back(frameIdx, cb, texture);
 	}
@@ -851,7 +851,7 @@ namespace bs { namespace ct
 		for (UINT32 i = 0; i < numViews; i++)
 		{
 			mViews.push_back(views[i]);
-			views[i]->_setViewIdx(i);
+			views[i]->SetViewIdxInternal(i);
 		}
 	}
 

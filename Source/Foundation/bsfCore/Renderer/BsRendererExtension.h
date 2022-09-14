@@ -99,9 +99,9 @@ namespace bs
 		static SPtr<T> create(const Any& data)
 		{
 			T* ext = new (bs_alloc<T>()) T();
-			_initializer(ext, data);
+			InitializerInternal(ext, data);
 
-			return SPtr<T>(ext, &RendererExtension::_deleter);
+			return SPtr<T>(ext, &RendererExtension::DeleterInternal);
 		}
 
 		/** Called when the renderer extension is first initialized. */
@@ -144,10 +144,10 @@ namespace bs
 		virtual ~RendererExtension() = default;
 	private:
 		/** Initializer that triggers when a renderer extension is first constructed. */
-		static void _initializer(RendererExtension* obj, const Any& data);
+		static void InitializerInternal(RendererExtension* obj, const Any& data);
 
 		/** Deleter that triggers when a renderer extension object goes out of scope. */
-		static void _deleter(RendererExtension* obj);
+		static void DeleterInternal(RendererExtension* obj);
 
 		RenderLocation mLocation;
 		UINT32 mPriority;

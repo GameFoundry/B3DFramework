@@ -36,10 +36,10 @@ namespace bs { namespace ct
 		}
 
 		bs::Win32RenderWindow* window = new (bs_alloc<bs::Win32RenderWindow>()) bs::Win32RenderWindow(desc, windowId, *this);
-		return SPtr<bs::RenderWindow>(window, &bs::CoreObject::_delete<bs::Win32RenderWindow, GenAlloc>);
+		return SPtr<bs::RenderWindow>(window, &bs::CoreObject::DeleteInternal<bs::Win32RenderWindow, GenAlloc>);
 	}
 
-	void Win32GLSupport::_notifyWindowCreated(Win32RenderWindow* window)
+	void Win32GLSupport::NotifyWindowCreatedInternal(Win32RenderWindow* window)
 	{
 		if (!mInitialWindow)
 			mInitialWindow = window;
@@ -67,7 +67,7 @@ namespace bs { namespace ct
 		if(_wglGetExtensionsString == nullptr)
 			return;
 
-		const char* wglExtensions = _wglGetExtensionsString(mInitialWindow->_getHDC());
+		const char* wglExtensions = _wglGetExtensionsString(mInitialWindow->GetHDCInternal());
 
 		// Parse them, and add them to the main list
 		StringStream ext;
@@ -85,7 +85,7 @@ namespace bs { namespace ct
 		// If RenderAPI has initialized a context use that, otherwise we create our own
 		HGLRC glrc = externalGlrc;
 		bool createdNew = false;
-		if (!rapi->_isContextInitialized())
+		if (!rapi->IsContextInitializedInternal())
 		{
 			if (externalGlrc == 0)
 			{

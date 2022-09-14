@@ -138,55 +138,55 @@ namespace bs
 		void setMainRenderTarget(const SPtr<RenderTarget>& rt);
 
 		/** Changes the root scene object. Any persistent objects will remain in the scene, now parented to the new root. */
-		void _setRootNode(const HSceneObject& root);
+		void SetRootNodeInternal(const HSceneObject& root);
 
 		/**
 		 * Binds a scene actor with a scene object. Every frame the scene object's transform will be monitored for
 		 * changes and those changes will be automatically transfered to the actor.
 		 */
-		void _bindActor(const SPtr<SceneActor>& actor, const HSceneObject& so);
+		void BindActorInternal(const SPtr<SceneActor>& actor, const HSceneObject& so);
 
 		/** Unbinds an actor that was previously bound using bindActor(). */
-		void _unbindActor(const SPtr<SceneActor>& actor);
+		void UnbindActorInternal(const SPtr<SceneActor>& actor);
 
 		/** Returns a scene object bound to the provided actor, if any. */
-		HSceneObject _getActorSO(const SPtr<SceneActor>& actor) const;
+		HSceneObject GetActorSOInternal(const SPtr<SceneActor>& actor) const;
 
 		/**	Notifies the scene manager that a new camera was created. */
-		void _registerCamera(const SPtr<Camera>& camera);
+		void RegisterCameraInternal(const SPtr<Camera>& camera);
 
 		/**	Notifies the scene manager that a camera was removed. */
-		void _unregisterCamera(const SPtr<Camera>& camera);
+		void UnregisterCameraInternal(const SPtr<Camera>& camera);
 
 		/**	Notifies the scene manager that a camera either became the main camera, or has stopped being main camera. */
-		void _notifyMainCameraStateChanged(const SPtr<Camera>& camera);
+		void NotifyMainCameraStateChangedInternal(const SPtr<Camera>& camera);
 
 		/** Called every frame. Calls update methods on all scene objects and their components. */
-		void _update();
+		void UpdateInternal();
 
 		/** Called at fixed time internals. Calls the fixed update method on all active components. */
-		void _fixedUpdate();
+		void FixedUpdateInternal();
 
 		/** Updates dirty transforms on any core objects that may be tied with scene objects. */
-		void _updateCoreObjectTransforms();
+		void UpdateCoreObjectTransformsInternal();
 
 		/** Notifies the manager that a new component has just been created. The manager triggers necessary callbacks. */
-		void _notifyComponentCreated(const HComponent& component, bool parentActive);
+		void NotifyComponentCreatedInternal(const HComponent& component, bool parentActive);
 
 		/**
 		 * Notifies the manager that a scene object the component belongs to was activated. The manager triggers necessary
 		 * callbacks.
 		 */
-		void _notifyComponentActivated(const HComponent& component, bool triggerEvent);
+		void NotifyComponentActivatedInternal(const HComponent& component, bool triggerEvent);
 
 		/**
 		 * Notifies the manager that a scene object the component belongs to was deactivated. The manager triggers necessary
 		 * callbacks.
 		 */
-		void _notifyComponentDeactivated(const HComponent& component, bool triggerEvent);
+		void NotifyComponentDeactivatedInternal(const HComponent& component, bool triggerEvent);
 
 		/** Notifies the manager that a component is about to be destroyed. The manager triggers necessary callbacks. */
-		void _notifyComponentDestroyed(const HComponent& component, bool immediate);
+		void NotifyComponentDestroyedInternal(const HComponent& component, bool immediate);
 
 	protected:
 		/** Types of events that represent component state changes relevant to the scene manager. */

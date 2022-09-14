@@ -22,7 +22,7 @@ namespace bs
 
 	MonoObject*ScriptTKeyframeint32_t::box(const TKeyframe<int32_t>& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	TKeyframe<int32_t> ScriptTKeyframeint32_t::unbox(MonoObject* value)
@@ -40,7 +40,7 @@ namespace bs
 
 	MonoObject*ScriptTKeyframefloat::box(const TKeyframe<float>& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	TKeyframe<float> ScriptTKeyframefloat::unbox(MonoObject* value)
@@ -58,7 +58,7 @@ namespace bs
 
 	MonoObject*ScriptTKeyframeVector3::box(const __TKeyframeVector3Interop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__TKeyframeVector3Interop ScriptTKeyframeVector3::unbox(MonoObject* value)
@@ -98,7 +98,7 @@ namespace bs
 
 	MonoObject*ScriptTKeyframeVector2::box(const __TKeyframeVector2Interop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__TKeyframeVector2Interop ScriptTKeyframeVector2::unbox(MonoObject* value)
@@ -138,7 +138,7 @@ namespace bs
 
 	MonoObject*ScriptTKeyframeQuaternion::box(const __TKeyframeQuaternionInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__TKeyframeQuaternionInterop ScriptTKeyframeQuaternion::unbox(MonoObject* value)

@@ -89,17 +89,17 @@ namespace bs
 		 */
 
 		/** @copydoc GUIElement::_getElementType */
-		ElementType _getElementType() const override { return ElementType::InputBox; }
+		ElementType GetElementTypeInternal() const override { return ElementType::InputBox; }
 
-		/** @copydoc GUIElement::_getOptimalSize */
-		Vector2I _getOptimalSize() const override;
+		/** @copydoc GUIElement::GetOptimalSizeInternal */
+		Vector2I GetOptimalSizeInternal() const override;
 
 		/** @} */
 	protected:
 		GUIInputBox(const String& styleName, const GUIDimensions& dimensions, bool multiline);
 		virtual ~GUIInputBox();
 
-		/** @copydoc GUIElement::_fillBuffer() */
+		/** @copydoc GUIElement::FillBufferInternal() */
 		void _fillBuffer(
 			UINT8* vertices,
 			UINT32* indices,
@@ -117,16 +117,16 @@ namespace bs
 		void updateClippedBounds() override;
 
 		/** @copydoc GUIElement::_mouseEvent */
-		bool _mouseEvent(const GUIMouseEvent& ev) override;
+		bool MouseEventInternal(const GUIMouseEvent& ev) override;
 
 		/** @copydoc GUIElement::_textInputEvent */
-		bool _textInputEvent(const GUITextInputEvent& ev) override;
+		bool TextInputEventInternal(const GUITextInputEvent& ev) override;
 
 		/** @copydoc GUIElement::_commandEvent */
-		bool _commandEvent(const GUICommandEvent& ev) override;
+		bool CommandEventInternal(const GUICommandEvent& ev) override;
 
 		/** @copydoc GUIElement::_virtualButtonEvent */
-		bool _virtualButtonEvent(const GUIVirtualButtonEvent& ev) override;
+		bool VirtualButtonEventInternal(const GUIVirtualButtonEvent& ev) override;
 
 		/**
 		 * Returns how much to offset text due to scrolling.
@@ -135,19 +135,19 @@ namespace bs
 		 * This is used when text is larger than the input box itself. As the caret moves the text will scroll so that the
 		 * caret remains visible, and how much scroll is applied is determined by this value.
 		 */
-		Vector2I _getTextInputOffset() const override;
+		Vector2I GetTextInputOffsetInternal() const override;
 
 		/** Returns rectangle in which the text can be displayed, in local coordinates (text will start at 0, 0). */
-		Rect2I _getTextInputRect() const override;
+		Rect2I GetTextInputRectInternal() const override;
 
-		/** @copydoc GUIElement::_getRenderElementDepthRange */
-		UINT32 _getRenderElementDepthRange() const override;
+		/** @copydoc GUIElement::GetRenderElementDepthRangeInternal */
+		UINT32 GetRenderElementDepthRangeInternal() const override;
 
 		/** @copydoc GUIElement::_hasCustomCursor */
-		bool _hasCustomCursor(const Vector2I position, CursorType& type) const override;
+		bool HasCustomCursorInternal(const Vector2I position, CursorType& type) const override;
 
 		/** @copydoc GUIElement::_getContextMenu */
-		SPtr<GUIContextMenu> _getContextMenu() const override;
+		SPtr<GUIContextMenu> GetContextMenuInternal() const override;
 	private:
 		/**
 		 * Retrieves a sprite from a render element index, and a local render element index that represents render element

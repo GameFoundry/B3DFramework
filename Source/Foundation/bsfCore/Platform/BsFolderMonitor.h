@@ -53,7 +53,7 @@ namespace bs
 		void stopMonitorAll();
 
 		/** Triggers callbacks depending on events that ocurred. Expected to be called once per frame. */
-		void _update();
+		void UpdateInternal();
 
 		/** Triggers when a file in the monitored folder is modified. Provides absolute path to the file. */
 		Event<void(const Path&)> onModified;
@@ -73,7 +73,7 @@ namespace bs
 		 */
 
 		/** Returns private data, for use by internal helper classes and methods. */
-		Pimpl* _getPrivateData() const { return m; }
+		Pimpl* GetPrivateDataInternal() const { return m; }
 
 		/** @} */
 	private:

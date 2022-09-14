@@ -185,7 +185,7 @@ namespace bs
 				event.other = (Collider*)pair.otherShape->userData;
 				event.type = type;
 
-				gPhysX()._reportTriggerEvent(event);
+				gPhysX().ReportTriggerEventInternal(event);
 			}
 		}
 
@@ -260,7 +260,7 @@ namespace bs
 				event.colliderA = (Collider*)pair.shapes[0]->userData;
 				event.colliderB = (Collider*)pair.shapes[1]->userData;
 
-				gPhysX()._reportContactEvent(event);
+				gPhysX().ReportContactEventInternal(event);
 			}
 		}
 
@@ -279,7 +279,7 @@ namespace bs
 				event.joint = (Joint*)pxJoint->userData;
 
 				if(event.joint != nullptr)
-					gPhysX()._reportJointBreakEvent(event);
+					gPhysX().ReportJointBreakEventInternal(event);
 			}
 		}
 	};
@@ -389,7 +389,7 @@ namespace bs
 
 		if (output.colliderRaw != nullptr)
 		{
-			CCollider* component = (CCollider*)output.colliderRaw->_getOwner(PhysicsOwnerType::Component);
+			CCollider* component = (CCollider*)output.colliderRaw->GetOwnerInternal(PhysicsOwnerType::Component);
 			if (component != nullptr)
 				output.collider = static_object_cast<CCollider>(component->getHandle());
 		}
@@ -407,7 +407,7 @@ namespace bs
 
 		if (output.colliderRaw != nullptr)
 		{
-			CCollider* component = (CCollider*)output.colliderRaw->_getOwner(PhysicsOwnerType::Component);
+			CCollider* component = (CCollider*)output.colliderRaw->GetOwnerInternal(PhysicsOwnerType::Component);
 			if (component != nullptr)
 				output.collider = static_object_cast<CCollider>(component->getHandle());
 		}
@@ -566,7 +566,7 @@ namespace bs
 
 				// Note: Make this faster, avoid dereferencing Rigidbody and attempt to access pos/rot destination directly,
 				//       use non-temporal writes
-				rigidbody->_setTransform(fromPxVector(transform.p), fromPxQuaternion(transform.q));
+				rigidbody->SetTransformInternal(fromPxVector(transform.p), fromPxQuaternion(transform.q));
 			}
 		}
 
@@ -581,17 +581,17 @@ namespace bs
 		// Note: Potentially interpolate (would mean a one frame delay needs to be introduced)
 	}
 
-	void PhysX::_reportContactEvent(const ContactEvent& event)
+	void PhysX::ReportContactEventInternal(const ContactEvent& event)
 	{
 		mContactEvents.push_back(event);
 	}
 
-	void PhysX::_reportTriggerEvent(const TriggerEvent& event)
+	void PhysX::ReportTriggerEventInternal(const TriggerEvent& event)
 	{
 		mTriggerEvents.push_back(event);
 	}
 
-	void PhysX::_reportJointBreakEvent(const JointBreakEvent& event)
+	void PhysX::ReportJointBreakEventInternal(const JointBreakEvent& event)
 	{
 		mJointBreakEvents.push_back(event);
 	}
@@ -716,7 +716,7 @@ namespace bs
 		return scene;
 	}
 
-	void PhysX::_notifySceneDestroyed(PhysXScene* scene)
+	void PhysX::NotifySceneDestroyedInternal(PhysXScene* scene)
 	{
 		auto iterFind = std::find(mScenes.begin(), mScenes.end(), scene);
 		assert(iterFind != mScenes.end());
@@ -729,11 +729,11 @@ namespace bs
 		mPaused = paused;
 	}
 
-	bool PhysX::_rayCast(const Vector3& origin, const Vector3& unitDir, const Collider& collider, PhysicsQueryHit& hit,
+	bool PhysX::RayCastInternal(const Vector3& origin, const Vector3& unitDir, const Collider& collider, PhysicsQueryHit& hit,
 		float maxDist) const
 	{
-		FPhysXCollider* physxCollider = static_cast<FPhysXCollider*>(collider._getInternal());
-		PxShape* shape = physxCollider->_getShape();
+		FPhysXCollider* physxCollider = static_cast<FPhysXCollider*>(collider.GetInternalInternal());
+		PxShape* shape = physxCollider->GetShapeInternal();
 
 		PxTransform transform = toPxTransform(collider.getPosition(), collider.getRotation());
 
@@ -781,7 +781,7 @@ namespace bs
 		mCharManager->release();
 		mScene->release();
 
-		gPhysX()._notifySceneDestroyed(this);
+		gPhysX().NotifySceneDestroyedInternal(this);
 	}
 
 	SPtr<Rigidbody> PhysXScene::createRigidbody(const HSceneObject& linkedSO)
@@ -930,8 +930,8 @@ namespace bs
 		if (mesh->getType() != PhysicsMeshType::Convex)
 			return false;
 
-		FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->_getInternal());
-		PxConvexMeshGeometry geometry(physxMesh->_getConvex());
+		FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->GetInternalInternal());
+		PxConvexMeshGeometry geometry(physxMesh->GetConvexInternal());
 		PxTransform transform = toPxTransform(position, rotation);
 
 		return sweep(geometry, transform, unitDir, hit, layer, max);
@@ -987,8 +987,8 @@ namespace bs
 		if (mesh->getType() != PhysicsMeshType::Convex)
 			return Vector<PhysicsQueryHit>(0);
 
-		FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->_getInternal());
-		PxConvexMeshGeometry geometry(physxMesh->_getConvex());
+		FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->GetInternalInternal());
+		PxConvexMeshGeometry geometry(physxMesh->GetConvexInternal());
 		PxTransform transform = toPxTransform(position, rotation);
 
 		return sweepAll(geometry, transform, unitDir, layer, max);
@@ -1043,14 +1043,14 @@ namespace bs
 		if (mesh->getType() != PhysicsMeshType::Convex)
 			return false;
 
-		FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->_getInternal());
-		PxConvexMeshGeometry geometry(physxMesh->_getConvex());
+		FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->GetInternalInternal());
+		PxConvexMeshGeometry geometry(physxMesh->GetConvexInternal());
 		PxTransform transform = toPxTransform(position, rotation);
 
 		return sweepAny(geometry, transform, unitDir, layer, max);
 	}
 
-	Vector<Collider*> PhysXScene::_boxOverlap(const AABox& box, const Quaternion& rotation,
+	Vector<Collider*> PhysXScene::BoxOverlapInternal(const AABox& box, const Quaternion& rotation,
 		UINT64 layer) const
 	{
 		PxBoxGeometry geometry(toPxVector(box.getHalfSize()));
@@ -1059,7 +1059,7 @@ namespace bs
 		return overlap(geometry, transform, layer);
 	}
 
-	Vector<Collider*> PhysXScene::_sphereOverlap(const Sphere& sphere, UINT64 layer) const
+	Vector<Collider*> PhysXScene::SphereOverlapInternal(const Sphere& sphere, UINT64 layer) const
 	{
 		PxSphereGeometry geometry(sphere.getRadius());
 		PxTransform transform = toPxTransform(sphere.getCenter(), Quaternion::IDENTITY);
@@ -1067,7 +1067,7 @@ namespace bs
 		return overlap(geometry, transform, layer);
 	}
 
-	Vector<Collider*> PhysXScene::_capsuleOverlap(const Capsule& capsule, const Quaternion& rotation,
+	Vector<Collider*> PhysXScene::CapsuleOverlapInternal(const Capsule& capsule, const Quaternion& rotation,
 		UINT64 layer) const
 	{
 		PxCapsuleGeometry geometry(capsule.getRadius(), capsule.getHeight() * 0.5f);
@@ -1076,7 +1076,7 @@ namespace bs
 		return overlap(geometry, transform, layer);
 	}
 
-	Vector<Collider*> PhysXScene::_convexOverlap(const HPhysicsMesh& mesh, const Vector3& position,
+	Vector<Collider*> PhysXScene::ConvexOverlapInternal(const HPhysicsMesh& mesh, const Vector3& position,
 		const Quaternion& rotation, UINT64 layer) const
 	{
 		if (mesh == nullptr)
@@ -1085,8 +1085,8 @@ namespace bs
 		if (mesh->getType() != PhysicsMeshType::Convex)
 			return Vector<Collider*>(0);
 
-		FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->_getInternal());
-		PxConvexMeshGeometry geometry(physxMesh->_getConvex());
+		FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->GetInternalInternal());
+		PxConvexMeshGeometry geometry(physxMesh->GetConvexInternal());
 		PxTransform transform = toPxTransform(position, rotation);
 
 		return overlap(geometry, transform, layer);
@@ -1126,8 +1126,8 @@ namespace bs
 		if (mesh->getType() != PhysicsMeshType::Convex)
 			return false;
 
-		FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->_getInternal());
-		PxConvexMeshGeometry geometry(physxMesh->_getConvex());
+		FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->GetInternalInternal());
+		PxConvexMeshGeometry geometry(physxMesh->GetConvexInternal());
 		PxTransform transform = toPxTransform(position, rotation);
 
 		return overlapAny(geometry, transform, layer);

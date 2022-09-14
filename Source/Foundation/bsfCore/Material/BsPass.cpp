@@ -128,7 +128,7 @@ namespace bs
 		ct::Pass* pass = new (bs_alloc<ct::Pass>()) ct::Pass(mData);
 
 		SPtr<ct::Pass> passPtr = bs_shared_ptr(pass);
-		passPtr->_setThisPtr(passPtr);
+		passPtr->SetThisPtrInternal(passPtr);
 
 		return passPtr;
 	}
@@ -162,7 +162,7 @@ namespace bs
 	{
 		Pass* newPass = new (bs_alloc<Pass>()) Pass(desc);
 		SPtr<Pass> newPassPtr = bs_core_ptr<Pass>(newPass);
-		newPassPtr->_setThisPtr(newPassPtr);
+		newPassPtr->SetThisPtrInternal(newPassPtr);
 		newPassPtr->initialize();
 
 		return newPassPtr;
@@ -172,7 +172,7 @@ namespace bs
 	{
 		Pass* newPass = new (bs_alloc<Pass>()) Pass();
 		SPtr<Pass> newPassPtr = bs_core_ptr<Pass>(newPass);
-		newPassPtr->_setThisPtr(newPassPtr);
+		newPassPtr->SetThisPtrInternal(newPassPtr);
 
 		return newPassPtr;
 	}
@@ -211,7 +211,7 @@ namespace bs
 	{
 		Pass* newPass = new (bs_alloc<Pass>()) Pass(desc);
 		SPtr<Pass> newPassPtr = bs_shared_ptr<Pass>(newPass);
-		newPassPtr->_setThisPtr(newPassPtr);
+		newPassPtr->SetThisPtrInternal(newPassPtr);
 		newPassPtr->initialize();
 
 		return newPassPtr;

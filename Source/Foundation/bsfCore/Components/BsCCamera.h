@@ -256,7 +256,7 @@ namespace bs
 		 */
 
 		/** Returns the internal camera that is used for majority of operations by this component. */
-		SPtr<Camera> _getCamera() const { updateView(); return mInternal; }
+		SPtr<Camera> GetCameraInternal() const { updateView(); return mInternal; }
 
 		/** @} */
 
@@ -273,7 +273,7 @@ namespace bs
 		friend class SceneObject;
 
 		/** @copydoc Component::_instantiate */
-		void _instantiate() override;
+		void InstantiateInternal() override;
 
 		/** @copydoc Component::onInitialized */
 		void onInitialized() override;

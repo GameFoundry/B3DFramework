@@ -15,7 +15,7 @@ namespace bs { namespace ct
 		GpuDeviceFlags deviceMask)
 	{
 		SPtr<GLVertexBuffer> ret = bs_shared_ptr_new<GLVertexBuffer>(desc, deviceMask);
-		ret->_setThisPtr(ret);
+		ret->SetThisPtrInternal(ret);
 
 		return ret;
 	}
@@ -24,7 +24,7 @@ namespace bs { namespace ct
 		GpuDeviceFlags deviceMask)
 	{
 		SPtr<GLIndexBuffer> ret = bs_shared_ptr_new<GLIndexBuffer>(desc, deviceMask);
-		ret->_setThisPtr(ret);
+		ret->SetThisPtrInternal(ret);
 
 		return ret;
 	}
@@ -36,7 +36,7 @@ namespace bs { namespace ct
 			new (bs_alloc<GLGpuParamBlockBuffer>()) GLGpuParamBlockBuffer(size, usage, deviceMask);
 
 		SPtr<GpuParamBlockBuffer> paramBlockBufferPtr = bs_shared_ptr<GLGpuParamBlockBuffer>(paramBlockBuffer);
-		paramBlockBufferPtr->_setThisPtr(paramBlockBufferPtr);
+		paramBlockBufferPtr->SetThisPtrInternal(paramBlockBufferPtr);
 
 		return paramBlockBufferPtr;
 	}
@@ -47,7 +47,7 @@ namespace bs { namespace ct
 		GLGpuBuffer* buffer = new (bs_alloc<GLGpuBuffer>()) GLGpuBuffer(desc, deviceMask);
 
 		SPtr<GpuBuffer> bufferPtr = bs_shared_ptr<GLGpuBuffer>(buffer);
-		bufferPtr->_setThisPtr(bufferPtr);
+		bufferPtr->SetThisPtrInternal(bufferPtr);
 
 		return bufferPtr;
 	}
@@ -58,7 +58,7 @@ namespace bs { namespace ct
 		GLGpuBuffer* buffer = new (bs_alloc<GLGpuBuffer>()) GLGpuBuffer(desc, std::move(underlyingBuffer));
 
 		SPtr<GpuBuffer> bufferPtr = bs_shared_ptr<GLGpuBuffer>(buffer);
-		bufferPtr->_setThisPtr(bufferPtr);
+		bufferPtr->SetThisPtrInternal(bufferPtr);
 
 		return bufferPtr;
 	}

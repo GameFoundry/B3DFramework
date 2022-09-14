@@ -116,7 +116,7 @@ namespace bs
 		 */
 
 		/** Returns the AudioSource implementation wrapped by this component. */
-		AudioSource* _getInternal() const { return mInternal.get(); }
+		AudioSource* GetInternalInternal() const { return mInternal.get(); }
 
 		/** @} */
 

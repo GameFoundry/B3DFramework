@@ -17,7 +17,7 @@ namespace bs { namespace ct
 		GpuDeviceFlags deviceMask)
 	{
 		SPtr<D3D11VertexBuffer> ret = bs_shared_ptr_new<D3D11VertexBuffer>(mDevice, desc, deviceMask);
-		ret->_setThisPtr(ret);
+		ret->SetThisPtrInternal(ret);
 
 		return ret;
 	}
@@ -26,7 +26,7 @@ namespace bs { namespace ct
 		GpuDeviceFlags deviceMask)
 	{
 		SPtr<D3D11IndexBuffer> ret = bs_shared_ptr_new<D3D11IndexBuffer>(mDevice, desc, deviceMask);
-		ret->_setThisPtr(ret);
+		ret->SetThisPtrInternal(ret);
 
 		return ret;
 	}
@@ -38,7 +38,7 @@ namespace bs { namespace ct
 			new (bs_alloc<D3D11GpuParamBlockBuffer>()) D3D11GpuParamBlockBuffer(size, usage, deviceMask);
 
 		SPtr<GpuParamBlockBuffer> paramBlockBufferPtr = bs_shared_ptr<D3D11GpuParamBlockBuffer>(paramBlockBuffer);
-		paramBlockBufferPtr->_setThisPtr(paramBlockBufferPtr);
+		paramBlockBufferPtr->SetThisPtrInternal(paramBlockBufferPtr);
 
 		return paramBlockBufferPtr;
 	}
@@ -49,7 +49,7 @@ namespace bs { namespace ct
 		D3D11GpuBuffer* buffer = new (bs_alloc<D3D11GpuBuffer>()) D3D11GpuBuffer(desc, deviceMask);
 
 		SPtr<D3D11GpuBuffer> bufferPtr = bs_shared_ptr<D3D11GpuBuffer>(buffer);
-		bufferPtr->_setThisPtr(bufferPtr);
+		bufferPtr->SetThisPtrInternal(bufferPtr);
 
 		return bufferPtr;
 	}
@@ -60,7 +60,7 @@ namespace bs { namespace ct
 		D3D11GpuBuffer* buffer = new (bs_alloc<D3D11GpuBuffer>()) D3D11GpuBuffer(desc, std::move(underlyingBuffer));
 
 		SPtr<D3D11GpuBuffer> bufferPtr = bs_shared_ptr<D3D11GpuBuffer>(buffer);
-		bufferPtr->_setThisPtr(bufferPtr);
+		bufferPtr->SetThisPtrInternal(bufferPtr);
 
 		return bufferPtr;
 	}

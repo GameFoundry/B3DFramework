@@ -331,12 +331,12 @@ namespace bs
 
 	SPtr<RendererMeshData> RendererMeshData::create(UINT32 numVertices, UINT32 numIndices, VertexLayout layout, IndexType indexType)
 	{
-		return RendererManager::instance().getActive()->_createMeshData(numVertices, numIndices, layout, indexType);
+		return RendererManager::instance().getActive()->CreateMeshDataInternal(numVertices, numIndices, layout, indexType);
 	}
 
 	SPtr<RendererMeshData> RendererMeshData::create(const SPtr<MeshData>& meshData)
 	{
-		return RendererManager::instance().getActive()->_createMeshData(meshData);
+		return RendererManager::instance().getActive()->CreateMeshDataInternal(meshData);
 	}
 
 	SPtr<VertexDataDesc> RendererMeshData::vertexLayoutVertexDesc(VertexLayout type)

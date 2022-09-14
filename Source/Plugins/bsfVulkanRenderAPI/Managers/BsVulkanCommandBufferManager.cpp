@@ -119,7 +119,7 @@ namespace bs { namespace ct
 		mDeviceData = bs_newN<PerDeviceData>(mNumDevices);
 		for (UINT32 i = 0; i < mNumDevices; i++)
 		{
-			SPtr<VulkanDevice> device = rapi._getDevice(i);
+			SPtr<VulkanDevice> device = rapi.GetDeviceInternal(i);
 
 			for (UINT32 j = 0; j < GQT_COUNT; j++)
 			{
@@ -139,7 +139,7 @@ namespace bs { namespace ct
 	SPtr<CommandBuffer> VulkanCommandBufferManager::createInternal(GpuQueueType type, UINT32 deviceIdx,
 		UINT32 queueIdx, bool secondary)
 	{
-		UINT32 numDevices = mRapi._getNumDevices();
+		UINT32 numDevices = mRapi.GetNumDevicesInternal();
 		if(deviceIdx >= numDevices)
 		{
 			BS_LOG(Error, RenderBackend, "Cannot create command buffer, invalid device index: {0}. Valid range: [0, {1}).",
@@ -148,7 +148,7 @@ namespace bs { namespace ct
 			return nullptr;
 		}
 
-		SPtr<VulkanDevice> device = mRapi._getDevice(deviceIdx);
+		SPtr<VulkanDevice> device = mRapi.GetDeviceInternal(deviceIdx);
 
 		CommandBuffer* buffer =
 			new (bs_alloc<VulkanCommandBuffer>()) VulkanCommandBuffer(*device, type, deviceIdx, queueIdx, secondary);
@@ -160,7 +160,7 @@ namespace bs { namespace ct
 													   UINT32& count)
 	{
 		bool semaphoreRequestFailed = false;
-		SPtr<VulkanDevice> device = mRapi._getDevice(deviceIdx);
+		SPtr<VulkanDevice> device = mRapi.GetDeviceInternal(deviceIdx);
 
 		UINT32 semaphoreIdx = 0;
 		for (UINT32 i = 0; i < GQT_COUNT; i++)

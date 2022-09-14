@@ -53,7 +53,7 @@ namespace bs
 
 		PxRigidActor* actor = nullptr;
 		if (value != nullptr)
-			actor = static_cast<PhysXRigidbody*>(value)->_getInternal();
+			actor = static_cast<PhysXRigidbody*>(value)->GetInternalInternal();
 
 		if (body == JointBody::Target)
 			actorA = actor;

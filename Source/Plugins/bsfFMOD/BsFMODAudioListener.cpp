@@ -7,12 +7,12 @@ namespace bs
 {
 	FMODAudioListener::FMODAudioListener()
 	{
-		gFMODAudio()._registerListener(this);
+		gFMODAudio().RegisterListenerInternal(this);
 	}
 
 	FMODAudioListener::~FMODAudioListener()
 	{
-		gFMODAudio()._unregisterListener(this);
+		gFMODAudio().UnregisterListenerInternal(this);
 	}
 
 	void FMODAudioListener::setTransform(const Transform& transform)
@@ -23,7 +23,7 @@ namespace bs
 		Vector3 direction = transform.getForward();
 		Vector3 up = transform.getUp();
 
-		FMOD::System* fmod = gFMODAudio()._getFMOD();
+		FMOD::System* fmod = gFMODAudio().GetFMODInternal();
 		FMOD_VECTOR fmodPos = { position.x, position.y, position.z };
 		FMOD_VECTOR fmodDir = { direction.x, direction.y, direction.z };
 		FMOD_VECTOR fmodUp = { up.x, up.y, up.z };
@@ -35,7 +35,7 @@ namespace bs
 	{
 		AudioListener::setVelocity(velocity);
 
-		FMOD::System* fmod = gFMODAudio()._getFMOD();
+		FMOD::System* fmod = gFMODAudio().GetFMODInternal();
 		FMOD_VECTOR value = { velocity.x, velocity.y, velocity.z };
 
 		fmod->set3DListenerAttributes(mId, nullptr, &value, nullptr, nullptr);
@@ -49,7 +49,7 @@ namespace bs
 		Vector3 direction = mTransform.getForward();
 		Vector3 up = mTransform.getUp();
 
-		FMOD::System* fmod = gFMODAudio()._getFMOD();
+		FMOD::System* fmod = gFMODAudio().GetFMODInternal();
 		FMOD_VECTOR fmodPosition = { position.x, position.y, position.z };
 		FMOD_VECTOR fmodVelocity = { mVelocity.x, mVelocity.y, mVelocity.z };
 		FMOD_VECTOR fmodForward = { direction.x, direction.y, direction.z };

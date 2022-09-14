@@ -13,7 +13,7 @@ namespace bs
 		UINT32 id = ct::RenderWindowManager::instance().mNextWindowId.fetch_add(1, std::memory_order_relaxed);
 
 		SPtr<RenderWindow> renderWindow = createImpl(desc, id, parentWindow);
-		renderWindow->_setThisPtr(renderWindow);
+		renderWindow->SetThisPtrInternal(renderWindow);
 		
 		{
 			Lock lock(mWindowMutex);
@@ -113,7 +113,7 @@ namespace bs
 			mDirtyProperties.insert(window);
 	}
 
-	void RenderWindowManager::_update()
+	void RenderWindowManager::UpdateInternal()
 	{
 		RenderWindow* newWinInFocus = nullptr;
 		Vector<RenderWindow*> movedOrResizedWindows;
@@ -206,7 +206,7 @@ namespace bs
 		mNextWindowId = 0;
 	}
 
-	void RenderWindowManager::_update()
+	void RenderWindowManager::UpdateInternal()
 	{
 		Lock lock(mWindowMutex);
 

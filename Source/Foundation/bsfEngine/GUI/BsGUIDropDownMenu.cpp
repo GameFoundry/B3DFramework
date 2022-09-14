@@ -86,20 +86,20 @@ namespace bs
 		mFrontHitBox = GUIDropDownHitBox::create(false, false);
 		mFrontHitBox->onFocusLost.connect(std::bind(&GUIDropDownMenu::dropDownFocusLost, this));
 		mFrontHitBox->setFocus(true);
-		GUILayoutData hitboxLayoutData = mFrontHitBox->_getLayoutData();
+		GUILayoutData hitboxLayoutData = mFrontHitBox->GetLayoutDataInternal();
 		hitboxLayoutData.setWidgetDepth(0);
 		hitboxLayoutData.setPanelDepth(std::numeric_limits<INT16>::min());
-		mFrontHitBox->_setLayoutData(hitboxLayoutData);
-		mFrontHitBox->_changeParentWidget(_getInternal());
-		mFrontHitBox->_markLayoutAsDirty();
+		mFrontHitBox->SetLayoutDataInternal(hitboxLayoutData);
+		mFrontHitBox->ChangeParentWidgetInternal(GetInternalInternal());
+		mFrontHitBox->MarkLayoutAsDirtyInternal();
 
 		mBackHitBox = GUIDropDownHitBox::create(false, true);
-		GUILayoutData backHitboxLayoutData = mBackHitBox->_getLayoutData();
+		GUILayoutData backHitboxLayoutData = mBackHitBox->GetLayoutDataInternal();
 		backHitboxLayoutData.setWidgetDepth(0);
 		backHitboxLayoutData.setPanelDepth(std::numeric_limits<INT16>::max());
-		mBackHitBox->_setLayoutData(backHitboxLayoutData);
-		mBackHitBox->_changeParentWidget(_getInternal());
-		mBackHitBox->_markLayoutAsDirty();
+		mBackHitBox->SetLayoutDataInternal(backHitboxLayoutData);
+		mBackHitBox->ChangeParentWidgetInternal(GetInternalInternal());
+		mBackHitBox->MarkLayoutAsDirtyInternal();
 
 		SPtr<Viewport> viewport = desc.camera->getViewport();
 
@@ -109,12 +109,12 @@ namespace bs
 
 		mCaptureHitBox = GUIDropDownHitBox::create(true, false);
 		mCaptureHitBox->setBounds(captureBounds);
-		GUILayoutData captureHitboxLayoutData = mCaptureHitBox->_getLayoutData();
+		GUILayoutData captureHitboxLayoutData = mCaptureHitBox->GetLayoutDataInternal();
 		captureHitboxLayoutData.setWidgetDepth(0);
 		captureHitboxLayoutData.setPanelDepth(std::numeric_limits<INT16>::max());
-		mCaptureHitBox->_setLayoutData(captureHitboxLayoutData);
-		mCaptureHitBox->_changeParentWidget(_getInternal());
-		mCaptureHitBox->_markLayoutAsDirty();
+		mCaptureHitBox->SetLayoutDataInternal(captureHitboxLayoutData);
+		mCaptureHitBox->ChangeParentWidgetInternal(GetInternalInternal());
+		mCaptureHitBox->MarkLayoutAsDirtyInternal();
 
 		mAdditionalCaptureBounds = desc.additionalBounds;
 
@@ -373,7 +373,7 @@ namespace bs
 
 				mHandle = GUITexture::create(mOwner->mHandleStyle);
 				GUITexture* background = GUITexture::create(mOwner->mSideBackgroundStyle);
-				background->_setElementDepth(2);
+				background->SetElementDepthInternal(2);
 
 				mSidebarPanel->addElement(background);
 				mSidebarPanel->addElement(mScrollUpBtn);

@@ -630,11 +630,11 @@ namespace bs
 
 		SPtr<SerializedInstance> RTTIFieldWrapper<true>::clone(SerializedObjectEncodeFlags flags, SerializationContext* context, FrameAlloc* alloc) const
 		{
-			return IntermediateSerializer::_encodeField(mObj, mRTTIType, mField, mArrayIdx, flags, context, alloc);
+			return IntermediateSerializer::EncodeFieldInternal(mObj, mRTTIType, mField, mArrayIdx, flags, context, alloc);
 		}
 
 		RTTIFieldWrapperIterator<false>::RTTIFieldWrapperIterator(SerializedObject* obj, UINT32 subObjectIdx)
-			:mObj(obj), mSubObjectIdx(subObjectIdx), mRTTIType(IReflectable::_getRTTIfromTypeId(obj->subObjects[subObjectIdx].typeId))
+			:mObj(obj), mSubObjectIdx(subObjectIdx), mRTTIType(IReflectable::GetRTTIfromTypeIdInternal(obj->subObjects[subObjectIdx].typeId))
 		{ }
 
 		bool RTTIFieldWrapperIterator<false>::moveNext()
@@ -718,13 +718,13 @@ namespace bs
 				{
 					RTTITypeBase* childRtti = nullptr;
 					if (orgObjData.getTypeId() == newObjData.getTypeId())
-						childRtti = IReflectable::_getRTTIfromTypeId(newObjData.getTypeId());
+						childRtti = IReflectable::GetRTTIfromTypeIdInternal(newObjData.getTypeId());
 
 					SPtr<SerializedObject> objectDiff;
 					if (childRtti != nullptr)
 					{
 						IDiff& handler = childRtti->getDiffHandler();
-						objectDiff = handler._generateDiff(orgObjData.getObjectPtr(), newObjData.getObjectPtr(), objectMap, replicableOnly);
+						objectDiff = handler.GenerateDiffInternal(orgObjData.getObjectPtr(), newObjData.getObjectPtr(), objectMap, replicableOnly);
 					}
 
 					if (objectDiff != nullptr)
@@ -812,7 +812,7 @@ namespace bs
 			{
 				RTTISubObjectWrapper<REFL_NEW> newSubObject = newObjTypeIter.value();
 
-				RTTITypeBase* rtti = IReflectable::_getRTTIfromTypeId(newSubObject.getTypeId());
+				RTTITypeBase* rtti = IReflectable::GetRTTIfromTypeIdInternal(newSubObject.getTypeId());
 				if (rtti == nullptr)
 					continue;
 
@@ -999,7 +999,7 @@ namespace bs
 		const SPtr<IReflectable>& newObj, bool replicableOnly)
 	{
 		ObjectMap objectMap;
-		return _generateDiff(orgObj.get(), newObj.get(), objectMap, replicableOnly);
+		return GenerateDiffInternal(orgObj.get(), newObj.get(), objectMap, replicableOnly);
 	}
 
 	void IDiff::applyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff,
@@ -1046,7 +1046,7 @@ namespace bs
 				while(!rttiTypes.empty())
 				{
 					RTTITypeBase* curRtti = rttiTypes.top();
-					RTTITypeBase* rttiInstance = curRtti->_clone(alloc);
+					RTTITypeBase* rttiInstance = curRtti->CloneInternal(alloc);
 
 					rttiInstances.push_back(std::make_pair(rttiInstance, destObject));
 					rttiInstance->onDeserializationStarted(destObject, context);
@@ -1172,7 +1172,7 @@ namespace bs
 		diffHandler.applyDiff(object, diff, alloc, objectMap, diffCommands, context);
 	}
 
-	SPtr<SerializedObject> BinaryDiff::_generateDiff(IReflectable* orgObj,
+	SPtr<SerializedObject> BinaryDiff::GenerateDiffInternal(IReflectable* orgObj,
 		IReflectable* newObj, ObjectMap& objectMap, bool replicableOnly)
 	{
 		if(orgObj->getTypeId() == TID_SerializedObject)
@@ -1215,14 +1215,14 @@ namespace bs
 		Stack<RTTITypeBase*> rttiInstances;
 		for (auto& subObject : diff->subObjects)
 		{
-			RTTITypeBase* rtti = IReflectable::_getRTTIfromTypeId(subObject.typeId);
+			RTTITypeBase* rtti = IReflectable::GetRTTIfromTypeIdInternal(subObject.typeId);
 			if (rtti == nullptr)
 				continue;
 
 			if (!object->isDerivedFrom(rtti))
 				continue;
 
-			RTTITypeBase* rttiInstance = rtti->_clone(alloc);
+			RTTITypeBase* rttiInstance = rtti->CloneInternal(alloc);
 			rttiInstance->onSerializationStarted(object.get(), nullptr);
 			rttiInstances.push(rttiInstance);
 
@@ -1296,7 +1296,7 @@ namespace bs
 
 								if (needsNewObject)
 								{
-									RTTITypeBase* childRtti = IReflectable::_getRTTIfromTypeId(arrayElemData->getRootTypeId());
+									RTTITypeBase* childRtti = IReflectable::GetRTTIfromTypeIdInternal(arrayElemData->getRootTypeId());
 									if (childRtti != nullptr)
 									{
 										auto findObj = objectMap.find(arrayElemData);
@@ -1347,7 +1347,7 @@ namespace bs
 							}
 							else
 							{
-								RTTITypeBase* childRtti = IReflectable::_getRTTIfromTypeId(arrayElemData->getRootTypeId());
+								RTTITypeBase* childRtti = IReflectable::GetRTTIfromTypeIdInternal(arrayElemData->getRootTypeId());
 								if (childRtti != nullptr)
 								{
 									SPtr<IReflectable> newObject = childRtti->newRTTIObject();
@@ -1414,7 +1414,7 @@ namespace bs
 							SPtr<IReflectable> childObj = field->getValue(rttiInstance, object.get());
 							if (childObj == nullptr)
 							{
-								RTTITypeBase* childRtti = IReflectable::_getRTTIfromTypeId(fieldObjectData->getRootTypeId());
+								RTTITypeBase* childRtti = IReflectable::GetRTTIfromTypeIdInternal(fieldObjectData->getRootTypeId());
 								if (childRtti != nullptr)
 								{
 									auto findObj = objectMap.find(fieldObjectData);

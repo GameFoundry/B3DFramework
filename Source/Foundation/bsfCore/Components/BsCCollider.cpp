@@ -53,7 +53,7 @@ namespace bs
 			mInternal->setMass(mass);
 
 			if (mParent != nullptr)
-				mParent->_updateMassDistribution();
+				mParent->UpdateMassDistributionInternal();
 		}
 	}
 
@@ -131,7 +131,7 @@ namespace bs
 
 		// Don't update the transform if it's due to Physics update since then we can guarantee it will remain at the same
 		// relative transform to its parent
-		if (gPhysics()._isUpdateInProgress())
+		if (gPhysics().IsUpdateInProgressInternal())
 			return;
 
 		if ((flags & (TCF_Parent | TCF_Transform)) != 0)
@@ -151,7 +151,7 @@ namespace bs
 			Rigidbody* rigidBodyPtr = nullptr;
 
 			if (rigidbody != nullptr)
-				rigidBodyPtr = rigidbody->_getInternal();
+				rigidBodyPtr = rigidbody->GetInternalInternal();
 
 			mInternal->setRigidbody(rigidBodyPtr);
 
@@ -215,7 +215,7 @@ namespace bs
 		// This should release the last reference and destroy the internal collider
 		if(mInternal)
 		{
-			mInternal->_setOwner(PhysicsOwnerType::None, nullptr);
+			mInternal->SetOwnerInternal(PhysicsOwnerType::None, nullptr);
 			mInternal = nullptr;
 		}
 	}
@@ -280,7 +280,7 @@ namespace bs
 			if(mInternal)
 				mInternal->setTransform(relativePos, relativeRot);
 
-			mParent->_updateMassDistribution();
+			mParent->UpdateMassDistributionInternal();
 		}
 		else
 		{
@@ -315,7 +315,7 @@ namespace bs
 
 		if(data.colliders[1] != nullptr)
 		{
-			CCollider* other = (CCollider*)data.colliders[1]->_getOwner(PhysicsOwnerType::Component);
+			CCollider* other = (CCollider*)data.colliders[1]->GetOwnerInternal(PhysicsOwnerType::Component);
 			hit.collider[1] = static_object_cast<CCollider>(other->getHandle());
 		}
 
@@ -330,7 +330,7 @@ namespace bs
 
 		if (data.colliders[1] != nullptr)
 		{
-			CCollider* other = (CCollider*)data.colliders[1]->_getOwner(PhysicsOwnerType::Component);
+			CCollider* other = (CCollider*)data.colliders[1]->GetOwnerInternal(PhysicsOwnerType::Component);
 			hit.collider[1] = static_object_cast<CCollider>(other->getHandle());
 		}
 
@@ -345,7 +345,7 @@ namespace bs
 
 		if (data.colliders[1] != nullptr)
 		{
-			CCollider* other = (CCollider*)data.colliders[1]->_getOwner(PhysicsOwnerType::Component);
+			CCollider* other = (CCollider*)data.colliders[1]->GetOwnerInternal(PhysicsOwnerType::Component);
 			hit.collider[1] = static_object_cast<CCollider>(other->getHandle());
 		}
 

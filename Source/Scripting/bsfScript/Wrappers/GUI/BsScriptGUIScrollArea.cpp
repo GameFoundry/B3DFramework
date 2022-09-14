@@ -57,7 +57,7 @@ namespace bs
 				mLayout = nullptr;
 			}
 
-			if (mElement->_getType() == GUIElementBase::Type::Element)
+			if (mElement->GetTypeInternal() == GUIElementBase::Type::Element)
 			{
 				GUIElement::destroy((GUIElement*)mElement);
 				mElement = nullptr;

@@ -43,7 +43,7 @@ namespace bs
 		SPtr<IReflectable> newRTTIObject() override
 		{
 			SPtr<PhysicsMesh> mesh = gPhysics().createMesh(nullptr, PhysicsMeshType::Convex);
-			mesh->_setThisPtr(mesh);
+			mesh->SetThisPtrInternal(mesh);
 
 			return mesh;
 		}

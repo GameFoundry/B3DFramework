@@ -35,20 +35,20 @@ namespace bs
 		 */
 
 		/**	Calculate optimal sizes of all child layout elements. */
-		void _updateOptimalLayoutSizes() override;
+		void UpdateOptimalLayoutSizesInternal() override;
 
 		/** @copydoc GUIElementBase::_calculateLayoutSizeRange */
-		LayoutSizeRange _calculateLayoutSizeRange() const override;
+		LayoutSizeRange CalculateLayoutSizeRangeInternal() const override;
 
 		/** @copydoc GUILayout::_getElementAreas */
-		void _getElementAreas(const Rect2I& layoutArea, Rect2I* elementAreas, UINT32 numElements,
+		void GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, UINT32 numElements,
 			const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const override;
 
 		/** @} */
 
 	protected:
 		/** @copydoc GUIElementBase::_updateLayoutInternal */
-		void _updateLayoutInternal(const GUILayoutData& data) override;
+		void UpdateLayoutInternalInternal(const GUILayoutData& data) override;
 	};
 
 	/** @} */

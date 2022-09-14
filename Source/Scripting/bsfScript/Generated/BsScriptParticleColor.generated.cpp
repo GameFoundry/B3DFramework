@@ -49,7 +49,7 @@ namespace bs
 
 		__PARTICLE_COLOR_DESCInterop interop__output;
 		interop__output = ScriptPARTICLE_COLOR_DESC::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptPARTICLE_COLOR_DESC::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptPARTICLE_COLOR_DESC::getMetaData()->scriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptParticleColor::Internal_create(MonoObject* managedInstance, __PARTICLE_COLOR_DESCInterop* desc)

@@ -76,20 +76,20 @@ namespace bs
 		void setPaused(bool paused) override;
 
 		/** Triggered by the PhysX simulation when an interaction between two colliders is found. */
-		void _reportContactEvent(const ContactEvent& event);
+		void ReportContactEventInternal(const ContactEvent& event);
 
 		/** Triggered by the PhysX simulation when an interaction between two trigger and a collider is found. */
-		void _reportTriggerEvent(const TriggerEvent& event);
+		void ReportTriggerEventInternal(const TriggerEvent& event);
 
 		/** Triggered by the PhysX simulation when a joint breaks. */
-		void _reportJointBreakEvent(const JointBreakEvent& event);
+		void ReportJointBreakEventInternal(const JointBreakEvent& event);
 
 		/** @copydoc Physics::_rayCast */
-		bool _rayCast(const Vector3& origin, const Vector3& unitDir, const Collider& collider, PhysicsQueryHit& hit,
+		bool RayCastInternal(const Vector3& origin, const Vector3& unitDir, const Collider& collider, PhysicsQueryHit& hit,
 			float maxDist = FLT_MAX) const override;
 
 		/** Notifies the system that at physics scene is about to be destroyed. */
-		void _notifySceneDestroyed(PhysXScene* scene);
+		void NotifySceneDestroyedInternal(PhysXScene* scene);
 
 		/** Returns the default PhysX material. */
 		physx::PxMaterial* getDefaultMaterial() const { return mDefaultMaterial; }
@@ -275,18 +275,18 @@ namespace bs
 		void setMaxTesselationEdgeLength(float length) override;
 
 		/** @copydoc PhysicsScene::_boxOverlap */
-		Vector<Collider*> _boxOverlap(const AABox& box, const Quaternion& rotation,
+		Vector<Collider*> BoxOverlapInternal(const AABox& box, const Quaternion& rotation,
 			UINT64 layer = BS_ALL_LAYERS) const override;
 
 		/** @copydoc PhysicsScene::_sphereOverlap */
-		Vector<Collider*> _sphereOverlap(const Sphere& sphere, UINT64 layer = BS_ALL_LAYERS) const override;
+		Vector<Collider*> SphereOverlapInternal(const Sphere& sphere, UINT64 layer = BS_ALL_LAYERS) const override;
 
 		/** @copydoc PhysicsScene::_capsuleOverlap */
-		Vector<Collider*> _capsuleOverlap(const Capsule& capsule, const Quaternion& rotation,
+		Vector<Collider*> CapsuleOverlapInternal(const Capsule& capsule, const Quaternion& rotation,
 			UINT64 layer = BS_ALL_LAYERS) const override;
 
 		/** @copydoc PhysicsScene::_convexOverlap */
-		Vector<Collider*> _convexOverlap(const HPhysicsMesh& mesh, const Vector3& position,
+		Vector<Collider*> ConvexOverlapInternal(const HPhysicsMesh& mesh, const Vector3& position,
 			const Quaternion& rotation, UINT64 layer = BS_ALL_LAYERS) const override;
 
 	private:

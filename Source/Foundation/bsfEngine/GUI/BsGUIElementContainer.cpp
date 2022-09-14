@@ -31,7 +31,7 @@ namespace bs
 		UINT32 renderElementIdx) const
 	{ }
 
-	Vector2I GUIElementContainer::_getOptimalSize() const
+	Vector2I GUIElementContainer::GetOptimalSizeInternal() const
 	{
 		return Vector2I();
 	}
@@ -44,7 +44,7 @@ namespace bs
 			GUIElement::setFocus(enabled, clear);
 	}
 
-	bool GUIElementContainer::_commandEvent(const GUICommandEvent& ev)
+	bool GUIElementContainer::CommandEventInternal(const GUICommandEvent& ev)
 	{
 		// Make sure to pass through focus events to elements below
 		if (ev.getType() == GUICommandEventType::FocusGained)
@@ -52,6 +52,6 @@ namespace bs
 		else if (ev.getType() == GUICommandEventType::FocusLost)
 			return false;
 
-		return GUIElement::_commandEvent(ev);
+		return GUIElement::CommandEventInternal(ev);
 	}
 }

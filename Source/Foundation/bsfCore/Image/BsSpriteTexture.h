@@ -78,7 +78,7 @@ namespace bs
 		 * in range [0, 1].
 		 */
 		BS_SCRIPT_EXPORT(n:Offset,pr:setter)
-		void setOffset(const Vector2& offset) { mUVOffset = offset; _markCoreDirty(); }
+		void setOffset(const Vector2& offset) { mUVOffset = offset; MarkCoreDirtyInternal(); }
 
 		/** @copydoc setOffset() */
 		BS_SCRIPT_EXPORT(n:Offset,pr:getter)
@@ -86,7 +86,7 @@ namespace bs
 
 		/** Determines the size of the sprite in the referenced texture. Size is in UV coordinates, range [0, 1]. */
 		BS_SCRIPT_EXPORT(n:Scale,pr:setter)
-		void setScale(const Vector2& scale) { mUVScale = scale; _markCoreDirty(); }
+		void setScale(const Vector2& scale) { mUVScale = scale; MarkCoreDirtyInternal(); }
 
 		/** @copydoc setScale() */
 		BS_SCRIPT_EXPORT(n:Scale,pr:getter)
@@ -111,7 +111,7 @@ namespace bs
 		 * setAnimationPlayback().
 		 */
 		BS_SCRIPT_EXPORT(n:Animation,pr:setter)
-		void setAnimation(const SpriteSheetGridAnimation& anim) { mAnimation = anim; _markCoreDirty(); }
+		void setAnimation(const SpriteSheetGridAnimation& anim) { mAnimation = anim; MarkCoreDirtyInternal(); }
 
 		/** @copydoc setAnimation */
 		BS_SCRIPT_EXPORT(n:Animation,pr:getter)
@@ -119,7 +119,7 @@ namespace bs
 
 		/** Determines if and how should the sprite animation play. */
 		BS_SCRIPT_EXPORT(n:AnimationPlayback,pr:setter)
-		void setAnimationPlayback(SpriteAnimationPlayback playback) { mPlayback = playback; _markCoreDirty(); }
+		void setAnimationPlayback(SpriteAnimationPlayback playback) { mPlayback = playback; MarkCoreDirtyInternal(); }
 
 		/** @copydoc setAnimationPlayback */
 		BS_SCRIPT_EXPORT(n:AnimationPlayback,pr:getter)
@@ -127,7 +127,7 @@ namespace bs
 
 	protected:
 		/** Marks the contents of the sim thread object as dirty, causing it to sync with its core thread counterpart. */
-		virtual void _markCoreDirty() { }
+		virtual void MarkCoreDirtyInternal() { }
 
 		Vector2 mUVOffset;
 		Vector2 mUVScale;
@@ -224,13 +224,13 @@ namespace bs
 		 */
 
 		/** Creates a new SpriteTexture without a resource handle. Use create() for normal use. */
-		static SPtr<SpriteTexture> _createPtr(const HTexture& texture);
+		static SPtr<SpriteTexture> CreatePtrInternal(const HTexture& texture);
 
 		/** Creates a new SpriteTexture without a resource handle. Use create() for normal use. */
-		static SPtr<SpriteTexture> _createPtr(const Vector2& uvOffset, const Vector2& uvScale, const HTexture& texture);
+		static SPtr<SpriteTexture> CreatePtrInternal(const Vector2& uvOffset, const Vector2& uvScale, const HTexture& texture);
 
 		/** @copydoc SpriteTextureBase::_markCoreDirty */
-		void _markCoreDirty() override;
+		void MarkCoreDirtyInternal() override;
 
 		/** @} */
 	private:

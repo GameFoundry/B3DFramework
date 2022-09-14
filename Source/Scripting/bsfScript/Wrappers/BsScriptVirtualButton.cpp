@@ -27,7 +27,7 @@ namespace bs
 	MonoObject* ScriptVirtualButton::box(const VirtualButton& value)
 	{
 		// We're casting away const but it's fine since structs are passed by value anyway
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	VirtualButton ScriptVirtualButton::unbox(MonoObject* obj)

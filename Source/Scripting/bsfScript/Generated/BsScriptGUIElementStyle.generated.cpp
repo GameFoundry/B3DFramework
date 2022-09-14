@@ -218,7 +218,7 @@ namespace bs
 
 		__GUIElementStateStyleInterop interop__output;
 		interop__output = ScriptGUIElementStateStyle::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptGUIElementStateStyle::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptGUIElementStateStyle::getMetaData()->scriptClass->GetInternalClassInternal());
 
 
 	}
@@ -237,7 +237,7 @@ namespace bs
 
 		__GUIElementStateStyleInterop interop__output;
 		interop__output = ScriptGUIElementStateStyle::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptGUIElementStateStyle::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptGUIElementStateStyle::getMetaData()->scriptClass->GetInternalClassInternal());
 
 
 	}
@@ -256,7 +256,7 @@ namespace bs
 
 		__GUIElementStateStyleInterop interop__output;
 		interop__output = ScriptGUIElementStateStyle::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptGUIElementStateStyle::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptGUIElementStateStyle::getMetaData()->scriptClass->GetInternalClassInternal());
 
 
 	}
@@ -275,7 +275,7 @@ namespace bs
 
 		__GUIElementStateStyleInterop interop__output;
 		interop__output = ScriptGUIElementStateStyle::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptGUIElementStateStyle::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptGUIElementStateStyle::getMetaData()->scriptClass->GetInternalClassInternal());
 
 
 	}
@@ -294,7 +294,7 @@ namespace bs
 
 		__GUIElementStateStyleInterop interop__output;
 		interop__output = ScriptGUIElementStateStyle::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptGUIElementStateStyle::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptGUIElementStateStyle::getMetaData()->scriptClass->GetInternalClassInternal());
 
 
 	}
@@ -313,7 +313,7 @@ namespace bs
 
 		__GUIElementStateStyleInterop interop__output;
 		interop__output = ScriptGUIElementStateStyle::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptGUIElementStateStyle::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptGUIElementStateStyle::getMetaData()->scriptClass->GetInternalClassInternal());
 
 
 	}
@@ -332,7 +332,7 @@ namespace bs
 
 		__GUIElementStateStyleInterop interop__output;
 		interop__output = ScriptGUIElementStateStyle::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptGUIElementStateStyle::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptGUIElementStateStyle::getMetaData()->scriptClass->GetInternalClassInternal());
 
 
 	}
@@ -351,7 +351,7 @@ namespace bs
 
 		__GUIElementStateStyleInterop interop__output;
 		interop__output = ScriptGUIElementStateStyle::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptGUIElementStateStyle::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptGUIElementStateStyle::getMetaData()->scriptClass->GetInternalClassInternal());
 
 
 	}
@@ -370,7 +370,7 @@ namespace bs
 
 		__GUIElementStateStyleInterop interop__output;
 		interop__output = ScriptGUIElementStateStyle::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptGUIElementStateStyle::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptGUIElementStateStyle::getMetaData()->scriptClass->GetInternalClassInternal());
 
 
 	}
@@ -389,7 +389,7 @@ namespace bs
 
 		__GUIElementStateStyleInterop interop__output;
 		interop__output = ScriptGUIElementStateStyle::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptGUIElementStateStyle::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptGUIElementStateStyle::getMetaData()->scriptClass->GetInternalClassInternal());
 
 
 	}

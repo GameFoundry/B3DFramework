@@ -611,7 +611,7 @@ namespace bs { namespace ct
 		bool needsRedraw = false;
 		if(!mCallbacks.empty())
 		{
-			view._notifyCompositorTargetChanged(target);
+			view.NotifyCompositorTargetChangedInternal(target);
 
 			mOverlayExtensions.clear();
 
@@ -645,7 +645,7 @@ namespace bs { namespace ct
 	
 	void RenderBeast::updateReflProbeArray()
 	{
-		SceneInfo& sceneInfo = mScene->_getSceneInfo();
+		SceneInfo& sceneInfo = mScene->GetSceneInfoInternal();
 		UINT32 numProbes = (UINT32)sceneInfo.reflProbes.size();
 
 		bs_frame_mark();

@@ -68,7 +68,7 @@ namespace bs
 		 *
 		 * @note	Internal method. Use "create" returning handle for normal use.
 		 */
-		static SPtr<GUISkin> _createPtr();
+		static SPtr<GUISkin> CreatePtrInternal();
 
 		/** @} */
 	private:

@@ -58,7 +58,7 @@ namespace bs
 		return MonoUtil::getObjectFromGCHandle(mGCHandle);
 	}
 
-	void ScriptRRefBase::_clearManagedInstance()
+	void ScriptRRefBase::ClearManagedInstanceInternal()
 	{
 		if (mGCHandle != 0)
 		{
@@ -67,7 +67,7 @@ namespace bs
 		}
 	}
 
-	void ScriptRRefBase::_onManagedInstanceDeleted(bool assemblyRefresh)
+	void ScriptRRefBase::OnManagedInstanceDeletedInternal(bool assemblyRefresh)
 	{
 		if (mGCHandle != 0)
 		{
@@ -75,7 +75,7 @@ namespace bs
 			mGCHandle = 0;
 		}
 
-		ScriptObjectBase::_onManagedInstanceDeleted(assemblyRefresh);
+		ScriptObjectBase::OnManagedInstanceDeletedInternal(assemblyRefresh);
 	}
 
 	::MonoClass* ScriptRRefBase::bindGenericParam(::MonoClass* param)
@@ -83,7 +83,7 @@ namespace bs
 		MonoClass* rrefClass = ScriptAssemblyManager::instance().getBuiltinClasses().genericRRefClass;
 
 		::MonoClass* params[1] = { param };
-		return MonoUtil::bindGenericParameters(rrefClass->_getInternalClass(), params, 1);
+		return MonoUtil::bindGenericParameters(rrefClass->GetInternalClassInternal(), params, 1);
 	}
 
 	bool ScriptRRefBase::internal_IsLoaded(ScriptRRefBase* thisPtr)

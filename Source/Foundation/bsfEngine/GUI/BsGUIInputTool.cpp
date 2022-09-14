@@ -72,9 +72,9 @@ namespace bs
 
 	Vector2I GUIInputTool::getTextOffset() const
 	{
-		Vector2I offset(mElement->_getLayoutData().area.x, mElement->_getLayoutData().area.y);
+		Vector2I offset(mElement->GetLayoutDataInternal().area.x, mElement->GetLayoutDataInternal().area.y);
 
-		return offset + mElement->_getTextInputOffset() + Vector2I(mElement->_getTextInputRect().x, mElement->_getTextInputRect().y);
+		return offset + mElement->GetTextInputOffsetInternal() + Vector2I(mElement->GetTextInputRectInternal().x, mElement->GetTextInputRectInternal().y);
 	}
 
 	Rect2I GUIInputTool::getCharRect(UINT32 charIdx) const

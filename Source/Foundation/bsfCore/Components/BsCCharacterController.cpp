@@ -157,7 +157,7 @@ namespace bs
 
 		mDesc.position = SO()->getTransform().getPosition();
 		mInternal = CharacterController::create(*scene->getPhysicsScene(), mDesc);
-		mInternal->_setOwner(PhysicsOwnerType::Component, this);
+		mInternal->SetOwnerInternal(PhysicsOwnerType::Component, this);
 
 		mInternal->onColliderHit.connect(std::bind(&CCharacterController::triggerOnColliderHit, this, _1));
 		mInternal->onControllerHit.connect(std::bind(&CCharacterController::triggerOnControllerHit, this, _1));
@@ -196,7 +196,7 @@ namespace bs
 		// This should release the last reference and destroy the internal controller
 		if(mInternal)
 		{
-			mInternal->_setOwner(PhysicsOwnerType::None, nullptr);
+			mInternal->SetOwnerInternal(PhysicsOwnerType::None, nullptr);
 			mInternal = nullptr;
 		}
 	}
@@ -208,7 +208,7 @@ namespace bs
 
 		if(hit.colliderRaw)
 		{
-			const auto collider = (CCollider*)hit.colliderRaw->_getOwner(PhysicsOwnerType::Component);
+			const auto collider = (CCollider*)hit.colliderRaw->GetOwnerInternal(PhysicsOwnerType::Component);
 			hit.collider = static_object_cast<CCollider>(collider->getHandle());
 		}
 
@@ -222,7 +222,7 @@ namespace bs
 
 		if(hit.controllerRaw)
 		{
-			const auto controller = (CCharacterController*)hit.controllerRaw->_getOwner(PhysicsOwnerType::Component);
+			const auto controller = (CCharacterController*)hit.controllerRaw->GetOwnerInternal(PhysicsOwnerType::Component);
 			hit.controller = static_object_cast<CCharacterController>(controller->getHandle());
 		}
 

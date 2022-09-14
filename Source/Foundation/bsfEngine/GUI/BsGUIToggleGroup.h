@@ -22,10 +22,10 @@ namespace bs
 		 */
 
 		/** Registers a new toggle button with the group. */
-		void _add(GUIToggle* toggle);
+		void AddInternal(GUIToggle* toggle);
 
 		/**	Unregisters a toggle button from the group. */
-		void _remove(GUIToggle* toggle);
+		void RemoveInternal(GUIToggle* toggle);
 
 		/** @} */
 	private:

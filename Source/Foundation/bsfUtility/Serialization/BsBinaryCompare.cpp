@@ -68,8 +68,8 @@ namespace bs
 		// If an object has base classes, we need to iterate through all of them
 		do
 		{
-			RTTITypeBase* rttiInstanceA = rtti->_clone(*mAlloc);
-			RTTITypeBase* rttiInstanceB = rtti->_clone(*mAlloc);
+			RTTITypeBase* rttiInstanceA = rtti->CloneInternal(*mAlloc);
+			RTTITypeBase* rttiInstanceB = rtti->CloneInternal(*mAlloc);
 			rttiInstances.push({ rttiInstanceA, rttiInstanceB });
 
 			rttiInstanceA->onSerializationStarted(&a, mContext);

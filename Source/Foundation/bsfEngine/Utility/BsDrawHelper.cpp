@@ -1263,7 +1263,7 @@ namespace bs
 		for(UINT32 i = 0; i < 4; i++)
 		{
 			if(meshData[i])
-				meshes[i] = Mesh::_createPtr(meshData[i]);
+				meshes[i] = Mesh::CreatePtrInternal(meshData[i]);
 		}
 
 		for(auto& entry : meshInfos)

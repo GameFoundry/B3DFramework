@@ -9,7 +9,7 @@ namespace bs
 		mCallbacks.push_back(func);
 	}
 
-	void DeferredCallManager::_update()
+	void DeferredCallManager::UpdateInternal()
 	{
 		while(!mCallbacks.empty())
 		{

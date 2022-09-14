@@ -60,7 +60,7 @@ namespace bs
 	HWND Win32RenderWindow::getHWnd() const
 	{
 		blockUntilCoreInitialized();
-		return getCore()->_getWindowHandle();
+		return getCore()->GetWindowHandleInternal();
 	}
 
 	void Win32RenderWindow::syncProperties()
@@ -75,7 +75,7 @@ namespace bs
 
 		RENDER_WINDOW_DESC desc = mDesc;
 		SPtr<ct::CoreObject> coreObj = bs_shared_ptr_new<ct::Win32RenderWindow>(desc, mWindowId, rapi);
-		coreObj->_setThisPtr(coreObj);
+		coreObj->SetThisPtrInternal(coreObj);
 
 		return coreObj;
 	}
@@ -89,7 +89,7 @@ namespace bs
 
 		Win32RenderWindow::~Win32RenderWindow()
 	{
-		SPtr<VulkanDevice> presentDevice = mRenderAPI._getPresentDevice();
+		SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
 		presentDevice->waitIdle();
 
 		if (mWindow != nullptr)
@@ -99,7 +99,7 @@ namespace bs
 		}
 
 		mSwapChain->destroy();
-		vkDestroySurfaceKHR(mRenderAPI._getInstance(), mSurface, gVulkanAllocator);
+		vkDestroySurfaceKHR(mRenderAPI.GetInstanceInternal(), mSurface, gVulkanAllocator);
 
 		Platform::resetNonClientAreas(*this);
 	}
@@ -125,7 +125,7 @@ namespace bs
 		windowDesc.toolWindow = mDesc.toolWindow;
 		windowDesc.creationParams = this;
 		windowDesc.modal = mDesc.modal;
-		windowDesc.wndProc = &Win32Platform::_win32WndProc;
+		windowDesc.wndProc = &Win32Platform::Win32WndProcInternal;
 
 #ifdef BS_STATIC_LIB
 		windowDesc.module = GetModuleHandle(NULL);
@@ -179,11 +179,11 @@ namespace bs
 		surfaceCreateInfo.hwnd = mWindow->getHWnd();
 		surfaceCreateInfo.hinstance = windowDesc.module;
 
-		VkInstance instance = mRenderAPI._getInstance();
+		VkInstance instance = mRenderAPI.GetInstanceInternal();
 		VkResult result = vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, gVulkanAllocator, &mSurface);
 		assert(result == VK_SUCCESS);
 
-		SPtr<VulkanDevice> presentDevice = mRenderAPI._getPresentDevice();
+		SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
 		VkPhysicalDevice physicalDevice = presentDevice->getPhysical();
 
 		mPresentQueueFamily = presentDevice->getQueueFamily(GQT_GRAPHICS);
@@ -273,7 +273,7 @@ namespace bs
 			setHidden(false);
 
 		// Get a command buffer on which we'll submit
-		SPtr<VulkanDevice> presentDevice = mRenderAPI._getPresentDevice();
+		SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
 
 		// Assuming present queue is always graphics
 		assert(presentDevice->getQueueFamily(GQT_GRAPHICS) == mPresentQueueFamily);
@@ -524,7 +524,7 @@ namespace bs
 		bs::RenderWindowManager::instance().notifySyncDataDirty(this);
 	}
 
-	HWND Win32RenderWindow::_getWindowHandle() const
+	HWND Win32RenderWindow::GetWindowHandleInternal() const
 	{
 		return mWindow->getHWnd();
 	}
@@ -555,14 +555,14 @@ namespace bs
 		RenderWindow::getCustomAttribute(name, data);
 	}
 
-	void Win32RenderWindow::_windowMovedOrResized()
+	void Win32RenderWindow::WindowMovedOrResizedInternal()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
 		if (!mWindow)
 			return;
 
-		mWindow->_windowMovedOrResized();
+		mWindow->WindowMovedOrResizedInternal();
 
 		RenderWindowProperties& props = mProperties;
 		if (!props.isFullScreen) // Fullscreen is handled directly by this object
@@ -587,7 +587,7 @@ namespace bs
 		//// Need to make sure nothing is using the swap buffer before we re-create it
 		// Note: Optionally I can detect exactly on which queues (if any) are the swap chain images used on, and only wait
 		// on those
-		SPtr<VulkanDevice> presentDevice = mRenderAPI._getPresentDevice();
+		SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
 		presentDevice->waitIdle();
 
 		VulkanSwapChain* oldSwapChain = mSwapChain;

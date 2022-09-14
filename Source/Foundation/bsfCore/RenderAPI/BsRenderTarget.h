@@ -231,7 +231,7 @@ namespace bs
 		 */
 
 		/** Increments the update count, letting other code know that the contents of the render target changed. */
-		void _tickUpdateCount() { mUpdateCount++; }
+		void TickUpdateCountInternal() { mUpdateCount++; }
 
 		/** @} */
 	protected:

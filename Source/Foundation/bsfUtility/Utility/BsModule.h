@@ -37,7 +37,7 @@ namespace bs
 					"Trying to access a destroyed module.");
 			}
 
-			return *_instance();
+			return *InstanceInternal();
 		}
 
 		/**
@@ -58,7 +58,7 @@ namespace bs
 					"Trying to access a destroyed module.");
 			}
 
-			return _instance();
+			return InstanceInternal();
 		}
 
 		/** Constructs and starts the module using the specified parameters. */
@@ -68,10 +68,10 @@ namespace bs
 			if (isStartedUp())
 				BS_EXCEPT(InternalErrorException, "Trying to start an already started module.");
 
-			_instance() = bs_new<T>(std::forward<Args>(args)...);
+			InstanceInternal() = bs_new<T>(std::forward<Args>(args)...);
 			isStartedUp() = true;
 
-			((Module*)_instance())->onStartUp();
+			((Module*)InstanceInternal())->onStartUp();
 		}
 
 		/**
@@ -86,10 +86,10 @@ namespace bs
 			if (isStartedUp())
 				BS_EXCEPT(InternalErrorException, "Trying to start an already started module.");
 
-			_instance() = bs_new<SubType>(std::forward<Args>(args)...);
+			InstanceInternal() = bs_new<SubType>(std::forward<Args>(args)...);
 			isStartedUp() = true;
 
-			((Module*)_instance())->onStartUp();
+			((Module*)InstanceInternal())->onStartUp();
 		}
 
 		/** Shuts down this module and frees any resources it is using. */
@@ -107,9 +107,9 @@ namespace bs
 					"Trying to shut down a module which was never started.");
 			}
 
-			((Module*)_instance())->onShutDown();
+			((Module*)InstanceInternal())->onShutDown();
 
-			bs_delete(_instance());
+			bs_delete(InstanceInternal());
 			isDestroyed() = true;
 		}
 
@@ -149,7 +149,7 @@ namespace bs
 		virtual void onShutDown() {}
 
 		/** Returns a singleton instance of this module. */
-		static T*& _instance()
+		static T*& InstanceInternal()
 		{
 			static T* inst = nullptr;
 			return inst;

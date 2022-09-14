@@ -29,7 +29,7 @@ namespace bs
 		void queueDeferredCall(std::function<void()> func);
 
 		/** Executes all the scheduled calls. To be called once per frame. */
-		void _update();
+		void UpdateInternal();
 
 	private:
 		friend class DeferredCall;

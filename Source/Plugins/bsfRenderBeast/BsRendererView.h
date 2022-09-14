@@ -457,10 +457,10 @@ namespace bs { namespace ct
 		float getCurrentExposure() const;
 
 		/** Assigns a view index to the view. To be called by the parent view group when the view is added to it. */
-		void _setViewIdx(UINT32 viewIdx) { mViewIdx = viewIdx; }
+		void SetViewIdxInternal(UINT32 viewIdx) { mViewIdx = viewIdx; }
 
 		/** Lets an on-demand view know that it should be redrawn this frame. */
-		void _notifyNeedsRedraw();
+		void NotifyNeedsRedrawInternal();
 		
 		/**
 		 * Notifies the view that the render target the compositor is rendering to has changed. Note that this does not
@@ -468,13 +468,13 @@ namespace bs { namespace ct
 		 * rendering of a single frame. This should be set to null if the renderer is not currently rendering the
 		 * view.
 		 */
-		void _notifyCompositorTargetChanged(const SPtr<RenderTarget>& target) const { mContext.currentTarget = target; }
+		void NotifyCompositorTargetChangedInternal(const SPtr<RenderTarget>& target) const { mContext.currentTarget = target; }
 
 		/**
 		 * Notifies the view that a new average luminance is being calculated on the provided command buffer. The results
 		 * will be read from the provided texture when the command buffer finishes executing.
 		 */
-		void _notifyLuminanceUpdated(UINT64 frameIdx, SPtr<CommandBuffer> cb, SPtr<PooledRenderTexture> texture) const;
+		void NotifyLuminanceUpdatedInternal(UINT64 frameIdx, SPtr<CommandBuffer> cb, SPtr<PooledRenderTexture> texture) const;
 		
 		/**
 		 * Extracts the necessary values from the projection matrix that allow you to transform device Z value (range [0, 1]

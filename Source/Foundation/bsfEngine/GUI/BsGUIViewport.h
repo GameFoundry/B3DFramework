@@ -55,8 +55,8 @@ namespace bs
 		 *  @{
 		 */
 
-		/** @copydoc GUIElement::_getOptimalSize */
-		Vector2I _getOptimalSize() const override;
+		/** @copydoc GUIElement::GetOptimalSizeInternal */
+		Vector2I GetOptimalSizeInternal() const override;
 
 		/** @} */
 
@@ -84,7 +84,7 @@ namespace bs
 		GUIViewport(const String& styleName, const HCamera& camera, float aspectRatio, Degree fieldOfView, const GUIDimensions& dimensions);
 
 		/** @copydoc GUIElement::_changeParentWidget */
-		void _changeParentWidget(GUIWidget* widget) override;
+		void ChangeParentWidgetInternal(GUIWidget* widget) override;
 
 		HCamera mCamera;
 		float mAspectRatio;

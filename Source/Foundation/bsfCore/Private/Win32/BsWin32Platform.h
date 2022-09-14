@@ -31,7 +31,7 @@ namespace bs
 		static void unregisterDropTarget(DropTarget* target);
 
 		/** Main message loop callback that processes messages received from windows. */
-		static LRESULT CALLBACK _win32WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+		static LRESULT CALLBACK Win32WndProcInternal(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	};
 
 	/** @} */

@@ -73,10 +73,10 @@ namespace bs
 		 * disabled or enabling preview failed.
 		 */
 		BS_SCRIPT_EXPORT(n:TogglePreviewMode,v:internal)
-		bool _togglePreviewMode(bool enabled);
+		bool TogglePreviewModeInternal(bool enabled);
 
 		/** Returns the ParticleSystem implementation wrapped by this component. */
-		ParticleSystem* _getInternal() const { return mInternal.get(); }
+		ParticleSystem* GetInternalInternal() const { return mInternal.get(); }
 
 		/** @} */
 

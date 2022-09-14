@@ -7,7 +7,7 @@
 
 namespace bs
 {
-	void RendererExtension::_initializer(RendererExtension* obj, const Any& data)
+	void RendererExtension::InitializerInternal(RendererExtension* obj, const Any& data)
 	{
 		auto coreInitializer = [=]()
 		{
@@ -18,7 +18,7 @@ namespace bs
 		gCoreThread().queueCommand(coreInitializer);
 	}
 
-	void RendererExtension::_deleter(RendererExtension* obj)
+	void RendererExtension::DeleterInternal(RendererExtension* obj)
 	{
 		auto deleteObj = [=]()
 		{

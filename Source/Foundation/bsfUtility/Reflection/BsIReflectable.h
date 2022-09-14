@@ -60,13 +60,13 @@ namespace bs
 		 */
 
 		/** Called by each type implementing RTTITypeBase, on program load. */
-		static void _registerRTTIType(RTTITypeBase* rttiType);
+		static void RegisterRTTITypeInternal(RTTITypeBase* rttiType);
 
 		/** Returns class' RTTI type from type id. */
-		static RTTITypeBase* _getRTTIfromTypeId(UINT32 rttiTypeId);
+		static RTTITypeBase* GetRTTIfromTypeIdInternal(UINT32 rttiTypeId);
 
 		/** Checks if the provided type id is unique. */
-		static bool _isTypeIdDuplicate(UINT32 typeId);
+		static bool IsTypeIdDuplicateInternal(UINT32 typeId);
 
 		/**
 		 * Iterates over all RTTI types and reports any circular references (for example one type having a field referencing
@@ -76,7 +76,7 @@ namespace bs
 		 * may be resolved in an undefined order, but also no longer guarantees that object assigned to that field during
 		 * deserialization will be fully deserialized itself, as that might be delayed to a later time.
 		 */
-		static void _checkForCircularReferences();
+		static void CheckForCircularReferencesInternal();
 
 		/** Returns an interface you can use to access class' Run Time Type Information. */
 		static RTTITypeBase* getRTTIStatic();

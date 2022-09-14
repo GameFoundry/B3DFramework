@@ -14,7 +14,7 @@ namespace bs
 	extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
 	{
 		FreeImgImporter* importer = bs_new<FreeImgImporter>();
-		Importer::instance()._registerAssetImporter(importer);
+		Importer::instance().RegisterAssetImporterInternal(importer);
 
 		return nullptr;
 	}

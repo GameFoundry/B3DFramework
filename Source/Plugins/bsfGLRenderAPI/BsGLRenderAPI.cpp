@@ -166,7 +166,7 @@ namespace bs { namespace ct
 
 		gpuInfo.names[0] = String(vendor) + " " + String(renderer);
 
-		PlatformUtility::_setGPUInfo(gpuInfo);
+		PlatformUtility::SetGPUInfoInternal(gpuInfo);
 
 		mGLInitialised = true;
 
@@ -2651,7 +2651,7 @@ namespace bs { namespace ct
 		if (mActiveRenderTarget == nullptr || mActiveRenderTargetModified)
 			return;
 
-		mActiveRenderTarget->_tickUpdateCount();
+		mActiveRenderTarget->TickUpdateCountInternal();
 		mActiveRenderTargetModified = true;
 	}
 

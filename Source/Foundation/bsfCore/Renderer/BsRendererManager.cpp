@@ -43,7 +43,7 @@ namespace bs
 			mActiveRenderer->initialize();
 	}
 
-	void RendererManager::_registerFactory(SPtr<RendererFactory> factory)
+	void RendererManager::RegisterFactoryInternal(SPtr<RendererFactory> factory)
 	{
 		assert(factory != nullptr);
 

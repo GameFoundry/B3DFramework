@@ -118,7 +118,7 @@ namespace bs
 		ManagedComponent(const HSceneObject& parent, MonoReflectionType* runtimeType);
 
 		/** @copydoc Component::_instantiate */
-		void _instantiate() override;
+		void InstantiateInternal() override;
 
 		/** @copydoc Component::onCreated */
 		void onCreated() override;

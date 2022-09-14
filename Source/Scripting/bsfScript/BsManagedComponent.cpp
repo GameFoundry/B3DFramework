@@ -308,7 +308,7 @@ namespace bs
 		mRequiresReset = false;
 	}
 
-	void ManagedComponent::_instantiate()
+	void ManagedComponent::InstantiateInternal()
 	{
 		mObjInfo = nullptr;
 

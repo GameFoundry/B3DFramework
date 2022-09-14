@@ -54,7 +54,7 @@ namespace bs
 
 		__LimitAngularRangeInterop interop__output;
 		interop__output = ScriptLimitAngularRange::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptLimitAngularRange::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptLimitAngularRange::getMetaData()->scriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptCHingeJoint::Internal_setLimit(ScriptCHingeJoint* thisPtr, __LimitAngularRangeInterop* limit)

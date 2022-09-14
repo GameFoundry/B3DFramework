@@ -22,9 +22,9 @@ namespace bs
 	ScriptCAnimation::ScriptCAnimation(MonoObject* managedInstance, const GameObjectHandle<CAnimation>& value)
 		:TScriptComponent(managedInstance, value)
 	{
-		value->_scriptRebuildFloatProperties = std::bind(&ScriptCAnimation::_scriptRebuildFloatProperties, this, std::placeholders::_1);
-		value->_scriptUpdateFloatProperties = std::bind(&ScriptCAnimation::_scriptUpdateFloatProperties, this);
-		value->_scriptOnEventTriggered = std::bind(&ScriptCAnimation::_scriptOnEventTriggered, this, std::placeholders::_1, std::placeholders::_2);
+		value->ScriptOnEventTriggeredInternal = std::bind(&ScriptCAnimation::ScriptRebuildFloatPropertiesInternal, this, std::placeholders::_1);
+		value->ScriptOnEventTriggeredInternal = std::bind(&ScriptCAnimation::ScriptUpdateFloatPropertiesInternal, this);
+		value->ScriptOnEventTriggeredInternal = std::bind(&ScriptCAnimation::ScriptOnEventTriggeredInternal, this, std::placeholders::_1, std::placeholders::_2);
 	}
 
 	void ScriptCAnimation::initRuntimeData()
@@ -64,7 +64,7 @@ namespace bs
 		_scriptOnEventTriggeredThunk = (_scriptOnEventTriggeredThunkDef)metaData.scriptClass->getMethodExact("Internal__scriptOnEventTriggered", "RRef`1<AnimationClip>,string")->getThunk();
 	}
 
-	void ScriptCAnimation::_scriptRebuildFloatProperties(const ResourceHandle<AnimationClip>& p0)
+	void ScriptCAnimation::ScriptRebuildFloatPropertiesInternal(const ResourceHandle<AnimationClip>& p0)
 	{
 		MonoObject* tmpp0;
 		ScriptRRefBase* scriptp0;
@@ -76,12 +76,12 @@ namespace bs
 		MonoUtil::invokeThunk(_scriptRebuildFloatPropertiesThunk, getManagedInstance(), tmpp0);
 	}
 
-	void ScriptCAnimation::_scriptUpdateFloatProperties()
+	void ScriptCAnimation::ScriptUpdateFloatPropertiesInternal()
 	{
 		MonoUtil::invokeThunk(_scriptUpdateFloatPropertiesThunk, getManagedInstance());
 	}
 
-	void ScriptCAnimation::_scriptOnEventTriggered(const ResourceHandle<AnimationClip>& p0, const String& p1)
+	void ScriptCAnimation::ScriptOnEventTriggeredInternal(const ResourceHandle<AnimationClip>& p0, const String& p1)
 	{
 		MonoObject* tmpp0;
 		ScriptRRefBase* scriptp0;
@@ -334,13 +334,13 @@ namespace bs
 
 	void ScriptCAnimation::Internal__refreshClipMappings(ScriptCAnimation* thisPtr)
 	{
-		thisPtr->getHandle()->_refreshClipMappings();
+		thisPtr->getHandle()->RefreshClipMappingsInternal();
 	}
 
 	bool ScriptCAnimation::Internal__getGenericCurveValue(ScriptCAnimation* thisPtr, uint32_t curveIdx, float* value)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->getHandle()->_getGenericCurveValue(curveIdx, *value);
+		tmp__output = thisPtr->getHandle()->GetGenericCurveValueInternal(curveIdx, *value);
 
 		bool __output;
 		__output = tmp__output;
@@ -351,7 +351,7 @@ namespace bs
 	bool ScriptCAnimation::Internal__togglePreviewMode(ScriptCAnimation* thisPtr, bool enabled)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->getHandle()->_togglePreviewMode(enabled);
+		tmp__output = thisPtr->getHandle()->TogglePreviewModeInternal(enabled);
 
 		bool __output;
 		__output = tmp__output;

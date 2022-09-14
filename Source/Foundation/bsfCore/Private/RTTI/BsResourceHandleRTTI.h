@@ -34,7 +34,7 @@ namespace bs
 
 			if(resourceHandle->mData && !resourceHandle->mData->mUUID.empty())
 			{
-				HResource loadedResource = gResources()._getResourceHandle(resourceHandle->mData->mUUID);
+				HResource loadedResource = gResources().GetResourceHandleInternal(resourceHandle->mData->mUUID);
 
 				resourceHandle->releaseRef();
 				resourceHandle->mData = loadedResource.mData;
@@ -82,7 +82,7 @@ namespace bs
 
 			if (resourceHandle->mData && !resourceHandle->mData->mUUID.empty())
 			{
-				HResource loadedResource = gResources()._getResourceHandle(resourceHandle->mData->mUUID);
+				HResource loadedResource = gResources().GetResourceHandleInternal(resourceHandle->mData->mUUID);
 				resourceHandle->mData = loadedResource.mData;
 			}
 		}

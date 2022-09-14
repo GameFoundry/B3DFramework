@@ -43,7 +43,7 @@ namespace bs
 		 */
 
 		/**	Returns the box collider that this component wraps. */
-		BoxCollider* _getInternal() const { return static_cast<BoxCollider*>(mInternal.get()); }
+		BoxCollider* GetInternalInternal() const { return static_cast<BoxCollider*>(mInternal.get()); }
 
 		/** @} */
 

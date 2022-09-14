@@ -38,7 +38,7 @@ namespace bs
 
 		SPtr<IReflectable> newRTTIObject() override
 		{
-			return ShaderInclude::_createPtr(""); // Initial string doesn't matter, it'll get overwritten
+			return ShaderInclude::CreatePtrInternal(""); // Initial string doesn't matter, it'll get overwritten
 		}
 	};
 

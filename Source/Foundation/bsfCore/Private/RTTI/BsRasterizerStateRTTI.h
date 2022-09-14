@@ -48,7 +48,7 @@ namespace bs
 
 		SPtr<IReflectable> newRTTIObject() override
 		{
-			return RenderStateManager::instance()._createRasterizerStatePtr(RASTERIZER_STATE_DESC());
+			return RenderStateManager::instance().CreateRasterizerStatePtrInternal(RASTERIZER_STATE_DESC());
 		}
 	};
 

@@ -104,7 +104,7 @@ namespace bs
 		virtual CollisionReportMode getCollisionReportMode() const = 0;
 
 		/** Enables continous collision detect for this collider. Only valid if the collider is a part of a rigidbody. */
-		virtual void _setCCD(bool enabled) = 0;
+		virtual void SetCCDInternal(bool enabled) = 0;
 	protected:
 		float mMass = 1.0f;
 		

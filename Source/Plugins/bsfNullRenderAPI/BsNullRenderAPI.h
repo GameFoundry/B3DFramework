@@ -108,7 +108,9 @@ namespace bs { namespace ct
 
 		/** @copydoc RenderAPI::destroyCore */
 		void destroyCore() override;
-
+	public:
+		SPtr<CommandBuffer> getMainCommandBuffer() const override { return nullptr; }
+	protected:
 		NullProgramFactory* mNullProgramFactory = nullptr;
 	};
 

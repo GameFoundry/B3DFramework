@@ -14,14 +14,14 @@ namespace bs
 
 	HPlainText PlainText::create(const WString& data)
 	{
-		return static_resource_cast<PlainText>(gResources()._createResourceHandle(_createPtr(data)));
+		return static_resource_cast<PlainText>(gResources().CreateResourceHandleInternal(CreatePtrInternal(data)));
 	}
 
-	SPtr<PlainText> PlainText::_createPtr(const WString& data)
+	SPtr<PlainText> PlainText::CreatePtrInternal(const WString& data)
 	{
 		SPtr<PlainText> plainTextPtr = bs_core_ptr<PlainText>(
 			new (bs_alloc<PlainText>()) PlainText(data));
-		plainTextPtr->_setThisPtr(plainTextPtr);
+		plainTextPtr->SetThisPtrInternal(plainTextPtr);
 		plainTextPtr->initialize();
 
 		return plainTextPtr;

@@ -294,28 +294,28 @@ namespace bs
 		 * Sets the priority of the physics update. Bodies with a higher priority will be updated before the bodies with
 		 * lower priority. This allows you to control the order of updated in case rigidbodies are in some way dependant.
 		 */
-		void _setPriority(UINT32 priority);
+		void SetPriorityInternal(UINT32 priority);
 
 		/** Sets a unique ID of the rigidbody, so it can be recognized by the physics system. */
-		void _setPhysicsId(UINT32 id) { mPhysicsId = id; }
+		void SetPhysicsIdInternal(UINT32 id) { mPhysicsId = id; }
 
 		/**
 		 * Applies new transform values retrieved from the most recent physics update (values resulting from physics
 		 * simulation).
 		 */
-		void _setTransform(const Vector3& position, const Quaternion& rotation);
+		void SetTransformInternal(const Vector3& position, const Quaternion& rotation);
 
 		/**
 		 * Sets the object that owns this physics object, if any. Used for high level systems so they can easily map their
 		 * high level physics objects from the low level ones returned by various queries and events.
 		 */
-		void _setOwner(PhysicsOwnerType type, void* owner) { mOwner.type = type; mOwner.ownerData = owner; }
+		void SetOwnerInternal(PhysicsOwnerType type, void* owner) { mOwner.type = type; mOwner.ownerData = owner; }
 
 		/**
 		 * Gets the object that owns this physics object, if any. Used for high level systems so they can easily map their
 		 * high level physics objects from the low level ones returned by various queries and events.
 		 */
-		void* _getOwner(PhysicsOwnerType type) const { return mOwner.type == type ? mOwner.ownerData : nullptr; }
+		void* GetOwnerInternal(PhysicsOwnerType type) const { return mOwner.type == type ? mOwner.ownerData : nullptr; }
 
 		/** @} */
 

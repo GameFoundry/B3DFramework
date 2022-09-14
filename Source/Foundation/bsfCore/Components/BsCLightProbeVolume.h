@@ -77,7 +77,7 @@ namespace bs
 		 */
 
 		/**	Returns the light probe volume that this component wraps. */
-		SPtr<LightProbeVolume> _getInternal() const { return mInternal; }
+		SPtr<LightProbeVolume> GetInternalInternal() const { return mInternal; }
 
 		/** @} */
 

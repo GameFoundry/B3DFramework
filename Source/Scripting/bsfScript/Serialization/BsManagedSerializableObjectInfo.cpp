@@ -226,7 +226,7 @@ namespace bs
 		MonoClass* klass = MonoManager::instance().findClass(mTypeNamespace, mTypeName);
 
 		if(klass)
-			return klass->_getInternalClass();
+			return klass->GetInternalClassInternal();
 
 		return nullptr;
 	}
@@ -276,15 +276,15 @@ namespace bs
 		switch (mType)
 		{
 		case ScriptReferenceType::BuiltinResourceBase:
-			return ScriptResource::getMetaData()->scriptClass->_getInternalClass();
+			return ScriptResource::getMetaData()->scriptClass->GetInternalClassInternal();
 		case ScriptReferenceType::ManagedResourceBase:
-			return ScriptManagedResource::getMetaData()->scriptClass->_getInternalClass();
+			return ScriptManagedResource::getMetaData()->scriptClass->GetInternalClassInternal();
 		case ScriptReferenceType::SceneObject:
-			return ScriptAssemblyManager::instance().getBuiltinClasses().sceneObjectClass->_getInternalClass();
+			return ScriptAssemblyManager::instance().getBuiltinClasses().sceneObjectClass->GetInternalClassInternal();
 		case ScriptReferenceType::BuiltinComponentBase:
-			return ScriptAssemblyManager::instance().getBuiltinClasses().componentClass->_getInternalClass();
+			return ScriptAssemblyManager::instance().getBuiltinClasses().componentClass->GetInternalClassInternal();
 		case ScriptReferenceType::ManagedComponentBase:
-			return ScriptAssemblyManager::instance().getBuiltinClasses().managedComponentClass->_getInternalClass();
+			return ScriptAssemblyManager::instance().getBuiltinClasses().managedComponentClass->GetInternalClassInternal();
 		default:
 			break;
 		}
@@ -294,7 +294,7 @@ namespace bs
 		if (!ScriptAssemblyManager::instance().getSerializableObjectInfo(mTypeNamespace, mTypeName, objInfo))
 			return nullptr;
 
-		return objInfo->mMonoClass->_getInternalClass();
+		return objInfo->mMonoClass->GetInternalClassInternal();
 	}
 
 	RTTITypeBase* ManagedSerializableTypeInfoRef::getRTTIStatic()
@@ -338,7 +338,7 @@ namespace bs
 		}
 		// RRefBase
 		else
-			return ScriptAssemblyManager::instance().getBuiltinClasses().rrefBaseClass->_getInternalClass();
+			return ScriptAssemblyManager::instance().getBuiltinClasses().rrefBaseClass->GetInternalClassInternal();
 	}
 
 	RTTITypeBase* ManagedSerializableTypeInfoRRef::getRTTIStatic()
@@ -373,7 +373,7 @@ namespace bs
 		if(!ScriptAssemblyManager::instance().getSerializableObjectInfo(mTypeNamespace, mTypeName, objInfo))
 			return nullptr;
 
-		return objInfo->mMonoClass->_getInternalClass();
+		return objInfo->mMonoClass->GetInternalClassInternal();
 	}
 
 	RTTITypeBase* ManagedSerializableTypeInfoObject::getRTTIStatic()
@@ -444,7 +444,7 @@ namespace bs
 		MonoClass* genericListClass = ScriptAssemblyManager::instance().getBuiltinClasses().systemGenericListClass;
 		::MonoClass* genParams[1] = { elementClass };
 
-		return MonoUtil::bindGenericParameters(genericListClass->_getInternalClass(), genParams, 1);
+		return MonoUtil::bindGenericParameters(genericListClass->GetInternalClassInternal(), genParams, 1);
 	}
 
 	RTTITypeBase* ManagedSerializableTypeInfoList::getRTTIStatic()
@@ -483,7 +483,7 @@ namespace bs
 			ScriptAssemblyManager::instance().getBuiltinClasses().systemGenericDictionaryClass;
 
 		::MonoClass* params[2] = { keyClass, valueClass };
-		return MonoUtil::bindGenericParameters(genericDictionaryClass->_getInternalClass(), params, 2);
+		return MonoUtil::bindGenericParameters(genericDictionaryClass->GetInternalClassInternal(), params, 2);
 	}
 
 	RTTITypeBase* ManagedSerializableTypeInfoDictionary::getRTTIStatic()

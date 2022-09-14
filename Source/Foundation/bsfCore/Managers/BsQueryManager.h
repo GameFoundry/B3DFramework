@@ -50,7 +50,7 @@ namespace bs { namespace ct
 		virtual SPtr<OcclusionQuery> createOcclusionQuery(bool binary, UINT32 deviceIdx = 0) const = 0;
 
 		/** Triggers completed queries. Should be called every frame. */
-		void _update();
+		void UpdateInternal();
 
 	protected:
 		friend class EventQuery;

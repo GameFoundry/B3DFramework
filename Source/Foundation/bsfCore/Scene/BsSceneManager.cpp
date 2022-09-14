@@ -73,13 +73,13 @@ namespace bs
 		GameObjectManager::instance().destroyQueuedObjects();
 
 		HSceneObject newRoot = SceneObject::createInternal("SceneRoot");
-		_setRootNode(newRoot);
+		SetRootNodeInternal(newRoot);
 	}
 
 	void SceneManager::loadScene(const HPrefab& scene)
 	{
-		HSceneObject root = scene->_instantiate(true);
-		_setRootNode(root);
+		HSceneObject root = scene->InstantiateInternal(true);
+		SetRootNodeInternal(root);
 	}
 
 	HPrefab SceneManager::saveScene() const
@@ -88,7 +88,7 @@ namespace bs
 		return Prefab::create(sceneRoot);
 	}
 
-	void SceneManager::_setRootNode(const HSceneObject& root)
+	void SceneManager::SetRootNodeInternal(const HSceneObject& root)
 	{
 		if (root == nullptr)
 			return;
@@ -115,24 +115,24 @@ namespace bs
 		bs_frame_clear();
 
 		mMainScene->mRoot = root;
-		mMainScene->mRoot->_setParent(HSceneObject());
+		mMainScene->mRoot->SetParentInternal(HSceneObject());
 		mMainScene->mRoot->setScene(mMainScene);
 
 		oldRoot->destroy();
 	}
 
-	void SceneManager::_bindActor(const SPtr<SceneActor>& actor, const HSceneObject& so)
+	void SceneManager::BindActorInternal(const SPtr<SceneActor>& actor, const HSceneObject& so)
 	{
 		mBoundActors[actor.get()] = BoundActorData(actor, so);
-		actor->_updateState(*so, true);
+		actor->UpdateStateInternal(*so, true);
 	}
 
-	void SceneManager::_unbindActor(const SPtr<SceneActor>& actor)
+	void SceneManager::UnbindActorInternal(const SPtr<SceneActor>& actor)
 	{
 		mBoundActors.erase(actor.get());
 	}
 
-	HSceneObject SceneManager::_getActorSO(const SPtr<SceneActor>& actor) const
+	HSceneObject SceneManager::GetActorSOInternal(const SPtr<SceneActor>& actor) const
 	{
 		auto iterFind = mBoundActors.find(actor.get());
 		if (iterFind != mBoundActors.end())
@@ -141,12 +141,12 @@ namespace bs
 		return HSceneObject();		
 	}
 
-	void SceneManager::_registerCamera(const SPtr<Camera>& camera)
+	void SceneManager::RegisterCameraInternal(const SPtr<Camera>& camera)
 	{
 		mCameras[camera.get()] = camera;
 	}
 
-	void SceneManager::_unregisterCamera(const SPtr<Camera>& camera)
+	void SceneManager::UnregisterCameraInternal(const SPtr<Camera>& camera)
 	{
 		mCameras.erase(camera.get());
 
@@ -160,7 +160,7 @@ namespace bs
 			mMainCameras.erase(iterFind);
 	}
 
-	void SceneManager::_notifyMainCameraStateChanged(const SPtr<Camera>& camera)
+	void SceneManager::NotifyMainCameraStateChangedInternal(const SPtr<Camera>& camera)
 	{
 		auto iterFind = std::find_if(mMainCameras.begin(), mMainCameras.end(),
 			[&](const SPtr<Camera>& entry)
@@ -186,10 +186,10 @@ namespace bs
 		}
 	}
 
-	void SceneManager::_updateCoreObjectTransforms()
+	void SceneManager::UpdateCoreObjectTransformsInternal()
 	{
 		for (auto& entry : mBoundActors)
-			entry.second.actor->_updateState(*entry.second.so);
+			entry.second.actor->UpdateStateInternal(*entry.second.so);
 	}
 
 	SPtr<Camera> SceneManager::getMainCamera() const
@@ -336,7 +336,7 @@ namespace bs
 		}
 	}
 
-	void SceneManager::_notifyComponentCreated(const HComponent& component, bool parentActive)
+	void SceneManager::NotifyComponentCreatedInternal(const HComponent& component, bool parentActive)
 	{
 		// Note: This method must remain reentrant (in case the callbacks below trigger component state changes)
 
@@ -357,7 +357,7 @@ namespace bs
 		}
 	}
 
-	void SceneManager::_notifyComponentActivated(const HComponent& component, bool triggerEvent)
+	void SceneManager::NotifyComponentActivatedInternal(const HComponent& component, bool triggerEvent)
 	{
 		// Note: This method must remain reentrant (in case the callbacks below trigger component state changes)
 
@@ -374,7 +374,7 @@ namespace bs
 		}
 	}
 
-	void SceneManager::_notifyComponentDeactivated(const HComponent& component, bool triggerEvent)
+	void SceneManager::NotifyComponentDeactivatedInternal(const HComponent& component, bool triggerEvent)
 	{
 		// Note: This method must remain reentrant (in case the callbacks below trigger component state changes)
 
@@ -391,7 +391,7 @@ namespace bs
 		}
 	}
 
-	void SceneManager::_notifyComponentDestroyed(const HComponent& component, bool immediate)
+	void SceneManager::NotifyComponentDestroyedInternal(const HComponent& component, bool immediate)
 	{
 		// Note: This method must remain reentrant (in case the callbacks below trigger component state changes)
 
@@ -536,7 +536,7 @@ namespace bs
 		return component->getRTTI()->getRTTIId() == rttiId;
 	}
 
-	void SceneManager::_update()
+	void SceneManager::UpdateInternal()
 	{
 		processStateChanges();
 
@@ -550,7 +550,7 @@ namespace bs
 		GameObjectManager::instance().destroyQueuedObjects();
 	}
 
-	void SceneManager::_fixedUpdate()
+	void SceneManager::FixedUpdateInternal()
 	{
 		processStateChanges();
 

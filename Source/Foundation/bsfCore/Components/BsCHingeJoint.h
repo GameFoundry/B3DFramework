@@ -59,7 +59,7 @@ namespace bs
 		 */
 
 		/**	Returns the hinge joint that this component wraps. */
-		HingeJoint* _getInternal() const { return static_cast<HingeJoint*>(mInternal.get()); }
+		HingeJoint* GetInternalInternal() const { return static_cast<HingeJoint*>(mInternal.get()); }
 
 		/** @} */
 

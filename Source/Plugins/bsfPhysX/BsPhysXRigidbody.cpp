@@ -311,7 +311,7 @@ namespace bs
 			for (UINT32 i = 0; i < numShapes; i++)
 			{
 				Collider* collider = (Collider*)shapes[i]->userData;
-				collider->_getInternal()->_setCCD(ccdEnabledNew);
+				collider->GetInternalInternal()->SetCCDInternal(ccdEnabledNew);
 			}
 		}
 
@@ -394,10 +394,10 @@ namespace bs
 		if (collider == nullptr)
 			return;
 
-		FPhysXCollider* physxCollider = static_cast<FPhysXCollider*>(collider->_getInternal());
-		physxCollider->_setCCD(((UINT32)mFlags & (UINT32)RigidbodyFlag::CCD) != 0);
+		FPhysXCollider* physxCollider = static_cast<FPhysXCollider*>(collider->GetInternalInternal());
+		physxCollider->SetCCDInternal(((UINT32)mFlags & (UINT32)RigidbodyFlag::CCD) != 0);
 
-		mInternal->attachShape(*physxCollider->_getShape());
+		mInternal->attachShape(*physxCollider->GetShapeInternal());
 	}
 
 	void PhysXRigidbody::removeCollider(Collider* collider)
@@ -405,10 +405,10 @@ namespace bs
 		if (collider == nullptr)
 			return;
 
-		FPhysXCollider* physxCollider = static_cast<FPhysXCollider*>(collider->_getInternal());
-		physxCollider->_setCCD(false);
+		FPhysXCollider* physxCollider = static_cast<FPhysXCollider*>(collider->GetInternalInternal());
+		physxCollider->SetCCDInternal(false);
 
-		mInternal->detachShape(*physxCollider->_getShape());
+		mInternal->detachShape(*physxCollider->GetShapeInternal());
 	}
 
 	void PhysXRigidbody::removeColliders()
@@ -421,7 +421,7 @@ namespace bs
 		for (UINT32 i = 0; i < numShapes; i++)
 		{
 			Collider* collider = (Collider*)shapes[i]->userData;
-			collider->_getInternal()->_setCCD(false);
+			collider->GetInternalInternal()->SetCCDInternal(false);
 
 			mInternal->detachShape(*shapes[i]);
 		}

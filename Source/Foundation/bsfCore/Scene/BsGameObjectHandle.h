@@ -111,13 +111,13 @@ namespace bs
 		 */
 
 		/** Returns internal handle data. */
-		const SPtr<GameObjectHandleData>& _getHandleData() const { return mData; }
+		const SPtr<GameObjectHandleData>& GetHandleDataInternal() const { return mData; }
 
 		/** Resolves a handle to a proper GameObject in case it was created uninitialized. */
-		void _resolve(const GameObjectHandleBase& object) {	mData->mPtr = object.mData->mPtr; }
+		void ResolveInternal(const GameObjectHandleBase& object) {	mData->mPtr = object.mData->mPtr; }
 
 		/**	Changes the GameObject instance the handle is pointing to. */
-		void _setHandleData(const SPtr<GameObject>& object);
+		void SetHandleDataInternal(const SPtr<GameObject>& object);
 
 		/** @} */
 
@@ -283,14 +283,14 @@ namespace bs
 	template<class _Ty1, class _Ty2>
 	GameObjectHandle<_Ty1> static_object_cast(const GameObjectHandle<_Ty2>& other)
 	{	
-		return GameObjectHandle<_Ty1>(other._getHandleData());
+		return GameObjectHandle<_Ty1>(other.GetHandleDataInternal());
 	}
 
 	/**	Casts a generic GameObject handle to a specific one . */
 	template<class T>
 	GameObjectHandle<T> static_object_cast(const GameObjectHandleBase& other)
 	{	
-		return GameObjectHandle<T>(other._getHandleData());
+		return GameObjectHandle<T>(other.GetHandleDataInternal());
 	}
 
 	/**	Compares if two handles point to the same GameObject. */

@@ -32,7 +32,7 @@ namespace bs
 		if(enabled)
 			updateAttenuationRange();
 
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void LightBase::setAttenuationRadius(float radius)
@@ -41,7 +41,7 @@ namespace bs
 			return;
 
 		mAttRadius = radius;
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 		updateBounds();
 	}
 
@@ -52,7 +52,7 @@ namespace bs
 		if (mAutoAttenuation)
 			updateAttenuationRange();
 
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void LightBase::setIntensity(float intensity)
@@ -62,7 +62,7 @@ namespace bs
 		if (mAutoAttenuation)
 			updateAttenuationRange();
 
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	float LightBase::getLuminance() const
@@ -212,7 +212,7 @@ namespace bs
 		Light* handler = new (bs_alloc<Light>())
 			Light(type, color, intensity, attRadius, 0.0f, castsShadows, spotAngle, spotFalloffAngle);
 		SPtr<Light> handlerPtr = bs_core_ptr<Light>(handler);
-		handlerPtr->_setThisPtr(handlerPtr);
+		handlerPtr->SetThisPtrInternal(handlerPtr);
 		handlerPtr->initialize();
 
 		return handlerPtr;
@@ -222,7 +222,7 @@ namespace bs
 	{
 		Light* handler = new (bs_alloc<Light>()) Light();
 		SPtr<Light> handlerPtr = bs_core_ptr<Light>(handler);
-		handlerPtr->_setThisPtr(handlerPtr);
+		handlerPtr->SetThisPtrInternal(handlerPtr);
 
 		return handlerPtr;
 	}
@@ -232,7 +232,7 @@ namespace bs
 		ct::Light* handler = new (bs_alloc<ct::Light>())
 			ct::Light(mType, mColor, mIntensity, mAttRadius, mSourceRadius, mCastsShadows, mSpotAngle, mSpotFalloffAngle);
 		SPtr<ct::Light> handlerPtr = bs_shared_ptr<ct::Light>(handler);
-		handlerPtr->_setThisPtr(handlerPtr);
+		handlerPtr->SetThisPtrInternal(handlerPtr);
 
 		return handlerPtr;
 	}
@@ -254,7 +254,7 @@ namespace bs
 		return CoreSyncData(buffer, size);
 	}
 
-	void Light::_markCoreDirty(ActorDirtyFlag flag)
+	void Light::MarkCoreDirtyInternal(ActorDirtyFlag flag)
 	{
 		markCoreDirty((UINT32)flag);
 	}

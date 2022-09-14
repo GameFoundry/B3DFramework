@@ -24,7 +24,7 @@ namespace bs
 		if (mInternal == nullptr)
 			return Radian(0.0f);
 
-		return _getInternal()->getAngle();
+		return GetInternalInternal()->getAngle();
 	}
 
 	float CHingeJoint::getSpeed() const
@@ -32,7 +32,7 @@ namespace bs
 		if (mInternal == nullptr)
 			return 0.0f;
 
-		return _getInternal()->getSpeed();
+		return GetInternalInternal()->getSpeed();
 	}
 
 	LimitAngularRange CHingeJoint::getLimit() const
@@ -48,7 +48,7 @@ namespace bs
 		mDesc.limit = limit;
 
 		if (mInternal != nullptr)
-			_getInternal()->setLimit(limit);
+			GetInternalInternal()->setLimit(limit);
 	}
 
 	HingeJointDrive CHingeJoint::getDrive() const
@@ -64,7 +64,7 @@ namespace bs
 		mDesc.drive = drive;
 
 		if (mInternal != nullptr)
-			_getInternal()->setDrive(drive);
+			GetInternalInternal()->setDrive(drive);
 	}
 
 	void CHingeJoint::setFlag(HingeJointFlag flag, bool enabled)
@@ -79,7 +79,7 @@ namespace bs
 			mDesc.flag = (HingeJointFlag)((UINT32)mDesc.flag & ~(UINT32)flag);
 
 		if (mInternal != nullptr)
-			_getInternal()->setFlag(flag, enabled);
+			GetInternalInternal()->setFlag(flag, enabled);
 	}
 
 	bool CHingeJoint::hasFlag(HingeJointFlag flag) const
@@ -92,7 +92,7 @@ namespace bs
 		const SPtr<SceneInstance>& scene = SO()->getScene();
 		SPtr<Joint> joint = HingeJoint::create(*scene->getPhysicsScene(), mDesc);
 
-		joint->_setOwner(PhysicsOwnerType::Component, this);
+		joint->SetOwnerInternal(PhysicsOwnerType::Component, this);
 		return joint;
 	}
 

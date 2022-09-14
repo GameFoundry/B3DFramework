@@ -198,7 +198,7 @@ namespace bs
 	{
 		LinuxDragAndDrop::unregisterDropTarget(this);
 
-		_clear();
+		ClearInternal();
 	}
 
 	void DropTarget::setArea(const Rect2I& area)
@@ -395,8 +395,8 @@ namespace bs
 				for(auto& dropArea : sDropAreas)
 				{
 					LinuxWindow* linuxWindow;
-					dropArea.target->_getOwnerWindow()->getCustomAttribute("LINUX_WINDOW", &linuxWindow);
-					::Window xWindow = linuxWindow->_getXWindow();
+					dropArea.target->GetOwnerWindowInternal()->getCustomAttribute("LINUX_WINDOW", &linuxWindow);
+					::Window xWindow = linuxWindow->GetXWindowInternal();
 
 					if(xWindow == event.window)
 					{
@@ -406,7 +406,7 @@ namespace bs
 							// Accept drop
 							response.data.l[1] = 1;
 
-							if(dropArea.target->_isActive())
+							if(dropArea.target->IsActiveInternal())
 							{
 								Lock lock(sMutex);
 								sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::DragOver, dropArea.target,
@@ -419,19 +419,19 @@ namespace bs
 										windowPos));
 							}
 
-							dropArea.target->_setActive(true);
+							dropArea.target->SetActiveInternal(true);
 						}
 						else
 						{
 							// Cursor left previously active target's area
-							if(dropArea.target->_isActive())
+							if(dropArea.target->IsActiveInternal())
 							{
 								{
 									Lock lock(sMutex);
 									sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Leave, dropArea.target));
 								}
 
-								dropArea.target->_setActive(false);
+								dropArea.target->SetActiveInternal(false);
 							}
 						}
 					}
@@ -446,14 +446,14 @@ namespace bs
 		{
 			for(auto& dropArea : sDropAreas)
 			{
-				if(dropArea.target->_isActive())
+				if(dropArea.target->IsActiveInternal())
 				{
 					{
 						Lock lock(sMutex);
 						sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Leave, dropArea.target));
 					}
 
-					dropArea.target->_setActive(false);
+					dropArea.target->SetActiveInternal(false);
 				}
 			}
 
@@ -468,7 +468,7 @@ namespace bs
 			{
 				for (auto& dropArea : sDropAreas)
 				{
-					if (dropArea.target->_isActive())
+					if (dropArea.target->IsActiveInternal())
 						dropAccepted = true;
 				}
 			}
@@ -541,18 +541,18 @@ namespace bs
 
 			for(auto& dropArea : sDropAreas)
 			{
-				if(!dropArea.target->_isActive())
+				if(!dropArea.target->IsActiveInternal())
 					continue;
 
 				LinuxWindow* linuxWindow;
-				dropArea.target->_getOwnerWindow()->getCustomAttribute("LINUX_WINDOW", &linuxWindow);
+				dropArea.target->GetOwnerWindowInternal()->getCustomAttribute("LINUX_WINDOW", &linuxWindow);
 
 				Vector2I windowPos = linuxWindow->screenToWindowPos(sDragPosition);
 
 				Lock lock(sMutex);
 				sQueuedOperations.push_back(DragAndDropOp(DragAndDropOpType::Drop, dropArea.target, windowPos, filePaths));
 
-				dropArea.target->_setActive(false);
+				dropArea.target->SetActiveInternal(false);
 			}
 		}
 
@@ -601,11 +601,11 @@ namespace bs
 				op.target->onDragOver(op.position.x, op.position.y);
 				break;
 			case DragAndDropOpType::Drop:
-				op.target->_setFileList(op.fileList);
+				op.target->SetFileListInternal(op.fileList);
 				op.target->onDrop(op.position.x, op.position.y);
 				break;
 			case DragAndDropOpType::Leave:
-				op.target->_clear();
+				op.target->ClearInternal();
 				op.target->onLeave();
 				break;
 			}

@@ -16,7 +16,7 @@ namespace bs
 
 	MonoObject*ScriptAnimationClipState::box(const AnimationClipState& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	AnimationClipState ScriptAnimationClipState::unbox(MonoObject* value)

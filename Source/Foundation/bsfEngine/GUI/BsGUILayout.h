@@ -68,25 +68,25 @@ namespace bs
 		 */
 
 		/** @copydoc GUIElementBase::_getLayoutSizeRange */
-		LayoutSizeRange _getLayoutSizeRange() const override { return _getCachedSizeRange(); }
+		LayoutSizeRange GetLayoutSizeRangeInternal() const override { return GetCachedSizeRangeInternal(); }
 
 		/** Returns a size range that was cached during the last GUIElementBase::_updateOptimalLayoutSizes call. */
-		LayoutSizeRange _getCachedSizeRange() const { return mSizeRange; }
+		LayoutSizeRange GetCachedSizeRangeInternal() const { return mSizeRange; }
 
 		/**
 		 * Returns a size ranges for all children that was cached during the last GUIElementBase::_updateOptimalLayoutSizes
 		 * call.
 		 */
-		const Vector<LayoutSizeRange>& _getCachedChildSizeRanges() const { return mChildSizeRanges; }
+		const Vector<LayoutSizeRange>& GetCachedChildSizeRangesInternal() const { return mChildSizeRanges; }
 
-		/** @copydoc GUIElementBase::_getOptimalSize */
-		Vector2I _getOptimalSize() const override { return mSizeRange.optimal; }
+		/** @copydoc GUIElementBase::GetOptimalSizeInternal */
+		Vector2I GetOptimalSizeInternal() const override { return mSizeRange.optimal; }
 
-		/** @copydoc GUIElementBase::_getPadding */
-		const RectOffset& _getPadding() const override;
+		/** @copydoc GUIElementBase::GetPaddingInternal */
+		const RectOffset& GetPaddingInternal() const override;
 
 		/** @copydoc GUIElementBase::_getType */
-		Type _getType() const override { return GUIElementBase::Type::Layout; }
+		Type GetTypeInternal() const override { return GUIElementBase::Type::Layout; }
 
 		/** @} */
 

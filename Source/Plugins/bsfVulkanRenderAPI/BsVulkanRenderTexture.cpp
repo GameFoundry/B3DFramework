@@ -130,7 +130,7 @@ namespace bs
 		}
 
 		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::instance());
-		SPtr<VulkanDevice> device = rapi._getDevice(mDeviceIdx);
+		SPtr<VulkanDevice> device = rapi.GetDeviceInternal(mDeviceIdx);
 
 		VulkanRenderPass* renderPass = VulkanRenderPasses::instance().get(device->getLogical(), rpDesc);
 		mFramebuffer = device->getResourceManager().create<VulkanFramebuffer>(renderPass, fbDesc);

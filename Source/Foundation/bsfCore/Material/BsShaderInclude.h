@@ -31,7 +31,7 @@ namespace bs
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
-		static SPtr<ShaderInclude> _createPtr(const String& includeString);
+		static SPtr<ShaderInclude> CreatePtrInternal(const String& includeString);
 
 		/** @} */
 	private:

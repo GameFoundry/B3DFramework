@@ -675,7 +675,7 @@ namespace bs { namespace ct
 		const ParticleSystemSettings& settings = mParent->getSettings();
 
 		float timeStep;
-		mTime = bs::ParticleSystem::_advanceTime(mTime, dt, settings.duration, settings.isLooping, timeStep);
+		mTime = bs::ParticleSystem::AdvanceTimeInternal(mTime, dt, settings.duration, settings.isLooping, timeStep);
 	}
 
 	AABox GpuParticleSystem::getBounds() const
@@ -1060,7 +1060,7 @@ namespace bs { namespace ct
 		mParams->getBufferParam(GPT_VERTEX_PROGRAM, "gTileUVs", mTileUVParam);
 	}
 
-	void GpuParticleClearMat::_initDefines(ShaderDefines& defines)
+	void GpuParticleClearMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		defines.set("TILES_PER_INSTANCE", TILES_PER_INSTANCE);
 	}
@@ -1139,7 +1139,7 @@ namespace bs { namespace ct
 		}
 	}
 
-	void GpuParticleSimulateMat::_initDefines(ShaderDefines& defines)
+	void GpuParticleSimulateMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		defines.set("TILES_PER_INSTANCE", TILES_PER_INSTANCE);
 	}
@@ -1209,7 +1209,7 @@ namespace bs { namespace ct
 		mParams->getTextureParam(GPT_COMPUTE_PROGRAM, "gPosAndTimeTex", mPosAndTimeTexParam);
 	}
 
-	void GpuParticleBoundsMat::_initDefines(ShaderDefines& defines)
+	void GpuParticleBoundsMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		defines.set("NUM_THREADS", NUM_THREADS);
 	}
@@ -1274,7 +1274,7 @@ namespace bs { namespace ct
 		mParams->getTextureParam(GPT_COMPUTE_PROGRAM, "gPosAndTimeTex", mPosAndTimeTexParam);
 	}
 
-	void GpuParticleSortPrepareMat::_initDefines(ShaderDefines& defines)
+	void GpuParticleSortPrepareMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		defines.set("NUM_THREADS", NUM_THREADS);
 	}

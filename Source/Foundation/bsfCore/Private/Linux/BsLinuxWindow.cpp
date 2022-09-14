@@ -241,13 +241,13 @@ namespace bs
 		m->hasTitleBar = desc.showDecorations;
 		m->resizeDisabled = !desc.allowResize;
 
-		LinuxPlatform::_registerWindow(m->xWindow, this);
+		LinuxPlatform::RegisterWindowInternal(m->xWindow, this);
 	}
 
 	LinuxWindow::~LinuxWindow()
 	{
 		if(m->xWindow != 0)
-			_destroy();
+			DestroyInternal();
 
 		bs_delete(m);
 	}
@@ -413,7 +413,7 @@ namespace bs
 		XFlush(display);
 	}
 
-	void LinuxWindow::_destroy()
+	void LinuxWindow::DestroyInternal()
 	{
 		if (!m->isExternal)
 		{
@@ -424,19 +424,19 @@ namespace bs
 			XSync(LinuxPlatform::getXDisplay(), 0);
 		}
 
-		LinuxPlatform::_unregisterWindow(m->xWindow);
+		LinuxPlatform::UnregisterWindowInternal(m->xWindow);
 		m->xWindow = 0;
 	}
 
-	void LinuxWindow::_setDragZones(const Vector<Rect2I>& rects)
+	void LinuxWindow::SetDragZonesInternal(const Vector<Rect2I>& rects)
 	{
 		m->dragZones = rects;
 	}
 
-	void LinuxWindow::_dragStart(const XButtonEvent& event)
+	void LinuxWindow::DragStartInternal(const XButtonEvent& event)
 	{
 		// Make sure to reset the flag since WM could have (and probably has) handled the drag end event, so we never
-		// received _dragEnd() call.
+		// received DragEndInternal() call.
 		m->dragInProgress = false;
 
 		// If window has a titlebar, custom drag zones aren't used
@@ -479,7 +479,7 @@ namespace bs
 		return;
 	}
 
-	void LinuxWindow::_dragEnd()
+	void LinuxWindow::DragEndInternal()
 	{
 		// WM failed to end the drag, send the cancel drag event
 		if(m->dragInProgress)
@@ -505,17 +505,17 @@ namespace bs
 		}
 	}
 
-	::Window LinuxWindow::_getXWindow() const
+	::Window LinuxWindow::GetXWindowInternal() const
 	{
 		return m->xWindow;
 	}
 
-	void LinuxWindow::_setUserData(void* data)
+	void LinuxWindow::SetUserDataInternal(void* data)
 	{
 		m->userData = data;
 	}
 
-	void* LinuxWindow::_getUserData() const
+	void* LinuxWindow::GetUserDataInternal() const
 	{
 		return m->userData;
 	}
@@ -642,7 +642,7 @@ namespace bs
 		XSync(LinuxPlatform::getXDisplay(), 0);
 	}
 
-	void LinuxWindow::_setFullscreen(bool fullscreen)
+	void LinuxWindow::SetFullscreenInternal(bool fullscreen)
 	{
 		// Attempt to bypass compositor if switching to fullscreen
 		if(fullscreen)

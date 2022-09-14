@@ -218,7 +218,7 @@ namespace bs
 								const FSEventStreamEventFlags* eventFlags, const FSEventStreamEventId* eventIds)
 	{
 		auto* watcher = (FolderMonitor::FolderWatchInfo*)userInfo;
-		FolderMonitor::Pimpl* folderData = watcher->owner->_getPrivateData();
+		FolderMonitor::Pimpl* folderData = watcher->owner->GetPrivateDataInternal();
 
 		auto paths = (CFArrayRef)eventPaths;
 		CFIndex length = CFArrayGetCount(paths);
@@ -478,7 +478,7 @@ namespace bs
 
 				for(auto& monitor : m->monitors)
 				{
-					FolderMonitor::Pimpl* folderData = monitor->owner->_getPrivateData();
+					FolderMonitor::Pimpl* folderData = monitor->owner->GetPrivateDataInternal();
 
 					for(auto iter = monitor->createdFiles.begin(); iter != monitor->createdFiles.end();)
 					{
@@ -522,7 +522,7 @@ namespace bs
 		// Do nothing
 	}
 
-	void FolderMonitor::_update()
+	void FolderMonitor::UpdateInternal()
 	{
 		{
 			Lock lock(m->mainMutex);

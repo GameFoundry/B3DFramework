@@ -111,7 +111,7 @@ namespace bs
 		CoreObjectManager::instance().notifyDependenciesDirty(this);
 	}
 
-	void CoreObject::_setThisPtr(SPtr<CoreObject> ptrThis)
+	void CoreObject::SetThisPtrInternal(SPtr<CoreObject> ptrThis)
 	{
 		mThis = ptrThis;
 	}

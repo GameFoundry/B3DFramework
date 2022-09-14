@@ -73,7 +73,7 @@ namespace bs
 		 */
 
 		/**	Returns the reflection probe that this component wraps. */
-		SPtr<ReflectionProbe> _getReflectionProbe() const { return mInternal; }
+		SPtr<ReflectionProbe> GetReflectionProbeInternal() const { return mInternal; }
 
 		/** @} */
 

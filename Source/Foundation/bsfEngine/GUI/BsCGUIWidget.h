@@ -58,7 +58,7 @@ namespace bs
 		 */
 
 		/** Returns the internal GUIWidget that is wrapped by this component. */
-		GUIWidget* _getInternal() const { return mInternal.get(); };
+		GUIWidget* GetInternalInternal() const { return mInternal.get(); };
 
 		/** @} */
 

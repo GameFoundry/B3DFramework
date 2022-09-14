@@ -7,9 +7,9 @@
 
 namespace bs
 {
-	void IReflectable::_registerRTTIType(RTTITypeBase* rttiType)
+	void IReflectable::RegisterRTTITypeInternal(RTTITypeBase* rttiType)
 	{
-		if(_isTypeIdDuplicate(rttiType->getRTTIId()))
+		if(IsTypeIdDuplicateInternal(rttiType->getRTTIId()))
 		{
 			BS_EXCEPT(InternalErrorException, "RTTI type \"" + rttiType->getRTTIName() +
 				"\" has a duplicate ID: " + toString(rttiType->getRTTIId()));
@@ -20,7 +20,7 @@ namespace bs
 
 	SPtr<IReflectable> IReflectable::createInstanceFromTypeId(UINT32 rttiTypeId)
 	{
-		RTTITypeBase* type = _getRTTIfromTypeId(rttiTypeId);
+		RTTITypeBase* type = GetRTTIfromTypeIdInternal(rttiTypeId);
 
 		SPtr<IReflectable> output;
 		if(type != nullptr)
@@ -29,7 +29,7 @@ namespace bs
 		return output;
 	}
 
-	RTTITypeBase* IReflectable::_getRTTIfromTypeId(UINT32 rttiTypeId)
+	RTTITypeBase* IReflectable::GetRTTIfromTypeIdInternal(UINT32 rttiTypeId)
 	{
 		const auto iterFind = getAllRTTITypes().find(rttiTypeId);
 		if(iterFind != getAllRTTITypes().end())
@@ -38,12 +38,12 @@ namespace bs
 		return nullptr;
 	}
 
-	bool IReflectable::_isTypeIdDuplicate(UINT32 typeId)
+	bool IReflectable::IsTypeIdDuplicateInternal(UINT32 typeId)
 	{
 		if(typeId == TID_Abstract)
 			return false;
 
-		return IReflectable::_getRTTIfromTypeId(typeId) != nullptr;
+		return IReflectable::GetRTTIfromTypeIdInternal(typeId) != nullptr;
 	}
 
 	bool IReflectable::isDerivedFrom(RTTITypeBase* base)
@@ -51,7 +51,7 @@ namespace bs
 		return getRTTI()->isDerivedFrom(base);
 	}
 
-	void IReflectable::_checkForCircularReferences()
+	void IReflectable::CheckForCircularReferencesInternal()
 	{
 		Stack<RTTITypeBase*> todo;
 

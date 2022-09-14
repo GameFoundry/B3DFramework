@@ -25,7 +25,7 @@ namespace bs
 		MeshHeap* meshHeap = new (bs_alloc<MeshHeap>()) MeshHeap(numVertices, numIndices, vertexDesc, indexType);
 		SPtr<MeshHeap> meshHeapPtr = bs_core_ptr<MeshHeap>(meshHeap);
 
-		meshHeapPtr->_setThisPtr(meshHeapPtr);
+		meshHeapPtr->SetThisPtrInternal(meshHeapPtr);
 		meshHeapPtr->initialize();
 
 		return meshHeapPtr;
@@ -40,7 +40,7 @@ namespace bs
 			meshData->getNumVertices(), meshData->getNumIndices(), drawOp);
 		SPtr<TransientMesh> transientMeshPtr = bs_core_ptr<TransientMesh>(transientMesh);
 
-		transientMeshPtr->_setThisPtr(transientMeshPtr);
+		transientMeshPtr->SetThisPtrInternal(transientMeshPtr);
 		transientMeshPtr->initialize();
 
 		mMeshes[meshIdx] = transientMeshPtr;
@@ -73,7 +73,7 @@ namespace bs
 			mVertexDesc, mIndexType, GDF_DEFAULT);
 
 		SPtr<ct::MeshHeap> corePtr = bs_shared_ptr<ct::MeshHeap>(obj);
-		obj->_setThisPtr(corePtr);
+		obj->SetThisPtrInternal(corePtr);
 
 		return corePtr;
 	}

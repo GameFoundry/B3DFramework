@@ -204,10 +204,10 @@ namespace bs
 		/**
 		 * Returns data about virtual buttons that are triggered by the specified physical button code and modifier flags.
 		 */
-		bool _getButtons(ButtonCode code, UINT32 modifiers, Vector<VirtualButton>& btns, Vector<VIRTUAL_BUTTON_DESC>& btnDescs) const;
+		bool GetButtonsInternal(ButtonCode code, UINT32 modifiers, Vector<VirtualButton>& btns, Vector<VIRTUAL_BUTTON_DESC>& btnDescs) const;
 
 		/**	Retrieves virtual axis descriptor for the provided axis. */
-		bool _getAxis(const VirtualAxis& axis, VIRTUAL_AXIS_DESC& axisDesc) const;
+		bool GetAxisInternal(const VirtualAxis& axis, VIRTUAL_AXIS_DESC& axisDesc) const;
 
 		/** @} */
 

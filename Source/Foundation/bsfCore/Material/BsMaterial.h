@@ -109,13 +109,13 @@ namespace bs
 		 */
 
 		/** Marks the contents of the sim thread object as dirty, causing it to sync with its core thread counterpart. */
-		virtual void _markCoreDirty(MaterialDirtyFlags flags = MaterialDirtyFlags::Param) { }
+		virtual void MarkCoreDirtyInternal(MaterialDirtyFlags flags = MaterialDirtyFlags::Param) { }
 
 		/** @copydoc CoreObject::markDependenciesDirty */
-		virtual void _markDependenciesDirty() { }
+		virtual void MarkDependenciesDirtyInternal() { }
 
 		/** @copydoc IResourceListener::markListenerResourcesDirty */
-		virtual void _markResourcesDirty() { }
+		virtual void MarkResourcesDirtyInternal() { }
 
 		/** @} */
 	};
@@ -699,7 +699,7 @@ namespace bs
 		 * Returns an object containg all of material's parameters. Allows the caller to manipulate the parameters more
 		 * directly.
 		 */
-		SPtr<MaterialParamsType> _getInternalParams() const { return mParams; }
+		SPtr<MaterialParamsType> GetInternalParamsInternal() const { return mParams; }
 
 		/** @} */
 	protected:
@@ -789,13 +789,13 @@ namespace bs
 		 * Marks the core data as dirty. This causes the syncToCore() method to trigger the next time objects are synced
 		 * between core and sim threads.
 		 */
-		void _markCoreDirty(MaterialDirtyFlags flags = MaterialDirtyFlags::Param) override;
+		void MarkCoreDirtyInternal(MaterialDirtyFlags flags = MaterialDirtyFlags::Param) override;
 
 		/** @copydoc CoreObject::markDependenciesDirty */
-		void _markDependenciesDirty() override;
+		void MarkDependenciesDirtyInternal() override;
 
 		/** @copydoc IResourceListener::markListenerResourcesDirty */
-		void _markResourcesDirty() override;
+		void MarkResourcesDirtyInternal() override;
 
 		/** @} */
 	private:

@@ -100,10 +100,10 @@ namespace bs
 		 */
 
 		/** Same as create() excepts it creates a pointer to the vector field instead of a handle. */
-		static SPtr<VectorField> _createPtr(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values);
+		static SPtr<VectorField> CreatePtrInternal(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values);
 
 		/** Creates the resource without initializing it. */
-		static SPtr<VectorField> _createEmpty();
+		static SPtr<VectorField> CreateEmptyInternal();
 
 		/** @} */
 

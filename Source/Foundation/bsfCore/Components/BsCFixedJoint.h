@@ -28,7 +28,7 @@ namespace bs
 		 */
 
 		/**	Returns the fixed joint that this component wraps. */
-		FixedJoint* _getInternal() const { return static_cast<FixedJoint*>(mInternal.get()); }
+		FixedJoint* GetInternalInternal() const { return static_cast<FixedJoint*>(mInternal.get()); }
 
 		/** @} */
 

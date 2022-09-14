@@ -18,7 +18,7 @@ namespace bs
 	extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
 	{
 		SLImporter* importer = bs_new<SLImporter>();
-		Importer::instance()._registerAssetImporter(importer);
+		Importer::instance().RegisterAssetImporterInternal(importer);
 
 		return nullptr;
 	}

@@ -62,17 +62,17 @@ namespace bs
 		 *
 		 * @note	Does not trigger layout update.
 		 */
-		void _setHandleSize(float pct);
+		void SetHandleSizeInternal(float pct);
 
 		/**
 		 * Sets the position of the scroll handle in percent (ranging [0, 1]).
 		 *
 		 * @note	Does not trigger layout update.
 		 */
-		void _setScrollPos(float pct);
+		void SetScrollPosInternal(float pct);
 
-		/** @copydoc GUIElement::_getOptimalSize */
-		Vector2I _getOptimalSize() const override;
+		/** @copydoc GUIElement::GetOptimalSizeInternal */
+		Vector2I GetOptimalSizeInternal() const override;
 
 		/** @} */
 	protected:
@@ -107,8 +107,8 @@ namespace bs
 		/** @copydoc GUIElement::updateClippedBounds */
 		void updateClippedBounds() override;
 
-		/** @copydoc	GUIElement::_getRenderElementDepthRange */
-		UINT32 _getRenderElementDepthRange() const override;
+		/** @copydoc	GUIElement::GetRenderElementDepthRangeInternal */
+		UINT32 GetRenderElementDepthRangeInternal() const override;
 
 		/** @copydoc GUIElement::styleUpdated */
 		void styleUpdated() override;

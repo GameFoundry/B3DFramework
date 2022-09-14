@@ -18,7 +18,7 @@ namespace bs
 
 	MonoObject*ScriptCharDesc::box(const __CharDescInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__CharDescInterop ScriptCharDesc::unbox(MonoObject* value)

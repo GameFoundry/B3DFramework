@@ -36,7 +36,7 @@ namespace bs
 		 */
 
 		/** Starts providing a new service when "instance()" is called. Replaces the previous service. */
-		static void _provide(T* service)
+		static void ProvideInternal(T* service)
 		{
 			mService = service;
 		}
@@ -45,7 +45,7 @@ namespace bs
 		 * Stops providing a service when "instance()" is called. Ignored if the current service doesn't match the
 		 * provided service.
 		 */
-		static void _remove(T* service)
+		static void RemoveInternal(T* service)
 		{
 			mService.compare_exchange_strong(service, nullptr);
 		}

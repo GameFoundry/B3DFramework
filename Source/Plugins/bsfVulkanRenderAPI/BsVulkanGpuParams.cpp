@@ -904,7 +904,7 @@ namespace bs { namespace ct
 
 		// Acquire sets as needed, and updated their contents if dirty
 		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::instance());
-		VulkanDevice& device = *rapi._getDevice(deviceIdx);
+		VulkanDevice& device = *rapi.GetDeviceInternal(deviceIdx);
 		VulkanDescriptorManager& descManager = device.getDescriptorManager();
 
 		for (UINT32 i = 0; i < numSets; i++)

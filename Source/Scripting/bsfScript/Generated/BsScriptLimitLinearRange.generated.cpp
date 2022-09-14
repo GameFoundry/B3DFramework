@@ -18,7 +18,7 @@ namespace bs
 
 	MonoObject*ScriptLimitLinearRange::box(const __LimitLinearRangeInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__LimitLinearRangeInterop ScriptLimitLinearRange::unbox(MonoObject* value)

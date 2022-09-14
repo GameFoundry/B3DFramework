@@ -112,7 +112,7 @@ namespace bs
 		 *
 		 * @note	 Does not trigger layout update.
 		 */
-		void _setHandleSize(float pct);
+		void SetHandleSizeInternal(float pct);
 
 		/**
 		 * Moves the handle the the specified position in the handle area.
@@ -121,19 +121,19 @@ namespace bs
 		 *
 		 * @note	Does not trigger layout update.
 		 */
-		void _setHandlePos(float pct);
+		void SetHandlePosInternal(float pct);
 
 		/** Returns the size of the slider handle, in percent of the total area. */
-		float _getHandleSizePct() const;
+		float GetHandleSizePctInternal() const;
 
-		/** @copydoc GUIElement::_getOptimalSize */
-		Vector2I _getOptimalSize() const override;
+		/** @copydoc GUIElement::GetOptimalSizeInternal */
+		Vector2I GetOptimalSizeInternal() const override;
 
 		/** @} */
 	protected:
 		~GUISliderHandle();
 
-		/** @copydoc GUIElement::_fillBuffer() */
+		/** @copydoc GUIElement::FillBufferInternal() */
 		void _fillBuffer(
 			UINT8* vertices,
 			UINT32* indices,
@@ -153,7 +153,7 @@ namespace bs
 		GUISliderHandle(GUISliderHandleFlags flags, const String& styleName, const GUIDimensions& dimensions);
 
 		/** @copydoc GUIElement::_mouseEvent */
-		bool _mouseEvent(const GUIMouseEvent& ev) override;
+		bool MouseEventInternal(const GUIMouseEvent& ev) override;
 
 		/** Checks are the specified over the scroll handle. Coordinates are relative to the parent widget. */
 		bool isOnHandle(const Vector2I& pos) const;

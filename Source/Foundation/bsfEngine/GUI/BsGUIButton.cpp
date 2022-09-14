@@ -36,13 +36,13 @@ namespace bs
 		return new (bs_alloc<GUIButton>()) GUIButton(getStyleName<GUIButton>(styleName), content, GUIDimensions::create(options));
 	}
 
-	bool GUIButton::_commandEvent(const GUICommandEvent& ev)
+	bool GUIButton::CommandEventInternal(const GUICommandEvent& ev)
 	{
-		const bool processed = GUIButtonBase::_commandEvent(ev);
+		const bool processed = GUIButtonBase::CommandEventInternal(ev);
 
 		if(ev.getType() == GUICommandEventType::Confirm)
 		{
-			if(!_isDisabled())
+			if(!IsDisabledInternal())
 			{
 				onClick();
 				return true;

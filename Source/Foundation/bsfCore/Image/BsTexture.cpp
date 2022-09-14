@@ -74,7 +74,7 @@ namespace bs
 		: mProperties(desc), mInitData(pixelData)
 	{
 		if (mInitData != nullptr)
-			mInitData->_lock();
+			mInitData->LockInternal();
 	}
 
 	void Texture::initialize()
@@ -110,15 +110,15 @@ namespace bs
 		UINT32 subresourceIdx = mProperties.mapToSubresourceIdx(face, mipLevel);
 		updateCPUBuffers(subresourceIdx, *data);
 
-		data->_lock();
+		data->LockInternal();
 
 		std::function<void(const SPtr<ct::Texture>&, UINT32, UINT32, const SPtr<PixelData>&, bool, AsyncOp&)> func =
 			[&](const SPtr<ct::Texture>& texture, UINT32 _face, UINT32 _mipLevel, const SPtr<PixelData>& _pixData,
 				bool _discardEntireBuffer, AsyncOp& asyncOp)
 		{
 			texture->writeData(*_pixData, _mipLevel, _face, _discardEntireBuffer);
-			_pixData->_unlock();
-			asyncOp._completeOperation();
+			_pixData->UnlockInternal();
+			asyncOp.CompleteOperationInternal();
 
 		};
 
@@ -128,7 +128,7 @@ namespace bs
 
 	AsyncOp Texture::readData(const SPtr<PixelData>& data, UINT32 face, UINT32 mipLevel)
 	{
-		data->_lock();
+		data->LockInternal();
 
 		std::function<void(const SPtr<ct::Texture>&, UINT32, UINT32, const SPtr<PixelData>&, AsyncOp&)> func =
 			[&](const SPtr<ct::Texture>& texture, UINT32 _face, UINT32 _mipLevel, const SPtr<PixelData>& _pixData,
@@ -138,8 +138,8 @@ namespace bs
 			ct::RenderAPI::instance().submitCommandBuffer(nullptr);
 
 			texture->readData(*_pixData, _mipLevel, _face);
-			_pixData->_unlock();
-			asyncOp._completeOperation();
+			_pixData->UnlockInternal();
+			asyncOp.CompleteOperationInternal();
 
 		};
 
@@ -159,7 +159,7 @@ namespace bs
 			SPtr<PixelData> output = texture->getProperties().allocBuffer(face, mipLevel);
 			texture->readData(*output, mipLevel, face);
 
-			op._completeOperation(output);
+			op.CompleteOperationInternal(output);
 
 		};
 
@@ -302,24 +302,24 @@ namespace bs
 	/************************************************************************/
 	HTexture Texture::create(const TEXTURE_DESC& desc)
 	{
-		SPtr<Texture> texturePtr = _createPtr(desc);
+		SPtr<Texture> texturePtr = CreatePtrInternal(desc);
 
-		return static_resource_cast<Texture>(gResources()._createResourceHandle(texturePtr));
+		return static_resource_cast<Texture>(gResources().CreateResourceHandleInternal(texturePtr));
 	}
 	
 	HTexture Texture::create(const SPtr<PixelData>& pixelData, int usage, bool hwGammaCorrection)
 	{
-		SPtr<Texture> texturePtr = _createPtr(pixelData, usage, hwGammaCorrection);
+		SPtr<Texture> texturePtr = CreatePtrInternal(pixelData, usage, hwGammaCorrection);
 
-		return static_resource_cast<Texture>(gResources()._createResourceHandle(texturePtr));
+		return static_resource_cast<Texture>(gResources().CreateResourceHandleInternal(texturePtr));
 	}
 
-	SPtr<Texture> Texture::_createPtr(const TEXTURE_DESC& desc)
+	SPtr<Texture> Texture::CreatePtrInternal(const TEXTURE_DESC& desc)
 	{
 		return TextureManager::instance().createTexture(desc);
 	}
 
-	SPtr<Texture> Texture::_createPtr(const SPtr<PixelData>& pixelData, int usage, bool hwGammaCorrection)
+	SPtr<Texture> Texture::CreatePtrInternal(const SPtr<PixelData>& pixelData, int usage, bool hwGammaCorrection)
 	{
 		TEXTURE_DESC desc;
 		desc.type = pixelData->getDepth() > 1 ? TEX_TYPE_3D : TEX_TYPE_2D;
@@ -348,7 +348,7 @@ namespace bs
 		if (mInitData != nullptr)
 		{
 			writeData(*mInitData, 0, 0, true);
-			mInitData->_unlock();
+			mInitData->UnlockInternal();
 			mInitData = nullptr;
 		}
 

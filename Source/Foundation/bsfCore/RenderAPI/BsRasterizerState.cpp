@@ -43,7 +43,7 @@ namespace bs
 
 	SPtr<ct::CoreObject> RasterizerState::createCore() const
 	{
-		SPtr<ct::RasterizerState> core = ct::RenderStateManager::instance()._createRasterizerState(mProperties.mData);
+		SPtr<ct::RasterizerState> core = ct::RenderStateManager::instance().CreateRasterizerStateInternal(mProperties.mData);
 		mId = core->getId(); // Accessing core from sim thread is okay here since core ID is immutable
 
 		return core;

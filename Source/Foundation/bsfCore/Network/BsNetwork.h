@@ -483,9 +483,9 @@ namespace bs
 
 		void update(float dt);
 
-		void _notifyNetworkObjectSpawned(NetworkObject* object);
-		void _notifyNetworkObjectDespawned(NetworkObject* object);
-		void _notifyNetworkObjectDestroyed(NetworkObject* object);
+		void NotifyNetworkObjectSpawnedInternal(NetworkObject* object);
+		void NotifyNetworkObjectDespawnedInternal(NetworkObject* object);
+		void NotifyNetworkObjectDestroyedInternal(NetworkObject* object);
 
 	private:
 		enum ObjectActionType

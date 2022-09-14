@@ -37,7 +37,7 @@ namespace bs
 		 * Brightness multiplier that will be applied to skybox values before they're being used. Allows you to make the
 		 * skybox more or less bright. Equal to one by default.
 		 */
-		void setBrightness(float brightness) { mBrightness = brightness; _markCoreDirty(); }
+		void setBrightness(float brightness) { mBrightness = brightness; MarkCoreDirtyInternal(); }
 
 		/** @copydoc setBrightness */
 		float getBrightness() const { return mBrightness; }
@@ -103,7 +103,7 @@ namespace bs
 		SPtr<ct::CoreObject> createCore() const override;
 
 		/** @copydoc SkyboxBase::_markCoreDirty */
-		void _markCoreDirty(ActorDirtyFlag flags = ActorDirtyFlag::Everything) override;
+		void MarkCoreDirtyInternal(ActorDirtyFlag flags = ActorDirtyFlag::Everything) override;
 
 		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData syncToCore(FrameAlloc* allocator) override;

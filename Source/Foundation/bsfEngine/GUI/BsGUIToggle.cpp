@@ -18,14 +18,14 @@ namespace bs
 		:GUIButtonBase(styleName, content, dimensions), mToggleGroup(nullptr), mIsToggled(false)
 	{
 		if(toggleGroup != nullptr)
-			toggleGroup->_add(this);
+			toggleGroup->AddInternal(this);
 	}
 
 	GUIToggle::~GUIToggle()
 	{
 		if(mToggleGroup != nullptr)
 		{
-			mToggleGroup->_remove(this);
+			mToggleGroup->RemoveInternal(this);
 		}
 	}
 
@@ -79,7 +79,7 @@ namespace bs
 		return toggleGroup;
 	}
 
-	void GUIToggle::_setToggleGroup(SPtr<GUIToggleGroup> toggleGroup)
+	void GUIToggle::SetToggleGroupInternal(SPtr<GUIToggleGroup> toggleGroup)
 	{
 		mToggleGroup = toggleGroup;
 
@@ -106,7 +106,7 @@ namespace bs
 		}
 	}
 
-	void GUIToggle::_toggleOn(bool triggerEvent)
+	void GUIToggle::ToggleOnInternal(bool triggerEvent)
 	{
 		if(mIsToggled)
 			return;
@@ -124,14 +124,14 @@ namespace bs
 			for(auto& toggleElem : mToggleGroup->mButtons)
 			{
 				if(toggleElem != this)
-					toggleElem->_toggleOff(triggerEvent);
+					toggleElem->ToggleOffInternal(triggerEvent);
 			}
 		}
 
-		_setOn(true);
+		SetOnInternal(true);
 	}
 
-	void GUIToggle::_toggleOff(bool triggerEvent)
+	void GUIToggle::ToggleOffInternal(bool triggerEvent)
 	{
 		if(!mIsToggled)
 			return;
@@ -165,22 +165,22 @@ namespace bs
 					onToggled(mIsToggled);
 			}
 
-			_setOn(false);
+			SetOnInternal(false);
 		}
 	}
 
-	bool GUIToggle::_mouseEvent(const GUIMouseEvent& ev)
+	bool GUIToggle::MouseEventInternal(const GUIMouseEvent& ev)
 	{
-		bool processed = GUIButtonBase::_mouseEvent(ev);
+		bool processed = GUIButtonBase::MouseEventInternal(ev);
 
 		if(ev.getType() == GUIMouseEventType::MouseUp)
 		{
-			if (!_isDisabled())
+			if (!IsDisabledInternal())
 			{
 				if (mIsToggled)
-					_toggleOff(true);
+					ToggleOffInternal(true);
 				else
-					_toggleOn(true);
+					ToggleOnInternal(true);
 			}
 
 			processed = true;
@@ -189,18 +189,18 @@ namespace bs
 		return processed;
 	}
 
-	bool GUIToggle::_commandEvent(const GUICommandEvent& ev)
+	bool GUIToggle::CommandEventInternal(const GUICommandEvent& ev)
 	{
-		const bool processed = GUIButtonBase::_commandEvent(ev);
+		const bool processed = GUIButtonBase::CommandEventInternal(ev);
 
 		if(ev.getType() == GUICommandEventType::Confirm)
 		{
-			if(!_isDisabled())
+			if(!IsDisabledInternal())
 			{
 				if(mIsToggled)
-					_toggleOff(true);
+					ToggleOffInternal(true);
 				else
-					_toggleOn(true);
+					ToggleOnInternal(true);
 			}
 
 			return true;

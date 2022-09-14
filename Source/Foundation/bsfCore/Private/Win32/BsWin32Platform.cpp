@@ -319,7 +319,7 @@ namespace bs
 
 	void Win32Platform::registerDropTarget(DropTarget* target)
 	{
-		const RenderWindow* window = target->_getOwnerWindow();
+		const RenderWindow* window = target->GetOwnerWindowInternal();
 
 		Win32DropTarget* win32DropTarget = nullptr;
 		auto iterFind = mData->mDropTargets.dropTargetsPerWindow.find(window);
@@ -344,7 +344,7 @@ namespace bs
 
 	void Win32Platform::unregisterDropTarget(DropTarget* target)
 	{
-		auto iterFind = mData->mDropTargets.dropTargetsPerWindow.find(target->_getOwnerWindow());
+		auto iterFind = mData->mDropTargets.dropTargetsPerWindow.find(target->GetOwnerWindowInternal());
 		if (iterFind == mData->mDropTargets.dropTargetsPerWindow.end())
 		{
 			BS_LOG(Warning, Platform, "Attempting to destroy a drop target but cannot find its parent window.");
@@ -440,7 +440,7 @@ namespace bs
 		ShellExecuteW(nullptr, L"open", pathString.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 	}
 
-	void Platform::_messagePump()
+	void Platform::MessagePumpInternal()
 	{
 		MSG  msg;
 		while (PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
@@ -450,7 +450,7 @@ namespace bs
 		}
 	}
 
-	void Platform::_startUp()
+	void Platform::StartUpInternal()
 	{
 		Lock lock(mData->mSync);
 
@@ -463,7 +463,7 @@ namespace bs
 		mData->mRequiresStartUp = true;
 	}
 
-	void Platform::_update()
+	void Platform::UpdateInternal()
 	{
 		for (auto& dropTarget : mData->mDropTargets.dropTargetsPerWindow)
 		{
@@ -471,7 +471,7 @@ namespace bs
 		}
 	}
 
-	void Platform::_coreUpdate()
+	void Platform::CoreUpdateInternal()
 	{
 		{
 			Lock lock(mData->mSync);
@@ -504,7 +504,7 @@ namespace bs
 			mData->mDropTargets.dropTargetsToInitialize.clear();
 		}
 
-		_messagePump();
+		MessagePumpInternal();
 
 		{
 			Lock lock(mData->mSync);
@@ -516,7 +516,7 @@ namespace bs
 		}
 	}
 
-	void Platform::_shutDown()
+	void Platform::ShutDownInternal()
 	{
 		Lock lock(mData->mSync);
 
@@ -624,7 +624,7 @@ namespace bs
 		return false;
 	}
 
-	LRESULT CALLBACK Win32Platform::_win32WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	LRESULT CALLBACK Win32Platform::Win32WndProcInternal(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		if (uMsg == WM_CREATE)
 		{	// Store pointer to Win32Window in user data area
@@ -679,14 +679,14 @@ namespace bs
 		case WM_SETFOCUS:
 			{
 				if (!win->getProperties().hasFocus)
-					win->_notifyWindowEvent(WindowEventType::FocusReceived);
+					win->NotifyWindowEventInternal(WindowEventType::FocusReceived);
 
 				return 0;
 			}
 		case WM_KILLFOCUS:
 			{
 				if (win->getProperties().hasFocus)
-					win->_notifyWindowEvent(WindowEventType::FocusLost);
+					win->NotifyWindowEventInternal(WindowEventType::FocusLost);
 
 				return 0;
 			}
@@ -695,20 +695,20 @@ namespace bs
 				return 0;
 			break;
 		case WM_MOVE:
-			win->_notifyWindowEvent(WindowEventType::Moved);
+			win->NotifyWindowEventInternal(WindowEventType::Moved);
 			return 0;
 		case WM_DISPLAYCHANGE:
-			win->_notifyWindowEvent(WindowEventType::Resized);
+			win->NotifyWindowEventInternal(WindowEventType::Resized);
 			break;
 		case WM_SIZE:
-			win->_notifyWindowEvent(WindowEventType::Resized);
+			win->NotifyWindowEventInternal(WindowEventType::Resized);
 
 			if (wParam == SIZE_MAXIMIZED)
-				win->_notifyWindowEvent(WindowEventType::Maximized);
+				win->NotifyWindowEventInternal(WindowEventType::Maximized);
 			else if (wParam == SIZE_MINIMIZED)
-				win->_notifyWindowEvent(WindowEventType::Minimized);
+				win->NotifyWindowEventInternal(WindowEventType::Minimized);
 			else if (wParam == SIZE_RESTORED)
-				win->_notifyWindowEvent(WindowEventType::Restored);
+				win->NotifyWindowEventInternal(WindowEventType::Restored);
 
 			return 0;
 		case WM_SETCURSOR:
@@ -768,7 +768,7 @@ namespace bs
 			break;
 		case WM_CLOSE:
 			{
-			win->_notifyWindowEvent(WindowEventType::CloseRequested);
+			win->NotifyWindowEventInternal(WindowEventType::CloseRequested);
 
 				return 0;
 			}
@@ -827,7 +827,7 @@ namespace bs
 				mData->mIsTrackingMouse = false; // TrackMouseEvent ends when this message is received and needs to be re-applied
 
 				Lock lock(mData->mSync);
-				win->_notifyWindowEvent(WindowEventType::MouseLeft);
+				win->NotifyWindowEventInternal(WindowEventType::MouseLeft);
 			}
 			return 0;
 		case WM_LBUTTONUP:

@@ -14,14 +14,14 @@ namespace bs
 
 	HShaderInclude ShaderInclude::create(const String& includeString)
 	{
-		return static_resource_cast<ShaderInclude>(gResources()._createResourceHandle(_createPtr(includeString)));
+		return static_resource_cast<ShaderInclude>(gResources().CreateResourceHandleInternal(CreatePtrInternal(includeString)));
 	}
 
-	SPtr<ShaderInclude> ShaderInclude::_createPtr(const String& includeString)
+	SPtr<ShaderInclude> ShaderInclude::CreatePtrInternal(const String& includeString)
 	{
 		SPtr<ShaderInclude> shaderIncludePtr = bs_core_ptr<ShaderInclude>(
 			new (bs_alloc<ShaderInclude>()) ShaderInclude(includeString));
-		shaderIncludePtr->_setThisPtr(shaderIncludePtr);
+		shaderIncludePtr->SetThisPtrInternal(shaderIncludePtr);
 		shaderIncludePtr->initialize();
 
 		return shaderIncludePtr;

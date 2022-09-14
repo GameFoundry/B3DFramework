@@ -50,7 +50,7 @@ namespace bs { namespace ct
 	{
 		SPtr<GpuProgram> gpuProg = bs_shared_ptr<VulkanGpuProgram>(new (bs_alloc<VulkanGpuProgram>())
 			VulkanGpuProgram(desc, deviceMask));
-		gpuProg->_setThisPtr(gpuProg);
+		gpuProg->SetThisPtrInternal(gpuProg);
 
 		return gpuProg;
 	}
@@ -62,7 +62,7 @@ namespace bs { namespace ct
 
 		SPtr<GpuProgram> gpuProg = bs_shared_ptr<VulkanGpuProgram>(new (bs_alloc<VulkanGpuProgram>())
 			VulkanGpuProgram(desc, deviceMask));
-		gpuProg->_setThisPtr(gpuProg);
+		gpuProg->SetThisPtrInternal(gpuProg);
 
 		return gpuProg;
 	}

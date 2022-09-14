@@ -141,7 +141,7 @@ namespace bs
 	MonoObject* ScriptScene::internal_GetMainCameraSO()
 	{
 		SPtr<Camera> camera = gSceneManager().getMainCamera();
-		HSceneObject so = gSceneManager()._getActorSO(camera);
+		HSceneObject so = gSceneManager().GetActorSOInternal(camera);
 		if (so == nullptr)
 			return nullptr;
 

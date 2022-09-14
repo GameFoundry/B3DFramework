@@ -56,7 +56,7 @@ namespace bs { namespace ct
 		mParams->getTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 	}
 
-	void ReflectionCubeImportanceSampleMat::_initDefines(ShaderDefines& defines)
+	void ReflectionCubeImportanceSampleMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		defines.set("NUM_SAMPLES", NUM_SAMPLES);
 	}
@@ -104,7 +104,7 @@ namespace bs { namespace ct
 		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputBuffer);
 	}
 
-	void IrradianceComputeSHMat::_initDefines(ShaderDefines& defines)
+	void IrradianceComputeSHMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		defines.set("TILE_WIDTH", TILE_WIDTH);
 		defines.set("TILE_HEIGHT", TILE_HEIGHT);

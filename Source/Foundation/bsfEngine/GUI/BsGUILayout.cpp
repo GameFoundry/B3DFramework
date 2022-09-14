@@ -19,18 +19,18 @@ namespace bs
 	GUILayout::~GUILayout()
 	{
 		if (mParentElement != nullptr)
-			mParentElement->_unregisterChildElement(this);
+			mParentElement->UnregisterChildElementInternal(this);
 	}
 
 	void GUILayout::addElement(GUIElementBase* element)
 	{
-		if (!element->_isDestroyed())
-			_registerChildElement(element);
+		if (!element->IsDestroyedInternal())
+			RegisterChildElementInternal(element);
 	}
 
 	void GUILayout::removeElement(GUIElementBase* element)
 	{
-		_unregisterChildElement(element);
+		UnregisterChildElementInternal(element);
 	}
 
 	void GUILayout::insertElement(UINT32 idx, GUIElementBase* element)
@@ -38,23 +38,23 @@ namespace bs
 		if(idx > (UINT32)mChildren.size())
 			BS_EXCEPT(InvalidParametersException, "Index out of range: " + toString(idx) + ". Valid range: 0 .. " + toString((UINT32)mChildren.size()));
 
-		if (element->_isDestroyed())
+		if (element->IsDestroyedInternal())
 			return;
 
-		GUIElementBase* parentElement = element->_getParent();
+		GUIElementBase* parentElement = element->GetParentInternal();
 		if(parentElement != nullptr)
 		{
-			parentElement->_unregisterChildElement(element);
+			parentElement->UnregisterChildElementInternal(element);
 		}
 
-		element->_setParent(this);
+		element->SetParentInternal(this);
 		mChildren.insert(mChildren.begin() + idx, element);
 		
-		element->_setActive(_isActive());
-		element->_setVisible(_isVisible());
-		element->_setDisabled(_isDisabled());
+		element->SetActiveInternal(IsActiveInternal());
+		element->SetVisibleInternal(IsVisibleInternal());
+		element->SetDisabledInternal(IsDisabledInternal());
 
-		_markLayoutAsDirty();
+		MarkLayoutAsDirtyInternal();
 	}
 
 	void GUILayout::clear()
@@ -70,12 +70,12 @@ namespace bs
 		GUIElementBase* child = mChildren[idx];
 		mChildren.erase(mChildren.begin() + idx);
 
-		child->_setParent(nullptr);
+		child->SetParentInternal(nullptr);
 
-		_markLayoutAsDirty();
+		MarkLayoutAsDirtyInternal();
 	}
 
-	const RectOffset& GUILayout::_getPadding() const
+	const RectOffset& GUILayout::GetPaddingInternal() const
 	{
 		static RectOffset padding;
 

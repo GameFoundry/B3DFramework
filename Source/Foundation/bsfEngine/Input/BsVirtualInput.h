@@ -113,7 +113,7 @@ namespace bs
 		 */
 
 		/** Called once every frame. Triggers button callbacks. */
-		void _update();
+		void UpdateInternal();
 
 		/** @} */
 	private:

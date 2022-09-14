@@ -27,7 +27,7 @@ namespace bs
 
 		// Note: I could call _markMeshAsDirty with a little more work. If parent is layout then this call can be ignored
 		// and if it's a panel, we can immediately change the position without a full layout rebuild.
-		_markLayoutAsDirty();
+		MarkLayoutAsDirtyInternal();
 	}
 
 	void GUIElementBase::setSize(UINT32 width, UINT32 height)
@@ -43,7 +43,7 @@ namespace bs
 		if (isFixedBefore != isFixedAfter)
 			refreshChildUpdateParents();
 
-		_markLayoutAsDirty();
+		MarkLayoutAsDirtyInternal();
 	}
 
 	void GUIElementBase::setWidth(UINT32 width)
@@ -58,7 +58,7 @@ namespace bs
 		if (isFixedBefore != isFixedAfter)
 			refreshChildUpdateParents();
 			
-		_markLayoutAsDirty();
+		MarkLayoutAsDirtyInternal();
 	}
 
 	void GUIElementBase::setFlexibleWidth(UINT32 minWidth, UINT32 maxWidth)
@@ -78,7 +78,7 @@ namespace bs
 		if (isFixedBefore != isFixedAfter)
 			refreshChildUpdateParents();
 
-		_markLayoutAsDirty();
+		MarkLayoutAsDirtyInternal();
 	}
 
 	void GUIElementBase::setHeight(UINT32 height)
@@ -93,7 +93,7 @@ namespace bs
 		if (isFixedBefore != isFixedAfter)
 			refreshChildUpdateParents();
 
-		_markLayoutAsDirty();
+		MarkLayoutAsDirtyInternal();
 	}
 
 	void GUIElementBase::setFlexibleHeight(UINT32 minHeight, UINT32 maxHeight)
@@ -113,7 +113,7 @@ namespace bs
 		if (isFixedBefore != isFixedAfter)
 			refreshChildUpdateParents();
 
-		_markLayoutAsDirty();
+		MarkLayoutAsDirtyInternal();
 	}
 
 	void GUIElementBase::resetDimensions()
@@ -127,7 +127,7 @@ namespace bs
 		if (isFixedBefore != isFixedAfter)
 			refreshChildUpdateParents();
 
-		_markLayoutAsDirty();
+		MarkLayoutAsDirtyInternal();
 	}
 
 	Rect2I GUIElementBase::getBounds(GUIPanel* relativeTo)
@@ -139,8 +139,8 @@ namespace bs
 		if (relativeTo != nullptr)
 			anchorBounds = relativeTo->getGlobalBounds();
 
-		if (mUpdateParent != nullptr && mUpdateParent->_isDirty() && mParentWidget != nullptr)
-			mParentWidget->_updateLayout(mUpdateParent);
+		if (mUpdateParent != nullptr && mUpdateParent->IsDirtyInternal() && mParentWidget != nullptr)
+			mParentWidget->UpdateLayoutInternal(mUpdateParent);
 
 		Rect2I bounds = mLayoutData.area;
 		bounds.x -= anchorBounds.x;
@@ -158,16 +158,16 @@ namespace bs
 
 	Rect2I GUIElementBase::getGlobalBounds()
 	{
-		if (mUpdateParent != nullptr && mUpdateParent->_isDirty() && mParentWidget != nullptr)
-			mParentWidget->_updateLayout(mUpdateParent);
+		if (mUpdateParent != nullptr && mUpdateParent->IsDirtyInternal() && mParentWidget != nullptr)
+			mParentWidget->UpdateLayoutInternal(mUpdateParent);
 
 		return mLayoutData.area;
 	}
 
 	Rect2I GUIElementBase::getScreenBounds() const
 	{
-		if (mUpdateParent != nullptr && mUpdateParent->_isDirty() && mParentWidget != nullptr)
-			mParentWidget->_updateLayout(mUpdateParent);
+		if (mUpdateParent != nullptr && mUpdateParent->IsDirtyInternal() && mParentWidget != nullptr)
+			mParentWidget->UpdateLayoutInternal(mUpdateParent);
 
 		Rect2I area = mLayoutData.area;
 		if(mParentWidget)
@@ -200,14 +200,14 @@ namespace bs
 		return getBounds();
 	}
 	
-	void GUIElementBase::_markAsClean()
+	void GUIElementBase::MarkAsCleanInternal()
 	{
 		mFlags &= ~GUIElem_Dirty;
 	}
 
-	void GUIElementBase::_markLayoutAsDirty()
+	void GUIElementBase::MarkLayoutAsDirtyInternal()
 	{
-		if(!_isVisible())
+		if(!IsVisibleInternal())
 			return;
 
 		if (mUpdateParent != nullptr)
@@ -216,28 +216,28 @@ namespace bs
 			mFlags |= GUIElem_Dirty;
 	}
 
-	void GUIElementBase::_markContentAsDirty()
+	void GUIElementBase::MarkContentAsDirtyInternal()
 	{
-		if (!_isVisible())
+		if (!IsVisibleInternal())
 			return;
 
 		if (mParentWidget != nullptr)
-			mParentWidget->_markContentDirty(this);
+			mParentWidget->MarkContentDirtyInternal(this);
 	}
 
-	void GUIElementBase::_markMeshAsDirty()
+	void GUIElementBase::MarkMeshAsDirtyInternal()
 	{
-		if(!_isVisible())
+		if(!IsVisibleInternal())
 			return;
 
 		if (mParentWidget != nullptr)
-			mParentWidget->_markMeshDirty(this);
+			mParentWidget->MarkMeshDirtyInternal(this);
 	}
 
 	void GUIElementBase::setVisible(bool visible)
 	{
 		// No visibility states matter if object is not active
-		if (!_isActive())
+		if (!IsActiveInternal())
 			return;
 
 		bool visibleSelf = (mFlags & GUIElem_HiddenSelf) == 0;
@@ -247,19 +247,19 @@ namespace bs
 			if (!visible)
 			{
 				mFlags |= GUIElem_HiddenSelf;
-				_setVisible(false);
+				SetVisibleInternal(false);
 			}
 			else
 			{
 				mFlags &= ~GUIElem_HiddenSelf;
 
-				if (mParentElement == nullptr || mParentElement->_isVisible())
-					_setVisible(true);
+				if (mParentElement == nullptr || mParentElement->IsVisibleInternal())
+					SetVisibleInternal(true);
 			}
 		}
 	}
 
-	void GUIElementBase::_setVisible(bool visible)
+	void GUIElementBase::SetVisibleInternal(bool visible)
 	{
 		bool isVisible = (mFlags & GUIElem_Hidden) == 0;
 		if (isVisible == visible)
@@ -267,12 +267,12 @@ namespace bs
 
 		if (!visible)
 		{
-			_markMeshAsDirty();
+			MarkMeshAsDirtyInternal();
 
 			mFlags |= GUIElem_Hidden;
 
 			for (auto& child : mChildren)
-				child->_setVisible(false);
+				child->SetVisibleInternal(false);
 		}
 		else
 		{
@@ -280,10 +280,10 @@ namespace bs
 			if (childVisibleSelf)
 			{
 				mFlags &= ~GUIElem_Hidden;
-				_markLayoutAsDirty();
+				MarkLayoutAsDirtyInternal();
 
 				for (auto& child : mChildren)
-					child->_setVisible(true);
+					child->SetVisibleInternal(true);
 			}
 		}
 	}
@@ -299,8 +299,8 @@ namespace bs
 			{
 				mFlags |= ACTIVE_FLAGS;
 
-				_setActive(false);
-				_setVisible(false);
+				SetActiveInternal(false);
+				SetVisibleInternal(false);
 			}
 			else
 			{
@@ -308,24 +308,24 @@ namespace bs
 
 				if (mParentElement != nullptr)
 				{
-					if (mParentElement->_isActive())
+					if (mParentElement->IsActiveInternal())
 					{
-						_setActive(true);
+						SetActiveInternal(true);
 
-						if (mParentElement->_isVisible())
-							_setVisible(true);
+						if (mParentElement->IsVisibleInternal())
+							SetVisibleInternal(true);
 					}
 				}
 				else
 				{
-					_setActive(true);
-					_setVisible(true);
+					SetActiveInternal(true);
+					SetVisibleInternal(true);
 				}
 			}
 		}
 	}
 
-	void GUIElementBase::_setActive(bool active)
+	void GUIElementBase::SetActiveInternal(bool active)
 	{
 		bool isActive = (mFlags & GUIElem_Inactive) == 0;
 		if (isActive == active)
@@ -333,12 +333,12 @@ namespace bs
 		
 		if (!active)
 		{
-			_markLayoutAsDirty();
+			MarkLayoutAsDirtyInternal();
 
 			mFlags |= GUIElem_Inactive;
 
 			for (auto& child : mChildren)
-				child->_setActive(false);
+				child->SetActiveInternal(false);
 		}
 		else
 		{
@@ -346,10 +346,10 @@ namespace bs
 			if (childActiveSelf)
 			{
 				mFlags &= ~GUIElem_Inactive;
-				_markLayoutAsDirty();
+				MarkLayoutAsDirtyInternal();
 
 				for (auto& child : mChildren)
-					child->_setActive(true);
+					child->SetActiveInternal(true);
 			}
 		}
 	}
@@ -364,11 +364,11 @@ namespace bs
 			else
 				mFlags |= GUIElem_DisabledSelf;
 
-			_setDisabled(disabled);
+			SetDisabledInternal(disabled);
 		}
 	}
 
-	void GUIElementBase::_setDisabled(bool disabled)
+	void GUIElementBase::SetDisabledInternal(bool disabled)
 	{
 		bool isDisabled = (mFlags & GUIElem_Disabled) != 0;
 		if (isDisabled == disabled)
@@ -382,7 +382,7 @@ namespace bs
 				mFlags &= ~GUIElem_Disabled;
 
 				for (auto& child : mChildren)
-					child->_setDisabled(false);
+					child->SetDisabledInternal(false);
 			}
 		}
 		else
@@ -390,91 +390,91 @@ namespace bs
 			mFlags |= GUIElem_Disabled;
 
 			for (auto& child : mChildren)
-				child->_setDisabled(true);
+				child->SetDisabledInternal(true);
 		}
 
-		if (_isVisible())
-			_markContentAsDirty();
+		if (IsVisibleInternal())
+			MarkContentAsDirtyInternal();
 	}
 
-	void GUIElementBase::_updateLayout(const GUILayoutData& data)
+	void GUIElementBase::UpdateLayoutInternal(const GUILayoutData& data)
 	{
-		_updateOptimalLayoutSizes(); // We calculate optimal sizes of all layouts as a pre-processing step, as they are requested often during update
-		_updateLayoutInternal(data);
+		UpdateOptimalLayoutSizesInternal(); // We calculate optimal sizes of all layouts as a pre-processing step, as they are requested often during update
+		UpdateLayoutInternalInternal(data);
 	}
 
-	void GUIElementBase::_updateOptimalLayoutSizes()
+	void GUIElementBase::UpdateOptimalLayoutSizesInternal()
 	{
 		for(auto& child : mChildren)
 		{
-			child->_updateOptimalLayoutSizes();
+			child->UpdateOptimalLayoutSizesInternal();
 		}
 	}
 
-	void GUIElementBase::_updateLayoutInternal(const GUILayoutData& data)
+	void GUIElementBase::UpdateLayoutInternalInternal(const GUILayoutData& data)
 	{
 		for(auto& child : mChildren)
 		{
-			child->_updateLayoutInternal(data);
+			child->UpdateLayoutInternalInternal(data);
 		}
 	}
 
-	LayoutSizeRange GUIElementBase::_calculateLayoutSizeRange() const
+	LayoutSizeRange GUIElementBase::CalculateLayoutSizeRangeInternal() const
 	{
-		const GUIDimensions& dimensions = _getDimensions();
-		return dimensions.calculateSizeRange(_getOptimalSize());
+		const GUIDimensions& dimensions = GetDimensionsInternal();
+		return dimensions.calculateSizeRange(GetOptimalSizeInternal());
 	}
 
-	LayoutSizeRange GUIElementBase::_getLayoutSizeRange() const
+	LayoutSizeRange GUIElementBase::GetLayoutSizeRangeInternal() const
 	{
-		return _calculateLayoutSizeRange();
+		return CalculateLayoutSizeRangeInternal();
 	}
 
-	void GUIElementBase::_getElementAreas(const Rect2I& layoutArea, Rect2I* elementAreas, UINT32 numElements,
+	void GUIElementBase::GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, UINT32 numElements,
 		const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const
 	{
 		assert(mChildren.size() == 0);
 	}
 
-	void GUIElementBase::_setParent(GUIElementBase* parent)
+	void GUIElementBase::SetParentInternal(GUIElementBase* parent)
 	{
 		if(mParentElement != parent)
 		{
 			mParentElement = parent;
-			_updateAUParents();
+			UpdateAUParentsInternal();
 
 			if (parent != nullptr)
 			{
-				if (_getParentWidget() != parent->_getParentWidget())
-					_changeParentWidget(parent->_getParentWidget());
+				if (GetParentWidgetInternal() != parent->GetParentWidgetInternal())
+					ChangeParentWidgetInternal(parent->GetParentWidgetInternal());
 			}
 			else
-				_changeParentWidget(nullptr);
+				ChangeParentWidgetInternal(nullptr);
 		}
 	}
 
-	void GUIElementBase::_registerChildElement(GUIElementBase* element)
+	void GUIElementBase::RegisterChildElementInternal(GUIElementBase* element)
 	{
-		assert(!element->_isDestroyed());
+		assert(!element->IsDestroyedInternal());
 
-		GUIElementBase* parentElement = element->_getParent();
+		GUIElementBase* parentElement = element->GetParentInternal();
 		if(parentElement != nullptr)
 		{
-			parentElement->_unregisterChildElement(element);
+			parentElement->UnregisterChildElementInternal(element);
 		}
 
-		element->_setParent(this);
+		element->SetParentInternal(this);
 		mChildren.push_back(element);
 
-		element->_setActive(_isActive());
-		element->_setVisible(_isVisible());
-		element->_setDisabled(_isDisabled());
+		element->SetActiveInternal(IsActiveInternal());
+		element->SetVisibleInternal(IsVisibleInternal());
+		element->SetDisabledInternal(IsDisabledInternal());
 
 		// No need to mark ourselves as dirty. If we're part of the element's update chain, this will do it for us.
-		element->_markLayoutAsDirty();
+		element->MarkLayoutAsDirtyInternal();
 	}
 
-	void GUIElementBase::_unregisterChildElement(GUIElementBase* element)
+	void GUIElementBase::UnregisterChildElementInternal(GUIElementBase* element)
 	{
 		bool foundElem = false;
 		for(auto iter = mChildren.begin(); iter != mChildren.end(); ++iter)
@@ -483,10 +483,10 @@ namespace bs
 
 			if (child == element)
 			{
-				element->_markLayoutAsDirty();
+				element->MarkLayoutAsDirtyInternal();
 
 				mChildren.erase(iter);
-				element->_setParent(nullptr);
+				element->SetParentInternal(nullptr);
 				foundElem = true;
 
 				break;
@@ -502,22 +502,22 @@ namespace bs
 		Vector<GUIElementBase*> childCopy = mChildren;
 		for (auto& child : childCopy)
 		{
-			if (child->_getType() == Type::Element)
+			if (child->GetTypeInternal() == Type::Element)
 			{
 				const auto element = static_cast<GUIElement*>(child);
 				GUIElement::destroy(element);
 			}
-			else if (child->_getType() == Type::Layout || child->_getType() == GUIElementBase::Type::Panel)
+			else if (child->GetTypeInternal() == Type::Layout || child->GetTypeInternal() == GUIElementBase::Type::Panel)
 			{
 				const auto layout = static_cast<GUILayout*>(child);
 				GUILayout::destroy(layout);
 			}
-			else if (child->_getType() == Type::FixedSpace)
+			else if (child->GetTypeInternal() == Type::FixedSpace)
 			{
 				const auto space = static_cast<GUIFixedSpace*>(child);
 				GUIFixedSpace::destroy(space);
 			}
-			else if (child->_getType() == Type::FlexibleSpace)
+			else if (child->GetTypeInternal() == Type::FlexibleSpace)
 			{
 				const auto space = static_cast<GUIFlexibleSpace*>(child);
 				GUIFlexibleSpace::destroy(space);
@@ -527,30 +527,30 @@ namespace bs
 		assert(mChildren.empty());
 	}
 
-	void GUIElementBase::_changeParentWidget(GUIWidget* widget)
+	void GUIElementBase::ChangeParentWidgetInternal(GUIWidget* widget)
 	{
-		assert(!_isDestroyed());
+		assert(!IsDestroyedInternal());
 
 		if (mParentWidget != widget)
 		{
 			if (mParentWidget != nullptr)
-				mParentWidget->_unregisterElement(this);
+				mParentWidget->UnregisterElementInternal(this);
 
 			if (widget != nullptr)
-				widget->_registerElement(this);
+				widget->RegisterElementInternal(this);
 		}
 
 		mParentWidget = widget;
 
 		for(auto& child : mChildren)
 		{
-			child->_changeParentWidget(widget);
+			child->ChangeParentWidgetInternal(widget);
 		}
 
-		_markLayoutAsDirty();
+		MarkLayoutAsDirtyInternal();
 	}
 
-	void GUIElementBase::_updateAUParents()
+	void GUIElementBase::UpdateAUParentsInternal()
 	{
 		GUIElementBase* updateParent = nullptr;
 		if (mParentElement != nullptr)
@@ -559,11 +559,11 @@ namespace bs
 
 			// If parent is a panel then we can do an optimization and only update
 			// one child instead of all of them, so change parent to that child.
-			if (updateParent != nullptr && updateParent->_getType() == GUIElementBase::Type::Panel)
+			if (updateParent != nullptr && updateParent->GetTypeInternal() == GUIElementBase::Type::Panel)
 			{
 				GUIElementBase* optimizedUpdateParent = this;
-				while (optimizedUpdateParent->_getParent() != updateParent)
-					optimizedUpdateParent = optimizedUpdateParent->_getParent();
+				while (optimizedUpdateParent->GetParentInternal() != updateParent)
+					optimizedUpdateParent = optimizedUpdateParent->GetParentInternal();
 
 				updateParent = optimizedUpdateParent;
 			}
@@ -573,7 +573,7 @@ namespace bs
 		GUIElementBase* currentParent = mParentElement;
 		while (currentParent != nullptr)
 		{
-			if (currentParent->_getType() == Type::Panel)
+			if (currentParent->GetTypeInternal() == Type::Panel)
 			{
 				anchorParent = static_cast<GUIPanel*>(currentParent);
 				break;
@@ -591,7 +591,7 @@ namespace bs
 		GUIElementBase* currentElement = this;
 		while (currentElement != nullptr)
 		{
-			const GUIDimensions& parentDimensions = currentElement->_getDimensions();
+			const GUIDimensions& parentDimensions = currentElement->GetDimensionsInternal();
 			bool boundsDependOnChildren = !parentDimensions.fixedHeight() || !parentDimensions.fixedWidth();
 
 			if (!boundsDependOnChildren)
@@ -613,11 +613,11 @@ namespace bs
 
 			// If parent is a panel then we can do an optimization and only update
 			// one child instead of all of them, so change parent to that child.
-			if (childUpdateParent != nullptr && childUpdateParent->_getType() == GUIElementBase::Type::Panel)
+			if (childUpdateParent != nullptr && childUpdateParent->GetTypeInternal() == GUIElementBase::Type::Panel)
 			{
 				GUIElementBase* optimizedUpdateParent = child;
-				while (optimizedUpdateParent->_getParent() != childUpdateParent)
-					optimizedUpdateParent = optimizedUpdateParent->_getParent();
+				while (optimizedUpdateParent->GetParentInternal() != childUpdateParent)
+					optimizedUpdateParent = optimizedUpdateParent->GetParentInternal();
 
 				childUpdateParent = optimizedUpdateParent;
 			}
@@ -630,7 +630,7 @@ namespace bs
 	{
 		mAnchorParent = anchorParent;
 
-		if (_getType() == Type::Panel)
+		if (GetTypeInternal() == Type::Panel)
 			return;
 
 		for (auto& child : mChildren)
@@ -641,7 +641,7 @@ namespace bs
 	{
 		mUpdateParent = updateParent;
 
-		const GUIDimensions& dimensions = _getDimensions();
+		const GUIDimensions& dimensions = GetDimensionsInternal();
 		bool boundsDependOnChildren = !dimensions.fixedHeight() || !dimensions.fixedWidth();
 
 		if (!boundsDependOnChildren)

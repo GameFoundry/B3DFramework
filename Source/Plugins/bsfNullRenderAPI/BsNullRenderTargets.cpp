@@ -38,7 +38,7 @@ namespace bs
 	{
 		RENDER_WINDOW_DESC desc = mDesc;
 		SPtr<ct::CoreObject> coreObj = bs_shared_ptr_new<ct::NullRenderWindow>(desc, mWindowId);
-		coreObj->_setThisPtr(coreObj);
+		coreObj->SetThisPtrInternal(coreObj);
 
 		return coreObj;
 	}

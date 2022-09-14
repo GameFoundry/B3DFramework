@@ -30,7 +30,7 @@ namespace bs
 		void destroy(bool assemblyRefresh);
 
 		/**	Triggered by the script game object manager when the handle this object is referencing is destroyed. */
-		virtual void _notifyDestroyed() { }
+		virtual void NotifyDestroyedInternal() { }
 
 		/** Checks if the provided game object is destroyed and logs a warning if it is. */
 		static bool checkIfDestroyed(const GameObjectHandleBase& handle);
@@ -62,7 +62,7 @@ namespace bs
 		virtual ~TScriptComponent() {}
 
 		/** @copydoc ScriptObject::_createManagedInstance */
-		MonoObject* _createManagedInstance(bool construct) override
+		MonoObject* CreateManagedInstanceInternal(bool construct) override
 		{
 			MonoObject* managedInstance = ScriptClass::metaData.scriptClass->createInstance(construct);
 			this->setManagedInstance(managedInstance);
@@ -71,7 +71,7 @@ namespace bs
 		}
 
 		/** @copydoc ScriptObjectBase::_clearManagedInstance */
-		void _clearManagedInstance() override
+		void ClearManagedInstanceInternal() override
 		{
 			this->freeManagedInstance();
 		}
@@ -80,13 +80,13 @@ namespace bs
 		 * Triggered by the script game object manager when the native component handle this object point to has been
 		 * destroyed.
 		 */
-		void _notifyDestroyed() override
+		void NotifyDestroyedInternal() override
 		{
 			this->freeManagedInstance();
 		}
 
 		/**	Called when the managed instance gets finalized by the CLR. */
-		void _onManagedInstanceDeleted(bool assemblyRefresh) override
+		void OnManagedInstanceDeletedInternal(bool assemblyRefresh) override
 		{
 			this->freeManagedInstance();
 

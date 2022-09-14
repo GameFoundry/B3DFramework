@@ -385,7 +385,7 @@ namespace bs
 		else
 			mParams = nullptr;
 
-		_markDependenciesDirty();
+		MarkDependenciesDirtyInternal();
 	}
 
 	template <bool Core>
@@ -585,7 +585,7 @@ namespace bs
 	void Material::initialize()
 	{
 		addResourceDependency(mShader);
-		_markResourcesDirty();
+		MarkResourcesDirtyInternal();
 		initializeIfLoaded();
 
 		Resource::initialize();
@@ -607,7 +607,7 @@ namespace bs
 		// shader)
 		mParams = nullptr;
 
-		_markResourcesDirty();
+		MarkResourcesDirtyInternal();
 
 		initializeIfLoaded();
 	}
@@ -618,17 +618,17 @@ namespace bs
 		markCoreDirty();
 	}
 
-	void Material::_markCoreDirty(MaterialDirtyFlags flags)
+	void Material::MarkCoreDirtyInternal(MaterialDirtyFlags flags)
 	{
 		markCoreDirty((UINT32)flags);
 	}
 
-	void Material::_markDependenciesDirty()
+	void Material::MarkDependenciesDirtyInternal()
 	{
 		markDependenciesDirty();
 	}
 
-	void Material::_markResourcesDirty()
+	void Material::MarkResourcesDirtyInternal()
 	{
 		markListenerResourcesDirty();
 	}
@@ -660,7 +660,7 @@ namespace bs
 			material = new (bs_alloc<ct::Material>()) ct::Material(shader, mVariation);
 
 		SPtr<ct::Material> materialPtr = bs_shared_ptr<ct::Material>(material);
-		materialPtr->_setThisPtr(materialPtr);
+		materialPtr->SetThisPtrInternal(materialPtr);
 
 		return materialPtr;
 	}
@@ -769,7 +769,7 @@ namespace bs
 		else
 		{
 			// Otherwise just sync changes (most likely just a texture got loaded)
-			_markCoreDirty(MaterialDirtyFlags::ParamResource);
+			MarkCoreDirtyInternal(MaterialDirtyFlags::ParamResource);
 		}
 	}
 
@@ -784,7 +784,7 @@ namespace bs
 		else
 		{
 			// Otherwise just sync changes (most likely just a texture got reimported)
-			_markCoreDirty(MaterialDirtyFlags::ParamResource);
+			MarkCoreDirtyInternal(MaterialDirtyFlags::ParamResource);
 		}
 	}
 
@@ -797,7 +797,7 @@ namespace bs
 		outputStream->seek(0);
 		SPtr<Material> cloneObj = std::static_pointer_cast<Material>(serializer.decode(outputStream, (UINT32)outputStream->size()));
 
-		return static_resource_cast<Material>(gResources()._createResourceHandle(cloneObj));
+		return static_resource_cast<Material>(gResources().CreateResourceHandleInternal(cloneObj));
 	}
 
 	template<class T>
@@ -988,7 +988,7 @@ namespace bs
 		const SPtr<Material> materialPtr = createEmpty();
 		materialPtr->initialize();
 
-		return static_resource_cast<Material>(gResources()._createResourceHandle(materialPtr));
+		return static_resource_cast<Material>(gResources().CreateResourceHandleInternal(materialPtr));
 	}
 
 	HMaterial Material::create(const HShader& shader)
@@ -999,16 +999,16 @@ namespace bs
 	HMaterial Material::create(const HShader& shader, const ShaderVariation& variation)
 	{
 		SPtr<Material> materialPtr = bs_core_ptr<Material>(new (bs_alloc<Material>()) Material(shader, variation));
-		materialPtr->_setThisPtr(materialPtr);
+		materialPtr->SetThisPtrInternal(materialPtr);
 		materialPtr->initialize();
 
-		return static_resource_cast<Material>(gResources()._createResourceHandle(materialPtr));
+		return static_resource_cast<Material>(gResources().CreateResourceHandleInternal(materialPtr));
 	}
 
 	SPtr<Material> Material::createEmpty()
 	{
 		SPtr<Material> newMat = bs_core_ptr<Material>(new (bs_alloc<Material>()) Material());
-		newMat->_setThisPtr(newMat);
+		newMat->SetThisPtrInternal(newMat);
 
 		return newMat;
 	}
@@ -1099,7 +1099,7 @@ namespace bs
 	{
 		Material* material = new (bs_alloc<Material>()) Material(shader, ShaderVariation::EMPTY);
 		SPtr<Material> materialPtr = bs_shared_ptr<Material>(material);
-		materialPtr->_setThisPtr(materialPtr);
+		materialPtr->SetThisPtrInternal(materialPtr);
 		materialPtr->initialize();
 
 		return materialPtr;

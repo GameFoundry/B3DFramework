@@ -161,7 +161,7 @@ namespace bs
 		BS_CHECK_GL_ERROR();
 	}
 
-	bool GLRTTManager::_tryFormat(GLenum depthFormat, GLenum stencilFormat)
+	bool GLRTTManager::TryFormatInternal(GLenum depthFormat, GLenum stencilFormat)
 	{
 		GLuint status, depthRB = 0, stencilRB = 0;
 		bool failed = false;
@@ -237,7 +237,7 @@ namespace bs
 		return status == GL_FRAMEBUFFER_COMPLETE && !failed;
 	}
 
-	bool GLRTTManager::_tryPackedFormat(GLenum packedFormat)
+	bool GLRTTManager::TryPackedFormatInternal(GLenum packedFormat)
 	{
 		GLuint packedRB = 0;
 		bool failed = false; // flag on GL errors
@@ -379,7 +379,7 @@ namespace bs
 				{
 					if (depthFormats[depth] != GL_DEPTH24_STENCIL8 && depthFormats[depth] != GL_DEPTH32F_STENCIL8)
 					{
-						if (_tryFormat(depthFormats[depth], GL_NONE))
+						if (TryFormatInternal(depthFormats[depth], GL_NONE))
 						{
 							/// Add mode to allowed modes
 							FormatProperties::Mode mode;
@@ -391,7 +391,7 @@ namespace bs
 					else
 					{
 						// Packed depth/stencil format
-						if (_tryPackedFormat(depthFormats[depth]))
+						if (TryPackedFormatInternal(depthFormats[depth]))
 						{
 							/// Add mode to allowed modes
 							FormatProperties::Mode mode;

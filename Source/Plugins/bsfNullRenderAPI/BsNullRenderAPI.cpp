@@ -30,7 +30,7 @@ namespace bs { namespace ct
 		GPUInfo gpuInfo;
 		gpuInfo.numGPUs = 0;
 
-		PlatformUtility::_setGPUInfo(gpuInfo);
+		PlatformUtility::SetGPUInfoInternal(gpuInfo);
 
 		CommandBufferManager::startUp<NullCommandBufferManager>();
 

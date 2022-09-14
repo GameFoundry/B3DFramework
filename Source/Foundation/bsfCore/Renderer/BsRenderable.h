@@ -135,10 +135,10 @@ namespace bs
 		 * changed since the last call to this method. This will trigger a call to getCoreDependencies() to collect the
 		 * new dependencies.
 		 */
-		virtual void _markDependenciesDirty() { }
+		virtual void MarkDependenciesDirtyInternal() { }
 
 		/**	Marks the resource dependencies list as dirty and schedules it for rebuild. */
-		virtual void _markResourcesDirty() { }
+		virtual void MarkResourcesDirtyInternal() { }
 
 		/** Triggered whenever the renderable's mesh changes. */
 		virtual void onMeshChanged() { }
@@ -189,7 +189,7 @@ namespace bs
 		 */
 
 		/** @copydoc SceneActor::_updateState */
-		void _updateState(const SceneObject& so, bool force = false) override;
+		void UpdateStateInternal(const SceneObject& so, bool force = false) override;
 
 		/** @copydoc CoreObject::initialize() */
 		void initialize() override;
@@ -206,13 +206,13 @@ namespace bs
 		void refreshAnimation();
 
 		/** @copydoc TRenderable::_markCoreDirty */
-		void _markCoreDirty(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
+		void MarkCoreDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
 
 		/** @copydoc TRenderable::_markResourcesDirty */
-		void _markResourcesDirty() override;
+		void MarkResourcesDirtyInternal() override;
 
 		/** @copydoc CoreObject::markDependenciesDirty */
-		void _markDependenciesDirty() override;
+		void MarkDependenciesDirtyInternal() override;
 
 		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData syncToCore(FrameAlloc* allocator) override;

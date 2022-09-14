@@ -114,10 +114,10 @@ namespace bs
 		void detectFBOFormats();
 
 		/**	Checks are the specified depth & stencil formats compatible. */
-		bool _tryFormat(GLenum depthFormat, GLenum stencilFormat);
+		bool TryFormatInternal(GLenum depthFormat, GLenum stencilFormat);
 
 		/**	Checks is the specified packed format valid for using in the render target. */
-		bool _tryPackedFormat(GLenum packedFormat);
+		bool TryPackedFormatInternal(GLenum packedFormat);
 
 		FormatProperties mProps[PF_COUNT];
 		GLuint mBlitReadFBO;

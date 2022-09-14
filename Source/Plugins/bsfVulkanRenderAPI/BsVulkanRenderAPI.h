@@ -107,25 +107,25 @@ namespace bs { namespace ct
 		 */
 
 		/** Returns the internal Vulkan instance object. */
-		VkInstance _getInstance() const { return mInstance; }
+		VkInstance GetInstanceInternal() const { return mInstance; }
 
-		/** Returns a Vulkan device at the specified index. Must be in range [0, _getNumDevices()) */
-		SPtr<VulkanDevice> _getDevice(UINT32 idx) const { return mDevices[idx]; }
+		/** Returns a Vulkan device at the specified index. Must be in range [0, GetNumDevicesInternal()) */
+		SPtr<VulkanDevice> GetDeviceInternal(UINT32 idx) const { return mDevices[idx]; }
 
 		/** Returns the primary device that supports swap chain present operations. */
-		const SPtr<VulkanDevice>& _getPresentDevice() const { return mPrimaryDevices[0]; }
+		const SPtr<VulkanDevice>& GetPresentDeviceInternal() const { return mPrimaryDevices[0]; }
 
 		/** Gets the total number of Vulkan compatible devices available on this system. */
-		UINT32 _getNumDevices() const { return (UINT32)mDevices.size(); }
+		UINT32 GetNumDevicesInternal() const { return (UINT32)mDevices.size(); }
 
 		/**
 		 * Returns one or multiple devices recognized as primary. This will be a single device in most cases, or multiple
 		 * devices if using some kind of a supported multi-GPU setup.
 		 */
-		const Vector<SPtr<VulkanDevice>> _getPrimaryDevices() const { return mPrimaryDevices; }
+		const Vector<SPtr<VulkanDevice>> GetPrimaryDevicesInternal() const { return mPrimaryDevices; }
 
 		/** Returns the main command buffer, executing on the graphics queue. */
-		VulkanCommandBuffer* _getMainCommandBuffer() const { return mMainCommandBuffer.get(); }
+		VulkanCommandBuffer* GetMainCommandBufferInternal() const { return mMainCommandBuffer.get(); }
 
 		/** @} */
 	protected:

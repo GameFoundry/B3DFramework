@@ -8,12 +8,12 @@ namespace bs
 {
 	FMODAudioSource::FMODAudioSource()
 	{
-		gFMODAudio()._registerSource(this);
+		gFMODAudio().RegisterSourceInternal(this);
 	}
 
 	FMODAudioSource::~FMODAudioSource()
 	{
-		gFMODAudio()._unregisterSource(this);
+		gFMODAudio().UnregisterSourceInternal(this);
 
 		if (mStreamingSound != nullptr)
 			FMODAudioClip::releaseStreamingSound(mStreamingSound);
@@ -99,7 +99,7 @@ namespace bs
 		{
 			assert(mStreamingSound == nullptr);
 
-			FMOD::System* fmod = gFMODAudio()._getFMOD();
+			FMOD::System* fmod = gFMODAudio().GetFMODInternal();
 			
 			FMODAudioClip* fmodClip = static_cast<FMODAudioClip*>(mAudioClip.get());
 			FMOD::Sound* sound;

@@ -73,7 +73,7 @@ namespace bs
 
 		__AudioDeviceInterop interop__output;
 		interop__output = ScriptAudioDevice::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptAudioDevice::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptAudioDevice::getMetaData()->scriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptAudio::Internal_getDefaultDevice(__AudioDeviceInterop* __output)
@@ -83,7 +83,7 @@ namespace bs
 
 		__AudioDeviceInterop interop__output;
 		interop__output = ScriptAudioDevice::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptAudioDevice::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptAudioDevice::getMetaData()->scriptClass->GetInternalClassInternal());
 	}
 
 	MonoArray* ScriptAudio::Internal_getAllDevices()

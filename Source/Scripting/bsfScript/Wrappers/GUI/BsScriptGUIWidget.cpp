@@ -59,8 +59,8 @@ namespace bs
 		SPtr<GUIWidget> widget = thisPtr->getInternal();
 		if (!parentSO.isDestroyed() && widget != nullptr)
 		{
-			widget->_updateTransform(parentSO);
-			widget->_updateRT();
+			widget->UpdateTransformInternal(parentSO);
+			widget->UpdateRTInternal();
 
 			if (parentSO->getActive() != widget->getIsActive())
 				widget->setIsActive(parentSO->getActive());
@@ -75,7 +75,7 @@ namespace bs
 		{
 			SPtr<Camera> nativeCamera;
 			if (camera != nullptr)
-				nativeCamera = camera->getHandle()->_getCamera();
+				nativeCamera = camera->getHandle()->GetCameraInternal();
 
 			widget->setCamera(nativeCamera);
 		}
@@ -99,7 +99,7 @@ namespace bs
 	{
 		SPtr<Camera> nativeCamera;
 		if (camera != nullptr)
-			nativeCamera = camera->getHandle()->_getCamera();
+			nativeCamera = camera->getHandle()->GetCameraInternal();
 
 		if(nativeCamera == nullptr)
 			nativeCamera = gSceneManager().getMainCamera();
@@ -134,15 +134,15 @@ namespace bs
 
 		if (mGUIWidget != nullptr)
 		{
-			mGUIWidget->_destroy();
+			mGUIWidget->DestroyInternal();
 			mGUIWidget = nullptr;
 		}
 	}
 
-	void ScriptGUIWidget::_onManagedInstanceDeleted(bool assemblyRefresh)
+	void ScriptGUIWidget::OnManagedInstanceDeletedInternal(bool assemblyRefresh)
 	{
 		destroy(false);
 
-		ScriptObject::_onManagedInstanceDeleted(assemblyRefresh);
+		ScriptObject::OnManagedInstanceDeletedInternal(assemblyRefresh);
 	}
 }

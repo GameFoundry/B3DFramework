@@ -185,7 +185,7 @@ namespace bs
 		MonoObject* createInstance(const String& ctorSignature, void** params);
 
 		/**	Returns the internal mono representation of the class. */
-		::MonoClass* _getInternalClass() const { return mClass; }
+		::MonoClass* GetInternalClassInternal() const { return mClass; }
 
 		/** Invokes the parameterless constructor on the provided object. */
 		static void construct(MonoObject* object);

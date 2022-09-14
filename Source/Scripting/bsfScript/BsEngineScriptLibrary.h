@@ -53,7 +53,7 @@ namespace bs
 		/** Returns the singleton instance of this library. */
 		static EngineScriptLibrary& instance()
 		{
-			return static_cast<EngineScriptLibrary&>(*ScriptManager::instance()._getScriptLibrary());
+			return static_cast<EngineScriptLibrary&>(*ScriptManager::instance().GetScriptLibraryInternal());
 		}
 
 	protected:

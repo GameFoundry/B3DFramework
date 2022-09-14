@@ -30,10 +30,10 @@ namespace bs
 
 		if (mInternal != nullptr)
 		{
-			_getInternal()->setExtents(clampedExtents);
+			GetInternalInternal()->setExtents(clampedExtents);
 
 			if (mParent != nullptr)
-				mParent->_updateMassDistribution();
+				mParent->UpdateMassDistributionInternal();
 		}
 	}
 
@@ -55,7 +55,7 @@ namespace bs
 
 		SPtr<Collider> collider = BoxCollider::create(*scene->getPhysicsScene(), mExtents, tfrm.getPosition(),
 			tfrm.getRotation());
-		collider->_setOwner(PhysicsOwnerType::Component, this);
+		collider->SetOwnerInternal(PhysicsOwnerType::Component, this);
 
 		return collider;
 	}

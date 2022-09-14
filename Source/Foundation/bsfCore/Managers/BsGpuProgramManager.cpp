@@ -9,7 +9,7 @@ namespace bs
 	{
 		GpuProgram* program = new (bs_alloc<GpuProgram>()) GpuProgram(desc);
 		SPtr<GpuProgram> ret = bs_core_ptr<GpuProgram>(program);
-		ret->_setThisPtr(ret);
+		ret->SetThisPtrInternal(ret);
 		ret->initialize();
 
 		return ret;
@@ -23,7 +23,7 @@ namespace bs
 
 		GpuProgram* program = new (bs_alloc<GpuProgram>()) GpuProgram(desc);
 		SPtr<GpuProgram> ret = bs_core_ptr<GpuProgram>(program);
-		ret->_setThisPtr(ret);
+		ret->SetThisPtrInternal(ret);
 
 		return ret;
 	}
@@ -48,7 +48,7 @@ namespace bs
 	SPtr<GpuProgram> NullProgramFactory::create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 	{
 		SPtr<NullProgram> ret = bs_shared_ptr_new<NullProgram>();
-		ret->_setThisPtr(ret);
+		ret->SetThisPtrInternal(ret);
 
 		return ret;
 	}
@@ -56,7 +56,7 @@ namespace bs
 	SPtr<GpuProgram> NullProgramFactory::create(GpuProgramType type, GpuDeviceFlags deviceMask)
 	{
 		SPtr<NullProgram> ret = bs_shared_ptr_new<NullProgram>();
-		ret->_setThisPtr(ret);
+		ret->SetThisPtrInternal(ret);
 
 		return ret;
 	}

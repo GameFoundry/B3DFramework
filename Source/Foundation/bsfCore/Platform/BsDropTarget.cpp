@@ -4,19 +4,19 @@
 
 namespace bs
 {
-	void DropTarget::_clear()
+	void DropTarget::ClearInternal()
 	{
 		mFileList.clear();
 	}
 
-	bool DropTarget::_isInside(const Vector2I& pos) const
+	bool DropTarget::IsInsideInternal(const Vector2I& pos) const
 	{
 		return mArea.contains(pos);
 	}
 
-	void DropTarget::_setFileList(const Vector<Path>& fileList)
+	void DropTarget::SetFileListInternal(const Vector<Path>& fileList)
 	{
-		_clear();
+		ClearInternal();
 
 		mDropType = DropTargetType::FileList;
 		mFileList = fileList;

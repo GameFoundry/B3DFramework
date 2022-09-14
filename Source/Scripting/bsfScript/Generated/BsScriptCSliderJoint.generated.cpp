@@ -54,7 +54,7 @@ namespace bs
 
 		__LimitLinearRangeInterop interop__output;
 		interop__output = ScriptLimitLinearRange::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptLimitLinearRange::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptLimitLinearRange::getMetaData()->scriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptCSliderJoint::Internal_setLimit(ScriptCSliderJoint* thisPtr, __LimitLinearRangeInterop* limit)

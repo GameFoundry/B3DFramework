@@ -59,7 +59,7 @@ namespace bs { namespace ct
 		SPtr<VideoModeInfo> getVideoModeInfo() const override;
 
 		/** Notifies the manager that a new window has been created. */
-		void _notifyWindowCreated(Win32RenderWindow* window);
+		void NotifyWindowCreatedInternal(Win32RenderWindow* window);
 
 	private:
 		/**	Initializes windows specific OpenGL extensions needed for advanced context creation. */

@@ -111,10 +111,10 @@ namespace bs
 		void getCustomAttribute(const String& name, void* data) const override;
 
 		/** @copydoc RenderWindow::_windowMovedOrResized */
-		void _windowMovedOrResized() override;
+		void WindowMovedOrResizedInternal() override;
 
 		/**	Returns internal window handle. */
-		HWND _getWindowHandle() const;
+		HWND GetWindowHandleInternal() const;
 	protected:
 		friend class bs::Win32RenderWindow;
 

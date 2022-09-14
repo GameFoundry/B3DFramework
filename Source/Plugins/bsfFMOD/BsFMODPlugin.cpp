@@ -33,7 +33,7 @@ namespace bs
 	extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
 	{
 		FMODImporter* importer = bs_new<FMODImporter>();
-		Importer::instance()._registerAssetImporter(importer);
+		Importer::instance().RegisterAssetImporterInternal(importer);
 
 		return bs_new<FMODFactory>();
 	}

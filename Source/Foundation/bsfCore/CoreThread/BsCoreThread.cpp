@@ -83,7 +83,7 @@ namespace bs
 	}
 
 #if BS_CORE_THREAD_IS_MAIN
-	void CoreThread::_run()
+	void CoreThread::RunInternal()
 	{
 		// Wait for the application to reach a point where core thread can be safely started
 		{

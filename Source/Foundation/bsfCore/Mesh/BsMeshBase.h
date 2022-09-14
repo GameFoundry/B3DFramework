@@ -179,7 +179,7 @@ namespace bs
 		 * 			
 		 * @note	Needs to be called after all commands referencing this mesh have been sent to the GPU.
 		 */
-		virtual void _notifyUsedOnGPU() { }
+		virtual void NotifyUsedOnGPUInternal() { }
 
 		/**	Returns properties that contain information about the mesh. */
 		const MeshProperties& getProperties() const { return mProperties; }

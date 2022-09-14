@@ -13,7 +13,7 @@ namespace bs
 
 	}
 
-	void Rigidbody::_setTransform(const Vector3& position, const Quaternion& rotation)
+	void Rigidbody::SetTransformInternal(const Vector3& position, const Quaternion& rotation)
 	{
 		mLinkedSO->setWorldPosition(position);
 		mLinkedSO->setWorldRotation(rotation);

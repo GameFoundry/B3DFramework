@@ -198,14 +198,14 @@ namespace bs
 		ScriptSceneObject* so = getScriptSceneObject(instanceId);
 		if (so != nullptr)
 		{
-			so->_notifyDestroyed();
+			so->NotifyDestroyedInternal();
 			mScriptSceneObjects.erase(instanceId);
 		}
 
 		ScriptComponentBase* component = getScriptComponent(instanceId);
 		if(component != nullptr)
 		{
-			component->_notifyDestroyed();
+			component->NotifyDestroyedInternal();
 			mScriptComponents.erase(instanceId);
 		}
 	}

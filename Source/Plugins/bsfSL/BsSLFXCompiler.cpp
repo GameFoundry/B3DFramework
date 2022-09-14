@@ -810,7 +810,7 @@ namespace bs
 		BSLFXCompileResult output = compileShader(source, defines, languages, shaderDesc, includes);
 
 		// Generate a shader from the parsed information
-		output.shader = Shader::_createPtr(name, shaderDesc);
+		output.shader = Shader::CreatePtrInternal(name, shaderDesc);
 		output.shader->setIncludeFiles(includes);
 
 		return output;
@@ -2137,7 +2137,7 @@ cleanup:
 
 				SubShader subShader;
 				subShader.name = extPointShader.name;
-				subShader.shader = Shader::_createPtr(subShader.name, subShaderDesc);
+				subShader.shader = Shader::CreatePtrInternal(subShader.name, subShaderDesc);
 
 				shaderDesc.subShaders.push_back(subShader);
 			}

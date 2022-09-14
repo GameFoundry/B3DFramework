@@ -102,13 +102,13 @@ namespace bs
 		 * Construct any resources the component needs before use. Called when the parent scene object is instantiated.
 		 * A non-instantiated component shouldn't be used for any other purpose than serialization.
 		 */
-		virtual void _instantiate() {}
+		virtual void InstantiateInternal() {}
 
 		/** Sets new flags that determine when is onTransformChanged called. */
 		void setNotifyFlags(TransformChangedFlags flags) { mNotifyFlags = flags; }
 
-		/** Gets the currently assigned notify flags. See _setNotifyFlags(). */
-		TransformChangedFlags _getNotifyFlags() const { return mNotifyFlags; }
+		/** Gets the currently assigned notify flags. See SetNotifyFlagsInternal(). */
+		TransformChangedFlags GetNotifyFlagsInternal() const { return mNotifyFlags; }
 
 		/** @} */
 	protected:
@@ -146,7 +146,7 @@ namespace bs
 
 		/**
 		 * Called when the component's parent scene object has changed. Not called if the component is in Stopped state.
-		 * Also only called if necessary notify flags are set via _setNotifyFlags().
+		* Also only called if necessary notify flags are set via SetNotifyFlagsInternal().
 		 */
 		virtual void onTransformChanged(TransformChangedFlags flags) { }
 

@@ -107,7 +107,7 @@ namespace bs { namespace ct
 		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputParam);
 	}
 
-	void RadixSortClearMat::_initDefines(ShaderDefines& defines)
+	void RadixSortClearMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		initCommonDefines(defines);
 	}
@@ -128,7 +128,7 @@ namespace bs { namespace ct
 		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutputCounts", mOutputCountsParam);
 	}
 
-	void RadixSortCountMat::_initDefines(ShaderDefines& defines)
+	void RadixSortCountMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		initCommonDefines(defines);
 	}
@@ -153,7 +153,7 @@ namespace bs { namespace ct
 		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutputOffsets", mOutputOffsetsParam);
 	}
 
-	void RadixSortPrefixScanMat::_initDefines(ShaderDefines& defines)
+	void RadixSortPrefixScanMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		initCommonDefines(defines);
 	}
@@ -181,7 +181,7 @@ namespace bs { namespace ct
 		mParams->getBufferParam(GPT_COMPUTE_PROGRAM, "gOutputValues", mOutputValuesBufferParam);
 	}
 
-	void RadixSortReorderMat::_initDefines(ShaderDefines& defines)
+	void RadixSortReorderMat::InitDefinesInternal(ShaderDefines& defines)
 	{
 		initCommonDefines(defines);
 	}

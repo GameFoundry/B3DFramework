@@ -66,7 +66,7 @@ namespace bs
 
 		// Find next element to focus on
 		{
-			const Rect2I focusedElemBounds = anchor->_getClippedBounds();
+			const Rect2I focusedElemBounds = anchor->GetClippedBoundsInternal();
 
 			// We look for the element to the right of the current element, within some Y range (a 'row').
 			//// We search by rows in order to make the navigation perceptually nicer. Sometimes elements appear to be
@@ -81,8 +81,8 @@ namespace bs
 				{
 					bool operator()(const GUIElement* lhs, const GUIElement* rhs) const
 					{
-						const Rect2I boundsLHS = lhs->_getClippedBounds();
-						const Rect2I boundsRHS = rhs->_getClippedBounds();
+						const Rect2I boundsLHS = lhs->GetClippedBoundsInternal();
+						const Rect2I boundsRHS = rhs->GetClippedBoundsInternal();
 
 						if(boundsLHS.y != boundsRHS.y)
 							return boundsLHS.y < boundsRHS.y;
@@ -97,10 +97,10 @@ namespace bs
 				{
 					GUIElement* element = iter->second;
 					const bool acceptsKeyFocus = element->getOptionFlags().isSet(GUIElementOption::AcceptsKeyFocus);
-					if (!acceptsKeyFocus || !element->_isVisible() || element->_isDisabled())
+					if (!acceptsKeyFocus || !element->IsVisibleInternal() || element->IsDisabledInternal())
 						continue;
 
-					const Rect2I elemBounds = element->_getClippedBounds();
+					const Rect2I elemBounds = element->GetClippedBoundsInternal();
 					const bool isFullyClipped = elemBounds.width == 0 || elemBounds.height == 0;
 
 					if (isFullyClipped)
@@ -119,7 +119,7 @@ namespace bs
 				{
 					GUIElement* element = *iterElem;
 
-					const Rect2I elemBounds = element->_getClippedBounds();
+					const Rect2I elemBounds = element->GetClippedBoundsInternal();
 					if(iterElem == elements.begin())
 					{
 						firstRowY = elemBounds.y;
@@ -155,7 +155,7 @@ namespace bs
 					if(element == anchor)
 						continue;
 
-					const Rect2I elemBounds = element->_getClippedBounds();
+					const Rect2I elemBounds = element->GetClippedBoundsInternal();
 					const INT32 yDiff = elemBounds.y - rowY;
 
 					// New row
@@ -187,7 +187,7 @@ namespace bs
 					{
 						GUIElement* element = *iterElem;
 
-						const Rect2I elemBounds = element->_getClippedBounds();
+						const Rect2I elemBounds = element->GetClippedBoundsInternal();
 						const INT32 yDiff = elemBounds.y - rowY;
 
 						// New row
@@ -237,11 +237,11 @@ namespace bs
 
 			// Ignore elements that are hidden, disabled or just don't accept input focus
 			const bool acceptsKeyFocus = element->getOptionFlags().isSet(GUIElementOption::AcceptsKeyFocus);
-			if(!acceptsKeyFocus || !element->_isVisible() || element->_isDisabled())
+			if(!acceptsKeyFocus || !element->IsVisibleInternal() || element->IsDisabledInternal())
 				continue;
 
 			// Ignore elements that have been fully clipped
-			const Rect2I elemBounds = element->_getClippedBounds();
+			const Rect2I elemBounds = element->GetClippedBoundsInternal();
 			if(elemBounds.width == 0 || elemBounds.height == 0)
 				continue;
 

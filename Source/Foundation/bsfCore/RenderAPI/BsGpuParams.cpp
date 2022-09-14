@@ -229,7 +229,7 @@ namespace bs
 
 		mParamBlockBuffers[globalSlot] = paramBlockBuffer;
 
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	template<bool Core>
@@ -288,7 +288,7 @@ namespace bs
 			BS_LOG(Warning, RenderBackend, "Cannot find parameter with the name: '{0}'", name);
 		}
 		else
-			output = TGpuDataParam<T, Core>(&iterFind->second, _getThisPtr());
+			output = TGpuDataParam<T, Core>(&iterFind->second, GetThisPtrInternal());
 	}
 
 	template<bool Core>
@@ -309,7 +309,7 @@ namespace bs
 			BS_LOG(Warning, RenderBackend, "Cannot find struct parameter with the name: '{0}'", name);
 		}
 		else
-			output = TGpuParamStruct<Core>(&iterFind->second, _getThisPtr());
+			output = TGpuParamStruct<Core>(&iterFind->second, GetThisPtrInternal());
 	}
 
 	template<bool Core>
@@ -330,7 +330,7 @@ namespace bs
 			BS_LOG(Warning, RenderBackend, "Cannot find texture parameter with the name: '{0}'", name);
 		}
 		else
-			output = TGpuParamTexture<Core>(&iterFind->second, _getThisPtr());
+			output = TGpuParamTexture<Core>(&iterFind->second, GetThisPtrInternal());
 	}
 
 	template<bool Core>
@@ -351,7 +351,7 @@ namespace bs
 			BS_LOG(Warning, RenderBackend, "Cannot find load-store parameter with the name: '{0}'", name);
 		}
 		else
-			output = TGpuParamLoadStoreTexture<Core>(&iterFind->second, _getThisPtr());
+			output = TGpuParamLoadStoreTexture<Core>(&iterFind->second, GetThisPtrInternal());
 	}
 
 	template<bool Core>
@@ -372,7 +372,7 @@ namespace bs
 			BS_LOG(Warning, RenderBackend, "Cannot find buffer parameter with the name: '{0}'", name);
 		}
 		else
-			output = TGpuParamBuffer<Core>(&iterFind->second, _getThisPtr());
+			output = TGpuParamBuffer<Core>(&iterFind->second, GetThisPtrInternal());
 	}
 
 	template<bool Core>
@@ -393,7 +393,7 @@ namespace bs
 			BS_LOG(Warning, RenderBackend, "Cannot find sampler state parameter with the name: '{0}'", name);
 		}
 		else
-			output = TGpuParamSampState<Core>(&iterFind->second, _getThisPtr());
+			output = TGpuParamSampState<Core>(&iterFind->second, GetThisPtrInternal());
 	}
 
 	template<bool Core>
@@ -481,8 +481,8 @@ namespace bs
 		mSampledTextureData[globalSlot].texture = texture;
 		mSampledTextureData[globalSlot].surface = surface;
 
-		_markResourcesDirty();
-		_markCoreDirty();
+		MarkResourcesDirtyInternal();
+		MarkCoreDirtyInternal();
 	}
 
 	template<bool Core>
@@ -495,8 +495,8 @@ namespace bs
 		mLoadStoreTextureData[globalSlot].texture = texture;
 		mLoadStoreTextureData[globalSlot].surface = surface;
 
-		_markResourcesDirty();
-		_markCoreDirty();
+		MarkResourcesDirtyInternal();
+		MarkCoreDirtyInternal();
 	}
 
 	template<bool Core>
@@ -508,8 +508,8 @@ namespace bs
 
 		mBuffers[globalSlot] = buffer;
 
-		_markResourcesDirty();
-		_markCoreDirty();
+		MarkResourcesDirtyInternal();
+		MarkCoreDirtyInternal();
 	}
 
 	template<bool Core>
@@ -521,8 +521,8 @@ namespace bs
 
 		mSamplerStates[globalSlot] = sampler;
 
-		_markResourcesDirty();
-		_markCoreDirty();
+		MarkResourcesDirtyInternal();
+		MarkCoreDirtyInternal();
 	}
 
 	template class TGpuParams < false > ;
@@ -574,7 +574,7 @@ namespace bs
 
 	}
 
-	SPtr<GpuParams> GpuParams::_getThisPtr() const
+	SPtr<GpuParams> GpuParams::GetThisPtrInternal() const
 	{
 		return std::static_pointer_cast<GpuParams>(getThisPtr());
 	}
@@ -591,12 +591,12 @@ namespace bs
 		return ct::HardwareBufferManager::instance().createGpuParams(paramInfo->getCore());
 	}
 
-	void GpuParams::_markCoreDirty()
+	void GpuParams::MarkCoreDirtyInternal()
 	{
 		markCoreDirty();
 	}
 
-	void GpuParams::_markResourcesDirty()
+	void GpuParams::MarkResourcesDirtyInternal()
 	{
 		markListenerResourcesDirty();
 	}
@@ -737,7 +737,7 @@ namespace bs
 
 	}
 
-	SPtr<GpuParams> GpuParams::_getThisPtr() const
+	SPtr<GpuParams> GpuParams::GetThisPtrInternal() const
 	{
 		return std::static_pointer_cast<GpuParams>(getThisPtr());
 	}

@@ -77,10 +77,10 @@ namespace bs
 		bool isLocked() const { return mLocked; }
 
 		/** Locks the data and makes it available only to the core thread. */
-		void _lock() const;
+		void LockInternal() const;
 
 		/**	Unlocks the data and makes it available to all threads.  */
-		void _unlock() const;
+		void UnlockInternal() const;
 
 	protected:
 		/**

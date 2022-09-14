@@ -40,7 +40,7 @@ namespace bs
 	bool ScriptPhysics::Internal__isUpdateInProgress()
 	{
 		bool tmp__output;
-		tmp__output = Physics::instance()._isUpdateInProgress();
+		tmp__output = Physics::instance().IsUpdateInProgressInternal();
 
 		bool __output;
 		__output = tmp__output;

@@ -283,7 +283,7 @@ namespace bs
 		// Register the gamepad device with Input manager
 		if(data->type == HIDType::Gamepad)
 		{
-			InputPrivateData* pvtData = data->owner->_getPrivateData();
+			InputPrivateData* pvtData = data->owner->GetPrivateDataInternal();
 
 			GamepadInfo gamepadInfo;
 			gamepadInfo.name = newDevice.name;
@@ -314,7 +314,7 @@ namespace bs
 			// Unregister the gamepad device from the Input manager
 			if(data->type == HIDType::Gamepad)
 			{
-				InputPrivateData* pvtData = data->owner->_getPrivateData();
+				InputPrivateData* pvtData = data->owner->GetPrivateDataInternal();
 
 				UINT32 deviceId = iterFind->id;
 				auto iterFind2 = std::find_if(
@@ -723,7 +723,7 @@ namespace bs
 				for(UINT32 i = 0; i < HID_NUM_GAMEPAD_AXES; i++)
 				{
 					if(axisValues[i].moved)
-						mData.owner->_notifyAxisMoved(entry.id, (UINT32)i, axisValues[i].value);
+						mData.owner->NotifyAxisMovedInternal(entry.id, (UINT32)i, axisValues[i].value);
 				}
 			}
 
@@ -829,9 +829,9 @@ namespace bs
 				if(button != BC_UNASSIGNED)
 				{
 					if(value != 0)
-						mData.owner->_notifyButtonPressed(entry.id, button, timestamp);
+						mData.owner->NotifyButtonPressedInternal(entry.id, button, timestamp);
 					else
-						mData.owner->_notifyButtonReleased(entry.id, button, timestamp);
+						mData.owner->NotifyButtonReleasedInternal(entry.id, button, timestamp);
 				}
 
 				CFRelease(valueRef);
@@ -842,7 +842,7 @@ namespace bs
 		if (mData.type == HIDType::Mouse)
 		{
 			if (mData.mouseAxisValues[0] != 0 || mData.mouseAxisValues[1] != 0 || mData.mouseAxisValues[2] != 0)
-				mData.owner->_notifyMouseMoved(mData.mouseAxisValues[0], mData.mouseAxisValues[1], mData.mouseAxisValues[2]);
+				mData.owner->NotifyMouseMovedInternal(mData.mouseAxisValues[0], mData.mouseAxisValues[1], mData.mouseAxisValues[2]);
 		}
 	}
 

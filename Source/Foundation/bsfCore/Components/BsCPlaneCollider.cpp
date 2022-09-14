@@ -57,7 +57,7 @@ namespace bs
 
 		SPtr<Collider> collider = PlaneCollider::create(*scene->getPhysicsScene(), tfrm.getPosition(), tfrm.getRotation());
 
-		collider->_setOwner(PhysicsOwnerType::Component, this);
+		collider->SetOwnerInternal(PhysicsOwnerType::Component, this);
 		return collider;
 	}
 

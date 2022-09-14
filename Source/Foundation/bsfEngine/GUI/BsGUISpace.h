@@ -25,7 +25,7 @@ namespace bs
 		UINT32 getSize() const { return mSize; }
 
 		/**	Changes the size of the space to the specified value, in pixels. */
-		void setSize(UINT32 size) { if (mSize != size) { mSize = size; _markLayoutAsDirty(); } }
+		void setSize(UINT32 size) { if (mSize != size) { mSize = size; MarkLayoutAsDirtyInternal(); } }
 
 		/**	Creates a new fixed space GUI element. */
 		static GUIFixedSpace* create(UINT32 size);
@@ -39,16 +39,16 @@ namespace bs
 		 */
 
 		/** @copydoc GUIElementBase::_getType */
-		Type _getType() const override { return GUIElementBase::Type::FixedSpace; }
+		Type GetTypeInternal() const override { return GUIElementBase::Type::FixedSpace; }
 
-		/** @copydoc GUIElementBase::_getOptimalSize */
-		Vector2I _getOptimalSize() const override { return Vector2I(getSize(), getSize()); }
+		/** @copydoc GUIElementBase::GetOptimalSizeInternal */
+		Vector2I GetOptimalSizeInternal() const override { return Vector2I(getSize(), getSize()); }
 
 		/** @copydoc GUIElementBase::_calculateLayoutSizeRange */
-		LayoutSizeRange _calculateLayoutSizeRange() const override;
+		LayoutSizeRange CalculateLayoutSizeRangeInternal() const override;
 
-		/** @copydoc GUIElementBase::_getPadding */
-		const RectOffset& _getPadding() const override
+		/** @copydoc GUIElementBase::GetPaddingInternal */
+		const RectOffset& GetPaddingInternal() const override
 		{
 			static RectOffset padding;
 
@@ -87,16 +87,16 @@ namespace bs
 		 */
 
 		/** @copydoc GUIElementBase::_getType */
-		Type _getType() const override { return GUIElementBase::Type::FlexibleSpace; }
+		Type GetTypeInternal() const override { return GUIElementBase::Type::FlexibleSpace; }
 
-		/** @copydoc GUIElementBase::_getOptimalSize */
-		Vector2I _getOptimalSize() const override { return Vector2I(0, 0); }
+		/** @copydoc GUIElementBase::GetOptimalSizeInternal */
+		Vector2I GetOptimalSizeInternal() const override { return Vector2I(0, 0); }
 
 		/** @copydoc GUIElementBase::_calculateLayoutSizeRange */
-		LayoutSizeRange _calculateLayoutSizeRange() const override;
+		LayoutSizeRange CalculateLayoutSizeRangeInternal() const override;
 
-		/** @copydoc GUIElementBase::_getPadding */
-		const RectOffset& _getPadding() const override
+		/** @copydoc GUIElementBase::GetPaddingInternal */
+		const RectOffset& GetPaddingInternal() const override
 		{
 			static RectOffset padding;
 

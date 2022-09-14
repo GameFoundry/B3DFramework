@@ -325,7 +325,7 @@ namespace bs { namespace ct
 		mMappedLockOptions = options;
 
 		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::instance());
-		VulkanDevice& device = *rapi._getDevice(deviceIdx);
+		VulkanDevice& device = *rapi.GetDeviceInternal(deviceIdx);
 
 		VulkanCommandBufferManager& cbManager = gVulkanCBManager();
 		GpuQueueType queueType;
@@ -530,7 +530,7 @@ namespace bs { namespace ct
 			if(isWrite)
 			{
 				VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::instance());
-				VulkanDevice& device = *rapi._getDevice(mMappedDeviceIdx);
+				VulkanDevice& device = *rapi.GetDeviceInternal(mMappedDeviceIdx);
 
 				VulkanCommandBufferManager& cbManager = gVulkanCBManager();
 				GpuQueueType queueType;
@@ -656,7 +656,7 @@ namespace bs { namespace ct
 		if (commandBuffer != nullptr)
 			vkCB = static_cast<VulkanCommandBuffer*>(commandBuffer.get())->getInternal();
 		else
-			vkCB = rapi._getMainCommandBuffer()->getInternal();
+			vkCB = rapi.GetMainCommandBufferInternal()->getInternal();
 
 		UINT32 deviceIdx = vkCB->getDeviceIdx();
 

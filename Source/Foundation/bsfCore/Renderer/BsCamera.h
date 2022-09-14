@@ -223,13 +223,13 @@ namespace bs
 		 * Determines a priority that determines in which orders the cameras are rendered. This only applies to cameras rendering
 		 * to the same render target. Higher value means the camera will be rendered sooner.
 		 */
-		void setPriority(INT32 priority) { mPriority = priority; _markCoreDirty(); }
+		void setPriority(INT32 priority) { mPriority = priority; MarkCoreDirtyInternal(); }
 
 		/** @copydoc setPriority() */
 		INT32 getPriority() const { return mPriority; }
 
 		/**	Determines layer bitfield that is used when determining which object should the camera render. */
-		void setLayers(UINT64 layers) { mLayers = layers; _markCoreDirty(); }
+		void setLayers(UINT64 layers) { mLayers = layers; MarkCoreDirtyInternal(); }
 
 		/** @copydoc setLayers() */
 		UINT64 getLayers() const { return mLayers; }
@@ -238,7 +238,7 @@ namespace bs
 		 * Determines number of samples to use when rendering to this camera. Values larger than 1 will enable MSAA
 		 * rendering.
 		 */
-		void setMSAACount(UINT32 count) { mMSAA = count; _markCoreDirty(); }
+		void setMSAACount(UINT32 count) { mMSAA = count; MarkCoreDirtyInternal(); }
 
 		/** @copydoc setMSAACount() */
 		UINT32 getMSAACount() const { return mMSAA; }
@@ -247,7 +247,7 @@ namespace bs
 		 * Notifies a on-demand camera that it should re-draw its contents on the next frame. Ignored for a camera
 		 * that isn't on-demand.
 		 */
-		void notifyNeedsRedraw() { _markCoreDirty((ActorDirtyFlag)CameraDirtyFlag::Redraw); }
+		void notifyNeedsRedraw() { MarkCoreDirtyInternal((ActorDirtyFlag)CameraDirtyFlag::Redraw); }
 		
 		/**
 		 * Converts a point in world space to screen coordinates.
@@ -477,7 +477,7 @@ namespace bs
 		 * effects will be enabled, and what properties will those effects use.
 		 */
 		void setRenderSettings(const SPtr<RenderSettingsType>& settings)
-			{ mRenderSettings = settings; _markCoreDirty((ActorDirtyFlag)CameraDirtyFlag::RenderSettings); }
+			{ mRenderSettings = settings; MarkCoreDirtyInternal((ActorDirtyFlag)CameraDirtyFlag::RenderSettings); }
 
 		/** @copydoc setRenderSettings() */
 		const SPtr<RenderSettingsType>& getRenderSettings() const { return mRenderSettings; }
@@ -542,7 +542,7 @@ namespace bs
 		SPtr<ct::CoreObject> createCore() const override;
 
 		/** @copydoc CameraBase::_markCoreDirty */
-		void _markCoreDirty(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
+		void MarkCoreDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
 
 		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData syncToCore(FrameAlloc* allocator) override;

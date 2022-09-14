@@ -111,7 +111,7 @@ namespace bs
 
 		/** Checks is the physics simulation update currently in progress. */
 		BS_SCRIPT_EXPORT(n:IsUpdateInProgress,pr:getter)
-		bool _isUpdateInProgress() const { return mUpdateInProgress; }
+		bool IsUpdateInProgressInternal() const { return mUpdateInProgress; }
 
 		/**
 		 * Checks does the ray hit the provided collider.
@@ -123,7 +123,7 @@ namespace bs
 		 * @param[in]	maxDist		Maximum distance from the ray origin to search for hits.
 		 * @return					True if the ray has hit the collider.
 		 */
-		virtual bool _rayCast(const Vector3& origin, const Vector3& unitDir, const Collider& collider, PhysicsQueryHit& hit,
+		virtual bool RayCastInternal(const Vector3& origin, const Vector3& unitDir, const Collider& collider, PhysicsQueryHit& hit,
 			float maxDist = FLT_MAX) const = 0;
 
 		/** @} */
@@ -683,18 +683,18 @@ namespace bs
 		virtual SPtr<CharacterController> createCharacterController(const CHAR_CONTROLLER_DESC& desc) = 0;
 
 		/** @copydoc PhysicsScene::boxOverlap() */
-		virtual Vector<Collider*> _boxOverlap(const AABox& box, const Quaternion& rotation,
+		virtual Vector<Collider*> BoxOverlapInternal(const AABox& box, const Quaternion& rotation,
 			UINT64 layer = BS_ALL_LAYERS) const = 0;
 
 		/** @copydoc PhysicsScene::sphereOverlap() */
-		virtual Vector<Collider*> _sphereOverlap(const Sphere& sphere, UINT64 layer = BS_ALL_LAYERS) const = 0;
+		virtual Vector<Collider*> SphereOverlapInternal(const Sphere& sphere, UINT64 layer = BS_ALL_LAYERS) const = 0;
 
 		/** @copydoc PhysicsScene::capsuleOverlap() */
-		virtual Vector<Collider*> _capsuleOverlap(const Capsule& capsule, const Quaternion& rotation,
+		virtual Vector<Collider*> CapsuleOverlapInternal(const Capsule& capsule, const Quaternion& rotation,
 			UINT64 layer = BS_ALL_LAYERS) const = 0;
 
 		/** @copydoc PhysicsScene::convexOverlap() */
-		virtual Vector<Collider*> _convexOverlap(const HPhysicsMesh& mesh, const Vector3& position,
+		virtual Vector<Collider*> ConvexOverlapInternal(const HPhysicsMesh& mesh, const Vector3& position,
 			const Quaternion& rotation, UINT64 layer = BS_ALL_LAYERS) const = 0;
 
 		/** @} */

@@ -93,7 +93,7 @@ namespace bs
 		cubemapDesc.numMips = PixelUtil::getMaxMipmaps(cubemapDesc.width, cubemapDesc.height, 1, cubemapDesc.format);
 		cubemapDesc.usage = TU_STATIC | TU_RENDERTARGET;
 
-		mFilteredTexture = Texture::_createPtr(cubemapDesc);
+		mFilteredTexture = Texture::CreatePtrInternal(cubemapDesc);
 
 		auto renderComplete = [this]()
 		{
@@ -156,7 +156,7 @@ namespace bs
 	{
 		ReflectionProbe* probe = new (bs_alloc<ReflectionProbe>()) ReflectionProbe(ReflectionProbeType::Sphere, radius, Vector3::ZERO);
 		SPtr<ReflectionProbe> probePtr = bs_core_ptr<ReflectionProbe>(probe);
-		probePtr->_setThisPtr(probePtr);
+		probePtr->SetThisPtrInternal(probePtr);
 		probePtr->initialize();
 
 		return probePtr;
@@ -166,7 +166,7 @@ namespace bs
 	{
 		ReflectionProbe* probe = new (bs_alloc<ReflectionProbe>()) ReflectionProbe(ReflectionProbeType::Box, 1.0f, extents);
 		SPtr<ReflectionProbe> probePtr = bs_core_ptr<ReflectionProbe>(probe);
-		probePtr->_setThisPtr(probePtr);
+		probePtr->SetThisPtrInternal(probePtr);
 		probePtr->initialize();
 
 		return probePtr;
@@ -176,7 +176,7 @@ namespace bs
 	{
 		ReflectionProbe* probe = new (bs_alloc<ReflectionProbe>()) ReflectionProbe();
 		SPtr<ReflectionProbe> probePtr = bs_core_ptr<ReflectionProbe>(probe);
-		probePtr->_setThisPtr(probePtr);
+		probePtr->SetThisPtrInternal(probePtr);
 
 		return probePtr;
 	}
@@ -190,7 +190,7 @@ namespace bs
 		ct::ReflectionProbe* probe = new (bs_alloc<ct::ReflectionProbe>()) ct::ReflectionProbe(mType, mRadius, mExtents,
 			filteredTexture);
 		SPtr<ct::ReflectionProbe> probePtr = bs_shared_ptr<ct::ReflectionProbe>(probe);
-		probePtr->_setThisPtr(probePtr);
+		probePtr->SetThisPtrInternal(probePtr);
 
 		return probePtr;
 	}
@@ -212,7 +212,7 @@ namespace bs
 		return CoreSyncData(buffer, size);
 	}
 
-	void ReflectionProbe::_markCoreDirty(ActorDirtyFlag flags)
+	void ReflectionProbe::MarkCoreDirtyInternal(ActorDirtyFlag flags)
 	{
 		markCoreDirty((UINT32)flags);
 	}

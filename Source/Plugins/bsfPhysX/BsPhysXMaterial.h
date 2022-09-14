@@ -38,7 +38,7 @@ namespace bs
 		float getRestitutionCoefficient() const override;
 
 		/** Returns the internal PhysX material. */
-		physx::PxMaterial* _getInternal() const { return mInternal; }
+		physx::PxMaterial* GetInternalInternal() const { return mInternal; }
 
 	private:
 		physx::PxMaterial* mInternal;

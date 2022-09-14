@@ -44,7 +44,7 @@ namespace bs
 		 */
 
 		/**	Returns the skybox that this component wraps. */
-		SPtr<Skybox> _getSkybox() const { return mInternal; }
+		SPtr<Skybox> GetSkyboxInternal() const { return mInternal; }
 
 		/** @} */
 

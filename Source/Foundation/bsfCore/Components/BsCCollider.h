@@ -106,7 +106,7 @@ namespace bs
 		 */
 
 		/** Returns the Collider implementation wrapped by this component. */
-		Collider* _getInternal() const { return mInternal.get(); }
+		Collider* GetInternalInternal() const { return mInternal.get(); }
 
 		/** @} */
 

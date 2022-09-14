@@ -139,7 +139,7 @@ namespace bs
 		 */
 
 		/** Creates a new AudioClip without initializing it. Use create() for normal use. */
-		static SPtr<AudioClip> _createPtr(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples,
+		static SPtr<AudioClip> CreatePtrInternal(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples,
 			const AUDIO_CLIP_DESC& desc);
 
 		/** @} */

@@ -33,7 +33,7 @@ namespace bs
 		HManagedResource resource = ManagedResource::create(instance);
 	}
 
-	MonoObject* ScriptManagedResource::_createManagedInstance(bool construct)
+	MonoObject* ScriptManagedResource::CreateManagedInstanceInternal(bool construct)
 	{
 		SPtr<ManagedSerializableObjectInfo> currentObjInfo = nullptr;
 
@@ -47,7 +47,7 @@ namespace bs
 		return instance;
 	}
 
-	void ScriptManagedResource::_clearManagedInstance()
+	void ScriptManagedResource::ClearManagedInstanceInternal()
 	{
 		freeManagedInstance();
 	}
@@ -69,10 +69,10 @@ namespace bs
 
 		// If we could not find resource type after refresh, treat it as if it was destroyed
 		if (instance == nullptr)
-			_onManagedInstanceDeleted(false);
+			OnManagedInstanceDeletedInternal(false);
 	}
 
-	void ScriptManagedResource::_onManagedInstanceDeleted(bool assemblyRefresh)
+	void ScriptManagedResource::OnManagedInstanceDeletedInternal(bool assemblyRefresh)
 	{
 		mGCHandle = 0;
 		
@@ -89,7 +89,7 @@ namespace bs
 		}
 	}
 
-	void ScriptManagedResource::_notifyDestroyed()
+	void ScriptManagedResource::NotifyDestroyedInternal()
 	{
 		freeManagedInstance();
 	}

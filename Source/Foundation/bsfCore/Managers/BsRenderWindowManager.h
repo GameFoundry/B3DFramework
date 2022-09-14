@@ -27,7 +27,7 @@ namespace bs
 		SPtr<RenderWindow> create(RENDER_WINDOW_DESC& desc, SPtr<RenderWindow> parentWindow);
 
 		/** Called once per frame. Dispatches events. */
-		void _update();
+		void UpdateInternal();
 
 		/** Called by the core thread when window is destroyed. */
 		void notifyWindowDestroyed(RenderWindow* window);
@@ -99,7 +99,7 @@ namespace bs
 		RenderWindowManager();
 
 		/** Called once per frame. Dispatches events. */
-		void _update();
+		void UpdateInternal();
 
 		/**	Called by the core thread when window properties change. */
 		void notifySyncDataDirty(RenderWindow* window);

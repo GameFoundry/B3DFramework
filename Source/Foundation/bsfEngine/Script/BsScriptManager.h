@@ -50,10 +50,10 @@ namespace bs
 		 * Sets the active script library that controls what kind and which scripts are loaded. Must be called before
 		 * the module is started up.
 		 */
-		static void _setScriptLibrary(const SPtr<ScriptLibrary>& library) { sScriptLibrary = library; }
+		static void SetScriptLibraryInternal(const SPtr<ScriptLibrary>& library) { sScriptLibrary = library; }
 
 		/** Returns the currently assigned script library. */
-		static const SPtr<ScriptLibrary>& _getScriptLibrary() { return sScriptLibrary; }
+		static const SPtr<ScriptLibrary>& GetScriptLibraryInternal() { return sScriptLibrary; }
 
 	private:
 		static SPtr<ScriptLibrary> sScriptLibrary;

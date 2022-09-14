@@ -35,7 +35,7 @@ namespace bs
 
 		if (mInternal != nullptr)
 		{
-			_getInternal()->setMesh(mesh);
+			GetInternalInternal()->setMesh(mesh);
 
 			if (mParent != nullptr)
 			{
@@ -44,7 +44,7 @@ namespace bs
 				if (mMesh.isLoaded() && mMesh->getType() == PhysicsMeshType::Triangle)
 					updateParentRigidbody();
 				else
-					mParent->_updateMassDistribution();
+					mParent->UpdateMassDistributionInternal();
 			}
 		}
 	}
@@ -57,7 +57,7 @@ namespace bs
 		SPtr<MeshCollider> collider = MeshCollider::create(*scene->getPhysicsScene(), tfrm.getPosition(),
 			tfrm.getRotation());
 		collider->setMesh(mMesh);
-		collider->_setOwner(PhysicsOwnerType::Component, this);
+		collider->SetOwnerInternal(PhysicsOwnerType::Component, this);
 
 		return collider;
 	}

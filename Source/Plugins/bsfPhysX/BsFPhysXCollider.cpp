@@ -31,7 +31,7 @@ namespace bs
 		mShape->release();
 	}
 
-	void FPhysXCollider::_setShape(PxShape* shape)
+	void FPhysXCollider::SetShapeInternal(PxShape* shape)
 	{
 		if (mShape != nullptr)
 		{
@@ -164,7 +164,7 @@ namespace bs
 
 		PxMaterial* materials[1];
 		if (physXmaterial != nullptr)
-			materials[0] = physXmaterial->_getInternal();
+			materials[0] = physXmaterial->GetInternalInternal();
 		else
 			materials[0] = gPhysX().getDefaultMaterial();
 
@@ -193,7 +193,7 @@ namespace bs
 		updateFilter();
 	}
 
-	void FPhysXCollider::_setCCD(bool enabled)
+	void FPhysXCollider::SetCCDInternal(bool enabled)
 	{
 		mCCD = enabled;
 		updateFilter();

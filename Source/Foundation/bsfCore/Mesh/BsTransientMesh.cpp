@@ -33,7 +33,7 @@ namespace bs
 			mParentHeap->getCore(), mId, mProperties.mNumVertices, mProperties.mNumIndices, mProperties.mSubMeshes);
 
 		SPtr<ct::CoreObject> meshCore = bs_shared_ptr<ct::TransientMesh>(core);
-		meshCore->_setThisPtr(meshCore);
+		meshCore->SetThisPtrInternal(meshCore);
 
 		return meshCore;
 	}
@@ -72,7 +72,7 @@ namespace bs
 		return mParentHeap->getVertexDesc();
 	}
 
-	void TransientMesh::_notifyUsedOnGPU()
+	void TransientMesh::NotifyUsedOnGPUInternal()
 	{
 		mParentHeap->notifyUsedOnGPU(mId);
 	}

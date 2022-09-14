@@ -38,7 +38,7 @@ namespace bs
 		 */
 
 		/** Returns the internal OpenAL buffer. Only valid if the audio clip was created without AudioReadMode::Stream. */
-		UINT32 _getOpenALBuffer() const { return mBufferId; }
+		UINT32 GetOpenALBufferInternal() const { return mBufferId; }
 
 		/** @} */
 	protected:

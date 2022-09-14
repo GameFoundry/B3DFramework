@@ -144,7 +144,7 @@ namespace bs
 		void clear();
 
 		/** Performs per-frame operations. */
-		void _update();
+		void UpdateInternal();
 
 	private:
 		friend class ct::DebugDrawRenderer;

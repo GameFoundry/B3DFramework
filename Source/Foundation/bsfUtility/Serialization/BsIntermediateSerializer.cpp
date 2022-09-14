@@ -20,7 +20,7 @@ namespace bs
 		mObjectMap.clear();
 
 		SPtr<IReflectable> output;
-		RTTITypeBase* type = IReflectable::_getRTTIfromTypeId(serializedObject->getRootTypeId());
+		RTTITypeBase* type = IReflectable::GetRTTIfromTypeIdInternal(serializedObject->getRootTypeId());
 		if (type != nullptr)
 		{
 			output = type->newRTTIObject();
@@ -71,11 +71,11 @@ namespace bs
 		{
 			const SerializedSubObject& subObject = serializableObject->subObjects[subObjectIdx];
 
-			RTTITypeBase* rtti = IReflectable::_getRTTIfromTypeId(subObject.typeId);
+			RTTITypeBase* rtti = IReflectable::GetRTTIfromTypeIdInternal(subObject.typeId);
 			if (rtti == nullptr)
 				continue;
 
-			RTTITypeBase* rttiInstance = rtti->_clone(*mAlloc);
+			RTTITypeBase* rttiInstance = rtti->CloneInternal(*mAlloc);
 			rttiInstance->onDeserializationStarted(object.get(), mContext);
 			rttiInstances.push(rttiInstance);
 
@@ -108,7 +108,7 @@ namespace bs
 							RTTITypeBase* childRtti = nullptr;
 
 							if (arrayElemData != nullptr)
-								childRtti = IReflectable::_getRTTIfromTypeId(arrayElemData->getRootTypeId());
+								childRtti = IReflectable::GetRTTIfromTypeIdInternal(arrayElemData->getRootTypeId());
 
 							if (childRtti != nullptr)
 							{
@@ -162,7 +162,7 @@ namespace bs
 							RTTITypeBase* childRtti = nullptr;
 
 							if (arrayElemData != nullptr)
-								childRtti = IReflectable::_getRTTIfromTypeId(arrayElemData->getRootTypeId());
+								childRtti = IReflectable::GetRTTIfromTypeIdInternal(arrayElemData->getRootTypeId());
 
 							if (childRtti != nullptr)
 							{
@@ -204,7 +204,7 @@ namespace bs
 						RTTITypeBase* childRtti = nullptr;
 
 						if (fieldObjectData != nullptr)
-							childRtti = IReflectable::_getRTTIfromTypeId(fieldObjectData->getRootTypeId());
+							childRtti = IReflectable::GetRTTIfromTypeIdInternal(fieldObjectData->getRootTypeId());
 
 						if (childRtti != nullptr)
 						{
@@ -254,7 +254,7 @@ namespace bs
 						RTTITypeBase* childRtti = nullptr;
 
 						if (fieldObjectData != nullptr)
-							childRtti = IReflectable::_getRTTIfromTypeId(fieldObjectData->getRootTypeId());
+							childRtti = IReflectable::GetRTTIfromTypeIdInternal(fieldObjectData->getRootTypeId());
 
 						if (childRtti != nullptr)
 						{
@@ -328,7 +328,7 @@ namespace bs
 		// If an object has base classes, we need to iterate through all of them
 		do
 		{
-			RTTITypeBase* rttiInstance = rtti->_clone(*alloc);
+			RTTITypeBase* rttiInstance = rtti->CloneInternal(*alloc);
 			rttiInstances.push(rttiInstance);
 
 			rttiInstance->onSerializationStarted(object, context);
@@ -348,7 +348,7 @@ namespace bs
 						continue;
 				}
 
-				SPtr<SerializedInstance> serializedEntry = _encodeField(object, rttiInstance, curGenericField, (UINT32)-1,
+				SPtr<SerializedInstance> serializedEntry = EncodeFieldInternal(object, rttiInstance, curGenericField, (UINT32)-1,
 					flags, context, alloc);
 
 				SerializedEntry entry;
@@ -367,7 +367,7 @@ namespace bs
 		return output;
 	}
 
-	SPtr<SerializedInstance> IntermediateSerializer::_encodeField(IReflectable* object, RTTITypeBase* rtti, RTTIField* field, UINT32 arrayIdx,
+	SPtr<SerializedInstance> IntermediateSerializer::EncodeFieldInternal(IReflectable* object, RTTITypeBase* rtti, RTTIField* field, UINT32 arrayIdx,
 		SerializedObjectEncodeFlags flags, SerializationContext* context, FrameAlloc* alloc)
 	{
 		bool shallow = flags.isSet(SerializedObjectEncodeFlag::Shallow);

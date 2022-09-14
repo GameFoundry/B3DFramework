@@ -37,16 +37,16 @@ namespace bs
 		ScriptSceneObject(MonoObject* instance, const HSceneObject& sceneObject);
 
 		/** @copydoc ScriptObjectBase::_onManagedInstanceDeleted */
-		void _onManagedInstanceDeleted(bool assemblyRefresh) override;
+		void OnManagedInstanceDeletedInternal(bool assemblyRefresh) override;
 
 		/** @copydoc ScriptObject::_createManagedInstance */
-		MonoObject* _createManagedInstance(bool construct) override;
+		MonoObject* CreateManagedInstanceInternal(bool construct) override;
 
 		/** @copydoc ScriptObjectBase::_clearManagedInstance */
-		void _clearManagedInstance() override;
+		void ClearManagedInstanceInternal() override;
 
 		/**	Triggered by the script game object manager when the handle this object is referencing is destroyed. */
-		void _notifyDestroyed();
+		void NotifyDestroyedInternal();
 
 		HSceneObject mSceneObject;
 

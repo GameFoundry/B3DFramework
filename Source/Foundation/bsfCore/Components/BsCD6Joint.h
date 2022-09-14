@@ -103,7 +103,7 @@ namespace bs
 		 */
 
 		/**	Returns the D6 joint that this component wraps. */
-		D6Joint* _getInternal() const { return static_cast<D6Joint*>(mInternal.get()); }
+		D6Joint* GetInternalInternal() const { return static_cast<D6Joint*>(mInternal.get()); }
 
 		/** @} */
 

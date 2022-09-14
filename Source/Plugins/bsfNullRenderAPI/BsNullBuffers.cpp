@@ -8,7 +8,7 @@ namespace bs { namespace ct
 		GpuDeviceFlags deviceMask)
 	{
 		SPtr<NullVertexBuffer> ret = bs_shared_ptr_new<NullVertexBuffer>(desc, deviceMask);
-		ret->_setThisPtr(ret);
+		ret->SetThisPtrInternal(ret);
 
 		return ret;
 	}
@@ -17,7 +17,7 @@ namespace bs { namespace ct
 		GpuDeviceFlags deviceMask)
 	{
 		SPtr<NullIndexBuffer> ret = bs_shared_ptr_new<NullIndexBuffer>(desc, deviceMask);
-		ret->_setThisPtr(ret);
+		ret->SetThisPtrInternal(ret);
 
 		return ret;
 	}
@@ -26,7 +26,7 @@ namespace bs { namespace ct
 		GpuBufferUsage usage, GpuDeviceFlags deviceMask)
 	{
 		SPtr<GpuParamBlockBuffer> paramBlockBufferPtr = bs_shared_ptr_new<NullGpuParamBlockBuffer>(size, usage, deviceMask);
-		paramBlockBufferPtr->_setThisPtr(paramBlockBufferPtr);
+		paramBlockBufferPtr->SetThisPtrInternal(paramBlockBufferPtr);
 
 		return paramBlockBufferPtr;
 	}
@@ -35,7 +35,7 @@ namespace bs { namespace ct
 		GpuDeviceFlags deviceMask)
 	{
 		SPtr<NullGpuBuffer> bufferPtr = bs_shared_ptr_new<NullGpuBuffer>(desc, deviceMask);
-		bufferPtr->_setThisPtr(bufferPtr);
+		bufferPtr->SetThisPtrInternal(bufferPtr);
 
 		return bufferPtr;
 	}
@@ -44,7 +44,7 @@ namespace bs { namespace ct
 		SPtr<HardwareBuffer> underlyingBuffer)
 	{
 		SPtr<NullGpuBuffer> bufferPtr = bs_shared_ptr_new<NullGpuBuffer>(desc, std::move(underlyingBuffer));
-		bufferPtr->_setThisPtr(bufferPtr);
+		bufferPtr->SetThisPtrInternal(bufferPtr);
 
 		return bufferPtr;
 	}

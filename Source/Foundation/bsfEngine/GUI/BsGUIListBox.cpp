@@ -128,13 +128,13 @@ namespace bs
 			openListBox();
 	}
 
-	bool GUIListBox::_mouseEvent(const GUIMouseEvent& ev)
+	bool GUIListBox::MouseEventInternal(const GUIMouseEvent& ev)
 	{
-		bool processed = GUIButtonBase::_mouseEvent(ev);
+		bool processed = GUIButtonBase::MouseEventInternal(ev);
 
 		if(ev.getType() == GUIMouseEventType::MouseDown)
 		{
-			if (!_isDisabled())
+			if (!IsDisabledInternal())
 			{
 				if (mDropDownBox == nullptr)
 					openListBox();
@@ -148,13 +148,13 @@ namespace bs
 		return processed;
 	}
 
-	bool GUIListBox::_commandEvent(const GUICommandEvent& ev)
+	bool GUIListBox::CommandEventInternal(const GUICommandEvent& ev)
 	{
-		const bool processed = GUIButtonBase::_commandEvent(ev);
+		const bool processed = GUIButtonBase::CommandEventInternal(ev);
 
 		if(ev.getType() == GUICommandEventType::Confirm)
 		{
-			if(!_isDisabled())
+			if(!IsDisabledInternal())
 			{
 				if (mDropDownBox == nullptr)
 					openListBox();
@@ -212,7 +212,7 @@ namespace bs
 			i++;
 		}
 
-		GUIWidget* widget = _getParentWidget();
+		GUIWidget* widget = GetParentWidgetInternal();
 
 		desc.camera = widget->getCamera();
 		desc.skin = widget->getSkinResource();
@@ -228,7 +228,7 @@ namespace bs
 		mDropDownBox = GUIDropDownBoxManager::instance().openDropDownBox(
 			desc, type, std::bind(&GUIListBox::onListBoxClosed, this));
 
-		_setOn(true);
+		SetOnInternal(true);
 	}
 
 	void GUIListBox::closeListBox()
@@ -237,7 +237,7 @@ namespace bs
 		{
 			GUIDropDownBoxManager::instance().closeDropDownBox();
 
-			_setOn(false);
+			SetOnInternal(false);
 			mDropDownBox = nullptr;
 		}
 	}
@@ -275,7 +275,7 @@ namespace bs
 
 	void GUIListBox::onListBoxClosed()
 	{
-		_setOn(false);
+		SetOnInternal(false);
 		mDropDownBox = nullptr;
 	}
 }

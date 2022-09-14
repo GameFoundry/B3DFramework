@@ -16,10 +16,10 @@ namespace bs
 		mBar = GUITexture::create(getSubStyleName(getBarStyleType()));
 		mBackground = GUITexture::create(getSubStyleName(getBackgroundStyleType()));
 
-		mBackground->_setElementDepth(mBar->_getRenderElementDepthRange());
+		mBackground->SetElementDepthInternal(mBar->GetRenderElementDepthRangeInternal());
 
-		_registerChildElement(mBar);
-		_registerChildElement(mBackground);
+		RegisterChildElementInternal(mBar);
+		RegisterChildElementInternal(mBackground);
 	}
 
 	const String& GUIProgressBar::getBarStyleType()
@@ -34,22 +34,22 @@ namespace bs
 		return BACKGROUND_STYLE_TYPE;
 	}
 
-	Vector2I GUIProgressBar::_getOptimalSize() const
+	Vector2I GUIProgressBar::GetOptimalSizeInternal() const
 	{
-		Vector2I optimalSize = mBar->_getOptimalSize();
+		Vector2I optimalSize = mBar->GetOptimalSizeInternal();
 
-		Vector2I backgroundSize = mBackground->_getOptimalSize();
+		Vector2I backgroundSize = mBackground->GetOptimalSizeInternal();
 		optimalSize.x = std::max(optimalSize.x, backgroundSize.x);
 		optimalSize.y = std::max(optimalSize.y, backgroundSize.y);
 
 		return optimalSize;
 	}
 
-	void GUIProgressBar::_updateLayoutInternal(const GUILayoutData& data)
+	void GUIProgressBar::UpdateLayoutInternalInternal(const GUILayoutData& data)
 	{
-		mBackground->_setLayoutData(data);
+		mBackground->SetLayoutDataInternal(data);
 
-		const GUIElementStyle* style = _getStyle();
+		const GUIElementStyle* style = GetStyleInternal();
 		
 		GUILayoutData barLayoutData = data;
 
@@ -62,7 +62,7 @@ namespace bs
 		barLayoutData.area.width = (UINT32)Math::floorToInt(maxProgressBarWidth * mPercent);
 		barLayoutData.area.height = progressBarHeight;
 
-		mBar->_setLayoutData(barLayoutData);
+		mBar->SetLayoutDataInternal(barLayoutData);
 	}
 
 	void GUIProgressBar::styleUpdated()
@@ -74,7 +74,7 @@ namespace bs
 	void GUIProgressBar::setPercent(float pct)
 	{
 		mPercent = pct;
-		_markLayoutAsDirty();
+		MarkLayoutAsDirtyInternal();
 	}
 
 	void GUIProgressBar::setTint(const Color& color)

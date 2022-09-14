@@ -124,7 +124,7 @@ namespace bs
 		clipDesc.readMode = clipIO->readMode;
 		clipDesc.is3D = clipIO->is3D;
 
-		SPtr<AudioClip> clip = AudioClip::_createPtr(sampleStream, bufferSize, info.numSamples, clipDesc);
+		SPtr<AudioClip> clip = AudioClip::CreatePtrInternal(sampleStream, bufferSize, info.numSamples, clipDesc);
 
 		const String fileName = filePath.getFilename(false);
 		clip->setName(fileName);

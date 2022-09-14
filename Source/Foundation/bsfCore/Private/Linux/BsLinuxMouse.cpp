@@ -35,7 +35,7 @@ namespace bs
 			double deltaZ = round(LinuxPlatform::mouseMotionEvent.deltaZ);
 
 			if (deltaX != 0 || deltaY != 0 || deltaZ != 0)
-				mOwner->_notifyMouseMoved(deltaX, deltaY, deltaZ);
+				mOwner->NotifyMouseMovedInternal(deltaX, deltaY, deltaZ);
 
 			LinuxPlatform::mouseMotionEvent.deltaX -= deltaX;
 			LinuxPlatform::mouseMotionEvent.deltaY -= deltaY;

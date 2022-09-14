@@ -1086,7 +1086,7 @@ namespace bs
 		return output;
 	}
 
-	bool Animation::_getAnimatesRoot() const
+	bool Animation::GetAnimatesRootInternal() const
 	{
 		if (mSkeleton == nullptr)
 			return false;
@@ -1293,7 +1293,7 @@ namespace bs
 		Animation* anim = new (bs_alloc<Animation>()) Animation();
 
 		SPtr<Animation> animPtr = bs_core_ptr(anim);
-		animPtr->_setThisPtr(animPtr);
+		animPtr->SetThisPtrInternal(animPtr);
 		animPtr->initialize();
 
 		return animPtr;

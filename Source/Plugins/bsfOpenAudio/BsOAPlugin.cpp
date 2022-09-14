@@ -33,7 +33,7 @@ namespace bs
 	extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
 	{
 		OAImporter* importer = bs_new<OAImporter>();
-		Importer::instance()._registerAssetImporter(importer);
+		Importer::instance().RegisterAssetImporterInternal(importer);
 
 		return bs_new<OAFactory>();
 	}

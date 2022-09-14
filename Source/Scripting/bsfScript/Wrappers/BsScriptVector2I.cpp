@@ -17,7 +17,7 @@ namespace bs
 	MonoObject* ScriptVector2I::box(const Vector2I& value)
 	{
 		// We're casting away const but it's fine since structs are passed by value anyway
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	Vector2I ScriptVector2I::unbox(MonoObject* obj)

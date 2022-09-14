@@ -40,7 +40,7 @@ namespace bs
 			backupData[scriptObject] = scriptObject->beginRefresh();
 
 		for (auto& scriptObject : mScriptObjects)
-			scriptObject->_clearManagedInstance();
+			scriptObject->ClearManagedInstanceInternal();
 
 		MonoManager::instance().unloadScriptDomain();
 
@@ -67,7 +67,7 @@ namespace bs
 		onRefreshDomainLoaded();
 
 		for (auto& scriptObject : scriptObjCopy)
-			scriptObject->_restoreManagedInstance();
+			scriptObject->RestoreManagedInstanceInternal();
 
 		for (auto& scriptObject : scriptObjCopy)
 			scriptObject->endRefresh(backupData[scriptObject]);
@@ -98,7 +98,7 @@ namespace bs
 		}
 		
 		for (auto& finalizedObj : mFinalizedObjects[readQueueIdx])
-			finalizedObj->_onManagedInstanceDeleted(assemblyRefresh);
+			finalizedObj->OnManagedInstanceDeletedInternal(assemblyRefresh);
 
 		mFinalizedObjects[readQueueIdx].clear();
 	}

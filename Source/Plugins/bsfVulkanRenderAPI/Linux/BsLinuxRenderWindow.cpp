@@ -38,7 +38,7 @@ namespace bs
 		blockUntilCoreInitialized();
 
 		LinuxPlatform::lockX();
-		Vector2I pos = getCore()->_getInternal()->screenToWindowPos(screenPos);
+		Vector2I pos = getCore()->GetInternalInternal()->screenToWindowPos(screenPos);
 		LinuxPlatform::unlockX();
 
 		return pos;
@@ -49,7 +49,7 @@ namespace bs
 		blockUntilCoreInitialized();
 
 		LinuxPlatform::lockX();
-		Vector2I pos = getCore()->_getInternal()->windowToScreenPos(windowPos);
+		Vector2I pos = getCore()->GetInternalInternal()->windowToScreenPos(windowPos);
 		LinuxPlatform::unlockX();
 
 		return pos;
@@ -66,14 +66,14 @@ namespace bs
 
 		RENDER_WINDOW_DESC desc = mDesc;
 		SPtr<ct::CoreObject> coreObj = bs_shared_ptr_new<ct::LinuxRenderWindow>(desc, mWindowId, rapi);
-		coreObj->_setThisPtr(coreObj);
+		coreObj->SetThisPtrInternal(coreObj);
 
 		return coreObj;
 	}
 
 	void LinuxRenderWindow::syncProperties()
 	{
-		ScopedSpinLock lock(getCore()->_getPropertiesLock());
+		ScopedSpinLock lock(getCore()->GetPropertiesLockInternal());
 		mProperties = getCore()->mSyncedProperties;
 	}
 
@@ -90,7 +90,7 @@ namespace bs
 		if(mProperties.isFullScreen)
 			setWindowed(50, 50);
 
-		SPtr<VulkanDevice> presentDevice = mRenderAPI._getPresentDevice();
+		SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
 		presentDevice->waitIdle();
 
 		if (mWindow != nullptr)
@@ -106,7 +106,7 @@ namespace bs
 		}
 
 		mSwapChain->destroy();
-		vkDestroySurfaceKHR(mRenderAPI._getInstance(), mSurface, gVulkanAllocator);
+		vkDestroySurfaceKHR(mRenderAPI.GetInstanceInternal(), mSurface, gVulkanAllocator);
 	}
 
 	void LinuxRenderWindow::initialize()
@@ -161,7 +161,7 @@ namespace bs
 		props.isHidden = mDesc.hideUntilSwap || mDesc.hidden;
 
 		mWindow = bs_new<LinuxWindow>(windowDesc);
-		mWindow->_setUserData(this);
+		mWindow->SetUserDataInternal(this);
 
 		props.width = mWindow->getWidth();
 		props.height = mWindow->getHeight();
@@ -172,24 +172,24 @@ namespace bs
 		props.multisampleCount = mDesc.multisampleCount;
 
 		XWindowAttributes windowAttributes;
-		XGetWindowAttributes(LinuxPlatform::getXDisplay(), mWindow->_getXWindow(), &windowAttributes);
+		XGetWindowAttributes(LinuxPlatform::getXDisplay(), mWindow->GetXWindowInternal(), &windowAttributes);
 
 		// Create Vulkan surface
 		VkXlibSurfaceCreateInfoKHR surfaceCreateInfo;
 		surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
 		surfaceCreateInfo.pNext = nullptr;
 		surfaceCreateInfo.flags = 0;
-		surfaceCreateInfo.window = mWindow->_getXWindow();
+		surfaceCreateInfo.window = mWindow->GetXWindowInternal();
 		surfaceCreateInfo.dpy = LinuxPlatform::getXDisplay();
 
 		// Note: I manually lock Xlib, while Vulkan spec says XInitThreads should be called, since Vulkan
 		// surely calls Xlib under the hood as well. I've tried to guess which calls use Xlib and lock them
 		// externally, but XInitThreads might be required if problems occur.
-		VkInstance instance = mRenderAPI._getInstance();
+		VkInstance instance = mRenderAPI.GetInstanceInternal();
 		VkResult result = vkCreateXlibSurfaceKHR(instance, &surfaceCreateInfo, gVulkanAllocator, &mSurface);
 		assert(result == VK_SUCCESS);
 
-		SPtr<VulkanDevice> presentDevice = mRenderAPI._getPresentDevice();
+		SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
 		VkPhysicalDevice physicalDevice = presentDevice->getPhysical();
 
 		mPresentQueueFamily = presentDevice->getQueueFamily(GQT_GRAPHICS);
@@ -322,14 +322,14 @@ namespace bs
 		const LinuxVideoOutputInfo& outputInfo =
 				static_cast<const LinuxVideoOutputInfo&>(videoModeInfo.getOutputInfo (outputIdx));
 
-		INT32 screen = outputInfo._getScreen();
-		RROutput outputID = outputInfo._getOutputID();
+		INT32 screen = outputInfo.GetScreenInternal();
+		RROutput outputID = outputInfo.GetOutputIDInternal();
 
 		RRMode modeID = 0;
 		if(!mode.isCustom)
 		{
 			const LinuxVideoMode& videoMode = static_cast<const LinuxVideoMode&>(mode);
-			modeID = videoMode._getModeID();
+			modeID = videoMode.GetModeIDInternal();
 		}
 		else
 		{
@@ -413,7 +413,7 @@ namespace bs
 		LinuxPlatform::lockX();
 
 		setVideoMode(screen, outputID, modeID);
-		mWindow->_setFullscreen(true);
+		mWindow->SetFullscreenInternal(true);
 
 		LinuxPlatform::unlockX();
 
@@ -425,7 +425,7 @@ namespace bs
 		props.width = mode.width;
 		props.height = mode.height;
 
-		_windowMovedOrResized();
+		WindowMovedOrResizedInternal();
 
 		{
 			ScopedSpinLock lock(mLock);
@@ -466,8 +466,8 @@ namespace bs
 
 		LinuxPlatform::lockX();
 
-		setVideoMode(outputInfo._getScreen(), outputInfo._getOutputID(), desktopVideoMode._getModeID());
-		mWindow->_setFullscreen(false);
+		setVideoMode(outputInfo.GetScreenInternal(), outputInfo._getOutputID(), desktopVideoMode._getModeID());
+		mWindow->SetFullscreenInternal(false);
 
 		LinuxPlatform::unlockX();
 
@@ -475,7 +475,7 @@ namespace bs
 		props.width = width;
 		props.height = height;
 
-		_windowMovedOrResized();
+		WindowMovedOrResizedInternal();
 
 		{
 			ScopedSpinLock lock(mLock);
@@ -597,7 +597,7 @@ namespace bs
 		LinuxPlatform::lockX();
 
 		// Get a command buffer on which we'll submit
-		SPtr<VulkanDevice> presentDevice = mRenderAPI._getPresentDevice();
+		SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
 
 		// Assuming present queue is always graphics
 		assert(presentDevice->getQueueFamily(GQT_GRAPHICS) == mPresentQueueFamily);
@@ -667,7 +667,7 @@ namespace bs
 		if(name == "WINDOW")
 		{
 			::Window* window = (::Window*)data;
-			*window = mWindow->_getXWindow();
+			*window = mWindow->GetXWindowInternal();
 			return;
 		}
 	}
@@ -707,7 +707,7 @@ namespace bs
 		RenderWindow::setHidden(hidden);
 	}
 
-	void LinuxRenderWindow::_windowMovedOrResized()
+	void LinuxRenderWindow::WindowMovedOrResizedInternal()
 	{
 		if (!mWindow)
 			return;
@@ -737,7 +737,7 @@ namespace bs
 		//// Need to make sure nothing is using the swap buffer before we re-create it
 		// Note: Optionally I can detect exactly on which queues (if any) are the swap chain images used on, and only wait
 		// on those
-		SPtr<VulkanDevice> presentDevice = mRenderAPI._getPresentDevice();
+		SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
 		presentDevice->waitIdle();
 
 		VulkanSwapChain* oldSwapChain = mSwapChain;

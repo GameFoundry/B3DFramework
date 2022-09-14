@@ -672,7 +672,7 @@ namespace bs
 			mDefaultResourceManifest->registerResource(resource.getUUID(), filePath);
 		}
 
-		_save(resource.getInternalPtr(), filePath, compress);
+		SaveInternal(resource.getInternalPtr(), filePath, compress);
 	}
 
 	void Resources::save(const HResource& resource, bool compress)
@@ -685,7 +685,7 @@ namespace bs
 			save(resource, path, true, compress);
 	}
 
-	void Resources::_save(const SPtr<Resource>& resource, const Path& filePath, bool compress)
+	void Resources::SaveInternal(const SPtr<Resource>& resource, const Path& filePath, bool compress)
 	{
 		if (!resource->mKeepSourceData)
 		{
@@ -934,13 +934,13 @@ namespace bs
 		return std::min(1.0f, totalBytesLoaded / totalBytesToLoad);
 	}
 
-	HResource Resources::_createResourceHandle(const SPtr<Resource>& obj)
+	HResource Resources::CreateResourceHandleInternal(const SPtr<Resource>& obj)
 	{
 		UUID uuid = UUIDGenerator::generateRandom();
-		return _createResourceHandle(obj, uuid);
+		return CreateResourceHandleInternal(obj, uuid);
 	}
 
-	HResource Resources::_createResourceHandle(const SPtr<Resource>& obj, const UUID& UUID)
+	HResource Resources::CreateResourceHandleInternal(const SPtr<Resource>& obj, const UUID& UUID)
 	{
 		HResource newHandle(obj, UUID);
 
@@ -959,7 +959,7 @@ namespace bs
 		return newHandle;
 	}
 
-	HResource Resources::_getResourceHandle(const UUID& uuid)
+	HResource Resources::GetResourceHandleInternal(const UUID& uuid)
 	{
 		Lock lock(mLoadedResourceMutex);
 		auto iterFind3 = mHandles.find(uuid);

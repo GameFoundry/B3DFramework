@@ -51,7 +51,7 @@ namespace bs
 			cubemapDesc.numMips = PixelUtil::getMaxMipmaps(cubemapDesc.width, cubemapDesc.height, 1, cubemapDesc.format);
 			cubemapDesc.usage = TU_STATIC | TU_RENDERTARGET;
 
-			mFilteredRadiance = Texture::_createPtr(cubemapDesc);
+			mFilteredRadiance = Texture::CreatePtrInternal(cubemapDesc);
 		}
 
 		{
@@ -63,7 +63,7 @@ namespace bs
 			irradianceCubemapDesc.numMips = 0;
 			irradianceCubemapDesc.usage = TU_STATIC | TU_RENDERTARGET;
 
-			mIrradiance = Texture::_createPtr(irradianceCubemapDesc);
+			mIrradiance = Texture::CreatePtrInternal(irradianceCubemapDesc);
 		}
 
 		auto renderComplete = [this]()
@@ -106,7 +106,7 @@ namespace bs
 		if(mTexture.isLoaded())
 			filterTexture();
 
-		_markCoreDirty((ActorDirtyFlag)SkyboxDirtyFlag::Texture);
+		MarkCoreDirtyInternal((ActorDirtyFlag)SkyboxDirtyFlag::Texture);
 	}
 
 	SPtr<ct::Skybox> Skybox::getCore() const
@@ -118,7 +118,7 @@ namespace bs
 	{
 		Skybox* skybox = new (bs_alloc<Skybox>()) Skybox();
 		SPtr<Skybox> skyboxPtr = bs_core_ptr<Skybox>(skybox);
-		skyboxPtr->_setThisPtr(skyboxPtr);
+		skyboxPtr->SetThisPtrInternal(skyboxPtr);
 
 		return skyboxPtr;
 	}
@@ -147,7 +147,7 @@ namespace bs
 
 		ct::Skybox* skybox = new (bs_alloc<ct::Skybox>()) ct::Skybox(radiance, filteredRadiance, irradiance);
 		SPtr<ct::Skybox> skyboxPtr = bs_shared_ptr<ct::Skybox>(skybox);
-		skyboxPtr->_setThisPtr(skyboxPtr);
+		skyboxPtr->SetThisPtrInternal(skyboxPtr);
 
 		return skyboxPtr;
 	}
@@ -169,7 +169,7 @@ namespace bs
 		return CoreSyncData(buffer, size);
 	}
 
-	void Skybox::_markCoreDirty(ActorDirtyFlag flags)
+	void Skybox::MarkCoreDirtyInternal(ActorDirtyFlag flags)
 	{
 		markCoreDirty((UINT32)flags);
 	}

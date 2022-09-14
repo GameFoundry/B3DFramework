@@ -270,7 +270,7 @@ namespace bs
 		return Vector3::ZERO;
 	}
 
-	void CRigidbody::_updateMassDistribution()
+	void CRigidbody::UpdateMassDistributionInternal()
 	{
 		if (mInternal != nullptr)
 			return mInternal->updateMassDistribution();
@@ -295,7 +295,7 @@ namespace bs
 					if (!entry->isValidParent(static_object_cast<CRigidbody>(mThisHandle)))
 						continue;
 
-					Collider* collider = entry->_getInternal();
+					Collider* collider = entry->GetInternalInternal();
 					if (collider == nullptr)
 						continue;
 
@@ -337,7 +337,7 @@ namespace bs
 			return;
 
 		mChildren.push_back(collider);
-		mInternal->addCollider(collider->_getInternal());
+		mInternal->addCollider(collider->GetInternalInternal());
 	}
 
 	void CRigidbody::removeCollider(const HCollider& collider)
@@ -349,7 +349,7 @@ namespace bs
 
 		if(iterFind != mChildren.end())
 		{
-			mInternal->removeCollider(collider->_getInternal());
+			mInternal->removeCollider(collider->GetInternalInternal());
 			mChildren.erase(iterFind);
 		}
 	}
@@ -378,13 +378,13 @@ namespace bs
 
 		if (data.colliders[0] != nullptr)
 		{
-			CCollider* other = (CCollider*)data.colliders[0]->_getOwner(PhysicsOwnerType::Component);
+			CCollider* other = (CCollider*)data.colliders[0]->GetOwnerInternal(PhysicsOwnerType::Component);
 			output.collider[0] = static_object_cast<CCollider>(other->getHandle());
 		}
 
 		if (data.colliders[1] != nullptr)
 		{
-			CCollider* other = (CCollider*)data.colliders[1]->_getOwner(PhysicsOwnerType::Component);
+			CCollider* other = (CCollider*)data.colliders[1]->GetOwnerInternal(PhysicsOwnerType::Component);
 			output.collider[1] = static_object_cast<CCollider>(other->getHandle());
 		}
 	}
@@ -395,7 +395,7 @@ namespace bs
 
 		if(mInternal)
 		{
-			mInternal->_setOwner(PhysicsOwnerType::None, nullptr);
+			mInternal->SetOwnerInternal(PhysicsOwnerType::None, nullptr);
 			mInternal = nullptr;
 		}
 	}
@@ -442,7 +442,7 @@ namespace bs
 	void CRigidbody::onEnabled()
 	{
 		mInternal = Rigidbody::create(SO());
-		mInternal->_setOwner(PhysicsOwnerType::Component, this);
+		mInternal->SetOwnerInternal(PhysicsOwnerType::Component, this);
 
 		updateColliders();
 
@@ -501,7 +501,7 @@ namespace bs
 #endif
 		}
 		
-		if(gPhysics()._isUpdateInProgress())
+		if(gPhysics().IsUpdateInProgressInternal())
 			return;
 
 		const Transform& tfrm = SO()->getTransform();

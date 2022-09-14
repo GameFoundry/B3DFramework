@@ -162,7 +162,7 @@ namespace bs
 		VulkanTexture* tex = new (bs_alloc<VulkanTexture>()) VulkanTexture(desc, initialData, deviceMask);
 
 		SPtr<VulkanTexture> texPtr = bs_shared_ptr<VulkanTexture>(tex);
-		texPtr->_setThisPtr(texPtr);
+		texPtr->SetThisPtrInternal(texPtr);
 
 		return texPtr;
 	}
@@ -171,7 +171,7 @@ namespace bs
 																				  UINT32 deviceIdx)
 	{
 		SPtr<VulkanRenderTexture> texPtr = bs_shared_ptr_new<VulkanRenderTexture>(desc, deviceIdx);
-		texPtr->_setThisPtr(texPtr);
+		texPtr->SetThisPtrInternal(texPtr);
 
 		return texPtr;
 	}

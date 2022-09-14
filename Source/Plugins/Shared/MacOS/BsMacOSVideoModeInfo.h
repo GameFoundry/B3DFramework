@@ -21,7 +21,7 @@ namespace bs { namespace ct
 			~MacOSVideoMode() override;
 
 			/** Returns internal Core Graphics video mode reference. */
-			CGDisplayModeRef _getModeRef() const { return mModeRef; }
+			CGDisplayModeRef GetModeRefInternal() const { return mModeRef; }
 
 		private:
 			MacOSVideoMode(CGDisplayModeRef modeRef, CVDisplayLinkRef linkRef, UINT32 outputIdx);
@@ -37,7 +37,7 @@ namespace bs { namespace ct
 			MacOSVideoOutputInfo(CGDirectDisplayID displayID, UINT32 outputIdx);
 
 			/** Returns the Core Graphics identifier for this display. */
-			CGDirectDisplayID _getDisplayID() const { return mDisplayID; }
+			CGDirectDisplayID GetDisplayIDInternal() const { return mDisplayID; }
 		private:
 			CGDirectDisplayID mDisplayID;
 		};

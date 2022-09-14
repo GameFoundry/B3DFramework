@@ -16,7 +16,7 @@ namespace bs
 
 	MonoObject*ScriptSkeletonBoneInfoEx::box(const __SkeletonBoneInfoExInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__SkeletonBoneInfoExInterop ScriptSkeletonBoneInfoEx::unbox(MonoObject* value)

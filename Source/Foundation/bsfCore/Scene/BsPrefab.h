@@ -38,7 +38,7 @@ namespace bs
 		 *			
 		 * @return	Instantiated clone of the prefab's scene object hierarchy.
 		 */
-		HSceneObject instantiate() const { return _instantiate(); }
+		HSceneObject instantiate() const { return InstantiateInternal(); }
 
 		/**
 		 * Replaces the contents of this prefab with new contents from the provided object. Object will be automatically
@@ -66,13 +66,13 @@ namespace bs
 		 */
 
 		/** Updates any prefab child instances by loading their prefabs and making sure they are up to date. */
-		void _updateChildInstances() const;
+		void UpdateChildInstancesInternal() const;
 
 		/**
 		 * Returns a reference to the internal prefab hierarchy. Returned hierarchy is not instantiated and cannot be
 		 * interacted with in a manner you would with normal scene objects.
 		 */
-		HSceneObject _getRoot() const { return mRoot; }
+		HSceneObject GetRootInternal() const { return mRoot; }
 
 		/**
 		 * Creates the clone of the prefab's current hierarchy but doesn't instantiate it.
@@ -83,7 +83,7 @@ namespace bs
 		 *								the original is destroyed before instantiating.
 		 * @return						Clone of the prefab's scene object hierarchy.
 		 */
-		HSceneObject _clone(bool preserveUUIDs = false) const;
+		HSceneObject CloneInternal(bool preserveUUIDs = false) const;
 
 		/**
 		 * Instantiates a prefab by creating an instance of the prefab's scene object hierarchy. The returned hierarchy
@@ -95,7 +95,7 @@ namespace bs
 		 *								the original is destroyed before instantiating.
 		 * @return						Instantiated clone of the prefab's scene object hierarchy.
 		 */
-		HSceneObject _instantiate(bool preserveUUIDs = false) const;
+		HSceneObject InstantiateInternal(bool preserveUUIDs = false) const;
 
 		/** @} */
 

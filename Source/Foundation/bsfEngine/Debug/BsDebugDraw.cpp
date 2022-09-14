@@ -130,7 +130,7 @@ namespace bs
 		mDrawHelper->clear();
 	}
 
-	void DebugDraw::_update()
+	void DebugDraw::UpdateInternal()
 	{
 		mActiveMeshes.clear();
 		mActiveMeshes = mDrawHelper->buildMeshes(DrawHelper::SortType::None);

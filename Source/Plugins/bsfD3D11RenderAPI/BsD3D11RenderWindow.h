@@ -116,13 +116,13 @@ namespace bs {
 		void getCustomAttribute(const String& name, void* pData) const override;
 
 		/** @copydoc RenderWindow::_windowMovedOrResized */
-		void _windowMovedOrResized() override;
+		void WindowMovedOrResizedInternal() override;
 
 		/**	Returns presentation parameters used for creating the window swap chain. */
-		DXGI_SWAP_CHAIN_DESC* _getPresentationParameters() { return &mSwapChainDesc; }
+		DXGI_SWAP_CHAIN_DESC* GetPresentationParametersInternal() { return &mSwapChainDesc; }
 
 		/**	Returns internal window handle. */
-		HWND _getWindowHandle() const;
+		HWND GetWindowHandleInternal() const;
 
 	protected:
 		friend class bs::D3D11RenderWindow;

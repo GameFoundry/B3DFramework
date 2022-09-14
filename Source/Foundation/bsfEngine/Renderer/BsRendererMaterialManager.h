@@ -32,10 +32,10 @@ namespace bs
 		~RendererMaterialManager();
 
 		/**	Registers a new material that should be initialized on module start-up. */
-		static void _registerMaterial(ct::RendererMaterialMetaData* metaData, const char* shaderPath);
+		static void RegisterMaterialInternal(ct::RendererMaterialMetaData* metaData, const char* shaderPath);
 
 		/** Returns a set of defines to be used when importing the shader. */
-		static ShaderDefines _getDefines(const Path& shaderPath);
+		static ShaderDefines GetDefinesInternal(const Path& shaderPath);
 	private:
 		template<class T>
 		friend class RendererMaterial;

@@ -73,9 +73,9 @@ namespace bs
 	{
 		RENDER_WINDOW_DESC desc = mDesc;
 		SPtr<ct::Win32RenderWindow> coreObj = bs_shared_ptr_new<ct::Win32RenderWindow>(desc, mWindowId, mGLSupport);
-		coreObj->_setThisPtr(coreObj);
+		coreObj->SetThisPtrInternal(coreObj);
 
-		mGLSupport._notifyWindowCreated(coreObj.get());
+		mGLSupport.NotifyWindowCreatedInternal(coreObj.get());
 		return coreObj;
 	}
 
@@ -88,7 +88,7 @@ namespace bs
 	HWND Win32RenderWindow::getHWnd() const
 	{
 		blockUntilCoreInitialized();
-		return getCore()->_getHWnd();
+		return getCore()->GetHWndInternal();
 	}
 
 	namespace ct
@@ -146,7 +146,7 @@ namespace bs
 		windowDesc.toolWindow = mDesc.toolWindow;
 		windowDesc.creationParams = this;
 		windowDesc.modal = mDesc.modal;
-		windowDesc.wndProc = &Win32Platform::_win32WndProc;
+		windowDesc.wndProc = &Win32Platform::Win32WndProcInternal;
 
 #ifdef BS_STATIC_LIB
 		windowDesc.module = GetModuleHandle(NULL);
@@ -324,7 +324,7 @@ namespace bs
 
 		SetWindowPos(mWindow->getHWnd(), HWND_TOP, props.left, props.top, width, height, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 
-		_windowMovedOrResized();
+		WindowMovedOrResizedInternal();
 
 		{
 			ScopedSpinLock lock(mLock);
@@ -389,7 +389,7 @@ namespace bs
 		SetWindowPos(mWindow->getHWnd(), HWND_NOTOPMOST, left, top, winWidth, winHeight,
 			SWP_DRAWFRAME | SWP_FRAMECHANGED | SWP_NOACTIVATE);
 
-		_windowMovedOrResized();
+		WindowMovedOrResizedInternal();
 
 		{
 			ScopedSpinLock lock(mLock);
@@ -565,7 +565,7 @@ namespace bs
 		else if(name == "WINDOW")
 		{
 			UINT64 *pHwnd = (UINT64*)pData;
-			*pHwnd = (UINT64)_getHWnd();
+			*pHwnd = (UINT64)GetHWndInternal();
 			return;
 		}
 	}
@@ -589,12 +589,12 @@ namespace bs
 		RenderWindow::setHidden(hidden);
 	}
 
-	void Win32RenderWindow::_windowMovedOrResized()
+	void Win32RenderWindow::WindowMovedOrResizedInternal()
 	{
 		if (!mWindow)
 			return;
 
-		mWindow->_windowMovedOrResized();
+		mWindow->WindowMovedOrResizedInternal();
 
 		RenderWindowProperties& props = mProperties;
 		if (!props.isFullScreen) // Fullscreen is handled directly by this object
@@ -606,7 +606,7 @@ namespace bs
 		}
 	}
 
-	HWND Win32RenderWindow::_getHWnd() const
+	HWND Win32RenderWindow::GetHWndInternal() const
 	{
 		return mWindow->getHWnd();
 	}

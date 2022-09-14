@@ -120,10 +120,10 @@ namespace bs
 		 * Destroys the window, cleaning up any resources and removing it from the display. No further methods should be
 		 * called on this object after it has been destroyed. This called automatically in the destructor.
 		 */
-		void _destroy();
+		void DestroyInternal();
 
 		/** Returns an identifier that unique identifies this window. */
-		UINT32 _getWindowId() const { return mWindowId; }
+		UINT32 GetWindowIdInternal() const { return mWindowId; }
 
 		/**
 		 * Sets a portion of the window in which the user can click and drag in order to move the window. This is needed
@@ -133,37 +133,37 @@ namespace bs
 		 * @param[in]	rects	Areas of the window (relative to the window origin in top-left corner) in which the drag
 		 * 						operation in allowed.
 		 */
-		void _setDragZones(const Vector<Rect2I>& rects);
+		void SetDragZonesInternal(const Vector<Rect2I>& rects);
 
-		/** Attaches non-specific user data that can later be retrieved through _getUserData(). */
-		void _setUserData(void* data);
+		/** Attaches non-specific user data that can later be retrieved through GetUserDataInternal(). */
+		void SetUserDataInternal(void* data);
 
 		/** Returns user data attached to the object when _setUserData was called. */
-		void* _getUserData() const;
+		void* GetUserDataInternal() const;
 
 		/**
 		 * Registers the window with the drag and drop manager and allows it to accept file drop operations. Each call
 		 * to this method must eventually be followed with _unregisterForDragAndDrop.
 		 */
-		void _registerForDragAndDrop();
+		void RegisterForDragAndDropInternal();
 
 		/**
 		 * Unregisters the window from the drag and drop manager. This will need to be called multiple times if
 		 * _registerForDragAndDrop was called multiple times.
 		 */
-		void _unregisterForDragAndDrop();
+		void UnregisterForDragAndDropInternal();
 
 		/** Lets the window know that the provided OpenGL context will be rendering to it. */
-		void _registerGLContext(void* context);
+		void RegisterGLContextInternal(void* context);
 
 		/** Assigns a CALayer to the windows' view, and enables layer backing on the view. */
-		void _setLayer(void* layer);
+		void SetLayerInternal(void* layer);
 
 		/** Returns the assigned CALayer to the window view. */
-		void* _getLayer() const;
+		void* GetLayerInternal() const;
 
 		/** Returns internal private data for use by friends. */
-		Pimpl* _getPrivateData() const { return m; }
+		Pimpl* GetPrivateDataInternal() const { return m; }
 
 		/** @} */
 

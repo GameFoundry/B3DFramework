@@ -100,10 +100,10 @@ namespace bs
 	HManagedResource ManagedResource::create(MonoObject* managedResource)
 	{
 		SPtr<ManagedResource> newRes = bs_core_ptr<ManagedResource>(new (bs_alloc<ManagedResource>()) ManagedResource(managedResource));
-		newRes->_setThisPtr(newRes);
+		newRes->SetThisPtrInternal(newRes);
 		newRes->initialize();
 
-		HManagedResource handle = static_resource_cast<ManagedResource>(gResources()._createResourceHandle(newRes));
+		HManagedResource handle = static_resource_cast<ManagedResource>(gResources().CreateResourceHandleInternal(newRes));
 		newRes->setHandle(managedResource, handle);
 
 		return handle;
@@ -112,7 +112,7 @@ namespace bs
 	SPtr<ManagedResource> ManagedResource::createEmpty()
 	{
 		SPtr<ManagedResource> newRes = bs_core_ptr<ManagedResource>(new (bs_alloc<ManagedResource>()) ManagedResource());
-		newRes->_setThisPtr(newRes);
+		newRes->SetThisPtrInternal(newRes);
 		newRes->initialize();
 
 		return newRes;
@@ -130,7 +130,7 @@ namespace bs
 	{
 		Resource::destroy();
 
-		mOwner->_notifyDestroyed();
+		mOwner->NotifyDestroyedInternal();
 		ManagedResourceManager::instance().unregisterManagedResource(mMyHandle);
 	}
 

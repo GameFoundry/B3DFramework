@@ -79,7 +79,7 @@ namespace bs
 		ct::PIPELINE_STATE_DESC desc;
 		convertPassDesc(mData, desc);
 
-		return ct::RenderStateManager::instance()._createGraphicsPipelineState(desc);
+		return ct::RenderStateManager::instance().CreateGraphicsPipelineStateInternal(desc);
 	}
 
 	SPtr<GraphicsPipelineState> GraphicsPipelineState::create(const PIPELINE_STATE_DESC& desc)
@@ -116,7 +116,7 @@ namespace bs
 
 	SPtr<ct::CoreObject> ComputePipelineState::createCore() const
 	{
-		return ct::RenderStateManager::instance()._createComputePipelineState(mProgram->getCore());
+		return ct::RenderStateManager::instance().CreateComputePipelineStateInternal(mProgram->getCore());
 	}
 
 	SPtr<ComputePipelineState> ComputePipelineState::create(const SPtr<GpuProgram>& program)

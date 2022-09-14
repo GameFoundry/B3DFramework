@@ -36,11 +36,11 @@ namespace bs
 			UINT32 maxNumIndices,
 			UINT32 renderElementIdx) const override;
 
-		/** @copydoc GUIElement::_getOptimalSize */
-		Vector2I _getOptimalSize() const override;
+		/** @copydoc GUIElement::GetOptimalSizeInternal */
+		Vector2I GetOptimalSizeInternal() const override;
 
 		/** @copydoc GUIElement::_commandEvent */
-		bool _commandEvent(const GUICommandEvent& ev) override;
+		bool CommandEventInternal(const GUICommandEvent& ev) override;
 
 		GUIElement* mFocusElement = nullptr;
 	};

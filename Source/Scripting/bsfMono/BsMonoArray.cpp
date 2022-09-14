@@ -52,7 +52,7 @@ namespace bs
 		template<>
 		void ScriptArray_set<std::nullptr_t>(MonoArray* array, UINT32 idx, const std::nullptr_t& value)
 		{
-			void** item = (void**)ScriptArray::_getArrayAddr(array, sizeof(void*), idx);
+			void** item = (void**)ScriptArray::GetArrayAddrInternal(array, sizeof(void*), idx);
 			*item = nullptr;
 		}
 	}
@@ -65,7 +65,7 @@ namespace bs
 	ScriptArray::ScriptArray(MonoClass& klass, UINT32 size)
 		: mInternal(nullptr)
 	{
-		mInternal = mono_array_new(MonoManager::instance().getDomain(), klass._getInternalClass(), size);
+		mInternal = mono_array_new(MonoManager::instance().getDomain(), klass.GetInternalClassInternal(), size);
 	}
 
 	ScriptArray::ScriptArray(::MonoClass* klass, UINT32 size)
@@ -89,15 +89,15 @@ namespace bs
 
 	void ScriptArray::setRaw(UINT32 idx, const UINT8* value, UINT32 size, UINT32 count)
 	{
-		_setArrayVal(mInternal, idx, value, size, count);
+		SetArrayValInternal(mInternal, idx, value, size, count);
 	}
 
-	UINT8* ScriptArray::_getArrayAddr(MonoArray* array, UINT32 size, UINT32 idx)
+	UINT8* ScriptArray::GetArrayAddrInternal(MonoArray* array, UINT32 size, UINT32 idx)
 	{
 		return (UINT8*)mono_array_addr_with_size(array, size, idx);
 	}
 
-	void ScriptArray::_setArrayVal(MonoArray* array, UINT32 idx, const UINT8* value, UINT32 size, UINT32 count)
+	void ScriptArray::SetArrayValInternal(MonoArray* array, UINT32 idx, const UINT8* value, UINT32 size, UINT32 count)
 	{
 		::MonoClass* arrayClass = mono_object_get_class((MonoObject*)(array));
 		::MonoClass* elementClass = mono_class_get_element_class(arrayClass);
@@ -109,7 +109,7 @@ namespace bs
 			mono_value_copy_array(array, idx, (void*)value, count);
 		else
 		{
-			UINT8* dest = _getArrayAddr(array, size, idx);
+			UINT8* dest = GetArrayAddrInternal(array, size, idx);
 			mono_gc_wbarrier_arrayref_copy(dest, (void*)value, count);
 		}
 	}

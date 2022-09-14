@@ -48,7 +48,7 @@ namespace bs
 
 		SPtr<IReflectable> newRTTIObject() override
 		{
-			return RenderStateManager::instance()._createSamplerStatePtr(SAMPLER_STATE_DESC());
+			return RenderStateManager::instance().CreateSamplerStatePtrInternal(SAMPLER_STATE_DESC());
 		}
 	};
 

@@ -40,7 +40,7 @@ namespace bs
 	{
 		RTTITypeBase* rtti = obj.getRTTI();
 		do {
-			RTTITypeBase* rttiInstance = rtti->_clone(alloc);
+			RTTITypeBase* rttiInstance = rtti->CloneInternal(alloc);
 			rttiInstance->onSerializationStarted(&obj, nullptr);
 
 			const UINT32 numFields = rtti->getNumFields();

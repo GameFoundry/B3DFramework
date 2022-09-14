@@ -126,7 +126,7 @@ namespace bs
 		}
 	}
 
-	bool InputConfiguration::_getButtons(ButtonCode code, UINT32 modifiers, Vector<VirtualButton>& btns, Vector<VIRTUAL_BUTTON_DESC>& btnDesc) const
+	bool InputConfiguration::GetButtonsInternal(ButtonCode code, UINT32 modifiers, Vector<VirtualButton>& btns, Vector<VIRTUAL_BUTTON_DESC>& btnDesc) const
 	{
 		const Vector<VirtualButtonData>& btnData = mButtons[code & 0x0000FFFF];
 
@@ -144,7 +144,7 @@ namespace bs
 		return foundAny;
 	}
 
-	bool InputConfiguration::_getAxis(const VirtualAxis& axis, VIRTUAL_AXIS_DESC& axisDesc) const
+	bool InputConfiguration::GetAxisInternal(const VirtualAxis& axis, VIRTUAL_AXIS_DESC& axisDesc) const
 	{
 		if (axis.axisIdentifier >= (UINT32)mAxes.size())
 			return false;

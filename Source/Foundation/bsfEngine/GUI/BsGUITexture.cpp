@@ -28,7 +28,7 @@ namespace bs
 		}
 		else
 		{
-			mActiveTexture = _getStyle()->normal.texture;
+			mActiveTexture = GetStyleInternal()->normal.texture;
 			mUsingStyleTexture = true;
 		}
 
@@ -109,7 +109,7 @@ namespace bs
 
 	void GUITexture::setTexture(const HSpriteTexture& texture)
 	{
-		Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+		Vector2I origSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 
 		mActiveTexture = texture;
 
@@ -120,11 +120,11 @@ namespace bs
 		mUsingStyleTexture = false;
 		mDesc.animationStartTime = gTime().getTime();
 
-		Vector2I newSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+		Vector2I newSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 		if (origSize != newSize)
-			_markLayoutAsDirty();
+			MarkLayoutAsDirtyInternal();
 		else
-			_markContentAsDirty();
+			MarkContentAsDirtyInternal();
 	}
 
 	void GUITexture::updateRenderElementsInternal()
@@ -170,10 +170,10 @@ namespace bs
 		mDesc.width = (UINT32)destSize.x;
 		mDesc.height = (UINT32)destSize.y;
 
-		mDesc.borderLeft = _getStyle()->border.left;
-		mDesc.borderRight = _getStyle()->border.right;
-		mDesc.borderTop = _getStyle()->border.top;
-		mDesc.borderBottom = _getStyle()->border.bottom;
+		mDesc.borderLeft = GetStyleInternal()->border.left;
+		mDesc.borderRight = GetStyleInternal()->border.right;
+		mDesc.borderTop = GetStyleInternal()->border.top;
+		mDesc.borderBottom = GetStyleInternal()->border.bottom;
 		mDesc.transparent = mTransparent;
 		mDesc.color = getTint();
 
@@ -182,7 +182,7 @@ namespace bs
 		else
 			mDesc.uvScale = Vector2::ONE;
 		
-		mImageSprite->update(mDesc, (UINT64)_getParentWidget());
+		mImageSprite->update(mDesc, (UINT64)GetParentWidgetInternal());
 
 		// Populate GUI render elements from the sprites
 		{
@@ -197,7 +197,7 @@ namespace bs
 	{
 		if (mUsingStyleTexture)
 		{
-			mActiveTexture = _getStyle()->normal.texture;
+			mActiveTexture = GetStyleInternal()->normal.texture;
 			mDesc.animationStartTime = gTime().getTime();
 
 			bool isTexLoaded = SpriteTexture::checkIsLoaded(mActiveTexture);
@@ -206,7 +206,7 @@ namespace bs
 		}
 	}
 
-	Vector2I GUITexture::_getOptimalSize() const
+	Vector2I GUITexture::GetOptimalSizeInternal() const
 	{
 		// TODO - Accounting for style dimensions might be redundant here, I'm pretty sure we do that on higher level anyway
 		Vector2I optimalSize;
@@ -215,24 +215,24 @@ namespace bs
 		// needed (size change is detected). Sprite texture could change without us knowing and by storing the size we can
 		// safely detect this. (In short, don't do mActiveTexture->getFrameWidth/Height() here)
 		
-		if(_getDimensions().fixedWidth())
-			optimalSize.x = _getDimensions().minWidth;
+		if(GetDimensionsInternal().fixedWidth())
+			optimalSize.x = GetDimensionsInternal().minWidth;
 		else
 		{
 			if (SpriteTexture::checkIsLoaded(mActiveTexture))
 				optimalSize.x = mActiveTextureWidth;
 			else
-				optimalSize.x = _getDimensions().maxWidth;
+				optimalSize.x = GetDimensionsInternal().maxWidth;
 		}
 
-		if(_getDimensions().fixedHeight())
-			optimalSize.y = _getDimensions().minHeight;
+		if(GetDimensionsInternal().fixedHeight())
+			optimalSize.y = GetDimensionsInternal().minHeight;
 		else
 		{
 			if (SpriteTexture::checkIsLoaded(mActiveTexture))
 				optimalSize.y = mActiveTextureHeight;
 			else
-				optimalSize.y = _getDimensions().maxHeight;
+				optimalSize.y = GetDimensionsInternal().maxHeight;
 		}
 
 		return optimalSize;

@@ -15,7 +15,7 @@ namespace bs
 	/**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
 	extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
 	{
-		RendererManager::instance()._registerFactory(bs_shared_ptr_new<NullRendererFactory>());
+		RendererManager::instance().RegisterFactoryInternal(bs_shared_ptr_new<NullRendererFactory>());
 
 		return nullptr;
 	}

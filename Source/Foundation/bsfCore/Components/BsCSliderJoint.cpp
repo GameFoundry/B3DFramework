@@ -25,7 +25,7 @@ namespace bs
 		if (mInternal == nullptr)
 			return 0.0f;
 
-		return _getInternal()->getPosition();
+		return GetInternalInternal()->getPosition();
 	}
 
 	float CSliderJoint::getSpeed() const
@@ -33,7 +33,7 @@ namespace bs
 		if (mInternal == nullptr)
 			return 0.0f;
 
-		return _getInternal()->getSpeed();
+		return GetInternalInternal()->getSpeed();
 	}
 
 	LimitLinearRange CSliderJoint::getLimit() const
@@ -49,7 +49,7 @@ namespace bs
 		mDesc.limit = limit;
 
 		if (mInternal != nullptr)
-			_getInternal()->setLimit(limit);
+			GetInternalInternal()->setLimit(limit);
 	}
 
 	void CSliderJoint::setFlag(SliderJointFlag flag, bool enabled)
@@ -64,7 +64,7 @@ namespace bs
 			mDesc.flag = (SliderJointFlag)((UINT32)mDesc.flag & ~(UINT32)flag);
 
 		if (mInternal != nullptr)
-			_getInternal()->setFlag(flag, enabled);
+			GetInternalInternal()->setFlag(flag, enabled);
 	}
 
 	bool CSliderJoint::hasFlag(SliderJointFlag flag) const
@@ -77,7 +77,7 @@ namespace bs
 		const SPtr<SceneInstance>& scene = SO()->getScene();
 		SPtr<Joint> joint = SliderJoint::create(*scene->getPhysicsScene(), mDesc);
 
-		joint->_setOwner(PhysicsOwnerType::Component, this);
+		joint->SetOwnerInternal(PhysicsOwnerType::Component, this);
 		return joint;
 	}
 

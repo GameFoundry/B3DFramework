@@ -17,7 +17,7 @@ namespace bs
 	MonoObject* ScriptVector2::box(const Vector2& value)
 	{
 		// We're casting away const but it's fine since structs are passed by value anyway
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	Vector2 ScriptVector2::unbox(MonoObject* obj)
@@ -35,7 +35,7 @@ namespace bs
 	MonoObject* ScriptVector3::box(const Vector3& value)
 	{
 		// We're casting away const but it's fine since structs are passed by value anyway
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	Vector3 ScriptVector3::unbox(MonoObject* obj)
@@ -53,7 +53,7 @@ namespace bs
 	MonoObject* ScriptVector4::box(const Vector4& value)
 	{
 		// We're casting away const but it's fine since structs are passed by value anyway
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	Vector4 ScriptVector4::unbox(MonoObject* obj)

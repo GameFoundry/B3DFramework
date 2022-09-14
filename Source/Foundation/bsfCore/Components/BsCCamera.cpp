@@ -39,7 +39,7 @@ namespace bs
 
 	void CCamera::updateView() const
 	{
-		mInternal->_updateState(*SO());
+		mInternal->UpdateStateInternal(*SO());
 	}
 
 	void CCamera::setMain(bool main)
@@ -47,7 +47,7 @@ namespace bs
 		mInternal->setMain(main);
 	}
 
-	void CCamera::_instantiate()
+	void CCamera::InstantiateInternal()
 	{
 		// If mInternal already exists this means this object was deserialized,
 		// so all we need to do is initialize it.
@@ -59,15 +59,15 @@ namespace bs
 
 	void CCamera::onInitialized()
 	{
-		gSceneManager()._bindActor(mInternal, SO());
+		gSceneManager().BindActorInternal(mInternal, SO());
 
 		// Make sure primary RT gets applied if camera gets deserialized with main camera state
-		gSceneManager()._notifyMainCameraStateChanged(mInternal);
+		gSceneManager().NotifyMainCameraStateChangedInternal(mInternal);
 	}
 
 	void CCamera::onDestroyed()
 	{
-		gSceneManager()._unbindActor(mInternal);
+		gSceneManager().UnbindActorInternal(mInternal);
 
 		mInternal->destroy();
 	}

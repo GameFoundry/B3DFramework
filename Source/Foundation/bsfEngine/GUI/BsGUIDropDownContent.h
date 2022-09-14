@@ -78,20 +78,20 @@ namespace bs
 		/**	Get localized name of a menu item element with the specified index. */
 		HString getElementLocalizedName(UINT32 idx) const;
 
-		/** @copydoc GUIElementContainer::_getOptimalSize */
-		Vector2I _getOptimalSize() const override;
+		/** @copydoc GUIElementContainer::GetOptimalSizeInternal */
+		Vector2I GetOptimalSizeInternal() const override;
 
 		/** @copydoc GUIElementContainer::_updateLayoutInternal */
-		void _updateLayoutInternal(const GUILayoutData& data) override;
+		void UpdateLayoutInternalInternal(const GUILayoutData& data) override;
 
 		/** @copydoc GUIElementContainer::styleUpdated */
 		void styleUpdated() override;
 
 		/** @copydoc GUIElementContainer::_commandEvent */
-		bool _commandEvent(const GUICommandEvent& ev) override;
+		bool CommandEventInternal(const GUICommandEvent& ev) override;
 
 		/** @copydoc GUIElementContainer::_mouseEvent */
-		bool _mouseEvent(const GUIMouseEvent& ev) override;
+		bool MouseEventInternal(const GUIMouseEvent& ev) override;
 
 		/**
 		 * Marks the element with the specified index as selected.

@@ -14,14 +14,14 @@ namespace bs
 
 	HScriptCode ScriptCode::create(const WString& data, bool editorScript)
 	{
-		return static_resource_cast<ScriptCode>(gResources()._createResourceHandle(_createPtr(data, editorScript)));
+		return static_resource_cast<ScriptCode>(gResources().CreateResourceHandleInternal(CreatePtrInternal(data, editorScript)));
 	}
 
-	SPtr<ScriptCode> ScriptCode::_createPtr(const WString& data, bool editorScript)
+	SPtr<ScriptCode> ScriptCode::CreatePtrInternal(const WString& data, bool editorScript)
 	{
 		SPtr<ScriptCode> scriptCodePtr = bs_core_ptr<ScriptCode>(
 			new (bs_alloc<ScriptCode>()) ScriptCode(data, editorScript));
-		scriptCodePtr->_setThisPtr(scriptCodePtr);
+		scriptCodePtr->SetThisPtrInternal(scriptCodePtr);
 		scriptCodePtr->initialize();
 
 		return scriptCodePtr;

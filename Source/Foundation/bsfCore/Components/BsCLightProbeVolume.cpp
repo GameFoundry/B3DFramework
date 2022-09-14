@@ -29,7 +29,7 @@ namespace bs
 	{
 		if (mInternal != nullptr && SO()->getActive())
 		{
-			mInternal->_updateState(*SO());
+			mInternal->UpdateStateInternal(*SO());
 			mInternal->renderProbe(handle);
 		}
 	}
@@ -38,7 +38,7 @@ namespace bs
 	{
 		if (mInternal != nullptr && SO()->getActive())
 		{
-			mInternal->_updateState(*SO());
+			mInternal->UpdateStateInternal(*SO());
 			mInternal->renderProbes();
 		}
 	}
@@ -60,12 +60,12 @@ namespace bs
 		else
 			mInternal = LightProbeVolume::create(mVolume, mCellCount);
 
-		gSceneManager()._bindActor(mInternal, sceneObject());
+		gSceneManager().BindActorInternal(mInternal, sceneObject());
 	}
 
 	void CLightProbeVolume::onDestroyed()
 	{
-		gSceneManager()._unbindActor(mInternal);
+		gSceneManager().UnbindActorInternal(mInternal);
 	}
 	
 	RTTITypeBase* CLightProbeVolume::getRTTIStatic()

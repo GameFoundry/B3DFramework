@@ -39,16 +39,16 @@ namespace bs
 		void endRefresh(const ScriptObjectBackup& backupData) override;
 
 		/** @copydoc ScriptObject::_createManagedInstance */
-		MonoObject* _createManagedInstance(bool construct) override;
+		MonoObject* CreateManagedInstanceInternal(bool construct) override;
 
 		/** @copydoc ScriptObjectBase::_clearManagedInstance */
-		void _clearManagedInstance() override;
+		void ClearManagedInstanceInternal() override;
 
 		/** @copydoc ScriptObjectBase::_onManagedInstanceDeleted */
-		void _onManagedInstanceDeleted(bool assemblyRefresh) override;
+		void OnManagedInstanceDeletedInternal(bool assemblyRefresh) override;
 
 		/** Called by the owned managed resource when it is destroyed. */
-		void _notifyDestroyed();
+		void NotifyDestroyedInternal();
 
 		HManagedResource mResource;
 		String mNamespace;

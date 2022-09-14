@@ -8,20 +8,20 @@ namespace bs
 {
 	Vector2I GUILayoutUtility::calcOptimalSize(const GUIElementBase* elem)
 	{
-		return elem->_calculateLayoutSizeRange().optimal;
+		return elem->CalculateLayoutSizeRangeInternal().optimal;
 	}
 
 	Vector2I GUILayoutUtility::calcActualSize(UINT32 width, UINT32 height, GUILayout* layout, bool updateOptimalSizes)
 	{
 		if (updateOptimalSizes)
-			layout->_updateOptimalLayoutSizes();
+			layout->UpdateOptimalLayoutSizesInternal();
 
 		return calcActualSizeInternal(width, height, layout);
 	}
 
 	Vector2I GUILayoutUtility::calcActualSizeInternal(UINT32 width, UINT32 height, GUILayout* layout)
 	{
-		UINT32 numElements = (UINT32)layout->_getNumChildren();
+		UINT32 numElements = (UINT32)layout->GetNumChildrenInternal();
 		Rect2I* elementAreas = nullptr;
 
 		if (numElements > 0)
@@ -31,23 +31,23 @@ namespace bs
 		parentArea.width = width;
 		parentArea.height = height;
 
-		layout->_getElementAreas(parentArea, elementAreas, numElements, layout->_getCachedChildSizeRanges(), layout->_getCachedSizeRange());
+		layout->GetElementAreasInternal(parentArea, elementAreas, numElements, layout->GetCachedChildSizeRangesInternal(), layout->GetCachedSizeRangeInternal());
 
 		Rect2I* actualAreas = elementAreas; // We re-use the same array
 		for (UINT32 i = 0; i < numElements; i++)
 		{
-			GUIElementBase* child = layout->_getChild(i);
+			GUIElementBase* child = layout->GetChildInternal(i);
 			Rect2I childArea = elementAreas[i];
 
-			if (child->_getType() == GUIElementBase::Type::Layout || child->_getType() == GUIElementBase::Type::Panel)
+			if (child->GetTypeInternal() == GUIElementBase::Type::Layout || child->GetTypeInternal() == GUIElementBase::Type::Panel)
 			{
 				Vector2I childActualSize = calcActualSizeInternal(childArea.width, childArea.height, static_cast<GUILayout*>(child));
 				actualAreas[i].width = (UINT32)childActualSize.x;
 				actualAreas[i].height = (UINT32)childActualSize.y;
 			}
-			else if (child->_getType() == GUIElementBase::Type::Element)
+			else if (child->GetTypeInternal() == GUIElementBase::Type::Element)
 			{
-				RectOffset padding = child->_getPadding();
+				RectOffset padding = child->GetPaddingInternal();
 
 				actualAreas[i].width = elementAreas[i].width + padding.left + padding.right;
 				actualAreas[i].height = elementAreas[i].height + padding.top + padding.bottom;

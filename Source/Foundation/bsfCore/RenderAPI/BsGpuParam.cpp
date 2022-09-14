@@ -58,7 +58,7 @@ namespace bs
 			paramBlock->zeroOut((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride)  * sizeof(UINT32) + sizeBytes, diffSize);
 		}
 
-		mParent->_markCoreDirty();
+		mParent->MarkCoreDirtyInternal();
 	}
 
 	template<class T, bool Core>
@@ -135,7 +135,7 @@ namespace bs
 			paramBlock->zeroOut((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride)  * sizeof(UINT32) + sizeBytes, diffSize);
 		}
 
-		mParent->_markCoreDirty();
+		mParent->MarkCoreDirtyInternal();
 	}
 
 	template<bool Core>
@@ -195,8 +195,8 @@ namespace bs
 
 		mParent->setTexture(mParamDesc->set, mParamDesc->slot, texture, surface);
 
-		mParent->_markResourcesDirty();
-		mParent->_markCoreDirty();
+		mParent->MarkResourcesDirtyInternal();
+		mParent->MarkCoreDirtyInternal();
 	}
 
 	template<bool Core>
@@ -226,8 +226,8 @@ namespace bs
 
 		mParent->setBuffer(mParamDesc->set, mParamDesc->slot, buffer);
 
-		mParent->_markResourcesDirty();
-		mParent->_markCoreDirty();
+		mParent->MarkResourcesDirtyInternal();
+		mParent->MarkCoreDirtyInternal();
 	}
 
 	template<bool Core>
@@ -257,8 +257,8 @@ namespace bs
 
 		mParent->setLoadStoreTexture(mParamDesc->set, mParamDesc->slot, texture, surface);
 
-		mParent->_markResourcesDirty();
-		mParent->_markCoreDirty();
+		mParent->MarkResourcesDirtyInternal();
+		mParent->MarkCoreDirtyInternal();
 	}
 
 	template<bool Core>
@@ -288,8 +288,8 @@ namespace bs
 
 		mParent->setSamplerState(mParamDesc->set, mParamDesc->slot, samplerState);
 
-		mParent->_markResourcesDirty();
-		mParent->_markCoreDirty();
+		mParent->MarkResourcesDirtyInternal();
+		mParent->MarkCoreDirtyInternal();
 	}
 
 	template<bool Core>

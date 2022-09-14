@@ -57,7 +57,7 @@ namespace bs
 		 *
 		 * @see		generateDiff(const SPtr<IReflectable>&, const SPtr<IReflectable>&, bool)
 		 */
-		virtual SPtr<SerializedObject> _generateDiff(IReflectable* orgObj, IReflectable* newObj,
+		virtual SPtr<SerializedObject> GenerateDiffInternal(IReflectable* orgObj, IReflectable* newObj,
 			ObjectMap& objectMap, bool replicableOnly) = 0;
 
 		/** @} */
@@ -130,7 +130,7 @@ namespace bs
 	{
 	private:
 		/** @copydoc IDiff::generateDiff(IReflectable*, IReflectable*, ObjectMap&, bool) */
-		SPtr<SerializedObject> _generateDiff(IReflectable* orgObj, IReflectable* newObj,
+		SPtr<SerializedObject> GenerateDiffInternal(IReflectable* orgObj, IReflectable* newObj,
 			ObjectMap& objectMap, bool replicableOnly) override;
 
 		/** @copydoc	IDiff::applyDiff(const SPtr<IReflectable>&, const SPtr<SerializedObject>&, FrameAlloc&, DiffObjectMap&, FrameVector<DiffCommand>&) */

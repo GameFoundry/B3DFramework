@@ -78,7 +78,7 @@ namespace bs { namespace ct
 		if (cb != nullptr)
 			vulkanCB = static_cast<VulkanCommandBuffer*>(cb.get());
 		else
-			vulkanCB = static_cast<VulkanCommandBuffer*>(gVulkanRenderAPI()._getMainCommandBuffer());
+			vulkanCB = static_cast<VulkanCommandBuffer*>(gVulkanRenderAPI().GetMainCommandBufferInternal());
 
 		VulkanCmdBuffer* internalCB = vulkanCB->getInternal();
 		internalCB->registerResource(mEvent, VulkanAccessFlag::Read);

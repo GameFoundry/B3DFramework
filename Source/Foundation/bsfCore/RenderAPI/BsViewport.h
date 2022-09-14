@@ -89,7 +89,7 @@ namespace bs
 		 * Marks the core data as dirty. This causes the data from the sim thread object be synced with the core thread
 		 * version of the object.
 		 */
-		virtual void _markCoreDirty() { }
+		virtual void MarkCoreDirtyInternal() { }
 
 		/** Gets the render target width. */
 		virtual UINT32 getTargetWidth() const = 0;
@@ -165,7 +165,7 @@ namespace bs
 		Viewport(const SPtr<RenderTarget>& target, float x = 0.0f, float y = 0.0f, float width = 1.0f, float height = 1.0f);
 
 		/** @copydoc ViewportBase::_markCoreDirty */
-		void _markCoreDirty() override;
+		void MarkCoreDirtyInternal() override;
 
 		/** @copydoc ViewportBase::getTargetWidth */
 		UINT32 getTargetWidth() const override;

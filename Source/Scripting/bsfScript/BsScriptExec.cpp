@@ -33,7 +33,7 @@ int main(int __argc, char* __argv[])
 	MonoManager::startUp();
 
 	SPtr<EngineScriptLibrary> library = bs_shared_ptr_new<EngineScriptLibrary>();
-	ScriptManager::_setScriptLibrary(library);
+	ScriptManager::SetScriptLibraryInternal(library);
 
 	Path engineAssemblyPath = library->getEngineAssemblyPath();
 

@@ -875,7 +875,7 @@ namespace bs
 			if(mActor)
 				return mActor;
 
-			return mComponent->_getInternal();
+			return mComponent->GetInternalInternal();
 		}
 
 		/** Returns the assigned value as a component. */

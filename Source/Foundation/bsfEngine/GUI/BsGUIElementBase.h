@@ -149,13 +149,13 @@ namespace bs
 		 * @param[in]	data	Layout data containing the necessary bounds and restrictions to use for calculating the
 		 *						child element layout data.
 		 */
-		virtual void _updateLayout(const GUILayoutData& data);
+		virtual void UpdateLayoutInternal(const GUILayoutData& data);
 
 		/** Calculates optimal sizes of all child elements, as determined by their style and layout options. */
-		virtual void _updateOptimalLayoutSizes();
+		virtual void UpdateOptimalLayoutSizesInternal();
 
 		/** @copydoc _updateLayout */
-		virtual void _updateLayoutInternal(const GUILayoutData& data);
+		virtual void UpdateLayoutInternalInternal(const GUILayoutData& data);
 
 		/**
 		 * Calculates positions & sizes of all elements in the layout. This method expects a pre-allocated array to store
@@ -168,49 +168,49 @@ namespace bs
 		 *								elements array.
 		 * @param[in]	mySizeRange		Size range of this element.
 		 */
-		virtual void _getElementAreas(const Rect2I& layoutArea, Rect2I* elementAreas, UINT32 numElements,
+		virtual void GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, UINT32 numElements,
 			const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const;
 
 		/** Updates layout data that determines GUI elements final position & depth in the GUI widget. */
-		virtual void _setLayoutData(const GUILayoutData& data) { mLayoutData = data; }
+		virtual void SetLayoutDataInternal(const GUILayoutData& data) { mLayoutData = data; }
 
 		/** Retrieves layout data that determines GUI elements final position & depth in the GUI widget. */
-		const GUILayoutData& _getLayoutData() const { return mLayoutData; }
+		const GUILayoutData& GetLayoutDataInternal() const { return mLayoutData; }
 
 		/**	Sets a new parent for this element. */
-		void _setParent(GUIElementBase* parent);
+		void SetParentInternal(GUIElementBase* parent);
 
 		/**	Returns number of child elements. */
-		UINT32 _getNumChildren() const { return (UINT32)mChildren.size(); }
+		UINT32 GetNumChildrenInternal() const { return (UINT32)mChildren.size(); }
 
 		/**	Return the child element at the specified index.*/
-		GUIElementBase* _getChild(UINT32 idx) const { return mChildren[idx]; }
+		GUIElementBase* GetChildInternal(UINT32 idx) const { return mChildren[idx]; }
 
 		/**	Returns previously calculated optimal size for this element. */
-		virtual Vector2I _getOptimalSize() const = 0;
+		virtual Vector2I GetOptimalSizeInternal() const = 0;
 
 		/**	Returns layout options that determine how is the element positioned and sized. */
-		const GUIDimensions& _getDimensions() const { return mDimensions; }
+		const GUIDimensions& GetDimensionsInternal() const { return mDimensions; }
 
 		/**	Calculates element size range constrained by its layout options. */
-		virtual LayoutSizeRange _calculateLayoutSizeRange() const ;
+		virtual LayoutSizeRange CalculateLayoutSizeRangeInternal() const ;
 
 		/**
-		 * Returns element size range constrained by its layout options. This is different from _calculateLayoutSizeRange()
+		 * Returns element size range constrained by its layout options. This is different from CalculateLayoutSizeRangeInternal()
 		 * because this method may return cached size range.
 		 */
-		virtual LayoutSizeRange _getLayoutSizeRange() const;
+		virtual LayoutSizeRange GetLayoutSizeRangeInternal() const;
 
 		/**
 		 * Returns element padding that determines how far apart to space out this element from other elements in a layout.
 		 */
-		virtual const RectOffset& _getPadding() const = 0;
+		virtual const RectOffset& GetPaddingInternal() const = 0;
 
 		/**	Returns specific sub-type of this object. */
-		virtual Type _getType() const = 0;
+		virtual Type GetTypeInternal() const = 0;
 
 		/**	Returns parent GUI base element. */
-		GUIElementBase* _getParent() const { return mParentElement; }
+		GUIElementBase* GetParentInternal() const { return mParentElement; }
 
 		/**
 		 * Returns the parent element whose layout needs to be updated when this elements contents change.
@@ -221,28 +221,28 @@ namespace bs
 		 * updating. This parent usually has fixed bounds or some other property that allows its children to be updated
 		 * independently from the even higher-up elements.
 		 */
-		GUIElementBase* _getUpdateParent() const { return mUpdateParent; }
+		GUIElementBase* GetUpdateParentInternal() const { return mUpdateParent; }
 
 		/**	Returns parent GUI widget, can be null. */
-		GUIWidget* _getParentWidget() const { return mParentWidget; }
+		GUIWidget* GetParentWidgetInternal() const { return mParentWidget; }
 
 		/**	Checks if element is visible or hidden. */
-		bool _isVisible() const { return (mFlags & GUIElem_Hidden) == 0; }
+		bool IsVisibleInternal() const { return (mFlags & GUIElem_Hidden) == 0; }
 
 		/**
 		 * Checks if element is active or inactive. Inactive elements are not visible, don't take up space
 		 * in their parent layouts, and can't be interacted with.
 		 */
-		bool _isActive() const { return (mFlags & GUIElem_Inactive) == 0; }
+		bool IsActiveInternal() const { return (mFlags & GUIElem_Inactive) == 0; }
 
 		/** Checks if element is disabled. Disabled elements cannot be interacted with and have a faded out appearance. */
-		bool _isDisabled() const { return (mFlags & GUIElem_Disabled) != 0; }
+		bool IsDisabledInternal() const { return (mFlags & GUIElem_Disabled) != 0; }
 
 		/**
 		 * Internal version of setVisible() that doesn't modify local visibility, instead it is only meant to be called
 		 * on child elements of the element whose visibility was modified.
 		 */
-		void _setVisible(bool visible);
+		void SetVisibleInternal(bool visible);
 
 		/**
 		 * Internal version of setActive() that doesn't modify local state, instead it is only meant to be called
@@ -250,7 +250,7 @@ namespace bs
 		 *
 		 * @copydoc setActive
 		 */
-		void _setActive(bool active);
+		void SetActiveInternal(bool active);
 
 		/**
 		 * Internal version of setDisabled() that doesn't modify local state, instead it is only meant to be called
@@ -258,48 +258,48 @@ namespace bs
 		 *
 		 * @copydoc setDisabled
 		 */
-		void _setDisabled(bool disabled);
+		void SetDisabledInternal(bool disabled);
 
 		/**
 		 * Changes the active GUI element widget. This allows you to move an element to a different viewport, or change
 		 * element style by using a widget with a different skin. You are allowed to pass null here, but elements with no
 		 * parent will be unmanaged. You will be responsible for deleting them manually, and they will not render anywhere.
 		 */
-		virtual void _changeParentWidget(GUIWidget* widget);
+		virtual void ChangeParentWidgetInternal(GUIWidget* widget);
 
 		/**Registers a new child element. */
-		void _registerChildElement(GUIElementBase* element);
+		void RegisterChildElementInternal(GUIElementBase* element);
 
 		/**	Unregisters an existing child element. */
-		void _unregisterChildElement(GUIElementBase* element);
+		void UnregisterChildElementInternal(GUIElementBase* element);
 
 		/**	Checks if element has been destroyed and is queued for deletion. */
-		virtual bool _isDestroyed() const { return false; }
+		virtual bool IsDestroyedInternal() const { return false; }
 
 		/**	Marks the element's dimensions as dirty, triggering a layout rebuild. */
-		void _markLayoutAsDirty();
+		void MarkLayoutAsDirtyInternal();
 
 		/**	Marks the element's contents as dirty, which causes the sprite meshes to be recreated from scratch. */
-		void _markContentAsDirty();
+		void MarkContentAsDirtyInternal();
 
 		/**
 		 * Mark only the elements that operate directly on the sprite mesh without requiring the mesh to be recreated as
 		 * dirty. This includes position, depth and clip rectangle. This will cause the parent widget mesh to be rebuilt
 		 * from its child element's meshes.
 		 */
-		void _markMeshAsDirty();
+		void MarkMeshAsDirtyInternal();
 
 		/**	Returns true if elements contents have changed since last update. */
-		bool _isDirty() const { return (mFlags & GUIElem_Dirty) != 0; }
+		bool IsDirtyInternal() const { return (mFlags & GUIElem_Dirty) != 0; }
 
 		/**	Marks the element contents to be up to date (meaning it's processed by the GUI system). */
-		void _markAsClean();
+		void MarkAsCleanInternal();
 
 		/** @} */
 
 	protected:
 		/**	Finds anchor and update parents and recursively assigns them to all children. */
-		void _updateAUParents();
+		void UpdateAUParentsInternal();
 
 		/**	Refreshes update parents of all child elements. */
 		void refreshChildUpdateParents();
@@ -314,13 +314,13 @@ namespace bs
 		GUIElementBase* findUpdateParent();
 
 		/**
-		 * Helper method for recursion in _updateAUParents(). Sets the provided anchor parent for all children recursively.
+		* Helper method for recursion in UpdateAUParentsInternal(). Sets the provided anchor parent for all children recursively.
 		 * Recursion stops when a child anchor is detected.
 		 */
 		void setAnchorParent(GUIPanel* anchorParent);
 
 		/**
-		 * Helper method for recursion in _updateAUParents(). Sets the provided update parent for all children recursively.
+		* Helper method for recursion in UpdateAUParentsInternal(). Sets the provided update parent for all children recursively.
 		 * Recursion stops when a child update parent is detected.
 		 */
 		void setUpdateParent(GUIElementBase* updateParent);

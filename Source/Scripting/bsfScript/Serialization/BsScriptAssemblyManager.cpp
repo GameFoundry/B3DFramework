@@ -78,14 +78,14 @@ namespace bs
 				if(isSerializable || isInspectable)
 					typeInfo->mFlags |= ScriptTypeFlag::Inspectable;
 
-				MonoPrimitiveType monoPrimitiveType = MonoUtil::getPrimitiveType(curClass->_getInternalClass());
+				MonoPrimitiveType monoPrimitiveType = MonoUtil::getPrimitiveType(curClass->GetInternalClassInternal());
 
 				if(monoPrimitiveType == MonoPrimitiveType::ValueType)
 					typeInfo->mValueType = true;
 				else
 					typeInfo->mValueType = false;
 
-				::MonoReflectionType* type = MonoUtil::getType(curClass->_getInternalClass());
+				::MonoReflectionType* type = MonoUtil::getType(curClass->GetInternalClassInternal());
 
 				// Is this a wrapper for some reflectable type?
 				ReflectableTypeInfo* reflTypeInfo = getReflectableTypeInfo(type);
@@ -332,12 +332,12 @@ namespace bs
 		if(!mBaseTypesInitialized)
 			BS_EXCEPT(InvalidStateException, "Calling getTypeInfo without previously initializing base types.");
 
-		MonoPrimitiveType monoPrimitiveType = MonoUtil::getPrimitiveType(monoClass->_getInternalClass());
+		MonoPrimitiveType monoPrimitiveType = MonoUtil::getPrimitiveType(monoClass->GetInternalClassInternal());
 		
 		// If enum get the enum base data type
-		bool isEnum = MonoUtil::isEnum(monoClass->_getInternalClass());
+		bool isEnum = MonoUtil::isEnum(monoClass->GetInternalClassInternal());
 		if (isEnum)
-			monoPrimitiveType = MonoUtil::getEnumPrimitiveType(monoClass->_getInternalClass());
+			monoPrimitiveType = MonoUtil::getEnumPrimitiveType(monoClass->GetInternalClassInternal());
 
 		//  Determine field type
 		//// Check for simple types or enums first
@@ -440,7 +440,7 @@ namespace bs
 				{
 					typeInfo->mType = ScriptReferenceType::BuiltinResource;
 
-					::MonoReflectionType* type = MonoUtil::getType(monoClass->_getInternalClass());
+					::MonoReflectionType* type = MonoUtil::getType(monoClass->GetInternalClassInternal());
 					BuiltinResourceInfo* builtinInfo = getBuiltinResourceInfo(type);
 					if (builtinInfo == nullptr)
 					{
@@ -474,7 +474,7 @@ namespace bs
 				{
 					typeInfo->mType = ScriptReferenceType::BuiltinComponent;
 
-					::MonoReflectionType* type = MonoUtil::getType(monoClass->_getInternalClass());
+					::MonoReflectionType* type = MonoUtil::getType(monoClass->GetInternalClassInternal());
 					BuiltinComponentInfo* builtinInfo = getBuiltinComponentInfo(type);
 					if(builtinInfo == nullptr)
 					{
@@ -489,7 +489,7 @@ namespace bs
 			}
 			else
 			{
-				::MonoReflectionType* type = MonoUtil::getType(monoClass->_getInternalClass());
+				::MonoReflectionType* type = MonoUtil::getType(monoClass->GetInternalClassInternal());
 
 				// Is this a wrapper for some reflectable type?
 				ReflectableTypeInfo* reflTypeInfo = getReflectableTypeInfo(type);
@@ -583,7 +583,7 @@ namespace bs
 			{
 				SPtr<ManagedSerializableTypeInfoArray> typeInfo = bs_shared_ptr_new<ManagedSerializableTypeInfoArray>();
 
-				::MonoClass* elementClass = ScriptArray::getElementClass(monoClass->_getInternalClass());
+				::MonoClass* elementClass = ScriptArray::getElementClass(monoClass->GetInternalClassInternal());
 				if(elementClass != nullptr)
 				{
 					MonoClass* monoElementClass = MonoManager::instance().findClass(elementClass);
@@ -594,7 +594,7 @@ namespace bs
 				if (typeInfo->mElementType == nullptr)
 					return nullptr;
 
-				typeInfo->mRank = ScriptArray::getRank(monoClass->_getInternalClass());
+				typeInfo->mRank = ScriptArray::getRank(monoClass->GetInternalClassInternal());
 
 				return typeInfo;
 			}
@@ -748,7 +748,7 @@ namespace bs
 			BuiltinComponentInfo info = entry;
 			info.monoClass = assembly.getClass(entry.metaData->ns, entry.metaData->name);
 
-			::MonoReflectionType* type = MonoUtil::getType(info.monoClass->_getInternalClass());
+			::MonoReflectionType* type = MonoUtil::getType(info.monoClass->GetInternalClassInternal());
 
 			mBuiltinComponentInfos[type] = info;
 			mBuiltinComponentInfosByTID[info.typeId] = info;
@@ -759,7 +759,7 @@ namespace bs
 			BuiltinResourceInfo info = entry;
 			info.monoClass = assembly.getClass(entry.metaData->ns, entry.metaData->name);
 
-			::MonoReflectionType* type = MonoUtil::getType(info.monoClass->_getInternalClass());
+			::MonoReflectionType* type = MonoUtil::getType(info.monoClass->GetInternalClassInternal());
 
 			mBuiltinResourceInfos[type] = info;
 			mBuiltinResourceInfosByTID[info.typeId] = info;
@@ -771,7 +771,7 @@ namespace bs
 			ReflectableTypeInfo info = entry;
 			info.monoClass = assembly.getClass(entry.metaData->ns, entry.metaData->name);
 
-			::MonoReflectionType* type = MonoUtil::getType(info.monoClass->_getInternalClass());
+			::MonoReflectionType* type = MonoUtil::getType(info.monoClass->GetInternalClassInternal());
 
 			mReflectableTypeInfos[type] = info;
 			mReflectableTypeInfosByTID[info.typeId] = info;

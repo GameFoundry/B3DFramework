@@ -418,7 +418,7 @@ namespace bs
 		return false;
 	}
 
-	void ScriptSceneObject::_onManagedInstanceDeleted(bool assemblyRefresh)
+	void ScriptSceneObject::OnManagedInstanceDeletedInternal(bool assemblyRefresh)
 	{
 		if (!assemblyRefresh || mSceneObject.isDestroyed(true))
 			ScriptGameObjectManager::instance().destroyScriptSceneObject(this);
@@ -426,7 +426,7 @@ namespace bs
 			freeManagedInstance();
 	}
 
-	MonoObject* ScriptSceneObject::_createManagedInstance(bool construct)
+	MonoObject* ScriptSceneObject::CreateManagedInstanceInternal(bool construct)
 	{
 		MonoObject* managedInstance = metaData.scriptClass->createInstance(construct);
 		setManagedInstance(managedInstance);
@@ -434,12 +434,12 @@ namespace bs
 		return managedInstance;
 	}
 
-	void ScriptSceneObject::_clearManagedInstance()
+	void ScriptSceneObject::ClearManagedInstanceInternal()
 	{
 		freeManagedInstance();
 	}
 
-	void ScriptSceneObject::_notifyDestroyed()
+	void ScriptSceneObject::NotifyDestroyedInternal()
 	{
 		freeManagedInstance();
 	}

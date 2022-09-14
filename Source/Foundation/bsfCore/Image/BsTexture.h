@@ -296,10 +296,10 @@ namespace bs
 		 */
 
 		/** Same as create() excepts it creates a pointer to the texture instead of a texture handle. */
-		static SPtr<Texture> _createPtr(const TEXTURE_DESC& desc);
+		static SPtr<Texture> CreatePtrInternal(const TEXTURE_DESC& desc);
 
 		/** Same as create() excepts it creates a pointer to the texture instead of a texture handle. */
-		static SPtr<Texture> _createPtr(const SPtr<PixelData>& pixelData, int usage = TU_DEFAULT,
+		static SPtr<Texture> CreatePtrInternal(const SPtr<PixelData>& pixelData, int usage = TU_DEFAULT,
 			bool hwGammaCorrection = false);
 
 		/** @} */

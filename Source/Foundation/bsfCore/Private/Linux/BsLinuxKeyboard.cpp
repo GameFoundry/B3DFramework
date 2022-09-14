@@ -35,9 +35,9 @@ namespace bs
 			{
 				LinuxButtonEvent& event = LinuxPlatform::buttonEvents.front();
 				if(event.pressed)
-					mOwner->_notifyButtonPressed(0, event.button, event.timestamp);
+					mOwner->NotifyButtonPressedInternal(0, event.button, event.timestamp);
 				else
-					mOwner->_notifyButtonReleased(0, event.button, event.timestamp);
+					mOwner->NotifyButtonReleasedInternal(0, event.button, event.timestamp);
 				LinuxPlatform::buttonEvents.pop();
 			}
 		}

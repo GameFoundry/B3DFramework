@@ -12,7 +12,7 @@ namespace bs
 		Texture* tex = new (bs_alloc<Texture>()) Texture(desc);
 		SPtr<Texture> ret = bs_core_ptr<Texture>(tex);
 
-		ret->_setThisPtr(ret);
+		ret->SetThisPtrInternal(ret);
 		ret->initialize();
 
 		return ret;
@@ -23,17 +23,17 @@ namespace bs
 		Texture* tex = new (bs_alloc<Texture>()) Texture(desc, pixelData);
 		SPtr<Texture> ret = bs_core_ptr<Texture>(tex);
 
-		ret->_setThisPtr(ret);
+		ret->SetThisPtrInternal(ret);
 		ret->initialize();
 
 		return ret;
 	}
 
-	SPtr<Texture> TextureManager::_createEmpty()
+	SPtr<Texture> TextureManager::CreateEmptyInternal()
 	{
 		Texture* tex = new (bs_alloc<Texture>()) Texture();
 		SPtr<Texture> texture = bs_core_ptr<Texture>(tex);
-		texture->_setThisPtr(texture);
+		texture->SetThisPtrInternal(texture);
 
 		return texture;
 	}
@@ -76,7 +76,7 @@ namespace bs
 	SPtr<RenderTexture> TextureManager::createRenderTexture(const RENDER_TEXTURE_DESC& desc)
 	{
 		SPtr<RenderTexture> newRT = createRenderTextureImpl(desc);
-		newRT->_setThisPtr(newRT);
+		newRT->SetThisPtrInternal(newRT);
 		newRT->initialize();
 
 		return newRT;

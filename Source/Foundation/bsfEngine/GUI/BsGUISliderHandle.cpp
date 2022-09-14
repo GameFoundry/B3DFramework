@@ -43,12 +43,12 @@ namespace bs
 			getStyleName<GUISliderHandle>(styleName), GUIDimensions::create(options));
 	}
 
-	void GUISliderHandle::_setHandleSize(float pct)
+	void GUISliderHandle::SetHandleSizeInternal(float pct)
 	{
 		mPctHandleSize = Math::clamp01(pct);
 	}
 
-	void GUISliderHandle::_setHandlePos(float pct)
+	void GUISliderHandle::SetHandlePosInternal(float pct)
 	{
 		float maxPct = 1.0f;
 		if (mStep > 0.0f && pct < maxPct)
@@ -112,12 +112,12 @@ namespace bs
 			desc.height = handleSize;
 		}
 
-		desc.borderLeft = _getStyle()->border.left;
-		desc.borderRight = _getStyle()->border.right;
-		desc.borderTop = _getStyle()->border.top;
-		desc.borderBottom = _getStyle()->border.bottom;
+		desc.borderLeft = GetStyleInternal()->border.left;
+		desc.borderRight = GetStyleInternal()->border.right;
+		desc.borderTop = GetStyleInternal()->border.top;
+		desc.borderBottom = GetStyleInternal()->border.bottom;
 		desc.color = getTint();
-		mImageSprite->update(desc, (UINT64)_getParentWidget());
+		mImageSprite->update(desc, (UINT64)GetParentWidgetInternal());
 		
 		// Populate GUI render elements from the sprites
 		{
@@ -134,7 +134,7 @@ namespace bs
 		mClippedBounds.clip(mLayoutData.clipRect);
 	}
 
-	Vector2I GUISliderHandle::_getOptimalSize() const
+	Vector2I GUISliderHandle::GetOptimalSizeInternal() const
 	{
 		HSpriteTexture activeTex = getActiveTexture();
 
@@ -176,13 +176,13 @@ namespace bs
 			vertexStride, indexStride, renderElementIdx, layoutOffset, clipRect);
 	}
 
-	bool GUISliderHandle::_mouseEvent(const GUIMouseEvent& ev)
+	bool GUISliderHandle::MouseEventInternal(const GUIMouseEvent& ev)
 	{
 		UINT32 handleSize = getHandleSize();
 
 		if(ev.getType() == GUIMouseEventType::MouseMove)
 		{
-			if (!_isDisabled())
+			if (!IsDisabledInternal())
 			{
 				if (mMouseOverHandle)
 				{
@@ -191,7 +191,7 @@ namespace bs
 						mMouseOverHandle = false;
 
 						mState = State::Normal;
-						_markLayoutAsDirty();
+						MarkLayoutAsDirtyInternal();
 
 						return true;
 					}
@@ -203,7 +203,7 @@ namespace bs
 						mMouseOverHandle = true;
 
 						mState = State::Hover;
-						_markLayoutAsDirty();
+						MarkLayoutAsDirtyInternal();
 
 						return true;
 					}
@@ -214,10 +214,10 @@ namespace bs
 		bool jumpOnClick = mFlags.isSet(GUISliderHandleFlag::JumpOnClick);
 		if(ev.getType() == GUIMouseEventType::MouseDown && (mMouseOverHandle || jumpOnClick))
 		{
-			if (!_isDisabled())
+			if (!IsDisabledInternal())
 			{
 				mState = State::Active;
-				_markLayoutAsDirty();
+				MarkLayoutAsDirtyInternal();
 
 				if (jumpOnClick)
 				{
@@ -229,7 +229,7 @@ namespace bs
 						handlePosPx = (float)(ev.getPosition().y - (INT32)mLayoutData.area.y - handleSize * 0.5f);
 
 					setHandlePosPx((INT32)handlePosPx);
-					onHandleMovedOrResized(mPctHandlePos, _getHandleSizePct());
+					onHandleMovedOrResized(mPctHandlePos, GetHandleSizePctInternal());
 				}
 
 				bool isResizeable = mFlags.isSet(GUISliderHandleFlag::Resizeable);
@@ -284,7 +284,7 @@ namespace bs
 
 		if(ev.getType() == GUIMouseEventType::MouseDrag && mHandleDragged)
 		{
-			if (!_isDisabled())
+			if (!IsDisabledInternal())
 			{
 				if (mDragState == DragState::Normal)
 				{
@@ -295,7 +295,7 @@ namespace bs
 						handlePosPx = ev.getPosition().y - mDragStartPos - mLayoutData.area.y;
 
 					setHandlePosPx(handlePosPx);
-					onHandleMovedOrResized(mPctHandlePos, _getHandleSizePct());
+					onHandleMovedOrResized(mPctHandlePos, GetHandleSizePctInternal());
 				}
 				else // Resizing
 				{
@@ -337,13 +337,13 @@ namespace bs
 							newHandlePos = 0.0f;
 					}
 
-					_setHandleSize(newHandleSize / (float)maxSize);
-					_setHandlePos(newHandlePos);
+					SetHandleSizeInternal(newHandleSize / (float)maxSize);
+					SetHandlePosInternal(newHandlePos);
 
-					onHandleMovedOrResized(mPctHandlePos, _getHandleSizePct());
+					onHandleMovedOrResized(mPctHandlePos, GetHandleSizePctInternal());
 				}
 
-				_markLayoutAsDirty();
+				MarkLayoutAsDirtyInternal();
 			}
 
 			return true;
@@ -351,14 +351,14 @@ namespace bs
 
 		if(ev.getType() == GUIMouseEventType::MouseOut)
 		{
-			if (!_isDisabled())
+			if (!IsDisabledInternal())
 			{
 				mMouseOverHandle = false;
 
 				if (!mHandleDragged)
 				{
 					mState = State::Normal;
-					_markLayoutAsDirty();
+					MarkLayoutAsDirtyInternal();
 				}
 			}
 			
@@ -367,7 +367,7 @@ namespace bs
 
 		if(ev.getType() == GUIMouseEventType::MouseUp)
 		{
-			if (!_isDisabled())
+			if (!IsDisabledInternal())
 			{
 				if (mMouseOverHandle)
 					mState = State::Hover;
@@ -403,7 +403,7 @@ namespace bs
 					}
 				}
 				mHandleDragged = false;
-				_markLayoutAsDirty();
+				MarkLayoutAsDirtyInternal();
 			}
 
 			return true;
@@ -411,7 +411,7 @@ namespace bs
 
 		if(ev.getType() == GUIMouseEventType::MouseDragEnd)
 		{
-			if (!_isDisabled())
+			if (!IsDisabledInternal())
 			{
 				mHandleDragged = false;
 				if (mMouseOverHandle)
@@ -419,7 +419,7 @@ namespace bs
 				else
 					mState = State::Normal;
 
-				_markLayoutAsDirty();
+				MarkLayoutAsDirtyInternal();
 			}
 
 			return true;
@@ -442,9 +442,9 @@ namespace bs
 		handlePosPx += forward ? stepSizePx : -stepSizePx;
 
 		setHandlePosPx(handlePosPx);
-		onHandleMovedOrResized(mPctHandlePos, _getHandleSizePct());
+		onHandleMovedOrResized(mPctHandlePos, GetHandleSizePctInternal());
 
-		_markLayoutAsDirty();
+		MarkLayoutAsDirtyInternal();
 	}
 
 	bool GUISliderHandle::isOnHandle(const Vector2I& pos) const
@@ -481,14 +481,14 @@ namespace bs
 		return std::max(mMinHandleSize, (UINT32)(getMaxSize() * mPctHandleSize));
 	}
 
-	float GUISliderHandle::_getHandleSizePct() const
+	float GUISliderHandle::GetHandleSizePctInternal() const
 	{
 		return mPctHandleSize;
 	}
 
 	void GUISliderHandle::styleUpdated()
 	{
-		const GUIElementStyle* style = _getStyle();
+		const GUIElementStyle* style = GetStyleInternal();
 		if (style != nullptr)
 		{
 			if (mFlags.isSet(GUISliderHandleFlag::Horizontal))
@@ -503,9 +503,9 @@ namespace bs
 		float scrollableSize = (float)getMaxSize() - getHandleSize();
 
 		if (scrollableSize > 0.0f)
-			_setHandlePos(pos / scrollableSize);
+			SetHandlePosInternal(pos / scrollableSize);
 		else
-			_setHandlePos(0.0f);
+			SetHandlePosInternal(0.0f);
 	}
 
 	UINT32 GUISliderHandle::getMaxSize() const
@@ -522,13 +522,13 @@ namespace bs
 		switch(mState)
 		{
 		case State::Active:
-			return _getStyle()->active.texture;
+			return GetStyleInternal()->active.texture;
 		case State::Hover:
-			return _getStyle()->hover.texture;
+			return GetStyleInternal()->hover.texture;
 		case State::Normal:
-			return _getStyle()->normal.texture;
+			return GetStyleInternal()->normal.texture;
 		}
 
-		return _getStyle()->normal.texture;
+		return GetStyleInternal()->normal.texture;
 	}
 }

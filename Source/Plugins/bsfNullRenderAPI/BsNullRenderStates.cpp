@@ -8,7 +8,7 @@ namespace bs { namespace ct
 		GpuDeviceFlags deviceMask) const
 	{
 		SPtr<NullSamplerState> ret = bs_shared_ptr_new<NullSamplerState>(desc, deviceMask);
-		ret->_setThisPtr(ret);
+		ret->SetThisPtrInternal(ret);
 
 		return ret;
 	}
@@ -16,7 +16,7 @@ namespace bs { namespace ct
 	SPtr<BlendState> NullRenderStateManager::createBlendStateInternal(const BLEND_STATE_DESC& desc, UINT32 id) const
 	{
 		SPtr<NullBlendState> ret = bs_shared_ptr_new<NullBlendState>(desc, id);
-		ret->_setThisPtr(ret);
+		ret->SetThisPtrInternal(ret);
 
 		return ret;
 	}
@@ -24,7 +24,7 @@ namespace bs { namespace ct
 	SPtr<RasterizerState> NullRenderStateManager::createRasterizerStateInternal(const RASTERIZER_STATE_DESC& desc, UINT32 id) const
 	{
 		SPtr<NullRasterizerState> ret = bs_shared_ptr_new<NullRasterizerState>(desc, id);
-		ret->_setThisPtr(ret);
+		ret->SetThisPtrInternal(ret);
 
 		return ret;
 	}
@@ -32,7 +32,7 @@ namespace bs { namespace ct
 	SPtr<DepthStencilState> NullRenderStateManager::createDepthStencilStateInternal(const DEPTH_STENCIL_STATE_DESC& desc, UINT32 id) const
 	{
 		SPtr<NullDepthStencilState> ret = bs_shared_ptr_new<NullDepthStencilState>(desc, id);
-		ret->_setThisPtr(ret);
+		ret->SetThisPtrInternal(ret);
 
 		return ret;
 	}

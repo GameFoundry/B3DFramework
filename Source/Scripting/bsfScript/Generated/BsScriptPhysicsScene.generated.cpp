@@ -78,7 +78,7 @@ namespace bs
 		__output = tmp__output;
 		__PhysicsQueryHitInterop interophit;
 		interophit = ScriptPhysicsQueryHit::toInterop(tmphit);
-		MonoUtil::valueCopy(hit, &interophit, ScriptPhysicsQueryHit::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(hit, &interophit, ScriptPhysicsQueryHit::getMetaData()->scriptClass->GetInternalClassInternal());
 
 		return __output;
 	}
@@ -93,7 +93,7 @@ namespace bs
 		__output = tmp__output;
 		__PhysicsQueryHitInterop interophit;
 		interophit = ScriptPhysicsQueryHit::toInterop(tmphit);
-		MonoUtil::valueCopy(hit, &interophit, ScriptPhysicsQueryHit::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(hit, &interophit, ScriptPhysicsQueryHit::getMetaData()->scriptClass->GetInternalClassInternal());
 
 		return __output;
 	}
@@ -108,7 +108,7 @@ namespace bs
 		__output = tmp__output;
 		__PhysicsQueryHitInterop interophit;
 		interophit = ScriptPhysicsQueryHit::toInterop(tmphit);
-		MonoUtil::valueCopy(hit, &interophit, ScriptPhysicsQueryHit::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(hit, &interophit, ScriptPhysicsQueryHit::getMetaData()->scriptClass->GetInternalClassInternal());
 
 		return __output;
 	}
@@ -123,7 +123,7 @@ namespace bs
 		__output = tmp__output;
 		__PhysicsQueryHitInterop interophit;
 		interophit = ScriptPhysicsQueryHit::toInterop(tmphit);
-		MonoUtil::valueCopy(hit, &interophit, ScriptPhysicsQueryHit::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(hit, &interophit, ScriptPhysicsQueryHit::getMetaData()->scriptClass->GetInternalClassInternal());
 
 		return __output;
 	}
@@ -138,7 +138,7 @@ namespace bs
 		__output = tmp__output;
 		__PhysicsQueryHitInterop interophit;
 		interophit = ScriptPhysicsQueryHit::toInterop(tmphit);
-		MonoUtil::valueCopy(hit, &interophit, ScriptPhysicsQueryHit::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(hit, &interophit, ScriptPhysicsQueryHit::getMetaData()->scriptClass->GetInternalClassInternal());
 
 		return __output;
 	}
@@ -158,7 +158,7 @@ namespace bs
 		__output = tmp__output;
 		__PhysicsQueryHitInterop interophit;
 		interophit = ScriptPhysicsQueryHit::toInterop(tmphit);
-		MonoUtil::valueCopy(hit, &interophit, ScriptPhysicsQueryHit::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(hit, &interophit, ScriptPhysicsQueryHit::getMetaData()->scriptClass->GetInternalClassInternal());
 
 		return __output;
 	}

@@ -79,7 +79,7 @@ namespace bs
 		 * This method is used by the scene manager to update actors that have been bound to a scene object. Never call this
 		 * method for multiple different scene objects, as actor can only ever be bound to one during its lifetime.
 		 */
-		virtual void _updateState(const SceneObject& so, bool force = false);
+		virtual void UpdateStateInternal(const SceneObject& so, bool force = false);
 
 		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
 		template<class P>
@@ -101,7 +101,7 @@ namespace bs
 		 * Marks the simulation thread object as dirty and notifies the system its data should be synced with its core
 		 * thread counterpart.
 		 */
-		virtual void _markCoreDirty(ActorDirtyFlag flag = ActorDirtyFlag::Everything) { }
+		virtual void MarkCoreDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) { }
 
 	protected:
 		friend class SceneManager;

@@ -53,7 +53,7 @@ namespace bs
 		}
 	}
 
-	void CoreObject::_setThisPtr(SPtr<CoreObject> ptrThis)
+	void CoreObject::SetThisPtrInternal(SPtr<CoreObject> ptrThis)
 	{
 		mThis = ptrThis;
 	}

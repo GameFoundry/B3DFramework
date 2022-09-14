@@ -16,7 +16,7 @@ namespace bs
 
 	MonoObject*ScriptSpring::box(const Spring& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	Spring ScriptSpring::unbox(MonoObject* value)

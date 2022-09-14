@@ -49,7 +49,7 @@ namespace bs
 
 		__PARTICLE_ORBIT_DESCInterop interop__output;
 		interop__output = ScriptPARTICLE_ORBIT_DESC::toInterop(tmp__output);
-		MonoUtil::valueCopy(__output, &interop__output, ScriptPARTICLE_ORBIT_DESC::getMetaData()->scriptClass->_getInternalClass());
+		MonoUtil::valueCopy(__output, &interop__output, ScriptPARTICLE_ORBIT_DESC::getMetaData()->scriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptParticleOrbit::Internal_create(MonoObject* managedInstance, __PARTICLE_ORBIT_DESCInterop* desc)

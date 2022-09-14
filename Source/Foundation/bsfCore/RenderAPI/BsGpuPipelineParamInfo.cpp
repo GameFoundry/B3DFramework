@@ -303,7 +303,7 @@ namespace bs
 	{
 		SPtr<GpuPipelineParamInfo> paramInfo =
 			bs_core_ptr<GpuPipelineParamInfo>(new (bs_alloc<GpuPipelineParamInfo>()) GpuPipelineParamInfo(desc));
-		paramInfo->_setThisPtr(paramInfo);
+		paramInfo->SetThisPtrInternal(paramInfo);
 		paramInfo->initialize();
 
 		return paramInfo;
@@ -324,7 +324,7 @@ namespace bs
 		desc.domainParams = mParamDescs[GPT_DOMAIN_PROGRAM];
 		desc.computeParams = mParamDescs[GPT_COMPUTE_PROGRAM];
 
-		return ct::RenderStateManager::instance()._createPipelineParamInfo(desc);
+		return ct::RenderStateManager::instance().CreatePipelineParamInfoInternal(desc);
 	}
 
 	namespace ct

@@ -63,22 +63,22 @@ namespace bs
 	void doMouseClick(Input* owner, ButtonCode mouseButton, const DIDEVICEOBJECTDATA& data)
 	{
 		if (data.dwData & 0x80)
-			owner->_notifyButtonPressed(0, mouseButton, data.dwTimeStamp);
+			owner->NotifyButtonPressedInternal(0, mouseButton, data.dwTimeStamp);
 		else
-			owner->_notifyButtonReleased(0, mouseButton, data.dwTimeStamp);
+			owner->NotifyButtonReleasedInternal(0, mouseButton, data.dwTimeStamp);
 	}
 
 	Mouse::Mouse(const String& name, Input* owner)
 		: mName(name), mOwner(owner)
 	{
-		InputPrivateData* pvtData = owner->_getPrivateData();
+		InputPrivateData* pvtData = owner->GetPrivateDataInternal();
 
 		m = bs_new<Pimpl>();
 		m->directInput = pvtData->directInput;
 		m->coopSettings = pvtData->mouseSettings;
 		m->mouse = nullptr;
 
-		initializeDirectInput(m, (HWND)owner->_getWindowHandle());
+		initializeDirectInput(m, (HWND)owner->GetWindowHandleInternal());
 	}
 
 	Mouse::~Mouse()
@@ -158,7 +158,7 @@ namespace bs
 		}
 
 		if (axesMoved)
-			mOwner->_notifyMouseMoved(relX, relY, relZ);
+			mOwner->NotifyMouseMovedInternal(relX, relY, relZ);
 
 	}
 

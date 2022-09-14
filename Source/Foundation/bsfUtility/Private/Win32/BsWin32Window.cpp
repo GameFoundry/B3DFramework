@@ -427,7 +427,7 @@ namespace bs
 		}
 	}
 
-	void Win32Window::_windowMovedOrResized()
+	void Win32Window::WindowMovedOrResizedInternal()
 	{
 		if (!m->hWnd || IsIconic(m->hWnd))
 			return;
@@ -497,7 +497,7 @@ namespace bs
 		return m->styleEx;
 	}
 
-	void Win32Window::_enableAllWindows()
+	void Win32Window::EnableAllWindowsInternal()
 	{
 		Vector<HWND> windowsToEnable;
 
@@ -511,7 +511,7 @@ namespace bs
 			EnableWindow(entry, TRUE);
 	}
 
-	void Win32Window::_restoreModalWindows()
+	void Win32Window::RestoreModalWindowsInternal()
 	{
 		FrameVector<HWND> windowsToDisable;
 		HWND bringToFrontHwnd = 0;

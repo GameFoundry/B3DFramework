@@ -124,11 +124,11 @@ namespace bs
 		 */
 
 		/** Called every frame. Should only be called by Application. */
-		void _update();
+		void UpdateInternal();
 
 		/**
 		 * Calculates the number of fixed update iterations required and their step size. Values depend on the current
-		 * time and previous calls to _advanceFixedUpdate().;
+		* time and previous calls to AdvanceFixedUpdateInternal().;
 		 *
 		 * @param[out]		step	Duration of the fixed step in microseconds. In most cases this is the same duration as
 		 *							the	fixed time delta, but in the cases where frame is taking a very long time the step
@@ -137,13 +137,13 @@ namespace bs
 		 *							cases this will be either 1 or 0, or a larger amount of frames are taking a long time
 		 *							to execute (longer than a multiple of fixed frame step).
 		 */
-		UINT32 _getFixedUpdateStep(UINT64& step);
+		UINT32 GetFixedUpdateStepInternal(UINT64& step);
 
 		/**
 		 * Advances the fixed update timers by @p step microseconds. Should be called once for each iteration as returned
-		 * by _getFixedUpdateStep(), per frame.
+		* by GetFixedUpdateStepInternal(), per frame.
 		 */
-		void _advanceFixedUpdate(UINT64 step);
+		void AdvanceFixedUpdateInternal(UINT64 step);
 
 		/** @} */
 

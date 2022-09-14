@@ -18,7 +18,7 @@ namespace bs
 
 	MonoObject*ScriptBlend1DInfo::box(const __Blend1DInfoInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__Blend1DInfoInterop ScriptBlend1DInfo::unbox(MonoObject* value)

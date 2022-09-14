@@ -269,19 +269,19 @@ namespace bs
 		 *
 		 * @note	Core thread only.
 		 */
-		static void _messagePump();
+		static void MessagePumpInternal();
 
 		/** Called during application start up from the sim thread. Must be called before any other operations are done. */
-		static void _startUp();
+		static void StartUpInternal();
 
 		/** Called once per frame from the sim thread. */
-		static void _update();
+		static void UpdateInternal();
 
 		/** Called once per frame from the core thread. */
-		static void _coreUpdate();
+		static void CoreUpdateInternal();
 
 		/** Called during application shut down from the sim thread. */
-		static void _shutDown();
+		static void ShutDownInternal();
 
 		/**
 		 * Triggered whenever the pointer moves.

@@ -102,11 +102,11 @@ namespace bs
 		 *
 		 * @note	This should be called by the factory creation methods so user doesn't have to call it manually.
 		 */
-		void _setThisPtr(SPtr<CoreObject> ptrThis);
+		void SetThisPtrInternal(SPtr<CoreObject> ptrThis);
 
 		/** Schedules the object to be destroyed, and then deleted. */
 		template<class T, class MemAlloc>
-		static void _delete(CoreObject* obj)
+		static void DeleteInternal(CoreObject* obj)
 		{
 			if (!obj->isDestroyed())
 				obj->destroy();
@@ -263,7 +263,7 @@ namespace bs
 	SPtr<Type> bs_core_ptr_new(Args &&...args)
 	{
 		return SPtr<Type>(bs_new<Type, MainAlloc>(std::forward<Args>(args)...),
-			&CoreObject::_delete<Type, MainAlloc>, StdAlloc<Type, PtrDataAlloc>());
+			&CoreObject::DeleteInternal<Type, MainAlloc>, StdAlloc<Type, PtrDataAlloc>());
 	}
 
 	/**
@@ -277,7 +277,7 @@ namespace bs
 	SPtr<Type> bs_core_ptr_new(Args &&...args)
 	{
 		return SPtr<Type>(bs_new<Type, MainAlloc>(std::forward<Args>(args)...),
-			&CoreObject::_delete<Type, MainAlloc>, StdAlloc<Type, GenAlloc>());
+			&CoreObject::DeleteInternal<Type, MainAlloc>, StdAlloc<Type, GenAlloc>());
 	}
 
 	/**
@@ -291,7 +291,7 @@ namespace bs
 	SPtr<Type> bs_core_ptr_new(Args &&...args)
 	{
 		return SPtr<Type>(bs_new<Type, GenAlloc>(std::forward<Args>(args)...),
-			&CoreObject::_delete<Type, GenAlloc>, StdAlloc<Type, GenAlloc>());
+			&CoreObject::DeleteInternal<Type, GenAlloc>, StdAlloc<Type, GenAlloc>());
 	}
 
 	/**
@@ -304,7 +304,7 @@ namespace bs
 	template<class Type, class MainAlloc = GenAlloc, class PtrDataAlloc = GenAlloc>
 	SPtr<Type> bs_core_ptr(Type* data)
 	{
-		return SPtr<Type>(data, &CoreObject::_delete<Type, MainAlloc>, StdAlloc<Type, PtrDataAlloc>());
+		return SPtr<Type>(data, &CoreObject::DeleteInternal<Type, MainAlloc>, StdAlloc<Type, PtrDataAlloc>());
 	}
 
 	/** @} */

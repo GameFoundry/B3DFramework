@@ -267,7 +267,7 @@ namespace bs { namespace ct
 		for(UINT32 i = 0; i < gpuInfo.numGPUs; i++)
 			gpuInfo.names[i] = mDevices[i]->getDeviceProperties().deviceName;
 
-		PlatformUtility::_setGPUInfo(gpuInfo);
+		PlatformUtility::SetGPUInfoInternal(gpuInfo);
 
 		// Get required extension functions
 		GET_INSTANCE_PROC_ADDR(mInstance, GetPhysicalDeviceSurfaceSupportKHR);
@@ -275,7 +275,7 @@ namespace bs { namespace ct
 		GET_INSTANCE_PROC_ADDR(mInstance, GetPhysicalDeviceSurfaceCapabilitiesKHR);
 		GET_INSTANCE_PROC_ADDR(mInstance, GetPhysicalDeviceSurfacePresentModesKHR);
 
-		VkDevice presentDevice = _getPresentDevice()->getLogical();
+		VkDevice presentDevice = GetPresentDeviceInternal()->getLogical();
 		GET_DEVICE_PROC_ADDR(presentDevice, CreateSwapchainKHR);
 		GET_DEVICE_PROC_ADDR(presentDevice, DestroySwapchainKHR);
 		GET_DEVICE_PROC_ADDR(presentDevice, GetSwapchainImagesKHR);

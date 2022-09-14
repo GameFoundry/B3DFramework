@@ -37,10 +37,10 @@ namespace bs
 		static void unlockX();
 
 		/** Notifies the system that a new window was created. */
-		static void _registerWindow(::Window xWindow, LinuxWindow* window);
+		static void RegisterWindowInternal(::Window xWindow, LinuxWindow* window);
 
 		/** Notifies the system that a window is about to be destroyed. */
-		static void _unregisterWindow(::Window xWindow);
+		static void UnregisterWindowInternal(::Window xWindow);
 
 		/** Generates a X11 Pixmap from the provided pixel data. */
 		static Pixmap createPixmap(const PixelData& data, UINT32 depth);

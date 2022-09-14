@@ -30,6 +30,10 @@ namespace bs { namespace ct
 		NullCommandBuffer(GpuQueueType type, UINT32 deviceIdx, UINT32 queueIdx, bool secondary)
 			: CommandBuffer(type, deviceIdx, queueIdx, secondary)
 		{ }
+
+	public:
+		CommandBufferState getState() const override { return CommandBufferState::Empty; }
+		void reset() override { }
 	};
 
 	/** @} */

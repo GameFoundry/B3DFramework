@@ -21,24 +21,24 @@
 /** References the shader path in RendererMaterial implementation. */
 #define RMAT_DEF(path)														\
 	public:																	\
-	static void _initMetaData()												\
+	static void InitMetaDataInternal()												\
 	{																		\
-		bs::RendererMaterialManager::_registerMaterial(&mMetaData, path);	\
+		bs::RendererMaterialManager::RegisterMaterialInternal(&mMetaData, path);	\
 	};																		\
 
 /**
- * References the shader path in RendererMaterial implementation. Provides an _initDefines() method allowing the C++
+ * References the shader path in RendererMaterial implementation. Provides an InitDefinesInternal() method allowing the C++
  * code to provide preprocessor defines to be set when compiling the shader. Note that when changing these defines you need
  * to manually force the shader to be reimported.
  */
 #define RMAT_DEF_CUSTOMIZED(path)											\
 	public:																	\
-	static void _initMetaData()												\
+	static void InitMetaDataInternal()												\
 	{																		\
-		_initDefines(mMetaData.defines);									\
-		bs::RendererMaterialManager::_registerMaterial(&mMetaData, path);	\
+		InitDefinesInternal(mMetaData.defines);									\
+		bs::RendererMaterialManager::RegisterMaterialInternal(&mMetaData, path);	\
 	};																		\
-	static void _initDefines(ShaderDefines& defines);
+	static void InitDefinesInternal(ShaderDefines& defines);
 
 /** @} */
 
@@ -112,7 +112,7 @@ namespace bs { namespace ct
 	public:
 		InitRendererMaterialStart()
 		{
-			T::_initMetaData();
+			T::InitMetaDataInternal();
 		}
 
 		/**	Forces the compiler to not optimize out construction of this type. */

@@ -174,7 +174,7 @@ namespace bs
 		return report;
 	}
 
-	void ProfilerGPU::_update()
+	void ProfilerGPU::UpdateInternal()
 	{
 		while (!mUnresolvedFrames.empty())
 		{

@@ -54,8 +54,8 @@ namespace bs
 			setSystemsPauseState(true);
 
 			gSceneManager().setComponentState(ComponentState::Stopped);
-			mSavedScene->_instantiate();
-			gSceneManager()._setRootNode(mSavedScene);
+			mSavedScene->InstantiateInternal();
+			gSceneManager().SetRootNodeInternal(mSavedScene);
 
 			mSavedScene = nullptr;
 			onStopped();

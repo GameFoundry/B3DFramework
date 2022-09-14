@@ -12,23 +12,23 @@ namespace bs
 		: GUILayout(dimensions)
 	{ }
 
-	LayoutSizeRange GUILayoutY::_calculateLayoutSizeRange() const
+	LayoutSizeRange GUILayoutY::CalculateLayoutSizeRangeInternal() const
 	{
 		Vector2I optimalSize;
 		Vector2I minSize;
 
 		for (auto& child : mChildren)
 		{
-			if (!child->_isActive())
+			if (!child->IsActiveInternal())
 				continue;
 
-			LayoutSizeRange sizeRange = child->_calculateLayoutSizeRange();
+			LayoutSizeRange sizeRange = child->CalculateLayoutSizeRangeInternal();
 			
-			if (child->_getType() == GUIElementBase::Type::FixedSpace)
+			if (child->GetTypeInternal() == GUIElementBase::Type::FixedSpace)
 				sizeRange.optimal.x = sizeRange.min.x = 0;
 
-			UINT32 paddingX = child->_getPadding().left + child->_getPadding().right;
-			UINT32 paddingY = child->_getPadding().top + child->_getPadding().bottom;
+			UINT32 paddingX = child->GetPaddingInternal().left + child->GetPaddingInternal().right;
+			UINT32 paddingY = child->GetPaddingInternal().top + child->GetPaddingInternal().bottom;
 
 			optimalSize.y += sizeRange.optimal.y + paddingY;
 			optimalSize.x = std::max((UINT32)optimalSize.x, sizeRange.optimal.x + paddingX);
@@ -37,17 +37,17 @@ namespace bs
 			minSize.x = std::max((UINT32)minSize.x, sizeRange.min.x + paddingX);
 		}
 
-		LayoutSizeRange sizeRange = _getDimensions().calculateSizeRange(optimalSize);
+		LayoutSizeRange sizeRange = GetDimensionsInternal().calculateSizeRange(optimalSize);
 		sizeRange.min.x = std::max(sizeRange.min.x, minSize.x);
 		sizeRange.min.y = std::max(sizeRange.min.y, minSize.y);
 
 		return sizeRange;
 	}
 
-	void GUILayoutY::_updateOptimalLayoutSizes()
+	void GUILayoutY::UpdateOptimalLayoutSizesInternal()
 	{
 		// Update all children first, otherwise we can't determine our own optimal size
-		GUIElementBase::_updateOptimalLayoutSizes();
+		GUIElementBase::UpdateOptimalLayoutSizesInternal();
 
 		if(mChildren.size() != mChildSizeRanges.size())
 			mChildSizeRanges.resize(mChildren.size());
@@ -60,17 +60,17 @@ namespace bs
 		{
 			LayoutSizeRange& childSizeRange = mChildSizeRanges[childIdx];
 
-			if (child->_isActive())
+			if (child->IsActiveInternal())
 			{
-				childSizeRange = child->_getLayoutSizeRange();
-				if (child->_getType() == GUIElementBase::Type::FixedSpace)
+				childSizeRange = child->GetLayoutSizeRangeInternal();
+				if (child->GetTypeInternal() == GUIElementBase::Type::FixedSpace)
 				{
 					childSizeRange.optimal.x = 0;
 					childSizeRange.min.x = 0;
 				}
 
-				UINT32 paddingX = child->_getPadding().left + child->_getPadding().right;
-				UINT32 paddingY = child->_getPadding().top + child->_getPadding().bottom;
+				UINT32 paddingX = child->GetPaddingInternal().left + child->GetPaddingInternal().right;
+				UINT32 paddingY = child->GetPaddingInternal().top + child->GetPaddingInternal().bottom;
 
 				optimalSize.y += childSizeRange.optimal.y + paddingY;
 				optimalSize.x = std::max((UINT32)optimalSize.x, childSizeRange.optimal.x + paddingX);
@@ -84,12 +84,12 @@ namespace bs
 			childIdx++;
 		}
 
-		mSizeRange = _getDimensions().calculateSizeRange(optimalSize);
+		mSizeRange = GetDimensionsInternal().calculateSizeRange(optimalSize);
 		mSizeRange.min.x = std::max(mSizeRange.min.x, minSize.x);
 		mSizeRange.min.y = std::max(mSizeRange.min.y, minSize.y);
 	}
 
-	void GUILayoutY::_getElementAreas(const Rect2I& layoutArea, Rect2I* elementAreas, UINT32 numElements,
+	void GUILayoutY::GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, UINT32 numElements,
 		const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const
 	{
 		assert(mChildren.size() == numElements);
@@ -117,13 +117,13 @@ namespace bs
 		{
 			elementAreas[childIdx].height = sizeRanges[childIdx].optimal.y;
 
-			if (child->_getType() == GUIElementBase::Type::FixedSpace)
+			if (child->GetTypeInternal() == GUIElementBase::Type::FixedSpace)
 			{
 				processedElements[childIdx] = true;
 			}
-			else if (child->_getType() == GUIElementBase::Type::FlexibleSpace)
+			else if (child->GetTypeInternal() == GUIElementBase::Type::FlexibleSpace)
 			{
-				if (child->_isActive())
+				if (child->IsActiveInternal())
 				{
 					numFlexibleSpaces++;
 					numNonClampedElements++;
@@ -133,7 +133,7 @@ namespace bs
 			}
 			else
 			{
-				const GUIDimensions& dimensions = child->_getDimensions();
+				const GUIDimensions& dimensions = child->GetDimensionsInternal();
 
 				if (dimensions.fixedHeight())
 					processedElements[childIdx] = true;
@@ -176,7 +176,7 @@ namespace bs
 					UINT32 elementHeight = elementAreas[childIdx].height + extraHeight;
 
 					// Clamp if needed
-					if (child->_getType() == GUIElementBase::Type::FlexibleSpace)
+					if (child->GetTypeInternal() == GUIElementBase::Type::FlexibleSpace)
 					{
 						processedElements[childIdx] = true;
 						numNonClampedElements--;
@@ -237,7 +237,7 @@ namespace bs
 					UINT32 elementHeight = (UINT32)std::max(0, (INT32)elementAreas[childIdx].height - (INT32)extraHeight);
 
 					// Clamp if needed
-					switch (child->_getType())
+					switch (child->GetTypeInternal())
 					{
 					case GUIElementBase::Type::FlexibleSpace:
 						elementAreas[childIdx].height = 0;
@@ -301,7 +301,7 @@ namespace bs
 					UINT32 elementHeight = elementAreas[childIdx].height + extraHeight;
 
 					// Clamp if needed
-					switch (child->_getType())
+					switch (child->GetTypeInternal())
 					{
 					case GUIElementBase::Type::FlexibleSpace:
 						processedElements[childIdx] = true;
@@ -353,11 +353,11 @@ namespace bs
 		for (auto& child : mChildren)
 		{
 			UINT32 elemHeight = elementAreas[childIdx].height;
-			yOffset += child->_getPadding().top;
+			yOffset += child->GetPaddingInternal().top;
 
 			const LayoutSizeRange& sizeRange = sizeRanges[childIdx];
 			UINT32 elemWidth = (UINT32)sizeRanges[childIdx].optimal.x;
-			const GUIDimensions& dimensions = child->_getDimensions();
+			const GUIDimensions& dimensions = child->GetDimensionsInternal();
 			if (!dimensions.fixedWidth())
 			{
 				elemWidth = layoutArea.width;
@@ -370,11 +370,11 @@ namespace bs
 
 			elementAreas[childIdx].width = elemWidth;
 
-			if (child->_getType() == GUIElementBase::Type::Element)
+			if (child->GetTypeInternal() == GUIElementBase::Type::Element)
 			{
 				GUIElement* element = static_cast<GUIElement*>(child);
 
-				UINT32 xPadding = element->_getPadding().left + element->_getPadding().right;
+				UINT32 xPadding = element->GetPaddingInternal().left + element->GetPaddingInternal().right;
 				INT32 xOffset = Math::ceilToInt((INT32)(layoutArea.width - (INT32)(elemWidth + xPadding)) * 0.5f);
 				xOffset = std::max(0, xOffset);
 
@@ -387,12 +387,12 @@ namespace bs
 				elementAreas[childIdx].y = layoutArea.y + yOffset;
 			}
 
-			yOffset += elemHeight + child->_getPadding().bottom;
+			yOffset += elemHeight + child->GetPaddingInternal().bottom;
 			childIdx++;
 		}
 	}
 
-	void GUILayoutY::_updateLayoutInternal(const GUILayoutData& data)
+	void GUILayoutY::UpdateLayoutInternalInternal(const GUILayoutData& data)
 	{
 		UINT32 numElements = (UINT32)mChildren.size();
 		Rect2I* elementAreas = nullptr;
@@ -400,7 +400,7 @@ namespace bs
 		if (numElements > 0)
 			elementAreas = bs_stack_new<Rect2I>(numElements);
 
-		_getElementAreas(data.area, elementAreas, numElements, mChildSizeRanges, mSizeRange);
+		GetElementAreasInternal(data.area, elementAreas, numElements, mChildSizeRanges, mSizeRange);
 
 		// Now that we have all the areas, actually assign them
 		UINT32 childIdx = 0;
@@ -408,14 +408,14 @@ namespace bs
 		GUILayoutData childData = data;
 		for(auto& child : mChildren)
 		{
-			if (child->_isActive())
+			if (child->IsActiveInternal())
 			{
 				childData.area = elementAreas[childIdx];
 				childData.clipRect = childData.area;
 				childData.clipRect.clip(data.clipRect);
 
-				child->_setLayoutData(childData);
-				child->_updateLayoutInternal(childData);
+				child->SetLayoutDataInternal(childData);
+				child->UpdateLayoutInternalInternal(childData);
 			}
 
 			childIdx++;

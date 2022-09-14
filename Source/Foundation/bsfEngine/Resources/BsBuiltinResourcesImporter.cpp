@@ -118,7 +118,7 @@ namespace bs
 		blackPixelData->setColorAt(Color::Black, 1, 0);
 		blackPixelData->setColorAt(Color::Black, 1, 1);
 
-		SPtr<Texture> blackTexture = Texture::_createPtr(blackPixelData);
+		SPtr<Texture> blackTexture = Texture::CreatePtrInternal(blackPixelData);
 
 		SPtr<PixelData> whitePixelData = PixelData::create(2, 2, 1, PF_RGBA8);
 		whitePixelData->setColorAt(Color::White, 0, 0);
@@ -126,7 +126,7 @@ namespace bs
 		whitePixelData->setColorAt(Color::White, 1, 0);
 		whitePixelData->setColorAt(Color::White, 1, 1);
 
-		SPtr<Texture> whiteTexture = Texture::_createPtr(whitePixelData);
+		SPtr<Texture> whiteTexture = Texture::CreatePtrInternal(whitePixelData);
 
 		SPtr<PixelData> normalPixelData = PixelData::create(2, 2, 1, PF_RGBA8);
 
@@ -136,14 +136,14 @@ namespace bs
 		normalPixelData->setColorAt(encodedNormal, 1, 0);
 		normalPixelData->setColorAt(encodedNormal, 1, 1);
 
-		SPtr<Texture> normalTexture = Texture::_createPtr(normalPixelData);
+		SPtr<Texture> normalTexture = Texture::CreatePtrInternal(normalPixelData);
 
 		// Save all textures
 		Path outputDir = sOutputFolder + BuiltinResources::TEXTURE_FOLDER;
 
 		auto saveTexture = [&](const Path& path, const SPtr<Texture>& texture, const String& uuid)
 		{
-			HResource textureResource = gResources()._createResourceHandle(texture, UUID(uuid));
+			HResource textureResource = gResources().CreateResourceHandleInternal(texture, UUID(uuid));
 
 			gResources().save(textureResource, path, true);
 			sManifest->registerResource(textureResource.getUUID(), path);
@@ -175,7 +175,7 @@ namespace bs
 		AABox box(Vector3(-0.5f, -0.5f, -0.5f), Vector3(0.5f, 0.5f, 0.5f));
 
 		ShapeMeshes3D::solidAABox(box, boxMeshData, 0, 0);
-		SPtr<Mesh> boxMesh = Mesh::_createPtr(RendererMeshData::convert(boxMeshData));
+		SPtr<Mesh> boxMesh = Mesh::CreatePtrInternal(RendererMeshData::convert(boxMeshData));
 
 		UINT32 sphereNumVertices = 0;
 		UINT32 sphereNumIndices = 0;
@@ -183,7 +183,7 @@ namespace bs
 		SPtr<MeshData> sphereMeshData = bs_shared_ptr_new<MeshData>(sphereNumVertices, sphereNumIndices, vertexDesc);
 
 		ShapeMeshes3D::solidSphere(Sphere(Vector3::ZERO, 1.0f), sphereMeshData, 0, 0, 3);
-		SPtr<Mesh> sphereMesh = Mesh::_createPtr(RendererMeshData::convert(sphereMeshData));
+		SPtr<Mesh> sphereMesh = Mesh::CreatePtrInternal(RendererMeshData::convert(sphereMeshData));
 
 		UINT32 coneNumVertices = 0;
 		UINT32 coneNumIndices = 0;
@@ -191,7 +191,7 @@ namespace bs
 		SPtr<MeshData> coneMeshData = bs_shared_ptr_new<MeshData>(coneNumVertices, coneNumIndices, vertexDesc);
 
 		ShapeMeshes3D::solidCone(Vector3::ZERO, Vector3::UNIT_Y, 1.0f, 1.0f, Vector2::ONE, coneMeshData, 0, 0);
-		SPtr<Mesh> coneMesh = Mesh::_createPtr(RendererMeshData::convert(coneMeshData));
+		SPtr<Mesh> coneMesh = Mesh::CreatePtrInternal(RendererMeshData::convert(coneMeshData));
 
 		UINT32 cylinderNumVertices = 0;
 		UINT32 cylinderNumIndices = 0;
@@ -199,7 +199,7 @@ namespace bs
 		SPtr<MeshData> cylinderMeshData = bs_shared_ptr_new<MeshData>(cylinderNumVertices, cylinderNumIndices, vertexDesc);
 
 		ShapeMeshes3D::solidCylinder(Vector3::ZERO, Vector3::UNIT_Y, 1.0f, 1.0f, Vector2::ONE, cylinderMeshData, 0, 0);
-		SPtr<Mesh> cylinderMesh = Mesh::_createPtr(RendererMeshData::convert(cylinderMeshData));
+		SPtr<Mesh> cylinderMesh = Mesh::CreatePtrInternal(RendererMeshData::convert(cylinderMeshData));
 
 		UINT32 quadNumVertices = 8;
 		UINT32 quadNumIndices = 12;
@@ -210,7 +210,7 @@ namespace bs
 		std::array<float, 2> sizes = {{ 1.0f, 1.0f }};
 		Rect3 rect(Vector3::ZERO, axes, sizes);
 		ShapeMeshes3D::solidQuad(rect, quadMeshData, 0, 0);
-		SPtr<Mesh> quadMesh = Mesh::_createPtr(RendererMeshData::convert(quadMeshData));
+		SPtr<Mesh> quadMesh = Mesh::CreatePtrInternal(RendererMeshData::convert(quadMeshData));
 
 		UINT32 discNumVertices = 0;
 		UINT32 discNumIndices = 0;
@@ -218,14 +218,14 @@ namespace bs
 		SPtr<MeshData> discMeshData = bs_shared_ptr_new<MeshData>(discNumVertices, discNumIndices, vertexDesc);
 
 		ShapeMeshes3D::solidDisc(Vector3::ZERO, 1.0f, Vector3::UNIT_Y, discMeshData, 0, 0);
-		SPtr<Mesh> discMesh = Mesh::_createPtr(RendererMeshData::convert(discMeshData));
+		SPtr<Mesh> discMesh = Mesh::CreatePtrInternal(RendererMeshData::convert(discMeshData));
 
 		// Save all meshes
 		const Path outputDir = sOutputFolder + BuiltinResources::MESH_FOLDER;
 
 		auto saveMesh = [&](const Path& path, const SPtr<Mesh>& mesh, const String& uuid)
 		{
-			HResource meshResource = gResources()._createResourceHandle(mesh, UUID(uuid));
+			HResource meshResource = gResources().CreateResourceHandleInternal(mesh, UUID(uuid));
 
 			gResources().save(meshResource, path, true);
 			sManifest->registerResource(meshResource.getUUID(), path);
@@ -261,7 +261,7 @@ namespace bs
 		SPtr<DataStream> guiSkinStream = FileSystem::openFile(guiSkinPath);
 		json guiSkinJSON = json::parse(guiSkinStream->getAsString().c_str());
 
-		SPtr<GUISkin> skin = GUISkin::_createPtr();
+		SPtr<GUISkin> skin = GUISkin::CreatePtrInternal();
 
 		for(auto& entry : guiSkinJSON)
 		{
@@ -742,7 +742,7 @@ namespace bs
 			const SPtr<GUISkin> skin = generateGUISkin();
 			const Path outputPath = sOutputFolder + (fileName + u8".asset");
 
-			HResource skinResource = gResources()._createResourceHandle(skin, UUID);
+			HResource skinResource = gResources().CreateResourceHandleInternal(skin, UUID);
 
 			gResources().save(skinResource, outputPath, true);
 			sManifest->registerResource(skinResource.getUUID(), outputPath);

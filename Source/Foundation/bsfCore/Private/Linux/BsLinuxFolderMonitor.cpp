@@ -486,7 +486,7 @@ namespace bs
 		// Do nothing
 	}
 
-	void FolderMonitor::_update()
+	void FolderMonitor::UpdateInternal()
 	{
 		{
 			Lock lock(m->mainMutex);

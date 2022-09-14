@@ -91,7 +91,7 @@ namespace bs
 		void destroyScriptResource(ScriptResourceBase* resource);
 
 		/**	Throws an exception if the provided UUID already exists in the interop object lookup table. */
-		void _throwExceptionIfInvalidOrDuplicate(const UUID& uuid) const;
+		void ThrowExceptionIfInvalidOrDuplicateInternal(const UUID& uuid) const;
 
 	private:
 		/**	Triggered when the native resource has been unloaded and therefore destroyed. */

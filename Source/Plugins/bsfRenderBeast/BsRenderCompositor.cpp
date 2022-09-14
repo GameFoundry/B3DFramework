@@ -437,7 +437,7 @@ namespace bs { namespace ct
 		// Trigger pre-base-pass callbacks
 		if (sceneCamera != nullptr)
 		{
-			inputs.view._notifyCompositorTargetChanged(renderTarget);
+			inputs.view.NotifyCompositorTargetChangedInternal(renderTarget);
 
 			for(auto& extension : inputs.extPreBasePass)
 				extension->render(*sceneCamera, inputs.view.getContext());
@@ -476,7 +476,7 @@ namespace bs { namespace ct
 		// Trigger post-base-pass callbacks
 		if (sceneCamera != nullptr)
 		{
-			inputs.view._notifyCompositorTargetChanged(renderTargetNoMask);
+			inputs.view.NotifyCompositorTargetChangedInternal(renderTargetNoMask);
 
 			for(auto& extension : inputs.extPostBasePass)
 				extension->render(*sceneCamera, inputs.view.getContext());
@@ -1542,7 +1542,7 @@ namespace bs { namespace ct
 		Camera* sceneCamera = inputs.view.getSceneCamera();
 		if (sceneCamera != nullptr)
 		{
-			inputs.view._notifyCompositorTargetChanged(renderTarget);
+			inputs.view.NotifyCompositorTargetChangedInternal(renderTarget);
 
 			for(auto& extension : inputs.extPostLighting)
 				extension->render(*sceneCamera, inputs.view.getContext());
@@ -1652,13 +1652,13 @@ namespace bs { namespace ct
 		Camera* sceneCamera = inputs.view.getSceneCamera();
 		if (sceneCamera != nullptr)
 		{
-			inputs.view._notifyCompositorTargetChanged(target);
+			inputs.view.NotifyCompositorTargetChangedInternal(target);
 
 			for(auto& extension : inputs.extOverlay)
 				extension->render(*sceneCamera, inputs.view.getContext());
 		}
 
-		inputs.view._notifyCompositorTargetChanged(nullptr);
+		inputs.view.NotifyCompositorTargetChangedInternal(nullptr);
 	}
 
 	void RCNodeFinalResolve::clear()
@@ -1830,7 +1830,7 @@ namespace bs { namespace ct
 
 			// Notify the view eye adaptation value will change
 			SPtr<CommandBuffer> cb = RenderAPI::instance().getMainCommandBuffer();
-			view._notifyLuminanceUpdated(inputs.frameInfo.timings.frameIdx, cb, output);
+			view.NotifyLuminanceUpdatedInternal(inputs.frameInfo.timings.frameIdx, cb, output);
 		}
 		else
 		{

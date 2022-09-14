@@ -43,7 +43,7 @@ namespace bs
 		return scene;
 	}
 
-	void NullPhysics::_notifySceneDestroyed(NullPhysicsScene* scene)
+	void NullPhysics::NotifySceneDestroyedInternal(NullPhysicsScene* scene)
 	{
 		auto iterFind = std::find(mScenes.begin(), mScenes.end(), scene);
 		assert(iterFind != mScenes.end());
@@ -56,7 +56,7 @@ namespace bs
 
 	NullPhysicsScene::~NullPhysicsScene()
 	{
-		gNullPhysics()._notifySceneDestroyed(this);
+		gNullPhysics().NotifySceneDestroyedInternal(this);
 	}
 
 	SPtr<Rigidbody> NullPhysicsScene::createRigidbody(const HSceneObject& linkedSO)

@@ -48,7 +48,7 @@ namespace bs
 
 		SPtr<IReflectable> newRTTIObject() override
 		{
-			return RenderStateManager::instance()._createDepthStencilStatePtr(DEPTH_STENCIL_STATE_DESC());
+			return RenderStateManager::instance().CreateDepthStencilStatePtrInternal(DEPTH_STENCIL_STATE_DESC());
 		}
 	};
 

@@ -62,16 +62,16 @@ namespace bs
 		 * Marks the object as destroyed. Generally this means the object has been queued for destruction but it hasn't
 		 * occurred yet.
 		 */
-		void _setIsDestroyed() { mIsDestroyed = true; }
+		void SetIsDestroyedInternal() { mIsDestroyed = true; }
 
 		/**	Checks if the object has been destroyed. */
-		bool _getIsDestroyed() const { return mIsDestroyed; }
+		bool GetIsDestroyedInternal() const { return mIsDestroyed; }
 
 		/** Changes the prefab link ID for this object. See getLinkId(). */
-		void _setLinkId(UINT32 id) { mLinkId = id; }
+		void SetLinkIdInternal(UINT32 id) { mLinkId = id; }
 
 		/** @copydoc getUUID */
-		void _setUUID(const UUID& uuid) { mUUID = uuid; }
+		void SetUUIDInternal(const UUID& uuid) { mUUID = uuid; }
 
 		/**
 		 * Replaces the instance data with another objects instance data. This object will basically become the original
@@ -80,10 +80,10 @@ namespace bs
 		 * @note
 		 * No alive objects should ever be sharing the same instance data. This can be used for restoring dead handles.
 		 */
-		virtual void _setInstanceData(GameObjectInstanceDataPtr& other);
+		virtual void SetInstanceDataInternal(GameObjectInstanceDataPtr& other);
 
 		/** Returns instance data that identifies this GameObject and is used for referencing by game object handles. */
-		virtual GameObjectInstanceDataPtr _getInstanceData() const { return mInstanceData; }
+		virtual GameObjectInstanceDataPtr GetInstanceDataInternal() const { return mInstanceData; }
 
 		/** @} */
 

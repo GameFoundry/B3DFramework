@@ -76,9 +76,9 @@ namespace bs
 						continue;
 
 					if(events[i].value)
-						mOwner->_notifyButtonPressed(m->info.id, findIter->second, (UINT64)events[i].time.tv_usec);
+						mOwner->NotifyButtonPressedInternal(m->info.id, findIter->second, (UINT64)events[i].time.tv_usec);
 					else
-						mOwner->_notifyButtonReleased(m->info.id, findIter->second, (UINT64)events[i].time.tv_usec);
+						mOwner->NotifyButtonReleasedInternal(m->info.id, findIter->second, (UINT64)events[i].time.tv_usec);
 				}
 					break;
 				case EV_ABS:
@@ -130,10 +130,10 @@ namespace bs
 						if(m->povState != povButton)
 						{
 							if(m->povState != BC_UNASSIGNED)
-								mOwner->_notifyButtonReleased(m->info.id, m->povState, (UINT64)events[i].time.tv_usec);
+								mOwner->NotifyButtonReleasedInternal(m->info.id, m->povState, (UINT64)events[i].time.tv_usec);
 
 							if(povButton != BC_UNASSIGNED)
-								mOwner->_notifyButtonPressed(m->info.id, povButton, (UINT64)events[i].time.tv_usec);
+								mOwner->NotifyButtonPressedInternal(m->info.id, povButton, (UINT64)events[i].time.tv_usec);
 
 
 							m->povState = povButton;
@@ -149,7 +149,7 @@ namespace bs
 		for(UINT32 i = 0; i < 24; i++)
 		{
 			if(axisState[i].moved)
-				mOwner->_notifyAxisMoved(m->info.id, i, axisState[i].value);
+				mOwner->NotifyAxisMovedInternal(m->info.id, i, axisState[i].value);
 		}
 	}
 

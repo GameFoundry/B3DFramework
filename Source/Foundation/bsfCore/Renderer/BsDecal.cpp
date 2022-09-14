@@ -32,7 +32,7 @@ namespace bs
 		}
 
 		mLayer = layer;
-		_markCoreDirty();
+		MarkCoreDirtyInternal();
 	}
 
 	void DecalBase::setTransform(const Transform& transform)
@@ -44,7 +44,7 @@ namespace bs
 		mTfrmMatrix = transform.getMatrix();
 		mTfrmMatrixNoScale = Matrix4::TRS(transform.getPosition(), transform.getRotation(), Vector3::ONE);
 
-		_markCoreDirty(ActorDirtyFlag::Transform);
+		MarkCoreDirtyInternal(ActorDirtyFlag::Transform);
 	}
 
 	void DecalBase::updateBounds()
@@ -89,7 +89,7 @@ namespace bs
 	{
 		Decal* decal = new (bs_alloc<Decal>()) Decal(material, size, maxDistance);
 		SPtr<Decal> decalPtr = bs_core_ptr<Decal>(decal);
-		decalPtr->_setThisPtr(decalPtr);
+		decalPtr->SetThisPtrInternal(decalPtr);
 		decalPtr->initialize();
 
 		return decalPtr;
@@ -99,7 +99,7 @@ namespace bs
 	{
 		Decal* decal = new (bs_alloc<Decal>()) Decal();
 		SPtr<Decal> decalPtr = bs_core_ptr<Decal>(decal);
-		decalPtr->_setThisPtr(decalPtr);
+		decalPtr->SetThisPtrInternal(decalPtr);
 
 		return decalPtr;
 	}
@@ -112,7 +112,7 @@ namespace bs
 
 		ct::Decal* decal = new (bs_alloc<ct::Decal>()) ct::Decal(material, mSize, mMaxDistance);
 		SPtr<ct::Decal> decalPtr = bs_shared_ptr<ct::Decal>(decal);
-		decalPtr->_setThisPtr(decalPtr);
+		decalPtr->SetThisPtrInternal(decalPtr);
 
 		return decalPtr;
 	}
@@ -140,7 +140,7 @@ namespace bs
 		return CoreSyncData(buffer, size);
 	}
 
-	void Decal::_markCoreDirty(ActorDirtyFlag flags)
+	void Decal::MarkCoreDirtyInternal(ActorDirtyFlag flags)
 	{
 		markCoreDirty((UINT32)flags);
 	}

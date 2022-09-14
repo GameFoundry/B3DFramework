@@ -64,7 +64,7 @@ namespace bs
 		 */
 
 		/**	Returns the internal decal object that this component wraps. */
-		SPtr<Decal> _getInternal() const { return mInternal; }
+		SPtr<Decal> GetInternalInternal() const { return mInternal; }
 
 		/** @} */
 

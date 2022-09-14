@@ -26,11 +26,11 @@ namespace bs
 	{
 		PxRigidActor* actor0 = nullptr;
 		if (desc.bodies[0].body != nullptr)
-			actor0 = static_cast<PhysXRigidbody*>(desc.bodies[0].body)->_getInternal();
+			actor0 = static_cast<PhysXRigidbody*>(desc.bodies[0].body)->GetInternalInternal();
 
 		PxRigidActor* actor1 = nullptr;
 		if (desc.bodies[1].body != nullptr)
-			actor1 = static_cast<PhysXRigidbody*>(desc.bodies[1].body)->_getInternal();
+			actor1 = static_cast<PhysXRigidbody*>(desc.bodies[1].body)->GetInternalInternal();
 
 		PxTransform tfrm0 = toPxTransform(desc.bodies[0].position, desc.bodies[0].rotation);
 		PxTransform tfrm1 = toPxTransform(desc.bodies[1].position, desc.bodies[1].rotation);
@@ -129,6 +129,6 @@ namespace bs
 	{
 		FPhysXJoint* internal = static_cast<FPhysXJoint*>(mInternal);
 
-		return static_cast<PxRevoluteJoint*>(internal->_getInternal());
+		return static_cast<PxRevoluteJoint*>(internal->GetInternalInternal());
 	}
 }

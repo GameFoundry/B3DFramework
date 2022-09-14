@@ -41,7 +41,7 @@ namespace bs { namespace ct
 		GpuDeviceFlags deviceMask)
 	{
 		SPtr<VulkanVertexBuffer> ret = bs_shared_ptr_new<VulkanVertexBuffer>(desc, deviceMask);
-		ret->_setThisPtr(ret);
+		ret->SetThisPtrInternal(ret);
 
 		return ret;
 	}
@@ -50,7 +50,7 @@ namespace bs { namespace ct
 		GpuDeviceFlags deviceMask)
 	{
 		SPtr<VulkanIndexBuffer> ret = bs_shared_ptr_new<VulkanIndexBuffer>( desc, deviceMask);
-		ret->_setThisPtr(ret);
+		ret->SetThisPtrInternal(ret);
 
 		return ret;
 	}
@@ -62,7 +62,7 @@ namespace bs { namespace ct
 			new (bs_alloc<VulkanGpuParamBlockBuffer>()) VulkanGpuParamBlockBuffer(size, usage, deviceMask);
 
 		SPtr<GpuParamBlockBuffer> paramBlockBufferPtr = bs_shared_ptr<VulkanGpuParamBlockBuffer>(paramBlockBuffer);
-		paramBlockBufferPtr->_setThisPtr(paramBlockBufferPtr);
+		paramBlockBufferPtr->SetThisPtrInternal(paramBlockBufferPtr);
 
 		return paramBlockBufferPtr;
 	}
@@ -73,7 +73,7 @@ namespace bs { namespace ct
 		VulkanGpuBuffer* buffer = new (bs_alloc<VulkanGpuBuffer>()) VulkanGpuBuffer(desc, deviceMask);
 
 		SPtr<VulkanGpuBuffer> bufferPtr = bs_shared_ptr<VulkanGpuBuffer>(buffer);
-		bufferPtr->_setThisPtr(bufferPtr);
+		bufferPtr->SetThisPtrInternal(bufferPtr);
 
 		return bufferPtr;
 	}
@@ -84,7 +84,7 @@ namespace bs { namespace ct
 		VulkanGpuBuffer* buffer = new (bs_alloc<VulkanGpuBuffer>()) VulkanGpuBuffer(desc, std::move(underlyingBuffer));
 
 		SPtr<VulkanGpuBuffer> bufferPtr = bs_shared_ptr<VulkanGpuBuffer>(buffer);
-		bufferPtr->_setThisPtr(bufferPtr);
+		bufferPtr->SetThisPtrInternal(bufferPtr);
 
 		return bufferPtr;
 	}
@@ -94,7 +94,7 @@ namespace bs { namespace ct
 	{
 		VulkanGpuParams* params = new (bs_alloc<VulkanGpuParams>()) VulkanGpuParams(paramInfo, deviceMask);
 		SPtr<GpuParams> paramsPtr = bs_shared_ptr<GpuParams>(params);
-		paramsPtr->_setThisPtr(paramsPtr);
+		paramsPtr->SetThisPtrInternal(paramsPtr);
 
 		return paramsPtr;
 	}

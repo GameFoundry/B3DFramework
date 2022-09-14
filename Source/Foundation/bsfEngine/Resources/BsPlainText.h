@@ -33,7 +33,7 @@ namespace bs
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
-		static SPtr<PlainText> _createPtr(const WString& data);
+		static SPtr<PlainText> CreatePtrInternal(const WString& data);
 
 		/** @} */
 	private:

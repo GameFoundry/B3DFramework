@@ -269,14 +269,14 @@ namespace bs
 
 	HStringTable StringTable::create()
 	{
-		return static_resource_cast<StringTable>(gResources()._createResourceHandle(_createPtr()));
+		return static_resource_cast<StringTable>(gResources().CreateResourceHandleInternal(CreatePtrInternal()));
 	}
 
-	SPtr<StringTable> StringTable::_createPtr()
+	SPtr<StringTable> StringTable::CreatePtrInternal()
 	{
 		SPtr<StringTable> scriptCodePtr = bs_core_ptr<StringTable>(
 			new (bs_alloc<StringTable>()) StringTable());
-		scriptCodePtr->_setThisPtr(scriptCodePtr);
+		scriptCodePtr->SetThisPtrInternal(scriptCodePtr);
 		scriptCodePtr->initialize();
 
 		return scriptCodePtr;

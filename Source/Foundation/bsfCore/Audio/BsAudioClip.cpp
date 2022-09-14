@@ -25,13 +25,13 @@ namespace bs
 
 	HAudioClip AudioClip::create(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples, const AUDIO_CLIP_DESC& desc)
 	{
-		return static_resource_cast<AudioClip>(gResources()._createResourceHandle(_createPtr(samples, streamSize, numSamples, desc)));
+		return static_resource_cast<AudioClip>(gResources().CreateResourceHandleInternal(CreatePtrInternal(samples, streamSize, numSamples, desc)));
 	}
 
-	SPtr<AudioClip> AudioClip::_createPtr(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples, const AUDIO_CLIP_DESC& desc)
+	SPtr<AudioClip> AudioClip::CreatePtrInternal(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples, const AUDIO_CLIP_DESC& desc)
 	{
 		SPtr<AudioClip> newClip = gAudio().createClip(samples, streamSize, numSamples, desc);
-		newClip->_setThisPtr(newClip);
+		newClip->SetThisPtrInternal(newClip);
 		newClip->initialize();
 
 		return newClip;
@@ -42,7 +42,7 @@ namespace bs
 		AUDIO_CLIP_DESC desc;
 
 		SPtr<AudioClip> newClip = gAudio().createClip(nullptr, 0, 0, desc);
-		newClip->_setThisPtr(newClip);
+		newClip->SetThisPtrInternal(newClip);
 
 		return newClip;
 	}

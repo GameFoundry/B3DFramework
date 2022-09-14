@@ -45,12 +45,12 @@ namespace bs
 			return;
 
 		if (mBodies[(int)body] != nullptr)
-			mBodies[(int)body]->_setJoint(HJoint());
+			mBodies[(int)body]->SetJointInternal(HJoint());
 
 		mBodies[(int)body] = value;
 
 		if (value != nullptr)
-			mBodies[(int)body]->_setJoint(static_object_cast<CJoint>(mThisHandle));
+			mBodies[(int)body]->SetJointInternal(static_object_cast<CJoint>(mThisHandle));
 
 		// If joint already exists, destroy it if we removed all bodies, otherwise update its transform
 		if(mInternal != nullptr)
@@ -61,7 +61,7 @@ namespace bs
 			{
 				Rigidbody* rigidbody = nullptr;
 				if (value != nullptr)
-					rigidbody = value->_getInternal();
+					rigidbody = value->GetInternalInternal();
 
 				mInternal->setBody(body, rigidbody);
 				updateTransform(body);
@@ -155,10 +155,10 @@ namespace bs
 	void CJoint::onDestroyed()
 	{
 		if (mBodies[0] != nullptr)
-			mBodies[0]->_setJoint(HJoint());
+			mBodies[0]->SetJointInternal(HJoint());
 
 		if (mBodies[1] != nullptr)
-			mBodies[1]->_setJoint(HJoint());
+			mBodies[1]->SetJointInternal(HJoint());
 
 		if(mInternal != nullptr)
 			destroyInternal();
@@ -187,7 +187,7 @@ namespace bs
 		// user to ensure rigidbodies are always parented to the joint in such a case (It's an unlikely situation that
 		// I can't think of an use for - joint transform will almost always be set as an initialization step and not a
 		// physics response).
-		if (gPhysics()._isUpdateInProgress())
+		if (gPhysics().IsUpdateInProgressInternal())
 			return;
 
 		updateTransform(JointBody::Target);
@@ -197,12 +197,12 @@ namespace bs
 	void CJoint::restoreInternal()
 	{
 		if (mBodies[0] != nullptr)
-			mDesc.bodies[0].body = mBodies[0]->_getInternal();
+			mDesc.bodies[0].body = mBodies[0]->GetInternalInternal();
 		else
 			mDesc.bodies[0].body = nullptr;
 
 		if (mBodies[1] != nullptr)
-			mDesc.bodies[1].body = mBodies[1]->_getInternal();
+			mDesc.bodies[1].body = mBodies[1]->GetInternalInternal();
 		else
 			mDesc.bodies[1].body = nullptr;
 
@@ -219,7 +219,7 @@ namespace bs
 		// This should release the last reference and destroy the internal joint
 		if(mInternal)
 		{
-			mInternal->_setOwner(PhysicsOwnerType::None, nullptr);
+			mInternal->SetOwnerInternal(PhysicsOwnerType::None, nullptr);
 			mInternal = nullptr;
 		}
 	}
@@ -230,7 +230,7 @@ namespace bs
 			return;
 
 		// If physics update is in progress do nothing, as its the joint itself that's probably moving the body
-		if (gPhysics()._isUpdateInProgress())
+		if (gPhysics().IsUpdateInProgressInternal())
 			return;
 
 		if (mBodies[0] == body)
@@ -246,7 +246,7 @@ namespace bs
 		if (body == nullptr)
 			return false;
 
-		if (body->_getInternal() == nullptr)
+		if (body->GetInternalInternal() == nullptr)
 			return false;
 
 		return true;

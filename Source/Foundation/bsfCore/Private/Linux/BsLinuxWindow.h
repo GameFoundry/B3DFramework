@@ -96,7 +96,7 @@ namespace bs
 		 * Destroys the window, cleaning up any resources and removing it from the display. No further methods should be
 		 * called on this object after it has been destroyed.
 		 */
-		void _destroy();
+		void DestroyInternal();
 
 		/**
 		 * Sets a portion of the window in which the user can click and drag in order to move the window. This is needed
@@ -106,28 +106,28 @@ namespace bs
 		 * @param[in]	rects	Areas of the window (relative to the window origin in top-left corner) in which the drag
 		 * 						operation in allowed.
 		 */
-		void _setDragZones(const Vector<Rect2I>& rects);
+		void SetDragZonesInternal(const Vector<Rect2I>& rects);
 
 		/**
 		 * Notifies the window that user has started dragging the window using a custom drag zone. Provided parameter is the
 		 * event that started the drag.
 		 */
-		void _dragStart(const XButtonEvent& event);
+		void DragStartInternal(const XButtonEvent& event);
 
 		/** Notifies the window the user has stopped the window drag operation. */
-		void _dragEnd();
+		void DragEndInternal();
 
 		/** Returns the internal X11 window handle. */
-		::Window _getXWindow() const;
+		::Window GetXWindowInternal() const;
 
 		/** Toggles between fullscreen and windowed mode. */
-		void _setFullscreen(bool fullscreen);
+		void SetFullscreenInternal(bool fullscreen);
 
-		/** Attaches non-specific user data that can later be retrieved through _getUserData(). */
-		void _setUserData(void* data);
+		/** Attaches non-specific user data that can later be retrieved through GetUserDataInternal(). */
+		void SetUserDataInternal(void* data);
 
 		/** Returns user data attached to the object when _setUserData was called. */
-		void* _getUserData() const;
+		void* GetUserDataInternal() const;
 
 		/** @} */
 

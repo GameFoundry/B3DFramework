@@ -31,7 +31,7 @@ namespace bs
 		D3D11Texture* tex = new (bs_alloc<D3D11Texture>()) D3D11Texture(desc, initialData, deviceMask);
 
 		SPtr<D3D11Texture> texPtr = bs_shared_ptr<D3D11Texture>(tex);
-		texPtr->_setThisPtr(texPtr);
+		texPtr->SetThisPtrInternal(texPtr);
 
 		return texPtr;
 	}
@@ -40,7 +40,7 @@ namespace bs
 																				 UINT32 deviceIdx)
 	{
 		SPtr<D3D11RenderTexture> texPtr = bs_shared_ptr_new<D3D11RenderTexture>(desc, deviceIdx);
-		texPtr->_setThisPtr(texPtr);
+		texPtr->SetThisPtrInternal(texPtr);
 
 		return texPtr;
 	}

@@ -132,11 +132,11 @@ namespace bs
 		 *  @{
 		 */
 
-		/** @copydoc GUIElement::_getOptimalSize */
-		Vector2I _getOptimalSize() const override;
+		/** @copydoc GUIElement::GetOptimalSizeInternal */
+		Vector2I GetOptimalSizeInternal() const override;
 
-		/** @copydoc GUIElement::_getRenderElementDepthRange */
-		UINT32 _getRenderElementDepthRange() const override { return mDepthRange; }
+		/** @copydoc GUIElement::GetRenderElementDepthRangeInternal */
+		UINT32 GetRenderElementDepthRangeInternal() const override { return mDepthRange; }
 
 		/** @} */
 	protected:

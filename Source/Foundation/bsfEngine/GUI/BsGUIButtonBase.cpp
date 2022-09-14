@@ -36,29 +36,29 @@ namespace bs
 
 	void GUIButtonBase::setContent(const GUIContent& content)
 	{
-		Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+		Vector2I origSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 		mContent = content;
 		mContentAnimationStartTime = gTime().getTime();
 
 		refreshContentSprite();
 
-		Vector2I newSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+		Vector2I newSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 
 		if (origSize != newSize)
-			_markLayoutAsDirty();
+			MarkLayoutAsDirtyInternal();
 		else
-			_markContentAsDirty();
+			MarkContentAsDirtyInternal();
 	}
 
-	void GUIButtonBase::_setOn(bool on)
+	void GUIButtonBase::SetOnInternal(bool on)
 	{
 		if(on)
-			_setState((GUIElementState)((INT32)mActiveState | (INT32)GUIElementState::OnFlag));
+			SetStateInternal((GUIElementState)((INT32)mActiveState | (INT32)GUIElementState::OnFlag));
 		else
-			_setState((GUIElementState)((INT32)mActiveState & ~(INT32)GUIElementState::OnFlag));
+			SetStateInternal((GUIElementState)((INT32)mActiveState & ~(INT32)GUIElementState::OnFlag));
 	}
 
-	bool GUIButtonBase::_isOn() const
+	bool GUIButtonBase::IsOnInternal() const
 	{
 		return ((INT32)mActiveState & (INT32)GUIElementState::OnFlag) != 0;
 	}
@@ -74,14 +74,14 @@ namespace bs
 		else
 			mImageDesc.texture = nullptr;
 
-		mImageDesc.borderLeft = _getStyle()->border.left;
-		mImageDesc.borderRight = _getStyle()->border.right;
-		mImageDesc.borderTop = _getStyle()->border.top;
-		mImageDesc.borderBottom = _getStyle()->border.bottom;
+		mImageDesc.borderLeft = GetStyleInternal()->border.left;
+		mImageDesc.borderRight = GetStyleInternal()->border.right;
+		mImageDesc.borderTop = GetStyleInternal()->border.top;
+		mImageDesc.borderBottom = GetStyleInternal()->border.bottom;
 		mImageDesc.color = getTint();
 
-		mImageSprite->update(mImageDesc, (UINT64)_getParentWidget());
-		mTextSprite->update(getTextDesc(), (UINT64)_getParentWidget());
+		mImageSprite->update(mImageDesc, (UINT64)GetParentWidgetInternal());
+		mTextSprite->update(getTextDesc(), (UINT64)GetParentWidgetInternal());
 
 		if(mContentImageSprite != nullptr)
 		{
@@ -115,7 +115,7 @@ namespace bs
 			contentImgDesc.color = getTint();
 			contentImgDesc.animationStartTime = mContentAnimationStartTime;
 
-			mContentImageSprite->update(contentImgDesc, (UINT64)_getParentWidget());
+			mContentImageSprite->update(contentImgDesc, (UINT64)GetParentWidgetInternal());
 		}
 
 		// Populate GUI render elements from the sprites
@@ -127,7 +127,7 @@ namespace bs
 		GUIElement::updateRenderElementsInternal();
 	}
 
-	Vector2I GUIButtonBase::_getOptimalSize() const
+	Vector2I GUIButtonBase::GetOptimalSizeInternal() const
 	{
 		UINT32 imageWidth = 0;
 		UINT32 imageHeight = 0;
@@ -139,14 +139,14 @@ namespace bs
 			imageHeight = activeTex->getHeight();
 		}
 
-		Vector2I contentSize = GUIHelper::calcOptimalContentsSize(mContent, *_getStyle(), _getDimensions(), mActiveState);
+		Vector2I contentSize = GUIHelper::calcOptimalContentsSize(mContent, *GetStyleInternal(), GetDimensionsInternal(), mActiveState);
 		UINT32 contentWidth = std::max(imageWidth, (UINT32)contentSize.x);
 		UINT32 contentHeight = std::max(imageHeight, (UINT32)contentSize.y);
 
 		return Vector2I(contentWidth, contentHeight);
 	}
 
-	UINT32 GUIButtonBase::_getRenderElementDepthRange() const
+	UINT32 GUIButtonBase::GetRenderElementDepthRangeInternal() const
 	{
 		return 2;
 	}
@@ -201,7 +201,7 @@ namespace bs
 			else
 				textImageSpacing = GUIContent::IMAGE_TEXT_SPACING;
 
-			if(_getStyle()->imagePosition == GUIImagePosition::Right)
+			if(GetStyleInternal()->imagePosition == GUIImagePosition::Right)
 			{
 				INT32 imageReservedWidth = std::max(0, (INT32)contentBounds.width - (INT32)textBounds.width);
 
@@ -249,16 +249,16 @@ namespace bs
 		}
 	}
 
-	bool GUIButtonBase::_mouseEvent(const GUIMouseEvent& ev)
+	bool GUIButtonBase::MouseEventInternal(const GUIMouseEvent& ev)
 	{
 		if(ev.getType() == GUIMouseEventType::MouseOver)
 		{
-			if (!_isDisabled())
+			if (!IsDisabledInternal())
 			{
 				if(mHasFocus)
-					_setState(_isOn() ? GUIElementState::FocusedHoverOn : GUIElementState::FocusedHover);
+					SetStateInternal(IsOnInternal() ? GUIElementState::FocusedHoverOn : GUIElementState::FocusedHover);
 				else
-					_setState(_isOn() ? GUIElementState::HoverOn : GUIElementState::Hover);
+					SetStateInternal(IsOnInternal() ? GUIElementState::HoverOn : GUIElementState::Hover);
 
 				onHover();
 			}
@@ -267,12 +267,12 @@ namespace bs
 		}
 		else if(ev.getType() == GUIMouseEventType::MouseOut)
 		{
-			if (!_isDisabled())
+			if (!IsDisabledInternal())
 			{
 				if(mHasFocus)
-					_setState(_isOn() ? GUIElementState::FocusedOn : GUIElementState::Focused);
+					SetStateInternal(IsOnInternal() ? GUIElementState::FocusedOn : GUIElementState::Focused);
 				else
-					_setState(_isOn() ? GUIElementState::NormalOn : GUIElementState::Normal);
+					SetStateInternal(IsOnInternal() ? GUIElementState::NormalOn : GUIElementState::Normal);
 
 				onOut();
 			}
@@ -281,19 +281,19 @@ namespace bs
 		}
 		else if(ev.getType() == GUIMouseEventType::MouseDown)
 		{
-			if (!_isDisabled())
-				_setState(_isOn() ? GUIElementState::ActiveOn : GUIElementState::Active);
+			if (!IsDisabledInternal())
+				SetStateInternal(IsOnInternal() ? GUIElementState::ActiveOn : GUIElementState::Active);
 
 			return !mOptionFlags.isSet(GUIElementOption::ClickThrough);
 		}
 		else if(ev.getType() == GUIMouseEventType::MouseUp)
 		{
-			if (!_isDisabled())
+			if (!IsDisabledInternal())
 			{
 				if(mHasFocus)
-					_setState(_isOn() ? GUIElementState::FocusedHoverOn : GUIElementState::FocusedHover);
+					SetStateInternal(IsOnInternal() ? GUIElementState::FocusedHoverOn : GUIElementState::FocusedHover);
 				else
-					_setState(_isOn() ? GUIElementState::HoverOn : GUIElementState::Hover);
+					SetStateInternal(IsOnInternal() ? GUIElementState::HoverOn : GUIElementState::Hover);
 
 				onClick();
 			}
@@ -302,7 +302,7 @@ namespace bs
 		}
 		else if (ev.getType() == GUIMouseEventType::MouseDoubleClick)
 		{
-			if (!_isDisabled())
+			if (!IsDisabledInternal())
 				onDoubleClick();
 
 			return !mOptionFlags.isSet(GUIElementOption::ClickThrough);
@@ -311,21 +311,21 @@ namespace bs
 		return false;
 	}
 
-	bool GUIButtonBase::_commandEvent(const GUICommandEvent& ev)
+	bool GUIButtonBase::CommandEventInternal(const GUICommandEvent& ev)
 	{
-		const bool baseReturnValue = GUIElement::_commandEvent(ev);
+		const bool baseReturnValue = GUIElement::CommandEventInternal(ev);
 
 		GUIElementState state = (GUIElementState)((UINT32)mActiveState & (UINT32)GUIElementState::TypeMask);
 		if(ev.getType() == GUICommandEventType::FocusGained)
 		{
 			mHasFocus = true;
 
-			if(!_isDisabled())
+			if(!IsDisabledInternal())
 			{
 				if(state == GUIElementState::Normal)
-					_setState(_isOn() ? GUIElementState::FocusedOn : GUIElementState::Focused);
+					SetStateInternal(IsOnInternal() ? GUIElementState::FocusedOn : GUIElementState::Focused);
 				else if(state == GUIElementState::Hover)
-					_setState(_isOn() ? GUIElementState::FocusedHoverOn : GUIElementState::FocusedHover);
+					SetStateInternal(IsOnInternal() ? GUIElementState::FocusedHoverOn : GUIElementState::FocusedHover);
 			}
 
 			return true;
@@ -335,9 +335,9 @@ namespace bs
 			mHasFocus = false;
 
 			if (state == GUIElementState::Focused)
-				_setState(_isOn() ? GUIElementState::NormalOn : GUIElementState::Normal);
+				SetStateInternal(IsOnInternal() ? GUIElementState::NormalOn : GUIElementState::Normal);
 			else if (state == GUIElementState::FocusedHover)
-				_setState(_isOn() ? GUIElementState::HoverOn : GUIElementState::Hover);
+				SetStateInternal(IsOnInternal() ? GUIElementState::HoverOn : GUIElementState::Hover);
 
 			return true;
 		}
@@ -345,7 +345,7 @@ namespace bs
 		return baseReturnValue;
 	}
 
-	String GUIButtonBase::_getTooltip() const
+	String GUIButtonBase::GetTooltipInternal() const
 	{
 		return mContent.tooltip;
 	}
@@ -372,16 +372,16 @@ namespace bs
 	{
 		TEXT_SPRITE_DESC textDesc;
 		textDesc.text = mContent.text;
-		textDesc.font = _getStyle()->font;
-		textDesc.fontSize = _getStyle()->fontSize;
+		textDesc.font = GetStyleInternal()->font;
+		textDesc.fontSize = GetStyleInternal()->fontSize;
 		textDesc.color = getTint() * getActiveTextColor();
 
 		Rect2I textBounds = getCachedContentBounds();
 
 		textDesc.width = textBounds.width;
 		textDesc.height = textBounds.height;
-		textDesc.horzAlign = _getStyle()->textHorzAlign;
-		textDesc.vertAlign = _getStyle()->textVertAlign;
+		textDesc.horzAlign = GetStyleInternal()->textHorzAlign;
+		textDesc.vertAlign = GetStyleInternal()->textVertAlign;
 
 		return textDesc;
 	}
@@ -391,21 +391,21 @@ namespace bs
 		mImageDesc.animationStartTime = gTime().getTime();
 	}
 
-	void GUIButtonBase::_setState(GUIElementState state)
+	void GUIButtonBase::SetStateInternal(GUIElementState state)
 	{
-		Vector2I origSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+		Vector2I origSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 
 		if(mActiveState != state)
 			mImageDesc.animationStartTime = gTime().getTime();
 
 		mActiveState = state;
 		refreshContentSprite();
-		Vector2I newSize = mDimensions.calculateSizeRange(_getOptimalSize()).optimal;
+		Vector2I newSize = mDimensions.calculateSizeRange(GetOptimalSizeInternal()).optimal;
 
 		if (origSize != newSize)
-			_markLayoutAsDirty();
+			MarkLayoutAsDirtyInternal();
 		else
-			_markContentAsDirty();
+			MarkContentAsDirtyInternal();
 	}
 
 	const HSpriteTexture& GUIButtonBase::getActiveTexture() const
@@ -413,30 +413,30 @@ namespace bs
 		switch(mActiveState)
 		{
 		case GUIElementState::Normal:
-			return _getStyle()->normal.texture;
+			return GetStyleInternal()->normal.texture;
 		case GUIElementState::Hover:
-			return _getStyle()->hover.texture;
+			return GetStyleInternal()->hover.texture;
 		case GUIElementState::Active:
-			return _getStyle()->active.texture;
+			return GetStyleInternal()->active.texture;
 		case GUIElementState::Focused:
-			return _getStyle()->focused.texture;
+			return GetStyleInternal()->focused.texture;
 		case GUIElementState::FocusedHover:
-			return _getStyle()->focusedHover.texture;
+			return GetStyleInternal()->focusedHover.texture;
 		case GUIElementState::NormalOn:
-			return _getStyle()->normalOn.texture;
+			return GetStyleInternal()->normalOn.texture;
 		case GUIElementState::HoverOn:
-			return _getStyle()->hoverOn.texture;
+			return GetStyleInternal()->hoverOn.texture;
 		case GUIElementState::ActiveOn:
-			return _getStyle()->activeOn.texture;
+			return GetStyleInternal()->activeOn.texture;
 		case GUIElementState::FocusedOn:
-			return _getStyle()->focusedOn.texture;
+			return GetStyleInternal()->focusedOn.texture;
 		case GUIElementState::FocusedHoverOn:
-			return _getStyle()->focusedHoverOn.texture;
+			return GetStyleInternal()->focusedHoverOn.texture;
 		default:
 			break;
 		}
 
-		return _getStyle()->normal.texture;
+		return GetStyleInternal()->normal.texture;
 	}
 
 	Color GUIButtonBase::getActiveTextColor() const
@@ -444,29 +444,29 @@ namespace bs
 		switch (mActiveState)
 		{
 		case GUIElementState::Normal:
-			return _getStyle()->normal.textColor;
+			return GetStyleInternal()->normal.textColor;
 		case GUIElementState::Hover:
-			return _getStyle()->hover.textColor;
+			return GetStyleInternal()->hover.textColor;
 		case GUIElementState::Active:
-			return _getStyle()->active.textColor;
+			return GetStyleInternal()->active.textColor;
 		case GUIElementState::Focused:
-			return _getStyle()->focused.textColor;
+			return GetStyleInternal()->focused.textColor;
 		case GUIElementState::FocusedHover:
-			return _getStyle()->focusedHover.textColor;
+			return GetStyleInternal()->focusedHover.textColor;
 		case GUIElementState::NormalOn:
-			return _getStyle()->normalOn.textColor;
+			return GetStyleInternal()->normalOn.textColor;
 		case GUIElementState::HoverOn:
-			return _getStyle()->hoverOn.textColor;
+			return GetStyleInternal()->hoverOn.textColor;
 		case GUIElementState::ActiveOn:
-			return _getStyle()->activeOn.textColor;
+			return GetStyleInternal()->activeOn.textColor;
 		case GUIElementState::FocusedOn:
-			return _getStyle()->focusedOn.textColor;
+			return GetStyleInternal()->focusedOn.textColor;
 		case GUIElementState::FocusedHoverOn:
-			return _getStyle()->focusedHoverOn.textColor;
+			return GetStyleInternal()->focusedHoverOn.textColor;
 		default:
 			break;
 		}
 
-		return _getStyle()->normal.textColor;
+		return GetStyleInternal()->normal.textColor;
 	}
 }

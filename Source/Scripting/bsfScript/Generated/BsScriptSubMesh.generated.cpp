@@ -16,7 +16,7 @@ namespace bs
 
 	MonoObject*ScriptSubMesh::box(const SubMesh& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	SubMesh ScriptSubMesh::unbox(MonoObject* value)

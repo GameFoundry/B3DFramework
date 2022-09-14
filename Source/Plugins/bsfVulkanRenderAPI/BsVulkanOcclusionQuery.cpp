@@ -43,7 +43,7 @@ namespace bs { namespace ct
 		if (cb != nullptr)
 			vulkanCB = static_cast<VulkanCommandBuffer*>(cb.get());
 		else
-			vulkanCB = static_cast<VulkanCommandBuffer*>(gVulkanRenderAPI()._getMainCommandBuffer());
+			vulkanCB = static_cast<VulkanCommandBuffer*>(gVulkanRenderAPI().GetMainCommandBufferInternal());
 
 		VulkanCmdBuffer* internalCB = vulkanCB->getInternal();
 		mQueries.push_back(queryPool.beginOcclusionQuery(internalCB, !mBinary));
@@ -71,19 +71,19 @@ namespace bs { namespace ct
 		if (cb != nullptr)
 			vulkanCB = static_cast<VulkanCommandBuffer*>(cb.get());
 		else
-			vulkanCB = static_cast<VulkanCommandBuffer*>(gVulkanRenderAPI()._getMainCommandBuffer());
+			vulkanCB = static_cast<VulkanCommandBuffer*>(gVulkanRenderAPI().GetMainCommandBufferInternal());
 
 		VulkanQueryPool& queryPool = mDevice.getQueryPool();
 		VulkanCmdBuffer* internalCB = vulkanCB->getInternal();
 		queryPool.endOcclusionQuery(mQueries.back(), internalCB);
 	}
 
-	bool VulkanOcclusionQuery::_isInProgress() const
+	bool VulkanOcclusionQuery::IsInProgressInternal() const
 	{
 		return !mQueries.empty() && !mQueryEndCalled;
 	}
 
-	void VulkanOcclusionQuery::_interrupt(VulkanCmdBuffer& cb)
+	void VulkanOcclusionQuery::InterruptInternal(VulkanCmdBuffer& cb)
 	{
 		assert(!mQueries.empty() && !mQueryEndCalled);
 

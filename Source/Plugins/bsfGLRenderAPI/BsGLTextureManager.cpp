@@ -41,7 +41,7 @@ namespace bs
 		GLTexture* tex = new (bs_alloc<GLTexture>()) GLTexture(mGLSupport, desc, initialData, deviceMask);
 
 		SPtr<GLTexture> texPtr = bs_shared_ptr<GLTexture>(tex);
-		texPtr->_setThisPtr(texPtr);
+		texPtr->SetThisPtrInternal(texPtr);
 
 		return texPtr;
 	}
@@ -50,7 +50,7 @@ namespace bs
 																			  UINT32 deviceIdx)
 	{
 		SPtr<GLRenderTexture> texPtr = bs_shared_ptr_new<GLRenderTexture>(desc, deviceIdx);
-		texPtr->_setThisPtr(texPtr);
+		texPtr->SetThisPtrInternal(texPtr);
 
 		return texPtr;
 	}

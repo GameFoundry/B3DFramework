@@ -33,13 +33,13 @@ namespace bs
 		mBoneName = name;
 
 		if (mParent != nullptr)
-			mParent->_notifyBoneChanged(static_object_cast<CBone>(getHandle()));
+			mParent->NotifyBoneChangedInternal(static_object_cast<CBone>(getHandle()));
 	}
 
 	void CBone::onDestroyed()
 	{
 		if (mParent != nullptr)
-			mParent->_removeBone(static_object_cast<CBone>(getHandle()));
+			mParent->RemoveBoneInternal(static_object_cast<CBone>(getHandle()));
 
 		mParent = nullptr;
 	}
@@ -47,7 +47,7 @@ namespace bs
 	void CBone::onDisabled()
 	{
 		if (mParent != nullptr)
-			mParent->_removeBone(static_object_cast<CBone>(getHandle()));
+			mParent->RemoveBoneInternal(static_object_cast<CBone>(getHandle()));
 
 		mParent = nullptr;
 	}
@@ -75,9 +75,9 @@ namespace bs
 			if (parent != nullptr)
 			{
 				if (currentSO->getActive())
-					_setParent(parent);
+					SetParentInternal(parent);
 				else
-					_setParent(HAnimation());
+					SetParentInternal(HAnimation());
 
 				return;
 			}
@@ -85,10 +85,10 @@ namespace bs
 			currentSO = currentSO->getParent();
 		}
 
-		_setParent(HAnimation());
+		SetParentInternal(HAnimation());
 	}
 
-	void CBone::_setParent(const HAnimation& animation, bool isInternal)
+	void CBone::SetParentInternal(const HAnimation& animation, bool isInternal)
 	{
 		if (animation == mParent)
 			return;
@@ -96,10 +96,10 @@ namespace bs
 		if (!isInternal)
 		{
 			if (mParent != nullptr)
-				mParent->_removeBone(static_object_cast<CBone>(getHandle()));
+				mParent->RemoveBoneInternal(static_object_cast<CBone>(getHandle()));
 
 			if (animation != nullptr)
-				animation->_addBone(static_object_cast<CBone>(getHandle()));
+				animation->AddBoneInternal(static_object_cast<CBone>(getHandle()));
 		}
 
 		mParent = animation;

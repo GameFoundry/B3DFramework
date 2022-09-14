@@ -29,7 +29,7 @@ namespace bs
 		mInternal->setMesh(mesh);
 
 		if (mAnimation != nullptr)
-			mAnimation->_updateBounds(false);
+			mAnimation->UpdateBoundsInternal(false);
 	}
 
 	void CRenderable::onInitialized()
@@ -41,19 +41,19 @@ namespace bs
 		else
 			mInternal = Renderable::create();
 
-		gSceneManager()._bindActor(mInternal, sceneObject());
+		gSceneManager().BindActorInternal(mInternal, sceneObject());
 
 		mAnimation = SO()->getComponent<CAnimation>();
 		if (mAnimation != nullptr)
 		{
-			_registerAnimation(mAnimation);
-			mAnimation->_registerRenderable(static_object_cast<CRenderable>(mThisHandle));
+			RegisterAnimationInternal(mAnimation);
+			mAnimation->RegisterRenderableInternal(static_object_cast<CRenderable>(mThisHandle));
 		}
 	}
 
 	Bounds CRenderable::getBounds() const
 	{
-		mInternal->_updateState(*SO());
+		mInternal->UpdateStateInternal(*SO());
 		return mInternal->getBounds();
 	}
 
@@ -64,21 +64,21 @@ namespace bs
 		return true;
 	}
 
-	void CRenderable::_registerAnimation(const HAnimation& animation)
+	void CRenderable::RegisterAnimationInternal(const HAnimation& animation)
 	{
 		mAnimation = animation;
 
 		if (mInternal != nullptr)
 		{
-			mInternal->setAnimation(animation->_getInternal());
+			mInternal->setAnimation(animation->GetInternalInternal());
 
 			// Need to update transform because animated renderables handle local transforms through bones, so it
 			// shouldn't be included in the renderable's transform.
-			mInternal->_updateState(*SO(), true);
+			mInternal->UpdateStateInternal(*SO(), true);
 		}
 	}
 
-	void CRenderable::_unregisterAnimation()
+	void CRenderable::UnregisterAnimationInternal()
 	{
 		mAnimation = nullptr;
 
@@ -88,7 +88,7 @@ namespace bs
 
 			// Need to update transform because animated renderables handle local transforms through bones, so it
 			// shouldn't be included in the renderable's transform.
-			mInternal->_updateState(*SO(), true);
+			mInternal->UpdateStateInternal(*SO(), true);
 		}
 	}
 
@@ -100,9 +100,9 @@ namespace bs
 	void CRenderable::onDestroyed()
 	{
 		if (mAnimation != nullptr)
-			mAnimation->_unregisterRenderable();
+			mAnimation->UnregisterRenderableInternal();
 
-		gSceneManager()._unbindActor(mInternal);
+		gSceneManager().UnbindActorInternal(mInternal);
 		mInternal->destroy();
 	}
 

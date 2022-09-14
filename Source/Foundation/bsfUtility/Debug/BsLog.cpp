@@ -95,7 +95,7 @@ namespace bs
 		return mEntries;
 	}
 	
-	bool Log::_registerCategory(UINT32 id, const char* name)
+	bool Log::RegisterCategoryInternal(UINT32 id, const char* name)
 	{
 		if (!categoryExists(id))
 		{

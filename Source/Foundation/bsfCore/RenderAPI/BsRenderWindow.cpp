@@ -249,7 +249,7 @@ namespace bs
 		return static_cast<const RenderWindowProperties&>(getPropertiesInternal());
 	}
 
-	void RenderWindow::_notifyWindowEvent(WindowEventType type)
+	void RenderWindow::NotifyWindowEventInternal(WindowEventType type)
 	{
 		THROW_IF_CORE_THREAD;
 
@@ -261,7 +261,7 @@ namespace bs
 		{
 			case WindowEventType::Resized:
 			{
-				_windowMovedOrResized();
+				WindowMovedOrResizedInternal();
 
 				{
 					ScopedSpinLock lock(coreWindow->mLock);
@@ -276,7 +276,7 @@ namespace bs
 			}
 			case WindowEventType::Moved:
 			{
-				_windowMovedOrResized();
+				WindowMovedOrResizedInternal();
 
 				{
 					ScopedSpinLock lock(coreWindow->mLock);
@@ -364,43 +364,43 @@ namespace bs
 		}
 	}
 
-	void RenderWindow::_onExternalResize(UINT32 width, UINT32 height)
+	void RenderWindow::OnExternalResizeInternal(UINT32 width, UINT32 height)
 	{
 		RenderWindowProperties& props = getMutableProperties();
 		props.width = width;
 		props.height = height;
-		_notifyWindowEvent(WindowEventType::Resized);
+		NotifyWindowEventInternal(WindowEventType::Resized);
 	}
 
-	void RenderWindow::_onExternalMove(INT32 top, INT32 left)
+	void RenderWindow::OnExternalMoveInternal(INT32 top, INT32 left)
 	{
 		RenderWindowProperties& props = getMutableProperties();
 		props.top = top;
 		props.left = left;
-		_notifyWindowEvent(WindowEventType::Moved);
+		NotifyWindowEventInternal(WindowEventType::Moved);
 	}
 
-	void RenderWindow::_onExternalFocus(bool focused)
+	void RenderWindow::OnExternalFocusInternal(bool focused)
 	{
 		if(focused)
 		{
-			_notifyWindowEvent(WindowEventType::FocusReceived);
+			NotifyWindowEventInternal(WindowEventType::FocusReceived);
 		}
 		else
 		{
-			_notifyWindowEvent(WindowEventType::FocusLost);
+			NotifyWindowEventInternal(WindowEventType::FocusLost);
 		}
 	}
 
-	void RenderWindow::_onExternalMaximized(bool maximized)
+	void RenderWindow::OnExternalMaximizedInternal(bool maximized)
 	{
 		if(maximized)
 		{
-			_notifyWindowEvent(WindowEventType::Maximized);
+			NotifyWindowEventInternal(WindowEventType::Maximized);
 		}
 		else
 		{
-			_notifyWindowEvent(WindowEventType::Restored);
+			NotifyWindowEventInternal(WindowEventType::Restored);
 		}
 	}
 
@@ -451,7 +451,7 @@ namespace bs
 		THROW_IF_NOT_CORE_THREAD;
 	}
 
-	void RenderWindow::_notifyWindowEvent(WindowEventType type)
+	void RenderWindow::NotifyWindowEventInternal(WindowEventType type)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -462,7 +462,7 @@ namespace bs
 		{
 			case WindowEventType::Resized:
 			{
-				_windowMovedOrResized();
+				WindowMovedOrResizedInternal();
 
 				{
 					ScopedSpinLock lock(mLock);
@@ -477,7 +477,7 @@ namespace bs
 			}
 			case WindowEventType::Moved:
 			{
-				_windowMovedOrResized();
+				WindowMovedOrResizedInternal();
 
 				{
 					ScopedSpinLock lock(mLock);

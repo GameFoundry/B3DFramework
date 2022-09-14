@@ -38,7 +38,7 @@ namespace bs
 	void ScriptGUIScrollBar::internal_SetPosition(ScriptGUIElementBaseTBase* nativeInstance, float percent)
 	{
 		GUIScrollBar* scrollBar = (GUIScrollBar*)nativeInstance->getGUIElement();
-		scrollBar->_setScrollPos(percent);
+		scrollBar->SetScrollPosInternal(percent);
 	}
 
 	float ScriptGUIScrollBar::internal_GetHandleSize(ScriptGUIElementBaseTBase* nativeInstance)

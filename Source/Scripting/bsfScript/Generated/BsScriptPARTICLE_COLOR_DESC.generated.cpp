@@ -18,7 +18,7 @@ namespace bs
 
 	MonoObject*ScriptPARTICLE_COLOR_DESC::box(const __PARTICLE_COLOR_DESCInterop& value)
 	{
-		return MonoUtil::box(metaData.scriptClass->_getInternalClass(), (void*)&value);
+		return MonoUtil::box(metaData.scriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
 	__PARTICLE_COLOR_DESCInterop ScriptPARTICLE_COLOR_DESC::unbox(MonoObject* value)

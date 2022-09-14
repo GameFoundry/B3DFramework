@@ -148,10 +148,10 @@ namespace bs
 		 */
 
 		/** @copydoc GUIElement::_getElementType */
-		ElementType _getElementType() const override { return ElementType::Texture; }
+		ElementType GetElementTypeInternal() const override { return ElementType::Texture; }
 
-		/** @copydoc GUIElement::_getOptimalSize */
-		Vector2I _getOptimalSize() const override;
+		/** @copydoc GUIElement::GetOptimalSizeInternal */
+		Vector2I GetOptimalSizeInternal() const override;
 
 		/** @} */
 	protected:

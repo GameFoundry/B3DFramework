@@ -30,7 +30,7 @@ namespace bs
 			textData = stream->getAsWString();
 		}
 
-		SPtr<PlainText> plainText = PlainText::_createPtr(textData);
+		SPtr<PlainText> plainText = PlainText::CreatePtrInternal(textData);
 
 		String fileName = filePath.getFilename(false);
 		plainText->setName(fileName);

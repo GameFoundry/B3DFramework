@@ -15,7 +15,7 @@ namespace bs
 		VertexDeclaration* decl = new (bs_alloc<VertexDeclaration>()) VertexDeclaration(desc->createElements());
 
 		SPtr<VertexDeclaration> declPtr = bs_core_ptr<VertexDeclaration>(decl);
-		declPtr->_setThisPtr(declPtr);
+		declPtr->SetThisPtrInternal(declPtr);
 		declPtr->initialize();
 
 		return declPtr;
@@ -24,7 +24,7 @@ namespace bs
 	SPtr<VertexBuffer> HardwareBufferManager::createVertexBuffer(const VERTEX_BUFFER_DESC& desc)
 	{
 		SPtr<VertexBuffer> vbuf = bs_core_ptr<VertexBuffer>(new (bs_alloc<VertexBuffer>()) VertexBuffer(desc));
-		vbuf->_setThisPtr(vbuf);
+		vbuf->SetThisPtrInternal(vbuf);
 		vbuf->initialize();
 		return vbuf;
 	}
@@ -32,7 +32,7 @@ namespace bs
 	SPtr<IndexBuffer> HardwareBufferManager::createIndexBuffer(const INDEX_BUFFER_DESC& desc)
 	{
 		SPtr<IndexBuffer> ibuf = bs_core_ptr<IndexBuffer>(new (bs_alloc<IndexBuffer>()) IndexBuffer(desc));
-		ibuf->_setThisPtr(ibuf);
+		ibuf->SetThisPtrInternal(ibuf);
 		ibuf->initialize();
 		return ibuf;
 
@@ -41,7 +41,7 @@ namespace bs
 	SPtr<GpuParamBlockBuffer> HardwareBufferManager::createGpuParamBlockBuffer(UINT32 size, GpuBufferUsage usage)
 	{
 		SPtr<GpuParamBlockBuffer> paramBlockPtr = bs_core_ptr<GpuParamBlockBuffer>(new (bs_alloc<GpuParamBlockBuffer>()) GpuParamBlockBuffer(size, usage));
-		paramBlockPtr->_setThisPtr(paramBlockPtr);
+		paramBlockPtr->SetThisPtrInternal(paramBlockPtr);
 		paramBlockPtr->initialize();
 		return paramBlockPtr;
 	}
@@ -49,7 +49,7 @@ namespace bs
 	SPtr<GpuBuffer> HardwareBufferManager::createGpuBuffer(const GPU_BUFFER_DESC& desc)
 	{
 		SPtr<GpuBuffer> gbuf = bs_core_ptr<GpuBuffer>(new (bs_alloc<GpuBuffer>()) GpuBuffer(desc));
-		gbuf->_setThisPtr(gbuf);
+		gbuf->SetThisPtrInternal(gbuf);
 		gbuf->initialize();
 
 		return gbuf;
@@ -59,7 +59,7 @@ namespace bs
 	{
 		GpuParams* params = new (bs_alloc<GpuParams>()) GpuParams(paramInfo);
 		SPtr<GpuParams> paramsPtr = bs_core_ptr<GpuParams>(params);
-		paramsPtr->_setThisPtr(paramsPtr);
+		paramsPtr->SetThisPtrInternal(paramsPtr);
 		paramsPtr->initialize();
 
 		return paramsPtr;
@@ -186,7 +186,7 @@ namespace bs
 		VertexDeclaration* decl = new (bs_alloc<VertexDeclaration>()) VertexDeclaration(elements, deviceMask);
 
 		SPtr<VertexDeclaration> ret = bs_shared_ptr<VertexDeclaration>(decl);
-		ret->_setThisPtr(ret);
+		ret->SetThisPtrInternal(ret);
 
 		return ret;
 	}
@@ -196,7 +196,7 @@ namespace bs
 	{
 		GpuParams* params = new (bs_alloc<GpuParams>()) GpuParams(paramInfo, deviceMask);
 		SPtr<GpuParams> paramsPtr = bs_shared_ptr<GpuParams>(params);
-		paramsPtr->_setThisPtr(paramsPtr);
+		paramsPtr->SetThisPtrInternal(paramsPtr);
 
 		return paramsPtr;
 	}

@@ -89,7 +89,7 @@ namespace bs
 		// we can't iterate over an array thats getting modified
 		Vector<WidgetInfo> widgetCopy = mWidgets;
 		for(auto& widget : widgetCopy)
-			widget.widget->_destroy();
+			widget.widget->DestroyInternal();
 
 		// Ensure everything queued get destroyed
 		processDestroyQueue();
@@ -179,7 +179,7 @@ namespace bs
 
 	void GUIManager::update()
 	{
-		DragAndDropManager::instance()._update();
+		DragAndDropManager::instance().UpdateInternal();
 
 		// Show tooltip if needed
 		if (mShowTooltip)
@@ -189,8 +189,8 @@ namespace bs
 			{
 				for(auto& entry : mElementsUnderPointer)
 				{
-					const String& tooltipText = entry.element->_getTooltip();
-					GUIWidget* parentWidget = entry.element->_getParentWidget();
+					const String& tooltipText = entry.element->GetTooltipInternal();
+					GUIWidget* parentWidget = entry.element->GetParentWidgetInternal();
 
 					if (!tooltipText.empty() && parentWidget != nullptr)
 					{
@@ -213,7 +213,7 @@ namespace bs
 		gProfilerCPU().beginSample("UpdateLayout");
 		for(auto& widgetInfo : mWidgets)
 		{
-			widgetInfo.widget->_updateLayout();
+			widgetInfo.widget->UpdateLayoutInternal();
 		}
 		gProfilerCPU().endSample("UpdateLayout");
 
@@ -223,7 +223,7 @@ namespace bs
 			mNewElementsUnderPointer.clear();
 			for (auto& elementInfo : mElementsUnderPointer)
 			{
-				if (!elementInfo.element->_isDestroyed())
+				if (!elementInfo.element->IsDestroyedInternal())
 					mNewElementsUnderPointer.push_back(elementInfo);
 			}
 
@@ -232,7 +232,7 @@ namespace bs
 			mNewActiveElements.clear();
 			for (auto& elementInfo : mActiveElements)
 			{
-				if (!elementInfo.element->_isDestroyed())
+				if (!elementInfo.element->IsDestroyedInternal())
 					mNewActiveElements.push_back(elementInfo);
 			}
 
@@ -242,7 +242,7 @@ namespace bs
 
 			for (auto& elementInfo : mElementsInFocus)
 			{
-				if (!elementInfo.element->_isDestroyed())
+				if (!elementInfo.element->IsDestroyedInternal())
 					mNewElementsInFocus.push_back(elementInfo);
 			}
 
@@ -253,7 +253,7 @@ namespace bs
 				mNewElementsInFocus.clear();
 				for (auto& entry : elementsPerWindow.second)
 				{
-					if (!entry.element->_isDestroyed())
+					if (!entry.element->IsDestroyedInternal())
 						mNewElementsInFocus.push_back(entry);
 				}
 
@@ -289,7 +289,7 @@ namespace bs
 
 			for (auto& focusElementInfo : mForcedFocusElements)
 			{
-				if (focusElementInfo.element->_isDestroyed())
+				if (focusElementInfo.element->IsDestroyedInternal())
 					continue;
 
 				const auto iterFind = std::find_if(mElementsInFocus.begin(), mElementsInFocus.end(),
@@ -301,7 +301,7 @@ namespace bs
 					if (iterFind == mElementsInFocus.end())
 					{
 						mElementsInFocus.push_back(ElementFocusInfo(focusElementInfo.element,
-							focusElementInfo.element->_getParentWidget(), false));
+							focusElementInfo.element->GetParentWidgetInternal(), false));
 
 						mCommandEvent = GUICommandEvent();
 						mCommandEvent.setType(GUICommandEventType::FocusGained);
@@ -428,7 +428,7 @@ namespace bs
 				bool acceptDrop = true;
 				if(DragAndDropManager::instance().needsValidDropTarget())
 				{
-					acceptDrop = elementInfo.element->_acceptDragAndDrop(localPos, DragAndDropManager::instance().getDragTypeId());
+					acceptDrop = elementInfo.element->AcceptDragAndDropInternal(localPos, DragAndDropManager::instance().getDragTypeId());
 				}
 
 				if(acceptDrop)
@@ -507,7 +507,7 @@ namespace bs
 					acceptDrop = true;
 					if(DragAndDropManager::instance().needsValidDropTarget())
 					{
-						acceptDrop = elementInfo.element->_acceptDragAndDrop(localPos, DragAndDropManager::instance().getDragTypeId());
+						acceptDrop = elementInfo.element->AcceptDragAndDropInternal(localPos, DragAndDropManager::instance().getDragTypeId());
 					}
 
 					if(acceptDrop)
@@ -562,7 +562,7 @@ namespace bs
 					if (mDragState == DragState::NoDrag)
 					{
 						CursorType newCursor = CursorType::Arrow;
-						if(elementInfo.element->_hasCustomCursor(localPos, newCursor))
+						if(elementInfo.element->HasCustomCursorInternal(localPos, newCursor))
 						{
 							if(newCursor != mActiveCursor)
 							{
@@ -792,7 +792,7 @@ namespace bs
 		{
 			for(auto& elementInfo : mElementsUnderPointer)
 			{
-				SPtr<GUIContextMenu> menu = elementInfo.element->_getContextMenu();
+				SPtr<GUIContextMenu> menu = elementInfo.element->GetContextMenuInternal();
 
 				if(menu != nullptr && elementInfo.widget != nullptr)
 				{
@@ -995,7 +995,7 @@ namespace bs
 					{
 						GUIElement* element = *iter;
 
-						if(element->_isVisible() && element->_isInBounds(localPos))
+						if(element->IsVisibleInternal() && element->IsInBoundsInternal(localPos))
 						{
 							ElementInfoUnderPointer elementInfo(element, widget);
 
@@ -1020,7 +1020,7 @@ namespace bs
 		std::sort(mNewElementsUnderPointer.begin(), mNewElementsUnderPointer.end(),
 			[](const ElementInfoUnderPointer& a, const ElementInfoUnderPointer& b)
 		{
-			return a.element->_getDepth() < b.element->_getDepth();
+			return a.element->GetDepthInternal() < b.element->GetDepthInternal();
 		});
 
 		// Send MouseOut and MouseOver events
@@ -1157,7 +1157,7 @@ namespace bs
 			mNewElementsInFocus.clear();
 			for(auto& focusedElement : mElementsInFocus)
 			{
-				if (focusedElement.element->_isDestroyed())
+				if (focusedElement.element->IsDestroyedInternal())
 					continue;
 
 				auto iterFind2 = std::find_if(savedFocusedElements.begin(), savedFocusedElements.end(),
@@ -1182,7 +1182,7 @@ namespace bs
 
 			for(auto& entry : savedFocusedElements)
 			{
-				if (entry.element->_isDestroyed())
+				if (entry.element->IsDestroyedInternal())
 					continue;
 
 				auto iterFind2 = std::find_if(mElementsInFocus.begin(), mElementsInFocus.end(),
@@ -1220,7 +1220,7 @@ namespace bs
 		mNewElementsInFocus.clear();
 		for(auto& focusedElement : mElementsInFocus)
 		{
-			if (focusedElement.element->_isDestroyed())
+			if (focusedElement.element->IsDestroyedInternal())
 				continue;
 
 			if (focusedElement.widget != nullptr && getWidgetWindow(*focusedElement.widget) == &win)
@@ -1374,14 +1374,14 @@ namespace bs
 		if(iterFind != mInputBridge.end()) // Widget input is bridged, which means we need to transform the coordinates
 		{
 			const GUIElement* bridgeElement = iterFind->second;
-			const GUIWidget* parentWidget = bridgeElement->_getParentWidget();
+			const GUIWidget* parentWidget = bridgeElement->GetParentWidgetInternal();
 			if (parentWidget == nullptr)
 				return windowPos;
 
 			const Matrix4& worldTfrm = parentWidget->getWorldTfrm();
 
 			Vector4 vecLocalPos = worldTfrm.inverse().multiplyAffine(Vector4((float)windowPos.x, (float)windowPos.y, 0.0f, 1.0f));
-			Rect2I bridgeBounds = bridgeElement->_getLayoutData().area;
+			Rect2I bridgeBounds = bridgeElement->GetLayoutDataInternal().area;
 
 			// Find coordinates relative to the bridge element
 			float x = vecLocalPos.x - (float)bridgeBounds.x;
@@ -1414,7 +1414,7 @@ namespace bs
 		auto iterFind = mInputBridge.find(renderTexture);
 		if(iterFind != mInputBridge.end())
 		{
-			GUIWidget* parentWidget = iterFind->second->_getParentWidget();
+			GUIWidget* parentWidget = iterFind->second->GetParentWidgetInternal();
 			if (parentWidget == nullptr)
 				return nullptr;
 
@@ -1442,7 +1442,7 @@ namespace bs
 			if (iterFind == mInputBridge.end())
 				return nullptr;
 
-			GUIWidget* parentWidget = iterFind->second->_getParentWidget();
+			GUIWidget* parentWidget = iterFind->second->GetParentWidgetInternal();
 			if (parentWidget == nullptr)
 				return nullptr;
 
@@ -1469,7 +1469,7 @@ namespace bs
 		for(auto& entry : mInputBridge)
 		{
 			const GUIElement* element = entry.second;
-			GUIWidget* parentWidget = element->_getParentWidget();
+			GUIWidget* parentWidget = element->GetParentWidgetInternal();
 			if (parentWidget == widget)
 				elements.add(std::make_pair(element, entry.first));
 		}
@@ -1489,12 +1489,12 @@ namespace bs
 			for (auto& element : elements)
 			{
 				const bool acceptsKeyFocus = element->getOptionFlags().isSet(GUIElementOption::AcceptsKeyFocus);
-				if (!acceptsKeyFocus || element->_isDisabled() || !element->_isVisible())
+				if (!acceptsKeyFocus || element->IsDisabledInternal() || !element->IsVisibleInternal())
 					continue;
 
-				const Rect2I elemBounds = element->_getClippedBounds();
-				const bool isFullyClipped = element->_getClippedBounds().width == 0 ||
-					element->_getClippedBounds().height == 0;
+				const Rect2I elemBounds = element->GetClippedBoundsInternal();
+				const bool isFullyClipped = element->GetClippedBoundsInternal().width == 0 ||
+					element->GetClippedBoundsInternal().height == 0;
 
 				if (isFullyClipped)
 					continue;
@@ -1515,7 +1515,7 @@ namespace bs
 			return;
 
 		// Don't use the element directly though, since its tab group could have explicit ordering
-		const SPtr<GUINavGroup>& navGroup = closestElement->_getNavGroup();
+		const SPtr<GUINavGroup>& navGroup = closestElement->GetNavGroupInternal();
 		navGroup->focusFirst();
 	}
 
@@ -1523,7 +1523,7 @@ namespace bs
 	{
 		for(auto& entry : mElementsInFocus)
 		{
-			const SPtr<GUINavGroup>& navGroup = entry.element->_getNavGroup();
+			const SPtr<GUINavGroup>& navGroup = entry.element->GetNavGroupInternal();
 			GUIElementOptions elementOptions = entry.element->getOptionFlags();
 			if(elementOptions.isSet(GUIElementOption::AcceptsKeyFocus) && navGroup != nullptr)
 			{
@@ -1538,34 +1538,34 @@ namespace bs
 
 	bool GUIManager::sendMouseEvent(GUIElement* element, const GUIMouseEvent& event)
 	{
-		if (element->_isDestroyed())
+		if (element->IsDestroyedInternal())
 			return false;
 
-		return element->_mouseEvent(event);
+		return element->MouseEventInternal(event);
 	}
 
 	bool GUIManager::sendTextInputEvent(GUIElement* element, const GUITextInputEvent& event)
 	{
-		if (element->_isDestroyed())
+		if (element->IsDestroyedInternal())
 			return false;
 
-		return element->_textInputEvent(event);
+		return element->TextInputEventInternal(event);
 	}
 
 	bool GUIManager::sendCommandEvent(GUIElement* element, const GUICommandEvent& event)
 	{
-		if (element->_isDestroyed())
+		if (element->IsDestroyedInternal())
 			return false;
 
-		return element->_commandEvent(event);
+		return element->CommandEventInternal(event);
 	}
 
 	bool GUIManager::sendVirtualButtonEvent(GUIElement* element, const GUIVirtualButtonEvent& event)
 	{
-		if (element->_isDestroyed())
+		if (element->IsDestroyedInternal())
 			return false;
 
-		return element->_virtualButtonEvent(event);
+		return element->VirtualButtonEventInternal(event);
 	}
 
 	GUIManager& gGUIManager()

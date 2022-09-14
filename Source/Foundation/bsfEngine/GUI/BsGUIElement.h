@@ -140,7 +140,7 @@ namespace bs
 		 * Returns information about all renderable elements in this GUI element, including their mesh, material and
 		 * general information.
 		 */
-		const SmallVector<GUIRenderElement, 4>& _getRenderElements() const { return mRenderElements; }
+		const SmallVector<GUIRenderElement, 4>& GetRenderElementsInternal() const { return mRenderElements; }
 
 		/**
 		 * Fill the pre-allocated vertex, uv and index buffers with the mesh data for the specified render element.
@@ -173,46 +173,46 @@ namespace bs
 		 * Recreates the internal render elements. Must be called before fillBuffer if element is dirty. Marks the element
 		 * as non dirty.
 		 */
-		void _updateRenderElements();
+		void UpdateRenderElementsInternal();
 
 		/** Gets internal element style representing the exact type of GUI element in this object. */
-		virtual ElementType _getElementType() const { return ElementType::Undefined; }
+		virtual ElementType GetElementTypeInternal() const { return ElementType::Undefined; }
 
 		/**
 		 * Called when a mouse event is received on any GUI element the mouse is interacting with. Return true if you have
 		 * processed the event and don't want other elements to process it.
 		 */
-		virtual bool _mouseEvent(const GUIMouseEvent& ev);
+		virtual bool MouseEventInternal(const GUIMouseEvent& ev);
 
 		/**
 		 * Called when some text is input and the GUI element has input focus. Return true if you have processed the event
 		 * and don't want other elements to process it.
 		 */	
-		virtual bool _textInputEvent(const GUITextInputEvent& ev);
+		virtual bool TextInputEventInternal(const GUITextInputEvent& ev);
 
 		/**
 		 * Called when a command event is triggered. Return true if you have processed the event and don't want other 
 		 * elements to process it.
 		 */
-		virtual bool _commandEvent(const GUICommandEvent& ev);
+		virtual bool CommandEventInternal(const GUICommandEvent& ev);
 
 		/**
 		 * Called when a virtual button is pressed/released and the GUI element has input focus. Return true if you have
 		 * processed the event and don't want other elements to process it.
 		 */
-		virtual bool _virtualButtonEvent(const GUIVirtualButtonEvent& ev);
+		virtual bool VirtualButtonEventInternal(const GUIVirtualButtonEvent& ev);
 
 		/** Set element part of element depth. Less significant than both widget and area depth. */
-		void _setElementDepth(UINT8 depth);
+		void SetElementDepthInternal(UINT8 depth);
 
 		/** Retrieve element part of element depth. Less significant than both widget and area depth. */
-		UINT8 _getElementDepth() const;
+		UINT8 GetElementDepthInternal() const;
 
 		/** @copydoc GUIElementBase::_setLayoutData */
-		void _setLayoutData(const GUILayoutData& data) override;
+		void SetLayoutDataInternal(const GUILayoutData& data) override;
 
 		/** @copydoc GUIElementBase::_changeParentWidget */
-		void _changeParentWidget(GUIWidget* widget) override;
+		void ChangeParentWidgetInternal(GUIWidget* widget) override;
 
 		/**
 		 * Returns the range of depths that the child elements can be rendered it.
@@ -221,58 +221,58 @@ namespace bs
 		 * For example if you are rendering a button with an image and a text you will want the text to be rendered in front
 		 * of the image at a different depth, which means the depth range is 2 (0 for text, 1 for background image).
 		 */
-		virtual UINT32 _getRenderElementDepthRange() const { return 1; }
+		virtual UINT32 GetRenderElementDepthRangeInternal() const { return 1; }
 
 		/** Gets internal element style representing the exact type of GUI element in this object. */
-		Type _getType() const override { return GUIElementBase::Type::Element; }
+		Type GetTypeInternal() const override { return GUIElementBase::Type::Element; }
 
 		/** Checks if element has been destroyed and is queued for deletion. */
-		bool _isDestroyed() const override { return mIsDestroyed; }
+		bool IsDestroyedInternal() const override { return mIsDestroyed; }
 
 		/** Update element style based on active GUI skin and style name. */
-		void _refreshStyle();
+		void RefreshStyleInternal();
 
 		/**	Gets the currently active element style. */
-		const GUIElementStyle* _getStyle() const { return mStyle; }
+		const GUIElementStyle* GetStyleInternal() const { return mStyle; }
 
 		/**	Gets GUI element bounds relative to parent widget, clipped by specified clip rect. */
-		const Rect2I& _getClippedBounds() const { return mClippedBounds; }
+		const Rect2I& GetClippedBoundsInternal() const { return mClippedBounds; }
 
 		/** 
 		 * Returns GUI element padding. Padding is modified by changing element style and determines minimum distance 
 		 * between different GUI elements. 
 		 */
-		const RectOffset& _getPadding() const override;
+		const RectOffset& GetPaddingInternal() const override;
 
 		/**
 		 * Returns GUI element depth. This includes widget and area depth, but does not include specific per-render-element
 		 * depth.
 		 */
-		UINT32 _getDepth() const { return mLayoutData.depth; }
+		UINT32 GetDepthInternal() const { return mLayoutData.depth; }
 
 		/** Returns the navigation group this element belongs to. See setNavGroup(). */
-		SPtr<GUINavGroup> _getNavGroup() const;
+		SPtr<GUINavGroup> GetNavGroupInternal() const;
 
 		/** Checks is the specified position within GUI element bounds. Position is relative to parent GUI widget. */
-		virtual bool _isInBounds(const Vector2I position) const;
+		virtual bool IsInBoundsInternal(const Vector2I position) const;
 
 		/**	Checks if the GUI element has a custom cursor and outputs the cursor type if it does. */
-		virtual bool _hasCustomCursor(const Vector2I position, CursorType& type) const { return false; }
+		virtual bool HasCustomCursorInternal(const Vector2I position, CursorType& type) const { return false; }
 
 		/**	Checks if the GUI element accepts a drag and drop operation of the specified type. */
-		virtual bool _acceptDragAndDrop(const Vector2I position, UINT32 typeId) const { return false; }
+		virtual bool AcceptDragAndDropInternal(const Vector2I position, UINT32 typeId) const { return false; }
 
 		/**	Returns a context menu if a GUI element has one. Otherwise returns nullptr. */
-		virtual SPtr<GUIContextMenu> _getContextMenu() const;
+		virtual SPtr<GUIContextMenu> GetContextMenuInternal() const;
 
 		/**	Returns text to display when hovering over the element. Returns empty string if no tooltip. */
-		virtual String _getTooltip() const { return StringUtil::BLANK; }
+		virtual String GetTooltipInternal() const { return StringUtil::BLANK; }
 
 		/**	Returns a clip rectangle relative to the element, used for offsetting the input text. */
-		virtual Vector2I _getTextInputOffset() const { return Vector2I(); }
+		virtual Vector2I GetTextInputOffsetInternal() const { return Vector2I(); }
 
 		/**	Returns a clip rectangle relative to the element, used for clipping	the input text. */
-		virtual Rect2I _getTextInputRect() const { return Rect2I(); }
+		virtual Rect2I GetTextInputRectInternal() const { return Rect2I(); }
 		
 		/** @} */
 
